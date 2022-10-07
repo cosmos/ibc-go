@@ -1,15 +1,19 @@
 package testvalues
 
 import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/strangelove-ventures/ibctest/ibc"
+	"time"
 
-	feetypes "github.com/cosmos/ibc-go/v4/modules/apps/29-fee/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/strangelove-ventures/ibctest/v6/ibc"
+
+	feetypes "github.com/cosmos/ibc-go/v6/modules/apps/29-fee/types"
 )
 
 const (
-	StartingTokenAmount int64 = 10_000_000
-	IBCTransferAmount   int64 = 10_000
+	StartingTokenAmount int64         = 100_000_000
+	IBCTransferAmount   int64         = 10_000
+	InvalidAddress      string        = "<invalid-address>"
+	VotingPeriod        time.Duration = time.Second * 30
 )
 
 // ImmediatelyTimeout returns an ibc.IBCTimeout which will cause an IBC transfer to timeout immediately.

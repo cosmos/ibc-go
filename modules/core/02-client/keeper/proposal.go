@@ -6,23 +6,18 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	"github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v5/modules/core/exported"
+	"github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v6/modules/core/exported"
 )
 
 // ClientUpdateProposal will retrieve the subject and substitute client.
 // A callback will occur to the subject client state with the client
 // prefixed store being provided for both the subject and the substitute client.
-// The localhost client is not allowed to be modified with a proposal. The IBC
-// client implementations are responsible for validating the parameters of the
+// The IBC client implementations are responsible for validating the parameters of the
 // subtitute (enusring they match the subject's parameters) as well as copying
 // the necessary consensus states from the subtitute to the subject client
 // store. The substitute must be Active and the subject must not be Active.
 func (k Keeper) ClientUpdateProposal(ctx sdk.Context, p *types.ClientUpdateProposal) error {
-	if p.SubjectClientId == exported.Localhost || p.SubstituteClientId == exported.Localhost {
-		return sdkerrors.Wrap(types.ErrInvalidUpdateClientProposal, "cannot update localhost client with proposal")
-	}
-
 	subjectClientState, found := k.GetClientState(ctx, p.SubjectClientId)
 	if !found {
 		return sdkerrors.Wrapf(types.ErrClientNotFound, "subject client with ID %s", p.SubjectClientId)
@@ -49,20 +44,18 @@ func (k Keeper) ClientUpdateProposal(ctx sdk.Context, p *types.ClientUpdatePropo
 		return sdkerrors.Wrapf(types.ErrClientNotActive, "substitute client is not Active, status is %s", status)
 	}
 
-	clientState, err := subjectClientState.CheckSubstituteAndUpdateState(ctx, k.cdc, subjectClientStore, substituteClientStore, substituteClientState)
-	if err != nil {
+	if err := subjectClientState.CheckSubstituteAndUpdateState(ctx, k.cdc, subjectClientStore, substituteClientStore, substituteClientState); err != nil {
 		return err
 	}
-	k.SetClientState(ctx, p.SubjectClientId, clientState)
 
-	k.Logger(ctx).Info("client updated after governance proposal passed", "client-id", p.SubjectClientId, "height", clientState.GetLatestHeight().String())
+	k.Logger(ctx).Info("client updated after governance proposal passed", "client-id", p.SubjectClientId)
 
 	defer func() {
 		telemetry.IncrCounterWithLabels(
 			[]string{"ibc", "client", "update"},
 			1,
 			[]metrics.Label{
-				telemetry.NewLabel(types.LabelClientType, clientState.ClientType()),
+				telemetry.NewLabel(types.LabelClientType, substituteClientState.ClientType()),
 				telemetry.NewLabel(types.LabelClientID, p.SubjectClientId),
 				telemetry.NewLabel(types.LabelUpdateType, "proposal"),
 			},
@@ -70,7 +63,7 @@ func (k Keeper) ClientUpdateProposal(ctx sdk.Context, p *types.ClientUpdatePropo
 	}()
 
 	// emitting events in the keeper for proposal updates to clients
-	EmitUpdateClientProposalEvent(ctx, p.SubjectClientId, clientState)
+	EmitUpdateClientProposalEvent(ctx, p.SubjectClientId, substituteClientState.ClientType())
 
 	return nil
 }

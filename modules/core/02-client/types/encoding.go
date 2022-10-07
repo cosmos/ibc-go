@@ -5,7 +5,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 
-	"github.com/cosmos/ibc-go/v5/modules/core/exported"
+	"github.com/cosmos/ibc-go/v6/modules/core/exported"
 )
 
 // MustUnmarshalClientState attempts to decode and return an ClientState object from
@@ -86,29 +86,29 @@ func UnmarshalConsensusState(cdc codec.BinaryCodec, bz []byte) (exported.Consens
 	return consensusState, nil
 }
 
-// MarshalHeader protobuf serializes a Header interface
-func MarshalHeader(cdc codec.BinaryCodec, h exported.Header) ([]byte, error) {
-	return cdc.MarshalInterface(h)
+// MarshalClientMessage protobuf serializes a ClientMessage interface
+func MarshalClientMessage(cdc codec.BinaryCodec, clientMessage exported.ClientMessage) ([]byte, error) {
+	return cdc.MarshalInterface(clientMessage)
 }
 
-// MustMarshalHeader attempts to encode a Header object and returns the
+// MustMarshalClientMessage attempts to encode a ClientMessage object and returns the
 // raw encoded bytes. It panics on error.
-func MustMarshalHeader(cdc codec.BinaryCodec, header exported.Header) []byte {
-	bz, err := MarshalHeader(cdc, header)
+func MustMarshalClientMessage(cdc codec.BinaryCodec, clientMessage exported.ClientMessage) []byte {
+	bz, err := MarshalClientMessage(cdc, clientMessage)
 	if err != nil {
-		panic(fmt.Errorf("failed to encode header: %w", err))
+		panic(fmt.Errorf("failed to encode ClientMessage: %w", err))
 	}
 
 	return bz
 }
 
-// UnmarshalHeader returns a Header interface from raw proto encoded header bytes.
+// UnmarshalClientMessage returns a ClientMessage interface from raw proto encoded header bytes.
 // An error is returned upon decoding failure.
-func UnmarshalHeader(cdc codec.BinaryCodec, bz []byte) (exported.Header, error) {
-	var header exported.Header
-	if err := cdc.UnmarshalInterface(bz, &header); err != nil {
+func UnmarshalClientMessage(cdc codec.BinaryCodec, bz []byte) (exported.ClientMessage, error) {
+	var clientMessage exported.ClientMessage
+	if err := cdc.UnmarshalInterface(bz, &clientMessage); err != nil {
 		return nil, err
 	}
 
-	return header, nil
+	return clientMessage, nil
 }

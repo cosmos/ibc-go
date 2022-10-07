@@ -3,11 +3,11 @@ package ibctesting
 import (
 	"time"
 
-	connectiontypes "github.com/cosmos/ibc-go/v5/modules/core/03-connection/types"
-	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
-	"github.com/cosmos/ibc-go/v5/modules/core/exported"
-	ibctmtypes "github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint/types"
-	"github.com/cosmos/ibc-go/v5/testing/mock"
+	connectiontypes "github.com/cosmos/ibc-go/v6/modules/core/03-connection/types"
+	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
+	"github.com/cosmos/ibc-go/v6/modules/core/exported"
+	ibctm "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint"
+	"github.com/cosmos/ibc-go/v6/testing/mock"
 )
 
 type ClientConfig interface {
@@ -15,22 +15,18 @@ type ClientConfig interface {
 }
 
 type TendermintConfig struct {
-	TrustLevel                   ibctmtypes.Fraction
-	TrustingPeriod               time.Duration
-	UnbondingPeriod              time.Duration
-	MaxClockDrift                time.Duration
-	AllowUpdateAfterExpiry       bool
-	AllowUpdateAfterMisbehaviour bool
+	TrustLevel      ibctm.Fraction
+	TrustingPeriod  time.Duration
+	UnbondingPeriod time.Duration
+	MaxClockDrift   time.Duration
 }
 
 func NewTendermintConfig() *TendermintConfig {
 	return &TendermintConfig{
-		TrustLevel:                   DefaultTrustLevel,
-		TrustingPeriod:               TrustingPeriod,
-		UnbondingPeriod:              UnbondingPeriod,
-		MaxClockDrift:                MaxClockDrift,
-		AllowUpdateAfterExpiry:       false,
-		AllowUpdateAfterMisbehaviour: false,
+		TrustLevel:      DefaultTrustLevel,
+		TrustingPeriod:  TrustingPeriod,
+		UnbondingPeriod: UnbondingPeriod,
+		MaxClockDrift:   MaxClockDrift,
 	}
 }
 

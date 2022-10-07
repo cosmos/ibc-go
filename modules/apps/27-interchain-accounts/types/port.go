@@ -13,5 +13,5 @@ func NewControllerPortID(owner string) (string, error) {
 		return "", sdkerrors.Wrap(ErrInvalidAccountAddress, "owner address cannot be empty")
 	}
 
-	return fmt.Sprint(PortPrefix, owner), nil
+	return fmt.Sprint(ControllerPortPrefix, owner), nil
 }

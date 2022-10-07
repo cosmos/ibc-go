@@ -1,19 +1,19 @@
 package client_test
 
 import (
+	"strings"
 	"testing"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	"github.com/stretchr/testify/suite"
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
-	client "github.com/cosmos/ibc-go/v5/modules/core/02-client"
-	"github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v5/modules/core/exported"
-	ibctmtypes "github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint/types"
-	localhosttypes "github.com/cosmos/ibc-go/v5/modules/light-clients/09-localhost/types"
-	ibctesting "github.com/cosmos/ibc-go/v5/testing"
+	client "github.com/cosmos/ibc-go/v6/modules/core/02-client"
+	"github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
+	ibctm "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint"
+	ibctesting "github.com/cosmos/ibc-go/v6/testing"
 )
 
 type ClientTestSuite struct {
@@ -30,13 +30,6 @@ func (suite *ClientTestSuite) SetupTest() {
 
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
 	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
-
-	// set localhost client
-	revision := types.ParseChainID(suite.chainA.GetContext().ChainID())
-	localHostClient := localhosttypes.NewClientState(
-		suite.chainA.GetContext().ChainID(), types.NewHeight(revision, uint64(suite.chainA.GetContext().BlockHeight())),
-	)
-	suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), exported.Localhost, localHostClient)
 }
 
 func TestClientTestSuite(t *testing.T) {
@@ -44,11 +37,6 @@ func TestClientTestSuite(t *testing.T) {
 }
 
 func (suite *ClientTestSuite) TestBeginBlocker() {
-	prevHeight := types.GetSelfHeight(suite.chainA.GetContext())
-
-	localHostClient := suite.chainA.GetClientState(exported.Localhost)
-	suite.Require().Equal(prevHeight, localHostClient.GetLatestHeight())
-
 	for i := 0; i < 10; i++ {
 		// increment height
 		suite.coordinator.CommitBlock(suite.chainA, suite.chainB)
@@ -56,10 +44,6 @@ func (suite *ClientTestSuite) TestBeginBlocker() {
 		suite.Require().NotPanics(func() {
 			client.BeginBlocker(suite.chainA.GetContext(), suite.chainA.App.GetIBCKeeper().ClientKeeper)
 		}, "BeginBlocker shouldn't panic")
-
-		localHostClient = suite.chainA.GetClientState(exported.Localhost)
-		suite.Require().Equal(prevHeight.Increment(), localHostClient.GetLatestHeight())
-		prevHeight = localHostClient.GetLatestHeight().(types.Height)
 	}
 }
 
@@ -88,7 +72,59 @@ func (suite *ClientTestSuite) TestBeginBlockerConsensusState() {
 	// plan Height is at ctx.BlockHeight+1
 	consState, found := suite.chainA.GetSimApp().UpgradeKeeper.GetUpgradedConsensusState(newCtx, plan.Height)
 	suite.Require().True(found)
-	bz, err = types.MarshalConsensusState(suite.chainA.App.AppCodec(), &ibctmtypes.ConsensusState{Timestamp: newCtx.BlockTime(), NextValidatorsHash: nextValsHash})
+	bz, err = types.MarshalConsensusState(suite.chainA.App.AppCodec(), &ibctm.ConsensusState{Timestamp: newCtx.BlockTime(), NextValidatorsHash: nextValsHash})
 	suite.Require().NoError(err)
 	suite.Require().Equal(bz, consState)
+}
+
+func (suite *ClientTestSuite) TestBeginBlockerUpgradeEvents() {
+	plan := &upgradetypes.Plan{
+		Name:   "test",
+		Height: suite.chainA.GetContext().BlockHeight() + 1,
+	}
+	// set upgrade plan in the upgrade store
+	store := suite.chainA.GetContext().KVStore(suite.chainA.GetSimApp().GetKey(upgradetypes.StoreKey))
+	bz := suite.chainA.App.AppCodec().MustMarshal(plan)
+	store.Set(upgradetypes.PlanKey(), bz)
+
+	nextValsHash := []byte("nextValsHash")
+	newCtx := suite.chainA.GetContext().WithBlockHeader(tmproto.Header{
+		Height:             suite.chainA.GetContext().BlockHeight(),
+		NextValidatorsHash: nextValsHash,
+	})
+
+	err := suite.chainA.GetSimApp().UpgradeKeeper.SetUpgradedClient(newCtx, plan.Height, []byte("client state"))
+	suite.Require().NoError(err)
+
+	cacheCtx, writeCache := suite.chainA.GetContext().CacheContext()
+
+	client.BeginBlocker(cacheCtx, suite.chainA.App.GetIBCKeeper().ClientKeeper)
+	writeCache()
+
+	suite.requireContainsEvent(cacheCtx.EventManager().Events(), types.EventTypeUpgradeChain, true)
+}
+
+func (suite *ClientTestSuite) TestBeginBlockerUpgradeEventsAbsence() {
+	cacheCtx, writeCache := suite.chainA.GetContext().CacheContext()
+	client.BeginBlocker(suite.chainA.GetContext(), suite.chainA.App.GetIBCKeeper().ClientKeeper)
+	writeCache()
+	suite.requireContainsEvent(cacheCtx.EventManager().Events(), types.EventTypeUpgradeChain, false)
+}
+
+// requireContainsEvent verifies if an event of a specific type was emitted.
+func (suite *ClientTestSuite) requireContainsEvent(events sdk.Events, eventType string, shouldContain bool) {
+	found := false
+	var eventTypes []string
+	for _, e := range events {
+		eventTypes = append(eventTypes, e.Type)
+		if e.Type == eventType {
+			found = true
+			break
+		}
+	}
+	if shouldContain {
+		suite.Require().True(found, "event type %s was not found in %s", eventType, strings.Join(eventTypes, ","))
+	} else {
+		suite.Require().False(found, "event type %s was found in %s", eventType, strings.Join(eventTypes, ","))
+	}
 }

@@ -6,13 +6,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
-	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
-)
-
-// msg types
-const (
-	TypeMsgTransfer = "transfer"
+	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
+	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
 )
 
 // NewMsgTransfer creates a new MsgTransfer instance
@@ -37,11 +32,6 @@ func NewMsgTransfer(
 // Route implements sdk.Msg
 func (MsgTransfer) Route() string {
 	return RouterKey
-}
-
-// Type implements sdk.Msg
-func (MsgTransfer) Type() string {
-	return TypeMsgTransfer
 }
 
 // ValidateBasic performs a basic check of the MsgTransfer fields.

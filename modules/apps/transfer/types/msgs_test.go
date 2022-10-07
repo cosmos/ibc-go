@@ -8,7 +8,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 
-	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
+	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 )
 
 // define constants used for testing
@@ -44,13 +44,6 @@ func TestMsgTransferRoute(t *testing.T) {
 	msg := NewMsgTransfer(validPort, validChannel, coin, addr1, addr2, timeoutHeight, 0)
 
 	require.Equal(t, RouterKey, msg.Route())
-}
-
-// TestMsgTransferType tests Type for MsgTransfer
-func TestMsgTransferType(t *testing.T) {
-	msg := NewMsgTransfer(validPort, validChannel, coin, addr1, addr2, timeoutHeight, 0)
-
-	require.Equal(t, "transfer", msg.Type())
 }
 
 func TestMsgTransferGetSignBytes(t *testing.T) {

@@ -7,9 +7,9 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/tendermint/tendermint/crypto/secp256k1"
 
-	"github.com/cosmos/ibc-go/v5/modules/apps/29-fee/types"
-	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
-	ibctesting "github.com/cosmos/ibc-go/v5/testing"
+	"github.com/cosmos/ibc-go/v6/modules/apps/29-fee/types"
+	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
+	ibctesting "github.com/cosmos/ibc-go/v6/testing"
 )
 
 func TestMsgRegisterPayeeValidation(t *testing.T) {
@@ -237,11 +237,6 @@ func TestMsgPayPacketFeeRoute(t *testing.T) {
 	require.Equal(t, types.RouterKey, msg.Route())
 }
 
-func TestMsgPayPacketFeeType(t *testing.T) {
-	var msg types.MsgPayPacketFee
-	require.Equal(t, "payPacketFee", msg.Type())
-}
-
 func TestMsgPayPacketFeeGetSignBytes(t *testing.T) {
 	fee := types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
 	msg := types.NewMsgPayPacketFee(fee, ibctesting.MockFeePort, ibctesting.FirstChannelID, defaultAccAddress, nil)
@@ -389,11 +384,6 @@ func TestPayPacketFeeAsyncGetSigners(t *testing.T) {
 func TestMsgPayPacketFeeAsyncRoute(t *testing.T) {
 	var msg types.MsgPayPacketFeeAsync
 	require.Equal(t, types.RouterKey, msg.Route())
-}
-
-func TestMsgPayPacketFeeAsyncType(t *testing.T) {
-	var msg types.MsgPayPacketFeeAsync
-	require.Equal(t, "payPacketFeeAsync", msg.Type())
 }
 
 func TestMsgPayPacketFeeAsyncGetSignBytes(t *testing.T) {

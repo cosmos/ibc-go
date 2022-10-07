@@ -9,135 +9,111 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
-	connectiontypes "github.com/cosmos/ibc-go/v5/modules/core/03-connection/types"
-	"github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v5/modules/core/exported"
+	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v6/modules/core/03-connection/types"
+	"github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v6/modules/core/exported"
 )
 
-// SendPacket is called by a module in order to send an IBC packet on a channel
-// end owned by the calling module to the corresponding module on the counterparty
-// chain.
+// SendPacket is called by a module in order to send an IBC packet on a channel.
+// The packet sequence generated for the packet to be sent is returned. An error
+// is returned if one occurs.
 func (k Keeper) SendPacket(
 	ctx sdk.Context,
 	channelCap *capabilitytypes.Capability,
-	packet exported.PacketI,
-) error {
-	if err := packet.ValidateBasic(); err != nil {
-		return sdkerrors.Wrap(err, "packet failed basic validation")
-	}
-
-	channel, found := k.GetChannel(ctx, packet.GetSourcePort(), packet.GetSourceChannel())
+	sourcePort string,
+	sourceChannel string,
+	timeoutHeight clienttypes.Height,
+	timeoutTimestamp uint64,
+	data []byte,
+) (uint64, error) {
+	channel, found := k.GetChannel(ctx, sourcePort, sourceChannel)
 	if !found {
-		return sdkerrors.Wrap(types.ErrChannelNotFound, packet.GetSourceChannel())
+		return 0, sdkerrors.Wrap(types.ErrChannelNotFound, sourceChannel)
 	}
 
 	if channel.State == types.CLOSED {
-		return sdkerrors.Wrapf(
+		return 0, sdkerrors.Wrapf(
 			types.ErrInvalidChannelState,
 			"channel is CLOSED (got %s)", channel.State.String(),
 		)
 	}
 
-	if !k.scopedKeeper.AuthenticateCapability(ctx, channelCap, host.ChannelCapabilityPath(packet.GetSourcePort(), packet.GetSourceChannel())) {
-		return sdkerrors.Wrapf(types.ErrChannelCapabilityNotFound, "caller does not own capability for channel, port ID (%s) channel ID (%s)", packet.GetSourcePort(), packet.GetSourceChannel())
+	if !k.scopedKeeper.AuthenticateCapability(ctx, channelCap, host.ChannelCapabilityPath(sourcePort, sourceChannel)) {
+		return 0, sdkerrors.Wrapf(types.ErrChannelCapabilityNotFound, "caller does not own capability for channel, port ID (%s) channel ID (%s)", sourcePort, sourceChannel)
 	}
 
-	if packet.GetDestPort() != channel.Counterparty.PortId {
-		return sdkerrors.Wrapf(
-			types.ErrInvalidPacket,
-			"packet destination port doesn't match the counterparty's port (%s ≠ %s)", packet.GetDestPort(), channel.Counterparty.PortId,
+	sequence, found := k.GetNextSequenceSend(ctx, sourcePort, sourceChannel)
+	if !found {
+		return 0, sdkerrors.Wrapf(
+			types.ErrSequenceSendNotFound,
+			"source port: %s, source channel: %s", sourcePort, sourceChannel,
 		)
 	}
 
-	if packet.GetDestChannel() != channel.Counterparty.ChannelId {
-		return sdkerrors.Wrapf(
-			types.ErrInvalidPacket,
-			"packet destination channel doesn't match the counterparty's channel (%s ≠ %s)", packet.GetDestChannel(), channel.Counterparty.ChannelId,
-		)
+	// construct packet from given fields and channel state
+	packet := types.NewPacket(data, sequence, sourcePort, sourceChannel,
+		channel.Counterparty.PortId, channel.Counterparty.ChannelId, timeoutHeight, timeoutTimestamp)
+
+	if err := packet.ValidateBasic(); err != nil {
+		return 0, sdkerrors.Wrap(err, "constructed packet failed basic validation")
 	}
 
 	connectionEnd, found := k.connectionKeeper.GetConnection(ctx, channel.ConnectionHops[0])
 	if !found {
-		return sdkerrors.Wrap(connectiontypes.ErrConnectionNotFound, channel.ConnectionHops[0])
+		return 0, sdkerrors.Wrap(connectiontypes.ErrConnectionNotFound, channel.ConnectionHops[0])
 	}
 
 	clientState, found := k.clientKeeper.GetClientState(ctx, connectionEnd.GetClientID())
 	if !found {
-		return clienttypes.ErrConsensusStateNotFound
+		return 0, clienttypes.ErrConsensusStateNotFound
 	}
 
 	// prevent accidental sends with clients that cannot be updated
 	clientStore := k.clientKeeper.ClientStore(ctx, connectionEnd.GetClientID())
 	if status := clientState.Status(ctx, clientStore, k.cdc); status != exported.Active {
-		return sdkerrors.Wrapf(clienttypes.ErrClientNotActive, "cannot send packet using client (%s) with status %s", connectionEnd.GetClientID(), status)
+		return 0, sdkerrors.Wrapf(clienttypes.ErrClientNotActive, "cannot send packet using client (%s) with status %s", connectionEnd.GetClientID(), status)
 	}
 
 	// check if packet is timed out on the receiving chain
 	latestHeight := clientState.GetLatestHeight()
-	timeoutHeight := packet.GetTimeoutHeight()
 	if !timeoutHeight.IsZero() && latestHeight.GTE(timeoutHeight) {
-		return sdkerrors.Wrapf(
+		return 0, sdkerrors.Wrapf(
 			types.ErrPacketTimeout,
 			"receiving chain block height >= packet timeout height (%s >= %s)", latestHeight, timeoutHeight,
 		)
 	}
 
-	clientType, _, err := clienttypes.ParseClientIdentifier(connectionEnd.GetClientID())
+	latestTimestamp, err := k.connectionKeeper.GetTimestampAtHeight(ctx, connectionEnd, latestHeight)
 	if err != nil {
-		return err
+		return 0, err
 	}
 
-	// NOTE: this is a temporary fix. Solo machine does not support usage of 'GetTimestampAtHeight'
-	// A future change should move this function to be a ClientState callback.
-	if clientType != exported.Solomachine {
-		latestTimestamp, err := k.connectionKeeper.GetTimestampAtHeight(ctx, connectionEnd, latestHeight)
-		if err != nil {
-			return err
-		}
-
-		if packet.GetTimeoutTimestamp() != 0 && latestTimestamp >= packet.GetTimeoutTimestamp() {
-			return sdkerrors.Wrapf(
-				types.ErrPacketTimeout,
-				"receiving chain block timestamp >= packet timeout timestamp (%s >= %s)", time.Unix(0, int64(latestTimestamp)), time.Unix(0, int64(packet.GetTimeoutTimestamp())),
-			)
-		}
-	}
-
-	nextSequenceSend, found := k.GetNextSequenceSend(ctx, packet.GetSourcePort(), packet.GetSourceChannel())
-	if !found {
-		return sdkerrors.Wrapf(
-			types.ErrSequenceSendNotFound,
-			"source port: %s, source channel: %s", packet.GetSourcePort(), packet.GetSourceChannel(),
-		)
-	}
-
-	if packet.GetSequence() != nextSequenceSend {
-		return sdkerrors.Wrapf(
-			types.ErrInvalidPacket,
-			"packet sequence ≠ next send sequence (%d ≠ %d)", packet.GetSequence(), nextSequenceSend,
+	if packet.GetTimeoutTimestamp() != 0 && latestTimestamp >= packet.GetTimeoutTimestamp() {
+		return 0, sdkerrors.Wrapf(
+			types.ErrPacketTimeout,
+			"receiving chain block timestamp >= packet timeout timestamp (%s >= %s)", time.Unix(0, int64(latestTimestamp)), time.Unix(0, int64(packet.GetTimeoutTimestamp())),
 		)
 	}
 
 	commitment := types.CommitPacket(k.cdc, packet)
 
-	nextSequenceSend++
-	k.SetNextSequenceSend(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), nextSequenceSend)
-	k.SetPacketCommitment(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence(), commitment)
+	k.SetNextSequenceSend(ctx, sourcePort, sourceChannel, sequence+1)
+	k.SetPacketCommitment(ctx, sourcePort, sourceChannel, packet.GetSequence(), commitment)
 
 	EmitSendPacketEvent(ctx, packet, channel, timeoutHeight)
 
 	k.Logger(ctx).Info(
 		"packet sent",
 		"sequence", strconv.FormatUint(packet.GetSequence(), 10),
-		"src_port", packet.GetSourcePort(),
-		"src_channel", packet.GetSourceChannel(),
+		"src_port", sourcePort,
+		"src_channel", sourceChannel,
 		"dst_port", packet.GetDestPort(),
 		"dst_channel", packet.GetDestChannel(),
 	)
 
-	return nil
+	return packet.GetSequence(), nil
 }
 
 // RecvPacket is called by a module in order to receive & process an IBC packet
@@ -361,7 +337,7 @@ func (k Keeper) WriteAcknowledgement(
 	// log that a packet acknowledgement has been written
 	k.Logger(ctx).Info(
 		"acknowledgement written",
-		"sequence", packet.GetSequence(),
+		"sequence", strconv.FormatUint(packet.GetSequence(), 10),
 		"src_port", packet.GetSourcePort(),
 		"src_channel", packet.GetSourceChannel(),
 		"dst_port", packet.GetDestPort(),

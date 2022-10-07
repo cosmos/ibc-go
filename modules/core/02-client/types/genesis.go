@@ -6,8 +6,8 @@ import (
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 
-	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v5/modules/core/exported"
+	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v6/modules/core/exported"
 )
 
 var (
@@ -198,10 +198,6 @@ func (gs GenesisState) Validate() error {
 			}
 		}
 
-	}
-
-	if gs.CreateLocalhost && !gs.Params.IsAllowedClient(exported.Localhost) {
-		return fmt.Errorf("localhost client is not registered on the allowlist")
 	}
 
 	if maxSequence != 0 && maxSequence >= gs.NextClientSequence {

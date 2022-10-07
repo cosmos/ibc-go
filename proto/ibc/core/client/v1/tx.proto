@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package ibc.core.client.v1;
 
-option go_package = "github.com/cosmos/ibc-go/v5/modules/core/02-client/types";
+option go_package = "github.com/cosmos/ibc-go/v6/modules/core/02-client/types";
 
 import "gogoproto/gogo.proto";
 import "google/protobuf/any.proto";
@@ -40,15 +40,15 @@ message MsgCreateClient {
 message MsgCreateClientResponse {}
 
 // MsgUpdateClient defines an sdk.Msg to update a IBC client state using
-// the given header.
+// the given client message.
 message MsgUpdateClient {
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
   // client unique identifier
   string client_id = 1 [(gogoproto.moretags) = "yaml:\"client_id\""];
-  // header to update the light client
-  google.protobuf.Any header = 2;
+  // client message to update the light client
+  google.protobuf.Any client_message = 2;
   // signer address
   string signer = 3;
 }
@@ -82,16 +82,17 @@ message MsgUpgradeClientResponse {}
 
 // MsgSubmitMisbehaviour defines an sdk.Msg type that submits Evidence for
 // light client misbehaviour.
+// Warning: DEPRECATED
 message MsgSubmitMisbehaviour {
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
   // client unique identifier
-  string client_id = 1 [(gogoproto.moretags) = "yaml:\"client_id\""];
+  string client_id = 1 [(gogoproto.moretags) = "yaml:\"client_id\"", deprecated = true];
   // misbehaviour used for freezing the light client
-  google.protobuf.Any misbehaviour = 2;
+  google.protobuf.Any misbehaviour = 2 [deprecated = true];
   // signer address
-  string signer = 3;
+  string signer = 3 [deprecated = true];
 }
 
 // MsgSubmitMisbehaviourResponse defines the Msg/SubmitMisbehaviour response

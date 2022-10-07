@@ -1,0 +1,60 @@
+name: Manual E2E (Simd)
+on:
+  # when https://github.com/community/community/discussions/11795 is resolved
+  # we will be able to dynamically build up the list of valid inputs.
+  # for now this needs to be manual.
+  workflow_dispatch:
+    inputs:
+      test-entry-point:
+        description: 'Test entry point'
+        required: true
+        type: choice
+        options:
+          - TestTransferTestSuite
+          - TestIncentivizedTransferTestSuite
+      chain-image:
+        description: 'The image to use for chain A'
+        required: true
+        type: string
+        default: "ghcr.io/cosmos/ibc-go-simd"
+      chain-a-tag:
+        description: 'The tag to use for chain A'
+        required: true
+        type: choice
+        default: main
+        options:
+          - main
+          - v4.0.0
+          - v3.0.0
+          - v2.2.0
+          - v2.1.0
+          - v2.0.0
+      chain-b-tag:
+        default: v4.0.0-rc3
+        description: 'The tag to use for chain B'
+        required: true
+        type: choice
+        options:
+          - main
+          - v4.0.0
+          - v3.0.0
+          - v2.2.0
+          - v2.1.0
+          - v2.0.0
+      relayer-tag:
+        description: 'The tag to use for the relayer'
+        required: true
+        default: "v2.0.0"
+        type: string
+
+
+jobs:
+  e2e-manual:
+    uses: ./.github/workflows/e2e-test-workflow-call.yml
+    with:
+      chain-image: "${{ github.event.inputs.chain-image }}"
+      chain-a-tag: "${{ github.event.inputs.chain-a-tag }}"
+      chain-b-tag: "${{ github.event.inputs.chain-b-tag }}"
+      relayer-tag: "${{ github.event.inputs.relayer-tag }}"
+      test-entry-point:  "${{ github.event.inputs.test-entry-point }}"
+      chain-binary: "simd"

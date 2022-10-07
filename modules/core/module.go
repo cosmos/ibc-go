@@ -16,16 +16,16 @@ import (
 	"github.com/spf13/cobra"
 	abci "github.com/tendermint/tendermint/abci/types"
 
-	ibcclient "github.com/cosmos/ibc-go/v5/modules/core/02-client"
-	clientkeeper "github.com/cosmos/ibc-go/v5/modules/core/02-client/keeper"
-	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
-	connectiontypes "github.com/cosmos/ibc-go/v5/modules/core/03-connection/types"
-	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v5/modules/core/client/cli"
-	"github.com/cosmos/ibc-go/v5/modules/core/keeper"
-	"github.com/cosmos/ibc-go/v5/modules/core/simulation"
-	"github.com/cosmos/ibc-go/v5/modules/core/types"
+	ibcclient "github.com/cosmos/ibc-go/v6/modules/core/02-client"
+	clientkeeper "github.com/cosmos/ibc-go/v6/modules/core/02-client/keeper"
+	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v6/modules/core/03-connection/types"
+	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v6/modules/core/client/cli"
+	"github.com/cosmos/ibc-go/v6/modules/core/keeper"
+	"github.com/cosmos/ibc-go/v6/modules/core/simulation"
+	"github.com/cosmos/ibc-go/v6/modules/core/types"
 )
 
 var (
@@ -98,9 +98,6 @@ func (AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry) 
 type AppModule struct {
 	AppModuleBasic
 	keeper *keeper.Keeper
-
-	// create localhost by default
-	createLocalhost bool
 }
 
 // NewAppModule creates a new AppModule object
@@ -157,7 +154,7 @@ func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, bz json.Ra
 	if err != nil {
 		panic(fmt.Sprintf("failed to unmarshal %s genesis state: %s", host.ModuleName, err))
 	}
-	InitGenesis(ctx, *am.keeper, am.createLocalhost, &gs)
+	InitGenesis(ctx, *am.keeper, &gs)
 	return []abci.ValidatorUpdate{}
 }
 

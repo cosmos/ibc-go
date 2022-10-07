@@ -6,14 +6,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
-)
-
-// msg types
-const (
-	TypeMsgPayPacketFee      = "payPacketFee"
-	TypeMsgPayPacketFeeAsync = "payPacketFeeAsync"
+	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
 )
 
 // NewMsgRegisterPayee creates a new instance of MsgRegisterPayee
@@ -159,11 +153,6 @@ func (msg MsgPayPacketFee) Route() string {
 	return RouterKey
 }
 
-// Type implements sdk.Msg
-func (msg MsgPayPacketFee) Type() string {
-	return TypeMsgPayPacketFee
-}
-
 // GetSignBytes implements sdk.Msg.
 func (msg MsgPayPacketFee) GetSignBytes() []byte {
 	return sdk.MustSortJSON(AminoCdc.MustMarshalJSON(&msg))
@@ -203,11 +192,6 @@ func (msg MsgPayPacketFeeAsync) GetSigners() []sdk.AccAddress {
 // Route implements sdk.Msg
 func (msg MsgPayPacketFeeAsync) Route() string {
 	return RouterKey
-}
-
-// Type implements sdk.Msg
-func (msg MsgPayPacketFeeAsync) Type() string {
-	return TypeMsgPayPacketFeeAsync
 }
 
 // GetSignBytes implements sdk.Msg.

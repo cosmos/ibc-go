@@ -47,9 +47,28 @@ type Middleware interface {
 // The base application will call `sendPacket` or `writeAcknowledgement` of the middleware directly above them
 // which will call the next middleware until it reaches the core IBC handler.
 type ICS4Wrapper interface {
-    SendPacket(ctx sdk.Context, chanCap *capabilitytypes.Capability, packet exported.Packet) error
-    WriteAcknowledgement(ctx sdk.Context, chanCap *capabilitytypes.Capability, packet exported.Packet, ack exported.Acknowledgement) error
-    GetAppVersion(ctx sdk.Context, portID, channelID string) (string, bool)
+    SendPacket(
+        ctx sdk.Context,
+        chanCap *capabilitytypes.Capability,
+        sourcePort string,
+        sourceChannel string,
+        timeoutHeight clienttypes.Height,
+        timeoutTimestamp uint64,
+        data []byte,
+    ) (sequence uint64, err error)
+
+    WriteAcknowledgement(
+        ctx sdk.Context,
+        chanCap *capabilitytypes.Capability,
+        packet exported.PacketI,
+        ack exported.Acknowledgement,
+    ) error
+
+    GetAppVersion(
+        ctx sdk.Context,
+        portID,
+        channelID string,
+    ) (string, bool)
 }
 ```
 
@@ -352,12 +371,24 @@ Middleware must also wrap ICS-4 so that any communication from the application t
 func SendPacket(
     ctx sdk.Context,
     chanCap *capabilitytypes.Capability,
-    appPacket exported.PacketI,
+    sourcePort string,
+    sourceChannel string,
+    timeoutHeight clienttypes.Height,
+    timeoutTimestamp uint64,
+    appData []byte,
 ) {
-    // middleware may modify packet
-    packet = doCustomLogic(appPacket)
+    // middleware may modify data
+    data = doCustomLogic(appData)
 
-    return ics4Keeper.SendPacket(ctx, chanCap, packet)
+    return ics4Keeper.SendPacket(
+        ctx, 
+        chanCap, 
+        sourcePort, 
+        sourceChannel, 
+        timeoutHeight, 
+        timeoutTimestamp, 
+        data,
+    )
 }
 ```
 
@@ -391,6 +422,26 @@ func GetAppVersion(
     portID,
     channelID string,
 ) (string, bool) {
+    version, found := ics4Keeper.GetAppVersion(ctx, portID, channelID)
+    if !found {
+        return "", false
+    }
+
+    if !MiddlewareEnabled {
+        return version, true
+    }
+
+    // unwrap channel version
+    metadata, err := Unmarshal(version)
+    if err != nil {
+        panic(fmt.Errof("unable to unmarshal version: %w", err))
+    }
+
+    return metadata.AppVersion, true
+}
+
+// middleware must return the underlying application version 
+func GetAppVersion(ctx sdk.Context, portID, channelID string) (string, bool) {
     version, found := ics4Keeper.GetAppVersion(ctx, portID, channelID)
     if !found {
         return "", false

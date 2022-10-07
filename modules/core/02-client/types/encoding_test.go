@@ -1,28 +1,28 @@
 package types_test
 
 import (
-	"github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
-	ibctmtypes "github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint/types"
+	"github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
+	ibctm "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint"
 )
 
 func (suite *TypesTestSuite) TestMarshalHeader() {
 	cdc := suite.chainA.App.AppCodec()
-	h := &ibctmtypes.Header{
+	h := &ibctm.Header{
 		TrustedHeight: types.NewHeight(4, 100),
 	}
 
 	// marshal header
-	bz, err := types.MarshalHeader(cdc, h)
+	bz, err := types.MarshalClientMessage(cdc, h)
 	suite.Require().NoError(err)
 
 	// unmarshal header
-	newHeader, err := types.UnmarshalHeader(cdc, bz)
+	newHeader, err := types.UnmarshalClientMessage(cdc, bz)
 	suite.Require().NoError(err)
 
 	suite.Require().Equal(h, newHeader)
 
 	// use invalid bytes
-	invalidHeader, err := types.UnmarshalHeader(cdc, []byte("invalid bytes"))
+	invalidHeader, err := types.UnmarshalClientMessage(cdc, []byte("invalid bytes"))
 	suite.Require().Error(err)
 	suite.Require().Nil(invalidHeader)
 }

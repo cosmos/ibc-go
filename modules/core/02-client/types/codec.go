@@ -8,7 +8,7 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	proto "github.com/gogo/protobuf/proto"
 
-	"github.com/cosmos/ibc-go/v5/modules/core/exported"
+	"github.com/cosmos/ibc-go/v6/modules/core/exported"
 )
 
 // RegisterInterfaces registers the client interfaces to protobuf Any.
@@ -23,7 +23,7 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	)
 	registry.RegisterInterface(
 		"ibc.core.client.v1.Header",
-		(*exported.Header)(nil),
+		(*exported.ClientMessage)(nil),
 	)
 	registry.RegisterInterface(
 		"ibc.core.client.v1.Height",
@@ -32,7 +32,7 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	)
 	registry.RegisterInterface(
 		"ibc.core.client.v1.Misbehaviour",
-		(*exported.Misbehaviour)(nil),
+		(*exported.ClientMessage)(nil),
 	)
 	registry.RegisterImplementations(
 		(*govtypes.Content)(nil),
@@ -124,66 +124,34 @@ func UnpackConsensusState(any *codectypes.Any) (exported.ConsensusState, error) 
 	return consensusState, nil
 }
 
-// PackHeader constructs a new Any packed with the given header value. It returns
-// an error if the header can't be casted to a protobuf message or if the concrete
+// PackClientMessage constructs a new Any packed with the given value. It returns
+// an error if the value can't be casted to a protobuf message or if the concrete
 // implemention is not registered to the protobuf codec.
-func PackHeader(header exported.Header) (*codectypes.Any, error) {
-	msg, ok := header.(proto.Message)
+func PackClientMessage(clientMessage exported.ClientMessage) (*codectypes.Any, error) {
+	msg, ok := clientMessage.(proto.Message)
 	if !ok {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrPackAny, "cannot proto marshal %T", header)
+		return nil, sdkerrors.Wrapf(sdkerrors.ErrPackAny, "cannot proto marshal %T", clientMessage)
 	}
 
-	anyHeader, err := codectypes.NewAnyWithValue(msg)
+	any, err := codectypes.NewAnyWithValue(msg)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrPackAny, err.Error())
 	}
 
-	return anyHeader, nil
+	return any, nil
 }
 
-// UnpackHeader unpacks an Any into a Header. It returns an error if the
-// consensus state can't be unpacked into a Header.
-func UnpackHeader(any *codectypes.Any) (exported.Header, error) {
+// UnpackClientMessage unpacks an Any into a ClientMessage. It returns an error if the
+// consensus state can't be unpacked into a ClientMessage.
+func UnpackClientMessage(any *codectypes.Any) (exported.ClientMessage, error) {
 	if any == nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrUnpackAny, "protobuf Any message cannot be nil")
 	}
 
-	header, ok := any.GetCachedValue().(exported.Header)
+	clientMessage, ok := any.GetCachedValue().(exported.ClientMessage)
 	if !ok {
 		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnpackAny, "cannot unpack Any into Header %T", any)
 	}
 
-	return header, nil
-}
-
-// PackMisbehaviour constructs a new Any packed with the given misbehaviour value. It returns
-// an error if the misbehaviour can't be casted to a protobuf message or if the concrete
-// implemention is not registered to the protobuf codec.
-func PackMisbehaviour(misbehaviour exported.Misbehaviour) (*codectypes.Any, error) {
-	msg, ok := misbehaviour.(proto.Message)
-	if !ok {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrPackAny, "cannot proto marshal %T", misbehaviour)
-	}
-
-	anyMisbhaviour, err := codectypes.NewAnyWithValue(msg)
-	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrPackAny, err.Error())
-	}
-
-	return anyMisbhaviour, nil
-}
-
-// UnpackMisbehaviour unpacks an Any into a Misbehaviour. It returns an error if the
-// Any can't be unpacked into a Misbehaviour.
-func UnpackMisbehaviour(any *codectypes.Any) (exported.Misbehaviour, error) {
-	if any == nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrUnpackAny, "protobuf Any message cannot be nil")
-	}
-
-	misbehaviour, ok := any.GetCachedValue().(exported.Misbehaviour)
-	if !ok {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnpackAny, "cannot unpack Any into Misbehaviour %T", any)
-	}
-
-	return misbehaviour, nil
+	return clientMessage, nil
 }

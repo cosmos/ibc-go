@@ -34,12 +34,12 @@ func NewParams(enableHost bool, allowMsgs []string) Params {
 
 // DefaultParams is the default parameter configuration for the host submodule
 func DefaultParams() Params {
-	return NewParams(DefaultHostEnabled, nil)
+	return NewParams(DefaultHostEnabled, []string{AllowAllHostMsgs})
 }
 
 // Validate validates all host submodule parameters
 func (p Params) Validate() error {
-	if err := validateEnabled(p.HostEnabled); err != nil {
+	if err := validateEnabledType(p.HostEnabled); err != nil {
 		return err
 	}
 
@@ -53,12 +53,12 @@ func (p Params) Validate() error {
 // ParamSetPairs implements params.ParamSet
 func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 	return paramtypes.ParamSetPairs{
-		paramtypes.NewParamSetPair(KeyHostEnabled, p.HostEnabled, validateEnabled),
+		paramtypes.NewParamSetPair(KeyHostEnabled, p.HostEnabled, validateEnabledType),
 		paramtypes.NewParamSetPair(KeyAllowMessages, p.AllowMessages, validateAllowlist),
 	}
 }
 
-func validateEnabled(i interface{}) error {
+func validateEnabledType(i interface{}) error {
 	_, ok := i.(bool)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)

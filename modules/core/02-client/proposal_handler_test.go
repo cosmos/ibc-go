@@ -5,10 +5,10 @@ import (
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
-	client "github.com/cosmos/ibc-go/v5/modules/core/02-client"
-	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
-	ibctmtypes "github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint/types"
-	ibctesting "github.com/cosmos/ibc-go/v5/testing"
+	client "github.com/cosmos/ibc-go/v6/modules/core/02-client"
+	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
+	ibctm "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint"
+	ibctesting "github.com/cosmos/ibc-go/v6/testing"
 )
 
 func (suite *ClientTestSuite) TestNewClientUpdateProposalHandler() {
@@ -38,14 +38,14 @@ func (suite *ClientTestSuite) TestNewClientUpdateProposalHandler() {
 				suite.Require().NoError(err)
 				substituteClientState := suite.chainA.GetClientState(substitutePath.EndpointA.ClientID)
 
-				tmClientState, ok := subjectClientState.(*ibctmtypes.ClientState)
+				tmClientState, ok := subjectClientState.(*ibctm.ClientState)
 				suite.Require().True(ok)
 				tmClientState.AllowUpdateAfterMisbehaviour = true
 				tmClientState.FrozenHeight = tmClientState.LatestHeight
 				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), subjectPath.EndpointA.ClientID, tmClientState)
 
 				// replicate changes to substitute (they must match)
-				tmClientState, ok = substituteClientState.(*ibctmtypes.ClientState)
+				tmClientState, ok = substituteClientState.(*ibctm.ClientState)
 				suite.Require().True(ok)
 				tmClientState.AllowUpdateAfterMisbehaviour = true
 				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), substitutePath.EndpointA.ClientID, tmClientState)

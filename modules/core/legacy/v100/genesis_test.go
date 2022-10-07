@@ -9,15 +9,15 @@ import (
 	"github.com/stretchr/testify/suite"
 	tmtypes "github.com/tendermint/tendermint/types"
 
-	ibcclient "github.com/cosmos/ibc-go/v5/modules/core/02-client"
-	clientv100 "github.com/cosmos/ibc-go/v5/modules/core/02-client/legacy/v100"
-	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
-	connectiontypes "github.com/cosmos/ibc-go/v5/modules/core/03-connection/types"
-	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
-	v100 "github.com/cosmos/ibc-go/v5/modules/core/legacy/v100"
-	"github.com/cosmos/ibc-go/v5/modules/core/types"
-	ibctesting "github.com/cosmos/ibc-go/v5/testing"
-	"github.com/cosmos/ibc-go/v5/testing/simapp"
+	ibcclient "github.com/cosmos/ibc-go/v6/modules/core/02-client"
+	clientv100 "github.com/cosmos/ibc-go/v6/modules/core/02-client/legacy/v100"
+	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v6/modules/core/03-connection/types"
+	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
+	v100 "github.com/cosmos/ibc-go/v6/modules/core/legacy/v100"
+	"github.com/cosmos/ibc-go/v6/modules/core/types"
+	ibctesting "github.com/cosmos/ibc-go/v6/testing"
+	"github.com/cosmos/ibc-go/v6/testing/simapp"
 )
 
 type LegacyTestSuite struct {
@@ -86,7 +86,6 @@ func (suite *LegacyTestSuite) TestMigrateGenesisSolomachine() {
 				Diversifier: clientState.ConsensusState.Diversifier,
 				Timestamp:   clientState.ConsensusState.Timestamp,
 			},
-			AllowUpdateAfterProposal: clientState.AllowUpdateAfterProposal,
 		}
 
 		// set client state

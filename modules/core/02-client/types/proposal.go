@@ -2,13 +2,14 @@ package types
 
 import (
 	"fmt"
+	"reflect"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
-	"github.com/cosmos/ibc-go/v5/modules/core/exported"
+	"github.com/cosmos/ibc-go/v6/modules/core/exported"
 )
 
 const (
@@ -111,9 +112,13 @@ func (up *UpgradeProposal) ValidateBasic() error {
 		return sdkerrors.Wrap(ErrInvalidUpgradeProposal, "upgraded client state cannot be nil")
 	}
 
-	_, err := UnpackClientState(up.UpgradedClientState)
+	clientState, err := UnpackClientState(up.UpgradedClientState)
 	if err != nil {
 		return sdkerrors.Wrap(err, "failed to unpack upgraded client state")
+	}
+
+	if !reflect.DeepEqual(clientState, clientState.ZeroCustomFields()) {
+		return sdkerrors.Wrap(ErrInvalidUpgradeProposal, "upgraded client state is not zeroed out")
 	}
 
 	return nil
