@@ -133,6 +133,7 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 			path = NewTransferPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupConnections(path)
 			sender = suite.chainA.SenderAccount.GetAddress()
+			metadata = []byte{}
 
 			tc.malleate()
 
