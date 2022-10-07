@@ -48,27 +48,27 @@ type Middleware interface {
 // which will call the next middleware until it reaches the core IBC handler.
 type ICS4Wrapper interface {
     SendPacket(
-		ctx sdk.Context,
-		chanCap *capabilitytypes.Capability,
-		sourcePort string,
-		sourceChannel string,
-		timeoutHeight clienttypes.Height,
-		timeoutTimestamp uint64,
-		data []byte,
-	) (sequence uint64, err error)
+        ctx sdk.Context,
+        chanCap *capabilitytypes.Capability,
+        sourcePort string,
+        sourceChannel string,
+        timeoutHeight clienttypes.Height,
+        timeoutTimestamp uint64,
+        data []byte,
+    ) (sequence uint64, err error)
 
-	WriteAcknowledgement(
-		ctx sdk.Context,
-		chanCap *capabilitytypes.Capability,
-		packet exported.PacketI,
-		ack exported.Acknowledgement,
-	) error
+    WriteAcknowledgement(
+        ctx sdk.Context,
+        chanCap *capabilitytypes.Capability,
+        packet exported.PacketI,
+        ack exported.Acknowledgement,
+    ) error
 
-	GetAppVersion(
-		ctx sdk.Context,
-		portID,
-		channelID string,
-	) (string, bool)
+    GetAppVersion(
+        ctx sdk.Context,
+        portID,
+        channelID string,
+    ) (string, bool)
 }
 ```
 
