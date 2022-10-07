@@ -20,11 +20,7 @@ import (
 var (
 	disabledTimeoutTimestamp = uint64(0)
 	disabledTimeoutHeight    = clienttypes.ZeroHeight()
-<<<<<<< HEAD
-	timeoutHeight            = clienttypes.NewHeight(0, 100)
-=======
 	defaultTimeoutHeight     = clienttypes.NewHeight(1, 100)
->>>>>>> 88525d2 (Simplify SendPacket API (#1703))
 
 	// for when the testing package cannot be used
 	clientIDA  = "clientA"
@@ -172,8 +168,6 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 			timeoutTimestamp = timestamp
 			channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 		}, false},
-<<<<<<< HEAD
-=======
 		{"timeout timestamp passed with solomachine", func() {
 			suite.coordinator.Setup(path)
 			// swap client with solomachine
@@ -194,7 +188,6 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 
 			channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 		}, false},
->>>>>>> 88525d2 (Simplify SendPacket API (#1703))
 		{"next sequence send not found", func() {
 			path := ibctesting.NewPath(suite.chainA, suite.chainB)
 			sourceChannel = path.EndpointA.ChannelID
