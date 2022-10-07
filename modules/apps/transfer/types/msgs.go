@@ -10,11 +10,6 @@ import (
 	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
 )
 
-// msg types
-const (
-	TypeMsgTransfer = "transfer"
-)
-
 // NewMsgTransfer creates a new MsgTransfer instance
 //
 //nolint:interfacer
@@ -39,11 +34,6 @@ func NewMsgTransfer(
 // Route implements sdk.Msg
 func (MsgTransfer) Route() string {
 	return RouterKey
-}
-
-// Type implements sdk.Msg
-func (MsgTransfer) Type() string {
-	return TypeMsgTransfer
 }
 
 // ValidateBasic performs a basic check of the MsgTransfer fields.
