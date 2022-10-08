@@ -113,6 +113,7 @@ import (
 	simappparams "github.com/cosmos/ibc-go/v6/testing/simapp/params"
 	simappupgrades "github.com/cosmos/ibc-go/v6/testing/simapp/upgrades"
 	v6 "github.com/cosmos/ibc-go/v6/testing/simapp/upgrades/v6"
+	ibctestingtypes "github.com/cosmos/ibc-go/v6/testing/types"
 )
 
 const appName = "SimApp"
@@ -767,7 +768,7 @@ func (app *SimApp) GetBaseApp() *baseapp.BaseApp {
 }
 
 // GetStakingKeeper implements the TestingApp interface.
-func (app *SimApp) GetStakingKeeper() stakingkeeper.Keeper {
+func (app *SimApp) GetStakingKeeper() ibctestingtypes.StakingKeeper {
 	return app.StakingKeeper
 }
 
