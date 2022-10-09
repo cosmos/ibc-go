@@ -24,7 +24,7 @@ on:
         default: master
         options:
           - master
-          - v0.3.3
+          - v0.3.4
           - v0.2.3
           - v0.1.4
       chain-b-tag:
@@ -34,7 +34,7 @@ on:
         type: choice
         options:
           - master
-          - v0.3.3
+          - v0.3.4
           - v0.2.3
           - v0.1.4
       relayer-tag:

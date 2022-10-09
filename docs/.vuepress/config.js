@@ -128,6 +128,10 @@ module.exports = {
         label: "v4.1.0",
         key: "v4.1.0",
       },
+      {
+        label: "v5.0.0",
+        key: "v5.0.0",
+      },
     ],
     topbar: {
       banner: true,
@@ -339,6 +343,11 @@ module.exports = {
               title: "IBC-Go v3 to v4",
               directory: false,
               path: "/migrations/v3-to-v4.html",
+            },
+            {
+              title: "IBC-Go v4 to v5",
+              directory: false,
+              path: "/migrations/v4-to-v5.html",
             },
           ],
         },

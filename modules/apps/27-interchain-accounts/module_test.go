@@ -59,7 +59,7 @@ func (suite *InterchainAccountsTestSuite) TestInitModule() {
 	expAllowMessages := []string{"sdk.Msg"}
 	hostParams.HostEnabled = true
 	hostParams.AllowMessages = expAllowMessages
-	suite.Require().False(app.IBCKeeper.PortKeeper.IsBound(ctx, types.PortID))
+	suite.Require().False(app.IBCKeeper.PortKeeper.IsBound(ctx, types.HostPortID))
 
 	testCases := []struct {
 		name              string
@@ -123,7 +123,7 @@ func (suite *InterchainAccountsTestSuite) TestInitModule() {
 				suite.Require().True(hostParams.HostEnabled)
 				suite.Require().Equal(expAllowMessages, hostParams.AllowMessages)
 
-				suite.Require().True(app.IBCKeeper.PortKeeper.IsBound(ctx, types.PortID))
+				suite.Require().True(app.IBCKeeper.PortKeeper.IsBound(ctx, types.HostPortID))
 			}
 		})
 	}
