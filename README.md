@@ -71,7 +71,7 @@ For an overview of upcoming changes to ibc-go take a look at the [roadmap](./doc
 
 ## Releases
 
-The release lines currently supported are v2, v3 and v4. Please refer to the [Stable Release Policy section of RELEASES.md](https://github.com/cosmos/ibc-go/blob/main/RELEASES.md#stable-release-policy) for more details.
+The release lines currently supported are v2, v3, v4 and v5. Please refer to the [Stable Release Policy section of RELEASES.md](https://github.com/cosmos/ibc-go/blob/main/RELEASES.md#stable-release-policy) for more details.
 
 ## Ecosystem
 
