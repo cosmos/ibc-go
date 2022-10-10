@@ -145,7 +145,8 @@ func FungibleTokenPacketFromTla(packet TlaFungibleTokenPacket) FungibleTokenPack
 			DenomFromTla(packet.Data.Denom),
 			packet.Data.Amount,
 			AddressFromString(packet.Data.Sender),
-			AddressFromString(packet.Data.Receiver)),
+			AddressFromString(packet.Data.Receiver),
+			nil),
 	}
 }
 
@@ -344,8 +345,14 @@ func (suite *KeeperTestSuite) TestModelBasedRelay() {
 							sdk.NewCoin(denom, amount),
 							sender,
 							tc.packet.Data.Receiver,
+<<<<<<< HEAD
 							clienttypes.NewHeight(0, 110),
 							0)
+=======
+							clienttypes.NewHeight(1, 110),
+							0,
+							nil)
+>>>>>>> 82397d6 (Added optional packet metadata to the packet and message types (#2305))
 					}
 				case "OnRecvPacket":
 					err = suite.chainB.GetSimApp().TransferKeeper.OnRecvPacket(suite.chainB.GetContext(), packet, tc.packet.Data)
