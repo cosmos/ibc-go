@@ -30,7 +30,7 @@ const (
 	haltHeight         = uint64(100)
 
 	prevVersion    = "v0.3.5"
-	upgradeVersion = "pr-139"
+	upgradeVersion = "v0.4.0"
 )
 
 func TestUpgradeV6TestSuite(t *testing.T) {
