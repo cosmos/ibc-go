@@ -9,14 +9,6 @@ import (
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
 )
 
-// message types for the IBC client
-const (
-	TypeMsgCreateClient       string = "create_client"
-	TypeMsgUpdateClient       string = "update_client"
-	TypeMsgUpgradeClient      string = "upgrade_client"
-	TypeMsgSubmitMisbehaviour string = "submit_misbehaviour"
-)
-
 var (
 	_ sdk.Msg = &MsgCreateClient{}
 	_ sdk.Msg = &MsgUpdateClient{}
