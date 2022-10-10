@@ -46,13 +46,6 @@ func TestMsgTransferRoute(t *testing.T) {
 	require.Equal(t, RouterKey, msg.Route())
 }
 
-// TestMsgTransferType tests Type for MsgTransfer
-func TestMsgTransferType(t *testing.T) {
-	msg := NewMsgTransfer(validPort, validChannel, coin, addr1, addr2, timeoutHeight, 0)
-
-	require.Equal(t, "transfer", msg.Type())
-}
-
 func TestMsgTransferGetSignBytes(t *testing.T) {
 	msg := NewMsgTransfer(validPort, validChannel, coin, addr1, addr2, timeoutHeight, 0)
 	expected := fmt.Sprintf(`{"type":"cosmos-sdk/MsgTransfer","value":{"receiver":"%s","sender":"%s","source_channel":"testchannel","source_port":"testportid","timeout_height":{"revision_height":"10"},"token":{"amount":"100","denom":"atom"}}}`, addr2, addr1)
