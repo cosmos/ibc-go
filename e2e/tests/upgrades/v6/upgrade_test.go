@@ -32,9 +32,6 @@ const (
 
 	// UpgradeVersion defines the post-upgrade release version
 	UpgradeVersion = "v0.4.0"
-
-	// UpgradeName defines the on chain upgrade name for ibc-go/v6
-	UpgradeName = v6.UpgradeName
 )
 
 const (
@@ -193,7 +190,7 @@ func (s *UpgradeV6TestSuite) TestV5ToV6ChainUpgrade() {
 	s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA, chainB), "failed to wait for blocks")
 
 	t.Run("upgrade chainA", func(t *testing.T) {
-		s.UpgradeChain(ctx, chainA, chainAUpgradeProposalWallet, UpgradeName, CurrentVersion, UpgradeVersion)
+		s.UpgradeChain(ctx, chainA, chainAUpgradeProposalWallet, v6.UpgradeName, CurrentVersion, UpgradeVersion)
 	})
 
 	t.Run("restart relayer", func(t *testing.T) {
