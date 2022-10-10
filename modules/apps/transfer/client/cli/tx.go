@@ -126,6 +126,7 @@ corresponding to the counterparty channel. Any timeout set to 0 is disabled.`),
 	cmd.Flags().String(flagPacketTimeoutHeight, types.DefaultRelativePacketTimeoutHeight, "Packet timeout block height. The timeout is disabled when set to 0-0.")
 	cmd.Flags().Uint64(flagPacketTimeoutTimestamp, types.DefaultRelativePacketTimeoutTimestamp, "Packet timeout timestamp in nanoseconds from now. Default is 10 minutes. The timeout is disabled when set to 0.")
 	cmd.Flags().Bool(flagAbsoluteTimeouts, false, "Timeout flags are used as absolute timeouts.")
+	cmd.Flags().String(flagMetadata, "", "Metadata to be sent along with the packet. The CLI accepts only strings here but you can construct a packet with arbitrary bytes via code..")
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
