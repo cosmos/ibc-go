@@ -53,7 +53,13 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 	coinToSendToB := sdk.NewCoin(sdk.DefaultBondDenom, amount)
 
 	// send from chainA to chainB
+<<<<<<< HEAD
 	msg := types.NewMsgTransfer(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, coinToSendToB, suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), timeoutHeight, 0)
+=======
+	msg := types.NewMsgTransfer(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, coinToSendToB, suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), timeoutHeight, 0, nil)
+	res, err := suite.chainA.SendMsgs(msg)
+	suite.Require().NoError(err) // message committed
+>>>>>>> 82397d6 (Added optional packet metadata to the packet and message types (#2305))
 
 	_, err := suite.chainA.SendMsgs(msg)
 	suite.Require().NoError(err) // message committed
@@ -80,7 +86,16 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 	suite.coordinator.Setup(pathBtoC)
 
 	// send from chainB to chainC
+<<<<<<< HEAD
 	msg = types.NewMsgTransfer(pathBtoC.EndpointA.ChannelConfig.PortID, pathBtoC.EndpointA.ChannelID, coinSentFromAToB, suite.chainB.SenderAccount.GetAddress().String(), suite.chainC.SenderAccount.GetAddress().String(), timeoutHeight, 0)
+=======
+	msg = types.NewMsgTransfer(pathBtoC.EndpointA.ChannelConfig.PortID, pathBtoC.EndpointA.ChannelID, coinSentFromAToB, suite.chainB.SenderAccount.GetAddress().String(), suite.chainC.SenderAccount.GetAddress().String(), timeoutHeight, 0, nil)
+	res, err = suite.chainB.SendMsgs(msg)
+	suite.Require().NoError(err) // message committed
+
+	packet, err = ibctesting.ParsePacketFromEvents(res.GetEvents())
+	suite.Require().NoError(err)
+>>>>>>> 82397d6 (Added optional packet metadata to the packet and message types (#2305))
 
 	_, err = suite.chainB.SendMsgs(msg)
 	suite.Require().NoError(err) // message committed
@@ -104,7 +119,13 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 	suite.Require().Zero(balance.Amount.Int64())
 
 	// send from chainC back to chainB
+<<<<<<< HEAD
 	msg = types.NewMsgTransfer(pathBtoC.EndpointB.ChannelConfig.PortID, pathBtoC.EndpointB.ChannelID, coinSentFromBToC, suite.chainC.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), timeoutHeight, 0)
+=======
+	msg = types.NewMsgTransfer(pathBtoC.EndpointB.ChannelConfig.PortID, pathBtoC.EndpointB.ChannelID, coinSentFromBToC, suite.chainC.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), timeoutHeight, 0, nil)
+	res, err = suite.chainC.SendMsgs(msg)
+	suite.Require().NoError(err) // message committed
+>>>>>>> 82397d6 (Added optional packet metadata to the packet and message types (#2305))
 
 	_, err = suite.chainC.SendMsgs(msg)
 	suite.Require().NoError(err) // message committed
