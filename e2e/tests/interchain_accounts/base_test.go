@@ -3,7 +3,7 @@ package interchain_accounts
 import (
 	"context"
 	"testing"
-	"time"
+	//"time"
 
 	ibctest "github.com/strangelove-ventures/ibctest"
 	"github.com/strangelove-ventures/ibctest/chain/cosmos"
