@@ -320,14 +320,16 @@ func (s *InterchainAccountsTestSuite) TestMsgSubmitTx_SuccessfulTransfer_AfterRe
 			s.AssertValidTxResponse(resp)
 			s.Require().NoError(err)
 
-			time.Sleep(90 * time.Second) // submit tx message has a timeout of 1 minute
+			s.Require().NoError(test.WaitForBlocks(ctx, 200, chainA, chainB))
+
+			//time.Sleep(90 * time.Second) // submit tx message has a timeout of 1 minute
 		})
 	})
 
 	t.Run("start relayer", func(t *testing.T) {
 		s.StartRelayer(relayer)
 
-		s.Require().NoError(test.WaitForBlocks(ctx, 50, chainA, chainB))
+		s.Require().NoError(test.WaitForBlocks(ctx, 150, chainA, chainB))
 	})
 
 	t.Run("verify channel is closed", func(t *testing.T) {
