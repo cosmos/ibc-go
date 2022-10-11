@@ -42,6 +42,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### API Breaking
 
+* (apps/transfer) [\#2446](https://github.com/cosmos/ibc-go/pull/2446) Remove `SendTransfer` function in favor of a private `sendTransfer` function. All IBC transfers must be initiated with `MsgTransfer`.
 * (apps/29-fee) [\#2395](https://github.com/cosmos/ibc-go/pull/2395) Remove param space from ics29 NewKeeper function. The field was unused.
 * (apps/27-interchain-accounts) [\#2133](https://github.com/cosmos/ibc-go/pull/2133) Generates genesis protos in a separate directory to avoid circular import errors. The protobuf package name has changed for the genesis types.
 * (light-clients/tendermint)[\#1768](https://github.com/cosmos/ibc-go/pull/1768) Removed `AllowUpdateAfterExpiry`, `AllowUpdateAfterMisbehaviour` booleans as they are deprecated (see ADR026)
