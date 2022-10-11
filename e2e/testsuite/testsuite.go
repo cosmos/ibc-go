@@ -38,7 +38,7 @@ const (
 	ChainARelayerName = "rlyA"
 	// ChainBRelayerName is the name given to the relayer wallet on ChainB
 	ChainBRelayerName = "rlyB"
-	// DefaultGasValue is the name value used to configure tx.Factory
+	// DefaultGasValue is the default gas value used to configure tx.Factory
 	DefaultGasValue = 500000
 
 	// emptyLogs is the string value returned from `BroadcastMessages`. There are some situations in which
