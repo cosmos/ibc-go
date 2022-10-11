@@ -4,11 +4,7 @@ order: 6
 
 # Metrics
 
-<<<<<<< HEAD:modules/apps/transfer/spec/06_metrics.md
-The transfer IBC application module exposes the following set of [metrics](https://github.com/cosmos/cosmos-sdk/blob/master/docs/core/telemetry.md).
-=======
 The IBC transfer application module exposes the following set of [metrics](https://github.com/cosmos/cosmos-sdk/blob/main/docs/docs/core/09-telemetry.md).
->>>>>>> 4c45212 (fix broken links (#2511)):docs/apps/transfer/metrics.md
 
 | Metric                          | Description                                                                               | Unit            | Type    |
 |:--------------------------------|:------------------------------------------------------------------------------------------|:----------------|:--------|
