@@ -341,20 +341,16 @@ gh workflow run "Build Simd Image" -f tag=v3.0.0
 
 ### Running Compatibility Tests
 
-A full matrix of tests can be configured in json format. See [this file](./scripts/test-matricies/main/test-matrix.json) as a reference.
-
-To run all of the tests specified in this file, run
+To trigger the compatibility tests for a release branch, you can use the following command.
+This will build an image from the tip of the release branch and run all tests specified in the corresponding
+json matrix files under .github/compatibility-test-matrices
 
 ```bash
-make compatibility-tests
+make compatibility-tests release_branch=release/v5.0.x
 ```
 
-This will run a GitHub Action for each entry, and display markdown which can be used in GitHub issue
-bodies to provide links to each of the workflows.
+This is equivalent to going to the Github UI and navigating to `Actions` -> `Compatibility E2E` -> `Run Workflow` -> Select branch
 
-Note: a version field which corresponds to a subdirectory under scripts/test-matricies can also be specified. Once a file exists there,
-e.g. `scripts/test-matricies/v5.0.0/test-matrix.json`, that file will be used to provide values to the GitHub workflows
-if we run `make compatibility-tests version=v5.0.0`
 
 ### Troubleshooting
 
