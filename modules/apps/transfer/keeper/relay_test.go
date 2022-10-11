@@ -68,15 +68,12 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 				sender = suite.chainA.GetSimApp().AccountKeeper.GetModuleAddress(types.ModuleName)
 			}, false,
 		},
-		// createOutgoingPacket tests
-		// - source chain
 		{
 			"send coin failed",
 			func() {
 				coin = sdk.NewCoin("randomdenom", sdk.NewInt(100))
 			}, false,
 		},
-		// - receiving chain
 		{
 			"failed to parse coin denom",
 			func() {
