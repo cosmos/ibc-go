@@ -15,13 +15,13 @@ There are four sections based on the four potential user groups of this document
 
 The `ibc-go/v6` release introduces a new set of migrations for `27-interchain-accounts`. Ownership of ICS27 channel capabilities is transferred from ICS27 authentication modules and will now reside with the ICS27 `controller` submodule moving forward. 
 
-For chains which contain a custom authentication module using the ICS27 `controller` submodule this requires a migration function to be included in the chain upgrade handler. A subsequent migration handler is run automatically, asserting the ownership of ICS27 channel capabilities has been transferred successfully.
+For chains which contain a custom authentication module using the ICS27 controller submodule this requires a migration function to be included in the chain upgrade handler. A subsequent migration handler is run automatically, asserting the ownership of ICS27 channel capabilities has been transferred successfully.
 
-For chains which *do not* contain a custom authentication module using the ICS27 `controller` submodule this migration is not required.
+This migration is not required for chains which *do not* contain a custom authentication module using the ICS27 `controller` submodule.
 
 This migration facilitates the addition of the ICS27 `controller` submodule `MsgServer` which provides a standardised approach to integrating existing forms of authentication such as `x/gov` and `x/group` provided by the Cosmos SDK. 
 
-For more information please refer to [ADR 009](https://github.com/cosmos/ibc-go/blob/main/docs/architecture/adr-009-v6-ics27-msgserver.md).
+For more information please refer to [ADR 009](../architecture/adr-009-v6-ics27-msgserver.md).
 
 #### Upgrade proposal
 
@@ -65,7 +65,7 @@ func CreateUpgradeHandler(
 }
 ```
 
-2. Set the upgrade handler in `app.go`. The `moduleName` parameter refers to the authentication module's `ScopedKeeper` name. This is the name provided upon instantiation in `app.go` via the [`x/capability` keeper `ScopeToModule(moduleName string)`](https://github.com/cosmos/cosmos-sdk/blob/v0.46.1/x/capability/keeper/keeper.go#L70) method. [See here for an example in `simapp`](https://github.com/cosmos/ibc-go/blob/v5.0.0-rc2/testing/simapp/app.go#L304).
+2. Set the upgrade handler in `app.go`. The `moduleName` parameter refers to the authentication module's `ScopedKeeper` name. This is the name provided upon instantiation in `app.go` via the [`x/capability` keeper `ScopeToModule(moduleName string)`](https://github.com/cosmos/cosmos-sdk/blob/v0.46.1/x/capability/keeper/keeper.go#L70) method. [See here for an example in `simapp`](https://github.com/cosmos/ibc-go/blob/v5.0.0/testing/simapp/app.go#L304).
 
 ```go
 app.UpgradeKeeper.SetUpgradeHandler(
@@ -87,7 +87,7 @@ app.UpgradeKeeper.SetUpgradeHandler(
 
 #### Controller APIs
 
-In previous releases of `ibc-go`, chain developers integrating the ICS27 interchain accounts `controller` functionality were expected to create a custom `Base Application` referred to as an authentication module, see: [Building an authentication module](https://github.com/cosmos/ibc-go/blob/v5.0.0/docs/apps/interchain-accounts/auth-modules.md).
+In previous releases of `ibc-go`, chain developers integrating the ICS27 interchain accounts `controller` functionality were expected to create a custom `Base Application` referred to as an authentication module, see: [Building an authentication module](../apps/interchain-accounts/auth-modules.md).
 
 The `Base Application` was intended to be composed with the ICS27 `controller` submodule `Keeper` and faciliate many forms of message authentication depending on a chain's particular use case.
 
@@ -97,7 +97,7 @@ The `controller` submodule exposes two functions:
 - [`SendTx`](https://github.com/cosmos/ibc-go/blob/v5.0.0/modules/apps/27-interchain-accounts/controller/keeper/relay.go#L18)
 
 These functions have been deprecated in favour of the new `controller` submodule `MsgServer` and will be removed in later releases. 
-Both APIs remain functional and maintain backwards compatibility in `ibc-go/v6`, however consumers of these APIs are now recommended to follow the message passing paradigm outlined in Cosmos SDK [ADR 031](https://github.com/cosmos/cosmos-sdk/blob/main/docs/architecture/adr-031-msg-service.md) and [ADR 033](https://github.com/cosmos/cosmos-sdk/blob/main/docs/architecture/adr-033-protobuf-inter-module-comm.md). This is facilitated by the Cosmos SDK [`MsgServiceRouter`](https://github.com/cosmos/cosmos-sdk/blob/main/baseapp/msg_service_router.go#L17) and chain developers creating custom application logic can now omit the ICS27 `ControllerKeeper` from their module and instead depend on message routing.
+Both APIs remain functional and maintain backwards compatibility in `ibc-go/v6`, however consumers of these APIs are now recommended to follow the message passing paradigm outlined in Cosmos SDK [ADR 031](https://github.com/cosmos/cosmos-sdk/blob/main/docs/architecture/adr-031-msg-service.md) and [ADR 033](https://github.com/cosmos/cosmos-sdk/blob/main/docs/architecture/adr-033-protobuf-inter-module-comm.md). This is facilitated by the Cosmos SDK [`MsgServiceRouter`](https://github.com/cosmos/cosmos-sdk/blob/main/baseapp/msg_service_router.go#L17) and chain developers creating custom application logic can now omit the ICS27 controller submodule `Keeper` from their module and instead depend on message routing.
 
 Legacy APIs are still required if application developers wish to consume IBC packet callbacks and react upon packet acknowledgements. In future this will be replaced by IBC Actor Callbacks, see [ADR 008](https://github.com/cosmos/ibc-go/pull/1976).
 
@@ -105,7 +105,7 @@ For more information see the new [ICS27 integration documentation](TODO: add lin
 
 #### Host params
 
-The `27-interchain-accounts/host` submodule default params have been updated to include the `AllowAllHostMsgs` wildcard `*`.
+The ICS27 host submodule default params have been updated to include the `AllowAllHostMsgs` wildcard `*`.
 This enables execution of any `sdk.Msg` type for ICS27 registered on the host chain `InterfaceRegistry`.
 
 ```diff
@@ -124,7 +124,7 @@ func DefaultParams() Params {
 #### API breaking changes
 
 The `27-interchain-accounts` genesis types have been moved to their own package: `modules/apps/27-interchain-acccounts/genesis/types`.
-This change facilitates the addition of the ICS27 `controller` submodule `Msg` server and avoids cyclic imports. This should have minimal disruption to chain developers integrating `27-interchain-accounts`.
+This change facilitates the addition of the ICS27 `controller` submodule `MsgServer` and avoids cyclic imports. This should have minimal disruption to chain developers integrating `27-interchain-accounts`.
 
 The ICS27 `host` submodule `NewKeeper` function in `modules/apps/27-interchain-acccounts/host/keeper` now includes an additional parameter of type `ICS4Wrapper`.
 This provides the `host` submodule with the ability to correctly unwrap channel versions in the event of a channel reopening handshake.
