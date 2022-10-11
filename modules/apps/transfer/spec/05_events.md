@@ -33,11 +33,8 @@ order: 5
 | fungible_token_packet | receiver        | {receiver}        |
 | fungible_token_packet | denom           | {denom}           |
 | fungible_token_packet | amount          | {amount}          |
-<<<<<<< HEAD:modules/apps/transfer/spec/05_events.md
-=======
 | fungible_token_packet | metadata        | {metadata}        |
 | fungible_token_packet | acknowledgement | {ack.String()}    |
->>>>>>> 82397d6 (Added optional packet metadata to the packet and message types (#2305)):docs/apps/transfer/events.md
 | fungible_token_packet | success | error | {ack.Response}    |
 
 ## OnTimeoutPacket callback
