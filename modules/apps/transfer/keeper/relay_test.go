@@ -9,7 +9,6 @@ import (
 	"github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
 	ibctesting "github.com/cosmos/ibc-go/v6/testing"
 	"github.com/cosmos/ibc-go/v6/testing/simapp"
 )
@@ -18,41 +17,64 @@ import (
 // chainA and coin that orignate on chainB
 func (suite *KeeperTestSuite) TestSendTransfer() {
 	var (
+<<<<<<< HEAD
 		amount sdk.Coin
 		path   *ibctesting.Path
 		sender sdk.AccAddress
 		err    error
+=======
+		coin          sdk.Coin
+		path          *ibctesting.Path
+		sender        sdk.AccAddress
+		timeoutHeight clienttypes.Height
+		metadata      []byte
+>>>>>>> 24b17bd (refactor: remove SendTransfer, require IBC transfers to be initiated with MsgTransfer (#2446))
 	)
 
 	testCases := []struct {
-		msg            string
-		malleate       func()
-		sendFromSource bool
-		expPass        bool
+		name     string
+		malleate func()
+		expPass  bool
 	}{
 		{
-			"successful transfer from source chain",
-			func() {
-				suite.coordinator.CreateTransferChannels(path)
-				amount = sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100))
-			}, true, true,
+			"successful transfer with native token",
+			func() {}, true,
 		},
 		{
+<<<<<<< HEAD
 			"successful transfer with coin from counterparty chain",
+=======
+			"successful transfer from source chain with metadata",
 			func() {
-				// send coin from chainA back to chainB
-				suite.coordinator.CreateTransferChannels(path)
-				amount = types.GetTransferCoin(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, sdk.DefaultBondDenom, sdk.NewInt(100))
-			}, false, true,
+				metadata = []byte("metadata")
+			}, true,
 		},
 		{
+			"successful transfer with IBC token",
+
+>>>>>>> 24b17bd (refactor: remove SendTransfer, require IBC transfers to be initiated with MsgTransfer (#2446))
+			func() {
+				// send IBC token back to chainB
+				coin = types.GetTransferCoin(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, coin.Denom, coin.Amount)
+			}, true,
+		},
+		{
+<<<<<<< HEAD
+=======
+			"successful transfer with IBC token and metadata",
+			func() {
+				// send IBC token back to chainB
+				coin = types.GetTransferCoin(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, coin.Denom, coin.Amount)
+				metadata = []byte("metadata")
+			}, true,
+		},
+		{
+>>>>>>> 24b17bd (refactor: remove SendTransfer, require IBC transfers to be initiated with MsgTransfer (#2446))
 			"source channel not found",
 			func() {
 				// channel references wrong ID
-				suite.coordinator.CreateTransferChannels(path)
 				path.EndpointA.ChannelID = ibctesting.InvalidID
-				amount = sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100))
-			}, true, false,
+			}, false,
 		},
 		{
 			"next seq send not found",
@@ -72,49 +94,54 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 		{
 			"transfer failed - sender account is blocked",
 			func() {
-				suite.coordinator.CreateTransferChannels(path)
-				amount = sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100))
 				sender = suite.chainA.GetSimApp().AccountKeeper.GetModuleAddress(types.ModuleName)
-			}, true, false,
+			}, false,
 		},
-		// createOutgoingPacket tests
-		// - source chain
 		{
 			"send coin failed",
 			func() {
-				suite.coordinator.CreateTransferChannels(path)
-				amount = sdk.NewCoin("randomdenom", sdk.NewInt(100))
-			}, true, false,
+				coin = sdk.NewCoin("randomdenom", sdk.NewInt(100))
+			}, false,
 		},
-		// - receiving chain
 		{
-			"send from module account failed",
+			"failed to parse coin denom",
 			func() {
-				suite.coordinator.CreateTransferChannels(path)
-				amount = types.GetTransferCoin(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, " randomdenom", sdk.NewInt(100))
-			}, false, false,
+				coin = types.GetTransferCoin(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, "randomdenom", coin.Amount)
+			}, false,
+		},
+		{
+			"send from module account failed, insufficient balance",
+			func() {
+				coin = types.GetTransferCoin(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, coin.Denom, coin.Amount.Add(sdk.NewInt(1)))
+			}, false,
 		},
 		{
 			"channel capability not found",
 			func() {
-				suite.coordinator.CreateTransferChannels(path)
 				cap := suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 
 				// Release channel capability
 				suite.chainA.GetSimApp().ScopedTransferKeeper.ReleaseCapability(suite.chainA.GetContext(), cap)
-				amount = sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100))
-			}, true, false,
+			}, false,
+		},
+		{
+			"SendPacket fails, timeout height and timeout timestamp are zero",
+			func() {
+				timeoutHeight = clienttypes.ZeroHeight()
+			}, false,
 		},
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
-		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
+		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
+
 			path = NewTransferPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupConnections(path)
+			suite.coordinator.Setup(path)
+
+			coin = sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100))
 			sender = suite.chainA.SenderAccount.GetAddress()
+<<<<<<< HEAD
 
 			tc.malleate()
 
@@ -128,27 +155,46 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 				// receive coin on chainA from chainB
 				fungibleTokenPacket := types.NewFungibleTokenPacketData(coinFromBToA.Denom, coinFromBToA.Amount.String(), suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String())
 				packet := channeltypes.NewPacket(fungibleTokenPacket.GetBytes(), 1, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, clienttypes.NewHeight(0, 110), 0)
+=======
+			metadata = []byte{}
+			timeoutHeight = suite.chainB.GetTimeoutHeight()
 
-				// get proof of packet commitment from chainB
-				err = path.EndpointA.UpdateClient()
-				suite.Require().NoError(err)
-				packetKey := host.PacketCommitmentKey(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
-				proof, proofHeight := path.EndpointB.QueryProof(packetKey)
+			// create IBC token on chainA
+			transferMsg := types.NewMsgTransfer(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, coin, suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String(), suite.chainA.GetTimeoutHeight(), 0, nil)
+			result, err := suite.chainB.SendMsgs(transferMsg)
+			suite.Require().NoError(err) // message committed
 
-				recvMsg := channeltypes.NewMsgRecvPacket(packet, proof, proofHeight, suite.chainA.SenderAccount.GetAddress().String())
-				_, err = suite.chainA.SendMsgs(recvMsg)
-				suite.Require().NoError(err) // message committed
-			}
+			packet, err := ibctesting.ParsePacketFromEvents(result.GetEvents())
+			suite.Require().NoError(err)
+>>>>>>> 24b17bd (refactor: remove SendTransfer, require IBC transfers to be initiated with MsgTransfer (#2446))
 
+			err = path.RelayPacket(packet)
+			suite.Require().NoError(err)
+
+			tc.malleate()
+
+<<<<<<< HEAD
 			err = suite.chainA.GetSimApp().TransferKeeper.SendTransfer(
 				suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, amount,
 				sender, suite.chainB.SenderAccount.GetAddress().String(), suite.chainB.GetTimeoutHeight(), 0,
+=======
+			msg := types.NewMsgTransfer(
+				path.EndpointA.ChannelConfig.PortID,
+				path.EndpointA.ChannelID,
+				coin, sender.String(), suite.chainB.SenderAccount.GetAddress().String(),
+				timeoutHeight, 0, // only use timeout height
+				metadata,
+>>>>>>> 24b17bd (refactor: remove SendTransfer, require IBC transfers to be initiated with MsgTransfer (#2446))
 			)
+
+			res, err := suite.chainA.GetSimApp().TransferKeeper.Transfer(sdk.WrapSDKContext(suite.chainA.GetContext()), msg)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
+				suite.Require().NotNil(res)
 			} else {
 				suite.Require().Error(err)
+				suite.Require().Nil(res)
 			}
 		})
 	}

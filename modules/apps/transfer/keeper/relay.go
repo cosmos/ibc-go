@@ -16,7 +16,7 @@ import (
 	coretypes "github.com/cosmos/ibc-go/v6/modules/core/types"
 )
 
-// SendTransfer handles transfer sending logic. There are 2 possible cases:
+// sendTransfer handles transfer sending logic. There are 2 possible cases:
 //
 // 1. Sender chain is acting as the source zone. The coins are transferred
 // to an escrow address (i.e locked) on the sender chain and then transferred
@@ -48,6 +48,7 @@ import (
 // 4. A -> C : sender chain is sink zone. Denom upon receiving: 'C/B/denom'
 // 5. C -> B : sender chain is sink zone. Denom upon receiving: 'B/denom'
 // 6. B -> A : sender chain is sink zone. Denom upon receiving: 'denom'
+<<<<<<< HEAD
 //
 // Note: An IBC Transfer must be initiated using a MsgTransfer via the Transfer rpc handler
 func (k Keeper) SendTransfer(
@@ -74,6 +75,8 @@ func (k Keeper) SendTransfer(
 }
 
 // sendTransfer handles transfer sending logic.
+=======
+>>>>>>> 24b17bd (refactor: remove SendTransfer, require IBC transfers to be initiated with MsgTransfer (#2446))
 func (k Keeper) sendTransfer(
 	ctx sdk.Context,
 	sourcePort,
@@ -84,6 +87,7 @@ func (k Keeper) sendTransfer(
 	timeoutHeight clienttypes.Height,
 	timeoutTimestamp uint64,
 ) (uint64, error) {
+<<<<<<< HEAD
 	if !k.GetSendEnabled(ctx) {
 		return 0, types.ErrSendDisabled
 	}
@@ -93,6 +97,9 @@ func (k Keeper) sendTransfer(
 	}
 
 	sourceChannelEnd, found := k.channelKeeper.GetChannel(ctx, sourcePort, sourceChannel)
+=======
+	channel, found := k.channelKeeper.GetChannel(ctx, sourcePort, sourceChannel)
+>>>>>>> 24b17bd (refactor: remove SendTransfer, require IBC transfers to be initiated with MsgTransfer (#2446))
 	if !found {
 		return 0, sdkerrors.Wrapf(channeltypes.ErrChannelNotFound, "port ID (%s) channel ID (%s)", sourcePort, sourceChannel)
 	}
