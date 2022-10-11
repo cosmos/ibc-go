@@ -59,6 +59,7 @@ func (k Keeper) SendTransfer(
 	receiver string,
 	timeoutHeight clienttypes.Height,
 	timeoutTimestamp uint64,
+	metadata []byte,
 ) error {
 	_, err := k.sendTransfer(
 		ctx,
@@ -69,6 +70,7 @@ func (k Keeper) SendTransfer(
 		receiver,
 		timeoutHeight,
 		timeoutTimestamp,
+		metadata,
 	)
 	return err
 }
@@ -83,6 +85,7 @@ func (k Keeper) sendTransfer(
 	receiver string,
 	timeoutHeight clienttypes.Height,
 	timeoutTimestamp uint64,
+	metadata []byte,
 ) (uint64, error) {
 	if !k.GetSendEnabled(ctx) {
 		return 0, types.ErrSendDisabled
@@ -163,7 +166,7 @@ func (k Keeper) sendTransfer(
 	}
 
 	packetData := types.NewFungibleTokenPacketData(
-		fullDenomPath, token.Amount.String(), sender.String(), receiver,
+		fullDenomPath, token.Amount.String(), sender.String(), receiver, metadata,
 	)
 
 	sequence, err := k.ics4Wrapper.SendPacket(ctx, channelCap, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, packetData.GetBytes())
