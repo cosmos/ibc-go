@@ -138,6 +138,29 @@ func NewKeeper(
 ) Keeper
 ```
 
+### ICS04 - `SendPacket` API change
+
+The `SendPacket` API has been simplified:
+
+```diff
+// SendPacket is called by a module in order to send an IBC packet on a channel
+ func (k Keeper) SendPacket(
+        ctx sdk.Context,
+        channelCap *capabilitytypes.Capability,
+-       packet exported.PacketI,
+-) error {
++       sourcePort string,
++       sourceChannel string,
++       timeoutHeight clienttypes.Height,
++       timeoutTimestamp uint64,
++       data []byte,
++) (uint64, error) {
+```
+
+Callers no longer need to pass in a pre-constructed packet. 
+The destination port/channel identifiers and the packet sequence will be determined by core IBC.
+`SendPacket` will return the packet sequence.
+
 ## Relayers
 
 - No relevant changes were made in this release.
