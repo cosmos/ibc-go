@@ -37,6 +37,8 @@ const (
 	ChainARelayerName = "rlyA"
 	// ChainBRelayerName is the name given to the relayer wallet on ChainB
 	ChainBRelayerName = "rlyB"
+	// DefaultGasValue is the name value used to configure tx.Factory
+	DefaultGasValue = 500000
 
 	// emptyLogs is the string value returned from `BroadcastMessages`. There are some situations in which
 	// the result is empty, when this happens we include the raw logs instead to get as much information
@@ -229,7 +231,7 @@ func (s *E2ETestSuite) BroadcastMessages(ctx context.Context, chain *cosmos.Cosm
 	broadcaster := cosmos.NewBroadcaster(s.T(), chain)
 
 	configureGasFactoryOpt := func(factory tx.Factory) tx.Factory {
-		return factory.WithGas(500000)
+		return factory.WithGas(DefaultGasValue)
 	}
 
 	broadcaster.ConfigureFactoryOptions(configureGasFactoryOpt)
