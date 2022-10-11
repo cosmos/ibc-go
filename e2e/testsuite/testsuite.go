@@ -11,6 +11,7 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	grouptypes "github.com/cosmos/cosmos-sdk/x/group"
 	paramsproposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
+	intertxtypes "github.com/cosmos/interchain-accounts/x/inter-tx/types"
 	dockerclient "github.com/docker/docker/client"
 	"github.com/strangelove-ventures/ibctest/v6"
 	"github.com/strangelove-ventures/ibctest/v6/chain/cosmos"
@@ -37,6 +38,8 @@ const (
 	ChainARelayerName = "rlyA"
 	// ChainBRelayerName is the name given to the relayer wallet on ChainB
 	ChainBRelayerName = "rlyB"
+	// DefaultGasValue is the default gas value used to configure tx.Factory
+	DefaultGasValue = 500000
 
 	// emptyLogs is the string value returned from `BroadcastMessages`. There are some situations in which
 	// the result is empty, when this happens we include the raw logs instead to get as much information
@@ -67,6 +70,7 @@ type GRPCClients struct {
 	ChannelQueryClient channeltypes.QueryClient
 	FeeQueryClient     feetypes.QueryClient
 	ICAQueryClient     controllertypes.QueryClient
+	InterTxQueryClient intertxtypes.QueryClient
 
 	// SDK query clients
 	GovQueryClient    govtypes.QueryClient
@@ -229,7 +233,7 @@ func (s *E2ETestSuite) BroadcastMessages(ctx context.Context, chain *cosmos.Cosm
 	broadcaster := cosmos.NewBroadcaster(s.T(), chain)
 
 	configureGasFactoryOpt := func(factory tx.Factory) tx.Factory {
-		return factory.WithGas(500000)
+		return factory.WithGas(DefaultGasValue)
 	}
 
 	broadcaster.ConfigureFactoryOptions(configureGasFactoryOpt)
@@ -376,6 +380,7 @@ func (s *E2ETestSuite) initGRPCClients(chain *cosmos.CosmosChain) {
 		ChannelQueryClient: channeltypes.NewQueryClient(grpcConn),
 		FeeQueryClient:     feetypes.NewQueryClient(grpcConn),
 		ICAQueryClient:     controllertypes.NewQueryClient(grpcConn),
+		InterTxQueryClient: intertxtypes.NewQueryClient(grpcConn),
 		GovQueryClient:     govtypes.NewQueryClient(grpcConn),
 		GroupsQueryClient:  grouptypes.NewQueryClient(grpcConn),
 		ParamsQueryClient:  paramsproposaltypes.NewQueryClient(grpcConn),
