@@ -342,14 +342,15 @@ gh workflow run "Build Simd Image" -f tag=v3.0.0
 ### Running Compatibility Tests
 
 To trigger the compatibility tests for a release branch, you can use the following command.
-This will build an image from the tip of the release branch and run all tests specified in the corresponding
-json matrix files under .github/compatibility-test-matrices
 
 ```bash
 make compatibility-tests release_branch=release/v5.0.x
 ```
 
-This is equivalent to going to the Github UI and navigating to `Actions` -> `Compatibility E2E` -> `Run Workflow` -> Select branch
+This will build an image from the tip of the release branch and run all tests specified in the corresponding
+json matrix files under .github/compatibility-test-matrices and is equivalent to going to the Github UI and navigating to 
+
+`Actions` -> `Compatibility E2E` -> `Run Workflow` -> `release/v5.0.x`
 
 
 ### Troubleshooting
