@@ -24,6 +24,7 @@ import (
 
 	"github.com/cosmos/ibc-go/e2e/testconfig"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
+	controllertypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/controller/types"
 	feetypes "github.com/cosmos/ibc-go/v6/modules/apps/29-fee/types"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
@@ -64,7 +65,8 @@ type GRPCClients struct {
 	ClientQueryClient  clienttypes.QueryClient
 	ChannelQueryClient channeltypes.QueryClient
 	FeeQueryClient     feetypes.QueryClient
-	ICAQueryClient     intertxtypes.QueryClient
+	ICAQueryClient     controllertypes.QueryClient
+	InterTxQueryClient intertxtypes.QueryClient
 
 	// SDK query clients
 	GovQueryClient    govtypes.QueryClient
@@ -365,7 +367,8 @@ func (s *E2ETestSuite) initGRPCClients(chain *cosmos.CosmosChain) {
 		ClientQueryClient:  clienttypes.NewQueryClient(grpcConn),
 		ChannelQueryClient: channeltypes.NewQueryClient(grpcConn),
 		FeeQueryClient:     feetypes.NewQueryClient(grpcConn),
-		ICAQueryClient:     intertxtypes.NewQueryClient(grpcConn),
+		ICAQueryClient:     controllertypes.NewQueryClient(grpcConn),
+		InterTxQueryClient: intertxtypes.NewQueryClient(grpcConn),
 		GovQueryClient:     govtypes.NewQueryClient(grpcConn),
 		ParamsQueryClient:  paramsproposaltypes.NewQueryClient(grpcConn),
 	}
