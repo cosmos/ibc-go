@@ -1,4 +1,4 @@
-package v5
+package v7
 
 import (
 	"strings"
@@ -15,8 +15,8 @@ import (
 // for the localhost client.
 const Localhost string = "09-localhost"
 
-// MigrateToV5 prunes the 09-Localhost client and associated consensus states from the ibc store
-func MigrateToV5(ctx sdk.Context, clientKeeper clientkeeper.Keeper) {
+// MigrateToV7 prunes the 09-Localhost client and associated consensus states from the ibc store
+func MigrateToV7(ctx sdk.Context, clientKeeper clientkeeper.Keeper) {
 	clientStore := clientKeeper.ClientStore(ctx, Localhost)
 
 	iterator := sdk.KVStorePrefixIterator(clientStore, []byte(host.KeyConsensusStatePrefix))

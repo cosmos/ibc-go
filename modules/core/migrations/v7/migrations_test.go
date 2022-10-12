@@ -1,4 +1,4 @@
-package v5_test
+package v7_test
 
 import (
 	"testing"
@@ -9,11 +9,11 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
-	v5 "github.com/cosmos/ibc-go/v6/modules/core/migrations/v5"
+	v7 "github.com/cosmos/ibc-go/v6/modules/core/migrations/v7"
 	ibctesting "github.com/cosmos/ibc-go/v6/testing"
 )
 
-type MigrationsV5TestSuite struct {
+type MigrationsV7TestSuite struct {
 	suite.Suite
 
 	coordinator *ibctesting.Coordinator
@@ -22,7 +22,7 @@ type MigrationsV5TestSuite struct {
 	chainB *ibctesting.TestChain
 }
 
-func (suite *MigrationsV5TestSuite) SetupTest() {
+func (suite *MigrationsV7TestSuite) SetupTest() {
 	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2)
 
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
@@ -30,10 +30,10 @@ func (suite *MigrationsV5TestSuite) SetupTest() {
 }
 
 func TestIBCTestSuite(t *testing.T) {
-	suite.Run(t, new(MigrationsV5TestSuite))
+	suite.Run(t, new(MigrationsV7TestSuite))
 }
 
-func (suite *MigrationsV5TestSuite) TestMigrateToV5() {
+func (suite *MigrationsV7TestSuite) TestMigrateToV7() {
 	var clientStore sdk.KVStore
 
 	testCases := []struct {
@@ -92,11 +92,11 @@ func (suite *MigrationsV5TestSuite) TestMigrateToV5() {
 			suite.SetupTest() // reset
 
 			ctx := suite.chainA.GetContext()
-			clientStore = suite.chainA.GetSimApp().IBCKeeper.ClientKeeper.ClientStore(suite.chainA.GetContext(), v5.Localhost)
+			clientStore = suite.chainA.GetSimApp().IBCKeeper.ClientKeeper.ClientStore(suite.chainA.GetContext(), v7.Localhost)
 
 			tc.malleate()
 
-			v5.MigrateToV5(ctx, suite.chainA.GetSimApp().IBCKeeper.ClientKeeper)
+			v7.MigrateToV7(ctx, suite.chainA.GetSimApp().IBCKeeper.ClientKeeper)
 
 			if tc.expPass {
 				suite.Require().False(clientStore.Has(host.ClientStateKey()))

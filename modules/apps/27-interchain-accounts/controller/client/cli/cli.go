@@ -10,7 +10,7 @@ import (
 func GetQueryCmd() *cobra.Command {
 	queryCmd := &cobra.Command{
 		Use:                        "controller",
-		Short:                      "interchain-accounts controller subcommands",
+		Short:                      "IBC interchain accounts controller query subcommands",
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
 	}
@@ -27,7 +27,7 @@ func GetQueryCmd() *cobra.Command {
 func NewTxCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:                        "controller",
-		Short:                      "ica controller transactions subcommands",
+		Short:                      "IBC interchain accounts controller transaction subcommands",
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
 		RunE:                       client.ValidateCmd,

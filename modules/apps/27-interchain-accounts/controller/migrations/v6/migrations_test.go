@@ -1,4 +1,4 @@
-package v5_test
+package v6_test
 
 import (
 	"testing"
@@ -6,7 +6,7 @@ import (
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	"github.com/stretchr/testify/suite"
 
-	v5 "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/controller/migrations/v5"
+	v6 "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/controller/migrations/v6"
 	"github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/controller/types"
 	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
@@ -32,8 +32,8 @@ func (suite *MigrationsTestSuite) SetupTest() {
 	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
 
 	suite.path = ibctesting.NewPath(suite.chainA, suite.chainB)
-	suite.path.EndpointA.ChannelConfig.PortID = icatypes.PortID
-	suite.path.EndpointB.ChannelConfig.PortID = icatypes.PortID
+	suite.path.EndpointA.ChannelConfig.PortID = icatypes.HostPortID
+	suite.path.EndpointB.ChannelConfig.PortID = icatypes.HostPortID
 	suite.path.EndpointA.ChannelConfig.Order = channeltypes.ORDERED
 	suite.path.EndpointB.ChannelConfig.Order = channeltypes.ORDERED
 	suite.path.EndpointA.ChannelConfig.Version = icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
@@ -117,7 +117,7 @@ func (suite *MigrationsTestSuite) TestMigrateICS27ChannelCapability() {
 
 	suite.ResetMemStore() // empty the x/capability in-memory store
 
-	err = v5.MigrateICS27ChannelCapability(
+	err = v6.MigrateICS27ChannelCapability(
 		suite.chainA.GetContext(),
 		suite.chainA.Codec,
 		suite.chainA.GetSimApp().GetKey(capabilitytypes.StoreKey),
