@@ -1,8 +1,5 @@
 name: Tests / E2E Upgrade
-on:
-  workflow_dispatch:
-  schedule:
-    - cron: '0 0 * * *'
+on: workflow_dispatch
 
 jobs:
   upgrade-tests:
@@ -12,7 +9,15 @@ jobs:
       matrix:
         include:
           - test: TestV4ToV5ChainUpgrade
+            chain-image: ghcr.io/cosmos/ibc-go-simd
+            chain-a-tag: v4.0.0
+            chain-b-tag: v4.0.0
+            chain-upgrade-tag: v5.0.0
           - test: TestV5ToV6ChainUpgrade
+            chain-image: ghcr.io/cosmos/ibc-go-icad
+            chain-a-tag: v0.3.5
+            chain-b-tag: v0.3.5
+            chain-upgrade-tag: v0.4.0
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v3
@@ -22,3 +27,8 @@ jobs:
         run: |
           cd e2e
           make e2e-test entrypoint=TestUpgradeTestSuite test=${{ matrix.test }}
+        env:
+          CHAIN_IMAGE: ${{ matrix.chain-image }}
+          CHAIN_A_TAG: ${{ matrix.chain-a-tag }}
+          CHAIN_B_TAG: ${{ matrix.chain-b-tag }}
+          CHAIN_UPGRADE_TAG: ${{ matrix.chain-upgrade-tag }}
