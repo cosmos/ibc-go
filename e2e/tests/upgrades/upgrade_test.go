@@ -199,6 +199,8 @@ func (s *UpgradeTestSuite) TestV5ToV6ChainUpgrade() {
 		UpgradeVersion = "v0.4.0"
 	)
 
+	s.Require().NoError(os.Setenv(testconfig.ChainImageEnv, "ghcr.io/cosmos/ibc-go-icad"))
+	s.Require().NoError(os.Setenv(testconfig.ChainBinaryEnv, "icad"))
 	s.Require().NoError(os.Setenv(testconfig.ChainATagEnv, CurrentVersion))
 	s.Require().NoError(os.Setenv(testconfig.ChainBTagEnv, CurrentVersion))
 
