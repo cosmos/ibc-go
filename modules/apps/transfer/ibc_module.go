@@ -187,23 +187,16 @@ func (im IBCModule) OnRecvPacket(
 		}
 	}
 
-	eventAttributes := []sdk.Attribute{
-		sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
-		sdk.NewAttribute(sdk.AttributeKeySender, data.Sender),
-		sdk.NewAttribute(types.AttributeKeyReceiver, data.Receiver),
-		sdk.NewAttribute(types.AttributeKeyDenom, data.Denom),
-		sdk.NewAttribute(types.AttributeKeyAmount, data.Amount),
-		sdk.NewAttribute(types.AttributeKeyMetadata, hex.EncodeToString(data.Metadata)),
-		sdk.NewAttribute(types.AttributeKeyAckSuccess, fmt.Sprintf("%t", ack.Success())),
-	}
-
-	if ackErr != nil {
-		eventAttributes = append(eventAttributes, sdk.NewAttribute(types.AttributeKeyAckError, ackErr.Error()))
-	}
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypePacket,
-			eventAttributes...,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
+			sdk.NewAttribute(sdk.AttributeKeySender, data.Sender),
+			sdk.NewAttribute(types.AttributeKeyReceiver, data.Receiver),
+			sdk.NewAttribute(types.AttributeKeyDenom, data.Denom),
+			sdk.NewAttribute(types.AttributeKeyAmount, data.Amount),
+			sdk.NewAttribute(types.AttributeKeyMetadata, hex.EncodeToString(data.Metadata)),
+			sdk.NewAttribute(types.AttributeKeyAckSuccess, fmt.Sprintf("%t", ack.Success())),
 		),
 	)
 
