@@ -75,12 +75,3 @@ jobs:
     with:
       docker-tag: "${{ needs.determine-docker-tag.outputs.docker-tag }}"
       test-suite: "incentivized-transfer"
-
-  upgrade:
-    needs:
-      - build-release-image
-      - determine-docker-tag
-    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
-    with:
-      docker-tag: "${{ needs.determine-docker-tag.outputs.docker-tag }}"
-      test-suite: "upgrade"
