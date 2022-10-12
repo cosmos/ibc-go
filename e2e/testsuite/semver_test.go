@@ -10,12 +10,12 @@ import (
 
 func TestIsSupported(t *testing.T) {
 	releases := testsuite.FeatureReleases{
-		MajorVersion: 6,
-		MinorVersions: []testsuite.Version{
-			testsuite.NewVersion(2, 5),
-			testsuite.NewVersion(3, 4),
-			testsuite.NewVersion(4, 2),
-			testsuite.NewVersion(5, 1),
+		MajorVersion: "v6",
+		MinorVersions: []string{
+			"v2.5",
+			"v3.4",
+			"v4.2",
+			"v5.1",
 		},
 	}
 
