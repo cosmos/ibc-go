@@ -187,8 +187,6 @@ func (im IBCModule) OnRecvPacket(
 		}
 	}
 
-<<<<<<< HEAD
-=======
 	eventAttributes := []sdk.Attribute{
 		sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
 		sdk.NewAttribute(sdk.AttributeKeySender, data.Sender),
@@ -202,17 +200,10 @@ func (im IBCModule) OnRecvPacket(
 	if ackErr != nil {
 		eventAttributes = append(eventAttributes, sdk.NewAttribute(types.AttributeKeyAckError, ackErr.Error()))
 	}
-
->>>>>>> 82397d6 (Added optional packet metadata to the packet and message types (#2305))
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypePacket,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
-			sdk.NewAttribute(sdk.AttributeKeySender, data.Sender),
-			sdk.NewAttribute(types.AttributeKeyReceiver, data.Receiver),
-			sdk.NewAttribute(types.AttributeKeyDenom, data.Denom),
-			sdk.NewAttribute(types.AttributeKeyAmount, data.Amount),
-			sdk.NewAttribute(types.AttributeKeyAckSuccess, fmt.Sprintf("%t", ack.Success())),
+			eventAttributes...,
 		),
 	)
 
