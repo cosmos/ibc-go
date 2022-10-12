@@ -15,6 +15,7 @@ jobs:
             chain-upgrade-tag: v5.0.0
           - test: TestV5ToV6ChainUpgrade
             chain-image: ghcr.io/cosmos/ibc-go-icad
+            chain-binary: icad
             chain-a-tag: v0.3.5
             chain-b-tag: v0.3.5
             chain-upgrade-tag: v0.4.0
@@ -29,6 +30,7 @@ jobs:
           make e2e-test entrypoint=TestUpgradeTestSuite test=${{ matrix.test }}
         env:
           CHAIN_IMAGE: ${{ matrix.chain-image }}
+          CHAIN_BINARY: ${{ matrix.chain-binary }}
           CHAIN_A_TAG: ${{ matrix.chain-a-tag }}
           CHAIN_B_TAG: ${{ matrix.chain-b-tag }}
           CHAIN_UPGRADE_TAG: ${{ matrix.chain-upgrade-tag }}
