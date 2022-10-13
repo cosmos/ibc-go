@@ -4,6 +4,7 @@ import (
 	"context"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 )
@@ -14,14 +15,22 @@ var _ types.MsgServer = Keeper{}
 func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.MsgTransferResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
+	if !k.GetSendEnabled(ctx) {
+		return nil, types.ErrSendDisabled
+	}
+
 	sender, err := sdk.AccAddressFromBech32(msg.Sender)
 	if err != nil {
 		return nil, err
 	}
 
+	if k.bankKeeper.BlockedAddr(sender) {
+		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "%s is not allowed to send funds", sender)
+	}
+
 	sequence, err := k.sendTransfer(
 		ctx, msg.SourcePort, msg.SourceChannel, msg.Token, sender, msg.Receiver, msg.TimeoutHeight, msg.TimeoutTimestamp,
-	)
+		msg.Metadata)
 	if err != nil {
 		return nil, err
 	}
