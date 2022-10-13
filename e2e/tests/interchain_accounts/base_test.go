@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	ibctest "github.com/strangelove-ventures/ibctest/v6"
 	"github.com/strangelove-ventures/ibctest/v6/chain/cosmos"
 	"github.com/strangelove-ventures/ibctest/v6/ibc"
@@ -18,6 +19,7 @@ import (
 	"github.com/cosmos/ibc-go/e2e/testconfig"
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
+	controllertypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/controller/types"
 	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
 	feetypes "github.com/cosmos/ibc-go/v6/modules/apps/29-fee/types"
 	ibctesting "github.com/cosmos/ibc-go/v6/testing"
@@ -237,28 +239,28 @@ func (s *InterchainAccountsTestSuite) TestMsgSubmitTx_FailedTransfer_Insufficien
 }
 
 func (s *InterchainAccountsTestSuite) TestRegistration_WithGovernance() {
-	//t := s.T()
-	//ctx := context.TODO()
-	//
-	//// setup relayers and connection-0 between two chains
-	//// channel-0 is a transfer channel but it will not be used in this test case
-	//relayer, _ := s.SetupChainsRelayerAndChannel(ctx)
-	//_ = relayer
-	//chainA, chainB := s.GetChains()
-	//_ = chainB
-	//controllerAccount := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
-	//controllerAddress := controllerAccount.Bech32Address(chainA.Config().Bech32Prefix)
-	//
-	//t.Run("create and msg submit proposal", func(t *testing.T) {
-	//	version := icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
-	//	msgRegisterAccount := controllertypes.NewMsgRegisterAccount(ibctesting.FirstConnectionID, controllerAddress, version)
-	//	msgs := []sdk.Msg{msgRegisterAccount}
-	//	msgSubmitProposal, err := govtypesv1.NewMsgSubmitProposal(msgs, sdk.NewCoins(sdk.NewCoin(chainA.Config().Denom, sdk.NewInt(100))), controllerAddress, "")
-	//	s.Require().NoError(err)
-	//
-	//	resp, err := s.BroadcastMessages(ctx, chainA, controllerAccount, msgSubmitProposal)
-	//	t.Logf("%+v", resp)
-	//	s.AssertValidTxResponse(resp)
-	//	s.Require().NoError(err)
-	//})
+	t := s.T()
+	ctx := context.TODO()
+
+	// setup relayers and connection-0 between two chains
+	// channel-0 is a transfer channel but it will not be used in this test case
+	relayer, _ := s.SetupChainsRelayerAndChannel(ctx)
+	_ = relayer
+	chainA, chainB := s.GetChains()
+	_ = chainB
+	controllerAccount := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
+	controllerAddress := controllerAccount.Bech32Address(chainA.Config().Bech32Prefix)
+
+	t.Run("create and msg submit proposal", func(t *testing.T) {
+		version := icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
+		msgRegisterAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, controllerAddress, version)
+		msgs := []sdk.Msg{msgRegisterAccount}
+		msgSubmitProposal, err := govtypesv1.NewMsgSubmitProposal(msgs, sdk.NewCoins(sdk.NewCoin(chainA.Config().Denom, sdk.NewInt(100))), controllerAddress, "")
+		s.Require().NoError(err)
+
+		resp, err := s.BroadcastMessages(ctx, chainA, controllerAccount, msgSubmitProposal)
+		t.Logf("%+v", resp)
+		s.AssertValidTxResponse(resp)
+		s.Require().NoError(err)
+	})
 }
