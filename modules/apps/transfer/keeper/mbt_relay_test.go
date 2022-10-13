@@ -145,8 +145,7 @@ func FungibleTokenPacketFromTla(packet TlaFungibleTokenPacket) FungibleTokenPack
 			DenomFromTla(packet.Data.Denom),
 			packet.Data.Amount,
 			AddressFromString(packet.Data.Sender),
-			AddressFromString(packet.Data.Receiver),
-			nil),
+			AddressFromString(packet.Data.Receiver)),
 	}
 }
 
