@@ -198,3 +198,7 @@ func (msg MsgPayPacketFeeAsync) Route() string {
 func (msg MsgPayPacketFeeAsync) GetSignBytes() []byte {
 	return sdk.MustSortJSON(AminoCdc.MustMarshalJSON(&msg))
 }
+
+func (m Metadata) IsEmptyFeeVersion() bool {
+	return len(m.FeeVersion) == 0
+}

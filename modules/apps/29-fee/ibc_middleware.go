@@ -96,7 +96,7 @@ func (im IBCMiddleware) OnChanOpenTry(
 	counterpartyVersion string,
 ) (string, error) {
 	var versionMetadata types.Metadata
-	if err := types.ModuleCdc.UnmarshalJSON([]byte(counterpartyVersion), &versionMetadata); err != nil {
+	if err := types.ModuleCdc.UnmarshalJSON([]byte(counterpartyVersion), &versionMetadata); err != nil || versionMetadata.IsEmptyFeeVersion() {
 		// Since it is valid for fee version to not be specified, the above middleware version may be for a middleware
 		// lower down in the stack. Thus, if it is not a fee version we pass the entire version string onto the underlying
 		// application.
