@@ -38,28 +38,11 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 			}, true, true,
 		},
 		{
-			"successful transfer from source chain with metadata",
-			func() {
-				suite.coordinator.CreateTransferChannels(path)
-				amount = sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100))
-				metadata = []byte("metadata")
-			}, true, true,
-		},
-		{
 			"successful transfer with coin from counterparty chain",
 			func() {
 				// send coin from chainA back to chainB
 				suite.coordinator.CreateTransferChannels(path)
 				amount = types.GetTransferCoin(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, sdk.DefaultBondDenom, sdk.NewInt(100))
-			}, false, true,
-		},
-		{
-			"successful transfer with coin from counterparty chain with metadata",
-			func() {
-				// send coin from chainA back to chainB
-				suite.coordinator.CreateTransferChannels(path)
-				amount = types.GetTransferCoin(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, sdk.DefaultBondDenom, sdk.NewInt(100))
-				metadata = []byte("metadata")
 			}, false, true,
 		},
 		{
@@ -132,7 +115,6 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 			path = NewTransferPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupConnections(path)
 			sender = suite.chainA.SenderAccount.GetAddress()
-			metadata = []byte{}
 
 			tc.malleate()
 
@@ -144,7 +126,7 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 				suite.Require().NoError(err) // message committed
 
 				// receive coin on chainA from chainB
-				fungibleTokenPacket := types.NewFungibleTokenPacketData(coinFromBToA.Denom, coinFromBToA.Amount.String(), suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String(), nil)
+				fungibleTokenPacket := types.NewFungibleTokenPacketData(coinFromBToA.Denom, coinFromBToA.Amount.String(), suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String())
 				packet := channeltypes.NewPacket(fungibleTokenPacket.GetBytes(), 1, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, clienttypes.NewHeight(0, 110), 0)
 
 				// get proof of packet commitment from chainB
@@ -161,7 +143,6 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 			err = suite.chainA.GetSimApp().TransferKeeper.SendTransfer(
 				suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, amount,
 				sender, suite.chainB.SenderAccount.GetAddress().String(), suite.chainB.GetTimeoutHeight(), 0,
-				metadata,
 			)
 
 			if tc.expPass {

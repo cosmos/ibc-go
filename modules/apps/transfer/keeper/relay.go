@@ -175,7 +175,7 @@ func (k Keeper) sendTransfer(
 	}
 
 	packetData := types.NewFungibleTokenPacketData(
-		fullDenomPath, token.Amount.String(), sender.String(), receiver, metadata,
+		fullDenomPath, token.Amount.String(), sender.String(), receiver,
 	)
 	packetData.Metadata = metadata
 
