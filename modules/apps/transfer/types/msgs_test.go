@@ -99,7 +99,7 @@ func TestMsgTransferValidation(t *testing.T) {
 func TestMsgTransferGetSigners(t *testing.T) {
 	addr := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
 
-	msg := NewMsgTransfer(validPort, validChannel, coin, addr.String(), addr2, timeoutHeight, 0, nil)
+	msg := NewMsgTransfer(validPort, validChannel, coin, addr.String(), addr2, timeoutHeight, 0)
 	res := msg.GetSigners()
 
 	require.Equal(t, []sdk.AccAddress{addr}, res)
