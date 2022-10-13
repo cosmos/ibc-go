@@ -59,7 +59,6 @@ func (k Keeper) SendTransfer(
 	receiver string,
 	timeoutHeight clienttypes.Height,
 	timeoutTimestamp uint64,
-	metadata []byte,
 ) error {
 	_, err := k.sendTransfer(
 		ctx,
@@ -70,7 +69,7 @@ func (k Keeper) SendTransfer(
 		receiver,
 		timeoutHeight,
 		timeoutTimestamp,
-		metadata,
+		nil,
 	)
 	return err
 }
@@ -178,6 +177,7 @@ func (k Keeper) sendTransfer(
 	packetData := types.NewFungibleTokenPacketData(
 		fullDenomPath, token.Amount.String(), sender.String(), receiver, metadata,
 	)
+	packetData.Metadata = metadata
 
 	packet := channeltypes.NewPacket(
 		packetData.GetBytes(),
