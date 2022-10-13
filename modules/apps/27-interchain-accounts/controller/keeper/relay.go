@@ -26,14 +26,6 @@ func (k Keeper) sendTx(ctx sdk.Context, connectionID, portID string, icaPacketDa
 		return 0, sdkerrors.Wrapf(icatypes.ErrActiveChannelNotFound, "failed to retrieve active channel on connection %s for port %s", connectionID, portID)
 	}
 
-	sourceChannelEnd, found := k.channelKeeper.GetChannel(ctx, portID, activeChannelID)
-	if !found {
-		return 0, sdkerrors.Wrap(channeltypes.ErrChannelNotFound, activeChannelID)
-	}
-
-	destinationPort := sourceChannelEnd.GetCounterparty().GetPortID()
-	destinationChannel := sourceChannelEnd.GetCounterparty().GetChannelID()
-
 	chanCap, found := k.scopedKeeper.GetCapability(ctx, host.ChannelCapabilityPath(portID, activeChannelID))
 	if !found {
 		return 0, sdkerrors.Wrapf(capabilitytypes.ErrCapabilityNotFound, "failed to find capability: %s", host.ChannelCapabilityPath(portID, activeChannelID))
@@ -43,45 +35,16 @@ func (k Keeper) sendTx(ctx sdk.Context, connectionID, portID string, icaPacketDa
 		return 0, icatypes.ErrInvalidTimeoutTimestamp
 	}
 
-	return k.createOutgoingPacket(ctx, portID, activeChannelID, destinationPort, destinationChannel, chanCap, icaPacketData, timeoutTimestamp)
-}
-
-func (k Keeper) createOutgoingPacket(
-	ctx sdk.Context,
-	sourcePort,
-	sourceChannel,
-	destinationPort,
-	destinationChannel string,
-	chanCap *capabilitytypes.Capability,
-	icaPacketData icatypes.InterchainAccountPacketData,
-	timeoutTimestamp uint64,
-) (uint64, error) {
 	if err := icaPacketData.ValidateBasic(); err != nil {
 		return 0, sdkerrors.Wrap(err, "invalid interchain account packet data")
 	}
 
-	// get the next sequence
-	sequence, found := k.channelKeeper.GetNextSequenceSend(ctx, sourcePort, sourceChannel)
-	if !found {
-		return 0, sdkerrors.Wrapf(channeltypes.ErrSequenceSendNotFound, "failed to retrieve next sequence send for channel %s on port %s", sourceChannel, sourcePort)
-	}
-
-	packet := channeltypes.NewPacket(
-		icaPacketData.GetBytes(),
-		sequence,
-		sourcePort,
-		sourceChannel,
-		destinationPort,
-		destinationChannel,
-		clienttypes.ZeroHeight(),
-		timeoutTimestamp,
-	)
-
-	if err := k.ics4Wrapper.SendPacket(ctx, chanCap, packet); err != nil {
+	sequence, err := k.ics4Wrapper.SendPacket(ctx, chanCap, portID, activeChannelID, clienttypes.ZeroHeight(), timeoutTimestamp, icaPacketData.GetBytes())
+	if err != nil {
 		return 0, err
 	}
 
-	return packet.Sequence, nil
+	return sequence, nil
 }
 
 // OnTimeoutPacket removes the active channel associated with the provided packet, the underlying channel end is closed

@@ -85,7 +85,6 @@ func (suite *KeeperTestSuite) TestGetAppVersion() {
 
 // TestGetAllChannelsWithPortPrefix verifies ports are filtered correctly using a port prefix.
 func (suite *KeeperTestSuite) TestGetAllChannelsWithPortPrefix() {
-
 	const (
 		secondChannelID        = "channel-1"
 		differentChannelPortID = "different-portid"
@@ -106,13 +105,13 @@ func (suite *KeeperTestSuite) TestGetAllChannelsWithPortPrefix() {
 			name:             "transfer channel is retrieved with prefix",
 			prefix:           "tra",
 			allChannels:      allChannels,
-			expectedChannels: []types.IdentifiedChannel{types.NewIdentifiedChannel(transfertypes.TypeMsgTransfer, ibctesting.FirstChannelID, types.Channel{})},
+			expectedChannels: []types.IdentifiedChannel{types.NewIdentifiedChannel(transfertypes.PortID, ibctesting.FirstChannelID, types.Channel{})},
 		},
 		{
 			name:             "matches port with full name as prefix",
-			prefix:           transfertypes.TypeMsgTransfer,
+			prefix:           transfertypes.PortID,
 			allChannels:      allChannels,
-			expectedChannels: []types.IdentifiedChannel{types.NewIdentifiedChannel(transfertypes.TypeMsgTransfer, ibctesting.FirstChannelID, types.Channel{})},
+			expectedChannels: []types.IdentifiedChannel{types.NewIdentifiedChannel(transfertypes.PortID, ibctesting.FirstChannelID, types.Channel{})},
 		},
 		{
 			name:             "no ports match prefix",

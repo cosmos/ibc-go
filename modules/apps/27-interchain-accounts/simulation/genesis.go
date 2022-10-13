@@ -52,7 +52,7 @@ func RandomizedGenState(simState *module.SimulationState) {
 	hostGenesisState := genesistypes.HostGenesisState{
 		ActiveChannels:     nil,
 		InterchainAccounts: nil,
-		Port:               types.PortID,
+		Port:               types.HostPortID,
 		Params:             hostParams,
 	}
 
