@@ -54,8 +54,8 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 			path.EndpointA.ChannelID,
 			coin, suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(),
 			suite.chainB.GetTimeoutHeight(), 0, // only use timeout height
-			[]byte("custom metadata"),
 		)
+		msg.Metadata = []byte("custom metadata")
 
 		tc.malleate()
 
