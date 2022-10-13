@@ -2,8 +2,12 @@ package interchain_accounts
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"testing"
 
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	ibctest "github.com/strangelove-ventures/ibctest/v6"
 	"github.com/strangelove-ventures/ibctest/v6/chain/cosmos"
@@ -23,6 +27,7 @@ import (
 	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
 	feetypes "github.com/cosmos/ibc-go/v6/modules/apps/29-fee/types"
 	ibctesting "github.com/cosmos/ibc-go/v6/testing"
+	simappparams "github.com/cosmos/ibc-go/v6/testing/simapp/params"
 )
 
 func TestInterchainAccountsTestSuite(t *testing.T) {
@@ -251,16 +256,50 @@ func (s *InterchainAccountsTestSuite) TestRegistration_WithGovernance() {
 	controllerAccount := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 	controllerAddress := controllerAccount.Bech32Address(chainA.Config().Bech32Prefix)
 
+	govModuleAddress, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
+	s.Require().NoError(err)
+	s.Require().NotNil(govModuleAddress)
+
 	t.Run("create and msg submit proposal", func(t *testing.T) {
 		version := icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
-		msgRegisterAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, controllerAddress, version)
+		msgRegisterAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, govModuleAddress.String(), version)
 		msgs := []sdk.Msg{msgRegisterAccount}
 		msgSubmitProposal, err := govtypesv1.NewMsgSubmitProposal(msgs, sdk.NewCoins(sdk.NewCoin(chainA.Config().Denom, sdk.NewInt(100))), controllerAddress, "")
 		s.Require().NoError(err)
 
 		resp, err := s.BroadcastMessages(ctx, chainA, controllerAccount, msgSubmitProposal)
-		t.Logf("%+v", resp)
 		s.AssertValidTxResponse(resp)
 		s.Require().NoError(err)
 	})
+}
+
+func (s *InterchainAccountsTestSuite) QueryModuleAccountAddress(ctx context.Context, moduleName string, chain *cosmos.CosmosChain) (sdk.AccAddress, error) {
+	authClient := s.GetChainGRCPClients(chain).AuthQueryClient
+	req := authtypes.QueryModuleAccountsRequest{}
+	moduleAccountsResponse, err := authClient.ModuleAccounts(ctx, &req)
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO: add this to test suite with all types registered
+	cfg := simappparams.MakeTestEncodingConfig()
+	authtypes.RegisterInterfaces(cfg.InterfaceRegistry)
+
+	for _, acc := range moduleAccountsResponse.Accounts {
+		var account authtypes.AccountI
+		err := cfg.InterfaceRegistry.UnpackAny(acc, &account)
+		if err != nil {
+			return nil, err
+		}
+		moduleAccount, ok := account.(authtypes.ModuleAccountI)
+		if !ok {
+			return nil, errors.New(fmt.Sprintf("failed to cast account: %T as ModuleAccount", moduleAccount))
+		}
+
+		if moduleAccount.GetName() == moduleName {
+			return moduleAccount.GetAddress(), nil
+		}
+	}
+
+	return nil, errors.New(fmt.Sprintf("failed to find address for module account: %s", moduleName))
 }
