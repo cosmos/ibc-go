@@ -17,10 +17,10 @@ import (
 // chainA and coin that orignate on chainB
 func (suite *KeeperTestSuite) TestSendTransfer() {
 	var (
-		amount   sdk.Coin
-		path     *ibctesting.Path
-		sender   sdk.AccAddress
-		err      error
+		amount sdk.Coin
+		path   *ibctesting.Path
+		sender sdk.AccAddress
+		err    error
 	)
 
 	testCases := []struct {
