@@ -3,7 +3,7 @@ package keeper
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v5/modules/apps/29-fee/types"
+	"github.com/cosmos/ibc-go/v6/modules/apps/29-fee/types"
 )
 
 // InitGenesis initializes the fee middleware application state from a provided genesis state

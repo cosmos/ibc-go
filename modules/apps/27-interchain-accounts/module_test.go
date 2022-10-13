@@ -8,12 +8,12 @@ import (
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	dbm "github.com/tendermint/tm-db"
 
-	ica "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts"
-	controllertypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/controller/types"
-	hosttypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/host/types"
-	"github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/types"
-	ibctesting "github.com/cosmos/ibc-go/v5/testing"
-	"github.com/cosmos/ibc-go/v5/testing/simapp"
+	ica "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts"
+	controllertypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/controller/types"
+	hosttypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/host/types"
+	"github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
+	ibctesting "github.com/cosmos/ibc-go/v6/testing"
+	"github.com/cosmos/ibc-go/v6/testing/simapp"
 )
 
 type InterchainAccountsTestSuite struct {
@@ -59,7 +59,7 @@ func (suite *InterchainAccountsTestSuite) TestInitModule() {
 	expAllowMessages := []string{"sdk.Msg"}
 	hostParams.HostEnabled = true
 	hostParams.AllowMessages = expAllowMessages
-	suite.Require().False(app.IBCKeeper.PortKeeper.IsBound(ctx, types.PortID))
+	suite.Require().False(app.IBCKeeper.PortKeeper.IsBound(ctx, types.HostPortID))
 
 	testCases := []struct {
 		name              string
@@ -123,7 +123,7 @@ func (suite *InterchainAccountsTestSuite) TestInitModule() {
 				suite.Require().True(hostParams.HostEnabled)
 				suite.Require().Equal(expAllowMessages, hostParams.AllowMessages)
 
-				suite.Require().True(app.IBCKeeper.PortKeeper.IsBound(ctx, types.PortID))
+				suite.Require().True(app.IBCKeeper.PortKeeper.IsBound(ctx, types.HostPortID))
 			}
 		})
 	}

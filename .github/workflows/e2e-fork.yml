@@ -24,7 +24,7 @@ jobs:
       - id: set-matrix
         run: echo "::set-output name=matrix::$(go run cmd/build_test_matrix/main.go)"
         env:
-          TEST_EXCLUSIONS: "TestInterchainAccountsTestSuite,TestIncentivizedInterchainAccountsTestSuite"
+          TEST_EXCLUSIONS: "TestInterchainAccountsTestSuite,TestIncentivizedInterchainAccountsTestSuite,TestUpgradeTestSuite"
 
   e2e:
     env:

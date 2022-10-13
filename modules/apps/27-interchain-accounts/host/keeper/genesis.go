@@ -5,9 +5,9 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	genesistypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/genesis/types"
-	icatypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/types"
-	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
+	genesistypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/genesis/types"
+	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
+	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
 )
 
 // InitGenesis initializes the interchain accounts host application state from a provided genesis state
@@ -35,7 +35,7 @@ func ExportGenesis(ctx sdk.Context, keeper Keeper) genesistypes.HostGenesisState
 	return genesistypes.NewHostGenesisState(
 		keeper.GetAllActiveChannels(ctx),
 		keeper.GetAllInterchainAccounts(ctx),
-		icatypes.PortID,
+		icatypes.HostPortID,
 		keeper.GetParams(ctx),
 	)
 }

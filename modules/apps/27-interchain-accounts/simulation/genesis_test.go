@@ -13,9 +13,9 @@ import (
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/stretchr/testify/require"
 
-	genesistypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/genesis/types"
-	"github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/simulation"
-	"github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/types"
+	genesistypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/genesis/types"
+	"github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/simulation"
+	"github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
 )
 
 // TestRandomizedGenState tests the normal scenario of applying RandomizedGenState.
@@ -50,7 +50,7 @@ func TestRandomizedGenState(t *testing.T) {
 
 	require.True(t, icaGenesis.HostGenesisState.Params.HostEnabled)
 	require.Equal(t, []string{"*"}, icaGenesis.HostGenesisState.Params.AllowMessages)
-	require.Equal(t, types.PortID, icaGenesis.HostGenesisState.Port)
+	require.Equal(t, types.HostPortID, icaGenesis.HostGenesisState.Port)
 	require.Empty(t, icaGenesis.ControllerGenesisState.ActiveChannels)
 	require.Empty(t, icaGenesis.ControllerGenesisState.InterchainAccounts)
 }

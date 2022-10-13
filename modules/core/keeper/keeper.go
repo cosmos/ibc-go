@@ -9,14 +9,14 @@ import (
 	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
-	clientkeeper "github.com/cosmos/ibc-go/v5/modules/core/02-client/keeper"
-	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
-	connectionkeeper "github.com/cosmos/ibc-go/v5/modules/core/03-connection/keeper"
-	connectiontypes "github.com/cosmos/ibc-go/v5/modules/core/03-connection/types"
-	channelkeeper "github.com/cosmos/ibc-go/v5/modules/core/04-channel/keeper"
-	portkeeper "github.com/cosmos/ibc-go/v5/modules/core/05-port/keeper"
-	porttypes "github.com/cosmos/ibc-go/v5/modules/core/05-port/types"
-	"github.com/cosmos/ibc-go/v5/modules/core/types"
+	clientkeeper "github.com/cosmos/ibc-go/v6/modules/core/02-client/keeper"
+	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
+	connectionkeeper "github.com/cosmos/ibc-go/v6/modules/core/03-connection/keeper"
+	connectiontypes "github.com/cosmos/ibc-go/v6/modules/core/03-connection/types"
+	channelkeeper "github.com/cosmos/ibc-go/v6/modules/core/04-channel/keeper"
+	portkeeper "github.com/cosmos/ibc-go/v6/modules/core/05-port/keeper"
+	porttypes "github.com/cosmos/ibc-go/v6/modules/core/05-port/types"
+	"github.com/cosmos/ibc-go/v6/modules/core/types"
 )
 
 var _ types.QueryServer = (*Keeper)(nil)
@@ -50,11 +50,10 @@ func NewKeeper(
 	}
 
 	// panic if any of the keepers passed in is empty
-	if reflect.ValueOf(stakingKeeper).IsZero() {
+	if isEmpty(stakingKeeper) {
 		panic(fmt.Errorf("cannot initialize IBC keeper: empty staking keeper"))
 	}
-
-	if reflect.ValueOf(upgradeKeeper).IsZero() {
+	if isEmpty(upgradeKeeper) {
 		panic(fmt.Errorf("cannot initialize IBC keeper: empty upgrade keeper"))
 	}
 
@@ -91,4 +90,20 @@ func (k *Keeper) SetRouter(rtr *porttypes.Router) {
 	k.PortKeeper.Router = rtr
 	k.Router = rtr
 	k.Router.Seal()
+}
+
+// isEmpty checks if the interface is an empty struct or a pointer pointing
+// to an empty struct
+func isEmpty(keeper interface{}) bool {
+	switch reflect.TypeOf(keeper).Kind() {
+	case reflect.Ptr:
+		if reflect.ValueOf(keeper).Elem().IsZero() {
+			return true
+		}
+	default:
+		if reflect.ValueOf(keeper).IsZero() {
+			return true
+		}
+	}
+	return false
 }
