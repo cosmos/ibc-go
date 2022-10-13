@@ -21,7 +21,6 @@ func TestFungibleTokenPacketDataValidateBasic(t *testing.T) {
 		expPass    bool
 	}{
 		{"valid packet", NewFungibleTokenPacketData(denom, amount, addr1, addr2), true},
-		{"valid packet with metadata", NewFungibleTokenPacketData(denom, amount, addr1, addr2), true},
 		{"valid packet with large amount", NewFungibleTokenPacketData(denom, largeAmount, addr1, addr2), true},
 		{"invalid denom", NewFungibleTokenPacketData("", amount, addr1, addr2), false},
 		{"invalid empty amount", NewFungibleTokenPacketData(denom, "", addr1, addr2), false},
