@@ -272,7 +272,7 @@ Auth modules are expected to know how to decode the acknowledgement.
 
 If the controller chain is connected to a host chain using the host module on ibc-go, it may interpret the acknowledgement bytes as follows:
 
-Begin by unmarshaling the acknowledgement into sdk.TxMsgData:
+Begin by unmarshaling the acknowledgement into `sdk.TxMsgData`:
 ```go
 var ack channeltypes.Acknowledgement
 if err := channeltypes.SubModuleCdc.UnmarshalJSON(acknowledgement, &ack); err != nil {

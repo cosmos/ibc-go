@@ -24,7 +24,7 @@ func TestDecodeStore(t *testing.T) {
 		Pairs: []kv.Pair{
 			{
 				Key:   []byte(types.PortKeyPrefix),
-				Value: []byte(types.PortID),
+				Value: []byte(types.HostPortID),
 			},
 			{
 				Key:   []byte(types.OwnerKeyPrefix),
@@ -44,7 +44,7 @@ func TestDecodeStore(t *testing.T) {
 		name        string
 		expectedLog string
 	}{
-		{"PortID", fmt.Sprintf("Port A: %s\nPort B: %s", types.PortID, types.PortID)},
+		{"PortID", fmt.Sprintf("Port A: %s\nPort B: %s", types.HostPortID, types.HostPortID)},
 		{"Owner", fmt.Sprintf("Owner A: %s\nOwner B: %s", owner, owner)},
 		{"ActiveChannel", fmt.Sprintf("ActiveChannel A: %s\nActiveChannel B: %s", channelID, channelID)},
 		{"IsMiddlewareEnabled", fmt.Sprintf("IsMiddlewareEnabled A: %s\nIsMiddlewareEnabled B: %s", "false", "false")},
