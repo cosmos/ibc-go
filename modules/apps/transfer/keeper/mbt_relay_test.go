@@ -346,7 +346,7 @@ func (suite *KeeperTestSuite) TestModelBasedRelay() {
 							sdk.NewCoin(denom, amount),
 							sender,
 							tc.packet.Data.Receiver,
-							clienttypes.NewHeight(1, 110),
+							clienttypes.NewHeight(0, 110),
 							0,
 							nil)
 					}
