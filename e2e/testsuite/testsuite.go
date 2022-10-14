@@ -8,7 +8,9 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
+
 	paramsproposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 	intertxtypes "github.com/cosmos/interchain-accounts/x/inter-tx/types"
 	dockerclient "github.com/docker/docker/client"
@@ -69,6 +71,7 @@ type GRPCClients struct {
 
 	// SDK query clients
 	GovQueryClient    govtypes.QueryClient
+	GovQueryClientV1  govtypesv1.QueryClient
 	ParamsQueryClient paramsproposaltypes.QueryClient
 	AuthQueryClient   authtypes.QueryClient
 }
@@ -369,6 +372,7 @@ func (s *E2ETestSuite) initGRPCClients(chain *cosmos.CosmosChain) {
 		FeeQueryClient:     feetypes.NewQueryClient(grpcConn),
 		ICAQueryClient:     intertxtypes.NewQueryClient(grpcConn),
 		GovQueryClient:     govtypes.NewQueryClient(grpcConn),
+		GovQueryClientV1:   govtypesv1.NewQueryClient(grpcConn),
 		ParamsQueryClient:  paramsproposaltypes.NewQueryClient(grpcConn),
 		AuthQueryClient:    authtypes.NewQueryClient(grpcConn),
 	}

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"testing"
+	"time"
 
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -30,6 +31,10 @@ import (
 	simappparams "github.com/cosmos/ibc-go/v6/testing/simapp/params"
 )
 
+const (
+	InitialProposalID uint64 = 1
+)
+
 func TestInterchainAccountsTestSuite(t *testing.T) {
 	suite.Run(t, new(InterchainAccountsTestSuite))
 }
@@ -52,6 +57,38 @@ func (s *InterchainAccountsTestSuite) RegisterCounterPartyPayee(ctx context.Cont
 ) (sdk.TxResponse, error) {
 	msg := feetypes.NewMsgRegisterCounterpartyPayee(portID, channelID, relayerAddr, counterpartyPayeeAddr)
 	return s.BroadcastMessages(ctx, chain, user, msg)
+}
+
+// QueryModuleAccountAddress returns the sdk.AccAddress of a given module name.
+func (s *InterchainAccountsTestSuite) QueryModuleAccountAddress(ctx context.Context, moduleName string, chain *cosmos.CosmosChain) (sdk.AccAddress, error) {
+	authClient := s.GetChainGRCPClients(chain).AuthQueryClient
+
+	moduleAccountsResponse, err := authClient.ModuleAccounts(ctx, &authtypes.QueryModuleAccountsRequest{})
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO: add this to test suite with all types registered
+	cfg := simappparams.MakeTestEncodingConfig()
+	authtypes.RegisterInterfaces(cfg.InterfaceRegistry)
+
+	for _, acc := range moduleAccountsResponse.Accounts {
+		var account authtypes.AccountI
+		err := cfg.InterfaceRegistry.UnpackAny(acc, &account)
+		if err != nil {
+			return nil, err
+		}
+		moduleAccount, ok := account.(authtypes.ModuleAccountI)
+		if !ok {
+			return nil, errors.New(fmt.Sprintf("failed to cast account: %T as ModuleAccount", moduleAccount))
+		}
+
+		if moduleAccount.GetName() == moduleName {
+			return moduleAccount.GetAddress(), nil
+		}
+	}
+
+	return nil, errors.New(fmt.Sprintf("failed to find address for module account: %s", moduleName))
 }
 
 // getICAVersion returns the version which should be used in the MsgRegisterAccount broadcast from the
@@ -243,18 +280,21 @@ func (s *InterchainAccountsTestSuite) TestMsgSubmitTx_FailedTransfer_Insufficien
 	})
 }
 
-func (s *InterchainAccountsTestSuite) TestRegistration_WithGovernance() {
+func (s *InterchainAccountsTestSuite) TestICARegistration_WithGovernance() {
 	t := s.T()
 	ctx := context.TODO()
 
 	// setup relayers and connection-0 between two chains
 	// channel-0 is a transfer channel but it will not be used in this test case
 	relayer, _ := s.SetupChainsRelayerAndChannel(ctx)
-	_ = relayer
 	chainA, chainB := s.GetChains()
+	chainAAccount := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
+	chainAAddress := chainAAccount.Bech32Address(chainA.Config().Bech32Prefix)
+
+	chainBAccount := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
+
 	_ = chainB
-	controllerAccount := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
-	controllerAddress := controllerAccount.Bech32Address(chainA.Config().Bech32Prefix)
+	_ = chainBAccount
 
 	govModuleAddress, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
 	s.Require().NoError(err)
@@ -264,42 +304,112 @@ func (s *InterchainAccountsTestSuite) TestRegistration_WithGovernance() {
 		version := icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
 		msgRegisterAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, govModuleAddress.String(), version)
 		msgs := []sdk.Msg{msgRegisterAccount}
-		msgSubmitProposal, err := govtypesv1.NewMsgSubmitProposal(msgs, sdk.NewCoins(sdk.NewCoin(chainA.Config().Denom, sdk.NewInt(100))), controllerAddress, "")
+		msgSubmitProposal, err := govtypesv1.NewMsgSubmitProposal(msgs, sdk.NewCoins(sdk.NewCoin(chainA.Config().Denom, govtypesv1.DefaultMinDepositTokens)), chainAAddress, "")
 		s.Require().NoError(err)
 
-		resp, err := s.BroadcastMessages(ctx, chainA, controllerAccount, msgSubmitProposal)
+		resp, err := s.BroadcastMessages(ctx, chainA, chainAAccount, msgSubmitProposal)
 		s.AssertValidTxResponse(resp)
 		s.Require().NoError(err)
 	})
-}
 
-func (s *InterchainAccountsTestSuite) QueryModuleAccountAddress(ctx context.Context, moduleName string, chain *cosmos.CosmosChain) (sdk.AccAddress, error) {
-	authClient := s.GetChainGRCPClients(chain).AuthQueryClient
-	req := authtypes.QueryModuleAccountsRequest{}
-	moduleAccountsResponse, err := authClient.ModuleAccounts(ctx, &req)
-	if err != nil {
-		return nil, err
-	}
+	//s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB))
+	//
+	//t.Run("vote on proposal", func(t *testing.T) {
+	//	msgVote := &govtypesv1.MsgVote{
+	//		ProposalId: InitialProposalID,
+	//		Voter:      chainAAddress,
+	//		Option:     govtypesv1.VoteOption_VOTE_OPTION_YES,
+	//	}
+	//
+	//	txResp, err := s.BroadcastMessages(ctx, chainA, chainAAccount, msgVote)
+	//	s.Require().NoError(err)
+	//	s.AssertValidTxResponse(txResp)
+	//})
+	//
+	s.Require().NoError(chainA.VoteOnProposalAllValidators(ctx, "1", cosmos.ProposalVoteYes))
 
-	// TODO: add this to test suite with all types registered
-	cfg := simappparams.MakeTestEncodingConfig()
-	authtypes.RegisterInterfaces(cfg.InterfaceRegistry)
+	time.Sleep(testvalues.VotingPeriod)
+	time.Sleep(5 * time.Second)
 
-	for _, acc := range moduleAccountsResponse.Accounts {
-		var account authtypes.AccountI
-		err := cfg.InterfaceRegistry.UnpackAny(acc, &account)
-		if err != nil {
-			return nil, err
-		}
-		moduleAccount, ok := account.(authtypes.ModuleAccountI)
-		if !ok {
-			return nil, errors.New(fmt.Sprintf("failed to cast account: %T as ModuleAccount", moduleAccount))
-		}
+	proposal, err := s.QueryProposalV1(ctx, chainA, 1)
+	s.Require().NoError(err)
+	s.Require().Equal(govtypesv1.StatusPassed, proposal.Status)
 
-		if moduleAccount.GetName() == moduleName {
-			return moduleAccount.GetAddress(), nil
-		}
-	}
+	t.Run("start relayer", func(t *testing.T) {
+		s.StartRelayer(relayer)
+	})
 
-	return nil, errors.New(fmt.Sprintf("failed to find address for module account: %s", moduleName))
+	s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA))
+
+	t.Logf("gov module address: %s", govModuleAddress.String())
+
+	var hostAccount string
+	t.Run("verify interchain account", func(t *testing.T) {
+		var err error
+		hostAccount, err = s.QueryInterchainAccount(ctx, chainA, govModuleAddress.String(), ibctesting.FirstConnectionID)
+		s.Require().NoError(err)
+		s.Require().NotZero(len(hostAccount))
+
+		channels, err := relayer.GetChannels(ctx, s.GetRelayerExecReporter(), chainA.Config().ChainID)
+		s.Require().NoError(err)
+		s.Require().Equal(len(channels), 2)
+	})
+
+	//time.Sleep(100 * time.Hour)
+
+	//
+	//t.Run("interchain account executes a bank transfer on behalf of the corresponding owner account", func(t *testing.T) {
+	//	t.Run("fund interchain account wallet", func(t *testing.T) {
+	//		// fund the host account, so it has some $$ to send
+	//		err := chainB.SendFunds(ctx, ibctest.FaucetAccountKeyName, ibc.WalletAmount{
+	//			Address: hostAccount,
+	//			Amount:  testvalues.StartingTokenAmount,
+	//			Denom:   chainB.Config().Denom,
+	//		})
+	//		s.Require().NoError(err)
+	//	})
+	//
+	//	t.Run("broadcast MsgSubmitTx", func(t *testing.T) {
+	//		// assemble bank transfer message from host account to user account on host chain
+	//		msgSend := &banktypes.MsgSend{
+	//			FromAddress: hostAccount,
+	//			ToAddress:   chainBAccount.Bech32Address(chainB.Config().Bech32Prefix),
+	//			Amount:      sdk.NewCoins(testvalues.DefaultTransferAmount(chainB.Config().Denom)),
+	//		}
+	//
+	//		// assemble submitMessage tx for intertx
+	//		msgSubmitTx, err := intertxtypes.NewMsgSubmitTx(
+	//			msgSend,
+	//			ibctesting.FirstConnectionID,
+	//			govModuleAddress.String(),
+	//		)
+	//		s.Require().NoError(err)
+	//
+	//		// broadcast submitMessage tx from controller account on chain A
+	//		// this message should trigger the sending of an ICA packet over channel-1 (channel created between controller and host)
+	//		// this ICA packet contains the assembled bank transfer message from above, which will be executed by the host account on the host chain.
+	//		resp, err := s.BroadcastMessages(
+	//			ctx,
+	//			chainA,
+	//			controllerAccount,
+	//			msgSubmitTx,
+	//		)
+	//
+	//		s.AssertValidTxResponse(resp)
+	//		s.Require().NoError(err)
+	//
+	//		s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB))
+	//	})
+	//
+	//	t.Run("verify tokens transferred", func(t *testing.T) {
+	//		balance, err := chainB.GetBalance(ctx, chainBAccount.Bech32Address(chainB.Config().Bech32Prefix), chainB.Config().Denom)
+	//		s.Require().NoError(err)
+	//
+	//		_, err = chainB.GetBalance(ctx, hostAccount, chainB.Config().Denom)
+	//		s.Require().NoError(err)
+	//
+	//		expected := testvalues.IBCTransferAmount + testvalues.StartingTokenAmount
+	//		s.Require().Equal(expected, balance)
+	//	})
+	//})
 }
