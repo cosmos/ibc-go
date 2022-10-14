@@ -141,11 +141,12 @@ func (s *InterchainAccountsGroupsTestSuite) TestInterchainAccountsGroupsIntegrat
 
 	t.Run("verify interchain account registration success", func(t *testing.T) {
 		interchainAccAddr, err = s.QueryInterchainAccount(ctx, chainA, groupPolicyAddr, ibctesting.FirstConnectionID)
+		s.Require().NotEmpty(interchainAccAddr)
 		s.Require().NoError(err)
 
 		channels, err := relayer.GetChannels(ctx, s.GetRelayerExecReporter(), chainA.Config().ChainID)
 		s.Require().NoError(err)
-		s.Require().Equal(len(channels), 2)
+		s.Require().Equal(len(channels), 2) // 1 transfer (created by default), 1 interchain-accounts
 	})
 
 	t.Run("fund interchain account wallet", func(t *testing.T) {
@@ -205,10 +206,13 @@ func (s *InterchainAccountsGroupsTestSuite) TestInterchainAccountsGroupsIntegrat
 		balance, err := chainB.GetBalance(ctx, chainBAddress, chainB.Config().Denom)
 		s.Require().NoError(err)
 
-		_, err = chainB.GetBalance(ctx, interchainAccAddr, chainB.Config().Denom)
+		expected := testvalues.IBCTransferAmount + testvalues.StartingTokenAmount
+		s.Require().Equal(expected, balance)
+
+		balance, err = chainB.GetBalance(ctx, interchainAccAddr, chainB.Config().Denom)
 		s.Require().NoError(err)
 
-		expected := testvalues.IBCTransferAmount + testvalues.StartingTokenAmount
+		expected = testvalues.StartingTokenAmount - testvalues.IBCTransferAmount
 		s.Require().Equal(expected, balance)
 	})
 }
