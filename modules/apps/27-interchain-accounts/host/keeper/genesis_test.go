@@ -28,7 +28,7 @@ func (suite *KeeperTestSuite) TestInitGenesis() {
 				AccountAddress: interchainAccAddr.String(),
 			},
 		},
-		Port: icatypes.PortID,
+		Port: icatypes.HostPortID,
 	}
 
 	keeper.InitGenesis(suite.chainA.GetContext(), suite.chainA.GetSimApp().ICAHostKeeper, genesisState)
@@ -66,7 +66,7 @@ func (suite *KeeperTestSuite) TestExportGenesis() {
 	suite.Require().Equal(interchainAccAddr, genesisState.InterchainAccounts[0].AccountAddress)
 	suite.Require().Equal(path.EndpointA.ChannelConfig.PortID, genesisState.InterchainAccounts[0].PortId)
 
-	suite.Require().Equal(icatypes.PortID, genesisState.GetPort())
+	suite.Require().Equal(icatypes.HostPortID, genesisState.GetPort())
 
 	expParams := types.DefaultParams()
 	suite.Require().Equal(expParams, genesisState.GetParams())

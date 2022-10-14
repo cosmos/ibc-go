@@ -91,7 +91,7 @@ func (gs ControllerGenesisState) Validate() error {
 // DefaultHostGenesis creates and returns the default interchain accounts HostGenesisState
 func DefaultHostGenesis() HostGenesisState {
 	return HostGenesisState{
-		Port:   icatypes.PortID,
+		Port:   icatypes.HostPortID,
 		Params: hosttypes.DefaultParams(),
 	}
 }

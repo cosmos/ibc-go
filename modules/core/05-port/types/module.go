@@ -4,6 +4,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
+	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
 )
@@ -110,8 +111,12 @@ type ICS4Wrapper interface {
 	SendPacket(
 		ctx sdk.Context,
 		chanCap *capabilitytypes.Capability,
-		packet exported.PacketI,
-	) error
+		sourcePort string,
+		sourceChannel string,
+		timeoutHeight clienttypes.Height,
+		timeoutTimestamp uint64,
+		data []byte,
+	) (sequence uint64, err error)
 
 	WriteAcknowledgement(
 		ctx sdk.Context,
