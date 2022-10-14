@@ -12,7 +12,7 @@ on:
         options:
           - TestInterchainAccountsTestSuite
           - TestIncentivizedInterchainAccountsTestSuite
-          - TestUpgradeV6TestSuite
+          - TestUpgradeTestSuite
       chain-image:
         description: 'The image to use for chain A'
         required: true
