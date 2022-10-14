@@ -10,12 +10,6 @@ import (
 	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
 )
 
-// msg types
-const (
-	TypeMsgPayPacketFee      = "payPacketFee"
-	TypeMsgPayPacketFeeAsync = "payPacketFeeAsync"
-)
-
 // NewMsgRegisterPayee creates a new instance of MsgRegisterPayee
 func NewMsgRegisterPayee(portID, channelID, relayerAddr, payeeAddr string) *MsgRegisterPayee {
 	return &MsgRegisterPayee{
@@ -159,11 +153,6 @@ func (msg MsgPayPacketFee) Route() string {
 	return RouterKey
 }
 
-// Type implements sdk.Msg
-func (msg MsgPayPacketFee) Type() string {
-	return TypeMsgPayPacketFee
-}
-
 // GetSignBytes implements sdk.Msg.
 func (msg MsgPayPacketFee) GetSignBytes() []byte {
 	return sdk.MustSortJSON(AminoCdc.MustMarshalJSON(&msg))
@@ -203,11 +192,6 @@ func (msg MsgPayPacketFeeAsync) GetSigners() []sdk.AccAddress {
 // Route implements sdk.Msg
 func (msg MsgPayPacketFeeAsync) Route() string {
 	return RouterKey
-}
-
-// Type implements sdk.Msg
-func (msg MsgPayPacketFeeAsync) Type() string {
-	return TypeMsgPayPacketFeeAsync
 }
 
 // GetSignBytes implements sdk.Msg.
