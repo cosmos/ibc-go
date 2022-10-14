@@ -96,7 +96,7 @@ endif
 all: build lint test
 
 # The below include contains the tools and runsim targets.
-#include contrib/devtools/Makefile
+include contrib/devtools/Makefile
 
 ###############################################################################
 ###                                  Build                                  ###
@@ -278,11 +278,6 @@ test-cover:
 	@export VERSION=$(VERSION); bash -x contrib/test_cover.sh
 .PHONY: test-cover
 
-test-rosetta:
-	docker build -t rosetta-ci:latest -f contrib/rosetta/node/Dockerfile .
-	docker-compose -f contrib/rosetta/docker-compose.yaml up --abort-on-container-exit --exit-code-from test_rosetta --build
-.PHONY: test-rosetta
-
 benchmark:
 	@go test -mod=readonly -bench=. $(PACKAGES_NOSIMULATION)
 .PHONY: benchmark
@@ -298,16 +293,10 @@ lint-fix:
 	golangci-lint run --fix --out-format=tab --issues-exit-code=0
 .PHONY: lint lint-fix
 
-format: goimports
-	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -path "./client/docs/statik/statik.go" -not -path "./tests/mocks/*" -not -name '*.pb.go' -not -name '*.pb.gw.go' | xargs gofumpt -w
-	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -path "./client/docs/statik/statik.go" -not -path "./tests/mocks/*" -not -name '*.pb.go' -not -name '*.pb.gw.go' | xargs misspell -w
+format:
+	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -path "./docs/client/statik/statik.go" -not -path "./tests/mocks/*" -not -name '*.pb.go' -not -name '*.pb.gw.go' | xargs gofumpt -w
+	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -path "./docs/client/statik/statik.go" -not -path "./tests/mocks/*" -not -name '*.pb.go' -not -name '*.pb.gw.go' | xargs misspell -w
 .PHONY: format
-
-goimports:
-	$(DOCKER) run  -v $(CURDIR):/ibc-go --rm  -w "/ibc-go" cytopia/goimports -w -local 'github.com/cosmos/ibc-go' "$(CHANGED_GO_FILES)" &> /dev/null || echo "No changed go files to format"
-
-goimports-all:
-	$(DOCKER) run  -v $(CURDIR):/ibc-go --rm  -w "/ibc-go" cytopia/goimports -w -local 'github.com/cosmos/ibc-go' "$(ALL_GO_FILES)"
 
 ###############################################################################
 ###                                Protobuf                                 ###
@@ -400,36 +389,3 @@ proto-update-deps:
 	@perl -lp -i -e 'print q(option go_package = "github.com/confio/ics23/go";) if $$. == 4' $(CONFIO_TYPES)/proofs.proto
 
 .PHONY: proto-all proto-gen proto-gen-any proto-swagger-gen proto-format proto-lint proto-check-breaking proto-update-deps
-
-###############################################################################
-###                                Localnet                                 ###
-###############################################################################
-
-# Run a 4-node testnet locally
-localnet-start: build-linux localnet-stop
-	$(if $(shell $(DOCKER) inspect -f '{{ .Id }}' cosmossdk/simd-env 2>/dev/null),$(info found image cosmossdk/simd-env),$(MAKE) -C contrib/images simd-env)
-	if ! [ -f build/node0/simd/config/genesis.json ]; then $(DOCKER) run --rm \
-		--user $(shell id -u):$(shell id -g) \
-		-v $(BUILDDIR):/simd:Z \
-		-v /etc/group:/etc/group:ro \
-		-v /etc/passwd:/etc/passwd:ro \
-		-v /etc/shadow:/etc/shadow:ro \
-		cosmossdk/simd-env testnet --v 4 -o . --starting-ip-address 192.168.10.2 --keyring-backend=test ; fi
-	docker-compose up -d
-
-localnet-stop:
-	docker-compose down
-
-.PHONY: localnet-start localnet-stop
-
-###############################################################################
-###                                rosetta                                  ###
-###############################################################################
-# builds rosetta test data dir
-rosetta-data:
-	-docker container rm data_dir_build
-	docker build -t rosetta-ci:latest -f contrib/rosetta/node/Dockerfile .
-	docker run --name data_dir_build -t rosetta-ci:latest sh /rosetta/data.sh
-	docker cp data_dir_build:/tmp/data.tar.gz "$(CURDIR)/contrib/rosetta/node/data.tar.gz"
-	docker container rm data_dir_build
-.PHONY: rosetta-data
