@@ -16,6 +16,15 @@ import (
 // - A new MsgChannelOpenInit is routed through the MsgServiceRouter, executing the OnOpenChanInit callback stack as configured.
 // - An error is returned if the port identifier is already in use. Gaining access to interchain accounts whose channels
 // have closed cannot be done with this function. A regular MsgChannelOpenInit must be used.
+//
+// Deprecated: this is a legacy API that is only intended to function correctly in workflows where an underlying authentication application has been set.
+// Calling this API will result in all packet callbacks being routed to the underlying application.
+
+// Please use MsgRegisterInterchainAccount for use cases which do not need to route to an underlying application.
+
+// Prior to to v6.x.x of ibc-go, the controller module was only functional as middleware, with authentication performed
+// by the underlying application. For a full summary of the changes in v6.x.x, please see ADR009.
+// This API will be removed in later releases.
 func (k Keeper) RegisterInterchainAccount(ctx sdk.Context, connectionID, owner, version string) error {
 	portID, err := icatypes.NewControllerPortID(owner)
 	if err != nil {
