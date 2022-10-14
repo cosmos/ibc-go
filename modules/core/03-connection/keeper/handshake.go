@@ -56,8 +56,8 @@ func (k Keeper) ConnOpenInit(
 // code is executed on chain B).
 //
 // NOTE:
-//  - Here chain A acts as the counterparty
-//  - Identifiers are checked on msg validation
+//   - Here chain A acts as the counterparty
+//   - Identifiers are checked on msg validation
 func (k Keeper) ConnOpenTry(
 	ctx sdk.Context,
 	counterparty types.Counterparty, // counterpartyConnectionIdentifier, counterpartyPrefix and counterpartyClientIdentifier
