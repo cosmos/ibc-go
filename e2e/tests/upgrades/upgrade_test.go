@@ -10,7 +10,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
-	v6Upgrades "github.com/cosmos/interchain-accounts/app/upgrades/v6"
+	v6upgrades "github.com/cosmos/interchain-accounts/app/upgrades/v6"
 	intertxtypes "github.com/cosmos/interchain-accounts/x/inter-tx/types"
 	ibctest "github.com/strangelove-ventures/ibctest/v6"
 	"github.com/strangelove-ventures/ibctest/v6/chain/cosmos"
@@ -300,7 +300,7 @@ func (s *UpgradeTestSuite) TestV5ToV6ChainUpgrade() {
 	s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA, chainB), "failed to wait for blocks")
 
 	t.Run("upgrade chainA", func(t *testing.T) {
-		s.UpgradeChain(ctx, chainA, chainAUpgradeProposalWallet, v6Upgrades.UpgradeName, CurrentVersion, UpgradeVersion)
+		s.UpgradeChain(ctx, chainA, chainAUpgradeProposalWallet, v6upgrades.UpgradeName, CurrentVersion, UpgradeVersion)
 	})
 
 	t.Run("restart relayer", func(t *testing.T) {
