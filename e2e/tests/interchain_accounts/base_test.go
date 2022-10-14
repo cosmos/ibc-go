@@ -308,6 +308,7 @@ func (s *InterchainAccountsTestSuite) TestICARegistration_WithGovernance() {
 		s.Require().NoError(err)
 
 		resp, err := s.BroadcastMessages(ctx, chainA, chainAAccount, msgSubmitProposal)
+		t.Logf("CREATE SUBMIT PROPOSAL: %+v", resp)
 		s.AssertValidTxResponse(resp)
 		s.Require().NoError(err)
 	})
@@ -343,6 +344,8 @@ func (s *InterchainAccountsTestSuite) TestICARegistration_WithGovernance() {
 
 	t.Logf("gov module address: %s", govModuleAddress.String())
 
+	time.Sleep(100 * time.Hour)
+
 	var hostAccount string
 	t.Run("verify interchain account", func(t *testing.T) {
 		var err error
@@ -355,7 +358,6 @@ func (s *InterchainAccountsTestSuite) TestICARegistration_WithGovernance() {
 		s.Require().Equal(len(channels), 2)
 	})
 
-	//time.Sleep(100 * time.Hour)
 
 	//
 	//t.Run("interchain account executes a bank transfer on behalf of the corresponding owner account", func(t *testing.T) {
