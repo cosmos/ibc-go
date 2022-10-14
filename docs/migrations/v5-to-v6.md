@@ -138,6 +138,39 @@ func NewKeeper(
 ) Keeper
 ```
 
+### ICS29 - `NewKeeper` API change
+
+The `NewKeeper` function of ICS29 has been updated to remove the `paramSpace` parameter as it was unused.
+
+```diff
+func NewKeeper(
+-   cdc codec.BinaryCodec, key storetypes.StoreKey, paramSpace paramtypes.Subspace,
+-   ics4Wrapper types.ICS4Wrapper, channelKeeper types.ChannelKeeper, portKeeper types.PortKeeper, authKeeper types.AccountKeeper, bankKeeper types.BankKeeper,
++   cdc codec.BinaryCodec, key storetypes.StoreKey,
++   ics4Wrapper types.ICS4Wrapper, channelKeeper types.ChannelKeeper,
++   portKeeper types.PortKeeper, authKeeper types.AccountKeeper, bankKeeper types.BankKeeper,
+) Keeper {
+```
+
+### ICS20 - `SendTransfer` is no longer exported.
+
+The `SendTransfer` function of ICS20 has been removed. IBC transfers should now be initiated with `MsgTransfer` and routed to the ICS20 `MsgServer`.
+
+See below for example:
+
+```go
+if handler := msgRouter.Handler(msgTransfer); handler != nil {
+    if err := msgTransfer.ValidateBasic(); err != nil {
+        return nil, err
+    }
+	
+    res, err := handler(ctx, msgTransfer)
+    if err != nil {
+        return nil, err
+    }
+}
+```
+
 ### ICS04 - `SendPacket` API change
 
 The `SendPacket` API has been simplified:
