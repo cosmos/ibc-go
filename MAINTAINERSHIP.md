@@ -1,6 +1,6 @@
 # Request For Maintainership
 
-This document details the acceptance process for requests from external contributors who wish for the `ibc-go` core team to take over **maintainership** of a complex block of code (ie: an application module or a light client implementation). It is the process we also follow internally for features that we develop which will go into the `ibc-go` codebase.
+This document details the acceptance process for requests from external contributors who require for the `ibc-go` core team to take over **maintainership** of a complex block of code (ie: an application module or a light client implementation). It is the process we also follow internally for features that we develop which will go into the `ibc-go` codebase.
 
 For projects who have created a custom IBC application and want us to list this application on the registry, please break out your module into its own repo for ease of import into chains!
 
@@ -39,6 +39,8 @@ Answer these questions in a requirements doc:
     How soon after being developed would this be adopted? 
 
     What is the impact of this feature being adopted?
+
+    Is there a specific need for this feature to be included in the `ibc-go` codebase, rather than in its own module repo?
 ```
 
 Answers to these questions should also be detailed in a **discussion** in the `ibc-go` repo to open up the discussion to a wider audience, this can be done before or after the walk through. 
