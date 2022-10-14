@@ -17,6 +17,7 @@ import (
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	connectiontypes "github.com/cosmos/ibc-go/v6/modules/core/03-connection/types"
+	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
 	ibctesting "github.com/cosmos/ibc-go/v6/testing"
 )
 
@@ -32,7 +33,7 @@ type ConnectionTestSuite struct {
 func (s *ConnectionTestSuite) QueryMaxExpectedTimePerBlockParam(ctx context.Context, chain ibc.Chain) uint64 {
 	queryClient := s.GetChainGRCPClients(chain).ParamsQueryClient
 	res, err := queryClient.Params(ctx, &paramsproposaltypes.QueryParamsRequest{
-		Subspace: "ibc",
+		Subspace: host.ModuleName,
 		Key:      string(connectiontypes.KeyMaxExpectedTimePerBlock),
 	})
 	s.Require().NoError(err)
@@ -45,8 +46,8 @@ func (s *ConnectionTestSuite) QueryMaxExpectedTimePerBlockParam(ctx context.Cont
 	return time
 }
 
-// TestMaxExpectedTimePerBlock tests changing the MaxExpectedTimePerBlock param using a governance proposal
-func (s *ConnectionTestSuite) TestMaxExpectedTimePerBlock() {
+// TestMaxExpectedTimePerBlockParam tests changing the MaxExpectedTimePerBlock param using a governance proposal
+func (s *ConnectionTestSuite) TestMaxExpectedTimePerBlockParam() {
 	t := s.T()
 	ctx := context.TODO()
 
@@ -73,7 +74,7 @@ func (s *ConnectionTestSuite) TestMaxExpectedTimePerBlock() {
 	t.Run("change the delay to 60 seconds", func(t *testing.T) {
 		delay := fmt.Sprintf(`"%d"`, 1*time.Minute)
 		changes := []paramsproposaltypes.ParamChange{
-			paramsproposaltypes.NewParamChange("ibc", string(connectiontypes.KeyMaxExpectedTimePerBlock), delay),
+			paramsproposaltypes.NewParamChange(host.ModuleName, string(connectiontypes.KeyMaxExpectedTimePerBlock), delay),
 		}
 
 		proposal := paramsproposaltypes.NewParameterChangeProposal(ibctesting.Title, ibctesting.Description, changes)
