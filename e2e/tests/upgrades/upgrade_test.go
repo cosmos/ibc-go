@@ -3,7 +3,6 @@ package upgrades
 import (
 	"context"
 	"fmt"
-	"os"
 	"testing"
 	"time"
 
@@ -24,12 +23,12 @@ import (
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
 	ibctesting "github.com/cosmos/ibc-go/v6/testing"
+	simappupgrades "github.com/cosmos/ibc-go/v6/testing/simapp/upgrades"
 )
 
 const (
 	haltHeight         = uint64(100)
 	blocksAfterUpgrade = uint64(10)
-	defaultUpgradeName = "normal upgrade"
 )
 
 func TestUpgradeTestSuite(t *testing.T) {
@@ -83,11 +82,7 @@ func (s *UpgradeTestSuite) UpgradeChain(ctx context.Context, chain *cosmos.Cosmo
 
 func (s *UpgradeTestSuite) TestV4ToV5ChainUpgrade() {
 	t := s.T()
-	// TODO: temporarily hard code the version upgrades.
-	oldVersion := "v4.0.0"
-	targetVersion := "pr-2144" // v5 version with upgrade handler, replace with v5.0.0-rc3 when it is cut.
-	s.Require().NoError(os.Setenv(testconfig.ChainATagEnv, oldVersion))
-	s.Require().NoError(os.Setenv(testconfig.ChainBTagEnv, oldVersion))
+	testCfg := testconfig.FromEnv()
 
 	ctx := context.Background()
 	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx)
@@ -144,7 +139,7 @@ func (s *UpgradeTestSuite) TestV4ToV5ChainUpgrade() {
 	s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA, chainB), "failed to wait for blocks")
 
 	t.Run("upgrade chainA", func(t *testing.T) {
-		s.UpgradeChain(ctx, chainA, chainAUpgradeProposalWallet, defaultUpgradeName, oldVersion, targetVersion)
+		s.UpgradeChain(ctx, chainA, chainAUpgradeProposalWallet, simappupgrades.DefaultUpgradeName, testCfg.ChainAConfig.Tag, testCfg.UpgradeTag)
 	})
 
 	t.Run("restart relayer", func(t *testing.T) {
@@ -193,16 +188,7 @@ func (s *UpgradeTestSuite) TestV4ToV5ChainUpgrade() {
 
 func (s *UpgradeTestSuite) TestV5ToV6ChainUpgrade() {
 	t := s.T()
-
-	const (
-		CurrentVersion = "v0.3.5"
-		UpgradeVersion = "v0.4.0"
-	)
-
-	s.Require().NoError(os.Setenv(testconfig.ChainImageEnv, "ghcr.io/cosmos/ibc-go-icad"))
-	s.Require().NoError(os.Setenv(testconfig.ChainBinaryEnv, "icad"))
-	s.Require().NoError(os.Setenv(testconfig.ChainATagEnv, CurrentVersion))
-	s.Require().NoError(os.Setenv(testconfig.ChainBTagEnv, CurrentVersion))
+	testCfg := testconfig.FromEnv()
 
 	ctx := context.Background()
 	relayer, _ := s.SetupChainsRelayerAndChannel(ctx)
@@ -300,7 +286,7 @@ func (s *UpgradeTestSuite) TestV5ToV6ChainUpgrade() {
 	s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA, chainB), "failed to wait for blocks")
 
 	t.Run("upgrade chainA", func(t *testing.T) {
-		s.UpgradeChain(ctx, chainA, chainAUpgradeProposalWallet, v6upgrades.UpgradeName, CurrentVersion, UpgradeVersion)
+		s.UpgradeChain(ctx, chainA, chainAUpgradeProposalWallet, v6upgrades.UpgradeName, testCfg.ChainAConfig.Tag, testCfg.UpgradeTag)
 	})
 
 	t.Run("restart relayer", func(t *testing.T) {
