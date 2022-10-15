@@ -2,8 +2,6 @@ go 1.15
 
 module github.com/cosmos/ibc-go
 
-replace github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
-
 require (
 	github.com/armon/go-metrics v0.3.10
 	github.com/confio/ics23/go v0.6.6
@@ -23,4 +21,9 @@ require (
 	google.golang.org/genproto v0.0.0-20211208223120-3a66f561d7aa
 	google.golang.org/grpc v1.43.0
 	google.golang.org/protobuf v1.27.1
+)
+
+replace (
+	github.com/confio/ics23/go => github.com/cosmos/cosmos-sdk/ics23/go v0.8.0
+	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
 )
