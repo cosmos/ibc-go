@@ -146,7 +146,8 @@ func FungibleTokenPacketFromTla(packet TlaFungibleTokenPacket) FungibleTokenPack
 			DenomFromTla(packet.Data.Denom),
 			packet.Data.Amount,
 			AddressFromString(packet.Data.Sender),
-			AddressFromString(packet.Data.Receiver)),
+			AddressFromString(packet.Data.Receiver),
+			nil),
 	}
 }
 
@@ -344,17 +345,11 @@ func (suite *KeeperTestSuite) TestModelBasedRelay() {
 							sdk.NewCoin(denom, amount),
 							sender.String(),
 							tc.packet.Data.Receiver,
-<<<<<<< HEAD
-							clienttypes.NewHeight(0, 110),
-							0)
-=======
 							suite.chainA.GetTimeoutHeight(), 0, // only use timeout height
 							nil,
 						)
 
 						_, err = suite.chainB.GetSimApp().TransferKeeper.Transfer(sdk.WrapSDKContext(suite.chainB.GetContext()), msg)
-
->>>>>>> 24b17bd (refactor: remove SendTransfer, require IBC transfers to be initiated with MsgTransfer (#2446))
 					}
 				case "OnRecvPacket":
 					err = suite.chainB.GetSimApp().TransferKeeper.OnRecvPacket(suite.chainB.GetContext(), packet, tc.packet.Data)

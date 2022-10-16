@@ -17,18 +17,11 @@ import (
 // chainA and coin that orignate on chainB
 func (suite *KeeperTestSuite) TestSendTransfer() {
 	var (
-<<<<<<< HEAD
-		amount sdk.Coin
-		path   *ibctesting.Path
-		sender sdk.AccAddress
-		err    error
-=======
 		coin          sdk.Coin
 		path          *ibctesting.Path
 		sender        sdk.AccAddress
 		timeoutHeight clienttypes.Height
 		metadata      []byte
->>>>>>> 24b17bd (refactor: remove SendTransfer, require IBC transfers to be initiated with MsgTransfer (#2446))
 	)
 
 	testCases := []struct {
@@ -41,26 +34,21 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 			func() {}, true,
 		},
 		{
-<<<<<<< HEAD
-			"successful transfer with coin from counterparty chain",
-=======
 			"successful transfer from source chain with metadata",
 			func() {
+				suite.coordinator.CreateTransferChannels(path)
+				amount = sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100))
 				metadata = []byte("metadata")
-			}, true,
+			}, true, true,
 		},
 		{
 			"successful transfer with IBC token",
-
->>>>>>> 24b17bd (refactor: remove SendTransfer, require IBC transfers to be initiated with MsgTransfer (#2446))
 			func() {
 				// send IBC token back to chainB
 				coin = types.GetTransferCoin(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, coin.Denom, coin.Amount)
 			}, true,
 		},
 		{
-<<<<<<< HEAD
-=======
 			"successful transfer with IBC token and metadata",
 			func() {
 				// send IBC token back to chainB
@@ -69,27 +57,11 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 			}, true,
 		},
 		{
->>>>>>> 24b17bd (refactor: remove SendTransfer, require IBC transfers to be initiated with MsgTransfer (#2446))
 			"source channel not found",
 			func() {
 				// channel references wrong ID
 				path.EndpointA.ChannelID = ibctesting.InvalidID
 			}, false,
-		},
-		{
-			"next seq send not found",
-			func() {
-				path.EndpointA.ChannelID = "channel-0"
-				path.EndpointB.ChannelID = "channel-0"
-				// manually create channel so next seq send is never set
-				suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetChannel(
-					suite.chainA.GetContext(),
-					path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID,
-					channeltypes.NewChannel(channeltypes.OPEN, channeltypes.ORDERED, channeltypes.NewCounterparty(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID), []string{path.EndpointA.ConnectionID}, ibctesting.DefaultChannelVersion),
-				)
-				suite.chainA.CreateChannelCapability(suite.chainA.GetSimApp().ScopedIBCMockKeeper, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-				amount = sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100))
-			}, true, false,
 		},
 		{
 			"transfer failed - sender account is blocked",
@@ -141,21 +113,6 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 
 			coin = sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100))
 			sender = suite.chainA.SenderAccount.GetAddress()
-<<<<<<< HEAD
-
-			tc.malleate()
-
-			if !tc.sendFromSource {
-				// send coin from chainB to chainA
-				coinFromBToA := sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100))
-				transferMsg := types.NewMsgTransfer(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, coinFromBToA, suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String(), clienttypes.NewHeight(0, 110), 0)
-				_, err = suite.chainB.SendMsgs(transferMsg)
-				suite.Require().NoError(err) // message committed
-
-				// receive coin on chainA from chainB
-				fungibleTokenPacket := types.NewFungibleTokenPacketData(coinFromBToA.Denom, coinFromBToA.Amount.String(), suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String())
-				packet := channeltypes.NewPacket(fungibleTokenPacket.GetBytes(), 1, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, clienttypes.NewHeight(0, 110), 0)
-=======
 			metadata = []byte{}
 			timeoutHeight = suite.chainB.GetTimeoutHeight()
 
@@ -166,25 +123,18 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 
 			packet, err := ibctesting.ParsePacketFromEvents(result.GetEvents())
 			suite.Require().NoError(err)
->>>>>>> 24b17bd (refactor: remove SendTransfer, require IBC transfers to be initiated with MsgTransfer (#2446))
 
 			err = path.RelayPacket(packet)
 			suite.Require().NoError(err)
 
 			tc.malleate()
 
-<<<<<<< HEAD
-			err = suite.chainA.GetSimApp().TransferKeeper.SendTransfer(
-				suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, amount,
-				sender, suite.chainB.SenderAccount.GetAddress().String(), suite.chainB.GetTimeoutHeight(), 0,
-=======
 			msg := types.NewMsgTransfer(
 				path.EndpointA.ChannelConfig.PortID,
 				path.EndpointA.ChannelID,
 				coin, sender.String(), suite.chainB.SenderAccount.GetAddress().String(),
 				timeoutHeight, 0, // only use timeout height
 				metadata,
->>>>>>> 24b17bd (refactor: remove SendTransfer, require IBC transfers to be initiated with MsgTransfer (#2446))
 			)
 
 			res, err := suite.chainA.GetSimApp().TransferKeeper.Transfer(sdk.WrapSDKContext(suite.chainA.GetContext()), msg)
@@ -209,6 +159,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 		trace    types.DenomTrace
 		amount   math.Int
 		receiver string
+		metadata []byte
 	)
 
 	testCases := []struct {
@@ -218,7 +169,13 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 		expPass      bool
 	}{
 		{"success receive on source chain", func() {}, true, true},
+		{"success receive on source chain with metadata", func() {
+			metadata = []byte("metadata")
+		}, true, true},
 		{"success receive with coin from another chain as source", func() {}, false, true},
+		{"success receive with coin from another chain as source with metadata", func() {
+			metadata = []byte("metadata")
+		}, false, true},
 		{"empty coin", func() {
 			trace = types.DenomTrace{}
 			amount = sdk.ZeroInt()
@@ -259,13 +216,14 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			suite.coordinator.Setup(path)
 			receiver = suite.chainB.SenderAccount.GetAddress().String() // must be explicitly changed in malleate
 
+			metadata = []byte{}      // can be explicitly changed in malleate
 			amount = sdk.NewInt(100) // must be explicitly changed in malleate
 			seq := uint64(1)
 
 			if tc.recvIsSource {
 				// send coin from chainB to chainA, receive them, acknowledge them, and send back to chainB
 				coinFromBToA := sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100))
-				transferMsg := types.NewMsgTransfer(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, coinFromBToA, suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String(), clienttypes.NewHeight(0, 110), 0)
+				transferMsg := types.NewMsgTransfer(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, coinFromBToA, suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String(), clienttypes.NewHeight(0, 110), 0, metadata)
 				res, err := suite.chainB.SendMsgs(transferMsg)
 				suite.Require().NoError(err) // message committed
 
@@ -284,13 +242,13 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			}
 
 			// send coin from chainA to chainB
-			transferMsg := types.NewMsgTransfer(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, sdk.NewCoin(trace.IBCDenom(), amount), suite.chainA.SenderAccount.GetAddress().String(), receiver, clienttypes.NewHeight(0, 110), 0)
+			transferMsg := types.NewMsgTransfer(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, sdk.NewCoin(trace.IBCDenom(), amount), suite.chainA.SenderAccount.GetAddress().String(), receiver, clienttypes.NewHeight(0, 110), 0, metadata)
 			_, err := suite.chainA.SendMsgs(transferMsg)
 			suite.Require().NoError(err) // message committed
 
 			tc.malleate()
 
-			data := types.NewFungibleTokenPacketData(trace.GetFullDenomPath(), amount.String(), suite.chainA.SenderAccount.GetAddress().String(), receiver)
+			data := types.NewFungibleTokenPacketData(trace.GetFullDenomPath(), amount.String(), suite.chainA.SenderAccount.GetAddress().String(), receiver, metadata)
 			packet := channeltypes.NewPacket(data.GetBytes(), seq, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.NewHeight(0, 100), 0)
 
 			err = suite.chainB.GetSimApp().TransferKeeper.OnRecvPacket(suite.chainB.GetContext(), packet, data)
@@ -363,7 +321,7 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 
 			tc.malleate()
 
-			data := types.NewFungibleTokenPacketData(trace.GetFullDenomPath(), amount.String(), suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String())
+			data := types.NewFungibleTokenPacketData(trace.GetFullDenomPath(), amount.String(), suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), nil)
 			packet := channeltypes.NewPacket(data.GetBytes(), 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.NewHeight(0, 100), 0)
 
 			preCoin := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), trace.IBCDenom())
@@ -459,7 +417,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 
 			tc.malleate()
 
-			data := types.NewFungibleTokenPacketData(trace.GetFullDenomPath(), amount.String(), sender, suite.chainB.SenderAccount.GetAddress().String())
+			data := types.NewFungibleTokenPacketData(trace.GetFullDenomPath(), amount.String(), sender, suite.chainB.SenderAccount.GetAddress().String(), nil)
 			packet := channeltypes.NewPacket(data.GetBytes(), 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.NewHeight(0, 100), 0)
 
 			preCoin := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), trace.IBCDenom())

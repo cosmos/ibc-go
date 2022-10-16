@@ -60,15 +60,6 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 			path := NewTransferPath(suite.chainA, suite.chainB)
 			suite.coordinator.Setup(path)
 
-<<<<<<< HEAD
-		coin := sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100))
-		msg = types.NewMsgTransfer(
-			path.EndpointA.ChannelConfig.PortID,
-			path.EndpointA.ChannelID,
-			coin, suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(),
-			suite.chainB.GetTimeoutHeight(), 0, // only use timeout height
-		)
-=======
 			coin := sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100))
 			msg = types.NewMsgTransfer(
 				path.EndpointA.ChannelConfig.PortID,
@@ -77,7 +68,6 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 				suite.chainB.GetTimeoutHeight(), 0, // only use timeout height
 				[]byte("custom metadata"),
 			)
->>>>>>> 24b17bd (refactor: remove SendTransfer, require IBC transfers to be initiated with MsgTransfer (#2446))
 
 			tc.malleate()
 
