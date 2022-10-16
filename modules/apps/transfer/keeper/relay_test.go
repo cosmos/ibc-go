@@ -36,10 +36,8 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 		{
 			"successful transfer from source chain with metadata",
 			func() {
-				suite.coordinator.CreateTransferChannels(path)
-				amount = sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100))
 				metadata = []byte("metadata")
-			}, true, true,
+			}, true,
 		},
 		{
 			"successful transfer with IBC token",
