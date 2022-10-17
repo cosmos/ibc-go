@@ -14,7 +14,7 @@ import (
 )
 
 func TestParamChanges(t *testing.T) {
-	app := simapp.Setup(false)
+	app := simapp.Setup(t, false)
 
 	s := rand.NewSource(1)
 	r := rand.New(s)

@@ -31,6 +31,12 @@ import (
 
 var DefaultTestingAppInit = SetupTestingApp
 
+// fauxMerkleModeOpt returns a BaseApp option to use a dbStoreAdapter instead of
+// an IAVLStore for faster simulation speed.
+func fauxMerkleModeOpt(bapp *baseapp.BaseApp) {
+	bapp.SetFauxMerkleMode()
+}
+
 type TestingApp interface {
 	abci.Application
 
@@ -50,9 +56,9 @@ type TestingApp interface {
 }
 
 func SetupTestingApp() (TestingApp, map[string]json.RawMessage) {
-	db := dbm.NewMemDB()
+	dbm := dbm.NewMemDB()
 	encCdc := simapp.MakeTestEncodingConfig()
-	app := simapp.NewSimApp(log.NewNopLogger(), db, nil, true, simapp.EmptyAppOptions{})
+	app := simapp.NewSimApp(log.NewNopLogger(), dbm, nil, true, simapp.EmptyAppOptions{}, fauxMerkleModeOpt)
 	return app, simapp.NewDefaultGenesisState(encCdc.Marshaler)
 }
 

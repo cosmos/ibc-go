@@ -110,8 +110,6 @@ import (
 	ibctestingtypes "github.com/cosmos/ibc-go/v6/testing/types"
 )
 
-const appName = "SimApp"
-
 // IBC application testing ports
 const (
 	MockFeePort string = ibcmock.ModuleName + ibcfeetypes.ModuleName
