@@ -89,13 +89,21 @@ import (
 	upgradeclient "github.com/cosmos/cosmos-sdk/x/upgrade/client"
 	upgradekeeper "github.com/cosmos/cosmos-sdk/x/upgrade/keeper"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+
 	ica "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts"
+	icacontrollerkeeper "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/controller/keeper"
 	icacontrollertypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/controller/types"
+	icahostkeeper "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/host/keeper"
 	ibcfee "github.com/cosmos/ibc-go/v6/modules/apps/29-fee"
-	transfer "github.com/cosmos/ibc-go/v6/modules/apps/transfer"
+	ibcfeekeeper "github.com/cosmos/ibc-go/v6/modules/apps/29-fee/keeper"
+	ibcfeetypes "github.com/cosmos/ibc-go/v6/modules/apps/29-fee/types"
+	"github.com/cosmos/ibc-go/v6/modules/apps/transfer"
+	ibctransferkeeper "github.com/cosmos/ibc-go/v6/modules/apps/transfer/keeper"
 	ibc "github.com/cosmos/ibc-go/v6/modules/core"
 	ibcclientclient "github.com/cosmos/ibc-go/v6/modules/core/02-client/client"
+	ibckeeper "github.com/cosmos/ibc-go/v6/modules/core/keeper"
 	ibcmock "github.com/cosmos/ibc-go/v6/testing/mock"
+
 	simappupgrades "github.com/cosmos/ibc-go/v6/testing/simapp/upgrades"
 	v6 "github.com/cosmos/ibc-go/v6/testing/simapp/upgrades/v6"
 )
@@ -148,6 +156,11 @@ var (
 	_ servertypes.Application = (*SimApp)(nil)
 )
 
+// IBC application testing ports
+const (
+	MockFeePort string = ibcmock.ModuleName + ibcfeetypes.ModuleName
+)
+
 // SimApp extends an ABCI application, but with most of its parameters exported.
 // They are exported for convenience in creating helper functions, as object
 // capabilities aren't needed for testing.
@@ -174,11 +187,30 @@ type SimApp struct {
 	UpgradeKeeper         upgradekeeper.Keeper
 	ParamsKeeper          paramskeeper.Keeper
 	AuthzKeeper           authzkeeper.Keeper
+	IBCKeeper             *ibckeeper.Keeper // IBC Keeper must be a pointer in the app, so we can SetRouter on it correctly
+	IBCFeeKeeper          ibcfeekeeper.Keeper
+	ICAControllerKeeper   icacontrollerkeeper.Keeper
+	ICAHostKeeper         icahostkeeper.Keeper
 	EvidenceKeeper        evidencekeeper.Keeper
+	TransferKeeper        ibctransferkeeper.Keeper
 	FeeGrantKeeper        feegrantkeeper.Keeper
 	GroupKeeper           groupkeeper.Keeper
 	NFTKeeper             nftkeeper.Keeper
 	ConsensusParamsKeeper consensuskeeper.Keeper
+
+	// make scoped keepers public for test purposes
+	ScopedIBCKeeper           capabilitykeeper.ScopedKeeper
+	ScopedTransferKeeper      capabilitykeeper.ScopedKeeper
+	ScopedFeeMockKeeper       capabilitykeeper.ScopedKeeper
+	ScopedICAControllerKeeper capabilitykeeper.ScopedKeeper
+	ScopedICAHostKeeper       capabilitykeeper.ScopedKeeper
+	ScopedIBCMockKeeper       capabilitykeeper.ScopedKeeper
+	ScopedICAMockKeeper       capabilitykeeper.ScopedKeeper
+
+	// make IBC modules public for test purposes
+	// these modules are never directly routed to by the IBC Router
+	ICAAuthModule ibcmock.IBCModule
+	FeeMockModule ibcmock.IBCModule
 
 	// simulation manager
 	sm *module.SimulationManager
