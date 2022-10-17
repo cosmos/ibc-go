@@ -89,7 +89,12 @@ import (
 	upgradeclient "github.com/cosmos/cosmos-sdk/x/upgrade/client"
 	upgradekeeper "github.com/cosmos/cosmos-sdk/x/upgrade/keeper"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+	ica "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts"
 	icacontrollertypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/controller/types"
+	ibcfee "github.com/cosmos/ibc-go/v6/modules/apps/29-fee"
+	transfer "github.com/cosmos/ibc-go/v6/modules/apps/transfer"
+	ibc "github.com/cosmos/ibc-go/v6/modules/core"
+	ibcclientclient "github.com/cosmos/ibc-go/v6/modules/core/02-client/client"
 	ibcmock "github.com/cosmos/ibc-go/v6/testing/mock"
 	simappupgrades "github.com/cosmos/ibc-go/v6/testing/simapp/upgrades"
 	v6 "github.com/cosmos/ibc-go/v6/testing/simapp/upgrades/v6"
@@ -115,18 +120,25 @@ var (
 				paramsclient.ProposalHandler,
 				upgradeclient.LegacyProposalHandler,
 				upgradeclient.LegacyCancelProposalHandler,
+				ibcclientclient.UpdateClientProposalHandler,
+				ibcclientclient.UpgradeProposalHandler,
 			},
 		),
 		params.AppModuleBasic{},
 		crisis.AppModuleBasic{},
 		slashing.AppModuleBasic{},
+		ibc.AppModuleBasic{},
 		feegrantmodule.AppModuleBasic{},
 		upgrade.AppModuleBasic{},
 		evidence.AppModuleBasic{},
+		transfer.AppModuleBasic{},
+		ibcmock.AppModuleBasic{},
+		ica.AppModuleBasic{},
 		authzmodule.AppModuleBasic{},
 		groupmodule.AppModuleBasic{},
 		vesting.AppModuleBasic{},
 		nftmodule.AppModuleBasic{},
+		ibcfee.AppModuleBasic{},
 		consensus.AppModuleBasic{},
 	)
 )
