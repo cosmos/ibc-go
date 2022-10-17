@@ -38,7 +38,7 @@ message MsgSendTx {
   string owner         = 1;
   string connection_id = 2 [(gogoproto.moretags) = "yaml:\"connection_id\""];
   ibc.applications.interchain_accounts.v1.InterchainAccountPacketData packet_data = 3
-  [(gogoproto.moretags) = "yaml:\"packet_data\"", (gogoproto.nullable) = false];
+      [(gogoproto.moretags) = "yaml:\"packet_data\"", (gogoproto.nullable) = false];
   // Relative timeout timestamp provided will be added to the current block time during transaction execution.
   // The timeout timestamp must be non-zero.
   uint64 relative_timeout = 4 [(gogoproto.moretags) = "yaml:\"relative_timeout\""];
