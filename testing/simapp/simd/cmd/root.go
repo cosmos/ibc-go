@@ -29,6 +29,7 @@ import (
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"github.com/spf13/cast"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	tmcfg "github.com/tendermint/tendermint/config"
 	tmcli "github.com/tendermint/tendermint/libs/cli"
 	"github.com/tendermint/tendermint/libs/log"
@@ -296,14 +297,32 @@ func (a appCreator) newApp(logger log.Logger, db dbm.DB, traceStore io.Writer, a
 // appExport creates a new simapp (optionally at a given height)
 // and exports state.
 func (a appCreator) appExport(
-	logger log.Logger, db dbm.DB, traceStore io.Writer, height int64, forZeroHeight bool, jailAllowedAddrs []string,
+	logger log.Logger,
+	db dbm.DB,
+	traceStore io.Writer,
+	height int64,
+	forZeroHeight bool,
+	jailAllowedAddrs []string,
 	appOpts servertypes.AppOptions,
+	modulesToExport []string,
 ) (servertypes.ExportedApp, error) {
 	var simApp *simapp.SimApp
+
+	// this check is necessary as we use the flag in x/upgrade.
+	// we can exit more gracefully by checking the flag here.
 	homePath, ok := appOpts.Get(flags.FlagHome).(string)
 	if !ok || homePath == "" {
 		return servertypes.ExportedApp{}, errors.New("application home not set")
 	}
+
+	viperAppOpts, ok := appOpts.(*viper.Viper)
+	if !ok {
+		return servertypes.ExportedApp{}, errors.New("appOpts is not viper.Viper")
+	}
+
+	// overwrite the FlagInvCheckPeriod
+	viperAppOpts.Set(server.FlagInvCheckPeriod, 1)
+	appOpts = viperAppOpts
 
 	if height != -1 {
 		simApp = simapp.NewSimApp(logger, db, traceStore, false, appOpts)
@@ -315,5 +334,5 @@ func (a appCreator) appExport(
 		simApp = simapp.NewSimApp(logger, db, traceStore, true, appOpts)
 	}
 
-	return simApp.ExportAppStateAndValidators(forZeroHeight, jailAllowedAddrs)
+	return simApp.ExportAppStateAndValidators(forZeroHeight, jailAllowedAddrs, modulesToExport)
 }
