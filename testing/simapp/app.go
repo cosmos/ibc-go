@@ -21,11 +21,10 @@ import (
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/cosmos/cosmos-sdk/store/streaming"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
-	"github.com/cosmos/cosmos-sdk/testutil/testdata"
+	"github.com/cosmos/cosmos-sdk/testutil/testdata_pulsar"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/x/auth"
-	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	authsims "github.com/cosmos/cosmos-sdk/x/auth/simulation"
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
@@ -60,19 +59,16 @@ import (
 	govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
-	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	"github.com/cosmos/cosmos-sdk/x/group"
 	groupkeeper "github.com/cosmos/cosmos-sdk/x/group/keeper"
 	groupmodule "github.com/cosmos/cosmos-sdk/x/group/module"
 	"github.com/cosmos/cosmos-sdk/x/mint"
 	mintkeeper "github.com/cosmos/cosmos-sdk/x/mint/keeper"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
-	"github.com/cosmos/cosmos-sdk/x/nft"
 	"github.com/cosmos/cosmos-sdk/x/params"
 	paramsclient "github.com/cosmos/cosmos-sdk/x/params/client"
 	paramskeeper "github.com/cosmos/cosmos-sdk/x/params/keeper"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
-	paramproposal "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 	"github.com/cosmos/cosmos-sdk/x/slashing"
 	slashingkeeper "github.com/cosmos/cosmos-sdk/x/slashing/keeper"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
@@ -85,10 +81,8 @@ import (
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	"github.com/gorilla/mux"
 	"github.com/rakyll/statik/fs"
-	"github.com/spf13/cast"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
-	tmos "github.com/tendermint/tendermint/libs/os"
 	dbm "github.com/tendermint/tm-db"
 
 	ica "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts"
@@ -106,9 +100,7 @@ import (
 	ibctransferkeeper "github.com/cosmos/ibc-go/v6/modules/apps/transfer/keeper"
 	ibctransfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	ibc "github.com/cosmos/ibc-go/v6/modules/core"
-	ibcclient "github.com/cosmos/ibc-go/v6/modules/core/02-client"
 	ibcclientclient "github.com/cosmos/ibc-go/v6/modules/core/02-client/client"
-	ibcclienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 	porttypes "github.com/cosmos/ibc-go/v6/modules/core/05-port/types"
 	ibchost "github.com/cosmos/ibc-go/v6/modules/core/24-host"
 	ibckeeper "github.com/cosmos/ibc-go/v6/modules/core/keeper"
@@ -293,7 +285,7 @@ func NewSimApp(
 		&app.IBCKeeper,
 		&app.IBCFeeKeeper,
 		&app.ICAControllerKeeper,
-        &app.ICAHostKeeper,
+		&app.ICAHostKeeper,
 		&app.ScopedIBCKeeper,
 		&app.ScopedTransferKeeper,
 		&app.ScopedFeeMockKeeper,
@@ -315,135 +307,10 @@ func NewSimApp(
 		os.Exit(1)
 	}
 
-	/****  Module Options ****/
-
-	// Sets the version setter for the upgrade module
-	app.UpgradeKeeper.SetVersionSetter(app.BaseApp)
-
-	// NOTE: The genutils module must occur after staking so that pools are
-	// properly initialized with tokens from genesis accounts.
-	// NOTE: The genutils module must also occur after auth so that it can access the params from auth.
-	// NOTE: Capability module must occur first so that it can initialize any capabilities
-	// so that other modules that want to create or claim capabilities afterwards in InitChain
-	// can do so safely.
-	genesisModuleOrder := []string{
-		capabilitytypes.ModuleName, 
-		authtypes.ModuleName, 
-		banktypes.ModuleName, 
-		distrtypes.ModuleName, 
-		stakingtypes.ModuleName,
-		slashingtypes.ModuleName, 
-		govtypes.ModuleName, 
-		minttypes.ModuleName, 
-		crisistypes.ModuleName,
-		ibchost.ModuleName, 
-		genutiltypes.ModuleName, 
-		evidencetypes.ModuleName, 
-		authz.ModuleName, 
-		ibctransfertypes.ModuleName,
-		icatypes.ModuleName, 
-		ibcfeetypes.ModuleName, 
-		ibcmock.ModuleName, 
-		feegrant.ModuleName, 
-		paramstypes.ModuleName, 
-		upgradetypes.ModuleName,
-		vestingtypes.ModuleName, 
-		group.ModuleName,
-	}
-
-
-	app.ModuleManager.SetOrderInitGenesis(genesisModuleOrder...)
-	app.ModuleManager.SetOrderExportGenesis(genesisModuleOrder...)
-
-	// Uncomment if you want to set a custom migration order here.
-	// app.ModuleManager.SetOrderMigrations(custom order)
-
-	app.ModuleManager.RegisterInvariants(app.CrisisKeeper)
-
-	// RegisterUpgradeHandlers is used for registering any on-chain upgrades.
-	// Make sure it's called after `app.ModuleManager` and `app.configurator` are set.
-	app.RegisterUpgradeHandlers()
-
-		// add test gRPC service for testing gRPC queries in isolation
-		testdata_pulsar.RegisterQueryServer(app.GRPCQueryRouter(), testdata_pulsar.QueryImpl{})
-
-		// create the simulation manager and define the order of the modules for deterministic simulations
-		//
-		// NOTE: this is not required apps that don't use the simulator for fuzz testing
-		// transactions
-		overrideModules := map[string]module.AppModuleSimulation{
-			authtypes.ModuleName: auth.NewAppModule(app.appCodec, app.AccountKeeper, authsims.RandomGenesisAccounts, app.GetSubspace(authtypes.ModuleName)),
-		}
-		app.sm = module.NewSimulationManagerFromAppModules(app.ModuleManager.Modules, overrideModules)
-	
-		app.sm.RegisterStoreDecoders()
-	
-		// initialize stores
-		app.MountKVStores(app.keys)
-	
-		// initialize BaseApp
-		app.SetInitChainer(app.InitChainer)
-	
-		if err := app.Load(loadLatest); err != nil {
-			panic(err)
-		}
-	
-		return app
-	}
-
-
-
-
-	app.GovKeeper = *govKeeper.SetHooks(
-		govtypes.NewMultiGovHooks(
-		// register the governance hooks
-		),
-	)
-
-	groupConfig := group.DefaultConfig()
-	/*
-		Example of setting group params:
-		groupConfig.MaxMetadataLen = 1000
-	*/
-	app.GroupKeeper = groupkeeper.NewKeeper(keys[group.StoreKey], appCodec, app.MsgServiceRouter(), app.AccountKeeper, groupConfig)
-
-	// IBC Fee Module keeper
-	app.IBCFeeKeeper = ibcfeekeeper.NewKeeper(
-		appCodec, keys[ibcfeetypes.StoreKey],
-		app.IBCKeeper.ChannelKeeper, // may be replaced with IBC middleware
-		app.IBCKeeper.ChannelKeeper,
-		&app.IBCKeeper.PortKeeper, app.AccountKeeper, app.BankKeeper,
-	)
-
-	// ICA Controller keeper
-	app.ICAControllerKeeper = icacontrollerkeeper.NewKeeper(
-		appCodec, keys[icacontrollertypes.StoreKey], app.GetSubspace(icacontrollertypes.SubModuleName),
-		app.IBCFeeKeeper, // use ics29 fee as ics4Wrapper in middleware stack
-		app.IBCKeeper.ChannelKeeper, &app.IBCKeeper.PortKeeper,
-		scopedICAControllerKeeper, app.MsgServiceRouter(),
-	)
-
-	// ICA Host keeper
-	app.ICAHostKeeper = icahostkeeper.NewKeeper(
-		appCodec, keys[icahosttypes.StoreKey], app.GetSubspace(icahosttypes.SubModuleName),
-		app.IBCFeeKeeper, // use ics29 fee as ics4Wrapper in middleware stack
-		app.IBCKeeper.ChannelKeeper, &app.IBCKeeper.PortKeeper,
-		app.AccountKeeper, scopedICAHostKeeper, app.MsgServiceRouter(),
-	)
-
 	// Create IBC Router
 	ibcRouter := porttypes.NewRouter()
 
 	// Middleware Stacks
-
-	// Create Transfer Keeper and pass IBCFeeKeeper as expected Channel and PortKeeper
-	// since fee middleware will wrap the IBCKeeper for underlying application.
-	app.TransferKeeper = ibctransferkeeper.NewKeeper(
-		appCodec, keys[ibctransfertypes.StoreKey], app.GetSubspace(ibctransfertypes.ModuleName),
-		app.IBCFeeKeeper, // ISC4 Wrapper: fee IBC middleware
-		app.IBCKeeper.ChannelKeeper, &app.IBCKeeper.PortKeeper,
-		app.AccountKeeper, app.BankKeeper, scopedTransferKeeper,
-	)
 
 	// Mock Module Stack
 
@@ -453,7 +320,7 @@ func NewSimApp(
 	mockModule := ibcmock.NewAppModule(&app.IBCKeeper.PortKeeper)
 
 	// The mock module is used for testing IBC
-	mockIBCModule := ibcmock.NewIBCModule(&mockModule, ibcmock.NewIBCApp(ibcmock.ModuleName, scopedIBCMockKeeper))
+	mockIBCModule := ibcmock.NewIBCModule(&mockModule, ibcmock.NewIBCApp(ibcmock.ModuleName, app.ScopedIBCMockKeeper))
 	ibcRouter.AddRoute(ibcmock.ModuleName, mockIBCModule)
 
 	// Create Transfer Stack
@@ -481,7 +348,7 @@ func NewSimApp(
 
 	// initialize ICA module with mock module as the authentication module on the controller side
 	var icaControllerStack porttypes.IBCModule
-	icaControllerStack = ibcmock.NewIBCModule(&mockModule, ibcmock.NewIBCApp("", scopedICAMockKeeper))
+	icaControllerStack = ibcmock.NewIBCModule(&mockModule, ibcmock.NewIBCApp("", app.ScopedICAMockKeeper))
 	app.ICAAuthModule = icaControllerStack.(ibcmock.IBCModule)
 	icaControllerStack = icacontroller.NewIBCMiddleware(icaControllerStack, app.ICAControllerKeeper)
 	icaControllerStack = ibcfee.NewIBCMiddleware(icaControllerStack, app.IBCFeeKeeper)
@@ -513,7 +380,7 @@ func NewSimApp(
 	// mockModule.OnAcknowledgementPacket -> fee.OnAcknowledgementPacket -> channel.OnAcknowledgementPacket
 
 	// create fee wrapped mock module
-	feeMockModule := ibcmock.NewIBCModule(&mockModule, ibcmock.NewIBCApp(MockFeePort, scopedFeeMockKeeper))
+	feeMockModule := ibcmock.NewIBCModule(&mockModule, ibcmock.NewIBCApp(MockFeePort, app.ScopedFeeMockKeeper))
 	app.FeeMockModule = feeMockModule
 	feeWithMockModule := ibcfee.NewIBCMiddleware(feeMockModule, app.IBCFeeKeeper)
 	ibcRouter.AddRoute(MockFeePort, feeWithMockModule)
@@ -530,84 +397,90 @@ func NewSimApp(
 
 	/****  Module Options ****/
 
-	// NOTE: we may consider parsing `appOpts` inside module constructors. For the moment
-	// we prefer to be more strict in what arguments the modules expect.
-	skipGenesisInvariants := cast.ToBool(appOpts.Get(crisis.FlagSkipGenesisInvariants))
-
-	// NOTE: Any module instantiated in the module manager that is later modified
-	// must be passed by reference here.
-	app.mm = module.NewManager(
-		// SDK app modules
-		genutil.NewAppModule(
-			app.AccountKeeper, app.StakingKeeper, app.BaseApp.DeliverTx,
-			encodingConfig.TxConfig,
-		),
-		auth.NewAppModule(appCodec, app.AccountKeeper, authsims.RandomGenesisAccounts),
-		vesting.NewAppModule(app.AccountKeeper, app.BankKeeper),
-		bank.NewAppModule(appCodec, app.BankKeeper, app.AccountKeeper),
-		capability.NewAppModule(appCodec, *app.CapabilityKeeper),
-		crisis.NewAppModule(&app.CrisisKeeper, skipGenesisInvariants),
-		feegrantmodule.NewAppModule(appCodec, app.AccountKeeper, app.BankKeeper, app.FeeGrantKeeper, app.interfaceRegistry),
-		gov.NewAppModule(appCodec, app.GovKeeper, app.AccountKeeper, app.BankKeeper),
-		groupmodule.NewAppModule(appCodec, app.GroupKeeper, app.AccountKeeper, app.BankKeeper, app.interfaceRegistry),
-		mint.NewAppModule(appCodec, app.MintKeeper, app.AccountKeeper, nil),
-		slashing.NewAppModule(appCodec, app.SlashingKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper),
-		distr.NewAppModule(appCodec, app.DistrKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper),
-		staking.NewAppModule(appCodec, app.StakingKeeper, app.AccountKeeper, app.BankKeeper),
-		upgrade.NewAppModule(app.UpgradeKeeper),
-		evidence.NewAppModule(app.EvidenceKeeper),
-		ibc.NewAppModule(app.IBCKeeper),
-		params.NewAppModule(app.ParamsKeeper),
-		authzmodule.NewAppModule(appCodec, app.AuthzKeeper, app.AccountKeeper, app.BankKeeper, app.interfaceRegistry),
-
-		// IBC modules
-		transfer.NewAppModule(app.TransferKeeper),
-		ibcfee.NewAppModule(app.IBCFeeKeeper),
-		ica.NewAppModule(&app.ICAControllerKeeper, &app.ICAHostKeeper),
-		mockModule,
-	)
-
-	// During begin block slashing happens after distr.BeginBlocker so that
-	// there is nothing left over in the validator fee pool, so as to keep the
-	// CanWithdrawInvariant invariant.
-	// NOTE: staking module is required if HistoricalEntries param > 0
-	// NOTE: capability module's beginblocker must come before any modules using capabilities (e.g. IBC)
-	app.mm.SetOrderBeginBlockers(
-		upgradetypes.ModuleName, capabilitytypes.ModuleName, minttypes.ModuleName, distrtypes.ModuleName, slashingtypes.ModuleName,
-		evidencetypes.ModuleName, stakingtypes.ModuleName, ibchost.ModuleName, ibctransfertypes.ModuleName, authtypes.ModuleName,
-		banktypes.ModuleName, govtypes.ModuleName, crisistypes.ModuleName, genutiltypes.ModuleName, authz.ModuleName, feegrant.ModuleName,
-		paramstypes.ModuleName, vestingtypes.ModuleName, icatypes.ModuleName, ibcfeetypes.ModuleName, ibcmock.ModuleName, group.ModuleName,
-	)
-	app.mm.SetOrderEndBlockers(
-		crisistypes.ModuleName, govtypes.ModuleName, stakingtypes.ModuleName, ibchost.ModuleName, ibctransfertypes.ModuleName,
-		capabilitytypes.ModuleName, authtypes.ModuleName, banktypes.ModuleName, distrtypes.ModuleName, slashingtypes.ModuleName,
-		minttypes.ModuleName, genutiltypes.ModuleName, evidencetypes.ModuleName, authz.ModuleName, feegrant.ModuleName, paramstypes.ModuleName,
-		upgradetypes.ModuleName, vestingtypes.ModuleName, icatypes.ModuleName, ibcfeetypes.ModuleName, ibcmock.ModuleName, group.ModuleName,
-	)
+	// Sets the version setter for the upgrade module
+	app.UpgradeKeeper.SetVersionSetter(app.BaseApp)
 
 	// NOTE: The genutils module must occur after staking so that pools are
 	// properly initialized with tokens from genesis accounts.
+	// NOTE: The genutils module must also occur after auth so that it can access the params from auth.
 	// NOTE: Capability module must occur first so that it can initialize any capabilities
 	// so that other modules that want to create or claim capabilities afterwards in InitChain
 	// can do so safely.
+	genesisModuleOrder := []string{
+		capabilitytypes.ModuleName,
+		authtypes.ModuleName,
+		banktypes.ModuleName,
+		distrtypes.ModuleName,
+		stakingtypes.ModuleName,
+		slashingtypes.ModuleName,
+		govtypes.ModuleName,
+		minttypes.ModuleName,
+		crisistypes.ModuleName,
+		ibchost.ModuleName,
+		genutiltypes.ModuleName,
+		evidencetypes.ModuleName,
+		authz.ModuleName,
+		ibctransfertypes.ModuleName,
+		icatypes.ModuleName,
+		ibcfeetypes.ModuleName,
+		ibcmock.ModuleName,
+		feegrant.ModuleName,
+		paramstypes.ModuleName,
+		upgradetypes.ModuleName,
+		vestingtypes.ModuleName,
+		group.ModuleName,
+	}
 
+	app.App.ModuleManager.SetOrderInitGenesis(genesisModuleOrder...)
+	app.App.ModuleManager.SetOrderExportGenesis(genesisModuleOrder...)
 
+	// Uncomment if you want to set a custom migration order here.
+	// app.ModuleManager.SetOrderMigrations(custom order)
 
+	app.ModuleManager.RegisterInvariants(app.CrisisKeeper)
 
+	// RegisterUpgradeHandlers is used for registering any on-chain upgrades.
+	// Make sure it's called after `app.ModuleManager` and `app.configurator` are set.
+	app.RegisterUpgradeHandlers()
 
+	// add test gRPC service for testing gRPC queries in isolation
+	testdata_pulsar.RegisterQueryServer(app.GRPCQueryRouter(), testdata_pulsar.QueryImpl{})
 
+	// create the simulation manager and define the order of the modules for deterministic simulations
+	//
+	// NOTE: this is not required apps that don't use the simulator for fuzz testing
+	// transactions
+	overrideModules := map[string]module.AppModuleSimulation{
+		authtypes.ModuleName: auth.NewAppModule(app.appCodec, app.AccountKeeper, authsims.RandomGenesisAccounts, app.GetSubspace(authtypes.ModuleName)),
+	}
+	app.sm = module.NewSimulationManagerFromAppModules(app.ModuleManager.Modules, overrideModules)
+
+	app.sm.RegisterStoreDecoders()
+
+	// initialize stores
+	app.MountKVStores(app.keys)
+
+	// initialize BaseApp
+	app.SetInitChainer(app.InitChainer)
+
+	if err := app.Load(loadLatest); err != nil {
+		panic(err)
+	}
+
+	return app
+}
 
 // Name returns the name of the App
 func (app *SimApp) Name() string { return app.BaseApp.Name() }
 
 // BeginBlocker application updates every begin block
 func (app *SimApp) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abci.ResponseBeginBlock {
-	return app.mm.BeginBlock(ctx, req)
+	return app.App.ModuleManager.BeginBlock(ctx, req)
 }
 
 // EndBlocker application updates every end block
 func (app *SimApp) EndBlocker(ctx sdk.Context, req abci.RequestEndBlock) abci.ResponseEndBlock {
-	return app.mm.EndBlock(ctx, req)
+	return app.App.ModuleManager.EndBlock(ctx, req)
 }
 
 // InitChainer application update at chain initialization
@@ -616,8 +489,8 @@ func (app *SimApp) InitChainer(ctx sdk.Context, req abci.RequestInitChain) abci.
 	if err := json.Unmarshal(req.AppStateBytes, &genesisState); err != nil {
 		panic(err)
 	}
-	app.UpgradeKeeper.SetModuleVersionMap(ctx, app.mm.GetVersionMap())
-	return app.mm.InitGenesis(ctx, app.appCodec, genesisState)
+	app.UpgradeKeeper.SetModuleVersionMap(ctx, app.App.ModuleManager.GetVersionMap())
+	return app.App.ModuleManager.InitGenesis(ctx, app.appCodec, genesisState)
 }
 
 // LoadHeight loads a particular height
@@ -644,7 +517,7 @@ func (app *SimApp) ModuleAccountAddrs() map[string]bool {
 // GetModuleManager returns the app module manager
 // NOTE: used for testing purposes
 func (app *SimApp) GetModuleManager() *module.Manager {
-	return app.mm
+	return app.App.ModuleManager
 }
 
 // LegacyAmino returns SimApp's amino codec.
