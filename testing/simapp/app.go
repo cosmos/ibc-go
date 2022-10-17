@@ -89,6 +89,10 @@ import (
 	upgradeclient "github.com/cosmos/cosmos-sdk/x/upgrade/client"
 	upgradekeeper "github.com/cosmos/cosmos-sdk/x/upgrade/keeper"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+	icacontrollertypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/controller/types"
+	ibcmock "github.com/cosmos/ibc-go/v6/testing/mock"
+	simappupgrades "github.com/cosmos/ibc-go/v6/testing/simapp/upgrades"
+	v6 "github.com/cosmos/ibc-go/v6/testing/simapp/upgrades/v6"
 )
 
 var (
@@ -411,4 +415,27 @@ func BlockedAddresses() map[string]bool {
 	}
 
 	return result
+}
+
+func (app SimApp) RegisterUpgradeHandlers() {
+	app.UpgradeKeeper.SetUpgradeHandler(
+		simappupgrades.DefaultUpgradeName,
+		simappupgrades.CreateDefaultUpgradeHandler(app.ModuleManager, app.Configurator()),
+	)
+
+	// NOTE: The moduleName arg of v6.CreateUpgradeHandler refers to the auth module ScopedKeeper name to which the channel capability should be migrated from.
+	// This should be the same string value provided upon instantiation of the ScopedKeeper with app.CapabilityKeeper.ScopeToModule()
+	// TODO: update git tag in link below
+	// See: https://github.com/cosmos/ibc-go/blob/v5.0.0-rc2/testing/simapp/app.go#L304
+	app.UpgradeKeeper.SetUpgradeHandler(
+		v6.UpgradeName,
+		v6.CreateUpgradeHandler(
+			app.ModuleManager,
+			app.Configurator(),
+			app.appCodec,
+			app.keys[capabilitytypes.ModuleName],
+			app.CapabilityKeeper,
+			ibcmock.ModuleName+icacontrollertypes.SubModuleName,
+		),
+	)
 }
