@@ -39,7 +39,7 @@ func (suite *InterchainAccountsTestSuite) SetupTest() {
 
 func (suite *InterchainAccountsTestSuite) TestInitModule() {
 	// setup and basic testing
-	app := simapp.NewSimApp(log.NewNopLogger(), dbm.NewMemDB(), nil, true, simapp.EmptyAppOptions{}, fauxMerkleModeOpt)
+	app := simapp.NewSimApp(log.NewNopLogger(), dbm.NewMemDB(), nil, true, simapp.EmptyAppOptions{})
 	appModule, ok := app.GetModuleManager().Modules[types.ModuleName].(ica.AppModule)
 	suite.Require().True(ok)
 
@@ -105,7 +105,7 @@ func (suite *InterchainAccountsTestSuite) TestInitModule() {
 			suite.SetupTest() // reset
 
 			// reset app state
-			app := simapp.NewSimApp(log.NewNopLogger(), dbm.NewMemDB(), nil, true, simapp.EmptyAppOptions{}, fauxMerkleModeOpt)
+			app = simapp.NewSimApp(log.NewNopLogger(), dbm.NewMemDB(), nil, true, simapp.EmptyAppOptions{})
 			header := tmproto.Header{
 				ChainID: "testchain",
 				Height:  1,
