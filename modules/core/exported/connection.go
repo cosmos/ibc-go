@@ -5,7 +5,6 @@ type ConnectionI interface {
 	GetClientID() string
 	GetState() int32
 	GetCounterparty() CounterpartyConnectionI
-	GetVersions() []Version
 	GetDelayPeriod() uint64
 	ValidateBasic() error
 }
