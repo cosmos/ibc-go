@@ -20,6 +20,17 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 			true,
 		},
 		{
+			"send transfers disabled",
+			func() {
+				suite.chainA.GetSimApp().TransferKeeper.SetParams(suite.chainA.GetContext(),
+					types.Params{
+						SendEnabled: false,
+					},
+				)
+			},
+			false,
+		},
+		{
 			"invalid sender",
 			func() {
 				msg.Sender = "address"
@@ -43,31 +54,33 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 	}
 
 	for _, tc := range testCases {
-		suite.SetupTest()
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
 
-		path := NewTransferPath(suite.chainA, suite.chainB)
-		suite.coordinator.Setup(path)
+			path := NewTransferPath(suite.chainA, suite.chainB)
+			suite.coordinator.Setup(path)
 
-		coin := sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100))
-		msg = types.NewMsgTransfer(
-			path.EndpointA.ChannelConfig.PortID,
-			path.EndpointA.ChannelID,
-			coin, suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(),
-			suite.chainB.GetTimeoutHeight(), 0, // only use timeout height
-			[]byte("custom metadata"),
-		)
+			coin := sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100))
+			msg = types.NewMsgTransfer(
+				path.EndpointA.ChannelConfig.PortID,
+				path.EndpointA.ChannelID,
+				coin, suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(),
+				suite.chainB.GetTimeoutHeight(), 0, // only use timeout height
+				[]byte("custom metadata"),
+			)
 
-		tc.malleate()
+			tc.malleate()
 
-		res, err := suite.chainA.GetSimApp().TransferKeeper.Transfer(sdk.WrapSDKContext(suite.chainA.GetContext()), msg)
+			res, err := suite.chainA.GetSimApp().TransferKeeper.Transfer(sdk.WrapSDKContext(suite.chainA.GetContext()), msg)
 
-		if tc.expPass {
-			suite.Require().NotEqual(res.Sequence, uint64(0))
-			suite.Require().NoError(err)
-			suite.Require().NotNil(res)
-		} else {
-			suite.Require().Error(err)
-			suite.Require().Nil(res)
-		}
+			if tc.expPass {
+				suite.Require().NoError(err)
+				suite.Require().NotNil(res)
+				suite.Require().NotEqual(res.Sequence, uint64(0))
+			} else {
+				suite.Require().Error(err)
+				suite.Require().Nil(res)
+			}
+		})
 	}
 }
