@@ -1,8 +1,12 @@
 <!--
-order: 2
+order: 6
 -->
 
 # Building an authentication module
+
+### Deprecation Notice
+
+**This document is deprecated and will be removed in future releases**.
 
 Authentication modules play the role of the `Base Application` as described in [ICS30 IBC Middleware](https://github.com/cosmos/ibc/tree/master/spec/app/ics-030-middleware), and enable application developers to perform custom logic when working with the Interchain Accounts controller API. {synopsis}
 
