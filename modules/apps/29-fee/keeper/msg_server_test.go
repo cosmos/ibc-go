@@ -391,21 +391,20 @@ func (suite *KeeperTestSuite) TestPayPacketFeeAsync() {
 		{
 			"packet already timed out",
 			func() {
-				timeoutHeight := clienttypes.GetSelfHeight(suite.chainB.GetContext())
+				// try to incentivze a packet which is timed out
+				packetID := channeltypes.NewPacketID(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, msg.PacketId.Sequence+1)
+				packet = channeltypes.NewPacket(ibctesting.MockPacketData, packetID.Sequence, packetID.PortId, packetID.ChannelId, suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID, clienttypes.GetSelfHeight(suite.chainB.GetContext()), 0)
 
-				// try to incentivize a packet which is timed out
-				sequence, err := suite.path.EndpointA.SendPacket(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, timeoutHeight, 0, ibctesting.MockPacketData)
+				err := suite.path.EndpointA.SendPacket(packet)
 				suite.Require().NoError(err)
 
 				// need to update chainA's client representing chainB to prove missing ack
 				err = suite.path.EndpointA.UpdateClient()
 				suite.Require().NoError(err)
 
-				packet = channeltypes.NewPacket(ibctesting.MockPacketData, sequence, suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID, timeoutHeight, 0)
 				err = suite.path.EndpointA.TimeoutPacket(packet)
 				suite.Require().NoError(err)
 
-				packetID := channeltypes.NewPacketID(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, sequence)
 				msg.PacketId = packetID
 			},
 			false,
@@ -462,13 +461,11 @@ func (suite *KeeperTestSuite) TestPayPacketFeeAsync() {
 			suite.SetupTest()
 			suite.coordinator.Setup(suite.path) // setup channel
 
-			timeoutHeight := clienttypes.NewHeight(clienttypes.ParseChainID(suite.chainB.ChainID), 100)
-
 			// send a packet to incentivize
-			sequence, err := suite.path.EndpointA.SendPacket(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, timeoutHeight, 0, ibctesting.MockPacketData)
+			packetID := channeltypes.NewPacketID(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, 1)
+			packet = channeltypes.NewPacket(ibctesting.MockPacketData, packetID.Sequence, packetID.PortId, packetID.ChannelId, suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID, clienttypes.NewHeight(clienttypes.ParseChainID(suite.chainB.ChainID), 100), 0)
+			err := suite.path.EndpointA.SendPacket(packet)
 			suite.Require().NoError(err)
-			packetID := channeltypes.NewPacketID(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, sequence)
-			packet = channeltypes.NewPacket(ibctesting.MockPacketData, packetID.Sequence, packetID.PortId, packetID.ChannelId, suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID, timeoutHeight, 0)
 
 			fee := types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
 			packetFee := types.NewPacketFee(fee, suite.chainA.SenderAccount.GetAddress().String(), nil)
