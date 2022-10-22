@@ -2,8 +2,10 @@ go 1.18
 
 module github.com/cosmos/ibc-go/v6
 
+// Use cosmos-flavored protobufs
 replace github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
 
+// Dragonberry ics23 patch
 replace github.com/confio/ics23/go => github.com/cosmos/cosmos-sdk/ics23/go v0.8.0
 
 require (
