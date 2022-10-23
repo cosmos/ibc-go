@@ -104,7 +104,7 @@ To facilitate contributors the task of choosing what issues to pick up, we have 
 
 If you are interested in working on an issue, please comment on it; then we will be able to assign it to you. We will be happy to answer any questions you may have and help you out while you work on the issue.
 
-Teams develpoing an app, middleware or light client that would like to get in touch with us, please reach out to us in the `interchain` channel of the [IBC Gang Discord server](https://discord.com/channels/955868717269516318/955883113484013578) and we can discuss further.
+Teams developing an app, middleware or light client that would like to get in touch with us, please reach out to us in the `interchain` channel of the [IBC Gang Discord server](https://discord.com/channels/955868717269516318/955883113484013578) and we can discuss further.
 
 ## Support
 

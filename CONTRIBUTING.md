@@ -56,7 +56,7 @@ If you would like to contribute, follow this process:
 
 - [Project structure](./docs/dev/project-structure.md)
 - [Develoment setup](./docs/dev/development-setup.md)
-- [Go styleguide](./docs/dev/go-style-guide.md)
+- [Go style guide](./docs/dev/go-style-guide.md)
 - [Writing tests](./testing/README.md)
 - [Pull request guidelines](./docs/dev/pull-requests.md)
 - [Release process](./docs/dev/release-management.md)
