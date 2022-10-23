@@ -38,6 +38,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Dependencies
 
+* [\#2566]https://github.com/cosmos/ibc-go/pull/2566) Dragonberry patch and update cosmos-sdk to v0.46.3
 * [\#2458](https://github.com/cosmos/ibc-go/pull/2458) Bump Cosmos SDK to v0.46.2
 
 ### API Breaking
