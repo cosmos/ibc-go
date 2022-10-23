@@ -406,7 +406,7 @@ func (suite *KeeperTestSuite) TestTimeoutOnClose() {
 
 			timeoutHeight := clienttypes.GetSelfHeight(suite.chainB.GetContext())
 			timeoutTimestamp := uint64(suite.chainB.GetContext().BlockTime().UnixNano())
-			packet = types.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, timeoutTimestamp)
+
 			sequence, err := path.EndpointA.SendPacket(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, timeoutHeight, timeoutTimestamp, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
 			packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, timeoutTimestamp)
@@ -420,6 +420,7 @@ func (suite *KeeperTestSuite) TestTimeoutOnClose() {
 
 			timeoutHeight := clienttypes.GetSelfHeight(suite.chainB.GetContext())
 			timeoutTimestamp := uint64(suite.chainB.GetContext().BlockTime().UnixNano())
+
 			sequence, err := path.EndpointA.SendPacket(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, timeoutHeight, timeoutTimestamp, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
 			path.EndpointB.SetChannelClosed()
@@ -431,6 +432,7 @@ func (suite *KeeperTestSuite) TestTimeoutOnClose() {
 			// set ordered to true providing the wrong proof for UNORDERED case
 			ordered = true
 			suite.coordinator.Setup(path)
+
 			timeoutHeight := clienttypes.GetSelfHeight(suite.chainB.GetContext())
 
 			sequence, err := path.EndpointA.SendPacket(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, timeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
