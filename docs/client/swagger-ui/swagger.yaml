@@ -3277,7 +3277,7 @@ paths:
         - Query
   /ibc/client/v1/params:
     get:
-      summary: ClientParams queries all parameters of the ibc client.
+      summary: Params queries all parameters of the ibc client.
       operationId: ClientParams
       responses:
         '200':
@@ -3296,10 +3296,8 @@ paths:
                     description: >-
                       allowed_clients defines the list of allowed client state
                       types.
-            description: >-
-              QueryClientParamsResponse is the response type for the
-              Query/ClientParams RPC
-
+            description: |-
+              QueryParamsResponse is the response type for the Query/Params RPC
               method.
         default:
           description: An unexpected error response
@@ -14592,23 +14590,6 @@ definitions:
           type: string
         description: allowed_clients defines the list of allowed client state types.
     description: Params defines the set of IBC light client parameters.
-  ibc.core.client.v1.QueryClientParamsResponse:
-    type: object
-    properties:
-      params:
-        description: params defines the parameters of the module.
-        type: object
-        properties:
-          allowed_clients:
-            type: array
-            items:
-              type: string
-            description: allowed_clients defines the list of allowed client state types.
-    description: >-
-      QueryClientParamsResponse is the response type for the Query/ClientParams
-      RPC
-
-      method.
   ibc.core.client.v1.QueryClientStateResponse:
     type: object
     properties:
@@ -15562,6 +15543,21 @@ definitions:
     title: |-
       QueryConsensusStatesResponse is the response type for the
       Query/ConsensusStates RPC method
+  ibc.core.client.v1.QueryParamsResponse:
+    type: object
+    properties:
+      params:
+        description: params defines the parameters of the module.
+        type: object
+        properties:
+          allowed_clients:
+            type: array
+            items:
+              type: string
+            description: allowed_clients defines the list of allowed client state types.
+    description: |-
+      QueryParamsResponse is the response type for the Query/Params RPC
+      method.
   ibc.core.client.v1.QueryUpgradedClientStateResponse:
     type: object
     properties:
