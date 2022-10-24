@@ -58,7 +58,7 @@ func CreateUpgradeHandler(
     return func(ctx sdk.Context, _ upgradetypes.Plan, vm module.VersionMap) (module.VersionMap, error) {
         if err := v6.MigrateICS27ChannelCapability(ctx, cdc, capabilityStoreKey, capabilityKeeper, moduleName); err != nil {
             return nil, err
-    }
+    	}
 
         return mm.RunMigrations(ctx, configurator, vm)
     }
