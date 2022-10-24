@@ -29,7 +29,6 @@ type Keeper struct {
 	ics4Wrapper   porttypes.ICS4Wrapper
 	channelKeeper icatypes.ChannelKeeper
 	portKeeper    icatypes.PortKeeper
-	authKeeper    icatypes.AccountKeeper
 
 	scopedKeeper icatypes.ScopedKeeper
 
@@ -39,7 +38,7 @@ type Keeper struct {
 // NewKeeper creates a new interchain accounts controller Keeper instance
 func NewKeeper(
 	cdc codec.BinaryCodec, key storetypes.StoreKey, paramSpace paramtypes.Subspace,
-	ics4Wrapper porttypes.ICS4Wrapper, channelKeeper icatypes.ChannelKeeper, portKeeper icatypes.PortKeeper, authKeeper icatypes.AccountKeeper,
+	ics4Wrapper porttypes.ICS4Wrapper, channelKeeper icatypes.ChannelKeeper, portKeeper icatypes.PortKeeper,
 	scopedKeeper icatypes.ScopedKeeper, msgRouter icatypes.MessageRouter,
 ) Keeper {
 	// set KeyTable if it has not already been set
@@ -54,7 +53,6 @@ func NewKeeper(
 		ics4Wrapper:   ics4Wrapper,
 		channelKeeper: channelKeeper,
 		portKeeper:    portKeeper,
-		authKeeper:    authKeeper,
 		scopedKeeper:  scopedKeeper,
 		msgRouter:     msgRouter,
 	}
