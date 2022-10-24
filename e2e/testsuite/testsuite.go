@@ -6,8 +6,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
+	grouptypes "github.com/cosmos/cosmos-sdk/x/group"
 	paramsproposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 	intertxtypes "github.com/cosmos/interchain-accounts/x/inter-tx/types"
 	dockerclient "github.com/docker/docker/client"
@@ -36,6 +38,8 @@ const (
 	ChainARelayerName = "rlyA"
 	// ChainBRelayerName is the name given to the relayer wallet on ChainB
 	ChainBRelayerName = "rlyB"
+	// DefaultGasValue is the default gas value used to configure tx.Factory
+	DefaultGasValue = 500000
 
 	// emptyLogs is the string value returned from `BroadcastMessages`. There are some situations in which
 	// the result is empty, when this happens we include the raw logs instead to get as much information
@@ -70,6 +74,7 @@ type GRPCClients struct {
 
 	// SDK query clients
 	GovQueryClient    govtypes.QueryClient
+	GroupsQueryClient grouptypes.QueryClient
 	ParamsQueryClient paramsproposaltypes.QueryClient
 }
 
@@ -226,6 +231,13 @@ func (s *E2ETestSuite) GetChains(chainOpts ...testconfig.ChainOptionConfiguratio
 // Once the broadcast response is returned, we wait for a few blocks to be created on both chain A and chain B.
 func (s *E2ETestSuite) BroadcastMessages(ctx context.Context, chain *cosmos.CosmosChain, user *ibc.Wallet, msgs ...sdk.Msg) (sdk.TxResponse, error) {
 	broadcaster := cosmos.NewBroadcaster(s.T(), chain)
+
+	configureGasFactoryOpt := func(factory tx.Factory) tx.Factory {
+		return factory.WithGas(DefaultGasValue)
+	}
+
+	broadcaster.ConfigureFactoryOptions(configureGasFactoryOpt)
+
 	resp, err := cosmos.BroadcastTx(ctx, broadcaster, user, msgs...)
 	if err != nil {
 		return sdk.TxResponse{}, err
@@ -370,6 +382,7 @@ func (s *E2ETestSuite) initGRPCClients(chain *cosmos.CosmosChain) {
 		ICAQueryClient:     controllertypes.NewQueryClient(grpcConn),
 		InterTxQueryClient: intertxtypes.NewQueryClient(grpcConn),
 		GovQueryClient:     govtypes.NewQueryClient(grpcConn),
+		GroupsQueryClient:  grouptypes.NewQueryClient(grpcConn),
 		ParamsQueryClient:  paramsproposaltypes.NewQueryClient(grpcConn),
 	}
 }
