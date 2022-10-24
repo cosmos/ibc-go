@@ -36,7 +36,7 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 			timeoutHeight := clienttypes.GetSelfHeight(suite.chainB.GetContext())
 			timeoutTimestamp := uint64(suite.chainB.GetContext().BlockTime().UnixNano())
 
-			sequence, err := path.EndpointA.SendPacket(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, timeoutHeight, timeoutTimestamp, ibctesting.MockPacketData)
+			sequence, err := path.EndpointA.SendPacket(timeoutHeight, timeoutTimestamp, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
 			packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, timeoutTimestamp)
 			// need to update chainA's client representing chainB to prove missing ack
@@ -48,7 +48,7 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 
 			timeoutHeight := clienttypes.GetSelfHeight(suite.chainB.GetContext())
 
-			sequence, err := path.EndpointA.SendPacket(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, timeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
+			sequence, err := path.EndpointA.SendPacket(timeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
 			packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, disabledTimeoutTimestamp)
 			// need to update chainA's client representing chainB to prove missing ack
@@ -63,7 +63,7 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 			timeoutHeight := clienttypes.GetSelfHeight(suite.chainB.GetContext())
 			timeoutTimestamp := uint64(suite.chainB.GetContext().BlockTime().UnixNano())
 
-			sequence, err := path.EndpointA.SendPacket(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, timeoutHeight, timeoutTimestamp, ibctesting.MockPacketData)
+			sequence, err := path.EndpointA.SendPacket(timeoutHeight, timeoutTimestamp, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
 			// need to update chainA's client representing chainB to prove missing ack
 			path.EndpointA.UpdateClient()
@@ -79,7 +79,7 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 
 			timeoutHeight := clienttypes.GetSelfHeight(suite.chainB.GetContext())
 
-			sequence, err := path.EndpointA.SendPacket(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, timeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
+			sequence, err := path.EndpointA.SendPacket(timeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
 			// need to update chainA's client representing chainB to prove missing ack
 			path.EndpointA.UpdateClient()
@@ -100,7 +100,7 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 
 			timeoutHeight := path.EndpointA.GetClientState().GetLatestHeight().Increment().(clienttypes.Height)
 
-			sequence, err := path.EndpointA.SendPacket(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, timeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
+			sequence, err := path.EndpointA.SendPacket(timeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
 			packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, disabledTimeoutTimestamp)
 			// need to update chainA's client representing chainB to prove missing ack
@@ -134,7 +134,7 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 		{"timeout", func() {
 			expError = types.ErrPacketTimeout
 			suite.coordinator.Setup(path)
-			sequence, err := path.EndpointA.SendPacket(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
+			sequence, err := path.EndpointA.SendPacket(defaultTimeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
 			packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
 			path.EndpointA.UpdateClient()
@@ -148,7 +148,7 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 			nextSeqRecv = 2
 			timeoutTimestamp := uint64(suite.chainB.GetContext().BlockTime().UnixNano())
 
-			sequence, err := path.EndpointA.SendPacket(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, defaultTimeoutHeight, timeoutTimestamp, ibctesting.MockPacketData)
+			sequence, err := path.EndpointA.SendPacket(defaultTimeoutHeight, timeoutTimestamp, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
 			packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, timeoutTimestamp)
 			path.EndpointA.UpdateClient()
@@ -173,7 +173,7 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 
 			timeoutHeight := clienttypes.GetSelfHeight(suite.chainB.GetContext())
 
-			sequence, err := path.EndpointA.SendPacket(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, timeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
+			sequence, err := path.EndpointA.SendPacket(timeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
 			packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, disabledTimeoutTimestamp)
 			path.EndpointA.UpdateClient()
@@ -188,7 +188,7 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 
 			timeoutHeight := clienttypes.GetSelfHeight(suite.chainB.GetContext())
 
-			sequence, err := path.EndpointA.SendPacket(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, timeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
+			sequence, err := path.EndpointA.SendPacket(timeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
 			packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, disabledTimeoutTimestamp)
 			path.EndpointA.UpdateClient()
@@ -253,7 +253,7 @@ func (suite *KeeperTestSuite) TestTimeoutExecuted() {
 			timeoutHeight := clienttypes.GetSelfHeight(suite.chainB.GetContext())
 			timeoutTimestamp := uint64(suite.chainB.GetContext().BlockTime().UnixNano())
 
-			sequence, err := path.EndpointA.SendPacket(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, timeoutHeight, timeoutTimestamp, ibctesting.MockPacketData)
+			sequence, err := path.EndpointA.SendPacket(timeoutHeight, timeoutTimestamp, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
 
 			packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, timeoutTimestamp)
@@ -271,7 +271,7 @@ func (suite *KeeperTestSuite) TestTimeoutExecuted() {
 			timeoutHeight := clienttypes.GetSelfHeight(suite.chainB.GetContext())
 			timeoutTimestamp := uint64(suite.chainB.GetContext().BlockTime().UnixNano())
 
-			sequence, err := path.EndpointA.SendPacket(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, timeoutHeight, timeoutTimestamp, ibctesting.MockPacketData)
+			sequence, err := path.EndpointA.SendPacket(timeoutHeight, timeoutTimestamp, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
 
 			packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, timeoutTimestamp)
@@ -320,7 +320,7 @@ func (suite *KeeperTestSuite) TestTimeoutOnClose() {
 			timeoutHeight := clienttypes.GetSelfHeight(suite.chainB.GetContext())
 			timeoutTimestamp := uint64(suite.chainB.GetContext().BlockTime().UnixNano())
 
-			sequence, err := path.EndpointA.SendPacket(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, timeoutHeight, timeoutTimestamp, ibctesting.MockPacketData)
+			sequence, err := path.EndpointA.SendPacket(timeoutHeight, timeoutTimestamp, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
 			path.EndpointB.SetChannelClosed()
 			// need to update chainA's client representing chainB to prove missing ack
@@ -335,7 +335,7 @@ func (suite *KeeperTestSuite) TestTimeoutOnClose() {
 
 			timeoutHeight := clienttypes.GetSelfHeight(suite.chainB.GetContext())
 
-			sequence, err := path.EndpointA.SendPacket(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, timeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
+			sequence, err := path.EndpointA.SendPacket(timeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
 			path.EndpointB.SetChannelClosed()
 			// need to update chainA's client representing chainB to prove missing ack
@@ -390,7 +390,7 @@ func (suite *KeeperTestSuite) TestTimeoutOnClose() {
 			timeoutHeight := clienttypes.GetSelfHeight(suite.chainB.GetContext())
 			timeoutTimestamp := uint64(suite.chainB.GetContext().BlockTime().UnixNano())
 
-			sequence, err := path.EndpointA.SendPacket(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, timeoutHeight, timeoutTimestamp, ibctesting.MockPacketData)
+			sequence, err := path.EndpointA.SendPacket(timeoutHeight, timeoutTimestamp, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
 			path.EndpointB.SetChannelClosed()
 			// need to update chainA's client representing chainB to prove missing ack
@@ -407,7 +407,7 @@ func (suite *KeeperTestSuite) TestTimeoutOnClose() {
 			timeoutHeight := clienttypes.GetSelfHeight(suite.chainB.GetContext())
 			timeoutTimestamp := uint64(suite.chainB.GetContext().BlockTime().UnixNano())
 
-			sequence, err := path.EndpointA.SendPacket(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, timeoutHeight, timeoutTimestamp, ibctesting.MockPacketData)
+			sequence, err := path.EndpointA.SendPacket(timeoutHeight, timeoutTimestamp, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
 			packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, timeoutTimestamp)
 			chanCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
@@ -421,7 +421,7 @@ func (suite *KeeperTestSuite) TestTimeoutOnClose() {
 			timeoutHeight := clienttypes.GetSelfHeight(suite.chainB.GetContext())
 			timeoutTimestamp := uint64(suite.chainB.GetContext().BlockTime().UnixNano())
 
-			sequence, err := path.EndpointA.SendPacket(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, timeoutHeight, timeoutTimestamp, ibctesting.MockPacketData)
+			sequence, err := path.EndpointA.SendPacket(timeoutHeight, timeoutTimestamp, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
 			path.EndpointB.SetChannelClosed()
 			path.EndpointA.UpdateClient()
@@ -435,7 +435,7 @@ func (suite *KeeperTestSuite) TestTimeoutOnClose() {
 
 			timeoutHeight := clienttypes.GetSelfHeight(suite.chainB.GetContext())
 
-			sequence, err := path.EndpointA.SendPacket(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, timeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
+			sequence, err := path.EndpointA.SendPacket(timeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
 			path.EndpointB.SetChannelClosed()
 			path.EndpointA.UpdateClient()
@@ -450,7 +450,7 @@ func (suite *KeeperTestSuite) TestTimeoutOnClose() {
 			timeoutHeight := clienttypes.GetSelfHeight(suite.chainB.GetContext())
 			timeoutTimestamp := uint64(suite.chainB.GetContext().BlockTime().UnixNano())
 
-			sequence, err := path.EndpointA.SendPacket(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, timeoutHeight, timeoutTimestamp, ibctesting.MockPacketData)
+			sequence, err := path.EndpointA.SendPacket(timeoutHeight, timeoutTimestamp, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
 			path.EndpointB.SetChannelClosed()
 			// need to update chainA's client representing chainB to prove missing ack
