@@ -11,12 +11,15 @@ import "proofs.proto";
 option go_package = "github.com/cosmos/ibc-go/v5/modules/light-clients/10-wasm/types";
 
 // Wasm light client's Client state
-message ClientState {  
+message ClientState {
   option (gogoproto.goproto_getters)      = false;
   bytes                     data          = 1;
   string                    name          = 2;
   ibc.core.client.v1.Height latest_height = 3;
   repeated ics23.ProofSpec  proof_specs   = 4;
+  string                    repository    = 5;
+  bytes                     code_hash     = 6;
+  bytes                     code          = 7;
 }
 
 // Wasm light client's ConsensusState

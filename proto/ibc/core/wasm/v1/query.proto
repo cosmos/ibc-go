@@ -16,12 +16,12 @@ service Query {
   }
 }
 
-  // WasmLightClient query
-  message WasmLightClientRequest {
-    string name = 1;
-  }
-  
-  // WasmLightClient response
-  message WasmLightClientResponse {
-    WasmLightClient wasm_light_client = 1;
-  }
+// WasmLightClient query
+message WasmLightClientRequest {
+  string name = 1;
+}
+
+// WasmLightClient response
+message WasmLightClientResponse {
+  WasmLightClient wasm_light_client = 1;
+}

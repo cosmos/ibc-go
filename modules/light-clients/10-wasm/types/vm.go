@@ -1,13 +1,16 @@
 package types
 
 import (
+	"bytes"
+	"strings"
+
 	cosmwasm "github.com/CosmWasm/wasmvm"
 	"github.com/CosmWasm/wasmvm/types"
 	ics23 "github.com/confio/ics23/go"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
 	committypes "github.com/cosmos/ibc-go/v5/modules/core/23-commitment/types"
-	"github.com/cosmos/ibc-go/v5/modules/core/28-wasm/keeper"
 	"github.com/cosmos/ibc-go/v5/modules/core/exported"
 )
 
@@ -15,6 +18,9 @@ import (
 // 28-wasm module and handled as params
 const GasMultiplier uint64 = 100
 const maxGasLimit = uint64(0x7FFFFFFFFFFFFFFF)
+
+var WasmVM *cosmwasm.VM
+var WasmVal *WasmValidator
 
 var _ exported.ClientState = (*ClientState)(nil)
 
@@ -34,6 +40,14 @@ type contractResult struct {
 	ErrorMsg string `json:"err_msg,omitempty"`
 }
 
+type VMConfig struct {
+	DataDir           string
+	SupportedFeatures []string
+	MemoryLimitMb     uint32
+	PrintDebug        bool
+	CacheSizeMb       uint32
+}
+
 // TODO: Move this into the 28-wasm keeper
 type clientStateCallResponse struct {
 	Me                *ClientState    `json:"me,omitempty"`
@@ -44,7 +58,7 @@ type clientStateCallResponse struct {
 
 func (r *clientStateCallResponse) resetImmutables(c *ClientState) {
 	if r.Me != nil {
-		r.Me.CodeId = c.CodeId
+		r.Me.Code = c.Code
 	}
 
 	if r.NewConsensusState != nil {
@@ -54,6 +68,53 @@ func (r *clientStateCallResponse) resetImmutables(c *ClientState) {
 	if r.NewClientState != nil {
 		r.NewClientState.CodeId = c.CodeId
 	}
+}
+
+func CreateVM(vmConfig *VMConfig, validationConfig *ValidationConfig) {
+	supportedFeatures := strings.Join(vmConfig.SupportedFeatures, ",")
+
+	vm, err := cosmwasm.NewVM(vmConfig.DataDir, supportedFeatures, vmConfig.MemoryLimitMb, vmConfig.PrintDebug, vmConfig.CacheSizeMb)
+	if err != nil {
+		panic(err)
+	}
+
+	wasmValidator, err := NewWasmValidator(validationConfig, func() (*cosmwasm.VM, error) {
+		return cosmwasm.NewVM(vmConfig.DataDir, supportedFeatures, vmConfig.MemoryLimitMb, vmConfig.PrintDebug, vmConfig.CacheSizeMb)
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	WasmVM = vm
+	WasmVal = wasmValidator
+}
+
+func PushNewWasmCode(store sdk.KVStore, c *ClientState) error {
+	// check to see if the store has a code with the same name
+	if store.Has([]byte(c.Name)) {
+		return ErrWasmCodeExists
+	}
+
+	// run the code through the wasm light client validation process
+	if isValidWasmCode, err := WasmVal.validateWasmCode(c.Code); err != nil {
+		return sdkerrors.Wrapf(ErrWasmCodeValidation, "unable to validate wasm code: %s", err)
+	} else if !isValidWasmCode {
+		return ErrWasmInvalidCode
+	}
+
+	// create the code in the vm
+	// TODO: do we need to check and make sure there
+	// is no code with the same hash?
+	codeID, err := WasmVM.Create(c.Code)
+	if err != nil {
+		return ErrWasmInvalidCode
+	}
+
+	// safety check to assert that code id returned by WasmVM equals to code hash
+	if !bytes.Equal(codeID, c.CodeHash) {
+		return ErrWasmInvalidCodeID
+	}
+	return nil
 }
 
 // Calls vm.Init with appropriate arguments
@@ -89,7 +150,7 @@ func initContract(codeID []byte, ctx sdk.Context, store sdk.KVStore, msg []byte)
 	// mockQuerier := api.MockQuerier{}
 
 	desercost := types.UFraction{Numerator: 0, Denominator: 1}
-	response, _, err := keeper.WasmVM.Instantiate(codeID, env, msgInfo, msg, store, cosmwasm.GoAPI{}, nil, gasMeter, gasMeter.Limit(), desercost)
+	response, _, err := WasmVM.Instantiate(codeID, env, msgInfo, msg, store, cosmwasm.GoAPI{}, nil, gasMeter, gasMeter.Limit(), desercost)
 	return response, err
 }
 
@@ -132,7 +193,7 @@ func callContractWithEnvAndMeter(codeID cosmwasm.Checksum, ctx *sdk.Context, sto
 	// mockFailureAPI := *api.NewMockFailureAPI()
 	// mockQuerier := api.MockQuerier{}
 	desercost := types.UFraction{Numerator: 1, Denominator: 1}
-	resp, gasUsed, err := keeper.WasmVM.Execute(codeID, env, msgInfo, msg, store, cosmwasm.GoAPI{}, nil, nil, gasMeter.Limit(), desercost)
+	resp, gasUsed, err := WasmVM.Execute(codeID, env, msgInfo, msg, store, cosmwasm.GoAPI{}, nil, nil, gasMeter.Limit(), desercost)
 	if ctx != nil {
 		consumeGas(*ctx, gasUsed)
 	}
@@ -148,7 +209,7 @@ func queryContractWithStore(codeID cosmwasm.Checksum, store cosmwasm.KVStore, ms
 	// mockQuerier := api.MockQuerier{}
 	// TODO: figure out what this is for
 	desercost := types.UFraction{Numerator: 1, Denominator: 1}
-	resp, _, err := keeper.WasmVM.Query(codeID, types.Env{}, msg, store, cosmwasm.GoAPI{}, nil, nil, maxGasLimit, desercost)
+	resp, _, err := WasmVM.Query(codeID, types.Env{}, msg, store, cosmwasm.GoAPI{}, nil, nil, maxGasLimit, desercost)
 	return resp, err
 }
 
