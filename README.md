@@ -59,7 +59,7 @@ In the table below
 |An application that enables on chain querying of another IBC enabled chain utilizing `baseapp.Query`. Both chains must have implemented the query application and ICA (for queries requiring consensus).|[ICQ](https://github.com/strangelove-ventures/ibc-go/tree/feature/icq_implementation/modules/apps/icq)|`app`|
 |An application that enables on chain querying of another IBC enabled chains state without the need for the chain being queried to implement the application.|[interchain-queries](https://github.com/ingenuity-build/interchain-queries)|`app`|
 |An application that enables on chain querying of another IBC enabled chains state without the need for the chain being queried to implement the application. Similar to the interchain-queries application in the row above but without callbacks.|[query](https://github.com/defund-labs/defund/tree/main/x/query)|`app`|
-|An application that enables cross chain NFT transfer.|[NFT Transfer (ICS 721)](https://github.com/bianjieai/ibc-go/tree/ics-721-nft-transfer)|`app`|
+|An application that enables cross chain NFT transfer.|[NFT Transfer (ICS 721)](https://github.com/bianjieai/nft-transfer)|`app`|
 |Middleware enabling a packet to be sent to a destination chain via an intermediate chain, e.g. going from Juno to Osmosis via the Hub.|[packet-forward-middleware](https://github.com/strangelove-ventures/packet-forward-middleware)|`middleware`|
 |Middleware enabling the recovery of tokens sent to unsupported addresses.|[recovery](https://github.com/evmos/evmos/tree/main/x/recovery)|`middleware`|
 |Middleware that limits the in or out flow of an asset in a certain time period to minimise the risks of cross chain token transfers.|[IBC-rate-limiting](https://github.com/osmosis-labs/osmosis/pull/2339)|`middleware`|
@@ -71,6 +71,10 @@ We have active, helpful communities on Discord and Telegram.
 For questions and support please use the `developers` channel in the [Cosmos Network Discord server](https://discord.com/channels/669268347736686612/1019978171367559208) or join the [IBC Gang Discord server](https://discord.gg/RdpdkaXKpZ). The issue list of this repo is exclusively for bug reports and feature requests.
 
 To receive announcements of new releases or other technical updates, please join the [IBC is expansive Telegram group](https://t.me/ibc_is_expansive).
+
+## Contribution Guidelines & Requests for Maintainership
+
+We have detailed documents for contributors wishing to [contribute code to ibc-go](https://github.com/cosmos/ibc-go/blob/main/CONTRIBUTING.md) or [submit a feature for maintainership](./MAINTAINERSHIP.md) in the `ibc-go` codebase. Please note that all maintainers of and contributors to the codebase are subject to the [Code of Conduct](https://github.com/cosmos/ibc-go/blob/main/CODE_OF_CONDUCT.md).
 
 ## Security
 
