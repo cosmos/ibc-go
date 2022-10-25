@@ -1,5 +1,7 @@
 go 1.18
 
+retract [v3.0.0, v3.3.0]
+
 module github.com/cosmos/ibc-go/v3
 
 // dragonberry replace for ics23
