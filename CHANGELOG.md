@@ -101,11 +101,13 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (apps/27-interchain-accounts) [\#2297](https://github.com/cosmos/ibc-go/pull/2297) Adding cli command to generate ICS27 packet data.
 * (modules/core/keeper) [\#1728](https://github.com/cosmos/ibc-go/pull/2399) Updated channel callback errors to include portID & channelID for better identification of errors.
 * [\#2434](https://github.com/cosmos/ibc-go/pull/2478) Removed all `TypeMsg` constants
+* (modules/core/exported) [#1689] (https://github.com/cosmos/ibc-go/pull/2539) Removing `GetVersions` from `ConnectionI` interface.
 
 ### Features
 
 * (apps/27-interchain-accounts) [\#2147](https://github.com/cosmos/ibc-go/pull/2147) Adding a `SubmitTx` gRPC endpoint for the ICS27 Controller module which allows owners of interchain accounts to submit transactions. This replaces the previously existing need for authentication modules to implement this standard functionality.
 * (testing/simapp) [\#2190](https://github.com/cosmos/ibc-go/pull/2190) Adding the new `x/group` cosmos-sdk module to simapp.
+* (apps/transfer) [\#2305](https://github.com/cosmos/ibc-go/pull/2305) Added optional metadata field to `FungibleTokenPacketData` and `MsgTransfer`.
 
 ### Bug Fixes
 
