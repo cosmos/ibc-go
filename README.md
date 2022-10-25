@@ -72,6 +72,10 @@ For questions and support please use the `developers` channel in the [Cosmos Net
 
 To receive announcements of new releases or other technical updates, please join the [IBC is expansive Telegram group](https://t.me/ibc_is_expansive).
 
+## Contribution Guidelines & Requests for Maintainership
+
+We have detailed documents for contributors wishing to [contribute code to ibc-go](https://github.com/cosmos/ibc-go/blob/main/CONTRIBUTING.md) or [submit a feature for maintainership](./MAINTAINERSHIP.md) in the `ibc-go` codebase. Please note that all maintainers of and contributors to the codebase are subject to the [Code of Conduct](https://github.com/cosmos/ibc-go/blob/main/CODE_OF_CONDUCT.md).
+
 ## Security
 
 To report a security vulnerability, see our [bug bounty program](https://hackerone.com/cosmos).
