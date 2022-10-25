@@ -76,14 +76,7 @@ func (suite *AnteTestSuite) createAcknowledgementMessage(isRedundant bool) sdk.M
 	packet := channeltypes.NewPacket(ibctesting.MockPacketData, sequence,
 		suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID,
 		suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID,
-<<<<<<< HEAD
-		clienttypes.NewHeight(1, 0), 0)
-
-	err := suite.path.EndpointB.SendPacket(packet)
-	suite.Require().NoError(err)
-=======
 		clienttypes.NewHeight(2, 0), 0)
->>>>>>> 8ce603d (chore: update tests to use new SendPacket API (#2567))
 	err = suite.path.EndpointA.RecvPacket(packet)
 	suite.Require().NoError(err)
 
@@ -427,13 +420,8 @@ func (suite *AnteTestSuite) TestAnteDecorator() {
 					clienttypes.NewHeight(1, 0), 0)
 
 				return []sdk.Msg{
-<<<<<<< HEAD
-					suite.createRecvPacketMessage(uint64(1), false),
-					channeltypes.NewMsgRecvPacket(packet, []byte("proof"), clienttypes.NewHeight(0, 1), "signer"),
-=======
 					suite.createRecvPacketMessage(false),
 					channeltypes.NewMsgRecvPacket(packet, []byte("proof"), clienttypes.NewHeight(1, 1), "signer"),
->>>>>>> 8ce603d (chore: update tests to use new SendPacket API (#2567))
 				}
 			},
 			false,
