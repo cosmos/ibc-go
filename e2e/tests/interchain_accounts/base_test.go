@@ -344,7 +344,7 @@ func (s *InterchainAccountsTestSuite) TestICARegistration_WithGovernance() {
 
 	t.Logf("gov module address: %s", govModuleAddress.String())
 
-	time.Sleep(100 * time.Hour)
+	//time.Sleep(100 * time.Hour)
 
 	var hostAccount string
 	t.Run("verify interchain account", func(t *testing.T) {
@@ -414,4 +414,5 @@ func (s *InterchainAccountsTestSuite) TestICARegistration_WithGovernance() {
 	//		s.Require().Equal(expected, balance)
 	//	})
 	//})
+
 }
