@@ -2,8 +2,7 @@ package keeper
 
 import (
 	"fmt"
-	"strings"
-
+	
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
@@ -33,10 +32,6 @@ func (k Keeper) OnChanOpenTry(
 
 	if portID != icatypes.HostPortID {
 		return "", sdkerrors.Wrapf(icatypes.ErrInvalidHostPort, "expected %s, got %s", icatypes.HostPortID, portID)
-	}
-
-	if !strings.HasPrefix(counterparty.PortId, icatypes.ControllerPortPrefix) {
-		return "", sdkerrors.Wrapf(icatypes.ErrInvalidControllerPort, "expected %s{owner-account-address}, got %s", icatypes.ControllerPortPrefix, counterparty.PortId)
 	}
 
 	var metadata icatypes.Metadata
