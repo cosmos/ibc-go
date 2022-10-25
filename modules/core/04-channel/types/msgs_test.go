@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
+	"github.com/tendermint/tendermint/libs/log"
 
 	abci "github.com/tendermint/tendermint/abci/types"
 	dbm "github.com/tendermint/tm-db"
@@ -78,7 +79,7 @@ type TypesTestSuite struct {
 func (suite *TypesTestSuite) SetupTest() {
 	app := simapp.Setup(false)
 	db := dbm.NewMemDB()
-	store := rootmulti.NewStore(db)
+	store := rootmulti.NewStore(db, log.NewNopLogger())
 	storeKey := storetypes.NewKVStoreKey("iavlStoreKey")
 
 	store.MountStoreWithDB(storeKey, storetypes.StoreTypeIAVL, nil)
