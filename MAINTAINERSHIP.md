@@ -1,6 +1,6 @@
 # Request For Maintainership
 
-This document details the acceptance process for requests from external contributors who require for the `ibc-go` core team to take over **maintainership** of a complex block of code (ie: an application module or a light client implementation). It is the process we also follow internally for features that we develop which will go into the `ibc-go` codebase.
+This document details the acceptance process for requests from external contributors who require for the ibc-go core team to take over **maintainership** of a complex block of code (ie: an application module or a light client implementation). It is the process we also follow internally for features that we develop which will go into the `ibc-go` codebase.
 
 For projects who have created a custom IBC application and want us to list this application on the registry, please break out your module into its own repo for ease of import into chains!
 
@@ -21,7 +21,6 @@ Reach out to the IBC product team through susannah@interchain.io to coordinate u
 
 Answer these questions in a requirements doc:
 
-```
     What problem does this feature solve?
 
     What are the current solutions or workarounds? 
@@ -41,9 +40,9 @@ Answer these questions in a requirements doc:
     What is the impact of this feature being adopted?
 
     Is there a specific need for this feature to be included in the `ibc-go` codebase, rather than in its own module repo?
-```
 
-Answers to these questions should also be detailed in a **discussion** in the `ibc-go` repo to open up the discussion to a wider audience, this can be done before or after the walk through. 
+
+Answers to these questions should also be detailed in a **discussion** in the `ibc-go` repo to open up the discussion to a wider audience, this can be done before or after the walkthrough. 
 
 The acceptance criteria is based on the answers to these questions and the results of this product check, as well as of course an acceptable spec should the module be deemed to need one. Please see Step #2 below for the spec considerations.
 
@@ -63,12 +62,12 @@ If the associated module to be developed is expected to be submitted to the `ibc
 
 *(this step can be initiated in parallel w/ spec submission, subject to feature complexity)*
 
-Once the spec has been given initial approval, `ibc-go` engineering will coordinate a code walkthrough in preparation for taking the module into the repo. Any requested changes from the `ibc-go` engineering team after the code walkthrough should be discussed and/or addressd in a timely manner.
+Once the spec has been given initial approval, `ibc-go` engineering will coordinate a code walkthrough in preparation for taking the module into the repo. Any requested changes from the `ibc-go` engineering team after the code walkthrough should be discussed and/or addressed in a timely manner.
 
 The code that is presented should adhere to our [code contributor guidelines](https://github.com/cosmos/ibc-go/blob/main/CONTRIBUTING.md).
 
-More details on what code walkthrough should cover will be provided by the `ibc-go` engineering team on a case by case basis. However, the code should be sufficiently unit and E2E tested. Think about preparing for this process similarly to submitting a codebase for audit :)
+More details on what code walkthrough should cover will be provided by the `ibc-go` engineering team on a case by case basis. However, the code should be sufficiently unit and [E2E tested](https://github.com/cosmos/ibc-go/blob/main/e2e/README.md). Think about preparing for this process similarly to submitting a codebase for audit :)
 
-Please indicate the expected contribution of your team maintainership, if any. This contribution should also include ideas about devrels support and support for product on social media
+Please indicate the expected contribution of your team maintainership, if any. This contribution should also include ideas about devrels support and support for product on social media.
 
 ETA for the actual handover will be subject to amendment based on feedback resulting from the code walkthrough.
