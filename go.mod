@@ -2,8 +2,8 @@ go 1.18
 
 module github.com/cosmos/ibc-go/v4
 
-// please use at least v4.1.x
-retract v4.0.0
+// please use at least v4.2.x
+retract [v4.0.0, v4.1.0]
 
 replace github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
 
