@@ -24,7 +24,7 @@ func NewMigrator(keeper *Keeper) Migrator {
 // are owned by the controller submodule and ibc.
 func (m Migrator) AssertChannelCapabilityMigrations(ctx sdk.Context) error {
 	if m.keeper != nil {
-		filteredChannels := m.keeper.channelKeeper.GetAllChannelsWithPortPrefix(ctx, icatypes.PortPrefix)
+		filteredChannels := m.keeper.channelKeeper.GetAllChannelsWithPortPrefix(ctx, icatypes.ControllerPortPrefix)
 		for _, ch := range filteredChannels {
 			name := host.ChannelCapabilityPath(ch.PortId, ch.ChannelId)
 			capability, found := m.keeper.scopedKeeper.GetCapability(ctx, name)

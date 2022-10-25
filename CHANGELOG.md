@@ -38,8 +38,11 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Dependencies
 
+* [\#2458](https://github.com/cosmos/ibc-go/pull/2458) Bump Cosmos SDK to v0.46.2
+
 ### API Breaking
 
+* (apps/transfer) [\#2446](https://github.com/cosmos/ibc-go/pull/2446) Remove `SendTransfer` function in favor of a private `sendTransfer` function. All IBC transfers must be initiated with `MsgTransfer`.
 * (apps/29-fee) [\#2395](https://github.com/cosmos/ibc-go/pull/2395) Remove param space from ics29 NewKeeper function. The field was unused.
 * (apps/27-interchain-accounts) [\#2133](https://github.com/cosmos/ibc-go/pull/2133) Generates genesis protos in a separate directory to avoid circular import errors. The protobuf package name has changed for the genesis types.
 * (light-clients/tendermint)[\#1768](https://github.com/cosmos/ibc-go/pull/1768) Removed `AllowUpdateAfterExpiry`, `AllowUpdateAfterMisbehaviour` booleans as they are deprecated (see ADR026)
@@ -59,8 +62,12 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (transfer) [\#2034](https://github.com/cosmos/ibc-go/pull/2034) Transfer Keeper now expects a keeper which fulfills the expected `ScopedKeeper` interface for the capability keeper.
 * (05-port) [\#2025](https://github.com/cosmos/ibc-go/pull/2025) Port Keeper now expects a keeper which fulfills the expected `ScopedKeeper` interface for the capability keeper.
 * (04-channel) [\#2024](https://github.com/cosmos/ibc-go/pull/2024) Channel Keeper now expects a keeper which fulfills the expected `ScopedKeeper` interface for the capability keeper.
+* (core/04-channel)[\#1703](https://github.com/cosmos/ibc-go/pull/1703) Update `SendPacket` API to take in necessary arguments and construct rest of packet rather than taking in entire packet. The generated packet sequence is returned by the `SendPacket` function.
+* (modules/apps/27-interchain-accounts) [\#2433](https://github.com/cosmos/ibc-go/pull/2450) Renamed icatypes.PortPrefix to icatypes.ControllerPortPrefix & icatypes.PortID to icatypes.HostPortID
 
 ### State Machine Breaking
+
+* (transfer) [\#2377](https://github.com/cosmos/ibc-go/pull/2377) Adding `sequence` to `MsgTransferResponse`.
 
 ### Improvements
 
@@ -93,11 +100,14 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (light-clients/06-solomachine) Moving `verifyMisbehaviour` function from update.go to misbehaviour_handle.go.
 * (apps/27-interchain-accounts) [\#2297](https://github.com/cosmos/ibc-go/pull/2297) Adding cli command to generate ICS27 packet data.
 * (modules/core/keeper) [\#1728](https://github.com/cosmos/ibc-go/pull/2399) Updated channel callback errors to include portID & channelID for better identification of errors.
+* [\#2434](https://github.com/cosmos/ibc-go/pull/2478) Removed all `TypeMsg` constants
+* (modules/core/exported) [#1689] (https://github.com/cosmos/ibc-go/pull/2539) Removing `GetVersions` from `ConnectionI` interface.
 
 ### Features
 
 * (apps/27-interchain-accounts) [\#2147](https://github.com/cosmos/ibc-go/pull/2147) Adding a `SubmitTx` gRPC endpoint for the ICS27 Controller module which allows owners of interchain accounts to submit transactions. This replaces the previously existing need for authentication modules to implement this standard functionality.
 * (testing/simapp) [\#2190](https://github.com/cosmos/ibc-go/pull/2190) Adding the new `x/group` cosmos-sdk module to simapp.
+* (apps/transfer) [\#2305](https://github.com/cosmos/ibc-go/pull/2305) Added optional metadata field to `FungibleTokenPacketData` and `MsgTransfer`.
 
 ### Bug Fixes
 
