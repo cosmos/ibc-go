@@ -418,13 +418,15 @@ func (s *TransferTestSuite) TestMsgTransfer_WithMemo() {
 		s.Require().NoError(err)
 
 		if !memoFeatureRelease.IsSupported(chainAVersion) {
-			s.Require().Equal(transferTxResp.Code, uint32(2))
-			s.Require().Contains(transferTxResp.RawLog, "errUnknownField")
+			t.Logf("unsupported")
+			s.Require().Equal(uint32(2), transferTxResp.Code)
+			s.Require().Contains("errUnknownField", transferTxResp.RawLog)
 
 			// transfer not sent, end test
 			return
 		}
 
+		t.Logf("supported")
 		// sender chain supports feature
 		s.AssertValidTxResponse(transferTxResp)
 
@@ -444,7 +446,7 @@ func (s *TransferTestSuite) TestMsgTransfer_WithMemo() {
 
 	chainBIBCToken := testsuite.GetIBCToken(chainADenom, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID)
 
-	t.Run("packets relayed?", func(t *testing.T) {
+	t.Run("packets relayed", func(t *testing.T) {
 		s.AssertPacketRelayed(ctx, chainA, channelA.PortID, channelA.ChannelID, 1)
 
 		actualBalance, err := chainB.GetBalance(ctx, chainBAddress, chainBIBCToken.IBCDenom())
