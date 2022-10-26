@@ -56,15 +56,6 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 			}, true,
 		},
 		{
-			"successful transfer with coin from counterparty chain with metadata",
-			func() {
-				// send coin from chainA back to chainB
-				suite.coordinator.CreateTransferChannels(path)
-				amount = types.GetTransferCoin(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, sdk.DefaultBondDenom, sdk.NewInt(100))
-				metadata = []byte("metadata")
-			}, false, true,
-		},
-		{
 			"source channel not found",
 			func() {
 				// channel references wrong ID
