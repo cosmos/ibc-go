@@ -16,7 +16,7 @@ import (
 	coretypes "github.com/cosmos/ibc-go/v6/modules/core/types"
 )
 
-// SendTransfer handles transfer sending logic. There are 2 possible cases:
+// sendTransfer handles transfer sending logic. There are 2 possible cases:
 //
 // 1. Sender chain is acting as the source zone. The coins are transferred
 // to an escrow address (i.e locked) on the sender chain and then transferred
@@ -48,34 +48,6 @@ import (
 // 4. A -> C : sender chain is sink zone. Denom upon receiving: 'C/B/denom'
 // 5. C -> B : sender chain is sink zone. Denom upon receiving: 'B/denom'
 // 6. B -> A : sender chain is sink zone. Denom upon receiving: 'denom'
-//
-// Note: An IBC Transfer must be initiated using a MsgTransfer via the Transfer rpc handler
-func (k Keeper) SendTransfer(
-	ctx sdk.Context,
-	sourcePort,
-	sourceChannel string,
-	token sdk.Coin,
-	sender sdk.AccAddress,
-	receiver string,
-	timeoutHeight clienttypes.Height,
-	timeoutTimestamp uint64,
-	metadata []byte,
-) error {
-	_, err := k.sendTransfer(
-		ctx,
-		sourcePort,
-		sourceChannel,
-		token,
-		sender,
-		receiver,
-		timeoutHeight,
-		timeoutTimestamp,
-		metadata,
-	)
-	return err
-}
-
-// sendTransfer handles transfer sending logic.
 func (k Keeper) sendTransfer(
 	ctx sdk.Context,
 	sourcePort,
@@ -87,30 +59,13 @@ func (k Keeper) sendTransfer(
 	timeoutTimestamp uint64,
 	metadata []byte,
 ) (uint64, error) {
-	if !k.GetSendEnabled(ctx) {
-		return 0, types.ErrSendDisabled
-	}
-
-	if k.bankKeeper.BlockedAddr(sender) {
-		return 0, sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "%s is not allowed to send funds", sender)
-	}
-
-	sourceChannelEnd, found := k.channelKeeper.GetChannel(ctx, sourcePort, sourceChannel)
+	channel, found := k.channelKeeper.GetChannel(ctx, sourcePort, sourceChannel)
 	if !found {
 		return 0, sdkerrors.Wrapf(channeltypes.ErrChannelNotFound, "port ID (%s) channel ID (%s)", sourcePort, sourceChannel)
 	}
 
-	destinationPort := sourceChannelEnd.GetCounterparty().GetPortID()
-	destinationChannel := sourceChannelEnd.GetCounterparty().GetChannelID()
-
-	// get the next sequence
-	sequence, found := k.channelKeeper.GetNextSequenceSend(ctx, sourcePort, sourceChannel)
-	if !found {
-		return 0, sdkerrors.Wrapf(
-			channeltypes.ErrSequenceSendNotFound,
-			"source port: %s, source channel: %s", sourcePort, sourceChannel,
-		)
-	}
+	destinationPort := channel.GetCounterparty().GetPortID()
+	destinationChannel := channel.GetCounterparty().GetChannelID()
 
 	// begin createOutgoingPacket logic
 	// See spec for this logic: https://github.com/cosmos/ibc/tree/master/spec/app/ics-020-fungible-token-transfer#packet-relay
@@ -154,7 +109,6 @@ func (k Keeper) sendTransfer(
 		); err != nil {
 			return 0, err
 		}
-
 	} else {
 		labels = append(labels, telemetry.NewLabel(coretypes.LabelSource, "false"))
 
@@ -179,18 +133,8 @@ func (k Keeper) sendTransfer(
 		fullDenomPath, token.Amount.String(), sender.String(), receiver, metadata,
 	)
 
-	packet := channeltypes.NewPacket(
-		packetData.GetBytes(),
-		sequence,
-		sourcePort,
-		sourceChannel,
-		destinationPort,
-		destinationChannel,
-		timeoutHeight,
-		timeoutTimestamp,
-	)
-
-	if err := k.ics4Wrapper.SendPacket(ctx, channelCap, packet); err != nil {
+	sequence, err := k.ics4Wrapper.SendPacket(ctx, channelCap, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, packetData.GetBytes())
+	if err != nil {
 		return 0, err
 	}
 
