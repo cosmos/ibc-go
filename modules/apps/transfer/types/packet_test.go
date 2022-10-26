@@ -20,6 +20,7 @@ func TestFungibleTokenPacketDataValidateBasic(t *testing.T) {
 		packetData FungibleTokenPacketData
 		expPass    bool
 	}{
+<<<<<<< HEAD
 		{"valid packet", NewFungibleTokenPacketData(denom, amount, addr1, addr2), true},
 		{"valid packet with large amount", NewFungibleTokenPacketData(denom, largeAmount, addr1, addr2), true},
 		{"invalid denom", NewFungibleTokenPacketData("", amount, addr1, addr2), false},
@@ -29,6 +30,18 @@ func TestFungibleTokenPacketDataValidateBasic(t *testing.T) {
 		{"invalid large amount", NewFungibleTokenPacketData(denom, invalidLargeAmount, addr1, addr2), false},
 		{"missing sender address", NewFungibleTokenPacketData(denom, amount, emptyAddr, addr2), false},
 		{"missing recipient address", NewFungibleTokenPacketData(denom, amount, addr1, emptyAddr), false},
+=======
+		{"valid packet", NewFungibleTokenPacketData(denom, amount, addr1, addr2, ""), true},
+		{"valid packet with memo", NewFungibleTokenPacketData(denom, amount, addr1, addr2, "memo"), true},
+		{"valid packet with large amount", NewFungibleTokenPacketData(denom, largeAmount, addr1, addr2, ""), true},
+		{"invalid denom", NewFungibleTokenPacketData("", amount, addr1, addr2, ""), false},
+		{"invalid empty amount", NewFungibleTokenPacketData(denom, "", addr1, addr2, ""), false},
+		{"invalid zero amount", NewFungibleTokenPacketData(denom, "0", addr1, addr2, ""), false},
+		{"invalid negative amount", NewFungibleTokenPacketData(denom, "-1", addr1, addr2, ""), false},
+		{"invalid large amount", NewFungibleTokenPacketData(denom, invalidLargeAmount, addr1, addr2, ""), false},
+		{"missing sender address", NewFungibleTokenPacketData(denom, amount, emptyAddr, addr2, ""), false},
+		{"missing recipient address", NewFungibleTokenPacketData(denom, amount, addr1, emptyAddr, ""), false},
+>>>>>>> 05685b3 (refactor: adapting transfer metadata bytes field to memo string (#2595))
 	}
 
 	for i, tc := range testCases {
