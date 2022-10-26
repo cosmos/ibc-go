@@ -10,7 +10,7 @@ on:
         required: true
         type: choice
         options:
-          - TestInterchainTxTestSuite
+          - TestInterTxTestSuite
           - TestIncentivizedInterTxTestSuite
       chain-image:
         description: 'The image to use for chain A'
