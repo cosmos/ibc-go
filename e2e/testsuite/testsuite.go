@@ -310,9 +310,9 @@ func (s *E2ETestSuite) Transfer(ctx context.Context, chain *cosmos.CosmosChain, 
 	return s.BroadcastMessages(ctx, chain, user, msg)
 }
 
-// TransferWithMetadata broadcasts a MsgTransfer message with metadata.
-func (s *E2ETestSuite) TransferWithMetadata(ctx context.Context, chain *cosmos.CosmosChain, user *ibc.Wallet,
-	portID, channelID string, token sdk.Coin, sender, receiver string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64, metadata []byte,
+// TransferWithMemo broadcasts a MsgTransfer message with memo.
+func (s *E2ETestSuite) TransferWithMemo(ctx context.Context, chain *cosmos.CosmosChain, user *ibc.Wallet,
+	portID, channelID string, token sdk.Coin, sender, receiver string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64, memo []byte,
 ) (sdk.TxResponse, error) {
 	msg := transfertypes.NewMsgTransfer(portID, channelID, token, sender, receiver, timeoutHeight, timeoutTimestamp, metadata)
 	return s.BroadcastMessages(ctx, chain, user, msg)
