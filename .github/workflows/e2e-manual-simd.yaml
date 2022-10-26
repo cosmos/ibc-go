@@ -12,6 +12,9 @@ on:
         options:
           - TestTransferTestSuite
           - TestIncentivizedTransferTestSuite
+          - TestInterchainAccountsTestSuite
+          - TestInterchainAccountsGroupsTestSuite
+          - TestIncentivizedInterchainAccountsTestSuite
       chain-image:
         description: 'The image to use for chain A'
         required: true
