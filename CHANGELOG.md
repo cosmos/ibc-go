@@ -48,7 +48,13 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Features
 
+<<<<<<< HEAD
 * (apps/transfer) [\#2305](https://github.com/cosmos/ibc-go/pull/2305) Added optional metadata field to `FungibleTokenPacketData` and `MsgTransfer`.
+=======
+* (apps/27-interchain-accounts) [\#2147](https://github.com/cosmos/ibc-go/pull/2147) Adding a `SubmitTx` gRPC endpoint for the ICS27 Controller module which allows owners of interchain accounts to submit transactions. This replaces the previously existing need for authentication modules to implement this standard functionality.
+* (testing/simapp) [\#2190](https://github.com/cosmos/ibc-go/pull/2190) Adding the new `x/group` cosmos-sdk module to simapp.
+* (apps/transfer) [\#2595](https://github.com/cosmos/ibc-go/pull/2595) Adding optional memo field to `FungibleTokenPacketData` and `MsgTransfer`.
+>>>>>>> 05685b3 (refactor: adapting transfer metadata bytes field to memo string (#2595))
 
 ### Bug Fixes
 

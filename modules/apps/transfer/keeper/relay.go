@@ -84,7 +84,7 @@ func (k Keeper) sendTransfer(
 	receiver string,
 	timeoutHeight clienttypes.Height,
 	timeoutTimestamp uint64,
-	metadata []byte,
+	memo string,
 ) (uint64, error) {
 	if !k.GetSendEnabled(ctx) {
 		return 0, types.ErrSendDisabled
@@ -175,6 +175,7 @@ func (k Keeper) sendTransfer(
 	}
 
 	packetData := types.NewFungibleTokenPacketData(
+<<<<<<< HEAD
 		fullDenomPath, token.Amount.String(), sender.String(), receiver,
 	)
 	packetData.Metadata = metadata
@@ -188,6 +189,9 @@ func (k Keeper) sendTransfer(
 		destinationChannel,
 		timeoutHeight,
 		timeoutTimestamp,
+=======
+		fullDenomPath, token.Amount.String(), sender.String(), receiver, memo,
+>>>>>>> 05685b3 (refactor: adapting transfer metadata bytes field to memo string (#2595))
 	)
 
 	if err := k.ics4Wrapper.SendPacket(ctx, channelCap, packet); err != nil {
