@@ -25,20 +25,12 @@ var (
 func NewFungibleTokenPacketData(
 	denom string, amount string,
 	sender, receiver string,
-<<<<<<< HEAD
-=======
-	memo string,
->>>>>>> 05685b3 (refactor: adapting transfer metadata bytes field to memo string (#2595))
 ) FungibleTokenPacketData {
 	return FungibleTokenPacketData{
 		Denom:    denom,
 		Amount:   amount,
 		Sender:   sender,
 		Receiver: receiver,
-<<<<<<< HEAD
-=======
-		Memo:     memo,
->>>>>>> 05685b3 (refactor: adapting transfer metadata bytes field to memo string (#2595))
 	}
 }
 

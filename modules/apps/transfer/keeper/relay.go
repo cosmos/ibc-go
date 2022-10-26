@@ -69,7 +69,7 @@ func (k Keeper) SendTransfer(
 		receiver,
 		timeoutHeight,
 		timeoutTimestamp,
-		nil,
+		"",
 	)
 	return err
 }
@@ -175,10 +175,9 @@ func (k Keeper) sendTransfer(
 	}
 
 	packetData := types.NewFungibleTokenPacketData(
-<<<<<<< HEAD
 		fullDenomPath, token.Amount.String(), sender.String(), receiver,
 	)
-	packetData.Metadata = metadata
+	packetData.Memo = memo
 
 	packet := channeltypes.NewPacket(
 		packetData.GetBytes(),
@@ -189,9 +188,6 @@ func (k Keeper) sendTransfer(
 		destinationChannel,
 		timeoutHeight,
 		timeoutTimestamp,
-=======
-		fullDenomPath, token.Amount.String(), sender.String(), receiver, memo,
->>>>>>> 05685b3 (refactor: adapting transfer metadata bytes field to memo string (#2595))
 	)
 
 	if err := k.channelKeeper.SendPacket(ctx, channelCap, packet); err != nil {
