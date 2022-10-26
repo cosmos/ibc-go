@@ -341,9 +341,9 @@ func (suite *KeeperTestSuite) TestVerifyPacketCommitment() {
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.Setup(path)
 
-			packet = channeltypes.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, 0)
-			err := path.EndpointA.SendPacket(packet)
+			sequence, err := path.EndpointA.SendPacket(defaultTimeoutHeight, 0, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
+			packet = channeltypes.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, 0)
 
 			// reset variables
 			heightDiff = 0
@@ -435,14 +435,14 @@ func (suite *KeeperTestSuite) TestVerifyPacketAcknowledgement() {
 			suite.coordinator.Setup(path)
 
 			// send and receive packet
-			packet := channeltypes.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, 0)
-			err := path.EndpointA.SendPacket(packet)
+			sequence, err := path.EndpointA.SendPacket(defaultTimeoutHeight, 0, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
 
 			// increment receiving chain's (chainB) time by 2 hour to always pass receive
 			suite.coordinator.IncrementTimeBy(time.Hour * 2)
 			suite.coordinator.CommitBlock(suite.chainB)
 
+			packet := channeltypes.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, 0)
 			err = path.EndpointB.RecvPacket(packet)
 			suite.Require().NoError(err)
 
@@ -540,9 +540,9 @@ func (suite *KeeperTestSuite) TestVerifyPacketReceiptAbsence() {
 			suite.coordinator.Setup(path)
 
 			// send, only receive in malleate if applicable
-			packet = channeltypes.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, 0)
-			err := path.EndpointA.SendPacket(packet)
+			sequence, err := path.EndpointA.SendPacket(defaultTimeoutHeight, 0, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
+			packet = channeltypes.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, 0)
 
 			// reset variables
 			heightDiff = 0
@@ -640,14 +640,14 @@ func (suite *KeeperTestSuite) TestVerifyNextSequenceRecv() {
 			suite.coordinator.Setup(path)
 
 			// send and receive packet
-			packet := channeltypes.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, 0)
-			err := path.EndpointA.SendPacket(packet)
+			sequence, err := path.EndpointA.SendPacket(defaultTimeoutHeight, 0, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
 
 			// increment receiving chain's (chainB) time by 2 hour to always pass receive
 			suite.coordinator.IncrementTimeBy(time.Hour * 2)
 			suite.coordinator.CommitBlock(suite.chainB)
 
+			packet := channeltypes.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, 0)
 			err = path.EndpointB.RecvPacket(packet)
 			suite.Require().NoError(err)
 
