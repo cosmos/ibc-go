@@ -146,12 +146,7 @@ func FungibleTokenPacketFromTla(packet TlaFungibleTokenPacket) FungibleTokenPack
 			DenomFromTla(packet.Data.Denom),
 			packet.Data.Amount,
 			AddressFromString(packet.Data.Sender),
-<<<<<<< HEAD
 			AddressFromString(packet.Data.Receiver)),
-=======
-			AddressFromString(packet.Data.Receiver),
-			""),
->>>>>>> 05685b3 (refactor: adapting transfer metadata bytes field to memo string (#2595))
 	}
 }
 
@@ -350,17 +345,8 @@ func (suite *KeeperTestSuite) TestModelBasedRelay() {
 							sdk.NewCoin(denom, amount),
 							sender,
 							tc.packet.Data.Receiver,
-<<<<<<< HEAD
 							clienttypes.NewHeight(0, 110),
 							0)
-=======
-							suite.chainA.GetTimeoutHeight(), 0, // only use timeout height
-							"",
-						)
-
-						_, err = suite.chainB.GetSimApp().TransferKeeper.Transfer(sdk.WrapSDKContext(suite.chainB.GetContext()), msg)
-
->>>>>>> 05685b3 (refactor: adapting transfer metadata bytes field to memo string (#2595))
 					}
 				case "OnRecvPacket":
 					err = suite.chainB.GetSimApp().TransferKeeper.OnRecvPacket(suite.chainB.GetContext(), packet, tc.packet.Data)
