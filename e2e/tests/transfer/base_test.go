@@ -379,7 +379,7 @@ func (s *TransferTestSuite) TestReceiveEnabledParam() {
 }
 
 // memoFeatureReleases represents the releases the memo field was released in.
-var memoFeatureRelease = testsuite.FeatureReleases{
+var memoFeatureReleases = testsuite.FeatureReleases{
 	MajorVersion:  "v6",
 	MinorVersions: []string{"v2.5, v3.4, v4.2, v5.1"},
 }
@@ -411,13 +411,11 @@ func (s *TransferTestSuite) TestMsgTransfer_WithMemo() {
 	chainAVersion := chainA.Config().Images[0].Version
 	chainBVersion := chainB.Config().Images[0].Version
 
-	t.Logf("Running memo tests versions chainA: %s, chainB: %s", chainAVersion, chainBVersion)
-
 	t.Run("IBC token transfer with memo from chainA to chainB", func(t *testing.T) {
 		transferTxResp, err := s.Transfer(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, testvalues.DefaultTransferAmount(chainADenom), chainAAddress, chainBAddress, s.GetTimeoutHeight(ctx, chainB), 0, "memo")
 		s.Require().NoError(err)
 
-		if memoFeatureRelease.IsSupported(chainAVersion) {
+		if memoFeatureReleases.IsSupported(chainAVersion) {
 			s.AssertValidTxResponse(transferTxResp)
 		} else {
 			s.Require().Equal(uint32(2), transferTxResp.Code)
@@ -425,7 +423,7 @@ func (s *TransferTestSuite) TestMsgTransfer_WithMemo() {
 		}
 	})
 
-	if !memoFeatureRelease.IsSupported(chainAVersion) {
+	if !memoFeatureReleases.IsSupported(chainAVersion) {
 		// transfer not sent, end test
 		return
 	}
@@ -450,7 +448,7 @@ func (s *TransferTestSuite) TestMsgTransfer_WithMemo() {
 		actualBalance, err := chainB.GetBalance(ctx, chainBAddress, chainBIBCToken.IBCDenom())
 		s.Require().NoError(err)
 
-		if memoFeatureRelease.IsSupported(chainBVersion) {
+		if memoFeatureReleases.IsSupported(chainBVersion) {
 			s.Require().Equal(testvalues.IBCTransferAmount, actualBalance)
 		} else {
 			s.Require().Equal(int64(0), actualBalance)
