@@ -8,6 +8,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
+	proto "github.com/gogo/protobuf/proto"
 	"github.com/spf13/cobra"
 
 	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
@@ -100,7 +101,7 @@ func generatePacketData(cdc *codec.ProtoCodec, msgBytes []byte, memo string) ([]
 
 // convertBytesIntoSdkMessages returns a list of sdk messages from bytes. The bytes can be in the form of a single
 // message, or a json array of messages.
-func convertBytesIntoSdkMessages(cdc *codec.ProtoCodec, msgBytes []byte) ([]sdk.Msg, error) {
+func convertBytesIntoSdkMessages(cdc *codec.ProtoCodec, msgBytes []byte) ([]proto.Message, error) {
 	var rawMessages []json.RawMessage
 	if err := json.Unmarshal(msgBytes, &rawMessages); err != nil {
 		// if we fail to unmarshal a list of messages, we assume we are just dealing with a single message.
@@ -110,10 +111,10 @@ func convertBytesIntoSdkMessages(cdc *codec.ProtoCodec, msgBytes []byte) ([]sdk.
 			return nil, err
 		}
 
-		return []sdk.Msg{msg}, nil
+		return []proto.Message{msg}, nil
 	}
 
-	sdkMessages := make([]sdk.Msg, len(rawMessages))
+	sdkMessages := make([]proto.Message, len(rawMessages))
 	for i, anyJSON := range rawMessages {
 		var msg sdk.Msg
 		if err := cdc.UnmarshalInterfaceJSON(anyJSON, &msg); err != nil {
@@ -127,7 +128,7 @@ func convertBytesIntoSdkMessages(cdc *codec.ProtoCodec, msgBytes []byte) ([]sdk.
 }
 
 // generateIcaPacketDataFromSdkMessages generates ica packet data as bytes from a given set of sdk messages and a memo.
-func generateIcaPacketDataFromSdkMessages(cdc *codec.ProtoCodec, sdkMessages []sdk.Msg, memo string) ([]byte, error) {
+func generateIcaPacketDataFromSdkMessages(cdc *codec.ProtoCodec, sdkMessages []proto.Message, memo string) ([]byte, error) {
 	icaPacketDataBytes, err := icatypes.SerializeCosmosTx(cdc, sdkMessages)
 	if err != nil {
 		return nil, err
