@@ -22,7 +22,7 @@ func TestIncentivizedInterTxTestSuite(t *testing.T) {
 }
 
 type IncentivizedInterTxTestSuite struct {
-	InterchainAccountsTestSuite
+	InterTxTestSuite
 }
 
 func (s *IncentivizedInterTxTestSuite) TestMsgSubmitTx_SuccessfulBankSend_Incentivized() {
