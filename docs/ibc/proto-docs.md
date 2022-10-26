@@ -946,7 +946,7 @@ https://github.com/cosmos/ibc/tree/master/spec/app/ics-020-fungible-token-transf
 | `receiver` | [string](#string) |  | the recipient address on the destination chain |
 | `timeout_height` | [ibc.core.client.v1.Height](#ibc.core.client.v1.Height) |  | Timeout height relative to the current block height. The timeout is disabled when set to 0. |
 | `timeout_timestamp` | [uint64](#uint64) |  | Timeout timestamp in absolute nanoseconds since unix epoch. The timeout is disabled when set to 0. |
-| `metadata` | [bytes](#bytes) |  | optional metadata |
+| `memo` | [string](#string) |  | optional memo |
 
 
 
@@ -1008,7 +1008,7 @@ https://github.com/cosmos/ibc/tree/master/spec/app/ics-020-fungible-token-transf
 | `amount` | [string](#string) |  | the token amount to be transferred |
 | `sender` | [string](#string) |  | the sender address |
 | `receiver` | [string](#string) |  | the recipient address on the destination chain |
-| `metadata` | [bytes](#bytes) |  | optional metadata |
+| `memo` | [string](#string) |  | optional memo |
 
 
 
@@ -1099,7 +1099,6 @@ identifier fields.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-<<<<<<< HEAD
 | `state` | [State](#ibc.core.channel.v1.State) |  | current state of the channel end |
 | `ordering` | [Order](#ibc.core.channel.v1.Order) |  | whether the channel is ordered or unordered |
 | `counterparty` | [Counterparty](#ibc.core.channel.v1.Counterparty) |  | counterparty channel end |
@@ -1107,16 +1106,6 @@ identifier fields.
 | `version` | [string](#string) |  | opaque channel version, which is agreed upon during the handshake |
 | `port_id` | [string](#string) |  | port identifier |
 | `channel_id` | [string](#string) |  | channel identifier |
-=======
-| `source_port` | [string](#string) |  | the port on which the packet will be sent |
-| `source_channel` | [string](#string) |  | the channel by which the packet will be sent |
-| `token` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | the tokens to be transferred |
-| `sender` | [string](#string) |  | the sender address |
-| `receiver` | [string](#string) |  | the recipient address on the destination chain |
-| `timeout_height` | [ibc.core.client.v1.Height](#ibc.core.client.v1.Height) |  | Timeout height relative to the current block height. The timeout is disabled when set to 0. |
-| `timeout_timestamp` | [uint64](#uint64) |  | Timeout timestamp in absolute nanoseconds since unix epoch. The timeout is disabled when set to 0. |
-| `memo` | [string](#string) |  | optional memo |
->>>>>>> 05685b3 (refactor: adapting transfer metadata bytes field to memo string (#2595))
 
 
 
@@ -1179,16 +1168,6 @@ Order defines if a channel is ORDERED or UNORDERED
 | ORDER_UNORDERED | 1 | packets can be delivered in any order, which may differ from the order in which they were sent. |
 | ORDER_ORDERED | 2 | packets are delivered exactly in the order which they were sent |
 
-<<<<<<< HEAD
-=======
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `denom` | [string](#string) |  | the token denomination to be transferred |
-| `amount` | [string](#string) |  | the token amount to be transferred |
-| `sender` | [string](#string) |  | the sender address |
-| `receiver` | [string](#string) |  | the recipient address on the destination chain |
-| `memo` | [string](#string) |  | optional memo |
->>>>>>> 05685b3 (refactor: adapting transfer metadata bytes field to memo string (#2595))
 
 
 <a name="ibc.core.channel.v1.State"></a>

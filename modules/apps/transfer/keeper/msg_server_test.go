@@ -48,7 +48,6 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 		path := NewTransferPath(suite.chainA, suite.chainB)
 		suite.coordinator.Setup(path)
 
-<<<<<<< HEAD
 		coin := sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100))
 		msg = types.NewMsgTransfer(
 			path.EndpointA.ChannelConfig.PortID,
@@ -56,17 +55,7 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 			coin, suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(),
 			suite.chainB.GetTimeoutHeight(), 0, // only use timeout height
 		)
-		msg.Metadata = []byte("custom metadata")
-=======
-			coin := sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100))
-			msg = types.NewMsgTransfer(
-				path.EndpointA.ChannelConfig.PortID,
-				path.EndpointA.ChannelID,
-				coin, suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(),
-				suite.chainB.GetTimeoutHeight(), 0, // only use timeout height
-				"memo",
-			)
->>>>>>> 05685b3 (refactor: adapting transfer metadata bytes field to memo string (#2595))
+		msg.Memo = "memo"
 
 		tc.malleate()
 
