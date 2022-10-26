@@ -117,13 +117,9 @@ corresponding to the counterparty channel. Any timeout set to 0 is disabled.`),
 			}
 
 			msg := types.NewMsgTransfer(
-<<<<<<< HEAD
 				srcPort, srcChannel, coin, sender, receiver, timeoutHeight, timeoutTimestamp,
-=======
-				srcPort, srcChannel, coin, sender, receiver, timeoutHeight, timeoutTimestamp, memo,
->>>>>>> 05685b3 (refactor: adapting transfer metadata bytes field to memo string (#2595))
 			)
-			msg.Metadata = []byte(metadataStr)
+			msg.Memo = memo
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
