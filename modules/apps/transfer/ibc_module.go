@@ -1,7 +1,6 @@
 package transfer
 
 import (
-	"encoding/hex"
 	"fmt"
 	"math"
 	"strings"
@@ -195,7 +194,7 @@ func (im IBCModule) OnRecvPacket(
 		sdk.NewAttribute(types.AttributeKeyReceiver, data.Receiver),
 		sdk.NewAttribute(types.AttributeKeyDenom, data.Denom),
 		sdk.NewAttribute(types.AttributeKeyAmount, data.Amount),
-		sdk.NewAttribute(types.AttributeKeyMetadata, hex.EncodeToString(data.Metadata)),
+		sdk.NewAttribute(types.AttributeKeyMemo, data.Memo),
 		sdk.NewAttribute(types.AttributeKeyAckSuccess, fmt.Sprintf("%t", ack.Success())),
 	}
 
@@ -242,7 +241,7 @@ func (im IBCModule) OnAcknowledgementPacket(
 			sdk.NewAttribute(types.AttributeKeyReceiver, data.Receiver),
 			sdk.NewAttribute(types.AttributeKeyDenom, data.Denom),
 			sdk.NewAttribute(types.AttributeKeyAmount, data.Amount),
-			sdk.NewAttribute(types.AttributeKeyMetadata, hex.EncodeToString(data.Metadata)),
+			sdk.NewAttribute(types.AttributeKeyMemo, data.Memo),
 			sdk.NewAttribute(types.AttributeKeyAck, ack.String()),
 		),
 	)
@@ -289,7 +288,7 @@ func (im IBCModule) OnTimeoutPacket(
 			sdk.NewAttribute(types.AttributeKeyRefundReceiver, data.Sender),
 			sdk.NewAttribute(types.AttributeKeyRefundDenom, data.Denom),
 			sdk.NewAttribute(types.AttributeKeyRefundAmount, data.Amount),
-			sdk.NewAttribute(types.AttributeKeyMetadata, hex.EncodeToString(data.Metadata)),
+			sdk.NewAttribute(types.AttributeKeyMemo, data.Memo),
 		),
 	)
 
