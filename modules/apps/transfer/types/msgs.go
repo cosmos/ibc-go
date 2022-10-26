@@ -21,6 +21,10 @@ func NewMsgTransfer(
 	sourcePort, sourceChannel string,
 	token sdk.Coin, sender, receiver string,
 	timeoutHeight clienttypes.Height, timeoutTimestamp uint64,
+<<<<<<< HEAD
+=======
+	memo string,
+>>>>>>> 05685b3 (refactor: adapting transfer metadata bytes field to memo string (#2595))
 ) *MsgTransfer {
 	return &MsgTransfer{
 		SourcePort:       sourcePort,
@@ -30,6 +34,10 @@ func NewMsgTransfer(
 		Receiver:         receiver,
 		TimeoutHeight:    timeoutHeight,
 		TimeoutTimestamp: timeoutTimestamp,
+<<<<<<< HEAD
+=======
+		Memo:             memo,
+>>>>>>> 05685b3 (refactor: adapting transfer metadata bytes field to memo string (#2595))
 	}
 }
 
