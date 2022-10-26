@@ -2,7 +2,6 @@ package transfer
 
 import (
 	"context"
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"math"
@@ -355,7 +354,7 @@ func (am AppModule) OnRecvPacket(
 			sdk.NewAttribute(types.AttributeKeyReceiver, data.Receiver),
 			sdk.NewAttribute(types.AttributeKeyDenom, data.Denom),
 			sdk.NewAttribute(types.AttributeKeyAmount, data.Amount),
-			sdk.NewAttribute(types.AttributeKeyMetadata, hex.EncodeToString(data.Metadata)),
+			sdk.NewAttribute(types.AttributeKeyMemo, data.Memo),
 			sdk.NewAttribute(types.AttributeKeyAckSuccess, fmt.Sprintf("%t", ack.Success())),
 		),
 	)
@@ -392,7 +391,7 @@ func (am AppModule) OnAcknowledgementPacket(
 			sdk.NewAttribute(types.AttributeKeyReceiver, data.Receiver),
 			sdk.NewAttribute(types.AttributeKeyDenom, data.Denom),
 			sdk.NewAttribute(types.AttributeKeyAmount, data.Amount),
-			sdk.NewAttribute(types.AttributeKeyMetadata, hex.EncodeToString(data.Metadata)),
+			sdk.NewAttribute(types.AttributeKeyMemo, data.Memo),
 			sdk.NewAttribute(types.AttributeKeyAck, ack.String()),
 		),
 	)
@@ -439,7 +438,7 @@ func (am AppModule) OnTimeoutPacket(
 			sdk.NewAttribute(types.AttributeKeyRefundReceiver, data.Sender),
 			sdk.NewAttribute(types.AttributeKeyRefundDenom, data.Denom),
 			sdk.NewAttribute(types.AttributeKeyRefundAmount, data.Amount),
-			sdk.NewAttribute(types.AttributeKeyMetadata, hex.EncodeToString(data.Metadata)),
+			sdk.NewAttribute(types.AttributeKeyMemo, data.Memo),
 		),
 	)
 
