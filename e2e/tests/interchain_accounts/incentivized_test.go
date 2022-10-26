@@ -88,6 +88,11 @@ func (s *IncentivizedInterchainAccountsTestSuite) TestMsgSendTx_SuccessfulBankSe
 		channels, err := relayer.GetChannels(ctx, s.GetRelayerExecReporter(), chainA.Config().ChainID)
 		s.Require().NoError(err)
 		s.Require().Equal(len(channels), 2)
+
+		// interchain accounts channel at index: 0
+		channelOutput = channels[0]
+
+		s.Require().NoError(test.WaitForBlocks(ctx, 2, chainA, chainB))
 	})
 
 	t.Run("execute interchain account bank send through controller", func(t *testing.T) {
