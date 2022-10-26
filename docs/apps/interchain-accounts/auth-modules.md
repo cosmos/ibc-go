@@ -149,6 +149,8 @@ func (im IBCModule) OnRecvPacket(
 }
 ```
 
+### Legacy API
+
 ## `RegisterInterchainAccount`
 
 The authentication module can begin registering interchain accounts by calling `RegisterInterchainAccount`:
