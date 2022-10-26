@@ -48,7 +48,7 @@ func TestMsgTransferRoute(t *testing.T) {
 
 // TestMsgTransferType tests Type for MsgTransfer
 func TestMsgTransferType(t *testing.T) {
-	msg := NewMsgTransfer(validPort, validChannel, coin, addr1, addr2, timeoutHeight, 0, nil)
+	msg := NewMsgTransfer(validPort, validChannel, coin, addr1, addr2, timeoutHeight, 0, "")
 
 	require.Equal(t, "transfer", msg.Type())
 }
