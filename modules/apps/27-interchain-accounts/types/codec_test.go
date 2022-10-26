@@ -134,7 +134,6 @@ func (suite *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
 	msgs, err := types.DeserializeCosmosTx(simapp.MakeTestEncodingConfig().Marshaler, []byte("invalid"))
 	suite.Require().Error(err)
 	suite.Require().Empty(msgs)
-
 }
 
 // unregistered bytes causes amino to panic.
