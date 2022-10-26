@@ -417,20 +417,18 @@ func (s *TransferTestSuite) TestMsgTransfer_WithMemo() {
 		transferTxResp, err := s.Transfer(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, testvalues.DefaultTransferAmount(chainADenom), chainAAddress, chainBAddress, s.GetTimeoutHeight(ctx, chainB), 0, "memo")
 		s.Require().NoError(err)
 
-		if !memoFeatureRelease.IsSupported(chainAVersion) {
-			t.Logf("unsupported")
+		if memoFeatureRelease.IsSupported(chainAVersion) {
+			s.AssertValidTxResponse(transferTxResp)
+		} else {
 			s.Require().Equal(uint32(2), transferTxResp.Code)
-			s.Require().Contains("errUnknownField", transferTxResp.RawLog)
-
-			// transfer not sent, end test
-			return
+			s.Require().Contains(transferTxResp.RawLog, "errUnknownField")
 		}
-
-		t.Logf("supported")
-		// sender chain supports feature
-		s.AssertValidTxResponse(transferTxResp)
-
 	})
+
+	if !memoFeatureRelease.IsSupported(chainAVersion) {
+		// transfer not sent, end test
+		return
+	}
 
 	t.Run("tokens are escrowed", func(t *testing.T) {
 		actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
@@ -452,15 +450,11 @@ func (s *TransferTestSuite) TestMsgTransfer_WithMemo() {
 		actualBalance, err := chainB.GetBalance(ctx, chainBAddress, chainBIBCToken.IBCDenom())
 		s.Require().NoError(err)
 
-		if !memoFeatureRelease.IsSupported(chainBVersion) {
+		if memoFeatureRelease.IsSupported(chainBVersion) {
+			s.Require().Equal(testvalues.IBCTransferAmount, actualBalance)
+		} else {
 			s.Require().Equal(int64(0), actualBalance)
-
-			// receive failed, end test
-			return
 		}
-
-		// receving chain supports feature, transfer successful
-		s.Require().Equal(testvalues.IBCTransferAmount, actualBalance)
 	})
 }
 
