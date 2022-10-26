@@ -13,6 +13,9 @@ on:
           - TestTransferTestSuite
           - TestIncentivizedTransferTestSuite
           - TestConnectionTestSuite
+          - TestInterchainAccountsTestSuite
+          - TestInterchainAccountsGroupsTestSuite
+          - TestIncentivizedInterchainAccountsTestSuite
       chain-image:
         description: 'The image to use for chain A'
         required: true
