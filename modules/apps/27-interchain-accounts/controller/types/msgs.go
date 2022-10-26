@@ -68,10 +68,6 @@ func (msg MsgSendTx) ValidateBasic() error {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "owner address cannot be empty")
 	}
 
-	if _, err := sdk.AccAddressFromBech32(msg.Owner); err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "failed to parse owner address: %s", msg.Owner)
-	}
-
 	if err := msg.PacketData.ValidateBasic(); err != nil {
 		return sdkerrors.Wrap(err, "invalid interchain account packet data")
 	}

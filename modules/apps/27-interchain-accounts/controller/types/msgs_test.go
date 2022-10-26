@@ -61,13 +61,6 @@ func TestMsgRegisterInterchainAccountValidateBasic(t *testing.T) {
 			},
 			false,
 		},
-		{
-			"owner address is invalid",
-			func() {
-				msg.Owner = "invalid_address"
-			},
-			false,
-		},
 	}
 
 	for i, tc := range testCases {
@@ -121,13 +114,6 @@ func TestMsgSendTxValidateBasic(t *testing.T) {
 			"owner address is empty",
 			func() {
 				msg.Owner = ""
-			},
-			false,
-		},
-		{
-			"owner address is invalid",
-			func() {
-				msg.Owner = "invalid_address"
 			},
 			false,
 		},
