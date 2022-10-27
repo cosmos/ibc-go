@@ -130,6 +130,15 @@ func (suite *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
 		})
 	}
 
+	// test serializing non sdk.Msg type
+	bz, err := types.SerializeCosmosTx(simapp.MakeTestEncodingConfig().Marshaler, []proto.Message{&banktypes.MsgSendResponse{}})
+	suite.Require().NoError(err)
+	suite.Require().NotEmpty(bz)
+
+	// test deserializing unknown bytes
+	_, err = types.DeserializeCosmosTx(simapp.MakeTestEncodingConfig().Marshaler, bz)
+	suite.Require().Error(err) // unregistered type
+
 	// test deserializing unknown bytes
 	msgs, err := types.DeserializeCosmosTx(simapp.MakeTestEncodingConfig().Marshaler, []byte("invalid"))
 	suite.Require().Error(err)
