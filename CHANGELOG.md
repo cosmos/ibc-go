@@ -34,17 +34,11 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Changelog
 
-## [Unreleased]
+## [v2.2.3](https://github.com/cosmos/ibc-go/releases/tag/v2.2.3) - 2022-10-17
 
 ### Dependencies
 
-### API Breaking
-
-### State Machine Breaking
-
-### Improvements
-
-### Features
+* [\#2625](https://github.com/cosmos/ibc-go/pull/2625) Bump SDK version to v0.45.10 and Tendermint version to v0.34.22.
 
 ### Bug Fixes
 
