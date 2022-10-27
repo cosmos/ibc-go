@@ -34,19 +34,11 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Changelog
 
-## [Unreleased]
+## [v5.0.1](https://github.com/cosmos/ibc-go/releases/tag/v5.0.1) - 2022-10-27
 
 ### Dependencies
 
-### API Breaking
-
-### State Machine Breaking
-
-### Improvements
-
-### Features
-
-### Bug Fixes
+* [\#](https://github.com/cosmos/ibc-go/pull/) Bump SDK version to v0.46.3
 
 ## [v5.0.0](https://github.com/cosmos/ibc-go/releases/tag/v5.0.0) - 2022-09-28
 
