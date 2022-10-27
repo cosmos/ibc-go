@@ -52,7 +52,7 @@ func (suite *AnteTestSuite) createRecvPacketMessage(isRedundant bool) sdk.Msg {
 	packet := channeltypes.NewPacket(ibctesting.MockPacketData, sequence,
 		suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID,
 		suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID,
-		clienttypes.NewHeight(1, 0), 0)
+		clienttypes.NewHeight(2, 0), 0)
 
 	if isRedundant {
 		err = suite.path.EndpointB.RecvPacket(packet)
