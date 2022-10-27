@@ -37,7 +37,6 @@ func (k Keeper) RegisterInterchainAccount(ctx sdk.Context, connectionID, owner s
 		}
 	}
 
-<<<<<<< HEAD
 	connectionEnd, err := k.channelKeeper.GetConnection(ctx, connectionID)
 	if err != nil {
 		return err
@@ -58,10 +57,7 @@ func (k Keeper) RegisterInterchainAccount(ctx sdk.Context, connectionID, owner s
 		return err
 	}
 
-	msg := channeltypes.NewMsgChannelOpenInit(portID, string(versionBytes), channeltypes.ORDERED, []string{connectionID}, icatypes.PortID, icatypes.ModuleName)
-=======
-	msg := channeltypes.NewMsgChannelOpenInit(portID, version, channeltypes.ORDERED, []string{connectionID}, icatypes.HostPortID, authtypes.NewModuleAddress(icatypes.ModuleName).String())
->>>>>>> 6105db4 (use controller module address instead of module name for NewMsgChannelOpenInit (#2568))
+	msg := channeltypes.NewMsgChannelOpenInit(portID, string(versionBytes), channeltypes.ORDERED, []string{connectionID}, icatypes.PortID, authtypes.NewModuleAddress(icatypes.ModuleName).String())
 	handler := k.msgRouter.Handler(msg)
 
 	res, err := handler(ctx, msg)
