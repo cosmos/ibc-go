@@ -123,6 +123,8 @@ func DefaultParams() Params {
 
 #### API breaking changes
 
+`SerializeCosmosTx` takes in a `[]proto.Message` instead of `[]sdk.Message`. This allows for the serialization of proto messages without requiring the fulfillment of the `sdk.Msg` interface.
+
 The `27-interchain-accounts` genesis types have been moved to their own package: `modules/apps/27-interchain-acccounts/genesis/types`.
 This change facilitates the addition of the ICS27 controller submodule `MsgServer` and avoids cyclic imports. This should have minimal disruption to chain developers integrating `27-interchain-accounts`.
 

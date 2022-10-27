@@ -5,6 +5,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	"github.com/gogo/protobuf/proto"
 
 	"github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/controller/keeper"
 	"github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/controller/types"
@@ -167,7 +168,7 @@ func (suite *KeeperTestSuite) TestSubmitTx() {
 				Amount:      sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100))),
 			}
 
-			data, err := icatypes.SerializeCosmosTx(suite.chainA.Codec, []sdk.Msg{icaMsg})
+			data, err := icatypes.SerializeCosmosTx(suite.chainA.Codec, []proto.Message{icaMsg})
 			suite.Require().NoError(err)
 
 			packetData := icatypes.InterchainAccountPacketData{
