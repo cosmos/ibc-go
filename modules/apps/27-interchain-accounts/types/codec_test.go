@@ -5,7 +5,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
-	proto "github.com/gogo/protobuf/proto"
+	"github.com/gogo/protobuf/proto"
 
 	"github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
 	"github.com/cosmos/ibc-go/v6/testing/simapp"
@@ -134,7 +134,6 @@ func (suite *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
 	msgs, err := types.DeserializeCosmosTx(simapp.MakeTestEncodingConfig().Marshaler, []byte("invalid"))
 	suite.Require().Error(err)
 	suite.Require().Empty(msgs)
-
 }
 
 // unregistered bytes causes amino to panic.

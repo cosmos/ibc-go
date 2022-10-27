@@ -140,7 +140,6 @@ func NewKeeper(
 ) Keeper
 ```
 
-
 ### ICS29 - `NewKeeper` API change
 
 The `NewKeeper` function of ICS29 has been updated to remove the `paramSpace` parameter as it was unused.
