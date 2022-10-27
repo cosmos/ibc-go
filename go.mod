@@ -1,9 +1,9 @@
 go 1.18
 
+module github.com/cosmos/ibc-go/v3
+
 // retracted version depends on SDK version without dragonberry fix
 retract [v3.0.0, v3.3.0]
-
-module github.com/cosmos/ibc-go/v3
 
 require (
 	github.com/armon/go-metrics v0.4.0
