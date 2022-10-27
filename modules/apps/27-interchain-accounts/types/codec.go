@@ -6,6 +6,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	"github.com/gogo/protobuf/proto"
 )
 
 // ModuleCdc references the global interchain accounts module codec. Note, the codec
@@ -15,8 +16,8 @@ import (
 // defined at the application level.
 var ModuleCdc = codec.NewProtoCodec(codectypes.NewInterfaceRegistry())
 
-// RegisterInterfaces registers the concrete InterchainAccount implementation against the associated
-// x/auth AccountI and GenesisAccount interfaces
+// RegisterInterfaces registers the interchain accounts controller types and the concrete InterchainAccount implementation
+// against the associated x/auth AccountI and GenesisAccount interfaces.
 func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	registry.RegisterImplementations((*authtypes.AccountI)(nil), &InterchainAccount{})
 	registry.RegisterImplementations((*authtypes.GenesisAccount)(nil), &InterchainAccount{})
@@ -25,7 +26,7 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 // SerializeCosmosTx serializes a slice of sdk.Msg's using the CosmosTx type. The sdk.Msg's are
 // packed into Any's and inserted into the Messages field of a CosmosTx. The proto marshaled CosmosTx
 // bytes are returned. Only the ProtoCodec is supported for serializing messages.
-func SerializeCosmosTx(cdc codec.BinaryCodec, msgs []sdk.Msg) (bz []byte, err error) {
+func SerializeCosmosTx(cdc codec.BinaryCodec, msgs []proto.Message) (bz []byte, err error) {
 	// only ProtoCodec is supported
 	if _, ok := cdc.(*codec.ProtoCodec); !ok {
 		return nil, sdkerrors.Wrap(ErrInvalidCodec, "only ProtoCodec is supported for receiving messages on the host chain")

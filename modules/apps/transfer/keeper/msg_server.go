@@ -4,25 +4,34 @@ import (
 	"context"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	"github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
+	"github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 )
 
 var _ types.MsgServer = Keeper{}
-
-// See createOutgoingPacket in spec:https://github.com/cosmos/ibc/tree/master/spec/app/ics-020-fungible-token-transfer#packet-relay
 
 // Transfer defines a rpc handler method for MsgTransfer.
 func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.MsgTransferResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
+	if !k.GetSendEnabled(ctx) {
+		return nil, types.ErrSendDisabled
+	}
+
 	sender, err := sdk.AccAddressFromBech32(msg.Sender)
 	if err != nil {
 		return nil, err
 	}
-	if err := k.SendTransfer(
+
+	if k.bankKeeper.BlockedAddr(sender) {
+		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "%s is not allowed to send funds", sender)
+	}
+
+	sequence, err := k.sendTransfer(
 		ctx, msg.SourcePort, msg.SourceChannel, msg.Token, sender, msg.Receiver, msg.TimeoutHeight, msg.TimeoutTimestamp,
-	); err != nil {
+		msg.Memo)
+	if err != nil {
 		return nil, err
 	}
 
@@ -40,5 +49,5 @@ func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.
 		),
 	})
 
-	return &types.MsgTransferResponse{}, nil
+	return &types.MsgTransferResponse{Sequence: sequence}, nil
 }

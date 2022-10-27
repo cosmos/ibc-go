@@ -73,15 +73,9 @@ OnChanOpenTry(
     counterparty channeltypes.Counterparty,
     counterpartyVersion string,
 ) (string, error) {
-    // Module may have already claimed capability in OnChanOpenInit in the case of crossing hellos
-    // (ie chainA and chainB both call ChanOpenInit before one of them calls ChanOpenTry)
-    // If the module can already authenticate the capability then the module already owns it so we don't need to claim
-    // Otherwise, module does not have channel capability and we must claim it from IBC
-    if !k.AuthenticateCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)) {
-        // Only claim channel capability passed back by IBC module if we do not already own it
-        if err := k.scopedKeeper.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
-            return err
-        }
+    // OpenTry must claim the channelCapability that IBC passes into the callback
+    if err := k.scopedKeeper.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
+        return err
     }
     
     // ... do custom initialization logic
@@ -244,10 +238,21 @@ DecodePacketData(encoded []byte) (CustomPacketData) {
 Then a module must encode its packet data before sending it through IBC.
 
 ```go
+// retrieve the dynamic capability for this channel
+channelCap := scopedKeeper.GetCapability(ctx, channelCapName)
 // Sending custom application packet data
 data := EncodePacketData(customPacketData)
 packet.Data = data
-IBCChannelKeeper.SendPacket(ctx, packet)
+// Send packet to IBC, authenticating with channelCap
+sequence, err := IBCChannelKeeper.SendPacket(
+    ctx, 
+    channelCap, 
+    sourcePort, 
+    sourceChannel, 
+    timeoutHeight, 
+    timeoutTimestamp, 
+    data,
+)
 ```
 
 A module receiving a packet must decode the `PacketData` into a structure it expects so that it can
@@ -290,9 +295,16 @@ packet a module simply needs to call `SendPacket` on the `IBCChannelKeeper`.
 channelCap := scopedKeeper.GetCapability(ctx, channelCapName)
 // Sending custom application packet data
 data := EncodePacketData(customPacketData)
-packet.Data = data
 // Send packet to IBC, authenticating with channelCap
-IBCChannelKeeper.SendPacket(ctx, channelCap, packet)
+sequence, err := IBCChannelKeeper.SendPacket(
+    ctx, 
+    channelCap, 
+    sourcePort, 
+    sourceChannel, 
+    timeoutHeight, 
+    timeoutTimestamp, 
+    data,
+)
 ```
 
 ::: warning
@@ -474,4 +486,4 @@ callbacks](https://github.com/cosmos/ibc-go/blob/main/modules/apps/transfer/ibc_
 
 ## Next {hide}
 
-Learn about [building modules](https://github.com/cosmos/cosmos-sdk/blob/master/docs/building-modules/intro.md) {hide}
+Learn about [building modules](https://github.com/cosmos/cosmos-sdk/blob/main/docs/docs/building-modules/01-intro.md) {hide}

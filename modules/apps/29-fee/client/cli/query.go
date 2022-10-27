@@ -8,9 +8,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
-	"github.com/cosmos/ibc-go/v3/modules/apps/29-fee/types"
-	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 	"github.com/spf13/cobra"
+
+	"github.com/cosmos/ibc-go/v6/modules/apps/29-fee/types"
+	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 )
 
 // GetCmdIncentivizedPacket returns the unrelayed incentivized packet for a given packetID
@@ -33,7 +34,7 @@ func GetCmdIncentivizedPacket() *cobra.Command {
 				return err
 			}
 
-			packetID := channeltypes.NewPacketId(portID, channelID, seq)
+			packetID := channeltypes.NewPacketID(portID, channelID, seq)
 
 			if err := packetID.Validate(); err != nil {
 				return err
@@ -121,7 +122,7 @@ func GetCmdTotalRecvFees() *cobra.Command {
 				return err
 			}
 
-			packetID := channeltypes.NewPacketId(portID, channelID, seq)
+			packetID := channeltypes.NewPacketID(portID, channelID, seq)
 
 			if err := packetID.Validate(); err != nil {
 				return err
@@ -167,7 +168,7 @@ func GetCmdTotalAckFees() *cobra.Command {
 				return err
 			}
 
-			packetID := channeltypes.NewPacketId(portID, channelID, seq)
+			packetID := channeltypes.NewPacketID(portID, channelID, seq)
 
 			if err := packetID.Validate(); err != nil {
 				return err
@@ -213,7 +214,7 @@ func GetCmdTotalTimeoutFees() *cobra.Command {
 				return err
 			}
 
-			packetID := channeltypes.NewPacketId(portID, channelID, seq)
+			packetID := channeltypes.NewPacketID(portID, channelID, seq)
 
 			if err := packetID.Validate(); err != nil {
 				return err
@@ -242,7 +243,7 @@ func GetCmdTotalTimeoutFees() *cobra.Command {
 // GetCmdPayee returns the command handler for the Query/Payee rpc.
 func GetCmdPayee() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "payee [channel-id] [relayer-address]",
+		Use:     "payee [channel-id] [relayer]",
 		Short:   "Query the relayer payee address on a given channel",
 		Long:    "Query the relayer payee address on a given channel",
 		Args:    cobra.ExactArgs(2),
@@ -260,8 +261,8 @@ func GetCmdPayee() *cobra.Command {
 			queryClient := types.NewQueryClient(clientCtx)
 
 			req := &types.QueryPayeeRequest{
-				ChannelId:      args[0],
-				RelayerAddress: args[1],
+				ChannelId: args[0],
+				Relayer:   args[1],
 			}
 
 			res, err := queryClient.Payee(cmd.Context(), req)
@@ -278,14 +279,14 @@ func GetCmdPayee() *cobra.Command {
 	return cmd
 }
 
-// GetCmdCounterpartyAddress returns the command handler for the Query/CounterpartyAddress rpc.
-func GetCmdCounterpartyAddress() *cobra.Command {
+// GetCmdCounterpartyPayee returns the command handler for the Query/CounterpartyPayee rpc.
+func GetCmdCounterpartyPayee() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "counterparty-address [channel-id] [address]",
-		Short:   "Query the relayer counterparty address on a given channel",
-		Long:    "Query the relayer counterparty address on a given channel",
+		Use:     "counterparty-payee [channel-id] [relayer]",
+		Short:   "Query the relayer counterparty payee on a given channel",
+		Long:    "Query the relayer counterparty payee on a given channel",
 		Args:    cobra.ExactArgs(2),
-		Example: fmt.Sprintf("%s query ibc-fee counterparty-address channel-5 cosmos1layxcsmyye0dc0har9sdfzwckaz8sjwlfsj8zs", version.AppName),
+		Example: fmt.Sprintf("%s query ibc-fee counterparty-payee channel-5 cosmos1layxcsmyye0dc0har9sdfzwckaz8sjwlfsj8zs", version.AppName),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
@@ -298,12 +299,12 @@ func GetCmdCounterpartyAddress() *cobra.Command {
 
 			queryClient := types.NewQueryClient(clientCtx)
 
-			req := &types.QueryCounterpartyAddressRequest{
-				ChannelId:      args[0],
-				RelayerAddress: args[1],
+			req := &types.QueryCounterpartyPayeeRequest{
+				ChannelId: args[0],
+				Relayer:   args[1],
 			}
 
-			res, err := queryClient.CounterpartyAddress(cmd.Context(), req)
+			res, err := queryClient.CounterpartyPayee(cmd.Context(), req)
 			if err != nil {
 				return err
 			}

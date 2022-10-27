@@ -2,7 +2,7 @@
 order: 2
 -->
 
-# Integrating IBC Middleware into a Chain
+# Integrating IBC middleware into a chain
 
 Learn how to integrate IBC middleware(s) with a base application to your chain. The following document only applies for Cosmos SDK chains.
 
@@ -46,18 +46,18 @@ scopedKeeperCustom2 := capabilityKeeper.NewScopedKeeper("custom2")
 // initialize base IBC applications
 // if you want to create two different stacks with the same base application,
 // they must be given different scopedKeepers and assigned different ports.
-transferIBCModule := transfer.NewIBCModule(transferKeeper, scopedKeeperTransfer)
-customIBCModule1 := custom.NewIBCModule(customKeeper, scopedKeeperCustom1, "portCustom1")
-customIBCModule2 := custom.NewIBCModule(customKeeper, scopedKeeperCustom2, "portCustom2")
+transferIBCModule := transfer.NewIBCModule(transferKeeper)
+customIBCModule1 := custom.NewIBCModule(customKeeper, "portCustom1")
+customIBCModule2 := custom.NewIBCModule(customKeeper, "portCustom2")
 
 // create IBC stacks by combining middleware with base application
 // NOTE: since middleware2 is stateless it does not require a Keeper
 // stack 1 contains mw1 -> mw3 -> transfer
-stack1 := mw1.NewIBCModule(mw1Keeper, mw3.NewIBCModule(mw3Keeper, transferIBCModule))
+stack1 := mw1.NewIBCMiddleware(mw3.NewIBCMiddleware(transferIBCModule, mw3Keeper), mw1Keeper)
 // stack 2 contains mw3 -> mw2 -> custom1
-stack2 := mw3.NewIBCModule(mw3Keeper, mw3.NewIBCModule(customIBCModule1))
+stack2 := mw3.NewIBCMiddleware(mw2.NewIBCMiddleware(customIBCModule1), mw3Keeper)
 // stack 3 contains mw2 -> mw1 -> custom2
-stack3 := mw2.NewIBCModule(mw1.NewIBCModule(mw1Keeper, customIBCModule2))
+stack3 := mw2.NewIBCMiddleware(mw1.NewIBCMiddleware(customIBCModule2, mw1Keeper))
 
 // associate each stack with the moduleName provided by the underlying scopedKeeper
 ibcRouter := porttypes.NewRouter()

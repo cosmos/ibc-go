@@ -38,15 +38,15 @@
     - [FeeEnabledChannel](#ibc.applications.fee.v1.FeeEnabledChannel)
     - [ForwardRelayerAddress](#ibc.applications.fee.v1.ForwardRelayerAddress)
     - [GenesisState](#ibc.applications.fee.v1.GenesisState)
+    - [RegisteredCounterpartyPayee](#ibc.applications.fee.v1.RegisteredCounterpartyPayee)
     - [RegisteredPayee](#ibc.applications.fee.v1.RegisteredPayee)
-    - [RegisteredRelayerAddress](#ibc.applications.fee.v1.RegisteredRelayerAddress)
   
 - [ibc/applications/fee/v1/metadata.proto](#ibc/applications/fee/v1/metadata.proto)
     - [Metadata](#ibc.applications.fee.v1.Metadata)
   
 - [ibc/applications/fee/v1/query.proto](#ibc/applications/fee/v1/query.proto)
-    - [QueryCounterpartyAddressRequest](#ibc.applications.fee.v1.QueryCounterpartyAddressRequest)
-    - [QueryCounterpartyAddressResponse](#ibc.applications.fee.v1.QueryCounterpartyAddressResponse)
+    - [QueryCounterpartyPayeeRequest](#ibc.applications.fee.v1.QueryCounterpartyPayeeRequest)
+    - [QueryCounterpartyPayeeResponse](#ibc.applications.fee.v1.QueryCounterpartyPayeeResponse)
     - [QueryFeeEnabledChannelRequest](#ibc.applications.fee.v1.QueryFeeEnabledChannelRequest)
     - [QueryFeeEnabledChannelResponse](#ibc.applications.fee.v1.QueryFeeEnabledChannelResponse)
     - [QueryFeeEnabledChannelsRequest](#ibc.applications.fee.v1.QueryFeeEnabledChannelsRequest)
@@ -84,13 +84,36 @@
     - [Params](#ibc.applications.interchain_accounts.controller.v1.Params)
   
 - [ibc/applications/interchain_accounts/controller/v1/query.proto](#ibc/applications/interchain_accounts/controller/v1/query.proto)
+    - [QueryInterchainAccountRequest](#ibc.applications.interchain_accounts.controller.v1.QueryInterchainAccountRequest)
+    - [QueryInterchainAccountResponse](#ibc.applications.interchain_accounts.controller.v1.QueryInterchainAccountResponse)
     - [QueryParamsRequest](#ibc.applications.interchain_accounts.controller.v1.QueryParamsRequest)
     - [QueryParamsResponse](#ibc.applications.interchain_accounts.controller.v1.QueryParamsResponse)
   
     - [Query](#ibc.applications.interchain_accounts.controller.v1.Query)
   
+- [ibc/applications/interchain_accounts/v1/packet.proto](#ibc/applications/interchain_accounts/v1/packet.proto)
+    - [CosmosTx](#ibc.applications.interchain_accounts.v1.CosmosTx)
+    - [InterchainAccountPacketData](#ibc.applications.interchain_accounts.v1.InterchainAccountPacketData)
+  
+    - [Type](#ibc.applications.interchain_accounts.v1.Type)
+  
+- [ibc/applications/interchain_accounts/controller/v1/tx.proto](#ibc/applications/interchain_accounts/controller/v1/tx.proto)
+    - [MsgRegisterInterchainAccount](#ibc.applications.interchain_accounts.controller.v1.MsgRegisterInterchainAccount)
+    - [MsgRegisterInterchainAccountResponse](#ibc.applications.interchain_accounts.controller.v1.MsgRegisterInterchainAccountResponse)
+    - [MsgSendTx](#ibc.applications.interchain_accounts.controller.v1.MsgSendTx)
+    - [MsgSendTxResponse](#ibc.applications.interchain_accounts.controller.v1.MsgSendTxResponse)
+  
+    - [Msg](#ibc.applications.interchain_accounts.controller.v1.Msg)
+  
 - [ibc/applications/interchain_accounts/host/v1/host.proto](#ibc/applications/interchain_accounts/host/v1/host.proto)
     - [Params](#ibc.applications.interchain_accounts.host.v1.Params)
+  
+- [ibc/applications/interchain_accounts/genesis/v1/genesis.proto](#ibc/applications/interchain_accounts/genesis/v1/genesis.proto)
+    - [ActiveChannel](#ibc.applications.interchain_accounts.genesis.v1.ActiveChannel)
+    - [ControllerGenesisState](#ibc.applications.interchain_accounts.genesis.v1.ControllerGenesisState)
+    - [GenesisState](#ibc.applications.interchain_accounts.genesis.v1.GenesisState)
+    - [HostGenesisState](#ibc.applications.interchain_accounts.genesis.v1.HostGenesisState)
+    - [RegisteredInterchainAccount](#ibc.applications.interchain_accounts.genesis.v1.RegisteredInterchainAccount)
   
 - [ibc/applications/interchain_accounts/host/v1/query.proto](#ibc/applications/interchain_accounts/host/v1/query.proto)
     - [QueryParamsRequest](#ibc.applications.interchain_accounts.host.v1.QueryParamsRequest)
@@ -101,21 +124,8 @@
 - [ibc/applications/interchain_accounts/v1/account.proto](#ibc/applications/interchain_accounts/v1/account.proto)
     - [InterchainAccount](#ibc.applications.interchain_accounts.v1.InterchainAccount)
   
-- [ibc/applications/interchain_accounts/v1/genesis.proto](#ibc/applications/interchain_accounts/v1/genesis.proto)
-    - [ActiveChannel](#ibc.applications.interchain_accounts.v1.ActiveChannel)
-    - [ControllerGenesisState](#ibc.applications.interchain_accounts.v1.ControllerGenesisState)
-    - [GenesisState](#ibc.applications.interchain_accounts.v1.GenesisState)
-    - [HostGenesisState](#ibc.applications.interchain_accounts.v1.HostGenesisState)
-    - [RegisteredInterchainAccount](#ibc.applications.interchain_accounts.v1.RegisteredInterchainAccount)
-  
 - [ibc/applications/interchain_accounts/v1/metadata.proto](#ibc/applications/interchain_accounts/v1/metadata.proto)
     - [Metadata](#ibc.applications.interchain_accounts.v1.Metadata)
-  
-- [ibc/applications/interchain_accounts/v1/packet.proto](#ibc/applications/interchain_accounts/v1/packet.proto)
-    - [CosmosTx](#ibc.applications.interchain_accounts.v1.CosmosTx)
-    - [InterchainAccountPacketData](#ibc.applications.interchain_accounts.v1.InterchainAccountPacketData)
-  
-    - [Type](#ibc.applications.interchain_accounts.v1.Type)
   
 - [ibc/applications/transfer/v1/transfer.proto](#ibc/applications/transfer/v1/transfer.proto)
     - [DenomTrace](#ibc.applications.transfer.v1.DenomTrace)
@@ -295,9 +305,6 @@
 - [ibc/core/types/v1/genesis.proto](#ibc/core/types/v1/genesis.proto)
     - [GenesisState](#ibc.core.types.v1.GenesisState)
   
-- [ibc/lightclients/localhost/v1/localhost.proto](#ibc/lightclients/localhost/v1/localhost.proto)
-    - [ClientState](#ibc.lightclients.localhost.v1.ClientState)
-  
 - [ibc/lightclients/solomachine/v1/solomachine.proto](#ibc/lightclients/solomachine/v1/solomachine.proto)
     - [ChannelStateData](#ibc.lightclients.solomachine.v1.ChannelStateData)
     - [ClientState](#ibc.lightclients.solomachine.v1.ClientState)
@@ -337,6 +344,16 @@
     - [TimestampedSignatureData](#ibc.lightclients.solomachine.v2.TimestampedSignatureData)
   
     - [DataType](#ibc.lightclients.solomachine.v2.DataType)
+  
+- [ibc/lightclients/solomachine/v3/solomachine.proto](#ibc/lightclients/solomachine/v3/solomachine.proto)
+    - [ClientState](#ibc.lightclients.solomachine.v3.ClientState)
+    - [ConsensusState](#ibc.lightclients.solomachine.v3.ConsensusState)
+    - [Header](#ibc.lightclients.solomachine.v3.Header)
+    - [HeaderData](#ibc.lightclients.solomachine.v3.HeaderData)
+    - [Misbehaviour](#ibc.lightclients.solomachine.v3.Misbehaviour)
+    - [SignBytes](#ibc.lightclients.solomachine.v3.SignBytes)
+    - [SignatureAndData](#ibc.lightclients.solomachine.v3.SignatureAndData)
+    - [TimestampedSignatureData](#ibc.lightclients.solomachine.v3.TimestampedSignatureData)
   
 - [ibc/lightclients/tendermint/v1/tendermint.proto](#ibc/lightclients/tendermint/v1/tendermint.proto)
     - [ClientState](#ibc.lightclients.tendermint.v1.ClientState)
@@ -848,8 +865,26 @@ GenesisState defines the ICS29 fee middleware genesis state
 | `identified_fees` | [IdentifiedPacketFees](#ibc.applications.fee.v1.IdentifiedPacketFees) | repeated | list of identified packet fees |
 | `fee_enabled_channels` | [FeeEnabledChannel](#ibc.applications.fee.v1.FeeEnabledChannel) | repeated | list of fee enabled channels |
 | `registered_payees` | [RegisteredPayee](#ibc.applications.fee.v1.RegisteredPayee) | repeated | list of registered payees |
-| `registered_relayers` | [RegisteredRelayerAddress](#ibc.applications.fee.v1.RegisteredRelayerAddress) | repeated | list of registered relayer addresses |
+| `registered_counterparty_payees` | [RegisteredCounterpartyPayee](#ibc.applications.fee.v1.RegisteredCounterpartyPayee) | repeated | list of registered counterparty payees |
 | `forward_relayers` | [ForwardRelayerAddress](#ibc.applications.fee.v1.ForwardRelayerAddress) | repeated | list of forward relayer addresses |
+
+
+
+
+
+
+<a name="ibc.applications.fee.v1.RegisteredCounterpartyPayee"></a>
+
+### RegisteredCounterpartyPayee
+RegisteredCounterpartyPayee contains the relayer address and counterparty payee address for a specific channel (used
+for recv fee distribution)
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `channel_id` | [string](#string) |  | unique channel identifier |
+| `relayer` | [string](#string) |  | the relayer address |
+| `counterparty_payee` | [string](#string) |  | the counterparty payee address |
 
 
 
@@ -864,26 +899,9 @@ RegisteredPayee contains the relayer address and payee address for a specific ch
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `relayer_address` | [string](#string) |  | the relayer address |
+| `channel_id` | [string](#string) |  | unique channel identifier |
+| `relayer` | [string](#string) |  | the relayer address |
 | `payee` | [string](#string) |  | the payee address |
-| `channel_id` | [string](#string) |  | unique channel identifier |
-
-
-
-
-
-
-<a name="ibc.applications.fee.v1.RegisteredRelayerAddress"></a>
-
-### RegisteredRelayerAddress
-RegisteredRelayerAddress contains the address and counterparty address for a specific relayer (for distributing fees)
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `address` | [string](#string) |  | the relayer address |
-| `counterparty_address` | [string](#string) |  | the counterparty relayer address |
-| `channel_id` | [string](#string) |  | unique channel identifier |
 
 
 
@@ -939,31 +957,31 @@ See ICS004: https://github.com/cosmos/ibc/tree/master/spec/core/ics-004-channel-
 
 
 
-<a name="ibc.applications.fee.v1.QueryCounterpartyAddressRequest"></a>
+<a name="ibc.applications.fee.v1.QueryCounterpartyPayeeRequest"></a>
 
-### QueryCounterpartyAddressRequest
-QueryCounterpartyAddressRequest defines the request type for the CounterpartyAddress rpc
+### QueryCounterpartyPayeeRequest
+QueryCounterpartyPayeeRequest defines the request type for the CounterpartyPayee rpc
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `channel_id` | [string](#string) |  | unique channel identifier |
-| `relayer_address` | [string](#string) |  | the relayer address to which the counterparty is registered |
+| `relayer` | [string](#string) |  | the relayer address to which the counterparty is registered |
 
 
 
 
 
 
-<a name="ibc.applications.fee.v1.QueryCounterpartyAddressResponse"></a>
+<a name="ibc.applications.fee.v1.QueryCounterpartyPayeeResponse"></a>
 
-### QueryCounterpartyAddressResponse
-QueryCounterpartyAddressResponse defines the response type for the CounterpartyAddress rpc
+### QueryCounterpartyPayeeResponse
+QueryCounterpartyPayeeResponse defines the response type for the CounterpartyPayee rpc
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `counterparty_address` | [string](#string) |  | the counterparty address used to compensate forward relaying |
+| `counterparty_payee` | [string](#string) |  | the counterparty payee address used to compensate forward relaying |
 
 
 
@@ -1137,7 +1155,7 @@ QueryPayeeRequest defines the request type for the Payee rpc
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `channel_id` | [string](#string) |  | unique channel identifier |
-| `relayer_address` | [string](#string) |  | the relayer address to which the distribution address is registered |
+| `relayer` | [string](#string) |  | the relayer address to which the distribution address is registered |
 
 
 
@@ -1268,8 +1286,8 @@ Query defines the ICS29 gRPC querier service.
 | `TotalRecvFees` | [QueryTotalRecvFeesRequest](#ibc.applications.fee.v1.QueryTotalRecvFeesRequest) | [QueryTotalRecvFeesResponse](#ibc.applications.fee.v1.QueryTotalRecvFeesResponse) | TotalRecvFees returns the total receive fees for a packet given its identifier | GET|/ibc/apps/fee/v1/channels/{packet_id.channel_id}/ports/{packet_id.port_id}/sequences/{packet_id.sequence}/total_recv_fees|
 | `TotalAckFees` | [QueryTotalAckFeesRequest](#ibc.applications.fee.v1.QueryTotalAckFeesRequest) | [QueryTotalAckFeesResponse](#ibc.applications.fee.v1.QueryTotalAckFeesResponse) | TotalAckFees returns the total acknowledgement fees for a packet given its identifier | GET|/ibc/apps/fee/v1/channels/{packet_id.channel_id}/ports/{packet_id.port_id}/sequences/{packet_id.sequence}/total_ack_fees|
 | `TotalTimeoutFees` | [QueryTotalTimeoutFeesRequest](#ibc.applications.fee.v1.QueryTotalTimeoutFeesRequest) | [QueryTotalTimeoutFeesResponse](#ibc.applications.fee.v1.QueryTotalTimeoutFeesResponse) | TotalTimeoutFees returns the total timeout fees for a packet given its identifier | GET|/ibc/apps/fee/v1/channels/{packet_id.channel_id}/ports/{packet_id.port_id}/sequences/{packet_id.sequence}/total_timeout_fees|
-| `Payee` | [QueryPayeeRequest](#ibc.applications.fee.v1.QueryPayeeRequest) | [QueryPayeeResponse](#ibc.applications.fee.v1.QueryPayeeResponse) | Payee returns the registered payee address for a specific channel given the relayer address | GET|/ibc/apps/fee/v1/channels/{channel_id}/relayers/{relayer_address}/payee|
-| `CounterpartyAddress` | [QueryCounterpartyAddressRequest](#ibc.applications.fee.v1.QueryCounterpartyAddressRequest) | [QueryCounterpartyAddressResponse](#ibc.applications.fee.v1.QueryCounterpartyAddressResponse) | CounterpartyAddress returns the registered counterparty address for forward relaying | GET|/ibc/apps/fee/v1/channels/{channel_id}/relayers/{relayer_address}/counterparty_address|
+| `Payee` | [QueryPayeeRequest](#ibc.applications.fee.v1.QueryPayeeRequest) | [QueryPayeeResponse](#ibc.applications.fee.v1.QueryPayeeResponse) | Payee returns the registered payee address for a specific channel given the relayer address | GET|/ibc/apps/fee/v1/channels/{channel_id}/relayers/{relayer}/payee|
+| `CounterpartyPayee` | [QueryCounterpartyPayeeRequest](#ibc.applications.fee.v1.QueryCounterpartyPayeeRequest) | [QueryCounterpartyPayeeResponse](#ibc.applications.fee.v1.QueryCounterpartyPayeeResponse) | CounterpartyPayee returns the registered counterparty payee for forward relaying | GET|/ibc/apps/fee/v1/channels/{channel_id}/relayers/{relayer}/counterparty_payee|
 | `FeeEnabledChannels` | [QueryFeeEnabledChannelsRequest](#ibc.applications.fee.v1.QueryFeeEnabledChannelsRequest) | [QueryFeeEnabledChannelsResponse](#ibc.applications.fee.v1.QueryFeeEnabledChannelsResponse) | FeeEnabledChannels returns a list of all fee enabled channels | GET|/ibc/apps/fee/v1/fee_enabled|
 | `FeeEnabledChannel` | [QueryFeeEnabledChannelRequest](#ibc.applications.fee.v1.QueryFeeEnabledChannelRequest) | [QueryFeeEnabledChannelResponse](#ibc.applications.fee.v1.QueryFeeEnabledChannelResponse) | FeeEnabledChannel returns true if the provided port and channel identifiers belong to a fee enabled channel | GET|/ibc/apps/fee/v1/channels/{channel_id}/ports/{port_id}/fee_enabled|
 
@@ -1459,6 +1477,37 @@ The following parameters may be used to disable the controller submodule.
 
 
 
+<a name="ibc.applications.interchain_accounts.controller.v1.QueryInterchainAccountRequest"></a>
+
+### QueryInterchainAccountRequest
+QueryInterchainAccountRequest is the request type for the Query/InterchainAccount RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `owner` | [string](#string) |  |  |
+| `connection_id` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="ibc.applications.interchain_accounts.controller.v1.QueryInterchainAccountResponse"></a>
+
+### QueryInterchainAccountResponse
+QueryInterchainAccountResponse the response type for the Query/InterchainAccount RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `address` | [string](#string) |  |  |
+
+
+
+
+
+
 <a name="ibc.applications.interchain_accounts.controller.v1.QueryParamsRequest"></a>
 
 ### QueryParamsRequest
@@ -1497,7 +1546,161 @@ Query provides defines the gRPC querier service.
 
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `InterchainAccount` | [QueryInterchainAccountRequest](#ibc.applications.interchain_accounts.controller.v1.QueryInterchainAccountRequest) | [QueryInterchainAccountResponse](#ibc.applications.interchain_accounts.controller.v1.QueryInterchainAccountResponse) | InterchainAccount returns the interchain account address for a given owner address on a given connection | GET|/ibc/apps/interchain_accounts/controller/v1/owners/{owner}/connections/{connection_id}|
 | `Params` | [QueryParamsRequest](#ibc.applications.interchain_accounts.controller.v1.QueryParamsRequest) | [QueryParamsResponse](#ibc.applications.interchain_accounts.controller.v1.QueryParamsResponse) | Params queries all parameters of the ICA controller submodule. | GET|/ibc/apps/interchain_accounts/controller/v1/params|
+
+ <!-- end services -->
+
+
+
+<a name="ibc/applications/interchain_accounts/v1/packet.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## ibc/applications/interchain_accounts/v1/packet.proto
+
+
+
+<a name="ibc.applications.interchain_accounts.v1.CosmosTx"></a>
+
+### CosmosTx
+CosmosTx contains a list of sdk.Msg's. It should be used when sending transactions to an SDK host chain.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `messages` | [google.protobuf.Any](#google.protobuf.Any) | repeated |  |
+
+
+
+
+
+
+<a name="ibc.applications.interchain_accounts.v1.InterchainAccountPacketData"></a>
+
+### InterchainAccountPacketData
+InterchainAccountPacketData is comprised of a raw transaction, type of transaction and optional memo field.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `type` | [Type](#ibc.applications.interchain_accounts.v1.Type) |  |  |
+| `data` | [bytes](#bytes) |  |  |
+| `memo` | [string](#string) |  |  |
+
+
+
+
+
+ <!-- end messages -->
+
+
+<a name="ibc.applications.interchain_accounts.v1.Type"></a>
+
+### Type
+Type defines a classification of message issued from a controller chain to its associated interchain accounts
+host
+
+| Name | Number | Description |
+| ---- | ------ | ----------- |
+| TYPE_UNSPECIFIED | 0 | Default zero value enumeration |
+| TYPE_EXECUTE_TX | 1 | Execute a transaction on an interchain accounts host chain |
+
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="ibc/applications/interchain_accounts/controller/v1/tx.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## ibc/applications/interchain_accounts/controller/v1/tx.proto
+
+
+
+<a name="ibc.applications.interchain_accounts.controller.v1.MsgRegisterInterchainAccount"></a>
+
+### MsgRegisterInterchainAccount
+MsgRegisterInterchainAccount defines the payload for Msg/RegisterAccount
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `owner` | [string](#string) |  |  |
+| `connection_id` | [string](#string) |  |  |
+| `version` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="ibc.applications.interchain_accounts.controller.v1.MsgRegisterInterchainAccountResponse"></a>
+
+### MsgRegisterInterchainAccountResponse
+MsgRegisterInterchainAccountResponse defines the response for Msg/RegisterAccount
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `channel_id` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="ibc.applications.interchain_accounts.controller.v1.MsgSendTx"></a>
+
+### MsgSendTx
+MsgSendTx defines the payload for Msg/SendTx
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `owner` | [string](#string) |  |  |
+| `connection_id` | [string](#string) |  |  |
+| `packet_data` | [ibc.applications.interchain_accounts.v1.InterchainAccountPacketData](#ibc.applications.interchain_accounts.v1.InterchainAccountPacketData) |  |  |
+| `relative_timeout` | [uint64](#uint64) |  | Relative timeout timestamp provided will be added to the current block time during transaction execution. The timeout timestamp must be non-zero. |
+
+
+
+
+
+
+<a name="ibc.applications.interchain_accounts.controller.v1.MsgSendTxResponse"></a>
+
+### MsgSendTxResponse
+MsgSendTxResponse defines the response for MsgSendTx
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `sequence` | [uint64](#uint64) |  |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+
+<a name="ibc.applications.interchain_accounts.controller.v1.Msg"></a>
+
+### Msg
+Msg defines the 27-interchain-accounts/controller Msg service.
+
+| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
+| ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `RegisterInterchainAccount` | [MsgRegisterInterchainAccount](#ibc.applications.interchain_accounts.controller.v1.MsgRegisterInterchainAccount) | [MsgRegisterInterchainAccountResponse](#ibc.applications.interchain_accounts.controller.v1.MsgRegisterInterchainAccountResponse) | RegisterInterchainAccount defines a rpc handler for MsgRegisterInterchainAccount. | |
+| `SendTx` | [MsgSendTx](#ibc.applications.interchain_accounts.controller.v1.MsgSendTx) | [MsgSendTxResponse](#ibc.applications.interchain_accounts.controller.v1.MsgSendTxResponse) | SendTx defines a rpc handler for MsgSendTx. | |
 
  <!-- end services -->
 
@@ -1521,6 +1724,110 @@ The following parameters may be used to disable the host submodule.
 | ----- | ---- | ----- | ----------- |
 | `host_enabled` | [bool](#bool) |  | host_enabled enables or disables the host submodule. |
 | `allow_messages` | [string](#string) | repeated | allow_messages defines a list of sdk message typeURLs allowed to be executed on a host chain. |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="ibc/applications/interchain_accounts/genesis/v1/genesis.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## ibc/applications/interchain_accounts/genesis/v1/genesis.proto
+
+
+
+<a name="ibc.applications.interchain_accounts.genesis.v1.ActiveChannel"></a>
+
+### ActiveChannel
+ActiveChannel contains a connection ID, port ID and associated active channel ID, as well as a boolean flag to
+indicate if the channel is middleware enabled
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `connection_id` | [string](#string) |  |  |
+| `port_id` | [string](#string) |  |  |
+| `channel_id` | [string](#string) |  |  |
+| `is_middleware_enabled` | [bool](#bool) |  |  |
+
+
+
+
+
+
+<a name="ibc.applications.interchain_accounts.genesis.v1.ControllerGenesisState"></a>
+
+### ControllerGenesisState
+ControllerGenesisState defines the interchain accounts controller genesis state
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `active_channels` | [ActiveChannel](#ibc.applications.interchain_accounts.genesis.v1.ActiveChannel) | repeated |  |
+| `interchain_accounts` | [RegisteredInterchainAccount](#ibc.applications.interchain_accounts.genesis.v1.RegisteredInterchainAccount) | repeated |  |
+| `ports` | [string](#string) | repeated |  |
+| `params` | [ibc.applications.interchain_accounts.controller.v1.Params](#ibc.applications.interchain_accounts.controller.v1.Params) |  |  |
+
+
+
+
+
+
+<a name="ibc.applications.interchain_accounts.genesis.v1.GenesisState"></a>
+
+### GenesisState
+GenesisState defines the interchain accounts genesis state
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `controller_genesis_state` | [ControllerGenesisState](#ibc.applications.interchain_accounts.genesis.v1.ControllerGenesisState) |  |  |
+| `host_genesis_state` | [HostGenesisState](#ibc.applications.interchain_accounts.genesis.v1.HostGenesisState) |  |  |
+
+
+
+
+
+
+<a name="ibc.applications.interchain_accounts.genesis.v1.HostGenesisState"></a>
+
+### HostGenesisState
+HostGenesisState defines the interchain accounts host genesis state
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `active_channels` | [ActiveChannel](#ibc.applications.interchain_accounts.genesis.v1.ActiveChannel) | repeated |  |
+| `interchain_accounts` | [RegisteredInterchainAccount](#ibc.applications.interchain_accounts.genesis.v1.RegisteredInterchainAccount) | repeated |  |
+| `port` | [string](#string) |  |  |
+| `params` | [ibc.applications.interchain_accounts.host.v1.Params](#ibc.applications.interchain_accounts.host.v1.Params) |  |  |
+
+
+
+
+
+
+<a name="ibc.applications.interchain_accounts.genesis.v1.RegisteredInterchainAccount"></a>
+
+### RegisteredInterchainAccount
+RegisteredInterchainAccount contains a connection ID, port ID and associated interchain account address
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `connection_id` | [string](#string) |  |  |
+| `port_id` | [string](#string) |  |  |
+| `account_address` | [string](#string) |  |  |
 
 
 
@@ -1619,108 +1926,6 @@ An InterchainAccount is defined as a BaseAccount & the address of the account ow
 
 
 
-<a name="ibc/applications/interchain_accounts/v1/genesis.proto"></a>
-<p align="right"><a href="#top">Top</a></p>
-
-## ibc/applications/interchain_accounts/v1/genesis.proto
-
-
-
-<a name="ibc.applications.interchain_accounts.v1.ActiveChannel"></a>
-
-### ActiveChannel
-ActiveChannel contains a connection ID, port ID and associated active channel ID
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `connection_id` | [string](#string) |  |  |
-| `port_id` | [string](#string) |  |  |
-| `channel_id` | [string](#string) |  |  |
-
-
-
-
-
-
-<a name="ibc.applications.interchain_accounts.v1.ControllerGenesisState"></a>
-
-### ControllerGenesisState
-ControllerGenesisState defines the interchain accounts controller genesis state
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `active_channels` | [ActiveChannel](#ibc.applications.interchain_accounts.v1.ActiveChannel) | repeated |  |
-| `interchain_accounts` | [RegisteredInterchainAccount](#ibc.applications.interchain_accounts.v1.RegisteredInterchainAccount) | repeated |  |
-| `ports` | [string](#string) | repeated |  |
-| `params` | [ibc.applications.interchain_accounts.controller.v1.Params](#ibc.applications.interchain_accounts.controller.v1.Params) |  |  |
-
-
-
-
-
-
-<a name="ibc.applications.interchain_accounts.v1.GenesisState"></a>
-
-### GenesisState
-GenesisState defines the interchain accounts genesis state
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `controller_genesis_state` | [ControllerGenesisState](#ibc.applications.interchain_accounts.v1.ControllerGenesisState) |  |  |
-| `host_genesis_state` | [HostGenesisState](#ibc.applications.interchain_accounts.v1.HostGenesisState) |  |  |
-
-
-
-
-
-
-<a name="ibc.applications.interchain_accounts.v1.HostGenesisState"></a>
-
-### HostGenesisState
-HostGenesisState defines the interchain accounts host genesis state
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `active_channels` | [ActiveChannel](#ibc.applications.interchain_accounts.v1.ActiveChannel) | repeated |  |
-| `interchain_accounts` | [RegisteredInterchainAccount](#ibc.applications.interchain_accounts.v1.RegisteredInterchainAccount) | repeated |  |
-| `port` | [string](#string) |  |  |
-| `params` | [ibc.applications.interchain_accounts.host.v1.Params](#ibc.applications.interchain_accounts.host.v1.Params) |  |  |
-
-
-
-
-
-
-<a name="ibc.applications.interchain_accounts.v1.RegisteredInterchainAccount"></a>
-
-### RegisteredInterchainAccount
-RegisteredInterchainAccount contains a connection ID, port ID and associated interchain account address
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `connection_id` | [string](#string) |  |  |
-| `port_id` | [string](#string) |  |  |
-| `account_address` | [string](#string) |  |  |
-
-
-
-
-
- <!-- end messages -->
-
- <!-- end enums -->
-
- <!-- end HasExtensions -->
-
- <!-- end services -->
-
-
-
 <a name="ibc/applications/interchain_accounts/v1/metadata.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
@@ -1749,67 +1954,6 @@ See ICS004: https://github.com/cosmos/ibc/tree/master/spec/core/ics-004-channel-
 
 
  <!-- end messages -->
-
- <!-- end enums -->
-
- <!-- end HasExtensions -->
-
- <!-- end services -->
-
-
-
-<a name="ibc/applications/interchain_accounts/v1/packet.proto"></a>
-<p align="right"><a href="#top">Top</a></p>
-
-## ibc/applications/interchain_accounts/v1/packet.proto
-
-
-
-<a name="ibc.applications.interchain_accounts.v1.CosmosTx"></a>
-
-### CosmosTx
-CosmosTx contains a list of sdk.Msg's. It should be used when sending transactions to an SDK host chain.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `messages` | [google.protobuf.Any](#google.protobuf.Any) | repeated |  |
-
-
-
-
-
-
-<a name="ibc.applications.interchain_accounts.v1.InterchainAccountPacketData"></a>
-
-### InterchainAccountPacketData
-InterchainAccountPacketData is comprised of a raw transaction, type of transaction and optional memo field.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `type` | [Type](#ibc.applications.interchain_accounts.v1.Type) |  |  |
-| `data` | [bytes](#bytes) |  |  |
-| `memo` | [string](#string) |  |  |
-
-
-
-
-
- <!-- end messages -->
-
-
-<a name="ibc.applications.interchain_accounts.v1.Type"></a>
-
-### Type
-Type defines a classification of message issued from a controller chain to its associated interchain accounts
-host
-
-| Name | Number | Description |
-| ---- | ------ | ----------- |
-| TYPE_UNSPECIFIED | 0 | Default zero value enumeration |
-| TYPE_EXECUTE_TX | 1 | Execute a transaction on an interchain accounts host chain |
-
 
  <!-- end enums -->
 
@@ -2111,6 +2255,7 @@ https://github.com/cosmos/ibc/tree/master/spec/app/ics-020-fungible-token-transf
 | `receiver` | [string](#string) |  | the recipient address on the destination chain |
 | `timeout_height` | [ibc.core.client.v1.Height](#ibc.core.client.v1.Height) |  | Timeout height relative to the current block height. The timeout is disabled when set to 0. |
 | `timeout_timestamp` | [uint64](#uint64) |  | Timeout timestamp in absolute nanoseconds since unix epoch. The timeout is disabled when set to 0. |
+| `memo` | [string](#string) |  | optional memo |
 
 
 
@@ -2121,6 +2266,11 @@ https://github.com/cosmos/ibc/tree/master/spec/app/ics-020-fungible-token-transf
 
 ### MsgTransferResponse
 MsgTransferResponse defines the Msg/Transfer response type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `sequence` | [uint64](#uint64) |  | sequence number of the transfer packet sent |
 
 
 
@@ -2167,6 +2317,7 @@ https://github.com/cosmos/ibc/tree/master/spec/app/ics-020-fungible-token-transf
 | `amount` | [string](#string) |  | the token amount to be transferred |
 | `sender` | [string](#string) |  | the sender address |
 | `receiver` | [string](#string) |  | the recipient address on the destination chain |
+| `memo` | [string](#string) |  | optional memo |
 
 
 
@@ -2948,7 +3099,7 @@ value will be ignored by core IBC.
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `port_id` | [string](#string) |  |  |
-| `previous_channel_id` | [string](#string) |  | in the case of crossing hello's, when both chains call OpenInit, we need the channel identifier of the previous channel in state INIT |
+| `previous_channel_id` | [string](#string) |  | **Deprecated.** Deprecated: this field is unused. Crossing hello's are no longer supported in core IBC. |
 | `channel` | [Channel](#ibc.core.channel.v1.Channel) |  | NOTE: the version field within the channel has been deprecated. Its value will be ignored by core IBC. |
 | `counterparty_version` | [string](#string) |  |  |
 | `proof_init` | [bytes](#bytes) |  |  |
@@ -3548,13 +3699,14 @@ MsgCreateClientResponse defines the Msg/CreateClient response type.
 ### MsgSubmitMisbehaviour
 MsgSubmitMisbehaviour defines an sdk.Msg type that submits Evidence for
 light client misbehaviour.
+Warning: DEPRECATED
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `client_id` | [string](#string) |  | client unique identifier |
-| `misbehaviour` | [google.protobuf.Any](#google.protobuf.Any) |  | misbehaviour used for freezing the light client |
-| `signer` | [string](#string) |  | signer address |
+| `client_id` | [string](#string) |  | **Deprecated.** client unique identifier |
+| `misbehaviour` | [google.protobuf.Any](#google.protobuf.Any) |  | **Deprecated.** misbehaviour used for freezing the light client |
+| `signer` | [string](#string) |  | **Deprecated.** signer address |
 
 
 
@@ -3576,13 +3728,13 @@ type.
 
 ### MsgUpdateClient
 MsgUpdateClient defines an sdk.Msg to update a IBC client state using
-the given header.
+the given client message.
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `client_id` | [string](#string) |  | client unique identifier |
-| `header` | [google.protobuf.Any](#google.protobuf.Any) |  | header to update the light client |
+| `client_message` | [google.protobuf.Any](#google.protobuf.Any) |  | client message to update the light client |
 | `signer` | [string](#string) |  | signer address |
 
 
@@ -4243,7 +4395,7 @@ connection on Chain B.
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `client_id` | [string](#string) |  |  |
-| `previous_connection_id` | [string](#string) |  | in the case of crossing hello's, when both chains call OpenInit, we need the connection identifier of the previous connection in state INIT |
+| `previous_connection_id` | [string](#string) |  | **Deprecated.** Deprecated: this field is unused. Crossing hellos are no longer supported in core IBC. |
 | `client_state` | [google.protobuf.Any](#google.protobuf.Any) |  |  |
 | `counterparty` | [Counterparty](#ibc.core.connection.v1.Counterparty) |  |  |
 | `delay_period` | [uint64](#uint64) |  |  |
@@ -4310,39 +4462,6 @@ GenesisState defines the ibc module's genesis state.
 | `client_genesis` | [ibc.core.client.v1.GenesisState](#ibc.core.client.v1.GenesisState) |  | ICS002 - Clients genesis state |
 | `connection_genesis` | [ibc.core.connection.v1.GenesisState](#ibc.core.connection.v1.GenesisState) |  | ICS003 - Connections genesis state |
 | `channel_genesis` | [ibc.core.channel.v1.GenesisState](#ibc.core.channel.v1.GenesisState) |  | ICS004 - Channel genesis state |
-
-
-
-
-
- <!-- end messages -->
-
- <!-- end enums -->
-
- <!-- end HasExtensions -->
-
- <!-- end services -->
-
-
-
-<a name="ibc/lightclients/localhost/v1/localhost.proto"></a>
-<p align="right"><a href="#top">Top</a></p>
-
-## ibc/lightclients/localhost/v1/localhost.proto
-
-
-
-<a name="ibc.lightclients.localhost.v1.ClientState"></a>
-
-### ClientState
-ClientState defines a loopback (localhost) client. It requires (read-only)
-access to keys outside the client prefix.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `chain_id` | [string](#string) |  | self chain ID |
-| `height` | [ibc.core.client.v1.Height](#ibc.core.client.v1.Height) |  | self latest block height |
 
 
 
@@ -4994,6 +5113,169 @@ to preserve uniqueness of different data sign byte encodings.
 
 
 
+<a name="ibc/lightclients/solomachine/v3/solomachine.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## ibc/lightclients/solomachine/v3/solomachine.proto
+
+
+
+<a name="ibc.lightclients.solomachine.v3.ClientState"></a>
+
+### ClientState
+ClientState defines a solo machine client that tracks the current consensus
+state and if the client is frozen.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `sequence` | [uint64](#uint64) |  | latest sequence of the client state |
+| `is_frozen` | [bool](#bool) |  | frozen sequence of the solo machine |
+| `consensus_state` | [ConsensusState](#ibc.lightclients.solomachine.v3.ConsensusState) |  |  |
+| `allow_update_after_proposal` | [bool](#bool) |  | when set to true, will allow governance to update a solo machine client. The client will be unfrozen if it is frozen. |
+
+
+
+
+
+
+<a name="ibc.lightclients.solomachine.v3.ConsensusState"></a>
+
+### ConsensusState
+ConsensusState defines a solo machine consensus state. The sequence of a
+consensus state is contained in the "height" key used in storing the
+consensus state.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `public_key` | [google.protobuf.Any](#google.protobuf.Any) |  | public key of the solo machine |
+| `diversifier` | [string](#string) |  | diversifier allows the same public key to be re-used across different solo machine clients (potentially on different chains) without being considered misbehaviour. |
+| `timestamp` | [uint64](#uint64) |  |  |
+
+
+
+
+
+
+<a name="ibc.lightclients.solomachine.v3.Header"></a>
+
+### Header
+Header defines a solo machine consensus header
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `sequence` | [uint64](#uint64) |  | sequence to update solo machine public key at |
+| `timestamp` | [uint64](#uint64) |  |  |
+| `signature` | [bytes](#bytes) |  |  |
+| `new_public_key` | [google.protobuf.Any](#google.protobuf.Any) |  |  |
+| `new_diversifier` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="ibc.lightclients.solomachine.v3.HeaderData"></a>
+
+### HeaderData
+HeaderData returns the SignBytes data for update verification.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `new_pub_key` | [google.protobuf.Any](#google.protobuf.Any) |  | header public key |
+| `new_diversifier` | [string](#string) |  | header diversifier |
+
+
+
+
+
+
+<a name="ibc.lightclients.solomachine.v3.Misbehaviour"></a>
+
+### Misbehaviour
+Misbehaviour defines misbehaviour for a solo machine which consists
+of a sequence and two signatures over different messages at that sequence.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `client_id` | [string](#string) |  | **Deprecated.** ClientID is deprecated |
+| `sequence` | [uint64](#uint64) |  |  |
+| `signature_one` | [SignatureAndData](#ibc.lightclients.solomachine.v3.SignatureAndData) |  |  |
+| `signature_two` | [SignatureAndData](#ibc.lightclients.solomachine.v3.SignatureAndData) |  |  |
+
+
+
+
+
+
+<a name="ibc.lightclients.solomachine.v3.SignBytes"></a>
+
+### SignBytes
+SignBytes defines the signed bytes used for signature verification.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `sequence` | [uint64](#uint64) |  | the sequence number |
+| `timestamp` | [uint64](#uint64) |  | the proof timestamp |
+| `diversifier` | [string](#string) |  | the public key diversifier |
+| `path` | [bytes](#bytes) |  | the standardised path bytes |
+| `data` | [bytes](#bytes) |  | the marshaled data bytes |
+
+
+
+
+
+
+<a name="ibc.lightclients.solomachine.v3.SignatureAndData"></a>
+
+### SignatureAndData
+SignatureAndData contains a signature and the data signed over to create that
+signature.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `signature` | [bytes](#bytes) |  |  |
+| `path` | [bytes](#bytes) |  |  |
+| `data` | [bytes](#bytes) |  |  |
+| `timestamp` | [uint64](#uint64) |  |  |
+
+
+
+
+
+
+<a name="ibc.lightclients.solomachine.v3.TimestampedSignatureData"></a>
+
+### TimestampedSignatureData
+TimestampedSignatureData contains the signature data and the timestamp of the
+signature.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `signature_data` | [bytes](#bytes) |  |  |
+| `timestamp` | [uint64](#uint64) |  |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
 <a name="ibc/lightclients/tendermint/v1/tendermint.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
@@ -5099,7 +5381,7 @@ that implements Misbehaviour interface expected by ICS-02
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `client_id` | [string](#string) |  |  |
+| `client_id` | [string](#string) |  | **Deprecated.** ClientID is deprecated |
 | `header_1` | [Header](#ibc.lightclients.tendermint.v1.Header) |  |  |
 | `header_2` | [Header](#ibc.lightclients.tendermint.v1.Header) |  |  |
 

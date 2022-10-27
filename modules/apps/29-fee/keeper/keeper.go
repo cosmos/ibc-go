@@ -2,14 +2,15 @@ package keeper
 
 import (
 	"github.com/cosmos/cosmos-sdk/codec"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
-	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/tendermint/tendermint/libs/log"
 
-	"github.com/cosmos/ibc-go/v3/modules/apps/29-fee/types"
-	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v6/modules/apps/29-fee/types"
+	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
+	porttypes "github.com/cosmos/ibc-go/v6/modules/core/05-port/types"
+	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
 )
 
 // Middleware must implement types.ChannelKeeper and types.PortKeeper expected interfaces
@@ -21,11 +22,11 @@ var (
 
 // Keeper defines the IBC fungible transfer keeper
 type Keeper struct {
-	storeKey sdk.StoreKey
+	storeKey storetypes.StoreKey
 	cdc      codec.BinaryCodec
 
 	authKeeper    types.AccountKeeper
-	ics4Wrapper   types.ICS4Wrapper
+	ics4Wrapper   porttypes.ICS4Wrapper
 	channelKeeper types.ChannelKeeper
 	portKeeper    types.PortKeeper
 	bankKeeper    types.BankKeeper
@@ -33,8 +34,9 @@ type Keeper struct {
 
 // NewKeeper creates a new 29-fee Keeper instance
 func NewKeeper(
-	cdc codec.BinaryCodec, key sdk.StoreKey, paramSpace paramtypes.Subspace,
-	ics4Wrapper types.ICS4Wrapper, channelKeeper types.ChannelKeeper, portKeeper types.PortKeeper, authKeeper types.AccountKeeper, bankKeeper types.BankKeeper,
+	cdc codec.BinaryCodec, key storetypes.StoreKey,
+	ics4Wrapper porttypes.ICS4Wrapper, channelKeeper types.ChannelKeeper,
+	portKeeper types.PortKeeper, authKeeper types.AccountKeeper, bankKeeper types.BankKeeper,
 ) Keeper {
 	return Keeper{
 		cdc:           cdc,
@@ -165,23 +167,23 @@ func (k Keeper) SetPayeeAddress(ctx sdk.Context, relayerAddr, payeeAddr, channel
 	store.Set(types.KeyPayee(relayerAddr, channelID), []byte(payeeAddr))
 }
 
-// GetAllPayeeAddresses returns all registered payees
-func (k Keeper) GetAllPayeeAddresses(ctx sdk.Context) []types.RegisteredPayee {
+// GetAllPayees returns all registered payees addresses
+func (k Keeper) GetAllPayees(ctx sdk.Context) []types.RegisteredPayee {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, []byte(types.PayeeKeyPrefix))
 	defer iterator.Close()
 
 	var registeredPayees []types.RegisteredPayee
 	for ; iterator.Valid(); iterator.Next() {
-		addr, channelID, err := types.ParseKeyPayeeAddress(string(iterator.Key()))
+		relayerAddr, channelID, err := types.ParseKeyPayeeAddress(string(iterator.Key()))
 		if err != nil {
 			panic(err)
 		}
 
 		payee := types.RegisteredPayee{
-			RelayerAddress: addr,
-			Payee:          string(iterator.Value()),
-			ChannelId:      channelID,
+			Relayer:   relayerAddr,
+			Payee:     string(iterator.Value()),
+			ChannelId: channelID,
 		}
 
 		registeredPayees = append(registeredPayees, payee)
@@ -210,29 +212,29 @@ func (k Keeper) GetCounterpartyPayeeAddress(ctx sdk.Context, address, channelID 
 	return addr, true
 }
 
-// GetAllRelayerAddresses returns all registered relayer addresses
-func (k Keeper) GetAllRelayerAddresses(ctx sdk.Context) []types.RegisteredRelayerAddress {
+// GetAllCounterpartyPayees returns all registered counterparty payee addresses
+func (k Keeper) GetAllCounterpartyPayees(ctx sdk.Context) []types.RegisteredCounterpartyPayee {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, []byte(types.CounterpartyPayeeKeyPrefix))
 	defer iterator.Close()
 
-	var registeredAddrArr []types.RegisteredRelayerAddress
+	var registeredCounterpartyPayees []types.RegisteredCounterpartyPayee
 	for ; iterator.Valid(); iterator.Next() {
-		address, channelID, err := types.ParseKeyCounterpartyPayee(string(iterator.Key()))
+		relayerAddr, channelID, err := types.ParseKeyCounterpartyPayee(string(iterator.Key()))
 		if err != nil {
 			panic(err)
 		}
 
-		addr := types.RegisteredRelayerAddress{
-			Address:             address,
-			CounterpartyAddress: string(iterator.Value()),
-			ChannelId:           channelID,
+		counterpartyPayee := types.RegisteredCounterpartyPayee{
+			Relayer:           relayerAddr,
+			CounterpartyPayee: string(iterator.Value()),
+			ChannelId:         channelID,
 		}
 
-		registeredAddrArr = append(registeredAddrArr, addr)
+		registeredCounterpartyPayees = append(registeredCounterpartyPayees, counterpartyPayee)
 	}
 
-	return registeredAddrArr
+	return registeredCounterpartyPayees
 }
 
 // SetRelayerAddressForAsyncAck sets the forward relayer address during OnRecvPacket in case of async acknowledgement

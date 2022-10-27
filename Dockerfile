@@ -1,4 +1,4 @@
-FROM golang:1.17 as builder
+FROM golang:1.18 as builder
 
 ENV GOPATH=""
 ENV GOMODULE="on"
@@ -12,6 +12,7 @@ ADD testing testing
 ADD modules modules
 ADD LICENSE LICENSE
 
+COPY contrib/devtools/Makefile contrib/devtools/Makefile
 COPY Makefile .
 
 RUN make build

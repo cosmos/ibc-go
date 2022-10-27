@@ -56,7 +56,7 @@ data := &ClientStateData{
 dataBz, err := cdc.Marshal(data)
 ```
 
-The helper functions `...DataBytes()` in [proof.go](../types/proof.go) handle this
+The helper functions `...DataBytes()` in [proof.go](../proof.go) handle this
 functionality. 
 
 2. Construct the `SignBytes` and marshal it.
@@ -75,7 +75,7 @@ signBytes := &SignBytes{
 signBz, err := cdc.Marshal(signBytes)
 ```
 
-The helper functions `...SignBytes()` in [proof.go](../types/proof.go) handle this functionality.
+The helper functions `...SignBytes()` in [proof.go](../proof.go) handle this functionality.
 The `DataType` field is used to disambiguate what type of data was signed to prevent potential 
 proto encoding overlap.
 
@@ -100,7 +100,7 @@ as the proof parameter to the verification functions.
 For example:
 
 ```go
-timestampedSignatureData := &types.TimestampedSignatureData{
+timestampedSignatureData := &solomachine.TimestampedSignatureData{
   SignatureData: sigData,
   Timestamp: solomachine.Time,
 }
@@ -133,7 +133,6 @@ If the update is successful:
 An update by a governance proposal will only succeed if:
 
 - the substitute provided is parseable to solo machine client state
-- the `AllowUpdateAfterProposal` client parameter is set to `true`
 - the new consensus state public key does not equal the current consensus state public key
 
 If the update is successful:
@@ -141,6 +140,8 @@ If the update is successful:
 - the subject client state is updated to the substitute client state
 - the subject consensus state is updated to the substitute consensus state
 - the client is unfrozen (if it was previously frozen)
+
+NOTE: Previously, `AllowUpdateAfterProposal` was used to signal the update/recovery options for the solo machine client.  However, this has now been deprecated because a code migration can overwrite the client and consensus states regardless of the value of this parameter. If governance would vote to overwrite a client or consensus state, it is likely that governance would also be willing to perform a code migration to do the same.
 
 ## Misbehaviour
 

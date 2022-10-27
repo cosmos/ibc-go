@@ -4,12 +4,12 @@ import (
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/ibc-go/v3/modules/apps/29-fee/types"
-	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
-	ibctesting "github.com/cosmos/ibc-go/v3/testing"
-
 	"github.com/stretchr/testify/require"
 	"github.com/tendermint/tendermint/crypto/secp256k1"
+
+	"github.com/cosmos/ibc-go/v6/modules/apps/29-fee/types"
+	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
+	ibctesting "github.com/cosmos/ibc-go/v6/testing"
 )
 
 func TestMsgRegisterPayeeValidation(t *testing.T) {
@@ -172,6 +172,13 @@ func TestMsgPayPacketFeeValidation(t *testing.T) {
 			true,
 		},
 		{
+			"success with empty relayers",
+			func() {
+				msg.Relayers = []string{}
+			},
+			true,
+		},
+		{
 			"invalid channelID",
 			func() {
 				msg.SourceChannelId = ""
@@ -210,9 +217,9 @@ func TestMsgPayPacketFeeValidation(t *testing.T) {
 		err := msg.ValidateBasic()
 
 		if tc.expPass {
-			require.NoError(t, err)
+			require.NoError(t, err, tc.name)
 		} else {
-			require.Error(t, err)
+			require.Error(t, err, tc.name)
 		}
 	}
 }
@@ -228,11 +235,6 @@ func TestPayPacketFeeGetSigners(t *testing.T) {
 func TestMsgPayPacketFeeRoute(t *testing.T) {
 	var msg types.MsgPayPacketFee
 	require.Equal(t, types.RouterKey, msg.Route())
-}
-
-func TestMsgPayPacketFeeType(t *testing.T) {
-	var msg types.MsgPayPacketFee
-	require.Equal(t, "payPacketFee", msg.Type())
 }
 
 func TestMsgPayPacketFeeGetSignBytes(t *testing.T) {
@@ -255,6 +257,13 @@ func TestMsgPayPacketFeeAsyncValidation(t *testing.T) {
 		{
 			"success",
 			func() {},
+			true,
+		},
+		{
+			"success with empty relayers",
+			func() {
+				msg.PacketFee.Relayers = []string{}
+			},
 			true,
 		},
 		{
@@ -343,7 +352,7 @@ func TestMsgPayPacketFeeAsyncValidation(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		packetID := channeltypes.NewPacketId(ibctesting.MockFeePort, ibctesting.FirstChannelID, 1)
+		packetID := channeltypes.NewPacketID(ibctesting.MockFeePort, ibctesting.FirstChannelID, 1)
 		fee := types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
 		packetFee := types.NewPacketFee(fee, defaultAccAddress, nil)
 
@@ -354,16 +363,16 @@ func TestMsgPayPacketFeeAsyncValidation(t *testing.T) {
 		err := msg.ValidateBasic()
 
 		if tc.expPass {
-			require.NoError(t, err)
+			require.NoError(t, err, tc.name)
 		} else {
-			require.Error(t, err)
+			require.Error(t, err, tc.name)
 		}
 	}
 }
 
 func TestPayPacketFeeAsyncGetSigners(t *testing.T) {
 	refundAddr := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
-	packetID := channeltypes.NewPacketId(ibctesting.MockFeePort, ibctesting.FirstChannelID, 1)
+	packetID := channeltypes.NewPacketID(ibctesting.MockFeePort, ibctesting.FirstChannelID, 1)
 	fee := types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
 	packetFee := types.NewPacketFee(fee, refundAddr.String(), nil)
 
@@ -377,13 +386,8 @@ func TestMsgPayPacketFeeAsyncRoute(t *testing.T) {
 	require.Equal(t, types.RouterKey, msg.Route())
 }
 
-func TestMsgPayPacketFeeAsyncType(t *testing.T) {
-	var msg types.MsgPayPacketFeeAsync
-	require.Equal(t, "payPacketFeeAsync", msg.Type())
-}
-
 func TestMsgPayPacketFeeAsyncGetSignBytes(t *testing.T) {
-	packetID := channeltypes.NewPacketId(ibctesting.MockFeePort, ibctesting.FirstChannelID, 1)
+	packetID := channeltypes.NewPacketID(ibctesting.MockFeePort, ibctesting.FirstChannelID, 1)
 	fee := types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
 	packetFee := types.NewPacketFee(fee, defaultAccAddress, nil)
 

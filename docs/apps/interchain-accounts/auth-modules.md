@@ -38,15 +38,15 @@ func (im IBCModule) OnChanOpenInit(
     chanCap *capabilitytypes.Capability,
     counterparty channeltypes.Counterparty,
     version string,
-) error {
+) (string, error) {
     // the authentication module *must* claim the channel capability on OnChanOpenInit
     if err := im.keeper.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
-        return err
+        return version, err
     }
 
     // perform custom logic
 
-    return nil
+    return version, nil
 }
 
 // OnChanOpenAck implements the IBCModule interface
@@ -150,11 +150,65 @@ func (im IBCModule) OnRecvPacket(
 The authentication module can begin registering interchain accounts by calling `RegisterInterchainAccount`:
 
 ```go
-if err := keeper.icaControllerKeeper.RegisterInterchainAccount(ctx, connectionID, owner.String()); err != nil {
+if err := keeper.icaControllerKeeper.RegisterInterchainAccount(ctx, connectionID, owner.String(), version); err != nil {
     return err
 }
 
 return nil
+```
+
+The `version` argument is used to support ICS29 fee middleware for relayer incentivization of ICS27 packets. Consumers of the `RegisterInterchainAccount` are expected to build the appropriate JSON encoded version string themselves and pass it accordingly. If an empty string is passed in the `version` argument, then the version will be initialized to a default value in the `OnChanOpenInit` callback of the controller's handler, so that channel handshake can proceed.
+
+The following code snippet illustrates how to construct an appropriate interchain accounts `Metadata` and encode it as a JSON bytestring:
+
+```go
+icaMetadata := icatypes.Metadata{
+    Version:                icatypes.Version,
+    ControllerConnectionId: controllerConnectionID,
+    HostConnectionId:       hostConnectionID,
+    Encoding:               icatypes.EncodingProtobuf,
+    TxType:                 icatypes.TxTypeSDKMultiMsg,
+}
+
+appVersion, err := icatypes.ModuleCdc.MarshalJSON(&icaMetadata)
+if err != nil {
+    return err
+}
+
+if err := keeper.icaControllerKeeper.RegisterInterchainAccount(ctx, controllerConnectionID, owner.String(), string(appVersion)); err != nil {
+    return err
+}
+```
+
+Similarly, if the application stack is configured to route through ICS29 fee middleware and a fee enabled channel is desired, construct the appropriate ICS29 `Metadata` type:
+
+```go
+icaMetadata := icatypes.Metadata{
+    Version:                icatypes.Version,
+    ControllerConnectionId: controllerConnectionID,
+    HostConnectionId:       hostConnectionID,
+    Encoding:               icatypes.EncodingProtobuf,
+    TxType:                 icatypes.TxTypeSDKMultiMsg,
+}
+
+appVersion, err := icatypes.ModuleCdc.MarshalJSON(&icaMetadata)
+if err != nil {
+    return err
+}
+
+feeMetadata := feetypes.Metadata{
+    AppVersion: string(appVersion),
+    FeeVersion: feetypes.Version,
+}
+
+feeEnabledVersion, err := feetypes.ModuleCdc.MarshalJSON(&feeMetadata)
+if err != nil {
+    return err
+}
+
+if err := keeper.icaControllerKeeper.RegisterInterchainAccount(ctx, controllerConnectionID, owner.String(), string(feeEnabledVersion)); err != nil {
+    return err
+}
 ```
 
 ## `SendTx`
@@ -187,7 +241,7 @@ if !found {
 // The appropriate serialization function should be called. The host chain must be able to deserialize the transaction. 
 // If the host chain is using the ibc-go host module, `SerializeCosmosTx` should be used. 
 msg := &banktypes.MsgSend{FromAddress: fromAddr, ToAddress: toAddr, Amount: amt}
-data, err := icatypes.SerializeCosmosTx(keeper.cdc, []sdk.Msg{msg})
+data, err := icatypes.SerializeCosmosTx(keeper.cdc, []proto.Message{msg})
 if err != nil {
     return err
 }
@@ -218,7 +272,7 @@ Auth modules are expected to know how to decode the acknowledgement.
 
 If the controller chain is connected to a host chain using the host module on ibc-go, it may interpret the acknowledgement bytes as follows:
 
-Begin by unmarshaling the acknowledgement into sdk.TxMsgData:
+Begin by unmarshaling the acknowledgement into `sdk.TxMsgData`:
 ```go
 var ack channeltypes.Acknowledgement
 if err := channeltypes.SubModuleCdc.UnmarshalJSON(acknowledgement, &ack); err != nil {
@@ -231,8 +285,8 @@ if err := proto.Unmarshal(ack.GetResult(), txMsgData); err != nil {
 }
 ```
 
-If the txMsgData.Data field is non nil, the host chain is using SDK version <= v0.45. 
-The auth module should interpret the txMsgData.Data as follows:
+If the `txMsgData.Data` field is non nil, the host chain is using SDK version <= v0.45. 
+The auth module should interpret the `txMsgData.Data` as follows:
 
 ```go
 switch len(txMsgData.Data) {
@@ -283,8 +337,8 @@ default:
 }
 ```
 
-If the txMsgData.Data is empty, the host chain is using SDK version > v0.45.
-The auth module should interpret the txMsgData.Responses as follows:
+If the `txMsgData.Data` is empty, the host chain is using SDK version > v0.45.
+The auth module should interpret the `txMsgData.Responses` as follows:
 
 ```go
 ...

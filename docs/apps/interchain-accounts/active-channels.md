@@ -12,11 +12,11 @@ channel type that provides ordering of packets without the channel closing on ti
 When an Interchain Account is registered using the `RegisterInterchainAccount` API, a new channel is created on a particular port. During the `OnChanOpenAck` and `OnChanOpenConfirm` steps (controller & host chain) the `Active Channel` for this interchain account
 is stored in state.
 
-It is possible to create a new channel using the same controller chain portID if the previously set `Active Channel` is now in a `CLOSED` state. This channel creation can be initialized programatically by sending a new `OnChanOpenInit` message like so:
+It is possible to create a new channel using the same controller chain portID if the previously set `Active Channel` is now in a `CLOSED` state. This channel creation can be initialized programatically by sending a new `MsgChannelOpenInit` message like so:
 
 ```go
-	msg := channeltypes.NewMsgChannelOpenInit(portID, string(versionBytes), channeltypes.ORDERED, []string{connectionID}, icatypes.PortID, icatypes.ModuleName)
-	handler := k.msgRouter.Handler(msg)
+msg := channeltypes.NewMsgChannelOpenInit(portID, string(versionBytes), channeltypes.ORDERED, []string{connectionID}, icatypes.PortID, icatypes.ModuleName)
+handler := k.msgRouter.Handler(msg)
 ```
 
 Alternatively, any relayer operator may initiate a new channel handshake for this interchain account once the previously set `Active Channel` is in a `CLOSED` state. This is done by initiating the channel handshake on the controller chain using the same portID associated with the interchain account in question.  

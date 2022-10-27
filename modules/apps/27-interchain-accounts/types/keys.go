@@ -8,11 +8,11 @@ const (
 	// ModuleName defines the interchain accounts module name
 	ModuleName = "interchainaccounts"
 
-	// PortID is the default port id that the interchain accounts host submodule binds to
-	PortID = "icahost"
+	// HostPortID is the default port id that the interchain accounts host submodule binds to
+	HostPortID = "icahost"
 
-	// PortPrefix is the default port prefix that the interchain accounts controller submodule binds to
-	PortPrefix = "icacontroller-"
+	// ControllerPortPrefix is the default port prefix that the interchain accounts controller submodule binds to
+	ControllerPortPrefix = "icacontroller-"
 
 	// Version defines the current version for interchain accounts
 	Version = "ics27-1"
@@ -25,6 +25,9 @@ const (
 
 	// QuerierRoute is the querier route for interchain accounts
 	QuerierRoute = ModuleName
+
+	// hostAccountKey is the key used when generating a module address for the host submodule
+	hostAccountsKey = "icahost-accounts"
 )
 
 var (
@@ -36,6 +39,9 @@ var (
 
 	// PortKeyPrefix defines the key prefix used to store ports
 	PortKeyPrefix = "port"
+
+	// IsMiddlewareEnabledPrefix defines the key prefix used to store a flag for legacy API callback routing via ibc middleware
+	IsMiddlewareEnabledPrefix = "isMiddlewareEnabled"
 )
 
 // KeyActiveChannel creates and returns a new key used for active channels store operations
@@ -51,4 +57,9 @@ func KeyOwnerAccount(portID, connectionID string) []byte {
 // KeyPort creates and returns a new key used for port store operations
 func KeyPort(portID string) []byte {
 	return []byte(fmt.Sprintf("%s/%s", PortKeyPrefix, portID))
+}
+
+// KeyIsMiddlewareEnabled creates and returns a new key used for signaling legacy API callback routing via ibc middleware
+func KeyIsMiddlewareEnabled(portID, connectionID string) []byte {
+	return []byte(fmt.Sprintf("%s/%s/%s", IsMiddlewareEnabledPrefix, portID, connectionID))
 }
