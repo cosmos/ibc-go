@@ -1,14 +1,8 @@
 go 1.18
 
-retract [v3.0.0, v3.3.0]
+retract [v3.0.0, v3.3.0] //uses cosmos-sdk versions that aren't patched for dragonberry
 
 module github.com/cosmos/ibc-go/v3
-
-// dragonberry replace for ics23
-replace github.com/confio/ics23/go => github.com/cosmos/cosmos-sdk/ics23/go v0.8.0
-
-// protocol buffers replace
-replace github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
 
 require (
 	github.com/armon/go-metrics v0.4.0
@@ -128,4 +122,12 @@ require (
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	nhooyr.io/websocket v1.8.6 // indirect
+)
+
+replace (
+	// dragonberry replace for ics23
+	github.com/confio/ics23/go => github.com/cosmos/cosmos-sdk/ics23/go v0.8.0
+
+	// protocol buffers replace
+	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
 )
