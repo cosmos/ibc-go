@@ -119,6 +119,12 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (modules/core/02-client)[\#1676](https://github.com/cosmos/ibc-go/pull/1676) ClientState must be zeroed out for `UpgradeProposals` to pass validation. This prevents a proposal containing information governance is not actually voting on.
 * (modules/core/keeper) [\#2403](https://github.com/cosmos/ibc-go/pull/2403) Added a function in keeper to cater for blank pointers.
 
+## [v5.0.1](https://github.com/cosmos/ibc-go/releases/tag/v5.0.1) - 2022-10-27
+
+### Dependencies
+
+* [\#2623](https://github.com/cosmos/ibc-go/pull/2623) Bump SDK version to v0.46.3 and Tendermint version to v0.34.22.
+
 ## [v5.0.0](https://github.com/cosmos/ibc-go/releases/tag/v5.0.0) - 2022-09-28
 
 ### Dependencies
@@ -150,6 +156,12 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (27-interchain-accounts) [\#2308](https://github.com/cosmos/ibc-go/pull/2308) Nil checks have been added to ensure services are not registered for nil host or controller keepers.
 * (makefile) [\#1785](https://github.com/cosmos/ibc-go/pull/1785) Fetch the correct versions of protocol buffers dependencies from tendermint, cosmos-sdk, and ics23.
 * (modules/core/04-channel)[\#1919](https://github.com/cosmos/ibc-go/pull/1919) Fixed formatting of sequence for packet "acknowledgement written" logs.
+
+## [v4.1.1](https://github.com/cosmos/ibc-go/releases/tag/v4.1.1) - 2022-10-27
+
+### Dependencies
+
+* [\#2624](https://github.com/cosmos/ibc-go/pull/2624) Bump SDK version to v0.45.10 and Tendermint to v0.34.22.
 
 ## [v4.1.0](https://github.com/cosmos/ibc-go/releases/tag/v4.1.0) - 2022-09-20
 
@@ -227,6 +239,12 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (apps/29-fee) [\#1774](https://github.com/cosmos/ibc-go/pull/1774) Change non nil relayer assertion to non empty to avoid import/export issues for genesis upgrades. 
 * (apps/29-fee) [\#1278](https://github.com/cosmos/ibc-go/pull/1278) The URI path for the query to get all incentivized packets for a specific channel did not follow the same format as the rest of queries.
 * (modules/core/04-channel)[\#1919](https://github.com/cosmos/ibc-go/pull/1919) Fixed formatting of sequence for packet "acknowledgement written" logs.
+
+## [v3.3.1](https://github.com/cosmos/ibc-go/releases/tag/v3.3.1) - 2022-10-27
+
+### Dependencies
+
+* [\#2621](https://github.com/cosmos/ibc-go/pull/2621) Bump SDK version to v0.45.10 and Tendermint to v0.34.22.
 
 ## [v3.3.0](https://github.com/cosmos/ibc-go/releases/tag/v3.3.0) - 2022-09-20
 
@@ -395,6 +413,12 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (transfer) [\#978](https://github.com/cosmos/ibc-go/pull/978) Support base denoms with slashes in denom validation
 * (client) [\#941](https://github.com/cosmos/ibc-go/pull/941) Classify client states without consensus states as expired
 * (channel) [\#995](https://github.com/cosmos/ibc-go/pull/995) Call `packet.GetSequence()` rather than passing func in `AcknowledgePacket` log output
+
+## [v2.4.2](https://github.com/cosmos/ibc-go/releases/tag/v2.4.2) - 2022-10-27
+
+### Dependencies
+
+* [\#2622](https://github.com/cosmos/ibc-go/pull/2622) Bump SDK version to v0.45.10 and Tendermint to v0.34.22.
 
 ## [v2.4.1](https://github.com/cosmos/ibc-go/releases/tag/v2.4.1) - 2022-09-15
 
