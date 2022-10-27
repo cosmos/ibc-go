@@ -3,6 +3,7 @@ package keeper
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
 	icatypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/types"
 	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
@@ -38,7 +39,7 @@ func (k Keeper) RegisterInterchainAccount(ctx sdk.Context, connectionID, owner, 
 		}
 	}
 
-	msg := channeltypes.NewMsgChannelOpenInit(portID, version, channeltypes.ORDERED, []string{connectionID}, icatypes.PortID, icatypes.ModuleName)
+	msg := channeltypes.NewMsgChannelOpenInit(portID, version, channeltypes.ORDERED, []string{connectionID}, icatypes.PortID, authtypes.NewModuleAddress(icatypes.ModuleName).String())
 	handler := k.msgRouter.Handler(msg)
 
 	res, err := handler(ctx, msg)
