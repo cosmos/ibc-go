@@ -91,17 +91,17 @@ which submits pre-built packet data containing messages to be executed on the ho
 // generatePacketData takes in message bytes and a memo and serializes the message into an
 // instance of InterchainAccountPacketData which is returned as bytes.
 func generatePacketData(cdc *codec.ProtoCodec, msgBytes []byte, memo string) ([]byte, error) {
-	sdkMessages, err := convertBytesIntoSdkMessages(cdc, msgBytes)
+	protoMessages, err := convertBytesIntoProtoMessages(cdc, msgBytes)
 	if err != nil {
 		return nil, err
 	}
 
-	return generateIcaPacketDataFromSdkMessages(cdc, sdkMessages, memo)
+	return generateIcaPacketDataFromProtoMessages(cdc, protoMessages, memo)
 }
 
-// convertBytesIntoSdkMessages returns a list of sdk messages from bytes. The bytes can be in the form of a single
+// convertBytesIntoProtoMessages returns a list of proto messages from bytes. The bytes can be in the form of a single
 // message, or a json array of messages.
-func convertBytesIntoSdkMessages(cdc *codec.ProtoCodec, msgBytes []byte) ([]proto.Message, error) {
+func convertBytesIntoProtoMessages(cdc *codec.ProtoCodec, msgBytes []byte) ([]proto.Message, error) {
 	var rawMessages []json.RawMessage
 	if err := json.Unmarshal(msgBytes, &rawMessages); err != nil {
 		// if we fail to unmarshal a list of messages, we assume we are just dealing with a single message.
@@ -127,8 +127,8 @@ func convertBytesIntoSdkMessages(cdc *codec.ProtoCodec, msgBytes []byte) ([]prot
 	return sdkMessages, nil
 }
 
-// generateIcaPacketDataFromSdkMessages generates ica packet data as bytes from a given set of sdk messages and a memo.
-func generateIcaPacketDataFromSdkMessages(cdc *codec.ProtoCodec, sdkMessages []proto.Message, memo string) ([]byte, error) {
+// generateIcaPacketDataFromProtoMessages generates ica packet data as bytes from a given set of proto encoded sdk messages and a memo.
+func generateIcaPacketDataFromProtoMessages(cdc *codec.ProtoCodec, sdkMessages []proto.Message, memo string) ([]byte, error) {
 	icaPacketDataBytes, err := icatypes.SerializeCosmosTx(cdc, sdkMessages)
 	if err != nil {
 		return nil, err

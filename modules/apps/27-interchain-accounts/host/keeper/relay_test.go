@@ -329,6 +329,26 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			true,
 		},
 		{
+			"unregistered sdk.Msg",
+			func() {
+				msg := &banktypes.MsgSendResponse{}
+
+				data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []proto.Message{msg})
+				suite.Require().NoError(err)
+
+				icaPacketData := icatypes.InterchainAccountPacketData{
+					Type: icatypes.EXECUTE_TX,
+					Data: data,
+				}
+
+				packetData = icaPacketData.GetBytes()
+
+				params := types.NewParams(true, []string{"/" + proto.MessageName(msg)})
+				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
+			},
+			false,
+		},
+		{
 			"cannot unmarshal interchain account packet data",
 			func() {
 				packetData = []byte{}
