@@ -2,7 +2,7 @@ go 1.15
 
 module github.com/cosmos/ibc-go/v2
 
-retract [v2.2.0, v2.2.1] // depends on SDK version without dragonberry fix
+retract [v2.2.0, v2.2.2] // depends on SDK version without dragonberry fix
 
 require (
 	github.com/armon/go-metrics v0.3.10
