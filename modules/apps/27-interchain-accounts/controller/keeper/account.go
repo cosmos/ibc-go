@@ -52,12 +52,12 @@ func (k Keeper) RegisterInterchainAccount(ctx sdk.Context, connectionID, owner s
 		icatypes.TxTypeSDKMultiMsg,
 	)
 
-	versionbytes, err := icatypes.ModuleCdc.MarshalJSON(&metadata)
+	versionBytes, err := icatypes.ModuleCdc.MarshalJSON(&metadata)
 	if err != nil {
 		return err
 	}
 
-	msg := channeltypes.NewMsgChannelOpenInit(portID, string(versionbytes), channeltypes.ORDERED, []string{connectionID}, icatypes.PortID, authtypes.NewModuleAddress(icatypes.ModuleName).String())
+	msg := channeltypes.NewMsgChannelOpenInit(portID, string(versionBytes), channeltypes.ORDERED, []string{connectionID}, icatypes.PortID, authtypes.NewModuleAddress(icatypes.ModuleName).String())
 	handler := k.msgRouter.Handler(msg)
 
 	res, err := handler(ctx, msg)
