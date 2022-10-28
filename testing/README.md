@@ -300,8 +300,8 @@ The portID and scoped keeper for the `MockIBCApp` should be set within `MockIBCA
 
 For example, if one wanted to test that the base application cannot affect the outcome of the `OnChanOpenTry` callback, the mock module base application callback could be updated as such:
 ```go
-	mockModule.IBCApp.OnChanOpenTry = func(ctx sdk.Context, portID, channelID, version string) error {
-		return fmt.Errorf("mock base app must not be called for OnChanOpenTry")
+mockModule.IBCApp.OnChanOpenTry = func(ctx sdk.Context, portID, channelID, version string) error {
+	return fmt.Errorf("mock base app must not be called for OnChanOpenTry")
 }
 ```
 
@@ -311,7 +311,8 @@ sits at the top of middleware stack will need to be accessed via a public field 
 
 This might look like:
 ```go
-	suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnChanOpenInit = func(ctx sdk.Context, order channeltypes.Order, connectionHops []string,
+suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnChanOpenInit = func(
+	ctx sdk.Context, order channeltypes.Order, connectionHops []string,
 	portID, channelID string, chanCap *capabilitytypes.Capability,
 	counterparty channeltypes.Counterparty, version string,
 ) error {
