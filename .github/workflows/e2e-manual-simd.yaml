@@ -12,6 +12,7 @@ on:
         options:
           - TestTransferTestSuite
           - TestIncentivizedTransferTestSuite
+          - TestConnectionTestSuite
           - TestInterchainAccountsTestSuite
           - TestInterchainAccountsGroupsTestSuite
           - TestIncentivizedInterchainAccountsTestSuite
