@@ -14,6 +14,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	"github.com/gogo/protobuf/proto"
 
 	"github.com/cosmos/ibc-go/e2e/testconfig"
 	"github.com/cosmos/ibc-go/e2e/testsuite"
@@ -107,7 +108,7 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer() {
 			banktypes.RegisterInterfaces(cfg.InterfaceRegistry)
 			cdc := codec.NewProtoCodec(cfg.InterfaceRegistry)
 
-			bz, err := icatypes.SerializeCosmosTx(cdc, []sdk.Msg{msgSend})
+			bz, err := icatypes.SerializeCosmosTx(cdc, []proto.Message{msgSend})
 			s.Require().NoError(err)
 
 			packetData := icatypes.InterchainAccountPacketData{
@@ -202,7 +203,7 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_FailedTransfer_InsufficientF
 			banktypes.RegisterInterfaces(cfg.InterfaceRegistry)
 			cdc := codec.NewProtoCodec(cfg.InterfaceRegistry)
 
-			bz, err := icatypes.SerializeCosmosTx(cdc, []sdk.Msg{msgSend})
+			bz, err := icatypes.SerializeCosmosTx(cdc, []proto.Message{msgSend})
 			s.Require().NoError(err)
 
 			packetData := icatypes.InterchainAccountPacketData{
