@@ -12,7 +12,7 @@ jobs:
             chain-image: ghcr.io/cosmos/ibc-go-simd
             chain-a-tag: v4.1.0
             chain-b-tag: v4.1.0
-            chain-upgrade-tag: pr-2144 # TODO: backport default upgrade handler to release/v5.x.x
+            chain-upgrade-tag: v5.0.1
           - test: TestV5ToV6ChainUpgrade
             chain-image: ghcr.io/cosmos/ibc-go-icad
             chain-binary: icad
