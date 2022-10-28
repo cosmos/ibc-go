@@ -84,20 +84,17 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 			emptyStakingKeeper := stakingkeeper.Keeper{}
 
 			stakingKeeper = emptyStakingKeeper
-
 		}, false},
 		{"failure: empty mock staking keeper", func() {
 			// use a different implementation of clienttypes.StakingKeeper
 			emptyMockStakingKeeper := MockStakingKeeper{}
 
 			stakingKeeper = emptyMockStakingKeeper
-
 		}, false},
 		{"failure: empty upgrade keeper", func() {
 			emptyUpgradeKeeper := upgradekeeper.Keeper{}
 
 			upgradeKeeper = emptyUpgradeKeeper
-
 		}, false},
 		{"failure: empty scoped keeper", func() {
 			emptyScopedKeeper := capabilitykeeper.ScopedKeeper{}
@@ -117,7 +114,6 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 		suite.SetupTest()
 
 		suite.Run(tc.name, func() {
-
 			stakingKeeper = suite.chainA.GetSimApp().StakingKeeper
 			upgradeKeeper = suite.chainA.GetSimApp().UpgradeKeeper
 			scopedKeeper = suite.chainA.GetSimApp().ScopedIBCKeeper
@@ -133,7 +129,6 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 					newIBCKeeper,
 				)
 			}
-
 		})
 	}
 }

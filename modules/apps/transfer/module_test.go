@@ -22,7 +22,6 @@ func (suite *TransferTestSuite) TestOnChanOpenInit() {
 		malleate func()
 		expPass  bool
 	}{
-
 		{
 			"success", func() {}, true,
 		},
@@ -92,7 +91,6 @@ func (suite *TransferTestSuite) TestOnChanOpenInit() {
 			} else {
 				suite.Require().Error(err)
 			}
-
 		})
 	}
 }
@@ -110,7 +108,6 @@ func (suite *TransferTestSuite) TestOnChanOpenTry() {
 		malleate func()
 		expPass  bool
 	}{
-
 		{
 			"success", func() {}, true,
 		},
@@ -187,7 +184,6 @@ func (suite *TransferTestSuite) TestOnChanOpenTry() {
 			} else {
 				suite.Require().Error(err)
 			}
-
 		})
 	}
 }
@@ -200,7 +196,6 @@ func (suite *TransferTestSuite) TestOnChanOpenAck() {
 		malleate func()
 		expPass  bool
 	}{
-
 		{
 			"success", func() {}, true,
 		},
@@ -237,7 +232,6 @@ func (suite *TransferTestSuite) TestOnChanOpenAck() {
 			} else {
 				suite.Require().Error(err)
 			}
-
 		})
 	}
 }

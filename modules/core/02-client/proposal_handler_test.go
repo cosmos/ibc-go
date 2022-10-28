@@ -83,5 +83,4 @@ func (suite *ClientTestSuite) TestNewClientUpdateProposalHandler() {
 			}
 		})
 	}
-
 }

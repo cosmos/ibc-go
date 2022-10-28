@@ -29,11 +29,11 @@ var (
 )
 
 // NewMsgCreateClient creates a new MsgCreateClient instance
+//
 //nolint:interfacer
 func NewMsgCreateClient(
 	clientState exported.ClientState, consensusState exported.ConsensusState, signer string,
 ) (*MsgCreateClient, error) {
-
 	anyClientState, err := PackClientState(clientState)
 	if err != nil {
 		return nil, err
@@ -102,6 +102,7 @@ func (msg MsgCreateClient) UnpackInterfaces(unpacker codectypes.AnyUnpacker) err
 }
 
 // NewMsgUpdateClient creates a new MsgUpdateClient instance
+//
 //nolint:interfacer
 func NewMsgUpdateClient(id string, header exported.Header, signer string) (*MsgUpdateClient, error) {
 	anyHeader, err := PackHeader(header)
@@ -153,7 +154,8 @@ func (msg MsgUpdateClient) UnpackInterfaces(unpacker codectypes.AnyUnpacker) err
 // NewMsgUpgradeClient creates a new MsgUpgradeClient instance
 // nolint: interfacer
 func NewMsgUpgradeClient(clientID string, clientState exported.ClientState, consState exported.ConsensusState,
-	proofUpgradeClient, proofUpgradeConsState []byte, signer string) (*MsgUpgradeClient, error) {
+	proofUpgradeClient, proofUpgradeConsState []byte, signer string,
+) (*MsgUpgradeClient, error) {
 	anyClient, err := PackClientState(clientState)
 	if err != nil {
 		return nil, err
@@ -227,6 +229,7 @@ func (msg MsgUpgradeClient) UnpackInterfaces(unpacker codectypes.AnyUnpacker) er
 }
 
 // NewMsgSubmitMisbehaviour creates a new MsgSubmitMisbehaviour instance.
+//
 //nolint:interfacer
 func NewMsgSubmitMisbehaviour(clientID string, misbehaviour exported.Misbehaviour, signer string) (*MsgSubmitMisbehaviour, error) {
 	anyMisbehaviour, err := PackMisbehaviour(misbehaviour)
