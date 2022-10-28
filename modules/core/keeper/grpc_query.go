@@ -38,9 +38,9 @@ func (q Keeper) ClientStatus(c context.Context, req *clienttypes.QueryClientStat
 	return q.ClientKeeper.ClientStatus(c, req)
 }
 
-// ClientParams implements the IBC QueryServer interface
-func (q Keeper) ClientParams(c context.Context, req *clienttypes.QueryClientParamsRequest) (*clienttypes.QueryClientParamsResponse, error) {
-	return q.ClientKeeper.ClientParams(c, req)
+// Params implements the IBC QueryServer interface
+func (q Keeper) Params(c context.Context, req *clienttypes.QueryParamsRequest) (*clienttypes.QueryParamsResponse, error) {
+	return q.ClientKeeper.Params(c, req)
 }
 
 // UpgradedClientState implements the IBC QueryServer interface
