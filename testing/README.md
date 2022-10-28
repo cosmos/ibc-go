@@ -219,11 +219,11 @@ Here is a basic example of the testing package being used to simulate IBC functi
     suite.Require().Equal("connection-0", path.EndpointA.ClientID)
     suite.Require().Equal("channel-0", path.EndpointA.ClientID)
 
-    // create packet 1 
-    packet1 := NewPacket() // NewPacket would construct your packet
-
     // send on endpointA
-    path.EndpointA.SendPacket(packet1)
+    sequence, err := path.EndpointA.SendPacket(timeoutHeight1, timeoutTimestamp1, packet1Data)
+
+		// create packet 1 
+    packet1 := NewPacket() // NewPacket would construct your packet
 
     // receive on endpointB
     path.EndpointB.RecvPacket(packet1)
@@ -232,9 +232,9 @@ Here is a basic example of the testing package being used to simulate IBC functi
     path.EndpointA.AcknowledgePacket(packet1, ack)
 
     // we can also relay
-    packet2 := NewPacket()
+    sequence, err := path.EndpointA.SendPacket(timeoutHeight2, timeoutTimestamp2, packet2Data)
 
-    path.EndpointA.SendPacket(packet2)
+    packet2 := NewPacket()
 
     path.Relay(packet2, expectedAck)
 
