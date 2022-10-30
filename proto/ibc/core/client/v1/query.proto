@@ -46,9 +46,9 @@ service Query {
     option (google.api.http).get = "/ibc/core/client/v1/client_status/{client_id}";
   }
 
-  // ClientParams queries all parameters of the ibc client.
-  rpc ClientParams(QueryClientParamsRequest) returns (QueryClientParamsResponse) {
-    option (google.api.http).get = "/ibc/client/v1/params";
+  // Params queries all parameters of the ibc client.
+  rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
+    option (google.api.http).get = "/ibc/core/client/v1/params";
   }
 
   // UpgradedClientState queries an Upgraded IBC light client.
@@ -173,13 +173,13 @@ message QueryClientStatusResponse {
   string status = 1;
 }
 
-// QueryClientParamsRequest is the request type for the Query/ClientParams RPC
+// QueryParamsRequest is the request type for the Query/Params RPC
 // method.
-message QueryClientParamsRequest {}
+message QueryParamsRequest {}
 
-// QueryClientParamsResponse is the response type for the Query/ClientParams RPC
+// QueryParamsResponse is the response type for the Query/Params RPC
 // method.
-message QueryClientParamsResponse {
+message QueryParamsResponse {
   // params defines the parameters of the module.
   Params params = 1;
 }
