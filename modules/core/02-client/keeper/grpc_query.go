@@ -252,12 +252,12 @@ func (q Keeper) ClientStatus(c context.Context, req *types.QueryClientStatusRequ
 	}, nil
 }
 
-// ClientParams implements the Query/ClientParams gRPC method
-func (q Keeper) ClientParams(c context.Context, _ *types.QueryClientParamsRequest) (*types.QueryClientParamsResponse, error) {
+// Params implements the Query/Params gRPC method
+func (q Keeper) Params(c context.Context, _ *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
 	params := q.GetParams(ctx)
 
-	return &types.QueryClientParamsResponse{
+	return &types.QueryParamsResponse{
 		Params: &params,
 	}, nil
 }

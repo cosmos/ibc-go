@@ -8,6 +8,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	"github.com/gogo/protobuf/proto"
 	ibctest "github.com/strangelove-ventures/ibctest/v6"
 	"github.com/strangelove-ventures/ibctest/v6/chain/cosmos"
 	"github.com/strangelove-ventures/ibctest/v6/ibc"
@@ -155,7 +156,7 @@ func (s *IncentivizedInterchainAccountsTestSuite) TestMsgSendTx_SuccessfulBankSe
 			banktypes.RegisterInterfaces(cfg.InterfaceRegistry)
 			cdc := codec.NewProtoCodec(cfg.InterfaceRegistry)
 
-			bz, err := icatypes.SerializeCosmosTx(cdc, []sdk.Msg{msgSend})
+			bz, err := icatypes.SerializeCosmosTx(cdc, []proto.Message{msgSend})
 			s.Require().NoError(err)
 
 			packetData := icatypes.InterchainAccountPacketData{
@@ -330,7 +331,7 @@ func (s *IncentivizedInterchainAccountsTestSuite) TestMsgSendTx_FailedBankSend_I
 			banktypes.RegisterInterfaces(cfg.InterfaceRegistry)
 			cdc := codec.NewProtoCodec(cfg.InterfaceRegistry)
 
-			bz, err := icatypes.SerializeCosmosTx(cdc, []sdk.Msg{msgSend})
+			bz, err := icatypes.SerializeCosmosTx(cdc, []proto.Message{msgSend})
 			s.Require().NoError(err)
 
 			packetData := icatypes.InterchainAccountPacketData{
