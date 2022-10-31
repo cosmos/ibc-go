@@ -2,11 +2,13 @@ package keeper
 
 import (
 	"context"
+	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
+	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 )
 
 var _ types.MsgServer = Keeper{}
@@ -37,11 +39,26 @@ func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.
 
 	k.Logger(ctx).Info("IBC fungible token transfer", "token", msg.Token.Denom, "amount", msg.Token.Amount.String(), "sender", msg.Sender, "receiver", msg.Receiver)
 
+	// get destination channel and port for emiting events
+	channel, found := k.channelKeeper.GetChannel(ctx, msg.SourcePort, msg.SourceChannel)
+	if !found {
+		return nil, sdkerrors.Wrapf(channeltypes.ErrChannelNotFound, "port ID (%s) channel ID (%s)", msg.SourcePort, msg.SourceChannel)
+	}
+
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeTransfer,
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender),
 			sdk.NewAttribute(types.AttributeKeyReceiver, msg.Receiver),
+			sdk.NewAttribute(types.AttributeKeyAmount, msg.Token.Amount.String()),
+			sdk.NewAttribute(types.AttributeKeyDenom, msg.Token.Denom),
+			sdk.NewAttribute(types.AttributeKeySrcPort, msg.SourcePort),
+			sdk.NewAttribute(types.AttributeKeySrcChannel, msg.SourceChannel),
+			sdk.NewAttribute(types.AttributeKeyDstPort, channel.GetCounterparty().GetPortID()),
+			sdk.NewAttribute(types.AttributeKeyDstChannel, channel.GetCounterparty().GetChannelID()),
+			sdk.NewAttribute(types.AttributeKeyTimeoutHeight, msg.TimeoutHeight.String()),
+			sdk.NewAttribute(types.AttributeKeyTimeoutTimestamp, fmt.Sprintf("%d", msg.TimeoutTimestamp)),
+			sdk.NewAttribute(types.AttributeKeyMemo, msg.Memo),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
