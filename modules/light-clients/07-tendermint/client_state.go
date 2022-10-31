@@ -125,14 +125,14 @@ func (cs ClientState) Validate() error {
 	if err := light.ValidateTrustLevel(cs.TrustLevel.ToTendermint()); err != nil {
 		return err
 	}
-	if cs.TrustingPeriod == 0 {
-		return sdkerrors.Wrap(ErrInvalidTrustingPeriod, "trusting period cannot be zero")
+	if cs.TrustingPeriod <= 0 {
+		return sdkerrors.Wrap(ErrInvalidTrustingPeriod, "trusting period must be greater than zero")
 	}
-	if cs.UnbondingPeriod == 0 {
-		return sdkerrors.Wrap(ErrInvalidUnbondingPeriod, "unbonding period cannot be zero")
+	if cs.UnbondingPeriod <= 0 {
+		return sdkerrors.Wrap(ErrInvalidUnbondingPeriod, "unbonding period must be greater than zero")
 	}
-	if cs.MaxClockDrift == 0 {
-		return sdkerrors.Wrap(ErrInvalidMaxClockDrift, "max clock drift cannot be zero")
+	if cs.MaxClockDrift <= 0 {
+		return sdkerrors.Wrap(ErrInvalidMaxClockDrift, "max clock drift must be greater than zero")
 	}
 
 	// the latest height revision number must match the chain id revision number
