@@ -39,7 +39,7 @@ func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.
 
 	k.Logger(ctx).Info("IBC fungible token transfer", "token", msg.Token.Denom, "amount", msg.Token.Amount.String(), "sender", msg.Sender, "receiver", msg.Receiver)
 
-	// get destination channel and port for emiting events
+	// Get destination channel and port for emitting events
 	channel, found := k.channelKeeper.GetChannel(ctx, msg.SourcePort, msg.SourceChannel)
 	if !found {
 		return nil, sdkerrors.Wrapf(channeltypes.ErrChannelNotFound, "port ID (%s) channel ID (%s)", msg.SourcePort, msg.SourceChannel)
