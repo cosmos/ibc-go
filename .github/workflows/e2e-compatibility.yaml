@@ -46,6 +46,10 @@ jobs:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Fetch Makefile dependencies
+        run: |
+          mkdir -p contrib/devtools
+          curl https://raw.githubusercontent.com/cosmos/ibc-go/main/contrib/devtools/Makefile -o contrib/devtools/Makefile
       - name: Fetch latest Dockerfile
         run: curl https://raw.githubusercontent.com/cosmos/ibc-go/main/Dockerfile -o Dockerfile
       - name: Build image
