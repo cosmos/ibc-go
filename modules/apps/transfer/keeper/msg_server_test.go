@@ -6,9 +6,11 @@ import (
 	"github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 )
 
-type ExpectedEvents map[string]map[string]string
-
-func checkEvents(suite *KeeperTestSuite, actualEvents sdk.Events, expEvents ExpectedEvents) {
+func checkEvents(
+	suite *KeeperTestSuite,
+	actualEvents sdk.Events,
+	expEvents map[string]map[string]string,
+) {
 	hasEvents := make(map[string]bool)
 	for eventType := range expEvents {
 		hasEvents[eventType] = false
@@ -30,7 +32,6 @@ func checkEvents(suite *KeeperTestSuite, actualEvents sdk.Events, expEvents Expe
 	for eventName, hasEvent := range hasEvents {
 		suite.Require().True(hasEvent, "event: %s was not found in events", eventName)
 	}
-
 }
 
 func (suite *KeeperTestSuite) TestMsgTransfer() {
@@ -101,8 +102,8 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 			ctx := suite.chainA.GetContext()
 			res, err := suite.chainA.GetSimApp().TransferKeeper.Transfer(sdk.WrapSDKContext(ctx), msg)
 
-			expEvents := ExpectedEvents{
-				"ibc_transfer": map[string]string{
+			expEvents := map[string]map[string]string{
+				"ibc_transfer": {
 					"sender":            suite.chainA.SenderAccount.GetAddress().String(),
 					"receiver":          suite.chainB.SenderAccount.GetAddress().String(),
 					"amount":            coin.Amount.String(),
