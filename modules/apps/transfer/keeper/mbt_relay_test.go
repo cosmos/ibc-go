@@ -147,7 +147,7 @@ func FungibleTokenPacketFromTla(packet TlaFungibleTokenPacket) FungibleTokenPack
 			packet.Data.Amount,
 			AddressFromString(packet.Data.Sender),
 			AddressFromString(packet.Data.Receiver),
-			""),
+			nil),
 	}
 }
 
@@ -346,7 +346,7 @@ func (suite *KeeperTestSuite) TestModelBasedRelay() {
 							sender.String(),
 							tc.packet.Data.Receiver,
 							suite.chainA.GetTimeoutHeight(), 0, // only use timeout height
-							"",
+							nil,
 						)
 
 						_, err = suite.chainB.GetSimApp().TransferKeeper.Transfer(sdk.WrapSDKContext(suite.chainB.GetContext()), msg)
