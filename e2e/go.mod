@@ -9,6 +9,7 @@ require (
 	github.com/cosmos/ibc-go/v6 v6.0.0-alpha1
 	github.com/cosmos/interchain-accounts v0.4.0
 	github.com/docker/docker v20.10.17+incompatible
+	github.com/gogo/protobuf v1.3.3
 	github.com/strangelove-ventures/ibctest/v6 v6.0.0-20221005154709-b642157674bc
 	github.com/stretchr/testify v1.8.1
 	github.com/tendermint/tendermint v0.34.21
@@ -76,7 +77,6 @@ require (
 	github.com/go-stack/stack v1.8.1 // indirect
 	github.com/godbus/dbus v0.0.0-20190726142602-4481cbc300e2 // indirect
 	github.com/gogo/gateway v1.1.0 // indirect
-	github.com/gogo/protobuf v1.3.3 // indirect
 	github.com/golang/glog v1.0.0 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.2 // indirect

@@ -60,6 +60,7 @@ func (s *TransferTestSuite) QueryTransferReceiveEnabledParam(ctx context.Context
 // will be sent forwards and backwards in the IBC transfer timeline (both chains will act as source and receiver chains).
 func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized() {
 	t := s.T()
+	t.Log("running test!!!!")
 	ctx := context.TODO()
 
 	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, transferChannelOptions())
