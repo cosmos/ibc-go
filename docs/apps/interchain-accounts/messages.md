@@ -52,7 +52,7 @@ This message is expected to fail if:
 
 - `Owner` is an empty string.
 - `ConnectionID` is invalid (see [24-host naming requirements](https://github.com/cosmos/ibc/blob/master/spec/core/ics-024-host-requirements/README.md#paths-identifiers-separators)).
-- `PacketData` contains an `UNSPECIFIED` type enum, the length of `Data` bytes is zero or the `Memo` field exceeds `256` characters in length.
+- `PacketData` contains an `UNSPECIFIED` type enum, the length of `Data` bytes is zero or the `Memo` field exceeds 256 characters in length.
 - `RelativeTimeout` is zero.
 
 This message will create a new IBC packet with the provided `PacketData` and send it via the channel associated with the `Owner` and `ConnectionID`.
