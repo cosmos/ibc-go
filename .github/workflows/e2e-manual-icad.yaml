@@ -12,6 +12,7 @@ on:
         options:
           - TestInterTxTestSuite
           - TestIncentivizedInterTxTestSuite
+          - TestUpgradeTestSuite
       chain-image:
         description: 'The image to use for chain A'
         required: true
@@ -24,6 +25,8 @@ on:
         default: master
         options:
           - master
+          - v0.4.0
+          - v0.3.5
           - v0.3.4
           - v0.2.3
           - v0.1.4
@@ -34,6 +37,8 @@ on:
         type: choice
         options:
           - master
+          - v0.4.0
+          - v0.3.5
           - v0.3.4
           - v0.2.3
           - v0.1.4
