@@ -1,6 +1,6 @@
 {
-  "chain-a": ["release-v5.1.x", "v5.0.1", "release-v4.2.x", "v4.1.1", "release-v3.4.x", "v3.3.1", "release-v2.5.x", "v2.4.2"],
-  "chain-b": ["release-v5.1.x", "v5.0.1", "release-v4.2.x", "v4.1.1", "release-v3.4.x", "v3.3.1", "release-v2.5.x", "v2.4.2"],
+  "chain-a": ["release-v5.1.x", "release-v6.0.x", "v5.0.1", "release-v4.2.x", "v4.1.1", "release-v3.4.x", "v3.3.1", "release-v2.5.x", "v2.4.2"],
+  "chain-b": ["release-v5.1.x", "release-v6.0.x", "v5.0.1", "release-v4.2.x", "v4.1.1", "release-v3.4.x", "v3.3.1", "release-v2.5.x", "v2.4.2"],
   "entrypoint": ["TestTransferTestSuite"],
   "test": [
     "TestMsgTransfer_Succeeds_Nonincentivized",
