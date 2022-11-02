@@ -31,6 +31,8 @@ const (
 	GoRelayerTagEnv = "RLY_TAG"
 	// ChainBinaryEnv binary is the binary that will be used for both chains.
 	ChainBinaryEnv = "CHAIN_BINARY"
+	// ChainUpgradeTagEnv specifies the upgrade version tag
+	ChainUpgradeTagEnv = "CHAIN_UPGRADE_TAG"
 	// defaultBinary is the default binary that will be used by the chains.
 	defaultBinary = "simd"
 	// defaultRlyTag is the tag that will be used if no relayer tag is specified.
@@ -49,6 +51,7 @@ type TestConfig struct {
 	ChainAConfig ChainConfig
 	ChainBConfig ChainConfig
 	RlyTag       string
+	UpgradeTag   string
 }
 
 type ChainConfig struct {
@@ -86,6 +89,11 @@ func FromEnv() TestConfig {
 	}
 	chainBImage := chainAImage
 
+	upgradeTag, ok := os.LookupEnv(ChainUpgradeTagEnv)
+	if !ok {
+		upgradeTag = ""
+	}
+
 	return TestConfig{
 		ChainAConfig: ChainConfig{
 			Image:  chainAImage,
@@ -97,7 +105,8 @@ func FromEnv() TestConfig {
 			Tag:    chainBTag,
 			Binary: chainBinary,
 		},
-		RlyTag: rlyTag,
+		RlyTag:     rlyTag,
+		UpgradeTag: upgradeTag,
 	}
 }
 
