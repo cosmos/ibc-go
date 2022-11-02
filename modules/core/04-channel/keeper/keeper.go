@@ -32,14 +32,14 @@ type Keeper struct {
 	clientKeeper     types.ClientKeeper
 	connectionKeeper types.ConnectionKeeper
 	portKeeper       types.PortKeeper
-	scopedKeeper     types.ScopedKeeper
+	scopedKeeper     exported.ScopedKeeper
 }
 
 // NewKeeper creates a new IBC channel Keeper instance
 func NewKeeper(
 	cdc codec.BinaryCodec, key storetypes.StoreKey,
 	clientKeeper types.ClientKeeper, connectionKeeper types.ConnectionKeeper,
-	portKeeper types.PortKeeper, scopedKeeper types.ScopedKeeper,
+	portKeeper types.PortKeeper, scopedKeeper exported.ScopedKeeper,
 ) Keeper {
 	return Keeper{
 		storeKey:         key,

@@ -59,10 +59,10 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (modules/core/exported) [\#1107](https://github.com/cosmos/ibc-go/pull/1107) Merging the `Header` and `Misbehaviour` interfaces into a single `ClientMessage` type.
 * (06-solomachine)[\#1906](https://github.com/cosmos/ibc-go/pull/1906/files) Removed `AllowUpdateAfterProposal` boolean as it has been deprecated (see 01_concepts of the solo machine spec for more details).
 * (07-tendermint) [\#1896](https://github.com/cosmos/ibc-go/pull/1896) Remove error return from `IterateConsensusStateAscending` in `07-tendermint`.
-* (apps/27-interchain-accounts) [\#2035](https://github.com/cosmos/ibc-go/pull/2035) Interchain accounts host and controller Keepers now expects a keeper which fulfills the expected `ScopedKeeper` interface for the capability keeper.
-* (transfer) [\#2034](https://github.com/cosmos/ibc-go/pull/2034) Transfer Keeper now expects a keeper which fulfills the expected `ScopedKeeper` interface for the capability keeper.
-* (05-port) [\#2025](https://github.com/cosmos/ibc-go/pull/2025) Port Keeper now expects a keeper which fulfills the expected `ScopedKeeper` interface for the capability keeper.
-* (04-channel) [\#2024](https://github.com/cosmos/ibc-go/pull/2024) Channel Keeper now expects a keeper which fulfills the expected `ScopedKeeper` interface for the capability keeper.
+* (apps/27-interchain-accounts) [\#2638](https://github.com/cosmos/ibc-go/pull/2638) Interchain accounts host and controller Keepers now expects a keeper which fulfills the expected `exported.ScopedKeeper` interface for the capability keeper.
+* (transfer) [\#2638](https://github.com/cosmos/ibc-go/pull/2638) Transfer Keeper now expects a keeper which fulfills the expected `exported.ScopedKeeper` interface for the capability keeper.
+* (05-port) [\#2638](https://github.com/cosmos/ibc-go/pull/2638) Port Keeper now expects a keeper which fulfills the expected `exported.ScopedKeeper` interface for the capability keeper.
+* (04-channel) [\#2638](https://github.com/cosmos/ibc-go/pull/2638) Channel Keeper now expects a keeper which fulfills the expected `exported.ScopedKeeper` interface for the capability keeper.
 * (core/04-channel)[\#1703](https://github.com/cosmos/ibc-go/pull/1703) Update `SendPacket` API to take in necessary arguments and construct rest of packet rather than taking in entire packet. The generated packet sequence is returned by the `SendPacket` function.
 * (modules/apps/27-interchain-accounts) [\#2433](https://github.com/cosmos/ibc-go/pull/2450) Renamed icatypes.PortPrefix to icatypes.ControllerPortPrefix & icatypes.PortID to icatypes.HostPortID
 * (core/02-client) [\#2573](https://github.com/cosmos/ibc-go/pull/2573) Renames `ClientParams` gRPC query method to `Params`.
@@ -70,6 +70,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### State Machine Breaking
 
+* (apps/transfer) [\#2651](https://github.com/cosmos/ibc-go/pull/2651) Introduce `mustProtoMarshalJSON` for ics20 packet data marshalling which will skip emission (marshalling) of the memo field if unpopulated (empty). 
 * (27-interchain-accounts) [\#2580](https://github.com/cosmos/ibc-go/issues/2580) Removing port prefix requirement from the ICA host channel handshake
 * (transfer) [\#2377](https://github.com/cosmos/ibc-go/pull/2377) Adding `sequence` to `MsgTransferResponse`.
 * (light-clients/07-tendermint) [\#2554](https://github.com/cosmos/ibc-go/pull/2554) Forbid negative values for `TrustingPeriod`, `UnbondingPeriod` and `MaxClockDrift` (as specified in ICS-07).
@@ -121,6 +122,12 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (modules/core/02-client)[\#1676](https://github.com/cosmos/ibc-go/pull/1676) ClientState must be zeroed out for `UpgradeProposals` to pass validation. This prevents a proposal containing information governance is not actually voting on.
 * (modules/core/keeper) [\#2403](https://github.com/cosmos/ibc-go/pull/2403) Added a function in keeper to cater for blank pointers.
 
+## [v5.0.1](https://github.com/cosmos/ibc-go/releases/tag/v5.0.1) - 2022-10-27
+
+### Dependencies
+
+* [\#2623](https://github.com/cosmos/ibc-go/pull/2623) Bump SDK version to v0.46.3 and Tendermint version to v0.34.22.
+
 ## [v5.0.0](https://github.com/cosmos/ibc-go/releases/tag/v5.0.0) - 2022-09-28
 
 ### Dependencies
@@ -152,6 +159,12 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (27-interchain-accounts) [\#2308](https://github.com/cosmos/ibc-go/pull/2308) Nil checks have been added to ensure services are not registered for nil host or controller keepers.
 * (makefile) [\#1785](https://github.com/cosmos/ibc-go/pull/1785) Fetch the correct versions of protocol buffers dependencies from tendermint, cosmos-sdk, and ics23.
 * (modules/core/04-channel)[\#1919](https://github.com/cosmos/ibc-go/pull/1919) Fixed formatting of sequence for packet "acknowledgement written" logs.
+
+## [v4.1.1](https://github.com/cosmos/ibc-go/releases/tag/v4.1.1) - 2022-10-27
+
+### Dependencies
+
+* [\#2624](https://github.com/cosmos/ibc-go/pull/2624) Bump SDK version to v0.45.10 and Tendermint to v0.34.22.
 
 ## [v4.1.0](https://github.com/cosmos/ibc-go/releases/tag/v4.1.0) - 2022-09-20
 
@@ -229,6 +242,12 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (apps/29-fee) [\#1774](https://github.com/cosmos/ibc-go/pull/1774) Change non nil relayer assertion to non empty to avoid import/export issues for genesis upgrades. 
 * (apps/29-fee) [\#1278](https://github.com/cosmos/ibc-go/pull/1278) The URI path for the query to get all incentivized packets for a specific channel did not follow the same format as the rest of queries.
 * (modules/core/04-channel)[\#1919](https://github.com/cosmos/ibc-go/pull/1919) Fixed formatting of sequence for packet "acknowledgement written" logs.
+
+## [v3.3.1](https://github.com/cosmos/ibc-go/releases/tag/v3.3.1) - 2022-10-27
+
+### Dependencies
+
+* [\#2621](https://github.com/cosmos/ibc-go/pull/2621) Bump SDK version to v0.45.10 and Tendermint to v0.34.22.
 
 ## [v3.3.0](https://github.com/cosmos/ibc-go/releases/tag/v3.3.0) - 2022-09-20
 
@@ -397,6 +416,12 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (transfer) [\#978](https://github.com/cosmos/ibc-go/pull/978) Support base denoms with slashes in denom validation
 * (client) [\#941](https://github.com/cosmos/ibc-go/pull/941) Classify client states without consensus states as expired
 * (channel) [\#995](https://github.com/cosmos/ibc-go/pull/995) Call `packet.GetSequence()` rather than passing func in `AcknowledgePacket` log output
+
+## [v2.4.2](https://github.com/cosmos/ibc-go/releases/tag/v2.4.2) - 2022-10-27
+
+### Dependencies
+
+* [\#2622](https://github.com/cosmos/ibc-go/pull/2622) Bump SDK version to v0.45.10 and Tendermint to v0.34.22.
 
 ## [v2.4.1](https://github.com/cosmos/ibc-go/releases/tag/v2.4.1) - 2022-09-15
 
