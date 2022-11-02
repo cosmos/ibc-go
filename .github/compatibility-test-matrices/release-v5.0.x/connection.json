@@ -1,9 +1,9 @@
 {
   "chain-a": ["release-v5.0.x", "v4.1.1", "v3.3.1", "v2.4.2"],
   "chain-b": ["release-v5.0.x", "v4.1.1", "v3.3.1", "v2.4.2"],
-  "entrypoint": ["TestClientTestSuite"],
+  "entrypoint": ["TestConnectionTestSuite"],
   "test": [
-    "TestClientUpdateProposal_Succeeds"
+    "TestMaxExpectedTimePerBlockParam"
   ],
   "chain-binary": ["simd"],
   "chain-image": ["ghcr.io/cosmos/ibc-go-simd"]

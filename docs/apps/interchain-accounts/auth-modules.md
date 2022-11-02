@@ -247,7 +247,7 @@ if !found {
 // The appropriate serialization function should be called. The host chain must be able to deserialize the transaction. 
 // If the host chain is using the ibc-go host module, `SerializeCosmosTx` should be used. 
 msg := &banktypes.MsgSend{FromAddress: fromAddr, ToAddress: toAddr, Amount: amt}
-data, err := icatypes.SerializeCosmosTx(keeper.cdc, []sdk.Msg{msg})
+data, err := icatypes.SerializeCosmosTx(keeper.cdc, []proto.Message{msg})
 if err != nil {
     return err
 }
