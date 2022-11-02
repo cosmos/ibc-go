@@ -46,13 +46,13 @@ func TestAnteTestSuite(t *testing.T) {
 
 // createRecvPacketMessage creates a RecvPacket message for a packet sent from chain A to chain B.
 func (suite *AnteTestSuite) createRecvPacketMessage(isRedundant bool) sdk.Msg {
-	sequence, err := suite.path.EndpointA.SendPacket(clienttypes.NewHeight(2, 0), 0, ibctesting.MockPacketData)
+	sequence, err := suite.path.EndpointA.SendPacket(clienttypes.NewHeight(1, 0), 0, ibctesting.MockPacketData)
 	suite.Require().NoError(err)
 
 	packet := channeltypes.NewPacket(ibctesting.MockPacketData, sequence,
 		suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID,
 		suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID,
-		clienttypes.NewHeight(2, 0), 0)
+		clienttypes.NewHeight(1, 0), 0)
 
 	if isRedundant {
 		err = suite.path.EndpointB.RecvPacket(packet)
@@ -70,13 +70,13 @@ func (suite *AnteTestSuite) createRecvPacketMessage(isRedundant bool) sdk.Msg {
 
 // createAcknowledgementMessage creates an Acknowledgement message for a packet sent from chain B to chain A.
 func (suite *AnteTestSuite) createAcknowledgementMessage(isRedundant bool) sdk.Msg {
-	sequence, err := suite.path.EndpointB.SendPacket(clienttypes.NewHeight(2, 0), 0, ibctesting.MockPacketData)
+	sequence, err := suite.path.EndpointB.SendPacket(clienttypes.NewHeight(1, 0), 0, ibctesting.MockPacketData)
 	suite.Require().NoError(err)
 
 	packet := channeltypes.NewPacket(ibctesting.MockPacketData, sequence,
 		suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID,
 		suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID,
-		clienttypes.NewHeight(2, 0), 0)
+		clienttypes.NewHeight(1, 0), 0)
 	err = suite.path.EndpointA.RecvPacket(packet)
 	suite.Require().NoError(err)
 
