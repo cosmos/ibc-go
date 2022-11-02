@@ -9,6 +9,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	grouptypes "github.com/cosmos/cosmos-sdk/x/group"
+	"github.com/gogo/protobuf/proto"
 	ibctest "github.com/strangelove-ventures/ibctest/v6"
 	"github.com/strangelove-ventures/ibctest/v6/ibc"
 	"github.com/strangelove-ventures/ibctest/v6/test"
@@ -107,7 +108,6 @@ func (s *InterchainAccountsGroupsTestSuite) TestInterchainAccountsGroupsIntegrat
 		txResp, err := s.BroadcastMessages(ctx, chainA, chainAWallet, msgCreateGroupWithPolicy)
 		s.Require().NoError(err)
 		s.AssertValidTxResponse(txResp)
-
 	})
 
 	t.Run("submit proposal for MsgRegisterInterchainAccount", func(t *testing.T) {
@@ -169,7 +169,7 @@ func (s *InterchainAccountsGroupsTestSuite) TestInterchainAccountsGroupsIntegrat
 		banktypes.RegisterInterfaces(cfg.InterfaceRegistry)
 		cdc := codec.NewProtoCodec(cfg.InterfaceRegistry)
 
-		bz, err := icatypes.SerializeCosmosTx(cdc, []sdk.Msg{msgBankSend})
+		bz, err := icatypes.SerializeCosmosTx(cdc, []proto.Message{msgBankSend})
 		s.Require().NoError(err)
 
 		packetData := icatypes.InterchainAccountPacketData{
