@@ -502,11 +502,14 @@ func (suite *TendermintTestSuite) TestVerifyPacketCommitment() {
 			// setup testing conditions
 			path := ibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.Setup(path)
-			packet := channeltypes.NewPacket(ibctesting.MockPacketData, 1, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, clienttypes.NewHeight(0, 100), 0)
-			err := path.EndpointB.SendPacket(packet)
+			timeoutHeight := clienttypes.NewHeight(0, 100)
+
+			// send packet
+			sequence, err := path.EndpointB.SendPacket(timeoutHeight, 0, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
 
 			var ok bool
+			packet := channeltypes.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, timeoutHeight, 0)
 			clientStateI := suite.chainA.GetClientState(path.EndpointA.ClientID)
 			clientState, ok = clientStateI.(*types.ClientState)
 			suite.Require().True(ok)
@@ -616,13 +619,14 @@ func (suite *TendermintTestSuite) TestVerifyPacketAcknowledgement() {
 			// setup testing conditions
 			path := ibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.Setup(path)
-			packet := channeltypes.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.NewHeight(0, 100), 0)
+			timeoutHeight := clienttypes.NewHeight(0, 100)
 
 			// send packet
-			err := path.EndpointA.SendPacket(packet)
+			sequence, err := path.EndpointA.SendPacket(timeoutHeight, 0, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
 
 			// write receipt and ack
+			packet := channeltypes.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, 0)
 			err = path.EndpointB.RecvPacket(packet)
 			suite.Require().NoError(err)
 
@@ -735,13 +739,14 @@ func (suite *TendermintTestSuite) TestVerifyPacketReceiptAbsence() {
 			// setup testing conditions
 			path := ibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.Setup(path)
-			packet := channeltypes.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.NewHeight(0, 100), 0)
+			timeoutHeight := clienttypes.NewHeight(0, 100)
 
 			// send packet, but no recv
-			err := path.EndpointA.SendPacket(packet)
+			sequence, err := path.EndpointA.SendPacket(timeoutHeight, 0, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
 
 			var ok bool
+			packet := channeltypes.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, 0)
 			clientStateI := suite.chainA.GetClientState(path.EndpointA.ClientID)
 			clientState, ok = clientStateI.(*types.ClientState)
 			suite.Require().True(ok)
@@ -851,13 +856,14 @@ func (suite *TendermintTestSuite) TestVerifyNextSeqRecv() {
 			path := ibctesting.NewPath(suite.chainA, suite.chainB)
 			path.SetChannelOrdered()
 			suite.coordinator.Setup(path)
-			packet := channeltypes.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.NewHeight(0, 100), 0)
+			timeoutHeight := clienttypes.NewHeight(0, 100)
 
 			// send packet
-			err := path.EndpointA.SendPacket(packet)
+			sequence, err := path.EndpointA.SendPacket(timeoutHeight, 0, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
 
 			// next seq recv incremented
+			packet := channeltypes.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, 0)
 			err = path.EndpointB.RecvPacket(packet)
 			suite.Require().NoError(err)
 
