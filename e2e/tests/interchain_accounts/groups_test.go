@@ -54,9 +54,7 @@ const (
 	InitialProposalID = 1
 )
 
-func TestInterchainAccounts
-
-GroupsTestSuite(t *testing.T) {
+func TestInterchainAccountsGroupsTestSuite(t *testing.T) {
 	suite.Run(t, new(InterchainAccountsGroupsTestSuite))
 }
 
