@@ -108,6 +108,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (modules/core/keeper) [\#1728](https://github.com/cosmos/ibc-go/pull/2399) Updated channel callback errors to include portID & channelID for better identification of errors.
 * [\#2434](https://github.com/cosmos/ibc-go/pull/2478) Removed all `TypeMsg` constants
 * (modules/core/exported) [#1689] (https://github.com/cosmos/ibc-go/pull/2539) Removing `GetVersions` from `ConnectionI` interface.
+* (testing) [\#2657](https://github.com/cosmos/ibc-go/pull/2657) Carry `ProposerAddress` through commited blocks. Allow `DefaultGenTxGas` to be modified.
 
 ### Features
 
