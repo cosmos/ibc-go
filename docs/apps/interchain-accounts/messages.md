@@ -24,7 +24,7 @@ This message is expected to fail if:
 This message will construct a new `MsgChannelOpenInit` on chain and route it to the core IBC message server to initiate the opening step of the channel handshake.
 
 The controller module will generate a new port identifier and claim the associated port capability. The caller is expected to provide an appropriate application version string. For example, this may be an ICS27 JSON encoded `Metadata` type or an ICS29 JSON encoded `Metadata` type with a nested application version. 
-If the `Version` string omitted the application will construct a default version string in the `OnChanOpenInit` handshake callback.
+If the `Version` string is omitted,  the application will construct a default version string in the `OnChanOpenInit` handshake callback.
 
 ```go
 type MsgRegisterInterchainAccountResponse struct {
