@@ -112,18 +112,33 @@ func (suite *TendermintTestSuite) TestValidate() {
 			expPass:     false,
 		},
 		{
-			name:        "invalid trusting period",
+			name:        "invalid zero trusting period",
 			clientState: types.NewClientState(chainID, types.DefaultTrustLevel, 0, ubdPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath, false, false),
 			expPass:     false,
 		},
 		{
-			name:        "invalid unbonding period",
+			name:        "invalid negative trusting period",
+			clientState: types.NewClientState(chainID, types.DefaultTrustLevel, -1, ubdPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath, false, false),
+			expPass:     false,
+		},
+		{
+			name:        "invalid zero unbonding period",
 			clientState: types.NewClientState(chainID, types.DefaultTrustLevel, trustingPeriod, 0, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath, false, false),
 			expPass:     false,
 		},
 		{
-			name:        "invalid max clock drift",
+			name:        "invalid negative unbonding period",
+			clientState: types.NewClientState(chainID, types.DefaultTrustLevel, trustingPeriod, -1, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath, false, false),
+			expPass:     false,
+		},
+		{
+			name:        "invalid zero max clock drift",
 			clientState: types.NewClientState(chainID, types.DefaultTrustLevel, trustingPeriod, ubdPeriod, 0, height, commitmenttypes.GetSDKSpecs(), upgradePath, false, false),
+			expPass:     false,
+		},
+		{
+			name:        "invalid negative max clock drift",
+			clientState: types.NewClientState(chainID, types.DefaultTrustLevel, trustingPeriod, ubdPeriod, -1, height, commitmenttypes.GetSDKSpecs(), upgradePath, false, false),
 			expPass:     false,
 		},
 		{
