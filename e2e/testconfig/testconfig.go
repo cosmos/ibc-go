@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"os"
 
-	simappparams "cosmossdk.io/simapp/params"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/module/testutil"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
@@ -186,7 +186,7 @@ func defaultModifyGenesis() func(ibc.ChainConfig, []byte) ([]byte, error) {
 			return nil, fmt.Errorf("failed to unmarshal genesis bytes into app state: %w", err)
 		}
 
-		cfg := simappparams.MakeTestEncodingConfig()
+		cfg := testutil.MakeTestEncodingConfig()
 		govv1beta1.RegisterInterfaces(cfg.InterfaceRegistry)
 		cdc := codec.NewProtoCodec(cfg.InterfaceRegistry)
 
