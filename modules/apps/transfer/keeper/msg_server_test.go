@@ -104,17 +104,10 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 
 			expEvents := map[string]map[string]string{
 				"ibc_transfer": {
-					"sender":            suite.chainA.SenderAccount.GetAddress().String(),
-					"receiver":          suite.chainB.SenderAccount.GetAddress().String(),
-					"amount":            coin.Amount.String(),
-					"denom":             coin.Denom,
-					"src_port":          path.EndpointA.ChannelConfig.PortID,
-					"src_channel":       path.EndpointA.ChannelID,
-					"dst_port":          path.EndpointB.ChannelConfig.PortID,
-					"dst_channel":       path.EndpointB.ChannelID,
-					"timeout_height":    suite.chainB.GetTimeoutHeight().String(),
-					"timeout_timestamp": "0",
-					"memo":              "memo",
+					"sender":   suite.chainA.SenderAccount.GetAddress().String(),
+					"receiver": suite.chainB.SenderAccount.GetAddress().String(),
+					"amount":   coin.Amount.String(),
+					"denom":    coin.Denom,
 				},
 			}
 
