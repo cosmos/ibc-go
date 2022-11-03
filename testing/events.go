@@ -66,7 +66,7 @@ func ParsePacketFromEvents(events sdk.Events) (channeltypes.Packet, error) {
 			for _, attr := range ev.Attributes {
 				switch string(attr.Key) {
 				case channeltypes.AttributeKeyData: //nolint:staticcheck // DEPRECATED
-					packet.Data = attr.Value
+					packet.Data = []byte(attr.Value)
 
 				case channeltypes.AttributeKeySequence:
 					seq, err := strconv.ParseUint(string(attr.Value), 10, 64)
@@ -122,7 +122,7 @@ func ParseAckFromEvents(events sdk.Events) ([]byte, error) {
 		if ev.Type == channeltypes.EventTypeWriteAck {
 			for _, attr := range ev.Attributes {
 				if string(attr.Key) == channeltypes.AttributeKeyAck { //nolint:staticcheck // DEPRECATED
-					return attr.Value, nil
+					return []byte(attr.Value), nil
 				}
 			}
 		}
