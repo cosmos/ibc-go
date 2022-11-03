@@ -10,7 +10,6 @@ env:
 jobs:
   build-release-images:
     runs-on: ubuntu-latest
-    needs: determine-docker-tag
     strategy:
       matrix:
         release-branch:
