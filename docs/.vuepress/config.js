@@ -203,19 +203,14 @@ module.exports = {
                   path: "/apps/interchain-accounts/overview.html",
                 },
                 {
-                  title: "Authentication Modules",
-                  directory: false,
-                  path: "/apps/interchain-accounts/auth-modules.html",
-                },
-                {
-                  title: "Active Channels",
-                  directory: false,
-                  path: "/apps/interchain-accounts/active-channels.html",
-                },
-                {
                   title: "Integration",
                   directory: false,
                   path: "/apps/interchain-accounts/integration.html",
+                },
+                {
+                  title: "Messages",
+                  directory: false,
+                  path: "/apps/interchain-accounts/messages.html",
                 },
                 {
                   title: "Parameters",
@@ -223,9 +218,19 @@ module.exports = {
                   path: "/apps/interchain-accounts/parameters.html",
                 },
                 {
-                  title: "Transactions",
+                  title: "Development Use Cases",
                   directory: false,
-                  path: "/apps/interchain-accounts/transactions.html",
+                  path: "/apps/interchain-accounts/development.html",
+                },
+                {
+                  title: "Active Channels",
+                  directory: false,
+                  path: "/apps/interchain-accounts/active-channels.html",
+                },
+                {
+                  title: "Authentication Modules",
+                  directory: false,
+                  path: "/apps/interchain-accounts/auth-modules.html",
                 },
               ],
             },
