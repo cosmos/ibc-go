@@ -1,4 +1,4 @@
-name: Compatibility E2E (Release Branches)
+name: Compatibility E2E (All Unreleased)
 on:
   - workflow_dispatch
   - push
@@ -54,7 +54,7 @@ jobs:
       - build-release-images
     uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
     with:
-      test-file-directory: "release-branches"
+      test-file-directory: "unreleased"
       test-suite: "transfer"
 
   client:
@@ -62,7 +62,7 @@ jobs:
       - build-release-images
     uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
     with:
-      test-file-directory: "release-branches"
+      test-file-directory: "unreleased"
       test-suite: "client"
 
   incentivized-transfer:
@@ -70,5 +70,5 @@ jobs:
       - build-release-images
     uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
     with:
-      test-file-directory: "release-branches"
+      test-file-directory: "unreleased"
       test-suite: "incentivized-transfer"
