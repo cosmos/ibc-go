@@ -18,6 +18,7 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v6/modules/core/05-port/types"
 	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v6/modules/core/exported"
 )
 
 // Keeper defines the IBC interchain accounts controller keeper
@@ -30,7 +31,7 @@ type Keeper struct {
 	channelKeeper icatypes.ChannelKeeper
 	portKeeper    icatypes.PortKeeper
 
-	scopedKeeper icatypes.ScopedKeeper
+	scopedKeeper exported.ScopedKeeper
 
 	msgRouter icatypes.MessageRouter
 }
@@ -39,7 +40,7 @@ type Keeper struct {
 func NewKeeper(
 	cdc codec.BinaryCodec, key storetypes.StoreKey, paramSpace paramtypes.Subspace,
 	ics4Wrapper porttypes.ICS4Wrapper, channelKeeper icatypes.ChannelKeeper, portKeeper icatypes.PortKeeper,
-	scopedKeeper icatypes.ScopedKeeper, msgRouter icatypes.MessageRouter,
+	scopedKeeper exported.ScopedKeeper, msgRouter icatypes.MessageRouter,
 ) Keeper {
 	// set KeyTable if it has not already been set
 	if !paramSpace.HasKeyTable() {
