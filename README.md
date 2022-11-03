@@ -41,9 +41,19 @@ The Inter-Blockchain Communication protocol (IBC) allows blockchains to talk to 
 
 For an overview of upcoming changes to ibc-go take a look at the [roadmap](./docs/roadmap/roadmap.md).
 
+This roadmap is also available as a [project board](https://github.com/orgs/cosmos/projects/7/views/25).
+
+For the latest expected release timelines, please check [here](https://github.com/cosmos/ibc-go/wiki/Release-timeline).
+
+For the latest information on the progress of the work or the decisions made that might influence the roadmap, please follow our [engineering updates](https://github.com/cosmos/ibc-go/wiki/Engineering-updates).
+
 ## Releases
 
-The release lines currently supported are v2, v3, v4 and v5. Please refer to the [Stable Release Policy section of RELEASES.md](https://github.com/cosmos/ibc-go/blob/main/RELEASES.md#stable-release-policy) for more details.
+The release lines currently supported are v2, v3, v4 and v5. 
+
+Please refer to the [Stable Release Policy section of RELEASES.md](https://github.com/cosmos/ibc-go/blob/main/RELEASES.md#stable-release-policy) for more details.
+
+please refer to our [versioning guide](https://github.com/cosmos/ibc-go/blob/main/RELEASES.md) for more information on how to understand our release versioning.
 
 ## Ecosystem
 
