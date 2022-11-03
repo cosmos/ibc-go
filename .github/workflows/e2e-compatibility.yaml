@@ -63,7 +63,7 @@ jobs:
       - determine-docker-tag
     uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
     with:
-      docker-tag: "${{ needs.determine-docker-tag.outputs.docker-tag }}"
+      test-file-directory: "${{ needs.determine-docker-tag.outputs.docker-tag }}"
       test-suite: "transfer"
 
   client:
@@ -72,7 +72,7 @@ jobs:
       - determine-docker-tag
     uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
     with:
-      docker-tag: "${{ needs.determine-docker-tag.outputs.docker-tag }}"
+      test-file-directory: "${{ needs.determine-docker-tag.outputs.docker-tag }}"
       test-suite: "client"
 
   incentivized-transfer:
@@ -81,5 +81,5 @@ jobs:
       - determine-docker-tag
     uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
     with:
-      docker-tag: "${{ needs.determine-docker-tag.outputs.docker-tag }}"
+      test-file-directory: "${{ needs.determine-docker-tag.outputs.docker-tag }}"
       test-suite: "incentivized-transfer"
