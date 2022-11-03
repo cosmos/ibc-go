@@ -1,8 +1,8 @@
 go 1.18
 
-retract [v3.0.0, v3.3.0] //uses cosmos-sdk versions that aren't patched for dragonberry
-
 module github.com/cosmos/ibc-go/v3
+
+retract [v3.0.0, v3.3.0] // depends on SDK version without dragonberry fix
 
 require (
 	github.com/armon/go-metrics v0.4.0
