@@ -9,6 +9,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v5/modules/core/exported"
 )
 
@@ -27,8 +28,8 @@ func (c *ClientState) Validate() error {
 		return fmt.Errorf("data cannot be empty")
 	}
 
-	if c.Name == "" || len(c.Name) == 0 {
-		return fmt.Errorf("name cannot be empty")
+	if c.CodeId == nil || len(c.CodeId) == 0 {
+		return fmt.Errorf("codeid cannot be empty")
 	}
 	return nil
 }
@@ -110,8 +111,12 @@ func (c *ClientState) GetTimestampAtHeight(
 	cdc codec.BinaryCodec,
 	height exported.Height,
 ) (uint64, error) {
-	// TODO: implement
-	return 0, nil
+	// get consensus state at height from clientStore to check for expiry
+	consState, found := GetConsensusState(clientStore, cdc, height)
+	if found != nil {
+		return 0, sdkerrors.Wrapf(clienttypes.ErrConsensusStateNotFound, "height (%s)", height)
+	}
+	return consState.GetTimestamp(), nil
 }
 
 func (c *ClientState) Initialize(context sdk.Context, marshaler codec.BinaryCodec, store sdk.KVStore, state exported.ConsensusState) error {
@@ -149,6 +154,11 @@ func (c *ClientState) Initialize(context sdk.Context, marshaler codec.BinaryCode
 	output.resetImmutables(c)
 
 	*c = *output.Me
+
+	_, err = SaveClientStateIntoWasmStorage(context, marshaler, store, c)
+	if err != nil {
+		return fmt.Errorf("%s error occurred while duplicating into wasm storage", err.Error())
+	}
 	return nil
 }
 
@@ -183,39 +193,6 @@ func (c *ClientState) VerifyClientMessage(ctx sdk.Context, cdc codec.BinaryCodec
 	return nil
 }
 
-// func (c *ClientState) CheckHeaderAndUpdateState(context sdk.Context, marshaler codec.BinaryCodec, store sdk.KVStore, header exported.Header) (exported.ClientState, exported.ConsensusState, error) {
-// 	consensusState, err := GetConsensusState(store, marshaler, c.LatestHeight)
-// 	if err != nil {
-// 		return nil, nil, sdkerrors.Wrapf(err, "could not get trusted consensus state from clientStore for Header at Height: %s", header.GetHeight())
-// 	}
-
-// 	const CheckHeaderAndUpdateState = "checkheaderandupdatestate"
-// 	payload := make(map[string]map[string]interface{})
-// 	payload[CheckHeaderAndUpdateState] = make(map[string]interface{})
-// 	inner := payload[CheckHeaderAndUpdateState]
-// 	inner["me"] = c
-// 	inner["header"] = header
-// 	inner["consensus_state"] = consensusState
-
-// 	encodedData, err := json.Marshal(payload)
-// 	if err != nil {
-// 		return nil, nil, sdkerrors.Wrapf(ErrUnableToMarshalPayload, fmt.Sprintf("underlying error: %s", err.Error()))
-// 	}
-// 	out, err := callContract(c.CodeId, context, store, encodedData)
-// 	if err != nil {
-// 		return nil, nil, sdkerrors.Wrapf(ErrUnableToCall, fmt.Sprintf("underlying error: %s", err.Error()))
-// 	}
-// 	output := clientStateCallResponse{}
-// 	if err := json.Unmarshal(out.Data, &output); err != nil {
-// 		return nil, nil, sdkerrors.Wrapf(ErrUnableToUnmarshalPayload, fmt.Sprintf("underlying error: %s", err.Error()))
-// 	}
-// 	if !output.Result.IsValid {
-// 		return nil, nil, fmt.Errorf("%s error occurred while updating client state", output.Result.ErrorMsg)
-// 	}
-// 	output.resetImmutables(c)
-// 	return output.NewClientState, output.NewConsensusState, nil
-// }
-
 func (c *ClientState) CheckForMisbehaviour(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, msg exported.ClientMessage) bool {
 	// TODO: implement
 	return false
@@ -226,57 +203,12 @@ func (c *ClientState) UpdateStateOnMisbehaviour(ctx sdk.Context, cdc codec.Binar
 	return
 }
 
-// func (c *ClientState) CheckMisbehaviourAndUpdateState(context sdk.Context, marshaler codec.BinaryCodec, store sdk.KVStore, misbehaviour exported.Misbehaviour) (exported.ClientState, error) {
-// 	wasmMisbehaviour, ok := misbehaviour.(*Misbehaviour)
-// 	if !ok {
-// 		return nil, sdkerrors.Wrapf(
-// 			clienttypes.ErrInvalidMisbehaviour,
-// 			"invalid misbehaviour type %T, expected %T", wasmMisbehaviour, &Misbehaviour{},
-// 		)
-// 	}
-
-// 	// Get consensus bytes from clientStore
-// 	consensusState1, err := GetConsensusState(store, marshaler, wasmMisbehaviour.Header1.Height)
-// 	if err != nil {
-// 		return nil, sdkerrors.Wrapf(err, "could not get trusted consensus state from clientStore for Header1 at Height: %s", wasmMisbehaviour.Header1)
-// 	}
-
-// 	// Get consensus bytes from clientStore
-// 	consensusState2, err := GetConsensusState(store, marshaler, wasmMisbehaviour.Header2.Height)
-// 	if err != nil {
-// 		return nil, sdkerrors.Wrapf(err, "could not get trusted consensus state from clientStore for Header2 at Height: %s", wasmMisbehaviour.Header2)
-// 	}
-
-// 	const CheckMisbehaviourAndUpdateState = "checkmisbehaviourandupdatestate"
-// 	payload := make(map[string]map[string]interface{})
-// 	payload[CheckMisbehaviourAndUpdateState] = make(map[string]interface{})
-// 	inner := payload[CheckMisbehaviourAndUpdateState]
-// 	inner["me"] = c
-// 	inner["misbehaviour"] = wasmMisbehaviour
-// 	inner["consensus_state1"] = consensusState1
-// 	inner["consensus_state2"] = consensusState2
-
-// 	encodedData, err := json.Marshal(payload)
-// 	if err != nil {
-// 		return nil, sdkerrors.Wrapf(ErrUnableToMarshalPayload, fmt.Sprintf("underlying error: %s", err.Error()))
-// 	}
-// 	out, err := callContract(c.CodeId, context, store, encodedData)
-// 	if err != nil {
-// 		return nil, sdkerrors.Wrapf(ErrUnableToCall, fmt.Sprintf("underlying error: %s", err.Error()))
-// 	}
-// 	output := clientStateCallResponse{}
-// 	if err := json.Unmarshal(out.Data, &output); err != nil {
-// 		return nil, sdkerrors.Wrapf(ErrUnableToUnmarshalPayload, fmt.Sprintf("underlying error: %s", err.Error()))
-// 	}
-// 	if !output.Result.IsValid {
-// 		return nil, fmt.Errorf("%s error occurred while updating client state", output.Result.ErrorMsg)
-// 	}
-// 	output.resetImmutables(c)
-// 	return output.NewClientState, nil
-// }
-// CheckSubstituteAndUpdateState(ctx sdk.Context, cdc codec.BinaryCodec, subjectClientStore, substituteClientStore sdk.KVStore, substituteClient ClientState) error
-
 func (c *ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, clientMsg exported.ClientMessage) []exported.Height {
+	_, err := SaveClientStateIntoWasmStorage(ctx, cdc, clientStore, c)
+	// TODO: implement
+	if err != nil {
+		return []exported.Height{}
+	}
 	return []exported.Height{}
 }
 
@@ -335,57 +267,13 @@ func (c *ClientState) VerifyUpgradeAndUpdateState(
 	proofUpgradeClient,
 	proofUpgradeConsState []byte,
 ) error {
-	// TODO: Implement
+	_, err := SaveClientStateIntoWasmStorage(ctx, cdc, store, c)
+	// TODO: implement
+	if err != nil {
+		return fmt.Errorf("%s error occurred while duplicating into wasm storage", err.Error())
+	}
 	return nil
 }
-
-// func (c *ClientState) VerifyUpgradeAndUpdateState(ctx sdk.Context, cdc codec.BinaryCodec, store sdk.KVStore, newClient exported.ClientState, newConsState exported.ConsensusState, proofUpgradeClient, proofUpgradeConsState []byte) (exported.ClientState, exported.ConsensusState, error) {
-// 	wasmUpgradeConsState, ok := newConsState.(*ConsensusState)
-// 	if !ok {
-// 		return nil, nil, sdkerrors.Wrapf(clienttypes.ErrInvalidConsensus, "upgraded consensus state must be Tendermint consensus state. expected %T, got: %T",
-// 			&ConsensusState{}, wasmUpgradeConsState)
-// 	}
-
-// 	// last height of current counterparty chain must be client's latest height
-// 	lastHeight := c.LatestHeight
-// 	lastHeightConsensusState, err := GetConsensusState(store, cdc, lastHeight)
-// 	if err != nil {
-// 		return nil, nil, sdkerrors.Wrap(err, "could not retrieve consensus state for lastHeight")
-// 	}
-
-// 	const VerifyUpgradeAndUpdateState = "verifyupgradeandupdatestate"
-// 	payload := make(map[string]map[string]interface{})
-// 	payload[VerifyUpgradeAndUpdateState] = make(map[string]interface{})
-// 	inner := payload[VerifyUpgradeAndUpdateState]
-// 	inner["me"] = c
-// 	inner["new_client_state"] = newClient
-// 	inner["new_consensus_state"] = newConsState
-// 	inner["client_upgrade_proof"] = proofUpgradeClient
-// 	inner["consensus_state_upgrade_proof"] = proofUpgradeConsState
-// 	inner["last_height_consensus_state"] = lastHeightConsensusState
-
-// 	encodedData, err := json.Marshal(payload)
-// 	if err != nil {
-// 		return nil, nil, sdkerrors.Wrapf(ErrUnableToMarshalPayload, fmt.Sprintf("underlying error: %s", err.Error()))
-// 	}
-// 	out, err := callContract(c.CodeId, ctx, store, encodedData)
-// 	if err != nil {
-// 		return nil, nil, sdkerrors.Wrapf(ErrUnableToCall, fmt.Sprintf("underlying error: %s", err.Error()))
-// 	}
-// 	output := clientStateCallResponse{}
-// 	if err := json.Unmarshal(out.Data, &output); err != nil {
-// 		return nil, nil, sdkerrors.Wrapf(ErrUnableToUnmarshalPayload, fmt.Sprintf("underlying error: %s", err.Error()))
-// 	}
-// 	if !output.Result.IsValid {
-// 		return nil, nil, fmt.Errorf("%s error occurred while updating client state", output.Result.ErrorMsg)
-// 	}
-// 	output.resetImmutables(c)
-// 	return output.NewClientState, output.NewConsensusState, nil
-// }
-
-/**
-Following functions only queries the state so should be part of query call
-*/
 
 func (c *ClientState) GetProofSpecs() []*ics23.ProofSpec {
 	return c.ProofSpecs

@@ -2,11 +2,13 @@ package types
 
 import (
 	"bytes"
+	"crypto/sha256"
 	"strings"
 
 	cosmwasm "github.com/CosmWasm/wasmvm"
 	"github.com/CosmWasm/wasmvm/types"
 	ics23 "github.com/confio/ics23/go"
+	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
@@ -58,7 +60,7 @@ type clientStateCallResponse struct {
 
 func (r *clientStateCallResponse) resetImmutables(c *ClientState) {
 	if r.Me != nil {
-		r.Me.Code = c.Code
+		r.Me.CodeId = c.CodeId
 	}
 
 	if r.NewConsensusState != nil {
@@ -89,14 +91,21 @@ func CreateVM(vmConfig *VMConfig, validationConfig *ValidationConfig) {
 	WasmVal = wasmValidator
 }
 
-func PushNewWasmCode(store sdk.KVStore, c *ClientState) error {
-	// check to see if the store has a code with the same name
-	if store.Has([]byte(c.Name)) {
+func SaveClientStateIntoWasmStorage(ctx sdk.Context, cdc codec.BinaryCodec, store sdk.KVStore, c *ClientState) (*types.Response, error) {
+	msg := clienttypes.MustMarshalClientState(cdc, c)
+	return callContract(c.CodeId, ctx, store, msg)
+}
+
+func PushNewWasmCode(store sdk.KVStore, c *ClientState, code []byte) error {
+	// check to see if the store has a code with the same code id
+	codeHash := generateWasmCodeHash(code)
+	codeIDKey := CodeID(codeHash)
+	if store.Has(codeIDKey) {
 		return ErrWasmCodeExists
 	}
 
 	// run the code through the wasm light client validation process
-	if isValidWasmCode, err := WasmVal.validateWasmCode(c.Code); err != nil {
+	if isValidWasmCode, err := WasmVal.validateWasmCode(code); err != nil {
 		return sdkerrors.Wrapf(ErrWasmCodeValidation, "unable to validate wasm code: %s", err)
 	} else if !isValidWasmCode {
 		return ErrWasmInvalidCode
@@ -105,15 +114,17 @@ func PushNewWasmCode(store sdk.KVStore, c *ClientState) error {
 	// create the code in the vm
 	// TODO: do we need to check and make sure there
 	// is no code with the same hash?
-	codeID, err := WasmVM.Create(c.Code)
+	codeID, err := WasmVM.Create(code)
 	if err != nil {
 		return ErrWasmInvalidCode
 	}
 
 	// safety check to assert that code id returned by WasmVM equals to code hash
-	if !bytes.Equal(codeID, c.CodeHash) {
+	if !bytes.Equal(codeID, codeHash) {
 		return ErrWasmInvalidCodeID
 	}
+
+	store.Set(codeIDKey, code)
 	return nil
 }
 
@@ -220,4 +231,9 @@ func consumeGas(ctx sdk.Context, gas uint64) {
 	if ctx.GasMeter().IsOutOfGas() {
 		panic(sdk.ErrorOutOfGas{Descriptor: "Wasmer function execution"})
 	}
+}
+
+func generateWasmCodeHash(code []byte) []byte {
+	hash := sha256.Sum256(code)
+	return hash[:]
 }

@@ -93,7 +93,7 @@ func (ws WrappedStore) getStore(key []byte) sdk.KVStore {
 }
 
 // setClientState stores the client state
-func setClientState(clientStore sdk.KVStore, cdc codec.BinaryCodec, clientState *ClientState) {
+func SetClientState(clientStore sdk.KVStore, cdc codec.BinaryCodec, clientState *ClientState) {
 	key := host.ClientStateKey()
 	val := clienttypes.MustMarshalClientState(cdc, clientState)
 	clientStore.Set(key, val)

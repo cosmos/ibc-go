@@ -22,7 +22,6 @@ import (
 	connectiontypes "github.com/cosmos/ibc-go/v5/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
-	wasmtypes "github.com/cosmos/ibc-go/v5/modules/core/28-wasm/types"
 	"github.com/cosmos/ibc-go/v5/modules/core/client/cli"
 	"github.com/cosmos/ibc-go/v5/modules/core/keeper"
 	"github.com/cosmos/ibc-go/v5/modules/core/simulation"
@@ -78,7 +77,6 @@ func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *r
 	if err != nil {
 		panic(err)
 	}
-	err = wasmtypes.RegisterQueryHandlerClient(context.Background(), mux, wasmtypes.NewQueryClient(clientCtx))
 }
 
 // GetTxCmd returns the root tx command for the ibc module.
@@ -139,7 +137,6 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	clienttypes.RegisterMsgServer(cfg.MsgServer(), am.keeper)
 	connectiontypes.RegisterMsgServer(cfg.MsgServer(), am.keeper)
 	channeltypes.RegisterMsgServer(cfg.MsgServer(), am.keeper)
-	wasmtypes.RegisterMsgServer(cfg.MsgServer(), am.keeper)
 	types.RegisterQueryService(cfg.QueryServer(), am.keeper)
 
 	m := clientkeeper.NewMigrator(am.keeper.ClientKeeper)

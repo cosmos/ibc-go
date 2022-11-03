@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"context"
-	"encoding/hex"
 
 	metrics "github.com/armon/go-metrics"
 	"github.com/cosmos/cosmos-sdk/telemetry"
@@ -13,7 +12,6 @@ import (
 	connectiontypes "github.com/cosmos/ibc-go/v5/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v5/modules/core/05-port/types"
-	wasmtypes "github.com/cosmos/ibc-go/v5/modules/core/28-wasm/types"
 	coretypes "github.com/cosmos/ibc-go/v5/modules/core/types"
 )
 
@@ -21,30 +19,7 @@ var (
 	_ clienttypes.MsgServer     = Keeper{}
 	_ connectiontypes.MsgServer = Keeper{}
 	_ channeltypes.MsgServer    = Keeper{}
-	_ wasmtypes.MsgServer       = Keeper{}
 )
-
-// SubmitWasmLightClient defines a rpc handler method for MsgSubmitWasmLightClient
-func (k Keeper) SubmitWasmLightClient(goCtx context.Context, msg *wasmtypes.MsgSubmitWasmLightClient) (*wasmtypes.MsgSubmitWasmLightClientResponse, error) {
-	ctx := sdk.UnwrapSDKContext(goCtx)
-	res, err := k.WasmKeeper.SubmitWasmLightClient(ctx, msg)
-	if err != nil {
-		return nil, err
-	}
-
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			clienttypes.EventTypePushWasmCode,
-			sdk.NewAttribute(clienttypes.AttributeKeyWasmCodeID, hex.EncodeToString(res.CodeId)),
-		),
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, clienttypes.AttributeValueCategory),
-		),
-	})
-
-	return res, nil
-}
 
 // CreateClient defines a rpc handler method for MsgCreateClient.
 func (k Keeper) CreateClient(goCtx context.Context, msg *clienttypes.MsgCreateClient) (*clienttypes.MsgCreateClientResponse, error) {

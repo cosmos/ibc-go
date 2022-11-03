@@ -6,7 +6,6 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v5/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
-	wasmtypes "github.com/cosmos/ibc-go/v5/modules/core/28-wasm/types"
 )
 
 // ClientState implements the IBC QueryServer interface
@@ -27,11 +26,6 @@ func (q Keeper) ConsensusState(c context.Context, req *clienttypes.QueryConsensu
 // ConsensusStates implements the IBC QueryServer interface
 func (q Keeper) ConsensusStates(c context.Context, req *clienttypes.QueryConsensusStatesRequest) (*clienttypes.QueryConsensusStatesResponse, error) {
 	return q.ClientKeeper.ConsensusStates(c, req)
-}
-
-// WasmCode implements the IBC QueryServer interface
-func (q Keeper) WasmLightClient(c context.Context, req *wasmtypes.WasmLightClientRequest) (*wasmtypes.WasmLightClientResponse, error) {
-	return q.WasmKeeper.WasmLightClient(c, req)
 }
 
 // ConsensusStateHeights implements the IBC QueryServer interface
