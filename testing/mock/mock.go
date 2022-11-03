@@ -100,21 +100,6 @@ func NewAppModule(pk PortKeeper) AppModule {
 // RegisterInvariants implements the AppModule interface.
 func (AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {}
 
-// Route implements the AppModule interface.
-func (am AppModule) Route() sdk.Route {
-	return sdk.NewRoute(ModuleName, nil)
-}
-
-// QuerierRoute implements the AppModule interface.
-func (AppModule) QuerierRoute() string {
-	return ""
-}
-
-// LegacyQuerierHandler implements the AppModule interface.
-func (am AppModule) LegacyQuerierHandler(*codec.LegacyAmino) sdk.Querier {
-	return nil
-}
-
 // RegisterServices implements the AppModule interface.
 func (am AppModule) RegisterServices(module.Configurator) {}
 
