@@ -8,7 +8,8 @@ require (
 	github.com/armon/go-metrics v0.4.1
 	github.com/confio/ics23/go v0.7.0
 	github.com/cosmos/cosmos-proto v1.0.0-alpha8
-	github.com/cosmos/cosmos-sdk v0.46.2
+	// cosmos-sdk main @20448048a489 ≃ 0.47
+	github.com/cosmos/cosmos-sdk v0.46.0-beta2.0.20221103211459-20448048a489
 	github.com/cosmos/gogoproto v1.4.2
 	github.com/golang/protobuf v1.5.2
 	github.com/gorilla/mux v1.8.0
@@ -160,5 +161,3 @@ require (
 	pgregory.net/rapid v0.5.3 // indirect
 	sigs.k8s.io/yaml v1.3.0 // indirect
 )
-
-replace github.com/cosmos/cosmos-sdk => ../cosmos-sdk
