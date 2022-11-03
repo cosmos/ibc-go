@@ -1,5 +1,7 @@
 name: Compatibility E2E (Release Branches)
-on: workflow_dispatch
+on:
+  - workflow_dispatch
+  - push
 
 env:
   REGISTRY: ghcr.io
