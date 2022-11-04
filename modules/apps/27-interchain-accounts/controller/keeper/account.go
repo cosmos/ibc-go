@@ -32,10 +32,7 @@ func (k Keeper) RegisterInterchainAccount(ctx sdk.Context, connectionID, owner, 
 		return err
 	}
 
-	isChannelClosed := k.IsActiveChannelClosed(ctx, connectionID, portID)
-	isMiddlewareEnabled := k.IsMiddlewareDisabled(ctx, portID, connectionID)
-
-	if isMiddlewareEnabled && !isChannelClosed {
+	if k.IsMiddlewareDisabled(ctx, portID, connectionID) && !k.IsActiveChannelClosed(ctx, connectionID, portID) {
 		return sdkerrors.Wrap(icatypes.ErrInvalidChannelFlow, "something meaningful...")
 	} else {
 		k.SetMiddlewareEnabled(ctx, portID, connectionID)
