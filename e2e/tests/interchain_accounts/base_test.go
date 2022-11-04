@@ -224,10 +224,12 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_IncorrectOwner() {
 			resp, err := s.BroadcastMessages(
 				ctx,
 				chainA,
-				controllerAccount,
+				nonControllerChainAAccount,
 				msgSendTx,
 			)
 
+			t.Logf("%+v", resp)
+			t.Logf("%+v", err)
 			s.Require().Equal(sdkerrors.ErrInvalidPubKey.ABCICode(), resp.Code)
 			s.Require().Error(err)
 
