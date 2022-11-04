@@ -46,11 +46,10 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (apps/transfer) [\#2446](https://github.com/cosmos/ibc-go/pull/2446) Remove `SendTransfer` function in favor of a private `sendTransfer` function. All IBC transfers must be initiated with `MsgTransfer`.
 * (apps/29-fee) [\#2395](https://github.com/cosmos/ibc-go/pull/2395) Remove param space from ics29 NewKeeper function. The field was unused.
 * (apps/27-interchain-accounts) [\#2133](https://github.com/cosmos/ibc-go/pull/2133) Generates genesis protos in a separate directory to avoid circular import errors. The protobuf package name has changed for the genesis types.
-<<<<<<< HEAD
-* (apps/27-interchain-accounts) [\#2035](https://github.com/cosmos/ibc-go/pull/2035) Interchain accounts host and controller Keepers now expects a keeper which fulfills the expected `ScopedKeeper` interface for the capability keeper.
-* (transfer) [\#2034](https://github.com/cosmos/ibc-go/pull/2034) Transfer Keeper now expects a keeper which fulfills the expected `ScopedKeeper` interface for the capability keeper.
-* (05-port) [\#2025](https://github.com/cosmos/ibc-go/pull/2025) Port Keeper now expects a keeper which fulfills the expected `ScopedKeeper` interface for the capability keeper.
-* (04-channel) [\#2024](https://github.com/cosmos/ibc-go/pull/2024) Channel Keeper now expects a keeper which fulfills the expected `ScopedKeeper` interface for the capability keeper.
+* (apps/27-interchain-accounts) [\#2638](https://github.com/cosmos/ibc-go/pull/2638) Interchain accounts host and controller Keepers now expects a keeper which fulfills the expected `exported.ScopedKeeper` interface for the capability keeper.
+* (transfer) [\#2638](https://github.com/cosmos/ibc-go/pull/2638) Transfer Keeper now expects a keeper which fulfills the expected `exported.ScopedKeeper` interface for the capability keeper.
+* (05-port) [\#2638](https://github.com/cosmos/ibc-go/pull/2638) Port Keeper now expects a keeper which fulfills the expected `exported.ScopedKeeper` interface for the capability keeper.
+* (04-channel) [\#2638](https://github.com/cosmos/ibc-go/pull/2638) Channel Keeper now expects a keeper which fulfills the expected `exported.ScopedKeeper` interface for the capability keeper.
 * (core/04-channel)[\#1703](https://github.com/cosmos/ibc-go/pull/1703) Update `SendPacket` API to take in necessary arguments and construct rest of packet rather than taking in entire packet. The generated packet sequence is returned by the `SendPacket` function.
 * (modules/apps/27-interchain-accounts) [\#2433](https://github.com/cosmos/ibc-go/pull/2450) Renamed icatypes.PortPrefix to icatypes.ControllerPortPrefix & icatypes.PortID to icatypes.HostPortID
 * (core/02-client) [\#2573](https://github.com/cosmos/ibc-go/pull/2573) Renames `ClientParams` gRPC query method to `Params`.
