@@ -25,7 +25,7 @@ jobs:
   determine-test-directory:
     runs-on: ubuntu-latest
     outputs:
-      test-directory: ${{ steps.set-test-dir.outputs.docker-tag }}
+      test-directory: ${{ steps.set-test-dir.outputs.test-directory }}
     steps:
       - run: |
           test_dir="$(echo $RELEASE_BRANCH | sed 's/\//-/')"
