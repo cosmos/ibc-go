@@ -1,7 +1,7 @@
 name: Compatibility E2E (All Unreleased)
 on:
   - workflow_dispatch
-  - push
+#  - push
 
 env:
   REGISTRY: ghcr.io
