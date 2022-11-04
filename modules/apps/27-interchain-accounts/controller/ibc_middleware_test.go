@@ -875,3 +875,46 @@ func (suite *InterchainAccountsTestSuite) TestInFlightHandshakeRespectsMsgServer
 	err = RegisterInterchainAccount(path.EndpointA, suite.chainA.SenderAccount.GetAddress().String())
 	suite.Require().Error(err)
 }
+
+func (suite *InterchainAccountsTestSuite) TestClosedChannelReopenedViaMsgServer() {
+	path := NewICAPath(suite.chainA, suite.chainB)
+	suite.coordinator.SetupConnections(path)
+
+	err := SetupICAPath(path, suite.chainA.SenderAccount.GetAddress().String())
+	suite.Require().NoError(err)
+
+	// set the channel state to closed
+	err = path.EndpointA.SetChannelClosed()
+	suite.Require().NoError(err)
+	err = path.EndpointB.SetChannelClosed()
+	suite.Require().NoError(err)
+
+	// reset endpoint channel ids
+	path.EndpointA.ChannelID = ""
+	path.EndpointB.ChannelID = ""
+
+	// fetch the next channel sequence before reinitiating the channel handshake
+	channelSeq := suite.chainA.GetSimApp().GetIBCKeeper().ChannelKeeper.GetNextChannelSequence(suite.chainA.GetContext())
+
+	// route a new MsgRegisterInterchainAccount in order to reopen the
+	msgServer := controllerkeeper.NewMsgServerImpl(&suite.chainA.GetSimApp().ICAControllerKeeper)
+	msgRegisterInterchainAccount := types.NewMsgRegisterInterchainAccount(path.EndpointA.ConnectionID, suite.chainA.SenderAccount.GetAddress().String(), path.EndpointA.ChannelConfig.Version)
+
+	res, err := msgServer.RegisterInterchainAccount(suite.chainA.GetContext(), msgRegisterInterchainAccount)
+	suite.Require().NotNil(res)
+	suite.Require().NoError(err)
+
+	// assign the channel sequence to endpointA before generating proofs and initiating the TRY step
+	path.EndpointA.ChannelID = channeltypes.FormatChannelIdentifier(channelSeq)
+
+	path.EndpointA.Chain.NextBlock()
+
+	err = path.EndpointB.ChanOpenTry()
+	suite.Require().NoError(err)
+
+	err = path.EndpointA.ChanOpenAck()
+	suite.Require().NoError(err)
+
+	err = path.EndpointB.ChanOpenConfirm()
+	suite.Require().NoError(err)
+}
