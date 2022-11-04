@@ -33,6 +33,9 @@ jobs:
           echo "::set-output name=docker-tag::$docker_tag"
         id: set-docker-tag
 
+  # build-release-images builds all docker images that are relevant for the compatibility tests. If a single release
+  # branch is specified, only that image will be built, e.g. release-v6.0.x but if 'unreleased' is specified
+  # every image will be built.
   build-release-images:
     runs-on: ubuntu-latest
     needs: determine-docker-tag
