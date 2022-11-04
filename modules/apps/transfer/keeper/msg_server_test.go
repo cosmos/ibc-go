@@ -21,8 +21,6 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 			true,
 		},
 		{
-<<<<<<< HEAD
-=======
 			"bank send enabled for denom",
 			func() {
 				suite.chainA.GetSimApp().BankKeeper.SetParams(suite.chainA.GetContext(),
@@ -34,18 +32,6 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 			true,
 		},
 		{
-			"send transfers disabled",
-			func() {
-				suite.chainA.GetSimApp().TransferKeeper.SetParams(suite.chainA.GetContext(),
-					types.Params{
-						SendEnabled: false,
-					},
-				)
-			},
-			false,
-		},
-		{
->>>>>>> b1f494c (add check send enabled (#2679))
 			"invalid sender",
 			func() {
 				msg.Sender = "address"
