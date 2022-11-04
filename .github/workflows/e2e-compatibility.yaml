@@ -47,27 +47,27 @@ jobs:
           - release/v6.0.x
     steps:
       - uses: actions/checkout@v3
-        if: env.RELEASE_BRANCH == "unreleased" || env.RELEASE_BRANCH == matrix.release-branch
+        if: env.RELEASE_BRANCH == 'unreleased' || env.RELEASE_BRANCH == matrix.release-branch
         with:
           ref: "${{ env.RELEASE_BRANCH }}"
           fetch-depth: 0
       - name: Log in to the Container registry
-        if: env.RELEASE_BRANCH == "unreleased" || env.RELEASE_BRANCH == matrix.release-branch
+        if: env.RELEASE_BRANCH == 'unreleased' || env.RELEASE_BRANCH == matrix.release-branch
         uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Fetch Makefile dependencies
-        if: env.RELEASE_BRANCH == "unreleased" || env.RELEASE_BRANCH == matrix.release-branch
+        if: env.RELEASE_BRANCH == 'unreleased' || env.RELEASE_BRANCH == matrix.release-branch
         run: |
           mkdir -p contrib/devtools
           curl https://raw.githubusercontent.com/cosmos/ibc-go/main/contrib/devtools/Makefile -o contrib/devtools/Makefile
       - name: Fetch latest Dockerfile
-        if: env.RELEASE_BRANCH == "unreleased" || env.RELEASE_BRANCH == matrix.release-branch
+        if: env.RELEASE_BRANCH == 'unreleased' || env.RELEASE_BRANCH == matrix.release-branch
         run: curl https://raw.githubusercontent.com/cosmos/ibc-go/main/Dockerfile -o Dockerfile
       - name: Build image
-        if: env.RELEASE_BRANCH == "unreleased" || env.RELEASE_BRANCH == matrix.release-branch
+        if: env.RELEASE_BRANCH == 'unreleased' || env.RELEASE_BRANCH == matrix.release-branch
         run: |
           docker build . -t "${REGISTRY}/${ORG}/${IMAGE_NAME}:${{ needs.determine-docker-tag.outputs.docker-tag }}"
           docker push "${REGISTRY}/${ORG}/${IMAGE_NAME}:${{ needs.determine-docker-tag.outputs.docker-tag }}"
