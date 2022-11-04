@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	ibctest "github.com/strangelove-ventures/ibctest/v6"
 	"github.com/strangelove-ventures/ibctest/v6/ibc"
 	"github.com/strangelove-ventures/ibctest/v6/test"
@@ -227,7 +228,7 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_IncorrectOwner() {
 				msgSendTx,
 			)
 
-			s.AssertValidTxResponse(resp)
+			s.Require().Equal(sdkerrors.ErrInvalidPubKey.ABCICode(), resp.Code)
 			s.Require().Error(err)
 
 			s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB))
