@@ -33,9 +33,9 @@ func (s msgServer) RegisterInterchainAccount(goCtx context.Context, msg *types.M
 
 	if s.IsMiddlewareEnabled(ctx, portID, msg.ConnectionId) && !s.IsActiveChannelClosed(ctx, msg.ConnectionId, portID) {
 		return nil, sdkerrors.Wrap(icatypes.ErrInvalidChannelFlow, "something meaningful...")
-	} else {
-		s.SetMiddlewareDisabled(ctx, portID, msg.ConnectionId)
 	}
+
+	s.SetMiddlewareDisabled(ctx, portID, msg.ConnectionId)
 
 	channelID, err := s.registerInterchainAccount(ctx, msg.ConnectionId, portID, msg.Version)
 	if err != nil {

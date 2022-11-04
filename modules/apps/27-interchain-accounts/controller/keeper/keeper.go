@@ -243,10 +243,10 @@ func (k Keeper) SetInterchainAccountAddress(ctx sdk.Context, connectionID, portI
 // IsMiddlewareEnabled returns true if the underlying application callbacks are enabled for given port and connection identifier pair, otherwise false
 func (k Keeper) IsMiddlewareEnabled(ctx sdk.Context, portID, connectionID string) bool {
 	store := ctx.KVStore(k.storeKey)
-	middlewareEnabled := store.Get(icatypes.KeyIsMiddlewareEnabled(portID, connectionID))
-	return bytes.Equal(icatypes.MiddlewareEnabled, middlewareEnabled)
+	return bytes.Equal(icatypes.MiddlewareEnabled, store.Get(icatypes.KeyIsMiddlewareEnabled(portID, connectionID)))
 }
 
+// IsMiddlewareDisabled returns true if the underlying application callbacks are disabled for the given port and connection identifier pair, otherwise false
 func (k Keeper) IsMiddlewareDisabled(ctx sdk.Context, portID, connectionID string) bool {
 	store := ctx.KVStore(k.storeKey)
 	return bytes.Equal(icatypes.MiddlewareDisabled, store.Get(icatypes.KeyIsMiddlewareEnabled(portID, connectionID)))
