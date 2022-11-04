@@ -5,8 +5,8 @@ go 1.18
 replace github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
 
 require (
-	// cosmos-sdk main @20448048a489 ≃ 0.47
-	github.com/cosmos/cosmos-sdk v0.46.0-beta2.0.20221103211459-20448048a489
+	github.com/cosmos/cosmos-sdk v0.46.1
+	github.com/cosmos/gogoproto v1.4.2
 	github.com/cosmos/ibc-go/v6 v6.0.0-alpha1
 	github.com/cosmos/interchain-accounts v0.4.0
 	github.com/docker/docker v20.10.17+incompatible
@@ -16,7 +16,6 @@ require (
 	go.uber.org/zap v1.21.0
 	golang.org/x/mod v0.6.0-dev.0.20220419223038-86c51ed26bb4
 	google.golang.org/grpc v1.50.1
-	github.com/cosmos/gogoproto v1.4.2
 )
 
 require (
@@ -237,3 +236,6 @@ replace github.com/cosmos/ibc-go/v6 => ../
 
 // ibctest 0.47 @ https://github.com/strangelove-ventures/ibctest/pull/337
 replace github.com/strangelove-ventures/ibctest/v6 => github.com/julienrbrt/ibctest/v6 v6.0.0-20221103221804-50f6c4c4fbdb
+
+// cosmos-sdk main @20448048a489 ≃ 0.47
+replace github.com/cosmos/cosmos-sdk => github.com/cosmos/cosmos-sdk v0.46.0-beta2.0.20221103211459-20448048a489
