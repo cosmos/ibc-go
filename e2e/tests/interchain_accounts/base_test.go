@@ -145,6 +145,107 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer() {
 	})
 }
 
+
+func (s *InterchainAccountsTestSuite) TestMsgSendTx_IncorrectOwner() {
+	t := s.T()
+	ctx := context.TODO()
+
+	// setup relayers and connection-0 between two chains
+	// channel-0 is a transfer channel but it will not be used in this test case
+	relayer, _ := s.SetupChainsRelayerAndChannel(ctx)
+	chainA, chainB := s.GetChains()
+
+	// setup 3 accounts: controller account on chain A, a non controller account on chain A
+	// and a third chain B account. host account will be created when the ICA is registered
+	controllerAccount := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
+	nonControllerChainAAccount := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
+	chainBAccount := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
+	var hostAccount string
+
+	t.Run("broadcast MsgRegisterInterchainAccount", func(t *testing.T) {
+		version := getICAVersion(testconfig.GetChainATag(), testconfig.GetChainBTag())
+		msgRegisterAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, controllerAccount.Bech32Address(chainA.Config().Bech32Prefix), version)
+
+		txResp, err := s.BroadcastMessages(ctx, chainA, controllerAccount, msgRegisterAccount)
+		s.Require().NoError(err)
+		s.AssertValidTxResponse(txResp)
+	})
+
+	t.Run("start relayer", func(t *testing.T) {
+		s.StartRelayer(relayer)
+	})
+
+	t.Run("verify interchain account", func(t *testing.T) {
+		var err error
+		hostAccount, err = s.QueryInterchainAccount(ctx, chainA, controllerAccount.Bech32Address(chainA.Config().Bech32Prefix), ibctesting.FirstConnectionID)
+		s.Require().NoError(err)
+		s.Require().NotZero(len(hostAccount))
+
+		channels, err := relayer.GetChannels(ctx, s.GetRelayerExecReporter(), chainA.Config().ChainID)
+		s.Require().NoError(err)
+		s.Require().Equal(len(channels), 2)
+	})
+
+	t.Run("interchain account executes a bank transfer on behalf of the corresponding owner account", func(t *testing.T) {
+		t.Run("fund interchain account wallet", func(t *testing.T) {
+			// fund the host account account so it has some $$ to send
+			err := chainB.SendFunds(ctx, ibctest.FaucetAccountKeyName, ibc.WalletAmount{
+				Address: hostAccount,
+				Amount:  testvalues.StartingTokenAmount,
+				Denom:   chainB.Config().Denom,
+			})
+			s.Require().NoError(err)
+		})
+
+		t.Run("broadcast MsgSendTx", func(t *testing.T) {
+			// assemble bank transfer message from host account to user account on host chain
+			msgSend := &banktypes.MsgSend{
+				FromAddress: hostAccount,
+				ToAddress:   chainBAccount.Bech32Address(chainB.Config().Bech32Prefix),
+				Amount:      sdk.NewCoins(testvalues.DefaultTransferAmount(chainB.Config().Denom)),
+			}
+
+			cfg := simappparams.MakeTestEncodingConfig()
+			banktypes.RegisterInterfaces(cfg.InterfaceRegistry)
+			cdc := codec.NewProtoCodec(cfg.InterfaceRegistry)
+
+			bz, err := icatypes.SerializeCosmosTx(cdc, []proto.Message{msgSend})
+			s.Require().NoError(err)
+
+			packetData := icatypes.InterchainAccountPacketData{
+				Type: icatypes.EXECUTE_TX,
+				Data: bz,
+				Memo: "e2e",
+			}
+
+			msgSendTx := controllertypes.NewMsgSendTx(nonControllerChainAAccount.Bech32Address(chainA.Config().Bech32Prefix), ibctesting.FirstConnectionID, uint64(time.Hour.Nanoseconds()), packetData)
+
+			resp, err := s.BroadcastMessages(
+				ctx,
+				chainA,
+				controllerAccount,
+				msgSendTx,
+			)
+
+			s.AssertValidTxResponse(resp)
+			s.Require().Error(err)
+
+			s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB))
+		})
+
+		t.Run("verify tokens are not transferred", func(t *testing.T) {
+			balance, err := chainB.GetBalance(ctx, chainBAccount.Bech32Address(chainB.Config().Bech32Prefix), chainB.Config().Denom)
+			s.Require().NoError(err)
+
+			_, err = chainB.GetBalance(ctx, hostAccount, chainB.Config().Denom)
+			s.Require().NoError(err)
+
+			expected := testvalues.StartingTokenAmount
+			s.Require().Equal(expected, balance)
+		})
+	})
+}
+
 func (s *InterchainAccountsTestSuite) TestMsgSendTx_FailedTransfer_InsufficientFunds() {
 	t := s.T()
 	ctx := context.TODO()
