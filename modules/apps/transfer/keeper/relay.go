@@ -91,7 +91,7 @@ func (k Keeper) sendTransfer(
 	}
 
 	if !k.bankKeeper.IsSendEnabledCoin(ctx, msg.Token) {
-		return nil, sdkerrors.Wrapf(types.ErrSendDisabled, "%s transfers are currently disabled", msg.Token.Denom)
+		return 0, sdkerrors.Wrapf(types.ErrSendDisabled, "%s transfers are currently disabled", msg.Token.Denom)
 	}
 
 	if k.bankKeeper.BlockedAddr(sender) {
