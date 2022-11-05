@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
 	"github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 )
@@ -48,6 +49,17 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 			true,
 		},
 		{
+			"bank send enabled for denom",
+			func() {
+				suite.chainA.GetSimApp().BankKeeper.SetParams(suite.chainA.GetContext(),
+					banktypes.Params{
+						SendEnabled: []*banktypes.SendEnabled{{Denom: sdk.DefaultBondDenom, Enabled: true}},
+					},
+				)
+			},
+			true,
+		},
+		{
 			"send transfers disabled",
 			func() {
 				suite.chainA.GetSimApp().TransferKeeper.SetParams(suite.chainA.GetContext(),
@@ -69,6 +81,17 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 			"sender is a blocked address",
 			func() {
 				msg.Sender = suite.chainA.GetSimApp().AccountKeeper.GetModuleAddress(types.ModuleName).String()
+			},
+			false,
+		},
+		{
+			"bank send disabled for denom",
+			func() {
+				suite.chainA.GetSimApp().BankKeeper.SetParams(suite.chainA.GetContext(),
+					banktypes.Params{
+						SendEnabled: []*banktypes.SendEnabled{{Denom: sdk.DefaultBondDenom, Enabled: false}},
+					},
+				)
 			},
 			false,
 		},
