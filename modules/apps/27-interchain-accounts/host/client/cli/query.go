@@ -61,7 +61,7 @@ func GetCmdPacketEvents() *cobra.Command {
 				return err
 			}
 
-			channelID, portID := args[0], icatypes.PortID
+			channelID, portID := args[0], icatypes.HostPortID
 			if err := host.ChannelIdentifierValidator(channelID); err != nil {
 				return err
 			}

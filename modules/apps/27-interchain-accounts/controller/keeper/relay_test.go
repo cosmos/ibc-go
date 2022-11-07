@@ -3,6 +3,7 @@ package keeper_test
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	"github.com/gogo/protobuf/proto"
 
 	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
 	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
@@ -34,7 +35,7 @@ func (suite *KeeperTestSuite) TestSendTx() {
 					Amount:      sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100))),
 				}
 
-				data, err := icatypes.SerializeCosmosTx(suite.chainB.GetSimApp().AppCodec(), []sdk.Msg{msg})
+				data, err := icatypes.SerializeCosmosTx(suite.chainB.GetSimApp().AppCodec(), []proto.Message{msg})
 				suite.Require().NoError(err)
 
 				packetData = icatypes.InterchainAccountPacketData{
@@ -50,7 +51,7 @@ func (suite *KeeperTestSuite) TestSendTx() {
 				interchainAccountAddr, found := suite.chainA.GetSimApp().ICAControllerKeeper.GetInterchainAccountAddress(suite.chainA.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID)
 				suite.Require().True(found)
 
-				msgsBankSend := []sdk.Msg{
+				msgsBankSend := []proto.Message{
 					&banktypes.MsgSend{
 						FromAddress: interchainAccountAddr,
 						ToAddress:   suite.chainB.SenderAccount.GetAddress().String(),
@@ -91,13 +92,6 @@ func (suite *KeeperTestSuite) TestSendTx() {
 			false,
 		},
 		{
-			"channel does not exist",
-			func() {
-				suite.chainA.GetSimApp().ICAControllerKeeper.SetActiveChannelID(suite.chainA.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID, "channel-100")
-			},
-			false,
-		},
-		{
 			"channel in INIT state - optimistic packet sends fail",
 			func() {
 				channel, found := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
@@ -128,7 +122,7 @@ func (suite *KeeperTestSuite) TestSendTx() {
 					Amount:      sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100))),
 				}
 
-				data, err := icatypes.SerializeCosmosTx(suite.chainB.GetSimApp().AppCodec(), []sdk.Msg{msg})
+				data, err := icatypes.SerializeCosmosTx(suite.chainB.GetSimApp().AppCodec(), []proto.Message{msg})
 				suite.Require().NoError(err)
 
 				packetData = icatypes.InterchainAccountPacketData{

@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"bytes"
 	"fmt"
 	"strings"
 
@@ -16,7 +17,9 @@ import (
 	genesistypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/genesis/types"
 	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
+	porttypes "github.com/cosmos/ibc-go/v6/modules/core/05-port/types"
 	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v6/modules/core/exported"
 )
 
 // Keeper defines the IBC interchain accounts controller keeper
@@ -25,11 +28,11 @@ type Keeper struct {
 	cdc        codec.BinaryCodec
 	paramSpace paramtypes.Subspace
 
-	ics4Wrapper   icatypes.ICS4Wrapper
+	ics4Wrapper   porttypes.ICS4Wrapper
 	channelKeeper icatypes.ChannelKeeper
 	portKeeper    icatypes.PortKeeper
 
-	scopedKeeper icatypes.ScopedKeeper
+	scopedKeeper exported.ScopedKeeper
 
 	msgRouter icatypes.MessageRouter
 }
@@ -37,8 +40,8 @@ type Keeper struct {
 // NewKeeper creates a new interchain accounts controller Keeper instance
 func NewKeeper(
 	cdc codec.BinaryCodec, key storetypes.StoreKey, paramSpace paramtypes.Subspace,
-	ics4Wrapper icatypes.ICS4Wrapper, channelKeeper icatypes.ChannelKeeper, portKeeper icatypes.PortKeeper,
-	scopedKeeper icatypes.ScopedKeeper, msgRouter icatypes.MessageRouter,
+	ics4Wrapper porttypes.ICS4Wrapper, channelKeeper icatypes.ChannelKeeper, portKeeper icatypes.PortKeeper,
+	scopedKeeper exported.ScopedKeeper, msgRouter icatypes.MessageRouter,
 ) Keeper {
 	// set KeyTable if it has not already been set
 	if !paramSpace.HasKeyTable() {
@@ -144,6 +147,17 @@ func (k Keeper) GetOpenActiveChannel(ctx sdk.Context, connectionID, portID strin
 	return "", false
 }
 
+// IsActiveChannelClosed retrieves the active channel from the store and returns true if the channel state is CLOSED, otherwise false
+func (k Keeper) IsActiveChannelClosed(ctx sdk.Context, connectionID, portID string) bool {
+	channelID, found := k.GetActiveChannelID(ctx, connectionID, portID)
+	if !found {
+		return false
+	}
+
+	channel, found := k.channelKeeper.GetChannel(ctx, portID, channelID)
+	return found && channel.State == channeltypes.CLOSED
+}
+
 // GetAllActiveChannels returns a list of all active interchain accounts controller channels and their associated connection and port identifiers
 func (k Keeper) GetAllActiveChannels(ctx sdk.Context) []genesistypes.ActiveChannel {
 	store := ctx.KVStore(k.storeKey)
@@ -225,13 +239,25 @@ func (k Keeper) SetInterchainAccountAddress(ctx sdk.Context, connectionID, portI
 // IsMiddlewareEnabled returns true if the underlying application callbacks are enabled for given port and connection identifier pair, otherwise false
 func (k Keeper) IsMiddlewareEnabled(ctx sdk.Context, portID, connectionID string) bool {
 	store := ctx.KVStore(k.storeKey)
-	return store.Has(icatypes.KeyIsMiddlewareEnabled(portID, connectionID))
+	return bytes.Equal(icatypes.MiddlewareEnabled, store.Get(icatypes.KeyIsMiddlewareEnabled(portID, connectionID)))
+}
+
+// IsMiddlewareDisabled returns true if the underlying application callbacks are disabled for the given port and connection identifier pair, otherwise false
+func (k Keeper) IsMiddlewareDisabled(ctx sdk.Context, portID, connectionID string) bool {
+	store := ctx.KVStore(k.storeKey)
+	return bytes.Equal(icatypes.MiddlewareDisabled, store.Get(icatypes.KeyIsMiddlewareEnabled(portID, connectionID)))
 }
 
 // SetMiddlewareEnabled stores a flag to indicate that the underlying application callbacks should be enabled for the given port and connection identifier pair
 func (k Keeper) SetMiddlewareEnabled(ctx sdk.Context, portID, connectionID string) {
 	store := ctx.KVStore(k.storeKey)
-	store.Set(icatypes.KeyIsMiddlewareEnabled(portID, connectionID), []byte{byte(1)})
+	store.Set(icatypes.KeyIsMiddlewareEnabled(portID, connectionID), icatypes.MiddlewareEnabled)
+}
+
+// SetMiddlewareDisabled stores a flag to indicate that the underlying application callbacks should be disabled for the given port and connection identifier pair
+func (k Keeper) SetMiddlewareDisabled(ctx sdk.Context, portID, connectionID string) {
+	store := ctx.KVStore(k.storeKey)
+	store.Set(icatypes.KeyIsMiddlewareEnabled(portID, connectionID), icatypes.MiddlewareDisabled)
 }
 
 // DeleteMiddlewareEnabled deletes the middleware enabled flag stored in state

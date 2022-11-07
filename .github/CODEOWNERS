@@ -1,6 +1,8 @@
 # CODEOWNERS: https://help.github.com/articles/about-codeowners/
 
-*       @colin-axner @AdityaSripal @crodriguezvega @seantking @charleenfei @damiannolan @chatton
+*       @colin-axner @AdityaSripal @crodriguezvega @charleenfei @damiannolan @chatton
+
+# Our appreciation and gratitude to past code owners: @fedekunze @seantking 
 
 # Order is important; the last matching pattern takes the most
 # precedence. When someone opens a pull request that only
@@ -9,34 +11,34 @@
 
 # CODEOWNERS for the CODEOWNER file
 
-/.github/CODEOWNERS @colin-axner @AdityaSripal @crodriguezvega
+/.github/CODEOWNERS @colin-axner @AdityaSripal @crodriguezvega @damiannolan
 
 # CODEOWNERS for the core IBC module
 
-/modules/core/ @colin-axner @AdityaSripal 
-/proto/ibc/core/ @colin-axner @AdityaSripal 
+/modules/core/ @colin-axner @AdityaSripal @damiannolan
+/proto/ibc/core/ @colin-axner @AdityaSripal @damiannolan
 
 ## CODEOWNERS for core/02-client
 
-/modules/core/02-client @colin-axner @AdityaSripal @seantking @damiannolan
-/proto/ibc/core/client @colin-axner @AdityaSripal @seantking @damiannolan
+/modules/core/02-client @colin-axner @AdityaSripal @damiannolan
+/proto/ibc/core/client @colin-axner @AdityaSripal @damiannolan
 
 # CODEOWNERS for the light-clients
 
-/modules/light-clients/ @colin-axner @AdityaSripal @seantking @damiannolan
-/proto/ibc/lightclients/ @colin-axner @AdityaSripal @seantking @damiannolan
+/modules/light-clients/ @colin-axner @AdityaSripal @damiannolan
+/proto/ibc/lightclients/ @colin-axner @AdityaSripal @damiannolan
 
 # CODEOWNERS for ICS 20
 
-/modules/apps/transfer/ @colin-axner @AdityaSripal 
-/proto/ibc/applications/transfer/ @colin-axner @AdityaSripal 
+/modules/apps/transfer/ @colin-axner @AdityaSripal @damiannolan
+/proto/ibc/applications/transfer/ @colin-axner @AdityaSripal @damiannolan
 
 # CODEOWNERS for interchain-accounts module
 
-/modules/apps/27-interchain-accounts/ @seantking @colin-axner @AdityaSripal @damiannolan
-/proto/ibc/applications/interchain_accounts/ @seantking @colin-axner @AdityaSripal @damiannolan
+/modules/apps/27-interchain-accounts/ @colin-axner @AdityaSripal @damiannolan
+/proto/ibc/applications/interchain_accounts/ @colin-axner @AdityaSripal @damiannolan
 
 # CODEOWNERS for fee module
 
-/modules/apps/29-fee/ @AdityaSripal @seantking @charleenfei @colin-axner @damiannolan 
-/proto/ibc/applications/fee/ @AdityaSripal @seantking @charleenfei @colin-axner @damiannolan
+/modules/apps/29-fee/ @AdityaSripal @charleenfei @colin-axner @damiannolan 
+/proto/ibc/applications/fee/ @AdityaSripal @charleenfei @colin-axner @damiannolan

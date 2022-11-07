@@ -35,7 +35,7 @@ func ExportGenesis(ctx sdk.Context, keeper Keeper) genesistypes.HostGenesisState
 	return genesistypes.NewHostGenesisState(
 		keeper.GetAllActiveChannels(ctx),
 		keeper.GetAllInterchainAccounts(ctx),
-		icatypes.PortID,
+		icatypes.HostPortID,
 		keeper.GetParams(ctx),
 	)
 }
