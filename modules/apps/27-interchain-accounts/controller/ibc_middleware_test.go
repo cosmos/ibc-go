@@ -876,7 +876,7 @@ func (suite *InterchainAccountsTestSuite) TestInFlightHandshakeRespectsMsgServer
 	suite.Require().Error(err)
 }
 
-func (suite *InterchainAccountsTestSuite) TestClosedChannelReopenedViaMsgServer() {
+func (suite *InterchainAccountsTestSuite) TestClosedChannelReopensWithMsgServer() {
 	path := NewICAPath(suite.chainA, suite.chainB)
 	suite.coordinator.SetupConnections(path)
 
@@ -901,8 +901,8 @@ func (suite *InterchainAccountsTestSuite) TestClosedChannelReopenedViaMsgServer(
 	msgRegisterInterchainAccount := types.NewMsgRegisterInterchainAccount(path.EndpointA.ConnectionID, suite.chainA.SenderAccount.GetAddress().String(), path.EndpointA.ChannelConfig.Version)
 
 	res, err := msgServer.RegisterInterchainAccount(suite.chainA.GetContext(), msgRegisterInterchainAccount)
-	suite.Require().NotNil(res)
 	suite.Require().NoError(err)
+	suite.Require().Equal(channeltypes.FormatChannelIdentifier(channelSeq), res.ChannelId)
 
 	// assign the channel sequence to endpointA before generating proofs and initiating the TRY step
 	path.EndpointA.ChannelID = channeltypes.FormatChannelIdentifier(channelSeq)
