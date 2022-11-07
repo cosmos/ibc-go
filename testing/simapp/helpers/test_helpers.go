@@ -12,11 +12,11 @@ import (
 	authsign "github.com/cosmos/cosmos-sdk/x/auth/signing"
 )
 
+// DefaultGenTxGas default gas for tx simulation
+var DefaultGenTxGas = uint64(1000000)
+
 // SimAppChainID hardcoded chainID for simulation
-const (
-	DefaultGenTxGas = 1000000
-	SimAppChainID   = "simulation-app"
-)
+const SimAppChainID = "simulation-app"
 
 // GenTx generates a signed mock transaction.
 func GenTx(gen client.TxConfig, msgs []sdk.Msg, feeAmt sdk.Coins, gas uint64, chainID string, accNums, accSeqs []uint64, priv ...cryptotypes.PrivKey) (sdk.Tx, error) {
