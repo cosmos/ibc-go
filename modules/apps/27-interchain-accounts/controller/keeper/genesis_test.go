@@ -20,6 +20,12 @@ func (suite *KeeperTestSuite) TestInitGenesis() {
 				ChannelId:           ibctesting.FirstChannelID,
 				IsMiddlewareEnabled: true,
 			},
+			{
+				ConnectionId:        "connection-1",
+				PortId:              "test-port-1",
+				ChannelId:           "channel-1",
+				IsMiddlewareEnabled: false,
+			},
 		},
 		InterchainAccounts: []genesistypes.RegisteredInterchainAccount{
 			{
@@ -39,6 +45,9 @@ func (suite *KeeperTestSuite) TestInitGenesis() {
 
 	isMiddlewareEnabled := suite.chainA.GetSimApp().ICAControllerKeeper.IsMiddlewareEnabled(suite.chainA.GetContext(), TestPortID, ibctesting.FirstConnectionID)
 	suite.Require().True(isMiddlewareEnabled)
+
+	isMiddlewareDisabled := suite.chainA.GetSimApp().ICAControllerKeeper.IsMiddlewareDisabled(suite.chainA.GetContext(), "test-port-1", "connection-1")
+	suite.Require().True(isMiddlewareDisabled)
 
 	accountAdrr, found := suite.chainA.GetSimApp().ICAControllerKeeper.GetInterchainAccountAddress(suite.chainA.GetContext(), ibctesting.FirstConnectionID, TestPortID)
 	suite.Require().True(found)
