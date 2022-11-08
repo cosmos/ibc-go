@@ -194,6 +194,11 @@ module.exports = {
                   path: "/apps/interchain-accounts/parameters.html",
                 },
                 {
+                  title: "Development Use Cases",
+                  directory: false,
+                  path: "/apps/interchain-accounts/development.html",
+                },
+                {
                   title: "Active Channels",
                   directory: false,
                   path: "/apps/interchain-accounts/active-channels.html",
