@@ -42,6 +42,12 @@ var (
 
 	// IsMiddlewareEnabledPrefix defines the key prefix used to store a flag for legacy API callback routing via ibc middleware
 	IsMiddlewareEnabledPrefix = "isMiddlewareEnabled"
+
+	// MiddlewareEnabled is the value used to signal that controller middleware is enabled
+	MiddlewareEnabled = []byte{0x01}
+
+	// MiddlewareDisabled is the value used to signal that controller midleware is disabled
+	MiddlewareDisabled = []byte{0x02}
 )
 
 // KeyActiveChannel creates and returns a new key used for active channels store operations
