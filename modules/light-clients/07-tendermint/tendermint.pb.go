@@ -6,9 +6,9 @@ package tendermint
 import (
 	fmt "fmt"
 	_go "github.com/confio/ics23/go"
-	_ "github.com/cosmos/gogoproto/gogoproto"
 	types "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 	types1 "github.com/cosmos/ibc-go/v6/modules/core/23-commitment/types"
+	_ "github.com/gogo/protobuf/gogoproto"
 	proto "github.com/gogo/protobuf/proto"
 	github_com_gogo_protobuf_types "github.com/gogo/protobuf/types"
 	github_com_tendermint_tendermint_libs_bytes "github.com/tendermint/tendermint/libs/bytes"

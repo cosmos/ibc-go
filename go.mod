@@ -8,7 +8,6 @@ require (
 	github.com/confio/ics23/go v0.7.0
 	github.com/cosmos/cosmos-proto v1.0.0-alpha7
 	github.com/cosmos/cosmos-sdk v0.46.4
-	github.com/cosmos/gogoproto v1.4.2
 	github.com/gogo/protobuf v1.3.3
 	github.com/golang/protobuf v1.5.2
 	github.com/gorilla/mux v1.8.0
