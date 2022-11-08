@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/controller"
+	controllerkeeper "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/controller/keeper"
 	"github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/controller/types"
 	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
 	fee "github.com/cosmos/ibc-go/v6/modules/apps/29-fee"
@@ -839,4 +840,81 @@ func (suite *InterchainAccountsTestSuite) TestGetAppVersion() {
 	appVersion, found := controllerStack.GetAppVersion(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 	suite.Require().True(found)
 	suite.Require().Equal(path.EndpointA.ChannelConfig.Version, appVersion)
+}
+
+func (suite *InterchainAccountsTestSuite) TestInFlightHandshakeRespectsGoAPICaller() {
+	path := NewICAPath(suite.chainA, suite.chainB)
+	suite.coordinator.SetupConnections(path)
+
+	// initiate a channel handshake such that channel.State == INIT
+	err := RegisterInterchainAccount(path.EndpointA, suite.chainA.SenderAccount.GetAddress().String())
+	suite.Require().NoError(err)
+
+	// attempt to start a second handshake via the controller msg server
+	msgServer := controllerkeeper.NewMsgServerImpl(&suite.chainA.GetSimApp().ICAControllerKeeper)
+	msgRegisterInterchainAccount := types.NewMsgRegisterInterchainAccount(path.EndpointA.ConnectionID, suite.chainA.SenderAccount.GetAddress().String(), TestVersion)
+
+	res, err := msgServer.RegisterInterchainAccount(suite.chainA.GetContext(), msgRegisterInterchainAccount)
+	suite.Require().Error(err)
+	suite.Require().Nil(res)
+}
+
+func (suite *InterchainAccountsTestSuite) TestInFlightHandshakeRespectsMsgServerCaller() {
+	path := NewICAPath(suite.chainA, suite.chainB)
+	suite.coordinator.SetupConnections(path)
+
+	// initiate a channel handshake such that channel.State == INIT
+	msgServer := controllerkeeper.NewMsgServerImpl(&suite.chainA.GetSimApp().ICAControllerKeeper)
+	msgRegisterInterchainAccount := types.NewMsgRegisterInterchainAccount(path.EndpointA.ConnectionID, suite.chainA.SenderAccount.GetAddress().String(), TestVersion)
+
+	res, err := msgServer.RegisterInterchainAccount(suite.chainA.GetContext(), msgRegisterInterchainAccount)
+	suite.Require().NotNil(res)
+	suite.Require().NoError(err)
+
+	// attempt to start a second handshake via the legacy Go API
+	err = RegisterInterchainAccount(path.EndpointA, suite.chainA.SenderAccount.GetAddress().String())
+	suite.Require().Error(err)
+}
+
+func (suite *InterchainAccountsTestSuite) TestClosedChannelReopensWithMsgServer() {
+	path := NewICAPath(suite.chainA, suite.chainB)
+	suite.coordinator.SetupConnections(path)
+
+	err := SetupICAPath(path, suite.chainA.SenderAccount.GetAddress().String())
+	suite.Require().NoError(err)
+
+	// set the channel state to closed
+	err = path.EndpointA.SetChannelClosed()
+	suite.Require().NoError(err)
+	err = path.EndpointB.SetChannelClosed()
+	suite.Require().NoError(err)
+
+	// reset endpoint channel ids
+	path.EndpointA.ChannelID = ""
+	path.EndpointB.ChannelID = ""
+
+	// fetch the next channel sequence before reinitiating the channel handshake
+	channelSeq := suite.chainA.GetSimApp().GetIBCKeeper().ChannelKeeper.GetNextChannelSequence(suite.chainA.GetContext())
+
+	// route a new MsgRegisterInterchainAccount in order to reopen the
+	msgServer := controllerkeeper.NewMsgServerImpl(&suite.chainA.GetSimApp().ICAControllerKeeper)
+	msgRegisterInterchainAccount := types.NewMsgRegisterInterchainAccount(path.EndpointA.ConnectionID, suite.chainA.SenderAccount.GetAddress().String(), path.EndpointA.ChannelConfig.Version)
+
+	res, err := msgServer.RegisterInterchainAccount(suite.chainA.GetContext(), msgRegisterInterchainAccount)
+	suite.Require().NoError(err)
+	suite.Require().Equal(channeltypes.FormatChannelIdentifier(channelSeq), res.ChannelId)
+
+	// assign the channel sequence to endpointA before generating proofs and initiating the TRY step
+	path.EndpointA.ChannelID = channeltypes.FormatChannelIdentifier(channelSeq)
+
+	path.EndpointA.Chain.NextBlock()
+
+	err = path.EndpointB.ChanOpenTry()
+	suite.Require().NoError(err)
+
+	err = path.EndpointA.ChanOpenAck()
+	suite.Require().NoError(err)
+
+	err = path.EndpointB.ChanOpenConfirm()
+	suite.Require().NoError(err)
 }
