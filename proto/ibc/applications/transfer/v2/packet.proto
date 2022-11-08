@@ -19,7 +19,3 @@ message FungibleTokenPacketData {
   // optional memo
   string memo = 5;
 }
-
-message Test {
-  string msg = 1;
-}
