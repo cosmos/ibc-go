@@ -4,12 +4,11 @@ module github.com/cosmos/ibc-go/v6
 
 require (
 	cosmossdk.io/math v1.0.0-beta.3
-	cosmossdk.io/simapp v0.0.0-20221103182213-3034a9d54a62
 	github.com/armon/go-metrics v0.4.1
 	github.com/confio/ics23/go v0.7.0
 	github.com/cosmos/cosmos-proto v1.0.0-alpha8
 	// cosmos-sdk main @20448048a489 ≃ 0.47
-	github.com/cosmos/cosmos-sdk v0.46.0-beta2.0.20221103211459-20448048a489
+	github.com/cosmos/cosmos-sdk v0.46.0-beta2.0.20221107225151-b49f948b36bc
 	github.com/cosmos/gogoproto v1.4.2
 	github.com/golang/protobuf v1.5.2
 	github.com/gorilla/mux v1.8.0
@@ -27,6 +26,8 @@ require (
 	gopkg.in/yaml.v2 v2.4.0
 )
 
+require cosmossdk.io/simapp v0.0.0-20221107225151-b49f948b36bc
+
 require (
 	cloud.google.com/go v0.102.1 // indirect
 	cloud.google.com/go/compute v1.7.0 // indirect
@@ -36,6 +37,7 @@ require (
 	cosmossdk.io/core v0.3.2 // indirect
 	cosmossdk.io/depinject v1.0.0-alpha.3 // indirect
 	cosmossdk.io/errors v1.0.0-beta.7 // indirect
+	cosmossdk.io/tools/rosetta v0.1.0 // indirect
 	filippo.io/edwards25519 v1.0.0-rc.1 // indirect
 	github.com/99designs/go-keychain v0.0.0-20191008050251-8e49817e8af4 // indirect
 	github.com/99designs/keyring v1.2.1 // indirect
