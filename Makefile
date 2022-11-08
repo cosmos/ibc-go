@@ -302,7 +302,7 @@ format:
 ###                                Protobuf                                 ###
 ###############################################################################
 
-protoVer=0.11.0
+protoVer=0.11.1
 protoImageName=ghcr.io/cosmos/proto-builder:$(protoVer)
 containerProtoGen=$(PROJECT_NAME)-proto-gen-$(protoVer)
 containerProtoGenSwagger=$(PROJECT_NAME)-proto-gen-swagger-$(protoVer)
