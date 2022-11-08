@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/cosmos/ibc-go/v5/modules/core/exported"
 	"github.com/stretchr/testify/require"
 	abci "github.com/tendermint/tendermint/abci/types"
 )
@@ -85,6 +86,13 @@ func (coord *Coordinator) Setup(path *Path) {
 // SetupClients is a helper function to create clients on both chains. It assumes the
 // caller does not anticipate any errors.
 func (coord *Coordinator) SetupClients(path *Path) {
+	// Localhost client needs to be created on chain initialization.
+	if path.EndpointA.ClientConfig.GetClientType() == exported.Localhost {
+		// Localhost client ID == client type
+		path.EndpointA.ClientID = exported.Localhost
+		path.EndpointB.ClientID = exported.Localhost
+		return
+	}
 	err := path.EndpointA.CreateClient()
 	require.NoError(coord.T, err)
 

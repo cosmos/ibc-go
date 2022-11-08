@@ -46,6 +46,16 @@ func NewEndpoint(
 	}
 }
 
+// NewLocalEndpoint constructs a new endpoint using default values.
+func NewLocalEndpoint(chain *TestChain) *Endpoint {
+	return &Endpoint{
+		Chain:            chain,
+		ClientConfig:     NewLocalhostConfig(),
+		ConnectionConfig: NewConnectionConfig(),
+		ChannelConfig:    NewChannelConfig(),
+	}
+}
+
 // NewDefaultEndpoint constructs a new endpoint using default values.
 // CONTRACT: the counterparty endpoitn must be set by the caller.
 func NewDefaultEndpoint(chain *TestChain) *Endpoint {
@@ -70,6 +80,11 @@ func (endpoint *Endpoint) QueryProof(key []byte) ([]byte, clienttypes.Height) {
 // QueryProofAtHeight queries proof associated with this endpoint using the proof height
 // provided
 func (endpoint *Endpoint) QueryProofAtHeight(key []byte, height uint64) ([]byte, clienttypes.Height) {
+	if endpoint.ClientConfig.GetClientType() == exported.Localhost {
+		revision := clienttypes.ParseChainID(endpoint.Chain.ChainID)
+		// Return an empty invalid proof to pass validation logic (proof is unused by localhost client).
+		return []byte("empty"), clienttypes.NewHeight(revision, height)
+	}
 	// query proof on the counterparty using the latest height of the IBC client
 	return endpoint.Chain.QueryProofAtHeight(key, int64(height))
 }
@@ -101,7 +116,6 @@ func (endpoint *Endpoint) CreateClient() (err error) {
 		//		solo := NewSolomachine(endpoint.Chain.T, endpoint.Chain.Codec, clientID, "", 1)
 		//		clientState = solo.ClientState()
 		//		consensusState = solo.ConsensusState()
-
 	default:
 		err = fmt.Errorf("client type %s is not supported", endpoint.ClientConfig.GetClientType())
 	}
@@ -128,6 +142,11 @@ func (endpoint *Endpoint) CreateClient() (err error) {
 
 // UpdateClient updates the IBC client associated with the endpoint.
 func (endpoint *Endpoint) UpdateClient() (err error) {
+	// Localhost clients get updated at the beginning of each block.
+	if endpoint.ClientConfig.GetClientType() == exported.Localhost {
+		return nil
+	}
+
 	// ensure counterparty has committed state
 	endpoint.Chain.Coordinator.CommitBlock(endpoint.Counterparty.Chain)
 

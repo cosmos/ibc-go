@@ -74,12 +74,8 @@ func (k Keeper) ConnOpenTry(
 	// generate a new connection
 	connectionID := k.GenerateConnectionIdentifier(ctx)
 
-	selfHeight := clienttypes.GetSelfHeight(ctx)
-	if consensusHeight.GTE(selfHeight) {
-		return "", sdkerrors.Wrapf(
-			sdkerrors.ErrInvalidHeight,
-			"consensus height is greater than or equal to the current block height (%s >= %s)", consensusHeight, selfHeight,
-		)
+	if err := k.validateHeight(ctx, clientState.ClientType(), consensusHeight); err != nil {
+		return "", err
 	}
 
 	// validate client parameters of a chainB client stored on chainA
@@ -163,13 +159,8 @@ func (k Keeper) ConnOpenAck(
 	proofHeight exported.Height, // height that relayer constructed proofTry
 	consensusHeight exported.Height, // latest height of chainA that chainB has stored on its chainA client
 ) error {
-	// Check that chainB client hasn't stored invalid height
-	selfHeight := clienttypes.GetSelfHeight(ctx)
-	if consensusHeight.GTE(selfHeight) {
-		return sdkerrors.Wrapf(
-			sdkerrors.ErrInvalidHeight,
-			"consensus height is greater than or equal to the current block height (%s >= %s)", consensusHeight, selfHeight,
-		)
+	if err := k.validateHeight(ctx, clientState.ClientType(), consensusHeight); err != nil {
+		return err
 	}
 
 	// Retrieve connection
@@ -293,5 +284,24 @@ func (k Keeper) ConnOpenConfirm(
 
 	EmitConnectionOpenConfirmEvent(ctx, connectionID, connection)
 
+	return nil
+}
+
+func (k Keeper) validateHeight(
+	ctx sdk.Context,
+	clientType string,
+	consensusHeight exported.Height, // latest height of chain B which chain A has stored in its chain B client
+) error {
+	if clientType == exported.Localhost {
+		return nil
+	}
+
+	selfHeight := clienttypes.GetSelfHeight(ctx)
+	if consensusHeight.GTE(selfHeight) {
+		return sdkerrors.Wrapf(
+			sdkerrors.ErrInvalidHeight,
+			"consensus height is greater than or equal to the current block height (%s >= %s)", consensusHeight, selfHeight,
+		)
+	}
 	return nil
 }

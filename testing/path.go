@@ -29,6 +29,20 @@ func NewPath(chainA, chainB *TestChain) *Path {
 	}
 }
 
+// NewLocalPath constructs a local endpoint for the same chain.
+func NewLocalPath(chain *TestChain) *Path {
+	endpointA := NewLocalEndpoint(chain)
+	endpointB := NewLocalEndpoint(chain)
+
+	endpointA.Counterparty = endpointB
+	endpointB.Counterparty = endpointA
+
+	return &Path{
+		EndpointA: endpointA,
+		EndpointB: endpointB,
+	}
+}
+
 // SetChannelOrdered sets the channel order for both endpoints to ORDERED.
 func (path *Path) SetChannelOrdered() {
 	path.EndpointA.ChannelConfig.Order = channeltypes.ORDERED

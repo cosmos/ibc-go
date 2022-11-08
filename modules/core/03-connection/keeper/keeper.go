@@ -86,6 +86,11 @@ func (k Keeper) SetConnection(ctx sdk.Context, connectionID string, connection t
 // GetTimestampAtHeight returns the timestamp in nanoseconds of the consensus state at the
 // given height.
 func (k Keeper) GetTimestampAtHeight(ctx sdk.Context, connection types.ConnectionEnd, height exported.Height) (uint64, error) {
+	// Localhost client does not have a consensus state, use current block time.
+	if connection.ClientId == exported.Localhost {
+		return uint64(ctx.BlockTime().UnixNano()), nil
+	}
+
 	clientState, found := k.clientKeeper.GetClientState(ctx, connection.GetClientID())
 	if !found {
 		return 0, sdkerrors.Wrapf(

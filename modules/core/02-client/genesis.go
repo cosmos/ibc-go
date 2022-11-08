@@ -8,6 +8,7 @@ import (
 	"github.com/cosmos/ibc-go/v6/modules/core/02-client/keeper"
 	"github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
+	localhosttypes "github.com/cosmos/ibc-go/v6/modules/light-clients/09-localhost/types"
 )
 
 // InitGenesis initializes the ibc client submodule's state from a provided genesis
@@ -46,6 +47,12 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, gs types.GenesisState) {
 	}
 
 	k.SetNextClientSequence(ctx, gs.NextClientSequence)
+
+	if gs.CreateLocalhost {
+		revision := uint64(0)
+		clientState := localhosttypes.NewClientState("", types.NewHeight(revision, 1)) // height start at block 1
+		k.SetClientState(ctx, exported.Localhost, clientState)
+	}
 }
 
 // ExportGenesis returns the ibc client submodule's exported genesis.

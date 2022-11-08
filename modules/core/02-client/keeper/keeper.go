@@ -270,6 +270,11 @@ func (k Keeper) GetSelfConsensusState(ctx sdk.Context, height exported.Height) (
 // Client must be in same revision as the executing chain
 func (k Keeper) ValidateSelfClient(ctx sdk.Context, clientState exported.ClientState) error {
 	tmClient, ok := clientState.(*ibctm.ClientState)
+
+	if clientState.ClientType() == exported.Localhost {
+		return nil
+	}
+
 	if !ok {
 		return sdkerrors.Wrapf(types.ErrInvalidClient, "client must be a Tendermint client, expected: %T, got: %T",
 			&ibctm.ClientState{}, tmClient)

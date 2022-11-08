@@ -43,6 +43,7 @@ type TestingApp interface {
 
 	// Implemented by SimApp
 	AppCodec() codec.Codec
+	GetKey(string) *storetypes.KVStoreKey
 
 	// Implemented by BaseApp
 	LastCommitID() storetypes.CommitID

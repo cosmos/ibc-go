@@ -34,6 +34,16 @@ func (tmcfg *TendermintConfig) GetClientType() string {
 	return exported.Tendermint
 }
 
+type LocalhostConfig struct{}
+
+func NewLocalhostConfig() *LocalhostConfig {
+	return &LocalhostConfig{}
+}
+
+func (l *LocalhostConfig) GetClientType() string {
+	return exported.Localhost
+}
+
 type ConnectionConfig struct {
 	DelayPeriod uint64
 	Version     *connectiontypes.Version
