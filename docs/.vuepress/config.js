@@ -105,6 +105,10 @@ module.exports = {
         key: "v2.4.0",
       },
       {
+        label: "v2.5.0",
+        key: "v2.5.0",
+      },
+      {
         label: "v3.0.0",
         key: "v3.0.0",
       },
@@ -121,12 +125,20 @@ module.exports = {
         key: "v3.3.0",
       },
       {
+        label: "v3.4.0",
+        key: "v3.4.0",
+      },
+      {
         label: "v4.0.0",
         key: "v4.0.0",
       },
       {
         label: "v4.1.0",
         key: "v4.1.0",
+      },
+      {
+        label: "v4.2.0",
+        key: "v4.2.0",
       },
       {
         label: "v5.0.0",
