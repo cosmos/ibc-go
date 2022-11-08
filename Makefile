@@ -302,9 +302,15 @@ format:
 ###                                Protobuf                                 ###
 ###############################################################################
 
-protoVer=0.11.1
-protoImageName=ghcr.io/cosmos/proto-builder:$(protoVer)
+# protoVer=0.11.1
+# protoImageName=ghcr.io/cosmos/proto-builder:$(protoVer)
+# containerProtoGen=$(PROJECT_NAME)-proto-gen-$(protoVer)
+# containerProtoGenSwagger=$(PROJECT_NAME)-proto-gen-swagger-$(protoVer)
+# containerProtoFmt=$(PROJECT_NAME)-proto-fmt-$(protoVer)
+protoVer=v0.7
+protoImageName=tendermintdev/sdk-proto-gen:$(protoVer)
 containerProtoGen=$(PROJECT_NAME)-proto-gen-$(protoVer)
+containerProtoGenAny=$(PROJECT_NAME)-proto-gen-any-$(protoVer)
 containerProtoGenSwagger=$(PROJECT_NAME)-proto-gen-swagger-$(protoVer)
 containerProtoFmt=$(PROJECT_NAME)-proto-fmt-$(protoVer)
 DOCKER_BUF := $(DOCKER) run --rm -v $(CURDIR):/workspace --workdir /workspace bufbuild/buf:1.9.0

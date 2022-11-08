@@ -2,7 +2,7 @@ version: v1
 name: buf.build/cosmos/ibc-go
 deps:
   # TODO PIN when 0.47 is tagged
-  - buf.build/cosmos/cosmos-sdk # SDK v0.47 (https://github.com/cosmos/cosmos-sdk/tree/main/proto#sdk-x-buf)
+  - buf.build/cosmos/cosmos-sdk:8cb30a2c4de74dc9bd8d260b1e75e176 # SDK v0.47 (https://github.com/cosmos/cosmos-sdk/tree/main/proto#sdk-x-buf)
   - buf.build/cosmos/cosmos-proto:1935555c206d4afb9e94615dfd0fad31
   - buf.build/cosmos/gogo-proto:34d970b699f84aa382f3c29773a60836
   - buf.build/googleapis/googleapis:783e4b5374fa488ab068d08af9658438
