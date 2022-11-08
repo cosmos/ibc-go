@@ -25,6 +25,8 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, state genesistypes.ControllerGe
 
 		if ch.IsMiddlewareEnabled {
 			keeper.SetMiddlewareEnabled(ctx, ch.PortId, ch.ConnectionId)
+		} else {
+			keeper.SetMiddlewareDisabled(ctx, ch.PortId, ch.ConnectionId)
 		}
 	}
 
