@@ -23,13 +23,8 @@ var (
 	defaultTimeoutHeight     = clienttypes.NewHeight(1, 100)
 
 	// for when the testing package cannot be used
-	clientIDA  = "clientA"
-	clientIDB  = "clientB"
-	connIDA    = "connA"
-	connIDB    = "connB"
-	portID     = "portid"
-	channelIDA = "channelidA"
-	channelIDB = "channelidB"
+	connIDA = "connA"
+	connIDB = "connB"
 )
 
 // TestSendPacket tests SendPacket from chainA to chainB
