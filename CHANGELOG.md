@@ -109,7 +109,6 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * [\#2434](https://github.com/cosmos/ibc-go/pull/2478) Removed all `TypeMsg` constants
 * (modules/core/exported) [#1689] (https://github.com/cosmos/ibc-go/pull/2539) Removing `GetVersions` from `ConnectionI` interface.
 * (testing) [\#2657](https://github.com/cosmos/ibc-go/pull/2657) Carry `ProposerAddress` through commited blocks. Allow `DefaultGenTxGas` to be modified.
-* [\#2486] (https://github.com/cosmos/ibc-go/pull/pull/2692) Removed unused variables from `core/04-channel/keeper/packet_test.go` and `core/04-channel/keeper/handshake_test.go`.
 
 ### Features
 
