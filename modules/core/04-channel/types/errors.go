@@ -39,4 +39,5 @@ var (
 
 	ErrInvalidChannelVersion = sdkerrors.Register(SubModuleName, 24, "invalid channel version")
 	ErrPacketNotSent         = sdkerrors.Register(SubModuleName, 25, "packet has not been sent")
+	ErrInvalidUpgradeTimeout = sdkerrors.Register(SubModuleName, 26, "either timeout height or timeout timestamp must be non-zero")
 )
