@@ -6,7 +6,7 @@ import (
 	"github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 )
 
-func (suite *KeeperTestSuite) checkTransferEvents(
+func (suite *KeeperTestSuite) assertTransferEvents(
 	actualEvents sdk.Events,
 	coin sdk.Coin,
 	memo string,
