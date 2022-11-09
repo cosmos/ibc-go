@@ -66,7 +66,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Bug Fixes
 
-* (apps/transfer) [\#2672](https://github.com/cosmos/ibc-go/pull/2672) Check `x/bank` send enabled.
+* (apps/transfer) [\#2679](https://github.com/cosmos/ibc-go/pull/2679) Check `x/bank` send enabled.
 
 ## [v3.3.0](https://github.com/cosmos/ibc-go/releases/tag/v3.3.0) - 2022-09-20
 
@@ -211,7 +211,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (client) [\#941](https://github.com/cosmos/ibc-go/pull/941) Classify client states without consensus states as expired
 * (channel) [\#995](https://github.com/cosmos/ibc-go/pull/995) Call `packet.GetSequence()` rather than passing func in `AcknowledgePacket` log output
 
-## [v2.3.0](https://github.com/cosmos/ibc-go/releases/tag/v2.3.0) - 2022-04-16
+## [v2.3.0](https://github.com/cosmos/ibc-go/releases/tag/v2.3.0) - 2022-06-14
 
 ### Dependencies
 
