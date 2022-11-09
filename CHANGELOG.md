@@ -44,7 +44,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### State Machine Breaking
 
-* (apps/transfer) [\#2651](https://github.com/cosmos/ibc-go/pull/2651) Introduce `mustProtoMarshalJSON` for ics20 packet data marshalling which will skip emission (marshalling) of the memo field if unpopulated (empty). 
+* (apps/transfer) [\#2651](https://github.com/cosmos/ibc-go/pull/2651) Introduce `mustProtoMarshalJSON` for ics20 packet data marshalling which will skip emission (marshalling) of the memo field if unpopulated (empty).
 * (27-interchain-accounts) [\#2580](https://github.com/cosmos/ibc-go/issues/2580) Removing port prefix requirement from the ICA host channel handshake
 * (transfer) [\#2377](https://github.com/cosmos/ibc-go/pull/2377) Adding `sequence` to `MsgTransferResponse`.
 
@@ -58,7 +58,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Bug Fixes
 
-* (apps/transfer) [\#2672](https://github.com/cosmos/ibc-go/pull/2672) Check `x/bank` send enabled.
+* (apps/transfer) [\#2679](https://github.com/cosmos/ibc-go/pull/2679) Check `x/bank` send enabled.
 
 ## [v5.0.0](https://github.com/cosmos/ibc-go/releases/tag/v5.0.0) - 2022-09-28
 
@@ -79,7 +79,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Improvements
 
-* (27-interchain-accounts) [\#1352](https://github.com/cosmos/ibc-go/issues/1352) Add support for Cosmos-SDK simulation to ics27 module.  
+* (27-interchain-accounts) [\#1352](https://github.com/cosmos/ibc-go/issues/1352) Add support for Cosmos-SDK simulation to ics27 module.
 * (linting) [\#1418](https://github.com/cosmos/ibc-go/pull/1418) Fix linting errors, resulting compatiblity with go1.18 linting style, golangci-lint 1.46.2 and the revivie linter.  This caused breaking changes in core/04-channel, core/ante, and the testing library.
 
 ### Features
