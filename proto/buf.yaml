@@ -1,5 +1,5 @@
 version: v1
-name: buf.build/cosmos/ibc-go
+name: buf.build/cosmos/ibc
 deps:
   # see: (https://github.com/cosmos/cosmos-sdk/tree/main/proto#sdk-x-buf)
   - buf.build/cosmos/cosmos-sdk:8cb30a2c4de74dc9bd8d260b1e75e176
