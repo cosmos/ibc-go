@@ -35,15 +35,25 @@
     <img alt="E2E Status" src="https://github.com/cosmos/ibc-go/workflows/Tests%20/%20E2E/badge.svg" />
 </div>
 
-The Inter-Blockchain Communication protocol (IBC) allows blockchains to talk to each other. IBC handles transport across different sovereign blockchains. This end-to-end, connection-oriented, stateful protocol provides reliable, ordered, and authenticated communication between heterogeneous blockchains. This IBC implementation in Golang is built as a Cosmos SDK module.
+The [Inter-Blockchain Communication protocol (IBC)](https://ibcprotocol.org/) allows blockchains to talk to each other. IBC handles transport across different sovereign blockchains. This end-to-end, connection-oriented, stateful protocol provides reliable, ordered, and authenticated communication between heterogeneous blockchains. This IBC implementation in Golang is built as a Cosmos SDK module.
 
 ## Roadmap
 
 For an overview of upcoming changes to ibc-go take a look at the [roadmap](./docs/roadmap/roadmap.md).
 
+This roadmap is also available as a [project board](https://github.com/orgs/cosmos/projects/7/views/25).
+
+For the latest expected release timelines, please check [here](https://github.com/cosmos/ibc-go/wiki/Release-timeline).
+
+For the latest information on the progress of the work or the decisions made that might influence the roadmap, please follow our [engineering updates](https://github.com/cosmos/ibc-go/wiki/Engineering-updates).
+
 ## Releases
 
-The release lines currently supported are v2, v3, v4 and v5. Please refer to the [Stable Release Policy section of RELEASES.md](https://github.com/cosmos/ibc-go/blob/main/RELEASES.md#stable-release-policy) for more details.
+The release lines currently supported are v2, v3, v4 and v5. 
+
+Please refer to the [Stable Release Policy section of RELEASES.md](https://github.com/cosmos/ibc-go/blob/main/RELEASES.md#stable-release-policy) for more details.
+
+Please refer to our [versioning guide](https://github.com/cosmos/ibc-go/blob/main/RELEASES.md) for more information on how to understand our release versioning.
 
 ## Ecosystem
 
@@ -70,7 +80,7 @@ We have active, helpful communities on Discord and Telegram.
 
 For questions and support please use the `developers` channel in the [Cosmos Network Discord server](https://discord.com/channels/669268347736686612/1019978171367559208) or join the [IBC Gang Discord server](https://discord.gg/RdpdkaXKpZ). The issue list of this repo is exclusively for bug reports and feature requests.
 
-To receive announcements of new releases or other technical updates, please join the [IBC is expansive Telegram group](https://t.me/ibc_is_expansive).
+To receive announcements of new releases or other technical updates, please join the [Telegram group that we administer](https://t.me/ibc_is_expansive).
 
 ## Contribution Guidelines & Requests for Maintainership
 
