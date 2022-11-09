@@ -74,7 +74,6 @@ func (k Keeper) executeTx(ctx sdk.Context, sourcePort, destPort, destChannel str
 	}
 
 	// NOTE: The context returned by CacheContext() creates a new EventManager, so events must be correctly propagated back to the current context
-	ctx.EventManager().EmitEvents(cacheCtx.EventManager().Events())
 	writeCache()
 
 	txResponse, err := proto.Marshal(txMsgData)
