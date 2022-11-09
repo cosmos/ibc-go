@@ -12,7 +12,6 @@ import (
 	"github.com/stretchr/testify/suite"
 	"golang.org/x/mod/semver"
 
-	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/gogo/protobuf/proto"
@@ -25,7 +24,6 @@ import (
 	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v6/testing"
-	simappparams "github.com/cosmos/ibc-go/v6/testing/simapp/params"
 )
 
 func TestInterchainAccountsTestSuite(t *testing.T) {
@@ -114,10 +112,7 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer() {
 				Amount:      sdk.NewCoins(testvalues.DefaultTransferAmount(chainB.Config().Denom)),
 			}
 
-			cfg := simappparams.MakeTestEncodingConfig()
-			banktypes.RegisterInterfaces(cfg.InterfaceRegistry)
-			cdc := codec.NewProtoCodec(cfg.InterfaceRegistry)
-
+			cdc := testsuite.Codec()
 			bz, err := icatypes.SerializeCosmosTx(cdc, []proto.Message{msgSend})
 			s.Require().NoError(err)
 
@@ -209,10 +204,7 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_FailedTransfer_InsufficientF
 				Amount:      sdk.NewCoins(testvalues.DefaultTransferAmount(chainB.Config().Denom)),
 			}
 
-			cfg := simappparams.MakeTestEncodingConfig()
-			banktypes.RegisterInterfaces(cfg.InterfaceRegistry)
-			cdc := codec.NewProtoCodec(cfg.InterfaceRegistry)
-
+			cdc := testsuite.Codec()
 			bz, err := icatypes.SerializeCosmosTx(cdc, []proto.Message{msgSend})
 			s.Require().NoError(err)
 
