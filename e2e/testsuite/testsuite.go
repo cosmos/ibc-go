@@ -398,6 +398,7 @@ func (s *E2ETestSuite) AssertValidTxResponse(resp sdk.TxResponse) {
 	s.Require().NotEqual(int64(0), resp.GasWanted, respLogsMsg)
 	s.Require().NotEmpty(resp.Events, respLogsMsg)
 	s.Require().NotEmpty(resp.Data, respLogsMsg)
+	s.T().Logf("tx response: %s", resp)
 }
 
 // AssertPacketRelayed asserts that the packet commitment does not exist on the sending chain.
