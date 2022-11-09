@@ -348,9 +348,6 @@ func (s *InterchainAccountsTestSuite) TestMsgSubmitTx_SuccessfulTransfer_AfterRe
 		s.StartRelayer(relayer)
 	})
 
-	// TODO: change state_closed to use channeltypes
-	// open issue on go relayer for GetChannels to return channels in correct order
-
 	t.Run("verify channel is closed due to timeout on ordered channel", func(t *testing.T) {
 		channel, err := s.QueryChannel(ctx, chainA, portID, "channel-1")
 		s.Require().NoError(err)
