@@ -4,7 +4,7 @@ info:
   description: A REST interface for state queries
   version: 1.0.0
 paths:
-  '/ibc/apps/transfer/v1/channels/{channel_id}/ports/{port_id}/escrow_address':
+  /ibc/apps/transfer/v1/channels/{channel_id}/ports/{port_id}/escrow_address:
     get:
       summary: >-
         EscrowAddress returns the escrow address for a particular port and
@@ -23,7 +23,7 @@ paths:
               QueryEscrowAddressResponse is the response type of the
               EscrowAddress RPC method.
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -57,7 +57,7 @@ paths:
           type: string
       tags:
         - Query
-  '/ibc/apps/transfer/v1/denom_hashes/{trace}':
+  /ibc/apps/transfer/v1/denom_hashes/{trace}:
     get:
       summary: DenomHash queries a denomination hash information.
       operationId: DenomHash
@@ -76,7 +76,7 @@ paths:
 
               method.
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -99,7 +99,7 @@ paths:
                       format: byte
       parameters:
         - name: trace
-          description: 'The denomination trace ([port_id]/[channel_id])+/[denom]'
+          description: The denomination trace ([port_id]/[channel_id])+/[denom]
           in: path
           required: true
           type: string
@@ -161,7 +161,7 @@ paths:
 
               method.
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -229,7 +229,6 @@ paths:
           in: query
           required: false
           type: boolean
-          format: boolean
         - name: pagination.reverse
           description: >-
             reverse is set to true if results are to be returned in the
@@ -240,10 +239,9 @@ paths:
           in: query
           required: false
           type: boolean
-          format: boolean
       tags:
         - Query
-  '/ibc/apps/transfer/v1/denom_traces/{hash}':
+  /ibc/apps/transfer/v1/denom_traces/{hash}:
     get:
       summary: DenomTrace queries a denomination trace information.
       operationId: DenomTrace
@@ -277,7 +275,7 @@ paths:
 
               method.
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -324,7 +322,6 @@ paths:
                 properties:
                   send_enabled:
                     type: boolean
-                    format: boolean
                     description: >-
                       send_enabled enables or disables all cross-chain token
                       transfers from this
@@ -332,7 +329,6 @@ paths:
                       chain.
                   receive_enabled:
                     type: boolean
-                    format: boolean
                     description: >-
                       receive_enabled enables or disables all cross-chain token
                       transfers to this
@@ -342,7 +338,7 @@ paths:
               QueryParamsResponse is the response type for the Query/Params RPC
               method.
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -365,7 +361,7 @@ paths:
                       format: byte
       tags:
         - Query
-  '/ibc/apps/interchain_accounts/controller/v1/owners/{owner}/connections/{connection_id}':
+  /ibc/apps/interchain_accounts/controller/v1/owners/{owner}/connections/{connection_id}:
     get:
       summary: >-
         InterchainAccount returns the interchain account address for a given
@@ -383,7 +379,7 @@ paths:
               QueryInterchainAccountResponse the response type for the
               Query/InterchainAccount RPC method.
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -431,7 +427,6 @@ paths:
                 properties:
                   controller_enabled:
                     type: boolean
-                    format: boolean
                     description: >-
                       controller_enabled enables or disables the controller
                       submodule.
@@ -439,7 +434,7 @@ paths:
               QueryParamsResponse is the response type for the Query/Params RPC
               method.
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -478,7 +473,6 @@ paths:
                 properties:
                   host_enabled:
                     type: boolean
-                    format: boolean
                     description: host_enabled enables or disables the host submodule.
                   allow_messages:
                     type: array
@@ -491,7 +485,7 @@ paths:
               QueryParamsResponse is the response type for the Query/Params RPC
               method.
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -514,7 +508,7 @@ paths:
                       format: byte
       tags:
         - Query
-  '/ibc/apps/fee/v1/channels/{channel_id}/ports/{port_id}/fee_enabled':
+  /ibc/apps/fee/v1/channels/{channel_id}/ports/{port_id}/fee_enabled:
     get:
       summary: >-
         FeeEnabledChannel returns true if the provided port and channel
@@ -528,13 +522,12 @@ paths:
             properties:
               fee_enabled:
                 type: boolean
-                format: boolean
                 title: boolean flag representing the fee enabled channel status
             title: >-
               QueryFeeEnabledChannelResponse defines the response type for the
               FeeEnabledChannel rpc
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -660,10 +653,13 @@ paths:
                      Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
-                         any, err := ptypes.MarshalAny(foo)
+                         any, err := anypb.New(foo)
+                         if err != nil {
+                           ...
+                         }
                          ...
                          foo := &pb.Foo{}
-                         if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                         if err := any.UnmarshalTo(foo); err != nil {
                            ...
                          }
 
@@ -735,7 +731,7 @@ paths:
           type: string
       tags:
         - Query
-  '/ibc/apps/fee/v1/channels/{channel_id}/ports/{port_id}/incentivized_packets':
+  /ibc/apps/fee/v1/channels/{channel_id}/ports/{port_id}/incentivized_packets:
     get:
       summary: Gets all incentivized packets for a specific channel
       operationId: IncentivizedPacketsForChannel
@@ -856,7 +852,7 @@ paths:
               QueryIncentivizedPacketsResponse defines the response type for the
               incentivized packets RPC
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -982,10 +978,13 @@ paths:
                      Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
-                         any, err := ptypes.MarshalAny(foo)
+                         any, err := anypb.New(foo)
+                         if err != nil {
+                           ...
+                         }
                          ...
                          foo := &pb.Foo{}
-                         if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                         if err := any.UnmarshalTo(foo); err != nil {
                            ...
                          }
 
@@ -1099,7 +1098,6 @@ paths:
           in: query
           required: false
           type: boolean
-          format: boolean
         - name: pagination.reverse
           description: >-
             reverse is set to true if results are to be returned in the
@@ -1110,7 +1108,6 @@ paths:
           in: query
           required: false
           type: boolean
-          format: boolean
         - name: query_height
           description: Height to query at.
           in: query
@@ -1119,7 +1116,7 @@ paths:
           format: uint64
       tags:
         - Query
-  '/ibc/apps/fee/v1/channels/{channel_id}/relayers/{relayer}/counterparty_payee':
+  /ibc/apps/fee/v1/channels/{channel_id}/relayers/{relayer}/counterparty_payee:
     get:
       summary: >-
         CounterpartyPayee returns the registered counterparty payee for forward
@@ -1140,7 +1137,7 @@ paths:
               QueryCounterpartyPayeeResponse defines the response type for the
               CounterpartyPayee rpc
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -1266,10 +1263,13 @@ paths:
                      Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
-                         any, err := ptypes.MarshalAny(foo)
+                         any, err := anypb.New(foo)
+                         if err != nil {
+                           ...
+                         }
                          ...
                          foo := &pb.Foo{}
-                         if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                         if err := any.UnmarshalTo(foo); err != nil {
                            ...
                          }
 
@@ -1341,7 +1341,7 @@ paths:
           type: string
       tags:
         - Query
-  '/ibc/apps/fee/v1/channels/{channel_id}/relayers/{relayer}/payee':
+  /ibc/apps/fee/v1/channels/{channel_id}/relayers/{relayer}/payee:
     get:
       summary: >-
         Payee returns the registered payee address for a specific channel given
@@ -1358,7 +1358,7 @@ paths:
                 title: the payee address to which packet fees are paid out
             title: QueryPayeeResponse defines the response type for the Payee rpc
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -1484,10 +1484,13 @@ paths:
                      Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
-                         any, err := ptypes.MarshalAny(foo)
+                         any, err := anypb.New(foo)
+                         if err != nil {
+                           ...
+                         }
                          ...
                          foo := &pb.Foo{}
-                         if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                         if err := any.UnmarshalTo(foo); err != nil {
                            ...
                          }
 
@@ -1559,7 +1562,7 @@ paths:
           type: string
       tags:
         - Query
-  '/ibc/apps/fee/v1/channels/{packet_id.channel_id}/ports/{packet_id.port_id}/sequences/{packet_id.sequence}/incentivized_packet':
+  /ibc/apps/fee/v1/channels/{packet_id.channel_id}/ports/{packet_id.port_id}/sequences/{packet_id.sequence}/incentivized_packet:
     get:
       summary: >-
         IncentivizedPacket returns all packet fees for a packet given its
@@ -1677,7 +1680,7 @@ paths:
               QueryIncentivizedPacketsResponse defines the response type for the
               IncentivizedPacket rpc
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -1803,10 +1806,13 @@ paths:
                      Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
-                         any, err := ptypes.MarshalAny(foo)
+                         any, err := anypb.New(foo)
+                         if err != nil {
+                           ...
+                         }
                          ...
                          foo := &pb.Foo{}
-                         if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                         if err := any.UnmarshalTo(foo); err != nil {
                            ...
                          }
 
@@ -1890,7 +1896,7 @@ paths:
           format: uint64
       tags:
         - Query
-  '/ibc/apps/fee/v1/channels/{packet_id.channel_id}/ports/{packet_id.port_id}/sequences/{packet_id.sequence}/total_ack_fees':
+  /ibc/apps/fee/v1/channels/{packet_id.channel_id}/ports/{packet_id.port_id}/sequences/{packet_id.sequence}/total_ack_fees:
     get:
       summary: >-
         TotalAckFees returns the total acknowledgement fees for a packet given
@@ -1924,7 +1930,7 @@ paths:
               QueryTotalAckFeesResponse defines the response type for the
               TotalAckFees rpc
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -2050,10 +2056,13 @@ paths:
                      Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
-                         any, err := ptypes.MarshalAny(foo)
+                         any, err := anypb.New(foo)
+                         if err != nil {
+                           ...
+                         }
                          ...
                          foo := &pb.Foo{}
-                         if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                         if err := any.UnmarshalTo(foo); err != nil {
                            ...
                          }
 
@@ -2131,7 +2140,7 @@ paths:
           format: uint64
       tags:
         - Query
-  '/ibc/apps/fee/v1/channels/{packet_id.channel_id}/ports/{packet_id.port_id}/sequences/{packet_id.sequence}/total_recv_fees':
+  /ibc/apps/fee/v1/channels/{packet_id.channel_id}/ports/{packet_id.port_id}/sequences/{packet_id.sequence}/total_recv_fees:
     get:
       summary: >-
         TotalRecvFees returns the total receive fees for a packet given its
@@ -2165,7 +2174,7 @@ paths:
               QueryTotalRecvFeesResponse defines the response type for the
               TotalRecvFees rpc
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -2291,10 +2300,13 @@ paths:
                      Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
-                         any, err := ptypes.MarshalAny(foo)
+                         any, err := anypb.New(foo)
+                         if err != nil {
+                           ...
+                         }
                          ...
                          foo := &pb.Foo{}
-                         if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                         if err := any.UnmarshalTo(foo); err != nil {
                            ...
                          }
 
@@ -2372,7 +2384,7 @@ paths:
           format: uint64
       tags:
         - Query
-  '/ibc/apps/fee/v1/channels/{packet_id.channel_id}/ports/{packet_id.port_id}/sequences/{packet_id.sequence}/total_timeout_fees':
+  /ibc/apps/fee/v1/channels/{packet_id.channel_id}/ports/{packet_id.port_id}/sequences/{packet_id.sequence}/total_timeout_fees:
     get:
       summary: >-
         TotalTimeoutFees returns the total timeout fees for a packet given its
@@ -2406,7 +2418,7 @@ paths:
               QueryTotalTimeoutFeesResponse defines the response type for the
               TotalTimeoutFees rpc
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -2532,10 +2544,13 @@ paths:
                      Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
-                         any, err := ptypes.MarshalAny(foo)
+                         any, err := anypb.New(foo)
+                         if err != nil {
+                           ...
+                         }
                          ...
                          foo := &pb.Foo{}
-                         if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                         if err := any.UnmarshalTo(foo); err != nil {
                            ...
                          }
 
@@ -2642,7 +2657,7 @@ paths:
               QueryFeeEnabledChannelsResponse defines the response type for the
               FeeEnabledChannels rpc
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -2768,10 +2783,13 @@ paths:
                      Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
-                         any, err := ptypes.MarshalAny(foo)
+                         any, err := anypb.New(foo)
+                         if err != nil {
+                           ...
+                         }
                          ...
                          foo := &pb.Foo{}
-                         if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                         if err := any.UnmarshalTo(foo); err != nil {
                            ...
                          }
 
@@ -2877,7 +2895,6 @@ paths:
           in: query
           required: false
           type: boolean
-          format: boolean
         - name: pagination.reverse
           description: >-
             reverse is set to true if results are to be returned in the
@@ -2888,7 +2905,6 @@ paths:
           in: query
           required: false
           type: boolean
-          format: boolean
         - name: query_height
           description: block height at which to query.
           in: query
@@ -3020,7 +3036,7 @@ paths:
               QueryIncentivizedPacketsResponse defines the response type for the
               IncentivizedPackets rpc
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -3146,10 +3162,13 @@ paths:
                      Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
-                         any, err := ptypes.MarshalAny(foo)
+                         any, err := anypb.New(foo)
+                         if err != nil {
+                           ...
+                         }
                          ...
                          foo := &pb.Foo{}
-                         if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                         if err := any.UnmarshalTo(foo); err != nil {
                            ...
                          }
 
@@ -3255,7 +3274,6 @@ paths:
           in: query
           required: false
           type: boolean
-          format: boolean
         - name: pagination.reverse
           description: >-
             reverse is set to true if results are to be returned in the
@@ -3266,7 +3284,6 @@ paths:
           in: query
           required: false
           type: boolean
-          format: boolean
         - name: query_height
           description: block height at which to query.
           in: query
@@ -3407,10 +3424,13 @@ paths:
                          Example 4: Pack and unpack a message in Go
 
                              foo := &pb.Foo{...}
-                             any, err := ptypes.MarshalAny(foo)
+                             any, err := anypb.New(foo)
+                             if err != nil {
+                               ...
+                             }
                              ...
                              foo := &pb.Foo{}
-                             if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                             if err := any.UnmarshalTo(foo); err != nil {
                                ...
                              }
 
@@ -3512,7 +3532,7 @@ paths:
 
               method.
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -3638,10 +3658,13 @@ paths:
                      Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
-                         any, err := ptypes.MarshalAny(foo)
+                         any, err := anypb.New(foo)
+                         if err != nil {
+                           ...
+                         }
                          ...
                          foo := &pb.Foo{}
-                         if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                         if err := any.UnmarshalTo(foo); err != nil {
                            ...
                          }
 
@@ -3747,7 +3770,6 @@ paths:
           in: query
           required: false
           type: boolean
-          format: boolean
         - name: pagination.reverse
           description: >-
             reverse is set to true if results are to be returned in the
@@ -3758,10 +3780,9 @@ paths:
           in: query
           required: false
           type: boolean
-          format: boolean
       tags:
         - Query
-  '/ibc/core/client/v1/client_states/{client_id}':
+  /ibc/core/client/v1/client_states/{client_id}:
     get:
       summary: ClientState queries an IBC light client.
       operationId: ClientState
@@ -3883,10 +3904,13 @@ paths:
                    Example 4: Pack and unpack a message in Go
 
                        foo := &pb.Foo{...}
-                       any, err := ptypes.MarshalAny(foo)
+                       any, err := anypb.New(foo)
+                       if err != nil {
+                         ...
+                       }
                        ...
                        foo := &pb.Foo{}
-                       if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                       if err := any.UnmarshalTo(foo); err != nil {
                          ...
                        }
 
@@ -3985,7 +4009,7 @@ paths:
 
               which the proof was retrieved.
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -4111,10 +4135,13 @@ paths:
                      Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
-                         any, err := ptypes.MarshalAny(foo)
+                         any, err := anypb.New(foo)
+                         if err != nil {
+                           ...
+                         }
                          ...
                          foo := &pb.Foo{}
-                         if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                         if err := any.UnmarshalTo(foo); err != nil {
                            ...
                          }
 
@@ -4181,7 +4208,7 @@ paths:
           type: string
       tags:
         - Query
-  '/ibc/core/client/v1/client_status/{client_id}':
+  /ibc/core/client/v1/client_status/{client_id}:
     get:
       summary: Status queries the status of an IBC client.
       operationId: ClientStatus
@@ -4199,7 +4226,7 @@ paths:
 
               method. It returns the current status of the IBC client.
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -4325,10 +4352,13 @@ paths:
                      Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
-                         any, err := ptypes.MarshalAny(foo)
+                         any, err := anypb.New(foo)
+                         if err != nil {
+                           ...
+                         }
                          ...
                          foo := &pb.Foo{}
-                         if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                         if err := any.UnmarshalTo(foo); err != nil {
                            ...
                          }
 
@@ -4395,7 +4425,7 @@ paths:
           type: string
       tags:
         - Query
-  '/ibc/core/client/v1/consensus_states/{client_id}':
+  /ibc/core/client/v1/consensus_states/{client_id}:
     get:
       summary: |-
         ConsensusStates queries all the consensus state associated with a given
@@ -4554,10 +4584,13 @@ paths:
                          Example 4: Pack and unpack a message in Go
 
                              foo := &pb.Foo{...}
-                             any, err := ptypes.MarshalAny(foo)
+                             any, err := anypb.New(foo)
+                             if err != nil {
+                               ...
+                             }
                              ...
                              foo := &pb.Foo{}
-                             if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                             if err := any.UnmarshalTo(foo); err != nil {
                                ...
                              }
 
@@ -4658,7 +4691,7 @@ paths:
               QueryConsensusStatesResponse is the response type for the
               Query/ConsensusStates RPC method
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -4784,10 +4817,13 @@ paths:
                      Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
-                         any, err := ptypes.MarshalAny(foo)
+                         any, err := anypb.New(foo)
+                         if err != nil {
+                           ...
+                         }
                          ...
                          foo := &pb.Foo{}
-                         if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                         if err := any.UnmarshalTo(foo); err != nil {
                            ...
                          }
 
@@ -4898,7 +4934,6 @@ paths:
           in: query
           required: false
           type: boolean
-          format: boolean
         - name: pagination.reverse
           description: >-
             reverse is set to true if results are to be returned in the
@@ -4909,10 +4944,9 @@ paths:
           in: query
           required: false
           type: boolean
-          format: boolean
       tags:
         - Query
-  '/ibc/core/client/v1/consensus_states/{client_id}/heights':
+  /ibc/core/client/v1/consensus_states/{client_id}/heights:
     get:
       summary: >-
         ConsensusStateHeights queries the height of every consensus states
@@ -4995,7 +5029,7 @@ paths:
               QueryConsensusStateHeightsResponse is the response type for the
               Query/ConsensusStateHeights RPC method
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -5121,10 +5155,13 @@ paths:
                      Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
-                         any, err := ptypes.MarshalAny(foo)
+                         any, err := anypb.New(foo)
+                         if err != nil {
+                           ...
+                         }
                          ...
                          foo := &pb.Foo{}
-                         if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                         if err := any.UnmarshalTo(foo); err != nil {
                            ...
                          }
 
@@ -5235,7 +5272,6 @@ paths:
           in: query
           required: false
           type: boolean
-          format: boolean
         - name: pagination.reverse
           description: >-
             reverse is set to true if results are to be returned in the
@@ -5246,10 +5282,9 @@ paths:
           in: query
           required: false
           type: boolean
-          format: boolean
       tags:
         - Query
-  '/ibc/core/client/v1/consensus_states/{client_id}/revision/{revision_number}/height/{revision_height}':
+  /ibc/core/client/v1/consensus_states/{client_id}/revision/{revision_number}/height/{revision_height}:
     get:
       summary: >-
         ConsensusState queries a consensus state associated with a client state
@@ -5375,10 +5410,13 @@ paths:
                    Example 4: Pack and unpack a message in Go
 
                        foo := &pb.Foo{...}
-                       any, err := ptypes.MarshalAny(foo)
+                       any, err := anypb.New(foo)
+                       if err != nil {
+                         ...
+                       }
                        ...
                        foo := &pb.Foo{}
-                       if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                       if err := any.UnmarshalTo(foo); err != nil {
                          ...
                        }
 
@@ -5482,7 +5520,7 @@ paths:
 
               RPC method
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -5608,10 +5646,13 @@ paths:
                      Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
-                         any, err := ptypes.MarshalAny(foo)
+                         any, err := anypb.New(foo)
+                         if err != nil {
+                           ...
+                         }
                          ...
                          foo := &pb.Foo{}
-                         if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                         if err := any.UnmarshalTo(foo); err != nil {
                            ...
                          }
 
@@ -5697,7 +5738,6 @@ paths:
           in: query
           required: false
           type: boolean
-          format: boolean
       tags:
         - Query
   /ibc/core/client/v1/params:
@@ -5725,7 +5765,7 @@ paths:
               QueryParamsResponse is the response type for the Query/Params RPC
               method.
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -5851,10 +5891,13 @@ paths:
                      Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
-                         any, err := ptypes.MarshalAny(foo)
+                         any, err := anypb.New(foo)
+                         if err != nil {
+                           ...
+                         }
                          ...
                          foo := &pb.Foo{}
-                         if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                         if err := any.UnmarshalTo(foo); err != nil {
                            ...
                          }
 
@@ -6037,10 +6080,13 @@ paths:
                    Example 4: Pack and unpack a message in Go
 
                        foo := &pb.Foo{...}
-                       any, err := ptypes.MarshalAny(foo)
+                       any, err := anypb.New(foo)
+                       if err != nil {
+                         ...
+                       }
                        ...
                        foo := &pb.Foo{}
-                       if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                       if err := any.UnmarshalTo(foo); err != nil {
                          ...
                        }
 
@@ -6101,7 +6147,7 @@ paths:
               QueryUpgradedClientStateResponse is the response type for the
               Query/UpgradedClientState RPC method.
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -6227,10 +6273,13 @@ paths:
                      Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
-                         any, err := ptypes.MarshalAny(foo)
+                         any, err := anypb.New(foo)
+                         if err != nil {
+                           ...
+                         }
                          ...
                          foo := &pb.Foo{}
-                         if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                         if err := any.UnmarshalTo(foo); err != nil {
                            ...
                          }
 
@@ -6413,10 +6462,13 @@ paths:
                    Example 4: Pack and unpack a message in Go
 
                        foo := &pb.Foo{...}
-                       any, err := ptypes.MarshalAny(foo)
+                       any, err := anypb.New(foo)
+                       if err != nil {
+                         ...
+                       }
                        ...
                        foo := &pb.Foo{}
-                       if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                       if err := any.UnmarshalTo(foo); err != nil {
                          ...
                        }
 
@@ -6477,7 +6529,7 @@ paths:
               QueryUpgradedConsensusStateResponse is the response type for the
               Query/UpgradedConsensusState RPC method.
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -6603,10 +6655,13 @@ paths:
                      Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
-                         any, err := ptypes.MarshalAny(foo)
+                         any, err := anypb.New(foo)
+                         if err != nil {
+                           ...
+                         }
                          ...
                          foo := &pb.Foo{}
-                         if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                         if err := any.UnmarshalTo(foo); err != nil {
                            ...
                          }
 
@@ -6667,7 +6722,7 @@ paths:
                         }
       tags:
         - Query
-  '/ibc/core/connection/v1/client_connections/{client_id}':
+  /ibc/core/connection/v1/client_connections/{client_id}:
     get:
       summary: |-
         ClientConnections queries the connection paths associated with a client
@@ -6721,7 +6776,7 @@ paths:
               QueryClientConnectionsResponse is the response type for the
               Query/ClientConnections RPC method
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -6847,10 +6902,13 @@ paths:
                      Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
-                         any, err := ptypes.MarshalAny(foo)
+                         any, err := anypb.New(foo)
+                         if err != nil {
+                           ...
+                         }
                          ...
                          foo := &pb.Foo{}
-                         if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                         if err := any.UnmarshalTo(foo); err != nil {
                            ...
                          }
 
@@ -7078,7 +7136,7 @@ paths:
 
               method.
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -7204,10 +7262,13 @@ paths:
                      Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
-                         any, err := ptypes.MarshalAny(foo)
+                         any, err := anypb.New(foo)
+                         if err != nil {
+                           ...
+                         }
                          ...
                          foo := &pb.Foo{}
-                         if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                         if err := any.UnmarshalTo(foo); err != nil {
                            ...
                          }
 
@@ -7313,7 +7374,6 @@ paths:
           in: query
           required: false
           type: boolean
-          format: boolean
         - name: pagination.reverse
           description: >-
             reverse is set to true if results are to be returned in the
@@ -7324,10 +7384,9 @@ paths:
           in: query
           required: false
           type: boolean
-          format: boolean
       tags:
         - Query
-  '/ibc/core/connection/v1/connections/{connection_id}':
+  /ibc/core/connection/v1/connections/{connection_id}:
     get:
       summary: Connection queries an IBC connection end.
       operationId: Connection
@@ -7472,7 +7531,7 @@ paths:
 
               which the proof was retrieved.
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -7598,10 +7657,13 @@ paths:
                      Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
-                         any, err := ptypes.MarshalAny(foo)
+                         any, err := anypb.New(foo)
+                         if err != nil {
+                           ...
+                         }
                          ...
                          foo := &pb.Foo{}
-                         if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                         if err := any.UnmarshalTo(foo); err != nil {
                            ...
                          }
 
@@ -7668,7 +7730,7 @@ paths:
           type: string
       tags:
         - Query
-  '/ibc/core/connection/v1/connections/{connection_id}/client_state':
+  /ibc/core/connection/v1/connections/{connection_id}/client_state:
     get:
       summary: |-
         ConnectionClientState queries the client state associated with the
@@ -7800,10 +7862,13 @@ paths:
                        Example 4: Pack and unpack a message in Go
 
                            foo := &pb.Foo{...}
-                           any, err := ptypes.MarshalAny(foo)
+                           any, err := anypb.New(foo)
+                           if err != nil {
+                             ...
+                           }
                            ...
                            foo := &pb.Foo{}
-                           if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                           if err := any.UnmarshalTo(foo); err != nil {
                              ...
                            }
 
@@ -7905,7 +7970,7 @@ paths:
               QueryConnectionClientStateResponse is the response type for the
               Query/ConnectionClientState RPC method
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -8031,10 +8096,13 @@ paths:
                      Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
-                         any, err := ptypes.MarshalAny(foo)
+                         any, err := anypb.New(foo)
+                         if err != nil {
+                           ...
+                         }
                          ...
                          foo := &pb.Foo{}
-                         if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                         if err := any.UnmarshalTo(foo); err != nil {
                            ...
                          }
 
@@ -8101,7 +8169,7 @@ paths:
           type: string
       tags:
         - Query
-  '/ibc/core/connection/v1/connections/{connection_id}/consensus_state/revision/{revision_number}/height/{revision_height}':
+  /ibc/core/connection/v1/connections/{connection_id}/consensus_state/revision/{revision_number}/height/{revision_height}:
     get:
       summary: |-
         ConnectionConsensusState queries the consensus state associated with the
@@ -8225,10 +8293,13 @@ paths:
                    Example 4: Pack and unpack a message in Go
 
                        foo := &pb.Foo{...}
-                       any, err := ptypes.MarshalAny(foo)
+                       any, err := anypb.New(foo)
+                       if err != nil {
+                         ...
+                       }
                        ...
                        foo := &pb.Foo{}
-                       if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                       if err := any.UnmarshalTo(foo); err != nil {
                          ...
                        }
 
@@ -8325,7 +8396,7 @@ paths:
               QueryConnectionConsensusStateResponse is the response type for the
               Query/ConnectionConsensusState RPC method
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -8451,10 +8522,13 @@ paths:
                      Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
-                         any, err := ptypes.MarshalAny(foo)
+                         any, err := anypb.New(foo)
+                         if err != nil {
+                           ...
+                         }
                          ...
                          foo := &pb.Foo{}
-                         if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                         if err := any.UnmarshalTo(foo); err != nil {
                            ...
                          }
 
@@ -8683,7 +8757,7 @@ paths:
               QueryChannelsResponse is the response type for the Query/Channels
               RPC method.
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -8809,10 +8883,13 @@ paths:
                      Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
-                         any, err := ptypes.MarshalAny(foo)
+                         any, err := anypb.New(foo)
+                         if err != nil {
+                           ...
+                         }
                          ...
                          foo := &pb.Foo{}
-                         if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                         if err := any.UnmarshalTo(foo); err != nil {
                            ...
                          }
 
@@ -8918,7 +8995,6 @@ paths:
           in: query
           required: false
           type: boolean
-          format: boolean
         - name: pagination.reverse
           description: >-
             reverse is set to true if results are to be returned in the
@@ -8929,10 +9005,9 @@ paths:
           in: query
           required: false
           type: boolean
-          format: boolean
       tags:
         - Query
-  '/ibc/core/channel/v1/channels/{channel_id}/ports/{port_id}':
+  /ibc/core/channel/v1/channels/{channel_id}/ports/{port_id}:
     get:
       summary: Channel queries an IBC Channel.
       operationId: Channel
@@ -9058,7 +9133,7 @@ paths:
 
               proof was retrieved.
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -9184,10 +9259,13 @@ paths:
                      Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
-                         any, err := ptypes.MarshalAny(foo)
+                         any, err := anypb.New(foo)
+                         if err != nil {
+                           ...
+                         }
                          ...
                          foo := &pb.Foo{}
-                         if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                         if err := any.UnmarshalTo(foo); err != nil {
                            ...
                          }
 
@@ -9259,7 +9337,7 @@ paths:
           type: string
       tags:
         - Query
-  '/ibc/core/channel/v1/channels/{channel_id}/ports/{port_id}/client_state':
+  /ibc/core/channel/v1/channels/{channel_id}/ports/{port_id}/client_state:
     get:
       summary: >-
         ChannelClientState queries for the client state for the channel
@@ -9393,10 +9471,13 @@ paths:
                        Example 4: Pack and unpack a message in Go
 
                            foo := &pb.Foo{...}
-                           any, err := ptypes.MarshalAny(foo)
+                           any, err := anypb.New(foo)
+                           if err != nil {
+                             ...
+                           }
                            ...
                            foo := &pb.Foo{}
-                           if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                           if err := any.UnmarshalTo(foo); err != nil {
                              ...
                            }
 
@@ -9498,7 +9579,7 @@ paths:
               QueryChannelClientStateResponse is the Response type for the
               Query/QueryChannelClientState RPC method
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -9624,10 +9705,13 @@ paths:
                      Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
-                         any, err := ptypes.MarshalAny(foo)
+                         any, err := anypb.New(foo)
+                         if err != nil {
+                           ...
+                         }
                          ...
                          foo := &pb.Foo{}
-                         if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                         if err := any.UnmarshalTo(foo); err != nil {
                            ...
                          }
 
@@ -9699,7 +9783,7 @@ paths:
           type: string
       tags:
         - Query
-  '/ibc/core/channel/v1/channels/{channel_id}/ports/{port_id}/consensus_state/revision/{revision_number}/height/{revision_height}':
+  /ibc/core/channel/v1/channels/{channel_id}/ports/{port_id}/consensus_state/revision/{revision_number}/height/{revision_height}:
     get:
       summary: |-
         ChannelConsensusState queries for the consensus state for the channel
@@ -9823,10 +9907,13 @@ paths:
                    Example 4: Pack and unpack a message in Go
 
                        foo := &pb.Foo{...}
-                       any, err := ptypes.MarshalAny(foo)
+                       any, err := anypb.New(foo)
+                       if err != nil {
+                         ...
+                       }
                        ...
                        foo := &pb.Foo{}
-                       if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                       if err := any.UnmarshalTo(foo); err != nil {
                          ...
                        }
 
@@ -9923,7 +10010,7 @@ paths:
               QueryChannelClientStateResponse is the Response type for the
               Query/QueryChannelClientState RPC method
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -10049,10 +10136,13 @@ paths:
                      Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
-                         any, err := ptypes.MarshalAny(foo)
+                         any, err := anypb.New(foo)
+                         if err != nil {
+                           ...
+                         }
                          ...
                          foo := &pb.Foo{}
-                         if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                         if err := any.UnmarshalTo(foo); err != nil {
                            ...
                          }
 
@@ -10136,7 +10226,7 @@ paths:
           format: uint64
       tags:
         - Query
-  '/ibc/core/channel/v1/channels/{channel_id}/ports/{port_id}/next_sequence':
+  /ibc/core/channel/v1/channels/{channel_id}/ports/{port_id}/next_sequence:
     get:
       summary: >-
         NextSequenceReceive returns the next receive sequence for a given
@@ -10189,7 +10279,7 @@ paths:
               QuerySequenceResponse is the request type for the
               Query/QueryNextSequenceReceiveResponse RPC method
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -10315,10 +10405,13 @@ paths:
                      Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
-                         any, err := ptypes.MarshalAny(foo)
+                         any, err := anypb.New(foo)
+                         if err != nil {
+                           ...
+                         }
                          ...
                          foo := &pb.Foo{}
-                         if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                         if err := any.UnmarshalTo(foo); err != nil {
                            ...
                          }
 
@@ -10390,7 +10483,7 @@ paths:
           type: string
       tags:
         - Query
-  '/ibc/core/channel/v1/channels/{channel_id}/ports/{port_id}/packet_acknowledgements':
+  /ibc/core/channel/v1/channels/{channel_id}/ports/{port_id}/packet_acknowledgements:
     get:
       summary: >-
         PacketAcknowledgements returns all the packet acknowledgements
@@ -10495,7 +10588,7 @@ paths:
               QueryPacketAcknowledgemetsResponse is the request type for the
               Query/QueryPacketAcknowledgements RPC method
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -10621,10 +10714,13 @@ paths:
                      Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
-                         any, err := ptypes.MarshalAny(foo)
+                         any, err := anypb.New(foo)
+                         if err != nil {
+                           ...
+                         }
                          ...
                          foo := &pb.Foo{}
-                         if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                         if err := any.UnmarshalTo(foo); err != nil {
                            ...
                          }
 
@@ -10740,7 +10836,6 @@ paths:
           in: query
           required: false
           type: boolean
-          format: boolean
         - name: pagination.reverse
           description: >-
             reverse is set to true if results are to be returned in the
@@ -10751,7 +10846,6 @@ paths:
           in: query
           required: false
           type: boolean
-          format: boolean
         - name: packet_commitment_sequences
           description: list of packet sequences.
           in: query
@@ -10763,7 +10857,7 @@ paths:
           collectionFormat: multi
       tags:
         - Query
-  '/ibc/core/channel/v1/channels/{channel_id}/ports/{port_id}/packet_acks/{sequence}':
+  /ibc/core/channel/v1/channels/{channel_id}/ports/{port_id}/packet_acks/{sequence}:
     get:
       summary: PacketAcknowledgement queries a stored packet acknowledgement hash.
       operationId: PacketAcknowledgement
@@ -10818,7 +10912,7 @@ paths:
 
               proof was retrieved
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -10944,10 +11038,13 @@ paths:
                      Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
-                         any, err := ptypes.MarshalAny(foo)
+                         any, err := anypb.New(foo)
+                         if err != nil {
+                           ...
+                         }
                          ...
                          foo := &pb.Foo{}
-                         if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                         if err := any.UnmarshalTo(foo); err != nil {
                            ...
                          }
 
@@ -11025,7 +11122,7 @@ paths:
           format: uint64
       tags:
         - Query
-  '/ibc/core/channel/v1/channels/{channel_id}/ports/{port_id}/packet_commitments':
+  /ibc/core/channel/v1/channels/{channel_id}/ports/{port_id}/packet_commitments:
     get:
       summary: |-
         PacketCommitments returns all the packet commitments hashes associated
@@ -11128,7 +11225,7 @@ paths:
               QueryPacketCommitmentsResponse is the request type for the
               Query/QueryPacketCommitments RPC method
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -11254,10 +11351,13 @@ paths:
                      Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
-                         any, err := ptypes.MarshalAny(foo)
+                         any, err := anypb.New(foo)
+                         if err != nil {
+                           ...
+                         }
                          ...
                          foo := &pb.Foo{}
-                         if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                         if err := any.UnmarshalTo(foo); err != nil {
                            ...
                          }
 
@@ -11373,7 +11473,6 @@ paths:
           in: query
           required: false
           type: boolean
-          format: boolean
         - name: pagination.reverse
           description: >-
             reverse is set to true if results are to be returned in the
@@ -11384,10 +11483,9 @@ paths:
           in: query
           required: false
           type: boolean
-          format: boolean
       tags:
         - Query
-  '/ibc/core/channel/v1/channels/{channel_id}/ports/{port_id}/packet_commitments/{packet_ack_sequences}/unreceived_acks':
+  /ibc/core/channel/v1/channels/{channel_id}/ports/{port_id}/packet_commitments/{packet_ack_sequences}/unreceived_acks:
     get:
       summary: >-
         UnreceivedAcks returns all the unreceived IBC acknowledgements
@@ -11440,7 +11538,7 @@ paths:
               QueryUnreceivedAcksResponse is the response type for the
               Query/UnreceivedAcks RPC method
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -11566,10 +11664,13 @@ paths:
                      Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
-                         any, err := ptypes.MarshalAny(foo)
+                         any, err := anypb.New(foo)
+                         if err != nil {
+                           ...
+                         }
                          ...
                          foo := &pb.Foo{}
-                         if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                         if err := any.UnmarshalTo(foo); err != nil {
                            ...
                          }
 
@@ -11651,7 +11752,7 @@ paths:
           minItems: 1
       tags:
         - Query
-  '/ibc/core/channel/v1/channels/{channel_id}/ports/{port_id}/packet_commitments/{packet_commitment_sequences}/unreceived_packets':
+  /ibc/core/channel/v1/channels/{channel_id}/ports/{port_id}/packet_commitments/{packet_commitment_sequences}/unreceived_packets:
     get:
       summary: >-
         UnreceivedPackets returns all the unreceived IBC packets associated with
@@ -11704,7 +11805,7 @@ paths:
               QueryUnreceivedPacketsResponse is the response type for the
               Query/UnreceivedPacketCommitments RPC method
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -11830,10 +11931,13 @@ paths:
                      Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
-                         any, err := ptypes.MarshalAny(foo)
+                         any, err := anypb.New(foo)
+                         if err != nil {
+                           ...
+                         }
                          ...
                          foo := &pb.Foo{}
-                         if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                         if err := any.UnmarshalTo(foo); err != nil {
                            ...
                          }
 
@@ -11915,7 +12019,7 @@ paths:
           minItems: 1
       tags:
         - Query
-  '/ibc/core/channel/v1/channels/{channel_id}/ports/{port_id}/packet_commitments/{sequence}':
+  /ibc/core/channel/v1/channels/{channel_id}/ports/{port_id}/packet_commitments/{sequence}:
     get:
       summary: PacketCommitment queries a stored packet commitment hash.
       operationId: PacketCommitment
@@ -11971,7 +12075,7 @@ paths:
 
               retrieved
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -12097,10 +12201,13 @@ paths:
                      Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
-                         any, err := ptypes.MarshalAny(foo)
+                         any, err := anypb.New(foo)
+                         if err != nil {
+                           ...
+                         }
                          ...
                          foo := &pb.Foo{}
-                         if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                         if err := any.UnmarshalTo(foo); err != nil {
                            ...
                          }
 
@@ -12178,7 +12285,7 @@ paths:
           format: uint64
       tags:
         - Query
-  '/ibc/core/channel/v1/channels/{channel_id}/ports/{port_id}/packet_receipts/{sequence}':
+  /ibc/core/channel/v1/channels/{channel_id}/ports/{port_id}/packet_receipts/{sequence}:
     get:
       summary: >-
         PacketReceipt queries if a given packet sequence has been received on
@@ -12194,7 +12301,6 @@ paths:
             properties:
               received:
                 type: boolean
-                format: boolean
                 title: success flag for if receipt exists
               proof:
                 type: string
@@ -12238,7 +12344,7 @@ paths:
 
               retrieved
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -12364,10 +12470,13 @@ paths:
                      Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
-                         any, err := ptypes.MarshalAny(foo)
+                         any, err := anypb.New(foo)
+                         if err != nil {
+                           ...
+                         }
                          ...
                          foo := &pb.Foo{}
-                         if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                         if err := any.UnmarshalTo(foo); err != nil {
                            ...
                          }
 
@@ -12445,7 +12554,7 @@ paths:
           format: uint64
       tags:
         - Query
-  '/ibc/core/channel/v1/connections/{connection}/channels':
+  /ibc/core/channel/v1/connections/{connection}/channels:
     get:
       summary: |-
         ConnectionChannels queries all the channels associated with a connection
@@ -12599,7 +12708,7 @@ paths:
               QueryConnectionChannelsResponse is the Response type for the
               Query/QueryConnectionChannels RPC method
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -12725,10 +12834,13 @@ paths:
                      Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
-                         any, err := ptypes.MarshalAny(foo)
+                         any, err := anypb.New(foo)
+                         if err != nil {
+                           ...
+                         }
                          ...
                          foo := &pb.Foo{}
-                         if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                         if err := any.UnmarshalTo(foo); err != nil {
                            ...
                          }
 
@@ -12839,7 +12951,6 @@ paths:
           in: query
           required: false
           type: boolean
-          format: boolean
         - name: pagination.reverse
           description: >-
             reverse is set to true if results are to be returned in the
@@ -12850,7 +12961,6 @@ paths:
           in: query
           required: false
           type: boolean
-          format: boolean
       tags:
         - Query
 definitions:
@@ -12881,7 +12991,6 @@ definitions:
           If left empty it will default to a value to be set by each app.
       count_total:
         type: boolean
-        format: boolean
         description: >-
           count_total is set to true  to indicate that the result set should
           include
@@ -12894,7 +13003,6 @@ definitions:
           is set.
       reverse:
         type: boolean
-        format: boolean
         description: >-
           reverse is set to true if results are to be returned in the descending
           order.
@@ -13035,10 +13143,13 @@ definitions:
        Example 4: Pack and unpack a message in Go
 
            foo := &pb.Foo{...}
-           any, err := ptypes.MarshalAny(foo)
+           any, err := anypb.New(foo)
+           if err != nil {
+             ...
+           }
            ...
            foo := &pb.Foo{}
-           if err := ptypes.UnmarshalAny(any, foo); err != nil {
+           if err := any.UnmarshalTo(foo); err != nil {
              ...
            }
 
@@ -13209,10 +13320,13 @@ definitions:
              Example 4: Pack and unpack a message in Go
 
                  foo := &pb.Foo{...}
-                 any, err := ptypes.MarshalAny(foo)
+                 any, err := anypb.New(foo)
+                 if err != nil {
+                   ...
+                 }
                  ...
                  foo := &pb.Foo{}
-                 if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                 if err := any.UnmarshalTo(foo); err != nil {
                    ...
                  }
 
@@ -13285,7 +13399,6 @@ definitions:
     properties:
       send_enabled:
         type: boolean
-        format: boolean
         description: >-
           send_enabled enables or disables all cross-chain token transfers from
           this
@@ -13293,7 +13406,6 @@ definitions:
           chain.
       receive_enabled:
         type: boolean
-        format: boolean
         description: >-
           receive_enabled enables or disables all cross-chain token transfers to
           this
@@ -13407,7 +13519,6 @@ definitions:
         properties:
           send_enabled:
             type: boolean
-            format: boolean
             description: >-
               send_enabled enables or disables all cross-chain token transfers
               from this
@@ -13415,7 +13526,6 @@ definitions:
               chain.
           receive_enabled:
             type: boolean
-            format: boolean
             description: >-
               receive_enabled enables or disables all cross-chain token
               transfers to this
@@ -13427,7 +13537,6 @@ definitions:
     properties:
       controller_enabled:
         type: boolean
-        format: boolean
         description: controller_enabled enables or disables the controller submodule.
     description: |-
       Params defines the set of on-chain interchain accounts parameters.
@@ -13449,7 +13558,6 @@ definitions:
         properties:
           controller_enabled:
             type: boolean
-            format: boolean
             description: controller_enabled enables or disables the controller submodule.
     description: QueryParamsResponse is the response type for the Query/Params RPC method.
   ibc.applications.interchain_accounts.host.v1.Params:
@@ -13457,7 +13565,6 @@ definitions:
     properties:
       host_enabled:
         type: boolean
-        format: boolean
         description: host_enabled enables or disables the host submodule.
       allow_messages:
         type: array
@@ -13478,7 +13585,6 @@ definitions:
         properties:
           host_enabled:
             type: boolean
-            format: boolean
             description: host_enabled enables or disables the host submodule.
           allow_messages:
             type: array
@@ -13548,7 +13654,7 @@ definitions:
             NOTE: The amount field is an Int which implements the custom method
             signatures required by gogoproto.
         title: the packet timeout fee
-    title: 'Fee defines the ICS29 receive, acknowledgement and timeout fees'
+    title: Fee defines the ICS29 receive, acknowledgement and timeout fees
   ibc.applications.fee.v1.FeeEnabledChannel:
     type: object
     properties:
@@ -13748,7 +13854,6 @@ definitions:
     properties:
       fee_enabled:
         type: boolean
-        format: boolean
         title: boolean flag representing the fee enabled channel status
     title: >-
       QueryFeeEnabledChannelResponse defines the response type for the
@@ -14328,10 +14433,13 @@ definitions:
            Example 4: Pack and unpack a message in Go
 
                foo := &pb.Foo{...}
-               any, err := ptypes.MarshalAny(foo)
+               any, err := anypb.New(foo)
+               if err != nil {
+                 ...
+               }
                ...
                foo := &pb.Foo{}
-               if err := ptypes.UnmarshalAny(any, foo); err != nil {
+               if err := any.UnmarshalTo(foo); err != nil {
                  ...
                }
 
@@ -14525,10 +14633,13 @@ definitions:
            Example 4: Pack and unpack a message in Go
 
                foo := &pb.Foo{...}
-               any, err := ptypes.MarshalAny(foo)
+               any, err := anypb.New(foo)
+               if err != nil {
+                 ...
+               }
                ...
                foo := &pb.Foo{}
-               if err := ptypes.UnmarshalAny(any, foo); err != nil {
+               if err := any.UnmarshalTo(foo); err != nil {
                  ...
                }
 
@@ -14699,10 +14810,13 @@ definitions:
            Example 4: Pack and unpack a message in Go
 
                foo := &pb.Foo{...}
-               any, err := ptypes.MarshalAny(foo)
+               any, err := anypb.New(foo)
+               if err != nil {
+                 ...
+               }
                ...
                foo := &pb.Foo{}
-               if err := ptypes.UnmarshalAny(any, foo); err != nil {
+               if err := any.UnmarshalTo(foo); err != nil {
                  ...
                }
 
@@ -14916,10 +15030,13 @@ definitions:
                  Example 4: Pack and unpack a message in Go
 
                      foo := &pb.Foo{...}
-                     any, err := ptypes.MarshalAny(foo)
+                     any, err := anypb.New(foo)
+                     if err != nil {
+                       ...
+                     }
                      ...
                      foo := &pb.Foo{}
-                     if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                     if err := any.UnmarshalTo(foo); err != nil {
                        ...
                      }
 
@@ -15201,10 +15318,13 @@ definitions:
            Example 4: Pack and unpack a message in Go
 
                foo := &pb.Foo{...}
-               any, err := ptypes.MarshalAny(foo)
+               any, err := anypb.New(foo)
+               if err != nil {
+                 ...
+               }
                ...
                foo := &pb.Foo{}
-               if err := ptypes.UnmarshalAny(any, foo); err != nil {
+               if err := any.UnmarshalTo(foo); err != nil {
                  ...
                }
 
@@ -15449,10 +15569,13 @@ definitions:
                  Example 4: Pack and unpack a message in Go
 
                      foo := &pb.Foo{...}
-                     any, err := ptypes.MarshalAny(foo)
+                     any, err := anypb.New(foo)
+                     if err != nil {
+                       ...
+                     }
                      ...
                      foo := &pb.Foo{}
-                     if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                     if err := any.UnmarshalTo(foo); err != nil {
                        ...
                      }
 
@@ -15667,10 +15790,13 @@ definitions:
            Example 4: Pack and unpack a message in Go
 
                foo := &pb.Foo{...}
-               any, err := ptypes.MarshalAny(foo)
+               any, err := anypb.New(foo)
+               if err != nil {
+                 ...
+               }
                ...
                foo := &pb.Foo{}
-               if err := ptypes.UnmarshalAny(any, foo); err != nil {
+               if err := any.UnmarshalTo(foo); err != nil {
                  ...
                }
 
@@ -15833,10 +15959,13 @@ definitions:
            Example 4: Pack and unpack a message in Go
 
                foo := &pb.Foo{...}
-               any, err := ptypes.MarshalAny(foo)
+               any, err := anypb.New(foo)
+               if err != nil {
+                 ...
+               }
                ...
                foo := &pb.Foo{}
-               if err := ptypes.UnmarshalAny(any, foo); err != nil {
+               if err := any.UnmarshalTo(foo); err != nil {
                  ...
                }
 
@@ -16262,10 +16391,13 @@ definitions:
                Example 4: Pack and unpack a message in Go
 
                    foo := &pb.Foo{...}
-                   any, err := ptypes.MarshalAny(foo)
+                   any, err := anypb.New(foo)
+                   if err != nil {
+                     ...
+                   }
                    ...
                    foo := &pb.Foo{}
-                   if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                   if err := any.UnmarshalTo(foo); err != nil {
                      ...
                    }
 
@@ -16465,10 +16597,13 @@ definitions:
            Example 4: Pack and unpack a message in Go
 
                foo := &pb.Foo{...}
-               any, err := ptypes.MarshalAny(foo)
+               any, err := anypb.New(foo)
+               if err != nil {
+                 ...
+               }
                ...
                foo := &pb.Foo{}
-               if err := ptypes.UnmarshalAny(any, foo); err != nil {
+               if err := any.UnmarshalTo(foo); err != nil {
                  ...
                }
 
@@ -16925,7 +17060,7 @@ definitions:
           this channel will travel
       version:
         type: string
-        title: 'opaque channel version, which is agreed upon during the handshake'
+        title: opaque channel version, which is agreed upon during the handshake
     description: |-
       Channel defines pipeline for exactly-once packet delivery between specific
       modules on separate blockchains, which has at least one end capable of
@@ -17000,7 +17135,7 @@ definitions:
           this channel will travel
       version:
         type: string
-        title: 'opaque channel version, which is agreed upon during the handshake'
+        title: opaque channel version, which is agreed upon during the handshake
       port_id:
         type: string
         title: port identifier
@@ -17165,10 +17300,13 @@ definitions:
                Example 4: Pack and unpack a message in Go
 
                    foo := &pb.Foo{...}
-                   any, err := ptypes.MarshalAny(foo)
+                   any, err := anypb.New(foo)
+                   if err != nil {
+                     ...
+                   }
                    ...
                    foo := &pb.Foo{}
-                   if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                   if err := any.UnmarshalTo(foo); err != nil {
                      ...
                    }
 
@@ -17368,10 +17506,13 @@ definitions:
            Example 4: Pack and unpack a message in Go
 
                foo := &pb.Foo{...}
-               any, err := ptypes.MarshalAny(foo)
+               any, err := anypb.New(foo)
+               if err != nil {
+                 ...
+               }
                ...
                foo := &pb.Foo{}
-               if err := ptypes.UnmarshalAny(any, foo); err != nil {
+               if err := any.UnmarshalTo(foo); err != nil {
                  ...
                }
 
@@ -17524,7 +17665,7 @@ definitions:
               this channel will travel
           version:
             type: string
-            title: 'opaque channel version, which is agreed upon during the handshake'
+            title: opaque channel version, which is agreed upon during the handshake
         description: >-
           Channel defines pipeline for exactly-once packet delivery between
           specific
@@ -18157,7 +18298,6 @@ definitions:
     properties:
       received:
         type: boolean
-        format: boolean
         title: success flag for if receipt exists
       proof:
         type: string

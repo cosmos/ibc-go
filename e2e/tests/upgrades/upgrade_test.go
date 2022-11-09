@@ -11,6 +11,7 @@ import (
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	v6upgrades "github.com/cosmos/interchain-accounts/app/upgrades/v6"
 	intertxtypes "github.com/cosmos/interchain-accounts/x/inter-tx/types"
+	"github.com/gogo/protobuf/proto"
 	ibctest "github.com/strangelove-ventures/ibctest/v6"
 	"github.com/strangelove-ventures/ibctest/v6/chain/cosmos"
 	"github.com/strangelove-ventures/ibctest/v6/ibc"
@@ -21,6 +22,7 @@ import (
 	"github.com/cosmos/ibc-go/e2e/testconfig"
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
+	controllertypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/controller/types"
 	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
 	ibctesting "github.com/cosmos/ibc-go/v6/testing"
 	simappupgrades "github.com/cosmos/ibc-go/v6/testing/simapp/upgrades"
@@ -239,7 +241,7 @@ func (s *UpgradeTestSuite) TestV5ToV6ChainUpgrade() {
 			s.Require().NoError(err)
 		})
 
-		t.Run("broadcast MsgSubmitTx", func(t *testing.T) {
+		t.Run("broadcast MsgSubmitTx (legacy)", func(t *testing.T) {
 			// assemble bank transfer message from host account to user account on host chain
 			msgSend := &banktypes.MsgSend{
 				FromAddress: hostAccount,
@@ -294,7 +296,7 @@ func (s *UpgradeTestSuite) TestV5ToV6ChainUpgrade() {
 		s.StartRelayer(relayer)
 	})
 
-	t.Run("broadcast MsgSubmitTx", func(t *testing.T) {
+	t.Run("broadcast MsgSubmitTx (legacy)", func(t *testing.T) {
 		// assemble bank transfer message from host account to user account on host chain
 		msgSend := &banktypes.MsgSend{
 			FromAddress: hostAccount,
@@ -334,6 +336,52 @@ func (s *UpgradeTestSuite) TestV5ToV6ChainUpgrade() {
 		s.Require().NoError(err)
 
 		expected := (testvalues.IBCTransferAmount * 2) + testvalues.StartingTokenAmount
+		s.Require().Equal(expected, balance)
+	})
+
+	t.Run("broadcast MsgSendTx (MsgServer)", func(t *testing.T) {
+		// assemble bank transfer message from host account to user account on host chain
+		msgSend := &banktypes.MsgSend{
+			FromAddress: hostAccount,
+			ToAddress:   chainBAccount.Bech32Address(chainB.Config().Bech32Prefix),
+			Amount:      sdk.NewCoins(testvalues.DefaultTransferAmount(chainB.Config().Denom)),
+		}
+
+		data, err := icatypes.SerializeCosmosTx(testsuite.Codec(), []proto.Message{msgSend})
+		s.Require().NoError(err)
+
+		icaPacketData := icatypes.InterchainAccountPacketData{
+			Type: icatypes.EXECUTE_TX,
+			Data: data,
+		}
+
+		relativeTimeoutTimestamp := uint64(time.Hour.Nanoseconds())
+		msgSendTx := controllertypes.NewMsgSendTx(controllerAccount.Bech32Address(chainA.Config().Bech32Prefix), ibctesting.FirstConnectionID, relativeTimeoutTimestamp, icaPacketData)
+
+		// broadcast MsgSendTx tx from controller account on chain A
+		// this message should trigger the sending of an ICA packet over channel-1 (channel created between controller and host)
+		// this ICA packet contains the assembled bank transfer message from above, which will be executed by the host account on the host chain.
+		resp, err := s.BroadcastMessages(
+			ctx,
+			chainA,
+			controllerAccount,
+			msgSendTx,
+		)
+
+		s.AssertValidTxResponse(resp)
+		s.Require().NoError(err)
+
+		s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB))
+	})
+
+	t.Run("verify tokens transferred", func(t *testing.T) {
+		balance, err := chainB.GetBalance(ctx, chainBAccount.Bech32Address(chainB.Config().Bech32Prefix), chainB.Config().Denom)
+		s.Require().NoError(err)
+
+		_, err = chainB.GetBalance(ctx, hostAccount, chainB.Config().Denom)
+		s.Require().NoError(err)
+
+		expected := (testvalues.IBCTransferAmount * 3) + testvalues.StartingTokenAmount
 		s.Require().Equal(expected, balance)
 	})
 }
