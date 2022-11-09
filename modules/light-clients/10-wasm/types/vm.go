@@ -3,6 +3,7 @@ package types
 import (
 	"bytes"
 	"crypto/sha256"
+	"encoding/json"
 	"strings"
 
 	cosmwasm "github.com/CosmWasm/wasmvm"
@@ -35,6 +36,10 @@ type queryResponse struct {
 	Root            committypes.MerkleRoot        `json:"root,omitempty"`
 	Timestamp       uint64                        `json:"timestamp,omitempty"`
 	Status          exported.Status               `json:"status,omitempty"`
+}
+
+type ClientCreateRequest struct {
+	ClientCreateRequest ClientState `json:"client_create_request,omitempty"`
 }
 
 type contractResult struct {
@@ -92,7 +97,14 @@ func CreateVM(vmConfig *VMConfig, validationConfig *ValidationConfig) {
 }
 
 func SaveClientStateIntoWasmStorage(ctx sdk.Context, cdc codec.BinaryCodec, store sdk.KVStore, c *ClientState) (*types.Response, error) {
-	msg := clienttypes.MustMarshalClientState(cdc, c)
+	// stateBytes := clienttypes.MustMarshalClientState(cdc, c)
+	saveClientMsg := ClientCreateRequest{
+		ClientCreateRequest: *c,
+	}
+	msg, err := json.Marshal(saveClientMsg)
+	if err != nil {
+		panic(err)
+	}
 	return callContract(c.CodeId, ctx, store, msg)
 }
 
