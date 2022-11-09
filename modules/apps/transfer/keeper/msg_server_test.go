@@ -133,7 +133,7 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 				suite.Require().NotEqual(res.Sequence, uint64(0))
 
 				events := ctx.EventManager().Events()
-				suite.checkTransferEvents(events, coin, "memo")
+				suite.assertTransferEvents(events, coin, "memo")
 			} else {
 				suite.Require().Error(err)
 				suite.Require().Nil(res)
