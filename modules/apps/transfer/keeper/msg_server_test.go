@@ -3,24 +3,28 @@ package keeper_test
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-
 	"github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 )
 
-func checkEvents(
-	suite *KeeperTestSuite,
+func (suite *KeeperTestSuite) checkTransferEvents(
 	actualEvents sdk.Events,
-	expEvents map[string]map[string]string,
+	coin sdk.Coin,
+	memo string,
 ) {
-	hasEvents := make(map[string]bool)
-	for eventType := range expEvents {
-		hasEvents[eventType] = false
+	hasEvent := false
+
+	eventType := "ibc_transfer"
+	expEvent := map[string]string{
+		"sender":   suite.chainA.SenderAccount.GetAddress().String(),
+		"receiver": suite.chainB.SenderAccount.GetAddress().String(),
+		"amount":   coin.Amount.String(),
+		"denom":    coin.Denom,
+		"memo":     memo,
 	}
 
 	for _, event := range actualEvents {
-		expEvent, eventFound := expEvents[event.Type]
-		if eventFound {
-			hasEvents[event.Type] = true
+		if event.Type == eventType {
+			hasEvent = true
 			suite.Require().Len(event.Attributes, len(expEvent))
 			for _, attr := range event.Attributes {
 				expValue, found := expEvent[string(attr.Key)]
@@ -30,9 +34,7 @@ func checkEvents(
 		}
 	}
 
-	for eventName, hasEvent := range hasEvents {
-		suite.Require().True(hasEvent, "event: %s was not found in events", eventName)
-	}
+	suite.Require().True(hasEvent, "event: %s was not found in events", eventType)
 }
 
 func (suite *KeeperTestSuite) TestMsgTransfer() {
@@ -125,22 +127,13 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 			ctx := suite.chainA.GetContext()
 			res, err := suite.chainA.GetSimApp().TransferKeeper.Transfer(sdk.WrapSDKContext(ctx), msg)
 
-			expEvents := map[string]map[string]string{
-				"ibc_transfer": {
-					"sender":   suite.chainA.SenderAccount.GetAddress().String(),
-					"receiver": suite.chainB.SenderAccount.GetAddress().String(),
-					"amount":   coin.Amount.String(),
-					"denom":    coin.Denom,
-				},
-			}
-
 			if tc.expPass {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
 				suite.Require().NotEqual(res.Sequence, uint64(0))
 
 				events := ctx.EventManager().Events()
-				checkEvents(suite, events, expEvents)
+				suite.checkTransferEvents(events, coin, "memo")
 			} else {
 				suite.Require().Error(err)
 				suite.Require().Nil(res)

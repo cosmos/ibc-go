@@ -48,6 +48,7 @@ func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.
 			sdk.NewAttribute(types.AttributeKeyReceiver, msg.Receiver),
 			sdk.NewAttribute(types.AttributeKeyAmount, msg.Token.Amount.String()),
 			sdk.NewAttribute(types.AttributeKeyDenom, msg.Token.Denom),
+			sdk.NewAttribute(types.AttributeKeyMemo, msg.Memo),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
