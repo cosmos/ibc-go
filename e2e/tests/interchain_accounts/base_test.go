@@ -47,11 +47,10 @@ func getICAVersion(chainAVersion, chainBVersion string) string {
 }
 
 // RegisterInterchainAccount will attempt to register an interchain account on the counterparty chain.
-func (s *InterchainAccountsTestSuite) RegisterInterchainAccount(ctx context.Context, chain *cosmos.CosmosChain, user *ibc.Wallet, msgRegisterAccount *controllertypes.MsgRegisterInterchainAccount) error {
+func (s *InterchainAccountsTestSuite) RegisterInterchainAccount(ctx context.Context, chain *cosmos.CosmosChain, user *ibc.Wallet, msgRegisterAccount *controllertypes.MsgRegisterInterchainAccount) {
 	txResp, err := s.BroadcastMessages(ctx, chain, user, msgRegisterAccount)
 	s.Require().NoError(err)
 	s.AssertValidTxResponse(txResp)
-	return err
 }
 
 func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer() {
@@ -71,7 +70,7 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer() {
 
 	t.Run("broadcast MsgRegisterInterchainAccount", func(t *testing.T) {
 		version := getICAVersion(testconfig.GetChainATag(), testconfig.GetChainBTag())
-		msgRegisterAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, controllerAccount.Bech32Address(chainA.Config().Bech32Prefix), version)
+		msgRegisterAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, controllerAddress, version)
 
 		txResp, err := s.BroadcastMessages(ctx, chainA, controllerAccount, msgRegisterAccount)
 		s.Require().NoError(err)
@@ -84,7 +83,7 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer() {
 
 	t.Run("verify interchain account", func(t *testing.T) {
 		var err error
-		hostAccount, err = s.QueryInterchainAccount(ctx, chainA, controllerAccount.Bech32Address(chainA.Config().Bech32Prefix), ibctesting.FirstConnectionID)
+		hostAccount, err = s.QueryInterchainAccount(ctx, chainA, controllerAddress, ibctesting.FirstConnectionID)
 		s.Require().NoError(err)
 		s.Require().NotZero(len(hostAccount))
 
@@ -167,7 +166,7 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_FailedTransfer_InsufficientF
 
 	t.Run("broadcast MsgRegisterInterchainAccount", func(t *testing.T) {
 		version := getICAVersion(testconfig.GetChainATag(), testconfig.GetChainBTag())
-		msgRegisterAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, controllerAccount.Bech32Address(chainA.Config().Bech32Prefix), version)
+		msgRegisterAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, controllerAddress, version)
 
 		txResp, err := s.BroadcastMessages(ctx, chainA, controllerAccount, msgRegisterAccount)
 		s.Require().NoError(err)
@@ -180,7 +179,7 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_FailedTransfer_InsufficientF
 
 	t.Run("verify interchain account", func(t *testing.T) {
 		var err error
-		hostAccount, err = s.QueryInterchainAccount(ctx, chainA, controllerAccount.Bech32Address(chainA.Config().Bech32Prefix), ibctesting.FirstConnectionID)
+		hostAccount, err = s.QueryInterchainAccount(ctx, chainA, controllerAddress, ibctesting.FirstConnectionID)
 		s.Require().NoError(err)
 		s.Require().NotZero(len(hostAccount))
 
@@ -214,7 +213,7 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_FailedTransfer_InsufficientF
 				Memo: "e2e",
 			}
 
-			msgSendTx := controllertypes.NewMsgSendTx(controllerAccount.Bech32Address(chainA.Config().Bech32Prefix), ibctesting.FirstConnectionID, uint64(time.Hour.Nanoseconds()), packetData)
+			msgSendTx := controllertypes.NewMsgSendTx(controllerAddress, ibctesting.FirstConnectionID, uint64(time.Hour.Nanoseconds()), packetData)
 
 			txResp, err := s.BroadcastMessages(
 				ctx,
@@ -251,22 +250,23 @@ func (s *InterchainAccountsTestSuite) TestMsgSubmitTx_SuccessfulTransfer_AfterRe
 	// setup 2 accounts: controller account on chain A, a second chain B account.
 	// host account will be created when the ICA is registered
 	controllerAccount := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
+	controllerAddress := controllerAccount.Bech32Address(chainA.Config().Bech32Prefix)
 	chainBAccount := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 
 	var (
 		portID      string
 		hostAccount string
+
+		initialChannelID        = "channel-1"
+		channelIDAfterReopening = "channel-2"
 	)
-	initialChannelId := "channel-1"
-	channelIdAfterReopening := "channel-2"
 
 	t.Run("register interchain account", func(t *testing.T) {
+		var err error
 		version := getICAVersion(testconfig.GetChainATag(), testconfig.GetChainBTag())
-		msgRegisterInterchainAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, controllerAccount.Bech32Address(chainA.Config().Bech32Prefix), version)
-		err := s.RegisterInterchainAccount(ctx, chainA, controllerAccount, msgRegisterInterchainAccount)
-		s.Require().NoError(err)
-
-		portID, err = icatypes.NewControllerPortID(controllerAccount.Bech32Address(chainA.Config().Bech32Prefix))
+		msgRegisterInterchainAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, controllerAddress, version)
+		s.RegisterInterchainAccount(ctx, chainA, controllerAccount, msgRegisterInterchainAccount)
+		portID, err = icatypes.NewControllerPortID(controllerAddress)
 		s.Require().NoError(err)
 	})
 
@@ -276,13 +276,12 @@ func (s *InterchainAccountsTestSuite) TestMsgSubmitTx_SuccessfulTransfer_AfterRe
 
 	t.Run("verify interchain account", func(t *testing.T) {
 		var err error
-		hostAccount, err = s.QueryInterchainAccount(ctx, chainA, controllerAccount.Bech32Address(chainA.Config().Bech32Prefix), ibctesting.FirstConnectionID)
+		hostAccount, err = s.QueryInterchainAccount(ctx, chainA, controllerAddress), ibctesting.FirstConnectionID)
 		s.Require().NoError(err)
 		s.Require().NotZero(len(hostAccount))
 
-		channels, err := relayer.GetChannels(ctx, s.GetRelayerExecReporter(), chainA.Config().ChainID)
+		_, err = s.QueryChannel(ctx, chainA, portID, initialChannelID)
 		s.Require().NoError(err)
-		s.Require().Equal(len(channels), 2)
 	})
 
 	// stop the relayer to let the submit tx message time out
@@ -320,7 +319,7 @@ func (s *InterchainAccountsTestSuite) TestMsgSubmitTx_SuccessfulTransfer_AfterRe
 				Memo: "e2e",
 			}
 
-			msgSendTx := controllertypes.NewMsgSendTx(controllerAccount.Bech32Address(chainA.Config().Bech32Prefix), ibctesting.FirstConnectionID, uint64(1), packetData)
+			msgSendTx := controllertypes.NewMsgSendTx(controllerAddress, ibctesting.FirstConnectionID, uint64(1), packetData)
 
 			resp, err := s.BroadcastMessages(
 				ctx,
@@ -342,7 +341,7 @@ func (s *InterchainAccountsTestSuite) TestMsgSubmitTx_SuccessfulTransfer_AfterRe
 	})
 
 	t.Run("verify channel is closed due to timeout on ordered channel", func(t *testing.T) {
-		channel, err := s.QueryChannel(ctx, chainA, portID, initialChannelId)
+		channel, err := s.QueryChannel(ctx, chainA, portID, initialChannelID)
 		s.Require().NoError(err)
 
 		s.Require().Equal(channeltypes.CLOSED, channel.State, "the channel was not in an expected state")
@@ -363,15 +362,14 @@ func (s *InterchainAccountsTestSuite) TestMsgSubmitTx_SuccessfulTransfer_AfterRe
 	// on an ordered channel
 	t.Run("register interchain account", func(t *testing.T) {
 		version := getICAVersion(testconfig.GetChainATag(), testconfig.GetChainBTag())
-		msgRegisterInterchainAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, controllerAccount.Bech32Address(chainA.Config().Bech32Prefix), version)
-		err := s.RegisterInterchainAccount(ctx, chainA, controllerAccount, msgRegisterInterchainAccount)
-		s.Require().NoError(err)
+		msgRegisterInterchainAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, controllerAddress), version)
+		s.RegisterInterchainAccount(ctx, chainA, controllerAccount, msgRegisterInterchainAccount)
 
 		s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB))
 	})
 
 	t.Run("verify new channel is now open and interchain account has been reregistered with the same portID", func(t *testing.T) {
-		channel, err := s.QueryChannel(ctx, chainA, portID, channelIdAfterReopening)
+		channel, err := s.QueryChannel(ctx, chainA, portID, channelIDAfterReopening)
 		s.Require().NoError(err)
 
 		s.Require().Equal(channeltypes.OPEN, channel.State, "the channel was not in an expected state")
@@ -396,7 +394,7 @@ func (s *InterchainAccountsTestSuite) TestMsgSubmitTx_SuccessfulTransfer_AfterRe
 			Memo: "e2e",
 		}
 
-		msgSendTx := controllertypes.NewMsgSendTx(controllerAccount.Bech32Address(chainA.Config().Bech32Prefix), ibctesting.FirstConnectionID, uint64(5*time.Minute), packetData)
+		msgSendTx := controllertypes.NewMsgSendTx(controllerAddress, ibctesting.FirstConnectionID, uint64(5*time.Minute), packetData)
 
 		resp, err := s.BroadcastMessages(
 			ctx,
