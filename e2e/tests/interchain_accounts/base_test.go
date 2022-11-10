@@ -362,7 +362,7 @@ func (s *InterchainAccountsTestSuite) TestMsgSubmitTx_SuccessfulTransfer_AfterRe
 	// on an ordered channel
 	t.Run("register interchain account", func(t *testing.T) {
 		version := getICAVersion(testconfig.GetChainATag(), testconfig.GetChainBTag())
-		msgRegisterInterchainAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, controllerAddress), version)
+		msgRegisterInterchainAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, controllerAddress, version)
 		s.RegisterInterchainAccount(ctx, chainA, controllerAccount, msgRegisterInterchainAccount)
 
 		s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB))
