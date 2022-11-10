@@ -73,7 +73,6 @@ func (k Keeper) executeTx(ctx sdk.Context, sourcePort, destPort, destChannel str
 		txMsgData.MsgResponses[i] = any
 	}
 
-	// NOTE: The context returned by CacheContext() creates a new EventManager, so events must be correctly propagated back to the current context
 	writeCache()
 
 	txResponse, err := proto.Marshal(txMsgData)

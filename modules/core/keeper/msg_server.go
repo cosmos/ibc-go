@@ -399,12 +399,9 @@ func (k Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPacke
 	case nil:
 		writeFn()
 	case channeltypes.ErrNoOpMsg:
-		// NOTE: The context returned by CacheContext() refers to a new EventManager, so it needs to explicitly set events to the original context.
-		// no-ops do not need event emission as they will be ignored.
+		// no-ops do not need event emission as they will be ignored
 		return &channeltypes.MsgRecvPacketResponse{Result: channeltypes.NOOP}, nil
 	default:
-		// NOTE: The context returned by CacheContext() refers to a new EventManager, so it needs to explicitly set events to the original context.
-		// no-ops do not need event emission as they will be ignored.
 		return nil, sdkerrors.Wrap(err, "receive packet verification failed")
 	}
 
@@ -479,12 +476,9 @@ func (k Keeper) Timeout(goCtx context.Context, msg *channeltypes.MsgTimeout) (*c
 	case nil:
 		writeFn()
 	case channeltypes.ErrNoOpMsg:
-		// NOTE: The context returned by CacheContext() refers to a new EventManager, so it needs to explicitly set events to the original context.
-		// no-ops do not need event emission as they will be ignored.
+		// no-ops do not need event emission as they will be ignored
 		return &channeltypes.MsgTimeoutResponse{Result: channeltypes.NOOP}, nil
 	default:
-		// NOTE: The context returned by CacheContext() refers to a new EventManager, so it needs to explicitly set events to the original context.
-		// no-ops do not need event emission as they will be ignored.
 		return nil, sdkerrors.Wrap(err, "timeout packet verification failed")
 	}
 
@@ -548,12 +542,9 @@ func (k Keeper) TimeoutOnClose(goCtx context.Context, msg *channeltypes.MsgTimeo
 	case nil:
 		writeFn()
 	case channeltypes.ErrNoOpMsg:
-		// no-ops do not need event emission as they will be ignored.
-		// NOTE: The context returned by CacheContext() refers to a new EventManager, so it needs to explicitly set events to the original context.
+		// no-ops do not need event emission as they will be ignored
 		return &channeltypes.MsgTimeoutOnCloseResponse{Result: channeltypes.NOOP}, nil
 	default:
-		// NOTE: The context returned by CacheContext() refers to a new EventManager, so it needs to explicitly set events to the original context.
-		// no-ops do not need event emission as they will be ignored.
 		return nil, sdkerrors.Wrap(err, "timeout on close packet verification failed")
 	}
 
@@ -620,10 +611,9 @@ func (k Keeper) Acknowledgement(goCtx context.Context, msg *channeltypes.MsgAckn
 	case nil:
 		writeFn()
 	case channeltypes.ErrNoOpMsg:
-		// no-ops do not need event emission as they will be ignored.
+		// no-ops do not need event emission as they will be ignored
 		return &channeltypes.MsgAcknowledgementResponse{Result: channeltypes.NOOP}, nil
 	default:
-		// no-ops do not need event emission as they will be ignored.
 		return nil, sdkerrors.Wrap(err, "acknowledge packet verification failed")
 	}
 
