@@ -367,7 +367,7 @@ func (s *InterchainAccountsTestSuite) TestMsgSubmitTx_SuccessfulTransfer_AfterRe
 		err := s.RegisterInterchainAccount(ctx, chainA, controllerAccount, msgRegisterInterchainAccount)
 		s.Require().NoError(err)
 
-		s.Require().NoError(test.WaitForBlocks(ctx, 3, chainA, chainB))
+		s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB))
 	})
 
 	t.Run("verify new channel is now open and interchain account has been reregistered with the same portID", func(t *testing.T) {
