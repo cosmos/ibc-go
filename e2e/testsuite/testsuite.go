@@ -8,11 +8,11 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	dockerclient "github.com/docker/docker/client"
-	"github.com/strangelove-ventures/ibctest"
-	"github.com/strangelove-ventures/ibctest/chain/cosmos"
-	"github.com/strangelove-ventures/ibctest/ibc"
-	"github.com/strangelove-ventures/ibctest/test"
-	"github.com/strangelove-ventures/ibctest/testreporter"
+	"github.com/strangelove-ventures/ibctest/v6"
+	"github.com/strangelove-ventures/ibctest/v6/chain/cosmos"
+	"github.com/strangelove-ventures/ibctest/v6/ibc"
+	"github.com/strangelove-ventures/ibctest/v6/test"
+	"github.com/strangelove-ventures/ibctest/v6/testreporter"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest"
@@ -20,7 +20,7 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/cosmos/ibc-go/e2e/testconfig"
-	feetypes "github.com/cosmos/ibc-go/v5/modules/apps/29-fee/types"
+	feetypes "github.com/cosmos/ibc-go/v6/modules/apps/29-fee/types"
 )
 
 const (

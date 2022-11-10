@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/strangelove-ventures/ibctest/ibc"
+	"github.com/strangelove-ventures/ibctest/v6/ibc"
 )
 
 const (
