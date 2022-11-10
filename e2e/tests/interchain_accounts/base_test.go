@@ -257,6 +257,8 @@ func (s *InterchainAccountsTestSuite) TestMsgSubmitTx_SuccessfulTransfer_AfterRe
 		portID      string
 		hostAccount string
 	)
+	initialChannelId := "channel-1"
+	channelIdAfterReopening := "channel-2"
 
 	t.Run("register interchain account", func(t *testing.T) {
 		version := getICAVersion(testconfig.GetChainATag(), testconfig.GetChainBTag())
@@ -307,9 +309,7 @@ func (s *InterchainAccountsTestSuite) TestMsgSubmitTx_SuccessfulTransfer_AfterRe
 				Amount:      sdk.NewCoins(testvalues.DefaultTransferAmount(chainB.Config().Denom)),
 			}
 
-			cfg := simappparams.MakeTestEncodingConfig()
-			banktypes.RegisterInterfaces(cfg.InterfaceRegistry)
-			cdc := codec.NewProtoCodec(cfg.InterfaceRegistry)
+			cdc := testsuite.Codec()
 
 			bz, err := icatypes.SerializeCosmosTx(cdc, []proto.Message{msgSend})
 			s.Require().NoError(err)
@@ -332,6 +332,7 @@ func (s *InterchainAccountsTestSuite) TestMsgSubmitTx_SuccessfulTransfer_AfterRe
 			s.AssertValidTxResponse(resp)
 			s.Require().NoError(err)
 
+			// this sleep is to allow the packet to timeout
 			time.Sleep(1 * time.Second)
 		})
 	})
@@ -341,11 +342,10 @@ func (s *InterchainAccountsTestSuite) TestMsgSubmitTx_SuccessfulTransfer_AfterRe
 	})
 
 	t.Run("verify channel is closed due to timeout on ordered channel", func(t *testing.T) {
-		channel, err := s.QueryChannel(ctx, chainA, portID, "channel-1")
+		channel, err := s.QueryChannel(ctx, chainA, portID, initialChannelId)
 		s.Require().NoError(err)
 
-		t.Logf("channel-1: %+v", channel)
-		s.Require().Equal(channeltypes.CLOSED, channel.State)
+		s.Require().Equal(channeltypes.CLOSED, channel.State, "the channel was not in an expected state")
 	})
 
 	t.Run("verify tokens not transferred", func(t *testing.T) {
@@ -367,15 +367,14 @@ func (s *InterchainAccountsTestSuite) TestMsgSubmitTx_SuccessfulTransfer_AfterRe
 		err := s.RegisterInterchainAccount(ctx, chainA, controllerAccount, msgRegisterInterchainAccount)
 		s.Require().NoError(err)
 
-		test.WaitForBlocks(ctx, 3, chainA, chainB)
+		s.Require().NoError(test.WaitForBlocks(ctx, 3, chainA, chainB))
 	})
 
 	t.Run("verify new channel is now open and interchain account has been reregistered with the same portID", func(t *testing.T) {
-		channel, err := s.QueryChannel(ctx, chainA, portID, "channel-2")
+		channel, err := s.QueryChannel(ctx, chainA, portID, channelIdAfterReopening)
 		s.Require().NoError(err)
 
-		t.Logf("channel-2: %+v", channel)
-		s.Require().Equal(channeltypes.OPEN, channel.State)
+		s.Require().Equal(channeltypes.OPEN, channel.State, "the channel was not in an expected state")
 	})
 
 	t.Run("broadcast MsgSendTx", func(t *testing.T) {
@@ -386,9 +385,7 @@ func (s *InterchainAccountsTestSuite) TestMsgSubmitTx_SuccessfulTransfer_AfterRe
 			Amount:      sdk.NewCoins(testvalues.DefaultTransferAmount(chainB.Config().Denom)),
 		}
 
-		cfg := simappparams.MakeTestEncodingConfig()
-		banktypes.RegisterInterfaces(cfg.InterfaceRegistry)
-		cdc := codec.NewProtoCodec(cfg.InterfaceRegistry)
+		cdc := testsuite.Codec()
 
 		bz, err := icatypes.SerializeCosmosTx(cdc, []proto.Message{msgSend})
 		s.Require().NoError(err)
@@ -410,5 +407,13 @@ func (s *InterchainAccountsTestSuite) TestMsgSubmitTx_SuccessfulTransfer_AfterRe
 
 		s.AssertValidTxResponse(resp)
 		s.Require().NoError(err)
+	})
+
+	t.Run("verify tokens transferred", func(t *testing.T) {
+		balance, err := chainB.GetBalance(ctx, chainBAccount.Bech32Address(chainB.Config().Bech32Prefix), chainB.Config().Denom)
+		s.Require().NoError(err)
+
+		expected := testvalues.DefaultTransferAmount(chainB.Config().Denom)
+		s.Require().Equal(expected, balance)
 	})
 }
