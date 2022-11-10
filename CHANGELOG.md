@@ -88,7 +88,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Bug Fixes
 
 * (modules/core/keeper) [\#2403](https://github.com/cosmos/ibc-go/pull/2403) Added a function in keeper to cater for blank pointers.
-* (apps/transfer) [\#2672](https://github.com/cosmos/ibc-go/pull/2672) Check `x/bank` send enabled.
+* (apps/transfer) [\#2679](https://github.com/cosmos/ibc-go/pull/2679) Check `x/bank` send enabled.
 
 ## [v4.0.0](https://github.com/cosmos/ibc-go/releases/tag/v4.0.0) - 2022-08-12
 
@@ -146,7 +146,6 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 * (apps/29-fee) [\#1774](https://github.com/cosmos/ibc-go/pull/1774) Change non nil relayer assertion to non empty to avoid import/export issues for genesis upgrades. 
 * (apps/29-fee) [\#1278](https://github.com/cosmos/ibc-go/pull/1278) The URI path for the query to get all incentivized packets for a specific channel did not follow the same format as the rest of queries.
-
 * (modules/core/04-channel)[\#1919](https://github.com/cosmos/ibc-go/pull/1919) Fixed formatting of sequence for packet "acknowledgement written" logs.
 
 ## [v3.1.0](https://github.com/cosmos/ibc-go/releases/tag/v3.1.0) - 2022-04-16
@@ -258,7 +257,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (client) [\#941](https://github.com/cosmos/ibc-go/pull/941) Classify client states without consensus states as expired
 * (channel) [\#995](https://github.com/cosmos/ibc-go/pull/995) Call `packet.GetSequence()` rather than passing func in `AcknowledgePacket` log output
 
-## [v2.3.0](https://github.com/cosmos/ibc-go/releases/tag/v2.3.0) - 2022-04-16
+## [v2.3.0](https://github.com/cosmos/ibc-go/releases/tag/v2.3.0) - 2022-06-14
 
 ### Dependencies
 
