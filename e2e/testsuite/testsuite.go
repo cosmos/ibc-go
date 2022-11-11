@@ -20,15 +20,11 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/cosmos/ibc-go/e2e/testconfig"
-<<<<<<< HEAD
-	feetypes "github.com/cosmos/ibc-go/v5/modules/apps/29-fee/types"
-=======
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	feetypes "github.com/cosmos/ibc-go/v6/modules/apps/29-fee/types"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
->>>>>>> 4bd05c6 (chore: bump ibctest version and ibc-go version to v6 for e2e module (#2479))
 )
 
 const (
@@ -121,16 +117,7 @@ func (s *E2ETestSuite) SetupChainsRelayerAndChannel(ctx context.Context, channel
 			CreateChannelOpts: channelOptions,
 		})
 
-<<<<<<< HEAD
-	channelOptions := ibc.DefaultChannelOpts()
-	for _, opt := range channelOpts {
-		opt(&channelOptions)
-	}
-
-	eRep := s.getRelayerExecReporter()
-=======
 	eRep := s.GetRelayerExecReporter()
->>>>>>> 4bd05c6 (chore: bump ibctest version and ibc-go version to v6 for e2e module (#2479))
 	s.Require().NoError(ic.Build(ctx, eRep, ibctest.InterchainBuildOptions{
 		TestName:  s.T().Name(),
 		Client:    s.DockerClient,
@@ -338,8 +325,6 @@ func GetNativeChainBalance(ctx context.Context, chain ibc.Chain, user *ibctest.U
 	}
 	return bal, nil
 }
-<<<<<<< HEAD
-=======
 
 // ExecuteGovProposal submits the given governance proposal using the provided user and uses all validators to vote yes on the proposal.
 // It ensure the proposal successfully passes.
@@ -380,4 +365,3 @@ func (s *E2ETestSuite) ExecuteGovProposal(ctx context.Context, chain *cosmos.Cos
 func GetIBCToken(fullTokenDenom string, portID, channelID string) transfertypes.DenomTrace {
 	return transfertypes.ParseDenomTrace(fmt.Sprintf("%s/%s/%s", portID, channelID, fullTokenDenom))
 }
->>>>>>> 4bd05c6 (chore: bump ibctest version and ibc-go version to v6 for e2e module (#2479))

@@ -4,9 +4,6 @@ import (
 	"fmt"
 	"os"
 
-<<<<<<< HEAD
-	"github.com/strangelove-ventures/ibctest/ibc"
-=======
 	"github.com/cosmos/cosmos-sdk/codec"
 	simappparams "github.com/cosmos/cosmos-sdk/simapp/params"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -18,7 +15,6 @@ import (
 	tmtypes "github.com/tendermint/tendermint/types"
 
 	"github.com/cosmos/ibc-go/e2e/testvalues"
->>>>>>> 4bd05c6 (chore: bump ibctest version and ibc-go version to v6 for e2e module (#2479))
 )
 
 const (
@@ -103,8 +99,6 @@ func newDefaultSimappConfig(tc TestConfig, name, chainID, denom string) ibc.Chai
 		GasAdjustment:  1.3,
 		TrustingPeriod: "508h",
 		NoHostMount:    false,
-<<<<<<< HEAD
-=======
 		ModifyGenesis:  defaultModifyGenesis(),
 	}
 }
@@ -154,6 +148,5 @@ func defaultModifyGenesis() func(ibc.ChainConfig, []byte) ([]byte, error) {
 		}
 
 		return bz, nil
->>>>>>> 4bd05c6 (chore: bump ibctest version and ibc-go version to v6 for e2e module (#2479))
 	}
 }
