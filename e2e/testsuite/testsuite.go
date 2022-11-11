@@ -484,6 +484,30 @@ func (s *E2ETestSuite) ExecuteGovProposal(ctx context.Context, chain *cosmos.Cos
 	s.Require().Equal(govtypes.StatusPassed, proposal.Status)
 }
 
+// WaitForCondition periodically executes the given function fn based on the provided pollingInterval.
+// if the function returns true, this function exists. If the function never returns true within the timeoutAfter
+// period, or fn returns an error, the test will fail.
+func (s *E2ETestSuite) WaitForCondition(timeoutAfter, pollingInterval time.Duration, fn func() (bool, error)) {
+	ctx, cancel := context.WithTimeout(context.Background(), timeoutAfter)
+	defer cancel()
+
+	for {
+		select {
+		case <-ctx.Done():
+			s.Fail("failed waiting for condition after %f seconds", timeoutAfter.Seconds())
+		case <-time.After(pollingInterval):
+			reachedCondition, err := fn()
+			if err != nil {
+				s.Fail("error occurred while waiting for condition: %s", err)
+			}
+
+			if reachedCondition {
+				return
+			}
+		}
+	}
+}
+
 // GetIBCToken returns the denomination of the full token denom sent to the receiving channel
 func GetIBCToken(fullTokenDenom string, portID, channelID string) transfertypes.DenomTrace {
 	return transfertypes.ParseDenomTrace(fmt.Sprintf("%s/%s/%s", portID, channelID, fullTokenDenom))
