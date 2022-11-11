@@ -123,7 +123,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (light-clients/07-tendermint) [\#1674](https://github.com/cosmos/ibc-go/pull/1674) Submitted ClientState is zeroed out before checking the proof in order to prevent the proposal from containing information governance is not actually voting on.
 * (modules/core/02-client)[\#1676](https://github.com/cosmos/ibc-go/pull/1676) ClientState must be zeroed out for `UpgradeProposals` to pass validation. This prevents a proposal containing information governance is not actually voting on.
 * (modules/core/keeper) [\#2403](https://github.com/cosmos/ibc-go/pull/2403) Added a function in keeper to cater for blank pointers.
-* (apps/transfer) [\#2672](https://github.com/cosmos/ibc-go/pull/2672) Check `x/bank` send enabled.
+* (apps/transfer) [\#2679](https://github.com/cosmos/ibc-go/pull/2679) Check `x/bank` send enabled.
 
 ## [v5.0.1](https://github.com/cosmos/ibc-go/releases/tag/v5.0.1) - 2022-10-27
 
@@ -181,7 +181,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Bug Fixes
 
-* (apps/transfer) [\#2672](https://github.com/cosmos/ibc-go/pull/2672) Check `x/bank` send enabled.
+* (apps/transfer) [\#2679](https://github.com/cosmos/ibc-go/pull/2679) Check `x/bank` send enabled.
 
 ## [v4.1.1](https://github.com/cosmos/ibc-go/releases/tag/v4.1.1) - 2022-10-27
 
@@ -284,7 +284,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Bug Fixes
 
-* (apps/transfer) [\#2672](https://github.com/cosmos/ibc-go/pull/2672) Check `x/bank` send enabled.
+* (apps/transfer) [\#2679](https://github.com/cosmos/ibc-go/pull/2679) Check `x/bank` send enabled.
 
 ## [v3.3.1](https://github.com/cosmos/ibc-go/releases/tag/v3.3.1) - 2022-10-27
 
@@ -477,7 +477,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Bug Fixes
 
-* (apps/transfer) [\#2672](https://github.com/cosmos/ibc-go/pull/2672) Check `x/bank` send enabled.
+* (apps/transfer) [\#2679](https://github.com/cosmos/ibc-go/pull/2679) Check `x/bank` send enabled.
 
 ## [v2.4.2](https://github.com/cosmos/ibc-go/releases/tag/v2.4.2) - 2022-10-27
 
