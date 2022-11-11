@@ -413,7 +413,7 @@ func (s *InterchainAccountsTestSuite) TestMsgSubmitTx_SuccessfulTransfer_AfterRe
 		balance, err := chainB.GetBalance(ctx, chainBAccount.Bech32Address(chainB.Config().Bech32Prefix), chainB.Config().Denom)
 		s.Require().NoError(err)
 
-		expected := testvalues.DefaultTransferAmount(chainB.Config().Denom)
+		expected := testvalues.IBCTransferAmount + testvalues.StartingTokenAmount
 		s.Require().Equal(expected, balance)
 	})
 }
