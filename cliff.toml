@@ -15,6 +15,8 @@ Each commit should be conventional, the following message groups are supported.
 * imp
 * bug, fix
 * deprecated
+* (api)!
+* (statemachine)!
 
 Types of changes (Stanzas):
 
@@ -22,8 +24,8 @@ Types of changes (Stanzas):
 "Improvements" for changes in existing functionality. (imp)
 "Deprecated" for soon-to-be removed features.
 "Bug Fixes" for any bug fixes. (bug, fix)
-"API Breaking" for breaking exported APIs used by developers building on SDK. (prefix commit with ! e.g. !fix: api breaking fix )
-"State Machine Breaking" for any changes that result in a different AppState given same genesisState and txList. (prefix commit with !!fix: state machine breaking fix )
+"API Breaking" for breaking exported APIs used by developers building on SDK. Add (api)! e.g. fix(api)!: api breaking fix
+"State Machine Breaking" for any changes that result in a different AppState given same genesisState and txList. Add (statemachine)! e.g. fix(statemachine)!: state machine breaking fix
 Ref: https://keepachangelog.com/en/1.0.0/
 -->
 
@@ -73,8 +75,8 @@ commit_parsers = [
     # these comments are stripped out of the markdown with the filter "{{ group | striptags | trim | upper_first }}"
     # above in the body template.
     { message = "^((?i)deps|(?i)dep|(?i)build)", group = "<!-- 0 -->Dependencies" },
-    { message = "^!{!}", group = "<!-- 1 -->API Breaking" },
-    { message = "^!{2}", group = "<!-- 2 -->State Machine Breaking" },
+    { message = '^.*\(api\)!', group = "<!-- 1 -->API Breaking" },
+    { message = '^.*\(statemachine\)!', group = "<!-- 2 -->State Machine Breaking" },
     { message = "^((?i)improvements|(?i)imp)", group = "<!-- 3 -->Improvements" },
     { message = "^((?i)feature|(?i)feat)", group = "<!-- 4 -->Features" },
     { message = "^((?i)fix|(?i)bug)", group = "<!-- 5 -->Bug Fixes" },
