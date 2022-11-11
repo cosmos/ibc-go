@@ -8,6 +8,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
+	paramsproposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 	dockerclient "github.com/docker/docker/client"
 	"github.com/strangelove-ventures/ibctest/v6"
 	"github.com/strangelove-ventures/ibctest/v6/chain/cosmos"
@@ -22,8 +23,11 @@ import (
 
 	"github.com/cosmos/ibc-go/e2e/testconfig"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
+	controllertypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/controller/types"
 	feetypes "github.com/cosmos/ibc-go/v6/modules/apps/29-fee/types"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 )
 
 const (
@@ -49,7 +53,14 @@ type E2ETestSuite struct {
 // These should typically be used for query clients only. If we need to make changes, we should
 // use E2ETestSuite.BroadcastMessages to broadcast transactions instead.
 type GRPCClients struct {
-	FeeQueryClient feetypes.QueryClient
+	ClientQueryClient  clienttypes.QueryClient
+	ChannelQueryClient channeltypes.QueryClient
+	ICAQueryClient     controllertypes.QueryClient
+	FeeQueryClient     feetypes.QueryClient
+
+	// SDK query clients
+	GovQueryClient    govtypes.QueryClient
+	ParamsQueryClient paramsproposaltypes.QueryClient
 }
 
 // path is a pairing of two chains which will be used in a test.
@@ -65,9 +76,9 @@ func newPath(chainA, chainB *cosmos.CosmosChain) path {
 	}
 }
 
-// GetRelayerUsers returns two ibctest.User instances which can be used for the relayer users
+// GetRelayerUsers returns two ibc.Wallet instances which can be used for the relayer users
 // on the two chains.
-func (s *E2ETestSuite) GetRelayerUsers(ctx context.Context, chainOpts ...testconfig.ChainOptionConfiguration) (*ibctest.User, *ibctest.User) {
+func (s *E2ETestSuite) GetRelayerUsers(ctx context.Context, chainOpts ...testconfig.ChainOptionConfiguration) (*ibc.Wallet, *ibc.Wallet) {
 	chainA, chainB := s.GetChains(chainOpts...)
 	chainAAccountBytes, err := chainA.GetAddress(ctx, ChainARelayerName)
 	s.Require().NoError(err)
@@ -75,12 +86,12 @@ func (s *E2ETestSuite) GetRelayerUsers(ctx context.Context, chainOpts ...testcon
 	chainBAccountBytes, err := chainB.GetAddress(ctx, ChainBRelayerName)
 	s.Require().NoError(err)
 
-	chainARelayerUser := ibctest.User{
+	chainARelayerUser := ibc.Wallet{
 		Address: chainAAccountBytes,
 		KeyName: ChainARelayerName,
 	}
 
-	chainBRelayerUser := ibctest.User{
+	chainBRelayerUser := ibc.Wallet{
 		Address: chainBAccountBytes,
 		KeyName: ChainBRelayerName,
 	}
@@ -171,7 +182,7 @@ func (s *E2ETestSuite) GetChains(chainOpts ...testconfig.ChainOptionConfiguratio
 
 // BroadcastMessages broadcasts the provided messages to the given chain and signs them on behalf of the provided user.
 // Once the broadcast response is returned, we wait for a few blocks to be created on both chain A and chain B.
-func (s *E2ETestSuite) BroadcastMessages(ctx context.Context, chain *cosmos.CosmosChain, user *ibctest.User, msgs ...sdk.Msg) (sdk.TxResponse, error) {
+func (s *E2ETestSuite) BroadcastMessages(ctx context.Context, chain *cosmos.CosmosChain, user *ibc.Wallet, msgs ...sdk.Msg) (sdk.TxResponse, error) {
 	broadcaster := cosmos.NewBroadcaster(s.T(), chain)
 	resp, err := cosmos.BroadcastTx(ctx, broadcaster, user, msgs...)
 	if err != nil {
@@ -227,25 +238,25 @@ func (s *E2ETestSuite) StartRelayer(relayer ibc.Relayer) {
 }
 
 // CreateUserOnChainA creates a user with the given amount of funds on chain A.
-func (s *E2ETestSuite) CreateUserOnChainA(ctx context.Context, amount int64) *ibctest.User {
+func (s *E2ETestSuite) CreateUserOnChainA(ctx context.Context, amount int64) *ibc.Wallet {
 	chainA, _ := s.GetChains()
 	return ibctest.GetAndFundTestUsers(s.T(), ctx, strings.ReplaceAll(s.T().Name(), " ", "-"), amount, chainA)[0]
 }
 
 // CreateUserOnChainB creates a user with the given amount of funds on chain B.
-func (s *E2ETestSuite) CreateUserOnChainB(ctx context.Context, amount int64) *ibctest.User {
+func (s *E2ETestSuite) CreateUserOnChainB(ctx context.Context, amount int64) *ibc.Wallet {
 	_, chainB := s.GetChains()
 	return ibctest.GetAndFundTestUsers(s.T(), ctx, strings.ReplaceAll(s.T().Name(), " ", "-"), amount, chainB)[0]
 }
 
 // GetChainANativeBalance gets the balance of a given user on chain A.
-func (s *E2ETestSuite) GetChainANativeBalance(ctx context.Context, user *ibctest.User) (int64, error) {
+func (s *E2ETestSuite) GetChainANativeBalance(ctx context.Context, user *ibc.Wallet) (int64, error) {
 	chainA, _ := s.GetChains()
 	return GetNativeChainBalance(ctx, chainA, user)
 }
 
 // GetChainBNativeBalance gets the balance of a given user on chain B.
-func (s *E2ETestSuite) GetChainBNativeBalance(ctx context.Context, user *ibctest.User) (int64, error) {
+func (s *E2ETestSuite) GetChainBNativeBalance(ctx context.Context, user *ibc.Wallet) (int64, error) {
 	_, chainB := s.GetChains()
 	return GetNativeChainBalance(ctx, chainB, user)
 }
@@ -317,7 +328,7 @@ func (s *E2ETestSuite) getRelayerExecReporter() *testreporter.RelayerExecReporte
 }
 
 // GetNativeChainBalance returns the balance of a specific user on a chain using the native denom.
-func GetNativeChainBalance(ctx context.Context, chain ibc.Chain, user *ibctest.User) (int64, error) {
+func GetNativeChainBalance(ctx context.Context, chain ibc.Chain, user *ibc.Wallet) (int64, error) {
 	bal, err := chain.GetBalance(ctx, user.Bech32Address(chain.Config().Bech32Prefix), chain.Config().Denom)
 	if err != nil {
 		return -1, err
