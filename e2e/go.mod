@@ -6,7 +6,7 @@ replace github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alp
 
 require (
 	github.com/cosmos/cosmos-sdk v0.46.4
-	github.com/cosmos/ibc-go/v6 v6.0.0-alpha1
+	github.com/cosmos/ibc-go/v6 v6.0.0-beta1
 	github.com/docker/docker v20.10.17+incompatible
 	github.com/strangelove-ventures/ibctest/v6 v6.0.0-20221005154709-b642157674bc
 	github.com/stretchr/testify v1.8.1
