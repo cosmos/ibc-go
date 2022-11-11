@@ -8,11 +8,11 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	dockerclient "github.com/docker/docker/client"
-	"github.com/strangelove-ventures/ibctest"
-	"github.com/strangelove-ventures/ibctest/chain/cosmos"
-	"github.com/strangelove-ventures/ibctest/ibc"
-	"github.com/strangelove-ventures/ibctest/test"
-	"github.com/strangelove-ventures/ibctest/testreporter"
+	"github.com/strangelove-ventures/ibctest/v6"
+	"github.com/strangelove-ventures/ibctest/v6/chain/cosmos"
+	"github.com/strangelove-ventures/ibctest/v6/ibc"
+	"github.com/strangelove-ventures/ibctest/v6/test"
+	"github.com/strangelove-ventures/ibctest/v6/testreporter"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest"
@@ -20,7 +20,11 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/cosmos/ibc-go/e2e/testconfig"
-	feetypes "github.com/cosmos/ibc-go/v5/modules/apps/29-fee/types"
+	"github.com/cosmos/ibc-go/e2e/testvalues"
+	feetypes "github.com/cosmos/ibc-go/v6/modules/apps/29-fee/types"
+	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 )
 
 const (
@@ -96,28 +100,28 @@ func (s *E2ETestSuite) SetupChainsRelayerAndChannel(ctx context.Context, channel
 	pathName := fmt.Sprintf("%s-path", s.T().Name())
 	pathName = strings.ReplaceAll(pathName, "/", "-")
 
-	ic := ibctest.NewInterchain().
-		AddChain(chainA).
-		AddChain(chainB).
-		AddRelayer(r, "r").
-		AddLink(ibctest.InterchainLink{
-			Chain1:  chainA,
-			Chain2:  chainB,
-			Relayer: r,
-			Path:    pathName,
-		})
-
 	channelOptions := ibc.DefaultChannelOpts()
 	for _, opt := range channelOpts {
 		opt(&channelOptions)
 	}
 
-	eRep := s.getRelayerExecReporter()
+	ic := ibctest.NewInterchain().
+		AddChain(chainA).
+		AddChain(chainB).
+		AddRelayer(r, "r").
+		AddLink(ibctest.InterchainLink{
+			Chain1:            chainA,
+			Chain2:            chainB,
+			Relayer:           r,
+			Path:              pathName,
+			CreateChannelOpts: channelOptions,
+		})
+
+	eRep := s.GetRelayerExecReporter()
 	s.Require().NoError(ic.Build(ctx, eRep, ibctest.InterchainBuildOptions{
-		TestName:          s.T().Name(),
-		Client:            s.DockerClient,
-		NetworkID:         s.network,
-		CreateChannelOpts: channelOptions,
+		TestName:  s.T().Name(),
+		Client:    s.DockerClient,
+		NetworkID: s.network,
 	}))
 
 	s.startRelayerFn = func(relayer ibc.Relayer) {
@@ -320,4 +324,44 @@ func GetNativeChainBalance(ctx context.Context, chain ibc.Chain, user *ibctest.U
 		return -1, err
 	}
 	return bal, nil
+}
+
+// ExecuteGovProposal submits the given governance proposal using the provided user and uses all validators to vote yes on the proposal.
+// It ensure the proposal successfully passes.
+func (s *E2ETestSuite) ExecuteGovProposal(ctx context.Context, chain *cosmos.CosmosChain, user *ibc.Wallet, content govtypes.Content) {
+	sender, err := sdk.AccAddressFromBech32(user.Bech32Address(chain.Config().Bech32Prefix))
+	s.Require().NoError(err)
+
+	msgSubmitProposal, err := govtypes.NewMsgSubmitProposal(content, sdk.NewCoins(sdk.NewCoin(chain.Config().Denom, govtypes.DefaultMinDepositTokens)), sender)
+	s.Require().NoError(err)
+
+	txResp, err := s.BroadcastMessages(ctx, chain, user, msgSubmitProposal)
+	s.Require().NoError(err)
+	s.AssertValidTxResponse(txResp)
+
+	// TODO: replace with parsed proposal ID from MsgSubmitProposalResponse
+	// https://github.com/cosmos/ibc-go/issues/2122
+
+	proposal, err := s.QueryProposal(ctx, chain, 1)
+	s.Require().NoError(err)
+	s.Require().Equal(govtypes.StatusVotingPeriod, proposal.Status)
+
+	err = chain.VoteOnProposalAllValidators(ctx, "1", cosmos.ProposalVoteYes)
+	s.Require().NoError(err)
+
+	// ensure voting period has not passed before validators finished voting
+	proposal, err = s.QueryProposal(ctx, chain, 1)
+	s.Require().NoError(err)
+	s.Require().Equal(govtypes.StatusVotingPeriod, proposal.Status)
+
+	time.Sleep(testvalues.VotingPeriod) // pass proposal
+
+	proposal, err = s.QueryProposal(ctx, chain, 1)
+	s.Require().NoError(err)
+	s.Require().Equal(govtypes.StatusPassed, proposal.Status)
+}
+
+// GetIBCToken returns the denomination of the full token denom sent to the receiving channel
+func GetIBCToken(fullTokenDenom string, portID, channelID string) transfertypes.DenomTrace {
+	return transfertypes.ParseDenomTrace(fmt.Sprintf("%s/%s/%s", portID, channelID, fullTokenDenom))
 }
