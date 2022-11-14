@@ -102,20 +102,20 @@ func (cs ClientState) VerifyUpgradeAndUpdateState(
 	return sdkerrors.Wrap(clienttypes.ErrInvalidUpgradeClient, "cannot upgrade solomachine client")
 }
 
-// VerifyMembership is a generic proof verification method which verifies a proof of the existence of a value at a given CommitmentPath at the specified height.
+// VerifyMembership is a generic proof verification method which verifies a proof of the existence of a value at a given CommitmentPath at the latest sequence.
 // The caller is expected to construct the full CommitmentPath from a CommitmentPrefix and a standardized path (as defined in ICS 24).
 func (cs *ClientState) VerifyMembership(
 	ctx sdk.Context,
 	clientStore sdk.KVStore,
 	cdc codec.BinaryCodec,
-	height exported.Height,
+	_ exported.Height,
 	delayTimePeriod uint64,
 	delayBlockPeriod uint64,
 	proof []byte,
 	path []byte,
 	value []byte,
 ) error {
-	publicKey, sigData, timestamp, sequence, err := produceVerificationArgs(cdc, cs, height, proof)
+	publicKey, sigData, timestamp, sequence, err := produceVerificationArgs(cdc, cs, proof)
 	if err != nil {
 		return err
 	}
@@ -149,19 +149,19 @@ func (cs *ClientState) VerifyMembership(
 	return nil
 }
 
-// VerifyNonMembership is a generic proof verification method which verifies the absence of a given CommitmentPath at a specified height.
+// VerifyNonMembership is a generic proof verification method which verifies the absence of a given CommitmentPath at the latest sequence.
 // The caller is expected to construct the full CommitmentPath from a CommitmentPrefix and a standardized path (as defined in ICS 24).
 func (cs *ClientState) VerifyNonMembership(
 	ctx sdk.Context,
 	clientStore sdk.KVStore,
 	cdc codec.BinaryCodec,
-	height exported.Height,
+	_ exported.Height,
 	delayTimePeriod uint64,
 	delayBlockPeriod uint64,
 	proof []byte,
 	path []byte,
 ) error {
-	publicKey, sigData, timestamp, sequence, err := produceVerificationArgs(cdc, cs, height, proof)
+	publicKey, sigData, timestamp, sequence, err := produceVerificationArgs(cdc, cs, proof)
 	if err != nil {
 		return err
 	}
@@ -197,18 +197,12 @@ func (cs *ClientState) VerifyNonMembership(
 
 // produceVerificationArgs perfoms the basic checks on the arguments that are
 // shared between the verification functions and returns the public key of the
-// consensus state, the unmarshalled proof representing the signature and timestamp
-// along with the solo-machine sequence encoded in the proofHeight.
+// consensus state, the unmarshalled proof representing the signature and timestamp.
 func produceVerificationArgs(
 	cdc codec.BinaryCodec,
 	cs *ClientState,
-	height exported.Height,
 	proof []byte,
 ) (cryptotypes.PubKey, signing.SignatureData, uint64, uint64, error) {
-	if revision := height.GetRevisionNumber(); revision != 0 {
-		return nil, nil, 0, 0, sdkerrors.Wrapf(sdkerrors.ErrInvalidHeight, "revision must be 0 for solomachine, got revision-number: %d", revision)
-	}
-
 	if proof == nil {
 		return nil, nil, 0, 0, sdkerrors.Wrap(ErrInvalidProof, "proof cannot be empty")
 	}
@@ -228,20 +222,11 @@ func produceVerificationArgs(
 		return nil, nil, 0, 0, err
 	}
 
-	// sequence is encoded in the revision height of height struct
-	sequence := height.GetRevisionHeight()
-	latestSequence := cs.GetLatestHeight().GetRevisionHeight()
-	if latestSequence != sequence {
-		return nil, nil, 0, 0, sdkerrors.Wrapf(
-			sdkerrors.ErrInvalidHeight,
-			"client state sequence != proof sequence (%d != %d)", latestSequence, sequence,
-		)
-	}
-
 	if cs.ConsensusState.GetTimestamp() > timestamp {
 		return nil, nil, 0, 0, sdkerrors.Wrapf(ErrInvalidProof, "the consensus state timestamp is greater than the signature timestamp (%d >= %d)", cs.ConsensusState.GetTimestamp(), timestamp)
 	}
 
+	sequence := cs.GetLatestHeight().GetRevisionHeight()
 	publicKey, err := cs.ConsensusState.GetPubKey()
 	if err != nil {
 		return nil, nil, 0, 0, err
