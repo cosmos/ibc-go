@@ -658,7 +658,7 @@ func (suite *SoloMachineTestSuite) TestVerifyNonMembership() {
 				true,
 			},
 			{
-				"success: packet receipt absence verification (nil)",
+				"success: packet receipt absence verification",
 				func() {
 					merklePath := suite.solomachine.GetPacketReceiptPath(ibctesting.MockPort, ibctesting.FirstChannelID)
 					signBytes = solomachine.SignBytes{
