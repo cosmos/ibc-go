@@ -354,7 +354,6 @@ func (solo *Solomachine) GenerateClientStateProof(clientState exported.ClientSta
 	}
 
 	return solo.GenerateProof(signBytes)
-
 }
 
 // GenerateConsensusStateProof generates the proof of the consensus state required for the connection open try and ack handshake steps.
