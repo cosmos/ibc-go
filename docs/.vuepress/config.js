@@ -144,6 +144,10 @@ module.exports = {
         label: "v5.0.0",
         key: "v5.0.0",
       },
+      {
+        label: "v5.1.0",
+        key: "v5.1.0",
+      },
     ],
     topbar: {
       banner: true,
