@@ -87,6 +87,7 @@ import (
 	"github.com/tendermint/tendermint/libs/log"
 	tmos "github.com/tendermint/tendermint/libs/os"
 	dbm "github.com/tendermint/tm-db"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 
 	ica "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts"
 	icacontroller "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/controller"
@@ -109,6 +110,8 @@ import (
 	porttypes "github.com/cosmos/ibc-go/v6/modules/core/05-port/types"
 	ibchost "github.com/cosmos/ibc-go/v6/modules/core/24-host"
 	ibckeeper "github.com/cosmos/ibc-go/v6/modules/core/keeper"
+	solomachinetypes "github.com/cosmos/ibc-go/v6/modules/light-clients/06-solomachine"
+	ibctm "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint"
 	ibcmock "github.com/cosmos/ibc-go/v6/testing/mock"
 	simappparams "github.com/cosmos/ibc-go/v6/testing/simapp/params"
 	simappupgrades "github.com/cosmos/ibc-go/v6/testing/simapp/upgrades"
@@ -152,12 +155,16 @@ var (
 		params.AppModuleBasic{},
 		crisis.AppModuleBasic{},
 		slashing.AppModuleBasic{},
-		ibc.AppModuleBasic{},
+		ibc.NewAppModuleBasic([]func(codectypes.InterfaceRegistry){
+			solomachinetypes.RegisterInterfaces,
+			ibctm.RegisterInterfaces,
+		}),
 		feegrantmodule.AppModuleBasic{},
 		upgrade.AppModuleBasic{},
 		evidence.AppModuleBasic{},
 		transfer.AppModuleBasic{},
 		ibcmock.AppModuleBasic{},
+
 		ica.AppModuleBasic{},
 		authzmodule.AppModuleBasic{},
 		vesting.AppModuleBasic{},
