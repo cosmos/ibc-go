@@ -95,7 +95,7 @@ The commit message type should be one of:
 * `bug` / `fix` for bug fixes.
 * `imp` / `improvements` for improvements.
 * `doc` / `docs` / `documentation` for any documentation changes.
-* `test` / `e2e` for any tests added.
+* `test` / `e2e` for addition or improvements of unit, integration and e2e tests or their corresponding infrastructure.
 * `deprecated` for deprecation changes.
 * `deps` / `build` for changes to dependencies.
 * `chore` / `misc` / `nit` for any miscellaneous changes that don't fit into another category.
