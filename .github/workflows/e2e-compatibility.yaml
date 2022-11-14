@@ -84,6 +84,24 @@ jobs:
       test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
       test-suite: "transfer"
 
+  transfer-params:
+    needs:
+      - build-release-image
+      - determine-docker-tag
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      docker-tag: "${{ needs.determine-docker-tag.outputs.docker-tag }}"
+      test-suite: "transfer-params"
+
+  transfer-memo:
+    needs:
+      - build-release-image
+      - determine-docker-tag
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      docker-tag: "${{ needs.determine-docker-tag.outputs.docker-tag }}"
+      test-suite: "transfer-memo"
+
   client:
     needs:
       - build-release-images
