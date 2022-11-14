@@ -104,8 +104,8 @@ icaHostIBCModule := icahost.NewIBCModule(app.ICAHostKeeper)
 // Register host and authentication routes
 ibcRouter.
     AddRoute(icacontrollertypes.SubModuleName, icaControllerStack).
-	AddRoute(icahosttypes.SubModuleName, icaHostIBCModule).
-	AddRoute(icaauthtypes.ModuleName, icaControllerStack) // Note, the authentication module is routed to the top level of the middleware stack
+    AddRoute(icahosttypes.SubModuleName, icaHostIBCModule).
+    AddRoute(icaauthtypes.ModuleName, icaControllerStack) // Note, the authentication module is routed to the top level of the middleware stack
 
 ...
 
