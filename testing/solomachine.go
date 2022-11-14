@@ -158,7 +158,7 @@ func (solo *Solomachine) ConnOpenAck(chain *TestChain, clientID, connectionID st
 	proofConsensus := solo.GenerateConsensusStateProof(consensusState, consensusHeight)
 
 	msgConnOpenAck := connectiontypes.NewMsgConnectionOpenAck(
-		connectionID, connectionIDSolomachine, clientState, // testing doesn't use flexible selection
+		connectionID, connectionIDSolomachine, clientState,
 		proofTry, proofClient, proofConsensus,
 		clienttypes.ZeroHeight(), clientState.GetLatestHeight().(clienttypes.Height),
 		ConnectionVersion,
