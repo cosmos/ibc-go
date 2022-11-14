@@ -13,6 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v6/modules/core/03-connection/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v6/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
@@ -252,6 +253,80 @@ func (solo *Solomachine) GenerateSignature(signBytes []byte) []byte {
 	require.NoError(solo.t, err)
 
 	return bz
+}
+
+// GenerateProof takes in solo machine sign bytes, generates a signature and marshals it as a proof.
+// The solo machine sequence is incremented.
+func (solo *Solomachine) GenerateProof(signBytes *solomachinetypes.SignBytes) []byte {
+	bz, err := solo.cdc.Marshal(signBytes)
+	require.NoError(solo.t, err)
+
+	sig := solo.GenerateSignature(bz)
+	signatureDoc := &solomachinetypes.TimestampedSignatureData{
+		SignatureData: sig,
+		Timestamp:     solo.Time,
+	}
+	proof, err := solo.cdc.Marshal(signatureDoc)
+	require.NoError(solo.t, err)
+
+	solo.Sequence++
+
+	return proof
+}
+
+// GenerateClientStateProof generates the proof of the client state required for the connection open try and ack handshake steps.
+// The client state should be the self client states of the tendermint chain.
+func (solo *Solomachine) GenerateClientStateProof(clientState exported.ClientState) []byte {
+	data, err := clienttypes.MarshalClientState(solo.cdc, clientState)
+	require.NoError(solo.t, err)
+
+	signBytes := &solomachinetypes.SignBytes{
+		Sequence:    solo.Sequence,
+		Timestamp:   solo.Time,
+		Diversifier: solo.Diversifier,
+		Path:        []byte(solo.GetClientStatePath(FirstClientID).String()),
+		Data:        data,
+	}
+
+	return solo.GenerateProof(signBytes)
+
+}
+
+// GenerateConsensusStateProof generates the proof of the consensus state required for the connection open try and ack handshake steps.
+// The consensus state should be the self consensus states of the tendermint chain.
+func (solo *Solomachine) GenerateConsensusStateProof(consensusState exported.ConsensusState, consensusHeight exported.Height) []byte {
+	data, err := clienttypes.MarshalConsensusState(solo.cdc, consensusState)
+	require.NoError(solo.t, err)
+
+	signBytes := &solomachinetypes.SignBytes{
+		Sequence:    solo.Sequence,
+		Timestamp:   solo.Time,
+		Diversifier: solo.Diversifier,
+		Path:        []byte(solo.GetConsensusStatePath(FirstClientID, consensusHeight).String()),
+		Data:        data,
+	}
+
+	return solo.GenerateProof(signBytes)
+}
+
+// GenerateConnOpenTryProof generates the proofTry required for the connection open ack handshake step.
+// The clientID, connectionID provided represent the clientID and connectionID created on the counterparty chain, that is the tendermint chain.
+func (solo *Solomachine) GenerateConnOpenTryProof(counterpartyClientID, counterpartyConnectionID string) []byte {
+	counterparty := connectiontypes.NewCounterparty(counterpartyClientID, counterpartyConnectionID, prefix)
+	connection := connectiontypes.NewConnectionEnd(connectiontypes.TRYOPEN, FirstClientID, counterparty, []*connectiontypes.Version{ConnectionVersion}, DefaultDelayPeriod)
+
+	data, err := solo.cdc.Marshal(&connection)
+	require.NoError(solo.t, err)
+
+	signBytes := &solomachinetypes.SignBytes{
+		Sequence:    solo.Sequence,
+		Timestamp:   solo.Time,
+		Diversifier: solo.Diversifier,
+		Path:        []byte(solo.GetConnectionStatePath(FirstConnectionID).String()),
+		Data:        data,
+	}
+
+	return solo.GenerateProof(signBytes)
 }
 
 // GetClientStatePath returns the commitment path for the client state.
