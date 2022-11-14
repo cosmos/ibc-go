@@ -125,6 +125,10 @@ func (cs *ClientState) VerifyMembership(
 		return sdkerrors.Wrap(commitmenttypes.ErrInvalidProof, "failed to unmarshal path into ICS 23 commitment merkle path")
 	}
 
+	if len(merklePath.String()) == 0 {
+		return sdkerrors.Wrap(commitmenttypes.ErrInvalidProof, "path is empty")
+	}
+
 	signBytes := &SignBytes{
 		Sequence:    sequence,
 		Timestamp:   timestamp,

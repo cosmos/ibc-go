@@ -541,6 +541,13 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 				},
 				false,
 			},
+			{
+				"empty path",
+				func() {
+					path = []byte("")
+				},
+				false,
+			},
 		}
 
 		for _, tc := range testCases {
