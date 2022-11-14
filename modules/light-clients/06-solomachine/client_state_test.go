@@ -143,12 +143,11 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 
 		var (
 			clientState *solomachine.ClientState
-			err         error
-			height      clienttypes.Height
 			path        []byte
 			proof       []byte
 			testingPath *ibctesting.Path
 			signBytes   solomachine.SignBytes
+			err         error
 		)
 
 		testCases := []struct {
@@ -203,7 +202,7 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 					consensusStateBz, err := suite.chainA.Codec.Marshal(consensusState)
 					suite.Require().NoError(err)
 
-					merklePath := sm.GetConsensusStatePath(counterpartyClientIdentifier, height)
+					merklePath := sm.GetConsensusStatePath(counterpartyClientIdentifier, clienttypes.NewHeight(0, 1))
 					signBytes = solomachine.SignBytes{
 						Sequence:    sm.Sequence,
 						Timestamp:   sm.Time,
@@ -446,25 +445,6 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 				true,
 			},
 			{
-				"client state latest height is less than sequence",
-				func() {
-					consensusState := &solomachine.ConsensusState{
-						Timestamp: sm.Time,
-						PublicKey: sm.ConsensusState().PublicKey,
-					}
-
-					clientState = solomachine.NewClientState(sm.Sequence-1, consensusState)
-				},
-				false,
-			},
-			{
-				"height revision number is not zero",
-				func() {
-					height = clienttypes.NewHeight(1, sm.GetHeight().GetRevisionHeight())
-				},
-				false,
-			},
-			{
 				"malformed merkle path fails to unmarshal",
 				func() {
 					path = []byte("invalid path")
@@ -551,7 +531,6 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 				testingPath = ibctesting.NewPath(suite.chainA, suite.chainB)
 
 				clientState = sm.ClientState()
-				height = clienttypes.NewHeight(sm.GetHeight().GetRevisionNumber(), sm.GetHeight().GetRevisionHeight())
 
 				merklePath := commitmenttypes.NewMerklePath("ibc", "solomachine")
 				signBytes = solomachine.SignBytes{
@@ -587,7 +566,7 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 
 				err = clientState.VerifyMembership(
 					suite.chainA.GetContext(), suite.store, suite.chainA.Codec,
-					height, 0, 0, // solomachine does not check delay periods
+					clienttypes.ZeroHeight(), 0, 0, // solomachine does not check delay periods
 					proof, path, signBytes.Data,
 				)
 
@@ -609,11 +588,10 @@ func (suite *SoloMachineTestSuite) TestVerifyNonMembership() {
 
 		var (
 			clientState *solomachine.ClientState
-			err         error
-			height      clienttypes.Height
 			path        []byte
 			proof       []byte
 			signBytes   solomachine.SignBytes
+			err         error
 		)
 
 		testCases := []struct {
@@ -655,25 +633,6 @@ func (suite *SoloMachineTestSuite) TestVerifyNonMembership() {
 					suite.Require().NoError(err)
 				},
 				true,
-			},
-			{
-				"client state latest height is less than sequence",
-				func() {
-					consensusState := &solomachine.ConsensusState{
-						Timestamp: sm.Time,
-						PublicKey: sm.ConsensusState().PublicKey,
-					}
-
-					clientState = solomachine.NewClientState(sm.Sequence-1, consensusState)
-				},
-				false,
-			},
-			{
-				"height revision number is not zero",
-				func() {
-					height = clienttypes.NewHeight(1, sm.GetHeight().GetRevisionHeight())
-				},
-				false,
 			},
 			{
 				"malformed merkle path fails to unmarshal",
@@ -772,7 +731,6 @@ func (suite *SoloMachineTestSuite) TestVerifyNonMembership() {
 
 			suite.Run(tc.name, func() {
 				clientState = sm.ClientState()
-				height = clienttypes.NewHeight(sm.GetHeight().GetRevisionNumber(), sm.GetHeight().GetRevisionHeight())
 
 				merklePath := commitmenttypes.NewMerklePath("ibc", "solomachine")
 				signBytes = solomachine.SignBytes{
@@ -808,7 +766,7 @@ func (suite *SoloMachineTestSuite) TestVerifyNonMembership() {
 
 				err = clientState.VerifyNonMembership(
 					suite.chainA.GetContext(), suite.store, suite.chainA.Codec,
-					height, 0, 0, // solomachine does not check delay periods
+					clienttypes.ZeroHeight(), 0, 0, // solomachine does not check delay periods
 					proof, path,
 				)
 
