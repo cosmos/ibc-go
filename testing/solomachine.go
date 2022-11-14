@@ -18,6 +18,12 @@ import (
 	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
 	solomachinetypes "github.com/cosmos/ibc-go/v6/modules/light-clients/06-solomachine"
+	ibctm "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint"
+)
+
+var (
+	clientIDSolomachine     = "client-on-solomachine"     // clientID generated on solo machine side
+	connectionIDSolomachine = "connection-on-solomachine" // connectionID generated on solo machine side
 )
 
 // Solomachine is a testing helper used to simulate a counterparty
@@ -103,6 +109,65 @@ func (solo *Solomachine) ConsensusState() *solomachinetypes.ConsensusState {
 // GetHeight returns an exported.Height with Sequence as RevisionHeight
 func (solo *Solomachine) GetHeight() exported.Height {
 	return clienttypes.NewHeight(0, solo.Sequence)
+}
+
+// CreateClient creates an on-chain client on the provided chain.
+func (solo *Solomachine) CreateClient(chain *TestChain) string {
+	msgCreateClient, err := clienttypes.NewMsgCreateClient(solo.ClientState(), solo.ConsensusState(), chain.SenderAccount.GetAddress().String())
+	require.NoError(solo.t, err)
+
+	res, err := chain.SendMsgs(msgCreateClient)
+	require.NoError(solo.t, err)
+	require.NotNil(solo.t, res)
+
+	clientID, err := ParseClientIDFromEvents(res.GetEvents())
+	require.NoError(solo.t, err)
+
+	return clientID
+}
+
+// ConnOpenInit initializes a connection on the provided chain given a solo machine clientID.
+func (solo *Solomachine) ConnOpenInit(chain *TestChain, clientID string) string {
+	msgConnOpenInit := connectiontypes.NewMsgConnectionOpenInit(
+		clientID,
+		clientIDSolomachine, // clientID generated on solo machine side
+		chain.GetPrefix(), DefaultOpenInitVersion, DefaultDelayPeriod,
+		chain.SenderAccount.GetAddress().String(),
+	)
+
+	res, err := chain.SendMsgs(msgConnOpenInit)
+	require.NoError(solo.t, err)
+	require.NotNil(solo.t, res)
+
+	connectionID, err := ParseConnectionIDFromEvents(res.GetEvents())
+	require.NoError(solo.t, err)
+
+	return connectionID
+}
+
+// ConnOpenAck performs the connection open ack handshake step on the tendermint chain for the associated
+// solo machine client.
+func (solo *Solomachine) ConnOpenAck(chain *TestChain, clientID, connectionID string) {
+	proofTry := solo.GenerateConnOpenTryProof(clientID, connectionID)
+
+	clientState := ibctm.NewClientState(chain.ChainID, DefaultTrustLevel, TrustingPeriod, UnbondingPeriod, MaxClockDrift, chain.LastHeader.GetHeight().(clienttypes.Height), commitmenttypes.GetSDKSpecs(), UpgradePath)
+	proofClient := solo.GenerateClientStateProof(clientState)
+
+	consensusState := chain.LastHeader.ConsensusState()
+	consensusHeight := chain.LastHeader.GetHeight()
+	proofConsensus := solo.GenerateConsensusStateProof(consensusState, consensusHeight)
+
+	msgConnOpenAck := connectiontypes.NewMsgConnectionOpenAck(
+		connectionID, connectionIDSolomachine, clientState, // testing doesn't use flexible selection
+		proofTry, proofClient, proofConsensus,
+		clienttypes.ZeroHeight(), clientState.GetLatestHeight().(clienttypes.Height),
+		ConnectionVersion,
+		chain.SenderAccount.GetAddress().String(),
+	)
+
+	res, err := chain.SendMsgs(msgConnOpenAck)
+	require.NoError(solo.t, err)
+	require.NotNil(solo.t, res)
 }
 
 // CreateHeader generates a new private/public key pair and creates the
@@ -284,7 +349,7 @@ func (solo *Solomachine) GenerateClientStateProof(clientState exported.ClientSta
 		Sequence:    solo.Sequence,
 		Timestamp:   solo.Time,
 		Diversifier: solo.Diversifier,
-		Path:        []byte(solo.GetClientStatePath(FirstClientID).String()),
+		Path:        []byte(solo.GetClientStatePath(clientIDSolomachine).String()),
 		Data:        data,
 	}
 
@@ -302,7 +367,7 @@ func (solo *Solomachine) GenerateConsensusStateProof(consensusState exported.Con
 		Sequence:    solo.Sequence,
 		Timestamp:   solo.Time,
 		Diversifier: solo.Diversifier,
-		Path:        []byte(solo.GetConsensusStatePath(FirstClientID, consensusHeight).String()),
+		Path:        []byte(solo.GetConsensusStatePath(clientIDSolomachine, consensusHeight).String()),
 		Data:        data,
 	}
 
@@ -313,7 +378,7 @@ func (solo *Solomachine) GenerateConsensusStateProof(consensusState exported.Con
 // The clientID, connectionID provided represent the clientID and connectionID created on the counterparty chain, that is the tendermint chain.
 func (solo *Solomachine) GenerateConnOpenTryProof(counterpartyClientID, counterpartyConnectionID string) []byte {
 	counterparty := connectiontypes.NewCounterparty(counterpartyClientID, counterpartyConnectionID, prefix)
-	connection := connectiontypes.NewConnectionEnd(connectiontypes.TRYOPEN, FirstClientID, counterparty, []*connectiontypes.Version{ConnectionVersion}, DefaultDelayPeriod)
+	connection := connectiontypes.NewConnectionEnd(connectiontypes.TRYOPEN, clientIDSolomachine, counterparty, []*connectiontypes.Version{ConnectionVersion}, DefaultDelayPeriod)
 
 	data, err := solo.cdc.Marshal(&connection)
 	require.NoError(solo.t, err)
@@ -322,7 +387,7 @@ func (solo *Solomachine) GenerateConnOpenTryProof(counterpartyClientID, counterp
 		Sequence:    solo.Sequence,
 		Timestamp:   solo.Time,
 		Diversifier: solo.Diversifier,
-		Path:        []byte(solo.GetConnectionStatePath(FirstConnectionID).String()),
+		Path:        []byte(solo.GetConnectionStatePath(connectionIDSolomachine).String()),
 		Data:        data,
 	}
 

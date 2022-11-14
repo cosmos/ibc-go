@@ -11,13 +11,9 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
-	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
-	connectiontypes "github.com/cosmos/ibc-go/v6/modules/core/03-connection/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v6/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
 	solomachine "github.com/cosmos/ibc-go/v6/modules/light-clients/06-solomachine"
-	ibctm "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v6/testing"
 )
 
@@ -51,61 +47,15 @@ func TestSoloMachineTestSuite(t *testing.T) {
 }
 
 func (suite *SoloMachineTestSuite) TestConnectionHandshake() {
-	var (
-		counterpartyClientID     = ibctesting.FirstClientID
-		counterpartyConnectionID = ibctesting.FirstConnectionID
-	)
+	clientID := suite.solomachine.CreateClient(suite.chainA)
 
-	// create solomachine on-chain client
-	msgCreateClient, err := clienttypes.NewMsgCreateClient(suite.solomachine.ClientState(), suite.solomachine.ConsensusState(), suite.chainA.SenderAccount.GetAddress().String())
-	suite.Require().NoError(err)
-
-	res, err := suite.chainA.SendMsgs(msgCreateClient)
-	suite.Require().NoError(err)
-	suite.Require().NotNil(res)
-
-	clientID, err := ibctesting.ParseClientIDFromEvents(res.GetEvents())
-	suite.Require().NoError(err)
-
-	// open init
-	msgConnOpenInit := connectiontypes.NewMsgConnectionOpenInit(
-		clientID,
-		counterpartyClientID,
-		suite.chainA.GetPrefix(), ibctesting.DefaultOpenInitVersion, ibctesting.DefaultDelayPeriod,
-		suite.chainA.SenderAccount.GetAddress().String(),
-	)
-
-	res, err = suite.chainA.SendMsgs(msgConnOpenInit)
-	suite.Require().NoError(err)
-	suite.Require().NotNil(res)
-
-	connectionID, err := ibctesting.ParseConnectionIDFromEvents(res.GetEvents())
-	suite.Require().NoError(err)
+	connectionID := suite.solomachine.ConnOpenInit(suite.chainA, clientID)
 
 	// open try is not necessary as the solo machine implementation is mock'd
 
-	// open ack
-	proofTry := suite.solomachine.GenerateConnOpenTryProof(clientID, connectionID)
+	suite.solomachine.ConnOpenAck(suite.chainA, clientID, connectionID)
 
-	clientState := ibctm.NewClientState(suite.chainA.ChainID, ibctesting.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod, ibctesting.MaxClockDrift, suite.chainA.LastHeader.GetHeight().(clienttypes.Height), commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath)
-	proofClient := suite.solomachine.GenerateClientStateProof(clientState)
-
-	consensusState := suite.chainA.LastHeader.ConsensusState()
-	consensusHeight := suite.chainA.LastHeader.GetHeight()
-	proofConsensus := suite.solomachine.GenerateConsensusStateProof(consensusState, consensusHeight)
-
-	msgConnOpenAck := connectiontypes.NewMsgConnectionOpenAck(
-		connectionID, counterpartyConnectionID, clientState, // testing doesn't use flexible selection
-		proofTry, proofClient, proofConsensus,
-		clienttypes.ZeroHeight(), clientState.GetLatestHeight().(clienttypes.Height),
-		ibctesting.ConnectionVersion,
-		suite.chainA.SenderAccount.GetAddress().String(),
-	)
-	res, err = suite.chainA.SendMsgs(msgConnOpenAck)
-	suite.Require().NoError(err)
-	suite.Require().NotNil(res)
-
-	// open ack is not necessary as the solo machine implementation is mock'd
+	// open confirm is not necessary as the solo machine implementation is mock'd
 }
 
 func (suite *SoloMachineTestSuite) GetSequenceFromStore() uint64 {
