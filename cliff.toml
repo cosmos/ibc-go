@@ -25,7 +25,7 @@ Types of changes (Stanzas):
 "Deprecated" for soon-to-be removed features.
 "Bug Fixes" for any bug fixes. (bug, fix)
 "API Breaking" for breaking exported APIs used by developers building on SDK. Add (api)! e.g. fix(api)!: api breaking fix
-"State Machine Breaking" for any changes that result in a different AppState given same genesisState and txList. Add (statemachine)! e.g. fix(statemachine)!: state machine breaking fix
+"State Machine Breaking" for any changes that result in a different AppState given the same genesisState and txList. Add (statemachine)! e.g. fix(statemachine)!: state machine breaking fix
 Ref: https://keepachangelog.com/en/1.0.0/
 -->
 

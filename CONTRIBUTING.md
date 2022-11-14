@@ -89,6 +89,8 @@ All PRs require an approval from at least one CODEOWNER before merge. PRs which 
 
 Commit messages should be [conventional](https://www.conventionalcommits.org/en/v1.0.0/).
 
+If opening a PR, include the proposed commit message in the PR description.
+
 The commit message type should be one of:
 
 * `feat` / `feature` for feature work.
@@ -100,9 +102,11 @@ The commit message type should be one of:
 * `deps` / `build` for changes to dependencies.
 * `chore` / `misc` / `nit` for any miscellaneous changes that don't fit into another category.
 
-**Note**: If any change breaking, the following format must be used:
+**Note**: If any change is breaking, the following format must be used:
 * `type` + `(api)!` for api breaking changes, e.g. `fix(api)!: api breaking fix`
 * `type` + `(statemachine)!` for state machine breaking changes, e.g. `fix(statemachine)!: state machine breaking fix`
+
+**`api` breaking changes take precedence over `statemachine` breaking changes.**
 
 ### Updating Documentation
 
