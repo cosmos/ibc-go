@@ -120,7 +120,7 @@ func (c *ClientState) GetTimestampAtHeight(
 }
 
 func (c *ClientState) Initialize(context sdk.Context, marshaler codec.BinaryCodec, store sdk.KVStore, state exported.ConsensusState) error {
-	const InitializeState = "initializestate"
+	const InitializeState = "initialize_state"
 	payload := make(map[string]map[string]interface{})
 	payload[InitializeState] = make(map[string]interface{})
 	inner := payload[InitializeState]
