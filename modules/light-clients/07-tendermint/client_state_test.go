@@ -387,6 +387,13 @@ func (suite *TendermintTestSuite) TestVerifyMembership() {
 			}, false,
 		},
 		{
+			"invalid path type",
+			func() {
+				path = ibcmock.KeyPath{}
+			},
+			false,
+		},
+		{
 			"failed to unmarshal merkle proof", func() {
 				proof = invalidProof
 			}, false,
@@ -584,6 +591,13 @@ func (suite *TendermintTestSuite) TestVerifyNonMembership() {
 			"latest client height < height", func() {
 				proofHeight = testingpath.EndpointA.GetClientState().GetLatestHeight().Increment()
 			}, false,
+		},
+		{
+			"invalid path type",
+			func() {
+				path = ibcmock.KeyPath{}
+			},
+			false,
 		},
 		{
 			"failed to unmarshal merkle proof", func() {

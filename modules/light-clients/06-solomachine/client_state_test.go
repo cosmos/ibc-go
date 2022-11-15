@@ -10,6 +10,7 @@ import (
 	solomachine "github.com/cosmos/ibc-go/v6/modules/light-clients/06-solomachine"
 	ibctm "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v6/testing"
+	ibcmock "github.com/cosmos/ibc-go/v6/testing/mock"
 )
 
 const (
@@ -441,6 +442,13 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 				false,
 			},
 			{
+				"invalid path type",
+				func() {
+					path = ibcmock.KeyPath{}
+				},
+				false,
+			},
+			{
 				"malformed proof fails to unmarshal",
 				func() {
 					path = suite.solomachine.GetClientStatePath(counterpartyClientIdentifier)
@@ -632,6 +640,13 @@ func (suite *SoloMachineTestSuite) TestVerifyNonMembership() {
 				"height revision number is not zero",
 				func() {
 					height = clienttypes.NewHeight(1, sm.GetHeight().GetRevisionHeight())
+				},
+				false,
+			},
+			{
+				"invalid path type",
+				func() {
+					path = ibcmock.KeyPath{}
 				},
 				false,
 			},
