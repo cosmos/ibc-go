@@ -13,7 +13,7 @@ are the most critical to review.
 closes: #XXXX
 
 
-### Commit Message / Changelog entry
+### Commit Message / Changelog Entry
 
 ```bash
 type: commit message

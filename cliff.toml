@@ -60,7 +60,7 @@ conventional_commits = true
 # filter out the commits that are not conventional
 filter_unconventional = true
 # process each line of a commit as an individual commit
-split_commits = false
+split_commits = true
 # regex for preprocessing the commit messages
 commit_preprocessors = [
     # A reference to an issue is appened to commits that looks like "(#1234)", this will be replaced
@@ -68,7 +68,27 @@ commit_preprocessors = [
     { pattern = '\((\w+\s)?#([0-9]+)\)', replace = "([#${2}](https://github.com/cosmos/ibc-go/issues/${2}))" },
     # any reference to a pr like "pr-1234" will be replaced with a link to the PR.
     { pattern = '\(pr-([0-9]+)\)', replace = "([#${1}](https://github.com/cosmos/ibc-go/pulls/${1}))" },
+
+    # the following patterns only exist because "split_commits" is set to true, and we are processesing
+    # each line of the commit as a separate message.
+    # these exist to filter out common messages that appear in commit messages that are technically
+    # conventional, but we do not way to include in the changelog.
+    { pattern = '^Signed-off-by:.*', replace='' },
+    { pattern = '^Co-authored-by:.*', replace='' },
+    # don't include references to issues as changelog entries.
+    { pattern = '^ref:.*', replace='' },
+    # exclude CVSS format, CVE can still be included in regular conventinal commits.
+    { pattern = 'CVSS:.*', replace='' },
+    # don't include dependabot auto merge entries.
+    { pattern = '.*dependabot-automerge-.*', replace='' },
+    # don't include statements saying which issue is closed.
+    { pattern = '^closes:.*', replace='' },
+    # remove standalone links in the commit messages.
+    { pattern = '^https://.*', replace='' },
+    # remove lines with html.
+    { pattern = '^<.*', replace='' },
 ]
+
 # regex for parsing and grouping commits
 commit_parsers = [
     # specifying the number in a comment is a workaround to enable ordering of groups.
