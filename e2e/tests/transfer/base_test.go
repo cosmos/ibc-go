@@ -380,8 +380,13 @@ func (s *TransferTestSuite) TestReceiveEnabledParam() {
 
 // memoFeatureReleases represents the releases the memo field was released in.
 var memoFeatureReleases = testsuite.FeatureReleases{
-	MajorVersion:  "v6",
-	MinorVersions: []string{"v2.5, v3.4, v4.2, v5.1"},
+	MajorVersion: "v6",
+	MinorVersions: []string{
+		"v2.5",
+		"v3.4",
+		"v4.2",
+		"v5.1",
+	},
 }
 
 // This can be used to test sending with a transfer packet with a memo given different combinations of

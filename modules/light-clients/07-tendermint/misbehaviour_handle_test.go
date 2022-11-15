@@ -9,7 +9,7 @@ import (
 
 	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
-	smtypes "github.com/cosmos/ibc-go/v6/modules/light-clients/06-solomachine"
+	solomachine "github.com/cosmos/ibc-go/v6/modules/light-clients/06-solomachine"
 	ibctm "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v6/testing"
 	ibctestingmock "github.com/cosmos/ibc-go/v6/testing/mock"
@@ -284,7 +284,7 @@ func (suite *TendermintTestSuite) TestVerifyMisbehaviour() {
 		},
 		{
 			"invalid tendermint misbehaviour", func() {
-				misbehaviour = &smtypes.Misbehaviour{}
+				misbehaviour = &solomachine.Misbehaviour{}
 			}, false,
 		},
 		{
@@ -603,7 +603,7 @@ func (suite *TendermintTestSuite) TestVerifyMisbehaviourNonRevisionChainID() {
 		},
 		{
 			"invalid tendermint misbehaviour", func() {
-				misbehaviour = &smtypes.Misbehaviour{}
+				misbehaviour = &solomachine.Misbehaviour{}
 			}, false,
 		},
 		{

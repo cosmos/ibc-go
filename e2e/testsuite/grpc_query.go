@@ -33,6 +33,20 @@ func (s *E2ETestSuite) QueryClientState(ctx context.Context, chain ibc.Chain, cl
 	return clientState, nil
 }
 
+// QueryChannel queries the channel on a given chain for the provided portID and channelID
+func (s *E2ETestSuite) QueryChannel(ctx context.Context, chain ibc.Chain, portID, channelID string) (channeltypes.Channel, error) {
+	queryClient := s.GetChainGRCPClients(chain).ChannelQueryClient
+	res, err := queryClient.Channel(ctx, &channeltypes.QueryChannelRequest{
+		PortId:    portID,
+		ChannelId: channelID,
+	})
+	if err != nil {
+		return channeltypes.Channel{}, err
+	}
+
+	return *res.Channel, nil
+}
+
 // QueryPacketCommitment queries the packet commitment on the given chain for the provided channel and sequence.
 func (s *E2ETestSuite) QueryPacketCommitment(ctx context.Context, chain ibc.Chain, portID, channelID string, sequence uint64) ([]byte, error) {
 	queryClient := s.GetChainGRCPClients(chain).ChannelQueryClient
