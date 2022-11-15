@@ -12,18 +12,41 @@ are the most critical to review.
 
 closes: #XXXX
 
+
+### Commit Message / Changelog Entry
+
+```bash
+type: commit message
+```
+
+see the [guidelines](../CONTRIBUTING.md#commit-messages) for commit messages. (view raw markdown for examples)
+
+
+<!--
+Example commit messages:
+
+fix: skip emission of unpopulated memo field in ics20
+deps: updating sdk to v0.46.4
+chore: removed unused variables
+e2e: adding e2e upgrade test for ibc-go/v6
+docs: ics27 v6 documentation updates
+feat: add semantic version utilities for e2e tests
+feat(api)!: this is an api breaking feature
+fix(statemachine)!: this is a statemachine breaking fix
+-->
+
 ---
 
 Before we can merge this PR, please make sure that all the following items have been
 checked off. If any of the checklist items are not applicable, please leave them but
 write a little note why.
 
-- [ ] Targeted PR against correct branch (see [CONTRIBUTING.md](https://github.com/cosmos/ibc-go/blob/master/CONTRIBUTING.md#pr-targeting))
+- [ ] Targeted PR against correct branch (see [CONTRIBUTING.md](https://github.com/cosmos/ibc-go/blob/master/CONTRIBUTING.md#pr-targeting)).
 - [ ] Linked to Github issue with discussion and accepted design OR link to spec that describes this work.
 - [ ] Code follows the [module structure standards](https://github.com/cosmos/cosmos-sdk/blob/main/docs/docs/building-modules/10-structure.md).
-- [ ] Wrote unit and integration [tests](https://github.com/cosmos/ibc-go/blob/master/CONTRIBUTING.md#testing)
-- [ ] Updated relevant documentation (`docs/`) or specification (`x/<module>/spec/`)
+- [ ] Wrote unit and integration [tests](https://github.com/cosmos/ibc-go/blob/master/CONTRIBUTING.md#testing).
+- [ ] Updated relevant documentation (`docs/`) or specification (`x/<module>/spec/`).
 - [ ] Added relevant `godoc` [comments](https://blog.golang.org/godoc-documenting-go-code).
-- [ ] Added a relevant changelog entry to the `Unreleased` section in `CHANGELOG.md`
-- [ ] Re-reviewed `Files changed` in the Github PR explorer
-- [ ] Review `Codecov Report` in the comment section below once CI passes
+- [ ] Provide a [commit message](../CONTRIBUTING.md#commit-messages) to be used for the changelog entry in the PR description for review.
+- [ ] Re-reviewed `Files changed` in the Github PR explorer.
+- [ ] Review `Codecov Report` in the comment section below once CI passes.
