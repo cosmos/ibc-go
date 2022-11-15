@@ -207,6 +207,10 @@ view-docs:
 		@cd docs && \
     npm install && npm run serve
 
+
+changelog:
+	docker run --rm -v "$$(pwd)"/.git:/app/ -v "$$(pwd)/cliff.toml":/app/cliff.toml orhunp/git-cliff:latest --unreleased --tag $(tag)
+
 .PHONY: build-docs
 
 ###############################################################################
