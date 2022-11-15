@@ -46,16 +46,24 @@ func TestSoloMachineTestSuite(t *testing.T) {
 	suite.Run(t, new(SoloMachineTestSuite))
 }
 
-func (suite *SoloMachineTestSuite) TestConnectionHandshake() {
+func (suite *SoloMachineTestSuite) Setup() {
 	clientID := suite.solomachine.CreateClient(suite.chainA)
 
 	connectionID := suite.solomachine.ConnOpenInit(suite.chainA, clientID)
 
-	// open try is not necessary as the solo machine implementation is mock'd
+	// open try is not necessary as the solo machine implementation is mocked
 
 	suite.solomachine.ConnOpenAck(suite.chainA, clientID, connectionID)
 
-	// open confirm is not necessary as the solo machine implementation is mock'd
+	// open confirm is not necessary as the solo machine implementation is mocked
+
+	channelID := suite.solomachine.ChanOpenInit(suite.chainA, connectionID)
+
+	// open try is not necessary as the solo machine implementation is mocked
+
+	suite.solomachine.ChanOpenAck(suite.chainA, channelID)
+
+	// open confirm is not necessary as the solo machine implementation is mocked
 }
 
 func (suite *SoloMachineTestSuite) GetSequenceFromStore() uint64 {
