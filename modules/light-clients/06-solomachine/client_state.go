@@ -125,7 +125,7 @@ func (cs *ClientState) VerifyMembership(
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "expected %T, got %T", commitmenttypes.MerklePath{}, path)
 	}
 
-	if len(merklePath.String()) == 0 {
+	if merklePath.Empty() {
 		return sdkerrors.Wrap(commitmenttypes.ErrInvalidProof, "path is empty")
 	}
 

@@ -520,7 +520,7 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 			{
 				"empty path",
 				func() {
-					path = []byte("")
+					path = commitmenttypes.MerklePath{}
 				},
 				false,
 			},
