@@ -126,7 +126,7 @@ func (solo *Solomachine) CreateHeader(newDiversifier string) *solomachine.Header
 		Sequence:    solo.Sequence,
 		Timestamp:   solo.Time,
 		Diversifier: solo.Diversifier,
-		Path:        []byte(solomachinetypes.SentinelHeaderPath),
+		Path:        []byte(solomachine.SentinelHeaderPath),
 		Data:        dataBz,
 	}
 
