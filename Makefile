@@ -201,6 +201,18 @@ build-docs:
 		cp -r .vuepress/dist/* ~/output/$${path_prefix}/ ; \
 		cp ~/output/$${path_prefix}/index.html ~/output ; \
 	done < versions ;
+<<<<<<< HEAD
+=======
+
+view-docs: 
+		@cd docs && \
+    npm install && npm run serve
+
+
+changelog:
+	docker run --rm -v "$$(pwd)"/.git:/app/ -v "$$(pwd)/cliff.toml":/app/cliff.toml orhunp/git-cliff:latest --unreleased --tag $(tag)
+
+>>>>>>> 3e072a1 (chore: integrated git cliff into the code base to automate generation of changelogs)
 .PHONY: build-docs
 
 ###############################################################################
