@@ -18,7 +18,18 @@ No genesis or in-place migrations required when upgrading from v1 or v2 of ibc-g
 
 ## Chains
 
-### Fee Middleware
+### ICS27 - Interchain Accounts
+
+The controller submodule implements now the 05-port `Middleware` interface instead of the 05-port `IBCModule` interface. Chains that integrate the controller submodule, need to create it with the `NewIBCMiddleware` constructor function. For example:
+
+```diff
+- icacontroller.NewIBCModule(app.ICAControllerKeeper, icaAuthIBCModule)
++ icacontroller.NewIBCMiddleware(icaAuthIBCModule, app.ICAControllerKeeper)
+```
+
+where `icaAuthIBCModule` is the Interchain Accounts authentication IBC Module.
+
+### ICS29 - Fee Middleware
 
 The Fee Middleware module, as the name suggests, plays the role of an IBC middleware and as such must be configured by chain developers to route and handle IBC messages correctly.
 
