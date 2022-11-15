@@ -1,6 +1,8 @@
 package solomachine_test
 
 import (
+	"bytes"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
@@ -601,6 +603,34 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 			})
 		}
 	}
+}
+
+func (suite *SoloMachineTestSuite) TestSignBytesMarshalling() {
+	sm := suite.solomachine
+	merklePath := commitmenttypes.NewMerklePath("ibc", "solomachine")
+	signBytesNilData := solomachine.SignBytes{
+		Sequence:    sm.GetHeight().GetRevisionHeight(),
+		Timestamp:   sm.Time,
+		Diversifier: sm.Diversifier,
+		Path:        []byte(merklePath.String()),
+		Data:        nil,
+	}
+
+	signBytesEmptyArray := solomachine.SignBytes{
+		Sequence:    sm.GetHeight().GetRevisionHeight(),
+		Timestamp:   sm.Time,
+		Diversifier: sm.Diversifier,
+		Path:        []byte(merklePath.String()),
+		Data:        []byte{},
+	}
+
+	signBzNil, err := suite.chainA.Codec.Marshal(&signBytesNilData)
+	suite.Require().NoError(err)
+
+	signBzEmptyArray, err := suite.chainA.Codec.Marshal(&signBytesEmptyArray)
+	suite.Require().NoError(err)
+
+	suite.Require().True(bytes.Equal(signBzNil, signBzEmptyArray))
 }
 
 func (suite *SoloMachineTestSuite) TestVerifyNonMembership() {
