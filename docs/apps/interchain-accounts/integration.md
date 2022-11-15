@@ -96,14 +96,15 @@ icaAuthModule := icaauth.NewAppModule(appCodec, app.ICAAuthKeeper)
 // ICA auth IBC Module
 icaAuthIBCModule := icaauth.NewIBCModule(app.ICAAuthKeeper)
 
-// Create host and controller IBC Modules as desired
-icaControllerIBCModule := icacontroller.NewIBCModule(app.ICAControllerKeeper, icaAuthIBCModule)
+// Create controller IBC application stack and host IBC module as desired
+icaControllerStack := icacontroller.NewIBCMiddleware(icaAuthIBCModule, app.ICAControllerKeeper)
 icaHostIBCModule := icahost.NewIBCModule(app.ICAHostKeeper)
 
 // Register host and authentication routes
-ibcRouter.AddRoute(icacontrollertypes.SubModuleName, icaControllerIBCModule).
-		AddRoute(icahosttypes.SubModuleName, icaHostIBCModule).
-		AddRoute(icaauthtypes.ModuleName, icaControllerIBCModule) // Note, the authentication module is routed to the top level of the middleware stack
+ibcRouter.
+    AddRoute(icacontrollertypes.SubModuleName, icaControllerStack).
+    AddRoute(icahosttypes.SubModuleName, icaHostIBCModule).
+    AddRoute(icaauthtypes.ModuleName, icaControllerStack) // Note, the authentication module is routed to the top level of the middleware stack
 
 ...
 
@@ -177,10 +178,11 @@ app.ICAAuthKeeper = icaauthkeeper.NewKeeper(appCodec, keys[icaauthtypes.StoreKey
 icaAuthModule := icaauth.NewAppModule(appCodec, app.ICAAuthKeeper)
 icaAuthIBCModule := icaauth.NewIBCModule(app.ICAAuthKeeper)
 
-// Create controller IBC Module
-icaControllerIBCModule := icacontroller.NewIBCModule(app.ICAControllerKeeper, icaAuthIBCModule)
+// Create controller IBC application stack
+icaControllerStack := icacontroller.NewIBCMiddleware(icaAuthIBCModule, app.ICAControllerKeeper)
 
 // Register controller and authentication routes
-ibcRouter.AddRoute(icacontrollertypes.SubModuleName, icaControllerIBCModule)
-ibcRouter.AddRoute(icaauthtypes.ModuleName, icaControllerIBCModule) // Note, the authentication module is routed to the top level of the middleware stack
+ibcRouter.
+    AddRoute(icacontrollertypes.SubModuleName, icaControllerStack).
+    AddRoute(icaauthtypes.ModuleName, icaControllerStack) // Note, the authentication module is routed to the top level of the middleware stack
 ```
