@@ -16,7 +16,7 @@ For Cosmos SDK chains this setup is done via the `app/app.go` file, where module
 
 ## Example integration of the Fee Middleware module
 
-```
+```go
 // app.go
 
 // Register the AppModule for the fee middleware module
