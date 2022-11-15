@@ -31,7 +31,7 @@ func (v *WasmValidator) validateWasmCode(code []byte) (bool, error) {
 
 	_, err = testVM.Create(code)
 	if err != nil {
-		return false, nil
+		return false, err
 	}
 
 	// TODO: validate the cosmwasm code interface to ensure that it exposed the correct entry points

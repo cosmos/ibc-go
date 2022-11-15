@@ -172,7 +172,9 @@ func (c *ClientState) VerifyMembership(
 	proof []byte,
 	path []byte,
 	value []byte,
-) error
+) error {
+	panic("implement me")
+}
 
 func (c *ClientState) VerifyNonMembership(
 	ctx sdk.Context,
@@ -183,7 +185,9 @@ func (c *ClientState) VerifyNonMembership(
 	delayBlockPeriod uint64,
 	proof []byte,
 	path []byte,
-) error
+) error {
+	panic("implement me")
+}
 
 // VerifyClientMessage must verify a ClientMessage. A ClientMessage could be a Header, Misbehaviour, or batch update.
 // It must handle each type of ClientMessage appropriately. Calls to CheckForMisbehaviour, UpdateState, and UpdateStateOnMisbehaviour
