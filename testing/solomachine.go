@@ -26,7 +26,7 @@ import (
 var (
 	clientIDSolomachine     = "client-on-solomachine"     // clientID generated on solo machine side
 	connectionIDSolomachine = "connection-on-solomachine" // connectionID generated on solo machine side
-	channelIDSolomachine    = "channel-on-solomachine"
+	channelIDSolomachine    = "channel-on-solomachine"    // channelID generated on solo machine side
 )
 
 // Solomachine is a testing helper used to simulate a counterparty
@@ -437,6 +437,8 @@ func (solo *Solomachine) GenerateConnOpenTryProof(counterpartyClientID, counterp
 	return solo.GenerateProof(signBytes)
 }
 
+// GenerateChanOpenTryProof generates the proofTry required for the channel open ack handshake step.
+// The channelID provided represents the channelID created on the counterparty chain, that is the tendermint chain.
 func (solo *Solomachine) GenerateChanOpenTryProof(counterpartyChannelID string) []byte {
 	counterparty := channeltypes.NewCounterparty(mock.PortID, counterpartyChannelID)
 	channel := channeltypes.NewChannel(channeltypes.TRYOPEN, channeltypes.UNORDERED, counterparty, []string{connectionIDSolomachine}, mock.Version)
