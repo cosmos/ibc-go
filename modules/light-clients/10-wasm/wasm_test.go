@@ -8,29 +8,12 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v5/modules/core/exported"
 	wasm "github.com/cosmos/ibc-go/v5/modules/light-clients/10-wasm/types"
 	ibctesting "github.com/cosmos/ibc-go/v5/testing"
 	"github.com/cosmos/ibc-go/v5/testing/simapp"
 	"github.com/stretchr/testify/suite"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-)
-
-const (
-	chainID                        = "gaia"
-	chainIDRevision0               = "gaia-revision-0"
-	chainIDRevision1               = "gaia-revision-1"
-	clientID                       = "gaiamainnet"
-	trustingPeriod   time.Duration = time.Hour * 24 * 7 * 2
-	ubdPeriod        time.Duration = time.Hour * 24 * 7 * 3
-	maxClockDrift    time.Duration = time.Second * 10
-)
-
-var (
-	height          = clienttypes.NewHeight(0, 4)
-	newClientHeight = clienttypes.NewHeight(1, 1)
-	upgradePath     = []string{"upgrade", "upgradedIBCState"}
 )
 
 type WasmTestSuite struct {
