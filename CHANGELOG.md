@@ -28,7 +28,7 @@ Types of changes (Stanzas):
 "Bug Fixes" for any bug fixes.
 "Client Breaking" for breaking CLI commands and REST routes used by end-users.
 "API Breaking" for breaking exported APIs used by developers building on SDK.
-"State Machine Breaking" for any changes that result in a different AppState given same genesisState and txList.
+"State Machine Breaking" for any changes that result in a different AppState given the same genesisState and txList.
 Ref: https://keepachangelog.com/en/1.0.0/
 -->
 
@@ -69,6 +69,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### State Machine Breaking
 
 * (light-clients/07-tendermint) [\#2554](https://github.com/cosmos/ibc-go/pull/2554) Forbid negative values for `TrustingPeriod`, `UnbondingPeriod` and `MaxClockDrift` (as specified in ICS-07).
+* (06-solomachine) [\#2744](https://github.com/cosmos/ibc-go/pull/2744)  `Misbehaviour.ValidateBasic()` now only enforces that signature data does not match when the signature paths are different.
 
 ### Improvements
 
