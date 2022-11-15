@@ -77,21 +77,21 @@ app.moduleManager = module.NewManager(
 ...
 
 // Add fee middleware to begin blocker logic
-app.mm.SetOrderBeginBlockers(
+app.moduleManager.SetOrderBeginBlockers(
     ...
     ibcfeetypes.ModuleName,
     ...
 )
 
 // Add fee middleware to end blocker logic
-app.mm.SetOrderEndBlockers(
+app.moduleManager.SetOrderEndBlockers(
     ...
     ibcfeetypes.ModuleName,
     ...
 )
 
 // Add fee middleware to init genesis logic
-app.mm.SetOrderInitGenesis(
+app.moduleManager.SetOrderInitGenesis(
     ...
     ibcfeetypes.ModuleName,
     ...
