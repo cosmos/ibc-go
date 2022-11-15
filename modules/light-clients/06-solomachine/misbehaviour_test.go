@@ -76,8 +76,16 @@ func (suite *SoloMachineTestSuite) TestMisbehaviourValidateBasic() {
 				false,
 			},
 			{
-				"data signed is identical",
+				"data signed is identical but path differs",
 				func(misbehaviour *solomachine.Misbehaviour) {
+					misbehaviour.SignatureTwo.Data = misbehaviour.SignatureOne.Data
+				},
+				true,
+			},
+			{
+				"data signed and path are identical",
+				func(misbehaviour *solomachine.Misbehaviour) {
+					misbehaviour.SignatureTwo.Path = misbehaviour.SignatureOne.Path
 					misbehaviour.SignatureTwo.Data = misbehaviour.SignatureOne.Data
 				},
 				false,
