@@ -214,6 +214,23 @@ func (solo *Solomachine) ChanOpenAck(chain *TestChain, channelID string) {
 	require.NotNil(solo.t, res)
 }
 
+// ChanCloseConfirm performs the channel close confirm handshake step on the tendermint chain for the associated
+// solo machine client.
+func (solo *Solomachine) ChanCloseConfirm(chain *TestChain, channelID string) {
+	proofInit := solo.GenerateChanCloseInitProof(channelID)
+	msgChanCloseConfirm := channeltypes.NewMsgChannelCloseConfirm(
+		mock.PortID,
+		channelID,
+		proofInit,
+		clienttypes.ZeroHeight(),
+		chain.SenderAccount.GetAddress().String(),
+	)
+
+	res, err := chain.SendMsgs(msgChanCloseConfirm)
+	require.NoError(solo.t, err)
+	require.NotNil(solo.t, res)
+}
+
 // CreateHeader generates a new private/public key pair and creates the
 // necessary signature to construct a valid solo machine header.
 // A new diversifier will be used as well
@@ -442,6 +459,26 @@ func (solo *Solomachine) GenerateConnOpenTryProof(counterpartyClientID, counterp
 func (solo *Solomachine) GenerateChanOpenTryProof(counterpartyChannelID string) []byte {
 	counterparty := channeltypes.NewCounterparty(mock.PortID, counterpartyChannelID)
 	channel := channeltypes.NewChannel(channeltypes.TRYOPEN, channeltypes.UNORDERED, counterparty, []string{connectionIDSolomachine}, mock.Version)
+
+	data, err := solo.cdc.Marshal(&channel)
+	require.NoError(solo.t, err)
+
+	signBytes := &solomachine.SignBytes{
+		Sequence:    solo.Sequence,
+		Timestamp:   solo.Time,
+		Diversifier: solo.Diversifier,
+		Path:        []byte(solo.GetChannelStatePath(mock.PortID, channelIDSolomachine).String()),
+		Data:        data,
+	}
+
+	return solo.GenerateProof(signBytes)
+}
+
+// GenerateChanCloseInitProof generates the proofInit required for the channel close confirm handshake step.
+// The channelID provided represents the channelID created on the counterparty chain, that is the tendermint chain.
+func (solo *Solomachine) GenerateChanCloseInitProof(counterpartyChannelID string) []byte {
+	counterparty := channeltypes.NewCounterparty(mock.PortID, counterpartyChannelID)
+	channel := channeltypes.NewChannel(channeltypes.CLOSED, channeltypes.UNORDERED, counterparty, []string{connectionIDSolomachine}, mock.Version)
 
 	data, err := solo.cdc.Marshal(&channel)
 	require.NoError(solo.t, err)
