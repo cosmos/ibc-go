@@ -87,7 +87,6 @@ import (
 	"github.com/tendermint/tendermint/libs/log"
 	tmos "github.com/tendermint/tendermint/libs/os"
 	dbm "github.com/tendermint/tm-db"
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 
 	ica "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts"
 	icacontroller "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/controller"
@@ -155,10 +154,10 @@ var (
 		params.AppModuleBasic{},
 		crisis.AppModuleBasic{},
 		slashing.AppModuleBasic{},
-		ibc.NewAppModuleBasic([]func(codectypes.InterfaceRegistry){
+		ibc.NewAppModuleBasic(
 			solomachinetypes.RegisterInterfaces,
 			ibctm.RegisterInterfaces,
-		}),
+		),
 		feegrantmodule.AppModuleBasic{},
 		upgrade.AppModuleBasic{},
 		evidence.AppModuleBasic{},

@@ -34,16 +34,19 @@ var (
 	_ module.AppModuleSimulation = AppModule{}
 )
 
+// ClientRegistrar handles registration of light-client interface types.
+type ClientRegistrar func(registry codectypes.InterfaceRegistry)
+
 // AppModuleBasic defines the basic application module used by the ibc module.
 type AppModuleBasic struct {
-	additionalInterfaceRegistrationFns []func(registry codectypes.InterfaceRegistry)
+	clientRegistrars []ClientRegistrar
 }
 
 // NewAppModuleBasic creates a new AppModuleBasic object.
 // all functions provided will be executed in AppModuleBasic.RegisterInterfaces.
-func NewAppModuleBasic(additionalInterfaceRegistrationFns []func(codectypes.InterfaceRegistry)) AppModuleBasic {
+func NewAppModuleBasic(clientRegistrars ...ClientRegistrar) AppModuleBasic {
 	return AppModuleBasic{
-		additionalInterfaceRegistrationFns: additionalInterfaceRegistrationFns,
+		clientRegistrars: clientRegistrars,
 	}
 }
 
@@ -101,7 +104,7 @@ func (AppModuleBasic) GetQueryCmd() *cobra.Command {
 
 // RegisterInterfaces registers module concrete types into protobuf Any.
 func (a AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry) {
-	for _, registerFn := range a.additionalInterfaceRegistrationFns {
+	for _, registerFn := range a.clientRegistrars {
 		registerFn(registry)
 	}
 	types.RegisterInterfaces(registry)
