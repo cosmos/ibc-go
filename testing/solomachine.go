@@ -534,6 +534,19 @@ func (solo *Solomachine) GenerateCommitmentProof(packet exported.PacketI) []byte
 	return solo.GenerateProof(signBytes)
 }
 
+// GenerateAcknowledgementProof generates an acknowledgement proof.
+func (solo *Solomachine) GenerateAcknowledgementProof(packet channeltypes.Packet) []byte {
+	signBytes := &solomachine.SignBytes{
+		Sequence:    solo.Sequence,
+		Timestamp:   solo.Time,
+		Diversifier: solo.Diversifier,
+		Path:        []byte(solo.GetPacketAcknowledgementPath(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence()).String()),
+		Data:        channeltypes.CommitAcknowledgement(mock.MockAcknowledgement.Acknowledgement()),
+	}
+
+	return solo.GenerateProof(signBytes)
+}
+
 // GetClientStatePath returns the commitment path for the client state.
 func (solo *Solomachine) GetClientStatePath(counterpartyClientIdentifier string) commitmenttypes.MerklePath {
 	path, err := commitmenttypes.ApplyPrefix(prefix, commitmenttypes.NewMerklePath(host.FullClientStatePath(counterpartyClientIdentifier)))
@@ -578,8 +591,8 @@ func (solo *Solomachine) GetPacketCommitmentPath(portID, channelID string, seque
 }
 
 // GetPacketAcknowledgementPath returns the commitment path for a packet acknowledgement.
-func (solo *Solomachine) GetPacketAcknowledgementPath(portID, channelID string) commitmenttypes.MerklePath {
-	ackPath := commitmenttypes.NewMerklePath(host.PacketAcknowledgementPath(portID, channelID, solo.Sequence))
+func (solo *Solomachine) GetPacketAcknowledgementPath(portID, channelID string, sequence uint64) commitmenttypes.MerklePath {
+	ackPath := commitmenttypes.NewMerklePath(host.PacketAcknowledgementPath(portID, channelID, sequence))
 	path, err := commitmenttypes.ApplyPrefix(prefix, ackPath)
 	require.NoError(solo.t, err)
 
@@ -588,8 +601,8 @@ func (solo *Solomachine) GetPacketAcknowledgementPath(portID, channelID string) 
 
 // GetPacketReceiptPath returns the commitment path for a packet receipt
 // and an absent receipts.
-func (solo *Solomachine) GetPacketReceiptPath(portID, channelID string) commitmenttypes.MerklePath {
-	receiptPath := commitmenttypes.NewMerklePath(host.PacketReceiptPath(portID, channelID, solo.Sequence))
+func (solo *Solomachine) GetPacketReceiptPath(portID, channelID string, sequence uint64) commitmenttypes.MerklePath {
+	receiptPath := commitmenttypes.NewMerklePath(host.PacketReceiptPath(portID, channelID, sequence))
 	path, err := commitmenttypes.ApplyPrefix(prefix, receiptPath)
 	require.NoError(solo.t, err)
 
@@ -603,4 +616,25 @@ func (solo *Solomachine) GetNextSequenceRecvPath(portID, channelID string) commi
 	require.NoError(solo.t, err)
 
 	return path
+}
+
+// SendPacket mocks sending a packet by setting a packet commitment directly.
+func (solo *Solomachine) SendPacket(chain *TestChain, packet channeltypes.Packet) {
+	commitmentHash := channeltypes.CommitPacket(chain.Codec, packet)
+	chain.GetSimApp().IBCKeeper.ChannelKeeper.SetPacketCommitment(chain.GetContext(), packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence(), commitmentHash)
+}
+
+// AcknowledgePacket creates an acknowledgement proof and broadcasts a MsgAcknowledgement.
+func (solo *Solomachine) AcknowledgePacket(chain *TestChain, packet channeltypes.Packet) {
+	proofAck := solo.GenerateAcknowledgementProof(packet)
+	msgAcknowledgement := channeltypes.NewMsgAcknowledgement(
+		packet, mock.MockAcknowledgement.Acknowledgement(),
+		proofAck,
+		clienttypes.ZeroHeight(),
+		chain.SenderAccount.GetAddress().String(),
+	)
+
+	res, err := chain.SendMsgs(msgAcknowledgement)
+	require.NoError(solo.t, err)
+	require.NotNil(solo.t, res)
 }

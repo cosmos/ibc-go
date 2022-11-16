@@ -464,9 +464,6 @@ func (msg MsgAcknowledgement) ValidateBasic() error {
 	if len(msg.ProofAcked) == 0 {
 		return sdkerrors.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty proof")
 	}
-	if msg.ProofHeight.IsZero() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidHeight, "proof height must be non-zero")
-	}
 	if len(msg.Acknowledgement) == 0 {
 		return sdkerrors.Wrap(ErrInvalidAcknowledgement, "ack bytes cannot be empty")
 	}

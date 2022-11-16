@@ -387,7 +387,7 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 			{
 				"success: packet acknowledgement verification",
 				func() {
-					merklePath := sm.GetPacketAcknowledgementPath(ibctesting.MockPort, ibctesting.FirstChannelID)
+					merklePath := sm.GetPacketAcknowledgementPath(ibctesting.MockPort, ibctesting.FirstChannelID, 1)
 					signBytes = solomachine.SignBytes{
 						Sequence:    sm.Sequence,
 						Timestamp:   sm.Time,
@@ -417,7 +417,7 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 			{
 				"success: packet receipt verification",
 				func() {
-					merklePath := sm.GetPacketReceiptPath(ibctesting.MockPort, ibctesting.FirstChannelID)
+					merklePath := sm.GetPacketReceiptPath(ibctesting.MockPort, ibctesting.FirstChannelID, 1)
 					signBytes = solomachine.SignBytes{
 						Sequence:    sm.Sequence,
 						Timestamp:   sm.Time,
@@ -607,7 +607,7 @@ func (suite *SoloMachineTestSuite) TestVerifyNonMembership() {
 			{
 				"success: packet receipt absence verification",
 				func() {
-					merklePath := suite.solomachine.GetPacketReceiptPath(ibctesting.MockPort, ibctesting.FirstChannelID)
+					merklePath := suite.solomachine.GetPacketReceiptPath(ibctesting.MockPort, ibctesting.FirstChannelID, 1)
 					signBytes = solomachine.SignBytes{
 						Sequence:    sm.GetHeight().GetRevisionHeight(),
 						Timestamp:   sm.Time,
