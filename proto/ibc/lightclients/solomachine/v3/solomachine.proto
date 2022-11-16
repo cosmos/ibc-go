@@ -48,11 +48,9 @@ message Header {
 message Misbehaviour {
   option (gogoproto.goproto_getters) = false;
 
-  uint64           sequence      = 2;
-  SignatureAndData signature_one = 3 [(gogoproto.moretags) = "yaml:\"signature_one\""];
-  SignatureAndData signature_two = 4 [(gogoproto.moretags) = "yaml:\"signature_two\""];
-
-  reserved 1;
+  uint64           sequence      = 1;
+  SignatureAndData signature_one = 2 [(gogoproto.moretags) = "yaml:\"signature_one\""];
+  SignatureAndData signature_two = 3 [(gogoproto.moretags) = "yaml:\"signature_two\""];
 }
 
 // SignatureAndData contains a signature and the data signed over to create that
