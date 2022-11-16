@@ -65,6 +65,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (modules/apps/27-interchain-accounts) [\#2433](https://github.com/cosmos/ibc-go/pull/2450) Renamed icatypes.PortPrefix to icatypes.ControllerPortPrefix & icatypes.PortID to icatypes.HostPortID
 * (core/02-client) [\#2573](https://github.com/cosmos/ibc-go/pull/2573) Renames `ClientParams` gRPC query method to `Params`.
 * (testing) [\#2567](https://github.com/cosmos/ibc-go/pull/2567) Modify `SendPacket` API of `Endpoint` to match the API of `SendPacket` in 04-channel.
+* (06-solomachine) [\#2761](https://github.com/cosmos/ibc-go/pull/2761) Removed deprecated `ClientId` field from `Misbehaviour` and `allow_update_after_proposal` field from `ClientState`.
 
 ### State Machine Breaking
 
