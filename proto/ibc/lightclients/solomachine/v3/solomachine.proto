@@ -51,6 +51,8 @@ message Misbehaviour {
   uint64           sequence      = 2;
   SignatureAndData signature_one = 3 [(gogoproto.moretags) = "yaml:\"signature_one\""];
   SignatureAndData signature_two = 4 [(gogoproto.moretags) = "yaml:\"signature_two\""];
+
+  reserved 1;
 }
 
 // SignatureAndData contains a signature and the data signed over to create that
