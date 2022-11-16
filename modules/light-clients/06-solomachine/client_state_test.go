@@ -357,7 +357,7 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 					)
 
 					commitmentBz := channeltypes.CommitPacket(suite.chainA.Codec, packet)
-					merklePath := sm.GetPacketCommitmentPath(ibctesting.MockPort, ibctesting.FirstChannelID)
+					merklePath := sm.GetPacketCommitmentPath(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 					signBytes = solomachine.SignBytes{
 						Sequence:    sm.Sequence,
 						Timestamp:   sm.Time,

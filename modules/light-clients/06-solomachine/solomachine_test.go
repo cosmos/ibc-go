@@ -65,6 +65,10 @@ func (suite *SoloMachineTestSuite) TestSolomachineSetup() {
 
 	// open confirm is not necessary as the solo machine implementation is mocked
 
+	// send packet is not necessary as the solo machine implementation is mocked
+
+	suite.solomachine.RecvPacket(suite.chainA, channelID)
+
 	// close init is not necessary as the solomachine implementation is mocked
 
 	suite.solomachine.ChanCloseConfirm(suite.chainA, channelID)

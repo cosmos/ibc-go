@@ -2,6 +2,7 @@ package ibctesting
 
 import (
 	"testing"
+	"time"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -227,6 +228,31 @@ func (solo *Solomachine) ChanCloseConfirm(chain *TestChain, channelID string) {
 	)
 
 	res, err := chain.SendMsgs(msgChanCloseConfirm)
+	require.NoError(solo.t, err)
+	require.NotNil(solo.t, res)
+}
+
+func (solo *Solomachine) RecvPacket(chain *TestChain, channelID string) {
+	packet := channeltypes.NewPacket(
+		mock.MockPacketData,
+		1,
+		mock.PortID,
+		channelIDSolomachine,
+		mock.PortID,
+		channelID,
+		clienttypes.ZeroHeight(),
+		uint64(chain.GetContext().BlockTime().Add(time.Hour).UnixNano()),
+	)
+
+	proofCommitment := solo.GenerateCommitmentProof(packet)
+	msgRecvPacket := channeltypes.NewMsgRecvPacket(
+		packet,
+		proofCommitment,
+		clienttypes.ZeroHeight(),
+		chain.SenderAccount.GetAddress().String(),
+	)
+
+	res, err := chain.SendMsgs(msgRecvPacket)
 	require.NoError(solo.t, err)
 	require.NotNil(solo.t, res)
 }
@@ -494,6 +520,20 @@ func (solo *Solomachine) GenerateChanCloseInitProof(counterpartyChannelID string
 	return solo.GenerateProof(signBytes)
 }
 
+func (solo *Solomachine) GenerateCommitmentProof(packet exported.PacketI) []byte {
+	commitment := channeltypes.CommitPacket(solo.cdc, packet)
+
+	signBytes := &solomachine.SignBytes{
+		Sequence:    solo.Sequence,
+		Timestamp:   solo.Time,
+		Diversifier: solo.Diversifier,
+		Path:        []byte(solo.GetPacketCommitmentPath(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence()).String()),
+		Data:        commitment,
+	}
+
+	return solo.GenerateProof(signBytes)
+}
+
 // GetClientStatePath returns the commitment path for the client state.
 func (solo *Solomachine) GetClientStatePath(counterpartyClientIdentifier string) commitmenttypes.MerklePath {
 	path, err := commitmenttypes.ApplyPrefix(prefix, commitmenttypes.NewMerklePath(host.FullClientStatePath(counterpartyClientIdentifier)))
@@ -529,8 +569,8 @@ func (solo *Solomachine) GetChannelStatePath(portID, channelID string) commitmen
 }
 
 // GetPacketCommitmentPath returns the commitment path for a packet commitment.
-func (solo *Solomachine) GetPacketCommitmentPath(portID, channelID string) commitmenttypes.MerklePath {
-	commitmentPath := commitmenttypes.NewMerklePath(host.PacketCommitmentPath(portID, channelID, solo.Sequence))
+func (solo *Solomachine) GetPacketCommitmentPath(portID, channelID string, sequence uint64) commitmenttypes.MerklePath {
+	commitmentPath := commitmenttypes.NewMerklePath(host.PacketCommitmentPath(portID, channelID, sequence))
 	path, err := commitmenttypes.ApplyPrefix(prefix, commitmentPath)
 	require.NoError(solo.t, err)
 
