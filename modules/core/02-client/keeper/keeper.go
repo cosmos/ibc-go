@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"fmt"
-	"reflect"
 	"strings"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -12,13 +11,10 @@ import (
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	"github.com/tendermint/tendermint/libs/log"
-	"github.com/tendermint/tendermint/light"
 
 	"github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v3/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v3/modules/core/exported"
-	ibctmtypes "github.com/cosmos/ibc-go/v3/modules/light-clients/07-tendermint/types"
 )
 
 // Keeper represents a type that grants read and write permissions to any client
@@ -29,10 +25,11 @@ type Keeper struct {
 	paramSpace    paramtypes.Subspace
 	stakingKeeper types.StakingKeeper
 	upgradeKeeper types.UpgradeKeeper
+	selfClient    exported.SelfClient
 }
 
 // NewKeeper creates a new NewKeeper instance
-func NewKeeper(cdc codec.BinaryCodec, key sdk.StoreKey, paramSpace paramtypes.Subspace, sk types.StakingKeeper, uk types.UpgradeKeeper) Keeper {
+func NewKeeper(cdc codec.BinaryCodec, key sdk.StoreKey, paramSpace paramtypes.Subspace, sk types.StakingKeeper, uk types.UpgradeKeeper, selfClient exported.SelfClient) Keeper {
 	// set KeyTable if it has not already been set
 	if !paramSpace.HasKeyTable() {
 		paramSpace = paramSpace.WithKeyTable(types.ParamKeyTable())
@@ -44,6 +41,7 @@ func NewKeeper(cdc codec.BinaryCodec, key sdk.StoreKey, paramSpace paramtypes.Su
 		paramSpace:    paramSpace,
 		stakingKeeper: sk,
 		upgradeKeeper: uk,
+		selfClient:    selfClient,
 	}
 }
 
@@ -256,77 +254,23 @@ func (k Keeper) GetSelfConsensusState(ctx sdk.Context, height exported.Height) (
 		return nil, sdkerrors.Wrapf(sdkerrors.ErrNotFound, "no historical info found at height %d", selfHeight.RevisionHeight)
 	}
 
-	consensusState := &ibctmtypes.ConsensusState{
-		Timestamp:          histInfo.Header.Time,
-		Root:               commitmenttypes.NewMerkleRoot(histInfo.Header.GetAppHash()),
-		NextValidatorsHash: histInfo.Header.NextValidatorsHash,
+	blockHeader, err := histInfo.Header.Marshal()
+	if err != nil {
+		return nil, err
 	}
-	return consensusState, nil
+
+	return k.selfClient.GetSelfConsensusStateFromBlocHeader(k.cdc, blockHeader)
 }
 
 // ValidateSelfClient validates the client parameters for a client of the running chain
 // This function is only used to validate the client state the counterparty stores for this chain
 // Client must be in same revision as the executing chain
 func (k Keeper) ValidateSelfClient(ctx sdk.Context, clientState exported.ClientState) error {
-	tmClient, ok := clientState.(*ibctmtypes.ClientState)
-	if !ok {
-		return sdkerrors.Wrapf(types.ErrInvalidClient, "client must be a Tendermint client, expected: %T, got: %T",
-			&ibctmtypes.ClientState{}, tmClient)
+	if k.selfClient.ClientType() != clientState.ClientType() {
+		return sdkerrors.Wrapf(types.ErrInvalidClient, "invalid client type. expected: %s, got: %s",
+			k.selfClient.ClientType(), clientState.ClientType())
 	}
-
-	if !tmClient.FrozenHeight.IsZero() {
-		return types.ErrClientFrozen
-	}
-
-	if ctx.ChainID() != tmClient.ChainId {
-		return sdkerrors.Wrapf(types.ErrInvalidClient, "invalid chain-id. expected: %s, got: %s",
-			ctx.ChainID(), tmClient.ChainId)
-	}
-
-	revision := types.ParseChainID(ctx.ChainID())
-
-	// client must be in the same revision as executing chain
-	if tmClient.LatestHeight.RevisionNumber != revision {
-		return sdkerrors.Wrapf(types.ErrInvalidClient, "client is not in the same revision as the chain. expected revision: %d, got: %d",
-			tmClient.LatestHeight.RevisionNumber, revision)
-	}
-
-	selfHeight := types.NewHeight(revision, uint64(ctx.BlockHeight()))
-	if tmClient.LatestHeight.GTE(selfHeight) {
-		return sdkerrors.Wrapf(types.ErrInvalidClient, "client has LatestHeight %d greater than or equal to chain height %d",
-			tmClient.LatestHeight, selfHeight)
-	}
-
-	expectedProofSpecs := commitmenttypes.GetSDKSpecs()
-	if !reflect.DeepEqual(expectedProofSpecs, tmClient.ProofSpecs) {
-		return sdkerrors.Wrapf(types.ErrInvalidClient, "client has invalid proof specs. expected: %v got: %v",
-			expectedProofSpecs, tmClient.ProofSpecs)
-	}
-
-	if err := light.ValidateTrustLevel(tmClient.TrustLevel.ToTendermint()); err != nil {
-		return sdkerrors.Wrapf(types.ErrInvalidClient, "trust-level invalid: %v", err)
-	}
-
-	expectedUbdPeriod := k.stakingKeeper.UnbondingTime(ctx)
-	if expectedUbdPeriod != tmClient.UnbondingPeriod {
-		return sdkerrors.Wrapf(types.ErrInvalidClient, "invalid unbonding period. expected: %s, got: %s",
-			expectedUbdPeriod, tmClient.UnbondingPeriod)
-	}
-
-	if tmClient.UnbondingPeriod < tmClient.TrustingPeriod {
-		return sdkerrors.Wrapf(types.ErrInvalidClient, "unbonding period must be greater than trusting period. unbonding period (%d) < trusting period (%d)",
-			tmClient.UnbondingPeriod, tmClient.TrustingPeriod)
-	}
-
-	if len(tmClient.UpgradePath) != 0 {
-		// For now, SDK IBC implementation assumes that upgrade path (if defined) is defined by SDK upgrade module
-		expectedUpgradePath := []string{upgradetypes.StoreKey, upgradetypes.KeyUpgradedIBCState}
-		if !reflect.DeepEqual(expectedUpgradePath, tmClient.UpgradePath) {
-			return sdkerrors.Wrapf(types.ErrInvalidClient, "upgrade path must be the upgrade path defined by upgrade module. expected %v, got %v",
-				expectedUpgradePath, tmClient.UpgradePath)
-		}
-	}
-	return nil
+	return k.selfClient.ValidateSelfClientState(ctx, k.stakingKeeper.UnbondingTime(ctx), clientState)
 }
 
 // GetUpgradePlan executes the upgrade keeper GetUpgradePlan function.
