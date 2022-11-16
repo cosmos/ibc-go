@@ -1,6 +1,8 @@
 package exported
 
 import (
+	"time"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	proto "github.com/gogo/protobuf/proto"
@@ -235,6 +237,22 @@ type GenesisMetadata interface {
 	GetKey() []byte
 	// returns metadata value
 	GetValue() []byte
+}
+
+// SelfClient is an interface to create the chains' self client logic
+type SelfClient interface {
+	ClientType() string
+
+	ValidateSelfClientState(
+		ctx sdk.Context,
+		expectedUbdPeriod time.Duration,
+		clientState ClientState,
+	) error
+
+	GetSelfConsensusStateFromBlocHeader(
+		cdc codec.BinaryCodec,
+		blockHeader []byte,
+	) (ConsensusState, error)
 }
 
 // String returns the string representation of a client status.
