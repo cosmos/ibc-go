@@ -66,6 +66,28 @@ func (suite *SoloMachineTestSuite) TestSolomachineRecvPacket() {
 	suite.solomachine.ChanCloseConfirm(suite.chainA, channelID)
 }
 
+func (suite *SoloMachineTestSuite) SetupSolomachine() string {
+	clientID := suite.solomachine.CreateClient(suite.chainA)
+
+	connectionID := suite.solomachine.ConnOpenInit(suite.chainA, clientID)
+
+	// open try is not necessary as the solo machine implementation is mocked
+
+	suite.solomachine.ConnOpenAck(suite.chainA, clientID, connectionID)
+
+	// open confirm is not necessary as the solo machine implementation is mocked
+
+	channelID := suite.solomachine.ChanOpenInit(suite.chainA, connectionID)
+
+	// open try is not necessary as the solo machine implementation is mocked
+
+	suite.solomachine.ChanOpenAck(suite.chainA, channelID)
+
+	// open confirm is not necessary as the solo machine implementation is mocked
+
+	return channelID
+}
+
 func (suite *SoloMachineTestSuite) TestSolomachineAck() {
 	channelID := suite.SetupSolomachine()
 
@@ -91,27 +113,31 @@ func (suite *SoloMachineTestSuite) TestSolomachineAck() {
 	suite.solomachine.ChanCloseConfirm(suite.chainA, channelID)
 }
 
-func (suite *SoloMachineTestSuite) SetupSolomachine() string {
-	clientID := suite.solomachine.CreateClient(suite.chainA)
+func (suite *SoloMachineTestSuite) TestSolomachineTimeout() {
+	channelID := suite.SetupSolomachine()
 
-	connectionID := suite.solomachine.ConnOpenInit(suite.chainA, clientID)
+	packet := channeltypes.NewPacket(
+		mock.MockPacketData,
+		1,
+		mock.PortID,
+		channelID,
+		mock.PortID,
+		channelIDSolomachine,
+		clienttypes.NewHeight(1, uint64(suite.chainA.GetContext().BlockHeight() + 1)),
+		0,
+	)
 
-	// open try is not necessary as the solo machine implementation is mocked
 
-	suite.solomachine.ConnOpenAck(suite.chainA, clientID, connectionID)
+	suite.solomachine.SendPacket(suite.chainA, packet)
 
-	// open confirm is not necessary as the solo machine implementation is mocked
+	// timeout the packet
+	suite.chainA.NextBlock()
 
-	channelID := suite.solomachine.ChanOpenInit(suite.chainA, connectionID)
+	suite.solomachine.TimeoutPacket(suite.chainA, packet)
 
-	// open try is not necessary as the solo machine implementation is mocked
-
-	suite.solomachine.ChanOpenAck(suite.chainA, channelID)
-
-	// open confirm is not necessary as the solo machine implementation is mocked
-
-	return channelID
+	suite.solomachine.ChanCloseConfirm(suite.chainA, channelID)
 }
+
 
 func (suite *SoloMachineTestSuite) GetSequenceFromStore() uint64 {
 	bz := suite.store.Get(host.ClientStateKey())

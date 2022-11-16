@@ -638,3 +638,26 @@ func (solo *Solomachine) AcknowledgePacket(chain *TestChain, packet channeltypes
 	require.NoError(solo.t, err)
 	require.NotNil(solo.t, res)
 }
+
+func (solo *Solomachine) TimeoutPacket(chain *TestChain, packet channeltypes.Packet) {
+	proofUnreceived := solo.GenerateProofUnreceived(packet)
+	msgTimeout := channeltypes.NewMsgTimeout(
+		packet, 1, proofUnreceived,
+		clienttypes.ZeroHeight(),
+		chain.SenderAccount.GetAddress().String(),
+	)
+	res, err := chain.SendMsgs(msgTimeout)
+	require.NoError(solo.t, err)
+	require.NotNil(solo.t, res)
+}
+
+func (solo *Solomachine) GenerateProofUnreceived(packet channeltypes.Packet) []byte {
+	signBytes := &solomachine.SignBytes{
+		Sequence:    solo.Sequence,
+		Timestamp:   solo.Time,
+		Diversifier: solo.Diversifier,
+		Path:        []byte(solo.GetPacketReceiptPath(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence()).String()),
+		Data:        nil,
+	}
+	return solo.GenerateProof(signBytes)
+}
