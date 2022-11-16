@@ -57,8 +57,6 @@ A zero proof height is now allowed by core IBC and may be passed into `VerifyMem
 
 The `GetRoot` function has been removed from consensus state interface since it was not used by core IBC.
 
-
-
 ### Light client implementations
 
 The `09-localhost` light client implementation has been removed because it is currently non-functional.
