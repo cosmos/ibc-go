@@ -11,7 +11,7 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v6/modules/core/23-commitment/types"
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
-	solomachinetypes "github.com/cosmos/ibc-go/v6/modules/light-clients/06-solomachine"
+	solomachine "github.com/cosmos/ibc-go/v6/modules/light-clients/06-solomachine"
 	ibctm "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v6/testing"
 )
@@ -23,7 +23,7 @@ func (suite *KeeperTestSuite) TestCreateClient() {
 		expPass     bool
 	}{
 		{"success", ibctm.NewClientState(testChainID, ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, testClientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath), true},
-		{"client type not supported", solomachinetypes.NewClientState(0, &solomachinetypes.ConsensusState{suite.solomachine.ConsensusState().PublicKey, suite.solomachine.Diversifier, suite.solomachine.Time}), false},
+		{"client type not supported", solomachine.NewClientState(0, &solomachine.ConsensusState{suite.solomachine.ConsensusState().PublicKey, suite.solomachine.Diversifier, suite.solomachine.Time}), false},
 	}
 
 	for i, tc := range cases {
