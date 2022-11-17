@@ -56,7 +56,9 @@ func (suite *TypesTestSuite) TestValidateGenesis() {
 	valSet := tmtypes.NewValidatorSet([]*tmtypes.Validator{val})
 
 	heightMinus1 := types.NewHeight(0, height-1)
-	header := suite.chainA.CreateTMClientHeader(chainID, int64(clientHeight.RevisionHeight), heightMinus1, now, valSet, valSet, []tmtypes.PrivValidator{privVal})
+	chainATendermint := suite.chainA.TestChainClient.(*ibctesting.TestChainTendermint)
+
+	header := chainATendermint.CreateTMClientHeader(chainID, int64(clientHeight.RevisionHeight), heightMinus1, now, valSet, valSet, []tmtypes.PrivValidator{privVal})
 
 	testCases := []struct {
 		name     string

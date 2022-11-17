@@ -59,7 +59,8 @@ func TestIBCTestSuite(t *testing.T) {
 }
 
 func (suite *IBCTestSuite) TestValidateGenesis() {
-	header := suite.chainA.CreateTMClientHeader(suite.chainA.ChainID, suite.chainA.CurrentHeader.Height, clienttypes.NewHeight(0, uint64(suite.chainA.CurrentHeader.Height-1)), suite.chainA.CurrentHeader.Time, suite.chainA.Vals, suite.chainA.Vals, suite.chainA.Signers)
+	chainATendermint := suite.chainA.TestChainClient.(*ibctesting.TestChainTendermint)
+	header := chainATendermint.CreateTMClientHeader(suite.chainA.ChainID, chainATendermint.CurrentHeader.Height, clienttypes.NewHeight(0, uint64(chainATendermint.CurrentHeader.Height-1)), chainATendermint.CurrentHeader.Time, suite.chainA.Vals, suite.chainA.Vals, suite.chainA.Signers)
 
 	testCases := []struct {
 		name     string
@@ -225,7 +226,8 @@ func (suite *IBCTestSuite) TestValidateGenesis() {
 }
 
 func (suite *IBCTestSuite) TestInitGenesis() {
-	header := suite.chainA.CreateTMClientHeader(suite.chainA.ChainID, suite.chainA.CurrentHeader.Height, clienttypes.NewHeight(0, uint64(suite.chainA.CurrentHeader.Height-1)), suite.chainA.CurrentHeader.Time, suite.chainA.Vals, suite.chainA.Vals, suite.chainA.Signers)
+	chainATendermint := suite.chainA.TestChainClient.(*ibctesting.TestChainTendermint)
+	header := chainATendermint.CreateTMClientHeader(suite.chainA.ChainID, chainATendermint.CurrentHeader.Height, clienttypes.NewHeight(0, uint64(chainATendermint.CurrentHeader.Height-1)), chainATendermint.CurrentHeader.Time, suite.chainA.Vals, suite.chainA.Vals, suite.chainA.Signers)
 
 	testCases := []struct {
 		name     string
