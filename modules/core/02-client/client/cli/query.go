@@ -311,8 +311,8 @@ func GetCmdSelfConsensusState() *cobra.Command {
 	return cmd
 }
 
-// GetCmdParams returns the command handler for ibc client parameter querying.
-func GetCmdParams() *cobra.Command {
+// GetCmdClientParams returns the command handler for ibc client parameter querying.
+func GetCmdClientParams() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "params",
 		Short:   "Query the current ibc client parameters",
@@ -326,7 +326,7 @@ func GetCmdParams() *cobra.Command {
 			}
 			queryClient := types.NewQueryClient(clientCtx)
 
-			res, _ := queryClient.Params(cmd.Context(), &types.QueryParamsRequest{})
+			res, _ := queryClient.ClientParams(cmd.Context(), &types.QueryClientParamsRequest{})
 			return clientCtx.PrintProto(res.Params)
 		},
 	}
