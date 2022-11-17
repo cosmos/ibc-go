@@ -624,12 +624,7 @@ func RegisterQueryHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-<<<<<<< HEAD
-		resp, md, err := local_request_Query_Params_0(rctx, inboundMarshaler, server, req, pathParams)
-=======
 		resp, md, err := local_request_Query_ClientParams_0(rctx, inboundMarshaler, server, req, pathParams)
-		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
->>>>>>> a05247c (feat: adding connection params grpc and cli query (#2745))
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
@@ -917,11 +912,7 @@ var (
 
 	pattern_Query_ClientStatus_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4, 1, 0, 4, 1, 5, 5}, []string{"ibc", "core", "client", "v1", "client_status", "client_id"}, "", runtime.AssumeColonVerbOpt(true)))
 
-<<<<<<< HEAD
-	pattern_Query_Params_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4}, []string{"ibc", "core", "client", "v1", "params"}, "", runtime.AssumeColonVerbOpt(true)))
-=======
-	pattern_Query_ClientParams_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4}, []string{"ibc", "core", "client", "v1", "params"}, "", runtime.AssumeColonVerbOpt(false)))
->>>>>>> a05247c (feat: adding connection params grpc and cli query (#2745))
+	pattern_Query_ClientParams_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4}, []string{"ibc", "core", "client", "v1", "params"}, "", runtime.AssumeColonVerbOpt(true)))
 
 	pattern_Query_UpgradedClientState_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4}, []string{"ibc", "core", "client", "v1", "upgraded_client_states"}, "", runtime.AssumeColonVerbOpt(true)))
 
