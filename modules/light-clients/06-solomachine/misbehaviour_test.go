@@ -27,13 +27,6 @@ func (suite *SoloMachineTestSuite) TestMisbehaviourValidateBasic() {
 				true,
 			},
 			{
-				"invalid client ID",
-				func(misbehaviour *solomachine.Misbehaviour) {
-					misbehaviour.ClientId = "(badclientid)"
-				},
-				false,
-			},
-			{
 				"sequence is zero",
 				func(misbehaviour *solomachine.Misbehaviour) {
 					misbehaviour.Sequence = 0
