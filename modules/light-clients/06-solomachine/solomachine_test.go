@@ -123,15 +123,14 @@ func (suite *SoloMachineTestSuite) TestSolomachineTimeout() {
 		channelID,
 		mock.PortID,
 		channelIDSolomachine,
-		clienttypes.NewHeight(1, uint64(suite.chainA.GetContext().BlockHeight() + 1)),
-		0,
+		clienttypes.ZeroHeight(),
+		1,
 	)
 
+	// immediately timeout the packet
+	time.Sleep(time.Nanosecond * 2)
 
 	suite.solomachine.SendPacket(suite.chainA, packet)
-
-	// timeout the packet
-	suite.chainA.NextBlock()
 
 	suite.solomachine.TimeoutPacket(suite.chainA, packet)
 
