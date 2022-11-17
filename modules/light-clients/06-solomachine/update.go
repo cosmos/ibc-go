@@ -57,7 +57,7 @@ func (cs ClientState) verifyHeader(ctx sdk.Context, cdc codec.BinaryCodec, clien
 		Sequence:    header.Sequence,
 		Timestamp:   header.Timestamp,
 		Diversifier: cs.ConsensusState.Diversifier,
-		Path:        []byte{},
+		Path:        []byte(SentinelHeaderPath),
 		Data:        dataBz,
 	}
 
