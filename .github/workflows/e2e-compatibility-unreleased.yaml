@@ -1,4 +1,4 @@
-name: Compatibility E2E
+name: Compatibility E2E (Unreleased)
 on:
   workflow_dispatch:
     inputs:
