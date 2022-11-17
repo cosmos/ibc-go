@@ -63,7 +63,6 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (04-channel) [\#2638](https://github.com/cosmos/ibc-go/pull/2638) Channel Keeper now expects a keeper which fulfills the expected `exported.ScopedKeeper` interface for the capability keeper.
 * (core/04-channel)[\#1703](https://github.com/cosmos/ibc-go/pull/1703) Update `SendPacket` API to take in necessary arguments and construct rest of packet rather than taking in entire packet. The generated packet sequence is returned by the `SendPacket` function.
 * (modules/apps/27-interchain-accounts) [\#2433](https://github.com/cosmos/ibc-go/pull/2450) Renamed icatypes.PortPrefix to icatypes.ControllerPortPrefix & icatypes.PortID to icatypes.HostPortID
-* (core/02-client) [\#2573](https://github.com/cosmos/ibc-go/pull/2573) Renames `ClientParams` gRPC query method to `Params`.
 * (testing) [\#2567](https://github.com/cosmos/ibc-go/pull/2567) Modify `SendPacket` API of `Endpoint` to match the API of `SendPacket` in 04-channel.
 * (06-solomachine) [\#2761](https://github.com/cosmos/ibc-go/pull/2761) Removed deprecated `ClientId` field from `Misbehaviour` and `allow_update_after_proposal` field from `ClientState`.
 
@@ -105,6 +104,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (modules/core/keeper) [\#1728](https://github.com/cosmos/ibc-go/pull/2399) Updated channel callback errors to include portID & channelID for better identification of errors.
 * [\#2434](https://github.com/cosmos/ibc-go/pull/2478) Removed all `TypeMsg` constants
 * (modules/core/exported) [#1689] (https://github.com/cosmos/ibc-go/pull/2539) Removing `GetVersions` from `ConnectionI` interface.
+* (core/03-connection) [\#2745](https://github.com/cosmos/ibc-go/pull/2745) Adding `ConnectionParams` grpc query and CLI to 03-connection.
 
 ### Features
 
@@ -117,6 +117,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (light-clients/07-tendermint) [\#1674](https://github.com/cosmos/ibc-go/pull/1674) Submitted ClientState is zeroed out before checking the proof in order to prevent the proposal from containing information governance is not actually voting on.
 * (modules/core/02-client)[\#1676](https://github.com/cosmos/ibc-go/pull/1676) ClientState must be zeroed out for `UpgradeProposals` to pass validation. This prevents a proposal containing information governance is not actually voting on.
 * (modules/core/keeper) [\#2403](https://github.com/cosmos/ibc-go/pull/2403) Added a function in keeper to cater for blank pointers.
+* (modules/core/keeper) [\#2745](https://github.com/cosmos/ibc-go/pull/2745) Fix request wiring for `UpgradedConsensusState` in core query server.
 
 ## [v5.1.0](https://github.com/cosmos/ibc-go/releases/tag/v5.1.0) - 2022-11-09
 
