@@ -212,7 +212,6 @@ func (solo *Solomachine) CreateMisbehaviour() *solomachine.Misbehaviour {
 	}
 
 	return &solomachine.Misbehaviour{
-		ClientId:     solo.ClientID,
 		Sequence:     solo.Sequence,
 		SignatureOne: &signatureOne,
 		SignatureTwo: &signatureTwo,
