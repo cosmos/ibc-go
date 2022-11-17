@@ -18,6 +18,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      - uses: andstor/file-existence-action@v2
+        with:
+          files: "*.json"
       - run: |
           # use jq -c to put the full json contents on a single line. This is required when using the json body
           # to create the matrix in the following job.
