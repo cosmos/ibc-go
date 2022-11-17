@@ -16,91 +16,34 @@ env:
   RELEASE_BRANCH: '${{ inputs.release-branch }}'
 
 jobs:
-  determine-test-directory:
-    runs-on: ubuntu-latest
-    outputs:
-      test-directory: ${{ steps.set-test-dir.outputs.test-directory }}
-    steps:
-      - run: |
-          test_dir="$(echo $RELEASE_BRANCH | sed 's/\//-/')"
-          echo $test_dir
-          echo "::set-output name=test-directory::$test_dir"
-        id: set-test-dir
-
-  # build-release-images builds all docker images that are relevant for the compatibility tests. If a single release
-  # branch is specified, only that image will be built, e.g. release-v6.0.x but if 'unreleased' is specified
-  # every image will be built.
-  build-release-images:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        release-branch:
-          - release/v2.5.x
-          - release/v3.4.x
-          - release/v4.2.x
-          - release/v5.0.x
-          - release/v5.1.x
-          - release/v6.0.x
-    steps:
-      - uses: actions/checkout@v3
-        if: env.RELEASE_BRANCH == 'unreleased'
-        with:
-          ref: "${{ matrix.release-branch }}"
-          fetch-depth: 0
-      - name: Log in to the Container registry
-        if: env.RELEASE_BRANCH == 'unreleased'
-        uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Fetch Makefile dependencies
-        if: env.RELEASE_BRANCH == 'unreleased'
-        run: |
-          mkdir -p contrib/devtools
-          curl https://raw.githubusercontent.com/cosmos/ibc-go/main/contrib/devtools/Makefile -o contrib/devtools/Makefile
-      - name: Fetch latest Dockerfile
-        if: env.RELEASE_BRANCH == 'unreleased'
-        run: curl https://raw.githubusercontent.com/cosmos/ibc-go/main/Dockerfile -o Dockerfile
-      - name: Build image
-        if: env.RELEASE_BRANCH == 'unreleased'
-        run: |
-          docker_tag="$(echo ${{ matrix.release-branch }} | sed 's/\//-/')"
-          docker build . -t "${REGISTRY}/${ORG}/${IMAGE_NAME}:$docker_tag"
-          docker push "${REGISTRY}/${ORG}/${IMAGE_NAME}:$docker_tag"
-
   transfer:
     needs:
       - build-release-images
-      - determine-test-directory
     uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
     with:
-      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
+      test-file-directory: "unreleased"
       test-suite: "transfer"
 
   connection:
     needs:
       - build-release-images
-      - determine-test-directory
     uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
     with:
-      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
+      test-file-directory: "unreleased"
       test-suite: "connection"
 
   client:
     needs:
       - build-release-images
-      - determine-test-directory
     uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
     with:
-      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
+      test-file-directory: "unreleased"
       test-suite: "client"
 
   incentivized-transfer:
     needs:
       - build-release-images
-      - determine-test-directory
     uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
     with:
-      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
-      test-suite: "incentivized-transfer-chain-a"
+      test-file-directory: "unreleased"
+      test-suite: "incentivized-transfer"
