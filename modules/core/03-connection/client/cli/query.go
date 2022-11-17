@@ -116,3 +116,28 @@ func GetCmdQueryClientConnections() *cobra.Command {
 
 	return cmd
 }
+
+// GetCmdConnectionParams returns the command handler for ibc connection parameter querying.
+func GetCmdConnectionParams() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:     "params",
+		Short:   "Query the current ibc connection parameters",
+		Long:    "Query the current ibc connection parameters",
+		Args:    cobra.NoArgs,
+		Example: fmt.Sprintf("%s query %s %s params", version.AppName, host.ModuleName, types.SubModuleName),
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(clientCtx)
+
+			res, _ := queryClient.ConnectionParams(cmd.Context(), &types.QueryConnectionParamsRequest{})
+			return clientCtx.PrintProto(res.Params)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
