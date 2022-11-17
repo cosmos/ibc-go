@@ -9,10 +9,8 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v3/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v3/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v3/modules/core/exported"
-	ibctmtypes "github.com/cosmos/ibc-go/v3/modules/light-clients/07-tendermint/types"
 )
 
 // Endpoint is a which represents a channel endpoint and its associated
@@ -80,31 +78,8 @@ func (endpoint *Endpoint) CreateClient() (err error) {
 	// ensure counterparty has committed state
 	endpoint.Chain.Coordinator.CommitBlock(endpoint.Counterparty.Chain)
 
-	var (
-		clientState    exported.ClientState
-		consensusState exported.ConsensusState
-	)
-
-	switch endpoint.ClientConfig.GetClientType() {
-	case exported.Tendermint:
-		tmConfig, ok := endpoint.ClientConfig.(*TendermintConfig)
-		require.True(endpoint.Chain.T, ok)
-
-		height := endpoint.Counterparty.Chain.LastHeader.GetHeight().(clienttypes.Height)
-		clientState = ibctmtypes.NewClientState(
-			endpoint.Counterparty.Chain.ChainID, tmConfig.TrustLevel, tmConfig.TrustingPeriod, tmConfig.UnbondingPeriod, tmConfig.MaxClockDrift,
-			height, commitmenttypes.GetSDKSpecs(), UpgradePath, tmConfig.AllowUpdateAfterExpiry, tmConfig.AllowUpdateAfterMisbehaviour,
-		)
-		consensusState = endpoint.Counterparty.Chain.LastHeader.ConsensusState()
-	case exported.Solomachine:
-		// TODO
-		//		solo := NewSolomachine(endpoint.Chain.T, endpoint.Chain.Codec, clientID, "", 1)
-		//		clientState = solo.ClientState()
-		//		consensusState = solo.ConsensusState()
-
-	default:
-		err = fmt.Errorf("client type %s is not supported", endpoint.ClientConfig.GetClientType())
-	}
+	clientState := endpoint.Counterparty.Chain.TestChainClient.ClientConfigToState(endpoint.ClientConfig)
+	consensusState := endpoint.Counterparty.Chain.TestChainClient.GetConsensusState()
 
 	if err != nil {
 		return err
@@ -135,7 +110,8 @@ func (endpoint *Endpoint) UpdateClient() (err error) {
 
 	switch endpoint.ClientConfig.GetClientType() {
 	case exported.Tendermint:
-		header, err = endpoint.Chain.ConstructUpdateTMClientHeader(endpoint.Counterparty.Chain, endpoint.ClientID)
+		testChainTendermint := endpoint.Chain.TestChainClient.(*TestChainTendermint)
+		header, err = testChainTendermint.ConstructUpdateTMClientHeader(endpoint.Counterparty.Chain, endpoint.ClientID)
 
 	default:
 		err = fmt.Errorf("client type %s is not supported", endpoint.ClientConfig.GetClientType())

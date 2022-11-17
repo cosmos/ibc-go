@@ -27,7 +27,7 @@ import (
 	"github.com/cosmos/ibc-go/v3/testing/simapp"
 )
 
-var DefaultTestingAppInit func() (TestingApp, map[string]json.RawMessage) = SetupTestingApp
+var DefaultTestingAppInit func(chainConsensusType string) (TestingApp, map[string]json.RawMessage) = SetupTestingApp
 
 type TestingApp interface {
 	abci.Application
@@ -47,10 +47,10 @@ type TestingApp interface {
 	LastBlockHeight() int64
 }
 
-func SetupTestingApp() (TestingApp, map[string]json.RawMessage) {
+func SetupTestingApp(chainConsensusType string) (TestingApp, map[string]json.RawMessage) {
 	db := dbm.NewMemDB()
 	encCdc := simapp.MakeTestEncodingConfig()
-	app := simapp.NewSimApp(log.NewNopLogger(), db, nil, true, map[int64]bool{}, simapp.DefaultNodeHome, 5, encCdc, simapp.EmptyAppOptions{})
+	app := simapp.NewSimAppWithConsensusType(log.NewNopLogger(), db, nil, true, map[int64]bool{}, simapp.DefaultNodeHome, 5, chainConsensusType, encCdc, simapp.EmptyAppOptions{})
 	return app, simapp.NewDefaultGenesisState(encCdc.Marshaler)
 }
 
@@ -58,8 +58,8 @@ func SetupTestingApp() (TestingApp, map[string]json.RawMessage) {
 // that also act as delegators. For simplicity, each validator is bonded with a delegation
 // of one consensus engine unit (10^6) in the default token of the simapp from first genesis
 // account. A Nop logger is set in SimApp.
-func SetupWithGenesisValSet(t *testing.T, valSet *tmtypes.ValidatorSet, genAccs []authtypes.GenesisAccount, chainID string, powerReduction sdk.Int, balances ...banktypes.Balance) TestingApp {
-	app, genesisState := DefaultTestingAppInit()
+func SetupWithGenesisValSet(t *testing.T, valSet *tmtypes.ValidatorSet, genAccs []authtypes.GenesisAccount, chainID string, chainConsensusType string, powerReduction sdk.Int, balances ...banktypes.Balance) TestingApp {
+	app, genesisState := DefaultTestingAppInit(chainConsensusType)
 
 	// set genesis accounts
 	authGenesis := authtypes.NewGenesisState(authtypes.DefaultParams(), genAccs)

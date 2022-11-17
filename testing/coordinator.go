@@ -6,8 +6,9 @@ import (
 	"testing"
 	"time"
 
+	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v3/modules/core/exported"
 	"github.com/stretchr/testify/require"
-	abci "github.com/tendermint/tendermint/abci/types"
 )
 
 var (
@@ -25,17 +26,47 @@ type Coordinator struct {
 	Chains      map[string]*TestChain
 }
 
+// UniqueStringLists returns a list without dupicates
+func StringSliceRemoveDuplicates(stringSlice []string) []string {
+	keys := make(map[string]bool)
+	list := []string{}
+	for _, entry := range stringSlice {
+		if _, value := keys[entry]; !value {
+			keys[entry] = true
+			list = append(list, entry)
+		}
+	}
+	return list
+}
+
 // NewCoordinator initializes Coordinator with N TestChain's
 func NewCoordinator(t *testing.T, n int) *Coordinator {
+	consensusTypes := make([]string, n)
+	for i := 0; i < len(consensusTypes); i++ {
+		consensusTypes[i] = exported.Tendermint
+	}
+
+	return NewCoordinatorWithConsensusType(t, consensusTypes)
+}
+
+// NewCoordinatorWithConsensusType initializes Coordinator with len(consensusTypes) TestChain's
+// where the self client type of chain i is consensusTypes[i]
+func NewCoordinatorWithConsensusType(t *testing.T, consensusTypes []string) *Coordinator {
 	chains := make(map[string]*TestChain)
 	coord := &Coordinator{
 		T:           t,
 		CurrentTime: globalStartTime,
 	}
 
-	for i := 1; i <= n; i++ {
-		chainID := GetChainID(i)
-		chains[chainID] = NewTestChain(t, coord, chainID)
+	for i, consensusType := range consensusTypes {
+		chainID := GetChainID(i + 1)
+		chains[chainID] = NewTestChain(t, coord, chainID, consensusType)
+		// add the consensusTypes to AllowedClients list
+		clientKeeper := chains[chainID].App.GetIBCKeeper().ClientKeeper
+		params := clientKeeper.GetParams(chains[chainID].GetContext())
+		clientKeeper.SetParams(chains[chainID].GetContext(), clienttypes.NewParams(
+			StringSliceRemoveDuplicates(append(params.AllowedClients, consensusTypes...))...,
+		))
 	}
 	coord.Chains = chains
 
@@ -66,8 +97,8 @@ func (coord *Coordinator) UpdateTime() {
 
 // UpdateTimeForChain updates the clock for a specific chain.
 func (coord *Coordinator) UpdateTimeForChain(chain *TestChain) {
-	chain.CurrentHeader.Time = coord.CurrentTime.UTC()
-	chain.App.BeginBlock(abci.RequestBeginBlock{Header: chain.CurrentHeader})
+	chain.TestChainClient.UpdateCurrentHeaderTime(coord.CurrentTime.UTC())
+	chain.TestChainClient.BeginBlock()
 }
 
 // Setup constructs a TM client, connection, and channel on both chains provided. It will
@@ -190,7 +221,7 @@ func (coord *Coordinator) CommitBlock(chains ...*TestChain) {
 // CommitNBlocks commits n blocks to state and updates the block height by 1 for each commit.
 func (coord *Coordinator) CommitNBlocks(chain *TestChain, n uint64) {
 	for i := uint64(0); i < n; i++ {
-		chain.App.BeginBlock(abci.RequestBeginBlock{Header: chain.CurrentHeader})
+		chain.TestChainClient.BeginBlock()
 		chain.App.Commit()
 		chain.NextBlock()
 		coord.IncrementTime()

@@ -2,6 +2,7 @@ package simapp
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -105,6 +106,8 @@ import (
 	authz "github.com/cosmos/cosmos-sdk/x/authz"
 	authzkeeper "github.com/cosmos/cosmos-sdk/x/authz/keeper"
 	authzmodule "github.com/cosmos/cosmos-sdk/x/authz/module"
+
+	"github.com/cosmos/ibc-go/v3/modules/core/exported"
 
 	// unnamed import of statik for swagger UI support
 	_ "github.com/cosmos/cosmos-sdk/client/docs/statik"
@@ -231,9 +234,21 @@ func init() {
 }
 
 // NewSimApp returns a reference to an initialized SimApp.
+// Assume self chain client type is Tendermint
 func NewSimApp(
 	logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, skipUpgradeHeights map[int64]bool,
 	homePath string, invCheckPeriod uint, encodingConfig simappparams.EncodingConfig,
+	appOpts servertypes.AppOptions, baseAppOptions ...func(*baseapp.BaseApp),
+) *SimApp {
+	return NewSimAppWithConsensusType(logger, db, traceStore, loadLatest, skipUpgradeHeights,
+		homePath, invCheckPeriod, exported.Tendermint, encodingConfig,
+		appOpts, baseAppOptions...)
+}
+
+// NewSimApp returns a reference to an initialized SimApp.
+func NewSimAppWithConsensusType(
+	logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, skipUpgradeHeights map[int64]bool,
+	homePath string, invCheckPeriod uint, chainConsensusType string, encodingConfig simappparams.EncodingConfig,
 	appOpts servertypes.AppOptions, baseAppOptions ...func(*baseapp.BaseApp),
 ) *SimApp {
 
@@ -321,9 +336,16 @@ func NewSimApp(
 		stakingtypes.NewMultiStakingHooks(app.DistrKeeper.Hooks(), app.SlashingKeeper.Hooks()),
 	)
 
+	var selfClient exported.SelfClient
+	switch chainConsensusType {
+	case exported.Tendermint:
+		selfClient = ibctmtypes.NewSelfClient()
+	default:
+		panic(fmt.Sprintf("client type %s is not supported", chainConsensusType))
+	}
 	// Create IBC Keeper
 	app.IBCKeeper = ibckeeper.NewKeeper(
-		appCodec, keys[ibchost.StoreKey], app.GetSubspace(ibchost.ModuleName), app.StakingKeeper, app.UpgradeKeeper, scopedIBCKeeper, ibctmtypes.NewSelfClient(),
+		appCodec, keys[ibchost.StoreKey], app.GetSubspace(ibchost.ModuleName), app.StakingKeeper, app.UpgradeKeeper, scopedIBCKeeper, selfClient,
 	)
 
 	app.AuthzKeeper = authzkeeper.NewKeeper(keys[authzkeeper.StoreKey], appCodec, app.BaseApp.MsgServiceRouter())
