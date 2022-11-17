@@ -64,6 +64,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (core/04-channel)[\#1703](https://github.com/cosmos/ibc-go/pull/1703) Update `SendPacket` API to take in necessary arguments and construct rest of packet rather than taking in entire packet. The generated packet sequence is returned by the `SendPacket` function.
 * (modules/apps/27-interchain-accounts) [\#2433](https://github.com/cosmos/ibc-go/pull/2450) Renamed icatypes.PortPrefix to icatypes.ControllerPortPrefix & icatypes.PortID to icatypes.HostPortID
 * (testing) [\#2567](https://github.com/cosmos/ibc-go/pull/2567) Modify `SendPacket` API of `Endpoint` to match the API of `SendPacket` in 04-channel.
+* (06-solomachine) [\#2761](https://github.com/cosmos/ibc-go/pull/2761) Removed deprecated `ClientId` field from `Misbehaviour` and `allow_update_after_proposal` field from `ClientState`.
 
 ### State Machine Breaking
 
