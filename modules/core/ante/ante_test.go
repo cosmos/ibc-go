@@ -93,7 +93,7 @@ func (suite *AnteTestSuite) createAcknowledgementMessage(sequenceNumber uint64, 
 
 // createTimeoutMessage creates an Timeout message for a packet sent from chain B to chain A.
 func (suite *AnteTestSuite) createTimeoutMessage(sequenceNumber uint64, isRedundant bool) sdk.Msg {
-	height := suite.chainA.LastHeader.GetHeight()
+	height := suite.chainA.TestChainClient.(*ibctesting.TestChainTendermint).LastHeader.GetHeight()
 	timeoutHeight := clienttypes.NewHeight(height.GetRevisionNumber(), height.GetRevisionHeight()+1)
 	packet := channeltypes.NewPacket(ibctesting.MockPacketData, sequenceNumber,
 		suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID,
@@ -121,7 +121,7 @@ func (suite *AnteTestSuite) createTimeoutMessage(sequenceNumber uint64, isRedund
 
 // createTimeoutOnCloseMessage creates an TimeoutOnClose message for a packet sent from chain B to chain A.
 func (suite *AnteTestSuite) createTimeoutOnCloseMessage(sequenceNumber uint64, isRedundant bool) sdk.Msg {
-	height := suite.chainA.LastHeader.GetHeight()
+	height := suite.chainA.TestChainClient.(*ibctesting.TestChainTendermint).LastHeader.GetHeight()
 	timeoutHeight := clienttypes.NewHeight(height.GetRevisionNumber(), height.GetRevisionHeight()+1)
 	packet := channeltypes.NewPacket(ibctesting.MockPacketData, sequenceNumber,
 		suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID,
@@ -157,7 +157,8 @@ func (suite *AnteTestSuite) createUpdateClientMessage() sdk.Msg {
 
 	switch endpoint.ClientConfig.GetClientType() {
 	case exported.Tendermint:
-		header, _ = endpoint.Chain.ConstructUpdateTMClientHeader(endpoint.Counterparty.Chain, endpoint.ClientID)
+		testChainTendermint := endpoint.Chain.TestChainClient.(*ibctesting.TestChainTendermint)
+		header, _ = testChainTendermint.ConstructUpdateTMClientHeader(endpoint.Counterparty.Chain, endpoint.ClientID)
 
 	default:
 	}

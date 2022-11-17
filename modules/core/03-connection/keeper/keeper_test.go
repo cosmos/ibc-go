@@ -137,12 +137,12 @@ func (suite *KeeperTestSuite) TestGetTimestampAtHeight() {
 			tc.malleate()
 
 			actualTimestamp, err := suite.chainA.App.GetIBCKeeper().ConnectionKeeper.GetTimestampAtHeight(
-				suite.chainA.GetContext(), connection, suite.chainB.LastHeader.GetHeight(),
+				suite.chainA.GetContext(), connection, suite.chainB.TestChainClient.(*ibctesting.TestChainTendermint).LastHeader.GetHeight(),
 			)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
-				suite.Require().EqualValues(uint64(suite.chainB.LastHeader.GetTime().UnixNano()), actualTimestamp)
+				suite.Require().EqualValues(uint64(suite.chainB.TestChainClient.(*ibctesting.TestChainTendermint).LastHeader.GetTime().UnixNano()), actualTimestamp)
 			} else {
 				suite.Require().Error(err)
 			}
