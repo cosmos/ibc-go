@@ -3,6 +3,7 @@ package keeper_test
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+
 	"github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 )
 
@@ -13,17 +14,16 @@ func (suite *KeeperTestSuite) assertTransferEvents(
 ) {
 	hasEvent := false
 
-	eventType := "ibc_transfer"
 	expEvent := map[string]string{
-		"sender":   suite.chainA.SenderAccount.GetAddress().String(),
-		"receiver": suite.chainB.SenderAccount.GetAddress().String(),
-		"amount":   coin.Amount.String(),
-		"denom":    coin.Denom,
-		"memo":     memo,
+		sdk.AttributeKeySender:     suite.chainA.SenderAccount.GetAddress().String(),
+		types.AttributeKeyReceiver: suite.chainB.SenderAccount.GetAddress().String(),
+		types.AttributeKeyAmount:   coin.Amount.String(),
+		types.AttributeKeyDenom:    coin.Denom,
+		types.AttributeKeyMemo:     memo,
 	}
 
 	for _, event := range actualEvents {
-		if event.Type == eventType {
+		if event.Type == types.EventTypeTransfer {
 			hasEvent = true
 			suite.Require().Len(event.Attributes, len(expEvent))
 			for _, attr := range event.Attributes {
@@ -34,7 +34,7 @@ func (suite *KeeperTestSuite) assertTransferEvents(
 		}
 	}
 
-	suite.Require().True(hasEvent, "event: %s was not found in events", eventType)
+	suite.Require().True(hasEvent, "event: %s was not found in events", types.EventTypeTransfer)
 }
 
 func (suite *KeeperTestSuite) TestMsgTransfer() {
