@@ -73,8 +73,6 @@ func (suite *SoloMachineTestSuite) SetupSolomachine() string {
 
 	// open confirm is not necessary as the solo machine implementation is mocked
 
-	suite.solomachine.ChanCloseConfirm(suite.chainA, channelID)
-	// close init is not necessary as the solomachine implementation is mocked
 	return channelID
 }
 
