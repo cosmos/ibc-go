@@ -76,7 +76,7 @@ func (suite *SoloMachineTestSuite) SetupSolomachine() string {
 	return channelID
 }
 
-func (suite *SoloMachineTestSuite) TestSolomachineRecvPacket() {
+func (suite *SoloMachineTestSuite) TestRecvPacket() {
 	channelID := suite.SetupSolomachine()
 
 	// send packet is not necessary as the solo machine implementation is mocked
@@ -88,7 +88,7 @@ func (suite *SoloMachineTestSuite) TestSolomachineRecvPacket() {
 	suite.solomachine.ChanCloseConfirm(suite.chainA, channelID)
 }
 
-func (suite *SoloMachineTestSuite) TestSolomachineAck() {
+func (suite *SoloMachineTestSuite) TestAcknowledgePacket() {
 	channelID := suite.SetupSolomachine()
 
 	packet := channeltypes.NewPacket(
@@ -113,7 +113,7 @@ func (suite *SoloMachineTestSuite) TestSolomachineAck() {
 	suite.solomachine.ChanCloseConfirm(suite.chainA, channelID)
 }
 
-func (suite *SoloMachineTestSuite) TestSolomachineTimeout() {
+func (suite *SoloMachineTestSuite) TestTimeout() {
 	channelID := suite.SetupSolomachine()
 
 	packet := channeltypes.NewPacket(
@@ -126,9 +126,6 @@ func (suite *SoloMachineTestSuite) TestSolomachineTimeout() {
 		clienttypes.ZeroHeight(),
 		1,
 	)
-
-	// immediately timeout the packet
-	time.Sleep(time.Nanosecond * 2)
 
 	suite.solomachine.SendPacket(suite.chainA, packet)
 
@@ -137,7 +134,7 @@ func (suite *SoloMachineTestSuite) TestSolomachineTimeout() {
 	suite.solomachine.ChanCloseConfirm(suite.chainA, channelID)
 }
 
-func (suite *SoloMachineTestSuite) TestSolomachineTimeoutOnClose() {
+func (suite *SoloMachineTestSuite) TestTimeoutOnClose() {
 	channelID := suite.SetupSolomachine()
 
 	packet := channeltypes.NewPacket(
@@ -151,16 +148,10 @@ func (suite *SoloMachineTestSuite) TestSolomachineTimeoutOnClose() {
 		1,
 	)
 
-	// immediately timeout the packet
-	time.Sleep(time.Nanosecond * 2)
-
 	suite.solomachine.SendPacket(suite.chainA, packet)
 
 	suite.solomachine.TimeoutPacketOnClose(suite.chainA, packet, channelID)
-
-	//suite.solomachine.ChanCloseConfirm(suite.chainA, channelID)
 }
-
 
 func (suite *SoloMachineTestSuite) GetSequenceFromStore() uint64 {
 	bz := suite.store.Get(host.ClientStateKey())
