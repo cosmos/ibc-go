@@ -517,6 +517,13 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 				},
 				false,
 			},
+			{
+				"empty path",
+				func() {
+					path = commitmenttypes.MerklePath{}
+				},
+				false,
+			},
 		}
 
 		for _, tc := range testCases {
