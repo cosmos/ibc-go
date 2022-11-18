@@ -2,7 +2,6 @@ package ibctesting
 
 import (
 	"testing"
-	"time"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -354,18 +353,7 @@ func (solo *Solomachine) SendPacket(chain *TestChain, packet channeltypes.Packet
 }
 
 // RecvPacket creates a commitment proof and broadcasts a new MsgRecvPacket.
-func (solo *Solomachine) RecvPacket(chain *TestChain, channelID string) {
-	packet := channeltypes.NewPacket(
-		mock.MockPacketData,
-		1,
-		mock.PortID,
-		channelIDSolomachine,
-		mock.PortID,
-		channelID,
-		clienttypes.ZeroHeight(),
-		uint64(chain.GetContext().BlockTime().Add(time.Hour).UnixNano()),
-	)
-
+func (solo *Solomachine) RecvPacket(chain *TestChain, packet channeltypes.Packet) {
 	proofCommitment := solo.GenerateCommitmentProof(packet)
 	msgRecvPacket := channeltypes.NewMsgRecvPacket(
 		packet,
@@ -396,12 +384,15 @@ func (solo *Solomachine) AcknowledgePacket(chain *TestChain, packet channeltypes
 
 // TimeoutPacket creates a unreceived packet proof and broadcasts a MsgTimeout.
 func (solo *Solomachine) TimeoutPacket(chain *TestChain, packet channeltypes.Packet) {
-	proofUnreceived := solo.GenerateProofUnreceived(packet)
+	proofUnreceived := solo.GenerateReceiptAbsenceProof(packet)
 	msgTimeout := channeltypes.NewMsgTimeout(
-		packet, 1, proofUnreceived,
+		packet,
+		1, // nextSequenceRecv is unused for UNORDERED channels
+		proofUnreceived,
 		clienttypes.ZeroHeight(),
 		chain.SenderAccount.GetAddress().String(),
 	)
+
 	res, err := chain.SendMsgs(msgTimeout)
 	require.NoError(solo.t, err)
 	require.NotNil(solo.t, res)
@@ -410,12 +401,16 @@ func (solo *Solomachine) TimeoutPacket(chain *TestChain, packet channeltypes.Pac
 // TimeoutPacket creates a channel closed and unreceived packet proof and broadcasts a MsgTimeoutOnClose.
 func (solo *Solomachine) TimeoutPacketOnClose(chain *TestChain, packet channeltypes.Packet, channelID string) {
 	proofClosed := solo.GenerateChanClosedProof(channelID)
-	proofUnreceived := solo.GenerateProofUnreceived(packet)
+	proofUnreceived := solo.GenerateReceiptAbsenceProof(packet)
 	msgTimeout := channeltypes.NewMsgTimeoutOnClose(
-		packet, 1, proofUnreceived, proofClosed,
+		packet,
+		1, // nextSequenceRecv is unused for UNORDERED channels
+		proofUnreceived,
+		proofClosed,
 		clienttypes.ZeroHeight(),
 		chain.SenderAccount.GetAddress().String(),
 	)
+
 	res, err := chain.SendMsgs(msgTimeout)
 	require.NoError(solo.t, err)
 	require.NotNil(solo.t, res)
@@ -569,7 +564,8 @@ func (solo *Solomachine) GenerateChanClosedProof(counterpartyChannelID string) [
 	return solo.GenerateProof(signBytes)
 }
 
-func (solo *Solomachine) GenerateCommitmentProof(packet exported.PacketI) []byte {
+// GenerateCommitmentProof generates a commitment proof for the provided packet.
+func (solo *Solomachine) GenerateCommitmentProof(packet channeltypes.Packet) []byte {
 	commitment := channeltypes.CommitPacket(solo.cdc, packet)
 
 	signBytes := &solomachine.SignBytes{
@@ -596,7 +592,8 @@ func (solo *Solomachine) GenerateAcknowledgementProof(packet channeltypes.Packet
 	return solo.GenerateProof(signBytes)
 }
 
-func (solo *Solomachine) GenerateProofUnreceived(packet channeltypes.Packet) []byte {
+// GenerateReceiptAbsenceProof generates a receipt absence proof for the provided packet.
+func (solo *Solomachine) GenerateReceiptAbsenceProof(packet channeltypes.Packet) []byte {
 	signBytes := &solomachine.SignBytes{
 		Sequence:    solo.Sequence,
 		Timestamp:   solo.Time,

@@ -79,9 +79,20 @@ func (suite *SoloMachineTestSuite) SetupSolomachine() string {
 func (suite *SoloMachineTestSuite) TestRecvPacket() {
 	channelID := suite.SetupSolomachine()
 
+	packet := channeltypes.NewPacket(
+		mock.MockPacketData,
+		1,
+		mock.PortID,
+		channelIDSolomachine,
+		mock.PortID,
+		channelID,
+		clienttypes.ZeroHeight(),
+		uint64(suite.chainA.GetContext().BlockTime().Add(time.Hour).UnixNano()),
+	)
+
 	// send packet is not necessary as the solo machine implementation is mocked
 
-	suite.solomachine.RecvPacket(suite.chainA, channelID)
+	suite.solomachine.RecvPacket(suite.chainA, packet)
 
 	// close init is not necessary as the solomachine implementation is mocked
 
