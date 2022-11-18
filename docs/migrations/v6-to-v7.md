@@ -45,6 +45,37 @@ The `CheckMisbehaviourAndUpdateState` function has been removed from `ClientStat
 
 The function `GetTimestampAtHeight` has been added to the `ClientState` interface. It should return the timestamp for a consensus state associated with the provided height.
 
+The state verification functions for all IBC data types have been consolidated into two generic methods, `VerifyMembership` and `VerifyNonMembership`.
+Both are expected to be provided with a standardised key path, `exported.Path`, as defined in [ICS 24 host requirements](https://github.com/cosmos/ibc/tree/main/spec/core/ics-024-host-requirements). Membership verification requires callers to provide the marshalled value `[]byte`. Delay period values should be zero for non-packet processing verification.
+
+See below for an example of how ibc-go now performs channel state verification.
+
+```go
+merklePath := commitmenttypes.NewMerklePath(host.ChannelPath(portID, channelID))
+merklePath, err := commitmenttypes.ApplyPrefix(connection.GetCounterparty().GetPrefix(), merklePath)
+if err != nil {
+    return err
+}
+
+channelEnd, ok := channel.(channeltypes.Channel)
+if !ok {
+    return sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "invalid channel type %T", channel)
+}
+
+bz, err := k.cdc.Marshal(&channelEnd)
+if err != nil {
+    return err
+}
+
+if err := clientState.VerifyMembership(
+    ctx, clientStore, k.cdc, height,
+    0, 0, // skip delay period checks for non-packet processing verification
+    proof, merklePath, bz,
+); err != nil {
+    return sdkerrors.Wrapf(err, "failed channel state verification for client (%s)", clientID)
+}
+```
+
 ### `Header` and `Misbehaviour`
 
 `exported.Header` and `exported.Misbehaviour` interface types have been merged and renamed to `ClientMessage` interface.
