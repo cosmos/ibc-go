@@ -19,7 +19,7 @@ closes: #XXXX
 type: commit message
 ```
 
-see the [guidelines](../CONTRIBUTING.md#commit-messages) for commit messages. (view raw markdown for examples)
+see the [guidelines](https://github.com/cosmos/ibc-go/blob/main/CONTRIBUTING.md#commit-messages) for commit messages. (view raw markdown for examples)
 
 
 <!--
@@ -47,6 +47,6 @@ write a little note why.
 - [ ] Wrote unit and integration [tests](https://github.com/cosmos/ibc-go/blob/master/CONTRIBUTING.md#testing).
 - [ ] Updated relevant documentation (`docs/`) or specification (`x/<module>/spec/`).
 - [ ] Added relevant `godoc` [comments](https://blog.golang.org/godoc-documenting-go-code).
-- [ ] Provide a [commit message](../CONTRIBUTING.md#commit-messages) to be used for the changelog entry in the PR description for review.
+- [ ] Provide a [commit message](https://github.com/cosmos/ibc-go/blob/main/CONTRIBUTING.md#commit-messages) to be used for the changelog entry in the PR description for review.
 - [ ] Re-reviewed `Files changed` in the Github PR explorer.
 - [ ] Review `Codecov Report` in the comment section below once CI passes.
