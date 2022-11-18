@@ -137,6 +137,30 @@ func (suite *SoloMachineTestSuite) TestSolomachineTimeout() {
 	suite.solomachine.ChanCloseConfirm(suite.chainA, channelID)
 }
 
+func (suite *SoloMachineTestSuite) TestSolomachineTimeoutOnClose() {
+	channelID := suite.SetupSolomachine()
+
+	packet := channeltypes.NewPacket(
+		mock.MockPacketData,
+		1,
+		mock.PortID,
+		channelID,
+		mock.PortID,
+		channelIDSolomachine,
+		clienttypes.ZeroHeight(),
+		1,
+	)
+
+	// immediately timeout the packet
+	time.Sleep(time.Nanosecond * 2)
+
+	suite.solomachine.SendPacket(suite.chainA, packet)
+
+	suite.solomachine.TimeoutPacketOnClose(suite.chainA, packet, channelID)
+
+	//suite.solomachine.ChanCloseConfirm(suite.chainA, channelID)
+}
+
 
 func (suite *SoloMachineTestSuite) GetSequenceFromStore() uint64 {
 	bz := suite.store.Get(host.ClientStateKey())

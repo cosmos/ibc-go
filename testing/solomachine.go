@@ -651,6 +651,19 @@ func (solo *Solomachine) TimeoutPacket(chain *TestChain, packet channeltypes.Pac
 	require.NotNil(solo.t, res)
 }
 
+func (solo *Solomachine) TimeoutPacketOnClose(chain *TestChain, packet channeltypes.Packet, channelID string) {
+	proofUnreceived := solo.GenerateProofUnreceived(packet)
+	proofClosed := solo.GenerateProofChannelClosed(channelID)
+	msgTimeout := channeltypes.NewMsgTimeoutOnClose(
+		packet, 1, proofUnreceived, proofClosed,
+		clienttypes.ZeroHeight(),
+		chain.SenderAccount.GetAddress().String(),
+	)
+	res, err := chain.SendMsgs(msgTimeout)
+	require.NoError(solo.t, err)
+	require.NotNil(solo.t, res)
+}
+
 func (solo *Solomachine) GenerateProofUnreceived(packet channeltypes.Packet) []byte {
 	signBytes := &solomachine.SignBytes{
 		Sequence:    solo.Sequence,
@@ -658,6 +671,23 @@ func (solo *Solomachine) GenerateProofUnreceived(packet channeltypes.Packet) []b
 		Diversifier: solo.Diversifier,
 		Path:        []byte(solo.GetPacketReceiptPath(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence()).String()),
 		Data:        nil,
+	}
+	return solo.GenerateProof(signBytes)
+}
+
+func (solo *Solomachine) GenerateProofChannelClosed(counterpartyChannelID string) []byte {
+	counterparty := channeltypes.NewCounterparty(mock.PortID, counterpartyChannelID)
+	channel := channeltypes.NewChannel(channeltypes.CLOSED, channeltypes.UNORDERED, counterparty, []string{connectionIDSolomachine}, mock.Version)
+
+	data, err := solo.cdc.Marshal(&channel)
+	require.NoError(solo.t, err)
+
+	signBytes := &solomachine.SignBytes{
+		Sequence:    solo.Sequence,
+		Timestamp:   solo.Time,
+		Diversifier: solo.Diversifier,
+		Path:        []byte(solo.GetChannelStatePath(mock.PortID, channelIDSolomachine).String()),
+		Data:        data,
 	}
 	return solo.GenerateProof(signBytes)
 }
