@@ -109,7 +109,7 @@ func (cs *ClientState) VerifyMembership(
 	delayTimePeriod uint64,
 	delayBlockPeriod uint64,
 	proof []byte,
-	path []byte,
+	path exported.Path,
 	value []byte,
 ) error {
 	publicKey, sigData, timestamp, sequence, err := produceVerificationArgs(cdc, cs, proof)
@@ -117,9 +117,9 @@ func (cs *ClientState) VerifyMembership(
 		return err
 	}
 
-	var merklePath commitmenttypes.MerklePath
-	if err := cdc.Unmarshal(path, &merklePath); err != nil {
-		return sdkerrors.Wrap(commitmenttypes.ErrInvalidProof, "failed to unmarshal path into ICS 23 commitment merkle path")
+	merklePath, ok := path.(commitmenttypes.MerklePath)
+	if !ok {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "expected %T, got %T", commitmenttypes.MerklePath{}, path)
 	}
 
 	signBytes := &SignBytes{
@@ -156,16 +156,16 @@ func (cs *ClientState) VerifyNonMembership(
 	delayTimePeriod uint64,
 	delayBlockPeriod uint64,
 	proof []byte,
-	path []byte,
+	path exported.Path,
 ) error {
 	publicKey, sigData, timestamp, sequence, err := produceVerificationArgs(cdc, cs, proof)
 	if err != nil {
 		return err
 	}
 
-	var merklePath commitmenttypes.MerklePath
-	if err := cdc.Unmarshal(path, &merklePath); err != nil {
-		return sdkerrors.Wrap(commitmenttypes.ErrInvalidProof, "failed to unmarshal path into ICS 23 commitment merkle path")
+	merklePath, ok := path.(commitmenttypes.MerklePath)
+	if !ok {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "expected %T, got %T", commitmenttypes.MerklePath{}, path)
 	}
 
 	signBytes := &SignBytes{
