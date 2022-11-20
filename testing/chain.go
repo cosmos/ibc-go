@@ -44,6 +44,7 @@ type TestChainClientI interface {
 	ClientConfigToState(ClientConfig ClientConfig) exported.ClientState
 	GetConsensusState() exported.ConsensusState
 	NewConfig() ClientConfig
+	ConstructUpdateClientHeader(counterparty *TestChain, clientID string) (exported.Header, error)
 }
 
 func NewTestChainClient(chain *TestChain, chainConsensusType string) TestChainClientI {
