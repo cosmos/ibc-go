@@ -112,6 +112,12 @@ func (chain *TestChainTendermint) NextBlock() {
 	chain.BeginBlock()
 }
 
+// ConstructUpdateClientHeader will construct a valid 07-tendermint Header to update the
+// light client on the source chain.
+func (chain *TestChainTendermint) ConstructUpdateClientHeader(counterparty *TestChain, clientID string) (exported.Header, error) {
+	return chain.ConstructUpdateTMClientHeader(counterparty, clientID)
+}
+
 // ConstructUpdateTMClientHeader will construct a valid 07-tendermint Header to update the
 // light client on the source chain.
 func (chain *TestChainTendermint) ConstructUpdateTMClientHeader(counterparty *TestChain, clientID string) (*ibctmtypes.Header, error) {
