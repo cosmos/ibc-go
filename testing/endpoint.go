@@ -106,16 +106,7 @@ func (endpoint *Endpoint) UpdateClient() (err error) {
 	// ensure counterparty has committed state
 	endpoint.Chain.Coordinator.CommitBlock(endpoint.Counterparty.Chain)
 
-	var header exported.Header
-
-	switch endpoint.ClientConfig.GetClientType() {
-	case exported.Tendermint:
-		testChainTendermint := endpoint.Chain.TestChainClient.(*TestChainTendermint)
-		header, err = testChainTendermint.ConstructUpdateTMClientHeader(endpoint.Counterparty.Chain, endpoint.ClientID)
-
-	default:
-		err = fmt.Errorf("client type %s is not supported", endpoint.ClientConfig.GetClientType())
-	}
+	header, err := endpoint.Chain.TestChainClient.ConstructUpdateClientHeader(endpoint.Counterparty.Chain, endpoint.ClientID)
 
 	if err != nil {
 		return err
