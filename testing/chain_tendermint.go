@@ -20,6 +20,26 @@ import (
 	ibctmtypes "github.com/cosmos/ibc-go/v3/modules/light-clients/07-tendermint/types"
 )
 
+var (
+	// Default params variables used to create a TM client
+	DefaultTrustLevel ibctmtypes.Fraction = ibctmtypes.DefaultTrustLevel
+)
+
+type TendermintConfig struct {
+	TrustLevel                   ibctmtypes.Fraction
+	TrustingPeriod               time.Duration
+	UnbondingPeriod              time.Duration
+	MaxClockDrift                time.Duration
+	AllowUpdateAfterExpiry       bool
+	AllowUpdateAfterMisbehaviour bool
+}
+
+func (tmcfg *TendermintConfig) GetClientType() string {
+	return exported.Tendermint
+}
+
+var _ ClientConfig = &TendermintConfig{}
+
 // TestChainTendermint is a testing struct that 'wraps' a TestChain with the last TM Header,
 // the current ABCI header.
 type TestChainTendermint struct {
@@ -50,6 +70,17 @@ func NewChainTendermintClient(tc *TestChain) *TestChainTendermint {
 	}
 
 	return chain
+}
+
+func (tc *TestChainTendermint) NewConfig() ClientConfig {
+	return &TendermintConfig{
+		TrustLevel:                   DefaultTrustLevel,
+		TrustingPeriod:               TrustingPeriod,
+		UnbondingPeriod:              UnbondingPeriod,
+		MaxClockDrift:                MaxClockDrift,
+		AllowUpdateAfterExpiry:       false,
+		AllowUpdateAfterMisbehaviour: false,
+	}
 }
 
 // GetContext returns the current context for the application.
