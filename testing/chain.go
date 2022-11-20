@@ -43,6 +43,7 @@ type TestChainClientI interface {
 	UpdateCurrentHeaderTime(t time.Time)
 	ClientConfigToState(ClientConfig ClientConfig) exported.ClientState
 	GetConsensusState() exported.ConsensusState
+	NewConfig() ClientConfig
 }
 
 func NewTestChainClient(chain *TestChain, chainConsensusType string) TestChainClientI {
