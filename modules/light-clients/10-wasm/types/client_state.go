@@ -128,6 +128,7 @@ func (c *ClientState) Initialize(context sdk.Context, marshaler codec.BinaryCode
 	inner["consensus_state"] = state
 
 	encodedData, err := json.Marshal(payload)
+	// panic(string(encodedData))
 	if err != nil {
 		return sdkerrors.Wrapf(ErrUnableToMarshalPayload, fmt.Sprintf("underlying error: %s", err.Error()))
 	}
@@ -135,6 +136,7 @@ func (c *ClientState) Initialize(context sdk.Context, marshaler codec.BinaryCode
 	// Under the hood there are two calls to wasm contract for initialization as by design
 	// cosmwasm does not allow init call to return any value.
 
+	context = context.WithGasMeter(sdk.NewInfiniteGasMeter())
 	_, err = initContract(c.CodeId, context, store, encodedData)
 	if err != nil {
 		return sdkerrors.Wrapf(ErrUnableToInit, fmt.Sprintf("underlying error: %s", err.Error()))
@@ -194,6 +196,30 @@ func (c *ClientState) VerifyNonMembership(
 // will assume that the content of the ClientMessage has been verified and can be trusted. An error should be returned
 // if the ClientMessage fails to verify.
 func (c *ClientState) VerifyClientMessage(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, clientMsg exported.ClientMessage) error {
+	const VerifyClientMessage = "verify_client_message"
+	payload := make(map[string]map[string]interface{})
+	payload[VerifyClientMessage] = make(map[string]interface{})
+	inner := payload[VerifyClientMessage]
+	inner["client_state"] = c
+	inner["client_message"] = clientMsg
+
+	encodedData, err := json.Marshal(payload)
+	if err != nil {
+		return sdkerrors.Wrapf(ErrUnableToMarshalPayload, fmt.Sprintf("underlying error: %s", err.Error()))
+	}
+	// fmt.Println(string(encodedData))
+	out, err := callContract(c.CodeId, ctx, clientStore, encodedData)
+	if err != nil {
+		return sdkerrors.Wrapf(ErrUnableToCall, fmt.Sprintf("underlying error: %s", err.Error()))
+	}
+	output := contractResult{}
+	if err := json.Unmarshal(out.Data, &output); err != nil {
+		return sdkerrors.Wrapf(ErrUnableToUnmarshalPayload, fmt.Sprintf("underlying error: %s", err.Error()))
+	}
+	if !output.IsValid {
+		return fmt.Errorf("%s error occurred while updating client state", output.ErrorMsg)
+	}
+
 	return nil
 }
 
@@ -605,4 +631,15 @@ func (c *ClientState) VerifyNextSequenceRecv(ctx sdk.Context, store sdk.KVStore,
 	}
 
 	return fmt.Errorf("%s error while verify next sequence", output.Result.ErrorMsg)
+}
+
+// NewClientState creates a new ClientState instance.
+func NewClientState(latestSequence uint64, consensusState *ConsensusState) *ClientState {
+	return &ClientState{
+		Data:         []byte{0},
+		CodeId:       []byte{},
+		LatestHeight: &clienttypes.Height{},
+		ProofSpecs:   []*ics23.ProofSpec{},
+		Repository:   "",
+	}
 }

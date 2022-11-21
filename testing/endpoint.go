@@ -101,7 +101,6 @@ func (endpoint *Endpoint) CreateClient() (err error) {
 		//		solo := NewSolomachine(endpoint.Chain.T, endpoint.Chain.Codec, clientID, "", 1)
 		//		clientState = solo.ClientState()
 		//		consensusState = solo.ConsensusState()
-
 	default:
 		err = fmt.Errorf("client type %s is not supported", endpoint.ClientConfig.GetClientType())
 	}
@@ -138,7 +137,7 @@ func (endpoint *Endpoint) UpdateClient() (err error) {
 		header, err = endpoint.Chain.ConstructUpdateTMClientHeader(endpoint.Counterparty.Chain, endpoint.ClientID)
 
 	default:
-		err = fmt.Errorf("client type %s is not supported", endpoint.ClientConfig.GetClientType())
+		err = fmt.Errorf("[UpdateClient] client type %s is not supported", endpoint.ClientConfig.GetClientType())
 	}
 
 	if err != nil {

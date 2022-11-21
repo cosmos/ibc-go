@@ -31,6 +31,7 @@ import (
 	"github.com/cosmos/ibc-go/v5/modules/core/exported"
 	"github.com/cosmos/ibc-go/v5/modules/core/types"
 	ibctm "github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint"
+	wasm "github.com/cosmos/ibc-go/v5/modules/light-clients/10-wasm/types"
 	"github.com/cosmos/ibc-go/v5/testing/mock"
 	"github.com/cosmos/ibc-go/v5/testing/simapp"
 )
@@ -395,6 +396,15 @@ func (chain *TestChain) GetPrefix() commitmenttypes.MerklePrefix {
 // light client on the source chain.
 func (chain *TestChain) ConstructUpdateTMClientHeader(counterparty *TestChain, clientID string) (*ibctm.Header, error) {
 	return chain.ConstructUpdateTMClientHeaderWithTrustedHeight(counterparty, clientID, clienttypes.ZeroHeight())
+}
+
+func (chain *TestChain) ConstructUpdateWasmClientHeaderWithTrustedHeight(counterparty *TestChain, clientID string, trustedHeight clienttypes.Height) (*wasm.Header, error) {
+	// header := counterparty.LastHeader
+	if trustedHeight.IsZero() {
+		trustedHeight = chain.GetClientState(clientID).GetLatestHeight().(clienttypes.Height)
+	}
+	panic("not implemented")
+	return nil, nil
 }
 
 // ConstructUpdateTMClientHeader will construct a valid 07-tendermint Header to update the
