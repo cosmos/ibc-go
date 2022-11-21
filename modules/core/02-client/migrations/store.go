@@ -17,12 +17,11 @@ import (
 )
 
 // PruneTendermintConsensusStates prunes all expired tendermint consensus states. This function
-// may optionally be called during in-place store migrations. The 02-client store key must be provided.
+// may optionally be called during in-place store migrations. The ibc store key must be provided.
 func PruneTendermintConsensusStates(ctx sdk.Context, cdc codec.BinaryCodec, storeKey storetypes.StoreKey) error {
 	store := ctx.KVStore(storeKey)
 
-	// iterate over 02-client store with prefix: clients/07-tendermint,
-	// example iterator.Key = -100/clientState (second half of the clientID + clientStore specific keys)
+	// iterate over ibc store with prefix: host.ClientStoreKeyPrefix/07-tendermint,
 	tendermintClientPrefix := []byte(fmt.Sprintf("%s/%s", host.KeyClientStorePrefix, exported.Tendermint))
 	iterator := sdk.KVStorePrefixIterator(store, tendermintClientPrefix)
 
