@@ -479,13 +479,10 @@ func (s *InterchainAccountsTestSuite) TestICARegistration_WithGovernance() {
 	// channel-0 is a transfer channel but it will not be used in this test case
 	relayer, _ := s.SetupChainsRelayerAndChannel(ctx)
 	chainA, chainB := s.GetChains()
-	chainAAccount := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
-	chainAAddress := chainAAccount.Bech32Address(chainA.Config().Bech32Prefix)
+	controllerAccount := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
+	controllerAddress := controllerAccount.Bech32Address(chainA.Config().Bech32Prefix)
 
 	chainBAccount := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
-
-	_ = chainB
-	_ = chainBAccount
 
 	govModuleAddress, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
 	s.Require().NoError(err)
@@ -495,29 +492,16 @@ func (s *InterchainAccountsTestSuite) TestICARegistration_WithGovernance() {
 		version := icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
 		msgRegisterAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, govModuleAddress.String(), version)
 		msgs := []sdk.Msg{msgRegisterAccount}
-		msgSubmitProposal, err := govtypesv1.NewMsgSubmitProposal(msgs, sdk.NewCoins(sdk.NewCoin(chainA.Config().Denom, govtypesv1.DefaultMinDepositTokens)), chainAAddress, "")
+		msgSubmitProposal, err := govtypesv1.NewMsgSubmitProposal(msgs, sdk.NewCoins(sdk.NewCoin(chainA.Config().Denom, govtypesv1.DefaultMinDepositTokens)), controllerAddress, "")
 		s.Require().NoError(err)
 
-		resp, err := s.BroadcastMessages(ctx, chainA, chainAAccount, msgSubmitProposal)
-		t.Logf("CREATE SUBMIT PROPOSAL: %+v", resp)
+		resp, err := s.BroadcastMessages(ctx, chainA, controllerAccount, msgSubmitProposal)
 		s.AssertValidTxResponse(resp)
 		s.Require().NoError(err)
 	})
 
-	//s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB))
-	//
-	//t.Run("vote on proposal", func(t *testing.T) {
-	//	msgVote := &govtypesv1.MsgVote{
-	//		ProposalId: InitialProposalID,
-	//		Voter:      chainAAddress,
-	//		Option:     govtypesv1.VoteOption_VOTE_OPTION_YES,
-	//	}
-	//
-	//	txResp, err := s.BroadcastMessages(ctx, chainA, chainAAccount, msgVote)
-	//	s.Require().NoError(err)
-	//	s.AssertValidTxResponse(txResp)
-	//})
-	//
+	s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB))
+
 	s.Require().NoError(chainA.VoteOnProposalAllValidators(ctx, "1", cosmos.ProposalVoteYes))
 
 	time.Sleep(testvalues.VotingPeriod)
@@ -533,76 +517,98 @@ func (s *InterchainAccountsTestSuite) TestICARegistration_WithGovernance() {
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA))
 
-	t.Logf("gov module address: %s", govModuleAddress.String())
-
-	//time.Sleep(100 * time.Hour)
-
-	var hostAccount string
+	var interchainAccAddr string
 	t.Run("verify interchain account", func(t *testing.T) {
 		var err error
-		hostAccount, err = s.QueryInterchainAccount(ctx, chainA, govModuleAddress.String(), ibctesting.FirstConnectionID)
+		interchainAccAddr, err = s.QueryInterchainAccount(ctx, chainA, govModuleAddress.String(), ibctesting.FirstConnectionID)
 		s.Require().NoError(err)
-		s.Require().NotZero(len(hostAccount))
+		s.Require().NotZero(len(interchainAccAddr))
 
 		channels, err := relayer.GetChannels(ctx, s.GetRelayerExecReporter(), chainA.Config().ChainID)
 		s.Require().NoError(err)
 		s.Require().Equal(len(channels), 2)
 	})
 
+	t.Run("interchain account executes a bank transfer on behalf of the corresponding owner account", func(t *testing.T) {
+		t.Run("fund interchain account wallet", func(t *testing.T) {
+			// fund the host account, so it has some $$ to send
+			err := chainB.SendFunds(ctx, ibctest.FaucetAccountKeyName, ibc.WalletAmount{
+				Address: interchainAccAddr,
+				Amount:  testvalues.StartingTokenAmount,
+				Denom:   chainB.Config().Denom,
+			})
+			s.Require().NoError(err)
+		})
 
-	//
-	//t.Run("interchain account executes a bank transfer on behalf of the corresponding owner account", func(t *testing.T) {
-	//	t.Run("fund interchain account wallet", func(t *testing.T) {
-	//		// fund the host account, so it has some $$ to send
-	//		err := chainB.SendFunds(ctx, ibctest.FaucetAccountKeyName, ibc.WalletAmount{
-	//			Address: hostAccount,
-	//			Amount:  testvalues.StartingTokenAmount,
-	//			Denom:   chainB.Config().Denom,
-	//		})
-	//		s.Require().NoError(err)
-	//	})
-	//
-	//	t.Run("broadcast MsgSubmitTx", func(t *testing.T) {
-	//		// assemble bank transfer message from host account to user account on host chain
-	//		msgSend := &banktypes.MsgSend{
-	//			FromAddress: hostAccount,
-	//			ToAddress:   chainBAccount.Bech32Address(chainB.Config().Bech32Prefix),
-	//			Amount:      sdk.NewCoins(testvalues.DefaultTransferAmount(chainB.Config().Denom)),
-	//		}
-	//
-	//		// assemble submitMessage tx for intertx
-	//		msgSubmitTx, err := intertxtypes.NewMsgSubmitTx(
-	//			msgSend,
-	//			ibctesting.FirstConnectionID,
-	//			govModuleAddress.String(),
-	//		)
-	//		s.Require().NoError(err)
-	//
-	//		// broadcast submitMessage tx from controller account on chain A
-	//		// this message should trigger the sending of an ICA packet over channel-1 (channel created between controller and host)
-	//		// this ICA packet contains the assembled bank transfer message from above, which will be executed by the host account on the host chain.
-	//		resp, err := s.BroadcastMessages(
-	//			ctx,
-	//			chainA,
-	//			controllerAccount,
-	//			msgSubmitTx,
-	//		)
-	//
-	//		s.AssertValidTxResponse(resp)
-	//		s.Require().NoError(err)
-	//
-	//		s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB))
-	//	})
-	//
-	//	t.Run("verify tokens transferred", func(t *testing.T) {
-	//		balance, err := chainB.GetBalance(ctx, chainBAccount.Bech32Address(chainB.Config().Bech32Prefix), chainB.Config().Denom)
-	//		s.Require().NoError(err)
-	//
-	//		_, err = chainB.GetBalance(ctx, hostAccount, chainB.Config().Denom)
-	//		s.Require().NoError(err)
-	//
-	//		expected := testvalues.IBCTransferAmount + testvalues.StartingTokenAmount
-	//		s.Require().Equal(expected, balance)
-	//	})
-	//})
+		//t.Run("submit proposal for MsgSendTx", func(t *testing.T) {
+		//	msgBankSend := &banktypes.MsgSend{
+		//		FromAddress: interchainAccAddr,
+		//		ToAddress:   chainBAddress,
+		//		Amount:      sdk.NewCoins(testvalues.DefaultTransferAmount(chainB.Config().Denom)),
+		//	}
+		//
+		//	cdc := testsuite.Codec()
+		//
+		//	bz, err := icatypes.SerializeCosmosTx(cdc, []proto.Message{msgBankSend})
+		//	s.Require().NoError(err)
+		//
+		//	packetData := icatypes.InterchainAccountPacketData{
+		//		Type: icatypes.EXECUTE_TX,
+		//		Data: bz,
+		//		Memo: "e2e",
+		//	}
+		//
+		//	msgSubmitTx := controllertypes.NewMsgSendTx(groupPolicyAddr, ibctesting.FirstConnectionID, uint64(time.Hour.Nanoseconds()), packetData)
+		//	msgSubmitProposal, err := grouptypes.NewMsgSubmitProposal(groupPolicyAddr, []string{chainAAddress}, []sdk.Msg{msgSubmitTx}, DefaultMetadata, grouptypes.Exec_EXEC_UNSPECIFIED)
+		//	s.Require().NoError(err)
+		//
+		//	txResp, err := s.BroadcastMessages(ctx, chainA, chainAWallet, msgSubmitProposal)
+		//	s.Require().NoError(err)
+		//	s.AssertValidTxResponse(txResp)
+		//})
+
+
+		t.Run("broadcast MsgSendTx", func(t *testing.T) {
+			// assemble bank transfer message from host account to user account on host chain
+			msgSend := &banktypes.MsgSend{
+				FromAddress: interchainAccAddr,
+				ToAddress:   chainBAccount.Bech32Address(chainB.Config().Bech32Prefix),
+				Amount:      sdk.NewCoins(testvalues.DefaultTransferAmount(chainB.Config().Denom)),
+			}
+
+			cdc := testsuite.Codec()
+			bz, err := icatypes.SerializeCosmosTx(cdc, []proto.Message{msgSend})
+			s.Require().NoError(err)
+
+			packetData := icatypes.InterchainAccountPacketData{
+				Type: icatypes.EXECUTE_TX,
+				Data: bz,
+				Memo: "e2e",
+			}
+
+			msgSendTx := controllertypes.NewMsgSendTx(govModuleAddress.String(), ibctesting.FirstConnectionID, uint64(time.Hour.Nanoseconds()), packetData)
+			resp, err := s.BroadcastMessages(
+				ctx,
+				chainA,
+				controllerAccount,
+				msgSendTx,
+			)
+
+			s.AssertValidTxResponse(resp)
+			s.Require().NoError(err)
+
+			s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB))
+		})
+
+		t.Run("verify tokens transferred", func(t *testing.T) {
+			balance, err := chainB.GetBalance(ctx, chainBAccount.Bech32Address(chainB.Config().Bech32Prefix), chainB.Config().Denom)
+			s.Require().NoError(err)
+
+			_, err = chainB.GetBalance(ctx, interchainAccAddr, chainB.Config().Denom)
+			s.Require().NoError(err)
+
+			expected := testvalues.IBCTransferAmount + testvalues.StartingTokenAmount
+			s.Require().Equal(expected, balance)
+		})
+	})
 }
