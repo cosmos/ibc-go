@@ -646,9 +646,9 @@ func (suite *KeeperTestSuite) TestQueryUpgradedConsensusStates() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestQueryParams() {
+func (suite *KeeperTestSuite) TestQueryClientParams() {
 	ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
 	expParams := types.DefaultParams()
-	res, _ := suite.chainA.QueryServer.Params(ctx, &types.QueryParamsRequest{})
+	res, _ := suite.chainA.QueryServer.ClientParams(ctx, &types.QueryClientParamsRequest{})
 	suite.Require().Equal(&expParams, res.Params)
 }

@@ -175,3 +175,13 @@ func (q Keeper) ConnectionConsensusState(c context.Context, req *types.QueryConn
 	proofHeight := clienttypes.GetSelfHeight(ctx)
 	return types.NewQueryConnectionConsensusStateResponse(connection.ClientId, anyConsensusState, height, nil, proofHeight), nil
 }
+
+// ConnectionParams implements the Query/ConnectionParams gRPC method.
+func (q Keeper) ConnectionParams(c context.Context, req *types.QueryConnectionParamsRequest) (*types.QueryConnectionParamsResponse, error) {
+	ctx := sdk.UnwrapSDKContext(c)
+	params := q.GetParams(ctx)
+
+	return &types.QueryConnectionParamsResponse{
+		Params: &params,
+	}, nil
+}
