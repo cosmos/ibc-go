@@ -1,4 +1,4 @@
-package migrations
+package tendermint
 
 import (
 	"fmt"
@@ -13,7 +13,6 @@ import (
 	"github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
-	ibctm "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint"
 )
 
 // PruneTendermintConsensusStates prunes all expired tendermint consensus states. This function
@@ -45,6 +44,8 @@ func PruneTendermintConsensusStates(ctx sdk.Context, cdc codec.BinaryCodec, stor
 		clients = append(clients, clientID)
 	}
 
+	// keep track of the total consensus states pruned so chains can
+	// understand how much space is saved when the migration is run
 	var totalPruned int
 
 	for _, clientID := range clients {
@@ -61,13 +62,12 @@ func PruneTendermintConsensusStates(ctx sdk.Context, cdc codec.BinaryCodec, stor
 			return sdkerrors.Wrap(err, "failed to unmarshal client state bytes into tendermint client state")
 		}
 
-		tmClientState, ok := clientState.(*ibctm.ClientState)
+		tmClientState, ok := clientState.(*ClientState)
 		if !ok {
 			return sdkerrors.Wrap(types.ErrInvalidClient, "client state is not tendermint even though client id contains 07-tendermint")
 		}
 
-		amtPruned := ibctm.PruneAllExpiredConsensusStates(ctx, clientStore, cdc, tmClientState)
-		totalPruned = totalPruned + amtPruned
+		totalPruned += PruneAllExpiredConsensusStates(ctx, clientStore, cdc, tmClientState)
 	}
 
 	clientLogger := ctx.Logger().With("module", "x/"+host.ModuleName+"/"+types.SubModuleName)

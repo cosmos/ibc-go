@@ -21,7 +21,7 @@ Add the following to the function call to the upgrade handler in `app/app.go`, t
 ```go
 import (
     // ...
-    ibcclientmigrations "github.com/cosmos/ibc-go/v6/modules/core/02-client/migrations"
+    ibctm "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint"
 )
 
 // ...
@@ -29,8 +29,8 @@ import (
 app.UpgradeKeeper.SetUpgradeHandler(
     upgradeName,
     func(ctx sdk.Context, _ upgradetypes.Plan, _ module.VersionMap) (module.VersionMap, error) {
-        // prune expired tendermint consensus states
-        ibcclientmigrations.PruneTendermintExpiredConsensusStates(ctx, app.Codec, appCodec, keys[ibchost.StoreKey])
+        // prune expired tendermint consensus states to save storage space
+        ibctm.PruneTendermintConsensusStates(ctx, app.Codec, appCodec, keys[ibchost.StoreKey])
 
         return app.mm.RunMigrations(ctx, app.configurator, fromVM)
     },

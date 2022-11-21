@@ -1,10 +1,7 @@
-package migrations_test
+package tendermint_test
 
 import (
-	"testing"
 	"time"
-
-	"github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/ibc-go/v6/modules/core/02-client/migrations"
 	"github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
@@ -14,29 +11,8 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v6/testing"
 )
 
-type MigrationsTestSuite struct {
-	suite.Suite
-
-	coordinator *ibctesting.Coordinator
-
-	chainA *ibctesting.TestChain
-	chainB *ibctesting.TestChain
-}
-
-// TestMigrationsTestSuite runs all the tests within this package.
-func TestMigrationsTestSuite(t *testing.T) {
-	suite.Run(t, new(MigrationsTestSuite))
-}
-
-// SetupTest creates a coordinator with 2 test chains.
-func (suite *MigrationsTestSuite) SetupTest() {
-	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2)
-	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
-	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
-}
-
 // test pruning of multiple expired tendermint consensus states
-func (suite *MigrationsTestSuite) TestPruneTendermintConsensusStates() {
+func (suite *TendermintTestSuite) TestPruneTendermintConsensusStates() {
 	// create multiple tendermint clients and a solo machine client
 	// the solo machine is used to verify this pruning function only modifies
 	// the tendermint store.
