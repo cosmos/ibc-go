@@ -223,6 +223,8 @@
     - [IdentifiedGenesisMetadata](#ibc.core.client.v1.IdentifiedGenesisMetadata)
   
 - [ibc/core/client/v1/query.proto](#ibc/core/client/v1/query.proto)
+    - [QueryClientParamsRequest](#ibc.core.client.v1.QueryClientParamsRequest)
+    - [QueryClientParamsResponse](#ibc.core.client.v1.QueryClientParamsResponse)
     - [QueryClientStateRequest](#ibc.core.client.v1.QueryClientStateRequest)
     - [QueryClientStateResponse](#ibc.core.client.v1.QueryClientStateResponse)
     - [QueryClientStatesRequest](#ibc.core.client.v1.QueryClientStatesRequest)
@@ -235,8 +237,6 @@
     - [QueryConsensusStateResponse](#ibc.core.client.v1.QueryConsensusStateResponse)
     - [QueryConsensusStatesRequest](#ibc.core.client.v1.QueryConsensusStatesRequest)
     - [QueryConsensusStatesResponse](#ibc.core.client.v1.QueryConsensusStatesResponse)
-    - [QueryParamsRequest](#ibc.core.client.v1.QueryParamsRequest)
-    - [QueryParamsResponse](#ibc.core.client.v1.QueryParamsResponse)
     - [QueryUpgradedClientStateRequest](#ibc.core.client.v1.QueryUpgradedClientStateRequest)
     - [QueryUpgradedClientStateResponse](#ibc.core.client.v1.QueryUpgradedClientStateResponse)
     - [QueryUpgradedConsensusStateRequest](#ibc.core.client.v1.QueryUpgradedConsensusStateRequest)
@@ -283,6 +283,8 @@
     - [QueryConnectionClientStateResponse](#ibc.core.connection.v1.QueryConnectionClientStateResponse)
     - [QueryConnectionConsensusStateRequest](#ibc.core.connection.v1.QueryConnectionConsensusStateRequest)
     - [QueryConnectionConsensusStateResponse](#ibc.core.connection.v1.QueryConnectionConsensusStateResponse)
+    - [QueryConnectionParamsRequest](#ibc.core.connection.v1.QueryConnectionParamsRequest)
+    - [QueryConnectionParamsResponse](#ibc.core.connection.v1.QueryConnectionParamsResponse)
     - [QueryConnectionRequest](#ibc.core.connection.v1.QueryConnectionRequest)
     - [QueryConnectionResponse](#ibc.core.connection.v1.QueryConnectionResponse)
     - [QueryConnectionsRequest](#ibc.core.connection.v1.QueryConnectionsRequest)
@@ -3339,6 +3341,33 @@ client id.
 
 
 
+<a name="ibc.core.client.v1.QueryClientParamsRequest"></a>
+
+### QueryClientParamsRequest
+QueryClientParamsRequest is the request type for the Query/ClientParams RPC
+method.
+
+
+
+
+
+
+<a name="ibc.core.client.v1.QueryClientParamsResponse"></a>
+
+### QueryClientParamsResponse
+QueryClientParamsResponse is the response type for the Query/ClientParams RPC
+method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `params` | [Params](#ibc.core.client.v1.Params) |  | params defines the parameters of the module. |
+
+
+
+
+
+
 <a name="ibc.core.client.v1.QueryClientStateRequest"></a>
 
 ### QueryClientStateRequest
@@ -3545,33 +3574,6 @@ Query/ConsensusStates RPC method
 
 
 
-<a name="ibc.core.client.v1.QueryParamsRequest"></a>
-
-### QueryParamsRequest
-QueryParamsRequest is the request type for the Query/Params RPC
-method.
-
-
-
-
-
-
-<a name="ibc.core.client.v1.QueryParamsResponse"></a>
-
-### QueryParamsResponse
-QueryParamsResponse is the response type for the Query/Params RPC
-method.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `params` | [Params](#ibc.core.client.v1.Params) |  | params defines the parameters of the module. |
-
-
-
-
-
-
 <a name="ibc.core.client.v1.QueryUpgradedClientStateRequest"></a>
 
 ### QueryUpgradedClientStateRequest
@@ -3645,7 +3647,7 @@ Query provides defines the gRPC querier service
 | `ConsensusStates` | [QueryConsensusStatesRequest](#ibc.core.client.v1.QueryConsensusStatesRequest) | [QueryConsensusStatesResponse](#ibc.core.client.v1.QueryConsensusStatesResponse) | ConsensusStates queries all the consensus state associated with a given client. | GET|/ibc/core/client/v1/consensus_states/{client_id}|
 | `ConsensusStateHeights` | [QueryConsensusStateHeightsRequest](#ibc.core.client.v1.QueryConsensusStateHeightsRequest) | [QueryConsensusStateHeightsResponse](#ibc.core.client.v1.QueryConsensusStateHeightsResponse) | ConsensusStateHeights queries the height of every consensus states associated with a given client. | GET|/ibc/core/client/v1/consensus_states/{client_id}/heights|
 | `ClientStatus` | [QueryClientStatusRequest](#ibc.core.client.v1.QueryClientStatusRequest) | [QueryClientStatusResponse](#ibc.core.client.v1.QueryClientStatusResponse) | Status queries the status of an IBC client. | GET|/ibc/core/client/v1/client_status/{client_id}|
-| `Params` | [QueryParamsRequest](#ibc.core.client.v1.QueryParamsRequest) | [QueryParamsResponse](#ibc.core.client.v1.QueryParamsResponse) | Params queries all parameters of the ibc client. | GET|/ibc/core/client/v1/params|
+| `ClientParams` | [QueryClientParamsRequest](#ibc.core.client.v1.QueryClientParamsRequest) | [QueryClientParamsResponse](#ibc.core.client.v1.QueryClientParamsResponse) | ClientParams queries all parameters of the ibc client submodule. | GET|/ibc/core/client/v1/params|
 | `UpgradedClientState` | [QueryUpgradedClientStateRequest](#ibc.core.client.v1.QueryUpgradedClientStateRequest) | [QueryUpgradedClientStateResponse](#ibc.core.client.v1.QueryUpgradedClientStateResponse) | UpgradedClientState queries an Upgraded IBC light client. | GET|/ibc/core/client/v1/upgraded_client_states|
 | `UpgradedConsensusState` | [QueryUpgradedConsensusStateRequest](#ibc.core.client.v1.QueryUpgradedConsensusStateRequest) | [QueryUpgradedConsensusStateResponse](#ibc.core.client.v1.QueryUpgradedConsensusStateResponse) | UpgradedConsensusState queries an Upgraded IBC consensus state. | GET|/ibc/core/client/v1/upgraded_consensus_states|
 
@@ -4182,6 +4184,31 @@ Query/ConnectionConsensusState RPC method
 
 
 
+<a name="ibc.core.connection.v1.QueryConnectionParamsRequest"></a>
+
+### QueryConnectionParamsRequest
+QueryConnectionParamsRequest is the request type for the Query/ConnectionParams RPC method.
+
+
+
+
+
+
+<a name="ibc.core.connection.v1.QueryConnectionParamsResponse"></a>
+
+### QueryConnectionParamsResponse
+QueryConnectionParamsResponse is the response type for the Query/ConnectionParams RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `params` | [Params](#ibc.core.connection.v1.Params) |  | params defines the parameters of the module. |
+
+
+
+
+
+
 <a name="ibc.core.connection.v1.QueryConnectionRequest"></a>
 
 ### QueryConnectionRequest
@@ -4269,6 +4296,7 @@ Query provides defines the gRPC querier service
 | `ClientConnections` | [QueryClientConnectionsRequest](#ibc.core.connection.v1.QueryClientConnectionsRequest) | [QueryClientConnectionsResponse](#ibc.core.connection.v1.QueryClientConnectionsResponse) | ClientConnections queries the connection paths associated with a client state. | GET|/ibc/core/connection/v1/client_connections/{client_id}|
 | `ConnectionClientState` | [QueryConnectionClientStateRequest](#ibc.core.connection.v1.QueryConnectionClientStateRequest) | [QueryConnectionClientStateResponse](#ibc.core.connection.v1.QueryConnectionClientStateResponse) | ConnectionClientState queries the client state associated with the connection. | GET|/ibc/core/connection/v1/connections/{connection_id}/client_state|
 | `ConnectionConsensusState` | [QueryConnectionConsensusStateRequest](#ibc.core.connection.v1.QueryConnectionConsensusStateRequest) | [QueryConnectionConsensusStateResponse](#ibc.core.connection.v1.QueryConnectionConsensusStateResponse) | ConnectionConsensusState queries the consensus state associated with the connection. | GET|/ibc/core/connection/v1/connections/{connection_id}/consensus_state/revision/{revision_number}/height/{revision_height}|
+| `ConnectionParams` | [QueryConnectionParamsRequest](#ibc.core.connection.v1.QueryConnectionParamsRequest) | [QueryConnectionParamsResponse](#ibc.core.connection.v1.QueryConnectionParamsResponse) | ConnectionParams queries all parameters of the ibc connection submodule. | GET|/ibc/core/connection/v1/params|
 
  <!-- end services -->
 
