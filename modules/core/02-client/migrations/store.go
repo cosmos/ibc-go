@@ -21,7 +21,7 @@ import (
 func PruneTendermintConsensusStates(ctx sdk.Context, cdc codec.BinaryCodec, storeKey storetypes.StoreKey) error {
 	store := ctx.KVStore(storeKey)
 
-	// iterate over ibc store with prefix: host.ClientStoreKeyPrefix/07-tendermint,
+	// iterate over ibc store with prefix: clients/07-tendermint,
 	tendermintClientPrefix := []byte(fmt.Sprintf("%s/%s", host.KeyClientStorePrefix, exported.Tendermint))
 	iterator := sdk.KVStorePrefixIterator(store, tendermintClientPrefix)
 
