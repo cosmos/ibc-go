@@ -36,18 +36,38 @@ func (suite *MigrationsTestSuite) SetupTest() {
 }
 
 // test pruning of multiple expired tendermint consensus states
-func (suite *MigrationsTestSuite) TestMigrateStoreTendermint() {
-	// create path and setup clients
-	path1 := ibctesting.NewPath(suite.chainA, suite.chainB)
-	suite.coordinator.SetupClients(path1)
+func (suite *MigrationsTestSuite) TestPruneTendermintConsensusStates() {
+	// create multiple tendermint clients and a solo machine client
+	// the solo machine is used to verify this pruning function only modifies
+	// the tendermint store.
 
-	path2 := ibctesting.NewPath(suite.chainA, suite.chainB)
-	suite.coordinator.SetupClients(path2)
+	numTMClients := 3
+	paths := make([]*ibctesting.Path, numTMClients)
+
+	for i := 0; i < numTMClients; i++ {
+		path := ibctesting.NewPath(suite.chainA, suite.chainB)
+		suite.coordinator.SetupClients(path)
+
+		paths[i] = path
+	}
+
+	solomachine := ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "06-solomachine-0", "testing", 1)
+	smClientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), solomachine.ClientID)
+
+	// set client state
+	bz, err := suite.chainA.App.AppCodec().MarshalInterface(solomachine.ClientState())
+	suite.Require().NoError(err)
+	smClientStore.Set(host.ClientStateKey(), bz)
+
+	bz, err = suite.chainA.App.AppCodec().MarshalInterface(solomachine.ConsensusState())
+	suite.Require().NoError(err)
+	smHeight := types.NewHeight(0, 1)
+	smClientStore.Set(host.ConsensusStateKey(smHeight), bz)
 
 	pruneHeightMap := make(map[*ibctesting.Path][]exported.Height)
 	unexpiredHeightMap := make(map[*ibctesting.Path][]exported.Height)
 
-	for _, path := range []*ibctesting.Path{path1, path2} {
+	for _, path := range paths {
 		// collect all heights expected to be pruned
 		var pruneHeights []exported.Height
 		pruneHeights = append(pruneHeights, path.EndpointA.GetClientState().GetLatestHeight())
@@ -86,7 +106,7 @@ func (suite *MigrationsTestSuite) TestMigrateStoreTendermint() {
 	// Increment the time by a week
 	suite.coordinator.IncrementTimeBy(7 * 24 * time.Hour)
 
-	for _, path := range []*ibctesting.Path{path1, path2} {
+	for _, path := range paths {
 		// create the consensus state that can be used as trusted height for next update
 		var unexpiredHeights []exported.Height
 		err := path.EndpointA.UpdateClient()
@@ -104,10 +124,10 @@ func (suite *MigrationsTestSuite) TestMigrateStoreTendermint() {
 	// This will cause the consensus states created before the first time increment
 	// to be expired
 	suite.coordinator.IncrementTimeBy(7 * 24 * time.Hour)
-	err := migrations.PruneTendermintConsensusStates(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), suite.chainA.GetSimApp().GetKey(host.StoreKey))
+	err = migrations.PruneTendermintConsensusStates(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), suite.chainA.GetSimApp().GetKey(host.StoreKey))
 	suite.Require().NoError(err)
 
-	for _, path := range []*ibctesting.Path{path1, path2} {
+	for _, path := range paths {
 		ctx := suite.chainA.GetContext()
 		clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(ctx, path.EndpointA.ClientID)
 
@@ -147,4 +167,12 @@ func (suite *MigrationsTestSuite) TestMigrateStoreTendermint() {
 			suite.Require().Equal(host.ConsensusStateKey(height), consKey)
 		}
 	}
+
+	// verify that solomachine client and consensus state were not removed
+	smClientStore = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), solomachine.ClientID)
+	bz = smClientStore.Get(host.ClientStateKey())
+	suite.Require().NotEmpty(bz)
+
+	bz = smClientStore.Get(host.ConsensusStateKey(smHeight))
+	suite.Require().NotEmpty(bz)
 }
