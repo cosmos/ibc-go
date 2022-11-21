@@ -21,6 +21,9 @@ const (
 	// Tendermint is used to indicate that the client uses the Tendermint Consensus Algorithm.
 	Tendermint string = "07-tendermint"
 
+	// Dymint is used to indicate that the client is a Dymension rollapp.
+	Dymint string = "01-dymint"
+
 	// Localhost is the client type for a localhost client. It is also used as the clientID
 	// for the localhost client.
 	Localhost string = "09-localhost"
