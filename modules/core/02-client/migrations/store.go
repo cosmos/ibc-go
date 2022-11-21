@@ -10,7 +10,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
 	ibctm "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint"
@@ -45,13 +45,15 @@ func PruneTendermintConsensusStates(ctx sdk.Context, cdc codec.BinaryCodec, stor
 		clients = append(clients, clientID)
 	}
 
+	var totalPruned int
+
 	for _, clientID := range clients {
 		clientPrefix := []byte(fmt.Sprintf("%s/%s/", host.KeyClientStorePrefix, clientID))
 		clientStore := prefix.NewStore(ctx.KVStore(storeKey), clientPrefix)
 
 		bz := clientStore.Get(host.ClientStateKey())
 		if bz == nil {
-			return clienttypes.ErrClientNotFound
+			return types.ErrClientNotFound
 		}
 
 		var clientState exported.ClientState
@@ -61,11 +63,15 @@ func PruneTendermintConsensusStates(ctx sdk.Context, cdc codec.BinaryCodec, stor
 
 		tmClientState, ok := clientState.(*ibctm.ClientState)
 		if !ok {
-			return sdkerrors.Wrap(clienttypes.ErrInvalidClient, "client state is not tendermint even though client id contains 07-tendermint")
+			return sdkerrors.Wrap(types.ErrInvalidClient, "client state is not tendermint even though client id contains 07-tendermint")
 		}
 
-		ibctm.PruneAllExpiredConsensusStates(ctx, clientStore, cdc, tmClientState)
+		amtPruned := ibctm.PruneAllExpiredConsensusStates(ctx, clientStore, cdc, tmClientState)
+		totalPruned = totalPruned + amtPruned
 	}
+
+	clientLogger := ctx.Logger().With("module", "x/"+host.ModuleName+"/"+types.SubModuleName)
+	clientLogger.Info("pruned expired tendermint consensus states", "total", totalPruned)
 
 	return nil
 }

@@ -13,7 +13,31 @@ There are four sections based on the four potential user groups of this document
 
 ## Chains
 
-- No relevant changes were made in this release.
+Chains will perform automatic migrations to remove a localhost client, if it exists and to migrate the solomachine to the v3 of the protobuf definition. 
+
+An optional upgrade handler has been added to prune expired tendermint consensus states.
+Add the following to the function call to the upgrade handler in `app/app.go`, to perform the optional state pruning.
+
+```go
+import (
+    // ...
+    ibcclientmigrations "github.com/cosmos/ibc-go/v6/modules/core/02-client/migrations"
+)
+
+// ...
+
+app.UpgradeKeeper.SetUpgradeHandler(
+    upgradeName,
+    func(ctx sdk.Context, _ upgradetypes.Plan, _ module.VersionMap) (module.VersionMap, error) {
+        // prune expired tendermint consensus states
+        ibcclientmigrations.PruneTendermintExpiredConsensusStates(ctx, app.Codec, appCodec, keys[ibchost.StoreKey])
+
+        return app.mm.RunMigrations(ctx, app.configurator, fromVM)
+    },
+)
+```
+
+Checkout the logs to see how many consensus states are pruned.
 
 ## IBC Apps
 
@@ -54,41 +78,6 @@ The function `GetTimestampAtHeight` has been added to the `ClientState` interfac
 ### `ConsensusState`
 
 The `GetRoot` function has been removed from consensus state interface since it was not used by core IBC.
-
-### Light client implementations
-
-The `09-localhost` light client implementation has been removed because it is currently non-functional.
-
-An upgrade handler has been added to supply chain developers with the logic needed to prune the ibc client store and successfully complete the removal of `09-localhost`.
-Add the following to the application upgrade handler in `app/app.go`, calling `MigrateToV6` to perform store migration logic.
-
-```go
-import (
-    // ...
-    ibcv6 "github.com/cosmos/ibc-go/v6/modules/core/migrations/v6"
-)
-
-// ...
-
-app.UpgradeKeeper.SetUpgradeHandler(
-    upgradeName,
-    func(ctx sdk.Context, _ upgradetypes.Plan, _ module.VersionMap) (module.VersionMap, error) {
-        // prune the 09-localhost client from the ibc client store
-        ibcv6.MigrateToV6(ctx, app.IBCKeeper.ClientKeeper)
-
-        return app.mm.RunMigrations(ctx, app.configurator, fromVM)
-    },
-)
-```
-
-Please note the above upgrade handler is optional and should only be run if chains have an existing `09-localhost` client stored in state.
-A simple query can be performed to check for a `09-localhost` client on chain.
-
-For example:
-
-```
-simd query ibc client states | grep 09-localhost
-```
 
 ### Client Keeper
 
