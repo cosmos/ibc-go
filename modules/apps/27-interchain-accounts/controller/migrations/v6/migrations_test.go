@@ -93,6 +93,9 @@ func (suite *MigrationsTestSuite) TestMigrateICS27ChannelCapability() {
 	err := suite.SetupPath()
 	suite.Require().NoError(err)
 
+	// create additional capabilities to cover edge cases
+	suite.CreateMockCapabilities()
+
 	// create and claim a new capability with ibc/mock for "channel-1"
 	// note: suite.SetupPath() now claims the chanel capability using icacontroller for "channel-0"
 	capName := host.ChannelCapabilityPath(suite.path.EndpointA.ChannelConfig.PortID, channeltypes.FormatChannelIdentifier(1))
@@ -147,6 +150,22 @@ func (suite *MigrationsTestSuite) TestMigrateICS27ChannelCapability() {
 
 	isAuthenticated = suite.chainA.GetSimApp().ScopedICAControllerKeeper.AuthenticateCapability(suite.chainA.GetContext(), cap, capName)
 	suite.Require().True(isAuthenticated)
+}
+
+// CreateMockCapabilities creates an additional two capabilities used for testing purposes:
+// 1. A capability with a single owner
+// 2. A capability with with two owners, niether of which is "ibc"
+func (suite *MigrationsTestSuite) CreateMockCapabilities() {
+	cap, err := suite.chainA.GetSimApp().ScopedIBCMockKeeper.NewCapability(suite.chainA.GetContext(), "mock")
+	suite.Require().NoError(err)
+	suite.Require().NotNil(cap)
+
+	cap, err = suite.chainA.GetSimApp().ScopedICAMockKeeper.NewCapability(suite.chainA.GetContext(), "mock")
+	suite.Require().NoError(err)
+	suite.Require().NotNil(cap)
+
+	err = suite.chainA.GetSimApp().ScopedIBCMockKeeper.ClaimCapability(suite.chainA.GetContext(), cap, "mock")
+	suite.Require().NoError(err)
 }
 
 // ResetMemstore removes all existing fwd and rev capability kv pairs and deletes `KeyMemInitialised` from the x/capability memstore.
