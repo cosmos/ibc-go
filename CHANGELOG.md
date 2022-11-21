@@ -76,6 +76,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Improvements
 
+* (apps/transfer) [\#2643](https://github.com/cosmos/ibc-go/pull/2643) Add amount, denom, and memo to transfer event emission.
 * (modules/light-clients/07-tendermint) [\#1713](https://github.com/cosmos/ibc-go/pull/1713) Allow client upgrade proposals to update `TrustingPeriod`. See ADR-026 for context.
 * (modules/core/02-client) [\#1188](https://github.com/cosmos/ibc-go/pull/1188/files) Routing `MsgSubmitMisbehaviour` to `UpdateClient` keeper function. Deprecating `SubmitMisbehaviour` endpoint.
 * (modules/core/02-client) [\#1208](https://github.com/cosmos/ibc-go/pull/1208) Replace `CheckHeaderAndUpdateState` usage in 02-client with calls to `VerifyClientMessage`, `CheckForMisbehaviour`, `UpdateStateOnMisbehaviour` and `UpdateState`. 
