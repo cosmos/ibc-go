@@ -3,8 +3,7 @@ package tendermint_test
 import (
 	"time"
 
-	"github.com/cosmos/ibc-go/v6/modules/core/02-client/migrations"
-	"github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
+	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
 	ibctm "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint"
@@ -37,7 +36,7 @@ func (suite *TendermintTestSuite) TestPruneTendermintConsensusStates() {
 
 	bz, err = suite.chainA.App.AppCodec().MarshalInterface(solomachine.ConsensusState())
 	suite.Require().NoError(err)
-	smHeight := types.NewHeight(0, 1)
+	smHeight := clienttypes.NewHeight(0, 1)
 	smClientStore.Set(host.ConsensusStateKey(smHeight), bz)
 
 	pruneHeightMap := make(map[*ibctesting.Path][]exported.Height)
@@ -100,7 +99,7 @@ func (suite *TendermintTestSuite) TestPruneTendermintConsensusStates() {
 	// This will cause the consensus states created before the first time increment
 	// to be expired
 	suite.coordinator.IncrementTimeBy(7 * 24 * time.Hour)
-	err = migrations.PruneTendermintConsensusStates(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), suite.chainA.GetSimApp().GetKey(host.StoreKey))
+	err = ibctm.PruneTendermintConsensusStates(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), suite.chainA.GetSimApp().GetKey(host.StoreKey))
 	suite.Require().NoError(err)
 
 	for _, path := range paths {
@@ -137,7 +136,7 @@ func (suite *TendermintTestSuite) TestPruneTendermintConsensusStates() {
 
 			processedHeight, ok := ibctm.GetProcessedHeight(clientStore, height)
 			suite.Require().True(ok)
-			suite.Require().NotEqual(types.ZeroHeight(), processedHeight)
+			suite.Require().NotEqual(clienttypes.ZeroHeight(), processedHeight)
 
 			consKey := ibctm.GetIterationKey(clientStore, height)
 			suite.Require().Equal(host.ConsensusStateKey(height), consKey)
