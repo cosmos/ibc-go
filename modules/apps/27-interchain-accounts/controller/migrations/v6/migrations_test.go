@@ -150,22 +150,38 @@ func (suite *MigrationsTestSuite) TestMigrateICS27ChannelCapability() {
 
 	isAuthenticated = suite.chainA.GetSimApp().ScopedICAControllerKeeper.AuthenticateCapability(suite.chainA.GetContext(), cap, capName)
 	suite.Require().True(isAuthenticated)
+
+	suite.AssertMockCapabiltiesUnchanged()
 }
 
 // CreateMockCapabilities creates an additional two capabilities used for testing purposes:
 // 1. A capability with a single owner
 // 2. A capability with with two owners, niether of which is "ibc"
 func (suite *MigrationsTestSuite) CreateMockCapabilities() {
-	cap, err := suite.chainA.GetSimApp().ScopedIBCMockKeeper.NewCapability(suite.chainA.GetContext(), "mock")
+	cap, err := suite.chainA.GetSimApp().ScopedIBCMockKeeper.NewCapability(suite.chainA.GetContext(), "mock_one")
 	suite.Require().NoError(err)
 	suite.Require().NotNil(cap)
 
-	cap, err = suite.chainA.GetSimApp().ScopedICAMockKeeper.NewCapability(suite.chainA.GetContext(), "mock")
+	cap, err = suite.chainA.GetSimApp().ScopedICAMockKeeper.NewCapability(suite.chainA.GetContext(), "mock_two")
 	suite.Require().NoError(err)
 	suite.Require().NotNil(cap)
 
-	err = suite.chainA.GetSimApp().ScopedIBCMockKeeper.ClaimCapability(suite.chainA.GetContext(), cap, "mock")
+	err = suite.chainA.GetSimApp().ScopedIBCMockKeeper.ClaimCapability(suite.chainA.GetContext(), cap, "mock_two")
 	suite.Require().NoError(err)
+}
+
+// AssertMockCapabiltiesUnchanged authenticates the mock capabilities created at the start of the test to ensure they remain unchanged
+func (suite *MigrationsTestSuite) AssertMockCapabiltiesUnchanged() {
+	cap, found := suite.chainA.GetSimApp().ScopedIBCMockKeeper.GetCapability(suite.chainA.GetContext(), "mock_one")
+	suite.Require().True(found)
+	suite.Require().NotNil(cap)
+
+	cap, found = suite.chainA.GetSimApp().ScopedIBCMockKeeper.GetCapability(suite.chainA.GetContext(), "mock_two")
+	suite.Require().True(found)
+	suite.Require().NotNil(cap)
+
+	isAuthenticated := suite.chainA.GetSimApp().ScopedICAMockKeeper.AuthenticateCapability(suite.chainA.GetContext(), cap, "mock_two")
+	suite.Require().True(isAuthenticated)
 }
 
 // ResetMemstore removes all existing fwd and rev capability kv pairs and deletes `KeyMemInitialised` from the x/capability memstore.
