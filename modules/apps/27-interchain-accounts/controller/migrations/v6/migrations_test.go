@@ -156,7 +156,7 @@ func (suite *MigrationsTestSuite) TestMigrateICS27ChannelCapability() {
 
 // CreateMockCapabilities creates an additional two capabilities used for testing purposes:
 // 1. A capability with a single owner
-// 2. A capability with with two owners, niether of which is "ibc"
+// 2. A capability with two owners, neither of which is "ibc"
 func (suite *MigrationsTestSuite) CreateMockCapabilities() {
 	cap, err := suite.chainA.GetSimApp().ScopedIBCMockKeeper.NewCapability(suite.chainA.GetContext(), "mock_one")
 	suite.Require().NoError(err)
