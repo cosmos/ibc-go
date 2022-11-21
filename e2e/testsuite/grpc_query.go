@@ -9,6 +9,7 @@ import (
 	"github.com/strangelove-ventures/ibctest/v6/chain/cosmos"
 	"github.com/strangelove-ventures/ibctest/v6/ibc"
 
+	controllertypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/controller/types"
 	feetypes "github.com/cosmos/ibc-go/v6/modules/apps/29-fee/types"
 	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
@@ -33,6 +34,20 @@ func (s *E2ETestSuite) QueryClientState(ctx context.Context, chain ibc.Chain, cl
 	return clientState, nil
 }
 
+// QueryChannel queries the channel on a given chain for the provided portID and channelID
+func (s *E2ETestSuite) QueryChannel(ctx context.Context, chain ibc.Chain, portID, channelID string) (channeltypes.Channel, error) {
+	queryClient := s.GetChainGRCPClients(chain).ChannelQueryClient
+	res, err := queryClient.Channel(ctx, &channeltypes.QueryChannelRequest{
+		PortId:    portID,
+		ChannelId: channelID,
+	})
+	if err != nil {
+		return channeltypes.Channel{}, err
+	}
+
+	return *res.Channel, nil
+}
+
 // QueryPacketCommitment queries the packet commitment on the given chain for the provided channel and sequence.
 func (s *E2ETestSuite) QueryPacketCommitment(ctx context.Context, chain ibc.Chain, portID, channelID string, sequence uint64) ([]byte, error) {
 	queryClient := s.GetChainGRCPClients(chain).ChannelQueryClient
@@ -47,16 +62,30 @@ func (s *E2ETestSuite) QueryPacketCommitment(ctx context.Context, chain ibc.Chai
 	return res.Commitment, nil
 }
 
-// QueryInterchainAccount queries the interchain account for the given owner and connectionId.
-func (s *E2ETestSuite) QueryInterchainAccount(ctx context.Context, chain ibc.Chain, owner, connectionId string) (string, error) {
+// QueryInterchainAccount queries the interchain account for the given owner and connectionID.
+func (s *E2ETestSuite) QueryInterchainAccount(ctx context.Context, chain ibc.Chain, owner, connectionID string) (string, error) {
 	queryClient := s.GetChainGRCPClients(chain).ICAQueryClient
-	res, err := queryClient.InterchainAccount(ctx, &intertxtypes.QueryInterchainAccountRequest{
+	res, err := queryClient.InterchainAccount(ctx, &controllertypes.QueryInterchainAccountRequest{
 		Owner:        owner,
-		ConnectionId: connectionId,
+		ConnectionId: connectionID,
 	})
 	if err != nil {
 		return "", err
 	}
+	return res.Address, nil
+}
+
+// QueryInterchainAccountLegacy queries the interchain account for the given owner and connectionID using the intertx module.
+func (s *E2ETestSuite) QueryInterchainAccountLegacy(ctx context.Context, chain ibc.Chain, owner, connectionID string) (string, error) {
+	queryClient := s.GetChainGRCPClients(chain).InterTxQueryClient
+	res, err := queryClient.InterchainAccount(ctx, &intertxtypes.QueryInterchainAccountRequest{
+		Owner:        owner,
+		ConnectionId: connectionID,
+	})
+	if err != nil {
+		return "", err
+	}
+
 	return res.InterchainAccountAddress, nil
 }
 

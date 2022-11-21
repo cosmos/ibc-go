@@ -125,14 +125,14 @@ func (cs ClientState) Validate() error {
 	if err := light.ValidateTrustLevel(cs.TrustLevel.ToTendermint()); err != nil {
 		return err
 	}
-	if cs.TrustingPeriod == 0 {
-		return sdkerrors.Wrap(ErrInvalidTrustingPeriod, "trusting period cannot be zero")
+	if cs.TrustingPeriod <= 0 {
+		return sdkerrors.Wrap(ErrInvalidTrustingPeriod, "trusting period must be greater than zero")
 	}
-	if cs.UnbondingPeriod == 0 {
-		return sdkerrors.Wrap(ErrInvalidUnbondingPeriod, "unbonding period cannot be zero")
+	if cs.UnbondingPeriod <= 0 {
+		return sdkerrors.Wrap(ErrInvalidUnbondingPeriod, "unbonding period must be greater than zero")
 	}
-	if cs.MaxClockDrift == 0 {
-		return sdkerrors.Wrap(ErrInvalidMaxClockDrift, "max clock drift cannot be zero")
+	if cs.MaxClockDrift <= 0 {
+		return sdkerrors.Wrap(ErrInvalidMaxClockDrift, "max clock drift must be greater than zero")
 	}
 
 	// the latest height revision number must match the chain id revision number
@@ -210,7 +210,7 @@ func (cs ClientState) VerifyMembership(
 	delayTimePeriod uint64,
 	delayBlockPeriod uint64,
 	proof []byte,
-	path []byte,
+	path exported.Path,
 	value []byte,
 ) error {
 	if cs.GetLatestHeight().LT(height) {
@@ -229,9 +229,9 @@ func (cs ClientState) VerifyMembership(
 		return sdkerrors.Wrap(commitmenttypes.ErrInvalidProof, "failed to unmarshal proof into ICS 23 commitment merkle proof")
 	}
 
-	var merklePath commitmenttypes.MerklePath
-	if err := cdc.Unmarshal(path, &merklePath); err != nil {
-		return sdkerrors.Wrap(commitmenttypes.ErrInvalidProof, "failed to unmarshal path into ICS 23 commitment merkle path")
+	merklePath, ok := path.(commitmenttypes.MerklePath)
+	if !ok {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "expected %T, got %T", commitmenttypes.MerklePath{}, path)
 	}
 
 	consensusState, found := GetConsensusState(clientStore, cdc, height)
@@ -256,7 +256,7 @@ func (cs ClientState) VerifyNonMembership(
 	delayTimePeriod uint64,
 	delayBlockPeriod uint64,
 	proof []byte,
-	path []byte,
+	path exported.Path,
 ) error {
 	if cs.GetLatestHeight().LT(height) {
 		return sdkerrors.Wrapf(
@@ -274,9 +274,9 @@ func (cs ClientState) VerifyNonMembership(
 		return sdkerrors.Wrap(commitmenttypes.ErrInvalidProof, "failed to unmarshal proof into ICS 23 commitment merkle proof")
 	}
 
-	var merklePath commitmenttypes.MerklePath
-	if err := cdc.Unmarshal(path, &merklePath); err != nil {
-		return sdkerrors.Wrap(commitmenttypes.ErrInvalidProof, "failed to unmarshal path into ICS 23 commitment merkle path")
+	merklePath, ok := path.(commitmenttypes.MerklePath)
+	if !ok {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "expected %T, got %T", commitmenttypes.MerklePath{}, path)
 	}
 
 	consensusState, found := GetConsensusState(clientStore, cdc, height)

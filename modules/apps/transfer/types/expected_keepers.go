@@ -24,6 +24,7 @@ type BankKeeper interface {
 	SendCoinsFromModuleToAccount(ctx sdk.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins) error
 	SendCoinsFromAccountToModule(ctx sdk.Context, senderAddr sdk.AccAddress, recipientModule string, amt sdk.Coins) error
 	BlockedAddr(addr sdk.AccAddress) bool
+	IsSendEnabledCoin(ctx sdk.Context, coin sdk.Coin) bool
 }
 
 // ChannelKeeper defines the expected IBC channel keeper
@@ -45,12 +46,4 @@ type ConnectionKeeper interface {
 // PortKeeper defines the expected IBC port keeper
 type PortKeeper interface {
 	BindPort(ctx sdk.Context, portID string) *capabilitytypes.Capability
-}
-
-// ScopedKeeper defines the expected x/capability scoped keeper interface
-type ScopedKeeper interface {
-	GetCapability(ctx sdk.Context, name string) (*capabilitytypes.Capability, bool)
-	AuthenticateCapability(ctx sdk.Context, cap *capabilitytypes.Capability, name string) bool
-	LookupModules(ctx sdk.Context, name string) ([]string, *capabilitytypes.Capability, error)
-	ClaimCapability(ctx sdk.Context, cap *capabilitytypes.Capability, name string) error
 }

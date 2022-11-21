@@ -11,7 +11,7 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
-
+	grouptypes "github.com/cosmos/cosmos-sdk/x/group"
 	paramsproposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 	intertxtypes "github.com/cosmos/interchain-accounts/x/inter-tx/types"
 	dockerclient "github.com/docker/docker/client"
@@ -28,6 +28,7 @@ import (
 
 	"github.com/cosmos/ibc-go/e2e/testconfig"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
+	controllertypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/controller/types"
 	feetypes "github.com/cosmos/ibc-go/v6/modules/apps/29-fee/types"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
@@ -69,11 +70,13 @@ type GRPCClients struct {
 	ClientQueryClient  clienttypes.QueryClient
 	ChannelQueryClient channeltypes.QueryClient
 	FeeQueryClient     feetypes.QueryClient
-	ICAQueryClient     intertxtypes.QueryClient
+	ICAQueryClient     controllertypes.QueryClient
+	InterTxQueryClient intertxtypes.QueryClient
 
 	// SDK query clients
 	GovQueryClient    govtypes.QueryClient
 	GovQueryClientV1  govtypesv1.QueryClient
+	GroupsQueryClient grouptypes.QueryClient
 	ParamsQueryClient paramsproposaltypes.QueryClient
 	AuthQueryClient   authtypes.QueryClient
 }
@@ -304,9 +307,9 @@ func (s *E2ETestSuite) RecoverRelayerWallets(ctx context.Context, relayer ibc.Re
 
 // Transfer broadcasts a MsgTransfer message.
 func (s *E2ETestSuite) Transfer(ctx context.Context, chain *cosmos.CosmosChain, user *ibc.Wallet,
-	portID, channelID string, token sdk.Coin, sender, receiver string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64,
+	portID, channelID string, token sdk.Coin, sender, receiver string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64, memo string,
 ) (sdk.TxResponse, error) {
-	msg := transfertypes.NewMsgTransfer(portID, channelID, token, sender, receiver, timeoutHeight, timeoutTimestamp)
+	msg := transfertypes.NewMsgTransfer(portID, channelID, token, sender, receiver, timeoutHeight, timeoutTimestamp, memo)
 	return s.BroadcastMessages(ctx, chain, user, msg)
 }
 
@@ -379,9 +382,11 @@ func (s *E2ETestSuite) initGRPCClients(chain *cosmos.CosmosChain) {
 		ClientQueryClient:  clienttypes.NewQueryClient(grpcConn),
 		ChannelQueryClient: channeltypes.NewQueryClient(grpcConn),
 		FeeQueryClient:     feetypes.NewQueryClient(grpcConn),
-		ICAQueryClient:     intertxtypes.NewQueryClient(grpcConn),
+		ICAQueryClient:     controllertypes.NewQueryClient(grpcConn),
+		InterTxQueryClient: intertxtypes.NewQueryClient(grpcConn),
 		GovQueryClient:     govtypes.NewQueryClient(grpcConn),
 		GovQueryClientV1:   govtypesv1.NewQueryClient(grpcConn),
+		GroupsQueryClient:  grouptypes.NewQueryClient(grpcConn),
 		ParamsQueryClient:  paramsproposaltypes.NewQueryClient(grpcConn),
 		AuthQueryClient:    authtypes.NewQueryClient(grpcConn),
 	}

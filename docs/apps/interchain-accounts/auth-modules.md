@@ -1,8 +1,12 @@
 <!--
-order: 2
+order: 7
 -->
 
 # Building an authentication module
+
+### Deprecation Notice
+
+**This document is deprecated and will be removed in future releases**.
 
 Authentication modules play the role of the `Base Application` as described in [ICS30 IBC Middleware](https://github.com/cosmos/ibc/tree/master/spec/app/ics-030-middleware), and enable application developers to perform custom logic when working with the Interchain Accounts controller API. {synopsis}
 
@@ -145,6 +149,8 @@ func (im IBCModule) OnRecvPacket(
 }
 ```
 
+### Legacy API
+
 ## `RegisterInterchainAccount`
 
 The authentication module can begin registering interchain accounts by calling `RegisterInterchainAccount`:
@@ -241,7 +247,7 @@ if !found {
 // The appropriate serialization function should be called. The host chain must be able to deserialize the transaction. 
 // If the host chain is using the ibc-go host module, `SerializeCosmosTx` should be used. 
 msg := &banktypes.MsgSend{FromAddress: fromAddr, ToAddress: toAddr, Amount: amt}
-data, err := icatypes.SerializeCosmosTx(keeper.cdc, []sdk.Msg{msg})
+data, err := icatypes.SerializeCosmosTx(keeper.cdc, []proto.Message{msg})
 if err != nil {
     return err
 }

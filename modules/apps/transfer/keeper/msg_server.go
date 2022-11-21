@@ -24,13 +24,17 @@ func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.
 		return nil, err
 	}
 
+	if !k.bankKeeper.IsSendEnabledCoin(ctx, msg.Token) {
+		return nil, sdkerrors.Wrapf(types.ErrSendDisabled, "%s transfers are currently disabled", msg.Token.Denom)
+	}
+
 	if k.bankKeeper.BlockedAddr(sender) {
 		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "%s is not allowed to send funds", sender)
 	}
 
 	sequence, err := k.sendTransfer(
 		ctx, msg.SourcePort, msg.SourceChannel, msg.Token, sender, msg.Receiver, msg.TimeoutHeight, msg.TimeoutTimestamp,
-		msg.Metadata)
+		msg.Memo)
 	if err != nil {
 		return nil, err
 	}

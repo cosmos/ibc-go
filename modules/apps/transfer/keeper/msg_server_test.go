@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
 	"github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 )
@@ -17,6 +18,17 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 		{
 			"success",
 			func() {},
+			true,
+		},
+		{
+			"bank send enabled for denom",
+			func() {
+				suite.chainA.GetSimApp().BankKeeper.SetParams(suite.chainA.GetContext(),
+					banktypes.Params{
+						SendEnabled: []*banktypes.SendEnabled{{Denom: sdk.DefaultBondDenom, Enabled: true}},
+					},
+				)
+			},
 			true,
 		},
 		{
@@ -45,6 +57,17 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 			false,
 		},
 		{
+			"bank send disabled for denom",
+			func() {
+				suite.chainA.GetSimApp().BankKeeper.SetParams(suite.chainA.GetContext(),
+					banktypes.Params{
+						SendEnabled: []*banktypes.SendEnabled{{Denom: sdk.DefaultBondDenom, Enabled: false}},
+					},
+				)
+			},
+			false,
+		},
+		{
 			"channel does not exist",
 			func() {
 				msg.SourceChannel = "channel-100"
@@ -66,7 +89,7 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 				path.EndpointA.ChannelID,
 				coin, suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(),
 				suite.chainB.GetTimeoutHeight(), 0, // only use timeout height
-				[]byte("custom metadata"),
+				"memo",
 			)
 
 			tc.malleate()
