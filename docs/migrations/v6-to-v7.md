@@ -13,9 +13,9 @@ There are four sections based on the four potential user groups of this document
 
 ## Chains
 
-Chains will perform automatic migrations to remove a localhost client, if it exists and to migrate the solomachine to the v3 of the protobuf definition. 
+Chains will perform automatic migrations to remove existing localhost clients and to migrate the solomachine to the v3 of the protobuf definition. 
 
-An optional upgrade handler has been added to prune expired tendermint consensus states.
+An optional upgrade handler has been added to prune expired tendermint consensus states. It may be used during any upgrade (not just to v7)
 Add the following to the function call to the upgrade handler in `app/app.go`, to perform the optional state pruning.
 
 ```go
