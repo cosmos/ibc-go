@@ -72,7 +72,7 @@ func NewChainTendermintClient(tc *TestChain) *TestChainTendermint {
 	return chain
 }
 
-func (tc *TestChainTendermint) NewConfig() ClientConfig {
+func (chain *TestChainTendermint) NewConfig() ClientConfig {
 	return &TendermintConfig{
 		TrustLevel:                   DefaultTrustLevel,
 		TrustingPeriod:               TrustingPeriod,
