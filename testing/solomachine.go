@@ -126,7 +126,7 @@ func (solo *Solomachine) CreateHeader(newDiversifier string) *solomachine.Header
 		Sequence:    solo.Sequence,
 		Timestamp:   solo.Time,
 		Diversifier: solo.Diversifier,
-		Path:        []byte{},
+		Path:        []byte(solomachine.SentinelHeaderPath),
 		Data:        dataBz,
 	}
 
@@ -212,7 +212,6 @@ func (solo *Solomachine) CreateMisbehaviour() *solomachine.Misbehaviour {
 	}
 
 	return &solomachine.Misbehaviour{
-		ClientId:     solo.ClientID,
 		Sequence:     solo.Sequence,
 		SignatureOne: &signatureOne,
 		SignatureTwo: &signatureTwo,

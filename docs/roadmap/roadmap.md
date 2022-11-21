@@ -21,7 +21,7 @@ These improvements tackle two shortcomings of the current implementation of ICS-
 
 The changes will make integrating the controller chain functionality easier (see [ADR 009](../architecture/adr-009-v6-ics27-msgserver.md) for more information), and with the release of Cosmos SDK v0.46.x, they will enable any Cosmos SDK module (e.g `x/auth`, `x/gov`, `x/group`) to register interchain accounts and send transactions on their behalf. 
 
-For more details about these changes, please read [this blog post](https://medium.com/the-interchain-foundation/ibc-go-v6-changes-to-interchain-accounts-f9996449d782).
+For more details about these changes, please read [this blog post](https://medium.com/the-interchain-foundation/ibc-go-v6-changes-to-interchain-accounts-and-how-it-impacts-your-chain-806c185300d7).
 
 ### Other features/improvements
 
