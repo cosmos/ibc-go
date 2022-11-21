@@ -1,6 +1,7 @@
 package host_test
 
 import (
+	"fmt"
 	"math"
 	"testing"
 
@@ -8,6 +9,7 @@ import (
 
 	connectiontypes "github.com/cosmos/ibc-go/v6/modules/core/03-connection/types"
 	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
+	ibctesting "github.com/cosmos/ibc-go/v6/testing"
 )
 
 func TestParseIdentifier(t *testing.T) {
@@ -43,6 +45,34 @@ func TestParseIdentifier(t *testing.T) {
 			require.NoError(t, err, tc.name)
 		} else {
 			require.Error(t, err, tc.name)
+		}
+	}
+}
+
+func TestParseClientStatePath(t *testing.T) {
+	testCases := []struct {
+		name    string
+		path    string
+		expPass bool
+	}{
+		{"valid", host.FullClientStatePath(ibctesting.FirstClientID), true},
+		{"path too large", fmt.Sprintf("clients/clients/%s/clientState", ibctesting.FirstClientID), false},
+		{"path too small", fmt.Sprintf("clients/%s", ibctesting.FirstClientID), false},
+		{"path does not begin with client store", fmt.Sprintf("cli/%s/%s", ibctesting.FirstClientID, host.KeyClientState), false},
+		{"path does not end with client state key", fmt.Sprintf("%s/%s/consensus", string(host.KeyClientStorePrefix), ibctesting.FirstClientID), false},
+		{"client ID is empty", host.FullClientStatePath(""), false},
+		{"client ID is only spaces", host.FullClientStatePath("   "), false},
+	}
+
+	for _, tc := range testCases {
+		clientID, err := host.ParseClientStatePath(tc.path)
+
+		if tc.expPass {
+			require.NoError(t, err, tc.name)
+			require.Equal(t, ibctesting.FirstClientID, clientID)
+		} else {
+			require.Error(t, err, tc.name)
+			require.Equal(t, "", clientID)
 		}
 	}
 }
