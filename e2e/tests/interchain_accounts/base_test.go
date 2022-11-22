@@ -34,7 +34,7 @@ import (
 )
 
 const (
-	//InitialProposalID uint64 = 1
+//InitialProposalID uint64 = 1
 )
 
 func TestInterchainAccountsTestSuite(t *testing.T) {
@@ -44,7 +44,6 @@ func TestInterchainAccountsTestSuite(t *testing.T) {
 type InterchainAccountsTestSuite struct {
 	testsuite.E2ETestSuite
 }
-
 
 // RegisterCounterPartyPayee broadcasts a MsgRegisterCounterpartyPayee message.
 func (s *InterchainAccountsTestSuite) RegisterCounterPartyPayee(ctx context.Context, chain *cosmos.CosmosChain,
@@ -470,7 +469,6 @@ func (s *InterchainAccountsTestSuite) TestMsgSubmitTx_SuccessfulTransfer_AfterRe
 	})
 }
 
-
 func (s *InterchainAccountsTestSuite) TestICARegistration_WithGovernance() {
 	t := s.T()
 	ctx := context.TODO()
@@ -483,12 +481,13 @@ func (s *InterchainAccountsTestSuite) TestICARegistration_WithGovernance() {
 	controllerAddress := controllerAccount.Bech32Address(chainA.Config().Bech32Prefix)
 
 	chainBAccount := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
+	chainBAddress := chainBAccount.Bech32Address(chainB.Config().Bech32Prefix)
 
 	govModuleAddress, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
 	s.Require().NoError(err)
 	s.Require().NotNil(govModuleAddress)
 
-	t.Run("create and msg submit proposal", func(t *testing.T) {
+	t.Run("create msg submit proposal", func(t *testing.T) {
 		version := icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
 		msgRegisterAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, govModuleAddress.String(), version)
 		msgs := []sdk.Msg{msgRegisterAccount}
@@ -540,44 +539,15 @@ func (s *InterchainAccountsTestSuite) TestICARegistration_WithGovernance() {
 			s.Require().NoError(err)
 		})
 
-		//t.Run("submit proposal for MsgSendTx", func(t *testing.T) {
-		//	msgBankSend := &banktypes.MsgSend{
-		//		FromAddress: interchainAccAddr,
-		//		ToAddress:   chainBAddress,
-		//		Amount:      sdk.NewCoins(testvalues.DefaultTransferAmount(chainB.Config().Denom)),
-		//	}
-		//
-		//	cdc := testsuite.Codec()
-		//
-		//	bz, err := icatypes.SerializeCosmosTx(cdc, []proto.Message{msgBankSend})
-		//	s.Require().NoError(err)
-		//
-		//	packetData := icatypes.InterchainAccountPacketData{
-		//		Type: icatypes.EXECUTE_TX,
-		//		Data: bz,
-		//		Memo: "e2e",
-		//	}
-		//
-		//	msgSubmitTx := controllertypes.NewMsgSendTx(groupPolicyAddr, ibctesting.FirstConnectionID, uint64(time.Hour.Nanoseconds()), packetData)
-		//	msgSubmitProposal, err := grouptypes.NewMsgSubmitProposal(groupPolicyAddr, []string{chainAAddress}, []sdk.Msg{msgSubmitTx}, DefaultMetadata, grouptypes.Exec_EXEC_UNSPECIFIED)
-		//	s.Require().NoError(err)
-		//
-		//	txResp, err := s.BroadcastMessages(ctx, chainA, chainAWallet, msgSubmitProposal)
-		//	s.Require().NoError(err)
-		//	s.AssertValidTxResponse(txResp)
-		//})
-
-
-		t.Run("broadcast MsgSendTx", func(t *testing.T) {
-			// assemble bank transfer message from host account to user account on host chain
-			msgSend := &banktypes.MsgSend{
+		t.Run("create msg submit proposal", func(t *testing.T) {
+			msgBankSend := &banktypes.MsgSend{
 				FromAddress: interchainAccAddr,
-				ToAddress:   chainBAccount.Bech32Address(chainB.Config().Bech32Prefix),
+				ToAddress:   chainBAddress,
 				Amount:      sdk.NewCoins(testvalues.DefaultTransferAmount(chainB.Config().Denom)),
 			}
 
 			cdc := testsuite.Codec()
-			bz, err := icatypes.SerializeCosmosTx(cdc, []proto.Message{msgSend})
+			bz, err := icatypes.SerializeCosmosTx(cdc, []proto.Message{msgBankSend})
 			s.Require().NoError(err)
 
 			packetData := icatypes.InterchainAccountPacketData{
@@ -587,18 +557,25 @@ func (s *InterchainAccountsTestSuite) TestICARegistration_WithGovernance() {
 			}
 
 			msgSendTx := controllertypes.NewMsgSendTx(govModuleAddress.String(), ibctesting.FirstConnectionID, uint64(time.Hour.Nanoseconds()), packetData)
-			resp, err := s.BroadcastMessages(
-				ctx,
-				chainA,
-				controllerAccount,
-				msgSendTx,
-			)
-
-			s.AssertValidTxResponse(resp)
+			msgs := []sdk.Msg{msgSendTx}
+			msgSubmitProposal, err := govtypesv1.NewMsgSubmitProposal(msgs, sdk.NewCoins(sdk.NewCoin(chainA.Config().Denom, govtypesv1.DefaultMinDepositTokens)), controllerAddress, "")
 			s.Require().NoError(err)
 
-			s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB))
+			resp, err := s.BroadcastMessages(ctx, chainA, controllerAccount, msgSubmitProposal)
+			s.AssertValidTxResponse(resp)
+			s.Require().NoError(err)
 		})
+
+		s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB))
+
+		s.Require().NoError(chainA.VoteOnProposalAllValidators(ctx, "2", cosmos.ProposalVoteYes))
+
+		time.Sleep(testvalues.VotingPeriod)
+		time.Sleep(5 * time.Second)
+
+		proposal, err := s.QueryProposalV1(ctx, chainA, 2)
+		s.Require().NoError(err)
+		s.Require().Equal(govtypesv1.StatusPassed, proposal.Status)
 
 		t.Run("verify tokens transferred", func(t *testing.T) {
 			balance, err := chainB.GetBalance(ctx, chainBAccount.Bech32Address(chainB.Config().Bech32Prefix), chainB.Config().Denom)
