@@ -2,6 +2,7 @@ package testsuite
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -33,6 +34,7 @@ import (
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
+	simappparams "github.com/cosmos/ibc-go/v6/testing/simapp/params"
 )
 
 const (
@@ -488,6 +490,39 @@ func (s *E2ETestSuite) ExecuteGovProposal(ctx context.Context, chain *cosmos.Cos
 	s.Require().NoError(err)
 	s.Require().Equal(govtypes.StatusPassed, proposal.Status)
 }
+
+
+// QueryModuleAccountAddress returns the sdk.AccAddress of a given module name.
+func (s *E2ETestSuite) QueryModuleAccountAddress(ctx context.Context, moduleName string, chain *cosmos.CosmosChain) (sdk.AccAddress, error) {
+	authClient := s.GetChainGRCPClients(chain).AuthQueryClient
+
+	moduleAccountsResponse, err := authClient.ModuleAccounts(ctx, &authtypes.QueryModuleAccountsRequest{})
+	if err != nil {
+		return nil, err
+	}
+
+	cfg := simappparams.MakeTestEncodingConfig()
+	authtypes.RegisterInterfaces(cfg.InterfaceRegistry)
+
+	for _, acc := range moduleAccountsResponse.Accounts {
+		var account authtypes.AccountI
+		err := cfg.InterfaceRegistry.UnpackAny(acc, &account)
+		if err != nil {
+			return nil, err
+		}
+		moduleAccount, ok := account.(authtypes.ModuleAccountI)
+		if !ok {
+			return nil, errors.New(fmt.Sprintf("failed to cast account: %T as ModuleAccount", moduleAccount))
+		}
+
+		if moduleAccount.GetName() == moduleName {
+			return moduleAccount.GetAddress(), nil
+		}
+	}
+
+	return nil, errors.New(fmt.Sprintf("failed to find address for module account: %s", moduleName))
+}
+
 
 // GetIBCToken returns the denomination of the full token denom sent to the receiving channel
 func GetIBCToken(fullTokenDenom string, portID, channelID string) transfertypes.DenomTrace {
