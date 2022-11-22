@@ -33,8 +33,10 @@ var (
 
 func (suite *DymintTestSuite) TestStatus() {
 	var (
-		path        *ibctesting.Path
-		clientState *types.ClientState
+		path                    *ibctesting.Path
+		clientState             *types.ClientState
+		dymintCounterpartyChain *ibctesting.TestChain
+		endpoint                *ibctesting.Endpoint
 	)
 
 	testCases := []struct {
@@ -45,11 +47,11 @@ func (suite *DymintTestSuite) TestStatus() {
 		{"client is active", func() {}, exported.Active},
 		{"client is frozen", func() {
 			clientState.FrozenHeight = clienttypes.NewHeight(0, 1)
-			path.EndpointA.SetClientState(clientState)
+			endpoint.SetClientState(clientState)
 		}, exported.Frozen},
 		{"client status without consensus state", func() {
 			clientState.LatestHeight = clientState.LatestHeight.Increment().(clienttypes.Height)
-			path.EndpointA.SetClientState(clientState)
+			endpoint.SetClientState(clientState)
 		}, exported.Expired},
 		{"client status is expired", func() {
 			suite.coordinator.IncrementTimeBy(clientState.TrustingPeriod)
@@ -60,12 +62,22 @@ func (suite *DymintTestSuite) TestStatus() {
 		path = ibctesting.NewPath(suite.chainA, suite.chainB)
 		suite.coordinator.SetupClients(path)
 
-		clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
-		clientState = path.EndpointA.GetClientState().(*types.ClientState)
+		if suite.chainB.TestChainClient.GetSelfClientType() == exported.Tendermint {
+			// chainA must be Dymint
+			dymintCounterpartyChain = suite.chainB
+			endpoint = path.EndpointB
+		} else {
+			// chainB must be Dymint
+			dymintCounterpartyChain = suite.chainA
+			endpoint = path.EndpointA
+		}
+
+		clientStore := dymintCounterpartyChain.App.GetIBCKeeper().ClientKeeper.ClientStore(dymintCounterpartyChain.GetContext(), endpoint.ClientID)
+		clientState = endpoint.GetClientState().(*types.ClientState)
 
 		tc.malleate()
 
-		status := clientState.Status(suite.chainA.GetContext(), clientStore, suite.chainA.App.AppCodec())
+		status := clientState.Status(dymintCounterpartyChain.GetContext(), clientStore, dymintCounterpartyChain.App.AppCodec())
 		suite.Require().Equal(tc.expStatus, status)
 
 	}
@@ -166,7 +178,10 @@ func (suite *DymintTestSuite) TestValidate() {
 }
 
 func (suite *DymintTestSuite) TestInitialize() {
-
+	var (
+		dymintCounterpartyChain *ibctesting.TestChain
+		endpoint                *ibctesting.Endpoint
+	)
 	testCases := []struct {
 		name           string
 		consensusState exported.ConsensusState
@@ -185,14 +200,23 @@ func (suite *DymintTestSuite) TestInitialize() {
 	}
 
 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
-	err := path.EndpointA.CreateClient()
+	if suite.chainB.TestChainClient.GetSelfClientType() == exported.Tendermint {
+		// chainA must be Dymint
+		dymintCounterpartyChain = suite.chainB
+		endpoint = path.EndpointB
+	} else {
+		// chainB must be Dymint
+		dymintCounterpartyChain = suite.chainA
+		endpoint = path.EndpointA
+	}
+	err := endpoint.CreateClient()
 	suite.Require().NoError(err)
 
-	clientState := suite.chainA.GetClientState(path.EndpointA.ClientID)
-	store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
+	clientState := dymintCounterpartyChain.GetClientState(endpoint.ClientID)
+	store := dymintCounterpartyChain.App.GetIBCKeeper().ClientKeeper.ClientStore(dymintCounterpartyChain.GetContext(), endpoint.ClientID)
 
 	for _, tc := range testCases {
-		err := clientState.Initialize(suite.chainA.GetContext(), suite.chainA.Codec, store, tc.consensusState)
+		err := clientState.Initialize(dymintCounterpartyChain.GetContext(), dymintCounterpartyChain.Codec, store, tc.consensusState)
 		if tc.expPass {
 			suite.Require().NoError(err, "valid case returned an error")
 		} else {
@@ -270,10 +294,12 @@ func (suite *DymintTestSuite) TestVerifyClientConsensusState() {
 // light client on chainA
 func (suite *DymintTestSuite) TestVerifyConnectionState() {
 	var (
-		clientState *types.ClientState
-		proof       []byte
-		proofHeight exported.Height
-		prefix      commitmenttypes.MerklePrefix
+		clientState                          *types.ClientState
+		proof                                []byte
+		proofHeight                          exported.Height
+		prefix                               commitmenttypes.MerklePrefix
+		dymintChain, dymintCounterpartyChain *ibctesting.TestChain
+		endpoint1, endpoint2                 *ibctesting.Endpoint
 	)
 
 	testCases := []struct {
@@ -305,30 +331,43 @@ func (suite *DymintTestSuite) TestVerifyConnectionState() {
 		tc := tc
 
 		suite.Run(tc.name, func() {
-			suite.SetupTest() // reset
+			suite.SetupTestWithConsensusType(exported.Tendermint, exported.Dymint) // reset
 
 			// setup testing conditions
 			path := ibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.Setup(path)
-			connection := path.EndpointB.GetConnection()
+
+			if suite.chainB.TestChainClient.GetSelfClientType() == exported.Dymint {
+				dymintCounterpartyChain = suite.chainA
+				dymintChain = suite.chainB
+				endpoint1 = path.EndpointA
+				endpoint2 = path.EndpointB
+			} else {
+				dymintCounterpartyChain = suite.chainB
+				dymintChain = suite.chainA
+				endpoint1 = path.EndpointB
+				endpoint2 = path.EndpointA
+			}
+
+			connection := endpoint2.GetConnection()
 
 			var ok bool
-			clientStateI := suite.chainA.GetClientState(path.EndpointA.ClientID)
+			clientStateI := dymintCounterpartyChain.GetClientState(endpoint1.ClientID)
 			clientState, ok = clientStateI.(*types.ClientState)
 			suite.Require().True(ok)
 
-			prefix = suite.chainB.GetPrefix()
+			prefix = dymintChain.GetPrefix()
 
 			// make connection proof
-			connectionKey := host.ConnectionKey(path.EndpointB.ConnectionID)
-			proof, proofHeight = suite.chainB.QueryProof(connectionKey)
+			connectionKey := host.ConnectionKey(endpoint2.ConnectionID)
+			proof, proofHeight = dymintChain.QueryProof(connectionKey)
 
 			tc.malleate() // make changes as necessary
 
-			store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
+			store := dymintCounterpartyChain.App.GetIBCKeeper().ClientKeeper.ClientStore(dymintCounterpartyChain.GetContext(), endpoint1.ClientID)
 
 			err := clientState.VerifyConnectionState(
-				store, suite.chainA.Codec, proofHeight, &prefix, proof, path.EndpointB.ConnectionID, connection,
+				store, dymintCounterpartyChain.Codec, proofHeight, &prefix, proof, endpoint2.ConnectionID, connection,
 			)
 
 			if tc.expPass {
@@ -344,10 +383,12 @@ func (suite *DymintTestSuite) TestVerifyConnectionState() {
 // client on chainA
 func (suite *DymintTestSuite) TestVerifyChannelState() {
 	var (
-		clientState *types.ClientState
-		proof       []byte
-		proofHeight exported.Height
-		prefix      commitmenttypes.MerklePrefix
+		clientState                          *types.ClientState
+		proof                                []byte
+		proofHeight                          exported.Height
+		prefix                               commitmenttypes.MerklePrefix
+		dymintChain, dymintCounterpartyChain *ibctesting.TestChain
+		endpoint1, endpoint2                 *ibctesting.Endpoint
 	)
 
 	testCases := []struct {
@@ -379,31 +420,44 @@ func (suite *DymintTestSuite) TestVerifyChannelState() {
 		tc := tc
 
 		suite.Run(tc.name, func() {
-			suite.SetupTest() // reset
+			suite.SetupTestWithConsensusType(exported.Tendermint, exported.Dymint) // reset
 
 			// setup testing conditions
 			path := ibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.Setup(path)
-			channel := path.EndpointB.GetChannel()
+
+			if suite.chainB.TestChainClient.GetSelfClientType() == exported.Dymint {
+				dymintCounterpartyChain = suite.chainA
+				dymintChain = suite.chainB
+				endpoint1 = path.EndpointA
+				endpoint2 = path.EndpointB
+			} else {
+				dymintCounterpartyChain = suite.chainB
+				dymintChain = suite.chainA
+				endpoint1 = path.EndpointB
+				endpoint2 = path.EndpointA
+			}
+
+			channel := endpoint2.GetChannel()
 
 			var ok bool
-			clientStateI := suite.chainA.GetClientState(path.EndpointA.ClientID)
+			clientStateI := dymintCounterpartyChain.GetClientState(endpoint1.ClientID)
 			clientState, ok = clientStateI.(*types.ClientState)
 			suite.Require().True(ok)
 
-			prefix = suite.chainB.GetPrefix()
+			prefix = dymintChain.GetPrefix()
 
 			// make channel proof
-			channelKey := host.ChannelKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
-			proof, proofHeight = suite.chainB.QueryProof(channelKey)
+			channelKey := host.ChannelKey(endpoint2.ChannelConfig.PortID, endpoint2.ChannelID)
+			proof, proofHeight = dymintChain.QueryProof(channelKey)
 
 			tc.malleate() // make changes as necessary
 
-			store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
+			store := dymintCounterpartyChain.App.GetIBCKeeper().ClientKeeper.ClientStore(dymintCounterpartyChain.GetContext(), endpoint1.ClientID)
 
 			err := clientState.VerifyChannelState(
-				store, suite.chainA.Codec, proofHeight, &prefix, proof,
-				path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, channel,
+				store, dymintCounterpartyChain.Codec, proofHeight, &prefix, proof,
+				endpoint2.ChannelConfig.PortID, endpoint2.ChannelID, channel,
 			)
 
 			if tc.expPass {
@@ -419,12 +473,14 @@ func (suite *DymintTestSuite) TestVerifyChannelState() {
 // in the light client on chainA. A send from chainB to chainA is simulated.
 func (suite *DymintTestSuite) TestVerifyPacketCommitment() {
 	var (
-		clientState      *types.ClientState
-		proof            []byte
-		delayTimePeriod  uint64
-		delayBlockPeriod uint64
-		proofHeight      exported.Height
-		prefix           commitmenttypes.MerklePrefix
+		clientState                          *types.ClientState
+		proof                                []byte
+		delayTimePeriod                      uint64
+		delayBlockPeriod                     uint64
+		proofHeight                          exported.Height
+		prefix                               commitmenttypes.MerklePrefix
+		dymintChain, dymintCounterpartyChain *ibctesting.TestChain
+		endpoint1, endpoint2                 *ibctesting.Endpoint
 	)
 
 	testCases := []struct {
@@ -490,32 +546,45 @@ func (suite *DymintTestSuite) TestVerifyPacketCommitment() {
 			// setup testing conditions
 			path := ibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.Setup(path)
-			packet := channeltypes.NewPacket(ibctesting.MockPacketData, 1, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, clienttypes.NewHeight(0, 100), 0)
-			err := path.EndpointB.SendPacket(packet)
+
+			if suite.chainB.TestChainClient.GetSelfClientType() == exported.Dymint {
+				dymintCounterpartyChain = suite.chainA
+				dymintChain = suite.chainB
+				endpoint1 = path.EndpointA
+				endpoint2 = path.EndpointB
+			} else {
+				dymintCounterpartyChain = suite.chainB
+				dymintChain = suite.chainA
+				endpoint1 = path.EndpointB
+				endpoint2 = path.EndpointA
+			}
+
+			packet := channeltypes.NewPacket(ibctesting.MockPacketData, 1, endpoint2.ChannelConfig.PortID, endpoint2.ChannelID, endpoint1.ChannelConfig.PortID, endpoint1.ChannelID, clienttypes.NewHeight(0, 100), 0)
+			err := endpoint2.SendPacket(packet)
 			suite.Require().NoError(err)
 
 			var ok bool
-			clientStateI := suite.chainA.GetClientState(path.EndpointA.ClientID)
+			clientStateI := dymintCounterpartyChain.GetClientState(endpoint1.ClientID)
 			clientState, ok = clientStateI.(*types.ClientState)
 			suite.Require().True(ok)
 
-			prefix = suite.chainB.GetPrefix()
+			prefix = dymintChain.GetPrefix()
 
 			// make packet commitment proof
 			packetKey := host.PacketCommitmentKey(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
-			proof, proofHeight = path.EndpointB.QueryProof(packetKey)
+			proof, proofHeight = endpoint2.QueryProof(packetKey)
 
 			// reset time and block delays to 0, malleate may change to a specific non-zero value.
 			delayTimePeriod = 0
 			delayBlockPeriod = 0
 			tc.malleate() // make changes as necessary
 
-			ctx := suite.chainA.GetContext()
-			store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(ctx, path.EndpointA.ClientID)
+			ctx := dymintCounterpartyChain.GetContext()
+			store := dymintCounterpartyChain.App.GetIBCKeeper().ClientKeeper.ClientStore(ctx, endpoint1.ClientID)
 
-			commitment := channeltypes.CommitPacket(suite.chainA.App.GetIBCKeeper().Codec(), packet)
+			commitment := channeltypes.CommitPacket(dymintCounterpartyChain.App.GetIBCKeeper().Codec(), packet)
 			err = clientState.VerifyPacketCommitment(
-				ctx, store, suite.chainA.Codec, proofHeight, delayTimePeriod, delayBlockPeriod, &prefix, proof,
+				ctx, store, dymintCounterpartyChain.Codec, proofHeight, delayTimePeriod, delayBlockPeriod, &prefix, proof,
 				packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence(), commitment,
 			)
 
@@ -533,12 +602,14 @@ func (suite *DymintTestSuite) TestVerifyPacketCommitment() {
 // is simulated.
 func (suite *DymintTestSuite) TestVerifyPacketAcknowledgement() {
 	var (
-		clientState      *types.ClientState
-		proof            []byte
-		delayTimePeriod  uint64
-		delayBlockPeriod uint64
-		proofHeight      exported.Height
-		prefix           commitmenttypes.MerklePrefix
+		clientState                          *types.ClientState
+		proof                                []byte
+		delayTimePeriod                      uint64
+		delayBlockPeriod                     uint64
+		proofHeight                          exported.Height
+		prefix                               commitmenttypes.MerklePrefix
+		dymintCounterpartyChain, dymintChain *ibctesting.TestChain
+		endpoint1, endpoint2                 *ibctesting.Endpoint
 	)
 
 	testCases := []struct {
@@ -604,37 +675,50 @@ func (suite *DymintTestSuite) TestVerifyPacketAcknowledgement() {
 			// setup testing conditions
 			path := ibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.Setup(path)
-			packet := channeltypes.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.NewHeight(0, 100), 0)
+
+			if suite.chainB.TestChainClient.GetSelfClientType() == exported.Dymint {
+				dymintCounterpartyChain = suite.chainA
+				dymintChain = suite.chainB
+				endpoint1 = path.EndpointA
+				endpoint2 = path.EndpointB
+			} else {
+				dymintCounterpartyChain = suite.chainB
+				dymintChain = suite.chainA
+				endpoint1 = path.EndpointB
+				endpoint2 = path.EndpointA
+			}
+
+			packet := channeltypes.NewPacket(ibctesting.MockPacketData, 1, endpoint1.ChannelConfig.PortID, endpoint1.ChannelID, endpoint2.ChannelConfig.PortID, endpoint2.ChannelID, clienttypes.NewHeight(0, 100), 0)
 
 			// send packet
-			err := path.EndpointA.SendPacket(packet)
+			err := endpoint1.SendPacket(packet)
 			suite.Require().NoError(err)
 
 			// write receipt and ack
-			err = path.EndpointB.RecvPacket(packet)
+			err = endpoint2.RecvPacket(packet)
 			suite.Require().NoError(err)
 
 			var ok bool
-			clientStateI := suite.chainA.GetClientState(path.EndpointA.ClientID)
+			clientStateI := dymintCounterpartyChain.GetClientState(endpoint1.ClientID)
 			clientState, ok = clientStateI.(*types.ClientState)
 			suite.Require().True(ok)
 
-			prefix = suite.chainB.GetPrefix()
+			prefix = dymintChain.GetPrefix()
 
 			// make packet acknowledgement proof
 			acknowledgementKey := host.PacketAcknowledgementKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
-			proof, proofHeight = suite.chainB.QueryProof(acknowledgementKey)
+			proof, proofHeight = dymintChain.QueryProof(acknowledgementKey)
 
 			// reset time and block delays to 0, malleate may change to a specific non-zero value.
 			delayTimePeriod = 0
 			delayBlockPeriod = 0
 			tc.malleate() // make changes as necessary
 
-			ctx := suite.chainA.GetContext()
-			store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(ctx, path.EndpointA.ClientID)
+			ctx := dymintCounterpartyChain.GetContext()
+			store := dymintCounterpartyChain.App.GetIBCKeeper().ClientKeeper.ClientStore(ctx, endpoint1.ClientID)
 
 			err = clientState.VerifyPacketAcknowledgement(
-				ctx, store, suite.chainA.Codec, proofHeight, delayTimePeriod, delayBlockPeriod, &prefix, proof,
+				ctx, store, dymintCounterpartyChain.Codec, proofHeight, delayTimePeriod, delayBlockPeriod, &prefix, proof,
 				packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence(), ibcmock.MockAcknowledgement.Acknowledgement(),
 			)
 
@@ -652,12 +736,14 @@ func (suite *DymintTestSuite) TestVerifyPacketAcknowledgement() {
 // no receive.
 func (suite *DymintTestSuite) TestVerifyPacketReceiptAbsence() {
 	var (
-		clientState      *types.ClientState
-		proof            []byte
-		delayTimePeriod  uint64
-		delayBlockPeriod uint64
-		proofHeight      exported.Height
-		prefix           commitmenttypes.MerklePrefix
+		clientState                          *types.ClientState
+		proof                                []byte
+		delayTimePeriod                      uint64
+		delayBlockPeriod                     uint64
+		proofHeight                          exported.Height
+		prefix                               commitmenttypes.MerklePrefix
+		dymintChain, dymintCounterpartyChain *ibctesting.TestChain
+		endpoint1, endpoint2                 *ibctesting.Endpoint
 	)
 
 	testCases := []struct {
@@ -723,33 +809,46 @@ func (suite *DymintTestSuite) TestVerifyPacketReceiptAbsence() {
 			// setup testing conditions
 			path := ibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.Setup(path)
-			packet := channeltypes.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.NewHeight(0, 100), 0)
+
+			if suite.chainB.TestChainClient.GetSelfClientType() == exported.Dymint {
+				dymintCounterpartyChain = suite.chainA
+				dymintChain = suite.chainB
+				endpoint1 = path.EndpointA
+				endpoint2 = path.EndpointB
+			} else {
+				dymintCounterpartyChain = suite.chainB
+				dymintChain = suite.chainA
+				endpoint1 = path.EndpointB
+				endpoint2 = path.EndpointA
+			}
+
+			packet := channeltypes.NewPacket(ibctesting.MockPacketData, 1, endpoint1.ChannelConfig.PortID, endpoint1.ChannelID, endpoint2.ChannelConfig.PortID, endpoint2.ChannelID, clienttypes.NewHeight(0, 100), 0)
 
 			// send packet, but no recv
-			err := path.EndpointA.SendPacket(packet)
+			err := endpoint1.SendPacket(packet)
 			suite.Require().NoError(err)
 
 			var ok bool
-			clientStateI := suite.chainA.GetClientState(path.EndpointA.ClientID)
+			clientStateI := dymintCounterpartyChain.GetClientState(endpoint1.ClientID)
 			clientState, ok = clientStateI.(*types.ClientState)
 			suite.Require().True(ok)
 
-			prefix = suite.chainB.GetPrefix()
+			prefix = dymintChain.GetPrefix()
 
 			// make packet receipt absence proof
 			receiptKey := host.PacketReceiptKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
-			proof, proofHeight = path.EndpointB.QueryProof(receiptKey)
+			proof, proofHeight = endpoint2.QueryProof(receiptKey)
 
 			// reset time and block delays to 0, malleate may change to a specific non-zero value.
 			delayTimePeriod = 0
 			delayBlockPeriod = 0
 			tc.malleate() // make changes as necessary
 
-			ctx := suite.chainA.GetContext()
-			store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(ctx, path.EndpointA.ClientID)
+			ctx := dymintCounterpartyChain.GetContext()
+			store := dymintCounterpartyChain.App.GetIBCKeeper().ClientKeeper.ClientStore(ctx, endpoint1.ClientID)
 
 			err = clientState.VerifyPacketReceiptAbsence(
-				ctx, store, suite.chainA.Codec, proofHeight, delayTimePeriod, delayBlockPeriod, &prefix, proof,
+				ctx, store, dymintCounterpartyChain.Codec, proofHeight, delayTimePeriod, delayBlockPeriod, &prefix, proof,
 				packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence(),
 			)
 
@@ -767,12 +866,14 @@ func (suite *DymintTestSuite) TestVerifyPacketReceiptAbsence() {
 // simulated.
 func (suite *DymintTestSuite) TestVerifyNextSeqRecv() {
 	var (
-		clientState      *types.ClientState
-		proof            []byte
-		delayTimePeriod  uint64
-		delayBlockPeriod uint64
-		proofHeight      exported.Height
-		prefix           commitmenttypes.MerklePrefix
+		clientState                          *types.ClientState
+		proof                                []byte
+		delayTimePeriod                      uint64
+		delayBlockPeriod                     uint64
+		proofHeight                          exported.Height
+		prefix                               commitmenttypes.MerklePrefix
+		dymintChain, dymintCounterpartyChain *ibctesting.TestChain
+		endpoint1, endpoint2                 *ibctesting.Endpoint
 	)
 
 	testCases := []struct {
@@ -839,37 +940,50 @@ func (suite *DymintTestSuite) TestVerifyNextSeqRecv() {
 			path := ibctesting.NewPath(suite.chainA, suite.chainB)
 			path.SetChannelOrdered()
 			suite.coordinator.Setup(path)
-			packet := channeltypes.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.NewHeight(0, 100), 0)
+
+			if suite.chainB.TestChainClient.GetSelfClientType() == exported.Dymint {
+				dymintCounterpartyChain = suite.chainA
+				dymintChain = suite.chainB
+				endpoint1 = path.EndpointA
+				endpoint2 = path.EndpointB
+			} else {
+				dymintCounterpartyChain = suite.chainB
+				dymintChain = suite.chainA
+				endpoint1 = path.EndpointB
+				endpoint2 = path.EndpointA
+			}
+
+			packet := channeltypes.NewPacket(ibctesting.MockPacketData, 1, endpoint1.ChannelConfig.PortID, endpoint1.ChannelID, endpoint2.ChannelConfig.PortID, endpoint2.ChannelID, clienttypes.NewHeight(0, 100), 0)
 
 			// send packet
-			err := path.EndpointA.SendPacket(packet)
+			err := endpoint1.SendPacket(packet)
 			suite.Require().NoError(err)
 
 			// next seq recv incremented
-			err = path.EndpointB.RecvPacket(packet)
+			err = endpoint2.RecvPacket(packet)
 			suite.Require().NoError(err)
 
 			var ok bool
-			clientStateI := suite.chainA.GetClientState(path.EndpointA.ClientID)
+			clientStateI := dymintCounterpartyChain.GetClientState(endpoint1.ClientID)
 			clientState, ok = clientStateI.(*types.ClientState)
 			suite.Require().True(ok)
 
-			prefix = suite.chainB.GetPrefix()
+			prefix = dymintChain.GetPrefix()
 
 			// make next seq recv proof
 			nextSeqRecvKey := host.NextSequenceRecvKey(packet.GetDestPort(), packet.GetDestChannel())
-			proof, proofHeight = suite.chainB.QueryProof(nextSeqRecvKey)
+			proof, proofHeight = dymintChain.QueryProof(nextSeqRecvKey)
 
 			// reset time and block delays to 0, malleate may change to a specific non-zero value.
 			delayTimePeriod = 0
 			delayBlockPeriod = 0
 			tc.malleate() // make changes as necessary
 
-			ctx := suite.chainA.GetContext()
-			store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(ctx, path.EndpointA.ClientID)
+			ctx := dymintCounterpartyChain.GetContext()
+			store := dymintCounterpartyChain.App.GetIBCKeeper().ClientKeeper.ClientStore(ctx, endpoint1.ClientID)
 
 			err = clientState.VerifyNextSequenceRecv(
-				ctx, store, suite.chainA.Codec, proofHeight, delayTimePeriod, delayBlockPeriod, &prefix, proof,
+				ctx, store, dymintCounterpartyChain.Codec, proofHeight, delayTimePeriod, delayBlockPeriod, &prefix, proof,
 				packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence()+1,
 			)
 

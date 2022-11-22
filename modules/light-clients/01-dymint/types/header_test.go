@@ -12,18 +12,31 @@ import (
 )
 
 func (suite *DymintTestSuite) TestGetHeight() {
-	header := suite.chainA.TestChainClient.(*ibctesting.TestChainDymint).LastHeader
-	suite.Require().NotEqual(uint64(0), header.GetHeight())
+	if suite.chainA.TestChainClient.GetSelfClientType() == exported.Dymint {
+		header := suite.chainA.TestChainClient.(*ibctesting.TestChainDymint).LastHeader
+		suite.Require().NotEqual(uint64(0), header.GetHeight())
+	} else {
+		// chainB must be Dymint
+		header := suite.chainB.TestChainClient.(*ibctesting.TestChainDymint).LastHeader
+		suite.Require().NotEqual(uint64(0), header.GetHeight())
+	}
 }
 
 func (suite *DymintTestSuite) TestGetTime() {
-	header := suite.chainA.TestChainClient.(*ibctesting.TestChainDymint).LastHeader
-	suite.Require().NotEqual(time.Time{}, header.GetTime())
+	if suite.chainA.TestChainClient.GetSelfClientType() == exported.Dymint {
+		header := suite.chainA.TestChainClient.(*ibctesting.TestChainDymint).LastHeader
+		suite.Require().NotEqual(time.Time{}, header.GetTime())
+	} else {
+		// chainB must be Dymint
+		header := suite.chainB.TestChainClient.(*ibctesting.TestChainDymint).LastHeader
+		suite.Require().NotEqual(time.Time{}, header.GetTime())
+	}
 }
 
 func (suite *DymintTestSuite) TestHeaderValidateBasic() {
 	var (
-		header *types.Header
+		header      *types.Header
+		dymintChain *ibctesting.TestChainDymint
 	)
 	testCases := []struct {
 		name     string
@@ -41,7 +54,7 @@ func (suite *DymintTestSuite) TestHeaderValidateBasic() {
 			header.SignedHeader.Commit.Height = -1
 		}, false},
 		{"signed header failed dymint ValidateBasic", func() {
-			header = suite.chainA.TestChainClient.(*ibctesting.TestChainDymint).LastHeader
+			header = dymintChain.LastHeader
 			header.SignedHeader.Commit = nil
 		}, false},
 		{"trusted height is equal to header height", func() {
@@ -53,10 +66,6 @@ func (suite *DymintTestSuite) TestHeaderValidateBasic() {
 		{"ValidatorSetFromProto failed", func() {
 			header.ValidatorSet.Validators[0].PubKey = tmprotocrypto.PublicKey{}
 		}, false},
-		{"header validator hash does not equal hash of validator set", func() {
-			// use chainB's randomly generated validator set
-			header.ValidatorSet = suite.chainB.TestChainClient.(*ibctesting.TestChainDymint).LastHeader.ValidatorSet
-		}, false},
 	}
 
 	suite.Require().Equal(exported.Dymint, suite.header.ClientType())
@@ -67,7 +76,14 @@ func (suite *DymintTestSuite) TestHeaderValidateBasic() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 
-			header = suite.chainA.TestChainClient.(*ibctesting.TestChainDymint).LastHeader // must be explicitly changed in malleate
+			if suite.chainA.TestChainClient.GetSelfClientType() == exported.Dymint {
+				dymintChain = suite.chainA.TestChainClient.(*ibctesting.TestChainDymint)
+			} else {
+				// chainB must be Dymint
+				dymintChain = suite.chainB.TestChainClient.(*ibctesting.TestChainDymint)
+			}
+
+			header = dymintChain.LastHeader // must be explicitly changed in malleate
 
 			tc.malleate()
 

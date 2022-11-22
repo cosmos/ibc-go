@@ -15,8 +15,10 @@ import (
 
 func (suite *DymintTestSuite) TestGetConsensusState() {
 	var (
-		height exported.Height
-		path   *ibctesting.Path
+		height                  exported.Height
+		path                    *ibctesting.Path
+		dymintCounterpartyChain *ibctesting.TestChain
+		endpointClientID        string
 	)
 
 	testCases := []struct {
@@ -36,16 +38,16 @@ func (suite *DymintTestSuite) TestGetConsensusState() {
 		{
 			"not a consensus state interface", func() {
 				// marshal an empty client state and set as consensus state
-				store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
-				clientStateBz := suite.chainA.App.GetIBCKeeper().ClientKeeper.MustMarshalClientState(&types.ClientState{})
+				store := dymintCounterpartyChain.App.GetIBCKeeper().ClientKeeper.ClientStore(dymintCounterpartyChain.GetContext(), endpointClientID)
+				clientStateBz := dymintCounterpartyChain.App.GetIBCKeeper().ClientKeeper.MustMarshalClientState(&types.ClientState{})
 				store.Set(host.ConsensusStateKey(height), clientStateBz)
 			}, false,
 		},
 		{
 			"invalid consensus state (solomachine)", func() {
 				// marshal and set solomachine consensus state
-				store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
-				consensusStateBz := suite.chainA.App.GetIBCKeeper().ClientKeeper.MustMarshalConsensusState(&solomachinetypes.ConsensusState{})
+				store := dymintCounterpartyChain.App.GetIBCKeeper().ClientKeeper.ClientStore(dymintCounterpartyChain.GetContext(), endpointClientID)
+				consensusStateBz := dymintCounterpartyChain.App.GetIBCKeeper().ClientKeeper.MustMarshalConsensusState(&solomachinetypes.ConsensusState{})
 				store.Set(host.ConsensusStateKey(height), consensusStateBz)
 			}, false,
 		},
@@ -59,17 +61,27 @@ func (suite *DymintTestSuite) TestGetConsensusState() {
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 
 			suite.coordinator.Setup(path)
-			clientState := suite.chainA.GetClientState(path.EndpointA.ClientID)
+
+			if suite.chainA.TestChainClient.GetSelfClientType() == exported.Dymint {
+				dymintCounterpartyChain = suite.chainB
+				endpointClientID = path.EndpointB.ClientID
+			} else {
+				// chainB must be Dymint
+				dymintCounterpartyChain = suite.chainA
+				endpointClientID = path.EndpointA.ClientID
+			}
+
+			clientState := dymintCounterpartyChain.GetClientState(endpointClientID)
 			height = clientState.GetLatestHeight()
 
 			tc.malleate() // change vars as necessary
 
-			store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
-			consensusState, err := types.GetConsensusState(store, suite.chainA.Codec, height)
+			store := dymintCounterpartyChain.App.GetIBCKeeper().ClientKeeper.ClientStore(dymintCounterpartyChain.GetContext(), endpointClientID)
+			consensusState, err := types.GetConsensusState(store, dymintCounterpartyChain.Codec, height)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
-				expConsensusState, found := suite.chainA.GetConsensusState(path.EndpointA.ClientID, height)
+				expConsensusState, found := dymintCounterpartyChain.GetConsensusState(endpointClientID, height)
 				suite.Require().True(found)
 				suite.Require().Equal(expConsensusState, consensusState)
 			} else {
@@ -81,37 +93,61 @@ func (suite *DymintTestSuite) TestGetConsensusState() {
 }
 
 func (suite *DymintTestSuite) TestGetProcessedTime() {
+	var (
+		dymintCounterpartyChain *ibctesting.TestChain
+		endpoint                *ibctesting.Endpoint
+		expectedTime            time.Time
+	)
 	// setup
 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
 
 	suite.coordinator.UpdateTime()
-	// coordinator increments time before creating client
-	expectedTime := suite.chainA.TestChainClient.(*ibctesting.TestChainDymint).CurrentHeader.Time.Add(ibctesting.TimeIncrement)
+
+	if suite.chainB.TestChainClient.GetSelfClientType() == exported.Tendermint {
+		// chainA must be Dymint
+		dymintCounterpartyChain = suite.chainB
+		endpoint = path.EndpointB
+		// coordinator increments time before creating client
+		expectedTime = dymintCounterpartyChain.TestChainClient.(*ibctesting.TestChainTendermint).CurrentHeader.Time.Add(ibctesting.TimeIncrement)
+	} else {
+		// chainB must be Dymint
+		dymintCounterpartyChain = suite.chainA
+		endpoint = path.EndpointA
+		if dymintCounterpartyChain.TestChainClient.GetSelfClientType() == exported.Tendermint {
+			expectedTime = dymintCounterpartyChain.TestChainClient.(*ibctesting.TestChainTendermint).CurrentHeader.Time.Add(ibctesting.TimeIncrement)
+		} else {
+			expectedTime = dymintCounterpartyChain.TestChainClient.(*ibctesting.TestChainDymint).CurrentHeader.Time.Add(ibctesting.TimeIncrement)
+		}
+	}
 
 	// Verify ProcessedTime on CreateClient
-	err := path.EndpointA.CreateClient()
+	err := endpoint.CreateClient()
 	suite.Require().NoError(err)
 
-	clientState := suite.chainA.GetClientState(path.EndpointA.ClientID)
+	clientState := dymintCounterpartyChain.GetClientState(endpoint.ClientID)
 	height := clientState.GetLatestHeight()
 
-	store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
+	store := dymintCounterpartyChain.App.GetIBCKeeper().ClientKeeper.ClientStore(dymintCounterpartyChain.GetContext(), endpoint.ClientID)
 	actualTime, ok := types.GetProcessedTime(store, height)
 	suite.Require().True(ok, "could not retrieve processed time for stored consensus state")
 	suite.Require().Equal(uint64(expectedTime.UnixNano()), actualTime, "retrieved processed time is not expected value")
 
 	suite.coordinator.UpdateTime()
 	// coordinator increments time before updating client
-	expectedTime = suite.chainA.TestChainClient.(*ibctesting.TestChainDymint).CurrentHeader.Time.Add(ibctesting.TimeIncrement)
+	if dymintCounterpartyChain.TestChainClient.GetSelfClientType() == exported.Tendermint {
+		expectedTime = dymintCounterpartyChain.TestChainClient.(*ibctesting.TestChainTendermint).CurrentHeader.Time.Add(ibctesting.TimeIncrement)
+	} else {
+		expectedTime = dymintCounterpartyChain.TestChainClient.(*ibctesting.TestChainDymint).CurrentHeader.Time.Add(ibctesting.TimeIncrement)
+	}
 
 	// Verify ProcessedTime on UpdateClient
-	err = path.EndpointA.UpdateClient()
+	err = endpoint.UpdateClient()
 	suite.Require().NoError(err)
 
-	clientState = suite.chainA.GetClientState(path.EndpointA.ClientID)
+	clientState = dymintCounterpartyChain.GetClientState(endpoint.ClientID)
 	height = clientState.GetLatestHeight()
 
-	store = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
+	store = dymintCounterpartyChain.App.GetIBCKeeper().ClientKeeper.ClientStore(dymintCounterpartyChain.GetContext(), endpoint.ClientID)
 	actualTime, ok = types.GetProcessedTime(store, height)
 	suite.Require().True(ok, "could not retrieve processed time for stored consensus state")
 	suite.Require().Equal(uint64(expectedTime.UnixNano()), actualTime, "retrieved processed time is not expected value")
@@ -136,19 +172,28 @@ func (suite *DymintTestSuite) TestIterationKey() {
 }
 
 func (suite *DymintTestSuite) TestIterateConsensusStates() {
+	var dymintCounterpartyChain *ibctesting.TestChain
+	if suite.chainB.TestChainClient.GetSelfClientType() == exported.Tendermint {
+		// chainA must be Dymint
+		dymintCounterpartyChain = suite.chainB
+	} else {
+		// chainB must be Dymint
+		dymintCounterpartyChain = suite.chainA
+	}
+
 	nextValsHash := []byte("nextVals")
 
 	// Set iteration keys and consensus states
-	types.SetIterationKey(suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), "testClient"), clienttypes.NewHeight(0, 1))
-	suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientConsensusState(suite.chainA.GetContext(), "testClient", clienttypes.NewHeight(0, 1), types.NewConsensusState(time.Now(), commitmenttypes.NewMerkleRoot([]byte("hash0-1")), nextValsHash))
-	types.SetIterationKey(suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), "testClient"), clienttypes.NewHeight(4, 9))
-	suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientConsensusState(suite.chainA.GetContext(), "testClient", clienttypes.NewHeight(4, 9), types.NewConsensusState(time.Now(), commitmenttypes.NewMerkleRoot([]byte("hash4-9")), nextValsHash))
-	types.SetIterationKey(suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), "testClient"), clienttypes.NewHeight(0, 10))
-	suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientConsensusState(suite.chainA.GetContext(), "testClient", clienttypes.NewHeight(0, 10), types.NewConsensusState(time.Now(), commitmenttypes.NewMerkleRoot([]byte("hash0-10")), nextValsHash))
-	types.SetIterationKey(suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), "testClient"), clienttypes.NewHeight(0, 4))
-	suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientConsensusState(suite.chainA.GetContext(), "testClient", clienttypes.NewHeight(0, 4), types.NewConsensusState(time.Now(), commitmenttypes.NewMerkleRoot([]byte("hash0-4")), nextValsHash))
-	types.SetIterationKey(suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), "testClient"), clienttypes.NewHeight(40, 1))
-	suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientConsensusState(suite.chainA.GetContext(), "testClient", clienttypes.NewHeight(40, 1), types.NewConsensusState(time.Now(), commitmenttypes.NewMerkleRoot([]byte("hash40-1")), nextValsHash))
+	types.SetIterationKey(dymintCounterpartyChain.App.GetIBCKeeper().ClientKeeper.ClientStore(dymintCounterpartyChain.GetContext(), "testClient"), clienttypes.NewHeight(0, 1))
+	dymintCounterpartyChain.App.GetIBCKeeper().ClientKeeper.SetClientConsensusState(dymintCounterpartyChain.GetContext(), "testClient", clienttypes.NewHeight(0, 1), types.NewConsensusState(time.Now(), commitmenttypes.NewMerkleRoot([]byte("hash0-1")), nextValsHash))
+	types.SetIterationKey(dymintCounterpartyChain.App.GetIBCKeeper().ClientKeeper.ClientStore(dymintCounterpartyChain.GetContext(), "testClient"), clienttypes.NewHeight(4, 9))
+	dymintCounterpartyChain.App.GetIBCKeeper().ClientKeeper.SetClientConsensusState(dymintCounterpartyChain.GetContext(), "testClient", clienttypes.NewHeight(4, 9), types.NewConsensusState(time.Now(), commitmenttypes.NewMerkleRoot([]byte("hash4-9")), nextValsHash))
+	types.SetIterationKey(dymintCounterpartyChain.App.GetIBCKeeper().ClientKeeper.ClientStore(dymintCounterpartyChain.GetContext(), "testClient"), clienttypes.NewHeight(0, 10))
+	dymintCounterpartyChain.App.GetIBCKeeper().ClientKeeper.SetClientConsensusState(dymintCounterpartyChain.GetContext(), "testClient", clienttypes.NewHeight(0, 10), types.NewConsensusState(time.Now(), commitmenttypes.NewMerkleRoot([]byte("hash0-10")), nextValsHash))
+	types.SetIterationKey(dymintCounterpartyChain.App.GetIBCKeeper().ClientKeeper.ClientStore(dymintCounterpartyChain.GetContext(), "testClient"), clienttypes.NewHeight(0, 4))
+	dymintCounterpartyChain.App.GetIBCKeeper().ClientKeeper.SetClientConsensusState(dymintCounterpartyChain.GetContext(), "testClient", clienttypes.NewHeight(0, 4), types.NewConsensusState(time.Now(), commitmenttypes.NewMerkleRoot([]byte("hash0-4")), nextValsHash))
+	types.SetIterationKey(dymintCounterpartyChain.App.GetIBCKeeper().ClientKeeper.ClientStore(dymintCounterpartyChain.GetContext(), "testClient"), clienttypes.NewHeight(40, 1))
+	dymintCounterpartyChain.App.GetIBCKeeper().ClientKeeper.SetClientConsensusState(dymintCounterpartyChain.GetContext(), "testClient", clienttypes.NewHeight(40, 1), types.NewConsensusState(time.Now(), commitmenttypes.NewMerkleRoot([]byte("hash40-1")), nextValsHash))
 
 	var testArr []string
 	cb := func(height exported.Height) bool {
@@ -156,12 +201,21 @@ func (suite *DymintTestSuite) TestIterateConsensusStates() {
 		return false
 	}
 
-	types.IterateConsensusStateAscending(suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), "testClient"), cb)
+	types.IterateConsensusStateAscending(dymintCounterpartyChain.App.GetIBCKeeper().ClientKeeper.ClientStore(dymintCounterpartyChain.GetContext(), "testClient"), cb)
 	expectedArr := []string{"0-1", "0-4", "0-10", "4-9", "40-1"}
 	suite.Require().Equal(expectedArr, testArr)
 }
 
 func (suite *DymintTestSuite) TestGetNeighboringConsensusStates() {
+	var dymintCounterpartyChain *ibctesting.TestChain
+	if suite.chainB.TestChainClient.GetSelfClientType() == exported.Tendermint {
+		// chainA must be Dymint
+		dymintCounterpartyChain = suite.chainB
+	} else {
+		// chainB must be Dymint
+		dymintCounterpartyChain = suite.chainA
+	}
+
 	nextValsHash := []byte("nextVals")
 	cs01 := types.NewConsensusState(time.Now().UTC(), commitmenttypes.NewMerkleRoot([]byte("hash0-1")), nextValsHash)
 	cs04 := types.NewConsensusState(time.Now().UTC(), commitmenttypes.NewMerkleRoot([]byte("hash0-4")), nextValsHash)
@@ -171,24 +225,24 @@ func (suite *DymintTestSuite) TestGetNeighboringConsensusStates() {
 	height49 := clienttypes.NewHeight(4, 9)
 
 	// Set iteration keys and consensus states
-	types.SetIterationKey(suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), "testClient"), height01)
-	suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientConsensusState(suite.chainA.GetContext(), "testClient", height01, cs01)
-	types.SetIterationKey(suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), "testClient"), height04)
-	suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientConsensusState(suite.chainA.GetContext(), "testClient", height04, cs04)
-	types.SetIterationKey(suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), "testClient"), height49)
-	suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientConsensusState(suite.chainA.GetContext(), "testClient", height49, cs49)
+	types.SetIterationKey(dymintCounterpartyChain.App.GetIBCKeeper().ClientKeeper.ClientStore(dymintCounterpartyChain.GetContext(), "testClient"), height01)
+	dymintCounterpartyChain.App.GetIBCKeeper().ClientKeeper.SetClientConsensusState(dymintCounterpartyChain.GetContext(), "testClient", height01, cs01)
+	types.SetIterationKey(dymintCounterpartyChain.App.GetIBCKeeper().ClientKeeper.ClientStore(dymintCounterpartyChain.GetContext(), "testClient"), height04)
+	dymintCounterpartyChain.App.GetIBCKeeper().ClientKeeper.SetClientConsensusState(dymintCounterpartyChain.GetContext(), "testClient", height04, cs04)
+	types.SetIterationKey(dymintCounterpartyChain.App.GetIBCKeeper().ClientKeeper.ClientStore(dymintCounterpartyChain.GetContext(), "testClient"), height49)
+	dymintCounterpartyChain.App.GetIBCKeeper().ClientKeeper.SetClientConsensusState(dymintCounterpartyChain.GetContext(), "testClient", height49, cs49)
 
-	prevCs01, ok := types.GetPreviousConsensusState(suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), "testClient"), suite.chainA.Codec, height01)
+	prevCs01, ok := types.GetPreviousConsensusState(dymintCounterpartyChain.App.GetIBCKeeper().ClientKeeper.ClientStore(dymintCounterpartyChain.GetContext(), "testClient"), dymintCounterpartyChain.Codec, height01)
 	suite.Require().Nil(prevCs01, "consensus state exists before lowest consensus state")
 	suite.Require().False(ok)
-	prevCs49, ok := types.GetPreviousConsensusState(suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), "testClient"), suite.chainA.Codec, height49)
+	prevCs49, ok := types.GetPreviousConsensusState(dymintCounterpartyChain.App.GetIBCKeeper().ClientKeeper.ClientStore(dymintCounterpartyChain.GetContext(), "testClient"), dymintCounterpartyChain.Codec, height49)
 	suite.Require().Equal(cs04, prevCs49, "previous consensus state is not returned correctly")
 	suite.Require().True(ok)
 
-	nextCs01, ok := types.GetNextConsensusState(suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), "testClient"), suite.chainA.Codec, height01)
+	nextCs01, ok := types.GetNextConsensusState(dymintCounterpartyChain.App.GetIBCKeeper().ClientKeeper.ClientStore(dymintCounterpartyChain.GetContext(), "testClient"), dymintCounterpartyChain.Codec, height01)
 	suite.Require().Equal(cs04, nextCs01, "next consensus state not returned correctly")
 	suite.Require().True(ok)
-	nextCs49, ok := types.GetNextConsensusState(suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), "testClient"), suite.chainA.Codec, height49)
+	nextCs49, ok := types.GetNextConsensusState(dymintCounterpartyChain.App.GetIBCKeeper().ClientKeeper.ClientStore(dymintCounterpartyChain.GetContext(), "testClient"), dymintCounterpartyChain.Codec, height49)
 	suite.Require().Nil(nextCs49, "next consensus state exists after highest consensus state")
 	suite.Require().False(ok)
 }

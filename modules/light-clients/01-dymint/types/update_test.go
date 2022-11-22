@@ -44,7 +44,7 @@ func (suite *DymintTestSuite) TestCheckHeaderAndUpdateState() {
 	altValSet := tmtypes.NewValidatorSet([]*tmtypes.Validator{altVal})
 	altSigners := []tmtypes.PrivValidator{altPrivVal}
 
-	chainADymint := suite.chainA.TestChainClient.(*ibctesting.TestChainDymint)
+	var chainADymint *ibctesting.TestChainDymint
 
 	testCases := []struct {
 		name      string
@@ -314,7 +314,9 @@ func (suite *DymintTestSuite) TestCheckHeaderAndUpdateState() {
 	for i, tc := range testCases {
 		tc := tc
 		suite.Run(fmt.Sprintf("Case: %s", tc.name), func() {
-			suite.SetupTest() // reset metadata writes
+			suite.SetupTestWithConsensusType(exported.Dymint, exported.Tendermint) // reset
+			chainADymint = suite.chainA.TestChainClient.(*ibctesting.TestChainDymint)
+
 			// Create bothValSet with both suite validator and altVal. Would be valid update
 			bothValSet = tmtypes.NewValidatorSet(append(suite.valSet.Validators, altVal))
 			signers = []tmtypes.PrivValidator{suite.privVal}

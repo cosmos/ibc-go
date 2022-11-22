@@ -71,6 +71,10 @@ func NewChainDymintClient(tc *TestChain) *TestChainDymint {
 	return chain
 }
 
+func (chain *TestChainDymint) GetSelfClientType() string {
+	return exported.Dymint
+}
+
 func (chain *TestChainDymint) NewConfig() ClientConfig {
 	return &DymintConfig{
 		TrustLevel:                   DefaultDymintTrustLevel,
@@ -111,27 +115,12 @@ func (chain *TestChainDymint) NextBlock() {
 	chain.BeginBlock()
 }
 
-// ConstructUpdateClientHeader will construct a valid 01-dymint Header to update the
-// light client on the source chain.
-func (chain *TestChainDymint) ConstructUpdateClientHeader(counterparty *TestChain, clientID string) (exported.Header, error) {
-	return chain.ConstructUpdateDMClientHeader(counterparty, clientID)
-}
-
 // ConstructUpdateDMClientHeader will construct a valid 01-dymint Header to update the
 // light client on the source chain.
-func (chain *TestChainDymint) ConstructUpdateDMClientHeader(counterparty *TestChain, clientID string) (*ibcdmtypes.Header, error) {
-	return chain.ConstructUpdateDMClientHeaderWithTrustedHeight(counterparty, clientID, clienttypes.ZeroHeight())
-}
-
-// ConstructUpdateDMClientHeader will construct a valid 01-dymint Header to update the
-// light client on the source chain.
-func (chain *TestChainDymint) ConstructUpdateDMClientHeaderWithTrustedHeight(counterparty *TestChain, clientID string, trustedHeight clienttypes.Height) (*ibcdmtypes.Header, error) {
+func ConstructUpdateDMClientHeaderWithTrustedHeight(counterparty *TestChain, clientID string, trustedHeight clienttypes.Height) (*ibcdmtypes.Header, error) {
 	counterpartyTestChainDymint := counterparty.TestChainClient.(*TestChainDymint)
 	header := counterpartyTestChainDymint.LastHeader
-	// Relayer must query for LatestHeight on client to get TrustedHeight if the trusted height is not set
-	if trustedHeight.IsZero() {
-		trustedHeight = chain.TC.GetClientState(clientID).GetLatestHeight().(clienttypes.Height)
-	}
+
 	var (
 		tmTrustedVals *tmtypes.ValidatorSet
 		ok            bool

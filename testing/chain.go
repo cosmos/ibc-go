@@ -438,6 +438,8 @@ func (chain *TestChain) ConstructUpdateClientHeader(counterparty *TestChain, cli
 	switch counterparty.TestChainClient.GetSelfClientType() {
 	case exported.Tendermint:
 		return ConstructUpdateTMClientHeaderWithTrustedHeight(counterparty, clientID, trustedHeight)
+	case exported.Dymint:
+		return ConstructUpdateDMClientHeaderWithTrustedHeight(counterparty, clientID, trustedHeight)
 	default:
 		panic(fmt.Sprintf("client type %s is not supported", counterparty.TestChainClient.GetSelfClientType()))
 	}

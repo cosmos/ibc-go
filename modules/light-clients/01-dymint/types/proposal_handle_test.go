@@ -1,11 +1,13 @@
 package types_test
 
 import (
+	fmt "fmt"
 	"time"
 
 	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v3/modules/core/exported"
 	"github.com/cosmos/ibc-go/v3/modules/light-clients/01-dymint/types"
+	tmtypes "github.com/cosmos/ibc-go/v3/modules/light-clients/07-tendermint/types"
 	ibctesting "github.com/cosmos/ibc-go/v3/testing"
 )
 
@@ -30,11 +32,21 @@ func (suite *DymintTestSuite) TestCheckSubstituteUpdateStateBasic() {
 		{
 			"non-matching substitute", func() {
 				suite.coordinator.SetupClients(substitutePath)
-				substituteClientState = suite.chainA.GetClientState(substitutePath.EndpointA.ClientID).(*types.ClientState)
-				tmClientState, ok := substituteClientState.(*types.ClientState)
-				suite.Require().True(ok)
+				substituteClientState = suite.chainA.GetClientState(substitutePath.EndpointA.ClientID)
+				switch substituteClientState.ClientType() {
+				case exported.Dymint:
+					dmClientState, ok := substituteClientState.(*types.ClientState)
+					suite.Require().True(ok)
 
-				tmClientState.ChainId = tmClientState.ChainId + "different chain"
+					dmClientState.ChainId = dmClientState.ChainId + "different chain"
+				case exported.Tendermint:
+					tmClientState, ok := substituteClientState.(*tmtypes.ClientState)
+					suite.Require().True(ok)
+
+					tmClientState.ChainId = tmClientState.ChainId + "different chain"
+				default:
+					panic(fmt.Sprintf("client type %s is not supported", substituteClientState.ClientType()))
+				}
 			},
 		},
 	}
@@ -49,12 +61,24 @@ func (suite *DymintTestSuite) TestCheckSubstituteUpdateStateBasic() {
 			substitutePath = ibctesting.NewPath(suite.chainA, suite.chainB)
 
 			suite.coordinator.SetupClients(subjectPath)
-			subjectClientState := suite.chainA.GetClientState(subjectPath.EndpointA.ClientID).(*types.ClientState)
-			subjectClientState.AllowUpdateAfterMisbehaviour = true
-			subjectClientState.AllowUpdateAfterExpiry = true
+			subjectClientState := suite.chainA.GetClientState(subjectPath.EndpointA.ClientID)
+			switch subjectClientState.ClientType() {
+			case exported.Dymint:
+				subjectDMClientState := subjectClientState.(*types.ClientState)
+				subjectDMClientState.AllowUpdateAfterMisbehaviour = true
+				subjectDMClientState.AllowUpdateAfterExpiry = true
+				// expire subject client
+				suite.coordinator.IncrementTimeBy(subjectDMClientState.TrustingPeriod)
+			case exported.Tendermint:
+				subjectTMClientState := subjectClientState.(*tmtypes.ClientState)
+				subjectTMClientState.AllowUpdateAfterMisbehaviour = true
+				subjectTMClientState.AllowUpdateAfterExpiry = true
+				// expire subject client
+				suite.coordinator.IncrementTimeBy(subjectTMClientState.TrustingPeriod)
+			default:
+				panic(fmt.Sprintf("client type %s is not supported", subjectClientState.ClientType()))
+			}
 
-			// expire subject client
-			suite.coordinator.IncrementTimeBy(subjectClientState.TrustingPeriod)
 			suite.coordinator.CommitBlock(suite.chainA, suite.chainB)
 
 			tc.malleate()
@@ -224,18 +248,40 @@ func (suite *DymintTestSuite) TestCheckSubstituteAndUpdateState() {
 			// construct subject using test case parameters
 			subjectPath := ibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupClients(subjectPath)
-			subjectClientState := suite.chainA.GetClientState(subjectPath.EndpointA.ClientID).(*types.ClientState)
-			subjectClientState.AllowUpdateAfterExpiry = tc.AllowUpdateAfterExpiry
-			subjectClientState.AllowUpdateAfterMisbehaviour = tc.AllowUpdateAfterMisbehaviour
 
-			// apply freezing or expiry as determined by the test case
-			if tc.FreezeClient {
-				subjectClientState.FrozenHeight = frozenHeight
-			}
-			if tc.ExpireClient {
-				// expire subject client
-				suite.coordinator.IncrementTimeBy(subjectClientState.TrustingPeriod)
-				suite.coordinator.CommitBlock(suite.chainA, suite.chainB)
+			subjectClientState := suite.chainA.GetClientState(subjectPath.EndpointA.ClientID)
+			switch subjectClientState.ClientType() {
+			case exported.Dymint:
+				subjectDMClientState := subjectClientState.(*types.ClientState)
+				subjectDMClientState.AllowUpdateAfterMisbehaviour = tc.AllowUpdateAfterMisbehaviour
+				subjectDMClientState.AllowUpdateAfterExpiry = tc.AllowUpdateAfterExpiry
+
+				// apply freezing or expiry as determined by the test case
+				if tc.FreezeClient {
+					subjectDMClientState.FrozenHeight = frozenHeight
+				}
+				if tc.ExpireClient {
+					// expire subject client
+					suite.coordinator.IncrementTimeBy(subjectDMClientState.TrustingPeriod)
+					suite.coordinator.CommitBlock(suite.chainA, suite.chainB)
+				}
+			case exported.Tendermint:
+				subjectTMClientState := subjectClientState.(*tmtypes.ClientState)
+				subjectTMClientState.AllowUpdateAfterMisbehaviour = tc.AllowUpdateAfterMisbehaviour
+				subjectTMClientState.AllowUpdateAfterExpiry = tc.AllowUpdateAfterExpiry
+
+				// apply freezing or expiry as determined by the test case
+				if tc.FreezeClient {
+					subjectTMClientState.FrozenHeight = frozenHeight
+				}
+				if tc.ExpireClient {
+					// expire subject client
+					suite.coordinator.IncrementTimeBy(subjectTMClientState.TrustingPeriod)
+					suite.coordinator.CommitBlock(suite.chainA, suite.chainB)
+				}
+
+			default:
+				panic(fmt.Sprintf("client type %s is not supported", subjectClientState.ClientType()))
 			}
 
 			// construct the substitute to match the subject client
@@ -246,9 +292,21 @@ func (suite *DymintTestSuite) TestCheckSubstituteAndUpdateState() {
 
 			substitutePath := ibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupClients(substitutePath)
-			substituteClientState := suite.chainA.GetClientState(substitutePath.EndpointA.ClientID).(*types.ClientState)
-			substituteClientState.AllowUpdateAfterExpiry = tc.AllowUpdateAfterExpiry
-			substituteClientState.AllowUpdateAfterMisbehaviour = tc.AllowUpdateAfterMisbehaviour
+
+			substituteClientState := suite.chainA.GetClientState(substitutePath.EndpointA.ClientID)
+			switch substituteClientState.ClientType() {
+			case exported.Dymint:
+				substituteDMClientState := substituteClientState.(*types.ClientState)
+				substituteDMClientState.AllowUpdateAfterMisbehaviour = tc.AllowUpdateAfterMisbehaviour
+				substituteDMClientState.AllowUpdateAfterExpiry = tc.AllowUpdateAfterExpiry
+			case exported.Tendermint:
+				substituteTMClientState := substituteClientState.(*tmtypes.ClientState)
+				substituteTMClientState.AllowUpdateAfterMisbehaviour = tc.AllowUpdateAfterMisbehaviour
+				substituteTMClientState.AllowUpdateAfterExpiry = tc.AllowUpdateAfterExpiry
+			default:
+				panic(fmt.Sprintf("client type %s is not supported", subjectClientState.ClientType()))
+			}
+
 			suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), substitutePath.EndpointA.ClientID, substituteClientState)
 
 			// update substitute a few times
@@ -259,12 +317,20 @@ func (suite *DymintTestSuite) TestCheckSubstituteAndUpdateState() {
 				suite.coordinator.CommitBlock(suite.chainA, suite.chainB)
 			}
 
-			// get updated substitute
-			substituteClientState = suite.chainA.GetClientState(substitutePath.EndpointA.ClientID).(*types.ClientState)
-
 			// test that subject gets updated chain-id
 			newChainID := "new-chain-id"
-			substituteClientState.ChainId = newChainID
+			// get updated substitute
+			substituteClientState = suite.chainA.GetClientState(substitutePath.EndpointA.ClientID)
+			switch substituteClientState.ClientType() {
+			case exported.Dymint:
+				substituteDMClientState := substituteClientState.(*types.ClientState)
+				substituteDMClientState.ChainId = newChainID
+			case exported.Tendermint:
+				substituteTMClientState := substituteClientState.(*tmtypes.ClientState)
+				substituteTMClientState.ChainId = newChainID
+			default:
+				panic(fmt.Sprintf("client type %s is not supported", subjectClientState.ClientType()))
+			}
 
 			subjectClientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), subjectPath.EndpointA.ClientID)
 			substituteClientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), substitutePath.EndpointA.ClientID)
@@ -280,7 +346,21 @@ func (suite *DymintTestSuite) TestCheckSubstituteAndUpdateState() {
 
 			if tc.expPass {
 				suite.Require().NoError(err)
-				suite.Require().Equal(clienttypes.ZeroHeight(), updatedClient.(*types.ClientState).FrozenHeight)
+
+				updatedClientChainId := newChainID
+				FrozenHeight := clienttypes.ZeroHeight()
+				switch updatedClient.ClientType() {
+				case exported.Dymint:
+					updatedClientChainId = updatedClient.(*types.ClientState).ChainId
+					FrozenHeight = updatedClient.(*types.ClientState).FrozenHeight
+				case exported.Tendermint:
+					updatedClientChainId = updatedClient.(*tmtypes.ClientState).ChainId
+					FrozenHeight = updatedClient.(*tmtypes.ClientState).FrozenHeight
+				default:
+					panic(fmt.Sprintf("client type %s is not supported", subjectClientState.ClientType()))
+				}
+				suite.Require().Equal(newChainID, updatedClientChainId)
+				suite.Require().Equal(clienttypes.ZeroHeight(), FrozenHeight)
 
 				subjectClientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), subjectPath.EndpointA.ClientID)
 
@@ -298,7 +378,6 @@ func (suite *DymintTestSuite) TestCheckSubstituteAndUpdateState() {
 				suite.Require().Equal(expectedProcessedHeight, subjectProcessedHeight)
 				suite.Require().Equal(expectedIterationKey, subjectIterationKey)
 
-				suite.Require().Equal(newChainID, updatedClient.(*types.ClientState).ChainId)
 			} else {
 				suite.Require().Error(err)
 				suite.Require().Nil(updatedClient)
@@ -321,8 +400,18 @@ func (suite *DymintTestSuite) TestIsMatchingClientState() {
 	}{
 		{
 			"matching clients", func() {
-				subjectClientState = suite.chainA.GetClientState(subjectPath.EndpointA.ClientID).(*types.ClientState)
-				substituteClientState = suite.chainA.GetClientState(substitutePath.EndpointA.ClientID).(*types.ClientState)
+				switch suite.chainA.TestChainClient.GetSelfClientType() {
+				case exported.Dymint:
+					// ChainBs' counterparty client is Dymint
+					subjectClientState = suite.chainB.GetClientState(subjectPath.EndpointB.ClientID).(*types.ClientState)
+					substituteClientState = suite.chainB.GetClientState(substitutePath.EndpointB.ClientID).(*types.ClientState)
+				case exported.Tendermint:
+					// ChainAs' counterparty client is Dymint
+					subjectClientState = suite.chainA.GetClientState(subjectPath.EndpointA.ClientID).(*types.ClientState)
+					substituteClientState = suite.chainA.GetClientState(substitutePath.EndpointA.ClientID).(*types.ClientState)
+				default:
+					panic(fmt.Sprintf("client type %s is not supported", subjectClientState.ClientType()))
+				}
 			}, true,
 		},
 		{

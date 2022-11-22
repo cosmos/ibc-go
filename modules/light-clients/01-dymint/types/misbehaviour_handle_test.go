@@ -16,6 +16,7 @@ import (
 )
 
 func (suite *DymintTestSuite) TestCheckMisbehaviourAndUpdateState() {
+	var chainDymint *ibctesting.TestChainDymint
 	altPrivVal := ibctestingmock.NewPV()
 	altPubKey, err := altPrivVal.GetPubKey()
 	suite.Require().NoError(err)
@@ -38,7 +39,11 @@ func (suite *DymintTestSuite) TestCheckMisbehaviourAndUpdateState() {
 	heightMinus1 := clienttypes.NewHeight(height.RevisionNumber, height.RevisionHeight-1)
 	heightMinus3 := clienttypes.NewHeight(height.RevisionNumber, height.RevisionHeight-3)
 
-	chainADymint := suite.chainA.TestChainClient.(*ibctesting.TestChainDymint)
+	if suite.chainA.TestChainClient.GetSelfClientType() == exported.Dymint {
+		chainDymint = suite.chainA.TestChainClient.(*ibctesting.TestChainDymint)
+	} else {
+		chainDymint = suite.chainB.TestChainClient.(*ibctesting.TestChainDymint)
+	}
 
 	testCases := []struct {
 		name            string
@@ -59,8 +64,8 @@ func (suite *DymintTestSuite) TestCheckMisbehaviourAndUpdateState() {
 			types.NewConsensusState(suite.now, commitmenttypes.NewMerkleRoot(tmhash.Sum([]byte("app_hash"))), bothValsHash),
 			height,
 			&types.Misbehaviour{
-				Header1:  chainADymint.CreateDMClientHeader(chainID, int64(height.RevisionHeight+1), height, suite.now, bothValSet, bothValSet, bothSigners),
-				Header2:  chainADymint.CreateDMClientHeader(chainID, int64(height.RevisionHeight+1), height, suite.now.Add(time.Minute), bothValSet, bothValSet, bothSigners),
+				Header1:  chainDymint.CreateDMClientHeader(chainID, int64(height.RevisionHeight+1), height, suite.now, bothValSet, bothValSet, bothSigners),
+				Header2:  chainDymint.CreateDMClientHeader(chainID, int64(height.RevisionHeight+1), height, suite.now.Add(time.Minute), bothValSet, bothValSet, bothSigners),
 				ClientId: chainID,
 			},
 			suite.now,
@@ -74,8 +79,8 @@ func (suite *DymintTestSuite) TestCheckMisbehaviourAndUpdateState() {
 			types.NewConsensusState(suite.now, commitmenttypes.NewMerkleRoot(tmhash.Sum([]byte("app_hash"))), bothValsHash),
 			height,
 			&types.Misbehaviour{
-				Header1:  chainADymint.CreateDMClientHeader(chainID, int64(height.RevisionHeight+3), height, suite.now, bothValSet, bothValSet, bothSigners),
-				Header2:  chainADymint.CreateDMClientHeader(chainID, int64(height.RevisionHeight+1), height, suite.now, bothValSet, bothValSet, bothSigners),
+				Header1:  chainDymint.CreateDMClientHeader(chainID, int64(height.RevisionHeight+3), height, suite.now, bothValSet, bothValSet, bothSigners),
+				Header2:  chainDymint.CreateDMClientHeader(chainID, int64(height.RevisionHeight+1), height, suite.now, bothValSet, bothValSet, bothSigners),
 				ClientId: chainID,
 			},
 			suite.now,
@@ -89,8 +94,8 @@ func (suite *DymintTestSuite) TestCheckMisbehaviourAndUpdateState() {
 			types.NewConsensusState(suite.now, commitmenttypes.NewMerkleRoot(tmhash.Sum([]byte("app_hash"))), bothValsHash),
 			height,
 			&types.Misbehaviour{
-				Header1:  chainADymint.CreateDMClientHeader(chainID, int64(height.RevisionHeight+3), height, suite.now, bothValSet, bothValSet, bothSigners),
-				Header2:  chainADymint.CreateDMClientHeader(chainID, int64(height.RevisionHeight+1), height, suite.now.Add(time.Hour), bothValSet, bothValSet, bothSigners),
+				Header1:  chainDymint.CreateDMClientHeader(chainID, int64(height.RevisionHeight+3), height, suite.now, bothValSet, bothValSet, bothSigners),
+				Header2:  chainDymint.CreateDMClientHeader(chainID, int64(height.RevisionHeight+1), height, suite.now.Add(time.Hour), bothValSet, bothValSet, bothSigners),
 				ClientId: chainID,
 			},
 			suite.now,
@@ -104,8 +109,8 @@ func (suite *DymintTestSuite) TestCheckMisbehaviourAndUpdateState() {
 			types.NewConsensusState(suite.now, commitmenttypes.NewMerkleRoot(tmhash.Sum([]byte("app_hash"))), bothValsHash),
 			heightMinus1,
 			&types.Misbehaviour{
-				Header1:  chainADymint.CreateDMClientHeader(chainID, int64(height.RevisionHeight+1), heightMinus1, suite.now, bothValSet, bothValSet, bothSigners),
-				Header2:  chainADymint.CreateDMClientHeader(chainID, int64(height.RevisionHeight+1), heightMinus1, suite.now.Add(time.Minute), bothValSet, bothValSet, bothSigners),
+				Header1:  chainDymint.CreateDMClientHeader(chainID, int64(height.RevisionHeight+1), heightMinus1, suite.now, bothValSet, bothValSet, bothSigners),
+				Header2:  chainDymint.CreateDMClientHeader(chainID, int64(height.RevisionHeight+1), heightMinus1, suite.now.Add(time.Minute), bothValSet, bothValSet, bothSigners),
 				ClientId: chainID,
 			},
 			suite.now,
@@ -119,8 +124,8 @@ func (suite *DymintTestSuite) TestCheckMisbehaviourAndUpdateState() {
 			types.NewConsensusState(suite.now, commitmenttypes.NewMerkleRoot(tmhash.Sum([]byte("app_hash"))), suite.valsHash),
 			heightMinus3,
 			&types.Misbehaviour{
-				Header1:  chainADymint.CreateDMClientHeader(chainID, int64(height.RevisionHeight+1), heightMinus1, suite.now, bothValSet, bothValSet, bothSigners),
-				Header2:  chainADymint.CreateDMClientHeader(chainID, int64(height.RevisionHeight+1), heightMinus3, suite.now.Add(time.Minute), bothValSet, suite.valSet, bothSigners),
+				Header1:  chainDymint.CreateDMClientHeader(chainID, int64(height.RevisionHeight+1), heightMinus1, suite.now, bothValSet, bothValSet, bothSigners),
+				Header2:  chainDymint.CreateDMClientHeader(chainID, int64(height.RevisionHeight+1), heightMinus3, suite.now.Add(time.Minute), bothValSet, suite.valSet, bothSigners),
 				ClientId: chainID,
 			},
 			suite.now,
@@ -134,8 +139,8 @@ func (suite *DymintTestSuite) TestCheckMisbehaviourAndUpdateState() {
 			types.NewConsensusState(suite.now, commitmenttypes.NewMerkleRoot(tmhash.Sum([]byte("app_hash"))), suite.valsHash),
 			heightMinus3,
 			&types.Misbehaviour{
-				Header1:  chainADymint.CreateDMClientHeader(chainIDRevision0, int64(height.RevisionHeight+1), heightMinus1, suite.now, bothValSet, bothValSet, bothSigners),
-				Header2:  chainADymint.CreateDMClientHeader(chainIDRevision0, int64(height.RevisionHeight+1), heightMinus3, suite.now.Add(time.Minute), bothValSet, suite.valSet, bothSigners),
+				Header1:  chainDymint.CreateDMClientHeader(chainIDRevision0, int64(height.RevisionHeight+1), heightMinus1, suite.now, bothValSet, bothValSet, bothSigners),
+				Header2:  chainDymint.CreateDMClientHeader(chainIDRevision0, int64(height.RevisionHeight+1), heightMinus3, suite.now.Add(time.Minute), bothValSet, suite.valSet, bothSigners),
 				ClientId: chainID,
 			},
 			suite.now,
@@ -149,8 +154,8 @@ func (suite *DymintTestSuite) TestCheckMisbehaviourAndUpdateState() {
 			types.NewConsensusState(suite.now, commitmenttypes.NewMerkleRoot(tmhash.Sum([]byte("app_hash"))), suite.valsHash),
 			heightMinus3,
 			&types.Misbehaviour{
-				Header1:  chainADymint.CreateDMClientHeader(chainIDRevision0, 3, heightMinus1, suite.now, bothValSet, bothValSet, bothSigners),
-				Header2:  chainADymint.CreateDMClientHeader(chainIDRevision0, 3, heightMinus3, suite.now.Add(time.Minute), bothValSet, suite.valSet, bothSigners),
+				Header1:  chainDymint.CreateDMClientHeader(chainIDRevision0, 3, heightMinus1, suite.now, bothValSet, bothValSet, bothSigners),
+				Header2:  chainDymint.CreateDMClientHeader(chainIDRevision0, 3, heightMinus3, suite.now.Add(time.Minute), bothValSet, suite.valSet, bothSigners),
 				ClientId: chainID,
 			},
 			suite.now,
@@ -164,8 +169,8 @@ func (suite *DymintTestSuite) TestCheckMisbehaviourAndUpdateState() {
 			types.NewConsensusState(suite.now, commitmenttypes.NewMerkleRoot(tmhash.Sum([]byte("app_hash"))), suite.valsHash),
 			heightMinus3,
 			&types.Misbehaviour{
-				Header1:  chainADymint.CreateDMClientHeader(chainIDRevision1, 1, heightMinus1, suite.now, bothValSet, bothValSet, bothSigners),
-				Header2:  chainADymint.CreateDMClientHeader(chainIDRevision1, 1, heightMinus3, suite.now.Add(time.Minute), bothValSet, suite.valSet, bothSigners),
+				Header1:  chainDymint.CreateDMClientHeader(chainIDRevision1, 1, heightMinus1, suite.now, bothValSet, bothValSet, bothSigners),
+				Header2:  chainDymint.CreateDMClientHeader(chainIDRevision1, 1, heightMinus3, suite.now.Add(time.Minute), bothValSet, suite.valSet, bothSigners),
 				ClientId: chainID,
 			},
 			suite.now,
@@ -179,8 +184,8 @@ func (suite *DymintTestSuite) TestCheckMisbehaviourAndUpdateState() {
 			types.NewConsensusState(suite.now, commitmenttypes.NewMerkleRoot(tmhash.Sum([]byte("app_hash"))), suite.valsHash),
 			height,
 			&types.Misbehaviour{
-				Header1:  chainADymint.CreateDMClientHeader(chainID, int64(height.RevisionHeight+1), height, suite.now, bothValSet, suite.valSet, bothSigners),
-				Header2:  chainADymint.CreateDMClientHeader(chainID, int64(height.RevisionHeight+1), height, suite.now.Add(time.Minute), bothValSet, suite.valSet, bothSigners),
+				Header1:  chainDymint.CreateDMClientHeader(chainID, int64(height.RevisionHeight+1), height, suite.now, bothValSet, suite.valSet, bothSigners),
+				Header2:  chainDymint.CreateDMClientHeader(chainID, int64(height.RevisionHeight+1), height, suite.now.Add(time.Minute), bothValSet, suite.valSet, bothSigners),
 				ClientId: chainID,
 			},
 			suite.now,
@@ -194,8 +199,8 @@ func (suite *DymintTestSuite) TestCheckMisbehaviourAndUpdateState() {
 			types.NewConsensusState(suite.now, commitmenttypes.NewMerkleRoot(tmhash.Sum([]byte("app_hash"))), bothValsHash),
 			height,
 			&types.Misbehaviour{
-				Header1:  chainADymint.CreateDMClientHeader(chainID, int64(height.RevisionHeight+1), height, suite.now, bothValSet, bothValSet, bothSigners),
-				Header2:  chainADymint.CreateDMClientHeader(chainID, int64(height.RevisionHeight+1), height, suite.now, bothValSet, bothValSet, bothSigners),
+				Header1:  chainDymint.CreateDMClientHeader(chainID, int64(height.RevisionHeight+1), height, suite.now, bothValSet, bothValSet, bothSigners),
+				Header2:  chainDymint.CreateDMClientHeader(chainID, int64(height.RevisionHeight+1), height, suite.now, bothValSet, bothValSet, bothSigners),
 				ClientId: chainID,
 			},
 			suite.now,
@@ -209,8 +214,8 @@ func (suite *DymintTestSuite) TestCheckMisbehaviourAndUpdateState() {
 			types.NewConsensusState(suite.now, commitmenttypes.NewMerkleRoot(tmhash.Sum([]byte("app_hash"))), bothValsHash),
 			height,
 			&types.Misbehaviour{
-				Header1:  chainADymint.CreateDMClientHeader(chainID, int64(height.RevisionHeight+3), height, suite.now.Add(time.Minute), bothValSet, bothValSet, bothSigners),
-				Header2:  chainADymint.CreateDMClientHeader(chainID, int64(height.RevisionHeight+1), height, suite.now, bothValSet, bothValSet, bothSigners),
+				Header1:  chainDymint.CreateDMClientHeader(chainID, int64(height.RevisionHeight+3), height, suite.now.Add(time.Minute), bothValSet, bothValSet, bothSigners),
+				Header2:  chainDymint.CreateDMClientHeader(chainID, int64(height.RevisionHeight+1), height, suite.now, bothValSet, bothValSet, bothSigners),
 				ClientId: chainID,
 			},
 			suite.now,
@@ -224,8 +229,8 @@ func (suite *DymintTestSuite) TestCheckMisbehaviourAndUpdateState() {
 			types.NewConsensusState(suite.now, commitmenttypes.NewMerkleRoot(tmhash.Sum([]byte("app_hash"))), bothValsHash),
 			height,
 			&types.Misbehaviour{
-				Header1:  chainADymint.CreateDMClientHeader("ethermint", int64(height.RevisionHeight+1), height, suite.now, bothValSet, bothValSet, bothSigners),
-				Header2:  chainADymint.CreateDMClientHeader("ethermint", int64(height.RevisionHeight+1), height, suite.now.Add(time.Minute), bothValSet, bothValSet, bothSigners),
+				Header1:  chainDymint.CreateDMClientHeader("ethermint", int64(height.RevisionHeight+1), height, suite.now, bothValSet, bothValSet, bothSigners),
+				Header2:  chainDymint.CreateDMClientHeader("ethermint", int64(height.RevisionHeight+1), height, suite.now.Add(time.Minute), bothValSet, bothValSet, bothSigners),
 				ClientId: chainID,
 			},
 			suite.now,
@@ -239,8 +244,8 @@ func (suite *DymintTestSuite) TestCheckMisbehaviourAndUpdateState() {
 			types.NewConsensusState(suite.now, commitmenttypes.NewMerkleRoot(tmhash.Sum([]byte("app_hash"))), suite.valsHash),
 			heightMinus3,
 			&types.Misbehaviour{
-				Header1:  chainADymint.CreateDMClientHeader(chainID, int64(height.RevisionHeight+1), heightMinus1, suite.now, bothValSet, bothValSet, bothSigners),
-				Header2:  chainADymint.CreateDMClientHeader(chainID, int64(height.RevisionHeight+1), height, suite.now.Add(time.Minute), bothValSet, suite.valSet, bothSigners),
+				Header1:  chainDymint.CreateDMClientHeader(chainID, int64(height.RevisionHeight+1), heightMinus1, suite.now, bothValSet, bothValSet, bothSigners),
+				Header2:  chainDymint.CreateDMClientHeader(chainID, int64(height.RevisionHeight+1), height, suite.now.Add(time.Minute), bothValSet, suite.valSet, bothSigners),
 				ClientId: chainID,
 			},
 			suite.now,
@@ -254,8 +259,8 @@ func (suite *DymintTestSuite) TestCheckMisbehaviourAndUpdateState() {
 			types.NewConsensusState(suite.now, commitmenttypes.NewMerkleRoot(tmhash.Sum([]byte("app_hash"))), suite.valsHash),
 			heightMinus3,
 			&types.Misbehaviour{
-				Header1:  chainADymint.CreateDMClientHeader(chainID, int64(height.RevisionHeight+1), heightMinus1, suite.now, bothValSet, bothValSet, bothSigners),
-				Header2:  chainADymint.CreateDMClientHeader(chainID, int64(height.RevisionHeight+1), heightMinus3, suite.now.Add(time.Minute), bothValSet, bothValSet, bothSigners),
+				Header1:  chainDymint.CreateDMClientHeader(chainID, int64(height.RevisionHeight+1), heightMinus1, suite.now, bothValSet, bothValSet, bothSigners),
+				Header2:  chainDymint.CreateDMClientHeader(chainID, int64(height.RevisionHeight+1), heightMinus3, suite.now.Add(time.Minute), bothValSet, bothValSet, bothSigners),
 				ClientId: chainID,
 			},
 			suite.now,
@@ -269,8 +274,8 @@ func (suite *DymintTestSuite) TestCheckMisbehaviourAndUpdateState() {
 			types.NewConsensusState(suite.now, commitmenttypes.NewMerkleRoot(tmhash.Sum([]byte("app_hash"))), bothValsHash),
 			height,
 			&types.Misbehaviour{
-				Header1:  chainADymint.CreateDMClientHeader(chainID, int64(height.RevisionHeight+1), height, suite.now, bothValSet, bothValSet, bothSigners),
-				Header2:  chainADymint.CreateDMClientHeader(chainID, int64(height.RevisionHeight+1), height, suite.now.Add(time.Minute), bothValSet, bothValSet, bothSigners),
+				Header1:  chainDymint.CreateDMClientHeader(chainID, int64(height.RevisionHeight+1), height, suite.now, bothValSet, bothValSet, bothSigners),
+				Header2:  chainDymint.CreateDMClientHeader(chainID, int64(height.RevisionHeight+1), height, suite.now.Add(time.Minute), bothValSet, bothValSet, bothSigners),
 				ClientId: chainID,
 			},
 			suite.now,
@@ -284,8 +289,8 @@ func (suite *DymintTestSuite) TestCheckMisbehaviourAndUpdateState() {
 			types.NewConsensusState(suite.now, commitmenttypes.NewMerkleRoot(tmhash.Sum([]byte("app_hash"))), bothValsHash),
 			height,
 			&types.Misbehaviour{
-				Header1:  chainADymint.CreateDMClientHeader(chainID, int64(height.RevisionHeight+1), heightMinus1, suite.now, bothValSet, bothValSet, bothSigners),
-				Header2:  chainADymint.CreateDMClientHeader(chainID, int64(height.RevisionHeight+1), height, suite.now.Add(time.Minute), bothValSet, bothValSet, bothSigners),
+				Header1:  chainDymint.CreateDMClientHeader(chainID, int64(height.RevisionHeight+1), heightMinus1, suite.now, bothValSet, bothValSet, bothSigners),
+				Header2:  chainDymint.CreateDMClientHeader(chainID, int64(height.RevisionHeight+1), height, suite.now.Add(time.Minute), bothValSet, bothValSet, bothSigners),
 				ClientId: chainID,
 			},
 			suite.now,
@@ -310,8 +315,8 @@ func (suite *DymintTestSuite) TestCheckMisbehaviourAndUpdateState() {
 			types.NewConsensusState(suite.now, commitmenttypes.NewMerkleRoot(tmhash.Sum([]byte("app_hash"))), bothValsHash),
 			height,
 			&types.Misbehaviour{
-				Header1:  chainADymint.CreateDMClientHeader(chainID, int64(height.RevisionHeight+1), heightMinus1, suite.now, bothValSet, bothValSet, bothSigners),
-				Header2:  chainADymint.CreateDMClientHeader(chainID, int64(height.RevisionHeight+1), heightMinus1, suite.now.Add(time.Minute), bothValSet, bothValSet, bothSigners),
+				Header1:  chainDymint.CreateDMClientHeader(chainID, int64(height.RevisionHeight+1), heightMinus1, suite.now, bothValSet, bothValSet, bothSigners),
+				Header2:  chainDymint.CreateDMClientHeader(chainID, int64(height.RevisionHeight+1), heightMinus1, suite.now.Add(time.Minute), bothValSet, bothValSet, bothSigners),
 				ClientId: chainID,
 			},
 			suite.now,
@@ -325,8 +330,8 @@ func (suite *DymintTestSuite) TestCheckMisbehaviourAndUpdateState() {
 			types.NewConsensusState(suite.now, commitmenttypes.NewMerkleRoot(tmhash.Sum([]byte("app_hash"))), bothValsHash),
 			height,
 			&types.Misbehaviour{
-				Header1:  chainADymint.CreateDMClientHeader(chainID, int64(height.RevisionHeight+1), heightMinus1, suite.now, bothValSet, bothValSet, bothSigners),
-				Header2:  chainADymint.CreateDMClientHeader(chainID, int64(height.RevisionHeight+1), height, suite.now.Add(time.Minute), bothValSet, bothValSet, bothSigners),
+				Header1:  chainDymint.CreateDMClientHeader(chainID, int64(height.RevisionHeight+1), heightMinus1, suite.now, bothValSet, bothValSet, bothSigners),
+				Header2:  chainDymint.CreateDMClientHeader(chainID, int64(height.RevisionHeight+1), height, suite.now.Add(time.Minute), bothValSet, bothValSet, bothSigners),
 				ClientId: chainID,
 			},
 			suite.now.Add(trustingPeriod),
@@ -340,8 +345,8 @@ func (suite *DymintTestSuite) TestCheckMisbehaviourAndUpdateState() {
 			types.NewConsensusState(suite.now, commitmenttypes.NewMerkleRoot(tmhash.Sum([]byte("app_hash"))), bothValsHash),
 			height,
 			&types.Misbehaviour{
-				Header1:  chainADymint.CreateDMClientHeader(chainID, int64(height.RevisionHeight+1), height, suite.now, bothValSet, suite.valSet, bothSigners),
-				Header2:  chainADymint.CreateDMClientHeader(chainID, int64(height.RevisionHeight+1), height, suite.now.Add(time.Minute), bothValSet, suite.valSet, bothSigners),
+				Header1:  chainDymint.CreateDMClientHeader(chainID, int64(height.RevisionHeight+1), height, suite.now, bothValSet, suite.valSet, bothSigners),
+				Header2:  chainDymint.CreateDMClientHeader(chainID, int64(height.RevisionHeight+1), height, suite.now.Add(time.Minute), bothValSet, suite.valSet, bothSigners),
 				ClientId: chainID,
 			},
 			suite.now,
@@ -355,8 +360,8 @@ func (suite *DymintTestSuite) TestCheckMisbehaviourAndUpdateState() {
 			types.NewConsensusState(suite.now, commitmenttypes.NewMerkleRoot(tmhash.Sum([]byte("app_hash"))), bothValsHash),
 			height,
 			&types.Misbehaviour{
-				Header1:  chainADymint.CreateDMClientHeader(chainID, int64(height.RevisionHeight+1), height, suite.now, altValSet, bothValSet, altSigners),
-				Header2:  chainADymint.CreateDMClientHeader(chainID, int64(height.RevisionHeight+1), height, suite.now.Add(time.Minute), bothValSet, bothValSet, bothSigners),
+				Header1:  chainDymint.CreateDMClientHeader(chainID, int64(height.RevisionHeight+1), height, suite.now, altValSet, bothValSet, altSigners),
+				Header2:  chainDymint.CreateDMClientHeader(chainID, int64(height.RevisionHeight+1), height, suite.now.Add(time.Minute), bothValSet, bothValSet, bothSigners),
 				ClientId: chainID,
 			},
 			suite.now,
@@ -370,8 +375,8 @@ func (suite *DymintTestSuite) TestCheckMisbehaviourAndUpdateState() {
 			types.NewConsensusState(suite.now, commitmenttypes.NewMerkleRoot(tmhash.Sum([]byte("app_hash"))), bothValsHash),
 			height,
 			&types.Misbehaviour{
-				Header1:  chainADymint.CreateDMClientHeader(chainID, int64(height.RevisionHeight+1), height, suite.now, bothValSet, bothValSet, bothSigners),
-				Header2:  chainADymint.CreateDMClientHeader(chainID, int64(height.RevisionHeight+1), height, suite.now.Add(time.Minute), altValSet, bothValSet, altSigners),
+				Header1:  chainDymint.CreateDMClientHeader(chainID, int64(height.RevisionHeight+1), height, suite.now, bothValSet, bothValSet, bothSigners),
+				Header2:  chainDymint.CreateDMClientHeader(chainID, int64(height.RevisionHeight+1), height, suite.now.Add(time.Minute), altValSet, bothValSet, altSigners),
 				ClientId: chainID,
 			},
 			suite.now,
@@ -385,8 +390,8 @@ func (suite *DymintTestSuite) TestCheckMisbehaviourAndUpdateState() {
 			types.NewConsensusState(suite.now, commitmenttypes.NewMerkleRoot(tmhash.Sum([]byte("app_hash"))), bothValsHash),
 			height,
 			&types.Misbehaviour{
-				Header1:  chainADymint.CreateDMClientHeader(chainID, int64(height.RevisionHeight+1), height, suite.now, altValSet, bothValSet, altSigners),
-				Header2:  chainADymint.CreateDMClientHeader(chainID, int64(height.RevisionHeight+1), height, suite.now.Add(time.Minute), altValSet, bothValSet, altSigners),
+				Header1:  chainDymint.CreateDMClientHeader(chainID, int64(height.RevisionHeight+1), height, suite.now, altValSet, bothValSet, altSigners),
+				Header2:  chainDymint.CreateDMClientHeader(chainID, int64(height.RevisionHeight+1), height, suite.now.Add(time.Minute), altValSet, bothValSet, altSigners),
 				ClientId: chainID,
 			},
 			suite.now,
@@ -400,22 +405,28 @@ func (suite *DymintTestSuite) TestCheckMisbehaviourAndUpdateState() {
 			// reset suite to create fresh application state
 			suite.SetupTest()
 
+			if suite.chainA.TestChainClient.GetSelfClientType() == exported.Dymint {
+				chainDymint = suite.chainA.TestChainClient.(*ibctesting.TestChainDymint)
+			} else {
+				chainDymint = suite.chainB.TestChainClient.(*ibctesting.TestChainDymint)
+			}
+
 			// Set current timestamp in context
-			ctx := suite.chainA.GetContext().WithBlockTime(tc.timestamp)
+			ctx := chainDymint.TC.GetContext().WithBlockTime(tc.timestamp)
 
 			// Set trusted consensus states in client store
 
 			if tc.consensusState1 != nil {
-				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientConsensusState(ctx, clientID, tc.height1, tc.consensusState1)
+				chainDymint.TC.App.GetIBCKeeper().ClientKeeper.SetClientConsensusState(ctx, clientID, tc.height1, tc.consensusState1)
 			}
 			if tc.consensusState2 != nil {
-				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientConsensusState(ctx, clientID, tc.height2, tc.consensusState2)
+				chainDymint.TC.App.GetIBCKeeper().ClientKeeper.SetClientConsensusState(ctx, clientID, tc.height2, tc.consensusState2)
 			}
 
 			clientState, err := tc.clientState.CheckMisbehaviourAndUpdateState(
 				ctx,
-				suite.chainA.App.AppCodec(),
-				suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(ctx, clientID), // pass in clientID prefixed clientStore
+				chainDymint.TC.App.AppCodec(),
+				chainDymint.TC.App.GetIBCKeeper().ClientKeeper.ClientStore(ctx, clientID), // pass in clientID prefixed clientStore
 				tc.misbehaviour,
 			)
 

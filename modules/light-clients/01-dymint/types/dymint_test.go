@@ -54,10 +54,23 @@ type DymintTestSuite struct {
 	now        time.Time
 	headerTime time.Time
 	clientTime time.Time
+
+	// consensus setup
+	chainAConsensusType string
+	chainBConsensusType string
 }
 
 func (suite *DymintTestSuite) SetupTest() {
-	suite.coordinator = ibctesting.NewCoordinatorWithConsensusType(suite.T(), []string{exported.Dymint, exported.Dymint})
+	//suite.SetupTestWithConsensusType(exported.Dymint, exported.Tendermint)
+	suite.SetupTestWithConsensusType(suite.chainAConsensusType, suite.chainBConsensusType)
+}
+
+func (suite *DymintTestSuite) SetupTestWithConsensusType(chainAConsensusType string, chainBConsensusType string) {
+	suite.Require().True(chainAConsensusType == exported.Dymint || chainBConsensusType == exported.Dymint)
+	suite.Require().True(chainAConsensusType == exported.Dymint || chainAConsensusType == exported.Tendermint)
+	suite.Require().True(chainBConsensusType == exported.Dymint || chainBConsensusType == exported.Tendermint)
+
+	suite.coordinator = ibctesting.NewCoordinatorWithConsensusType(suite.T(), []string{chainAConsensusType, chainBConsensusType})
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
 	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
 	// commit some blocks so that QueryProof returns valid proof (cannot return valid query if height <= 1)
@@ -87,8 +100,15 @@ func (suite *DymintTestSuite) SetupTest() {
 	val := tmtypes.NewValidator(pubKey, 10)
 	suite.valSet = tmtypes.NewValidatorSet([]*tmtypes.Validator{val})
 	suite.valsHash = suite.valSet.Hash()
-	chainADymint := suite.chainA.TestChainClient.(*ibctesting.TestChainDymint)
-	suite.header = chainADymint.CreateDMClientHeader(chainID, int64(height.RevisionHeight), heightMinus1, suite.now, suite.valSet, suite.valSet, []tmtypes.PrivValidator{suite.privVal})
+	if chainAConsensusType == exported.Tendermint {
+		chainBDymint := suite.chainB.TestChainClient.(*ibctesting.TestChainDymint)
+		suite.header = chainBDymint.CreateDMClientHeader(chainID, int64(height.RevisionHeight), heightMinus1, suite.now, suite.valSet, suite.valSet, []tmtypes.PrivValidator{suite.privVal})
+	} else {
+		// chainA must be Dymint
+		chainADymint := suite.chainA.TestChainClient.(*ibctesting.TestChainDymint)
+		suite.header = chainADymint.CreateDMClientHeader(chainID, int64(height.RevisionHeight), heightMinus1, suite.now, suite.valSet, suite.valSet, []tmtypes.PrivValidator{suite.privVal})
+	}
+
 	suite.ctx = app.BaseApp.NewContext(checkTx, tmproto.Header{Height: 1, Time: suite.now})
 }
 
@@ -105,6 +125,23 @@ func getBothSigners(suite *DymintTestSuite, altVal *tmtypes.Validator, altPrivVa
 	return bothValSet, bothSigners
 }
 
-func TestDymintTestSuite(t *testing.T) {
-	suite.Run(t, new(DymintTestSuite))
+func TestDymintTestSuiteDymTm(t *testing.T) {
+	suite.Run(t, &DymintTestSuite{
+		chainAConsensusType: exported.Dymint,
+		chainBConsensusType: exported.Tendermint,
+	})
+}
+
+func TestDymintTestSuiteTmDym(t *testing.T) {
+	suite.Run(t, &DymintTestSuite{
+		chainAConsensusType: exported.Tendermint,
+		chainBConsensusType: exported.Dymint,
+	})
+}
+
+func TestDymintTestSuiteDymDym(t *testing.T) {
+	suite.Run(t, &DymintTestSuite{
+		chainAConsensusType: exported.Dymint,
+		chainBConsensusType: exported.Dymint,
+	})
 }
