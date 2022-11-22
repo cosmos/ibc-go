@@ -19,8 +19,6 @@ import (
 	"github.com/cosmos/ibc-go/e2e/testconfig"
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
-	feetypes "github.com/cosmos/ibc-go/v6/modules/apps/29-fee/types"
-
 	controllertypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/controller/types"
 	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
@@ -33,14 +31,6 @@ func TestInterchainAccountsTestSuite(t *testing.T) {
 
 type InterchainAccountsTestSuite struct {
 	testsuite.E2ETestSuite
-}
-
-// RegisterCounterPartyPayee broadcasts a MsgRegisterCounterpartyPayee message.
-func (s *InterchainAccountsTestSuite) RegisterCounterPartyPayee(ctx context.Context, chain *cosmos.CosmosChain,
-	user *ibc.Wallet, portID, channelID, relayerAddr, counterpartyPayeeAddr string,
-) (sdk.TxResponse, error) {
-	msg := feetypes.NewMsgRegisterCounterpartyPayee(portID, channelID, relayerAddr, counterpartyPayeeAddr)
-	return s.BroadcastMessages(ctx, chain, user, msg)
 }
 
 // getICAVersion returns the version which should be used in the MsgRegisterAccount broadcast from the
