@@ -315,7 +315,6 @@ func (suite *TypesTestSuite) TestMsgRecvPacketValidateBasic() {
 		expPass bool
 	}{
 		{"success", types.NewMsgRecvPacket(packet, suite.proof, height, addr), true},
-		{"proof height is zero", types.NewMsgRecvPacket(packet, suite.proof, clienttypes.ZeroHeight(), addr), false},
 		{"proof contain empty proof", types.NewMsgRecvPacket(packet, emptyProof, height, addr), false},
 		{"missing signer address", types.NewMsgRecvPacket(packet, suite.proof, height, emptyAddr), false},
 		{"invalid packet", types.NewMsgRecvPacket(invalidPacket, suite.proof, height, addr), false},
@@ -351,7 +350,6 @@ func (suite *TypesTestSuite) TestMsgTimeoutValidateBasic() {
 		expPass bool
 	}{
 		{"success", types.NewMsgTimeout(packet, 1, suite.proof, height, addr), true},
-		{"proof height must be > 0", types.NewMsgTimeout(packet, 1, suite.proof, clienttypes.ZeroHeight(), addr), false},
 		{"seq 0", types.NewMsgTimeout(packet, 0, suite.proof, height, addr), false},
 		{"missing signer address", types.NewMsgTimeout(packet, 1, suite.proof, height, emptyAddr), false},
 		{"cannot submit an empty proof", types.NewMsgTimeout(packet, 1, emptyProof, height, addr), false},
@@ -383,7 +381,6 @@ func (suite *TypesTestSuite) TestMsgTimeoutOnCloseValidateBasic() {
 		{"seq 0", types.NewMsgTimeoutOnClose(packet, 0, suite.proof, suite.proof, height, addr), false},
 		{"empty proof", types.NewMsgTimeoutOnClose(packet, 1, emptyProof, suite.proof, height, addr), false},
 		{"empty proof close", types.NewMsgTimeoutOnClose(packet, 1, suite.proof, emptyProof, height, addr), false},
-		{"proof height is zero", types.NewMsgTimeoutOnClose(packet, 1, suite.proof, suite.proof, clienttypes.ZeroHeight(), addr), false},
 		{"signer address is empty", types.NewMsgTimeoutOnClose(packet, 1, suite.proof, suite.proof, height, emptyAddr), false},
 		{"invalid packet", types.NewMsgTimeoutOnClose(invalidPacket, 1, suite.proof, suite.proof, height, addr), false},
 	}
@@ -410,7 +407,6 @@ func (suite *TypesTestSuite) TestMsgAcknowledgementValidateBasic() {
 		expPass bool
 	}{
 		{"success", types.NewMsgAcknowledgement(packet, packet.GetData(), suite.proof, height, addr), true},
-		{"proof height must be > 0", types.NewMsgAcknowledgement(packet, packet.GetData(), suite.proof, clienttypes.ZeroHeight(), addr), false},
 		{"empty ack", types.NewMsgAcknowledgement(packet, nil, suite.proof, height, addr), false},
 		{"missing signer address", types.NewMsgAcknowledgement(packet, packet.GetData(), suite.proof, height, emptyAddr), false},
 		{"cannot submit an empty proof", types.NewMsgAcknowledgement(packet, packet.GetData(), emptyProof, height, addr), false},

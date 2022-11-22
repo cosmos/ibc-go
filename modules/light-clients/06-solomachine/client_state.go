@@ -46,9 +46,6 @@ func (cs ClientState) GetTimestampAtHeight(
 	cdc codec.BinaryCodec,
 	height exported.Height,
 ) (uint64, error) {
-	if !cs.GetLatestHeight().EQ(height) {
-		return 0, sdkerrors.Wrapf(ErrInvalidSequence, "not latest height (%s)", height)
-	}
 	return cs.ConsensusState.Timestamp, nil
 }
 
@@ -123,6 +120,10 @@ func (cs *ClientState) VerifyMembership(
 	merklePath, ok := path.(commitmenttypes.MerklePath)
 	if !ok {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "expected %T, got %T", commitmenttypes.MerklePath{}, path)
+	}
+
+	if merklePath.Empty() {
+		return sdkerrors.Wrap(commitmenttypes.ErrInvalidProof, "path is empty")
 	}
 
 	signBytes := &SignBytes{
