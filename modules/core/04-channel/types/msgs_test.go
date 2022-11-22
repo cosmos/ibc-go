@@ -16,7 +16,6 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v6/modules/core/23-commitment/types"
-	"github.com/cosmos/ibc-go/v6/modules/core/exported"
 	"github.com/cosmos/ibc-go/v6/testing/simapp"
 )
 
@@ -56,9 +55,7 @@ var (
 	packet        = types.NewPacket(validPacketData, 1, portid, chanid, cpportid, cpchanid, timeoutHeight, timeoutTimestamp)
 	invalidPacket = types.NewPacket(unknownPacketData, 0, portid, chanid, cpportid, cpchanid, timeoutHeight, timeoutTimestamp)
 
-	emptyProof     = []byte{}
-	invalidProofs1 = exported.Proof(nil)
-	invalidProofs2 = emptyProof
+	emptyProof = []byte{}
 
 	addr      = sdk.AccAddress("testaddr111111111111").String()
 	emptyAddr string
@@ -158,7 +155,6 @@ func (suite *TypesTestSuite) TestMsgChannelOpenTryValidateBasic() {
 		{"too long port id", types.NewMsgChannelOpenTry(invalidLongPort, version, types.ORDERED, connHops, cpportid, cpchanid, version, suite.proof, height, addr), false},
 		{"port id contains non-alpha", types.NewMsgChannelOpenTry(invalidPort, version, types.ORDERED, connHops, cpportid, cpchanid, version, suite.proof, height, addr), false},
 		{"", types.NewMsgChannelOpenTry(portid, version, types.ORDERED, connHops, cpportid, cpchanid, "", suite.proof, height, addr), true},
-		{"proof height is zero", types.NewMsgChannelOpenTry(portid, version, types.ORDERED, connHops, cpportid, cpchanid, version, suite.proof, clienttypes.ZeroHeight(), addr), false},
 		{"invalid channel order", types.NewMsgChannelOpenTry(portid, version, types.Order(4), connHops, cpportid, cpchanid, version, suite.proof, height, addr), false},
 		{"connection hops more than 1 ", types.NewMsgChannelOpenTry(portid, version, types.UNORDERED, invalidConnHops, cpportid, cpchanid, version, suite.proof, height, addr), false},
 		{"too short connection id", types.NewMsgChannelOpenTry(portid, version, types.UNORDERED, invalidShortConnHops, cpportid, cpchanid, version, suite.proof, height, addr), false},
@@ -202,7 +198,6 @@ func (suite *TypesTestSuite) TestMsgChannelOpenAckValidateBasic() {
 		{"channel id contains non-alpha", types.NewMsgChannelOpenAck(portid, invalidChannel, chanid, version, suite.proof, height, addr), false},
 		{"", types.NewMsgChannelOpenAck(portid, chanid, chanid, "", suite.proof, height, addr), true},
 		{"empty proof", types.NewMsgChannelOpenAck(portid, chanid, chanid, version, emptyProof, height, addr), false},
-		{"proof height is zero", types.NewMsgChannelOpenAck(portid, chanid, chanid, version, suite.proof, clienttypes.ZeroHeight(), addr), false},
 		{"invalid counterparty channel id", types.NewMsgChannelOpenAck(portid, chanid, invalidShortChannel, version, suite.proof, height, addr), false},
 	}
 
@@ -235,7 +230,6 @@ func (suite *TypesTestSuite) TestMsgChannelOpenConfirmValidateBasic() {
 		{"too long channel id", types.NewMsgChannelOpenConfirm(portid, invalidLongChannel, suite.proof, height, addr), false},
 		{"channel id contains non-alpha", types.NewMsgChannelOpenConfirm(portid, invalidChannel, suite.proof, height, addr), false},
 		{"empty proof", types.NewMsgChannelOpenConfirm(portid, chanid, emptyProof, height, addr), false},
-		{"proof height is zero", types.NewMsgChannelOpenConfirm(portid, chanid, suite.proof, clienttypes.ZeroHeight(), addr), false},
 	}
 
 	for _, tc := range testCases {
@@ -297,7 +291,6 @@ func (suite *TypesTestSuite) TestMsgChannelCloseConfirmValidateBasic() {
 		{"too long channel id", types.NewMsgChannelCloseConfirm(portid, invalidLongChannel, suite.proof, height, addr), false},
 		{"channel id contains non-alpha", types.NewMsgChannelCloseConfirm(portid, invalidChannel, suite.proof, height, addr), false},
 		{"empty proof", types.NewMsgChannelCloseConfirm(portid, chanid, emptyProof, height, addr), false},
-		{"proof height is zero", types.NewMsgChannelCloseConfirm(portid, chanid, suite.proof, clienttypes.ZeroHeight(), addr), false},
 	}
 
 	for _, tc := range testCases {
