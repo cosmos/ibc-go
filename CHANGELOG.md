@@ -77,6 +77,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (modules/core/keeper) [\#1728](https://github.com/cosmos/ibc-go/pull/2399) Updated channel callback errors to include portID & channelID for better identification of errors.
 * (testing) [\#2657](https://github.com/cosmos/ibc-go/pull/2657) Carry `ProposerAddress` through commited blocks. Allow `DefaultGenTxGas` to be modified.
 * (core/03-connection) [\#2745](https://github.com/cosmos/ibc-go/pull/2745) Adding `ConnectionParams` grpc query and CLI to 03-connection.
+* (apps/29-fee) [\#2786](https://github.com/cosmos/ibc-go/pull/2786) Save gas by checking key existence with `KVStore`'s `Has` method.
 
 ### Features
 
