@@ -1,0 +1,49 @@
+name: Compatibility E2E (Unreleased)
+on:
+  workflow_dispatch:
+    inputs:
+      release-branch:
+        description: 'Select unreleased to run all release branches against each other'
+        required: true
+        type: choice
+        options:
+          - unreleased
+
+env:
+  REGISTRY: ghcr.io
+  ORG: cosmos
+  IMAGE_NAME: ibc-go-simd
+  RELEASE_BRANCH: '${{ inputs.release-branch }}'
+
+jobs:
+  transfer:
+    needs:
+      - build-release-images
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file-directory: "unreleased"
+      test-suite: "transfer"
+
+  connection:
+    needs:
+      - build-release-images
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file-directory: "unreleased"
+      test-suite: "connection"
+
+  client:
+    needs:
+      - build-release-images
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file-directory: "unreleased"
+      test-suite: "client"
+
+  incentivized-transfer:
+    needs:
+      - build-release-images
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file-directory: "unreleased"
+      test-suite: "incentivized-transfer"
