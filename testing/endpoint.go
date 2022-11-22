@@ -78,7 +78,7 @@ func (endpoint *Endpoint) CreateClient() (err error) {
 	// ensure counterparty has committed state
 	endpoint.Chain.Coordinator.CommitBlock(endpoint.Counterparty.Chain)
 
-	clientState := endpoint.Counterparty.Chain.TestChainClient.ClientConfigToState(endpoint.ClientConfig)
+	clientState := endpoint.Counterparty.Chain.TestChainClient.ClientConfigToState(endpoint.Counterparty.ClientConfig)
 	consensusState := endpoint.Counterparty.Chain.TestChainClient.GetConsensusState()
 
 	if err != nil {
@@ -106,7 +106,7 @@ func (endpoint *Endpoint) UpdateClient() (err error) {
 	// ensure counterparty has committed state
 	endpoint.Chain.Coordinator.CommitBlock(endpoint.Counterparty.Chain)
 
-	header, err := endpoint.Chain.TestChainClient.ConstructUpdateClientHeader(endpoint.Counterparty.Chain, endpoint.ClientID)
+	header, err := endpoint.Chain.ConstructUpdateClientHeader(endpoint.Counterparty.Chain, endpoint.ClientID)
 
 	if err != nil {
 		return err
