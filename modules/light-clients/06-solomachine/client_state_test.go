@@ -345,7 +345,7 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 					)
 
 					commitmentBz := channeltypes.CommitPacket(suite.chainA.Codec, packet)
-					path = sm.GetPacketCommitmentPath(ibctesting.MockPort, ibctesting.FirstChannelID)
+					path = sm.GetPacketCommitmentPath(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 					signBytes = solomachine.SignBytes{
 						Sequence:    sm.Sequence,
 						Timestamp:   sm.Time,
@@ -372,7 +372,7 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 			{
 				"success: packet acknowledgement verification",
 				func() {
-					path = sm.GetPacketAcknowledgementPath(ibctesting.MockPort, ibctesting.FirstChannelID)
+					path = sm.GetPacketAcknowledgementPath(ibctesting.MockPort, ibctesting.FirstChannelID, 1)
 					signBytes = solomachine.SignBytes{
 						Sequence:    sm.Sequence,
 						Timestamp:   sm.Time,
@@ -399,7 +399,7 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 			{
 				"success: packet receipt verification",
 				func() {
-					path = sm.GetPacketReceiptPath(ibctesting.MockPort, ibctesting.FirstChannelID)
+					path = sm.GetPacketReceiptPath(ibctesting.MockPort, ibctesting.FirstChannelID, 1)
 					signBytes = solomachine.SignBytes{
 						Sequence:    sm.Sequence,
 						Timestamp:   sm.Time,
@@ -608,7 +608,7 @@ func (suite *SoloMachineTestSuite) TestVerifyNonMembership() {
 			{
 				"success: packet receipt absence verification",
 				func() {
-					path = suite.solomachine.GetPacketReceiptPath(ibctesting.MockPort, ibctesting.FirstChannelID)
+					path = suite.solomachine.GetPacketReceiptPath(ibctesting.MockPort, ibctesting.FirstChannelID, 1)
 					signBytes = solomachine.SignBytes{
 						Sequence:    sm.GetHeight().GetRevisionHeight(),
 						Timestamp:   sm.Time,
@@ -793,11 +793,6 @@ func (suite *SoloMachineTestSuite) TestGetTimestampAtHeight() {
 			height:      suite.solomachine.ClientState().GetLatestHeight(),
 			expValue:    suite.solomachine.ClientState().ConsensusState.Timestamp,
 			expPass:     true,
-		},
-		{
-			name:        "get timestamp at height not exists",
-			clientState: suite.solomachine.ClientState(),
-			height:      suite.solomachine.ClientState().GetLatestHeight().Increment(),
 		},
 	}
 

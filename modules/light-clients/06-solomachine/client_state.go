@@ -46,9 +46,6 @@ func (cs ClientState) GetTimestampAtHeight(
 	cdc codec.BinaryCodec,
 	height exported.Height,
 ) (uint64, error) {
-	if !cs.GetLatestHeight().EQ(height) {
-		return 0, sdkerrors.Wrapf(ErrInvalidSequence, "not latest height (%s)", height)
-	}
 	return cs.ConsensusState.Timestamp, nil
 }
 
