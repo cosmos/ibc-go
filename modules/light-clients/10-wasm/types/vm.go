@@ -3,13 +3,11 @@ package types
 import (
 	"bytes"
 	"crypto/sha256"
-	"encoding/json"
 	"strings"
 
 	cosmwasm "github.com/CosmWasm/wasmvm"
 	"github.com/CosmWasm/wasmvm/types"
 	ics23 "github.com/confio/ics23/go"
-	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
@@ -94,18 +92,6 @@ func CreateVM(vmConfig *VMConfig, validationConfig *ValidationConfig) {
 
 	WasmVM = vm
 	WasmVal = wasmValidator
-}
-
-func SaveClientStateIntoWasmStorage(ctx sdk.Context, cdc codec.BinaryCodec, store sdk.KVStore, c *ClientState) (*types.Response, error) {
-	// stateBytes := clienttypes.MustMarshalClientState(cdc, c)
-	saveClientMsg := ClientCreateRequest{
-		ClientCreateRequest: *c,
-	}
-	msg, err := json.Marshal(saveClientMsg)
-	if err != nil {
-		panic(err)
-	}
-	return callContract(c.CodeId, ctx, store, msg)
 }
 
 func PushNewWasmCode(store sdk.KVStore, c *ClientState, code []byte) error {

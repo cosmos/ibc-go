@@ -154,11 +154,6 @@ func (c *ClientState) Initialize(context sdk.Context, marshaler codec.BinaryCode
 	output.resetImmutables(c)
 
 	*c = *output.Me
-
-	_, err = SaveClientStateIntoWasmStorage(context, marshaler, store, c)
-	if err != nil {
-		return fmt.Errorf("%s error occurred while duplicating into wasm storage", err.Error())
-	}
 	return nil
 }
 
@@ -194,21 +189,68 @@ func (c *ClientState) VerifyClientMessage(ctx sdk.Context, cdc codec.BinaryCodec
 }
 
 func (c *ClientState) CheckForMisbehaviour(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, msg exported.ClientMessage) bool {
-	// TODO: implement
-	return false
+	wasmMisbehaviour, ok := msg.(*Misbehaviour)
+	if !ok {
+		return false
+	}
+
+	// Get consensus bytes from clientStore
+	consensusState1, err := GetConsensusState(clientStore, cdc, wasmMisbehaviour.Header1.Height)
+	if err != nil {
+		return false
+	}
+
+	// Get consensus bytes from clientStore
+	consensusState2, err := GetConsensusState(clientStore, cdc, wasmMisbehaviour.Header2.Height)
+	if err != nil {
+		return false
+	}
+
+	const checkForMisbehaviourMessage = "check_for_misbehaviour_msg"
+	payload := make(map[string]map[string]interface{})
+	payload[checkForMisbehaviourMessage] = make(map[string]interface{})
+	inner := payload[checkForMisbehaviourMessage]
+	inner["me"] = c
+	inner["misbehaviour"] = wasmMisbehaviour
+	inner["consensus_state1"] = consensusState1
+	inner["consensus_state2"] = consensusState2
+
+	encodedData, err := json.Marshal(payload)
+	if err != nil {
+		return false
+	}
+	out, err := callContract(c.CodeId, ctx, clientStore, encodedData)
+	if err != nil {
+		return false
+	}
+	output := contractResult{}
+	if err := json.Unmarshal(out.Data, &output); err != nil {
+		return false
+	}
+	if !output.IsValid {
+		return false
+	}
+	return true
 }
 
 // UpdateStateOnMisbehaviour should perform appropriate state changes on a client state given that misbehaviour has been detected and verified
 func (c *ClientState) UpdateStateOnMisbehaviour(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, clientMsg exported.ClientMessage) {
-	return
+	const updateStateOnMisbehaviour = "update_state_on_misbehaviour_msg"
+	payload := make(map[string]map[string]interface{})
+	payload[updateStateOnMisbehaviour] = make(map[string]interface{})
+	inner := payload[updateStateOnMisbehaviour]
+	inner["client_state"] = c
+	inner["client_message"] = clientMsg
+
+	encodedData, err := json.Marshal(payload)
+	if err != nil {
+		return
+	}
+	callContract(c.CodeId, ctx, clientStore, encodedData)
 }
 
 func (c *ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, clientMsg exported.ClientMessage) []exported.Height {
-	_, err := SaveClientStateIntoWasmStorage(ctx, cdc, clientStore, c)
 	// TODO: implement
-	if err != nil {
-		return []exported.Height{}
-	}
 	return []exported.Height{}
 }
 
@@ -267,11 +309,7 @@ func (c *ClientState) VerifyUpgradeAndUpdateState(
 	proofUpgradeClient,
 	proofUpgradeConsState []byte,
 ) error {
-	_, err := SaveClientStateIntoWasmStorage(ctx, cdc, store, c)
 	// TODO: implement
-	if err != nil {
-		return fmt.Errorf("%s error occurred while duplicating into wasm storage", err.Error())
-	}
 	return nil
 }
 
