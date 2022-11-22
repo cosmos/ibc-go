@@ -217,15 +217,15 @@ func (c *ClientState) CheckForMisbehaviour(ctx sdk.Context, cdc codec.BinaryCode
 
 	encodedData, err := json.Marshal(payload)
 	if err != nil {
-		return false
+		panic(err)
 	}
 	out, err := callContract(c.CodeId, ctx, clientStore, encodedData)
 	if err != nil {
-		return false
+		panic(err)
 	}
 	output := contractResult{}
 	if err := json.Unmarshal(out.Data, &output); err != nil {
-		return false
+		panic(err)
 	}
 	if !output.IsValid {
 		return false
@@ -246,7 +246,10 @@ func (c *ClientState) UpdateStateOnMisbehaviour(ctx sdk.Context, cdc codec.Binar
 	if err != nil {
 		return
 	}
-	callContract(c.CodeId, ctx, clientStore, encodedData)
+	_, err = callContract(c.CodeId, ctx, clientStore, encodedData)
+	if err != nil {
+		panic(err)
+	}
 }
 
 func (c *ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, clientMsg exported.ClientMessage) []exported.Height {
