@@ -146,12 +146,11 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 
 		var (
 			clientState *solomachine.ClientState
-			err         error
-			height      clienttypes.Height
 			path        exported.Path
 			proof       []byte
 			testingPath *ibctesting.Path
 			signBytes   solomachine.SignBytes
+			err         error
 		)
 
 		testCases := []struct {
@@ -203,7 +202,7 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 					consensusStateBz, err := suite.chainA.Codec.Marshal(consensusState)
 					suite.Require().NoError(err)
 
-					path = sm.GetConsensusStatePath(counterpartyClientIdentifier, height)
+					path = sm.GetConsensusStatePath(counterpartyClientIdentifier, clienttypes.NewHeight(0, 1))
 					signBytes = solomachine.SignBytes{
 						Sequence:    sm.Sequence,
 						Timestamp:   sm.Time,
@@ -346,7 +345,7 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 					)
 
 					commitmentBz := channeltypes.CommitPacket(suite.chainA.Codec, packet)
-					path = sm.GetPacketCommitmentPath(ibctesting.MockPort, ibctesting.FirstChannelID)
+					path = sm.GetPacketCommitmentPath(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 					signBytes = solomachine.SignBytes{
 						Sequence:    sm.Sequence,
 						Timestamp:   sm.Time,
@@ -373,7 +372,7 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 			{
 				"success: packet acknowledgement verification",
 				func() {
-					path = sm.GetPacketAcknowledgementPath(ibctesting.MockPort, ibctesting.FirstChannelID)
+					path = sm.GetPacketAcknowledgementPath(ibctesting.MockPort, ibctesting.FirstChannelID, 1)
 					signBytes = solomachine.SignBytes{
 						Sequence:    sm.Sequence,
 						Timestamp:   sm.Time,
@@ -400,7 +399,7 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 			{
 				"success: packet receipt verification",
 				func() {
-					path = sm.GetPacketReceiptPath(ibctesting.MockPort, ibctesting.FirstChannelID)
+					path = sm.GetPacketReceiptPath(ibctesting.MockPort, ibctesting.FirstChannelID, 1)
 					signBytes = solomachine.SignBytes{
 						Sequence:    sm.Sequence,
 						Timestamp:   sm.Time,
@@ -423,25 +422,6 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 					suite.Require().NoError(err)
 				},
 				true,
-			},
-			{
-				"client state latest height is less than sequence",
-				func() {
-					consensusState := &solomachine.ConsensusState{
-						Timestamp: sm.Time,
-						PublicKey: sm.ConsensusState().PublicKey,
-					}
-
-					clientState = solomachine.NewClientState(sm.Sequence-1, consensusState)
-				},
-				false,
-			},
-			{
-				"height revision number is not zero",
-				func() {
-					height = clienttypes.NewHeight(1, sm.GetHeight().GetRevisionHeight())
-				},
-				false,
 			},
 			{
 				"invalid path type",
@@ -534,7 +514,6 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 				testingPath = ibctesting.NewPath(suite.chainA, suite.chainB)
 
 				clientState = sm.ClientState()
-				height = clienttypes.NewHeight(sm.GetHeight().GetRevisionNumber(), sm.GetHeight().GetRevisionHeight())
 
 				path = commitmenttypes.NewMerklePath("ibc", "solomachine")
 				signBytes = solomachine.SignBytes{
@@ -567,7 +546,7 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 
 				err = clientState.VerifyMembership(
 					suite.chainA.GetContext(), suite.store, suite.chainA.Codec,
-					height, 0, 0, // solomachine does not check delay periods
+					clienttypes.ZeroHeight(), 0, 0, // solomachine does not check delay periods
 					proof, path, signBytes.Data,
 				)
 
@@ -617,11 +596,10 @@ func (suite *SoloMachineTestSuite) TestVerifyNonMembership() {
 
 		var (
 			clientState *solomachine.ClientState
-			err         error
-			height      clienttypes.Height
 			path        exported.Path
 			proof       []byte
 			signBytes   solomachine.SignBytes
+			err         error
 		)
 
 		testCases := []struct {
@@ -637,7 +615,7 @@ func (suite *SoloMachineTestSuite) TestVerifyNonMembership() {
 			{
 				"success: packet receipt absence verification",
 				func() {
-					path = suite.solomachine.GetPacketReceiptPath(ibctesting.MockPort, ibctesting.FirstChannelID)
+					path = suite.solomachine.GetPacketReceiptPath(ibctesting.MockPort, ibctesting.FirstChannelID, 1)
 					signBytes = solomachine.SignBytes{
 						Sequence:    sm.GetHeight().GetRevisionHeight(),
 						Timestamp:   sm.Time,
@@ -660,25 +638,6 @@ func (suite *SoloMachineTestSuite) TestVerifyNonMembership() {
 					suite.Require().NoError(err)
 				},
 				true,
-			},
-			{
-				"client state latest height is less than sequence",
-				func() {
-					consensusState := &solomachine.ConsensusState{
-						Timestamp: sm.Time,
-						PublicKey: sm.ConsensusState().PublicKey,
-					}
-
-					clientState = solomachine.NewClientState(sm.Sequence-1, consensusState)
-				},
-				false,
-			},
-			{
-				"height revision number is not zero",
-				func() {
-					height = clienttypes.NewHeight(1, sm.GetHeight().GetRevisionHeight())
-				},
-				false,
 			},
 			{
 				"invalid path type",
@@ -774,7 +733,6 @@ func (suite *SoloMachineTestSuite) TestVerifyNonMembership() {
 
 			suite.Run(tc.name, func() {
 				clientState = sm.ClientState()
-				height = clienttypes.NewHeight(sm.GetHeight().GetRevisionNumber(), sm.GetHeight().GetRevisionHeight())
 
 				path = commitmenttypes.NewMerklePath("ibc", "solomachine")
 				signBytes = solomachine.SignBytes{
@@ -807,7 +765,7 @@ func (suite *SoloMachineTestSuite) TestVerifyNonMembership() {
 
 				err = clientState.VerifyNonMembership(
 					suite.chainA.GetContext(), suite.store, suite.chainA.Codec,
-					height, 0, 0, // solomachine does not check delay periods
+					clienttypes.ZeroHeight(), 0, 0, // solomachine does not check delay periods
 					proof, path,
 				)
 
@@ -842,11 +800,6 @@ func (suite *SoloMachineTestSuite) TestGetTimestampAtHeight() {
 			height:      suite.solomachine.ClientState().GetLatestHeight(),
 			expValue:    suite.solomachine.ClientState().ConsensusState.Timestamp,
 			expPass:     true,
-		},
-		{
-			name:        "get timestamp at height not exists",
-			clientState: suite.solomachine.ClientState(),
-			height:      suite.solomachine.ClientState().GetLatestHeight().Increment(),
 		},
 	}
 
