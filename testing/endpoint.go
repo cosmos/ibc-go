@@ -106,7 +106,7 @@ func (endpoint *Endpoint) UpdateClient() (err error) {
 	// ensure counterparty has committed state
 	endpoint.Chain.Coordinator.CommitBlock(endpoint.Counterparty.Chain)
 
-	header, err := endpoint.Chain.TestChainClient.ConstructUpdateClientHeader(endpoint.Counterparty.Chain, endpoint.ClientID)
+	header, err := endpoint.Chain.ConstructUpdateClientHeader(endpoint.Counterparty.Chain, endpoint.ClientID)
 
 	if err != nil {
 		return err
