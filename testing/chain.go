@@ -44,7 +44,7 @@ type TestChainClientI interface {
 	ClientConfigToState(ClientConfig ClientConfig) exported.ClientState
 	GetConsensusState() exported.ConsensusState
 	NewConfig() ClientConfig
-	ConstructUpdateClientHeader(counterparty *TestChain, clientID string) (exported.Header, error)
+	GetSelfClientType() string
 }
 
 func NewTestChainClient(chain *TestChain, chainConsensusType string) TestChainClientI {
@@ -428,4 +428,17 @@ func (chain *TestChain) GetChannelCapability(portID, channelID string) *capabili
 	require.True(chain.T, ok)
 
 	return cap
+}
+
+// ConstructUpdateClientHeader will construct a valid 01-dymint Header to update the
+// light client on the source chain.
+func (chain *TestChain) ConstructUpdateClientHeader(counterparty *TestChain, clientID string) (exported.Header, error) {
+	// Relayer must query for LatestHeight on client to get TrustedHeight if the trusted height is not set
+	trustedHeight := chain.GetClientState(clientID).GetLatestHeight().(clienttypes.Height)
+	switch counterparty.TestChainClient.GetSelfClientType() {
+	case exported.Tendermint:
+		return ConstructUpdateTMClientHeaderWithTrustedHeight(counterparty, clientID, trustedHeight)
+	default:
+		panic(fmt.Sprintf("client type %s is not supported", counterparty.TestChainClient.GetSelfClientType()))
+	}
 }

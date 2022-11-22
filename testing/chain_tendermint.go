@@ -72,6 +72,10 @@ func NewChainTendermintClient(tc *TestChain) *TestChainTendermint {
 	return chain
 }
 
+func (chain *TestChainTendermint) GetSelfClientType() string {
+	return exported.Tendermint
+}
+
 func (chain *TestChainTendermint) NewConfig() ClientConfig {
 	return &TendermintConfig{
 		TrustLevel:                   DefaultTrustLevel,
@@ -112,27 +116,22 @@ func (chain *TestChainTendermint) NextBlock() {
 	chain.BeginBlock()
 }
 
-// ConstructUpdateClientHeader will construct a valid 07-tendermint Header to update the
-// light client on the source chain.
-func (chain *TestChainTendermint) ConstructUpdateClientHeader(counterparty *TestChain, clientID string) (exported.Header, error) {
-	return chain.ConstructUpdateTMClientHeader(counterparty, clientID)
-}
-
 // ConstructUpdateTMClientHeader will construct a valid 07-tendermint Header to update the
 // light client on the source chain.
 func (chain *TestChainTendermint) ConstructUpdateTMClientHeader(counterparty *TestChain, clientID string) (*ibctmtypes.Header, error) {
-	return chain.ConstructUpdateTMClientHeaderWithTrustedHeight(counterparty, clientID, clienttypes.ZeroHeight())
+	// Relayer must query for LatestHeight on client to get TrustedHeight if the trusted height is not set
+	trustedHeight := chain.TC.GetClientState(clientID).GetLatestHeight().(clienttypes.Height)
+	return ConstructUpdateTMClientHeaderWithTrustedHeight(counterparty, clientID, trustedHeight)
 }
 
 // ConstructUpdateTMClientHeader will construct a valid 07-tendermint Header to update the
 // light client on the source chain.
-func (chain *TestChainTendermint) ConstructUpdateTMClientHeaderWithTrustedHeight(counterparty *TestChain, clientID string, trustedHeight clienttypes.Height) (*ibctmtypes.Header, error) {
+func ConstructUpdateTMClientHeaderWithTrustedHeight(counterparty *TestChain, clientID string, trustedHeight clienttypes.Height) (*ibctmtypes.Header, error) {
 	counterpartyTestChainTendermint := counterparty.TestChainClient.(*TestChainTendermint)
 	header := counterpartyTestChainTendermint.LastHeader
 	// Relayer must query for LatestHeight on client to get TrustedHeight if the trusted height is not set
-	if trustedHeight.IsZero() {
-		trustedHeight = chain.TC.GetClientState(clientID).GetLatestHeight().(clienttypes.Height)
-	}
+	require.False(counterparty.T, trustedHeight.IsZero())
+
 	var (
 		tmTrustedVals *tmtypes.ValidatorSet
 		ok            bool
