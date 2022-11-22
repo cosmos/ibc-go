@@ -49,7 +49,7 @@ func (s *InterchainAccountsGovTestSuite) TestInterchainAccountsGovIntegration() 
 	s.Require().NoError(err)
 	s.Require().NotNil(govModuleAddress)
 
-	t.Run("create msg submit proposal", func(t *testing.T) {
+	t.Run("submit proposal for MsgRegisterInterchainAccount", func(t *testing.T) {
 		version := icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
 		msgRegisterAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, govModuleAddress.String(), version)
 		msgs := []sdk.Msg{msgRegisterAccount}
@@ -61,14 +61,16 @@ func (s *InterchainAccountsGovTestSuite) TestInterchainAccountsGovIntegration() 
 		s.Require().NoError(err)
 	})
 
-	s.Require().NoError(chainA.VoteOnProposalAllValidators(ctx, "1", cosmos.ProposalVoteYes))
+	t.Run("vote for proposal for MsgRegisterInterchainAccount", func(t *testing.T) {
+		s.Require().NoError(chainA.VoteOnProposalAllValidators(ctx, "1", cosmos.ProposalVoteYes))
 
-	time.Sleep(testvalues.VotingPeriod)
-	time.Sleep(5 * time.Second)
+		time.Sleep(testvalues.VotingPeriod)
+		time.Sleep(5 * time.Second)
 
-	proposal, err := s.QueryProposalV1(ctx, chainA, 1)
-	s.Require().NoError(err)
-	s.Require().Equal(govtypesv1.StatusPassed, proposal.Status)
+		proposal, err := s.QueryProposalV1(ctx, chainA, 1)
+		s.Require().NoError(err)
+		s.Require().Equal(govtypesv1.StatusPassed, proposal.Status)
+	})
 
 	t.Run("start relayer", func(t *testing.T) {
 		s.StartRelayer(relayer)
@@ -77,7 +79,7 @@ func (s *InterchainAccountsGovTestSuite) TestInterchainAccountsGovIntegration() 
 	s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB))
 
 	var interchainAccAddr string
-	t.Run("verify interchain account", func(t *testing.T) {
+	t.Run("verify interchain account registration success", func(t *testing.T) {
 		var err error
 		interchainAccAddr, err = s.QueryInterchainAccount(ctx, chainA, govModuleAddress.String(), ibctesting.FirstConnectionID)
 		s.Require().NoError(err)
@@ -99,7 +101,7 @@ func (s *InterchainAccountsGovTestSuite) TestInterchainAccountsGovIntegration() 
 			s.Require().NoError(err)
 		})
 
-		t.Run("create msg submit proposal", func(t *testing.T) {
+		t.Run("submit proposal for MsgSendTx", func(t *testing.T) {
 			msgBankSend := &banktypes.MsgSend{
 				FromAddress: interchainAccAddr,
 				ToAddress:   chainBAddress,
@@ -126,14 +128,16 @@ func (s *InterchainAccountsGovTestSuite) TestInterchainAccountsGovIntegration() 
 			s.Require().NoError(err)
 		})
 
-		s.Require().NoError(chainA.VoteOnProposalAllValidators(ctx, "2", cosmos.ProposalVoteYes))
+		t.Run("vote for proposal for MsgSendTx", func(t *testing.T) {
+			s.Require().NoError(chainA.VoteOnProposalAllValidators(ctx, "2", cosmos.ProposalVoteYes))
 
-		time.Sleep(testvalues.VotingPeriod)
-		time.Sleep(5 * time.Second)
+			time.Sleep(testvalues.VotingPeriod)
+			time.Sleep(5 * time.Second)
 
-		proposal, err := s.QueryProposalV1(ctx, chainA, 2)
-		s.Require().NoError(err)
-		s.Require().Equal(govtypesv1.StatusPassed, proposal.Status)
+			proposal, err := s.QueryProposalV1(ctx, chainA, 2)
+			s.Require().NoError(err)
+			s.Require().Equal(govtypesv1.StatusPassed, proposal.Status)
+		})
 
 		t.Run("verify tokens transferred", func(t *testing.T) {
 			balance, err := chainB.GetBalance(ctx, chainBAccount.Bech32Address(chainB.Config().Bech32Prefix), chainB.Config().Denom)
