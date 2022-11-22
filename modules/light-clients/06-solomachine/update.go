@@ -106,15 +106,6 @@ func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, client
 	return []exported.Height{clienttypes.NewHeight(0, cs.Sequence)}
 }
 
-// CheckForMisbehaviour returns true for type Misbehaviour (passed VerifyClientMessage check), otherwise returns false
-func (cs ClientState) CheckForMisbehaviour(_ sdk.Context, _ codec.BinaryCodec, _ sdk.KVStore, clientMsg exported.ClientMessage) bool {
-	if _, ok := clientMsg.(*Misbehaviour); ok {
-		return true
-	}
-
-	return false
-}
-
 // UpdateStateOnMisbehaviour updates state upon misbehaviour. This method should only be called on misbehaviour
 // as it does not perform any misbehaviour checks.
 func (cs ClientState) UpdateStateOnMisbehaviour(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, _ exported.ClientMessage) {
