@@ -16,4 +16,4 @@ then
   (cd ..; docker build . -t "${CHAIN_IMAGE}:${CHAIN_A_TAG}")
 fi
 
-go test -timeout 0 -v ./tests/interchain_accounts/base_test.go --run ${ENTRY_POINT} -testify.m ^${TEST}$
+go test -v ./tests/... --run ${ENTRY_POINT} -testify.m ^${TEST}$
