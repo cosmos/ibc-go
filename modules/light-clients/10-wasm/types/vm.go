@@ -123,6 +123,7 @@ func PushNewWasmCode(store sdk.KVStore, c *ClientState, code []byte) error {
 	}
 
 	store.Set(codeIDKey, code)
+	c.CodeId = codeID
 	return nil
 }
 

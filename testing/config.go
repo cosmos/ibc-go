@@ -34,6 +34,17 @@ func (tmcfg *TendermintConfig) GetClientType() string {
 	return exported.Tendermint
 }
 
+type WasmConfig struct {
+}
+
+func (tmcfg *WasmConfig) GetClientType() string {
+	return exported.Wasm
+}
+
+func NewWasmConfig() *WasmConfig {
+	return &WasmConfig{}
+}
+
 type ConnectionConfig struct {
 	DelayPeriod uint64
 	Version     *connectiontypes.Version

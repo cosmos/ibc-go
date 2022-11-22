@@ -16,14 +16,12 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 		(*exported.ConsensusState)(nil),
 		&ConsensusState{},
 	)
-	// TODO: figure out what happened to header
+	registry.RegisterImplementations(
+		(*exported.ClientMessage)(nil),
+		&Header{},
+	)
 	// registry.RegisterImplementations(
-	// 	(*exported.Header)(nil),
-	// 	&Header{},
-	// )
-	// TODO: figure out what happened to misbehavior
-	// registry.RegisterImplementations(
-	// 	(*exported.Misbehaviour)(nil),
-	// 	&Misbehaviour{},
+	// (*exported.ClientMessage)(nil),
+	// &Misbehaviour{},
 	// )
 }
