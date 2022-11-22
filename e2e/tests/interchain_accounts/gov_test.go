@@ -13,6 +13,7 @@ import (
 	"github.com/strangelove-ventures/ibctest/v6"
 	"github.com/strangelove-ventures/ibctest/v6/chain/cosmos"
 	"github.com/strangelove-ventures/ibctest/v6/ibc"
+	"github.com/strangelove-ventures/ibctest/v6/test"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/ibc-go/e2e/testsuite"
@@ -72,6 +73,8 @@ func (s *InterchainAccountsGovTestSuite) TestInterchainAccountsGovIntegration() 
 	t.Run("start relayer", func(t *testing.T) {
 		s.StartRelayer(relayer)
 	})
+
+	s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB))
 
 	var interchainAccAddr string
 	t.Run("verify interchain account", func(t *testing.T) {
