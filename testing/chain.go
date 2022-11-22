@@ -53,6 +53,8 @@ func NewTestChainClient(chain *TestChain, chainConsensusType string) TestChainCl
 	switch chainConsensusType {
 	case exported.Tendermint:
 		return NewChainTendermintClient(chain)
+	case exported.Dymint:
+		return NewChainDymintClient(chain)
 	default:
 		panic(fmt.Sprintf("client type %s is not supported", chainConsensusType))
 	}
@@ -436,6 +438,8 @@ func (chain *TestChain) ConstructUpdateClientHeader(counterparty *TestChain, cli
 	switch counterparty.TestChainClient.GetSelfClientType() {
 	case exported.Tendermint:
 		return ConstructUpdateTMClientHeaderWithTrustedHeight(counterparty, clientID, trustedHeight)
+	case exported.Dymint:
+		return ConstructUpdateDMClientHeaderWithTrustedHeight(counterparty, clientID, trustedHeight)
 	default:
 		panic(fmt.Sprintf("client type %s is not supported", counterparty.TestChainClient.GetSelfClientType()))
 	}

@@ -100,6 +100,7 @@ import (
 	porttypes "github.com/cosmos/ibc-go/v3/modules/core/05-port/types"
 	ibchost "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 	ibckeeper "github.com/cosmos/ibc-go/v3/modules/core/keeper"
+	ibcdmtypes "github.com/cosmos/ibc-go/v3/modules/light-clients/01-dymint/types"
 	ibctmtypes "github.com/cosmos/ibc-go/v3/modules/light-clients/07-tendermint/types"
 	ibcmock "github.com/cosmos/ibc-go/v3/testing/mock"
 
@@ -340,6 +341,8 @@ func NewSimAppWithConsensusType(
 	switch chainConsensusType {
 	case exported.Tendermint:
 		selfClient = ibctmtypes.NewSelfClient()
+	case exported.Dymint:
+		selfClient = ibcdmtypes.NewSelfClient()
 	default:
 		panic(fmt.Sprintf("client type %s is not supported", chainConsensusType))
 	}
