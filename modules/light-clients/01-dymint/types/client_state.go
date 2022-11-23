@@ -8,7 +8,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/tendermint/tendermint/light"
 	tmtypes "github.com/tendermint/tendermint/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
@@ -23,16 +22,14 @@ var _ exported.ClientState = (*ClientState)(nil)
 
 // NewClientState creates a new ClientState instance
 func NewClientState(
-	chainID string, trustLevel Fraction,
-	trustingPeriod, ubdPeriod, maxClockDrift time.Duration,
+	chainID string,
+	trustingPeriod, maxClockDrift time.Duration,
 	latestHeight clienttypes.Height, specs []*ics23.ProofSpec,
 	upgradePath []string, allowUpdateAfterExpiry, allowUpdateAfterMisbehaviour bool,
 ) *ClientState {
 	return &ClientState{
 		ChainId:                      chainID,
-		TrustLevel:                   trustLevel,
 		TrustingPeriod:               trustingPeriod,
-		UnbondingPeriod:              ubdPeriod,
 		MaxClockDrift:                maxClockDrift,
 		LatestHeight:                 latestHeight,
 		FrozenHeight:                 clienttypes.ZeroHeight(),
@@ -112,14 +109,8 @@ func (cs ClientState) Validate() error {
 		return sdkerrors.Wrapf(ErrInvalidChainID, "chainID is too long; got: %d, max: %d", len(cs.ChainId), tmtypes.MaxChainIDLen)
 	}
 
-	if err := light.ValidateTrustLevel(cs.TrustLevel.ToDymint()); err != nil {
-		return err
-	}
 	if cs.TrustingPeriod == 0 {
 		return sdkerrors.Wrap(ErrInvalidTrustingPeriod, "trusting period cannot be zero")
-	}
-	if cs.UnbondingPeriod == 0 {
-		return sdkerrors.Wrap(ErrInvalidUnbondingPeriod, "unbonding period cannot be zero")
 	}
 	if cs.MaxClockDrift == 0 {
 		return sdkerrors.Wrap(ErrInvalidMaxClockDrift, "max clock drift cannot be zero")
@@ -132,12 +123,6 @@ func (cs ClientState) Validate() error {
 	}
 	if cs.LatestHeight.RevisionHeight == 0 {
 		return sdkerrors.Wrapf(ErrInvalidHeaderHeight, "dymint client's latest height revision height cannot be zero")
-	}
-	if cs.TrustingPeriod >= cs.UnbondingPeriod {
-		return sdkerrors.Wrapf(
-			ErrInvalidTrustingPeriod,
-			"trusting period (%s) should be < unbonding period (%s)", cs.TrustingPeriod, cs.UnbondingPeriod,
-		)
 	}
 
 	if cs.ProofSpecs == nil {
@@ -170,11 +155,10 @@ func (cs ClientState) ZeroCustomFields() exported.ClientState {
 	// copy over all chain-specified fields
 	// and leave custom fields empty
 	return &ClientState{
-		ChainId:         cs.ChainId,
-		UnbondingPeriod: cs.UnbondingPeriod,
-		LatestHeight:    cs.LatestHeight,
-		ProofSpecs:      cs.ProofSpecs,
-		UpgradePath:     cs.UpgradePath,
+		ChainId:      cs.ChainId,
+		LatestHeight: cs.LatestHeight,
+		ProofSpecs:   cs.ProofSpecs,
+		UpgradePath:  cs.UpgradePath,
 	}
 }
 

@@ -1,7 +1,7 @@
 package types
 
 import (
-	"bytes"
+	fmt "fmt"
 	"reflect"
 	"time"
 
@@ -142,23 +142,40 @@ func (cs ClientState) CheckHeaderAndUpdateState(
 	return newClientState, consensusState, nil
 }
 
-// checkTrustedHeader checks that consensus state matches trusted fields of Header
-func checkTrustedHeader(header *Header, consState *ConsensusState) error {
-	tmTrustedValidators, err := tmtypes.ValidatorSetFromProto(header.TrustedValidators)
-	if err != nil {
-		return sdkerrors.Wrap(err, "trusted validator set in not dymint validator set type")
+func _verifyNewHeaderAndVals(
+	trustedHeader *tmtypes.SignedHeader,
+	untrustedHeader *tmtypes.SignedHeader,
+	trustingPeriod time.Duration,
+	now time.Time,
+	maxClockDrift time.Duration) error {
+
+	if light.HeaderExpired(trustedHeader, trustingPeriod, now) {
+		return light.ErrOldHeaderExpired{At: trustedHeader.Time.Add(trustingPeriod), Now: now}
 	}
 
-	// assert that trustedVals is NextValidators of last trusted header
-	// to do this, we check that trustedVals.Hash() == consState.NextValidatorsHash
-	tvalHash := tmTrustedValidators.Hash()
-	if !bytes.Equal(consState.NextValidatorsHash, tvalHash) {
-		return sdkerrors.Wrapf(
-			ErrInvalidValidatorSet,
-			"trusted validators %s, does not hash to latest trusted validators. Expected: %X, got: %X",
-			header.TrustedValidators, consState.NextValidatorsHash, tvalHash,
-		)
+	if err := untrustedHeader.ValidateBasic(trustedHeader.ChainID); err != nil {
+		return fmt.Errorf("untrustedHeader.ValidateBasic failed: %w", err)
 	}
+
+	if untrustedHeader.Height <= trustedHeader.Height {
+		return fmt.Errorf("expected new header height %d to be greater than one of old header %d",
+			untrustedHeader.Height,
+			trustedHeader.Height)
+	}
+
+	if !untrustedHeader.Time.After(trustedHeader.Time) {
+		return fmt.Errorf("expected new header time %v to be after old header time %v",
+			untrustedHeader.Time,
+			trustedHeader.Time)
+	}
+
+	if !untrustedHeader.Time.Before(now.Add(maxClockDrift)) {
+		return fmt.Errorf("new header has a time from the future %v (now: %v; max clock drift: %v)",
+			untrustedHeader.Time,
+			now,
+			maxClockDrift)
+	}
+
 	return nil
 }
 
@@ -168,10 +185,10 @@ func checkValidity(
 	clientState *ClientState, consState *ConsensusState,
 	header *Header, currentTimestamp time.Time,
 ) error {
-	if err := checkTrustedHeader(header, consState); err != nil {
+
+	if err := header.ValidateCommit(); err != nil {
 		return err
 	}
-
 	// UpdateClient only accepts updates with a header at the same revision
 	// as the trusted consensus state
 	if header.GetHeight().GetRevisionNumber() != header.TrustedHeight.RevisionNumber {
@@ -182,19 +199,9 @@ func checkValidity(
 		)
 	}
 
-	tmTrustedValidators, err := tmtypes.ValidatorSetFromProto(header.TrustedValidators)
-	if err != nil {
-		return sdkerrors.Wrap(err, "trusted validator set in not dymint validator set type")
-	}
-
 	tmSignedHeader, err := tmtypes.SignedHeaderFromProto(header.SignedHeader)
 	if err != nil {
 		return sdkerrors.Wrap(err, "signed header in not dymint signed header type")
-	}
-
-	tmValidatorSet, err := tmtypes.ValidatorSetFromProto(header.ValidatorSet)
-	if err != nil {
-		return sdkerrors.Wrap(err, "validator set in not dymint validator set type")
 	}
 
 	// assert header height is newer than consensus state
@@ -217,12 +224,11 @@ func checkValidity(
 	}
 
 	// Construct a trusted header using the fields in consensus state
-	// Only Height, Time, and NextValidatorsHash are necessary for verification
+	// Only Height and Time are necessary for verification
 	trustedHeader := tmtypes.Header{
-		ChainID:            chainID,
-		Height:             int64(header.TrustedHeight.RevisionHeight),
-		Time:               consState.Timestamp,
-		NextValidatorsHash: consState.NextValidatorsHash,
+		ChainID: chainID,
+		Height:  int64(header.TrustedHeight.RevisionHeight),
+		Time:    consState.Timestamp,
 	}
 	signedHeader := tmtypes.SignedHeader{
 		Header: &trustedHeader,
@@ -232,11 +238,10 @@ func checkValidity(
 	// - asserts trusting period not passed
 	// - assert header timestamp is not past the trusting period
 	// - assert header timestamp is past latest stored consensus state timestamp
-	// - assert that a TrustLevel proportion of TrustedValidators signed new Commit
-	err = light.Verify(
+	err = _verifyNewHeaderAndVals(
 		&signedHeader,
-		tmTrustedValidators, tmSignedHeader, tmValidatorSet,
-		clientState.TrustingPeriod, currentTimestamp, clientState.MaxClockDrift, clientState.TrustLevel.ToDymint(),
+		tmSignedHeader,
+		clientState.TrustingPeriod, currentTimestamp, clientState.MaxClockDrift,
 	)
 	if err != nil {
 		return sdkerrors.Wrap(err, "failed to verify header")
@@ -251,9 +256,8 @@ func update(ctx sdk.Context, clientStore sdk.KVStore, clientState *ClientState, 
 		clientState.LatestHeight = height
 	}
 	consensusState := &ConsensusState{
-		Timestamp:          header.GetTime(),
-		Root:               commitmenttypes.NewMerkleRoot(header.Header.GetAppHash()),
-		NextValidatorsHash: header.Header.NextValidatorsHash,
+		Timestamp: header.GetTime(),
+		Root:      commitmenttypes.NewMerkleRoot(header.Header.GetAppHash()),
 	}
 
 	// set metadata for this consensus state

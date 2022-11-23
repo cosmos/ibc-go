@@ -4,8 +4,6 @@ import (
 	"time"
 
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-	tmtypes "github.com/tendermint/tendermint/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
@@ -14,7 +12,7 @@ import (
 
 var _ exported.Misbehaviour = &Misbehaviour{}
 
-// Use the same FrozenHeight for all misbehaviour
+// FrozenHeight - Use the same FrozenHeight for all misbehaviour
 var FrozenHeight = clienttypes.NewHeight(0, 1)
 
 // NewMisbehaviour creates a new Misbehaviour instance.
@@ -61,12 +59,6 @@ func (misbehaviour Misbehaviour) ValidateBasic() error {
 	if misbehaviour.Header2.TrustedHeight.RevisionHeight == 0 {
 		return sdkerrors.Wrapf(ErrInvalidHeaderHeight, "misbehaviour Header2 cannot have zero revision height")
 	}
-	if misbehaviour.Header1.TrustedValidators == nil {
-		return sdkerrors.Wrap(ErrInvalidValidatorSet, "trusted validator set in Header1 cannot be empty")
-	}
-	if misbehaviour.Header2.TrustedValidators == nil {
-		return sdkerrors.Wrap(ErrInvalidValidatorSet, "trusted validator set in Header2 cannot be empty")
-	}
 	if misbehaviour.Header1.Header.ChainID != misbehaviour.Header2.Header.ChainID {
 		return sdkerrors.Wrap(clienttypes.ErrInvalidMisbehaviour, "headers must have identical chainIDs")
 	}
@@ -93,40 +85,11 @@ func (misbehaviour Misbehaviour) ValidateBasic() error {
 		return sdkerrors.Wrapf(clienttypes.ErrInvalidMisbehaviour, "Header1 height is less than Header2 height (%s < %s)", misbehaviour.Header1.GetHeight(), misbehaviour.Header2.GetHeight())
 	}
 
-	blockID1, err := tmtypes.BlockIDFromProto(&misbehaviour.Header1.SignedHeader.Commit.BlockID)
-	if err != nil {
-		return sdkerrors.Wrap(err, "invalid block ID from header 1 in misbehaviour")
-	}
-	blockID2, err := tmtypes.BlockIDFromProto(&misbehaviour.Header2.SignedHeader.Commit.BlockID)
-	if err != nil {
-		return sdkerrors.Wrap(err, "invalid block ID from header 2 in misbehaviour")
-	}
-
-	if err := validCommit(misbehaviour.Header1.Header.ChainID, *blockID1,
-		misbehaviour.Header1.Commit, misbehaviour.Header1.ValidatorSet); err != nil {
+	if err := misbehaviour.Header1.ValidateCommit(); err != nil {
 		return err
 	}
-	if err := validCommit(misbehaviour.Header2.Header.ChainID, *blockID2,
-		misbehaviour.Header2.Commit, misbehaviour.Header2.ValidatorSet); err != nil {
+	if err := misbehaviour.Header2.ValidateCommit(); err != nil {
 		return err
 	}
-	return nil
-}
-
-// validCommit checks if the given commit is a valid commit from the passed-in validatorset
-func validCommit(chainID string, blockID tmtypes.BlockID, commit *tmproto.Commit, valSet *tmproto.ValidatorSet) (err error) {
-	tmCommit, err := tmtypes.CommitFromProto(commit)
-	if err != nil {
-		return sdkerrors.Wrap(err, "commit is not dymint commit type")
-	}
-	tmValset, err := tmtypes.ValidatorSetFromProto(valSet)
-	if err != nil {
-		return sdkerrors.Wrap(err, "validator set is not dymint validator set type")
-	}
-
-	if err := tmValset.VerifyCommitLight(chainID, blockID, tmCommit.Height, tmCommit); err != nil {
-		return sdkerrors.Wrap(clienttypes.ErrInvalidMisbehaviour, "validator set did not commit to header")
-	}
-
 	return nil
 }

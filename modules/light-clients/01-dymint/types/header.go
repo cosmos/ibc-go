@@ -2,6 +2,7 @@ package types
 
 import (
 	"bytes"
+	fmt "fmt"
 	"time"
 
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -17,9 +18,8 @@ var _ exported.Header = &Header{}
 // ConsensusState returns the updated consensus state associated with the header
 func (h Header) ConsensusState() *ConsensusState {
 	return &ConsensusState{
-		Timestamp:          h.GetTime(),
-		Root:               commitmenttypes.NewMerkleRoot(h.Header.GetAppHash()),
-		NextValidatorsHash: h.Header.NextValidatorsHash,
+		Timestamp: h.GetTime(),
+		Root:      commitmenttypes.NewMerkleRoot(h.Header.GetAppHash()),
 	}
 }
 
@@ -45,7 +45,7 @@ func (h Header) GetTime() time.Time {
 
 // ValidateBasic calls the SignedHeader ValidateBasic function and checks
 // that validatorsets are not nil.
-// NOTE: TrustedHeight and TrustedValidators may be empty when creating client
+// NOTE: TrustedHeight may be empty when creating client
 // with MsgCreateClient
 func (h Header) ValidateBasic() error {
 	if h.SignedHeader == nil {
@@ -78,5 +78,49 @@ func (h Header) ValidateBasic() error {
 	if !bytes.Equal(h.Header.ValidatorsHash, tmValset.Hash()) {
 		return sdkerrors.Wrap(clienttypes.ErrInvalidHeader, "validator set does not match hash")
 	}
+	return nil
+}
+
+// ValidateCommit checks if the given commit is a valid commit from the passed-in validatorset
+func (h Header) ValidateCommit() (err error) {
+	chainID := h.Header.ChainID
+	blockID, err := tmtypes.BlockIDFromProto(&h.SignedHeader.Commit.BlockID)
+	if err != nil {
+		return sdkerrors.Wrap(err, "invalid block ID from header SignedHeader.Commit")
+	}
+	tmCommit, err := tmtypes.CommitFromProto(h.Commit)
+	if err != nil {
+		return sdkerrors.Wrap(err, "commit is not dymint commit type")
+	}
+	tmValset, err := tmtypes.ValidatorSetFromProto(h.ValidatorSet)
+	if err != nil {
+		return sdkerrors.Wrap(err, "validator set is not dymint validator set type")
+	}
+
+	if !blockID.Equals(tmCommit.BlockID) {
+		return fmt.Errorf("invalid commit -- wrong block ID: want %v, got %v",
+			blockID, tmCommit.BlockID)
+	}
+
+	// We don't know the validators that committed this block, so we have to
+	// check for each vote if its validator is already known.
+	valIdx, val := tmValset.GetByAddress(h.Header.ProposerAddress)
+	if val != nil {
+		commitSig := tmCommit.Signatures[valIdx]
+		if !commitSig.ForBlock() {
+			return sdkerrors.Wrap(clienttypes.ErrInvalidHeader, "validator set did not commit to header")
+		}
+		// Validate signature.
+		voteSignBytes := tmCommit.VoteSignBytes(chainID, valIdx)
+		if !bytes.Equal(commitSig.ValidatorAddress, h.Header.ProposerAddress) {
+			return fmt.Errorf("wrong proposer address in commit, got %X) but expected %X", valIdx, h.Header.ProposerAddress)
+		}
+		if !val.PubKey.VerifySignature(voteSignBytes, commitSig.Signature) {
+			return fmt.Errorf("wrong signature (#%d): %X", valIdx, commitSig.Signature)
+		}
+	} else {
+		return sdkerrors.Wrap(clienttypes.ErrInvalidHeader, "validator set did not commit to header")
+	}
+
 	return nil
 }

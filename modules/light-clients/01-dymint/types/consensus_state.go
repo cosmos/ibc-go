@@ -5,7 +5,6 @@ import (
 
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	tmbytes "github.com/tendermint/tendermint/libs/bytes"
-	tmtypes "github.com/tendermint/tendermint/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v3/modules/core/23-commitment/types"
@@ -20,9 +19,8 @@ func NewConsensusState(
 	timestamp time.Time, root commitmenttypes.MerkleRoot, nextValsHash tmbytes.HexBytes,
 ) *ConsensusState {
 	return &ConsensusState{
-		Timestamp:          timestamp,
-		Root:               root,
-		NextValidatorsHash: nextValsHash,
+		Timestamp: timestamp,
+		Root:      root,
 	}
 }
 
@@ -47,9 +45,6 @@ func (cs ConsensusState) GetTimestamp() uint64 {
 func (cs ConsensusState) ValidateBasic() error {
 	if cs.Root.Empty() {
 		return sdkerrors.Wrap(clienttypes.ErrInvalidConsensus, "root cannot be empty")
-	}
-	if err := tmtypes.ValidateHash(cs.NextValidatorsHash); err != nil {
-		return sdkerrors.Wrap(err, "next validators hash is invalid")
 	}
 	if cs.Timestamp.Unix() <= 0 {
 		return sdkerrors.Wrap(clienttypes.ErrInvalidConsensus, "timestamp must be a positive Unix time")
