@@ -133,6 +133,16 @@ func (solo *Solomachine) CreateClient(chain *TestChain) string {
 	return clientID
 }
 
+func (solo *Solomachine) UpdateClient(chain *TestChain, clientID string) {
+	smHeader := solo.CreateHeader(solo.Diversifier)
+	msgUpdateClient, err := clienttypes.NewMsgUpdateClient(clientID, smHeader, chain.SenderAccount.GetAddress().String())
+	require.NoError(solo.t, err)
+
+	res, err := chain.SendMsgs(msgUpdateClient)
+	require.NoError(solo.t, err)
+	require.NotNil(solo.t, res)
+}
+
 // CreateHeader generates a new private/public key pair and creates the
 // necessary signature to construct a valid solo machine header.
 // A new diversifier will be used as well
@@ -174,6 +184,7 @@ func (solo *Solomachine) CreateHeader(newDiversifier string) *solomachine.Header
 
 	// assumes successful header update
 	solo.Sequence++
+	solo.Time++
 	solo.PrivateKeys = newPrivKeys
 	solo.PublicKeys = newPubKeys
 	solo.PublicKey = newPubKey

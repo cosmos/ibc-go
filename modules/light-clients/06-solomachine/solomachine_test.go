@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
+	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
@@ -118,18 +118,32 @@ func (suite *SoloMachineTestSuite) TestAcknowledgePacket() {
 
 func (suite *SoloMachineTestSuite) TestTimeout() {
 	channelID := suite.SetupSolomachine()
-	portID := "transfer"
-	packet := suite.solomachine.SendTransfer(suite.chainA, portID, channelID, func(msg *types.MsgTransfer) {
-		msg.TimeoutTimestamp = suite.solomachine.Time + 1
-	})
 
-	// dummy action to trigger client state update
-	suite.solomachine.ChanOpenTry(suite.chainA, channelIDSolomachine)
+	msgTransfer := transfertypes.MsgTransfer{
+		SourcePort:       transfertypes.PortID,
+		SourceChannel:    channelID,
+		Token:            sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100)),
+		Sender:           suite.chainA.SenderAccount.GetAddress().String(),
+		Receiver:         suite.chainA.SenderAccount.GetAddress().String(),
+		TimeoutHeight:    clienttypes.ZeroHeight(),
+		TimeoutTimestamp: suite.solomachine.Time + 1,
+	}
 
+	// simulate solomachine time increment
+	suite.solomachine.Time++
+
+	res, err := suite.chainA.SendMsgs(&msgTransfer)
+	suite.Require().NoError(err)
+	suite.Require().NotNil(res)
+
+	packet, err := ibctesting.ParsePacketFromEvents(res.GetEvents())
+	suite.Require().NoError(err)
+
+	suite.solomachine.UpdateClient(suite.chainA, "06-solomachine-0")
 
 	suite.solomachine.TimeoutPacket(suite.chainA, packet)
 
-	suite.solomachine.ChanCloseConfirm(suite.chainA, portID, channelID)
+	suite.solomachine.ChanCloseConfirm(suite.chainA, transfertypes.PortID, channelID)
 }
 
 func (suite *SoloMachineTestSuite) TestTimeoutOnClose() {
