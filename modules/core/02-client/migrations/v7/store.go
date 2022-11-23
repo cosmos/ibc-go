@@ -48,7 +48,7 @@ func MigrateStore(ctx sdk.Context, storeKey storetypes.StoreKey, cdc codec.Binar
 }
 
 // handleSolomachineMigration iterates over the solo machine clients and migrates client state from
-// protobuf definition v2 to v3. All associated consensus states stored separately are pruned.
+// protobuf definition v2 to v3. All consensus states stored outside of the client state are pruned.
 func handleSolomachineMigration(ctx sdk.Context, store sdk.KVStore, cdc codec.BinaryCodec) error {
 	clients, err := collectClients(ctx, store, exported.Solomachine)
 	if err != nil {
@@ -149,7 +149,7 @@ func handleLocalhostMigration(ctx sdk.Context, store sdk.KVStore, cdc codec.Bina
 // and return a list of clientIDs associated with the client type. This is necessary to
 // avoid state corruption as modifying state during iteration is unsafe. A special case
 // for tendermint clients is included as only one tendermint clientID is required for
-// this migration..
+// v7 migrations.
 func collectClients(ctx sdk.Context, store sdk.KVStore, clientType string) (clients []string, err error) {
 	clientPrefix := []byte(fmt.Sprintf("%s/%s", host.KeyClientStorePrefix, clientType))
 	iterator := sdk.KVStorePrefixIterator(store, clientPrefix)
@@ -179,7 +179,7 @@ func collectClients(ctx sdk.Context, store sdk.KVStore, clientType string) (clie
 }
 
 // pruneClientConsensusStates removes all client consensus states from the associated
-// client store which is keyed by the clientID.
+// client store.
 func pruneClientConsensusStates(clientStore sdk.KVStore) {
 	iterator := sdk.KVStorePrefixIterator(clientStore, []byte(host.KeyConsensusStatePrefix))
 	var heights []exported.Height

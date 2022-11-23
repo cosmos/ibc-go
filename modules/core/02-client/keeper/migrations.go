@@ -33,7 +33,6 @@ func (m Migrator) Migrate1to2(ctx sdk.Context) error {
 // - prunes solo machine consensus states
 // - removes the localhost client
 // - asserts that existing tendermint clients are properly registered on the chain codec
-// - adds iteration and processed height keys for unexpired tendermint consensus states
 func (m Migrator) Migrate2to3(ctx sdk.Context) error {
 	return v7.MigrateStore(ctx, m.keeper.storeKey, m.keeper.cdc)
 }
