@@ -33,7 +33,7 @@ jobs:
           run: |
             tag=$(go run cmd/determine_simd_tag/main.go -pr "${{ github.event.pull_request.number }}" )
             echo "Using tag $tag"
-            echo "::set-output name=simd-tag::$tag"
+            echo "simd-tag=$tag" >> $GITHUB_OUTPUT
     e2e:
       if: ${{ !github.event.pull_request.head.repo.fork && github.actor != 'dependabot[bot]' }}
       needs:
