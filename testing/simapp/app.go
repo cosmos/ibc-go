@@ -437,8 +437,8 @@ func NewSimApp(
 	ibcRouter.AddRoute(ibcmock.ModuleName, mockIBCModule)
 
 	// Create Transfer Stack
-	// SendPacket, since it is originating from the application to core IBC:
-	// transferKeeper.SendPacket -> fee.SendPacket -> channel.SendPacket
+	// SendTransfer, since it is originating from the application to core IBC:
+	// transferKeeper.SendTransfer -> fee.SendTransfer -> channel.SendTransfer
 
 	// RecvPacket, message that originates from core IBC and goes down to app, the flow is the other way
 	// channel.RecvPacket -> fee.OnRecvPacket -> transfer.OnRecvPacket
@@ -456,8 +456,8 @@ func NewSimApp(
 	ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferStack)
 
 	// Create Interchain Accounts Stack
-	// SendPacket, since it is originating from the application to core IBC:
-	// icaAuthModuleKeeper.SendTx -> icaController.SendPacket -> fee.SendPacket -> channel.SendPacket
+	// SendTransfer, since it is originating from the application to core IBC:
+	// icaAuthModuleKeeper.SendTx -> icaController.SendTransfer -> fee.SendTransfer -> channel.SendTransfer
 
 	// initialize ICA module with mock module as the authentication module on the controller side
 	var icaControllerStack porttypes.IBCModule
@@ -483,8 +483,8 @@ func NewSimApp(
 		AddRoute(ibcmock.ModuleName+icacontrollertypes.SubModuleName, icaControllerStack) // ica with mock auth module stack route to ica (top level of middleware stack)
 
 	// Create Mock IBC Fee module stack for testing
-	// SendPacket, since it is originating from the application to core IBC:
-	// mockModule.SendPacket -> fee.SendPacket -> channel.SendPacket
+	// SendTransfer, since it is originating from the application to core IBC:
+	// mockModule.SendTransfer -> fee.SendTransfer -> channel.SendTransfer
 
 	// OnRecvPacket, message that originates from core IBC and goes down to app, the flow is the otherway
 	// channel.RecvPacket -> fee.OnRecvPacket -> mockModule.OnRecvPacket

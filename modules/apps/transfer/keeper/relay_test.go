@@ -96,7 +96,7 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 			}, false,
 		},
 		{
-			"SendPacket fails, timeout height and timeout timestamp are zero",
+			"SendTransfer fails, timeout height and timeout timestamp are zero",
 			func() {
 				timeoutHeight = clienttypes.ZeroHeight()
 			}, false,

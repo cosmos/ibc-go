@@ -12,6 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
+	"github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
@@ -78,13 +79,13 @@ func (suite *SoloMachineTestSuite) SetupSolomachine() string {
 
 func (suite *SoloMachineTestSuite) TestRecvPacket() {
 	channelID := suite.SetupSolomachine()
-
+	portID := "transfer"
 	packet := channeltypes.NewPacket(
 		mock.MockPacketData,
 		1,
-		mock.PortID,
+		portID,
 		channelIDSolomachine,
-		mock.PortID,
+		portID,
 		channelID,
 		clienttypes.ZeroHeight(),
 		uint64(suite.chainA.GetContext().BlockTime().Add(time.Hour).UnixNano()),
@@ -96,24 +97,15 @@ func (suite *SoloMachineTestSuite) TestRecvPacket() {
 
 	// close init is not necessary as the solomachine implementation is mocked
 
-	suite.solomachine.ChanCloseConfirm(suite.chainA, channelID)
+	suite.solomachine.ChanCloseConfirm(suite.chainA, portID, channelID)
 }
 
 func (suite *SoloMachineTestSuite) TestAcknowledgePacket() {
 	channelID := suite.SetupSolomachine()
 
-	packet := channeltypes.NewPacket(
-		mock.MockPacketData,
-		1,
-		mock.PortID,
-		channelID,
-		mock.PortID,
-		channelIDSolomachine,
-		clienttypes.ZeroHeight(),
-		uint64(suite.chainA.GetContext().BlockTime().Add(time.Hour).UnixNano()),
-	)
+	portID := "transfer"
 
-	suite.solomachine.SendPacket(suite.chainA, packet)
+	packet := suite.solomachine.SendTransfer(suite.chainA, portID, channelID)
 
 	// recv packet is not necessary as the solo machine implementation is mocked
 
@@ -121,45 +113,29 @@ func (suite *SoloMachineTestSuite) TestAcknowledgePacket() {
 
 	// close init is not necessary as the solomachine implementation is mocked
 
-	suite.solomachine.ChanCloseConfirm(suite.chainA, channelID)
+	suite.solomachine.ChanCloseConfirm(suite.chainA, portID, channelID)
 }
 
 func (suite *SoloMachineTestSuite) TestTimeout() {
 	channelID := suite.SetupSolomachine()
+	portID := "transfer"
+	packet := suite.solomachine.SendTransfer(suite.chainA, portID, channelID, func(msg *types.MsgTransfer) {
+		msg.TimeoutTimestamp = suite.solomachine.Time + 1
+	})
 
-	packet := channeltypes.NewPacket(
-		mock.MockPacketData,
-		1,
-		mock.PortID,
-		channelID,
-		mock.PortID,
-		channelIDSolomachine,
-		clienttypes.ZeroHeight(),
-		1,
-	)
+	// dummy action to trigger client state update
+	suite.solomachine.ChanOpenTry(suite.chainA, channelIDSolomachine)
 
-	suite.solomachine.SendPacket(suite.chainA, packet)
 
 	suite.solomachine.TimeoutPacket(suite.chainA, packet)
 
-	suite.solomachine.ChanCloseConfirm(suite.chainA, channelID)
+	suite.solomachine.ChanCloseConfirm(suite.chainA, portID, channelID)
 }
 
 func (suite *SoloMachineTestSuite) TestTimeoutOnClose() {
 	channelID := suite.SetupSolomachine()
 
-	packet := channeltypes.NewPacket(
-		mock.MockPacketData,
-		1,
-		mock.PortID,
-		channelID,
-		mock.PortID,
-		channelIDSolomachine,
-		clienttypes.ZeroHeight(),
-		1,
-	)
-
-	suite.solomachine.SendPacket(suite.chainA, packet)
+	packet := suite.solomachine.SendTransfer(suite.chainA, "transfer", channelID)
 
 	suite.solomachine.TimeoutPacketOnClose(suite.chainA, packet, channelID)
 }

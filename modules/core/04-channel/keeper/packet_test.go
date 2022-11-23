@@ -27,7 +27,7 @@ var (
 	connIDB = "connB"
 )
 
-// TestSendPacket tests SendPacket from chainA to chainB
+// TestSendPacket tests SendTransfer from chainA to chainB
 func (suite *KeeperTestSuite) TestSendPacket() {
 	var (
 		path             *ibctesting.Path

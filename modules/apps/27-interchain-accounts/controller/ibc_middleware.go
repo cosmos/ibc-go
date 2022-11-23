@@ -234,7 +234,7 @@ func (im IBCMiddleware) SendPacket(
 	timeoutTimestamp uint64,
 	data []byte,
 ) (uint64, error) {
-	panic("SendPacket not supported for ICA controller module. Please use SendTx")
+	panic("SendTransfer not supported for ICA controller module. Please use SendTx")
 }
 
 // WriteAcknowledgement implements the ICS4 Wrapper interface
