@@ -99,7 +99,7 @@ func (cs ClientState) VerifyUpgradeAndUpdateState(
 	// All chain-chosen parameters come from committed client, all client-chosen parameters
 	// come from current client.
 	newClientState := NewClientState(
-		tmUpgradeClient.ChainId, cs.TrustLevel, cs.TrustingPeriod, tmUpgradeClient.UnbondingPeriod,
+		tmUpgradeClient.ChainId, cs.TrustingPeriod,
 		cs.MaxClockDrift, tmUpgradeClient.LatestHeight, tmUpgradeClient.ProofSpecs, tmUpgradeClient.UpgradePath,
 		cs.AllowUpdateAfterExpiry, cs.AllowUpdateAfterMisbehaviour,
 	)

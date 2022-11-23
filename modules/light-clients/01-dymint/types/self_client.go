@@ -7,7 +7,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/tendermint/tendermint/light"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
@@ -28,6 +27,7 @@ func NewSelfClient() exported.SelfClient {
 // ValidateSelfClientState validates the client parameters for a client of the running chain
 // This function is only used to validate the client state the counterparty stores for this chain
 // Client must be in same revision as the executing chain
+// dymint doesn't care about the unbonding period, so ignore it
 func (sc SelfClient) ValidateSelfClientState(
 	ctx sdk.Context,
 	expectedUbdPeriod time.Duration,
@@ -66,20 +66,6 @@ func (sc SelfClient) ValidateSelfClientState(
 	if !reflect.DeepEqual(expectedProofSpecs, tmClient.ProofSpecs) {
 		return sdkerrors.Wrapf(clienttypes.ErrInvalidClient, "client has invalid proof specs. expected: %v got: %v",
 			expectedProofSpecs, tmClient.ProofSpecs)
-	}
-
-	if err := light.ValidateTrustLevel(tmClient.TrustLevel.ToDymint()); err != nil {
-		return sdkerrors.Wrapf(clienttypes.ErrInvalidClient, "trust-level invalid: %v", err)
-	}
-
-	if expectedUbdPeriod != tmClient.UnbondingPeriod {
-		return sdkerrors.Wrapf(clienttypes.ErrInvalidClient, "invalid unbonding period. expected: %s, got: %s",
-			expectedUbdPeriod, tmClient.UnbondingPeriod)
-	}
-
-	if tmClient.UnbondingPeriod < tmClient.TrustingPeriod {
-		return sdkerrors.Wrapf(clienttypes.ErrInvalidClient, "unbonding period must be greater than trusting period. unbonding period (%d) < trusting period (%d)",
-			tmClient.UnbondingPeriod, tmClient.TrustingPeriod)
 	}
 
 	if len(tmClient.UpgradePath) != 0 {

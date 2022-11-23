@@ -2,6 +2,7 @@ package types
 
 import (
 	"bytes"
+	"strings"
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -102,19 +103,14 @@ func checkMisbehaviourHeader(
 	clientState *ClientState, consState *ConsensusState, header *Header, currentTimestamp time.Time,
 ) error {
 
-	tmTrustedValset, err := tmtypes.ValidatorSetFromProto(header.TrustedValidators)
+	_, err := tmtypes.ValidatorSetFromProto(header.TrustedValidators)
 	if err != nil {
 		return sdkerrors.Wrap(err, "trusted validator set is not dymint validator set type")
 	}
 
-	tmCommit, err := tmtypes.CommitFromProto(header.Commit)
+	_, err = tmtypes.CommitFromProto(header.Commit)
 	if err != nil {
 		return sdkerrors.Wrap(err, "commit is not dymint commit type")
-	}
-
-	// check the trusted fields for the header against ConsensusState
-	if err := checkTrustedHeader(header, consState); err != nil {
-		return err
 	}
 
 	// assert that the age of the trusted consensus state is not older than the trusting period
@@ -126,19 +122,16 @@ func checkMisbehaviourHeader(
 		)
 	}
 
-	chainID := clientState.GetChainID()
-	// If chainID is in revision format, then set revision number of chainID with the revision number
-	// of the misbehaviour header
-	if clienttypes.IsRevisionFormat(chainID) {
-		chainID, _ = clienttypes.SetRevisionNumber(chainID, header.GetHeight().GetRevisionNumber())
+	// swap out revision if exists and get chainID
+	clientStateChainID := strings.Split(clientState.GetChainID(), "-")[0]
+	headerChainID := strings.Split(header.Header.ChainID, "-")[0]
+
+	if headerChainID != clientStateChainID {
+		return sdkerrors.Wrapf(
+			ErrInvalidChainID,
+			"expected %s{chainID}, got %s", clientStateChainID, headerChainID,
+		)
 	}
 
-	// - ValidatorSet must have TrustLevel similarity with trusted FromValidatorSet
-	// - ValidatorSets on both headers are valid given the last trusted ValidatorSet
-	if err := tmTrustedValset.VerifyCommitLightTrusting(
-		chainID, tmCommit, clientState.TrustLevel.ToDymint(),
-	); err != nil {
-		return sdkerrors.Wrapf(clienttypes.ErrInvalidMisbehaviour, "validator set in header has too much change from trusted validator set: %v", err)
-	}
 	return nil
 }

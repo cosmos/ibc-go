@@ -25,9 +25,7 @@ var (
 )
 
 type DymintConfig struct {
-	TrustLevel                   ibcdmtypes.Fraction
 	TrustingPeriod               time.Duration
-	UnbondingPeriod              time.Duration
 	MaxClockDrift                time.Duration
 	AllowUpdateAfterExpiry       bool
 	AllowUpdateAfterMisbehaviour bool
@@ -77,9 +75,7 @@ func (chain *TestChainDymint) GetSelfClientType() string {
 
 func (chain *TestChainDymint) NewConfig() ClientConfig {
 	return &DymintConfig{
-		TrustLevel:                   DefaultDymintTrustLevel,
 		TrustingPeriod:               TrustingPeriod,
-		UnbondingPeriod:              UnbondingPeriod,
 		MaxClockDrift:                MaxClockDrift,
 		AllowUpdateAfterExpiry:       false,
 		AllowUpdateAfterMisbehaviour: false,
@@ -236,7 +232,7 @@ func (chain *TestChainDymint) ClientConfigToState(clientConfig ClientConfig) exp
 
 	height := chain.LastHeader.GetHeight().(clienttypes.Height)
 	clientState := ibcdmtypes.NewClientState(
-		chain.TC.ChainID, tmConfig.TrustLevel, tmConfig.TrustingPeriod, tmConfig.UnbondingPeriod, tmConfig.MaxClockDrift,
+		chain.TC.ChainID, tmConfig.TrustingPeriod, tmConfig.MaxClockDrift,
 		height, commitmenttypes.GetSDKSpecs(), UpgradePath, tmConfig.AllowUpdateAfterExpiry, tmConfig.AllowUpdateAfterMisbehaviour,
 	)
 	return clientState
