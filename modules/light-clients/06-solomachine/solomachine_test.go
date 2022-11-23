@@ -25,6 +25,7 @@ import (
 var (
 	channelIDSolomachine = "channel-on-solomachine" // channelID generated on solo machine side
 	clientIDSolomachine  = "06-solomachine-0"
+	transferPort         = "transfer"
 )
 
 type SoloMachineTestSuite struct {
@@ -80,13 +81,12 @@ func (suite *SoloMachineTestSuite) SetupSolomachine() string {
 
 func (suite *SoloMachineTestSuite) TestRecvPacket() {
 	channelID := suite.SetupSolomachine()
-	portID := "transfer"
 	packet := channeltypes.NewPacket(
 		mock.MockPacketData,
 		1,
-		portID,
+		transferPort,
 		channelIDSolomachine,
-		portID,
+		transferPort,
 		channelID,
 		clienttypes.ZeroHeight(),
 		uint64(suite.chainA.GetContext().BlockTime().Add(time.Hour).UnixNano()),
@@ -98,15 +98,13 @@ func (suite *SoloMachineTestSuite) TestRecvPacket() {
 
 	// close init is not necessary as the solomachine implementation is mocked
 
-	suite.solomachine.ChanCloseConfirm(suite.chainA, portID, channelID)
+	suite.solomachine.ChanCloseConfirm(suite.chainA, transferPort, channelID)
 }
 
 func (suite *SoloMachineTestSuite) TestAcknowledgePacket() {
 	channelID := suite.SetupSolomachine()
 
-	portID := "transfer"
-
-	packet := suite.solomachine.SendTransfer(suite.chainA, portID, channelID)
+	packet := suite.solomachine.SendTransfer(suite.chainA, transferPort, channelID)
 
 	// recv packet is not necessary as the solo machine implementation is mocked
 
@@ -114,12 +112,12 @@ func (suite *SoloMachineTestSuite) TestAcknowledgePacket() {
 
 	// close init is not necessary as the solomachine implementation is mocked
 
-	suite.solomachine.ChanCloseConfirm(suite.chainA, portID, channelID)
+	suite.solomachine.ChanCloseConfirm(suite.chainA, transferPort, channelID)
 }
 
 func (suite *SoloMachineTestSuite) TestTimeout() {
 	channelID := suite.SetupSolomachine()
-	packet := suite.solomachine.SendTransfer(suite.chainA, "transfer", channelID, func(msg *transfertypes.MsgTransfer) {
+	packet := suite.solomachine.SendTransfer(suite.chainA, transferPort, channelID, func(msg *transfertypes.MsgTransfer) {
 		msg.TimeoutTimestamp = suite.solomachine.Time + 1
 	})
 
@@ -136,7 +134,7 @@ func (suite *SoloMachineTestSuite) TestTimeout() {
 func (suite *SoloMachineTestSuite) TestTimeoutOnClose() {
 	channelID := suite.SetupSolomachine()
 
-	packet := suite.solomachine.SendTransfer(suite.chainA, "transfer", channelID)
+	packet := suite.solomachine.SendTransfer(suite.chainA, transferPort, channelID)
 
 	suite.solomachine.TimeoutPacketOnClose(suite.chainA, packet, channelID)
 }
