@@ -262,6 +262,43 @@ func (suite *DymintTestSuite) TestCheckHeaderAndUpdateState() {
 			expFrozen: false,
 			expPass:   false,
 		},
+		{
+			name: "proposer is not in the validator set",
+			setup: func(suite *DymintTestSuite) {
+				clientState = types.NewClientState(chainID, trustingPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath, false, false)
+				consensusState = types.NewConsensusState(suite.clientTime, commitmenttypes.NewMerkleRoot(suite.header.Header.GetAppHash()), suite.valsHash)
+				newValSet := suite.valSet
+				newValSet.Proposer = altVal
+				newHeader = chainADymint.CreateDMClientHeader(chainID, int64(heightPlus1.RevisionHeight), height, suite.headerTime, suite.valSet, suite.valSet, signers)
+				currentTime = suite.now
+			},
+			expFrozen: false,
+			expPass:   false,
+		},
+		{
+			name: "wrong proposer address",
+			setup: func(suite *DymintTestSuite) {
+				clientState = types.NewClientState(chainID, trustingPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath, false, false)
+				consensusState = types.NewConsensusState(suite.clientTime, commitmenttypes.NewMerkleRoot(suite.header.Header.GetAppHash()), suite.valsHash)
+				newHeader = chainADymint.CreateDMClientHeader(chainID, int64(heightPlus1.RevisionHeight), height, suite.headerTime, suite.valSet, suite.valSet, signers)
+				newHeader.SignedHeader.Commit.Signatures[0].ValidatorAddress = altVal.Address
+				currentTime = suite.now
+			},
+			expFrozen: false,
+			expPass:   false,
+		},
+		{
+			name: "wrong proposer signature",
+			setup: func(suite *DymintTestSuite) {
+				clientState = types.NewClientState(chainID, trustingPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath, false, false)
+				consensusState = types.NewConsensusState(suite.clientTime, commitmenttypes.NewMerkleRoot(suite.header.Header.GetAppHash()), suite.valsHash)
+				newHeader = chainADymint.CreateDMClientHeader(chainID, int64(heightPlus1.RevisionHeight), height, suite.headerTime, suite.valSet, suite.valSet, signers)
+				newHeader.SignedHeader.Commit.Signatures[0].Signature = []byte{123}
+				currentTime = suite.now
+			},
+			expFrozen: false,
+			expPass:   false,
+		},
 	}
 
 	for i, tc := range testCases {

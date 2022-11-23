@@ -186,6 +186,9 @@ func checkValidity(
 	header *Header, currentTimestamp time.Time,
 ) error {
 
+	if err := header.ValidateCommit(); err != nil {
+		return err
+	}
 	// UpdateClient only accepts updates with a header at the same revision
 	// as the trusted consensus state
 	if header.GetHeight().GetRevisionNumber() != header.TrustedHeight.RevisionNumber {
