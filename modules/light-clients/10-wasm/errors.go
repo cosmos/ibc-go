@@ -1,4 +1,4 @@
-package types
+package wasm
 
 import sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 

@@ -9,7 +9,7 @@ import (
 	commitmenttypes "github.com/cosmos/ibc-go/v5/modules/core/23-commitment/types"
 	solomachinetypes "github.com/cosmos/ibc-go/v5/modules/light-clients/06-solomachine"
 	ibctm "github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint"
-	wasmtypes "github.com/cosmos/ibc-go/v5/modules/light-clients/10-wasm/types"
+	wasmtypes "github.com/cosmos/ibc-go/v5/modules/light-clients/10-wasm"
 )
 
 // RegisterInterfaces registers x/ibc interfaces into protobuf Any.

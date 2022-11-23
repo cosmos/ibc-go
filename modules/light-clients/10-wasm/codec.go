@@ -1,4 +1,4 @@
-package types
+package wasm
 
 import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -17,11 +17,11 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 		&ConsensusState{},
 	)
 	registry.RegisterImplementations(
-		(*exported.ClientMessage)(nil),
-		&Header{},
+	 	(*exported.ClientMessage)(nil),
+	 	&Header{},
 	)
-	// registry.RegisterImplementations(
-	// (*exported.ClientMessage)(nil),
-	// &Misbehaviour{},
-	// )
+	registry.RegisterImplementations(
+		(*exported.ClientMessage)(nil),
+	 	&Misbehaviour{},
+	)
 }

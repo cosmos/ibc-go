@@ -1,15 +1,13 @@
-package types
+package wasm
 
 import (
 	"bytes"
 	"crypto/sha256"
-	"encoding/json"
 	"strings"
 
 	cosmwasm "github.com/CosmWasm/wasmvm"
 	"github.com/CosmWasm/wasmvm/types"
 	ics23 "github.com/confio/ics23/go"
-	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
@@ -118,31 +116,19 @@ func CreateVM(vmConfig *VMConfig, validationConfig *ValidationConfig) {
 	WasmVal = wasmValidator
 }
 
-func SaveClientStateIntoWasmStorage(ctx sdk.Context, cdc codec.BinaryCodec, store sdk.KVStore, c *ClientState) (*types.Response, error) {
-	// stateBytes := clienttypes.MustMarshalClientState(cdc, c)
-	saveClientMsg := ClientCreateRequest{
-		ClientCreateRequest: *c,
-	}
-	msg, err := json.Marshal(saveClientMsg)
-	if err != nil {
-		panic(err)
-	}
-	return callContract(c.CodeId, ctx, store, msg)
-}
-
-func PushNewWasmCode(store sdk.KVStore, c *ClientState, code []byte) error {
+func PushNewWasmCode(store sdk.KVStore, code []byte) (cosmwasm.Checksum, error) {
 	// check to see if the store has a code with the same code id
 	codeHash := generateWasmCodeHash(code)
 	codeIDKey := CodeID(codeHash)
 	if store.Has(codeIDKey) {
-		return ErrWasmCodeExists
+		return nil, ErrWasmCodeExists
 	}
 
 	// run the code through the wasm light client validation process
 	if isValidWasmCode, err := WasmVal.validateWasmCode(code); err != nil {
-		return sdkerrors.Wrapf(ErrWasmCodeValidation, "unable to validate wasm code: %s", err)
+		return nil, sdkerrors.Wrapf(ErrWasmCodeValidation, "unable to validate wasm code: %s", err)
 	} else if !isValidWasmCode {
-		return ErrWasmInvalidCode
+		return nil, ErrWasmInvalidCode
 	}
 
 	// create the code in the vm
@@ -150,22 +136,21 @@ func PushNewWasmCode(store sdk.KVStore, c *ClientState, code []byte) error {
 	// is no code with the same hash?
 	codeID, err := WasmVM.Create(code)
 	if err != nil {
-		return ErrWasmInvalidCode
+		return nil, ErrWasmInvalidCode
 	}
 
 	// safety check to assert that code id returned by WasmVM equals to code hash
 	if !bytes.Equal(codeID, codeHash) {
-		return ErrWasmInvalidCodeID
+		return nil, ErrWasmInvalidCodeID
 	}
 
 	store.Set(codeIDKey, code)
-	c.CodeId = codeID
-	return nil
+	return codeID, nil
 }
 
 // Calls vm.Init with appropriate arguments
 // TODO: Move this into a public method on the 28-wasm keeper
-func initContract(codeID []byte, ctx sdk.Context, store sdk.KVStore, msg []byte) (*types.Response, error) {
+func initContract(codeID []byte, ctx sdk.Context, store sdk.KVStore) (*types.Response, error) {
 	gasMeter := ctx.GasMeter()
 	chainID := ctx.BlockHeader().ChainID
 	height := ctx.BlockHeader().Height
@@ -196,7 +181,7 @@ func initContract(codeID []byte, ctx sdk.Context, store sdk.KVStore, msg []byte)
 	// mockQuerier := api.MockQuerier{}
 
 	desercost := types.UFraction{Numerator: 0, Denominator: 1}
-	response, _, err := WasmVM.Instantiate(codeID, env, msgInfo, msg, store, cosmwasm.GoAPI{}, nil, gasMeter, gasMeter.Limit(), desercost)
+	response, _, err := WasmVM.Instantiate(codeID, env, msgInfo, []byte("{}"), store, cosmwasm.GoAPI{}, nil, gasMeter, gasMeter.Limit(), desercost)
 	return response, err
 }
 
@@ -225,12 +210,12 @@ func callContract(codeID []byte, ctx sdk.Context, store sdk.KVStore, msg []byte)
 		},
 	}
 
-	return callContractWithEnvAndMeter(codeID, &ctx, store, env, gasMeter, msg)
+	return callContractWithEnvAndMeter(codeID, ctx, store, env, gasMeter, msg)
 }
 
 // Calls vm.Execute with supplied environment and gas meter
 // TODO: Move this into a private method on the 28-wasm keeper
-func callContractWithEnvAndMeter(codeID cosmwasm.Checksum, ctx *sdk.Context, store cosmwasm.KVStore, env types.Env, gasMeter sdk.GasMeter, msg []byte) (*types.Response, error) {
+func callContractWithEnvAndMeter(codeID cosmwasm.Checksum, ctx sdk.Context, store sdk.KVStore, env types.Env, gasMeter sdk.GasMeter, msg []byte) (*types.Response, error) {
 	msgInfo := types.MessageInfo{
 		Sender: "",
 		Funds:  nil,
@@ -239,15 +224,15 @@ func callContractWithEnvAndMeter(codeID cosmwasm.Checksum, ctx *sdk.Context, sto
 	// mockFailureAPI := *api.NewMockFailureAPI()
 	// mockQuerier := api.MockQuerier{}
 	desercost := types.UFraction{Numerator: 1, Denominator: 1}
-	resp, gasUsed, err := WasmVM.Execute(codeID, env, msgInfo, msg, store, cosmwasm.GoAPI{}, nil, nil, gasMeter.Limit(), desercost)
-	if ctx != nil {
-		consumeGas(*ctx, gasUsed)
+	resp, gasUsed, err := WasmVM.Execute(codeID, env, msgInfo, msg, store, cosmwasm.GoAPI{}, nil, gasMeter, gasMeter.Limit(), desercost)
+	if &ctx != nil {
+		consumeGas(ctx, gasUsed)
 	}
 	return resp, err
 }
 
 // TODO: Move this into a public method on the 28-wasm keeper
-func queryContractWithStore(codeID cosmwasm.Checksum, store cosmwasm.KVStore, msg []byte) ([]byte, error) {
+func queryContractWithStore(codeID cosmwasm.Checksum, store sdk.KVStore, msg []byte) ([]byte, error) {
 	// TODO: fix this
 	// mockEnv := api.MockEnv()
 	// mockGasMeter := api.NewMockGasMeter(1)

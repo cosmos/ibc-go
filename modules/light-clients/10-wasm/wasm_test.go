@@ -15,7 +15,7 @@ import (
 	commitmenttypes "github.com/cosmos/ibc-go/v5/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v5/modules/core/exported"
-	wasm "github.com/cosmos/ibc-go/v5/modules/light-clients/10-wasm/types"
+	wasm "github.com/cosmos/ibc-go/v5/modules/light-clients/10-wasm"
 	ibctesting "github.com/cosmos/ibc-go/v5/testing"
 	"github.com/cosmos/ibc-go/v5/testing/simapp"
 	"github.com/stretchr/testify/suite"
@@ -76,9 +76,20 @@ func (suite *WasmTestSuite) SetupTest() {
 	suite.store = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), exported.Wasm)
 	data, err = hex.DecodeString(suite.testData["client_state_a0"])
 	suite.Require().NoError(err)
+	
+	os.MkdirAll("tmp", 0o755)
+	wasm.CreateVM(&wasmConfig, &validationConfig)
+	data, err = os.ReadFile("ics10_grandpa_cw.wasm")
+	suite.Require().NoError(err)
+	
+	// Currently pushing to client-specific store, this will change to a keeper, but okay for now/testing (single wasm client)
+	codeId, err := wasm.PushNewWasmCode(suite.store, data)
+	suite.Require().NoError(err)
+
 	clientState := wasm.ClientState{
 		Data: data,
-		LatestHeight: &clienttypes.Height{
+		CodeId: codeId,
+		LatestHeight: clienttypes.Height{
 			RevisionNumber: 1,
 			RevisionHeight: 2,
 		},
@@ -104,13 +115,7 @@ func (suite *WasmTestSuite) SetupTest() {
 		},
 		Repository: "test",
 	}
-	os.MkdirAll("tmp", 0o755)
-	wasm.CreateVM(&wasmConfig, &validationConfig)
-	data, err = os.ReadFile("ics10_grandpa_cw.wasm")
-	suite.Require().NoError(err)
 
-	err = wasm.PushNewWasmCode(suite.store, &clientState, data)
-	suite.Require().NoError(err)
 	suite.clientState = clientState
 	data, err = hex.DecodeString(suite.testData["consensus_state_a0"])
 	suite.Require().NoError(err)
@@ -146,7 +151,7 @@ func (suite *WasmTestSuite) TestVerifyClientMessageHeader() {
 					suite.Require().NoError(err)
 					clientMsg = &wasm.Header{
 						Data: data,
-						Height: &clienttypes.Height{
+						Height: clienttypes.Height{
 							RevisionNumber: 1,
 							RevisionHeight: 2,
 						},

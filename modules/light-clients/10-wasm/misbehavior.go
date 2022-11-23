@@ -1,4 +1,4 @@
-package types
+package wasm
 
 import (
 	"github.com/cosmos/ibc-go/modules/core/exported"
@@ -9,14 +9,14 @@ var (
 	_ exported.Misbehaviour = &Misbehaviour{}
 )
 
-func (m *Misbehaviour) ClientType() string {
+func (m Misbehaviour) ClientType() string {
 	return v5.Wasm
 }
 
-func (m *Misbehaviour) GetClientID() string {
+func (m Misbehaviour) GetClientID() string {
 	return m.ClientId
 }
 
-func (m *Misbehaviour) ValidateBasic() error {
+func (m Misbehaviour) ValidateBasic() error {
 	return nil
 }

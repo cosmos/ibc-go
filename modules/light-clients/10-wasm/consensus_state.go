@@ -1,4 +1,4 @@
-package types
+package wasm
 
 import (
 	"fmt"
@@ -10,19 +10,15 @@ import (
 
 var _ exported.ConsensusState = (*ConsensusState)(nil)
 
-func (m *ConsensusState) ClientType() string {
+func (m ConsensusState) ClientType() string {
 	return exported.Wasm
 }
 
-func (m *ConsensusState) GetRoot() exported.Root {
-	return m.Root
-}
-
-func (m *ConsensusState) GetTimestamp() uint64 {
+func (m ConsensusState) GetTimestamp() uint64 {
 	return m.Timestamp
 }
 
-func (m *ConsensusState) ValidateBasic() error {
+func (m ConsensusState) ValidateBasic() error {
 	if m.Root.Empty() {
 		return sdkerrors.Wrap(clienttypes.ErrInvalidConsensus, "root cannot be empty")
 	}

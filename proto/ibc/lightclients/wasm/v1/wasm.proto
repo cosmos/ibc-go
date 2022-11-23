@@ -7,16 +7,17 @@ import "ibc/core/client/v1/client.proto";
 import "ibc/core/commitment/v1/commitment.proto";
 import "proofs.proto";
 
-option go_package = "github.com/cosmos/ibc-go/v5/modules/light-clients/10-wasm/types";
+option go_package = "github.com/cosmos/ibc-go/v5/modules/light-clients/10-wasm;wasm";
 
 // Wasm light client's Client state
 message ClientState {
   option (gogoproto.goproto_getters)      = false;
   bytes                     data          = 1;
   bytes                     code_id       = 2;
-  ibc.core.client.v1.Height latest_height = 3;
-  repeated ics23.ProofSpec proof_specs    = 4;
-  string                   repository     = 5;
+  ibc.core.client.v1.Height latest_height = 3
+      [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"latest_height\""];
+  repeated ics23.ProofSpec proof_specs = 4;
+  string                   repository  = 5;
 }
 
 // Wasm light client's ConsensusState
@@ -37,7 +38,7 @@ message Header {
   option (gogoproto.goproto_getters) = false;
 
   bytes                     data   = 1;
-  ibc.core.client.v1.Height height = 2;
+  ibc.core.client.v1.Height height = 2 [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"height\""];
 }
 
 // Wasm light client Misbehaviour

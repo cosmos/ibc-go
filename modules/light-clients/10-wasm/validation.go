@@ -1,4 +1,4 @@
-package types
+package wasm
 
 import cosmwasm "github.com/CosmWasm/wasmvm"
 

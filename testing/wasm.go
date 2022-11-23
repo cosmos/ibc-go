@@ -13,7 +13,7 @@ import (
 	commitmenttypes "github.com/cosmos/ibc-go/v5/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v5/modules/core/exported"
-	wasmtypes "github.com/cosmos/ibc-go/v5/modules/light-clients/10-wasm/types"
+	wasmtypes "github.com/cosmos/ibc-go/v5/modules/light-clients/10-wasm"
 )
 
 // Wasm is a testing helper used to simulate a counterparty
@@ -73,7 +73,7 @@ func (wasm *Wasm) GetHeight() exported.Height {
 func (wasm *Wasm) CreateHeader(newDiversifier string) *wasmtypes.Header {
 	header := &wasmtypes.Header{
 		Data:   []byte(newDiversifier),
-		Height: &clienttypes.Height{},
+		Height: clienttypes.Height{},
 	}
 
 	// assumes successful header update
