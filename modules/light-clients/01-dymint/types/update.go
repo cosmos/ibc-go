@@ -224,12 +224,11 @@ func checkValidity(
 	}
 
 	// Construct a trusted header using the fields in consensus state
-	// Only Height, Time, and NextValidatorsHash are necessary for verification
+	// Only Height and Time are necessary for verification
 	trustedHeader := tmtypes.Header{
-		ChainID:            chainID,
-		Height:             int64(header.TrustedHeight.RevisionHeight),
-		Time:               consState.Timestamp,
-		NextValidatorsHash: consState.NextValidatorsHash,
+		ChainID: chainID,
+		Height:  int64(header.TrustedHeight.RevisionHeight),
+		Time:    consState.Timestamp,
 	}
 	signedHeader := tmtypes.SignedHeader{
 		Header: &trustedHeader,
@@ -239,7 +238,6 @@ func checkValidity(
 	// - asserts trusting period not passed
 	// - assert header timestamp is not past the trusting period
 	// - assert header timestamp is past latest stored consensus state timestamp
-	// - assert that a TrustLevel proportion of TrustedValidators signed new Commit
 	err = _verifyNewHeaderAndVals(
 		&signedHeader,
 		tmSignedHeader,
@@ -258,9 +256,8 @@ func update(ctx sdk.Context, clientStore sdk.KVStore, clientState *ClientState, 
 		clientState.LatestHeight = height
 	}
 	consensusState := &ConsensusState{
-		Timestamp:          header.GetTime(),
-		Root:               commitmenttypes.NewMerkleRoot(header.Header.GetAppHash()),
-		NextValidatorsHash: header.Header.NextValidatorsHash,
+		Timestamp: header.GetTime(),
+		Root:      commitmenttypes.NewMerkleRoot(header.Header.GetAppHash()),
 	}
 
 	// set metadata for this consensus state

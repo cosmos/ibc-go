@@ -327,9 +327,8 @@ func (suite *DymintTestSuite) TestCheckHeaderAndUpdateState() {
 
 			height := newHeader.GetHeight()
 			expectedConsensus := &types.ConsensusState{
-				Timestamp:          newHeader.GetTime(),
-				Root:               commitmenttypes.NewMerkleRoot(newHeader.Header.GetAppHash()),
-				NextValidatorsHash: newHeader.Header.NextValidatorsHash,
+				Timestamp: newHeader.GetTime(),
+				Root:      commitmenttypes.NewMerkleRoot(newHeader.Header.GetAppHash()),
 			}
 
 			newClientState, consensusState, err := clientState.CheckHeaderAndUpdateState(

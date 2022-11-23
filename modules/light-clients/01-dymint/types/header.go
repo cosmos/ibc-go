@@ -18,9 +18,8 @@ var _ exported.Header = &Header{}
 // ConsensusState returns the updated consensus state associated with the header
 func (h Header) ConsensusState() *ConsensusState {
 	return &ConsensusState{
-		Timestamp:          h.GetTime(),
-		Root:               commitmenttypes.NewMerkleRoot(h.Header.GetAppHash()),
-		NextValidatorsHash: h.Header.NextValidatorsHash,
+		Timestamp: h.GetTime(),
+		Root:      commitmenttypes.NewMerkleRoot(h.Header.GetAppHash()),
 	}
 }
 

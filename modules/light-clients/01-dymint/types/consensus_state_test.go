@@ -42,14 +42,6 @@ func (suite *DymintTestSuite) TestConsensusStateValidateBasic() {
 				NextValidatorsHash: suite.valsHash,
 			},
 			false},
-		{"nextvalshash is invalid",
-			&types.ConsensusState{
-				Timestamp:          suite.now,
-				Root:               commitmenttypes.NewMerkleRoot([]byte("app_hash")),
-				NextValidatorsHash: []byte("hi"),
-			},
-			false},
-
 		{"timestamp is zero",
 			&types.ConsensusState{
 				Timestamp:          time.Time{},
