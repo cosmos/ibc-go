@@ -197,17 +197,23 @@ func (c *ClientState) VerifyNonMembership(
 // if the ClientMessage fails to verify.
 func (c *ClientState) VerifyClientMessage(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, clientMsg exported.ClientMessage) error {
 	const VerifyClientMessage = "verify_client_message"
-	payload := make(map[string]map[string]interface{})
-	payload[VerifyClientMessage] = make(map[string]interface{})
-	inner := payload[VerifyClientMessage]
+	inner := make(map[string]interface{})
 	inner["client_state"] = c
-	inner["client_message"] = clientMsg
+	clientMsgConcrete := make(map[string]interface{})
+	switch clientMsg := clientMsg.(type) {
+	case *Header:
+		clientMsgConcrete["header"] = clientMsg
+	case *Misbehaviour:
+		clientMsgConcrete["misbehaviour"] = clientMsg
+	}
+	inner["client_message"] = clientMsgConcrete
+	payload := make(map[string]map[string]interface{})
+	payload[VerifyClientMessage] = inner
 
 	encodedData, err := json.Marshal(payload)
 	if err != nil {
 		return sdkerrors.Wrapf(ErrUnableToMarshalPayload, fmt.Sprintf("underlying error: %s", err.Error()))
 	}
-	// fmt.Println(string(encodedData))
 	out, err := callContract(c.CodeId, ctx, clientStore, encodedData)
 	if err != nil {
 		return sdkerrors.Wrapf(ErrUnableToCall, fmt.Sprintf("underlying error: %s", err.Error()))
@@ -234,12 +240,45 @@ func (c *ClientState) UpdateStateOnMisbehaviour(ctx sdk.Context, cdc codec.Binar
 }
 
 func (c *ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, clientMsg exported.ClientMessage) []exported.Height {
-	_, err := SaveClientStateIntoWasmStorage(ctx, cdc, clientStore, c)
-	// TODO: implement
-	if err != nil {
-		return []exported.Height{}
+	const VerifyClientMessage = "update_state"
+	inner := make(map[string]interface{})
+	inner["client_state"] = c
+	clientMsgConcrete := make(map[string]interface{})
+	switch clientMsg := clientMsg.(type) {
+	case *Header:
+		clientMsgConcrete["header"] = clientMsg
+	case *Misbehaviour:
+		clientMsgConcrete["misbehaviour"] = clientMsg
 	}
-	return []exported.Height{}
+	inner["client_message"] = clientMsgConcrete
+	payload := make(map[string]map[string]interface{})
+	payload[VerifyClientMessage] = inner
+
+	encodedData, err := json.Marshal(payload)
+	if err != nil {
+		panic(sdkerrors.Wrapf(ErrUnableToMarshalPayload, fmt.Sprintf("underlying error: %s", err.Error())))
+	}
+	out, err := callContract(c.CodeId, ctx, clientStore, encodedData)
+	if err != nil {
+		panic(sdkerrors.Wrapf(ErrUnableToCall, fmt.Sprintf("underlying error: %s", err.Error())))
+	}
+	output := contractResult{}
+	if err := json.Unmarshal(out.Data, &output); err != nil {
+		panic(sdkerrors.Wrapf(ErrUnableToUnmarshalPayload, fmt.Sprintf("underlying error: %s", err.Error())))
+	}
+	if !output.IsValid {
+		panic(fmt.Errorf("%s error occurred while updating client state", output.ErrorMsg))
+	}
+	if err := json.Unmarshal(output.Data, &c); err != nil {
+		panic(sdkerrors.Wrapf(ErrUnableToUnmarshalPayload, fmt.Sprintf("underlying error: %s", err.Error())))
+	}
+
+	SetClientState(clientStore, cdc, c)
+	// TODO: do we need to set consensus state?
+	// setConsensusState(clientStore, cdc, consensusState, header.GetHeight())
+	// setConsensusMetadata(ctx, clientStore, header.GetHeight())
+
+	return []exported.Height{c.LatestHeight}
 }
 
 func (c *ClientState) CheckSubstituteAndUpdateState(

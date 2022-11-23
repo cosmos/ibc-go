@@ -45,6 +45,7 @@ type ClientCreateRequest struct {
 type contractResult struct {
 	IsValid  bool   `json:"is_valid,omitempty"`
 	ErrorMsg string `json:"err_msg,omitempty"`
+	Data     []byte `json:"data,omitempty"`
 }
 
 type VMConfig struct {

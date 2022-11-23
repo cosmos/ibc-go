@@ -5,7 +5,6 @@ package ibc.lightclients.wasm.v1;
 import "gogoproto/gogo.proto";
 import "ibc/core/client/v1/client.proto";
 import "ibc/core/commitment/v1/commitment.proto";
-import "google/protobuf/timestamp.proto";
 import "proofs.proto";
 
 option go_package = "github.com/cosmos/ibc-go/v5/modules/light-clients/10-wasm/types";
@@ -16,8 +15,8 @@ message ClientState {
   bytes                     data          = 1;
   bytes                     code_id       = 2;
   ibc.core.client.v1.Height latest_height = 3;
-  repeated ics23.ProofSpec  proof_specs   = 4;
-  string                    repository    = 5;
+  repeated ics23.ProofSpec proof_specs    = 4;
+  string                   repository     = 5;
 }
 
 // Wasm light client's ConsensusState
@@ -46,6 +45,5 @@ message Misbehaviour {
   option (gogoproto.goproto_getters) = false;
 
   string client_id = 1 [(gogoproto.moretags) = "yaml:\"client_id\""];
-  Header header_1  = 2 [(gogoproto.customname) = "Header1", (gogoproto.moretags) = "yaml:\"header_1\""];
-  Header header_2  = 3 [(gogoproto.customname) = "Header2", (gogoproto.moretags) = "yaml:\"header_2\""];
+  bytes  data      = 2;
 }
