@@ -45,7 +45,7 @@ func (h Header) GetTime() time.Time {
 
 // ValidateBasic calls the SignedHeader ValidateBasic function and checks
 // that validatorsets are not nil.
-// NOTE: TrustedHeight and TrustedValidators may be empty when creating client
+// NOTE: TrustedHeight may be empty when creating client
 // with MsgCreateClient
 func (h Header) ValidateBasic() error {
 	if h.SignedHeader == nil {
@@ -81,7 +81,7 @@ func (h Header) ValidateBasic() error {
 	return nil
 }
 
-// validCommit checks if the given commit is a valid commit from the passed-in validatorset
+// ValidateCommit checks if the given commit is a valid commit from the passed-in validatorset
 func (h Header) ValidateCommit() (err error) {
 	chainID := h.Header.ChainID
 	blockID, err := tmtypes.BlockIDFromProto(&h.SignedHeader.Commit.BlockID)

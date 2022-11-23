@@ -59,12 +59,6 @@ func (misbehaviour Misbehaviour) ValidateBasic() error {
 	if misbehaviour.Header2.TrustedHeight.RevisionHeight == 0 {
 		return sdkerrors.Wrapf(ErrInvalidHeaderHeight, "misbehaviour Header2 cannot have zero revision height")
 	}
-	if misbehaviour.Header1.TrustedValidators == nil {
-		return sdkerrors.Wrap(ErrInvalidValidatorSet, "trusted validator set in Header1 cannot be empty")
-	}
-	if misbehaviour.Header2.TrustedValidators == nil {
-		return sdkerrors.Wrap(ErrInvalidValidatorSet, "trusted validator set in Header2 cannot be empty")
-	}
 	if misbehaviour.Header1.Header.ChainID != misbehaviour.Header2.Header.ChainID {
 		return sdkerrors.Wrap(clienttypes.ErrInvalidMisbehaviour, "headers must have identical chainIDs")
 	}

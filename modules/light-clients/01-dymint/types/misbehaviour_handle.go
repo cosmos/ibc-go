@@ -102,13 +102,7 @@ func (cs ClientState) CheckMisbehaviourAndUpdateState(
 func checkMisbehaviourHeader(
 	clientState *ClientState, consState *ConsensusState, header *Header, currentTimestamp time.Time,
 ) error {
-
-	_, err := tmtypes.ValidatorSetFromProto(header.TrustedValidators)
-	if err != nil {
-		return sdkerrors.Wrap(err, "trusted validator set is not dymint validator set type")
-	}
-
-	_, err = tmtypes.CommitFromProto(header.Commit)
+	_, err := tmtypes.CommitFromProto(header.Commit)
 	if err != nil {
 		return sdkerrors.Wrap(err, "commit is not dymint commit type")
 	}
