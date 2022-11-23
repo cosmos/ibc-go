@@ -2,13 +2,17 @@ package testsuite
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
+	govtypesv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	grouptypes "github.com/cosmos/cosmos-sdk/x/group"
 	paramsproposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 	intertxtypes "github.com/cosmos/interchain-accounts/x/inter-tx/types"
@@ -40,7 +44,6 @@ const (
 	ChainBRelayerName = "rlyB"
 	// DefaultGasValue is the default gas value used to configure tx.Factory
 	DefaultGasValue = 500000
-
 	// emptyLogs is the string value returned from `BroadcastMessages`. There are some situations in which
 	// the result is empty, when this happens we include the raw logs instead to get as much information
 	// amount the failure as possible.
@@ -73,9 +76,11 @@ type GRPCClients struct {
 	InterTxQueryClient intertxtypes.QueryClient
 
 	// SDK query clients
-	GovQueryClient    govtypes.QueryClient
+	GovQueryClient   govtypesv1beta1.QueryClient
+	GovQueryClientV1 govtypesv1.QueryClient
 	GroupsQueryClient grouptypes.QueryClient
 	ParamsQueryClient paramsproposaltypes.QueryClient
+	AuthQueryClient   authtypes.QueryClient
 }
 
 // path is a pairing of two chains which will be used in a test.
@@ -381,9 +386,11 @@ func (s *E2ETestSuite) initGRPCClients(chain *cosmos.CosmosChain) {
 		FeeQueryClient:     feetypes.NewQueryClient(grpcConn),
 		ICAQueryClient:     controllertypes.NewQueryClient(grpcConn),
 		InterTxQueryClient: intertxtypes.NewQueryClient(grpcConn),
-		GovQueryClient:     govtypes.NewQueryClient(grpcConn),
+		GovQueryClient:     govtypesv1beta1.NewQueryClient(grpcConn),
+		GovQueryClientV1:   govtypesv1.NewQueryClient(grpcConn),
 		GroupsQueryClient:  grouptypes.NewQueryClient(grpcConn),
 		ParamsQueryClient:  paramsproposaltypes.NewQueryClient(grpcConn),
+		AuthQueryClient:    authtypes.NewQueryClient(grpcConn),
 	}
 }
 
@@ -450,12 +457,12 @@ func GetNativeChainBalance(ctx context.Context, chain ibc.Chain, user *ibc.Walle
 }
 
 // ExecuteGovProposal submits the given governance proposal using the provided user and uses all validators to vote yes on the proposal.
-// It ensure the proposal successfully passes.
-func (s *E2ETestSuite) ExecuteGovProposal(ctx context.Context, chain *cosmos.CosmosChain, user *ibc.Wallet, content govtypes.Content) {
+// It ensures the proposal successfully passes.
+func (s *E2ETestSuite) ExecuteGovProposal(ctx context.Context, chain *cosmos.CosmosChain, user *ibc.Wallet, content govtypesv1beta1.Content) {
 	sender, err := sdk.AccAddressFromBech32(user.Bech32Address(chain.Config().Bech32Prefix))
 	s.Require().NoError(err)
 
-	msgSubmitProposal, err := govtypes.NewMsgSubmitProposal(content, sdk.NewCoins(sdk.NewCoin(chain.Config().Denom, govtypes.DefaultMinDepositTokens)), sender)
+	msgSubmitProposal, err := govtypesv1beta1.NewMsgSubmitProposal(content, sdk.NewCoins(sdk.NewCoin(chain.Config().Denom, govtypesv1beta1.DefaultMinDepositTokens)), sender)
 	s.Require().NoError(err)
 
 	txResp, err := s.BroadcastMessages(ctx, chain, user, msgSubmitProposal)
@@ -467,7 +474,7 @@ func (s *E2ETestSuite) ExecuteGovProposal(ctx context.Context, chain *cosmos.Cos
 
 	proposal, err := s.QueryProposal(ctx, chain, 1)
 	s.Require().NoError(err)
-	s.Require().Equal(govtypes.StatusVotingPeriod, proposal.Status)
+	s.Require().Equal(govtypesv1beta1.StatusVotingPeriod, proposal.Status)
 
 	err = chain.VoteOnProposalAllValidators(ctx, "1", cosmos.ProposalVoteYes)
 	s.Require().NoError(err)
@@ -475,13 +482,61 @@ func (s *E2ETestSuite) ExecuteGovProposal(ctx context.Context, chain *cosmos.Cos
 	// ensure voting period has not passed before validators finished voting
 	proposal, err = s.QueryProposal(ctx, chain, 1)
 	s.Require().NoError(err)
-	s.Require().Equal(govtypes.StatusVotingPeriod, proposal.Status)
+	s.Require().Equal(govtypesv1beta1.StatusVotingPeriod, proposal.Status)
 
 	time.Sleep(testvalues.VotingPeriod) // pass proposal
 
 	proposal, err = s.QueryProposal(ctx, chain, 1)
 	s.Require().NoError(err)
-	s.Require().Equal(govtypes.StatusPassed, proposal.Status)
+	s.Require().Equal(govtypesv1beta1.StatusPassed, proposal.Status)
+}
+
+// ExecuteGovProposalV1 submits a governance proposal using the provided user and message and uses all validators
+// to vote yes on the proposal. It ensures the proposal successfully passes.
+func (s *E2ETestSuite) ExecuteGovProposalV1(ctx context.Context, msg sdk.Msg, chain *cosmos.CosmosChain, user *ibc.Wallet, proposalID uint64) {
+	sender, err := sdk.AccAddressFromBech32(user.Bech32Address(chain.Config().Bech32Prefix))
+	s.Require().NoError(err)
+
+	msgs := []sdk.Msg{msg}
+	msgSubmitProposal, err := govtypesv1.NewMsgSubmitProposal(msgs, sdk.NewCoins(sdk.NewCoin(chain.Config().Denom, govtypesv1.DefaultMinDepositTokens)), sender.String(), "")
+	s.Require().NoError(err)
+
+	resp, err := s.BroadcastMessages(ctx, chain, user, msgSubmitProposal)
+	s.AssertValidTxResponse(resp)
+	s.Require().NoError(err)
+
+	s.Require().NoError(chain.VoteOnProposalAllValidators(ctx, strconv.Itoa(int(proposalID)), cosmos.ProposalVoteYes))
+
+	time.Sleep(testvalues.VotingPeriod)
+
+	proposal, err := s.QueryProposalV1(ctx, chain, proposalID)
+	s.Require().NoError(err)
+	s.Require().Equal(govtypesv1.StatusPassed, proposal.Status)
+}
+
+// QueryModuleAccountAddress returns the sdk.AccAddress of a given module name.
+func (s *E2ETestSuite) QueryModuleAccountAddress(ctx context.Context, moduleName string, chain *cosmos.CosmosChain) (sdk.AccAddress, error) {
+	authClient := s.GetChainGRCPClients(chain).AuthQueryClient
+
+	resp, err := authClient.ModuleAccountByName(ctx, &authtypes.QueryModuleAccountByNameRequest{
+		Name: moduleName,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	cfg := EncodingConfig()
+
+	var account authtypes.AccountI
+	if err := cfg.InterfaceRegistry.UnpackAny(resp.Account, &account); err != nil {
+		return nil, err
+	}
+	moduleAccount, ok := account.(authtypes.ModuleAccountI)
+	if !ok {
+		return nil, errors.New(fmt.Sprintf("failed to cast account: %T as ModuleAccount", moduleAccount))
+	}
+
+	return moduleAccount.GetAddress(), nil
 }
 
 // GetIBCToken returns the denomination of the full token denom sent to the receiving channel
