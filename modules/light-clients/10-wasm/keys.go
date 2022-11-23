@@ -1,4 +1,4 @@
-package types
+package wasm
 
 import (
 	"encoding/hex"

@@ -13,7 +13,7 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v5/modules/core/23-commitment/types"
 	"github.com/cosmos/ibc-go/v5/modules/core/exported"
-	wasm "github.com/cosmos/ibc-go/v5/modules/light-clients/10-wasm/types"
+	wasm "github.com/cosmos/ibc-go/v5/modules/light-clients/10-wasm"
 	ibctesting "github.com/cosmos/ibc-go/v5/testing"
 	"github.com/cosmos/ibc-go/v5/testing/simapp"
 	"github.com/stretchr/testify/suite"
@@ -68,9 +68,20 @@ func (suite *WasmTestSuite) SetupTest() {
 	suite.store = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), exported.Wasm)
 	data, err := hex.DecodeString("0a2031ec6480de493749ba9891a69d1f03705baf6eb983cf736595e013a1e1a50b0e10cd011804280230d00f384f42240a2088dc3417d5058ec4b4503e0c12ea1a0a89be200fe98922423d4334014fa6b0ee100142240a20d17c2d7823ebf260fd138f2d7e27d114c0145d968b5ff5006125f2414fadae69100142240a20439660b36c6c03afafca027b910b4fecf99801834c62a5e6006f27d978de234f100142240a205e639b43e0052c47447dac87d6fd2b6ec50bdd4d0f614e4299c665249bbd09d9100142240a201dfe3e22cc0d45c70779c1095f7489a8ef3cf52d62fbd8c2fa38c9f1723502b5100142240a20568cb4a574c6d178feb39c27dfc8b3f789e5f5423e19c71633c748b9acf086b51001")
 	suite.Require().NoError(err)
+	
+	os.MkdirAll("tmp", 0o755)
+	wasm.CreateVM(&wasmConfig, &validationConfig)
+	data, err = os.ReadFile("ics10_grandpa_cw.wasm")
+	suite.Require().NoError(err)
+	
+	// Currently pushing to client-specific store, this will change to a keeper, but okay for now/testing (single wasm client)
+	codeId, err := wasm.PushNewWasmCode(suite.store, data)
+	suite.Require().NoError(err)
+
 	clientState := wasm.ClientState{
 		Data: data,
-		LatestHeight: &clienttypes.Height{
+		CodeId: codeId,
+		LatestHeight: clienttypes.Height{
 			RevisionNumber: 1,
 			RevisionHeight: 2,
 		},
@@ -96,13 +107,7 @@ func (suite *WasmTestSuite) SetupTest() {
 		},
 		Repository: "test",
 	}
-	os.MkdirAll("tmp", 0o755)
-	wasm.CreateVM(&wasmConfig, &validationConfig)
-	data, err = os.ReadFile("ics10_grandpa_cw.wasm")
-	suite.Require().NoError(err)
 
-	err = wasm.PushNewWasmCode(suite.store, &clientState, data)
-	suite.Require().NoError(err)
 	suite.clientState = clientState
 	data, err = hex.DecodeString("0a0b08e483ee9b0610c0eea219122073e5045222d49710bf59be580389245e9f7fc67c86b9263eee9578bfa0205df7")
 	suite.Require().NoError(err)
@@ -203,7 +208,7 @@ func (suite *WasmTestSuite) TestVerifyClientMessageHeader() {
 					suite.Require().NoError(err)
 					clientMsg = &wasm.Header{
 						Data: data,
-						Height: &clienttypes.Height{
+						Height: clienttypes.Height{
 							RevisionNumber: 1,
 							RevisionHeight: 2,
 						},
