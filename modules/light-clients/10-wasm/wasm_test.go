@@ -74,20 +74,20 @@ func (suite *WasmTestSuite) SetupTest() {
 		MaxSizeAllowed: int(math.Pow(2, 26)),
 	}
 	suite.store = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), exported.Wasm)
-	data, err = hex.DecodeString(suite.testData["client_state_a0"])
-	suite.Require().NoError(err)
-	
+
 	os.MkdirAll("tmp", 0o755)
 	wasm.CreateVM(&wasmConfig, &validationConfig)
 	data, err = os.ReadFile("ics10_grandpa_cw.wasm")
 	suite.Require().NoError(err)
-	
-	// Currently pushing to client-specific store, this will change to a keeper, but okay for now/testing (single wasm client)
+
 	codeId, err := wasm.PushNewWasmCode(suite.store, data)
 	suite.Require().NoError(err)
 
+	data, err = hex.DecodeString(suite.testData["client_state_a0"])
+	suite.Require().NoError(err)
+
 	clientState := wasm.ClientState{
-		Data: data,
+		Data:   data,
 		CodeId: codeId,
 		LatestHeight: clienttypes.Height{
 			RevisionNumber: 1,
@@ -200,7 +200,7 @@ func (suite *WasmTestSuite) TestUpdateState() {
 					suite.Require().NoError(err)
 					clientMsg = &wasm.Header{
 						Data: data,
-						Height: &clienttypes.Height{
+						Height: clienttypes.Height{
 							RevisionNumber: 1,
 							RevisionHeight: 2,
 						},
@@ -226,7 +226,7 @@ func (suite *WasmTestSuite) TestUpdateState() {
 					newClientState := clienttypes.MustUnmarshalClientState(suite.chainA.Codec, clientStateBz)
 
 					suite.Require().Len(consensusHeights, 1)
-					suite.Require().Equal(&clienttypes.Height{
+					suite.Require().Equal(clienttypes.Height{
 						RevisionNumber: 2000,
 						RevisionHeight: 89,
 					}, consensusHeights[0])

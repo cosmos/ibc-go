@@ -51,11 +51,11 @@ type contractResult struct {
 	Data     []byte `json:"data,omitempty"`
 }
 
-func (r *contractResult) Validate() bool {
+func (r contractResult) Validate() bool {
 	return r.IsValid
 }
 
-func (r *contractResult) Error() string {
+func (r contractResult) Error() string {
 	return r.ErrorMsg
 }
 
@@ -89,11 +89,11 @@ func (r *clientStateCallResponse) resetImmutables(c *ClientState) {
 	}
 }
 
-func (r *clientStateCallResponse) Validate() bool {
+func (r clientStateCallResponse) Validate() bool {
 	return r.Result.Validate()
 }
 
-func (r *clientStateCallResponse) Error() string {
+func (r clientStateCallResponse) Error() string {
 	return r.Result.Error()
 }
 
