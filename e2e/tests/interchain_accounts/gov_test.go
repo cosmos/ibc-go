@@ -8,10 +8,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	"github.com/gogo/protobuf/proto"
 	"github.com/strangelove-ventures/ibctest/v6"
-	"github.com/strangelove-ventures/ibctest/v6/chain/cosmos"
 	"github.com/strangelove-ventures/ibctest/v6/ibc"
 	"github.com/strangelove-ventures/ibctest/v6/test"
 	"github.com/stretchr/testify/suite"
@@ -40,7 +38,6 @@ func (s *InterchainAccountsGovTestSuite) TestInterchainAccountsGovIntegration() 
 	relayer, _ := s.SetupChainsRelayerAndChannel(ctx)
 	chainA, chainB := s.GetChains()
 	controllerAccount := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
-	controllerAddress := controllerAccount.Bech32Address(chainA.Config().Bech32Prefix)
 
 	chainBAccount := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 	chainBAddress := chainBAccount.Bech32Address(chainB.Config().Bech32Prefix)
@@ -49,27 +46,10 @@ func (s *InterchainAccountsGovTestSuite) TestInterchainAccountsGovIntegration() 
 	s.Require().NoError(err)
 	s.Require().NotNil(govModuleAddress)
 
-	t.Run("submit proposal for MsgRegisterInterchainAccount", func(t *testing.T) {
+	t.Run("execute proposal for MsgRegisterInterchainAccount", func(t *testing.T) {
 		version := icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
 		msgRegisterAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, govModuleAddress.String(), version)
-		msgs := []sdk.Msg{msgRegisterAccount}
-		msgSubmitProposal, err := govtypesv1.NewMsgSubmitProposal(msgs, sdk.NewCoins(sdk.NewCoin(chainA.Config().Denom, govtypesv1.DefaultMinDepositTokens)), controllerAddress, "")
-		s.Require().NoError(err)
-
-		resp, err := s.BroadcastMessages(ctx, chainA, controllerAccount, msgSubmitProposal)
-		s.AssertValidTxResponse(resp)
-		s.Require().NoError(err)
-	})
-
-	t.Run("vote for proposal for MsgRegisterInterchainAccount", func(t *testing.T) {
-		s.Require().NoError(chainA.VoteOnProposalAllValidators(ctx, "1", cosmos.ProposalVoteYes))
-
-		time.Sleep(testvalues.VotingPeriod)
-		time.Sleep(5 * time.Second)
-
-		proposal, err := s.QueryProposalV1(ctx, chainA, 1)
-		s.Require().NoError(err)
-		s.Require().Equal(govtypesv1.StatusPassed, proposal.Status)
+		s.ExecuteGovProposalV1(ctx, msgRegisterAccount, chainA, controllerAccount, 1)
 	})
 
 	t.Run("start relayer", func(t *testing.T) {
@@ -101,7 +81,7 @@ func (s *InterchainAccountsGovTestSuite) TestInterchainAccountsGovIntegration() 
 			s.Require().NoError(err)
 		})
 
-		t.Run("submit proposal for MsgSendTx", func(t *testing.T) {
+		t.Run("execute proposal for MsgSendTx", func(t *testing.T) {
 			msgBankSend := &banktypes.MsgSend{
 				FromAddress: interchainAccAddr,
 				ToAddress:   chainBAddress,
@@ -119,24 +99,7 @@ func (s *InterchainAccountsGovTestSuite) TestInterchainAccountsGovIntegration() 
 			}
 
 			msgSendTx := controllertypes.NewMsgSendTx(govModuleAddress.String(), ibctesting.FirstConnectionID, uint64(time.Hour.Nanoseconds()), packetData)
-			msgs := []sdk.Msg{msgSendTx}
-			msgSubmitProposal, err := govtypesv1.NewMsgSubmitProposal(msgs, sdk.NewCoins(sdk.NewCoin(chainA.Config().Denom, govtypesv1.DefaultMinDepositTokens)), controllerAddress, "")
-			s.Require().NoError(err)
-
-			resp, err := s.BroadcastMessages(ctx, chainA, controllerAccount, msgSubmitProposal)
-			s.AssertValidTxResponse(resp)
-			s.Require().NoError(err)
-		})
-
-		t.Run("vote for proposal for MsgSendTx", func(t *testing.T) {
-			s.Require().NoError(chainA.VoteOnProposalAllValidators(ctx, "2", cosmos.ProposalVoteYes))
-
-			time.Sleep(testvalues.VotingPeriod)
-			time.Sleep(5 * time.Second)
-
-			proposal, err := s.QueryProposalV1(ctx, chainA, 2)
-			s.Require().NoError(err)
-			s.Require().Equal(govtypesv1.StatusPassed, proposal.Status)
+			s.ExecuteGovProposalV1(ctx, msgSendTx, chainA, controllerAccount, 2)
 		})
 
 		t.Run("verify tokens transferred", func(t *testing.T) {

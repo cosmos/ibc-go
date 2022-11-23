@@ -10,10 +10,20 @@ import (
 )
 
 func Codec() *codec.ProtoCodec {
+	cdc, _ := codecAndEncodingConfig()
+	return cdc
+}
+
+func EncodingConfig() simappparams.EncodingConfig {
+	_, cfg := codecAndEncodingConfig()
+	return cfg
+}
+
+func codecAndEncodingConfig() (*codec.ProtoCodec, simappparams.EncodingConfig) {
 	cfg := simappparams.MakeTestEncodingConfig()
 	banktypes.RegisterInterfaces(cfg.InterfaceRegistry)
 	govv1beta1.RegisterInterfaces(cfg.InterfaceRegistry)
 	authtypes.RegisterInterfaces(cfg.InterfaceRegistry)
 	cdc := codec.NewProtoCodec(cfg.InterfaceRegistry)
-	return cdc
+	return cdc, cfg
 }
