@@ -7,6 +7,7 @@ import (
 	wasmtypes "github.com/CosmWasm/wasmvm/types"
 	ics23 "github.com/confio/ics23/go"
 	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
@@ -44,7 +45,7 @@ func (c *ClientState) ExportMetadata(store sdk.KVStore) []exported.GenesisMetada
 	payload := make(map[string]map[string]interface{})
 	payload[ExportMetadataQuery] = make(map[string]interface{})
 	inner := payload[ExportMetadataQuery]
-	inner["me"] = c
+	inner["client_state"] = c
 
 	encodedData, err := json.Marshal(payload)
 	if err != nil {
@@ -72,7 +73,7 @@ func (c *ClientState) ZeroCustomFields() exported.ClientState {
 	payload := make(map[string]map[string]interface{})
 	payload[ZeroCustomFields] = make(map[string]interface{})
 	inner := payload[ZeroCustomFields]
-	inner["me"] = c
+	inner["client_state"] = c
 
 	encodedData, err := json.Marshal(payload)
 	if err != nil {
@@ -124,34 +125,28 @@ func (c *ClientState) Initialize(context sdk.Context, marshaler codec.BinaryCode
 	payload := make(map[string]map[string]interface{})
 	payload[InitializeState] = make(map[string]interface{})
 	inner := payload[InitializeState]
-	inner["me"] = c
+	inner["client_state"] = c
 	inner["consensus_state"] = state
 
-	encodedData, err := json.Marshal(payload)
-	// panic(string(encodedData))
-	if err != nil {
-		return sdkerrors.Wrapf(ErrUnableToMarshalPayload, fmt.Sprintf("underlying error: %s", err.Error()))
-	}
+	context = context.WithGasMeter(sdk.NewInfiniteGasMeter())
 
 	// Under the hood there are two calls to wasm contract for initialization as by design
 	// cosmwasm does not allow init call to return any value.
 
-	context = context.WithGasMeter(sdk.NewInfiniteGasMeter())
+	encodedData, err := json.Marshal(payload)
+	if err != nil {
+		return sdkerrors.Wrapf(ErrUnableToMarshalPayload, fmt.Sprintf("underlying error: %s", err.Error()))
+	}
+
 	_, err = initContract(c.CodeId, context, store, encodedData)
 	if err != nil {
 		return sdkerrors.Wrapf(ErrUnableToInit, fmt.Sprintf("underlying error: %s", err.Error()))
 	}
 
-	out, err := callContract(c.CodeId, context, store, encodedData)
-	if err != nil {
-		return sdkerrors.Wrapf(ErrUnableToCall, fmt.Sprintf("underlying error: %s", err.Error()))
-	}
 	output := clientStateCallResponse{}
-	if err := json.Unmarshal(out.Data, &output); err != nil {
-		return sdkerrors.Wrapf(ErrUnableToUnmarshalPayload, fmt.Sprintf("underlying error: %s", err.Error()))
-	}
-	if !output.Result.IsValid {
-		return fmt.Errorf("%s error occurred while initializing client state", output.Result.ErrorMsg)
+	err = call(encodedData, c, context, store, &output)
+	if err != nil {
+		return err
 	}
 	output.resetImmutables(c)
 
@@ -175,7 +170,18 @@ func (c *ClientState) VerifyMembership(
 	path []byte,
 	value []byte,
 ) error {
-	panic("implement me")
+	const VerifyClientMessage = "verify_membership"
+	inner := make(map[string]interface{})
+	inner["height"] = height
+	inner["delay_time_period"] = delayTimePeriod
+	inner["delay_block_period"] = delayBlockPeriod
+	inner["proof"] = proof
+	inner["path"] = path
+	inner["value"] = value
+	payload := make(map[string]map[string]interface{})
+	payload[VerifyClientMessage] = inner
+
+	return call(payload, c, ctx, clientStore, &contractResult{})
 }
 
 func (c *ClientState) VerifyNonMembership(
@@ -188,7 +194,37 @@ func (c *ClientState) VerifyNonMembership(
 	proof []byte,
 	path []byte,
 ) error {
-	panic("implement me")
+	const VerifyClientMessage = "verify_non_membership"
+	inner := make(map[string]interface{})
+	inner["height"] = height
+	inner["delay_time_period"] = delayTimePeriod
+	inner["delay_block_period"] = delayBlockPeriod
+	inner["proof"] = proof
+	inner["path"] = path
+	payload := make(map[string]map[string]interface{})
+	payload[VerifyClientMessage] = inner
+
+	return call(payload, c, ctx, clientStore, &contractResult{})
+}
+
+/// Calls the contract with the given payload and writes the result to `output`
+func call[T ContractResult](payload any, c *ClientState, ctx sdk.Context, clientStore types.KVStore, output T) error {
+	encodedData, err := json.Marshal(payload)
+	if err != nil {
+		return sdkerrors.Wrapf(ErrUnableToMarshalPayload, fmt.Sprintf("underlying error: %s", err.Error()))
+	}
+	// fmt.Println(string(encodedData))
+	out, err := callContract(c.CodeId, ctx, clientStore, encodedData)
+	if err != nil {
+		return sdkerrors.Wrapf(ErrUnableToCall, fmt.Sprintf("underlying error: %s", err.Error()))
+	}
+	if err := json.Unmarshal(out.Data, output); err != nil {
+		return sdkerrors.Wrapf(ErrUnableToUnmarshalPayload, fmt.Sprintf("underlying error: %s", err.Error()))
+	}
+	if !output.Validate() {
+		return fmt.Errorf("%s error occurred while calling contract", output.Error())
+	}
+	return nil
 }
 
 // VerifyClientMessage must verify a ClientMessage. A ClientMessage could be a Header, Misbehaviour, or batch update.
@@ -210,23 +246,7 @@ func (c *ClientState) VerifyClientMessage(ctx sdk.Context, cdc codec.BinaryCodec
 	payload := make(map[string]map[string]interface{})
 	payload[VerifyClientMessage] = inner
 
-	encodedData, err := json.Marshal(payload)
-	if err != nil {
-		return sdkerrors.Wrapf(ErrUnableToMarshalPayload, fmt.Sprintf("underlying error: %s", err.Error()))
-	}
-	out, err := callContract(c.CodeId, ctx, clientStore, encodedData)
-	if err != nil {
-		return sdkerrors.Wrapf(ErrUnableToCall, fmt.Sprintf("underlying error: %s", err.Error()))
-	}
-	output := contractResult{}
-	if err := json.Unmarshal(out.Data, &output); err != nil {
-		return sdkerrors.Wrapf(ErrUnableToUnmarshalPayload, fmt.Sprintf("underlying error: %s", err.Error()))
-	}
-	if !output.IsValid {
-		return fmt.Errorf("%s error occurred while updating client state", output.ErrorMsg)
-	}
-
-	return nil
+	return call(payload, c, ctx, clientStore, &contractResult{})
 }
 
 func (c *ClientState) CheckForMisbehaviour(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, msg exported.ClientMessage) bool {
@@ -254,20 +274,10 @@ func (c *ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, client
 	payload := make(map[string]map[string]interface{})
 	payload[VerifyClientMessage] = inner
 
-	encodedData, err := json.Marshal(payload)
-	if err != nil {
-		panic(sdkerrors.Wrapf(ErrUnableToMarshalPayload, fmt.Sprintf("underlying error: %s", err.Error())))
-	}
-	out, err := callContract(c.CodeId, ctx, clientStore, encodedData)
-	if err != nil {
-		panic(sdkerrors.Wrapf(ErrUnableToCall, fmt.Sprintf("underlying error: %s", err.Error())))
-	}
 	output := contractResult{}
-	if err := json.Unmarshal(out.Data, &output); err != nil {
-		panic(sdkerrors.Wrapf(ErrUnableToUnmarshalPayload, fmt.Sprintf("underlying error: %s", err.Error())))
-	}
-	if !output.IsValid {
-		panic(fmt.Errorf("%s error occurred while updating client state", output.ErrorMsg))
+	err := call(payload, c, ctx, clientStore, &output)
+	if err != nil {
+		panic(err)
 	}
 	if err := json.Unmarshal(output.Data, &c); err != nil {
 		panic(sdkerrors.Wrapf(ErrUnableToUnmarshalPayload, fmt.Sprintf("underlying error: %s", err.Error())))
@@ -299,29 +309,19 @@ func (c *ClientState) CheckSubstituteAndUpdateState(
 
 	store := NewWrappedStore(subjectClientStore, subjectClientStore, SubjectPrefix, SubstitutePrefix)
 
-	const CheckSubstituteAndUpdateState = "checksubstituteandupdatestate"
+	const CheckSubstituteAndUpdateState = "check_substitute_and_update_state"
 	payload := make(map[string]map[string]interface{})
 	payload[CheckSubstituteAndUpdateState] = make(map[string]interface{})
 	inner := payload[CheckSubstituteAndUpdateState]
-	inner["me"] = c
+	inner["client_state"] = c
 	inner["subject_consensus_state"] = consensusState
 	inner["substitute_client_state"] = substituteClient
 	// inner["initial_height"] = initialHeight
 
-	encodedData, err := json.Marshal(payload)
-	if err != nil {
-		return sdkerrors.Wrapf(ErrUnableToMarshalPayload, fmt.Sprintf("underlying error: %s", err.Error()))
-	}
-	out, err := callContract(c.CodeId, ctx, store, encodedData)
-	if err != nil {
-		return sdkerrors.Wrapf(ErrUnableToCall, fmt.Sprintf("underlying error: %s", err.Error()))
-	}
 	output := clientStateCallResponse{}
-	if err := json.Unmarshal(out.Data, &output); err != nil {
-		return sdkerrors.Wrapf(ErrUnableToUnmarshalPayload, fmt.Sprintf("underlying error: %s", err.Error()))
-	}
-	if !output.Result.IsValid {
-		return fmt.Errorf("%s error occurred while updating client state", output.Result.ErrorMsg)
+	err = call(payload, c, ctx, store, &output)
+	if err != nil {
+		return err
 	}
 
 	output.resetImmutables(c)

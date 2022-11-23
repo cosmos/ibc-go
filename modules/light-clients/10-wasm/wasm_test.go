@@ -46,7 +46,6 @@ func (suite *WasmTestSuite) SetupTest() {
 	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
 
 	suite.wasm = ibctesting.NewWasm(suite.T(), suite.chainA.Codec, "wasmsingle", "testing", 1)
-	// suite.solomachineMulti = ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "solomachinemulti", "testing", 4)
 
 	// commit some blocks so that QueryProof returns valid proof (cannot return valid query if height <= 1)
 	suite.coordinator.CommitNBlocks(suite.chainA, 2)
@@ -125,70 +124,6 @@ func (suite *WasmTestSuite) SetupTest() {
 	}
 	suite.consensusState = consensusState
 	suite.codeId = clientState.CodeId
-	// err = clientState.Initialize(suite.ctx, suite.cdc, suite.store, &consensusState)
-	// suite.Require().NoError(err)
-
-	// err = clientState.VerifyClientMessage()
-	/*
-		path := ibctesting.NewPath(suite.chainA, suite.chainB)
-		// path.EndpointA.ClientID = "unnamed_client_a"
-		// path.EndpointB.ClientID = "unnamed_client_b"
-		// endpointA := ibctesting.NewDefaultEndpoint(suite.chainA)
-		// endpointA.ClientID = "unnamed_client_a"
-		// endpointB := ibctesting.NewDefaultEndpoint(suite.chainB)
-		// endpointB.ClientID = "unnamed_client_b"
-		fmt.Println("A", path.EndpointA.ClientConfig.GetClientType())
-		path.EndpointB.ClientConfig = ibctesting.NewWasmConfig()
-		fmt.Println("B", path.EndpointB.ClientConfig.GetClientType())
-		suite.Require().NoError(err)
-		msg, err := clienttypes.NewMsgCreateClient(&clientState, &consensusState, path.EndpointA.Chain.SenderAccount.GetAddress().String())
-		suite.Require().NoError(err)
-		res, err := suite.chainA.SendMsgs(msg)
-		suite.Require().NoError(err)
-		path.EndpointA.ClientID, err = ibctesting.ParseClientIDFromEvents(res.GetEvents())
-		suite.Require().NoError(err)
-
-		suite.Require().NoError(err)
-		msg, err = clienttypes.NewMsgCreateClient(&clientState, &consensusState, path.EndpointB.Chain.SenderAccount.GetAddress().String())
-		suite.Require().NoError(err)
-		res, err = suite.chainB.SendMsgs(msg)
-		suite.Require().NoError(err)
-		path.EndpointB.ClientID, err = ibctesting.ParseClientIDFromEvents(res.GetEvents())
-		suite.Require().NoError(err)
-
-		err = path.EndpointA.ConnOpenInit()
-		suite.Require().NoError(err)
-
-		err = path.EndpointB.ConnOpenTry()
-		suite.Require().NoError(err)
-
-		err = path.EndpointA.ConnOpenAck()
-		suite.Require().NoError(err)
-
-		err = path.EndpointB.ConnOpenConfirm()
-		suite.Require().NoError(err)
-
-		// ensure counterparty is up to date
-		// err = path.EndpointA.UpdateClient()
-		// suite.Require().NoError(err)
-
-		// header := wasm.Header{
-		// 	Data: []byte{0},
-		// 	Height: &clienttypes.Height{
-		// 		RevisionNumber: 1,
-		// 		RevisionHeight: 2,
-		// 	},
-		// }
-		// msg, err := clienttypes.NewMsgUpdateClient(
-		// 	endpointA.ClientID, &header,
-		// 	suite.chainA.SenderAccount.GetAddress().String(),
-		// )
-		// endpointA.ClientConfig = &ibctesting.WasmConfig{
-		// 	InitClientState:    clientState,
-		// 	InitConsensusState: consensusState,
-		// }
-		println(res)
-	*/
 }
 
 func (suite *WasmTestSuite) TestVerifyClientMessageHeader() {
@@ -301,6 +236,8 @@ func (suite *WasmTestSuite) TestUpdateState() {
 	}
 }
 
+// TODO: uncomment when fisherman is merged
+/*
 func (suite *WasmTestSuite) TestVerifyMisbehaviour() {
 	var (
 		clientMsg   exported.ClientMessage
@@ -314,7 +251,7 @@ func (suite *WasmTestSuite) TestVerifyMisbehaviour() {
 			expPass bool
 		}{
 			{
-				"successful update",
+				"successful misbehaviour verification",
 				func() {
 					data, err := hex.DecodeString(suite.testData["misbehaviour_a0"])
 					suite.Require().NoError(err)
@@ -334,20 +271,79 @@ func (suite *WasmTestSuite) TestVerifyMisbehaviour() {
 			suite.Run(tc.name, func() {
 				tc.setup()
 				println(clientMsg, clientState)
-				// TODO: uncomment when fisherman is merged
-				/*
-					err := clientState.VerifyClientMessage(suite.chainA.GetContext(), suite.chainA.Codec, suite.store, clientMsg)
+				err := clientState.VerifyClientMessage(suite.chainA.GetContext(), suite.chainA.Codec, suite.store, clientMsg)
 
-					if tc.expPass {
-						suite.Require().NoError(err)
-					} else {
-						suite.Require().Error(err)
-					}
-				*/
+				if tc.expPass {
+					suite.Require().NoError(err)
+				} else {
+					suite.Require().Error(err)
+				}
 			})
 		}
 	}
 }
+*/
+
+// TODO: uncomment when test data is aquired
+/*
+func (suite *WasmTestSuite) TestVerifyMemership() {
+	var (
+		clientState *wasm.ClientState
+
+		err    error
+		height clienttypes.Height
+		path   []byte
+		proof  []byte
+		// testingPath *ibctesting.Path
+	)
+
+	for _, wm := range []*ibctesting.Wasm{suite.wasm} {
+		testCases := []struct {
+			name    string
+			setup   func()
+			expPass bool
+		}{
+			{
+				"successful membership verification",
+				func() {
+					// testingPath = ibctesting.NewPath(suite.chainA, suite.chainB)
+
+					clientState = &suite.clientState
+					height = clienttypes.NewHeight(wm.GetHeight().GetRevisionNumber(), wm.GetHeight().GetRevisionHeight())
+
+					merklePath := commitmenttypes.NewMerklePath("clients", "10-grandpa-cw", "clientType")
+
+					path, err = suite.chainA.Codec.Marshal(&merklePath)
+					suite.Require().NoError(err)
+
+					proof = []byte("proof")
+
+				},
+				true,
+			},
+		}
+
+		for _, tc := range testCases {
+			tc := tc
+			suite.Run(tc.name, func() {
+				tc.setup()
+
+				err = clientState.VerifyMembership(
+					suite.chainA.GetContext(), suite.store, suite.chainA.Codec,
+					height, 0, 0,
+					proof, path, []byte("data"),
+				)
+
+				if tc.expPass {
+					suite.Require().NoError(err)
+				} else {
+					suite.Require().Error(err)
+				}
+			})
+		}
+	}
+}
+*/
 
 func (suite *WasmTestSuite) TestWasm() {
 	suite.Run("Init contract", func() {

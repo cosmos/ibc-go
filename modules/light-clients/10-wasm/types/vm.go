@@ -42,10 +42,23 @@ type ClientCreateRequest struct {
 	ClientCreateRequest ClientState `json:"client_create_request,omitempty"`
 }
 
+type ContractResult interface {
+	Validate() bool
+	Error() string
+}
+
 type contractResult struct {
 	IsValid  bool   `json:"is_valid,omitempty"`
 	ErrorMsg string `json:"err_msg,omitempty"`
 	Data     []byte `json:"data,omitempty"`
+}
+
+func (r *contractResult) Validate() bool {
+	return r.IsValid
+}
+
+func (r *contractResult) Error() string {
+	return r.ErrorMsg
 }
 
 type VMConfig struct {
@@ -76,6 +89,14 @@ func (r *clientStateCallResponse) resetImmutables(c *ClientState) {
 	if r.NewClientState != nil {
 		r.NewClientState.CodeId = c.CodeId
 	}
+}
+
+func (r *clientStateCallResponse) Validate() bool {
+	return r.Result.Validate()
+}
+
+func (r *clientStateCallResponse) Error() string {
+	return r.Result.Error()
 }
 
 func CreateVM(vmConfig *VMConfig, validationConfig *ValidationConfig) {
