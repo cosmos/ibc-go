@@ -133,6 +133,7 @@ func (solo *Solomachine) CreateClient(chain *TestChain) string {
 	return clientID
 }
 
+// UpdateClient sends a MsgUpdateClient to the provided chain and updates the given clientID.
 func (solo *Solomachine) UpdateClient(chain *TestChain, clientID string) {
 	smHeader := solo.CreateHeader(solo.Diversifier)
 	msgUpdateClient, err := clienttypes.NewMsgUpdateClient(clientID, smHeader, chain.SenderAccount.GetAddress().String())

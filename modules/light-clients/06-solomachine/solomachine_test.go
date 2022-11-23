@@ -24,6 +24,7 @@ import (
 
 var (
 	channelIDSolomachine = "channel-on-solomachine" // channelID generated on solo machine side
+	clientIDSolomachine  = "06-solomachine-0"
 )
 
 type SoloMachineTestSuite struct {
@@ -118,28 +119,14 @@ func (suite *SoloMachineTestSuite) TestAcknowledgePacket() {
 
 func (suite *SoloMachineTestSuite) TestTimeout() {
 	channelID := suite.SetupSolomachine()
-
-	msgTransfer := transfertypes.MsgTransfer{
-		SourcePort:       transfertypes.PortID,
-		SourceChannel:    channelID,
-		Token:            sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100)),
-		Sender:           suite.chainA.SenderAccount.GetAddress().String(),
-		Receiver:         suite.chainA.SenderAccount.GetAddress().String(),
-		TimeoutHeight:    clienttypes.ZeroHeight(),
-		TimeoutTimestamp: suite.solomachine.Time + 1,
-	}
+	packet := suite.solomachine.SendTransfer(suite.chainA, "transfer", channelID, func(msg *transfertypes.MsgTransfer) {
+		msg.TimeoutTimestamp = suite.solomachine.Time + 1
+	})
 
 	// simulate solomachine time increment
 	suite.solomachine.Time++
 
-	res, err := suite.chainA.SendMsgs(&msgTransfer)
-	suite.Require().NoError(err)
-	suite.Require().NotNil(res)
-
-	packet, err := ibctesting.ParsePacketFromEvents(res.GetEvents())
-	suite.Require().NoError(err)
-
-	suite.solomachine.UpdateClient(suite.chainA, "06-solomachine-0")
+	suite.solomachine.UpdateClient(suite.chainA, clientIDSolomachine)
 
 	suite.solomachine.TimeoutPacket(suite.chainA, packet)
 
