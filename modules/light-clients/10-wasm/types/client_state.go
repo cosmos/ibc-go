@@ -207,26 +207,6 @@ func (c *ClientState) VerifyNonMembership(
 	return call(payload, c, ctx, clientStore, &contractResult{})
 }
 
-/// Calls the contract with the given payload and writes the result to `output`
-func call[T ContractResult](payload any, c *ClientState, ctx sdk.Context, clientStore types.KVStore, output T) error {
-	encodedData, err := json.Marshal(payload)
-	if err != nil {
-		return sdkerrors.Wrapf(ErrUnableToMarshalPayload, fmt.Sprintf("underlying error: %s", err.Error()))
-	}
-	// fmt.Println(string(encodedData))
-	out, err := callContract(c.CodeId, ctx, clientStore, encodedData)
-	if err != nil {
-		return sdkerrors.Wrapf(ErrUnableToCall, fmt.Sprintf("underlying error: %s", err.Error()))
-	}
-	if err := json.Unmarshal(out.Data, output); err != nil {
-		return sdkerrors.Wrapf(ErrUnableToUnmarshalPayload, fmt.Sprintf("underlying error: %s", err.Error()))
-	}
-	if !output.Validate() {
-		return fmt.Errorf("%s error occurred while calling contract", output.Error())
-	}
-	return nil
-}
-
 // VerifyClientMessage must verify a ClientMessage. A ClientMessage could be a Header, Misbehaviour, or batch update.
 // It must handle each type of ClientMessage appropriately. Calls to CheckForMisbehaviour, UpdateState, and UpdateStateOnMisbehaviour
 // will assume that the content of the ClientMessage has been verified and can be trusted. An error should be returned
@@ -234,7 +214,6 @@ func call[T ContractResult](payload any, c *ClientState, ctx sdk.Context, client
 func (c *ClientState) VerifyClientMessage(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, clientMsg exported.ClientMessage) error {
 	const VerifyClientMessage = "verify_client_message"
 	inner := make(map[string]interface{})
-	inner["client_state"] = c
 	clientMsgConcrete := make(map[string]interface{})
 	switch clientMsg := clientMsg.(type) {
 	case *Header:
@@ -243,6 +222,7 @@ func (c *ClientState) VerifyClientMessage(ctx sdk.Context, cdc codec.BinaryCodec
 		clientMsgConcrete["misbehaviour"] = clientMsg
 	}
 	inner["client_message"] = clientMsgConcrete
+	inner["client_state"] = c
 	payload := make(map[string]map[string]interface{})
 	payload[VerifyClientMessage] = inner
 
@@ -358,4 +338,24 @@ func NewClientState(latestSequence uint64, consensusState *ConsensusState) *Clie
 		ProofSpecs:   []*ics23.ProofSpec{},
 		Repository:   "",
 	}
+}
+
+/// Calls the contract with the given payload and writes the result to `output`
+func call[T ContractResult](payload any, c *ClientState, ctx sdk.Context, clientStore types.KVStore, output T) error {
+	encodedData, err := json.Marshal(payload)
+	if err != nil {
+		return sdkerrors.Wrapf(ErrUnableToMarshalPayload, fmt.Sprintf("underlying error: %s", err.Error()))
+	}
+	// fmt.Println(string(encodedData))
+	out, err := callContract(c.CodeId, ctx, clientStore, encodedData)
+	if err != nil {
+		return sdkerrors.Wrapf(ErrUnableToCall, fmt.Sprintf("underlying error: %s", err.Error()))
+	}
+	if err := json.Unmarshal(out.Data, output); err != nil {
+		return sdkerrors.Wrapf(ErrUnableToUnmarshalPayload, fmt.Sprintf("underlying error: %s", err.Error()))
+	}
+	if !output.Validate() {
+		return fmt.Errorf("%s error occurred while calling contract", output.Error())
+	}
+	return nil
 }
