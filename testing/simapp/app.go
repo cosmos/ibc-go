@@ -376,7 +376,7 @@ func NewSimApp(
 
 	app.GovKeeper = *govKeeper.SetHooks(
 		govtypes.NewMultiGovHooks(
-		// register the governance hooks
+			// register the governance hooks
 		),
 	)
 
@@ -437,8 +437,8 @@ func NewSimApp(
 	ibcRouter.AddRoute(ibcmock.ModuleName, mockIBCModule)
 
 	// Create Transfer Stack
-	// SendTransfer, since it is originating from the application to core IBC:
-	// transferKeeper.SendTransfer -> fee.SendTransfer -> channel.SendTransfer
+	// SendPacket, since it is originating from the application to core IBC:
+	// transferKeeper.SendPacket -> fee.SendPacket -> channel.SendPacket
 
 	// RecvPacket, message that originates from core IBC and goes down to app, the flow is the other way
 	// channel.RecvPacket -> fee.OnRecvPacket -> transfer.OnRecvPacket
@@ -456,8 +456,8 @@ func NewSimApp(
 	ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferStack)
 
 	// Create Interchain Accounts Stack
-	// SendTransfer, since it is originating from the application to core IBC:
-	// icaAuthModuleKeeper.SendTx -> icaController.SendTransfer -> fee.SendTransfer -> channel.SendTransfer
+	// SendPacket, since it is originating from the application to core IBC:
+	// icaAuthModuleKeeper.SendTx -> icaController.SendPacket -> fee.SendPacket -> channel.SendPacket
 
 	// initialize ICA module with mock module as the authentication module on the controller side
 	var icaControllerStack porttypes.IBCModule
@@ -483,8 +483,8 @@ func NewSimApp(
 		AddRoute(ibcmock.ModuleName+icacontrollertypes.SubModuleName, icaControllerStack) // ica with mock auth module stack route to ica (top level of middleware stack)
 
 	// Create Mock IBC Fee module stack for testing
-	// SendTransfer, since it is originating from the application to core IBC:
-	// mockModule.SendTransfer -> fee.SendTransfer -> channel.SendTransfer
+	// SendPacket, since it is originating from the application to core IBC:
+	// mockModule.SendPacket -> fee.SendPacket -> channel.SendPacket
 
 	// OnRecvPacket, message that originates from core IBC and goes down to app, the flow is the otherway
 	// channel.RecvPacket -> fee.OnRecvPacket -> mockModule.OnRecvPacket

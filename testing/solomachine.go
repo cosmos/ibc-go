@@ -325,32 +325,6 @@ func (solo *Solomachine) ChanOpenInit(chain *TestChain, connectionID string) str
 	return ""
 }
 
-func (solo *Solomachine) ChanOpenTry(chain *TestChain, channelID string) string {
-	proofInit := solo.GenerateChanOpenInitProof(transferPort, channelID)
-	msgChanOpenInit := channeltypes.NewMsgChannelOpenTry(
-		transferPort,
-		transferVersion,
-		channeltypes.UNORDERED,
-		[]string{"connection-0"},
-		transferPort,
-		channelID,
-		transferVersion,
-		proofInit,
-		clienttypes.ZeroHeight(),
-		chain.SenderAccount.GetAddress().String(),
-	)
-
-	res, err := chain.SendMsgs(msgChanOpenInit)
-	require.NoError(solo.t, err)
-	require.NotNil(solo.t, res)
-
-	if res, ok := res.MsgResponses[0].GetCachedValue().(*channeltypes.MsgChannelOpenTryResponse); ok {
-		return res.Version
-	}
-
-	return ""
-}
-
 // ChanOpenAck performs the channel open ack handshake step on the tendermint chain for the associated
 // solo machine client.
 func (solo *Solomachine) ChanOpenAck(chain *TestChain, channelID string) {
@@ -387,7 +361,8 @@ func (solo *Solomachine) ChanCloseConfirm(chain *TestChain, portID, channelID st
 	require.NotNil(solo.t, res)
 }
 
-// SendTransfer constructs a MsgTransfer and sends the message to the given chain.
+// SendTransfer constructs a MsgTransfer and sends the message to the given chain. Any number of optional
+// functions can be provided which will modify the MsgTransfer before SendMsgs is called.
 func (solo *Solomachine) SendTransfer(chain *TestChain, portID, channelID string, fns ...func(*transfertypes.MsgTransfer)) channeltypes.Packet {
 	msgTransfer := transfertypes.MsgTransfer{
 		SourcePort:       portID,
@@ -533,7 +508,6 @@ func (solo *Solomachine) GenerateProof(signBytes *solomachine.SignBytes) []byte 
 // GenerateClientStateProof generates the proof of the client state required for the connection open try and ack handshake steps.
 // The client state should be the self client states of the tendermint chain.
 func (solo *Solomachine) GenerateClientStateProof(clientState exported.ClientState) []byte {
-	solo.Time++
 	data, err := clienttypes.MarshalClientState(solo.cdc, clientState)
 	require.NoError(solo.t, err)
 
@@ -551,7 +525,6 @@ func (solo *Solomachine) GenerateClientStateProof(clientState exported.ClientSta
 // GenerateConsensusStateProof generates the proof of the consensus state required for the connection open try and ack handshake steps.
 // The consensus state should be the self consensus states of the tendermint chain.
 func (solo *Solomachine) GenerateConsensusStateProof(consensusState exported.ConsensusState, consensusHeight exported.Height) []byte {
-	solo.Time++
 	data, err := clienttypes.MarshalConsensusState(solo.cdc, consensusState)
 	require.NoError(solo.t, err)
 
@@ -569,7 +542,6 @@ func (solo *Solomachine) GenerateConsensusStateProof(consensusState exported.Con
 // GenerateConnOpenTryProof generates the proofTry required for the connection open ack handshake step.
 // The clientID, connectionID provided represent the clientID and connectionID created on the counterparty chain, that is the tendermint chain.
 func (solo *Solomachine) GenerateConnOpenTryProof(counterpartyClientID, counterpartyConnectionID string) []byte {
-	solo.Time++
 	counterparty := connectiontypes.NewCounterparty(counterpartyClientID, counterpartyConnectionID, prefix)
 	connection := connectiontypes.NewConnectionEnd(connectiontypes.TRYOPEN, clientIDSolomachine, counterparty, []*connectiontypes.Version{ConnectionVersion}, DefaultDelayPeriod)
 
@@ -587,28 +559,9 @@ func (solo *Solomachine) GenerateConnOpenTryProof(counterpartyClientID, counterp
 	return solo.GenerateProof(signBytes)
 }
 
-func (solo *Solomachine) GenerateChanOpenInitProof(portID, counterpartyChannelID string) []byte {
-	//solo.Time++
-	counterparty := channeltypes.NewCounterparty(portID, counterpartyChannelID)
-	channel := channeltypes.NewChannel(channeltypes.INIT, channeltypes.UNORDERED, counterparty, []string{"connection-0"}, transferVersion)
-
-	data, err := solo.cdc.Marshal(&channel)
-	require.NoError(solo.t, err)
-
-	signBytes := &solomachine.SignBytes{
-		Sequence:    solo.Sequence,
-		Timestamp:   solo.Time,
-		Diversifier: solo.Diversifier,
-		Path:        []byte(solo.GetChannelStatePath(portID, channelIDSolomachine).String()),
-		Data:        data,
-	}
-	return solo.GenerateProof(signBytes)
-}
-
 // GenerateChanOpenTryProof generates the proofTry required for the channel open ack handshake step.
 // The channelID provided represents the channelID created on the counterparty chain, that is the tendermint chain.
 func (solo *Solomachine) GenerateChanOpenTryProof(portID, version, counterpartyChannelID string) []byte {
-	solo.Time++
 	counterparty := channeltypes.NewCounterparty(portID, counterpartyChannelID)
 	channel := channeltypes.NewChannel(channeltypes.TRYOPEN, channeltypes.UNORDERED, counterparty, []string{connectionIDSolomachine}, version)
 
@@ -629,7 +582,6 @@ func (solo *Solomachine) GenerateChanOpenTryProof(portID, version, counterpartyC
 // GenerateChanClosedProof generates a channel closed proof.
 // The channelID provided represents the channelID created on the counterparty chain, that is the tendermint chain.
 func (solo *Solomachine) GenerateChanClosedProof(portID, version, counterpartyChannelID string) []byte {
-	solo.Time++
 	counterparty := channeltypes.NewCounterparty(portID, counterpartyChannelID)
 	channel := channeltypes.NewChannel(channeltypes.CLOSED, channeltypes.UNORDERED, counterparty, []string{connectionIDSolomachine}, version)
 
@@ -649,7 +601,6 @@ func (solo *Solomachine) GenerateChanClosedProof(portID, version, counterpartyCh
 
 // GenerateCommitmentProof generates a commitment proof for the provided packet.
 func (solo *Solomachine) GenerateCommitmentProof(packet channeltypes.Packet) []byte {
-	solo.Time++
 	commitment := channeltypes.CommitPacket(solo.cdc, packet)
 
 	signBytes := &solomachine.SignBytes{
@@ -665,7 +616,6 @@ func (solo *Solomachine) GenerateCommitmentProof(packet channeltypes.Packet) []b
 
 // GenerateAcknowledgementProof generates an acknowledgement proof.
 func (solo *Solomachine) GenerateAcknowledgementProof(packet channeltypes.Packet) []byte {
-	solo.Time++
 	signBytes := &solomachine.SignBytes{
 		Sequence:    solo.Sequence,
 		Timestamp:   solo.Time,
@@ -679,7 +629,6 @@ func (solo *Solomachine) GenerateAcknowledgementProof(packet channeltypes.Packet
 
 // GenerateReceiptAbsenceProof generates a receipt absence proof for the provided packet.
 func (solo *Solomachine) GenerateReceiptAbsenceProof(packet channeltypes.Packet) []byte {
-	solo.Time++
 	signBytes := &solomachine.SignBytes{
 		Sequence:    solo.Sequence,
 		Timestamp:   solo.Time,
