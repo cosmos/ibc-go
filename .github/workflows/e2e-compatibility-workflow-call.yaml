@@ -26,7 +26,7 @@ jobs:
           # to create the matrix in the following job.
           test_matrix="$(cat .github/compatibility-test-matrices/${{ inputs.test-file-directory }}/${{ inputs.test-suite }}.json | jq -c)"
           echo $test_matrix
-          echo "::set-output name=test-matrix::$test_matrix"
+          echo "test-matrix=$test_matrix" >> $GITHUB_OUTPUT
         id: set-test-matrix
 
   e2e:
