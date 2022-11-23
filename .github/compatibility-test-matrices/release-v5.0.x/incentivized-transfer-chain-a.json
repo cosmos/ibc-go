@@ -1,0 +1,15 @@
+{
+  "chain-a": ["release-v5.0.x"],
+  "chain-b": ["release-v5.0.x", "v5.1.0", "v4.2.0", "v4.1.1"],
+  "entrypoint": ["TestIncentivizedTransferTestSuite"],
+  "test": [
+    "TestMsgPayPacketFee_AsyncSingleSender_Succeeds",
+    "TestMsgPayPacketFee_InvalidReceiverAccount",
+    "TestMultiMsg_MsgPayPacketFeeSingleSender",
+    "TestMsgPayPacketFee_SingleSender_TimesOut",
+    "TestPayPacketFeeAsync_SingleSender_NoCounterPartyAddress",
+    "TestMsgPayPacketFee_AsyncMultipleSenders_Succeeds"
+  ],
+  "chain-binary": ["simd"],
+  "chain-image": ["ghcr.io/cosmos/ibc-go-simd"]
+}

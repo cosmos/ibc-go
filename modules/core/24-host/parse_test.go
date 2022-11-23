@@ -49,7 +49,7 @@ func TestParseIdentifier(t *testing.T) {
 	}
 }
 
-func TestParseClientStatePath(t *testing.T) {
+func TestMustParseClientStatePath(t *testing.T) {
 	testCases := []struct {
 		name    string
 		path    string
@@ -65,14 +65,15 @@ func TestParseClientStatePath(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		clientID, err := host.ParseClientStatePath(tc.path)
-
 		if tc.expPass {
-			require.NoError(t, err, tc.name)
-			require.Equal(t, ibctesting.FirstClientID, clientID)
+			require.NotPanics(t, func() {
+				clientID := host.MustParseClientStatePath(tc.path)
+				require.Equal(t, ibctesting.FirstClientID, clientID)
+			})
 		} else {
-			require.Error(t, err, tc.name)
-			require.Equal(t, "", clientID)
+			require.Panics(t, func() {
+				host.MustParseClientStatePath(tc.path)
+			})
 		}
 	}
 }

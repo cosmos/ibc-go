@@ -69,6 +69,8 @@ The `CheckMisbehaviourAndUpdateState` function has been removed from `ClientStat
 
 The function `GetTimestampAtHeight` has been added to the `ClientState` interface. It should return the timestamp for a consensus state associated with the provided height.
 
+A zero proof height is now allowed by core IBC and may be passed into `VerifyMembership` and `VerifyNonMembership`. Light clients are responsible for returning an error if a zero proof height is invalid behaviour. 
+
 ### `Header` and `Misbehaviour`
 
 `exported.Header` and `exported.Misbehaviour` interface types have been merged and renamed to `ClientMessage` interface.

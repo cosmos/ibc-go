@@ -202,6 +202,7 @@ func (cs ClientState) Initialize(ctx sdk.Context, _ codec.BinaryCodec, clientSto
 
 // VerifyMembership is a generic proof verification method which verifies a proof of the existence of a value at a given CommitmentPath at the specified height.
 // The caller is expected to construct the full CommitmentPath from a CommitmentPrefix and a standardized path (as defined in ICS 24).
+// If a zero proof height is passed in, it will fail to retrieve the associated consensus state.
 func (cs ClientState) VerifyMembership(
 	ctx sdk.Context,
 	clientStore sdk.KVStore,
@@ -248,6 +249,7 @@ func (cs ClientState) VerifyMembership(
 
 // VerifyNonMembership is a generic proof verification method which verifies the absence of a given CommitmentPath at a specified height.
 // The caller is expected to construct the full CommitmentPath from a CommitmentPrefix and a standardized path (as defined in ICS 24).
+// If a zero proof height is passed in, it will fail to retrieve the associated consensus state.
 func (cs ClientState) VerifyNonMembership(
 	ctx sdk.Context,
 	clientStore sdk.KVStore,

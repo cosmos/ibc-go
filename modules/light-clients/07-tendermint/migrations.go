@@ -35,11 +35,7 @@ func PruneTendermintConsensusStates(ctx sdk.Context, cdc codec.BinaryCodec, stor
 			continue
 		}
 
-		clientID, err := host.ParseClientStatePath(path)
-		if err != nil {
-			return err
-		}
-
+		clientID := host.MustParseClientStatePath(path)
 		clients = append(clients, clientID)
 	}
 
