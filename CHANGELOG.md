@@ -76,6 +76,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Improvements
 
+* (core) [\#2746](https://github.com/cosmos/ibc-go/pull/2746) Allow proof height to be zero for all core IBC `sdk.Msg` types that contain proofs.
+* (light-clients/06-solomachine) [\#2746](https://github.com/cosmos/ibc-go/pull/2746) Discard proofHeight for solo machines and use the solo machine sequence instead.
 * (modules/light-clients/07-tendermint) [\#1713](https://github.com/cosmos/ibc-go/pull/1713) Allow client upgrade proposals to update `TrustingPeriod`. See ADR-026 for context.
 * (modules/core/02-client) [\#1188](https://github.com/cosmos/ibc-go/pull/1188/files) Routing `MsgSubmitMisbehaviour` to `UpdateClient` keeper function. Deprecating `SubmitMisbehaviour` endpoint.
 * (modules/core/02-client) [\#1208](https://github.com/cosmos/ibc-go/pull/1208) Replace `CheckHeaderAndUpdateState` usage in 02-client with calls to `VerifyClientMessage`, `CheckForMisbehaviour`, `UpdateStateOnMisbehaviour` and `UpdateState`. 
@@ -108,6 +110,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * [\#2434](https://github.com/cosmos/ibc-go/pull/2478) Removed all `TypeMsg` constants
 * (modules/core/exported) [#1689] (https://github.com/cosmos/ibc-go/pull/2539) Removing `GetVersions` from `ConnectionI` interface.
 * (core/03-connection) [\#2745](https://github.com/cosmos/ibc-go/pull/2745) Adding `ConnectionParams` grpc query and CLI to 03-connection.
+* (apps/29-fee) [\#2786](https://github.com/cosmos/ibc-go/pull/2786) Save gas by checking key existence with `KVStore`'s `Has` method.
 
 ### Features
 
