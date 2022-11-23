@@ -1,4 +1,4 @@
-# Migrating from ibc-go v5 to v6
+# Migrating from ibc-go v6 to v7
 
 This document is intended to highlight significant changes which may require more information than presented in the CHANGELOG.
 Any changes that must be done by a user of ibc-go should be documented here.
