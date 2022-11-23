@@ -30,3 +30,13 @@ func (m Migrator) Migrate1to2(ctx sdk.Context) error {
 
 	return nil
 }
+
+// Migrate2to3 migrates from version 2 to 3. 02-client migrations are performed.
+func (m Migrator) Migrate2to3(ctx sdk.Context) error {
+	clientMigrator := clientkeeper.NewMigrator(m.keeper.ClientKeeper)
+	if err := clientMigrator.Migrate2to3(ctx); err != nil {
+		return err
+	}
+
+	return nil
+}

@@ -1,0 +1,219 @@
+package v7
+
+import (
+	"fmt"
+	"strings"
+
+	"github.com/cosmos/cosmos-sdk/codec"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	"github.com/cosmos/cosmos-sdk/store/prefix"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
+	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
+	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v6/modules/core/exported"
+	solomachine "github.com/cosmos/ibc-go/v6/modules/light-clients/06-solomachine"
+	ibctm "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint"
+)
+
+// Localhost is the client type for a localhost client. It is also used as the clientID
+// for the localhost client.
+const Localhost string = "09-localhost"
+
+// MigrateStore performs in-place store migrations from ibc-go v6 to ibc-go v7.
+// The migration includes:
+//
+// - Migrating solo machine client states from v2 to v3 protobuf definition
+// - Pruning all solo machine consensus states
+// - Removing the localhost client
+// - Asserting existing tendermint clients are properly registered on the chain codec
+func MigrateStore(ctx sdk.Context, storeKey storetypes.StoreKey, cdc codec.BinaryCodec) error {
+	store := ctx.KVStore(storeKey)
+
+	if err := handleSolomachineMigration(ctx, store, cdc); err != nil {
+		return err
+	}
+
+	if err := handleTendermintMigration(ctx, store, cdc); err != nil {
+		return err
+	}
+
+	if err := handleLocalhostMigration(ctx, store, cdc); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// handleSolomachineMigration iterates over the solo machine clients and migrates client state from
+// protobuf definition v2 to v3. All associated consensus states stored separately are pruned.
+func handleSolomachineMigration(ctx sdk.Context, store sdk.KVStore, cdc codec.BinaryCodec) error {
+	clients, err := collectClients(ctx, store, exported.Solomachine)
+	if err != nil {
+		return err
+	}
+
+	for _, clientID := range clients {
+		clientPrefix := []byte(fmt.Sprintf("%s/%s/", host.KeyClientStorePrefix, clientID))
+		clientStore := prefix.NewStore(store, clientPrefix)
+
+		bz := clientStore.Get(host.ClientStateKey())
+		if bz == nil {
+			return clienttypes.ErrClientNotFound
+		}
+
+		any := &codectypes.Any{}
+		if err := cdc.Unmarshal(bz, any); err != nil {
+			return sdkerrors.Wrap(err, "failed to unmarshal client state bytes into solo machine client state")
+		}
+
+		clientState := &ClientState{}
+		if err := cdc.Unmarshal(any.Value, clientState); err != nil {
+			return sdkerrors.Wrap(err, "failed to unmarshal client state bytes into solo machine client state")
+		}
+
+		updatedClientState := migrateSolomachine(clientState)
+
+		bz, err := clienttypes.MarshalClientState(cdc, updatedClientState)
+		if err != nil {
+			return sdkerrors.Wrap(err, "failed to unmarshal client state bytes into solo machine client state")
+		}
+
+		// update solomachine in store
+		clientStore.Set(host.ClientStateKey(), bz)
+
+		pruneClientConsensusStates(clientStore)
+	}
+
+	return nil
+}
+
+// handlerTendermintMigration asserts that the tendermint client in state can be decoded properly.
+// This ensures the upgrading chain properly registered the tendermint client types on the chain codec.
+func handleTendermintMigration(ctx sdk.Context, store sdk.KVStore, cdc codec.BinaryCodec) error {
+	clients, err := collectClients(ctx, store, exported.Tendermint)
+	if err != nil {
+		return err
+	}
+
+	if len(clients) > 1 {
+		return sdkerrors.Wrap(sdkerrors.ErrLogic, "too many tendermint clients collected")
+	}
+
+	clientID := clients[0]
+
+	clientPrefix := []byte(fmt.Sprintf("%s/%s/", host.KeyClientStorePrefix, clientID))
+	clientStore := prefix.NewStore(store, clientPrefix)
+
+	bz := clientStore.Get(host.ClientStateKey())
+	if bz == nil {
+		return clienttypes.ErrClientNotFound
+	}
+
+	var clientState exported.ClientState
+	if err := cdc.UnmarshalInterface(bz, &clientState); err != nil {
+		return sdkerrors.Wrap(err, "failed to unmarshal client state bytes into tendermint client state")
+	}
+
+	_, ok := clientState.(*ibctm.ClientState)
+	if !ok {
+		return sdkerrors.Wrap(clienttypes.ErrInvalidClient, "client state is not tendermint even though client id contains 07-tendermint")
+	}
+
+	return nil
+}
+
+// handleLocalhostMigration removes all client and consensus states associated with the localhost client type.
+func handleLocalhostMigration(ctx sdk.Context, store sdk.KVStore, cdc codec.BinaryCodec) error {
+	clients, err := collectClients(ctx, store, Localhost)
+	if err != nil {
+		return err
+	}
+
+	for _, clientID := range clients {
+		clientPrefix := []byte(fmt.Sprintf("%s/%s/", host.KeyClientStorePrefix, clientID))
+		clientStore := prefix.NewStore(store, clientPrefix)
+
+		// delete the client state
+		clientStore.Delete(host.ClientStateKey())
+
+		pruneClientConsensusStates(clientStore)
+	}
+
+	return nil
+}
+
+// collectClients will iterate over the provided client type prefix in the client store
+// and return a list of clientIDs associated with the client type. This is necessary to
+// avoid state corruption as modifying state during iteration is unsafe. A special case
+// for tendermint clients is included as only one tendermint clientID is required for
+// this migration..
+func collectClients(ctx sdk.Context, store sdk.KVStore, clientType string) (clients []string, err error) {
+	clientPrefix := []byte(fmt.Sprintf("%s/%s", host.KeyClientStorePrefix, clientType))
+	iterator := sdk.KVStorePrefixIterator(store, clientPrefix)
+
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		path := string(iterator.Key())
+		if !strings.Contains(path, host.KeyClientState) {
+			// skip non client state keys
+			continue
+		}
+
+		clientID, err := host.ParseClientStatePath(path)
+		if err != nil {
+			return nil, err
+		}
+
+		clients = append(clients, clientID)
+
+		// optimization: exist after a single tendermint client iteration
+		if strings.Contains(clientID, exported.Tendermint) {
+			return clients, nil
+		}
+	}
+
+	return clients, nil
+}
+
+// pruneClientConsensusStates removes all client consensus states from the associated
+// client store which is keyed by the clientID.
+func pruneClientConsensusStates(clientStore sdk.KVStore) {
+	iterator := sdk.KVStorePrefixIterator(clientStore, []byte(host.KeyConsensusStatePrefix))
+	var heights []exported.Height
+
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		keySplit := strings.Split(string(iterator.Key()), "/")
+		// key is in the format "consensusStates/<height>"
+		if len(keySplit) != 2 || keySplit[0] != string(host.KeyConsensusStatePrefix) {
+			continue
+		}
+
+		// collect consensus states to be pruned
+		heights = append(heights, clienttypes.MustParseHeight(keySplit[1]))
+	}
+
+	// delete all consensus states
+	for _, height := range heights {
+		clientStore.Delete(host.ConsensusStateKey(height))
+	}
+}
+
+// migrateSolomachine migrates the solomachine from v2 to v3 solo machine protobuf definition.
+// Notably it drops the AllowUpdateAfterProposal field.
+func migrateSolomachine(clientState *ClientState) *solomachine.ClientState {
+	consensusState := &solomachine.ConsensusState{
+		PublicKey:   clientState.ConsensusState.PublicKey,
+		Diversifier: clientState.ConsensusState.Diversifier,
+		Timestamp:   clientState.ConsensusState.Timestamp,
+	}
+
+	return &solomachine.ClientState{
+		Sequence:       clientState.Sequence,
+		IsFrozen:       clientState.IsFrozen,
+		ConsensusState: consensusState,
+	}
+}
