@@ -162,11 +162,7 @@ func collectClients(ctx sdk.Context, store sdk.KVStore, clientType string) (clie
 			continue
 		}
 
-		clientID, err := host.ParseClientStatePath(path)
-		if err != nil {
-			return nil, err
-		}
-
+		clientID := host.MustParseClientStatePath(path)
 		clients = append(clients, clientID)
 
 		// optimization: exist after a single tendermint client iteration

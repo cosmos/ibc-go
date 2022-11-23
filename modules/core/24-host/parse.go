@@ -32,9 +32,20 @@ func ParseIdentifier(identifier, prefix string) (uint64, error) {
 	return sequence, nil
 }
 
-// ParseClientStatePath returns the client ID from a client state path. It returns
+// MustParseClientStatePath returns the client ID from a client state path. It panics
+// if the provided path is invalid or if the clientID is empty.
+func MustParseClientStatePath(path string) string {
+	clientID, err := parseClientStatePath(path)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	return clientID
+}
+
+// parseClientStatePath returns the client ID from a client state path. It returns
 // an error if the provided path is invalid.
-func ParseClientStatePath(path string) (string, error) {
+func parseClientStatePath(path string) (string, error) {
 	split := strings.Split(path, "/")
 	if len(split) != 3 {
 		return "", sdkerrors.Wrapf(ErrInvalidPath, "cannot parse client state path %s", path)
