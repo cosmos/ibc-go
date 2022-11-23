@@ -29,7 +29,6 @@ var (
 	clientIDSolomachine     = "client-on-solomachine"     // clientID generated on solo machine side
 	connectionIDSolomachine = "connection-on-solomachine" // connectionID generated on solo machine side
 	channelIDSolomachine    = "channel-on-solomachine"    // channelID generated on solo machine side
-	transferPort            = "transfer"
 	transferVersion         = "ics20-1"
 )
 
@@ -306,11 +305,11 @@ func (solo *Solomachine) ConnOpenAck(chain *TestChain, clientID, connectionID st
 // ChanOpenInit initializes a channel on the provided chain given a solo machine connectionID.
 func (solo *Solomachine) ChanOpenInit(chain *TestChain, connectionID string) string {
 	msgChanOpenInit := channeltypes.NewMsgChannelOpenInit(
-		transferPort,
+		transfertypes.PortID,
 		transferVersion,
 		channeltypes.UNORDERED,
 		[]string{connectionID},
-		transferPort,
+		transfertypes.PortID,
 		chain.SenderAccount.GetAddress().String(),
 	)
 
@@ -328,9 +327,9 @@ func (solo *Solomachine) ChanOpenInit(chain *TestChain, connectionID string) str
 // ChanOpenAck performs the channel open ack handshake step on the tendermint chain for the associated
 // solo machine client.
 func (solo *Solomachine) ChanOpenAck(chain *TestChain, channelID string) {
-	proofTry := solo.GenerateChanOpenTryProof(transferPort, transferVersion, channelID)
+	proofTry := solo.GenerateChanOpenTryProof(transfertypes.PortID, transferVersion, channelID)
 	msgChanOpenAck := channeltypes.NewMsgChannelOpenAck(
-		transferPort,
+		transfertypes.PortID,
 		channelID,
 		channelIDSolomachine,
 		transferVersion,
@@ -405,8 +404,9 @@ func (solo *Solomachine) RecvPacket(chain *TestChain, packet channeltypes.Packet
 // AcknowledgePacket creates an acknowledgement proof and broadcasts a MsgAcknowledgement.
 func (solo *Solomachine) AcknowledgePacket(chain *TestChain, packet channeltypes.Packet) {
 	proofAck := solo.GenerateAcknowledgementProof(packet)
+	transferAck := channeltypes.NewResultAcknowledgement([]byte{byte(1)}).Acknowledgement()
 	msgAcknowledgement := channeltypes.NewMsgAcknowledgement(
-		packet, channeltypes.NewResultAcknowledgement([]byte{byte(1)}).Acknowledgement(),
+		packet, transferAck,
 		proofAck,
 		clienttypes.ZeroHeight(),
 		chain.SenderAccount.GetAddress().String(),
@@ -435,7 +435,7 @@ func (solo *Solomachine) TimeoutPacket(chain *TestChain, packet channeltypes.Pac
 
 // TimeoutPacket creates a channel closed and unreceived packet proof and broadcasts a MsgTimeoutOnClose.
 func (solo *Solomachine) TimeoutPacketOnClose(chain *TestChain, packet channeltypes.Packet, channelID string) {
-	proofClosed := solo.GenerateChanClosedProof(transferPort, transferVersion, channelID)
+	proofClosed := solo.GenerateChanClosedProof(transfertypes.PortID, transferVersion, channelID)
 	proofUnreceived := solo.GenerateReceiptAbsenceProof(packet)
 	msgTimeout := channeltypes.NewMsgTimeoutOnClose(
 		packet,
@@ -616,12 +616,13 @@ func (solo *Solomachine) GenerateCommitmentProof(packet channeltypes.Packet) []b
 
 // GenerateAcknowledgementProof generates an acknowledgement proof.
 func (solo *Solomachine) GenerateAcknowledgementProof(packet channeltypes.Packet) []byte {
+	transferAck := channeltypes.NewResultAcknowledgement([]byte{byte(1)}).Acknowledgement()
 	signBytes := &solomachine.SignBytes{
 		Sequence:    solo.Sequence,
 		Timestamp:   solo.Time,
 		Diversifier: solo.Diversifier,
 		Path:        []byte(solo.GetPacketAcknowledgementPath(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence()).String()),
-		Data:        channeltypes.CommitAcknowledgement(channeltypes.NewResultAcknowledgement([]byte{byte(1)}).Acknowledgement()),
+		Data:        channeltypes.CommitAcknowledgement(transferAck),
 	}
 
 	return solo.GenerateProof(signBytes)
