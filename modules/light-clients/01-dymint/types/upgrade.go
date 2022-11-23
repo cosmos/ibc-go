@@ -22,7 +22,7 @@ import (
 // height than the committed client.
 // - the height of upgraded client is not greater than that of current client
 // - the latest height of the new client does not match or is greater than the height in committed client
-// - any Dymint chain specified parameter in upgraded client such as ChainID, UnbondingPeriod,
+// - any Dymint chain specified parameter in upgraded client such as ChainID,
 //   and ProofSpecs do not match parameters set by committed client
 func (cs ClientState) VerifyUpgradeAndUpdateState(
 	ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore,
@@ -110,7 +110,7 @@ func (cs ClientState) VerifyUpgradeAndUpdateState(
 
 	// The new consensus state is merely used as a trusted kernel against which headers on the new
 	// chain can be verified. The root is just a stand-in sentinel value as it cannot be known in advance, thus no proof verification will pass.
-	// The timestamp and the NextValidatorsHash of the consensus state is the blocktime and NextValidatorsHash
+	// The timestamp of the consensus state is the blocktime
 	// of the last block committed by the old chain. This will allow the first block of the new chain to be verified against
 	// the last validators of the old chain so long as it is submitted within the TrustingPeriod of this client.
 	// NOTE: We do not set processed time for this consensus state since this consensus state should not be used for packet verification

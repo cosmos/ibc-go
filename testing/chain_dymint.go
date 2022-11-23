@@ -19,11 +19,6 @@ import (
 	ibcdmtypes "github.com/cosmos/ibc-go/v3/modules/light-clients/01-dymint/types"
 )
 
-var (
-	// Default params variables used to create a DM client
-	DefaultDymintTrustLevel ibcdmtypes.Fraction = ibcdmtypes.DefaultTrustLevel
-)
-
 type DymintConfig struct {
 	TrustingPeriod               time.Duration
 	MaxClockDrift                time.Duration
