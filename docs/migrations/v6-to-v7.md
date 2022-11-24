@@ -37,6 +37,8 @@ ModuleBasics = module.NewBasicManager(
 )
 ```
 
+It may be useful to reference the [PR](https://github.com/cosmos/ibc-go/pull/2825) which added the `AppModuleBasic` for the tendermint client.
+
 ## IBC Apps
 
 - No relevant changes were made in this release.
