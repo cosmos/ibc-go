@@ -58,6 +58,8 @@ The Inter-Blockchain Communication protocol (IBC) allows blockchains to talk to 
     3.1 [ICS 07 Tendermint](https://github.com/cosmos/ibc-go/tree/main/modules/light-clients/07-tendermint)
 
     3.2 [ICS 06 Solo Machine](https://github.com/cosmos/ibc-go/tree/main/modules/light-clients/06-solomachine)
+    
+    3.3 [DIP 01 Dymint](https://github.com/cosmos/ibc-go/tree/main/modules/light-clients/01-dymint)
 
 Note: The localhost client is currently non-functional. 
 
