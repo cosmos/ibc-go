@@ -24,11 +24,9 @@ import (
 
 type WasmTestSuite struct {
 	suite.Suite
-	coordinator *ibctesting.Coordinator
-	wasm        *ibctesting.Wasm // singlesig public key
-	// Tendermint chain
-	chainA *ibctesting.TestChain
-	// Grandpa chain
+	coordinator    *ibctesting.Coordinator
+	wasm           *ibctesting.Wasm // singlesig public key
+	chainA         *ibctesting.TestChain
 	chainB         *ibctesting.TestChain
 	ctx            sdk.Context
 	cdc            codec.Codec
@@ -129,6 +127,66 @@ func (suite *WasmTestSuite) SetupTest() {
 	}
 	suite.consensusState = consensusState
 	suite.codeId = clientState.CodeId
+}
+
+// Panics
+func (suite *WasmTestSuite) TestCreateClient() {
+	var (
+		clientMsg   exported.ClientMessage
+		clientState *wasm.ClientState
+	)
+
+	// test singlesig and multisig public keys
+	for _, wm := range []*ibctesting.Wasm{suite.wasm} {
+		testCases := []struct {
+			name    string
+			setup   func()
+			expPass bool
+		}{
+			{
+				"create a WASM client",
+				func() {
+					data, err := hex.DecodeString(suite.testData["header_a0"])
+					suite.Require().NoError(err)
+					clientMsg = &wasm.Header{
+						Data: data,
+						Height: clienttypes.Height{
+							RevisionNumber: 1,
+							RevisionHeight: 2,
+						},
+					}
+					println(wm.ClientID)
+				},
+				true,
+			},
+		}
+
+		for _, tc := range testCases {
+			tc := tc
+
+			suite.Run(tc.name, func() {
+				tc.setup()
+
+				clientState = &suite.clientState
+				_ = clientMsg
+				_ = clientState
+
+				path := ibctesting.NewPath(suite.chainA, suite.chainB)
+				data, err := hex.DecodeString(suite.testData["header_a0"])
+				suite.Require().NoError(err)
+				configHeader := wasm.Header{
+					Data: data,
+					Height: clienttypes.Height{
+						RevisionNumber: 1,
+						RevisionHeight: 2,
+					},
+				}
+				path.EndpointB.ClientConfig = ibctesting.NewWasmConfig(suite.consensusState, suite.clientState, configHeader)
+				suite.coordinator.SetupClients(path)
+				suite.coordinator.SetupConnections(path)
+			})
+		}
+	}
 }
 
 func (suite *WasmTestSuite) TestVerifyClientMessageHeader() {
