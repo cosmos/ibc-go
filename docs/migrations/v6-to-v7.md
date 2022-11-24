@@ -13,7 +13,29 @@ There are four sections based on the four potential user groups of this document
 
 ## Chains
 
-- No relevant changes were made in this release.
+### Light client registration
+
+Chains must explicitly register the types of any light client modules it wishes to integrate. 
+
+#### Tendermint registration
+
+To register the tendermint client, modify the `app.go` file to include the tendermint `AppModuleBasic`:
+
+```diff
+import (
+        ...
++       ibctm "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint"
+        ...
+)
+...
+
+ModuleBasics = module.NewBasicManager(
+                ...
+                ibc.AppModuleBasic{},
++               ibctm.AppModuleBasic{},
+                ...
+)
+```
 
 ## IBC Apps
 
