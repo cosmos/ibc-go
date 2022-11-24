@@ -13,7 +13,30 @@ There are four sections based on the four potential user groups of this document
 
 ## Chains
 
-- No relevant changes were made in this release.
+### Light client registration
+
+Chains must explicitly register the types of any light client modules it wishes to integrate. 
+
+#### Solo machine registration
+
+To register the solo machine client, modify the `app.go` file to include the solo machine `AppModuleBasic`:
+
+```diff
+import (
+        ...
++       solomachine "github.com/cosmos/ibc-go/v6/modules/light-clients/06-solomachine"
+        ...
+)
+...
+ModuleBasics = module.NewBasicManager(
+                ...
+                ibc.AppModuleBasic{},
++               solomachine.AppModuleBasic{},
+                ...
+)
+```
+
+It may be useful to reference the [PR](https://github.com/cosmos/ibc-go/pull/2826) which added the `AppModuleBasic` for the solo machine client.
 
 ## IBC Apps
 
