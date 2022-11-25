@@ -359,15 +359,16 @@ func (k Keeper) IterateClients(ctx sdk.Context, cb func(clientID string, cs expo
 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
-		keySplit := strings.Split(string(iterator.Key()), "/")
-		if keySplit[len(keySplit)-1] != host.KeyClientState {
+		path := string(iterator.Key())
+		if !strings.Contains(path, host.KeyClientState) {
+			// skip non client state keys
 			continue
 		}
+
+		clientID := host.MustParseClientStatePath(path)
 		clientState := k.MustUnmarshalClientState(iterator.Value())
 
-		// key is ibc/{clientid}/clientState
-		// Thus, keySplit[1] is clientID
-		if cb(keySplit[1], clientState) {
+		if cb(clientID, clientState) {
 			break
 		}
 	}
