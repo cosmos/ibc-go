@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/stretchr/testify/suite"
 
 	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v6/modules/core/03-connection/types"
@@ -128,4 +129,45 @@ func ParseAckFromEvents(events sdk.Events) ([]byte, error) {
 		}
 	}
 	return nil, fmt.Errorf("acknowledgement event attribute not found")
+}
+
+// AssertEvents asserts that expected events are present in the actual events
+// Note: nil value and empty map is handled seperatly as follows
+// 1. if expected is empty map, then assert actual events are empty
+// 2. if expected is nil, skip the whole assert and return early
+func AssertEvents(
+	suite suite.Suite,
+	expected map[string]map[string]string,
+	actual sdk.Events,
+) {
+	if expected == nil {
+		suite.Require().True(true)
+		return
+	}
+	if len(expected) == 0 {
+		suite.Require().Len(actual, 0)
+		return
+	}
+
+	hasEvents := make(map[string]bool)
+	for eventType := range expected {
+		hasEvents[eventType] = false
+	}
+
+	for _, event := range actual {
+		expEvent, eventFound := expected[event.Type]
+		if eventFound {
+			hasEvents[event.Type] = true
+			suite.Require().Len(event.Attributes, len(expEvent))
+			for _, attr := range event.Attributes {
+				expValue, found := expEvent[string(attr.Key)]
+				suite.Require().True(found)
+				suite.Require().Equal(expValue, string(attr.Value))
+			}
+		}
+	}
+
+	for eventName, hasEvent := range hasEvents {
+		suite.Require().True(hasEvent, "event: %s was not found in events", eventName)
+	}
 }
