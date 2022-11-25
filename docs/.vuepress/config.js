@@ -219,14 +219,14 @@ module.exports = {
                   path: "/apps/interchain-accounts/overview.html",
                 },
                 {
-                  title: "Authentication Modules",
-                  directory: false,
-                  path: "/apps/interchain-accounts/auth-modules.html",
-                },
-                {
                   title: "Development Use Cases",
                   directory: false,
                   path: "/apps/interchain-accounts/development.html",
+                },
+                {
+                  title: "Authentication Modules",
+                  directory: false,
+                  path: "/apps/interchain-accounts/auth-modules.html",
                 },
                 {
                   title: "Integration",
