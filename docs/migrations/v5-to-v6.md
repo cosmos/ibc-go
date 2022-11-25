@@ -102,9 +102,7 @@ Both APIs remain functional and maintain backwards compatibility in ibc-go v6, h
 
 Depending on the use case, developers of custom authentication modules have then three possibilities:
 
-<p align="center">
-  <img src="auth-module-decision-tree.png?raw=true" alt="auth-module" width="50%" />
-</p>
+![AuthModuleDecisionTree](../assets/auth-module-decision-tree.png)
 
 **My authentication module needs to access IBC packet callbacks**
 

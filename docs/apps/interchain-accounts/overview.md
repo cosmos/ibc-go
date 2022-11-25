@@ -24,7 +24,7 @@ Regular accounts use a private key to sign transactions. Interchain Accounts are
 
 `Authentication Module`: A custom application module on the controller chain that uses the Interchain Accounts module to build custom logic for the creation & management of interchain accounts. It can be either an IBC application module using the [legacy API](./legacy/keeper-api.md), or a regular Cosmos SDK application module sending messages to the controller submodule's `MsgServer` (this is the recommended approach from ibc-go v6 if access to packet callbacks is not needed).
 
-## SDK Security Model
+## SDK security model
 
 SDK modules on a chain are assumed to be trustworthy. For example, there are no checks to prevent an untrustworthy module from accessing the bank keeper.
 

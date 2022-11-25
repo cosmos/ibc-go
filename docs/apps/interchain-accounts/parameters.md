@@ -6,13 +6,13 @@ order: 6
 
 The Interchain Accounts module contains the following on-chain parameters, logically separated for each distinct submodule:
 
-### Controller Submodule Parameters
+## Controller Submodule Parameters
 
 | Key                    | Type | Default Value |
 |------------------------|------|---------------|
 | `ControllerEnabled`    | bool | `true`        |
 
-#### ControllerEnabled
+### ControllerEnabled
 
 The `ControllerEnabled` parameter controls a chains ability to service ICS27 controller specific logic. This includes the sending of Interchain Accounts packet data as well as the following ICS-26 callback handlers:
 - `OnChanOpenInit`
@@ -21,14 +21,14 @@ The `ControllerEnabled` parameter controls a chains ability to service ICS27 con
 - `OnAcknowledgementPacket`
 - `OnTimeoutPacket`
 
-### Host Submodule Parameters
+## Host Submodule Parameters
 
 | Key                    | Type     | Default Value |
 |------------------------|----------|---------------|
 | `HostEnabled`          | bool     | `true`        |
 | `AllowMessages`        | []string | `["*"]`       |
 
-#### HostEnabled
+### HostEnabled
 
 The `HostEnabled` parameter controls a chains ability to service ICS27 host specific logic. This includes the following ICS-26 callback handlers:
 - `OnChanOpenTry`
@@ -36,7 +36,7 @@ The `HostEnabled` parameter controls a chains ability to service ICS27 host spec
 - `OnChanCloseConfirm`
 - `OnRecvPacket`
 
-#### AllowMessages
+### AllowMessages
 
 The `AllowMessages` parameter provides the ability for a chain to limit the types of messages or transactions that hosted interchain accounts are authorized to execute by defining an allowlist using the Protobuf message type URL format.
 
