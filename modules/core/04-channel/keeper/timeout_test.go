@@ -258,7 +258,7 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 			}
 
 			if hasEvents {
-				ibctesting.AssertEvents(suite.Suite, expEvents, events)
+				ibctesting.AssertEvents(&suite.Suite, expEvents, events)
 			} else {
 				suite.Require().Len(events, 0)
 			}
@@ -358,7 +358,7 @@ func (suite *KeeperTestSuite) TestTimeoutExecuted() {
 			}
 
 			if hasEvents {
-				ibctesting.AssertEvents(suite.Suite, expEvents, events)
+				ibctesting.AssertEvents(&suite.Suite, expEvents, events)
 			} else {
 				suite.Require().Len(events, 0)
 			}
@@ -581,7 +581,7 @@ func (suite *KeeperTestSuite) TestTimeoutOnClose() {
 			}
 
 			if hasEvents {
-				ibctesting.AssertEvents(suite.Suite, expEvents, events)
+				ibctesting.AssertEvents(&suite.Suite, expEvents, events)
 			} else {
 				suite.Require().Len(events, 0)
 			}

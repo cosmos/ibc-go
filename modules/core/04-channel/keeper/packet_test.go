@@ -265,7 +265,7 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 			}
 
 			if hasEvents {
-				ibctesting.AssertEvents(suite.Suite, expEvents, events)
+				ibctesting.AssertEvents(&suite.Suite, expEvents, events)
 			} else {
 				suite.Require().Len(events, 0)
 			}
@@ -564,7 +564,7 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 			}
 
 			if hasEvents {
-				ibctesting.AssertEvents(suite.Suite, expEvents, events)
+				ibctesting.AssertEvents(&suite.Suite, expEvents, events)
 			} else {
 				suite.Require().Len(events, 0)
 			}
@@ -693,7 +693,7 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 					},
 				}
 
-				ibctesting.AssertEvents(suite.Suite, expEvents, events)
+				ibctesting.AssertEvents(&suite.Suite, expEvents, events)
 			} else {
 				suite.Require().Len(events, 0)
 			}
@@ -1015,7 +1015,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 			}
 
 			if hasEvents {
-				ibctesting.AssertEvents(suite.Suite, expEvents, events)
+				ibctesting.AssertEvents(&suite.Suite, expEvents, events)
 			} else {
 				suite.Require().Len(events, 0)
 			}

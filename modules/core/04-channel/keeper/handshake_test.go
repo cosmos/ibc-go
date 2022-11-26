@@ -709,7 +709,7 @@ func (suite *KeeperTestSuite) TestChanCloseInit() {
 			}
 
 			if hasEvents {
-				ibctesting.AssertEvents(suite.Suite, expEvents, events)
+				ibctesting.AssertEvents(&suite.Suite, expEvents, events)
 			} else {
 				suite.Require().Len(events, 0)
 			}
@@ -843,7 +843,7 @@ func (suite *KeeperTestSuite) TestChanCloseConfirm() {
 			}
 
 			if hasEvents {
-				ibctesting.AssertEvents(suite.Suite, expEvents, events)
+				ibctesting.AssertEvents(&suite.Suite, expEvents, events)
 			} else {
 				suite.Require().Len(events, 0)
 			}
