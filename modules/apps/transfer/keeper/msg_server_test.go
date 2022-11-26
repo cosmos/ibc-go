@@ -41,7 +41,7 @@ func (suite *KeeperTestSuite) assertTransferEvents(
 func (suite *KeeperTestSuite) TestMsgTransfer() {
 	var (
 		msg       *types.MsgTransfer
-		expEvents map[string]map[string]string
+		hasEvents bool
 	)
 
 	testCases := []struct {
@@ -51,12 +51,15 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 	}{
 		{
 			"success",
-			func() {},
+			func() {
+				hasEvents = true
+			},
 			true,
 		},
 		{
 			"bank send enabled for denom",
 			func() {
+				hasEvents = true
 				suite.chainA.GetSimApp().BankKeeper.SetParams(suite.chainA.GetContext(),
 					banktypes.Params{
 						SendEnabled: []*banktypes.SendEnabled{{Denom: sdk.DefaultBondDenom, Enabled: true}},
@@ -113,6 +116,7 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
+			hasEvents = false // must be explicitly set
 
 			path := NewTransferPath(suite.chainA, suite.chainB)
 			suite.coordinator.Setup(path)
@@ -131,8 +135,18 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 			ctx := suite.chainA.GetContext()
 			res, err := suite.chainA.GetSimApp().TransferKeeper.Transfer(sdk.WrapSDKContext(ctx), msg)
 
+			if tc.expPass {
+				suite.Require().NoError(err)
+				suite.Require().NotNil(res)
+				suite.Require().NotEqual(res.Sequence, uint64(0))
+			} else {
+				suite.Require().Error(err)
+				suite.Require().Nil(res)
+			}
+
+			// Verify events
 			events := ctx.EventManager().Events()
-			expEvents = map[string]map[string]string{
+			expEvents := map[string]map[string]string{
 				"ibc_transfer": {
 					"sender":   suite.chainA.SenderAccount.GetAddress().String(),
 					"receiver": suite.chainB.SenderAccount.GetAddress().String(),
@@ -142,16 +156,9 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 				},
 			}
 
-			if tc.expPass {
-				suite.Require().NoError(err)
-				suite.Require().NotNil(res)
-				suite.Require().NotEqual(res.Sequence, uint64(0))
-
+			if hasEvents {
 				ibctesting.AssertEvents(suite.Suite, expEvents, events)
 			} else {
-				suite.Require().Error(err)
-				suite.Require().Nil(res)
-
 				suite.Require().Len(events, 0)
 			}
 		})
