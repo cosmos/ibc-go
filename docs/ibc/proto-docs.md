@@ -5433,8 +5433,7 @@ Wasm light client Misbehaviour
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `client_id` | [string](#string) |  |  |
-| `header_1` | [Header](#ibc.lightclients.wasm.v1.Header) |  |  |
-| `header_2` | [Header](#ibc.lightclients.wasm.v1.Header) |  |  |
+| `data` | [bytes](#bytes) |  |  |
 
 
 

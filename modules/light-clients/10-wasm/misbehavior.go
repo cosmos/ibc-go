@@ -2,6 +2,7 @@ package wasm
 
 import (
 	"github.com/cosmos/ibc-go/modules/core/exported"
+	v5 "github.com/cosmos/ibc-go/v5/modules/core/exported"
 )
 
 var (
@@ -9,7 +10,7 @@ var (
 )
 
 func (m Misbehaviour) ClientType() string {
-	return m.Header1.ClientType()
+	return v5.Wasm
 }
 
 func (m Misbehaviour) GetClientID() string {
@@ -17,13 +18,5 @@ func (m Misbehaviour) GetClientID() string {
 }
 
 func (m Misbehaviour) ValidateBasic() error {
-	if err := m.Header1.ValidateBasic(); err != nil {
-		return err
-	}
-
-	if err := m.Header2.ValidateBasic(); err != nil {
-		return err
-	}
-
 	return nil
 }
