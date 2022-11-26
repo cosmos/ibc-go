@@ -362,7 +362,6 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 			packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
 			// attempts to receive packet 2 without receiving packet 1
 			channelCap = suite.chainB.GetChannelCapability(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
-			hasEvents = true
 		}, false},
 		{"channel not found", func() {
 			expError = types.ErrChannelNotFound
@@ -489,6 +488,7 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 			suite.chainB.App.GetIBCKeeper().ChannelKeeper.SetPacketReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, sequence)
 			packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
 			channelCap = suite.chainB.GetChannelCapability(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+			hasEvents = true
 		}, false},
 		{"validation failed", func() {
 			// skip error code check, downstream error code is used from light-client implementations
@@ -671,26 +671,28 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 
 			// Verify events
 			events := ctx.EventManager().Events()
-			expEvents := map[string]map[string]string{
-				"write_acknowledgement": {
-					"packet_data":              string(packet.GetData()),
-					"packet_data_hex":          hex.EncodeToString(packet.GetData()),
-					"packet_timeout_height":    packet.GetTimeoutHeight().String(),
-					"packet_timeout_timestamp": fmt.Sprintf("%d", packet.GetTimeoutTimestamp()),
-					"packet_sequence":          fmt.Sprintf("%d", packet.GetSequence()),
-					"packet_src_port":          path.EndpointB.ChannelConfig.PortID,
-					"packet_src_channel":       path.EndpointB.ChannelID,
-					"packet_dst_port":          path.EndpointA.ChannelConfig.PortID,
-					"packet_dst_channel":       path.EndpointA.ChannelID,
-					"packet_channel_ordering":  path.EndpointB.ChannelConfig.Order.String(),
-					"packet_connection":        path.EndpointB.ConnectionID,
-				},
-				"message": {
-					"module": "ibc_channel",
-				},
-			}
 
 			if hasEvents {
+				expEvents := map[string]map[string]string{
+					"write_acknowledgement": {
+						"packet_data":              string(packet.GetData()),
+						"packet_data_hex":          hex.EncodeToString(packet.GetData()),
+						"packet_timeout_height":    packet.GetTimeoutHeight().String(),
+						"packet_timeout_timestamp": fmt.Sprintf("%d", packet.GetTimeoutTimestamp()),
+						"packet_sequence":          fmt.Sprintf("%d", packet.GetSequence()),
+						"packet_src_port":          path.EndpointB.ChannelConfig.PortID,
+						"packet_src_channel":       path.EndpointB.ChannelID,
+						"packet_dst_port":          path.EndpointA.ChannelConfig.PortID,
+						"packet_dst_channel":       path.EndpointA.ChannelID,
+						"packet_ack":               string(ack.Acknowledgement()),
+						"packet_ack_hex":           hex.EncodeToString(ack.Acknowledgement()),
+						"packet_connection":        path.EndpointB.ConnectionID,
+					},
+					"message": {
+						"module": "ibc_channel",
+					},
+				}
+
 				ibctesting.AssertEvents(suite.Suite, expEvents, events)
 			} else {
 				suite.Require().Len(events, 0)
@@ -763,6 +765,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 
 			err = path.EndpointA.AcknowledgePacket(packet, ack.Acknowledgement())
 			suite.Require().NoError(err)
+			hasEvents = true
 		}, false},
 		{"packet already acknowledged unordered channel (no-op)", func() {
 			expError = types.ErrNoOpMsg
@@ -783,6 +786,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 
 			err = path.EndpointA.AcknowledgePacket(packet, ack.Acknowledgement())
 			suite.Require().NoError(err)
+			hasEvents = true
 		}, false},
 		{"channel not found", func() {
 			expError = types.ErrChannelNotFound
@@ -872,6 +876,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 			suite.coordinator.Setup(path)
 			packet = types.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
 			channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+			hasEvents = true
 		}, false},
 		{"packet ack verification failed", func() {
 			// skip error code check since error occurs in light-clients

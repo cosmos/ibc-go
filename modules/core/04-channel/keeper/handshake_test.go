@@ -101,8 +101,9 @@ func (suite *KeeperTestSuite) TestChanOpenInit() {
 
 				counterparty := types.NewCounterparty(ibctesting.MockPort, ibctesting.FirstChannelID)
 
+				ctx := suite.chainA.GetContext()
 				channelID, cap, err := suite.chainA.App.GetIBCKeeper().ChannelKeeper.ChanOpenInit(
-					suite.chainA.GetContext(), path.EndpointA.ChannelConfig.Order, []string{path.EndpointA.ConnectionID},
+					ctx, path.EndpointA.ChannelConfig.Order, []string{path.EndpointA.ConnectionID},
 					path.EndpointA.ChannelConfig.PortID, portCap, counterparty, path.EndpointA.ChannelConfig.Version,
 				)
 
@@ -122,7 +123,7 @@ func (suite *KeeperTestSuite) TestChanOpenInit() {
 					suite.Require().Equal(types.FormatChannelIdentifier(0), channelID)
 
 					chanCap, ok := suite.chainA.App.GetScopedIBCKeeper().GetCapability(
-						suite.chainA.GetContext(),
+						ctx,
 						host.ChannelCapabilityPath(path.EndpointA.ChannelConfig.PortID, channelID),
 					)
 					suite.Require().True(ok, "could not retrieve channel capability after successful ChanOpenInit")
@@ -132,6 +133,10 @@ func (suite *KeeperTestSuite) TestChanOpenInit() {
 					suite.Require().Nil(cap)
 					suite.Require().Equal("", channelID)
 				}
+
+				// Verify events
+				events := ctx.EventManager().Events()
+				suite.Require().Len(events, 0) // assert no events emitted
 			}
 		})
 	}
@@ -254,8 +259,9 @@ func (suite *KeeperTestSuite) TestChanOpenTry() {
 			channelKey := host.ChannelKey(counterparty.PortId, counterparty.ChannelId)
 			proof, proofHeight := suite.chainA.QueryProof(channelKey)
 
+			ctx := suite.chainB.GetContext()
 			channelID, cap, err := suite.chainB.App.GetIBCKeeper().ChannelKeeper.ChanOpenTry(
-				suite.chainB.GetContext(), types.ORDERED, []string{path.EndpointB.ConnectionID},
+				ctx, types.ORDERED, []string{path.EndpointB.ConnectionID},
 				path.EndpointB.ChannelConfig.PortID, portCap, counterparty, path.EndpointA.ChannelConfig.Version,
 				proof, malleateHeight(proofHeight, heightDiff),
 			)
@@ -265,7 +271,7 @@ func (suite *KeeperTestSuite) TestChanOpenTry() {
 				suite.Require().NotNil(cap)
 
 				chanCap, ok := suite.chainB.App.GetScopedIBCKeeper().GetCapability(
-					suite.chainB.GetContext(),
+					ctx,
 					host.ChannelCapabilityPath(path.EndpointB.ChannelConfig.PortID, channelID),
 				)
 				suite.Require().True(ok, "could not retrieve channel capapbility after successful ChanOpenTry")
@@ -273,6 +279,10 @@ func (suite *KeeperTestSuite) TestChanOpenTry() {
 			} else {
 				suite.Require().Error(err)
 			}
+
+			// Verify events
+			events := ctx.EventManager().Events()
+			suite.Require().Len(events, 0) // assert no events emitted
 		})
 	}
 }
@@ -434,8 +444,9 @@ func (suite *KeeperTestSuite) TestChanOpenAck() {
 			channelKey := host.ChannelKey(path.EndpointB.ChannelConfig.PortID, ibctesting.FirstChannelID)
 			proof, proofHeight := suite.chainB.QueryProof(channelKey)
 
+			ctx := suite.chainA.GetContext()
 			err := suite.chainA.App.GetIBCKeeper().ChannelKeeper.ChanOpenAck(
-				suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, channelCap, path.EndpointB.ChannelConfig.Version, counterpartyChannelID,
+				ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, channelCap, path.EndpointB.ChannelConfig.Version, counterpartyChannelID,
 				proof, malleateHeight(proofHeight, heightDiff),
 			)
 
@@ -444,6 +455,10 @@ func (suite *KeeperTestSuite) TestChanOpenAck() {
 			} else {
 				suite.Require().Error(err)
 			}
+
+			// Verify events
+			events := ctx.EventManager().Events()
+			suite.Require().Len(events, 0) // assert no events emitted
 		})
 	}
 }
@@ -574,8 +589,9 @@ func (suite *KeeperTestSuite) TestChanOpenConfirm() {
 			channelKey := host.ChannelKey(path.EndpointA.ChannelConfig.PortID, ibctesting.FirstChannelID)
 			proof, proofHeight := suite.chainA.QueryProof(channelKey)
 
+			ctx := suite.chainB.GetContext()
 			err := suite.chainB.App.GetIBCKeeper().ChannelKeeper.ChanOpenConfirm(
-				suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, ibctesting.FirstChannelID,
+				ctx, path.EndpointB.ChannelConfig.PortID, ibctesting.FirstChannelID,
 				channelCap, proof, malleateHeight(proofHeight, heightDiff),
 			)
 
@@ -584,6 +600,10 @@ func (suite *KeeperTestSuite) TestChanOpenConfirm() {
 			} else {
 				suite.Require().Error(err)
 			}
+
+			// Verify events
+			events := ctx.EventManager().Events()
+			suite.Require().Len(events, 0) // assert no events emitted
 		})
 	}
 }
@@ -594,10 +614,12 @@ func (suite *KeeperTestSuite) TestChanCloseInit() {
 	var (
 		path       *ibctesting.Path
 		channelCap *capabilitytypes.Capability
+		hasEvents  bool
 	)
 
 	testCases := []testCase{
 		{"success", func() {
+			hasEvents = true
 			suite.coordinator.Setup(path)
 			channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 		}, true},
@@ -655,18 +677,41 @@ func (suite *KeeperTestSuite) TestChanCloseInit() {
 		tc := tc
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest() // reset
+			hasEvents = false
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 
 			tc.malleate()
 
+			ctx := suite.chainA.GetContext()
 			err := suite.chainA.App.GetIBCKeeper().ChannelKeeper.ChanCloseInit(
-				suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, ibctesting.FirstChannelID, channelCap,
+				ctx, path.EndpointA.ChannelConfig.PortID, ibctesting.FirstChannelID, channelCap,
 			)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().Error(err)
+			}
+
+			// Verify events
+			events := ctx.EventManager().Events()
+			expEvents := map[string]map[string]string{
+				"channel_close_init": {
+					"port_id":                 path.EndpointA.ChannelConfig.PortID,
+					"channel_id":              path.EndpointA.ChannelID,
+					"counterparty_port_id":    path.EndpointB.ChannelConfig.PortID,
+					"counterparty_channel_id": path.EndpointB.ChannelID,
+					"connection_id":           path.EndpointA.ConnectionID,
+				},
+				"message": {
+					"module": "ibc_channel",
+				},
+			}
+
+			if hasEvents {
+				ibctesting.AssertEvents(suite.Suite, expEvents, events)
+			} else {
+				suite.Require().Len(events, 0)
 			}
 		})
 	}
@@ -680,10 +725,12 @@ func (suite *KeeperTestSuite) TestChanCloseConfirm() {
 		path       *ibctesting.Path
 		channelCap *capabilitytypes.Capability
 		heightDiff uint64
+		hasEvents  bool
 	)
 
 	testCases := []testCase{
 		{"success", func() {
+			hasEvents = true
 			suite.coordinator.Setup(path)
 			channelCap = suite.chainB.GetChannelCapability(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 
@@ -760,6 +807,7 @@ func (suite *KeeperTestSuite) TestChanCloseConfirm() {
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest() // reset
 			heightDiff = 0    // must explicitly be changed
+			hasEvents = false
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 
 			tc.malleate()
@@ -767,8 +815,9 @@ func (suite *KeeperTestSuite) TestChanCloseConfirm() {
 			channelKey := host.ChannelKey(path.EndpointA.ChannelConfig.PortID, ibctesting.FirstChannelID)
 			proof, proofHeight := suite.chainA.QueryProof(channelKey)
 
+			ctx := suite.chainB.GetContext()
 			err := suite.chainB.App.GetIBCKeeper().ChannelKeeper.ChanCloseConfirm(
-				suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, ibctesting.FirstChannelID, channelCap,
+				ctx, path.EndpointB.ChannelConfig.PortID, ibctesting.FirstChannelID, channelCap,
 				proof, malleateHeight(proofHeight, heightDiff),
 			)
 
@@ -776,6 +825,27 @@ func (suite *KeeperTestSuite) TestChanCloseConfirm() {
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().Error(err)
+			}
+
+			// Verify events
+			events := ctx.EventManager().Events()
+			expEvents := map[string]map[string]string{
+				"channel_close_confirm": {
+					"port_id":                 path.EndpointB.ChannelConfig.PortID,
+					"channel_id":              path.EndpointB.ChannelID,
+					"counterparty_port_id":    path.EndpointA.ChannelConfig.PortID,
+					"counterparty_channel_id": path.EndpointA.ChannelID,
+					"connection_id":           path.EndpointB.ConnectionID,
+				},
+				"message": {
+					"module": "ibc_channel",
+				},
+			}
+
+			if hasEvents {
+				ibctesting.AssertEvents(suite.Suite, expEvents, events)
+			} else {
+				suite.Require().Len(events, 0)
 			}
 		})
 	}

@@ -25,6 +25,7 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 		nextSeqRecv uint64
 		ordered     bool
 		expError    *sdkerrors.Error
+		hasEvents   bool
 	)
 
 	testCases := []testCase{
@@ -57,6 +58,7 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 		{"packet already timed out: ORDERED", func() {
 			expError = types.ErrNoOpMsg
 			ordered = true
+			hasEvents = true
 			path.SetChannelOrdered()
 			suite.coordinator.Setup(path)
 
@@ -75,6 +77,7 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 		{"packet already timed out: UNORDERED", func() {
 			expError = types.ErrNoOpMsg
 			ordered = false
+			hasEvents = true
 			suite.coordinator.Setup(path)
 
 			timeoutHeight := clienttypes.GetSelfHeight(suite.chainB.GetContext())
@@ -156,6 +159,7 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 		{"packet hasn't been sent", func() {
 			expError = types.ErrNoOpMsg
 			ordered = true
+			hasEvents = true
 			path.SetChannelOrdered()
 
 			suite.coordinator.Setup(path)
@@ -205,6 +209,7 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 
 			suite.SetupTest() // reset
 			expError = nil    // must be expliticly changed by failed cases
+			hasEvents = false // must be explicitly changed by functions emitting events
 			nextSeqRecv = 1   // must be explicitly changed
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 
@@ -221,7 +226,8 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 				}
 			}
 
-			err := suite.chainA.App.GetIBCKeeper().ChannelKeeper.TimeoutPacket(suite.chainA.GetContext(), packet, proof, proofHeight, nextSeqRecv)
+			ctx := suite.chainA.GetContext()
+			err := suite.chainA.App.GetIBCKeeper().ChannelKeeper.TimeoutPacket(ctx, packet, proof, proofHeight, nextSeqRecv)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -232,6 +238,30 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 					suite.Require().True(errors.Is(err, expError))
 				}
 			}
+
+			// Verify events
+			events := ctx.EventManager().Events()
+			expEvents := map[string]map[string]string{
+				"timeout_packet": {
+					"packet_timeout_height":    packet.GetTimeoutHeight().String(),
+					"packet_timeout_timestamp": fmt.Sprintf("%d", packet.GetTimeoutTimestamp()),
+					"packet_sequence":          fmt.Sprintf("%d", packet.GetSequence()),
+					"packet_src_port":          path.EndpointA.ChannelConfig.PortID,
+					"packet_src_channel":       path.EndpointA.ChannelID,
+					"packet_dst_port":          path.EndpointB.ChannelConfig.PortID,
+					"packet_dst_channel":       path.EndpointB.ChannelID,
+					"packet_channel_ordering":  path.EndpointA.ChannelConfig.Order.String(),
+				},
+				"message": {
+					"module": "ibc_channel",
+				},
+			}
+
+			if hasEvents {
+				ibctesting.AssertEvents(suite.Suite, expEvents, events)
+			} else {
+				suite.Require().Len(events, 0)
+			}
 		})
 	}
 }
@@ -240,13 +270,15 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 // channel capabilities are verified.
 func (suite *KeeperTestSuite) TestTimeoutExecuted() {
 	var (
-		path    *ibctesting.Path
-		packet  types.Packet
-		chanCap *capabilitytypes.Capability
+		path      *ibctesting.Path
+		packet    types.Packet
+		chanCap   *capabilitytypes.Capability
+		hasEvents bool
 	)
 
 	testCases := []testCase{
 		{"success ORDERED", func() {
+			hasEvents = true
 			path.SetChannelOrdered()
 			suite.coordinator.Setup(path)
 
@@ -282,19 +314,53 @@ func (suite *KeeperTestSuite) TestTimeoutExecuted() {
 	for i, tc := range testCases {
 		tc := tc
 		suite.Run(fmt.Sprintf("Case %s, %d/%d tests", tc.msg, i, len(testCases)), func() {
+			hasEvents = false
 			suite.SetupTest() // reset
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 
 			tc.malleate()
 
-			err := suite.chainA.App.GetIBCKeeper().ChannelKeeper.TimeoutExecuted(suite.chainA.GetContext(), chanCap, packet)
-			pc := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetPacketCommitment(suite.chainA.GetContext(), packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
+			ctx := suite.chainA.GetContext()
+			err := suite.chainA.App.GetIBCKeeper().ChannelKeeper.TimeoutExecuted(ctx, chanCap, packet)
+			pc := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetPacketCommitment(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 
 			if tc.expPass {
 				suite.NoError(err)
 				suite.Nil(pc)
 			} else {
 				suite.Error(err)
+			}
+
+			// Verify events
+			events := ctx.EventManager().Events()
+			expEvents := map[string]map[string]string{
+				"timeout_packet": {
+					"packet_timeout_height":    packet.GetTimeoutHeight().String(),
+					"packet_timeout_timestamp": fmt.Sprintf("%d", packet.GetTimeoutTimestamp()),
+					"packet_sequence":          fmt.Sprintf("%d", packet.GetSequence()),
+					"packet_src_port":          path.EndpointA.ChannelConfig.PortID,
+					"packet_src_channel":       path.EndpointA.ChannelID,
+					"packet_dst_port":          path.EndpointB.ChannelConfig.PortID,
+					"packet_dst_channel":       path.EndpointB.ChannelID,
+					"packet_channel_ordering":  path.EndpointA.ChannelConfig.Order.String(),
+				},
+				"message": {
+					"module": "ibc_channel",
+				},
+				"channel_close": {
+					"port_id":                 path.EndpointA.ChannelConfig.PortID,
+					"channel_id":              path.EndpointA.ChannelID,
+					"counterparty_port_id":    path.EndpointB.ChannelConfig.PortID,
+					"counterparty_channel_id": path.EndpointB.ChannelID,
+					"packet_channel_ordering": path.EndpointA.ChannelConfig.Order.String(),
+					"connection_id":           path.EndpointA.ConnectionID,
+				},
+			}
+
+			if hasEvents {
+				ibctesting.AssertEvents(suite.Suite, expEvents, events)
+			} else {
+				suite.Require().Len(events, 0)
 			}
 		})
 	}
@@ -309,6 +375,7 @@ func (suite *KeeperTestSuite) TestTimeoutOnClose() {
 		chanCap     *capabilitytypes.Capability
 		nextSeqRecv uint64
 		ordered     bool
+		hasEvents   bool
 	)
 
 	testCases := []testCase{
@@ -375,6 +442,7 @@ func (suite *KeeperTestSuite) TestTimeoutOnClose() {
 			chanCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 		}, false},
 		{"packet hasn't been sent ORDERED", func() {
+			hasEvents = true
 			path.SetChannelOrdered()
 			suite.coordinator.Setup(path)
 
@@ -468,6 +536,7 @@ func (suite *KeeperTestSuite) TestTimeoutOnClose() {
 
 			suite.SetupTest() // reset
 			nextSeqRecv = 1   // must be explicitly changed
+			hasEvents = false
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 
 			tc.malleate()
@@ -484,12 +553,37 @@ func (suite *KeeperTestSuite) TestTimeoutOnClose() {
 				proof, _ = suite.chainB.QueryProof(unorderedPacketKey)
 			}
 
-			err := suite.chainA.App.GetIBCKeeper().ChannelKeeper.TimeoutOnClose(suite.chainA.GetContext(), chanCap, packet, proof, proofClosed, proofHeight, nextSeqRecv)
+			ctx := suite.chainA.GetContext()
+			err := suite.chainA.App.GetIBCKeeper().ChannelKeeper.TimeoutOnClose(ctx, chanCap, packet, proof, proofClosed, proofHeight, nextSeqRecv)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().Error(err)
+			}
+
+			// Verify events
+			events := ctx.EventManager().Events()
+			expEvents := map[string]map[string]string{
+				"timeout_packet": {
+					"packet_timeout_height":    packet.GetTimeoutHeight().String(),
+					"packet_timeout_timestamp": fmt.Sprintf("%d", packet.GetTimeoutTimestamp()),
+					"packet_sequence":          fmt.Sprintf("%d", packet.GetSequence()),
+					"packet_src_port":          path.EndpointA.ChannelConfig.PortID,
+					"packet_src_channel":       path.EndpointA.ChannelID,
+					"packet_dst_port":          path.EndpointB.ChannelConfig.PortID,
+					"packet_dst_channel":       path.EndpointB.ChannelID,
+					"packet_channel_ordering":  path.EndpointA.ChannelConfig.Order.String(),
+				},
+				"message": {
+					"module": "ibc_channel",
+				},
+			}
+
+			if hasEvents {
+				ibctesting.AssertEvents(suite.Suite, expEvents, events)
+			} else {
+				suite.Require().Len(events, 0)
 			}
 		})
 	}
