@@ -136,7 +136,7 @@ func ParseAckFromEvents(events sdk.Events) ([]byte, error) {
 // 1. if expected is empty map, then assert actual events are empty
 // 2. if expected is nil, skip the whole assert and return early
 func AssertEvents(
-	suite suite.Suite,
+	suite *suite.Suite,
 	expected map[string]map[string]string,
 	actual sdk.Events,
 ) {
