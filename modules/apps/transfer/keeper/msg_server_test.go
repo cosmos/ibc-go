@@ -157,7 +157,7 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 			}
 
 			if hasEvents {
-				ibctesting.AssertEvents(suite.Suite, expEvents, events)
+				ibctesting.AssertEvents(&suite.Suite, expEvents, events)
 			} else {
 				suite.Require().Len(events, 0)
 			}
