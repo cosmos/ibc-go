@@ -132,23 +132,12 @@ func ParseAckFromEvents(events sdk.Events) ([]byte, error) {
 }
 
 // AssertEvents asserts that expected events are present in the actual events
-// Note: nil value and empty map is handled seperatly as follows
-// 1. if expected is empty map, then assert actual events are empty
-// 2. if expected is nil, skip the whole assert and return early
+// expected map needs to be a subset of actual events to pass
 func AssertEvents(
 	suite *suite.Suite,
 	expected map[string]map[string]string,
 	actual sdk.Events,
 ) {
-	if expected == nil {
-		suite.Require().True(true)
-		return
-	}
-	if len(expected) == 0 {
-		suite.Require().Len(actual, 0)
-		return
-	}
-
 	hasEvents := make(map[string]bool)
 	for eventType := range expected {
 		hasEvents[eventType] = false
