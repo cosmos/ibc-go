@@ -57,6 +57,7 @@ message ClientState {
   // allow_update_after_misbehaviour is deprecated
   bool allow_update_after_misbehaviour = 11
       [deprecated = true, (gogoproto.moretags) = "yaml:\"allow_update_after_misbehaviour\""];
+  bytes absence_sentinel_value = 12 [(gogoproto.moretags) = "yaml:\"absence_sentinel_value\""];
 }
 
 // ConsensusState defines the consensus state from Tendermint.

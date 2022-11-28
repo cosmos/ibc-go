@@ -286,11 +286,14 @@ func (cs ClientState) VerifyNonMembership(
 		return sdkerrors.Wrap(clienttypes.ErrConsensusStateNotFound, "please ensure the proof was constructed against a height that exists on the client")
 	}
 
-	if err := merkleProof.VerifyNonMembership(cs.ProofSpecs, consensusState.GetRoot(), merklePath); err != nil {
-		return err
+	// if absenceSentinelValue is defined, the counterparty has a sentinel absence value stored for the nonexistent key
+	// thus we can prove membership of this sentinel value to prove absence of the key in state.
+	// if the value is not defined, then we verify a nonmembership proof
+	if cs.AbsenceSentinelValue != nil {
+		return merkleProof.VerifyMembership(cs.ProofSpecs, consensusState.GetRoot(), merklePath, cs.AbsenceSentinelValue)
+	} else {
+		return merkleProof.VerifyNonMembership(cs.ProofSpecs, consensusState.GetRoot(), merklePath)
 	}
-
-	return nil
 }
 
 // verifyDelayPeriodPassed will ensure that at least delayTimePeriod amount of time and delayBlockPeriod number of blocks have passed

@@ -564,6 +564,32 @@ func (suite *TendermintTestSuite) TestVerifyNonMembership() {
 			true,
 		},
 		{
+			"successful verification of membership using sentinel value", func() {
+				// set absence value
+				clientState := testingpath.EndpointA.GetClientState().(*ibctm.ClientState)
+				clientState.AbsenceSentinelValue = []byte("absent")
+				testingpath.EndpointA.SetClientState(clientState)
+
+				key := host.PacketCommitmentKey(invalidPortID, invalidChannelID, 1)
+				merklePath := commitmenttypes.NewMerklePath(string(key))
+				path, err = commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
+				suite.Require().NoError(err)
+
+				// use packet commitment setter to mock storing sentinel absence value at this key
+				testingpath.EndpointB.Chain.App.GetIBCKeeper().ChannelKeeper.SetPacketCommitment(
+					suite.chainB.GetContext(), invalidPortID, invalidChannelID, 1, clientState.AbsenceSentinelValue,
+				)
+
+				// commit block and update counterparty client before getting proof
+				suite.chainB.Coordinator.CommitBlock(suite.chainB)
+
+				testingpath.EndpointA.UpdateClient()
+
+				proof, proofHeight = testingpath.EndpointB.QueryProof(key)
+			},
+			true,
+		},
+		{
 			"delay time period has passed", func() {
 				delayTimePeriod = uint64(time.Second.Nanoseconds())
 			},
