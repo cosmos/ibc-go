@@ -1,8 +1,8 @@
 on:
   workflow_call:
     inputs:
-      docker-tag:
-        description: "Docker tag being used"
+      test-file-directory:
+        description: "Directory containing compatibility matrices"
         required: true
         type: string
       test-suite:
@@ -17,12 +17,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      - uses: andstor/file-existence-action@v2
+        with:
+          files: ".github/compatibility-test-matrices/${{ inputs.test-file-directory }}/${{ inputs.test-suite }}.json"
       - run: |
           # use jq -c to put the full json contents on a single line. This is required when using the json body
           # to create the matrix in the following job.
-          test_matrix="$(cat .github/compatibility-test-matrices/${{ inputs.docker-tag }}/${{ inputs.test-suite }}.json | jq -c)"
+          test_matrix="$(cat .github/compatibility-test-matrices/${{ inputs.test-file-directory }}/${{ inputs.test-suite }}.json | jq -c)"
           echo $test_matrix
-          echo "::set-output name=test-matrix::$test_matrix"
+          echo "test-matrix=$test_matrix" >> $GITHUB_OUTPUT
         id: set-test-matrix
 
   e2e:
@@ -46,4 +49,4 @@ jobs:
           CHAIN_A_TAG: "${{ matrix.chain-a }}"
           CHAIN_B_TAG: "${{ matrix.chain-b }}"
           CHAIN_BINARY: "${{ matrix.chain-binary }}"
-          RLY_TAG: "v2.0.0"
+          RLY_TAG: "v2.1.2"

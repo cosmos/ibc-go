@@ -22,7 +22,7 @@ jobs:
         with:
           go-version: 1.19
       - id: set-matrix
-        run: echo "::set-output name=matrix::$(go run cmd/build_test_matrix/main.go)"
+        run: echo "matrix=$(go run cmd/build_test_matrix/main.go)" >> $GITHUB_OUTPUT
         env:
           TEST_EXCLUSIONS: "TestInterTxTestSuite,TestIncentivizedInterTxTestSuite,TestUpgradeTestSuite"
 
@@ -48,7 +48,7 @@ jobs:
       - name: Run e2e Test
         env:
           # see images here https://github.com/cosmos/relayer/pkgs/container/relayer/versions
-          RLY_TAG: "v2.0.0"
+          RLY_TAG: "v2.1.2"
         run: |
           cd e2e
           make e2e-test entrypoint=${{ matrix.entrypoint }} test=${{ matrix.test }}

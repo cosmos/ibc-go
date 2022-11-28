@@ -38,14 +38,19 @@ func (q Keeper) ClientStatus(c context.Context, req *clienttypes.QueryClientStat
 	return q.ClientKeeper.ClientStatus(c, req)
 }
 
-// Params implements the IBC QueryServer interface
-func (q Keeper) Params(c context.Context, req *clienttypes.QueryParamsRequest) (*clienttypes.QueryParamsResponse, error) {
-	return q.ClientKeeper.Params(c, req)
+// ClientParams implements the IBC QueryServer interface
+func (q Keeper) ClientParams(c context.Context, req *clienttypes.QueryClientParamsRequest) (*clienttypes.QueryClientParamsResponse, error) {
+	return q.ClientKeeper.ClientParams(c, req)
 }
 
 // UpgradedClientState implements the IBC QueryServer interface
 func (q Keeper) UpgradedClientState(c context.Context, req *clienttypes.QueryUpgradedClientStateRequest) (*clienttypes.QueryUpgradedClientStateResponse, error) {
 	return q.ClientKeeper.UpgradedClientState(c, req)
+}
+
+// UpgradedConsensusState implements the IBC QueryServer interface
+func (q Keeper) UpgradedConsensusState(c context.Context, req *clienttypes.QueryUpgradedConsensusStateRequest) (*clienttypes.QueryUpgradedConsensusStateResponse, error) {
+	return q.ClientKeeper.UpgradedConsensusState(c, req)
 }
 
 // Connection implements the IBC QueryServer interface
@@ -71,6 +76,11 @@ func (q Keeper) ConnectionClientState(c context.Context, req *connectiontypes.Qu
 // ConnectionConsensusState implements the IBC QueryServer interface
 func (q Keeper) ConnectionConsensusState(c context.Context, req *connectiontypes.QueryConnectionConsensusStateRequest) (*connectiontypes.QueryConnectionConsensusStateResponse, error) {
 	return q.ConnectionKeeper.ConnectionConsensusState(c, req)
+}
+
+// ConnectionParams implements the IBC QueryServer interface
+func (q Keeper) ConnectionParams(c context.Context, req *connectiontypes.QueryConnectionParamsRequest) (*connectiontypes.QueryConnectionParamsResponse, error) {
+	return q.ConnectionKeeper.ConnectionParams(c, req)
 }
 
 // Channel implements the IBC QueryServer interface
