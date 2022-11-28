@@ -153,7 +153,7 @@ if err := keeper.icaControllerKeeper.RegisterInterchainAccount(ctx, connectionID
 return nil
 ```
 
-The `version` argument is used to support ICS29 fee middleware for relayer incentivization of ICS27 packets. Consumers of the `RegisterInterchainAccount` are expected to build the appropriate JSON encoded version string themselves and pass it accordingly. If an empty string is passed in the `version` argument, then the version will be initialized to a default value in the `OnChanOpenInit` callback of the controller's handler, so that channel handshake can proceed.
+The `version` argument is used to support ICS29 fee middleware for relayer incentivization of ICS-27 packets. Consumers of the `RegisterInterchainAccount` are expected to build the appropriate JSON encoded version string themselves and pass it accordingly. If an empty string is passed in the `version` argument, then the version will be initialized to a default value in the `OnChanOpenInit` callback of the controller's handler, so that channel handshake can proceed.
 
 The following code snippet illustrates how to construct an appropriate interchain accounts `Metadata` and encode it as a JSON bytestring:
 

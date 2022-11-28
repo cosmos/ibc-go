@@ -10,10 +10,10 @@ In the case of a channel closing, a controller chain needs to be able to regain 
 
 When an Interchain Account is registered using `MsgRegisterInterchainAccount`, a new channel is created on a particular port. During the `OnChanOpenAck` and `OnChanOpenConfirm` steps (on controller & host chain respectively) the `Active Channel` for this interchain account is stored in state.
 
-It is possible to create a new channel using the same controller chain portID if the previously set `Active Channel` is now in a `CLOSED` state. This channel creation can be initialized programatically by sending a new `MsgRegisterInterchainAccount` message like so:
+It is possible to create a new channel using the same controller chain portID if the previously set `Active Channel` is now in a `CLOSED` state. This channel creation can be initialized programatically by sending a new `MsgChannelOpenInit` message like so:
 
 ```go
-msg := controllertypes.NewMsgRegisterInterchainAccount(connectionID, controllerAddress, version)
+msg := channeltypes.NewMsgChannelOpenInit(portID, string(versionBytes), channeltypes.ORDERED, []string{connectionID}, icatypes.HostPortID, authtypes.NewModuleAddress(icatypes.ModuleName).String())
 handler := keeper.msgRouter.Handler(msg)
 res, err := handler(ctx, msg)
 if err != nil {
@@ -27,7 +27,7 @@ It is important to note that once a channel has been opened for a given intercha
 
 ## Future improvements
 
-Future versions of the ICS27 protocol and the Interchain Accounts module will likely use a new channel type that provides ordering of packets without the channel closing in the event of a packet timing out, thus removing the need for `Active Channels` entirely.
+Future versions of the ICS-27 protocol and the Interchain Accounts module will likely use a new channel type that provides ordering of packets without the channel closing in the event of a packet timing out, thus removing the need for `Active Channels` entirely.
 The following is a list of issues which will provide the infrastructure to make this possible:
 
 - [IBC Channel Upgrades](https://github.com/cosmos/ibc-go/issues/1599)
