@@ -291,9 +291,8 @@ func (cs ClientState) VerifyNonMembership(
 	// if the value is not defined, then we verify a nonmembership proof
 	if cs.AbsenceSentinelValue != nil {
 		return merkleProof.VerifyMembership(cs.ProofSpecs, consensusState.GetRoot(), merklePath, cs.AbsenceSentinelValue)
-	} else {
-		return merkleProof.VerifyNonMembership(cs.ProofSpecs, consensusState.GetRoot(), merklePath)
 	}
+	return merkleProof.VerifyNonMembership(cs.ProofSpecs, consensusState.GetRoot(), merklePath)
 }
 
 // verifyDelayPeriodPassed will ensure that at least delayTimePeriod amount of time and delayBlockPeriod number of blocks have passed
