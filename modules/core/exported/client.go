@@ -258,6 +258,38 @@ type SelfClient interface {
 	) (ConsensusState, error)
 }
 
+// ClientHooks defines an interface that implements callbacks
+// for the client module methods as specified in ICS-02.
+// First the callback is called and if no error, proceed to
+// the method functionality
+type ClientHooks interface {
+	OnCreateClient(
+		ctx sdk.Context,
+		clientState ClientState,
+		consensusState ConsensusState,
+	) error
+
+	OnUpdateClient(
+		ctx sdk.Context,
+		clientID string,
+		header Header,
+	) error
+
+	OnUpgradeClient(
+		ctx sdk.Context,
+		clientID string,
+		upgradedClient ClientState,
+		upgradedConsState ConsensusState,
+		proofUpgradeClient,
+		proofUpgradeConsState []byte,
+	) error
+
+	OnCheckMisbehaviourAndUpdateState(
+		ctx sdk.Context,
+		misbehaviour Misbehaviour,
+	) error
+}
+
 // String returns the string representation of a client status.
 func (s Status) String() string {
 	return string(s)
