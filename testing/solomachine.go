@@ -29,7 +29,6 @@ var (
 	clientIDSolomachine     = "client-on-solomachine"     // clientID generated on solo machine side
 	connectionIDSolomachine = "connection-on-solomachine" // connectionID generated on solo machine side
 	channelIDSolomachine    = "channel-on-solomachine"    // channelID generated on solo machine side
-	transferVersion         = "ics20-1"
 )
 
 // Solomachine is a testing helper used to simulate a counterparty
@@ -306,7 +305,7 @@ func (solo *Solomachine) ConnOpenAck(chain *TestChain, clientID, connectionID st
 func (solo *Solomachine) ChanOpenInit(chain *TestChain, connectionID string) string {
 	msgChanOpenInit := channeltypes.NewMsgChannelOpenInit(
 		transfertypes.PortID,
-		transferVersion,
+		transfertypes.Version,
 		channeltypes.UNORDERED,
 		[]string{connectionID},
 		transfertypes.PortID,
@@ -327,12 +326,12 @@ func (solo *Solomachine) ChanOpenInit(chain *TestChain, connectionID string) str
 // ChanOpenAck performs the channel open ack handshake step on the tendermint chain for the associated
 // solo machine client.
 func (solo *Solomachine) ChanOpenAck(chain *TestChain, channelID string) {
-	proofTry := solo.GenerateChanOpenTryProof(transfertypes.PortID, transferVersion, channelID)
+	proofTry := solo.GenerateChanOpenTryProof(transfertypes.PortID, transfertypes.Version, channelID)
 	msgChanOpenAck := channeltypes.NewMsgChannelOpenAck(
 		transfertypes.PortID,
 		channelID,
 		channelIDSolomachine,
-		transferVersion,
+		transfertypes.Version,
 		proofTry,
 		clienttypes.ZeroHeight(),
 		chain.SenderAccount.GetAddress().String(),
@@ -346,7 +345,7 @@ func (solo *Solomachine) ChanOpenAck(chain *TestChain, channelID string) {
 // ChanCloseConfirm performs the channel close confirm handshake step on the tendermint chain for the associated
 // solo machine client.
 func (solo *Solomachine) ChanCloseConfirm(chain *TestChain, portID, channelID string) {
-	proofInit := solo.GenerateChanClosedProof(portID, transferVersion, channelID)
+	proofInit := solo.GenerateChanClosedProof(portID, transfertypes.Version, channelID)
 	msgChanCloseConfirm := channeltypes.NewMsgChannelCloseConfirm(
 		portID,
 		channelID,
@@ -435,7 +434,7 @@ func (solo *Solomachine) TimeoutPacket(chain *TestChain, packet channeltypes.Pac
 
 // TimeoutPacket creates a channel closed and unreceived packet proof and broadcasts a MsgTimeoutOnClose.
 func (solo *Solomachine) TimeoutPacketOnClose(chain *TestChain, packet channeltypes.Packet, channelID string) {
-	proofClosed := solo.GenerateChanClosedProof(transfertypes.PortID, transferVersion, channelID)
+	proofClosed := solo.GenerateChanClosedProof(transfertypes.PortID, transfertypes.Version, channelID)
 	proofUnreceived := solo.GenerateReceiptAbsenceProof(packet)
 	msgTimeout := channeltypes.NewMsgTimeoutOnClose(
 		packet,
