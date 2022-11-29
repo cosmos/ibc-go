@@ -131,7 +131,7 @@ func ParseAckFromEvents(events sdk.Events) ([]byte, error) {
 	return nil, fmt.Errorf("acknowledgement event attribute not found")
 }
 
-// AssertEvents asserts that expected events are present in the actual events
+// AssertEvents asserts that expected events are present in the actual events.
 // expected map needs to be a subset of actual events to pass
 func AssertEvents(
 	suite *suite.Suite,
