@@ -4,7 +4,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	v100 "github.com/cosmos/ibc-go/v6/modules/core/02-client/legacy/v100"
-	"github.com/cosmos/ibc-go/v6/modules/core/02-client/migrations/v7"
+	v7 "github.com/cosmos/ibc-go/v6/modules/core/02-client/migrations/v7"
 )
 
 // Migrator is a struct for handling in-place store migrations.
