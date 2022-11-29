@@ -10,8 +10,8 @@ jobs:
         include:
           - test: TestV4ToV5ChainUpgrade
             chain-image: ghcr.io/cosmos/ibc-go-simd
-            chain-a-tag: v4.1.0
-            chain-b-tag: v4.1.0
+            chain-a-tag: v4.2.0
+            chain-b-tag: v4.2.0
             chain-upgrade-tag: v5.1.0
           - test: TestV5ToV6ChainUpgrade
             chain-image: ghcr.io/cosmos/ibc-go-icad
