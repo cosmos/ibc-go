@@ -39,6 +39,32 @@ app.UpgradeKeeper.SetUpgradeHandler(
 
 Checkout the logs to see how many consensus states are pruned.
 
+### Light client registration
+
+Chains must explicitly register the types of any light client modules it wishes to integrate. 
+
+#### Tendermint registration
+
+To register the tendermint client, modify the `app.go` file to include the tendermint `AppModuleBasic`:
+
+```diff
+import (
+    ...
++   ibctm "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint"
+    ...
+)
+...
+
+ModuleBasics = module.NewBasicManager(
+    ...
+    ibc.AppModuleBasic{},
++   ibctm.AppModuleBasic{},
+    ...
+)
+```
+
+It may be useful to reference the [PR](https://github.com/cosmos/ibc-go/pull/2825) which added the `AppModuleBasic` for the tendermint client.
+
 ## IBC Apps
 
 - No relevant changes were made in this release.
