@@ -64,19 +64,19 @@ func handleSolomachineMigration(ctx sdk.Context, store sdk.KVStore, cdc codec.Bi
 			return clienttypes.ErrClientNotFound
 		}
 
-		any := &codectypes.Any{}
-		if err := cdc.Unmarshal(bz, any); err != nil {
+		var any codectypes.Any
+		if err := cdc.Unmarshal(bz, &any); err != nil {
 			return sdkerrors.Wrap(err, "failed to unmarshal client state bytes into solo machine client state")
 		}
 
-		clientState := &ClientState{}
-		if err := cdc.Unmarshal(any.Value, clientState); err != nil {
+		var clientState ClientState
+		if err := cdc.Unmarshal(any.Value, &clientState); err != nil {
 			return sdkerrors.Wrap(err, "failed to unmarshal client state bytes into solo machine client state")
 		}
 
 		updatedClientState := migrateSolomachine(clientState)
 
-		bz, err := clienttypes.MarshalClientState(cdc, updatedClientState)
+		bz, err := clienttypes.MarshalClientState(cdc, &updatedClientState)
 		if err != nil {
 			return sdkerrors.Wrap(err, "failed to unmarshal client state bytes into solo machine client state")
 		}
@@ -200,14 +200,14 @@ func removeAllClientConsensusStates(clientStore sdk.KVStore) {
 
 // migrateSolomachine migrates the solomachine from v2 to v3 solo machine protobuf definition.
 // Notably it drops the AllowUpdateAfterProposal field.
-func migrateSolomachine(clientState *ClientState) *solomachine.ClientState {
+func migrateSolomachine(clientState ClientState) solomachine.ClientState {
 	consensusState := &solomachine.ConsensusState{
 		PublicKey:   clientState.ConsensusState.PublicKey,
 		Diversifier: clientState.ConsensusState.Diversifier,
 		Timestamp:   clientState.ConsensusState.Timestamp,
 	}
 
-	return &solomachine.ClientState{
+	return solomachine.ClientState{
 		Sequence:       clientState.Sequence,
 		IsFrozen:       clientState.IsFrozen,
 		ConsensusState: consensusState,
