@@ -2,6 +2,7 @@ package ibctesting
 
 import (
 	"testing"
+	"time"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -9,9 +10,11 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/cosmos/cosmos-sdk/crypto/types/multisig"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	"github.com/stretchr/testify/require"
 
+	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v6/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
@@ -20,7 +23,6 @@ import (
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
 	solomachine "github.com/cosmos/ibc-go/v6/modules/light-clients/06-solomachine"
 	ibctm "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint"
-	"github.com/cosmos/ibc-go/v6/testing/mock"
 )
 
 var (
@@ -129,6 +131,17 @@ func (solo *Solomachine) CreateClient(chain *TestChain) string {
 	return clientID
 }
 
+// UpdateClient sends a MsgUpdateClient to the provided chain and updates the given clientID.
+func (solo *Solomachine) UpdateClient(chain *TestChain, clientID string) {
+	smHeader := solo.CreateHeader(solo.Diversifier)
+	msgUpdateClient, err := clienttypes.NewMsgUpdateClient(clientID, smHeader, chain.SenderAccount.GetAddress().String())
+	require.NoError(solo.t, err)
+
+	res, err := chain.SendMsgs(msgUpdateClient)
+	require.NoError(solo.t, err)
+	require.NotNil(solo.t, res)
+}
+
 // CreateHeader generates a new private/public key pair and creates the
 // necessary signature to construct a valid solo machine header.
 // A new diversifier will be used as well
@@ -170,6 +183,7 @@ func (solo *Solomachine) CreateHeader(newDiversifier string) *solomachine.Header
 
 	// assumes successful header update
 	solo.Sequence++
+	solo.Time++
 	solo.PrivateKeys = newPrivKeys
 	solo.PublicKeys = newPubKeys
 	solo.PublicKey = newPubKey
@@ -290,11 +304,11 @@ func (solo *Solomachine) ConnOpenAck(chain *TestChain, clientID, connectionID st
 // ChanOpenInit initializes a channel on the provided chain given a solo machine connectionID.
 func (solo *Solomachine) ChanOpenInit(chain *TestChain, connectionID string) string {
 	msgChanOpenInit := channeltypes.NewMsgChannelOpenInit(
-		mock.PortID,
-		mock.Version,
+		transfertypes.PortID,
+		transfertypes.Version,
 		channeltypes.UNORDERED,
 		[]string{connectionID},
-		mock.PortID,
+		transfertypes.PortID,
 		chain.SenderAccount.GetAddress().String(),
 	)
 
@@ -312,12 +326,12 @@ func (solo *Solomachine) ChanOpenInit(chain *TestChain, connectionID string) str
 // ChanOpenAck performs the channel open ack handshake step on the tendermint chain for the associated
 // solo machine client.
 func (solo *Solomachine) ChanOpenAck(chain *TestChain, channelID string) {
-	proofTry := solo.GenerateChanOpenTryProof(channelID)
+	proofTry := solo.GenerateChanOpenTryProof(transfertypes.PortID, transfertypes.Version, channelID)
 	msgChanOpenAck := channeltypes.NewMsgChannelOpenAck(
-		mock.PortID,
+		transfertypes.PortID,
 		channelID,
 		channelIDSolomachine,
-		mock.Version,
+		transfertypes.Version,
 		proofTry,
 		clienttypes.ZeroHeight(),
 		chain.SenderAccount.GetAddress().String(),
@@ -330,10 +344,10 @@ func (solo *Solomachine) ChanOpenAck(chain *TestChain, channelID string) {
 
 // ChanCloseConfirm performs the channel close confirm handshake step on the tendermint chain for the associated
 // solo machine client.
-func (solo *Solomachine) ChanCloseConfirm(chain *TestChain, channelID string) {
-	proofInit := solo.GenerateChanClosedProof(channelID)
+func (solo *Solomachine) ChanCloseConfirm(chain *TestChain, portID, channelID string) {
+	proofInit := solo.GenerateChanClosedProof(portID, transfertypes.Version, channelID)
 	msgChanCloseConfirm := channeltypes.NewMsgChannelCloseConfirm(
-		mock.PortID,
+		portID,
 		channelID,
 		proofInit,
 		clienttypes.ZeroHeight(),
@@ -345,10 +359,30 @@ func (solo *Solomachine) ChanCloseConfirm(chain *TestChain, channelID string) {
 	require.NotNil(solo.t, res)
 }
 
-// SendPacket mocks sending a packet by setting a packet commitment directly.
-func (solo *Solomachine) SendPacket(chain *TestChain, packet channeltypes.Packet) {
-	commitmentHash := channeltypes.CommitPacket(chain.Codec, packet)
-	chain.GetSimApp().IBCKeeper.ChannelKeeper.SetPacketCommitment(chain.GetContext(), packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence(), commitmentHash)
+// SendTransfer constructs a MsgTransfer and sends the message to the given chain. Any number of optional
+// functions can be provided which will modify the MsgTransfer before SendMsgs is called.
+func (solo *Solomachine) SendTransfer(chain *TestChain, portID, channelID string, fns ...func(*transfertypes.MsgTransfer)) channeltypes.Packet {
+	msgTransfer := transfertypes.MsgTransfer{
+		SourcePort:       portID,
+		SourceChannel:    channelID,
+		Token:            sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100)),
+		Sender:           chain.SenderAccount.GetAddress().String(),
+		Receiver:         chain.SenderAccount.GetAddress().String(),
+		TimeoutHeight:    clienttypes.ZeroHeight(),
+		TimeoutTimestamp: uint64(chain.GetContext().BlockTime().Add(time.Hour).UnixNano()),
+	}
+
+	for _, fn := range fns {
+		fn(&msgTransfer)
+	}
+
+	res, err := chain.SendMsgs(&msgTransfer)
+	require.NoError(solo.t, err)
+
+	packet, err := ParsePacketFromEvents(res.GetEvents())
+	require.NoError(solo.t, err)
+
+	return packet
 }
 
 // RecvPacket creates a commitment proof and broadcasts a new MsgRecvPacket.
@@ -369,8 +403,9 @@ func (solo *Solomachine) RecvPacket(chain *TestChain, packet channeltypes.Packet
 // AcknowledgePacket creates an acknowledgement proof and broadcasts a MsgAcknowledgement.
 func (solo *Solomachine) AcknowledgePacket(chain *TestChain, packet channeltypes.Packet) {
 	proofAck := solo.GenerateAcknowledgementProof(packet)
+	transferAck := channeltypes.NewResultAcknowledgement([]byte{byte(1)}).Acknowledgement()
 	msgAcknowledgement := channeltypes.NewMsgAcknowledgement(
-		packet, mock.MockAcknowledgement.Acknowledgement(),
+		packet, transferAck,
 		proofAck,
 		clienttypes.ZeroHeight(),
 		chain.SenderAccount.GetAddress().String(),
@@ -399,7 +434,7 @@ func (solo *Solomachine) TimeoutPacket(chain *TestChain, packet channeltypes.Pac
 
 // TimeoutPacket creates a channel closed and unreceived packet proof and broadcasts a MsgTimeoutOnClose.
 func (solo *Solomachine) TimeoutPacketOnClose(chain *TestChain, packet channeltypes.Packet, channelID string) {
-	proofClosed := solo.GenerateChanClosedProof(channelID)
+	proofClosed := solo.GenerateChanClosedProof(transfertypes.PortID, transfertypes.Version, channelID)
 	proofUnreceived := solo.GenerateReceiptAbsenceProof(packet)
 	msgTimeout := channeltypes.NewMsgTimeoutOnClose(
 		packet,
@@ -525,9 +560,9 @@ func (solo *Solomachine) GenerateConnOpenTryProof(counterpartyClientID, counterp
 
 // GenerateChanOpenTryProof generates the proofTry required for the channel open ack handshake step.
 // The channelID provided represents the channelID created on the counterparty chain, that is the tendermint chain.
-func (solo *Solomachine) GenerateChanOpenTryProof(counterpartyChannelID string) []byte {
-	counterparty := channeltypes.NewCounterparty(mock.PortID, counterpartyChannelID)
-	channel := channeltypes.NewChannel(channeltypes.TRYOPEN, channeltypes.UNORDERED, counterparty, []string{connectionIDSolomachine}, mock.Version)
+func (solo *Solomachine) GenerateChanOpenTryProof(portID, version, counterpartyChannelID string) []byte {
+	counterparty := channeltypes.NewCounterparty(portID, counterpartyChannelID)
+	channel := channeltypes.NewChannel(channeltypes.TRYOPEN, channeltypes.UNORDERED, counterparty, []string{connectionIDSolomachine}, version)
 
 	data, err := solo.cdc.Marshal(&channel)
 	require.NoError(solo.t, err)
@@ -536,7 +571,7 @@ func (solo *Solomachine) GenerateChanOpenTryProof(counterpartyChannelID string) 
 		Sequence:    solo.Sequence,
 		Timestamp:   solo.Time,
 		Diversifier: solo.Diversifier,
-		Path:        []byte(solo.GetChannelStatePath(mock.PortID, channelIDSolomachine).String()),
+		Path:        []byte(solo.GetChannelStatePath(portID, channelIDSolomachine).String()),
 		Data:        data,
 	}
 
@@ -545,9 +580,9 @@ func (solo *Solomachine) GenerateChanOpenTryProof(counterpartyChannelID string) 
 
 // GenerateChanClosedProof generates a channel closed proof.
 // The channelID provided represents the channelID created on the counterparty chain, that is the tendermint chain.
-func (solo *Solomachine) GenerateChanClosedProof(counterpartyChannelID string) []byte {
-	counterparty := channeltypes.NewCounterparty(mock.PortID, counterpartyChannelID)
-	channel := channeltypes.NewChannel(channeltypes.CLOSED, channeltypes.UNORDERED, counterparty, []string{connectionIDSolomachine}, mock.Version)
+func (solo *Solomachine) GenerateChanClosedProof(portID, version, counterpartyChannelID string) []byte {
+	counterparty := channeltypes.NewCounterparty(portID, counterpartyChannelID)
+	channel := channeltypes.NewChannel(channeltypes.CLOSED, channeltypes.UNORDERED, counterparty, []string{connectionIDSolomachine}, version)
 
 	data, err := solo.cdc.Marshal(&channel)
 	require.NoError(solo.t, err)
@@ -556,7 +591,7 @@ func (solo *Solomachine) GenerateChanClosedProof(counterpartyChannelID string) [
 		Sequence:    solo.Sequence,
 		Timestamp:   solo.Time,
 		Diversifier: solo.Diversifier,
-		Path:        []byte(solo.GetChannelStatePath(mock.PortID, channelIDSolomachine).String()),
+		Path:        []byte(solo.GetChannelStatePath(portID, channelIDSolomachine).String()),
 		Data:        data,
 	}
 
@@ -580,12 +615,13 @@ func (solo *Solomachine) GenerateCommitmentProof(packet channeltypes.Packet) []b
 
 // GenerateAcknowledgementProof generates an acknowledgement proof.
 func (solo *Solomachine) GenerateAcknowledgementProof(packet channeltypes.Packet) []byte {
+	transferAck := channeltypes.NewResultAcknowledgement([]byte{byte(1)}).Acknowledgement()
 	signBytes := &solomachine.SignBytes{
 		Sequence:    solo.Sequence,
 		Timestamp:   solo.Time,
 		Diversifier: solo.Diversifier,
 		Path:        []byte(solo.GetPacketAcknowledgementPath(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence()).String()),
-		Data:        channeltypes.CommitAcknowledgement(mock.MockAcknowledgement.Acknowledgement()),
+		Data:        channeltypes.CommitAcknowledgement(transferAck),
 	}
 
 	return solo.GenerateProof(signBytes)
