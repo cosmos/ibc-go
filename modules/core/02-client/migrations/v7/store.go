@@ -84,7 +84,7 @@ func handleSolomachineMigration(ctx sdk.Context, store sdk.KVStore, cdc codec.Bi
 		// update solomachine in store
 		clientStore.Set(host.ClientStateKey(), bz)
 
-		pruneClientConsensusStates(clientStore)
+		removeAllClientConsensusStates(clientStore)
 	}
 
 	return nil
@@ -139,7 +139,7 @@ func handleLocalhostMigration(ctx sdk.Context, store sdk.KVStore, cdc codec.Bina
 		// delete the client state
 		clientStore.Delete(host.ClientStateKey())
 
-		pruneClientConsensusStates(clientStore)
+		removeAllClientConsensusStates(clientStore)
 	}
 
 	return nil
@@ -174,9 +174,9 @@ func collectClients(ctx sdk.Context, store sdk.KVStore, clientType string) (clie
 	return clients, nil
 }
 
-// pruneClientConsensusStates removes all client consensus states from the associated
+// removeAllClientConsensusStates removes all client consensus states from the associated
 // client store.
-func pruneClientConsensusStates(clientStore sdk.KVStore) {
+func removeAllClientConsensusStates(clientStore sdk.KVStore) {
 	iterator := sdk.KVStorePrefixIterator(clientStore, []byte(host.KeyConsensusStatePrefix))
 	var heights []exported.Height
 
