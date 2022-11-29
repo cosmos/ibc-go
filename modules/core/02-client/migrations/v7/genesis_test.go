@@ -3,6 +3,7 @@ package v7_test
 import (
 	"encoding/json"
 
+	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 
 	ibcclient "github.com/cosmos/ibc-go/v6/modules/core/02-client"
@@ -102,10 +103,13 @@ func (suite *MigrationsV7TestSuite) TestMigrateGenesisSolomachine() {
 	suite.Require().NoError(err)
 	expectedClientGenState := ibcclient.ExportGenesis(suite.chainA.GetContext(), suite.chainA.App.GetIBCKeeper().ClientKeeper)
 
-	migrated, err := v7.MigrateGenesis(&clientGenState, suite.chainA.App.Codec())
+	cdc, ok := suite.chainA.App.AppCodec().(codec.ProtoCodecMarshaler)
+	suite.Require().True(ok)
+
+	migrated, err := v7.MigrateGenesis(&clientGenState, cdc)
 	suite.Require().NoError(err)
 
-	bz, err := clientCtx.Codec.MarshalJSON(&expectedClientGenState)
+	bz, err := cdc.MarshalJSON(&expectedClientGenState)
 	suite.Require().NoError(err)
 
 	// Indent the JSON bz correctly.
@@ -115,7 +119,7 @@ func (suite *MigrationsV7TestSuite) TestMigrateGenesisSolomachine() {
 	expectedIndentedBz, err := json.MarshalIndent(jsonObj, "", "\t")
 	suite.Require().NoError(err)
 
-	bz, err = clientCtx.Codec.MarshalJSON(migrated)
+	bz, err = cdc.MarshalJSON(migrated)
 	suite.Require().NoError(err)
 
 	// Indent the JSON bz correctly.
