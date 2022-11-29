@@ -61,7 +61,7 @@ func handleSolomachineMigration(ctx sdk.Context, store sdk.KVStore, cdc codec.Bi
 
 		bz := clientStore.Get(host.ClientStateKey())
 		if bz == nil {
-			return clienttypes.ErrClientNotFound
+			return sdkerrors.Wrapf(clienttypes.ErrClientNotFound, "clientID %s", clientID)
 		}
 
 		var any codectypes.Any
