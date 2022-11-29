@@ -99,7 +99,7 @@ func handleTendermintMigration(ctx sdk.Context, store sdk.KVStore, cdc codec.Bin
 	}
 
 	if len(clients) > 1 {
-		return sdkerrors.Wrap(sdkerrors.ErrLogic, "too many tendermint clients collected")
+		return sdkerrors.Wrap(sdkerrors.ErrLogic, "more than one Tendermint client collected")
 	}
 
 	clientID := clients[0]
