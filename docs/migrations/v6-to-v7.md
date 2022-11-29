@@ -47,7 +47,7 @@ Chains must explicitly register the types of any light client modules it wishes 
 
 To register the tendermint client, modify the `app.go` file to include the tendermint `AppModuleBasic`:
 
-```
+```diff
 import (
     // ...
 +   ibctm "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint"
