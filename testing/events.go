@@ -132,7 +132,7 @@ func ParseAckFromEvents(events sdk.Events) ([]byte, error) {
 }
 
 // AssertEvents asserts that expected events are present in the actual events.
-// expected map needs to be a subset of actual events to pass
+// Expected map needs to be a subset of actual events to pass.
 func AssertEvents(
 	suite *suite.Suite,
 	expected map[string]map[string]string,
