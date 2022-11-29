@@ -222,6 +222,11 @@ func (suite *KeeperTestSuite) TestValidateSelfClient() {
 			ibctm.NewClientState(suite.chainA.ChainID, ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, testClientHeight, commitmenttypes.GetSDKSpecs(), []string{"bad", "upgrade", "path"}),
 			false,
 		},
+		{
+			"invalid absence value",
+			&ibctm.ClientState{ChainId: suite.chainA.ChainID, TrustLevel: ibctm.DefaultTrustLevel, TrustingPeriod: trustingPeriod, UnbondingPeriod: ubdPeriod, MaxClockDrift: maxClockDrift, LatestHeight: testClientHeight, ProofSpecs: commitmenttypes.GetSDKSpecs(), AbsenceSentinelValue: []byte("sentinel_absence")},
+			false,
+		},
 	}
 
 	for _, tc := range testCases {

@@ -327,6 +327,10 @@ func (k Keeper) ValidateSelfClient(ctx sdk.Context, clientState exported.ClientS
 				expectedUpgradePath, tmClient.UpgradePath)
 		}
 	}
+
+	if tmClient.AbsenceSentinelValue != nil {
+		return sdkerrors.Wrapf(types.ErrInvalidClient, "absence sentinel value must be nil for a client on this chain")
+	}
 	return nil
 }
 
