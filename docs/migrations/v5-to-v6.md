@@ -100,13 +100,13 @@ However, these functions have now been deprecated in favour of the new controlle
 
 Both APIs remain functional and maintain backwards compatibility in ibc-go v6, however consumers of these APIs are now recommended to follow the message passing paradigm outlined in Cosmos SDK [ADR 031](https://github.com/cosmos/cosmos-sdk/blob/main/docs/architecture/adr-031-msg-service.md) and [ADR 033](https://github.com/cosmos/cosmos-sdk/blob/main/docs/architecture/adr-033-protobuf-inter-module-comm.md). This is facilitated by the Cosmos SDK [`MsgServiceRouter`](https://github.com/cosmos/cosmos-sdk/blob/main/baseapp/msg_service_router.go#L17) and chain developers creating custom application logic can now omit the ICS27 controller submodule `Keeper` from their module and instead depend on message routing. 
 
-Depending on the use case, developers of custom authentication modules have then three possibilities:
+Depending on the use case, developers of custom authentication modules face one of three scenarios:
 
 ![AuthModuleDecisionTree](../assets/auth-module-decision-tree.png)
 
 **My authentication module needs to access IBC packet callbacks**
 
-Application developers that wish to consume IBC packet callbacks and react upon packet acknowledgements **must** continue using the controller submodule's legacy APIs. The authentication modules will not be need a `ScopedKeeper` anymore, though, because the channel capability will be claimed by the controller submodule. For example, given an Interchain Accounts authentication module keeper `ICAAuthKeeper`, the authentication module's `ScopedKeeper` (`scopedICAAuthKeeper`) is not needed anymore and can be removed for the argument list of the keeper constructor function, as shown here:
+Application developers that wish to consume IBC packet callbacks and react upon packet acknowledgements **must** continue using the controller submodule's legacy APIs. The authentication modules will not need a `ScopedKeeper` anymore, though, because the channel capability will be claimed by the controller submodule. For example, given an Interchain Accounts authentication module keeper `ICAAuthKeeper`, the authentication module's `ScopedKeeper` (`scopedICAAuthKeeper`) is not needed anymore and can be removed for the argument list of the keeper constructor function, as shown here:
 
 ```diff
 app.ICAAuthKeeper = icaauthkeeper.NewKeeper(
@@ -164,7 +164,7 @@ In addition, in this use case the authentication module does not need to impleme
 
 **I do not need a custom authentication module anymore**
 
-If your authentication module does not have any extra functionality compared to the default authentication module added in ibc-go v6 (the `MsgServer`), or if you can use a generic authentication module, such as the `x/auth`, `x/gov` or `x/group` modules from the Cosmos SDK (for at least v0.46), then you can remove your authentication module completely and use instead the gRPC endpoints of the `MsgServer` or the CLI added in ibc-go v6.
+If your authentication module does not have any extra functionality compared to the default authentication module added in ibc-go v6 (the `MsgServer`), or if you can use a generic authentication module, such as the `x/auth`, `x/gov` or `x/group` modules from the Cosmos SDK (v0.46 and later), then you can remove your authentication module completely and use instead the gRPC endpoints of the `MsgServer` or the CLI added in ibc-go v6.
 
 Please remember that the authentication module's `ScopedKeeper` name is still needed as part of the channel capability migration described in section [Upgrade proposal](#upgrade-proposal) above.
 

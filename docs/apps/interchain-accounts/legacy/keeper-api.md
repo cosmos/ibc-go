@@ -8,7 +8,7 @@ order: 3
 
 **This document is deprecated and will be removed in future releases**.
 
-The controller submodule keeper exposes legacy two functions that allow custom authentication modules to register interchain accounts and send packets to the interchain account.
+The controller submodule keeper exposes two legacy functions that allow respectively for custom authentication modules to register interchain accounts and send packets to the interchain account.
 
 ## `RegisterInterchainAccount`
 
@@ -76,7 +76,7 @@ if err := keeper.icaControllerKeeper.RegisterInterchainAccount(ctx, controllerCo
 }
 ```
 
-### `SendTx`
+## `SendTx`
 
 The authentication module can attempt to send a packet by calling `SendTx`:
 
@@ -118,129 +118,4 @@ seq, err = keeper.icaControllerKeeper.SendTx(ctx, nil, portID, packetData, timeo
 ```
 
 The data within an `InterchainAccountPacketData` must be serialized using a format supported by the host chain. 
-If the host chain is using the ibc-go host chain submodule, `SerializeCosmosTx` should be used. If the `InterchainAccountPacketData.Data` is serialized using a format not support by the host chain, the packet will not be successfully received.  
-
-### `OnAcknowledgementPacket`
-
-Controller chains will be able to access the acknowledgement written into the host chain state once a relayer relays the acknowledgement. 
-The acknowledgement bytes will be passed to the auth module via the `OnAcknowledgementPacket` callback. 
-Auth modules are expected to know how to decode the acknowledgement. 
-
-If the controller chain is connected to a host chain using the host module on ibc-go, it may interpret the acknowledgement bytes as follows:
-
-Begin by unmarshaling the acknowledgement into `sdk.TxMsgData`:
-
-```go
-var ack channeltypes.Acknowledgement
-if err := channeltypes.SubModuleCdc.UnmarshalJSON(acknowledgement, &ack); err != nil {
-    return err
-}
-
-txMsgData := &sdk.TxMsgData{}
-if err := proto.Unmarshal(ack.GetResult(), txMsgData); err != nil {
-    return err
-}
-```
-
-If the `txMsgData.Data` field is non nil, the host chain is using SDK version <= v0.45. 
-The auth module should interpret the `txMsgData.Data` as follows:
-
-```go
-switch len(txMsgData.Data) {
-case 0:
-    // see documentation below for SDK 0.46.x or greater
-default:
-    for _, msgData := range txMsgData.Data {
-        if err := handler(msgData); err != nil {
-            return err
-        }
-    }
-...
-}            
-```
-
-A handler will be needed to interpret what actions to perform based on the message type sent.
-A router could be used, or more simply a switch statement.
-
-```go
-func handler(msgData sdk.MsgData) error {
-switch msgData.MsgType {
-case sdk.MsgTypeURL(&banktypes.MsgSend{}):
-    msgResponse := &banktypes.MsgSendResponse{}
-    if err := proto.Unmarshal(msgData.Data, msgResponse}; err != nil {
-        return err
-    }
-
-    handleBankSendMsg(msgResponse)
-
-case sdk.MsgTypeURL(&stakingtypes.MsgDelegate{}):
-    msgResponse := &stakingtypes.MsgDelegateResponse{}
-    if err := proto.Unmarshal(msgData.Data, msgResponse}; err != nil {
-        return err
-    }
-
-    handleStakingDelegateMsg(msgResponse)
-
-case sdk.MsgTypeURL(&transfertypes.MsgTransfer{}):
-    msgResponse := &transfertypes.MsgTransferResponse{}
-    if err := proto.Unmarshal(msgData.Data, msgResponse}; err != nil {
-        return err
-    }
-
-    handleIBCTransferMsg(msgResponse)
- 
-default:
-    return
-}
-```
-
-If the `txMsgData.Data` is empty, the host chain is using SDK version > v0.45.
-The auth module should interpret the `txMsgData.Responses` as follows:
-
-```go
-...
-// switch statement from above
-case 0:
-    for _, any := range txMsgData.MsgResponses {
-        if err := handleAny(any); err != nil {
-            return err
-        }
-    }
-}
-``` 
-
-A handler will be needed to interpret what actions to perform based on the type URL of the Any. 
-A router could be used, or more simply a switch statement. 
-It may be possible to deduplicate logic between `handler` and `handleAny`.
-
-```go
-func handleAny(any *codectypes.Any) error {
-switch any.TypeURL {
-case banktypes.MsgSend:
-    msgResponse, err := unpackBankMsgSendResponse(any)
-    if err != nil {
-        return err
-    }
-
-    handleBankSendMsg(msgResponse)
-
-case stakingtypes.MsgDelegate:
-    msgResponse, err := unpackStakingDelegateResponse(any)
-    if err != nil {
-        return err
-    }
-
-    handleStakingDelegateMsg(msgResponse)
-
-    case transfertypes.MsgTransfer:
-    msgResponse, err := unpackIBCTransferMsgResponse(any)
-    if err != nil {
-        return err
-    }
-
-    handleIBCTransferMsg(msgResponse)
- 
-default:
-    return
-}
-```
+If the host chain is using the ibc-go host chain submodule, `SerializeCosmosTx` should be used. If the `InterchainAccountPacketData.Data` is serialized using a format not supported by the host chain, the packet will not be successfully received.  

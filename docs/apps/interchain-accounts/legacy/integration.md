@@ -16,7 +16,7 @@ Chains who wish to support ICS-27 may elect to act as a host chain, a controller
 
 Interchain Account authentication modules are the base application of a middleware stack. The controller submodule is the middleware in this stack.
 
-Please note that since ibc-go v6 the channel capability is claimed by the controller submodule and therefore it is not required for authentication modules to claim the capability in the `OnChanOpenInit` callback. Therefore the custom authentication module does not need a scoped keeper anymore.
+> Please note that since ibc-go v6 the channel capability is claimed by the controller submodule and therefore it is not required for authentication modules to claim the capability in the `OnChanOpenInit` callback. Therefore the custom authentication module does not need a scoped keeper anymore.
 
 ## Example integration
 
