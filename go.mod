@@ -4,7 +4,7 @@ module github.com/cosmos/ibc-go/v6
 
 require (
 	cosmossdk.io/math v1.0.0-beta.3
-	cosmossdk.io/simapp v0.0.0-20221103182213-3034a9d54a62
+	cosmossdk.io/simapp v0.0.0-20221121130329-121ae53499db
 	github.com/armon/go-metrics v0.4.1
 	github.com/confio/ics23/go v0.7.0
 	github.com/cosmos/cosmos-proto v1.0.0-alpha8
