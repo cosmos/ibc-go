@@ -83,7 +83,7 @@ func (suite *MigrationsV7TestSuite) TestMigrateStore() {
 	suite.Require().NoError(err)
 
 	suite.assertSolomachineClients(solomachines)
-	suite.assertLocalhostClients()
+	suite.assertNoLocalhostClients()
 }
 
 func (suite *MigrationsV7TestSuite) createSolomachineClients(solomachines []*ibctesting.Solomachine) {
@@ -155,7 +155,7 @@ func (suite *MigrationsV7TestSuite) createLocalhostClients() {
 }
 
 // assertLocalhostClients asserts that all localhost information has been deleted
-func (suite *MigrationsV7TestSuite) assertLocalhostClients() {
+func (suite *MigrationsV7TestSuite) assertNoLocalhostClients() {
 	for numClients := uint64(0); numClients < numCreations; numClients++ {
 		clientID := v7.Localhost + "-" + strconv.FormatUint(numClients, 10)
 		clientStore := suite.chainA.GetSimApp().IBCKeeper.ClientKeeper.ClientStore(suite.chainA.GetContext(), clientID)
