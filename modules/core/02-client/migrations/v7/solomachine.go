@@ -16,7 +16,7 @@ import (
 // client state and consensus state and migrate them to the new implementations. When the proto
 // codec unmarshals, it calls UnpackInterfaces() to create a cached value of the any. The
 // UnpackInterfaces function for IdenitifiedClientState will attempt to unpack the any to
-// exported.ClientState. If the solomachine v1 type is not registered against the exported.ClientState
+// exported.ClientState. If the solomachine v2 type is not registered against the exported.ClientState
 // the unmarshal will fail. This implementation will panic on every interface function.
 // The same is done for the ConsensusState.
 
@@ -27,6 +27,7 @@ var (
 	_    exported.ConsensusState            = &ConsensusState{}
 )
 
+// RegisterInterfaces registers the solomachine v2 ClientState and ConsensusState types in the interface registry.
 func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	registry.RegisterImplementations(
 		(*exported.ClientState)(nil),

@@ -165,7 +165,7 @@ func collectClients(ctx sdk.Context, store sdk.KVStore, clientType string) (clie
 		clientID := host.MustParseClientStatePath(path)
 		clients = append(clients, clientID)
 
-		// optimization: exist after a single tendermint client iteration
+		// optimization: exit after a single tendermint client iteration
 		if strings.Contains(clientID, exported.Tendermint) {
 			return clients, nil
 		}
