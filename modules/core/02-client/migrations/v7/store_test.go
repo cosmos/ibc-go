@@ -58,7 +58,7 @@ func (suite *MigrationsV7TestSuite) TestMigrateStoreTendermint() {
 }
 
 // create multiple solo machine clients, tendermint and localhost clients
-// ensure that solo machine clients are migrated and their cosnensus states are removed
+// ensure that solo machine clients are migrated and their consensus states are removed
 // ensure the localhost is deleted entirely.
 func (suite *MigrationsV7TestSuite) TestMigrateStore() {
 	paths := []*ibctesting.Path{
@@ -87,7 +87,7 @@ func (suite *MigrationsV7TestSuite) TestMigrateStore() {
 }
 
 func (suite *MigrationsV7TestSuite) createSolomachineClients(solomachines []*ibctesting.Solomachine) {
-	// manually generate old proto buf definitions and set in store
+	// manually generate old protobuf definitions and set in store
 	// NOTE: we cannot use 'CreateClient' and 'UpdateClient' functions since we are
 	// using client states and consensus states which do not implement the exported.ClientState
 	// and exported.ConsensusState interface
