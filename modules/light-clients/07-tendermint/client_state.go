@@ -292,6 +292,7 @@ func (cs ClientState) VerifyNonMembership(
 	if cs.AbsenceSentinelValue != nil {
 		return merkleProof.VerifyMembership(cs.ProofSpecs, consensusState.GetRoot(), merklePath, cs.AbsenceSentinelValue)
 	}
+
 	return merkleProof.VerifyNonMembership(cs.ProofSpecs, consensusState.GetRoot(), merklePath)
 }
 
