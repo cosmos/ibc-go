@@ -134,26 +134,26 @@ func (suite *DymintTestSuite) TestMisbehaviourValidateBasic() {
 			func(misbehaviour *types.Misbehaviour) error { return nil },
 			false,
 		},
-		{
-			"trusted valset is nil in Header1",
-			&types.Misbehaviour{
-				Header1:  dymintChain.CreateDMClientHeader(chainID, int64(height.RevisionHeight), heightMinus1, suite.now.Add(time.Minute), suite.valSet, nil, signers),
-				Header2:  suite.header,
-				ClientId: clientID,
-			},
-			func(misbehaviour *types.Misbehaviour) error { return nil },
-			false,
-		},
-		{
-			"trusted valset is nil in Header2",
-			&types.Misbehaviour{
-				Header1:  suite.header,
-				Header2:  dymintChain.CreateDMClientHeader(chainID, int64(height.RevisionHeight), heightMinus1, suite.now.Add(time.Minute), suite.valSet, nil, signers),
-				ClientId: clientID,
-			},
-			func(misbehaviour *types.Misbehaviour) error { return nil },
-			false,
-		},
+		// {
+		// 	"trusted valset is nil in Header1",
+		// 	&types.Misbehaviour{
+		// 		Header1:  dymintChain.CreateDMClientHeader(chainID, int64(height.RevisionHeight), heightMinus1, suite.now.Add(time.Minute), suite.valSet, nil, signers),
+		// 		Header2:  suite.header,
+		// 		ClientId: clientID,
+		// 	},
+		// 	func(misbehaviour *types.Misbehaviour) error { return nil },
+		// 	false,
+		// },
+		// {
+		// 	"trusted valset is nil in Header2",
+		// 	&types.Misbehaviour{
+		// 		Header1:  suite.header,
+		// 		Header2:  dymintChain.CreateDMClientHeader(chainID, int64(height.RevisionHeight), heightMinus1, suite.now.Add(time.Minute), suite.valSet, nil, signers),
+		// 		ClientId: clientID,
+		// 	},
+		// 	func(misbehaviour *types.Misbehaviour) error { return nil },
+		// 	false,
+		// },
 		{
 			"invalid client ID ",
 			&types.Misbehaviour{
