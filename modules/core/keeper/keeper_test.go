@@ -72,6 +72,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 				upgradeKeeper,
 				scopedKeeper,
 				ibctmtypes.NewSelfClient(),
+				nil,
 			)
 		}
 	)

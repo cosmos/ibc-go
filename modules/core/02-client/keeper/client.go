@@ -17,6 +17,12 @@ import (
 func (k Keeper) CreateClient(
 	ctx sdk.Context, clientState exported.ClientState, consensusState exported.ConsensusState,
 ) (string, error) {
+	if k.clientHooks != nil {
+		err := k.clientHooks.OnCreateClient(ctx, clientState, consensusState)
+		if err != nil {
+			return "", err
+		}
+	}
 	params := k.GetParams(ctx)
 	if !params.IsAllowedClient(clientState.ClientType()) {
 		return "", sdkerrors.Wrapf(
@@ -58,6 +64,12 @@ func (k Keeper) CreateClient(
 
 // UpdateClient updates the consensus state and the state root from a provided header.
 func (k Keeper) UpdateClient(ctx sdk.Context, clientID string, header exported.Header) error {
+	if k.clientHooks != nil {
+		err := k.clientHooks.OnUpdateClient(ctx, clientID, header)
+		if err != nil {
+			return err
+		}
+	}
 	clientState, found := k.GetClientState(ctx, clientID)
 	if !found {
 		return sdkerrors.Wrapf(types.ErrClientNotFound, "cannot update client with ID %s", clientID)
@@ -147,6 +159,12 @@ func (k Keeper) UpdateClient(ctx sdk.Context, clientID string, header exported.H
 // by the old client at the specified upgrade height
 func (k Keeper) UpgradeClient(ctx sdk.Context, clientID string, upgradedClient exported.ClientState, upgradedConsState exported.ConsensusState,
 	proofUpgradeClient, proofUpgradeConsState []byte) error {
+	if k.clientHooks != nil {
+		err := k.clientHooks.OnUpgradeClient(ctx, clientID, upgradedClient, upgradedConsState, proofUpgradeClient, proofUpgradeConsState)
+		if err != nil {
+			return err
+		}
+	}
 	clientState, found := k.GetClientState(ctx, clientID)
 	if !found {
 		return sdkerrors.Wrapf(types.ErrClientNotFound, "cannot update client with ID %s", clientID)
@@ -189,6 +207,12 @@ func (k Keeper) UpgradeClient(ctx sdk.Context, clientID string, upgradedClient e
 // CheckMisbehaviourAndUpdateState checks for client misbehaviour and freezes the
 // client if so.
 func (k Keeper) CheckMisbehaviourAndUpdateState(ctx sdk.Context, misbehaviour exported.Misbehaviour) error {
+	if k.clientHooks != nil {
+		err := k.clientHooks.OnCheckMisbehaviourAndUpdateState(ctx, misbehaviour)
+		if err != nil {
+			return err
+		}
+	}
 	clientState, found := k.GetClientState(ctx, misbehaviour.GetClientID())
 	if !found {
 		return sdkerrors.Wrapf(types.ErrClientNotFound, "cannot check misbehaviour for client with ID %s", misbehaviour.GetClientID())
