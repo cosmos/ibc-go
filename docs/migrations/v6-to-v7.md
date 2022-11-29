@@ -49,11 +49,11 @@ To register the tendermint client, modify the `app.go` file to include the tende
 
 ```diff
 import (
-    ...
+    // ...
 +   ibctm "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint"
-    ...
 )
-...
+
+// ...
 
 ModuleBasics = module.NewBasicManager(
     ...
@@ -64,6 +64,28 @@ ModuleBasics = module.NewBasicManager(
 ```
 
 It may be useful to reference the [PR](https://github.com/cosmos/ibc-go/pull/2825) which added the `AppModuleBasic` for the tendermint client.
+
+#### Solo machine registration
+
+To register the solo machine client, modify the `app.go` file to include the solo machine `AppModuleBasic`:
+
+```diff
+import (
+    // ...
++   solomachine "github.com/cosmos/ibc-go/v6/modules/light-clients/06-solomachine"
+)
+
+// ...
+
+ModuleBasics = module.NewBasicManager(
+    ...
+    ibc.AppModuleBasic{},
++   solomachine.AppModuleBasic{},
+    ...
+)
+```
+
+It may be useful to reference the [PR](https://github.com/cosmos/ibc-go/pull/2826) which added the `AppModuleBasic` for the solo machine client.
 
 ## IBC Apps
 
