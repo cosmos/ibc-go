@@ -12,6 +12,8 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 )
 
+type EventsMap map[string]map[string]string
+
 // ParseClientIDFromEvents parses events emitted from a MsgCreateClient and returns the
 // client identifier.
 func ParseClientIDFromEvents(events sdk.Events) (string, error) {
@@ -135,7 +137,7 @@ func ParseAckFromEvents(events sdk.Events) ([]byte, error) {
 // Expected map needs to be a subset of actual events to pass.
 func AssertEvents(
 	suite *suite.Suite,
-	expected map[string]map[string]string,
+	expected EventsMap,
 	actual sdk.Events,
 ) {
 	hasEvents := make(map[string]bool)

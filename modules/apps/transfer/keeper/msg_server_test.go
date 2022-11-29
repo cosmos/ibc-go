@@ -146,7 +146,7 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 
 			// Verify events
 			events := ctx.EventManager().Events()
-			expEvents := map[string]map[string]string{
+			expEvents := ibctesting.EventsMap{
 				"ibc_transfer": {
 					"sender":   suite.chainA.SenderAccount.GetAddress().String(),
 					"receiver": suite.chainB.SenderAccount.GetAddress().String(),
