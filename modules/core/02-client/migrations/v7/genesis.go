@@ -30,14 +30,14 @@ func MigrateGenesis(clientGenState *types.GenesisState, cdc codec.ProtoCodecMars
 		// update solo machine client state defintions
 		switch clientType {
 		case exported.Solomachine:
-			clientState := &ClientState{}
-			if err := cdc.Unmarshal(client.ClientState.Value, clientState); err != nil {
+			var clientState ClientState
+			if err := cdc.Unmarshal(client.ClientState.Value, &clientState); err != nil {
 				return nil, sdkerrors.Wrap(err, "failed to unmarshal client state bytes into solo machine client state")
 			}
 
 			updatedClientState := migrateSolomachine(clientState)
 
-			any, err := types.PackClientState(updatedClientState)
+			any, err := types.PackClientState(&updatedClientState)
 			if err != nil {
 				return nil, err
 			}
