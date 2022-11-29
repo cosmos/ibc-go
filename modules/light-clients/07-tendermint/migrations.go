@@ -24,7 +24,7 @@ func PruneTendermintConsensusStates(ctx sdk.Context, cdc codec.BinaryCodec, stor
 	tendermintClientPrefix := []byte(fmt.Sprintf("%s/%s", host.KeyClientStorePrefix, exported.Tendermint))
 	iterator := sdk.KVStorePrefixIterator(store, tendermintClientPrefix)
 
-	var clients []string
+	var clientIDs []string
 
 	// collect all clients to avoid performing store state changes during iteration
 	defer iterator.Close()
@@ -36,14 +36,14 @@ func PruneTendermintConsensusStates(ctx sdk.Context, cdc codec.BinaryCodec, stor
 		}
 
 		clientID := host.MustParseClientStatePath(path)
-		clients = append(clients, clientID)
+		clientIDs = append(clientIDs, clientID)
 	}
 
 	// keep track of the total consensus states pruned so chains can
 	// understand how much space is saved when the migration is run
 	var totalPruned int
 
-	for _, clientID := range clients {
+	for _, clientID := range clientIDs {
 		clientPrefix := []byte(fmt.Sprintf("%s/%s/", host.KeyClientStorePrefix, clientID))
 		clientStore := prefix.NewStore(ctx.KVStore(storeKey), clientPrefix)
 
