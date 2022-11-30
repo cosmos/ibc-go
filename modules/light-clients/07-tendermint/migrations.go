@@ -1,12 +1,7 @@
 package tendermint
 
 import (
-	"fmt"
-	"strings"
-
 	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/store/prefix"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -17,7 +12,7 @@ import (
 
 // PruneTendermintConsensusStates prunes all expired tendermint consensus states. This function
 // may optionally be called during in-place store migrations. The ibc store key must be provided.
-func PruneTendermintConsensusStates(ctx sdk.Context, clientKeeper ClientKeeper) error {
+func PruneTendermintConsensusStates(ctx sdk.Context, clientKeeper ClientKeeper, cdc codec.BinaryCodec) error {
 	var clientIDs []string
 	k.IterateClientStates(ctx, nil, func(clientID string, _ exported.ClientState) bool {
 		clientIDs = append(clientIDs, clientID)
@@ -29,6 +24,8 @@ func PruneTendermintConsensusStates(ctx sdk.Context, clientKeeper ClientKeeper) 
 	var totalPruned int
 
 	for _, clientID := range clientIDs {
+		clientStore := clientKeeper.ClientStore(ctx, clientID)
+
 		clientState, ok := clientKeeper.GetClientState(ctx, clientID)
 		if !ok {
 			return sdkerrors.Wrapf(clienttypes.ErrClientNotFound, "clientID %s", clientID)

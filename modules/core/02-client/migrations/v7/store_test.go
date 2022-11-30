@@ -49,11 +49,11 @@ func (suite *MigrationsV7TestSuite) TestMigrateStoreTendermint() {
 	cdc := codec.NewProtoCodec(registry)
 
 	solomachine.RegisterInterfaces(registry)
-	err := v7.MigrateStore(suite.chainA.GetContext(), suite.chainA.GetSimApp().GetKey(host.StoreKey), cdc)
+	err := v7.MigrateStore(suite.chainA.GetContext(), suite.chainA.GetSimApp().IBCKeeper.ClientKeeper, cdc)
 	suite.Require().Error(err)
 
 	ibctm.RegisterInterfaces(registry)
-	err = v7.MigrateStore(suite.chainA.GetContext(), suite.chainA.GetSimApp().GetKey(host.StoreKey), cdc)
+	err = v7.MigrateStore(suite.chainA.GetContext(), suite.chainA.GetSimApp().IBCKeeper.ClientKeeper, cdc)
 	suite.Require().NoError(err)
 }
 
@@ -79,7 +79,7 @@ func (suite *MigrationsV7TestSuite) TestMigrateStore() {
 	suite.createSolomachineClients(solomachines)
 	suite.createLocalhostClients()
 
-	err := v7.MigrateStore(suite.chainA.GetContext(), suite.chainA.GetSimApp().GetKey(host.StoreKey), suite.chainA.App.AppCodec())
+	err := v7.MigrateStore(suite.chainA.GetContext(), suite.chainA.GetSimApp().IBCKeeper.ClientKeeper, suite.chainA.App.AppCodec())
 	suite.Require().NoError(err)
 
 	suite.assertSolomachineClients(solomachines)

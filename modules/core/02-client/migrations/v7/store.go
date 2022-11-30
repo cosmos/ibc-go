@@ -1,13 +1,10 @@
 package v7
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	"github.com/cosmos/cosmos-sdk/store/prefix"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -38,7 +35,7 @@ func MigrateStore(ctx sdk.Context, keeper ClientKeeper, cdc codec.BinaryCodec) e
 		return err
 	}
 
-	if err := handleLocalhostMigration(ctx, keeper, cdc); err != nil {
+	if err := handleLocalhostMigration(ctx, keeper); err != nil {
 		return err
 	}
 
@@ -114,15 +111,14 @@ func handleTendermintMigration(ctx sdk.Context, keeper ClientKeeper) error {
 }
 
 // handleLocalhostMigration removes all client and consensus states associated with the localhost client type.
-func handleLocalhostMigration(ctx sdk.Context, store sdk.KVStore, cdc codec.BinaryCodec) error {
-	clients, err := collectClients(ctx, store, Localhost)
+func handleLocalhostMigration(ctx sdk.Context, keeper ClientKeeper) error {
+	clients, err := collectClients(ctx, keeper, Localhost)
 	if err != nil {
 		return err
 	}
 
 	for _, clientID := range clients {
-		clientPrefix := []byte(fmt.Sprintf("%s/%s/", host.KeyClientStorePrefix, clientID))
-		clientStore := prefix.NewStore(store, clientPrefix)
+		clientStore := keeper.ClientStore(ctx, clientID)
 
 		// delete the client state
 		clientStore.Delete(host.ClientStateKey())
