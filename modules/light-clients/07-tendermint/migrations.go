@@ -17,44 +17,21 @@ import (
 
 // PruneTendermintConsensusStates prunes all expired tendermint consensus states. This function
 // may optionally be called during in-place store migrations. The ibc store key must be provided.
-func PruneTendermintConsensusStates(ctx sdk.Context, cdc codec.BinaryCodec, storeKey storetypes.StoreKey) error {
-	store := ctx.KVStore(storeKey)
-
-	// iterate over ibc store with prefix: clients/07-tendermint,
-	tendermintClientPrefix := []byte(fmt.Sprintf("%s/%s", host.KeyClientStorePrefix, exported.Tendermint))
-	iterator := sdk.KVStorePrefixIterator(store, tendermintClientPrefix)
-
+func PruneTendermintConsensusStates(ctx sdk.Context, clientKeeper ClientKeeper) error {
 	var clientIDs []string
-
-	// collect all clients to avoid performing store state changes during iteration
-	defer iterator.Close()
-	for ; iterator.Valid(); iterator.Next() {
-		path := string(iterator.Key())
-		if !strings.Contains(path, host.KeyClientState) {
-			// skip non client state keys
-			continue
-		}
-
-		clientID := host.MustParseClientStatePath(path)
+	k.IterateClientStates(ctx, nil, func(clientID string, _ exported.ClientState) bool {
 		clientIDs = append(clientIDs, clientID)
-	}
+		return false
+	})
 
 	// keep track of the total consensus states pruned so chains can
 	// understand how much space is saved when the migration is run
 	var totalPruned int
 
 	for _, clientID := range clientIDs {
-		clientPrefix := []byte(fmt.Sprintf("%s/%s/", host.KeyClientStorePrefix, clientID))
-		clientStore := prefix.NewStore(ctx.KVStore(storeKey), clientPrefix)
-
-		bz := clientStore.Get(host.ClientStateKey())
-		if bz == nil {
-			return clienttypes.ErrClientNotFound
-		}
-
-		var clientState exported.ClientState
-		if err := cdc.UnmarshalInterface(bz, &clientState); err != nil {
-			return sdkerrors.Wrap(err, "failed to unmarshal client state bytes into tendermint client state")
+		clientState, ok := clientKeeper.GetClientState(ctx, clientID)
+		if !ok {
+			return sdkerrors.Wrapf(clienttypes.ErrClientNotFound, "clientID %s", clientID)
 		}
 
 		tmClientState, ok := clientState.(*ClientState)

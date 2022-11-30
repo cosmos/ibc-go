@@ -29,18 +29,16 @@ const Localhost string = "09-localhost"
 // - Pruning all solo machine consensus states
 // - Removing the localhost client
 // - Asserting existing tendermint clients are properly registered on the chain codec
-func MigrateStore(ctx sdk.Context, storeKey storetypes.StoreKey, cdc codec.BinaryCodec) error {
-	store := ctx.KVStore(storeKey)
-
-	if err := handleSolomachineMigration(ctx, store, cdc); err != nil {
+func MigrateStore(ctx sdk.Context, keeper ClientKeeper, cdc codec.BinaryCodec) error {
+	if err := handleSolomachineMigration(ctx, keeper, cdc); err != nil {
 		return err
 	}
 
-	if err := handleTendermintMigration(ctx, store, cdc); err != nil {
+	if err := handleTendermintMigration(ctx, keeper); err != nil {
 		return err
 	}
 
-	if err := handleLocalhostMigration(ctx, store, cdc); err != nil {
+	if err := handleLocalhostMigration(ctx, keeper, cdc); err != nil {
 		return err
 	}
 
@@ -49,15 +47,14 @@ func MigrateStore(ctx sdk.Context, storeKey storetypes.StoreKey, cdc codec.Binar
 
 // handleSolomachineMigration iterates over the solo machine clients and migrates client state from
 // protobuf definition v2 to v3. All consensus states stored outside of the client state are pruned.
-func handleSolomachineMigration(ctx sdk.Context, store sdk.KVStore, cdc codec.BinaryCodec) error {
-	clients, err := collectClients(ctx, store, exported.Solomachine)
+func handleSolomachineMigration(ctx sdk.Context, keeper ClientKeeper, cdc codec.BinaryCodec) error {
+	clients, err := collectClients(ctx, keeper, exported.Solomachine)
 	if err != nil {
 		return err
 	}
 
 	for _, clientID := range clients {
-		clientPrefix := []byte(fmt.Sprintf("%s/%s/", host.KeyClientStorePrefix, clientID))
-		clientStore := prefix.NewStore(store, clientPrefix)
+		clientStore := keeper.ClientStore(ctx, clientID)
 
 		bz := clientStore.Get(host.ClientStateKey())
 		if bz == nil {
@@ -92,8 +89,8 @@ func handleSolomachineMigration(ctx sdk.Context, store sdk.KVStore, cdc codec.Bi
 
 // handlerTendermintMigration asserts that the tendermint client in state can be decoded properly.
 // This ensures the upgrading chain properly registered the tendermint client types on the chain codec.
-func handleTendermintMigration(ctx sdk.Context, store sdk.KVStore, cdc codec.BinaryCodec) error {
-	clients, err := collectClients(ctx, store, exported.Tendermint)
+func handleTendermintMigration(ctx sdk.Context, keeper ClientKeeper) error {
+	clients, err := collectClients(ctx, keeper, exported.Tendermint)
 	if err != nil {
 		return err
 	}
@@ -103,21 +100,12 @@ func handleTendermintMigration(ctx sdk.Context, store sdk.KVStore, cdc codec.Bin
 	}
 
 	clientID := clients[0]
-
-	clientPrefix := []byte(fmt.Sprintf("%s/%s/", host.KeyClientStorePrefix, clientID))
-	clientStore := prefix.NewStore(store, clientPrefix)
-
-	bz := clientStore.Get(host.ClientStateKey())
-	if bz == nil {
-		return clienttypes.ErrClientNotFound
+	clientState, ok := keeper.GetClientState(ctx, clientID)
+	if !ok {
+		return sdkerrors.Wrapf(clienttypes.ErrClientNotFound, "clientID %s", clientID)
 	}
 
-	var clientState exported.ClientState
-	if err := cdc.UnmarshalInterface(bz, &clientState); err != nil {
-		return sdkerrors.Wrap(err, "failed to unmarshal client state bytes into tendermint client state")
-	}
-
-	_, ok := clientState.(*ibctm.ClientState)
+	_, ok = clientState.(*ibctm.ClientState)
 	if !ok {
 		return sdkerrors.Wrap(clienttypes.ErrInvalidClient, "client state is not tendermint even though client id contains 07-tendermint")
 	}
@@ -150,28 +138,14 @@ func handleLocalhostMigration(ctx sdk.Context, store sdk.KVStore, cdc codec.Bina
 // avoid state corruption as modifying state during iteration is unsafe. A special case
 // for tendermint clients is included as only one tendermint clientID is required for
 // v7 migrations.
-func collectClients(ctx sdk.Context, store sdk.KVStore, clientType string) (clients []string, err error) {
-	clientPrefix := []byte(fmt.Sprintf("%s/%s", host.KeyClientStorePrefix, clientType))
-	iterator := sdk.KVStorePrefixIterator(store, clientPrefix)
+func collectClients(ctx sdk.Context, keeper ClientKeeper, clientType string) (clients []string, err error) {
+	var clientIDs []string
+	keeper.IterateClientStates(ctx, nil, func(clientID string, _ exported.ClientState) bool {
+		clientIDs = append(clientIDs, clientID)
+		return false
+	})
 
-	defer iterator.Close()
-	for ; iterator.Valid(); iterator.Next() {
-		path := string(iterator.Key())
-		if !strings.Contains(path, host.KeyClientState) {
-			// skip non client state keys
-			continue
-		}
-
-		clientID := host.MustParseClientStatePath(path)
-		clients = append(clients, clientID)
-
-		// optimization: exit after a single tendermint client iteration
-		if strings.Contains(clientID, exported.Tendermint) {
-			return clients, nil
-		}
-	}
-
-	return clients, nil
+	return clientIDs, nil
 }
 
 // removeAllClientConsensusStates removes all client consensus states from the associated
