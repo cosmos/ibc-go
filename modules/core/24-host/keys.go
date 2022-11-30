@@ -55,6 +55,18 @@ func FullClientKey(clientID string, path []byte) []byte {
 	return []byte(FullClientPath(clientID, string(path)))
 }
 
+// PrefixedClientStorePath takes a client type and returns a prefixed key path
+// which can be used to iterate over client stores belonging to a certain client type.
+func PrefixedClientStorePath(clientType string) string {
+	return fmt.Sprintf("%s/%s", KeyClientStorePrefix, clientType)
+}
+
+// PrefixedClientStoreKey takes a client type and returns a prefixed key
+// which can be used to iterate over client stores belonging to a certain client type.
+func PrefixedClientStoreKey(clientType string) []byte {
+	return []byte(PrefixedClientStorePath(clientType))
+}
+
 // ICS02
 // The following paths are the keys to the store as defined in https://github.com/cosmos/ibc/tree/master/spec/core/ics-002-client-semantics#path-space
 

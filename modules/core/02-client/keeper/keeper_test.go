@@ -386,3 +386,40 @@ func (suite KeeperTestSuite) TestGetAllConsensusStates() {
 	consStates := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetAllConsensusStates(suite.chainA.GetContext())
 	suite.Require().Equal(expConsensusStates, consStates, "%s \n\n%s", expConsensusStates, consStates)
 }
+
+// 2 clients in total are created on chainA. The first client is updated so it contains an initial consensus state
+// and a consensus state at the update height.
+func (suite KeeperTestSuite) TestGetAllClientIDsOfType() {
+	paths := []*ibctesting.Path{
+		ibctesting.NewPath(suite.chainA, suite.chainB),
+		ibctesting.NewPath(suite.chainA, suite.chainB),
+		ibctesting.NewPath(suite.chainA, suite.chainB),
+	}
+
+	solomachines := []*ibctesting.Solomachine{
+		ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "06-solomachine-0", "testing", 1),
+		ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "06-solomachine-1", "testing", 4),
+	}
+
+	var (
+		tmClientIDs = make([]string, len(paths))
+		smClientIDs = make([]string, len(solomachines))
+	)
+
+	// create tendermint clients
+	for i, path := range paths {
+		suite.coordinator.SetupClients(path)
+		tmClientIDs[i] = path.EndpointA.ClientID
+	}
+
+	// create solomachine clients
+	for i, sm := range solomachines {
+		smClientIDs[i] = sm.CreateClient(suite.chainA)
+	}
+
+	clientIDs := suite.chainA.GetSimApp().IBCKeeper.ClientKeeper.GetAllClientIDsOfType(suite.chainA.GetContext(), exported.Tendermint)
+	suite.Require().Equal(tmClientIDs, clientIDs)
+
+	clientIDs = suite.chainA.GetSimApp().IBCKeeper.ClientKeeper.GetAllClientIDsOfType(suite.chainA.GetContext(), exported.Solomachine)
+	suite.Require().Equal(smClientIDs, clientIDs)
+}
