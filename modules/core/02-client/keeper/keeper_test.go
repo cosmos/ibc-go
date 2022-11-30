@@ -386,3 +386,67 @@ func (suite KeeperTestSuite) TestGetAllConsensusStates() {
 	consStates := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetAllConsensusStates(suite.chainA.GetContext())
 	suite.Require().Equal(expConsensusStates, consStates, "%s \n\n%s", expConsensusStates, consStates)
 }
+
+func (suite KeeperTestSuite) TestIterateClientStates() {
+	paths := []*ibctesting.Path{
+		ibctesting.NewPath(suite.chainA, suite.chainB),
+		ibctesting.NewPath(suite.chainA, suite.chainB),
+		ibctesting.NewPath(suite.chainA, suite.chainB),
+	}
+
+	solomachines := []*ibctesting.Solomachine{
+		ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "06-solomachine-0", "testing", 1),
+		ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "06-solomachine-1", "testing", 4),
+	}
+
+	var (
+		expTMClientIDs = make([]string, len(paths))
+		expSMClientIDs = make([]string, len(solomachines))
+	)
+
+	// create tendermint clients
+	for i, path := range paths {
+		suite.coordinator.SetupClients(path)
+		expTMClientIDs[i] = path.EndpointA.ClientID
+	}
+
+	// create solomachine clients
+	for i, sm := range solomachines {
+		expSMClientIDs[i] = sm.CreateClient(suite.chainA)
+	}
+
+	testCases := []struct {
+		name         string
+		prefix       []byte
+		expClientIDs []string
+	}{
+		{
+			"all clientIDs",
+			nil,
+			append(expSMClientIDs, expTMClientIDs...),
+		},
+		{
+			"tendermint clientIDs",
+			[]byte(exported.Tendermint),
+			expTMClientIDs,
+		},
+		{
+			"solo machine clientIDs",
+			[]byte(exported.Solomachine),
+			expSMClientIDs,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			var clientIDs []string
+			suite.chainA.GetSimApp().IBCKeeper.ClientKeeper.IterateClientStates(suite.chainA.GetContext(), tc.prefix, func(clientID string, _ exported.ClientState) bool {
+				clientIDs = append(clientIDs, clientID)
+				return false
+			})
+
+			suite.Require().Equal(tc.expClientIDs, clientIDs)
+		})
+	}
+}

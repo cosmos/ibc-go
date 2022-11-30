@@ -115,6 +115,7 @@ import (
 	simappparams "github.com/cosmos/ibc-go/v6/testing/simapp/params"
 	simappupgrades "github.com/cosmos/ibc-go/v6/testing/simapp/upgrades"
 	v6 "github.com/cosmos/ibc-go/v6/testing/simapp/upgrades/v6"
+	v7 "github.com/cosmos/ibc-go/v6/testing/simapp/upgrades/v7"
 	ibctestingtypes "github.com/cosmos/ibc-go/v6/testing/types"
 )
 
@@ -889,6 +890,16 @@ func (app *SimApp) setupUpgradeHandlers() {
 			app.keys[capabilitytypes.ModuleName],
 			app.CapabilityKeeper,
 			ibcmock.ModuleName+icacontrollertypes.SubModuleName,
+		),
+	)
+
+	app.UpgradeKeeper.SetUpgradeHandler(
+		v7.UpgradeName,
+		v7.CreateUpgradeHandler(
+			app.mm,
+			app.configurator,
+			app.appCodec,
+			app.keys[ibchost.StoreKey],
 		),
 	)
 }
