@@ -900,7 +900,6 @@ func (app *SimApp) setupUpgradeHandlers() {
 			app.configurator,
 			app.appCodec,
 			app.keys[ibchost.StoreKey],
-			ibcmock.ModuleName+icahosttypes.SubModuleName,
 		),
 	)
 }

@@ -22,10 +22,15 @@ func CreateUpgradeHandler(
 	configurator module.Configurator,
 	cdc codec.BinaryCodec,
 	hostStoreKey *storetypes.KVStoreKey,
-	moduleName string,
 ) upgradetypes.UpgradeHandler {
 	return func(ctx sdk.Context, _ upgradetypes.Plan, vm module.VersionMap) (module.VersionMap, error) {
 		// Perform in-place store migrations for the v7 upgrade
+		// The migration includes:
+		//
+		// - Migrating solo machine client states from v2 to v3 protobuf definition
+		// - Pruning all solo machine consensus states
+		// - Removing the localhost client
+		// - Asserting existing tendermint clients are properly registered on the chain codec
 		if err := v7.MigrateStore(ctx, hostStoreKey, cdc); err != nil {
 			return nil, err
 		}
