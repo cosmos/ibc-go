@@ -6,7 +6,6 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
-	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
 )
 
@@ -39,7 +38,7 @@ func PruneTendermintConsensusStates(ctx sdk.Context, clientKeeper ClientKeeper, 
 		totalPruned += PruneAllExpiredConsensusStates(ctx, clientStore, cdc, tmClientState)
 	}
 
-	clientLogger := ctx.Logger().With("module", "x/"+host.ModuleName+"/"+clienttypes.SubModuleName)
+	clientLogger := clientKeeper.Logger(ctx)
 	clientLogger.Info("pruned expired tendermint consensus states", "total", totalPruned)
 
 	return nil

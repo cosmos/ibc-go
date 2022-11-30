@@ -75,8 +75,7 @@ func handleSolomachineMigration(ctx sdk.Context, keeper ClientKeeper, cdc codec.
 			return sdkerrors.Wrap(err, "failed to unmarshal client state bytes into solo machine client state")
 		}
 
-		// update solomachine in store
-		clientStore.Set(host.ClientStateKey(), bz)
+		keeper.SetClientState(ctx, clientID, &updatedClientState)
 
 		removeAllClientConsensusStates(clientStore)
 	}
