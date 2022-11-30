@@ -61,22 +61,22 @@ func handleSolomachineMigration(ctx sdk.Context, store sdk.KVStore, cdc codec.Bi
 
 		bz := clientStore.Get(host.ClientStateKey())
 		if bz == nil {
-			return clienttypes.ErrClientNotFound
+			return sdkerrors.Wrapf(clienttypes.ErrClientNotFound, "clientID %s", clientID)
 		}
 
-		any := &codectypes.Any{}
-		if err := cdc.Unmarshal(bz, any); err != nil {
+		var any codectypes.Any
+		if err := cdc.Unmarshal(bz, &any); err != nil {
 			return sdkerrors.Wrap(err, "failed to unmarshal client state bytes into solo machine client state")
 		}
 
-		clientState := &ClientState{}
-		if err := cdc.Unmarshal(any.Value, clientState); err != nil {
+		var clientState ClientState
+		if err := cdc.Unmarshal(any.Value, &clientState); err != nil {
 			return sdkerrors.Wrap(err, "failed to unmarshal client state bytes into solo machine client state")
 		}
 
 		updatedClientState := migrateSolomachine(clientState)
 
-		bz, err := clienttypes.MarshalClientState(cdc, updatedClientState)
+		bz, err := clienttypes.MarshalClientState(cdc, &updatedClientState)
 		if err != nil {
 			return sdkerrors.Wrap(err, "failed to unmarshal client state bytes into solo machine client state")
 		}
@@ -84,7 +84,7 @@ func handleSolomachineMigration(ctx sdk.Context, store sdk.KVStore, cdc codec.Bi
 		// update solomachine in store
 		clientStore.Set(host.ClientStateKey(), bz)
 
-		pruneClientConsensusStates(clientStore)
+		removeAllClientConsensusStates(clientStore)
 	}
 
 	return nil
@@ -99,7 +99,7 @@ func handleTendermintMigration(ctx sdk.Context, store sdk.KVStore, cdc codec.Bin
 	}
 
 	if len(clients) > 1 {
-		return sdkerrors.Wrap(sdkerrors.ErrLogic, "too many tendermint clients collected")
+		return sdkerrors.Wrap(sdkerrors.ErrLogic, "more than one Tendermint client collected")
 	}
 
 	clientID := clients[0]
@@ -139,7 +139,7 @@ func handleLocalhostMigration(ctx sdk.Context, store sdk.KVStore, cdc codec.Bina
 		// delete the client state
 		clientStore.Delete(host.ClientStateKey())
 
-		pruneClientConsensusStates(clientStore)
+		removeAllClientConsensusStates(clientStore)
 	}
 
 	return nil
@@ -165,7 +165,7 @@ func collectClients(ctx sdk.Context, store sdk.KVStore, clientType string) (clie
 		clientID := host.MustParseClientStatePath(path)
 		clients = append(clients, clientID)
 
-		// optimization: exist after a single tendermint client iteration
+		// optimization: exit after a single tendermint client iteration
 		if strings.Contains(clientID, exported.Tendermint) {
 			return clients, nil
 		}
@@ -174,9 +174,9 @@ func collectClients(ctx sdk.Context, store sdk.KVStore, clientType string) (clie
 	return clients, nil
 }
 
-// pruneClientConsensusStates removes all client consensus states from the associated
+// removeAllClientConsensusStates removes all client consensus states from the associated
 // client store.
-func pruneClientConsensusStates(clientStore sdk.KVStore) {
+func removeAllClientConsensusStates(clientStore sdk.KVStore) {
 	iterator := sdk.KVStorePrefixIterator(clientStore, []byte(host.KeyConsensusStatePrefix))
 	var heights []exported.Height
 
@@ -200,14 +200,14 @@ func pruneClientConsensusStates(clientStore sdk.KVStore) {
 
 // migrateSolomachine migrates the solomachine from v2 to v3 solo machine protobuf definition.
 // Notably it drops the AllowUpdateAfterProposal field.
-func migrateSolomachine(clientState *ClientState) *solomachine.ClientState {
+func migrateSolomachine(clientState ClientState) solomachine.ClientState {
 	consensusState := &solomachine.ConsensusState{
 		PublicKey:   clientState.ConsensusState.PublicKey,
 		Diversifier: clientState.ConsensusState.Diversifier,
 		Timestamp:   clientState.ConsensusState.Timestamp,
 	}
 
-	return &solomachine.ClientState{
+	return solomachine.ClientState{
 		Sequence:       clientState.Sequence,
 		IsFrozen:       clientState.IsFrozen,
 		ConsensusState: consensusState,

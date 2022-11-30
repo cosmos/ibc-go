@@ -58,7 +58,7 @@ func (suite *MigrationsV7TestSuite) TestMigrateStoreTendermint() {
 }
 
 // create multiple solo machine clients, tendermint and localhost clients
-// ensure that solo machine clients are migrated and their cosnensus states are removed
+// ensure that solo machine clients are migrated and their consensus states are removed
 // ensure the localhost is deleted entirely.
 func (suite *MigrationsV7TestSuite) TestMigrateStore() {
 	paths := []*ibctesting.Path{
@@ -83,11 +83,11 @@ func (suite *MigrationsV7TestSuite) TestMigrateStore() {
 	suite.Require().NoError(err)
 
 	suite.assertSolomachineClients(solomachines)
-	suite.assertLocalhostClients()
+	suite.assertNoLocalhostClients()
 }
 
 func (suite *MigrationsV7TestSuite) createSolomachineClients(solomachines []*ibctesting.Solomachine) {
-	// manually generate old proto buf definitions and set in store
+	// manually generate old protobuf definitions and set in store
 	// NOTE: we cannot use 'CreateClient' and 'UpdateClient' functions since we are
 	// using client states and consensus states which do not implement the exported.ClientState
 	// and exported.ConsensusState interface
@@ -155,7 +155,7 @@ func (suite *MigrationsV7TestSuite) createLocalhostClients() {
 }
 
 // assertLocalhostClients asserts that all localhost information has been deleted
-func (suite *MigrationsV7TestSuite) assertLocalhostClients() {
+func (suite *MigrationsV7TestSuite) assertNoLocalhostClients() {
 	for numClients := uint64(0); numClients < numCreations; numClients++ {
 		clientID := v7.Localhost + "-" + strconv.FormatUint(numClients, 10)
 		clientStore := suite.chainA.GetSimApp().IBCKeeper.ClientKeeper.ClientStore(suite.chainA.GetContext(), clientID)
