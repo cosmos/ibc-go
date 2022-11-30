@@ -137,6 +137,12 @@ func collectClients(ctx sdk.Context, keeper ClientKeeper, clientType string) (cl
 	var clientIDs []string
 	keeper.IterateClientStates(ctx, nil, func(clientID string, _ exported.ClientState) bool {
 		clientIDs = append(clientIDs, clientID)
+
+		// optimization: exit after a single tendermint client iteration
+		if strings.Contains(clientID, exported.Tendermint) {
+			return true
+		}
+
 		return false
 	})
 
