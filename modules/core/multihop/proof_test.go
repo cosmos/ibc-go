@@ -6,7 +6,7 @@ import (
 
 	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
-	mh "github.com/cosmos/ibc-go/v6/modules/core/multihop"
+	mh "github.com/cosmos/ibc-go/v6/modules/core/multihop/helper"
 	ibctesting "github.com/cosmos/ibc-go/v6/testing"
 	"github.com/stretchr/testify/suite"
 )
@@ -33,6 +33,16 @@ func (t *proofTestSuite) TestMultiHopProof() {
 			proofs,
 			paths.A().Chain.Codec.MustMarshal(&connEnd),
 		)
+		// clientState := paths.Z().GetClientState()
+		// consensusState := paths.Z().GetConsensusState(clientState.GetLatestHeight())
+		// cdc := paths.Z().Chain.App.AppCodec()
+		// return mh.VerifyMultiHopProofMembershipv2(
+		// 	consensusState,
+		// 	clientState,
+		// 	cdc,
+		// 	proofs,
+		// 	paths.A().Chain.Codec.MustMarshal(&connEnd),
+		// )
 	}
 	verifyNonMembership := func(paths mh.LinkedPaths) error {
 		connPath := host.ConnectionPath("non-existent-connection-id")
