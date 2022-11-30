@@ -7,7 +7,6 @@ import (
 	commitmenttypes "github.com/cosmos/ibc-go/v6/modules/core/23-commitment/types"
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
 	ibctmtypes "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint/types"
-	//ibctesting "github.com/cosmos/ibc-go/v6/testing"
 )
 
 // ConsStateProof includes data necessary for verifying that A's consensus state on B is proven by B's
@@ -19,8 +18,13 @@ type ConsStateProof struct {
 	PrefixedKey commitmenttypes.MerklePath
 }
 
-// VerifyMultiHopConsensusStateProofv2 verifies the consensus state of paths[0].EndpointA on paths[len(paths)-1].EndpointB.
-func VerifyMultiHopConsensusStateProof(consensusState exported.ConsensusState, clientState exported.ClientState, cdc codec.BinaryCodec, proofs []*ConsStateProof) error {
+// VerifyMultiHopConsensusStateProof verifies the consensus state of paths[0].EndpointA on paths[len(paths)-1].EndpointB.
+func VerifyMultiHopConsensusStateProof(
+	consensusState exported.ConsensusState,
+	clientState exported.ClientState,
+	cdc codec.BinaryCodec,
+	proofs []*ConsStateProof,
+) error {
 	tmclient := clientState.(*ibctmtypes.ClientState)
 
 	for i := len(proofs) - 1; i >= 0; i-- {
@@ -43,8 +47,14 @@ func VerifyMultiHopConsensusStateProof(consensusState exported.ConsensusState, c
 	return nil
 }
 
-// VerifyMultiHopProofMembershipv2 verifies a multihop membership proof including all intermediate state proofs.
-func VerifyMultiHopProofMembership(consensusState exported.ConsensusState, clientState exported.ClientState, cdc codec.BinaryCodec, proofs []*ConsStateProof, value []byte) error {
+// VerifyMultiHopProofMembership verifies a multihop membership proof including all intermediate state proofs.
+func VerifyMultiHopProofMembership(
+	consensusState exported.ConsensusState,
+	clientState exported.ClientState,
+	cdc codec.BinaryCodec,
+	proofs []*ConsStateProof,
+	value []byte,
+) error {
 	if len(proofs) < 2 {
 		return fmt.Errorf(
 			"proof must have at least two elements where the first one is the proof for the key and the rest are for the consensus states",
