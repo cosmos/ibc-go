@@ -31,7 +31,9 @@ func CreateUpgradeHandler(
 		}
 
 		// OPTIONAL: prune expired tendermint consensus states to save storage space
-		ibctm.PruneTendermintConsensusStates(ctx, cdc, hostStoreKey)
+		if err := ibctm.PruneTendermintConsensusStates(ctx, cdc, hostStoreKey); err != nil {
+			return nil, err
+		}
 		return mm.RunMigrations(ctx, configurator, vm)
 	}
 }
