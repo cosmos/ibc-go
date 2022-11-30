@@ -14,10 +14,6 @@ on:
       - "**.md"
       - "LICENSE"
 
-env:
-  REGISTRY: ghcr.io
-  IMAGE_NAME: ibc-go-simd
-
 jobs:
     determine-image-tag:
       if: ${{ !github.event.pull_request.head.repo.fork && github.actor != 'dependabot[bot]' }}
