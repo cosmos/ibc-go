@@ -60,40 +60,43 @@ func (k Keeper) SendPacket(
 		return 0, sdkerrors.Wrap(err, "constructed packet failed basic validation")
 	}
 
-	connectionEnd, found := k.connectionKeeper.GetConnection(ctx, channel.ConnectionHops[0])
-	if !found {
-		return 0, sdkerrors.Wrap(connectiontypes.ErrConnectionNotFound, channel.ConnectionHops[0])
-	}
+	// Can not perform these extra checks when sending a multihop packet since the connectionEnd will not be known.
+	if len(channel.ConnectionHops) == 1 {
+		connectionEnd, found := k.connectionKeeper.GetConnection(ctx, channel.ConnectionHops[0])
+		if !found {
+			return 0, sdkerrors.Wrap(connectiontypes.ErrConnectionNotFound, channel.ConnectionHops[0])
+		}
 
-	clientState, found := k.clientKeeper.GetClientState(ctx, connectionEnd.GetClientID())
-	if !found {
-		return 0, clienttypes.ErrConsensusStateNotFound
-	}
+		clientState, found := k.clientKeeper.GetClientState(ctx, connectionEnd.GetClientID())
+		if !found {
+			return 0, clienttypes.ErrConsensusStateNotFound
+		}
 
-	// prevent accidental sends with clients that cannot be updated
-	if status := k.clientKeeper.GetClientStatus(ctx, clientState, connectionEnd.GetClientID()); status != exported.Active {
-		return 0, sdkerrors.Wrapf(clienttypes.ErrClientNotActive, "cannot send packet using client (%s) with status %s", connectionEnd.GetClientID(), status)
-	}
+		// prevent accidental sends with clients that cannot be updated
+		if status := k.clientKeeper.GetClientStatus(ctx, clientState, connectionEnd.GetClientID()); status != exported.Active {
+			return 0, sdkerrors.Wrapf(clienttypes.ErrClientNotActive, "cannot send packet using client (%s) with status %s", connectionEnd.GetClientID(), status)
+		}
 
-	// check if packet is timed out on the receiving chain
-	latestHeight := clientState.GetLatestHeight()
-	if !timeoutHeight.IsZero() && latestHeight.GTE(timeoutHeight) {
-		return 0, sdkerrors.Wrapf(
-			types.ErrPacketTimeout,
-			"receiving chain block height >= packet timeout height (%s >= %s)", latestHeight, timeoutHeight,
-		)
-	}
+		// check if packet is timed out on the receiving chain
+		latestHeight := clientState.GetLatestHeight()
+		if !timeoutHeight.IsZero() && latestHeight.GTE(timeoutHeight) {
+			return 0, sdkerrors.Wrapf(
+				types.ErrPacketTimeout,
+				"receiving chain block height >= packet timeout height (%s >= %s)", latestHeight, timeoutHeight,
+			)
+		}
 
-	latestTimestamp, err := k.connectionKeeper.GetTimestampAtHeight(ctx, connectionEnd, latestHeight)
-	if err != nil {
-		return 0, err
-	}
+		latestTimestamp, err := k.connectionKeeper.GetTimestampAtHeight(ctx, connectionEnd, latestHeight)
+		if err != nil {
+			return 0, err
+		}
 
-	if packet.GetTimeoutTimestamp() != 0 && latestTimestamp >= packet.GetTimeoutTimestamp() {
-		return 0, sdkerrors.Wrapf(
-			types.ErrPacketTimeout,
-			"receiving chain block timestamp >= packet timeout timestamp (%s >= %s)", time.Unix(0, int64(latestTimestamp)), time.Unix(0, int64(packet.GetTimeoutTimestamp())),
-		)
+		if packet.GetTimeoutTimestamp() != 0 && latestTimestamp >= packet.GetTimeoutTimestamp() {
+			return 0, sdkerrors.Wrapf(
+				types.ErrPacketTimeout,
+				"receiving chain block timestamp >= packet timeout timestamp (%s >= %s)", time.Unix(0, int64(latestTimestamp)), time.Unix(0, int64(packet.GetTimeoutTimestamp())),
+			)
+		}
 	}
 
 	commitment := types.CommitPacket(k.cdc, packet)

@@ -52,6 +52,8 @@ func (k Keeper) TimeoutPacket(
 		)
 	}
 
+	// TODO: get connectionEnd from connection state passed in and proven
+
 	connectionEnd, found := k.connectionKeeper.GetConnection(ctx, channel.ConnectionHops[0])
 	if !found {
 		return sdkerrors.Wrap(
@@ -215,6 +217,8 @@ func (k Keeper) TimeoutOnClose(
 			"packet destination channel doesn't match the counterparty's channel (%s ≠ %s)", packet.GetDestChannel(), channel.Counterparty.ChannelId,
 		)
 	}
+
+	// TODO: get connectionEnd from connection state passed in and proven
 
 	connectionEnd, found := k.connectionKeeper.GetConnection(ctx, channel.ConnectionHops[0])
 	if !found {

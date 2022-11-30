@@ -428,6 +428,8 @@ func (k Keeper) GetChannelClientState(ctx sdk.Context, portID, channelID string)
 		return "", nil, sdkerrors.Wrapf(types.ErrChannelNotFound, "port-id: %s, channel-id: %s", portID, channelID)
 	}
 
+	// TODO: the connection end for the channel is not in the connection keeper
+
 	connection, found := k.connectionKeeper.GetConnection(ctx, channel.ConnectionHops[0])
 	if !found {
 		return "", nil, sdkerrors.Wrapf(connectiontypes.ErrConnectionNotFound, "connection-id: %s", channel.ConnectionHops[0])
