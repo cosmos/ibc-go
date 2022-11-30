@@ -31,6 +31,12 @@ func (misbehaviour Misbehaviour) ClientType() string {
 	return exported.Tendermint
 }
 
+// GetChainID returns the chain-id
+func (misbehaviour Misbehaviour) GetChainID() string {
+	// assuming Header1.hainID and Header2.hainID are same as checked in ValidateBasic
+	return misbehaviour.Header1.GetChainID()
+}
+
 // GetClientID returns the ID of the client that committed a misbehaviour.
 func (misbehaviour Misbehaviour) GetClientID() string {
 	return misbehaviour.ClientId

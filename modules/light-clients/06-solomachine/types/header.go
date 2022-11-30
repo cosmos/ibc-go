@@ -17,6 +17,11 @@ func (Header) ClientType() string {
 	return exported.Solomachine
 }
 
+// GetChainID returns the chain-id
+func (h Header) GetChainID() string {
+	return ""
+}
+
 // GetHeight returns the current sequence number as the height.
 // Return clientexported.Height to satisfy interface
 // Revision number is always 0 for a solo-machine

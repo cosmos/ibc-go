@@ -28,6 +28,11 @@ func (h Header) ClientType() string {
 	return exported.Tendermint
 }
 
+// GetChainID returns the chain-id
+func (h Header) GetChainID() string {
+	return h.Header.ChainID
+}
+
 // GetHeight returns the current height. It returns 0 if the tendermint
 // header is nil.
 // NOTE: the header.Header is checked to be non nil in ValidateBasic.

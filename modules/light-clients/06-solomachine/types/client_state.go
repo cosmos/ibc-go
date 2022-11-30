@@ -32,6 +32,11 @@ func (cs ClientState) ClientType() string {
 	return exported.Solomachine
 }
 
+// GetChainID returns the chain-id
+func (cs ClientState) GetChainID() string {
+	return ""
+}
+
 // GetLatestHeight returns the latest sequence number.
 // Return exported.Height to satisfy ClientState interface
 // Revision number is always 0 for a solo-machine.

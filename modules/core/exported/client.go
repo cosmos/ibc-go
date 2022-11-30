@@ -46,6 +46,7 @@ type ClientState interface {
 	proto.Message
 
 	ClientType() string
+	GetChainID() string
 	GetLatestHeight() Height
 	Validate() error
 
@@ -204,6 +205,7 @@ type Misbehaviour interface {
 	proto.Message
 
 	ClientType() string
+	GetChainID() string
 	GetClientID() string
 	ValidateBasic() error
 }
@@ -213,6 +215,7 @@ type Header interface {
 	proto.Message
 
 	ClientType() string
+	GetChainID() string
 	GetHeight() Height
 	ValidateBasic() error
 }

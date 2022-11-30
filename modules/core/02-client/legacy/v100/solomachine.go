@@ -53,6 +53,11 @@ func (cs ClientState) ClientType() string {
 	panic("legacy solo machine is deprecated!")
 }
 
+// GetChainID panics!
+func (cs ClientState) GetChainID() string {
+	panic("legacy solo machine is deprecated!")
+}
+
 // GetLatestHeight panics!
 func (cs ClientState) GetLatestHeight() exported.Height {
 	panic("legacy solo machine is deprecated!")
