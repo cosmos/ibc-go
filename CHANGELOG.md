@@ -116,7 +116,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Features
 
 * (core/02-client) [\#2855](https://github.com/cosmos/ibc-go/pull/2855) Add `GetAllClientIDsOfType` to 02-client keeper.
-* (core/24-host) [\#2855](https://github.com/cosmos/ibc-go/pull/2855) Add `PrefixedClientStorePath` and `PrefixedClientStoreKey` functions to 24-host. Constructs a prefixed key path using the client type. 
+* (core/24-host) [\#2855](https://github.com/cosmos/ibc-go/pull/2855) Add `PrefixedClientStorePath` and `PrefixedClientStoreKey` functions to 24-host
 * (core/02-client) [\#2819](https://github.com/cosmos/ibc-go/pull/2819) Add automatic in-place store migrations to remove the localhost client and migrate existing solo machine definitions.
 * (light-clients/06-solomachine) [\#2826](https://github.com/cosmos/ibc-go/pull/2826) Add `AppModuleBasic` for the 06-solomachine client and remove solo machine type registration from core IBC. Chains must register the `AppModuleBasic` of light clients. 
 * (light-clients/07-tendermint) [\#2825](https://github.com/cosmos/ibc-go/pull/2825) Add `AppModuleBasic` for the 07-tendermint client and remove tendermint type registration from core IBC. Chains must register the `AppModuleBasic` of light clients. 
