@@ -17,6 +17,11 @@ func (misbehaviour Misbehaviour) ClientType() string {
 	return exported.Solomachine
 }
 
+// GetChainID returns the chain-id
+func (misbehaviour Misbehaviour) GetChainID() string {
+	return ""
+}
+
 // GetClientID returns the ID of the client that committed a misbehaviour.
 func (misbehaviour Misbehaviour) GetClientID() string {
 	return misbehaviour.ClientId
