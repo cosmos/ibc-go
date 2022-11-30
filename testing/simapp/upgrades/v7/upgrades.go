@@ -7,9 +7,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
-	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
+	v7 "github.com/cosmos/ibc-go/v6/modules/core/02-client/migrations/v7"
 	ibctm "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint"
-	v7 "github.com/cosmos/ibc-go/v7/modules/core/02-client/migrations/v7"
 )
 
 const (
@@ -32,7 +31,7 @@ func CreateUpgradeHandler(
 		}
 
 		// OPTIONAL: prune expired tendermint consensus states to save storage space
-		ibctm.PruneTendermintConsensusStates(ctx, cdc, host.StoreKey)
+		ibctm.PruneTendermintConsensusStates(ctx, cdc, hostStoreKey)
 		return mm.RunMigrations(ctx, configurator, vm)
 	}
 }
