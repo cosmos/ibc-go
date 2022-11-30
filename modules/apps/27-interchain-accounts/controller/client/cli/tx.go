@@ -83,7 +83,7 @@ appropriate relative timeoutTimestamp must be provided with flag {relative-packe
 				// check for file path if JSON input is not provided
 				contents, err := os.ReadFile(msgContentOrFileName)
 				if err != nil {
-					return fmt.Errorf("neither JSON input nor path to .json file with packet data with messages were provided: %w", err)
+					return fmt.Errorf("neither JSON input nor path to .json file for packet data with messages were provided: %w", err)
 				}
 
 				if err := cdc.UnmarshalInterfaceJSON(contents, &icaMsgData); err != nil {
