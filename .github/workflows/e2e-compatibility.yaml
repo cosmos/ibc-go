@@ -46,6 +46,7 @@ jobs:
           - release/v5.0.x
           - release/v5.1.x
           - release/v6.0.x
+          - main
     steps:
       - uses: actions/checkout@v3
         if: env.RELEASE_BRANCH == matrix.release-branch
