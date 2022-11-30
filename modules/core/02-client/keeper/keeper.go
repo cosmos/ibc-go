@@ -374,6 +374,15 @@ func (k Keeper) IterateClients(ctx sdk.Context, cb func(clientID string, cs expo
 	}
 }
 
+// GetAllClients returns all stored light client State objects.
+func (k Keeper) GetAllClients(ctx sdk.Context) (states []exported.ClientState) {
+	k.IterateClients(ctx, func(_ string, state exported.ClientState) bool {
+		states = append(states, state)
+		return false
+	})
+	return states
+}
+
 // GetAllClientIDsOfType will iterate over the provided client type prefix in the client store
 // and return a list of clientIDs associated with the client type.
 func (k Keeper) GetAllClientIDsOfType(ctx sdk.Context, clientType string) (clientIDs []string) {
@@ -394,15 +403,6 @@ func (k Keeper) GetAllClientIDsOfType(ctx sdk.Context, clientType string) (clien
 	}
 
 	return clientIDs
-}
-
-// GetAllClients returns all stored light client State objects.
-func (k Keeper) GetAllClients(ctx sdk.Context) (states []exported.ClientState) {
-	k.IterateClients(ctx, func(_ string, state exported.ClientState) bool {
-		states = append(states, state)
-		return false
-	})
-	return states
 }
 
 // ClientStore returns isolated prefix store for each client so they can read/write in separate

@@ -387,8 +387,6 @@ func (suite KeeperTestSuite) TestGetAllConsensusStates() {
 	suite.Require().Equal(expConsensusStates, consStates, "%s \n\n%s", expConsensusStates, consStates)
 }
 
-// 2 clients in total are created on chainA. The first client is updated so it contains an initial consensus state
-// and a consensus state at the update height.
 func (suite KeeperTestSuite) TestGetAllClientIDsOfType() {
 	paths := []*ibctesting.Path{
 		ibctesting.NewPath(suite.chainA, suite.chainB),
