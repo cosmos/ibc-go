@@ -109,10 +109,13 @@ import (
 	porttypes "github.com/cosmos/ibc-go/v6/modules/core/05-port/types"
 	ibchost "github.com/cosmos/ibc-go/v6/modules/core/24-host"
 	ibckeeper "github.com/cosmos/ibc-go/v6/modules/core/keeper"
+	solomachine "github.com/cosmos/ibc-go/v6/modules/light-clients/06-solomachine"
+	ibctm "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint"
 	ibcmock "github.com/cosmos/ibc-go/v6/testing/mock"
 	simappparams "github.com/cosmos/ibc-go/v6/testing/simapp/params"
 	simappupgrades "github.com/cosmos/ibc-go/v6/testing/simapp/upgrades"
 	v6 "github.com/cosmos/ibc-go/v6/testing/simapp/upgrades/v6"
+	v7 "github.com/cosmos/ibc-go/v6/testing/simapp/upgrades/v7"
 	ibctestingtypes "github.com/cosmos/ibc-go/v6/testing/types"
 )
 
@@ -153,6 +156,8 @@ var (
 		crisis.AppModuleBasic{},
 		slashing.AppModuleBasic{},
 		ibc.AppModuleBasic{},
+		ibctm.AppModuleBasic{},
+		solomachine.AppModuleBasic{},
 		feegrantmodule.AppModuleBasic{},
 		upgrade.AppModuleBasic{},
 		evidence.AppModuleBasic{},
@@ -885,6 +890,16 @@ func (app *SimApp) setupUpgradeHandlers() {
 			app.keys[capabilitytypes.ModuleName],
 			app.CapabilityKeeper,
 			ibcmock.ModuleName+icacontrollertypes.SubModuleName,
+		),
+	)
+
+	app.UpgradeKeeper.SetUpgradeHandler(
+		v7.UpgradeName,
+		v7.CreateUpgradeHandler(
+			app.mm,
+			app.configurator,
+			app.appCodec,
+			app.keys[ibchost.StoreKey],
 		),
 	)
 }

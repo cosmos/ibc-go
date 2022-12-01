@@ -15,7 +15,7 @@ require (
 	github.com/tendermint/tendermint v0.34.23
 	go.uber.org/zap v1.23.0
 	golang.org/x/mod v0.6.0
-	google.golang.org/grpc v1.50.1
+	google.golang.org/grpc v1.51.0
 )
 
 require (
