@@ -20,7 +20,7 @@ type AppModuleBasic struct{}
 
 // Name returns the solo machine module name.
 func (AppModuleBasic) Name() string {
-	return SubModuleName
+	return ModuleName
 }
 
 // RegisterLegacyAminoCodec performs a no-op. The solo machine client does not support amino.

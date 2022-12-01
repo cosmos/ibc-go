@@ -20,7 +20,7 @@ type AppModuleBasic struct{}
 
 // Name returns the tendermint module name.
 func (AppModuleBasic) Name() string {
-	return SubModuleName
+	return ModuleName
 }
 
 // RegisterLegacyAminoCodec performs a no-op. The Tendermint client does not support amino.
