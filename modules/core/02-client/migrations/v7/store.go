@@ -102,6 +102,8 @@ func handleTendermintMigration(ctx sdk.Context, store sdk.KVStore, cdc codec.Bin
 
 	clientID := clients[0]
 
+	// unregistered tendermint client types will panic when unmarshaling the client state
+	// in GetClientState
 	clientState, ok := clientKeeper.GetClientState(ctx, clientID)
 	if !ok {
 		return sdkerrors.Wrapf(clienttypes.ErrClientNotFound, "clientID %s", clientID)
