@@ -22,6 +22,8 @@ func (suite *MigrationsV7TestSuite) TestMigrateGenesisSolomachine() {
 
 		err := path.EndpointA.UpdateClient()
 		suite.Require().NoError(err)
+
+		// update a second time to add more state
 		err = path.EndpointA.UpdateClient()
 		suite.Require().NoError(err)
 	}
