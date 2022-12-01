@@ -6,7 +6,6 @@ import (
 
 	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
-	mh "github.com/cosmos/ibc-go/v6/modules/core/multihop/helper"
 	ibctesting "github.com/cosmos/ibc-go/v6/testing"
 	"github.com/stretchr/testify/suite"
 )
@@ -23,32 +22,22 @@ func (t *proofTestSuite) TestMultiHopProof() {
 	_, _, paths := t.createLinkedChains(5)
 
 	// From chain A to Z, generate and verifyMembership multi-hop proof for A's connectionEnd of on Z
-	verifyMembership := func(paths mh.LinkedPaths) error {
+	verifyMembership := func(paths ibctesting.LinkedPaths) error {
 		connPath := host.ConnectionPath(paths.A().ConnectionID)
-		proofs, err := mh.GenerateMultiHopProof(paths, connPath)
+		proofs, err := ibctesting.GenerateMultiHopProof(paths, connPath)
 		t.Require().NoError(err, "failed to generate multi-hop proof for connection")
 		connEnd := paths.A().GetConnection()
-		return mh.VerifyMultiHopProofMembership(
+		return ibctesting.VerifyMultiHopProofMembership(
 			paths.Z(),
 			proofs,
 			paths.A().Chain.Codec.MustMarshal(&connEnd),
 		)
-		// clientState := paths.Z().GetClientState()
-		// consensusState := paths.Z().GetConsensusState(clientState.GetLatestHeight())
-		// cdc := paths.Z().Chain.App.AppCodec()
-		// return mh.VerifyMultiHopProofMembershipv2(
-		// 	consensusState,
-		// 	clientState,
-		// 	cdc,
-		// 	proofs,
-		// 	paths.A().Chain.Codec.MustMarshal(&connEnd),
-		// )
 	}
-	verifyNonMembership := func(paths mh.LinkedPaths) error {
+	verifyNonMembership := func(paths ibctesting.LinkedPaths) error {
 		connPath := host.ConnectionPath("non-existent-connection-id")
-		proofs, err := mh.GenerateMultiHopProof(paths, connPath)
+		proofs, err := ibctesting.GenerateMultiHopProof(paths, connPath)
 		t.Require().NoError(err, "failed to generate non-membership multi-hop proof")
-		return mh.VerifyMultiHopProofNonMembership(
+		return ibctesting.VerifyMultiHopProofNonMembership(
 			paths.Z(),
 			proofs,
 		)
@@ -69,9 +58,9 @@ func (t *proofTestSuite) TestMultiHopProof() {
 func (t *proofTestSuite) TestMultiHopProofNegative() {
 	testCases := []struct {
 		name     string
-		malleate func(paths mh.LinkedPaths)
+		malleate func(paths ibctesting.LinkedPaths)
 	}{
-		{"invalid consState proof", func(paths mh.LinkedPaths) {
+		{"invalid consState proof", func(paths ibctesting.LinkedPaths) {
 			// update heightAB, but do not propogate to following chains
 			paths[0].EndpointB.UpdateClient()
 		}},
@@ -83,7 +72,7 @@ func (t *proofTestSuite) TestMultiHopProofNegative() {
 			_, _, paths := t.createLinkedChains(5)
 			tc.malleate(paths)
 			kvPath := host.ConnectionPath(paths.A().ConnectionID)
-			_, err := mh.GenerateMultiHopProof(paths, kvPath)
+			_, err := ibctesting.GenerateMultiHopProof(paths, kvPath)
 			t.Require().ErrorContains(err, "failed to verify consensus state proof")
 
 		})
@@ -95,10 +84,10 @@ func (t *proofTestSuite) TestMultiConsensusProof() {
 	_, _, paths := t.createLinkedChains(5)
 
 	// From chain A to Z, generate and verify multi-hop proof for A's consensus state on Z
-	verify := func(paths mh.LinkedPaths) error {
-		consStateProofs, err := mh.GenerateMultiHopConsensusProof(paths)
+	verify := func(paths ibctesting.LinkedPaths) error {
+		consStateProofs, err := ibctesting.GenerateMultiHopConsensusProof(paths)
 		t.Require().NoError(err, "failed to generate multi-hop proof for consensus state")
-		return mh.VerifyMultiHopConsensusStateProof(paths.Z(), consStateProofs)
+		return ibctesting.VerifyMultiHopConsensusStateProof(paths.Z(), consStateProofs.Proofs)
 	}
 
 	t.Require().
@@ -123,7 +112,7 @@ func (t *proofTestSuite) TestClientStateProof() {
 
 		heightZY := endY.GetClientState().GetLatestHeight()
 		heightYZ := endZ.GetClientState().GetLatestHeight()
-		merkleProofYZ, err := mh.GetConsStateProof(endZ, heightZY, heightYZ, endZ.ClientID)
+		merkleProofYZ, err := ibctesting.GetConsStateProof(endZ, heightZY, heightYZ, endZ.ClientID)
 		t.NoError(err)
 		consStateYZ := endZ.GetConsensusState(heightYZ)
 
@@ -170,14 +159,14 @@ func (t *proofTestSuite) TestGrandpaConsStateProof() {
 		heightPS exported.Height,
 	) {
 		heightGP := pathGP.EndpointB.GetClientState().GetLatestHeight()
-		consGP, err := mh.GetConsensusState(pathGP.EndpointB, heightGP)
+		consGP, err := ibctesting.GetConsensusState(pathGP.EndpointB, heightGP)
 		t.NoError(err)
-		proofConsGP, err := mh.GetConsStateProof(pathGP.EndpointB, heightPS, heightGP, pathGP.EndpointB.ClientID)
+		proofConsGP, err := ibctesting.GetConsStateProof(pathGP.EndpointB, heightPS, heightGP, pathGP.EndpointB.ClientID)
 		t.NoError(err)
-		consStatePrefix, err := mh.GetConsensusStatePrefix(pathGP.EndpointB, heightGP)
+		consStatePrefix, err := ibctesting.GetConsensusStatePrefix(pathGP.EndpointB, heightGP)
 		t.NoError(err)
 		err = proofConsGP.VerifyMembership(
-			mh.GetProofSpec(pathGP.EndpointB),
+			ibctesting.GetProofSpec(pathGP.EndpointB),
 			rootPS,
 			consStatePrefix,
 			consGP,
@@ -218,7 +207,7 @@ func (t *proofTestSuite) TestGrandpaConsStateProof() {
 // return the coordinator, the `num` chains, and `num-1` connected Paths
 func (t *proofTestSuite) createLinkedChains(
 	num int,
-) (*ibctesting.Coordinator, []*ibctesting.TestChain, mh.LinkedPaths) {
+) (*ibctesting.Coordinator, []*ibctesting.TestChain, ibctesting.LinkedPaths) {
 	coord, chains := t.createChains(num)
 	paths := make([]*ibctesting.Path, num-1)
 

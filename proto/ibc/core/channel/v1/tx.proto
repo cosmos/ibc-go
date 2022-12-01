@@ -7,6 +7,7 @@ option go_package = "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types";
 import "gogoproto/gogo.proto";
 import "ibc/core/client/v1/client.proto";
 import "ibc/core/channel/v1/channel.proto";
+import "ibc/core/commitment/v1/commitment.proto";
 
 // Msg defines the ibc/channel Msg service.
 service Msg {
@@ -243,4 +244,22 @@ message MsgAcknowledgementResponse {
   option (gogoproto.goproto_getters) = false;
 
   ResponseResultType result = 1;
+}
+
+// MsgConsStateProof holds the information necessary to prove a multihop message
+message ConsStateProof {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  ibc.core.commitment.v1.MerkleProof proof = 1;
+	ibc.core.client.v1.ConsensusStateWithHeight consensus_state = 2;
+	ibc.core.commitment.v1.MerklePath prefixed_key = 3;
+}
+
+// MsgConsStateProofs holds the proof information for each intermediary hop for a multihop message
+message MsgConsStateProofs {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  repeated ConsStateProof proofs = 1;
 }

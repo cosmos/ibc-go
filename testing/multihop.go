@@ -1,17 +1,15 @@
-package multihop_helper
+package ibctesting
 
 import (
 	"fmt"
 
 	ics23 "github.com/confio/ics23/go"
+	"github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v6/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
 	ibctmtypes "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint/types"
-
-	mh "github.com/cosmos/ibc-go/v6/modules/core/multihop"
-	ibctesting "github.com/cosmos/ibc-go/v6/testing"
-	abci "github.com/tendermint/tendermint/abci/types"
 )
 
 // GenerateMultiHopProof generate a proof for key path on the source (aka. paths[0].EndpointA) verified on the dest chain (aka.
@@ -19,7 +17,7 @@ import (
 //
 // The first proof can be either a membership proof or a non-membership proof depending on if the key exists on the
 // source chain.
-func GenerateMultiHopProof(paths LinkedPaths, keyPathToProve string) ([]*mh.ConsStateProof, error) {
+func GenerateMultiHopProof(paths LinkedPaths, keyPathToProve string) (*channeltypes.MsgConsStateProofs, error) {
 	if len(keyPathToProve) == 0 {
 		panic("path cannot be empty")
 	}
@@ -27,20 +25,18 @@ func GenerateMultiHopProof(paths LinkedPaths, keyPathToProve string) ([]*mh.Cons
 	if len(paths) < 2 {
 		panic("paths must have at least two elements")
 	}
-	var allProofs []*mh.ConsStateProof
+	var allProofs channeltypes.MsgConsStateProofs
 	srcEnd := paths.A()
 
 	// generate proof for key path on the source chain
 	{
 		// srcEnd.counterparty's proven height on its next connected chain
 		provenHeight := srcEnd.Counterparty.GetClientState().GetLatestHeight()
-		proofKV, err := QueryIbcProofAtHeight(
-			srcEnd.Chain.App,
-			[]byte(keyPathToProve),
-			provenHeight,
-		)
-		if err != nil {
-			return nil, fmt.Errorf("failed to query proof for key path %s: %w", keyPathToProve, err)
+		proof, _ := srcEnd.Chain.QueryProofAtHeight([]byte(keyPathToProve), int64(provenHeight.GetRevisionHeight()))
+
+		var proofKV commitmenttypes.MerkleProof
+		if err := srcEnd.Chain.Codec.Unmarshal(proof, &proofKV); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal proof: %w", err)
 		}
 		prefixedKey, err := commitmenttypes.ApplyPrefix(
 			srcEnd.Chain.GetPrefix(),
@@ -49,10 +45,10 @@ func GenerateMultiHopProof(paths LinkedPaths, keyPathToProve string) ([]*mh.Cons
 		if err != nil {
 			return nil, fmt.Errorf("failed to apply prefix to key path: %w", err)
 		}
-		allProofs = append(allProofs, &mh.ConsStateProof{
-			Proof: proofKV,
+		allProofs.Proofs = append(allProofs.Proofs, &channeltypes.ConsStateProof{
+			Proof: &proofKV,
 			// state is the same as its consState
-			PrefixedKey: prefixedKey,
+			PrefixedKey: &prefixedKey,
 		})
 	}
 
@@ -60,18 +56,18 @@ func GenerateMultiHopProof(paths LinkedPaths, keyPathToProve string) ([]*mh.Cons
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate consensus proofs: %w", err)
 	}
-	allProofs = append(allProofs, consStateProofs...)
+	allProofs.Proofs = append(allProofs.Proofs, consStateProofs.Proofs...)
 
-	return allProofs, nil
+	return &allProofs, nil
 }
 
 // GenerateMultiHopConsensusProof generates a proof of consensus state of paths[0].EndpointA verified on
 // paths[len(paths)-1].EndpointB and all intermediate consensus states.
-func GenerateMultiHopConsensusProof(paths []*ibctesting.Path) ([]*mh.ConsStateProof, error) {
+func GenerateMultiHopConsensusProof(paths []*Path) (*channeltypes.MsgConsStateProofs, error) {
 	if len(paths) < 2 {
 		panic("paths must have at least two elements")
 	}
-	var consStateProofs []*mh.ConsStateProof
+	var consStateProofs channeltypes.MsgConsStateProofs
 
 	// iterate all but the last path
 	for i := 0; i < len(paths)-1; i++ {
@@ -120,21 +116,23 @@ func GenerateMultiHopConsensusProof(paths []*ibctesting.Path) ([]*mh.ConsStatePr
 				nextPath.EndpointB.Chain.ChainID,
 			)
 		}
-		consStateProofs = append(consStateProofs, &mh.ConsStateProof{
-			Proof:       proofConsAB,
-			State:       consStateAB,
-			PrefixedKey: keyPrefixedConsAB,
+		consensusStateWithHeight := types.NewConsensusStateWithHeight(types.NewHeight(heightAB.GetRevisionNumber(), heightAB.GetRevisionHeight()),
+			consStateAB)
+		consStateProofs.Proofs = append(consStateProofs.Proofs, &channeltypes.ConsStateProof{
+			Proof:          &proofConsAB,
+			ConsensusState: &consensusStateWithHeight,
+			PrefixedKey:    &keyPrefixedConsAB,
 		})
 	}
-	return consStateProofs, nil
+	return &consStateProofs, nil
 }
 
 // VerifyMultiHopConsensusStateProof verifies the consensus state of paths[0].EndpointA on paths[len(paths)-1].EndpointB.
-func VerifyMultiHopConsensusStateProof(endpoint *ibctesting.Endpoint, proof []*mh.ConsStateProof) error {
+func VerifyMultiHopConsensusStateProof(endpoint *Endpoint, proofs []*channeltypes.ConsStateProof) error {
 	lastConsstate := endpoint.GetConsensusState(endpoint.GetClientState().GetLatestHeight())
-	for i := len(proof) - 1; i >= 0; i-- {
-		consStateProof := proof[i]
-		consStateBz, err := endpoint.Chain.Codec.MarshalInterface(consStateProof.State)
+	for i := len(proofs) - 1; i >= 0; i-- {
+		consStateProof := proofs[i]
+		consStateBz, err := endpoint.Chain.Codec.MarshalInterface(consStateProof.ConsensusState)
 		if err != nil {
 			return fmt.Errorf("failed to marshal consensus state: %w", err)
 		}
@@ -146,45 +144,52 @@ func VerifyMultiHopConsensusStateProof(endpoint *ibctesting.Endpoint, proof []*m
 		); err != nil {
 			return fmt.Errorf("failed to verify proof on chain '%s': %w", endpoint.Chain.ChainID, err)
 		}
-		lastConsstate = consStateProof.State
+		if err = endpoint.Chain.Codec.UnpackAny(consStateProof.ConsensusState.ConsensusState, &lastConsstate); err != nil {
+			return fmt.Errorf("failed to unpack consesnsus state: %w", err)
+		}
 	}
 	return nil
 }
 
 // VerifyMultiHopProofMembership verifies a multihop membership proof including all intermediate state proofs.
-func VerifyMultiHopProofMembership(endpoint *ibctesting.Endpoint, proof []*mh.ConsStateProof, value []byte) error {
-	if len(proof) < 2 {
+func VerifyMultiHopProofMembership(endpoint *Endpoint, proofs *channeltypes.MsgConsStateProofs, value []byte) error {
+	if len(proofs.Proofs) < 2 {
 		return fmt.Errorf(
 			"proof must have at least two elements where the first one is the proof for the key and the rest are for the consensus states",
 		)
 	}
-	if err := VerifyMultiHopConsensusStateProof(endpoint, proof[1:]); err != nil {
+	if err := VerifyMultiHopConsensusStateProof(endpoint, proofs.Proofs[1:]); err != nil {
 		return fmt.Errorf("failed to verify consensus state proof: %w", err)
 	}
-	keyValueProof := proof[0]
-	secondConsState := proof[1].State
-	err := keyValueProof.Proof.VerifyMembership(
+	keyValueProof := proofs.Proofs[0]
+	var secondConsState exported.ConsensusState
+	if err := endpoint.Chain.Codec.UnpackAny(proofs.Proofs[1].ConsensusState.ConsensusState, &secondConsState); err != nil {
+		return fmt.Errorf("failed to unpack consensus state: %w", err)
+	}
+	return keyValueProof.Proof.VerifyMembership(
 		GetProofSpec(endpoint),
 		secondConsState.GetRoot(),
 		keyValueProof.PrefixedKey,
 		value,
 	)
-	return err
 }
 
 // VerifyMultiHopProofNonMembership verifies a multihop proof of non-membership including all intermediate state proofs.
-func VerifyMultiHopProofNonMembership(endpoint *ibctesting.Endpoint, proof []*mh.ConsStateProof) error {
-	if len(proof) < 2 {
+func VerifyMultiHopProofNonMembership(endpoint *Endpoint, proofs *channeltypes.MsgConsStateProofs) error {
+	if len(proofs.Proofs) < 2 {
 		return fmt.Errorf(
 			"proof must have at least two elements where the first one is the proof for the key and the rest are for the consensus states",
 		)
 	}
-	if err := VerifyMultiHopConsensusStateProof(endpoint, proof[1:]); err != nil {
+	if err := VerifyMultiHopConsensusStateProof(endpoint, proofs.Proofs[1:]); err != nil {
 		return fmt.Errorf("failed to verify consensus state proof: %w", err)
 	}
-	keyValueProof := proof[0]
-	secondConsState := proof[1].State
-	err := proof[0].Proof.VerifyNonMembership(
+	keyValueProof := proofs.Proofs[0]
+	var secondConsState exported.ConsensusState
+	if err := endpoint.Chain.Codec.UnpackAny(proofs.Proofs[1].ConsensusState.ConsensusState, &secondConsState); err != nil {
+		return fmt.Errorf("failed to unpack consensus state: %w", err)
+	}
+	err := keyValueProof.Proof.VerifyNonMembership(
 		GetProofSpec(endpoint),
 		secondConsState.GetRoot(),
 		keyValueProof.PrefixedKey,
@@ -192,35 +197,15 @@ func VerifyMultiHopProofNonMembership(endpoint *ibctesting.Endpoint, proof []*mh
 	return err
 }
 
-// QueryIbcProofAtHeight queries for an IBC proof at a specific height.
-func QueryIbcProofAtHeight(
-	app abci.Application,
-	key []byte,
-	height exported.Height,
-) (commitmenttypes.MerkleProof, error) {
-	res := app.Query(abci.RequestQuery{
-		Path:   fmt.Sprintf("store/%s/key", host.StoreKey),
-		Height: int64(height.GetRevisionHeight()) - 1,
-		Data:   key,
-		Prove:  true,
-	})
-
-	merkleProof, err := commitmenttypes.ConvertProofs(res.ProofOps)
-	if err != nil {
-		return commitmenttypes.MerkleProof{}, err
-	}
-	return merkleProof, nil
-}
-
 // GetConsensusState returns the consensus state of self's counterparty chain stored on self, where height is according to the counterparty.
-func GetConsensusState(self *ibctesting.Endpoint, height exported.Height) ([]byte, error) {
+func GetConsensusState(self *Endpoint, height exported.Height) ([]byte, error) {
 	consensusState := self.GetConsensusState(height)
 	return self.Counterparty.Chain.Codec.MarshalInterface(consensusState)
 }
 
 // GetConsensusStateProof returns the consensus state proof for the state of self's counterparty chain stored on self, where height is the latest
 // self client height.
-func GetConsensusStateProof(self *ibctesting.Endpoint) commitmenttypes.MerkleProof {
+func GetConsensusStateProof(self *Endpoint) commitmenttypes.MerkleProof {
 	proofBz, _ := self.Chain.QueryConsensusStateProof(self.ClientID)
 	var proof commitmenttypes.MerkleProof
 	self.Chain.Codec.MustUnmarshal(proofBz, &proof)
@@ -229,17 +214,19 @@ func GetConsensusStateProof(self *ibctesting.Endpoint) commitmenttypes.MerklePro
 
 // GetConsStateProof returns the merkle proof of consensusState of self's clientId and at `consensusHeight` stored on self at `selfHeight`.
 func GetConsStateProof(
-	self *ibctesting.Endpoint,
+	self *Endpoint,
 	selfHeight exported.Height,
 	consensusHeight exported.Height,
 	clientID string,
-) (commitmenttypes.MerkleProof, error) {
+) (merkleProof commitmenttypes.MerkleProof, err error) {
 	consensusKey := host.FullConsensusStateKey(clientID, consensusHeight)
-	return QueryIbcProofAtHeight(self.Chain.App, consensusKey, selfHeight)
+	proof, _ := self.Chain.QueryProofAtHeight(consensusKey, int64(selfHeight.GetRevisionHeight()))
+	err = self.Chain.Codec.Unmarshal(proof, &merkleProof)
+	return
 }
 
 // GetConsensusStatePrefix returns the merkle prefix of consensus state of self's counterparty chain at height `consensusHeight` stored on self.
-func GetConsensusStatePrefix(self *ibctesting.Endpoint, consensusHeight exported.Height) (commitmenttypes.MerklePath, error) {
+func GetConsensusStatePrefix(self *Endpoint, consensusHeight exported.Height) (commitmenttypes.MerklePath, error) {
 	keyPath := commitmenttypes.NewMerklePath(
 		host.FullConsensusStatePath(self.ClientID, consensusHeight),
 	)
@@ -247,31 +234,31 @@ func GetConsensusStatePrefix(self *ibctesting.Endpoint, consensusHeight exported
 }
 
 // GetProofSpec returns self counterparty's ProofSpec
-func GetProofSpec(self *ibctesting.Endpoint) []*ics23.ProofSpec {
+func GetProofSpec(self *Endpoint) []*ics23.ProofSpec {
 	tmclient := self.GetClientState().(*ibctmtypes.ClientState)
 	return tmclient.GetProofSpecs()
 }
 
 // LinkedPaths is a list of linked ibc paths, A -> B -> C -> ... -> Z, where {A,B,C,...,Z} are chains, and A/Z is the first/last chain endpoint.
-type LinkedPaths []*ibctesting.Path
+type LinkedPaths []*Path
 
 // Last returns the last Path in LinkedPaths.
-func (paths LinkedPaths) Last() *ibctesting.Path {
+func (paths LinkedPaths) Last() *Path {
 	return paths[len(paths)-1]
 }
 
 // First returns the first Path in LinkedPaths.
-func (paths LinkedPaths) First() *ibctesting.Path {
+func (paths LinkedPaths) First() *Path {
 	return paths[0]
 }
 
 // A returns the first chain in the paths, aka. the source chain.
-func (paths LinkedPaths) A() *ibctesting.Endpoint {
+func (paths LinkedPaths) A() *Endpoint {
 	return paths.First().EndpointA
 }
 
 // Z returns the last chain in the paths, aka. the destination chain.
-func (paths LinkedPaths) Z() *ibctesting.Endpoint {
+func (paths LinkedPaths) Z() *Endpoint {
 	return paths.Last().EndpointB
 }
 
