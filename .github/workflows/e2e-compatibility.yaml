@@ -13,6 +13,7 @@ on:
           - release/v5.0.x
           - release/v5.1.x
           - release/v6.0.x
+          - main
 
 env:
   REGISTRY: ghcr.io
@@ -45,6 +46,7 @@ jobs:
           - release/v5.0.x
           - release/v5.1.x
           - release/v6.0.x
+          - main
     steps:
       - uses: actions/checkout@v3
         if: env.RELEASE_BRANCH == matrix.release-branch
@@ -144,6 +146,24 @@ jobs:
     with:
       test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
       test-suite: "incentivized-transfer-chain-b"
+
+  ica-chain-a:
+    needs:
+      - build-release-images
+      - determine-test-directory
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
+      test-suite: "ica-chain-a"
+
+  incentivized-ica-chain-a:
+    needs:
+      - build-release-images
+      - determine-test-directory
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
+      test-suite: "incentivized-ica-chain-a"
 
   ica-groups-chain-a:
     needs:
