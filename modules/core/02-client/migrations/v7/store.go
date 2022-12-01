@@ -1,6 +1,7 @@
 package v7
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -26,8 +27,8 @@ const Localhost string = "09-localhost"
 // - Pruning all solo machine consensus states
 // - Removing the localhost client
 // - Asserting existing tendermint clients are properly registered on the chain codec
-func MigrateStore(ctx sdk.Context, keeper ClientKeeper, cdc codec.BinaryCodec) error {
-	if err := handleSolomachineMigration(ctx, keeper, cdc); err != nil {
+func MigrateStore(ctx sdk.Context, cdc codec.BinaryCodec, keeper ClientKeeper) error {
+	if err := handleSolomachineMigration(ctx, cdc, keeper); err != nil {
 		return err
 	}
 
@@ -44,7 +45,7 @@ func MigrateStore(ctx sdk.Context, keeper ClientKeeper, cdc codec.BinaryCodec) e
 
 // handleSolomachineMigration iterates over the solo machine clients and migrates client state from
 // protobuf definition v2 to v3. All consensus states stored outside of the client state are pruned.
-func handleSolomachineMigration(ctx sdk.Context, keeper ClientKeeper, cdc codec.BinaryCodec) error {
+func handleSolomachineMigration(ctx sdk.Context, cdc codec.BinaryCodec, keeper ClientKeeper) error {
 	clients, err := collectClients(ctx, keeper, exported.Solomachine)
 	if err != nil {
 		return err
@@ -90,6 +91,7 @@ func handleTendermintMigration(ctx sdk.Context, keeper ClientKeeper) error {
 	if err != nil {
 		return err
 	}
+	fmt.Println(clients)
 
 	if len(clients) > 1 {
 		return sdkerrors.Wrap(sdkerrors.ErrLogic, "more than one Tendermint client collected")
@@ -133,18 +135,28 @@ func handleLocalhostMigration(ctx sdk.Context, keeper ClientKeeper) error {
 // avoid state corruption as modifying state during iteration is unsafe. A special case
 // for tendermint clients is included as only one tendermint clientID is required for
 // v7 migrations.
-func collectClients(ctx sdk.Context, keeper ClientKeeper, clientType string) (clients []string, err error) {
+func collectClients(ctx sdk.Context, keeper ClientKeeper, clientType string) ([]string, error) {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, host.PrefixedClientStoreKey(prefix))
+
 	var clientIDs []string
-	keeper.IterateClientStates(ctx, nil, func(clientID string, _ exported.ClientState) bool {
+
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		path := string(iterator.Key())
+		if !strings.Contains(path, host.KeyClientState) {
+			// skip non client state keys
+			continue
+		}
+
+		clientID := host.MustParseClientStatePath(path)
 		clientIDs = append(clientIDs, clientID)
 
 		// optimization: exit after a single tendermint client iteration
 		if strings.Contains(clientID, exported.Tendermint) {
-			return true
+			return clientIDs, nil
 		}
-
-		return false
-	})
+	}
 
 	return clientIDs, nil
 }

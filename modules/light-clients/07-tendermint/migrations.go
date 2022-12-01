@@ -11,9 +11,9 @@ import (
 
 // PruneTendermintConsensusStates prunes all expired tendermint consensus states. This function
 // may optionally be called during in-place store migrations. The ibc store key must be provided.
-func PruneTendermintConsensusStates(ctx sdk.Context, clientKeeper ClientKeeper, cdc codec.BinaryCodec) error {
+func PruneTendermintConsensusStates(ctx sdk.Context, cdc codec.BinaryCodec, clientKeeper ClientKeeper) error {
 	var clientIDs []string
-	k.IterateClientStates(ctx, nil, func(clientID string, _ exported.ClientState) bool {
+	clientKeeper.IterateClientStates(ctx, []byte(exported.Tendermint), func(clientID string, _ exported.ClientState) bool {
 		clientIDs = append(clientIDs, clientID)
 		return false
 	})

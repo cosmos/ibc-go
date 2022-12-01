@@ -2,11 +2,11 @@ package v7
 
 import (
 	"github.com/cosmos/cosmos-sdk/codec"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
+	clientkeeper "github.com/cosmos/ibc-go/v6/modules/core/02-client/keeper"
 	ibctm "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint"
 )
 
@@ -20,13 +20,14 @@ func CreateUpgradeHandler(
 	mm *module.Manager,
 	configurator module.Configurator,
 	cdc codec.BinaryCodec,
-	hostStoreKey *storetypes.KVStoreKey,
+	clientKeeper clientkeeper.Keeper,
 ) upgradetypes.UpgradeHandler {
 	return func(ctx sdk.Context, _ upgradetypes.Plan, vm module.VersionMap) (module.VersionMap, error) {
 		// OPTIONAL: prune expired tendermint consensus states to save storage space
-		if err := ibctm.PruneTendermintConsensusStates(ctx, cdc, hostStoreKey); err != nil {
+		if err := ibctm.PruneTendermintConsensusStates(ctx, cdc, clientKeeper); err != nil {
 			return nil, err
 		}
+
 		return mm.RunMigrations(ctx, configurator, vm)
 	}
 }

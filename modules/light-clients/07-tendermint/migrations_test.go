@@ -99,7 +99,7 @@ func (suite *TendermintTestSuite) TestPruneTendermintConsensusStates() {
 	// This will cause the consensus states created before the first time increment
 	// to be expired
 	suite.coordinator.IncrementTimeBy(7 * 24 * time.Hour)
-	err = ibctm.PruneTendermintConsensusStates(suite.chainA.GetContext(), suite.chainA.GetSimApp().IBCKeeper.ClientKeeper, suite.chainA.App.AppCodec())
+	err = ibctm.PruneTendermintConsensusStates(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), suite.chainA.GetSimApp().IBCKeeper.ClientKeeper)
 	suite.Require().NoError(err)
 
 	for _, path := range paths {

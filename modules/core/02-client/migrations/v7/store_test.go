@@ -1,6 +1,7 @@
 package v7_test
 
 import (
+	"fmt"
 	"strconv"
 	"testing"
 
@@ -44,16 +45,17 @@ func TestIBCTestSuite(t *testing.T) {
 func (suite *MigrationsV7TestSuite) TestMigrateStoreTendermint() {
 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
 	suite.coordinator.SetupClients(path)
+	fmt.Println("here")
 
 	registry := codectypes.NewInterfaceRegistry()
 	cdc := codec.NewProtoCodec(registry)
 
 	solomachine.RegisterInterfaces(registry)
-	err := v7.MigrateStore(suite.chainA.GetContext(), suite.chainA.GetSimApp().IBCKeeper.ClientKeeper, cdc)
+	err := v7.MigrateStore(suite.chainA.GetContext(), cdc, suite.chainA.GetSimApp().IBCKeeper.ClientKeeper)
 	suite.Require().Error(err)
 
 	ibctm.RegisterInterfaces(registry)
-	err = v7.MigrateStore(suite.chainA.GetContext(), suite.chainA.GetSimApp().IBCKeeper.ClientKeeper, cdc)
+	err = v7.MigrateStore(suite.chainA.GetContext(), cdc, suite.chainA.GetSimApp().IBCKeeper.ClientKeeper)
 	suite.Require().NoError(err)
 }
 
@@ -61,6 +63,7 @@ func (suite *MigrationsV7TestSuite) TestMigrateStoreTendermint() {
 // ensure that solo machine clients are migrated and their consensus states are removed
 // ensure the localhost is deleted entirely.
 func (suite *MigrationsV7TestSuite) TestMigrateStore() {
+	fmt.Println("there")
 	paths := []*ibctesting.Path{
 		ibctesting.NewPath(suite.chainA, suite.chainB),
 		ibctesting.NewPath(suite.chainA, suite.chainB),
@@ -79,7 +82,7 @@ func (suite *MigrationsV7TestSuite) TestMigrateStore() {
 	suite.createSolomachineClients(solomachines)
 	suite.createLocalhostClients()
 
-	err := v7.MigrateStore(suite.chainA.GetContext(), suite.chainA.GetSimApp().IBCKeeper.ClientKeeper, suite.chainA.App.AppCodec())
+	err := v7.MigrateStore(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), suite.chainA.GetSimApp().IBCKeeper.ClientKeeper)
 	suite.Require().NoError(err)
 
 	suite.assertSolomachineClients(solomachines)
