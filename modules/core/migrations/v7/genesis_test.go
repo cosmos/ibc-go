@@ -70,9 +70,9 @@ func (suite *MigrationsV7TestSuite) TestMigrateGenesisSolomachine() {
 		clientState := sm.ClientState()
 
 		// generate old client state proto definition
-		legacyClientState := &v7.ClientState{
+		legacyClientState := &clientv7.ClientState{
 			Sequence: clientState.Sequence,
-			ConsensusState: &v7.ConsensusState{
+			ConsensusState: &clientv7.ConsensusState{
 				PublicKey:   clientState.ConsensusState.PublicKey,
 				Diversifier: clientState.ConsensusState.Diversifier,
 				Timestamp:   clientState.ConsensusState.Timestamp,
@@ -128,7 +128,7 @@ func (suite *MigrationsV7TestSuite) TestMigrateGenesisSolomachine() {
 	// migrate store get expected genesis
 	// store migration and genesis migration should produce identical results
 	// NOTE: tendermint clients are not pruned in genesis so the test should not have expired tendermint clients
-	err := v7.MigrateStore(suite.chainA.GetContext(), suite.chainA.GetSimApp().GetKey(host.StoreKey), suite.chainA.App.AppCodec())
+	err := clientv7.MigrateStore(suite.chainA.GetContext(), suite.chainA.GetSimApp().GetKey(host.StoreKey), suite.chainA.App.AppCodec())
 	suite.Require().NoError(err)
 	expectedClientGenState := ibcclient.ExportGenesis(suite.chainA.GetContext(), suite.chainA.App.GetIBCKeeper().ClientKeeper)
 
