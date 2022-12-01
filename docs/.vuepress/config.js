@@ -295,6 +295,56 @@ module.exports = {
           ],
         },
         {
+          title: "IBC Light Client Developer Guide",
+          children: [
+            {
+              title: "Overview",
+              directory: false,
+              path: "/light-clients/overview.html",
+            },
+            {
+              title: "client_state.go and its functions",
+              directory: false,
+              path: "light-clients/client-state.html",
+            },
+            {
+              title: "consensus_state.go and its functions",
+              directory: false,
+              path: "/light-clients/consensus-state.html",
+            },
+            {
+              title: "Existence/Non-Existence Proofs",
+              directory: false,
+              path: "/light-clients/proofs.html",
+            },
+            {
+              title: "Updates Handling",
+              directory: false,
+              path: "/light-clients/update.html",
+            },
+            {
+              title: "Misbehaviour Handling",
+              directory: false,
+              path: "/light-clients/misbehaviour.html",
+            },
+            {
+              title: "Upgrades Handling",
+              directory: false,
+              path: "/light-clients/upgrade.html",
+            },
+            {
+              title: "Proposal Handling",
+              directory: false,
+              path: "/light-clients/proposal.html",
+            },
+            {
+              title: "Genesis Handling",
+              directory: false,
+              path: "/light-clients/genesis.html",
+            },
+          ],
+        },
+        {
           title: "IBC Middleware Modules",
           children: [
             {
