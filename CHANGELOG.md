@@ -42,6 +42,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### API Breaking
 
+* (core/02-client) [\#2856](https://github.com/cosmos/ibc-go/pull/2856) Rename `IterateClients` to `IterateClientStates`. The function now takes a prefix argument which may be used for prefix iteration over the client store.
 * (apps/27-interchain-accounts) [\#2607](https://github.com/cosmos/ibc-go/pull/2607) `SerializeCosmosTx` now takes in a `[]proto.Message` instead of `[]sdk.Msg`.
 * (apps/transfer) [\#2446](https://github.com/cosmos/ibc-go/pull/2446) Remove `SendTransfer` function in favor of a private `sendTransfer` function. All IBC transfers must be initiated with `MsgTransfer`.
 * (apps/29-fee) [\#2395](https://github.com/cosmos/ibc-go/pull/2395) Remove param space from ics29 NewKeeper function. The field was unused.
@@ -116,6 +117,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Features
 
 * (core/02-client) [\#2824](https://github.com/cosmos/ibc-go/pull/2824) Add genesis migrations for v6 to v7. The migration migrates the solo machine client state definition, removes all solo machine consensus states and removes the localhost client.
+* (core/24-host) [\#2856](https://github.com/cosmos/ibc-go/pull/2856) Add `PrefixedClientStorePath` and `PrefixedClientStoreKey` functions to 24-host
 * (core/02-client) [\#2819](https://github.com/cosmos/ibc-go/pull/2819) Add automatic in-place store migrations to remove the localhost client and migrate existing solo machine definitions.
 * (light-clients/06-solomachine) [\#2826](https://github.com/cosmos/ibc-go/pull/2826) Add `AppModuleBasic` for the 06-solomachine client and remove solo machine type registration from core IBC. Chains must register the `AppModuleBasic` of light clients. 
 * (light-clients/07-tendermint) [\#2825](https://github.com/cosmos/ibc-go/pull/2825) Add `AppModuleBasic` for the 07-tendermint client and remove tendermint type registration from core IBC. Chains must register the `AppModuleBasic` of light clients. 
@@ -123,6 +125,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (core/24-host) [\#2820](https://github.com/cosmos/ibc-go/pull/2820) Add `MustParseClientStatePath` which parses the clientID from a client state key path. 
 * (apps/27-interchain-accounts) [\#2147](https://github.com/cosmos/ibc-go/pull/2147) Adding a `SubmitTx` gRPC endpoint for the ICS27 Controller module which allows owners of interchain accounts to submit transactions. This replaces the previously existing need for authentication modules to implement this standard functionality.
 * (testing/simapp) [\#2190](https://github.com/cosmos/ibc-go/pull/2190) Adding the new `x/group` cosmos-sdk module to simapp.
+* (testing/simapp) [\#2842](https://github.com/cosmos/ibc-go/pull/2842) Adding the new upgrade handler for v6 -> v7 to simapp which prunes expired Tendermint consensus states.
 
 ### Bug Fixes
 
