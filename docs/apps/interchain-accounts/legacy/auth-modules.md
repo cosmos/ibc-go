@@ -92,7 +92,7 @@ func (im IBCModule) OnTimeoutPacket(
 }
 ```
 
-The following functions must be defined to fulfill the `IBCModule` interface, but they will never be called by the controller submodule so they may error or panic.
+The following functions must be defined to fulfill the `IBCModule` interface, but they will never be called by the controller submodule so they may error or panic. That is because in Interchain Accounts, the channel handshake is always initiated on the controller chain and packets are always sent to the host chain and never to the controller chain.
 
 ```go
 // OnChanOpenTry implements the IBCModule interface
