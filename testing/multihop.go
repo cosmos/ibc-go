@@ -8,7 +8,6 @@ import (
 	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
 	ibctmtypes "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint/types"
-	abci "github.com/tendermint/tendermint/abci/types"
 )
 
 // ConsStateProof includes data necessary for verifying that A's consensus state on B is proven by B's
@@ -42,19 +41,11 @@ func GenerateMultiHopProof(paths LinkedPaths, keyPathToProve string) ([]*ConsSta
 	{
 		// srcEnd.counterparty's proven height on its next connected chain
 		provenHeight := srcEnd.Counterparty.GetClientState().GetLatestHeight()
-		proofKV, err := QueryIbcProofAtHeight(
-			srcEnd.Chain.App,
-			[]byte(keyPathToProve),
-			provenHeight,
-		)
-		if err != nil {
-			return nil, fmt.Errorf("failed to query proof for key path %s: %w", keyPathToProve, err)
+		proof, _ := srcEnd.Chain.QueryProofAtHeight([]byte(keyPathToProve), int64(provenHeight.GetRevisionHeight()))
+		var proofKV commitmenttypes.MerkleProof
+		if err := srcEnd.Chain.Codec.Unmarshal(proof, &proofKV); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal proof: %w", err)
 		}
-		// proof, _ := srcEnd.Chain.QueryProofAtHeight([]byte(keyPathToProve), int64(provenHeight.GetRevisionHeight()))
-		// var proofKV commitmenttypes.MerkleProof
-		// if err := srcEnd.Chain.Codec.Unmarshal(proof, &proofKV); err != nil {
-		// 	return nil, fmt.Errorf("failed to unmarshal proof: %w", err)
-		// }
 		prefixedKey, err := commitmenttypes.ApplyPrefix(
 			srcEnd.Chain.GetPrefix(),
 			commitmenttypes.NewMerklePath(keyPathToProve),
@@ -220,26 +211,6 @@ func VerifyMultiHopProofNonMembership(endpoint *Endpoint, proofs []*ConsStatePro
 	return err
 }
 
-// QueryIbcProofAtHeight queries for an IBC proof at a specific height.
-func QueryIbcProofAtHeight(
-	app abci.Application,
-	key []byte,
-	height exported.Height,
-) (commitmenttypes.MerkleProof, error) {
-	res := app.Query(abci.RequestQuery{
-		Path:   fmt.Sprintf("store/%s/key", host.StoreKey),
-		Height: int64(height.GetRevisionHeight()) - 1,
-		Data:   key,
-		Prove:  true,
-	})
-
-	merkleProof, err := commitmenttypes.ConvertProofs(res.ProofOps)
-	if err != nil {
-		return commitmenttypes.MerkleProof{}, err
-	}
-	return merkleProof, nil
-}
-
 // GetConsensusState returns the consensus state of self's counterparty chain stored on self, where height is according to the counterparty.
 func GetConsensusState(self *Endpoint, height exported.Height) ([]byte, error) {
 	consensusState := self.GetConsensusState(height)
@@ -263,10 +234,9 @@ func GetConsStateProof(
 	clientID string,
 ) (merkleProof commitmenttypes.MerkleProof, err error) {
 	consensusKey := host.FullConsensusStateKey(clientID, consensusHeight)
-	return QueryIbcProofAtHeight(self.Chain.App, consensusKey, selfHeight)
-	// proof, _ := self.Chain.QueryProofAtHeight(consensusKey, int64(selfHeight.GetRevisionHeight()))
-	// err = self.Chain.Codec.Unmarshal(proof, &merkleProof)
-	// return
+	proof, _ := self.Chain.QueryProofAtHeight(consensusKey, int64(selfHeight.GetRevisionHeight()))
+	err = self.Chain.Codec.Unmarshal(proof, &merkleProof)
+	return
 }
 
 // GetConsensusStatePrefix returns the merkle prefix of consensus state of self's counterparty chain at height `consensusHeight` stored on self.
