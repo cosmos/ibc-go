@@ -4,28 +4,20 @@ import (
 	"fmt"
 
 	ics23 "github.com/confio/ics23/go"
+	"github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v6/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
 	ibctmtypes "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint/types"
 )
 
-// ConsStateProof includes data necessary for verifying that A's consensus state on B is proven by B's
-// consensus state on C given chains A-B-C. The proof is queried from chain B, and the state represents
-// chain A's consensus state on B. The `prefixedKey` is the key of the A's consensus state on chain B.
-type ConsStateProof struct {
-	Proof       commitmenttypes.MerkleProof
-	State       exported.ConsensusState
-	PrefixedKey commitmenttypes.MerklePath
-}
-
 // GenerateMultiHopProof generate a proof for key path on the source (aka. paths[0].EndpointA) verified on the dest chain (aka.
 // paths[len(paths)-1].EndpointB) and all intermediate consensus states.
 //
 // The first proof can be either a membership proof or a non-membership proof depending on if the key exists on the
 // source chain.
-// func GenerateMultiHopProof(paths LinkedPaths, keyPathToProve string) (*channeltypes.MsgConsStateProofs, error) {
-func GenerateMultiHopProof(paths LinkedPaths, keyPathToProve string) ([]*ConsStateProof, error) {
+func GenerateMultiHopProof(paths LinkedPaths, keyPathToProve string) (*channeltypes.MsgConsStateProofs, error) {
 	if len(keyPathToProve) == 0 {
 		panic("path cannot be empty")
 	}
@@ -33,10 +25,9 @@ func GenerateMultiHopProof(paths LinkedPaths, keyPathToProve string) ([]*ConsSta
 	if len(paths) < 2 {
 		panic("paths must have at least two elements")
 	}
-	var allProofs []*ConsStateProof
-	//	var allProofs channeltypes.MsgConsStateProofs
 	srcEnd := paths.A()
 
+	var proofs channeltypes.MsgConsStateProofs
 	// generate proof for key path on the source chain
 	{
 		// srcEnd.counterparty's proven height on its next connected chain
@@ -46,6 +37,7 @@ func GenerateMultiHopProof(paths LinkedPaths, keyPathToProve string) ([]*ConsSta
 		if err := srcEnd.Chain.Codec.Unmarshal(proof, &proofKV); err != nil {
 			return nil, fmt.Errorf("failed to unmarshal proof: %w", err)
 		}
+
 		prefixedKey, err := commitmenttypes.ApplyPrefix(
 			srcEnd.Chain.GetPrefix(),
 			commitmenttypes.NewMerklePath(keyPathToProve),
@@ -53,10 +45,10 @@ func GenerateMultiHopProof(paths LinkedPaths, keyPathToProve string) ([]*ConsSta
 		if err != nil {
 			return nil, fmt.Errorf("failed to apply prefix to key path: %w", err)
 		}
-		allProofs = append(allProofs, &ConsStateProof{
-			Proof: proofKV,
+		proofs.Proofs = append(proofs.Proofs, &channeltypes.ConsStateProof{
+			Proof: &proofKV,
 			// state is the same as its consState
-			PrefixedKey: prefixedKey,
+			PrefixedKey: &prefixedKey,
 		})
 	}
 
@@ -64,19 +56,19 @@ func GenerateMultiHopProof(paths LinkedPaths, keyPathToProve string) ([]*ConsSta
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate consensus proofs: %w", err)
 	}
-	allProofs = append(allProofs, consStateProofs...)
+	proofs.Proofs = append(proofs.Proofs, consStateProofs...)
 
-	return allProofs, nil
+	return &proofs, nil
 }
 
 // GenerateMultiHopConsensusProof generates a proof of consensus state of paths[0].EndpointA verified on
 // paths[len(paths)-1].EndpointB and all intermediate consensus states.
-func GenerateMultiHopConsensusProof(paths []*Path) ([]*ConsStateProof, error) {
+func GenerateMultiHopConsensusProof(paths []*Path) ([]*channeltypes.ConsStateProof, error) {
 	if len(paths) < 2 {
 		panic("paths must have at least two elements")
 	}
-	var consStateProofs []*ConsStateProof
-	//var consStateProofs channeltypes.MsgConsStateProofs
+
+	var consStateProofs []*channeltypes.ConsStateProof
 
 	// iterate all but the last path
 	for i := 0; i < len(paths)-1; i++ {
@@ -107,6 +99,7 @@ func GenerateMultiHopConsensusProof(paths []*Path) ([]*ConsStateProof, error) {
 		if err != nil {
 			return nil, fmt.Errorf("failed to marshal consensus state: %w", err)
 		}
+
 		// ensure consStateAB is verified by consStateBC, where self is chain B
 		if err := proofConsAB.VerifyMembership(
 			GetProofSpec(self),
@@ -125,88 +118,86 @@ func GenerateMultiHopConsensusProof(paths []*Path) ([]*ConsStateProof, error) {
 				nextPath.EndpointB.Chain.ChainID,
 			)
 		}
-		// consensusStateWithHeight := types.NewConsensusStateWithHeight(types.NewHeight(heightAB.GetRevisionNumber(), heightAB.GetRevisionHeight()),
-		// 	consStateAB)
-		consStateProofs = append(consStateProofs, &ConsStateProof{
-			Proof:       proofConsAB,
-			State:       consStateAB, //&consensusStateWithHeight,
-			PrefixedKey: keyPrefixedConsAB,
+		consensusStateWithHeight := types.NewConsensusStateWithHeight(types.NewHeight(heightAB.GetRevisionNumber(), heightAB.GetRevisionHeight()),
+			consStateAB)
+		consStateProofs = append(consStateProofs, &channeltypes.ConsStateProof{
+			Proof:          &proofConsAB,
+			ConsensusState: &consensusStateWithHeight,
+			PrefixedKey:    &keyPrefixedConsAB,
 		})
 	}
+
 	return consStateProofs, nil
 }
 
 // VerifyMultiHopConsensusStateProof verifies the consensus state of paths[0].EndpointA on paths[len(paths)-1].EndpointB.
-func VerifyMultiHopConsensusStateProof(endpoint *Endpoint, proofs []*ConsStateProof) error {
+func VerifyMultiHopConsensusStateProof(endpoint *Endpoint, proofs []*channeltypes.ConsStateProof) error {
 	lastConsstate := endpoint.GetConsensusState(endpoint.GetClientState().GetLatestHeight())
-	//var consState exported.ConsensusState
+	var consState exported.ConsensusState
 	for i := len(proofs) - 1; i >= 0; i-- {
 		consStateProof := proofs[i]
-		// if err := endpoint.Chain.Codec.UnpackAny(consStateProof.State, &consState); err != nil {
-		// 	return fmt.Errorf("failed to unpack consesnsus state: %w", err)
-		// }
-		consStateBz, err := endpoint.Chain.Codec.MarshalInterface(consStateProof.State)
+		if err := endpoint.Chain.Codec.UnpackAny(consStateProof.ConsensusState.ConsensusState, &consState); err != nil {
+			return fmt.Errorf("failed to unpack consesnsus state: %w", err)
+		}
+		consStateBz, err := endpoint.Chain.Codec.MarshalInterface(consState)
 		if err != nil {
 			return fmt.Errorf("failed to marshal consensus state: %w", err)
 		}
 		if err = consStateProof.Proof.VerifyMembership(
 			GetProofSpec(endpoint),
 			lastConsstate.GetRoot(),
-			consStateProof.PrefixedKey,
+			*consStateProof.PrefixedKey,
 			consStateBz,
 		); err != nil {
 			return fmt.Errorf("failed to verify proof on chain '%s': %w", endpoint.Chain.ChainID, err)
 		}
-		lastConsstate = consStateProof.State
+		lastConsstate = consState
 	}
 	return nil
 }
 
 // VerifyMultiHopProofMembership verifies a multihop membership proof including all intermediate state proofs.
-func VerifyMultiHopProofMembership(endpoint *Endpoint, proofs []*ConsStateProof, value []byte) error {
-	if len(proofs) < 2 {
+func VerifyMultiHopProofMembership(endpoint *Endpoint, proofs *channeltypes.MsgConsStateProofs, value []byte) error {
+	if len(proofs.Proofs) < 2 {
 		return fmt.Errorf(
 			"proof must have at least two elements where the first one is the proof for the key and the rest are for the consensus states",
 		)
 	}
-	if err := VerifyMultiHopConsensusStateProof(endpoint, proofs[1:]); err != nil {
+	if err := VerifyMultiHopConsensusStateProof(endpoint, proofs.Proofs[1:]); err != nil {
 		return fmt.Errorf("failed to verify consensus state proof: %w", err)
 	}
-	keyValueProof := proofs[0]
+	keyValueProof := proofs.Proofs[0]
 	var secondConsState exported.ConsensusState
-	secondConsState = proofs[1].State
-	// if err := endpoint.Chain.Codec.UnpackAny(proofs[1].ConsensusState.ConsensusState, &secondConsState); err != nil {
-	// 	return fmt.Errorf("failed to unpack consensus state: %w", err)
-	// }
-	fmt.Printf("keyValueProof.PrefixedKey: %s\n", keyValueProof.PrefixedKey.String())
+	if err := endpoint.Chain.Codec.UnpackAny(proofs.Proofs[1].ConsensusState.ConsensusState, &secondConsState); err != nil {
+		return fmt.Errorf("failed to unpack consensus state: %w", err)
+	}
 	return keyValueProof.Proof.VerifyMembership(
 		GetProofSpec(endpoint),
 		secondConsState.GetRoot(),
-		keyValueProof.PrefixedKey,
+		*keyValueProof.PrefixedKey,
 		value,
 	)
 }
 
 // VerifyMultiHopProofNonMembership verifies a multihop proof of non-membership including all intermediate state proofs.
-func VerifyMultiHopProofNonMembership(endpoint *Endpoint, proofs []*ConsStateProof) error {
-	if len(proofs) < 2 {
+func VerifyMultiHopProofNonMembership(endpoint *Endpoint, proofs *channeltypes.MsgConsStateProofs) error {
+	if len(proofs.Proofs) < 2 {
 		return fmt.Errorf(
 			"proof must have at least two elements where the first one is the proof for the key and the rest are for the consensus states",
 		)
 	}
-	if err := VerifyMultiHopConsensusStateProof(endpoint, proofs[1:]); err != nil {
+	if err := VerifyMultiHopConsensusStateProof(endpoint, proofs.Proofs[1:]); err != nil {
 		return fmt.Errorf("failed to verify consensus state proof: %w", err)
 	}
-	keyValueProof := proofs[0]
+	keyValueProof := proofs.Proofs[0]
 	var secondConsState exported.ConsensusState
-	secondConsState = proofs[1].State
-	// if err := endpoint.Chain.Codec.UnpackAny(proofs.Proofs[1].ConsensusState.ConsensusState, &secondConsState); err != nil {
-	// 	return fmt.Errorf("failed to unpack consensus state: %w", err)
-	// }
+	if err := endpoint.Chain.Codec.UnpackAny(proofs.Proofs[1].ConsensusState.ConsensusState, &secondConsState); err != nil {
+		return fmt.Errorf("failed to unpack consensus state: %w", err)
+	}
 	err := keyValueProof.Proof.VerifyNonMembership(
 		GetProofSpec(endpoint),
 		secondConsState.GetRoot(),
-		keyValueProof.PrefixedKey,
+		*keyValueProof.PrefixedKey,
 	)
 	return err
 }
@@ -241,9 +232,7 @@ func GetConsStateProof(
 
 // GetConsensusStatePrefix returns the merkle prefix of consensus state of self's counterparty chain at height `consensusHeight` stored on self.
 func GetConsensusStatePrefix(self *Endpoint, consensusHeight exported.Height) (commitmenttypes.MerklePath, error) {
-	keyPath := commitmenttypes.NewMerklePath(
-		host.FullConsensusStatePath(self.ClientID, consensusHeight),
-	)
+	keyPath := commitmenttypes.NewMerklePath(host.FullConsensusStatePath(self.ClientID, consensusHeight))
 	return commitmenttypes.ApplyPrefix(self.Chain.GetPrefix(), keyPath)
 }
 
