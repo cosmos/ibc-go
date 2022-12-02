@@ -1,16 +1,15 @@
 package wasm
 
 import (
-	"github.com/cosmos/ibc-go/modules/core/exported"
-	v5 "github.com/cosmos/ibc-go/v5/modules/core/exported"
+	exported "github.com/cosmos/ibc-go/v5/modules/core/exported"
 )
 
 var (
-	_ exported.Misbehaviour = &Misbehaviour{}
+	_ exported.ClientMessage = &Misbehaviour{}
 )
 
 func (m Misbehaviour) ClientType() string {
-	return v5.Wasm
+	return exported.Wasm
 }
 
 func (m Misbehaviour) GetClientID() string {

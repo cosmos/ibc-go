@@ -3,7 +3,6 @@ package wasm_test
 import (
 	"encoding/hex"
 	"encoding/json"
-	"math"
 	"os"
 	"testing"
 	"time"
@@ -36,6 +35,7 @@ type WasmTestSuite struct {
 	consensusState wasm.ConsensusState
 	codeId         []byte
 	testData       map[string]string
+	wasmKeeper     wasm.Keeper
 }
 
 func (suite *WasmTestSuite) SetupTest() {
@@ -61,24 +61,14 @@ func (suite *WasmTestSuite) SetupTest() {
 	suite.Require().NoError(err)
 
 	suite.ctx = app.BaseApp.NewContext(checkTx, tmproto.Header{Height: 1, Time: suite.now}).WithGasMeter(sdk.NewInfiniteGasMeter())
-	wasmConfig := wasm.VMConfig{
-		DataDir:           "tmp",
-		SupportedFeatures: []string{"storage", "iterator"},
-		MemoryLimitMb:     uint32(math.Pow(2, 12)),
-		PrintDebug:        true,
-		CacheSizeMb:       uint32(math.Pow(2, 8)),
-	}
-	validationConfig := wasm.ValidationConfig{
-		MaxSizeAllowed: int(math.Pow(2, 26)),
-	}
 	suite.store = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), exported.Wasm)
 
 	os.MkdirAll("tmp", 0o755)
-	wasm.CreateVM(&wasmConfig, &validationConfig)
+	suite.wasmKeeper = app.IBCKeeper.WasmClientKeeper
 	data, err = os.ReadFile("ics10_grandpa_cw.wasm")
 	suite.Require().NoError(err)
 
-	codeId, err := wasm.PushNewWasmCode(suite.store, data)
+	codeId, err := suite.wasmKeeper.PushNewWasmCode(suite.ctx, data)
 	suite.Require().NoError(err)
 
 	data, err = hex.DecodeString(suite.testData["client_state_a0"])

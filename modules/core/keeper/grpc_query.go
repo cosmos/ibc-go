@@ -6,7 +6,13 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v5/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
+	wasm "github.com/cosmos/ibc-go/v5/modules/light-clients/10-wasm"
 )
+
+// WasmCode implements the IBC QueryServer interface
+func (q Keeper) WasmCode(c context.Context, req *wasm.WasmCodeQuery) (*wasm.WasmCodeResponse, error) {
+	return q.WasmClientKeeper.WasmCode(c, req)
+}
 
 // ClientState implements the IBC QueryServer interface
 func (q Keeper) ClientState(c context.Context, req *clienttypes.QueryClientStateRequest) (*clienttypes.QueryClientStateResponse, error) {

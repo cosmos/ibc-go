@@ -19,6 +19,7 @@ import (
 	ibcclient "github.com/cosmos/ibc-go/v5/modules/core/02-client"
 	clientkeeper "github.com/cosmos/ibc-go/v5/modules/core/02-client/keeper"
 	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
+	wasmclient "github.com/cosmos/ibc-go/v5/modules/light-clients/10-wasm"
 	connectiontypes "github.com/cosmos/ibc-go/v5/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
@@ -74,6 +75,10 @@ func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *r
 		panic(err)
 	}
 	err = channeltypes.RegisterQueryHandlerClient(context.Background(), mux, channeltypes.NewQueryClient(clientCtx))
+	if err != nil {
+		panic(err)
+	}
+	err = wasmclient.RegisterQueryHandlerClient(context.Background(), mux, wasmclient.NewQueryClient(clientCtx))
 	if err != nil {
 		panic(err)
 	}
@@ -137,6 +142,7 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	clienttypes.RegisterMsgServer(cfg.MsgServer(), am.keeper)
 	connectiontypes.RegisterMsgServer(cfg.MsgServer(), am.keeper)
 	channeltypes.RegisterMsgServer(cfg.MsgServer(), am.keeper)
+	wasmclient.RegisterMsgServer(cfg.MsgServer(), am.keeper)
 	types.RegisterQueryService(cfg.QueryServer(), am.keeper)
 
 	m := clientkeeper.NewMigrator(am.keeper.ClientKeeper)

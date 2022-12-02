@@ -360,6 +360,18 @@
     - [Header](#ibc.lightclients.tendermint.v1.Header)
     - [Misbehaviour](#ibc.lightclients.tendermint.v1.Misbehaviour)
   
+- [ibc/lightclients/wasm/v1/query.proto](#ibc/lightclients/wasm/v1/query.proto)
+    - [WasmCodeQuery](#ibc.lightclients.wasm.v1.WasmCodeQuery)
+    - [WasmCodeResponse](#ibc.lightclients.wasm.v1.WasmCodeResponse)
+  
+    - [Query](#ibc.lightclients.wasm.v1.Query)
+  
+- [ibc/lightclients/wasm/v1/tx.proto](#ibc/lightclients/wasm/v1/tx.proto)
+    - [MsgPushNewWasmCode](#ibc.lightclients.wasm.v1.MsgPushNewWasmCode)
+    - [MsgPushNewWasmCodeResponse](#ibc.lightclients.wasm.v1.MsgPushNewWasmCodeResponse)
+  
+    - [Msg](#ibc.lightclients.wasm.v1.Msg)
+  
 - [ibc/lightclients/wasm/v1/wasm.proto](#ibc/lightclients/wasm/v1/wasm.proto)
     - [ClientState](#ibc.lightclients.wasm.v1.ClientState)
     - [ConsensusState](#ibc.lightclients.wasm.v1.ConsensusState)
@@ -5359,6 +5371,119 @@ that implements Misbehaviour interface expected by ICS-02
  <!-- end enums -->
 
  <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="ibc/lightclients/wasm/v1/query.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## ibc/lightclients/wasm/v1/query.proto
+
+
+
+<a name="ibc.lightclients.wasm.v1.WasmCodeQuery"></a>
+
+### WasmCodeQuery
+WasmCode query
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `code_id` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="ibc.lightclients.wasm.v1.WasmCodeResponse"></a>
+
+### WasmCodeResponse
+WasmCode response
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `code` | [bytes](#bytes) |  |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+
+<a name="ibc.lightclients.wasm.v1.Query"></a>
+
+### Query
+Query service for wasm module
+
+| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
+| ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `WasmCode` | [WasmCodeQuery](#ibc.lightclients.wasm.v1.WasmCodeQuery) | [WasmCodeResponse](#ibc.lightclients.wasm.v1.WasmCodeResponse) | Get Wasm code for given code id | GET|/ibc/core/wasm/v1beta1/code/{code_id}|
+
+ <!-- end services -->
+
+
+
+<a name="ibc/lightclients/wasm/v1/tx.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## ibc/lightclients/wasm/v1/tx.proto
+
+
+
+<a name="ibc.lightclients.wasm.v1.MsgPushNewWasmCode"></a>
+
+### MsgPushNewWasmCode
+Message type to push new wasm code
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `signer` | [string](#string) |  |  |
+| `code` | [bytes](#bytes) |  |  |
+
+
+
+
+
+
+<a name="ibc.lightclients.wasm.v1.MsgPushNewWasmCodeResponse"></a>
+
+### MsgPushNewWasmCodeResponse
+Response in case of successful handling
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `code_id` | [bytes](#bytes) |  |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+
+<a name="ibc.lightclients.wasm.v1.Msg"></a>
+
+### Msg
+Msg defines the ibc/wasm Msg service.
+
+| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
+| ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `PushNewWasmCode` | [MsgPushNewWasmCode](#ibc.lightclients.wasm.v1.MsgPushNewWasmCode) | [MsgPushNewWasmCodeResponse](#ibc.lightclients.wasm.v1.MsgPushNewWasmCodeResponse) | PushNewWasmCode defines a rpc handler method for PushNewWasmCode. | |
 
  <!-- end services -->
 

@@ -107,6 +107,7 @@ import (
 	ibchost "github.com/cosmos/ibc-go/v5/modules/core/24-host"
 	ibckeeper "github.com/cosmos/ibc-go/v5/modules/core/keeper"
 	ibcmock "github.com/cosmos/ibc-go/v5/testing/mock"
+	ibcwasm "github.com/cosmos/ibc-go/v5/modules/light-clients/10-wasm"
 	simappparams "github.com/cosmos/ibc-go/v5/testing/simapp/params"
 	simappupgrades "github.com/cosmos/ibc-go/v5/testing/simapp/upgrades"
 	ibctestingtypes "github.com/cosmos/ibc-go/v5/testing/types"
@@ -148,6 +149,7 @@ var (
 		crisis.AppModuleBasic{},
 		slashing.AppModuleBasic{},
 		ibc.AppModuleBasic{},
+		ibcwasm.AppModuleBasic{},
 		feegrantmodule.AppModuleBasic{},
 		upgrade.AppModuleBasic{},
 		evidence.AppModuleBasic{},
@@ -346,7 +348,6 @@ func NewSimApp(
 	app.AuthzKeeper = authzkeeper.NewKeeper(keys[authzkeeper.StoreKey], appCodec, app.MsgServiceRouter(), app.AccountKeeper)
 
 	// IBC Keepers
-
 	app.IBCKeeper = ibckeeper.NewKeeper(
 		appCodec, keys[ibchost.StoreKey], app.GetSubspace(ibchost.ModuleName), app.StakingKeeper, app.UpgradeKeeper, scopedIBCKeeper,
 	)
