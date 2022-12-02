@@ -87,7 +87,7 @@ func (t *proofTestSuite) TestMultiConsensusProof() {
 	verify := func(paths ibctesting.LinkedPaths) error {
 		consStateProofs, err := ibctesting.GenerateMultiHopConsensusProof(paths)
 		t.Require().NoError(err, "failed to generate multi-hop proof for consensus state")
-		return ibctesting.VerifyMultiHopConsensusStateProof(paths.Z(), consStateProofs.Proofs)
+		return ibctesting.VerifyMultiHopConsensusStateProof(paths.Z(), consStateProofs)
 	}
 
 	t.Require().
