@@ -12,6 +12,7 @@ import (
 
 // AccountKeeper defines the contract required for account APIs.
 type AccountKeeper interface {
+	GetAccount(ctx sdk.Context, addr sdk.AccAddress) types.AccountI
 	GetModuleAddress(name string) sdk.AccAddress
 	GetModuleAccount(ctx sdk.Context, name string) types.ModuleAccountI
 	SetModuleAccount(ctx sdk.Context, macc types.ModuleAccountI)

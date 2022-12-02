@@ -17,6 +17,15 @@ func (k Keeper) GetEscrowAccount(ctx sdk.Context, sourcePort, sourceChannel stri
 	// https://docs.cosmos.network/main/architecture/adr-028-public-key-addresses
 	escrowAddress := types.GetEscrowAddress(sourcePort, sourceChannel)
 
+    // check if account already exists
+    if existingAcc := k.authKeeper.GetAccount(ctx, escrowAddress); existingAcc != nil {
+        existingAcc, isModuleAccount := existingAcc.(authtypes.ModuleAccountI)
+        // use existent account if it's ModuleAccount. Otherwise create a new ModuleAccount
+        if isModuleAccount {
+            return existingAcc
+        }
+    }
+
 	baseAcc := authtypes.NewBaseAccountWithAddress(escrowAddress)
 	// no special permissions defined for the module account
 	escrowModuleAcc := authtypes.NewModuleAccount(baseAcc, escrowAccountName)
