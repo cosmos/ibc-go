@@ -8,7 +8,9 @@ import (
 	"github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 )
 
-// GetEscrowAccount creates a module account to escrow the transferred coins
+// GetEscrowAccount returns the escrow account (ModuleAccount) for the corresponding source and port.
+// If the account exists but is not a ModuleAccount, the existing account is migrated to this account type. 
+// If the escrow account does not exist, this function creates a new module account to escrow the transferred coins
 func (k Keeper) GetEscrowAccount(ctx sdk.Context, sourcePort, sourceChannel string) authtypes.ModuleAccountI {
 	// name of the escrow Module Account is derived from the source port and channel ID
 	accountName := fmt.Sprintf("%s/%s", sourcePort, sourceChannel)
