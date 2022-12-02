@@ -14,6 +14,7 @@ import (
 type AccountKeeper interface {
 	GetModuleAddress(name string) sdk.AccAddress
 	GetModuleAccount(ctx sdk.Context, name string) types.ModuleAccountI
+	SetModuleAccount(ctx sdk.Context, macc types.ModuleAccountI)
 }
 
 // BankKeeper defines the expected bank keeper

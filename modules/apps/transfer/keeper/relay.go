@@ -100,12 +100,12 @@ func (k Keeper) sendTransfer(
 	if types.SenderChainIsSource(sourcePort, sourceChannel, fullDenomPath) {
 		labels = append(labels, telemetry.NewLabel(coretypes.LabelSource, "true"))
 
-		// create the escrow address for the tokens
-		escrowAddress := types.GetEscrowAddress(sourcePort, sourceChannel)
+		// create an escrow Module Account derived from the source port and channel ID
+		escrowAccount := k.GetEscrowAccount(ctx, sourcePort, sourceChannel)
 
 		// escrow source tokens. It fails if balance insufficient.
 		if err := k.bankKeeper.SendCoins(
-			ctx, sender, escrowAddress, sdk.NewCoins(token),
+			ctx, sender, escrowAccount.GetAddress(), sdk.NewCoins(token),
 		); err != nil {
 			return 0, err
 		}

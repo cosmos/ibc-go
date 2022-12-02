@@ -285,7 +285,8 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 			trace = types.ParseDenomTrace(types.GetPrefixedDenom(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, sdk.DefaultBondDenom))
 		}, true, true},
 		{"successful refund from source chain", failedAck, func() {
-			escrow := types.GetEscrowAddress(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+			escrowAccount := suite.chainA.GetSimApp().TransferKeeper.GetEscrowAccount(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+			escrow := escrowAccount.GetAddress()
 			trace = types.ParseDenomTrace(sdk.DefaultBondDenom)
 			coin := sdk.NewCoin(sdk.DefaultBondDenom, amount)
 
@@ -300,7 +301,8 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 		{
 			"successful refund from with coin from external chain", failedAck,
 			func() {
-				escrow := types.GetEscrowAddress(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				escrowAccount := suite.chainA.GetSimApp().TransferKeeper.GetEscrowAccount(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				escrow := escrowAccount.GetAddress()
 				trace = types.ParseDenomTrace(types.GetPrefixedDenom(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, sdk.DefaultBondDenom))
 				coin := sdk.NewCoin(trace.IBCDenom(), amount)
 
@@ -364,7 +366,8 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 		{
 			"successful timeout from sender as source chain",
 			func() {
-				escrow := types.GetEscrowAddress(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				escrowAccount := suite.chainA.GetSimApp().TransferKeeper.GetEscrowAccount(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				escrow := escrowAccount.GetAddress()
 				trace = types.ParseDenomTrace(sdk.DefaultBondDenom)
 				coin := sdk.NewCoin(trace.IBCDenom(), amount)
 
@@ -374,7 +377,8 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 		{
 			"successful timeout from external chain",
 			func() {
-				escrow := types.GetEscrowAddress(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				escrowAccount := suite.chainA.GetSimApp().TransferKeeper.GetEscrowAccount(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				escrow := escrowAccount.GetAddress()
 				trace = types.ParseDenomTrace(types.GetPrefixedDenom(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, sdk.DefaultBondDenom))
 				coin := sdk.NewCoin(trace.IBCDenom(), amount)
 
