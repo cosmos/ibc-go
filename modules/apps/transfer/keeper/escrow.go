@@ -11,14 +11,14 @@ import (
 // GetEscrowAccount creates a module account to escrow the transferred coins
 func (k Keeper) GetEscrowAccount(ctx sdk.Context, sourcePort, sourceChannel string) authtypes.ModuleAccountI {
 	// name of the escrow Module Account is derived from the source port and channel ID
-	escrowAccountName := fmt.Sprintf("%s/%s", sourcePort, sourceChannel)
+	accountName := fmt.Sprintf("%s/%s", sourcePort, sourceChannel)
 
 	// create escrow address for the tokens as defined by ADR-028
 	// https://docs.cosmos.network/main/architecture/adr-028-public-key-addresses
-	escrowAddress := types.GetEscrowAddress(sourcePort, sourceChannel)
+	address := types.GetEscrowAddress(sourcePort, sourceChannel)
 
     // check if account already exists
-    if existingAcc := k.authKeeper.GetAccount(ctx, escrowAddress); existingAcc != nil {
+    if existingAcc := k.authKeeper.GetAccount(ctx, address); existingAcc != nil {
         existingAcc, isModuleAccount := existingAcc.(authtypes.ModuleAccountI)
         // use existent account if it's ModuleAccount. Otherwise create a new ModuleAccount
         if isModuleAccount {
@@ -26,10 +26,10 @@ func (k Keeper) GetEscrowAccount(ctx sdk.Context, sourcePort, sourceChannel stri
         }
     }
 
-	baseAcc := authtypes.NewBaseAccountWithAddress(escrowAddress)
+	baseAcc := authtypes.NewBaseAccountWithAddress(address)
 	// no special permissions defined for the module account
-	escrowModuleAcc := authtypes.NewModuleAccount(baseAcc, escrowAccountName)
-	k.authKeeper.SetModuleAccount(ctx, escrowModuleAcc)
+	moduleAcc := authtypes.NewModuleAccount(baseAcc, accountName)
+	k.authKeeper.SetModuleAccount(ctx, moduleAcc)
 
-	return escrowModuleAcc
+	return moduleAcc
 }

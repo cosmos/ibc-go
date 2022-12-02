@@ -14,19 +14,19 @@ func (suite *KeeperTestSuite) TestGetEscrowAccount() {
 		channelID = ibctesting.GetChainID(1)
 	)
 
-	escrowAcc := suite.chainA.GetSimApp().TransferKeeper.GetEscrowAccount(
+	acc := suite.chainA.GetSimApp().TransferKeeper.GetEscrowAccount(
 		suite.chainA.GetContext(),
 		portID,
 		channelID,
 	)
 
-	expectedAddres := types.GetEscrowAddress(portID, channelID)
-	suite.Require().Equal(expectedAddres, escrowAcc.GetAddress())
+	address := types.GetEscrowAddress(portID, channelID)
+	suite.Require().Equal(address, acc.GetAddress())
 
 	// Check if the created escrow address is a module account
-	acc := suite.chainA.GetSimApp().AccountKeeper.GetAccount(suite.chainA.GetContext(), expectedAddres)
+	moduleAcc := suite.chainA.GetSimApp().AccountKeeper.GetAccount(suite.chainA.GetContext(), address)
 
-	_, isModuleAccount := acc.(authtypes.ModuleAccountI)
+	_, isModuleAccount := moduleAcc.(authtypes.ModuleAccountI)
 	suite.Require().True(isModuleAccount)
 }
 
@@ -36,17 +36,17 @@ func (suite *KeeperTestSuite) TestEscrowAccountMigration() {
 		channelID = ibctesting.GetChainID(2)
 	)
 
-	escrowAddress := types.GetEscrowAddress(portID, channelID)
+	address := types.GetEscrowAddress(portID, channelID)
 
 	// fund escrow address
 	trace := types.ParseDenomTrace(sdk.DefaultBondDenom)
 	coin := sdk.NewCoin(trace.IBCDenom(), sdk.NewInt(100))
 
-	suite.Require().NoError(simapp.FundAccount(suite.chainA.GetSimApp(), suite.chainA.GetContext(), escrowAddress, sdk.NewCoins(coin)))
+	suite.Require().NoError(simapp.FundAccount(suite.chainA.GetSimApp(), suite.chainA.GetContext(), address, sdk.NewCoins(coin)))
 
 	// check if the escrow account is standard account
-	escrowAcc := suite.chainA.GetSimApp().AccountKeeper.GetAccount(suite.chainA.GetContext(), escrowAddress)
-	_, isModuleAccount := escrowAcc.(authtypes.ModuleAccountI)
+	acc := suite.chainA.GetSimApp().AccountKeeper.GetAccount(suite.chainA.GetContext(), address)
+	_, isModuleAccount := acc.(authtypes.ModuleAccountI)
 	suite.Require().False(isModuleAccount)
 
 	// migrate the escrow account to a ModuleAccount
@@ -57,11 +57,11 @@ func (suite *KeeperTestSuite) TestEscrowAccountMigration() {
 	)
 
 	// check if the escrow account type changed to ModuleAccount
-	escrowAcc = suite.chainA.GetSimApp().AccountKeeper.GetAccount(suite.chainA.GetContext(), escrowAddress)
-	_, isModuleAccount = escrowAcc.(authtypes.ModuleAccountI)
+	acc = suite.chainA.GetSimApp().AccountKeeper.GetAccount(suite.chainA.GetContext(), address)
+	_, isModuleAccount = acc.(authtypes.ModuleAccountI)
 	suite.Require().True(isModuleAccount)
 
 	// check that the balance remained the same after the migration
-	balance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), escrowAddress, trace.IBCDenom())
+	balance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), address, trace.IBCDenom())
 	suite.Require().Equal(coin.Amount.Int64(), balance.Amount.Int64())
 }
