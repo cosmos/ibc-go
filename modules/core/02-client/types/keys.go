@@ -36,6 +36,8 @@ func FormatClientIdentifier(clientType string, sequence uint64) string {
 // parsing client identifiers. The client identifier must be in the form: `{client-type}-{N}
 // which per the specification only permits ASCII for the {client-type} segment and
 // 1 to 20 digits for the {N} segment.
+// `([\w-]+\w)?` allows for a letter or hyphen, with the {client-type} starting with a letter
+// and ending with a letter, i.e. `letter+(letter|hypen+letter)?`.
 var IsClientIDFormat = regexp.MustCompile(`^\w+([\w-]+\w)?-[0-9]{1,20}$`).MatchString
 
 // IsValidClientID checks if the clientID is valid and can be parsed into the client
