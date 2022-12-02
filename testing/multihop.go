@@ -10,6 +10,7 @@ import (
 	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
 	ibctmtypes "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint/types"
+	"github.com/stretchr/testify/suite"
 )
 
 // GenerateMultiHopProof generate a proof for key path on the source (aka. paths[0].EndpointA) verified on the dest chain (aka.
@@ -277,4 +278,30 @@ func (paths LinkedPaths) Reverse() LinkedPaths {
 		reversed = append(reversed, path)
 	}
 	return reversed
+}
+
+// CreateLinkedChains creates `num` chains and set up a Path between each pair of chains
+// return the coordinator, the `num` chains, and `num-1` connected Paths
+func CreateLinkedChains(
+	t *suite.Suite,
+	num int,
+) (*Coordinator, LinkedPaths) {
+	coord := NewCoordinator(t.T(), num)
+	paths := make([]*Path, num-1)
+
+	for i := 0; i < num-1; i++ {
+		paths[i] = NewPath(coord.GetChain(GetChainID(i+1)), coord.GetChain(GetChainID(i+2)))
+	}
+
+	// create connections for each path
+	for _, path := range paths {
+		path := path
+		t.Require().Equal(path.EndpointA.ConnectionID, "")
+		t.Require().Equal(path.EndpointB.ConnectionID, "")
+		coord.SetupConnections(path)
+		t.Require().NotEqual(path.EndpointA.ConnectionID, "")
+		t.Require().NotEqual(path.EndpointB.ConnectionID, "")
+	}
+
+	return coord, paths
 }

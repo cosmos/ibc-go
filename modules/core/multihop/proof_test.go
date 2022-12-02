@@ -19,7 +19,7 @@ type proofTestSuite struct {
 // This effectively tests that the multi-hop proof of a source chain's key/value pair is correctly verified by the
 // destination chain.
 func (t *proofTestSuite) TestMultiHopProof() {
-	_, _, paths := t.createLinkedChains(5)
+	_, paths := ibctesting.CreateLinkedChains(&t.Suite, 5)
 
 	// From chain A to Z, generate and verifyMembership multi-hop proof for A's connectionEnd of on Z
 	verifyMembership := func(paths ibctesting.LinkedPaths) error {
@@ -69,7 +69,7 @@ func (t *proofTestSuite) TestMultiHopProofNegative() {
 	for _, tc := range testCases {
 		tc := tc
 		t.Run(tc.name, func() {
-			_, _, paths := t.createLinkedChains(5)
+			_, paths := ibctesting.CreateLinkedChains(&t.Suite, 5)
 			tc.malleate(paths)
 			kvPath := host.ConnectionPath(paths.A().ConnectionID)
 			_, err := ibctesting.GenerateMultiHopProof(paths, kvPath)
@@ -81,7 +81,7 @@ func (t *proofTestSuite) TestMultiHopProofNegative() {
 
 // Test that A's consensus state can be verified by chain Z
 func (t *proofTestSuite) TestMultiConsensusProof() {
-	_, _, paths := t.createLinkedChains(5)
+	_, paths := ibctesting.CreateLinkedChains(&t.Suite, 5)
 
 	// From chain A to Z, generate and verify multi-hop proof for A's consensus state on Z
 	verify := func(paths ibctesting.LinkedPaths) error {
@@ -100,7 +100,7 @@ func (t *proofTestSuite) TestMultiConsensusProof() {
 // Given chain x-y-z, test that x's consensus state can be verified by y at y's height on z.
 // This test is how single-hop-ibc verifies various ibc constructs, eg. clients, connections, channels, packets, etc.
 func (t *proofTestSuite) TestClientStateProof() {
-	_, _, paths := t.createLinkedChains(3)
+	_, paths := ibctesting.CreateLinkedChains(&t.Suite, 3)
 
 	// lastClientState is the 2nd to last chain's client state, eg. chain Y's clientState in a connection from chains A
 	// to Z
@@ -149,8 +149,8 @@ func (t *proofTestSuite) TestClientStateProof() {
 func (t *proofTestSuite) TestGrandpaConsStateProof() {
 	// Create N chains and N-1 Paths like a linked list
 	N := 5
-	_, chains, paths := t.createLinkedChains(N)
-	t.Require().Equal(len(chains), N)
+	coord, paths := ibctesting.CreateLinkedChains(&t.Suite, N)
+	t.Require().Equal(len(coord.Chains), N)
 	t.Require().Equal(len(paths), N-1)
 
 	verify := func(
@@ -192,7 +192,7 @@ func (t *proofTestSuite) TestGrandpaConsStateProof() {
 		pathPS := paths[N-offset]
 		pathGP := paths[N-offset-1]
 		t.T().
-			Logf("offset=[%d]\tCons[%s] verifies Cons[%s]\n", offset, t.PathStr(pathPS), t.PathStr(pathGP))
+			Logf("offset=[%d]\tCons[%s] verifies Cons[%s]\n", offset, pathStr(pathPS), pathStr(pathGP))
 
 		heightPS := pathPS.EndpointB.GetClientState().GetLatestHeight()
 		verify(
@@ -203,32 +203,7 @@ func (t *proofTestSuite) TestGrandpaConsStateProof() {
 	}
 }
 
-// create `num` chains and set up a Path between each pair of chains
-// return the coordinator, the `num` chains, and `num-1` connected Paths
-func (t *proofTestSuite) createLinkedChains(
-	num int,
-) (*ibctesting.Coordinator, []*ibctesting.TestChain, ibctesting.LinkedPaths) {
-	coord, chains := t.createChains(num)
-	paths := make([]*ibctesting.Path, num-1)
-
-	for i := 0; i < num-1; i++ {
-		paths[i] = ibctesting.NewPath(chains[i], chains[i+1])
-	}
-
-	// create connections for each path
-	for _, path := range paths {
-		path := path
-		t.Require().Equal(path.EndpointA.ConnectionID, "")
-		t.Require().Equal(path.EndpointB.ConnectionID, "")
-		coord.SetupConnections(path)
-		t.Require().NotEqual(path.EndpointA.ConnectionID, "")
-		t.Require().NotEqual(path.EndpointB.ConnectionID, "")
-	}
-
-	return coord, chains, paths
-}
-
-func (t *proofTestSuite) PathStr(path *ibctesting.Path) string {
+func pathStr(path *ibctesting.Path) string {
 	return fmt.Sprintf("%s-%s", path.EndpointA.Chain.ChainID, path.EndpointB.Chain.ChainID)
 }
 
@@ -238,17 +213,6 @@ func (t *proofTestSuite) printEndpoint(endpoint *ibctesting.Endpoint) {
 		"self: %s, %s, counter-party: %s, %s, latest height: %d [%s]\n",
 		endpoint.ConnectionID, endpoint.ClientID, endpoint.Counterparty.ConnectionID, endpoint.Counterparty.ClientID, endpoint.Chain.LastHeader.GetHeight(), endpoint.Chain.ChainID,
 	)
-}
-
-// CreateChains creates numChains test chains and returns a coordinator along with the array of chains.
-func (t *proofTestSuite) createChains(numChains int) (*ibctesting.Coordinator, []*ibctesting.TestChain) {
-	var chains []*ibctesting.TestChain
-	coord := ibctesting.NewCoordinator(t.T(), numChains)
-	for i := 0; i < numChains; i++ {
-		// chainId starts at 1, eg. testchain1, testchain2, ...
-		chains = append(chains, coord.GetChain(ibctesting.GetChainID(i+1)))
-	}
-	return coord, chains
 }
 
 func TestProofTestSuite(t *testing.T) {
