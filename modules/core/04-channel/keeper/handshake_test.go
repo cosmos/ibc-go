@@ -301,6 +301,86 @@ func (suite *KeeperTestSuite) TestChanOpenTry() {
 	}
 }
 
+// TestChanOpenTryMultihop tests the OpenTry handshake call for channels over multiple connections.
+// It uses message passing to enter into the appropriate state and then calls ChanOpenTry directly.
+// The channel is being created on chainB. The port capability must be created on chainB before
+// ChanOpenTryMultihop can succeed.
+func (suite *KeeperTestSuite) TestChanOpenTryMultihop() {
+	var (
+		paths      ibctesting.LinkedPaths
+		portCap    *capabilitytypes.Capability
+		heightDiff uint64
+		numChains  int
+	)
+
+	testCases := []testCase{
+		{"multihop success", func() {
+			paths[0].EndpointA.ChanOpenInit()
+			chainZ := paths[len(paths)-1].EndpointB.Chain
+
+			chainZ.CreatePortCapability(chainZ.GetSimApp().ScopedIBCMockKeeper, ibctesting.MockPort)
+			portCap = chainZ.GetPortCapability(ibctesting.MockPort)
+		}, true},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
+			//suite.SetupTest() // reset
+			heightDiff = 0 // must be explicitly changed in malleate
+			numChains = 5
+			_, paths = ibctesting.CreateLinkedChains(&suite.Suite, numChains)
+
+			tc.malleate() // call ChanOpenInit and setup port capabilities
+
+			for _, path := range paths {
+				if path.EndpointB.ClientID != "" {
+					// ensure client is up to date
+					err := path.EndpointB.UpdateClient()
+					suite.Require().NoError(err)
+				}
+			}
+
+			endpointA := paths[0].EndpointA
+			endpointZ := paths[len(paths)-1].EndpointB
+
+			counterparty := types.NewCounterparty(endpointZ.ChannelConfig.PortID, ibctesting.FirstChannelID)
+			channelKey := host.ChannelKey(counterparty.PortId, counterparty.ChannelId)
+
+			proofs, err := ibctesting.GenerateMultiHopProof(paths, string(channelKey))
+			suite.Require().NoError(err)
+			proof, err := proofs.Marshal()
+			suite.Require().NoError(err)
+
+			proofHeight := proofs.Proofs[len(proofs.Proofs)-1].ConsensusState.Height
+			var connectionHops []string
+			for _, path := range paths {
+				connectionHops = append(connectionHops, path.EndpointB.ConnectionID)
+			}
+
+			channelID, cap, err := endpointZ.Chain.App.GetIBCKeeper().ChannelKeeper.ChanOpenTry(
+				endpointZ.Chain.GetContext(), types.ORDERED, connectionHops,
+				endpointZ.ChannelConfig.PortID, portCap, counterparty, endpointA.ChannelConfig.Version,
+				proof, malleateHeight(proofHeight, heightDiff),
+			)
+
+			if tc.expPass {
+				suite.Require().NoError(err)
+				suite.Require().NotNil(cap)
+
+				chanCap, ok := suite.chainB.App.GetScopedIBCKeeper().GetCapability(
+					endpointZ.Chain.GetContext(),
+					host.ChannelCapabilityPath(endpointZ.ChannelConfig.PortID, channelID),
+				)
+				suite.Require().True(ok, "could not retrieve channel capapbility after successful ChanOpenTry")
+				suite.Require().Equal(chanCap.String(), cap.String(), "channel capability is not correct")
+			} else {
+				suite.Require().Error(err)
+			}
+		})
+	}
+}
+
 // TestChanOpenAck tests the OpenAck handshake call for channels. It uses message passing
 // to enter into the appropriate state and then calls ChanOpenAck directly. The handshake
 // call is occurring on chainA.

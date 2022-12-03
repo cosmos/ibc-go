@@ -4,32 +4,26 @@ import (
 	"fmt"
 
 	"github.com/cosmos/cosmos-sdk/codec"
-	commitmenttypes "github.com/cosmos/ibc-go/v6/modules/core/23-commitment/types"
+	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
 	ibctmtypes "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint/types"
 )
-
-// ConsStateProof includes data necessary for verifying that A's consensus state on B is proven by B's
-// consensus state on C given chains A-B-C. The proof is queried from chain B, and the state represents
-// chain A's consensus state on B. The `prefixedKey` is the key of the A's consensus state on chain B.
-type ConsStateProof struct {
-	Proof       commitmenttypes.MerkleProof
-	State       exported.ConsensusState
-	PrefixedKey commitmenttypes.MerklePath
-}
 
 // VerifyMultiHopConsensusStateProof verifies the consensus state of paths[0].EndpointA on paths[len(paths)-1].EndpointB.
 func VerifyMultiHopConsensusStateProof(
 	consensusState exported.ConsensusState,
 	clientState exported.ClientState,
 	cdc codec.BinaryCodec,
-	proofs []*ConsStateProof,
+	proofs []*channeltypes.ConsStateProof,
 ) error {
 	tmclient := clientState.(*ibctmtypes.ClientState)
-
+	var consState exported.ConsensusState
 	for i := len(proofs) - 1; i >= 0; i-- {
 		consStateProof := proofs[i]
-		consStateBz, err := cdc.MarshalInterface(consStateProof.State)
+		if err := cdc.UnpackAny(consStateProof.ConsensusState.ConsensusState, &consState); err != nil {
+			return fmt.Errorf("failed to unpack consesnsus state: %w", err)
+		}
+		consStateBz, err := cdc.MarshalInterface(consState)
 		if err != nil {
 			return fmt.Errorf("failed to marshal consensus state: %w", err)
 		}
@@ -37,12 +31,12 @@ func VerifyMultiHopConsensusStateProof(
 		if err = consStateProof.Proof.VerifyMembership(
 			tmclient.GetProofSpecs(),
 			consensusState.GetRoot(),
-			consStateProof.PrefixedKey,
+			*consStateProof.PrefixedKey,
 			consStateBz,
 		); err != nil {
 			return fmt.Errorf("failed to verify proof: %w", err)
 		}
-		consensusState = consStateProof.State
+		consensusState = consState
 	}
 	return nil
 }
@@ -52,25 +46,27 @@ func VerifyMultiHopProofMembership(
 	consensusState exported.ConsensusState,
 	clientState exported.ClientState,
 	cdc codec.BinaryCodec,
-	proofs []*ConsStateProof,
+	proofs *channeltypes.MsgConsStateProofs,
 	value []byte,
 ) error {
-	if len(proofs) < 2 {
+	if len(proofs.Proofs) < 2 {
 		return fmt.Errorf(
 			"proof must have at least two elements where the first one is the proof for the key and the rest are for the consensus states",
 		)
 	}
-	if err := VerifyMultiHopConsensusStateProof(consensusState, clientState, cdc, proofs[1:]); err != nil {
+	if err := VerifyMultiHopConsensusStateProof(consensusState, clientState, cdc, proofs.Proofs[1:]); err != nil {
 		return fmt.Errorf("failed to verify consensus state proof: %w", err)
 	}
-	keyValueProof := proofs[0]
-	secondConsState := proofs[1].State
+	keyValueProof := proofs.Proofs[0]
+	var secondConsState exported.ConsensusState
+	if err := cdc.UnpackAny(proofs.Proofs[1].ConsensusState.ConsensusState, &secondConsState); err != nil {
+		return fmt.Errorf("failed to unpack consensus state: %w", err)
+	}
 	tmclient := clientState.(*ibctmtypes.ClientState)
-	err := keyValueProof.Proof.VerifyMembership(
+	return keyValueProof.Proof.VerifyMembership(
 		tmclient.GetProofSpecs(),
 		secondConsState.GetRoot(),
-		keyValueProof.PrefixedKey,
+		*keyValueProof.PrefixedKey,
 		value,
 	)
-	return err
 }

@@ -293,6 +293,10 @@ func CreateLinkedChains(
 		paths[i] = NewPath(coord.GetChain(GetChainID(i+1)), coord.GetChain(GetChainID(i+2)))
 	}
 
+	// for _, chain := range coord.Chains {
+	// 	coord.CommitNBlocks(chain, 2)
+	// }
+
 	// create connections for each path
 	for _, path := range paths {
 		path := path

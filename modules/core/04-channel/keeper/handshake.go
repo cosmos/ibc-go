@@ -133,9 +133,10 @@ func (k Keeper) ChanOpenTry(
 
 	// TODO: unpack connection state to get connectionEnd corresponding to source
 
-	connectionEnd, found := k.connectionKeeper.GetConnection(ctx, connectionHops[0])
+	// TODO: atm this is only checking the very last connection
+	connectionEnd, found := k.connectionKeeper.GetConnection(ctx, connectionHops[len(connectionHops)-1])
 	if !found {
-		return "", nil, sdkerrors.Wrap(connectiontypes.ErrConnectionNotFound, connectionHops[0])
+		return "", nil, sdkerrors.Wrap(connectiontypes.ErrConnectionNotFound, connectionHops[len(connectionHops)-1])
 	}
 
 	if connectionEnd.GetState() != int32(connectiontypes.OPEN) {
@@ -162,6 +163,7 @@ func (k Keeper) ChanOpenTry(
 		)
 	}
 
+	fmt.Printf("connID=%s %s\n", connectionEnd.GetCounterparty().GetConnectionID(), connectionHops[len(connectionHops)-1])
 	counterpartyHops := []string{connectionEnd.GetCounterparty().GetConnectionID()}
 
 	// expectedCounterpaty is the counterparty of the counterparty's channel end
@@ -173,7 +175,12 @@ func (k Keeper) ChanOpenTry(
 	)
 
 	if len(connectionHops) > 1 {
-		clientID := "client-0"
+		var proofs types.MsgConsStateProofs
+		if err := k.cdc.Unmarshal(proofInit, &proofs); err != nil {
+			return "", nil, err
+		}
+
+		clientID := connectionEnd.ClientId
 		clientState, found := k.clientKeeper.GetClientState(ctx, clientID)
 		if !found {
 			return "", nil, sdkerrors.Wrapf(clienttypes.ErrClientNotFound, "client state not found for client id: %s", clientID)
@@ -182,9 +189,13 @@ func (k Keeper) ChanOpenTry(
 		if !found {
 			return "", nil, sdkerrors.Wrapf(clienttypes.ErrConsensusStateNotFound, "consensus state %s not found for client id: %s", clientID)
 		}
-		conStateProof := make([]*mh.ConsStateProof, 3)
-		val := []byte("test")
-		if err := mh.VerifyMultiHopProofMembership(consensusState, clientState, k.cdc, conStateProof, val); err != nil {
+
+		val, err := k.cdc.Marshal(&expectedChannel)
+		if err != nil {
+			return "", nil, sdkerrors.Wrapf(sdkerrors.ErrJSONMarshal, "failed to marshal channelEnd")
+		}
+
+		if err := mh.VerifyMultiHopProofMembership(consensusState, clientState, k.cdc, &proofs, val); err != nil {
 			return "", nil, err
 		}
 	} else {
