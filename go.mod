@@ -2,18 +2,10 @@ go 1.18
 
 module github.com/cosmos/ibc-go/v6
 
-replace github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
-
 require (
 	cosmossdk.io/math v1.0.0-beta.3
-<<<<<<< HEAD
-	github.com/armon/go-metrics v0.4.0
-	github.com/confio/ics23/go v0.7.0
-=======
 	github.com/armon/go-metrics v0.4.1
 	github.com/confio/ics23/go v0.9.0
-	github.com/cosmos/cosmos-proto v1.0.0-alpha8
->>>>>>> 2132585 (deps: Bump ICS 23 to v0.9.0)
 	github.com/cosmos/cosmos-sdk v0.46.6
 	github.com/gogo/protobuf v1.3.3
 	github.com/golang/protobuf v1.5.2
@@ -57,7 +49,7 @@ require (
 	github.com/cockroachdb/apd/v2 v2.0.2 // indirect
 	github.com/coinbase/rosetta-sdk-go v0.7.9 // indirect
 	github.com/cosmos/btcutil v1.0.4 // indirect
-	github.com/cosmos/cosmos-proto v1.0.0-alpha7 // indirect
+	github.com/cosmos/cosmos-proto v1.0.0-alpha8 // indirect
 	github.com/cosmos/go-bip39 v1.0.0 // indirect
 	github.com/cosmos/gorocksdb v1.2.0 // indirect
 	github.com/cosmos/iavl v0.19.4 // indirect
@@ -162,8 +154,5 @@ require (
 	nhooyr.io/websocket v1.8.6 // indirect
 	sigs.k8s.io/yaml v1.3.0 // indirect
 )
-<<<<<<< HEAD
-=======
 
 replace github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
->>>>>>> 2132585 (deps: Bump ICS 23 to v0.9.0)
