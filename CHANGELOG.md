@@ -38,6 +38,12 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Dependencies
 
+<<<<<<< HEAD
+=======
+* [\#2868](https://github.com/cosmos/ibc-go/pull/2868) Bump ICS 23 to v0.9.0. 
+* [\#2784](https://github.com/cosmos/ibc-go/pull/2784) Bump Cosmos SDK to v0.46.6 and Tendermint to v0.34.23.
+
+>>>>>>> 2132585 (deps: Bump ICS 23 to v0.9.0)
 ### API Breaking
 
 ### State Machine Breaking
