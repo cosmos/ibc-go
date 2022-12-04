@@ -4,8 +4,14 @@ module github.com/cosmos/ibc-go/v5
 
 require (
 	cosmossdk.io/math v1.0.0-beta.3
+<<<<<<< HEAD
 	github.com/armon/go-metrics v0.4.0
 	github.com/confio/ics23/go v0.7.0
+=======
+	github.com/armon/go-metrics v0.4.1
+	github.com/confio/ics23/go v0.9.0
+	github.com/cosmos/cosmos-proto v1.0.0-alpha8
+>>>>>>> 2132585 (deps: Bump ICS 23 to v0.9.0)
 	github.com/cosmos/cosmos-sdk v0.46.6
 	github.com/gogo/protobuf v1.3.3
 	github.com/golang/protobuf v1.5.2
@@ -138,12 +144,19 @@ require (
 	github.com/zondax/hid v0.9.1-0.20220302062450-5552068d2266 // indirect
 	go.etcd.io/bbolt v1.3.6 // indirect
 	go.opencensus.io v0.23.0 // indirect
-	golang.org/x/crypto v0.1.0 // indirect
+	golang.org/x/crypto v0.2.0 // indirect
 	golang.org/x/exp v0.0.0-20220722155223-a9213eeb770e // indirect
+<<<<<<< HEAD
 	golang.org/x/net v0.1.0 // indirect
 	golang.org/x/oauth2 v0.0.0-20220622183110-fd043fe589d2 // indirect
 	golang.org/x/sys v0.1.0 // indirect
 	golang.org/x/term v0.1.0 // indirect
+=======
+	golang.org/x/net v0.2.0 // indirect
+	golang.org/x/oauth2 v0.0.0-20221014153046-6fdb5e3db783 // indirect
+	golang.org/x/sys v0.2.0 // indirect
+	golang.org/x/term v0.2.0 // indirect
+>>>>>>> 2132585 (deps: Bump ICS 23 to v0.9.0)
 	golang.org/x/text v0.4.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220609144429-65e65417b02f // indirect
 	google.golang.org/api v0.93.0 // indirect
@@ -154,9 +167,4 @@ require (
 	sigs.k8s.io/yaml v1.3.0 // indirect
 )
 
-replace (
-	// dragonberry replace for ics23
-	github.com/confio/ics23/go => github.com/cosmos/cosmos-sdk/ics23/go v0.8.0
-
-	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
-)
+replace github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
