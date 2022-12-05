@@ -103,6 +103,14 @@ func (a TransferAuthorization) ValidateBasic() error {
 		if err := host.ChannelIdentifierValidator(allocation.SourceChannel); err != nil {
 			return sdkerrors.Wrap(err, "invalid source channel ID")
 		}
+
+		found := make(map[string]bool, 0)
+		for i := 0; i < len(allocation.AllowedAddresses); i++ {
+			if found[allocation.AllowedAddresses[i]] {
+				return ErrDuplicateEntry
+			}
+			found[allocation.AllowedAddresses[i]] = true
+		}
 	}
 	return nil
 }
