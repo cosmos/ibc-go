@@ -8,29 +8,31 @@ Learn how to implement the [Client State](https://github.com/cosmos/ibc-go/blob/
 
 ### ClientType
 
-`ClientType() string` should return a unique string identifier of the light client.
+`ClientType` should return a unique string identifier of the light client.
 
 ### GetLatestHeight
 
-`GetLatestHeight() Height` should return the latest block height.
+`GetLatestHeight` should return the latest block height.
 
 ### Validate
 
-`Validate() error` should return an error if the given ClientState values are invalid.
+`Validate` should validate every client state field and should return an error if any value is invalid. The light client
+implementor is in charge of determining which checks are required. See the [tendermint light client implementation](https://github.com/cosmos/ibc-go/blob/main/modules/light-clients/07-tendermint/client_state.go#L111)
+as a reference.
 
 ### Status
 
-`Status() Status` must return the status of the client. Only Active clients are allowed to process packets. All
+`Status` must return the status of the client. Only `Active` clients are allowed to process packets. All
 possible Status types can be found [here](https://github.com/cosmos/ibc-go/blob/main/modules/core/exported/client.go).
 
 ### ZeroCustomFields
 
-`ZeroCustomFields() ClientState` should zero out any client customizable fields in client state. Ledger enforced
-fields are maintained while all custom fields are zero values, this is [used to verify upgrades](https://github.com/cosmos/ibc-go/blob/main/modules/core/02-client/types/proposal.go#L120).
+`ZeroCustomFields` should return a copy of the light client with all client customizable fields with their zero value. It should not mutate the fields of the light client.
+This method is used to [verify upgrades](https://github.com/cosmos/ibc-go/blob/main/modules/core/02-client/types/proposal.go#L120) and when [scheduling upgrades](https://github.com/cosmos/ibc-go/blob/main/modules/core/02-client/keeper/proposal.go#L82).
 
 ### GetTimestampAtHeight
 
-`GetTimestampAtHeight` must return the timestamp for the consensus state associated with the provided block height.
+`GetTimestampAtHeight` must return the timestamp for the consensus state associated with the provided height.
 
 ### Initialize
 
@@ -41,12 +43,13 @@ for correct light client operations in the `Initialize` function.
 
 ### VerifyMembership
 
-`VerifyMembership` is a generic proof verification method which verifies a proof of the existence of a value at a given CommitmentPath at the specified height.
-The caller is expected to construct the full CommitmentPath from a CommitmentPrefix and a standardized path (as defined in ICS 24).
+`VerifyMembership` must verify the existence of a value at a given CommitmentPath at the specified height.
+The caller of this function is expected to construct the full CommitmentPath from a CommitmentPrefix and a standardized
+path (as defined in ICS 24).
 
 ### VerifyNonMembership
 
-`VerifyNonMembership` is a generic proof verification method which verifies the absence of a given CommitmentPath at a specified height.
+`VerifyNonMembership` must verify the absence of a given CommitmentPath at a specified height.
 The caller is expected to construct the full CommitmentPath from a CommitmentPrefix and a standardized path (as defined in ICS 24).
 
 ### VerifyClientMessage
