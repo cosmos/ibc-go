@@ -9,6 +9,8 @@ import (
 	"golang.org/x/exp/slices"
 )
 
+const gasCostPerIteration = uint64(10)
+
 var (
 	_ authz.Authorization = &TransferAuthorization{}
 )
@@ -34,8 +36,9 @@ func (a TransferAuthorization) MsgTypeURL() string {
 	return sdk.MsgTypeURL(&MsgTransfer{})
 }
 
-func IsAllowedAddress(receiver string, allowedAddrs []string) bool {
+func IsAllowedAddress(ctx sdk.Context, receiver string, allowedAddrs []string) bool {
 	for _, addr := range allowedAddrs {
+		ctx.GasMeter().ConsumeGas(gasCostPerIteration, "transfer authorization")
 		if addr == receiver {
 			return true
 		}
@@ -57,7 +60,7 @@ func (a TransferAuthorization) Accept(ctx sdk.Context, msg sdk.Msg) (authz.Accep
 				return authz.AcceptResponse{}, sdkerrors.ErrInsufficientFunds.Wrapf("requested amount is more than spend limit")
 			}
 
-			if !IsAllowedAddress(mTransfer.Receiver, allocation.AllowedAddresses) {
+			if !IsAllowedAddress(ctx, mTransfer.Receiver, allocation.AllowedAddresses) {
 				return authz.AcceptResponse{}, sdkerrors.ErrInsufficientFunds.Wrapf("not allowed address for transfer")
 			}
 
