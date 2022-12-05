@@ -6,7 +6,7 @@ order: 7
 
 ## CLI
 
-A user can query and interact with the Interchain accounts module using the CLI.
+A user can query and interact with the Interchain Accounts module using the CLI.
 
 ### Controller
 
@@ -22,7 +22,7 @@ simd query interchain-accounts controller --help
 
 #### `interchain-account`
 
-The `interchain-account` allows users to query the controller submodule for the interchain account address for a given owner on a particular connection.
+The `interchain-account` command allows users to query the controller submodule for the interchain account address for a given owner on a particular connection.
 
 ```shell
 simd query interchain-accounts controller interchain-account [owner] [connection-id]
@@ -155,10 +155,10 @@ simd tx interchain-accounts host generate-packet-data '[{
       "amount": "1000"
     }
   ]
-}]'
+}]' --memo memo
 ```
 
-The command accepts a list of `sdk.Msg`s which will be encoded into the outputs `data` field.
+The command accepts a single `sdk.Msg` or a list of `sdk.Msg`s that will be encoded into the outputs `data` field.
 
 Example output:
 
@@ -166,7 +166,7 @@ Example output:
 {
   "type":"TYPE_EXECUTE_TX",
   "data":"CqIBChwvY29zbW9zLmJhbmsudjFiZXRhMS5Nc2dTZW5kEoEBCkFjb3Ntb3MxNWNjc2hobXAwZ3N4MjlxcHFxNmc0em1sdG5udmdteXU5dWV1YWRoOXkybmM1emowc3psczVndGRkehItY29zbW9zMTBoOXN0YzV2Nm50Z2V5Z2Y1eGY5NDVuanFxNWgzMnI1M3VxdXZ3Gg0KBXN0YWtlEgQxMDAw",
-  "memo":""
+  "memo":"memo"
 }
 ```
 

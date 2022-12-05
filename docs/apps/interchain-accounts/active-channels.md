@@ -8,7 +8,7 @@ The Interchain Accounts module uses [ORDERED channels](https://github.com/cosmos
 
 In the case of a channel closing, a controller chain needs to be able to regain access to the interchain account registered on this channel. `Active Channels` enable this functionality. 
 
-When an Interchain Account is registered using `MsgRegisterInterchainAccount`, a new channel is created on a particular port. During the `OnChanOpenAck` and `OnChanOpenConfirm` steps (on controller & host chain respectively) the `Active Channel` for this interchain account is stored in state.
+When an Interchain Account is registered using `MsgRegisterInterchainAccount`, a new channel is created on a particular port. During the `OnChanOpenAck` and `OnChanOpenConfirm` steps (on controller & host chain respectively) the `Active Channel` for this interchain account is stored in state. 
 
 It is possible to create a new channel using the same controller chain portID if the previously set `Active Channel` is now in a `CLOSED` state. This channel creation can be initialized programatically by sending a new `MsgChannelOpenInit` message like so:
 
