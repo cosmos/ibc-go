@@ -46,9 +46,9 @@ service Query {
     option (google.api.http).get = "/ibc/core/client/v1/client_status/{client_id}";
   }
 
-  // ClientParams queries all parameters of the ibc client.
+  // ClientParams queries all parameters of the ibc client submodule.
   rpc ClientParams(QueryClientParamsRequest) returns (QueryClientParamsResponse) {
-    option (google.api.http).get = "/ibc/client/v1/params";
+    option (google.api.http).get = "/ibc/core/client/v1/params";
   }
 
   // UpgradedClientState queries an Upgraded IBC light client.

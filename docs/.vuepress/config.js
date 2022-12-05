@@ -105,6 +105,10 @@ module.exports = {
         key: "v2.4.0",
       },
       {
+        label: "v2.5.0",
+        key: "v2.5.0",
+      },
+      {
         label: "v3.0.0",
         key: "v3.0.0",
       },
@@ -121,12 +125,28 @@ module.exports = {
         key: "v3.3.0",
       },
       {
+        label: "v3.4.0",
+        key: "v3.4.0",
+      },
+      {
         label: "v4.0.0",
         key: "v4.0.0",
       },
       {
         label: "v4.1.0",
         key: "v4.1.0",
+      },
+      {
+        label: "v4.2.0",
+        key: "v4.2.0",
+      },
+      {
+        label: "v5.0.0",
+        key: "v5.0.0",
+      },
+      {
+        label: "v5.1.0",
+        key: "v5.1.0",
       },
     ],
     topbar: {
@@ -199,19 +219,14 @@ module.exports = {
                   path: "/apps/interchain-accounts/overview.html",
                 },
                 {
-                  title: "Authentication Modules",
-                  directory: false,
-                  path: "/apps/interchain-accounts/auth-modules.html",
-                },
-                {
-                  title: "Active Channels",
-                  directory: false,
-                  path: "/apps/interchain-accounts/active-channels.html",
-                },
-                {
                   title: "Integration",
                   directory: false,
                   path: "/apps/interchain-accounts/integration.html",
+                },
+                {
+                  title: "Messages",
+                  directory: false,
+                  path: "/apps/interchain-accounts/messages.html",
                 },
                 {
                   title: "Parameters",
@@ -219,9 +234,19 @@ module.exports = {
                   path: "/apps/interchain-accounts/parameters.html",
                 },
                 {
-                  title: "Transactions",
+                  title: "Development Use Cases",
                   directory: false,
-                  path: "/apps/interchain-accounts/transactions.html",
+                  path: "/apps/interchain-accounts/development.html",
+                },
+                {
+                  title: "Active Channels",
+                  directory: false,
+                  path: "/apps/interchain-accounts/active-channels.html",
+                },
+                {
+                  title: "Authentication Modules",
+                  directory: false,
+                  path: "/apps/interchain-accounts/auth-modules.html",
                 },
               ],
             },
@@ -339,6 +364,21 @@ module.exports = {
               title: "IBC-Go v3 to v4",
               directory: false,
               path: "/migrations/v3-to-v4.html",
+            },
+            {
+              title: "IBC-Go v4 to v5",
+              directory: false,
+              path: "/migrations/v4-to-v5.html",
+            },
+            {
+              title: "IBC-Go v5 to v6",
+              directory: false,
+              path: "/migrations/v5-to-v6.html",
+            },
+            {
+              title: "IBC-Go v6 to v7",
+              directory: false,
+              path: "/migrations/v6-to-v7.html",
             },
           ],
         },

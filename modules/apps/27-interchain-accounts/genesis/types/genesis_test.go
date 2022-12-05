@@ -221,7 +221,7 @@ func (suite *GenesisTypesTestSuite) TestValidateHostGenesisState() {
 					},
 				}
 
-				genesisState = genesistypes.NewHostGenesisState(activeChannels, []genesistypes.RegisteredInterchainAccount{}, icatypes.PortID, hosttypes.DefaultParams())
+				genesisState = genesistypes.NewHostGenesisState(activeChannels, []genesistypes.RegisteredInterchainAccount{}, icatypes.HostPortID, hosttypes.DefaultParams())
 			},
 			false,
 		},
@@ -235,7 +235,7 @@ func (suite *GenesisTypesTestSuite) TestValidateHostGenesisState() {
 					},
 				}
 
-				genesisState = genesistypes.NewHostGenesisState(activeChannels, []genesistypes.RegisteredInterchainAccount{}, icatypes.PortID, hosttypes.DefaultParams())
+				genesisState = genesistypes.NewHostGenesisState(activeChannels, []genesistypes.RegisteredInterchainAccount{}, icatypes.HostPortID, hosttypes.DefaultParams())
 			},
 			false,
 		},
@@ -256,7 +256,7 @@ func (suite *GenesisTypesTestSuite) TestValidateHostGenesisState() {
 					},
 				}
 
-				genesisState = genesistypes.NewHostGenesisState(activeChannels, registeredAccounts, icatypes.PortID, hosttypes.DefaultParams())
+				genesisState = genesistypes.NewHostGenesisState(activeChannels, registeredAccounts, icatypes.HostPortID, hosttypes.DefaultParams())
 			},
 			false,
 		},
@@ -277,7 +277,7 @@ func (suite *GenesisTypesTestSuite) TestValidateHostGenesisState() {
 					},
 				}
 
-				genesisState = genesistypes.NewHostGenesisState(activeChannels, registeredAccounts, icatypes.PortID, hosttypes.DefaultParams())
+				genesisState = genesistypes.NewHostGenesisState(activeChannels, registeredAccounts, icatypes.HostPortID, hosttypes.DefaultParams())
 			},
 			false,
 		},

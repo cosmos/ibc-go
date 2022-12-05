@@ -11,7 +11,7 @@ import (
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
-	"github.com/strangelove-ventures/ibctest/ibc"
+	"github.com/strangelove-ventures/ibctest/v6/ibc"
 	tmjson "github.com/tendermint/tendermint/libs/json"
 	tmtypes "github.com/tendermint/tendermint/types"
 
@@ -31,10 +31,14 @@ const (
 	GoRelayerTagEnv = "RLY_TAG"
 	// ChainBinaryEnv binary is the binary that will be used for both chains.
 	ChainBinaryEnv = "CHAIN_BINARY"
+	// ChainUpgradeTagEnv specifies the upgrade version tag
+	ChainUpgradeTagEnv = "CHAIN_UPGRADE_TAG"
 	// defaultBinary is the default binary that will be used by the chains.
 	defaultBinary = "simd"
 	// defaultRlyTag is the tag that will be used if no relayer tag is specified.
 	defaultRlyTag = "main"
+	// defaultChainTag is the tag that will be used for the chains if none is specified.
+	defaultChainTag = "main"
 )
 
 func getChainImage(binary string) string {
@@ -49,6 +53,7 @@ type TestConfig struct {
 	ChainAConfig ChainConfig
 	ChainBConfig ChainConfig
 	RlyTag       string
+	UpgradeTag   string
 }
 
 type ChainConfig struct {
@@ -66,7 +71,7 @@ func FromEnv() TestConfig {
 
 	chainATag, ok := os.LookupEnv(ChainATagEnv)
 	if !ok {
-		panic(fmt.Sprintf("must specify %s version for test with environment variable [%s]", chainBinary, ChainATagEnv))
+		chainATag = defaultChainTag
 	}
 
 	chainBTag, ok := os.LookupEnv(ChainBTagEnv)
@@ -86,6 +91,11 @@ func FromEnv() TestConfig {
 	}
 	chainBImage := chainAImage
 
+	upgradeTag, ok := os.LookupEnv(ChainUpgradeTagEnv)
+	if !ok {
+		upgradeTag = ""
+	}
+
 	return TestConfig{
 		ChainAConfig: ChainConfig{
 			Image:  chainAImage,
@@ -97,7 +107,8 @@ func FromEnv() TestConfig {
 			Tag:    chainBTag,
 			Binary: chainBinary,
 		},
-		RlyTag: rlyTag,
+		RlyTag:     rlyTag,
+		UpgradeTag: upgradeTag,
 	}
 }
 
@@ -159,14 +170,14 @@ func newDefaultSimappConfig(cc ChainConfig, name, chainID, denom string) ibc.Cha
 		GasAdjustment:  1.3,
 		TrustingPeriod: "508h",
 		NoHostMount:    false,
-		ModifyGenesis:  defaultModifyGenesis(denom),
+		ModifyGenesis:  defaultModifyGenesis(),
 	}
 }
 
 // defaultModifyGenesis will only modify governance params to ensure the voting period and minimum deposit
 // are functional for e2e testing purposes.
-func defaultModifyGenesis(denom string) func([]byte) ([]byte, error) {
-	return func(genbz []byte) ([]byte, error) {
+func defaultModifyGenesis() func(ibc.ChainConfig, []byte) ([]byte, error) {
+	return func(chainConfig ibc.ChainConfig, genbz []byte) ([]byte, error) {
 		genDoc, err := tmtypes.GenesisDocFromJSON(genbz)
 		if err != nil {
 			return nil, fmt.Errorf("failed to unmarshal genesis bytes into genesis doc: %w", err)
@@ -187,7 +198,7 @@ func defaultModifyGenesis(denom string) func([]byte) ([]byte, error) {
 		}
 
 		// set correct minimum deposit using configured denom
-		govGenesisState.DepositParams.MinDeposit = sdk.NewCoins(sdk.NewCoin(denom, govv1beta1.DefaultMinDepositTokens))
+		govGenesisState.DepositParams.MinDeposit = sdk.NewCoins(sdk.NewCoin(chainConfig.Denom, govv1beta1.DefaultMinDepositTokens))
 		govGenesisState.VotingParams.VotingPeriod = testvalues.VotingPeriod
 
 		govGenBz, err := cdc.MarshalJSON(govGenesisState)
