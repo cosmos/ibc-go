@@ -74,11 +74,6 @@ func handleSolomachineMigration(ctx sdk.Context, store sdk.KVStore, cdc codec.Bi
 
 		updatedClientState := migrateSolomachine(clientState)
 
-		bz, err := clienttypes.MarshalClientState(cdc, &updatedClientState)
-		if err != nil {
-			return sdkerrors.Wrap(err, "failed to unmarshal client state bytes into solo machine client state")
-		}
-
 		// update solomachine in store
 		clientKeeper.SetClientState(ctx, clientID, &updatedClientState)
 
