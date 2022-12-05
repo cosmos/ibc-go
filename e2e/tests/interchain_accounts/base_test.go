@@ -406,6 +406,9 @@ func (s *InterchainAccountsTestSuite) TestMsgSubmitTx_SuccessfulTransfer_AfterRe
 
 		s.AssertValidTxResponse(resp)
 		s.Require().NoError(err)
+
+		// time for the packet to be relayed
+		s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA, chainB))
 	})
 
 	t.Run("verify tokens transferred", func(t *testing.T) {
