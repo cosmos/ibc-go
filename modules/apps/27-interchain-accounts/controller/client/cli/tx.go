@@ -78,16 +78,16 @@ appropriate relative timeoutTimestamp must be provided with flag {relative-packe
 			// attempt to unmarshal ica msg data argument
 			var icaMsgData icatypes.InterchainAccountPacketData
 			msgContentOrFileName := args[1]
-			if err := cdc.UnmarshalInterfaceJSON([]byte(msgContentOrFileName), &icaMsgData); err != nil {
+			if err := cdc.UnmarshalJSON([]byte(msgContentOrFileName), &icaMsgData); err != nil {
 
 				// check for file path if JSON input is not provided
 				contents, err := os.ReadFile(msgContentOrFileName)
 				if err != nil {
-					return fmt.Errorf("neither JSON input nor path to .json file for client state were provided: %w", err)
+					return fmt.Errorf("neither JSON input nor path to .json file for packet data with messages were provided: %w", err)
 				}
 
-				if err := cdc.UnmarshalInterfaceJSON(contents, &icaMsgData); err != nil {
-					return fmt.Errorf("error unmarshalling client state file: %w", err)
+				if err := cdc.UnmarshalJSON(contents, &icaMsgData); err != nil {
+					return fmt.Errorf("error unmarshalling packet data with messages file: %w", err)
 				}
 			}
 
