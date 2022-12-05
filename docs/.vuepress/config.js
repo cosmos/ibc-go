@@ -303,12 +303,12 @@ module.exports = {
               path: "/light-clients/overview.html",
             },
             {
-              title: "client_state.go and its functions",
+              title: "ClientState",
               directory: false,
               path: "light-clients/client-state.html",
             },
             {
-              title: "consensus_state.go and its functions",
+              title: "ConsensusState",
               directory: false,
               path: "/light-clients/consensus-state.html",
             },
