@@ -176,10 +176,7 @@ past historical info at any given height in order to verify the light client `Co
 connection handhake.
 
 The IBC module also has
-[`BeginBlock`](https://github.com/cosmos/ibc-go/blob/main/modules/core/02-client/abci.go) logic as
-well. This is optional as it is only required if your application uses the [localhost
-client](https://github.com/cosmos/ibc/blob/master/spec/client/ics-009-loopback-client) to connect two
-different modules from the same chain.
+[`BeginBlock`](https://github.com/cosmos/ibc-go/blob/main/modules/core/02-client/abci.go) logic as well. This is optional as it is only required if your application uses the localhost client to connect two different modules from the same chain.
 
 ::: tip
 Only register the ibc module to the `SetOrderBeginBlockers` if your application will use the
