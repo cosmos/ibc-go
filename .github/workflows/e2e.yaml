@@ -14,10 +14,6 @@ on:
       - "**.md"
       - "LICENSE"
 
-env:
-  REGISTRY: ghcr.io
-  IMAGE_NAME: ibc-go-simd
-
 jobs:
     determine-image-tag:
       if: ${{ !github.event.pull_request.head.repo.fork && github.actor != 'dependabot[bot]' }}
@@ -31,9 +27,14 @@ jobs:
             go-version: 1.18
         - id: get-tag
           run: |
-            tag=$(go run cmd/determine_simd_tag/main.go -pr "${{ github.event.pull_request.number }}" )
-            echo "Using tag $tag"
-            echo "simd-tag=$tag" >> $GITHUB_OUTPUT
+            if [ -z "${{ github.event.pull_request.number }}" ]
+            then
+              echo "simd-tag=main" >> $GITHUB_OUTPUT
+            else
+              tag="pr-${{ github.event.pull_request.number }}"
+              echo "Using tag $tag"
+              echo "simd-tag=$tag" >> $GITHUB_OUTPUT
+            fi
     e2e:
       if: ${{ !github.event.pull_request.head.repo.fork && github.actor != 'dependabot[bot]' }}
       needs:
