@@ -19,6 +19,7 @@ func GetQueryCmd() *cobra.Command {
 		GetCmdQueryConnections(),
 		GetCmdQueryConnection(),
 		GetCmdQueryClientConnections(),
+		GetCmdConnectionParams(),
 	)
 
 	return queryCmd

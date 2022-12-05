@@ -14,7 +14,7 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
-	smtypes "github.com/cosmos/ibc-go/v6/modules/light-clients/06-solomachine"
+	solomachine "github.com/cosmos/ibc-go/v6/modules/light-clients/06-solomachine"
 	ibctm "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint"
 )
 
@@ -106,15 +106,15 @@ func MigrateStore(ctx sdk.Context, storeKey storetypes.StoreKey, cdc codec.Binar
 }
 
 // migrateSolomachine migrates the solomachine from v1 to v2 solo machine protobuf definition.
-func migrateSolomachine(clientState *ClientState) *smtypes.ClientState {
+func migrateSolomachine(clientState *ClientState) *solomachine.ClientState {
 	isFrozen := clientState.FrozenSequence != 0
-	consensusState := &smtypes.ConsensusState{
+	consensusState := &solomachine.ConsensusState{
 		PublicKey:   clientState.ConsensusState.PublicKey,
 		Diversifier: clientState.ConsensusState.Diversifier,
 		Timestamp:   clientState.ConsensusState.Timestamp,
 	}
 
-	return &smtypes.ClientState{
+	return &solomachine.ClientState{
 		Sequence:       clientState.Sequence,
 		IsFrozen:       isFrozen,
 		ConsensusState: consensusState,

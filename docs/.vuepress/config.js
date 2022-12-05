@@ -144,6 +144,10 @@ module.exports = {
         label: "v5.0.0",
         key: "v5.0.0",
       },
+      {
+        label: "v5.1.0",
+        key: "v5.1.0",
+      },
     ],
     topbar: {
       banner: true,
@@ -291,6 +295,56 @@ module.exports = {
           ],
         },
         {
+          title: "IBC Light Client Developer Guide",
+          children: [
+            {
+              title: "Overview",
+              directory: false,
+              path: "/light-clients/overview.html",
+            },
+            {
+              title: "ClientState",
+              directory: false,
+              path: "light-clients/client-state.html",
+            },
+            {
+              title: "ConsensusState",
+              directory: false,
+              path: "/light-clients/consensus-state.html",
+            },
+            {
+              title: "Existence/Non-Existence Proofs",
+              directory: false,
+              path: "/light-clients/proofs.html",
+            },
+            {
+              title: "Updates Handling",
+              directory: false,
+              path: "/light-clients/update.html",
+            },
+            {
+              title: "Misbehaviour Handling",
+              directory: false,
+              path: "/light-clients/misbehaviour.html",
+            },
+            {
+              title: "Upgrades Handling",
+              directory: false,
+              path: "/light-clients/upgrade.html",
+            },
+            {
+              title: "Proposal Handling",
+              directory: false,
+              path: "/light-clients/proposal.html",
+            },
+            {
+              title: "Genesis Handling",
+              directory: false,
+              path: "/light-clients/genesis.html",
+            },
+          ],
+        },
+        {
           title: "IBC Middleware Modules",
           children: [
             {
@@ -365,6 +419,16 @@ module.exports = {
               title: "IBC-Go v4 to v5",
               directory: false,
               path: "/migrations/v4-to-v5.html",
+            },
+            {
+              title: "IBC-Go v5 to v6",
+              directory: false,
+              path: "/migrations/v5-to-v6.html",
+            },
+            {
+              title: "IBC-Go v6 to v7",
+              directory: false,
+              path: "/migrations/v6-to-v7.html",
             },
           ],
         },

@@ -37,6 +37,8 @@ const (
 	defaultBinary = "simd"
 	// defaultRlyTag is the tag that will be used if no relayer tag is specified.
 	defaultRlyTag = "main"
+	// defaultChainTag is the tag that will be used for the chains if none is specified.
+	defaultChainTag = "main"
 )
 
 func getChainImage(binary string) string {
@@ -69,7 +71,7 @@ func FromEnv() TestConfig {
 
 	chainATag, ok := os.LookupEnv(ChainATagEnv)
 	if !ok {
-		panic(fmt.Sprintf("must specify %s version for test with environment variable [%s]", chainBinary, ChainATagEnv))
+		chainATag = defaultChainTag
 	}
 
 	chainBTag, ok := os.LookupEnv(ChainBTagEnv)

@@ -34,7 +34,7 @@ on:
       relayer-tag:
         description: "The tag to use for the relayer"
         required: true
-        default: "v2.0.0"
+        default: "v2.1.2"
         type: string
       build-and-push-docker-image:
         description: "Flag to specify if the docker image should be built and pushed beforehand"
@@ -101,7 +101,7 @@ jobs:
         with:
           go-version: 1.19
       - id: set-matrix
-        run: echo "::set-output name=matrix::$(go run cmd/build_test_matrix/main.go)"
+        run: echo "matrix=$(go run cmd/build_test_matrix/main.go)" >> $GITHUB_OUTPUT
         env:
           TEST_ENTRYPOINT: "${{ inputs.test-entry-point }}"
           TEST_EXCLUSIONS: "${{ inputs.test-exclusions }}"
