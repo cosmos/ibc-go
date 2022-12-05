@@ -91,8 +91,8 @@ func (a TransferAuthorization) ValidateBasic() error {
 		if allocation.SpendLimit == nil {
 			return sdkerrors.ErrInvalidCoins.Wrap("spend limit cannot be nil")
 		}
-		if !allocation.SpendLimit.IsAllPositive() {
-			return sdkerrors.ErrInvalidCoins.Wrapf("spend limit cannot be negitive")
+		if err := allocation.SpendLimit.Validate(); err != nil {
+			return sdkerrors.ErrInvalidCoins.Wrapf(err.Error())
 		}
 		if err := host.PortIdentifierValidator(allocation.SourcePort); err != nil {
 			return sdkerrors.Wrap(err, "invalid source port ID")
