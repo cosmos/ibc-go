@@ -35,7 +35,7 @@
     <img alt="E2E Status" src="https://github.com/cosmos/ibc-go/workflows/Tests%20/%20E2E/badge.svg" />
 </div>
 
-The [Inter-Blockchain Communication protocol (IBC)](https://ibcprotocol.org/) allows blockchains to talk to each other. IBC handles transport across different sovereign blockchains. This end-to-end, connection-oriented, stateful protocol provides reliable, ordered, and authenticated communication between heterogeneous blockchains. This IBC implementation in Golang is built as a Cosmos SDK module.
+The [Inter-Blockchain Communication protocol (IBC)](https://ibcprotocol.dev/) allows blockchains to talk to each other. IBC handles transport across different sovereign blockchains. This end-to-end, connection-oriented, stateful protocol provides reliable, ordered, and authenticated communication between heterogeneous blockchains. This IBC implementation in Golang is built as a Cosmos SDK module.
 
 ## Roadmap
 
@@ -120,6 +120,6 @@ To report a security vulnerability, see our [bug bounty program](https://hackero
 
 ## Documentation and Resources
 
-- [IBC Website](https://ibcprotocol.org/)
+- [IBC Website](https://ibcprotocol.dev/)
 - [IBC Specification](https://github.com/cosmos/ibc)
 - [Documentation](https://ibc.cosmos.network/main/ibc/overview.html)
