@@ -4,26 +4,27 @@ order: 2
 
 # Implementing the ClientState interface
 
-Learn how to implement the [Client State](https://github.com/cosmos/ibc-go/blob/main/modules/core/exported/client.go#L36) interface.
+Learn how to implement the [Client State](https://github.com/cosmos/ibc-go/blob/v6.0.0-rc1/modules/core/exported/client.go#L40) interface.
 
 ### ClientType
 
-`ClientType` should return a unique string identifier of the light client.
+`ClientType` should return a unique string identifier of the light client. This will be used when generating a client identifier.
+The format is created as follows: `ClientTypes-{N}` where `{N}` is the unique global nonce associated with a specific client.
 
 ### GetLatestHeight
 
-`GetLatestHeight` should return the latest block height.
+`GetLatestHeight` should return the latest block height that the client state represents. .
 
 ### Validate
 
 `Validate` should validate every client state field and should return an error if any value is invalid. The light client
-implementor is in charge of determining which checks are required. See the [tendermint light client implementation](https://github.com/cosmos/ibc-go/blob/main/modules/light-clients/07-tendermint/client_state.go#L111)
+implementor is in charge of determining which checks are required. See the [tendermint light client implementation](https://github.com/cosmos/ibc-go/blob/v6.0.0-rc1/modules/light-clients/07-tendermint/types/client_state.go#L101)
 as a reference.
 
 ### Status
 
 `Status` must return the status of the client. Only `Active` clients are allowed to process packets. All
-possible Status types can be found [here](https://github.com/cosmos/ibc-go/blob/main/modules/core/exported/client.go).
+possible Status types can be found [here](https://github.com/cosmos/ibc-go/blob/v6.0.0-rc1/modules/core/exported/client.go#L26-L36).
 
 ### ZeroCustomFields
 
