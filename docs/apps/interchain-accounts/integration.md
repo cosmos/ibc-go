@@ -1,5 +1,5 @@
 <!--
-order: 2
+order: 4
 -->
 
 # Integration
@@ -8,12 +8,11 @@ Learn how to integrate Interchain Accounts host and controller functionality to 
 
 The Interchain Accounts module contains two submodules. Each submodule has its own IBC application. The Interchain Accounts module should be registered as an `AppModule` in the same way all SDK modules are registered on a chain, but each submodule should create its own `IBCModule` as necessary. A route should be added to the IBC router for each submodule which will be used. 
 
-Chains who wish to support ICS27 may elect to act as a host chain, a controller chain or both. Disabling host or controller functionality may be done statically by excluding the host or controller module entirely from the `app.go` file or it may be done dynamically by taking advantage of the on-chain parameters which enable or disable the host or controller submodules. 
+Chains who wish to support ICS-27 may elect to act as a host chain, a controller chain or both. Disabling host or controller functionality may be done statically by excluding the host or controller submodule entirely from the `app.go` file or it may be done dynamically by taking advantage of the on-chain parameters which enable or disable the host or controller submodules. 
 
-Interchain Account authentication modules are the base application of a middleware stack. The controller submodule is the middleware in this stack.
+Interchain Account authentication modules (both custom or generic, such as the `x/gov`, `x/group` or `x/auth` Cosmos SDK modules) can send messages to the controller submodule's [`MsgServer`](./messages.md) to register interchain accounts and send packets to the interchain account. To accomplish this, the authentication module needs to be composed with `baseapp`'s `MsgServiceRouter`.
 
-
-### Example integration
+## Example integration
 
 ```go
 // app.go
@@ -73,40 +72,35 @@ scopedICAAuthKeeper := app.CapabilityKeeper.ScopeToModule(icaauthtypes.ModuleNam
 
 // Create the Keeper for each submodule
 app.ICAControllerKeeper = icacontrollerkeeper.NewKeeper(
-		appCodec, keys[icacontrollertypes.StoreKey], app.GetSubspace(icacontrollertypes.SubModuleName),
-		app.IBCKeeper.ChannelKeeper, // may be replaced with middleware such as ics29 fee
-		app.IBCKeeper.ChannelKeeper, &app.IBCKeeper.PortKeeper,
-		scopedICAControllerKeeper, app.MsgServiceRouter(),
+    appCodec, keys[icacontrollertypes.StoreKey], app.GetSubspace(icacontrollertypes.SubModuleName),
+    app.IBCKeeper.ChannelKeeper, // may be replaced with middleware such as ics29 fee
+    app.IBCKeeper.ChannelKeeper, &app.IBCKeeper.PortKeeper,
+    scopedICAControllerKeeper, app.MsgServiceRouter(),
 )
 app.ICAHostKeeper = icahostkeeper.NewKeeper(
-		appCodec, keys[icahosttypes.StoreKey], app.GetSubspace(icahosttypes.SubModuleName),
-		app.IBCKeeper.ChannelKeeper, // may be replaced with middleware such as ics29 fee
-		app.IBCKeeper.ChannelKeeper, &app.IBCKeeper.PortKeeper,
-		app.AccountKeeper, scopedICAHostKeeper, app.MsgServiceRouter(),
+    appCodec, keys[icahosttypes.StoreKey], app.GetSubspace(icahosttypes.SubModuleName),
+    app.IBCKeeper.ChannelKeeper, // may be replaced with middleware such as ics29 fee
+    app.IBCKeeper.ChannelKeeper, &app.IBCKeeper.PortKeeper,
+    app.AccountKeeper, scopedICAHostKeeper, app.MsgServiceRouter(),
 )
 
 // Create Interchain Accounts AppModule
 icaModule := ica.NewAppModule(&app.ICAControllerKeeper, &app.ICAHostKeeper)
 
 // Create your Interchain Accounts authentication module
-app.ICAAuthKeeper = icaauthkeeper.NewKeeper(appCodec, keys[icaauthtypes.StoreKey], app.ICAControllerKeeper, scopedICAAuthKeeper)
+app.ICAAuthKeeper = icaauthkeeper.NewKeeper(appCodec, keys[icaauthtypes.StoreKey], app.MsgServiceRouter())
 
 // ICA auth AppModule
 icaAuthModule := icaauth.NewAppModule(appCodec, app.ICAAuthKeeper)
 
-// ICA auth IBC Module
-icaAuthIBCModule := icaauth.NewIBCModule(app.ICAAuthKeeper)
-
 // Create controller IBC application stack and host IBC module as desired
-icaControllerStack := icacontroller.NewIBCMiddleware(icaAuthIBCModule, app.ICAControllerKeeper)
+icaControllerStack := icacontroller.NewIBCMiddleware(nil, app.ICAControllerKeeper)
 icaHostIBCModule := icahost.NewIBCModule(app.ICAHostKeeper)
 
 // Register host and authentication routes
 ibcRouter.
     AddRoute(icacontrollertypes.SubModuleName, icaControllerStack).
-    AddRoute(icahosttypes.SubModuleName, icaHostIBCModule).
-    AddRoute(icaauthtypes.ModuleName, icaControllerStack) // Note, the authentication module is routed to the top level of the middleware stack
-
+    AddRoute(icahosttypes.SubModuleName, icaHostIBCModule)
 ...
 
 // Register Interchain Accounts and authentication module AppModule's
@@ -118,14 +112,14 @@ app.moduleManager = module.NewManager(
 
 ...
 
-// Add fee middleware to begin blocker logic
+// Add Interchain Accounts to begin blocker logic
 app.moduleManager.SetOrderBeginBlockers(
     ...
     icatypes.ModuleName,
     ...
 )
 
-// Add fee middleware to end blocker logic
+// Add Interchain Accounts to end blocker logic
 app.moduleManager.SetOrderEndBlockers(
     ...
     icatypes.ModuleName,
@@ -145,6 +139,17 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
     paramsKeeper.Subspace(icahosttypes.SubModuleName)
     paramsKeeper.Subspace(icacontrollertypes.SubModuleName)
     ...
+}
+```
+
+If no custom athentication module is needed and a generic Cosmos SDK authentication module can be used, then from the sample integration code above all references to `ICAAuthKeeper` and `icaAuthModule` can be removed. That's it, the following code would not be needed:
+
+```go
+// Create your Interchain Accounts authentication module
+app.ICAAuthKeeper = icaauthkeeper.NewKeeper(appCodec, keys[icaauthtypes.StoreKey], app.MsgServiceRouter())
+
+// ICA auth AppModule
+icaAuthModule := icaauth.NewAppModule(appCodec, app.ICAAuthKeeper)
 ```
 
 ### Using submodules exclusively
@@ -174,16 +179,13 @@ ibcRouter.AddRoute(icahosttypes.SubModuleName, icaHostIBCModule)
 // Create Interchain Accounts AppModule omitting the host keeper
 icaModule := ica.NewAppModule(&app.ICAControllerKeeper, nil)
 
-// Create your Interchain Accounts authentication module, setting up the Keeper, AppModule and IBCModule appropriately
-app.ICAAuthKeeper = icaauthkeeper.NewKeeper(appCodec, keys[icaauthtypes.StoreKey], app.ICAControllerKeeper, scopedICAAuthKeeper)
-icaAuthModule := icaauth.NewAppModule(appCodec, app.ICAAuthKeeper)
-icaAuthIBCModule := icaauth.NewIBCModule(app.ICAAuthKeeper)
+
+// Optionally instantiate your custom authentication module if needed, or not otherwise
+...
 
 // Create controller IBC application stack
-icaControllerStack := icacontroller.NewIBCMiddleware(icaAuthIBCModule, app.ICAControllerKeeper)
+icaControllerStack := icacontroller.NewIBCMiddleware(nil, app.ICAControllerKeeper)
 
-// Register controller and authentication routes
-ibcRouter.
-    AddRoute(icacontrollertypes.SubModuleName, icaControllerStack).
-    AddRoute(icaauthtypes.ModuleName, icaControllerStack) // Note, the authentication module is routed to the top level of the middleware stack
+// Register controller route
+ibcRouter.AddRoute(icacontrollertypes.SubModuleName, icaControllerStack)
 ```
