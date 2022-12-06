@@ -462,8 +462,8 @@ module.exports = {
         text: "Chat with IBC developers in <a href='https://discord.gg/W8trcGV' target='_blank'>Discord</a>.",
       },
       textLink: {
-        text: "ibcprotocol.org",
-        url: "https://ibcprotocol.org",
+        text: "ibcprotocol.dev",
+        url: "https://ibcprotocol.dev",
       },
       services: [
         {
