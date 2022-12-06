@@ -59,7 +59,7 @@ require (
 	github.com/cosmos/gogogateway v1.2.0 // indirect
 	github.com/cosmos/gorocksdb v1.2.0 // indirect
 	github.com/cosmos/iavl v0.19.4 // indirect
-	github.com/cosmos/ledger-cosmos-go v0.11.1 // indirect
+	github.com/cosmos/ledger-cosmos-go v0.12.0 // indirect
 	github.com/cosmos/ledger-go v0.9.2 // indirect
 	github.com/creachadair/taskgroup v0.3.2 // indirect
 	github.com/danieljoos/wincred v1.1.2 // indirect
@@ -183,7 +183,8 @@ require (
 	github.com/tendermint/tm-db v0.6.7 // indirect
 	github.com/ulikunitz/xz v0.5.8 // indirect
 	github.com/vedhavyas/go-subkey v1.0.3 // indirect
-	github.com/zondax/hid v0.9.1-0.20220302062450-5552068d2266 // indirect
+	github.com/zondax/hid v0.9.1 // indirect
+	github.com/zondax/ledger-go v0.14.0 // indirect
 	go.etcd.io/bbolt v1.3.6 // indirect
 	go.opencensus.io v0.23.0 // indirect
 	go.uber.org/atomic v1.10.0 // indirect
