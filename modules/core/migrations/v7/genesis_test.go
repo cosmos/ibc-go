@@ -139,6 +139,8 @@ func (suite *MigrationsV7TestSuite) TestMigrateGenesisSolomachine() {
 	appState := genutiltypes.AppMap{}
 	ibcGenState := types.DefaultGenesisState()
 	ibcGenState.ClientGenesis = clientGenState
+
+	// ensure tests pass even if the legacy solo machine is already registered
 	clientv7.RegisterInterfaces(cdc.InterfaceRegistry())
 	appState[host.ModuleName] = cdc.MustMarshalJSON(ibcGenState)
 

@@ -15,26 +15,28 @@ import (
 // - Remove all solo machine consensus states
 // - Remove any localhost clients
 func MigrateGenesis(appState genutiltypes.AppMap, cdc codec.ProtoCodecMarshaler) (genutiltypes.AppMap, error) {
-	if appState[host.ModuleName] != nil {
-		// ensure legacy solo machines are registered
-		clientv7.RegisterInterfaces(cdc.InterfaceRegistry())
-
-		// unmarshal relative source genesis application state
-		ibcGenState := &types.GenesisState{}
-		cdc.MustUnmarshalJSON(appState[host.ModuleName], ibcGenState)
-
-		clientGenState, err := clientv7.MigrateGenesis(&ibcGenState.ClientGenesis, cdc)
-		if err != nil {
-			return nil, err
-		}
-
-		ibcGenState.ClientGenesis = *clientGenState
-
-		// delete old genesis state
-		delete(appState, host.ModuleName)
-
-		// set new ibc genesis state
-		appState[host.ModuleName] = cdc.MustMarshalJSON(ibcGenState)
+	if appState[host.ModuleName] == nil {
+		return appState, nil
 	}
+
+	// ensure legacy solo machines types are registered
+	clientv7.RegisterInterfaces(cdc.InterfaceRegistry())
+
+	// unmarshal old ibc genesis state
+	ibcGenState := &types.GenesisState{}
+	cdc.MustUnmarshalJSON(appState[host.ModuleName], ibcGenState)
+
+	clientGenState, err := clientv7.MigrateGenesis(&ibcGenState.ClientGenesis, cdc)
+	if err != nil {
+		return nil, err
+	}
+
+	ibcGenState.ClientGenesis = *clientGenState
+
+	// delete old genesis state
+	delete(appState, host.ModuleName)
+
+	// set new ibc genesis state
+	appState[host.ModuleName] = cdc.MustMarshalJSON(ibcGenState)
 	return appState, nil
 }
