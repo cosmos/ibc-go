@@ -24,6 +24,7 @@ import (
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	controllertypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/controller/types"
 	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
+	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 	ibctesting "github.com/cosmos/ibc-go/v6/testing"
 	simappupgrades "github.com/cosmos/ibc-go/v6/testing/simapp/upgrades"
 )
@@ -386,6 +387,57 @@ func (s *UpgradeTestSuite) TestV5ToV6ChainUpgrade() {
 	})
 }
 
+func (s *UpgradeTestSuite) TestV6ToV7ChainUpgrade() {
+
+	// Pre-upgrade logic
+	// Create multiple tendermint clients, ideally update both at least once
+	// Create a channel, send a transfer and receive a transfer
+	// Create a solo machine client (no need to perform actions with the solo machine client)
+
+	// Post upgrade logic
+	// Send a packet on the existing channel
+	// Query the tendermint clients
+	// Query the solo machine client
+	// Optional: send a MsgUpdate in reference to the solo machine client (proof can be invalid, mostly want to ensure the msg does not panic when referencing a solo machine clientID)
+
+	t := s.T()
+	// testCfg := testconfig.FromEnv()
+
+	ctx := context.Background()
+	relayer, _ := s.SetupChainsRelayerAndChannel(ctx)
+	chainA, chainB := s.GetChains()
+
+	createClientOptions := ibc.CreateClientOptions{
+		TrustingPeriod: time.Duration(time.Hour * 24 * 7).String(),
+	}
+
+	// s.SetupClients(ctx, relayer, createClientOptions)
+	s.SetupClients(ctx, relayer, createClientOptions)
+
+	status, err := s.Status(ctx, chainA, chainA.Config().ChainID)
+	s.Require().NoError(err)
+	fmt.Println(status)
+
+	// create separate user specifically for the upgrade proposal to more easily verify starting
+	// and end balances of the chainA users.
+	// chainAUpgradeProposalWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
+
+	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
+
+	t.Run("start relayer", func(t *testing.T) {
+		s.StartRelayer(relayer)
+	})
+
+	// t.Run("upgrade chainA", func(t *testing.T) {
+	// 	s.UpgradeChain(ctx, chainA, chainAUpgradeProposalWallet, v6upgrades.UpgradeName, testCfg.ChainAConfig.Tag, testCfg.UpgradeTag)
+	// })
+
+	// t.Run("restart relayer", func(t *testing.T) {
+	// 	s.StopRelayer(ctx, relayer)
+	// 	s.StartRelayer(relayer)
+	// })
+}
+
 // RegisterInterchainAccount will attempt to register an interchain account on the counterparty chain.
 func (s *UpgradeTestSuite) RegisterInterchainAccount(ctx context.Context, chain *cosmos.CosmosChain, user *ibc.Wallet, msgRegisterAccount *intertxtypes.MsgRegisterAccount) error {
 	txResp, err := s.BroadcastMessages(ctx, chain, user, msgRegisterAccount)
@@ -404,4 +456,17 @@ func getICAVersion(chainAVersion, chainBVersion string) string {
 	}
 	// explicitly set the version string because the host chain might not yet support incentivized channels.
 	return icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
+}
+
+// Status queries the current status of the client
+func (s *UpgradeTestSuite) Status(ctx context.Context, chain ibc.Chain, clientID string) (string, error) {
+	queryClient := s.GetChainGRCPClients(chain).ClientQueryClient
+	res, err := queryClient.ClientStatus(ctx, &clienttypes.QueryClientStatusRequest{
+		ClientId: clientID,
+	})
+	if err != nil {
+		return "", err
+	}
+
+	return res.Status, nil
 }
