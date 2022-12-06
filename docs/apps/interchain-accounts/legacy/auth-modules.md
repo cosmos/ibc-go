@@ -142,8 +142,7 @@ func (im IBCModule) OnRecvPacket(
 ## `OnAcknowledgementPacket`
 
 Controller chains will be able to access the acknowledgement written into the host chain state once a relayer relays the acknowledgement. 
-The acknowledgement bytes will be passed to the auth module via the `OnAcknowledgementPacket` callback. 
-Auth modules are expected to know how to decode the acknowledgement. 
+The acknowledgement bytes contain either the response of the execution of the message(s) on the host chain or an error. They will be passed to the auth module via the `OnAcknowledgementPacket` callback. Auth modules are expected to know how to decode the acknowledgement. 
 
 If the controller chain is connected to a host chain using the host module on ibc-go, it may interpret the acknowledgement bytes as follows:
 
