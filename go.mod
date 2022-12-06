@@ -3,12 +3,12 @@ go 1.19
 module github.com/cosmos/ibc-go/v6
 
 require (
+	cosmossdk.io/api v0.2.5
 	cosmossdk.io/math v1.0.0-beta.4
 	cosmossdk.io/simapp v0.0.0-20221205222303-e7afcca23271
 	github.com/armon/go-metrics v0.4.1
 	github.com/confio/ics23/go v0.9.0
 	github.com/cosmos/cosmos-proto v1.0.0-alpha8
-	// cosmos-sdk main @20448048a489 ≃ 0.47
 	github.com/cosmos/cosmos-sdk v0.47.0-alpha1.0.20221205222303-e7afcca23271
 	github.com/cosmos/gogoproto v1.4.3
 	github.com/golang/protobuf v1.5.2
@@ -26,8 +26,6 @@ require (
 	google.golang.org/protobuf v1.28.2-0.20220831092852-f930b1dc76e8
 	gopkg.in/yaml.v2 v2.4.0
 )
-
-require cosmossdk.io/api v0.2.5
 
 require (
 	cloud.google.com/go v0.105.0 // indirect
@@ -163,8 +161,4 @@ require (
 	sigs.k8s.io/yaml v1.3.0 // indirect
 )
 
-replace (
-	// dragonberry replace for ics23
-	github.com/confio/ics23/go => github.com/cosmos/cosmos-sdk/ics23/go v0.8.0
-	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
-)
+replace github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
