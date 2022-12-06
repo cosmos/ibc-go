@@ -127,8 +127,7 @@ func (chain *TestChainTendermint) ConstructUpdateTMClientHeader(counterparty *Te
 // ConstructUpdateTMClientHeader will construct a valid 07-tendermint Header to update the
 // light client on the source chain.
 func ConstructUpdateTMClientHeaderWithTrustedHeight(counterparty *TestChain, clientID string, trustedHeight clienttypes.Height) (*ibctmtypes.Header, error) {
-	counterpartyTestChainTendermint := counterparty.TestChainClient.(*TestChainTendermint)
-	header := counterpartyTestChainTendermint.LastHeader
+	header := counterparty.TestChainClient.GetLastHeader().(*ibctmtypes.Header)
 	// Relayer must query for LatestHeight on client to get TrustedHeight if the trusted height is not set
 	require.False(counterparty.T, trustedHeight.IsZero())
 
@@ -139,7 +138,7 @@ func ConstructUpdateTMClientHeaderWithTrustedHeight(counterparty *TestChain, cli
 	// Once we get TrustedHeight from client, we must query the validators from the counterparty chain
 	// If the LatestHeight == LastHeader.Height, then TrustedValidators are current validators
 	// If LatestHeight < LastHeader.Height, we can query the historical validator set from HistoricalInfo
-	if trustedHeight == counterpartyTestChainTendermint.LastHeader.GetHeight() {
+	if trustedHeight == header.GetHeight() {
 		tmTrustedVals = counterparty.Vals
 	} else {
 		// NOTE: We need to get validators from counterparty at height: trustedHeight+1
@@ -287,4 +286,8 @@ func (chain *TestChainTendermint) ClientConfigToState(clientConfig ClientConfig)
 // GetConsensusState returns the consensus state of the last header
 func (chain *TestChainTendermint) GetConsensusState() exported.ConsensusState {
 	return chain.LastHeader.ConsensusState()
+}
+
+func (chain *TestChainTendermint) GetLastHeader() interface{} {
+	return chain.LastHeader
 }

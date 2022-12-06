@@ -109,8 +109,7 @@ func (chain *TestChainDymint) NextBlock() {
 // ConstructUpdateDMClientHeader will construct a valid 01-dymint Header to update the
 // light client on the source chain.
 func ConstructUpdateDMClientHeaderWithTrustedHeight(counterparty *TestChain, clientID string, trustedHeight clienttypes.Height) (*ibcdmtypes.Header, error) {
-	counterpartyTestChainDymint := counterparty.TestChainClient.(*TestChainDymint)
-	header := counterpartyTestChainDymint.LastHeader
+	header := counterparty.TestChainClient.GetLastHeader().(*ibcdmtypes.Header)
 
 	var (
 		tmTrustedVals *tmtypes.ValidatorSet
@@ -119,7 +118,7 @@ func ConstructUpdateDMClientHeaderWithTrustedHeight(counterparty *TestChain, cli
 	// Once we get TrustedHeight from client, we must query the validators from the counterparty chain
 	// If the LatestHeight == LastHeader.Height, then TrustedValidators are current validators
 	// If LatestHeight < LastHeader.Height, we can query the historical validator set from HistoricalInfo
-	if trustedHeight == counterpartyTestChainDymint.LastHeader.GetHeight() {
+	if trustedHeight == header.GetHeight() {
 		tmTrustedVals = counterparty.Vals
 	} else {
 		// NOTE: We need to get validators from counterparty at height: trustedHeight+1
@@ -236,4 +235,8 @@ func (chain *TestChainDymint) ClientConfigToState(clientConfig ClientConfig) exp
 // GetConsensusState returns the consensus state of the last header
 func (chain *TestChainDymint) GetConsensusState() exported.ConsensusState {
 	return chain.LastHeader.ConsensusState()
+}
+
+func (chain *TestChainDymint) GetLastHeader() interface{} {
+	return chain.LastHeader
 }
