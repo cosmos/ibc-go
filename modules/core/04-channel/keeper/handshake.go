@@ -134,11 +134,16 @@ func (k Keeper) ChanOpenTry(
 	// TODO: unpack connection state to get connectionEnd corresponding to source
 
 	// TODO: atm this is only checking the very last connection
+	/*    p1   p2   p3   p4
+	    A    B    C    D    E
+		0    0 1  0 1 0 1  0
+	*/
 	connectionEnd, found := k.connectionKeeper.GetConnection(ctx, connectionHops[len(connectionHops)-1])
 	if !found {
 		return "", nil, sdkerrors.Wrap(connectiontypes.ErrConnectionNotFound, connectionHops[len(connectionHops)-1])
 	}
 
+	// TODO: verify all connections are exist and are OPEN
 	if connectionEnd.GetState() != int32(connectiontypes.OPEN) {
 		return "", nil, sdkerrors.Wrapf(
 			connectiontypes.ErrInvalidConnectionState,
@@ -163,7 +168,7 @@ func (k Keeper) ChanOpenTry(
 		)
 	}
 
-	fmt.Printf("connID=%s %s\n", connectionEnd.GetCounterparty().GetConnectionID(), connectionHops[len(connectionHops)-1])
+	fmt.Printf("connID=%s %s\n", connectionEnd.GetCounterparty().GetConnectionID(), connectionHops[0])
 	counterpartyHops := []string{connectionEnd.GetCounterparty().GetConnectionID()}
 
 	// expectedCounterpaty is the counterparty of the counterparty's channel end
@@ -180,6 +185,7 @@ func (k Keeper) ChanOpenTry(
 			return "", nil, err
 		}
 
+		expectedChannel.ConnectionHops = connectionHops[:len(connectionHops)-1]
 		clientID := connectionEnd.ClientId
 		clientState, found := k.clientKeeper.GetClientState(ctx, clientID)
 		if !found {
@@ -190,6 +196,7 @@ func (k Keeper) ChanOpenTry(
 			return "", nil, sdkerrors.Wrapf(clienttypes.ErrConsensusStateNotFound, "consensus state %s not found for client id: %s", clientID)
 		}
 
+		fmt.Printf("expectedVal: %#v\n", expectedChannel)
 		val, err := k.cdc.Marshal(&expectedChannel)
 		if err != nil {
 			return "", nil, sdkerrors.Wrapf(sdkerrors.ErrJSONMarshal, "failed to marshal channelEnd")

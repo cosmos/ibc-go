@@ -374,37 +374,37 @@ func (endpoint *Endpoint) ChanOpenTry() error {
 
 // ChanOpenTryMultihop will construct and execute a MsgChannelOpenTry on the associated endpoint.
 // Note: Overloading proof bytes to pass everything required
-func (endpoint *Endpoint) ChanOpenTryMultihop(paths LinkedPaths) error {
-	err := endpoint.UpdateClient()
-	require.NoError(endpoint.Chain.T, err)
+// func (endpoint *Endpoint) ChanOpenTryMultihop(paths LinkedPaths) error {
+// 	err := endpoint.UpdateClient()
+// 	require.NoError(endpoint.Chain.T, err)
 
-	channelKey := host.ChannelKey(endpoint.Counterparty.ChannelConfig.PortID, endpoint.Counterparty.ChannelID)
-	proofs, err := GenerateMultiHopProof(paths, string(channelKey))
-	multihopProof, err := endpoint.Chain.App.AppCodec().MarshalInterface(proofs)
-	//proof, height := endpoint.Counterparty.Chain.QueryProof(channelKey)
-	msg := channeltypes.NewMsgChannelOpenTry(
-		endpoint.ChannelConfig.PortID,
-		endpoint.ChannelConfig.Version, endpoint.ChannelConfig.Order, []string{endpoint.ConnectionID},
-		endpoint.Counterparty.ChannelConfig.PortID, endpoint.Counterparty.ChannelID, endpoint.Counterparty.ChannelConfig.Version,
-		multihopProof, clienttypes.NewHeight(0, 0),
-		endpoint.Chain.SenderAccount.GetAddress().String(),
-	)
-	res, err := endpoint.Chain.SendMsgs(msg)
-	if err != nil {
-		return err
-	}
+// 	channelKey := host.ChannelKey(endpoint.Counterparty.ChannelConfig.PortID, endpoint.Counterparty.ChannelID)
+// 	proofs, err := GenerateMultiHopProof(paths, string(channelKey), []byte("foo"))
+// 	multihopProof, err := endpoint.Chain.App.AppCodec().MarshalInterface(proofs)
+// 	//proof, height := endpoint.Counterparty.Chain.QueryProof(channelKey)
+// 	msg := channeltypes.NewMsgChannelOpenTry(
+// 		endpoint.ChannelConfig.PortID,
+// 		endpoint.ChannelConfig.Version, endpoint.ChannelConfig.Order, []string{endpoint.ConnectionID},
+// 		endpoint.Counterparty.ChannelConfig.PortID, endpoint.Counterparty.ChannelID, endpoint.Counterparty.ChannelConfig.Version,
+// 		multihopProof, clienttypes.NewHeight(0, 0),
+// 		endpoint.Chain.SenderAccount.GetAddress().String(),
+// 	)
+// 	res, err := endpoint.Chain.SendMsgs(msg)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	if endpoint.ChannelID == "" {
-		endpoint.ChannelID, err = ParseChannelIDFromEvents(res.GetEvents())
-		require.NoError(endpoint.Chain.T, err)
-	}
+// 	if endpoint.ChannelID == "" {
+// 		endpoint.ChannelID, err = ParseChannelIDFromEvents(res.GetEvents())
+// 		require.NoError(endpoint.Chain.T, err)
+// 	}
 
-	// update version to selected app version
-	// NOTE: this update must be performed after the endpoint channelID is set
-	endpoint.ChannelConfig.Version = endpoint.GetChannel().Version
+// 	// update version to selected app version
+// 	// NOTE: this update must be performed after the endpoint channelID is set
+// 	endpoint.ChannelConfig.Version = endpoint.GetChannel().Version
 
-	return nil
-}
+// 	return nil
+// }
 
 // ChanOpenAck will construct and execute a MsgChannelOpenAck on the associated endpoint.
 func (endpoint *Endpoint) ChanOpenAck() error {

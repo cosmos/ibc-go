@@ -18,7 +18,7 @@ import (
 //
 // The first proof can be either a membership proof or a non-membership proof depending on if the key exists on the
 // source chain.
-func GenerateMultiHopProof(paths LinkedPaths, keyPathToProve string) (*channeltypes.MsgConsStateProofs, error) {
+func GenerateMultiHopProof(paths LinkedPaths, keyPathToProve string, expectedVal []byte) (*channeltypes.MsgConsStateProofs, error) {
 	if len(keyPathToProve) == 0 {
 		panic("path cannot be empty")
 	}
@@ -31,8 +31,12 @@ func GenerateMultiHopProof(paths LinkedPaths, keyPathToProve string) (*channelty
 	var proofs channeltypes.MsgConsStateProofs
 	// generate proof for key path on the source chain
 	{
+		nextPath := paths[0].EndpointB
+		heightBC := nextPath.GetClientState().GetLatestHeight()
+		fmt.Printf("heightBC: %d\n", heightBC.GetRevisionHeight())
 		// srcEnd.counterparty's proven height on its next connected chain
 		provenHeight := srcEnd.Counterparty.GetClientState().GetLatestHeight()
+		fmt.Printf("provenHeight: %d\n", provenHeight.GetRevisionHeight())
 		proof, _ := srcEnd.Chain.QueryProofAtHeight([]byte(keyPathToProve), int64(provenHeight.GetRevisionHeight()))
 		var proofKV commitmenttypes.MerkleProof
 		if err := srcEnd.Chain.Codec.Unmarshal(proof, &proofKV); err != nil {
@@ -43,9 +47,46 @@ func GenerateMultiHopProof(paths LinkedPaths, keyPathToProve string) (*channelty
 			srcEnd.Chain.GetPrefix(),
 			commitmenttypes.NewMerklePath(keyPathToProve),
 		)
+
+		// membership proof
+		if len(expectedVal) > 0 {
+			var channel channeltypes.Channel
+			if err := srcEnd.Chain.App.AppCodec().Unmarshal(expectedVal, &channel); err != nil {
+				panic(err)
+			}
+
+			fmt.Printf("VERIFYING MEMBERSHIP: path=%s val=%#v\n", prefixedKey.String(), channel)
+			fmt.Printf("nextPath.GetConsensusState(heightBC).GetRoot(): %x\n",
+				nextPath.GetConsensusState(heightBC).GetRoot().GetHash())
+			fmt.Printf("key: %s\n", prefixedKey.String())
+			fmt.Printf("val: %x\n", expectedVal)
+
+			// check expected val
+			if err := proofKV.VerifyMembership(
+				GetProofSpec(srcEnd),
+				nextPath.GetConsensusState(heightBC).GetRoot(),
+				prefixedKey,
+				expectedVal,
+			); err != nil {
+				return nil, fmt.Errorf(
+					"failed to verify consensus state proof of [%s] on [%s] with [%s].ConsState on [%s]: %w\nconsider update [%s]'s client on [%s]",
+					srcEnd.Counterparty.Chain.ChainID,
+					srcEnd.Chain.ChainID,
+					srcEnd.Chain.ChainID,
+					nextPath.Chain.ChainID,
+					err,
+					srcEnd.Chain.ChainID,
+					nextPath.Chain.ChainID,
+				)
+			}
+		}
+		// TODO: make sure the the keypath value actually exists
+		// TODO: also add flag for membership proof or non-membership proof
+
 		if err != nil {
 			return nil, fmt.Errorf("failed to apply prefix to key path: %w", err)
 		}
+
 		proofs.Proofs = append(proofs.Proofs, &channeltypes.ConsStateProof{
 			Proof: &proofKV,
 			// state is the same as its consState
@@ -272,12 +313,29 @@ func (paths LinkedPaths) Reverse() LinkedPaths {
 	var reversed LinkedPaths
 	for i := range paths {
 		// Ensure Z's client on Y, Y's client on X, etc. are all updated
-		path := paths[len(paths)-1-i]
-		path.EndpointA.UpdateClient()
-		path.EndpointA, path.EndpointB = path.EndpointB, path.EndpointA
-		reversed = append(reversed, path)
+		orgPath := paths[len(paths)-1-i]
+		path := Path{
+			EndpointA: orgPath.EndpointB,
+			EndpointB: orgPath.EndpointA,
+		}
+		reversed = append(reversed, &path)
 	}
 	return reversed
+}
+
+// UpdateClients iterates through each chain in the path and calls UpdateClient
+func (paths LinkedPaths) UpdateClients() {
+	for _, path := range paths {
+		path.EndpointA.UpdateClient()
+	}
+}
+
+// GetConnectionHops returns connection IDs on {A, B,... Y}
+func (paths LinkedPaths) GetConnectionHops() (connectionHops []string) {
+	for _, path := range paths {
+		connectionHops = append(connectionHops, path.EndpointA.ConnectionID)
+	}
+	return
 }
 
 // CreateLinkedChains creates `num` chains and set up a Path between each pair of chains

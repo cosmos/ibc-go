@@ -63,6 +63,9 @@ func VerifyMultiHopProofMembership(
 		return fmt.Errorf("failed to unpack consensus state: %w", err)
 	}
 	tmclient := clientState.(*ibctmtypes.ClientState)
+	fmt.Printf("secondConsState.root: %x\n", secondConsState.GetRoot().GetHash())
+	fmt.Printf("key: %s\n", keyValueProof.PrefixedKey.String())
+	fmt.Printf("val: %x\n", value)
 	return keyValueProof.Proof.VerifyMembership(
 		tmclient.GetProofSpecs(),
 		secondConsState.GetRoot(),
