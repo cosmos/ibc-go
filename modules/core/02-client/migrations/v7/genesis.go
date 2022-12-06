@@ -27,7 +27,6 @@ func MigrateGenesis(clientGenState *clienttypes.GenesisState, cdc codec.ProtoCod
 			return nil, err
 		}
 
-		// update solo machine client state defintions
 		switch clientType {
 		case exported.Solomachine:
 			var clientState ClientState
