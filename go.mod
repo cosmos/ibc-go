@@ -3,13 +3,13 @@ go 1.19
 module github.com/cosmos/ibc-go/v6
 
 require (
-	cosmossdk.io/math v1.0.0-beta.3
-	cosmossdk.io/simapp v0.0.0-20221103182213-3034a9d54a62
+	cosmossdk.io/math v1.0.0-beta.4
+	cosmossdk.io/simapp v0.0.0-20221205222303-e7afcca23271
 	github.com/armon/go-metrics v0.4.1
-	github.com/confio/ics23/go v0.7.0
+	github.com/confio/ics23/go v0.9.0
 	github.com/cosmos/cosmos-proto v1.0.0-alpha8
 	// cosmos-sdk main @20448048a489 ≃ 0.47
-	github.com/cosmos/cosmos-sdk v0.47.0-alpha1
+	github.com/cosmos/cosmos-sdk v0.47.0-alpha1.0.20221205222303-e7afcca23271
 	github.com/cosmos/gogoproto v1.4.3
 	github.com/golang/protobuf v1.5.2
 	github.com/gorilla/mux v1.8.0
@@ -19,21 +19,21 @@ require (
 	github.com/spf13/cobra v1.6.1
 	github.com/spf13/viper v1.14.0
 	github.com/stretchr/testify v1.8.1
-	github.com/tendermint/tendermint v0.37.0-rc1
+	github.com/tendermint/tendermint v0.37.0-rc2
 	github.com/tendermint/tm-db v0.6.7
-	google.golang.org/genproto v0.0.0-20221024183307-1bc688fe9f3e
-	google.golang.org/grpc v1.50.1
+	google.golang.org/genproto v0.0.0-20221118155620-16455021b5e6
+	google.golang.org/grpc v1.51.0
 	google.golang.org/protobuf v1.28.2-0.20220831092852-f930b1dc76e8
 	gopkg.in/yaml.v2 v2.4.0
 )
 
 require (
-	cloud.google.com/go v0.104.0 // indirect
+	cloud.google.com/go v0.105.0 // indirect
 	cloud.google.com/go/compute v1.12.1 // indirect
 	cloud.google.com/go/compute/metadata v0.2.1 // indirect
-	cloud.google.com/go/iam v0.4.0 // indirect
-	cloud.google.com/go/storage v1.23.0 // indirect
-	cosmossdk.io/api v0.2.4 // indirect
+	cloud.google.com/go/iam v0.7.0 // indirect
+	cloud.google.com/go/storage v1.27.0 // indirect
+	cosmossdk.io/api v0.2.5 // indirect
 	cosmossdk.io/core v0.3.2 // indirect
 	cosmossdk.io/depinject v1.0.0-alpha.3 // indirect
 	cosmossdk.io/errors v1.0.0-beta.7 // indirect
@@ -47,7 +47,7 @@ require (
 	github.com/bgentry/go-netrc v0.0.0-20140422174119-9fd32a8b3d3d // indirect
 	github.com/bgentry/speakeasy v0.1.0 // indirect
 	github.com/btcsuite/btcd v0.22.3 // indirect
-	github.com/btcsuite/btcd/btcec/v2 v2.3.1 // indirect
+	github.com/btcsuite/btcd/btcec/v2 v2.3.2 // indirect
 	github.com/cenkalti/backoff/v4 v4.1.3 // indirect
 	github.com/cespare/xxhash v1.1.0 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
