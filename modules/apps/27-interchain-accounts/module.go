@@ -29,6 +29,7 @@ import (
 	genesistypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/genesis/types"
 	"github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/host"
 	"github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/host/keeper"
+
 	hostkeeper "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/host/keeper"
 	hosttypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/host/types"
 	"github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/simulation"

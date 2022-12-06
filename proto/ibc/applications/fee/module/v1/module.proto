@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package ibc.applications.fee.module.v1;
+
+import "cosmos/app/v1alpha1/module.proto";
+
+// Module is the config object of the transfer module.
+message Module {
+  option (cosmos.app.v1alpha1.module) = {
+    go_import: "github.com/cosmos/ibc-go/v6/modules/29-fee"
+  };
+}
