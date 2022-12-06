@@ -54,13 +54,13 @@ func (suite *MigrationsV7TestSuite) TestMigrateGenesisSolomachine() {
 		}
 
 		// set client state
-		any, err := codectypes.NewAnyWithValue(legacyClientState)
+		protoAny, err := codectypes.NewAnyWithValue(legacyClientState)
 		suite.Require().NoError(err)
-		suite.Require().NotNil(any)
+		suite.Require().NotNil(protoAny)
 
 		clients = append(clients, types.IdentifiedClientState{
 			ClientId:    sm.ClientID,
-			ClientState: any,
+			ClientState: protoAny,
 		})
 
 		// set in store for ease of determining expected genesis
@@ -69,9 +69,9 @@ func (suite *MigrationsV7TestSuite) TestMigrateGenesisSolomachine() {
 		suite.Require().NoError(err)
 		clientStore.Set(host.ClientStateKey(), bz)
 
-		any, err = codectypes.NewAnyWithValue(legacyClientState.ConsensusState)
+		protoAny, err = codectypes.NewAnyWithValue(legacyClientState.ConsensusState)
 		suite.Require().NoError(err)
-		suite.Require().NotNil(any)
+		suite.Require().NotNil(protoAny)
 
 		// obtain marshalled bytes to set in client store
 		bz, err = suite.chainA.App.AppCodec().MarshalInterface(legacyClientState.ConsensusState)
@@ -85,7 +85,7 @@ func (suite *MigrationsV7TestSuite) TestMigrateGenesisSolomachine() {
 			clientStore.Set(host.ConsensusStateKey(height), bz)
 			consensusStates = append(consensusStates, types.ConsensusStateWithHeight{
 				Height:         height,
-				ConsensusState: any,
+				ConsensusState: protoAny,
 			})
 		}
 

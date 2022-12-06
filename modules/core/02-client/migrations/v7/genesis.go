@@ -37,14 +37,14 @@ func MigrateGenesis(clientGenState *clienttypes.GenesisState, cdc codec.ProtoCod
 
 			updatedClientState := migrateSolomachine(clientState)
 
-			any, err := clienttypes.PackClientState(&updatedClientState)
+			protoAny, err := clienttypes.PackClientState(&updatedClientState)
 			if err != nil {
 				return nil, err
 			}
 
 			clients = append(clients, clienttypes.IdentifiedClientState{
 				ClientId:    client.ClientId,
-				ClientState: any,
+				ClientState: protoAny,
 			})
 
 		case Localhost:
