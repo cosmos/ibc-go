@@ -14,3 +14,5 @@ cp -r github.com/cosmos/ibc-go/v*/modules/* modules/
 rm -rf github.com
 
 go mod tidy
+
+./scripts/protocgen-pulsar.sh
