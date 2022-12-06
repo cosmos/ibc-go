@@ -60,12 +60,8 @@ func MigrateGenesis(clientGenState *clienttypes.GenesisState, cdc codec.ProtoCod
 			// look for consensus states for the current client
 			if clientConsensusStates.ClientId == client.ClientId {
 				switch clientType {
-				case exported.Solomachine:
-					// remove all consensus states for the solo machine
-					// do not add to new clientsConsensus
-
-				case Localhost:
-					// remove all consensus states for the solo machine
+				case exported.Solomachine, Localhost:
+					// remove all consensus states for the solo machine and localhost
 					// do not add to new clientsConsensus
 
 				default:
