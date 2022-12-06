@@ -2,10 +2,10 @@ version: v1
 name: buf.build/cosmos/ibc
 deps:
   # see: (https://github.com/cosmos/cosmos-sdk/tree/main/proto#sdk-x-buf)
-   - buf.build/cosmos/cosmos-sdk # TODO to pin
-   - buf.build/cosmos/cosmos-proto:1935555c206d4afb9e94615dfd0fad31
-   - buf.build/cosmos/gogo-proto
-   - buf.build/googleapis/googleapis:8d7204855ec14631a499bd7393ce1970
+  - buf.build/cosmos/cosmos-sdk # TODO to pin
+  - buf.build/cosmos/cosmos-proto:1935555c206d4afb9e94615dfd0fad31
+  - buf.build/cosmos/gogo-proto
+  - buf.build/googleapis/googleapis:8d7204855ec14631a499bd7393ce1970
 breaking:
   use:
     - FILE
@@ -20,5 +20,3 @@ lint:
     - SERVICE_SUFFIX
     - PACKAGE_VERSION_SUFFIX
     - RPC_REQUEST_STANDARD_NAME
-  ignore:
-    - proofs.proto # TODO: remove this when ics23 is linted and can be obtained via buf mod
