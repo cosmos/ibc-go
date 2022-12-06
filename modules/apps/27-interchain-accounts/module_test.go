@@ -3,12 +3,14 @@ package ica_test
 import (
 	"testing"
 
+	"github.com/cosmos/cosmos-sdk/client/flags"
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	"github.com/stretchr/testify/suite"
 	"github.com/tendermint/tendermint/libs/log"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	dbm "github.com/tendermint/tm-db"
 
+	"github.com/cosmos/cosmos-sdk/server"
 	ica "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts"
 	controllertypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/controller/types"
 	hosttypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/host/types"
@@ -33,7 +35,10 @@ func (suite *InterchainAccountsTestSuite) SetupTest() {
 
 func (suite *InterchainAccountsTestSuite) TestInitModule() {
 	// setup and basic testing
-	app := simapp.NewSimApp(log.NewNopLogger(), dbm.NewMemDB(), nil, true, map[int64]bool{}, simapp.DefaultNodeHome, 5, simapp.MakeTestEncodingConfig(), simtestutil.EmptyAppOptions{})
+	appOptions := make(simtestutil.AppOptionsMap, 0)
+	appOptions[flags.FlagHome] = simapp.DefaultNodeHome
+	appOptions[server.FlagInvCheckPeriod] = 5
+	app := simapp.NewSimApp(log.NewNopLogger(), dbm.NewMemDB(), nil, true, appOptions)
 	appModule, ok := app.GetModuleManager().Modules[types.ModuleName].(ica.AppModule)
 	suite.Require().True(ok)
 
@@ -99,7 +104,10 @@ func (suite *InterchainAccountsTestSuite) TestInitModule() {
 			suite.SetupTest() // reset
 
 			// reset app state
-			app = simapp.NewSimApp(log.NewNopLogger(), dbm.NewMemDB(), nil, true, map[int64]bool{}, simapp.DefaultNodeHome, 5, simapp.MakeTestEncodingConfig(), simtestutil.EmptyAppOptions{})
+			appOptions := make(simtestutil.AppOptionsMap, 0)
+			appOptions[flags.FlagHome] = simapp.DefaultNodeHome
+			appOptions[server.FlagInvCheckPeriod] = 5
+			app = simapp.NewSimApp(log.NewNopLogger(), dbm.NewMemDB(), nil, true, appOptions)
 			header := tmproto.Header{
 				ChainID: "testchain",
 				Height:  1,

@@ -42,8 +42,11 @@ var DefaultConsensusParams = &tmproto.ConsensusParams{
 
 func setup(withGenesis bool, invCheckPeriod uint) (*SimApp, GenesisState) {
 	db := dbm.NewMemDB()
-	encCdc := MakeTestEncodingConfig()
-	app := NewSimApp(log.NewNopLogger(), db, nil, true, map[int64]bool{}, DefaultNodeHome, invCheckPeriod, encCdc, simtestutil.EmptyAppOptions{})
+	appOptions := make(simtestutil.AppOptionsMap, 0)
+	appOptions[flags.FlagHome] = DefaultNodeHome
+	appOptions[server.FlagInvCheckPeriod] = invCheckPeriod
+
+	app := NewSimApp(log.NewNopLogger(), db, nil, true,  appOptions)
 	if withGenesis {
 		return app, NewDefaultGenesisState(encCdc.Marshaler)
 	}
@@ -197,3 +200,5 @@ func SetupWithGenesisAccounts(genAccs []authtypes.GenesisAccount, balances ...ba
 
 	return app
 }
+
+func NewAppOptionsWithFlagHome
