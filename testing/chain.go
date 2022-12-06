@@ -389,6 +389,7 @@ func (chain *TestChain) CreatePortCapability(scopedKeeper capabilitykeeper.Scope
 		require.NoError(chain.T, err)
 	}
 
+	chain.App.EndBlock(abci.RequestEndBlock{Height: chain.App.LastBlockHeight()})
 	chain.App.Commit()
 
 	chain.NextBlock()
@@ -417,6 +418,7 @@ func (chain *TestChain) CreateChannelCapability(scopedKeeper capabilitykeeper.Sc
 		require.NoError(chain.T, err)
 	}
 
+	chain.App.EndBlock(abci.RequestEndBlock{Height: chain.App.LastBlockHeight()})
 	chain.App.Commit()
 
 	chain.NextBlock()
