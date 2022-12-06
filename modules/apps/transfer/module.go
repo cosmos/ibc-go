@@ -203,8 +203,6 @@ type TransferInputs struct {
 	authKeeper    types.AccountKeeper
 	bankKeeper    types.BankKeeper
 	scopedKeeper  exported.ScopedKeeper
-
-	// maybe other field necessary for transfer module
 }
 
 //nolint:golint,all
@@ -215,6 +213,7 @@ type TransferOutputs struct {
 	Module         appmodule.AppModule
 }
 
+// ProvideModule is used to provide transfer module as dependency
 func ProvideModule(in TransferInputs) TransferOutputs {
 	k := keeper.NewKeeper(in.Cdc, in.Key, in.paramSpace, in.ics4Wrapper, in.channelKeeper, in.portKeeper, in.authKeeper, in.bankKeeper, in.scopedKeeper)
 	m := NewAppModule(k)
