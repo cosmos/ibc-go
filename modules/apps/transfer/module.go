@@ -6,12 +6,18 @@ import (
 	"fmt"
 	"math/rand"
 
+	"cosmossdk.io/core/appmodule"
+	"cosmossdk.io/depinject"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
+	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
+
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	store "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
+	modulev1 "github.com/cosmos/ibc-go/v6/api/ibc/applications/transfer/module/v1"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -21,6 +27,7 @@ import (
 	"github.com/cosmos/ibc-go/v6/modules/apps/transfer/simulation"
 	"github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	porttypes "github.com/cosmos/ibc-go/v6/modules/core/05-port/types"
+	"github.com/cosmos/ibc-go/v6/modules/core/exported"
 )
 
 var (
@@ -86,6 +93,12 @@ type AppModule struct {
 	AppModuleBasic
 	keeper keeper.Keeper
 }
+
+// IsOnePerModuleType implements the depinject.OnePerModuleType interface.
+func (am AppModule) IsOnePerModuleType() {}
+
+// IsAppModule implements the appmodule.AppModule interface.
+func (am AppModule) IsAppModule() {}
 
 // NewAppModule creates a new 20-transfer module
 func NewAppModule(k keeper.Keeper) AppModule {
@@ -163,4 +176,46 @@ func (am AppModule) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
 // WeightedOperations returns the all the transfer module operations with their respective weights.
 func (am AppModule) WeightedOperations(_ module.SimulationState) []simtypes.WeightedOperation {
 	return nil
+}
+
+//
+// App-Wiring setup
+//
+
+func init() {
+	appmodule.Register(&modulev1.Module{},
+		appmodule.Provide(ProvideModule),
+	)
+}
+
+//nolint:golint,all
+type TransferInputs struct {
+	depinject.In
+
+	Config *modulev1.Module
+	Key    *store.KVStoreKey
+	Cdc    codec.Codec
+
+	paramSpace    paramtypes.Subspace
+	ics4Wrapper   porttypes.ICS4Wrapper
+	channelKeeper types.ChannelKeeper
+	portKeeper    types.PortKeeper
+	authKeeper    types.AccountKeeper
+	bankKeeper    types.BankKeeper
+	scopedKeeper  exported.ScopedKeeper
+}
+
+//nolint:golint,all
+type TransferOutputs struct {
+	depinject.Out
+
+	TransferKeeper keeper.Keeper
+	Module         appmodule.AppModule
+}
+
+// ProvideModule is used to provide transfer module as dependency
+func ProvideModule(in TransferInputs) TransferOutputs {
+	k := keeper.NewKeeper(in.Cdc, in.Key, in.paramSpace, in.ics4Wrapper, in.channelKeeper, in.portKeeper, in.authKeeper, in.bankKeeper, in.scopedKeeper)
+	m := NewAppModule(k)
+	return TransferOutputs{TransferKeeper: k, Module: m}
 }

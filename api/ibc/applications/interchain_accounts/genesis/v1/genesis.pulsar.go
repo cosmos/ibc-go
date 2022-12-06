@@ -2,6 +2,8 @@
 package genesisv1
 
 import (
+	v1 "cosmossdk.io/api/ibc/applications/interchain_accounts/controller/v1"
+	v11 "cosmossdk.io/api/ibc/applications/interchain_accounts/host/v1"
 	fmt "fmt"
 	runtime "github.com/cosmos/cosmos-proto/runtime"
 	_ "github.com/cosmos/gogoproto/gogoproto"
