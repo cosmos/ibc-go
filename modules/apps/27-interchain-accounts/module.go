@@ -6,12 +6,19 @@ import (
 	"fmt"
 	"math/rand"
 
+	"cosmossdk.io/core/appmodule"
+	"cosmossdk.io/depinject"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
+	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
+
+	store "github.com/cosmos/cosmos-sdk/store/types"
+
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
+	modulev1 "github.com/cosmos/ibc-go/v6/api/ibc/applications/interchain_accounts/module/v1"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -21,12 +28,14 @@ import (
 	controllertypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/controller/types"
 	genesistypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/genesis/types"
 	"github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/host"
+	"github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/host/keeper"
 	hostkeeper "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/host/keeper"
 	hosttypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/host/types"
 	"github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/simulation"
 	"github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
 	porttypes "github.com/cosmos/ibc-go/v6/modules/core/05-port/types"
 	ibchost "github.com/cosmos/ibc-go/v6/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v6/modules/core/exported"
 )
 
 var (
@@ -99,6 +108,12 @@ type AppModule struct {
 	controllerKeeper *controllerkeeper.Keeper
 	hostKeeper       *hostkeeper.Keeper
 }
+
+// IsOnePerModuleType implements the depinject.OnePerModuleType interface.
+func (am AppModule) IsOnePerModuleType() {}
+
+// IsAppModule implements the appmodule.AppModule interface.
+func (am AppModule) IsAppModule() {}
 
 // NewAppModule creates a new IBC interchain accounts module
 func NewAppModule(controllerKeeper *controllerkeeper.Keeper, hostKeeper *hostkeeper.Keeper) AppModule {
@@ -220,4 +235,44 @@ func (am AppModule) RandomizedParams(r *rand.Rand) []simtypes.ParamChange {
 // RegisterStoreDecoder registers a decoder for interchain accounts module's types
 func (am AppModule) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
 	sdr[types.StoreKey] = simulation.NewDecodeStore()
+}
+
+//
+// App-Wiring Setup
+//
+
+func init() {
+	appmodule.Register(&modulev1.Module{})
+}
+
+type InterchainAccountsInput struct {
+	depinject.In
+
+	Config *modulev1.Module
+	Key    *store.KVStoreKey
+	Cdc    codec.Codec
+
+	controllerKeeper controllerkeeper.Keeper
+
+	paramSpace    paramtypes.Subspace
+	ics4Wrapper   porttypes.ICS4Wrapper
+	channelKeeper types.ChannelKeeper
+	portKeeper    types.PortKeeper
+	authKeeper    types.AccountKeeper
+	scopedKeeper  exported.ScopedKeeper
+	msgRouter     types.MessageRouter
+}
+
+type InterchainAccountsOutput struct {
+	depinject.Out
+
+	InterchainAccountsKeeper keeper.Keeper
+	Module                   appmodule.AppModule
+}
+
+// ProvideModule is used to provide interchain accounts module as dependency
+func ProvideModule(in InterchainAccountsInput) InterchainAccountsOutput {
+	k := keeper.NewKeeper(in.Cdc, in.Key, in.paramSpace, in.ics4Wrapper, in.channelKeeper, in.portKeeper, in.authKeeper, in.scopedKeeper, in.msgRouter)
+	m := NewAppModule(&in.controllerKeeper, &k)
+	return InterchainAccountsOutput{InterchainAccountsKeeper: k, Module: m}
 }
