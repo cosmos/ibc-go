@@ -1,4 +1,4 @@
-# Migrating from ibc-go v5 to v6
+# Migrating from ibc-go v6 to v7
 
 This document is intended to highlight significant changes which may require more information than presented in the CHANGELOG.
 Any changes that must be done by a user of ibc-go should be documented here.
@@ -13,7 +13,79 @@ There are four sections based on the four potential user groups of this document
 
 ## Chains
 
-- No relevant changes were made in this release.
+Chains will perform automatic migrations to remove existing localhost clients and to migrate the solomachine to v3 of the protobuf definition. 
+
+An optional upgrade handler has been added to prune expired tendermint consensus states. It may be used during any upgrade (from v7 onwards).
+Add the following to the function call to the upgrade handler in `app/app.go`, to perform the optional state pruning.
+
+```go
+import (
+    // ...
+    ibctm "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint"
+)
+
+// ...
+
+app.UpgradeKeeper.SetUpgradeHandler(
+    upgradeName,
+    func(ctx sdk.Context, _ upgradetypes.Plan, _ module.VersionMap) (module.VersionMap, error) {
+        // prune expired tendermint consensus states to save storage space
+        ibctm.PruneTendermintConsensusStates(ctx, app.Codec, appCodec, keys[ibchost.StoreKey])
+
+        return app.mm.RunMigrations(ctx, app.configurator, fromVM)
+    },
+)
+```
+
+Checkout the logs to see how many consensus states are pruned.
+
+### Light client registration
+
+Chains must explicitly register the types of any light client modules it wishes to integrate. 
+
+#### Tendermint registration
+
+To register the tendermint client, modify the `app.go` file to include the tendermint `AppModuleBasic`:
+
+```diff
+import (
+    // ...
++   ibctm "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint"
+)
+
+// ...
+
+ModuleBasics = module.NewBasicManager(
+    ...
+    ibc.AppModuleBasic{},
++   ibctm.AppModuleBasic{},
+    ...
+)
+```
+
+It may be useful to reference the [PR](https://github.com/cosmos/ibc-go/pull/2825) which added the `AppModuleBasic` for the tendermint client.
+
+#### Solo machine registration
+
+To register the solo machine client, modify the `app.go` file to include the solo machine `AppModuleBasic`:
+
+```diff
+import (
+    // ...
++   solomachine "github.com/cosmos/ibc-go/v6/modules/light-clients/06-solomachine"
+)
+
+// ...
+
+ModuleBasics = module.NewBasicManager(
+    ...
+    ibc.AppModuleBasic{},
++   solomachine.AppModuleBasic{},
+    ...
+)
+```
+
+It may be useful to reference the [PR](https://github.com/cosmos/ibc-go/pull/2826) which added the `AppModuleBasic` for the solo machine client.
 
 ## IBC Apps
 
@@ -45,7 +117,37 @@ The `CheckMisbehaviourAndUpdateState` function has been removed from `ClientStat
 
 The function `GetTimestampAtHeight` has been added to the `ClientState` interface. It should return the timestamp for a consensus state associated with the provided height.
 
-A zero proof height is now allowed by core IBC and may be passed into `VerifyMembership` and `VerifyNonMembership`. Light clients are responsible for returning an error if a zero proof height is invalid behaviour. 
+Prior to ibc-go/v7 the `ClientState` interface defined a method for each data type which was being verified in the counterparty state store.
+The state verification functions for all IBC data types have been consolidated into two generic methods, `VerifyMembership` and `VerifyNonMembership`.
+Both are expected to be provided with a standardised key path, `exported.Path`, as defined in [ICS 24 host requirements](https://github.com/cosmos/ibc/tree/main/spec/core/ics-024-host-requirements). Membership verification requires callers to provide the marshalled value `[]byte`. Delay period values should be zero for non-packet processing verification. A zero proof height is now allowed by core IBC and may be passed into `VerifyMembership` and `VerifyNonMembership`. Light clients are responsible for returning an error if a zero proof height is invalid behaviour. 
+
+See below for an example of how ibc-go now performs channel state verification.
+
+```go
+merklePath := commitmenttypes.NewMerklePath(host.ChannelPath(portID, channelID))
+merklePath, err := commitmenttypes.ApplyPrefix(connection.GetCounterparty().GetPrefix(), merklePath)
+if err != nil {
+    return err
+}
+
+channelEnd, ok := channel.(channeltypes.Channel)
+if !ok {
+    return sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "invalid channel type %T", channel)
+}
+
+bz, err := k.cdc.Marshal(&channelEnd)
+if err != nil {
+    return err
+}
+
+if err := clientState.VerifyMembership(
+    ctx, clientStore, k.cdc, height,
+    0, 0, // skip delay period checks for non-packet processing verification
+    proof, merklePath, bz,
+); err != nil {
+    return sdkerrors.Wrapf(err, "failed channel state verification for client (%s)", clientID)
+}
+```
 
 ### `Header` and `Misbehaviour`
 
@@ -56,41 +158,6 @@ A zero proof height is now allowed by core IBC and may be passed into `VerifyMem
 ### `ConsensusState`
 
 The `GetRoot` function has been removed from consensus state interface since it was not used by core IBC.
-
-### Light client implementations
-
-The `09-localhost` light client implementation has been removed because it is currently non-functional.
-
-An upgrade handler has been added to supply chain developers with the logic needed to prune the ibc client store and successfully complete the removal of `09-localhost`.
-Add the following to the application upgrade handler in `app/app.go`, calling `MigrateToV6` to perform store migration logic.
-
-```go
-import (
-    // ...
-    ibcv6 "github.com/cosmos/ibc-go/v6/modules/core/migrations/v6"
-)
-
-// ...
-
-app.UpgradeKeeper.SetUpgradeHandler(
-    upgradeName,
-    func(ctx sdk.Context, _ upgradetypes.Plan, _ module.VersionMap) (module.VersionMap, error) {
-        // prune the 09-localhost client from the ibc client store
-        ibcv6.MigrateToV6(ctx, app.IBCKeeper.ClientKeeper)
-
-        return app.mm.RunMigrations(ctx, app.configurator, fromVM)
-    },
-)
-```
-
-Please note the above upgrade handler is optional and should only be run if chains have an existing `09-localhost` client stored in state.
-A simple query can be performed to check for a `09-localhost` client on chain.
-
-For example:
-
-```
-simd query ibc client states | grep 09-localhost
-```
 
 ### Client Keeper
 

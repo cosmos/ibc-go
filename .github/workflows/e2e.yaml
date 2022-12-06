@@ -14,10 +14,6 @@ on:
       - "**.md"
       - "LICENSE"
 
-env:
-  REGISTRY: ghcr.io
-  IMAGE_NAME: ibc-go-simd
-
 jobs:
   determine-image-tag:
     if: ${{ !github.event.pull_request.head.repo.fork && github.actor != 'dependabot[bot]' }}
@@ -28,12 +24,17 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v3
         with:
-          go-version: 1.19
+          go-version: 1.18
       - id: get-tag
         run: |
-          tag=$(go run cmd/determine_simd_tag/main.go -pr "${{ github.event.pull_request.number }}" )
-          echo "Using tag $tag"
-          echo "::set-output name=simd-tag::$tag"
+          if [ -z "${{ github.event.pull_request.number }}" ]
+          then
+            echo "simd-tag=main" >> $GITHUB_OUTPUT
+          else
+            tag="pr-${{ github.event.pull_request.number }}"
+            echo "Using tag $tag"
+            echo "simd-tag=$tag" >> $GITHUB_OUTPUT
+          fi
   e2e:
     if: ${{ !github.event.pull_request.head.repo.fork && github.actor != 'dependabot[bot]' }}
     needs:
@@ -45,7 +46,7 @@ jobs:
       chain-image: ghcr.io/cosmos/ibc-go-simd
       chain-a-tag: "${{ needs.determine-image-tag.outputs.simd-tag }}"
       chain-b-tag: "${{ needs.determine-image-tag.outputs.simd-tag }}"
-      relayer-tag: "v2.0.0"
+      relayer-tag: "v2.1.2"
       chain-binary: "simd"
       # on regular PRs we won't run interchain account or upgrade tests.
       test-exclusions: "TestInterTxTestSuite,TestIncentivizedInterTxTestSuite,TestUpgradeTestSuite"
