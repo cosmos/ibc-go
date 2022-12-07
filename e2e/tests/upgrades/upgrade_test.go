@@ -552,7 +552,7 @@ func getICAVersion(chainAVersion, chainBVersion string) string {
 	return icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
 }
 
-// Status queries the current status of the client
+// Status queries the status of the client by clientID
 func (s *UpgradeTestSuite) Status(ctx context.Context, chain ibc.Chain, clientID string) (string, error) {
 	queryClient := s.GetChainGRCPClients(chain).ClientQueryClient
 	res, err := queryClient.ClientStatus(ctx, &clienttypes.QueryClientStatusRequest{
@@ -565,7 +565,7 @@ func (s *UpgradeTestSuite) Status(ctx context.Context, chain ibc.Chain, clientID
 	return res.Status, nil
 }
 
-// Status queries the current status of the client
+// ClientState queries the current ClientState by clientID
 func (s *UpgradeTestSuite) ClientState(ctx context.Context, chain ibc.Chain, clientID string) (*clienttypes.QueryClientStateResponse, error) {
 	queryClient := s.GetChainGRCPClients(chain).ClientQueryClient
 	res, err := queryClient.ClientState(ctx, &clienttypes.QueryClientStateRequest{
