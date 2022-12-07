@@ -4,6 +4,7 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/ibc-go/v6/modules/core/02-client/migrations/v7"
@@ -85,12 +86,14 @@ func (suite *MigrationsV7TestSuite) createSolomachineClients(solomachines []*ibc
 			AllowUpdateAfterProposal: true,
 		}
 
-		// set client state
-		bz, err := suite.chainA.App.AppCodec().MarshalInterface(legacyClientState)
+		cdc := suite.chainA.App.AppCodec().(*codec.ProtoCodec)
+		v7.RegisterInterfaces(cdc.InterfaceRegistry())
+
+		bz, err := cdc.MarshalInterface(legacyClientState)
 		suite.Require().NoError(err)
 		clientStore.Set(host.ClientStateKey(), bz)
 
-		bz, err = suite.chainA.App.AppCodec().MarshalInterface(legacyClientState.ConsensusState)
+		bz, err = cdc.MarshalInterface(legacyClientState.ConsensusState)
 		suite.Require().NoError(err)
 
 		// set some consensus states

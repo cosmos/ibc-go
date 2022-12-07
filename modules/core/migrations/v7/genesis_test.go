@@ -92,7 +92,10 @@ func (suite *MigrationsV7TestSuite) TestMigrateGenesisSolomachine() {
 
 		// set in store for ease of determining expected genesis
 		clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), sm.ClientID)
-		bz, err := suite.chainA.App.AppCodec().MarshalInterface(legacyClientState)
+		cdc := suite.chainA.App.AppCodec().(*codec.ProtoCodec)
+		clientv7.RegisterInterfaces(cdc.InterfaceRegistry())
+
+		bz, err := cdc.MarshalInterface(legacyClientState)
 		suite.Require().NoError(err)
 		clientStore.Set(host.ClientStateKey(), bz)
 
@@ -101,7 +104,7 @@ func (suite *MigrationsV7TestSuite) TestMigrateGenesisSolomachine() {
 		suite.Require().NotNil(protoAny)
 
 		// obtain marshalled bytes to set in client store
-		bz, err = suite.chainA.App.AppCodec().MarshalInterface(legacyClientState.ConsensusState)
+		bz, err = cdc.MarshalInterface(legacyClientState.ConsensusState)
 		suite.Require().NoError(err)
 
 		var consensusStates []clienttypes.ConsensusStateWithHeight
