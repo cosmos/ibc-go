@@ -41,5 +41,5 @@ The methods which make up this interface are detailed at a more granular level i
 ### Height
 
 Height defines a monotonically increasing sequence number which provides ordering of consensus state data persisted through updates. 
-IBC lightclient module developers are expected to use the concrete type provided by the `02-client` submodule. This implements the expectations required by the `Height` interface in `core/modules/exported/client.go`.
+IBC lightclient module developers are expected to use the concrete type provided by the `02-client` submodule. This implements the expectations required by the `Height` interface defined in `core/modules/exported/client.go`.
 
