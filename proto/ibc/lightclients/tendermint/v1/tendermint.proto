@@ -41,7 +41,7 @@ message ClientState {
       [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"latest_height\""];
 
   // Proof specifications used in verifying counterparty state
-  repeated ics23.ProofSpec proof_specs = 8 [(gogoproto.moretags) = "yaml:\"proof_specs\""];
+  repeated cosmos.ics23.v1.ProofSpec proof_specs = 8 [(gogoproto.moretags) = "yaml:\"proof_specs\""];
 
   // Path at which next upgraded client will be committed.
   // Each element corresponds to the key for a single CommitmentProof in the

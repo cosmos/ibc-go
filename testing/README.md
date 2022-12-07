@@ -115,9 +115,10 @@ The testing package requires that you provide a function to initialize your Test
 
 ```go
 func SetupTestingApp() (TestingApp, map[string]json.RawMessage) {
-	db := dbm.NewMemDB()
-	encCdc := simapp.MakeTestEncodingConfig()
-	app := simapp.NewSimApp(log.NewNopLogger(), db, nil, true, map[int64]bool{}, simapp.DefaultNodeHome, 5, encCdc, simapp.EmptyAppOptions{})
+	appOptions := make(simtestutil.AppOptionsMap, 0)
+	appOptions[flags.FlagHome] = simapp.DefaultNodeHome
+	appOptions[server.FlagInvCheckPeriod] = 5
+	app := simapp.NewSimApp(log.NewNopLogger(), dbm.NewMemDB(), nil, true, appOptions)
 	return app, simapp.NewDefaultGenesisState(encCdc.Marshaler)
 }
 ```
@@ -260,9 +261,10 @@ import (
 )
 
 func SetupTransferTestingApp() (ibctesting.TestingApp, map[string]json.RawMessage) {
-	db := dbm.NewMemDB()
-	encCdc := simapp.MakeTestEncodingConfig()
-	app := simapp.NewSimApp(log.NewNopLogger(), db, nil, true, map[int64]bool{}, simapp.DefaultNodeHome, 5, encCdc, simapp.EmptyAppOptions{})
+	appOptions := make(simtestutil.AppOptionsMap, 0)
+	appOptions[flags.FlagHome] = simapp.DefaultNodeHome
+	appOptions[server.FlagInvCheckPeriod] = 5
+	app := simapp.NewSimApp(log.NewNopLogger(), dbm.NewMemDB(), nil, true, appOptions)
 	return app, simapp.NewDefaultGenesisState(encCdc.Marshaler)
 }
 

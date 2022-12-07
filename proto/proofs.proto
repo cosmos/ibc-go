@@ -1,8 +1,8 @@
 syntax = "proto3";
 
-package ics23;
+package cosmos.ics23.v1;
 
-option go_package = "github.com/confio/ics23/go";
+option go_package = "github.com/cosmos/ics23/go";
 
 enum HashOp {
   // NO_HASH is the default if no data passed. Note this is an illegal argument some places.
@@ -11,7 +11,7 @@ enum HashOp {
   SHA512     = 2;
   KECCAK     = 3;
   RIPEMD160  = 4;
-  BITCOIN    = 5; // ripemd160(sha256(x))
+  BITCOIN    = 5;  // ripemd160(sha256(x))
   SHA512_256 = 6;
 }
 
@@ -46,16 +46,19 @@ enum LengthOp {
 ExistenceProof takes a key and a value and a set of steps to perform on it.
 The result of peforming all these steps will provide a "root hash", which can
 be compared to the value in a header.
+
 Since it is computationally infeasible to produce a hash collission for any of the used
 cryptographic hash functions, if someone can provide a series of operations to transform
 a given key and value into a root hash that matches some trusted root, these key and values
 must be in the referenced merkle tree.
+
 The only possible issue is maliablity in LeafOp, such as providing extra prefix data,
 which should be controlled by a spec. Eg. with lengthOp as NONE,
   prefix = FOO, key = BAR, value = CHOICE
 and
   prefix = F, key = OOBAR, value = CHOICE
 would produce the same value.
+
 With LengthOp this is tricker but not impossible. Which is why the "leafPrefixEqual" field
 in the ProofSpec is valuable to prevent this mutability. And why all trees should
 length-prefix the data before hashing it.
@@ -73,7 +76,7 @@ one right of the desired key. If both proofs are valid AND they are neighbors,
 then there is no valid proof for the given key.
 */
 message NonExistenceProof {
-  bytes          key   = 1; // TODO: remove this as unnecessary??? we prove a range
+  bytes          key   = 1;  // TODO: remove this as unnecessary??? we prove a range
   ExistenceProof left  = 2;
   ExistenceProof right = 3;
 }
@@ -95,11 +98,14 @@ LeafOp represents the raw key-value data we wish to prove, and
 must be flexible to represent the internal transformation from
 the original key-value pairs into the basis hash, for many existing
 merkle trees.
+
 key and value are passed in. So that the signature of this operation is:
   leafOp(key, value) -> output
+
 To process this, first prehash the keys and values if needed (ANY means no hash in this case):
   hkey = prehashKey(key)
   hvalue = prehashValue(value)
+
 Then combine the bytes, and hash it
   output = hash(prefix || length(hkey) || hkey || length(hvalue) || hvalue)
 */
@@ -116,12 +122,16 @@ message LeafOp {
 /**
 InnerOp represents a merkle-proof step that is not a leaf.
 It represents concatenating two children and hashing them to provide the next result.
+
 The result of the previous step is passed in, so the signature of this op is:
   innerOp(child) -> output
+
 The result of applying InnerOp should be:
   output = op.hash(op.prefix || child || op.suffix)
+
   where the || operator is concatenation of binary data,
 and child is the result of hashing all the tree below this step.
+
 Any special data, like prepending child with the length, or prepending the entire operation with
 some value to differentiate from leaf nodes, should be included in prefix and suffix.
 If either of prefix or suffix is empty, we just treat it as an empty string
@@ -135,7 +145,9 @@ message InnerOp {
 /**
 ProofSpec defines what the expected parameters are for a given proof type.
 This can be stored in the client and used to validate any incoming proofs.
+
   verify(ProofSpec, Proof) -> Proof | Error
+
 As demonstrated in tests, if we don't fix the algorithm used to calculate the
 LeafHash for a given tree, there are many possible key-value pairs that can
 generate a given hash (by interpretting the preimage differently).
@@ -156,7 +168,9 @@ message ProofSpec {
 /*
 InnerSpec contains all store-specific structure info to determine if two proofs from a
 given store are neighbors.
+
 This enables:
+
   isLeftMost(spec: InnerSpec, op: InnerOp)
   isRightMost(spec: InnerSpec, op: InnerOp)
   isLeftNeighbor(spec: InnerSpec, left: InnerOp, right: InnerOp)
@@ -214,7 +228,7 @@ message CompressedExistenceProof {
 }
 
 message CompressedNonExistenceProof {
-  bytes                    key   = 1; // TODO: remove this as unnecessary??? we prove a range
+  bytes                    key   = 1;  // TODO: remove this as unnecessary??? we prove a range
   CompressedExistenceProof left  = 2;
   CompressedExistenceProof right = 3;
 }

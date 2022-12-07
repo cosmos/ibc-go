@@ -6,12 +6,19 @@ import (
 	"fmt"
 	"math/rand"
 
+	store "github.com/cosmos/cosmos-sdk/store/types"
+
+	"cosmossdk.io/core/appmodule"
+	"cosmossdk.io/depinject"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
+	modulev1 "github.com/cosmos/ibc-go/v6/api/ibc/applications/fee/module/v1"
+	porttypes "github.com/cosmos/ibc-go/v6/modules/core/05-port/types"
+
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -82,6 +89,12 @@ type AppModule struct {
 	keeper keeper.Keeper
 }
 
+// IsOnePerModuleType implements the depinject.OnePerModuleType interface.
+func (am AppModule) IsOnePerModuleType() {}
+
+// IsAppModule implements the appmodule.AppModule interface.
+func (am AppModule) IsAppModule() {}
+
 // NewAppModule creates a new 29-fee module
 func NewAppModule(k keeper.Keeper) AppModule {
 	return AppModule{
@@ -150,4 +163,44 @@ func (am AppModule) RegisterStoreDecoder(_ sdk.StoreDecoderRegistry) {
 // WeightedOperations returns the all the 29-fee module operations with their respective weights.
 func (am AppModule) WeightedOperations(_ module.SimulationState) []simtypes.WeightedOperation {
 	return nil
+}
+
+//
+// App-Wiring setup
+//
+
+func init() {
+	appmodule.Register(&modulev1.Module{},
+		appmodule.Provide(ProvideModule),
+	)
+}
+
+//nolint:golint,all
+type FeeInputs struct {
+	depinject.In
+
+	Config *modulev1.Module
+	Key    *store.KVStoreKey
+	Cdc    codec.Codec
+
+	ics4Wrapper   porttypes.ICS4Wrapper
+	channelKeeper types.ChannelKeeper
+	portKeeper    types.PortKeeper
+	authKeeper    types.AccountKeeper
+	bankKeeper    types.BankKeeper
+}
+
+//nolint:golint,all
+type FeeOutputs struct {
+	depinject.Out
+
+	FeeKeeper keeper.Keeper
+	Module    appmodule.AppModule
+}
+
+// ProvideModule is used to provide transfer module as dependency
+func ProvideModule(in FeeInputs) FeeOutputs {
+	k := keeper.NewKeeper(in.Cdc, in.Key, in.ics4Wrapper, in.channelKeeper, in.portKeeper, in.authKeeper, in.bankKeeper)
+	m := NewAppModule(k)
+	return FeeOutputs{FeeKeeper: k, Module: m}
 }
