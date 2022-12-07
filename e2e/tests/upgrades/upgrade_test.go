@@ -9,6 +9,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+	v7upgrades "github.com/cosmos/ibc-go/v6/testing/simapp/upgrades/v7"
 	v6upgrades "github.com/cosmos/interchain-accounts/app/upgrades/v6"
 	intertxtypes "github.com/cosmos/interchain-accounts/x/inter-tx/types"
 	"github.com/gogo/protobuf/proto"
@@ -401,41 +402,87 @@ func (s *UpgradeTestSuite) TestV6ToV7ChainUpgrade() {
 	// Optional: send a MsgUpdate in reference to the solo machine client (proof can be invalid, mostly want to ensure the msg does not panic when referencing a solo machine clientID)
 
 	t := s.T()
-	// testCfg := testconfig.FromEnv()
+	testCfg := testconfig.FromEnv()
 
 	ctx := context.Background()
-	relayer, _ := s.SetupChainsRelayerAndChannel(ctx)
+	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx)
 	chainA, chainB := s.GetChains()
 
 	createClientOptions := ibc.CreateClientOptions{
 		TrustingPeriod: time.Duration(time.Hour * 24 * 7).String(),
 	}
 
-	// s.SetupClients(ctx, relayer, createClientOptions)
+	// create second tendermint client
 	s.SetupClients(ctx, relayer, createClientOptions)
 
-	status, err := s.Status(ctx, chainA, chainA.Config().ChainID)
+	status, err := s.Status(ctx, chainA, ibctesting.FirstClientID)
 	s.Require().NoError(err)
-	fmt.Println(status)
+	s.Require().Equal("Active", status)
 
-	// create separate user specifically for the upgrade proposal to more easily verify starting
-	// and end balances of the chainA users.
-	// chainAUpgradeProposalWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
+	status, err = s.Status(ctx, chainA, "07-tendermint-1")
+	s.Require().NoError(err)
+	s.Require().Equal("Active", status)
+
+	var (
+		chainADenom    = chainA.Config().Denom
+		chainBIBCToken = testsuite.GetIBCToken(chainADenom, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID) // IBC token sent to chainB
+
+		// chainBDenom    = chainB.Config().Denom
+		// chainAIBCToken = testsuite.GetIBCToken(chainBDenom, channelA.PortID, channelA.ChannelID) // IBC token sent to chainA
+	)
+
+	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
+	chainAAddress := chainAWallet.Bech32Address(chainA.Config().Bech32Prefix)
+
+	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
+	chainBAddress := chainBWallet.Bech32Address(chainB.Config().Bech32Prefix)
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
+
+	t.Run("native IBC token transfer from chainA to chainB, sender is source of tokens", func(t *testing.T) {
+		transferTxResp, err := s.Transfer(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, testvalues.DefaultTransferAmount(chainADenom), chainAAddress, chainBAddress, s.GetTimeoutHeight(ctx, chainB), 0, "")
+		s.Require().NoError(err)
+		s.AssertValidTxResponse(transferTxResp)
+	})
+
+	t.Run("tokens are escrowed", func(t *testing.T) {
+		actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
+		s.Require().NoError(err)
+
+		expected := testvalues.StartingTokenAmount - testvalues.IBCTransferAmount
+		s.Require().Equal(expected, actualBalance)
+	})
 
 	t.Run("start relayer", func(t *testing.T) {
 		s.StartRelayer(relayer)
 	})
 
-	// t.Run("upgrade chainA", func(t *testing.T) {
-	// 	s.UpgradeChain(ctx, chainA, chainAUpgradeProposalWallet, v6upgrades.UpgradeName, testCfg.ChainAConfig.Tag, testCfg.UpgradeTag)
-	// })
+	t.Run("packets are relayed", func(t *testing.T) {
+		s.AssertPacketRelayed(ctx, chainA, channelA.PortID, channelA.ChannelID, 1)
 
-	// t.Run("restart relayer", func(t *testing.T) {
-	// 	s.StopRelayer(ctx, relayer)
-	// 	s.StartRelayer(relayer)
-	// })
+		actualBalance, err := chainB.GetBalance(ctx, chainBAddress, chainBIBCToken.IBCDenom())
+		s.Require().NoError(err)
+
+		expected := testvalues.IBCTransferAmount
+		s.Require().Equal(expected, actualBalance)
+	})
+
+	// create separate user specifically for the upgrade proposal to more easily verify starting
+	// and end balances of the chainA users.
+	chainAUpgradeProposalWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
+
+	t.Run("upgrade chainA", func(t *testing.T) {
+		s.UpgradeChain(ctx, chainA, chainAUpgradeProposalWallet, v7upgrades.UpgradeName, testCfg.ChainAConfig.Tag, testCfg.UpgradeTag)
+	})
+
+	status, err = s.Status(ctx, chainA, ibctesting.FirstClientID)
+	s.Require().NoError(err)
+	s.Require().Equal("Active", status)
+
+	status, err = s.Status(ctx, chainA, "07-tendermint-1")
+	s.Require().NoError(err)
+	s.Require().Equal("Active", status)
+
 }
 
 // RegisterInterchainAccount will attempt to register an interchain account on the counterparty chain.
