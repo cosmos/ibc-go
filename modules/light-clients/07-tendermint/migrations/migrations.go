@@ -12,7 +12,7 @@ import (
 
 // PruneExpiredConsensusStates prunes all expired tendermint consensus states. This function
 // may optionally be called during in-place store migrations. The ibc store key must be provided.
-func PruneExpiredConsensusStates(ctx sdk.Context, cdc codec.BinaryCodec, clientKeeper ClientKeeper) error {
+func PruneExpiredConsensusStates(ctx sdk.Context, cdc codec.BinaryCodec, clientKeeper ClientKeeper) (int, error) {
 	var clientIDs []string
 	clientKeeper.IterateClientStates(ctx, []byte(exported.Tendermint), func(clientID string, _ exported.ClientState) bool {
 		clientIDs = append(clientIDs, clientID)
@@ -28,12 +28,12 @@ func PruneExpiredConsensusStates(ctx sdk.Context, cdc codec.BinaryCodec, clientK
 
 		clientState, ok := clientKeeper.GetClientState(ctx, clientID)
 		if !ok {
-			return sdkerrors.Wrapf(clienttypes.ErrClientNotFound, "clientID %s", clientID)
+			return 0, sdkerrors.Wrapf(clienttypes.ErrClientNotFound, "clientID %s", clientID)
 		}
 
 		tmClientState, ok := clientState.(*ibctm.ClientState)
 		if !ok {
-			return sdkerrors.Wrap(clienttypes.ErrInvalidClient, "client state is not tendermint even though client id contains 07-tendermint")
+			return 0, sdkerrors.Wrap(clienttypes.ErrInvalidClient, "client state is not tendermint even though client id contains 07-tendermint")
 		}
 
 		totalPruned += ibctm.PruneAllExpiredConsensusStates(ctx, clientStore, cdc, tmClientState)
@@ -42,5 +42,5 @@ func PruneExpiredConsensusStates(ctx sdk.Context, cdc codec.BinaryCodec, clientK
 	clientLogger := clientKeeper.Logger(ctx)
 	clientLogger.Info("pruned expired tendermint consensus states", "total", totalPruned)
 
-	return nil
+	return totalPruned, nil
 }
