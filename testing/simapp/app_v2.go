@@ -46,7 +46,7 @@ import (
 	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	consensus "github.com/cosmos/cosmos-sdk/x/consensus"
-	consensusparamkeeper "github.com/cosmos/cosmos-sdk/x/consensus/keeper"
+	consensuskeeper "github.com/cosmos/cosmos-sdk/x/consensus/keeper"
 	consensustypes "github.com/cosmos/cosmos-sdk/x/consensus/types"
 	"github.com/cosmos/cosmos-sdk/x/crisis"
 	crisiskeeper "github.com/cosmos/cosmos-sdk/x/crisis/keeper"
@@ -86,21 +86,7 @@ import (
 	upgradeclient "github.com/cosmos/cosmos-sdk/x/upgrade/client"
 	upgradekeeper "github.com/cosmos/cosmos-sdk/x/upgrade/keeper"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
-	ica "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts"
-	icacontrollerkeeper "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/controller/keeper"
-	icahostkeeper "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/host/keeper"
-	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
-	ibcfee "github.com/cosmos/ibc-go/v6/modules/apps/29-fee"
-	ibcfeekeeper "github.com/cosmos/ibc-go/v6/modules/apps/29-fee/keeper"
 	ibcfeetypes "github.com/cosmos/ibc-go/v6/modules/apps/29-fee/types"
-	transfer "github.com/cosmos/ibc-go/v6/modules/apps/transfer"
-	ibctransferkeeper "github.com/cosmos/ibc-go/v6/modules/apps/transfer/keeper"
-	ibctransfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
-	ibc "github.com/cosmos/ibc-go/v6/modules/core"
-	ibcclientclient "github.com/cosmos/ibc-go/v6/modules/core/02-client/client"
-	ibckeeper "github.com/cosmos/ibc-go/v6/modules/core/keeper"
-	solomachine "github.com/cosmos/ibc-go/v6/modules/light-clients/06-solomachine"
-	ibctm "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint"
 	ibcmock "github.com/cosmos/ibc-go/v6/testing/mock"
 )
 
@@ -118,7 +104,7 @@ var (
 	// and genesis verification.
 	ModuleBasics = module.NewBasicManager(
 		auth.AppModuleBasic{},
-		genutil.AppModuleBasic{},
+		genutil.NewAppModuleBasic(genutiltypes.DefaultMessageValidator),
 		bank.AppModuleBasic{},
 		capability.AppModuleBasic{},
 		staking.AppModuleBasic{},
@@ -129,26 +115,17 @@ var (
 				paramsclient.ProposalHandler,
 				upgradeclient.LegacyProposalHandler,
 				upgradeclient.LegacyCancelProposalHandler,
-				ibcclientclient.UpdateClientProposalHandler,
-				ibcclientclient.UpgradeProposalHandler,
 			},
 		),
 		groupmodule.AppModuleBasic{},
 		params.AppModuleBasic{},
 		crisis.AppModuleBasic{},
 		slashing.AppModuleBasic{},
-		ibc.AppModuleBasic{},
-		ibctm.AppModuleBasic{},
-		solomachine.AppModuleBasic{},
 		feegrantmodule.AppModuleBasic{},
 		upgrade.AppModuleBasic{},
 		evidence.AppModuleBasic{},
-		transfer.AppModuleBasic{},
-		ibcmock.AppModuleBasic{},
-		ica.AppModuleBasic{},
 		authzmodule.AppModuleBasic{},
 		vesting.AppModuleBasic{},
-		ibcfee.AppModuleBasic{},
 		consensus.AppModuleBasic{},
 	)
 
@@ -160,10 +137,6 @@ var (
 		stakingtypes.BondedPoolName:    {authtypes.Burner, authtypes.Staking},
 		stakingtypes.NotBondedPoolName: {authtypes.Burner, authtypes.Staking},
 		govtypes.ModuleName:            {authtypes.Burner},
-		ibctransfertypes.ModuleName:    {authtypes.Minter, authtypes.Burner},
-		ibcfeetypes.ModuleName:         nil,
-		icatypes.ModuleName:            nil,
-		ibcmock.ModuleName:             nil,
 	}
 )
 
@@ -193,34 +166,15 @@ type SimApp struct {
 	SlashingKeeper        slashingkeeper.Keeper
 	MintKeeper            mintkeeper.Keeper
 	DistrKeeper           distrkeeper.Keeper
-	GovKeeper             govkeeper.Keeper
-	GroupKeeper           groupkeeper.Keeper
+	GovKeeper             *govkeeper.Keeper
 	CrisisKeeper          *crisiskeeper.Keeper
 	UpgradeKeeper         upgradekeeper.Keeper
 	ParamsKeeper          paramskeeper.Keeper
 	AuthzKeeper           authzkeeper.Keeper
-	IBCKeeper             *ibckeeper.Keeper // IBC Keeper must be a pointer in the app, so we can SetRouter on it correctly
-	IBCFeeKeeper          ibcfeekeeper.Keeper
-	ICAControllerKeeper   icacontrollerkeeper.Keeper
-	ICAHostKeeper         icahostkeeper.Keeper
 	EvidenceKeeper        evidencekeeper.Keeper
-	TransferKeeper        ibctransferkeeper.Keeper
 	FeeGrantKeeper        feegrantkeeper.Keeper
-	ConsensusParamsKeeper consensusparamkeeper.Keeper
-
-	// make scoped keepers public for test purposes
-	ScopedIBCKeeper           capabilitykeeper.ScopedKeeper
-	ScopedTransferKeeper      capabilitykeeper.ScopedKeeper
-	ScopedFeeMockKeeper       capabilitykeeper.ScopedKeeper
-	ScopedICAControllerKeeper capabilitykeeper.ScopedKeeper
-	ScopedICAHostKeeper       capabilitykeeper.ScopedKeeper
-	ScopedIBCMockKeeper       capabilitykeeper.ScopedKeeper
-	ScopedICAMockKeeper       capabilitykeeper.ScopedKeeper
-
-	// make IBC modules public for test purposes
-	// these modules are never directly routed to by the IBC Router
-	ICAAuthModule ibcmock.IBCModule
-	FeeMockModule ibcmock.IBCModule
+	GroupKeeper           groupkeeper.Keeper
+	ConsensusParamsKeeper consensuskeeper.Keeper
 
 	// simulation manager
 	sm *module.SimulationManager
@@ -318,11 +272,6 @@ func NewSimApp(
 		&app.FeeGrantKeeper,
 		&app.GroupKeeper,
 		&app.ConsensusParamsKeeper,
-		// IBCKeeper
-		// IBCFeeKeeper
-		// ICAControllerKeeper
-		// ICAHostKeeper
-		// TransferKeeper
 	); err != nil {
 		panic(err)
 	}
@@ -356,14 +305,9 @@ func NewSimApp(
 		govtypes.ModuleName,
 		minttypes.ModuleName,
 		crisistypes.ModuleName,
-		// ibchost.ModuleName,
 		genutiltypes.ModuleName,
 		evidencetypes.ModuleName,
 		authz.ModuleName,
-		// ibctransfertypes.ModuleName,
-		// icatypes.ModuleName,
-		// ibcfeetypes.ModuleName,
-		// ibcmock.ModuleName,
 		feegrant.ModuleName,
 		group.ModuleName,
 		paramstypes.ModuleName,
@@ -381,7 +325,7 @@ func NewSimApp(
 
 	// RegisterUpgradeHandlers is used for registering any on-chain upgrades.
 	// Make sure it's called after `app.ModuleManager` and `app.configurator` are set.
-	// app.RegisterUpgradeHandlers()
+	app.RegisterUpgradeHandlers()
 
 	// add test gRPC service for testing gRPC queries in isolation
 	testdata_pulsar.RegisterQueryServer(app.GRPCQueryRouter(), testdata_pulsar.QueryImpl{})
@@ -489,6 +433,8 @@ func (app *SimApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APICon
 		panic(err)
 	}
 }
+
+func (app SimApp) RegisterUpgradeHandlers() {}
 
 // GetMaccPerms returns a copy of the module account permissions
 //
