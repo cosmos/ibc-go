@@ -119,7 +119,7 @@ func SetupTestingApp() (TestingApp, map[string]json.RawMessage) {
 	appOptions[flags.FlagHome] = simapp.DefaultNodeHome
 	appOptions[server.FlagInvCheckPeriod] = 5
 	app := simapp.NewSimApp(log.NewNopLogger(), dbm.NewMemDB(), nil, true, appOptions)
-	return app, simapp.NewDefaultGenesisState(encCdc.Marshaler)
+	return app, simapp.NewDefaultGenesisState(encCdc.Codec)
 }
 ```
 
@@ -265,7 +265,7 @@ func SetupTransferTestingApp() (ibctesting.TestingApp, map[string]json.RawMessag
 	appOptions[flags.FlagHome] = simapp.DefaultNodeHome
 	appOptions[server.FlagInvCheckPeriod] = 5
 	app := simapp.NewSimApp(log.NewNopLogger(), dbm.NewMemDB(), nil, true, appOptions)
-	return app, simapp.NewDefaultGenesisState(encCdc.Marshaler)
+	return app, simapp.NewDefaultGenesisState(encCdc.Codec)
 }
 
 func init() {
