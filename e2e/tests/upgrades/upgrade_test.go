@@ -9,7 +9,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
-	v7upgrades "github.com/cosmos/ibc-go/v6/testing/simapp/upgrades/v7"
 	v6upgrades "github.com/cosmos/interchain-accounts/app/upgrades/v6"
 	intertxtypes "github.com/cosmos/interchain-accounts/x/inter-tx/types"
 	"github.com/gogo/protobuf/proto"
@@ -25,9 +24,11 @@ import (
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	controllertypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/controller/types"
 	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
+	v7 "github.com/cosmos/ibc-go/v6/modules/core/02-client/migrations/v7"
 	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 	ibctesting "github.com/cosmos/ibc-go/v6/testing"
 	simappupgrades "github.com/cosmos/ibc-go/v6/testing/simapp/upgrades"
+	v7upgrades "github.com/cosmos/ibc-go/v6/testing/simapp/upgrades/v7"
 )
 
 const (
@@ -71,6 +72,8 @@ func (s *UpgradeTestSuite) UpgradeChain(ctx context.Context, chain *cosmos.Cosmo
 
 	err = chain.StartAllNodes(ctx)
 	s.Require().NoError(err, "error starting upgraded node(s)")
+
+	s.InitGRPCClients(chain)
 
 	timeoutCtx, timeoutCtxCancel = context.WithTimeout(ctx, time.Minute*2)
 	defer timeoutCtxCancel()
@@ -389,18 +392,6 @@ func (s *UpgradeTestSuite) TestV5ToV6ChainUpgrade() {
 }
 
 func (s *UpgradeTestSuite) TestV6ToV7ChainUpgrade() {
-
-	// Pre-upgrade logic
-	// Create multiple tendermint clients, ideally update both at least once
-	// Create a channel, send a transfer and receive a transfer
-	// Create a solo machine client (no need to perform actions with the solo machine client)
-
-	// Post upgrade logic
-	// Send a packet on the existing channel
-	// Query the tendermint clients
-	// Query the solo machine client
-	// Optional: send a MsgUpdate in reference to the solo machine client (proof can be invalid, mostly want to ensure the msg does not panic when referencing a solo machine clientID)
-
 	t := s.T()
 	testCfg := testconfig.FromEnv()
 
@@ -419,16 +410,14 @@ func (s *UpgradeTestSuite) TestV6ToV7ChainUpgrade() {
 	s.Require().NoError(err)
 	s.Require().Equal("Active", status)
 
-	status, err = s.Status(ctx, chainA, "07-tendermint-1")
+	status, err = s.Status(ctx, chainA, ibctesting.SecondClientID)
 	s.Require().NoError(err)
 	s.Require().Equal("Active", status)
 
 	var (
-		chainADenom    = chainA.Config().Denom
-		chainBIBCToken = testsuite.GetIBCToken(chainADenom, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID) // IBC token sent to chainB
-
-		// chainBDenom    = chainB.Config().Denom
-		// chainAIBCToken = testsuite.GetIBCToken(chainBDenom, channelA.PortID, channelA.ChannelID) // IBC token sent to chainA
+		chainADenom         = chainA.Config().Denom
+		chainBIBCToken      = testsuite.GetIBCToken(chainADenom, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID) // IBC token sent to chainB
+		soloMachineClientID = "06-solomachine-2"
 	)
 
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
@@ -437,9 +426,46 @@ func (s *UpgradeTestSuite) TestV6ToV7ChainUpgrade() {
 	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 	chainBAddress := chainBWallet.Bech32Address(chainB.Config().Bech32Prefix)
 
+	// create solo machine client
+	solo := ibctesting.NewSolomachine(t, testsuite.Codec(), "solomachine", "testing", 1)
+
+	legacyConsensusState := &v7.ConsensusState{
+		PublicKey:   solo.ConsensusState().PublicKey,
+		Diversifier: solo.ConsensusState().Diversifier,
+		Timestamp:   solo.ConsensusState().Timestamp,
+	}
+
+	legacyClientState := &v7.ClientState{
+		Sequence:                 solo.ClientState().Sequence,
+		IsFrozen:                 solo.ClientState().IsFrozen,
+		ConsensusState:           legacyConsensusState,
+		AllowUpdateAfterProposal: true,
+	}
+
+	msgCreateSoloMachineClient, err := clienttypes.NewMsgCreateClient(legacyClientState, legacyConsensusState, chainAAddress)
+	s.Require().NoError(err)
+
+	resp, err := s.BroadcastMessages(
+		ctx,
+		chainA,
+		chainAWallet,
+		msgCreateSoloMachineClient,
+	)
+
+	s.AssertValidTxResponse(resp)
+	s.Require().NoError(err)
+
+	status, err = s.Status(ctx, chainA, soloMachineClientID)
+	s.Require().NoError(err)
+	s.Require().Equal("Active", status)
+
+	res, err := s.ClientState(ctx, chainA, soloMachineClientID)
+	s.Require().NoError(err)
+	s.Require().Equal(res.ClientState.TypeUrl, "/ibc.lightclients.solomachine.v2.ClientState")
+
 	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
 
-	t.Run("native IBC token transfer from chainA to chainB, sender is source of tokens", func(t *testing.T) {
+	t.Run("IBC token transfer from chainA to chainB, sender is source of tokens", func(t *testing.T) {
 		transferTxResp, err := s.Transfer(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, testvalues.DefaultTransferAmount(chainADenom), chainAAddress, chainBAddress, s.GetTimeoutHeight(ctx, chainB), 0, "")
 		s.Require().NoError(err)
 		s.AssertValidTxResponse(transferTxResp)
@@ -479,10 +505,31 @@ func (s *UpgradeTestSuite) TestV6ToV7ChainUpgrade() {
 	s.Require().NoError(err)
 	s.Require().Equal("Active", status)
 
-	status, err = s.Status(ctx, chainA, "07-tendermint-1")
+	status, err = s.Status(ctx, chainA, ibctesting.SecondClientID)
 	s.Require().NoError(err)
 	s.Require().Equal("Active", status)
 
+	// send another transfer from chainA to chainB to make sure the upgrade did not break the packet flow
+	t.Run("IBC token transfer from chainA to chainB, sender is source of tokens", func(t *testing.T) {
+		transferTxResp, err := s.Transfer(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, testvalues.DefaultTransferAmount(chainADenom), chainAAddress, chainBAddress, s.GetTimeoutHeight(ctx, chainB), 0, "")
+		s.Require().NoError(err)
+		s.AssertValidTxResponse(transferTxResp)
+	})
+
+	t.Run("packets are relayed", func(t *testing.T) {
+		s.AssertPacketRelayed(ctx, chainA, channelA.PortID, channelA.ChannelID, 1)
+
+		actualBalance, err := chainB.GetBalance(ctx, chainBAddress, chainBIBCToken.IBCDenom())
+		s.Require().NoError(err)
+
+		expected := testvalues.IBCTransferAmount * 2
+		s.Require().Equal(expected, actualBalance)
+	})
+
+	// check that the v2 solo machine clientstate has been updated to the v3 solo machine clientstate
+	res, err = s.ClientState(ctx, chainA, soloMachineClientID)
+	s.Require().NoError(err)
+	s.Require().Equal(res.ClientState.TypeUrl, "/ibc.lightclients.solomachine.v3.ClientState")
 }
 
 // RegisterInterchainAccount will attempt to register an interchain account on the counterparty chain.
@@ -516,4 +563,17 @@ func (s *UpgradeTestSuite) Status(ctx context.Context, chain ibc.Chain, clientID
 	}
 
 	return res.Status, nil
+}
+
+// Status queries the current status of the client
+func (s *UpgradeTestSuite) ClientState(ctx context.Context, chain ibc.Chain, clientID string) (*clienttypes.QueryClientStateResponse, error) {
+	queryClient := s.GetChainGRCPClients(chain).ClientQueryClient
+	res, err := queryClient.ClientState(ctx, &clienttypes.QueryClientStateRequest{
+		ClientId: clientID,
+	})
+	if err != nil {
+		return res, err
+	}
+
+	return res, nil
 }

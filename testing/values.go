@@ -22,6 +22,8 @@ const (
 	FirstChannelID    = "channel-0"
 	FirstConnectionID = "connection-0"
 
+	SecondClientID = "07-tendermint-1"
+
 	// Default params constants used to create a TM client
 	TrustingPeriod     time.Duration = time.Hour * 24 * 7 * 2
 	UnbondingPeriod    time.Duration = time.Hour * 24 * 7 * 3
