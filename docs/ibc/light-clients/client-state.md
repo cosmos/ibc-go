@@ -2,7 +2,7 @@
 order: 2
 -->
 
-# Implementing the ClientState interface
+# Implementing the `ClientState` interface
 
 Learn how to implement the [`Client State`](https://github.com/cosmos/ibc-go/blob/v6.0.0-rc1/modules/core/exported/client.go#L40) interface.
 
