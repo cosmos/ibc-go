@@ -300,7 +300,7 @@ module.exports = {
             {
               title: "Overview",
               directory: false,
-              path: "/light-clients/overview.html",
+              path: "/ibc/light-clients/overview.html",
             },
             {
               title: "ClientState",
