@@ -30,7 +30,7 @@ app.UpgradeKeeper.SetUpgradeHandler(
     upgradeName,
     func(ctx sdk.Context, _ upgradetypes.Plan, _ module.VersionMap) (module.VersionMap, error) {
         // prune expired tendermint consensus states to save storage space
-        ibctmmigrations.PruneTendermintConsensusStates(ctx, app.Codec, app.IBCKeeper.ClientKeeper)
+        ibctmmigrations.PruneExpiredConsensusStates(ctx, app.Codec, app.IBCKeeper.ClientKeeper)
 
         return app.mm.RunMigrations(ctx, app.configurator, fromVM)
     },

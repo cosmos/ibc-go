@@ -35,7 +35,7 @@ func TestTendermintTestSuite(t *testing.T) {
 }
 
 // test pruning of multiple expired tendermint consensus states
-func (suite *MigrationsTestSuite) TestPruneTendermintConsensusStates() {
+func (suite *MigrationsTestSuite) TestPruneExpiredConsensusStates() {
 	// create multiple tendermint clients and a solo machine client
 	// the solo machine is used to verify this pruning function only modifies
 	// the tendermint store.
@@ -123,7 +123,7 @@ func (suite *MigrationsTestSuite) TestPruneTendermintConsensusStates() {
 	// This will cause the consensus states created before the first time increment
 	// to be expired
 	suite.coordinator.IncrementTimeBy(7 * 24 * time.Hour)
-	err = ibctmmigrations.PruneTendermintConsensusStates(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), suite.chainA.GetSimApp().IBCKeeper.ClientKeeper)
+	err = ibctmmigrations.PruneExpiredConsensusStates(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), suite.chainA.GetSimApp().IBCKeeper.ClientKeeper)
 	suite.Require().NoError(err)
 
 	for _, path := range paths {

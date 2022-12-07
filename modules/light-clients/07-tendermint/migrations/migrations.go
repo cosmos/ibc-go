@@ -10,9 +10,9 @@ import (
 	ibctm "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint"
 )
 
-// PruneTendermintConsensusStates prunes all expired tendermint consensus states. This function
+// PruneExpiredConsensusStates prunes all expired tendermint consensus states. This function
 // may optionally be called during in-place store migrations. The ibc store key must be provided.
-func PruneTendermintConsensusStates(ctx sdk.Context, cdc codec.BinaryCodec, clientKeeper ClientKeeper) error {
+func PruneExpiredConsensusStates(ctx sdk.Context, cdc codec.BinaryCodec, clientKeeper ClientKeeper) error {
 	var clientIDs []string
 	clientKeeper.IterateClientStates(ctx, []byte(exported.Tendermint), func(clientID string, _ exported.ClientState) bool {
 		clientIDs = append(clientIDs, clientID)
