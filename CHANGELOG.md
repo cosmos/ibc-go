@@ -38,6 +38,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Dependencies
 
+* [\#2868](https://github.com/cosmos/ibc-go/pull/2868) Bump ICS 23 to v0.9.0. 
 * [\#2784](https://github.com/cosmos/ibc-go/pull/2784) Bump Cosmos SDK to v0.46.6 and Tendermint to v0.34.23.
 
 ### API Breaking
@@ -116,6 +117,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Features
 
+* (core/02-client) [\#2824](https://github.com/cosmos/ibc-go/pull/2824) Add genesis migrations for v6 to v7. The migration migrates the solo machine client state definition, removes all solo machine consensus states and removes the localhost client.
 * (core/24-host) [\#2856](https://github.com/cosmos/ibc-go/pull/2856) Add `PrefixedClientStorePath` and `PrefixedClientStoreKey` functions to 24-host
 * (core/02-client) [\#2819](https://github.com/cosmos/ibc-go/pull/2819) Add automatic in-place store migrations to remove the localhost client and migrate existing solo machine definitions.
 * (light-clients/06-solomachine) [\#2826](https://github.com/cosmos/ibc-go/pull/2826) Add `AppModuleBasic` for the 06-solomachine client and remove solo machine type registration from core IBC. Chains must register the `AppModuleBasic` of light clients. 
@@ -133,6 +135,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (modules/core/02-client)[\#1676](https://github.com/cosmos/ibc-go/pull/1676) ClientState must be zeroed out for `UpgradeProposals` to pass validation. This prevents a proposal containing information governance is not actually voting on.
 * (modules/core/keeper) [\#2403](https://github.com/cosmos/ibc-go/pull/2403) Added a function in keeper to cater for blank pointers.
 * (modules/core/keeper) [\#2745](https://github.com/cosmos/ibc-go/pull/2745) Fix request wiring for `UpgradedConsensusState` in core query server.
+* (core/02-client) [\#2510](https://github.com/cosmos/ibc-go/pull/2510) Fix client ID validation regex to conform closer to spec.
 
 ## [v5.1.0](https://github.com/cosmos/ibc-go/releases/tag/v5.1.0) - 2022-11-09
 
