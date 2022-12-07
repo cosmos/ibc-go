@@ -4,15 +4,11 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/cosmos/cosmos-sdk/codec"
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/ibc-go/v6/modules/core/02-client/migrations/v7"
 	"github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
-	solomachine "github.com/cosmos/ibc-go/v6/modules/light-clients/06-solomachine"
-	ibctm "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v6/testing"
 )
 
@@ -40,23 +36,6 @@ func TestIBCTestSuite(t *testing.T) {
 	suite.Run(t, new(MigrationsV7TestSuite))
 }
 
-// test that MigrateStore returns an error if the codec used doesn't register tendermint types
-func (suite *MigrationsV7TestSuite) TestMigrateStoreTendermint() {
-	path := ibctesting.NewPath(suite.chainA, suite.chainB)
-	suite.coordinator.SetupClients(path)
-
-	registry := codectypes.NewInterfaceRegistry()
-	cdc := codec.NewProtoCodec(registry)
-
-	solomachine.RegisterInterfaces(registry)
-	err := v7.MigrateStore(suite.chainA.GetContext(), suite.chainA.GetSimApp().GetKey(host.StoreKey), cdc)
-	suite.Require().Error(err)
-
-	ibctm.RegisterInterfaces(registry)
-	err = v7.MigrateStore(suite.chainA.GetContext(), suite.chainA.GetSimApp().GetKey(host.StoreKey), cdc)
-	suite.Require().NoError(err)
-}
-
 // create multiple solo machine clients, tendermint and localhost clients
 // ensure that solo machine clients are migrated and their consensus states are removed
 // ensure the localhost is deleted entirely.
@@ -79,7 +58,7 @@ func (suite *MigrationsV7TestSuite) TestMigrateStore() {
 	suite.createSolomachineClients(solomachines)
 	suite.createLocalhostClients()
 
-	err := v7.MigrateStore(suite.chainA.GetContext(), suite.chainA.GetSimApp().GetKey(host.StoreKey), suite.chainA.App.AppCodec())
+	err := v7.MigrateStore(suite.chainA.GetContext(), suite.chainA.GetSimApp().GetKey(host.StoreKey), suite.chainA.App.AppCodec(), suite.chainA.GetSimApp().IBCKeeper.ClientKeeper)
 	suite.Require().NoError(err)
 
 	suite.assertSolomachineClients(solomachines)
