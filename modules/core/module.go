@@ -117,11 +117,6 @@ func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
 	// TODO:
 }
 
-// QuerierRoute returns the ibc module's querier route name.
-func (AppModule) QuerierRoute() string {
-	return host.QuerierRoute
-}
-
 // RegisterServices registers module services.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
 	clienttypes.RegisterMsgServer(cfg.MsgServer(), am.keeper)
