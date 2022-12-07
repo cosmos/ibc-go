@@ -7,7 +7,7 @@ import (
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	clientkeeper "github.com/cosmos/ibc-go/v6/modules/core/02-client/keeper"
-	ibctm "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint"
+	ibctmmigrations "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint/migrations"
 )
 
 const (
@@ -24,7 +24,7 @@ func CreateUpgradeHandler(
 ) upgradetypes.UpgradeHandler {
 	return func(ctx sdk.Context, _ upgradetypes.Plan, vm module.VersionMap) (module.VersionMap, error) {
 		// OPTIONAL: prune expired tendermint consensus states to save storage space
-		if err := ibctm.PruneTendermintConsensusStates(ctx, cdc, clientKeeper); err != nil {
+		if err := ibctmmigrations.PruneTendermintConsensusStates(ctx, cdc, clientKeeper); err != nil {
 			return nil, err
 		}
 

@@ -1,4 +1,4 @@
-package tendermint
+package migrations
 
 import (
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -7,6 +7,7 @@ import (
 
 	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
+	ibctm "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint"
 )
 
 // PruneTendermintConsensusStates prunes all expired tendermint consensus states. This function
@@ -30,12 +31,12 @@ func PruneTendermintConsensusStates(ctx sdk.Context, cdc codec.BinaryCodec, clie
 			return sdkerrors.Wrapf(clienttypes.ErrClientNotFound, "clientID %s", clientID)
 		}
 
-		tmClientState, ok := clientState.(*ClientState)
+		tmClientState, ok := clientState.(*ibctm.ClientState)
 		if !ok {
 			return sdkerrors.Wrap(clienttypes.ErrInvalidClient, "client state is not tendermint even though client id contains 07-tendermint")
 		}
 
-		totalPruned += PruneAllExpiredConsensusStates(ctx, clientStore, cdc, tmClientState)
+		totalPruned += ibctm.PruneAllExpiredConsensusStates(ctx, clientStore, cdc, tmClientState)
 	}
 
 	clientLogger := clientKeeper.Logger(ctx)
