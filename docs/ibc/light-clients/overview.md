@@ -6,7 +6,7 @@ order: 1
 
 Learn how to build IBC light client modules and fulfill the interfaces required to integrate with core IBC. {synopsis}
 
-The following aims to provide a high level IBC light client module developer guide. The lifecycle of IBC light clients are created and maintained by the core IBC `MsgServer` and the abstractions provided by the `02-client` submodule. A light client module developer is only required to implement the methods and fulfil the expectations of a defined set of interfaces. In ibc-go these interfaces reside within the `core/modules/exported` package. 
+The following aims to provide a high level IBC light client module developer guide. Access to IBC light clients are gated by the core IBC `MsgServer` which utilizes the abstractions set by the `02-client` submodule to call into a light client module. A light client module developer is only required to implement the [`ClientState`](https://github.com/cosmos/ibc-go/blob/main/modules/core/exported/client.go#L36) and [`ConsensusState`](https://github.com/cosmos/ibc-go/blob/main/modules/core/exported/client.go#L134) interfaces as defined in the `core/modules/exported` package. 
 
 Throughout this guide the `07-tendermint` light client module may be referred to as a reference example.
 
@@ -24,7 +24,7 @@ ClientState is a term used to define the data structure which encapsulates opaqu
 - Constraints used for state verification.
 - Constraints used for client upgrades.
 
-The `ClientState` type maintained within the light client module *must* implement the `ClientState` interface defined in `core/modules/exported/client.go`.
+The `ClientState` type maintained within the light client module *must* implement the [`ClientState`]((https://github.com/cosmos/ibc-go/blob/main/modules/core/exported/client.go#L36)) interface defined in `core/modules/exported/client.go`.
 The methods which make up this interface are detailed at a more granular level in the [ClientState section of this guide](./client-state.md).
 
 For reference, see the `07-tendermint` light client module's [`ClientState` defintion](https://github.com/cosmos/ibc-go/blob/v6.0.0-rc1/proto/ibc/lightclients/tendermint/v1/tendermint.proto#L18). 
@@ -35,7 +35,7 @@ ConsensusState is a term used to define the data structure which encapsulates co
 
 For example, the `ConsensusState` of the `07-tendermint` light client module defines a trusted root is used by the `ClientState` to perform verification of membership and non-membership commitment proofs, as well as the next validator set hash used for verifying headers can be trusted in client updates. 
 
-The `ConsensusState` type maintained within the light client module *must* implement the `ConsensusState` interface defined in `core/modules/exported/client.go`.
+The `ConsensusState` type maintained within the light client module *must* implement the [`ConsensusState`](https://github.com/cosmos/ibc-go/blob/main/modules/core/exported/client.go#L134) interface defined in `core/modules/exported/client.go`.
 The methods which make up this interface are detailed at a more granular level in the [ConsensusState section of this guide](./consensus-state.md).
 
 ### Height
