@@ -48,7 +48,7 @@ func (suite *InterchainAccountsTestSuite) TestInitModule() {
 		Time:    suite.coordinator.CurrentTime.UTC(),
 	}
 
-	ctx := app.GetBaseApp().NewContext(true, header)
+	ctx := app.BaseApp.NewContext(true, header)
 
 	// ensure params are not set
 	suite.Require().Panics(func() {
@@ -114,7 +114,7 @@ func (suite *InterchainAccountsTestSuite) TestInitModule() {
 				Time:    suite.coordinator.CurrentTime.UTC(),
 			}
 
-			ctx := app.GetBaseApp().NewContext(true, header)
+			ctx := app.BaseApp.NewContext(true, header)
 
 			tc.malleate()
 
