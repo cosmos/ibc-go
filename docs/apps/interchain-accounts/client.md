@@ -54,7 +54,7 @@ simd tx interchain-accounts controller --help
 
 The `register` command allows users to register an interchain account on the provided connection.
 
-```
+```shell
 simd tx interchain-accounts controller register [connection-id]
 ```
 
