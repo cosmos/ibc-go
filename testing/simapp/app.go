@@ -933,7 +933,7 @@ func (app *SimApp) setupUpgradeHandlers() {
 			app.mm,
 			app.configurator,
 			app.appCodec,
-			app.keys[ibchost.StoreKey],
+			app.IBCKeeper.ClientKeeper,
 		),
 	)
 }

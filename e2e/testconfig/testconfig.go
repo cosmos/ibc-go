@@ -36,7 +36,8 @@ const (
 	// defaultBinary is the default binary that will be used by the chains.
 	defaultBinary = "simd"
 	// defaultRlyTag is the tag that will be used if no relayer tag is specified.
-	defaultRlyTag = "main"
+    // all images are here https://github.com/cosmos/relayer/pkgs/container/relayer/versions
+	defaultRlyTag = "v2.1.2"
 	// defaultChainTag is the tag that will be used for the chains if none is specified.
 	defaultChainTag = "main"
 )
