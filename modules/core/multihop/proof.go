@@ -66,7 +66,6 @@ func VerifyMultiHopProofMembership(
 	clientState exported.ClientState,
 	cdc codec.BinaryCodec,
 	proofs *channeltypes.MsgMultihopProofs,
-	value []byte,
 ) error {
 	if len(proofs.ConsensusProofs) < 1 {
 		return fmt.Errorf(
@@ -91,11 +90,11 @@ func VerifyMultiHopProofMembership(
 	tmclient := clientState.(*ibctmtypes.ClientState)
 	fmt.Printf("secondConsState.root: %x\n", secondConsState.GetRoot().GetHash())
 	fmt.Printf("key: %s\n", proofs.KeyProof.PrefixedKey.String())
-	fmt.Printf("val: %x\n", value)
+	fmt.Printf("val: %x\n", proofs.KeyProof.Value)
 	return keyProof.VerifyMembership(
 		tmclient.GetProofSpecs(),
 		secondConsState.GetRoot(),
 		*proofs.KeyProof.PrefixedKey,
-		value,
+		proofs.KeyProof.Value,
 	)
 }

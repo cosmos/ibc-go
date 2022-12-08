@@ -391,10 +391,8 @@ func (suite *KeeperTestSuite) TestChanOpenTryMultihop() {
 			proofHeight := endpointZ.GetClientState().GetLatestHeight() // ignored for multihop
 			proof, err := proofs.Marshal()
 			suite.Require().NoError(err)
-			connectionHopsForZ := connectionHopsAZ
-			connectionHopsForZ = append(connectionHopsForZ, connectionHopsZA[0])
 			channelID, cap, err := endpointZ.Chain.App.GetIBCKeeper().ChannelKeeper.ChanOpenTry(
-				endpointZ.Chain.GetContext(), endpointA.ChannelConfig.Order, connectionHopsForZ,
+				endpointZ.Chain.GetContext(), endpointA.ChannelConfig.Order, connectionHopsZA,
 				endpointZ.ChannelConfig.PortID, portCap, counterparty, endpointA.ChannelConfig.Version,
 				proof, malleateHeight(proofHeight, heightDiff),
 			)

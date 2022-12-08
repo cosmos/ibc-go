@@ -34,7 +34,6 @@ func (t *proofTestSuite) TestMultiHopProof() {
 		return ibctesting.VerifyMultiHopProofMembership(
 			paths.Z(),
 			proofs,
-			proofValue,
 		)
 	}
 	verifyNonMembership := func(paths ibctesting.LinkedPaths) error {

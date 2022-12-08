@@ -162,24 +162,12 @@ func (k Keeper) ChanOpenTry(
 		)
 	}
 
-	fmt.Printf("connID=%s %s\n", connectionEnd.GetCounterparty().GetConnectionID(), connectionHops[0])
-	counterpartyHops := []string{connectionEnd.GetCounterparty().GetConnectionID()}
-
-	// expectedCounterpaty is the counterparty of the counterparty's channel end
-	// (i.e self)
-	expectedCounterparty := types.NewCounterparty(portID, "")
-	expectedChannel := types.NewChannel(
-		types.INIT, order, expectedCounterparty,
-		counterpartyHops, counterpartyVersion,
-	)
-
 	if len(connectionHops) > 1 {
 		var proofs types.MsgMultihopProofs
 		if err := k.cdc.Unmarshal(proofInit, &proofs); err != nil {
 			return "", nil, err
 		}
 
-		expectedChannel.ConnectionHops = connectionHops[:len(connectionHops)-1]
 		clientID := connectionEnd.ClientId
 		clientState, found := k.clientKeeper.GetClientState(ctx, clientID)
 		if !found {
@@ -190,17 +178,19 @@ func (k Keeper) ChanOpenTry(
 			return "", nil, sdkerrors.Wrapf(clienttypes.ErrConsensusStateNotFound, "consensus state %s not found for client id: %s", clientID)
 		}
 
-		fmt.Printf("expectedVal: %#v\n", expectedChannel)
-		val, err := k.cdc.Marshal(&expectedChannel)
-		if err != nil {
-			return "", nil, sdkerrors.Wrapf(sdkerrors.ErrJSONMarshal, "failed to marshal channelEnd")
-		}
-
-		fmt.Printf("val: %x\n", val)
-		if err := mh.VerifyMultiHopProofMembership(consensusState, clientState, k.cdc, &proofs, val); err != nil {
+		if err := mh.VerifyMultiHopProofMembership(consensusState, clientState, k.cdc, &proofs); err != nil {
 			return "", nil, err
 		}
 	} else {
+		counterpartyHops := []string{connectionEnd.GetCounterparty().GetConnectionID()}
+
+		// expectedCounterpaty is the counterparty of the counterparty's channel end
+		// (i.e self)
+		expectedCounterparty := types.NewCounterparty(portID, "")
+		expectedChannel := types.NewChannel(
+			types.INIT, order, expectedCounterparty,
+			counterpartyHops, counterpartyVersion,
+		)
 		if err := k.connectionKeeper.VerifyChannelState(
 			ctx, connectionEnd, proofHeight, proofInit,
 			counterparty.PortId, counterparty.ChannelId, expectedChannel,

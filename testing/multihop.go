@@ -83,8 +83,8 @@ func GenerateMultiHopProof(paths LinkedPaths, keyPathToProve string, expectedVal
 		}
 
 		proofs.KeyProof = &channeltypes.MultihopProof{
-			Proof: proof,
-			// state is the same as its consState
+			Proof:       proof,
+			Value:       expectedVal,
 			PrefixedKey: &prefixedKey,
 		}
 	}
@@ -101,6 +101,7 @@ func GenerateMultiHopProof(paths LinkedPaths, keyPathToProve string, expectedVal
 
 // GenerateMultiHopConsensusProof generates a proof of consensus state of paths[0].EndpointA verified on
 // paths[len(paths)-1].EndpointB and all intermediate consensus states.
+// TODO: Would it be beneficial to batch the consensus state and connection proofs?
 func GenerateMultiHopConsensusProof(paths []*Path) ([]*channeltypes.MultihopProof, []*channeltypes.MultihopProof, error) {
 	if len(paths) < 2 {
 		panic("paths must have at least two elements")
@@ -268,7 +269,7 @@ func VerifyMultiHopConsensusStateProof(endpoint *Endpoint, consensusProofs []*ch
 }
 
 // VerifyMultiHopProofMembership verifies a multihop membership proof including all intermediate state proofs.
-func VerifyMultiHopProofMembership(endpoint *Endpoint, proofs *channeltypes.MsgMultihopProofs, value []byte) error {
+func VerifyMultiHopProofMembership(endpoint *Endpoint, proofs *channeltypes.MsgMultihopProofs) error {
 	if len(proofs.ConsensusProofs) < 1 {
 		return fmt.Errorf(
 			"proof must have at least two elements where the first one is the proof for the key and the rest are for the consensus states",
@@ -293,7 +294,7 @@ func VerifyMultiHopProofMembership(endpoint *Endpoint, proofs *channeltypes.MsgM
 		GetProofSpec(endpoint),
 		secondConsState.GetRoot(),
 		*proofs.KeyProof.PrefixedKey,
-		value,
+		proofs.KeyProof.Value,
 	)
 }
 
