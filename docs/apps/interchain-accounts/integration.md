@@ -12,7 +12,7 @@ Chains who wish to support ICS-27 may elect to act as a host chain, a controller
 
 Interchain Account authentication modules (both custom or generic, such as the `x/gov`, `x/group` or `x/auth` Cosmos SDK modules) can send messages to the controller submodule's [`MsgServer`](./messages.md) to register interchain accounts and send packets to the interchain account. To accomplish this, the authentication module needs to be composed with `baseapp`'s `MsgServiceRouter`. 
 
-![Icav6](../../assets/ica/ica-v6.png)
+![ICAv6](../../assets/ica/ica-v6.png)
 
 ## Example integration
 
