@@ -9,11 +9,11 @@ Learn how to implement the [`Client State`](https://github.com/cosmos/ibc-go/blo
 ## `ClientType` method
 
 `ClientType` should return a unique string identifier of the light client. This will be used when generating a client identifier.
-The format is created as follows: `ClientTypes-{N}` where `{N}` is the unique global nonce associated with a specific client.
+The format is created as follows: `ClientType-{N}` where `{N}` is the unique global nonce associated with a specific client.
 
 ## `GetLatestHeight` method
 
-`GetLatestHeight` should return the latest block height that the client state represents. .
+`GetLatestHeight` should return the latest block height that the client state represents.
 
 ## `Validate` method
 
@@ -23,24 +23,32 @@ as a reference.
 
 ## `Status` method
 
-`Status` must return the status of the client. Only `Active` clients are allowed to process packets. All
-possible Status types can be found [here](https://github.com/cosmos/ibc-go/blob/v6.0.0-rc1/modules/core/exported/client.go#L26-L36).
+`Status` must return the status of the client.
+
+* An `Active` status indicates that clients are allowed to process packets.
+* A `Frozen` status indicates that a client is not allowed to be used.
+* An `Expired` status indicates that a client is not allowed to be used.
+* An `Unknown` status indicates that there was an error in determining the status of a client.
+
+All possible Status types can be found [here](https://github.com/cosmos/ibc-go/blob/v6.0.0-rc1/modules/core/exported/client.go#L26-L36).
+
+This field is returned in the gRPC [QueryClientStatusResponse](https://github.com/cosmos/ibc-go/blob/v6.0.0-rc1/modules/core/02-client/types/query.pb.go#L665).
 
 ## `ZeroCustomFields` method
 
 `ZeroCustomFields` should return a copy of the light client with all client customizable fields with their zero value. It should not mutate the fields of the light client.
-This method is used when [scheduling upgrades](https://github.com/cosmos/ibc-go/blob/v6.0.0-rc1/modules/core/02-client/keeper/proposal.go#L89). Upgrades are used to upgrade chain specific fields such as chainID and the unbonding period.
+This method is used when [scheduling upgrades](https://github.com/cosmos/ibc-go/blob/v6.0.0-rc1/modules/core/02-client/keeper/proposal.go#L89). Upgrades are used to upgrade chain specific fields. 
+In the tendermint case, this may be the chainID or the unbonding period.
 For more information about client upgrades see [the developer guide](../upgrades/developer-guide.md).
 
 ## `GetTimestampAtHeight` method
 
 `GetTimestampAtHeight` must return the timestamp for the consensus state associated with the provided height.
-This value is used to facilitate timeouts by checking that a timeout on a packet has passed or not.
+This value is used to facilitate timeouts by checking the packet timeout timestamp against the returned value.
 
 ## `Initialize` method
 
-Clients must validate the initial consensus state, and may store any client-specific metadata necessary
-for correct light client operations in the `Initialize` function.
+Clients must validate the initial consensus state, and may store any client-specific metadata necessary.
 
 `Initialize` gets called when a [client is created](https://github.com/cosmos/ibc-go/blob/main/modules/core/02-client/keeper/client.go#L32).
 
