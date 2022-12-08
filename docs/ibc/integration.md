@@ -28,6 +28,16 @@ The first step is to add the following modules to the `BasicManager`: `x/capabil
 and `x/ibc-transfer`. After that, we need to grant `Minter` and `Burner` permissions to
 the `ibc-transfer` `ModuleAccount` to mint and burn relayed tokens.
 
+### Integrating Light Clients
+
+In order to integrate an external light client, you must take the following steps:
+
+1. Create an implementation of `module.AppModuleBasic` for the light client. Register any required interfaces
+   in the `RegisterInterfaces` function, and ensure `Name` returns the module name. All other functions can be no-ops.
+   Alternatively, you can use an existing light client implementation such as `ibctm.AppModuleBasic{}`.
+2. Register the module with `module.BasicManager`.
+
+
 ```go
 // app.go
 var (
@@ -37,6 +47,9 @@ var (
     capability.AppModuleBasic{},
     ibc.AppModuleBasic{},
     transfer.AppModuleBasic{}, // i.e ibc-transfer module
+
+    // register light clients on IBC
+    ibctm.AppModuleBasic{},
   )
 
   // module account permissions
