@@ -195,19 +195,16 @@ func (k Keeper) ChanOpenTry(
 			}
 		}
 
-		clientID := connectionEnd.ClientId
-		clientState, found := k.clientKeeper.GetClientState(ctx, clientID)
+		// get the consensus state at the proofHeight
+		consensusState, found := k.clientKeeper.GetClientConsensusState(ctx, connectionEnd.ClientId, proofHeight)
 		if !found {
-			return "", nil, sdkerrors.Wrapf(clienttypes.ErrClientNotFound, "client state not found for client id: %s", clientID)
-		}
-		consensusState, found := k.clientKeeper.GetClientConsensusState(ctx, clientID, clientState.GetLatestHeight())
-		if !found {
-			return "", nil, sdkerrors.Wrapf(clienttypes.ErrConsensusStateNotFound, "consensus state %s not found for client id: %s", clientID)
+			return "", nil, sdkerrors.Wrapf(clienttypes.ErrConsensusStateNotFound,
+				"consensus state %s not found for client id: %s", connectionEnd.ClientId)
 		}
 
 		// verify each consensus state and connection state starting going from Z --> A
 		// finally verify the keyproof on A within B's verified view of A's consensus state.
-		if err := mh.VerifyMultiHopProofMembership(consensusState, clientState, k.cdc, &proofs); err != nil {
+		if err := mh.VerifyMultiHopProofMembership(consensusState, k.cdc, &proofs); err != nil {
 			return "", nil, err
 		}
 	} else {

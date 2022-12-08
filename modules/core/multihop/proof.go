@@ -7,18 +7,15 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v6/modules/core/23-commitment/types"
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
-	ibctmtypes "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint/types"
 )
 
 // VerifyMultiHopConsensusStateProof verifies the consensus state of paths[0].EndpointA on paths[len(paths)-1].EndpointB.
 func VerifyMultiHopConsensusStateProof(
 	consensusState exported.ConsensusState,
-	clientState exported.ClientState,
 	cdc codec.BinaryCodec,
 	consensusProofs []*channeltypes.MultihopProof,
 	connectionProofs []*channeltypes.MultihopProof,
 ) error {
-	tmclient := clientState.(*ibctmtypes.ClientState)
 	var consState exported.ConsensusState
 	for i := len(consensusProofs) - 1; i >= 0; i-- {
 		consStateProof := consensusProofs[i]
@@ -33,7 +30,7 @@ func VerifyMultiHopConsensusStateProof(
 		}
 
 		if err := proof.VerifyMembership(
-			tmclient.GetProofSpecs(),
+			commitmenttypes.GetSDKSpecs(),
 			consensusState.GetRoot(),
 			*consStateProof.PrefixedKey,
 			consStateProof.Value,
@@ -47,7 +44,7 @@ func VerifyMultiHopConsensusStateProof(
 		}
 
 		if err := proof.VerifyMembership(
-			tmclient.GetProofSpecs(),
+			commitmenttypes.GetSDKSpecs(),
 			consensusState.GetRoot(),
 			*connectionProof.PrefixedKey,
 			connectionProof.Value,
@@ -63,7 +60,6 @@ func VerifyMultiHopConsensusStateProof(
 // VerifyMultiHopProofMembership verifies a multihop membership proof including all intermediate state proofs.
 func VerifyMultiHopProofMembership(
 	consensusState exported.ConsensusState,
-	clientState exported.ClientState,
 	cdc codec.BinaryCodec,
 	proofs *channeltypes.MsgMultihopProofs,
 ) error {
@@ -76,7 +72,7 @@ func VerifyMultiHopProofMembership(
 		return fmt.Errorf("the number of connection (%d) and consensus (%d) proofs must be equal",
 			len(proofs.ConnectionProofs), len(proofs.ConsensusProofs))
 	}
-	if err := VerifyMultiHopConsensusStateProof(consensusState, clientState, cdc, proofs.ConsensusProofs, proofs.ConnectionProofs); err != nil {
+	if err := VerifyMultiHopConsensusStateProof(consensusState, cdc, proofs.ConsensusProofs, proofs.ConnectionProofs); err != nil {
 		return fmt.Errorf("failed to verify consensus state proof: %w", err)
 	}
 	var keyProof commitmenttypes.MerkleProof
@@ -87,12 +83,11 @@ func VerifyMultiHopProofMembership(
 	if err := cdc.UnmarshalInterface(proofs.ConsensusProofs[0].Value, &secondConsState); err != nil {
 		return fmt.Errorf("failed to unpack consensus state: %w", err)
 	}
-	tmclient := clientState.(*ibctmtypes.ClientState)
 	fmt.Printf("secondConsState.root: %x\n", secondConsState.GetRoot().GetHash())
 	fmt.Printf("key: %s\n", proofs.KeyProof.PrefixedKey.String())
 	fmt.Printf("val: %x\n", proofs.KeyProof.Value)
 	return keyProof.VerifyMembership(
-		tmclient.GetProofSpecs(),
+		commitmenttypes.GetSDKSpecs(),
 		secondConsState.GetRoot(),
 		*proofs.KeyProof.PrefixedKey,
 		proofs.KeyProof.Value,

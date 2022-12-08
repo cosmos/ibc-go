@@ -318,27 +318,9 @@ func (suite *KeeperTestSuite) TestChanOpenTryMultihop() {
 	testCases := []testCase{
 		{"multihop success", func() {
 			// manually call ChanOpenInit so we can properly set the connectionHops
-			{
-				endpoint := paths[0].EndpointA
-				msg := types.NewMsgChannelOpenInit(
-					endpoint.ChannelConfig.PortID,
-					endpoint.ChannelConfig.Version, endpoint.ChannelConfig.Order, connectionHopsAZ,
-					endpoint.Counterparty.ChannelConfig.PortID,
-					endpoint.Chain.SenderAccount.GetAddress().String(),
-				)
-				res, err := endpoint.Chain.SendMsgs(msg)
-				suite.NoError(err)
-
-				endpoint.ChannelID, err = ibctesting.ParseChannelIDFromEvents(res.GetEvents())
-				suite.NoError(err)
-
-				// update version to selected app version
-				// NOTE: this update must be performed after SendMsgs()
-				endpoint.ChannelConfig.Version = endpoint.GetChannel().Version
-			}
-			paths[0].EndpointA.Chain.Coordinator.CommitBlock()
+			err := ibctesting.ChanOpenInit(paths[0].EndpointA, connectionHopsAZ)
+			suite.NoError(err)
 			chainZ := paths[len(paths)-1].EndpointB.Chain
-
 			chainZ.CreatePortCapability(chainZ.GetSimApp().ScopedIBCMockKeeper, ibctesting.MockPort)
 			portCap = chainZ.GetPortCapability(ibctesting.MockPort)
 		}, true},
@@ -354,9 +336,6 @@ func (suite *KeeperTestSuite) TestChanOpenTryMultihop() {
 			connectionHopsAZ = paths.GetConnectionHops()
 			connectionHopsZA = paths.Reverse().GetConnectionHops()
 
-			fmt.Printf("connectionHopsAZ: %v\n", connectionHopsAZ)
-			fmt.Printf("connectionHopsZA: %v\n", connectionHopsZA)
-
 			tc.malleate() // call ChanOpenInit and setup port capabilities
 
 			// ensure clients are up to date
@@ -367,28 +346,27 @@ func (suite *KeeperTestSuite) TestChanOpenTryMultihop() {
 
 			counterparty := types.NewCounterparty(endpointA.ChannelConfig.PortID, ibctesting.FirstChannelID)
 			channelPath := host.ChannelPath(counterparty.PortId, counterparty.ChannelId)
-			fmt.Printf("portid=%s channelid=%s\n", counterparty.PortId, counterparty.ChannelId)
 
 			// query the channel
 			req := &types.QueryChannelRequest{
 				PortId:    counterparty.PortId,
 				ChannelId: counterparty.ChannelId,
 			}
-			resp, err := endpointA.Chain.App.GetIBCKeeper().Channel(endpointA.Chain.GetContext(), req)
-			if err != nil {
-				panic(err)
-			}
-			fmt.Printf("channel: %#v\n", *resp.Channel)
 
+			resp, err := endpointA.Chain.App.GetIBCKeeper().Channel(endpointA.Chain.GetContext(), req)
+			suite.NoError(err)
 			expectedVal, err := resp.Channel.Marshal()
 			suite.NoError(err)
 
+			fmt.Printf("portid=%s channelid=%s\n", counterparty.PortId, counterparty.ChannelId)
+			fmt.Printf("channel: %#v\n", *resp.Channel)
 			fmt.Printf("expectedVal for proof generation: %x\n", expectedVal)
-			// generate multihop proof give keypath and value
+
+			// generate multihop proof given keypath and value
 			proofs, err := ibctesting.GenerateMultiHopProof(paths, channelPath, expectedVal)
 			suite.Require().NoError(err)
 
-			proofHeight := endpointZ.GetClientState().GetLatestHeight() // ignored for multihop
+			proofHeight := endpointZ.GetClientState().GetLatestHeight()
 			proof, err := proofs.Marshal()
 			suite.Require().NoError(err)
 			channelID, cap, err := endpointZ.Chain.App.GetIBCKeeper().ChannelKeeper.ChanOpenTry(

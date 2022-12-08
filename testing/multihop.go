@@ -470,3 +470,29 @@ func CreateLinkedChains(
 
 	return coord, paths
 }
+
+// ChanOpenInit is a copy of endpoint.ChanOpenInit which allows specifiying connectionHops
+func ChanOpenInit(endpoint *Endpoint, connectionHops []string) error {
+
+	msg := channeltypes.NewMsgChannelOpenInit(
+		endpoint.ChannelConfig.PortID,
+		endpoint.ChannelConfig.Version, endpoint.ChannelConfig.Order, connectionHops,
+		endpoint.Counterparty.ChannelConfig.PortID,
+		endpoint.Chain.SenderAccount.GetAddress().String(),
+	)
+	res, err := endpoint.Chain.SendMsgs(msg)
+	if err != nil {
+		return err
+	}
+
+	endpoint.ChannelID, err = ParseChannelIDFromEvents(res.GetEvents())
+	if err != nil {
+		return err
+	}
+
+	// update version to selected app version
+	// NOTE: this update must be performed after SendMsgs()
+	endpoint.ChannelConfig.Version = endpoint.GetChannel().Version
+
+	return nil
+}
