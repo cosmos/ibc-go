@@ -5,8 +5,6 @@ used in the testing package and commonly defined in tests.
 package ibctesting
 
 import (
-	"fmt"
-	"strconv"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -66,11 +64,3 @@ var (
 
 	prefix = commitmenttypes.NewMerklePrefix([]byte("ibc"))
 )
-
-func TendermintClientID(id int) string {
-	return fmt.Sprint("07-tendermint-" + strconv.Itoa(id))
-}
-
-func SolomachineClientID(id int) string {
-	return fmt.Sprint("06-solomachine-" + strconv.Itoa(id))
-}

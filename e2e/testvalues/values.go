@@ -1,6 +1,8 @@
 package testvalues
 
 import (
+	"fmt"
+	"strconv"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -33,4 +35,12 @@ func DefaultFee(denom string) feetypes.Fee {
 
 func DefaultTransferAmount(denom string) sdk.Coin {
 	return sdk.Coin{Denom: denom, Amount: sdk.NewInt(IBCTransferAmount)}
+}
+
+func TendermintClientID(id int) string {
+	return fmt.Sprint("07-tendermint-" + strconv.Itoa(id))
+}
+
+func SolomachineClientID(id int) string {
+	return fmt.Sprint("06-solomachine-" + strconv.Itoa(id))
 }

@@ -421,19 +421,21 @@ func (s *UpgradeTestSuite) TestV6ToV7ChainUpgrade() {
 
 	// create second tendermint client
 	createClientOptions := ibc.CreateClientOptions{
-		TrustingPeriod: ibc.DefaultClientOpts().TrustingPeriod,
+		TrustingPeriod: ibctesting.TrustingPeriod.String(),
 	}
 
 	s.SetupClients(ctx, relayer, createClientOptions)
 
-	t.Run("check that both tendermint clients are active", func(t *testing.T) {
-		status, err := s.ClientStatus(ctx, chainA, ibctesting.TendermintClientID(0))
-		s.Require().NoError(err)
-		s.Require().Equal(exported.Active, status)
+	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
 
-		status, err = s.ClientStatus(ctx, chainA, ibctesting.TendermintClientID(1))
+	t.Run("check that both tendermint clients are active", func(t *testing.T) {
+		status, err := s.QueryClientStatus(ctx, chainA, testvalues.TendermintClientID(0))
 		s.Require().NoError(err)
-		s.Require().Equal(exported.Active, status)
+		s.Require().Equal(exported.Active.String(), status)
+
+		status, err = s.QueryClientStatus(ctx, chainA, testvalues.TendermintClientID(1))
+		s.Require().NoError(err)
+		s.Require().Equal(exported.Active.String(), status)
 	})
 
 	// create solo machine client using the solomachine implementation from ibctesting
@@ -467,13 +469,13 @@ func (s *UpgradeTestSuite) TestV6ToV7ChainUpgrade() {
 	s.Require().NoError(err)
 
 	t.Run("check that the solomachine is now active and that the clientstate is a pre-upgrade v2 solomachine clientstate", func(t *testing.T) {
-		status, err := s.ClientStatus(ctx, chainA, ibctesting.SolomachineClientID(2))
+		status, err := s.QueryClientStatus(ctx, chainA, testvalues.SolomachineClientID(2))
 		s.Require().NoError(err)
-		s.Require().Equal(exported.Active, status)
+		s.Require().Equal(exported.Active.String(), status)
 
-		res, err := s.QueryClientState(ctx, chainA, ibctesting.SolomachineClientID(2))
+		res, err := s.ClientState(ctx, chainA, testvalues.SolomachineClientID(2))
 		s.Require().NoError(err)
-		s.Require().Equal(fmt.Sprint("/", proto.MessageName(&v7migrations.ClientState{})), res.ClientType())
+		s.Require().Equal(fmt.Sprint("/", proto.MessageName(&v7migrations.ClientState{})), res.ClientState.TypeUrl)
 	})
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
@@ -515,13 +517,13 @@ func (s *UpgradeTestSuite) TestV6ToV7ChainUpgrade() {
 	})
 
 	t.Run("check that the tendermint clients are active again after upgrade", func(t *testing.T) {
-		status, err := s.ClientStatus(ctx, chainA, ibctesting.TendermintClientID(0))
+		status, err := s.QueryClientStatus(ctx, chainA, testvalues.TendermintClientID(0))
 		s.Require().NoError(err)
-		s.Require().Equal(exported.Active, status)
+		s.Require().Equal(exported.Active.String(), status)
 
-		status, err = s.ClientStatus(ctx, chainA, ibctesting.TendermintClientID(1))
+		status, err = s.QueryClientStatus(ctx, chainA, testvalues.TendermintClientID(1))
 		s.Require().NoError(err)
-		s.Require().Equal(exported.Active, status)
+		s.Require().Equal(exported.Active.String(), status)
 	})
 
 	t.Run("IBC token transfer from chainA to chainB, to make sure the upgrade did not break the packet flow", func(t *testing.T) {
@@ -541,7 +543,7 @@ func (s *UpgradeTestSuite) TestV6ToV7ChainUpgrade() {
 	})
 
 	t.Run("check that the v2 solo machine clientstate has been updated to the v3 solo machine clientstate", func(t *testing.T) {
-		res, err := s.ClientState(ctx, chainA, ibctesting.SolomachineClientID(2))
+		res, err := s.ClientState(ctx, chainA, testvalues.SolomachineClientID(2))
 		s.Require().NoError(err)
 		s.Require().Equal(fmt.Sprint("/", proto.MessageName(&solomachine.ClientState{})), res.ClientState.TypeUrl)
 	})
@@ -565,19 +567,6 @@ func getICAVersion(chainAVersion, chainBVersion string) string {
 	}
 	// explicitly set the version string because the host chain might not yet support incentivized channels.
 	return icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
-}
-
-// ClientStatus queries the status of the client by clientID
-func (s *UpgradeTestSuite) ClientStatus(ctx context.Context, chain ibc.Chain, clientID string) (string, error) {
-	queryClient := s.GetChainGRCPClients(chain).ClientQueryClient
-	res, err := queryClient.ClientStatus(ctx, &clienttypes.QueryClientStatusRequest{
-		ClientId: clientID,
-	})
-	if err != nil {
-		return "", err
-	}
-
-	return res.Status, nil
 }
 
 // ClientState queries the current ClientState by clientID
