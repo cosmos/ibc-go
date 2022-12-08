@@ -219,6 +219,16 @@ module.exports = {
                   path: "/apps/interchain-accounts/overview.html",
                 },
                 {
+                  title: "Development Use Cases",
+                  directory: false,
+                  path: "/apps/interchain-accounts/development.html",
+                },
+                {
+                  title: "Authentication Modules",
+                  directory: false,
+                  path: "/apps/interchain-accounts/auth-modules.html",
+                },
+                {
                   title: "Integration",
                   directory: false,
                   path: "/apps/interchain-accounts/integration.html",
@@ -234,9 +244,9 @@ module.exports = {
                   path: "/apps/interchain-accounts/parameters.html",
                 },
                 {
-                  title: "Development Use Cases",
+                  title: "Client",
                   directory: false,
-                  path: "/apps/interchain-accounts/development.html",
+                  path: "/apps/interchain-accounts/client.html",
                 },
                 {
                   title: "Active Channels",
@@ -244,9 +254,26 @@ module.exports = {
                   path: "/apps/interchain-accounts/active-channels.html",
                 },
                 {
-                  title: "Authentication Modules",
-                  directory: false,
-                  path: "/apps/interchain-accounts/auth-modules.html",
+                  title: "Legacy",
+                  directory: true,
+                  path: "/apps/interchain-accounts",
+                  children: [
+                    {
+                      title: "Authentication Modules",
+                      directory: false,
+                      path: "/apps/interchain-accounts/legacy/auth-modules.html",
+                    },
+                    {
+                      title: "Integration",
+                      directory: false,
+                      path: "/apps/interchain-accounts/legacy/integration.html",
+                    },
+                    {
+                      title: "Keeper API",
+                      directory: false,
+                      path: "/apps/interchain-accounts/legacy/keeper-api.html",
+                    },
+                  ]
                 },
               ],
             },
