@@ -361,7 +361,7 @@ func (s *E2ETestSuite) GetChainGRCPClients(chain ibc.Chain) GRPCClients {
 	return cs
 }
 
-// initGRPCClients establishes GRPC clients with the given chain.
+// InitGRPCClients establishes GRPC clients with the given chain.
 // The created GRPCClients can be retrieved with GetChainGRCPClients.
 func (s *E2ETestSuite) InitGRPCClients(chain *cosmos.CosmosChain) {
 	// Create a connection to the gRPC server.
