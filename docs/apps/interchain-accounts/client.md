@@ -6,7 +6,13 @@ order: 7
 
 ## CLI
 
-A user can query and interact with the Interchain Accounts module using the CLI.
+A user can query and interact with the Interchain Accounts module using the CLI. Use the `--help` flag to discover the available commands:
+
+```shell
+simd query interchain-accounts --help
+```
+
+> Please not that this section does not document all the available commands, but only the ones that deserved extra documentation that was not possible to fit in the command line documentation.
 
 ### Controller
 
@@ -20,48 +26,12 @@ The `query` commands allow users to query the controller submodule.
 simd query interchain-accounts controller --help
 ```
 
-#### `interchain-account`
-
-The `interchain-account` command allows users to query the controller submodule for the interchain account address for a given owner on a particular connection.
-
-```shell
-simd query interchain-accounts controller interchain-account [owner] [connection-id]
-```
-
-Example:
-
-```shell
-simd query interchain-accounts controller interchain-account cosmos1.. connection-0
-```
-
-#### `params`
-
-The `params` command allows users to query the current controller submodule parameters.
-
-```shell
-simd query interchain-accounts controller params
-```
-
 #### Transactions
 
 The `tx` commands allow users to interact with the controller submodule.
 
 ```shell
 simd tx interchain-accounts controller --help
-```
-
-##### `register`
-
-The `register` command allows users to register an interchain account on the provided connection.
-
-```shell
-simd tx interchain-accounts controller register [connection-id]
-```
-
-Example:
-
-```shell
-simd tx interchain-accounts controller register connection-0 --from cosmos1..
 ```
 
 #### `send-tx`
@@ -102,28 +72,6 @@ The `query` commands allow users to query the host submodule.
 
 ```shell
 simd query interchain-accounts host --help
-```
-
-##### `packet-events`
-
-The `packet-events` command allows users to query the host submodule packet events. With this command it is possible to inspect the events of interchain accounts packets by providing the channel ID and packet sequence:
-
-```shell
-simd query interchain-accounts host packet-events [channel-id] [sequence]
-```
-
-Example:
-
-```shell
-simd query interchain-accounts host packet-events channel-0 100
-```
-
-##### `params`
-
-The `params` command allows users to query the current host submodule parameters.
-
-```shell
-simd query interchain-accounts host params
 ```
 
 #### Transactions
