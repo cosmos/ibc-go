@@ -32,7 +32,7 @@ as a reference.
 
 All possible Status types can be found [here](https://github.com/cosmos/ibc-go/blob/v6.0.0-rc1/modules/core/exported/client.go#L26-L36).
 
-This field is returned in the gRPC [QueryClientStatusResponse](https://github.com/cosmos/ibc-go/blob/v6.0.0-rc1/modules/core/02-client/types/query.pb.go#L665).
+This field is returned by the gRPC [QueryClientStatusResponse](https://github.com/cosmos/ibc-go/blob/v6.0.0-rc1/modules/core/02-client/types/query.pb.go#L665) endpoint.
 
 ## `ZeroCustomFields` method
 
