@@ -22,13 +22,11 @@ Regular accounts use a private key to sign transactions. Interchain Accounts are
 
 `Interchain Account`: An account on a host chain created using the ICS-27 protocol. An interchain account has all the capabilities of a normal account. However, rather than signing transactions with a private key, a controller chain will send IBC packets to the host chain which signals what transactions the interchain account should execute.
 
-#### Deprecated
+`Authentication Module`: A custom application module on the controller chain that uses the Interchain Accounts module to build custom logic for the creation & management of interchain accounts. It can be either an IBC application module using the [legacy API](./legacy/keeper-api.md), or a regular Cosmos SDK application module sending messages to the controller submodule's `MsgServer` (this is the recommended approach from ibc-go v6 if access to packet callbacks is not needed). Please note that the legacy API will eventually be removed and IBC applications will not be able to use them in later releases.
 
-`Authentication Module`: A custom IBC application module on the controller chain that uses the Interchain Accounts module API to build custom logic for the creation & management of interchain accounts. For a controller chain to utilize the interchain accounts module functionality, an authentication module is required.
+## SDK security model
 
-## SDK Security Model
-
-SDK modules on a chain are assumed to be trustworthy.  For example, there are no checks to prevent an untrustworthy module from accessing the bank keeper.
+SDK modules on a chain are assumed to be trustworthy. For example, there are no checks to prevent an untrustworthy module from accessing the bank keeper.
 
 The implementation of ICS-27 in ibc-go uses this assumption in its security considerations.
 

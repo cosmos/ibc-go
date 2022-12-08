@@ -23,7 +23,7 @@ import (
 
 // Please use MsgRegisterInterchainAccount for use cases which do not need to route to an underlying application.
 
-// Prior to to v6.x.x of ibc-go, the controller module was only functional as middleware, with authentication performed
+// Prior to v6.x.x of ibc-go, the controller module was only functional as middleware, with authentication performed
 // by the underlying application. For a full summary of the changes in v6.x.x, please see ADR009.
 // This API will be removed in later releases.
 func (k Keeper) RegisterInterchainAccount(ctx sdk.Context, connectionID, owner, version string) error {
