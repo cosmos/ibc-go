@@ -24,8 +24,10 @@ import (
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	controllertypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/controller/types"
 	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
-	v7 "github.com/cosmos/ibc-go/v6/modules/core/02-client/migrations/v7"
+	v7migrations "github.com/cosmos/ibc-go/v6/modules/core/02-client/migrations/v7"
 	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v6/modules/core/exported"
+	solomachine "github.com/cosmos/ibc-go/v6/modules/light-clients/06-solomachine"
 	ibctesting "github.com/cosmos/ibc-go/v6/testing"
 	simappupgrades "github.com/cosmos/ibc-go/v6/testing/simapp/upgrades"
 	v7upgrades "github.com/cosmos/ibc-go/v6/testing/simapp/upgrades/v7"
@@ -73,6 +75,8 @@ func (s *UpgradeTestSuite) UpgradeChain(ctx context.Context, chain *cosmos.Cosmo
 	err = chain.StartAllNodes(ctx)
 	s.Require().NoError(err, "error starting upgraded node(s)")
 
+	// we are reinitializing the clients because we need to update the hostGRPCAddress after
+	// the upgrade and subsequent restarting of nodes
 	s.InitGRPCClients(chain)
 
 	timeoutCtx, timeoutCtxCancel = context.WithTimeout(ctx, time.Minute*2)
@@ -391,6 +395,11 @@ func (s *UpgradeTestSuite) TestV5ToV6ChainUpgrade() {
 	})
 }
 
+// TestV6ToV7ChainUpgrade will test that an upgrade from a v6 ibc-go binary to a v7 ibc-go binary is successful
+// and that the automatic migrations associated with the 02-client module are performed. Namely that the solo machine
+// proto definition is migrated in state from the v2 to v3 definition. This is checked by creating a solo machine client
+// before the upgrade and asserting that its TypeURL has been changed after the upgrade. The test also ensure packets
+// can be sent before and after the upgrade without issue
 func (s *UpgradeTestSuite) TestV6ToV7ChainUpgrade() {
 	t := s.T()
 	testCfg := testconfig.FromEnv()
@@ -399,25 +408,9 @@ func (s *UpgradeTestSuite) TestV6ToV7ChainUpgrade() {
 	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx)
 	chainA, chainB := s.GetChains()
 
-	createClientOptions := ibc.CreateClientOptions{
-		TrustingPeriod: time.Duration(time.Hour * 24 * 7).String(),
-	}
-
-	// create second tendermint client
-	s.SetupClients(ctx, relayer, createClientOptions)
-
-	status, err := s.Status(ctx, chainA, ibctesting.FirstClientID)
-	s.Require().NoError(err)
-	s.Require().Equal("Active", status)
-
-	status, err = s.Status(ctx, chainA, ibctesting.SecondClientID)
-	s.Require().NoError(err)
-	s.Require().Equal("Active", status)
-
 	var (
-		chainADenom         = chainA.Config().Denom
-		chainBIBCToken      = testsuite.GetIBCToken(chainADenom, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID) // IBC token sent to chainB
-		soloMachineClientID = "06-solomachine-2"
+		chainADenom    = chainA.Config().Denom
+		chainBIBCToken = testsuite.GetIBCToken(chainADenom, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID) // IBC token sent to chainB
 	)
 
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
@@ -426,16 +419,34 @@ func (s *UpgradeTestSuite) TestV6ToV7ChainUpgrade() {
 	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 	chainBAddress := chainBWallet.Bech32Address(chainB.Config().Bech32Prefix)
 
-	// create solo machine client
+	// create second tendermint client
+	createClientOptions := ibc.CreateClientOptions{
+		TrustingPeriod: ibc.DefaultClientOpts().TrustingPeriod,
+	}
+
+	s.SetupClients(ctx, relayer, createClientOptions)
+
+	t.Run("check that both tendermint clients are active", func(t *testing.T) {
+		status, err := s.ClientStatus(ctx, chainA, ibctesting.TendermintClientID(0))
+		s.Require().NoError(err)
+		s.Require().Equal(exported.Active, status)
+
+		status, err = s.ClientStatus(ctx, chainA, ibctesting.TendermintClientID(1))
+		s.Require().NoError(err)
+		s.Require().Equal(exported.Active, status)
+	})
+
+	// create solo machine client using the solomachine implementation from ibctesting
+	// TODO: the solomachine clientID should be updated when after fix of this issue: https://github.com/cosmos/ibc-go/issues/2907
 	solo := ibctesting.NewSolomachine(t, testsuite.Codec(), "solomachine", "testing", 1)
 
-	legacyConsensusState := &v7.ConsensusState{
+	legacyConsensusState := &v7migrations.ConsensusState{
 		PublicKey:   solo.ConsensusState().PublicKey,
 		Diversifier: solo.ConsensusState().Diversifier,
 		Timestamp:   solo.ConsensusState().Timestamp,
 	}
 
-	legacyClientState := &v7.ClientState{
+	legacyClientState := &v7migrations.ClientState{
 		Sequence:                 solo.ClientState().Sequence,
 		IsFrozen:                 solo.ClientState().IsFrozen,
 		ConsensusState:           legacyConsensusState,
@@ -455,13 +466,15 @@ func (s *UpgradeTestSuite) TestV6ToV7ChainUpgrade() {
 	s.AssertValidTxResponse(resp)
 	s.Require().NoError(err)
 
-	status, err = s.Status(ctx, chainA, soloMachineClientID)
-	s.Require().NoError(err)
-	s.Require().Equal("Active", status)
+	t.Run("check that the solomachine is now active and that the clientstate is a pre-upgrade v2 solomachine clientstate", func(t *testing.T) {
+		status, err := s.ClientStatus(ctx, chainA, ibctesting.SolomachineClientID(2))
+		s.Require().NoError(err)
+		s.Require().Equal(exported.Active, status)
 
-	res, err := s.ClientState(ctx, chainA, soloMachineClientID)
-	s.Require().NoError(err)
-	s.Require().Equal(res.ClientState.TypeUrl, "/ibc.lightclients.solomachine.v2.ClientState")
+		res, err := s.QueryClientState(ctx, chainA, ibctesting.SolomachineClientID(2))
+		s.Require().NoError(err)
+		s.Require().Equal(fmt.Sprint("/", proto.MessageName(&v7migrations.ClientState{})), res.ClientType())
+	})
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
 
@@ -501,16 +514,17 @@ func (s *UpgradeTestSuite) TestV6ToV7ChainUpgrade() {
 		s.UpgradeChain(ctx, chainA, chainAUpgradeProposalWallet, v7upgrades.UpgradeName, testCfg.ChainAConfig.Tag, testCfg.UpgradeTag)
 	})
 
-	status, err = s.Status(ctx, chainA, ibctesting.FirstClientID)
-	s.Require().NoError(err)
-	s.Require().Equal("Active", status)
+	t.Run("check that the tendermint clients are active again after upgrade", func(t *testing.T) {
+		status, err := s.ClientStatus(ctx, chainA, ibctesting.TendermintClientID(0))
+		s.Require().NoError(err)
+		s.Require().Equal(exported.Active, status)
 
-	status, err = s.Status(ctx, chainA, ibctesting.SecondClientID)
-	s.Require().NoError(err)
-	s.Require().Equal("Active", status)
+		status, err = s.ClientStatus(ctx, chainA, ibctesting.TendermintClientID(1))
+		s.Require().NoError(err)
+		s.Require().Equal(exported.Active, status)
+	})
 
-	// send another transfer from chainA to chainB to make sure the upgrade did not break the packet flow
-	t.Run("IBC token transfer from chainA to chainB, sender is source of tokens", func(t *testing.T) {
+	t.Run("IBC token transfer from chainA to chainB, to make sure the upgrade did not break the packet flow", func(t *testing.T) {
 		transferTxResp, err := s.Transfer(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, testvalues.DefaultTransferAmount(chainADenom), chainAAddress, chainBAddress, s.GetTimeoutHeight(ctx, chainB), 0, "")
 		s.Require().NoError(err)
 		s.AssertValidTxResponse(transferTxResp)
@@ -526,10 +540,11 @@ func (s *UpgradeTestSuite) TestV6ToV7ChainUpgrade() {
 		s.Require().Equal(expected, actualBalance)
 	})
 
-	// check that the v2 solo machine clientstate has been updated to the v3 solo machine clientstate
-	res, err = s.ClientState(ctx, chainA, soloMachineClientID)
-	s.Require().NoError(err)
-	s.Require().Equal(res.ClientState.TypeUrl, "/ibc.lightclients.solomachine.v3.ClientState")
+	t.Run("check that the v2 solo machine clientstate has been updated to the v3 solo machine clientstate", func(t *testing.T) {
+		res, err := s.ClientState(ctx, chainA, ibctesting.SolomachineClientID(2))
+		s.Require().NoError(err)
+		s.Require().Equal(fmt.Sprint("/", proto.MessageName(&solomachine.ClientState{})), res.ClientState.TypeUrl)
+	})
 }
 
 // RegisterInterchainAccount will attempt to register an interchain account on the counterparty chain.
@@ -552,8 +567,8 @@ func getICAVersion(chainAVersion, chainBVersion string) string {
 	return icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
 }
 
-// Status queries the status of the client by clientID
-func (s *UpgradeTestSuite) Status(ctx context.Context, chain ibc.Chain, clientID string) (string, error) {
+// ClientStatus queries the status of the client by clientID
+func (s *UpgradeTestSuite) ClientStatus(ctx context.Context, chain ibc.Chain, clientID string) (string, error) {
 	queryClient := s.GetChainGRCPClients(chain).ClientQueryClient
 	res, err := queryClient.ClientStatus(ctx, &clienttypes.QueryClientStatusRequest{
 		ClientId: clientID,
