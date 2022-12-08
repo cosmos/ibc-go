@@ -23,7 +23,7 @@ This migration facilitates the addition of the ICS27 controller submodule `MsgSe
 
 For more information please refer to [ADR 009](../architecture/adr-009-v6-ics27-msgserver.md).
 
-#### Upgrade proposal
+### Upgrade proposal
 
 Please refer to [PR #2383](https://github.com/cosmos/ibc-go/pull/2383) for integrating the ICS27 channel capability migration logic or follow the steps outlined below:
 
@@ -87,21 +87,86 @@ app.UpgradeKeeper.SetUpgradeHandler(
 
 #### Controller APIs
 
-In previous releases of ibc-go, chain developers integrating the ICS27 interchain accounts controller functionality were expected to create a custom `Base Application` referred to as an authentication module, see: [Building an authentication module](../apps/interchain-accounts/auth-modules.md).
+In previous releases of ibc-go, chain developers integrating the ICS27 interchain accounts controller functionality were expected to create a custom `Base Application` referred to as an authentication module, see the section [Building an authentication module](../apps/interchain-accounts/auth-modules.md) from the documentation.
 
 The `Base Application` was intended to be composed with the ICS27 controller submodule `Keeper` and faciliate many forms of message authentication depending on a chain's particular use case.
 
-The controller submodule exposes two functions:
+Prior to ibc-go v6 the controller submodule exposed only these two functions (to which we will refer as the legacy APIs):
 
 - [`RegisterInterchainAccount`](https://github.com/cosmos/ibc-go/blob/v5.0.0/modules/apps/27-interchain-accounts/controller/keeper/account.go#L19)
 - [`SendTx`](https://github.com/cosmos/ibc-go/blob/v5.0.0/modules/apps/27-interchain-accounts/controller/keeper/relay.go#L18)
 
-These functions have been deprecated in favour of the new controller submodule `MsgServer` and will be removed in later releases. 
-Both APIs remain functional and maintain backwards compatibility in `ibc-go/v6`, however consumers of these APIs are now recommended to follow the message passing paradigm outlined in Cosmos SDK [ADR 031](https://github.com/cosmos/cosmos-sdk/blob/main/docs/architecture/adr-031-msg-service.md) and [ADR 033](https://github.com/cosmos/cosmos-sdk/blob/main/docs/architecture/adr-033-protobuf-inter-module-comm.md). This is facilitated by the Cosmos SDK [`MsgServiceRouter`](https://github.com/cosmos/cosmos-sdk/blob/main/baseapp/msg_service_router.go#L17) and chain developers creating custom application logic can now omit the ICS27 controller submodule `Keeper` from their module and instead depend on message routing.
+However, these functions have now been deprecated in favour of the new controller submodule `MsgServer` and will be removed in later releases. 
 
-Legacy APIs are still required if application developers wish to consume IBC packet callbacks and react upon packet acknowledgements. In future this will be replaced by IBC Actor Callbacks, see [ADR 008](https://github.com/cosmos/ibc-go/pull/1976).
+Both APIs remain functional and maintain backwards compatibility in ibc-go v6, however consumers of these APIs are now recommended to follow the message passing paradigm outlined in Cosmos SDK [ADR 031](https://github.com/cosmos/cosmos-sdk/blob/main/docs/architecture/adr-031-msg-service.md) and [ADR 033](https://github.com/cosmos/cosmos-sdk/blob/main/docs/architecture/adr-033-protobuf-inter-module-comm.md). This is facilitated by the Cosmos SDK [`MsgServiceRouter`](https://github.com/cosmos/cosmos-sdk/blob/main/baseapp/msg_service_router.go#L17) and chain developers creating custom application logic can now omit the ICS27 controller submodule `Keeper` from their module and instead depend on message routing. 
 
-For more information see the new [ICS27 integration documentation](TODO: add link to new docs).
+Depending on the use case, developers of custom authentication modules face one of three scenarios:
+
+![AuthModuleDecisionTree](../assets/auth-module-decision-tree.png)
+
+**My authentication module needs to access IBC packet callbacks**
+
+Application developers that wish to consume IBC packet callbacks and react upon packet acknowledgements **must** continue using the controller submodule's legacy APIs. The authentication modules will not need a `ScopedKeeper` anymore, though, because the channel capability will be claimed by the controller submodule. For example, given an Interchain Accounts authentication module keeper `ICAAuthKeeper`, the authentication module's `ScopedKeeper` (`scopedICAAuthKeeper`) is not needed anymore and can be removed for the argument list of the keeper constructor function, as shown here:
+
+```diff
+app.ICAAuthKeeper = icaauthkeeper.NewKeeper(
+    appCodec, 
+    keys[icaauthtypes.StoreKey], 
+    app.ICAControllerKeeper, 
+-   scopedICAAuthKeeper,
+)
+```
+
+Please note that the authentication module's `ScopedKeeper` name is still needed as part of the channel capability migration described in section [Upgrade proposal](#upgrade-proposal) above. Therefore the authentication module's `ScopedKeeper` cannot be completely removed from the chain code until the migration has run.
+
+In the future, the use of the legacy APIs for accessing packet callbacks will be replaced by IBC Actor Callbacks (see [ADR 008](https://github.com/cosmos/ibc-go/pull/1976) for more details) and it will also be possible to access them with the `MsgServiceRouter`.
+
+**My authentication module does not need access to IBC packet callbacks**
+
+The authentication module can migrate from using the legacy APIs and it can be composed instead with the `MsgServiceRouter`, so that the authentication module is able to pass messages to the controller submodule's `MsgServer` to register interchain accounts and send packets to the interchain account. For example, given an Interchain Accounts authentication module keeper `ICAAuthKeeper`, the ICS27 controller submodule keeper (`ICAControllerKeeper`) and authentication module scoped keeper (`scopedICAAuthKeeper`) are not needed anymore and can be replaced with the `MsgServiceRouter`, as shown here:
+
+```diff
+app.ICAAuthKeeper = icaauthkeeper.NewKeeper(
+    appCodec, 
+    keys[icaauthtypes.StoreKey], 
+-   app.ICAControllerKeeper, 
+-   scopedICAAuthKeeper,
++   app.MsgServiceRouter(),
+)
+```
+
+In your authentication module you can route messages to the controller submodule's `MsgServer` instead of using the legacy APIs. For example, for registering an interchain account:
+
+```diff
+- if err := keeper.icaControllerKeeper.RegisterInterchainAccount(
+-    ctx, 
+-    connectionID, 
+-    owner.String(), 
+-    version,
+- ); err != nil {
+-    return err
+- }
++ msg := controllertypes.NewMsgRegisterInterchainAccount(
++    connectionID, 
++    owner.String(), 
++    version,
++ )
++ handler := keeper.msgRouter.Handler(msg)
++ res, err := handler(ctx, msg)
++ if err != nil {
++    return err
++ }
+```
+
+where `controllertypes` is an import alias for `"github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/controller/types"`.
+
+In addition, in this use case the authentication module does not need to implement the `IBCModule` interface anymore.
+
+**I do not need a custom authentication module anymore**
+
+If your authentication module does not have any extra functionality compared to the default authentication module added in ibc-go v6 (the `MsgServer`), or if you can use a generic authentication module, such as the `x/auth`, `x/gov` or `x/group` modules from the Cosmos SDK (v0.46 and later), then you can remove your authentication module completely and use instead the gRPC endpoints of the `MsgServer` or the CLI added in ibc-go v6.
+
+Please remember that the authentication module's `ScopedKeeper` name is still needed as part of the channel capability migration described in section [Upgrade proposal](#upgrade-proposal) above.
 
 #### Host params
 
@@ -195,6 +260,27 @@ func (k Keeper) SendPacket(
 Callers no longer need to pass in a pre-constructed packet. 
 The destination port/channel identifiers and the packet sequence will be determined by core IBC.
 `SendPacket` will return the packet sequence.
+
+### IBC testing package
+
+The `SendPacket` API has been simplified:
+
+```diff
+// SendPacket is called by a module in order to send an IBC packet on a channel
+func (k Keeper) SendPacket(
+    ctx sdk.Context,
+    channelCap *capabilitytypes.Capability,
+-   packet exported.PacketI,
+-) error {
++   sourcePort string,
++   sourceChannel string,
++   timeoutHeight clienttypes.Height,
++   timeoutTimestamp uint64,
++   data []byte,
++) (uint64, error) {
+```
+
+Callers no longer need to pass in a pre-constructed packet. `SendPacket` will return the packet sequence.
 
 ## Relayers
 
