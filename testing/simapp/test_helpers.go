@@ -66,6 +66,7 @@ func setup(withGenesis bool, invCheckPeriod uint) (*SimApp, GenesisState) {
 	appOptions[server.FlagInvCheckPeriod] = invCheckPeriod
 
 	app := NewSimApp(log.NewNopLogger(), db, nil, true, simtestutil.EmptyAppOptions{})
+
 	if withGenesis {
 		return app, NewDefaultGenesisState(app.AppCodec())
 	}
