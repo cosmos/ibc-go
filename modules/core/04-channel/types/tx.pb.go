@@ -898,25 +898,25 @@ func (m *MsgAcknowledgementResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgAcknowledgementResponse proto.InternalMessageInfo
 
-// MsgConsStateProof holds the information necessary to prove a multihop message
-type ConsStateProof struct {
-	Proof          *types1.MerkleProof             `protobuf:"bytes,1,opt,name=proof,proto3" json:"proof,omitempty"`
-	ConsensusState *types.ConsensusStateWithHeight `protobuf:"bytes,2,opt,name=consensus_state,json=consensusState,proto3" json:"consensus_state,omitempty"`
-	PrefixedKey    *types1.MerklePath              `protobuf:"bytes,3,opt,name=prefixed_key,json=prefixedKey,proto3" json:"prefixed_key,omitempty"`
+// MultihopProof holds the information necessary to prove a multihop message
+type MultihopProof struct {
+	Proof       []byte             `protobuf:"bytes,1,opt,name=proof,proto3" json:"proof,omitempty"`
+	Value       []byte             `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
+	PrefixedKey *types1.MerklePath `protobuf:"bytes,3,opt,name=prefixed_key,json=prefixedKey,proto3" json:"prefixed_key,omitempty"`
 }
 
-func (m *ConsStateProof) Reset()         { *m = ConsStateProof{} }
-func (m *ConsStateProof) String() string { return proto.CompactTextString(m) }
-func (*ConsStateProof) ProtoMessage()    {}
-func (*ConsStateProof) Descriptor() ([]byte, []int) {
+func (m *MultihopProof) Reset()         { *m = MultihopProof{} }
+func (m *MultihopProof) String() string { return proto.CompactTextString(m) }
+func (*MultihopProof) ProtoMessage()    {}
+func (*MultihopProof) Descriptor() ([]byte, []int) {
 	return fileDescriptor_bc4637e0ac3fc7b7, []int{20}
 }
-func (m *ConsStateProof) XXX_Unmarshal(b []byte) error {
+func (m *MultihopProof) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *ConsStateProof) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MultihopProof) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_ConsStateProof.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MultihopProof.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -926,35 +926,37 @@ func (m *ConsStateProof) XXX_Marshal(b []byte, deterministic bool) ([]byte, erro
 		return b[:n], nil
 	}
 }
-func (m *ConsStateProof) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ConsStateProof.Merge(m, src)
+func (m *MultihopProof) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MultihopProof.Merge(m, src)
 }
-func (m *ConsStateProof) XXX_Size() int {
+func (m *MultihopProof) XXX_Size() int {
 	return m.Size()
 }
-func (m *ConsStateProof) XXX_DiscardUnknown() {
-	xxx_messageInfo_ConsStateProof.DiscardUnknown(m)
+func (m *MultihopProof) XXX_DiscardUnknown() {
+	xxx_messageInfo_MultihopProof.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_ConsStateProof proto.InternalMessageInfo
+var xxx_messageInfo_MultihopProof proto.InternalMessageInfo
 
-// MsgConsStateProofs holds the proof information for each intermediary hop for a multihop message
-type MsgConsStateProofs struct {
-	Proofs []*ConsStateProof `protobuf:"bytes,1,rep,name=proofs,proto3" json:"proofs,omitempty"`
+// MsgMultihopProofs holds the proof information for each intermediary hop for a multihop message
+type MsgMultihopProofs struct {
+	KeyProof         *MultihopProof   `protobuf:"bytes,1,opt,name=key_proof,json=keyProof,proto3" json:"key_proof,omitempty"`
+	ConnectionProofs []*MultihopProof `protobuf:"bytes,2,rep,name=connection_proofs,json=connectionProofs,proto3" json:"connection_proofs,omitempty"`
+	ConsensusProofs  []*MultihopProof `protobuf:"bytes,3,rep,name=consensus_proofs,json=consensusProofs,proto3" json:"consensus_proofs,omitempty"`
 }
 
-func (m *MsgConsStateProofs) Reset()         { *m = MsgConsStateProofs{} }
-func (m *MsgConsStateProofs) String() string { return proto.CompactTextString(m) }
-func (*MsgConsStateProofs) ProtoMessage()    {}
-func (*MsgConsStateProofs) Descriptor() ([]byte, []int) {
+func (m *MsgMultihopProofs) Reset()         { *m = MsgMultihopProofs{} }
+func (m *MsgMultihopProofs) String() string { return proto.CompactTextString(m) }
+func (*MsgMultihopProofs) ProtoMessage()    {}
+func (*MsgMultihopProofs) Descriptor() ([]byte, []int) {
 	return fileDescriptor_bc4637e0ac3fc7b7, []int{21}
 }
-func (m *MsgConsStateProofs) XXX_Unmarshal(b []byte) error {
+func (m *MsgMultihopProofs) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgConsStateProofs) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgMultihopProofs) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgConsStateProofs.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgMultihopProofs.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -964,17 +966,17 @@ func (m *MsgConsStateProofs) XXX_Marshal(b []byte, deterministic bool) ([]byte, 
 		return b[:n], nil
 	}
 }
-func (m *MsgConsStateProofs) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgConsStateProofs.Merge(m, src)
+func (m *MsgMultihopProofs) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgMultihopProofs.Merge(m, src)
 }
-func (m *MsgConsStateProofs) XXX_Size() int {
+func (m *MsgMultihopProofs) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgConsStateProofs) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgConsStateProofs.DiscardUnknown(m)
+func (m *MsgMultihopProofs) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgMultihopProofs.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgConsStateProofs proto.InternalMessageInfo
+var xxx_messageInfo_MsgMultihopProofs proto.InternalMessageInfo
 
 func init() {
 	proto.RegisterEnum("ibc.core.channel.v1.ResponseResultType", ResponseResultType_name, ResponseResultType_value)
@@ -998,8 +1000,8 @@ func init() {
 	proto.RegisterType((*MsgTimeoutOnCloseResponse)(nil), "ibc.core.channel.v1.MsgTimeoutOnCloseResponse")
 	proto.RegisterType((*MsgAcknowledgement)(nil), "ibc.core.channel.v1.MsgAcknowledgement")
 	proto.RegisterType((*MsgAcknowledgementResponse)(nil), "ibc.core.channel.v1.MsgAcknowledgementResponse")
-	proto.RegisterType((*ConsStateProof)(nil), "ibc.core.channel.v1.ConsStateProof")
-	proto.RegisterType((*MsgConsStateProofs)(nil), "ibc.core.channel.v1.MsgConsStateProofs")
+	proto.RegisterType((*MultihopProof)(nil), "ibc.core.channel.v1.MultihopProof")
+	proto.RegisterType((*MsgMultihopProofs)(nil), "ibc.core.channel.v1.MsgMultihopProofs")
 }
 
 func init() { proto.RegisterFile("ibc/core/channel/v1/tx.proto", fileDescriptor_bc4637e0ac3fc7b7) }
@@ -2412,7 +2414,7 @@ func (m *MsgAcknowledgementResponse) MarshalToSizedBuffer(dAtA []byte) (int, err
 	return len(dAtA) - i, nil
 }
 
-func (m *ConsStateProof) Marshal() (dAtA []byte, err error) {
+func (m *MultihopProof) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -2422,12 +2424,12 @@ func (m *ConsStateProof) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *ConsStateProof) MarshalTo(dAtA []byte) (int, error) {
+func (m *MultihopProof) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *ConsStateProof) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MultihopProof) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -2444,34 +2446,24 @@ func (m *ConsStateProof) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x1a
 	}
-	if m.ConsensusState != nil {
-		{
-			size, err := m.ConsensusState.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintTx(dAtA, i, uint64(size))
-		}
+	if len(m.Value) > 0 {
+		i -= len(m.Value)
+		copy(dAtA[i:], m.Value)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Value)))
 		i--
 		dAtA[i] = 0x12
 	}
-	if m.Proof != nil {
-		{
-			size, err := m.Proof.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintTx(dAtA, i, uint64(size))
-		}
+	if len(m.Proof) > 0 {
+		i -= len(m.Proof)
+		copy(dAtA[i:], m.Proof)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Proof)))
 		i--
 		dAtA[i] = 0xa
 	}
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgConsStateProofs) Marshal() (dAtA []byte, err error) {
+func (m *MsgMultihopProofs) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -2481,20 +2473,20 @@ func (m *MsgConsStateProofs) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgConsStateProofs) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgMultihopProofs) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgConsStateProofs) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgMultihopProofs) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
-	if len(m.Proofs) > 0 {
-		for iNdEx := len(m.Proofs) - 1; iNdEx >= 0; iNdEx-- {
+	if len(m.ConsensusProofs) > 0 {
+		for iNdEx := len(m.ConsensusProofs) - 1; iNdEx >= 0; iNdEx-- {
 			{
-				size, err := m.Proofs[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				size, err := m.ConsensusProofs[iNdEx].MarshalToSizedBuffer(dAtA[:i])
 				if err != nil {
 					return 0, err
 				}
@@ -2502,8 +2494,34 @@ func (m *MsgConsStateProofs) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 				i = encodeVarintTx(dAtA, i, uint64(size))
 			}
 			i--
-			dAtA[i] = 0xa
+			dAtA[i] = 0x1a
 		}
+	}
+	if len(m.ConnectionProofs) > 0 {
+		for iNdEx := len(m.ConnectionProofs) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.ConnectionProofs[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintTx(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0x12
+		}
+	}
+	if m.KeyProof != nil {
+		{
+			size, err := m.KeyProof.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintTx(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0xa
 	}
 	return len(dAtA) - i, nil
 }
@@ -2897,18 +2915,18 @@ func (m *MsgAcknowledgementResponse) Size() (n int) {
 	return n
 }
 
-func (m *ConsStateProof) Size() (n int) {
+func (m *MultihopProof) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	if m.Proof != nil {
-		l = m.Proof.Size()
+	l = len(m.Proof)
+	if l > 0 {
 		n += 1 + l + sovTx(uint64(l))
 	}
-	if m.ConsensusState != nil {
-		l = m.ConsensusState.Size()
+	l = len(m.Value)
+	if l > 0 {
 		n += 1 + l + sovTx(uint64(l))
 	}
 	if m.PrefixedKey != nil {
@@ -2918,14 +2936,24 @@ func (m *ConsStateProof) Size() (n int) {
 	return n
 }
 
-func (m *MsgConsStateProofs) Size() (n int) {
+func (m *MsgMultihopProofs) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	if len(m.Proofs) > 0 {
-		for _, e := range m.Proofs {
+	if m.KeyProof != nil {
+		l = m.KeyProof.Size()
+		n += 1 + l + sovTx(uint64(l))
+	}
+	if len(m.ConnectionProofs) > 0 {
+		for _, e := range m.ConnectionProofs {
+			l = e.Size()
+			n += 1 + l + sovTx(uint64(l))
+		}
+	}
+	if len(m.ConsensusProofs) > 0 {
+		for _, e := range m.ConsensusProofs {
 			l = e.Size()
 			n += 1 + l + sovTx(uint64(l))
 		}
@@ -5751,7 +5779,7 @@ func (m *MsgAcknowledgementResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *ConsStateProof) Unmarshal(dAtA []byte) error {
+func (m *MultihopProof) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -5774,17 +5802,17 @@ func (m *ConsStateProof) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: ConsStateProof: wiretype end group for non-group")
+			return fmt.Errorf("proto: MultihopProof: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: ConsStateProof: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MultihopProof: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Proof", wireType)
 			}
-			var msglen int
+			var byteLen int
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowTx
@@ -5794,33 +5822,31 @@ func (m *ConsStateProof) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= int(b&0x7F) << shift
+				byteLen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			if msglen < 0 {
+			if byteLen < 0 {
 				return ErrInvalidLengthTx
 			}
-			postIndex := iNdEx + msglen
+			postIndex := iNdEx + byteLen
 			if postIndex < 0 {
 				return ErrInvalidLengthTx
 			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
+			m.Proof = append(m.Proof[:0], dAtA[iNdEx:postIndex]...)
 			if m.Proof == nil {
-				m.Proof = &types1.MerkleProof{}
-			}
-			if err := m.Proof.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
+				m.Proof = []byte{}
 			}
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ConsensusState", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Value", wireType)
 			}
-			var msglen int
+			var byteLen int
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowTx
@@ -5830,26 +5856,24 @@ func (m *ConsStateProof) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= int(b&0x7F) << shift
+				byteLen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			if msglen < 0 {
+			if byteLen < 0 {
 				return ErrInvalidLengthTx
 			}
-			postIndex := iNdEx + msglen
+			postIndex := iNdEx + byteLen
 			if postIndex < 0 {
 				return ErrInvalidLengthTx
 			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if m.ConsensusState == nil {
-				m.ConsensusState = &types.ConsensusStateWithHeight{}
-			}
-			if err := m.ConsensusState.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
+			m.Value = append(m.Value[:0], dAtA[iNdEx:postIndex]...)
+			if m.Value == nil {
+				m.Value = []byte{}
 			}
 			iNdEx = postIndex
 		case 3:
@@ -5909,7 +5933,7 @@ func (m *ConsStateProof) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgConsStateProofs) Unmarshal(dAtA []byte) error {
+func (m *MsgMultihopProofs) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -5932,15 +5956,15 @@ func (m *MsgConsStateProofs) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgConsStateProofs: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgMultihopProofs: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgConsStateProofs: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgMultihopProofs: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Proofs", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field KeyProof", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -5967,8 +5991,78 @@ func (m *MsgConsStateProofs) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Proofs = append(m.Proofs, &ConsStateProof{})
-			if err := m.Proofs[len(m.Proofs)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+			if m.KeyProof == nil {
+				m.KeyProof = &MultihopProof{}
+			}
+			if err := m.KeyProof.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ConnectionProofs", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.ConnectionProofs = append(m.ConnectionProofs, &MultihopProof{})
+			if err := m.ConnectionProofs[len(m.ConnectionProofs)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ConsensusProofs", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.ConsensusProofs = append(m.ConsensusProofs, &MultihopProof{})
+			if err := m.ConsensusProofs[len(m.ConsensusProofs)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex

@@ -317,7 +317,7 @@ func (suite *KeeperTestSuite) TestChanOpenTryMultihop() {
 
 	testCases := []testCase{
 		{"multihop success", func() {
-			//paths[0].EndpointA.ChanOpenInit()
+			// manually call ChanOpenInit so we can properly set the connectionHops
 			{
 				endpoint := paths[0].EndpointA
 				msg := types.NewMsgChannelOpenInit(
@@ -359,13 +359,8 @@ func (suite *KeeperTestSuite) TestChanOpenTryMultihop() {
 
 			tc.malleate() // call ChanOpenInit and setup port capabilities
 
-			for _, path := range paths {
-				if path.EndpointB.ClientID != "" {
-					// ensure client is up to date
-					err := path.EndpointB.UpdateClient()
-					suite.Require().NoError(err)
-				}
-			}
+			// ensure clients are up to date
+			paths.UpdateClients()
 
 			endpointA := paths[0].EndpointA
 			endpointZ := paths[len(paths)-1].EndpointB
@@ -388,12 +383,12 @@ func (suite *KeeperTestSuite) TestChanOpenTryMultihop() {
 			expectedVal, err := resp.Channel.Marshal()
 			suite.NoError(err)
 
+			fmt.Printf("expectedVal for proof generation: %x\n", expectedVal)
 			// generate multihop proof give keypath and value
 			proofs, err := ibctesting.GenerateMultiHopProof(paths, channelPath, expectedVal)
 			suite.Require().NoError(err)
 
-			// ignored for now
-			proofHeight := proofs.Proofs[len(proofs.Proofs)-1].ConsensusState.Height
+			proofHeight := endpointZ.GetClientState().GetLatestHeight() // ignored for multihop
 			proof, err := proofs.Marshal()
 			suite.Require().NoError(err)
 			connectionHopsForZ := connectionHopsAZ

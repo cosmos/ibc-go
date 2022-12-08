@@ -131,13 +131,7 @@ func (k Keeper) ChanOpenTry(
 		return "", nil, sdkerrors.Wrapf(porttypes.ErrInvalidPort, "caller does not own port capability for port ID %s", portID)
 	}
 
-	// TODO: unpack connection state to get connectionEnd corresponding to source
-
 	// TODO: atm this is only checking the very last connection
-	/*    p1   p2   p3   p4
-	    A    B    C    D    E
-		0    0 1  0 1 0 1  0
-	*/
 	connectionEnd, found := k.connectionKeeper.GetConnection(ctx, connectionHops[len(connectionHops)-1])
 	if !found {
 		return "", nil, sdkerrors.Wrap(connectiontypes.ErrConnectionNotFound, connectionHops[len(connectionHops)-1])
@@ -180,7 +174,7 @@ func (k Keeper) ChanOpenTry(
 	)
 
 	if len(connectionHops) > 1 {
-		var proofs types.MsgConsStateProofs
+		var proofs types.MsgMultihopProofs
 		if err := k.cdc.Unmarshal(proofInit, &proofs); err != nil {
 			return "", nil, err
 		}
@@ -202,6 +196,7 @@ func (k Keeper) ChanOpenTry(
 			return "", nil, sdkerrors.Wrapf(sdkerrors.ErrJSONMarshal, "failed to marshal channelEnd")
 		}
 
+		fmt.Printf("val: %x\n", val)
 		if err := mh.VerifyMultiHopProofMembership(consensusState, clientState, k.cdc, &proofs, val); err != nil {
 			return "", nil, err
 		}
