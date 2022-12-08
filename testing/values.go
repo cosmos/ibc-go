@@ -5,6 +5,8 @@ used in the testing package and commonly defined in tests.
 package ibctesting
 
 import (
+	"fmt"
+	"strconv"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -21,8 +23,6 @@ const (
 	FirstClientID     = "07-tendermint-0"
 	FirstChannelID    = "channel-0"
 	FirstConnectionID = "connection-0"
-
-	SecondClientID = "07-tendermint-1"
 
 	// Default params constants used to create a TM client
 	TrustingPeriod     time.Duration = time.Hour * 24 * 7 * 2
@@ -66,3 +66,11 @@ var (
 
 	prefix = commitmenttypes.NewMerklePrefix([]byte("ibc"))
 )
+
+func TendermintClientID(id int) string {
+	return fmt.Sprint("07-tendermint-" + strconv.Itoa(id))
+}
+
+func SolomachineClientID(id int) string {
+	return fmt.Sprint("06-solomachine-" + strconv.Itoa(id))
+}
