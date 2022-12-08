@@ -4,7 +4,7 @@ order: 2
 
 # Implementing the `ClientState` interface
 
-Learn how to implement the [`Client State`](https://github.com/cosmos/ibc-go/blob/v6.0.0-rc1/modules/core/exported/client.go#L40) interface.
+Learn how to implement the [`ClientState`](https://github.com/cosmos/ibc-go/blob/v6.0.0-rc1/modules/core/exported/client.go#L40) interface.
 
 ## `ClientType` method
 
@@ -25,10 +25,10 @@ as a reference.
 
 `Status` must return the status of the client.
 
-* An `Active` status indicates that clients are allowed to process packets.
-* A `Frozen` status indicates that a client is not allowed to be used.
-* An `Expired` status indicates that a client is not allowed to be used.
-* An `Unknown` status indicates that there was an error in determining the status of a client.
+- An `Active` status indicates that clients are allowed to process packets.
+- A `Frozen` status indicates that a client is not allowed to be used.
+- An `Expired` status indicates that a client is not allowed to be used.
+- An `Unknown` status indicates that there was an error in determining the status of a client.
 
 All possible Status types can be found [here](https://github.com/cosmos/ibc-go/blob/v6.0.0-rc1/modules/core/exported/client.go#L26-L36).
 
