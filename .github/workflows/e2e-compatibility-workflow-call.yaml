@@ -52,4 +52,3 @@ jobs:
           CHAIN_A_TAG: "${{ matrix.chain-a }}"
           CHAIN_B_TAG: "${{ matrix.chain-b }}"
           CHAIN_BINARY: "${{ matrix.chain-binary }}"
-          RLY_TAG: "v2.1.2"

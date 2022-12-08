@@ -1,17 +1,41 @@
-package tendermint_test
+package migrations_test
 
 import (
+	"testing"
 	"time"
+
+	"github.com/stretchr/testify/suite"
 
 	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
 	ibctm "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint"
+	ibctmmigrations "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint/migrations"
 	ibctesting "github.com/cosmos/ibc-go/v6/testing"
 )
 
+type MigrationsTestSuite struct {
+	suite.Suite
+
+	coordinator *ibctesting.Coordinator
+
+	// testing chains used for convenience and readability
+	chainA *ibctesting.TestChain
+	chainB *ibctesting.TestChain
+}
+
+func (suite *MigrationsTestSuite) SetupTest() {
+	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2)
+	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
+	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
+}
+
+func TestTendermintTestSuite(t *testing.T) {
+	suite.Run(t, new(MigrationsTestSuite))
+}
+
 // test pruning of multiple expired tendermint consensus states
-func (suite *TendermintTestSuite) TestPruneTendermintConsensusStates() {
+func (suite *MigrationsTestSuite) TestPruneExpiredConsensusStates() {
 	// create multiple tendermint clients and a solo machine client
 	// the solo machine is used to verify this pruning function only modifies
 	// the tendermint store.
@@ -99,8 +123,9 @@ func (suite *TendermintTestSuite) TestPruneTendermintConsensusStates() {
 	// This will cause the consensus states created before the first time increment
 	// to be expired
 	suite.coordinator.IncrementTimeBy(7 * 24 * time.Hour)
-	err = ibctm.PruneTendermintConsensusStates(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), suite.chainA.GetSimApp().GetKey(host.StoreKey))
+	totalPruned, err := ibctmmigrations.PruneExpiredConsensusStates(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), suite.chainA.GetSimApp().IBCKeeper.ClientKeeper)
 	suite.Require().NoError(err)
+	suite.Require().NotZero(totalPruned)
 
 	for _, path := range paths {
 		ctx := suite.chainA.GetContext()
