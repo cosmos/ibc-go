@@ -4,11 +4,13 @@ module github.com/cosmos/ibc-go/v6
 
 require (
 	cosmossdk.io/math v1.0.0-beta.4
+	cosmossdk.io/simapp v0.0.0-20221208102534-4997976e49ce
+	cosmossdk.io/tools/rosetta v0.2.0
 	github.com/armon/go-metrics v0.4.1
 	github.com/cosmos/cosmos-proto v1.0.0-beta.1
-	// cosmos-sdk main @20448048a489 ≃ 0.47
 	github.com/cosmos/cosmos-sdk v0.47.0-alpha2.0.20221208102534-4997976e49ce
 	github.com/cosmos/gogoproto v1.4.3
+	github.com/cosmos/ics23/go v0.9.1-0.20221207100636-b1abd8678aab
 	github.com/golang/protobuf v1.5.2
 	github.com/gorilla/mux v1.8.0
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
@@ -23,12 +25,6 @@ require (
 	google.golang.org/grpc v1.51.0
 	google.golang.org/protobuf v1.28.1
 	gopkg.in/yaml.v2 v2.4.0
-)
-
-require (
-	cosmossdk.io/simapp v0.0.0-20221206151937-14c9dc6b7fdc
-	cosmossdk.io/tools/rosetta v0.2.0
-	github.com/cosmos/ics23/go v0.9.1-0.20221207100636-b1abd8678aab
 )
 
 require (
