@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -119,10 +120,6 @@ func (k Keeper) ChanOpenTry(
 	proofInit []byte,
 	proofHeight exported.Height,
 ) (string, *capabilitytypes.Capability, error) {
-	// connection hops only supports a single connection
-	// if len(connectionHops) != 1 {
-	// 	return "", nil, sdkerrors.Wrapf(types.ErrTooManyConnectionHops, "expected 1, got %d", len(connectionHops))
-	// }
 
 	// generate a new channel
 	channelID := k.GenerateChannelIdentifier(ctx)
@@ -131,13 +128,13 @@ func (k Keeper) ChanOpenTry(
 		return "", nil, sdkerrors.Wrapf(porttypes.ErrInvalidPort, "caller does not own port capability for port ID %s", portID)
 	}
 
-	// TODO: atm this is only checking the very last connection
+	// Directly verify the last connectionHop. In a multihop hop scenario only the final
+	// connection hop can be verified directly. The remaining connections are verified below.
 	connectionEnd, found := k.connectionKeeper.GetConnection(ctx, connectionHops[len(connectionHops)-1])
 	if !found {
 		return "", nil, sdkerrors.Wrap(connectiontypes.ErrConnectionNotFound, connectionHops[len(connectionHops)-1])
 	}
 
-	// TODO: verify all connections are exist and are OPEN
 	if connectionEnd.GetState() != int32(connectiontypes.OPEN) {
 		return "", nil, sdkerrors.Wrapf(
 			connectiontypes.ErrInvalidConnectionState,
@@ -145,6 +142,7 @@ func (k Keeper) ChanOpenTry(
 		)
 	}
 
+	// TODO: does this need to be checked for intermediate connections in a multihop scenario?
 	getVersions := connectionEnd.GetVersions()
 	if len(getVersions) != 1 {
 		return "", nil, sdkerrors.Wrapf(
@@ -162,10 +160,39 @@ func (k Keeper) ChanOpenTry(
 		)
 	}
 
+	// handle multihop case
 	if len(connectionHops) > 1 {
 		var proofs types.MsgMultihopProofs
 		if err := k.cdc.Unmarshal(proofInit, &proofs); err != nil {
 			return "", nil, err
+		}
+
+		// check all connections are in OPEN state and that the connection IDs match and are in the right order
+		for i, connData := range proofs.ConnectionProofs {
+			var connectionEnd connectiontypes.ConnectionEnd
+			if err := k.cdc.Unmarshal(connData.Value, &connectionEnd); err != nil {
+				return "", nil, err
+			}
+
+			// Verify the first N-1 connecitonHops (last hop already verified above)
+			// 1. check the connectionHop values match the proofs and are in the same order.
+			parts := strings.Split(connData.PrefixedKey.GetKeyPath()[len(connData.PrefixedKey.KeyPath)-1], "/")
+			if parts[len(parts)-1] != connectionHops[i] {
+				return "", nil, sdkerrors.Wrapf(
+					connectiontypes.ErrConnectionPath,
+					"connectionHops (%s) does not match connection proof hop (%s)",
+					connectionHops[i], parts[len(parts)-1])
+			}
+
+			// 2. check that the connectionEnd's are in the OPEN state.
+			if connectionEnd.GetState() != int32(connectiontypes.OPEN) {
+				return "", nil, sdkerrors.Wrapf(
+					connectiontypes.ErrInvalidConnectionState,
+					"connection state is not OPEN for connectionID=%s (got %s)",
+					connectionEnd.Counterparty.ConnectionId,
+					connectiontypes.State(connectionEnd.GetState()).String(),
+				)
+			}
 		}
 
 		clientID := connectionEnd.ClientId
@@ -178,6 +205,8 @@ func (k Keeper) ChanOpenTry(
 			return "", nil, sdkerrors.Wrapf(clienttypes.ErrConsensusStateNotFound, "consensus state %s not found for client id: %s", clientID)
 		}
 
+		// verify each consensus state and connection state starting going from Z --> A
+		// finally verify the keyproof on A within B's verified view of A's consensus state.
 		if err := mh.VerifyMultiHopProofMembership(consensusState, clientState, k.cdc, &proofs); err != nil {
 			return "", nil, err
 		}
