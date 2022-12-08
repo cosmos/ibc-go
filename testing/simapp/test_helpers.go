@@ -21,6 +21,7 @@ import (
 	dbm "github.com/tendermint/tm-db"
 
 	"github.com/cosmos/ibc-go/v6/testing/mock"
+	ibcmock "github.com/cosmos/ibc-go/v6/testing/mock"
 )
 
 // DefaultConsensusParams defines the default Tendermint consensus params used in
@@ -40,6 +41,22 @@ var DefaultConsensusParams = &tmproto.ConsensusParams{
 			tmtypes.ABCIPubKeyTypeEd25519,
 		},
 	},
+}
+
+// ModuleAccountAddrs returns all the app's module account addresses.
+func (app *SimApp) ModuleAccountAddrs() map[string]bool {
+	modAccAddrs := make(map[string]bool)
+	for acc := range maccPerms {
+		// do not add the following modules to blocked addresses
+		// this is only used for testing
+		if acc == ibcmock.ModuleName {
+			continue
+		}
+
+		modAccAddrs[authtypes.NewModuleAddress(acc).String()] = true
+	}
+
+	return modAccAddrs
 }
 
 func setup(withGenesis bool, invCheckPeriod uint) (*SimApp, GenesisState) {
