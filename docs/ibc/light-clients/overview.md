@@ -60,7 +60,7 @@ This may be any concrete type which produces a change in state to the IBC client
 
 The following are considered as valid update scenarios:
 
-- A block header which when verified inserts a new `ConsensusState` at a particular height for a given client. 
+- A block header which when verified inserts a new `ConsensusState` at a unique height. 
 - A batch of block headers which when verified inserts `N` `ConsensusState` instances for `N` unique heights.
 - Evidence of misbehaviour provided by two conflicting block headers.
 
