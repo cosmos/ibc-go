@@ -7,7 +7,7 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 
 	ibcclient "github.com/cosmos/ibc-go/v6/modules/core/02-client"
-	"github.com/cosmos/ibc-go/v6/modules/core/02-client/migrations/v7"
+	v7 "github.com/cosmos/ibc-go/v6/modules/core/02-client/migrations/v7"
 	"github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
 	ibctesting "github.com/cosmos/ibc-go/v6/testing"
