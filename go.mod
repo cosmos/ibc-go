@@ -4,7 +4,10 @@ module github.com/cosmos/ibc-go/v6
 
 require (
 	cosmossdk.io/api v0.2.5
+	cosmossdk.io/core v0.3.2
+	cosmossdk.io/depinject v1.0.0-alpha.3
 	cosmossdk.io/math v1.0.0-beta.4
+	cosmossdk.io/tools/rosetta v0.2.0
 	github.com/armon/go-metrics v0.4.1
 	github.com/confio/ics23/go v0.9.0
 	github.com/cosmos/cosmos-proto v1.0.0-beta.1
@@ -24,12 +27,6 @@ require (
 	google.golang.org/grpc v1.51.0
 	google.golang.org/protobuf v1.28.2-0.20220831092852-f930b1dc76e8
 	gopkg.in/yaml.v2 v2.4.0
-)
-
-require (
-	cosmossdk.io/core v0.3.2
-	cosmossdk.io/depinject v1.0.0-alpha.3
-	cosmossdk.io/tools/rosetta v0.2.0
 )
 
 require (
