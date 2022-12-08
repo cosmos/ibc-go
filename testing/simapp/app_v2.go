@@ -3,7 +3,7 @@
 package simapp
 
 import (
-	_ "embed"
+	_ "embed" // embed for swagger docs
 	"fmt"
 	"io"
 	"os"
@@ -93,7 +93,6 @@ import (
 // IBC application testing ports
 const (
 	MockFeePort string = ibcmock.ModuleName + ibcfeetypes.ModuleName
-
 )
 
 var (
@@ -206,9 +205,9 @@ func NewSimApp(
 		// handlers.  These defaults are already set in the SDK's BaseApp, this shows an example of how to override
 		// them.
 		//
-		//nonceMempool = mempool.NewNonceMempool()
-		//mempoolOpt   = baseapp.SetMempool(nonceMempool)
-		//prepareOpt   = func(app *baseapp.BaseApp) {
+		// nonceMempool = mempool.NewNonceMempool()
+		// mempoolOpt   = baseapp.SetMempool(nonceMempool)
+		// prepareOpt   = func(app *baseapp.BaseApp) {
 		//	app.SetPrepareProposal(app.DefaultPrepareProposal())
 		//}
 		//processOpt = func(app *baseapp.BaseApp) {
@@ -313,7 +312,8 @@ func NewSimApp(
 
 	// RegisterUpgradeHandlers is used for registering any on-chain upgrades.
 	// Make sure it's called after `app.ModuleManager` and `app.configurator` are set.
-	app.RegisterUpgradeHandlers()
+	// NOTE: on a real chain you may need to add upgrade handlers.
+	//	app.RegisterUpgradeHandlers()
 
 	// add test gRPC service for testing gRPC queries in isolation
 	testdata_pulsar.RegisterQueryServer(app.GRPCQueryRouter(), testdata_pulsar.QueryImpl{})

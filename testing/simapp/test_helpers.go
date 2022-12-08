@@ -20,7 +20,6 @@ import (
 	tmtypes "github.com/tendermint/tendermint/types"
 	dbm "github.com/tendermint/tm-db"
 
-	"github.com/cosmos/ibc-go/v6/testing/mock"
 	ibcmock "github.com/cosmos/ibc-go/v6/testing/mock"
 )
 
@@ -75,7 +74,7 @@ func setup(withGenesis bool, invCheckPeriod uint) (*SimApp, GenesisState) {
 
 // Setup initializes a new SimApp. A Nop logger is set in SimApp.
 func Setup(isCheckTx bool) *SimApp {
-	privVal := mock.NewPV()
+	privVal := ibcmock.NewPV()
 	pubKey, _ := privVal.GetPubKey()
 
 	// create validator set with single validator

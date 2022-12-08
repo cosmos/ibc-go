@@ -28,7 +28,6 @@ import (
 	controllertypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/controller/types"
 	genesistypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/genesis/types"
 	"github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/host"
-	"github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/host/keeper"
 
 	hostkeeper "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/host/keeper"
 	hosttypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/host/types"
@@ -267,13 +266,13 @@ type InterchainAccountsInput struct {
 type InterchainAccountsOutput struct {
 	depinject.Out
 
-	InterchainAccountsKeeper keeper.Keeper
+	InterchainAccountsKeeper hostkeeper.Keeper
 	Module                   appmodule.AppModule
 }
 
 // ProvideModule is used to provide interchain accounts module as dependency
 func ProvideModule(in InterchainAccountsInput) InterchainAccountsOutput {
-	k := keeper.NewKeeper(in.Cdc, in.Key, in.paramSpace, in.ics4Wrapper, in.channelKeeper, in.portKeeper, in.authKeeper, in.scopedKeeper, in.msgRouter)
+	k := hostkeeper.NewKeeper(in.Cdc, in.Key, in.paramSpace, in.ics4Wrapper, in.channelKeeper, in.portKeeper, in.authKeeper, in.scopedKeeper, in.msgRouter)
 	m := NewAppModule(&in.controllerKeeper, &k)
 	return InterchainAccountsOutput{InterchainAccountsKeeper: k, Module: m}
 }

@@ -91,7 +91,7 @@ var (
 						evidencetypes.ModuleName,
 						stakingtypes.ModuleName,
 						// ibchost.ModuleName,
-						//ibctransfertypes.ModuleName,
+
 						authtypes.ModuleName,
 						banktypes.ModuleName,
 						govtypes.ModuleName,
@@ -102,9 +102,8 @@ var (
 						group.ModuleName,
 						paramstypes.ModuleName,
 						vestingtypes.ModuleName,
-						//icatypes.ModuleName,
-						//ibcfeetypes.ModuleName,
-						//ibcmock.ModuleName,
+
+						// ibcmock.ModuleName,
 						consensustypes.ModuleName,
 					},
 					EndBlockers: []string{
