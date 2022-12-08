@@ -36,7 +36,7 @@ const (
 	// defaultBinary is the default binary that will be used by the chains.
 	defaultBinary = "simd"
 	// defaultRlyTag is the tag that will be used if no relayer tag is specified.
-    // all images are here https://github.com/cosmos/relayer/pkgs/container/relayer/versions
+	// all images are here https://github.com/cosmos/relayer/pkgs/container/relayer/versions
 	defaultRlyTag = "v2.1.2"
 	// defaultChainTag is the tag that will be used for the chains if none is specified.
 	defaultChainTag = "main"
@@ -166,6 +166,7 @@ func newDefaultSimappConfig(cc ChainConfig, name, chainID, denom string) ibc.Cha
 		},
 		Bin:            cc.Binary,
 		Bech32Prefix:   "cosmos",
+		CoinType:       "118",
 		Denom:          denom,
 		GasPrices:      fmt.Sprintf("0.00%s", denom),
 		GasAdjustment:  1.3,
