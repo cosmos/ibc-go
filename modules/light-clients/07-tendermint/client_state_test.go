@@ -14,6 +14,7 @@ import (
 	ibctm "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v6/testing"
 	ibcmock "github.com/cosmos/ibc-go/v6/testing/mock"
+	ics23 "github.com/cosmos/ics23/go"
 )
 
 const (
