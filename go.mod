@@ -5,7 +5,6 @@ module github.com/cosmos/ibc-go/v6
 require (
 	cosmossdk.io/api v0.2.5
 	cosmossdk.io/math v1.0.0-beta.4
-	cosmossdk.io/simapp v0.0.0-20221205222303-e7afcca23271
 	github.com/armon/go-metrics v0.4.1
 	github.com/confio/ics23/go v0.9.0
 	github.com/cosmos/cosmos-proto v1.0.0-beta.1
@@ -19,7 +18,7 @@ require (
 	github.com/rakyll/statik v0.1.7
 	github.com/spf13/cast v1.5.0
 	github.com/spf13/cobra v1.6.1
-	github.com/spf13/viper v1.14.0
+	github.com/spf13/viper v1.14.0 // indirect
 	github.com/stretchr/testify v1.8.1
 	github.com/tendermint/tendermint v0.37.0-rc2
 	github.com/tendermint/tm-db v0.6.7
@@ -32,6 +31,7 @@ require (
 require (
 	cosmossdk.io/core v0.3.2
 	cosmossdk.io/depinject v1.0.0-alpha.3
+	cosmossdk.io/tools/rosetta v0.2.0
 )
 
 require (
@@ -41,7 +41,6 @@ require (
 	cloud.google.com/go/iam v0.7.0 // indirect
 	cloud.google.com/go/storage v1.27.0 // indirect
 	cosmossdk.io/errors v1.0.0-beta.7 // indirect
-	cosmossdk.io/tools/rosetta v0.2.0 // indirect
 	filippo.io/edwards25519 v1.0.0-rc.1 // indirect
 	github.com/99designs/go-keychain v0.0.0-20191008050251-8e49817e8af4 // indirect
 	github.com/99designs/keyring v1.2.1 // indirect

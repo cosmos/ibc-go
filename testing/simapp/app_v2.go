@@ -210,12 +210,12 @@ func NewSimApp(
 		// prepareOpt   = func(app *baseapp.BaseApp) {
 		//	app.SetPrepareProposal(app.DefaultPrepareProposal())
 		//}
-		//processOpt = func(app *baseapp.BaseApp) {
+		// processOpt = func(app *baseapp.BaseApp) {
 		//	app.SetProcessProposal(app.DefaultProcessProposal())
 		//}
 		//
 		// Further down we'd set the options in the AppBuilder like below.
-		//baseAppOptions = append(baseAppOptions, mempoolOpt, prepareOpt, processOpt)
+		// baseAppOptions = append(baseAppOptions, mempoolOpt, prepareOpt, processOpt)
 
 		// merge the AppConfig and other configuration in one config
 		appConfig = depinject.Configs(
