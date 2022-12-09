@@ -541,3 +541,45 @@ func ChanOpenTry(paths LinkedPaths, connectionHops []string) {
 	// NOTE: this update must be performed after the endpoint channelID is set
 	endpointZ.ChannelConfig.Version = endpointZ.GetChannel().Version
 }
+
+// ChanOpenAck is a copy of endpoint.ChanOpenAck which generates a multihop proof.
+func ChanOpenAck(paths LinkedPaths) {
+	endpointA := paths[0].EndpointA
+	endpointZ := paths[len(paths)-1].EndpointB
+
+	err := endpointA.UpdateClient()
+	require.NoError(endpointA.Chain.T, err)
+
+	channelPath := host.ChannelPath(endpointZ.ChannelConfig.PortID, endpointZ.ChannelID)
+	// query the channel
+	req := &channeltypes.QueryChannelRequest{
+		PortId:    endpointZ.ChannelConfig.PortID,
+		ChannelId: endpointZ.ChannelID,
+	}
+
+	// receive the channel response and marshal to expected value bytes
+	resp, err := endpointZ.Chain.App.GetIBCKeeper().Channel(endpointZ.Chain.GetContext(), req)
+	require.NoError(endpointZ.Chain.T, err)
+	expectedVal, err := resp.Channel.Marshal()
+	require.NoError(endpointZ.Chain.T, err)
+
+	// generate multihop proof given keypath and value
+	proofs, err := GenerateMultiHopProof(paths.Reverse(), channelPath, expectedVal)
+	require.NoError(endpointZ.Chain.T, err)
+	// verify call to ChanOpenTry completes successfully
+	height := endpointA.GetClientState().GetLatestHeight()
+	proof, err := proofs.Marshal()
+	require.NoError(endpointZ.Chain.T, err)
+
+	msg := channeltypes.NewMsgChannelOpenAck(
+		endpointA.ChannelConfig.PortID, endpointA.ChannelID,
+		endpointZ.ChannelID, endpointZ.ChannelConfig.Version, // testing doesn't use flexible selection
+		proof, height.(types.Height),
+		endpointA.Chain.SenderAccount.GetAddress().String(),
+	)
+
+	err = endpointA.Chain.sendMsgs(msg)
+	require.NoError(endpointA.Chain.T, err)
+
+	endpointA.ChannelConfig.Version = endpointA.GetChannel().Version
+}

@@ -664,6 +664,81 @@ func (suite *KeeperTestSuite) TestChanOpenAck() {
 	}
 }
 
+// TestChanOpenConfirmMultihop tests the OpenAck handshake call for channels. It uses message passing
+// to enter into the appropriate state and then calls ChanOpenConfirm directly. The handshake
+// call is occurring on chainB.
+func (suite *KeeperTestSuite) TestChanOpenConfirmMultihop() {
+	var (
+		paths            ibctesting.LinkedPaths
+		channelCap       *capabilitytypes.Capability
+		heightDiff       uint64
+		numChains        int
+		connectionHopsAZ []string
+		connectionHopsZA []string
+		endpointA        *ibctesting.Endpoint
+		endpointZ        *ibctesting.Endpoint
+	)
+	testCases := []testCase{
+		{"success", func() {
+			ibctesting.ChanOpenInit(endpointA, connectionHopsAZ)
+			paths.UpdateClients()
+			ibctesting.ChanOpenTry(paths, connectionHopsZA)
+			paths.Reverse().UpdateClients()
+			ibctesting.ChanOpenAck(paths)
+			channelCap = endpointZ.Chain.GetChannelCapability(endpointZ.ChannelConfig.PortID, endpointZ.ChannelID)
+		}, true},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
+			heightDiff = 0 // must be explicitly changed
+			numChains = 5
+			_, paths = ibctesting.CreateLinkedChains(&suite.Suite, numChains)
+			connectionHopsAZ = paths.GetConnectionHops()
+			connectionHopsZA = paths.Reverse().GetConnectionHops()
+			endpointA = paths[0].EndpointA
+			endpointZ = paths[len(paths)-1].EndpointB
+
+			tc.malleate()
+
+			paths.UpdateClients()
+
+			channelPath := host.ChannelPath(endpointA.ChannelConfig.PortID, ibctesting.FirstChannelID)
+			// query the channel
+			req := &types.QueryChannelRequest{
+				PortId:    endpointA.ChannelConfig.PortID,
+				ChannelId: endpointA.ChannelID,
+			}
+
+			// receive the channel response and marshal to expected value bytes
+			resp, err := endpointA.Chain.App.GetIBCKeeper().Channel(endpointA.Chain.GetContext(), req)
+			suite.NoError(err)
+			expectedVal, err := resp.Channel.Marshal()
+			suite.NoError(err)
+
+			// generate multihop proof given keypath and value
+			proofs, err := ibctesting.GenerateMultiHopProof(paths, channelPath, expectedVal)
+			suite.Require().NoError(err)
+			// verify call to ChanOpenTry completes successfully
+			proofHeight := endpointZ.GetClientState().GetLatestHeight()
+			proof, err := proofs.Marshal()
+			suite.Require().NoError(err)
+
+			err = endpointZ.Chain.App.GetIBCKeeper().ChannelKeeper.ChanOpenConfirm(
+				endpointZ.Chain.GetContext(), endpointZ.ChannelConfig.PortID, ibctesting.FirstChannelID,
+				channelCap, proof, malleateHeight(proofHeight, heightDiff),
+			)
+
+			if tc.expPass {
+				suite.Require().NoError(err)
+			} else {
+				suite.Require().Error(err)
+			}
+		})
+	}
+}
+
 // TestChanOpenConfirm tests the OpenAck handshake call for channels. It uses message passing
 // to enter into the appropriate state and then calls ChanOpenConfirm directly. The handshake
 // call is occurring on chainB.
