@@ -46,7 +46,6 @@ jobs:
         chain-image: ghcr.io/cosmos/ibc-go-simd
         chain-a-tag: "${{ needs.determine-image-tag.outputs.simd-tag }}"
         chain-b-tag: "${{ needs.determine-image-tag.outputs.simd-tag }}"
-        relayer-tag: "v2.1.2"
         chain-binary: "simd"
         # on regular PRs we won't run interchain account or upgrade tests.
         test-exclusions: "TestInterTxTestSuite,TestIncentivizedInterTxTestSuite,TestUpgradeTestSuite"
