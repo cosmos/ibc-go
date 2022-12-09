@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -162,50 +161,21 @@ func (k Keeper) ChanOpenTry(
 
 	// handle multihop case
 	if len(connectionHops) > 1 {
-		var proofs types.MsgMultihopProofs
-		if err := k.cdc.Unmarshal(proofInit, &proofs); err != nil {
+		value, err := mh.GetExpectedCounterpartyChannelBytes(
+			portID, "", types.INIT, order,
+			counterpartyVersion, k.cdc, &connectionEnd, proofInit)
+		if err != nil {
 			return "", nil, err
 		}
 
-		// check all connections are in OPEN state and that the connection IDs match and are in the right order
-		for i, connData := range proofs.ConnectionProofs {
-			var connectionEnd connectiontypes.ConnectionEnd
-			if err := k.cdc.Unmarshal(connData.Value, &connectionEnd); err != nil {
-				return "", nil, err
-			}
-
-			// Verify the first N-1 connectionHops (last hop already verified above)
-			// 1. check the connectionHop values match the proofs and are in the same order.
-			parts := strings.Split(connData.PrefixedKey.GetKeyPath()[len(connData.PrefixedKey.KeyPath)-1], "/")
-
-			if parts[len(parts)-1] != connectionHops[i+1] {
-				return "", nil, sdkerrors.Wrapf(
-					connectiontypes.ErrConnectionPath,
-					"connectionHops (%s) does not match connection proof hop (%s)",
-					connectionHops[i], parts[len(parts)-1])
-			}
-
-			// 2. check that the connectionEnd's are in the OPEN state.
-			if connectionEnd.GetState() != int32(connectiontypes.OPEN) {
-				return "", nil, sdkerrors.Wrapf(
-					connectiontypes.ErrInvalidConnectionState,
-					"connection state is not OPEN for connectionID=%s (got %s)",
-					connectionEnd.Counterparty.ConnectionId,
-					connectiontypes.State(connectionEnd.GetState()).String(),
-				)
-			}
-		}
-
-		// get the consensus state at the proofHeight
+		// verify multihop proof
 		consensusState, found := k.clientKeeper.GetClientConsensusState(ctx, connectionEnd.ClientId, proofHeight)
 		if !found {
 			return "", nil, sdkerrors.Wrapf(clienttypes.ErrConsensusStateNotFound,
 				"consensus state not found for client id: %s", connectionEnd.ClientId)
 		}
 
-		// verify each consensus state and connection state starting going from Z --> A
-		// finally verify the keyproof on A within B's verified view of A's consensus state.
-		if err := mh.VerifyMultiHopProofMembership(consensusState, k.cdc, &proofs); err != nil {
+		if err := mh.VerifyMultihopProof(k.cdc, consensusState, connectionHops, proofInit, value); err != nil {
 			return "", nil, err
 		}
 	} else {
@@ -306,54 +276,21 @@ func (k Keeper) ChanOpenAck(
 	}
 
 	if len(channel.ConnectionHops) > 1 {
-		var proofs types.MsgMultihopProofs
-		if err := k.cdc.Unmarshal(proofTry, &proofs); err != nil {
+		value, err := mh.GetExpectedCounterpartyChannelBytes(
+			portID, channelID, types.TRYOPEN, channel.Ordering,
+			counterpartyVersion, k.cdc, &connectionEnd, proofTry)
+		if err != nil {
 			return err
 		}
 
-		// check all connections are in OPEN state and that the connection IDs match and are in the right order
-		for i, connData := range proofs.ConnectionProofs {
-			var connectionEnd connectiontypes.ConnectionEnd
-			if err := k.cdc.Unmarshal(connData.Value, &connectionEnd); err != nil {
-				return err
-			}
-
-			// Verify the first N-1 connectionHops (last hop already verified above)
-			// 1. check the connectionHop values match the proofs and are in the same order.
-			parts := strings.Split(connData.PrefixedKey.GetKeyPath()[len(connData.PrefixedKey.KeyPath)-1], "/")
-
-			// fmt.Printf("parts[len(parts)-1]: %s\n", parts[len(parts)-1])
-			// fmt.Printf("channel.ConnectionHops[%d]: %s\n", i+1, channel.ConnectionHops[i+1])
-			// fmt.Printf("connectionEnd.Counterparty.ConnectionId: %s\n", connectionEnd.Counterparty.ConnectionId)
-
-			if parts[len(parts)-1] != channel.ConnectionHops[i+1] {
-				return sdkerrors.Wrapf(
-					connectiontypes.ErrConnectionPath,
-					"connectionHops (%s) does not match connection proof hop (%s) for hop %d",
-					channel.ConnectionHops[i+1], parts[len(parts)-1], i)
-			}
-
-			// 2. check that the connectionEnd's are in the OPEN state.
-			if connectionEnd.GetState() != int32(connectiontypes.OPEN) {
-				return sdkerrors.Wrapf(
-					connectiontypes.ErrInvalidConnectionState,
-					"connection state is not OPEN for connectionID=%s (got %s)",
-					connectionEnd.Counterparty.ConnectionId,
-					connectiontypes.State(connectionEnd.GetState()).String(),
-				)
-			}
-		}
-
-		// get the consensus state at the proofHeight
+		// verify multihop proof
 		consensusState, found := k.clientKeeper.GetClientConsensusState(ctx, connectionEnd.ClientId, proofHeight)
 		if !found {
 			return sdkerrors.Wrapf(clienttypes.ErrConsensusStateNotFound,
 				"consensus state not found for client id: %s", connectionEnd.ClientId)
 		}
 
-		// verify each consensus state and connection state starting going from Z --> A
-		// finally verify the keyproof on A within B's verified view of A's consensus state.
-		if err := mh.VerifyMultiHopProofMembership(consensusState, k.cdc, &proofs); err != nil {
+		if err := mh.VerifyMultihopProof(k.cdc, consensusState, channel.ConnectionHops, proofTry, value); err != nil {
 			return err
 		}
 	} else {
@@ -444,53 +381,21 @@ func (k Keeper) ChanOpenConfirm(
 	}
 
 	if len(channel.ConnectionHops) > 1 {
-		var proofs types.MsgMultihopProofs
-		if err := k.cdc.Unmarshal(proofAck, &proofs); err != nil {
+		value, err := mh.GetExpectedCounterpartyChannelBytes(
+			portID, channelID, types.OPEN, channel.Ordering,
+			channel.Version, k.cdc, &connectionEnd, proofAck)
+		if err != nil {
 			return err
 		}
 
-		// check all connections are in OPEN state and that the connection IDs match and are in the right order
-		for i, connData := range proofs.ConnectionProofs {
-			var connectionEnd connectiontypes.ConnectionEnd
-			if err := k.cdc.Unmarshal(connData.Value, &connectionEnd); err != nil {
-				return err
-			}
-
-			// Verify the first N-1 connectionHops (last hop already verified above)
-			// 1. check the connectionHop values match the proofs and are in the same order.
-			parts := strings.Split(connData.PrefixedKey.GetKeyPath()[len(connData.PrefixedKey.KeyPath)-1], "/")
-
-			// fmt.Printf("parts[len(parts)-1]: %s\n", parts[len(parts)-1])
-			// fmt.Printf("channel.ConnectionHops[%d]: %s\n", i+1, channel.ConnectionHops[i+1])
-			// fmt.Printf("connectionEnd.Counterparty.ConnectionId: %s\n", connectionEnd.Counterparty.ConnectionId)
-			if parts[len(parts)-1] != channel.ConnectionHops[i+1] {
-				return sdkerrors.Wrapf(
-					connectiontypes.ErrConnectionPath,
-					"connectionHops (%s) does not match connection proof hop (%s) for hop %d",
-					channel.ConnectionHops[i+1], parts[len(parts)-1], i)
-			}
-
-			// 2. check that the connectionEnd's are in the OPEN state.
-			if connectionEnd.GetState() != int32(connectiontypes.OPEN) {
-				return sdkerrors.Wrapf(
-					connectiontypes.ErrInvalidConnectionState,
-					"connection state is not OPEN for connectionID=%s (got %s)",
-					connectionEnd.Counterparty.ConnectionId,
-					connectiontypes.State(connectionEnd.GetState()).String(),
-				)
-			}
-		}
-
-		// get the consensus state at the proofHeight
+		// verify multihop proof
 		consensusState, found := k.clientKeeper.GetClientConsensusState(ctx, connectionEnd.ClientId, proofHeight)
 		if !found {
 			return sdkerrors.Wrapf(clienttypes.ErrConsensusStateNotFound,
 				"consensus state not found for client id: %s", connectionEnd.ClientId)
 		}
 
-		// verify each consensus state and connection state starting going from Z --> A
-		// finally verify the keyproof on A within B's verified view of A's consensus state.
-		if err := mh.VerifyMultiHopProofMembership(consensusState, k.cdc, &proofs); err != nil {
+		if err := mh.VerifyMultihopProof(k.cdc, consensusState, channel.ConnectionHops, proofAck, value); err != nil {
 			return err
 		}
 	} else {
@@ -636,55 +541,25 @@ func (k Keeper) ChanCloseConfirm(
 	}
 
 	if len(channel.ConnectionHops) > 1 {
-		var proofs types.MsgMultihopProofs
-		if err := k.cdc.Unmarshal(proofInit, &proofs); err != nil {
+
+		value, err := mh.GetExpectedCounterpartyChannelBytes(
+			portID, channelID, types.CLOSED, channel.Ordering,
+			channel.Version, k.cdc, &connectionEnd, proofInit)
+		if err != nil {
 			return err
 		}
 
-		// check all connections are in OPEN state and that the connection IDs match and are in the right order
-		for i, connData := range proofs.ConnectionProofs {
-			var connectionEnd connectiontypes.ConnectionEnd
-			if err := k.cdc.Unmarshal(connData.Value, &connectionEnd); err != nil {
-				return err
-			}
-
-			// Verify the first N-1 connectionHops (last hop already verified above)
-			// 1. check the connectionHop values match the proofs and are in the same order.
-			parts := strings.Split(connData.PrefixedKey.GetKeyPath()[len(connData.PrefixedKey.KeyPath)-1], "/")
-
-			// fmt.Printf("parts[len(parts)-1]: %s\n", parts[len(parts)-1])
-			// fmt.Printf("channel.ConnectionHops[%d]: %s\n", i+1, channel.ConnectionHops[i+1])
-			// fmt.Printf("connectionEnd.Counterparty.ConnectionId: %s\n", connectionEnd.Counterparty.ConnectionId)
-			if parts[len(parts)-1] != channel.ConnectionHops[i+1] {
-				return sdkerrors.Wrapf(
-					connectiontypes.ErrConnectionPath,
-					"connectionHops (%s) does not match connection proof hop (%s) for hop %d",
-					channel.ConnectionHops[i+1], parts[len(parts)-1], i)
-			}
-
-			// 2. check that the connectionEnd's are in the OPEN state.
-			if connectionEnd.GetState() != int32(connectiontypes.OPEN) {
-				return sdkerrors.Wrapf(
-					connectiontypes.ErrInvalidConnectionState,
-					"connection state is not OPEN for connectionID=%s (got %s)",
-					connectionEnd.Counterparty.ConnectionId,
-					connectiontypes.State(connectionEnd.GetState()).String(),
-				)
-			}
-		}
-
-		// get the consensus state at the proofHeight
+		// verify multihop proof
 		consensusState, found := k.clientKeeper.GetClientConsensusState(ctx, connectionEnd.ClientId, proofHeight)
 		if !found {
 			return sdkerrors.Wrapf(clienttypes.ErrConsensusStateNotFound,
 				"consensus state not found for client id: %s", connectionEnd.ClientId)
 		}
 
-		// verify each consensus state and connection state starting going from Z --> A
-		// finally verify the keyproof on A within B's verified view of A's consensus state.
-		if err := mh.VerifyMultiHopProofMembership(consensusState, k.cdc, &proofs); err != nil {
+		if err := mh.VerifyMultihopProof(k.cdc, consensusState, channel.ConnectionHops, proofInit, value); err != nil {
 			return err
 		}
+
 	} else {
 		counterpartyHops := []string{connectionEnd.GetCounterparty().GetConnectionID()}
 

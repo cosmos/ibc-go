@@ -65,6 +65,7 @@ func VerifyMultiHopProofMembership(
 	consensusState exported.ConsensusState,
 	cdc codec.BinaryCodec,
 	proofs *channeltypes.MsgMultihopProofs,
+	value []byte,
 ) error {
 	if len(proofs.ConsensusProofs) < 1 {
 		return fmt.Errorf(
@@ -93,12 +94,51 @@ func VerifyMultiHopProofMembership(
 		commitmenttypes.GetSDKSpecs(),
 		secondConsState.GetRoot(),
 		*proofs.KeyProof.PrefixedKey,
-		proofs.KeyProof.Value,
+		value,
 	)
 }
 
-// VerifyMultihopProof verifies a multihop proof.
-func VerifyMultihopProof(cdc codec.BinaryCodec, consensusState exported.ConsensusState, connectionHops []string, proof []byte) error {
+// GetExpectedCounterpartyChannelBytes returns a counterparty multihop channel as bytes for multihop proofs
+// TODO: refactor this to avoid needing to unmarshal the multihop proof message twice (here and again in VerifyMultihopProof)
+func GetExpectedCounterpartyChannelBytes(
+	portID string,
+	channelID string,
+	state channeltypes.State,
+	ordering channeltypes.Order,
+	version string,
+	cdc codec.BinaryCodec,
+	lastConnection *connectiontypes.ConnectionEnd,
+	proof []byte,
+) ([]byte, error) {
+	var proofs channeltypes.MsgMultihopProofs
+	if err := cdc.Unmarshal(proof, &proofs); err != nil {
+		return nil, err
+	}
+	var counterpartyHops []string
+
+	for _, connData := range proofs.ConnectionProofs {
+		var connectionEnd connectiontypes.ConnectionEnd
+		if err := cdc.Unmarshal(connData.Value, &connectionEnd); err != nil {
+			return nil, err
+		}
+		counterpartyHops = append(counterpartyHops, connectionEnd.GetCounterparty().GetConnectionID())
+	}
+	counterpartyHops = append(counterpartyHops, lastConnection.GetCounterparty().GetConnectionID())
+
+	counterparty := channeltypes.NewCounterparty(portID, channelID)
+	expectedChannel := channeltypes.NewChannel(
+		state, ordering, counterparty,
+		counterpartyHops, version,
+	)
+	value, err := expectedChannel.Marshal()
+	if err != nil {
+		return nil, err
+	}
+	return value, err
+}
+
+// VerifyMultihopProof verifies a multihop proof
+func VerifyMultihopProof(cdc codec.BinaryCodec, consensusState exported.ConsensusState, connectionHops []string, proof []byte, value []byte) error {
 	var proofs channeltypes.MsgMultihopProofs
 	if err := cdc.Unmarshal(proof, &proofs); err != nil {
 		return err
@@ -136,7 +176,8 @@ func VerifyMultihopProof(cdc codec.BinaryCodec, consensusState exported.Consensu
 		}
 	}
 
+	fmt.Printf("proof value check: %x\n", value)
 	// verify each consensus state and connection state starting going from Z --> A
 	// finally verify the keyproof on A within B's verified view of A's consensus state.
-	return VerifyMultiHopProofMembership(consensusState, cdc, &proofs)
+	return VerifyMultiHopProofMembership(consensusState, cdc, &proofs, value)
 }
