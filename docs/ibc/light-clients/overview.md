@@ -44,7 +44,7 @@ For example, see the `07-tendermint` light client module's [`ClientState` defint
 
 ConsensusState is a term used to define the data structure which encapsulates consensus data at a particular point in time, i.e. a unique height or sequence number of a state machine. There must exist a single trusted `ConsensusState` for each height. `ConsensusState` generally contains a trusted root, validator set information and timestamp. 
 
-For example, the `ConsensusState` of the `07-tendermint` light client module defines a trusted root is used by the `ClientState` to perform verification of membership and non-membership commitment proofs, as well as the next validator set hash used for verifying headers can be trusted in client updates. 
+For example, the `ConsensusState` of the `07-tendermint` light client module defines a trusted root which is used by the `ClientState` to perform verification of membership and non-membership commitment proofs, as well as the next validator set hash used for verifying headers can be trusted in client updates. 
 
 The `ConsensusState` type maintained within the light client module *must* implement the [`ConsensusState`](https://github.com/cosmos/ibc-go/blob/main/modules/core/exported/client.go#L134) interface defined in `core/modules/exported/client.go`.
 The methods which make up this interface are detailed at a more granular level in the [ConsensusState section of this guide](./consensus-state.md).
