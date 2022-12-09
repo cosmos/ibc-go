@@ -130,9 +130,9 @@ func (k Keeper) ChanOpenTry(
 
 	// Directly verify the last connectionHop. In a multihop hop scenario only the final
 	// connection hop can be verified directly. The remaining connections are verified below.
-	connectionEnd, found := k.connectionKeeper.GetConnection(ctx, connectionHops[len(connectionHops)-1])
+	connectionEnd, found := k.connectionKeeper.GetConnection(ctx, connectionHops[0])
 	if !found {
-		return "", nil, sdkerrors.Wrap(connectiontypes.ErrConnectionNotFound, connectionHops[len(connectionHops)-1])
+		return "", nil, sdkerrors.Wrap(connectiontypes.ErrConnectionNotFound, connectionHops[0])
 	}
 
 	if connectionEnd.GetState() != int32(connectiontypes.OPEN) {
@@ -178,7 +178,7 @@ func (k Keeper) ChanOpenTry(
 			// 1. check the connectionHop values match the proofs and are in the same order.
 			parts := strings.Split(connData.PrefixedKey.GetKeyPath()[len(connData.PrefixedKey.KeyPath)-1], "/")
 
-			if parts[len(parts)-1] != connectionHops[i] {
+			if parts[len(parts)-1] != connectionHops[i+1] {
 				return "", nil, sdkerrors.Wrapf(
 					connectiontypes.ErrConnectionPath,
 					"connectionHops (%s) does not match connection proof hop (%s)",
@@ -326,7 +326,6 @@ func (k Keeper) ChanOpenAck(
 			// fmt.Printf("channel.ConnectionHops[%d]: %s\n", i+1, channel.ConnectionHops[i+1])
 			// fmt.Printf("connectionEnd.Counterparty.ConnectionId: %s\n", connectionEnd.Counterparty.ConnectionId)
 
-			// TODO: check this logic, should it be offset by one or reverse iterated
 			if parts[len(parts)-1] != channel.ConnectionHops[i+1] {
 				return sdkerrors.Wrapf(
 					connectiontypes.ErrConnectionPath,
@@ -464,7 +463,7 @@ func (k Keeper) ChanOpenConfirm(
 			// fmt.Printf("parts[len(parts)-1]: %s\n", parts[len(parts)-1])
 			// fmt.Printf("channel.ConnectionHops[%d]: %s\n", i+1, channel.ConnectionHops[i+1])
 			// fmt.Printf("connectionEnd.Counterparty.ConnectionId: %s\n", connectionEnd.Counterparty.ConnectionId)
-			if parts[len(parts)-1] != channel.ConnectionHops[i] {
+			if parts[len(parts)-1] != channel.ConnectionHops[i+1] {
 				return sdkerrors.Wrapf(
 					connectiontypes.ErrConnectionPath,
 					"connectionHops (%s) does not match connection proof hop (%s) for hop %d",
@@ -656,7 +655,7 @@ func (k Keeper) ChanCloseConfirm(
 			// fmt.Printf("parts[len(parts)-1]: %s\n", parts[len(parts)-1])
 			// fmt.Printf("channel.ConnectionHops[%d]: %s\n", i+1, channel.ConnectionHops[i+1])
 			// fmt.Printf("connectionEnd.Counterparty.ConnectionId: %s\n", connectionEnd.Counterparty.ConnectionId)
-			if parts[len(parts)-1] != channel.ConnectionHops[i] {
+			if parts[len(parts)-1] != channel.ConnectionHops[i+1] {
 				return sdkerrors.Wrapf(
 					connectiontypes.ErrConnectionPath,
 					"connectionHops (%s) does not match connection proof hop (%s) for hop %d",

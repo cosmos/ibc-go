@@ -24,11 +24,11 @@ func (t *proofTestSuite) TestMultiHopProof() {
 
 	// From chain A to Z, generate and verifyMembership multi-hop proof for A's connectionEnd of on Z
 	verifyMembership := func(paths ibctesting.LinkedPaths) error {
-		connPath := host.ConnectionPath(paths.A().ConnectionID)
+		connKey := host.ConnectionKey(paths.A().ConnectionID)
 		connEnd := paths.A().GetConnection()
 		proofValue := paths.A().Chain.Codec.MustMarshal(&connEnd)
 
-		proofs, err := ibctesting.GenerateMultiHopProof(paths, connPath, proofValue)
+		proofs, err := ibctesting.GenerateMultiHopProof(paths, connKey, proofValue)
 		t.Require().NoError(err, "failed to generate multi-hop proof for connection")
 
 		return ibctesting.VerifyMultiHopProofMembership(
@@ -37,8 +37,8 @@ func (t *proofTestSuite) TestMultiHopProof() {
 		)
 	}
 	verifyNonMembership := func(paths ibctesting.LinkedPaths) error {
-		connPath := host.ConnectionPath("non-existent-connection-id")
-		proofs, err := ibctesting.GenerateMultiHopProof(paths, connPath, nil)
+		connKey := host.ConnectionKey("non-existent-connection-id")
+		proofs, err := ibctesting.GenerateMultiHopProof(paths, connKey, nil)
 		t.Require().NoError(err, "failed to generate non-membership multi-hop proof")
 		return ibctesting.VerifyMultiHopProofNonMembership(
 			paths.Z(),
@@ -74,7 +74,7 @@ func (t *proofTestSuite) TestMultiHopProofNegative() {
 		t.Run(tc.name, func() {
 			_, paths := ibctesting.CreateLinkedChains(&t.Suite, 5)
 			tc.malleate(paths)
-			kvPath := host.ConnectionPath(paths.A().ConnectionID)
+			kvPath := host.ConnectionKey(paths.A().ConnectionID)
 			connEnd := paths.A().GetConnection()
 			value, err := connEnd.Marshal()
 			t.NoError(err)

@@ -19,7 +19,7 @@ import (
 //
 // The first proof can be either a membership proof or a non-membership proof depending on if the key exists on the
 // source chain.
-func GenerateMultiHopProof(paths LinkedPaths, keyPathToProve string, expectedVal []byte) (*channeltypes.MsgMultihopProofs, error) {
+func GenerateMultiHopProof(paths LinkedPaths, keyPathToProve []byte, expectedVal []byte) (*channeltypes.MsgMultihopProofs, error) {
 	if len(keyPathToProve) == 0 {
 		panic("path cannot be empty")
 	}
@@ -46,7 +46,7 @@ func GenerateMultiHopProof(paths LinkedPaths, keyPathToProve string, expectedVal
 
 		prefixedKey, err := commitmenttypes.ApplyPrefix(
 			endpointA.Chain.GetPrefix(),
-			commitmenttypes.NewMerklePath(keyPathToProve),
+			commitmenttypes.NewMerklePath(string(keyPathToProve)),
 		)
 
 		// membership proof
@@ -513,8 +513,8 @@ func ChanOpenTry(paths LinkedPaths) {
 	expectedVal, err := resp.Channel.Marshal()
 	require.NoError(endpointA.Chain.T, err)
 
-	channelPath := host.ChannelPath(endpointA.ChannelConfig.PortID, endpointA.ChannelID)
-	proofs, err := GenerateMultiHopProof(paths, channelPath, expectedVal)
+	channelKey := host.ChannelKey(endpointA.ChannelConfig.PortID, endpointA.ChannelID)
+	proofs, err := GenerateMultiHopProof(paths, channelKey, expectedVal)
 	require.NoError(endpointA.Chain.T, err)
 
 	// verify call to ChanOpenTry completes successfully
@@ -555,7 +555,7 @@ func ChanOpenAck(paths LinkedPaths) {
 	err := endpointA.UpdateClient()
 	require.NoError(endpointA.Chain.T, err)
 
-	channelPath := host.ChannelPath(endpointZ.ChannelConfig.PortID, endpointZ.ChannelID)
+	channelKey := host.ChannelKey(endpointZ.ChannelConfig.PortID, endpointZ.ChannelID)
 	// query the channel
 	req := &channeltypes.QueryChannelRequest{
 		PortId:    endpointZ.ChannelConfig.PortID,
@@ -569,7 +569,7 @@ func ChanOpenAck(paths LinkedPaths) {
 	require.NoError(endpointZ.Chain.T, err)
 
 	// generate multihop proof given keypath and value
-	proofs, err := GenerateMultiHopProof(paths.Reverse(), channelPath, expectedVal)
+	proofs, err := GenerateMultiHopProof(paths.Reverse(), channelKey, expectedVal)
 	require.NoError(endpointZ.Chain.T, err)
 	// verify call to ChanOpenTry completes successfully
 	height := endpointA.GetClientState().GetLatestHeight()
@@ -601,7 +601,7 @@ func ChanOpenConfirm(paths LinkedPaths) {
 	err := endpointZ.UpdateClient()
 	require.NoError(endpointA.Chain.T, err)
 
-	channelPath := host.ChannelPath(endpointA.ChannelConfig.PortID, FirstChannelID)
+	channelKey := host.ChannelKey(endpointA.ChannelConfig.PortID, FirstChannelID)
 	// query the channel
 	req := &channeltypes.QueryChannelRequest{
 		PortId:    endpointA.ChannelConfig.PortID,
@@ -615,7 +615,7 @@ func ChanOpenConfirm(paths LinkedPaths) {
 	require.NoError(endpointA.Chain.T, err)
 
 	// generate multihop proof given keypath and value
-	proofs, err := GenerateMultiHopProof(paths, channelPath, expectedVal)
+	proofs, err := GenerateMultiHopProof(paths, channelKey, expectedVal)
 	require.NoError(endpointA.Chain.T, err)
 	// verify call to ChanOpenTry completes successfully
 	height := endpointZ.GetClientState().GetLatestHeight()
@@ -632,4 +632,11 @@ func ChanOpenConfirm(paths LinkedPaths) {
 
 	// update clients
 	paths.Reverse().UpdateClients()
+}
+
+func SetupChannel(paths LinkedPaths) {
+	ChanOpenInit(paths)
+	ChanOpenTry(paths)
+	ChanOpenAck(paths)
+	ChanOpenConfirm(paths)
 }

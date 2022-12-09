@@ -518,6 +518,85 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 	}
 }
 
+// TestRecvPacketMultihop test RecvPacket on chainB. Since packet commitment verification will always
+// occur last (resource instensive), only tests expected to succeed and packet commitment
+// verification tests need to simulate sending a packet from chainA to chainB.
+func (suite *KeeperTestSuite) TestRecvPacketMultihop() {
+	var (
+		paths      ibctesting.LinkedPaths
+		packet     exported.PacketI
+		channelCap *capabilitytypes.Capability
+		numChains  int
+		endpointA  *ibctesting.Endpoint
+		endpointZ  *ibctesting.Endpoint
+		expError   *sdkerrors.Error
+	)
+
+	testCases := []testCase{
+		{"success: ORDERED channel", func() {
+			ibctesting.SetupChannel(paths)
+
+			sequence, err := endpointA.SendPacket(defaultTimeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
+			suite.Require().NoError(err)
+			paths.UpdateClients()
+			packet = types.NewPacket(ibctesting.MockPacketData, sequence, endpointA.ChannelConfig.PortID, endpointA.ChannelID, endpointZ.ChannelConfig.PortID, endpointZ.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
+			channelCap = endpointZ.Chain.GetChannelCapability(endpointZ.ChannelConfig.PortID, endpointZ.ChannelID)
+		}, true},
+	}
+
+	for i, tc := range testCases {
+		tc := tc
+		suite.Run(fmt.Sprintf("Case %s, %d/%d tests", tc.msg, i, len(testCases)), func() {
+			numChains = 5
+			_, paths = ibctesting.CreateLinkedChains(&suite.Suite, numChains)
+			endpointA = paths[0].EndpointA
+			endpointZ = paths[len(paths)-1].EndpointB
+
+			expError = nil // must explicitly set for failed cases
+
+			tc.malleate()
+
+			// get proof of packet commitment from chainA
+			packetKey := host.PacketCommitmentKey(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
+			expectedVal := types.CommitPacket(endpointA.Chain.Codec, packet)
+
+			// generate multihop proof given keypath and value
+			proofs, err := ibctesting.GenerateMultiHopProof(paths, packetKey, expectedVal)
+			suite.Require().NoError(err)
+			proofHeight := endpointZ.GetClientState().GetLatestHeight()
+			proof, err := proofs.Marshal()
+			suite.Require().NoError(err)
+
+			err = endpointZ.Chain.App.GetIBCKeeper().ChannelKeeper.RecvPacket(endpointZ.Chain.GetContext(), channelCap, packet, proof, proofHeight)
+
+			if tc.expPass {
+				suite.Require().NoError(err)
+
+				channelB, _ := endpointZ.Chain.App.GetIBCKeeper().ChannelKeeper.GetChannel(endpointZ.Chain.GetContext(), packet.GetDestPort(), packet.GetDestChannel())
+				nextSeqRecv, found := endpointZ.Chain.App.GetIBCKeeper().ChannelKeeper.GetNextSequenceRecv(endpointZ.Chain.GetContext(), packet.GetDestPort(), packet.GetDestChannel())
+				suite.Require().True(found)
+				receipt, receiptStored := endpointZ.Chain.App.GetIBCKeeper().ChannelKeeper.GetPacketReceipt(endpointZ.Chain.GetContext(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
+
+				if channelB.Ordering == types.ORDERED {
+					suite.Require().Equal(packet.GetSequence()+1, nextSeqRecv, "sequence not incremented in ordered channel")
+					suite.Require().False(receiptStored, "packet receipt stored on ORDERED channel")
+				} else {
+					suite.Require().Equal(uint64(1), nextSeqRecv, "sequence incremented for UNORDERED channel")
+					suite.Require().True(receiptStored, "packet receipt not stored after RecvPacket in UNORDERED channel")
+					suite.Require().Equal(string([]byte{byte(1)}), receipt, "packet receipt is not empty string")
+				}
+			} else {
+				suite.Require().Error(err)
+
+				// only check if expError is set, since not all error codes can be known
+				if expError != nil {
+					suite.Require().True(errors.Is(err, expError))
+				}
+			}
+		})
+	}
+}
+
 func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 	var (
 		path       *ibctesting.Path
