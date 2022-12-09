@@ -440,10 +440,10 @@ func (suite *KeeperTestSuite) TestUpdateClientEventEmission() {
 	// use a boolean to ensure the update event contains the header
 	contains := false
 	for _, attr := range updateEvent.Attributes {
-		if string(attr.Key) == clienttypes.AttributeKeyHeader {
+		if attr.Key == clienttypes.AttributeKeyHeader {
 			contains = true
 
-			bz, err := hex.DecodeString(string(attr.Value))
+			bz, err := hex.DecodeString(attr.Value)
 			suite.Require().NoError(err)
 
 			emittedHeader, err := types.UnmarshalClientMessage(suite.chainA.App.AppCodec(), bz)

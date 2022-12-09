@@ -9,6 +9,8 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 )
 
+const InvalidAddress = "invalid-address"
+
 // NewPacketFee creates and returns a new PacketFee struct including the incentivization fees, refund address and relayers
 func NewPacketFee(fee Fee, refundAddr string, relayers []string) PacketFee {
 	return PacketFee{

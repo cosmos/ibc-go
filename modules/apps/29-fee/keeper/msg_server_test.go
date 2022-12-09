@@ -225,7 +225,7 @@ func (suite *KeeperTestSuite) TestPayPacketFee() {
 		{
 			"invalid refund address",
 			func() {
-				msg.Signer = "invalid-address"
+				msg.Signer = types.InvalidAddress
 			},
 			false,
 		},
@@ -413,7 +413,7 @@ func (suite *KeeperTestSuite) TestPayPacketFeeAsync() {
 		{
 			"invalid refund address",
 			func() {
-				msg.PacketFee.RefundAddress = "invalid-address"
+				msg.PacketFee.RefundAddress = types.InvalidAddress
 			},
 			false,
 		},

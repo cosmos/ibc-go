@@ -57,7 +57,7 @@ func TestPacketFeeValidation(t *testing.T) {
 		{
 			"should fail when refund address is invalid",
 			func() {
-				packetFee.RefundAddress = "invalid-address"
+				packetFee.RefundAddress = types.InvalidAddress
 			},
 			false,
 		},

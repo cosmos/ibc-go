@@ -10,6 +10,11 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v6/testing"
 )
 
+const (
+	uatom               = "uatom"
+	transferChannelAtoB = "transfer/channelToA/transfer/channelToB"
+)
+
 func (suite *KeeperTestSuite) TestQueryDenomTrace() {
 	var (
 		req      *types.QueryDenomTraceRequest
@@ -24,8 +29,8 @@ func (suite *KeeperTestSuite) TestQueryDenomTrace() {
 		{
 			"success: correct ibc denom",
 			func() {
-				expTrace.Path = "transfer/channelToA/transfer/channelToB"
-				expTrace.BaseDenom = "uatom"
+				expTrace.Path = transferChannelAtoB
+				expTrace.BaseDenom = uatom
 				suite.chainA.GetSimApp().TransferKeeper.SetDenomTrace(suite.chainA.GetContext(), expTrace)
 
 				req = &types.QueryDenomTraceRequest{
@@ -37,8 +42,8 @@ func (suite *KeeperTestSuite) TestQueryDenomTrace() {
 		{
 			"success: correct hex hash",
 			func() {
-				expTrace.Path = "transfer/channelToA/transfer/channelToB"
-				expTrace.BaseDenom = "uatom"
+				expTrace.Path = transferChannelAtoB
+				expTrace.BaseDenom = uatom
 				suite.chainA.GetSimApp().TransferKeeper.SetDenomTrace(suite.chainA.GetContext(), expTrace)
 
 				req = &types.QueryDenomTraceRequest{
@@ -59,8 +64,8 @@ func (suite *KeeperTestSuite) TestQueryDenomTrace() {
 		{
 			"failure: not found denom trace",
 			func() {
-				expTrace.Path = "transfer/channelToA/transfer/channelToB"
-				expTrace.BaseDenom = "uatom"
+				expTrace.Path = transferChannelAtoB
+				expTrace.BaseDenom = uatom
 				req = &types.QueryDenomTraceRequest{
 					Hash: expTrace.IBCDenom(),
 				}

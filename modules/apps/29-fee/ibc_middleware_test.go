@@ -754,7 +754,7 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 		{
 			"invalid registered payee address",
 			func() {
-				payeeAddr := "invalid-address"
+				payeeAddr := types.InvalidAddress
 				suite.chainA.GetSimApp().IBCFeeKeeper.SetPayeeAddress(
 					suite.chainA.GetContext(),
 					suite.chainA.SenderAccount.GetAddress().String(),
@@ -940,7 +940,7 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 		{
 			"invalid registered payee address",
 			func() {
-				payeeAddr := "invalid-address"
+				payeeAddr := types.InvalidAddress
 				suite.chainA.GetSimApp().IBCFeeKeeper.SetPayeeAddress(
 					suite.chainA.GetContext(),
 					suite.chainA.SenderAccount.GetAddress().String(),
