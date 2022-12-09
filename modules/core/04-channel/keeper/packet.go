@@ -489,11 +489,25 @@ func (k Keeper) AcknowledgePacket(
 		return sdkerrors.Wrapf(types.ErrInvalidPacket, "commitment bytes are not equal: got (%v), expected (%v)", packetCommitment, commitment)
 	}
 
-	if err := k.connectionKeeper.VerifyPacketAcknowledgement(
-		ctx, connectionEnd, proofHeight, proof, packet.GetDestPort(), packet.GetDestChannel(),
-		packet.GetSequence(), acknowledgement,
-	); err != nil {
-		return err
+	if len(channel.ConnectionHops) > 1 {
+		// verify multihop proof
+		// get the consensus state at the proofHeight
+		consensusState, found := k.clientKeeper.GetClientConsensusState(ctx, connectionEnd.ClientId, proofHeight)
+		if !found {
+			return sdkerrors.Wrapf(clienttypes.ErrConsensusStateNotFound,
+				"consensus state not found for client id: %s", connectionEnd.ClientId)
+		}
+
+		if err := mh.VerifyMultihopProof(k.cdc, consensusState, channel.ConnectionHops, proof); err != nil {
+			return err
+		}
+	} else {
+		if err := k.connectionKeeper.VerifyPacketAcknowledgement(
+			ctx, connectionEnd, proofHeight, proof, packet.GetDestPort(), packet.GetDestChannel(),
+			packet.GetSequence(), acknowledgement,
+		); err != nil {
+			return err
+		}
 	}
 
 	// assert packets acknowledged in order

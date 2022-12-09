@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	ics23 "github.com/confio/ics23/go"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v6/modules/core/23-commitment/types"
@@ -634,9 +635,42 @@ func ChanOpenConfirm(paths LinkedPaths) {
 	paths.Reverse().UpdateClients()
 }
 
+// SetupChannel completes a multihop channel handshake
 func SetupChannel(paths LinkedPaths) {
 	ChanOpenInit(paths)
 	ChanOpenTry(paths)
 	ChanOpenAck(paths)
 	ChanOpenConfirm(paths)
+}
+
+// ReceivePacket receives a packet on chain Z with multihop proof
+func RecvPacket(paths LinkedPaths, packet channeltypes.Packet) (*sdk.Result, error) {
+
+	endpointA := paths[0].EndpointA
+	endpointZ := paths[len(paths)-1].EndpointB
+
+	// get proof of packet commitment from chainA
+	packetKey := host.PacketCommitmentKey(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
+	expectedVal := channeltypes.CommitPacket(endpointA.Chain.Codec, packet)
+
+	// generate multihop proof given keypath and value
+	proofs, err := GenerateMultiHopProof(paths, packetKey, expectedVal)
+	require.NoError(endpointA.Chain.T, err)
+	proofHeight := endpointZ.GetClientState().GetLatestHeight()
+	proof, err := proofs.Marshal()
+	require.NoError(endpointA.Chain.T, err)
+
+	recvMsg := channeltypes.NewMsgRecvPacket(packet, proof, proofHeight.(types.Height), endpointZ.Chain.SenderAccount.GetAddress().String())
+
+	// receive on counterparty and update source client
+	res, err := endpointZ.Chain.SendMsgs(recvMsg)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := endpointA.UpdateClient(); err != nil {
+		return nil, err
+	}
+
+	return res, nil
 }

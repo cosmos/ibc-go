@@ -2,8 +2,11 @@ package multihop
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/cosmos/cosmos-sdk/codec"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	connectiontypes "github.com/cosmos/ibc-go/v6/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v6/modules/core/23-commitment/types"
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
@@ -92,4 +95,48 @@ func VerifyMultiHopProofMembership(
 		*proofs.KeyProof.PrefixedKey,
 		proofs.KeyProof.Value,
 	)
+}
+
+// VerifyMultihopProof verifies a multihop proof.
+func VerifyMultihopProof(cdc codec.BinaryCodec, consensusState exported.ConsensusState, connectionHops []string, proof []byte) error {
+	var proofs channeltypes.MsgMultihopProofs
+	if err := cdc.Unmarshal(proof, &proofs); err != nil {
+		return err
+	}
+
+	// check all connections are in OPEN state and that the connection IDs match and are in the right order
+	for i, connData := range proofs.ConnectionProofs {
+		var connectionEnd connectiontypes.ConnectionEnd
+		if err := cdc.Unmarshal(connData.Value, &connectionEnd); err != nil {
+			return err
+		}
+
+		// Verify the first N-1 connectionHops (last hop already verified above)
+		// 1. check the connectionHop values match the proofs and are in the same order.
+		parts := strings.Split(connData.PrefixedKey.GetKeyPath()[len(connData.PrefixedKey.KeyPath)-1], "/")
+
+		// fmt.Printf("parts[len(parts)-1]: %s\n", parts[len(parts)-1])
+		// fmt.Printf("channel.ConnectionHops[%d]: %s\n", i+1, channel.ConnectionHops[i+1])
+		// fmt.Printf("connectionEnd.Counterparty.ConnectionId: %s\n", connectionEnd.Counterparty.ConnectionId)
+		if parts[len(parts)-1] != connectionHops[i+1] {
+			return sdkerrors.Wrapf(
+				connectiontypes.ErrConnectionPath,
+				"connectionHops (%s) does not match connection proof hop (%s) for hop %d",
+				connectionHops[i+1], parts[len(parts)-1], i)
+		}
+
+		// 2. check that the connectionEnd's are in the OPEN state.
+		if connectionEnd.GetState() != int32(connectiontypes.OPEN) {
+			return sdkerrors.Wrapf(
+				connectiontypes.ErrInvalidConnectionState,
+				"connection state is not OPEN for connectionID=%s (got %s)",
+				connectionEnd.Counterparty.ConnectionId,
+				connectiontypes.State(connectionEnd.GetState()).String(),
+			)
+		}
+	}
+
+	// verify each consensus state and connection state starting going from Z --> A
+	// finally verify the keyproof on A within B's verified view of A's consensus state.
+	return VerifyMultiHopProofMembership(consensusState, cdc, &proofs)
 }

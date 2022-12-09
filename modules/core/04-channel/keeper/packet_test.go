@@ -983,3 +983,82 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 		})
 	}
 }
+
+// TestAcknowledgePacketMultihop tests the call AcknowledgePacket on chainA.
+func (suite *KeeperTestSuite) TestAcknowledgePacketMultihop() {
+	var (
+		paths  ibctesting.LinkedPaths
+		packet types.Packet
+		ack    = ibcmock.MockAcknowledgement
+
+		channelCap *capabilitytypes.Capability
+		expError   *sdkerrors.Error
+
+		numChains int
+		endpointA *ibctesting.Endpoint
+		endpointZ *ibctesting.Endpoint
+	)
+
+	testCases := []testCase{
+		{"success on ordered channel", func() {
+			ibctesting.SetupChannel(paths)
+			// create packet commitment
+			sequence, err := endpointA.SendPacket(defaultTimeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
+			suite.Require().NoError(err)
+
+			paths.UpdateClients()
+			// create packet receipt and acknowledgement
+			packet = types.NewPacket(ibctesting.MockPacketData, sequence, endpointA.ChannelConfig.PortID, endpointA.ChannelID, endpointZ.ChannelConfig.PortID, endpointZ.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
+			_, err = ibctesting.RecvPacket(paths, packet)
+			suite.Require().NoError(err)
+			paths.Reverse().UpdateClients()
+			channelCap = endpointA.Chain.GetChannelCapability(endpointA.ChannelConfig.PortID, endpointA.ChannelID)
+		}, true},
+	}
+
+	for i, tc := range testCases {
+		tc := tc
+		suite.Run(fmt.Sprintf("Case %s, %d/%d tests", tc.msg, i, len(testCases)), func() {
+			numChains = 5
+			_, paths = ibctesting.CreateLinkedChains(&suite.Suite, numChains)
+			endpointA = paths[0].EndpointA
+			endpointZ = paths[len(paths)-1].EndpointB
+			expError = nil // must explcitly set error for failed cases
+
+			tc.malleate()
+
+			packetKey := host.PacketAcknowledgementKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
+			expectedVal := types.CommitAcknowledgement(ack.Acknowledgement()) //resp.Acknowledgement
+
+			proofs, err := ibctesting.GenerateMultiHopProof(paths.Reverse(), packetKey, expectedVal)
+			suite.Require().NoError(err)
+			proofHeight := endpointA.GetClientState().GetLatestHeight()
+			proof, err := proofs.Marshal()
+			suite.Require().NoError(err)
+
+			err = endpointA.Chain.App.GetIBCKeeper().ChannelKeeper.AcknowledgePacket(endpointA.Chain.GetContext(), channelCap, packet, ack.Acknowledgement(), proof, proofHeight)
+			suite.Require().NoError(err)
+			pc := endpointA.Chain.App.GetIBCKeeper().ChannelKeeper.GetPacketCommitment(endpointA.Chain.GetContext(), packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
+
+			channelA, _ := endpointA.Chain.App.GetIBCKeeper().ChannelKeeper.GetChannel(endpointA.Chain.GetContext(), packet.GetSourcePort(), packet.GetSourceChannel())
+			sequenceAck, _ := endpointA.Chain.App.GetIBCKeeper().ChannelKeeper.GetNextSequenceAck(endpointA.Chain.GetContext(), packet.GetSourcePort(), packet.GetSourceChannel())
+
+			if tc.expPass {
+				suite.NoError(err)
+				suite.Nil(pc)
+
+				if channelA.Ordering == types.ORDERED {
+					suite.Require().Equal(packet.GetSequence()+1, sequenceAck, "sequence not incremented in ordered channel")
+				} else {
+					suite.Require().Equal(uint64(1), sequenceAck, "sequence incremented for UNORDERED channel")
+				}
+			} else {
+				suite.Error(err)
+				// only check if expError is set, since not all error codes can be known
+				if expError != nil {
+					suite.Require().True(errors.Is(err, expError))
+				}
+			}
+		})
+	}
+}
