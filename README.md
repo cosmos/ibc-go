@@ -92,7 +92,13 @@ We have detailed documents for contributors wishing to [contribute code to ibc-g
 
 To report a security vulnerability, see our [bug bounty program](https://hackerone.com/cosmos).
 
-## Contents of this repo
+## Audits
+
+The following audits have been performed on the `ibc-go` source code:
+
+- [ICS27 Interchain Accounts](https://github.com/cosmos/ibc-go/tree/main/docs/apps/interchain-accounts/audits) by Trail of Bits
+
+## Quick Navigation
 
 1. **[Core IBC Implementation](https://github.com/cosmos/ibc-go/tree/main/modules/core)**
 
@@ -114,14 +120,21 @@ To report a security vulnerability, see our [bug bounty program](https://hackero
 
     2.2 [ICS 27 Interchain Accounts](https://github.com/cosmos/ibc-go/tree/main/modules/apps/27-interchain-accounts)
 
-3. **Light Clients**
+3. **Middleware**
 
-    3.1 [ICS 07 Tendermint](https://github.com/cosmos/ibc-go/tree/main/modules/light-clients/07-tendermint)
+    3.1 [ICS 29 Fee Middleware](https://github.com/cosmos/ibc-go/tree/main/modules/apps/29-fee)
 
-    3.2 [ICS 06 Solo Machine](https://github.com/cosmos/ibc-go/tree/main/modules/light-clients/06-solomachine)
+4. **Light Clients**
+
+    4.1 [ICS 07 Tendermint](https://github.com/cosmos/ibc-go/tree/main/modules/light-clients/07-tendermint)
+
+    4.2 [ICS 06 Solo Machine](https://github.com/cosmos/ibc-go/tree/main/modules/light-clients/06-solomachine)
+
+5. **[E2E Integration Tests](https://github.com/cosmos/ibc-go/tree/main/e2e)**
 
 ## Documentation and Resources
 
 - [IBC Website](https://ibcprotocol.dev/)
-- [IBC Specification](https://github.com/cosmos/ibc)
+- [IBC Protocol Specification](https://github.com/cosmos/ibc)
 - [Documentation](https://ibc.cosmos.network/main/ibc/overview.html)
+- [Interchain Developer Academy](https://tutorials.cosmos.network/academy/3-ibc/)
