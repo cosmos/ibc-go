@@ -4,11 +4,13 @@ import (
 	"fmt"
 
 	ics23 "github.com/confio/ics23/go"
+	"github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v6/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
 	ibctmtypes "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint/types"
+	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -176,6 +178,7 @@ func GenerateMultiHopConsensusProof(paths []*Path) ([]*channeltypes.MultihopProo
 		if err != nil {
 			return nil, nil, err
 		}
+		fmt.Printf("connectionID: %s\n", self.ConnectionID)
 		connectionProof, _ := GetConnectionProof(self, heightBC, self.ConnectionID)
 		var connectionMerkleProof commitmenttypes.MerkleProof
 		if err := self.Chain.Codec.Unmarshal(connectionProof, &connectionMerkleProof); err != nil {
@@ -454,10 +457,6 @@ func CreateLinkedChains(
 		paths[i] = NewPath(coord.GetChain(GetChainID(i+1)), coord.GetChain(GetChainID(i+2)))
 	}
 
-	// for _, chain := range coord.Chains {
-	// 	coord.CommitNBlocks(chain, 2)
-	// }
-
 	// create connections for each path
 	for _, path := range paths {
 		path := path
@@ -472,7 +471,7 @@ func CreateLinkedChains(
 }
 
 // ChanOpenInit is a copy of endpoint.ChanOpenInit which allows specifiying connectionHops
-func ChanOpenInit(endpoint *Endpoint, connectionHops []string) error {
+func ChanOpenInit(endpoint *Endpoint, connectionHops []string) {
 
 	msg := channeltypes.NewMsgChannelOpenInit(
 		endpoint.ChannelConfig.PortID,
@@ -481,18 +480,64 @@ func ChanOpenInit(endpoint *Endpoint, connectionHops []string) error {
 		endpoint.Chain.SenderAccount.GetAddress().String(),
 	)
 	res, err := endpoint.Chain.SendMsgs(msg)
-	if err != nil {
-		return err
-	}
+	require.NoError(endpoint.Chain.T, err)
 
 	endpoint.ChannelID, err = ParseChannelIDFromEvents(res.GetEvents())
-	if err != nil {
-		return err
-	}
+	require.NoError(endpoint.Chain.T, err)
+
+	fmt.Printf("endpoint.ChannelID: %s\n", endpoint.ChannelID)
 
 	// update version to selected app version
 	// NOTE: this update must be performed after SendMsgs()
 	endpoint.ChannelConfig.Version = endpoint.GetChannel().Version
+}
 
-	return nil
+// ChanOpenTry is a copy of endpoint.ChanOpenTry which allows specifying connectionHops
+// and generates a multihop proof.
+func ChanOpenTry(paths LinkedPaths, connectionHops []string) {
+	endpointA := paths[0].EndpointA
+	endpointZ := paths[len(paths)-1].EndpointB
+
+	err := endpointZ.UpdateClient()
+	require.NoError(endpointZ.Chain.T, err)
+
+	req := &channeltypes.QueryChannelRequest{
+		PortId:    endpointA.ChannelConfig.PortID,
+		ChannelId: endpointA.ChannelID,
+	}
+
+	// receive the channel response and marshal to expected value bytes
+	resp, err := endpointA.Chain.App.GetIBCKeeper().Channel(endpointA.Chain.GetContext(), req)
+	require.NoError(endpointA.Chain.T, err)
+	expectedVal, err := resp.Channel.Marshal()
+	require.NoError(endpointA.Chain.T, err)
+
+	channelPath := host.ChannelPath(endpointA.ChannelConfig.PortID, endpointA.ChannelID)
+	proofs, err := GenerateMultiHopProof(paths, channelPath, expectedVal)
+	require.NoError(endpointA.Chain.T, err)
+
+	// verify call to ChanOpenTry completes successfully
+	height := endpointZ.GetClientState().GetLatestHeight()
+	proof, err := proofs.Marshal()
+	require.NoError(endpointZ.Chain.T, err)
+
+	msg := channeltypes.NewMsgChannelOpenTry(
+		endpointZ.ChannelConfig.PortID,
+		endpointZ.ChannelConfig.Version, endpointZ.ChannelConfig.Order, connectionHops,
+		endpointA.ChannelConfig.PortID, endpointA.ChannelID,
+		endpointA.ChannelConfig.Version,
+		proof, height.(types.Height),
+		endpointZ.Chain.SenderAccount.GetAddress().String(),
+	)
+	res, err := endpointZ.Chain.SendMsgs(msg)
+	require.NoError(endpointZ.Chain.T, err)
+
+	if endpointZ.ChannelID == "" {
+		endpointZ.ChannelID, err = ParseChannelIDFromEvents(res.GetEvents())
+		require.NoError(endpointZ.Chain.T, err)
+	}
+
+	// update version to selected app version
+	// NOTE: this update must be performed after the endpoint channelID is set
+	endpointZ.ChannelConfig.Version = endpointZ.GetChannel().Version
 }
