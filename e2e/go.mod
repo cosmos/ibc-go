@@ -6,7 +6,7 @@ replace github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alp
 
 require (
 	github.com/cosmos/cosmos-sdk v0.46.6
-	github.com/cosmos/ibc-go/v6 v6.0.0-alpha1
+	github.com/cosmos/ibc-go/v6 v6.0.0
 	github.com/cosmos/interchain-accounts v0.4.0
 	github.com/docker/docker v20.10.19+incompatible
 	github.com/gogo/protobuf v1.3.3
@@ -148,6 +148,7 @@ require (
 	github.com/prometheus/procfs v0.8.0 // indirect
 	github.com/rakyll/statik v0.1.7 // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 // indirect
+	github.com/regen-network/cosmos-proto v0.3.1 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20200410134404-eec4a21b6bb0 // indirect
 	github.com/rs/cors v1.8.2 // indirect
 	github.com/sasha-s/go-deadlock v0.3.1 // indirect
