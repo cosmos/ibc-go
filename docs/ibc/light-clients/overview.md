@@ -28,7 +28,7 @@ Throughout this guide the `07-tendermint` light client module may be referred to
 
 ### ClientState 
 
-ClientState is a term used to define the data structure which encapsulates opaque light client state. This refers to chain specific and light client specific information that form the rules concerning trust gaurantees and proof verification. This may be any arbitrary data such as:
+ClientState is a term used to define the data structure which encapsulates opaque light client state. This refers to chain specific and light client specific information that form the rules concerning trust guarantees and proof verification. This may be any arbitrary data such as:
 
 - Constraints used for client updates.
 - Constraints used for misbehaviour detection.
