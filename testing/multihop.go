@@ -27,25 +27,25 @@ func GenerateMultiHopProof(paths LinkedPaths, keyPathToProve string, expectedVal
 	if len(paths) < 2 {
 		panic("paths must have at least two elements")
 	}
-	srcEnd := paths.A()
+	endpointA := paths.A()
 
 	var proofs channeltypes.MsgMultihopProofs
 	// generate proof for key path on the source chain
 	{
-		nextPath := paths[0].EndpointB
-		heightBC := nextPath.GetClientState().GetLatestHeight()
+		endpointB := endpointA.Counterparty
+		heightBC := endpointB.GetClientState().GetLatestHeight()
 		fmt.Printf("heightBC: %d\n", heightBC.GetRevisionHeight())
 		// srcEnd.counterparty's proven height on its next connected chain
-		provenHeight := srcEnd.Counterparty.GetClientState().GetLatestHeight()
+		provenHeight := endpointB.GetClientState().GetLatestHeight()
 		fmt.Printf("provenHeight: %d\n", provenHeight.GetRevisionHeight())
-		proof, _ := srcEnd.Chain.QueryProofAtHeight([]byte(keyPathToProve), int64(provenHeight.GetRevisionHeight()))
+		proof, _ := endpointA.Chain.QueryProofAtHeight([]byte(keyPathToProve), int64(provenHeight.GetRevisionHeight()))
 		var proofKV commitmenttypes.MerkleProof
-		if err := srcEnd.Chain.Codec.Unmarshal(proof, &proofKV); err != nil {
+		if err := endpointA.Chain.Codec.Unmarshal(proof, &proofKV); err != nil {
 			return nil, fmt.Errorf("failed to unmarshal proof: %w", err)
 		}
 
 		prefixedKey, err := commitmenttypes.ApplyPrefix(
-			srcEnd.Chain.GetPrefix(),
+			endpointA.Chain.GetPrefix(),
 			commitmenttypes.NewMerklePath(keyPathToProve),
 		)
 
@@ -53,32 +53,31 @@ func GenerateMultiHopProof(paths LinkedPaths, keyPathToProve string, expectedVal
 		if len(expectedVal) > 0 {
 
 			fmt.Printf("VERIFYING MEMBERSHIP\n")
-			fmt.Printf("nextPath.GetConsensusState(heightBC).GetRoot(): %x\n",
-				nextPath.GetConsensusState(heightBC).GetRoot().GetHash())
+			fmt.Printf("endpointB.GetConsensusState(heightBC).GetRoot(): %x\n",
+				endpointB.GetConsensusState(heightBC).GetRoot().GetHash())
 			fmt.Printf("key: %s\n", prefixedKey.String())
 			fmt.Printf("val: %x\n", expectedVal)
 
 			// check expected val
 			if err := proofKV.VerifyMembership(
-				GetProofSpec(srcEnd),
-				nextPath.GetConsensusState(heightBC).GetRoot(),
+				GetProofSpec(endpointA),
+				endpointB.GetConsensusState(heightBC).GetRoot(),
 				prefixedKey,
 				expectedVal,
 			); err != nil {
 				return nil, fmt.Errorf(
-					"failed to verify consensus state proof of [%s] on [%s] with [%s].ConsState on [%s]: %w\nconsider update [%s]'s client on [%s]",
-					srcEnd.Counterparty.Chain.ChainID,
-					srcEnd.Chain.ChainID,
-					srcEnd.Chain.ChainID,
-					nextPath.Chain.ChainID,
+					"failed to verify keyval proof of [%s] on [%s] with [%s].ConsState on [%s]: %w\nconsider update [%s]'s client on [%s]",
+					endpointB.Chain.ChainID,
+					endpointA.Chain.ChainID,
+					endpointA.Chain.ChainID,
+					endpointB.Chain.ChainID,
 					err,
-					srcEnd.Chain.ChainID,
-					nextPath.Chain.ChainID,
+					endpointA.Chain.ChainID,
+					endpointB.Chain.ChainID,
 				)
 			}
 		}
-		// TODO: make sure the the keypath value actually exists
-		// TODO: also add flag for membership proof or non-membership proof
+		// TODO: verify non-membership proof?
 
 		if err != nil {
 			return nil, fmt.Errorf("failed to apply prefix to key path: %w", err)
@@ -118,7 +117,7 @@ func GenerateMultiHopConsensusProof(paths []*Path) ([]*channeltypes.MultihopProo
 		// self is where the proof is queried and generated
 		self := path.EndpointB
 
-		heightAB := path.EndpointB.GetClientState().GetLatestHeight()
+		heightAB := self.GetClientState().GetLatestHeight()
 		heightBC := nextPath.EndpointB.GetClientState().GetLatestHeight()
 		consStateAB, found := self.Chain.GetConsensusState(self.ClientID, heightAB)
 		if !found {
@@ -178,7 +177,7 @@ func GenerateMultiHopConsensusProof(paths []*Path) ([]*channeltypes.MultihopProo
 		if err != nil {
 			return nil, nil, err
 		}
-		fmt.Printf("connectionID: %s\n", self.ConnectionID)
+
 		connectionProof, _ := GetConnectionProof(self, heightBC, self.ConnectionID)
 		var connectionMerkleProof commitmenttypes.MerkleProof
 		if err := self.Chain.Codec.Unmarshal(connectionProof, &connectionMerkleProof); err != nil {
@@ -471,11 +470,12 @@ func CreateLinkedChains(
 }
 
 // ChanOpenInit is a copy of endpoint.ChanOpenInit which allows specifiying connectionHops
-func ChanOpenInit(endpoint *Endpoint, connectionHops []string) {
+func ChanOpenInit(paths LinkedPaths) {
+	endpoint := paths[0].EndpointA
 
 	msg := channeltypes.NewMsgChannelOpenInit(
 		endpoint.ChannelConfig.PortID,
-		endpoint.ChannelConfig.Version, endpoint.ChannelConfig.Order, connectionHops,
+		endpoint.ChannelConfig.Version, endpoint.ChannelConfig.Order, paths.GetConnectionHops(),
 		endpoint.Counterparty.ChannelConfig.PortID,
 		endpoint.Chain.SenderAccount.GetAddress().String(),
 	)
@@ -485,16 +485,17 @@ func ChanOpenInit(endpoint *Endpoint, connectionHops []string) {
 	endpoint.ChannelID, err = ParseChannelIDFromEvents(res.GetEvents())
 	require.NoError(endpoint.Chain.T, err)
 
-	fmt.Printf("endpoint.ChannelID: %s\n", endpoint.ChannelID)
-
 	// update version to selected app version
 	// NOTE: this update must be performed after SendMsgs()
 	endpoint.ChannelConfig.Version = endpoint.GetChannel().Version
+
+	// update clients
+	paths.UpdateClients()
 }
 
-// ChanOpenTry is a copy of endpoint.ChanOpenTry which allows specifying connectionHops
-// and generates a multihop proof.
-func ChanOpenTry(paths LinkedPaths, connectionHops []string) {
+// ChanOpenTry generates a multihop proof to call ChanOpenTry on chain Z.
+// Confirms a channel open init on chain A.
+func ChanOpenTry(paths LinkedPaths) {
 	endpointA := paths[0].EndpointA
 	endpointZ := paths[len(paths)-1].EndpointB
 
@@ -523,7 +524,7 @@ func ChanOpenTry(paths LinkedPaths, connectionHops []string) {
 
 	msg := channeltypes.NewMsgChannelOpenTry(
 		endpointZ.ChannelConfig.PortID,
-		endpointZ.ChannelConfig.Version, endpointZ.ChannelConfig.Order, connectionHops,
+		endpointZ.ChannelConfig.Version, endpointZ.ChannelConfig.Order, paths.Reverse().GetConnectionHops(),
 		endpointA.ChannelConfig.PortID, endpointA.ChannelID,
 		endpointA.ChannelConfig.Version,
 		proof, height.(types.Height),
@@ -540,9 +541,13 @@ func ChanOpenTry(paths LinkedPaths, connectionHops []string) {
 	// update version to selected app version
 	// NOTE: this update must be performed after the endpoint channelID is set
 	endpointZ.ChannelConfig.Version = endpointZ.GetChannel().Version
+
+	// update clients
+	paths.Reverse().UpdateClients()
 }
 
-// ChanOpenAck is a copy of endpoint.ChanOpenAck which generates a multihop proof.
+// ChanOpenAck generates a multihop proof to call ChanOpenAck on chain A.
+// Confirms a channel open Try on chain Z.
 func ChanOpenAck(paths LinkedPaths) {
 	endpointA := paths[0].EndpointA
 	endpointZ := paths[len(paths)-1].EndpointB
@@ -582,4 +587,49 @@ func ChanOpenAck(paths LinkedPaths) {
 	require.NoError(endpointA.Chain.T, err)
 
 	endpointA.ChannelConfig.Version = endpointA.GetChannel().Version
+
+	// update clients
+	paths.UpdateClients()
+}
+
+// ChanOpenConfirm generates a multihop proof to call ChanOpenConfirm on chain Z.
+// Confirms a channel open Ack on chain A.
+func ChanOpenConfirm(paths LinkedPaths) {
+	endpointA := paths[0].EndpointA
+	endpointZ := paths[len(paths)-1].EndpointB
+
+	err := endpointZ.UpdateClient()
+	require.NoError(endpointA.Chain.T, err)
+
+	channelPath := host.ChannelPath(endpointA.ChannelConfig.PortID, FirstChannelID)
+	// query the channel
+	req := &channeltypes.QueryChannelRequest{
+		PortId:    endpointA.ChannelConfig.PortID,
+		ChannelId: endpointA.ChannelID,
+	}
+
+	// receive the channel response and marshal to expected value bytes
+	resp, err := endpointA.Chain.App.GetIBCKeeper().Channel(endpointA.Chain.GetContext(), req)
+	require.NoError(endpointA.Chain.T, err)
+	expectedVal, err := resp.Channel.Marshal()
+	require.NoError(endpointA.Chain.T, err)
+
+	// generate multihop proof given keypath and value
+	proofs, err := GenerateMultiHopProof(paths, channelPath, expectedVal)
+	require.NoError(endpointA.Chain.T, err)
+	// verify call to ChanOpenTry completes successfully
+	height := endpointZ.GetClientState().GetLatestHeight()
+	proof, err := proofs.Marshal()
+	require.NoError(endpointA.Chain.T, err)
+
+	msg := channeltypes.NewMsgChannelOpenConfirm(
+		endpointZ.ChannelConfig.PortID, endpointZ.ChannelID,
+		proof, height.(types.Height),
+		endpointZ.Chain.SenderAccount.GetAddress().String(),
+	)
+	err = endpointZ.Chain.sendMsgs(msg)
+	require.NoError(endpointA.Chain.T, err)
+
+	// update clients
+	paths.Reverse().UpdateClients()
 }
