@@ -6,7 +6,6 @@ order: 1
 
 Learn how to build IBC light client modules and fulfill the interfaces required to integrate with core IBC. {synopsis}
 
-<!-- Add prerequisite readingn section? -->
 ## Pre-requisites Readings
 
 - [IBC Overview](../overview.md)) {prereq}
