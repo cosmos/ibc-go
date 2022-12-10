@@ -40,8 +40,7 @@ func (suite *KeeperTestSuite) assertTransferEvents(
 
 func (suite *KeeperTestSuite) TestMsgTransfer() {
 	var (
-		msg       *types.MsgTransfer
-		hasEvents bool
+		msg *types.MsgTransfer
 	)
 
 	testCases := []struct {
@@ -51,15 +50,12 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 	}{
 		{
 			"success",
-			func() {
-				hasEvents = true
-			},
+			func() {},
 			true,
 		},
 		{
 			"bank send enabled for denom",
 			func() {
-				hasEvents = true
 				suite.chainA.GetSimApp().BankKeeper.SetParams(suite.chainA.GetContext(),
 					banktypes.Params{
 						SendEnabled: []*banktypes.SendEnabled{{Denom: sdk.DefaultBondDenom, Enabled: true}},
@@ -116,7 +112,6 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
-			hasEvents = false // must be explicitly set
 
 			path := NewTransferPath(suite.chainA, suite.chainB)
 			suite.coordinator.Setup(path)
@@ -156,7 +151,7 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 				},
 			}
 
-			if hasEvents {
+			if tc.expPass {
 				ibctesting.AssertEvents(&suite.Suite, expEvents, events)
 			} else {
 				suite.Require().Len(events, 0)
