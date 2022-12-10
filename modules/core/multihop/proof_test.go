@@ -34,6 +34,7 @@ func (t *proofTestSuite) TestMultiHopProof() {
 		return ibctesting.VerifyMultiHopProofMembership(
 			paths.Z(),
 			proofs,
+			proofValue,
 		)
 	}
 	verifyNonMembership := func(paths ibctesting.LinkedPaths) error {
@@ -176,7 +177,7 @@ func (t *proofTestSuite) TestGrandpaConsStateProof() {
 		consStatePrefix, err := ibctesting.GetConsensusStatePrefix(pathGP.EndpointB, heightGP)
 		t.NoError(err)
 		err = merkleProofConsGP.VerifyMembership(
-			ibctesting.GetProofSpec(pathGP.EndpointB),
+			commitmenttypes.GetSDKSpecs(),
 			rootPS,
 			consStatePrefix,
 			consGP,

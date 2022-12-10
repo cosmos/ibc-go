@@ -87,9 +87,7 @@ func VerifyMultiHopProofMembership(
 	if err := cdc.UnmarshalInterface(proofs.ConsensusProofs[0].Value, &secondConsState); err != nil {
 		return fmt.Errorf("failed to unpack consensus state: %w", err)
 	}
-	fmt.Printf("secondConsState.root: %x\n", secondConsState.GetRoot().GetHash())
-	fmt.Printf("key: %s\n", proofs.KeyProof.PrefixedKey.String())
-	fmt.Printf("val: %x\n", proofs.KeyProof.Value)
+
 	return keyProof.VerifyMembership(
 		commitmenttypes.GetSDKSpecs(),
 		secondConsState.GetRoot(),
@@ -155,9 +153,6 @@ func VerifyMultihopProof(cdc codec.BinaryCodec, consensusState exported.Consensu
 		// 1. check the connectionHop values match the proofs and are in the same order.
 		parts := strings.Split(connData.PrefixedKey.GetKeyPath()[len(connData.PrefixedKey.KeyPath)-1], "/")
 
-		// fmt.Printf("parts[len(parts)-1]: %s\n", parts[len(parts)-1])
-		// fmt.Printf("channel.ConnectionHops[%d]: %s\n", i+1, channel.ConnectionHops[i+1])
-		// fmt.Printf("connectionEnd.Counterparty.ConnectionId: %s\n", connectionEnd.Counterparty.ConnectionId)
 		if parts[len(parts)-1] != connectionHops[i+1] {
 			return sdkerrors.Wrapf(
 				connectiontypes.ErrConnectionPath,
@@ -176,7 +171,6 @@ func VerifyMultihopProof(cdc codec.BinaryCodec, consensusState exported.Consensu
 		}
 	}
 
-	fmt.Printf("proof value check: %x\n", value)
 	// verify each consensus state and connection state starting going from Z --> A
 	// finally verify the keyproof on A within B's verified view of A's consensus state.
 	return VerifyMultiHopProofMembership(consensusState, cdc, &proofs, value)

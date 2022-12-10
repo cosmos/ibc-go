@@ -369,9 +369,9 @@ func (suite *KeeperTestSuite) TestChanOpenTryMultihop() {
 			expectedVal, err := resp.Channel.Marshal()
 			suite.Require().NoError(err)
 
-			fmt.Printf("portid=%s channelid=%s\n", counterparty.PortId, counterparty.ChannelId)
-			fmt.Printf("channel: %#v\n", *resp.Channel)
-			fmt.Printf("expectedVal for proof generation: %x\n", expectedVal)
+			// fmt.Printf("portid=%s channelid=%s\n", counterparty.PortId, counterparty.ChannelId)
+			// fmt.Printf("channel: %#v\n", *resp.Channel)
+			// fmt.Printf("expectedVal for proof generation: %x\n", expectedVal)
 
 			// generate multihop proof given keypath and value
 			proofs, err := ibctesting.GenerateMultiHopProof(paths, channelKey, expectedVal)
@@ -991,8 +991,6 @@ func (suite *KeeperTestSuite) TestChanCloseConfirmMultihop() {
 			endpointZ = paths[len(paths)-1].EndpointB
 
 			tc.malleate()
-
-			fmt.Printf("\n\n SETUP FINISHED FOR ChanOpenConfirm\n\n")
 
 			channelKey := host.ChannelKey(endpointA.ChannelConfig.PortID, ibctesting.FirstChannelID)
 			// query the channel

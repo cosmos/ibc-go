@@ -35,24 +35,26 @@ func (k Keeper) ChanOpenInit(
 		return "", nil, sdkerrors.Wrap(connectiontypes.ErrConnectionNotFound, connectionHops[0])
 	}
 
-	// TODO: skip this if connectionHops > 1 (alternative would be to pass connectionState from destination and then prove it, etc)
-	if len(connectionHops) == 1 {
-		getVersions := connectionEnd.GetVersions()
-		if len(getVersions) != 1 {
-			return "", nil, sdkerrors.Wrapf(
-				connectiontypes.ErrInvalidVersion,
-				"single version must be negotiated on connection before opening channel, got: %v",
-				getVersions,
-			)
-		}
+	// ******************************************************************************************
+	// TODO: This is a bug for a multihop channels. For multihop we need the connectionEnd
+	// corresponding to the connection to chain Z for the logic to be meaningful.
+	// ******************************************************************************************
 
-		if !connectiontypes.VerifySupportedFeature(getVersions[0], order.String()) {
-			return "", nil, sdkerrors.Wrapf(
-				connectiontypes.ErrInvalidVersion,
-				"connection version %s does not support channel ordering: %s",
-				getVersions[0], order.String(),
-			)
-		}
+	getVersions := connectionEnd.GetVersions()
+	if len(getVersions) != 1 {
+		return "", nil, sdkerrors.Wrapf(
+			connectiontypes.ErrInvalidVersion,
+			"single version must be negotiated on connection before opening channel, got: %v",
+			getVersions,
+		)
+	}
+
+	if !connectiontypes.VerifySupportedFeature(getVersions[0], order.String()) {
+		return "", nil, sdkerrors.Wrapf(
+			connectiontypes.ErrInvalidVersion,
+			"connection version %s does not support channel ordering: %s",
+			getVersions[0], order.String(),
+		)
 	}
 
 	clientState, found := k.clientKeeper.GetClientState(ctx, connectionEnd.ClientId)

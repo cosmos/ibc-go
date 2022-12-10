@@ -3,14 +3,12 @@ package ibctesting
 import (
 	"fmt"
 
-	ics23 "github.com/confio/ics23/go"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v6/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
-	ibctmtypes "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint/types"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 )
@@ -35,10 +33,8 @@ func GenerateMultiHopProof(paths LinkedPaths, keyPathToProve []byte, expectedVal
 	{
 		endpointB := endpointA.Counterparty
 		heightBC := endpointB.GetClientState().GetLatestHeight()
-		fmt.Printf("heightBC: %d\n", heightBC.GetRevisionHeight())
 		// srcEnd.counterparty's proven height on its next connected chain
 		provenHeight := endpointB.GetClientState().GetLatestHeight()
-		fmt.Printf("provenHeight: %d\n", provenHeight.GetRevisionHeight())
 		proof, _ := endpointA.Chain.QueryProofAtHeight([]byte(keyPathToProve), int64(provenHeight.GetRevisionHeight()))
 		var proofKV commitmenttypes.MerkleProof
 		if err := endpointA.Chain.Codec.Unmarshal(proof, &proofKV); err != nil {
@@ -52,16 +48,9 @@ func GenerateMultiHopProof(paths LinkedPaths, keyPathToProve []byte, expectedVal
 
 		// membership proof
 		if len(expectedVal) > 0 {
-
-			fmt.Printf("VERIFYING MEMBERSHIP\n")
-			fmt.Printf("endpointB.GetConsensusState(heightBC).GetRoot(): %x\n",
-				endpointB.GetConsensusState(heightBC).GetRoot().GetHash())
-			fmt.Printf("key: %s\n", prefixedKey.String())
-			fmt.Printf("val: %x\n", expectedVal)
-
 			// check expected val
 			if err := proofKV.VerifyMembership(
-				GetProofSpec(endpointA),
+				commitmenttypes.GetSDKSpecs(),
 				endpointB.GetConsensusState(heightBC).GetRoot(),
 				prefixedKey,
 				expectedVal,
@@ -86,7 +75,7 @@ func GenerateMultiHopProof(paths LinkedPaths, keyPathToProve []byte, expectedVal
 
 		proofs.KeyProof = &channeltypes.MultihopProof{
 			Proof:       proof,
-			Value:       expectedVal,
+			Value:       nil,
 			PrefixedKey: &prefixedKey,
 		}
 	}
@@ -145,12 +134,9 @@ func GenerateMultiHopConsensusProof(paths []*Path) ([]*channeltypes.MultihopProo
 			return nil, nil, fmt.Errorf("failed to marshal consensus state: %w", err)
 		}
 
-		// fmt.Printf("nextPath.EndpointB.GetConsensusState(heightBC).GetRoot(): %x\n", nextPath.EndpointB.GetConsensusState(heightBC).GetRoot())
-		// fmt.Printf("keyPrefixedConsAB: %s\n", keyPrefixedConsAB.String())
-		// fmt.Printf("value: %x\n", value)
 		// ensure consStateAB is verified by consStateBC, where self is chain B
 		if err := consensusStateMerkleProof.VerifyMembership(
-			GetProofSpec(self),
+			commitmenttypes.GetSDKSpecs(),
 			nextPath.EndpointB.GetConsensusState(heightBC).GetRoot(),
 			keyPrefixedConsAB,
 			value,
@@ -196,7 +182,7 @@ func GenerateMultiHopConsensusProof(paths []*Path) ([]*channeltypes.MultihopProo
 		// fmt.Printf("value: %x\n", value)
 		// ensure consStateAB is verified by consStateBC, where self is chain B
 		if err := connectionMerkleProof.VerifyMembership(
-			GetProofSpec(self),
+			commitmenttypes.GetSDKSpecs(),
 			nextPath.EndpointB.GetConsensusState(heightBC).GetRoot(),
 			connectionKey,
 			value,
@@ -241,7 +227,7 @@ func VerifyMultiHopConsensusStateProof(endpoint *Endpoint, consensusProofs []*ch
 		}
 
 		if err := proof.VerifyMembership(
-			GetProofSpec(endpoint),
+			commitmenttypes.GetSDKSpecs(),
 			lastConsstate.GetRoot(),
 			*consStateProof.PrefixedKey,
 			consStateProof.Value,
@@ -258,7 +244,7 @@ func VerifyMultiHopConsensusStateProof(endpoint *Endpoint, consensusProofs []*ch
 		// fmt.Printf("connectionProof.PrefixedKey: %s\n", connectionProof.PrefixedKey.String())
 		// fmt.Printf("value: %x\n", connectionProof.Value)
 		if err := proof.VerifyMembership(
-			GetProofSpec(endpoint),
+			commitmenttypes.GetSDKSpecs(),
 			lastConsstate.GetRoot(),
 			*connectionProof.PrefixedKey,
 			connectionProof.Value,
@@ -272,7 +258,7 @@ func VerifyMultiHopConsensusStateProof(endpoint *Endpoint, consensusProofs []*ch
 }
 
 // VerifyMultiHopProofMembership verifies a multihop membership proof including all intermediate state proofs.
-func VerifyMultiHopProofMembership(endpoint *Endpoint, proofs *channeltypes.MsgMultihopProofs) error {
+func VerifyMultiHopProofMembership(endpoint *Endpoint, proofs *channeltypes.MsgMultihopProofs, expectedVal []byte) error {
 	if len(proofs.ConsensusProofs) < 1 {
 		return fmt.Errorf(
 			"proof must have at least two elements where the first one is the proof for the key and the rest are for the consensus states",
@@ -294,10 +280,10 @@ func VerifyMultiHopProofMembership(endpoint *Endpoint, proofs *channeltypes.MsgM
 		return fmt.Errorf("failed to unpack consensus state: %w", err)
 	}
 	return keyProof.VerifyMembership(
-		GetProofSpec(endpoint),
+		commitmenttypes.GetSDKSpecs(),
 		secondConsState.GetRoot(),
 		*proofs.KeyProof.PrefixedKey,
-		proofs.KeyProof.Value,
+		expectedVal,
 	)
 }
 
@@ -324,7 +310,7 @@ func VerifyMultiHopProofNonMembership(endpoint *Endpoint, proofs *channeltypes.M
 		return fmt.Errorf("failed to unpack consensus state: %w", err)
 	}
 	err := keyProof.VerifyNonMembership(
-		GetProofSpec(endpoint),
+		commitmenttypes.GetSDKSpecs(),
 		secondConsState.GetRoot(),
 		*proofs.KeyProof.PrefixedKey,
 	)
@@ -377,12 +363,6 @@ func GetConsensusStatePrefix(self *Endpoint, consensusHeight exported.Height) (c
 func GetPrefixedConnectionKey(self *Endpoint) (commitmenttypes.MerklePath, error) {
 	keyPath := commitmenttypes.NewMerklePath(host.ConnectionPath(self.ConnectionID))
 	return commitmenttypes.ApplyPrefix(self.Chain.GetPrefix(), keyPath)
-}
-
-// GetProofSpec returns self counterparty's ProofSpec
-func GetProofSpec(self *Endpoint) []*ics23.ProofSpec {
-	tmclient := self.GetClientState().(*ibctmtypes.ClientState)
-	return tmclient.GetProofSpecs()
 }
 
 // LinkedPaths is a list of linked ibc paths, A -> B -> C -> ... -> Z, where {A,B,C,...,Z} are chains, and A/Z is the first/last chain endpoint.
