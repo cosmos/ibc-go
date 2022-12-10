@@ -40,21 +40,23 @@ func (k Keeper) ChanOpenInit(
 	// corresponding to the connection to chain Z for the logic to be meaningful.
 	// ******************************************************************************************
 
-	getVersions := connectionEnd.GetVersions()
-	if len(getVersions) != 1 {
-		return "", nil, sdkerrors.Wrapf(
-			connectiontypes.ErrInvalidVersion,
-			"single version must be negotiated on connection before opening channel, got: %v",
-			getVersions,
-		)
-	}
+	if len(connectionHops) == 1 {
+		getVersions := connectionEnd.GetVersions()
+		if len(getVersions) != 1 {
+			return "", nil, sdkerrors.Wrapf(
+				connectiontypes.ErrInvalidVersion,
+				"single version must be negotiated on connection before opening channel, got: %v",
+				getVersions,
+			)
+		}
 
-	if !connectiontypes.VerifySupportedFeature(getVersions[0], order.String()) {
-		return "", nil, sdkerrors.Wrapf(
-			connectiontypes.ErrInvalidVersion,
-			"connection version %s does not support channel ordering: %s",
-			getVersions[0], order.String(),
-		)
+		if !connectiontypes.VerifySupportedFeature(getVersions[0], order.String()) {
+			return "", nil, sdkerrors.Wrapf(
+				connectiontypes.ErrInvalidVersion,
+				"connection version %s does not support channel ordering: %s",
+				getVersions[0], order.String(),
+			)
+		}
 	}
 
 	clientState, found := k.clientKeeper.GetClientState(ctx, connectionEnd.ClientId)
