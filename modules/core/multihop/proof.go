@@ -96,6 +96,21 @@ func VerifyMultiHopProofMembership(
 	)
 }
 
+// GetMultihopConnectionEnd returns the final connectionEnd corresponding to chain Z for a multihop channel.
+// TODO: refactor to avoid unmarshalling the proof multiple times.
+func GetMultihopConnectionEnd(cdc codec.BinaryCodec, proof []byte) (*connectiontypes.ConnectionEnd, error) {
+	var proofs channeltypes.MsgMultihopProofs
+	if err := cdc.Unmarshal(proof, &proofs); err != nil {
+		return nil, err
+	}
+
+	var connectionEnd connectiontypes.ConnectionEnd
+	if err := cdc.Unmarshal(proofs.ConnectionProofs[len(proofs.ConnectionProofs)-1].Value, &connectionEnd); err != nil {
+		return nil, err
+	}
+	return &connectionEnd, nil
+}
+
 // GetExpectedCounterpartyChannelBytes returns a counterparty multihop channel as bytes for multihop proofs
 // TODO: refactor this to avoid needing to unmarshal the multihop proof message twice (here and again in VerifyMultihopProof)
 func GetExpectedCounterpartyChannelBytes(
@@ -105,7 +120,7 @@ func GetExpectedCounterpartyChannelBytes(
 	ordering channeltypes.Order,
 	version string,
 	cdc codec.BinaryCodec,
-	lastConnection *connectiontypes.ConnectionEnd,
+	firstConnection *connectiontypes.ConnectionEnd,
 	proof []byte,
 ) ([]byte, error) {
 	var proofs channeltypes.MsgMultihopProofs
@@ -121,7 +136,9 @@ func GetExpectedCounterpartyChannelBytes(
 		}
 		counterpartyHops = append(counterpartyHops, connectionEnd.GetCounterparty().GetConnectionID())
 	}
-	counterpartyHops = append(counterpartyHops, lastConnection.GetCounterparty().GetConnectionID())
+
+	// first connection A --> Z holds the final counterpary connection going Z --> A
+	counterpartyHops = append(counterpartyHops, firstConnection.GetCounterparty().GetConnectionID())
 
 	counterparty := channeltypes.NewCounterparty(portID, channelID)
 	expectedChannel := channeltypes.NewChannel(
@@ -142,6 +159,7 @@ func VerifyMultihopProof(cdc codec.BinaryCodec, consensusState exported.Consensu
 		return err
 	}
 
+	fmt.Printf("\nstart verifying\n")
 	// check all connections are in OPEN state and that the connection IDs match and are in the right order
 	for i, connData := range proofs.ConnectionProofs {
 		var connectionEnd connectiontypes.ConnectionEnd
@@ -153,6 +171,7 @@ func VerifyMultihopProof(cdc codec.BinaryCodec, consensusState exported.Consensu
 		// 1. check the connectionHop values match the proofs and are in the same order.
 		parts := strings.Split(connData.PrefixedKey.GetKeyPath()[len(connData.PrefixedKey.KeyPath)-1], "/")
 
+		fmt.Printf("verifying hop: %s\n", connectionHops[i+1])
 		if parts[len(parts)-1] != connectionHops[i+1] {
 			return sdkerrors.Wrapf(
 				connectiontypes.ErrConnectionPath,

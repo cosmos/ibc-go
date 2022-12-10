@@ -145,26 +145,31 @@ func (k Keeper) ChanOpenTry(
 		)
 	}
 
-	// TODO: does this need to be checked for intermediate connections in a multihop scenario?
-	getVersions := connectionEnd.GetVersions()
-	if len(getVersions) != 1 {
-		return "", nil, sdkerrors.Wrapf(
-			connectiontypes.ErrInvalidVersion,
-			"single version must be negotiated on connection before opening channel, got: %v",
-			getVersions,
-		)
-	}
-
-	if !connectiontypes.VerifySupportedFeature(getVersions[0], order.String()) {
-		return "", nil, sdkerrors.Wrapf(
-			connectiontypes.ErrInvalidVersion,
-			"connection version %s does not support channel ordering: %s",
-			getVersions[0], order.String(),
-		)
-	}
-
 	// handle multihop case
 	if len(connectionHops) > 1 {
+
+		connectionEndZ, err := mh.GetMultihopConnectionEnd(k.cdc, proofInit)
+		if err != nil {
+			return "", nil, err
+		}
+
+		getVersions := connectionEndZ.GetVersions()
+		if len(getVersions) != 1 {
+			return "", nil, sdkerrors.Wrapf(
+				connectiontypes.ErrInvalidVersion,
+				"single version must be negotiated on connection before opening channel, got: %v",
+				getVersions,
+			)
+		}
+
+		if !connectiontypes.VerifySupportedFeature(getVersions[0], order.String()) {
+			return "", nil, sdkerrors.Wrapf(
+				connectiontypes.ErrInvalidVersion,
+				"connection version %s does not support channel ordering: %s",
+				getVersions[0], order.String(),
+			)
+		}
+
 		value, err := mh.GetExpectedCounterpartyChannelBytes(
 			portID, "", types.INIT, order,
 			counterpartyVersion, k.cdc, &connectionEnd, proofInit)
@@ -183,6 +188,24 @@ func (k Keeper) ChanOpenTry(
 			return "", nil, err
 		}
 	} else {
+
+		getVersions := connectionEnd.GetVersions()
+		if len(getVersions) != 1 {
+			return "", nil, sdkerrors.Wrapf(
+				connectiontypes.ErrInvalidVersion,
+				"single version must be negotiated on connection before opening channel, got: %v",
+				getVersions,
+			)
+		}
+
+		if !connectiontypes.VerifySupportedFeature(getVersions[0], order.String()) {
+			return "", nil, sdkerrors.Wrapf(
+				connectiontypes.ErrInvalidVersion,
+				"connection version %s does not support channel ordering: %s",
+				getVersions[0], order.String(),
+			)
+		}
+
 		counterpartyHops := []string{connectionEnd.GetCounterparty().GetConnectionID()}
 
 		// expectedCounterpaty is the counterparty of the counterparty's channel end
