@@ -130,15 +130,6 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 			ctx := suite.chainA.GetContext()
 			res, err := suite.chainA.GetSimApp().TransferKeeper.Transfer(sdk.WrapSDKContext(ctx), msg)
 
-			if tc.expPass {
-				suite.Require().NoError(err)
-				suite.Require().NotNil(res)
-				suite.Require().NotEqual(res.Sequence, uint64(0))
-			} else {
-				suite.Require().Error(err)
-				suite.Require().Nil(res)
-			}
-
 			// Verify events
 			events := ctx.EventManager().Events()
 			expEvents := ibctesting.EventsMap{
@@ -152,8 +143,13 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 			}
 
 			if tc.expPass {
+				suite.Require().NoError(err)
+				suite.Require().NotNil(res)
+				suite.Require().NotEqual(res.Sequence, uint64(0))
 				ibctesting.AssertEvents(&suite.Suite, expEvents, events)
 			} else {
+				suite.Require().Error(err)
+				suite.Require().Nil(res)
 				suite.Require().Len(events, 0)
 			}
 		})
