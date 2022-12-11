@@ -10,7 +10,7 @@ require (
 	github.com/cosmos/interchain-accounts v0.4.0
 	github.com/docker/docker v20.10.19+incompatible
 	github.com/gogo/protobuf v1.3.3
-	github.com/strangelove-ventures/ibctest/v6 v6.0.0-20221005154709-b642157674bc
+	github.com/strangelove-ventures/ibctest/v6 v6.0.0-20221209152048-e8388a0b91fd
 	github.com/stretchr/testify v1.8.1
 	github.com/tendermint/tendermint v0.34.23
 	go.uber.org/zap v1.23.0
@@ -49,7 +49,7 @@ require (
 	github.com/cockroachdb/apd/v2 v2.0.2 // indirect
 	github.com/confio/ics23/go v0.9.0 // indirect
 	github.com/cosmos/btcutil v1.0.4 // indirect
-	github.com/cosmos/cosmos-proto v1.0.0-alpha8 // indirect
+	github.com/cosmos/cosmos-proto v1.0.0-beta.1 // indirect
 	github.com/cosmos/go-bip39 v1.0.0 // indirect
 	github.com/cosmos/gorocksdb v1.2.0 // indirect
 	github.com/cosmos/iavl v0.19.4 // indirect
