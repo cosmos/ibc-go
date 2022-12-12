@@ -219,7 +219,8 @@ func (suite *KeeperTestSuite) TestHandleUpgradeProposal() {
 
 				bz, err := types.MarshalClientState(suite.chainA.App.AppCodec(), upgradedClientState)
 				suite.Require().NoError(err)
-				suite.chainA.GetSimApp().UpgradeKeeper.SetUpgradedClient(suite.chainA.GetContext(), oldPlan.Height, bz)
+
+				suite.chainA.GetSimApp().UpgradeKeeper.SetUpgradedClient(suite.chainA.GetContext(), oldPlan.Height, bz) //nolint:errcheck
 			}
 
 			upgradeProp, ok := content.(*types.UpgradeProposal)

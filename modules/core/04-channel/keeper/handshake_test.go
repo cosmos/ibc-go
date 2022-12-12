@@ -152,7 +152,8 @@ func (suite *KeeperTestSuite) TestChanOpenTry() {
 		{"success", func() {
 			suite.coordinator.SetupConnections(path)
 			path.SetChannelOrdered()
-			path.EndpointA.ChanOpenInit()
+			err := path.EndpointA.ChanOpenInit()
+			suite.Require().NoError(err)
 
 			suite.chainB.CreatePortCapability(suite.chainB.GetSimApp().ScopedIBCMockKeeper, ibctesting.MockPort)
 			portCap = suite.chainB.GetPortCapability(ibctesting.MockPort)
@@ -177,7 +178,8 @@ func (suite *KeeperTestSuite) TestChanOpenTry() {
 		{"consensus state not found", func() {
 			suite.coordinator.SetupConnections(path)
 			path.SetChannelOrdered()
-			path.EndpointA.ChanOpenInit()
+			err := path.EndpointA.ChanOpenInit()
+			suite.Require().NoError(err)
 
 			suite.chainB.CreatePortCapability(suite.chainB.GetSimApp().ScopedIBCMockKeeper, ibctesting.MockPort)
 			portCap = suite.chainB.GetPortCapability(ibctesting.MockPort)
@@ -192,14 +194,16 @@ func (suite *KeeperTestSuite) TestChanOpenTry() {
 		{"port capability not found", func() {
 			suite.coordinator.SetupConnections(path)
 			path.SetChannelOrdered()
-			path.EndpointA.ChanOpenInit()
+			err := path.EndpointA.ChanOpenInit()
+			suite.Require().NoError(err)
 
 			portCap = capabilitytypes.NewCapability(3)
 		}, false},
 		{"connection version not negotiated", func() {
 			suite.coordinator.SetupConnections(path)
 			path.SetChannelOrdered()
-			path.EndpointA.ChanOpenInit()
+			err := path.EndpointA.ChanOpenInit()
+			suite.Require().NoError(err)
 
 			// modify connB versions
 			conn := path.EndpointB.GetConnection()
@@ -217,7 +221,8 @@ func (suite *KeeperTestSuite) TestChanOpenTry() {
 		{"connection does not support ORDERED channels", func() {
 			suite.coordinator.SetupConnections(path)
 			path.SetChannelOrdered()
-			path.EndpointA.ChanOpenInit()
+			err := path.EndpointA.ChanOpenInit()
+			suite.Require().NoError(err)
 
 			// modify connA versions to only support UNORDERED channels
 			conn := path.EndpointA.GetConnection()
@@ -405,7 +410,8 @@ func (suite *KeeperTestSuite) TestChanOpenAck() {
 			err := path.EndpointA.ChanOpenInit()
 			suite.Require().NoError(err)
 
-			path.EndpointB.ChanOpenTry()
+			err = path.EndpointB.ChanOpenTry()
+			suite.Require().NoError(err)
 
 			channelCap = capabilitytypes.NewCapability(6)
 		}, false},
