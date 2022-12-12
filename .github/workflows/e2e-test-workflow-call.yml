@@ -33,7 +33,7 @@ on:
         type: string
       relayer-tag:
         description: "The tag to use for the relayer"
-        required: true
+        required: false
         default: "v2.1.2"
         type: string
       build-and-push-docker-image:
