@@ -50,14 +50,14 @@ func TestMsgRegisterPayeeValidation(t *testing.T) {
 		{
 			"invalid relayer address",
 			func() {
-				msg.Relayer = "invalid-address"
+				msg.Relayer = invalidAddress
 			},
 			false,
 		},
 		{
 			"invalid payee address",
 			func() {
-				msg.Payee = "invalid-address"
+				msg.Payee = invalidAddress
 			},
 			false,
 		},
@@ -117,7 +117,7 @@ func TestMsgRegisterCountepartyPayeeValidation(t *testing.T) {
 		{
 			"validate with incorrect destination relayer address",
 			func() {
-				msg.Relayer = "invalid-address"
+				msg.Relayer = invalidAddress
 			},
 			false,
 		},
@@ -202,7 +202,7 @@ func TestMsgPayPacketFeeValidation(t *testing.T) {
 		{
 			"invalid signer address",
 			func() {
-				msg.Signer = "invalid-address"
+				msg.Signer = invalidAddress
 			},
 			false,
 		},

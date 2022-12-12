@@ -28,7 +28,7 @@ func (suite *KeeperTestSuite) TestRegisterPayee() {
 			"channel does not exist",
 			false,
 			func() {
-				msg.ChannelId = "channel-100"
+				msg.ChannelId = "channel-100" //nolint:goconst
 			},
 		},
 		{
@@ -376,7 +376,7 @@ func (suite *KeeperTestSuite) TestPayPacketFeeAsync() {
 		{
 			"packet not sent",
 			func() {
-				msg.PacketId.Sequence = msg.PacketId.Sequence + 1
+				msg.PacketId.Sequence++
 			},
 			false,
 		},

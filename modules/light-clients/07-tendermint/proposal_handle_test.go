@@ -34,7 +34,7 @@ func (suite *TendermintTestSuite) TestCheckSubstituteUpdateStateBasic() {
 				substituteClientState.TrustingPeriod = time.Hour * 24 * 7
 
 				tmClientState := substituteClientState
-				tmClientState.ChainId = tmClientState.ChainId + "different chain"
+				tmClientState.ChainId += "different chain"
 			},
 		},
 	}

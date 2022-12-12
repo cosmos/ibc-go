@@ -103,7 +103,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 		{
 			"invalid port ID",
 			func() {
-				path.EndpointA.ChannelConfig.PortID = "invalid-port-id"
+				path.EndpointA.ChannelConfig.PortID = "invalid-port-id" //nolint:goconst
 			},
 			false,
 		},

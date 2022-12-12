@@ -36,7 +36,7 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 		{
 			"successful transfer from source chain with memo",
 			func() {
-				memo = "memo"
+				memo = "memo" //nolint:goconst
 			}, true,
 		},
 		{

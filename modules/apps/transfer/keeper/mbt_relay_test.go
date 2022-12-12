@@ -84,7 +84,7 @@ type OwnedCoin struct {
 }
 
 type Balance struct {
-	Id      string
+	ID      string
 	Address string
 	Denom   string
 	Amount  math.Int
@@ -99,7 +99,7 @@ func AddressFromTla(addr []string) string {
 		panic("failed to convert from TLA+ address: wrong number of address components")
 	}
 	s := ""
-	if len(addr[0]) == 0 && len(addr[1]) == 0 {
+	if len(addr[0]) == 0 && len(addr[1]) == 0 { //nolint:gocritic
 		// simple address: id
 		s = addr[2]
 	} else if len(addr[2]) == 0 {
@@ -121,7 +121,7 @@ func DenomFromTla(denom []string) string {
 
 func BalanceFromTla(balance TlaBalance) Balance {
 	return Balance{
-		Id:      AddressFromTla(balance.Address),
+		ID:      AddressFromTla(balance.Address),
 		Address: AddressFromString(AddressFromTla(balance.Address)),
 		Denom:   DenomFromTla(balance.Denom),
 		Amount:  sdk.NewInt(balance.Amount),
@@ -201,7 +201,7 @@ func (bank *Bank) SetBalance(address string, denom string, amount math.Int) {
 func (bank *Bank) SetBalances(balances []Balance) {
 	for _, balance := range balances {
 		bank.balances[OwnedCoin{balance.Address, balance.Denom}] = balance.Amount
-		addressMap[balance.Address] = balance.Id
+		addressMap[balance.Address] = balance.ID
 	}
 }
 
@@ -219,7 +219,7 @@ func BankFromBalances(balances []Balance) Bank {
 		coin := OwnedCoin{balance.Address, balance.Denom}
 		if coin != NullCoin() { // ignore null coin
 			bank.balances[coin] = balance.Amount
-			addressMap[balance.Address] = balance.Id
+			addressMap[balance.Address] = balance.ID
 		}
 	}
 	return bank
@@ -281,12 +281,12 @@ func (suite *KeeperTestSuite) TestModelBasedRelay() {
 	if err != nil {
 		panic(fmt.Errorf("Failed to read model-based test files: %w", err))
 	}
-	for _, file_info := range files {
+	for _, fileInfo := range files {
 		tlaTestCases := []TlaOnRecvPacketTestCase{}
-		if !strings.HasSuffix(file_info.Name(), ".json") {
+		if !strings.HasSuffix(fileInfo.Name(), ".json") {
 			continue
 		}
-		jsonBlob, err := os.ReadFile(dirname + file_info.Name())
+		jsonBlob, err := os.ReadFile(dirname + fileInfo.Name())
 		if err != nil {
 			panic(fmt.Errorf("Failed to read JSON test fixture: %w", err))
 		}
@@ -311,7 +311,7 @@ func (suite *KeeperTestSuite) TestModelBasedRelay() {
 				}
 			}
 
-			description := file_info.Name() + " # " + strconv.Itoa(i+1)
+			description := fileInfo.Name() + " # " + strconv.Itoa(i+1)
 			suite.Run(fmt.Sprintf("Case %s", description), func() {
 				seq := uint64(1)
 				packet := channeltypes.NewPacket(tc.packet.Data.GetBytes(), seq, tc.packet.SourcePort, tc.packet.SourceChannel, tc.packet.DestPort, tc.packet.DestChannel, clienttypes.NewHeight(1, 100), 0)

@@ -201,7 +201,7 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageMisbehaviour() {
 				"old misbehaviour is successful (timestamp is less than current consensus state)",
 				func() {
 					clientState = sm.ClientState()
-					sm.Time = sm.Time - 5
+					sm.Time -= 5
 					clientMsg = sm.CreateMisbehaviour()
 				}, true,
 			},

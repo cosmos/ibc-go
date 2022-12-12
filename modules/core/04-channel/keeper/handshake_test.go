@@ -345,7 +345,7 @@ func (suite *KeeperTestSuite) TestChanOpenAck() {
 
 			// set the channel's connection hops to wrong connection ID
 			channel := path.EndpointA.GetChannel()
-			channel.ConnectionHops[0] = "doesnotexist"
+			channel.ConnectionHops[0] = doesnotexist
 			suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, channel)
 		}, false},
 		{"connection is not OPEN", func() {
@@ -502,7 +502,7 @@ func (suite *KeeperTestSuite) TestChanOpenConfirm() {
 
 			// set the channel's connection hops to wrong connection ID
 			channel := path.EndpointB.GetChannel()
-			channel.ConnectionHops[0] = "doesnotexist"
+			channel.ConnectionHops[0] = doesnotexist
 			suite.chainB.App.GetIBCKeeper().ChannelKeeper.SetChannel(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, channel)
 		}, false},
 		{"connection is not OPEN", func() {
@@ -633,7 +633,7 @@ func (suite *KeeperTestSuite) TestChanCloseInit() {
 
 			// set the channel's connection hops to wrong connection ID
 			channel := path.EndpointA.GetChannel()
-			channel.ConnectionHops[0] = "doesnotexist"
+			channel.ConnectionHops[0] = doesnotexist
 			suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, channel)
 		}, false},
 		{"connection is not OPEN", func() {
@@ -718,7 +718,7 @@ func (suite *KeeperTestSuite) TestChanCloseConfirm() {
 
 			// set the channel's connection hops to wrong connection ID
 			channel := path.EndpointB.GetChannel()
-			channel.ConnectionHops[0] = "doesnotexist"
+			channel.ConnectionHops[0] = doesnotexist
 			suite.chainB.App.GetIBCKeeper().ChannelKeeper.SetChannel(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, channel)
 		}, false},
 		{"connection is not OPEN", func() {
