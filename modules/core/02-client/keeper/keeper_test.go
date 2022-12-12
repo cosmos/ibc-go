@@ -234,7 +234,7 @@ func (suite *KeeperTestSuite) TestValidateSelfClient() {
 	}
 }
 
-func (suite KeeperTestSuite) TestGetAllGenesisClients() {
+func (suite KeeperTestSuite) TestGetAllGenesisClients() { //nolint:govet // this is a test, we are okay with copying locks
 	clientIDs := []string{
 		testClientID2, testClientID3, testClientID,
 	}
@@ -256,7 +256,7 @@ func (suite KeeperTestSuite) TestGetAllGenesisClients() {
 	suite.Require().Equal(expGenClients.Sort(), genClients)
 }
 
-func (suite KeeperTestSuite) TestGetAllGenesisMetadata() {
+func (suite KeeperTestSuite) TestGetAllGenesisMetadata() { //nolint:govet // this is a test, we are okay with copying locks
 	expectedGenMetadata := []types.IdentifiedGenesisMetadata{
 		types.NewIdentifiedGenesisMetadata(
 			"07-tendermint-1",
@@ -286,7 +286,7 @@ func (suite KeeperTestSuite) TestGetAllGenesisMetadata() {
 	suite.Require().Equal(expectedGenMetadata, actualGenMetadata, "retrieved metadata is unexpected")
 }
 
-func (suite KeeperTestSuite) TestGetConsensusState() {
+func (suite KeeperTestSuite) TestGetConsensusState() { //nolint:govet // this is a test, we are okay with copying locks
 	suite.ctx = suite.ctx.WithBlockHeight(10)
 	cases := []struct {
 		name    string
@@ -312,7 +312,7 @@ func (suite KeeperTestSuite) TestGetConsensusState() {
 	}
 }
 
-func (suite KeeperTestSuite) TestConsensusStateHelpers() {
+func (suite KeeperTestSuite) TestConsensusStateHelpers() { //nolint:govet // this is a test, we are okay with copying locks
 	// initial setup
 	clientState := ibctm.NewClientState(testChainID, ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, testClientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath)
 
@@ -338,7 +338,7 @@ func (suite KeeperTestSuite) TestConsensusStateHelpers() {
 
 // 2 clients in total are created on chainA. The first client is updated so it contains an initial consensus state
 // and a consensus state at the update height.
-func (suite KeeperTestSuite) TestGetAllConsensusStates() {
+func (suite KeeperTestSuite) TestGetAllConsensusStates() { //nolint:govet // this is a test, we are okay with copying locks
 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
 	suite.coordinator.SetupClients(path)
 
@@ -387,7 +387,7 @@ func (suite KeeperTestSuite) TestGetAllConsensusStates() {
 	suite.Require().Equal(expConsensusStates, consStates, "%s \n\n%s", expConsensusStates, consStates)
 }
 
-func (suite KeeperTestSuite) TestIterateClientStates() {
+func (suite KeeperTestSuite) TestIterateClientStates() { //nolint:govet // this is a test, we are okay with copying locks
 	paths := []*ibctesting.Path{
 		ibctesting.NewPath(suite.chainA, suite.chainB),
 		ibctesting.NewPath(suite.chainA, suite.chainB),

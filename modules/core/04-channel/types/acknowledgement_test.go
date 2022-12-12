@@ -17,7 +17,7 @@ const (
 )
 
 // tests acknowledgement.ValidateBasic and acknowledgement.GetBytes
-func (suite TypesTestSuite) TestAcknowledgement() {
+func (suite TypesTestSuite) TestAcknowledgement() { //nolint:govet // this is a test, we are okay with copying locks
 	testCases := []struct {
 		name       string
 		ack        types.Acknowledgement
