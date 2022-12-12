@@ -396,6 +396,9 @@ func NewSimApp(
 		),
 	)
 
+	// Set legacy router for backwards compatibility with gov v1beta1
+	govKeeper.SetLegacyRouter(govRouter)
+
 	groupConfig := group.DefaultConfig()
 	/*
 		Example of setting group params:
