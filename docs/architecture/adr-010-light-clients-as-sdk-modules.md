@@ -66,7 +66,7 @@ type ClientState interface {
     GetLatestHeight() Height
     Validate() error
 
-	ZeroCustomFields() ClientState
+    ZeroCustomFields() ClientState
 
     // ADDITION
     Route() string // route used for intermodule communication
