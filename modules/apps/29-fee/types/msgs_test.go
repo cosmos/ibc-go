@@ -84,7 +84,7 @@ func TestMsgRegisterPayeeValidation(t *testing.T) {
 func TestRegisterPayeeGetSigners(t *testing.T) {
 	accAddress := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
 	msg := types.NewMsgRegisterPayee(ibctesting.MockPort, ibctesting.FirstChannelID, accAddress.String(), defaultAccAddress)
-	require.Equal(t, []sdk.AccAddress{sdk.AccAddress(accAddress)}, msg.GetSigners())
+	require.Equal(t, []sdk.AccAddress{accAddress}, msg.GetSigners())
 }
 
 func TestMsgRegisterCountepartyPayeeValidation(t *testing.T) {
@@ -155,7 +155,7 @@ func TestMsgRegisterCountepartyPayeeValidation(t *testing.T) {
 func TestRegisterCountepartyAddressGetSigners(t *testing.T) {
 	accAddress := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
 	msg := types.NewMsgRegisterCounterpartyPayee(ibctesting.MockPort, ibctesting.FirstChannelID, accAddress.String(), defaultAccAddress)
-	require.Equal(t, []sdk.AccAddress{sdk.AccAddress(accAddress)}, msg.GetSigners())
+	require.Equal(t, []sdk.AccAddress{accAddress}, msg.GetSigners())
 }
 
 func TestMsgPayPacketFeeValidation(t *testing.T) {

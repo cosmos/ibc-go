@@ -290,7 +290,7 @@ func (suite *KeeperTestSuite) TestModelBasedRelay() {
 		if err != nil {
 			panic(fmt.Errorf("Failed to read JSON test fixture: %w", err))
 		}
-		err = json.Unmarshal([]byte(jsonBlob), &tlaTestCases)
+		err = json.Unmarshal(jsonBlob, &tlaTestCases)
 		if err != nil {
 			panic(fmt.Errorf("Failed to parse JSON test fixture: %w", err))
 		}
