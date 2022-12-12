@@ -10,7 +10,7 @@ require (
 	github.com/cosmos/interchain-accounts v0.4.0
 	github.com/docker/docker v20.10.19+incompatible
 	github.com/gogo/protobuf v1.3.3
-	github.com/strangelove-ventures/ibctest/v6 v6.0.0-20221005154709-b642157674bc
+	github.com/strangelove-ventures/ibctest/v6 v6.0.0-20221209152048-e8388a0b91fd
 	github.com/stretchr/testify v1.8.1
 	github.com/tendermint/tendermint v0.34.23
 	go.uber.org/zap v1.23.0
