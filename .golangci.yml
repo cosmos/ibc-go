@@ -19,7 +19,6 @@ linters:
     - ineffassign
     - misspell
     - nakedret
-    - prealloc
     - staticcheck
     - stylecheck
     - revive
