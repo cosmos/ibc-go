@@ -34,6 +34,19 @@ func (s *E2ETestSuite) QueryClientState(ctx context.Context, chain ibc.Chain, cl
 	return clientState, nil
 }
 
+// QueryClientStatus queries the status of the client by clientID
+func (s *E2ETestSuite) QueryClientStatus(ctx context.Context, chain ibc.Chain, clientID string) (string, error) {
+	queryClient := s.GetChainGRCPClients(chain).ClientQueryClient
+	res, err := queryClient.ClientStatus(ctx, &clienttypes.QueryClientStatusRequest{
+		ClientId: clientID,
+	})
+	if err != nil {
+		return "", err
+	}
+
+	return res.Status, nil
+}
+
 // QueryChannel queries the channel on a given chain for the provided portID and channelID
 func (s *E2ETestSuite) QueryChannel(ctx context.Context, chain ibc.Chain, portID, channelID string) (channeltypes.Channel, error) {
 	queryClient := s.GetChainGRCPClients(chain).ChannelQueryClient

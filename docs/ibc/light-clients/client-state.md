@@ -4,7 +4,7 @@ order: 2
 
 # Implementing the `ClientState` interface
 
-Learn how to implement the [`ClientState`](https://github.com/cosmos/ibc-go/blob/v6.0.0-rc1/modules/core/exported/client.go#L40) interface.
+Learn how to implement the [`ClientState`](https://github.com/cosmos/ibc-go/blob/v6.0.0/modules/core/exported/client.go#L40) interface.
 
 ## `ClientType` method
 
@@ -18,7 +18,7 @@ The format is created as follows: `ClientType-{N}` where `{N}` is the unique glo
 ## `Validate` method
 
 `Validate` should validate every client state field and should return an error if any value is invalid. The light client
-implementor is in charge of determining which checks are required. See the [tendermint light client implementation](https://github.com/cosmos/ibc-go/blob/v6.0.0-rc1/modules/light-clients/07-tendermint/types/client_state.go#L101)
+implementor is in charge of determining which checks are required. See the [tendermint light client implementation](https://github.com/cosmos/ibc-go/blob/v6.0.0/modules/light-clients/07-tendermint/types/client_state.go#L101)
 as a reference.
 
 ## `Status` method
@@ -30,14 +30,14 @@ as a reference.
 - An `Expired` status indicates that a client is not allowed to be used.
 - An `Unknown` status indicates that there was an error in determining the status of a client.
 
-All possible Status types can be found [here](https://github.com/cosmos/ibc-go/blob/v6.0.0-rc1/modules/core/exported/client.go#L26-L36).
+All possible Status types can be found [here](https://github.com/cosmos/ibc-go/blob/v6.0.0/modules/core/exported/client.go#L26-L36).
 
-This field is returned by the gRPC [QueryClientStatusResponse](https://github.com/cosmos/ibc-go/blob/v6.0.0-rc1/modules/core/02-client/types/query.pb.go#L665) endpoint.
+This field is returned by the gRPC [QueryClientStatusResponse](https://github.com/cosmos/ibc-go/blob/v6.0.0/modules/core/02-client/types/query.pb.go#L665) endpoint.
 
 ## `ZeroCustomFields` method
 
 `ZeroCustomFields` should return a copy of the light client with all client customizable fields with their zero value. It should not mutate the fields of the light client.
-This method is used when [scheduling upgrades](https://github.com/cosmos/ibc-go/blob/v6.0.0-rc1/modules/core/02-client/keeper/proposal.go#L89). Upgrades are used to upgrade chain specific fields. 
+This method is used when [scheduling upgrades](https://github.com/cosmos/ibc-go/blob/v6.0.0/modules/core/02-client/keeper/proposal.go#L89). Upgrades are used to upgrade chain specific fields. 
 In the tendermint case, this may be the chainID or the unbonding period.
 For more information about client upgrades see [the developer guide](../upgrades/developer-guide.md).
 
