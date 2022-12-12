@@ -15,7 +15,6 @@ func (suite *KeeperTestSuite) TestClientUpdateProposal() {
 		subject, substitute                       string
 		subjectClientState, substituteClientState exported.ClientState
 		content                                   govtypes.Content
-		err                                       error
 	)
 
 	testCases := []struct {
@@ -114,8 +113,10 @@ func (suite *KeeperTestSuite) TestClientUpdateProposal() {
 			substitute = substitutePath.EndpointA.ClientID
 
 			// update substitute twice
-			substitutePath.EndpointA.UpdateClient()
-			substitutePath.EndpointA.UpdateClient()
+			err := substitutePath.EndpointA.UpdateClient()
+			suite.Require().NoError(err)
+			err = substitutePath.EndpointA.UpdateClient()
+			suite.Require().NoError(err)
 			substituteClientState = suite.chainA.GetClientState(substitute)
 
 			tmClientState, ok := subjectClientState.(*ibctm.ClientState)
