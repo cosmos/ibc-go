@@ -62,9 +62,9 @@ The ClientState interface should eventually be trimmed down to something along t
 type ClientState interface {
     proto.Message
 
-	ClientType() string
-	GetLatestHeight() Height
-	Validate() error
+    ClientType() string
+    GetLatestHeight() Height
+    Validate() error
 
 	ZeroCustomFields() ClientState
 
