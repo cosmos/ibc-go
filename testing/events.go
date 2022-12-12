@@ -151,9 +151,9 @@ func AssertEvents(
 			hasEvents[event.Type] = true
 			suite.Require().Len(event.Attributes, len(expEvent))
 			for _, attr := range event.Attributes {
-				expValue, found := expEvent[string(attr.Key)]
+				expValue, found := expEvent[attr.Key]
 				suite.Require().True(found)
-				suite.Require().Equal(expValue, string(attr.Value))
+				suite.Require().Equal(expValue, attr.Value)
 			}
 		}
 	}
