@@ -33,13 +33,9 @@ the `ibc-transfer` `ModuleAccount` to mint and burn relayed tokens.
 > Note that from v7 onwards, all light clients have to be explicitly registered in a chain's app.go and follow the steps listed below. 
   This is in contrast to earlier versions of ibc-go when 07-tendermint and 06-solomachine were added out of the box.
 
-All light clients must be registered in a chain's app.go file, you must take the following steps:
+All light clients must be registered with `module.BasicManager` in a chain's app.go file.
 
-1. Create an implementation of `module.AppModuleBasic` for the light client. Register any required interfaces
-   in the `RegisterInterfaces` function, and ensure `Name` returns the module name. All other functions can be no-ops.
-   Alternatively, you can use an existing light client implementation such as `ibctm.AppModuleBasic{}`.
-2. Register the module with `module.BasicManager`.
-
+The following code example shows how to register the existing `ibctm.AppModuleBasic{}` light client implementation.
 
 ```go
 // app.go
