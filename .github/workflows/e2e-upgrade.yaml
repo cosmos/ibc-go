@@ -18,7 +18,13 @@ jobs:
             chain-binary: icad
             chain-a-tag: v0.3.5
             chain-b-tag: v0.3.5
-            chain-upgrade-tag: v0.4.2
+            chain-upgrade-tag: v0.4.0
+          - test: TestV6ToV7ChainUpgrade
+            chain-image: ghcr.io/cosmos/ibc-go-simd
+            chain-binary: simd
+            chain-a-tag: v6.0.0
+            chain-b-tag: v6.0.0
+            chain-upgrade-tag: v7.0.0
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v3
