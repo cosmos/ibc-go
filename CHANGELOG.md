@@ -65,6 +65,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Improvements
 
+* (tests) [\#2926](https://github.com/cosmos/ibc-go/pull/2926) Lint tests
 * (apps/transfer) [\#2643](https://github.com/cosmos/ibc-go/pull/2643) Add amount, denom, and memo to transfer event emission.
 * (core) [\#2746](https://github.com/cosmos/ibc-go/pull/2746) Allow proof height to be zero for all core IBC `sdk.Msg` types that contain proofs.
 * (light-clients/06-solomachine) [\#2746](https://github.com/cosmos/ibc-go/pull/2746) Discard proofHeight for solo machines and use the solo machine sequence instead.
