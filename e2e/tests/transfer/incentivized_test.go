@@ -7,7 +7,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/strangelove-ventures/ibctest/v6/ibc"
-	"github.com/strangelove-ventures/ibctest/v6/test"
+	test "github.com/strangelove-ventures/ibctest/v6/testutil"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/ibc-go/e2e/testvalues"
@@ -73,7 +73,7 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_AsyncSingleSender_Su
 	}
 
 	t.Run("send IBC transfer", func(t *testing.T) {
-		chainATx, err = chainA.SendIBCTransfer(ctx, channelA.ChannelID, chainAWallet.KeyName, walletAmount, nil)
+		chainATx, err = chainA.SendIBCTransfer(ctx, channelA.ChannelID, chainAWallet.KeyName, walletAmount, ibc.TransferOptions{})
 		s.Require().NoError(err)
 		s.Require().NoError(chainATx.Validate(), "chain-a ibc transfer tx is invalid")
 	})
@@ -417,7 +417,7 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_SingleSender_TimesOu
 	}
 
 	t.Run("Send IBC transfer", func(t *testing.T) {
-		chainATx, err = chainA.SendIBCTransfer(ctx, channelA.ChannelID, chainAWallet.KeyName, chainBWalletAmount, testvalues.ImmediatelyTimeout())
+		chainATx, err = chainA.SendIBCTransfer(ctx, channelA.ChannelID, chainAWallet.KeyName, chainBWalletAmount, ibc.TransferOptions{Timeout: testvalues.ImmediatelyTimeout()})
 		s.Require().NoError(err)
 		s.Require().NoError(chainATx.Validate(), "source ibc transfer tx is invalid")
 		time.Sleep(time.Nanosecond * 1) // want it to timeout immediately
@@ -516,7 +516,7 @@ func (s *IncentivizedTransferTestSuite) TestPayPacketFeeAsync_SingleSender_NoCou
 
 	t.Run("send IBC transfer", func(t *testing.T) {
 		var err error
-		chainATx, err = chainA.SendIBCTransfer(ctx, channelA.ChannelID, chainAWallet.KeyName, chainBWalletAmount, nil)
+		chainATx, err = chainA.SendIBCTransfer(ctx, channelA.ChannelID, chainAWallet.KeyName, chainBWalletAmount, ibc.TransferOptions{})
 		s.Require().NoError(err)
 		s.Require().NoError(chainATx.Validate(), "source ibc transfer tx is invalid")
 	})
@@ -636,7 +636,7 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_AsyncMultipleSenders
 	}
 
 	t.Run("send IBC transfer", func(t *testing.T) {
-		chainATx, err = chainA.SendIBCTransfer(ctx, channelA.ChannelID, chainAWallet1.KeyName, walletAmount1, nil)
+		chainATx, err = chainA.SendIBCTransfer(ctx, channelA.ChannelID, chainAWallet1.KeyName, walletAmount1, ibc.TransferOptions{})
 		s.Require().NoError(err)
 		s.Require().NoError(chainATx.Validate(), "chain-a ibc transfer tx is invalid")
 	})
