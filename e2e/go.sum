@@ -772,6 +772,7 @@ github.com/rakyll/statik v0.1.7/go.mod h1:AlZONWzMtEnMs7W4e/1LURLiI49pIMmp6V9Ung
 github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 h1:N/ElC8H3+5XpJzTSTfLsJV/mx9Q9g7kxmchpfZyxgzM=
 github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475/go.mod h1:bCqnVzQkZxMG4s8nGwiZ5l3QUCyqpo9Y+/ZMZ9VjZe4=
 github.com/regen-network/cosmos-proto v0.3.1 h1:rV7iM4SSFAagvy8RiyhiACbWEGotmqzywPxOvwMdxcg=
+github.com/regen-network/cosmos-proto v0.3.1/go.mod h1:jO0sVX6a1B36nmE8C9xBFXpNwWejXC7QqCOnH3O0+YM=
 github.com/regen-network/protobuf v1.3.3-alpha.regen.1 h1:OHEc+q5iIAXpqiqFKeLpu5NwTIkVXUs48vFMwzqpqY4=
 github.com/regen-network/protobuf v1.3.3-alpha.regen.1/go.mod h1:2DjTFR1HhMQhiWC5sZ4OhQ3+NtdbZ6oBDKQwq5Ou+FI=
 github.com/remyoudompheng/bigfft v0.0.0-20200410134404-eec4a21b6bb0 h1:OdAsTTz6OkFY5QxjkYwrChwuRruF69c169dPK26NUlk=
@@ -832,8 +833,10 @@ github.com/spf13/viper v1.14.0/go.mod h1:WT//axPky3FdvXHzGw33dNdXXXfFQqmEalje+eg
 github.com/status-im/keycard-go v0.0.0-20190316090335-8537d3370df4/go.mod h1:RZLeN1LMWmRsyYjvAu+I6Dm9QmlDaIIt+Y+4Kd7Tp+Q=
 github.com/strangelove-ventures/go-subkey v1.0.7 h1:cOP/Lajg3uxV/tvspu0m6+0Cu+DJgygkEAbx/s+f35I=
 github.com/strangelove-ventures/go-subkey v1.0.7/go.mod h1:E34izOIEm+sZ1YmYawYRquqBQWeZBjVB4pF7bMuhc1c=
-github.com/strangelove-ventures/ibctest/v6 v6.0.0-20221005154709-b642157674bc h1:IIyDsxY/Rxg1aEtUUUcSKWIdgTjjJwMH6B/JggvlYbA=
-github.com/strangelove-ventures/ibctest/v6 v6.0.0-20221005154709-b642157674bc/go.mod h1:Z4se9RL/mP5DbZ7kEGoDrjQJU06yEs5+Bznt41Uvi5o=
+github.com/strangelove-ventures/ibctest/v6 v6.0.0-20221202162429-9359b061fbe5 h1:nzNdAKDDCuhDYT+Rk9SjmLOKUmg6KEMnTHm/xoHXq6Q=
+github.com/strangelove-ventures/ibctest/v6 v6.0.0-20221202162429-9359b061fbe5/go.mod h1:l3Q2U/8aRyZrOqXp45nhxSjeXgBB+qROwu+L0vIJmUw=
+github.com/strangelove-ventures/ibctest/v6 v6.0.0-20221209152048-e8388a0b91fd h1:67pNLuMmq8L8BW8WShjtMoL0KFONLpOVYQxb2HY8IlQ=
+github.com/strangelove-ventures/ibctest/v6 v6.0.0-20221209152048-e8388a0b91fd/go.mod h1:l3Q2U/8aRyZrOqXp45nhxSjeXgBB+qROwu+L0vIJmUw=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/objx v0.1.1/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/objx v0.4.0/go.mod h1:YvHI0jy2hoMjB+UWwv71VJQ9isScKT/TqJzVSSt89Yw=
