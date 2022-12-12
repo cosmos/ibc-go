@@ -20,6 +20,6 @@ diversifier, and timestamp.
 
 ## Contents
 
-1. **[Concepts](01_concepts.md)**
-2. **[State](02_state.md)**
-3. **[State Transitions](03_state_transitions.md)**
+1. **[Concepts](./concepts.md)**
+2. **[State](./state.md)**
+3. **[State Transitions](./state_transitions.md)**
