@@ -3,42 +3,15 @@ package keeper_test
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	ibctesting "github.com/cosmos/ibc-go/v6/testing"
 
 	"github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 )
 
-func (suite *KeeperTestSuite) assertTransferEvents(
-	actualEvents sdk.Events,
-	coin sdk.Coin,
-	memo string,
-) {
-	hasEvent := false
-
-	expEvent := map[string]string{
-		sdk.AttributeKeySender:     suite.chainA.SenderAccount.GetAddress().String(),
-		types.AttributeKeyReceiver: suite.chainB.SenderAccount.GetAddress().String(),
-		types.AttributeKeyAmount:   coin.Amount.String(),
-		types.AttributeKeyDenom:    coin.Denom,
-		types.AttributeKeyMemo:     memo,
-	}
-
-	for _, event := range actualEvents {
-		if event.Type == types.EventTypeTransfer {
-			hasEvent = true
-			suite.Require().Len(event.Attributes, len(expEvent))
-			for _, attr := range event.Attributes {
-				expValue, found := expEvent[string(attr.Key)]
-				suite.Require().True(found)
-				suite.Require().Equal(expValue, string(attr.Value))
-			}
-		}
-	}
-
-	suite.Require().True(hasEvent, "event: %s was not found in events", types.EventTypeTransfer)
-}
-
 func (suite *KeeperTestSuite) TestMsgTransfer() {
-	var msg *types.MsgTransfer
+	var (
+		msg *types.MsgTransfer
+	)
 
 	testCases := []struct {
 		name     string
@@ -127,18 +100,26 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 			ctx := suite.chainA.GetContext()
 			res, err := suite.chainA.GetSimApp().TransferKeeper.Transfer(sdk.WrapSDKContext(ctx), msg)
 
+			// Verify events
+			events := ctx.EventManager().Events()
+			expEvents := ibctesting.EventsMap{
+				"ibc_transfer": {
+					"sender":   suite.chainA.SenderAccount.GetAddress().String(),
+					"receiver": suite.chainB.SenderAccount.GetAddress().String(),
+					"amount":   coin.Amount.String(),
+					"denom":    coin.Denom,
+					"memo":     "memo",
+				},
+			}
+
 			if tc.expPass {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
 				suite.Require().NotEqual(res.Sequence, uint64(0))
-
-				events := ctx.EventManager().Events()
-				suite.assertTransferEvents(events, coin, "memo")
+				ibctesting.AssertEvents(&suite.Suite, expEvents, events)
 			} else {
 				suite.Require().Error(err)
 				suite.Require().Nil(res)
-
-				events := ctx.EventManager().Events()
 				suite.Require().Len(events, 0)
 			}
 		})
