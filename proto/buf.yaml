@@ -21,5 +21,3 @@ lint:
     - SERVICE_SUFFIX
     - PACKAGE_VERSION_SUFFIX
     - RPC_REQUEST_STANDARD_NAME
-  ignore:
-    - proofs.proto # TODO: remove this when ics23 is linted and can be obtained via buf mod
