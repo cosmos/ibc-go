@@ -80,7 +80,8 @@ func (suite *TypesTestSuite) SetupTest() {
 	storeKey := storetypes.NewKVStoreKey("iavlStoreKey")
 
 	store.MountStoreWithDB(storeKey, storetypes.StoreTypeIAVL, nil)
-	store.LoadVersion(0)
+	err := store.LoadVersion(0)
+	suite.Require().NoError(err)
 	iavlStore := store.GetCommitStore(storeKey).(*iavl.Store)
 
 	iavlStore.Set([]byte("KEY"), []byte("VALUE"))
