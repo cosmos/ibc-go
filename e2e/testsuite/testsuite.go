@@ -20,8 +20,8 @@ import (
 	"github.com/strangelove-ventures/ibctest/v6"
 	"github.com/strangelove-ventures/ibctest/v6/chain/cosmos"
 	"github.com/strangelove-ventures/ibctest/v6/ibc"
-	"github.com/strangelove-ventures/ibctest/v6/test"
 	"github.com/strangelove-ventures/ibctest/v6/testreporter"
+	test "github.com/strangelove-ventures/ibctest/v6/testutil"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest"
@@ -76,8 +76,8 @@ type GRPCClients struct {
 	InterTxQueryClient intertxtypes.QueryClient
 
 	// SDK query clients
-	GovQueryClient   govtypesv1beta1.QueryClient
-	GovQueryClientV1 govtypesv1.QueryClient
+	GovQueryClient    govtypesv1beta1.QueryClient
+	GovQueryClientV1  govtypesv1.QueryClient
 	GroupsQueryClient grouptypes.QueryClient
 	ParamsQueryClient paramsproposaltypes.QueryClient
 	AuthQueryClient   authtypes.QueryClient
