@@ -430,6 +430,7 @@ func (suite *KeeperTestSuite) TestUpdateClientEventEmission() {
 		path.EndpointA.ClientID, header,
 		suite.chainA.SenderAccount.GetAddress().String(),
 	)
+	suite.Require().NoError(err)
 
 	result, err := suite.chainA.SendMsgs(msg)
 	suite.Require().NoError(err)
