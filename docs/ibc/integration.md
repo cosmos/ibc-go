@@ -30,7 +30,10 @@ the `ibc-transfer` `ModuleAccount` to mint and burn relayed tokens.
 
 ### Integrating Light Clients
 
-In order to integrate an external light client, you must take the following steps:
+> Note that from v7 onwards, all light clients have to be explicitly registered in a chain's app.go and follow the steps listed below. 
+  This is in contrast to earlier versions of ibc-go when 07-tendermint and 06-solomachine were added out of the box.
+
+All light clients must be registered in a chain's app.go file, you must take the following steps:
 
 1. Create an implementation of `module.AppModuleBasic` for the light client. Register any required interfaces
    in the `RegisterInterfaces` function, and ensure `Name` returns the module name. All other functions can be no-ops.
