@@ -166,7 +166,7 @@ func newDefaultSimappConfig(cc ChainConfig, name, chainID, denom string) ibc.Cha
 		},
 		Bin:            cc.Binary,
 		Bech32Prefix:   "cosmos",
-		CoinType:       "118",
+		CoinType:       fmt.Sprint(sdk.GetConfig().GetCoinType()),
 		Denom:          denom,
 		GasPrices:      fmt.Sprintf("0.00%s", denom),
 		GasAdjustment:  1.3,
