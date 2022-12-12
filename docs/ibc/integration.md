@@ -38,6 +38,13 @@ All light clients must be registered with `module.BasicManager` in a chain's app
 The following code example shows how to register the existing `ibctm.AppModuleBasic{}` light client implementation.
 
 ```go
+
+import (
+	...
+    ibctm "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint"
+	...
+)
+
 // app.go
 var (
 
