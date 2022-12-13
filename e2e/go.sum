@@ -530,8 +530,6 @@ github.com/json-iterator/go v1.1.12/go.mod h1:e30LSqwooZae/UwlEbR2852Gd8hjQvJoHm
 github.com/jstemmer/go-junit-report v0.0.0-20190106144839-af01ea7f8024/go.mod h1:6v2b51hI/fHJwM22ozAgKL4VKDeJcHhJFhtBdhmNjmU=
 github.com/jstemmer/go-junit-report v0.9.1/go.mod h1:Brl9GWCQeLvo8nXZwPNNblvFj/XSXhF0NWZEnDohbsk=
 github.com/jtolds/gls v4.20.0+incompatible/go.mod h1:QJZ7F/aHp+rZTRtaJ1ow/lLfFfVYBRgL+9YlvaHOwJU=
-github.com/julienrbrt/ibctest/v6 v6.0.0-20221212124331-0930299cd224 h1:EKSkAmJiUXDn1mg7pjiKfUJB2Pwa6mJ9iRxlMK/EhGQ=
-github.com/julienrbrt/ibctest/v6 v6.0.0-20221212124331-0930299cd224/go.mod h1:j7dpUQU9UyGURIIVTqUyKfaAZi4rmBDe3lsqqFmyj1g=
 github.com/julienschmidt/httprouter v1.2.0/go.mod h1:SYymIcj16QtmaHHD7aYtjjsJG7VTCxuUUipMqKk8s4w=
 github.com/julienschmidt/httprouter v1.3.0/go.mod h1:JR6WtHb+2LUe8TCKY3cZOxFyyO8IZAc4RVcycCCAKdM=
 github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51 h1:Z9n2FFNUXsshfwJMBgNA0RU6/i7WVaAegv3PtuIHPMs=
@@ -825,6 +823,8 @@ github.com/spf13/viper v1.14.0 h1:Rg7d3Lo706X9tHsJMUjdiwMpHB7W8WnSVOssIY+JElU=
 github.com/spf13/viper v1.14.0/go.mod h1:WT//axPky3FdvXHzGw33dNdXXXfFQqmEalje+egj8As=
 github.com/strangelove-ventures/go-subkey v1.0.7 h1:cOP/Lajg3uxV/tvspu0m6+0Cu+DJgygkEAbx/s+f35I=
 github.com/strangelove-ventures/go-subkey v1.0.7/go.mod h1:E34izOIEm+sZ1YmYawYRquqBQWeZBjVB4pF7bMuhc1c=
+github.com/strangelove-ventures/ibctest/v6 v6.0.0-20221213164329-65302bcc9e4c h1:7kM8M43xycHug1c4RURLsW4oXrvlS2BIqUfZ11wcfcA=
+github.com/strangelove-ventures/ibctest/v6 v6.0.0-20221213164329-65302bcc9e4c/go.mod h1:DlJuU5BZ9Qd8H8996eIegY9oPw9KUEZvzFJiJO8agg0=
 github.com/streadway/amqp v0.0.0-20190404075320-75d898a42a94/go.mod h1:AZpEONHx3DKn8O/DFsRAY58/XVQiIPMTMB1SddzLXVw=
 github.com/streadway/amqp v0.0.0-20190827072141-edfb9018d271/go.mod h1:AZpEONHx3DKn8O/DFsRAY58/XVQiIPMTMB1SddzLXVw=
 github.com/streadway/handy v0.0.0-20190108123426-d5acb3125c2a/go.mod h1:qNTQ5P5JnDBl6z3cMAg/SywNDC5ABu5ApDIw6lUbRmI=

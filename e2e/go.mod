@@ -8,7 +8,7 @@ require (
 	github.com/cosmos/ibc-go/v6 v6.0.0
 	github.com/cosmos/interchain-accounts v0.4.0
 	github.com/docker/docker v20.10.19+incompatible
-	github.com/strangelove-ventures/ibctest/v6 v6.0.0-20221209152048-e8388a0b91fd
+	github.com/strangelove-ventures/ibctest/v6 v6.0.0-20221213164329-65302bcc9e4c
 	github.com/stretchr/testify v1.8.1
 	github.com/tendermint/tendermint v0.37.0-rc2
 	go.uber.org/zap v1.23.0
@@ -237,6 +237,6 @@ replace github.com/cosmos/ibc-go/v6 => ../
 
 replace (
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
-	// ibctest 0.47 @ https://github.com/strangelove-ventures/ibctest/pull/337
-	github.com/strangelove-ventures/ibctest/v6 => github.com/julienrbrt/ibctest/v6 v6.0.0-20221212124331-0930299cd224
+	// ibctest 0.47 @ https://github.com/strangelove-ventures/ibctest/pull/359
+	github.com/strangelove-ventures/ibctest/v6 => github.com/strangelove-ventures/ibctest/v6 v6.0.0-20221213164329-65302bcc9e4c
 )
