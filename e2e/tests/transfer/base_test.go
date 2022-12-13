@@ -11,6 +11,7 @@ import (
 	test "github.com/strangelove-ventures/ibctest/v6/testutil"
 	"github.com/stretchr/testify/suite"
 
+	"github.com/cosmos/ibc-go/e2e/semverutil"
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
@@ -379,7 +380,7 @@ func (s *TransferTestSuite) TestReceiveEnabledParam() {
 }
 
 // memoFeatureReleases represents the releases the memo field was released in.
-var memoFeatureReleases = testsuite.FeatureReleases{
+var memoFeatureReleases = semverutil.FeatureReleases{
 	MajorVersion: "v6",
 	MinorVersions: []string{
 		"v2.5",
