@@ -13,7 +13,6 @@ import (
 // details if any.
 func EmitAcknowledgementEvent(ctx sdk.Context, packet exported.PacketI, ack exported.Acknowledgement, err error) {
 	attributes := []sdk.Attribute{
-		sdk.NewAttribute(sdk.AttributeKeyModule, icatypes.ModuleName),
 		sdk.NewAttribute(icatypes.AttributeKeyHostChannelID, packet.GetDestChannel()),
 		sdk.NewAttribute(icatypes.AttributeKeyAckSuccess, fmt.Sprintf("%t", ack.Success())),
 	}
