@@ -21,7 +21,7 @@ Add the following to the function call to the upgrade handler in `app/app.go`, t
 ```go
 import (
     // ...
-    ibctm "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint"
+    ibctmmigrations "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint/migrations"
 )
 
 // ...
@@ -30,7 +30,10 @@ app.UpgradeKeeper.SetUpgradeHandler(
     upgradeName,
     func(ctx sdk.Context, _ upgradetypes.Plan, _ module.VersionMap) (module.VersionMap, error) {
         // prune expired tendermint consensus states to save storage space
-        ibctm.PruneTendermintConsensusStates(ctx, app.Codec, appCodec, keys[ibchost.StoreKey])
+        _, err := ibctmmigrations.PruneExpiredConsensusStates(ctx, app.Codec, app.IBCKeeper.ClientKeeper)
+        if err != nil {
+            return nil, err
+        }
 
         return app.mm.RunMigrations(ctx, app.configurator, fromVM)
     },
@@ -117,7 +120,37 @@ The `CheckMisbehaviourAndUpdateState` function has been removed from `ClientStat
 
 The function `GetTimestampAtHeight` has been added to the `ClientState` interface. It should return the timestamp for a consensus state associated with the provided height.
 
-A zero proof height is now allowed by core IBC and may be passed into `VerifyMembership` and `VerifyNonMembership`. Light clients are responsible for returning an error if a zero proof height is invalid behaviour. 
+Prior to ibc-go/v7 the `ClientState` interface defined a method for each data type which was being verified in the counterparty state store.
+The state verification functions for all IBC data types have been consolidated into two generic methods, `VerifyMembership` and `VerifyNonMembership`.
+Both are expected to be provided with a standardised key path, `exported.Path`, as defined in [ICS 24 host requirements](https://github.com/cosmos/ibc/tree/main/spec/core/ics-024-host-requirements). Membership verification requires callers to provide the marshalled value `[]byte`. Delay period values should be zero for non-packet processing verification. A zero proof height is now allowed by core IBC and may be passed into `VerifyMembership` and `VerifyNonMembership`. Light clients are responsible for returning an error if a zero proof height is invalid behaviour. 
+
+See below for an example of how ibc-go now performs channel state verification.
+
+```go
+merklePath := commitmenttypes.NewMerklePath(host.ChannelPath(portID, channelID))
+merklePath, err := commitmenttypes.ApplyPrefix(connection.GetCounterparty().GetPrefix(), merklePath)
+if err != nil {
+    return err
+}
+
+channelEnd, ok := channel.(channeltypes.Channel)
+if !ok {
+    return sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "invalid channel type %T", channel)
+}
+
+bz, err := k.cdc.Marshal(&channelEnd)
+if err != nil {
+    return err
+}
+
+if err := clientState.VerifyMembership(
+    ctx, clientStore, k.cdc, height,
+    0, 0, // skip delay period checks for non-packet processing verification
+    proof, merklePath, bz,
+); err != nil {
+    return sdkerrors.Wrapf(err, "failed channel state verification for client (%s)", clientID)
+}
+```
 
 ### `Header` and `Misbehaviour`
 

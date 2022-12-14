@@ -29,7 +29,7 @@ on:
         default: main
         options:
           - main
-          - v6.0.0-beta1
+          - v6.0.0
           - v5.1.0
           - v5.0.1
           - v4.2.0
@@ -39,13 +39,13 @@ on:
           - v2.5.0
           - v2.4.2
       chain-b-tag:
-        default: v6.0.0-beta1
+        default: v6.0.0
         description: 'The tag to use for chain B'
         required: true
         type: choice
         options:
           - main
-          - v6.0.0-beta1
+          - v6.0.0
           - v5.1.0
           - v5.0.1
           - v4.2.0

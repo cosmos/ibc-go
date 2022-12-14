@@ -5,10 +5,10 @@ import (
 	"testing"
 	"time"
 
-	ibctest "github.com/strangelove-ventures/ibctest/v6"
+	"github.com/strangelove-ventures/ibctest/v6"
 	"github.com/strangelove-ventures/ibctest/v6/chain/cosmos"
 	"github.com/strangelove-ventures/ibctest/v6/ibc"
-	"github.com/strangelove-ventures/ibctest/v6/test"
+	test "github.com/strangelove-ventures/ibctest/v6/testutil"
 	"github.com/stretchr/testify/suite"
 	"golang.org/x/mod/semver"
 
@@ -406,6 +406,9 @@ func (s *InterchainAccountsTestSuite) TestMsgSubmitTx_SuccessfulTransfer_AfterRe
 
 		s.AssertValidTxResponse(resp)
 		s.Require().NoError(err)
+
+		// time for the packet to be relayed
+		s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA, chainB))
 	})
 
 	t.Run("verify tokens transferred", func(t *testing.T) {
