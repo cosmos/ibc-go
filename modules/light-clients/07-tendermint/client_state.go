@@ -188,8 +188,8 @@ func (cs ClientState) ZeroCustomFields() exported.ClientState {
 	}
 }
 
-// Initialize checks that the initial consensus state is a 07-tendermint consensus state and
-// sets the client state, consensus state and associated metatdata in the provided client store.
+// Initialize checks that the initial consensus state is an 07-tendermint consensus state and
+// sets the client state, consensus state and associated metadata in the provided client store.
 func (cs ClientState) Initialize(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, consState exported.ConsensusState) error {
 	consensusState, ok := consState.(*ConsensusState)
 	if !ok {
