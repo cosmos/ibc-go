@@ -77,12 +77,16 @@ func (cs ClientState) ZeroCustomFields() exported.ClientState {
 	panic("ZeroCustomFields is not implemented as the solo machine implementation does not support upgrades.")
 }
 
-// Initialize will check that initial consensus state is equal to the latest consensus state of the initial client.
-func (cs ClientState) Initialize(_ sdk.Context, _ codec.BinaryCodec, _ sdk.KVStore, consState exported.ConsensusState) error {
+// Initialize checks that the initial consensus state is equal to the latest consensus state of the initial client and
+// set the client state in the provided client store.
+func (cs ClientState) Initialize(_ sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, consState exported.ConsensusState) error {
 	if !reflect.DeepEqual(cs.ConsensusState, consState) {
 		return sdkerrors.Wrapf(clienttypes.ErrInvalidConsensus, "consensus state in initial client does not equal initial consensus state. expected: %s, got: %s",
 			cs.ConsensusState, consState)
 	}
+
+	setClientState(clientStore, cdc, &cs)
+
 	return nil
 }
 
