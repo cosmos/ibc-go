@@ -12,7 +12,7 @@ import (
 
 // CreateClient generates a new client identifier and isolated prefix store for the provided client state.
 // The client state is responsible for setting any client-specific data in the store via the Initialize method.
-// This includes the client state, initial consensus state and associated metadata.
+// This includes the client state, initial consensus state and any associated metadata.
 func (k Keeper) CreateClient(
 	ctx sdk.Context, clientState exported.ClientState, consensusState exported.ConsensusState,
 ) (string, error) {
