@@ -189,7 +189,6 @@ func (im IBCModule) OnRecvPacket(
 	}
 
 	eventAttributes := []sdk.Attribute{
-		sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
 		sdk.NewAttribute(sdk.AttributeKeySender, data.Sender),
 		sdk.NewAttribute(types.AttributeKeyReceiver, data.Receiver),
 		sdk.NewAttribute(types.AttributeKeyDenom, data.Denom),
@@ -236,7 +235,6 @@ func (im IBCModule) OnAcknowledgementPacket(
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypePacket,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
 			sdk.NewAttribute(sdk.AttributeKeySender, data.Sender),
 			sdk.NewAttribute(types.AttributeKeyReceiver, data.Receiver),
 			sdk.NewAttribute(types.AttributeKeyDenom, data.Denom),
@@ -284,7 +282,6 @@ func (im IBCModule) OnTimeoutPacket(
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeTimeout,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
 			sdk.NewAttribute(types.AttributeKeyRefundReceiver, data.Sender),
 			sdk.NewAttribute(types.AttributeKeyRefundDenom, data.Denom),
 			sdk.NewAttribute(types.AttributeKeyRefundAmount, data.Amount),

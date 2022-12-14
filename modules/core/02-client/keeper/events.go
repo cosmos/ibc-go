@@ -23,10 +23,6 @@ func EmitCreateClientEvent(ctx sdk.Context, clientID string, clientState exporte
 			sdk.NewAttribute(types.AttributeKeyClientType, clientState.ClientType()),
 			sdk.NewAttribute(types.AttributeKeyConsensusHeight, clientState.GetLatestHeight().String()),
 		),
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-		),
 	})
 }
 
@@ -58,10 +54,6 @@ func EmitUpdateClientEvent(ctx sdk.Context, clientID string, clientType string, 
 			sdk.NewAttribute(types.AttributeKeyConsensusHeights, strings.Join(consensusHeightsAttr, ",")),
 			sdk.NewAttribute(types.AttributeKeyHeader, clientMsgStr),
 		),
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-		),
 	})
 }
 
@@ -73,10 +65,6 @@ func EmitUpgradeClientEvent(ctx sdk.Context, clientID string, clientState export
 			sdk.NewAttribute(types.AttributeKeyClientID, clientID),
 			sdk.NewAttribute(types.AttributeKeyClientType, clientState.ClientType()),
 			sdk.NewAttribute(types.AttributeKeyConsensusHeight, clientState.GetLatestHeight().String()),
-		),
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
 		),
 	})
 }
