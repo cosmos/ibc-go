@@ -20,8 +20,8 @@ import (
 	"github.com/strangelove-ventures/ibctest/v6"
 	"github.com/strangelove-ventures/ibctest/v6/chain/cosmos"
 	"github.com/strangelove-ventures/ibctest/v6/ibc"
-	"github.com/strangelove-ventures/ibctest/v6/test"
 	"github.com/strangelove-ventures/ibctest/v6/testreporter"
+	test "github.com/strangelove-ventures/ibctest/v6/testutil"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest"
@@ -76,8 +76,8 @@ type GRPCClients struct {
 	InterTxQueryClient intertxtypes.QueryClient
 
 	// SDK query clients
-	GovQueryClient   govtypesv1beta1.QueryClient
-	GovQueryClientV1 govtypesv1.QueryClient
+	GovQueryClient    govtypesv1beta1.QueryClient
+	GovQueryClientV1  govtypesv1.QueryClient
 	GroupsQueryClient grouptypes.QueryClient
 	ParamsQueryClient paramsproposaltypes.QueryClient
 	AuthQueryClient   authtypes.QueryClient
@@ -167,8 +167,8 @@ func (s *E2ETestSuite) SetupChainsRelayerAndChannel(ctx context.Context, channel
 		time.Sleep(time.Second * 10)
 	}
 
-	s.initGRPCClients(chainA)
-	s.initGRPCClients(chainB)
+	s.InitGRPCClients(chainA)
+	s.InitGRPCClients(chainB)
 
 	chainAChannels, err := r.GetChannels(ctx, eRep, chainA.Config().ChainID)
 	s.Require().NoError(err)
@@ -361,9 +361,9 @@ func (s *E2ETestSuite) GetChainGRCPClients(chain ibc.Chain) GRPCClients {
 	return cs
 }
 
-// initGRPCClients establishes GRPC clients with the given chain.
+// InitGRPCClients establishes GRPC clients with the given chain.
 // The created GRPCClients can be retrieved with GetChainGRCPClients.
-func (s *E2ETestSuite) initGRPCClients(chain *cosmos.CosmosChain) {
+func (s *E2ETestSuite) InitGRPCClients(chain *cosmos.CosmosChain) {
 	// Create a connection to the gRPC server.
 	grpcConn, err := grpc.Dial(
 		chain.GetHostGRPCAddress(),
