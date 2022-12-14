@@ -49,7 +49,7 @@ This value is used to facilitate timeouts by checking the packet timeout timesta
 ## `Initialize` method
 
 Clients must validate the initial consensus state, and set the initial client state and consensus state in the provided client store.
-Clients may also store any client-specific metadata necessary.
+Clients may also store any necessary client-specific metadata.
 
 `Initialize` is called when a [client is created](https://github.com/cosmos/ibc-go/blob/main/modules/core/02-client/keeper/client.go#L32).
 
