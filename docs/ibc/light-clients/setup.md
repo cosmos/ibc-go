@@ -4,15 +4,16 @@ order: 4
 
 # Setup
 
-Learn how to confgure light client modules and create clients using core IBC and the `02-client` submodule. {synopsis}
+Learn how to configure light client modules and create clients using core IBC and the `02-client` submodule. {synopsis}
 
 ## Configuring a light client module
 
 An IBC light client module must implement the [`AppModuleBasic`](https://github.com/cosmos/cosmos-sdk/blob/main/types/module/module.go#L50) interface in order to register its concrete types against the core IBC interfaces defined in `modules/core/exported`. This is accomplished via the `RegisterInterfaces` method which provides the light client module with the opportunity to register codec types using the chain's `InterfaceRegistery`. Please refer to the [`07-tendermint` codec registration](https://github.com/cosmos/ibc-go/blob/7ae97694af558db2924e66ce4ce6527c03da89a5/modules/light-clients/07-tendermint/codec.go#L11).
 
-The `AppModuleBasic` interface may also be leveraged to install custom CLI handlers for light client module users.
+The `AppModuleBasic` interface may also be leveraged to install custom CLI handlers for light client module users. Light client modules can safely no-op for interface methods which it does not wish to implement.
 
-<!-- TODO: link to how to configure in app.go -->
+Please refer to the [core IBC documentation](../integration.md#integrating-light-clients) for how to configure additional light client modules alongside `07-tendermint` in `app.go`.
+
 See below for an example of the `07-tendermint` implementation of `AppModuleBasic`.
 
 ```go
@@ -64,6 +65,13 @@ func (AppModuleBasic) GetQueryCmd() *cobra.Command {
 ## Creating clients
 
 A client is created by executing a new `MsgCreateClient` transaction composed with a valid `ClientState` and initial `ConsensusState` encoded as protobuf `Any`s.
+Generally, this is normally done by an off-chain process known as an [IBC relayer](https://github.com/cosmos/ibc/tree/main/spec/relayer/ics-018-relayer-algorithms) however, this is not a strict requirement.
+
+See below for a list of IBC relayer implementations:
+
+- [cosmos/relayer](https://github.com/cosmos/relayer)
+- [informalsystems/hermes](https://github.com/informalsystems/hermes)
+- [confio/ts-relayer](https://github.com/confio/ts-relayer)
 
 Stateless checks are performed within the [`ValidateBasic`](https://github.com/cosmos/ibc-go/blob/7ae97694af/modules/core/02-client/types/msgs.go#L48) method of `MsgCreateClient`.
 
