@@ -1,0 +1,38 @@
+<!--
+order: 5
+-->
+
+# Handling Updates and Misbehaviour
+
+The functions for handling updates to a light clients and evidence of misbehaviour are all found in the [`ClientState`](https://github.com/cosmos/ibc-go/blob/v6.0.0/modules/core/exported/client.go#L40) interface, and will be discussed below.
+
+It is important to note that `Misbehaviour` in this particular context is referring to misbehaviour on the chain level intended to fool the light client. This will be defined by each light client. For example, the Tendermint light client [defines `Misbehaviour`](https://github.com/cosmos/ibc-go/blob/main/modules/light-clients/07-tendermint/misbehaviour.go) as a situation where two conflicting `Headers` have been submitted to update a client's `ConsensusState` within the same trusting period.
+
+## VerifyClientMessage
+
+`VerifyClientMessage` must verify a `ClientMessage`. A `ClientMessage` could be a `Header`, `Misbehaviour`, or batch update.
+
+It must handle each type of `ClientMessage` appropriately. Calls to `CheckForMisbehaviour`, `UpdateState`, and `UpdateStateOnMisbehaviour` will assume that the content of the `ClientMessage` has been verified and can be trusted. An error should be returned if the `ClientMessage` fails to verify.
+
+For an example of a `VerifyClientMessage` implementation, please check the [Tendermint light client](https://github.com/cosmos/ibc-go/blob/main/modules/light-clients/07-tendermint/update.go#L20)
+
+## CheckForMisbehaviour
+
+Checks for evidence of a misbehaviour in `Header` or `Misbehaviour` type. It assumes the `ClientMessage` has already been verified.
+
+For an example of a `CheckForMisbehaviour` implementation, please check the [Tendermint light client](https://github.com/cosmos/ibc-go/blob/main/modules/light-clients/07-tendermint/misbehaviour_handle.go#L18)
+
+## UpdateStateOnMisbehaviour 
+
+`UpdateStateOnMisbehaviour` should perform appropriate state changes on a client state given that misbehaviour has been detected and verified. This method should only be called when misbehaviour is detected, as it does not perform any misbehaviour checks.
+
+For an example of a `UpdateStateOnMisbehaviour` implementation, please check the [Tendermint light client](https://github.com/cosmos/ibc-go/blob/main/modules/light-clients/07-tendermint/update.go#L197)
+
+## UpdateState
+
+`UpdateState` updates and stores as necessary any associated information for an IBC client, such as the `ClientState` and corresponding `ConsensusState`. It can also no-op on duplicate updates.
+
+It assumes the `ClientMessage` has already been verified.
+
+For an example of a `UpdateState` implementation, please check the [Tendermint light client](https://github.com/cosmos/ibc-go/blob/main/modules/light-clients/07-tendermint/update.go#L131)
+
