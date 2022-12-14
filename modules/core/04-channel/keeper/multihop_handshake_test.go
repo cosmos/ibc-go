@@ -79,7 +79,7 @@ func (suite *KeeperTestSuite) TestChanOpenTryMultihop() {
 			suite.Require().NoError(err)
 
 			// fmt.Printf("portid=%s channelid=%s\n", counterparty.PortId, counterparty.ChannelId)
-			// fmt.Printf("channel: %#v\n", *resp.Channel)
+			fmt.Printf("channel: %#v\n", *resp.Channel)
 			// fmt.Printf("expectedVal for proof generation: %x\n", expectedVal)
 
 			// generate multihop proof given keypath and value

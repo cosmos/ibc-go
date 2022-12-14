@@ -87,6 +87,7 @@ func (t *proofTestSuite) TestMultiHopProofNegative() {
 }
 
 // Test that A's consensus state can be verified by chain Z
+
 func (t *proofTestSuite) TestMultiConsensusProof() {
 	_, paths := ibctesting.CreateLinkedChains(&t.Suite, 5)
 
@@ -104,6 +105,7 @@ func (t *proofTestSuite) TestMultiConsensusProof() {
 
 // Given chain x-y-z, test that x's consensus state can be verified by y at y's height on z.
 // This test is how single-hop-ibc verifies various ibc constructs, eg. clients, connections, channels, packets, etc.
+
 func (t *proofTestSuite) TestClientStateProof() {
 	_, paths := ibctesting.CreateLinkedChains(&t.Suite, 3)
 
@@ -154,6 +156,7 @@ func (t *proofTestSuite) TestClientStateProof() {
 // TestGrandpaConsStateProof verifies that G's consensus state on P is proven by P's consensus state on S, or
 // consPS.Verify(consGP), `heightPS` is the height of P's consensus state on S,
 // `rootPS` is the merkle root of P's consensus state at heightSP on S.
+
 func (t *proofTestSuite) TestGrandpaConsStateProof() {
 	// Create N chains and N-1 Paths like a linked list
 	N := 5

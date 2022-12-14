@@ -18,6 +18,7 @@ import (
 //
 // The first proof can be either a membership proof or a non-membership proof depending on if the key exists on the
 // source chain.
+// TODO: pass in proof height of key/value pair on A
 func GenerateMultiHopProof(paths LinkedPaths, keyPathToProve []byte, expectedVal []byte) (*channeltypes.MsgMultihopProofs, error) {
 	if len(keyPathToProve) == 0 {
 		panic("path cannot be empty")
@@ -104,11 +105,14 @@ func GenerateMultiHopConsensusProof(paths []*Path) ([]*channeltypes.MultihopProo
 	// iterate all but the last path
 	for i := 0; i < len(paths)-1; i++ {
 		path, nextPath := paths[i], paths[i+1]
-		// self is where the proof is queried and generated
-		self := path.EndpointB
 
-		heightAB := self.GetClientState().GetLatestHeight()
-		heightBC := nextPath.EndpointB.GetClientState().GetLatestHeight()
+		self := path.EndpointB // self is where the proof is queried and generated
+		next := nextPath.EndpointB
+
+		heightAB := self.GetClientState().GetLatestHeight() // height of A on B
+		heightBC := next.GetClientState().GetLatestHeight() // height of B on C
+
+		// consensus state of A on B at height AB which is the height of A's client state on B
 		consStateAB, found := self.Chain.GetConsensusState(self.ClientID, heightAB)
 		if !found {
 			return nil, nil, fmt.Errorf(
@@ -122,6 +126,8 @@ func GenerateMultiHopConsensusProof(paths []*Path) ([]*channeltypes.MultihopProo
 		if err != nil {
 			return nil, nil, fmt.Errorf("failed to get consensus state prefix at height %d and revision %d: %w", heightAB.GetRevisionHeight(), heightAB.GetRevisionHeight(), err)
 		}
+
+		// proof of A's consensus state (heightAB) on B at height BC
 		consensusProof, _ := GetConsStateProof(self, heightBC, heightAB, self.ClientID)
 
 		var consensusStateMerkleProof commitmenttypes.MerkleProof
@@ -137,7 +143,7 @@ func GenerateMultiHopConsensusProof(paths []*Path) ([]*channeltypes.MultihopProo
 		// ensure consStateAB is verified by consStateBC, where self is chain B
 		if err := consensusStateMerkleProof.VerifyMembership(
 			commitmenttypes.GetSDKSpecs(),
-			nextPath.EndpointB.GetConsensusState(heightBC).GetRoot(),
+			next.GetConsensusState(heightBC).GetRoot(),
 			keyPrefixedConsAB,
 			value,
 		); err != nil {
@@ -183,19 +189,19 @@ func GenerateMultiHopConsensusProof(paths []*Path) ([]*channeltypes.MultihopProo
 		// ensure consStateAB is verified by consStateBC, where self is chain B
 		if err := connectionMerkleProof.VerifyMembership(
 			commitmenttypes.GetSDKSpecs(),
-			nextPath.EndpointB.GetConsensusState(heightBC).GetRoot(),
+			next.GetConsensusState(heightBC).GetRoot(),
 			connectionKey,
 			value,
 		); err != nil {
 			return nil, nil, fmt.Errorf(
 				"failed to verify connection proof of [%s] on [%s] with [%s].ConnectionEnd on [%s]: %w\nconsider update [%s]'s client on [%s]",
-				self.Counterparty.Chain.ChainID,
 				self.Chain.ChainID,
 				self.Chain.ChainID,
-				nextPath.EndpointB.Chain.ChainID,
+				self.Chain.ChainID,
+				next.Chain.ChainID,
 				err,
 				self.Chain.ChainID,
-				nextPath.EndpointB.Chain.ChainID,
+				next.Chain.ChainID,
 			)
 		}
 
@@ -349,8 +355,8 @@ func GetConnectionProof(
 	selfHeight exported.Height,
 	connectionID string,
 ) ([]byte, exported.Height) {
-	consensusKey := host.ConnectionKey(connectionID)
-	return self.Chain.QueryProofAtHeight(consensusKey, int64(selfHeight.GetRevisionHeight()))
+	connectionKey := host.ConnectionKey(connectionID)
+	return self.Chain.QueryProofAtHeight(connectionKey, int64(selfHeight.GetRevisionHeight()))
 }
 
 // GetConsensusStatePrefix returns the merkle prefix of consensus state of self's counterparty chain at height `consensusHeight` stored on self.

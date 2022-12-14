@@ -50,7 +50,7 @@ func VerifyMultiHopConsensusStateProof(
 			commitmenttypes.GetSDKSpecs(),
 			consensusState.GetRoot(),
 			*connectionProof.PrefixedKey,
-			connectionProof.Value,
+			connectionProof.Value, // this should be from connectionHops
 		); err != nil {
 			return fmt.Errorf("failed to verify proof: %w", err)
 		}
@@ -96,7 +96,7 @@ func VerifyMultiHopProofMembership(
 	)
 }
 
-// GetMultihopConnectionEnd returns the final connectionEnd corresponding to chain Z for a multihop channel.
+// GetMultihopConnectionEnd returns the final connectionEnd from the counterparty perspective
 // TODO: refactor to avoid unmarshalling the proof multiple times.
 func GetMultihopConnectionEnd(cdc codec.BinaryCodec, proof []byte) (*connectiontypes.ConnectionEnd, error) {
 	var proofs channeltypes.MsgMultihopProofs
@@ -105,30 +105,20 @@ func GetMultihopConnectionEnd(cdc codec.BinaryCodec, proof []byte) (*connectiont
 	}
 
 	var connectionEnd connectiontypes.ConnectionEnd
-	if err := cdc.Unmarshal(proofs.ConnectionProofs[len(proofs.ConnectionProofs)-1].Value, &connectionEnd); err != nil {
+	if err := cdc.Unmarshal(proofs.ConnectionProofs[0].Value, &connectionEnd); err != nil {
 		return nil, err
 	}
 	return &connectionEnd, nil
 }
 
-// GetExpectedCounterpartyChannelBytes returns a counterparty multihop channel as bytes for multihop proofs
-// TODO: refactor this to avoid needing to unmarshal the multihop proof message twice (here and again in VerifyMultihopProof)
-func GetExpectedCounterpartyChannelBytes(
-	portID string,
-	channelID string,
-	state channeltypes.State,
-	ordering channeltypes.Order,
-	version string,
-	cdc codec.BinaryCodec,
-	firstConnection *connectiontypes.ConnectionEnd,
-	proof []byte,
-) ([]byte, error) {
+// GetCounterPartyHops returns the counter party connectionHops
+func GetCounterPartyHops(cdc codec.BinaryCodec, proof []byte, lastConnection *connectiontypes.ConnectionEnd) ([]string, error) {
 	var proofs channeltypes.MsgMultihopProofs
 	if err := cdc.Unmarshal(proof, &proofs); err != nil {
 		return nil, err
 	}
-	var counterpartyHops []string
 
+	var counterpartyHops []string
 	for _, connData := range proofs.ConnectionProofs {
 		var connectionEnd connectiontypes.ConnectionEnd
 		if err := cdc.Unmarshal(connData.Value, &connectionEnd); err != nil {
@@ -137,19 +127,9 @@ func GetExpectedCounterpartyChannelBytes(
 		counterpartyHops = append(counterpartyHops, connectionEnd.GetCounterparty().GetConnectionID())
 	}
 
-	// first connection A --> Z holds the final counterpary connection going Z --> A
-	counterpartyHops = append(counterpartyHops, firstConnection.GetCounterparty().GetConnectionID())
+	counterpartyHops = append(counterpartyHops, lastConnection.GetCounterparty().GetConnectionID())
 
-	counterparty := channeltypes.NewCounterparty(portID, channelID)
-	expectedChannel := channeltypes.NewChannel(
-		state, ordering, counterparty,
-		counterpartyHops, version,
-	)
-	value, err := expectedChannel.Marshal()
-	if err != nil {
-		return nil, err
-	}
-	return value, err
+	return counterpartyHops, nil
 }
 
 // VerifyMultihopProof verifies a multihop proof
@@ -159,19 +139,17 @@ func VerifyMultihopProof(cdc codec.BinaryCodec, consensusState exported.Consensu
 		return err
 	}
 
-	fmt.Printf("\nstart verifying\n")
 	// check all connections are in OPEN state and that the connection IDs match and are in the right order
 	for i, connData := range proofs.ConnectionProofs {
+		//connData := proofs.ConnectionProofs[len(proofs.ConnectionProofs)-1-i]
 		var connectionEnd connectiontypes.ConnectionEnd
 		if err := cdc.Unmarshal(connData.Value, &connectionEnd); err != nil {
 			return err
 		}
 
-		// Verify the first N-1 connectionHops (last hop already verified above)
+		// Verify the rest of the connectionHops (first hop already verified)
 		// 1. check the connectionHop values match the proofs and are in the same order.
 		parts := strings.Split(connData.PrefixedKey.GetKeyPath()[len(connData.PrefixedKey.KeyPath)-1], "/")
-
-		fmt.Printf("verifying hop: %s\n", connectionHops[i+1])
 		if parts[len(parts)-1] != connectionHops[i+1] {
 			return sdkerrors.Wrapf(
 				connectiontypes.ErrConnectionPath,
