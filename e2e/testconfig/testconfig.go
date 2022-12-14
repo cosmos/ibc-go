@@ -10,11 +10,14 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module/testutil"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
+	gogoproto "github.com/cosmos/gogoproto/proto"
 	"github.com/strangelove-ventures/ibctest/v6/ibc"
 	tmjson "github.com/tendermint/tendermint/libs/json"
 	tmtypes "github.com/tendermint/tendermint/types"
 
+	"github.com/cosmos/ibc-go/e2e/semverutil"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 )
 
@@ -37,7 +40,7 @@ const (
 	defaultBinary = "simd"
 	// defaultRlyTag is the tag that will be used if no relayer tag is specified.
 	// all images are here https://github.com/cosmos/relayer/pkgs/container/relayer/versions
-	defaultRlyTag = "v2.1.2"
+	defaultRlyTag = "v2.2.0-rc2"
 	// defaultChainTag is the tag that will be used for the chains if none is specified.
 	defaultChainTag = "main"
 )
@@ -176,6 +179,12 @@ func newDefaultSimappConfig(cc ChainConfig, name, chainID, denom string) ibc.Cha
 	}
 }
 
+// govGenesisFeatureReleases represents the releases the governance module genesis
+// was upgraded from v1beta1 to v1.
+var govGenesisFeatureReleases = semverutil.FeatureReleases{
+	MajorVersion: "v7",
+}
+
 // defaultModifyGenesis will only modify governance params to ensure the voting period and minimum deposit
 // are functional for e2e testing purposes.
 func defaultModifyGenesis() func(ibc.ChainConfig, []byte) ([]byte, error) {
@@ -190,22 +199,9 @@ func defaultModifyGenesis() func(ibc.ChainConfig, []byte) ([]byte, error) {
 			return nil, fmt.Errorf("failed to unmarshal genesis bytes into app state: %w", err)
 		}
 
-		cfg := testutil.MakeTestEncodingConfig()
-		govv1beta1.RegisterInterfaces(cfg.InterfaceRegistry)
-		cdc := codec.NewProtoCodec(cfg.InterfaceRegistry)
-
-		govGenesisState := &govv1beta1.GenesisState{}
-		if err := cdc.UnmarshalJSON(appState[govtypes.ModuleName], govGenesisState); err != nil {
-			return nil, fmt.Errorf("failed to unmarshal genesis bytes into gov genesis state: %w", err)
-		}
-
-		// set correct minimum deposit using configured denom
-		govGenesisState.DepositParams.MinDeposit = sdk.NewCoins(sdk.NewCoin(chainConfig.Denom, govv1beta1.DefaultMinDepositTokens))
-		govGenesisState.VotingParams.VotingPeriod = testvalues.VotingPeriod
-
-		govGenBz, err := cdc.MarshalJSON(govGenesisState)
+		govGenBz, err := modifyGovAppState(chainConfig, appState[govtypes.ModuleName])
 		if err != nil {
-			return nil, fmt.Errorf("failed to marshal gov genesis state: %w", err)
+			return nil, err
 		}
 
 		appState[govtypes.ModuleName] = govGenBz
@@ -222,4 +218,44 @@ func defaultModifyGenesis() func(ibc.ChainConfig, []byte) ([]byte, error) {
 
 		return bz, nil
 	}
+}
+
+// modifyGovAppState takes the existing gov app state and marshals it to either a govv1 GenesisState
+// or a govv1beta1 GenesisState depending on the simapp version.
+func modifyGovAppState(chainConfig ibc.ChainConfig, govAppState json.RawMessage) ([]byte, error) {
+	cfg := testutil.MakeTestEncodingConfig()
+
+	cdc := codec.NewProtoCodec(cfg.InterfaceRegistry)
+	govv1.RegisterInterfaces(cfg.InterfaceRegistry)
+	govv1beta1.RegisterInterfaces(cfg.InterfaceRegistry)
+
+	shouldUseGovV1 := govGenesisFeatureReleases.IsSupported(chainConfig.Images[0].Version)
+
+	var govGenesisState gogoproto.Message
+	if shouldUseGovV1 {
+		govGenesisState = &govv1.GenesisState{}
+	} else {
+		govGenesisState = &govv1beta1.GenesisState{}
+	}
+
+	if err := cdc.UnmarshalJSON(govAppState, govGenesisState); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal genesis bytes into gov genesis state: %w", err)
+	}
+
+	switch v := govGenesisState.(type) {
+	case *govv1.GenesisState:
+		// set correct minimum deposit using configured denom
+		v.Params.MinDeposit = sdk.NewCoins(sdk.NewCoin(chainConfig.Denom, govv1beta1.DefaultMinDepositTokens))
+		vp := testvalues.VotingPeriod
+		v.Params.VotingPeriod = &vp
+	case *govv1beta1.GenesisState:
+		v.DepositParams.MinDeposit = sdk.NewCoins(sdk.NewCoin(chainConfig.Denom, govv1beta1.DefaultMinDepositTokens))
+		v.VotingParams.VotingPeriod = testvalues.VotingPeriod
+	}
+	govGenBz, err := cdc.MarshalJSON(govGenesisState)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal gov genesis state: %w", err)
+	}
+
+	return govGenBz, nil
 }

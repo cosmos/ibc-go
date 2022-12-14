@@ -50,10 +50,6 @@ func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.
 			sdk.NewAttribute(types.AttributeKeyDenom, msg.Token.Denom),
 			sdk.NewAttribute(types.AttributeKeyMemo, msg.Memo),
 		),
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
-		),
 	})
 
 	return &types.MsgTransferResponse{Sequence: sequence}, nil

@@ -16,10 +16,6 @@ func EmitConnectionOpenInitEvent(ctx sdk.Context, connectionID string, clientID 
 			sdk.NewAttribute(types.AttributeKeyCounterpartyClientID, counterparty.ClientId),
 			sdk.NewAttribute(types.AttributeKeyCounterpartyConnectionID, counterparty.ConnectionId),
 		),
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-		),
 	})
 }
 
@@ -32,10 +28,6 @@ func EmitConnectionOpenTryEvent(ctx sdk.Context, connectionID string, clientID s
 			sdk.NewAttribute(types.AttributeKeyClientID, clientID),
 			sdk.NewAttribute(types.AttributeKeyCounterpartyClientID, counterparty.ClientId),
 			sdk.NewAttribute(types.AttributeKeyCounterpartyConnectionID, counterparty.ConnectionId),
-		),
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
 		),
 	})
 }
@@ -50,10 +42,6 @@ func EmitConnectionOpenAckEvent(ctx sdk.Context, connectionID string, connection
 			sdk.NewAttribute(types.AttributeKeyCounterpartyClientID, connectionEnd.Counterparty.ClientId),
 			sdk.NewAttribute(types.AttributeKeyCounterpartyConnectionID, connectionEnd.Counterparty.ConnectionId),
 		),
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-		),
 	})
 }
 
@@ -66,10 +54,6 @@ func EmitConnectionOpenConfirmEvent(ctx sdk.Context, connectionID string, connec
 			sdk.NewAttribute(types.AttributeKeyClientID, connectionEnd.ClientId),
 			sdk.NewAttribute(types.AttributeKeyCounterpartyClientID, connectionEnd.Counterparty.ClientId),
 			sdk.NewAttribute(types.AttributeKeyCounterpartyConnectionID, connectionEnd.Counterparty.ConnectionId),
-		),
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
 		),
 	})
 }
