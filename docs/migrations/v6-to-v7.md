@@ -106,7 +106,9 @@ The `VerifyUpgradeAndUpdateState` function has been modified. The client state a
 
 Light clients **must** handle all management of client and consensus states including the setting of updated client state and consensus state in the client store.
 
-The `CheckHeaderAndUpdateState` function has been split into 4 new functions:
+The `Initialize` method is now expected to set the initial client state, consensus state and any client-specific metadata in the provided store upon client creation. 
+
+The `CheckHeaderAndUpdateState` method has been split into 4 new functions:
 
 - `VerifyClientMessage` verifies a `ClientMessage`. A `ClientMessage` could be a `Header`, `Misbehaviour`, or batch update. Calls to `CheckForMisbehaviour`, `UpdateState`, and `UpdateStateOnMisbehaviour` will assume that the content of the `ClientMessage` has been verified and can be trusted. An error should be returned if the `ClientMessage` fails to verify.
 
