@@ -2,7 +2,7 @@ go 1.18
 
 module github.com/cosmos/ibc-go/v5
 
-retract [v5.0.0, v5.0.1, v5.1.0] // depends on SDK version < v0.46.7
+retract [v5.0.0, v5.1.0] // depends on SDK version < v0.46.7
 
 require (
 	cosmossdk.io/math v1.0.0-beta.3
