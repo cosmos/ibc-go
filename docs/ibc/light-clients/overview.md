@@ -18,9 +18,9 @@ The following aims to provide a high level IBC light client module developer gui
 
 A light client module developer should be concerned with three main interfaces:
 
-- [`ClientState`](https://github.com/cosmos/ibc-go/blob/main/modules/core/exported/client.go#L36) encapsulates the light client implementation and its semantics.
-- [`ConsensusState`](https://github.com/cosmos/ibc-go/blob/main/modules/core/exported/client.go#L134) tracks consensus data used for verification of client updates, misbehaviour detection and proof verification of counterparty state.
-- [`ClientMessage`](https://github.com/cosmos/ibc-go/blob/main/modules/core/exported/client.go#L148) used for submitting block headers for client updates and submission of misbehaviour evidence using conflicting headers. 
+- [`ClientState`](#clientstate) encapsulates the light client implementation and its semantics.
+- [`ConsensusState`](#consensusstate) tracks consensus data used for verification of client updates, misbehaviour detection and proof verification of counterparty state.
+- [`ClientMessage`](#clientmessage) used for submitting block headers for client updates and submission of misbehaviour evidence using conflicting headers. 
 
 Throughout this guide the `07-tendermint` light client module may be referred to as a reference example.
 
@@ -28,17 +28,17 @@ Throughout this guide the `07-tendermint` light client module may be referred to
 
 ### ClientState 
 
-ClientState is a term used to define the data structure which encapsulates opaque light client state. This refers to chain specific and light client specific information that form the rules concerning trust guarantees and proof verification. This may be any arbitrary data such as:
+ClientState is a term used to define the data structure which encapsulates opaque light client state. The `ClientState` contains all the information needed to verify a `ClientMessage` and perform membership and non-membership proof verification of counterparty state. This includes properties that refer to the remote state machine, the light client type and the specific light client instance.
 
 - Constraints used for client updates.
 - Constraints used for misbehaviour detection.
 - Constraints used for state verification.
 - Constraints used for client upgrades.
 
-The `ClientState` type maintained within the light client module *must* implement the [`ClientState`]((https://github.com/cosmos/ibc-go/blob/main/modules/core/exported/client.go#L36)) interface defined in `core/modules/exported/client.go`.
+The `ClientState` type maintained within the light client module *must* implement the [`ClientState`](https://github.com/cosmos/ibc-go/tree/02-client-refactor-beta1/modules/core/exported/client.go#L36) interface defined in `core/modules/exported/client.go`.
 The methods which make up this interface are detailed at a more granular level in the [ClientState section of this guide](./client-state.md).
 
-For example, see the `07-tendermint` light client module's [`ClientState` defintion](https://github.com/cosmos/ibc-go/blob/v6.0.0-rc1/proto/ibc/lightclients/tendermint/v1/tendermint.proto#L18) containing information such as chain ID, status, latest height, unbonding period and proof specifications.
+For example, see the `07-tendermint` light client module's [`ClientState` defintion](https://github.com/cosmos/ibc-go/tree/02-client-refactor-beta1/proto/ibc/lightclients/tendermint/v1/tendermint.proto#L18) containing information such as chain ID, status, latest height, unbonding period and proof specifications.
 
 ### ConsensusState
 
@@ -46,17 +46,17 @@ ConsensusState is a term used to define the data structure which encapsulates co
 
 For example, the `ConsensusState` of the `07-tendermint` light client module defines a trusted root which is used by the `ClientState` to perform verification of membership and non-membership commitment proofs, as well as the next validator set hash used for verifying headers can be trusted in client updates. 
 
-The `ConsensusState` type maintained within the light client module *must* implement the [`ConsensusState`](https://github.com/cosmos/ibc-go/blob/main/modules/core/exported/client.go#L134) interface defined in `core/modules/exported/client.go`.
+The `ConsensusState` type maintained within the light client module *must* implement the [`ConsensusState`](https://github.com/cosmos/ibc-go/tree/02-client-refactor-beta1/modules/core/exported/client.go#L134) interface defined in `core/modules/exported/client.go`.
 The methods which make up this interface are detailed at a more granular level in the [ConsensusState section of this guide](./consensus-state.md).
 
 ### Height
 
 Height defines a monotonically increasing sequence number which provides ordering of consensus state data persisted through client updates. 
-IBC light client module developers are expected to use the concrete type provided by the `02-client` submodule. This implements the expectations required by the `Height` interface defined in `core/modules/exported/client.go`.
+IBC light client module developers are expected to use the [concrete type](https://github.com/cosmos/ibc-go/tree/02-client-refactor-beta1/proto/ibc/core/client/v1/client.proto#L89) provided by the `02-client` submodule. This implements the expectations required by the `Height` interface defined in `core/modules/exported/client.go`.
 
 ### ClientMessage
 
-ClientMessage refers to the interface type [`ClientMessage`](https://github.com/cosmos/ibc-go/blob/main/modules/core/exported/client.go#L148) used for performing updates to a `ClientState` stored on chain. 
+ClientMessage refers to the interface type [`ClientMessage`](https://github.com/cosmos/ibc-go/tree/02-client-refactor-beta1/modules/core/exported/client.go#L148) used for performing updates to a `ClientState` stored on chain. 
 This may be any concrete type which produces a change in state to the IBC client when verified.
 
 The following are considered as valid update scenarios:
