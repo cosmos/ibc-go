@@ -192,19 +192,30 @@ func (suite *TendermintTestSuite) TestInitialize() {
 		},
 	}
 
-	path := ibctesting.NewPath(suite.chainA, suite.chainB)
-	err := path.EndpointA.CreateClient()
-	suite.Require().NoError(err)
-
-	clientState := suite.chainA.GetClientState(path.EndpointA.ClientID)
-	store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
-
 	for _, tc := range testCases {
+		suite.SetupTest()
+		path := ibctesting.NewPath(suite.chainA, suite.chainB)
+
+		tmConfig, ok := path.EndpointB.ClientConfig.(*ibctesting.TendermintConfig)
+		suite.Require().True(ok)
+
+		clientState := ibctm.NewClientState(
+			path.EndpointB.Chain.ChainID,
+			tmConfig.TrustLevel, tmConfig.TrustingPeriod, tmConfig.UnbondingPeriod, tmConfig.MaxClockDrift,
+			suite.chainB.LastHeader.GetTrustedHeight(), commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath,
+		)
+
+		store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
 		err := clientState.Initialize(suite.chainA.GetContext(), suite.chainA.Codec, store, tc.consensusState)
+
 		if tc.expPass {
 			suite.Require().NoError(err, "valid case returned an error")
+			suite.Require().True(store.Has(host.ClientStateKey()))
+			suite.Require().True(store.Has(host.ConsensusStateKey(suite.chainB.LastHeader.GetTrustedHeight())))
 		} else {
 			suite.Require().Error(err, "invalid case didn't return an error")
+			suite.Require().False(store.Has(host.ClientStateKey()))
+			suite.Require().False(store.Has(host.ConsensusStateKey(suite.chainB.LastHeader.GetTrustedHeight())))
 		}
 	}
 }
