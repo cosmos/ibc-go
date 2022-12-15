@@ -30,6 +30,8 @@ Throughout this guide the `07-tendermint` light client module may be referred to
 
 ClientState is a term used to define the data structure which encapsulates opaque light client state. The `ClientState` contains all the information needed to verify a `ClientMessage` and perform membership and non-membership proof verification of counterparty state. This includes properties that refer to the remote state machine, the light client type and the specific light client instance.
 
+For example:
+
 - Constraints used for client updates.
 - Constraints used for misbehaviour detection.
 - Constraints used for state verification.
@@ -38,7 +40,7 @@ ClientState is a term used to define the data structure which encapsulates opaqu
 The `ClientState` type maintained within the light client module *must* implement the [`ClientState`](https://github.com/cosmos/ibc-go/tree/02-client-refactor-beta1/modules/core/exported/client.go#L36) interface defined in `core/modules/exported/client.go`.
 The methods which make up this interface are detailed at a more granular level in the [ClientState section of this guide](./client-state.md).
 
-For example, see the `07-tendermint` light client module's [`ClientState` defintion](https://github.com/cosmos/ibc-go/tree/02-client-refactor-beta1/proto/ibc/lightclients/tendermint/v1/tendermint.proto#L18) containing information such as chain ID, status, latest height, unbonding period and proof specifications.
+Please refer to the `07-tendermint` light client module's [`ClientState` defintion](https://github.com/cosmos/ibc-go/tree/02-client-refactor-beta1/proto/ibc/lightclients/tendermint/v1/tendermint.proto#L18) containing information such as chain ID, status, latest height, unbonding period and proof specifications.
 
 ### ConsensusState
 
