@@ -14,7 +14,7 @@ This is the type of client consensus. It should be the same as the `ClientType` 
 
 ## `GetTimestamp` method
 
-GetTimestamp should return the timestamp (in nanoseconds) of the consensus state snapshot.
+`GetTimestamp` should return the timestamp (in nanoseconds) of the consensus state snapshot.
 
 ## `ValidateBasic` method
 
@@ -34,4 +34,4 @@ type ClientMessage interface {
 }
 ```
 
-The `ClientMessage` will be passed to the client to be used in [`UpdateClient`](https://github.com/cosmos/ibc-go/blob/57da75a70145409247e85365b64a4b2fc6ddad2f/modules/core/02-client/keeper/client.go#L53), which will handle a number of cases including misbehaviour and/or updating the consensus state. However, this `UpdateClient` function will always reference the specific functions determined by the relevant `ClientState`. For example, a `ClientMessage` referencing the Tendermint `ClientType` will then trigger the Tendermint `VerifyClientMessage`, `CheckForMisbehaviour`, and `UpdateState` functions found in the Tendermint `ClientState` implementation.
+The `ClientMessage` will be passed to the client to be used in [`UpdateClient`](https://github.com/cosmos/ibc-go/blob/57da75a70145409247e85365b64a4b2fc6ddad2f/modules/core/02-client/keeper/client.go#L53), which will handle a number of cases including misbehaviour and/or updating the consensus state. However, this `UpdateClient` function will always reference the specific functions determined by the relevant `ClientState`. This is because `UpdateClient` retrieves the client state by client ID (available in `MsgUpdateClient`). This client state implements the `ClientState` interface for a specific client type (e.g. Tendermint). The functions called on the client state instance in `UpdateClient` will be the specific implementations of `VerifyClientMessage`, `CheckForMisbehaviour`, `UpdateStateOnMisbehaviour` and `UpdateState` functions of the `ClientState` interface for that particular client type.
