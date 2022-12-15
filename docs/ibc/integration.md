@@ -37,11 +37,11 @@ All light clients must be registered with `module.BasicManager` in a chain's app
 
 The following code example shows how to register the existing `ibctm.AppModuleBasic{}` light client implementation.
 
-```go
+```diff
 
 import (
     ...
-    ibctm "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint"
++    ibctm "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint"
     ...
 )
 
@@ -55,7 +55,7 @@ var (
     transfer.AppModuleBasic{}, // i.e ibc-transfer module
 
     // register light clients on IBC
-    ibctm.AppModuleBasic{},
++    ibctm.AppModuleBasic{},
   )
 
   // module account permissions
