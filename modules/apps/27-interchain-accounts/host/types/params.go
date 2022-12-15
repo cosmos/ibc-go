@@ -34,7 +34,7 @@ func NewParams(enableHost bool, allowMsgs []string) Params {
 
 // DefaultParams is the default parameter configuration for the host submodule
 func DefaultParams() Params {
-	return NewParams(DefaultHostEnabled, nil)
+	return NewParams(DefaultHostEnabled, []string{AllowAllHostMsgs})
 }
 
 // Validate validates all host submodule parameters

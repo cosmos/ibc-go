@@ -3,12 +3,12 @@ package keeper_test
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v5/modules/apps/29-fee/types"
-	transfertypes "github.com/cosmos/ibc-go/v5/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
-	ibctesting "github.com/cosmos/ibc-go/v5/testing"
-	ibcmock "github.com/cosmos/ibc-go/v5/testing/mock"
+	"github.com/cosmos/ibc-go/v6/modules/apps/29-fee/types"
+	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
+	ibctesting "github.com/cosmos/ibc-go/v6/testing"
+	ibcmock "github.com/cosmos/ibc-go/v6/testing/mock"
 )
 
 func (suite *KeeperTestSuite) TestRegisterPayee() {
@@ -200,6 +200,7 @@ func (suite *KeeperTestSuite) TestPayPacketFee() {
 		{
 			"refund account is module account",
 			func() {
+				suite.chainA.GetSimApp().BankKeeper.SendCoinsFromAccountToModule(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), ibcmock.ModuleName, fee.Total())
 				msg.Signer = suite.chainA.GetSimApp().AccountKeeper.GetModuleAddress(ibcmock.ModuleName).String()
 				expPacketFee := types.NewPacketFee(fee, msg.Signer, nil)
 				expFeesInEscrow = []types.PacketFee{expPacketFee}

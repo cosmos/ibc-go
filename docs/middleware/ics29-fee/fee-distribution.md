@@ -31,7 +31,7 @@ The counterparty payee address registered on the destination chain is encoded in
 A transaction must be submitted **to the destination chain** including a `CounterpartyPayee` address of an account on the source chain.
 The transaction must be signed by the `Relayer`.
 
-Note: If a module account address is used as the `CounterpartyPayee` it is recommended to [turn off invariant checks](https://github.com/cosmos/ibc-go/blob/71d7480c923f4227453e8a80f51be01ae7ee845e/testing/simapp/app.go#L659) for that module.
+Note: If a module account address is used as the `CounterpartyPayee` but the module has been set as a blocked address in the `BankKeeper`, the refunding to the module account will fail. This is because many modules use invariants to compare internal tracking of module account balances against the actual balance of the account stored in the `BankKeeper`. If a token transfer to the module account occurs without going through this module and updating the account balance of the module on the `BankKeeper`, then invariants may break and unknown behaviour could occur depending on the module implementation. Therefore, if it is desirable to use a module account that is currently blocked, the module developers should be consulted to gauge to possibility of removing the module account from the blocked list.
 
 ```go
 type MsgRegisterCounterpartyPayee struct {

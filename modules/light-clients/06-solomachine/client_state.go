@@ -9,10 +9,10 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 
-	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v5/modules/core/23-commitment/types"
-	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v5/modules/core/exported"
+	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v6/modules/core/23-commitment/types"
+	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v6/modules/core/exported"
 )
 
 var _ exported.ClientState = (*ClientState)(nil)
@@ -75,11 +75,9 @@ func (cs ClientState) Validate() error {
 	return cs.ConsensusState.ValidateBasic()
 }
 
-// ZeroCustomFields returns solomachine client state with client-specific field FrozenSequence zeroed out
+// ZeroCustomFields is not implemented for solo machine
 func (cs ClientState) ZeroCustomFields() exported.ClientState {
-	return NewClientState(
-		cs.Sequence, cs.ConsensusState,
-	)
+	panic("ZeroCustomFields is not implemented as the solo machine implementation does not support upgrades.")
 }
 
 // Initialize will check that initial consensus state is equal to the latest consensus state of the initial client.

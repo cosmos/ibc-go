@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
+	"github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 )
 
 // tests ParseChannelSequence and IsValidChannelID

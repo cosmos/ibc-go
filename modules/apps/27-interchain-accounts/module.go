@@ -4,30 +4,35 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"math/rand"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 	abci "github.com/tendermint/tendermint/abci/types"
 
-	"github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/client/cli"
-	controllerkeeper "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/controller/keeper"
-	controllertypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/controller/types"
-	"github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/host"
-	hostkeeper "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/host/keeper"
-	hosttypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/host/types"
-	"github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/types"
-	porttypes "github.com/cosmos/ibc-go/v5/modules/core/05-port/types"
-	ibchost "github.com/cosmos/ibc-go/v5/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/client/cli"
+	controllerkeeper "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/controller/keeper"
+	controllertypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/controller/types"
+	genesistypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/genesis/types"
+	"github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/host"
+	hostkeeper "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/host/keeper"
+	hosttypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/host/types"
+	"github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/simulation"
+	"github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
+	porttypes "github.com/cosmos/ibc-go/v6/modules/core/05-port/types"
+	ibchost "github.com/cosmos/ibc-go/v6/modules/core/24-host"
 )
 
 var (
-	_ module.AppModule      = AppModule{}
-	_ module.AppModuleBasic = AppModuleBasic{}
+	_ module.AppModule           = AppModule{}
+	_ module.AppModuleBasic      = AppModuleBasic{}
+	_ module.AppModuleSimulation = AppModule{}
 
 	_ porttypes.IBCModule = host.IBCModule{}
 )
@@ -45,18 +50,19 @@ func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {}
 
 // RegisterInterfaces registers module concrete types into protobuf Any
 func (AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry) {
+	controllertypes.RegisterInterfaces(registry)
 	types.RegisterInterfaces(registry)
 }
 
 // DefaultGenesis returns default genesis state as raw bytes for the IBC
 // interchain accounts module
 func (AppModuleBasic) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
-	return cdc.MustMarshalJSON(types.DefaultGenesis())
+	return cdc.MustMarshalJSON(genesistypes.DefaultGenesis())
 }
 
 // ValidateGenesis performs genesis state validation for the IBC interchain acounts module
 func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, config client.TxEncodingConfig, bz json.RawMessage) error {
-	var gs types.GenesisState
+	var gs genesistypes.GenesisState
 	if err := cdc.UnmarshalJSON(bz, &gs); err != nil {
 		return fmt.Errorf("failed to unmarshal %s genesis state: %w", types.ModuleName, err)
 	}
@@ -70,6 +76,7 @@ func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *r
 	if err != nil {
 		panic(err)
 	}
+
 	err = hosttypes.RegisterQueryHandlerClient(context.Background(), mux, hosttypes.NewQueryClient(clientCtx))
 	if err != nil {
 		panic(err)
@@ -78,7 +85,7 @@ func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *r
 
 // GetTxCmd implements AppModuleBasic interface
 func (AppModuleBasic) GetTxCmd() *cobra.Command {
-	return nil
+	return cli.NewTxCmd()
 }
 
 // GetQueryCmd implements AppModuleBasic interface
@@ -144,14 +151,25 @@ func (am AppModule) LegacyQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sd
 
 // RegisterServices registers module services
 func (am AppModule) RegisterServices(cfg module.Configurator) {
-	controllertypes.RegisterQueryServer(cfg.QueryServer(), am.controllerKeeper)
-	hosttypes.RegisterQueryServer(cfg.QueryServer(), am.hostKeeper)
+	if am.controllerKeeper != nil {
+		controllertypes.RegisterMsgServer(cfg.MsgServer(), controllerkeeper.NewMsgServerImpl(am.controllerKeeper))
+		controllertypes.RegisterQueryServer(cfg.QueryServer(), am.controllerKeeper)
+	}
+
+	if am.hostKeeper != nil {
+		hosttypes.RegisterQueryServer(cfg.QueryServer(), am.hostKeeper)
+	}
+
+	m := controllerkeeper.NewMigrator(am.controllerKeeper)
+	if err := cfg.RegisterMigration(types.ModuleName, 1, m.AssertChannelCapabilityMigrations); err != nil {
+		panic(fmt.Sprintf("failed to migrate interchainaccounts app from version 1 to 2: %v", err))
+	}
 }
 
 // InitGenesis performs genesis initialization for the interchain accounts module.
 // It returns no validator updates.
 func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.RawMessage) []abci.ValidatorUpdate {
-	var genesisState types.GenesisState
+	var genesisState genesistypes.GenesisState
 	cdc.MustUnmarshalJSON(data, &genesisState)
 
 	if am.controllerKeeper != nil {
@@ -168,8 +186,8 @@ func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.
 // ExportGenesis returns the exported genesis state as raw bytes for the interchain accounts module
 func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.RawMessage {
 	var (
-		controllerGenesisState = types.DefaultControllerGenesis()
-		hostGenesisState       = types.DefaultHostGenesis()
+		controllerGenesisState = genesistypes.DefaultControllerGenesis()
+		hostGenesisState       = genesistypes.DefaultHostGenesis()
 	)
 
 	if am.controllerKeeper != nil {
@@ -180,13 +198,13 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 		hostGenesisState = hostkeeper.ExportGenesis(ctx, *am.hostKeeper)
 	}
 
-	gs := types.NewGenesisState(controllerGenesisState, hostGenesisState)
+	gs := genesistypes.NewGenesisState(controllerGenesisState, hostGenesisState)
 
 	return cdc.MustMarshalJSON(gs)
 }
 
 // ConsensusVersion implements AppModule/ConsensusVersion.
-func (AppModule) ConsensusVersion() uint64 { return 1 }
+func (AppModule) ConsensusVersion() uint64 { return 2 }
 
 // BeginBlock implements the AppModule interface
 func (am AppModule) BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock) {
@@ -195,4 +213,31 @@ func (am AppModule) BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock) {
 // EndBlock implements the AppModule interface
 func (am AppModule) EndBlock(ctx sdk.Context, req abci.RequestEndBlock) []abci.ValidatorUpdate {
 	return []abci.ValidatorUpdate{}
+}
+
+// AppModuleSimulation functions
+
+// GenerateGenesisState creates a randomized GenState of the ics27 module.
+func (AppModule) GenerateGenesisState(simState *module.SimulationState) {
+	simulation.RandomizedGenState(simState)
+}
+
+// ProposalContents doesn't return any content functions for governance proposals.
+func (AppModule) ProposalContents(_ module.SimulationState) []simtypes.WeightedProposalContent {
+	return nil
+}
+
+// WeightedOperations is unimplemented.
+func (am AppModule) WeightedOperations(_ module.SimulationState) []simtypes.WeightedOperation {
+	return nil
+}
+
+// RandomizedParams creates randomized ibc-transfer param changes for the simulator.
+func (am AppModule) RandomizedParams(r *rand.Rand) []simtypes.ParamChange {
+	return simulation.ParamChanges(r, am.controllerKeeper, am.hostKeeper)
+}
+
+// RegisterStoreDecoder registers a decoder for interchain accounts module's types
+func (am AppModule) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
+	sdr[types.StoreKey] = simulation.NewDecodeStore()
 }

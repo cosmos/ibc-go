@@ -7,9 +7,9 @@ import (
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtypes "github.com/tendermint/tendermint/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
-	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v5/modules/core/exported"
+	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
+	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v6/modules/core/exported"
 )
 
 var _ exported.ClientMessage = &Misbehaviour{}
@@ -123,11 +123,5 @@ func validCommit(chainID string, blockID tmtypes.BlockID, commit *tmproto.Commit
 		return sdkerrors.Wrap(clienttypes.ErrInvalidMisbehaviour, "validator set did not commit to header")
 	}
 
-	return nil
-}
-
-// TODO: Remove GetHeight()
-// GetHeight implements the curret exported.Header interface, to be updated
-func (misbehaviour Misbehaviour) GetHeight() exported.Height {
 	return nil
 }

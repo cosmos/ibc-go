@@ -1,0 +1,58 @@
+[
+  {
+    "test-entry-point": "TestInterchainAccountsTestSuite",
+    "chain-binary": "icad",
+    "tests": [
+      {
+        "chain-a-tag": "v0.3.3",
+        "chain-b-tag": "v0.1.4"
+      },
+      {
+        "chain-a-tag": "v0.1.4",
+        "chain-b-tag": "v0.3.3"
+      },
+      {
+        "chain-a-tag": "v0.2.3",
+        "chain-b-tag": "v0.3.3"
+      },
+      {
+        "chain-a-tag": "v0.3.3",
+        "chain-b-tag": "v0.2.3"
+      },
+      {
+        "chain-a-tag": "v0.3.3",
+        "chain-b-tag": "v0.3.3"
+      },
+      {
+        "chain-a-tag": "v0.2.3",
+        "chain-b-tag": "v0.2.3"
+      },
+      {
+        "chain-a-tag": "v0.1.4",
+        "chain-b-tag": "v0.1.4"
+      }
+    ]
+  },
+  {
+    "test-entry-point": "TestIncentivizedInterchainAccountsTestSuite",
+    "chain-binary": "icad",
+    "tests": [
+      {
+        "chain-a-tag": "v0.2.3",
+        "chain-b-tag": "v0.3.3"
+      },
+      {
+        "chain-a-tag": "v0.3.3",
+        "chain-b-tag": "v0.2.3"
+      },
+      {
+        "chain-a-tag": "v0.3.3",
+        "chain-b-tag": "v0.3.3"
+      },
+      {
+        "chain-a-tag": "v0.2.3",
+        "chain-b-tag": "v0.2.3"
+      }
+    ]
+  }
+]

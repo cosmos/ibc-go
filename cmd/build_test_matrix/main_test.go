@@ -19,7 +19,7 @@ const (
 func TestGetGithubActionMatrixForTests(t *testing.T) {
 	t.Run("empty dir does not fail", func(t *testing.T) {
 		testingDir := t.TempDir()
-		_, err := getGithubActionMatrixForTests(testingDir)
+		_, err := getGithubActionMatrixForTests(testingDir, "", nil)
 		assert.NoError(t, err)
 	})
 
@@ -27,18 +27,18 @@ func TestGetGithubActionMatrixForTests(t *testing.T) {
 		testingDir := t.TempDir()
 		createFileWithTestSuiteAndTests(t, "FeeMiddlewareTestSuite", "TestA", "TestB", testingDir, goTestFileNameOne)
 
-		gh, err := getGithubActionMatrixForTests(testingDir)
+		gh, err := getGithubActionMatrixForTests(testingDir, "", nil)
 		assert.NoError(t, err)
 
 		expected := GithubActionTestMatrix{
 			Include: []TestSuitePair{
 				{
-					Suite: "TestFeeMiddlewareTestSuite",
-					Test:  "TestA",
+					EntryPoint: "TestFeeMiddlewareTestSuite",
+					Test:       "TestA",
 				},
 				{
-					Suite: "TestFeeMiddlewareTestSuite",
-					Test:  "TestB",
+					EntryPoint: "TestFeeMiddlewareTestSuite",
+					Test:       "TestB",
 				},
 			},
 		}
@@ -50,26 +50,26 @@ func TestGetGithubActionMatrixForTests(t *testing.T) {
 		createFileWithTestSuiteAndTests(t, "FeeMiddlewareTestSuite", "TestA", "TestB", testingDir, goTestFileNameOne)
 		createFileWithTestSuiteAndTests(t, "TransferTestSuite", "TestC", "TestD", testingDir, goTestFileNameTwo)
 
-		gh, err := getGithubActionMatrixForTests(testingDir)
+		gh, err := getGithubActionMatrixForTests(testingDir, "", nil)
 		assert.NoError(t, err)
 
 		expected := GithubActionTestMatrix{
 			Include: []TestSuitePair{
 				{
-					Suite: "TestTransferTestSuite",
-					Test:  "TestC",
+					EntryPoint: "TestTransferTestSuite",
+					Test:       "TestC",
 				},
 				{
-					Suite: "TestFeeMiddlewareTestSuite",
-					Test:  "TestA",
+					EntryPoint: "TestFeeMiddlewareTestSuite",
+					Test:       "TestA",
 				},
 				{
-					Suite: "TestFeeMiddlewareTestSuite",
-					Test:  "TestB",
+					EntryPoint: "TestFeeMiddlewareTestSuite",
+					Test:       "TestB",
 				},
 				{
-					Suite: "TestTransferTestSuite",
-					Test:  "TestD",
+					EntryPoint: "TestTransferTestSuite",
+					Test:       "TestD",
 				},
 			},
 		}
@@ -81,7 +81,7 @@ func TestGetGithubActionMatrixForTests(t *testing.T) {
 		testingDir := t.TempDir()
 		createFileWithTestSuiteAndTests(t, "FeeMiddlewareTestSuite", "TestA", "TestB", testingDir, nonTestFile)
 
-		gh, err := getGithubActionMatrixForTests(testingDir)
+		gh, err := getGithubActionMatrixForTests(testingDir, "", nil)
 		assert.NoError(t, err)
 		assert.Empty(t, gh.Include)
 	})
@@ -105,7 +105,7 @@ type FeeMiddlewareTestSuite struct {}
 		err := os.WriteFile(path.Join(testingDir, goTestFileNameOne), []byte(fileWithTwoSuites), os.FileMode(777))
 		assert.NoError(t, err)
 
-		_, err = getGithubActionMatrixForTests(testingDir)
+		_, err = getGithubActionMatrixForTests(testingDir, "", nil)
 		assert.Error(t, err)
 	})
 }
@@ -116,19 +116,19 @@ func assertGithubActionTestMatricesEqual(t *testing.T, expected, actual GithubAc
 	sort.SliceStable(expected.Include, func(i, j int) bool {
 		memberI := expected.Include[i]
 		memberJ := expected.Include[j]
-		if memberI.Suite == memberJ.Suite {
+		if memberI.EntryPoint == memberJ.EntryPoint {
 			return memberI.Test < memberJ.Test
 		}
-		return memberI.Suite < memberJ.Suite
+		return memberI.EntryPoint < memberJ.EntryPoint
 	})
 
 	sort.SliceStable(actual.Include, func(i, j int) bool {
 		memberI := actual.Include[i]
 		memberJ := actual.Include[j]
-		if memberI.Suite == memberJ.Suite {
+		if memberI.EntryPoint == memberJ.EntryPoint {
 			return memberI.Test < memberJ.Test
 		}
-		return memberI.Suite < memberJ.Suite
+		return memberI.EntryPoint < memberJ.EntryPoint
 	})
 	assert.Equal(t, expected.Include, actual.Include)
 }

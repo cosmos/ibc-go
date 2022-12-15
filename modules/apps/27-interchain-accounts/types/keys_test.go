@@ -1,7 +1,10 @@
 package types_test
 
 import (
-	"github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/types"
+	fmt "fmt"
+
+	"github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
+	ibctesting "github.com/cosmos/ibc-go/v6/testing"
 )
 
 func (suite *TypesTestSuite) TestKeyActiveChannel() {
@@ -12,4 +15,9 @@ func (suite *TypesTestSuite) TestKeyActiveChannel() {
 func (suite *TypesTestSuite) TestKeyOwnerAccount() {
 	key := types.KeyOwnerAccount("port-id", "connection-id")
 	suite.Require().Equal("owner/port-id/connection-id", string(key))
+}
+
+func (suite *TypesTestSuite) TestKeyIsMiddlewareEnabled() {
+	key := types.KeyIsMiddlewareEnabled(ibctesting.MockPort, ibctesting.FirstChannelID)
+	suite.Require().Equal(fmt.Sprintf("%s/%s/%s", types.IsMiddlewareEnabledPrefix, ibctesting.MockPort, ibctesting.FirstChannelID), string(key))
 }

@@ -7,9 +7,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/query"
 	"github.com/tendermint/tendermint/crypto/secp256k1"
 
-	"github.com/cosmos/ibc-go/v5/modules/apps/29-fee/types"
-	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
-	ibctesting "github.com/cosmos/ibc-go/v5/testing"
+	"github.com/cosmos/ibc-go/v6/modules/apps/29-fee/types"
+	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
+	ibctesting "github.com/cosmos/ibc-go/v6/testing"
 )
 
 func (suite *KeeperTestSuite) TestQueryIncentivizedPackets() {
