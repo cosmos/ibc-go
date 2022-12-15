@@ -16,7 +16,7 @@ import (
 // TestRecvPacketMultihop test RecvPacket on chainB. Since packet commitment verification will always
 // occur last (resource instensive), only tests expected to succeed and packet commitment
 // verification tests need to simulate sending a packet from chainA to chainB.
-func (suite *KeeperTestSuite) TestRecvPacketMultihop() {
+func (suite *MultihopTestSuite) TestRecvPacketMultihop() {
 	var (
 		paths      ibctesting.LinkedPaths
 		packet     exported.PacketI
@@ -31,10 +31,23 @@ func (suite *KeeperTestSuite) TestRecvPacketMultihop() {
 		{"success: ORDERED channel", func() {
 			ibctesting.SetupChannel(paths)
 
-			sequence, err := endpointA.SendPacket(defaultTimeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
+			sequence, err := endpointA.SendPacket(
+				defaultTimeoutHeight,
+				disabledTimeoutTimestamp,
+				ibctesting.MockPacketData,
+			)
 			suite.Require().NoError(err)
 			paths.UpdateClients()
-			packet = types.NewPacket(ibctesting.MockPacketData, sequence, endpointA.ChannelConfig.PortID, endpointA.ChannelID, endpointZ.ChannelConfig.PortID, endpointZ.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
+			packet = types.NewPacket(
+				ibctesting.MockPacketData,
+				sequence,
+				endpointA.ChannelConfig.PortID,
+				endpointA.ChannelID,
+				endpointZ.ChannelConfig.PortID,
+				endpointZ.ChannelID,
+				defaultTimeoutHeight,
+				disabledTimeoutTimestamp,
+			)
 			channelCap = endpointZ.Chain.GetChannelCapability(endpointZ.ChannelConfig.PortID, endpointZ.ChannelID)
 		}, true},
 	}
@@ -52,7 +65,11 @@ func (suite *KeeperTestSuite) TestRecvPacketMultihop() {
 			tc.malleate()
 
 			// get proof of packet commitment from chainA
-			packetKey := host.PacketCommitmentKey(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
+			packetKey := host.PacketCommitmentKey(
+				packet.GetSourcePort(),
+				packet.GetSourceChannel(),
+				packet.GetSequence(),
+			)
 			expectedVal := types.CommitPacket(endpointA.Chain.Codec, packet)
 
 			// generate multihop proof given keypath and value
@@ -62,18 +79,38 @@ func (suite *KeeperTestSuite) TestRecvPacketMultihop() {
 			proof, err := proofs.Marshal()
 			suite.Require().NoError(err)
 
-			err = endpointZ.Chain.App.GetIBCKeeper().ChannelKeeper.RecvPacket(endpointZ.Chain.GetContext(), channelCap, packet, proof, proofHeight)
+			err = endpointZ.Chain.App.GetIBCKeeper().ChannelKeeper.RecvPacket(
+				endpointZ.Chain.GetContext(),
+				channelCap,
+				packet,
+				proof,
+				proofHeight,
+			)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
 
-				channelB, _ := endpointZ.Chain.App.GetIBCKeeper().ChannelKeeper.GetChannel(endpointZ.Chain.GetContext(), packet.GetDestPort(), packet.GetDestChannel())
-				nextSeqRecv, found := endpointZ.Chain.App.GetIBCKeeper().ChannelKeeper.GetNextSequenceRecv(endpointZ.Chain.GetContext(), packet.GetDestPort(), packet.GetDestChannel())
+				channelB, _ := endpointZ.Chain.App.GetIBCKeeper().ChannelKeeper.GetChannel(
+					endpointZ.Chain.GetContext(),
+					packet.GetDestPort(),
+					packet.GetDestChannel(),
+				)
+				nextSeqRecv, found := endpointZ.Chain.App.GetIBCKeeper().ChannelKeeper.GetNextSequenceRecv(
+					endpointZ.Chain.GetContext(),
+					packet.GetDestPort(),
+					packet.GetDestChannel(),
+				)
 				suite.Require().True(found)
-				receipt, receiptStored := endpointZ.Chain.App.GetIBCKeeper().ChannelKeeper.GetPacketReceipt(endpointZ.Chain.GetContext(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
+				receipt, receiptStored := endpointZ.Chain.App.GetIBCKeeper().ChannelKeeper.GetPacketReceipt(
+					endpointZ.Chain.GetContext(),
+					packet.GetDestPort(),
+					packet.GetDestChannel(),
+					packet.GetSequence(),
+				)
 
 				if channelB.Ordering == types.ORDERED {
-					suite.Require().Equal(packet.GetSequence()+1, nextSeqRecv, "sequence not incremented in ordered channel")
+					suite.Require().
+						Equal(packet.GetSequence()+1, nextSeqRecv, "sequence not incremented in ordered channel")
 					suite.Require().False(receiptStored, "packet receipt stored on ORDERED channel")
 				} else {
 					suite.Require().Equal(uint64(1), nextSeqRecv, "sequence incremented for UNORDERED channel")
@@ -111,12 +148,25 @@ func (suite *KeeperTestSuite) TestAcknowledgePacketMultihop() {
 		{"success on ordered channel", func() {
 			ibctesting.SetupChannel(paths)
 			// create packet commitment
-			sequence, err := endpointA.SendPacket(defaultTimeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
+			sequence, err := endpointA.SendPacket(
+				defaultTimeoutHeight,
+				disabledTimeoutTimestamp,
+				ibctesting.MockPacketData,
+			)
 			suite.Require().NoError(err)
 
 			paths.UpdateClients()
 			// create packet receipt and acknowledgement
-			packet = types.NewPacket(ibctesting.MockPacketData, sequence, endpointA.ChannelConfig.PortID, endpointA.ChannelID, endpointZ.ChannelConfig.PortID, endpointZ.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
+			packet = types.NewPacket(
+				ibctesting.MockPacketData,
+				sequence,
+				endpointA.ChannelConfig.PortID,
+				endpointA.ChannelID,
+				endpointZ.ChannelConfig.PortID,
+				endpointZ.ChannelID,
+				defaultTimeoutHeight,
+				disabledTimeoutTimestamp,
+			)
 			_, err = ibctesting.RecvPacket(paths, packet)
 			suite.Require().NoError(err)
 			paths.Reverse().UpdateClients()
@@ -135,7 +185,11 @@ func (suite *KeeperTestSuite) TestAcknowledgePacketMultihop() {
 
 			tc.malleate()
 
-			packetKey := host.PacketAcknowledgementKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
+			packetKey := host.PacketAcknowledgementKey(
+				packet.GetDestPort(),
+				packet.GetDestChannel(),
+				packet.GetSequence(),
+			)
 			expectedVal := types.CommitAcknowledgement(ack.Acknowledgement()) //resp.Acknowledgement
 
 			proofs, err := ibctesting.GenerateMultiHopProof(paths.Reverse(), packetKey, expectedVal)
@@ -144,19 +198,40 @@ func (suite *KeeperTestSuite) TestAcknowledgePacketMultihop() {
 			proof, err := proofs.Marshal()
 			suite.Require().NoError(err)
 
-			err = endpointA.Chain.App.GetIBCKeeper().ChannelKeeper.AcknowledgePacket(endpointA.Chain.GetContext(), channelCap, packet, ack.Acknowledgement(), proof, proofHeight)
+			err = endpointA.Chain.App.GetIBCKeeper().ChannelKeeper.AcknowledgePacket(
+				endpointA.Chain.GetContext(),
+				channelCap,
+				packet,
+				ack.Acknowledgement(),
+				proof,
+				proofHeight,
+			)
 			suite.Require().NoError(err)
-			pc := endpointA.Chain.App.GetIBCKeeper().ChannelKeeper.GetPacketCommitment(endpointA.Chain.GetContext(), packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
+			pc := endpointA.Chain.App.GetIBCKeeper().ChannelKeeper.GetPacketCommitment(
+				endpointA.Chain.GetContext(),
+				packet.GetSourcePort(),
+				packet.GetSourceChannel(),
+				packet.GetSequence(),
+			)
 
-			channelA, _ := endpointA.Chain.App.GetIBCKeeper().ChannelKeeper.GetChannel(endpointA.Chain.GetContext(), packet.GetSourcePort(), packet.GetSourceChannel())
-			sequenceAck, _ := endpointA.Chain.App.GetIBCKeeper().ChannelKeeper.GetNextSequenceAck(endpointA.Chain.GetContext(), packet.GetSourcePort(), packet.GetSourceChannel())
+			channelA, _ := endpointA.Chain.App.GetIBCKeeper().ChannelKeeper.GetChannel(
+				endpointA.Chain.GetContext(),
+				packet.GetSourcePort(),
+				packet.GetSourceChannel(),
+			)
+			sequenceAck, _ := endpointA.Chain.App.GetIBCKeeper().ChannelKeeper.GetNextSequenceAck(
+				endpointA.Chain.GetContext(),
+				packet.GetSourcePort(),
+				packet.GetSourceChannel(),
+			)
 
 			if tc.expPass {
 				suite.NoError(err)
 				suite.Nil(pc)
 
 				if channelA.Ordering == types.ORDERED {
-					suite.Require().Equal(packet.GetSequence()+1, sequenceAck, "sequence not incremented in ordered channel")
+					suite.Require().
+						Equal(packet.GetSequence()+1, sequenceAck, "sequence not incremented in ordered channel")
 				} else {
 					suite.Require().Equal(uint64(1), sequenceAck, "sequence incremented for UNORDERED channel")
 				}

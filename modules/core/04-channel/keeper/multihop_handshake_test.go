@@ -14,7 +14,7 @@ import (
 // It uses message passing to enter into the appropriate state and then calls ChanOpenTry directly.
 // The channel is being created on chainB. The port capability must be created on chainB before
 // ChanOpenTryMultihop can succeed.
-func (suite *KeeperTestSuite) TestChanOpenTryMultihop() {
+func (suite *MultihopTestSuite) TestChanOpenTryMultihop() {
 	var (
 		paths      ibctesting.LinkedPaths
 		portCap    *capabilitytypes.Capability
@@ -116,7 +116,7 @@ func (suite *KeeperTestSuite) TestChanOpenTryMultihop() {
 // TestChanOpenAckMultihop tests the OpenAck handshake call for multihop channels.
 // It uses message passing to enter into the appropriate state and then calls
 // ChanOpenAck directly. The handshake call is occurring on chainA.
-func (suite *KeeperTestSuite) TestChanOpenAckMultihop() {
+func (suite *MultihopTestSuite) TestChanOpenAckMultihop() {
 	var (
 		paths                 ibctesting.LinkedPaths
 		counterpartyChannelID string
@@ -189,7 +189,7 @@ func (suite *KeeperTestSuite) TestChanOpenAckMultihop() {
 // TestChanOpenConfirmMultihop tests the OpenAck handshake call for channels. It uses message passing
 // to enter into the appropriate state and then calls ChanOpenConfirm directly. The handshake
 // call is occurring on chainB.
-func (suite *KeeperTestSuite) TestChanOpenConfirmMultihop() {
+func (suite *MultihopTestSuite) TestChanOpenConfirmMultihop() {
 	var (
 		paths      ibctesting.LinkedPaths
 		channelCap *capabilitytypes.Capability
@@ -255,7 +255,7 @@ func (suite *KeeperTestSuite) TestChanOpenConfirmMultihop() {
 
 // TestChanCloseConfirmMultihop tests the initial closing of a handshake on chainA by calling
 // ChanCloseInit. Both chains will use message passing to setup OPEN channels.
-func (suite *KeeperTestSuite) TestChanCloseConfirmMultihop() {
+func (suite *MultihopTestSuite) TestChanCloseConfirmMultihop() {
 	var (
 		paths      ibctesting.LinkedPaths
 		heightDiff uint64
