@@ -15,7 +15,7 @@ import (
 // The first proof can be either a membership proof or a non-membership proof depending on if the key exists on the
 // source chain.
 // TODO: pass in proof height of key/value pair on A
-func GenerateMultiHopProof(paths LinkedPaths, keyPathToProve []byte, expectedVal []byte) (proofs *channeltypes.MsgMultihopProofs, err error) {
+func GenerateMultiHopProof(paths LinkedPaths, keyPathToProve []byte, expectedVal []byte, doVerify bool) (proofs *channeltypes.MsgMultihopProofs, err error) {
 	if len(keyPathToProve) == 0 {
 		panic("path cannot be empty")
 	}
@@ -33,10 +33,6 @@ func GenerateMultiHopProof(paths LinkedPaths, keyPathToProve []byte, expectedVal
 		// srcEnd.counterparty's proven height on its next connected chain
 		provenHeight := endpointB.GetClientState().GetLatestHeight()
 		proof, _ := endpointA.Chain.QueryProofAtHeight([]byte(keyPathToProve), int64(provenHeight.GetRevisionHeight()))
-		var proofKV commitmenttypes.MerkleProof
-		if err = endpointA.Chain.Codec.Unmarshal(proof, &proofKV); err != nil {
-			return nil, fmt.Errorf("failed to unmarshal proof: %w", err)
-		}
 
 		prefixedKey, err := commitmenttypes.ApplyPrefix(
 			endpointA.Chain.GetPrefix(),
@@ -47,27 +43,33 @@ func GenerateMultiHopProof(paths LinkedPaths, keyPathToProve []byte, expectedVal
 		}
 
 		// membership proof
-		if len(expectedVal) > 0 {
-			// check expected val
-			if err = proofKV.VerifyMembership(
-				commitmenttypes.GetSDKSpecs(),
-				endpointB.GetConsensusState(heightBC).GetRoot(),
-				prefixedKey,
-				expectedVal,
-			); err != nil {
-				return nil, fmt.Errorf(
-					"failed to verify keyval proof of [%s] on [%s] with [%s].ConsState on [%s]: %w\nconsider update [%s]'s client on [%s]",
-					endpointB.Chain.ChainID,
-					endpointA.Chain.ChainID,
-					endpointA.Chain.ChainID,
-					endpointB.Chain.ChainID,
-					err,
-					endpointA.Chain.ChainID,
-					endpointB.Chain.ChainID,
-				)
+		if doVerify {
+			if len(expectedVal) > 0 {
+				var proofKV commitmenttypes.MerkleProof
+				if err = endpointA.Chain.Codec.Unmarshal(proof, &proofKV); err != nil {
+					return nil, fmt.Errorf("failed to unmarshal proof: %w", err)
+				}
+				// check expected val
+				if err = proofKV.VerifyMembership(
+					commitmenttypes.GetSDKSpecs(),
+					endpointB.GetConsensusState(heightBC).GetRoot(),
+					prefixedKey,
+					expectedVal,
+				); err != nil {
+					return nil, fmt.Errorf(
+						"failed to verify keyval proof of [%s] on [%s] with [%s].ConsState on [%s]: %w\nconsider update [%s]'s client on [%s]",
+						endpointB.Chain.ChainID,
+						endpointA.Chain.ChainID,
+						endpointA.Chain.ChainID,
+						endpointB.Chain.ChainID,
+						err,
+						endpointA.Chain.ChainID,
+						endpointB.Chain.ChainID,
+					)
+				}
 			}
+			// TODO: verify non-membership proof?
 		}
-		// TODO: verify non-membership proof?
 
 		proofs.KeyProof = &channeltypes.MultihopProof{
 			Proof:       proof,

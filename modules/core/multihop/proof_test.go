@@ -28,7 +28,7 @@ func (t *proofTestSuite) TestMultiHopProof() {
 		connEnd := paths.A().GetConnection()
 		proofValue := paths.A().Chain.Codec.MustMarshal(&connEnd)
 
-		proofs, err := ibctesting.GenerateMultiHopProof(paths, connKey, proofValue)
+		proofs, err := ibctesting.GenerateMultiHopProof(paths, connKey, proofValue, true)
 		t.Require().NoError(err, "failed to generate multi-hop proof for connection")
 
 		return ibctesting.VerifyMultiHopProofMembership(
@@ -39,7 +39,7 @@ func (t *proofTestSuite) TestMultiHopProof() {
 	}
 	verifyNonMembership := func(paths ibctesting.LinkedPaths) error {
 		connKey := host.ConnectionKey("non-existent-connection-id")
-		proofs, err := ibctesting.GenerateMultiHopProof(paths, connKey, nil)
+		proofs, err := ibctesting.GenerateMultiHopProof(paths, connKey, nil, true)
 		t.Require().NoError(err, "failed to generate non-membership multi-hop proof")
 		return ibctesting.VerifyMultiHopProofNonMembership(
 			paths.Z(),
@@ -79,7 +79,7 @@ func (t *proofTestSuite) TestMultiHopProofNegative() {
 			connEnd := paths.A().GetConnection()
 			value, err := connEnd.Marshal()
 			t.NoError(err)
-			_, err = ibctesting.GenerateMultiHopProof(paths, kvPath, value)
+			_, err = ibctesting.GenerateMultiHopProof(paths, kvPath, value, true)
 			t.Require().ErrorContains(err, "failed to verify consensus state proof")
 
 		})

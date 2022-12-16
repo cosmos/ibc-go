@@ -73,7 +73,7 @@ func (suite *MultihopTestSuite) TestRecvPacketMultihop() {
 			expectedVal := types.CommitPacket(endpointA.Chain.Codec, packet)
 
 			// generate multihop proof given keypath and value
-			proofs, err := ibctesting.GenerateMultiHopProof(paths, packetKey, expectedVal)
+			proofs, err := ibctesting.GenerateMultiHopProof(paths, packetKey, expectedVal, false)
 			suite.Require().NoError(err)
 			proofHeight := endpointZ.GetClientState().GetLatestHeight()
 			proof, err := proofs.Marshal()
@@ -192,7 +192,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacketMultihop() {
 			)
 			expectedVal := types.CommitAcknowledgement(ack.Acknowledgement()) //resp.Acknowledgement
 
-			proofs, err := ibctesting.GenerateMultiHopProof(paths.Reverse(), packetKey, expectedVal)
+			proofs, err := ibctesting.GenerateMultiHopProof(paths.Reverse(), packetKey, expectedVal, false)
 			suite.Require().NoError(err)
 			proofHeight := endpointA.GetClientState().GetLatestHeight()
 			proof, err := proofs.Marshal()

@@ -117,7 +117,7 @@ func (paths LinkedPaths) GetConnectionHops() (connectionHops []string) {
 
 // ChanOpenInit is a copy of endpoint.ChanOpenInit which allows specifiying connectionHops
 func ChanOpenInit(paths LinkedPaths) {
-	endpoint := paths[0].EndpointA
+	endpoint := paths.A()
 
 	msg := channeltypes.NewMsgChannelOpenInit(
 		endpoint.ChannelConfig.PortID,
@@ -142,8 +142,8 @@ func ChanOpenInit(paths LinkedPaths) {
 // ChanOpenTry generates a multihop proof to call ChanOpenTry on chain Z.
 // Confirms a channel open init on chain A.
 func ChanOpenTry(paths LinkedPaths) {
-	endpointA := paths[0].EndpointA
-	endpointZ := paths[len(paths)-1].EndpointB
+	endpointA := paths.A()
+	endpointZ := paths.Z()
 
 	err := endpointZ.UpdateClient()
 	require.NoError(endpointZ.Chain.T, err)
@@ -160,7 +160,7 @@ func ChanOpenTry(paths LinkedPaths) {
 	require.NoError(endpointA.Chain.T, err)
 
 	channelKey := host.ChannelKey(endpointA.ChannelConfig.PortID, endpointA.ChannelID)
-	proofs, err := GenerateMultiHopProof(paths, channelKey, expectedVal)
+	proofs, err := GenerateMultiHopProof(paths, channelKey, expectedVal, false)
 	require.NoError(endpointA.Chain.T, err)
 
 	// verify call to ChanOpenTry completes successfully
@@ -195,8 +195,8 @@ func ChanOpenTry(paths LinkedPaths) {
 // ChanOpenAck generates a multihop proof to call ChanOpenAck on chain A.
 // Confirms a channel open Try on chain Z.
 func ChanOpenAck(paths LinkedPaths) {
-	endpointA := paths[0].EndpointA
-	endpointZ := paths[len(paths)-1].EndpointB
+	endpointA := paths.A()
+	endpointZ := paths.Z()
 
 	err := endpointA.UpdateClient()
 	require.NoError(endpointA.Chain.T, err)
@@ -215,7 +215,7 @@ func ChanOpenAck(paths LinkedPaths) {
 	require.NoError(endpointZ.Chain.T, err)
 
 	// generate multihop proof given keypath and value
-	proofs, err := GenerateMultiHopProof(paths.Reverse(), channelKey, expectedVal)
+	proofs, err := GenerateMultiHopProof(paths.Reverse(), channelKey, expectedVal, false)
 	require.NoError(endpointZ.Chain.T, err)
 	// verify call to ChanOpenTry completes successfully
 	height := endpointA.GetClientState().GetLatestHeight()
@@ -241,8 +241,8 @@ func ChanOpenAck(paths LinkedPaths) {
 // ChanOpenConfirm generates a multihop proof to call ChanOpenConfirm on chain Z.
 // Confirms a channel open Ack on chain A.
 func ChanOpenConfirm(paths LinkedPaths) {
-	endpointA := paths[0].EndpointA
-	endpointZ := paths[len(paths)-1].EndpointB
+	endpointA := paths.A()
+	endpointZ := paths.Z()
 
 	err := endpointZ.UpdateClient()
 	require.NoError(endpointA.Chain.T, err)
@@ -261,7 +261,7 @@ func ChanOpenConfirm(paths LinkedPaths) {
 	require.NoError(endpointA.Chain.T, err)
 
 	// generate multihop proof given keypath and value
-	proofs, err := GenerateMultiHopProof(paths, channelKey, expectedVal)
+	proofs, err := GenerateMultiHopProof(paths, channelKey, expectedVal, false)
 	require.NoError(endpointA.Chain.T, err)
 	// verify call to ChanOpenTry completes successfully
 	height := endpointZ.GetClientState().GetLatestHeight()
@@ -291,15 +291,15 @@ func SetupChannel(paths LinkedPaths) {
 // ReceivePacket receives a packet on chain Z with multihop proof
 func RecvPacket(paths LinkedPaths, packet channeltypes.Packet) (*sdk.Result, error) {
 
-	endpointA := paths[0].EndpointA
-	endpointZ := paths[len(paths)-1].EndpointB
+	endpointA := paths.A()
+	endpointZ := paths.Z()
 
 	// get proof of packet commitment from chainA
 	packetKey := host.PacketCommitmentKey(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 	expectedVal := channeltypes.CommitPacket(endpointA.Chain.Codec, packet)
 
 	// generate multihop proof given keypath and value
-	proofs, err := GenerateMultiHopProof(paths, packetKey, expectedVal)
+	proofs, err := GenerateMultiHopProof(paths, packetKey, expectedVal, false)
 	require.NoError(endpointA.Chain.T, err)
 	proofHeight := endpointZ.GetClientState().GetLatestHeight()
 	proof, err := proofs.Marshal()

@@ -147,11 +147,11 @@ func (suite *MultihopTestSuite) TestChanOpenTryMultihop() {
 			suite.Require().NoError(err)
 
 			// fmt.Printf("portid=%s channelid=%s\n", counterparty.PortId, counterparty.ChannelId)
-			fmt.Printf("channel: %#v\n", *resp.Channel)
+			// fmt.Printf("channel: %#v\n", *resp.Channel)
 			// fmt.Printf("expectedVal for proof generation: %x\n", expectedVal)
 
 			// generate multihop proof given keypath and value
-			proofs, err := ibctesting.GenerateMultiHopProof(paths, channelKey, expectedVal)
+			proofs, err := ibctesting.GenerateMultiHopProof(paths, channelKey, expectedVal, false)
 			suite.Require().NoError(err)
 
 			// verify call to ChanOpenTry completes successfully
@@ -232,7 +232,7 @@ func (suite *MultihopTestSuite) TestChanOpenAckMultihop() {
 			suite.Require().NoError(err)
 
 			// generate multihop proof given keypath and value
-			proofs, err := ibctesting.GenerateMultiHopProof(paths.Reverse(), channelKey, expectedVal)
+			proofs, err := ibctesting.GenerateMultiHopProof(paths.Reverse(), channelKey, expectedVal, false)
 			suite.Require().NoError(err)
 			// verify call to ChanOpenTry completes successfully
 			proofHeight := endpointA.GetClientState().GetLatestHeight()
@@ -300,7 +300,7 @@ func (suite *MultihopTestSuite) TestChanOpenConfirmMultihop() {
 			suite.Require().NoError(err)
 
 			// generate multihop proof given keypath and value
-			proofs, err := ibctesting.GenerateMultiHopProof(paths, channelKey, expectedVal)
+			proofs, err := ibctesting.GenerateMultiHopProof(paths, channelKey, expectedVal, false)
 			suite.Require().NoError(err)
 			// verify call to ChanOpenTry completes successfully
 			proofHeight := endpointZ.GetClientState().GetLatestHeight()
@@ -370,7 +370,7 @@ func (suite *MultihopTestSuite) TestChanCloseConfirmMultihop() {
 			suite.Require().NoError(err)
 
 			// generate multihop proof given keypath and value
-			proofs, err := ibctesting.GenerateMultiHopProof(paths, channelKey, expectedVal)
+			proofs, err := ibctesting.GenerateMultiHopProof(paths, channelKey, expectedVal, false)
 			suite.Require().NoError(err)
 			proofHeight := endpointZ.GetClientState().GetLatestHeight()
 			proof, err := proofs.Marshal()
