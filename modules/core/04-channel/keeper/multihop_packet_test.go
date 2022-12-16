@@ -57,8 +57,8 @@ func (suite *MultihopTestSuite) TestRecvPacketMultihop() {
 		suite.Run(fmt.Sprintf("Case %s, %d/%d tests", tc.msg, i, len(testCases)), func() {
 			numChains = 5
 			_, paths = ibctesting.CreateLinkedChains(&suite.Suite, numChains)
-			endpointA = paths[0].EndpointA
-			endpointZ = paths[len(paths)-1].EndpointB
+			endpointA = paths.A()
+			endpointZ = paths.Z()
 
 			expError = nil // must explicitly set for failed cases
 
@@ -179,8 +179,8 @@ func (suite *KeeperTestSuite) TestAcknowledgePacketMultihop() {
 		suite.Run(fmt.Sprintf("Case %s, %d/%d tests", tc.msg, i, len(testCases)), func() {
 			numChains = 5
 			_, paths = ibctesting.CreateLinkedChains(&suite.Suite, numChains)
-			endpointA = paths[0].EndpointA
-			endpointZ = paths[len(paths)-1].EndpointB
+			endpointA = paths.A()
+			endpointZ = paths.Z()
 			expError = nil // must explcitly set error for failed cases
 
 			tc.malleate()

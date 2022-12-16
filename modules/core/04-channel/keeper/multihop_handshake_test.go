@@ -126,8 +126,8 @@ func (suite *MultihopTestSuite) TestChanOpenTryMultihop() {
 			heightDiff = 0 // must be explicitly changed in malleate
 			numChains = 5
 			_, paths = ibctesting.CreateLinkedChains(&suite.Suite, numChains)
-			endpointA = paths[0].EndpointA
-			endpointZ = paths[len(paths)-1].EndpointB
+			endpointA = paths.A()
+			endpointZ = paths.Z()
 
 			tc.malleate() // call ChanOpenInit and setup port capabilities
 
@@ -209,8 +209,8 @@ func (suite *MultihopTestSuite) TestChanOpenAckMultihop() {
 			heightDiff = 0 // must be explicitly changed in malleate
 			numChains = 5
 			_, paths = ibctesting.CreateLinkedChains(&suite.Suite, numChains)
-			endpointA = paths[0].EndpointA
-			endpointZ = paths[len(paths)-1].EndpointB
+			endpointA = paths.A()
+			endpointZ = paths.Z()
 
 			tc.malleate() // call ChanOpenInit and setup port capabilities
 
@@ -281,8 +281,8 @@ func (suite *MultihopTestSuite) TestChanOpenConfirmMultihop() {
 			heightDiff = 0 // must be explicitly changed
 			numChains = 5
 			_, paths = ibctesting.CreateLinkedChains(&suite.Suite, numChains)
-			endpointA = paths[0].EndpointA
-			endpointZ = paths[len(paths)-1].EndpointB
+			endpointA = paths.A()
+			endpointZ = paths.Z()
 
 			tc.malleate()
 
@@ -351,8 +351,8 @@ func (suite *MultihopTestSuite) TestChanCloseConfirmMultihop() {
 			heightDiff = 0
 			numChains = 5
 			_, paths = ibctesting.CreateLinkedChains(&suite.Suite, numChains)
-			endpointA = paths[0].EndpointA
-			endpointZ = paths[len(paths)-1].EndpointB
+			endpointA = paths.A()
+			endpointZ = paths.Z()
 
 			tc.malleate()
 
