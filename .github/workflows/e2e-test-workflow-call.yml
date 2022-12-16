@@ -34,7 +34,7 @@ on:
       relayer-tag:
         description: "The tag to use for the relayer"
         required: false
-        default: "v2.1.2"
+        default: "latest"
         type: string
       build-and-push-docker-image:
         description: "Flag to specify if the docker image should be built and pushed beforehand"
