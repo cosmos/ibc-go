@@ -92,7 +92,7 @@ func (k Keeper) PayPacketFee(goCtx context.Context, msg *types.MsgPayPacketFee) 
 		return nil, err
 	}
 
-	if err = k.bankKeeper.IsSendEnabledCoins(ctx, msg.Fee.Total()...); err != nil {
+	if err := k.bankKeeper.IsSendEnabledCoins(ctx, msg.Fee.Total()...); err != nil {
 		return nil, err
 	}
 
@@ -137,7 +137,7 @@ func (k Keeper) PayPacketFeeAsync(goCtx context.Context, msg *types.MsgPayPacket
 		return nil, err
 	}
 
-	if err = k.bankKeeper.IsSendEnabledCoins(ctx, msg.PacketFee.Fee.Total()...); err != nil {
+	if err := k.bankKeeper.IsSendEnabledCoins(ctx, msg.PacketFee.Fee.Total()...); err != nil {
 		return nil, err
 	}
 
