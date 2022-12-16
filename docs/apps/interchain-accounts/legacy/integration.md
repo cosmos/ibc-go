@@ -157,7 +157,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 
 As described above, the Interchain Accounts application module is structured to support the ability of exclusively enabling controller or host functionality.
 This can be achieved by simply omitting either controller or host `Keeper` from the Interchain Accounts `NewAppModule` constructor function, and mounting only the desired submodule via the `IBCRouter`.
-Alternatively, submodules can be enabled and disabled dynamically using [on-chain parameters](./parameters.md).
+Alternatively, submodules can be enabled and disabled dynamically using [on-chain parameters](../parameters.md).
 
 The following snippets show basic examples of statically disabling submodules using `app.go`.
 
