@@ -475,7 +475,7 @@ func (suite *KeeperTestSuite) TestPayPacketFeeAsync() {
 					},
 				)
 			},
-			true,
+			false,
 		},
 		{
 			"acknowledgement fee balance not found",
