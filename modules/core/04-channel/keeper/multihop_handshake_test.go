@@ -10,6 +10,74 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v6/testing"
 )
 
+// TestChannOpenInit tests the OpenInit handshake call for multihop channels.
+func (suite *MultihopTestSuite) TestChanOpenInit() {
+
+	var portCap *capabilitytypes.Capability
+
+	testCases := []testCase{
+		{"success", func() {
+
+			suite.paths.A().Chain.CreatePortCapability(
+				suite.paths.A().Chain.GetSimApp().ScopedIBCMockKeeper,
+				suite.paths.A().ChannelConfig.PortID,
+			)
+			portCap = suite.paths.A().Chain.GetPortCapability(suite.paths.A().ChannelConfig.PortID)
+		}, true},
+		{"capability is incorrect", func() {
+
+			suite.paths.A().Chain.CreatePortCapability(
+				suite.paths.A().Chain.GetSimApp().ScopedIBCMockKeeper,
+				suite.paths.A().ChannelConfig.PortID,
+			)
+			portCap = capabilitytypes.NewCapability(42)
+		}, false},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
+			// run tests for all types of ordering
+			for _, order := range []types.Order{types.ORDERED, types.UNORDERED} {
+				suite.SetupTest() // reset
+				suite.paths.A().ChannelConfig.Order = order
+				suite.paths.Z().ChannelConfig.Order = order
+
+				tc.malleate()
+
+				// counterparty := types.NewCounterparty(suite.paths.A().ChannelConfig.PortID, ibctesting.FirstChannelID)
+				counterparty := types.NewCounterparty(suite.paths.Z().ChannelConfig.PortID, "")
+				channelID, cap, err := suite.paths.A().Chain.App.GetIBCKeeper().ChannelKeeper.ChanOpenInit(
+					suite.paths.A().Chain.GetContext(),
+					suite.paths.A().ChannelConfig.Order,
+					[]string{suite.paths.A().ConnectionID},
+					suite.paths.A().ChannelConfig.PortID,
+					portCap,
+					counterparty,
+					suite.paths.A().ChannelConfig.Version,
+				)
+
+				if tc.expPass {
+					suite.Require().NoError(err, "channel open init failed")
+					suite.Require().NotEmpty(channelID, "channel ID is empty")
+
+					chanCap, ok := suite.paths.A().
+						Chain.App.GetScopedIBCKeeper().
+						GetCapability(suite.paths.A().Chain.GetContext(), host.ChannelCapabilityPath(suite.paths.A().ChannelConfig.PortID, channelID))
+					suite.Require().True(ok, "could not retrieve channel capability after successful ChanOpenInit")
+					suite.Require().
+						Equal(cap.String(), chanCap.String(), "channel capability is not equal to retrieved capability")
+					suite.T().Logf("capability: %s\n", cap.String())
+				} else {
+					suite.Require().Error(err, "channel open init should fail but passed")
+					suite.Require().Equal("", channelID, "channel ID is not empty")
+					suite.Require().Nil(cap, "channel capability is not nil")
+				}
+			}
+		})
+	}
+}
+
 // TestChanOpenTryMultihop tests the OpenTry handshake call for channels over multiple connections.
 // It uses message passing to enter into the appropriate state and then calls ChanOpenTry directly.
 // The channel is being created on chainB. The port capability must be created on chainB before
