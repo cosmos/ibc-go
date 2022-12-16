@@ -15,11 +15,7 @@ import (
 // The first proof can be either a membership proof or a non-membership proof depending on if the key exists on the
 // source chain.
 // TODO: pass in proof height of key/value pair on A
-func GenerateMultiHopProof(
-	paths LinkedPaths,
-	keyPathToProve []byte,
-	expectedVal []byte,
-) (*channeltypes.MsgMultihopProofs, error) {
+func GenerateMultiHopProof(paths LinkedPaths, keyPathToProve []byte, expectedVal []byte) (proofs *channeltypes.MsgMultihopProofs, err error) {
 	if len(keyPathToProve) == 0 {
 		panic("path cannot be empty")
 	}
@@ -29,7 +25,7 @@ func GenerateMultiHopProof(
 	}
 	endpointA := paths.A()
 
-	var proofs channeltypes.MsgMultihopProofs
+	proofs = &channeltypes.MsgMultihopProofs{}
 	// generate proof for key path on the source chain
 	{
 		endpointB := endpointA.Counterparty
@@ -38,7 +34,7 @@ func GenerateMultiHopProof(
 		provenHeight := endpointB.GetClientState().GetLatestHeight()
 		proof, _ := endpointA.Chain.QueryProofAtHeight([]byte(keyPathToProve), int64(provenHeight.GetRevisionHeight()))
 		var proofKV commitmenttypes.MerkleProof
-		if err := endpointA.Chain.Codec.Unmarshal(proof, &proofKV); err != nil {
+		if err = endpointA.Chain.Codec.Unmarshal(proof, &proofKV); err != nil {
 			return nil, fmt.Errorf("failed to unmarshal proof: %w", err)
 		}
 
@@ -46,11 +42,14 @@ func GenerateMultiHopProof(
 			endpointA.Chain.GetPrefix(),
 			commitmenttypes.NewMerklePath(string(keyPathToProve)),
 		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to apply prefix to key path: %w", err)
+		}
 
 		// membership proof
 		if len(expectedVal) > 0 {
 			// check expected val
-			if err := proofKV.VerifyMembership(
+			if err = proofKV.VerifyMembership(
 				commitmenttypes.GetSDKSpecs(),
 				endpointB.GetConsensusState(heightBC).GetRoot(),
 				prefixedKey,
@@ -70,10 +69,6 @@ func GenerateMultiHopProof(
 		}
 		// TODO: verify non-membership proof?
 
-		if err != nil {
-			return nil, fmt.Errorf("failed to apply prefix to key path: %w", err)
-		}
-
 		proofs.KeyProof = &channeltypes.MultihopProof{
 			Proof:       proof,
 			Value:       nil,
@@ -81,14 +76,12 @@ func GenerateMultiHopProof(
 		}
 	}
 
-	consStateProofs, connectionProofs, err := GenerateMultiHopConsensusProof(paths)
+	proofs.ConsensusProofs, proofs.ConnectionProofs, err = GenerateMultiHopConsensusProof(paths)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate consensus proofs: %w", err)
 	}
-	proofs.ConsensusProofs = consStateProofs
-	proofs.ConnectionProofs = connectionProofs
 
-	return &proofs, nil
+	return
 }
 
 // GenerateMultiHopConsensusProof generates a proof of consensus state of paths[0].EndpointA verified on
