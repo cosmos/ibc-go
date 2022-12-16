@@ -18,10 +18,8 @@ import (
 // verification tests need to simulate sending a packet from chainA to chainB.
 func (suite *MultihopTestSuite) TestRecvPacketMultihop() {
 	var (
-		paths      ibctesting.LinkedPaths
 		packet     exported.PacketI
 		channelCap *capabilitytypes.Capability
-		numChains  int
 		endpointA  *ibctesting.Endpoint
 		endpointZ  *ibctesting.Endpoint
 		expError   *sdkerrors.Error
@@ -29,7 +27,7 @@ func (suite *MultihopTestSuite) TestRecvPacketMultihop() {
 
 	testCases := []testCase{
 		{"success: ORDERED channel", func() {
-			ibctesting.SetupChannel(paths)
+			ibctesting.SetupChannel(suite.paths)
 
 			sequence, err := endpointA.SendPacket(
 				defaultTimeoutHeight,
@@ -37,7 +35,7 @@ func (suite *MultihopTestSuite) TestRecvPacketMultihop() {
 				ibctesting.MockPacketData,
 			)
 			suite.Require().NoError(err)
-			paths.UpdateClients()
+			suite.paths.UpdateClients()
 			packet = types.NewPacket(
 				ibctesting.MockPacketData,
 				sequence,
@@ -55,10 +53,9 @@ func (suite *MultihopTestSuite) TestRecvPacketMultihop() {
 	for i, tc := range testCases {
 		tc := tc
 		suite.Run(fmt.Sprintf("Case %s, %d/%d tests", tc.msg, i, len(testCases)), func() {
-			numChains = 5
-			_, paths = ibctesting.CreateLinkedChains(&suite.Suite, numChains)
-			endpointA = paths.A()
-			endpointZ = paths.Z()
+			suite.SetupTest()
+			endpointA = suite.paths.A()
+			endpointZ = suite.paths.Z()
 
 			expError = nil // must explicitly set for failed cases
 
@@ -73,7 +70,7 @@ func (suite *MultihopTestSuite) TestRecvPacketMultihop() {
 			expectedVal := types.CommitPacket(endpointA.Chain.Codec, packet)
 
 			// generate multihop proof given keypath and value
-			proofs, err := ibctesting.GenerateMultiHopProof(paths, packetKey, expectedVal, false)
+			proofs, err := ibctesting.GenerateMultiHopProof(suite.paths, packetKey, expectedVal, false)
 			suite.Require().NoError(err)
 			proofHeight := endpointZ.GetClientState().GetLatestHeight()
 			proof, err := proofs.Marshal()
@@ -130,23 +127,21 @@ func (suite *MultihopTestSuite) TestRecvPacketMultihop() {
 }
 
 // TestAcknowledgePacketMultihop tests the call AcknowledgePacket on chainA.
-func (suite *KeeperTestSuite) TestAcknowledgePacketMultihop() {
+func (suite *MultihopTestSuite) TestAcknowledgePacketMultihop() {
 	var (
-		paths  ibctesting.LinkedPaths
 		packet types.Packet
 		ack    = ibcmock.MockAcknowledgement
 
 		channelCap *capabilitytypes.Capability
 		expError   *sdkerrors.Error
 
-		numChains int
 		endpointA *ibctesting.Endpoint
 		endpointZ *ibctesting.Endpoint
 	)
 
 	testCases := []testCase{
 		{"success on ordered channel", func() {
-			ibctesting.SetupChannel(paths)
+			ibctesting.SetupChannel(suite.paths)
 			// create packet commitment
 			sequence, err := endpointA.SendPacket(
 				defaultTimeoutHeight,
@@ -155,7 +150,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacketMultihop() {
 			)
 			suite.Require().NoError(err)
 
-			paths.UpdateClients()
+			suite.paths.UpdateClients()
 			// create packet receipt and acknowledgement
 			packet = types.NewPacket(
 				ibctesting.MockPacketData,
@@ -167,9 +162,9 @@ func (suite *KeeperTestSuite) TestAcknowledgePacketMultihop() {
 				defaultTimeoutHeight,
 				disabledTimeoutTimestamp,
 			)
-			_, err = ibctesting.RecvPacket(paths, packet)
+			_, err = ibctesting.RecvPacket(suite.paths, packet)
 			suite.Require().NoError(err)
-			paths.Reverse().UpdateClients()
+			suite.paths.Reverse().UpdateClients()
 			channelCap = endpointA.Chain.GetChannelCapability(endpointA.ChannelConfig.PortID, endpointA.ChannelID)
 		}, true},
 	}
@@ -177,10 +172,9 @@ func (suite *KeeperTestSuite) TestAcknowledgePacketMultihop() {
 	for i, tc := range testCases {
 		tc := tc
 		suite.Run(fmt.Sprintf("Case %s, %d/%d tests", tc.msg, i, len(testCases)), func() {
-			numChains = 5
-			_, paths = ibctesting.CreateLinkedChains(&suite.Suite, numChains)
-			endpointA = paths.A()
-			endpointZ = paths.Z()
+			suite.SetupTest()
+			endpointA = suite.paths.A()
+			endpointZ = suite.paths.Z()
 			expError = nil // must explcitly set error for failed cases
 
 			tc.malleate()
@@ -192,7 +186,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacketMultihop() {
 			)
 			expectedVal := types.CommitAcknowledgement(ack.Acknowledgement()) //resp.Acknowledgement
 
-			proofs, err := ibctesting.GenerateMultiHopProof(paths.Reverse(), packetKey, expectedVal, false)
+			proofs, err := ibctesting.GenerateMultiHopProof(suite.paths.Reverse(), packetKey, expectedVal, false)
 			suite.Require().NoError(err)
 			proofHeight := endpointA.GetClientState().GetLatestHeight()
 			proof, err := proofs.Marshal()

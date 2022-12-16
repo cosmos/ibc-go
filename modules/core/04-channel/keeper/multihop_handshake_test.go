@@ -84,10 +84,8 @@ func (suite *MultihopTestSuite) TestChanOpenInit() {
 // ChanOpenTryMultihop can succeed.
 func (suite *MultihopTestSuite) TestChanOpenTryMultihop() {
 	var (
-		paths      ibctesting.LinkedPaths
 		portCap    *capabilitytypes.Capability
 		heightDiff uint64
-		numChains  int
 		endpointA  *ibctesting.Endpoint
 		endpointZ  *ibctesting.Endpoint
 	)
@@ -95,7 +93,7 @@ func (suite *MultihopTestSuite) TestChanOpenTryMultihop() {
 	testCases := []testCase{
 		{"multihop success", func() {
 			// manually call ChanOpenInit so we can properly set the connectionHops
-			ibctesting.ChanOpenInit(paths)
+			ibctesting.ChanOpenInit(suite.paths)
 			endpointZ.Chain.CreatePortCapability(endpointZ.Chain.GetSimApp().ScopedIBCMockKeeper, ibctesting.MockPort)
 			portCap = endpointZ.Chain.GetPortCapability(ibctesting.MockPort)
 		}, true},
@@ -122,12 +120,10 @@ func (suite *MultihopTestSuite) TestChanOpenTryMultihop() {
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
-
+			suite.SetupTest()
+			endpointA = suite.paths.A()
+			endpointZ = suite.paths.Z()
 			heightDiff = 0 // must be explicitly changed in malleate
-			numChains = 5
-			_, paths = ibctesting.CreateLinkedChains(&suite.Suite, numChains)
-			endpointA = paths.A()
-			endpointZ = paths.Z()
 
 			tc.malleate() // call ChanOpenInit and setup port capabilities
 
@@ -151,7 +147,7 @@ func (suite *MultihopTestSuite) TestChanOpenTryMultihop() {
 			// fmt.Printf("expectedVal for proof generation: %x\n", expectedVal)
 
 			// generate multihop proof given keypath and value
-			proofs, err := ibctesting.GenerateMultiHopProof(paths, channelKey, expectedVal, false)
+			proofs, err := ibctesting.GenerateMultiHopProof(suite.paths, channelKey, expectedVal, false)
 			suite.Require().NoError(err)
 
 			// verify call to ChanOpenTry completes successfully
@@ -159,7 +155,7 @@ func (suite *MultihopTestSuite) TestChanOpenTryMultihop() {
 			proof, err := proofs.Marshal()
 			suite.Require().NoError(err)
 			channelID, cap, err := endpointZ.Chain.App.GetIBCKeeper().ChannelKeeper.ChanOpenTry(
-				endpointZ.Chain.GetContext(), endpointA.ChannelConfig.Order, paths.Reverse().GetConnectionHops(),
+				endpointZ.Chain.GetContext(), endpointA.ChannelConfig.Order, suite.paths.Reverse().GetConnectionHops(),
 				endpointZ.ChannelConfig.PortID, portCap, counterparty, endpointA.ChannelConfig.Version,
 				proof, malleateHeight(proofHeight, heightDiff),
 			)
@@ -186,19 +182,17 @@ func (suite *MultihopTestSuite) TestChanOpenTryMultihop() {
 // ChanOpenAck directly. The handshake call is occurring on chainA.
 func (suite *MultihopTestSuite) TestChanOpenAckMultihop() {
 	var (
-		paths                 ibctesting.LinkedPaths
 		counterpartyChannelID string
 		channelCap            *capabilitytypes.Capability
 		heightDiff            uint64
-		numChains             int
 		endpointA             *ibctesting.Endpoint
 		endpointZ             *ibctesting.Endpoint
 	)
 
 	testCases := []testCase{
 		{"success", func() {
-			ibctesting.ChanOpenInit(paths)
-			ibctesting.ChanOpenTry(paths)
+			ibctesting.ChanOpenInit(suite.paths)
+			ibctesting.ChanOpenTry(suite.paths)
 			channelCap = endpointA.Chain.GetChannelCapability(endpointA.ChannelConfig.PortID, endpointA.ChannelID)
 		}, true},
 	}
@@ -206,11 +200,10 @@ func (suite *MultihopTestSuite) TestChanOpenAckMultihop() {
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
+			suite.SetupTest()
+			endpointA = suite.paths.A()
+			endpointZ = suite.paths.Z()
 			heightDiff = 0 // must be explicitly changed in malleate
-			numChains = 5
-			_, paths = ibctesting.CreateLinkedChains(&suite.Suite, numChains)
-			endpointA = paths.A()
-			endpointZ = paths.Z()
 
 			tc.malleate() // call ChanOpenInit and setup port capabilities
 
@@ -232,7 +225,7 @@ func (suite *MultihopTestSuite) TestChanOpenAckMultihop() {
 			suite.Require().NoError(err)
 
 			// generate multihop proof given keypath and value
-			proofs, err := ibctesting.GenerateMultiHopProof(paths.Reverse(), channelKey, expectedVal, false)
+			proofs, err := ibctesting.GenerateMultiHopProof(suite.paths.Reverse(), channelKey, expectedVal, false)
 			suite.Require().NoError(err)
 			// verify call to ChanOpenTry completes successfully
 			proofHeight := endpointA.GetClientState().GetLatestHeight()
@@ -259,18 +252,16 @@ func (suite *MultihopTestSuite) TestChanOpenAckMultihop() {
 // call is occurring on chainB.
 func (suite *MultihopTestSuite) TestChanOpenConfirmMultihop() {
 	var (
-		paths      ibctesting.LinkedPaths
 		channelCap *capabilitytypes.Capability
 		heightDiff uint64
-		numChains  int
 		endpointA  *ibctesting.Endpoint
 		endpointZ  *ibctesting.Endpoint
 	)
 	testCases := []testCase{
 		{"success", func() {
-			ibctesting.ChanOpenInit(paths)
-			ibctesting.ChanOpenTry(paths)
-			ibctesting.ChanOpenAck(paths)
+			ibctesting.ChanOpenInit(suite.paths)
+			ibctesting.ChanOpenTry(suite.paths)
+			ibctesting.ChanOpenAck(suite.paths)
 			channelCap = endpointZ.Chain.GetChannelCapability(endpointZ.ChannelConfig.PortID, endpointZ.ChannelID)
 		}, true},
 	}
@@ -278,11 +269,10 @@ func (suite *MultihopTestSuite) TestChanOpenConfirmMultihop() {
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
+			suite.SetupTest()
+			endpointA = suite.paths.A()
+			endpointZ = suite.paths.Z()
 			heightDiff = 0 // must be explicitly changed
-			numChains = 5
-			_, paths = ibctesting.CreateLinkedChains(&suite.Suite, numChains)
-			endpointA = paths.A()
-			endpointZ = paths.Z()
 
 			tc.malleate()
 
@@ -300,7 +290,7 @@ func (suite *MultihopTestSuite) TestChanOpenConfirmMultihop() {
 			suite.Require().NoError(err)
 
 			// generate multihop proof given keypath and value
-			proofs, err := ibctesting.GenerateMultiHopProof(paths, channelKey, expectedVal, false)
+			proofs, err := ibctesting.GenerateMultiHopProof(suite.paths, channelKey, expectedVal, false)
 			suite.Require().NoError(err)
 			// verify call to ChanOpenTry completes successfully
 			proofHeight := endpointZ.GetClientState().GetLatestHeight()
@@ -325,21 +315,19 @@ func (suite *MultihopTestSuite) TestChanOpenConfirmMultihop() {
 // ChanCloseInit. Both chains will use message passing to setup OPEN channels.
 func (suite *MultihopTestSuite) TestChanCloseConfirmMultihop() {
 	var (
-		paths      ibctesting.LinkedPaths
 		heightDiff uint64
 		channelCap *capabilitytypes.Capability
-		numChains  int
 		endpointA  *ibctesting.Endpoint
 		endpointZ  *ibctesting.Endpoint
 	)
 
 	testCases := []testCase{
 		{"success", func() {
-			ibctesting.SetupChannel(paths)
+			ibctesting.SetupChannel(suite.paths)
 
 			channelCap = endpointZ.Chain.GetChannelCapability(endpointZ.ChannelConfig.PortID, endpointZ.ChannelID)
 			err := endpointA.SetChannelClosed()
-			paths.UpdateClients()
+			suite.paths.UpdateClients()
 
 			suite.Require().NoError(err)
 		}, true},
@@ -348,11 +336,10 @@ func (suite *MultihopTestSuite) TestChanCloseConfirmMultihop() {
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
+			suite.SetupTest()
+			endpointA = suite.paths.A()
+			endpointZ = suite.paths.Z()
 			heightDiff = 0
-			numChains = 5
-			_, paths = ibctesting.CreateLinkedChains(&suite.Suite, numChains)
-			endpointA = paths.A()
-			endpointZ = paths.Z()
 
 			tc.malleate()
 
@@ -370,7 +357,7 @@ func (suite *MultihopTestSuite) TestChanCloseConfirmMultihop() {
 			suite.Require().NoError(err)
 
 			// generate multihop proof given keypath and value
-			proofs, err := ibctesting.GenerateMultiHopProof(paths, channelKey, expectedVal, false)
+			proofs, err := ibctesting.GenerateMultiHopProof(suite.paths, channelKey, expectedVal, false)
 			suite.Require().NoError(err)
 			proofHeight := endpointZ.GetClientState().GetLatestHeight()
 			proof, err := proofs.Marshal()
