@@ -92,6 +92,10 @@ func (k Keeper) PayPacketFee(goCtx context.Context, msg *types.MsgPayPacketFee) 
 		return nil, err
 	}
 
+	if err := k.bankKeeper.IsSendEnabledCoins(ctx, msg.Fee.Total()...); err != nil {
+		return nil, err
+	}
+
 	if k.bankKeeper.BlockedAddr(refundAcc) {
 		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "%s is not allowed to escrow fees", refundAcc)
 	}
@@ -130,6 +134,10 @@ func (k Keeper) PayPacketFeeAsync(goCtx context.Context, msg *types.MsgPayPacket
 
 	refundAcc, err := sdk.AccAddressFromBech32(msg.PacketFee.RefundAddress)
 	if err != nil {
+		return nil, err
+	}
+
+	if err := k.bankKeeper.IsSendEnabledCoins(ctx, msg.PacketFee.Fee.Total()...); err != nil {
 		return nil, err
 	}
 
