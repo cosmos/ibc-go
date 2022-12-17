@@ -40,4 +40,5 @@ type BankKeeper interface {
 	SendCoinsFromModuleToAccount(ctx sdk.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins) error
 	SendCoins(ctx sdk.Context, fromAddr sdk.AccAddress, toAddr sdk.AccAddress, amt sdk.Coins) error
 	BlockedAddr(sdk.AccAddress) bool
+	IsSendEnabledCoins(ctx sdk.Context, coins ...sdk.Coin) error
 }
