@@ -19,7 +19,11 @@ import (
 // The first proof can be either a membership proof or a non-membership proof depending on if the key exists on the
 // source chain.
 // TODO: pass in proof height of key/value pair on A
-func GenerateMultiHopProof(paths LinkedPaths, keyPathToProve []byte, expectedVal []byte) (*channeltypes.MsgMultihopProofs, error) {
+func GenerateMultiHopProof(
+	paths LinkedPaths,
+	keyPathToProve []byte,
+	expectedVal []byte,
+) (*channeltypes.MsgMultihopProofs, error) {
 	if len(keyPathToProve) == 0 {
 		panic("path cannot be empty")
 	}
@@ -94,7 +98,9 @@ func GenerateMultiHopProof(paths LinkedPaths, keyPathToProve []byte, expectedVal
 // GenerateMultiHopConsensusProof generates a proof of consensus state of paths[0].EndpointA verified on
 // paths[len(paths)-1].EndpointB and all intermediate consensus states.
 // TODO: Would it be beneficial to batch the consensus state and connection proofs?
-func GenerateMultiHopConsensusProof(paths []*Path) ([]*channeltypes.MultihopProof, []*channeltypes.MultihopProof, error) {
+func GenerateMultiHopConsensusProof(
+	paths []*Path,
+) ([]*channeltypes.MultihopProof, []*channeltypes.MultihopProof, error) {
 	if len(paths) < 2 {
 		panic("paths must have at least two elements")
 	}
@@ -124,7 +130,12 @@ func GenerateMultiHopConsensusProof(paths []*Path) ([]*channeltypes.MultihopProo
 
 		keyPrefixedConsAB, err := GetConsensusStatePrefix(self, heightAB)
 		if err != nil {
-			return nil, nil, fmt.Errorf("failed to get consensus state prefix at height %d and revision %d: %w", heightAB.GetRevisionHeight(), heightAB.GetRevisionHeight(), err)
+			return nil, nil, fmt.Errorf(
+				"failed to get consensus state prefix at height %d and revision %d: %w",
+				heightAB.GetRevisionHeight(),
+				heightAB.GetRevisionHeight(),
+				err,
+			)
 		}
 
 		// proof of A's consensus state (heightAB) on B at height BC
@@ -132,7 +143,11 @@ func GenerateMultiHopConsensusProof(paths []*Path) ([]*channeltypes.MultihopProo
 
 		var consensusStateMerkleProof commitmenttypes.MerkleProof
 		if err := self.Chain.Codec.Unmarshal(consensusProof, &consensusStateMerkleProof); err != nil {
-			return nil, nil, fmt.Errorf("failed to get proof for consensus state on chain %s: %w", self.Chain.ChainID, err)
+			return nil, nil, fmt.Errorf(
+				"failed to get proof for consensus state on chain %s: %w",
+				self.Chain.ChainID,
+				err,
+			)
 		}
 
 		value, err := self.Chain.Codec.MarshalInterface(consStateAB)
@@ -174,7 +189,11 @@ func GenerateMultiHopConsensusProof(paths []*Path) ([]*channeltypes.MultihopProo
 		connectionProof, _ := GetConnectionProof(self, heightBC, self.ConnectionID)
 		var connectionMerkleProof commitmenttypes.MerkleProof
 		if err := self.Chain.Codec.Unmarshal(connectionProof, &connectionMerkleProof); err != nil {
-			return nil, nil, fmt.Errorf("failed to get proof for consensus state on chain %s: %w", self.Chain.ChainID, err)
+			return nil, nil, fmt.Errorf(
+				"failed to get proof for consensus state on chain %s: %w",
+				self.Chain.ChainID,
+				err,
+			)
 		}
 
 		connection := self.GetConnection()
@@ -216,7 +235,11 @@ func GenerateMultiHopConsensusProof(paths []*Path) ([]*channeltypes.MultihopProo
 }
 
 // VerifyMultiHopConsensusStateProof verifies the consensus state of paths[0].EndpointA on paths[len(paths)-1].EndpointB.
-func VerifyMultiHopConsensusStateProof(endpoint *Endpoint, consensusProofs []*channeltypes.MultihopProof, connectionProofs []*channeltypes.MultihopProof) error {
+func VerifyMultiHopConsensusStateProof(
+	endpoint *Endpoint,
+	consensusProofs []*channeltypes.MultihopProof,
+	connectionProofs []*channeltypes.MultihopProof,
+) error {
 	lastConsstate := endpoint.GetConsensusState(endpoint.GetClientState().GetLatestHeight())
 	var consState exported.ConsensusState
 	//var connectionEnd connectiontypes.ConnectionEnd
@@ -264,7 +287,11 @@ func VerifyMultiHopConsensusStateProof(endpoint *Endpoint, consensusProofs []*ch
 }
 
 // VerifyMultiHopProofMembership verifies a multihop membership proof including all intermediate state proofs.
-func VerifyMultiHopProofMembership(endpoint *Endpoint, proofs *channeltypes.MsgMultihopProofs, expectedVal []byte) error {
+func VerifyMultiHopProofMembership(
+	endpoint *Endpoint,
+	proofs *channeltypes.MsgMultihopProofs,
+	expectedVal []byte,
+) error {
 	if len(proofs.ConsensusProofs) < 1 {
 		return fmt.Errorf(
 			"proof must have at least two elements where the first one is the proof for the key and the rest are for the consensus states",
@@ -399,7 +426,6 @@ func (paths LinkedPaths) Z() *Endpoint {
 func (paths LinkedPaths) Reverse() LinkedPaths {
 	var reversed LinkedPaths
 	for i := range paths {
-		// Ensure Z's client on Y, Y's client on X, etc. are all updated
 		orgPath := paths[len(paths)-1-i]
 		path := Path{
 			EndpointA: orgPath.EndpointB,
@@ -646,7 +672,12 @@ func RecvPacket(paths LinkedPaths, packet channeltypes.Packet) (*sdk.Result, err
 	proof, err := proofs.Marshal()
 	require.NoError(endpointA.Chain.T, err)
 
-	recvMsg := channeltypes.NewMsgRecvPacket(packet, proof, proofHeight.(types.Height), endpointZ.Chain.SenderAccount.GetAddress().String())
+	recvMsg := channeltypes.NewMsgRecvPacket(
+		packet,
+		proof,
+		proofHeight.(types.Height),
+		endpointZ.Chain.SenderAccount.GetAddress().String(),
+	)
 
 	// receive on counterparty and update source client
 	res, err := endpointZ.Chain.SendMsgs(recvMsg)
