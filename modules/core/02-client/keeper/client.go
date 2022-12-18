@@ -10,8 +10,9 @@ import (
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
 )
 
-// CreateClient creates a new client state and populates it with a given consensus
-// state as defined in https://github.com/cosmos/ibc/tree/master/spec/core/ics-002-client-semantics#create
+// CreateClient generates a new client identifier and isolated prefix store for the provided client state.
+// The client state is responsible for setting any client-specific data in the store via the Initialize method.
+// This includes the client state, initial consensus state and any associated metadata.
 func (k Keeper) CreateClient(
 	ctx sdk.Context, clientState exported.ClientState, consensusState exported.ConsensusState,
 ) (string, error) {
@@ -24,17 +25,11 @@ func (k Keeper) CreateClient(
 	}
 
 	clientID := k.GenerateClientIdentifier(ctx, clientState.ClientType())
+	clientStore := k.ClientStore(ctx, clientID)
 
-	k.Logger(ctx).Info("client created at height", "client-id", clientID, "height", clientState.GetLatestHeight().String())
-
-	// verifies initial consensus state against client state and initializes client store with any client-specific metadata
-	// e.g. set ProcessedTime in Tendermint clients
-	if err := clientState.Initialize(ctx, k.cdc, k.ClientStore(ctx, clientID), consensusState); err != nil {
+	if err := clientState.Initialize(ctx, k.cdc, clientStore, consensusState); err != nil {
 		return "", err
 	}
-
-	k.SetClientState(ctx, clientID, clientState)
-	k.SetClientConsensusState(ctx, clientID, clientState.GetLatestHeight(), consensusState)
 
 	k.Logger(ctx).Info("client created at height", "client-id", clientID, "height", clientState.GetLatestHeight().String())
 
