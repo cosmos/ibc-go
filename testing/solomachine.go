@@ -174,7 +174,6 @@ func (solo *Solomachine) CreateHeader(newDiversifier string) *solomachine.Header
 	sig := solo.GenerateSignature(bz)
 
 	header := &solomachine.Header{
-		Sequence:       solo.Sequence,
 		Timestamp:      solo.Time,
 		Signature:      sig,
 		NewPublicKey:   publicKey,
