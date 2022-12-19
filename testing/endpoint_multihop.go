@@ -10,6 +10,7 @@ import (
 // Invariants:
 //   - paths[0].A == this.Endpoint
 //   - paths[len(paths)-1].B == this.Counterparty
+//   - self.paths.Reverse() == self.Counterparty.paths
 //
 // None of the fields should be changed after creation.
 type EndpointM struct {
