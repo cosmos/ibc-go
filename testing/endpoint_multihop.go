@@ -3,6 +3,8 @@ package ibctesting
 import (
 	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
+	"github.com/stretchr/testify/require"
 )
 
 // EndpointM represents a multihop channel endpoint.
@@ -37,12 +39,55 @@ func NewEndpointMFromLinkedPaths(path LinkedPaths) (A, Z EndpointM) {
 
 // ChanOpenInit will construct and execute a MsgChannelOpenInit on the associated EndpointM.
 func (ep *EndpointM) ChanOpenInit() error {
+	msg := channeltypes.NewMsgChannelOpenInit(
+		ep.ChannelConfig.PortID, ep.ChannelConfig.Version, ep.ChannelConfig.Order, ep.GetConnectionHops(),
+		ep.Counterparty.ChannelConfig.PortID,
+		ep.Chain.SenderAccount.GetAddress().String(),
+	)
+	res, err := ep.Chain.SendMsgs(msg)
+	if err != nil {
+		return err
+	}
 
+	ep.ChannelID, err = ParseChannelIDFromEvents(res.GetEvents())
+	require.NoError(ep.Chain.T, err, "could not retrieve channel id from event")
+
+	// update version to selected app version
+	// NOTE: this update must be performed after SendMsgs()
+	ep.ChannelConfig.Version = ep.GetChannel().Version
 	return nil
 }
 
 // ChanOpenTry will construct and execute a MsgChannelOpenTry on the associated EndpointM.
 func (ep *EndpointM) ChanOpenTry() error {
+	// propogate client state updates from A to Z
+	err := ep.UpdateAllClients()
+	if err != nil {
+		return err
+	}
+
+	_, proof := ep.Counterparty.QueryChannelProof()
+	unusedProofHeight := ep.GetClientState().GetLatestHeight().(clienttypes.Height)
+
+	msg := channeltypes.NewMsgChannelOpenTry(
+		ep.ChannelConfig.PortID, ep.ChannelConfig.Version, ep.ChannelConfig.Order, ep.GetConnectionHops(),
+		ep.Counterparty.ChannelConfig.PortID, ep.Counterparty.ChannelID, ep.Counterparty.ChannelConfig.Version,
+		proof, unusedProofHeight,
+		ep.Chain.SenderAccount.GetAddress().String(),
+	)
+
+	res, err := ep.Chain.SendMsgs(msg)
+	if err != nil {
+		return err
+	}
+
+	if ep.ChannelID == "" {
+		ep.ChannelID, err = ParseChannelIDFromEvents(res.GetEvents())
+		require.NoError(ep.Chain.T, err, "could not retrieve channel id from event on chain %s", ep.Chain.ChainID)
+	}
+
+	// update version to selected channel version. NOTE: this update must be performed after SendMsgs()
+	ep.ChannelConfig.Version = ep.GetChannel().Version
 
 	return nil
 }
@@ -103,13 +148,46 @@ func (ep *EndpointM) SetChannelClosed() error {
 }
 
 // UpdateAllClients updates all client states starting from the first single-hop path to the last.
-// ie. self's client state is propogated to the counterparty chain following the multihop channel path.
+// ie. self's client state is propogated from the counterparty chain following the multihop channel path.
 func (ep *EndpointM) UpdateAllClients() error {
-	for _, path := range ep.paths {
+	for _, path := range ep.Counterparty.paths {
 		err := path.EndpointA.UpdateClient()
 		if err != nil {
 			return err
 		}
 	}
 	return nil
+}
+
+// GetConnectionHops returns the connection hops for the multihop channel.
+func (ep *EndpointM) GetConnectionHops() []string {
+	return ep.paths.GetConnectionHops()
+}
+
+// QueryChannelProof queries the channel proof on the endpoint chain.
+func (ep *EndpointM) QueryChannelProof() (*channeltypes.Channel, []byte) {
+	// request := &channeltypes.QueryChannelRequest{
+	// 	PortId:    ep.ChannelConfig.PortID,
+	// 	ChannelId: ep.ChannelID,
+	// }
+	// resp, err := ep.Chain.App.GetIBCKeeper().Channel(ep.Chain.GetContext(), request)
+	// require.NoError(ep.Chain.T, err, "could not query channel from chain %s", ep.Chain.ChainID)
+
+	// channel := resp.GetChannel()
+	channel := ep.GetChannel()
+	channelKey := host.ChannelKey(ep.ChannelConfig.PortID, ep.ChannelID)
+	proof, err := GenerateMultiHopProof(
+		ep.paths,
+		channelKey,
+		ep.Chain.Codec.MustMarshal(&channel),
+	)
+	require.NoError(
+		ep.Chain.T,
+		err,
+		"could not generate proof for channel %s on chain %s",
+		ep.ChannelID,
+		ep.Chain.ChainID,
+	)
+
+	return &channel, ep.Chain.Codec.MustMarshal(proof)
 }
