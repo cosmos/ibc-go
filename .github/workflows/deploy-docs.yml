@@ -2,6 +2,7 @@ name: Deploy docs
 # This job builds and deploys documenation to github pages.
 # It runs on every push to main with a change in the docs folder.
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
@@ -34,7 +35,7 @@ jobs:
           make build-docs LEDGER_ENABLED=false
 
       - name: Deploy 🚀
-        uses: JamesIves/github-pages-deploy-action@v4.4.0
+        uses: JamesIves/github-pages-deploy-action@v4.4.1
         with:
           branch: gh-pages
           folder: ~/output

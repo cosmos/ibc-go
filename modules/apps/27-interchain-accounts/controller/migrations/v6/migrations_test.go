@@ -32,8 +32,8 @@ func (suite *MigrationsTestSuite) SetupTest() {
 	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
 
 	suite.path = ibctesting.NewPath(suite.chainA, suite.chainB)
-	suite.path.EndpointA.ChannelConfig.PortID = icatypes.PortID
-	suite.path.EndpointB.ChannelConfig.PortID = icatypes.PortID
+	suite.path.EndpointA.ChannelConfig.PortID = icatypes.HostPortID
+	suite.path.EndpointB.ChannelConfig.PortID = icatypes.HostPortID
 	suite.path.EndpointA.ChannelConfig.Order = channeltypes.ORDERED
 	suite.path.EndpointB.ChannelConfig.Order = channeltypes.ORDERED
 	suite.path.EndpointA.ChannelConfig.Version = icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
@@ -93,6 +93,9 @@ func (suite *MigrationsTestSuite) TestMigrateICS27ChannelCapability() {
 	err := suite.SetupPath()
 	suite.Require().NoError(err)
 
+	// create additional capabilities to cover edge cases
+	suite.CreateMockCapabilities()
+
 	// create and claim a new capability with ibc/mock for "channel-1"
 	// note: suite.SetupPath() now claims the chanel capability using icacontroller for "channel-0"
 	capName := host.ChannelCapabilityPath(suite.path.EndpointA.ChannelConfig.PortID, channeltypes.FormatChannelIdentifier(1))
@@ -146,6 +149,38 @@ func (suite *MigrationsTestSuite) TestMigrateICS27ChannelCapability() {
 	suite.Require().True(found)
 
 	isAuthenticated = suite.chainA.GetSimApp().ScopedICAControllerKeeper.AuthenticateCapability(suite.chainA.GetContext(), cap, capName)
+	suite.Require().True(isAuthenticated)
+
+	suite.AssertMockCapabiltiesUnchanged()
+}
+
+// CreateMockCapabilities creates an additional two capabilities used for testing purposes:
+// 1. A capability with a single owner
+// 2. A capability with two owners, neither of which is "ibc"
+func (suite *MigrationsTestSuite) CreateMockCapabilities() {
+	cap, err := suite.chainA.GetSimApp().ScopedIBCMockKeeper.NewCapability(suite.chainA.GetContext(), "mock_one")
+	suite.Require().NoError(err)
+	suite.Require().NotNil(cap)
+
+	cap, err = suite.chainA.GetSimApp().ScopedICAMockKeeper.NewCapability(suite.chainA.GetContext(), "mock_two")
+	suite.Require().NoError(err)
+	suite.Require().NotNil(cap)
+
+	err = suite.chainA.GetSimApp().ScopedIBCMockKeeper.ClaimCapability(suite.chainA.GetContext(), cap, "mock_two")
+	suite.Require().NoError(err)
+}
+
+// AssertMockCapabiltiesUnchanged authenticates the mock capabilities created at the start of the test to ensure they remain unchanged
+func (suite *MigrationsTestSuite) AssertMockCapabiltiesUnchanged() {
+	cap, found := suite.chainA.GetSimApp().ScopedIBCMockKeeper.GetCapability(suite.chainA.GetContext(), "mock_one")
+	suite.Require().True(found)
+	suite.Require().NotNil(cap)
+
+	cap, found = suite.chainA.GetSimApp().ScopedIBCMockKeeper.GetCapability(suite.chainA.GetContext(), "mock_two")
+	suite.Require().True(found)
+	suite.Require().NotNil(cap)
+
+	isAuthenticated := suite.chainA.GetSimApp().ScopedICAMockKeeper.AuthenticateCapability(suite.chainA.GetContext(), cap, "mock_two")
 	suite.Require().True(isAuthenticated)
 }
 

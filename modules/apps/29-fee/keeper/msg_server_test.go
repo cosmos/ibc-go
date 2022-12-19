@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
 	"github.com/cosmos/ibc-go/v6/modules/apps/29-fee/types"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
@@ -198,6 +199,17 @@ func (suite *KeeperTestSuite) TestPayPacketFee() {
 			true,
 		},
 		{
+			"bank send enabled for fee denom",
+			func() {
+				suite.chainA.GetSimApp().BankKeeper.SetParams(suite.chainA.GetContext(),
+					banktypes.Params{
+						SendEnabled: []*banktypes.SendEnabled{{Denom: sdk.DefaultBondDenom, Enabled: true}},
+					},
+				)
+			},
+			true,
+		},
+		{
 			"refund account is module account",
 			func() {
 				suite.chainA.GetSimApp().BankKeeper.SendCoinsFromAccountToModule(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), ibcmock.ModuleName, fee.Total())
@@ -241,6 +253,17 @@ func (suite *KeeperTestSuite) TestPayPacketFee() {
 			func() {
 				blockedAddr := suite.chainA.GetSimApp().AccountKeeper.GetModuleAccount(suite.chainA.GetContext(), transfertypes.ModuleName).GetAddress()
 				msg.Signer = blockedAddr.String()
+			},
+			false,
+		},
+		{
+			"bank send disabled for fee denom",
+			func() {
+				suite.chainA.GetSimApp().BankKeeper.SetParams(suite.chainA.GetContext(),
+					banktypes.Params{
+						SendEnabled: []*banktypes.SendEnabled{{Denom: sdk.DefaultBondDenom, Enabled: false}},
+					},
+				)
 			},
 			false,
 		},
@@ -348,6 +371,17 @@ func (suite *KeeperTestSuite) TestPayPacketFeeAsync() {
 			true,
 		},
 		{
+			"bank send enabled for fee denom",
+			func() {
+				suite.chainA.GetSimApp().BankKeeper.SetParams(suite.chainA.GetContext(),
+					banktypes.Params{
+						SendEnabled: []*banktypes.SendEnabled{{Denom: sdk.DefaultBondDenom, Enabled: true}},
+					},
+				)
+			},
+			true,
+		},
+		{
 			"fee module is locked",
 			func() {
 				lockFeeModule(suite.chainA)
@@ -391,20 +425,21 @@ func (suite *KeeperTestSuite) TestPayPacketFeeAsync() {
 		{
 			"packet already timed out",
 			func() {
-				// try to incentivze a packet which is timed out
-				packetID := channeltypes.NewPacketID(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, msg.PacketId.Sequence+1)
-				packet = channeltypes.NewPacket(ibctesting.MockPacketData, packetID.Sequence, packetID.PortId, packetID.ChannelId, suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID, clienttypes.GetSelfHeight(suite.chainB.GetContext()), 0)
+				timeoutHeight := clienttypes.GetSelfHeight(suite.chainB.GetContext())
 
-				err := suite.path.EndpointA.SendPacket(packet)
+				// try to incentivize a packet which is timed out
+				sequence, err := suite.path.EndpointA.SendPacket(timeoutHeight, 0, ibctesting.MockPacketData)
 				suite.Require().NoError(err)
 
 				// need to update chainA's client representing chainB to prove missing ack
 				err = suite.path.EndpointA.UpdateClient()
 				suite.Require().NoError(err)
 
+				packet = channeltypes.NewPacket(ibctesting.MockPacketData, sequence, suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID, timeoutHeight, 0)
 				err = suite.path.EndpointA.TimeoutPacket(packet)
 				suite.Require().NoError(err)
 
+				packetID := channeltypes.NewPacketID(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, sequence)
 				msg.PacketId = packetID
 			},
 			false,
@@ -428,6 +463,17 @@ func (suite *KeeperTestSuite) TestPayPacketFeeAsync() {
 			func() {
 				blockedAddr := suite.chainA.GetSimApp().AccountKeeper.GetModuleAccount(suite.chainA.GetContext(), transfertypes.ModuleName).GetAddress()
 				msg.PacketFee.RefundAddress = blockedAddr.String()
+			},
+			false,
+		},
+		{
+			"bank send disabled for fee denom",
+			func() {
+				suite.chainA.GetSimApp().BankKeeper.SetParams(suite.chainA.GetContext(),
+					banktypes.Params{
+						SendEnabled: []*banktypes.SendEnabled{{Denom: sdk.DefaultBondDenom, Enabled: false}},
+					},
+				)
 			},
 			false,
 		},
@@ -461,11 +507,13 @@ func (suite *KeeperTestSuite) TestPayPacketFeeAsync() {
 			suite.SetupTest()
 			suite.coordinator.Setup(suite.path) // setup channel
 
+			timeoutHeight := clienttypes.NewHeight(clienttypes.ParseChainID(suite.chainB.ChainID), 100)
+
 			// send a packet to incentivize
-			packetID := channeltypes.NewPacketID(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, 1)
-			packet = channeltypes.NewPacket(ibctesting.MockPacketData, packetID.Sequence, packetID.PortId, packetID.ChannelId, suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID, clienttypes.NewHeight(clienttypes.ParseChainID(suite.chainB.ChainID), 100), 0)
-			err := suite.path.EndpointA.SendPacket(packet)
+			sequence, err := suite.path.EndpointA.SendPacket(timeoutHeight, 0, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
+			packetID := channeltypes.NewPacketID(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, sequence)
+			packet = channeltypes.NewPacket(ibctesting.MockPacketData, packetID.Sequence, packetID.PortId, packetID.ChannelId, suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID, timeoutHeight, 0)
 
 			fee := types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
 			packetFee := types.NewPacketFee(fee, suite.chainA.SenderAccount.GetAddress().String(), nil)

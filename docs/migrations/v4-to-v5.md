@@ -7,7 +7,7 @@ There are four sections based on the four potential user groups of this document
 - [Chains](#chains)
 - [IBC Apps](#ibc-apps)
 - [Relayers](#relayers)
-- [IBC Light Clients](#relayers)
+- [IBC Light Clients](#ibc-light-clients)
 
 **Note:** ibc-go supports golang semantic versioning and therefore all imports must be updated to bump the version number on major releases.
 ```go

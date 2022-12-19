@@ -5,11 +5,11 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	"github.com/gogo/protobuf/proto"
 
 	"github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/controller/keeper"
 	"github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/controller/types"
 	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
-	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
 	ibctesting "github.com/cosmos/ibc-go/v6/testing"
@@ -168,7 +168,7 @@ func (suite *KeeperTestSuite) TestSubmitTx() {
 				Amount:      sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100))),
 			}
 
-			data, err := icatypes.SerializeCosmosTx(suite.chainA.Codec, []sdk.Msg{icaMsg})
+			data, err := icatypes.SerializeCosmosTx(suite.chainA.Codec, []proto.Message{icaMsg})
 			suite.Require().NoError(err)
 
 			packetData := icatypes.InterchainAccountPacketData{
@@ -180,7 +180,7 @@ func (suite *KeeperTestSuite) TestSubmitTx() {
 			timeoutTimestamp := uint64(suite.chainA.GetContext().BlockTime().Add(time.Minute).UnixNano())
 			connectionID := path.EndpointA.ConnectionID
 
-			msg = types.NewMsgSendTx(owner, connectionID, clienttypes.ZeroHeight(), timeoutTimestamp, packetData)
+			msg = types.NewMsgSendTx(owner, connectionID, timeoutTimestamp, packetData)
 
 			tc.malleate() // malleate mutates test data
 

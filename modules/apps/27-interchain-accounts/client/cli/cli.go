@@ -37,6 +37,7 @@ func NewTxCmd() *cobra.Command {
 
 	icaTxCmd.AddCommand(
 		controllercli.NewTxCmd(),
+		hostcli.NewTxCmd(),
 	)
 
 	return icaTxCmd

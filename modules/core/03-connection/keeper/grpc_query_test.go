@@ -440,3 +440,10 @@ func (suite *KeeperTestSuite) TestQueryConnectionConsensusState() {
 		})
 	}
 }
+
+func (suite *KeeperTestSuite) TestQueryConnectionParams() {
+	ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
+	expParams := types.DefaultParams()
+	res, _ := suite.chainA.QueryServer.ConnectionParams(ctx, &types.QueryConnectionParamsRequest{})
+	suite.Require().Equal(&expParams, res.Params)
+}

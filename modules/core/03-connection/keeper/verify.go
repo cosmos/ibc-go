@@ -41,11 +41,6 @@ func (k Keeper) VerifyClientState(
 		return err
 	}
 
-	path, err := k.cdc.Marshal(&merklePath)
-	if err != nil {
-		return err
-	}
-
 	bz, err := k.cdc.MarshalInterface(clientState)
 	if err != nil {
 		return err
@@ -54,7 +49,7 @@ func (k Keeper) VerifyClientState(
 	if err := targetClient.VerifyMembership(
 		ctx, clientStore, k.cdc, height,
 		0, 0, // skip delay period checks for non-packet processing verification
-		proof, path, bz,
+		proof, merklePath, bz,
 	); err != nil {
 		return sdkerrors.Wrapf(err, "failed client state verification for target client: %s", clientID)
 	}
@@ -90,11 +85,6 @@ func (k Keeper) VerifyClientConsensusState(
 		return err
 	}
 
-	path, err := k.cdc.Marshal(&merklePath)
-	if err != nil {
-		return err
-	}
-
 	bz, err := k.cdc.MarshalInterface(consensusState)
 	if err != nil {
 		return err
@@ -103,7 +93,7 @@ func (k Keeper) VerifyClientConsensusState(
 	if err := clientState.VerifyMembership(
 		ctx, clientStore, k.cdc, height,
 		0, 0, // skip delay period checks for non-packet processing verification
-		proof, path, bz,
+		proof, merklePath, bz,
 	); err != nil {
 		return sdkerrors.Wrapf(err, "failed consensus state verification for client (%s)", clientID)
 	}
@@ -139,11 +129,6 @@ func (k Keeper) VerifyConnectionState(
 		return err
 	}
 
-	path, err := k.cdc.Marshal(&merklePath)
-	if err != nil {
-		return err
-	}
-
 	connectionEnd, ok := counterpartyConnection.(connectiontypes.ConnectionEnd)
 	if !ok {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "invalid connection type %T", counterpartyConnection)
@@ -157,7 +142,7 @@ func (k Keeper) VerifyConnectionState(
 	if err := clientState.VerifyMembership(
 		ctx, clientStore, k.cdc, height,
 		0, 0, // skip delay period checks for non-packet processing verification
-		proof, path, bz,
+		proof, merklePath, bz,
 	); err != nil {
 		return sdkerrors.Wrapf(err, "failed connection state verification for client (%s)", clientID)
 	}
@@ -194,11 +179,6 @@ func (k Keeper) VerifyChannelState(
 		return err
 	}
 
-	path, err := k.cdc.Marshal(&merklePath)
-	if err != nil {
-		return err
-	}
-
 	channelEnd, ok := channel.(channeltypes.Channel)
 	if !ok {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "invalid channel type %T", channel)
@@ -212,7 +192,7 @@ func (k Keeper) VerifyChannelState(
 	if err := clientState.VerifyMembership(
 		ctx, clientStore, k.cdc, height,
 		0, 0, // skip delay period checks for non-packet processing verification
-		proof, path, bz,
+		proof, merklePath, bz,
 	); err != nil {
 		return sdkerrors.Wrapf(err, "failed channel state verification for client (%s)", clientID)
 	}
@@ -254,15 +234,10 @@ func (k Keeper) VerifyPacketCommitment(
 		return err
 	}
 
-	path, err := k.cdc.Marshal(&merklePath)
-	if err != nil {
-		return err
-	}
-
 	if err := clientState.VerifyMembership(
 		ctx, clientStore, k.cdc, height,
 		timeDelay, blockDelay,
-		proof, path, commitmentBytes,
+		proof, merklePath, commitmentBytes,
 	); err != nil {
 		return sdkerrors.Wrapf(err, "failed packet commitment verification for client (%s)", clientID)
 	}
@@ -304,15 +279,10 @@ func (k Keeper) VerifyPacketAcknowledgement(
 		return err
 	}
 
-	path, err := k.cdc.Marshal(&merklePath)
-	if err != nil {
-		return err
-	}
-
 	if err := clientState.VerifyMembership(
 		ctx, clientStore, k.cdc, height,
 		timeDelay, blockDelay,
-		proof, path, channeltypes.CommitAcknowledgement(acknowledgement),
+		proof, merklePath, channeltypes.CommitAcknowledgement(acknowledgement),
 	); err != nil {
 		return sdkerrors.Wrapf(err, "failed packet acknowledgement verification for client (%s)", clientID)
 	}
@@ -354,15 +324,10 @@ func (k Keeper) VerifyPacketReceiptAbsence(
 		return err
 	}
 
-	path, err := k.cdc.Marshal(&merklePath)
-	if err != nil {
-		return err
-	}
-
 	if err := clientState.VerifyNonMembership(
 		ctx, clientStore, k.cdc, height,
 		timeDelay, blockDelay,
-		proof, path,
+		proof, merklePath,
 	); err != nil {
 		return sdkerrors.Wrapf(err, "failed packet receipt absence verification for client (%s)", clientID)
 	}
@@ -403,15 +368,10 @@ func (k Keeper) VerifyNextSequenceRecv(
 		return err
 	}
 
-	path, err := k.cdc.Marshal(&merklePath)
-	if err != nil {
-		return err
-	}
-
 	if err := clientState.VerifyMembership(
 		ctx, clientStore, k.cdc, height,
 		timeDelay, blockDelay,
-		proof, path, sdk.Uint64ToBigEndian(nextSequenceRecv),
+		proof, merklePath, sdk.Uint64ToBigEndian(nextSequenceRecv),
 	); err != nil {
 		return sdkerrors.Wrapf(err, "failed next sequence receive verification for client (%s)", clientID)
 	}

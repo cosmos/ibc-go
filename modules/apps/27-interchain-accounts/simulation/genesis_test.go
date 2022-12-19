@@ -50,7 +50,7 @@ func TestRandomizedGenState(t *testing.T) {
 
 	require.True(t, icaGenesis.HostGenesisState.Params.HostEnabled)
 	require.Equal(t, []string{"*"}, icaGenesis.HostGenesisState.Params.AllowMessages)
-	require.Equal(t, types.PortID, icaGenesis.HostGenesisState.Port)
+	require.Equal(t, types.HostPortID, icaGenesis.HostGenesisState.Port)
 	require.Empty(t, icaGenesis.ControllerGenesisState.ActiveChannels)
 	require.Empty(t, icaGenesis.ControllerGenesisState.InterchainAccounts)
 }

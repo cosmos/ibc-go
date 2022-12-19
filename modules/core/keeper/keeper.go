@@ -50,11 +50,10 @@ func NewKeeper(
 	}
 
 	// panic if any of the keepers passed in is empty
-	if reflect.ValueOf(stakingKeeper).IsZero() {
+	if isEmpty(stakingKeeper) {
 		panic(fmt.Errorf("cannot initialize IBC keeper: empty staking keeper"))
 	}
-
-	if reflect.ValueOf(upgradeKeeper).IsZero() {
+	if isEmpty(upgradeKeeper) {
 		panic(fmt.Errorf("cannot initialize IBC keeper: empty upgrade keeper"))
 	}
 
@@ -91,4 +90,20 @@ func (k *Keeper) SetRouter(rtr *porttypes.Router) {
 	k.PortKeeper.Router = rtr
 	k.Router = rtr
 	k.Router.Seal()
+}
+
+// isEmpty checks if the interface is an empty struct or a pointer pointing
+// to an empty struct
+func isEmpty(keeper interface{}) bool {
+	switch reflect.TypeOf(keeper).Kind() {
+	case reflect.Ptr:
+		if reflect.ValueOf(keeper).Elem().IsZero() {
+			return true
+		}
+	default:
+		if reflect.ValueOf(keeper).IsZero() {
+			return true
+		}
+	}
+	return false
 }

@@ -9,6 +9,7 @@ import (
 
 	"github.com/cosmos/ibc-go/v6/modules/apps/29-fee/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
+	porttypes "github.com/cosmos/ibc-go/v6/modules/core/05-port/types"
 	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
 )
 
@@ -25,7 +26,7 @@ type Keeper struct {
 	cdc      codec.BinaryCodec
 
 	authKeeper    types.AccountKeeper
-	ics4Wrapper   types.ICS4Wrapper
+	ics4Wrapper   porttypes.ICS4Wrapper
 	channelKeeper types.ChannelKeeper
 	portKeeper    types.PortKeeper
 	bankKeeper    types.BankKeeper
@@ -34,7 +35,7 @@ type Keeper struct {
 // NewKeeper creates a new 29-fee Keeper instance
 func NewKeeper(
 	cdc codec.BinaryCodec, key storetypes.StoreKey,
-	ics4Wrapper types.ICS4Wrapper, channelKeeper types.ChannelKeeper,
+	ics4Wrapper porttypes.ICS4Wrapper, channelKeeper types.ChannelKeeper,
 	portKeeper types.PortKeeper, authKeeper types.AccountKeeper, bankKeeper types.BankKeeper,
 ) Keeper {
 	return Keeper{
@@ -122,7 +123,7 @@ func (k Keeper) DeleteFeeEnabled(ctx sdk.Context, portID, channelID string) {
 // fee enabled flag for the given port and channel identifiers
 func (k Keeper) IsFeeEnabled(ctx sdk.Context, portID, channelID string) bool {
 	store := ctx.KVStore(k.storeKey)
-	return store.Get(types.KeyFeeEnabled(portID, channelID)) != nil
+	return store.Has(types.KeyFeeEnabled(portID, channelID))
 }
 
 // GetAllFeeEnabledChannels returns a list of all ics29 enabled channels containing portID & channelID that are stored in state

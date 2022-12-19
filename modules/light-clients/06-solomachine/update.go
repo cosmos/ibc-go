@@ -26,14 +26,6 @@ func (cs ClientState) VerifyClientMessage(ctx sdk.Context, cdc codec.BinaryCodec
 }
 
 func (cs ClientState) verifyHeader(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, header *Header) error {
-	// assert update sequence is current sequence
-	if header.Sequence != cs.Sequence {
-		return sdkerrors.Wrapf(
-			clienttypes.ErrInvalidHeader,
-			"header sequence does not match the client state sequence (%d != %d)", header.Sequence, cs.Sequence,
-		)
-	}
-
 	// assert update timestamp is not less than current consensus state timestamp
 	if header.Timestamp < cs.ConsensusState.Timestamp {
 		return sdkerrors.Wrapf(
@@ -54,10 +46,10 @@ func (cs ClientState) verifyHeader(ctx sdk.Context, cdc codec.BinaryCodec, clien
 	}
 
 	signBytes := &SignBytes{
-		Sequence:    header.Sequence,
+		Sequence:    cs.Sequence,
 		Timestamp:   header.Timestamp,
 		Diversifier: cs.ConsensusState.Diversifier,
-		Path:        []byte{},
+		Path:        []byte(SentinelHeaderPath),
 		Data:        dataBz,
 	}
 
@@ -78,22 +70,6 @@ func (cs ClientState) verifyHeader(ctx sdk.Context, cdc codec.BinaryCodec, clien
 
 	if err := VerifySignature(publicKey, data, sigData); err != nil {
 		return sdkerrors.Wrap(ErrInvalidHeader, err.Error())
-	}
-
-	return nil
-}
-
-func (cs ClientState) verifyMisbehaviour(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, misbehaviour *Misbehaviour) error {
-	// NOTE: a check that the misbehaviour message data are not equal is done by
-	// misbehaviour.ValidateBasic which is called by the 02-client keeper.
-	// verify first signature
-	if err := cs.verifySignatureAndData(cdc, misbehaviour, misbehaviour.SignatureOne); err != nil {
-		return sdkerrors.Wrap(err, "failed to verify signature one")
-	}
-
-	// verify second signature
-	if err := cs.verifySignatureAndData(cdc, misbehaviour, misbehaviour.SignatureTwo); err != nil {
-		return sdkerrors.Wrap(err, "failed to verify signature two")
 	}
 
 	return nil
@@ -120,15 +96,6 @@ func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, client
 	setClientState(clientStore, cdc, &cs)
 
 	return []exported.Height{clienttypes.NewHeight(0, cs.Sequence)}
-}
-
-// CheckForMisbehaviour returns true for type Misbehaviour (passed VerifyClientMessage check), otherwise returns false
-func (cs ClientState) CheckForMisbehaviour(_ sdk.Context, _ codec.BinaryCodec, _ sdk.KVStore, clientMsg exported.ClientMessage) bool {
-	if _, ok := clientMsg.(*Misbehaviour); ok {
-		return true
-	}
-
-	return false
 }
 
 // UpdateStateOnMisbehaviour updates state upon misbehaviour. This method should only be called on misbehaviour

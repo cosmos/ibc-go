@@ -209,7 +209,7 @@ Just as IBC expects modules to implement callbacks for channel handshakes, it al
 
 Once a module A and module B are connected to each other, relayers can start relaying packets and acknowledgements back and forth on the channel.
 
-![IBC packet flow diagram](https://ibcprotocol.org/_nuxt/img/packet_flow.1d89ee0.png)
+![IBC packet flow diagram](https://ibcprotocol.dev/_nuxt/img/packet_flow.1d89ee0.png)
 
 Briefly, a successful packet flow works as follows:
 
@@ -232,9 +232,16 @@ module must trigger execution on the port-bound module through the use of callba
 channelCap := scopedKeeper.GetCapability(ctx, channelCapName)
 // Sending custom application packet data
 data := EncodePacketData(customPacketData)
-packet.Data = data
 // Send packet to IBC, authenticating with channelCap
-IBCChannelKeeper.SendPacket(ctx, channelCap, packet)
+sequence, err := IBCChannelKeeper.SendPacket(
+    ctx, 
+    channelCap, 
+    sourcePort, 
+    sourceChannel, 
+    timeoutHeight, 
+    timeoutTimestamp, 
+    data,
+)
 ```
 
 ::: warning
