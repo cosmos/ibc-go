@@ -48,20 +48,20 @@ func IsAllowedAddress(ctx sdk.Context, receiver string, allowedAddrs []string) b
 
 // Accept implements Authorization.Accept.
 func (a TransferAuthorization) Accept(ctx sdk.Context, msg sdk.Msg) (authz.AcceptResponse, error) {
-	mTransfer, ok := msg.(*MsgTransfer)
+	msgTransfer, ok := msg.(*MsgTransfer)
 	if !ok {
-		return authz.AcceptResponse{}, sdkerrors.ErrInvalidType.Wrap("type mismatch")
+		return authz.AcceptResponse{}, sdkerrors.Wrap(sdkerrors.ErrInvalidType, "type mismatch")
 	}
 
 	for index, allocation := range a.Allocations {
-		if allocation.SourceChannel == mTransfer.SourceChannel && allocation.SourcePort == mTransfer.SourcePort {
-			limitLeft, isNegative := allocation.SpendLimit.SafeSub(mTransfer.Token)
+		if allocation.SourceChannel == msgTransfer.SourceChannel && allocation.SourcePort == msgTransfer.SourcePort {
+			limitLeft, isNegative := allocation.SpendLimit.SafeSub(msgTransfer.Token)
 			if isNegative {
 				return authz.AcceptResponse{}, sdkerrors.ErrInsufficientFunds.Wrapf("requested amount is more than spend limit")
 			}
 
-			if !IsAllowedAddress(ctx, mTransfer.Receiver, allocation.AllowedAddresses) {
-				return authz.AcceptResponse{}, sdkerrors.ErrInsufficientFunds.Wrapf("not allowed address for transfer")
+			if !IsAllowedAddress(ctx, msgTransfer.Receiver, allocation.AllowedAddresses) {
+				return authz.AcceptResponse{}, sdkerrors.ErrInvalidAddress.Wrapf("not allowed address for transfer")
 			}
 
 			if limitLeft.IsZero() {
@@ -85,7 +85,7 @@ func (a TransferAuthorization) Accept(ctx sdk.Context, msg sdk.Msg) (authz.Accep
 			}}, nil
 		}
 	}
-	return authz.AcceptResponse{}, sdkerrors.ErrInsufficientFunds.Wrapf("requested port and channel allocation does not exist")
+	return authz.AcceptResponse{}, sdkerrors.ErrNotFound.Wrapf("requested port and channel allocation does not exist")
 }
 
 // ValidateBasic implements Authorization.ValidateBasic.
