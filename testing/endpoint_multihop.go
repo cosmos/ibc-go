@@ -94,13 +94,48 @@ func (ep *EndpointM) ChanOpenTry() error {
 
 // ChanOpenAck will construct and execute a MsgChannelOpenAck on the associated EndpointM.
 func (ep *EndpointM) ChanOpenAck() error {
+	// propogate client state updates from Z to A
+	err := ep.UpdateAllClients()
+	if err != nil {
+		return err
+	}
+
+	_, proof := ep.Counterparty.QueryChannelProof()
+	unusedProofHeight := ep.GetClientState().GetLatestHeight().(clienttypes.Height)
+
+	msg := channeltypes.NewMsgChannelOpenAck(
+		ep.ChannelConfig.PortID, ep.ChannelID,
+		ep.Counterparty.ChannelID, ep.Counterparty.ChannelConfig.Version,
+		proof, unusedProofHeight,
+		ep.Chain.SenderAccount.GetAddress().String(),
+	)
+	if _, err = ep.Chain.SendMsgs(msg); err != nil {
+		return err
+	}
+
+	ep.ChannelConfig.Version = ep.GetChannel().Version
 
 	return nil
 }
 
 // ChanOpenConfirm will construct and execute a MsgChannelOpenConfirm on the associated EndpointM.
 func (ep *EndpointM) ChanOpenConfirm() error {
-	return nil
+	// propogate client state updates from Z to A
+	err := ep.UpdateAllClients()
+	if err != nil {
+		return err
+	}
+
+	_, proof := ep.Counterparty.QueryChannelProof()
+	unusedProofHeight := ep.GetClientState().GetLatestHeight().(clienttypes.Height)
+
+	msg := channeltypes.NewMsgChannelOpenConfirm(
+		ep.ChannelConfig.PortID, ep.ChannelID,
+		proof, unusedProofHeight,
+		ep.Chain.SenderAccount.GetAddress().String(),
+	)
+	_, err = ep.Chain.SendMsgs(msg)
+	return err
 }
 
 // ChanCloseInit will construct and execute a MsgChannelCloseInit on the associated EndpointM.
