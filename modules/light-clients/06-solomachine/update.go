@@ -26,14 +26,6 @@ func (cs ClientState) VerifyClientMessage(ctx sdk.Context, cdc codec.BinaryCodec
 }
 
 func (cs ClientState) verifyHeader(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, header *Header) error {
-	// assert update sequence is current sequence
-	if header.Sequence != cs.Sequence {
-		return sdkerrors.Wrapf(
-			clienttypes.ErrInvalidHeader,
-			"header sequence does not match the client state sequence (%d != %d)", header.Sequence, cs.Sequence,
-		)
-	}
-
 	// assert update timestamp is not less than current consensus state timestamp
 	if header.Timestamp < cs.ConsensusState.Timestamp {
 		return sdkerrors.Wrapf(
@@ -54,7 +46,7 @@ func (cs ClientState) verifyHeader(ctx sdk.Context, cdc codec.BinaryCodec, clien
 	}
 
 	signBytes := &SignBytes{
-		Sequence:    header.Sequence,
+		Sequence:    cs.Sequence,
 		Timestamp:   header.Timestamp,
 		Diversifier: cs.ConsensusState.Diversifier,
 		Path:        []byte(SentinelHeaderPath),

@@ -36,13 +36,9 @@ func (h Header) GetPubKey() (cryptotypes.PubKey, error) {
 	return publicKey, nil
 }
 
-// ValidateBasic ensures that the sequence, signature and public key have all
+// ValidateBasic ensures that the timestamp, signature and public key have all
 // been initialized.
 func (h Header) ValidateBasic() error {
-	if h.Sequence == 0 {
-		return sdkerrors.Wrap(clienttypes.ErrInvalidHeader, "sequence number cannot be zero")
-	}
-
 	if h.Timestamp == 0 {
 		return sdkerrors.Wrap(clienttypes.ErrInvalidHeader, "timestamp cannot be zero")
 	}
