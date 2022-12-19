@@ -18,17 +18,17 @@ func (suite *MultihopTestSuite) TestChanOpenInit() {
 	testCases := []testCase{
 		{"success", func() {
 
-			suite.paths.A().Chain.CreatePortCapability(
-				suite.paths.A().Chain.GetSimApp().ScopedIBCMockKeeper,
-				suite.paths.A().ChannelConfig.PortID,
+			suite.A().Chain.CreatePortCapability(
+				suite.A().Chain.GetSimApp().ScopedIBCMockKeeper,
+				suite.A().ChannelConfig.PortID,
 			)
-			portCap = suite.paths.A().Chain.GetPortCapability(suite.paths.A().ChannelConfig.PortID)
+			portCap = suite.A().Chain.GetPortCapability(suite.A().ChannelConfig.PortID)
 		}, true},
 		{"capability is incorrect", func() {
 
-			suite.paths.A().Chain.CreatePortCapability(
-				suite.paths.A().Chain.GetSimApp().ScopedIBCMockKeeper,
-				suite.paths.A().ChannelConfig.PortID,
+			suite.A().Chain.CreatePortCapability(
+				suite.A().Chain.GetSimApp().ScopedIBCMockKeeper,
+				suite.A().ChannelConfig.PortID,
 			)
 			portCap = capabilitytypes.NewCapability(42)
 		}, false},
@@ -40,30 +40,30 @@ func (suite *MultihopTestSuite) TestChanOpenInit() {
 			// run tests for all types of ordering
 			for _, order := range []types.Order{types.ORDERED, types.UNORDERED} {
 				suite.SetupTest() // reset
-				suite.paths.A().ChannelConfig.Order = order
-				suite.paths.Z().ChannelConfig.Order = order
+				suite.A().ChannelConfig.Order = order
+				suite.Z().ChannelConfig.Order = order
 
 				tc.malleate()
 
-				// counterparty := types.NewCounterparty(suite.paths.A().ChannelConfig.PortID, ibctesting.FirstChannelID)
-				counterparty := types.NewCounterparty(suite.paths.Z().ChannelConfig.PortID, "")
-				channelID, cap, err := suite.paths.A().Chain.App.GetIBCKeeper().ChannelKeeper.ChanOpenInit(
-					suite.paths.A().Chain.GetContext(),
-					suite.paths.A().ChannelConfig.Order,
-					[]string{suite.paths.A().ConnectionID},
-					suite.paths.A().ChannelConfig.PortID,
+				// counterparty := types.NewCounterparty(suite.A().ChannelConfig.PortID, ibctesting.FirstChannelID)
+				counterparty := types.NewCounterparty(suite.Z().ChannelConfig.PortID, "")
+				channelID, cap, err := suite.A().Chain.App.GetIBCKeeper().ChannelKeeper.ChanOpenInit(
+					suite.A().Chain.GetContext(),
+					suite.A().ChannelConfig.Order,
+					[]string{suite.A().ConnectionID},
+					suite.A().ChannelConfig.PortID,
 					portCap,
 					counterparty,
-					suite.paths.A().ChannelConfig.Version,
+					suite.A().ChannelConfig.Version,
 				)
 
 				if tc.expPass {
 					suite.Require().NoError(err, "channel open init failed")
 					suite.Require().NotEmpty(channelID, "channel ID is empty")
 
-					chanCap, ok := suite.paths.A().
+					chanCap, ok := suite.A().
 						Chain.App.GetScopedIBCKeeper().
-						GetCapability(suite.paths.A().Chain.GetContext(), host.ChannelCapabilityPath(suite.paths.A().ChannelConfig.PortID, channelID))
+						GetCapability(suite.A().Chain.GetContext(), host.ChannelCapabilityPath(suite.A().ChannelConfig.PortID, channelID))
 					suite.Require().True(ok, "could not retrieve channel capability after successful ChanOpenInit")
 					suite.Require().
 						Equal(cap.String(), chanCap.String(), "channel capability is not equal to retrieved capability")
