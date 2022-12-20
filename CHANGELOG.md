@@ -34,25 +34,17 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Changelog
 
-## [Unreleased]
+## [v6.1.0](https://github.com/cosmos/ibc-go/releases/tag/v6.1.0) - 2022-12-20
 
 ### Dependencies
 
 * [\#2945](https://github.com/cosmos/ibc-go/pull/2945) Bump Cosmos SDK to v0.46.7 and Tendermint to v0.34.24.
 
-### API Breaking
-
 ### State Machine Breaking
 
 * (apps/29-fee) [\#2942](https://github.com/cosmos/ibc-go/pull/2942) Check `x/bank` send enabled before escrowing fees.
 
-### Improvements
-
-### Features
-
-### Bug Fixes
-
-## [v6.0.0](https://github.com/cosmos/ibc-go/releases/tag/v4.0.0) - 2022-12-09
+## [v6.0.0](https://github.com/cosmos/ibc-go/releases/tag/v6.0.0) - 2022-12-09
 
 ### Dependencies
 
