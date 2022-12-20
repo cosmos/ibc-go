@@ -34,14 +34,12 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Changelog
 
-## [Unreleased]
+## [v5.2.0](https://github.com/cosmos/ibc-go/releases/tag/v5.2.0) - 2022-12-20
 
 ### Dependencies
 
 * [\#2868](https://github.com/cosmos/ibc-go/pull/2868) Bump ICS 23 to v0.9.0. 
 * [\#2944](https://github.com/cosmos/ibc-go/pull/2944) Bump Cosmos SDK to v0.46.7 and Tendermint to v0.34.24.
-
-### API Breaking
 
 ### State Machine Breaking
 
@@ -50,10 +48,6 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Improvements
 
 * (apps/29-fee) [\#2786](https://github.com/cosmos/ibc-go/pull/2786) Save gas by checking key existence with `KVStore`'s `Has` method.
-
-### Features
-
-### Bug Fixes
 
 ## [v5.1.0](https://github.com/cosmos/ibc-go/releases/tag/v5.1.0) - 2022-11-09
 
