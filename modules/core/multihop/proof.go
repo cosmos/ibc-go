@@ -65,6 +65,7 @@ func VerifyMultiHopProofMembership(
 	consensusState exported.ConsensusState,
 	cdc codec.BinaryCodec,
 	proofs *channeltypes.MsgMultihopProofs,
+	key []byte,
 	value []byte,
 ) error {
 	if len(proofs.ConsensusProofs) < 1 {
@@ -133,7 +134,7 @@ func GetCounterPartyHops(cdc codec.BinaryCodec, proof []byte, lastConnection *co
 }
 
 // VerifyMultihopProof verifies a multihop proof
-func VerifyMultihopProof(cdc codec.BinaryCodec, consensusState exported.ConsensusState, connectionHops []string, proof []byte, value []byte) error {
+func VerifyMultihopProof(cdc codec.BinaryCodec, consensusState exported.ConsensusState, connectionHops []string, proof []byte, key []byte, value []byte) error {
 	var proofs channeltypes.MsgMultihopProofs
 	if err := cdc.Unmarshal(proof, &proofs); err != nil {
 		return err
@@ -170,5 +171,5 @@ func VerifyMultihopProof(cdc codec.BinaryCodec, consensusState exported.Consensu
 
 	// verify each consensus state and connection state starting going from Z --> A
 	// finally verify the keyproof on A within B's verified view of A's consensus state.
-	return VerifyMultiHopProofMembership(consensusState, cdc, &proofs, value)
+	return VerifyMultiHopProofMembership(consensusState, cdc, &proofs, key, value)
 }

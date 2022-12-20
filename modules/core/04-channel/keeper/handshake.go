@@ -209,8 +209,10 @@ func (k Keeper) ChanOpenTry(
 				"consensus state not found for client id: %s", connectionEnd.ClientId)
 		}
 
+		key := host.ChannelKey(counterparty.PortId, counterparty.ChannelId)
+
 		// connectionHops is ZA, we want AZ
-		if err := mh.VerifyMultihopProof(k.cdc, consensusState, connectionHops, proofInit, value); err != nil {
+		if err := mh.VerifyMultihopProof(k.cdc, consensusState, connectionHops, proofInit, key, value); err != nil {
 			return "", nil, err
 		}
 	} else {
@@ -333,7 +335,9 @@ func (k Keeper) ChanOpenAck(
 				"consensus state not found for client id: %s", connectionEnd.ClientId)
 		}
 
-		if err := mh.VerifyMultihopProof(k.cdc, consensusState, channel.ConnectionHops, proofTry, value); err != nil {
+		key := host.ChannelKey(channel.Counterparty.PortId, channel.Counterparty.ChannelId)
+
+		if err := mh.VerifyMultihopProof(k.cdc, consensusState, channel.ConnectionHops, proofTry, key, value); err != nil {
 			return err
 		}
 	} else {
@@ -446,7 +450,9 @@ func (k Keeper) ChanOpenConfirm(
 				"consensus state not found for client id: %s", connectionEnd.ClientId)
 		}
 
-		if err := mh.VerifyMultihopProof(k.cdc, consensusState, channel.ConnectionHops, proofAck, value); err != nil {
+		key := host.ChannelKey(channel.Counterparty.PortId, channel.Counterparty.ChannelId)
+
+		if err := mh.VerifyMultihopProof(k.cdc, consensusState, channel.ConnectionHops, proofAck, key, value); err != nil {
 			return err
 		}
 	} else {
@@ -616,7 +622,9 @@ func (k Keeper) ChanCloseConfirm(
 				"consensus state not found for client id: %s", connectionEnd.ClientId)
 		}
 
-		if err := mh.VerifyMultihopProof(k.cdc, consensusState, channel.ConnectionHops, proofInit, value); err != nil {
+		key := host.ChannelKey(channel.Counterparty.PortId, channel.Counterparty.ChannelId)
+
+		if err := mh.VerifyMultihopProof(k.cdc, consensusState, channel.ConnectionHops, proofInit, key, value); err != nil {
 			return err
 		}
 
