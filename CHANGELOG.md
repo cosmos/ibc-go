@@ -62,6 +62,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 * (06-solomachine) [\#2744](https://github.com/cosmos/ibc-go/pull/2744) `Misbehaviour.ValidateBasic()` now only enforces that signature data does not match when the signature paths are different.
 * (06-solomachine) [\#2748](https://github.com/cosmos/ibc-go/pull/2748) Adding sentinel value for header path in 06-solomachine.
+* (apps/29-fee) [\#2942](https://github.com/cosmos/ibc-go/pull/2942) Check `x/bank` send enabled before escrowing fees.
 
 ### Improvements
 
