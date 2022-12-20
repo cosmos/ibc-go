@@ -225,7 +225,7 @@ func (suite *MultihopTestSuite) TestChanOpenAckMultihop() {
 			suite.Require().NoError(err)
 
 			// generate multihop proof given keypath and value
-			proofs, err := ibctesting.GenerateMultiHopProof(suite.paths.Reverse(), channelKey, expectedVal, false)
+			proofs, err := ibctesting.GenerateMultiHopProof(suite.paths.Reverse(), channelKey, expectedVal, true)
 			suite.Require().NoError(err)
 			// verify call to ChanOpenTry completes successfully
 			proofHeight := endpointA.GetClientState().GetLatestHeight()

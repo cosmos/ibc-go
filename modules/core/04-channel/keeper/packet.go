@@ -207,13 +207,20 @@ func (k Keeper) RecvPacket(
 				"consensus state not found for client id: %s", connectionEnd.ClientId)
 		}
 
-		key := host.PacketCommitmentKey(
+		multihopConnectionEnd, err := mh.GetMultihopConnectionEnd(k.cdc, proof)
+		if err != nil {
+			return err
+		}
+
+		key := host.PacketCommitmentPath(
 			packet.GetSourcePort(),
 			packet.GetSourceChannel(),
 			packet.GetSequence(),
 		)
 
-		if err := mh.VerifyMultihopProof(k.cdc, consensusState, channel.ConnectionHops, proof, key, commitment); err != nil {
+		prefix := multihopConnectionEnd.GetCounterparty().GetPrefix()
+
+		if err := mh.VerifyMultihopProof(k.cdc, consensusState, channel.ConnectionHops, proof, prefix, key, commitment); err != nil {
 			return err
 		}
 	} else {
@@ -464,15 +471,22 @@ func (k Keeper) AcknowledgePacket(
 				"consensus state not found for client id: %s", connectionEnd.ClientId)
 		}
 
-		key := host.PacketAcknowledgementKey(
+		multihopConnectionEnd, err := mh.GetMultihopConnectionEnd(k.cdc, proof)
+		if err != nil {
+			return err
+		}
+
+		key := host.PacketAcknowledgementPath(
 			packet.GetDestPort(),
 			packet.GetDestChannel(),
 			packet.GetSequence(),
 		)
 
+		prefix := multihopConnectionEnd.GetCounterparty().GetPrefix()
+
 		value := types.CommitAcknowledgement(acknowledgement)
 
-		if err := mh.VerifyMultihopProof(k.cdc, consensusState, channel.ConnectionHops, proof, key, value); err != nil {
+		if err := mh.VerifyMultihopProof(k.cdc, consensusState, channel.ConnectionHops, proof, prefix, key, value); err != nil {
 			return err
 		}
 	} else {

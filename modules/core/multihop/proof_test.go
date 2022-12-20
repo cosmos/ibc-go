@@ -31,9 +31,14 @@ func (t *proofTestSuite) TestMultiHopProof() {
 		proofs, err := ibctesting.GenerateMultiHopProof(paths, connKey, proofValue, true)
 		t.Require().NoError(err, "failed to generate multi-hop proof for connection")
 
+		keyPath := commitmenttypes.NewMerklePath(string(connKey))
+		keyMerklePath, err := commitmenttypes.ApplyPrefix(paths.A().Chain.GetPrefix(), keyPath)
+		t.Require().NoError(err, "failed to generate merklepath for key")
+
 		return ibctesting.VerifyMultiHopProofMembership(
 			paths.Z(),
 			proofs,
+			&keyMerklePath,
 			proofValue,
 		)
 	}
@@ -41,9 +46,13 @@ func (t *proofTestSuite) TestMultiHopProof() {
 		connKey := host.ConnectionKey("non-existent-connection-id")
 		proofs, err := ibctesting.GenerateMultiHopProof(paths, connKey, nil, true)
 		t.Require().NoError(err, "failed to generate non-membership multi-hop proof")
+		keyPath := commitmenttypes.NewMerklePath(string(connKey))
+		keyMerklePath, err := commitmenttypes.ApplyPrefix(paths.A().Chain.GetPrefix(), keyPath)
+		t.Require().NoError(err, "failed to generate merklepath for key")
 		return ibctesting.VerifyMultiHopProofNonMembership(
 			paths.Z(),
 			proofs,
+			&keyMerklePath,
 		)
 	}
 

@@ -32,18 +32,17 @@ func GenerateMultiHopProof(paths LinkedPaths, keyPathToProve []byte, expectedVal
 		heightBC := endpointB.GetClientState().GetLatestHeight()
 		// srcEnd.counterparty's proven height on its next connected chain
 		provenHeight := endpointB.GetClientState().GetLatestHeight()
-		proof, _ := endpointA.Chain.QueryProofAtHeight([]byte(keyPathToProve), int64(provenHeight.GetRevisionHeight()))
-
-		prefixedKey, err := commitmenttypes.ApplyPrefix(
-			endpointA.Chain.GetPrefix(),
-			commitmenttypes.NewMerklePath(string(keyPathToProve)),
-		)
-		if err != nil {
-			return nil, fmt.Errorf("failed to apply prefix to key path: %w", err)
-		}
+		proof, _ := endpointA.Chain.QueryProofAtHeight(keyPathToProve, int64(provenHeight.GetRevisionHeight()))
 
 		// membership proof
 		if doVerify {
+			prefixedKey, err := commitmenttypes.ApplyPrefix(
+				endpointA.Chain.GetPrefix(),
+				commitmenttypes.NewMerklePath(string(keyPathToProve)),
+			)
+			if err != nil {
+				return nil, fmt.Errorf("failed to apply prefix to key path: %w", err)
+			}
 			if len(expectedVal) > 0 {
 				var proofKV commitmenttypes.MerkleProof
 				if err = endpointA.Chain.Codec.Unmarshal(proof, &proofKV); err != nil {
@@ -72,9 +71,7 @@ func GenerateMultiHopProof(paths LinkedPaths, keyPathToProve []byte, expectedVal
 		}
 
 		proofs.KeyProof = &channeltypes.MultihopProof{
-			Proof:       proof,
-			Value:       nil,
-			PrefixedKey: &prefixedKey,
+			Proof: proof,
 		}
 	}
 
@@ -281,6 +278,7 @@ func VerifyMultiHopConsensusStateProof(
 func VerifyMultiHopProofMembership(
 	endpoint *Endpoint,
 	proofs *channeltypes.MsgMultihopProofs,
+	key *commitmenttypes.MerklePath,
 	expectedVal []byte,
 ) error {
 	if len(proofs.ConsensusProofs) < 1 {
@@ -303,16 +301,17 @@ func VerifyMultiHopProofMembership(
 	if err := endpoint.Chain.Codec.UnmarshalInterface(proofs.ConsensusProofs[0].Value, &secondConsState); err != nil {
 		return fmt.Errorf("failed to unpack consensus state: %w", err)
 	}
+
 	return keyProof.VerifyMembership(
 		commitmenttypes.GetSDKSpecs(),
 		secondConsState.GetRoot(),
-		*proofs.KeyProof.PrefixedKey,
+		*key,
 		expectedVal,
 	)
 }
 
 // VerifyMultiHopProofNonMembership verifies a multihop proof of non-membership including all intermediate state proofs.
-func VerifyMultiHopProofNonMembership(endpoint *Endpoint, proofs *channeltypes.MsgMultihopProofs) error {
+func VerifyMultiHopProofNonMembership(endpoint *Endpoint, proofs *channeltypes.MsgMultihopProofs, key *commitmenttypes.MerklePath) error {
 	if len(proofs.ConsensusProofs) < 1 {
 		return fmt.Errorf(
 			"proof must have at least two elements where the first one is the proof for the key and the rest are for the consensus states",
@@ -336,7 +335,7 @@ func VerifyMultiHopProofNonMembership(endpoint *Endpoint, proofs *channeltypes.M
 	err := keyProof.VerifyNonMembership(
 		commitmenttypes.GetSDKSpecs(),
 		secondConsState.GetRoot(),
-		*proofs.KeyProof.PrefixedKey,
+		*key,
 	)
 	return err
 }
