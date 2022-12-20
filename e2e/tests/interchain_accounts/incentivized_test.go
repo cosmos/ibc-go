@@ -5,23 +5,22 @@ import (
 	"testing"
 	"time"
 
-	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/gogo/protobuf/proto"
-	ibctest "github.com/strangelove-ventures/ibctest/v6"
+	"github.com/strangelove-ventures/ibctest/v6"
 	"github.com/strangelove-ventures/ibctest/v6/chain/cosmos"
 	"github.com/strangelove-ventures/ibctest/v6/ibc"
-	"github.com/strangelove-ventures/ibctest/v6/test"
+	test "github.com/strangelove-ventures/ibctest/v6/testutil"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/ibc-go/e2e/testconfig"
+	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	controllertypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/controller/types"
 	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
 	feetypes "github.com/cosmos/ibc-go/v6/modules/apps/29-fee/types"
 	ibctesting "github.com/cosmos/ibc-go/v6/testing"
-	simappparams "github.com/cosmos/ibc-go/v6/testing/simapp/params"
 )
 
 func TestIncentivizedInterchainAccountsTestSuite(t *testing.T) {
@@ -152,10 +151,7 @@ func (s *IncentivizedInterchainAccountsTestSuite) TestMsgSendTx_SuccessfulBankSe
 				Amount:      sdk.NewCoins(testvalues.DefaultTransferAmount(chainB.Config().Denom)),
 			}
 
-			cfg := simappparams.MakeTestEncodingConfig()
-			banktypes.RegisterInterfaces(cfg.InterfaceRegistry)
-			cdc := codec.NewProtoCodec(cfg.InterfaceRegistry)
-
+			cdc := testsuite.Codec()
 			bz, err := icatypes.SerializeCosmosTx(cdc, []proto.Message{msgSend})
 			s.Require().NoError(err)
 
@@ -327,10 +323,7 @@ func (s *IncentivizedInterchainAccountsTestSuite) TestMsgSendTx_FailedBankSend_I
 				Amount:      sdk.NewCoins(testvalues.DefaultTransferAmount(chainB.Config().Denom)),
 			}
 
-			cfg := simappparams.MakeTestEncodingConfig()
-			banktypes.RegisterInterfaces(cfg.InterfaceRegistry)
-			cdc := codec.NewProtoCodec(cfg.InterfaceRegistry)
-
+			cdc := testsuite.Codec()
 			bz, err := icatypes.SerializeCosmosTx(cdc, []proto.Message{msgSend})
 			s.Require().NoError(err)
 

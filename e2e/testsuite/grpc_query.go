@@ -3,7 +3,8 @@ package testsuite
 import (
 	"context"
 
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
+	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
+	govtypesbeta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	intertxtypes "github.com/cosmos/interchain-accounts/x/inter-tx/types"
 	"github.com/strangelove-ventures/ibctest/v6/chain/cosmos"
 	"github.com/strangelove-ventures/ibctest/v6/ibc"
@@ -31,6 +32,33 @@ func (s *E2ETestSuite) QueryClientState(ctx context.Context, chain ibc.Chain, cl
 	}
 
 	return clientState, nil
+}
+
+// QueryClientStatus queries the status of the client by clientID
+func (s *E2ETestSuite) QueryClientStatus(ctx context.Context, chain ibc.Chain, clientID string) (string, error) {
+	queryClient := s.GetChainGRCPClients(chain).ClientQueryClient
+	res, err := queryClient.ClientStatus(ctx, &clienttypes.QueryClientStatusRequest{
+		ClientId: clientID,
+	})
+	if err != nil {
+		return "", err
+	}
+
+	return res.Status, nil
+}
+
+// QueryChannel queries the channel on a given chain for the provided portID and channelID
+func (s *E2ETestSuite) QueryChannel(ctx context.Context, chain ibc.Chain, portID, channelID string) (channeltypes.Channel, error) {
+	queryClient := s.GetChainGRCPClients(chain).ChannelQueryClient
+	res, err := queryClient.Channel(ctx, &channeltypes.QueryChannelRequest{
+		PortId:    portID,
+		ChannelId: channelID,
+	})
+	if err != nil {
+		return channeltypes.Channel{}, err
+	}
+
+	return *res.Channel, nil
 }
 
 // QueryPacketCommitment queries the packet commitment on the given chain for the provided channel and sequence.
@@ -106,14 +134,26 @@ func (s *E2ETestSuite) QueryCounterPartyPayee(ctx context.Context, chain ibc.Cha
 }
 
 // QueryProposal queries the governance proposal on the given chain with the given proposal ID.
-func (s *E2ETestSuite) QueryProposal(ctx context.Context, chain ibc.Chain, proposalID uint64) (govtypes.Proposal, error) {
+func (s *E2ETestSuite) QueryProposal(ctx context.Context, chain ibc.Chain, proposalID uint64) (govtypesbeta1.Proposal, error) {
 	queryClient := s.GetChainGRCPClients(chain).GovQueryClient
-	res, err := queryClient.Proposal(ctx, &govtypes.QueryProposalRequest{
+	res, err := queryClient.Proposal(ctx, &govtypesbeta1.QueryProposalRequest{
 		ProposalId: proposalID,
 	})
 	if err != nil {
-		return govtypes.Proposal{}, err
+		return govtypesbeta1.Proposal{}, err
 	}
 
 	return res.Proposal, nil
+}
+
+func (s *E2ETestSuite) QueryProposalV1(ctx context.Context, chain ibc.Chain, proposalID uint64) (govtypesv1.Proposal, error) {
+	queryClient := s.GetChainGRCPClients(chain).GovQueryClientV1
+	res, err := queryClient.Proposal(ctx, &govtypesv1.QueryProposalRequest{
+		ProposalId: proposalID,
+	})
+	if err != nil {
+		return govtypesv1.Proposal{}, err
+	}
+
+	return *res.Proposal, nil
 }

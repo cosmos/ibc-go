@@ -18,11 +18,6 @@
 /modules/core/ @colin-axner @AdityaSripal @damiannolan
 /proto/ibc/core/ @colin-axner @AdityaSripal @damiannolan
 
-## CODEOWNERS for core/02-client
-
-/modules/core/02-client @colin-axner @AdityaSripal @damiannolan
-/proto/ibc/core/client @colin-axner @AdityaSripal @damiannolan
-
 # CODEOWNERS for the light-clients
 
 /modules/light-clients/ @colin-axner @AdityaSripal @damiannolan
@@ -42,3 +37,6 @@
 
 /modules/apps/29-fee/ @AdityaSripal @charleenfei @colin-axner @damiannolan 
 /proto/ibc/applications/fee/ @AdityaSripal @charleenfei @colin-axner @damiannolan
+
+# CODEOWNERS for docs
+/docs/ @colin-axner @AdityaSripal @crodriguezvega @charleenfei @damiannolan @chatton @tmsdkeys

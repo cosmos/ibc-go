@@ -5,14 +5,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	grouptypes "github.com/cosmos/cosmos-sdk/x/group"
 	"github.com/gogo/protobuf/proto"
-	ibctest "github.com/strangelove-ventures/ibctest/v6"
+	"github.com/strangelove-ventures/ibctest/v6"
 	"github.com/strangelove-ventures/ibctest/v6/ibc"
-	"github.com/strangelove-ventures/ibctest/v6/test"
+	test "github.com/strangelove-ventures/ibctest/v6/testutil"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/ibc-go/e2e/testsuite"
@@ -20,7 +19,6 @@ import (
 	controllertypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/controller/types"
 	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
 	ibctesting "github.com/cosmos/ibc-go/v6/testing"
-	simappparams "github.com/cosmos/ibc-go/v6/testing/simapp/params"
 )
 
 const (
@@ -165,9 +163,7 @@ func (s *InterchainAccountsGroupsTestSuite) TestInterchainAccountsGroupsIntegrat
 			Amount:      sdk.NewCoins(testvalues.DefaultTransferAmount(chainB.Config().Denom)),
 		}
 
-		cfg := simappparams.MakeTestEncodingConfig()
-		banktypes.RegisterInterfaces(cfg.InterfaceRegistry)
-		cdc := codec.NewProtoCodec(cfg.InterfaceRegistry)
+		cdc := testsuite.Codec()
 
 		bz, err := icatypes.SerializeCosmosTx(cdc, []proto.Message{msgBankSend})
 		s.Require().NoError(err)
