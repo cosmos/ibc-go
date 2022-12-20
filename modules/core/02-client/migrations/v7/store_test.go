@@ -7,7 +7,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/cosmos/ibc-go/v6/modules/core/02-client/migrations/v7"
+	v7 "github.com/cosmos/ibc-go/v6/modules/core/02-client/migrations/v7"
 	"github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
 	ibctesting "github.com/cosmos/ibc-go/v6/testing"
@@ -51,6 +51,22 @@ func (suite *MigrationsV7TestSuite) TestMigrateStore() {
 		suite.coordinator.SetupClients(path)
 	}
 
+	solomachines := []*ibctesting.Solomachine{
+		ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "06-solomachine-0", "testing", 1),
+		ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "06-solomachine-1", "testing", 4),
+	}
+
+	suite.createSolomachineClients(solomachines)
+	suite.createLocalhostClients()
+
+	err := v7.MigrateStore(suite.chainA.GetContext(), suite.chainA.GetSimApp().GetKey(host.StoreKey), suite.chainA.App.AppCodec(), suite.chainA.GetSimApp().IBCKeeper.ClientKeeper)
+	suite.Require().NoError(err)
+
+	suite.assertSolomachineClients(solomachines)
+	suite.assertNoLocalhostClients()
+}
+
+func (suite *MigrationsV7TestSuite) TestMigrateStoreNoTendermintClients() {
 	solomachines := []*ibctesting.Solomachine{
 		ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "06-solomachine-0", "testing", 1),
 		ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "06-solomachine-1", "testing", 4),

@@ -55,16 +55,6 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageHeader() {
 				false,
 			},
 			{
-				"wrong sequence in header",
-				func() {
-					// store in temp before assigning to interface type
-					h := sm.CreateHeader(sm.Diversifier)
-					h.Sequence++
-					clientMsg = h
-				},
-				false,
-			},
-			{
 				"invalid header Signature",
 				func() {
 					h := sm.CreateHeader(sm.Diversifier)
@@ -458,7 +448,6 @@ func (suite *SoloMachineTestSuite) TestUpdateState() {
 					suite.Require().Equal(newClientState.(*solomachine.ClientState).Sequence, consensusHeights[0].GetRevisionHeight())
 
 					suite.Require().False(newClientState.(*solomachine.ClientState).IsFrozen)
-					suite.Require().Equal(clientMsg.(*solomachine.Header).Sequence+1, newClientState.(*solomachine.ClientState).Sequence)
 					suite.Require().Equal(clientMsg.(*solomachine.Header).NewPublicKey, newClientState.(*solomachine.ClientState).ConsensusState.PublicKey)
 					suite.Require().Equal(clientMsg.(*solomachine.Header).NewDiversifier, newClientState.(*solomachine.ClientState).ConsensusState.Diversifier)
 					suite.Require().Equal(clientMsg.(*solomachine.Header).Timestamp, newClientState.(*solomachine.ClientState).ConsensusState.Timestamp)

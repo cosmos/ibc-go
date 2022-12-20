@@ -91,6 +91,10 @@ func handleTendermintMigration(ctx sdk.Context, store sdk.KVStore, cdc codec.Bin
 		return err
 	}
 
+	if len(clients) == 0 {
+		return nil // no-op if no tm clients exist
+	}
+
 	if len(clients) > 1 {
 		return sdkerrors.Wrap(sdkerrors.ErrLogic, "more than one Tendermint client collected")
 	}
