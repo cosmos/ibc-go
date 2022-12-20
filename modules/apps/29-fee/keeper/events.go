@@ -37,6 +37,10 @@ func EmitIncentivizedPacketEvent(ctx sdk.Context, packetID channeltypes.PacketId
 			sdk.NewAttribute(types.AttributeKeyAckFee, totalAckFees.String()),
 			sdk.NewAttribute(types.AttributeKeyTimeoutFee, totalTimeoutFees.String()),
 		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
+		),
 	})
 }
 
@@ -49,6 +53,10 @@ func EmitRegisterPayeeEvent(ctx sdk.Context, relayer, payee, channelID string) {
 			sdk.NewAttribute(types.AttributeKeyPayee, payee),
 			sdk.NewAttribute(types.AttributeKeyChannelID, channelID),
 		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
+		),
 	})
 }
 
@@ -60,6 +68,10 @@ func EmitRegisterCounterpartyPayeeEvent(ctx sdk.Context, relayer, counterpartyPa
 			sdk.NewAttribute(types.AttributeKeyRelayer, relayer),
 			sdk.NewAttribute(types.AttributeKeyCounterpartyPayee, counterpartyPayee),
 			sdk.NewAttribute(types.AttributeKeyChannelID, channelID),
+		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
 		),
 	})
 }
