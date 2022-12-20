@@ -2,11 +2,11 @@
 
 > To accommodate the review process we suggest that PRs are categorically broken up. Ideally each PR addresses only a single issue and does not introduce unrelated changes. Additionally, as much as possible code refactoring and cleanup should be submitted as separate PRs from bug fixes and feature additions.
 
-If the PR is the result of a related GitHub issue, please include `closes: #<issue number>` in the PR’s description in order to auto-close the related issue once the PR is merged. This will also link the ticket and the PR together so that if anyone looks at either in the future, they won’t have any issue trying to find the corresponding ticket/PR as it will be recorded in the sidebar.
+If the PR is the result of a related GitHub issue, please include `closes: #<issue number>` in the PR’s description in order to auto-close the related issue once the PR is merged. This will also link the issue and the PR together so that if anyone looks at either in the future, they won’t have any problem trying to find the corresponding issue/PR as it will be recorded in the sidebar.
 
 If the PR is not the result of an existing issue and it fixes a bug, please provide a detailed description of the bug. For feature addtions, we recommend opening an issue first and have it discussed and agreed upon, before working on it and opening a PR.
 
-Commit messages must follow the [Conventional Commits specification](https://www.conventionalcommits.org/en/v1.0.0/). This will help us to eventually move to automatic generation of changelogs.
+Commit messages should follow the [Conventional Commits specification](https://www.conventionalcommits.org/en/v1.0.0/).
 
 If possible, [tick the "Allow edits from maintainers" box](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/allowing-changes-to-a-pull-request-branch-created-from-a-fork) when opening your PR from your fork of ibc-go. This allows us to directly make minor edits / refactors and speeds up the merging process.
 
