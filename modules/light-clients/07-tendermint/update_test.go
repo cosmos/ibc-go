@@ -427,6 +427,11 @@ func (suite *TendermintTestSuite) TestUpdateState() {
 				suite.Require().NoError(err)
 				pruneHeight = path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
 
+				// assert that a consensus state exists at the prune height
+				consensusState, found := path.EndpointA.Chain.GetConsensusState(path.EndpointA.ClientID, pruneHeight)
+				suite.Require().True(found)
+				suite.Require().NotNil(consensusState)
+
 				// Increment the time by a week
 				suite.coordinator.IncrementTimeBy(7 * 24 * time.Hour)
 
