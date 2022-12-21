@@ -51,12 +51,23 @@ versions of ibc-go to guarantee that no regression is introduced -->
 ## Post-release checklist
 
 - [ ] Update [`CHANGELOG.md`](https://github.com/cosmos/ibc-go/blob/main/CHANGELOG.md)
-- [ ] Update the table of supported release lines (and End of Life dates) in [`RELEASES.md`](https://github.com/cosmos/ibc-go/blob/main/RELEASES.md).
-- [ ] Update [version matrix](https://github.com/cosmos/ibc-go/blob/main/RELEASES.md#version-matrix) in `RELEASES.md`.
+- [ ] Update the table of supported release lines (and End of Life dates) in [`RELEASES.md`](https://github.com/cosmos/ibc-go/blob/main/RELEASES.md):
+  - Add the new release line.
+  - Remove any release lines that might have become discontinued.
+- [ ] Update [version matrix](https://github.com/cosmos/ibc-go/blob/main/RELEASES.md#version-matrix) in `RELEASES.md`:
+  - Add the new release.
+  - Remove any tags that might not be recommended anymore.
 - [ ] Update the list of [supported release lines in README.md](https://github.com/cosmos/ibc-go#releases), if necessary.
 - [ ] Update docs site:
   - [ ] Add new release branch to [`docs/versions`](https://github.com/cosmos/ibc-go/blob/main/docs/versions) file.
   - [ ] Add `label` and `key` to `versions` array in [`config.js`](https://github.com/cosmos/ibc-go/blob/main/docs/.vuepress/config.js#L62).
+- [ ] Bump ibc-go version in [cosmos/interchain-accounts-demo repository](https://github.com/cosmos/interchain-accounts-demo) and create a tag.
+- [ ] Update the [compatibility test matrices](https://github.com/cosmos/ibc-go/tree/main/.github/compatibility-test-matrices):
+  - Add the new release.
+  - Remove any tags that might not be recommended anymore.
+- [ ] Update the manual [e2e `simd`](https://github.com/cosmos/ibc-go/blob/main/.github/workflows/e2e-manual-simd.yaml) and [e2e `icad`](https://github.com/cosmos/ibc-go/blob/main/.github/workflows/e2e-manual-icad.yaml) test workflows:
+  - Add the new release and the new `icad` tag.
+  - Remove any tags that might not be recommended anymore.
 - [ ] After changes to docs site are deployed, check [ibc.cosmos.network](https://ibc.cosmos.network) is updated.
 - [ ] Open issue in [SDK tutorials repo](https://github.com/cosmos/sdk-tutorials) to update tutorials to the released version of ibc-go.
 
