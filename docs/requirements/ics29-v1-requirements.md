@@ -4,7 +4,7 @@
 
 ## Problem
 
-the Interchain dream will never scale unless there is a clear way to incentivize relayers. An interface that can be easily adopted by any applications is needed, without precluding chains that do not use tokens.
+The Interchain dream will never scale unless there is a clear way to incentivize relayers. An interface that can be easily adopted by any applications is needed, without precluding chains that do not use tokens.
 
 Though IBC does not depend on relayer operators for transaction verification, the relayer infrastructure ensures liveness of the Interchain network — operators listen for packets sent through channels opened between chains, and perform the vital service of ferrying these packets (and proof of the transaction on the sending chain/receipt on the receiving chain) to the clients on each side of the channel. Though relaying is permissionless and completely decentralized and accessible, it does come with operational costs. Running full nodes to query transaction proofs and paying for transaction fees associated with IBC packets are two of the primary cost burdens which have driven the overall discussion on a general incentivization mechanism for relayers.
 
