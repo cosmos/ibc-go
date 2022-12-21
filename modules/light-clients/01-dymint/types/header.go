@@ -88,7 +88,6 @@ func (h Header) ValidateBasic() error {
 
 // ValidateCommit checks if the given commit is a valid commit from the passed-in validatorset
 func (h Header) ValidateCommit() (err error) {
-	chainID := h.Header.ChainID
 	blockID, err := tmtypes.BlockIDFromProto(&h.SignedHeader.Commit.BlockID)
 	if err != nil {
 		return sdkerrors.Wrap(err, "invalid block ID from header SignedHeader.Commit")
@@ -116,15 +115,16 @@ func (h Header) ValidateCommit() (err error) {
 			return sdkerrors.Wrap(clienttypes.ErrInvalidHeader, "validator set did not commit to header")
 		}
 		// Validate signature.
-		voteSignBytes := tmCommit.VoteSignBytes(chainID, valIdx)
 		if !bytes.Equal(commitSig.ValidatorAddress, h.Header.ProposerAddress) {
 			return fmt.Errorf("wrong proposer address in commit, got %X) but expected %X", valIdx, h.Header.ProposerAddress)
 		}
-		if !val.PubKey.VerifySignature(voteSignBytes, commitSig.Signature) {
+		headerBytes, err := h.SignedHeader.Header.Marshal()
+		if err != nil {
+			return err
+		}
+		if !val.PubKey.VerifySignature(headerBytes, commitSig.Signature) {
 			return fmt.Errorf("wrong signature (#%d): %X", valIdx, commitSig.Signature)
 		}
-	} else {
-		return sdkerrors.Wrap(clienttypes.ErrInvalidHeader, "validator set did not commit to header")
 	}
 
 	return nil
