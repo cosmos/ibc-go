@@ -186,7 +186,7 @@ func (ep *EndpointM) SetChannelClosed() error {
 // ie. self's client state is propogated from the counterparty chain following the multihop channel path.
 func (ep *EndpointM) UpdateAllClients() error {
 	for _, path := range ep.Counterparty.paths {
-		err := path.EndpointA.UpdateClient()
+		err := path.EndpointB.UpdateClient()
 		if err != nil {
 			return err
 		}
@@ -199,16 +199,13 @@ func (ep *EndpointM) GetConnectionHops() []string {
 	return ep.paths.GetConnectionHops()
 }
 
+// CounterpartyChannel returns the counterparty channel used in tx Msgs.
+func (ep *EndpointM) CounterpartyChannel() channeltypes.Counterparty {
+	return channeltypes.NewCounterparty(ep.Counterparty.ChannelConfig.PortID, ep.Counterparty.ChannelID)
+}
+
 // QueryChannelProof queries the channel proof on the endpoint chain.
 func (ep *EndpointM) QueryChannelProof() (*channeltypes.Channel, []byte) {
-	// request := &channeltypes.QueryChannelRequest{
-	// 	PortId:    ep.ChannelConfig.PortID,
-	// 	ChannelId: ep.ChannelID,
-	// }
-	// resp, err := ep.Chain.App.GetIBCKeeper().Channel(ep.Chain.GetContext(), request)
-	// require.NoError(ep.Chain.T, err, "could not query channel from chain %s", ep.Chain.ChainID)
-
-	// channel := resp.GetChannel()
 	channel := ep.GetChannel()
 	channelKey := host.ChannelKey(ep.ChannelConfig.PortID, ep.ChannelID)
 	proof, err := GenerateMultiHopProof(

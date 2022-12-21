@@ -84,6 +84,82 @@ func (suite *MultihopTestSuite) TestChanOpenInit() {
 // ChanOpenTryMultihop can succeed.
 func (suite *MultihopTestSuite) TestChanOpenTryMultihop() {
 	var (
+		portCap *capabilitytypes.Capability
+	)
+
+	testCases := []testCase{
+		{"success", func() {
+			// manually call ChanOpenInit so we can properly set the connectionHops
+			suite.Require().NoError(suite.A().ChanOpenInit())
+
+			suite.Z().Chain.CreatePortCapability(
+				suite.Z().Chain.GetSimApp().ScopedIBCKeeper,
+				suite.Z().ChannelConfig.PortID,
+			)
+			portCap = suite.Z().Chain.GetPortCapability(suite.Z().ChannelConfig.PortID)
+		}, true},
+		// {"connection doesn't exist", func() {
+		// 	ibctesting.ChanOpenInit(paths[0].EndpointA, connectionHopsAZ)
+		// 	paths[1].EndpointB.ConnectionID = "notfound"
+		// 	chainZ := paths[len(paths)-1].EndpointB.Chain
+		// 	// pass capability check
+		// 	chainZ.CreatePortCapability(suite.chainB.GetSimApp().ScopedIBCMockKeeper, ibctesting.MockPort)
+		// 	portCap = chainZ.GetPortCapability(ibctesting.MockPort)
+		// }, true},
+		// {"connection is not OPEN", func() {
+		// 	ibctesting.ChanOpenInit(paths[0].EndpointA, connectionHopsAZ)
+		// 	// pass capability check
+		// 	chainZ := paths[len(paths)-1].EndpointB.Chain
+		// 	chainZ.CreatePortCapability(suite.chainB.GetSimApp().ScopedIBCMockKeeper, ibctesting.MockPort)
+		// 	portCap = chainZ.GetPortCapability(ibctesting.MockPort)
+
+		// 	//err := paths[2].EndpointB.ConnOpenInit()
+		// 	//suite.Require().NoError(err)
+		// }, false},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
+
+			tc.malleate() // call ChanOpenInit and setup port capabilities
+			suite.Z().UpdateAllClients()
+
+			_, proof := suite.A().QueryChannelProof()
+			channelID, cap, err := suite.Z().Chain.App.GetIBCKeeper().ChannelKeeper.ChanOpenTry(
+				suite.Z().Chain.GetContext(), suite.Z().ChannelConfig.Order,
+				suite.Z().GetConnectionHops(),
+				suite.Z().ChannelConfig.PortID,
+				portCap,
+				suite.Z().CounterpartyChannel(),
+				suite.A().ChannelConfig.Version,
+				proof, suite.Z().GetClientState().GetLatestHeight(),
+			)
+
+			if tc.expPass {
+				suite.Require().NoError(err)
+				suite.Require().NotNil(cap)
+
+				chanCap, ok := suite.Z().Chain.App.GetScopedIBCKeeper().GetCapability(
+					suite.Z().Chain.GetContext(),
+					host.ChannelCapabilityPath(suite.Z().ChannelConfig.PortID, channelID),
+				)
+				suite.Require().True(ok, "could not retrieve channel capapbility after successful ChanOpenTry")
+				suite.Require().Equal(chanCap.String(), cap.String(), "channel capability is not correct")
+			} else {
+				suite.Require().Error(err)
+			}
+		})
+	}
+}
+
+// TestChanOpenTryMultihop tests the OpenTry handshake call for channels over multiple connections.
+// It uses message passing to enter into the appropriate state and then calls ChanOpenTry directly.
+// The channel is being created on chainB. The port capability must be created on chainB before
+// ChanOpenTryMultihop can succeed.
+func (suite *MultihopTestSuite) oldTestChanOpenTryMultihop() {
+	var (
+		paths      ibctesting.LinkedPaths
 		portCap    *capabilitytypes.Capability
 		heightDiff uint64
 		endpointA  *ibctesting.Endpoint
