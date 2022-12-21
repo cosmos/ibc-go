@@ -121,8 +121,8 @@ func (suite *MultihopTestSuite) TestChanOpenTryMultihop() {
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
-
-			tc.malleate() // call ChanOpenInit and setup port capabilities
+			suite.SetupTest() // reset
+			tc.malleate()     // call ChanOpenInit and setup port capabilities
 			suite.Z().UpdateAllClients()
 
 			_, proof := suite.A().QueryChannelProof()
@@ -258,60 +258,30 @@ func (suite *MultihopTestSuite) oldTestChanOpenTryMultihop() {
 // ChanOpenAck directly. The handshake call is occurring on chainA.
 func (suite *MultihopTestSuite) TestChanOpenAckMultihop() {
 	var (
-		counterpartyChannelID string
-		channelCap            *capabilitytypes.Capability
-		heightDiff            uint64
-		endpointA             *ibctesting.Endpoint
-		endpointZ             *ibctesting.Endpoint
+		channelCap *capabilitytypes.Capability
 	)
 
 	testCases := []testCase{
 		{"success", func() {
-			ibctesting.ChanOpenInit(suite.paths)
-			ibctesting.ChanOpenTry(suite.paths)
-			channelCap = endpointA.Chain.GetChannelCapability(endpointA.ChannelConfig.PortID, endpointA.ChannelID)
+			suite.Require().NoError(suite.A().ChanOpenInit())
+			suite.Require().NoError(suite.Z().ChanOpenTry())
+			channelCap = suite.A().Chain.GetChannelCapability(suite.A().ChannelConfig.PortID, suite.A().ChannelID)
 		}, true},
 	}
 
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
-			suite.SetupTest()
-			endpointA = suite.paths.A()
-			endpointZ = suite.paths.Z()
-			heightDiff = 0 // must be explicitly changed in malleate
+			suite.SetupTest() // reset
+			tc.malleate()     // call ChanOpenInit and setup port capabilities
+			suite.A().UpdateAllClients()
 
-			tc.malleate() // call ChanOpenInit and setup port capabilities
+			_, proof := suite.Z().QueryChannelProof()
 
-			if counterpartyChannelID == "" {
-				counterpartyChannelID = ibctesting.FirstChannelID
-			}
-
-			channelKey := host.ChannelKey(endpointZ.ChannelConfig.PortID, ibctesting.FirstChannelID)
-			// query the channel
-			req := &types.QueryChannelRequest{
-				PortId:    endpointZ.ChannelConfig.PortID,
-				ChannelId: endpointZ.ChannelID,
-			}
-
-			// receive the channel response and marshal to expected value bytes
-			resp, err := endpointZ.Chain.App.GetIBCKeeper().Channel(endpointZ.Chain.GetContext(), req)
-			suite.Require().NoError(err)
-			expectedVal, err := resp.Channel.Marshal()
-			suite.Require().NoError(err)
-
-			// generate multihop proof given keypath and value
-			proofs, err := ibctesting.GenerateMultiHopProof(suite.paths.Reverse(), channelKey, expectedVal, true)
-			suite.Require().NoError(err)
-			// verify call to ChanOpenTry completes successfully
-			proofHeight := endpointA.GetClientState().GetLatestHeight()
-			proof, err := proofs.Marshal()
-			suite.Require().NoError(err)
-
-			err = endpointA.Chain.App.GetIBCKeeper().ChannelKeeper.ChanOpenAck(
-				endpointA.Chain.GetContext(), endpointA.ChannelConfig.PortID, endpointA.ChannelID,
-				channelCap, endpointZ.ChannelConfig.Version, counterpartyChannelID,
-				proof, malleateHeight(proofHeight, heightDiff),
+			err := suite.A().Chain.App.GetIBCKeeper().ChannelKeeper.ChanOpenAck(
+				suite.A().Chain.GetContext(), suite.A().ChannelConfig.PortID, suite.A().ChannelID,
+				channelCap, suite.Z().ChannelConfig.Version, suite.Z().ChannelID,
+				proof, suite.A().GetClientState().GetLatestHeight(),
 			)
 
 			if tc.expPass {
@@ -329,53 +299,29 @@ func (suite *MultihopTestSuite) TestChanOpenAckMultihop() {
 func (suite *MultihopTestSuite) TestChanOpenConfirmMultihop() {
 	var (
 		channelCap *capabilitytypes.Capability
-		heightDiff uint64
-		endpointA  *ibctesting.Endpoint
-		endpointZ  *ibctesting.Endpoint
 	)
+
 	testCases := []testCase{
 		{"success", func() {
-			ibctesting.ChanOpenInit(suite.paths)
-			ibctesting.ChanOpenTry(suite.paths)
-			ibctesting.ChanOpenAck(suite.paths)
-			channelCap = endpointZ.Chain.GetChannelCapability(endpointZ.ChannelConfig.PortID, endpointZ.ChannelID)
+			suite.Require().NoError(suite.A().ChanOpenInit())
+			suite.Require().NoError(suite.Z().ChanOpenTry())
+			suite.Require().NoError(suite.A().ChanOpenAck())
+			channelCap = suite.Z().Chain.GetChannelCapability(suite.Z().ChannelConfig.PortID, suite.Z().ChannelID)
 		}, true},
 	}
 
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
-			suite.SetupTest()
-			endpointA = suite.paths.A()
-			endpointZ = suite.paths.Z()
-			heightDiff = 0 // must be explicitly changed
+			suite.SetupTest() // reset
+			tc.malleate()     // call ChanOpenInit and setup port capabilities
+			suite.Z().UpdateAllClients()
 
-			tc.malleate()
+			_, proof := suite.A().QueryChannelProof()
 
-			channelKey := host.ChannelKey(endpointA.ChannelConfig.PortID, ibctesting.FirstChannelID)
-			// query the channel
-			req := &types.QueryChannelRequest{
-				PortId:    endpointA.ChannelConfig.PortID,
-				ChannelId: endpointA.ChannelID,
-			}
-
-			// receive the channel response and marshal to expected value bytes
-			resp, err := endpointA.Chain.App.GetIBCKeeper().Channel(endpointA.Chain.GetContext(), req)
-			suite.Require().NoError(err)
-			expectedVal, err := resp.Channel.Marshal()
-			suite.Require().NoError(err)
-
-			// generate multihop proof given keypath and value
-			proofs, err := ibctesting.GenerateMultiHopProof(suite.paths, channelKey, expectedVal, false)
-			suite.Require().NoError(err)
-			// verify call to ChanOpenTry completes successfully
-			proofHeight := endpointZ.GetClientState().GetLatestHeight()
-			proof, err := proofs.Marshal()
-			suite.Require().NoError(err)
-
-			err = endpointZ.Chain.App.GetIBCKeeper().ChannelKeeper.ChanOpenConfirm(
-				endpointZ.Chain.GetContext(), endpointZ.ChannelConfig.PortID, ibctesting.FirstChannelID,
-				channelCap, proof, malleateHeight(proofHeight, heightDiff),
+			err := suite.Z().Chain.App.GetIBCKeeper().ChannelKeeper.ChanOpenConfirm(
+				suite.Z().Chain.GetContext(), suite.Z().ChannelConfig.PortID, suite.Z().ChannelID,
+				channelCap, proof, suite.Z().GetClientState().GetLatestHeight(),
 			)
 
 			if tc.expPass {
