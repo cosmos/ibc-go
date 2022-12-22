@@ -6,6 +6,7 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
+	clientkeeper "github.com/cosmos/ibc-go/v6/modules/core/02-client/keeper"
 	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
@@ -119,11 +120,14 @@ func (suite *MigrationsTestSuite) TestPruneExpiredConsensusStates() {
 		unexpiredHeightMap[path] = unexpiredHeights
 	}
 
+	clientKeeper, ok := suite.chainA.App.GetIBCKeeper().ClientKeeper.(clientkeeper.Keeper)
+	suite.Require().True(ok)
+
 	// Increment the time by another week, then update the client.
 	// This will cause the consensus states created before the first time increment
 	// to be expired
 	suite.coordinator.IncrementTimeBy(7 * 24 * time.Hour)
-	totalPruned, err := ibctmmigrations.PruneExpiredConsensusStates(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), suite.chainA.GetSimApp().IBCKeeper.ClientKeeper)
+	totalPruned, err := ibctmmigrations.PruneExpiredConsensusStates(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), clientKeeper)
 	suite.Require().NoError(err)
 	suite.Require().NotZero(totalPruned)
 

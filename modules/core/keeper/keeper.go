@@ -9,6 +9,7 @@ import (
 	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
+	clientexported "github.com/cosmos/ibc-go/v6/modules/core/02-client/exported"
 	clientkeeper "github.com/cosmos/ibc-go/v6/modules/core/02-client/keeper"
 	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 	connectionkeeper "github.com/cosmos/ibc-go/v6/modules/core/03-connection/keeper"
@@ -28,7 +29,7 @@ type Keeper struct {
 
 	cdc codec.BinaryCodec
 
-	ClientKeeper     clientkeeper.Keeper
+	ClientKeeper     clientexported.ClientKeeper
 	ConnectionKeeper connectionkeeper.Keeper
 	ChannelKeeper    channelkeeper.Keeper
 	PortKeeper       portkeeper.Keeper

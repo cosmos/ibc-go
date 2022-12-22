@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	clientkeeper "github.com/cosmos/ibc-go/v6/modules/core/02-client/keeper"
@@ -18,7 +20,12 @@ func NewMigrator(keeper Keeper) Migrator {
 
 // Migrate2to3 migrates from version 2 to 3. See 02-client keeper function Migrate2to3.
 func (m Migrator) Migrate2to3(ctx sdk.Context) error {
-	clientMigrator := clientkeeper.NewMigrator(m.keeper.ClientKeeper)
+	clientKeeper, ok := m.keeper.ClientKeeper.(clientkeeper.Keeper)
+	if !ok {
+		return fmt.Errorf("failed to assert m.keeper.ClientKeeper to type clientkeeper.Keeper")
+	}
+
+	clientMigrator := clientkeeper.NewMigrator(clientKeeper)
 	if err := clientMigrator.Migrate2to3(ctx); err != nil {
 		return err
 	}
