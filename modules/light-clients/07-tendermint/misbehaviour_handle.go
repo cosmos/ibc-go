@@ -68,7 +68,7 @@ func (cs ClientState) CheckForMisbehaviour(ctx sdk.Context, cdc codec.BinaryCode
 
 			// Ensure that Commit Hashes are different
 			if bytes.Equal(blockID1.Hash, blockID2.Hash) {
-				return return true
+				return true
 			}
 
 		} else if misbehaviour.Header1.SignedHeader.Header.Time.After(misbehaviour.Header2.SignedHeader.Header.Time) {
