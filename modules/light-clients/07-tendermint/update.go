@@ -134,13 +134,13 @@ func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, client
 		panic(fmt.Errorf("expected type %T, got %T", &Header{}, clientMsg))
 	}
 
+	cs.pruneOldestConsensusState(ctx, cdc, clientStore)
+
 	// check for duplicate update
 	if consensusState, _ := GetConsensusState(clientStore, cdc, header.GetHeight()); consensusState != nil {
 		// perform no-op
 		return []exported.Height{header.GetHeight()}
 	}
-
-	cs.pruneOldestConsensusState(ctx, cdc, clientStore)
 
 	height := header.GetHeight().(clienttypes.Height)
 	if height.GT(cs.LatestHeight) {
