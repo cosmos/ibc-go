@@ -242,12 +242,24 @@ message SignBytes {
   uint64 timestamp   = 2;
   string diversifier = 3;
   - DataType data_type = 4 [(gogoproto.moretags) = "yaml:\"data_type\""];
-  + bytes path = 4;
-  bytes data = 5;
+  + bytes path         = 4;
+  bytes data         = 5;
 }
 ```
 
-The `DataType` enum and all associated data types have been removed, greatly reducing the number of message definitions and complexity in constructing the `SignBytes` message type.
+The `DataType` enum and all associated data types have been removed, greatly reducing the number of message definitions and complexity in constructing the `SignBytes` message type. Likewise, solomachine implementations must now use the serialized `path` value when constructing `SignatureAndData` uses for signature verification of `SignBytes` data.
+
+```diff
+message SignatureAndData {
+  option (gogoproto.goproto_getters) = false;
+ 
+  bytes    signature                 = 1;
+  - DataType data_type                 = 2 [(gogoproto.moretags) = "yaml:\"data_type\""];
+  + bytes path                         = 2;
+  bytes    data                      = 3;
+  uint64   timestamp                 = 4;
+}
+```
 
 For more information, please refer to [ADR-007](https://github.com/cosmos/ibc-go/blob/02-client-refactor-beta1/docs/architecture/adr-007-solomachine-signbytes.md).
 
