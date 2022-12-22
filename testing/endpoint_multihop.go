@@ -1,6 +1,8 @@
 package ibctesting
 
 import (
+	"fmt"
+
 	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
@@ -153,9 +155,29 @@ func (ep *EndpointM) SendPacket(
 	timeoutHeight clienttypes.Height,
 	timeoutTimestamp uint64,
 	data []byte,
-) (uint64, error) {
+) (*channeltypes.Packet, error) {
+	portId, channelId := ep.ChannelConfig.PortID, ep.ChannelID
+	channelCap := ep.Chain.GetChannelCapability(portId, channelId)
 
-	return 0, nil
+	seq, err := ep.Chain.App.GetIBCKeeper().ChannelKeeper.SendPacket(
+		ep.Chain.GetContext(),
+		channelCap,
+		portId, channelId,
+		timeoutHeight,
+		timeoutTimestamp,
+		data,
+	)
+	if err != nil {
+		return nil, err
+	}
+	ep.Chain.Coordinator.CommitBlock(ep.Chain)
+	require.NoError(ep.Chain.T, ep.Counterparty.UpdateAllClients())
+
+	packet := channeltypes.NewPacket(data, seq, portId, channelId,
+		ep.Counterparty.ChannelConfig.PortID, ep.Counterparty.ChannelID,
+		timeoutHeight, timeoutTimestamp,
+	)
+	return &packet, nil
 }
 
 // RecvPacket receives a packet on the associated EndpointM.
@@ -184,6 +206,7 @@ func (ep *EndpointM) SetChannelClosed() error {
 
 // UpdateAllClients updates all client states starting from the first single-hop path to the last.
 // ie. self's client state is propogated from the counterparty chain following the multihop channel path.
+// This should be called on the chain that's about to receive a Msg with a proof.
 func (ep *EndpointM) UpdateAllClients() error {
 	for _, path := range ep.Counterparty.paths {
 		err := path.EndpointB.UpdateClient()
@@ -204,7 +227,7 @@ func (ep *EndpointM) CounterpartyChannel() channeltypes.Counterparty {
 	return channeltypes.NewCounterparty(ep.Counterparty.ChannelConfig.PortID, ep.Counterparty.ChannelID)
 }
 
-// QueryChannelProof queries the channel proof on the endpoint chain.
+// QueryChannelProof queries the multihop channel proof on the endpoint chain.
 func (ep *EndpointM) QueryChannelProof() (*channeltypes.Channel, []byte) {
 	channel := ep.GetChannel()
 	channelKey := host.ChannelKey(ep.ChannelConfig.PortID, ep.ChannelID)
@@ -222,4 +245,36 @@ func (ep *EndpointM) QueryChannelProof() (*channeltypes.Channel, []byte) {
 	)
 
 	return &channel, ep.Chain.Codec.MustMarshal(proof)
+}
+
+// QueryPacketProof queries the multihop packet proof on the endpoint chain.
+func (ep *EndpointM) QueryPacketProof(packet *channeltypes.Packet) []byte {
+	packetKey := host.PacketCommitmentKey(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
+	commitment := channeltypes.CommitPacket(ep.Chain.Codec, packet)
+	return ep.QueryMultihopProof(
+		packetKey, commitment,
+		fmt.Sprintf("packet: %s", packet.String()),
+	)
+}
+
+// QueryMultihopProof queries the proof for a key/value on this endpoint, which is verified on the counterparty chain.
+func (ep *EndpointM) QueryMultihopProof(key, expectedValue []byte, name string) []byte {
+	proof, err := GenerateMultiHopProof(
+		ep.paths,
+		key,
+		expectedValue,
+	)
+	require.NoError(
+		ep.Chain.T,
+		err,
+		"could not generate proof for [%s] with key [%s] on chain [%s]",
+		name, key,
+		ep.Chain.ChainID,
+	)
+	return ep.Chain.Codec.MustMarshal(proof)
+}
+
+// ProofHeight returns the proof height passed to this endpoint where the proof is generated for the counterparty chain.
+func (ep *EndpointM) ProofHeight() clienttypes.Height {
+	return ep.GetClientState().GetLatestHeight().(clienttypes.Height)
 }
