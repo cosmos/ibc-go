@@ -124,7 +124,7 @@ func (suite *MultihopTestSuite) TestChanOpenTryMultihop() {
 			tc.malleate()     // call ChanOpenInit and setup port capabilities
 			suite.Z().UpdateAllClients()
 
-			_, proof := suite.A().QueryChannelProof()
+			proof := suite.A().QueryChannelProof()
 			channelID, cap, err := suite.Z().Chain.App.GetIBCKeeper().ChannelKeeper.ChanOpenTry(
 				suite.Z().Chain.GetContext(), suite.Z().ChannelConfig.Order,
 				suite.Z().GetConnectionHops(),
@@ -175,7 +175,7 @@ func (suite *MultihopTestSuite) TestChanOpenAckMultihop() {
 			tc.malleate()     // call ChanOpenInit and setup port capabilities
 			suite.A().UpdateAllClients()
 
-			_, proof := suite.Z().QueryChannelProof()
+			proof := suite.Z().QueryChannelProof()
 
 			err := suite.A().Chain.App.GetIBCKeeper().ChannelKeeper.ChanOpenAck(
 				suite.A().Chain.GetContext(), suite.A().ChannelConfig.PortID, suite.A().ChannelID,
@@ -216,7 +216,7 @@ func (suite *MultihopTestSuite) TestChanOpenConfirmMultihop() {
 			tc.malleate()     // call ChanOpenInit and setup port capabilities
 			suite.Z().UpdateAllClients()
 
-			_, proof := suite.A().QueryChannelProof()
+			proof := suite.A().QueryChannelProof()
 
 			err := suite.Z().Chain.App.GetIBCKeeper().ChannelKeeper.ChanOpenConfirm(
 				suite.Z().Chain.GetContext(), suite.Z().ChannelConfig.PortID, suite.Z().ChannelID,
@@ -296,7 +296,7 @@ func (suite *MultihopTestSuite) TestChanCloseConfirmMultihop() {
 			tc.malleate()
 			suite.Z().UpdateAllClients()
 
-			_, proof := suite.A().QueryChannelProof()
+			proof := suite.A().QueryChannelProof()
 
 			err := suite.Z().Chain.App.GetIBCKeeper().ChannelKeeper.ChanCloseConfirm(
 				suite.Z().Chain.GetContext(), suite.Z().ChannelConfig.PortID, suite.Z().ChannelID,

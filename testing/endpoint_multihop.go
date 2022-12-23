@@ -69,7 +69,7 @@ func (ep *EndpointM) ChanOpenTry() error {
 		return err
 	}
 
-	_, proof := ep.Counterparty.QueryChannelProof()
+	proof := ep.Counterparty.QueryChannelProof()
 	unusedProofHeight := ep.GetClientState().GetLatestHeight().(clienttypes.Height)
 
 	msg := channeltypes.NewMsgChannelOpenTry(
@@ -103,7 +103,7 @@ func (ep *EndpointM) ChanOpenAck() error {
 		return err
 	}
 
-	_, proof := ep.Counterparty.QueryChannelProof()
+	proof := ep.Counterparty.QueryChannelProof()
 	unusedProofHeight := ep.GetClientState().GetLatestHeight().(clienttypes.Height)
 
 	msg := channeltypes.NewMsgChannelOpenAck(
@@ -129,7 +129,7 @@ func (ep *EndpointM) ChanOpenConfirm() error {
 		return err
 	}
 
-	_, proof := ep.Counterparty.QueryChannelProof()
+	proof := ep.Counterparty.QueryChannelProof()
 	unusedProofHeight := ep.GetClientState().GetLatestHeight().(clienttypes.Height)
 
 	msg := channeltypes.NewMsgChannelOpenConfirm(
@@ -244,23 +244,14 @@ func (ep *EndpointM) CounterpartyChannel() channeltypes.Counterparty {
 }
 
 // QueryChannelProof queries the multihop channel proof on the endpoint chain.
-func (ep *EndpointM) QueryChannelProof() (*channeltypes.Channel, []byte) {
+func (ep *EndpointM) QueryChannelProof() []byte {
 	channel := ep.GetChannel()
 	channelKey := host.ChannelKey(ep.ChannelConfig.PortID, ep.ChannelID)
-	proof, err := GenerateMultiHopProof(
-		ep.paths,
+	return ep.QueryMultihopProof(
 		channelKey,
 		ep.Chain.Codec.MustMarshal(&channel),
+		fmt.Sprintf("channel %s", ep.ChannelID),
 	)
-	require.NoError(
-		ep.Chain.T,
-		err,
-		"could not generate proof for channel %s on chain %s",
-		ep.ChannelID,
-		ep.Chain.ChainID,
-	)
-
-	return &channel, ep.Chain.Codec.MustMarshal(proof)
 }
 
 // QueryPacketProof queries the multihop packet proof on the endpoint chain.
