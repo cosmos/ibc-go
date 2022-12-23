@@ -6,6 +6,7 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
+	ibcmock "github.com/cosmos/ibc-go/v6/testing/mock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -151,6 +152,8 @@ func (ep *EndpointM) ChanCloseInit() error {
 // The counterparty client is updated so proofs can be sent to the counterparty chain.
 // The packet sequence generated for the packet to be sent is returned. An error
 // is returned if one occurs.
+//
+// The counterparty and all intermediate chains' clients are updated.
 func (ep *EndpointM) SendPacket(
 	timeoutHeight clienttypes.Height,
 	timeoutTimestamp uint64,
@@ -181,9 +184,22 @@ func (ep *EndpointM) SendPacket(
 }
 
 // RecvPacket receives a packet on the associated EndpointM.
-// The counterparty client is updated.
-func (ep *EndpointM) RecvPacket(packet channeltypes.Packet) error {
+// The counterparty and all intermediate chains' clients are updated.
+func (ep *EndpointM) RecvPacket(packet *channeltypes.Packet) error {
+	proof := ep.Counterparty.QueryPacketProof(packet)
 
+	recvMsg := channeltypes.NewMsgRecvPacket(
+		*packet,
+		proof,
+		ep.ProofHeight(),
+		ep.Chain.SenderAccount.GetAddress().String(),
+	)
+	_, err := ep.Chain.SendMsgs(recvMsg)
+	if err != nil {
+		return err
+	}
+
+	require.NoError(ep.Chain.T, ep.Counterparty.UpdateAllClients())
 	return nil
 }
 
@@ -254,6 +270,16 @@ func (ep *EndpointM) QueryPacketProof(packet *channeltypes.Packet) []byte {
 	return ep.QueryMultihopProof(
 		packetKey, commitment,
 		fmt.Sprintf("packet: %s", packet.String()),
+	)
+}
+
+// QueryPacketAcknowledgementProof queries the multihop packet acknowledgement proof on the endpoint chain.
+func (ep *EndpointM) QueryPacketAcknowledgementProof(packet *channeltypes.Packet) []byte {
+	packetKey := host.PacketAcknowledgementKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
+	commitment := channeltypes.CommitAcknowledgement(ibcmock.MockAcknowledgement.Acknowledgement())
+	return ep.QueryMultihopProof(
+		packetKey, commitment,
+		fmt.Sprintf("packet acknowledgement: %s", packet.String()),
 	)
 }
 

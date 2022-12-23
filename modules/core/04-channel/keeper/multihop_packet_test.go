@@ -1,13 +1,10 @@
 package keeper_test
 
 import (
-	"errors"
 	"fmt"
 
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	"github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
 	ibctesting "github.com/cosmos/ibc-go/v6/testing"
 	ibcmock "github.com/cosmos/ibc-go/v6/testing/mock"
 )
@@ -32,7 +29,6 @@ func (suite *MultihopTestSuite) TestRecvPacket() {
 
 	testCases := []channelTestCase{
 		{"success: ORDERED channel", true, func() {
-			suite.chanPath.SetChannelOrdered()
 			packet, err = suite.A().
 				SendPacket(defaultTimeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
@@ -117,114 +113,87 @@ func (suite *MultihopTestSuite) TestRecvPacket() {
 }
 
 // TestAcknowledgePacketMultihop tests the call AcknowledgePacket on chainA.
-func (suite *MultihopTestSuite) TestAcknowledgePacketMultihop() {
+func (suite *MultihopTestSuite) TestAcknowledgePacket() {
 	var (
-		packet types.Packet
-		ack    = ibcmock.MockAcknowledgement
-
+		packet     *types.Packet
+		ack        = ibcmock.MockAcknowledgement
 		channelCap *capabilitytypes.Capability
-		expError   *sdkerrors.Error
-
-		endpointA *ibctesting.Endpoint
-		endpointZ *ibctesting.Endpoint
+		err        error
 	)
 
-	testCases := []testCase{
-		{"success on ordered channel", func() {
-			ibctesting.SetupChannel(suite.paths)
-			// create packet commitment
-			sequence, err := endpointA.SendPacket(
-				defaultTimeoutHeight,
-				disabledTimeoutTimestamp,
-				ibctesting.MockPacketData,
-			)
+	testCases := []channelTestCase{
+		{"success: ORDERED channel", true, func() {
+			packet, err = suite.A().
+				SendPacket(defaultTimeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
-
-			suite.paths.UpdateClients()
-			// create packet receipt and acknowledgement
-			packet = types.NewPacket(
-				ibctesting.MockPacketData,
-				sequence,
-				endpointA.ChannelConfig.PortID,
-				endpointA.ChannelID,
-				endpointZ.ChannelConfig.PortID,
-				endpointZ.ChannelID,
-				defaultTimeoutHeight,
-				disabledTimeoutTimestamp,
-			)
-			_, err = ibctesting.RecvPacket(suite.paths, packet)
+			suite.Require().NoError(suite.Z().RecvPacket(packet))
+			channelCap = suite.A().Chain.GetChannelCapability(suite.A().ChannelConfig.PortID, suite.A().ChannelID)
+		}, true},
+		{"success: UNORDERED channel", false, func() {
+			packet, err = suite.A().
+				SendPacket(defaultTimeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
-			suite.paths.Reverse().UpdateClients()
-			channelCap = endpointA.Chain.GetChannelCapability(endpointA.ChannelConfig.PortID, endpointA.ChannelID)
+			suite.Require().NoError(suite.Z().RecvPacket(packet))
+			channelCap = suite.A().Chain.GetChannelCapability(suite.A().ChannelConfig.PortID, suite.A().ChannelID)
 		}, true},
 	}
 
-	for i, tc := range testCases {
+	for _, tc := range testCases {
 		tc := tc
-		suite.Run(fmt.Sprintf("Case %s, %d/%d tests", tc.msg, i, len(testCases)), func() {
-			suite.SetupTest()
-			endpointA = suite.paths.A()
-			endpointZ = suite.paths.Z()
-			expError = nil // must explcitly set error for failed cases
+		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
+			suite.SetupTest() // reset
+			if tc.orderedChannel {
+				suite.chanPath.SetChannelOrdered()
+			}
+			suite.coord.Setup(suite.chanPath) // setup multihop channels
 
 			tc.malleate()
 
-			packetKey := host.PacketAcknowledgementKey(
-				packet.GetDestPort(),
-				packet.GetDestChannel(),
-				packet.GetSequence(),
-			)
-			expectedVal := types.CommitAcknowledgement(ack.Acknowledgement()) //resp.Acknowledgement
-
-			proofs, err := ibctesting.GenerateMultiHopProof(suite.paths.Reverse(), packetKey, expectedVal, false)
-			suite.Require().NoError(err)
-			proofHeight := endpointA.GetClientState().GetLatestHeight()
-			proof, err := proofs.Marshal()
-			suite.Require().NoError(err)
-
-			err = endpointA.Chain.App.GetIBCKeeper().ChannelKeeper.AcknowledgePacket(
-				endpointA.Chain.GetContext(),
+			proof := suite.Z().QueryPacketAcknowledgementProof(packet)
+			err := suite.A().Chain.App.GetIBCKeeper().ChannelKeeper.AcknowledgePacket(
+				suite.A().Chain.GetContext(),
 				channelCap,
 				packet,
 				ack.Acknowledgement(),
 				proof,
-				proofHeight,
-			)
-			suite.Require().NoError(err)
-			pc := endpointA.Chain.App.GetIBCKeeper().ChannelKeeper.GetPacketCommitment(
-				endpointA.Chain.GetContext(),
-				packet.GetSourcePort(),
-				packet.GetSourceChannel(),
-				packet.GetSequence(),
-			)
-
-			channelA, _ := endpointA.Chain.App.GetIBCKeeper().ChannelKeeper.GetChannel(
-				endpointA.Chain.GetContext(),
-				packet.GetSourcePort(),
-				packet.GetSourceChannel(),
-			)
-			sequenceAck, _ := endpointA.Chain.App.GetIBCKeeper().ChannelKeeper.GetNextSequenceAck(
-				endpointA.Chain.GetContext(),
-				packet.GetSourcePort(),
-				packet.GetSourceChannel(),
+				suite.A().ProofHeight(),
 			)
 
 			if tc.expPass {
-				suite.NoError(err)
-				suite.Nil(pc)
+				suite.Require().NoError(err)
+				pc := suite.A().Chain.App.GetIBCKeeper().ChannelKeeper.GetPacketCommitment(
+					suite.A().Chain.GetContext(),
+					packet.GetSourcePort(),
+					packet.GetSourceChannel(),
+					packet.GetSequence(),
+				)
+				channelA, found := suite.A().Chain.App.GetIBCKeeper().ChannelKeeper.GetChannel(
+					suite.A().Chain.GetContext(),
+					packet.GetSourcePort(),
+					packet.GetSourceChannel(),
+				)
+				suite.Require().True(found)
+				seqAck, found := suite.A().Chain.App.GetIBCKeeper().ChannelKeeper.GetNextSequenceAck(
+					suite.A().Chain.GetContext(),
+					packet.GetSourcePort(),
+					packet.GetSourceChannel(),
+				)
+				suite.Require().True(found)
 
-				if channelA.Ordering == types.ORDERED {
+				suite.Require().NoError(err)
+				suite.Require().Nil(pc)
+				suite.Require().NotNil(packet)
+
+				if tc.orderedChannel {
+					suite.Require().True(channelA.Ordering == types.ORDERED)
 					suite.Require().
-						Equal(packet.GetSequence()+1, sequenceAck, "sequence not incremented in ordered channel")
+						Equal(packet.GetSequence()+1, seqAck, "sequence not incremented in ORDERED channel")
 				} else {
-					suite.Require().Equal(uint64(1), sequenceAck, "sequence incremented for UNORDERED channel")
+					suite.Require().True(channelA.Ordering == types.UNORDERED)
+					suite.Require().Equal(packet.GetSequence(), uint64(1), "sequence incremented in UNORDERED channel")
 				}
 			} else {
-				suite.Error(err)
-				// only check if expError is set, since not all error codes can be known
-				if expError != nil {
-					suite.Require().True(errors.Is(err, expError))
-				}
+				suite.Require().Error(err)
 			}
 		})
 	}
