@@ -267,13 +267,13 @@ func (k Keeper) ChannelOpenAck(goCtx context.Context, msg *channeltypes.MsgChann
 		return nil, sdkerrors.Wrap(err, "channel handshake open ack failed")
 	}
 
+	// Write channel into state
+	k.ChannelKeeper.WriteOpenAckChannel(ctx, msg.PortId, msg.ChannelId, msg.CounterpartyVersion, msg.CounterpartyChannelId)
+
 	// Perform application logic callback
 	if err = cbs.OnChanOpenAck(ctx, msg.PortId, msg.ChannelId, msg.CounterpartyChannelId, msg.CounterpartyVersion); err != nil {
 		return nil, sdkerrors.Wrapf(err, "channel open ack callback failed for port ID: %s, channel ID: %s", msg.PortId, msg.ChannelId)
 	}
-
-	// Write channel into state
-	k.ChannelKeeper.WriteOpenAckChannel(ctx, msg.PortId, msg.ChannelId, msg.CounterpartyVersion, msg.CounterpartyChannelId)
 
 	return &channeltypes.MsgChannelOpenAckResponse{}, nil
 }
@@ -301,13 +301,13 @@ func (k Keeper) ChannelOpenConfirm(goCtx context.Context, msg *channeltypes.MsgC
 		return nil, sdkerrors.Wrap(err, "channel handshake open confirm failed")
 	}
 
+	// Write channel into state
+	k.ChannelKeeper.WriteOpenConfirmChannel(ctx, msg.PortId, msg.ChannelId)
+
 	// Perform application logic callback
 	if err = cbs.OnChanOpenConfirm(ctx, msg.PortId, msg.ChannelId); err != nil {
 		return nil, sdkerrors.Wrapf(err, "channel open confirm callback failed for port ID: %s, channel ID: %s", msg.PortId, msg.ChannelId)
 	}
-
-	// Write channel into state
-	k.ChannelKeeper.WriteOpenConfirmChannel(ctx, msg.PortId, msg.ChannelId)
 
 	return &channeltypes.MsgChannelOpenConfirmResponse{}, nil
 }
