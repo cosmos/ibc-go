@@ -69,14 +69,23 @@ func (k Keeper) ChanOpenInit(
 	}
 
 	if !k.portKeeper.Authenticate(ctx, portCap, portID) {
-		return "", nil, sdkerrors.Wrapf(porttypes.ErrInvalidPort, "caller does not own port capability for port ID %s", portID)
+		return "", nil, sdkerrors.Wrapf(
+			porttypes.ErrInvalidPort,
+			"caller does not own port capability for port ID %s",
+			portID,
+		)
 	}
 
 	channelID := k.GenerateChannelIdentifier(ctx)
 
 	capKey, err := k.scopedKeeper.NewCapability(ctx, host.ChannelCapabilityPath(portID, channelID))
 	if err != nil {
-		return "", nil, sdkerrors.Wrapf(err, "could not create channel capability for port ID %s and channel ID %s", portID, channelID)
+		return "", nil, sdkerrors.Wrapf(
+			err,
+			"could not create channel capability for port ID %s and channel ID %s",
+			portID,
+			channelID,
+		)
 	}
 
 	return channelID, capKey, nil
@@ -101,7 +110,8 @@ func (k Keeper) WriteOpenInitChannel(
 	k.SetNextSequenceRecv(ctx, portID, channelID, 1)
 	k.SetNextSequenceAck(ctx, portID, channelID, 1)
 
-	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", "NONE", "new-state", "INIT")
+	k.Logger(ctx).
+		Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", "NONE", "new-state", "INIT")
 
 	defer func() {
 		telemetry.IncrCounter(1, "ibc", "channel", "open-init")
@@ -128,7 +138,11 @@ func (k Keeper) ChanOpenTry(
 	channelID := k.GenerateChannelIdentifier(ctx)
 
 	if !k.portKeeper.Authenticate(ctx, portCap, portID) {
-		return "", nil, sdkerrors.Wrapf(porttypes.ErrInvalidPort, "caller does not own port capability for port ID %s", portID)
+		return "", nil, sdkerrors.Wrapf(
+			porttypes.ErrInvalidPort,
+			"caller does not own port capability for port ID %s",
+			portID,
+		)
 	}
 
 	// Directly verify the last connectionHop. In a multihop hop scenario only the final
@@ -148,15 +162,20 @@ func (k Keeper) ChanOpenTry(
 	// connectionHops A --> Z
 	var counterpartyHops []string
 	var checkEnd *connectiontypes.ConnectionEnd
+
 	if len(connectionHops) > 1 {
+		var proof types.MsgMultihopProofs
+		if err := k.cdc.Unmarshal(proofInit, &proof); err != nil {
+			return "", nil, err
+		}
 		var err error
 		// get the connectionEnd associated with chain A
-		checkEnd, err = mh.GetMultihopConnectionEnd(k.cdc, proofInit)
+		checkEnd, err = proof.GetMultihopConnectionEnd(k.cdc)
 		if err != nil {
 			return "", nil, err
 		}
 
-		counterpartyHops, err = mh.GetCounterPartyHops(k.cdc, proofInit, &connectionEnd)
+		counterpartyHops, err = proof.GetCounterpartyHops(k.cdc, &connectionEnd)
 		if err != nil {
 			return "", nil, err
 		}
@@ -232,7 +251,12 @@ func (k Keeper) ChanOpenTry(
 
 	capKey, err = k.scopedKeeper.NewCapability(ctx, host.ChannelCapabilityPath(portID, channelID))
 	if err != nil {
-		return "", nil, sdkerrors.Wrapf(err, "could not create channel capability for port ID %s and channel ID %s", portID, channelID)
+		return "", nil, sdkerrors.Wrapf(
+			err,
+			"could not create channel capability for port ID %s and channel ID %s",
+			portID,
+			channelID,
+		)
 	}
 
 	return channelID, capKey, nil
@@ -258,7 +282,8 @@ func (k Keeper) WriteOpenTryChannel(
 
 	k.SetChannel(ctx, portID, channelID, channel)
 
-	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", "NONE", "new-state", "TRYOPEN")
+	k.Logger(ctx).
+		Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", "NONE", "new-state", "TRYOPEN")
 
 	defer func() {
 		telemetry.IncrCounter(1, "ibc", "channel", "open-try")
@@ -285,11 +310,20 @@ func (k Keeper) ChanOpenAck(
 	}
 
 	if channel.State != types.INIT {
-		return sdkerrors.Wrapf(types.ErrInvalidChannelState, "channel state should be INIT (got %s)", channel.State.String())
+		return sdkerrors.Wrapf(
+			types.ErrInvalidChannelState,
+			"channel state should be INIT (got %s)",
+			channel.State.String(),
+		)
 	}
 
 	if !k.scopedKeeper.AuthenticateCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)) {
-		return sdkerrors.Wrapf(types.ErrChannelCapabilityNotFound, "caller does not own capability for channel, port ID (%s) channel ID (%s)", portID, channelID)
+		return sdkerrors.Wrapf(
+			types.ErrChannelCapabilityNotFound,
+			"caller does not own capability for channel, port ID (%s) channel ID (%s)",
+			portID,
+			channelID,
+		)
 	}
 
 	connectionEnd, found := k.connectionKeeper.GetConnection(ctx, channel.ConnectionHops[0])
@@ -303,12 +337,18 @@ func (k Keeper) ChanOpenAck(
 			"connection state is not OPEN (got %s)", connectiontypes.State(connectionEnd.GetState()).String(),
 		)
 	}
+	var mProof types.MsgMultihopProofs
+	if len(channel.ConnectionHops) > 1 {
+		if err := k.cdc.Unmarshal(proofTry, &mProof); err != nil {
+			return err
+		}
+	}
 
 	// connectionHops Z --> A
 	var counterpartyHops []string
 	if len(channel.ConnectionHops) > 1 {
 		var err error
-		counterpartyHops, err = mh.GetCounterPartyHops(k.cdc, proofTry, &connectionEnd)
+		counterpartyHops, err = mProof.GetCounterpartyHops(k.cdc, &connectionEnd)
 		if err != nil {
 			return err
 		}
@@ -335,7 +375,7 @@ func (k Keeper) ChanOpenAck(
 				"consensus state not found for client id: %s", connectionEnd.ClientId)
 		}
 
-		multihopConnectionEnd, err := mh.GetMultihopConnectionEnd(k.cdc, proofTry)
+		multihopConnectionEnd, err := mProof.GetMultihopConnectionEnd(k.cdc)
 		if err != nil {
 			return err
 		}
@@ -369,7 +409,13 @@ func (k Keeper) WriteOpenAckChannel(
 ) {
 	channel, found := k.GetChannel(ctx, portID, channelID)
 	if !found {
-		panic(fmt.Sprintf("could not find existing channel when updating channel state in successful ChanOpenAck step, channelID: %s, portID: %s", channelID, portID))
+		panic(
+			fmt.Sprintf(
+				"could not find existing channel when updating channel state in successful ChanOpenAck step, channelID: %s, portID: %s",
+				channelID,
+				portID,
+			),
+		)
 	}
 
 	channel.State = types.OPEN
@@ -377,7 +423,8 @@ func (k Keeper) WriteOpenAckChannel(
 	channel.Counterparty.ChannelId = counterpartyChannelID
 	k.SetChannel(ctx, portID, channelID, channel)
 
-	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", channel.State.String(), "new-state", "OPEN")
+	k.Logger(ctx).
+		Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", channel.State.String(), "new-state", "OPEN")
 
 	defer func() {
 		telemetry.IncrCounter(1, "ibc", "channel", "open-ack")
@@ -409,7 +456,12 @@ func (k Keeper) ChanOpenConfirm(
 	}
 
 	if !k.scopedKeeper.AuthenticateCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)) {
-		return sdkerrors.Wrapf(types.ErrChannelCapabilityNotFound, "caller does not own capability for channel, port ID (%s) channel ID (%s)", portID, channelID)
+		return sdkerrors.Wrapf(
+			types.ErrChannelCapabilityNotFound,
+			"caller does not own capability for channel, port ID (%s) channel ID (%s)",
+			portID,
+			channelID,
+		)
 	}
 
 	connectionEnd, found := k.connectionKeeper.GetConnection(ctx, channel.ConnectionHops[0])
@@ -424,11 +476,18 @@ func (k Keeper) ChanOpenConfirm(
 		)
 	}
 
+	var mProof types.MsgMultihopProofs
+	if len(channel.ConnectionHops) > 1 {
+		if err := k.cdc.Unmarshal(proofAck, &mProof); err != nil {
+			return err
+		}
+	}
+
 	// connectionHops A --> Z
 	var counterpartyHops []string
 	if len(channel.ConnectionHops) > 1 {
 		var err error
-		counterpartyHops, err = mh.GetCounterPartyHops(k.cdc, proofAck, &connectionEnd)
+		counterpartyHops, err = mProof.GetCounterpartyHops(k.cdc, &connectionEnd)
 		if err != nil {
 			return err
 		}
@@ -456,7 +515,7 @@ func (k Keeper) ChanOpenConfirm(
 				"consensus state not found for client id: %s", connectionEnd.ClientId)
 		}
 
-		multihopConnectionEnd, err := mh.GetMultihopConnectionEnd(k.cdc, proofAck)
+		multihopConnectionEnd, err := mProof.GetMultihopConnectionEnd(k.cdc)
 		if err != nil {
 			return err
 		}
@@ -489,12 +548,19 @@ func (k Keeper) WriteOpenConfirmChannel(
 ) {
 	channel, found := k.GetChannel(ctx, portID, channelID)
 	if !found {
-		panic(fmt.Sprintf("could not find existing channel when updating channel state in successful ChanOpenConfirm step, channelID: %s, portID: %s", channelID, portID))
+		panic(
+			fmt.Sprintf(
+				"could not find existing channel when updating channel state in successful ChanOpenConfirm step, channelID: %s, portID: %s",
+				channelID,
+				portID,
+			),
+		)
 	}
 
 	channel.State = types.OPEN
 	k.SetChannel(ctx, portID, channelID, channel)
-	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", "TRYOPEN", "new-state", "OPEN")
+	k.Logger(ctx).
+		Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", "TRYOPEN", "new-state", "OPEN")
 
 	defer func() {
 		telemetry.IncrCounter(1, "ibc", "channel", "open-confirm")
@@ -517,7 +583,12 @@ func (k Keeper) ChanCloseInit(
 	chanCap *capabilitytypes.Capability,
 ) error {
 	if !k.scopedKeeper.AuthenticateCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)) {
-		return sdkerrors.Wrapf(types.ErrChannelCapabilityNotFound, "caller does not own capability for channel, port ID (%s) channel ID (%s)", portID, channelID)
+		return sdkerrors.Wrapf(
+			types.ErrChannelCapabilityNotFound,
+			"caller does not own capability for channel, port ID (%s) channel ID (%s)",
+			portID,
+			channelID,
+		)
 	}
 
 	channel, found := k.GetChannel(ctx, portID, channelID)
@@ -552,7 +623,8 @@ func (k Keeper) ChanCloseInit(
 		)
 	}
 
-	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", channel.State.String(), "new-state", "CLOSED")
+	k.Logger(ctx).
+		Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", channel.State.String(), "new-state", "CLOSED")
 
 	defer func() {
 		telemetry.IncrCounter(1, "ibc", "channel", "close-init")
@@ -577,7 +649,10 @@ func (k Keeper) ChanCloseConfirm(
 	proofHeight exported.Height,
 ) error {
 	if !k.scopedKeeper.AuthenticateCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)) {
-		return sdkerrors.Wrap(types.ErrChannelCapabilityNotFound, "caller does not own capability for channel, port ID (%s) channel ID (%s)")
+		return sdkerrors.Wrap(
+			types.ErrChannelCapabilityNotFound,
+			"caller does not own capability for channel, port ID (%s) channel ID (%s)",
+		)
 	}
 
 	channel, found := k.GetChannel(ctx, portID, channelID)
@@ -591,7 +666,10 @@ func (k Keeper) ChanCloseConfirm(
 
 	connectionEnd, found := k.connectionKeeper.GetConnection(ctx, channel.ConnectionHops[len(channel.ConnectionHops)-1])
 	if !found {
-		return sdkerrors.Wrap(connectiontypes.ErrConnectionNotFound, channel.ConnectionHops[len(channel.ConnectionHops)-1])
+		return sdkerrors.Wrap(
+			connectiontypes.ErrConnectionNotFound,
+			channel.ConnectionHops[len(channel.ConnectionHops)-1],
+		)
 	}
 
 	if connectionEnd.GetState() != int32(connectiontypes.OPEN) {
@@ -601,12 +679,19 @@ func (k Keeper) ChanCloseConfirm(
 		)
 	}
 
+	var mProof types.MsgMultihopProofs
+	if len(channel.ConnectionHops) > 1 {
+		if err := k.cdc.Unmarshal(proofInit, &mProof); err != nil {
+			return err
+		}
+	}
+
 	// determine counterparty hops
 	var counterpartyHops []string
 	if len(channel.ConnectionHops) > 1 {
 		// get the connectionHops A --> Z
 		var err error
-		counterpartyHops, err = mh.GetCounterPartyHops(k.cdc, proofInit, &connectionEnd)
+		counterpartyHops, err = mProof.GetCounterpartyHops(k.cdc, &connectionEnd)
 		if err != nil {
 			return err
 		}
@@ -622,7 +707,6 @@ func (k Keeper) ChanCloseConfirm(
 
 	// verify multihop proof
 	if len(channel.ConnectionHops) > 1 {
-
 		value, err := expectedChannel.Marshal()
 		if err != nil {
 			return err
@@ -634,7 +718,7 @@ func (k Keeper) ChanCloseConfirm(
 				"consensus state not found for client id: %s", connectionEnd.ClientId)
 		}
 
-		multihopConnectionEnd, err := mh.GetMultihopConnectionEnd(k.cdc, proofInit)
+		multihopConnectionEnd, err := mProof.GetMultihopConnectionEnd(k.cdc)
 		if err != nil {
 			return err
 		}
@@ -656,7 +740,8 @@ func (k Keeper) ChanCloseConfirm(
 		}
 	}
 
-	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", channel.State.String(), "new-state", "CLOSED")
+	k.Logger(ctx).
+		Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", channel.State.String(), "new-state", "CLOSED")
 
 	defer func() {
 		telemetry.IncrCounter(1, "ibc", "channel", "close-confirm")

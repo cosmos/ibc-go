@@ -42,7 +42,12 @@ func (k Keeper) SendPacket(
 	}
 
 	if !k.scopedKeeper.AuthenticateCapability(ctx, channelCap, host.ChannelCapabilityPath(sourcePort, sourceChannel)) {
-		return 0, sdkerrors.Wrapf(types.ErrChannelCapabilityNotFound, "caller does not own capability for channel, port ID (%s) channel ID (%s)", sourcePort, sourceChannel)
+		return 0, sdkerrors.Wrapf(
+			types.ErrChannelCapabilityNotFound,
+			"caller does not own capability for channel, port ID (%s) channel ID (%s)",
+			sourcePort,
+			sourceChannel,
+		)
 	}
 
 	sequence, found := k.GetNextSequenceSend(ctx, sourcePort, sourceChannel)
@@ -153,14 +158,18 @@ func (k Keeper) RecvPacket(
 	if packet.GetSourcePort() != channel.Counterparty.PortId {
 		return sdkerrors.Wrapf(
 			types.ErrInvalidPacket,
-			"packet source port doesn't match the counterparty's port (%s ≠ %s)", packet.GetSourcePort(), channel.Counterparty.PortId,
+			"packet source port doesn't match the counterparty's port (%s ≠ %s)",
+			packet.GetSourcePort(),
+			channel.Counterparty.PortId,
 		)
 	}
 
 	if packet.GetSourceChannel() != channel.Counterparty.ChannelId {
 		return sdkerrors.Wrapf(
 			types.ErrInvalidPacket,
-			"packet source channel doesn't match the counterparty's channel (%s ≠ %s)", packet.GetSourceChannel(), channel.Counterparty.ChannelId,
+			"packet source channel doesn't match the counterparty's channel (%s ≠ %s)",
+			packet.GetSourceChannel(),
+			channel.Counterparty.ChannelId,
 		)
 	}
 
@@ -193,7 +202,9 @@ func (k Keeper) RecvPacket(
 	if packet.GetTimeoutTimestamp() != 0 && uint64(ctx.BlockTime().UnixNano()) >= packet.GetTimeoutTimestamp() {
 		return sdkerrors.Wrapf(
 			types.ErrPacketTimeout,
-			"block timestamp >= packet timeout timestamp (%s >= %s)", ctx.BlockTime(), time.Unix(0, int64(packet.GetTimeoutTimestamp())),
+			"block timestamp >= packet timeout timestamp (%s >= %s)",
+			ctx.BlockTime(),
+			time.Unix(0, int64(packet.GetTimeoutTimestamp())),
 		)
 	}
 
@@ -206,8 +217,12 @@ func (k Keeper) RecvPacket(
 			return sdkerrors.Wrapf(clienttypes.ErrConsensusStateNotFound,
 				"consensus state not found for client id: %s", connectionEnd.ClientId)
 		}
+		var mProof types.MsgMultihopProofs
+		if err := k.cdc.Unmarshal(proof, &mProof); err != nil {
+			return err
+		}
 
-		multihopConnectionEnd, err := mh.GetMultihopConnectionEnd(k.cdc, proof)
+		multihopConnectionEnd, err := mProof.GetMultihopConnectionEnd(k.cdc)
 		if err != nil {
 			return err
 		}
@@ -421,14 +436,18 @@ func (k Keeper) AcknowledgePacket(
 	if packet.GetDestPort() != channel.Counterparty.PortId {
 		return sdkerrors.Wrapf(
 			types.ErrInvalidPacket,
-			"packet destination port doesn't match the counterparty's port (%s ≠ %s)", packet.GetDestPort(), channel.Counterparty.PortId,
+			"packet destination port doesn't match the counterparty's port (%s ≠ %s)",
+			packet.GetDestPort(),
+			channel.Counterparty.PortId,
 		)
 	}
 
 	if packet.GetDestChannel() != channel.Counterparty.ChannelId {
 		return sdkerrors.Wrapf(
 			types.ErrInvalidPacket,
-			"packet destination channel doesn't match the counterparty's channel (%s ≠ %s)", packet.GetDestChannel(), channel.Counterparty.ChannelId,
+			"packet destination channel doesn't match the counterparty's channel (%s ≠ %s)",
+			packet.GetDestChannel(),
+			channel.Counterparty.ChannelId,
 		)
 	}
 
@@ -459,7 +478,12 @@ func (k Keeper) AcknowledgePacket(
 
 	// verify we sent the packet and haven't cleared it out yet
 	if !bytes.Equal(commitment, packetCommitment) {
-		return sdkerrors.Wrapf(types.ErrInvalidPacket, "commitment bytes are not equal: got (%v), expected (%v)", packetCommitment, commitment)
+		return sdkerrors.Wrapf(
+			types.ErrInvalidPacket,
+			"commitment bytes are not equal: got (%v), expected (%v)",
+			packetCommitment,
+			commitment,
+		)
 	}
 
 	if len(channel.ConnectionHops) > 1 {
@@ -470,8 +494,12 @@ func (k Keeper) AcknowledgePacket(
 			return sdkerrors.Wrapf(clienttypes.ErrConsensusStateNotFound,
 				"consensus state not found for client id: %s", connectionEnd.ClientId)
 		}
+		var mProof types.MsgMultihopProofs
+		if err := k.cdc.Unmarshal(proof, &mProof); err != nil {
+			return err
+		}
 
-		multihopConnectionEnd, err := mh.GetMultihopConnectionEnd(k.cdc, proof)
+		multihopConnectionEnd, err := mProof.GetMultihopConnectionEnd(k.cdc)
 		if err != nil {
 			return err
 		}

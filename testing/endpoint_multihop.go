@@ -235,7 +235,11 @@ func (ep *EndpointM) UpdateAllClients() error {
 
 // GetConnectionHops returns the connection hops for the multihop channel.
 func (ep *EndpointM) GetConnectionHops() []string {
-	return ep.paths.GetConnectionHops()
+	var connectionHops []string
+	for _, path := range ep.paths {
+		connectionHops = append(connectionHops, path.EndpointA.ConnectionID)
+	}
+	return connectionHops
 }
 
 // CounterpartyChannel returns the counterparty channel used in tx Msgs.
