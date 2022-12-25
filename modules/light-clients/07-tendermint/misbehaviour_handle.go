@@ -55,13 +55,13 @@ func (cs ClientState) CheckForMisbehaviour(ctx sdk.Context, cdc codec.BinaryCode
 		// Thus, here we can return true, as ClientMessage is of type Misbehaviour
 		// if heights are equal check that this is valid misbehaviour of a fork
 		// otherwise if heights are unequal check that this is valid misbehavior of BFT time violation
-		if misbehaviour.Header1.GetHeight().EQ(misbehaviour.Header2.GetHeight()) {
-			blockID1, err := tmtypes.BlockIDFromProto(&misbehaviour.Header1.SignedHeader.Commit.BlockID)
+		if msg.Header1.GetHeight().EQ(msg.Header2.GetHeight()) {
+			blockID1, err := tmtypes.BlockIDFromProto(&msg.Header1.SignedHeader.Commit.BlockID)
 			if err != nil {
 				return true
 			}
 
-			blockID2, err := tmtypes.BlockIDFromProto(&misbehaviour.Header2.SignedHeader.Commit.BlockID)
+			blockID2, err := tmtypes.BlockIDFromProto(&msg.Header2.SignedHeader.Commit.BlockID)
 			if err != nil {
 				return true
 			}
@@ -71,7 +71,7 @@ func (cs ClientState) CheckForMisbehaviour(ctx sdk.Context, cdc codec.BinaryCode
 				return true
 			}
 
-		} else if misbehaviour.Header1.SignedHeader.Header.Time.After(misbehaviour.Header2.SignedHeader.Header.Time) {
+		} else if msg.Header1.SignedHeader.Header.Time.After(msg.Header2.SignedHeader.Header.Time) {
 			// Header1 is at greater height than Header2, therefore Header1 time must be less than or equal to
 			// Header2 time in order to be valid misbehaviour (violation of monotonic time).
 			return true
