@@ -22,7 +22,7 @@ Follow the progress with the [beta](https://github.com/cosmos/ibc-go/milestone/2
 
 Follow the progress with the [milestone](https://github.com/cosmos/ibc-go/milestone/36).
 
-### `authz` support to 20-transfer
+### Add `authz` support to 20-transfer
 
 See [this issue](https://github.com/cosmos/ibc-go/issues/2431) for more details.
 
