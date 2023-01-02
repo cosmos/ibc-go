@@ -178,7 +178,7 @@ The field `header` in `MsgUpdateClient` has been renamed to `client_message`.
 
 The `06-solomachine` client implementation has been simplified in ibc-go/v7. In place store migrations have been added to migrate solomachine clients from `v2` to `v3`.
 
-### ClientState
+### `ClientState`
 
 The `ClientState` protobuf message definition has been updated to remove the deprecated `bool` field `allow_update_after_proposal`.
 
@@ -193,7 +193,7 @@ message ClientState {
 }
 ```
 
-### Header and Misbehaviour
+### `Header` and `Misbehaviour`
 
 The `06-solomachine` protobuf message `Header` has been updated to remove the `sequence` field. This field was seen as redundant as the implementation can safely rely on the `sequence` value maintained within the `ClientState`.
 
@@ -229,7 +229,7 @@ message Misbehaviour {
 }
 ```
 
-### SignBytes
+### `SignBytes`
 
 Most notably, the `SignBytes` protobuf definition has been modified to replace the `data_type` field with a new field, `path`. The `path` field is defined as `bytes` and represents a serialized [ICS-24](https://github.com/cosmos/ibc/tree/main/spec/core/ics-024-host-requirements) standardized key path under which the `data` is stored.
 
@@ -247,7 +247,7 @@ message SignBytes {
 }
 ```
 
-The `DataType` enum and all associated data types have been removed, greatly reducing the number of message definitions and complexity in constructing the `SignBytes` message type. Likewise, solomachine implementations must now use the serialized `path` value when constructing `SignatureAndData` uses for signature verification of `SignBytes` data.
+The `DataType` enum and all associated data types have been removed, greatly reducing the number of message definitions and complexity in constructing the `SignBytes` message type. Likewise, solomachine implementations must now use the serialized `path` value when constructing `SignatureAndData` for signature verification of `SignBytes` data.
 
 ```diff
 message SignatureAndData {
