@@ -186,10 +186,10 @@ The `ClientState` protobuf message definition has been updated to remove the dep
 message ClientState {
   option (gogoproto.goproto_getters) = false;
 
-  uint64 sequence = 1;
-  bool           is_frozen       = 2 [(gogoproto.moretags) = "yaml:\"is_frozen\""];
-  ConsensusState consensus_state = 3 [(gogoproto.moretags) = "yaml:\"consensus_state\""];
-  - bool allow_update_after_proposal = 4 [(gogoproto.moretags) = "yaml:\"allow_update_after_proposal\""];
+  uint64 sequence                  = 1;
+  bool is_frozen                   = 2 [(gogoproto.moretags) = "yaml:\"is_frozen\""];
+  ConsensusState consensus_state   = 3 [(gogoproto.moretags) = "yaml:\"consensus_state\""];
+- bool allow_update_after_proposal = 4 [(gogoproto.moretags) = "yaml:\"allow_update_after_proposal\""];
 }
 ```
 
@@ -201,15 +201,15 @@ The `06-solomachine` protobuf message `Header` has been updated to remove the `s
 message Header {
   option (gogoproto.goproto_getters) = false;
  
-  - uint64              sequence        = 1;
-  - uint64              timestamp       = 2;
-  - bytes               signature       = 3;
-  - google.protobuf.Any new_public_key  = 4 [(gogoproto.moretags) = "yaml:\"new_public_key\""];
-  - string              new_diversifier = 5 [(gogoproto.moretags) = "yaml:\"new_diversifier\""];
-  + uint64              timestamp       = 1;
-  + bytes               signature       = 2;
-  + google.protobuf.Any new_public_key  = 3 [(gogoproto.moretags) = "yaml:\"new_public_key\""];
-  + string              new_diversifier = 4 [(gogoproto.moretags) = "yaml:\"new_diversifier\""];
+- uint64              sequence        = 1;
+- uint64              timestamp       = 2;
+- bytes               signature       = 3;
+- google.protobuf.Any new_public_key  = 4 [(gogoproto.moretags) = "yaml:\"new_public_key\""];
+- string              new_diversifier = 5 [(gogoproto.moretags) = "yaml:\"new_diversifier\""];
++ uint64              timestamp       = 1;
++ bytes               signature       = 2;
++ google.protobuf.Any new_public_key  = 3 [(gogoproto.moretags) = "yaml:\"new_public_key\""];
++ string              new_diversifier = 4 [(gogoproto.moretags) = "yaml:\"new_diversifier\""];
 }
 ```
 
@@ -219,13 +219,13 @@ Similarly, the `Misbehaviour` protobuf message has been updated to remove the `c
 message Misbehaviour {
   option (gogoproto.goproto_getters) = false;
   
-  - string           client_id         = 1 [(gogoproto.moretags) = "yaml:\"client_id\""];
-  - uint64           sequence          = 2;
-  - SignatureAndData signature_one     = 3 [(gogoproto.moretags) = "yaml:\"signature_one\""];
-  - SignatureAndData signature_two     = 4 [(gogoproto.moretags) = "yaml:\"signature_two\""];
-  + uint64           sequence          = 1;
-  + SignatureAndData signature_one     = 2 [(gogoproto.moretags) = "yaml:\"signature_one\""];
-  + SignatureAndData signature_two     = 3 [(gogoproto.moretags) = "yaml:\"signature_two\""];
+- string           client_id         = 1 [(gogoproto.moretags) = "yaml:\"client_id\""];
+- uint64           sequence          = 2;
+- SignatureAndData signature_one     = 3 [(gogoproto.moretags) = "yaml:\"signature_one\""];
+- SignatureAndData signature_two     = 4 [(gogoproto.moretags) = "yaml:\"signature_two\""];
++ uint64           sequence          = 1;
++ SignatureAndData signature_one     = 2 [(gogoproto.moretags) = "yaml:\"signature_one\""];
++ SignatureAndData signature_two     = 3 [(gogoproto.moretags) = "yaml:\"signature_two\""];
 }
 ```
 
@@ -241,8 +241,8 @@ message SignBytes {
   uint64 sequence    = 1;
   uint64 timestamp   = 2;
   string diversifier = 3;
-  - DataType data_type = 4 [(gogoproto.moretags) = "yaml:\"data_type\""];
-  + bytes path         = 4;
+- DataType data_type = 4 [(gogoproto.moretags) = "yaml:\"data_type\""];
++ bytes path         = 4;
   bytes data         = 5;
 }
 ```
@@ -253,11 +253,11 @@ The `DataType` enum and all associated data types have been removed, greatly red
 message SignatureAndData {
   option (gogoproto.goproto_getters) = false;
  
-  bytes    signature                 = 1;
-  - DataType data_type                 = 2 [(gogoproto.moretags) = "yaml:\"data_type\""];
-  + bytes path                         = 2;
-  bytes    data                      = 3;
-  uint64   timestamp                 = 4;
+  bytes    signature = 1;
+- DataType data_type = 2 [(gogoproto.moretags) = "yaml:\"data_type\""];
++ bytes path         = 2;
+  bytes    data      = 3;
+  uint64   timestamp = 4;
 }
 ```
 
