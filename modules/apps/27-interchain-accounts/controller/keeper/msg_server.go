@@ -43,7 +43,7 @@ func (s msgServer) RegisterInterchainAccount(goCtx context.Context, msg *types.M
 		return nil, err
 	}
 
-	s.Logger(ctx).Info("successfully registered interchain account", "channel", channelID)
+	s.Logger(ctx).Info("successfully registered interchain account", "channel-id", channelID)
 
 	return &types.MsgRegisterInterchainAccountResponse{
 		ChannelId: channelID,
