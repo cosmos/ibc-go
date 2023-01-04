@@ -29,9 +29,8 @@ on:
         default: main
         options:
           - main
-          - v6.0.0
-          - v5.1.0
-          - v5.0.1
+          - v6.1.0
+          - v5.2.0
           - v4.2.0
           - v4.1.1
           - v3.4.0
@@ -45,9 +44,8 @@ on:
         type: choice
         options:
           - main
-          - v6.0.0
-          - v5.1.0
-          - v5.0.1
+          - v6.1.0
+          - v5.2.0
           - v4.2.0
           - v4.1.1
           - v3.4.0

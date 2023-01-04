@@ -149,8 +149,12 @@ module.exports = {
         key: "v5.1.0",
       },
       {
-        label: "v6.0.0",
-        key: "v6.0.0",
+        label: "v5.2.0",
+        key: "v5.2.0",
+      },
+      {
+        label: "v6.1.0",
+        key: "v6.1.0",
       },
     ],
     topbar: {
