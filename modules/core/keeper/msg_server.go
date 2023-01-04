@@ -464,7 +464,6 @@ func (k Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPacke
 	// acknowledgement is nil.
 	if ack != nil {
 		if err := k.ChannelKeeper.WriteAcknowledgement(ctx, cap, msg.Packet, ack); err != nil {
-			ctx.Logger().Error("write acknowledgement failed", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel, "error", err.Error())
 			return nil, err
 		}
 	}
@@ -598,7 +597,7 @@ func (k Keeper) TimeoutOnClose(goCtx context.Context, msg *channeltypes.MsgTimeo
 		// no-ops do not need event emission as they will be ignored
 		return &channeltypes.MsgTimeoutOnCloseResponse{Result: channeltypes.NOOP}, nil
 	default:
-		ctx.Logger().Error("timeout on close packet verification failed", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel, "error", err.Error())
+		ctx.Logger().Error("timeout on close failed", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel, "error", sdkerrors.Wrap(err, "timeout on close packet verification failed"))
 		return nil, sdkerrors.Wrap(err, "timeout on close packet verification failed")
 	}
 
@@ -614,7 +613,6 @@ func (k Keeper) TimeoutOnClose(goCtx context.Context, msg *channeltypes.MsgTimeo
 
 	// Delete packet commitment
 	if err = k.ChannelKeeper.TimeoutExecuted(ctx, cap, msg.Packet); err != nil {
-		ctx.Logger().Error("timeout on close failed", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel, "error", err.Error())
 		return nil, err
 	}
 
@@ -643,18 +641,21 @@ func (k Keeper) Acknowledgement(goCtx context.Context, msg *channeltypes.MsgAckn
 
 	relayer, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
+		ctx.Logger().Error("acknowledgement failed", "error", sdkerrors.Wrap(err, "Invalid address for msg Signer"))
 		return nil, sdkerrors.Wrap(err, "Invalid address for msg Signer")
 	}
 
 	// Lookup module by channel capability
 	module, cap, err := k.ChannelKeeper.LookupModuleByChannel(ctx, msg.Packet.SourcePort, msg.Packet.SourceChannel)
 	if err != nil {
+		ctx.Logger().Error("acknowledgement failed", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel, "error", sdkerrors.Wrap(err, "could not retrieve module from port-id"))
 		return nil, sdkerrors.Wrap(err, "could not retrieve module from port-id")
 	}
 
 	// Retrieve callbacks from router
 	cbs, ok := k.Router.GetRoute(module)
 	if !ok {
+		ctx.Logger().Error("acknowledgement failed", "port-id", msg.Packet.SourcePort, "error", sdkerrors.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module))
 		return nil, sdkerrors.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
 	}
 
@@ -672,12 +673,14 @@ func (k Keeper) Acknowledgement(goCtx context.Context, msg *channeltypes.MsgAckn
 		// no-ops do not need event emission as they will be ignored
 		return &channeltypes.MsgAcknowledgementResponse{Result: channeltypes.NOOP}, nil
 	default:
+		ctx.Logger().Error("acknowledgement failed", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel, "error", sdkerrors.Wrap(err, "acknowledge packet verification failed"))
 		return nil, sdkerrors.Wrap(err, "acknowledge packet verification failed")
 	}
 
 	// Perform application logic callback
 	err = cbs.OnAcknowledgementPacket(ctx, msg.Packet, msg.Acknowledgement, relayer)
 	if err != nil {
+		ctx.Logger().Error("acknowledgement failed", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel, "error", sdkerrors.Wrap(err, "acknowledge packet callback failed"))
 		return nil, sdkerrors.Wrap(err, "acknowledge packet callback failed")
 	}
 
@@ -693,6 +696,8 @@ func (k Keeper) Acknowledgement(goCtx context.Context, msg *channeltypes.MsgAckn
 			},
 		)
 	}()
+
+	ctx.Logger().Info("acknowledgement succeeded", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel, "result", channeltypes.SUCCESS.String())
 
 	return &channeltypes.MsgAcknowledgementResponse{Result: channeltypes.SUCCESS}, nil
 }
