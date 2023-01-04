@@ -200,7 +200,7 @@ func (k Keeper) ChannelOpenInit(goCtx context.Context, msg *channeltypes.MsgChan
 	// Write channel into state
 	k.ChannelKeeper.WriteOpenInitChannel(ctx, msg.PortId, channelID, msg.Channel.Ordering, msg.Channel.ConnectionHops, msg.Channel.Counterparty, version)
 
-	ctx.Logger().Info("channel open init callback succeeded",  "channel-id", channelID, "version", version)
+	ctx.Logger().Info("channel open init callback succeeded", "channel-id", channelID, "version", version)
 
 	return &channeltypes.MsgChannelOpenInitResponse{
 		ChannelId: channelID,
@@ -247,7 +247,7 @@ func (k Keeper) ChannelOpenTry(goCtx context.Context, msg *channeltypes.MsgChann
 	// Write channel into state
 	k.ChannelKeeper.WriteOpenTryChannel(ctx, msg.PortId, channelID, msg.Channel.Ordering, msg.Channel.ConnectionHops, msg.Channel.Counterparty, version)
 
-	ctx.Logger().Info("channel open try callback succeeded",  "version", version)
+	ctx.Logger().Info("channel open try callback succeeded", "channel-id", channelID, "port-id", msg.PortId, "version", version)
 
 	return &channeltypes.MsgChannelOpenTryResponse{
 		Version: version,
@@ -291,7 +291,7 @@ func (k Keeper) ChannelOpenAck(goCtx context.Context, msg *channeltypes.MsgChann
 	// Write channel into state
 	k.ChannelKeeper.WriteOpenAckChannel(ctx, msg.PortId, msg.ChannelId, msg.CounterpartyVersion, msg.CounterpartyChannelId)
 
-	ctx.Logger().Info("channel open ack callback succeeded")
+	ctx.Logger().Info("channel open ack callback succeeded", "channel-id", msg.ChannelId, "port-id", msg.PortId)
 
 	return &channeltypes.MsgChannelOpenAckResponse{}, nil
 }
@@ -331,7 +331,7 @@ func (k Keeper) ChannelOpenConfirm(goCtx context.Context, msg *channeltypes.MsgC
 	// Write channel into state
 	k.ChannelKeeper.WriteOpenConfirmChannel(ctx, msg.PortId, msg.ChannelId)
 
-	ctx.Logger().Info("channel open confirm callback succeeded")
+	ctx.Logger().Info("channel open confirm callback succeeded", "channel-id", msg.ChannelId, "port-id", msg.PortId)
 
 	return &channeltypes.MsgChannelOpenConfirmResponse{}, nil
 }
@@ -364,7 +364,7 @@ func (k Keeper) ChannelCloseInit(goCtx context.Context, msg *channeltypes.MsgCha
 		return nil, sdkerrors.Wrap(err, "channel handshake close init failed")
 	}
 
-	ctx.Logger().Info("channel close init callback succeeded")
+	ctx.Logger().Info("channel close init callback succeeded", "channel-id", msg.ChannelId, "port-id", msg.PortId)
 
 	return &channeltypes.MsgChannelCloseInitResponse{}, nil
 }
@@ -398,7 +398,7 @@ func (k Keeper) ChannelCloseConfirm(goCtx context.Context, msg *channeltypes.Msg
 		return nil, sdkerrors.Wrap(err, "channel handshake close confirm failed")
 	}
 
-	ctx.Logger().Info("channel close confirm callback succeeded")
+	ctx.Logger().Info("channel close confirm callback succeeded", "channel-id", msg.ChannelId, "port-id", msg.PortId)
 
 	return &channeltypes.MsgChannelCloseConfirmResponse{}, nil
 }
