@@ -218,6 +218,7 @@ func (k Keeper) ChannelOpenTry(goCtx context.Context, msg *channeltypes.MsgChann
 	// Retrieve application callbacks from router
 	cbs, ok := k.Router.GetRoute(module)
 	if !ok {
+		ctx.Logger().Error("channel open try callback failed", "port-id", msg.PortId, "error", sdkerrors.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module))
 		return nil, sdkerrors.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
 	}
 
@@ -226,7 +227,7 @@ func (k Keeper) ChannelOpenTry(goCtx context.Context, msg *channeltypes.MsgChann
 		portCap, msg.Channel.Counterparty, msg.CounterpartyVersion, msg.ProofInit, msg.ProofHeight,
 	)
 	if err != nil {
-		ctx.Logger().Error("channel open try callback failed",  "error", err.Error())
+		ctx.Logger().Error("channel open try callback failed",  "error", sdkerrors.Wrap(err, "channel handshake open try failed"))
 		return nil, sdkerrors.Wrap(err, "channel handshake open try failed")
 	}
 
@@ -256,12 +257,14 @@ func (k Keeper) ChannelOpenAck(goCtx context.Context, msg *channeltypes.MsgChann
 	// Lookup module by channel capability
 	module, cap, err := k.ChannelKeeper.LookupModuleByChannel(ctx, msg.PortId, msg.ChannelId)
 	if err != nil {
+		ctx.Logger().Error("channel open ack callback failed", "port-id", msg.PortId, "error", sdkerrors.Wrap(err, "could not retrieve module from port-id"))
 		return nil, sdkerrors.Wrap(err, "could not retrieve module from port-id")
 	}
 
 	// Retrieve application callbacks from router
 	cbs, ok := k.Router.GetRoute(module)
 	if !ok {
+		ctx.Logger().Error("channel open ack callback failed", "port-id", msg.PortId, "error", sdkerrors.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module))
 		return nil, sdkerrors.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
 	}
 
@@ -269,16 +272,20 @@ func (k Keeper) ChannelOpenAck(goCtx context.Context, msg *channeltypes.MsgChann
 	if err = k.ChannelKeeper.ChanOpenAck(
 		ctx, msg.PortId, msg.ChannelId, cap, msg.CounterpartyVersion, msg.CounterpartyChannelId, msg.ProofTry, msg.ProofHeight,
 	); err != nil {
+		ctx.Logger().Error("channel open ack callback failed",  "error", sdkerrors.Wrap(err, "channel handshake open ack failed"))
 		return nil, sdkerrors.Wrap(err, "channel handshake open ack failed")
 	}
 
 	// Perform application logic callback
 	if err = cbs.OnChanOpenAck(ctx, msg.PortId, msg.ChannelId, msg.CounterpartyChannelId, msg.CounterpartyVersion); err != nil {
+		ctx.Logger().Error("channel open ack callback failed", "port-id", msg.PortId, "channel-id", msg.ChannelId, "error", sdkerrors.Wrapf(err, "channel open ack callback failed for port ID: %s, channel ID: %s", msg.PortId, msg.ChannelId))
 		return nil, sdkerrors.Wrapf(err, "channel open ack callback failed for port ID: %s, channel ID: %s", msg.PortId, msg.ChannelId)
 	}
 
 	// Write channel into state
 	k.ChannelKeeper.WriteOpenAckChannel(ctx, msg.PortId, msg.ChannelId, msg.CounterpartyVersion, msg.CounterpartyChannelId)
+
+	ctx.Logger().Info("channel open ack callback succeeded", "port-id", msg.PortId, "channel-id", msg.ChannelId)
 
 	return &channeltypes.MsgChannelOpenAckResponse{}, nil
 }
