@@ -211,6 +211,7 @@ func (k Keeper) ChannelOpenTry(goCtx context.Context, msg *channeltypes.MsgChann
 	// Lookup module by port capability
 	module, portCap, err := k.PortKeeper.LookupModuleByPort(ctx, msg.PortId)
 	if err != nil {
+		ctx.Logger().Error("channel open try callback failed", "port-id", msg.PortId, "error", sdkerrors.Wrap(err, "could not retrieve module from port-id"))
 		return nil, sdkerrors.Wrap(err, "could not retrieve module from port-id")
 	}
 
@@ -225,17 +226,21 @@ func (k Keeper) ChannelOpenTry(goCtx context.Context, msg *channeltypes.MsgChann
 		portCap, msg.Channel.Counterparty, msg.CounterpartyVersion, msg.ProofInit, msg.ProofHeight,
 	)
 	if err != nil {
+		ctx.Logger().Error("channel open try callback failed",  "error", err.Error())
 		return nil, sdkerrors.Wrap(err, "channel handshake open try failed")
 	}
 
 	// Perform application logic callback
 	version, err := cbs.OnChanOpenTry(ctx, msg.Channel.Ordering, msg.Channel.ConnectionHops, msg.PortId, channelID, cap, msg.Channel.Counterparty, msg.CounterpartyVersion)
 	if err != nil {
+		ctx.Logger().Error("channel open try callback failed", "port-id", msg.PortId, "channel-id", channelID, "error", err.Error())
 		return nil, sdkerrors.Wrapf(err, "channel open try callback failed for port ID: %s, channel ID: %s", msg.PortId, channelID)
 	}
 
 	// Write channel into state
 	k.ChannelKeeper.WriteOpenTryChannel(ctx, msg.PortId, channelID, msg.Channel.Ordering, msg.Channel.ConnectionHops, msg.Channel.Counterparty, version)
+
+	ctx.Logger().Info("channel open try callback succeeded", "port-id", msg.PortId, "channel-id", channelID, "order", msg.Channel.Ordering.String(), "version", version)
 
 	return &channeltypes.MsgChannelOpenTryResponse{
 		Version: version,

@@ -72,8 +72,11 @@ func (k Keeper) registerInterchainAccount(ctx sdk.Context, connectionID, portID,
 		return "", err
 	}
 
+	events := res.GetEvents()
+	k.Logger(ctx).Debug("emitting interchain account registration events", "events", events)
+
 	// NOTE: The sdk msg handler creates a new EventManager, so events must be correctly propagated back to the current context
-	ctx.EventManager().EmitEvents(res.GetEvents())
+	ctx.EventManager().EmitEvents(events)
 
 	firstMsgResponse := res.MsgResponses[0]
 	channelOpenInitResponse, ok := firstMsgResponse.GetCachedValue().(*channeltypes.MsgChannelOpenInitResponse)
