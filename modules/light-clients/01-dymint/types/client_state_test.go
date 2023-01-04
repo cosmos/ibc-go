@@ -91,17 +91,17 @@ func (suite *DymintTestSuite) TestValidate() {
 	}{
 		{
 			name:        "valid client",
-			clientState: types.NewClientState(chainID, trustingPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath, false, false),
+			clientState: types.NewClientState(chainID, trustingPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath),
 			expPass:     true,
 		},
 		{
 			name:        "valid client with nil upgrade path",
-			clientState: types.NewClientState(chainID, trustingPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), nil, false, false),
+			clientState: types.NewClientState(chainID, trustingPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), nil),
 			expPass:     true,
 		},
 		{
 			name:        "invalid chainID",
-			clientState: types.NewClientState("  ", trustingPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath, false, false),
+			clientState: types.NewClientState("  ", trustingPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath),
 			expPass:     false,
 		},
 		{
@@ -109,7 +109,7 @@ func (suite *DymintTestSuite) TestValidate() {
 			// Do not only fix the test, fix the code!
 			// https://github.com/cosmos/ibc-go/issues/177
 			name:        "valid chainID - chainID validation failed for chainID of length 50! ",
-			clientState: types.NewClientState(fiftyCharChainID, trustingPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath, false, false),
+			clientState: types.NewClientState(fiftyCharChainID, trustingPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath),
 			expPass:     true,
 		},
 		{
@@ -117,37 +117,37 @@ func (suite *DymintTestSuite) TestValidate() {
 			// Do not only fix the test, fix the code!
 			// https://github.com/cosmos/ibc-go/issues/177
 			name:        "invalid chainID - chainID validation did not fail for chainID of length 51! ",
-			clientState: types.NewClientState(fiftyOneCharChainID, trustingPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath, false, false),
+			clientState: types.NewClientState(fiftyOneCharChainID, trustingPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath),
 			expPass:     false,
 		},
 		{
 			name:        "invalid trusting period",
-			clientState: types.NewClientState(chainID, 0, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath, false, false),
+			clientState: types.NewClientState(chainID, 0, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath),
 			expPass:     false,
 		},
 		{
 			name:        "invalid max clock drift",
-			clientState: types.NewClientState(chainID, trustingPeriod, 0, height, commitmenttypes.GetSDKSpecs(), upgradePath, false, false),
+			clientState: types.NewClientState(chainID, trustingPeriod, 0, height, commitmenttypes.GetSDKSpecs(), upgradePath),
 			expPass:     false,
 		},
 		{
 			name:        "invalid revision number",
-			clientState: types.NewClientState(chainID, trustingPeriod, maxClockDrift, clienttypes.NewHeight(1, 1), commitmenttypes.GetSDKSpecs(), upgradePath, false, false),
+			clientState: types.NewClientState(chainID, trustingPeriod, maxClockDrift, clienttypes.NewHeight(1, 1), commitmenttypes.GetSDKSpecs(), upgradePath),
 			expPass:     false,
 		},
 		{
 			name:        "invalid revision height",
-			clientState: types.NewClientState(chainID, trustingPeriod, maxClockDrift, clienttypes.ZeroHeight(), commitmenttypes.GetSDKSpecs(), upgradePath, false, false),
+			clientState: types.NewClientState(chainID, trustingPeriod, maxClockDrift, clienttypes.ZeroHeight(), commitmenttypes.GetSDKSpecs(), upgradePath),
 			expPass:     false,
 		},
 		{
 			name:        "proof specs is nil",
-			clientState: types.NewClientState(chainID, ubdPeriod, maxClockDrift, height, nil, upgradePath, false, false),
+			clientState: types.NewClientState(chainID, ubdPeriod, maxClockDrift, height, nil, upgradePath),
 			expPass:     false,
 		},
 		{
 			name:        "proof specs contains nil",
-			clientState: types.NewClientState(chainID, ubdPeriod, maxClockDrift, height, []*ics23.ProofSpec{ics23.TendermintSpec, nil}, upgradePath, false, false),
+			clientState: types.NewClientState(chainID, ubdPeriod, maxClockDrift, height, []*ics23.ProofSpec{ics23.TendermintSpec, nil}, upgradePath),
 			expPass:     false,
 		},
 	}
@@ -231,7 +231,7 @@ func (suite *DymintTestSuite) TestVerifyClientConsensusState() {
 		// },
 		{
 			name:        "ApplyPrefix failed",
-			clientState: types.NewClientState(chainID, trustingPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath, false, false),
+			clientState: types.NewClientState(chainID, trustingPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath),
 			consensusState: &types.ConsensusState{
 				Root: commitmenttypes.NewMerkleRoot(suite.header.Header.GetAppHash()),
 			},
@@ -240,7 +240,7 @@ func (suite *DymintTestSuite) TestVerifyClientConsensusState() {
 		},
 		{
 			name:        "latest client height < height",
-			clientState: types.NewClientState(chainID, trustingPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath, false, false),
+			clientState: types.NewClientState(chainID, trustingPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath),
 			consensusState: &types.ConsensusState{
 				Root: commitmenttypes.NewMerkleRoot(suite.header.Header.GetAppHash()),
 			},
@@ -249,7 +249,7 @@ func (suite *DymintTestSuite) TestVerifyClientConsensusState() {
 		},
 		{
 			name:        "proof verification failed",
-			clientState: types.NewClientState(chainID, trustingPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath, false, false),
+			clientState: types.NewClientState(chainID, trustingPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath),
 			consensusState: &types.ConsensusState{
 				Root:               commitmenttypes.NewMerkleRoot(suite.header.Header.GetAppHash()),
 				NextValidatorsHash: suite.valsHash,

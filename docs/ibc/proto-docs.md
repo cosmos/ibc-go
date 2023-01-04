@@ -37,6 +37,8 @@
     - [QueryDenomTraceResponse](#ibc.applications.transfer.v1.QueryDenomTraceResponse)
     - [QueryDenomTracesRequest](#ibc.applications.transfer.v1.QueryDenomTracesRequest)
     - [QueryDenomTracesResponse](#ibc.applications.transfer.v1.QueryDenomTracesResponse)
+    - [QueryEscrowAddressRequest](#ibc.applications.transfer.v1.QueryEscrowAddressRequest)
+    - [QueryEscrowAddressResponse](#ibc.applications.transfer.v1.QueryEscrowAddressResponse)
     - [QueryParamsRequest](#ibc.applications.transfer.v1.QueryParamsRequest)
     - [QueryParamsResponse](#ibc.applications.transfer.v1.QueryParamsResponse)
   
@@ -145,6 +147,8 @@
     - [QueryClientStatesResponse](#ibc.core.client.v1.QueryClientStatesResponse)
     - [QueryClientStatusRequest](#ibc.core.client.v1.QueryClientStatusRequest)
     - [QueryClientStatusResponse](#ibc.core.client.v1.QueryClientStatusResponse)
+    - [QueryConsensusStateHeightsRequest](#ibc.core.client.v1.QueryConsensusStateHeightsRequest)
+    - [QueryConsensusStateHeightsResponse](#ibc.core.client.v1.QueryConsensusStateHeightsResponse)
     - [QueryConsensusStateRequest](#ibc.core.client.v1.QueryConsensusStateRequest)
     - [QueryConsensusStateResponse](#ibc.core.client.v1.QueryConsensusStateResponse)
     - [QueryConsensusStatesRequest](#ibc.core.client.v1.QueryConsensusStatesRequest)
@@ -216,6 +220,13 @@
   
 - [ibc/core/types/v1/genesis.proto](#ibc/core/types/v1/genesis.proto)
     - [GenesisState](#ibc.core.types.v1.GenesisState)
+  
+- [ibc/lightclients/dymint/dymint.proto](#ibc/lightclients/dymint/dymint.proto)
+    - [ClientState](#ibc.lightclients.dymint.ClientState)
+    - [ConsensusState](#ibc.lightclients.dymint.ConsensusState)
+    - [Fraction](#ibc.lightclients.dymint.Fraction)
+    - [Header](#ibc.lightclients.dymint.Header)
+    - [Misbehaviour](#ibc.lightclients.dymint.Misbehaviour)
   
 - [ibc/lightclients/localhost/v1/localhost.proto](#ibc/lightclients/localhost/v1/localhost.proto)
     - [ClientState](#ibc.lightclients.localhost.v1.ClientState)
@@ -692,6 +703,37 @@ method.
 
 
 
+<a name="ibc.applications.transfer.v1.QueryEscrowAddressRequest"></a>
+
+### QueryEscrowAddressRequest
+QueryEscrowAddressRequest is the request type for the EscrowAddress RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `port_id` | [string](#string) |  | unique port identifier |
+| `channel_id` | [string](#string) |  | unique channel identifier |
+
+
+
+
+
+
+<a name="ibc.applications.transfer.v1.QueryEscrowAddressResponse"></a>
+
+### QueryEscrowAddressResponse
+QueryEscrowAddressResponse is the response type of the EscrowAddress RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `escrow_address` | [string](#string) |  | the escrow account address |
+
+
+
+
+
+
 <a name="ibc.applications.transfer.v1.QueryParamsRequest"></a>
 
 ### QueryParamsRequest
@@ -734,6 +776,7 @@ Query provides defines the gRPC querier service.
 | `DenomTraces` | [QueryDenomTracesRequest](#ibc.applications.transfer.v1.QueryDenomTracesRequest) | [QueryDenomTracesResponse](#ibc.applications.transfer.v1.QueryDenomTracesResponse) | DenomTraces queries all denomination traces. | GET|/ibc/apps/transfer/v1/denom_traces|
 | `Params` | [QueryParamsRequest](#ibc.applications.transfer.v1.QueryParamsRequest) | [QueryParamsResponse](#ibc.applications.transfer.v1.QueryParamsResponse) | Params queries all parameters of the ibc-transfer module. | GET|/ibc/apps/transfer/v1/params|
 | `DenomHash` | [QueryDenomHashRequest](#ibc.applications.transfer.v1.QueryDenomHashRequest) | [QueryDenomHashResponse](#ibc.applications.transfer.v1.QueryDenomHashResponse) | DenomHash queries a denomination hash information. | GET|/ibc/apps/transfer/v1/denom_hashes/{trace}|
+| `EscrowAddress` | [QueryEscrowAddressRequest](#ibc.applications.transfer.v1.QueryEscrowAddressRequest) | [QueryEscrowAddressResponse](#ibc.applications.transfer.v1.QueryEscrowAddressResponse) | EscrowAddress returns the escrow address for a particular port and channel id. | GET|/ibc/apps/transfer/v1/channels/{channel_id}/ports/{port_id}/escrow_address|
 
  <!-- end services -->
 
@@ -910,6 +953,7 @@ https://github.com/cosmos/ibc/tree/master/spec/app/ics-020-fungible-token-transf
 | `receiver` | [string](#string) |  | the recipient address on the destination chain |
 | `timeout_height` | [ibc.core.client.v1.Height](#ibc.core.client.v1.Height) |  | Timeout height relative to the current block height. The timeout is disabled when set to 0. |
 | `timeout_timestamp` | [uint64](#uint64) |  | Timeout timestamp in absolute nanoseconds since unix epoch. The timeout is disabled when set to 0. |
+| `memo` | [string](#string) |  | optional memo |
 
 
 
@@ -920,6 +964,11 @@ https://github.com/cosmos/ibc/tree/master/spec/app/ics-020-fungible-token-transf
 
 ### MsgTransferResponse
 MsgTransferResponse defines the Msg/Transfer response type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `sequence` | [uint64](#uint64) |  | sequence number of the transfer packet sent |
 
 
 
@@ -966,6 +1015,7 @@ https://github.com/cosmos/ibc/tree/master/spec/app/ics-020-fungible-token-transf
 | `amount` | [string](#string) |  | the token amount to be transferred |
 | `sender` | [string](#string) |  | the sender address |
 | `receiver` | [string](#string) |  | the recipient address on the destination chain |
+| `memo` | [string](#string) |  | optional memo |
 
 
 
@@ -1898,6 +1948,7 @@ MsgChannelOpenInitResponse defines the Msg/ChannelOpenInit response type.
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `channel_id` | [string](#string) |  |  |
+| `version` | [string](#string) |  |  |
 
 
 
@@ -1931,6 +1982,11 @@ value will be ignored by core IBC.
 
 ### MsgChannelOpenTryResponse
 MsgChannelOpenTryResponse defines the Msg/ChannelOpenTry response type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `version` | [string](#string) |  |  |
 
 
 
@@ -2284,6 +2340,40 @@ method. It returns the current status of the IBC client.
 
 
 
+<a name="ibc.core.client.v1.QueryConsensusStateHeightsRequest"></a>
+
+### QueryConsensusStateHeightsRequest
+QueryConsensusStateHeightsRequest is the request type for Query/ConsensusStateHeights
+RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `client_id` | [string](#string) |  | client identifier |
+| `pagination` | [cosmos.base.query.v1beta1.PageRequest](#cosmos.base.query.v1beta1.PageRequest) |  | pagination request |
+
+
+
+
+
+
+<a name="ibc.core.client.v1.QueryConsensusStateHeightsResponse"></a>
+
+### QueryConsensusStateHeightsResponse
+QueryConsensusStateHeightsResponse is the response type for the
+Query/ConsensusStateHeights RPC method
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `consensus_state_heights` | [Height](#ibc.core.client.v1.Height) | repeated | consensus state heights |
+| `pagination` | [cosmos.base.query.v1beta1.PageResponse](#cosmos.base.query.v1beta1.PageResponse) |  | pagination response |
+
+
+
+
+
+
 <a name="ibc.core.client.v1.QueryConsensusStateRequest"></a>
 
 ### QueryConsensusStateRequest
@@ -2427,6 +2517,7 @@ Query provides defines the gRPC querier service
 | `ClientStates` | [QueryClientStatesRequest](#ibc.core.client.v1.QueryClientStatesRequest) | [QueryClientStatesResponse](#ibc.core.client.v1.QueryClientStatesResponse) | ClientStates queries all the IBC light clients of a chain. | GET|/ibc/core/client/v1/client_states|
 | `ConsensusState` | [QueryConsensusStateRequest](#ibc.core.client.v1.QueryConsensusStateRequest) | [QueryConsensusStateResponse](#ibc.core.client.v1.QueryConsensusStateResponse) | ConsensusState queries a consensus state associated with a client state at a given height. | GET|/ibc/core/client/v1/consensus_states/{client_id}/revision/{revision_number}/height/{revision_height}|
 | `ConsensusStates` | [QueryConsensusStatesRequest](#ibc.core.client.v1.QueryConsensusStatesRequest) | [QueryConsensusStatesResponse](#ibc.core.client.v1.QueryConsensusStatesResponse) | ConsensusStates queries all the consensus state associated with a given client. | GET|/ibc/core/client/v1/consensus_states/{client_id}|
+| `ConsensusStateHeights` | [QueryConsensusStateHeightsRequest](#ibc.core.client.v1.QueryConsensusStateHeightsRequest) | [QueryConsensusStateHeightsResponse](#ibc.core.client.v1.QueryConsensusStateHeightsResponse) | ConsensusStateHeights queries the height of every consensus states associated with a given client. | GET|/ibc/core/client/v1/consensus_states/{client_id}/heights|
 | `ClientStatus` | [QueryClientStatusRequest](#ibc.core.client.v1.QueryClientStatusRequest) | [QueryClientStatusResponse](#ibc.core.client.v1.QueryClientStatusResponse) | Status queries the status of an IBC client. | GET|/ibc/core/client/v1/client_status/{client_id}|
 | `ClientParams` | [QueryClientParamsRequest](#ibc.core.client.v1.QueryClientParamsRequest) | [QueryClientParamsResponse](#ibc.core.client.v1.QueryClientParamsResponse) | ClientParams queries all parameters of the ibc client. | GET|/ibc/client/v1/params|
 | `UpgradedClientState` | [QueryUpgradedClientStateRequest](#ibc.core.client.v1.QueryUpgradedClientStateRequest) | [QueryUpgradedClientStateResponse](#ibc.core.client.v1.QueryUpgradedClientStateResponse) | UpgradedClientState queries an Upgraded IBC light client. | GET|/ibc/core/client/v1/upgraded_client_states|
@@ -3252,6 +3343,127 @@ GenesisState defines the ibc module's genesis state.
 
 
 
+<a name="ibc/lightclients/dymint/dymint.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## ibc/lightclients/dymint/dymint.proto
+
+
+
+<a name="ibc.lightclients.dymint.ClientState"></a>
+
+### ClientState
+ClientState from Dymint tracks the current validator set, latest height,
+and a possible frozen height.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `chain_id` | [string](#string) |  |  |
+| `trust_level` | [Fraction](#ibc.lightclients.dymint.Fraction) |  |  |
+| `trusting_period` | [google.protobuf.Duration](#google.protobuf.Duration) |  | duration of the period since the LastestTimestamp during which the submitted headers are valid for upgrade |
+| `unbonding_period` | [google.protobuf.Duration](#google.protobuf.Duration) |  | duration of the staking unbonding period |
+| `max_clock_drift` | [google.protobuf.Duration](#google.protobuf.Duration) |  | defines how much new (untrusted) header's Time can drift into the future. |
+| `frozen_height` | [ibc.core.client.v1.Height](#ibc.core.client.v1.Height) |  | Block height when the client was frozen due to a misbehaviour |
+| `latest_height` | [ibc.core.client.v1.Height](#ibc.core.client.v1.Height) |  | Latest height the client was updated to |
+| `proof_specs` | [ics23.ProofSpec](#ics23.ProofSpec) | repeated | Proof specifications used in verifying counterparty state |
+| `upgrade_path` | [string](#string) | repeated | Path at which next upgraded client will be committed. Each element corresponds to the key for a single CommitmentProof in the chained proof. NOTE: ClientState must stored under `{upgradePath}/{upgradeHeight}/clientState` ConsensusState must be stored under `{upgradepath}/{upgradeHeight}/consensusState` For SDK chains using the default upgrade module, upgrade_path should be []string{"upgrade", "upgradedIBCState"}` |
+
+
+
+
+
+
+<a name="ibc.lightclients.dymint.ConsensusState"></a>
+
+### ConsensusState
+ConsensusState defines the consensus state from Dymint.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `timestamp` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  | timestamp that corresponds to the block height in which the ConsensusState was stored. |
+| `root` | [ibc.core.commitment.v1.MerkleRoot](#ibc.core.commitment.v1.MerkleRoot) |  | commitment root (i.e app hash) |
+| `next_validators_hash` | [bytes](#bytes) |  |  |
+
+
+
+
+
+
+<a name="ibc.lightclients.dymint.Fraction"></a>
+
+### Fraction
+Fraction defines the protobuf message type for tmmath.Fraction that only
+supports positive values.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `numerator` | [uint64](#uint64) |  |  |
+| `denominator` | [uint64](#uint64) |  |  |
+
+
+
+
+
+
+<a name="ibc.lightclients.dymint.Header"></a>
+
+### Header
+Header defines the Dymint client consensus Header.
+It encapsulates all the information necessary to update from a trusted
+Dymint ConsensusState. The inclusion of TrustedHeight and
+TrustedValidators allows this update to process correctly, so long as the
+ConsensusState for the TrustedHeight exists, this removes race conditions
+among relayers The SignedHeader and ValidatorSet are the new untrusted update
+fields for the client. The TrustedHeight is the height of a stored
+ConsensusState on the client that will be used to verify the new untrusted
+header. The Trusted ConsensusState must be within the unbonding period of
+current time in order to correctly verify, and the TrustedValidators must
+hash to TrustedConsensusState.NextValidatorsHash since that is the last
+trusted validator set at the TrustedHeight.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `signed_header` | [tendermint.types.SignedHeader](#tendermint.types.SignedHeader) |  |  |
+| `validator_set` | [tendermint.types.ValidatorSet](#tendermint.types.ValidatorSet) |  |  |
+| `trusted_height` | [ibc.core.client.v1.Height](#ibc.core.client.v1.Height) |  |  |
+| `trusted_validators` | [tendermint.types.ValidatorSet](#tendermint.types.ValidatorSet) |  |  |
+
+
+
+
+
+
+<a name="ibc.lightclients.dymint.Misbehaviour"></a>
+
+### Misbehaviour
+Misbehaviour is a wrapper over two conflicting Headers
+that implements Misbehaviour interface expected by ICS-02
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `client_id` | [string](#string) |  |  |
+| `header_1` | [Header](#ibc.lightclients.dymint.Header) |  |  |
+| `header_2` | [Header](#ibc.lightclients.dymint.Header) |  |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
 <a name="ibc/lightclients/localhost/v1/localhost.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
@@ -3946,8 +4158,8 @@ and a possible frozen height.
 | `latest_height` | [ibc.core.client.v1.Height](#ibc.core.client.v1.Height) |  | Latest height the client was updated to |
 | `proof_specs` | [ics23.ProofSpec](#ics23.ProofSpec) | repeated | Proof specifications used in verifying counterparty state |
 | `upgrade_path` | [string](#string) | repeated | Path at which next upgraded client will be committed. Each element corresponds to the key for a single CommitmentProof in the chained proof. NOTE: ClientState must stored under `{upgradePath}/{upgradeHeight}/clientState` ConsensusState must be stored under `{upgradepath}/{upgradeHeight}/consensusState` For SDK chains using the default upgrade module, upgrade_path should be []string{"upgrade", "upgradedIBCState"}` |
-| `allow_update_after_expiry` | [bool](#bool) |  | This flag, when set to true, will allow governance to recover a client which has expired |
-| `allow_update_after_misbehaviour` | [bool](#bool) |  | This flag, when set to true, will allow governance to unfreeze a client whose chain has experienced a misbehaviour event |
+| `allow_update_after_expiry` | [bool](#bool) |  | **Deprecated.** allow_update_after_expiry is deprecated |
+| `allow_update_after_misbehaviour` | [bool](#bool) |  | **Deprecated.** allow_update_after_misbehaviour is deprecated |
 
 
 

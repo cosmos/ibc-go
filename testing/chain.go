@@ -160,14 +160,18 @@ func NewTestChainWithValSet(t *testing.T, coord *Coordinator, chainID string, va
 	return chain
 }
 
-// NewTestChain initializes a new test chain with a default of 4 validators
+// NewTestChain initializes a new test chain with a default of 4 validators or 1 for dymint
 // Use this function if the tests do not need custom control over the validator set
 func NewTestChain(t *testing.T, coord *Coordinator, chainID string, chainConsensusType string) *TestChain {
+	// currently dymint can have only one sequencer
+	validatorsPerChain := 4
+	if chainConsensusType == exported.Dymint {
+		validatorsPerChain = 1
+	}
 	// generate validators private/public key
 	var (
-		validatorsPerChain = 4
-		validators         []*tmtypes.Validator
-		signersByAddress   = make(map[string]tmtypes.PrivValidator, validatorsPerChain)
+		validators       []*tmtypes.Validator
+		signersByAddress = make(map[string]tmtypes.PrivValidator, validatorsPerChain)
 	)
 
 	for i := 0; i < validatorsPerChain; i++ {
@@ -431,6 +435,12 @@ func (chain *TestChain) GetChannelCapability(portID, channelID string) *capabili
 	require.True(chain.T, ok)
 
 	return cap
+}
+
+// GetTimeoutHeight is a convenience function which returns a IBC packet timeout height
+// to be used for testing. It returns the current IBC height + 100 blocks
+func (chain *TestChain) GetTimeoutHeight() clienttypes.Height {
+	return clienttypes.NewHeight(clienttypes.ParseChainID(chain.ChainID), uint64(chain.GetContext().BlockHeight())+100)
 }
 
 // ConstructUpdateClientHeader will construct a valid 01-dymint Header to update the

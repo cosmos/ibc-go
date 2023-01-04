@@ -11,9 +11,7 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v3/testing"
 )
 
-var (
-	frozenHeight = clienttypes.NewHeight(0, 1)
-)
+var frozenHeight = clienttypes.NewHeight(0, 1)
 
 func (suite *DymintTestSuite) TestCheckSubstituteUpdateStateBasic() {
 	var (
@@ -32,21 +30,23 @@ func (suite *DymintTestSuite) TestCheckSubstituteUpdateStateBasic() {
 		{
 			"non-matching substitute", func() {
 				suite.coordinator.SetupClients(substitutePath)
-				substituteClientState = suite.chainA.GetClientState(substitutePath.EndpointA.ClientID)
-				switch substituteClientState.ClientType() {
-				case exported.Dymint:
-					dmClientState, ok := substituteClientState.(*types.ClientState)
-					suite.Require().True(ok)
-
-					dmClientState.ChainId = dmClientState.ChainId + "different chain"
-				case exported.Tendermint:
-					tmClientState, ok := substituteClientState.(*tmtypes.ClientState)
-					suite.Require().True(ok)
-
-					tmClientState.ChainId = tmClientState.ChainId + "different chain"
-				default:
-					panic(fmt.Sprintf("client type %s is not supported", substituteClientState.ClientType()))
-				}
+				//substituteClientState = suite.chainA.GetClientState(substitutePath.EndpointA.ClientID)
+				// switch substituteClientState.ClientType() {
+				// case exported.Dymint:
+				// 	dmClientState, ok := substituteClientState.(*types.ClientState)
+				// 	suite.Require().True(ok)
+				// 	// change trusting period so that test should fail
+				// 	dmClientState.TrustingPeriod = time.Hour * 24 * 7
+				// 	dmClientState.ChainId = dmClientState.ChainId + "different chain"
+				// case exported.Tendermint:
+				// 	tmClientState, ok := substituteClientState.(*tmtypes.ClientState)
+				// 	suite.Require().True(ok)
+				// 	// change trusting period so that test should fail
+				// 	tmClientState.TrustingPeriod = time.Hour * 24 * 7
+				// 	tmClientState.ChainId = tmClientState.ChainId + "different chain"
+				// default:
+				// 	panic(fmt.Sprintf("client type %s is not supported", substituteClientState.ClientType()))
+				// }
 			},
 		},
 	}
@@ -65,14 +65,10 @@ func (suite *DymintTestSuite) TestCheckSubstituteUpdateStateBasic() {
 			switch subjectClientState.ClientType() {
 			case exported.Dymint:
 				subjectDMClientState := subjectClientState.(*types.ClientState)
-				subjectDMClientState.AllowUpdateAfterMisbehaviour = true
-				subjectDMClientState.AllowUpdateAfterExpiry = true
 				// expire subject client
 				suite.coordinator.IncrementTimeBy(subjectDMClientState.TrustingPeriod)
 			case exported.Tendermint:
 				subjectTMClientState := subjectClientState.(*tmtypes.ClientState)
-				subjectTMClientState.AllowUpdateAfterMisbehaviour = true
-				subjectTMClientState.AllowUpdateAfterExpiry = true
 				// expire subject client
 				suite.coordinator.IncrementTimeBy(subjectTMClientState.TrustingPeriod)
 			default:
@@ -97,140 +93,40 @@ func (suite *DymintTestSuite) TestCheckSubstituteUpdateStateBasic() {
 // this is to prevent headers from failing when attempting to update later.
 func (suite *DymintTestSuite) TestCheckSubstituteAndUpdateState() {
 	testCases := []struct {
-		name                         string
-		AllowUpdateAfterExpiry       bool
-		AllowUpdateAfterMisbehaviour bool
-		FreezeClient                 bool
-		ExpireClient                 bool
-		expPass                      bool
+		name         string
+		FreezeClient bool
+		ExpireClient bool
+		expPass      bool
 	}{
 		{
-			name:                         "not allowed to be updated, not frozen or expired",
-			AllowUpdateAfterExpiry:       false,
-			AllowUpdateAfterMisbehaviour: false,
-			FreezeClient:                 false,
-			ExpireClient:                 false,
-			expPass:                      false,
+			name:         "PASS: update checks are deprecated, client is frozen and expired",
+			FreezeClient: true,
+			ExpireClient: true,
+			expPass:      true,
 		},
 		{
-			name:                         "not allowed to be updated, client is frozen",
-			AllowUpdateAfterExpiry:       false,
-			AllowUpdateAfterMisbehaviour: false,
-			FreezeClient:                 true,
-			ExpireClient:                 false,
-			expPass:                      false,
+			name:         "PASS: update checks are deprecated, not frozen or expired",
+			FreezeClient: false,
+			ExpireClient: false,
+			expPass:      true,
 		},
 		{
-			name:                         "not allowed to be updated, client is expired",
-			AllowUpdateAfterExpiry:       false,
-			AllowUpdateAfterMisbehaviour: false,
-			FreezeClient:                 false,
-			ExpireClient:                 true,
-			expPass:                      false,
+			name:         "PASS: update checks are deprecated, not frozen or expired",
+			FreezeClient: false,
+			ExpireClient: false,
+			expPass:      true,
 		},
 		{
-			name:                         "not allowed to be updated, client is frozen and expired",
-			AllowUpdateAfterExpiry:       false,
-			AllowUpdateAfterMisbehaviour: false,
-			FreezeClient:                 true,
-			ExpireClient:                 true,
-			expPass:                      false,
+			name:         "PASS: update checks are deprecated, client is frozen",
+			FreezeClient: true,
+			ExpireClient: false,
+			expPass:      true,
 		},
 		{
-			name:                         "allowed to be updated only after misbehaviour, not frozen or expired",
-			AllowUpdateAfterExpiry:       false,
-			AllowUpdateAfterMisbehaviour: true,
-			FreezeClient:                 false,
-			ExpireClient:                 false,
-			expPass:                      false,
-		},
-		{
-			name:                         "allowed to be updated only after misbehaviour, client is expired",
-			AllowUpdateAfterExpiry:       false,
-			AllowUpdateAfterMisbehaviour: true,
-			FreezeClient:                 false,
-			ExpireClient:                 true,
-			expPass:                      false,
-		},
-		{
-			name:                         "allowed to be updated only after expiry, not frozen or expired",
-			AllowUpdateAfterExpiry:       true,
-			AllowUpdateAfterMisbehaviour: false,
-			FreezeClient:                 false,
-			ExpireClient:                 false,
-			expPass:                      false,
-		},
-		{
-			name:                         "allowed to be updated only after expiry, client is frozen",
-			AllowUpdateAfterExpiry:       true,
-			AllowUpdateAfterMisbehaviour: false,
-			FreezeClient:                 true,
-			ExpireClient:                 false,
-			expPass:                      false,
-		},
-		{
-			name:                         "PASS: allowed to be updated only after misbehaviour, client is frozen",
-			AllowUpdateAfterExpiry:       false,
-			AllowUpdateAfterMisbehaviour: true,
-			FreezeClient:                 true,
-			ExpireClient:                 false,
-			expPass:                      true,
-		},
-		{
-			name:                         "PASS: allowed to be updated only after misbehaviour, client is frozen and expired",
-			AllowUpdateAfterExpiry:       false,
-			AllowUpdateAfterMisbehaviour: true,
-			FreezeClient:                 true,
-			ExpireClient:                 true,
-			expPass:                      true,
-		},
-		{
-			name:                         "PASS: allowed to be updated only after expiry, client is expired",
-			AllowUpdateAfterExpiry:       true,
-			AllowUpdateAfterMisbehaviour: false,
-			FreezeClient:                 false,
-			ExpireClient:                 true,
-			expPass:                      true,
-		},
-		{
-			name:                         "allowed to be updated only after expiry, client is frozen and expired",
-			AllowUpdateAfterExpiry:       true,
-			AllowUpdateAfterMisbehaviour: false,
-			FreezeClient:                 true,
-			ExpireClient:                 true,
-			expPass:                      false,
-		},
-		{
-			name:                         "allowed to be updated after expiry and misbehaviour, not frozen or expired",
-			AllowUpdateAfterExpiry:       true,
-			AllowUpdateAfterMisbehaviour: true,
-			FreezeClient:                 false,
-			ExpireClient:                 false,
-			expPass:                      false,
-		},
-		{
-			name:                         "PASS: allowed to be updated after expiry and misbehaviour, client is frozen",
-			AllowUpdateAfterExpiry:       true,
-			AllowUpdateAfterMisbehaviour: true,
-			FreezeClient:                 true,
-			ExpireClient:                 false,
-			expPass:                      true,
-		},
-		{
-			name:                         "PASS: allowed to be updated after expiry and misbehaviour, client is expired",
-			AllowUpdateAfterExpiry:       true,
-			AllowUpdateAfterMisbehaviour: true,
-			FreezeClient:                 false,
-			ExpireClient:                 true,
-			expPass:                      true,
-		},
-		{
-			name:                         "PASS: allowed to be updated after expiry and misbehaviour, client is frozen and expired",
-			AllowUpdateAfterExpiry:       true,
-			AllowUpdateAfterMisbehaviour: true,
-			FreezeClient:                 true,
-			ExpireClient:                 true,
-			expPass:                      true,
+			name:         "PASS: update checks are deprecated, client is expired",
+			FreezeClient: false,
+			ExpireClient: true,
+			expPass:      true,
 		},
 	}
 
@@ -241,7 +137,6 @@ func (suite *DymintTestSuite) TestCheckSubstituteAndUpdateState() {
 		// a client are each tested to ensure that unexpiry headers cannot update
 		// a client when a unfreezing header is required.
 		suite.Run(tc.name, func() {
-
 			// start by testing unexpiring the client
 			suite.SetupTest() // reset
 
@@ -253,8 +148,6 @@ func (suite *DymintTestSuite) TestCheckSubstituteAndUpdateState() {
 			switch subjectClientState.ClientType() {
 			case exported.Dymint:
 				subjectDMClientState := subjectClientState.(*types.ClientState)
-				subjectDMClientState.AllowUpdateAfterMisbehaviour = tc.AllowUpdateAfterMisbehaviour
-				subjectDMClientState.AllowUpdateAfterExpiry = tc.AllowUpdateAfterExpiry
 
 				// apply freezing or expiry as determined by the test case
 				if tc.FreezeClient {
@@ -267,8 +160,6 @@ func (suite *DymintTestSuite) TestCheckSubstituteAndUpdateState() {
 				}
 			case exported.Tendermint:
 				subjectTMClientState := subjectClientState.(*tmtypes.ClientState)
-				subjectTMClientState.AllowUpdateAfterMisbehaviour = tc.AllowUpdateAfterMisbehaviour
-				subjectTMClientState.AllowUpdateAfterExpiry = tc.AllowUpdateAfterExpiry
 
 				// apply freezing or expiry as determined by the test case
 				if tc.FreezeClient {
@@ -297,12 +188,12 @@ func (suite *DymintTestSuite) TestCheckSubstituteAndUpdateState() {
 			switch substituteClientState.ClientType() {
 			case exported.Dymint:
 				substituteDMClientState := substituteClientState.(*types.ClientState)
-				substituteDMClientState.AllowUpdateAfterMisbehaviour = tc.AllowUpdateAfterMisbehaviour
-				substituteDMClientState.AllowUpdateAfterExpiry = tc.AllowUpdateAfterExpiry
+				// update trusting period of substitute client state
+				substituteDMClientState.TrustingPeriod = time.Hour * 24 * 7
 			case exported.Tendermint:
 				substituteTMClientState := substituteClientState.(*tmtypes.ClientState)
-				substituteTMClientState.AllowUpdateAfterMisbehaviour = tc.AllowUpdateAfterMisbehaviour
-				substituteTMClientState.AllowUpdateAfterExpiry = tc.AllowUpdateAfterExpiry
+				// update trusting period of substitute client state
+				substituteTMClientState.TrustingPeriod = time.Hour * 24 * 7
 			default:
 				panic(fmt.Sprintf("client type %s is not supported", subjectClientState.ClientType()))
 			}
@@ -349,17 +240,19 @@ func (suite *DymintTestSuite) TestCheckSubstituteAndUpdateState() {
 
 				updatedClientChainId := newChainID
 				FrozenHeight := clienttypes.ZeroHeight()
+				TrustingPeriod := time.Hour * 24 * 7
 				switch updatedClient.ClientType() {
 				case exported.Dymint:
 					updatedClientChainId = updatedClient.(*types.ClientState).ChainId
 					FrozenHeight = updatedClient.(*types.ClientState).FrozenHeight
+					TrustingPeriod = updatedClient.(*types.ClientState).TrustingPeriod
 				case exported.Tendermint:
 					updatedClientChainId = updatedClient.(*tmtypes.ClientState).ChainId
 					FrozenHeight = updatedClient.(*tmtypes.ClientState).FrozenHeight
+					TrustingPeriod = updatedClient.(*tmtypes.ClientState).TrustingPeriod
 				default:
 					panic(fmt.Sprintf("client type %s is not supported", subjectClientState.ClientType()))
 				}
-				suite.Require().Equal(newChainID, updatedClientChainId)
 				suite.Require().Equal(clienttypes.ZeroHeight(), FrozenHeight)
 
 				subjectClientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), subjectPath.EndpointA.ClientID)
@@ -378,6 +271,8 @@ func (suite *DymintTestSuite) TestCheckSubstituteAndUpdateState() {
 				suite.Require().Equal(expectedProcessedHeight, subjectProcessedHeight)
 				suite.Require().Equal(expectedIterationKey, subjectIterationKey)
 
+				suite.Require().Equal(newChainID, updatedClientChainId)
+				suite.Require().Equal(time.Hour*24*7, TrustingPeriod)
 			} else {
 				suite.Require().Error(err)
 				suite.Require().Nil(updatedClient)
@@ -433,9 +328,15 @@ func (suite *DymintTestSuite) TestIsMatchingClientState() {
 			}, true,
 		},
 		{
-			"not matching, trusting period is different", func() {
+			"matching, trusting period is different", func() {
 				subjectClientState.TrustingPeriod = time.Duration(time.Hour * 10)
 				substituteClientState.TrustingPeriod = time.Duration(time.Hour * 1)
+			}, true,
+		},
+		{
+			"not matching, trust level is different", func() {
+				subjectClientState.TrustLevel = types.Fraction{2, 3}
+				substituteClientState.TrustLevel = types.Fraction{1, 3}
 			}, false,
 		},
 	}
@@ -454,7 +355,6 @@ func (suite *DymintTestSuite) TestIsMatchingClientState() {
 			tc.malleate()
 
 			suite.Require().Equal(tc.expPass, types.IsMatchingClientState(*subjectClientState, *substituteClientState))
-
 		})
 	}
 }

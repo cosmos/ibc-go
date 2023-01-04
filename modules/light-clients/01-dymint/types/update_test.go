@@ -52,7 +52,7 @@ func (suite *DymintTestSuite) TestCheckHeaderAndUpdateState() {
 		{
 			name: "successful update with next height and same validator set",
 			setup: func(suite *DymintTestSuite) {
-				clientState = types.NewClientState(chainID, trustingPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath, false, false)
+				clientState = types.NewClientState(chainID, trustingPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath)
 				consensusState = types.NewConsensusState(suite.clientTime, commitmenttypes.NewMerkleRoot(suite.header.Header.GetAppHash()), suite.valsHash)
 				newHeader = chainADymint.CreateDMClientHeader(chainID, int64(heightPlus1.RevisionHeight), height, suite.headerTime, suite.valSet, suite.valSet, signers)
 				currentTime = suite.now
@@ -63,7 +63,7 @@ func (suite *DymintTestSuite) TestCheckHeaderAndUpdateState() {
 		{
 			name: "successful update with future height and different validator set",
 			setup: func(suite *DymintTestSuite) {
-				clientState = types.NewClientState(chainID, trustingPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath, false, false)
+				clientState = types.NewClientState(chainID, trustingPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath)
 				consensusState = types.NewConsensusState(suite.clientTime, commitmenttypes.NewMerkleRoot(suite.header.Header.GetAppHash()), suite.valsHash)
 				newHeader = chainADymint.CreateDMClientHeader(chainID, int64(heightPlus5.RevisionHeight), height, suite.headerTime, bothValSet, suite.valSet, bothSigners)
 				currentTime = suite.now
@@ -74,7 +74,7 @@ func (suite *DymintTestSuite) TestCheckHeaderAndUpdateState() {
 		{
 			name: "successful update with next height and different validator set",
 			setup: func(suite *DymintTestSuite) {
-				clientState = types.NewClientState(chainID, trustingPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath, false, false)
+				clientState = types.NewClientState(chainID, trustingPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath)
 				consensusState = types.NewConsensusState(suite.clientTime, commitmenttypes.NewMerkleRoot(suite.header.Header.GetAppHash()), bothValSet.Hash())
 				newHeader = chainADymint.CreateDMClientHeader(chainID, int64(heightPlus1.RevisionHeight), height, suite.headerTime, bothValSet, bothValSet, bothSigners)
 				currentTime = suite.now
@@ -85,7 +85,7 @@ func (suite *DymintTestSuite) TestCheckHeaderAndUpdateState() {
 		{
 			name: "successful update for a previous height",
 			setup: func(suite *DymintTestSuite) {
-				clientState = types.NewClientState(chainID, trustingPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath, false, false)
+				clientState = types.NewClientState(chainID, trustingPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath)
 				consensusState = types.NewConsensusState(suite.clientTime, commitmenttypes.NewMerkleRoot(suite.header.Header.GetAppHash()), suite.valsHash)
 				consStateHeight = heightMinus3
 				newHeader = chainADymint.CreateDMClientHeader(chainID, int64(heightMinus1.RevisionHeight), heightMinus3, suite.headerTime, bothValSet, suite.valSet, bothSigners)
@@ -97,7 +97,7 @@ func (suite *DymintTestSuite) TestCheckHeaderAndUpdateState() {
 		{
 			name: "successful update for a previous revision",
 			setup: func(suite *DymintTestSuite) {
-				clientState = types.NewClientState(chainIDRevision1, trustingPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath, false, false)
+				clientState = types.NewClientState(chainIDRevision1, trustingPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath)
 				consensusState = types.NewConsensusState(suite.clientTime, commitmenttypes.NewMerkleRoot(suite.header.Header.GetAppHash()), suite.valsHash)
 				consStateHeight = heightMinus3
 				newHeader = chainADymint.CreateDMClientHeader(chainIDRevision0, int64(height.RevisionHeight), heightMinus3, suite.headerTime, bothValSet, suite.valSet, bothSigners)
@@ -108,7 +108,7 @@ func (suite *DymintTestSuite) TestCheckHeaderAndUpdateState() {
 		{
 			name: "successful update with identical header to a previous update",
 			setup: func(suite *DymintTestSuite) {
-				clientState = types.NewClientState(chainID, trustingPeriod, maxClockDrift, heightPlus1, commitmenttypes.GetSDKSpecs(), upgradePath, false, false)
+				clientState = types.NewClientState(chainID, trustingPeriod, maxClockDrift, heightPlus1, commitmenttypes.GetSDKSpecs(), upgradePath)
 				consensusState = types.NewConsensusState(suite.clientTime, commitmenttypes.NewMerkleRoot(suite.header.Header.GetAppHash()), suite.valsHash)
 				newHeader = chainADymint.CreateDMClientHeader(chainID, int64(heightPlus1.RevisionHeight), height, suite.headerTime, suite.valSet, suite.valSet, signers)
 				currentTime = suite.now
@@ -122,7 +122,7 @@ func (suite *DymintTestSuite) TestCheckHeaderAndUpdateState() {
 		{
 			name: "misbehaviour detection: header conflicts with existing consensus state",
 			setup: func(suite *DymintTestSuite) {
-				clientState = types.NewClientState(chainID, trustingPeriod, maxClockDrift, heightPlus1, commitmenttypes.GetSDKSpecs(), upgradePath, false, false)
+				clientState = types.NewClientState(chainID, trustingPeriod, maxClockDrift, heightPlus1, commitmenttypes.GetSDKSpecs(), upgradePath)
 				consensusState = types.NewConsensusState(suite.clientTime, commitmenttypes.NewMerkleRoot(suite.header.Header.GetAppHash()), suite.valsHash)
 				newHeader = chainADymint.CreateDMClientHeader(chainID, int64(heightPlus1.RevisionHeight), height, suite.headerTime, suite.valSet, suite.valSet, signers)
 				currentTime = suite.now
@@ -138,7 +138,7 @@ func (suite *DymintTestSuite) TestCheckHeaderAndUpdateState() {
 		{
 			name: "misbehaviour detection: previous consensus state time is not before header time. time monotonicity violation",
 			setup: func(suite *DymintTestSuite) {
-				clientState = types.NewClientState(chainID, trustingPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath, false, false)
+				clientState = types.NewClientState(chainID, trustingPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath)
 				// create an intermediate consensus state with the same time as the newHeader to create a time violation.
 				// header time is after client time
 				consensusState = types.NewConsensusState(suite.clientTime, commitmenttypes.NewMerkleRoot(suite.header.Header.GetAppHash()), suite.valsHash)
@@ -156,7 +156,7 @@ func (suite *DymintTestSuite) TestCheckHeaderAndUpdateState() {
 		{
 			name: "misbehaviour detection: next consensus state time is not after header time. time monotonicity violation",
 			setup: func(suite *DymintTestSuite) {
-				clientState = types.NewClientState(chainID, trustingPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath, false, false)
+				clientState = types.NewClientState(chainID, trustingPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath)
 				// create the next consensus state with the same time as the intermediate newHeader to create a time violation.
 				// header time is after clientTime
 				consensusState = types.NewConsensusState(suite.clientTime, commitmenttypes.NewMerkleRoot(suite.header.Header.GetAppHash()), suite.valsHash)
@@ -174,7 +174,7 @@ func (suite *DymintTestSuite) TestCheckHeaderAndUpdateState() {
 		{
 			name: "unsuccessful update with incorrect header chain-id",
 			setup: func(suite *DymintTestSuite) {
-				clientState = types.NewClientState(chainID, trustingPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath, false, false)
+				clientState = types.NewClientState(chainID, trustingPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath)
 				consensusState = types.NewConsensusState(suite.clientTime, commitmenttypes.NewMerkleRoot(suite.header.Header.GetAppHash()), suite.valsHash)
 				newHeader = chainADymint.CreateDMClientHeader("ethermint", int64(heightPlus1.RevisionHeight), height, suite.headerTime, suite.valSet, suite.valSet, signers)
 				currentTime = suite.now
@@ -185,7 +185,7 @@ func (suite *DymintTestSuite) TestCheckHeaderAndUpdateState() {
 		{
 			name: "unsuccessful update to a future revision",
 			setup: func(suite *DymintTestSuite) {
-				clientState = types.NewClientState(chainIDRevision0, trustingPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath, false, false)
+				clientState = types.NewClientState(chainIDRevision0, trustingPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath)
 				consensusState = types.NewConsensusState(suite.clientTime, commitmenttypes.NewMerkleRoot(suite.header.Header.GetAppHash()), suite.valsHash)
 				newHeader = chainADymint.CreateDMClientHeader(chainIDRevision1, 1, height, suite.headerTime, suite.valSet, suite.valSet, signers)
 				currentTime = suite.now
@@ -195,7 +195,7 @@ func (suite *DymintTestSuite) TestCheckHeaderAndUpdateState() {
 		{
 			name: "unsuccessful update: header height revision and trusted height revision mismatch",
 			setup: func(suite *DymintTestSuite) {
-				clientState = types.NewClientState(chainIDRevision1, trustingPeriod, maxClockDrift, clienttypes.NewHeight(1, 1), commitmenttypes.GetSDKSpecs(), upgradePath, false, false)
+				clientState = types.NewClientState(chainIDRevision1, trustingPeriod, maxClockDrift, clienttypes.NewHeight(1, 1), commitmenttypes.GetSDKSpecs(), upgradePath)
 				consensusState = types.NewConsensusState(suite.clientTime, commitmenttypes.NewMerkleRoot(suite.header.Header.GetAppHash()), suite.valsHash)
 				newHeader = chainADymint.CreateDMClientHeader(chainIDRevision1, 3, height, suite.headerTime, suite.valSet, suite.valSet, signers)
 				currentTime = suite.now
@@ -206,7 +206,7 @@ func (suite *DymintTestSuite) TestCheckHeaderAndUpdateState() {
 		{
 			name: "unsuccessful update: trusting period has passed since last client timestamp",
 			setup: func(suite *DymintTestSuite) {
-				clientState = types.NewClientState(chainID, trustingPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath, false, false)
+				clientState = types.NewClientState(chainID, trustingPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath)
 				consensusState = types.NewConsensusState(suite.clientTime, commitmenttypes.NewMerkleRoot(suite.header.Header.GetAppHash()), suite.valsHash)
 				newHeader = chainADymint.CreateDMClientHeader(chainID, int64(heightPlus1.RevisionHeight), height, suite.headerTime, suite.valSet, suite.valSet, signers)
 				// make current time pass trusting period from last timestamp on clientstate
@@ -218,7 +218,7 @@ func (suite *DymintTestSuite) TestCheckHeaderAndUpdateState() {
 		{
 			name: "unsuccessful update: header timestamp is past current timestamp",
 			setup: func(suite *DymintTestSuite) {
-				clientState = types.NewClientState(chainID, trustingPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath, false, false)
+				clientState = types.NewClientState(chainID, trustingPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath)
 				consensusState = types.NewConsensusState(suite.clientTime, commitmenttypes.NewMerkleRoot(suite.header.Header.GetAppHash()), suite.valsHash)
 				newHeader = chainADymint.CreateDMClientHeader(chainID, int64(heightPlus1.RevisionHeight), height, suite.now.Add(time.Minute), suite.valSet, suite.valSet, signers)
 				currentTime = suite.now
@@ -229,7 +229,7 @@ func (suite *DymintTestSuite) TestCheckHeaderAndUpdateState() {
 		{
 			name: "unsuccessful update: header timestamp is not past last client timestamp",
 			setup: func(suite *DymintTestSuite) {
-				clientState = types.NewClientState(chainID, trustingPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath, false, false)
+				clientState = types.NewClientState(chainID, trustingPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath)
 				consensusState = types.NewConsensusState(suite.clientTime, commitmenttypes.NewMerkleRoot(suite.header.Header.GetAppHash()), suite.valsHash)
 				newHeader = chainADymint.CreateDMClientHeader(chainID, int64(heightPlus1.RevisionHeight), height, suite.clientTime, suite.valSet, suite.valSet, signers)
 				currentTime = suite.now
@@ -240,7 +240,7 @@ func (suite *DymintTestSuite) TestCheckHeaderAndUpdateState() {
 		{
 			name: "header basic validation failed",
 			setup: func(suite *DymintTestSuite) {
-				clientState = types.NewClientState(chainID, trustingPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath, false, false)
+				clientState = types.NewClientState(chainID, trustingPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath)
 				consensusState = types.NewConsensusState(suite.clientTime, commitmenttypes.NewMerkleRoot(suite.header.Header.GetAppHash()), suite.valsHash)
 				newHeader = chainADymint.CreateDMClientHeader(chainID, int64(heightPlus1.RevisionHeight), height, suite.headerTime, suite.valSet, suite.valSet, signers)
 				// cause new header to fail validatebasic by changing commit height to mismatch header height
@@ -253,7 +253,7 @@ func (suite *DymintTestSuite) TestCheckHeaderAndUpdateState() {
 		{
 			name: "header height < consensus height",
 			setup: func(suite *DymintTestSuite) {
-				clientState = types.NewClientState(chainID, trustingPeriod, maxClockDrift, clienttypes.NewHeight(height.RevisionNumber, heightPlus5.RevisionHeight), commitmenttypes.GetSDKSpecs(), upgradePath, false, false)
+				clientState = types.NewClientState(chainID, trustingPeriod, maxClockDrift, clienttypes.NewHeight(height.RevisionNumber, heightPlus5.RevisionHeight), commitmenttypes.GetSDKSpecs(), upgradePath)
 				consensusState = types.NewConsensusState(suite.clientTime, commitmenttypes.NewMerkleRoot(suite.header.Header.GetAppHash()), suite.valsHash)
 				// Make new header at height less than latest client state
 				newHeader = chainADymint.CreateDMClientHeader(chainID, int64(heightMinus1.RevisionHeight), height, suite.headerTime, suite.valSet, suite.valSet, signers)
@@ -265,7 +265,7 @@ func (suite *DymintTestSuite) TestCheckHeaderAndUpdateState() {
 		{
 			name: "proposer is not in the validator set",
 			setup: func(suite *DymintTestSuite) {
-				clientState = types.NewClientState(chainID, trustingPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath, false, false)
+				clientState = types.NewClientState(chainID, trustingPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath)
 				consensusState = types.NewConsensusState(suite.clientTime, commitmenttypes.NewMerkleRoot(suite.header.Header.GetAppHash()), suite.valsHash)
 				newValSet := suite.valSet
 				newValSet.Proposer = altVal
@@ -278,7 +278,7 @@ func (suite *DymintTestSuite) TestCheckHeaderAndUpdateState() {
 		{
 			name: "wrong proposer address",
 			setup: func(suite *DymintTestSuite) {
-				clientState = types.NewClientState(chainID, trustingPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath, false, false)
+				clientState = types.NewClientState(chainID, trustingPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath)
 				consensusState = types.NewConsensusState(suite.clientTime, commitmenttypes.NewMerkleRoot(suite.header.Header.GetAppHash()), suite.valsHash)
 				newHeader = chainADymint.CreateDMClientHeader(chainID, int64(heightPlus1.RevisionHeight), height, suite.headerTime, suite.valSet, suite.valSet, signers)
 				newHeader.SignedHeader.Commit.Signatures[0].ValidatorAddress = altVal.Address
@@ -290,7 +290,7 @@ func (suite *DymintTestSuite) TestCheckHeaderAndUpdateState() {
 		{
 			name: "wrong proposer signature",
 			setup: func(suite *DymintTestSuite) {
-				clientState = types.NewClientState(chainID, trustingPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath, false, false)
+				clientState = types.NewClientState(chainID, trustingPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath)
 				consensusState = types.NewConsensusState(suite.clientTime, commitmenttypes.NewMerkleRoot(suite.header.Header.GetAppHash()), suite.valsHash)
 				newHeader = chainADymint.CreateDMClientHeader(chainID, int64(heightPlus1.RevisionHeight), height, suite.headerTime, suite.valSet, suite.valSet, signers)
 				newHeader.SignedHeader.Commit.Signatures[0].Signature = []byte{123}

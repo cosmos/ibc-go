@@ -17,13 +17,12 @@ import (
 	commitmenttypes "github.com/cosmos/ibc-go/v3/modules/core/23-commitment/types"
 	"github.com/cosmos/ibc-go/v3/modules/core/exported"
 	ibcdmtypes "github.com/cosmos/ibc-go/v3/modules/light-clients/01-dymint/types"
+	"github.com/cosmos/ibc-go/v3/testing/mock"
 )
 
 type DymintConfig struct {
-	TrustingPeriod               time.Duration
-	MaxClockDrift                time.Duration
-	AllowUpdateAfterExpiry       bool
-	AllowUpdateAfterMisbehaviour bool
+	TrustingPeriod time.Duration
+	MaxClockDrift  time.Duration
 }
 
 func (tmcfg *DymintConfig) GetClientType() string {
@@ -70,10 +69,8 @@ func (chain *TestChainDymint) GetSelfClientType() string {
 
 func (chain *TestChainDymint) NewConfig() ClientConfig {
 	return &DymintConfig{
-		TrustingPeriod:               TrustingPeriod,
-		MaxClockDrift:                MaxClockDrift,
-		AllowUpdateAfterExpiry:       false,
-		AllowUpdateAfterMisbehaviour: false,
+		TrustingPeriod: TrustingPeriod,
+		MaxClockDrift:  MaxClockDrift,
 	}
 }
 
@@ -189,6 +186,17 @@ func (chain *TestChainDymint) CreateDMClientHeader(chainID string, blockHeight i
 		Commit: commit.ToProto(),
 	}
 
+	// only one sequencer can sign
+	pv, ok := signers[0].(mock.PV)
+	require.True(chain.TC.T, ok)
+	headerBytes, err := tmHeader.ToProto().Marshal()
+	require.NoError(chain.TC.T, err)
+	signedBytes, err := pv.PrivKey.Sign(headerBytes)
+	require.NoError(chain.TC.T, err)
+
+	// Dymint check the header bytes signatures
+	signedHeader.Commit.Signatures[0].Signature = signedBytes
+
 	if tmValSet != nil {
 		valSet, err = tmValSet.ToProto()
 		require.NoError(chain.TC.T, err)
@@ -227,7 +235,7 @@ func (chain *TestChainDymint) ClientConfigToState(clientConfig ClientConfig) exp
 	height := chain.LastHeader.GetHeight().(clienttypes.Height)
 	clientState := ibcdmtypes.NewClientState(
 		chain.TC.ChainID, tmConfig.TrustingPeriod, tmConfig.MaxClockDrift,
-		height, commitmenttypes.GetSDKSpecs(), UpgradePath, tmConfig.AllowUpdateAfterExpiry, tmConfig.AllowUpdateAfterMisbehaviour,
+		height, commitmenttypes.GetSDKSpecs(), UpgradePath,
 	)
 	return clientState
 }

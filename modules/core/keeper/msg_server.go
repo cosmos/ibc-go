@@ -16,9 +16,11 @@ import (
 	coretypes "github.com/cosmos/ibc-go/v3/modules/core/types"
 )
 
-var _ clienttypes.MsgServer = Keeper{}
-var _ connectiontypes.MsgServer = Keeper{}
-var _ channeltypes.MsgServer = Keeper{}
+var (
+	_ clienttypes.MsgServer     = Keeper{}
+	_ connectiontypes.MsgServer = Keeper{}
+	_ channeltypes.MsgServer    = Keeper{}
+)
 
 // CreateClient defines a rpc handler method for MsgCreateClient.
 func (k Keeper) CreateClient(goCtx context.Context, msg *clienttypes.MsgCreateClient) (*clienttypes.MsgCreateClientResponse, error) {
@@ -194,6 +196,7 @@ func (k Keeper) ChannelOpenInit(goCtx context.Context, msg *channeltypes.MsgChan
 
 	return &channeltypes.MsgChannelOpenInitResponse{
 		ChannelId: channelID,
+		Version:   msg.Channel.Version,
 	}, nil
 }
 
@@ -232,7 +235,9 @@ func (k Keeper) ChannelOpenTry(goCtx context.Context, msg *channeltypes.MsgChann
 	// Write channel into state
 	k.ChannelKeeper.WriteOpenTryChannel(ctx, msg.PortId, channelID, msg.Channel.Ordering, msg.Channel.ConnectionHops, msg.Channel.Counterparty, version)
 
-	return &channeltypes.MsgChannelOpenTryResponse{}, nil
+	return &channeltypes.MsgChannelOpenTryResponse{
+		Version: version,
+	}, nil
 }
 
 // ChannelOpenAck defines a rpc handler method for MsgChannelOpenAck.

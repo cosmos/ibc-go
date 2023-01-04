@@ -4,6 +4,7 @@ import (
 	"time"
 
 	tmprotocrypto "github.com/tendermint/tendermint/proto/tendermint/crypto"
+	tmprototypes "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v3/modules/core/exported"
@@ -65,6 +66,16 @@ func (suite *DymintTestSuite) TestHeaderValidateBasic() {
 		}, false},
 		{"ValidatorSetFromProto failed", func() {
 			header.ValidatorSet.Validators[0].PubKey = tmprotocrypto.PublicKey{}
+		}, false},
+		{"header validator hash does not equal hash of validator set", func() {
+			// generated new validator set
+			val := tmprototypes.Validator{}
+			valSet := tmprototypes.ValidatorSet{
+				Validators:       []*tmprototypes.Validator{&val},
+				Proposer:         &val,
+				TotalVotingPower: 0,
+			}
+			header.ValidatorSet = &valSet
 		}, false},
 	}
 

@@ -101,7 +101,6 @@ func (cs ClientState) VerifyUpgradeAndUpdateState(
 	newClientState := NewClientState(
 		tmUpgradeClient.ChainId, cs.TrustingPeriod,
 		cs.MaxClockDrift, tmUpgradeClient.LatestHeight, tmUpgradeClient.ProofSpecs, tmUpgradeClient.UpgradePath,
-		cs.AllowUpdateAfterExpiry, cs.AllowUpdateAfterMisbehaviour,
 	)
 
 	if err := newClientState.Validate(); err != nil {

@@ -204,6 +204,11 @@ func checkValidity(
 		return sdkerrors.Wrap(err, "signed header in not dymint signed header type")
 	}
 
+	_, err = tmtypes.ValidatorSetFromProto(header.ValidatorSet)
+	if err != nil {
+		return sdkerrors.Wrap(err, "validator set in not dymint validator set type")
+	}
+
 	// assert header height is newer than consensus state
 	if header.GetHeight().LTE(header.TrustedHeight) {
 		return sdkerrors.Wrapf(

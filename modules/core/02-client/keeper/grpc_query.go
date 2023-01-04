@@ -83,7 +83,6 @@ func (q Keeper) ClientStates(c context.Context, req *types.QueryClientStatesRequ
 		clientStates = append(clientStates, identifiedClient)
 		return nil
 	})
-
 	if err != nil {
 		return nil, err
 	}
@@ -177,7 +176,6 @@ func (q Keeper) ConsensusStates(c context.Context, req *types.QueryConsensusStat
 		consensusStates = append(consensusStates, types.NewConsensusStateWithHeight(height, consensusState))
 		return true, nil
 	})
-
 	if err != nil {
 		return nil, err
 	}
@@ -185,6 +183,45 @@ func (q Keeper) ConsensusStates(c context.Context, req *types.QueryConsensusStat
 	return &types.QueryConsensusStatesResponse{
 		ConsensusStates: consensusStates,
 		Pagination:      pageRes,
+	}, nil
+}
+
+// ConsensusStateHeights implements the Query/ConsensusStateHeights gRPC method
+func (q Keeper) ConsensusStateHeights(c context.Context, req *types.QueryConsensusStateHeightsRequest) (*types.QueryConsensusStateHeightsResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "empty request")
+	}
+
+	if err := host.ClientIdentifierValidator(req.ClientId); err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+
+	ctx := sdk.UnwrapSDKContext(c)
+
+	var consensusStateHeights []types.Height
+	store := prefix.NewStore(ctx.KVStore(q.storeKey), host.FullClientKey(req.ClientId, []byte(fmt.Sprintf("%s/", host.KeyConsensusStatePrefix))))
+
+	pageRes, err := query.FilteredPaginate(store, req.Pagination, func(key, _ []byte, accumulate bool) (bool, error) {
+		// filter any metadata stored under consensus state key
+		if bytes.Contains(key, []byte("/")) {
+			return false, nil
+		}
+
+		height, err := types.ParseHeight(string(key))
+		if err != nil {
+			return false, err
+		}
+
+		consensusStateHeights = append(consensusStateHeights, height)
+		return true, nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &types.QueryConsensusStateHeightsResponse{
+		ConsensusStateHeights: consensusStateHeights,
+		Pagination:            pageRes,
 	}, nil
 }
 

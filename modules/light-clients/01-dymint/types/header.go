@@ -101,6 +101,10 @@ func (h Header) ValidateCommit() (err error) {
 		return sdkerrors.Wrap(err, "validator set is not dymint validator set type")
 	}
 
+	if tmValset.Size() != len(tmCommit.Signatures) {
+		return tmtypes.NewErrInvalidCommitSignatures(tmValset.Size(), len(tmCommit.Signatures))
+	}
+
 	if !blockID.Equals(tmCommit.BlockID) {
 		return fmt.Errorf("invalid commit -- wrong block ID: want %v, got %v",
 			blockID, tmCommit.BlockID)
@@ -125,6 +129,9 @@ func (h Header) ValidateCommit() (err error) {
 		if !val.PubKey.VerifySignature(headerBytes, commitSig.Signature) {
 			return fmt.Errorf("wrong signature (#%d): %X", valIdx, commitSig.Signature)
 		}
+	} else {
+		return fmt.Errorf("proposer is not in the validator set (proposer: %x)", h.Header.ProposerAddress)
+
 	}
 
 	return nil

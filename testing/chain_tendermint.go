@@ -20,11 +20,6 @@ import (
 	ibctmtypes "github.com/cosmos/ibc-go/v3/modules/light-clients/07-tendermint/types"
 )
 
-var (
-	// Default params variables used to create a TM client
-	DefaultTrustLevel ibctmtypes.Fraction = ibctmtypes.DefaultTrustLevel
-)
-
 type TendermintConfig struct {
 	TrustLevel                   ibctmtypes.Fraction
 	TrustingPeriod               time.Duration

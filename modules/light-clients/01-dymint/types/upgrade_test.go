@@ -61,7 +61,7 @@ func (suite *DymintTestSuite) TestVerifyUpgrade() {
 			setup: func() {
 				upgradedHeight := clienttypes.NewHeight(0, uint64(dymintChain.GetContext().BlockHeight()+2))
 				// don't use -1 suffix in chain id
-				upgradedClient = types.NewClientState("newChainId", trustingPeriod, maxClockDrift, upgradedHeight, commitmenttypes.GetSDKSpecs(), upgradePath, false, false)
+				upgradedClient = types.NewClientState("newChainId", trustingPeriod, maxClockDrift, upgradedHeight, commitmenttypes.GetSDKSpecs(), upgradePath)
 				upgradedClient = upgradedClient.ZeroCustomFields()
 				upgradedClientBz, err = clienttypes.MarshalClientState(dymintCounterpartyChain.App.AppCodec(), upgradedClient)
 				suite.Require().NoError(err)
@@ -116,7 +116,7 @@ func (suite *DymintTestSuite) TestVerifyUpgrade() {
 			name: "unsuccessful upgrade: committed client does not have zeroed custom fields",
 			setup: func() {
 				// non-zeroed upgrade client
-				upgradedClient = types.NewClientState(newChainId, trustingPeriod, maxClockDrift, newClientHeight, commitmenttypes.GetSDKSpecs(), upgradePath, false, false)
+				upgradedClient = types.NewClientState(newChainId, trustingPeriod, maxClockDrift, newClientHeight, commitmenttypes.GetSDKSpecs(), upgradePath)
 				upgradedClientBz, err = clienttypes.MarshalClientState(dymintCounterpartyChain.App.AppCodec(), upgradedClient)
 				suite.Require().NoError(err)
 
@@ -152,7 +152,7 @@ func (suite *DymintTestSuite) TestVerifyUpgrade() {
 				dymintChain.GetSimApp().UpgradeKeeper.SetUpgradedConsensusState(dymintChain.GetContext(), int64(lastHeight.GetRevisionHeight()), upgradedConsStateBz)
 
 				// change upgradedClient client-specified parameters
-				upgradedClient = types.NewClientState("wrongchainID", trustingPeriod, maxClockDrift, newClientHeight, commitmenttypes.GetSDKSpecs(), upgradePath, true, true)
+				upgradedClient = types.NewClientState("wrongchainID", trustingPeriod, maxClockDrift, newClientHeight, commitmenttypes.GetSDKSpecs(), upgradePath)
 
 				suite.coordinator.CommitBlock(dymintChain)
 				err := endpoint.UpdateClient()
@@ -174,7 +174,7 @@ func (suite *DymintTestSuite) TestVerifyUpgrade() {
 				dymintChain.GetSimApp().UpgradeKeeper.SetUpgradedConsensusState(dymintChain.GetContext(), int64(lastHeight.GetRevisionHeight()), upgradedConsStateBz)
 
 				// change upgradedClient client-specified parameters
-				upgradedClient = types.NewClientState(newChainId, ubdPeriod+trustingPeriod, maxClockDrift+5, lastHeight, commitmenttypes.GetSDKSpecs(), upgradePath, true, false)
+				upgradedClient = types.NewClientState(newChainId, ubdPeriod+trustingPeriod, maxClockDrift+5, lastHeight, commitmenttypes.GetSDKSpecs(), upgradePath)
 
 				suite.coordinator.CommitBlock(dymintChain)
 				err := endpoint.UpdateClient()
@@ -405,7 +405,7 @@ func (suite *DymintTestSuite) TestVerifyUpgrade() {
 			name: "unsuccessful upgrade: final client is not valid",
 			setup: func() {
 				// new client has smaller unbonding period such that old trusting period is no longer valid
-				upgradedClient = types.NewClientState(newChainId, trustingPeriod, maxClockDrift, newClientHeight, commitmenttypes.GetSDKSpecs(), upgradePath, false, false)
+				upgradedClient = types.NewClientState(newChainId, trustingPeriod, maxClockDrift, newClientHeight, commitmenttypes.GetSDKSpecs(), upgradePath)
 				upgradedClientBz, err = clienttypes.MarshalClientState(dymintCounterpartyChain.App.AppCodec(), upgradedClient)
 				suite.Require().NoError(err)
 
@@ -451,7 +451,7 @@ func (suite *DymintTestSuite) TestVerifyUpgrade() {
 			endpoint = path.EndpointA
 		}
 
-		upgradedClient = types.NewClientState(newChainId, trustingPeriod, maxClockDrift, newClientHeight, commitmenttypes.GetSDKSpecs(), upgradePath, false, false)
+		upgradedClient = types.NewClientState(newChainId, trustingPeriod, maxClockDrift, newClientHeight, commitmenttypes.GetSDKSpecs(), upgradePath)
 		upgradedClient = upgradedClient.ZeroCustomFields()
 		upgradedClientBz, err = clienttypes.MarshalClientState(dymintCounterpartyChain.App.AppCodec(), upgradedClient)
 		suite.Require().NoError(err)

@@ -215,7 +215,6 @@ func (suite *TypesTestSuite) TestMarshalMsgUpdateClient() {
 				chainATendermint := suite.chainA.TestChainClient.(*ibctesting.TestChainTendermint)
 				msg, err = types.NewMsgUpdateClient("tendermint", chainATendermint.CurrentTMClientHeader(), suite.chainA.SenderAccount.GetAddress().String())
 				suite.Require().NoError(err)
-
 			},
 		},
 	}
@@ -504,7 +503,6 @@ func (suite *TypesTestSuite) TestMarshalMsgSubmitMisbehaviour() {
 				misbehaviour := ibctmtypes.NewMisbehaviour("tendermint", header1, header2)
 				msg, err = types.NewMsgSubmitMisbehaviour("tendermint", misbehaviour, suite.chainA.SenderAccount.GetAddress().String())
 				suite.Require().NoError(err)
-
 			},
 		},
 	}
