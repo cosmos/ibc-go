@@ -4,11 +4,11 @@ order: 7
 
 # Existence and Non-Existence Proofs 
 
-`ibc-go` packets are accompanied by proofs as defined in the IBC [ICS23](https://github.com/cosmos/ibc/tree/main/spec/core/ics-023-vector-commitments) specification, which is a general approach for verifying merkle trees.
+IBC uses merkle proofs in order to verify the state of a remote counterparty state machine given a trusted root, and [ICS23](https://github.com/cosmos/ics23/tree/master/go) is a general approach for verifying merkle trees which is used in `ibc-go`.
 
-Currently, all Cosmos SDK modules (including `ibc-go`) contain their own stores, which maintain the state of the application module in an IAVL (immutable AVL) binary merkle tree format. The Cosmos SDK multistore therefore creates a simple merkle tree of all of these IAVL trees, and from each of these individual IAVL tree root hashes derives a root hash for the application state tree as a whole (the apphash).
+Currently, all Cosmos SDK modules contain their own stores, which maintain the state of the application module in an IAVL (immutable AVL) binary merkle tree format. Specifically with regard to IBC, core IBC maintains its own IAVL store, and IBC apps (e.g. transfer) maintain their own dedicated stores. The Cosmos SDK multistore therefore creates a simple merkle tree of all of these IAVL trees, and from each of these individual IAVL tree root hashes derives a root hash for the application state tree as a whole (the apphash).
 
-For the purposes of `ibc-go`, there are two types of proofs which are important: existence and non-existence proofs. Existence proofs are used for transactions which will result in the writing of a packet receipt into the IBC store on the receiving end of the transaction (ie: token transfers, connection handshakes), whereas non-existence proofs are used to timeout IBC packets.
+For the purposes of `ibc-go`, there are two types of proofs which are important: existence and non-existence proofs, terms which have been used interchangeably with membership and non-membership proofs. For the purposes of this guide, we will stick withe 'existence' and 'non-existence'. Existence proofs are used for transactions which will result in the writing of a packet receipt into the IBC store on the receiving end of the transaction (ie: token transfers, channel/connection handshakes), whereas non-existence proofs are used to timeout IBC packets.
 
 ## Existence Proofs
 
