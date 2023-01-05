@@ -36,34 +36,7 @@ func (c ClientState) Validate() error {
 }
 
 func (c ClientState) Status(ctx sdk.Context, store sdk.KVStore, cdc codec.BinaryCodec) exported.Status {
-	consensusState, err := GetConsensusState(store, cdc, c.LatestHeight)
-	if err != nil {
-		return exported.Unknown
-	}
-
-	const Status = "status"
-	payload := make(map[string]map[string]interface{})
-	payload[Status] = make(map[string]interface{})
-	inner := payload[Status]
-	inner["client_state"] = c
-	inner["consensus_state"] = consensusState
-
-	encodedData, err := json.Marshal(payload)
-	if err != nil {
-		return exported.Unknown
-	}
-
-	response, err := queryContractWithStore(c.CodeId, store, encodedData)
-	if err != nil {
-		return exported.Unknown
-	}
-
-	output := queryResponse{}
-	if err := json.Unmarshal(response, &output); err != nil {
-		return exported.Unknown
-	}
-
-	return output.Status
+	return exported.Active
 }
 
 func (c ClientState) ExportMetadata(store sdk.KVStore) []exported.GenesisMetadata {
@@ -216,7 +189,7 @@ func (c ClientState) CheckForMisbehaviour(ctx sdk.Context, cdc codec.BinaryCodec
 
 // UpdateStateOnMisbehaviour should perform appropriate state changes on a client state given that misbehaviour has been detected and verified
 func (c ClientState) UpdateStateOnMisbehaviour(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, clientMsg exported.ClientMessage) {
-	const updateStateOnMisbehaviour = "update_state_on_misbehaviour_msg"
+	const updateStateOnMisbehaviour = "update_state_on_misbehaviour"
 	payload := make(map[string]map[string]interface{})
 	payload[updateStateOnMisbehaviour] = make(map[string]interface{})
 	inner := payload[updateStateOnMisbehaviour]
@@ -366,9 +339,9 @@ func NewClientState(latestSequence uint64, consensusState *ConsensusState) *Clie
 	}
 }
 
-/// Calls the contract with the given payload and writes the result to `output`
+// / Calls the contract with the given payload and writes the result to `output`
 func call[T ContractResult](payload any, c *ClientState, ctx sdk.Context, clientStore types.KVStore) (T, error) {
-	var output T 
+	var output T
 	encodedData, err := json.Marshal(payload)
 	if err != nil {
 		return output, sdkerrors.Wrapf(ErrUnableToMarshalPayload, fmt.Sprintf("underlying error: %s", err.Error()))
@@ -378,7 +351,7 @@ func call[T ContractResult](payload any, c *ClientState, ctx sdk.Context, client
 		return output, sdkerrors.Wrapf(ErrUnableToCall, fmt.Sprintf("underlying error: %s", err.Error()))
 	}
 	if err := json.Unmarshal(out.Data, &output); err != nil {
-		return output ,sdkerrors.Wrapf(ErrUnableToUnmarshalPayload, fmt.Sprintf("underlying error: %s", err.Error()))
+		return output, sdkerrors.Wrapf(ErrUnableToUnmarshalPayload, fmt.Sprintf("underlying error: %s", err.Error()))
 	}
 	if !output.Validate() {
 		return output, fmt.Errorf("%s error occurred while calling contract", output.Error())

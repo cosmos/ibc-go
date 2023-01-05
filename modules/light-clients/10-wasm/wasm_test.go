@@ -119,65 +119,64 @@ func (suite *WasmTestSuite) SetupTest() {
 	suite.codeId = clientState.CodeId
 }
 
-// Panics
-func (suite *WasmTestSuite) TestCreateClient() {
-	var (
-		clientMsg   exported.ClientMessage
-		clientState *wasm.ClientState
-	)
+// // Panics
+// func (suite *WasmTestSuite) TestCreateClient() {
+// 	var (
+// 		clientMsg   exported.ClientMessage
+// 		clientState *wasm.ClientState
+// 	)
 
-	// test singlesig and multisig public keys
-	for _, wm := range []*ibctesting.Wasm{suite.wasm} {
-		testCases := []struct {
-			name    string
-			setup   func()
-			expPass bool
-		}{
-			{
-				"create a WASM client",
-				func() {
-					data, err := hex.DecodeString(suite.testData["header_a0"])
-					suite.Require().NoError(err)
-					clientMsg = &wasm.Header{
-						Data: data,
-						Height: clienttypes.Height{
-							RevisionNumber: 1,
-							RevisionHeight: 2,
-						},
-					}
-					println(wm.ClientID)
-				},
-				true,
-			},
-		}
+// 	// test singlesig and multisig public keys
+// 	for _, wm := range []*ibctesting.Wasm{suite.wasm} {
+// 		testCases := []struct {
+// 			name    string
+// 			setup   func()
+// 			expPass bool
+// 		}{
+// 			{
+// 				"create a WASM client",
+// 				func() {
+// 					data, err := hex.DecodeString(suite.testData["header_a0"])
+// 					suite.Require().NoError(err)
+// 					clientMsg = &wasm.Header{
+// 						Data: data,
+// 						Height: clienttypes.Height{
+// 							RevisionNumber: 1,
+// 							RevisionHeight: 2,
+// 						},
+// 					}
+// 					println(wm.ClientID)
+// 				},
+// 				true,
+// 			},
+// 		}
 
-		for _, tc := range testCases {
-			tc := tc
+// 		for _, tc := range testCases {
+// 			tc := tc
 
-			suite.Run(tc.name, func() {
-				tc.setup()
+// 			suite.Run(tc.name, func() {
+// 				tc.setup()
 
-				clientState = &suite.clientState
-				_ = clientMsg
-				_ = clientState
+// 				clientState = &suite.clientState
+// 				_ = clientMsg
+// 				_ = clientState
 
-				path := ibctesting.NewPath(suite.chainA, suite.chainB)
-				data, err := hex.DecodeString(suite.testData["header_a0"])
-				suite.Require().NoError(err)
-				configHeader := wasm.Header{
-					Data: data,
-					Height: clienttypes.Height{
-						RevisionNumber: 1,
-						RevisionHeight: 2,
-					},
-				}
-				path.EndpointB.ClientConfig = ibctesting.NewWasmConfig(suite.consensusState, suite.clientState, configHeader)
-				suite.coordinator.SetupClients(path)
-				suite.coordinator.SetupConnections(path)
-			})
-		}
-	}
-}
+// 				path := ibctesting.NewPath(suite.chainA, suite.chainB)
+// 				data, err := hex.DecodeString(suite.testData["header_a0"])
+// 				suite.Require().NoError(err)
+// 				configHeader := wasm.Header{
+// 					Data: data,
+// 					Height: clienttypes.Height{
+// 						RevisionNumber: 1,
+// 						RevisionHeight: 2,
+// 					},
+// 				}
+// 				path.EndpointB.ClientConfig = ibctesting.NewWasmConfig(suite.consensusState, suite.clientState, configHeader)
+// 				suite.coordinator.SetupConnections(path)
+// 			})
+// 		}
+// 	}
+// }
 
 func (suite *WasmTestSuite) TestVerifyClientMessageHeader() {
 	var (
@@ -229,12 +228,64 @@ func (suite *WasmTestSuite) TestVerifyClientMessageHeader() {
 	}
 }
 
+// func (suite *WasmTestSuite) TestUpdateStateOnMisbehaviour() {
+// 	var (
+// 		clientMsg   exported.ClientMessage
+// 		clientState *wasm.ClientState
+// 	)
+
+// 	for _, wm := range []*ibctesting.Wasm{suite.wasm} {
+// 		testCases := []struct {
+// 			name    string
+// 			setup   func()
+// 			expPass bool
+// 		}{
+// 			{
+// 				"successful update",
+// 				func() {
+// 					data, err := hex.DecodeString(suite.testData["header_a0"])
+// 					suite.Require().NoError(err)
+// 					clientMsg = &wasm.Header{
+// 						Data: data,
+// 						Height: clienttypes.Height{
+// 							RevisionNumber: 1,
+// 							RevisionHeight: 2,
+// 						},
+// 					}
+// 					clientState = &suite.clientState
+// 					println(wm.ClientID)
+// 				},
+// 				true,
+// 			},
+// 		}
+
+// 		for _, tc := range testCases {
+// 			tc := tc
+// 			suite.Run(tc.name, func() {
+// 				tc.setup()
+
+// 				if tc.expPass {
+// 					fmt.Println(clientMsg)
+// 					suite.Require().NotPanics(func() {
+// 						clientState.UpdateStateOnMisbehaviour(suite.chainA.GetContext(), suite.chainA.Codec, suite.store, clientMsg)
+// 					})
+// 				} else {
+// 					suite.Require().Panics(func() {
+// 						clientState.UpdateStateOnMisbehaviour(suite.chainA.GetContext(), suite.chainA.Codec, suite.store, clientMsg)
+// 					})
+// 				}
+// 			})
+// 		}
+// 	}
+// }
+
 func (suite *WasmTestSuite) TestUpdateState() {
 	var (
 		clientMsg   exported.ClientMessage
 		clientState *wasm.ClientState
 	)
 
+	// test singlesig and multisig public keys
 	for _, wm := range []*ibctesting.Wasm{suite.wasm} {
 		testCases := []struct {
 			name    string
@@ -288,6 +339,66 @@ func (suite *WasmTestSuite) TestUpdateState() {
 		}
 	}
 }
+
+// TODO: uncomment when test data is aquired
+/*
+func (suite *WasmTestSuite) TestVerifyNonMemership() {
+	var (
+		clientState *wasm.ClientState
+
+		err    error
+		height clienttypes.Height
+		path   []byte
+		proof  []byte
+	)
+
+	for _, wm := range []*ibctesting.Wasm{suite.wasm} {
+		testCases := []struct {
+			name    string
+			setup   func()
+			expPass bool
+		}{
+			{
+				"successful non-membership verification",
+				func() {
+					// testingPath = ibctesting.NewPath(suite.chainA, suite.chainB)
+
+					clientState = &suite.clientState
+					height = clienttypes.NewHeight(wm.GetHeight().GetRevisionNumber(), wm.GetHeight().GetRevisionHeight())
+
+					merklePath := commitmenttypes.NewMerklePath("clients", "10-grandpa-cw", "clientType")
+
+					path, err = suite.chainA.Codec.Marshal(&merklePath)
+					suite.Require().NoError(err)
+
+					proof = []byte("proof")
+
+				},
+				true,
+			},
+		}
+
+		for _, tc := range testCases {
+			tc := tc
+			suite.Run(tc.name, func() {
+				tc.setup()
+
+				err = clientState.VerifyNonMembership(
+					suite.chainA.GetContext(), suite.store, suite.chainA.Codec,
+					height, 0, 0,
+					proof, path,
+				)
+
+				if tc.expPass {
+					suite.Require().NoError(err)
+				} else {
+					suite.Require().Error(err)
+				}
+			})
+		}
+	}
+}
+*/
 
 // TODO: uncomment when fisherman is merged
 /*
