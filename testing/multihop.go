@@ -9,6 +9,7 @@ import (
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
 )
 
+// TODO: Extract proof generation so it only depends on minimal params
 // GenerateMultiHopProof generate a proof for key path on the source (aka. paths[0].EndpointA) verified on the dest chain (aka.
 // paths[len(paths)-1].EndpointB) and all intermediate consensus states.
 //
@@ -116,7 +117,7 @@ func GenerateMultiHopConsensusProof(
 			)
 		}
 
-		keyPrefixedConsAB, err := GetConsensusStatePrefix(self, heightAB)
+		keyPrefixedConsAB, err := getConsensusStatePrefix(self, heightAB)
 		if err != nil {
 			return nil, nil, fmt.Errorf(
 				"failed to get consensus state prefix at height %d and revision %d: %w",
@@ -127,7 +128,7 @@ func GenerateMultiHopConsensusProof(
 		}
 
 		// proof of A's consensus state (heightAB) on B at height BC
-		consensusProof, _ := GetConsStateProof(self, heightBC, heightAB, self.ClientID)
+		consensusProof, _ := getConsStateProof(self, heightBC, heightAB, self.ClientID)
 
 		var consensusStateMerkleProof commitmenttypes.MerkleProof
 		if err := self.Chain.Codec.Unmarshal(consensusProof, &consensusStateMerkleProof); err != nil {
@@ -169,12 +170,12 @@ func GenerateMultiHopConsensusProof(
 		})
 
 		// now to connection proof verification
-		connectionKey, err := GetPrefixedConnectionKey(self)
+		connectionKey, err := getPrefixedConnectionKey(self)
 		if err != nil {
 			return nil, nil, err
 		}
 
-		connectionProof, _ := GetConnectionProof(self, heightBC, self.ConnectionID)
+		connectionProof, _ := getConnectionProof(self, heightBC, self.ConnectionID)
 		var connectionMerkleProof commitmenttypes.MerkleProof
 		if err := self.Chain.Codec.Unmarshal(connectionProof, &connectionMerkleProof); err != nil {
 			return nil, nil, fmt.Errorf(
@@ -222,141 +223,8 @@ func GenerateMultiHopConsensusProof(
 	return consStateProofs, connectionProofs, nil
 }
 
-// VerifyMultiHopConsensusStateProof verifies the consensus state of paths[0].EndpointA on paths[len(paths)-1].EndpointB.
-func VerifyMultiHopConsensusStateProof(
-	endpoint *Endpoint,
-	consensusProofs []*channeltypes.MultihopProof,
-	connectionProofs []*channeltypes.MultihopProof,
-) error {
-	lastConsstate := endpoint.GetConsensusState(endpoint.GetClientState().GetLatestHeight())
-	var consState exported.ConsensusState
-	//var connectionEnd connectiontypes.ConnectionEnd
-	for i := len(consensusProofs) - 1; i >= 0; i-- {
-		consStateProof := consensusProofs[i]
-		connectionProof := connectionProofs[i]
-		if err := endpoint.Chain.Codec.UnmarshalInterface(consStateProof.Value, &consState); err != nil {
-			return fmt.Errorf("failed to unpack consesnsus state: %w", err)
-		}
-
-		var proof commitmenttypes.MerkleProof
-		if err := endpoint.Chain.Codec.Unmarshal(consStateProof.Proof, &proof); err != nil {
-			return fmt.Errorf("failed to unmarshal consensus state proof: %w", err)
-		}
-
-		if err := proof.VerifyMembership(
-			commitmenttypes.GetSDKSpecs(),
-			lastConsstate.GetRoot(),
-			*consStateProof.PrefixedKey,
-			consStateProof.Value,
-		); err != nil {
-			return fmt.Errorf("failed to verify consensus proof on chain '%s': %w", endpoint.Chain.ChainID, err)
-		}
-
-		proof.Reset()
-		if err := endpoint.Chain.Codec.Unmarshal(connectionProof.Proof, &proof); err != nil {
-			return fmt.Errorf("failed to unmarshal connection proof: %w", err)
-		}
-
-		// fmt.Printf("root: %x\n", lastConsstate.GetRoot())
-		// fmt.Printf("connectionProof.PrefixedKey: %s\n", connectionProof.PrefixedKey.String())
-		// fmt.Printf("value: %x\n", connectionProof.Value)
-		if err := proof.VerifyMembership(
-			commitmenttypes.GetSDKSpecs(),
-			lastConsstate.GetRoot(),
-			*connectionProof.PrefixedKey,
-			connectionProof.Value,
-		); err != nil {
-			return fmt.Errorf("failed to verify connection proof on chain '%s': %w", endpoint.Chain.ChainID, err)
-		}
-
-		lastConsstate = consState
-	}
-	return nil
-}
-
-// VerifyMultiHopProofMembership verifies a multihop membership proof including all intermediate state proofs.
-func VerifyMultiHopProofMembership(
-	endpoint *Endpoint,
-	proofs *channeltypes.MsgMultihopProofs,
-	key *commitmenttypes.MerklePath,
-	expectedVal []byte,
-) error {
-	if len(proofs.ConsensusProofs) < 1 {
-		return fmt.Errorf(
-			"proof must have at least two elements where the first one is the proof for the key and the rest are for the consensus states",
-		)
-	}
-	if len(proofs.ConsensusProofs) != len(proofs.ConnectionProofs) {
-		return fmt.Errorf("the number of connection (%d) and consensus (%d) proofs must be equal",
-			len(proofs.ConnectionProofs), len(proofs.ConsensusProofs))
-	}
-	if err := VerifyMultiHopConsensusStateProof(endpoint, proofs.ConsensusProofs, proofs.ConnectionProofs); err != nil {
-		return fmt.Errorf("failed to verify consensus state proof: %w", err)
-	}
-	var keyProof commitmenttypes.MerkleProof
-	if err := endpoint.Chain.Codec.Unmarshal(proofs.KeyProof.Proof, &keyProof); err != nil {
-		return fmt.Errorf("failed to unmarshal key proof: %w", err)
-	}
-	var secondConsState exported.ConsensusState
-	if err := endpoint.Chain.Codec.UnmarshalInterface(proofs.ConsensusProofs[0].Value, &secondConsState); err != nil {
-		return fmt.Errorf("failed to unpack consensus state: %w", err)
-	}
-
-	return keyProof.VerifyMembership(
-		commitmenttypes.GetSDKSpecs(),
-		secondConsState.GetRoot(),
-		*key,
-		expectedVal,
-	)
-}
-
-// VerifyMultiHopProofNonMembership verifies a multihop proof of non-membership including all intermediate state proofs.
-func VerifyMultiHopProofNonMembership(endpoint *Endpoint, proofs *channeltypes.MsgMultihopProofs, key *commitmenttypes.MerklePath) error {
-	if len(proofs.ConsensusProofs) < 1 {
-		return fmt.Errorf(
-			"proof must have at least two elements where the first one is the proof for the key and the rest are for the consensus states",
-		)
-	}
-	if len(proofs.ConsensusProofs) != len(proofs.ConnectionProofs) {
-		return fmt.Errorf("the number of connection (%d) and consensus (%d) proofs must be equal",
-			len(proofs.ConnectionProofs), len(proofs.ConsensusProofs))
-	}
-	if err := VerifyMultiHopConsensusStateProof(endpoint, proofs.ConsensusProofs, proofs.ConnectionProofs); err != nil {
-		return fmt.Errorf("failed to verify consensus state proof: %w", err)
-	}
-	var keyProof commitmenttypes.MerkleProof
-	if err := endpoint.Chain.Codec.Unmarshal(proofs.KeyProof.Proof, &keyProof); err != nil {
-		return fmt.Errorf("failed to unmarshal key proof: %w", err)
-	}
-	var secondConsState exported.ConsensusState
-	if err := endpoint.Chain.Codec.UnmarshalInterface(proofs.ConsensusProofs[0].Value, &secondConsState); err != nil {
-		return fmt.Errorf("failed to unpack consensus state: %w", err)
-	}
-	err := keyProof.VerifyNonMembership(
-		commitmenttypes.GetSDKSpecs(),
-		secondConsState.GetRoot(),
-		*key,
-	)
-	return err
-}
-
-// GetConsensusState returns the consensus state of self's counterparty chain stored on self, where height is according to the counterparty.
-func GetConsensusState(self *Endpoint, height exported.Height) ([]byte, error) {
-	consensusState := self.GetConsensusState(height)
-	return self.Counterparty.Chain.Codec.MarshalInterface(consensusState)
-}
-
-// GetConsensusStateProof returns the consensus state proof for the state of self's counterparty chain stored on self, where height is the latest
-// self client height.
-func GetConsensusStateProof(self *Endpoint) commitmenttypes.MerkleProof {
-	proofBz, _ := self.Chain.QueryConsensusStateProof(self.ClientID)
-	var proof commitmenttypes.MerkleProof
-	self.Chain.Codec.MustUnmarshal(proofBz, &proof)
-	return proof
-}
-
-// GetConsStateProof returns the merkle proof of consensusState of self's clientId and at `consensusHeight` stored on self at `selfHeight`.
-func GetConsStateProof(
+// getConsStateProof returns the merkle proof of consensusState of self's clientId and at `consensusHeight` stored on self at `selfHeight`.
+func getConsStateProof(
 	self *Endpoint,
 	selfHeight exported.Height,
 	consensusHeight exported.Height,
@@ -366,8 +234,8 @@ func GetConsStateProof(
 	return self.Chain.QueryProofAtHeight(consensusKey, int64(selfHeight.GetRevisionHeight()))
 }
 
-// GetConnectionProof returns the proof of a connection at the specified height
-func GetConnectionProof(
+// getConnectionProof returns the proof of a connection at the specified height
+func getConnectionProof(
 	self *Endpoint,
 	selfHeight exported.Height,
 	connectionID string,
@@ -376,14 +244,14 @@ func GetConnectionProof(
 	return self.Chain.QueryProofAtHeight(connectionKey, int64(selfHeight.GetRevisionHeight()))
 }
 
-// GetConsensusStatePrefix returns the merkle prefix of consensus state of self's counterparty chain at height `consensusHeight` stored on self.
-func GetConsensusStatePrefix(self *Endpoint, consensusHeight exported.Height) (commitmenttypes.MerklePath, error) {
+// getConsensusStatePrefix returns the merkle prefix of consensus state of self's counterparty chain at height `consensusHeight` stored on self.
+func getConsensusStatePrefix(self *Endpoint, consensusHeight exported.Height) (commitmenttypes.MerklePath, error) {
 	keyPath := commitmenttypes.NewMerklePath(host.FullConsensusStatePath(self.ClientID, consensusHeight))
 	return commitmenttypes.ApplyPrefix(self.Chain.GetPrefix(), keyPath)
 }
 
-// GetPrefixedConnectionKey returns the connection prefix associated
-func GetPrefixedConnectionKey(self *Endpoint) (commitmenttypes.MerklePath, error) {
+// getPrefixedConnectionKey returns the connection prefix associated
+func getPrefixedConnectionKey(self *Endpoint) (commitmenttypes.MerklePath, error) {
 	keyPath := commitmenttypes.NewMerklePath(host.ConnectionPath(self.ConnectionID))
 	return commitmenttypes.ApplyPrefix(self.Chain.GetPrefix(), keyPath)
 }
