@@ -16,6 +16,7 @@ func (suite *MultihopTestSuite) TestChanOpenInit() {
 
 	testCases := []testCase{
 		{"success", func() {
+			suite.SetupConnections()
 
 			suite.A().Chain.CreatePortCapability(
 				suite.A().Chain.GetSimApp().ScopedIBCMockKeeper,
@@ -24,6 +25,7 @@ func (suite *MultihopTestSuite) TestChanOpenInit() {
 			portCap = suite.A().Chain.GetPortCapability(suite.A().ChannelConfig.PortID)
 		}, true},
 		{"capability is incorrect", func() {
+			suite.SetupConnections()
 
 			suite.A().Chain.CreatePortCapability(
 				suite.A().Chain.GetSimApp().ScopedIBCMockKeeper,
@@ -88,6 +90,7 @@ func (suite *MultihopTestSuite) TestChanOpenTryMultihop() {
 
 	testCases := []testCase{
 		{"success", func() {
+			suite.SetupConnections()
 			// manually call ChanOpenInit so we can properly set the connectionHops
 			suite.Require().NoError(suite.A().ChanOpenInit())
 
@@ -162,6 +165,7 @@ func (suite *MultihopTestSuite) TestChanOpenAckMultihop() {
 
 	testCases := []testCase{
 		{"success", func() {
+			suite.SetupConnections()
 			suite.Require().NoError(suite.A().ChanOpenInit())
 			suite.Require().NoError(suite.Z().ChanOpenTry())
 			channelCap = suite.A().Chain.GetChannelCapability(suite.A().ChannelConfig.PortID, suite.A().ChannelID)
@@ -202,6 +206,7 @@ func (suite *MultihopTestSuite) TestChanOpenConfirmMultihop() {
 
 	testCases := []testCase{
 		{"success", func() {
+			suite.SetupConnections()
 			suite.Require().NoError(suite.A().ChanOpenInit())
 			suite.Require().NoError(suite.Z().ChanOpenTry())
 			suite.Require().NoError(suite.A().ChanOpenAck())
@@ -241,7 +246,7 @@ func (suite *MultihopTestSuite) TestChanCloseInitMultihop() {
 
 	testCases := []testCase{
 		{"success", func() {
-			suite.coord.Setup(suite.chanPath)
+			suite.SetupChannels()
 			channelCap = suite.A().Chain.GetChannelCapability(
 				suite.A().ChannelConfig.PortID,
 				suite.A().ChannelID,
@@ -279,7 +284,7 @@ func (suite *MultihopTestSuite) TestChanCloseConfirmMultihop() {
 
 	testCases := []testCase{
 		{"success", func() {
-			suite.coord.Setup(suite.chanPath)
+			suite.SetupChannels()
 			suite.Require().NoError(suite.A().SetChannelClosed())
 			channelCap = suite.Z().Chain.GetChannelCapability(
 				suite.Z().ChannelConfig.PortID,

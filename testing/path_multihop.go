@@ -33,15 +33,15 @@ func CreateLinkedChains(
 		paths[i] = NewPath(coord.GetChain(GetChainID(i+1)), coord.GetChain(GetChainID(i+2)))
 	}
 
-	// create connections for each path
-	for _, path := range paths {
-		path := path
-		t.Require().Equal(path.EndpointA.ConnectionID, "")
-		t.Require().Equal(path.EndpointB.ConnectionID, "")
-		coord.SetupConnections(path)
-		t.Require().NotEqual(path.EndpointA.ConnectionID, "")
-		t.Require().NotEqual(path.EndpointB.ConnectionID, "")
-	}
+	// // create connections for each path
+	// for _, path := range paths {
+	// 	path := path
+	// 	t.Require().Equal(path.EndpointA.ConnectionID, "")
+	// 	t.Require().Equal(path.EndpointB.ConnectionID, "")
+	// 	coord.SetupConnections(path)
+	// 	t.Require().NotEqual(path.EndpointA.ConnectionID, "")
+	// 	t.Require().NotEqual(path.EndpointB.ConnectionID, "")
+	// }
 
 	return coord, paths
 }

@@ -56,7 +56,7 @@ func (suite *MultihopTestSuite) TestRecvPacket() {
 			if tc.orderedChannel {
 				suite.chanPath.SetChannelOrdered()
 			}
-			suite.coord.Setup(suite.chanPath) // setup multihop channels
+			suite.SetupChannels() // setup multihop channels
 
 			tc.malleate()
 
@@ -145,7 +145,7 @@ func (suite *MultihopTestSuite) TestAcknowledgePacket() {
 			if tc.orderedChannel {
 				suite.chanPath.SetChannelOrdered()
 			}
-			suite.coord.Setup(suite.chanPath) // setup multihop channels
+			suite.SetupChannels() // setup multihop channels
 
 			tc.malleate()
 
