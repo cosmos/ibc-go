@@ -347,7 +347,7 @@ func NewSimAppWithConsensusType(
 		panic(fmt.Sprintf("client type %s is not supported", chainConsensusType))
 	}
 	// Create IBC Keeper
-	app.IBCKeeper = ibckeeper.NewKeeper(
+	app.IBCKeeper = ibckeeper.NewKeeperWithSelfClient(
 		appCodec, keys[ibchost.StoreKey], app.GetSubspace(ibchost.ModuleName), app.StakingKeeper, app.UpgradeKeeper, scopedIBCKeeper, selfClient, nil,
 	)
 

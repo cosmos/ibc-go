@@ -9,6 +9,8 @@ import (
 	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
+	ibcdmtypes "github.com/cosmos/ibc-go/v3/modules/light-clients/01-dymint/types"
+
 	clientkeeper "github.com/cosmos/ibc-go/v3/modules/core/02-client/keeper"
 	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	connectionkeeper "github.com/cosmos/ibc-go/v3/modules/core/03-connection/keeper"
@@ -36,8 +38,19 @@ type Keeper struct {
 	Router           *porttypes.Router
 }
 
-// NewKeeper creates a new ibc Keeper
+//IBCKeeper initialized in wasm code (in wasmd@v0.28.0/x/wasm/keeper/test_common.go:354)
+//We need to maintain backward comptabile interface
 func NewKeeper(
+	cdc codec.BinaryCodec, key sdk.StoreKey, paramSpace paramtypes.Subspace,
+	stakingKeeper clienttypes.StakingKeeper, upgradeKeeper clienttypes.UpgradeKeeper,
+	scopedKeeper capabilitykeeper.ScopedKeeper,
+) *Keeper {
+	//Using dymint and nil as default. we can panic instead
+	return NewKeeperWithSelfClient(cdc, key, paramSpace, stakingKeeper, upgradeKeeper, scopedKeeper, ibcdmtypes.NewSelfClient(), nil)
+}
+
+// NewKeeper creates a new ibc Keeper
+func NewKeeperWithSelfClient(
 	cdc codec.BinaryCodec, key sdk.StoreKey, paramSpace paramtypes.Subspace,
 	stakingKeeper clienttypes.StakingKeeper, upgradeKeeper clienttypes.UpgradeKeeper,
 	scopedKeeper capabilitykeeper.ScopedKeeper, selfClient exported.SelfClient, clientHooks exported.ClientHooks,

@@ -64,7 +64,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 		upgradeKeeper clienttypes.UpgradeKeeper
 		scopedKeeper  capabilitykeeper.ScopedKeeper
 		newIBCKeeper  = func() {
-			ibckeeper.NewKeeper(
+			ibckeeper.NewKeeperWithSelfClient(
 				suite.chainA.GetSimApp().AppCodec(),
 				suite.chainA.GetSimApp().GetKey(ibchost.StoreKey),
 				suite.chainA.GetSimApp().GetSubspace(ibchost.ModuleName),
