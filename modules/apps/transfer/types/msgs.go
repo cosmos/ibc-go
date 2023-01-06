@@ -14,7 +14,7 @@ import (
 // msg types
 const (
 	TypeMsgTransfer        = "transfer"
-	MaximumReceiverAddress = 128 // maximum length of the receiver address in bytes
+	MaximumReceiverAddress = 2048 // maximum length of the receiver address in bytes
 )
 
 // NewMsgTransfer creates a new MsgTransfer instance
