@@ -8,7 +8,7 @@ import (
 	clientsim "github.com/cosmos/ibc-go/v6/modules/core/02-client/simulation"
 	connectionsim "github.com/cosmos/ibc-go/v6/modules/core/03-connection/simulation"
 	channelsim "github.com/cosmos/ibc-go/v6/modules/core/04-channel/simulation"
-	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
+	ibcexported "github.com/cosmos/ibc-go/v6/modules/core/exported"
 	"github.com/cosmos/ibc-go/v6/modules/core/keeper"
 )
 
@@ -28,6 +28,6 @@ func NewDecodeStore(k keeper.Keeper) func(kvA, kvB kv.Pair) string {
 			return res
 		}
 
-		panic(fmt.Sprintf("invalid %s key prefix: %s", host.ModuleName, string(kvA.Key)))
+		panic(fmt.Sprintf("invalid %s key prefix: %s", ibcexported.ModuleName, string(kvA.Key)))
 	}
 }

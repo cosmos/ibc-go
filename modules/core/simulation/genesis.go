@@ -15,7 +15,7 @@ import (
 	connectiontypes "github.com/cosmos/ibc-go/v6/modules/core/03-connection/types"
 	channelsims "github.com/cosmos/ibc-go/v6/modules/core/04-channel/simulation"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
+	ibcexported "github.com/cosmos/ibc-go/v6/modules/core/exported"
 	"github.com/cosmos/ibc-go/v6/modules/core/types"
 )
 
@@ -59,6 +59,6 @@ func RandomizedGenState(simState *module.SimulationState) {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("Selected randomly generated %s parameters:\n%s\n", host.ModuleName, bz)
-	simState.GenState[host.ModuleName] = simState.Cdc.MustMarshalJSON(&ibcGenesis)
+	fmt.Printf("Selected randomly generated %s parameters:\n%s\n", ibcexported.ModuleName, bz)
+	simState.GenState[ibcexported.ModuleName] = simState.Cdc.MustMarshalJSON(&ibcGenesis)
 }
