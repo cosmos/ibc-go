@@ -5,6 +5,7 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
+	"github.com/cosmos/ibc-go/v6/internal/logging"
 	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
@@ -73,7 +74,7 @@ func (k Keeper) registerInterchainAccount(ctx sdk.Context, connectionID, portID,
 	}
 
 	events := res.GetEvents()
-	k.Logger(ctx).Debug("emitting interchain account registration events", "events", events)
+	k.Logger(ctx).Debug("emitting interchain account registration events", logging.SdkEventsToLogArguments(events))
 
 	// NOTE: The sdk msg handler creates a new EventManager, so events must be correctly propagated back to the current context
 	ctx.EventManager().EmitEvents(events)
