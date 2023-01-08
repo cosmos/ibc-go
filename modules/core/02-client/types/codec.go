@@ -133,12 +133,12 @@ func PackClientMessage(clientMessage exported.ClientMessage) (*codectypes.Any, e
 		return nil, sdkerrors.Wrapf(sdkerrors.ErrPackAny, "cannot proto marshal %T", clientMessage)
 	}
 
-	any, err := codectypes.NewAnyWithValue(msg)
+	protoAny, err := codectypes.NewAnyWithValue(msg)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrPackAny, err.Error())
 	}
 
-	return any, nil
+	return protoAny, nil
 }
 
 // UnpackClientMessage unpacks an Any into a ClientMessage. It returns an error if the

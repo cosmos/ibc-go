@@ -456,11 +456,11 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 			packetData = icaPacketData.GetBytes()
 
 			// build expected ack
-			any, err := codectypes.NewAnyWithValue(&banktypes.MsgSendResponse{})
+			protoAny, err := codectypes.NewAnyWithValue(&banktypes.MsgSendResponse{})
 			suite.Require().NoError(err)
 
 			expectedTxResponse, err := proto.Marshal(&sdk.TxMsgData{
-				MsgResponses: []*codectypes.Any{any},
+				MsgResponses: []*codectypes.Any{protoAny},
 			})
 			suite.Require().NoError(err)
 

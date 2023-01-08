@@ -160,11 +160,11 @@ func TestUnpackInterfaces_Header(t *testing.T) {
 	cryptocodec.RegisterInterfaces(registry)
 
 	pk := secp256k1.GenPrivKey().PubKey()
-	any, err := codectypes.NewAnyWithValue(pk)
+	protoAny, err := codectypes.NewAnyWithValue(pk)
 	require.NoError(t, err)
 
 	header := solomachine.Header{
-		NewPublicKey: any,
+		NewPublicKey: protoAny,
 	}
 	bz, err := header.Marshal()
 	require.NoError(t, err)
@@ -184,11 +184,11 @@ func TestUnpackInterfaces_HeaderData(t *testing.T) {
 	cryptocodec.RegisterInterfaces(registry)
 
 	pk := secp256k1.GenPrivKey().PubKey()
-	any, err := codectypes.NewAnyWithValue(pk)
+	protoAny, err := codectypes.NewAnyWithValue(pk)
 	require.NoError(t, err)
 
 	hd := solomachine.HeaderData{
-		NewPubKey: any,
+		NewPubKey: protoAny,
 	}
 	bz, err := hd.Marshal()
 	require.NoError(t, err)
