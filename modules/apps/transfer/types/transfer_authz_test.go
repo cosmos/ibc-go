@@ -31,7 +31,7 @@ func TestTransferAuthorization(t *testing.T) {
 	t.Log("verify authorization returns valid method name")
 	require.Equal(t, authorization.MsgTypeURL(), "/ibc.applications.transfer.v1.MsgTransfer")
 	require.NoError(t, authorization.ValidateBasic())
-	transfer := NewMsgTransfer(sourcePort, sourceChannel, coin1000, fromAddr.String(), toAddr.String(), timeoutHeight, 0)
+	transfer := NewMsgTransfer(sourcePort, sourceChannel, coin1000, fromAddr.String(), toAddr.String(), timeoutHeight, 0, "")
 	require.NoError(t, authorization.ValidateBasic())
 
 	t.Log("verify updated authorization returns nil")
@@ -44,7 +44,7 @@ func TestTransferAuthorization(t *testing.T) {
 	authorization = NewTransferAuthorization([]string{sourcePort}, []string{sourceChannel}, []sdk.Coins{coins1000}, [][]string{{toAddr.String()}})
 	require.Equal(t, authorization.MsgTypeURL(), "/ibc.applications.transfer.v1.MsgTransfer")
 	require.NoError(t, authorization.ValidateBasic())
-	transfer = NewMsgTransfer(sourcePort, sourceChannel, coin500, fromAddr.String(), toAddr.String(), timeoutHeight, 0)
+	transfer = NewMsgTransfer(sourcePort, sourceChannel, coin500, fromAddr.String(), toAddr.String(), timeoutHeight, 0, "")
 	require.NoError(t, authorization.ValidateBasic())
 	resp, err = authorization.Accept(ctx, transfer)
 	require.NoError(t, err)
@@ -61,7 +61,7 @@ func TestTransferAuthorization(t *testing.T) {
 
 	t.Log("expect error when spend limit for specific port and channel is not set")
 	authorization = NewTransferAuthorization([]string{sourcePort}, []string{sourceChannel}, []sdk.Coins{coins1000}, [][]string{{toAddr.String()}})
-	transfer = NewMsgTransfer(sourcePort2, sourceChannel2, coin500, fromAddr.String(), toAddr.String(), timeoutHeight, 0)
+	transfer = NewMsgTransfer(sourcePort2, sourceChannel2, coin500, fromAddr.String(), toAddr.String(), timeoutHeight, 0, "")
 	_, err = authorization.Accept(ctx, transfer)
 	require.Error(t, err)
 
@@ -71,7 +71,7 @@ func TestTransferAuthorization(t *testing.T) {
 		[]string{sourceChannel, sourceChannel2},
 		[]sdk.Coins{coins1000, coins1000},
 		[][]string{{toAddr.String()}, {toAddr.String()}})
-	transfer = NewMsgTransfer(sourcePort, sourceChannel, coin1000, fromAddr.String(), toAddr.String(), timeoutHeight, 0)
+	transfer = NewMsgTransfer(sourcePort, sourceChannel, coin1000, fromAddr.String(), toAddr.String(), timeoutHeight, 0, "")
 	resp, err = authorization.Accept(ctx, transfer)
 	require.NoError(t, err)
 	require.NotNil(t, resp.Updated)
@@ -80,7 +80,7 @@ func TestTransferAuthorization(t *testing.T) {
 
 	t.Log("expect error when transferring to not allowed address")
 	authorization = NewTransferAuthorization([]string{sourcePort}, []string{sourceChannel}, []sdk.Coins{coins1000}, [][]string{{fromAddr.String()}})
-	transfer = NewMsgTransfer(sourcePort, sourceChannel, coin500, fromAddr.String(), toAddr.String(), timeoutHeight, 0)
+	transfer = NewMsgTransfer(sourcePort, sourceChannel, coin500, fromAddr.String(), toAddr.String(), timeoutHeight, 0, "")
 	_, err = authorization.Accept(ctx, transfer)
 	require.Error(t, err)
 }
