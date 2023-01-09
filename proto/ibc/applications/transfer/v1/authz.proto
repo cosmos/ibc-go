@@ -8,7 +8,8 @@ import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
 import "cosmos/base/v1beta1/coin.proto";
 
-message PortChannelAmount {
+// Allocation defines the spend limit for a particular port and channel
+message Allocation {
   // the port on which the packet will be sent
   string source_port = 1 [(gogoproto.moretags) = "yaml:\"source_port\""];
   // the channel by which the packet will be sent
@@ -16,8 +17,8 @@ message PortChannelAmount {
   // spend limitation on the channel
   repeated cosmos.base.v1beta1.Coin spend_limit = 3
       [(gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"];
-  // allowed addresses to be sent via transfer message
-  repeated string allowed_addresses = 4;
+  // allow list of receivers, an empty allow list permits any receiver address
+  repeated string allow_list = 4;
 }
 
 // TransferAuthorization allows the grantee to spend up to spend_limit coins from
@@ -26,5 +27,5 @@ message TransferAuthorization {
   option (cosmos_proto.implements_interface) = "Authorization";
 
   // port and channel amounts
-  repeated PortChannelAmount allocations = 1 [(gogoproto.nullable) = false];
+  repeated Allocation allocations = 1 [(gogoproto.nullable) = false];
 }

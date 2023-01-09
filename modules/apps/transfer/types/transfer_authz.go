@@ -15,13 +15,13 @@ var _ authz.Authorization = &TransferAuthorization{}
 
 // NewTransferAuthorization creates a new TransferAuthorization object.
 func NewTransferAuthorization(sourcePorts, sourceChannels []string, spendLimits []sdk.Coins, allowedAddrs [][]string) *TransferAuthorization {
-	allocations := []PortChannelAmount{}
+	allocations := []Allocation{}
 	for index := range sourcePorts {
-		allocations = append(allocations, PortChannelAmount{
-			SourcePort:       sourcePorts[index],
-			SourceChannel:    sourceChannels[index],
-			SpendLimit:       spendLimits[index],
-			AllowedAddresses: allowedAddrs[index],
+		allocations = append(allocations, Allocation{
+			SourcePort:    sourcePorts[index],
+			SourceChannel: sourceChannels[index],
+			SpendLimit:    spendLimits[index],
+			AllowList:     allowedAddrs[index],
 		})
 	}
 	return &TransferAuthorization{
@@ -58,7 +58,7 @@ func (a TransferAuthorization) Accept(ctx sdk.Context, msg sdk.Msg) (authz.Accep
 				return authz.AcceptResponse{}, sdkerrors.ErrInsufficientFunds.Wrapf("requested amount is more than spend limit")
 			}
 
-			if !IsAllowedAddress(ctx, msgTransfer.Receiver, allocation.AllowedAddresses) {
+			if !IsAllowedAddress(ctx, msgTransfer.Receiver, allocation.AllowList) {
 				return authz.AcceptResponse{}, sdkerrors.ErrInvalidAddress.Wrapf("not allowed address for transfer")
 			}
 
@@ -71,11 +71,11 @@ func (a TransferAuthorization) Accept(ctx sdk.Context, msg sdk.Msg) (authz.Accep
 					Allocations: a.Allocations,
 				}}, nil
 			}
-			a.Allocations[index] = PortChannelAmount{
-				SourcePort:       allocation.SourcePort,
-				SourceChannel:    allocation.SourceChannel,
-				SpendLimit:       limitLeft,
-				AllowedAddresses: allocation.AllowedAddresses,
+			a.Allocations[index] = Allocation{
+				SourcePort:    allocation.SourcePort,
+				SourceChannel: allocation.SourceChannel,
+				SpendLimit:    limitLeft,
+				AllowList:     allocation.AllowList,
 			}
 
 			return authz.AcceptResponse{Accept: true, Delete: false, Updated: &TransferAuthorization{
@@ -103,11 +103,11 @@ func (a TransferAuthorization) ValidateBasic() error {
 		}
 
 		found := make(map[string]bool, 0)
-		for i := 0; i < len(allocation.AllowedAddresses); i++ {
-			if found[allocation.AllowedAddresses[i]] {
+		for i := 0; i < len(allocation.AllowList); i++ {
+			if found[allocation.AllowList[i]] {
 				return ErrDuplicateEntry
 			}
-			found[allocation.AllowedAddresses[i]] = true
+			found[allocation.AllowList[i]] = true
 		}
 	}
 	return nil
