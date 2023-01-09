@@ -176,7 +176,7 @@ The field `header` in `MsgUpdateClient` has been renamed to `client_message`.
 
 ## Solomachine
 
-The `06-solomachine` client implementation has been simplified in ibc-go/v7. In place store migrations have been added to migrate solomachine clients from `v2` to `v3`.
+The `06-solomachine` client implementation has been simplified in ibc-go/v7. In-place store migrations have been added to migrate solomachine clients from `v2` to `v3`.
 
 ### `ClientState`
 
@@ -255,7 +255,7 @@ message SignatureAndData {
  
   bytes    signature = 1;
 - DataType data_type = 2 [(gogoproto.moretags) = "yaml:\"data_type\""];
-+ bytes path         = 2;
++ bytes    path      = 2;
   bytes    data      = 3;
   uint64   timestamp = 4;
 }
