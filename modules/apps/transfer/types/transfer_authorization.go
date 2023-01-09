@@ -81,7 +81,7 @@ func (a TransferAuthorization) Accept(ctx sdk.Context, msg sdk.Msg) (authz.Accep
 func (a TransferAuthorization) ValidateBasic() error {
 	for _, allocation := range a.Allocations {
 		if allocation.SpendLimit == nil {
-			return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins,"spend limit cannot be nil")
+			return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, "spend limit cannot be nil")
 		}
 		if err := allocation.SpendLimit.Validate(); err != nil {
 			return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, err.Error())
