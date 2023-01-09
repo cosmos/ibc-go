@@ -22,7 +22,7 @@ Checks for evidence of a misbehaviour in `Header` or `Misbehaviour` type. It ass
 
 For an example of a `CheckForMisbehaviour` implementation, please check the [Tendermint light client](https://github.com/cosmos/ibc-go/blob/main/modules/light-clients/07-tendermint/misbehaviour_handle.go#L18).
 
-For example, the Tendermint light client [defines `Misbehaviour`](https://github.com/cosmos/ibc-go/blob/main/modules/light-clients/07-tendermint/misbehaviour.go) as two different types of situations: a situation where two conflicting `Headers` with the same height have been submitted to update a client's `ConsensusState` within the same trusting period, or that the two conflicting `Headers` have been submitted at different heights but the consensus states are not in the correct monotonic time ordering (BFT time violation). More explicitly, updating to a new height must have a timestamp greater than the previous consensus state, or, if inserting a consensus at a past height, then time must be less than those heights which come after and greater than heights which come before.
+> The Tendermint light client [defines `Misbehaviour`](https://github.com/cosmos/ibc-go/blob/main/modules/light-clients/07-tendermint/misbehaviour.go) as two different types of situations: a situation where two conflicting `Headers` with the same height have been submitted to update a client's `ConsensusState` within the same trusting period, or that the two conflicting `Headers` have been submitted at different heights but the consensus states are not in the correct monotonic time ordering (BFT time violation). More explicitly, updating to a new height must have a timestamp greater than the previous consensus state, or, if inserting a consensus at a past height, then time must be less than those heights which come after and greater than heights which come before.
 
 ## `UpdateStateOnMisbehaviour`
 
@@ -38,6 +38,24 @@ It assumes the `ClientMessage` has already been verified.
 
 For an example of a `UpdateState` implementation, please check the [Tendermint light client](https://github.com/cosmos/ibc-go/blob/main/modules/light-clients/07-tendermint/update.go#L131).
 
-## Reference Example
+## Putting it all together
 
 The `02-client Keeper` module in ibc-go offers a reference as to how these functions will be used to [update the client](https://github.com/cosmos/ibc-go/blob/main/modules/core/02-client/keeper/client.go#L48).
+
+```golang
+if err := clientState.VerifyClientMessage(clientMessage); err != nil {
+        return err
+    }
+    
+    foundMisbehaviour := clientState.CheckForMisbehaviour(clientMessage)
+    if foundMisbehaviour {
+        clientState.UpdateStateOnMisbehaviour(clientMessage)
+        // emit misbehaviour event
+        return 
+    }
+    
+    clientState.UpdateState(clientMessage) // expects no-op on duplicate header
+    // emit update event
+    return
+}
+
