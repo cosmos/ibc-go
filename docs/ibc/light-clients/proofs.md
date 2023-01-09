@@ -12,13 +12,15 @@ For the purposes of `ibc-go`, there are two types of proofs which are important:
 
 ## Existence Proofs
 
-Existence proofs are used in IBC transactions which involve verification of counterparty state. For example, this includes verification of connection and channel state within IBC protocol handshakes as well as proving the existence of packet commitments and receipts leveraged by IBC applications.
+Existence proofs are used in IBC transactions which involve verification of counterparty state for transactions which will result in the writing of provable state. For example, this includes verification of IBC store state for handshakes and packets.
 
-Put simply, existence proofs prove that a particular key and value exists in the tree -- that the counterparty has written a packet receipt into the store. Under the hood, an IBC existence proof comprises of two  proofs: an IAVL proof that the key exists in IBC store/IBC root hash, and a proof that the IBC root hash exists in the multistore root hash.
+Put simply, existence proofs prove that a particular key and value exists in the tree. Under the hood, an IBC existence proof comprises of two  proofs: an IAVL proof that the key exists in IBC store/IBC root hash, and a proof that the IBC root hash exists in the multistore root hash.
 
 ## Non-Existence Proofs
 
-Non-existence proofs verify the absence of data stored within counterparty state and are used to prove that a key does NOT exist in the store. As stated above, these types of proofs are used to timeout packets by proving that the counterparty has not written a packet receipt into the store, meaning that a token transfer has NOT successfully occurred.
+Non-existence proofs verify the absence of data stored within counterparty state and are used to prove that a key does NOT exist in state. As stated above, these types of proofs can be used to timeout packets by proving that the counterparty has not written a packet receipt into the store, meaning that a token transfer has NOT successfully occurred.
+
+Some trees (e.g. SMT) may have a sentinel empty child for nonexistent keys. In this case, the ICS23 proof spec should include this `EmptyChild` so that ICS23 handles the nonexistence proof correctly.
 
 In some cases, there is a necessity to "mock" non-existence proofs if the counterparty does not have ability to prove absence. Since the verification method is designed to give complete control to client implementations, clients can support chains that do not provide absence proofs by verifying the existence of a non-empty sentinel `ABSENCE` value. In these special cases, the proof provided will be an ICS-23 `Existence` proof, and the client will verify that the `ABSENCE` value is stored under the given path for the given height.
 
