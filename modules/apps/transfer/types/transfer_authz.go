@@ -96,7 +96,7 @@ func (a TransferAuthorization) ValidateBasic() error {
 		found := make(map[string]bool, 0)
 		for i := 0; i < len(allocation.AllowedAddresses); i++ {
 			if found[allocation.AllowedAddresses[i]] {
-				return ErrDuplicateEntry
+				return sdkerrors.Wrapf(ErrInvalidAuthorization, "duplicate entry in allow list %s")
 			}
 			found[allocation.AllowedAddresses[i]] = true
 		}
