@@ -6,7 +6,7 @@ order: 10
 
 Learn how to implement the `ExportMetadata` interface {synopsis}
 
-## Pre-requisites Readings
+## Pre-requisite Readings
 
 - [Cosmos SDK module genesis](https://docs.cosmos.network/v0.47/building-modules/genesis) {prereq}
 
@@ -18,7 +18,7 @@ The `ExportMetadata` method of the `ClientState` interface provides light client
 ExportMetadata(clientStore sdk.KVStore) []GenesisMetadata
 ```
 
-`ExportMetadata` is provided the client store and returns an array of `GenesisMetadata`. For maximum flexibility, `GenesisMetadata` is defined as a simple interface containing two distinct `Key` and `Value` accesor methods.
+`ExportMetadata` is provided the client store and returns an array of `GenesisMetadata`. For maximum flexibility, `GenesisMetadata` is defined as a simple interface containing two distinct `Key` and `Value` accessor methods.
 
 ```go
 type GenesisMetadata interface {
