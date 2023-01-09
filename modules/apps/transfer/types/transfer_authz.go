@@ -12,9 +12,7 @@ import (
 
 const gasCostPerIteration = uint64(10)
 
-var (
-	_ authz.Authorization = &TransferAuthorization{}
-)
+var _ authz.Authorization = &TransferAuthorization{}
 
 // NewTransferAuthorization creates a new TransferAuthorization object.
 func NewTransferAuthorization(sourcePorts, sourceChannels []string, spendLimits []sdk.Coins, allowedAddrs [][]string) *TransferAuthorization {
