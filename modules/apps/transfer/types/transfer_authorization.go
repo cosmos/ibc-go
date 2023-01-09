@@ -46,11 +46,11 @@ func (a TransferAuthorization) Accept(ctx sdk.Context, msg sdk.Msg) (authz.Accep
 		if allocation.SourceChannel == msgTransfer.SourceChannel && allocation.SourcePort == msgTransfer.SourcePort {
 			limitLeft, isNegative := allocation.SpendLimit.SafeSub(msgTransfer.Token)
 			if isNegative {
-				return authz.AcceptResponse{}, sdkerrors.ErrInsufficientFunds.Wrapf("requested amount is more than spend limit")
+				return authz.AcceptResponse{}, sdkerrors.Wrapf(sdkerrors.ErrInsufficientFunds, "requested amount is more than spend limit")
 			}
 
 			if !isAllowedAddress(ctx, msgTransfer.Receiver, allocation.AllowedAddresses) {
-				return authz.AcceptResponse{}, sdkerrors.ErrInvalidAddress.Wrapf("not allowed address for transfer")
+				return authz.AcceptResponse{}, sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "not allowed address for transfer")
 			}
 
 			if limitLeft.IsZero() {
@@ -74,17 +74,17 @@ func (a TransferAuthorization) Accept(ctx sdk.Context, msg sdk.Msg) (authz.Accep
 			}}, nil
 		}
 	}
-	return authz.AcceptResponse{}, sdkerrors.ErrNotFound.Wrapf("requested port and channel allocation does not exist")
+	return authz.AcceptResponse{}, sdkerrors.Wrapf(sdkerrors.ErrNotFound, "requested port and channel allocation does not exist")
 }
 
 // ValidateBasic implements Authorization.ValidateBasic.
 func (a TransferAuthorization) ValidateBasic() error {
 	for _, allocation := range a.Allocations {
 		if allocation.SpendLimit == nil {
-			return sdkerrors.ErrInvalidCoins.Wrap("spend limit cannot be nil")
+			return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, "spend limit cannot be nil")
 		}
 		if err := allocation.SpendLimit.Validate(); err != nil {
-			return sdkerrors.ErrInvalidCoins.Wrapf(err.Error())
+			return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, err.Error())
 		}
 		if err := host.PortIdentifierValidator(allocation.SourcePort); err != nil {
 			return sdkerrors.Wrap(err, "invalid source port ID")
@@ -96,7 +96,7 @@ func (a TransferAuthorization) ValidateBasic() error {
 		found := make(map[string]bool, 0)
 		for i := 0; i < len(allocation.AllowedAddresses); i++ {
 			if found[allocation.AllowedAddresses[i]] {
-				return ErrDuplicateEntry
+				return sdkerrors.Wrapf(ErrInvalidAuthorization, "duplicate entry in allow list %s")
 			}
 			found[allocation.AllowedAddresses[i]] = true
 		}
