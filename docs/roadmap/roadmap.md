@@ -4,7 +4,7 @@ order: 1
 
 # Roadmap ibc-go
 
-_Lastest update: December 9, 2022_
+_Lastest update: December 21st, 2022_
 
 This document endeavours to inform the wider IBC community about plans and priorities for work on ibc-go by the team at Interchain GmbH. It is intended to broadly inform all users of ibc-go, including developers and operators of IBC, relayer, chain and wallet applications.
 
@@ -21,6 +21,10 @@ Follow the progress with the [beta](https://github.com/cosmos/ibc-go/milestone/2
 ### Upgrade SDK v0.47.x
 
 Follow the progress with the [milestone](https://github.com/cosmos/ibc-go/milestone/36).
+
+### Add `authz` support to 20-transfer
+
+See [this issue](https://github.com/cosmos/ibc-go/issues/2431) for more details.
 
 ## v7.1.0
 
