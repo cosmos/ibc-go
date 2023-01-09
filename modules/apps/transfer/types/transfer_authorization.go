@@ -4,6 +4,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/authz"
+
 	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
 
 	"golang.org/x/exp/slices"
