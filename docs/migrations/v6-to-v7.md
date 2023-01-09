@@ -174,7 +174,6 @@ Keeper function `CheckMisbehaviourAndUpdateState` has been removed since functio
 
 The field `header` in `MsgUpdateClient` has been renamed to `client_message`.
 
-
 ### IBC module constants
 
 IBC module constants have been moved from the `host` package to the `exported` package. Any usages will need to be updated.
