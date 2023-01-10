@@ -50,7 +50,7 @@ For example:
 ```go
 data := &ClientStateData{
   Path:        []byte(path.String()),
-  ClientState: any,
+  ClientState: protoAny,
 }
 
 dataBz, err := cdc.Marshal(data)
