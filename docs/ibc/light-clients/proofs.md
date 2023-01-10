@@ -1,5 +1,5 @@
 <!--
-order: 7
+order: 8
 -->
 
 # Existence and Non-Existence Proofs 
@@ -23,4 +23,3 @@ Non-existence proofs verify the absence of data stored within counterparty state
 Some trees (e.g. SMT) may have a sentinel empty child for nonexistent keys. In this case, the ICS23 proof spec should include this `EmptyChild` so that ICS23 handles the nonexistence proof correctly.
 
 In some cases, there is a necessity to "mock" non-existence proofs if the counterparty does not have ability to prove absence. Since the verification method is designed to give complete control to client implementations, clients can support chains that do not provide absence proofs by verifying the existence of a non-empty sentinel `ABSENCE` value. In these special cases, the proof provided will be an ICS-23 `Existence` proof, and the client will verify that the `ABSENCE` value is stored under the given path for the given height.
-
