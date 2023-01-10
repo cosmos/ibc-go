@@ -4,6 +4,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/authz"
+
 	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
 
 	"golang.org/x/exp/slices"
@@ -34,16 +35,6 @@ func (a TransferAuthorization) MsgTypeURL() string {
 	return sdk.MsgTypeURL(&MsgTransfer{})
 }
 
-func IsAllowedAddress(ctx sdk.Context, receiver string, allowedAddrs []string) bool {
-	for _, addr := range allowedAddrs {
-		ctx.GasMeter().ConsumeGas(gasCostPerIteration, "transfer authorization")
-		if addr == receiver {
-			return true
-		}
-	}
-	return false
-}
-
 // Accept implements Authorization.Accept.
 func (a TransferAuthorization) Accept(ctx sdk.Context, msg sdk.Msg) (authz.AcceptResponse, error) {
 	msgTransfer, ok := msg.(*MsgTransfer)
@@ -55,11 +46,11 @@ func (a TransferAuthorization) Accept(ctx sdk.Context, msg sdk.Msg) (authz.Accep
 		if allocation.SourceChannel == msgTransfer.SourceChannel && allocation.SourcePort == msgTransfer.SourcePort {
 			limitLeft, isNegative := allocation.SpendLimit.SafeSub(msgTransfer.Token)
 			if isNegative {
-				return authz.AcceptResponse{}, sdkerrors.ErrInsufficientFunds.Wrapf("requested amount is more than spend limit")
+				return authz.AcceptResponse{}, sdkerrors.Wrapf(sdkerrors.ErrInsufficientFunds, "requested amount is more than spend limit")
 			}
 
-			if !IsAllowedAddress(ctx, msgTransfer.Receiver, allocation.AllowList) {
-				return authz.AcceptResponse{}, sdkerrors.ErrInvalidAddress.Wrapf("not allowed address for transfer")
+			if !isAllowedAddress(ctx, msgTransfer.Receiver, allocation.AllowList) {
+				return authz.AcceptResponse{}, sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "not allowed address for transfer")
 			}
 
 			if limitLeft.IsZero() {
@@ -83,17 +74,17 @@ func (a TransferAuthorization) Accept(ctx sdk.Context, msg sdk.Msg) (authz.Accep
 			}}, nil
 		}
 	}
-	return authz.AcceptResponse{}, sdkerrors.ErrNotFound.Wrapf("requested port and channel allocation does not exist")
+	return authz.AcceptResponse{}, sdkerrors.Wrapf(sdkerrors.ErrNotFound, "requested port and channel allocation does not exist")
 }
 
 // ValidateBasic implements Authorization.ValidateBasic.
 func (a TransferAuthorization) ValidateBasic() error {
 	for _, allocation := range a.Allocations {
 		if allocation.SpendLimit == nil {
-			return sdkerrors.ErrInvalidCoins.Wrap("spend limit cannot be nil")
+			return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, "spend limit cannot be nil")
 		}
 		if err := allocation.SpendLimit.Validate(); err != nil {
-			return sdkerrors.ErrInvalidCoins.Wrapf(err.Error())
+			return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, err.Error())
 		}
 		if err := host.PortIdentifierValidator(allocation.SourcePort); err != nil {
 			return sdkerrors.Wrap(err, "invalid source port ID")
@@ -105,10 +96,22 @@ func (a TransferAuthorization) ValidateBasic() error {
 		found := make(map[string]bool, 0)
 		for i := 0; i < len(allocation.AllowList); i++ {
 			if found[allocation.AllowList[i]] {
-				return ErrDuplicateEntry
+				return sdkerrors.Wrapf(ErrInvalidAuthorization, "duplicate entry in allow list %s")
 			}
 			found[allocation.AllowList[i]] = true
 		}
 	}
 	return nil
+}
+
+// isAllowedAddress returns a boolean indicating if the receiver address is valid for transfer.
+// gasCostPerIteration gas is consumed for each iteration.
+func isAllowedAddress(ctx sdk.Context, receiver string, allowedAddrs []string) bool {
+	for _, addr := range allowedAddrs {
+		ctx.GasMeter().ConsumeGas(gasCostPerIteration, "transfer authorization")
+		if addr == receiver {
+			return true
+		}
+	}
+	return false
 }
