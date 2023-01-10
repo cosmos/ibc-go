@@ -115,6 +115,10 @@ func (a TransferAuthorization) ValidateBasic() error {
 // isAllowedAddress returns a boolean indicating if the receiver address is valid for transfer.
 // gasCostPerIteration gas is consumed for each iteration.
 func isAllowedAddress(ctx sdk.Context, receiver string, allowedAddrs []string) bool {
+	if len(allowedAddrs) == 0 {
+		return true
+	}
+
 	for _, addr := range allowedAddrs {
 		ctx.GasMeter().ConsumeGas(gasCostPerIteration, "transfer authorization")
 		if addr == receiver {
