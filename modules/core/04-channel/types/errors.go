@@ -26,7 +26,11 @@ var (
 
 	// packets already relayed errors
 	ErrPacketReceived           = sdkerrors.Register(SubModuleName, 19, "packet already received")
-	ErrPacketCommitmentNotFound = sdkerrors.Register(SubModuleName, 20, "packet commitment not found") // may occur for already received acknowledgements or timeouts and in rare cases for packets never sent
+	ErrPacketCommitmentNotFound = sdkerrors.Register(
+		SubModuleName,
+		20,
+		"packet commitment not found",
+	) // may occur for already received acknowledgements or timeouts and in rare cases for packets never sent
 
 	// ORDERED channel error
 	ErrPacketSequenceOutOfOrder = sdkerrors.Register(SubModuleName, 21, "packet sequence is out of order")
@@ -40,4 +44,13 @@ var (
 	ErrInvalidChannelVersion = sdkerrors.Register(SubModuleName, 24, "invalid channel version")
 	ErrPacketNotSent         = sdkerrors.Register(SubModuleName, 25, "packet has not been sent")
 	ErrInvalidTimeout        = sdkerrors.Register(SubModuleName, 26, "invalid packet timeout")
+
+	// Multihop errors
+	ErrInvalidHopLength = sdkerrors.Register(
+		SubModuleName,
+		27,
+		"invalid hop length (at least 2 paths required)",
+	)
+	ErrMultihopProofGeneration   = sdkerrors.Register(SubModuleName, 28, "multihop proof generation failed")
+	ErrMultihopProofVerification = sdkerrors.Register(SubModuleName, 29, "multihop proof verification failed")
 )

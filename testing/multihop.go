@@ -76,7 +76,7 @@ func GenerateMultiHopProof(paths LinkedPaths, keyPathToProve []byte, expectedVal
 		}
 	}
 
-	proofs.ConsensusProofs, proofs.ConnectionProofs, err = GenerateMultiHopConsensusProof(paths)
+	proofs.ConsensusProofs, proofs.ConnectionProofs, err = generateMultiHopConsensusProof(paths)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate consensus proofs: %w", err)
 	}
@@ -84,10 +84,10 @@ func GenerateMultiHopProof(paths LinkedPaths, keyPathToProve []byte, expectedVal
 	return
 }
 
-// GenerateMultiHopConsensusProof generates a proof of consensus state of paths[0].EndpointA verified on
+// generateMultiHopConsensusProof generates a proof of consensus state of paths[0].EndpointA verified on
 // paths[len(paths)-1].EndpointB and all intermediate consensus states.
 // TODO: Would it be beneficial to batch the consensus state and connection proofs?
-func GenerateMultiHopConsensusProof(
+func generateMultiHopConsensusProof(
 	paths []*Path,
 ) ([]*channeltypes.MultihopProof, []*channeltypes.MultihopProof, error) {
 	if len(paths) < 2 {
