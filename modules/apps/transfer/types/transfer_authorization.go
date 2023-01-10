@@ -79,16 +79,23 @@ func (a TransferAuthorization) Accept(ctx sdk.Context, msg sdk.Msg) (authz.Accep
 
 // ValidateBasic implements Authorization.ValidateBasic.
 func (a TransferAuthorization) ValidateBasic() error {
+	if len(a.Allocations) == 0 {
+		return sdkerrors.Wrap(ErrInvalidAuthorization, "allocations cannot be empty")
+	}
+
 	for _, allocation := range a.Allocations {
 		if allocation.SpendLimit == nil {
 			return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, "spend limit cannot be nil")
 		}
+
 		if err := allocation.SpendLimit.Validate(); err != nil {
 			return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, err.Error())
 		}
+
 		if err := host.PortIdentifierValidator(allocation.SourcePort); err != nil {
 			return sdkerrors.Wrap(err, "invalid source port ID")
 		}
+
 		if err := host.ChannelIdentifierValidator(allocation.SourceChannel); err != nil {
 			return sdkerrors.Wrap(err, "invalid source channel ID")
 		}
@@ -101,6 +108,7 @@ func (a TransferAuthorization) ValidateBasic() error {
 			found[allocation.AllowList[i]] = true
 		}
 	}
+
 	return nil
 }
 
