@@ -23,3 +23,13 @@ Non-existence proofs verify the absence of data stored within counterparty state
 Some trees (e.g. SMT) may have a sentinel empty child for nonexistent keys. In this case, the ICS23 proof spec should include this `EmptyChild` so that ICS23 handles the nonexistence proof correctly.
 
 In some cases, there is a necessity to "mock" non-existence proofs if the counterparty does not have ability to prove absence. Since the verification method is designed to give complete control to client implementations, clients can support chains that do not provide absence proofs by verifying the existence of a non-empty sentinel `ABSENCE` value. In these special cases, the proof provided will be an ICS-23 `Existence` proof, and the client will verify that the `ABSENCE` value is stored under the given path for the given height.
+
+## State Verification Methods: `VerifyMembership` and `VerifyNonMembership`
+
+The state verification functions for all IBC data types have been consolidated into two generic methods, `VerifyMembership` and `VerifyNonMembership`.
+
+For more information about how to implement `VerifyMembership`, please see the `ClientState` [implementation guide](https://github.com/cosmos/ibc-go/blob/02-client-refactor-beta1/docs/ibc/light-clients/client-state.md#verifymembership-method).
+
+For more information about how to implement `VerifyNonMembership`, please see the `ClientState` [implementation guide](https://github.com/cosmos/ibc-go/blob/02-client-refactor-beta1/docs/ibc/light-clients/client-state.md#verifynonmembership-method).
+
+Both are expected to be provided with a standardised key path, `exported.Path`, as defined in [ICS 24 host requirements](https://github.com/cosmos/ibc/tree/main/spec/core/ics-024-host-requirements). Membership verification requires callers to provide the marshalled value `[]byte`. Delay period values should be zero for non-packet processing verification. A zero proof height is now allowed by core IBC and may be passed into `VerifyMembership` and `VerifyNonMembership`. Light clients are responsible for returning an error if a zero proof height is invalid behaviour.
