@@ -263,3 +263,27 @@ message SignatureAndData {
 
 For more information, please refer to [ADR-007](https://github.com/cosmos/ibc-go/blob/02-client-refactor-beta1/docs/architecture/adr-007-solomachine-signbytes.md).
 
+### IBC module constants
+
+IBC module constants have been moved from the `host` package to the `exported` package. Any usages will need to be updated.
+
+```diff
+import (
+    // ...
+-   host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
++   ibcexported "github.com/cosmos/ibc-go/v6/modules/core/exported"
+    // ...
+)
+
+- host.ModuleName
++ ibcexported.ModuleName
+
+- host.StoreKey
++ ibcexported.StoreKey
+
+- host.QuerierRoute
++ ibcexported.QuerierRoute
+
+- host.RouterKey
++ ibcexported.RouterKey
+```

@@ -205,7 +205,7 @@ func (chain *TestChain) QueryProof(key []byte) ([]byte, clienttypes.Height) {
 // for the query and the height at which the proof will succeed on a tendermint verifier. Only the IBC
 // store is supported
 func (chain *TestChain) QueryProofAtHeight(key []byte, height int64) ([]byte, clienttypes.Height) {
-	return chain.QueryProofForStore(host.StoreKey, key, height)
+	return chain.QueryProofForStore(exported.StoreKey, key, height)
 }
 
 // QueryProofForStore performs an abci query with the given key and returns the proto encoded merkle proof

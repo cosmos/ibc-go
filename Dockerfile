@@ -8,6 +8,7 @@ COPY go.sum .
 
 RUN go mod download
 
+ADD internal internal
 ADD testing testing
 ADD modules modules
 ADD LICENSE LICENSE
