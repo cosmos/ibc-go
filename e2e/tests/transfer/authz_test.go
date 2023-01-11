@@ -47,12 +47,12 @@ func (suite *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 
 	t.Run("broadcast MsgGrant", func(t *testing.T) {
 		transferAuth := transfertypes.TransferAuthorization{
-			Allocations: []transfertypes.PortChannelAmount{
+			Allocations: []transfertypes.Allocation{
 				{
 					SourcePort:       channelA.PortID,
 					SourceChannel:    channelA.ChannelID,
 					SpendLimit:       sdk.NewCoins(sdk.NewCoin(chainADenom, sdk.NewInt(testvalues.StartingTokenAmount))),
-					AllowedAddresses: []string{receiverWalletAddress},
+					AllowList: []string{receiverWalletAddress},
 				},
 			},
 		}
