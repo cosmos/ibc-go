@@ -82,7 +82,7 @@ type GRPCClients struct {
 	GroupsQueryClient grouptypes.QueryClient
 	ParamsQueryClient paramsproposaltypes.QueryClient
 	AuthQueryClient   authtypes.QueryClient
-	AuthZQueryClient   authz.QueryClient
+	AuthZQueryClient  authz.QueryClient
 }
 
 // path is a pairing of two chains which will be used in a test.
@@ -393,6 +393,7 @@ func (s *E2ETestSuite) InitGRPCClients(chain *cosmos.CosmosChain) {
 		GroupsQueryClient:  grouptypes.NewQueryClient(grpcConn),
 		ParamsQueryClient:  paramsproposaltypes.NewQueryClient(grpcConn),
 		AuthQueryClient:    authtypes.NewQueryClient(grpcConn),
+		AuthZQueryClient:   authz.NewQueryClient(grpcConn),
 	}
 }
 
@@ -539,6 +540,21 @@ func (s *E2ETestSuite) QueryModuleAccountAddress(ctx context.Context, moduleName
 	}
 
 	return moduleAccount.GetAddress(), nil
+}
+
+// QueryGranterGrants returns granter grants
+func (s *E2ETestSuite) QueryGranterGrants(ctx context.Context, chain *cosmos.CosmosChain, granterAddress string) ([]*authz.GrantAuthorization, error) {
+	authzClient := s.GetChainGRCPClients(chain).AuthZQueryClient
+	queryRequest := &authz.QueryGranterGrantsRequest{
+		Granter: granterAddress,
+	}
+
+	grants, err := authzClient.GranterGrants(ctx, queryRequest)
+	if err != nil {
+		return nil, err
+	}
+
+	return grants.Grants, nil
 }
 
 // GetIBCToken returns the denomination of the full token denom sent to the receiving channel

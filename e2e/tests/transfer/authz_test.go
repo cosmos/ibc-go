@@ -115,5 +115,20 @@ func (suite *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 		suite.Require().Equal(testvalues.IBCTransferAmount, actualBalance)
 	})
 
-	// TODO: query and make sure spend limit is reduced
+	suite.Require().NoError(test.WaitForBlocks(context.TODO(), 10, chainA, chainB))
+
+	t.Run("verify granter grants", func(t *testing.T) {
+		grants, err := suite.QueryGranterGrants(ctx, chainA, granterAddress)
+
+		suite.Require().NoError(err)
+		suite.Require().Len(grants, 1)
+		grant := grants[0]
+		t.Logf("%+v", grant)
+		t.Logf("%+v", grant.Authorization.GetCachedValue())
+		//transferAuth, ok := grant.Authorization.GetCachedValue().(*transfertypes.TransferAuthorization)
+		//suite.Require().True(ok)
+
+		//expectedSpendLimit := sdk.NewCoins(sdk.NewCoin(chainADenom, sdk.NewInt(testvalues.StartingTokenAmount-testvalues.IBCTransferAmount)))
+		//suite.Require().Equal(expectedSpendLimit, transferAuth.Allocations[0].SpendLimit)
+	})
 }
