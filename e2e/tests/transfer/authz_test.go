@@ -45,14 +45,15 @@ func (suite *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 		suite.StartRelayer(relayer)
 	})
 
-	t.Run("broadcast MsgGrant", func(t *testing.T) {
+	// createMsgGrantFn initializes a TransferAuthorization and broadcasts a MsgGrant message.
+	createMsgGrantFn := func(t *testing.T) {
 		transferAuth := transfertypes.TransferAuthorization{
 			Allocations: []transfertypes.Allocation{
 				{
-					SourcePort:       channelA.PortID,
-					SourceChannel:    channelA.ChannelID,
-					SpendLimit:       sdk.NewCoins(sdk.NewCoin(chainADenom, sdk.NewInt(testvalues.StartingTokenAmount))),
-					AllowList: []string{receiverWalletAddress},
+					SourcePort:    channelA.PortID,
+					SourceChannel: channelA.ChannelID,
+					SpendLimit:    sdk.NewCoins(sdk.NewCoin(chainADenom, sdk.NewInt(testvalues.StartingTokenAmount))),
+					AllowList:     []string{receiverWalletAddress},
 				},
 			},
 		}
@@ -73,7 +74,25 @@ func (suite *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 		resp, err := suite.BroadcastMessages(context.TODO(), chainA, granterWallet, msgGrant)
 		suite.AssertValidTxResponse(resp)
 		suite.Require().NoError(err)
-	})
+	}
+
+	// verifyGrantFn returns a test function which asserts chainA has a grant authorization
+	// with the given spend limit.
+	verifyGrantFn := func(expectedLimit int64) func(t *testing.T) {
+		return func(t *testing.T) {
+			grantAuths, err := suite.QueryGranterGrants(ctx, chainA, granterAddress)
+
+			suite.Require().NoError(err)
+			suite.Require().Len(grantAuths, 1)
+			grantAuthorization := grantAuths[0]
+
+			transferAuth := suite.extractTransferAuthorizationFromGrantAuthorization(grantAuthorization)
+			expectedSpendLimit := sdk.NewCoins(sdk.NewCoin(chainADenom, sdk.NewInt(expectedLimit)))
+			suite.Require().Equal(expectedSpendLimit, transferAuth.Allocations[0].SpendLimit)
+		}
+	}
+
+	t.Run("broadcast MsgGrant", createMsgGrantFn)
 
 	t.Run("broadcast MsgExec for ibc MsgTransfer", func(t *testing.T) {
 		transferMsg := transfertypes.MsgTransfer{
@@ -115,17 +134,12 @@ func (suite *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 		suite.Require().Equal(testvalues.IBCTransferAmount, actualBalance)
 	})
 
-	t.Run("granter grant spend limit reduced", func(t *testing.T) {
-		grantAuths, err := suite.QueryGranterGrants(ctx, chainA, granterAddress)
+	t.Run("granter grant spend limit reduced", verifyGrantFn(testvalues.StartingTokenAmount-testvalues.IBCTransferAmount))
 
-		suite.Require().NoError(err)
-		suite.Require().Len(grantAuths, 1)
-		grantAuthorization := grantAuths[0]
+	t.Run("re-initialize MsgGrant", createMsgGrantFn)
 
-		transferAuth := suite.extractTransferAuthorizationFromGrantAuthorization(grantAuthorization)
-		expectedSpendLimit := sdk.NewCoins(sdk.NewCoin(chainADenom, sdk.NewInt(testvalues.StartingTokenAmount-testvalues.IBCTransferAmount)))
-		suite.Require().Equal(expectedSpendLimit, transferAuth.Allocations[0].SpendLimit)
-	})
+	t.Run("granter grant was reinitialized", verifyGrantFn(testvalues.StartingTokenAmount))
+
 }
 
 // extractTransferAuthorizationFromGrantAuthorization extracts a TransferAuthorization from the given
