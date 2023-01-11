@@ -31,7 +31,13 @@ var (
 func TestTransferAuthorization(t *testing.T) {
 	app := simapp.Setup(t, false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{})
-	authorization := types.NewTransferAuthorization([]string{sourcePort}, []string{sourceChannel}, []sdk.Coins{coins1000}, [][]string{{toAddr.String()}})
+	allocation := types.Allocation{
+		SourcePort:    sourcePort,
+		SourceChannel: sourceChannel,
+		SpendLimit:    coins1000,
+		AllowList:     []string{toAddr.String()},
+	}
+	authorization := types.NewTransferAuthorization(allocation)
 
 	t.Log("verify authorization returns valid method name")
 	require.Equal(t, authorization.MsgTypeURL(), "/ibc.applications.transfer.v1.MsgTransfer")
@@ -46,7 +52,7 @@ func TestTransferAuthorization(t *testing.T) {
 	require.Nil(t, resp.Updated)
 
 	t.Log("verify updated authorization returns remaining spent limit")
-	authorization = types.NewTransferAuthorization([]string{sourcePort}, []string{sourceChannel}, []sdk.Coins{coins1000}, [][]string{{toAddr.String()}})
+	authorization = types.NewTransferAuthorization(allocation)
 	require.Equal(t, authorization.MsgTypeURL(), "/ibc.applications.transfer.v1.MsgTransfer")
 	require.NoError(t, authorization.ValidateBasic())
 	transfer = types.NewMsgTransfer(sourcePort, sourceChannel, coin500, fromAddr.String(), toAddr.String(), timeoutHeight, 0, "")
@@ -55,7 +61,14 @@ func TestTransferAuthorization(t *testing.T) {
 	require.NoError(t, err)
 	require.False(t, resp.Delete)
 	require.NotNil(t, resp.Updated)
-	sendAuth := types.NewTransferAuthorization([]string{sourcePort}, []string{sourceChannel}, []sdk.Coins{coins500}, [][]string{{toAddr.String()}})
+
+	allocation = types.Allocation{
+		SourcePort:    sourcePort,
+		SourceChannel: sourceChannel,
+		SpendLimit:    coins500,
+		AllowList:     []string{toAddr.String()},
+	}
+	sendAuth := types.NewTransferAuthorization(allocation)
 	require.Equal(t, sendAuth.String(), resp.Updated.String())
 
 	t.Log("expect updated authorization nil after spending remaining amount")
@@ -65,26 +78,49 @@ func TestTransferAuthorization(t *testing.T) {
 	require.Nil(t, resp.Updated)
 
 	t.Log("expect error when spend limit for specific port and channel is not set")
-	authorization = types.NewTransferAuthorization([]string{sourcePort}, []string{sourceChannel}, []sdk.Coins{coins1000}, [][]string{{toAddr.String()}})
+	allocation = types.Allocation{
+		SourcePort:    sourcePort,
+		SourceChannel: sourceChannel,
+		SpendLimit:    coins1000,
+		AllowList:     []string{toAddr.String()},
+	}
+	authorization = types.NewTransferAuthorization(allocation)
 	transfer = types.NewMsgTransfer(sourcePort2, sourceChannel2, coin500, fromAddr.String(), toAddr.String(), timeoutHeight, 0, "")
 	_, err = authorization.Accept(ctx, transfer)
 	require.Error(t, err)
 
 	t.Log("expect removing only 1 allocation if spend limit is finalized for the port")
-	authorization = types.NewTransferAuthorization(
-		[]string{sourcePort, sourcePort2},
-		[]string{sourceChannel, sourceChannel2},
-		[]sdk.Coins{coins1000, coins1000},
-		[][]string{{toAddr.String()}, {toAddr.String()}})
+
+	allocations := []types.Allocation{
+		{
+			SourcePort:    sourcePort,
+			SourceChannel: sourceChannel,
+			SpendLimit:    coins1000,
+			AllowList:     []string{toAddr.String()},
+		},
+		{
+			SourcePort:    sourcePort2,
+			SourceChannel: sourceChannel2,
+			SpendLimit:    coins1000,
+			AllowList:     []string{toAddr.String()},
+		},
+	}
+	authorization = types.NewTransferAuthorization(allocations...)
 	transfer = types.NewMsgTransfer(sourcePort, sourceChannel, coin1000, fromAddr.String(), toAddr.String(), timeoutHeight, 0, "")
 	resp, err = authorization.Accept(ctx, transfer)
 	require.NoError(t, err)
 	require.NotNil(t, resp.Updated)
-	require.Equal(t, resp.Updated, types.NewTransferAuthorization([]string{sourcePort2}, []string{sourceChannel2}, []sdk.Coins{coins1000}, [][]string{{toAddr.String()}}))
+	require.Equal(t, resp.Updated, types.NewTransferAuthorization(allocations[1]))
 	require.False(t, resp.Delete)
 
 	t.Log("expect error when transferring to not allowed address")
-	authorization = types.NewTransferAuthorization([]string{sourcePort}, []string{sourceChannel}, []sdk.Coins{coins1000}, [][]string{{fromAddr.String()}})
+	allocation = types.Allocation{
+		SourcePort:    sourcePort,
+		SourceChannel: sourceChannel,
+		SpendLimit:    coins1000,
+		AllowList:     []string{fromAddr.String()},
+	}
+	authorization = types.NewTransferAuthorization(allocation)
 	transfer = types.NewMsgTransfer(sourcePort, sourceChannel, coin500, fromAddr.String(), toAddr.String(), timeoutHeight, 0, "")
 	_, err = authorization.Accept(ctx, transfer)
 	require.Error(t, err)
