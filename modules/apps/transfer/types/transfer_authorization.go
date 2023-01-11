@@ -15,16 +15,7 @@ const gasCostPerIteration = uint64(10)
 var _ authz.Authorization = &TransferAuthorization{}
 
 // NewTransferAuthorization creates a new TransferAuthorization object.
-func NewTransferAuthorization(sourcePorts, sourceChannels []string, spendLimits []sdk.Coins, allowedAddrs [][]string) *TransferAuthorization {
-	allocations := []Allocation{}
-	for index := range sourcePorts {
-		allocations = append(allocations, Allocation{
-			SourcePort:    sourcePorts[index],
-			SourceChannel: sourceChannels[index],
-			SpendLimit:    spendLimits[index],
-			AllowList:     allowedAddrs[index],
-		})
-	}
+func NewTransferAuthorization(allocations ...Allocation) *TransferAuthorization {
 	return &TransferAuthorization{
 		Allocations: allocations,
 	}
