@@ -173,3 +173,93 @@ Keeper function `CheckMisbehaviourAndUpdateState` has been removed since functio
 `MsgSubmitMisbehaviour` is deprecated since `MsgUpdateClient` can now submit a `ClientMessage` type which can be any `Misbehaviour` implementations.
 
 The field `header` in `MsgUpdateClient` has been renamed to `client_message`.
+
+## Solomachine
+
+The `06-solomachine` client implementation has been simplified in ibc-go/v7. In-place store migrations have been added to migrate solomachine clients from `v2` to `v3`.
+
+### `ClientState`
+
+The `ClientState` protobuf message definition has been updated to remove the deprecated `bool` field `allow_update_after_proposal`.
+
+```diff
+message ClientState {
+  option (gogoproto.goproto_getters) = false;
+
+  uint64 sequence                  = 1;
+  bool is_frozen                   = 2 [(gogoproto.moretags) = "yaml:\"is_frozen\""];
+  ConsensusState consensus_state   = 3 [(gogoproto.moretags) = "yaml:\"consensus_state\""];
+- bool allow_update_after_proposal = 4 [(gogoproto.moretags) = "yaml:\"allow_update_after_proposal\""];
+}
+```
+
+### `Header` and `Misbehaviour`
+
+The `06-solomachine` protobuf message `Header` has been updated to remove the `sequence` field. This field was seen as redundant as the implementation can safely rely on the `sequence` value maintained within the `ClientState`.
+
+```diff
+message Header {
+  option (gogoproto.goproto_getters) = false;
+ 
+- uint64              sequence        = 1;
+- uint64              timestamp       = 2;
+- bytes               signature       = 3;
+- google.protobuf.Any new_public_key  = 4 [(gogoproto.moretags) = "yaml:\"new_public_key\""];
+- string              new_diversifier = 5 [(gogoproto.moretags) = "yaml:\"new_diversifier\""];
++ uint64              timestamp       = 1;
++ bytes               signature       = 2;
++ google.protobuf.Any new_public_key  = 3 [(gogoproto.moretags) = "yaml:\"new_public_key\""];
++ string              new_diversifier = 4 [(gogoproto.moretags) = "yaml:\"new_diversifier\""];
+}
+```
+
+Similarly, the `Misbehaviour` protobuf message has been updated to remove the `client_id` field.
+
+```diff
+message Misbehaviour {
+  option (gogoproto.goproto_getters) = false;
+  
+- string           client_id         = 1 [(gogoproto.moretags) = "yaml:\"client_id\""];
+- uint64           sequence          = 2;
+- SignatureAndData signature_one     = 3 [(gogoproto.moretags) = "yaml:\"signature_one\""];
+- SignatureAndData signature_two     = 4 [(gogoproto.moretags) = "yaml:\"signature_two\""];
++ uint64           sequence          = 1;
++ SignatureAndData signature_one     = 2 [(gogoproto.moretags) = "yaml:\"signature_one\""];
++ SignatureAndData signature_two     = 3 [(gogoproto.moretags) = "yaml:\"signature_two\""];
+}
+```
+
+### `SignBytes`
+
+Most notably, the `SignBytes` protobuf definition has been modified to replace the `data_type` field with a new field, `path`. The `path` field is defined as `bytes` and represents a serialized [ICS-24](https://github.com/cosmos/ibc/tree/main/spec/core/ics-024-host-requirements) standardized key path under which the `data` is stored.
+
+
+```diff
+message SignBytes {
+  option (gogoproto.goproto_getters) = false;
+
+  uint64 sequence    = 1;
+  uint64 timestamp   = 2;
+  string diversifier = 3;
+- DataType data_type = 4 [(gogoproto.moretags) = "yaml:\"data_type\""];
++ bytes path         = 4;
+  bytes data         = 5;
+}
+```
+
+The `DataType` enum and all associated data types have been removed, greatly reducing the number of message definitions and complexity in constructing the `SignBytes` message type. Likewise, solomachine implementations must now use the serialized `path` value when constructing `SignatureAndData` for signature verification of `SignBytes` data.
+
+```diff
+message SignatureAndData {
+  option (gogoproto.goproto_getters) = false;
+ 
+  bytes    signature = 1;
+- DataType data_type = 2 [(gogoproto.moretags) = "yaml:\"data_type\""];
++ bytes    path      = 2;
+  bytes    data      = 3;
+  uint64   timestamp = 4;
+}
+```
+
+For more information, please refer to [ADR-007](https://github.com/cosmos/ibc-go/blob/02-client-refactor-beta1/docs/architecture/adr-007-solomachine-signbytes.md).
+
