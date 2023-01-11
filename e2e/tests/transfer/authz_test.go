@@ -49,10 +49,10 @@ func (suite *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 		transferAuth := transfertypes.TransferAuthorization{
 			Allocations: []transfertypes.Allocation{
 				{
-					SourcePort:       channelA.PortID,
-					SourceChannel:    channelA.ChannelID,
-					SpendLimit:       sdk.NewCoins(sdk.NewCoin(chainADenom, sdk.NewInt(testvalues.StartingTokenAmount))),
-					AllowList: []string{receiverWalletAddress},
+					SourcePort:    channelA.PortID,
+					SourceChannel: channelA.ChannelID,
+					SpendLimit:    sdk.NewCoins(sdk.NewCoin(chainADenom, sdk.NewInt(testvalues.StartingTokenAmount))),
+					AllowList:     []string{receiverWalletAddress},
 				},
 			},
 		}
@@ -125,6 +125,42 @@ func (suite *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 		transferAuth := suite.extractTransferAuthorizationFromGrantAuthorization(grantAuthorization)
 		expectedSpendLimit := sdk.NewCoins(sdk.NewCoin(chainADenom, sdk.NewInt(testvalues.StartingTokenAmount-testvalues.IBCTransferAmount)))
 		suite.Require().Equal(expectedSpendLimit, transferAuth.Allocations[0].SpendLimit)
+	})
+
+	t.Run("revoke access", func(t *testing.T) {
+		msgRevoke := authz.MsgRevoke{
+			Granter:    granterAddress,
+			Grantee:    granteeAddress,
+			MsgTypeUrl: transfertypes.TransferAuthorization{}.MsgTypeURL(),
+		}
+
+		resp, err := suite.BroadcastMessages(context.TODO(), chainA, granterWallet, &msgRevoke)
+		suite.AssertValidTxResponse(resp)
+		suite.Require().NoError(err)
+	})
+
+	t.Run("exec unauthorized MsgTransfer", func(t *testing.T) {
+		transferMsg := transfertypes.MsgTransfer{
+			SourcePort:    channelA.PortID,
+			SourceChannel: channelA.ChannelID,
+			Token:         testvalues.DefaultTransferAmount(chainADenom),
+			Sender:        granterAddress,
+			Receiver:      receiverWalletAddress,
+			TimeoutHeight: suite.GetTimeoutHeight(ctx, chainB),
+		}
+
+		transferAny, err := codectypes.NewAnyWithValue(&transferMsg)
+		suite.Require().NoError(err)
+
+		msgExec := &authz.MsgExec{
+			Grantee: granteeAddress,
+			Msgs:    []*codectypes.Any{transferAny},
+		}
+
+		resp, err := suite.BroadcastMessages(context.TODO(), chainA, granteeWallet, msgExec)
+		suite.Require().NotEqual(0, resp.Code)
+		suite.Require().Contains(resp.RawLog, authz.ErrNoAuthorizationFound.Error())
+		suite.Require().NoError(err)
 	})
 }
 
