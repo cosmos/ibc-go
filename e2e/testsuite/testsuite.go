@@ -542,7 +542,7 @@ func (s *E2ETestSuite) QueryModuleAccountAddress(ctx context.Context, moduleName
 	return moduleAccount.GetAddress(), nil
 }
 
-// QueryGranterGrants returns granter grants
+// QueryGranterGrants returns all GrantAuthorizations for the given granterAddress.
 func (s *E2ETestSuite) QueryGranterGrants(ctx context.Context, chain *cosmos.CosmosChain, granterAddress string) ([]*authz.GrantAuthorization, error) {
 	authzClient := s.GetChainGRCPClients(chain).AuthZQueryClient
 	queryRequest := &authz.QueryGranterGrantsRequest{
