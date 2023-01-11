@@ -11,6 +11,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	"github.com/cosmos/cosmos-sdk/x/authz"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	govtypesv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	grouptypes "github.com/cosmos/cosmos-sdk/x/group"
@@ -81,6 +82,7 @@ type GRPCClients struct {
 	GroupsQueryClient grouptypes.QueryClient
 	ParamsQueryClient paramsproposaltypes.QueryClient
 	AuthQueryClient   authtypes.QueryClient
+	AuthZQueryClient  authz.QueryClient
 }
 
 // path is a pairing of two chains which will be used in a test.
@@ -391,6 +393,7 @@ func (s *E2ETestSuite) InitGRPCClients(chain *cosmos.CosmosChain) {
 		GroupsQueryClient:  grouptypes.NewQueryClient(grpcConn),
 		ParamsQueryClient:  paramsproposaltypes.NewQueryClient(grpcConn),
 		AuthQueryClient:    authtypes.NewQueryClient(grpcConn),
+		AuthZQueryClient:   authz.NewQueryClient(grpcConn),
 	}
 }
 
@@ -425,7 +428,7 @@ func (s *E2ETestSuite) createCosmosChains(chainOptions testconfig.ChainOptions) 
 
 	logger := zaptest.NewLogger(s.T())
 
-	numValidators, numFullNodes := 4, 1
+	numValidators, numFullNodes := getValidatorsAndFullNodes()
 
 	chainA := cosmos.NewCosmosChain(s.T().Name(), *chainOptions.ChainAConfig, numValidators, numFullNodes, logger)
 	chainB := cosmos.NewCosmosChain(s.T().Name(), *chainOptions.ChainBConfig, numValidators, numFullNodes, logger)
@@ -539,7 +542,32 @@ func (s *E2ETestSuite) QueryModuleAccountAddress(ctx context.Context, moduleName
 	return moduleAccount.GetAddress(), nil
 }
 
+// QueryGranterGrants returns all GrantAuthorizations for the given granterAddress.
+func (s *E2ETestSuite) QueryGranterGrants(ctx context.Context, chain *cosmos.CosmosChain, granterAddress string) ([]*authz.GrantAuthorization, error) {
+	authzClient := s.GetChainGRCPClients(chain).AuthZQueryClient
+	queryRequest := &authz.QueryGranterGrantsRequest{
+		Granter: granterAddress,
+	}
+
+	grants, err := authzClient.GranterGrants(ctx, queryRequest)
+	if err != nil {
+		return nil, err
+	}
+
+	return grants.Grants, nil
+}
+
 // GetIBCToken returns the denomination of the full token denom sent to the receiving channel
 func GetIBCToken(fullTokenDenom string, portID, channelID string) transfertypes.DenomTrace {
 	return transfertypes.ParseDenomTrace(fmt.Sprintf("%s/%s/%s", portID, channelID, fullTokenDenom))
+}
+
+// getValidatorsAndFullNodes returns the number of validators and full nodes respectively that should be used for
+// the test. If the test is running in CI, more nodes are used, when running locally a single node is used to
+// use less resources and allow the tests to run faster.
+func getValidatorsAndFullNodes() (int, int) {
+	if testconfig.IsCI() {
+		return 4, 1
+	}
+	return 1, 0
 }
