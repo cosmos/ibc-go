@@ -49,6 +49,25 @@ func NewChanPath(paths []*Path) ChanPath {
 	return ChanPath(paths)
 }
 
+// UpdateClient updates the clientState{AB, BC, .. YZ} so chainA's consensusState is propogated to chainZ.
+func (p ChanPath) UpdateClient() error {
+	for _, path := range p {
+		if err := path.EndpointB.UpdateClient(); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// GetConnectionHops returns the connection hops for the multihop channel.
+func (p ChanPath) GetConnectionHops() []string {
+	hops := make([]string, len(p))
+	for i, path := range p {
+		hops[i] = path.EndpointA.ConnectionID()
+	}
+	return hops
+}
+
 // GenerateProof generates a proof for the given path with expected value on the the source chain, which is to be verified on the dest
 // chain.
 func (p ChanPath) GenerateMembershipProof(
