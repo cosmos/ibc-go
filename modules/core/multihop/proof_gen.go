@@ -143,24 +143,26 @@ func (p ChanPath) GenerateProofsOnLinkedPaths(
 		consStateBCRoot := consStateBC.GetRoot()
 
 		for j, proofGenFunc := range proofGenFuncs {
-			proof := proofGenFunc(chainB, chainC, heightAB, heightBC, consStateBCRoot)
+			proof := proofGenFunc(chainB, heightAB, heightBC, consStateBCRoot, chainC.ChainID())
 			result[j] = append(result[j], proof)
 		}
 	}
 	return result, nil
 }
 
-type proofGenFunc func(Endpoint, Endpoint, exported.Height, exported.Height, exported.Root) *channeltypes.MultihopProof
+type proofGenFunc func(Endpoint, exported.Height, exported.Height, exported.Root, string) *channeltypes.MultihopProof
 
+// Generate a proof for A's consensusState stored on B using B's consensusState root stored on C.
 func genConsensusStateProof(
-	chainB, chainC Endpoint,
+	chainB Endpoint,
 	heightAB, heightBC exported.Height,
 	consStateBCRoot exported.Root,
+	chainCID string,
 ) *channeltypes.MultihopProof {
 	chainAID := chainB.Counterparty().ChainID()
 	consStateAB, err := chainB.GetConsensusState(heightAB)
-	panicIfErr(err, "consensus state of chain '%s' at height %s not found on chain '%s' due to: %v",
-		chainB.ChainID(), heightAB, chainC.ChainID(), err,
+	panicIfErr(err, "chain [%s]'s consensus state on chain '%s' at height %s not found due to: %v",
+		chainAID, chainB.ChainID(), heightAB, err,
 	)
 	bzConsStateAB, err := chainB.Codec().MarshalInterface(consStateAB)
 	panicIfErr(err, "fail to marshal consensus state of chain '%s' on chain '%s' at height %s due to: %v",
@@ -196,7 +198,7 @@ func genConsensusStateProof(
 		chainB.ChainID(),
 		keyConsAB,
 		chainB.ChainID(),
-		chainC.ChainID(),
+		chainCID,
 		err,
 	)
 	return &channeltypes.MultihopProof{
@@ -206,10 +208,12 @@ func genConsensusStateProof(
 	}
 }
 
+// Generate a proof for the connEnd denoting A stored on B using B's consensusState root stored on C.
 func genConnProof(
-	chainB, chainC Endpoint,
+	chainB Endpoint,
 	heightAB, heightBC exported.Height,
 	consStateBCRoot exported.Root,
+	chainCID string,
 ) *channeltypes.MultihopProof {
 	chainA := chainB.Counterparty()
 	keyConnAB, err := chainB.GetMerklePath(host.ConnectionPath(chainB.ConnectionID()))
@@ -243,12 +247,12 @@ func genConnProof(
 	)
 	panicIfErr(
 		err,
-		"fail to verify proof of chain [%s]'s connection on chain '%s' at path '%s' using [%s]'s state root on chain '%s' due to: %v",
-		chainA.ChainID(),
+		"fail to verify proof of chain [%s]'s connection [%s] at path '%s' using [%s]'s state root on chain '%s' due to: %v",
 		chainB.ChainID(),
+		chainB.ConnectionID(),
 		keyConnAB,
 		chainB.ChainID(),
-		chainC.ChainID(),
+		chainCID,
 		err,
 	)
 	return &channeltypes.MultihopProof{
