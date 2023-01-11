@@ -41,5 +41,5 @@ func TendermintClientID(id int) string {
 }
 
 func SolomachineClientID(id int) string {
-	return fmt.Sprint("06-solomachine-%d", id)
+	return fmt.Sprintf("06-solomachine-%d", id)
 }
