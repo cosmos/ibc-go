@@ -75,7 +75,7 @@ func (suite *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 		suite.Require().NoError(err)
 	})
 
-	t.Run("exec MsgTransfer", func(t *testing.T) {
+	t.Run("broadcast MsgExec for ibc MsgTransfer", func(t *testing.T) {
 		transferMsg := transfertypes.MsgTransfer{
 			SourcePort:    channelA.PortID,
 			SourceChannel: channelA.ChannelID,
