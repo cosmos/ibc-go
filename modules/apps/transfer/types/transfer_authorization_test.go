@@ -183,9 +183,7 @@ func TestTransferAuthorizationValidateBasic(t *testing.T) {
 						SourcePort:    mock.PortID,
 						SourceChannel: ibctesting.FirstChannelID,
 						SpendLimit:    sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100))),
-						AllowList: []string{
-							ibctesting.TestAccAddress,
-						},
+						AllowList:     []string{ibctesting.TestAccAddress},
 					},
 				},
 			}
