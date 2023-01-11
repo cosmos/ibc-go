@@ -38,8 +38,8 @@ func (suite *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 	granteeWallet := suite.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 	granteeAddress := granteeWallet.Bech32Address(chainA.Config().Bech32Prefix)
 
-	chainBWallet := suite.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
-	chainBAddress := chainBWallet.Bech32Address(chainB.Config().Bech32Prefix)
+	receiverWallet := suite.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
+	receiverWalletAddress := receiverWallet.Bech32Address(chainB.Config().Bech32Prefix)
 
 	t.Run("start relayer", func(t *testing.T) {
 		suite.StartRelayer(relayer)
@@ -52,7 +52,7 @@ func (suite *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 					SourcePort:       channelA.PortID,
 					SourceChannel:    channelA.ChannelID,
 					SpendLimit:       sdk.NewCoins(sdk.NewCoin(chainADenom, sdk.NewInt(testvalues.StartingTokenAmount))),
-					AllowedAddresses: []string{chainBAddress},
+					AllowedAddresses: []string{receiverWalletAddress},
 				},
 			},
 		}
@@ -75,13 +75,13 @@ func (suite *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 		suite.Require().NoError(err)
 	})
 
-	t.Run("broadcast MsgExec", func(t *testing.T) {
+	t.Run("exec MsgTransfer", func(t *testing.T) {
 		transferMsg := transfertypes.MsgTransfer{
 			SourcePort:    channelA.PortID,
 			SourceChannel: channelA.ChannelID,
 			Token:         testvalues.DefaultTransferAmount(chainADenom),
 			Sender:        granterAddress,
-			Receiver:      chainBAddress,
+			Receiver:      receiverWalletAddress,
 			TimeoutHeight: suite.GetTimeoutHeight(ctx, chainB),
 		}
 
@@ -110,25 +110,33 @@ func (suite *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 
 	t.Run("verify receiver wallet amount", func(t *testing.T) {
 		chainBIBCToken := testsuite.GetIBCToken(chainADenom, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID)
-		actualBalance, err := chainB.GetBalance(ctx, chainBAddress, chainBIBCToken.IBCDenom())
+		actualBalance, err := chainB.GetBalance(ctx, receiverWalletAddress, chainBIBCToken.IBCDenom())
 		suite.Require().NoError(err)
 		suite.Require().Equal(testvalues.IBCTransferAmount, actualBalance)
 	})
 
-	suite.Require().NoError(test.WaitForBlocks(context.TODO(), 10, chainA, chainB))
-
-	t.Run("verify granter grants", func(t *testing.T) {
-		grants, err := suite.QueryGranterGrants(ctx, chainA, granterAddress)
+	t.Run("granter grant spend limit reduced", func(t *testing.T) {
+		grantAuths, err := suite.QueryGranterGrants(ctx, chainA, granterAddress)
 
 		suite.Require().NoError(err)
-		suite.Require().Len(grants, 1)
-		grant := grants[0]
-		t.Logf("%+v", grant)
-		t.Logf("%+v", grant.Authorization.GetCachedValue())
-		//transferAuth, ok := grant.Authorization.GetCachedValue().(*transfertypes.TransferAuthorization)
-		//suite.Require().True(ok)
+		suite.Require().Len(grantAuths, 1)
+		grantAuthorization := grantAuths[0]
 
-		//expectedSpendLimit := sdk.NewCoins(sdk.NewCoin(chainADenom, sdk.NewInt(testvalues.StartingTokenAmount-testvalues.IBCTransferAmount)))
-		//suite.Require().Equal(expectedSpendLimit, transferAuth.Allocations[0].SpendLimit)
+		transferAuth := suite.extractTransferAuthorizationFromGrantAuthorization(grantAuthorization)
+		expectedSpendLimit := sdk.NewCoins(sdk.NewCoin(chainADenom, sdk.NewInt(testvalues.StartingTokenAmount-testvalues.IBCTransferAmount)))
+		suite.Require().Equal(expectedSpendLimit, transferAuth.Allocations[0].SpendLimit)
 	})
+}
+
+// extractTransferAuthorizationFromGrantAuthorization extracts a TransferAuthorization from the given
+// GrantAuthorization.
+func (suite *AuthzTransferTestSuite) extractTransferAuthorizationFromGrantAuthorization(grantAuth *authz.GrantAuthorization) *transfertypes.TransferAuthorization {
+	cfg := testsuite.EncodingConfig()
+	var authorization authz.Authorization
+	err := cfg.InterfaceRegistry.UnpackAny(grantAuth.Authorization, &authorization)
+	suite.Require().NoError(err)
+
+	transferAuth, ok := authorization.(*transfertypes.TransferAuthorization)
+	suite.Require().True(ok)
+	return transferAuth
 }
