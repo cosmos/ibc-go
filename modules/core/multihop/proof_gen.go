@@ -2,6 +2,7 @@ package multihop
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -31,14 +32,6 @@ type Endpoint interface {
 	Counterparty() Endpoint
 }
 
-// // PairedEnd represents one end of an IBC connection.
-// type PairedEnd struct {
-// 	Endpoint
-// 	ClientID     string
-// 	ConnectionID string
-// 	Counterparty *PairedEnd
-// }
-
 // Path contains two endpoints of chains that have a direct IBC connection, ie. a single-hop IBC path.
 type Path struct {
 	EndpointA Endpoint
@@ -46,39 +39,33 @@ type Path struct {
 }
 
 // ChanPath represents a multihop channel path that spans 2 or more single-hop `Path`s.
-type ChanPath []Path
+type ChanPath []*Path
+
+// NewChanPath creates a new multi-hop ChanPath from a list of single-hop Paths.
+func NewChanPath(paths []*Path) ChanPath {
+	if len(paths) < 2 {
+		panic(fmt.Sprintf("multihop channel path expects at least 2 single-hop paths, but got %d", len(paths)))
+	}
+	return ChanPath(paths)
+}
 
 // GenerateProof generates a proof for the given path with expected value on the the source chain, which is to be verified on the dest
 // chain.
-func (p ChanPath) GenerateMembershipProof(key []byte, expectedVal []byte) (*channeltypes.MsgMultihopProofs, error) {
-	if len(key) == 0 {
-		return nil, sdkerrors.Wrap(channeltypes.ErrMultihopProofGeneration, "key cannot be empty")
-	}
-	if len(expectedVal) == 0 {
-		return nil, sdkerrors.Wrap(channeltypes.ErrMultihopProofGeneration, "expected value cannot be empty")
-	}
-
-	result := &channeltypes.MsgMultihopProofs{}
-	// generate proof for key on source chain
-	{
-		endpointB := p.source().Counterparty()
-		heightBC := endpointB.GetClientState().GetLatestHeight()
-		keyProof, _, err := endpointB.QueryProofAtHeight(key, int64(heightBC.GetRevisionHeight()))
-		if err != nil {
-			return nil, sdkerrors.Wrapf(
-				channeltypes.ErrMultihopProofGeneration,
-				"failed to generate proof for key %s on source chain %s at height %d: %v",
-				string(key),
-				endpointB.ChainID(),
-				heightBC.GetRevisionHeight(),
-				err,
-			)
+func (p ChanPath) GenerateMembershipProof(
+	key []byte,
+	expectedVal []byte,
+) (result *channeltypes.MsgMultihopProofs, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			result = nil
+			err = sdkerrors.Wrapf(channeltypes.ErrMultihopProofGeneration, "%v", r)
 		}
-		// TODO: always verify membership
+	}()
 
-		// save proof of key/value on source chain
-		result.KeyProof = &channeltypes.MultihopProof{Proof: keyProof}
-	}
+	log.Printf("Generating proof on ChanPath\n")
+	result = &channeltypes.MsgMultihopProofs{}
+	// generate proof for key on source chain, where key/expectedValue are checked
+	result.KeyProof = ensureKeyValueProof(key, expectedVal, p[0].EndpointB, p[1].EndpointB, nil, nil, nil)
 
 	linkedPathProofs, err := p.GenerateConsensusAndConnectionProofs()
 	if err != nil {
@@ -142,22 +129,21 @@ func (p ChanPath) GenerateProofsOnLinkedPaths(
 		// , We need to generate proofs for chain A's key paths. The proof is verified with B's consensus state on C.
 		// ie. proof to verify A's state on C.
 		// The loop starts with the source chain as A, and ends with the dest chain as chain C.
-		path, nextPath := p[i], p[i+1]
-		self, next := path.EndpointB, nextPath.EndpointB
-		heightAB := self.GetClientState().GetLatestHeight()
-		heightBC := next.GetClientState().GetLatestHeight()
-		consStateBC, err := next.GetConsensusState(heightBC)
-		if err != nil {
-			return nil, sdkerrors.Wrapf(
-				channeltypes.ErrMultihopProofGeneration,
-				"failed to get consensus state root of chain '%s' at height %s on chain '%s': %v",
-				self.ChainID(), heightBC, next.ChainID(), err,
-			)
-		}
+		// NOTE: chain {A,B,C} are relatively referenced to the current iteration, not to be confused with the chainID
+		// or endpointA/B.
+		chainB, chainC := p[i].EndpointB, p[i+1].EndpointB
+		heightAB := chainB.GetClientState().GetLatestHeight()
+		heightBC := chainC.GetClientState().GetLatestHeight()
+		consStateBC, err := chainC.GetConsensusState(heightBC)
+		panicIfErr(err,
+			"failed to get consensus state root of chain '%s' at height %s on chain '%s': %v",
+			chainB.ChainID(), heightBC, chainC.ChainID(), err,
+		)
+
 		consStateBCRoot := consStateBC.GetRoot()
 
 		for j, proofGenFunc := range proofGenFuncs {
-			proof := proofGenFunc(self, next, heightAB, heightBC, consStateBCRoot)
+			proof := proofGenFunc(chainB, chainC, heightAB, heightBC, consStateBCRoot)
 			result[j] = append(result[j], proof)
 		}
 	}
@@ -171,31 +157,31 @@ func genConsensusStateProof(
 	heightAB, heightBC exported.Height,
 	consStateBCRoot exported.Root,
 ) *channeltypes.MultihopProof {
-	chainA := chainB.Counterparty()
+	chainAID := chainB.Counterparty().ChainID()
 	consStateAB, err := chainB.GetConsensusState(heightAB)
-	tryPanicOnProofGenError(err, "consensus state of chain '%s' at height %s not found on chain '%s' due to: %v",
+	panicIfErr(err, "consensus state of chain '%s' at height %s not found on chain '%s' due to: %v",
 		chainB.ChainID(), heightAB, chainC.ChainID(), err,
 	)
 	bzConsStateAB, err := chainB.Codec().MarshalInterface(consStateAB)
-	tryPanicOnProofGenError(err, "fail to marshal consensus state of chain '%s' on chain '%s' at height %s due to: %v",
-		chainA.ChainID(), chainB.ChainID(), heightAB, err,
+	panicIfErr(err, "fail to marshal consensus state of chain '%s' on chain '%s' at height %s due to: %v",
+		chainAID, chainB.ChainID(), heightAB, err,
 	)
 	keyConsAB, err := chainB.GetMerklePath(host.FullConsensusStatePath(chainB.ClientID(), heightAB))
-	tryPanicOnProofGenError(err, "fail to create merkle path on chain '%s' with path '%s' due to: %v",
+	panicIfErr(err, "fail to create merkle path on chain '%s' with path '%s' due to: %v",
 		chainB.ChainID(), host.FullConsensusStatePath(chainB.ClientID(), heightAB), err,
 	)
 	bzConsStateABProof, _, err := chainB.QueryProofAtHeight(
 		host.FullConsensusStateKey(chainB.ClientID(), heightAB),
 		int64(heightBC.GetRevisionHeight()),
 	)
-	tryPanicOnProofGenError(err, "fail to generate proof on chain '%s' for key '%s' at height %d due to: %v",
+	panicIfErr(err, "fail to generate proof on chain '%s' for key '%s' at height %d due to: %v",
 		chainB.ChainID(), host.FullConsensusStateKey(chainB.ClientID(), heightAB), heightBC.GetRevisionHeight(), err,
 	)
 
 	var consStateABProof commitmenttypes.MerkleProof
 	err = chainB.Codec().Unmarshal(bzConsStateABProof, &consStateABProof)
-	tryPanicOnProofGenError(err, "fail to unmarshal chain [%s]'s proof on chain '%s' due to: %v",
-		chainA.ChainID(), chainB.ChainID(), err,
+	panicIfErr(err, "fail to unmarshal chain [%s]'s proof on chain '%s' due to: %v",
+		chainAID, chainB.ChainID(), err,
 	)
 
 	// ensure consStateAB can be verified by consStateBC
@@ -203,10 +189,10 @@ func genConsensusStateProof(
 		commitmenttypes.GetSDKSpecs(), consStateBCRoot,
 		keyConsAB, bzConsStateAB,
 	)
-	tryPanicOnProofGenError(
+	panicIfErr(
 		err,
 		"fail to verify proof of chain [%s]'s consensus state on chain '%s' at path '%s' using [%s]'s state root on chain '%s' due to: %v",
-		chainA.ChainID(),
+		chainAID,
 		chainB.ChainID(),
 		keyConsAB,
 		chainB.ChainID(),
@@ -227,27 +213,27 @@ func genConnProof(
 ) *channeltypes.MultihopProof {
 	chainA := chainB.Counterparty()
 	keyConnAB, err := chainB.GetMerklePath(host.ConnectionPath(chainB.ConnectionID()))
-	tryPanicOnProofGenError(err, "fail to create merkle path on chain '%s' with path '%s' due to: %v",
+	panicIfErr(err, "fail to create merkle path on chain '%s' with path '%s' due to: %v",
 		chainB.ChainID(), host.ConnectionPath(chainB.ConnectionID()), err,
 	)
 	bzConnABProof, _, err := chainB.QueryProofAtHeight(
 		host.ConnectionKey(chainB.ConnectionID()),
 		int64(heightBC.GetRevisionHeight()),
 	)
-	tryPanicOnProofGenError(err, "fail to generate proof on chain '%s' for key '%s' at height %d due to: %v",
+	panicIfErr(err, "fail to generate proof on chain '%s' for key '%s' at height %d due to: %v",
 		chainB.ChainID(), host.ConnectionKey(chainB.ConnectionID()), heightBC.GetRevisionHeight(), err,
 	)
 	var connProof commitmenttypes.MerkleProof
 	err = chainB.Codec().Unmarshal(bzConnABProof, &connProof)
-	tryPanicOnProofGenError(err, "fail to unmarshal chain [%s]'s proof on chain '%s' due to: %v",
+	panicIfErr(err, "fail to unmarshal chain [%s]'s proof on chain '%s' due to: %v",
 		chainA.ChainID(), chainB.ChainID(), err,
 	)
 	connAB, err := chainB.GetConnection()
-	tryPanicOnProofGenError(err, "fail to get connection '%s' on chain '%s' due to: %v",
+	panicIfErr(err, "fail to get connection '%s' on chain '%s' due to: %v",
 		chainB.ConnectionID(), chainB.ChainID(), err,
 	)
 	bzConnAB, err := chainB.Codec().Marshal(connAB)
-	tryPanicOnProofGenError(err, "fail to marshal connection '%s' on chain '%s' due to: %v",
+	panicIfErr(err, "fail to marshal connection '%s' on chain '%s' due to: %v",
 		chainB.ConnectionID(), chainB.ChainID(), err,
 	)
 	// ensure connecitonAB can be verified by consStateBC
@@ -255,7 +241,7 @@ func genConnProof(
 		commitmenttypes.GetSDKSpecs(), consStateBCRoot,
 		keyConnAB, bzConnAB,
 	)
-	tryPanicOnProofGenError(
+	panicIfErr(
 		err,
 		"fail to verify proof of chain [%s]'s connection on chain '%s' at path '%s' using [%s]'s state root on chain '%s' due to: %v",
 		chainA.ChainID(),
@@ -272,7 +258,73 @@ func genConnProof(
 	}
 }
 
-func tryPanicOnProofGenError(err error, format string, args ...interface{}) {
+// ensureKeyValueProof ensures that the proof of the key-value pair stored on A can be verified by B's state root stored
+// on C, where A--B--C is a subset of a multihop chan path.
+// Panic if proof generation or verification fails.
+func ensureKeyValueProof(
+	key, value []byte,
+	chainB, chainC Endpoint,
+	heightAB, heightBC exported.Height,
+	consStateABRoot exported.Root,
+) *channeltypes.MultihopProof {
+	if len(key) == 0 || len(value) == 0 {
+		panic("key and value must be non-empty")
+	}
+
+	chainA := chainB.Counterparty()
+	// set optional params if not passed in
+	if heightBC == nil {
+		heightBC = chainC.GetClientState().GetLatestHeight()
+	}
+	if heightAB == nil {
+		heightAB = chainB.GetClientState().GetLatestHeight()
+	}
+	if consStateABRoot == nil {
+		consState, err := chainB.GetConsensusState(heightAB)
+		panicIfErr(err, "fail to get chain [%s]'s consensus state at height %s on chain '%s' due to: %v",
+			chainA.ChainID(), heightAB, chainB.ChainID(), err,
+		)
+		consStateABRoot = consState.GetRoot()
+	}
+
+	keyMerklePath, err := chainB.GetMerklePath(string(key))
+	panicIfErr(err, "fail to create merkle path on chain '%s' with path '%s' due to: %v",
+		chainB.ChainID(), key, err,
+	)
+
+	bzProof, _, err := chainA.QueryProofAtHeight(key, int64(heightAB.GetRevisionHeight()))
+	panicIfErr(err, "fail to generate proof on chain '%s' for key '%s' at height %d due to: %v",
+		chainB.ChainID(), key, heightBC.GetRevisionHeight(), err,
+	)
+	var proof commitmenttypes.MerkleProof
+	err = chainB.Codec().Unmarshal(bzProof, &proof)
+	panicIfErr(err, "fail to unmarshal chain [%s]'s proof on chain '%s' due to: %v",
+		chainB.Counterparty().ChainID(), chainB.ChainID(), err,
+	)
+
+	// ensure key-value pair can be verified by consStateBC
+	err = proof.VerifyMembership(
+		commitmenttypes.GetSDKSpecs(), consStateABRoot,
+		keyMerklePath, value,
+	)
+	panicIfErr(
+		err,
+		"fail to verify proof of chain [%s]'s key-value pair on chain '%s' at path '%s' using [%s]'s state root on chain '%s' due to: %v",
+		chainB.Counterparty().ChainID(),
+		chainB.ChainID(),
+		key,
+		chainB.ChainID(),
+		chainC.ChainID(),
+		err,
+	)
+	return &channeltypes.MultihopProof{
+		Proof:       bzProof,
+		Value:       value,
+		PrefixedKey: &keyMerklePath,
+	}
+}
+
+func panicIfErr(err error, format string, args ...interface{}) {
 	if err != nil {
 		panic(fmt.Sprintf(format, args...))
 	}

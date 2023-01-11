@@ -2,6 +2,7 @@ package ibctesting
 
 import (
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
+	"github.com/cosmos/ibc-go/v6/modules/core/multihop"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -44,6 +45,18 @@ func (paths LinkedPaths) ToPathM() *PathM {
 		EndpointA: &a,
 		EndpointZ: &z,
 	}
+}
+
+// ToMultihopChanPath creates a multihop channel path from a LinkedPaths.
+func (paths LinkedPaths) ToMultihopChanPath() multihop.ChanPath {
+	mPaths := make([]*multihop.Path, len(paths))
+	for i, path := range paths {
+		mPaths[i] = &multihop.Path{
+			EndpointA: path.EndpointA.MultihopEndpoint(),
+			EndpointB: path.EndpointB.MultihopEndpoint(),
+		}
+	}
+	return multihop.NewChanPath(mPaths)
 }
 
 // A returns the first chain in the paths, aka. the source chain.

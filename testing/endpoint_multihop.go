@@ -3,9 +3,14 @@ package ibctesting
 import (
 	"fmt"
 
+	"github.com/cosmos/cosmos-sdk/codec"
 	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v6/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v6/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v6/modules/core/exported"
+	"github.com/cosmos/ibc-go/v6/modules/core/multihop"
 	ibcmock "github.com/cosmos/ibc-go/v6/testing/mock"
 	"github.com/stretchr/testify/require"
 )
@@ -24,7 +29,8 @@ type EndpointM struct {
 
 	// a list of single-hop Paths that are linked together,
 	// eg. for chains {A,B,C,D} the linked paths would be Link{AB, BC, CD}
-	paths LinkedPaths
+	paths     LinkedPaths
+	mChanPath multihop.ChanPath
 }
 
 // NewEndpointM constructs a new EndpointM without the counterparty.
@@ -37,6 +43,10 @@ func NewEndpointMFromLinkedPaths(path LinkedPaths) (A, Z EndpointM) {
 	Z.paths = path.Reverse()
 	Z.Endpoint = Z.paths.A()
 	Z.Counterparty = &A
+
+	// create multihop channel paths
+	A.mChanPath = A.paths.ToMultihopChanPath()
+	Z.mChanPath = Z.paths.ToMultihopChanPath()
 	return A, Z
 }
 
@@ -280,11 +290,7 @@ func (ep *EndpointM) QueryPacketAcknowledgementProof(packet *channeltypes.Packet
 
 // QueryMultihopProof queries the proof for a key/value on this endpoint, which is verified on the counterparty chain.
 func (ep *EndpointM) QueryMultihopProof(key, expectedValue []byte, name string) []byte {
-	proof, err := GenerateMultiHopProof(
-		ep.paths,
-		key,
-		expectedValue,
-	)
+	proof, err := ep.mChanPath.GenerateMembershipProof(key, expectedValue)
 	require.NoError(
 		ep.Chain.T,
 		err,
@@ -298,4 +304,77 @@ func (ep *EndpointM) QueryMultihopProof(key, expectedValue []byte, name string) 
 // ProofHeight returns the proof height passed to this endpoint where the proof is generated for the counterparty chain.
 func (ep *EndpointM) ProofHeight() clienttypes.Height {
 	return ep.GetClientState().GetLatestHeight().(clienttypes.Height)
+}
+
+// Multihop Endpoint implementation
+
+type multihopEndpoint struct {
+	testEndpoint *Endpoint
+}
+
+// MultihopEndpoint returns a multihop.Endpoint implementation for the test endpoint.
+func (tep *Endpoint) MultihopEndpoint() multihop.Endpoint {
+	return multihopEndpoint{tep}
+}
+
+var _ multihop.Endpoint = multihopEndpoint{}
+
+// ChainID implements multihop.Endpoint
+func (mep multihopEndpoint) ChainID() string {
+	return mep.testEndpoint.Chain.ChainID
+}
+
+// Codec implements multihop.Endpoint
+func (mep multihopEndpoint) Codec() codec.BinaryCodec {
+	return mep.testEndpoint.Chain.Codec
+}
+
+// ClientID implements multihop.Endpoint
+func (mep multihopEndpoint) ClientID() string {
+	return mep.testEndpoint.ClientID
+}
+
+// ConnectionID implements multihop.Endpoint
+func (mep multihopEndpoint) ConnectionID() string {
+	return mep.testEndpoint.ConnectionID
+}
+
+// Counterparty implements multihop.Endpoint
+func (mep multihopEndpoint) Counterparty() multihop.Endpoint {
+	return mep.testEndpoint.Counterparty.MultihopEndpoint()
+}
+
+// GetClientState implements multihop.Endpoint
+func (mep multihopEndpoint) GetClientState() exported.ClientState {
+	return mep.testEndpoint.GetClientState()
+}
+
+// GetConnection implements multihop.Endpoint
+func (mep multihopEndpoint) GetConnection() (*connectiontypes.ConnectionEnd, error) {
+	conn := mep.testEndpoint.GetConnection()
+	return &conn, nil
+}
+
+// GetConsensusState implements multihop.Endpoint
+func (mep multihopEndpoint) GetConsensusState(height exported.Height) (exported.ConsensusState, error) {
+	return mep.testEndpoint.GetConsensusState(height), nil
+}
+
+// GetMerklePath implements multihop.Endpoint
+func (mep multihopEndpoint) GetMerklePath(path string) (commitmenttypes.MerklePath, error) {
+	return commitmenttypes.ApplyPrefix(
+		mep.testEndpoint.Chain.GetPrefix(),
+		commitmenttypes.NewMerklePath(path),
+	)
+}
+
+// QueryProofAtHeight implements multihop.Endpoint
+func (mep multihopEndpoint) QueryProofAtHeight(key []byte, height int64) ([]byte, clienttypes.Height, error) {
+	proof, proofHeight := mep.testEndpoint.Chain.QueryProofAtHeight(key, height)
+	return proof, proofHeight, nil
+}
+
+// UpdateClient implements multihop.Endpoint
+func (mep multihopEndpoint) UpdateClient() error {
+	return mep.testEndpoint.UpdateClient()
 }

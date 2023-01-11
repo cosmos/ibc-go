@@ -236,10 +236,18 @@ func (endpoint *Endpoint) ConnOpenTry() error {
 	counterpartyClient, proofClient, proofConsensus, consensusHeight, proofInit, proofHeight := endpoint.QueryConnectionHandshakeProof()
 
 	msg := connectiontypes.NewMsgConnectionOpenTry(
-		endpoint.ClientID, endpoint.Counterparty.ConnectionID, endpoint.Counterparty.ClientID,
-		counterpartyClient, endpoint.Counterparty.Chain.GetPrefix(), []*connectiontypes.Version{ConnectionVersion}, endpoint.ConnectionConfig.DelayPeriod,
-		proofInit, proofClient, proofConsensus,
-		proofHeight, consensusHeight,
+		endpoint.ClientID,
+		endpoint.Counterparty.ConnectionID,
+		endpoint.Counterparty.ClientID,
+		counterpartyClient,
+		endpoint.Counterparty.Chain.GetPrefix(),
+		[]*connectiontypes.Version{ConnectionVersion},
+		endpoint.ConnectionConfig.DelayPeriod,
+		proofInit,
+		proofClient,
+		proofConsensus,
+		proofHeight,
+		consensusHeight,
 		endpoint.Chain.SenderAccount.GetAddress().String(),
 	)
 	res, err := endpoint.Chain.SendMsgs(msg)
@@ -263,9 +271,14 @@ func (endpoint *Endpoint) ConnOpenAck() error {
 	counterpartyClient, proofClient, proofConsensus, consensusHeight, proofTry, proofHeight := endpoint.QueryConnectionHandshakeProof()
 
 	msg := connectiontypes.NewMsgConnectionOpenAck(
-		endpoint.ConnectionID, endpoint.Counterparty.ConnectionID, counterpartyClient, // testing doesn't use flexible selection
-		proofTry, proofClient, proofConsensus,
-		proofHeight, consensusHeight,
+		endpoint.ConnectionID,
+		endpoint.Counterparty.ConnectionID,
+		counterpartyClient, // testing doesn't use flexible selection
+		proofTry,
+		proofClient,
+		proofConsensus,
+		proofHeight,
+		consensusHeight,
 		ConnectionVersion,
 		endpoint.Chain.SenderAccount.GetAddress().String(),
 	)
@@ -350,9 +363,14 @@ func (endpoint *Endpoint) ChanOpenTry() error {
 
 	msg := channeltypes.NewMsgChannelOpenTry(
 		endpoint.ChannelConfig.PortID,
-		endpoint.ChannelConfig.Version, endpoint.ChannelConfig.Order, []string{endpoint.ConnectionID},
-		endpoint.Counterparty.ChannelConfig.PortID, endpoint.Counterparty.ChannelID, endpoint.Counterparty.ChannelConfig.Version,
-		proof, height,
+		endpoint.ChannelConfig.Version,
+		endpoint.ChannelConfig.Order,
+		[]string{endpoint.ConnectionID},
+		endpoint.Counterparty.ChannelConfig.PortID,
+		endpoint.Counterparty.ChannelID,
+		endpoint.Counterparty.ChannelConfig.Version,
+		proof,
+		height,
 		endpoint.Chain.SenderAccount.GetAddress().String(),
 	)
 	res, err := endpoint.Chain.SendMsgs(msg)
@@ -415,9 +433,12 @@ func (endpoint *Endpoint) ChanOpenAck() error {
 	proof, height := endpoint.Counterparty.Chain.QueryProof(channelKey)
 
 	msg := channeltypes.NewMsgChannelOpenAck(
-		endpoint.ChannelConfig.PortID, endpoint.ChannelID,
-		endpoint.Counterparty.ChannelID, endpoint.Counterparty.ChannelConfig.Version, // testing doesn't use flexible selection
-		proof, height,
+		endpoint.ChannelConfig.PortID,
+		endpoint.ChannelID,
+		endpoint.Counterparty.ChannelID,
+		endpoint.Counterparty.ChannelConfig.Version, // testing doesn't use flexible selection
+		proof,
+		height,
 		endpoint.Chain.SenderAccount.GetAddress().String(),
 	)
 
@@ -469,7 +490,15 @@ func (endpoint *Endpoint) SendPacket(
 	channelCap := endpoint.Chain.GetChannelCapability(endpoint.ChannelConfig.PortID, endpoint.ChannelID)
 
 	// no need to send message, acting as a module
-	sequence, err := endpoint.Chain.App.GetIBCKeeper().ChannelKeeper.SendPacket(endpoint.Chain.GetContext(), channelCap, endpoint.ChannelConfig.PortID, endpoint.ChannelID, timeoutHeight, timeoutTimestamp, data)
+	sequence, err := endpoint.Chain.App.GetIBCKeeper().ChannelKeeper.SendPacket(
+		endpoint.Chain.GetContext(),
+		channelCap,
+		endpoint.ChannelConfig.PortID,
+		endpoint.ChannelID,
+		timeoutHeight,
+		timeoutTimestamp,
+		data,
+	)
 	if err != nil {
 		return 0, err
 	}
@@ -503,7 +532,12 @@ func (endpoint *Endpoint) RecvPacketWithResult(packet channeltypes.Packet) (*sdk
 	packetKey := host.PacketCommitmentKey(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 	proof, proofHeight := endpoint.Counterparty.Chain.QueryProof(packetKey)
 
-	recvMsg := channeltypes.NewMsgRecvPacket(packet, proof, proofHeight, endpoint.Chain.SenderAccount.GetAddress().String())
+	recvMsg := channeltypes.NewMsgRecvPacket(
+		packet,
+		proof,
+		proofHeight,
+		endpoint.Chain.SenderAccount.GetAddress().String(),
+	)
 
 	// receive on counterparty and update source client
 	res, err := endpoint.Chain.SendMsgs(recvMsg)
@@ -524,7 +558,12 @@ func (endpoint *Endpoint) WriteAcknowledgement(ack exported.Acknowledgement, pac
 	channelCap := endpoint.Chain.GetChannelCapability(packet.GetDestPort(), packet.GetDestChannel())
 
 	// no need to send message, acting as a handler
-	err := endpoint.Chain.App.GetIBCKeeper().ChannelKeeper.WriteAcknowledgement(endpoint.Chain.GetContext(), channelCap, packet, ack)
+	err := endpoint.Chain.App.GetIBCKeeper().ChannelKeeper.WriteAcknowledgement(
+		endpoint.Chain.GetContext(),
+		channelCap,
+		packet,
+		ack,
+	)
 	if err != nil {
 		return err
 	}
@@ -541,7 +580,13 @@ func (endpoint *Endpoint) AcknowledgePacket(packet channeltypes.Packet, ack []by
 	packetKey := host.PacketAcknowledgementKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 	proof, proofHeight := endpoint.Counterparty.QueryProof(packetKey)
 
-	ackMsg := channeltypes.NewMsgAcknowledgement(packet, ack, proof, proofHeight, endpoint.Chain.SenderAccount.GetAddress().String())
+	ackMsg := channeltypes.NewMsgAcknowledgement(
+		packet,
+		ack,
+		proof,
+		proofHeight,
+		endpoint.Chain.SenderAccount.GetAddress().String(),
+	)
 
 	return endpoint.Chain.sendMsgs(ackMsg)
 }
@@ -561,7 +606,11 @@ func (endpoint *Endpoint) TimeoutPacket(packet channeltypes.Packet) error {
 	}
 
 	proof, proofHeight := endpoint.Counterparty.QueryProof(packetKey)
-	nextSeqRecv, found := endpoint.Counterparty.Chain.App.GetIBCKeeper().ChannelKeeper.GetNextSequenceRecv(endpoint.Counterparty.Chain.GetContext(), endpoint.ChannelConfig.PortID, endpoint.ChannelID)
+	nextSeqRecv, found := endpoint.Counterparty.Chain.App.GetIBCKeeper().ChannelKeeper.GetNextSequenceRecv(
+		endpoint.Counterparty.Chain.GetContext(),
+		endpoint.ChannelConfig.PortID,
+		endpoint.ChannelID,
+	)
 	require.True(endpoint.Chain.T, found)
 
 	timeoutMsg := channeltypes.NewMsgTimeout(
@@ -591,7 +640,11 @@ func (endpoint *Endpoint) TimeoutOnClose(packet channeltypes.Packet) error {
 	channelKey := host.ChannelKey(packet.GetDestPort(), packet.GetDestChannel())
 	proofClosed, _ := endpoint.Counterparty.QueryProof(channelKey)
 
-	nextSeqRecv, found := endpoint.Counterparty.Chain.App.GetIBCKeeper().ChannelKeeper.GetNextSequenceRecv(endpoint.Counterparty.Chain.GetContext(), endpoint.ChannelConfig.PortID, endpoint.ChannelID)
+	nextSeqRecv, found := endpoint.Counterparty.Chain.App.GetIBCKeeper().ChannelKeeper.GetNextSequenceRecv(
+		endpoint.Counterparty.Chain.GetContext(),
+		endpoint.ChannelConfig.PortID,
+		endpoint.ChannelID,
+	)
 	require.True(endpoint.Chain.T, found)
 
 	timeoutOnCloseMsg := channeltypes.NewMsgTimeoutOnClose(
@@ -622,7 +675,11 @@ func (endpoint *Endpoint) GetClientState() exported.ClientState {
 
 // SetClientState sets the client state for this endpoint.
 func (endpoint *Endpoint) SetClientState(clientState exported.ClientState) {
-	endpoint.Chain.App.GetIBCKeeper().ClientKeeper.SetClientState(endpoint.Chain.GetContext(), endpoint.ClientID, clientState)
+	endpoint.Chain.App.GetIBCKeeper().ClientKeeper.SetClientState(
+		endpoint.Chain.GetContext(),
+		endpoint.ClientID,
+		clientState,
+	)
 }
 
 // GetConsensusState retrieves the Consensus State for this endpoint at the provided height.
@@ -636,13 +693,21 @@ func (endpoint *Endpoint) GetConsensusState(height exported.Height) exported.Con
 
 // SetConsensusState sets the consensus state for this endpoint.
 func (endpoint *Endpoint) SetConsensusState(consensusState exported.ConsensusState, height exported.Height) {
-	endpoint.Chain.App.GetIBCKeeper().ClientKeeper.SetClientConsensusState(endpoint.Chain.GetContext(), endpoint.ClientID, height, consensusState)
+	endpoint.Chain.App.GetIBCKeeper().ClientKeeper.SetClientConsensusState(
+		endpoint.Chain.GetContext(),
+		endpoint.ClientID,
+		height,
+		consensusState,
+	)
 }
 
 // GetConnection retrieves an IBC Connection for the endpoint. The
 // connection is expected to exist otherwise testing will fail.
 func (endpoint *Endpoint) GetConnection() connectiontypes.ConnectionEnd {
-	connection, found := endpoint.Chain.App.GetIBCKeeper().ConnectionKeeper.GetConnection(endpoint.Chain.GetContext(), endpoint.ConnectionID)
+	connection, found := endpoint.Chain.App.GetIBCKeeper().ConnectionKeeper.GetConnection(
+		endpoint.Chain.GetContext(),
+		endpoint.ConnectionID,
+	)
 	require.True(endpoint.Chain.T, found)
 
 	return connection
@@ -650,13 +715,21 @@ func (endpoint *Endpoint) GetConnection() connectiontypes.ConnectionEnd {
 
 // SetConnection sets the connection for this endpoint.
 func (endpoint *Endpoint) SetConnection(connection connectiontypes.ConnectionEnd) {
-	endpoint.Chain.App.GetIBCKeeper().ConnectionKeeper.SetConnection(endpoint.Chain.GetContext(), endpoint.ConnectionID, connection)
+	endpoint.Chain.App.GetIBCKeeper().ConnectionKeeper.SetConnection(
+		endpoint.Chain.GetContext(),
+		endpoint.ConnectionID,
+		connection,
+	)
 }
 
 // GetChannel retrieves an IBC Channel for the endpoint. The channel
 // is expected to exist otherwise testing will fail.
 func (endpoint *Endpoint) GetChannel() channeltypes.Channel {
-	channel, found := endpoint.Chain.App.GetIBCKeeper().ChannelKeeper.GetChannel(endpoint.Chain.GetContext(), endpoint.ChannelConfig.PortID, endpoint.ChannelID)
+	channel, found := endpoint.Chain.App.GetIBCKeeper().ChannelKeeper.GetChannel(
+		endpoint.Chain.GetContext(),
+		endpoint.ChannelConfig.PortID,
+		endpoint.ChannelID,
+	)
 	require.True(endpoint.Chain.T, found)
 
 	return channel
@@ -664,7 +737,12 @@ func (endpoint *Endpoint) GetChannel() channeltypes.Channel {
 
 // SetChannel sets the channel for this endpoint.
 func (endpoint *Endpoint) SetChannel(channel channeltypes.Channel) {
-	endpoint.Chain.App.GetIBCKeeper().ChannelKeeper.SetChannel(endpoint.Chain.GetContext(), endpoint.ChannelConfig.PortID, endpoint.ChannelID, channel)
+	endpoint.Chain.App.GetIBCKeeper().ChannelKeeper.SetChannel(
+		endpoint.Chain.GetContext(),
+		endpoint.ChannelConfig.PortID,
+		endpoint.ChannelID,
+		channel,
+	)
 }
 
 // QueryClientStateProof performs and abci query for a client stat associated
