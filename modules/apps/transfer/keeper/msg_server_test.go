@@ -9,9 +9,7 @@ import (
 )
 
 func (suite *KeeperTestSuite) TestMsgTransfer() {
-	var (
-		msg *types.MsgTransfer
-	)
+	var msg *types.MsgTransfer
 
 	testCases := []struct {
 		name     string
@@ -104,11 +102,13 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 			events := ctx.EventManager().Events()
 			expEvents := ibctesting.EventsMap{
 				"ibc_transfer": {
-					"sender":   suite.chainA.SenderAccount.GetAddress().String(),
-					"receiver": suite.chainB.SenderAccount.GetAddress().String(),
-					"amount":   coin.Amount.String(),
-					"denom":    coin.Denom,
-					"memo":     "memo",
+					{
+						"sender":   suite.chainA.SenderAccount.GetAddress().String(),
+						"receiver": suite.chainB.SenderAccount.GetAddress().String(),
+						"amount":   coin.Amount.String(),
+						"denom":    coin.Denom,
+						"memo":     "memo",
+					},
 				},
 			}
 
