@@ -65,7 +65,7 @@ func (suite *WasmTestSuite) SetupTest() {
 
 	os.MkdirAll("tmp", 0o755)
 	suite.wasmKeeper = app.IBCKeeper.WasmClientKeeper
-	data, err = os.ReadFile("ics10_grandpa_cw.wasm")
+	data, err = os.ReadFile("test_data/ics10_grandpa_cw.wasm")
 	suite.Require().NoError(err)
 
 	codeId, err := suite.wasmKeeper.PushNewWasmCode(suite.ctx, data)

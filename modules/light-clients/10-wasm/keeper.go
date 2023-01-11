@@ -11,30 +11,30 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
+	cosmwasm "github.com/CosmWasm/wasmvm"
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	cosmwasm "github.com/CosmWasm/wasmvm"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 var _ QueryServer = (*Keeper)(nil)
 
 type Keeper struct {
-	storeKey		storetypes.StoreKey
-	cdc				codec.BinaryCodec
-	wasmVM			*cosmwasm.VM
+	storeKey storetypes.StoreKey
+	cdc      codec.BinaryCodec
+	wasmVM   *cosmwasm.VM
 }
 
 func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey) Keeper {
 
 	// Wasm VM
-	wasmDataDir :=           "wasm_client_data"
+	wasmDataDir := "wasm_client_data"
 	wasmSupportedFeatures := strings.Join([]string{"storage", "iterator"}, ",")
-	wasmMemoryLimitMb :=     uint32(math.Pow(2, 12))
-	wasmPrintDebug :=        true
-	wasmCacheSizeMb :=       uint32(math.Pow(2, 8))
-	
+	wasmMemoryLimitMb := uint32(math.Pow(2, 12))
+	wasmPrintDebug := true
+	wasmCacheSizeMb := uint32(math.Pow(2, 8))
+
 	vm, err := cosmwasm.NewVM(wasmDataDir, wasmSupportedFeatures, wasmMemoryLimitMb, wasmPrintDebug, wasmCacheSizeMb)
 	if err != nil {
 		panic(err)
@@ -42,9 +42,9 @@ func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey) Keeper {
 	WasmVM = vm
 
 	return Keeper{
-		cdc:           cdc,
-		storeKey:      key,
-		wasmVM: 	   vm,
+		cdc:      cdc,
+		storeKey: key,
+		wasmVM:   vm,
 	}
 }
 
