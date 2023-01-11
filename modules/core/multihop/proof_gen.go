@@ -65,7 +65,7 @@ func (p ChanPath) GenerateMembershipProof(
 	log.Printf("Generating proof on ChanPath\n")
 	result = &channeltypes.MsgMultihopProofs{}
 	// generate proof for key on source chain, where key/expectedValue are checked
-	result.KeyProof = ensureKeyValueProof(key, expectedVal, p[0].EndpointB, p[1].EndpointB, nil, nil, nil)
+	result.KeyProof = ensureKeyValueProof(key, expectedVal, p[0].EndpointB, nil, nil)
 
 	linkedPathProofs, err := p.GenerateConsensusAndConnectionProofs()
 	if err != nil {
@@ -258,13 +258,13 @@ func genConnProof(
 	}
 }
 
-// ensureKeyValueProof ensures that the proof of the key-value pair stored on A can be verified by B's state root stored
-// on C, where A--B--C is a subset of a multihop chan path.
+// ensureKeyValueProof ensures that the proof of the key-value pair stored on A can be verified by A's consensus state
+// root stored on B at heightAB. where A--B is connected by a single ibc connection.
 // Panic if proof generation or verification fails.
 func ensureKeyValueProof(
 	key, value []byte,
-	chainB, chainC Endpoint,
-	heightAB, heightBC exported.Height,
+	chainB Endpoint,
+	heightAB exported.Height,
 	consStateABRoot exported.Root,
 ) *channeltypes.MultihopProof {
 	if len(key) == 0 || len(value) == 0 {
@@ -273,9 +273,6 @@ func ensureKeyValueProof(
 
 	chainA := chainB.Counterparty()
 	// set optional params if not passed in
-	if heightBC == nil {
-		heightBC = chainC.GetClientState().GetLatestHeight()
-	}
 	if heightAB == nil {
 		heightAB = chainB.GetClientState().GetLatestHeight()
 	}
@@ -294,7 +291,7 @@ func ensureKeyValueProof(
 
 	bzProof, _, err := chainA.QueryProofAtHeight(key, int64(heightAB.GetRevisionHeight()))
 	panicIfErr(err, "fail to generate proof on chain '%s' for key '%s' at height %d due to: %v",
-		chainB.ChainID(), key, heightBC.GetRevisionHeight(), err,
+		chainA.ChainID(), key, heightAB, err,
 	)
 	var proof commitmenttypes.MerkleProof
 	err = chainB.Codec().Unmarshal(bzProof, &proof)
@@ -309,13 +306,8 @@ func ensureKeyValueProof(
 	)
 	panicIfErr(
 		err,
-		"fail to verify proof of chain [%s]'s key-value pair on chain '%s' at path '%s' using [%s]'s state root on chain '%s' due to: %v",
-		chainB.Counterparty().ChainID(),
-		chainB.ChainID(),
-		key,
-		chainB.ChainID(),
-		chainC.ChainID(),
-		err,
+		"fail to verify proof of chain [%s]'s key-value pair at path '%s' at height %s due to: %v",
+		chainA.ChainID(), key, heightAB, err,
 	)
 	return &channeltypes.MultihopProof{
 		Proof:       bzProof,
