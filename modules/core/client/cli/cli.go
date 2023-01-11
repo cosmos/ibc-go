@@ -7,13 +7,13 @@ import (
 	ibcclient "github.com/cosmos/ibc-go/v6/modules/core/02-client"
 	connection "github.com/cosmos/ibc-go/v6/modules/core/03-connection"
 	channel "github.com/cosmos/ibc-go/v6/modules/core/04-channel"
-	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
+	ibcexported "github.com/cosmos/ibc-go/v6/modules/core/exported"
 )
 
 // GetTxCmd returns the transaction commands for this module
 func GetTxCmd() *cobra.Command {
 	ibcTxCmd := &cobra.Command{
-		Use:                        host.ModuleName,
+		Use:                        ibcexported.ModuleName,
 		Short:                      "IBC transaction subcommands",
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
@@ -32,7 +32,7 @@ func GetTxCmd() *cobra.Command {
 func GetQueryCmd() *cobra.Command {
 	// Group ibc queries under a subcommand
 	ibcQueryCmd := &cobra.Command{
-		Use:                        host.ModuleName,
+		Use:                        ibcexported.ModuleName,
 		Short:                      "Querying commands for the IBC module",
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,

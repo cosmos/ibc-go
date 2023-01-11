@@ -67,4 +67,4 @@ The following are considered as valid update scenarios:
 - A batch of block headers which when verified inserts `N` `ConsensusState` instances for `N` unique heights.
 - Evidence of misbehaviour provided by two conflicting block headers.
 
-Learn more in the [handling client updates](./update.md) and [handling misbehaviour](./misbehaviour.md) sections. 
+Learn more in the [handling client updates](./update.md) and [handling misbehaviour](./updates-and-misbehaviour.md) sections. 
