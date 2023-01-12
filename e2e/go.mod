@@ -3,7 +3,7 @@ module github.com/cosmos/ibc-go/e2e
 go 1.19
 
 require (
-	github.com/cosmos/cosmos-sdk v0.47.0-alpha2.0.20221219231612-5ed4075ba219
+	github.com/cosmos/cosmos-sdk v0.47.0-rc1
 	github.com/cosmos/gogoproto v1.4.3
 	github.com/cosmos/ibc-go/v6 v6.0.0
 	github.com/cosmos/interchain-accounts v0.4.0
