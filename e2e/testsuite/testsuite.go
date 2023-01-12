@@ -498,7 +498,7 @@ func (s *E2ETestSuite) ExecuteGovProposalV1(ctx context.Context, msg sdk.Msg, ch
 	s.Require().NoError(err)
 
 	msgs := []sdk.Msg{msg}
-	msgSubmitProposal, err := govtypesv1.NewMsgSubmitProposal(msgs, sdk.NewCoins(sdk.NewCoin(chain.Config().Denom, govtypesv1.DefaultMinDepositTokens)), sender.String(), "")
+	msgSubmitProposal, err := govtypesv1.NewMsgSubmitProposal(msgs, sdk.NewCoins(sdk.NewCoin(chain.Config().Denom, govtypesv1.DefaultMinDepositTokens)), sender.String(), "", "", "")
 	s.Require().NoError(err)
 
 	resp, err := s.BroadcastMessages(ctx, chain, user, msgSubmitProposal)
