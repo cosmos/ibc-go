@@ -235,7 +235,7 @@ func (suite *AuthzTransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 	t.Run("exceed spend limit", func(t *testing.T) {
 		const invalidSpendAmount = spendLimit + 1
 
-		t.Run("exec MsgTransfer", func(t *testing.T) {
+		t.Run("broadcast MsgExec for ibc MsgTransfer", func(t *testing.T) {
 			transferMsg := transfertypes.MsgTransfer{
 				SourcePort:    channelA.PortID,
 				SourceChannel: channelA.ChannelID,
@@ -289,7 +289,7 @@ func (suite *AuthzTransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 		invalidWallet := suite.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 		invalidWalletAddress := invalidWallet.Bech32Address(chainB.Config().Bech32Prefix)
 
-		t.Run("exec MsgTransfer", func(t *testing.T) {
+		t.Run("broadcast MsgExec for ibc MsgTransfer", func(t *testing.T) {
 			transferMsg := transfertypes.MsgTransfer{
 				SourcePort:    channelA.PortID,
 				SourceChannel: channelA.ChannelID,
