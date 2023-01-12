@@ -32,9 +32,7 @@ import (
 	dbm "github.com/tendermint/tm-db"
 
 	ibctransfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
-	ibchost "github.com/cosmos/ibc-go/v6/modules/core/24-host"
 	ibcexported "github.com/cosmos/ibc-go/v6/modules/core/exported"
-	"github.com/cosmos/ibc-go/v6/testing/simapp/helpers"
 )
 
 // Get flags every time the simulator is run

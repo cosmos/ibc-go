@@ -8,7 +8,7 @@ require (
 	cosmossdk.io/tools/rosetta v0.2.0
 	github.com/armon/go-metrics v0.4.1
 	github.com/cosmos/cosmos-proto v1.0.0-beta.1
-	github.com/cosmos/cosmos-sdk v0.47.0-alpha2.0.20221219231612-5ed4075ba219
+	github.com/cosmos/cosmos-sdk v0.47.0-rc1
 	github.com/cosmos/gogoproto v1.4.3
 	github.com/cosmos/ics23/go v0.9.1-0.20221207100636-b1abd8678aab
 	github.com/golang/protobuf v1.5.2
