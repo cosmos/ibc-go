@@ -21,8 +21,8 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v6/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v6/modules/core/client/cli"
+	"github.com/cosmos/ibc-go/v6/modules/core/exported"
 	"github.com/cosmos/ibc-go/v6/modules/core/keeper"
 	"github.com/cosmos/ibc-go/v6/modules/core/simulation"
 	"github.com/cosmos/ibc-go/v6/modules/core/types"
@@ -41,7 +41,7 @@ var _ module.AppModuleBasic = AppModuleBasic{}
 
 // Name returns the ibc module's name.
 func (AppModuleBasic) Name() string {
-	return host.ModuleName
+	return exported.ModuleName
 }
 
 // RegisterLegacyAminoCodec does nothing. IBC does not support amino.
@@ -57,7 +57,7 @@ func (AppModuleBasic) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
 func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, config client.TxEncodingConfig, bz json.RawMessage) error {
 	var gs types.GenesisState
 	if err := cdc.UnmarshalJSON(bz, &gs); err != nil {
-		return fmt.Errorf("failed to unmarshal %s genesis state: %w", host.ModuleName, err)
+		return fmt.Errorf("failed to unmarshal %s genesis state: %w", exported.ModuleName, err)
 	}
 
 	return gs.Validate()
@@ -109,7 +109,7 @@ func NewAppModule(k *keeper.Keeper) AppModule {
 
 // Name returns the ibc module's name.
 func (AppModule) Name() string {
-	return host.ModuleName
+	return exported.ModuleName
 }
 
 // RegisterInvariants registers the ibc module invariants.
@@ -125,7 +125,7 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	types.RegisterQueryService(cfg.QueryServer(), am.keeper)
 
 	m := clientkeeper.NewMigrator(am.keeper.ClientKeeper)
-	err := cfg.RegisterMigration(host.ModuleName, 2, m.Migrate2to3)
+	err := cfg.RegisterMigration(exported.ModuleName, 2, m.Migrate2to3)
 	if err != nil {
 		panic(err)
 	}
@@ -137,7 +137,7 @@ func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, bz json.Ra
 	var gs types.GenesisState
 	err := cdc.UnmarshalJSON(bz, &gs)
 	if err != nil {
-		panic(fmt.Sprintf("failed to unmarshal %s genesis state: %s", host.ModuleName, err))
+		panic(fmt.Sprintf("failed to unmarshal %s genesis state: %s", exported.ModuleName, err))
 	}
 	InitGenesis(ctx, *am.keeper, &gs)
 	return []abci.ValidatorUpdate{}
@@ -182,7 +182,7 @@ func (AppModule) RandomizedParams(_ *rand.Rand) []simtypes.ParamChange {
 
 // RegisterStoreDecoder registers a decoder for ibc module's types
 func (am AppModule) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
-	sdr[host.StoreKey] = simulation.NewDecodeStore(*am.keeper)
+	sdr[exported.StoreKey] = simulation.NewDecodeStore(*am.keeper)
 }
 
 // WeightedOperations returns the all the ibc module operations with their respective weights.
