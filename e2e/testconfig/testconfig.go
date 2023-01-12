@@ -247,6 +247,9 @@ func modifyGovAppState(chainConfig ibc.ChainConfig, govAppState json.RawMessage)
 
 	switch v := govGenesisState.(type) {
 	case *govv1.GenesisState:
+		if v.Params == nil {
+			v.Params = &govv1.Params{}
+		}
 		// set correct minimum deposit using configured denom
 		v.Params.MinDeposit = sdk.NewCoins(sdk.NewCoin(chainConfig.Denom, govv1beta1.DefaultMinDepositTokens))
 		vp := testvalues.VotingPeriod
