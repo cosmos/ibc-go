@@ -8,8 +8,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	signingtypes "github.com/cosmos/cosmos-sdk/types/tx/signing"
+	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	govtypesv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
@@ -226,6 +229,7 @@ func (s *E2ETestSuite) GetChains(chainOpts ...testconfig.ChainOptionConfiguratio
 	return path.chainA, path.chainB
 }
 
+// TODO: remove this type once the broadcast user interface aligns with ibc.Wallet
 type broadcastUser struct {
 	ibc.Wallet
 }
@@ -245,11 +249,16 @@ func (s *E2ETestSuite) BroadcastMessages(ctx context.Context, chain *cosmos.Cosm
 
 	broadcaster := cosmos.NewBroadcaster(s.T(), chain)
 
-	configureGasFactoryOpt := func(factory tx.Factory) tx.Factory {
-		return factory.WithGas(DefaultGasValue)
-	}
+	broadcaster.ConfigureClientContextOptions(func(clientContext client.Context) client.Context {
+		// use a codec with all the types our tests care about registered.
+		// BroadcastTx will deserialize the response and will not be able to otherwise.
+		cdc := Codec()
+		return clientContext.WithCodec(cdc).WithTxConfig(authtx.NewTxConfig(cdc, []signingtypes.SignMode{signingtypes.SignMode_SIGN_MODE_DIRECT}))
+	})
 
-	broadcaster.ConfigureFactoryOptions(configureGasFactoryOpt)
+	broadcaster.ConfigureFactoryOptions(func(factory tx.Factory) tx.Factory {
+		return factory.WithGas(DefaultGasValue)
+	})
 
 	resp, err := cosmos.BroadcastTx(ctx, broadcaster, &b, msgs...)
 	if err != nil {
@@ -433,7 +442,7 @@ func (s *E2ETestSuite) createCosmosChains(chainOptions testconfig.ChainOptions) 
 
 	logger := zaptest.NewLogger(s.T())
 
-	numValidators, numFullNodes := 1, 0
+	numValidators, numFullNodes := 4, 1
 
 	chainA := cosmos.NewCosmosChain(s.T().Name(), *chainOptions.ChainAConfig, numValidators, numFullNodes, logger)
 	chainB := cosmos.NewCosmosChain(s.T().Name(), *chainOptions.ChainBConfig, numValidators, numFullNodes, logger)

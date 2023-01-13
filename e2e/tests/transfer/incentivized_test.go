@@ -63,7 +63,7 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_AsyncSingleSender_Su
 	t.Run("verify counterparty payee", func(t *testing.T) {
 		address, err := s.QueryCounterPartyPayee(ctx, chainB, chainBRelayerWallet.FormattedAddress(), channelA.Counterparty.ChannelID)
 		s.Require().NoError(err)
-		s.Require().Equal(chainARelayerWallet.Address, address)
+		s.Require().Equal(chainARelayerWallet.FormattedAddress(), address)
 	})
 
 	walletAmount := ibc.WalletAmount{
@@ -181,7 +181,7 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_InvalidReceiverAccou
 	t.Run("verify counterparty payee", func(t *testing.T) {
 		address, err := s.QueryCounterPartyPayee(ctx, chainB, chainBRelayerWallet.FormattedAddress(), channelA.Counterparty.ChannelID)
 		s.Require().NoError(err)
-		s.Require().Equal(chainARelayerWallet.Address, address)
+		s.Require().Equal(chainARelayerWallet.FormattedAddress(), address)
 	})
 
 	transferAmount := testvalues.DefaultTransferAmount(chainADenom)

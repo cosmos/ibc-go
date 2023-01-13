@@ -124,7 +124,7 @@ func (s *IncentivizedInterchainAccountsTestSuite) TestMsgSendTx_SuccessfulBankSe
 		t.Run("verify counterparty payee", func(t *testing.T) {
 			address, err := s.QueryCounterPartyPayee(ctx, chainB, chainBRelayerWallet.FormattedAddress(), channelOutput.Counterparty.ChannelID)
 			s.Require().NoError(err)
-			s.Require().Equal(chainARelayerWallet.Address, address)
+			s.Require().Equal(chainARelayerWallet.FormattedAddress(), address)
 		})
 
 		t.Run("no incentivized packets", func(t *testing.T) {

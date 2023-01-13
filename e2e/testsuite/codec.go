@@ -2,10 +2,13 @@ package testsuite
 
 import (
 	"github.com/cosmos/cosmos-sdk/codec"
+	sdkcodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
+	icacontrollertypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/controller/types"
+	feetypes "github.com/cosmos/ibc-go/v6/modules/apps/29-fee/types"
 	simappparams "github.com/cosmos/ibc-go/v6/testing/simapp/params"
 )
 
@@ -24,6 +27,10 @@ func codecAndEncodingConfig() (*codec.ProtoCodec, simappparams.EncodingConfig) {
 	banktypes.RegisterInterfaces(cfg.InterfaceRegistry)
 	govv1beta1.RegisterInterfaces(cfg.InterfaceRegistry)
 	authtypes.RegisterInterfaces(cfg.InterfaceRegistry)
+	feetypes.RegisterInterfaces(cfg.InterfaceRegistry)
+	icacontrollertypes.RegisterInterfaces(cfg.InterfaceRegistry)
+	sdkcodec.RegisterInterfaces(cfg.InterfaceRegistry)
+
 	cdc := codec.NewProtoCodec(cfg.InterfaceRegistry)
 	return cdc, cfg
 }
