@@ -1,15 +1,15 @@
-package testsuite_test
+package semverutil_test
 
 import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/cosmos/ibc-go/e2e/testsuite"
+	"github.com/cosmos/ibc-go/e2e/semverutil"
 )
 
 func TestIsSupported(t *testing.T) {
-	releases := testsuite.FeatureReleases{
+	releases := semverutil.FeatureReleases{
 		MajorVersion: "v6",
 		MinorVersions: []string{
 			"v2.5",

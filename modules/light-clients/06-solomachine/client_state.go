@@ -23,7 +23,6 @@ func NewClientState(latestSequence uint64, consensusState *ConsensusState) *Clie
 		Sequence:       latestSequence,
 		IsFrozen:       false,
 		ConsensusState: consensusState,
-		// AllowUpdateAfterProposal has been DEPRECATED. See 01_concepts in the solo machine spec repo for more details.
 	}
 }
 

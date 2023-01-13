@@ -421,6 +421,48 @@ func (suite *TendermintTestSuite) TestUpdateState() {
 			}, true,
 		},
 		{
+			"success with pruned consensus state using duplicate header", func() {
+				// this height will be expired and pruned
+				err := path.EndpointA.UpdateClient()
+				suite.Require().NoError(err)
+				pruneHeight = path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
+
+				// assert that a consensus state exists at the prune height
+				consensusState, found := path.EndpointA.Chain.GetConsensusState(path.EndpointA.ClientID, pruneHeight)
+				suite.Require().True(found)
+				suite.Require().NotNil(consensusState)
+
+				// Increment the time by a week
+				suite.coordinator.IncrementTimeBy(7 * 24 * time.Hour)
+
+				// create the consensus state that can be used as trusted height for next update
+				err = path.EndpointA.UpdateClient()
+				suite.Require().NoError(err)
+
+				// Increment the time by another week, then update the client.
+				// This will cause the first two consensus states to become expired.
+				suite.coordinator.IncrementTimeBy(7 * 24 * time.Hour)
+				err = path.EndpointA.UpdateClient()
+				suite.Require().NoError(err)
+
+				// use the same header which just updated the client
+				clientMessage, err = path.EndpointA.Chain.ConstructUpdateTMClientHeader(path.EndpointA.Counterparty.Chain, path.EndpointA.ClientID)
+				suite.Require().NoError(err)
+			},
+			func() {
+				tmHeader, ok := clientMessage.(*ibctm.Header)
+				suite.Require().True(ok)
+
+				clientState := path.EndpointA.GetClientState()
+				suite.Require().True(clientState.GetLatestHeight().EQ(tmHeader.GetHeight())) // new update, updated client state should have changed
+				suite.Require().True(clientState.GetLatestHeight().EQ(consensusHeights[0]))
+
+				// ensure consensus state was pruned
+				_, found := path.EndpointA.Chain.GetConsensusState(path.EndpointA.ClientID, pruneHeight)
+				suite.Require().False(found)
+			}, true,
+		},
+		{
 			"invalid ClientMessage type", func() {
 				clientMessage = &ibctm.Misbehaviour{}
 			},
