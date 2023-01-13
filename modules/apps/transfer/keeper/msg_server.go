@@ -11,7 +11,7 @@ import (
 
 var _ types.MsgServer = Keeper{}
 
-// Transfer defines a rpc handler method for MsgTransfer.
+// Transfer defines an rpc handler method for MsgTransfer.
 func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.MsgTransferResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
@@ -46,6 +46,9 @@ func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.
 			types.EventTypeTransfer,
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender),
 			sdk.NewAttribute(types.AttributeKeyReceiver, msg.Receiver),
+			sdk.NewAttribute(types.AttributeKeyAmount, msg.Token.Amount.String()),
+			sdk.NewAttribute(types.AttributeKeyDenom, msg.Token.Denom),
+			sdk.NewAttribute(types.AttributeKeyMemo, msg.Memo),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,

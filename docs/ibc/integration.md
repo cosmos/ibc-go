@@ -28,7 +28,23 @@ The first step is to add the following modules to the `BasicManager`: `x/capabil
 and `x/ibc-transfer`. After that, we need to grant `Minter` and `Burner` permissions to
 the `ibc-transfer` `ModuleAccount` to mint and burn relayed tokens.
 
-```go
+### Integrating Light Clients
+
+> Note that from v7 onwards, all light clients have to be explicitly registered in a chain's app.go and follow the steps listed below. 
+  This is in contrast to earlier versions of ibc-go when 07-tendermint and 06-solomachine were added out of the box.
+
+All light clients must be registered with `module.BasicManager` in a chain's app.go file.
+
+The following code example shows how to register the existing `ibctm.AppModuleBasic{}` light client implementation.
+
+```diff
+
+import (
+    ...
++    ibctm "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint"
+    ...
+)
+
 // app.go
 var (
 
@@ -37,6 +53,9 @@ var (
     capability.AppModuleBasic{},
     ibc.AppModuleBasic{},
     transfer.AppModuleBasic{}, // i.e ibc-transfer module
+
+    // register light clients on IBC
++    ibctm.AppModuleBasic{},
   )
 
   // module account permissions
@@ -85,14 +104,14 @@ func NewApp(...args) *App {
   app.CapabilityKeeper = capabilitykeeper.NewKeeper(appCodec, keys[capabilitytypes.StoreKey], memKeys[capabilitytypes.MemStoreKey])
 
   // grant capabilities for the ibc and ibc-transfer modules
-  scopedIBCKeeper := app.CapabilityKeeper.ScopeToModule(ibchost.ModuleName)
+  scopedIBCKeeper := app.CapabilityKeeper.ScopeToModule(ibcexported.ModuleName)
   scopedTransferKeeper := app.CapabilityKeeper.ScopeToModule(ibctransfertypes.ModuleName)
 
   // ... other modules keepers
 
   // Create IBC Keeper
   app.IBCKeeper = ibckeeper.NewKeeper(
-    appCodec, keys[ibchost.StoreKey], app.GetSubspace(ibchost.ModuleName), app.StakingKeeper, app.UpgradeKeeper, scopedIBCKeeper,
+    appCodec, keys[ibcexported.StoreKey], app.GetSubspace(ibcexported.ModuleName), app.StakingKeeper, app.UpgradeKeeper, scopedIBCKeeper,
   )
 
   // Create Transfer Keepers
@@ -183,7 +202,7 @@ func NewApp(...args) *App {
   // add staking and ibc modules to BeginBlockers
   app.mm.SetOrderBeginBlockers(
     // other modules ...
-    stakingtypes.ModuleName, ibchost.ModuleName,
+    stakingtypes.ModuleName, ibcexported.ModuleName,
   )
 
   // ...
@@ -194,7 +213,7 @@ func NewApp(...args) *App {
   app.mm.SetOrderInitGenesis(
     capabilitytypes.ModuleName,
     // other modules ...
-    ibchost.ModuleName, ibctransfertypes.ModuleName,
+    ibcexported.ModuleName, ibctransfertypes.ModuleName,
   )
 
   // .. continues

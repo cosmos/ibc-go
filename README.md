@@ -35,7 +35,9 @@
     <img alt="E2E Status" src="https://github.com/cosmos/ibc-go/workflows/Tests%20/%20E2E/badge.svg" />
 </div>
 
-The [Inter-Blockchain Communication protocol (IBC)](https://ibcprotocol.org/) allows blockchains to talk to each other. IBC handles transport across different sovereign blockchains. This end-to-end, connection-oriented, stateful protocol provides reliable, ordered, and authenticated communication between heterogeneous blockchains. This IBC implementation in Golang is built as a Cosmos SDK module.
+The [Inter-Blockchain Communication protocol (IBC)](https://ibcprotocol.dev/) allows blockchains to talk to each other. This end-to-end, connection-oriented, stateful protocol provides reliable, ordered, and authenticated communication between heterogeneous blockchains. 
+
+This IBC implementation in Golang is built as a Cosmos SDK module. To understand more about how to use the `ibc-go` module as well as about the IBC protocol, please check out the Interchain Developer Academy [section on IBC](https://tutorials.cosmos.network/academy/3-ibc/), or [our docs](https://ibc.cosmos.network/main/ibc/overview.html).
 
 ## Roadmap
 
@@ -49,7 +51,7 @@ For the latest information on the progress of the work or the decisions made tha
 
 ## Releases
 
-The release lines currently supported are v2, v3, v4 and v5. 
+The release lines currently supported are v2, v3, v4, v5 and v6. 
 
 Please refer to the [Stable Release Policy section of RELEASES.md](https://github.com/cosmos/ibc-go/blob/main/RELEASES.md#stable-release-policy) for more details.
 
@@ -88,13 +90,13 @@ If you're interested in contributing to ibc-go, please take a look at the [contr
 
 This project adheres to ibc-go's [code of conduct](./CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code.
 
-To facilitate contributors the task of choosing what issues to pick up, we have the following two categories:
+To help contributors understand which issues are good to pick up, we have the following two categories:
 - Issues with the label [`good first issue`](https://github.com/cosmos/ibc-go/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22) should be pretty well defined and are best suited for developers new to ibc-go.
 - Issues with the label [`help wanted`](https://github.com/cosmos/ibc-go/issues?q=is%3Aopen+is%3Aissue+label%3A%22help+wanted%22) are a bit more involved and they usually require some familiarity already with the codebase.
 
 If you are interested in working on an issue, please comment on it; then we will be able to assign it to you. We will be happy to answer any questions you may have and help you out while you work on the issue.
 
-Teams developing an app, middleware or light client that would like to get in touch with us, please reach out to us in the `interchain` channel of the [IBC Gang Discord server](https://discord.com/channels/955868717269516318/955883113484013578) and we can discuss further.
+If you have any general questions or feedback, please reach out to us in the [IBC Gang Discord server](https://discord.com/channels/955868717269516318/955883113484013578).
 
 ## Request for maintainership
 
@@ -104,7 +106,13 @@ We have a document that describes the process for [submitting a feature for main
 
 To report a security vulnerability, see our [bug bounty program](https://hackerone.com/cosmos).
 
-## Contents of this repo
+## Audits
+
+The following audits have been performed on the `ibc-go` source code:
+
+- [ICS27 Interchain Accounts](https://github.com/cosmos/ibc-go/tree/main/docs/apps/interchain-accounts/audits) by Trail of Bits
+
+## Quick Navigation
 
 1. **[Core IBC Implementation](https://github.com/cosmos/ibc-go/tree/main/modules/core)**
 
@@ -126,14 +134,21 @@ To report a security vulnerability, see our [bug bounty program](https://hackero
 
     2.2 [ICS 27 Interchain Accounts](https://github.com/cosmos/ibc-go/tree/main/modules/apps/27-interchain-accounts)
 
-3. **Light Clients**
+3. **Middleware**
 
-    3.1 [ICS 07 Tendermint](https://github.com/cosmos/ibc-go/tree/main/modules/light-clients/07-tendermint)
+    3.1 [ICS 29 Fee Middleware](https://github.com/cosmos/ibc-go/tree/main/modules/apps/29-fee)
 
-    3.2 [ICS 06 Solo Machine](https://github.com/cosmos/ibc-go/tree/main/modules/light-clients/06-solomachine)
+4. **Light Clients**
+
+    4.1 [ICS 07 Tendermint](https://github.com/cosmos/ibc-go/tree/main/modules/light-clients/07-tendermint)
+
+    4.2 [ICS 06 Solo Machine](https://github.com/cosmos/ibc-go/tree/main/modules/light-clients/06-solomachine)
+
+5. **[E2E Integration Tests](https://github.com/cosmos/ibc-go/tree/main/e2e)**
 
 ## Documentation and Resources
 
-- [IBC Website](https://ibcprotocol.org/)
-- [IBC Specification](https://github.com/cosmos/ibc)
+- [IBC Website](https://ibcprotocol.dev/)
+- [IBC Protocol Specification](https://github.com/cosmos/ibc)
 - [Documentation](https://ibc.cosmos.network/main/ibc/overview.html)
+- [Interchain Developer Academy](https://tutorials.cosmos.network/academy/3-ibc/)

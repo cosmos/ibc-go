@@ -5,6 +5,7 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
+	"github.com/cosmos/ibc-go/v6/internal/logging"
 	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
@@ -23,7 +24,7 @@ import (
 
 // Please use MsgRegisterInterchainAccount for use cases which do not need to route to an underlying application.
 
-// Prior to to v6.x.x of ibc-go, the controller module was only functional as middleware, with authentication performed
+// Prior to v6.x.x of ibc-go, the controller module was only functional as middleware, with authentication performed
 // by the underlying application. For a full summary of the changes in v6.x.x, please see ADR009.
 // This API will be removed in later releases.
 func (k Keeper) RegisterInterchainAccount(ctx sdk.Context, connectionID, owner, version string) error {
@@ -72,8 +73,11 @@ func (k Keeper) registerInterchainAccount(ctx sdk.Context, connectionID, portID,
 		return "", err
 	}
 
+	events := res.GetEvents()
+	k.Logger(ctx).Debug("emitting interchain account registration events", logging.SdkEventsToLogArguments(events))
+
 	// NOTE: The sdk msg handler creates a new EventManager, so events must be correctly propagated back to the current context
-	ctx.EventManager().EmitEvents(res.GetEvents())
+	ctx.EventManager().EmitEvents(events)
 
 	firstMsgResponse := res.MsgResponses[0]
 	channelOpenInitResponse, ok := firstMsgResponse.GetCachedValue().(*channeltypes.MsgChannelOpenInitResponse)

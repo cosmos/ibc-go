@@ -13,7 +13,7 @@ import (
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/stretchr/testify/require"
 
-	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
+	ibcexported "github.com/cosmos/ibc-go/v6/modules/core/exported"
 	"github.com/cosmos/ibc-go/v6/modules/core/simulation"
 	"github.com/cosmos/ibc-go/v6/modules/core/types"
 )
@@ -44,7 +44,7 @@ func TestRandomizedGenState(t *testing.T) {
 	simulation.RandomizedGenState(&simState)
 
 	var ibcGenesis types.GenesisState
-	simState.Cdc.MustUnmarshalJSON(simState.GenState[host.ModuleName], &ibcGenesis)
+	simState.Cdc.MustUnmarshalJSON(simState.GenState[ibcexported.ModuleName], &ibcGenesis)
 
 	require.NotNil(t, ibcGenesis.ClientGenesis)
 	require.NotNil(t, ibcGenesis.ConnectionGenesis)

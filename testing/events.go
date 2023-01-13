@@ -5,11 +5,14 @@ import (
 	"strconv"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/stretchr/testify/suite"
 
 	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v6/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 )
+
+type EventsMap map[string]map[string]string
 
 // ParseClientIDFromEvents parses events emitted from a MsgCreateClient and returns the
 // client identifier.
@@ -128,4 +131,34 @@ func ParseAckFromEvents(events sdk.Events) ([]byte, error) {
 		}
 	}
 	return nil, fmt.Errorf("acknowledgement event attribute not found")
+}
+
+// AssertEvents asserts that expected events are present in the actual events.
+// Expected map needs to be a subset of actual events to pass.
+func AssertEvents(
+	suite *suite.Suite,
+	expected EventsMap,
+	actual sdk.Events,
+) {
+	hasEvents := make(map[string]bool)
+	for eventType := range expected {
+		hasEvents[eventType] = false
+	}
+
+	for _, event := range actual {
+		expEvent, eventFound := expected[event.Type]
+		if eventFound {
+			hasEvents[event.Type] = true
+			suite.Require().Len(event.Attributes, len(expEvent))
+			for _, attr := range event.Attributes {
+				expValue, found := expEvent[string(attr.Key)]
+				suite.Require().True(found)
+				suite.Require().Equal(expValue, string(attr.Value))
+			}
+		}
+	}
+
+	for eventName, hasEvent := range hasEvents {
+		suite.Require().True(hasEvent, "event: %s was not found in events", eventName)
+	}
 }
