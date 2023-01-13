@@ -33,13 +33,10 @@ Current release is `v1.0.2`. We then maintain a (living) branch `release/v1.0.x`
 
 1. Add the `backport-to-v1.0x` label to the PR.
 2. Once the PR is merged, the Mergify GitHub application will automatically copy the changes into another branch and open a new PR agains the desired `release/v1.0.x` branch.
-3. Update the PR's description and ensure it contains the following information:
-   - **[Impact]** Explanation of how the bug affects users or developers.
-   - **[Test Case]** section with detailed instructions on how to reproduce the bug.
-   - **[Regression Potential]** section with a discussion how regressions are most likely to manifest, or might
-     manifest even if it's unlikely, as a result of the change. **It is assumed that any backport PR is
-     well-tested before it is merged in and has an overall low risk of regression**. This section should discuss
-     the potential for state breaking changes to occur such as through out-of-gas errors. 
+3. If the following has not been discussed in the original PR, then update the backport PR's description and ensure it contains the following information:
+  - **[Impact]** explanation of how the bug affects users or developers.
+  - **[Test Case]** section with detailed instructions on how to reproduce the bug.
+  - **[Regression Potential]** section with a discussion how regressions are most likely to manifest, or might manifest even if it's unlikely, as a result of the change. **It is assumed that any backport PR is well-tested before it is merged in and has an overall low risk of regression**. This section should discuss the potential for state breaking changes to occur such as through out-of-gas errors. 
 
 It is the PR's author's responsibility to fix merge conflicts, update changelog entries, and ensure CI passes. If a PR originates from an external contributor, it may be a core team member's responsibility to perform this process instead of the original author. Lastly, it is core team's responsibility to ensure that the PR meets all the backport criteria.
 
@@ -52,23 +49,30 @@ Finally, when a point release is ready to be made:
   - Remove the `[Unreleased]` title.
   - Add release version and date of release.
 3. Create release in GitHub:
-    - Select the correct target branch (e.g. `release/v1.0.x`).
-    - Choose a tag (e.g. `v1.0.3`).
-    - Write release notes.
-    - Check the `This is a pre-release` checkbox if needed (this applies for alpha, beta and release candidates).
+  - Select the correct target branch (e.g. `release/v1.0.x`).
+  - Choose a tag (e.g. `v1.0.3`).
+  - Write release notes.
+  - Check the `This is a pre-release` checkbox if needed (this applies for alpha, beta and release candidates).
 
 ### Post-release procedure
 
 - Update [`CHANGELOG.md`](../../CHANGELOG.md) in `main` (remove from the `[Unreleased]` section any items that are part of the release).`
 - Put back the `[Unreleased]` section in the release branch (e.g. `release/v1.0.x`) with clean sections for each of the types of changelog entries, so that entries will be added for the PRs that are backported for the next release.
-- Update [version matrix](../../RELEASES.md#version-matrix) in `RELEASES.md`.
+- Update [version matrix](../../RELEASES.md#version-matrix) in `RELEASES.md`: add the new release and remove any tags that might not be recommended anymore.
 
 Additionally, for the first point release of a new major or minor release branch:
 
-- Add the tag to the json files used for e2e testing.
-- Update the table of supported release lines (and End of Life dates) in [`RELEASES.md`](../../RELEASES.md).
+- Update the table of supported release lines (and End of Life dates) in [`RELEASES.md`](../../RELEASES.md): add the new release line and remove any release lines that might have become discontinued.
 - Update the [list of supported release lines in README.md](../../RELEASES.md#releases), if necessary.
+- Update the [e2e compatibility test matrices](https://github.com/cosmos/ibc-go/tree/main/.github/compatibility-test-matrices): add the tag for the new release and remove any tags that might not be recommended anymore.
+- Update the manual [e2e `simd`](https://github.com/cosmos/ibc-go/blob/main/.github/workflows/e2e-manual-simd.yaml) and [e2e `icad`](https://github.com/cosmos/ibc-go/blob/main/.github/workflows/e2e-manual-icad.yaml) test workflows:
+  - Add the new release and the new `icad` tag.
+  - Remove any tags that might not be recommended anymore.
+- Bump ibc-go version in [cosmos/interchain-accounts-demo repository](https://github.com/cosmos/interchain-accounts-demo) and create a tag.
 - Open a PR to `main` updating the docs site:
   - Add new release branch to [`docs/versions`](../versions) file.
   - Add `label` and `key` to `versions` array in [`config.js`](https://github.com/cosmos/ibc-go/blob/main/docs/.vuepress/config.js#L33).
 - After changes to docs site are deployed, check [ibc.cosmos.network](https://ibc.cosmos.network) is updated.
+- Open issue in [SDK tutorials repo](https://github.com/cosmos/sdk-tutorials) to update tutorials to the released version of ibc-go.
+
+See [this PR](https://github.com/cosmos/ibc-go/pull/2919) for an example of the involved changes.
