@@ -239,6 +239,5 @@ replace github.com/cosmos/ibc-go/v6 => ../
 replace (
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
 	// ibctest 0.47 @ https://github.com/strangelove-ventures/ibctest/pull/359
-	//github.com/strangelove-ventures/ibctest/v6 => github.com/strangelove-ventures/ibctest/v6 v6.0.0-20230111194409-5bdad7405e1c
-	github.com/strangelove-ventures/ibctest/v6 => ../../ibctest
+	github.com/strangelove-ventures/ibctest/v6 => github.com/strangelove-ventures/ibctest/v6 v6.0.0-20230113051458-0350de5d1025
 )

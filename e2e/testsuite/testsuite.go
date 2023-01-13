@@ -106,7 +106,6 @@ func (s *E2ETestSuite) GetRelayerUsers(ctx context.Context, chainOpts ...testcon
 	chainBAccountBytes, err := chainB.GetAddress(ctx, ChainBRelayerName)
 	s.Require().NoError(err)
 
-	// TODO: determine mnemonics
 	chainARelayerUser := cosmos.NewWallet(ChainARelayerName, chainAAccountBytes, "", chainA.Config())
 	chainBRelayerUser := cosmos.NewWallet(ChainBRelayerName, chainBAccountBytes, "", chainB.Config())
 
