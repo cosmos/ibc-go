@@ -5,6 +5,7 @@ import (
 	sdkcodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	grouptypes "github.com/cosmos/cosmos-sdk/x/group"
 	proposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
@@ -30,6 +31,7 @@ func codecAndEncodingConfig() (*codec.ProtoCodec, simappparams.EncodingConfig) {
 	cfg := simappparams.MakeTestEncodingConfig()
 	banktypes.RegisterInterfaces(cfg.InterfaceRegistry)
 	govv1beta1.RegisterInterfaces(cfg.InterfaceRegistry)
+	govv1.RegisterInterfaces(cfg.InterfaceRegistry)
 	authtypes.RegisterInterfaces(cfg.InterfaceRegistry)
 	feetypes.RegisterInterfaces(cfg.InterfaceRegistry)
 	icacontrollertypes.RegisterInterfaces(cfg.InterfaceRegistry)
