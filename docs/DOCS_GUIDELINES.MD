@@ -5,7 +5,7 @@
 - Check the spelling and grammar, even if you have to copy and paste from an external source.
 - Use simple sentences. Easy-to-read sentences mean the reader can quickly use the guidance you share.
 - Try to express your thoughts in a concise and clean way.
-- Leave a space between the acronyms ADR and ICS and the corresponding number (e.g. ADR 008 and ICS 27).
+- Either Leave a space or use a `-` between the acronyms ADR and ICS and the corresponding number (e.g. ADR 008 or ADR-008, and ICS 27 or ICS-27).
 - Don't overuse `code` format when writing in plain English.
 - Follow Google developer documentation [style guide](https://developers.google.com/style).
 - Check the meaning of words in Microsoft's [A-Z word list and term collections](https://docs.microsoft.com/en-us/style-guide/a-z-word-list-term-collections/term-collections/accessibility-terms) (use the search input!).
@@ -13,7 +13,7 @@
 
 ### Links
 
-**NOTE:** Strongly consider the existing links - both within this directory and to the website docs - when moving or deleting files.
+**NOTE:** Strongly consider the existing links (both within this directory and to the website docs) when moving or deleting files.
 
 Relative links should be used nearly everywhere, due to versioning. Note that in case of page reshuffling, you must update all links references.
 
