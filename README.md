@@ -96,7 +96,7 @@ To help contributors understand which issues are good to pick up, we have the fo
 
 If you are interested in working on an issue, please comment on it; then we will be able to assign it to you. We will be happy to answer any questions you may have and help you out while you work on the issue.
 
-Teams developing an app, middleware or light client that would like to get in touch with us (e.g. to ask technical questions), please reach out to us in the `interchain` channel of the [IBC Gang Discord server](https://discord.com/channels/955868717269516318/955883113484013578) and we can discuss further.
+If you have any general questions or feedback, please reach out to us in the [IBC Gang Discord server](https://discord.com/channels/955868717269516318/955883113484013578).
 
 ## Request for maintainership
 
