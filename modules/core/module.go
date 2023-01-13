@@ -117,21 +117,6 @@ func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
 	// TODO:
 }
 
-// Route returns the message routing key for the ibc module.
-func (am AppModule) Route() sdk.Route {
-	return sdk.Route{}
-}
-
-// QuerierRoute returns the ibc module's querier route name.
-func (AppModule) QuerierRoute() string {
-	return exported.QuerierRoute
-}
-
-// LegacyQuerierHandler returns nil. IBC does not support the legacy querier.
-func (am AppModule) LegacyQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
-	return nil
-}
-
 // RegisterServices registers module services.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
 	clienttypes.RegisterMsgServer(cfg.MsgServer(), am.keeper)

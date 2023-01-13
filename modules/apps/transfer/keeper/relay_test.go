@@ -5,12 +5,12 @@ import (
 
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	banktestutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
 
 	"github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v6/testing"
-	"github.com/cosmos/ibc-go/v6/testing/simapp"
 )
 
 // test sending from chainA to chainB using both coin that orignate on
@@ -289,7 +289,7 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 			trace = types.ParseDenomTrace(sdk.DefaultBondDenom)
 			coin := sdk.NewCoin(sdk.DefaultBondDenom, amount)
 
-			suite.Require().NoError(simapp.FundAccount(suite.chainA.GetSimApp(), suite.chainA.GetContext(), escrow, sdk.NewCoins(coin)))
+			suite.Require().NoError(banktestutil.FundAccount(suite.chainA.GetSimApp().BankKeeper, suite.chainA.GetContext(), escrow, sdk.NewCoins(coin)))
 		}, false, true},
 		{
 			"unsuccessful refund from source", failedAck,
@@ -304,7 +304,7 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 				trace = types.ParseDenomTrace(types.GetPrefixedDenom(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, sdk.DefaultBondDenom))
 				coin := sdk.NewCoin(trace.IBCDenom(), amount)
 
-				suite.Require().NoError(simapp.FundAccount(suite.chainA.GetSimApp(), suite.chainA.GetContext(), escrow, sdk.NewCoins(coin)))
+				suite.Require().NoError(banktestutil.FundAccount(suite.chainA.GetSimApp().BankKeeper, suite.chainA.GetContext(), escrow, sdk.NewCoins(coin)))
 			}, false, true,
 		},
 	}
@@ -368,7 +368,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 				trace = types.ParseDenomTrace(sdk.DefaultBondDenom)
 				coin := sdk.NewCoin(trace.IBCDenom(), amount)
 
-				suite.Require().NoError(simapp.FundAccount(suite.chainA.GetSimApp(), suite.chainA.GetContext(), escrow, sdk.NewCoins(coin)))
+				suite.Require().NoError(banktestutil.FundAccount(suite.chainA.GetSimApp().BankKeeper, suite.chainA.GetContext(), escrow, sdk.NewCoins(coin)))
 			}, true,
 		},
 		{
@@ -378,7 +378,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 				trace = types.ParseDenomTrace(types.GetPrefixedDenom(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, sdk.DefaultBondDenom))
 				coin := sdk.NewCoin(trace.IBCDenom(), amount)
 
-				suite.Require().NoError(simapp.FundAccount(suite.chainA.GetSimApp(), suite.chainA.GetContext(), escrow, sdk.NewCoins(coin)))
+				suite.Require().NoError(banktestutil.FundAccount(suite.chainA.GetSimApp().BankKeeper, suite.chainA.GetContext(), escrow, sdk.NewCoins(coin)))
 			}, true,
 		},
 		{
