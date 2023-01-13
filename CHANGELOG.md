@@ -38,6 +38,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Dependencies
 
+* [\#2999](https://github.com/cosmos/ibc-go/pull/2999) Bump Cosmos SDK to v0.46.7 and Tendermint to v0.34.24.
+
 ### API Breaking
 
 * (core) [\#2897](https://github.com/cosmos/ibc-go/pull/2897) Remove legacy migrations required for upgrading from Stargate release line to ibc-go >= v1.x.x.
