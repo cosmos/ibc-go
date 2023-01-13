@@ -9,31 +9,48 @@ We expect all contributors to be familiar with [Effective Go](https://golang.org
 
 Perhaps more key for code readability than good commenting is having the right structure. As a rule of thumb, try to write in a logical order of importance, taking a little time to think how to order and divide the code such that someone could scroll down and understand the functionality of it just as well as you do. A loose example of such order would be:
 
-- Constants, global and package-level variables
-- Main Struct
-- Options (only if they are seen as critical to the struct else they should be placed in another file)
-- Initialization / Start and stop of the service
-- Msgs/Events
-- Public Functions (In order of most important)
-- Private/helper functions
-- Auxiliary structs and function (can also be above private functions or in a separate file)
+- Constants, global and package-level variables.
+- Main struct definition.
+- Options (only if they are seen as critical to the struct else they should be placed in another file).
+- Initialization/start and stop of the service functions.
+- Public functions (in order of most important).
+- Private/helper functions.
+- Auxiliary structs and function (can also be above private functions or in a separate file).
 
 ## General
 
-* Use `gofumpt` to format all code upon saving it (or run `make format`).
-* Think about documentation, and try to leave godoc comments, when it will help new developers.
-* Every package should have a high level doc.go file to describe the purpose of that package, its main functions, and any other relevant information.
-* Applications (e.g. clis/servers) *should* panic on unexpected unrecoverable errors and print a stack trace.
+- Use `gofumpt` to format all code upon saving it (or run `make format`).
+- Think about documentation, and try to leave godoc comments, when it will help new developers.
+- Every package should have a high level doc.go file to describe the purpose of that package, its main functions, and any other relevant information.
+- Applications (e.g. clis/servers) should panic on unexpected unrecoverable errors and print a stack trace.
 
 ## Comments
 
-* Use a space after the comment deliminter (ex. `// your comment`).
-* Many comments are not sentences. These should begin with a lower case letter and end without a period.
-* Conversely, sentences in comments should be sentenced-cased and end with a period.
+- Use a space after the comment deliminter (ex. `// your comment`).
+- Many comments are not sentences. These should begin with a lower case letter and end without a period.
+- Conversely, sentences in comments should be sentenced-cased and end with a period.
+- Comments should explain _why_ something is being done rather than _what_ the code is doing. For example:
+
+	The comments in 
+
+	```
+	// assign a variable foo
+	f := foo
+	// assign f to b
+	b := f
+	```
+
+	have little value,	but the following is more useful:
+
+	```
+	f := foo
+	// we copy the variable f because we want to preserve the state at time of initialization
+	b := f
+	```
 
 ## Linting
 
-* Run `make lint-fix` to fix any linting errors.
+- Run `make lint-fix` to fix any linting errors.
 
 ## Various
 
@@ -46,29 +63,54 @@ type middleware struct {
 }
 ```
 
-* In comments, use "iff" to mean, "if and only if".
-* Acronyms are all capitalized, like "RPC", "gRPC", "API".  "MyID", rather than "MyId".
-* Prefer errors.New() instead of fmt.Errorf() unless you're actually using the format feature with arguments.
+- Acronyms are all capitalized, like "RPC", "gRPC", "API". "MyID", rather than "MyId".
+- Whenever it is safe to use Go's built-in `error` instantiation functions (as opposed to Cosmos SDK's error instantiation functions), prefer `errors.New()` instead of `fmt.Errorf()` unless you're actually using the format feature with arguments.
 
 ## Importing libraries
 
-* Use [goimports](https://godoc.org/golang.org/x/tools/cmd/goimports).
-* Separate imports into blocks - one for the standard lib, one for external libs and one for application libs.
+- Use [goimports](https://godoc.org/golang.org/x/tools/cmd/goimports).
+- Separate imports into blocks: one for the standard lib, one for external libs and one for application libs. For example:
+
+	```golang
+	import (
+		// standard library imports
+		"fmt"
+		"testing"
+					
+		// external library imports
+		"github.com/stretchr/testify/require"
+		abci "github.com/tendermint/tendermint/abci/types"
+					
+		// ibc-go library imports
+		"github.com/cosmos/ibc-go/modules/core/23-commitment/types"
+	)
+	```
 
 ## Dependencies
 
-* Dependencies should be pinned by a release tag, or specific commit, to avoid breaking `go get` when external dependencies are updated.
-* Refer to the [contributing](./development.md#dependencies) document for more details
+- Dependencies should be pinned by a release tag, or specific commit, to avoid breaking `go get` when external dependencies are updated.
+- Refer to the [contributing](./development.md#dependencies) document for more details.
 
 ## Testing
 
-- Make use of table driven testing where possible and not-cumbersome. Read [this blog post](https://dave.cheney.net/2013/06/09/writing-table-driven-tests-in-go) for more information.
-- Make use of [assert](https://godoc.org/github.com/stretchr/testify/assert) and [require](https://godoc.org/github.com/stretchr/testify/require)
+- Make use of table driven testing where possible and not-cumbersome. Read [this blog post](https://dave.cheney.net/2013/06/09/writing-table-driven-tests-in-go) for more information. See the [tests](https://github.com/cosmos/ibc-go/blob/f24f41ea8a61fe87f6becab94e84de08c8aa9381/modules/apps/transfer/keeper/msg_server_test.go#L11) for [`Transfer`](`https://github.com/cosmos/ibc-go/blob/f24f41ea8a61fe87f6becab94e84de08c8aa9381/modules/apps/transfer/keeper/msg_server.go#L15) for an example.
+- Make use of Testify [assert](https://godoc.org/github.com/stretchr/testify/assert) and [require](https://godoc.org/github.com/stretchr/testify/require).
 - When using mocks, it is recommended to use Testify [mock](https://pkg.go.dev/github.com/stretchr/testify/mock) along with [Mockery](https://github.com/vektra/mockery) for autogeneration.
 
 ## Errors
 
 - Ensure that errors are concise, clear and traceable.
-- Use stdlib errors package.
+- Depending on the context, use either `cosmossdk.io/errors` or `stdlib` error packages.
 - For wrapping errors, use `fmt.Errorf()` with `%w`.
 - Panic is appropriate when an internal invariant of a system is broken, while all other cases (in particular, incorrect or invalid usage) should return errors.
+ke it is a special case with the SDK where returning errors can sometimes reset state changes and panics are caught and as a result will not result in the shutdown of the system.
+- Error messages should be formatted as following:
+
+	```golang
+	sdkerrors.Wrapf(
+		<most specific error type possible>,
+		"<optional text description ended by colon and space>expected %s, got %s",
+		<value 1>,
+		<value 2>
+	)
+	```
