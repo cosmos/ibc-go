@@ -46,7 +46,7 @@ require (
 	github.com/btcsuite/btcd v0.22.3 // indirect
 	github.com/btcsuite/btcd/btcec/v2 v2.3.2 // indirect
 	github.com/cenkalti/backoff/v4 v4.1.3 // indirect
-	github.com/centrifuge/go-substrate-rpc-client/v4 v4.0.4 // indirect
+	github.com/centrifuge/go-substrate-rpc-client/v4 v4.0.10 // indirect
 	github.com/cespare/xxhash v1.1.0 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/chzyer/readline v0.0.0-20180603132655-2972be24d48e // indirect
@@ -65,7 +65,7 @@ require (
 	github.com/danieljoos/wincred v1.1.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/deckarep/golang-set v1.8.0 // indirect
-	github.com/decred/base58 v1.0.3 // indirect
+	github.com/decred/base58 v1.0.4 // indirect
 	github.com/decred/dcrd/crypto/blake256 v1.0.0 // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v2 v2.0.0 // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.1.0 // indirect
@@ -134,7 +134,7 @@ require (
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.16 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.2-0.20181231171920-c182affec369 // indirect
-	github.com/mimoo/StrobeGo v0.0.0-20210601165009-122bf33a46e0 // indirect
+	github.com/mimoo/StrobeGo v0.0.0-20220103164710-9a04d6ca976b // indirect
 	github.com/minio/blake2b-simd v0.0.0-20160723061019-3f5f724cb5b1 // indirect
 	github.com/minio/highwayhash v1.0.2 // indirect
 	github.com/minio/sha256-simd v1.0.0 // indirect
@@ -239,5 +239,6 @@ replace github.com/cosmos/ibc-go/v6 => ../
 replace (
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
 	// ibctest 0.47 @ https://github.com/strangelove-ventures/ibctest/pull/359
-	github.com/strangelove-ventures/ibctest/v6 => github.com/strangelove-ventures/ibctest/v6 v6.0.0-20230111194409-5bdad7405e1c
+	//github.com/strangelove-ventures/ibctest/v6 => github.com/strangelove-ventures/ibctest/v6 v6.0.0-20230111194409-5bdad7405e1c
+	github.com/strangelove-ventures/ibctest/v6 => ../../ibctest
 )

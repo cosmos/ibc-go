@@ -41,7 +41,7 @@ func (s *InterchainAccountsGovTestSuite) TestInterchainAccountsGovIntegration() 
 	controllerAccount := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 
 	chainBAccount := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
-	chainBAddress := chainBAccount.Bech32Address(chainB.Config().Bech32Prefix)
+	chainBAddress := chainBAccount.FormattedAddress()
 
 	govModuleAddress, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
 	s.Require().NoError(err)
@@ -104,7 +104,7 @@ func (s *InterchainAccountsGovTestSuite) TestInterchainAccountsGovIntegration() 
 		})
 
 		t.Run("verify tokens transferred", func(t *testing.T) {
-			balance, err := chainB.GetBalance(ctx, chainBAccount.Bech32Address(chainB.Config().Bech32Prefix), chainB.Config().Denom)
+			balance, err := chainB.GetBalance(ctx, chainBAccount.FormattedAddress(), chainB.Config().Denom)
 			s.Require().NoError(err)
 
 			_, err = chainB.GetBalance(ctx, interchainAccAddr, chainB.Config().Denom)

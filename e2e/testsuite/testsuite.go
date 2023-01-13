@@ -98,7 +98,7 @@ func newPath(chainA, chainB *cosmos.CosmosChain) path {
 
 // GetRelayerUsers returns two ibc.Wallet instances which can be used for the relayer users
 // on the two chains.
-func (s *E2ETestSuite) GetRelayerUsers(ctx context.Context, chainOpts ...testconfig.ChainOptionConfiguration) (*ibc.Wallet, *ibc.Wallet) {
+func (s *E2ETestSuite) GetRelayerUsers(ctx context.Context, chainOpts ...testconfig.ChainOptionConfiguration) (ibc.Wallet, ibc.Wallet) {
 	chainA, chainB := s.GetChains(chainOpts...)
 	chainAAccountBytes, err := chainA.GetAddress(ctx, ChainARelayerName)
 	s.Require().NoError(err)
@@ -106,16 +106,11 @@ func (s *E2ETestSuite) GetRelayerUsers(ctx context.Context, chainOpts ...testcon
 	chainBAccountBytes, err := chainB.GetAddress(ctx, ChainBRelayerName)
 	s.Require().NoError(err)
 
-	chainARelayerUser := ibc.Wallet{
-		Address: string(chainAAccountBytes),
-		KeyName: ChainARelayerName,
-	}
+	// TODO: determine mnemonics
+	chainARelayerUser := cosmos.NewWallet(ChainARelayerName, chainAAccountBytes, "", chainA.Config())
+	chainBRelayerUser := cosmos.NewWallet(ChainBRelayerName, chainBAccountBytes, "", chainB.Config())
 
-	chainBRelayerUser := ibc.Wallet{
-		Address: string(chainBAccountBytes),
-		KeyName: ChainBRelayerName,
-	}
-	return &chainARelayerUser, &chainBRelayerUser
+	return chainARelayerUser, chainBRelayerUser
 }
 
 // SetupChainsRelayerAndChannel create two chains, a relayer, establishes a connection and creates a channel
@@ -232,9 +227,23 @@ func (s *E2ETestSuite) GetChains(chainOpts ...testconfig.ChainOptionConfiguratio
 	return path.chainA, path.chainB
 }
 
+type broadcastUser struct {
+	ibc.Wallet
+}
+
+// FormattedAddressWithPrefix implement the broadcast user interface, the FormattedAddress
+// function already includes the correct prefix.
+func (b *broadcastUser) FormattedAddressWithPrefix(prefix string) string {
+	return b.FormattedAddress()
+}
+
 // BroadcastMessages broadcasts the provided messages to the given chain and signs them on behalf of the provided user.
 // Once the broadcast response is returned, we wait for a few blocks to be created on both chain A and chain B.
-func (s *E2ETestSuite) BroadcastMessages(ctx context.Context, chain *cosmos.CosmosChain, user *ibc.Wallet, msgs ...sdk.Msg) (sdk.TxResponse, error) {
+func (s *E2ETestSuite) BroadcastMessages(ctx context.Context, chain *cosmos.CosmosChain, user ibc.Wallet, msgs ...sdk.Msg) (sdk.TxResponse, error) {
+
+	// wrap the user so it is a valid implementation of broadcast user.
+	b := broadcastUser{Wallet: user}
+
 	broadcaster := cosmos.NewBroadcaster(s.T(), chain)
 
 	configureGasFactoryOpt := func(factory tx.Factory) tx.Factory {
@@ -243,7 +252,7 @@ func (s *E2ETestSuite) BroadcastMessages(ctx context.Context, chain *cosmos.Cosm
 
 	broadcaster.ConfigureFactoryOptions(configureGasFactoryOpt)
 
-	resp, err := cosmos.BroadcastTx(ctx, broadcaster, user, msgs...)
+	resp, err := cosmos.BroadcastTx(ctx, broadcaster, &b, msgs...)
 	if err != nil {
 		return sdk.TxResponse{}, err
 	}
@@ -255,7 +264,7 @@ func (s *E2ETestSuite) BroadcastMessages(ctx context.Context, chain *cosmos.Cosm
 
 // RegisterCounterPartyPayee broadcasts a MsgRegisterCounterpartyPayee message.
 func (s *E2ETestSuite) RegisterCounterPartyPayee(ctx context.Context, chain *cosmos.CosmosChain,
-	user *ibc.Wallet, portID, channelID, relayerAddr, counterpartyPayeeAddr string,
+	user ibc.Wallet, portID, channelID, relayerAddr, counterpartyPayeeAddr string,
 ) (sdk.TxResponse, error) {
 	msg := feetypes.NewMsgRegisterCounterpartyPayee(portID, channelID, relayerAddr, counterpartyPayeeAddr)
 	return s.BroadcastMessages(ctx, chain, user, msg)
@@ -265,7 +274,7 @@ func (s *E2ETestSuite) RegisterCounterPartyPayee(ctx context.Context, chain *cos
 func (s *E2ETestSuite) PayPacketFeeAsync(
 	ctx context.Context,
 	chain *cosmos.CosmosChain,
-	user *ibc.Wallet,
+	user ibc.Wallet,
 	packetID channeltypes.PacketId,
 	packetFee feetypes.PacketFee,
 ) (sdk.TxResponse, error) {
@@ -278,12 +287,12 @@ func (s *E2ETestSuite) GetRelayerWallets(relayer ibc.Relayer) (ibc.Wallet, ibc.W
 	chainA, chainB := s.GetChains()
 	chainARelayerWallet, ok := relayer.GetWallet(chainA.Config().ChainID)
 	if !ok {
-		return ibc.Wallet{}, ibc.Wallet{}, fmt.Errorf("unable to find chain A relayer wallet")
+		return nil, nil, fmt.Errorf("unable to find chain A relayer wallet")
 	}
 
 	chainBRelayerWallet, ok := relayer.GetWallet(chainB.Config().ChainID)
 	if !ok {
-		return ibc.Wallet{}, ibc.Wallet{}, fmt.Errorf("unable to find chain B relayer wallet")
+		return nil, nil, fmt.Errorf("unable to find chain B relayer wallet")
 	}
 	return chainARelayerWallet, chainBRelayerWallet, nil
 }
@@ -298,17 +307,17 @@ func (s *E2ETestSuite) RecoverRelayerWallets(ctx context.Context, relayer ibc.Re
 
 	chainA, chainB := s.GetChains()
 
-	if err := chainA.RecoverKey(ctx, ChainARelayerName, chainARelayerWallet.Mnemonic); err != nil {
+	if err := chainA.RecoverKey(ctx, ChainARelayerName, chainARelayerWallet.Mnemonic()); err != nil {
 		return fmt.Errorf("could not recover relayer wallet on chain A: %s", err)
 	}
-	if err := chainB.RecoverKey(ctx, ChainBRelayerName, chainBRelayerWallet.Mnemonic); err != nil {
+	if err := chainB.RecoverKey(ctx, ChainBRelayerName, chainBRelayerWallet.Mnemonic()); err != nil {
 		return fmt.Errorf("could not recover relayer wallet on chain B: %s", err)
 	}
 	return nil
 }
 
 // Transfer broadcasts a MsgTransfer message.
-func (s *E2ETestSuite) Transfer(ctx context.Context, chain *cosmos.CosmosChain, user *ibc.Wallet,
+func (s *E2ETestSuite) Transfer(ctx context.Context, chain *cosmos.CosmosChain, user ibc.Wallet,
 	portID, channelID string, token sdk.Coin, sender, receiver string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64, memo string,
 ) (sdk.TxResponse, error) {
 	msg := transfertypes.NewMsgTransfer(portID, channelID, token, sender, receiver, timeoutHeight, timeoutTimestamp, memo)
@@ -331,25 +340,25 @@ func (s *E2ETestSuite) StopRelayer(ctx context.Context, relayer ibc.Relayer) {
 }
 
 // CreateUserOnChainA creates a user with the given amount of funds on chain A.
-func (s *E2ETestSuite) CreateUserOnChainA(ctx context.Context, amount int64) *ibc.Wallet {
+func (s *E2ETestSuite) CreateUserOnChainA(ctx context.Context, amount int64) ibc.Wallet {
 	chainA, _ := s.GetChains()
 	return ibctest.GetAndFundTestUsers(s.T(), ctx, strings.ReplaceAll(s.T().Name(), " ", "-"), amount, chainA)[0]
 }
 
 // CreateUserOnChainB creates a user with the given amount of funds on chain B.
-func (s *E2ETestSuite) CreateUserOnChainB(ctx context.Context, amount int64) *ibc.Wallet {
+func (s *E2ETestSuite) CreateUserOnChainB(ctx context.Context, amount int64) ibc.Wallet {
 	_, chainB := s.GetChains()
 	return ibctest.GetAndFundTestUsers(s.T(), ctx, strings.ReplaceAll(s.T().Name(), " ", "-"), amount, chainB)[0]
 }
 
 // GetChainANativeBalance gets the balance of a given user on chain A.
-func (s *E2ETestSuite) GetChainANativeBalance(ctx context.Context, user *ibc.Wallet) (int64, error) {
+func (s *E2ETestSuite) GetChainANativeBalance(ctx context.Context, user ibc.Wallet) (int64, error) {
 	chainA, _ := s.GetChains()
 	return GetNativeChainBalance(ctx, chainA, user)
 }
 
 // GetChainBNativeBalance gets the balance of a given user on chain B.
-func (s *E2ETestSuite) GetChainBNativeBalance(ctx context.Context, user *ibc.Wallet) (int64, error) {
+func (s *E2ETestSuite) GetChainBNativeBalance(ctx context.Context, user ibc.Wallet) (int64, error) {
 	_, chainB := s.GetChains()
 	return GetNativeChainBalance(ctx, chainB, user)
 }
@@ -425,7 +434,7 @@ func (s *E2ETestSuite) createCosmosChains(chainOptions testconfig.ChainOptions) 
 
 	logger := zaptest.NewLogger(s.T())
 
-	numValidators, numFullNodes := 4, 1
+	numValidators, numFullNodes := 1, 0
 
 	chainA := cosmos.NewCosmosChain(s.T().Name(), *chainOptions.ChainAConfig, numValidators, numFullNodes, logger)
 	chainB := cosmos.NewCosmosChain(s.T().Name(), *chainOptions.ChainBConfig, numValidators, numFullNodes, logger)
@@ -448,8 +457,8 @@ func (s *E2ETestSuite) GetTimeoutHeight(ctx context.Context, chain *cosmos.Cosmo
 }
 
 // GetNativeChainBalance returns the balance of a specific user on a chain using the native denom.
-func GetNativeChainBalance(ctx context.Context, chain ibc.Chain, user *ibc.Wallet) (int64, error) {
-	bal, err := chain.GetBalance(ctx, user.Bech32Address(chain.Config().Bech32Prefix), chain.Config().Denom)
+func GetNativeChainBalance(ctx context.Context, chain ibc.Chain, user ibc.Wallet) (int64, error) {
+	bal, err := chain.GetBalance(ctx, user.FormattedAddress(), chain.Config().Denom)
 	if err != nil {
 		return -1, err
 	}
@@ -458,8 +467,8 @@ func GetNativeChainBalance(ctx context.Context, chain ibc.Chain, user *ibc.Walle
 
 // ExecuteGovProposal submits the given governance proposal using the provided user and uses all validators to vote yes on the proposal.
 // It ensures the proposal successfully passes.
-func (s *E2ETestSuite) ExecuteGovProposal(ctx context.Context, chain *cosmos.CosmosChain, user *ibc.Wallet, content govtypesv1beta1.Content) {
-	sender, err := sdk.AccAddressFromBech32(user.Bech32Address(chain.Config().Bech32Prefix))
+func (s *E2ETestSuite) ExecuteGovProposal(ctx context.Context, chain *cosmos.CosmosChain, user ibc.Wallet, content govtypesv1beta1.Content) {
+	sender, err := sdk.AccAddressFromBech32(user.FormattedAddress())
 	s.Require().NoError(err)
 
 	msgSubmitProposal, err := govtypesv1beta1.NewMsgSubmitProposal(content, sdk.NewCoins(sdk.NewCoin(chain.Config().Denom, govtypesv1beta1.DefaultMinDepositTokens)), sender)
@@ -493,8 +502,8 @@ func (s *E2ETestSuite) ExecuteGovProposal(ctx context.Context, chain *cosmos.Cos
 
 // ExecuteGovProposalV1 submits a governance proposal using the provided user and message and uses all validators
 // to vote yes on the proposal. It ensures the proposal successfully passes.
-func (s *E2ETestSuite) ExecuteGovProposalV1(ctx context.Context, msg sdk.Msg, chain *cosmos.CosmosChain, user *ibc.Wallet, proposalID uint64) {
-	sender, err := sdk.AccAddressFromBech32(user.Bech32Address(chain.Config().Bech32Prefix))
+func (s *E2ETestSuite) ExecuteGovProposalV1(ctx context.Context, msg sdk.Msg, chain *cosmos.CosmosChain, user ibc.Wallet, proposalID uint64) {
+	sender, err := sdk.AccAddressFromBech32(user.FormattedAddress())
 	s.Require().NoError(err)
 
 	msgs := []sdk.Msg{msg}

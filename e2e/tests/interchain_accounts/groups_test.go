@@ -86,10 +86,10 @@ func (s *InterchainAccountsGroupsTestSuite) TestInterchainAccountsGroupsIntegrat
 	chainA, chainB := s.GetChains()
 
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
-	chainAAddress := chainAWallet.Bech32Address(chainA.Config().Bech32Prefix)
+	chainAAddress := chainAWallet.FormattedAddress()
 
 	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
-	chainBAddress := chainBWallet.Bech32Address(chainB.Config().Bech32Prefix)
+	chainBAddress := chainBWallet.FormattedAddress()
 
 	t.Run("create group with new threshold decision policy", func(t *testing.T) {
 		members := []grouptypes.MemberRequest{
