@@ -8,7 +8,7 @@ import (
 
 	paramsproposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 	"github.com/strangelove-ventures/ibctest/v6/ibc"
-	"github.com/strangelove-ventures/ibctest/v6/test"
+	test "github.com/strangelove-ventures/ibctest/v6/testutil"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/ibc-go/e2e/testsuite"
@@ -194,7 +194,7 @@ func (s *TransferTestSuite) TestMsgTransfer_Timeout_Nonincentivized() {
 	}
 
 	t.Run("IBC transfer packet timesout", func(t *testing.T) {
-		tx, err := chainA.SendIBCTransfer(ctx, channelA.ChannelID, chainAWallet.KeyName, chainBWalletAmount, testvalues.ImmediatelyTimeout())
+		tx, err := chainA.SendIBCTransfer(ctx, channelA.ChannelID, chainAWallet.KeyName, chainBWalletAmount, ibc.TransferOptions{Timeout: testvalues.ImmediatelyTimeout()})
 		s.Require().NoError(err)
 		s.Require().NoError(tx.Validate(), "source ibc transfer tx is invalid")
 		time.Sleep(time.Nanosecond * 1) // want it to timeout immediately
@@ -380,8 +380,13 @@ func (s *TransferTestSuite) TestReceiveEnabledParam() {
 
 // memoFeatureReleases represents the releases the memo field was released in.
 var memoFeatureReleases = testsuite.FeatureReleases{
-	MajorVersion:  "v6",
-	MinorVersions: []string{"v2.5, v3.4, v4.2, v5.1"},
+	MajorVersion: "v6",
+	MinorVersions: []string{
+		"v2.5",
+		"v3.4",
+		"v4.2",
+		"v5.1",
+	},
 }
 
 // This can be used to test sending with a transfer packet with a memo given different combinations of

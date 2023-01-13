@@ -1,0 +1,12 @@
+{
+  "chain-a": ["main"],
+  "chain-b": ["main"],
+  "entrypoint": ["TestInterchainAccountsTestSuite"],
+  "test": [
+    "TestMsgSendTx_SuccessfulTransfer",
+    "TestMsgSendTx_FailedTransfer_InsufficientFunds",
+    "TestMsgSubmitTx_SuccessfulTransfer_AfterReopeningICA"
+  ],
+  "chain-binary": ["simd"],
+  "chain-image": ["ghcr.io/cosmos/ibc-go-simd"]
+}

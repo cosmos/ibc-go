@@ -59,9 +59,8 @@ type ClientState interface {
 		height Height,
 	) (uint64, error)
 
-	// Initialization function
-	// Clients must validate the initial consensus state, and may store any client-specific metadata
-	// necessary for correct light client operation
+	// Initialize is called upon client creation, it allows the client to perform validation on the initial consensus state and set the
+	// client state, consensus state and any client-specific metadata necessary for correct light client operation in the provided client store.
 	Initialize(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, consensusState ConsensusState) error
 
 	// VerifyMembership is a generic proof verification method which verifies a proof of the existence of a value at a given CommitmentPath at the specified height.
@@ -74,7 +73,7 @@ type ClientState interface {
 		delayTimePeriod uint64,
 		delayBlockPeriod uint64,
 		proof []byte,
-		path []byte,
+		path Path,
 		value []byte,
 	) error
 
@@ -88,7 +87,7 @@ type ClientState interface {
 		delayTimePeriod uint64,
 		delayBlockPeriod uint64,
 		proof []byte,
-		path []byte,
+		path Path,
 	) error
 
 	// VerifyClientMessage must verify a ClientMessage. A ClientMessage could be a Header, Misbehaviour, or batch update.
