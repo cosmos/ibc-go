@@ -33,33 +33,19 @@ Other helpful commands:
 
 ## Protobuf
 
-We use [Protocol Buffers](https://developers.google.com/protocol-buffers) along with [gogoproto](https://github.com/cosmos/gogoproto) to generate code for use in ibc-go.
+We use [Protocol Buffers](https://developers.google.com/protocol-buffers) along with [buf](https://docs.buf.build/introduction) and [gogoproto](https://github.com/gogo/protobuf) to generate code for use in ibc-go.
 
 For determinstic behavior around protobuf tooling, everything is containerized using Docker. Make sure to have Docker installed on your machine, or head to [Docker's website](https://docs.docker.com/get-docker/) to install it.
 
 For formatting code in `.proto` files, you can run the `make proto-format` command.
 
-For linting and checking breaking changes, we use [buf](https://buf.build/). You can use the commands `make proto-lint` and `make proto-check-breaking` to respectively lint your proto files and check for breaking changes.
+For linting and checking breaking changes, we also use [buf](https://buf.build/). You can use the commands `make proto-lint` and `make proto-check-breaking` to respectively lint your proto files and check for breaking changes.
 
 To generate the protobuf stubs, you can run `make proto-gen`.
 
 We also added the `make proto-all` command to run the above commands (`proto-format`, `proto-lint` and `proto-gen`) sequentially.
 
-To update third party protobuf dependencies, you can run `make proto-update-deps`. This requires `buf` is installed in the local development environment:
-
-```bash
-brew install bufbuild/buf/buf
-
-# OR
-
-# Substitute PREFIX for your install prefix.
-# Substitute VERSION for the current released version.
-PREFIX="/usr/local" && \
-VERSION="1.9.0" && \
-curl -sSL \
-    "https://github.com/bufbuild/buf/releases/download/v${VERSION}/buf-$(uname -s)-$(uname -m).tar.gz" | \
-    tar -xvzf - -C "${PREFIX}" --strip-components 1
-```
+To update third-party protobuf dependencies, you can run `make proto-update-deps`. This requires `buf` to be installed in the local development environment (see [`buf`s installation documentation](https://docs.buf.build/installation) for more details).
 
 For generating or updating the swagger file that documents the URLs of the RESTful API that exposes the gRPC endpoints over HTTP, you can run the `proto-swagger-gen` command.
 
