@@ -84,7 +84,6 @@ func (q Keeper) ClientStates(c context.Context, req *types.QueryClientStatesRequ
 		clientStates = append(clientStates, identifiedClient)
 		return true, nil
 	})
-
 	if err != nil {
 		return nil, err
 	}
