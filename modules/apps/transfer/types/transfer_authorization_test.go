@@ -243,7 +243,10 @@ func (suite *TypesTestSuite) TestTransferAuthorizationValidateBasic() {
 			name: "duplicate channel ID",
 			malleate: func() {
 				allocation := types.Allocation{
-					SourcePort: transferAuthz.Allocations[0].SourceChannel,
+					SourcePort:    mock.PortID,
+					SourceChannel: transferAuthz.Allocations[0].SourceChannel,
+					SpendLimit:    sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100))),
+					AllowList:     []string{ibctesting.TestAccAddress},
 				}
 
 				transferAuthz.Allocations = append(transferAuthz.Allocations, allocation)
