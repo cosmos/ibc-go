@@ -16,16 +16,16 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 	)
 
 	testCases := []struct {
-		name      string
-		malleate  func()
-		expPass   bool
-		expResult func(res authz.AcceptResponse)
+		name         string
+		malleate     func()
+		assertResult func(res authz.AcceptResponse, err error)
 	}{
 		{
 			"success",
 			func() {},
-			true,
-			func(res authz.AcceptResponse) {
+			func(res authz.AcceptResponse, err error) {
+				suite.Require().NoError(err)
+
 				suite.Require().True(res.Accept)
 				suite.Require().True(res.Delete)
 				suite.Require().Nil(res.Updated)
@@ -36,8 +36,9 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 			func() {
 				msgTransfer.Token = sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(50))
 			},
-			true,
-			func(res authz.AcceptResponse) {
+			func(res authz.AcceptResponse, err error) {
+				suite.Require().NoError(err)
+
 				suite.Require().True(res.Accept)
 				suite.Require().False(res.Delete)
 
@@ -53,8 +54,9 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 			func() {
 				transferAuthz.Allocations[0].AllowList = []string{}
 			},
-			true,
-			func(res authz.AcceptResponse) {
+			func(res authz.AcceptResponse, err error) {
+				suite.Require().NoError(err)
+
 				suite.Require().True(res.Accept)
 				suite.Require().True(res.Delete)
 				suite.Require().Nil(res.Updated)
@@ -71,8 +73,9 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 
 				transferAuthz.Allocations = append(transferAuthz.Allocations, alloc)
 			},
-			true,
-			func(res authz.AcceptResponse) {
+			func(res authz.AcceptResponse, err error) {
+				suite.Require().NoError(err)
+
 				suite.Require().True(res.Accept)
 				suite.Require().False(res.Delete)
 
@@ -89,24 +92,27 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 				msgTransfer.SourcePort = ibctesting.MockPort
 				msgTransfer.SourceChannel = "channel-9"
 			},
-			false,
-			func(res authz.AcceptResponse) {},
+			func(res authz.AcceptResponse, err error) {
+				suite.Require().Error(err)
+			},
 		},
 		{
 			"requested transfer amount is more than the spend limit",
 			func() {
 				msgTransfer.Token = sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(1000))
 			},
-			false,
-			func(res authz.AcceptResponse) {},
+			func(res authz.AcceptResponse, err error) {
+				suite.Require().Error(err)
+			},
 		},
 		{
 			"receiver address not permitted via allow list",
 			func() {
 				msgTransfer.Receiver = suite.chainB.SenderAccount.GetAddress().String()
 			},
-			false,
-			func(res authz.AcceptResponse) {},
+			func(res authz.AcceptResponse, err error) {
+				suite.Require().Error(err)
+			},
 		},
 	}
 
@@ -140,12 +146,7 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 			tc.malleate()
 
 			res, err := transferAuthz.Accept(suite.chainA.GetContext(), &msgTransfer)
-			if tc.expPass {
-				suite.Require().NoError(err)
-				tc.expResult(res)
-			} else {
-				suite.Require().Error(err)
-			}
+			tc.assertResult(res, err)
 		})
 	}
 }
