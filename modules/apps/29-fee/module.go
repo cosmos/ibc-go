@@ -93,21 +93,6 @@ func NewAppModule(k keeper.Keeper) AppModule {
 func (AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
 }
 
-// Route implements the AppModule interface
-func (am AppModule) Route() sdk.Route {
-	return sdk.Route{}
-}
-
-// QuerierRoute implements the AppModule interface
-func (AppModule) QuerierRoute() string {
-	return types.QuerierRoute
-}
-
-// LegacyQuerierHandler implements the AppModule interface
-func (am AppModule) LegacyQuerierHandler(*codec.LegacyAmino) sdk.Querier {
-	return nil
-}
-
 // RegisterServices registers module services.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
 	types.RegisterMsgServer(cfg.MsgServer(), am.keeper)

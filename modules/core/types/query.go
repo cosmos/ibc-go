@@ -1,7 +1,7 @@
 package types
 
 import (
-	"github.com/gogo/protobuf/grpc"
+	"github.com/cosmos/gogoproto/grpc"
 
 	client "github.com/cosmos/ibc-go/v6/modules/core/02-client"
 	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"

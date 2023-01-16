@@ -13,7 +13,6 @@ SIMAPP = ./testing/simapp
 MOCKS_DIR = $(CURDIR)/tests/mocks
 HTTPS_GIT := https://github.com/cosmos/ibc-go.git
 DOCKER := $(shell which docker)
-DOCKER_BUF := $(DOCKER) run --rm -v $(CURDIR):/workspace --workdir /workspace bufbuild/buf:1.9.0
 PROJECT_NAME = $(shell git remote get-url origin | xargs basename -s .git)
 
 export GO111MODULE = on
@@ -307,37 +306,31 @@ format:
 ###                                Protobuf                                 ###
 ###############################################################################
 
-protoVer=v0.7
-protoImageName=tendermintdev/sdk-proto-gen:$(protoVer)
-containerProtoGen=$(PROJECT_NAME)-proto-gen-$(protoVer)
-containerProtoGenSwagger=$(PROJECT_NAME)-proto-gen-swagger-$(protoVer)
-containerProtoFmt=$(PROJECT_NAME)-proto-fmt-$(protoVer)
+protoVer=0.11.2
+protoImageName=ghcr.io/cosmos/proto-builder:$(protoVer)
+protoImage=$(DOCKER) run --rm -v $(CURDIR):/workspace --workdir /workspace $(protoImageName)
 
 proto-all: proto-format proto-lint proto-gen
 
-proto-format:
-	@echo "Formatting Protobuf files"
-	@if docker ps -a --format '{{.Names}}' | grep -Eq "^${containerProtoFmt}$$"; then docker start -a $(containerProtoFmt); else docker run --name $(containerProtoFmt) -v $(CURDIR):/workspace --workdir /workspace $(protoImageName) \
-		find ./ -name "*.proto" -exec clang-format -i {} \; ; fi
-
-proto-lint:
-	@$(DOCKER_BUF) lint --error-format=json
-
 proto-gen:
 	@echo "Generating Protobuf files"
-	@if docker ps -a --format '{{.Names}}' | grep -Eq "^${containerProtoGen}$$"; then docker start -a $(containerProtoGen); else docker run --name $(containerProtoGen) -v $(CURDIR):/workspace --workdir /workspace $(protoImageName) \
-		sh ./scripts/protocgen.sh; fi
+	@$(protoImage) sh ./scripts/protocgen.sh
 
 proto-swagger-gen:
 	@echo "Generating Protobuf Swagger"
-	@if docker ps -a --format '{{.Names}}' | grep -Eq "^${containerProtoGenSwagger}$$"; then docker start -a $(containerProtoGenSwagger); else docker run --name $(containerProtoGenSwagger) -v $(CURDIR):/workspace --workdir /workspace $(protoImageName) \
-		sh ./scripts/protoc-swagger-gen.sh; fi
+	@$(protoImage) sh ./scripts/protoc-swagger-gen.sh
+
+proto-format:
+	@$(protoImage) find ./ -name "*.proto" -exec clang-format -i {} \;
+
+proto-lint:
+	@$(protoImage) buf lint --error-format=json
 
 proto-check-breaking:
-	@$(DOCKER_BUF) breaking --against $(HTTPS_GIT)#branch=main
+	@$(protoImage) buf breaking --against $(HTTPS_GIT)#branch=main
 
 proto-update-deps:
 	@echo "Updating Protobuf dependencies"
-	@cd proto && buf mod update
+	$(DOCKER) run --rm -v $(CURDIR)/proto:/workspace --workdir /workspace $(protoImageName) buf mod update
 
 .PHONY: proto-all proto-gen proto-gen-any proto-swagger-gen proto-format proto-lint proto-check-breaking proto-update-deps

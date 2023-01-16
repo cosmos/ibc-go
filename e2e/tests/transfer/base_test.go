@@ -11,6 +11,7 @@ import (
 	test "github.com/strangelove-ventures/ibctest/v6/testutil"
 	"github.com/stretchr/testify/suite"
 
+	"github.com/cosmos/ibc-go/e2e/semverutil"
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
@@ -68,10 +69,10 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized() {
 	chainADenom := chainA.Config().Denom
 
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
-	chainAAddress := chainAWallet.Bech32Address(chainA.Config().Bech32Prefix)
+	chainAAddress := chainAWallet.FormattedAddress()
 
 	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
-	chainBAddress := chainBWallet.Bech32Address(chainB.Config().Bech32Prefix)
+	chainBAddress := chainBWallet.FormattedAddress()
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
 
@@ -143,7 +144,7 @@ func (s *TransferTestSuite) TestMsgTransfer_Fails_InvalidAddress() {
 	chainADenom := chainA.Config().Denom
 
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
-	chainAAddress := chainAWallet.Bech32Address(chainA.Config().Bech32Prefix)
+	chainAAddress := chainAWallet.FormattedAddress()
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
 
@@ -183,18 +184,18 @@ func (s *TransferTestSuite) TestMsgTransfer_Timeout_Nonincentivized() {
 	ctx := context.TODO()
 
 	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, transferChannelOptions())
-	chainA, chainB := s.GetChains()
+	chainA, _ := s.GetChains()
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 
 	chainBWalletAmount := ibc.WalletAmount{
-		Address: chainBWallet.Bech32Address(chainB.Config().Bech32Prefix), // destination address
+		Address: chainBWallet.FormattedAddress(), // destination address
 		Denom:   chainA.Config().Denom,
 		Amount:  testvalues.IBCTransferAmount,
 	}
 
 	t.Run("IBC transfer packet timesout", func(t *testing.T) {
-		tx, err := chainA.SendIBCTransfer(ctx, channelA.ChannelID, chainAWallet.KeyName, chainBWalletAmount, ibc.TransferOptions{Timeout: testvalues.ImmediatelyTimeout()})
+		tx, err := chainA.SendIBCTransfer(ctx, channelA.ChannelID, chainAWallet.KeyName(), chainBWalletAmount, ibc.TransferOptions{Timeout: testvalues.ImmediatelyTimeout()})
 		s.Require().NoError(err)
 		s.Require().NoError(tx.Validate(), "source ibc transfer tx is invalid")
 		time.Sleep(time.Nanosecond * 1) // want it to timeout immediately
@@ -236,10 +237,10 @@ func (s *TransferTestSuite) TestSendEnabledParam() {
 	chainADenom := chainA.Config().Denom
 
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
-	chainAAddress := chainAWallet.Bech32Address(chainA.Config().Bech32Prefix)
+	chainAAddress := chainAWallet.FormattedAddress()
 
 	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
-	chainBAddress := chainBWallet.Bech32Address(chainB.Config().Bech32Prefix)
+	chainBAddress := chainBWallet.FormattedAddress()
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
 
@@ -290,8 +291,8 @@ func (s *TransferTestSuite) TestReceiveEnabledParam() {
 		chainBDenom    = chainB.Config().Denom
 		chainAIBCToken = testsuite.GetIBCToken(chainBDenom, channelA.PortID, channelA.ChannelID) // IBC token sent to chainA
 
-		chainAAddress = chainAWallet.Bech32Address(chainA.Config().Bech32Prefix)
-		chainBAddress = chainBWallet.Bech32Address(chainB.Config().Bech32Prefix)
+		chainAAddress = chainAWallet.FormattedAddress()
+		chainBAddress = chainBWallet.FormattedAddress()
 	)
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
@@ -379,7 +380,7 @@ func (s *TransferTestSuite) TestReceiveEnabledParam() {
 }
 
 // memoFeatureReleases represents the releases the memo field was released in.
-var memoFeatureReleases = testsuite.FeatureReleases{
+var memoFeatureReleases = semverutil.FeatureReleases{
 	MajorVersion: "v6",
 	MinorVersions: []string{
 		"v2.5",
@@ -406,10 +407,10 @@ func (s *TransferTestSuite) TestMsgTransfer_WithMemo() {
 	chainADenom := chainA.Config().Denom
 
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
-	chainAAddress := chainAWallet.Bech32Address(chainA.Config().Bech32Prefix)
+	chainAAddress := chainAWallet.FormattedAddress()
 
 	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
-	chainBAddress := chainBWallet.Bech32Address(chainB.Config().Bech32Prefix)
+	chainBAddress := chainBWallet.FormattedAddress()
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
 

@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
-	ibchost "github.com/cosmos/ibc-go/v6/modules/core/24-host"
+	ibcexported "github.com/cosmos/ibc-go/v6/modules/core/exported"
 	ibckeeper "github.com/cosmos/ibc-go/v6/modules/core/keeper"
 	ibctesting "github.com/cosmos/ibc-go/v6/testing"
 )
@@ -65,8 +65,8 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 		newIBCKeeper  = func() {
 			ibckeeper.NewKeeper(
 				suite.chainA.GetSimApp().AppCodec(),
-				suite.chainA.GetSimApp().GetKey(ibchost.StoreKey),
-				suite.chainA.GetSimApp().GetSubspace(ibchost.ModuleName),
+				suite.chainA.GetSimApp().GetKey(ibcexported.StoreKey),
+				suite.chainA.GetSimApp().GetSubspace(ibcexported.ModuleName),
 				stakingKeeper,
 				upgradeKeeper,
 				scopedKeeper,
