@@ -9,7 +9,7 @@ import (
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
 	controllertypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/controller/types"
-	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
+	ibcexported "github.com/cosmos/ibc-go/v6/modules/core/exported"
 )
 
 // MigrateICS27ChannelCapability performs a search on a prefix store using the provided store key and module name.
@@ -68,7 +68,7 @@ func hasIBCOwner(owners []capabilitytypes.Owner) bool {
 	}
 
 	for _, owner := range owners {
-		if owner.Module == host.ModuleName {
+		if owner.Module == ibcexported.ModuleName {
 			return true
 		}
 	}
