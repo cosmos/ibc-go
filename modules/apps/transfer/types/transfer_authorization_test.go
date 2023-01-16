@@ -1,132 +1,162 @@
 package types_test
 
 import (
-	"testing"
-
-	"github.com/stretchr/testify/require"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-
-	"github.com/cosmos/cosmos-sdk/simapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/authz"
+
 	"github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 	ibctesting "github.com/cosmos/ibc-go/v6/testing"
 	"github.com/cosmos/ibc-go/v6/testing/mock"
 )
 
-var (
-	sourcePort     = "port"
-	sourceChannel  = "channel-100"
-	sourcePort2    = "port2"
-	sourceChannel2 = "channel-101"
-	coins1000      = sdk.Coins{sdk.NewCoin("stake", sdk.NewInt(1000))}
-	coins500       = sdk.Coins{sdk.NewCoin("stake", sdk.NewInt(500))}
-	coin1000       = sdk.NewCoin("stake", sdk.NewInt(1000))
-	coin500        = sdk.NewCoin("stake", sdk.NewInt(500))
-	fromAddr       = sdk.AccAddress("_____from _____")
-	toAddr         = sdk.AccAddress("_______to________")
-	timeoutHeight  = clienttypes.NewHeight(0, 10)
-)
+func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
+	var (
+		msgTransfer   types.MsgTransfer
+		transferAuthz types.TransferAuthorization
+	)
 
-func TestTransferAuthorization(t *testing.T) {
-	app := simapp.Setup(t, false)
-	ctx := app.BaseApp.NewContext(false, tmproto.Header{})
-	allocation := types.Allocation{
-		SourcePort:    sourcePort,
-		SourceChannel: sourceChannel,
-		SpendLimit:    coins1000,
-		AllowList:     []string{toAddr.String()},
-	}
-	authorization := types.NewTransferAuthorization(allocation)
-
-	t.Log("verify authorization returns valid method name")
-	require.Equal(t, authorization.MsgTypeURL(), "/ibc.applications.transfer.v1.MsgTransfer")
-	require.NoError(t, authorization.ValidateBasic())
-	transfer := types.NewMsgTransfer(sourcePort, sourceChannel, coin1000, fromAddr.String(), toAddr.String(), timeoutHeight, 0, "")
-	require.NoError(t, authorization.ValidateBasic())
-
-	t.Log("verify updated authorization returns nil")
-	resp, err := authorization.Accept(ctx, transfer)
-	require.NoError(t, err)
-	require.True(t, resp.Delete)
-	require.Nil(t, resp.Updated)
-
-	t.Log("verify updated authorization returns remaining spent limit")
-	authorization = types.NewTransferAuthorization(allocation)
-	require.Equal(t, authorization.MsgTypeURL(), "/ibc.applications.transfer.v1.MsgTransfer")
-	require.NoError(t, authorization.ValidateBasic())
-	transfer = types.NewMsgTransfer(sourcePort, sourceChannel, coin500, fromAddr.String(), toAddr.String(), timeoutHeight, 0, "")
-	require.NoError(t, authorization.ValidateBasic())
-	resp, err = authorization.Accept(ctx, transfer)
-	require.NoError(t, err)
-	require.False(t, resp.Delete)
-	require.NotNil(t, resp.Updated)
-
-	allocation = types.Allocation{
-		SourcePort:    sourcePort,
-		SourceChannel: sourceChannel,
-		SpendLimit:    coins500,
-		AllowList:     []string{toAddr.String()},
-	}
-	sendAuth := types.NewTransferAuthorization(allocation)
-	require.Equal(t, sendAuth.String(), resp.Updated.String())
-
-	t.Log("expect updated authorization nil after spending remaining amount")
-	resp, err = resp.Updated.Accept(ctx, transfer)
-	require.NoError(t, err)
-	require.True(t, resp.Delete)
-	require.Nil(t, resp.Updated)
-
-	t.Log("expect error when spend limit for specific port and channel is not set")
-	allocation = types.Allocation{
-		SourcePort:    sourcePort,
-		SourceChannel: sourceChannel,
-		SpendLimit:    coins1000,
-		AllowList:     []string{toAddr.String()},
-	}
-	authorization = types.NewTransferAuthorization(allocation)
-	transfer = types.NewMsgTransfer(sourcePort2, sourceChannel2, coin500, fromAddr.String(), toAddr.String(), timeoutHeight, 0, "")
-	_, err = authorization.Accept(ctx, transfer)
-	require.Error(t, err)
-
-	t.Log("expect removing only 1 allocation if spend limit is finalized for the port")
-
-	allocations := []types.Allocation{
+	testCases := []struct {
+		name         string
+		malleate     func()
+		assertResult func(res authz.AcceptResponse, err error)
+	}{
 		{
-			SourcePort:    sourcePort,
-			SourceChannel: sourceChannel,
-			SpendLimit:    coins1000,
-			AllowList:     []string{toAddr.String()},
+			"success",
+			func() {},
+			func(res authz.AcceptResponse, err error) {
+				suite.Require().NoError(err)
+
+				suite.Require().True(res.Accept)
+				suite.Require().True(res.Delete)
+				suite.Require().Nil(res.Updated)
+			},
 		},
 		{
-			SourcePort:    sourcePort2,
-			SourceChannel: sourceChannel2,
-			SpendLimit:    coins1000,
-			AllowList:     []string{toAddr.String()},
+			"success: with spend limit updated",
+			func() {
+				msgTransfer.Token = sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(50))
+			},
+			func(res authz.AcceptResponse, err error) {
+				suite.Require().NoError(err)
+
+				suite.Require().True(res.Accept)
+				suite.Require().False(res.Delete)
+
+				updatedAuthz, ok := res.Updated.(*types.TransferAuthorization)
+				suite.Require().True(ok)
+
+				isEqual := updatedAuthz.Allocations[0].SpendLimit.IsEqual(sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(50))))
+				suite.Require().True(isEqual)
+			},
+		},
+		{
+			"success: with empty allow list",
+			func() {
+				transferAuthz.Allocations[0].AllowList = []string{}
+			},
+			func(res authz.AcceptResponse, err error) {
+				suite.Require().NoError(err)
+
+				suite.Require().True(res.Accept)
+				suite.Require().True(res.Delete)
+				suite.Require().Nil(res.Updated)
+			},
+		},
+		{
+			"success: with multiple allocations",
+			func() {
+				alloc := types.Allocation{
+					SourcePort:    ibctesting.MockPort,
+					SourceChannel: "channel-9",
+					SpendLimit:    ibctesting.TestCoins,
+				}
+
+				transferAuthz.Allocations = append(transferAuthz.Allocations, alloc)
+			},
+			func(res authz.AcceptResponse, err error) {
+				suite.Require().NoError(err)
+
+				suite.Require().True(res.Accept)
+				suite.Require().False(res.Delete)
+
+				updatedAuthz, ok := res.Updated.(*types.TransferAuthorization)
+				suite.Require().True(ok)
+
+				// assert spent spendlimit is removed from the list
+				suite.Require().Len(updatedAuthz.Allocations, 1)
+			},
+		},
+		{
+			"no spend limit set for MsgTransfer port/channel",
+			func() {
+				msgTransfer.SourcePort = ibctesting.MockPort
+				msgTransfer.SourceChannel = "channel-9"
+			},
+			func(res authz.AcceptResponse, err error) {
+				suite.Require().Error(err)
+			},
+		},
+		{
+			"requested transfer amount is more than the spend limit",
+			func() {
+				msgTransfer.Token = sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(1000))
+			},
+			func(res authz.AcceptResponse, err error) {
+				suite.Require().Error(err)
+			},
+		},
+		{
+			"receiver address not permitted via allow list",
+			func() {
+				msgTransfer.Receiver = suite.chainB.SenderAccount.GetAddress().String()
+			},
+			func(res authz.AcceptResponse, err error) {
+				suite.Require().Error(err)
+			},
 		},
 	}
-	authorization = types.NewTransferAuthorization(allocations...)
-	transfer = types.NewMsgTransfer(sourcePort, sourceChannel, coin1000, fromAddr.String(), toAddr.String(), timeoutHeight, 0, "")
-	resp, err = authorization.Accept(ctx, transfer)
-	require.NoError(t, err)
-	require.NotNil(t, resp.Updated)
-	require.Equal(t, resp.Updated, types.NewTransferAuthorization(allocations[1]))
-	require.False(t, resp.Delete)
 
-	t.Log("expect error when transferring to not allowed address")
-	allocation = types.Allocation{
-		SourcePort:    sourcePort,
-		SourceChannel: sourceChannel,
-		SpendLimit:    coins1000,
-		AllowList:     []string{fromAddr.String()},
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+
+			path := NewTransferPath(suite.chainA, suite.chainB)
+			suite.coordinator.Setup(path)
+
+			transferAuthz = types.TransferAuthorization{
+				Allocations: []types.Allocation{
+					{
+						SourcePort:    path.EndpointA.ChannelConfig.PortID,
+						SourceChannel: path.EndpointA.ChannelID,
+						SpendLimit:    ibctesting.TestCoins,
+						AllowList:     []string{ibctesting.TestAccAddress},
+					},
+				},
+			}
+
+			msgTransfer = types.MsgTransfer{
+				SourcePort:    path.EndpointA.ChannelConfig.PortID,
+				SourceChannel: path.EndpointA.ChannelID,
+				Token:         ibctesting.TestCoin,
+				Sender:        suite.chainA.SenderAccount.GetAddress().String(),
+				Receiver:      ibctesting.TestAccAddress,
+				TimeoutHeight: suite.chainB.GetTimeoutHeight(),
+			}
+
+			tc.malleate()
+
+			res, err := transferAuthz.Accept(suite.chainA.GetContext(), &msgTransfer)
+			tc.assertResult(res, err)
+		})
 	}
-	authorization = types.NewTransferAuthorization(allocation)
-	transfer = types.NewMsgTransfer(sourcePort, sourceChannel, coin500, fromAddr.String(), toAddr.String(), timeoutHeight, 0, "")
-	_, err = authorization.Accept(ctx, transfer)
-	require.Error(t, err)
 }
 
-func TestTransferAuthorizationValidateBasic(t *testing.T) {
+func (suite *TypesTestSuite) TestTransferAuthorizationMsgTypeURL() {
+	var transferAuthz types.TransferAuthorization
+	suite.Require().Equal(sdk.MsgTypeURL(&types.MsgTransfer{}), transferAuthz.MsgTypeURL(), "invalid type url for transfer authorization")
+}
+
+func (suite *TypesTestSuite) TestTransferAuthorizationValidateBasic() {
 	var transferAuthz types.TransferAuthorization
 
 	testCases := []struct {
@@ -212,7 +242,7 @@ func TestTransferAuthorizationValidateBasic(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
+		suite.Run(tc.name, func() {
 			transferAuthz = types.TransferAuthorization{
 				Allocations: []types.Allocation{
 					{
@@ -229,9 +259,9 @@ func TestTransferAuthorizationValidateBasic(t *testing.T) {
 			err := transferAuthz.ValidateBasic()
 
 			if tc.expPass {
-				require.NoError(t, err)
+				suite.Require().NoError(err)
 			} else {
-				require.Error(t, err)
+				suite.Require().Error(err)
 			}
 		})
 	}
