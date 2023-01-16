@@ -141,7 +141,6 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 			if tc.expPass {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
-				fmt.Println(res)
 			} else {
 				suite.Require().Error(err)
 				suite.Require().Nil(res)

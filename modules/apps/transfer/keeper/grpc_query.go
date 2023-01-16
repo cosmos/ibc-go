@@ -122,6 +122,7 @@ func (q Keeper) EscrowAddress(c context.Context, req *types.QueryEscrowAddressRe
 	}, nil
 }
 
+// TotalNativeIBCOut implements the TotalNativeIBCOut gRPC method.
 func (q Keeper) TotalNativeIBCOut(c context.Context, req *types.QueryTotalNativeIBCOutRequest) (*types.QueryTotalNativeIBCOutResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")

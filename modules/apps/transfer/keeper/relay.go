@@ -111,8 +111,11 @@ func (k Keeper) sendTransfer(
 			return 0, err
 		}
 
+		// get the existing amount in escrow.
+		existingAmount := k.bankKeeper.GetBalance(ctx, escrowAddress, token.Denom)
+
 		// store the token about to be IBC'd Out here
-		k.SetIBCOutDenomAmount(ctx, token.GetDenom(), token.Amount)
+		k.SetIBCOutDenomAmount(ctx, token.GetDenom(), existingAmount.Amount)
 	} else {
 		labels = append(labels, telemetry.NewLabel(coretypes.LabelSource, "false"))
 
