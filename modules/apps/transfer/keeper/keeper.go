@@ -151,3 +151,28 @@ func (k Keeper) AuthenticateCapability(ctx sdk.Context, cap *capabilitytypes.Cap
 func (k Keeper) ClaimCapability(ctx sdk.Context, cap *capabilitytypes.Capability, name string) error {
 	return k.scopedKeeper.ClaimCapability(ctx, cap, name)
 }
+
+// GetIBCOutDenomAmount gets the total source chain tokens that has been IBC'd out.
+func (k Keeper) GetIBCOutDenomAmount(ctx sdk.Context, denom string) sdk.Int {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(types.GetIBCOutDenom(denom))
+	if bz == nil {
+		return sdk.NewInt(0)
+	}
+
+	var amount sdk.Int
+	if err := amount.Unmarshal(bz); err != nil {
+		panic(err)
+	}
+	return amount
+}
+
+// SetIBCOutDenomAmount stores the source tokens about to get IBC'd out.
+func (k Keeper) SetIBCOutDenomAmount(ctx sdk.Context, denom string, amount sdk.Int) {
+	store := ctx.KVStore(k.storeKey)
+	bz, err := amount.Marshal()
+	if err != nil {
+		panic(err)
+	}
+	store.Set(types.GetIBCOutDenom(denom), bz)
+}

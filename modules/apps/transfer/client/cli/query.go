@@ -167,3 +167,36 @@ func GetCmdQueryDenomHash() *cobra.Command {
 	flags.AddQueryFlagsToCmd(cmd)
 	return cmd
 }
+
+// GetCmdQueryDenomHash defines the command to query a denomination hash from a given trace.
+func GetCmdQueryIBCTokenOut() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:     "token-out [denom]",
+		Short:   "Query the total source chain tokens that has been ibc'd out",
+		Long:    "Query the total source chain tokens that has been ibc'd out",
+		Example: fmt.Sprintf("%s query ibc-transfer token-out uosmo", version.AppName),
+		Args:    cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			queryClient := types.NewQueryClient(clientCtx)
+
+			req := &types.QueryTotalNativeIBCOutRequest{
+				Denom: args[0],
+			}
+
+			res, err := queryClient.TotalNativeIBCOut(cmd.Context(), req)
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+	return cmd
+}

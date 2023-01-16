@@ -121,3 +121,16 @@ func (q Keeper) EscrowAddress(c context.Context, req *types.QueryEscrowAddressRe
 		EscrowAddress: addr.String(),
 	}, nil
 }
+
+func (q Keeper) TotalNativeIBCOut(c context.Context, req *types.QueryTotalNativeIBCOutRequest) (*types.QueryTotalNativeIBCOutResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "empty request")
+	}
+
+	ctx := sdk.UnwrapSDKContext(c)
+	denomAmount := q.GetIBCOutDenomAmount(ctx, req.Denom)
+
+	return &types.QueryTotalNativeIBCOutResponse{
+		Amount: denomAmount.Int64(),
+	}, nil
+}

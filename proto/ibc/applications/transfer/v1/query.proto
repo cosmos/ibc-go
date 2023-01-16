@@ -35,6 +35,11 @@ service Query {
   rpc EscrowAddress(QueryEscrowAddressRequest) returns (QueryEscrowAddressResponse) {
     option (google.api.http).get = "/ibc/apps/transfer/v1/channels/{channel_id}/ports/{port_id}/escrow_address";
   }
+
+  // TotalNativeIBCOut returns the total native token that's IBC'd out.
+  rpc TotalNativeIBCOut(QueryTotalNativeIBCOutRequest) returns (QueryTotalNativeIBCOutResponse) {
+    option (google.api.http).get = "/ibc/apps/transfer/v1/total_native_ibc_out/{denom}";
+  }
 }
 
 // QueryDenomTraceRequest is the request type for the Query/DenomTrace RPC
@@ -102,4 +107,15 @@ message QueryEscrowAddressRequest {
 message QueryEscrowAddressResponse {
   // the escrow account address
   string escrow_address = 1;
+}
+
+// QueryTotalNativeIBCOut is the request type for TotalNativeIBCOut RPC method.
+message QueryTotalNativeIBCOutRequest{
+  string denom = 1;
+}
+
+
+// TotalNativeIBCOutResponse is the response type for TotalNativeIBCOut RPC method.
+message QueryTotalNativeIBCOutResponse{
+  int64 amount = 1;
 }

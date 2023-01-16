@@ -110,6 +110,9 @@ func (k Keeper) sendTransfer(
 		); err != nil {
 			return 0, err
 		}
+
+		// store the token about to be IBC'd Out here
+		k.SetIBCOutDenomAmount(ctx, token.GetDenom(), token.Amount)
 	} else {
 		labels = append(labels, telemetry.NewLabel(coretypes.LabelSource, "false"))
 
@@ -133,13 +136,6 @@ func (k Keeper) sendTransfer(
 	packetData := types.NewFungibleTokenPacketData(
 		fullDenomPath, token.Amount.String(), sender.String(), receiver, memo,
 	)
-
-	// store the amount of native token thats being sent over
-
-	// the send is from source chain
-	if !strings.HasPrefix(token.Denom, "ibc/") {
-		// amount to send: token.Amount.String()
-	}
 
 	sequence, err := k.ics4Wrapper.SendPacket(ctx, channelCap, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, packetData.GetBytes())
 	if err != nil {
