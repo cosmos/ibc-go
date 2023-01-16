@@ -134,6 +134,13 @@ func (k Keeper) sendTransfer(
 		fullDenomPath, token.Amount.String(), sender.String(), receiver, memo,
 	)
 
+	// store the amount of native token thats being sent over
+
+	// the send is from source chain
+	if !strings.HasPrefix(token.Denom, "ibc/") {
+		// amount to send: token.Amount.String()
+	}
+
 	sequence, err := k.ics4Wrapper.SendPacket(ctx, channelCap, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, packetData.GetBytes())
 	if err != nil {
 		return 0, err
