@@ -147,11 +147,11 @@ func AssertEvents(
 
 			for _, event := range actual {
 				if event.Type == eventType {
-					ok := suite.EqualValues(len(event.Attributes), len(expEvent))
+					ok := len(expEvent) == len(event.Attributes)
 					for _, attr := range event.Attributes {
 						expValue, found := expEvent[string(attr.Key)]
-						ok = ok && suite.EqualValues(true, found)
-						ok = ok && suite.EqualValues(expValue, string(attr.Value))
+						ok = ok && found
+						ok = ok && expValue == string(attr.Value)
 					}
 					expEventsOk = append(expEventsOk, ok)
 				}
