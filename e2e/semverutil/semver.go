@@ -1,4 +1,4 @@
-package testsuite
+package semverutil
 
 import (
 	"golang.org/x/mod/semver"
