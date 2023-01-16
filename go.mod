@@ -1,6 +1,6 @@
 go 1.19
 
-module github.com/cosmos/ibc-go/v6
+module github.com/cosmos/ibc-go/v7
 
 require (
 	cosmossdk.io/math v1.0.0-beta.4
