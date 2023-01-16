@@ -201,11 +201,12 @@ func (suite *KeeperTestSuite) TestPayPacketFee() {
 		{
 			"bank send enabled for fee denom",
 			func() {
-				suite.chainA.GetSimApp().BankKeeper.SetParams(suite.chainA.GetContext(),
+				err := suite.chainA.GetSimApp().BankKeeper.SetParams(suite.chainA.GetContext(),
 					banktypes.Params{
 						SendEnabled: []*banktypes.SendEnabled{{Denom: sdk.DefaultBondDenom, Enabled: true}},
 					},
 				)
+				suite.Require().NoError(err)
 			},
 			true,
 		},
@@ -259,11 +260,12 @@ func (suite *KeeperTestSuite) TestPayPacketFee() {
 		{
 			"bank send disabled for fee denom",
 			func() {
-				suite.chainA.GetSimApp().BankKeeper.SetParams(suite.chainA.GetContext(),
+				err := suite.chainA.GetSimApp().BankKeeper.SetParams(suite.chainA.GetContext(),
 					banktypes.Params{
 						SendEnabled: []*banktypes.SendEnabled{{Denom: sdk.DefaultBondDenom, Enabled: false}},
 					},
 				)
+				suite.Require().NoError(err)
 			},
 			false,
 		},
@@ -373,11 +375,12 @@ func (suite *KeeperTestSuite) TestPayPacketFeeAsync() {
 		{
 			"bank send enabled for fee denom",
 			func() {
-				suite.chainA.GetSimApp().BankKeeper.SetParams(suite.chainA.GetContext(),
+				err := suite.chainA.GetSimApp().BankKeeper.SetParams(suite.chainA.GetContext(),
 					banktypes.Params{
 						SendEnabled: []*banktypes.SendEnabled{{Denom: sdk.DefaultBondDenom, Enabled: true}},
 					},
 				)
+				suite.Require().NoError(err)
 			},
 			true,
 		},
@@ -469,11 +472,12 @@ func (suite *KeeperTestSuite) TestPayPacketFeeAsync() {
 		{
 			"bank send disabled for fee denom",
 			func() {
-				suite.chainA.GetSimApp().BankKeeper.SetParams(suite.chainA.GetContext(),
+				err := suite.chainA.GetSimApp().BankKeeper.SetParams(suite.chainA.GetContext(),
 					banktypes.Params{
 						SendEnabled: []*banktypes.SendEnabled{{Denom: sdk.DefaultBondDenom, Enabled: false}},
 					},
 				)
+				suite.Require().NoError(err)
 			},
 			false,
 		},
