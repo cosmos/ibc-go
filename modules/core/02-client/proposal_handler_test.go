@@ -60,7 +60,7 @@ func (suite *ClientTestSuite) TestNewClientUpdateProposalHandler() {
 		},
 		{
 			"unsupported proposal type", func() {
-				content = &distributiontypes.CommunityPoolSpendProposal{
+				content = &distributiontypes.CommunityPoolSpendProposal{ //nolint:staticcheck
 					Title:       ibctesting.Title,
 					Description: ibctesting.Description,
 					Recipient:   suite.chainA.SenderAccount.GetAddress().String(),
