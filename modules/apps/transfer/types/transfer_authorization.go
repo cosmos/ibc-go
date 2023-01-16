@@ -5,6 +5,7 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/authz"
 
+	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
 
 	"golang.org/x/exp/slices"
@@ -74,7 +75,15 @@ func (a TransferAuthorization) ValidateBasic() error {
 		return sdkerrors.Wrap(ErrInvalidAuthorization, "allocations cannot be empty")
 	}
 
+	foundChannels := make(map[string]bool, 0)
+
 	for _, allocation := range a.Allocations {
+		if _, found := foundChannels[allocation.SourceChannel]; found {
+			return sdkerrors.Wrapf(channeltypes.ErrInvalidChannel, "duplicate source channel ID: %s", allocation.SourceChannel)
+		}
+
+		foundChannels[allocation.SourceChannel] = true
+
 		if allocation.SpendLimit == nil {
 			return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, "spend limit cannot be nil")
 		}

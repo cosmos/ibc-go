@@ -181,7 +181,7 @@ func (suite *TypesTestSuite) TestTransferAuthorizationValidateBasic() {
 			func() {
 				allocation := types.Allocation{
 					SourcePort:    types.PortID,
-					SourceChannel: ibctesting.FirstChannelID,
+					SourceChannel: "channel-1",
 					SpendLimit:    sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100))),
 					AllowList:     []string{},
 				}
@@ -238,6 +238,17 @@ func (suite *TypesTestSuite) TestTransferAuthorizationValidateBasic() {
 				transferAuthz.Allocations[0].SourceChannel = ""
 			},
 			false,
+		},
+		{
+			name: "duplicate channel ID",
+			malleate: func() {
+				allocation := types.Allocation{
+					SourcePort: transferAuthz.Allocations[0].SourceChannel,
+				}
+
+				transferAuthz.Allocations = append(transferAuthz.Allocations, allocation)
+			},
+			expPass: false,
 		},
 	}
 
