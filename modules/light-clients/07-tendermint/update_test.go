@@ -533,7 +533,8 @@ func (suite *TendermintTestSuite) TestPruneConsensusState() {
 	ibctm.IterateConsensusStateAscending(clientStore, getFirstHeightCb)
 
 	// this height will be expired but not pruned
-	path.EndpointA.UpdateClient()
+	err := path.EndpointA.UpdateClient()
+	suite.Require().NoError(err)
 	expiredHeight := path.EndpointA.GetClientState().GetLatestHeight()
 
 	// expected values that must still remain in store after pruning
@@ -552,12 +553,14 @@ func (suite *TendermintTestSuite) TestPruneConsensusState() {
 	suite.coordinator.IncrementTimeBy(7 * 24 * time.Hour)
 
 	// create the consensus state that can be used as trusted height for next update
-	path.EndpointA.UpdateClient()
+	err = path.EndpointA.UpdateClient()
+	suite.Require().NoError(err)
 
 	// Increment the time by another week, then update the client.
 	// This will cause the first two consensus states to become expired.
 	suite.coordinator.IncrementTimeBy(7 * 24 * time.Hour)
-	path.EndpointA.UpdateClient()
+	err = path.EndpointA.UpdateClient()
+	suite.Require().NoError(err)
 
 	ctx = path.EndpointA.Chain.GetContext()
 	clientStore = path.EndpointA.Chain.App.GetIBCKeeper().ClientKeeper.ClientStore(ctx, path.EndpointA.ClientID)

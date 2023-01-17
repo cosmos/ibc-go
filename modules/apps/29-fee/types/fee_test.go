@@ -27,6 +27,8 @@ var (
 	defaultAccAddress = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
 )
 
+const invalidAddress = "invalid-address"
+
 func TestFeeTotal(t *testing.T) {
 	fee := types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
 
@@ -57,7 +59,7 @@ func TestPacketFeeValidation(t *testing.T) {
 		{
 			"should fail when refund address is invalid",
 			func() {
-				packetFee.RefundAddress = "invalid-address"
+				packetFee.RefundAddress = invalidAddress
 			},
 			false,
 		},

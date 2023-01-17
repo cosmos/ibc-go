@@ -251,7 +251,8 @@ func (suite *InterchainAccountsTestSuite) TestChanOpenAck() {
 	// commit state changes so proof can be created
 	suite.chainA.NextBlock()
 
-	path.EndpointB.UpdateClient()
+	err = path.EndpointB.UpdateClient()
+	suite.Require().NoError(err)
 
 	// query proof from ChainA
 	channelKey := host.ChannelKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
@@ -668,7 +669,8 @@ func (suite *InterchainAccountsTestSuite) TestControlAccountAfterChannelClose() 
 
 	_, err = suite.chainA.GetSimApp().ICAControllerKeeper.SendTx(suite.chainA.GetContext(), nil, ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID, icaPacketData, ^uint64(0))
 	suite.Require().NoError(err)
-	path.EndpointB.UpdateClient()
+	err = path.EndpointB.UpdateClient()
+	suite.Require().NoError(err)
 
 	// relay the packet
 	packetRelay := channeltypes.NewPacket(icaPacketData.GetBytes(), 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.ZeroHeight(), ^uint64(0))
@@ -694,7 +696,8 @@ func (suite *InterchainAccountsTestSuite) TestControlAccountAfterChannelClose() 
 
 	_, err = suite.chainA.GetSimApp().ICAControllerKeeper.SendTx(suite.chainA.GetContext(), nil, ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID, icaPacketData, ^uint64(0))
 	suite.Require().NoError(err)
-	path.EndpointB.UpdateClient()
+	err = path.EndpointB.UpdateClient()
+	suite.Require().NoError(err)
 
 	// relay the packet
 	packetRelay = channeltypes.NewPacket(icaPacketData.GetBytes(), 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.ZeroHeight(), ^uint64(0))

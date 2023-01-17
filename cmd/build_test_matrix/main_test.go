@@ -102,7 +102,7 @@ func SuiteTwo(t *testing.T) {
 type FeeMiddlewareTestSuite struct {}
 `
 
-		err := os.WriteFile(path.Join(testingDir, goTestFileNameOne), []byte(fileWithTwoSuites), os.FileMode(777))
+		err := os.WriteFile(path.Join(testingDir, goTestFileNameOne), []byte(fileWithTwoSuites), os.FileMode(0o777))
 		assert.NoError(t, err)
 
 		_, err = getGithubActionMatrixForTests(testingDir, "", nil)
@@ -156,6 +156,6 @@ func helper() {}
 
 func createFileWithTestSuiteAndTests(t *testing.T, suiteName, fn1Name, fn2Name, dir, filename string) {
 	goFileContents := goTestFileContents(suiteName, fn1Name, fn2Name)
-	err := os.WriteFile(path.Join(dir, filename), []byte(goFileContents), os.FileMode(777))
+	err := os.WriteFile(path.Join(dir, filename), []byte(goFileContents), os.FileMode(0o777))
 	assert.NoError(t, err)
 }
