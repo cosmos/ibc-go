@@ -151,7 +151,7 @@ func (suite *KeeperTestSuite) TestSendTx() {
 
 			tc.malleate() // malleate mutates test data
 
-			//nolint
+			//nolint: staticcheck // SA1019: ibctesting.FirstConnectionID is deprecated: use path.EndpointA.ConnectionID instead. (staticcheck)
 			_, err = suite.chainA.GetSimApp().ICAControllerKeeper.SendTx(suite.chainA.GetContext(), nil, ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID, packetData, timeoutTimestamp)
 
 			if tc.expPass {
