@@ -36,7 +36,7 @@ func (k Keeper) SendPacket(
 	if channel.State != types.OPEN {
 		return 0, sdkerrors.Wrapf(
 			types.ErrInvalidChannelState,
-			"channel is CLOSED (got %s)", channel.State.String(),
+			"channel is not OPEN (got %s)", channel.State.String(),
 		)
 	}
 
