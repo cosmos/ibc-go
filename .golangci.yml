@@ -26,7 +26,6 @@ linters:
     - unconvert
     - unused
     - misspell
-    - nolintlint
 
 issues:
   exclude-rules:
