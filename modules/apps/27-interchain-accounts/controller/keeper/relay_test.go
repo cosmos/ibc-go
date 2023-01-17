@@ -151,6 +151,7 @@ func (suite *KeeperTestSuite) TestSendTx() {
 
 			tc.malleate() // malleate mutates test data
 
+			//nolint
 			_, err = suite.chainA.GetSimApp().ICAControllerKeeper.SendTx(suite.chainA.GetContext(), nil, ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID, packetData, timeoutTimestamp)
 
 			if tc.expPass {
