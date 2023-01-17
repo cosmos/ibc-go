@@ -112,7 +112,8 @@ func (suite *KeeperTestSuite) TestConnOpenTry() {
 
 			// commit in order for proof to return correct value
 			suite.coordinator.CommitBlock(suite.chainA)
-			path.EndpointB.UpdateClient()
+			err = path.EndpointB.UpdateClient()
+			suite.Require().NoError(err)
 
 			// retrieve client state of chainA to pass as counterpartyClient
 			counterpartyClient = suite.chainA.GetClientState(path.EndpointA.ClientID)

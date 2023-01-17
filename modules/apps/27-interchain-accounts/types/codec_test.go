@@ -11,13 +11,6 @@ import (
 	"github.com/cosmos/ibc-go/v6/testing/simapp"
 )
 
-// caseRawBytes defines a helper struct, used for testing codec operations
-type caseRawBytes struct {
-	name    string
-	bz      []byte
-	expPass bool
-}
-
 // mockSdkMsg defines a mock struct, used for testing codec error scenarios
 type mockSdkMsg struct{}
 
