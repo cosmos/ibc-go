@@ -243,7 +243,6 @@ func (b *broadcastUser) FormattedAddressWithPrefix(prefix string) string {
 // BroadcastMessages broadcasts the provided messages to the given chain and signs them on behalf of the provided user.
 // Once the broadcast response is returned, we wait for a few blocks to be created on both chain A and chain B.
 func (s *E2ETestSuite) BroadcastMessages(ctx context.Context, chain *cosmos.CosmosChain, user ibc.Wallet, msgs ...sdk.Msg) (sdk.TxResponse, error) {
-
 	// wrap the user so it is a valid implementation of broadcast user.
 	b := broadcastUser{Wallet: user}
 
