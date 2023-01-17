@@ -97,12 +97,14 @@ func (suite *KeeperTestSuite) TestQueryClientStates() {
 	)
 
 	testCases := []struct {
-		msg      string
-		malleate func()
-		expPass  bool
+		msg                  string
+		expectedClientStates uint64
+		malleate             func()
+		expPass              bool
 	}{
 		{
 			"req is nil",
+			0,
 			func() {
 				req = nil
 			},
@@ -110,6 +112,7 @@ func (suite *KeeperTestSuite) TestQueryClientStates() {
 		},
 		{
 			"empty pagination",
+			0,
 			func() {
 				req = &types.QueryClientStatesRequest{}
 			},
@@ -117,6 +120,7 @@ func (suite *KeeperTestSuite) TestQueryClientStates() {
 		},
 		{
 			"success, no results",
+			0,
 			func() {
 				req = &types.QueryClientStatesRequest{
 					Pagination: &query.PageRequest{
@@ -129,6 +133,7 @@ func (suite *KeeperTestSuite) TestQueryClientStates() {
 		},
 		{
 			"success",
+			2,
 			func() {
 				path1 := ibctesting.NewPath(suite.chainA, suite.chainB)
 				suite.coordinator.SetupClients(path1)
@@ -163,10 +168,10 @@ func (suite *KeeperTestSuite) TestQueryClientStates() {
 			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
 
 			res, err := suite.chainA.QueryServer.ClientStates(ctx, req)
-
 			if tc.expPass {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
+				suite.Require().Equal(tc.expectedClientStates, res.Pagination.Total)
 				suite.Require().Equal(expClientStates.Sort(), res.ClientStates)
 			} else {
 				suite.Require().Error(err)
@@ -296,12 +301,14 @@ func (suite *KeeperTestSuite) TestQueryConsensusStates() {
 	)
 
 	testCases := []struct {
-		msg      string
-		malleate func()
-		expPass  bool
+		msg                     string
+		expectedConsensusStates uint64
+		malleate                func()
+		expPass                 bool
 	}{
 		{
 			"success: without pagination",
+			0,
 			func() {
 				req = &types.QueryConsensusStatesRequest{
 					ClientId: testClientID,
@@ -311,6 +318,7 @@ func (suite *KeeperTestSuite) TestQueryConsensusStates() {
 		},
 		{
 			"success, no results",
+			0,
 			func() {
 				req = &types.QueryConsensusStatesRequest{
 					ClientId: testClientID,
@@ -324,6 +332,7 @@ func (suite *KeeperTestSuite) TestQueryConsensusStates() {
 		},
 		{
 			"success",
+			2,
 			func() {
 				path := ibctesting.NewPath(suite.chainA, suite.chainB)
 				suite.coordinator.SetupClients(path)
@@ -359,6 +368,7 @@ func (suite *KeeperTestSuite) TestQueryConsensusStates() {
 		},
 		{
 			"invalid client identifier",
+			0,
 			func() {
 				req = &types.QueryConsensusStatesRequest{}
 			},
@@ -377,11 +387,11 @@ func (suite *KeeperTestSuite) TestQueryConsensusStates() {
 			if tc.expPass {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
+				suite.Require().Equal(tc.expectedConsensusStates, res.Pagination.Total)
 				suite.Require().Equal(len(expConsensusStates), len(res.ConsensusStates))
 				for i := range expConsensusStates {
 					suite.Require().NotNil(res.ConsensusStates[i])
 					suite.Require().Equal(expConsensusStates[i], res.ConsensusStates[i])
-
 					// ensure UnpackInterfaces is defined
 					cachedValue := res.ConsensusStates[i].ConsensusState.GetCachedValue()
 					suite.Require().NotNil(cachedValue)
