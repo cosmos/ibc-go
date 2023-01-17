@@ -112,10 +112,10 @@ func (suite *KeeperTestSuite) TestQueryChannels() {
 	)
 
 	testCases := []struct {
-		msg string
+		msg              string
 		expectedChannels uint64
-		malleate func()
-		expPass  bool
+		malleate         func()
+		expPass          bool
 	}{
 		{
 			"empty request",
