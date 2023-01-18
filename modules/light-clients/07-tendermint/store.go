@@ -80,6 +80,7 @@ func IterateConsensusMetadata(store sdk.KVStore, cb func(key, val []byte) bool) 
 	iterator := sdk.KVStorePrefixIterator(store, []byte(host.KeyConsensusStatePrefix))
 
 	// iterate over processed time and processed height
+	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		keySplit := strings.Split(string(iterator.Key()), "/")
 		// processed time key in prefix store has format: "consensusState/<height>/processedTime"
@@ -98,14 +99,12 @@ func IterateConsensusMetadata(store sdk.KVStore, cb func(key, val []byte) bool) 
 		}
 	}
 
-	iterator.Close()
-
 	// iterate over iteration keys
-	iterator = sdk.KVStorePrefixIterator(store, []byte(KeyIterateConsensusStatePrefix))
+	iter := sdk.KVStorePrefixIterator(store, []byte(KeyIterateConsensusStatePrefix))
 
-	defer iterator.Close()
-	for ; iterator.Valid(); iterator.Next() {
-		if cb(iterator.Key(), iterator.Value()) {
+	defer iter.Close()
+	for ; iter.Valid(); iter.Next() {
+		if cb(iter.Key(), iter.Value()) {
 			break
 		}
 	}
