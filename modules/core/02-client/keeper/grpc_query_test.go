@@ -301,9 +301,9 @@ func (suite *KeeperTestSuite) TestQueryConsensusStates() {
 	)
 
 	testCases := []struct {
-		msg                     string
-		malleate                func()
-		expPass                 bool
+		msg      string
+		malleate func()
+		expPass  bool
 	}{
 		{
 			"success: without pagination",
