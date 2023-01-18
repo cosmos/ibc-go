@@ -67,36 +67,13 @@ func (cs ClientState) Initialize(_ sdk.Context, _ codec.BinaryCodec, _ sdk.KVSto
 	if consState != nil {
 		return sdkerrors.Wrap(clienttypes.ErrInvalidConsensus, "initial consensus state for localhost must be nil.")
 	}
+
 	return nil
 }
 
 // GetTimestampAtHeight must return the timestamp for the consensus state associated with the provided height.
 func (cs ClientState) GetTimestampAtHeight(ctx sdk.Context, clientStore sdk.KVStore, cdc codec.BinaryCodec, height exported.Height) (uint64, error) {
 	return uint64(ctx.BlockTime().UnixNano()), nil
-}
-
-// ExportMetadata is a no-op for localhost client
-func (cs ClientState) ExportMetadata(_ sdk.KVStore) []exported.GenesisMetadata {
-	return nil
-}
-
-// CheckSubstituteAndUpdateState returns an error. The localhost cannot be modified by
-// proposals.
-func (cs ClientState) CheckSubstituteAndUpdateState(ctx sdk.Context, cdc codec.BinaryCodec, subjectClientStore, substituteClientStore sdk.KVStore, substituteClient exported.ClientState) error {
-	return sdkerrors.Wrap(clienttypes.ErrUpdateClientFailed, "cannot update localhost client with a proposal")
-}
-
-// VerifyUpgradeAndUpdateState returns an error since localhost cannot be upgraded
-func (cs ClientState) VerifyUpgradeAndUpdateState(
-	ctx sdk.Context,
-	cdc codec.BinaryCodec,
-	store sdk.KVStore,
-	newClient exported.ClientState,
-	newConsState exported.ConsensusState,
-	proofUpgradeClient,
-	proofUpgradeConsState []byte,
-) error {
-	return sdkerrors.Wrap(clienttypes.ErrInvalidUpgradeClient, "cannot upgrade localhost client")
 }
 
 // VerifyMembership is a generic proof verification method which verifies a proof of the existence of a value at a given CommitmentPath at the specified height.
@@ -170,4 +147,28 @@ func (cs ClientState) UpdateStateOnMisbehaviour(ctx sdk.Context, cdc codec.Binar
 // Upon successful update, a list of consensus heights is returned. It assumes the ClientMessage has already been verified.
 func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, clientMsg exported.ClientMessage) []exported.Height {
 	return []exported.Height{}
+}
+
+// ExportMetadata is a no-op for localhost client
+func (cs ClientState) ExportMetadata(_ sdk.KVStore) []exported.GenesisMetadata {
+	return nil
+}
+
+// CheckSubstituteAndUpdateState returns an error. The localhost cannot be modified by
+// proposals.
+func (cs ClientState) CheckSubstituteAndUpdateState(ctx sdk.Context, cdc codec.BinaryCodec, subjectClientStore, substituteClientStore sdk.KVStore, substituteClient exported.ClientState) error {
+	return sdkerrors.Wrap(clienttypes.ErrUpdateClientFailed, "cannot update localhost client with a proposal")
+}
+
+// VerifyUpgradeAndUpdateState returns an error since localhost cannot be upgraded
+func (cs ClientState) VerifyUpgradeAndUpdateState(
+	ctx sdk.Context,
+	cdc codec.BinaryCodec,
+	store sdk.KVStore,
+	newClient exported.ClientState,
+	newConsState exported.ConsensusState,
+	proofUpgradeClient,
+	proofUpgradeConsState []byte,
+) error {
+	return sdkerrors.Wrap(clienttypes.ErrInvalidUpgradeClient, "cannot upgrade localhost client")
 }
