@@ -95,14 +95,14 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 			sourceChannel = ibctesting.InvalidID
 			channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 		}, false},
-		{"channel is in CLOSED stage", func() {
+		{"channel is in CLOSED state", func() {
 			suite.coordinator.Setup(path)
 			sourceChannel = path.EndpointA.ChannelID
 
 			err := path.EndpointA.SetChannelState(types.CLOSED)
 			suite.Require().NoError(err)
 		}, false},
-		{"channel is in INIT stage", func() {
+		{"channel is in INIT state", func() {
 			suite.coordinator.Setup(path)
 			sourceChannel = path.EndpointA.ChannelID
 
