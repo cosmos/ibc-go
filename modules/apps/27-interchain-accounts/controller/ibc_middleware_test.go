@@ -887,7 +887,7 @@ func (suite *InterchainAccountsTestSuite) TestClosedChannelReopensWithMsgServer(
 	suite.Require().NoError(err)
 
 	// set the channel state to closed
-	err = path.EndpointB.SetChannelState(channeltypes.CLOSED)
+	err = path.EndpointA.SetChannelState(channeltypes.CLOSED)
 	suite.Require().NoError(err)
 	err = path.EndpointB.SetChannelState(channeltypes.CLOSED)
 	suite.Require().NoError(err)

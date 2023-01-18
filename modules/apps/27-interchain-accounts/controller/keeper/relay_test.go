@@ -105,7 +105,7 @@ func (suite *KeeperTestSuite) TestSendTx() {
 		{
 			"sendPacket fails - channel closed",
 			func() {
-				err := path.EndpointB.SetChannelState(channeltypes.CLOSED)
+				err := path.EndpointA.SetChannelState(channeltypes.CLOSED)
 				suite.Require().NoError(err)
 			},
 			false,

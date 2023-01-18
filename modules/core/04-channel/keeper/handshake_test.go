@@ -709,7 +709,7 @@ func (suite *KeeperTestSuite) TestChanCloseConfirm() {
 			suite.coordinator.Setup(path)
 			channelCap = suite.chainB.GetChannelCapability(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 
-			err := path.EndpointA.SetChannelState(types.CLOSED)
+			err := path.EndpointB.SetChannelState(types.CLOSED)
 			suite.Require().NoError(err)
 		}, false},
 		{"connection not found", func() {
