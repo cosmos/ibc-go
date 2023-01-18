@@ -14,7 +14,7 @@ import (
 	commitmenttypes "github.com/cosmos/ibc-go/v5/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v5/modules/core/exported"
-	wasm "github.com/cosmos/ibc-go/v5/modules/light-clients/10-wasm"
+	wasm "github.com/cosmos/ibc-go/v5/modules/light-clients/08-wasm"
 	ibctesting "github.com/cosmos/ibc-go/v5/testing"
 	"github.com/cosmos/ibc-go/v5/testing/simapp"
 	"github.com/stretchr/testify/suite"

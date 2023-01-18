@@ -20,7 +20,7 @@ const (
 	Tendermint string = "07-tendermint"
 
 	// Wasm is used to indicate that the light client is a on-chain wasm program
-	Wasm string = "10-wasm"
+	Wasm string = "08-wasm"
 
 	// Active is a status type of a client. An active client is allowed to be used.
 	Active Status = "Active"

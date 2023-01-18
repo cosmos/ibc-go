@@ -9,7 +9,7 @@ import (
 	connectiontypes "github.com/cosmos/ibc-go/v5/modules/core/03-connection/types"
 	channel "github.com/cosmos/ibc-go/v5/modules/core/04-channel"
 	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
-	wasm "github.com/cosmos/ibc-go/v5/modules/light-clients/10-wasm"
+	wasm "github.com/cosmos/ibc-go/v5/modules/light-clients/08-wasm"
 )
 
 // QueryServer defines the IBC interfaces that the gRPC query server must implement

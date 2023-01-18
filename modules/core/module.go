@@ -19,7 +19,7 @@ import (
 	ibcclient "github.com/cosmos/ibc-go/v5/modules/core/02-client"
 	clientkeeper "github.com/cosmos/ibc-go/v5/modules/core/02-client/keeper"
 	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
-	wasmclient "github.com/cosmos/ibc-go/v5/modules/light-clients/10-wasm"
+	wasmclient "github.com/cosmos/ibc-go/v5/modules/light-clients/08-wasm"
 	connectiontypes "github.com/cosmos/ibc-go/v5/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"

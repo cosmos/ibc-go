@@ -6,7 +6,7 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v5/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
-	wasm "github.com/cosmos/ibc-go/v5/modules/light-clients/10-wasm"
+	wasm "github.com/cosmos/ibc-go/v5/modules/light-clients/08-wasm"
 )
 
 // WasmCode implements the IBC QueryServer interface

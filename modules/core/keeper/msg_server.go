@@ -14,7 +14,7 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v5/modules/core/05-port/types"
 	coretypes "github.com/cosmos/ibc-go/v5/modules/core/types"
-	wasm "github.com/cosmos/ibc-go/v5/modules/light-clients/10-wasm"
+	wasm "github.com/cosmos/ibc-go/v5/modules/light-clients/08-wasm"
 )
 
 var (

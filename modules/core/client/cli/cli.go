@@ -8,7 +8,7 @@ import (
 	connection "github.com/cosmos/ibc-go/v5/modules/core/03-connection"
 	channel "github.com/cosmos/ibc-go/v5/modules/core/04-channel"
 	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
-	wasmcli "github.com/cosmos/ibc-go/v5/modules/light-clients/10-wasm/cli"
+	wasmcli "github.com/cosmos/ibc-go/v5/modules/light-clients/08-wasm/cli"
 )
 
 // GetTxCmd returns the transaction commands for this module

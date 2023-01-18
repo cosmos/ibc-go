@@ -7,7 +7,7 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
 	"github.com/cosmos/ibc-go/v5/modules/core/exported"
 	ibctm "github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint"
-	ibcwasm "github.com/cosmos/ibc-go/v5/modules/light-clients/10-wasm"
+	ibcwasm "github.com/cosmos/ibc-go/v5/modules/light-clients/08-wasm"
 	"github.com/cosmos/ibc-go/v5/testing/mock"
 )
 

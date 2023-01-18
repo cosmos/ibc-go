@@ -8,7 +8,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/version"
 	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v5/modules/light-clients/10-wasm"
+	"github.com/cosmos/ibc-go/v5/modules/light-clients/08-wasm"
 	"github.com/spf13/cobra"
 )
 

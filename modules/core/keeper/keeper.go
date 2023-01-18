@@ -17,7 +17,7 @@ import (
 	portkeeper "github.com/cosmos/ibc-go/v5/modules/core/05-port/keeper"
 	porttypes "github.com/cosmos/ibc-go/v5/modules/core/05-port/types"
 	"github.com/cosmos/ibc-go/v5/modules/core/types"
-	wasmkeeper "github.com/cosmos/ibc-go/v5/modules/light-clients/10-wasm"
+	wasmkeeper "github.com/cosmos/ibc-go/v5/modules/light-clients/08-wasm"
 )
 
 var _ types.QueryServer = (*Keeper)(nil)

@@ -107,7 +107,7 @@ import (
 	ibchost "github.com/cosmos/ibc-go/v5/modules/core/24-host"
 	ibckeeper "github.com/cosmos/ibc-go/v5/modules/core/keeper"
 	ibcmock "github.com/cosmos/ibc-go/v5/testing/mock"
-	ibcwasm "github.com/cosmos/ibc-go/v5/modules/light-clients/10-wasm"
+	ibcwasm "github.com/cosmos/ibc-go/v5/modules/light-clients/08-wasm"
 	simappparams "github.com/cosmos/ibc-go/v5/testing/simapp/params"
 	simappupgrades "github.com/cosmos/ibc-go/v5/testing/simapp/upgrades"
 	ibctestingtypes "github.com/cosmos/ibc-go/v5/testing/types"

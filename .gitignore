@@ -27,7 +27,7 @@ artifacts
 baseapp/data/*
 client/lcd/keys/*
 mytestnet
-modules/light-clients/10-wasm/wasm_client_data/
+modules/light-clients/08-wasm/wasm_client_data/
 
 # Testing
 coverage.txt
