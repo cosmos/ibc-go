@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"fmt"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	transferkeeper "github.com/cosmos/ibc-go/v7/modules/apps/transfer/keeper"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 )
@@ -118,4 +119,50 @@ func (suite *KeeperTestSuite) TestMigratorMigrateTracesCorruptionDetection() {
 	suite.Panics(func() {
 		migrator.MigrateTraces(suite.chainA.GetContext()) //nolint:errcheck // we shouldn't check the error here because we want to ensure that a panic occurs.
 	})
+}
+
+func (suite *KeeperTestSuite) TestMigrateTotalEscrowOut() {
+	testCases := []struct {
+		msg          string
+		malleate     func()
+		expectedCoin sdk.Coin
+	}{
+		{
+			msg: "Success: account contains native denom",
+			malleate: func() {
+				suite.chainA.GetSimApp().TransferKeeper.SetIBCOutDenomAmount(
+					suite.chainA.GetContext(),
+					sdk.DefaultBondDenom,
+					sdk.NewInt(100_000_000),
+				)
+			},
+			expectedCoin: sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100_000_000)),
+		},
+		{
+			msg: "failure: amount doesnot contain native denom",
+			malleate: func() {
+				suite.chainA.GetSimApp().TransferKeeper.SetIBCOutDenomAmount(
+					suite.chainA.GetContext(),
+					"ibc/stake",
+					sdk.NewInt(100_000_000),
+				)
+			},
+			expectedCoin: sdk.NewCoin(sdk.DefaultBondDenom, sdk.ZeroInt()),
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(fmt.Sprintf("case %s", tc.msg), func() {
+			suite.SetupTest() // reset
+
+			tc.malleate() // explicitly set up denom traces
+
+			migrator := transferkeeper.NewMigrator(suite.chainA.GetSimApp().TransferKeeper)
+			migrator.MigrateTotalEscrowOut(suite.chainA.GetContext())
+
+			// check if the migration amount matches the expected amount
+			amount := suite.chainA.GetSimApp().TransferKeeper.GetIBCOutDenomAmount(suite.chainA.GetContext(), sdk.DefaultBondDenom)
+			suite.Require().Equal(amount, tc.expectedCoin.Amount)
+		})
+	}
 }

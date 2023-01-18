@@ -55,6 +55,6 @@ func GetEscrowAddress(portID, channelID string) sdk.AccAddress {
 }
 
 // GetIBCOutDenom holds the total ibcout for native tokens per transfer.
-func GetIBCOutDenom(denom string) []byte {
+func GetTotalEscrowForDenomKey(denom string) []byte {
 	return []byte(fmt.Sprintf("total_native_ibc_out/%s", denom))
 }

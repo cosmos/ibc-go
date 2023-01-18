@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"fmt"
+	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -50,6 +51,34 @@ func (m Migrator) MigrateTraces(ctx sdk.Context) error {
 	for _, nt := range newTraces {
 		m.keeper.SetDenomTrace(ctx, nt)
 	}
+	return nil
+}
+
+// MigrateTotalEscrowOut migrates the total escrow amount to calculate total IBC'd out.
+func (m Migrator) MigrateTotalEscrowOut(ctx sdk.Context) error {
+	getExistingChannels := m.keeper.channelKeeper.GetAllChannelsWithPortPrefix(ctx, types.PortID)
+
+	var nativeDenom string
+	escrowAmount := sdk.ZeroInt()
+
+	for _, channel := range getExistingChannels {
+		escrowAddress := types.GetEscrowAddress(types.PortID, channel.ChannelId)
+		getEscrowBalances := m.keeper.bankKeeper.GetAllBalances(ctx, escrowAddress)
+
+		for _, escrowBalance := range getEscrowBalances {
+			if !strings.Contains(escrowBalance.Denom, "ibc") {
+				// native tokens
+				nativeDenom = escrowBalance.Denom
+				escrowAmount = escrowAmount.Add(escrowBalance.Amount)
+			}
+		}
+	}
+
+	if len(nativeDenom) == 0 {
+		return fmt.Errorf("invalid native denom")
+	}
+
+	m.keeper.SetIBCOutDenomAmount(ctx, nativeDenom, escrowAmount)
 	return nil
 }
 

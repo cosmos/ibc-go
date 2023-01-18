@@ -111,11 +111,13 @@ func (k Keeper) sendTransfer(
 			return 0, err
 		}
 
-		// get the existing amount in escrow.
-		existingAmount := k.bankKeeper.GetBalance(ctx, escrowAddress, token.Denom)
+		// get the existing escrow amount in store.
+		existingToken := k.GetIBCOutDenomAmount(ctx, token.Denom)
+		existingTokenWithNewTokens := existingToken.Add(token.Amount)
 
 		// store the token about to be IBC'd Out here
-		k.SetIBCOutDenomAmount(ctx, token.GetDenom(), existingAmount.Amount)
+		k.SetIBCOutDenomAmount(ctx, token.GetDenom(), existingTokenWithNewTokens)
+
 	} else {
 		labels = append(labels, telemetry.NewLabel(coretypes.LabelSource, "false"))
 
@@ -235,6 +237,14 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 			// escrow address by allowing more tokens to be sent back then were escrowed.
 			return errorsmod.Wrap(err, "unable to unescrow tokens, this may be caused by a malicious counterparty module or a bug: please open an issue on counterparty module")
 		}
+
+		// decrement the total escrow native amount in store
+		// get the existing escrow amount in store.
+		existingToken := k.GetIBCOutDenomAmount(ctx, token.Denom)
+		existingTokenWithNewTokens := existingToken.Sub(token.Amount)
+
+		// store the token about to be IBC'd Out here
+		k.SetIBCOutDenomAmount(ctx, token.GetDenom(), existingTokenWithNewTokens)
 
 		defer func() {
 			if transferAmount.IsInt64() {
@@ -371,6 +381,13 @@ func (k Keeper) refundPacketToken(ctx sdk.Context, packet channeltypes.Packet, d
 			// escrow address by allowing more tokens to be sent back then were escrowed.
 			return errorsmod.Wrap(err, "unable to unescrow tokens, this may be caused by a malicious counterparty module or a bug: please open an issue on counterparty module")
 		}
+
+		// get the existing escrow amount in store.
+		existingToken := k.GetIBCOutDenomAmount(ctx, token.Denom)
+		existingTokenWithNewTokens := existingToken.Sub(token.Amount)
+
+		// store the token about to be IBC'd Out here
+		k.SetIBCOutDenomAmount(ctx, token.GetDenom(), existingTokenWithNewTokens)
 
 		return nil
 	}

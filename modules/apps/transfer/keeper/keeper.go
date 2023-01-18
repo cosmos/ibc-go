@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"fmt"
+
 	tmbytes "github.com/cometbft/cometbft/libs/bytes"
 	"github.com/cometbft/cometbft/libs/log"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -155,7 +157,7 @@ func (k Keeper) ClaimCapability(ctx sdk.Context, cap *capabilitytypes.Capability
 // GetIBCOutDenomAmount gets the total source chain tokens that has been IBC'd out.
 func (k Keeper) GetIBCOutDenomAmount(ctx sdk.Context, denom string) sdk.Int {
 	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.GetIBCOutDenom(denom))
+	bz := store.Get(types.GetTotalEscrowForDenomKey(denom))
 	if bz == nil {
 		return sdk.NewInt(0)
 	}
@@ -168,11 +170,17 @@ func (k Keeper) GetIBCOutDenomAmount(ctx sdk.Context, denom string) sdk.Int {
 }
 
 // SetIBCOutDenomAmount stores the source tokens about to get IBC'd out.
-func (k Keeper) SetIBCOutDenomAmount(ctx sdk.Context, denom string, amount sdk.Int) {
+func (k Keeper) SetIBCOutDenomAmount(ctx sdk.Context, denom string, amount sdk.Int) error {
+	if amount.LTE(sdk.ZeroInt()) {
+		return fmt.Errorf("amount cannot be negative.")
+	}
+
 	store := ctx.KVStore(k.storeKey)
 	bz, err := amount.Marshal()
 	if err != nil {
 		panic(err)
 	}
-	store.Set(types.GetIBCOutDenom(denom), bz)
+
+	store.Set(types.GetTotalEscrowForDenomKey(denom), bz)
+	return nil
 }

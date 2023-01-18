@@ -169,7 +169,7 @@ func GetCmdQueryDenomHash() *cobra.Command {
 }
 
 // GetCmdQueryDenomHash defines the command to query a denomination hash from a given trace.
-func GetCmdQueryIBCTokenOut() *cobra.Command {
+func GetCmdQueryTotalEscrowForDenom() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "token-out [denom]",
 		Short:   "Query the total source chain tokens that has been ibc'd out",
