@@ -520,7 +520,7 @@ func (suite *KeeperTestSuite) TestHandleTimeoutOnClosePacket() {
 			packetKey = host.NextSequenceRecvKey(packet.GetDestPort(), packet.GetDestChannel())
 
 			// close counterparty channel
-			err = path.EndpointB.SetChannelClosed()
+			err = path.EndpointB.SetChannelState(channeltypes.CLOSED)
 			suite.Require().NoError(err)
 		}, true},
 		{"success: UNORDERED", func() {
@@ -538,7 +538,7 @@ func (suite *KeeperTestSuite) TestHandleTimeoutOnClosePacket() {
 			packetKey = host.PacketReceiptKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 
 			// close counterparty channel
-			err = path.EndpointB.SetChannelClosed()
+			err = path.EndpointB.SetChannelState(channeltypes.CLOSED)
 			suite.Require().NoError(err)
 		}, true},
 		{"success: UNORDERED timeout out of order packet", func() {
@@ -561,7 +561,7 @@ func (suite *KeeperTestSuite) TestHandleTimeoutOnClosePacket() {
 			packetKey = host.PacketReceiptKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 
 			// close counterparty channel
-			err = path.EndpointB.SetChannelClosed()
+			err = path.EndpointB.SetChannelState(channeltypes.CLOSED)
 			suite.Require().NoError(err)
 		}, true},
 		{"success: ORDERED timeout out of order packet", func() {
@@ -584,7 +584,7 @@ func (suite *KeeperTestSuite) TestHandleTimeoutOnClosePacket() {
 			packetKey = host.NextSequenceRecvKey(packet.GetDestPort(), packet.GetDestChannel())
 
 			// close counterparty channel
-			err = path.EndpointB.SetChannelClosed()
+			err = path.EndpointB.SetChannelState(channeltypes.CLOSED)
 			suite.Require().NoError(err)
 		}, true},
 		{"channel does not exist", func() {
@@ -599,7 +599,7 @@ func (suite *KeeperTestSuite) TestHandleTimeoutOnClosePacket() {
 			packetKey = host.PacketAcknowledgementKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 
 			// close counterparty channel
-			err := path.EndpointB.SetChannelClosed()
+			err := path.EndpointB.SetChannelState(channeltypes.CLOSED)
 			suite.Require().NoError(err)
 		}, true},
 		{"ORDERED: channel not closed", func() {
