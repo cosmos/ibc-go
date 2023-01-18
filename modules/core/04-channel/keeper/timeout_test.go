@@ -456,7 +456,7 @@ func (suite *KeeperTestSuite) TestTimeoutOnClose() {
 
 			sequence, err := path.EndpointA.SendPacket(timeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
-			err = path.EndpointA.SetChannelState(types.CLOSED)
+			err = path.EndpointB.SetChannelState(types.CLOSED)
 			suite.Require().NoError(err)
 			err = path.EndpointA.UpdateClient()
 			suite.Require().NoError(err)
