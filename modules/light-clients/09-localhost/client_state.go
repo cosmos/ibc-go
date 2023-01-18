@@ -30,7 +30,7 @@ func (cs ClientState) GetChainID() string {
 
 // ClientType is localhost.
 func (cs ClientState) ClientType() string {
-	return ClientType
+	return exported.Localhost
 }
 
 // GetLatestHeight returns the latest height stored.
