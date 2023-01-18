@@ -1,22 +1,5 @@
 # Development setup
 
-## Forking
-
-Please note that Go requires code to live under absolute paths, which complicates forking. While a fork lives at `https://github.com/<github-handle>/ibc-go`, the code should never exist at `$GOPATH/src/github.com/<github-handle>/ibc-go`. Instead, we use `git remote` to add the fork as a new remote for the original repo `$GOPATH/src/github.com/cosmos/ibc-go`), and do all the work there.
-
-For instance, to create a fork and work on a branch of it, we would:
-
-- Create the fork on GitHub, using the fork button.
-- Go to the original repo checked out locally (i.e. `$GOPATH/src/github.com/cosmos/ibc-go`)
-- `git remote add fork git@github.com:<github-handle>/ibc-go.git`
-
-Now `fork` refers to the fork and `origin` refers to the ibc-go version. So we can `git push -u fork main` to update the fork, and make pull requests to ibc-go from there. Of course, replace `<github-handle>` with your git handle.
-
-To pull in updates from the origin repo, run
-
-- `git fetch origin`.
-- `git rebase origin/main` (or whatever branch you want).
-
 ## Dependencies
 
 We use [Go 1.14 Modules](https://github.com/golang/go/wiki/Modules) to manage dependency versions.
@@ -66,7 +49,7 @@ Please make sure to run `make format` before every commit - the easiest way to d
 
 When testing a function under a variety of different inputs, we prefer to use [table driven tests](https://github.com/golang/go/wiki/TableDrivenTests).
 
-All tests should use the testing package. Please see the testing package [README](./testing/README.md) for more information.
+All unit tests should use the testing package. Please see the testing package [README](./testing/README.md) for more information.
 
 Test coverage is continuously deployed at https://app.codecov.io/github/cosmos/ibc-go. PRs that improve test coverage are welcome, but in general the test coverage should be used as a guidance for finding API use cases that are not covered by tests. We don't recommend adding tests that only improve coverage but not actually test a meaning use case.
 
