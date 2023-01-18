@@ -36,7 +36,7 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 		{
 			"successful transfer from source chain with memo",
 			func() {
-				memo = "memo"
+				memo = "memo" //nolint:goconst
 			}, true,
 		},
 		{
@@ -92,7 +92,7 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 				cap := suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 
 				// Release channel capability
-				suite.chainA.GetSimApp().ScopedTransferKeeper.ReleaseCapability(suite.chainA.GetContext(), cap)
+				suite.chainA.GetSimApp().ScopedTransferKeeper.ReleaseCapability(suite.chainA.GetContext(), cap) //nolint:errcheck // ignore error for testing
 			}, false,
 		},
 		{
