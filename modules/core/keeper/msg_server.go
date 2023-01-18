@@ -274,13 +274,6 @@ func (k Keeper) ChannelOpenAck(goCtx context.Context, msg *channeltypes.MsgChann
 		return nil, sdkerrors.Wrap(err, "channel open ack callback failed")
 	}
 
-<<<<<<< HEAD
-	// Write channel into state
-	k.ChannelKeeper.WriteOpenAckChannel(ctx, msg.PortId, msg.ChannelId, msg.CounterpartyVersion, msg.CounterpartyChannelId)
-=======
-	ctx.Logger().Info("channel open ack callback succeeded", "channel-id", msg.ChannelId, "port-id", msg.PortId)
->>>>>>> a6d251e (chore(statemachine)!: write channel state before invoking app callbacks in ack and confirm channel handshake steps (#2973))
-
 	return &channeltypes.MsgChannelOpenAckResponse{}, nil
 }
 
@@ -314,13 +307,6 @@ func (k Keeper) ChannelOpenConfirm(goCtx context.Context, msg *channeltypes.MsgC
 	if err = cbs.OnChanOpenConfirm(ctx, msg.PortId, msg.ChannelId); err != nil {
 		return nil, sdkerrors.Wrap(err, "channel open confirm callback failed")
 	}
-
-<<<<<<< HEAD
-	// Write channel into state
-	k.ChannelKeeper.WriteOpenConfirmChannel(ctx, msg.PortId, msg.ChannelId)
-=======
-	ctx.Logger().Info("channel open confirm callback succeeded", "channel-id", msg.ChannelId, "port-id", msg.PortId)
->>>>>>> a6d251e (chore(statemachine)!: write channel state before invoking app callbacks in ack and confirm channel handshake steps (#2973))
 
 	return &channeltypes.MsgChannelOpenConfirmResponse{}, nil
 }
