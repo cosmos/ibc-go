@@ -578,42 +578,6 @@ func (endpoint *Endpoint) SetChannelState(state channeltypes.State) error {
 	return endpoint.Counterparty.UpdateClient()
 }
 
-// // SetChannelClosed sets a channel state to CLOSED.
-// func (endpoint *Endpoint) SetChannelClosed() error {
-// 	channel := endpoint.GetChannel()
-
-// 	channel.State = channeltypes.CLOSED
-// 	endpoint.Chain.App.GetIBCKeeper().ChannelKeeper.SetChannel(endpoint.Chain.GetContext(), endpoint.ChannelConfig.PortID, endpoint.ChannelID, channel)
-
-// 	endpoint.Chain.Coordinator.CommitBlock(endpoint.Chain)
-
-// 	return endpoint.Counterparty.UpdateClient()
-// }
-
-// // SetChannelClosed sets a channel state to INIT.
-// func (endpoint *Endpoint) SetChannelInit() error {
-// 	channel := endpoint.GetChannel()
-
-// 	channel.State = channeltypes.INIT
-// 	endpoint.Chain.App.GetIBCKeeper().ChannelKeeper.SetChannel(endpoint.Chain.GetContext(), endpoint.ChannelConfig.PortID, endpoint.ChannelID, channel)
-
-// 	endpoint.Chain.Coordinator.CommitBlock(endpoint.Chain)
-
-// 	return endpoint.Counterparty.UpdateClient()
-// }
-
-// // SetChannelClosed sets a channel state to TRYOPEN.
-// func (endpoint *Endpoint) SetChannelTryOpen() error {
-// 	channel := endpoint.GetChannel()
-
-// 	channel.State = channeltypes.TRYOPEN
-// 	endpoint.Chain.App.GetIBCKeeper().ChannelKeeper.SetChannel(endpoint.Chain.GetContext(), endpoint.ChannelConfig.PortID, endpoint.ChannelID, channel)
-
-// 	endpoint.Chain.Coordinator.CommitBlock(endpoint.Chain)
-
-// 	return endpoint.Counterparty.UpdateClient()
-// }
-
 // GetClientState retrieves the Client State for this endpoint. The
 // client state is expected to exist otherwise testing will fail.
 func (endpoint *Endpoint) GetClientState() exported.ClientState {
