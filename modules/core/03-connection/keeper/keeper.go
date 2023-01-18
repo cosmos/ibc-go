@@ -41,6 +41,20 @@ func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey, paramSpace paramt
 	}
 }
 
+// EnableLocalhost is called by init genesis or an upgrade handler?
+func (k Keeper) EnableLocalhost(ctx sdk.Context) {
+	connectionEnd := types.ConnectionEnd{
+		State:        types.OPEN,
+		ClientId:     "09-localhost", // todo: replace strings with consts
+		Versions:     types.ExportedVersionsToProto(types.GetCompatibleVersions()),
+		Counterparty: types.NewCounterparty("09-localhost", "connection-localhost", commitmenttypes.NewMerklePrefix(k.GetCommitmentPrefix().Bytes())),
+	}
+
+	store := ctx.KVStore(k.storeKey)
+	bz := k.cdc.MustMarshal(&connectionEnd)
+	store.Set(host.ConnectionKey("connection-localhost"), bz)
+}
+
 // Logger returns a module-specific logger.
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", "x/"+exported.ModuleName+"/"+types.SubModuleName)
