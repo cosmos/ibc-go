@@ -42,6 +42,8 @@ func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey, paramSpace paramt
 }
 
 // EnableLocalhost is called by init genesis or an upgrade handler?
+// EnableLocalhost sets the localhost loopback connection end in store
+// - channel handshake code can remain the same
 func (k Keeper) EnableLocalhost(ctx sdk.Context) {
 	connectionEnd := types.ConnectionEnd{
 		State:        types.OPEN,
