@@ -74,7 +74,7 @@ func (app *SimApp) GetBaseApp() *baseapp.BaseApp {
 }
 
 // GetStakingKeeper implements the TestingApp interface.
-func (app *SimApp) GetStakingKeeper() stakingkeeper.Keeper {
+func (app *SimApp) GetStakingKeeper() ibctestingtypes.Keeper {
 	return app.StakingKeeper
 }
 
