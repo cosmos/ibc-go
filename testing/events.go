@@ -1,7 +1,6 @@
 package ibctesting
 
 import (
-	"encoding/json"
 	"fmt"
 	"strconv"
 
@@ -13,7 +12,7 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 )
 
-type EventsMap map[string][]map[string]string
+type EventsMap map[string]map[string]string
 
 // ParseClientIDFromEvents parses events emitted from a MsgCreateClient and returns the
 // client identifier.
@@ -141,25 +140,25 @@ func AssertEvents(
 	expected EventsMap,
 	actual sdk.Events,
 ) {
-	for eventType, expEvents := range expected {
-		for _, expEvent := range expEvents {
-			var expEventsOk []bool
+	hasEvents := make(map[string]bool)
+	for eventType := range expected {
+		hasEvents[eventType] = false
+	}
 
-			for _, event := range actual {
-				if event.Type == eventType {
-					ok := len(expEvent) == len(event.Attributes)
-					for _, attr := range event.Attributes {
-						expValue, found := expEvent[string(attr.Key)]
-						ok = ok && found
-						ok = ok && expValue == string(attr.Value)
-					}
-					expEventsOk = append(expEventsOk, ok)
-				}
+	for _, event := range actual {
+		expEvent, eventFound := expected[event.Type]
+		if eventFound {
+			hasEvents[event.Type] = true
+			suite.Require().Len(event.Attributes, len(expEvent))
+			for _, attr := range event.Attributes {
+				expValue, found := expEvent[attr.Key]
+				suite.Require().True(found)
+				suite.Require().Equal(expValue, attr.Value)
 			}
-
-			expEventBz, err := json.Marshal(expEvent)
-			suite.Require().NoError(err)
-			suite.Require().True(suite.Contains(expEventsOk, true), "event %s of type %s was not found in events", expEventBz, eventType)
 		}
+	}
+
+	for eventName, hasEvent := range hasEvents {
+		suite.Require().True(hasEvent, "event: %s was not found in events", eventName)
 	}
 }

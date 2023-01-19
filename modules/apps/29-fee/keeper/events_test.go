@@ -144,22 +144,25 @@ func (suite *KeeperTestSuite) TestDistributeFeeEvent() {
 	suite.Require().NotNil(res)
 
 	events := res.GetEvents()
-	expEvents := ibctesting.EventsMap{
-		"distribute_fee": {
-			{
-				"receiver": suite.chainA.SenderAccount.GetAddress().String(),
-				"fee":      defaultRecvFee.String(),
-			},
-			{
-				"receiver": suite.chainA.SenderAccount.GetAddress().String(),
-				"fee":      defaultAckFee.String(),
-			},
-			{
-				"receiver": suite.chainA.SenderAccount.GetAddress().String(),
-				"fee":      defaultTimeoutFee.String(),
-			},
-		},
+	expected := sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeDistributeFee,
+			sdk.NewAttribute(types.AttributeKeyReceiver, suite.chainA.SenderAccount.GetAddress().String()),
+			sdk.NewAttribute(types.AttributeKeyFee, defaultRecvFee.String()),
+		),
+		sdk.NewEvent(
+			types.EventTypeDistributeFee,
+			sdk.NewAttribute(types.AttributeKeyReceiver, suite.chainA.SenderAccount.GetAddress().String()),
+			sdk.NewAttribute(types.AttributeKeyFee, defaultAckFee.String()),
+		),
+		sdk.NewEvent(
+			types.EventTypeDistributeFee,
+			sdk.NewAttribute(types.AttributeKeyReceiver, suite.chainA.SenderAccount.GetAddress().String()),
+			sdk.NewAttribute(types.AttributeKeyFee, defaultTimeoutFee.String()),
+		),
 	}
 
-	ibctesting.AssertEvents(&suite.Suite, expEvents, events)
+	for _, evt := range expected {
+		suite.Require().Contains(events, evt)
+	}
 }
