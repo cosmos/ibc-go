@@ -7,7 +7,6 @@ import (
 	"testing"
 	"time"
 
-	_go "github.com/confio/ics23/go"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
@@ -81,27 +80,6 @@ func (suite *WasmTestSuite) SetupTest() {
 			RevisionNumber: 1,
 			RevisionHeight: 2,
 		},
-		ProofSpecs: []*_go.ProofSpec{
-			{
-				LeafSpec: &_go.LeafOp{
-					Hash:         _go.HashOp_SHA256,
-					Length:       _go.LengthOp_FIXED32_BIG,
-					PrehashValue: _go.HashOp_SHA256,
-					Prefix:       []byte{0},
-				},
-				InnerSpec: &_go.InnerSpec{
-					ChildOrder:      []int32{0, 1},
-					ChildSize:       33,
-					MinPrefixLength: 4,
-					MaxPrefixLength: 12,
-					EmptyChild:      nil,
-					Hash:            _go.HashOp_SHA256,
-				},
-				MaxDepth: 0,
-				MinDepth: 0,
-			},
-		},
-		Repository: "test",
 	}
 
 	suite.clientState = clientState

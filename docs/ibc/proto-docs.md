@@ -5507,8 +5507,6 @@ Wasm light client's Client state
 | `data` | [bytes](#bytes) |  |  |
 | `code_id` | [bytes](#bytes) |  |  |
 | `latest_height` | [ibc.core.client.v1.Height](#ibc.core.client.v1.Height) |  |  |
-| `proof_specs` | [ics23.ProofSpec](#ics23.ProofSpec) | repeated |  |
-| `repository` | [string](#string) |  |  |
 
 
 

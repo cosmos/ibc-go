@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 
-	ics23 "github.com/confio/ics23/go"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -35,6 +34,7 @@ func (c ClientState) Validate() error {
 	return nil
 }
 
+// TODO call into the contract here to get the status once it is implemented in the contract, for now, returns active
 func (c ClientState) Status(ctx sdk.Context, store sdk.KVStore, cdc codec.BinaryCodec) exported.Status {
 	return exported.Active
 }
@@ -253,7 +253,7 @@ func (c ClientState) CheckSubstituteAndUpdateState(
 		)
 	}
 
-	store := NewWrappedStore(subjectClientStore, subjectClientStore, SubjectPrefix, SubstitutePrefix)
+	store := NewWrappedStore(subjectClientStore, substituteClientStore, SubjectPrefix, SubstitutePrefix)
 
 	const CheckSubstituteAndUpdateState = "check_substitute_and_update_state"
 	payload := make(map[string]map[string]interface{})
@@ -324,18 +324,12 @@ func (c ClientState) VerifyUpgradeAndUpdateState(
 	return nil
 }
 
-func (c *ClientState) GetProofSpecs() []*ics23.ProofSpec {
-	return c.ProofSpecs
-}
-
 // NewClientState creates a new ClientState instance.
 func NewClientState(latestSequence uint64, consensusState *ConsensusState) *ClientState {
 	return &ClientState{
 		Data:         []byte{0},
 		CodeId:       []byte{},
 		LatestHeight: clienttypes.Height{},
-		ProofSpecs:   []*ics23.ProofSpec{},
-		Repository:   "",
 	}
 }
 
