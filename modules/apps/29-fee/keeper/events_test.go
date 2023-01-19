@@ -144,7 +144,7 @@ func (suite *KeeperTestSuite) TestDistributeFeeEvent() {
 	suite.Require().NotNil(res)
 
 	events := res.GetEvents()
-	expected := sdk.Events{
+	expectedEvents := sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeDistributeFee,
 			sdk.NewAttribute(types.AttributeKeyReceiver, suite.chainA.SenderAccount.GetAddress().String()),
@@ -162,7 +162,7 @@ func (suite *KeeperTestSuite) TestDistributeFeeEvent() {
 		),
 	}
 
-	for _, evt := range expected {
+	for _, evt := range expectedEvents {
 		suite.Require().Contains(events, evt)
 	}
 }
