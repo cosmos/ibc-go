@@ -45,15 +45,15 @@ func (suite *KeeperTestSuite) TestIncentivizePacketEvent() {
 	}
 
 	for _, attr := range incentivizedPacketEvent.Attributes {
-		switch string(attr.Key) {
+		switch attr.Key {
 		case types.AttributeKeyRecvFee:
-			suite.Require().Equal(expRecvFees.String(), string(attr.Value))
+			suite.Require().Equal(expRecvFees.String(), attr.Value)
 
 		case types.AttributeKeyAckFee:
-			suite.Require().Equal(expAckFees.String(), string(attr.Value))
+			suite.Require().Equal(expAckFees.String(), attr.Value)
 
 		case types.AttributeKeyTimeoutFee:
-			suite.Require().Equal(expTimeoutFees.String(), string(attr.Value))
+			suite.Require().Equal(expTimeoutFees.String(), attr.Value)
 		}
 	}
 
@@ -74,15 +74,15 @@ func (suite *KeeperTestSuite) TestIncentivizePacketEvent() {
 	}
 
 	for _, attr := range incentivizedPacketEvent.Attributes {
-		switch string(attr.Key) {
+		switch attr.Key {
 		case types.AttributeKeyRecvFee:
-			suite.Require().Equal(expRecvFees.String(), string(attr.Value))
+			suite.Require().Equal(expRecvFees.String(), attr.Value)
 
 		case types.AttributeKeyAckFee:
-			suite.Require().Equal(expAckFees.String(), string(attr.Value))
+			suite.Require().Equal(expAckFees.String(), attr.Value)
 
 		case types.AttributeKeyTimeoutFee:
-			suite.Require().Equal(expTimeoutFees.String(), string(attr.Value))
+			suite.Require().Equal(expTimeoutFees.String(), attr.Value)
 		}
 	}
 }

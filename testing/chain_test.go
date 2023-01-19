@@ -25,14 +25,16 @@ func TestChangeValSet(t *testing.T) {
 
 	val := chainA.GetSimApp().StakingKeeper.GetValidators(chainA.GetContext(), 4)
 
-	chainA.GetSimApp().StakingKeeper.Delegate(chainA.GetContext(), chainA.SenderAccounts[1].SenderAccount.GetAddress(),
+	chainA.GetSimApp().StakingKeeper.Delegate(chainA.GetContext(), chainA.SenderAccounts[1].SenderAccount.GetAddress(), //nolint:errcheck // ignore error for test
 		amount, types.Unbonded, val[1], true)
-	chainA.GetSimApp().StakingKeeper.Delegate(chainA.GetContext(), chainA.SenderAccounts[3].SenderAccount.GetAddress(),
+	chainA.GetSimApp().StakingKeeper.Delegate(chainA.GetContext(), chainA.SenderAccounts[3].SenderAccount.GetAddress(), //nolint:errcheck // ignore error for test
 		amount2, types.Unbonded, val[3], true)
 
 	coord.CommitBlock(chainA)
 
 	// verify that update clients works even after validator update goes into effect
-	path.EndpointB.UpdateClient()
-	path.EndpointB.UpdateClient()
+	err := path.EndpointB.UpdateClient()
+	require.NoError(t, err)
+	err = path.EndpointB.UpdateClient()
+	require.NoError(t, err)
 }
