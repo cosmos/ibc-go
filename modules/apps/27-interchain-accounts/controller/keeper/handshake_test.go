@@ -58,10 +58,10 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 				err := SetupICAPath(path, TestOwnerAddress)
 				suite.Require().NoError(err)
 
-				err = path.EndpointA.SetChannelClosed()
+				err = path.EndpointA.SetChannelState(channeltypes.CLOSED)
 				suite.Require().NoError(err)
 
-				err = path.EndpointB.SetChannelClosed()
+				err = path.EndpointB.SetChannelState(channeltypes.CLOSED)
 				suite.Require().NoError(err)
 
 				path.EndpointA.ChannelID = ""
