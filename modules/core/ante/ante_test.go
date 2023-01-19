@@ -437,13 +437,13 @@ func (suite *AnteTestSuite) TestAnteDecorator() {
 				k := suite.chainB.App.GetIBCKeeper()
 				decorator := ante.NewRedundantRelayDecorator(k)
 				checkCtx := suite.chainB.GetContext().WithIsCheckTx(true)
-				next := func(ctx sdk.Context, tx sdk.Tx, simulate bool) (newCtx sdk.Context, err error) { return ctx, nil }
+				nextFn := func(ctx sdk.Context, tx sdk.Tx, simulate bool) (newCtx sdk.Context, err error) { return ctx, nil }
 				txBuilder := suite.chainB.TxConfig.NewTxBuilder()
 				err := txBuilder.SetMsgs([]sdk.Msg{msg}...)
 				suite.Require().NoError(err)
 				tx := txBuilder.GetTx()
 
-				_, err = decorator.AnteHandle(checkCtx, tx, false, next)
+				_, err = decorator.AnteHandle(checkCtx, tx, false, nextFn)
 				suite.Require().NoError(err)
 
 				return []sdk.Msg{msg}
@@ -473,12 +473,12 @@ func (suite *AnteTestSuite) TestAnteDecorator() {
 			suite.Require().NoError(err)
 			tx := txBuilder.GetTx()
 
-			next := func(ctx sdk.Context, tx sdk.Tx, simulate bool) (newCtx sdk.Context, err error) { return ctx, nil }
+			nextFn := func(ctx sdk.Context, tx sdk.Tx, simulate bool) (newCtx sdk.Context, err error) { return ctx, nil }
 
-			_, err = decorator.AnteHandle(deliverCtx, tx, false, next)
+			_, err = decorator.AnteHandle(deliverCtx, tx, false, nextFn)
 			suite.Require().NoError(err, "antedecorator should not error on DeliverTx")
 
-			_, err = decorator.AnteHandle(checkCtx, tx, false, next)
+			_, err = decorator.AnteHandle(checkCtx, tx, false, nextFn)
 			if tc.expPass {
 				suite.Require().NoError(err, "non-strict decorator did not pass as expected")
 			} else {

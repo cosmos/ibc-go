@@ -162,12 +162,12 @@ func (suite *TendermintTestSuite) TestIterateConsensusStates() {
 	suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientConsensusState(suite.chainA.GetContext(), "testClient", clienttypes.NewHeight(40, 1), tendermint.NewConsensusState(time.Now(), commitmenttypes.NewMerkleRoot([]byte("hash40-1")), nextValsHash))
 
 	var testArr []string
-	cb := func(height exported.Height) bool {
+	cbFn := func(height exported.Height) bool {
 		testArr = append(testArr, height.String())
 		return false
 	}
 
-	tendermint.IterateConsensusStateAscending(suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), "testClient"), cb)
+	tendermint.IterateConsensusStateAscending(suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), "testClient"), cbFn)
 	expectedArr := []string{"0-1", "0-4", "0-10", "4-9", "40-1"}
 	suite.Require().Equal(expectedArr, testArr)
 }

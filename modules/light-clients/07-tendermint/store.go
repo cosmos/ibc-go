@@ -280,7 +280,7 @@ func PruneAllExpiredConsensusStates(
 ) int {
 	var heights []exported.Height
 
-	pruneCb := func(height exported.Height) bool {
+	pruneCbFn := func(height exported.Height) bool {
 		consState, found := GetConsensusState(clientStore, cdc, height)
 		if !found { // consensus state should always be found
 			return true
@@ -293,7 +293,7 @@ func PruneAllExpiredConsensusStates(
 		return false
 	}
 
-	IterateConsensusStateAscending(clientStore, pruneCb)
+	IterateConsensusStateAscending(clientStore, pruneCbFn)
 
 	for _, height := range heights {
 		deleteConsensusState(clientStore, height)
