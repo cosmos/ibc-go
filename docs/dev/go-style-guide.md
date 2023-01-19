@@ -57,11 +57,11 @@ Perhaps more key for code readability than good commenting is having the right s
 - Functions that return functions should have the suffix `Fn`.
 - Names should not [stutter](https://blog.golang.org/package-names). For example, a struct generally shouldn’t have a field named after itself; e.g., this shouldn't occur:
 
-``` golang
-type middleware struct {
-	middleware Middleware
-}
-```
+	``` golang
+	type middleware struct {
+		middleware Middleware
+	}
+	```
 
 - Acronyms are all capitalized, like "RPC", "gRPC", "API". "MyID", rather than "MyId".
 - Whenever it is safe to use Go's built-in `error` instantiation functions (as opposed to Cosmos SDK's error instantiation functions), prefer `errors.New()` instead of `fmt.Errorf()` unless you're actually using the format feature with arguments.
@@ -103,7 +103,6 @@ type middleware struct {
 - Depending on the context, use either `cosmossdk.io/errors` or `stdlib` error packages.
 - For wrapping errors, use `fmt.Errorf()` with `%w`.
 - Panic is appropriate when an internal invariant of a system is broken, while all other cases (in particular, incorrect or invalid usage) should return errors.
-ke it is a special case with the SDK where returning errors can sometimes reset state changes and panics are caught and as a result will not result in the shutdown of the system.
 - Error messages should be formatted as following:
 
 	```golang
