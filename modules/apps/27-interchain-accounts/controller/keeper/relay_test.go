@@ -3,7 +3,7 @@ package keeper_test
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	"github.com/gogo/protobuf/proto"
+	"github.com/cosmos/gogoproto/proto"
 
 	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
 	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
@@ -105,7 +105,7 @@ func (suite *KeeperTestSuite) TestSendTx() {
 		{
 			"sendPacket fails - channel closed",
 			func() {
-				err := path.EndpointA.SetChannelClosed()
+				err := path.EndpointA.SetChannelState(channeltypes.CLOSED)
 				suite.Require().NoError(err)
 			},
 			false,
@@ -151,6 +151,7 @@ func (suite *KeeperTestSuite) TestSendTx() {
 
 			tc.malleate() // malleate mutates test data
 
+			//nolint: staticcheck // SA1019: ibctesting.FirstConnectionID is deprecated: use path.EndpointA.ConnectionID instead. (staticcheck)
 			_, err = suite.chainA.GetSimApp().ICAControllerKeeper.SendTx(suite.chainA.GetContext(), nil, ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID, packetData, timeoutTimestamp)
 
 			if tc.expPass {

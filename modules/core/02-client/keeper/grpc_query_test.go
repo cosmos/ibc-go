@@ -253,7 +253,8 @@ func (suite *KeeperTestSuite) TestQueryConsensusState() {
 				suite.Require().NoError(err)
 
 				// update client to new height
-				path.EndpointA.UpdateClient()
+				err = path.EndpointA.UpdateClient()
+				suite.Require().NoError(err)
 
 				req = &types.QueryConsensusStateRequest{
 					ClientId:       path.EndpointA.ClientID,

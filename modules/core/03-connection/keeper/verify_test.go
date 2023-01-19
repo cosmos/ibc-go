@@ -557,7 +557,8 @@ func (suite *KeeperTestSuite) TestVerifyPacketReceiptAbsence() {
 			if clientState.FrozenHeight.IsZero() {
 				// need to update height to prove absence or receipt
 				suite.coordinator.CommitBlock(suite.chainA, suite.chainB)
-				path.EndpointA.UpdateClient()
+				err = path.EndpointA.UpdateClient()
+				suite.Require().NoError(err)
 			}
 
 			packetReceiptKey := host.PacketReceiptKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())

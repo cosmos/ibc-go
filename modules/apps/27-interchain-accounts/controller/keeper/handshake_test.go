@@ -58,10 +58,10 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 				err := SetupICAPath(path, TestOwnerAddress)
 				suite.Require().NoError(err)
 
-				err = path.EndpointA.SetChannelClosed()
+				err = path.EndpointA.SetChannelState(channeltypes.CLOSED)
 				suite.Require().NoError(err)
 
-				err = path.EndpointB.SetChannelClosed()
+				err = path.EndpointB.SetChannelState(channeltypes.CLOSED)
 				suite.Require().NoError(err)
 
 				path.EndpointA.ChannelID = ""
@@ -103,7 +103,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 		{
 			"invalid port ID",
 			func() {
-				path.EndpointA.ChannelConfig.PortID = "invalid-port-id"
+				path.EndpointA.ChannelConfig.PortID = "invalid-port-id" //nolint:goconst
 			},
 			false,
 		},
@@ -237,7 +237,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 			suite.Require().NoError(err)
 
 			portCap := suite.chainA.GetSimApp().IBCKeeper.PortKeeper.BindPort(suite.chainA.GetContext(), portID)
-			suite.chainA.GetSimApp().ICAControllerKeeper.ClaimCapability(suite.chainA.GetContext(), portCap, host.PortPath(portID))
+			suite.chainA.GetSimApp().ICAControllerKeeper.ClaimCapability(suite.chainA.GetContext(), portCap, host.PortPath(portID)) //nolint:errcheck // this error check isn't needed for tests
 			path.EndpointA.ChannelConfig.PortID = portID
 
 			// default values
