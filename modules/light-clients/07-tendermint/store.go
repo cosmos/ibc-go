@@ -100,11 +100,11 @@ func IterateConsensusMetadata(store sdk.KVStore, cb func(key, val []byte) bool) 
 	}
 
 	// iterate over iteration keys
-	iterator = sdk.KVStorePrefixIterator(store, []byte(KeyIterateConsensusStatePrefix))
+	iter := sdk.KVStorePrefixIterator(store, []byte(KeyIterateConsensusStatePrefix))
 
-	defer iterator.Close()
-	for ; iterator.Valid(); iterator.Next() {
-		if cb(iterator.Key(), iterator.Value()) {
+	defer iter.Close()
+	for ; iter.Valid(); iter.Next() {
+		if cb(iter.Key(), iter.Value()) {
 			break
 		}
 	}

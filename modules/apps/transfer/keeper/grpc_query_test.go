@@ -24,8 +24,8 @@ func (suite *KeeperTestSuite) TestQueryDenomTrace() {
 		{
 			"success: correct ibc denom",
 			func() {
-				expTrace.Path = "transfer/channelToA/transfer/channelToB"
-				expTrace.BaseDenom = "uatom"
+				expTrace.Path = "transfer/channelToA/transfer/channelToB" //nolint:goconst
+				expTrace.BaseDenom = "uatom"                              //nolint:goconst
 				suite.chainA.GetSimApp().TransferKeeper.SetDenomTrace(suite.chainA.GetContext(), expTrace)
 
 				req = &types.QueryDenomTraceRequest{
