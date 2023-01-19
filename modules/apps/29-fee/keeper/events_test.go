@@ -143,23 +143,26 @@ func (suite *KeeperTestSuite) TestDistributeFeeEvent() {
 	suite.Require().NoError(err)
 	suite.Require().NotNil(res)
 
-	// calculate the total paid out fees using "distribute_fee" events
-	var totalPaid sdk.Coins
-	for _, event := range res.Events {
-		if event.Type == types.EventTypeDistributeFee {
-			for _, attr := range event.Attributes {
-				switch string(attr.Key) {
-				case types.AttributeKeyFee:
-					coins, err := sdk.ParseCoinsNormalized(string(attr.Value))
-					suite.Require().NoError(err)
-
-					totalPaid = totalPaid.Add(coins...)
-				}
-			}
-
-		}
+	events := res.GetEvents()
+	expectedEvents := sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeDistributeFee,
+			sdk.NewAttribute(types.AttributeKeyReceiver, suite.chainA.SenderAccount.GetAddress().String()),
+			sdk.NewAttribute(types.AttributeKeyFee, defaultRecvFee.String()),
+		),
+		sdk.NewEvent(
+			types.EventTypeDistributeFee,
+			sdk.NewAttribute(types.AttributeKeyReceiver, suite.chainA.SenderAccount.GetAddress().String()),
+			sdk.NewAttribute(types.AttributeKeyFee, defaultAckFee.String()),
+		),
+		sdk.NewEvent(
+			types.EventTypeDistributeFee,
+			sdk.NewAttribute(types.AttributeKeyReceiver, suite.chainA.SenderAccount.GetAddress().String()),
+			sdk.NewAttribute(types.AttributeKeyFee, defaultTimeoutFee.String()),
+		),
 	}
 
-	// assert the total fees paid out equal the total incentivization fees escrowed
-	suite.Require().Equal(fee.Total(), totalPaid)
+	for _, evt := range expectedEvents {
+		suite.Require().Contains(events, evt)
+	}
 }

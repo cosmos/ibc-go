@@ -9,9 +9,7 @@ import (
 )
 
 func (suite *KeeperTestSuite) TestMsgTransfer() {
-	var (
-		msg *types.MsgTransfer
-	)
+	var msg *types.MsgTransfer
 
 	testCases := []struct {
 		name     string
