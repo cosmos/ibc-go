@@ -1,9 +1,11 @@
-package types
+package types_test
 
 import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+
+	"github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 )
 
 const (
@@ -17,19 +19,19 @@ const (
 func TestFungibleTokenPacketDataValidateBasic(t *testing.T) {
 	testCases := []struct {
 		name       string
-		packetData FungibleTokenPacketData
+		packetData types.FungibleTokenPacketData
 		expPass    bool
 	}{
-		{"valid packet", NewFungibleTokenPacketData(denom, amount, addr1, addr2, ""), true},
-		{"valid packet with memo", NewFungibleTokenPacketData(denom, amount, addr1, addr2, "memo"), true},
-		{"valid packet with large amount", NewFungibleTokenPacketData(denom, largeAmount, addr1, addr2, ""), true},
-		{"invalid denom", NewFungibleTokenPacketData("", amount, addr1, addr2, ""), false},
-		{"invalid empty amount", NewFungibleTokenPacketData(denom, "", addr1, addr2, ""), false},
-		{"invalid zero amount", NewFungibleTokenPacketData(denom, "0", addr1, addr2, ""), false},
-		{"invalid negative amount", NewFungibleTokenPacketData(denom, "-1", addr1, addr2, ""), false},
-		{"invalid large amount", NewFungibleTokenPacketData(denom, invalidLargeAmount, addr1, addr2, ""), false},
-		{"missing sender address", NewFungibleTokenPacketData(denom, amount, emptyAddr, addr2, ""), false},
-		{"missing recipient address", NewFungibleTokenPacketData(denom, amount, addr1, emptyAddr, ""), false},
+		{"valid packet", types.NewFungibleTokenPacketData(denom, amount, addr1, addr2, ""), true},
+		{"valid packet with memo", types.NewFungibleTokenPacketData(denom, amount, addr1, addr2, "memo"), true},
+		{"valid packet with large amount", types.NewFungibleTokenPacketData(denom, largeAmount, addr1, addr2, ""), true},
+		{"invalid denom", types.NewFungibleTokenPacketData("", amount, addr1, addr2, ""), false},
+		{"invalid empty amount", types.NewFungibleTokenPacketData(denom, "", addr1, addr2, ""), false},
+		{"invalid zero amount", types.NewFungibleTokenPacketData(denom, "0", addr1, addr2, ""), false},
+		{"invalid negative amount", types.NewFungibleTokenPacketData(denom, "-1", addr1, addr2, ""), false},
+		{"invalid large amount", types.NewFungibleTokenPacketData(denom, invalidLargeAmount, addr1, addr2, ""), false},
+		{"missing sender address", types.NewFungibleTokenPacketData(denom, amount, emptyAddr, addr2, ""), false},
+		{"missing recipient address", types.NewFungibleTokenPacketData(denom, amount, addr1, emptyAddr, ""), false},
 	}
 
 	for i, tc := range testCases {
