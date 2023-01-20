@@ -75,3 +75,18 @@ func EmitRegisterCounterpartyPayeeEvent(ctx sdk.Context, relayer, counterpartyPa
 		),
 	})
 }
+
+// EmitDistributeFeeEvent emits an event containing a distribution fee and receiver address
+func EmitDistributeFeeEvent(ctx sdk.Context, receiver string, fee sdk.Coins) {
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeDistributeFee,
+			sdk.NewAttribute(types.AttributeKeyReceiver, receiver),
+			sdk.NewAttribute(types.AttributeKeyFee, fee.String()),
+		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
+		),
+	})
+}
