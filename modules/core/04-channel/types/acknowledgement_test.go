@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	abci "github.com/tendermint/tendermint/abci/types"
 	abcitypes "github.com/tendermint/tendermint/abci/types"
 	tmprotostate "github.com/tendermint/tendermint/proto/tendermint/state"
 	tmstate "github.com/tendermint/tendermint/state"
@@ -18,7 +17,7 @@ const (
 )
 
 // tests acknowledgement.ValidateBasic and acknowledgement.GetBytes
-func (suite TypesTestSuite) TestAcknowledgement() {
+func (suite TypesTestSuite) TestAcknowledgement() { //nolint:govet // this is a test, we are okay with copying locks
 	testCases := []struct {
 		name       string
 		ack        types.Acknowledgement
@@ -98,21 +97,21 @@ func (suite *TypesTestSuite) TestABCICodeDeterminism() {
 	// different ABCI error code used
 	errDifferentABCICode := sdkerrors.ErrNotFound
 
-	deliverTx := sdkerrors.ResponseDeliverTxWithEvents(err, gasUsed, gasWanted, []abci.Event{}, false)
+	deliverTx := sdkerrors.ResponseDeliverTxWithEvents(err, gasUsed, gasWanted, []abcitypes.Event{}, false)
 	responses := tmprotostate.ABCIResponses{
 		DeliverTxs: []*abcitypes.ResponseDeliverTx{
 			&deliverTx,
 		},
 	}
 
-	deliverTxSameABCICode := sdkerrors.ResponseDeliverTxWithEvents(errSameABCICode, gasUsed, gasWanted, []abci.Event{}, false)
+	deliverTxSameABCICode := sdkerrors.ResponseDeliverTxWithEvents(errSameABCICode, gasUsed, gasWanted, []abcitypes.Event{}, false)
 	responsesSameABCICode := tmprotostate.ABCIResponses{
 		DeliverTxs: []*abcitypes.ResponseDeliverTx{
 			&deliverTxSameABCICode,
 		},
 	}
 
-	deliverTxDifferentABCICode := sdkerrors.ResponseDeliverTxWithEvents(errDifferentABCICode, gasUsed, gasWanted, []abci.Event{}, false)
+	deliverTxDifferentABCICode := sdkerrors.ResponseDeliverTxWithEvents(errDifferentABCICode, gasUsed, gasWanted, []abcitypes.Event{}, false)
 	responsesDifferentABCICode := tmprotostate.ABCIResponses{
 		DeliverTxs: []*abcitypes.ResponseDeliverTx{
 			&deliverTxDifferentABCICode,

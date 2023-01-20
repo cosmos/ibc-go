@@ -237,14 +237,14 @@ func (suite *KeeperTestSuite) TestGetAllIdentifiedPacketFees() {
 }
 
 func (suite *KeeperTestSuite) TestGetAllFeeEnabledChannels() {
-	validPortId := "ibcmoduleport"
+	validPortID := "ibcmoduleport"
 	// set two channels enabled
 	suite.chainA.GetSimApp().IBCFeeKeeper.SetFeeEnabled(suite.chainA.GetContext(), ibctesting.MockFeePort, ibctesting.FirstChannelID)
-	suite.chainA.GetSimApp().IBCFeeKeeper.SetFeeEnabled(suite.chainA.GetContext(), validPortId, ibctesting.FirstChannelID)
+	suite.chainA.GetSimApp().IBCFeeKeeper.SetFeeEnabled(suite.chainA.GetContext(), validPortID, ibctesting.FirstChannelID)
 
 	expectedCh := []types.FeeEnabledChannel{
 		{
-			PortId:    validPortId,
+			PortId:    validPortID,
 			ChannelId: ibctesting.FirstChannelID,
 		},
 		{

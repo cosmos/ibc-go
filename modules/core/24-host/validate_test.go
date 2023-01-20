@@ -9,7 +9,7 @@ import (
 )
 
 // 195 characters
-var longId = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis eros neque, ultricies vel ligula ac, convallis porttitor elit. Maecenas tincidunt turpis elit, vel faucibus nisl pellentesque sodales"
+var longID = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis eros neque, ultricies vel ligula ac, convallis porttitor elit. Maecenas tincidunt turpis elit, vel faucibus nisl pellentesque sodales"
 
 type testCase struct {
 	msg     string
@@ -63,7 +63,7 @@ func TestPortIdentifierValidator(t *testing.T) {
 		{"numeric id", "1234567890", true},
 		{"blank id", "               ", false},
 		{"id length out of range", "1", false},
-		{"id is too long", longId, false},
+		{"id is too long", longID, false},
 		{"path-like id", "lower/case/id", false},
 		{"invalid id", "(clientid)", false},
 		{"empty string", "", false},

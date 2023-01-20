@@ -9,9 +9,7 @@ import (
 )
 
 func (suite *KeeperTestSuite) TestMsgTransfer() {
-	var (
-		msg *types.MsgTransfer
-	)
+	var msg *types.MsgTransfer
 
 	testCases := []struct {
 		name     string
@@ -26,11 +24,12 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 		{
 			"bank send enabled for denom",
 			func() {
-				suite.chainA.GetSimApp().BankKeeper.SetParams(suite.chainA.GetContext(),
+				err := suite.chainA.GetSimApp().BankKeeper.SetParams(suite.chainA.GetContext(),
 					banktypes.Params{
 						SendEnabled: []*banktypes.SendEnabled{{Denom: sdk.DefaultBondDenom, Enabled: true}},
 					},
 				)
+				suite.Require().NoError(err)
 			},
 			true,
 		},
@@ -62,11 +61,12 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 		{
 			"bank send disabled for denom",
 			func() {
-				suite.chainA.GetSimApp().BankKeeper.SetParams(suite.chainA.GetContext(),
+				err := suite.chainA.GetSimApp().BankKeeper.SetParams(suite.chainA.GetContext(),
 					banktypes.Params{
 						SendEnabled: []*banktypes.SendEnabled{{Denom: sdk.DefaultBondDenom, Enabled: false}},
 					},
 				)
+				suite.Require().NoError(err)
 			},
 			false,
 		},

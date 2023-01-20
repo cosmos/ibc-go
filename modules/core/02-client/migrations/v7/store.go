@@ -144,7 +144,7 @@ func collectClients(ctx sdk.Context, store sdk.KVStore, clientType string) (clie
 	clientPrefix := []byte(fmt.Sprintf("%s/%s", host.KeyClientStorePrefix, clientType))
 	iterator := sdk.KVStorePrefixIterator(store, clientPrefix)
 
-	defer iterator.Close()
+	defer sdk.LogDeferred(ctx.Logger(), func() error { return iterator.Close() })
 	for ; iterator.Valid(); iterator.Next() {
 		path := string(iterator.Key())
 		if !strings.Contains(path, host.KeyClientState) {

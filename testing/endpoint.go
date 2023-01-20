@@ -566,11 +566,11 @@ func (endpoint *Endpoint) TimeoutOnClose(packet channeltypes.Packet) error {
 	return endpoint.Chain.sendMsgs(timeoutOnCloseMsg)
 }
 
-// SetChannelClosed sets a channel state to CLOSED.
-func (endpoint *Endpoint) SetChannelClosed() error {
+// SetChannelState sets a channel state
+func (endpoint *Endpoint) SetChannelState(state channeltypes.State) error {
 	channel := endpoint.GetChannel()
 
-	channel.State = channeltypes.CLOSED
+	channel.State = state
 	endpoint.Chain.App.GetIBCKeeper().ChannelKeeper.SetChannel(endpoint.Chain.GetContext(), endpoint.ChannelConfig.PortID, endpoint.ChannelID, channel)
 
 	endpoint.Chain.Coordinator.CommitBlock(endpoint.Chain)

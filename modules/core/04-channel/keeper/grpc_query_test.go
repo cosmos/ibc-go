@@ -13,6 +13,8 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
+const doesnotexist = "doesnotexist"
+
 func (suite *KeeperTestSuite) TestQueryChannel() {
 	var (
 		req        *types.QueryChannelRequest
@@ -372,7 +374,7 @@ func (suite *KeeperTestSuite) TestQueryChannelClientState() {
 
 				channel := path.EndpointA.GetChannel()
 				// update channel to reference a connection that does not exist
-				channel.ConnectionHops[0] = "doesnotexist"
+				channel.ConnectionHops[0] = doesnotexist
 
 				// set connection hops to wrong connection ID
 				suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, channel)
@@ -508,7 +510,7 @@ func (suite *KeeperTestSuite) TestQueryChannelConsensusState() {
 
 				channel := path.EndpointA.GetChannel()
 				// update channel to reference a connection that does not exist
-				channel.ConnectionHops[0] = "doesnotexist"
+				channel.ConnectionHops[0] = doesnotexist
 
 				// set connection hops to wrong connection ID
 				suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, channel)

@@ -34,7 +34,7 @@ func (suite *TendermintTestSuite) TestCheckSubstituteUpdateStateBasic() {
 				substituteClientState.TrustingPeriod = time.Hour * 24 * 7
 
 				tmClientState := substituteClientState
-				tmClientState.ChainId = tmClientState.ChainId + "different chain"
+				tmClientState.ChainId += "different chain"
 			},
 		},
 	}
@@ -202,8 +202,8 @@ func (suite *TendermintTestSuite) TestIsMatchingClientState() {
 		},
 		{
 			"matching, trusting period is different", func() {
-				subjectClientState.TrustingPeriod = time.Duration(time.Hour * 10)
-				substituteClientState.TrustingPeriod = time.Duration(time.Hour * 1)
+				subjectClientState.TrustingPeriod = time.Hour * 10
+				substituteClientState.TrustingPeriod = time.Hour * 1
 			}, true,
 		},
 		{

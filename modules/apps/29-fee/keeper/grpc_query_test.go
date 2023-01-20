@@ -425,14 +425,14 @@ func (suite *KeeperTestSuite) TestQueryPayee() {
 		{
 			"payee address not found: invalid channel",
 			func() {
-				req.ChannelId = "invalid-channel-id"
+				req.ChannelId = "invalid-channel-id" //nolint:goconst
 			},
 			false,
 		},
 		{
 			"payee address not found: invalid relayer address",
 			func() {
-				req.Relayer = "invalid-addr"
+				req.Relayer = "invalid-addr" //nolint:goconst
 			},
 			false,
 		},

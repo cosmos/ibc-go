@@ -167,6 +167,10 @@ func (k Keeper) distributeFee(ctx sdk.Context, receiver, refundAccAddress sdk.Ac
 			k.Logger(ctx).Error("error refunding fee to the original sender", "refund address", refundAccAddress, "fee", fee)
 			return // if sending to the refund address fails, no-op
 		}
+
+		EmitDistributeFeeEvent(ctx, refundAccAddress.String(), fee)
+	} else {
+		EmitDistributeFeeEvent(ctx, receiver.String(), fee)
 	}
 
 	// write the cache

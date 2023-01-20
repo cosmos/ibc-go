@@ -3,6 +3,7 @@ package v6_test
 import (
 	"testing"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	"github.com/stretchr/testify/suite"
 
@@ -191,7 +192,7 @@ func (suite *MigrationsTestSuite) ResetMemStore() {
 	memStore.Delete(capabilitytypes.KeyMemInitialized)
 
 	iterator := memStore.Iterator(nil, nil)
-	defer iterator.Close()
+	defer sdk.LogDeferred(suite.chainA.GetContext().Logger(), func() error { return iterator.Close() })
 
 	for ; iterator.Valid(); iterator.Next() {
 		memStore.Delete(iterator.Key())

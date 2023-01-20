@@ -209,7 +209,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenInit() {
 			suite.Require().NoError(err)
 
 			portCap := suite.chainA.GetSimApp().IBCKeeper.PortKeeper.BindPort(suite.chainA.GetContext(), portID)
-			suite.chainA.GetSimApp().ICAControllerKeeper.ClaimCapability(suite.chainA.GetContext(), portCap, host.PortPath(portID))
+			suite.chainA.GetSimApp().ICAControllerKeeper.ClaimCapability(suite.chainA.GetContext(), portCap, host.PortPath(portID)) //nolint:errcheck // checking this error isn't needed for the test
 
 			path.EndpointA.ChannelConfig.PortID = portID
 			path.EndpointA.ChannelID = ibctesting.FirstChannelID
@@ -276,7 +276,9 @@ func (suite *InterchainAccountsTestSuite) TestChanOpenTry() {
 	err = RegisterInterchainAccount(path.EndpointB, TestOwnerAddress)
 	suite.Require().NoError(err)
 
-	path.EndpointA.UpdateClient()
+	err = path.EndpointA.UpdateClient()
+	suite.Require().NoError(err)
+
 	channelKey := host.ChannelKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 	proofInit, proofHeight := path.EndpointB.Chain.QueryProof(channelKey)
 
@@ -420,7 +422,8 @@ func (suite *InterchainAccountsTestSuite) TestChanOpenConfirm() {
 	// commit state changes so proof can be created
 	suite.chainB.NextBlock()
 
-	path.EndpointA.UpdateClient()
+	err = path.EndpointA.UpdateClient()
+	suite.Require().NoError(err)
 
 	// query proof from ChainB
 	channelKey := host.ChannelKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
@@ -884,9 +887,9 @@ func (suite *InterchainAccountsTestSuite) TestClosedChannelReopensWithMsgServer(
 	suite.Require().NoError(err)
 
 	// set the channel state to closed
-	err = path.EndpointA.SetChannelClosed()
+	err = path.EndpointA.SetChannelState(channeltypes.CLOSED)
 	suite.Require().NoError(err)
-	err = path.EndpointB.SetChannelClosed()
+	err = path.EndpointB.SetChannelState(channeltypes.CLOSED)
 	suite.Require().NoError(err)
 
 	// reset endpoint channel ids

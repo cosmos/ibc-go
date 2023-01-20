@@ -23,10 +23,10 @@ func (suite *KeeperTestSuite) openAndCloseChannel(path *ibctesting.Path) {
 	err = path.EndpointB.ChanOpenConfirm()
 	suite.Require().NoError(err)
 
-	err = path.EndpointA.SetChannelClosed()
+	err = path.EndpointA.SetChannelState(channeltypes.CLOSED)
 	suite.Require().NoError(err)
 
-	err = path.EndpointB.SetChannelClosed()
+	err = path.EndpointB.SetChannelState(channeltypes.CLOSED)
 	suite.Require().NoError(err)
 
 	path.EndpointA.ChannelID = ""
@@ -167,7 +167,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 		{
 			"invalid port ID",
 			func() {
-				path.EndpointB.ChannelConfig.PortID = "invalid-port-id"
+				path.EndpointB.ChannelConfig.PortID = "invalid-port-id" //nolint:goconst
 			},
 			false,
 		},

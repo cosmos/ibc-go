@@ -127,7 +127,7 @@ func (suite *AnteTestSuite) createTimeoutOnCloseMessage(isRedundant bool) sdk.Ms
 
 	sequence, err := suite.path.EndpointB.SendPacket(timeoutHeight, 0, ibctesting.MockPacketData)
 	suite.Require().NoError(err)
-	err = suite.path.EndpointA.SetChannelClosed()
+	err = suite.path.EndpointA.SetChannelState(channeltypes.CLOSED)
 	suite.Require().NoError(err)
 
 	packet := channeltypes.NewPacket(ibctesting.MockPacketData, sequence,

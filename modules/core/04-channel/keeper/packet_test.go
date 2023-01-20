@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	sdkerrors "cosmossdk.io/errors"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
@@ -95,11 +95,25 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 			sourceChannel = ibctesting.InvalidID
 			channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 		}, false},
-		{"channel closed", func() {
+		{"channel is in CLOSED state", func() {
 			suite.coordinator.Setup(path)
 			sourceChannel = path.EndpointA.ChannelID
 
-			err := path.EndpointA.SetChannelClosed()
+			err := path.EndpointA.SetChannelState(types.CLOSED)
+			suite.Require().NoError(err)
+		}, false},
+		{"channel is in INIT state", func() {
+			suite.coordinator.Setup(path)
+			sourceChannel = path.EndpointA.ChannelID
+
+			err := path.EndpointA.SetChannelState(types.INIT)
+			suite.Require().NoError(err)
+		}, false},
+		{"channel is in TRYOPEN stage", func() {
+			suite.coordinator.Setup(path)
+			sourceChannel = path.EndpointA.ChannelID
+
+			err := path.EndpointA.SetChannelState(types.TRYOPEN)
 			suite.Require().NoError(err)
 		}, false},
 		{"connection not found", func() {
@@ -337,7 +351,7 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 			suite.coordinator.Setup(path)
 			packet = types.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
 
-			err := path.EndpointB.SetChannelClosed()
+			err := path.EndpointB.SetChannelState(types.CLOSED)
 			suite.Require().NoError(err)
 			channelCap = suite.chainB.GetChannelCapability(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 		}, false},
@@ -436,8 +450,10 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 
 			channelCap = suite.chainB.GetChannelCapability(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 
-			path.EndpointA.UpdateClient()
-			path.EndpointB.UpdateClient()
+			err := path.EndpointA.UpdateClient()
+			suite.Require().NoError(err)
+			err = path.EndpointB.UpdateClient()
+			suite.Require().NoError(err)
 		}, false},
 		{"receipt already stored", func() {
 			expError = types.ErrNoOpMsg
@@ -533,7 +549,7 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 			packet = types.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
 			ack = ibcmock.MockAcknowledgement
 
-			err := path.EndpointB.SetChannelClosed()
+			err := path.EndpointB.SetChannelState(types.CLOSED)
 			suite.Require().NoError(err)
 			channelCap = suite.chainB.GetChannelCapability(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 		}, false},
@@ -693,7 +709,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 			suite.coordinator.Setup(path)
 			packet = types.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
 
-			err := path.EndpointA.SetChannelClosed()
+			err := path.EndpointA.SetChannelState(types.CLOSED)
 			suite.Require().NoError(err)
 			channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 		}, false},
@@ -826,8 +842,10 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 
 			suite.coordinator.CommitBlock(path.EndpointA.Chain, path.EndpointB.Chain)
 
-			path.EndpointA.UpdateClient()
-			path.EndpointB.UpdateClient()
+			err := path.EndpointA.UpdateClient()
+			suite.Require().NoError(err)
+			err = path.EndpointB.UpdateClient()
+			suite.Require().NoError(err)
 		}, false},
 		{"next ack sequence mismatch ORDERED", func() {
 			expError = types.ErrPacketSequenceOutOfOrder
