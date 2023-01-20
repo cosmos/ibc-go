@@ -187,14 +187,15 @@ var govGenesisFeatureReleases = semverutil.FeatureReleases{
 
 // defaultModifyGenesis will only modify governance params to ensure the voting period and minimum deposit
 // are functional for e2e testing purposes.
-// Note: this function intentionally does not use the type defined here https://github.com/tendermint/tendermint/blob/64747b2b184184ecba4f4bffc54ffbcb47cfbcb0/types/genesis.go#L39
+// Note: this function intentionally does not use the type defined here https://github.com/tendermint/tendermint/blob/v0.37.0-rc2/types/genesis.go#L38-L46
 // and uses a map[string]interface{} instead.
-// this is because ibctest performs the following steps when creating the genesis.json file for chains.
+// This approach prevents the field block.TimeIotaMs from being lost which happened when using the GenesisDoc type from tendermint version v0.37.0.
+// ibctest performs the following steps when creating the genesis.json file for chains.
 // - 1. Let the chain binary create its own genesis file.
 // - 2. Apply any provided functions to modify the bytes of the file.
 // - 3. Overwrite the file with the new contents.
 // This is a problem because when the tendermint types change, marshalling into the type will cause us to lose
-// values if the types have changed in between the versis of the chain in the test and the version of tendermint
+// values if the types have changed in between the version of the chain in the test and the version of tendermint
 // imported by the e2e tests.
 // By using a raw map[string]interface{} we preserve the values unknown to the e2e tests and can still change
 // the values we care about.
