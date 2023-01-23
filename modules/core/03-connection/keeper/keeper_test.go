@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/ibc-go/v6/modules/core/03-connection/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v6/modules/core/23-commitment/types"
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
 	ibctesting "github.com/cosmos/ibc-go/v6/testing"
 )
@@ -155,4 +156,18 @@ func (suite *KeeperTestSuite) TestGetTimestampAtHeight() {
 			}
 		})
 	}
+}
+
+func (suite *KeeperTestSuite) TestLocalhostConnectionEndCreation() {
+	ctx := suite.chainA.GetContext()
+	connectionKeeper := suite.chainA.App.GetIBCKeeper().ConnectionKeeper
+	connectionKeeper.CreateLocalhostConnectionEnd(ctx)
+	connectionEnd, found := connectionKeeper.GetConnection(ctx, types.LocalhostID)
+
+	suite.Require().True(found)
+	suite.Require().Equal(types.OPEN, connectionEnd.State)
+	suite.Require().Equal(exported.Localhost, connectionEnd.ClientId)
+	suite.Require().Equal(types.ExportedVersionsToProto(types.GetCompatibleVersions()), connectionEnd.Versions)
+	expectedCounterParty := types.NewCounterparty(exported.Localhost, types.LocalhostID, commitmenttypes.NewMerklePrefix(connectionKeeper.GetCommitmentPrefix().Bytes()))
+	suite.Require().Equal(expectedCounterParty, connectionEnd.Counterparty)
 }
