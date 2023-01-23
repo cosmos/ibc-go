@@ -39,8 +39,7 @@ func (cs ClientState) GetLatestHeight() exported.Height {
 }
 
 // Status always returns Active. The localhost status cannot be changed.
-func (cs ClientState) Status(_ sdk.Context, _ sdk.KVStore, _ codec.BinaryCodec,
-) exported.Status {
+func (cs ClientState) Status(_ sdk.Context, _ sdk.KVStore, _ codec.BinaryCodec) exported.Status {
 	return exported.Active
 }
 
