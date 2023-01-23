@@ -97,14 +97,12 @@ func (suite *KeeperTestSuite) TestQueryClientStates() {
 	)
 
 	testCases := []struct {
-		msg                  string
-		expectedClientStates uint64
-		malleate             func()
-		expPass              bool
+		msg      string
+		malleate func()
+		expPass  bool
 	}{
 		{
 			"req is nil",
-			0,
 			func() {
 				req = nil
 			},
@@ -112,7 +110,6 @@ func (suite *KeeperTestSuite) TestQueryClientStates() {
 		},
 		{
 			"empty pagination",
-			0,
 			func() {
 				req = &types.QueryClientStatesRequest{}
 			},
@@ -120,7 +117,6 @@ func (suite *KeeperTestSuite) TestQueryClientStates() {
 		},
 		{
 			"success, no results",
-			0,
 			func() {
 				req = &types.QueryClientStatesRequest{
 					Pagination: &query.PageRequest{
@@ -133,7 +129,6 @@ func (suite *KeeperTestSuite) TestQueryClientStates() {
 		},
 		{
 			"success",
-			2,
 			func() {
 				path1 := ibctesting.NewPath(suite.chainA, suite.chainB)
 				suite.coordinator.SetupClients(path1)
@@ -171,7 +166,7 @@ func (suite *KeeperTestSuite) TestQueryClientStates() {
 			if tc.expPass {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
-				suite.Require().Equal(tc.expectedClientStates, res.Pagination.Total)
+				suite.Require().Equal(len(expClientStates), res.Pagination.Total)
 				suite.Require().Equal(expClientStates.Sort(), res.ClientStates)
 			} else {
 				suite.Require().Error(err)
