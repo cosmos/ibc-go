@@ -52,16 +52,12 @@ func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey, paramSpace paramt
 //   - VerifyMembership
 //   - VerifyNonMembership
 func (k Keeper) EnableLocalhost(ctx sdk.Context) {
-	connectionEnd := types.ConnectionEnd{
-		State:        types.OPEN,
-		ClientId:     "09-localhost", // todo: replace strings with consts
-		Versions:     types.ExportedVersionsToProto(types.GetCompatibleVersions()),
-		Counterparty: types.NewCounterparty("09-localhost", "connection-localhost", commitmenttypes.NewMerklePrefix(k.GetCommitmentPrefix().Bytes())),
-	}
+	counterparty := types.NewCounterparty(exported.Localhost, types.LocalhostID, commitmenttypes.NewMerklePrefix(k.GetCommitmentPrefix().Bytes()))
+	connectionEnd := types.NewConnectionEnd(types.OPEN, exported.Localhost, counterparty, types.ExportedVersionsToProto(types.GetCompatibleVersions()), 0)
 
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshal(&connectionEnd)
-	store.Set(host.ConnectionKey("connection-localhost"), bz)
+	store.Set(host.ConnectionKey(types.LocalhostID), bz)
 }
 
 // Logger returns a module-specific logger.

@@ -28,6 +28,9 @@ const (
 
 	// ConnectionPrefix is the prefix used when creating a connection identifier
 	ConnectionPrefix = "connection-"
+
+	// LocalhostID is the sentinel connection ID used for localhost IBC connections
+	LocalhostID = "connection-localhost"
 )
 
 // FormatConnectionIdentifier returns the connection identifier with the sequence appended.
