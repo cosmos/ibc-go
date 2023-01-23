@@ -2,7 +2,7 @@
 
 `TransferAuthorization` implements the `Authorization` interface for `ibc.applications.transfer.v1.Msg`. It allows a granter to grant a grantee the privilege to submit MsgTransfer on its behalf. Please see the [Cosmos SDK docs](https://docs.cosmos.network/v0.47/modules/authz) for more details on granting privileges via the `Authz` module.
 
-More specifically, the granter shall be able to grant privileges a grantee to transfer funds that belong to the granter on a set of 1 or more source port ID/channel ID pairs.
+More specifically, the granter allows the grantee to transfer funds that belong to the granter on a set of 1 or more source port ID/channel ID pairs.
 
 For each source port ID/channel ID pair, the granter shall be able to specify a spend limit for each denomination they wish to allow the grantee to be able to transfer.
 
@@ -13,7 +13,7 @@ It takes:
 
 - a range of `SourcePorts` and a range of `SourceChannels` which together comprise the unique transfer channel identifiers over which authorized funds can be transferred.
 
-- a range of (positive) `SpendLimits` that specifies the maximum amount of tokens the grantee can spend. The `SpendLimit` is updated as the tokens are spent. This `SpendLimit` may also be updated to increase or decrease the limit as the granter wishes.
+- a range of (positive) `SpendLimits` that specify the maximum amount of tokens the grantee can spend. The `SpendLimit` is updated as the tokens are spent. This `SpendLimit` may also be updated to increase or decrease the limit as the granter wishes.
 
 - an `AllowedAddrs` list that specifies the list of addresses that are allowed to receive funds. If this list is empty, then all addresses are allowed to receive funds from the `TransferAuthorization`.
 
