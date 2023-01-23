@@ -17,6 +17,7 @@ import (
 	tmjson "github.com/tendermint/tendermint/libs/json"
 	tmtypes "github.com/tendermint/tendermint/types"
 
+	"github.com/cosmos/ibc-go/e2e/relayer"
 	"github.com/cosmos/ibc-go/e2e/semverutil"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 )
@@ -30,12 +31,15 @@ const (
 	// ChainBTagEnv specifies the tag that Chain B will use. If unspecified
 	// the value will default to the same value as Chain A.
 	ChainBTagEnv = "CHAIN_B_TAG"
-	// GoRelayerTagEnv specifies the go relayer version. Defaults to "main"
-	GoRelayerTagEnv = "RLY_TAG"
+	// RelayerTagEnv specifies the relayer version. Defaults to "main"
+	RelayerTagEnv = "RELAYER_TAG"
+	// RelayerTypeEnv specifies the type of relayer that should be used.
+	RelayerTypeEnv = "RELAYER_TYPE"
 	// ChainBinaryEnv binary is the binary that will be used for both chains.
 	ChainBinaryEnv = "CHAIN_BINARY"
 	// ChainUpgradeTagEnv specifies the upgrade version tag
 	ChainUpgradeTagEnv = "CHAIN_UPGRADE_TAG"
+
 	// defaultBinary is the default binary that will be used by the chains.
 	defaultBinary = "simd"
 	// defaultRlyTag is the tag that will be used if no relayer tag is specified.
@@ -43,6 +47,8 @@ const (
 	defaultRlyTag = "v2.2.0-rc2"
 	// defaultChainTag is the tag that will be used for the chains if none is specified.
 	defaultChainTag = "main"
+	// defaultRelayerType is the default relayer that will be used if none is specified.
+	defaultRelayerType = relayer.Cosmos
 )
 
 func getChainImage(binary string) string {
@@ -54,12 +60,19 @@ func getChainImage(binary string) string {
 
 // TestConfig holds various fields used in the E2E tests.
 type TestConfig struct {
-	ChainAConfig ChainConfig
-	ChainBConfig ChainConfig
-	RlyTag       string
-	UpgradeTag   string
+	ChainAConfig  ChainConfig
+	ChainBConfig  ChainConfig
+	RelayerConfig RelayerConfig
+	UpgradeTag    string
 }
 
+// RelayerConfig holds configuration values for the relayer used in the tests.
+type RelayerConfig struct {
+	Tag  string
+	Type string
+}
+
+// ChainConfig holds information about an individual chain used in the tests.
 type ChainConfig struct {
 	Image  string
 	Tag    string
@@ -83,7 +96,7 @@ func FromEnv() TestConfig {
 		chainBTag = chainATag
 	}
 
-	rlyTag, ok := os.LookupEnv(GoRelayerTagEnv)
+	rlyTag, ok := os.LookupEnv(RelayerTagEnv)
 	if !ok {
 		rlyTag = defaultRlyTag
 	}
@@ -103,6 +116,11 @@ func FromEnv() TestConfig {
 		upgradeTag = ""
 	}
 
+	relayerType, ok := os.LookupEnv(RelayerTypeEnv)
+	if !ok {
+		relayerType = defaultRelayerType
+	}
+
 	return TestConfig{
 		ChainAConfig: ChainConfig{
 			Image:  chainAImage,
@@ -114,8 +132,11 @@ func FromEnv() TestConfig {
 			Tag:    chainBTag,
 			Binary: chainBinary,
 		},
-		RlyTag:     rlyTag,
 		UpgradeTag: upgradeTag,
+		RelayerConfig: RelayerConfig{
+			Tag:  rlyTag,
+			Type: relayerType,
+		},
 	}
 }
 
