@@ -15,4 +15,5 @@ message GenesisState {
   // the sequence for the next generated connection identifier
   uint64 next_connection_sequence = 3 [(gogoproto.moretags) = "yaml:\"next_connection_sequence\""];
   Params params                   = 4 [(gogoproto.nullable) = false];
+  bool   create_localhost         = 5 [(gogoproto.moretags) = "yaml:\"create_localhost\""];
 }
