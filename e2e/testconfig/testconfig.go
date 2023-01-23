@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -42,9 +43,9 @@ const (
 
 	// defaultBinary is the default binary that will be used by the chains.
 	defaultBinary = "simd"
-	// defaultRlyTag is the tag that will be used if no relayer tag is specified.
+	// defaultCosmosRelayerTag is the tag that will be used if no relayer tag is specified.
 	// all images are here https://github.com/cosmos/relayer/pkgs/container/relayer/versions
-	defaultRlyTag = "v2.2.0-rc2"
+	defaultCosmosRelayerTag = "andrew-tendermint_v0.37" // TODO: reset to "v2.2.0-rc2"
 	// defaultChainTag is the tag that will be used for the chains if none is specified.
 	defaultChainTag = "main"
 	// defaultRelayerType is the default relayer that will be used if none is specified.
@@ -96,14 +97,6 @@ func FromEnv() TestConfig {
 		chainBTag = chainATag
 	}
 
-	rlyTag, ok := os.LookupEnv(RelayerTagEnv)
-	if !ok {
-		rlyTag = defaultRlyTag
-	}
-
-	// TODO: remove hard coded value
-	rlyTag = "andrew-tendermint_v0.37"
-
 	chainAImage := getChainImage(chainBinary)
 	specifiedChainImage, ok := os.LookupEnv(ChainImageEnv)
 	if ok {
@@ -114,11 +107,6 @@ func FromEnv() TestConfig {
 	upgradeTag, ok := os.LookupEnv(ChainUpgradeTagEnv)
 	if !ok {
 		upgradeTag = ""
-	}
-
-	relayerType, ok := os.LookupEnv(RelayerTypeEnv)
-	if !ok {
-		relayerType = defaultRelayerType
 	}
 
 	return TestConfig{
@@ -132,11 +120,30 @@ func FromEnv() TestConfig {
 			Tag:    chainBTag,
 			Binary: chainBinary,
 		},
-		UpgradeTag: upgradeTag,
-		RelayerConfig: RelayerConfig{
-			Tag:  rlyTag,
-			Type: relayerType,
-		},
+		UpgradeTag:    upgradeTag,
+		RelayerConfig: GetRelayerConfigFromEnv(),
+	}
+}
+
+// GetRelayerConfigFromEnv returns the RelayerConfig from present environment variables.
+func GetRelayerConfigFromEnv() RelayerConfig {
+	relayerType := strings.TrimSpace(os.Getenv(RelayerTypeEnv))
+	if relayerType == "" {
+		relayerType = defaultRelayerType
+	}
+
+	rlyTag := strings.TrimSpace(os.Getenv(RelayerTagEnv))
+	if rlyTag == "" {
+		if relayerType == relayer.Cosmos {
+			rlyTag = defaultCosmosRelayerTag
+		}
+		if relayerType == relayer.Hermes {
+			// TODO: set default hermes version
+		}
+	}
+	return RelayerConfig{
+		Tag:  rlyTag,
+		Type: relayerType,
 	}
 }
 
