@@ -63,14 +63,8 @@ func getChainImage(binary string) string {
 type TestConfig struct {
 	ChainAConfig  ChainConfig
 	ChainBConfig  ChainConfig
-	RelayerConfig RelayerConfig
+	RelayerConfig relayer.Config
 	UpgradeTag    string
-}
-
-// RelayerConfig holds configuration values for the relayer used in the tests.
-type RelayerConfig struct {
-	Tag  string
-	Type string
 }
 
 // ChainConfig holds information about an individual chain used in the tests.
@@ -126,7 +120,7 @@ func FromEnv() TestConfig {
 }
 
 // GetRelayerConfigFromEnv returns the RelayerConfig from present environment variables.
-func GetRelayerConfigFromEnv() RelayerConfig {
+func GetRelayerConfigFromEnv() relayer.Config {
 	relayerType := strings.TrimSpace(os.Getenv(RelayerTypeEnv))
 	if relayerType == "" {
 		relayerType = defaultRelayerType
@@ -141,7 +135,7 @@ func GetRelayerConfigFromEnv() RelayerConfig {
 			// TODO: set default hermes version
 		}
 	}
-	return RelayerConfig{
+	return relayer.Config{
 		Tag:  rlyTag,
 		Type: relayerType,
 	}
