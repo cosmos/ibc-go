@@ -141,11 +141,6 @@ func QueryLatestConsensusState(
 
 	if clientState, ok := clientState.(*ibctm.ClientState); ok {
 		clientHeight := clientState.LatestHeight
-		// if !ok {
-		// 	return nil, clienttypes.Height{}, clienttypes.Height{}, sdkerrors.Wrapf(sdkerrors.ErrInvalidHeight, "invalid height type. expected type: %T, got: %T",
-		// 		clienttypes.Height{}, clientHeight)
-		// }
-
 		res, err := QueryChannelConsensusState(clientCtx, portID, channelID, clientHeight, false)
 		if err != nil {
 			return nil, clienttypes.Height{}, clienttypes.Height{}, err
@@ -159,22 +154,7 @@ func QueryLatestConsensusState(
 		return consensusState, clientHeight, res.ProofHeight, nil
 	}
 
-	// clientHeight, ok := clientState.GetLatestHeight().(clienttypes.Height)
-	// if !ok {
-	// 	return nil, clienttypes.Height{}, clienttypes.Height{}, sdkerrors.Wrapf(sdkerrors.ErrInvalidHeight, "invalid height type. expected type: %T, got: %T",
-	// 		clienttypes.Height{}, clientHeight)
-	// }
-	// res, err := QueryChannelConsensusState(clientCtx, portID, channelID, clientHeight, false)
-	// if err != nil {
-	// 	return nil, clienttypes.Height{}, clienttypes.Height{}, err
-	// }
-
-	// var consensusState exported.ConsensusState
-	// if err := clientCtx.InterfaceRegistry.UnpackAny(res.ConsensusState, &consensusState); err != nil {
-	// 	return nil, clienttypes.Height{}, clienttypes.Height{}, err
-	// }
-
-	return nil, clienttypes.Height{}, clienttypes.Height{}, nil
+	return nil, clienttypes.Height{}, clienttypes.Height{}, sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "failed to query latest consensus state for client:", clientRes.IdentifiedClientState.ClientId)
 }
 
 // QueryNextSequenceReceive returns the next sequence receive.
