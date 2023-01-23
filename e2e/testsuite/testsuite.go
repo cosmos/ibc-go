@@ -123,7 +123,7 @@ func (s *E2ETestSuite) GetRelayerUsers(ctx context.Context, chainOpts ...testcon
 func (s *E2ETestSuite) SetupChainsRelayerAndChannel(ctx context.Context, channelOpts ...func(*ibc.CreateChannelOptions)) (ibc.Relayer, ibc.ChannelOutput) {
 	chainA, chainB := s.GetChains()
 
-	r := relayer.New(s.T(), testconfig.FromEnv(), s.logger, s.DockerClient, s.network)
+	r := relayer.New(s.T(), testconfig.FromEnv().RelayerConfig, s.logger, s.DockerClient, s.network)
 
 	pathName := s.generatePathName()
 
