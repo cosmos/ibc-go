@@ -32,6 +32,40 @@ func ParseIdentifier(identifier, prefix string) (uint64, error) {
 	return sequence, nil
 }
 
+// MustParseClientStatePath returns the client ID from a client state path. It panics
+// if the provided path is invalid or if the clientID is empty.
+func MustParseClientStatePath(path string) string {
+	clientID, err := parseClientStatePath(path)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	return clientID
+}
+
+// parseClientStatePath returns the client ID from a client state path. It returns
+// an error if the provided path is invalid.
+func parseClientStatePath(path string) (string, error) {
+	split := strings.Split(path, "/")
+	if len(split) != 3 {
+		return "", sdkerrors.Wrapf(ErrInvalidPath, "cannot parse client state path %s", path)
+	}
+
+	if split[0] != string(KeyClientStorePrefix) {
+		return "", sdkerrors.Wrapf(ErrInvalidPath, "path does not begin with client store prefix: expected %s, got %s", KeyClientStorePrefix, split[0])
+	}
+
+	if split[2] != KeyClientState {
+		return "", sdkerrors.Wrapf(ErrInvalidPath, "path does not end with client state key: expected %s, got %s", KeyClientState, split[2])
+	}
+
+	if strings.TrimSpace(split[1]) == "" {
+		return "", sdkerrors.Wrap(ErrInvalidPath, "clientID is empty")
+	}
+
+	return split[1], nil
+}
+
 // ParseConnectionPath returns the connection ID from a full path. It returns
 // an error if the provided path is invalid.
 func ParseConnectionPath(path string) (string, error) {

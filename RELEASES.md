@@ -23,13 +23,13 @@ We ensure all major releases are supported by relayers ([hermes](https://github.
 
 ## Release cycle
 
-IBC-Go follows a traditional release cycle involving an alpha, beta, and rc (release candidate) releases before finalizing a new version. As ibc-go works in a non-traditional area, we apply our own interpretation to each release type. We reserve the right to make both go API breaking changes and state machine breaking changes throughout the entire release cycle. The stable release guarentees do not go into affect until a final release is performed. 
+IBC-Go follows a traditional release cycle involving an alpha, beta, and rc (release candidate) releases before finalizing a new version. As ibc-go works in a non-traditional area, we apply our own interpretation to each release type. We reserve the right to make both go API breaking changes and state machine breaking changes throughout the entire release cycle. The stable release guarantees do not go into affect until a final release is performed. 
 
 It is never advisable to use a non-final release in production. 
 
 ### Alpha
 
-Alpha releases are intended to make available new features as soon as they are functional. No correctness guarentees are made and alpha releases **may** contain serious security vulnerabilities, bugs, and lack of user tooling, so long as they don't affect the core functionality. 
+Alpha releases are intended to make available new features as soon as they are functional. No correctness guarantees are made and alpha releases **may** contain serious security vulnerabilities, bugs, and lack of user tooling, so long as they don't affect the core functionality. 
 
 Initial users of alpha releases are expected to be advanced, patient, and capable of handling unusual errors. Very basic integration testing will be performed by the ibc-go development team before alpha releases.  
 
@@ -65,16 +65,16 @@ Only the following major release series have a stable release status:
 
 |Release|End of Life Date|
 |-------|----------------|
-|`v1.3.x`|July 01, 2022|
-|`v1.4.x`|July 01, 2022|
-|`v1.5.x`|July 01, 2022|
-|`v2.1.x`|February 01, 2023|
-|`v2.2.x`|February 01, 2023|
-|`v2.3.x`|February 01, 2023|
-|`v3.0.x`|March 15, 2023|
-|`v3.1.x`|March 15, 2023|
+|`v2.4.x`|February 01, 2023|
+|`v2.5.x`|February 01, 2023|
+|`v3.3.x`|March 15, 2023|
+|`v3.4.x`|March 15, 2023|
+|`v4.1.x`|August 12, 2023|
+|`v4.2.x`|August 12, 2023|
+|`v5.2.x`|September 28, 2023|
+|`v6.1.x`|December 09, 2023|
 
-**Note**: The v1 major release series will reach end of life 6 months after merging this policy. v2 will reach end of life one year after merging this policy. 
+All missing minor release versions have been discontinued.
 
 ### What pull requests will be included in stable patch-releases?
 
@@ -96,6 +96,21 @@ As rule of thumb, the following changes will **NOT** be automatically accepted i
 * **Client-breaking changes**, i.e. changes that prevent gRPC, HTTP and RPC clients to continue interacting with the node without any change.
 * **API-breaking changes**, i.e. changes that prevent client applications to *build without modifications* to the client application's source code.
 * **CLI-breaking changes**, i.e. changes that require usage changes for CLI users.
+
+## Version matrix
+
+Versions of Golang, Cosmos SDK and Tendermint used by ibc-go in the currently active releases:
+
+| Go | ibc-go | Cosmos SDK | Tendermint |
+|----|--------|------------|------------|
+| 1.18 | v2.4.2 | v0.45.10 | v0.34.22 |
+| 1.18 | v2.5.0 | v0.45.10 | v0.34.22 |
+| 1.18 | v3.3.1 | v0.45.10 | v0.34.22 |
+| 1.18 | v3.4.0 | v0.45.10 | v0.34.22 |
+| 1.18 | v4.1.1 | v0.45.10 | v0.34.22 |
+| 1.18 | v4.2.0 | v0.45.10 | v0.34.22 |
+| 1.18 | v5.2.0 | v0.46.7 | v0.34.24 |
+| 1.18 | v6.1.0 | v0.46.7 | v0.34.24 |
 
 ## Graphics
 

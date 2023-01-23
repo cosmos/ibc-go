@@ -63,7 +63,7 @@ For example, if a chain chooses not to integrate a controller submodule, it may 
 
 #### Add `StoreUpgrades` for ICS27 module
 
-For ICS27 it is also necessary to [manually add store upgrades](https://docs.cosmos.network/v0.44/core/upgrade.html#add-storeupgrades-for-new-modules) for the new ICS27 module and then configure the store loader to apply those upgrades in `app.go`:
+For ICS27 it is also necessary to [manually add store upgrades](https://docs.cosmos.network/v0.45/core/upgrade.html#add-storeupgrades-for-new-modules) for the new ICS27 module and then configure the store loader to apply those upgrades in `app.go`:
 
 ```go
 if upgradeInfo.Name == "v3" && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
@@ -78,7 +78,6 @@ if upgradeInfo.Name == "v3" && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Heigh
 This ensures that the new module's stores are added to the multistore before the migrations begin. 
 The host and controller submodule keys only need to be added if the chain integrates those submodules.
 For example, if a chain chooses not to integrate a controller submodule, it does not need to add the controller key to the `Added` field.
-
 
 ### Genesis migrations
 
@@ -103,7 +102,7 @@ The migration code required may look like:
     icaGenesisState := icatypes.NewGenesisState(controllerGenesisState, hostGenesisState)
 
     // set new ics27 genesis state
-    appState[icatypes.ModuleName] = clientCtx.JSONCodec.MustMarshalJSON(icaGenesisState)
+    appState[icatypes.ModuleName] = clientCtx.Codec.MustMarshalJSON(icaGenesisState)
 ```
 
 ### Ante decorator
@@ -123,7 +122,6 @@ type AnteDecorator struct {
 ```
 
 ## IBC Apps
-
 
 ### `OnChanOpenTry` must return negotiated application version
 

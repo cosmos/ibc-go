@@ -6,7 +6,7 @@
 
 ## Status
 
-*Draft*
+*Draft, needs updates*
 
 ## Abstract
 
@@ -100,7 +100,7 @@ packaged inside a payload which is json serialized and passed to `callContract` 
 array of bytes returned by the smart contract. This data is deserialized and passed as return argument.
 
 ```go
-func (c *ClientState) CheckProposedHeaderAndUpdateState(context sdk.Context, marshaler codec.BinaryMarshaler, store sdk.KVStore, header exported.Header) (exported.ClientState, exported.ConsensusState, error) {
+func (c *ClientState) CheckProposedHeaderAndUpdateState(context sdk.Context, marshaler codec.BinaryMarshaler, store sdk.KVStore, header exported.ClientMessage) (exported.ClientState, exported.ConsensusState, error) {
 	// get consensus state corresponding to client state to check if the client is expired
 	consensusState, err := GetConsensusState(store, marshaler, c.LatestHeight)
 	if err != nil {

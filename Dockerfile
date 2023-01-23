@@ -1,4 +1,4 @@
-FROM golang:1.18 as builder
+FROM golang:1.19 as builder
 
 ENV GOPATH=""
 ENV GOMODULE="on"
@@ -8,10 +8,12 @@ COPY go.sum .
 
 RUN go mod download
 
+ADD internal internal
 ADD testing testing
 ADD modules modules
 ADD LICENSE LICENSE
 
+COPY contrib/devtools/Makefile contrib/devtools/Makefile
 COPY Makefile .
 
 RUN make build

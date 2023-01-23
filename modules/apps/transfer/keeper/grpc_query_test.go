@@ -6,8 +6,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 
-	"github.com/cosmos/ibc-go/v4/modules/apps/transfer/types"
-	ibctesting "github.com/cosmos/ibc-go/v4/testing"
+	"github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
+	ibctesting "github.com/cosmos/ibc-go/v6/testing"
 )
 
 func (suite *KeeperTestSuite) TestQueryDenomTrace() {
@@ -24,8 +24,8 @@ func (suite *KeeperTestSuite) TestQueryDenomTrace() {
 		{
 			"success: correct ibc denom",
 			func() {
-				expTrace.Path = "transfer/channelToA/transfer/channelToB"
-				expTrace.BaseDenom = "uatom"
+				expTrace.Path = "transfer/channelToA/transfer/channelToB" //nolint:goconst
+				expTrace.BaseDenom = "uatom"                              //nolint:goconst
 				suite.chainA.GetSimApp().TransferKeeper.SetDenomTrace(suite.chainA.GetContext(), expTrace)
 
 				req = &types.QueryDenomTraceRequest{
@@ -223,9 +223,7 @@ func (suite *KeeperTestSuite) TestQueryDenomHash() {
 }
 
 func (suite *KeeperTestSuite) TestEscrowAddress() {
-	var (
-		req *types.QueryEscrowAddressRequest
-	)
+	var req *types.QueryEscrowAddressRequest
 
 	testCases := []struct {
 		msg      string

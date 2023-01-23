@@ -1,6 +1,8 @@
 package types
 
 import (
+	"time"
+
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -9,6 +11,19 @@ import (
 // MaxMemoCharLength defines the maximum length for the InterchainAccountPacketData memo field
 const MaxMemoCharLength = 256
 
+var (
+	// DefaultRelativePacketTimeoutHeight is the default packet timeout height (in blocks) relative
+	// to the current block height of the counterparty chain provided by the client state. The
+	// timeout is disabled when set to 0.
+	DefaultRelativePacketTimeoutHeight = "0-1000"
+
+	// DefaultRelativePacketTimeoutTimestamp is the default packet timeout timestamp (in nanoseconds)
+	// relative to the current block timestamp of the counterparty chain provided by the client
+	// state. The timeout is disabled when set to 0. The default is currently set to a 10 minute
+	// timeout.
+	DefaultRelativePacketTimeoutTimestamp = uint64((time.Duration(10) * time.Minute).Nanoseconds())
+)
+
 // ValidateBasic performs basic validation of the interchain account packet data.
 // The memo may be empty.
 func (iapd InterchainAccountPacketData) ValidateBasic() error {
@@ -16,7 +31,7 @@ func (iapd InterchainAccountPacketData) ValidateBasic() error {
 		return sdkerrors.Wrap(ErrInvalidOutgoingData, "packet data type cannot be unspecified")
 	}
 
-	if iapd.Data == nil {
+	if len(iapd.Data) == 0 {
 		return sdkerrors.Wrap(ErrInvalidOutgoingData, "packet data cannot be empty")
 	}
 

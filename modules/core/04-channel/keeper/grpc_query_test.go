@@ -6,12 +6,14 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 
-	clienttypes "github.com/cosmos/ibc-go/v4/modules/core/02-client/types"
-	connectiontypes "github.com/cosmos/ibc-go/v4/modules/core/03-connection/types"
-	"github.com/cosmos/ibc-go/v4/modules/core/04-channel/types"
-	"github.com/cosmos/ibc-go/v4/modules/core/exported"
-	ibctesting "github.com/cosmos/ibc-go/v4/testing"
+	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v6/modules/core/03-connection/types"
+	"github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
+	"github.com/cosmos/ibc-go/v6/modules/core/exported"
+	ibctesting "github.com/cosmos/ibc-go/v6/testing"
 )
+
+const doesnotexist = "doesnotexist"
 
 func (suite *KeeperTestSuite) TestQueryChannel() {
 	var (
@@ -372,7 +374,7 @@ func (suite *KeeperTestSuite) TestQueryChannelClientState() {
 
 				channel := path.EndpointA.GetChannel()
 				// update channel to reference a connection that does not exist
-				channel.ConnectionHops[0] = "doesnotexist"
+				channel.ConnectionHops[0] = doesnotexist
 
 				// set connection hops to wrong connection ID
 				suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, channel)
@@ -508,7 +510,7 @@ func (suite *KeeperTestSuite) TestQueryChannelConsensusState() {
 
 				channel := path.EndpointA.GetChannel()
 				// update channel to reference a connection that does not exist
-				channel.ConnectionHops[0] = "doesnotexist"
+				channel.ConnectionHops[0] = doesnotexist
 
 				// set connection hops to wrong connection ID
 				suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, channel)

@@ -48,7 +48,7 @@ type TestingApp interface {
 
 	// ibc-go additions
 	GetBaseApp() *baseapp.BaseApp
-	GetStakingKeeper() stakingkeeper.Keeper
+	GetStakingKeeper() ibctestingtypes.StakingKeeper
 	GetIBCKeeper() *keeper.Keeper
 	GetScopedIBCKeeper() capabilitykeeper.ScopedKeeper
 	GetTxConfig() client.TxConfig
@@ -74,7 +74,7 @@ func (app *SimApp) GetBaseApp() *baseapp.BaseApp {
 }
 
 // GetStakingKeeper implements the TestingApp interface.
-func (app *SimApp) GetStakingKeeper() stakingkeeper.Keeper {
+func (app *SimApp) GetStakingKeeper() ibctestingtypes.Keeper {
 	return app.StakingKeeper
 }
 
@@ -213,33 +213,33 @@ To initialize the clients, connections, and channels for a path we can call the 
 Here is a basic example of the testing package being used to simulate IBC functionality:
 
 ```go
-    path := ibctesting.NewPath(suite.chainA, suite.chainB) // clientID, connectionID, channelID empty
-    suite.coordinator.Setup(path) // clientID, connectionID, channelID filled
-    suite.Require().Equal("07-tendermint-0", path.EndpointA.ClientID)
-    suite.Require().Equal("connection-0", path.EndpointA.ClientID)
-    suite.Require().Equal("channel-0", path.EndpointA.ClientID)
+	path := ibctesting.NewPath(suite.chainA, suite.chainB) // clientID, connectionID, channelID empty
+	suite.coordinator.Setup(path) // clientID, connectionID, channelID filled
+	suite.Require().Equal("07-tendermint-0", path.EndpointA.ClientID)
+	suite.Require().Equal("connection-0", path.EndpointA.ClientID)
+	suite.Require().Equal("channel-0", path.EndpointA.ClientID)
 
-    // create packet 1 
-    packet1 := NewPacket() // NewPacket would construct your packet
+	// send on endpointA
+	sequence, err := path.EndpointA.SendPacket(timeoutHeight1, timeoutTimestamp1, packet1Data)
 
-    // send on endpointA
-    path.EndpointA.SendPacket(packet1)
+	// create packet 1 
+	packet1 := NewPacket() // NewPacket would construct your packet
 
-    // receive on endpointB
-    path.EndpointB.RecvPacket(packet1)
+	// receive on endpointB
+	path.EndpointB.RecvPacket(packet1)
 
-    // acknowledge the receipt of the packet
-    path.EndpointA.AcknowledgePacket(packet1, ack)
+	// acknowledge the receipt of the packet
+	path.EndpointA.AcknowledgePacket(packet1, ack)
 
-    // we can also relay
-    packet2 := NewPacket()
+	// we can also relay
+	sequence, err := path.EndpointA.SendPacket(timeoutHeight2, timeoutTimestamp2, packet2Data)
 
-    path.EndpointA.SendPacket(packet2)
+	packet2 := NewPacket()
 
-    path.Relay(packet2, expectedAck)
+	path.Relay(packet2, expectedAck)
 
-    // if needed we can update our clients
-    path.EndpointB.UpdateClient()    
+	// if needed we can update our clients
+	path.EndpointB.UpdateClient()    
 ```
 
 ### Transfer Testing Example
@@ -255,8 +255,8 @@ import (
 	"github.com/tendermint/tendermint/libs/log"
 	dbm "github.com/tendermint/tm-db"
 
-	"github.com/cosmos/ibc-go/v4/modules/apps/transfer/simapp"
-	ibctesting "github.com/cosmos/ibc-go/v4/testing"
+	"github.com/cosmos/ibc-go/v6/modules/apps/transfer/simapp"
+	ibctesting "github.com/cosmos/ibc-go/v6/testing"
 )
 
 func SetupTransferTestingApp() (ibctesting.TestingApp, map[string]json.RawMessage) {
@@ -300,9 +300,9 @@ The portID and scoped keeper for the `MockIBCApp` should be set within `MockIBCA
 
 For example, if one wanted to test that the base application cannot affect the outcome of the `OnChanOpenTry` callback, the mock module base application callback could be updated as such:
 ```go
-    mockModule.IBCApp.OnChanOpenTry = func(ctx sdk.Context, portID, channelID, version string) error {
-			return fmt.Errorf("mock base app must not be called for OnChanOpenTry")
-	}
+mockModule.IBCApp.OnChanOpenTry = func(ctx sdk.Context, portID, channelID, version string) error {
+	return fmt.Errorf("mock base app must not be called for OnChanOpenTry")
+}
 ```
 
 Using a mock module as a base application in a middleware stack may require adding the module to your `SimApp`. 
@@ -311,10 +311,11 @@ sits at the top of middleware stack will need to be accessed via a public field 
 
 This might look like:
 ```go
-    suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnChanOpenInit = func(ctx sdk.Context, order channeltypes.Order, connectionHops []string,
-		portID, channelID string, chanCap *capabilitytypes.Capability,
-		counterparty channeltypes.Counterparty, version string,
-	) error {
-		return fmt.Errorf("mock ica auth fails")
-	}
+suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnChanOpenInit = func(
+	ctx sdk.Context, order channeltypes.Order, connectionHops []string,
+	portID, channelID string, chanCap *capabilitytypes.Capability,
+	counterparty channeltypes.Counterparty, version string,
+) error {
+	return fmt.Errorf("mock ica auth fails")
+}
 ```

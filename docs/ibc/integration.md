@@ -28,7 +28,23 @@ The first step is to add the following modules to the `BasicManager`: `x/capabil
 and `x/ibc-transfer`. After that, we need to grant `Minter` and `Burner` permissions to
 the `ibc-transfer` `ModuleAccount` to mint and burn relayed tokens.
 
-```go
+### Integrating Light Clients
+
+> Note that from v7 onwards, all light clients have to be explicitly registered in a chain's app.go and follow the steps listed below. 
+  This is in contrast to earlier versions of ibc-go when 07-tendermint and 06-solomachine were added out of the box.
+
+All light clients must be registered with `module.BasicManager` in a chain's app.go file.
+
+The following code example shows how to register the existing `ibctm.AppModuleBasic{}` light client implementation.
+
+```diff
+
+import (
+    ...
++    ibctm "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint"
+    ...
+)
+
 // app.go
 var (
 
@@ -37,6 +53,9 @@ var (
     capability.AppModuleBasic{},
     ibc.AppModuleBasic{},
     transfer.AppModuleBasic{}, // i.e ibc-transfer module
+
+    // register light clients on IBC
++    ibctm.AppModuleBasic{},
   )
 
   // module account permissions
@@ -85,14 +104,14 @@ func NewApp(...args) *App {
   app.CapabilityKeeper = capabilitykeeper.NewKeeper(appCodec, keys[capabilitytypes.StoreKey], memKeys[capabilitytypes.MemStoreKey])
 
   // grant capabilities for the ibc and ibc-transfer modules
-  scopedIBCKeeper := app.CapabilityKeeper.ScopeToModule(ibchost.ModuleName)
+  scopedIBCKeeper := app.CapabilityKeeper.ScopeToModule(ibcexported.ModuleName)
   scopedTransferKeeper := app.CapabilityKeeper.ScopeToModule(ibctransfertypes.ModuleName)
 
   // ... other modules keepers
 
   // Create IBC Keeper
   app.IBCKeeper = ibckeeper.NewKeeper(
-    appCodec, keys[ibchost.StoreKey], app.GetSubspace(ibchost.ModuleName), app.StakingKeeper, app.UpgradeKeeper, scopedIBCKeeper,
+    appCodec, keys[ibcexported.StoreKey], app.GetSubspace(ibcexported.ModuleName), app.StakingKeeper, app.UpgradeKeeper, scopedIBCKeeper,
   )
 
   // Create Transfer Keepers
@@ -139,7 +158,7 @@ func NewApp(...args) *App {
 
 ### Module Managers
 
-In order to use IBC, we need to add the new modules to the module `Manager` and to the `SimulationManager` in case your application supports [simulations](https://github.com/cosmos/cosmos-sdk/blob/master/docs/building-modules/simulator.md).
+In order to use IBC, we need to add the new modules to the module `Manager` and to the `SimulationManager` in case your application supports [simulations](https://github.com/cosmos/cosmos-sdk/blob/main/docs/docs/building-modules/13-simulator.md).
 
 ```go
 // app.go
@@ -175,17 +194,6 @@ at each height during the `BeginBlock` call. The historical info is required to 
 past historical info at any given height in order to verify the light client `ConsensusState` during the
 connection handhake.
 
-The IBC module also has
-[`BeginBlock`](https://github.com/cosmos/ibc-go/blob/main/modules/core/02-client/abci.go) logic as
-well. This is optional as it is only required if your application uses the [localhost
-client](https://github.com/cosmos/ibc/blob/master/spec/client/ics-009-loopback-client) to connect two
-different modules from the same chain.
-
-::: tip
-Only register the ibc module to the `SetOrderBeginBlockers` if your application will use the
-localhost (_aka_ loopback) client.
-:::
-
 ```go
 // app.go
 func NewApp(...args) *App {
@@ -194,7 +202,7 @@ func NewApp(...args) *App {
   // add staking and ibc modules to BeginBlockers
   app.mm.SetOrderBeginBlockers(
     // other modules ...
-    stakingtypes.ModuleName, ibchost.ModuleName,
+    stakingtypes.ModuleName, ibcexported.ModuleName,
   )
 
   // ...
@@ -205,7 +213,7 @@ func NewApp(...args) *App {
   app.mm.SetOrderInitGenesis(
     capabilitytypes.ModuleName,
     // other modules ...
-    ibchost.ModuleName, ibctransfertypes.ModuleName,
+    ibcexported.ModuleName, ibctransfertypes.ModuleName,
   )
 
   // .. continues

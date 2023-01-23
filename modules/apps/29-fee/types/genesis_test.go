@@ -7,9 +7,9 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/tendermint/tendermint/crypto/secp256k1"
 
-	"github.com/cosmos/ibc-go/v4/modules/apps/29-fee/types"
-	channeltypes "github.com/cosmos/ibc-go/v4/modules/core/04-channel/types"
-	ibctesting "github.com/cosmos/ibc-go/v4/testing"
+	"github.com/cosmos/ibc-go/v6/modules/apps/29-fee/types"
+	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
+	ibctesting "github.com/cosmos/ibc-go/v6/testing"
 )
 
 func TestValidateDefaultGenesis(t *testing.T) {
@@ -33,21 +33,21 @@ func TestValidateGenesis(t *testing.T) {
 		{
 			"invalid packetID: invalid port ID",
 			func() {
-				genState.IdentifiedFees[0].PacketId = channeltypes.NewPacketId("", ibctesting.FirstChannelID, 1)
+				genState.IdentifiedFees[0].PacketId = channeltypes.NewPacketID("", ibctesting.FirstChannelID, 1)
 			},
 			false,
 		},
 		{
 			"invalid packetID: invalid channel ID",
 			func() {
-				genState.IdentifiedFees[0].PacketId = channeltypes.NewPacketId(ibctesting.MockFeePort, "", 1)
+				genState.IdentifiedFees[0].PacketId = channeltypes.NewPacketID(ibctesting.MockFeePort, "", 1)
 			},
 			false,
 		},
 		{
 			"invalid packetID: invalid sequence",
 			func() {
-				genState.IdentifiedFees[0].PacketId = channeltypes.NewPacketId(ibctesting.MockFeePort, ibctesting.FirstChannelID, 0)
+				genState.IdentifiedFees[0].PacketId = channeltypes.NewPacketID(ibctesting.MockFeePort, ibctesting.FirstChannelID, 0)
 			},
 			false,
 		},
@@ -134,7 +134,7 @@ func TestValidateGenesis(t *testing.T) {
 		genState = &types.GenesisState{
 			IdentifiedFees: []types.IdentifiedPacketFees{
 				{
-					PacketId:   channeltypes.NewPacketId(ibctesting.MockFeePort, ibctesting.FirstChannelID, 1),
+					PacketId:   channeltypes.NewPacketID(ibctesting.MockFeePort, ibctesting.FirstChannelID, 1),
 					PacketFees: []types.PacketFee{types.NewPacketFee(types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee), defaultAccAddress, nil)},
 				},
 			},
@@ -154,7 +154,7 @@ func TestValidateGenesis(t *testing.T) {
 			ForwardRelayers: []types.ForwardRelayerAddress{
 				{
 					Address:  defaultAccAddress,
-					PacketId: channeltypes.NewPacketId(ibctesting.MockFeePort, ibctesting.FirstChannelID, 1),
+					PacketId: channeltypes.NewPacketID(ibctesting.MockFeePort, ibctesting.FirstChannelID, 1),
 				},
 			},
 			RegisteredPayees: []types.RegisteredPayee{

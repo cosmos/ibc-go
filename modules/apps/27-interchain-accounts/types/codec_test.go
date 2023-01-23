@@ -4,18 +4,12 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
+	"github.com/cosmos/gogoproto/proto"
 
-	"github.com/cosmos/ibc-go/v4/modules/apps/27-interchain-accounts/types"
-	"github.com/cosmos/ibc-go/v4/testing/simapp"
+	"github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
+	"github.com/cosmos/ibc-go/v6/testing/simapp"
 )
-
-// caseRawBytes defines a helper struct, used for testing codec operations
-type caseRawBytes struct {
-	name    string
-	bz      []byte
-	expPass bool
-}
 
 // mockSdkMsg defines a mock struct, used for testing codec error scenarios
 type mockSdkMsg struct{}
@@ -46,12 +40,12 @@ func (mockSdkMsg) GetSigners() []sdk.AccAddress {
 func (suite *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
 	testCases := []struct {
 		name    string
-		msgs    []sdk.Msg
+		msgs    []proto.Message
 		expPass bool
 	}{
 		{
 			"single msg",
-			[]sdk.Msg{
+			[]proto.Message{
 				&banktypes.MsgSend{
 					FromAddress: TestOwnerAddress,
 					ToAddress:   TestOwnerAddress,
@@ -62,7 +56,7 @@ func (suite *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
 		},
 		{
 			"multiple msgs, same types",
-			[]sdk.Msg{
+			[]proto.Message{
 				&banktypes.MsgSend{
 					FromAddress: TestOwnerAddress,
 					ToAddress:   TestOwnerAddress,
@@ -78,7 +72,7 @@ func (suite *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
 		},
 		{
 			"multiple msgs, different types",
-			[]sdk.Msg{
+			[]proto.Message{
 				&banktypes.MsgSend{
 					FromAddress: TestOwnerAddress,
 					ToAddress:   TestOwnerAddress,
@@ -93,14 +87,14 @@ func (suite *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
 		},
 		{
 			"unregistered msg type",
-			[]sdk.Msg{
+			[]proto.Message{
 				&mockSdkMsg{},
 			},
 			false,
 		},
 		{
 			"multiple unregistered msg types",
-			[]sdk.Msg{
+			[]proto.Message{
 				&mockSdkMsg{},
 				&mockSdkMsg{},
 				&mockSdkMsg{},
@@ -109,24 +103,34 @@ func (suite *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
 		},
 	}
 
-	testCasesAny := []caseRawBytes{}
-
 	for _, tc := range testCases {
-		bz, err := types.SerializeCosmosTx(simapp.MakeTestEncodingConfig().Marshaler, tc.msgs)
-		suite.Require().NoError(err, tc.name)
+		tc := tc
 
-		testCasesAny = append(testCasesAny, caseRawBytes{tc.name, bz, tc.expPass})
-	}
-
-	for i, tc := range testCasesAny {
-		msgs, err := types.DeserializeCosmosTx(simapp.MakeTestEncodingConfig().Marshaler, tc.bz)
-		if tc.expPass {
+		suite.Run(tc.name, func() {
+			bz, err := types.SerializeCosmosTx(simapp.MakeTestEncodingConfig().Marshaler, tc.msgs)
 			suite.Require().NoError(err, tc.name)
-			suite.Require().Equal(testCases[i].msgs, msgs, tc.name)
-		} else {
-			suite.Require().Error(err, tc.name)
-		}
+
+			msgs, err := types.DeserializeCosmosTx(simapp.MakeTestEncodingConfig().Marshaler, bz)
+			if tc.expPass {
+				suite.Require().NoError(err, tc.name)
+			} else {
+				suite.Require().Error(err, tc.name)
+			}
+
+			for i, msg := range msgs {
+				suite.Require().Equal(tc.msgs[i], msg)
+			}
+		})
 	}
+
+	// test serializing non sdk.Msg type
+	bz, err := types.SerializeCosmosTx(simapp.MakeTestEncodingConfig().Marshaler, []proto.Message{&banktypes.MsgSendResponse{}})
+	suite.Require().NoError(err)
+	suite.Require().NotEmpty(bz)
+
+	// test deserializing unknown bytes
+	_, err = types.DeserializeCosmosTx(simapp.MakeTestEncodingConfig().Marshaler, bz)
+	suite.Require().Error(err) // unregistered type
 
 	// test deserializing unknown bytes
 	msgs, err := types.DeserializeCosmosTx(simapp.MakeTestEncodingConfig().Marshaler, []byte("invalid"))
@@ -141,7 +145,7 @@ func (suite *TypesTestSuite) TestDeserializeAndSerializeCosmosTxWithAmino() {
 	cdc := codec.NewLegacyAmino()
 	marshaler := codec.NewAminoCodec(cdc)
 
-	msgs, err := types.SerializeCosmosTx(marshaler, []sdk.Msg{&banktypes.MsgSend{}})
+	msgs, err := types.SerializeCosmosTx(marshaler, []proto.Message{&banktypes.MsgSend{}})
 	suite.Require().Error(err)
 	suite.Require().Empty(msgs)
 
