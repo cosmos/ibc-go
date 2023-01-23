@@ -549,15 +549,18 @@ func (suite *KeeperTestSuite) TestQueryChannelConsensusState() {
 				suite.Require().NoError(err)
 
 				clientState := suite.chainA.GetClientState(path.EndpointA.ClientID)
-				expConsensusState, _ = suite.chainA.GetConsensusState(path.EndpointA.ClientID, clientState.GetLatestHeight())
+				clientStore := suite.chainA.GetSimApp().GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
+
+				latestHeight := clientState.GetLatestHeight(suite.chainA.GetContext(), clientStore, suite.chainA.Codec)
+				expConsensusState, _ = suite.chainA.GetConsensusState(path.EndpointA.ClientID, latestHeight)
 				suite.Require().NotNil(expConsensusState)
 				expClientID = path.EndpointA.ClientID
 
 				req = &types.QueryChannelConsensusStateRequest{
 					PortId:         path.EndpointA.ChannelConfig.PortID,
 					ChannelId:      path.EndpointA.ChannelID,
-					RevisionNumber: clientState.GetLatestHeight().GetRevisionNumber(),
-					RevisionHeight: clientState.GetLatestHeight().GetRevisionHeight(),
+					RevisionNumber: latestHeight.GetRevisionNumber(),
+					RevisionHeight: latestHeight.GetRevisionHeight(),
 				}
 			},
 			true,

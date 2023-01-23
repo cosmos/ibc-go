@@ -343,7 +343,8 @@ func (suite KeeperTestSuite) TestGetAllConsensusStates() { //nolint:govet // thi
 	suite.coordinator.SetupClients(path)
 
 	clientState := path.EndpointA.GetClientState()
-	expConsensusHeight0 := clientState.GetLatestHeight()
+	clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
+	expConsensusHeight0 := clientState.GetLatestHeight(suite.chainA.GetContext(), clientStore, suite.cdc)
 	consensusState0, ok := suite.chainA.GetConsensusState(path.EndpointA.ClientID, expConsensusHeight0)
 	suite.Require().True(ok)
 
@@ -352,7 +353,7 @@ func (suite KeeperTestSuite) TestGetAllConsensusStates() { //nolint:govet // thi
 	suite.Require().NoError(err)
 
 	clientState = path.EndpointA.GetClientState()
-	expConsensusHeight1 := clientState.GetLatestHeight()
+	expConsensusHeight1 := clientState.GetLatestHeight(suite.chainA.GetContext(), clientStore, suite.cdc)
 	suite.Require().True(expConsensusHeight1.GT(expConsensusHeight0))
 	consensusState1, ok := suite.chainA.GetConsensusState(path.EndpointA.ClientID, expConsensusHeight1)
 	suite.Require().True(ok)
@@ -367,7 +368,7 @@ func (suite KeeperTestSuite) TestGetAllConsensusStates() { //nolint:govet // thi
 	suite.coordinator.SetupClients(path2)
 	clientState = path2.EndpointA.GetClientState()
 
-	expConsensusHeight2 := clientState.GetLatestHeight()
+	expConsensusHeight2 := clientState.GetLatestHeight(suite.chainA.GetContext(), clientStore, suite.cdc)
 	consensusState2, ok := suite.chainA.GetConsensusState(path2.EndpointA.ClientID, expConsensusHeight2)
 	suite.Require().True(ok)
 

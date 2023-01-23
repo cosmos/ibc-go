@@ -160,7 +160,8 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 
 			// use client state latest height for timeout
 			clientState := path.EndpointA.GetClientState()
-			timeoutHeight = clientState.GetLatestHeight().(clienttypes.Height)
+			clientStore := suite.chainA.GetSimApp().GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
+			timeoutHeight = clientState.GetLatestHeight(suite.chainA.GetContext(), clientStore, suite.chainA.Codec).(clienttypes.Height)
 			channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 		}, false},
 		{"timeout timestamp passed", func() {
@@ -169,8 +170,9 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 
 			// use latest time on client state
 			clientState := path.EndpointA.GetClientState()
+			clientStore := suite.chainA.GetSimApp().GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
 			connection := path.EndpointA.GetConnection()
-			timestamp, err := suite.chainA.App.GetIBCKeeper().ConnectionKeeper.GetTimestampAtHeight(suite.chainA.GetContext(), connection, clientState.GetLatestHeight())
+			timestamp, err := suite.chainA.App.GetIBCKeeper().ConnectionKeeper.GetTimestampAtHeight(suite.chainA.GetContext(), connection, clientState.GetLatestHeight(suite.chainA.GetContext(), clientStore, suite.chainA.Codec))
 			suite.Require().NoError(err)
 
 			timeoutHeight = disabledTimeoutHeight
@@ -188,7 +190,8 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 			path.EndpointA.SetConnection(connection)
 
 			clientState := path.EndpointA.GetClientState()
-			timestamp, err := suite.chainA.App.GetIBCKeeper().ConnectionKeeper.GetTimestampAtHeight(suite.chainA.GetContext(), connection, clientState.GetLatestHeight())
+			clientStore := suite.chainA.GetSimApp().GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
+			timestamp, err := suite.chainA.App.GetIBCKeeper().ConnectionKeeper.GetTimestampAtHeight(suite.chainA.GetContext(), connection, clientState.GetLatestHeight(suite.chainA.GetContext(), clientStore, suite.chainA.Codec))
 			suite.Require().NoError(err)
 
 			sourceChannel = path.EndpointA.ChannelID

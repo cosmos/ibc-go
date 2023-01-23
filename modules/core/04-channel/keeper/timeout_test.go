@@ -102,7 +102,8 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 			expError = types.ErrInvalidChannelState
 			suite.coordinator.Setup(path)
 
-			timeoutHeight := path.EndpointA.GetClientState().GetLatestHeight().Increment().(clienttypes.Height)
+			clientStore := suite.chainA.GetSimApp().GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
+			timeoutHeight := path.EndpointA.GetClientState().GetLatestHeight(suite.chainA.GetContext(), clientStore, suite.chainA.Codec).Increment().(clienttypes.Height)
 
 			sequence, err := path.EndpointA.SendPacket(timeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
 			suite.Require().NoError(err)

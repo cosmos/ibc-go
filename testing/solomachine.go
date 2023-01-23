@@ -281,6 +281,7 @@ func (solo *Solomachine) ConnOpenAck(chain *TestChain, clientID, connectionID st
 	proofTry := solo.GenerateConnOpenTryProof(clientID, connectionID)
 
 	clientState := ibctm.NewClientState(chain.ChainID, DefaultTrustLevel, TrustingPeriod, UnbondingPeriod, MaxClockDrift, chain.LastHeader.GetHeight().(clienttypes.Height), commitmenttypes.GetSDKSpecs(), UpgradePath)
+	clientStore := chain.GetSimApp().GetIBCKeeper().ClientKeeper.ClientStore(chain.GetContext(), clientID)
 	proofClient := solo.GenerateClientStateProof(clientState)
 
 	consensusState := chain.LastHeader.ConsensusState()
@@ -290,7 +291,7 @@ func (solo *Solomachine) ConnOpenAck(chain *TestChain, clientID, connectionID st
 	msgConnOpenAck := connectiontypes.NewMsgConnectionOpenAck(
 		connectionID, connectionIDSolomachine, clientState,
 		proofTry, proofClient, proofConsensus,
-		clienttypes.ZeroHeight(), clientState.GetLatestHeight().(clienttypes.Height),
+		clienttypes.ZeroHeight(), clientState.GetLatestHeight(chain.GetContext(), clientStore, chain.Codec).(clienttypes.Height),
 		ConnectionVersion,
 		chain.SenderAccount.GetAddress().String(),
 	)

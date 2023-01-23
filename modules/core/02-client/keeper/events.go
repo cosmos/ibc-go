@@ -21,7 +21,7 @@ func EmitCreateClientEvent(ctx sdk.Context, clientID string, clientState exporte
 			types.EventTypeCreateClient,
 			sdk.NewAttribute(types.AttributeKeyClientID, clientID),
 			sdk.NewAttribute(types.AttributeKeyClientType, clientState.ClientType()),
-			sdk.NewAttribute(types.AttributeKeyConsensusHeight, clientState.GetLatestHeight().String()),
+			sdk.NewAttribute(types.AttributeKeyConsensusHeight, clientState.GetLatestHeight(ctx, nil, nil).String()),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
@@ -72,7 +72,7 @@ func EmitUpgradeClientEvent(ctx sdk.Context, clientID string, clientState export
 			types.EventTypeUpgradeClient,
 			sdk.NewAttribute(types.AttributeKeyClientID, clientID),
 			sdk.NewAttribute(types.AttributeKeyClientType, clientState.ClientType()),
-			sdk.NewAttribute(types.AttributeKeyConsensusHeight, clientState.GetLatestHeight().String()),
+			sdk.NewAttribute(types.AttributeKeyConsensusHeight, clientState.GetLatestHeight(ctx, nil, nil).String()),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,

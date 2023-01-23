@@ -260,8 +260,9 @@ func (chain *TestChain) QueryUpgradeProof(key []byte, height uint64) ([]byte, cl
 // stored on the given clientID. The proof and consensusHeight are returned.
 func (chain *TestChain) QueryConsensusStateProof(clientID string) ([]byte, clienttypes.Height) {
 	clientState := chain.GetClientState(clientID)
+	clientStore := chain.GetSimApp().GetIBCKeeper().ClientKeeper.ClientStore(chain.GetContext(), clientID)
 
-	consensusHeight := clientState.GetLatestHeight().(clienttypes.Height)
+	consensusHeight := clientState.GetLatestHeight(chain.GetContext(), clientStore, chain.Codec).(clienttypes.Height)
 	consensusKey := host.FullConsensusStateKey(clientID, consensusHeight)
 	proofConsensus, _ := chain.QueryProof(consensusKey)
 
@@ -404,7 +405,9 @@ func (chain *TestChain) ConstructUpdateTMClientHeaderWithTrustedHeight(counterpa
 	header := counterparty.LastHeader
 	// Relayer must query for LatestHeight on client to get TrustedHeight if the trusted height is not set
 	if trustedHeight.IsZero() {
-		trustedHeight = chain.GetClientState(clientID).GetLatestHeight().(clienttypes.Height)
+		clientState := chain.GetClientState(clientID)
+		clientStore := chain.GetSimApp().GetIBCKeeper().ClientKeeper.ClientStore(chain.GetContext(), clientID)
+		trustedHeight = clientState.GetLatestHeight(chain.GetContext(), clientStore, chain.Codec).(clienttypes.Height)
 	}
 	var (
 		tmTrustedVals *tmtypes.ValidatorSet

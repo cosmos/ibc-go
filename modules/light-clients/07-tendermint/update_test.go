@@ -298,7 +298,7 @@ func (suite *TendermintTestSuite) TestVerifyHeader() {
 		if tc.expPass {
 			suite.Require().NoError(err, tc.name)
 		} else {
-			suite.Require().Error(err)
+			suite.Require().Error(err, tc.name)
 		}
 	}
 }

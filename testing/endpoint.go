@@ -60,11 +60,14 @@ func NewDefaultEndpoint(chain *TestChain) *Endpoint {
 // QueryProof queries proof associated with this endpoint using the lastest client state
 // height on the counterparty chain.
 func (endpoint *Endpoint) QueryProof(key []byte) ([]byte, clienttypes.Height) {
+	ctx, cdc := endpoint.Counterparty.Chain.GetContext(), endpoint.Counterparty.Chain.Codec
+
 	// obtain the counterparty client representing the chain associated with the endpoint
 	clientState := endpoint.Counterparty.Chain.GetClientState(endpoint.Counterparty.ClientID)
+	clientStore := endpoint.Counterparty.Chain.GetSimApp().GetIBCKeeper().ClientKeeper.ClientStore(ctx, endpoint.Counterparty.ClientID)
 
 	// query proof on the counterparty using the latest height of the IBC client
-	return endpoint.QueryProofAtHeight(key, clientState.GetLatestHeight().GetRevisionHeight())
+	return endpoint.QueryProofAtHeight(key, clientState.GetLatestHeight(ctx, clientStore, cdc).GetRevisionHeight())
 }
 
 // QueryProofAtHeight queries proof associated with this endpoint using the proof height
@@ -194,7 +197,7 @@ func (endpoint *Endpoint) UpgradeChain() error {
 		Root:               commitmenttypes.NewMerkleRoot(endpoint.Chain.LastHeader.Header.GetAppHash()),
 		NextValidatorsHash: endpoint.Chain.LastHeader.Header.NextValidatorsHash,
 	}
-	endpoint.Counterparty.SetConsensusState(consensusState, clientState.GetLatestHeight())
+	endpoint.Counterparty.SetConsensusState(consensusState, clientState.LatestHeight)
 
 	// ensure the next update isn't identical to the one set in state
 	endpoint.Chain.Coordinator.IncrementTime()
@@ -297,12 +300,13 @@ func (endpoint *Endpoint) QueryConnectionHandshakeProof() (
 ) {
 	// obtain the client state on the counterparty chain
 	clientState = endpoint.Counterparty.Chain.GetClientState(endpoint.Counterparty.ClientID)
+	clientStore := endpoint.Counterparty.Chain.GetSimApp().GetIBCKeeper().ClientKeeper.ClientStore(endpoint.Counterparty.Chain.GetContext(), endpoint.Counterparty.ClientID)
 
 	// query proof for the client state on the counterparty
 	clientKey := host.FullClientStateKey(endpoint.Counterparty.ClientID)
 	proofClient, proofHeight = endpoint.Counterparty.QueryProof(clientKey)
 
-	consensusHeight = clientState.GetLatestHeight().(clienttypes.Height)
+	consensusHeight = clientState.GetLatestHeight(endpoint.Counterparty.Chain.GetContext(), clientStore, endpoint.Counterparty.Chain.Codec).(clienttypes.Height)
 
 	// query proof for the consensus state on the counterparty
 	consensusKey := host.FullConsensusStateKey(endpoint.Counterparty.ClientID, consensusHeight)

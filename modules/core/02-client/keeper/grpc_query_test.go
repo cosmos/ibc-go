@@ -227,7 +227,10 @@ func (suite *KeeperTestSuite) TestQueryConsensusState() {
 			func() {
 				path := ibctesting.NewPath(suite.chainA, suite.chainB)
 				suite.coordinator.SetupClients(path)
-				cs := path.EndpointA.GetConsensusState(path.EndpointA.GetClientState().GetLatestHeight())
+
+				store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
+				height := path.EndpointA.GetClientState().GetLatestHeight(suite.chainA.GetContext(), store, suite.cdc)
+				cs := path.EndpointA.GetConsensusState(height)
 
 				var err error
 				expConsensusState, err = types.PackConsensusState(cs)
@@ -245,7 +248,9 @@ func (suite *KeeperTestSuite) TestQueryConsensusState() {
 			func() {
 				path := ibctesting.NewPath(suite.chainA, suite.chainB)
 				suite.coordinator.SetupClients(path)
-				height := path.EndpointA.GetClientState().GetLatestHeight()
+
+				store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
+				height := path.EndpointA.GetClientState().GetLatestHeight(suite.chainA.GetContext(), store, suite.cdc)
 				cs := path.EndpointA.GetConsensusState(height)
 
 				var err error
@@ -328,7 +333,8 @@ func (suite *KeeperTestSuite) TestQueryConsensusStates() {
 				path := ibctesting.NewPath(suite.chainA, suite.chainB)
 				suite.coordinator.SetupClients(path)
 
-				height1 := path.EndpointA.GetClientState().GetLatestHeight().(types.Height)
+				store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
+				height1 := path.EndpointA.GetClientState().GetLatestHeight(suite.chainA.GetContext(), store, suite.cdc).(types.Height)
 				expConsensusStates = append(
 					expConsensusStates,
 					types.NewConsensusStateWithHeight(
@@ -339,7 +345,7 @@ func (suite *KeeperTestSuite) TestQueryConsensusStates() {
 				err := path.EndpointA.UpdateClient()
 				suite.Require().NoError(err)
 
-				height2 := path.EndpointA.GetClientState().GetLatestHeight().(types.Height)
+				height2 := path.EndpointA.GetClientState().GetLatestHeight(suite.chainA.GetContext(), store, suite.cdc).(types.Height)
 				expConsensusStates = append(
 					expConsensusStates,
 					types.NewConsensusStateWithHeight(
@@ -432,12 +438,13 @@ func (suite *KeeperTestSuite) TestQueryConsensusStateHeights() {
 				path := ibctesting.NewPath(suite.chainA, suite.chainB)
 				suite.coordinator.SetupClients(path)
 
-				expConsensusStateHeights = append(expConsensusStateHeights, path.EndpointA.GetClientState().GetLatestHeight().(types.Height))
+				store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
+				expConsensusStateHeights = append(expConsensusStateHeights, path.EndpointA.GetClientState().GetLatestHeight(suite.chainA.GetContext(), store, suite.cdc).(types.Height))
 
 				err := path.EndpointA.UpdateClient()
 				suite.Require().NoError(err)
 
-				expConsensusStateHeights = append(expConsensusStateHeights, path.EndpointA.GetClientState().GetLatestHeight().(types.Height))
+				expConsensusStateHeights = append(expConsensusStateHeights, path.EndpointA.GetClientState().GetLatestHeight(suite.chainA.GetContext(), store, suite.cdc).(types.Height))
 
 				req = &types.QueryConsensusStateHeightsRequest{
 					ClientId: path.EndpointA.ClientID,

@@ -400,14 +400,17 @@ func (suite *KeeperTestSuite) TestQueryConnectionConsensusState() {
 				suite.coordinator.SetupConnections(path)
 
 				clientState := suite.chainA.GetClientState(path.EndpointA.ClientID)
-				expConsensusState, _ = suite.chainA.GetConsensusState(path.EndpointA.ClientID, clientState.GetLatestHeight())
+				clientStore := suite.chainA.GetSimApp().GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
+
+				latestHeight := clientState.GetLatestHeight(suite.chainA.GetContext(), clientStore, suite.chainA.Codec)
+				expConsensusState, _ = suite.chainA.GetConsensusState(path.EndpointA.ClientID, latestHeight)
 				suite.Require().NotNil(expConsensusState)
 				expClientID = path.EndpointA.ClientID
 
 				req = &types.QueryConnectionConsensusStateRequest{
 					ConnectionId:   path.EndpointA.ConnectionID,
-					RevisionNumber: clientState.GetLatestHeight().GetRevisionNumber(),
-					RevisionHeight: clientState.GetLatestHeight().GetRevisionHeight(),
+					RevisionNumber: latestHeight.GetRevisionNumber(),
+					RevisionHeight: latestHeight.GetRevisionHeight(),
 				}
 			},
 			true,

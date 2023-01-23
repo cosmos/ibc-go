@@ -55,7 +55,7 @@ func (cs ClientState) ClientType() string {
 }
 
 // GetLatestHeight panics!
-func (cs ClientState) GetLatestHeight() exported.Height {
+func (cs ClientState) GetLatestHeight(_ sdk.Context, _ sdk.KVStore, _ codec.BinaryCodec) exported.Height {
 	panic("legacy solo machine is deprecated!")
 }
 

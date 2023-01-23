@@ -33,12 +33,13 @@ func (suite *KeeperTestSuite) TestClientUpdateProposal() {
 				suite.Require().True(ok)
 				consState, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientConsensusState(suite.chainA.GetContext(), substitute, tmClientState.LatestHeight)
 				suite.Require().True(found)
-				newRevisionNumber := tmClientState.GetLatestHeight().GetRevisionNumber() + 1
 
-				tmClientState.LatestHeight = types.NewHeight(newRevisionNumber, tmClientState.GetLatestHeight().GetRevisionHeight())
+				clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), substitute)
+
+				newRevisionNumber := tmClientState.GetLatestHeight(suite.chainA.GetContext(), clientStore, suite.cdc).GetRevisionNumber() + 1
+				tmClientState.LatestHeight = types.NewHeight(newRevisionNumber, tmClientState.GetLatestHeight(suite.chainA.GetContext(), clientStore, suite.cdc).GetRevisionHeight())
 
 				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientConsensusState(suite.chainA.GetContext(), substitute, tmClientState.LatestHeight, consState)
-				clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), substitute)
 				ibctm.SetProcessedTime(clientStore, tmClientState.LatestHeight, 100)
 				ibctm.SetProcessedHeight(clientStore, tmClientState.LatestHeight, types.NewHeight(0, 1))
 				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), substitute, tmClientState)
@@ -49,8 +50,10 @@ func (suite *KeeperTestSuite) TestClientUpdateProposal() {
 		{
 			"cannot use solomachine as substitute for tendermint client", func() {
 				solomachine := ibctesting.NewSolomachine(suite.T(), suite.cdc, "solo machine", "", 1)
-				solomachine.Sequence = subjectClientState.GetLatestHeight().GetRevisionHeight() + 1
+				clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), "solo machine")
+				solomachine.Sequence = subjectClientState.GetLatestHeight(suite.chainA.GetContext(), clientStore, suite.cdc).GetRevisionHeight() + 1
 				substituteClientState = solomachine.ClientState()
+
 				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), substitute, substituteClientState)
 				content = types.NewClientUpdateProposal(ibctesting.Title, ibctesting.Description, subject, substitute)
 			}, false,
@@ -69,7 +72,9 @@ func (suite *KeeperTestSuite) TestClientUpdateProposal() {
 			"subject and substitute have equal latest height", func() {
 				tmClientState, ok := subjectClientState.(*ibctm.ClientState)
 				suite.Require().True(ok)
-				tmClientState.LatestHeight = substituteClientState.GetLatestHeight().(types.Height)
+
+				clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), subject)
+				tmClientState.LatestHeight = substituteClientState.GetLatestHeight(suite.chainA.GetContext(), clientStore, suite.cdc).(types.Height)
 				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), subject, tmClientState)
 
 				content = types.NewClientUpdateProposal(ibctesting.Title, ibctesting.Description, subject, substitute)
