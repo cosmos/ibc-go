@@ -77,7 +77,7 @@ func (k Keeper) SendPacket(
 	}
 
 	// check if packet is timed out on the receiving chain
-	latestHeight := clientState.GetLatestHeight()
+	latestHeight := clientState.GetLatestHeight(ctx, clientStore, k.cdc)
 	if !timeoutHeight.IsZero() && latestHeight.GTE(timeoutHeight) {
 		return 0, sdkerrors.Wrapf(
 			types.ErrPacketTimeout,

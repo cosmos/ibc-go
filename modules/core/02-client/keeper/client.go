@@ -31,7 +31,7 @@ func (k Keeper) CreateClient(
 		return "", err
 	}
 
-	k.Logger(ctx).Info("client created at height", "client-id", clientID, "height", clientState.GetLatestHeight().String())
+	k.Logger(ctx).Info("client created at height", "client-id", clientID, "height", clientState.GetLatestHeight(ctx, clientStore, k.cdc).String())
 
 	defer telemetry.IncrCounterWithLabels(
 		[]string{"ibc", "client", "create"},
@@ -124,7 +124,7 @@ func (k Keeper) UpgradeClient(ctx sdk.Context, clientID string, upgradedClient e
 		return sdkerrors.Wrapf(err, "cannot upgrade client with ID %s", clientID)
 	}
 
-	k.Logger(ctx).Info("client state upgraded", "client-id", clientID, "height", upgradedClient.GetLatestHeight().String())
+	k.Logger(ctx).Info("client state upgraded", "client-id", clientID, "height", upgradedClient.GetLatestHeight(ctx, clientStore, k.cdc).String())
 
 	defer telemetry.IncrCounterWithLabels(
 		[]string{"ibc", "client", "upgrade"},

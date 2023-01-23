@@ -69,14 +69,15 @@ func (suite *MigrationsTestSuite) TestPruneExpiredConsensusStates() {
 	for _, path := range paths {
 		// collect all heights expected to be pruned
 		var pruneHeights []exported.Height
-		pruneHeights = append(pruneHeights, path.EndpointA.GetClientState().GetLatestHeight())
+		clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
+		pruneHeights = append(pruneHeights, path.EndpointA.GetClientState().GetLatestHeight(suite.chainA.GetContext(), clientStore, suite.chainA.Codec))
 
 		// these heights will be expired and also pruned
 		for i := 0; i < 3; i++ {
 			err := path.EndpointA.UpdateClient()
 			suite.Require().NoError(err)
 
-			pruneHeights = append(pruneHeights, path.EndpointA.GetClientState().GetLatestHeight())
+			pruneHeights = append(pruneHeights, path.EndpointA.GetClientState().GetLatestHeight(suite.chainA.GetContext(), clientStore, suite.chainA.Codec))
 		}
 
 		// double chedck all information is currently stored
@@ -110,11 +111,12 @@ func (suite *MigrationsTestSuite) TestPruneExpiredConsensusStates() {
 		var unexpiredHeights []exported.Height
 		err := path.EndpointA.UpdateClient()
 		suite.Require().NoError(err)
-		unexpiredHeights = append(unexpiredHeights, path.EndpointA.GetClientState().GetLatestHeight())
+		clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
+		unexpiredHeights = append(unexpiredHeights, path.EndpointA.GetClientState().GetLatestHeight(suite.chainA.GetContext(), clientStore, suite.chainA.Codec))
 
 		err = path.EndpointA.UpdateClient()
 		suite.Require().NoError(err)
-		unexpiredHeights = append(unexpiredHeights, path.EndpointA.GetClientState().GetLatestHeight())
+		unexpiredHeights = append(unexpiredHeights, path.EndpointA.GetClientState().GetLatestHeight(suite.chainA.GetContext(), clientStore, suite.chainA.Codec))
 
 		unexpiredHeightMap[path] = unexpiredHeights
 	}

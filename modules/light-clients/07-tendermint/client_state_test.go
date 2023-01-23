@@ -246,14 +246,15 @@ func (suite *TendermintTestSuite) TestVerifyMembership() {
 		},
 		{
 			"successful ConsensusState verification", func() {
-				key := host.FullConsensusStateKey(testingpath.EndpointB.ClientID, testingpath.EndpointB.GetClientState().GetLatestHeight())
+				store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), testingpath.EndpointA.ClientID)
+				key := host.FullConsensusStateKey(testingpath.EndpointB.ClientID, testingpath.EndpointB.GetClientState().GetLatestHeight(suite.chainA.GetContext(), store, suite.chainA.Codec))
 				merklePath := commitmenttypes.NewMerklePath(string(key))
 				path, err = commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
 				suite.Require().NoError(err)
 
 				proof, proofHeight = suite.chainB.QueryProof(key)
 
-				consensusState := testingpath.EndpointB.GetConsensusState(testingpath.EndpointB.GetClientState().GetLatestHeight()).(*ibctm.ConsensusState)
+				consensusState := testingpath.EndpointB.GetConsensusState(testingpath.EndpointB.GetClientState().GetLatestHeight(suite.chainA.GetContext(), store, suite.chainA.Codec)).(*ibctm.ConsensusState)
 				value, err = suite.chainB.Codec.MarshalInterface(consensusState)
 				suite.Require().NoError(err)
 			},
@@ -361,7 +362,8 @@ func (suite *TendermintTestSuite) TestVerifyMembership() {
 				suite.Require().NoError(err)
 
 				clientState := testingpath.EndpointA.GetClientState()
-				proof, proofHeight = suite.chainB.QueryProofForStore(transfertypes.StoreKey, key, int64(clientState.GetLatestHeight().GetRevisionHeight()))
+				store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), testingpath.EndpointA.ClientID)
+				proof, proofHeight = suite.chainB.QueryProofForStore(transfertypes.StoreKey, key, int64(clientState.GetLatestHeight(suite.chainA.GetContext(), store, suite.chainA.Codec).GetRevisionHeight()))
 
 				value = []byte(suite.chainB.GetSimApp().TransferKeeper.GetPort(suite.chainB.GetContext()))
 				suite.Require().NoError(err)
@@ -394,7 +396,8 @@ func (suite *TendermintTestSuite) TestVerifyMembership() {
 		},
 		{
 			"latest client height < height", func() {
-				proofHeight = testingpath.EndpointA.GetClientState().GetLatestHeight().Increment()
+				store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), testingpath.EndpointA.ClientID)
+				proofHeight = testingpath.EndpointA.GetClientState().GetLatestHeight(suite.chainA.GetContext(), store, suite.chainA.Codec).Increment()
 			}, false,
 		},
 		{
@@ -498,7 +501,8 @@ func (suite *TendermintTestSuite) TestVerifyNonMembership() {
 		},
 		{
 			"successful ConsensusState verification of non membership", func() {
-				key := host.FullConsensusStateKey(invalidClientID, testingpath.EndpointB.GetClientState().GetLatestHeight())
+				store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), testingpath.EndpointA.ClientID)
+				key := host.FullConsensusStateKey(invalidClientID, testingpath.EndpointB.GetClientState().GetLatestHeight(suite.chainA.GetContext(), store, suite.chainA.Codec))
 				merklePath := commitmenttypes.NewMerklePath(string(key))
 				path, err = commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
 				suite.Require().NoError(err)
@@ -570,7 +574,8 @@ func (suite *TendermintTestSuite) TestVerifyNonMembership() {
 				suite.Require().NoError(err)
 
 				clientState := testingpath.EndpointA.GetClientState()
-				proof, proofHeight = suite.chainB.QueryProofForStore(transfertypes.StoreKey, key, int64(clientState.GetLatestHeight().GetRevisionHeight()))
+				store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), testingpath.EndpointA.ClientID)
+				proof, proofHeight = suite.chainB.QueryProofForStore(transfertypes.StoreKey, key, int64(clientState.GetLatestHeight(suite.chainA.GetContext(), store, suite.chainA.Codec).GetRevisionHeight()))
 			},
 			true,
 		},
@@ -600,7 +605,8 @@ func (suite *TendermintTestSuite) TestVerifyNonMembership() {
 		},
 		{
 			"latest client height < height", func() {
-				proofHeight = testingpath.EndpointA.GetClientState().GetLatestHeight().Increment()
+				store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), testingpath.EndpointA.ClientID)
+				proofHeight = testingpath.EndpointA.GetClientState().GetLatestHeight(suite.chainA.GetContext(), store, suite.chainA.Codec).Increment()
 			}, false,
 		},
 		{

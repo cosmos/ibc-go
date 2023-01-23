@@ -49,7 +49,7 @@ func (cs ClientState) ClientType() string {
 }
 
 // GetLatestHeight returns latest block height.
-func (cs ClientState) GetLatestHeight() exported.Height {
+func (cs ClientState) GetLatestHeight(ctx sdk.Context, clientStore sdk.KVStore, cdc codec.BinaryCodec) exported.Height {
 	return cs.LatestHeight
 }
 
@@ -86,7 +86,7 @@ func (cs ClientState) Status(
 	}
 
 	// get latest consensus state from clientStore to check for expiry
-	consState, found := GetConsensusState(clientStore, cdc, cs.GetLatestHeight())
+	consState, found := GetConsensusState(clientStore, cdc, cs.GetLatestHeight(ctx, clientStore, cdc))
 	if !found {
 		// if the client state does not have an associated consensus state for its latest height
 		// then it must be expired
@@ -198,8 +198,8 @@ func (cs ClientState) Initialize(ctx sdk.Context, cdc codec.BinaryCodec, clientS
 	}
 
 	setClientState(clientStore, cdc, &cs)
-	setConsensusState(clientStore, cdc, consensusState, cs.GetLatestHeight())
-	setConsensusMetadata(ctx, clientStore, cs.GetLatestHeight())
+	setConsensusState(clientStore, cdc, consensusState, cs.GetLatestHeight(ctx, clientStore, cdc))
+	setConsensusMetadata(ctx, clientStore, cs.GetLatestHeight(ctx, clientStore, cdc))
 
 	return nil
 }
@@ -218,10 +218,10 @@ func (cs ClientState) VerifyMembership(
 	path exported.Path,
 	value []byte,
 ) error {
-	if cs.GetLatestHeight().LT(height) {
+	if cs.GetLatestHeight(ctx, clientStore, cdc).LT(height) {
 		return sdkerrors.Wrapf(
 			sdkerrors.ErrInvalidHeight,
-			"client state height < proof height (%d < %d), please ensure the client has been updated", cs.GetLatestHeight(), height,
+			"client state height < proof height (%d < %d), please ensure the client has been updated", cs.GetLatestHeight(ctx, clientStore, cdc), height,
 		)
 	}
 
@@ -264,10 +264,10 @@ func (cs ClientState) VerifyNonMembership(
 	proof []byte,
 	path exported.Path,
 ) error {
-	if cs.GetLatestHeight().LT(height) {
+	if cs.GetLatestHeight(ctx, clientStore, cdc).LT(height) {
 		return sdkerrors.Wrapf(
 			sdkerrors.ErrInvalidHeight,
-			"client state height < proof height (%d < %d), please ensure the client has been updated", cs.GetLatestHeight(), height,
+			"client state height < proof height (%d < %d), please ensure the client has been updated", cs.GetLatestHeight(ctx, clientStore, cdc), height,
 		)
 	}
 

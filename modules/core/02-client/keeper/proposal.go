@@ -24,6 +24,7 @@ func (k Keeper) ClientUpdateProposal(ctx sdk.Context, p *types.ClientUpdatePropo
 	}
 
 	subjectClientStore := k.ClientStore(ctx, p.SubjectClientId)
+	substituteClientStore := k.ClientStore(ctx, p.SubstituteClientId)
 
 	if status := subjectClientState.Status(ctx, subjectClientStore, k.cdc); status == exported.Active {
 		return sdkerrors.Wrap(types.ErrInvalidUpdateClientProposal, "cannot update Active subject client")
@@ -34,11 +35,13 @@ func (k Keeper) ClientUpdateProposal(ctx sdk.Context, p *types.ClientUpdatePropo
 		return sdkerrors.Wrapf(types.ErrClientNotFound, "substitute client with ID %s", p.SubstituteClientId)
 	}
 
-	if subjectClientState.GetLatestHeight().GTE(substituteClientState.GetLatestHeight()) {
-		return sdkerrors.Wrapf(types.ErrInvalidHeight, "subject client state latest height is greater or equal to substitute client state latest height (%s >= %s)", subjectClientState.GetLatestHeight(), substituteClientState.GetLatestHeight())
+	if subjectClientState.GetLatestHeight(ctx, subjectClientStore, k.cdc).GTE(substituteClientState.GetLatestHeight(ctx, substituteClientStore, k.cdc)) {
+		return sdkerrors.Wrapf(
+			types.ErrInvalidHeight,
+			"subject client state latest height is greater or equal to substitute client state latest height (%s >= %s)",
+			subjectClientState.GetLatestHeight(ctx, subjectClientStore, k.cdc), substituteClientState.GetLatestHeight(ctx, substituteClientStore, k.cdc),
+		)
 	}
-
-	substituteClientStore := k.ClientStore(ctx, p.SubstituteClientId)
 
 	if status := substituteClientState.Status(ctx, substituteClientStore, k.cdc); status != exported.Active {
 		return sdkerrors.Wrapf(types.ErrClientNotActive, "substitute client is not Active, status is %s", status)

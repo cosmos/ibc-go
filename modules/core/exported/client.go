@@ -37,8 +37,9 @@ type ClientState interface {
 	proto.Message
 
 	ClientType() string
-	GetLatestHeight() Height
 	Validate() error
+
+	GetLatestHeight(ctx sdk.Context, clientStore sdk.KVStore, cdc codec.BinaryCodec) Height
 
 	// Status must return the status of the client. Only Active clients are allowed to process packets.
 	Status(ctx sdk.Context, clientStore sdk.KVStore, cdc codec.BinaryCodec) Status

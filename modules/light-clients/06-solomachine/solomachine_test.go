@@ -145,7 +145,9 @@ func (suite *SoloMachineTestSuite) GetSequenceFromStore() uint64 {
 	var clientState exported.ClientState
 	err := suite.chainA.Codec.UnmarshalInterface(bz, &clientState)
 	suite.Require().NoError(err)
-	return clientState.GetLatestHeight().GetRevisionHeight()
+
+	clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), clientIDSolomachine)
+	return clientState.GetLatestHeight(suite.chainA.GetContext(), clientStore, suite.chainA.Codec).GetRevisionHeight()
 }
 
 func (suite *SoloMachineTestSuite) GetInvalidProof() []byte {

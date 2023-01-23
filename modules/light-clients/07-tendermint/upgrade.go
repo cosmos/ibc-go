@@ -34,11 +34,11 @@ func (cs ClientState) VerifyUpgradeAndUpdateState(
 	}
 
 	// last height of current counterparty chain must be client's latest height
-	lastHeight := cs.GetLatestHeight()
+	lastHeight := cs.GetLatestHeight(ctx, clientStore, cdc)
 
-	if !upgradedClient.GetLatestHeight().GT(lastHeight) {
+	if !upgradedClient.GetLatestHeight(ctx, clientStore, cdc).GT(lastHeight) {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidHeight, "upgraded client height %s must be at greater than current client height %s",
-			upgradedClient.GetLatestHeight(), lastHeight)
+			upgradedClient.GetLatestHeight(ctx, clientStore, cdc), lastHeight)
 	}
 
 	// upgraded client state and consensus state must be IBC tendermint client state and consensus state

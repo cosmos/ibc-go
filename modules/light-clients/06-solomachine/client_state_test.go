@@ -802,7 +802,7 @@ func (suite *SoloMachineTestSuite) TestGetTimestampAtHeight() {
 		{
 			name:        "get timestamp at height exists",
 			clientState: suite.solomachine.ClientState(),
-			height:      suite.solomachine.ClientState().GetLatestHeight(),
+			height:      clienttypes.NewHeight(0, 1),
 			expValue:    suite.solomachine.ClientState().ConsensusState.Timestamp,
 			expPass:     true,
 		},

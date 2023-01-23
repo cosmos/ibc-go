@@ -17,7 +17,7 @@ func (suite *TendermintTestSuite) TestExportMetadata() {
 	suite.coordinator.SetupClients(path)
 	clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
 	clientState := path.EndpointA.GetClientState()
-	height := clientState.GetLatestHeight()
+	height := clientState.GetLatestHeight(suite.chainA.GetContext(), clientStore, suite.chainA.Codec)
 
 	initIteration := ibctm.GetIterationKey(clientStore, height)
 	suite.Require().NotEqual(0, len(initIteration))
@@ -46,7 +46,7 @@ func (suite *TendermintTestSuite) TestExportMetadata() {
 	suite.Require().NoError(err)
 
 	clientState = path.EndpointA.GetClientState()
-	updateHeight := clientState.GetLatestHeight()
+	updateHeight := clientState.GetLatestHeight(suite.chainA.GetContext(), clientStore, suite.chainA.Codec)
 
 	iteration := ibctm.GetIterationKey(clientStore, updateHeight)
 	suite.Require().NotEqual(0, len(initIteration))

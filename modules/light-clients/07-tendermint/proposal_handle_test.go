@@ -125,12 +125,12 @@ func (suite *TendermintTestSuite) TestCheckSubstituteAndUpdateState() {
 			subjectClientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), subjectPath.EndpointA.ClientID)
 			substituteClientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), substitutePath.EndpointA.ClientID)
 
-			expectedConsState := substitutePath.EndpointA.GetConsensusState(substituteClientState.GetLatestHeight())
-			expectedProcessedTime, found := ibctm.GetProcessedTime(substituteClientStore, substituteClientState.GetLatestHeight())
+			expectedConsState := substitutePath.EndpointA.GetConsensusState(substituteClientState.GetLatestHeight(suite.chainA.GetContext(), substituteClientStore, suite.cdc))
+			expectedProcessedTime, found := ibctm.GetProcessedTime(substituteClientStore, substituteClientState.GetLatestHeight(suite.chainA.GetContext(), substituteClientStore, suite.cdc))
 			suite.Require().True(found)
-			expectedProcessedHeight, found := ibctm.GetProcessedTime(substituteClientStore, substituteClientState.GetLatestHeight())
+			expectedProcessedHeight, found := ibctm.GetProcessedTime(substituteClientStore, substituteClientState.GetLatestHeight(suite.chainA.GetContext(), substituteClientStore, suite.cdc))
 			suite.Require().True(found)
-			expectedIterationKey := ibctm.GetIterationKey(substituteClientStore, substituteClientState.GetLatestHeight())
+			expectedIterationKey := ibctm.GetIterationKey(substituteClientStore, substituteClientState.GetLatestHeight(suite.chainA.GetContext(), substituteClientStore, suite.cdc))
 
 			err := subjectClientState.CheckSubstituteAndUpdateState(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), subjectClientStore, substituteClientStore, substituteClientState)
 
@@ -143,13 +143,13 @@ func (suite *TendermintTestSuite) TestCheckSubstituteAndUpdateState() {
 				subjectClientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), subjectPath.EndpointA.ClientID)
 
 				// check that the correct consensus state was copied over
-				suite.Require().Equal(substituteClientState.GetLatestHeight(), updatedClient.GetLatestHeight())
-				subjectConsState := subjectPath.EndpointA.GetConsensusState(updatedClient.GetLatestHeight())
-				subjectProcessedTime, found := ibctm.GetProcessedTime(subjectClientStore, updatedClient.GetLatestHeight())
+				suite.Require().Equal(substituteClientState.GetLatestHeight(suite.chainA.GetContext(), substituteClientStore, suite.cdc), updatedClient.GetLatestHeight(suite.chainA.GetContext(), subjectClientStore, suite.cdc))
+				subjectConsState := subjectPath.EndpointA.GetConsensusState(updatedClient.GetLatestHeight(suite.chainA.GetContext(), subjectClientStore, suite.cdc))
+				subjectProcessedTime, found := ibctm.GetProcessedTime(subjectClientStore, updatedClient.GetLatestHeight(suite.chainA.GetContext(), subjectClientStore, suite.cdc))
 				suite.Require().True(found)
-				subjectProcessedHeight, found := ibctm.GetProcessedTime(substituteClientStore, updatedClient.GetLatestHeight())
+				subjectProcessedHeight, found := ibctm.GetProcessedTime(substituteClientStore, updatedClient.GetLatestHeight(suite.chainA.GetContext(), subjectClientStore, suite.cdc))
 				suite.Require().True(found)
-				subjectIterationKey := ibctm.GetIterationKey(substituteClientStore, updatedClient.GetLatestHeight())
+				subjectIterationKey := ibctm.GetIterationKey(substituteClientStore, updatedClient.GetLatestHeight(suite.chainA.GetContext(), subjectClientStore, suite.cdc))
 
 				suite.Require().Equal(expectedConsState, subjectConsState)
 				suite.Require().Equal(expectedProcessedTime, subjectProcessedTime)

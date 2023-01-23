@@ -34,7 +34,7 @@ func (cs ClientState) ClientType() string {
 // GetLatestHeight returns the latest sequence number.
 // Return exported.Height to satisfy ClientState interface
 // Revision number is always 0 for a solo-machine.
-func (cs ClientState) GetLatestHeight() exported.Height {
+func (cs ClientState) GetLatestHeight(ctx sdk.Context, clientStore sdk.KVStore, cdc codec.BinaryCodec) exported.Height {
 	return clienttypes.NewHeight(0, cs.Sequence)
 }
 
@@ -230,7 +230,7 @@ func produceVerificationArgs(
 		return nil, nil, 0, 0, sdkerrors.Wrapf(ErrInvalidProof, "the consensus state timestamp is greater than the signature timestamp (%d >= %d)", cs.ConsensusState.GetTimestamp(), timestamp)
 	}
 
-	sequence := cs.GetLatestHeight().GetRevisionHeight()
+	sequence := cs.Sequence
 	publicKey, err := cs.ConsensusState.GetPubKey()
 	if err != nil {
 		return nil, nil, 0, 0, err

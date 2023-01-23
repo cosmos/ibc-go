@@ -236,7 +236,7 @@ func (k Keeper) GetLatestClientConsensusState(ctx sdk.Context, clientID string) 
 	if !ok {
 		return nil, false
 	}
-	return k.GetClientConsensusState(ctx, clientID, clientState.GetLatestHeight())
+	return k.GetClientConsensusState(ctx, clientID, clientState.GetLatestHeight(ctx, k.ClientStore(ctx, clientID), k.cdc))
 }
 
 // GetSelfConsensusState introspects the (self) past historical info at a given height

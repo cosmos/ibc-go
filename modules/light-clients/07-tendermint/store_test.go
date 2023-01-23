@@ -61,7 +61,8 @@ func (suite *TendermintTestSuite) TestGetConsensusState() {
 
 			suite.coordinator.Setup(path)
 			clientState := suite.chainA.GetClientState(path.EndpointA.ClientID)
-			height = clientState.GetLatestHeight()
+			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
+			height = clientState.GetLatestHeight(suite.chainA.GetContext(), clientStore, suite.cdc)
 
 			tc.malleate() // change vars as necessary
 
@@ -74,8 +75,7 @@ func (suite *TendermintTestSuite) TestGetConsensusState() {
 				return
 			}
 
-			store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
-			consensusState, found := tendermint.GetConsensusState(store, suite.chainA.Codec, height)
+			consensusState, found := tendermint.GetConsensusState(clientStore, suite.chainA.Codec, height)
 
 			if tc.expPass {
 				suite.Require().True(found)
@@ -104,10 +104,10 @@ func (suite *TendermintTestSuite) TestGetProcessedTime() {
 	suite.Require().NoError(err)
 
 	clientState := suite.chainA.GetClientState(path.EndpointA.ClientID)
-	height := clientState.GetLatestHeight()
+	clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
+	height := clientState.GetLatestHeight(suite.chainA.GetContext(), clientStore, suite.cdc)
 
-	store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
-	actualTime, ok := tendermint.GetProcessedTime(store, height)
+	actualTime, ok := tendermint.GetProcessedTime(clientStore, height)
 	suite.Require().True(ok, "could not retrieve processed time for stored consensus state")
 	suite.Require().Equal(uint64(expectedTime.UnixNano()), actualTime, "retrieved processed time is not expected value")
 
@@ -120,15 +120,15 @@ func (suite *TendermintTestSuite) TestGetProcessedTime() {
 	suite.Require().NoError(err)
 
 	clientState = suite.chainA.GetClientState(path.EndpointA.ClientID)
-	height = clientState.GetLatestHeight()
+	clientStore = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
+	height = clientState.GetLatestHeight(suite.chainA.GetContext(), clientStore, suite.cdc)
 
-	store = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
-	actualTime, ok = tendermint.GetProcessedTime(store, height)
+	actualTime, ok = tendermint.GetProcessedTime(clientStore, height)
 	suite.Require().True(ok, "could not retrieve processed time for stored consensus state")
 	suite.Require().Equal(uint64(expectedTime.UnixNano()), actualTime, "retrieved processed time is not expected value")
 
 	// try to get processed time for height that doesn't exist in store
-	_, ok = tendermint.GetProcessedTime(store, clienttypes.NewHeight(1, 1))
+	_, ok = tendermint.GetProcessedTime(clientStore, clienttypes.NewHeight(1, 1))
 	suite.Require().False(ok, "retrieved processed time for a non-existent consensus state")
 }
 
