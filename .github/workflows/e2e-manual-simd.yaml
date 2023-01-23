@@ -52,6 +52,14 @@ on:
           - v3.3.1
           - v2.5.0
           - v2.4.2
+      relayer-type:
+        default: COSMOS
+        description: 'The relayer to use'
+        required: true
+        type: choice
+        options:
+          - COSMOS
+          - HERMES
       relayer-tag:
         description: 'The tag to use for the relayer'
         required: true
@@ -67,5 +75,6 @@ jobs:
       chain-a-tag: "${{ github.event.inputs.chain-a-tag }}"
       chain-b-tag: "${{ github.event.inputs.chain-b-tag }}"
       relayer-tag: "${{ github.event.inputs.relayer-tag }}"
+      relayer-type: "${{ github.event.inputs.relayer-type }}"
       test-entry-point:  "${{ github.event.inputs.test-entry-point }}"
       chain-binary: "simd"
