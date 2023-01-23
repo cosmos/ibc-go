@@ -166,7 +166,7 @@ func (suite *KeeperTestSuite) TestQueryClientStates() {
 			if tc.expPass {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
-				suite.Require().Equal(len(expClientStates), res.Pagination.Total)
+				suite.Require().Equal(uint64(len(expClientStates)), res.Pagination.Total)
 				suite.Require().Equal(expClientStates.Sort(), res.ClientStates)
 			} else {
 				suite.Require().Error(err)
