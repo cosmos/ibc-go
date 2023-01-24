@@ -2,7 +2,6 @@ package localhost
 
 import (
 	"bytes"
-	"errors"
 	"strings"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -10,35 +9,36 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
+	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
 )
 
 var _ exported.ClientState = (*ClientState)(nil)
 
-// NewClientState creates a new ClientState instance
-func NewClientState(chainID string, height clienttypes.Height) *ClientState {
+// NewClientState creates a new 09-localhost ClientState instance.
+func NewClientState(chainID string, height clienttypes.Height) exported.ClientState {
 	return &ClientState{
 		ChainId:      chainID,
 		LatestHeight: height,
 	}
 }
 
-// GetChainID returns an empty string
+// GetChainID returns the client state chain ID.
 func (cs ClientState) GetChainID() string {
 	return cs.ChainId
 }
 
-// ClientType is localhost.
+// ClientType returns the 09-localhost client type.
 func (cs ClientState) ClientType() string {
 	return exported.Localhost
 }
 
-// GetLatestHeight returns the latest height stored.
+// GetLatestHeight returns the 09-localhost client state latest height.
 func (cs ClientState) GetLatestHeight() exported.Height {
 	return cs.LatestHeight
 }
 
-// Status always returns Active. The localhost status cannot be changed.
+// Status always returns Active. The 09-localhost status cannot be changed.
 func (cs ClientState) Status(_ sdk.Context, _ sdk.KVStore, _ codec.BinaryCodec) exported.Status {
 	return exported.Active
 }
@@ -56,12 +56,12 @@ func (cs ClientState) Validate() error {
 	return nil
 }
 
-// ZeroCustomFields returns the same client state since there are no custom fields in localhost
+// ZeroCustomFields returns the same client state since there are no custom fields in the 09-localhost client state.
 func (cs ClientState) ZeroCustomFields() exported.ClientState {
 	return &cs
 }
 
-// Initialize ensures that initial consensus state for localhost is nil
+// Initialize ensures that initial consensus state for localhost is nil.
 func (cs ClientState) Initialize(_ sdk.Context, _ codec.BinaryCodec, _ sdk.KVStore, consState exported.ConsensusState) error {
 	if consState != nil {
 		return sdkerrors.Wrap(clienttypes.ErrInvalidConsensus, "initial consensus state for localhost must be nil.")
@@ -128,7 +128,7 @@ func (cs ClientState) VerifyNonMembership(
 // will assume that the content of the ClientMessage has been verified and can be trusted. An error should be returned
 // if the ClientMessage fails to verify.
 func (cs ClientState) VerifyClientMessage(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, clientMsg exported.ClientMessage) error {
-	return errors.New("todo: update")
+	return nil
 }
 
 // Checks for evidence of a misbehaviour in Header or Misbehaviour type. It assumes the ClientMessage
@@ -137,18 +137,22 @@ func (cs ClientState) CheckForMisbehaviour(ctx sdk.Context, cdc codec.BinaryCode
 	return false
 }
 
-// UpdateStateOnMisbehaviour should perform appropriate state changes on a client state given that misbehaviour has been detected and verified
-func (cs ClientState) UpdateStateOnMisbehaviour(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, clientMsg exported.ClientMessage) {
-
+// UpdateStateOnMisbehaviour should perform appropriate state changes on a client state given that misbehaviour has been detected and verified.
+func (cs ClientState) UpdateStateOnMisbehaviour(_ sdk.Context, _ codec.BinaryCodec, _ sdk.KVStore, _ exported.ClientMessage) {
 }
 
 // UpdateState updates and stores as necessary any associated information for an IBC client, such as the ClientState and corresponding ConsensusState.
 // Upon successful update, a list of consensus heights is returned. It assumes the ClientMessage has already been verified.
 func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, clientMsg exported.ClientMessage) []exported.Height {
-	return []exported.Height{}
+	height := clienttypes.NewHeight(clienttypes.ParseChainID(ctx.ChainID()), uint64(ctx.BlockHeight()))
+
+	clientState := NewClientState(ctx.ChainID(), height)
+	clientStore.Set([]byte(host.KeyClientState), clienttypes.MustMarshalClientState(cdc, clientState))
+
+	return []exported.Height{height}
 }
 
-// ExportMetadata is a no-op for localhost client
+// ExportMetadata is a no-op for the 09-localhost client.
 func (cs ClientState) ExportMetadata(_ sdk.KVStore) []exported.GenesisMetadata {
 	return nil
 }
