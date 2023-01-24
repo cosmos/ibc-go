@@ -4,6 +4,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/v6/modules/core/02-client/keeper"
+	"github.com/cosmos/ibc-go/v6/modules/core/exported"
 	ibctm "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint"
 )
 
@@ -30,5 +31,10 @@ func BeginBlocker(ctx sdk.Context, k keeper.Keeper) {
 
 			keeper.EmitUpgradeChainEvent(ctx, plan.Height)
 		}
+	}
+
+	// update the localhost client with the latest block height
+	if err := k.UpdateClient(ctx, exported.Localhost, nil); err != nil {
+		k.Logger(ctx).Error(err.Error())
 	}
 }
