@@ -15,6 +15,7 @@ import (
 )
 
 // CheckForMisbehaviour detects duplicate height misbehaviour and BFT time violation misbehaviour
+// in a submitted Header message and verifies the correctness of a submitted Misbehaviour ClientMessage
 func (cs ClientState) CheckForMisbehaviour(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, msg exported.ClientMessage) bool {
 	switch msg := msg.(type) {
 	case *Header:
@@ -51,6 +52,8 @@ func (cs ClientState) CheckForMisbehaviour(ctx sdk.Context, cdc codec.BinaryCode
 			return true
 		}
 	case *Misbehaviour:
+		// if heights are equal check that this is valid misbehaviour of a fork
+		// otherwise if heights are unequal check that this is valid misbehavior of BFT time violation
 		if msg.Header1.GetHeight().EQ(msg.Header2.GetHeight()) {
 			blockID1, err := tmtypes.BlockIDFromProto(&msg.Header1.SignedHeader.Commit.BlockID)
 			if err != nil {
