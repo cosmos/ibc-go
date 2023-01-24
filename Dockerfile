@@ -8,13 +8,15 @@ COPY go.sum .
 
 RUN go mod download
 
-ADD internal internal
-ADD testing testing
-ADD modules modules
-ADD LICENSE LICENSE
+# TODO: add specific Dockerfile to each branch adding only the required directories.
+#ADD internal internal
+#ADD testing testing
+#ADD modules modules
+#ADD LICENSE LICENSE
+#COPY contrib/devtools/Makefile contrib/devtools/Makefile
+#COPY Makefile .
 
-COPY contrib/devtools/Makefile contrib/devtools/Makefile
-COPY Makefile .
+ADD . .
 
 RUN make build
 

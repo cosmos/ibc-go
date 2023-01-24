@@ -41,7 +41,7 @@ func (s *TransferTestSuite) QueryTransferSendEnabledParam(ctx context.Context, c
 	return enabled
 }
 
-// QueryTransferSendEnabledParam queries the on-chain receive enabled param for the transfer module
+// QueryTransferReceiveEnabledParam queries the on-chain receive enabled param for the transfer module
 func (s *TransferTestSuite) QueryTransferReceiveEnabledParam(ctx context.Context, chain ibc.Chain) bool {
 	queryClient := s.GetChainGRCPClients(chain).ParamsQueryClient
 	res, err := queryClient.Params(ctx, &paramsproposaltypes.QueryParamsRequest{
@@ -336,7 +336,7 @@ func (s *TransferTestSuite) TestReceiveEnabledParam() {
 		})
 	})
 
-	t.Run("change send enabled parameter to disabled ", func(t *testing.T) {
+	t.Run("change receive enabled parameter to disabled ", func(t *testing.T) {
 		changes := []paramsproposaltypes.ParamChange{
 			paramsproposaltypes.NewParamChange(transfertypes.StoreKey, string(transfertypes.KeyReceiveEnabled), "false"),
 		}

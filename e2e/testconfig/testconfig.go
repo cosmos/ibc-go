@@ -8,14 +8,11 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module/testutil"
-	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	gogoproto "github.com/cosmos/gogoproto/proto"
 	"github.com/strangelove-ventures/ibctest/v7/ibc"
-	tmjson "github.com/tendermint/tendermint/libs/json"
-	tmtypes "github.com/tendermint/tendermint/types"
 
 	"github.com/cosmos/ibc-go/e2e/semverutil"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
@@ -190,42 +187,65 @@ var govGenesisFeatureReleases = semverutil.FeatureReleases{
 
 // defaultModifyGenesis will only modify governance params to ensure the voting period and minimum deposit
 // are functional for e2e testing purposes.
+// Note: this function intentionally does not use the type defined here https://github.com/tendermint/tendermint/blob/v0.37.0-rc2/types/genesis.go#L38-L46
+// and uses a map[string]interface{} instead.
+// This approach prevents the field block.TimeIotaMs from being lost which happened when using the GenesisDoc type from tendermint version v0.37.0.
+// ibctest performs the following steps when creating the genesis.json file for chains.
+// - 1. Let the chain binary create its own genesis file.
+// - 2. Apply any provided functions to modify the bytes of the file.
+// - 3. Overwrite the file with the new contents.
+// This is a problem because when the tendermint types change, marshalling into the type will cause us to lose
+// values if the types have changed in between the version of the chain in the test and the version of tendermint
+// imported by the e2e tests.
+// By using a raw map[string]interface{} we preserve the values unknown to the e2e tests and can still change
+// the values we care about.
+// TODO: handle these genesis modifications in a way which is type safe and does not require us to rely on
+// map[string]interface{}
 func defaultModifyGenesis() func(ibc.ChainConfig, []byte) ([]byte, error) {
+	const appStateKey = "app_state"
 	return func(chainConfig ibc.ChainConfig, genbz []byte) ([]byte, error) {
-		genDoc, err := tmtypes.GenesisDocFromJSON(genbz)
+		genesisDocMap := map[string]interface{}{}
+		err := json.Unmarshal(genbz, &genesisDocMap)
 		if err != nil {
 			return nil, fmt.Errorf("failed to unmarshal genesis bytes into genesis doc: %w", err)
 		}
 
-		var appState genutiltypes.AppMap
-		if err := json.Unmarshal(genDoc.AppState, &appState); err != nil {
-			return nil, fmt.Errorf("failed to unmarshal genesis bytes into app state: %w", err)
+		appStateMap, ok := genesisDocMap[appStateKey].(map[string]interface{})
+		if !ok {
+			return nil, fmt.Errorf("failed to extract to app_state")
 		}
 
-		govGenBz, err := modifyGovAppState(chainConfig, appState[govtypes.ModuleName])
+		govModuleBytes, err := json.Marshal(appStateMap[govtypes.ModuleName])
+		if err != nil {
+			return nil, fmt.Errorf("failed to extract gov genesis bytes: %s", err)
+		}
+
+		govModuleGenesisBytes, err := modifyGovAppState(chainConfig, govModuleBytes)
 		if err != nil {
 			return nil, err
 		}
 
-		appState[govtypes.ModuleName] = govGenBz
+		govModuleGenesisMap := map[string]interface{}{}
+		err = json.Unmarshal(govModuleGenesisBytes, &govModuleGenesisMap)
+		if err != nil {
+			return nil, fmt.Errorf("failed to unmarshal gov genesis bytes into map: %w", err)
+		}
 
-		genDoc.AppState, err = json.Marshal(appState)
+		appStateMap[govtypes.ModuleName] = govModuleGenesisMap
+		genesisDocMap[appStateKey] = appStateMap
+
+		finalGenesisDocBytes, err := json.MarshalIndent(genesisDocMap, "", " ")
 		if err != nil {
 			return nil, err
 		}
 
-		bz, err := tmjson.MarshalIndent(genDoc, "", "  ")
-		if err != nil {
-			return nil, err
-		}
-
-		return bz, nil
+		return finalGenesisDocBytes, nil
 	}
 }
 
 // modifyGovAppState takes the existing gov app state and marshals it to either a govv1 GenesisState
 // or a govv1beta1 GenesisState depending on the simapp version.
-func modifyGovAppState(chainConfig ibc.ChainConfig, govAppState json.RawMessage) ([]byte, error) {
+func modifyGovAppState(chainConfig ibc.ChainConfig, govAppState []byte) ([]byte, error) {
 	cfg := testutil.MakeTestEncodingConfig()
 
 	cdc := codec.NewProtoCodec(cfg.InterfaceRegistry)
