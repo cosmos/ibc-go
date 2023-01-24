@@ -96,8 +96,8 @@ message MsgConnectionOpenAck {
   ibc.core.client.v1.Height consensus_height = 9
       [(gogoproto.moretags) = "yaml:\"consensus_height\"", (gogoproto.nullable) = false];
   string signer = 10;
-    // optional proof data for host state machines that are unable to introspect their own consensus state
-    bytes host_consensus_state_proof = 11;
+  // optional proof data for host state machines that are unable to introspect their own consensus state
+  bytes host_consensus_state_proof = 11;
 }
 
 // MsgConnectionOpenAckResponse defines the Msg/ConnectionOpenAck response type.
