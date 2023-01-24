@@ -17,8 +17,8 @@ import (
 	abci "github.com/tendermint/tendermint/abci/types"
 
 	ibcclient "github.com/cosmos/ibc-go/v6/modules/core/02-client"
-	clientkeeper "github.com/cosmos/ibc-go/v6/modules/core/02-client/keeper"
 	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
+	connectionkeeper "github.com/cosmos/ibc-go/v6/modules/core/03-connection/keeper"
 	connectiontypes "github.com/cosmos/ibc-go/v6/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	"github.com/cosmos/ibc-go/v6/modules/core/client/cli"
@@ -124,8 +124,8 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	channeltypes.RegisterMsgServer(cfg.MsgServer(), am.keeper)
 	types.RegisterQueryService(cfg.QueryServer(), am.keeper)
 
-	m := clientkeeper.NewMigrator(am.keeper.ClientKeeper)
-	err := cfg.RegisterMigration(exported.ModuleName, 2, m.Migrate2to3)
+	m := connectionkeeper.NewMigrator(am.keeper.ConnectionKeeper)
+	err := cfg.RegisterMigration(exported.ModuleName, 3, m.Migrate3to4)
 	if err != nil {
 		panic(err)
 	}
@@ -150,7 +150,7 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 }
 
 // ConsensusVersion implements AppModule/ConsensusVersion.
-func (AppModule) ConsensusVersion() uint64 { return 3 }
+func (AppModule) ConsensusVersion() uint64 { return 4 }
 
 // BeginBlock returns the begin blocker for the ibc module.
 func (am AppModule) BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock) {
