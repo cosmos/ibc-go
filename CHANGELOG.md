@@ -36,23 +36,29 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## [Unreleased]
 
-### Dependencies
-
-* [\#2868](https://github.com/cosmos/ibc-go/pull/2868) Bump ICS 23 to v0.9.0. 
-
-### API Breaking
+## [4.3.0] - 2023-01-24
 
 ### State Machine Breaking
 
-* (apps/29-fee) [\#2942](https://github.com/cosmos/ibc-go/pull/2942) Check `x/bank` send enabled before escrowing fees
+* Write channel state before invoking app callbacks in ack and confirm channel handshake steps ([#2973](https://github.com/cosmos/ibc-go/issues/2973))
 
 ### Improvements
 
-* (apps/29-fee) [\#2786](https://github.com/cosmos/ibc-go/pull/2786) Save gas by checking key existence with `KVStore`'s `Has` method.
-
-### Features
+* Save gas on IsFeeEnabled ([#2786](https://github.com/cosmos/ibc-go/issues/2786))
 
 ### Bug Fixes
+
+* Check `x/bank` send enabled before escrowing fees ([#2942](https://github.com/cosmos/ibc-go/issues/2942)) ([#2952](https://github.com/cosmos/ibc-go/issues/2952))
+
+### Documentation
+
+* Fix migration/docs for ICA controller middleware ([#2737](https://github.com/cosmos/ibc-go/issues/2737)) ([#2763](https://github.com/cosmos/ibc-go/issues/2763))
+
+### Miscellaneous Tasks
+
+* Integrated git cliff into the code base to automate generation of changelogs ([#2772](https://github.com/cosmos/ibc-go/issues/2772))
+* Bump ics23 to v0.9.0 ([#2868](https://github.com/cosmos/ibc-go/issues/2868)) ([#2877](https://github.com/cosmos/ibc-go/issues/2877))
+
 
 ## [v4.2.0](https://github.com/cosmos/ibc-go/releases/tag/v4.2.0) - 2022-11-07
 
