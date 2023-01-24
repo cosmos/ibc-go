@@ -139,7 +139,6 @@ func (cs ClientState) CheckForMisbehaviour(ctx sdk.Context, cdc codec.BinaryCode
 
 // UpdateStateOnMisbehaviour should perform appropriate state changes on a client state given that misbehaviour has been detected and verified
 func (cs ClientState) UpdateStateOnMisbehaviour(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, clientMsg exported.ClientMessage) {
-
 }
 
 // UpdateState updates and stores as necessary any associated information for an IBC client, such as the ClientState and corresponding ConsensusState.
