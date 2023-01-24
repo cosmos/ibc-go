@@ -208,6 +208,7 @@ func (k Keeper) GetAllConnections(ctx sdk.Context) (connections []types.Identifi
 	return connections
 }
 
+// GetSentinelLocalhostConnectionEnd returns the sentinel localhost connection end.
 func (k Keeper) GetSentinelLocalhostConnectionEnd() types.ConnectionEnd {
 	counterparty := types.NewCounterparty(exported.Localhost, types.LocalhostID, commitmenttypes.NewMerklePrefix(k.GetCommitmentPrefix().Bytes()))
 	return types.ConnectionEnd{
