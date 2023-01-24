@@ -112,14 +112,12 @@ func (suite *KeeperTestSuite) TestQueryChannels() {
 	)
 
 	testCases := []struct {
-		msg              string
-		expectedChannels uint64
-		malleate         func()
-		expPass          bool
+		msg      string
+		malleate func()
+		expPass  bool
 	}{
 		{
 			"empty request",
-			0,
 			func() {
 				req = nil
 			},
@@ -127,7 +125,6 @@ func (suite *KeeperTestSuite) TestQueryChannels() {
 		},
 		{
 			"empty pagination",
-			0,
 			func() {
 				req = &types.QueryChannelsRequest{}
 			},
@@ -135,7 +132,6 @@ func (suite *KeeperTestSuite) TestQueryChannels() {
 		},
 		{
 			"success",
-			2,
 			func() {
 				path := ibctesting.NewPath(suite.chainA, suite.chainB)
 				suite.coordinator.Setup(path)
@@ -197,7 +193,6 @@ func (suite *KeeperTestSuite) TestQueryChannels() {
 			if tc.expPass {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
-				suite.Require().Equal(tc.expectedChannels, res.Pagination.Total)
 				suite.Require().Equal(expChannels, res.Channels)
 				suite.Require().Equal(len(expChannels), int(res.Pagination.Total))
 			} else {

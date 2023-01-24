@@ -166,8 +166,8 @@ func (suite *KeeperTestSuite) TestQueryClientStates() {
 			if tc.expPass {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
-				suite.Require().Equal(uint64(len(expClientStates)), res.Pagination.Total)
 				suite.Require().Equal(expClientStates.Sort(), res.ClientStates)
+				suite.Require().Equal(len(expClientStates), int(res.Pagination.Total))
 			} else {
 				suite.Require().Error(err)
 			}
@@ -327,9 +327,6 @@ func (suite *KeeperTestSuite) TestQueryConsensusStates() {
 			func() {
 				path := ibctesting.NewPath(suite.chainA, suite.chainB)
 				suite.coordinator.SetupClients(path)
-
-				path1 := ibctesting.NewPath(suite.chainA, suite.chainB)
-				suite.coordinator.SetupClients(path1)
 
 				height1 := path.EndpointA.GetClientState().GetLatestHeight().(types.Height)
 				expConsensusStates = append(
