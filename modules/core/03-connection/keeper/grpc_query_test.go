@@ -87,9 +87,13 @@ func (suite *KeeperTestSuite) TestQueryConnection() {
 }
 
 func (suite *KeeperTestSuite) TestQueryConnections() {
+
+	localhostConnectionEnd := suite.chainA.App.GetIBCKeeper().ConnectionKeeper.GetSentinelLocalhostConnectionEnd()
+	localhostConn := types.NewIdentifiedConnection(types.LocalhostID, localhostConnectionEnd)
+
 	var (
 		req            *types.QueryConnectionsRequest
-		expConnections = []*types.IdentifiedConnection{}
+		expConnections = []*types.IdentifiedConnection{&localhostConn}
 	)
 
 	testCases := []struct {
@@ -137,11 +141,11 @@ func (suite *KeeperTestSuite) TestQueryConnections() {
 				iconn2 := types.NewIdentifiedConnection(path2.EndpointA.ConnectionID, conn2)
 				iconn3 := types.NewIdentifiedConnection(path3.EndpointA.ConnectionID, conn3)
 
-				expConnections = []*types.IdentifiedConnection{&iconn1, &iconn2, &iconn3}
+				expConnections = []*types.IdentifiedConnection{&iconn1, &iconn2, &iconn3, &localhostConn}
 
 				req = &types.QueryConnectionsRequest{
 					Pagination: &query.PageRequest{
-						Limit:      3,
+						Limit:      4,
 						CountTotal: true,
 					},
 				}

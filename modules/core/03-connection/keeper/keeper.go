@@ -208,16 +208,19 @@ func (k Keeper) GetAllConnections(ctx sdk.Context) (connections []types.Identifi
 	return connections
 }
 
-// CreateLocalhostConnectionEnd writes a sentinel localhost ConnectionEnd to state.
-func (k Keeper) CreateLocalhostConnectionEnd(ctx sdk.Context) {
+func (k Keeper) GetSentinelLocalhostConnectionEnd() types.ConnectionEnd {
 	counterparty := types.NewCounterparty(exported.Localhost, types.LocalhostID, commitmenttypes.NewMerklePrefix(k.GetCommitmentPrefix().Bytes()))
-	connectionEnd := types.ConnectionEnd{
+	return types.ConnectionEnd{
 		State:        types.OPEN,
 		ClientId:     exported.Localhost,
 		Versions:     types.ExportedVersionsToProto(types.GetCompatibleVersions()),
 		Counterparty: counterparty,
 	}
+}
 
+// CreateLocalhostConnectionEnd writes a sentinel localhost ConnectionEnd to state.
+func (k Keeper) CreateLocalhostConnectionEnd(ctx sdk.Context) {
+	connectionEnd := k.GetSentinelLocalhostConnectionEnd()
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshal(&connectionEnd)
 	store.Set(host.ConnectionKey(types.LocalhostID), bz)
