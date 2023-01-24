@@ -31,12 +31,18 @@ Types of changes (Stanzas):
 "State Machine Breaking" for any changes that result in a different AppState given the same genesisState and txList.
 Ref: https://keepachangelog.com/en/1.0.0/
 -->
-
 # Changelog
+
+All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
-## [4.3.0] - 2023-01-24
+## [v4.3.0](https://github.com/cosmos/ibc-go/releases/tag/v4.3.0) - 2023-01-24
+
+### Dependencies
+
+* Bump Cosmos SDK to v0.45.12 ([#3049](https://github.com/cosmos/ibc-go/issues/3049))
+* Bump ics23 to v0.9.0 ([#2868](https://github.com/cosmos/ibc-go/issues/2868)) ([#2877](https://github.com/cosmos/ibc-go/issues/2877))
 
 ### State Machine Breaking
 
@@ -57,8 +63,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Miscellaneous Tasks
 
 * Integrated git cliff into the code base to automate generation of changelogs ([#2772](https://github.com/cosmos/ibc-go/issues/2772))
-* Bump ics23 to v0.9.0 ([#2868](https://github.com/cosmos/ibc-go/issues/2868)) ([#2877](https://github.com/cosmos/ibc-go/issues/2877))
-
+* Updating CHANGELOG and cliff toml
 
 ## [v4.2.0](https://github.com/cosmos/ibc-go/releases/tag/v4.2.0) - 2022-11-07
 

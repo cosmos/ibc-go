@@ -30,7 +30,9 @@ Ref: https://keepachangelog.com/en/1.0.0/
 -->
 
 # Changelog
+
 All notable changes to this project will be documented in this file.
+
 """
 # template for the changelog body
 # https://tera.netlify.app/docs/#introduction
