@@ -8,34 +8,34 @@ It is vital that high-value IBC clients can upgrade along with their underlying 
 
 The IBC protocol allows client implementations to provide a path to upgrading clients given the upgraded client state, upgraded consensus state and proofs for each. This path is provided in the `VerifyUpgradeAndUpdateState` function:
 
-```golang	
+```go	
 // NOTE: proof heights are not included as upgrade to a new revision is expected to pass only on the last height committed by the current revision. Clients are responsible for ensuring that the planned last height of the current revision is somehow encoded in the proof verification process.
 // This is to ensure that no premature upgrades occur, since upgrade plans committed to by the counterparty may be cancelled or modified before the last planned height.
 // If the upgrade is verified, the upgraded client and consensus states must be set in the client store.
 VerifyUpgradeAndUpdateState(
-    ctx sdk.Context,
-    cdc codec.BinaryCodec,
-    store sdk.KVStore,
-    newClient ClientState,
-    newConsState ConsensusState,
-    proofUpgradeClient,
-    proofUpgradeConsState []byte,
+  ctx sdk.Context,
+  cdc codec.BinaryCodec,
+  store sdk.KVStore,
+  newClient ClientState,
+  newConsState ConsensusState,
+  proofUpgradeClient,
+  proofUpgradeConsState []byte,
 ) error
 ```
 
 It is important to note that light clients **must** handle all management of client and consensus states including the setting of updated client state and consensus state in the client store. This can include verifying that the submitted upgraded `ClientState` is of a valid `ClientState` type, that the height of the upgraded client is not greater than the height of the current client (in order to preserve BFT monotonic time), or that certain parameters which should not be changed have not been altered in the upgraded client state.
 
-Note that the clients should have prior knowledge of the merkle path that the upgraded client and upgraded consensus states will use. The height at which the upgrade has occurred should also be encoded in the proof. The Tendermint client implementation accomplishes this by including an `UpgradePath` in the ClientState itself, which is used along with the upgrade height to construct the merkle path under which the client state and consensus state are committed.
+Note that the clients should have prior knowledge of the merkle path that the upgraded client and upgraded consensus states will use. The height at which the upgrade has occurred should also be encoded in the proof. The Tendermint client implementation accomplishes this by including an `UpgradePath` in the `ClientState` itself, which is used along with the upgrade height to construct the merkle path under which the client state and consensus state are committed.
 
-Developers must ensure that the `UpgradeClientMsg` does not pass until the last height of the old chain has been committed, and after the chain upgrades, the `UpgradeClientMsg` should pass once and only once on all counterparty clients.
+Developers must ensure that the `MsgUpgradeClient` does not pass until the last height of the old chain has been committed, and after the chain upgrades, the `MsgUpgradeClient` should pass once and only once on all counterparty clients.
 
-Developers must ensure that the new client adopts all of the new Client parameters that must be uniform across every valid light client of a chain (chain-chosen parameters), while maintaining the Client parameters that are customizable by each individual client (client-chosen parameters) from the previous version of the client.
+Developers must ensure that the new client adopts all of the new client parameters that must be uniform across every valid light client of a chain (chain-chosen parameters), while maintaining the client parameters that are customizable by each individual client (client-chosen parameters) from the previous version of the client.
 
-Upgrades must adhere to the IBC Security Model. IBC does not rely on the assumption of honest relayers for correctness. Thus users should not have to rely on relayers to maintain client correctness and security (though honest relayers must exist to maintain relayer liveness). While relayers may choose any set of client parameters while creating a new `ClientState`, this still holds under the security model since users can always choose a relayer-created client that suits their security and correctness needs or create a Client with their desired parameters if no such client exists.
+Upgrades must adhere to the IBC Security Model. IBC does not rely on the assumption of honest relayers for correctness. Thus users should not have to rely on relayers to maintain client correctness and security (though honest relayers must exist to maintain relayer liveness). While relayers may choose any set of client parameters while creating a new `ClientState`, this still holds under the security model since users can always choose a relayer-created client that suits their security and correctness needs or create a client with their desired parameters if no such client exists.
 
-However, when upgrading an existing client, one must keep in mind that there are already many users who depend on this client's particular parameters. We cannot give the upgrading relayer free choice over these parameters once they have already been chosen. This would violate the security model since users who rely on the client would have to rely on the upgrading relayer to maintain the same level of security. Thus, developers must make sure that their upgrade mechanism allows clients to upgrade the chain-specified parameters whenever a chain upgrade changes these parameters (examples in the Tendermint client include `UnbondingPeriod`, `TrustingPeriod`, `ChainID`, `UpgradePath`, etc.), while ensuring that the relayer submitting the `UpgradeClientMsg` cannot alter the client-chosen parameters that the users are relying upon (examples in Tendermint client include `TrustLevel`, `MaxClockDrift`, etc).
+However, when upgrading an existing client, one must keep in mind that there are already many users who depend on this client's particular parameters. We cannot give the upgrading relayer free choice over these parameters once they have already been chosen. This would violate the security model since users who rely on the client would have to rely on the upgrading relayer to maintain the same level of security. Thus, developers must make sure that their upgrade mechanism allows clients to upgrade the chain-specified parameters whenever a chain upgrade changes these parameters (examples in the Tendermint client include `UnbondingPeriod`, `TrustingPeriod`, `ChainID`, `UpgradePath`, etc.), while ensuring that the relayer submitting the `MsgUpgradeClient` cannot alter the client-chosen parameters that the users are relying upon (examples in Tendermint client include `TrustLevel`, `MaxClockDrift`, etc).
 
-Developers should maintain the distinction between Client parameters that are uniform across every valid light client of a chain (chain-chosen parameters), and Client parameters that are customizable by each individual client (client-chosen parameters); since this distinction is necessary to implement the `ZeroCustomFields` method in the `ClientState` interface:
+Developers should maintain the distinction between client parameters that are uniform across every valid light client of a chain (chain-chosen parameters), and client parameters that are customizable by each individual client (client-chosen parameters); since this distinction is necessary to implement the `ZeroCustomFields` method in the `ClientState` interface:
 
 ```go
 // Utility function that zeroes out any client customizable fields in client state

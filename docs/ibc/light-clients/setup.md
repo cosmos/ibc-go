@@ -8,7 +8,7 @@ Learn how to configure light client modules and create clients using core IBC an
 
 ## Configuring a light client module
 
-An IBC light client module must implement the [`AppModuleBasic`](https://github.com/cosmos/cosmos-sdk/blob/main/types/module/module.go#L50) interface in order to register its concrete types against the core IBC interfaces defined in `modules/core/exported`. This is accomplished via the `RegisterInterfaces` method which provides the light client module with the opportunity to register codec types using the chain's `InterfaceRegistery`. Please refer to the [`07-tendermint` codec registration](https://github.com/cosmos/ibc-go/blob/02-client-refactor-beta1/modules/light-clients/07-tendermint/codec.go#L11).
+An IBC light client module must implement the [`AppModuleBasic`](https://github.com/cosmos/cosmos-sdk/blob/main/types/module/module.go#L50) interface in order to register its concrete types against the core IBC interfaces defined in `modules/core/exported`. This is accomplished via the `RegisterInterfaces` method which provides the light client module with the opportunity to register codec types using the chain's `InterfaceRegistry`. Please refer to the [`07-tendermint` codec registration](https://github.com/cosmos/ibc-go/blob/02-client-refactor-beta1/modules/light-clients/07-tendermint/codec.go#L11).
 
 The `AppModuleBasic` interface may also be leveraged to install custom CLI handlers for light client module users. Light client modules can safely no-op for interface methods which it does not wish to implement.
 
@@ -95,7 +95,7 @@ Leveraging protobuf `Any` encoding allows core IBC to [unpack](https://github.co
 
 Within the `02-client` submodule, the [`ClientState` is then initialized](https://github.com/cosmos/ibc-go/blob/02-client-refactor-beta1/modules/core/02-client/keeper/client.go#L30-L34) with its own isolated key-value store, namespaced using a unique client identifier.
  
-In order to successfully create an IBC client using a new client type it [must be supported](https://github.com/cosmos/ibc-go/blob/02-client-refactor-beta1/modules/core/02-client/keeper/client.go#L18-L24). Light client support in IBC is gated by on-chain governance. The allow list may be updated by submitting a new governance proposal to update the `02-client` parameter `AllowedClients`.
+In order to successfully create an IBC client using a new client type, it [must be supported](https://github.com/cosmos/ibc-go/blob/02-client-refactor-beta1/modules/core/02-client/keeper/client.go#L18-L24). Light client support in IBC is gated by on-chain governance. The allow list may be updated by submitting a new governance proposal to update the `02-client` parameter `AllowedClients`.
 
 <!-- 
 - TODO: update when params are managed by ibc-go 
@@ -103,9 +103,13 @@ In order to successfully create an IBC client using a new client type it [must b
 -->
 See below for example:
 
-```
+```shell
 $ %s tx gov submit-proposal param-change <path/to/proposal.json> --from=<key_or_address>
-Where proposal.json contains:
+```
+
+where `proposal.json` contains:
+
+```json
 {
   "title": "IBC Clients Param Change",
   "description": "Update allowed clients",

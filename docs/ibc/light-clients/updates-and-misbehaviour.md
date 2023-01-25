@@ -22,11 +22,11 @@ Checks for evidence of a misbehaviour in `Header` or `Misbehaviour` type. It ass
 
 For an example of a `CheckForMisbehaviour` implementation, please check the [Tendermint light client](https://github.com/cosmos/ibc-go/blob/main/modules/light-clients/07-tendermint/misbehaviour_handle.go#L18).
 
-> The Tendermint light client [defines `Misbehaviour`](https://github.com/cosmos/ibc-go/blob/main/modules/light-clients/07-tendermint/misbehaviour.go) as two different types of situations: a situation where two conflicting `Headers` with the same height have been submitted to update a client's `ConsensusState` within the same trusting period, or that the two conflicting `Headers` have been submitted at different heights but the consensus states are not in the correct monotonic time ordering (BFT time violation). More explicitly, updating to a new height must have a timestamp greater than the previous consensus state, or, if inserting a consensus at a past height, then time must be less than those heights which come after and greater than heights which come before.
+> The Tendermint light client [defines `Misbehaviour`](https://github.com/cosmos/ibc-go/blob/main/modules/light-clients/07-tendermint/misbehaviour.go) as two different types of situations: a situation where two conflicting `Header`s with the same height have been submitted to update a client's `ConsensusState` within the same trusting period, or that the two conflicting `Header`s have been submitted at different heights but the consensus states are not in the correct monotonic time ordering (BFT time violation). More explicitly, updating to a new height must have a timestamp greater than the previous consensus state, or, if inserting a consensus at a past height, then time must be less than those heights which come after and greater than heights which come before.
 
 ## `UpdateStateOnMisbehaviour`
 
-`UpdateStateOnMisbehaviour` should perform appropriate state changes on a client state given that misbehaviour has been detected and verified. This method should only be called when misbehaviour is detected, as it does not perform any misbehaviour checks. Notably, it should freeze the client so that calling the `Status()` function on the associated client state no longer returns `Active`.
+`UpdateStateOnMisbehaviour` should perform appropriate state changes on a client state given that misbehaviour has been detected and verified. This method should only be called when misbehaviour is detected, as it does not perform any misbehaviour checks. Notably, it should freeze the client so that calling the `Status` function on the associated client state no longer returns `Active`.
 
 For an example of a `UpdateStateOnMisbehaviour` implementation, please check the [Tendermint light client](https://github.com/cosmos/ibc-go/blob/main/modules/light-clients/07-tendermint/update.go#L197).
 
@@ -40,22 +40,21 @@ For an example of a `UpdateState` implementation, please check the [Tendermint l
 
 ## Putting it all together
 
-The `02-client Keeper` module in ibc-go offers a reference as to how these functions will be used to [update the client](https://github.com/cosmos/ibc-go/blob/main/modules/core/02-client/keeper/client.go#L48).
+The `02-client` `Keeper` module in ibc-go offers a reference as to how these functions will be used to [update the client](https://github.com/cosmos/ibc-go/blob/main/modules/core/02-client/keeper/client.go#L48).
 
-```golang
+```go
 if err := clientState.VerifyClientMessage(clientMessage); err != nil {
-        return err
-    }
-    
-    foundMisbehaviour := clientState.CheckForMisbehaviour(clientMessage)
-    if foundMisbehaviour {
-        clientState.UpdateStateOnMisbehaviour(clientMessage)
-        // emit misbehaviour event
-        return 
-    }
-    
-    clientState.UpdateState(clientMessage) // expects no-op on duplicate header
-    // emit update event
-    return
+  return err
 }
 
+foundMisbehaviour := clientState.CheckForMisbehaviour(clientMessage)
+if foundMisbehaviour {
+  clientState.UpdateStateOnMisbehaviour(clientMessage)
+  // emit misbehaviour event
+  return 
+}
+
+clientState.UpdateState(clientMessage) // expects no-op on duplicate header
+  // emit update event
+  return
+}
