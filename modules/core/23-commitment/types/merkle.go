@@ -10,7 +10,7 @@ import (
 	ics23 "github.com/cosmos/ics23/go"
 	tmcrypto "github.com/tendermint/tendermint/proto/tendermint/crypto"
 
-	"github.com/cosmos/ibc-go/v6/modules/core/exported"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
 // var representing the proofspecs for a SDK chain
