@@ -16,16 +16,16 @@ import (
 	"github.com/spf13/cobra"
 	abci "github.com/tendermint/tendermint/abci/types"
 
-	ibcclient "github.com/cosmos/ibc-go/v6/modules/core/02-client"
-	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
-	connectionkeeper "github.com/cosmos/ibc-go/v6/modules/core/03-connection/keeper"
-	connectiontypes "github.com/cosmos/ibc-go/v6/modules/core/03-connection/types"
-	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
-	"github.com/cosmos/ibc-go/v6/modules/core/client/cli"
-	"github.com/cosmos/ibc-go/v6/modules/core/exported"
-	"github.com/cosmos/ibc-go/v6/modules/core/keeper"
-	"github.com/cosmos/ibc-go/v6/modules/core/simulation"
-	"github.com/cosmos/ibc-go/v6/modules/core/types"
+	ibcclient "github.com/cosmos/ibc-go/v7/modules/core/02-client"
+	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	connectionkeeper "github.com/cosmos/ibc-go/v7/modules/core/03-connection/keeper"
+	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
+	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	"github.com/cosmos/ibc-go/v7/modules/core/client/cli"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	"github.com/cosmos/ibc-go/v7/modules/core/keeper"
+	"github.com/cosmos/ibc-go/v7/modules/core/simulation"
+	"github.com/cosmos/ibc-go/v7/modules/core/types"
 )
 
 var (
