@@ -90,6 +90,10 @@ ModuleBasics = module.NewBasicManager(
 
 It may be useful to reference the [PR](https://github.com/cosmos/ibc-go/pull/2826) which added the `AppModuleBasic` for the solo machine client.
 
+### Testing package API 
+
+The `SetChannelClosed` utility method in `testing/endpoint.go` has been updated to `SetChannelState`, which will take a `channeltypes.State` argument so that the `ChannelState` can be set to any of the possible channel states. 
+
 ## IBC Apps
 
 - No relevant changes were made in this release.
