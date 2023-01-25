@@ -5,15 +5,14 @@ go 1.19
 require (
 	github.com/cosmos/cosmos-sdk v0.47.0-rc1
 	github.com/cosmos/gogoproto v1.4.3
-	github.com/cosmos/ibc-go/v6 v6.0.0
-	github.com/cosmos/interchain-accounts v0.4.0
+	github.com/cosmos/ibc-go/v7 v7.0.0-20230120105519-ae96bf3d5ee9
+	github.com/cosmos/interchain-accounts v0.4.1-0.20230116203650-08d2a4529a5d
 	github.com/docker/docker v20.10.19+incompatible
-	github.com/strangelove-ventures/ibctest/v6 v6.0.0-20221213164329-65302bcc9e4c
+	github.com/strangelove-ventures/ibctest/v7 v7.0.0-20230124162348-0fcd87d2151a
 	github.com/stretchr/testify v1.8.1
-	github.com/tendermint/tendermint v0.37.0-rc2
 	go.uber.org/zap v1.23.0
 	golang.org/x/mod v0.6.0
-	google.golang.org/grpc v1.52.0
+	google.golang.org/grpc v1.52.1
 )
 
 require (
@@ -181,6 +180,7 @@ require (
 	github.com/tendermint/btcd v0.1.1 // indirect
 	github.com/tendermint/crypto v0.0.0-20191022145703-50d29ede1e15 // indirect
 	github.com/tendermint/go-amino v0.16.0 // indirect
+	github.com/tendermint/tendermint v0.37.0-rc2 // indirect
 	github.com/tendermint/tm-db v0.6.7 // indirect
 	github.com/tidwall/btree v1.5.2 // indirect
 	github.com/ulikunitz/xz v0.5.8 // indirect
@@ -233,10 +233,6 @@ replace (
 )
 
 // uncomment to use the local version of ibc-go, you will need to run `go mod tidy` in e2e directory.
-replace github.com/cosmos/ibc-go/v6 => ../
+replace github.com/cosmos/ibc-go/v7 => ../
 
-replace (
-	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
-	// ibctest 0.47 @ https://github.com/strangelove-ventures/ibctest/pull/359
-	github.com/strangelove-ventures/ibctest/v6 => github.com/strangelove-ventures/ibctest/v6 v6.0.0-20230113051458-0350de5d1025
-)
+replace github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
