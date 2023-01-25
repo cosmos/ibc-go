@@ -97,6 +97,8 @@ message QueryIncentivizedPacketRequest {
 message QueryIncentivizedPacketResponse {
   // the identified fees for the incentivized packet
   ibc.applications.fee.v1.IdentifiedPacketFees incentivized_packet = 1 [(gogoproto.nullable) = false];
+  // pagination defines the pagination in the response.
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
 // QueryIncentivizedPacketsForChannelRequest defines the request type for querying for all incentivized packets
@@ -114,6 +116,8 @@ message QueryIncentivizedPacketsForChannelRequest {
 message QueryIncentivizedPacketsForChannelResponse {
   // Map of all incentivized_packets
   repeated ibc.applications.fee.v1.IdentifiedPacketFees incentivized_packets = 1;
+  // pagination defines the pagination in the response.
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
 // QueryTotalRecvFeesRequest defines the request type for the TotalRecvFees rpc
