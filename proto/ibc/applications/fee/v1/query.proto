@@ -209,6 +209,8 @@ message QueryFeeEnabledChannelsResponse {
   // list of fee enabled channels
   repeated ibc.applications.fee.v1.FeeEnabledChannel fee_enabled_channels = 1
       [(gogoproto.moretags) = "yaml:\"fee_enabled_channels\"", (gogoproto.nullable) = false];
+  // pagination defines the pagination in the response.
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
 // QueryFeeEnabledChannelRequest defines the request type for the FeeEnabledChannel rpc

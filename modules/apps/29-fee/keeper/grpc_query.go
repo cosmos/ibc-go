@@ -219,7 +219,7 @@ func (k Keeper) FeeEnabledChannels(goCtx context.Context, req *types.QueryFeeEna
 
 	var feeEnabledChannels []types.FeeEnabledChannel
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte(types.FeeEnabledKeyPrefix))
-	_, err := query.Paginate(store, req.Pagination, func(key, value []byte) error {
+	pagination, err := query.Paginate(store, req.Pagination, func(key, value []byte) error {
 		portID, channelID, err := types.ParseKeyFeeEnabled(types.FeeEnabledKeyPrefix + string(key))
 		if err != nil {
 			return err
@@ -240,6 +240,7 @@ func (k Keeper) FeeEnabledChannels(goCtx context.Context, req *types.QueryFeeEna
 
 	return &types.QueryFeeEnabledChannelsResponse{
 		FeeEnabledChannels: feeEnabledChannels,
+		Pagination:         pagination,
 	}, nil
 }
 
