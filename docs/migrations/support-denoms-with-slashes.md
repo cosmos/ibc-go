@@ -4,6 +4,7 @@ This document is intended to highlight significant changes which may require mor
 Any changes that must be done by a user of ibc-go should be documented here.
 
 There are four sections based on the four potential user groups of this document:
+
 - Chains
 - IBC Apps
 - Relayers
@@ -48,33 +49,33 @@ The migration code required may look like:
 
 ```go
 func migrateGenesisSlashedDenomsUpgrade(appState genutiltypes.AppMap, clientCtx client.Context, genDoc *tmtypes.GenesisDoc) (genutiltypes.AppMap, error) {
-	if appState[ibctransfertypes.ModuleName] != nil {
-		transferGenState := &ibctransfertypes.GenesisState{}
-		clientCtx.Codec.MustUnmarshalJSON(appState[ibctransfertypes.ModuleName], transferGenState)
+ if appState[ibctransfertypes.ModuleName] != nil {
+  transferGenState := &ibctransfertypes.GenesisState{}
+  clientCtx.Codec.MustUnmarshalJSON(appState[ibctransfertypes.ModuleName], transferGenState)
 
-		substituteTraces := make([]ibctransfertypes.DenomTrace, len(transferGenState.DenomTraces))
-		for i, dt := range transferGenState.DenomTraces {
-			// replace all previous traces with the latest trace if validation passes
-			// note most traces will have same value
-			newTrace := ibctransfertypes.ParseDenomTrace(dt.GetFullDenomPath())
+  substituteTraces := make([]ibctransfertypes.DenomTrace, len(transferGenState.DenomTraces))
+  for i, dt := range transferGenState.DenomTraces {
+   // replace all previous traces with the latest trace if validation passes
+   // note most traces will have same value
+   newTrace := ibctransfertypes.ParseDenomTrace(dt.GetFullDenomPath())
 
-			if err := newTrace.Validate(); err != nil {
-				substituteTraces[i] = dt
-			} else {
-				substituteTraces[i] = newTrace
-			}
-		}
+   if err := newTrace.Validate(); err != nil {
+    substituteTraces[i] = dt
+   } else {
+    substituteTraces[i] = newTrace
+   }
+  }
 
-		transferGenState.DenomTraces = substituteTraces
+  transferGenState.DenomTraces = substituteTraces
 
-		// delete old genesis state
-		delete(appState, ibctransfertypes.ModuleName)
+  // delete old genesis state
+  delete(appState, ibctransfertypes.ModuleName)
 
-		// set new ibc transfer genesis state
-		appState[ibctransfertypes.ModuleName] = clientCtx.Codec.MustMarshalJSON(transferGenState)
-	}
+  // set new ibc transfer genesis state
+  appState[ibctransfertypes.ModuleName] = clientCtx.Codec.MustMarshalJSON(transferGenState)
+ }
 
-	return appState, nil
+ return appState, nil
 }
 ```
 

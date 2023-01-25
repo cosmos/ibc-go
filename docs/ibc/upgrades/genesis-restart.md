@@ -10,9 +10,9 @@ Learn how to upgrade your chain and counterparty clients using genesis restarts.
 
 ### IBC Client Breaking Upgrades
 
-IBC client breaking upgrades are possible using genesis restarts. 
+IBC client breaking upgrades are possible using genesis restarts.
 It is highly recommended to use the in-place migrations instead of a genesis restart.
-Genesis restarts should be used sparingly and as backup plans. 
+Genesis restarts should be used sparingly and as backup plans.
 
 Genesis restarts still require the usage of an IBC upgrade proposal in order to correctly upgrade counterparty clients.
 
@@ -22,7 +22,7 @@ If the IBC-connected chain is conducting an upgrade that will break counterparty
 
 1. Create a 02-client [`UpgradeProposal`](https://github.com/cosmos/ibc-go/blob/main/docs/ibc/proto-docs.md#upgradeproposal) with an `UpgradePlan` and a new IBC ClientState in the `UpgradedClientState` field. Note that the `UpgradePlan` must specify an upgrade height **only** (no upgrade time), and the `ClientState` should only include the fields common to all valid clients and zero out any client-customizable fields (such as TrustingPeriod).
 2. Vote on and pass the `UpgradeProposal`
-3. Halt the node after successful upgrade. 
+3. Halt the node after successful upgrade.
 4. Export the genesis file.
 5. Swap to the new binary.
 6. Run migrations on the genesis file.
@@ -41,9 +41,6 @@ These steps are identical to the regular [IBC client breaking upgrade process](h
 
 ### Non-IBC Client Breaking Upgrades
 
-While ibc-go supports genesis restarts which do not break IBC clients, relayers do not support this upgrade path. 
+While ibc-go supports genesis restarts which do not break IBC clients, relayers do not support this upgrade path.
 Here is a tracking issue on [Hermes](https://github.com/informalsystems/ibc-rs/issues/1152).
 Please do not attempt a regular genesis restarts unless you have a tool to update counterparty clients correctly.
-
-
-

@@ -50,8 +50,8 @@ func (k Keeper) OnChanOpenInit(ctx sdk.Context,
 ) error {
     // OpenInit must claim the channelCapability that IBC passes into the callback
     if err := k.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
-			return err
-	}
+   return err
+ }
 
     // ... do custom initialization logic
 
@@ -159,9 +159,9 @@ OnChanCloseConfirm(
 
 Application modules are expected to verify versioning used during the channel handshake procedure.
 
-* `ChanOpenInit` callback should verify that the `MsgChanOpenInit.Version` is valid
-* `ChanOpenTry` callback should construct the application version used for both channel ends. If no application version can be constructed, it must return an error. 
-* `ChanOpenAck` callback should verify that the `MsgChanOpenAck.CounterpartyVersion` is valid and supported.
+- `ChanOpenInit` callback should verify that the `MsgChanOpenInit.Version` is valid
+- `ChanOpenTry` callback should construct the application version used for both channel ends. If no application version can be constructed, it must return an error.
+- `ChanOpenAck` callback should verify that the `MsgChanOpenAck.CounterpartyVersion` is valid and supported.
 
 IBC expects application modules to perform application version negotiation in `OnChanOpenTry`. The negotiated version
 must be returned to core IBC. If the version cannot be negotiated, an error should be returned.
@@ -324,12 +324,13 @@ The IBC handler will then commit this acknowledgement of the packet so that a re
 acknowledgement back to the sender module.
 
 The state changes that occurred during this callback will only be written if:
+
 - the acknowledgement was successful as indicated by the `Success()` function of the acknowledgement
 - if the acknowledgement returned is nil indicating that an asynchronous process is occurring
 
 NOTE: Applications which process asynchronous acknowledgements must handle reverting state changes
-when appropriate. Any state changes that occurred during the `OnRecvPacket` callback will be written 
-for asynchronous acknowledgements. 
+when appropriate. Any state changes that occurred during the `OnRecvPacket` callback will be written
+for asynchronous acknowledgements.
 
 ```go
 OnRecvPacket(
@@ -351,22 +352,23 @@ OnRecvPacket(
 ```
 
 The Acknowledgement interface:
+
 ```go
 // Acknowledgement defines the interface used to return
 // acknowledgements in the OnRecvPacket callback.
 type Acknowledgement interface {
-	Success() bool
-	Acknowledgement() []byte
+ Success() bool
+ Acknowledgement() []byte
 }
 ```
 
 ### Acknowledgements
 
 Modules may commit an acknowledgement upon receiving and processing a packet in the case of synchronous packet processing.
-In the case where a packet is processed at some later point after the packet has been received (asynchronous execution), the acknowledgement 
+In the case where a packet is processed at some later point after the packet has been received (asynchronous execution), the acknowledgement
 will be written once the packet has been processed by the application which may be well after the packet receipt.
 
-NOTE: Most blockchain modules will want to use the synchronous execution model in which the module processes and writes the acknowledgement 
+NOTE: Most blockchain modules will want to use the synchronous execution model in which the module processes and writes the acknowledgement
 for a packet as soon as it has been received from the IBC module.
 
 This acknowledgement can then be relayed back to the original sender chain, which can take action
@@ -429,7 +431,7 @@ OnAcknowledgementPacket(
 
 #### Timeout Packets
 
-If the timeout for a packet is reached before the packet is successfully received or the 
+If the timeout for a packet is reached before the packet is successfully received or the
 counterparty channel end is closed before the packet is successfully received, then the receiving
 chain can no longer process it. Thus, the sending chain must process the timeout using
 `OnTimeoutPacket` to handle this situation. Again the IBC module will verify that the timeout is

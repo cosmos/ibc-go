@@ -4,6 +4,7 @@ This document is intended to highlight significant changes which may require mor
 Any changes that must be done by a user of ibc-go should be documented here.
 
 There are four sections based on the four potential user groups of this document:
+
 - Chains
 - IBC Apps
 - Relayers
@@ -13,13 +14,13 @@ There are four sections based on the four potential user groups of this document
 
 ## Chains
 
-The `ibc-go/v6` release introduces a new set of migrations for `27-interchain-accounts`. Ownership of ICS27 channel capabilities is transferred from ICS27 authentication modules and will now reside with the ICS27 controller submodule moving forward. 
+The `ibc-go/v6` release introduces a new set of migrations for `27-interchain-accounts`. Ownership of ICS27 channel capabilities is transferred from ICS27 authentication modules and will now reside with the ICS27 controller submodule moving forward.
 
 For chains which contain a custom authentication module using the ICS27 controller submodule this requires a migration function to be included in the chain upgrade handler. A subsequent migration handler is run automatically, asserting the ownership of ICS27 channel capabilities has been transferred successfully.
 
 This migration is not required for chains which *do not* contain a custom authentication module using the ICS27 controller submodule.
 
-This migration facilitates the addition of the ICS27 controller submodule `MsgServer` which provides a standardised approach to integrating existing forms of authentication such as `x/gov` and `x/group` provided by the Cosmos SDK. 
+This migration facilitates the addition of the ICS27 controller submodule `MsgServer` which provides a standardised approach to integrating existing forms of authentication such as `x/gov` and `x/group` provided by the Cosmos SDK.
 
 For more information please refer to [ADR 009](../architecture/adr-009-v6-ics27-msgserver.md).
 
@@ -58,7 +59,7 @@ func CreateUpgradeHandler(
     return func(ctx sdk.Context, _ upgradetypes.Plan, vm module.VersionMap) (module.VersionMap, error) {
         if err := v6.MigrateICS27ChannelCapability(ctx, cdc, capabilityStoreKey, capabilityKeeper, moduleName); err != nil {
             return nil, err
-    	}
+     }
 
         return mm.RunMigrations(ctx, configurator, vm)
     }
@@ -96,9 +97,9 @@ Prior to ibc-go v6 the controller submodule exposed only these two functions (to
 - [`RegisterInterchainAccount`](https://github.com/cosmos/ibc-go/blob/v5.0.0/modules/apps/27-interchain-accounts/controller/keeper/account.go#L19)
 - [`SendTx`](https://github.com/cosmos/ibc-go/blob/v5.0.0/modules/apps/27-interchain-accounts/controller/keeper/relay.go#L18)
 
-However, these functions have now been deprecated in favour of the new controller submodule `MsgServer` and will be removed in later releases. 
+However, these functions have now been deprecated in favour of the new controller submodule `MsgServer` and will be removed in later releases.
 
-Both APIs remain functional and maintain backwards compatibility in ibc-go v6, however consumers of these APIs are now recommended to follow the message passing paradigm outlined in Cosmos SDK [ADR 031](https://github.com/cosmos/cosmos-sdk/blob/main/docs/architecture/adr-031-msg-service.md) and [ADR 033](https://github.com/cosmos/cosmos-sdk/blob/main/docs/architecture/adr-033-protobuf-inter-module-comm.md). This is facilitated by the Cosmos SDK [`MsgServiceRouter`](https://github.com/cosmos/cosmos-sdk/blob/main/baseapp/msg_service_router.go#L17) and chain developers creating custom application logic can now omit the ICS27 controller submodule `Keeper` from their module and instead depend on message routing. 
+Both APIs remain functional and maintain backwards compatibility in ibc-go v6, however consumers of these APIs are now recommended to follow the message passing paradigm outlined in Cosmos SDK [ADR 031](https://github.com/cosmos/cosmos-sdk/blob/main/docs/architecture/adr-031-msg-service.md) and [ADR 033](https://github.com/cosmos/cosmos-sdk/blob/main/docs/architecture/adr-033-protobuf-inter-module-comm.md). This is facilitated by the Cosmos SDK [`MsgServiceRouter`](https://github.com/cosmos/cosmos-sdk/blob/main/baseapp/msg_service_router.go#L17) and chain developers creating custom application logic can now omit the ICS27 controller submodule `Keeper` from their module and instead depend on message routing.
 
 Depending on the use case, developers of custom authentication modules face one of three scenarios:
 
@@ -219,7 +220,7 @@ func NewKeeper(
 ) Keeper {
 ```
 
-### ICS20 - `SendTransfer` is no longer exported.
+### ICS20 - `SendTransfer` is no longer exported
 
 The `SendTransfer` function of ICS20 has been removed. IBC transfers should now be initiated with `MsgTransfer` and routed to the ICS20 `MsgServer`.
 
@@ -230,7 +231,7 @@ if handler := msgRouter.Handler(msgTransfer); handler != nil {
     if err := msgTransfer.ValidateBasic(); err != nil {
         return nil, err
     }
-	
+ 
     res, err := handler(ctx, msgTransfer)
     if err != nil {
         return nil, err
@@ -257,7 +258,7 @@ func (k Keeper) SendPacket(
 +) (uint64, error) {
 ```
 
-Callers no longer need to pass in a pre-constructed packet. 
+Callers no longer need to pass in a pre-constructed packet.
 The destination port/channel identifiers and the packet sequence will be determined by core IBC.
 `SendPacket` will return the packet sequence.
 

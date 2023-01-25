@@ -4,6 +4,7 @@ This document is intended to highlight significant changes which may require mor
 Any changes that must be done by a user of ibc-go should be documented here.
 
 There are four sections based on the four potential user groups of this document:
+
 - Chains
 - IBC Apps
 - Relayers
@@ -13,7 +14,7 @@ There are four sections based on the four potential user groups of this document
 
 ## Chains
 
-Chains will perform automatic migrations to remove existing localhost clients and to migrate the solomachine to v3 of the protobuf definition. 
+Chains will perform automatic migrations to remove existing localhost clients and to migrate the solomachine to v3 of the protobuf definition.
 
 An optional upgrade handler has been added to prune expired tendermint consensus states. It may be used during any upgrade (from v7 onwards).
 Add the following to the function call to the upgrade handler in `app/app.go`, to perform the optional state pruning.
@@ -44,7 +45,7 @@ Checkout the logs to see how many consensus states are pruned.
 
 ### Light client registration
 
-Chains must explicitly register the types of any light client modules it wishes to integrate. 
+Chains must explicitly register the types of any light client modules it wishes to integrate.
 
 #### Tendermint registration
 
@@ -90,9 +91,9 @@ ModuleBasics = module.NewBasicManager(
 
 It may be useful to reference the [PR](https://github.com/cosmos/ibc-go/pull/2826) which added the `AppModuleBasic` for the solo machine client.
 
-### Testing package API 
+### Testing package API
 
-The `SetChannelClosed` utility method in `testing/endpoint.go` has been updated to `SetChannelState`, which will take a `channeltypes.State` argument so that the `ChannelState` can be set to any of the possible channel states. 
+The `SetChannelClosed` utility method in `testing/endpoint.go` has been updated to `SetChannelState`, which will take a `channeltypes.State` argument so that the `ChannelState` can be set to any of the possible channel states.
 
 ## IBC Apps
 
@@ -110,7 +111,7 @@ The `VerifyUpgradeAndUpdateState` function has been modified. The client state a
 
 Light clients **must** handle all management of client and consensus states including the setting of updated client state and consensus state in the client store.
 
-The `Initialize` method is now expected to set the initial client state, consensus state and any client-specific metadata in the provided store upon client creation. 
+The `Initialize` method is now expected to set the initial client state, consensus state and any client-specific metadata in the provided store upon client creation.
 
 The `CheckHeaderAndUpdateState` method has been split into 4 new methods:
 
@@ -128,7 +129,7 @@ The function `GetTimestampAtHeight` has been added to the `ClientState` interfac
 
 Prior to ibc-go/v7 the `ClientState` interface defined a method for each data type which was being verified in the counterparty state store.
 The state verification functions for all IBC data types have been consolidated into two generic methods, `VerifyMembership` and `VerifyNonMembership`.
-Both are expected to be provided with a standardised key path, `exported.Path`, as defined in [ICS 24 host requirements](https://github.com/cosmos/ibc/tree/main/spec/core/ics-024-host-requirements). Membership verification requires callers to provide the marshalled value `[]byte`. Delay period values should be zero for non-packet processing verification. A zero proof height is now allowed by core IBC and may be passed into `VerifyMembership` and `VerifyNonMembership`. Light clients are responsible for returning an error if a zero proof height is invalid behaviour. 
+Both are expected to be provided with a standardised key path, `exported.Path`, as defined in [ICS 24 host requirements](https://github.com/cosmos/ibc/tree/main/spec/core/ics-024-host-requirements). Membership verification requires callers to provide the marshalled value `[]byte`. Delay period values should be zero for non-packet processing verification. A zero proof height is now allowed by core IBC and may be passed into `VerifyMembership` and `VerifyNonMembership`. Light clients are responsible for returning an error if a zero proof height is invalid behaviour.
 
 See below for an example of how ibc-go now performs channel state verification.
 
@@ -236,7 +237,6 @@ message Misbehaviour {
 ### `SignBytes`
 
 Most notably, the `SignBytes` protobuf definition has been modified to replace the `data_type` field with a new field, `path`. The `path` field is defined as `bytes` and represents a serialized [ICS-24](https://github.com/cosmos/ibc/tree/main/spec/core/ics-024-host-requirements) standardized key path under which the `data` is stored.
-
 
 ```diff
 message SignBytes {

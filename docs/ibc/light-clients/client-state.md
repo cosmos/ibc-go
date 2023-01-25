@@ -36,7 +36,7 @@ This field is returned by the gRPC [QueryClientStatusResponse](https://github.co
 ## `ZeroCustomFields` method
 
 `ZeroCustomFields` should return a copy of the light client with all client customizable fields with their zero value. It should not mutate the fields of the light client.
-This method is used when [scheduling upgrades](https://github.com/cosmos/ibc-go/blob/v6.0.0/modules/core/02-client/keeper/proposal.go#L89). Upgrades are used to upgrade chain specific fields. 
+This method is used when [scheduling upgrades](https://github.com/cosmos/ibc-go/blob/v6.0.0/modules/core/02-client/keeper/proposal.go#L89). Upgrades are used to upgrade chain specific fields.
 In the tendermint case, this may be the chainID or the unbonding period.
 For more information about client upgrades see [the developer guide](../upgrades/developer-guide.md).
 

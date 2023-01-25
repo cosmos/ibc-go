@@ -4,14 +4,14 @@ order: 5
 
 # Implementing the `ClientMessage` interface
 
-As mentioned before in the documentation about [implementing the `ConsensusState` interface](./consensus-state.md), [`ClientMessage`](https://github.com/cosmos/ibc-go/blob/main/modules/core/exported/client.go#L145) is an interface used to update an IBC client. This update may be done by a single header, a batch of headers, misbehaviour, or any type which when verified produces a change to the consensus state of the IBC client. This interface has been purposefully kept generic in order to give the maximum amount of flexibility to the light client implementer. 
+As mentioned before in the documentation about [implementing the `ConsensusState` interface](./consensus-state.md), [`ClientMessage`](https://github.com/cosmos/ibc-go/blob/main/modules/core/exported/client.go#L145) is an interface used to update an IBC client. This update may be done by a single header, a batch of headers, misbehaviour, or any type which when verified produces a change to the consensus state of the IBC client. This interface has been purposefully kept generic in order to give the maximum amount of flexibility to the light client implementer.
 
-```golang 
+```golang
 type ClientMessage interface {
-	proto.Message
+ proto.Message
 
-	ClientType() string
-	ValidateBasic() error
+ ClientType() string
+ ValidateBasic() error
 }
 ```
 

@@ -6,11 +6,11 @@ order: 4
 
 Learn how to integrate Interchain Accounts host and controller functionality to your chain. The following document only applies for Cosmos SDK chains. {synopsis}
 
-The Interchain Accounts module contains two submodules. Each submodule has its own IBC application. The Interchain Accounts module should be registered as an `AppModule` in the same way all SDK modules are registered on a chain, but each submodule should create its own `IBCModule` as necessary. A route should be added to the IBC router for each submodule which will be used. 
+The Interchain Accounts module contains two submodules. Each submodule has its own IBC application. The Interchain Accounts module should be registered as an `AppModule` in the same way all SDK modules are registered on a chain, but each submodule should create its own `IBCModule` as necessary. A route should be added to the IBC router for each submodule which will be used.
 
-Chains who wish to support ICS-27 may elect to act as a host chain, a controller chain or both. Disabling host or controller functionality may be done statically by excluding the host or controller submodule entirely from the `app.go` file or it may be done dynamically by taking advantage of the on-chain parameters which enable or disable the host or controller submodules. 
+Chains who wish to support ICS-27 may elect to act as a host chain, a controller chain or both. Disabling host or controller functionality may be done statically by excluding the host or controller submodule entirely from the `app.go` file or it may be done dynamically by taking advantage of the on-chain parameters which enable or disable the host or controller submodules.
 
-Interchain Account authentication modules (both custom or generic, such as the `x/gov`, `x/group` or `x/auth` Cosmos SDK modules) can send messages to the controller submodule's [`MsgServer`](./messages.md) to register interchain accounts and send packets to the interchain account. To accomplish this, the authentication module needs to be composed with `baseapp`'s `MsgServiceRouter`. 
+Interchain Account authentication modules (both custom or generic, such as the `x/gov`, `x/group` or `x/auth` Cosmos SDK modules) can send messages to the controller submodule's [`MsgServer`](./messages.md) to register interchain accounts and send packets to the interchain account. To accomplish this, the authentication module needs to be composed with `baseapp`'s `MsgServiceRouter`.
 
 ![ICAv6](../../assets/ica/ica-v6.png)
 

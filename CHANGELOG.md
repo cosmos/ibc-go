@@ -87,10 +87,10 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (modules/core/02-client) [\#1741](https://github.com/cosmos/ibc-go/pull/1741) Emitting a new `upgrade_chain` event upon setting upgrade consensus state.
 * (client) [\#724](https://github.com/cosmos/ibc-go/pull/724) `IsRevisionFormat` and `IsClientIDFormat` have been updated to disallow newlines before the dash used to separate the chainID and revision number, and the client type and client sequence.
 * (02-client/cli) [\#897](https://github.com/cosmos/ibc-go/pull/897) Remove `GetClientID()` from `Misbehaviour` interface. Submit client misbehaviour cli command requires an explicit client id now.
-* (06-solomachine) [\#1972](https://github.com/cosmos/ibc-go/pull/1972) Solo machine implementation of `ZeroCustomFields` fn now panics as the fn is only used for upgrades which solo machine does not support.    
+* (06-solomachine) [\#1972](https://github.com/cosmos/ibc-go/pull/1972) Solo machine implementation of `ZeroCustomFields` fn now panics as the fn is only used for upgrades which solo machine does not support.
 * (light-clients/06-solomachine) Moving `verifyMisbehaviour` function from update.go to misbehaviour_handle.go.
 * [\#2434](https://github.com/cosmos/ibc-go/pull/2478) Removed all `TypeMsg` constants
-* (modules/core/exported) [#1689] (https://github.com/cosmos/ibc-go/pull/2539) Removing `GetVersions` from `ConnectionI` interface.
+* (modules/core/exported) [#1689] (<https://github.com/cosmos/ibc-go/pull/2539>) Removing `GetVersions` from `ConnectionI` interface.
 * (core/02-connection) [#2419](https://github.com/cosmos/ibc-go/pull/2419) Add optional proof data to proto definitions of `MsgConnectionOpenTry` and `MsgConnectionOpenAck` for host state machines that are unable to introspect their own consensus state.
 
 ### Features
@@ -98,10 +98,10 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (core/02-client) [\#2824](https://github.com/cosmos/ibc-go/pull/2824) Add genesis migrations for v6 to v7. The migration migrates the solo machine client state definition, removes all solo machine consensus states and removes the localhost client.
 * (core/24-host) [\#2856](https://github.com/cosmos/ibc-go/pull/2856) Add `PrefixedClientStorePath` and `PrefixedClientStoreKey` functions to 24-host
 * (core/02-client) [\#2819](https://github.com/cosmos/ibc-go/pull/2819) Add automatic in-place store migrations to remove the localhost client and migrate existing solo machine definitions.
-* (light-clients/06-solomachine) [\#2826](https://github.com/cosmos/ibc-go/pull/2826) Add `AppModuleBasic` for the 06-solomachine client and remove solo machine type registration from core IBC. Chains must register the `AppModuleBasic` of light clients. 
-* (light-clients/07-tendermint) [\#2825](https://github.com/cosmos/ibc-go/pull/2825) Add `AppModuleBasic` for the 07-tendermint client and remove tendermint type registration from core IBC. Chains must register the `AppModuleBasic` of light clients. 
+* (light-clients/06-solomachine) [\#2826](https://github.com/cosmos/ibc-go/pull/2826) Add `AppModuleBasic` for the 06-solomachine client and remove solo machine type registration from core IBC. Chains must register the `AppModuleBasic` of light clients.
+* (light-clients/07-tendermint) [\#2825](https://github.com/cosmos/ibc-go/pull/2825) Add `AppModuleBasic` for the 07-tendermint client and remove tendermint type registration from core IBC. Chains must register the `AppModuleBasic` of light clients.
 * (light-clients/07-tendermint) [\#2800](https://github.com/cosmos/ibc-go/pull/2800) Add optional in-place store migration function to prune all expired tendermint consensus states.
-* (core/24-host) [\#2820](https://github.com/cosmos/ibc-go/pull/2820) Add `MustParseClientStatePath` which parses the clientID from a client state key path. 
+* (core/24-host) [\#2820](https://github.com/cosmos/ibc-go/pull/2820) Add `MustParseClientStatePath` which parses the clientID from a client state key path.
 * (testing/simapp) [\#2842](https://github.com/cosmos/ibc-go/pull/2842) Adding the new upgrade handler for v6 -> v7 to simapp which prunes expired Tendermint consensus states.
 * (testing) [\#2829](https://github.com/cosmos/ibc-go/pull/2829) Add `AssertEvents` which asserts events against expected event map.
 
@@ -116,7 +116,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Dependencies
 
-* [\#2868](https://github.com/cosmos/ibc-go/pull/2868) Bump ICS 23 to v0.9.0. 
+* [\#2868](https://github.com/cosmos/ibc-go/pull/2868) Bump ICS 23 to v0.9.0.
 * [\#2458](https://github.com/cosmos/ibc-go/pull/2458) Bump Cosmos SDK to v0.46.2
 * [\#2784](https://github.com/cosmos/ibc-go/pull/2784) Bump Cosmos SDK to v0.46.6 and Tendermint to v0.34.23.
 
@@ -136,7 +136,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### State Machine Breaking
 
-* (apps/transfer) [\#2651](https://github.com/cosmos/ibc-go/pull/2651) Introduce `mustProtoMarshalJSON` for ics20 packet data marshalling which will skip emission (marshalling) of the memo field if unpopulated (empty). 
+* (apps/transfer) [\#2651](https://github.com/cosmos/ibc-go/pull/2651) Introduce `mustProtoMarshalJSON` for ics20 packet data marshalling which will skip emission (marshalling) of the memo field if unpopulated (empty).
 * (27-interchain-accounts) [\#2580](https://github.com/cosmos/ibc-go/issues/2580) Removing port prefix requirement from the ICA host channel handshake
 * (transfer) [\#2377](https://github.com/cosmos/ibc-go/pull/2377) Adding `sequence` to `MsgTransferResponse`.
 * (light-clients/07-tendermint) [\#2555](https://github.com/cosmos/ibc-go/pull/2555) Forbid negative values for `TrustingPeriod`, `UnbondingPeriod` and `MaxClockDrift` (as specified in ICS-07).
@@ -152,7 +152,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (core/04-channel) [\#2304](https://github.com/cosmos/ibc-go/pull/2304) Adding `GetAllChannelsWithPortPrefix` function which filters channels based on a provided port prefix.
 * (apps/27-interchain-accounts) [\#2248](https://github.com/cosmos/ibc-go/pull/2248) Adding call to underlying app in `OnChanCloseConfirm` callback of the controller submodule and adding relevant unit tests.
 * (apps/27-interchain-accounts) [\#2251](https://github.com/cosmos/ibc-go/pull/2251) Adding `msgServer` struct to controller submodule that embeds the `Keeper` struct.
-* (apps/27-interchain-accounts) [\#2290](https://github.com/cosmos/ibc-go/pull/2290) Changed `DefaultParams` function in `host` submodule to allow all messages by default. Defined a constant named `AllowAllHostMsgs` for `host` module to keep wildcard "*" string which allows all messages.   
+* (apps/27-interchain-accounts) [\#2290](https://github.com/cosmos/ibc-go/pull/2290) Changed `DefaultParams` function in `host` submodule to allow all messages by default. Defined a constant named `AllowAllHostMsgs` for `host` module to keep wildcard "*" string which allows all messages.
 * (apps/27-interchain-accounts) [\#2297](https://github.com/cosmos/ibc-go/pull/2297) Adding cli command to generate ICS27 packet data.
 * (modules/core/keeper) [\#1728](https://github.com/cosmos/ibc-go/pull/2399) Updated channel callback errors to include portID & channelID for better identification of errors.
 * (testing) [\#2657](https://github.com/cosmos/ibc-go/pull/2657) Carry `ProposerAddress` through commited blocks. Allow `DefaultGenTxGas` to be modified.
@@ -241,7 +241,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### State Machine Breaking
 
-* (apps/transfer) [\#2651](https://github.com/cosmos/ibc-go/pull/2651) Introduce `mustProtoMarshalJSON` for ics20 packet data marshalling which will skip emission (marshalling) of the memo field if unpopulated (empty). 
+* (apps/transfer) [\#2651](https://github.com/cosmos/ibc-go/pull/2651) Introduce `mustProtoMarshalJSON` for ics20 packet data marshalling which will skip emission (marshalling) of the memo field if unpopulated (empty).
 * (27-interchain-accounts) [\#2580](https://github.com/cosmos/ibc-go/issues/2580) Removing port prefix requirement from the ICA host channel handshake
 * (transfer) [\#2377](https://github.com/cosmos/ibc-go/pull/2377) Adding `sequence` to `MsgTransferResponse`.
 
@@ -344,7 +344,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### State Machine Breaking
 
-* (apps/transfer) [\#2651](https://github.com/cosmos/ibc-go/pull/2651) Introduce `mustProtoMarshalJSON` for ics20 packet data marshalling which will skip emission (marshalling) of the memo field if unpopulated (empty). 
+* (apps/transfer) [\#2651](https://github.com/cosmos/ibc-go/pull/2651) Introduce `mustProtoMarshalJSON` for ics20 packet data marshalling which will skip emission (marshalling) of the memo field if unpopulated (empty).
 * (27-interchain-accounts) [\#2580](https://github.com/cosmos/ibc-go/issues/2580) Removing port prefix requirement from the ICA host channel handshake
 * (transfer) [\#2377](https://github.com/cosmos/ibc-go/pull/2377) Adding `sequence` to `MsgTransferResponse`.
 
@@ -538,7 +538,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### State Machine Breaking
 
-* (apps/transfer) [\#2651](https://github.com/cosmos/ibc-go/pull/2651) Introduce `mustProtoMarshalJSON` for ics20 packet data marshalling which will skip emission (marshalling) of the memo field if unpopulated (empty). 
+* (apps/transfer) [\#2651](https://github.com/cosmos/ibc-go/pull/2651) Introduce `mustProtoMarshalJSON` for ics20 packet data marshalling which will skip emission (marshalling) of the memo field if unpopulated (empty).
 * (transfer) [\#2377](https://github.com/cosmos/ibc-go/pull/2377) Adding `sequence` to `MsgTransferResponse`.
 
 ### Features

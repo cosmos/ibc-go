@@ -122,7 +122,7 @@ Example output:
 
 A user can query the interchain account module using gRPC endpoints.
 
-### Controller 
+### Controller
 
 A user can query the controller submodule using gRPC endpoints.
 
@@ -159,7 +159,7 @@ grpcurl -plaintext \
     ibc.applications.interchain_accounts.controller.v1.Query/Params
 ```
 
-### Host 
+### Host
 
 A user can query the host submodule using gRPC endpoints.
 

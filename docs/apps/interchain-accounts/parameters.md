@@ -15,6 +15,7 @@ The Interchain Accounts module contains the following on-chain parameters, logic
 ### ControllerEnabled
 
 The `ControllerEnabled` parameter controls a chains ability to service ICS-27 controller specific logic. This includes the sending of Interchain Accounts packet data as well as the following ICS-26 callback handlers:
+
 - `OnChanOpenInit`
 - `OnChanOpenAck`
 - `OnChanCloseConfirm`
@@ -31,6 +32,7 @@ The `ControllerEnabled` parameter controls a chains ability to service ICS-27 co
 ### HostEnabled
 
 The `HostEnabled` parameter controls a chains ability to service ICS-27 host specific logic. This includes the following ICS-26 callback handlers:
+
 - `OnChanOpenTry`
 - `OnChanOpenConfirm`
 - `OnChanCloseConfirm`

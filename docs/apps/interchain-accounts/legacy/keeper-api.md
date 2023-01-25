@@ -117,5 +117,5 @@ timeoutTimestamp := obtainTimeoutTimestamp()
 seq, err = keeper.icaControllerKeeper.SendTx(ctx, nil, portID, packetData, timeoutTimestamp)
 ```
 
-The data within an `InterchainAccountPacketData` must be serialized using a format supported by the host chain. 
+The data within an `InterchainAccountPacketData` must be serialized using a format supported by the host chain.
 If the host chain is using the ibc-go host chain submodule, `SerializeCosmosTx` should be used. If the `InterchainAccountPacketData.Data` is serialized using a format not supported by the host chain, the packet will not be successfully received.  

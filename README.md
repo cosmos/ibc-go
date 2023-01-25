@@ -35,7 +35,7 @@
     <img alt="E2E Status" src="https://github.com/cosmos/ibc-go/workflows/Tests%20/%20E2E/badge.svg" />
 </div>
 
-The [Inter-Blockchain Communication protocol (IBC)](https://ibcprotocol.dev/) allows blockchains to talk to each other. This end-to-end, connection-oriented, stateful protocol provides reliable, ordered, and authenticated communication between heterogeneous blockchains. 
+The [Inter-Blockchain Communication protocol (IBC)](https://ibcprotocol.dev/) allows blockchains to talk to each other. This end-to-end, connection-oriented, stateful protocol provides reliable, ordered, and authenticated communication between heterogeneous blockchains.
 
 This IBC implementation in Golang is built as a Cosmos SDK module. To understand more about how to use the `ibc-go` module as well as about the IBC protocol, please check out the Interchain Developer Academy [section on IBC](https://tutorials.cosmos.network/academy/3-ibc/), or [our docs](https://ibc.cosmos.network/main/ibc/overview.html).
 
@@ -51,7 +51,7 @@ For the latest information on the progress of the work or the decisions made tha
 
 ## Releases
 
-The release lines currently supported are v2, v3, v4, v5 and v6. 
+The release lines currently supported are v2, v3, v4, v5 and v6.
 
 Please refer to the [Stable Release Policy section of RELEASES.md](https://github.com/cosmos/ibc-go/blob/main/RELEASES.md#stable-release-policy) for more details.
 
@@ -64,7 +64,6 @@ Discover the applications, middleware and light clients developed by other aweso
 In the table below
 `app` refers to IBC application modules for custom use cases and
 `middleware` refers to modules that wrap an IBC application enabling custom logic to be executed.
-
 
 |Description|Repository|Type|
 |----------|----------|----|
@@ -91,6 +90,7 @@ If you're interested in contributing to ibc-go, please take a look at the [contr
 This project adheres to ibc-go's [code of conduct](./CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code.
 
 To help contributors understand which issues are good to pick up, we have the following two categories:
+
 - Issues with the label [`good first issue`](https://github.com/cosmos/ibc-go/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22) should be pretty well defined and are best suited for developers new to ibc-go.
 - Issues with the label [`help wanted`](https://github.com/cosmos/ibc-go/issues?q=is%3Aopen+is%3Aissue+label%3A%22help+wanted%22) are a bit more involved and they usually require some familiarity already with the codebase.
 

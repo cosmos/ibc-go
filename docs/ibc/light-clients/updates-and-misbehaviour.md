@@ -6,9 +6,9 @@ order: 6
 
 The functions for handling updates to a light client and evidence of misbehaviour are all found in the [`ClientState`](https://github.com/cosmos/ibc-go/blob/v6.0.0/modules/core/exported/client.go#L40) interface, and will be discussed below.
 
-It is important to note that `Misbehaviour` in this particular context is referring to misbehaviour on the chain level intended to fool the light client. This will be defined by each light client. 
+It is important to note that `Misbehaviour` in this particular context is referring to misbehaviour on the chain level intended to fool the light client. This will be defined by each light client.
 
-## `VerifyClientMessage` 
+## `VerifyClientMessage`
 
 `VerifyClientMessage` must verify a `ClientMessage`. A `ClientMessage` could be a `Header`, `Misbehaviour`, or batch update. To understand how to implement a `ClientMessage`, please refer to the [documentation](./update.md)
 
@@ -58,4 +58,3 @@ if err := clientState.VerifyClientMessage(clientMessage); err != nil {
     // emit update event
     return
 }
-

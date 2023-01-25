@@ -8,7 +8,7 @@ It is vital that high-value IBC clients can upgrade along with their underlying 
 
 The IBC protocol allows client implementations to provide a path to upgrading clients given the upgraded client state, upgraded consensus state and proofs for each. This path is provided in the `VerifyUpgradeAndUpdateState` function:
 
-```golang	
+```golang 
 // NOTE: proof heights are not included as upgrade to a new revision is expected to pass only on the last height committed by the current revision. Clients are responsible for ensuring that the planned last height of the current revision is somehow encoded in the proof verification process.
 // This is to ensure that no premature upgrades occur, since upgrade plans committed to by the counterparty may be cancelled or modified before the last planned height.
 // If the upgrade is verified, the upgraded client and consensus states must be set in the client store.

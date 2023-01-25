@@ -66,4 +66,3 @@ ibcRouter.AddRoute("custom1", stack2)
 ibcRouter.AddRoute("custom2", stack3)
 app.IBCKeeper.SetRouter(ibcRouter)
 ```
-

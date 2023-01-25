@@ -35,14 +35,14 @@ Note: If a module account address is used as the `CounterpartyPayee` but the mod
 
 ```go
 type MsgRegisterCounterpartyPayee struct {
-	// unique port identifier
-	PortId string
-	// unique channel identifier
-	ChannelId string
-	// the relayer address
-	Relayer string
-	// the counterparty payee address
-	CounterpartyPayee string
+ // unique port identifier
+ PortId string
+ // unique channel identifier
+ ChannelId string
+ // the relayer address
+ Relayer string
+ // the counterparty payee address
+ CounterpartyPayee string
 }
 ```
 
@@ -80,14 +80,14 @@ Note: If a module account address is used as the `Payee` it is recommended to [t
 
 ```go
 type MsgRegisterPayee struct {
-	// unique port identifier
-	PortId string
-	// unique channel identifier
-	ChannelId string
-	// the relayer address
-	Relayer string
-	// the payee address
-	Payee string
+ // unique port identifier
+ PortId string
+ // unique channel identifier
+ ChannelId string
+ // the relayer address
+ Relayer string
+ // the payee address
+ Payee string
 }
 ```
 
