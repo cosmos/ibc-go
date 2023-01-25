@@ -55,8 +55,6 @@ var (
 	packet        = types.NewPacket(validPacketData, 1, portid, chanid, cpportid, cpchanid, timeoutHeight, timeoutTimestamp)
 	invalidPacket = types.NewPacket(unknownPacketData, 0, portid, chanid, cpportid, cpchanid, timeoutHeight, timeoutTimestamp)
 
-	emptyProof = []byte{}
-
 	addr      = sdk.AccAddress("testaddr111111111111").String()
 	emptyAddr string
 
