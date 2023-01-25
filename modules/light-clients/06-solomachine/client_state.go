@@ -115,6 +115,8 @@ func (cs *ClientState) VerifyMembership(
 	path exported.Path,
 	value []byte,
 ) error {
+	
+
 	publicKey, sigData, timestamp, sequence, err := produceVerificationArgs(cdc, cs, proof)
 	if err != nil {
 		return err

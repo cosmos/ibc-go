@@ -420,6 +420,12 @@ func (suite *TendermintTestSuite) TestVerifyMembership() {
 				value = []byte("invalid value")
 			}, false,
 		},
+		{
+			"proof is empty", func() {
+				// change the inserted proof
+				proof = []byte{}
+			}, false,
+		},
 	}
 
 	for _, tc := range testCases {
