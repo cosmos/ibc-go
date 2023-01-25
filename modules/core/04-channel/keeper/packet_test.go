@@ -7,14 +7,14 @@ import (
 	sdkerrors "cosmossdk.io/errors"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
-	connectiontypes "github.com/cosmos/ibc-go/v6/modules/core/03-connection/types"
-	"github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v6/modules/core/exported"
-	ibctm "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint"
-	ibctesting "github.com/cosmos/ibc-go/v6/testing"
-	ibcmock "github.com/cosmos/ibc-go/v6/testing/mock"
+	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
+	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
+	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	ibcmock "github.com/cosmos/ibc-go/v7/testing/mock"
 )
 
 var (
@@ -95,11 +95,25 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 			sourceChannel = ibctesting.InvalidID
 			channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 		}, false},
-		{"channel closed", func() {
+		{"channel is in CLOSED state", func() {
 			suite.coordinator.Setup(path)
 			sourceChannel = path.EndpointA.ChannelID
 
-			err := path.EndpointA.SetChannelClosed()
+			err := path.EndpointA.SetChannelState(types.CLOSED)
+			suite.Require().NoError(err)
+		}, false},
+		{"channel is in INIT state", func() {
+			suite.coordinator.Setup(path)
+			sourceChannel = path.EndpointA.ChannelID
+
+			err := path.EndpointA.SetChannelState(types.INIT)
+			suite.Require().NoError(err)
+		}, false},
+		{"channel is in TRYOPEN stage", func() {
+			suite.coordinator.Setup(path)
+			sourceChannel = path.EndpointA.ChannelID
+
+			err := path.EndpointA.SetChannelState(types.TRYOPEN)
 			suite.Require().NoError(err)
 		}, false},
 		{"connection not found", func() {
@@ -337,7 +351,7 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 			suite.coordinator.Setup(path)
 			packet = types.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
 
-			err := path.EndpointB.SetChannelClosed()
+			err := path.EndpointB.SetChannelState(types.CLOSED)
 			suite.Require().NoError(err)
 			channelCap = suite.chainB.GetChannelCapability(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 		}, false},
@@ -535,7 +549,7 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 			packet = types.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
 			ack = ibcmock.MockAcknowledgement
 
-			err := path.EndpointB.SetChannelClosed()
+			err := path.EndpointB.SetChannelState(types.CLOSED)
 			suite.Require().NoError(err)
 			channelCap = suite.chainB.GetChannelCapability(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 		}, false},
@@ -695,7 +709,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 			suite.coordinator.Setup(path)
 			packet = types.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
 
-			err := path.EndpointA.SetChannelClosed()
+			err := path.EndpointA.SetChannelState(types.CLOSED)
 			suite.Require().NoError(err)
 			channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 		}, false},
