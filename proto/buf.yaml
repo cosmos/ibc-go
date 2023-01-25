@@ -1,5 +1,5 @@
 version: v1
-name: buf.build/faddat/ibc
+name: buf.build/cosmos/ibc
 deps:
   # TODO: update sdk buf dependency when v0.47.0 is tagged and pushed to BSR
   # see: (https://github.com/cosmos/cosmos-sdk/tree/main/proto#sdk-x-buf)
