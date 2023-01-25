@@ -5,7 +5,7 @@ ARG IBC_GO_VERSION
 ENV GOPATH=""
 ENV GOMODULE="on"
 
-# ensure the ibc go and cosmos sdk versions are being specified for this image.
+# ensure the ibc go version is being specified for this image.
 RUN test -n "${IBC_GO_VERSION}"
 
 COPY go.mod .
