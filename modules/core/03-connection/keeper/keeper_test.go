@@ -166,7 +166,7 @@ func (suite *KeeperTestSuite) TestLocalhostConnectionEndCreation() {
 	connectionKeeper := suite.chainA.App.GetIBCKeeper().ConnectionKeeper
 	localhostConnection := connectionKeeper.CreateSentinelLocalhostConnection()
 	connectionKeeper.SetConnection(ctx, types.LocalhostID, localhostConnection)
-	
+
 	connectionEnd, found := connectionKeeper.GetConnection(ctx, types.LocalhostID)
 
 	suite.Require().True(found)

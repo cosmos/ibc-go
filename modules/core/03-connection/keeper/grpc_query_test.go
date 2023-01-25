@@ -87,7 +87,6 @@ func (suite *KeeperTestSuite) TestQueryConnection() {
 }
 
 func (suite *KeeperTestSuite) TestQueryConnections() {
-
 	localhostConnectionEnd := suite.chainA.App.GetIBCKeeper().ConnectionKeeper.CreateSentinelLocalhostConnection()
 	localhostConn := types.NewIdentifiedConnection(types.LocalhostID, localhostConnectionEnd)
 
