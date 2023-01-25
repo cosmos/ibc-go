@@ -19,7 +19,9 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, gs types.GenesisState) {
 	}
 	k.SetNextConnectionSequence(ctx, gs.NextConnectionSequence)
 	k.SetParams(ctx, gs.Params)
-	k.CreateLocalhostConnectionEnd(ctx)
+
+	localhostConnection := k.CreateSentinelLocalhostConnection()
+	k.SetConnection(ctx, types.LocalhostID, localhostConnection)
 }
 
 // ExportGenesis returns the ibc connection submodule's exported genesis.
