@@ -96,26 +96,27 @@ func (q Keeper) ConnectionChannels(c context.Context, req *types.QueryConnection
 	channels := []*types.IdentifiedChannel{}
 	store := prefix.NewStore(ctx.KVStore(q.storeKey), []byte(host.KeyChannelEndPrefix))
 
-	pageRes, err := query.Paginate(store, req.Pagination, func(key, value []byte) error {
+	pageRes, err := query.FilteredPaginate(store, req.Pagination, func(key, value []byte, accumulate bool) (bool, error) {
+		// filter any metadata stored under channel key
 		var result types.Channel
 		if err := q.cdc.Unmarshal(value, &result); err != nil {
-			return err
+			return false, err
 		}
 
 		// ignore channel and continue to the next item if the connection is
 		// different than the requested one
 		if result.ConnectionHops[0] != req.Connection {
-			return nil
+			return false, nil
 		}
 
 		portID, channelID, err := host.ParseChannelPath(string(key))
 		if err != nil {
-			return err
+			return false, err
 		}
 
 		identifiedChannel := types.NewIdentifiedChannel(portID, channelID, result)
 		channels = append(channels, &identifiedChannel)
-		return nil
+		return true, nil
 	})
 	if err != nil {
 		return nil, err

@@ -163,11 +163,11 @@ func (suite *KeeperTestSuite) TestQueryClientStates() {
 			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
 
 			res, err := suite.chainA.QueryServer.ClientStates(ctx, req)
-
 			if tc.expPass {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
 				suite.Require().Equal(expClientStates.Sort(), res.ClientStates)
+				suite.Require().Equal(len(expClientStates), int(res.Pagination.Total))
 			} else {
 				suite.Require().Error(err)
 			}
@@ -381,7 +381,6 @@ func (suite *KeeperTestSuite) TestQueryConsensusStates() {
 				for i := range expConsensusStates {
 					suite.Require().NotNil(res.ConsensusStates[i])
 					suite.Require().Equal(expConsensusStates[i], res.ConsensusStates[i])
-
 					// ensure UnpackInterfaces is defined
 					cachedValue := res.ConsensusStates[i].ConsensusState.GetCachedValue()
 					suite.Require().NotNil(cachedValue)
