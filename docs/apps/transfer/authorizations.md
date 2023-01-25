@@ -2,11 +2,11 @@
 
 `TransferAuthorization` implements the `Authorization` interface for `ibc.applications.transfer.v1.MsgTransfer`. It allows a granter to grant a grantee the privilege to submit MsgTransfer on its behalf. Please see the [Cosmos SDK docs](https://docs.cosmos.network/v0.47/modules/authz) for more details on granting privileges via the `x/authz` module.
 
-More specifically, the granter allows the grantee to transfer funds over a specified channel that belong to the granter.
+More specifically, the granter allows the grantee to transfer funds that belong to the granter over a specified channel.
 
-For the specified channel, the granter shall be able to specify a spend limit of a specific denomination they wish to allow the grantee to be able to transfer.
+For the specified channel, the granter must be able to specify a spend limit of a specific denomination they wish to allow the grantee to be able to transfer.
 
-The granter shall be able to specify the list of addresses that they allow to receive funds. If empty, then all addresses are allowed.
+The granter may be able to specify the list of addresses that they allow to receive funds. If empty, then all addresses are allowed.
 
 
 It takes: 
@@ -39,7 +39,7 @@ type Allocation struct {
 	// the channel by which the packet will be sent
 	SourceChannel string 
 	// spend limitation on the channel
-	SpendLimit github_com_cosmos_cosmos_sdk_types.Coins 
+	SpendLimit sdk.Coins  
 	// allow list of receivers, an empty allow list permits any receiver address
 	AllowList []string 
 }
