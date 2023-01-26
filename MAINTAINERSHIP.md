@@ -66,7 +66,7 @@ Once the spec has been given initial approval, `ibc-go` engineering will coordin
 
 The code that is presented should adhere to our [code contributor guidelines](https://github.com/cosmos/ibc-go/blob/main/CONTRIBUTING.md).
 
-More details on what code walkthrough should cover will be provided by the `ibc-go` engineering team on a case by case basis. However, the code should be sufficiently unit and [E2E tested](https://github.com/cosmos/ibc-go/blob/main/e2e/README.md). Think about preparing for this process similarly to submitting a codebase for audit :)
+More details on what code walkthrough should cover will be provided by the `ibc-go` engineering team on a case by case basis. However, the code should be sufficiently unit and E2E tested. Think about preparing for this process similarly to submitting a codebase for audit :)
 
 Please indicate the expected contribution of your team maintainership, if any. This contribution should also include ideas about devrels support and support for product on social media.
 
