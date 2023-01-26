@@ -51,14 +51,6 @@ jobs:
             go.sum
       - name: Build ibc-go
         run: GOARCH=${{ matrix.go-arch }} LEDGER_ENABLED=false make build
-      - name: Build e2e
-        run: |
-          cd e2e
-          test_dirs="$(ls -A tests)"
-          for td in $test_dirs
-          do
-            GOARCH=${{ matrix.go-arch }} go test -c "./tests/${td}"
-          done
 
   docker-build:
     runs-on: ubuntu-latest
