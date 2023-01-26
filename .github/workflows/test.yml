@@ -51,14 +51,13 @@ jobs:
             go.sum
       - name: Build ibc-go
         run: GOARCH=${{ matrix.go-arch }} LEDGER_ENABLED=false make build
-      - name: Build e2e
-        run: |
-          cd e2e
-          test_dirs="$(ls -A tests)"
-          for td in $test_dirs
-          do
-            GOARCH=${{ matrix.go-arch }} go test -c "./tests/${td}"
-          done
+
+  docker-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Docker Build
+        run: docker build . --no-cache --build-arg IBC_GO_VERSION=v7.0.0
 
   split-test-files:
     runs-on: ubuntu-latest
