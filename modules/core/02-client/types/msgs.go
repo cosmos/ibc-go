@@ -5,16 +5,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v5/modules/core/exported"
-)
-
-// message types for the IBC client
-const (
-	TypeMsgCreateClient       string = "create_client"
-	TypeMsgUpdateClient       string = "update_client"
-	TypeMsgUpgradeClient      string = "upgrade_client"
-	TypeMsgSubmitMisbehaviour string = "submit_misbehaviour"
+	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v6/modules/core/exported"
 )
 
 var (

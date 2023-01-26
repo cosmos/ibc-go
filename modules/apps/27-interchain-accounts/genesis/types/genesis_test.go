@@ -3,11 +3,11 @@ package types_test
 import (
 	"github.com/stretchr/testify/suite"
 
-	controllertypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/controller/types"
-	genesistypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/genesis/types"
-	hosttypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/host/types"
-	icatypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/types"
-	ibctesting "github.com/cosmos/ibc-go/v5/testing"
+	controllertypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/controller/types"
+	genesistypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/genesis/types"
+	hosttypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/host/types"
+	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
+	ibctesting "github.com/cosmos/ibc-go/v6/testing"
 )
 
 var (
@@ -221,7 +221,7 @@ func (suite *GenesisTypesTestSuite) TestValidateHostGenesisState() {
 					},
 				}
 
-				genesisState = genesistypes.NewHostGenesisState(activeChannels, []genesistypes.RegisteredInterchainAccount{}, icatypes.PortID, hosttypes.DefaultParams())
+				genesisState = genesistypes.NewHostGenesisState(activeChannels, []genesistypes.RegisteredInterchainAccount{}, icatypes.HostPortID, hosttypes.DefaultParams())
 			},
 			false,
 		},
@@ -235,7 +235,7 @@ func (suite *GenesisTypesTestSuite) TestValidateHostGenesisState() {
 					},
 				}
 
-				genesisState = genesistypes.NewHostGenesisState(activeChannels, []genesistypes.RegisteredInterchainAccount{}, icatypes.PortID, hosttypes.DefaultParams())
+				genesisState = genesistypes.NewHostGenesisState(activeChannels, []genesistypes.RegisteredInterchainAccount{}, icatypes.HostPortID, hosttypes.DefaultParams())
 			},
 			false,
 		},
@@ -256,7 +256,7 @@ func (suite *GenesisTypesTestSuite) TestValidateHostGenesisState() {
 					},
 				}
 
-				genesisState = genesistypes.NewHostGenesisState(activeChannels, registeredAccounts, icatypes.PortID, hosttypes.DefaultParams())
+				genesisState = genesistypes.NewHostGenesisState(activeChannels, registeredAccounts, icatypes.HostPortID, hosttypes.DefaultParams())
 			},
 			false,
 		},
@@ -277,7 +277,7 @@ func (suite *GenesisTypesTestSuite) TestValidateHostGenesisState() {
 					},
 				}
 
-				genesisState = genesistypes.NewHostGenesisState(activeChannels, registeredAccounts, icatypes.PortID, hosttypes.DefaultParams())
+				genesisState = genesistypes.NewHostGenesisState(activeChannels, registeredAccounts, icatypes.HostPortID, hosttypes.DefaultParams())
 			},
 			false,
 		},

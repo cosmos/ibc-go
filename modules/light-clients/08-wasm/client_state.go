@@ -8,8 +8,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v5/modules/core/exported"
+	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v6/modules/core/exported"
 )
 
 var _ exported.ClientState = (*ClientState)(nil)
@@ -101,7 +101,7 @@ func (c ClientState) VerifyMembership(
 	delayTimePeriod uint64,
 	delayBlockPeriod uint64,
 	proof []byte,
-	path []byte,
+	path exported.Path,
 	value []byte,
 ) error {
 	const VerifyClientMessage = "verify_membership"
@@ -127,7 +127,7 @@ func (c ClientState) VerifyNonMembership(
 	delayTimePeriod uint64,
 	delayBlockPeriod uint64,
 	proof []byte,
-	path []byte,
+	path exported.Path,
 ) error {
 	const VerifyClientMessage = "verify_non_membership"
 	inner := make(map[string]interface{})

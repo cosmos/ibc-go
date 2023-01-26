@@ -84,6 +84,8 @@
     - [Params](#ibc.applications.interchain_accounts.controller.v1.Params)
   
 - [ibc/applications/interchain_accounts/controller/v1/query.proto](#ibc/applications/interchain_accounts/controller/v1/query.proto)
+    - [QueryInterchainAccountRequest](#ibc.applications.interchain_accounts.controller.v1.QueryInterchainAccountRequest)
+    - [QueryInterchainAccountResponse](#ibc.applications.interchain_accounts.controller.v1.QueryInterchainAccountResponse)
     - [QueryParamsRequest](#ibc.applications.interchain_accounts.controller.v1.QueryParamsRequest)
     - [QueryParamsResponse](#ibc.applications.interchain_accounts.controller.v1.QueryParamsResponse)
   
@@ -96,10 +98,10 @@
     - [Type](#ibc.applications.interchain_accounts.v1.Type)
   
 - [ibc/applications/interchain_accounts/controller/v1/tx.proto](#ibc/applications/interchain_accounts/controller/v1/tx.proto)
-    - [MsgRegisterAccount](#ibc.applications.interchain_accounts.controller.v1.MsgRegisterAccount)
-    - [MsgRegisterAccountResponse](#ibc.applications.interchain_accounts.controller.v1.MsgRegisterAccountResponse)
-    - [MsgSubmitTx](#ibc.applications.interchain_accounts.controller.v1.MsgSubmitTx)
-    - [MsgSubmitTxResponse](#ibc.applications.interchain_accounts.controller.v1.MsgSubmitTxResponse)
+    - [MsgRegisterInterchainAccount](#ibc.applications.interchain_accounts.controller.v1.MsgRegisterInterchainAccount)
+    - [MsgRegisterInterchainAccountResponse](#ibc.applications.interchain_accounts.controller.v1.MsgRegisterInterchainAccountResponse)
+    - [MsgSendTx](#ibc.applications.interchain_accounts.controller.v1.MsgSendTx)
+    - [MsgSendTxResponse](#ibc.applications.interchain_accounts.controller.v1.MsgSendTxResponse)
   
     - [Msg](#ibc.applications.interchain_accounts.controller.v1.Msg)
   
@@ -221,8 +223,6 @@
     - [IdentifiedGenesisMetadata](#ibc.core.client.v1.IdentifiedGenesisMetadata)
   
 - [ibc/core/client/v1/query.proto](#ibc/core/client/v1/query.proto)
-    - [QueryClientParamsRequest](#ibc.core.client.v1.QueryClientParamsRequest)
-    - [QueryClientParamsResponse](#ibc.core.client.v1.QueryClientParamsResponse)
     - [QueryClientStateRequest](#ibc.core.client.v1.QueryClientStateRequest)
     - [QueryClientStateResponse](#ibc.core.client.v1.QueryClientStateResponse)
     - [QueryClientStatesRequest](#ibc.core.client.v1.QueryClientStatesRequest)
@@ -235,6 +235,8 @@
     - [QueryConsensusStateResponse](#ibc.core.client.v1.QueryConsensusStateResponse)
     - [QueryConsensusStatesRequest](#ibc.core.client.v1.QueryConsensusStatesRequest)
     - [QueryConsensusStatesResponse](#ibc.core.client.v1.QueryConsensusStatesResponse)
+    - [QueryParamsRequest](#ibc.core.client.v1.QueryParamsRequest)
+    - [QueryParamsResponse](#ibc.core.client.v1.QueryParamsResponse)
     - [QueryUpgradedClientStateRequest](#ibc.core.client.v1.QueryUpgradedClientStateRequest)
     - [QueryUpgradedClientStateResponse](#ibc.core.client.v1.QueryUpgradedClientStateResponse)
     - [QueryUpgradedConsensusStateRequest](#ibc.core.client.v1.QueryUpgradedConsensusStateRequest)
@@ -1494,6 +1496,37 @@ The following parameters may be used to disable the controller submodule.
 
 
 
+<a name="ibc.applications.interchain_accounts.controller.v1.QueryInterchainAccountRequest"></a>
+
+### QueryInterchainAccountRequest
+QueryInterchainAccountRequest is the request type for the Query/InterchainAccount RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `owner` | [string](#string) |  |  |
+| `connection_id` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="ibc.applications.interchain_accounts.controller.v1.QueryInterchainAccountResponse"></a>
+
+### QueryInterchainAccountResponse
+QueryInterchainAccountResponse the response type for the Query/InterchainAccount RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `address` | [string](#string) |  |  |
+
+
+
+
+
+
 <a name="ibc.applications.interchain_accounts.controller.v1.QueryParamsRequest"></a>
 
 ### QueryParamsRequest
@@ -1532,6 +1565,7 @@ Query provides defines the gRPC querier service.
 
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `InterchainAccount` | [QueryInterchainAccountRequest](#ibc.applications.interchain_accounts.controller.v1.QueryInterchainAccountRequest) | [QueryInterchainAccountResponse](#ibc.applications.interchain_accounts.controller.v1.QueryInterchainAccountResponse) | InterchainAccount returns the interchain account address for a given owner address on a given connection | GET|/ibc/apps/interchain_accounts/controller/v1/owners/{owner}/connections/{connection_id}|
 | `Params` | [QueryParamsRequest](#ibc.applications.interchain_accounts.controller.v1.QueryParamsRequest) | [QueryParamsResponse](#ibc.applications.interchain_accounts.controller.v1.QueryParamsResponse) | Params queries all parameters of the ICA controller submodule. | GET|/ibc/apps/interchain_accounts/controller/v1/params|
 
  <!-- end services -->
@@ -1606,16 +1640,16 @@ host
 
 
 
-<a name="ibc.applications.interchain_accounts.controller.v1.MsgRegisterAccount"></a>
+<a name="ibc.applications.interchain_accounts.controller.v1.MsgRegisterInterchainAccount"></a>
 
-### MsgRegisterAccount
-MsgRegisterAccount defines the payload for Msg/RegisterAccount
+### MsgRegisterInterchainAccount
+MsgRegisterInterchainAccount defines the payload for Msg/RegisterAccount
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `connection_id` | [string](#string) |  |  |
 | `owner` | [string](#string) |  |  |
+| `connection_id` | [string](#string) |  |  |
 | `version` | [string](#string) |  |  |
 
 
@@ -1623,10 +1657,10 @@ MsgRegisterAccount defines the payload for Msg/RegisterAccount
 
 
 
-<a name="ibc.applications.interchain_accounts.controller.v1.MsgRegisterAccountResponse"></a>
+<a name="ibc.applications.interchain_accounts.controller.v1.MsgRegisterInterchainAccountResponse"></a>
 
-### MsgRegisterAccountResponse
-MsgRegisterAccountResponse defines the response for Msg/RegisterAccount
+### MsgRegisterInterchainAccountResponse
+MsgRegisterInterchainAccountResponse defines the response for Msg/RegisterAccount
 
 
 | Field | Type | Label | Description |
@@ -1638,29 +1672,28 @@ MsgRegisterAccountResponse defines the response for Msg/RegisterAccount
 
 
 
-<a name="ibc.applications.interchain_accounts.controller.v1.MsgSubmitTx"></a>
+<a name="ibc.applications.interchain_accounts.controller.v1.MsgSendTx"></a>
 
-### MsgSubmitTx
-MsgSubmitTx defines the payload for MsgSubmitTx
+### MsgSendTx
+MsgSendTx defines the payload for Msg/SendTx
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `owner` | [string](#string) |  |  |
 | `connection_id` | [string](#string) |  |  |
-| `timeout_height` | [ibc.core.client.v1.Height](#ibc.core.client.v1.Height) |  | Timeout height relative to the current block height. The timeout is disabled when set to 0. |
-| `timeout_timestamp` | [uint64](#uint64) |  | Timeout timestamp in absolute nanoseconds since unix epoch. The timeout is disabled when set to 0. |
 | `packet_data` | [ibc.applications.interchain_accounts.v1.InterchainAccountPacketData](#ibc.applications.interchain_accounts.v1.InterchainAccountPacketData) |  |  |
+| `relative_timeout` | [uint64](#uint64) |  | Relative timeout timestamp provided will be added to the current block time during transaction execution. The timeout timestamp must be non-zero. |
 
 
 
 
 
 
-<a name="ibc.applications.interchain_accounts.controller.v1.MsgSubmitTxResponse"></a>
+<a name="ibc.applications.interchain_accounts.controller.v1.MsgSendTxResponse"></a>
 
-### MsgSubmitTxResponse
-MsgSubmitTxResponse defines the response for MsgSubmitTx
+### MsgSendTxResponse
+MsgSendTxResponse defines the response for MsgSendTx
 
 
 | Field | Type | Label | Description |
@@ -1685,8 +1718,8 @@ Msg defines the 27-interchain-accounts/controller Msg service.
 
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
-| `RegisterAccount` | [MsgRegisterAccount](#ibc.applications.interchain_accounts.controller.v1.MsgRegisterAccount) | [MsgRegisterAccountResponse](#ibc.applications.interchain_accounts.controller.v1.MsgRegisterAccountResponse) | RegisterAccount defines a rpc handler for MsgRegisterAccount. | |
-| `SubmitTx` | [MsgSubmitTx](#ibc.applications.interchain_accounts.controller.v1.MsgSubmitTx) | [MsgSubmitTxResponse](#ibc.applications.interchain_accounts.controller.v1.MsgSubmitTxResponse) | SubmitTx defines a rpc handler for MsgSubmitTx. | |
+| `RegisterInterchainAccount` | [MsgRegisterInterchainAccount](#ibc.applications.interchain_accounts.controller.v1.MsgRegisterInterchainAccount) | [MsgRegisterInterchainAccountResponse](#ibc.applications.interchain_accounts.controller.v1.MsgRegisterInterchainAccountResponse) | RegisterInterchainAccount defines a rpc handler for MsgRegisterInterchainAccount. | |
+| `SendTx` | [MsgSendTx](#ibc.applications.interchain_accounts.controller.v1.MsgSendTx) | [MsgSendTxResponse](#ibc.applications.interchain_accounts.controller.v1.MsgSendTxResponse) | SendTx defines a rpc handler for MsgSendTx. | |
 
  <!-- end services -->
 
@@ -1735,7 +1768,8 @@ The following parameters may be used to disable the host submodule.
 <a name="ibc.applications.interchain_accounts.genesis.v1.ActiveChannel"></a>
 
 ### ActiveChannel
-ActiveChannel contains a connection ID, port ID and associated active channel ID
+ActiveChannel contains a connection ID, port ID and associated active channel ID, as well as a boolean flag to
+indicate if the channel is middleware enabled
 
 
 | Field | Type | Label | Description |
@@ -1743,6 +1777,7 @@ ActiveChannel contains a connection ID, port ID and associated active channel ID
 | `connection_id` | [string](#string) |  |  |
 | `port_id` | [string](#string) |  |  |
 | `channel_id` | [string](#string) |  |  |
+| `is_middleware_enabled` | [bool](#bool) |  |  |
 
 
 
@@ -2239,6 +2274,7 @@ https://github.com/cosmos/ibc/tree/master/spec/app/ics-020-fungible-token-transf
 | `receiver` | [string](#string) |  | the recipient address on the destination chain |
 | `timeout_height` | [ibc.core.client.v1.Height](#ibc.core.client.v1.Height) |  | Timeout height relative to the current block height. The timeout is disabled when set to 0. |
 | `timeout_timestamp` | [uint64](#uint64) |  | Timeout timestamp in absolute nanoseconds since unix epoch. The timeout is disabled when set to 0. |
+| `memo` | [string](#string) |  | optional memo |
 
 
 
@@ -2249,6 +2285,11 @@ https://github.com/cosmos/ibc/tree/master/spec/app/ics-020-fungible-token-transf
 
 ### MsgTransferResponse
 MsgTransferResponse defines the Msg/Transfer response type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `sequence` | [uint64](#uint64) |  | sequence number of the transfer packet sent |
 
 
 
@@ -2295,6 +2336,7 @@ https://github.com/cosmos/ibc/tree/master/spec/app/ics-020-fungible-token-transf
 | `amount` | [string](#string) |  | the token amount to be transferred |
 | `sender` | [string](#string) |  | the sender address |
 | `receiver` | [string](#string) |  | the recipient address on the destination chain |
+| `memo` | [string](#string) |  | optional memo |
 
 
 
@@ -3323,33 +3365,6 @@ client id.
 
 
 
-<a name="ibc.core.client.v1.QueryClientParamsRequest"></a>
-
-### QueryClientParamsRequest
-QueryClientParamsRequest is the request type for the Query/ClientParams RPC
-method.
-
-
-
-
-
-
-<a name="ibc.core.client.v1.QueryClientParamsResponse"></a>
-
-### QueryClientParamsResponse
-QueryClientParamsResponse is the response type for the Query/ClientParams RPC
-method.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `params` | [Params](#ibc.core.client.v1.Params) |  | params defines the parameters of the module. |
-
-
-
-
-
-
 <a name="ibc.core.client.v1.QueryClientStateRequest"></a>
 
 ### QueryClientStateRequest
@@ -3556,6 +3571,33 @@ Query/ConsensusStates RPC method
 
 
 
+<a name="ibc.core.client.v1.QueryParamsRequest"></a>
+
+### QueryParamsRequest
+QueryParamsRequest is the request type for the Query/Params RPC
+method.
+
+
+
+
+
+
+<a name="ibc.core.client.v1.QueryParamsResponse"></a>
+
+### QueryParamsResponse
+QueryParamsResponse is the response type for the Query/Params RPC
+method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `params` | [Params](#ibc.core.client.v1.Params) |  | params defines the parameters of the module. |
+
+
+
+
+
+
 <a name="ibc.core.client.v1.QueryUpgradedClientStateRequest"></a>
 
 ### QueryUpgradedClientStateRequest
@@ -3629,7 +3671,7 @@ Query provides defines the gRPC querier service
 | `ConsensusStates` | [QueryConsensusStatesRequest](#ibc.core.client.v1.QueryConsensusStatesRequest) | [QueryConsensusStatesResponse](#ibc.core.client.v1.QueryConsensusStatesResponse) | ConsensusStates queries all the consensus state associated with a given client. | GET|/ibc/core/client/v1/consensus_states/{client_id}|
 | `ConsensusStateHeights` | [QueryConsensusStateHeightsRequest](#ibc.core.client.v1.QueryConsensusStateHeightsRequest) | [QueryConsensusStateHeightsResponse](#ibc.core.client.v1.QueryConsensusStateHeightsResponse) | ConsensusStateHeights queries the height of every consensus states associated with a given client. | GET|/ibc/core/client/v1/consensus_states/{client_id}/heights|
 | `ClientStatus` | [QueryClientStatusRequest](#ibc.core.client.v1.QueryClientStatusRequest) | [QueryClientStatusResponse](#ibc.core.client.v1.QueryClientStatusResponse) | Status queries the status of an IBC client. | GET|/ibc/core/client/v1/client_status/{client_id}|
-| `ClientParams` | [QueryClientParamsRequest](#ibc.core.client.v1.QueryClientParamsRequest) | [QueryClientParamsResponse](#ibc.core.client.v1.QueryClientParamsResponse) | ClientParams queries all parameters of the ibc client. | GET|/ibc/client/v1/params|
+| `Params` | [QueryParamsRequest](#ibc.core.client.v1.QueryParamsRequest) | [QueryParamsResponse](#ibc.core.client.v1.QueryParamsResponse) | Params queries all parameters of the ibc client. | GET|/ibc/core/client/v1/params|
 | `UpgradedClientState` | [QueryUpgradedClientStateRequest](#ibc.core.client.v1.QueryUpgradedClientStateRequest) | [QueryUpgradedClientStateResponse](#ibc.core.client.v1.QueryUpgradedClientStateResponse) | UpgradedClientState queries an Upgraded IBC light client. | GET|/ibc/core/client/v1/upgraded_client_states|
 | `UpgradedConsensusState` | [QueryUpgradedConsensusStateRequest](#ibc.core.client.v1.QueryUpgradedConsensusStateRequest) | [QueryUpgradedConsensusStateResponse](#ibc.core.client.v1.QueryUpgradedConsensusStateResponse) | UpgradedConsensusState queries an Upgraded IBC consensus state. | GET|/ibc/core/client/v1/upgraded_consensus_states|
 

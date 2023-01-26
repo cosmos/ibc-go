@@ -4,13 +4,14 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/gogo/protobuf/proto"
 
-	icahosttypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/host/types"
-	icatypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/types"
-	"github.com/cosmos/ibc-go/v5/modules/apps/29-fee/types"
-	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
-	ibctesting "github.com/cosmos/ibc-go/v5/testing"
+	icahosttypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/host/types"
+	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
+	"github.com/cosmos/ibc-go/v6/modules/apps/29-fee/types"
+	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
+	ibctesting "github.com/cosmos/ibc-go/v6/testing"
 )
 
 var (
@@ -39,7 +40,7 @@ func NewIncentivizedICAPath(chainA, chainB *ibctesting.TestChain) *ibctesting.Pa
 	path.EndpointA.ChannelConfig.Version = feeICAVersion
 	path.EndpointB.ChannelConfig.Version = feeICAVersion
 	path.EndpointA.ChannelConfig.PortID = defaultPortID
-	path.EndpointB.ChannelConfig.PortID = icatypes.PortID
+	path.EndpointB.ChannelConfig.PortID = icatypes.HostPortID
 
 	return path
 }
@@ -146,7 +147,7 @@ func (suite *FeeTestSuite) TestFeeInterchainAccounts() {
 		Amount:           sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(5000)),
 	}
 
-	data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []sdk.Msg{msgDelegate})
+	data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []proto.Message{msgDelegate})
 	suite.Require().NoError(err)
 
 	icaPacketData := icatypes.InterchainAccountPacketData{

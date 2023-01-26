@@ -1,7 +1,7 @@
 syntax = "proto3";
 package ibc.lightclients.wasm.v1;
 
-option go_package = "github.com/cosmos/ibc-go/v5/modules/light-clients/08-wasm;wasm";
+option go_package = "github.com/cosmos/ibc-go/v6/modules/light-clients/08-wasm;wasm";
 
 // Msg defines the ibc/wasm Msg service.
 service Msg {

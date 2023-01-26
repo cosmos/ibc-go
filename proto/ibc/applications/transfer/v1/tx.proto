@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package ibc.applications.transfer.v1;
 
-option go_package = "github.com/cosmos/ibc-go/v5/modules/apps/transfer/types";
+option go_package = "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types";
 
 import "gogoproto/gogo.proto";
 import "cosmos/base/v1beta1/coin.proto";
@@ -38,7 +38,12 @@ message MsgTransfer {
   // Timeout timestamp in absolute nanoseconds since unix epoch.
   // The timeout is disabled when set to 0.
   uint64 timeout_timestamp = 7 [(gogoproto.moretags) = "yaml:\"timeout_timestamp\""];
+  // optional memo
+  string memo = 8;
 }
 
 // MsgTransferResponse defines the Msg/Transfer response type.
-message MsgTransferResponse {}
+message MsgTransferResponse {
+  // sequence number of the transfer packet sent
+  uint64 sequence = 1;
+}

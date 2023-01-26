@@ -77,7 +77,7 @@ type ClientState interface {
 		delayTimePeriod uint64,
 		delayBlockPeriod uint64,
 		proof []byte,
-		path []byte,
+		path Path,
 		value []byte,
 	) error
 
@@ -91,7 +91,7 @@ type ClientState interface {
 		delayTimePeriod uint64,
 		delayBlockPeriod uint64,
 		proof []byte,
-		path []byte,
+		path Path,
 	) error
 
 	// VerifyClientMessage must verify a ClientMessage. A ClientMessage could be a Header, Misbehaviour, or batch update.

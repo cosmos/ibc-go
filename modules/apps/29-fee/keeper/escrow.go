@@ -7,8 +7,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	"github.com/cosmos/ibc-go/v5/modules/apps/29-fee/types"
-	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
+	"github.com/cosmos/ibc-go/v6/modules/apps/29-fee/types"
+	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 )
 
 // escrowPacketFee sends the packet fee to the 29-fee module account to hold in escrow
@@ -74,9 +74,6 @@ func (k Keeper) DistributePacketFeesOnAcknowledgement(ctx sdk.Context, forwardRe
 		k.distributePacketFeeOnAcknowledgement(cacheCtx, refundAddr, forwardAddr, reverseRelayer, packetFee)
 	}
 
-	// NOTE: The context returned by CacheContext() refers to a new EventManager, so it needs to explicitly set events to the original context.
-	ctx.EventManager().EmitEvents(cacheCtx.EventManager().Events())
-
 	// write the cache
 	writeFn()
 
@@ -130,9 +127,6 @@ func (k Keeper) DistributePacketFeesOnTimeout(ctx sdk.Context, timeoutRelayer sd
 		k.distributePacketFeeOnTimeout(cacheCtx, refundAddr, timeoutRelayer, packetFee)
 	}
 
-	// NOTE: The context returned by CacheContext() refers to a new EventManager, so it needs to explicitly set events to the original context.
-	ctx.EventManager().EmitEvents(cacheCtx.EventManager().Events())
-
 	// write the cache
 	writeFn()
 
@@ -177,9 +171,6 @@ func (k Keeper) distributeFee(ctx sdk.Context, receiver, refundAccAddress sdk.Ac
 
 	// write the cache
 	writeFn()
-
-	// NOTE: The context returned by CacheContext() refers to a new EventManager, so it needs to explicitly set events to the original context.
-	ctx.EventManager().EmitEvents(cacheCtx.EventManager().Events())
 }
 
 // RefundFeesOnChannelClosure will refund all fees associated with the given port and channel identifiers.
@@ -227,9 +218,6 @@ func (k Keeper) RefundFeesOnChannelClosure(ctx sdk.Context, portID, channelID st
 			k.DeleteFeesInEscrow(cacheCtx, identifiedPacketFee.PacketId)
 		}
 	}
-
-	// NOTE: The context returned by CacheContext() refers to a new EventManager, so it needs to explicitly set events to the original context.
-	ctx.EventManager().EmitEvents(cacheCtx.EventManager().Events())
 
 	// write the cache
 	writeFn()

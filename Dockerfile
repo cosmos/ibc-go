@@ -12,6 +12,7 @@ ADD testing testing
 ADD modules modules
 ADD LICENSE LICENSE
 
+COPY contrib/devtools/Makefile contrib/devtools/Makefile
 COPY Makefile .
 
 RUN make build

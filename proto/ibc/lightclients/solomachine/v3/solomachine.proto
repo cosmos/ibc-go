@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package ibc.lightclients.solomachine.v3;
 
-option go_package = "github.com/cosmos/ibc-go/v5/modules/light-clients/06-solomachine;solomachine";
+option go_package = "github.com/cosmos/ibc-go/v6/modules/light-clients/06-solomachine;solomachine";
 
 import "gogoproto/gogo.proto";
 import "google/protobuf/any.proto";
@@ -16,9 +16,6 @@ message ClientState {
   // frozen sequence of the solo machine
   bool           is_frozen       = 2 [(gogoproto.moretags) = "yaml:\"is_frozen\""];
   ConsensusState consensus_state = 3 [(gogoproto.moretags) = "yaml:\"consensus_state\""];
-  // when set to true, will allow governance to update a solo machine client.
-  // The client will be unfrozen if it is frozen.
-  bool allow_update_after_proposal = 4 [(gogoproto.moretags) = "yaml:\"allow_update_after_proposal\""];
 }
 
 // ConsensusState defines a solo machine consensus state. The sequence of a
@@ -51,11 +48,9 @@ message Header {
 message Misbehaviour {
   option (gogoproto.goproto_getters) = false;
 
-  // ClientID is deprecated
-  string           client_id     = 1 [deprecated = true, (gogoproto.moretags) = "yaml:\"client_id\""];
-  uint64           sequence      = 2;
-  SignatureAndData signature_one = 3 [(gogoproto.moretags) = "yaml:\"signature_one\""];
-  SignatureAndData signature_two = 4 [(gogoproto.moretags) = "yaml:\"signature_two\""];
+  uint64           sequence      = 1;
+  SignatureAndData signature_one = 2 [(gogoproto.moretags) = "yaml:\"signature_one\""];
+  SignatureAndData signature_two = 3 [(gogoproto.moretags) = "yaml:\"signature_two\""];
 }
 
 // SignatureAndData contains a signature and the data signed over to create that

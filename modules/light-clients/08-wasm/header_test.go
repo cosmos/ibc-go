@@ -1,9 +1,9 @@
 package wasm_test
 
 import (
-	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v5/modules/core/exported"
-	wasm "github.com/cosmos/ibc-go/v5/modules/light-clients/08-wasm"
+	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v6/modules/core/exported"
+	wasm "github.com/cosmos/ibc-go/v6/modules/light-clients/08-wasm"
 )
 
 func (suite *WasmTestSuite) TestHeaderValidateBasic() {

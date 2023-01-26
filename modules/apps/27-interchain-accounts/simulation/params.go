@@ -8,11 +8,11 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 	gogotypes "github.com/gogo/protobuf/types"
 
-	controllerkeeper "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/controller/keeper"
-	controllertypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/controller/types"
-	hostkeeper "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/host/keeper"
-	hosttypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/host/types"
-	"github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/types"
+	controllerkeeper "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/controller/keeper"
+	controllertypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/controller/types"
+	hostkeeper "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/host/keeper"
+	hosttypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/host/types"
+	"github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
 )
 
 // ParamChanges defines the parameters that can be modified by param change proposals

@@ -5,10 +5,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v5/modules/core/23-commitment/types"
-	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v5/modules/core/exported"
+	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v6/modules/core/23-commitment/types"
+	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v6/modules/core/exported"
 )
 
 var (
@@ -139,9 +139,6 @@ func (msg MsgConnectionOpenTry) ValidateBasic() error {
 	if len(msg.ProofConsensus) == 0 {
 		return sdkerrors.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty proof of consensus state")
 	}
-	if msg.ProofHeight.IsZero() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidHeight, "proof height must be non-zero")
-	}
 	if msg.ConsensusHeight.IsZero() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidHeight, "consensus height must be non-zero")
 	}
@@ -226,9 +223,6 @@ func (msg MsgConnectionOpenAck) ValidateBasic() error {
 	if len(msg.ProofConsensus) == 0 {
 		return sdkerrors.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty proof of consensus state")
 	}
-	if msg.ProofHeight.IsZero() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidHeight, "proof height must be non-zero")
-	}
 	if msg.ConsensusHeight.IsZero() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidHeight, "consensus height must be non-zero")
 	}
@@ -270,9 +264,6 @@ func (msg MsgConnectionOpenConfirm) ValidateBasic() error {
 	}
 	if len(msg.ProofAck) == 0 {
 		return sdkerrors.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty proof ack")
-	}
-	if msg.ProofHeight.IsZero() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidHeight, "proof height must be non-zero")
 	}
 	_, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {

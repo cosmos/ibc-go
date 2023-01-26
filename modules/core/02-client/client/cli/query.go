@@ -9,9 +9,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/spf13/cobra"
 
-	"github.com/cosmos/ibc-go/v5/modules/core/02-client/client/utils"
-	"github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
-	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v6/modules/core/02-client/client/utils"
+	"github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
+	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
 )
 
 const (
@@ -118,6 +118,8 @@ func GetCmdQueryClientStatus() *cobra.Command {
 			return clientCtx.PrintProto(clientStatusRes)
 		},
 	}
+
+	flags.AddQueryFlagsToCmd(cmd)
 
 	return cmd
 }
@@ -309,8 +311,8 @@ func GetCmdSelfConsensusState() *cobra.Command {
 	return cmd
 }
 
-// GetCmdParams returns the command handler for ibc client parameter querying.
-func GetCmdParams() *cobra.Command {
+// GetCmdClientParams returns the command handler for ibc client parameter querying.
+func GetCmdClientParams() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "params",
 		Short:   "Query the current ibc client parameters",

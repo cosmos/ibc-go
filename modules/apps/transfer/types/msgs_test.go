@@ -8,7 +8,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 
-	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
+	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 )
 
 // define constants used for testing
@@ -41,20 +41,13 @@ var (
 
 // TestMsgTransferRoute tests Route for MsgTransfer
 func TestMsgTransferRoute(t *testing.T) {
-	msg := NewMsgTransfer(validPort, validChannel, coin, addr1, addr2, timeoutHeight, 0)
+	msg := NewMsgTransfer(validPort, validChannel, coin, addr1, addr2, timeoutHeight, 0, "")
 
 	require.Equal(t, RouterKey, msg.Route())
 }
 
-// TestMsgTransferType tests Type for MsgTransfer
-func TestMsgTransferType(t *testing.T) {
-	msg := NewMsgTransfer(validPort, validChannel, coin, addr1, addr2, timeoutHeight, 0)
-
-	require.Equal(t, "transfer", msg.Type())
-}
-
 func TestMsgTransferGetSignBytes(t *testing.T) {
-	msg := NewMsgTransfer(validPort, validChannel, coin, addr1, addr2, timeoutHeight, 0)
+	msg := NewMsgTransfer(validPort, validChannel, coin, addr1, addr2, timeoutHeight, 0, "")
 	expected := fmt.Sprintf(`{"type":"cosmos-sdk/MsgTransfer","value":{"receiver":"%s","sender":"%s","source_channel":"testchannel","source_port":"testportid","timeout_height":{"revision_height":"10"},"token":{"amount":"100","denom":"atom"}}}`, addr2, addr1)
 	require.NotPanics(t, func() {
 		res := msg.GetSignBytes()
@@ -69,20 +62,20 @@ func TestMsgTransferValidation(t *testing.T) {
 		msg     *MsgTransfer
 		expPass bool
 	}{
-		{"valid msg with base denom", NewMsgTransfer(validPort, validChannel, coin, addr1, addr2, timeoutHeight, 0), true},
-		{"valid msg with trace hash", NewMsgTransfer(validPort, validChannel, ibcCoin, addr1, addr2, timeoutHeight, 0), true},
-		{"invalid ibc denom", NewMsgTransfer(validPort, validChannel, invalidIBCCoin, addr1, addr2, timeoutHeight, 0), false},
-		{"too short port id", NewMsgTransfer(invalidShortPort, validChannel, coin, addr1, addr2, timeoutHeight, 0), false},
-		{"too long port id", NewMsgTransfer(invalidLongPort, validChannel, coin, addr1, addr2, timeoutHeight, 0), false},
-		{"port id contains non-alpha", NewMsgTransfer(invalidPort, validChannel, coin, addr1, addr2, timeoutHeight, 0), false},
-		{"too short channel id", NewMsgTransfer(validPort, invalidShortChannel, coin, addr1, addr2, timeoutHeight, 0), false},
-		{"too long channel id", NewMsgTransfer(validPort, invalidLongChannel, coin, addr1, addr2, timeoutHeight, 0), false},
-		{"channel id contains non-alpha", NewMsgTransfer(validPort, invalidChannel, coin, addr1, addr2, timeoutHeight, 0), false},
-		{"invalid denom", NewMsgTransfer(validPort, validChannel, invalidDenomCoin, addr1, addr2, timeoutHeight, 0), false},
-		{"zero coin", NewMsgTransfer(validPort, validChannel, zeroCoin, addr1, addr2, timeoutHeight, 0), false},
-		{"missing sender address", NewMsgTransfer(validPort, validChannel, coin, emptyAddr, addr2, timeoutHeight, 0), false},
-		{"missing recipient address", NewMsgTransfer(validPort, validChannel, coin, addr1, "", timeoutHeight, 0), false},
-		{"empty coin", NewMsgTransfer(validPort, validChannel, sdk.Coin{}, addr1, addr2, timeoutHeight, 0), false},
+		{"valid msg with base denom", NewMsgTransfer(validPort, validChannel, coin, addr1, addr2, timeoutHeight, 0, ""), true},
+		{"valid msg with trace hash", NewMsgTransfer(validPort, validChannel, ibcCoin, addr1, addr2, timeoutHeight, 0, ""), true},
+		{"invalid ibc denom", NewMsgTransfer(validPort, validChannel, invalidIBCCoin, addr1, addr2, timeoutHeight, 0, ""), false},
+		{"too short port id", NewMsgTransfer(invalidShortPort, validChannel, coin, addr1, addr2, timeoutHeight, 0, ""), false},
+		{"too long port id", NewMsgTransfer(invalidLongPort, validChannel, coin, addr1, addr2, timeoutHeight, 0, ""), false},
+		{"port id contains non-alpha", NewMsgTransfer(invalidPort, validChannel, coin, addr1, addr2, timeoutHeight, 0, ""), false},
+		{"too short channel id", NewMsgTransfer(validPort, invalidShortChannel, coin, addr1, addr2, timeoutHeight, 0, ""), false},
+		{"too long channel id", NewMsgTransfer(validPort, invalidLongChannel, coin, addr1, addr2, timeoutHeight, 0, ""), false},
+		{"channel id contains non-alpha", NewMsgTransfer(validPort, invalidChannel, coin, addr1, addr2, timeoutHeight, 0, ""), false},
+		{"invalid denom", NewMsgTransfer(validPort, validChannel, invalidDenomCoin, addr1, addr2, timeoutHeight, 0, ""), false},
+		{"zero coin", NewMsgTransfer(validPort, validChannel, zeroCoin, addr1, addr2, timeoutHeight, 0, ""), false},
+		{"missing sender address", NewMsgTransfer(validPort, validChannel, coin, emptyAddr, addr2, timeoutHeight, 0, ""), false},
+		{"missing recipient address", NewMsgTransfer(validPort, validChannel, coin, addr1, "", timeoutHeight, 0, ""), false},
+		{"empty coin", NewMsgTransfer(validPort, validChannel, sdk.Coin{}, addr1, addr2, timeoutHeight, 0, ""), false},
 	}
 
 	for i, tc := range testCases {
@@ -99,7 +92,7 @@ func TestMsgTransferValidation(t *testing.T) {
 func TestMsgTransferGetSigners(t *testing.T) {
 	addr := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
 
-	msg := NewMsgTransfer(validPort, validChannel, coin, addr.String(), addr2, timeoutHeight, 0)
+	msg := NewMsgTransfer(validPort, validChannel, coin, addr.String(), addr2, timeoutHeight, 0, "")
 	res := msg.GetSigners()
 
 	require.Equal(t, []sdk.AccAddress{addr}, res)

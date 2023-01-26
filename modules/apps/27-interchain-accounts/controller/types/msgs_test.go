@@ -5,18 +5,18 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	"github.com/gogo/protobuf/proto"
 	"github.com/stretchr/testify/require"
 
-	"github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/controller/types"
-	icatypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/types"
-	feetypes "github.com/cosmos/ibc-go/v5/modules/apps/29-fee/types"
-	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
-	ibctesting "github.com/cosmos/ibc-go/v5/testing"
-	"github.com/cosmos/ibc-go/v5/testing/simapp"
+	"github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/controller/types"
+	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
+	feetypes "github.com/cosmos/ibc-go/v6/modules/apps/29-fee/types"
+	ibctesting "github.com/cosmos/ibc-go/v6/testing"
+	"github.com/cosmos/ibc-go/v6/testing/simapp"
 )
 
-func TestMsgRegisterAccountValidateBasic(t *testing.T) {
-	var msg *types.MsgRegisterAccount
+func TestMsgRegisterInterchainAccountValidateBasic(t *testing.T) {
+	var msg *types.MsgRegisterInterchainAccount
 
 	testCases := []struct {
 		name     string
@@ -62,18 +62,11 @@ func TestMsgRegisterAccountValidateBasic(t *testing.T) {
 			},
 			false,
 		},
-		{
-			"owner address is invalid",
-			func() {
-				msg.Owner = "invalid_address"
-			},
-			false,
-		},
 	}
 
 	for i, tc := range testCases {
 
-		msg = types.NewMsgRegisterAccount(
+		msg = types.NewMsgRegisterInterchainAccount(
 			ibctesting.FirstConnectionID,
 			ibctesting.TestAccAddress,
 			icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID),
@@ -90,16 +83,16 @@ func TestMsgRegisterAccountValidateBasic(t *testing.T) {
 	}
 }
 
-func TestMsgRegisterAccountGetSigners(t *testing.T) {
+func TestMsgRegisterInterchainAccountGetSigners(t *testing.T) {
 	expSigner, err := sdk.AccAddressFromBech32(ibctesting.TestAccAddress)
 	require.NoError(t, err)
 
-	msg := types.NewMsgRegisterAccount(ibctesting.FirstConnectionID, ibctesting.TestAccAddress, "")
+	msg := types.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, ibctesting.TestAccAddress, "")
 	require.Equal(t, []sdk.AccAddress{expSigner}, msg.GetSigners())
 }
 
-func TestMsgSubmitTxValidateBasic(t *testing.T) {
-	var msg *types.MsgSubmitTx
+func TestMsgSendTxValidateBasic(t *testing.T) {
+	var msg *types.MsgSendTx
 
 	testCases := []struct {
 		name     string
@@ -126,16 +119,9 @@ func TestMsgSubmitTxValidateBasic(t *testing.T) {
 			false,
 		},
 		{
-			"owner address is invalid",
+			"relative timeout is not set",
 			func() {
-				msg.Owner = "invalid_address"
-			},
-			false,
-		},
-		{
-			"timeout height and timestamp are both not set",
-			func() {
-				msg.TimeoutTimestamp = 0
+				msg.RelativeTimeout = 0
 			},
 			false,
 		},
@@ -156,7 +142,7 @@ func TestMsgSubmitTxValidateBasic(t *testing.T) {
 			Amount:      ibctesting.TestCoins,
 		}
 
-		data, err := icatypes.SerializeCosmosTx(simapp.MakeTestEncodingConfig().Marshaler, []sdk.Msg{msgBankSend})
+		data, err := icatypes.SerializeCosmosTx(simapp.MakeTestEncodingConfig().Marshaler, []proto.Message{msgBankSend})
 		require.NoError(t, err)
 
 		packetData := icatypes.InterchainAccountPacketData{
@@ -164,10 +150,9 @@ func TestMsgSubmitTxValidateBasic(t *testing.T) {
 			Data: data,
 		}
 
-		msg = types.NewMsgSubmitTx(
+		msg = types.NewMsgSendTx(
 			ibctesting.TestAccAddress,
 			ibctesting.FirstConnectionID,
-			clienttypes.ZeroHeight(),
 			100000,
 			packetData,
 		)
@@ -183,7 +168,7 @@ func TestMsgSubmitTxValidateBasic(t *testing.T) {
 	}
 }
 
-func TestMsgSubmitTxGetSigners(t *testing.T) {
+func TestMsgSendTxGetSigners(t *testing.T) {
 	expSigner, err := sdk.AccAddressFromBech32(ibctesting.TestAccAddress)
 	require.NoError(t, err)
 
@@ -193,7 +178,7 @@ func TestMsgSubmitTxGetSigners(t *testing.T) {
 		Amount:      ibctesting.TestCoins,
 	}
 
-	data, err := icatypes.SerializeCosmosTx(simapp.MakeTestEncodingConfig().Marshaler, []sdk.Msg{msgBankSend})
+	data, err := icatypes.SerializeCosmosTx(simapp.MakeTestEncodingConfig().Marshaler, []proto.Message{msgBankSend})
 	require.NoError(t, err)
 
 	packetData := icatypes.InterchainAccountPacketData{
@@ -201,10 +186,9 @@ func TestMsgSubmitTxGetSigners(t *testing.T) {
 		Data: data,
 	}
 
-	msg := types.NewMsgSubmitTx(
+	msg := types.NewMsgSendTx(
 		ibctesting.TestAccAddress,
 		ibctesting.FirstConnectionID,
-		clienttypes.ZeroHeight(),
 		100000,
 		packetData,
 	)

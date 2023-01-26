@@ -13,15 +13,16 @@ import (
 	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/spf13/cobra"
 
-	"github.com/cosmos/ibc-go/v5/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
-	channelutils "github.com/cosmos/ibc-go/v5/modules/core/04-channel/client/utils"
+	"github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
+	channelutils "github.com/cosmos/ibc-go/v6/modules/core/04-channel/client/utils"
 )
 
 const (
 	flagPacketTimeoutHeight    = "packet-timeout-height"
 	flagPacketTimeoutTimestamp = "packet-timeout-timestamp"
 	flagAbsoluteTimeouts       = "absolute-timeouts"
+	flagMemo                   = "memo"
 )
 
 // NewTransferTxCmd returns the command to create a NewMsgTransfer transaction
@@ -76,6 +77,11 @@ corresponding to the counterparty channel. Any timeout set to 0 is disabled.`),
 				return err
 			}
 
+			memo, err := cmd.Flags().GetString(flagMemo)
+			if err != nil {
+				return err
+			}
+
 			// if the timeouts are not absolute, retrieve latest block height and block timestamp
 			// for the consensus state connected to the destination port/channel
 			if !absoluteTimeouts {
@@ -111,7 +117,7 @@ corresponding to the counterparty channel. Any timeout set to 0 is disabled.`),
 			}
 
 			msg := types.NewMsgTransfer(
-				srcPort, srcChannel, coin, sender, receiver, timeoutHeight, timeoutTimestamp,
+				srcPort, srcChannel, coin, sender, receiver, timeoutHeight, timeoutTimestamp, memo,
 			)
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
@@ -120,6 +126,7 @@ corresponding to the counterparty channel. Any timeout set to 0 is disabled.`),
 	cmd.Flags().String(flagPacketTimeoutHeight, types.DefaultRelativePacketTimeoutHeight, "Packet timeout block height. The timeout is disabled when set to 0-0.")
 	cmd.Flags().Uint64(flagPacketTimeoutTimestamp, types.DefaultRelativePacketTimeoutTimestamp, "Packet timeout timestamp in nanoseconds from now. Default is 10 minutes. The timeout is disabled when set to 0.")
 	cmd.Flags().Bool(flagAbsoluteTimeouts, false, "Timeout flags are used as absolute timeouts.")
+	cmd.Flags().String(flagMemo, "", "Memo to be sent along with the packet.")
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd

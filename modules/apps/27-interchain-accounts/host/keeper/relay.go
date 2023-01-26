@@ -6,9 +6,9 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/gogo/protobuf/proto"
 
-	"github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/host/types"
-	icatypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/types"
-	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
+	"github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/host/types"
+	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
+	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 )
 
 // OnRecvPacket handles a given interchain accounts packet on a destination host chain.
@@ -73,8 +73,6 @@ func (k Keeper) executeTx(ctx sdk.Context, sourcePort, destPort, destChannel str
 		txMsgData.MsgResponses[i] = any
 	}
 
-	// NOTE: The context returned by CacheContext() creates a new EventManager, so events must be correctly propagated back to the current context
-	ctx.EventManager().EmitEvents(cacheCtx.EventManager().Events())
 	writeCache()
 
 	txResponse, err := proto.Marshal(txMsgData)

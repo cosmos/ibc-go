@@ -1,12 +1,12 @@
 package solomachine_test
 
 import (
-	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
-	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v5/modules/core/exported"
-	solomachine "github.com/cosmos/ibc-go/v5/modules/light-clients/06-solomachine"
-	ibctm "github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint"
-	ibctesting "github.com/cosmos/ibc-go/v5/testing"
+	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
+	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v6/modules/core/exported"
+	solomachine "github.com/cosmos/ibc-go/v6/modules/light-clients/06-solomachine"
+	ibctm "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint"
+	ibctesting "github.com/cosmos/ibc-go/v6/testing"
 )
 
 func (suite *SoloMachineTestSuite) TestCheckSubstituteAndUpdateState() {
@@ -23,11 +23,6 @@ func (suite *SoloMachineTestSuite) TestCheckSubstituteAndUpdateState() {
 			malleate func()
 			expPass  bool
 		}{
-			{
-				"valid substitute", func() {
-					subjectClientState.AllowUpdateAfterProposal = true
-				}, true,
-			},
 			{
 				"substitute is not the solo machine", func() {
 					substituteClientState = &ibctm.ClientState{}

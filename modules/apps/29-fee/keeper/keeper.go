@@ -5,12 +5,12 @@ import (
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
-	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/tendermint/tendermint/libs/log"
 
-	"github.com/cosmos/ibc-go/v5/modules/apps/29-fee/types"
-	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v6/modules/apps/29-fee/types"
+	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
+	porttypes "github.com/cosmos/ibc-go/v6/modules/core/05-port/types"
+	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
 )
 
 // Middleware must implement types.ChannelKeeper and types.PortKeeper expected interfaces
@@ -26,7 +26,7 @@ type Keeper struct {
 	cdc      codec.BinaryCodec
 
 	authKeeper    types.AccountKeeper
-	ics4Wrapper   types.ICS4Wrapper
+	ics4Wrapper   porttypes.ICS4Wrapper
 	channelKeeper types.ChannelKeeper
 	portKeeper    types.PortKeeper
 	bankKeeper    types.BankKeeper
@@ -34,8 +34,9 @@ type Keeper struct {
 
 // NewKeeper creates a new 29-fee Keeper instance
 func NewKeeper(
-	cdc codec.BinaryCodec, key storetypes.StoreKey, paramSpace paramtypes.Subspace,
-	ics4Wrapper types.ICS4Wrapper, channelKeeper types.ChannelKeeper, portKeeper types.PortKeeper, authKeeper types.AccountKeeper, bankKeeper types.BankKeeper,
+	cdc codec.BinaryCodec, key storetypes.StoreKey,
+	ics4Wrapper porttypes.ICS4Wrapper, channelKeeper types.ChannelKeeper,
+	portKeeper types.PortKeeper, authKeeper types.AccountKeeper, bankKeeper types.BankKeeper,
 ) Keeper {
 	return Keeper{
 		cdc:           cdc,
@@ -122,7 +123,7 @@ func (k Keeper) DeleteFeeEnabled(ctx sdk.Context, portID, channelID string) {
 // fee enabled flag for the given port and channel identifiers
 func (k Keeper) IsFeeEnabled(ctx sdk.Context, portID, channelID string) bool {
 	store := ctx.KVStore(k.storeKey)
-	return store.Get(types.KeyFeeEnabled(portID, channelID)) != nil
+	return store.Has(types.KeyFeeEnabled(portID, channelID))
 }
 
 // GetAllFeeEnabledChannels returns a list of all ics29 enabled channels containing portID & channelID that are stored in state

@@ -3,8 +3,8 @@ package cli
 import (
 	"github.com/spf13/cobra"
 
-	controllercli "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/controller/client/cli"
-	hostcli "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/host/client/cli"
+	controllercli "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/controller/client/cli"
+	hostcli "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/host/client/cli"
 )
 
 // GetQueryCmd returns the query commands for the interchain-accounts submodule
@@ -12,7 +12,7 @@ func GetQueryCmd() *cobra.Command {
 	icaQueryCmd := &cobra.Command{
 		Use:                        "interchain-accounts",
 		Aliases:                    []string{"ica"},
-		Short:                      "interchain-accounts subcommands",
+		Short:                      "IBC interchain accounts query subcommands",
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
 	}
@@ -30,13 +30,14 @@ func NewTxCmd() *cobra.Command {
 	icaTxCmd := &cobra.Command{
 		Use:                        "interchain-accounts",
 		Aliases:                    []string{"ica"},
-		Short:                      "interchain-accounts tx subcommands",
+		Short:                      "IBC interchain accounts transaction subcommands",
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
 	}
 
 	icaTxCmd.AddCommand(
 		controllercli.NewTxCmd(),
+		hostcli.NewTxCmd(),
 	)
 
 	return icaTxCmd

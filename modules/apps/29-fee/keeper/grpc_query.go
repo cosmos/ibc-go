@@ -10,7 +10,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/cosmos/ibc-go/v5/modules/apps/29-fee/types"
+	"github.com/cosmos/ibc-go/v6/modules/apps/29-fee/types"
 )
 
 var _ types.QueryServer = Keeper{}

@@ -14,6 +14,90 @@ Learn how to configure the Fee Middleware module with IBC applications. The foll
 The Fee Middleware module, as the name suggests, plays the role of an IBC middleware and as such must be configured by chain developers to route and handle IBC messages correctly.
 For Cosmos SDK chains this setup is done via the `app/app.go` file, where modules are constructed and configured in order to bootstrap the blockchain application.
 
+## Example integration of the Fee Middleware module
+
+```go
+// app.go
+
+// Register the AppModule for the fee middleware module
+ModuleBasics = module.NewBasicManager(
+    ...
+    ibcfee.AppModuleBasic{},
+    ...
+)
+
+... 
+
+// Add module account permissions for the fee middleware module
+maccPerms = map[string][]string{
+    ...
+    ibcfeetypes.ModuleName:            nil,
+}
+
+...
+
+// Add fee middleware Keeper
+type App struct {
+    ...
+
+    IBCFeeKeeper ibcfeekeeper.Keeper
+
+    ...
+}
+
+...
+
+// Create store keys 
+keys := sdk.NewKVStoreKeys(
+    ...
+    ibcfeetypes.StoreKey,
+    ...
+)
+
+... 
+
+app.IBCFeeKeeper = ibcfeekeeper.NewKeeper(
+	appCodec, keys[ibcfeetypes.StoreKey],
+	app.IBCKeeper.ChannelKeeper, // may be replaced with IBC middleware
+	app.IBCKeeper.ChannelKeeper,
+	&app.IBCKeeper.PortKeeper, app.AccountKeeper, app.BankKeeper,
+)
+
+
+// See the section below for configuring an application stack with the fee middleware module
+
+...
+
+// Register fee middleware AppModule
+app.moduleManager = module.NewManager(
+    ...
+    ibcfee.NewAppModule(app.IBCFeeKeeper),
+)
+
+...
+
+// Add fee middleware to begin blocker logic
+app.moduleManager.SetOrderBeginBlockers(
+    ...
+    ibcfeetypes.ModuleName,
+    ...
+)
+
+// Add fee middleware to end blocker logic
+app.moduleManager.SetOrderEndBlockers(
+    ...
+    ibcfeetypes.ModuleName,
+    ...
+)
+
+// Add fee middleware to init genesis logic
+app.moduleManager.SetOrderInitGenesis(
+    ...
+    ibcfeetypes.ModuleName,
+    ...
+)
+```
+
 ## Configuring an application stack with Fee Middleware
 
 As mentioned in [IBC middleware development](../../ibc/middleware/develop.md) an application stack may be composed of many or no middlewares that nest a base application. 

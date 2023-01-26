@@ -5,12 +5,12 @@ import (
 
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
-	connectiontypes "github.com/cosmos/ibc-go/v5/modules/core/03-connection/types"
-	"github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v5/modules/core/exported"
-	ibctesting "github.com/cosmos/ibc-go/v5/testing"
+	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v6/modules/core/03-connection/types"
+	"github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v6/modules/core/exported"
+	ibctesting "github.com/cosmos/ibc-go/v6/testing"
 )
 
 type testCase = struct {
@@ -639,6 +639,7 @@ func (suite *KeeperTestSuite) TestChanCloseInit() {
 			// create channel in init
 			path.SetChannelOrdered()
 			err = path.EndpointA.ChanOpenInit()
+			suite.Require().NoError(err)
 
 			// ensure channel capability check passes
 			suite.chainA.CreateChannelCapability(suite.chainA.GetSimApp().ScopedIBCMockKeeper, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)

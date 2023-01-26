@@ -6,9 +6,12 @@ import (
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v5/modules/core/exported"
+	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v6/modules/core/exported"
 )
+
+// SentinelHeaderPath defines a placeholder path value used for headers in solomachine client updates
+const SentinelHeaderPath = "solomachine:header"
 
 var _ exported.ClientMessage = &Header{}
 

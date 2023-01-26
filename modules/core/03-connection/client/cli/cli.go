@@ -3,7 +3,7 @@ package cli
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/cosmos/ibc-go/v5/modules/core/03-connection/types"
+	"github.com/cosmos/ibc-go/v6/modules/core/03-connection/types"
 )
 
 // GetQueryCmd returns the query commands for IBC connections
@@ -19,6 +19,7 @@ func GetQueryCmd() *cobra.Command {
 		GetCmdQueryConnections(),
 		GetCmdQueryConnection(),
 		GetCmdQueryClientConnections(),
+		GetCmdConnectionParams(),
 	)
 
 	return queryCmd

@@ -16,6 +16,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/server"
 	serverconfig "github.com/cosmos/cosmos-sdk/server/config"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
+	sdkcmd "github.com/cosmos/cosmos-sdk/simapp/simd/cmd"
 	"github.com/cosmos/cosmos-sdk/snapshots"
 	snapshottypes "github.com/cosmos/cosmos-sdk/snapshots/types"
 	"github.com/cosmos/cosmos-sdk/store"
@@ -32,8 +33,8 @@ import (
 	"github.com/tendermint/tendermint/libs/log"
 	dbm "github.com/tendermint/tm-db"
 
-	"github.com/cosmos/ibc-go/v5/testing/simapp"
-	"github.com/cosmos/ibc-go/v5/testing/simapp/params"
+	"github.com/cosmos/ibc-go/v6/testing/simapp"
+	"github.com/cosmos/ibc-go/v6/testing/simapp/params"
 )
 
 // NewRootCmd creates a new root command for simd. It is called once in the
@@ -164,7 +165,7 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig params.EncodingConfig) {
 		genutilcli.ValidateGenesisCmd(simapp.ModuleBasics),
 		AddGenesisAccountCmd(simapp.DefaultNodeHome),
 		tmcli.NewCompletionCmd(rootCmd, true),
-		testnetCmd(simapp.ModuleBasics, banktypes.GenesisBalancesIterator{}),
+		sdkcmd.NewTestnetCmd(simapp.ModuleBasics, banktypes.GenesisBalancesIterator{}),
 		debug.Cmd(),
 		config.Cmd(),
 	)

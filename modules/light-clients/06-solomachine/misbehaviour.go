@@ -5,9 +5,8 @@ import (
 
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
-	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v5/modules/core/exported"
+	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v6/modules/core/exported"
 )
 
 var _ exported.ClientMessage = &Misbehaviour{}
@@ -24,10 +23,6 @@ func (misbehaviour Misbehaviour) Type() string {
 
 // ValidateBasic implements Misbehaviour interface.
 func (misbehaviour Misbehaviour) ValidateBasic() error {
-	if err := host.ClientIdentifierValidator(misbehaviour.ClientId); err != nil {
-		return sdkerrors.Wrap(err, "invalid client identifier for solo machine")
-	}
-
 	if misbehaviour.Sequence == 0 {
 		return sdkerrors.Wrap(clienttypes.ErrInvalidMisbehaviour, "sequence cannot be 0")
 	}
@@ -40,13 +35,14 @@ func (misbehaviour Misbehaviour) ValidateBasic() error {
 		return sdkerrors.Wrap(err, "signature two failed basic validation")
 	}
 
-	// misbehaviour signatures cannot be identical
+	// misbehaviour signatures cannot be identical.
 	if bytes.Equal(misbehaviour.SignatureOne.Signature, misbehaviour.SignatureTwo.Signature) {
 		return sdkerrors.Wrap(clienttypes.ErrInvalidMisbehaviour, "misbehaviour signatures cannot be equal")
 	}
 
-	// message data signed cannot be identical
-	if bytes.Equal(misbehaviour.SignatureOne.Data, misbehaviour.SignatureTwo.Data) {
+	// message data signed cannot be identical if both paths are the same.
+	if bytes.Equal(misbehaviour.SignatureOne.Path, misbehaviour.SignatureTwo.Path) &&
+		bytes.Equal(misbehaviour.SignatureOne.Data, misbehaviour.SignatureTwo.Data) {
 		return sdkerrors.Wrap(clienttypes.ErrInvalidMisbehaviour, "misbehaviour signature data must be signed over different messages")
 	}
 

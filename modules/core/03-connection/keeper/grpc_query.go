@@ -10,9 +10,9 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v5/modules/core/03-connection/types"
-	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
+	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v6/modules/core/03-connection/types"
+	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
 )
 
 var _ types.QueryServer = Keeper{}
@@ -174,4 +174,14 @@ func (q Keeper) ConnectionConsensusState(c context.Context, req *types.QueryConn
 
 	proofHeight := clienttypes.GetSelfHeight(ctx)
 	return types.NewQueryConnectionConsensusStateResponse(connection.ClientId, anyConsensusState, height, nil, proofHeight), nil
+}
+
+// ConnectionParams implements the Query/ConnectionParams gRPC method.
+func (q Keeper) ConnectionParams(c context.Context, req *types.QueryConnectionParamsRequest) (*types.QueryConnectionParamsResponse, error) {
+	ctx := sdk.UnwrapSDKContext(c)
+	params := q.GetParams(ctx)
+
+	return &types.QueryConnectionParamsResponse{
+		Params: &params,
+	}, nil
 }

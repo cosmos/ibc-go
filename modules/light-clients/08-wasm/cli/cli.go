@@ -2,7 +2,7 @@ package cli
 
 import (
 	"github.com/cosmos/cosmos-sdk/client"
-	wasm "github.com/cosmos/ibc-go/v5/modules/light-clients/08-wasm"
+	wasm "github.com/cosmos/ibc-go/v6/modules/light-clients/08-wasm"
 	"github.com/spf13/cobra"
 )
 

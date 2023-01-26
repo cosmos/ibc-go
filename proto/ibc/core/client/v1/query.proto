@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package ibc.core.client.v1;
 
-option go_package = "github.com/cosmos/ibc-go/v5/modules/core/02-client/types";
+option go_package = "github.com/cosmos/ibc-go/v6/modules/core/02-client/types";
 
 import "cosmos/base/query/v1beta1/pagination.proto";
 import "ibc/core/client/v1/client.proto";
@@ -46,9 +46,9 @@ service Query {
     option (google.api.http).get = "/ibc/core/client/v1/client_status/{client_id}";
   }
 
-  // ClientParams queries all parameters of the ibc client.
+  // ClientParams queries all parameters of the ibc client submodule.
   rpc ClientParams(QueryClientParamsRequest) returns (QueryClientParamsResponse) {
-    option (google.api.http).get = "/ibc/client/v1/params";
+    option (google.api.http).get = "/ibc/core/client/v1/params";
   }
 
   // UpgradedClientState queries an Upgraded IBC light client.

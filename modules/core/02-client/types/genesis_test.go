@@ -5,14 +5,14 @@ import (
 
 	tmtypes "github.com/tendermint/tendermint/types"
 
-	client "github.com/cosmos/ibc-go/v5/modules/core/02-client"
-	"github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v5/modules/core/23-commitment/types"
-	"github.com/cosmos/ibc-go/v5/modules/core/exported"
-	solomachinetypes "github.com/cosmos/ibc-go/v5/modules/light-clients/06-solomachine"
-	ibctm "github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint"
-	ibctesting "github.com/cosmos/ibc-go/v5/testing"
-	ibctestingmock "github.com/cosmos/ibc-go/v5/testing/mock"
+	client "github.com/cosmos/ibc-go/v6/modules/core/02-client"
+	"github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v6/modules/core/23-commitment/types"
+	"github.com/cosmos/ibc-go/v6/modules/core/exported"
+	solomachine "github.com/cosmos/ibc-go/v6/modules/light-clients/06-solomachine"
+	ibctm "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint"
+	ibctesting "github.com/cosmos/ibc-go/v6/testing"
+	ibctestingmock "github.com/cosmos/ibc-go/v6/testing/mock"
 )
 
 const (
@@ -114,7 +114,7 @@ func (suite *TypesTestSuite) TestValidateGenesis() {
 					types.NewIdentifiedClientState(
 						soloMachineClientID, ibctm.NewClientState(suite.chainA.ChainID, ibctm.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod, ibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath),
 					),
-					types.NewIdentifiedClientState(tmClientID0, solomachinetypes.NewClientState(0, &solomachinetypes.ConsensusState{suite.solomachine.ConsensusState().PublicKey, suite.solomachine.Diversifier, suite.solomachine.Time})),
+					types.NewIdentifiedClientState(tmClientID0, solomachine.NewClientState(0, &solomachine.ConsensusState{suite.solomachine.ConsensusState().PublicKey, suite.solomachine.Diversifier, suite.solomachine.Time})),
 				},
 				nil,
 				nil,

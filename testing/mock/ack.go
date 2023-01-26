@@ -5,7 +5,7 @@ type EmptyAcknowledgement struct {
 	Response []byte
 }
 
-// NewMockEmptyAcknowledgement returns a new instance of EmptyAcknowledgement
+// NewEmptyAcknowledgement returns a new instance of EmptyAcknowledgement
 func NewEmptyAcknowledgement() EmptyAcknowledgement {
 	return EmptyAcknowledgement{
 		Response: []byte{},

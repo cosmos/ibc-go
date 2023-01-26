@@ -6,9 +6,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v5/modules/core/23-commitment/types"
-	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
+	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v6/modules/core/23-commitment/types"
+	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
 )
 
 var _ sdk.Msg = &MsgChannelOpenInit{}
@@ -95,9 +95,6 @@ func (msg MsgChannelOpenTry) ValidateBasic() error {
 	if len(msg.ProofInit) == 0 {
 		return sdkerrors.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty proof init")
 	}
-	if msg.ProofHeight.IsZero() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidHeight, "proof height must be non-zero")
-	}
 	if msg.Channel.State != TRYOPEN {
 		return sdkerrors.Wrapf(ErrInvalidChannelState,
 			"channel state must be TRYOPEN in MsgChannelOpenTry. expected: %s, got: %s",
@@ -159,9 +156,6 @@ func (msg MsgChannelOpenAck) ValidateBasic() error {
 	if len(msg.ProofTry) == 0 {
 		return sdkerrors.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty proof try")
 	}
-	if msg.ProofHeight.IsZero() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidHeight, "proof height must be non-zero")
-	}
 	_, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
@@ -206,9 +200,6 @@ func (msg MsgChannelOpenConfirm) ValidateBasic() error {
 	}
 	if len(msg.ProofAck) == 0 {
 		return sdkerrors.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty proof ack")
-	}
-	if msg.ProofHeight.IsZero() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidHeight, "proof height must be non-zero")
 	}
 	_, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
@@ -294,9 +285,6 @@ func (msg MsgChannelCloseConfirm) ValidateBasic() error {
 	if len(msg.ProofInit) == 0 {
 		return sdkerrors.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty proof init")
 	}
-	if msg.ProofHeight.IsZero() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidHeight, "proof height must be non-zero")
-	}
 	_, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
@@ -334,9 +322,6 @@ func NewMsgRecvPacket(
 func (msg MsgRecvPacket) ValidateBasic() error {
 	if len(msg.ProofCommitment) == 0 {
 		return sdkerrors.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty proof")
-	}
-	if msg.ProofHeight.IsZero() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidHeight, "proof height must be non-zero")
 	}
 	_, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
@@ -383,9 +368,6 @@ func NewMsgTimeout(
 func (msg MsgTimeout) ValidateBasic() error {
 	if len(msg.ProofUnreceived) == 0 {
 		return sdkerrors.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty unreceived proof")
-	}
-	if msg.ProofHeight.IsZero() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidHeight, "proof height must be non-zero")
 	}
 	if msg.NextSequenceRecv == 0 {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidSequence, "next sequence receive cannot be 0")
@@ -435,9 +417,6 @@ func (msg MsgTimeoutOnClose) ValidateBasic() error {
 	if len(msg.ProofClose) == 0 {
 		return sdkerrors.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty proof of closed counterparty channel end")
 	}
-	if msg.ProofHeight.IsZero() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidHeight, "proof height must be non-zero")
-	}
 	_, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
@@ -478,9 +457,6 @@ func NewMsgAcknowledgement(
 func (msg MsgAcknowledgement) ValidateBasic() error {
 	if len(msg.ProofAcked) == 0 {
 		return sdkerrors.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty proof")
-	}
-	if msg.ProofHeight.IsZero() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidHeight, "proof height must be non-zero")
 	}
 	if len(msg.Acknowledgement) == 0 {
 		return sdkerrors.Wrap(ErrInvalidAcknowledgement, "ack bytes cannot be empty")

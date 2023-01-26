@@ -8,9 +8,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/spf13/cobra"
 
-	"github.com/cosmos/ibc-go/v5/modules/core/03-connection/client/utils"
-	"github.com/cosmos/ibc-go/v5/modules/core/03-connection/types"
-	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v6/modules/core/03-connection/client/utils"
+	"github.com/cosmos/ibc-go/v6/modules/core/03-connection/types"
+	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
 )
 
 // GetCmdQueryConnections defines the command to query all the connection ends
@@ -112,6 +112,31 @@ func GetCmdQueryClientConnections() *cobra.Command {
 	}
 
 	cmd.Flags().Bool(flags.FlagProve, true, "show proofs for the query results")
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
+// GetCmdConnectionParams returns the command handler for ibc connection parameter querying.
+func GetCmdConnectionParams() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:     "params",
+		Short:   "Query the current ibc connection parameters",
+		Long:    "Query the current ibc connection parameters",
+		Args:    cobra.NoArgs,
+		Example: fmt.Sprintf("%s query %s %s params", version.AppName, host.ModuleName, types.SubModuleName),
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(clientCtx)
+
+			res, _ := queryClient.ConnectionParams(cmd.Context(), &types.QueryConnectionParamsRequest{})
+			return clientCtx.PrintProto(res.Params)
+		},
+	}
+
 	flags.AddQueryFlagsToCmd(cmd)
 
 	return cmd

@@ -8,7 +8,7 @@ import (
 	tmprotostate "github.com/tendermint/tendermint/proto/tendermint/state"
 	tmstate "github.com/tendermint/tendermint/state"
 
-	"github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
+	"github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 )
 
 const (

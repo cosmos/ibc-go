@@ -8,11 +8,11 @@ import (
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/tendermint/tendermint/libs/log"
 
-	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v5/modules/core/03-connection/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v5/modules/core/23-commitment/types"
-	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v5/modules/core/exported"
+	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v6/modules/core/03-connection/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v6/modules/core/23-commitment/types"
+	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v6/modules/core/exported"
 )
 
 // Keeper defines the IBC connection keeper
@@ -146,7 +146,7 @@ func (k Keeper) SetNextConnectionSequence(ctx sdk.Context, sequence uint64) {
 // no paths are stored.
 func (k Keeper) GetAllClientConnectionPaths(ctx sdk.Context) []types.ConnectionPaths {
 	var allConnectionPaths []types.ConnectionPaths
-	k.clientKeeper.IterateClients(ctx, func(clientID string, cs exported.ClientState) bool {
+	k.clientKeeper.IterateClientStates(ctx, nil, func(clientID string, cs exported.ClientState) bool {
 		paths, found := k.GetClientConnectionPaths(ctx, clientID)
 		if !found {
 			// continue when connection handshake is not initialized

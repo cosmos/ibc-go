@@ -3,9 +3,9 @@ package tendermint_test
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
-	ibctm "github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint"
-	ibctesting "github.com/cosmos/ibc-go/v5/testing"
+	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
+	ibctm "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint"
+	ibctesting "github.com/cosmos/ibc-go/v6/testing"
 )
 
 // expected export ordering:

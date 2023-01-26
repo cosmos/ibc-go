@@ -26,10 +26,11 @@ v                     without deliberation
 <!-- List of tests that need be performed with previous
 versions of ibc-go to guarantee that no regression is introduced -->
 
-- [ ] Fungible token transfers over a non-incentivised channel works with a counterparty chain running each previous major version.
-- [ ] Fungible token transfers over an incentivised channel works with a counterparty chain running each previous major version that supports ICS-29 Fee Middleware.
-- [ ] Interchain Accounts over a non-incentivised channel works with a counterparty chain running each previous major version that supports ICS-27 Interchain Accounts over non-incentivised channels.
-- [ ] Interchain Accounts over an incentivised channel works with a counterparty chain running each previous major version that supports ICS-27 Interchain Accounts over incentivised channels.
+- [ ] [Compatibility tests](https://github.com/cosmos/ibc-go/actions/workflows/e2e-compatibility.yaml) pass for the release branch.
+- [ ] [Upgrade tests](https://github.com/cosmos/ibc-go/actions/workflows/e2e-upgrade.yaml) pass.
+- [ ] [Interchain Accounts inter-tx tests](https://github.com/cosmos/interchain-accounts-demo/actions/workflows/e2e-compatibility.yaml) pass.
+
+### Other testing
 
 ## Migration 
 
@@ -52,10 +53,12 @@ versions of ibc-go to guarantee that no regression is introduced -->
 - [ ] Update [`CHANGELOG.md`](https://github.com/cosmos/ibc-go/blob/main/CHANGELOG.md)
 - [ ] Update the table of supported release lines (and End of Life dates) in [`RELEASES.md`](https://github.com/cosmos/ibc-go/blob/main/RELEASES.md).
 - [ ] Update [version matrix](https://github.com/cosmos/ibc-go/blob/main/RELEASES.md#version-matrix) in `RELEASES.md`.
+- [ ] Update the list of [supported release lines in README.md](https://github.com/cosmos/ibc-go#releases), if necessary.
 - [ ] Update docs site:
   - [ ] Add new release branch to [`docs/versions`](https://github.com/cosmos/ibc-go/blob/main/docs/versions) file.
-  - [ ] Add `label` and `key` to `versions` array in [`config.js`](https://github.com/cosmos/ibc-go/blob/main/docs/.vuepress/config.js#L33).
+  - [ ] Add `label` and `key` to `versions` array in [`config.js`](https://github.com/cosmos/ibc-go/blob/main/docs/.vuepress/config.js#L62).
 - [ ] After changes to docs site are deployed, check [ibc.cosmos.network](https://ibc.cosmos.network) is updated.
+- [ ] Open issue in [SDK tutorials repo](https://github.com/cosmos/sdk-tutorials) to update tutorials to the released version of ibc-go.
 
 ____
 

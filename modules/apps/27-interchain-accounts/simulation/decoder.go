@@ -6,7 +6,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/types/kv"
 
-	"github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/types"
+	"github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
 )
 
 // NewDecodeStore returns a decoder function closure that unmarshals the KVPair's
@@ -20,6 +20,8 @@ func NewDecodeStore() func(kvA, kvB kv.Pair) string {
 			return fmt.Sprintf("Owner A: %s\nOwner B: %s", string(kvA.Value), string(kvB.Value))
 		case bytes.Equal(kvA.Key[:len(types.ActiveChannelKeyPrefix)], []byte(types.ActiveChannelKeyPrefix)):
 			return fmt.Sprintf("ActiveChannel A: %s\nActiveChannel B: %s", string(kvA.Value), string(kvB.Value))
+		case bytes.Equal(kvA.Key[:len(types.IsMiddlewareEnabledPrefix)], []byte(types.IsMiddlewareEnabledPrefix)):
+			return fmt.Sprintf("IsMiddlewareEnabled A: %s\nIsMiddlewareEnabled B: %s", string(kvA.Value), string(kvB.Value))
 
 		default:
 			panic(fmt.Sprintf("invalid %s key prefix %s", types.ModuleName, kvA.Key))

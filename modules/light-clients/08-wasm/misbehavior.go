@@ -1,7 +1,7 @@
 package wasm
 
 import (
-	exported "github.com/cosmos/ibc-go/v5/modules/core/exported"
+	exported "github.com/cosmos/ibc-go/v6/modules/core/exported"
 )
 
 var (
