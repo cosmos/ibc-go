@@ -12,7 +12,7 @@ import (
 	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	gogoproto "github.com/cosmos/gogoproto/proto"
-	"github.com/strangelove-ventures/ibctest/v6/ibc"
+	"github.com/strangelove-ventures/ibctest/v7/ibc"
 
 	"github.com/cosmos/ibc-go/e2e/semverutil"
 	"github.com/cosmos/ibc-go/e2e/testvalues"

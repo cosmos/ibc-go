@@ -4,8 +4,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v6/modules/core/exported"
+	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
 // MigrateGenesis accepts an exported IBC client genesis file and migrates it to:
