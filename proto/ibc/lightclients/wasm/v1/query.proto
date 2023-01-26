@@ -3,7 +3,7 @@ package ibc.lightclients.wasm.v1;
 
 import "google/api/annotations.proto";
 
-option go_package = "github.com/cosmos/ibc-go/v6/modules/light-clients/08-wasm;wasm";
+option go_package = "github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm;wasm";
 
 // WasmCode query
 message WasmCodeQuery {

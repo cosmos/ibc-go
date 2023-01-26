@@ -7,8 +7,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/version"
-	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
-	wasm "github.com/cosmos/ibc-go/v6/modules/light-clients/08-wasm"
+	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
+	wasm "github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm"
 	"github.com/spf13/cobra"
 )
 
@@ -19,7 +19,7 @@ func GetCmdCode() *cobra.Command {
 		Short: "Query wasm code",
 		Long:  "Query wasm code",
 		Example: fmt.Sprintf(
-			"%s query %s %s code [code-id]", version.AppName, host.ModuleName, wasm.SubModuleName,
+			"%s query %s %s code [code-id]", version.AppName, host.SubModuleName, wasm.SubModuleName,
 		),
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
