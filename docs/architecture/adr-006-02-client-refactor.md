@@ -5,7 +5,7 @@
 
 ## Status
 
-Accepted and applied in v6 of ibc-go
+Accepted and applied in v7 of ibc-go
 
 ## Context
 

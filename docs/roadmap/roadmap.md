@@ -4,34 +4,11 @@ order: 1
 
 # Roadmap ibc-go
 
-_Lastest update: October 3, 2022_
+_Lastest update: December 21st, 2022_
 
 This document endeavours to inform the wider IBC community about plans and priorities for work on ibc-go by the team at Interchain GmbH. It is intended to broadly inform all users of ibc-go, including developers and operators of IBC, relayer, chain and wallet applications.
 
-This roadmap should be read as a high-level guide, rather than a commitment to schedules and deliverables. The degree of specificity is inversely proportional to the timeline. We will update this document periodically to reflect the status and plans.
-
-## v6.0.0
-
-### Interchain Accounts improvements
-
-These improvements tackle two shortcomings of the current implementation of ICS-27:
-
-- The lack of a default/standard underlying app (also known as _authentication module_), which created a bottleneck for chains looking to integrate the controller submodule.
-- The need to separate application and authentication concerns.
-
-The changes will make integrating the controller chain functionality easier (see [ADR 009](../architecture/adr-009-v6-ics27-msgserver.md) for more information), and with the release of Cosmos SDK v0.46.x, they will enable any Cosmos SDK module (e.g `x/auth`, `x/gov`, `x/group`) to register interchain accounts and send transactions on their behalf. 
-
-For more details about these changes, please read [this blog post](https://medium.com/the-interchain-foundation/ibc-go-v6-changes-to-interchain-accounts-and-how-it-impacts-your-chain-806c185300d7).
-
-### Other features/improvements
-
-- ICS-20:
-  - Adding a `metadata` field in `FungibleTokenPacketData` (implementation of [this](https://github.com/cosmos/ibc/pull/842) spec update).
-  - Adding the sequence number of the packet sent to `MsgTransferResponse`.
-- 04-channel:
-  - Simplify `SendPacket` API (implementation of [this](https://github.com/cosmos/ibc/pull/731) spec update).
-
-Follow the progress with the [`v6.0.0` milestone](https://github.com/cosmos/ibc-go/milestone/35) or the [project board](https://github.com/orgs/cosmos/projects/7/views/23).
+This roadmap should be read as a high-level guide, rather than a commitment to schedules and deliverables. The degree of specificity is inversely proportional to the timeline. We will update this document periodically to reflect the status and plans. For the latest expected release timelines, please check [here](https://github.com/cosmos/ibc-go/wiki/Release-timeline).
 
 ## v7.0.0
 
@@ -41,15 +18,31 @@ This refactor will make the development of light clients easier. The ibc-go impl
 
 Follow the progress with the [beta](https://github.com/cosmos/ibc-go/milestone/25) and [RC](https://github.com/cosmos/ibc-go/milestone/27) milestones or in the [project board](https://github.com/orgs/cosmos/projects/7/views/14).
 
-### Localhost connection
-
-This feature will add support for applications on a chain to communicate with applications on the same chain using the existing standard interface to communicate with applications on remote chains.
-
-For more details, see the design proposal and discussion [here](https://github.com/cosmos/ibc-go/discussions/2191). Issues need still to be created and will be added to the [`v7.0.0` milestone](https://github.com/cosmos/ibc-go/milestone/34).
-
-### Upgrade SDK v0.47.x
+### Upgrade Cosmos SDK v0.47
 
 Follow the progress with the [milestone](https://github.com/cosmos/ibc-go/milestone/36).
+
+### Add `authz` support to 20-transfer
+
+Authz goes cross chain: users can grant permission for their tokens to be transferred to another chain on their behalf. See [this issue](https://github.com/cosmos/ibc-go/issues/2431) for more details.
+
+## v7.1.0
+
+Because it is so important to have an ibc-go release compatible with the latest Cosmos SDK release, a couple of features will take a little longer and be released in [v7.1.0](https://github.com/cosmos/ibc-go/milestone/37).
+
+### Localhost connection
+
+This feature will add support for applications on a chain to communicate with applications on the same chain using the existing standard interface to communicate with applications on remote chains. This is a powerful UX improvement, particularly for those users interested in interacting with multiple smart contracts on a single chain through one interface.
+
+For more details, see the design proposal and discussion [here](https://github.com/cosmos/ibc-go/discussions/2191).
+
+A special shout out to Strangelove for their substantial contribution on this feature.
+
+### Support for Wasm light clients
+
+We will add support for Wasm light clients. The first Wasm client developed with ibc-go/v7 02-client refactor and stored as Wasm bytecode will be the GRANDPA light client used for Cosmos <> Substrate IBC connections. This feature will be used also for a NEAR light client in the future.
+
+This feature was developed by Composable and Strangelove but will be upstreamed into ibc-go.
 
 ## v8.0.0
 

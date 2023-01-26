@@ -14,10 +14,10 @@ import (
 	"github.com/spf13/cobra"
 	abci "github.com/tendermint/tendermint/abci/types"
 
-	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
-	porttypes "github.com/cosmos/ibc-go/v6/modules/core/05-port/types"
-	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v6/modules/core/exported"
+	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
+	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
 const (
@@ -100,21 +100,6 @@ func NewAppModule(pk PortKeeper) AppModule {
 
 // RegisterInvariants implements the AppModule interface.
 func (AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {}
-
-// Route implements the AppModule interface.
-func (am AppModule) Route() sdk.Route {
-	return sdk.NewRoute(ModuleName, nil)
-}
-
-// QuerierRoute implements the AppModule interface.
-func (AppModule) QuerierRoute() string {
-	return ""
-}
-
-// LegacyQuerierHandler implements the AppModule interface.
-func (am AppModule) LegacyQuerierHandler(*codec.LegacyAmino) sdk.Querier {
-	return nil
-}
 
 // RegisterServices implements the AppModule interface.
 func (am AppModule) RegisterServices(module.Configurator) {}

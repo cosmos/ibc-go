@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"net/url"
 
-	ics23 "github.com/confio/ics23/go"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/gogo/protobuf/proto"
+	"github.com/cosmos/gogoproto/proto"
+	ics23 "github.com/cosmos/ics23/go"
 	tmcrypto "github.com/tendermint/tendermint/proto/tendermint/crypto"
 
-	"github.com/cosmos/ibc-go/v6/modules/core/exported"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
 // var representing the proofspecs for a SDK chain

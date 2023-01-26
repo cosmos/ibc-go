@@ -3,10 +3,10 @@ package keeper
 import (
 	"context"
 
-	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
-	connectiontypes "github.com/cosmos/ibc-go/v6/modules/core/03-connection/types"
-	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
-	wasm "github.com/cosmos/ibc-go/v6/modules/light-clients/08-wasm"
+	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
+	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	wasm "github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm"
 )
 
 // WasmCode implements the IBC QueryServer interface

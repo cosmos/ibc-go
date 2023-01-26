@@ -9,10 +9,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/query"
 	"google.golang.org/grpc/metadata"
 
-	"github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v6/modules/core/exported"
-	ibctm "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint"
-	ibctesting "github.com/cosmos/ibc-go/v6/testing"
+	"github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
+	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
 func (suite *KeeperTestSuite) TestQueryClientState() {
@@ -163,11 +163,11 @@ func (suite *KeeperTestSuite) TestQueryClientStates() {
 			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
 
 			res, err := suite.chainA.QueryServer.ClientStates(ctx, req)
-
 			if tc.expPass {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
 				suite.Require().Equal(expClientStates.Sort(), res.ClientStates)
+				suite.Require().Equal(len(expClientStates), int(res.Pagination.Total))
 			} else {
 				suite.Require().Error(err)
 			}
@@ -253,7 +253,8 @@ func (suite *KeeperTestSuite) TestQueryConsensusState() {
 				suite.Require().NoError(err)
 
 				// update client to new height
-				path.EndpointA.UpdateClient()
+				err = path.EndpointA.UpdateClient()
+				suite.Require().NoError(err)
 
 				req = &types.QueryConsensusStateRequest{
 					ClientId:       path.EndpointA.ClientID,
@@ -380,7 +381,6 @@ func (suite *KeeperTestSuite) TestQueryConsensusStates() {
 				for i := range expConsensusStates {
 					suite.Require().NotNil(res.ConsensusStates[i])
 					suite.Require().Equal(expConsensusStates[i], res.ConsensusStates[i])
-
 					// ensure UnpackInterfaces is defined
 					cachedValue := res.ConsensusStates[i].ConsensusState.GetCachedValue()
 					suite.Require().NotNil(cachedValue)
