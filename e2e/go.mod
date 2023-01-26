@@ -12,7 +12,7 @@ require (
 	github.com/stretchr/testify v1.8.1
 	go.uber.org/zap v1.23.0
 	golang.org/x/mod v0.6.0
-	google.golang.org/grpc v1.52.1
+	google.golang.org/grpc v1.52.3
 )
 
 require (
