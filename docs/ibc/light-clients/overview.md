@@ -14,7 +14,7 @@ Learn how to build IBC light client modules and fulfill the interfaces required 
 
 IBC uses light clients in order to provide trust-minimized interoperability between sovereign blockchains. Light clients operate under a strict set of rules which provide security guarantees for state updates and facilitate the ability to verify the state of a remote blockchain using merkle proofs.
 
-The following aims to provide a high level IBC light client module developer guide. Access to IBC light clients are gated by the core IBC `MsgServer` which utilizes the abstractions set by the `02-client` submodule to call into a light client module. A light client module developer is only required to implement a set interfaces as defined in the `core/modules/exported` package of ibc-go. 
+The following aims to provide a high level IBC light client module developer guide. Access to IBC light clients are gated by the core IBC `MsgServer` which utilizes the abstractions set by the `02-client` submodule to call into a light client module. A light client module developer is only required to implement a set interfaces as defined in the `modules/core/exported` package of ibc-go. 
 
 A light client module developer should be concerned with three main interfaces:
 
@@ -48,13 +48,13 @@ Please refer to the `07-tendermint` light client module's [`ClientState` definit
 
 For example, the `ConsensusState` of the `07-tendermint` light client module defines a trusted root which is used by the `ClientState` to perform verification of membership and non-membership commitment proofs, as well as the next validator set hash used for verifying headers can be trusted in client updates. 
 
-The `ConsensusState` type maintained within the light client module *must* implement the [`ConsensusState`](https://github.com/cosmos/ibc-go/tree/02-client-refactor-beta1/modules/core/exported/client.go#L134) interface defined in `core/modules/exported/client.go`.
-The methods which make up this interface are detailed at a more granular level in the [ConsensusState section of this guide](./consensus-state.md).
+The `ConsensusState` type maintained within the light client module *must* implement the [`ConsensusState`](https://github.com/cosmos/ibc-go/tree/02-client-refactor-beta1/modules/core/exported/client.go#L134) interface defined in `modules/core/exported/client.go`.
+The methods which make up this interface are detailed at a more granular level in the [`ConsensusState` section of this guide](./consensus-state.md).
 
 ### `Height`
 
 `Height` defines a monotonically increasing sequence number which provides ordering of consensus state data persisted through client updates. 
-IBC light client module developers are expected to use the [concrete type](https://github.com/cosmos/ibc-go/tree/02-client-refactor-beta1/proto/ibc/core/client/v1/client.proto#L89) provided by the `02-client` submodule. This implements the expectations required by the [`Height`](https://github.com/cosmos/ibc-go/blob/02-client-refactor-beta1/modules/core/exported/client.go#L157) interface defined in `core/modules/exported/client.go`.
+IBC light client module developers are expected to use the [concrete type](https://github.com/cosmos/ibc-go/tree/02-client-refactor-beta1/proto/ibc/core/client/v1/client.proto#L89) provided by the `02-client` submodule. This implements the expectations required by the [`Height`](https://github.com/cosmos/ibc-go/blob/02-client-refactor-beta1/modules/core/exported/client.go#L157) interface defined in `modules/core/exported/client.go`.
 
 ### `ClientMessage`
 
