@@ -57,7 +57,7 @@ jobs:
           echo "Chain B Tag:      ${{ inputs.chain-b-tag }}"
           echo "Relayer Tag:      ${{ inputs.relayer-tag }}"
           echo "Test Entry Point: ${{ inputs.test-entry-point }}"
-          echo "Github Ref Name:   ${{ github.ref_name }}
+          echo "Github Ref Name:   ${{ github.ref_name }}"
 
   # we skip individual steps rather than the full job as e2e-tests will not run if this task
   # is skipped. But will run if every individual task is skipped. There is no current way of conditionally needing
