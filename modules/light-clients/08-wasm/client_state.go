@@ -86,6 +86,14 @@ func (c ClientState) GetTimestampAtHeight(
 }
 
 func (c ClientState) Initialize(context sdk.Context, marshaler codec.BinaryCodec, store sdk.KVStore, state exported.ConsensusState) error {
+	consensusState, ok := state.(*ConsensusState)
+	if !ok {
+		return sdkerrors.Wrapf(clienttypes.ErrInvalidConsensus, "invalid initial consensus state. expected type: %T, got: %T",
+			&ConsensusState{}, state)
+	}
+	setClientState(store, marshaler, &c)
+	setConsensusState(store, marshaler, consensusState, c.GetLatestHeight())
+
 	_, err := initContract(c.CodeId, context, store)
 	if err != nil {
 		return sdkerrors.Wrapf(ErrUnableToInit, fmt.Sprintf("underlying error: %s", err.Error()))
@@ -229,7 +237,7 @@ func (c ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, clientS
 		panic(sdkerrors.Wrapf(ErrUnableToUnmarshalPayload, fmt.Sprintf("underlying error: %s", err.Error())))
 	}
 
-	SetClientState(clientStore, cdc, &c)
+	setClientState(clientStore, cdc, &c)
 	// TODO: do we need to set consensus state?
 	// setConsensusState(clientStore, cdc, consensusState, header.GetHeight())
 	// setConsensusMetadata(ctx, clientStore, header.GetHeight())
