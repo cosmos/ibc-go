@@ -93,9 +93,16 @@ func (ws WrappedStore) getStore(key []byte) sdk.KVStore {
 }
 
 // setClientState stores the client state
-func SetClientState(clientStore sdk.KVStore, cdc codec.BinaryCodec, clientState *ClientState) {
+func setClientState(clientStore sdk.KVStore, cdc codec.BinaryCodec, clientState *ClientState) {
 	key := host.ClientStateKey()
 	val := clienttypes.MustMarshalClientState(cdc, clientState)
+	clientStore.Set(key, val)
+}
+
+// setConsensusState stores the consensus state at the given height.
+func setConsensusState(clientStore sdk.KVStore, cdc codec.BinaryCodec, consensusState *ConsensusState, height exported.Height) {
+	key := host.ConsensusStateKey(height)
+	val := clienttypes.MustMarshalConsensusState(cdc, consensusState)
 	clientStore.Set(key, val)
 }
 
