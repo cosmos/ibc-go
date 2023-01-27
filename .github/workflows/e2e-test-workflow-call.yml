@@ -41,11 +41,6 @@ on:
         required: false
         type: boolean
         default: false
-      ibc-go-version:
-        default: "main"
-        description: "The version of ibc-go to use (only required when build-and-push-docker-image is true)"
-        required: false
-        type: string
 
 env:
   REGISTRY: ghcr.io
@@ -62,7 +57,7 @@ jobs:
           echo "Chain B Tag:      ${{ inputs.chain-b-tag }}"
           echo "Relayer Tag:      ${{ inputs.relayer-tag }}"
           echo "Test Entry Point: ${{ inputs.test-entry-point }}"
-          echo "ibc-go version:   ${{ inputs.ibc-go-version }}"
+          echo "Github Ref Name:   ${{ github.ref_name }}
 
   # we skip individual steps rather than the full job as e2e-tests will not run if this task
   # is skipped. But will run if every individual task is skipped. There is no current way of conditionally needing
@@ -95,7 +90,7 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           build-args: |
-            IBC_GO_VERSION=${{ inputs.ibc-go-version }}"
+            IBC_GO_VERSION=${{ github.ref_name }}
 
   # dynamically build a matrix of test/test suite pairs to run
   build-test-matrix:
