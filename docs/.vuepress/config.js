@@ -353,11 +353,6 @@ module.exports = {
                   path: "/ibc/light-clients/consensus-state.html",
                 },
                 {
-                  title: "Setup",
-                  directory: false,
-                  path: "/ibc/light-clients/setup.html",
-                },
-                {
                   title: "Updates Handling",
                   directory: false,
                   path: "/ibc/light-clients/update.html",
@@ -365,7 +360,7 @@ module.exports = {
                 {
                   title: "Misbehaviour Handling",
                   directory: false,
-                  path: "/ibc/light-clients/misbehaviour.html",
+                  path: "/ibc/light-clients/updates-and-misbehaviour.html",
                 },
                 {
                   title: "Existence/Non-Existence Proofs",
@@ -386,6 +381,11 @@ module.exports = {
                   title: "Genesis Handling",
                   directory: false,
                   path: "/ibc/light-clients/genesis.html",
+                },
+                {
+                  title: "Setup",
+                  directory: false,
+                  path: "/ibc/light-clients/setup.html",
                 },
               ]
             },
