@@ -13,7 +13,7 @@ option go_package = "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types";
 service Query {
   // DenomTrace queries a denomination trace information.
   rpc DenomTrace(QueryDenomTraceRequest) returns (QueryDenomTraceResponse) {
-    option (google.api.http).get = "/ibc/apps/transfer/v1/denom_traces/{hash}";
+    option (google.api.http).get = "/ibc/apps/transfer/v1/denom_traces/{hash=**}";
   }
 
   // DenomTraces queries all denomination traces.
@@ -28,7 +28,7 @@ service Query {
 
   // DenomHash queries a denomination hash information.
   rpc DenomHash(QueryDenomHashRequest) returns (QueryDenomHashResponse) {
-    option (google.api.http).get = "/ibc/apps/transfer/v1/denom_hashes/{trace}";
+    option (google.api.http).get = "/ibc/apps/transfer/v1/denom_hashes/{trace=**}";
   }
 
   // EscrowAddress returns the escrow address for a particular port and channel id.
