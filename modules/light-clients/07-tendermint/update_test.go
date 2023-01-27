@@ -524,13 +524,13 @@ func (suite *TendermintTestSuite) TestPruneConsensusState() {
 
 	// get the first height as it will be pruned first.
 	var pruneHeight exported.Height
-	getFirstHeightCbFn := func(height exported.Height) bool {
+	getFirstHeightCb := func(height exported.Height) bool {
 		pruneHeight = height
 		return true
 	}
 	ctx := path.EndpointA.Chain.GetContext()
 	clientStore := path.EndpointA.Chain.App.GetIBCKeeper().ClientKeeper.ClientStore(ctx, path.EndpointA.ClientID)
-	ibctm.IterateConsensusStateAscending(clientStore, getFirstHeightCbFn)
+	ibctm.IterateConsensusStateAscending(clientStore, getFirstHeightCb)
 
 	// this height will be expired but not pruned
 	err := path.EndpointA.UpdateClient()

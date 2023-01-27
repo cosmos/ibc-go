@@ -171,7 +171,7 @@ func (cs ClientState) pruneOldestConsensusState(ctx sdk.Context, cdc codec.Binar
 		pruneHeight exported.Height
 	)
 
-	pruneCbFn := func(height exported.Height) bool {
+	pruneCb := func(height exported.Height) bool {
 		consState, found := GetConsensusState(clientStore, cdc, height)
 		// this error should never occur
 		if !found {
@@ -185,7 +185,7 @@ func (cs ClientState) pruneOldestConsensusState(ctx sdk.Context, cdc codec.Binar
 		return true
 	}
 
-	IterateConsensusStateAscending(clientStore, pruneCbFn)
+	IterateConsensusStateAscending(clientStore, pruneCb)
 
 	// if pruneHeight is set, delete consensus state and metadata
 	if pruneHeight != nil {
