@@ -2,6 +2,7 @@ package solomachine_test
 
 import (
 	"testing"
+	"time"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
@@ -11,10 +12,19 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
-	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v5/modules/core/exported"
-	solomachine "github.com/cosmos/ibc-go/v5/modules/light-clients/06-solomachine"
-	ibctesting "github.com/cosmos/ibc-go/v5/testing"
+	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	solomachine "github.com/cosmos/ibc-go/v7/modules/light-clients/06-solomachine"
+	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	"github.com/cosmos/ibc-go/v7/testing/mock"
+)
+
+var (
+	channelIDSolomachine = "channel-on-solomachine" // channelID generated on solo machine side
+	clientIDSolomachine  = "06-solomachine-0"
 )
 
 type SoloMachineTestSuite struct {
@@ -44,6 +54,88 @@ func (suite *SoloMachineTestSuite) SetupTest() {
 
 func TestSoloMachineTestSuite(t *testing.T) {
 	suite.Run(t, new(SoloMachineTestSuite))
+}
+
+func (suite *SoloMachineTestSuite) SetupSolomachine() string {
+	clientID := suite.solomachine.CreateClient(suite.chainA)
+
+	connectionID := suite.solomachine.ConnOpenInit(suite.chainA, clientID)
+
+	// open try is not necessary as the solo machine implementation is mocked
+
+	suite.solomachine.ConnOpenAck(suite.chainA, clientID, connectionID)
+
+	// open confirm is not necessary as the solo machine implementation is mocked
+
+	channelID := suite.solomachine.ChanOpenInit(suite.chainA, connectionID)
+
+	// open try is not necessary as the solo machine implementation is mocked
+
+	suite.solomachine.ChanOpenAck(suite.chainA, channelID)
+
+	// open confirm is not necessary as the solo machine implementation is mocked
+
+	return channelID
+}
+
+func (suite *SoloMachineTestSuite) TestRecvPacket() {
+	channelID := suite.SetupSolomachine()
+	packet := channeltypes.NewPacket(
+		mock.MockPacketData,
+		1,
+		transfertypes.PortID,
+		channelIDSolomachine,
+		transfertypes.PortID,
+		channelID,
+		clienttypes.ZeroHeight(),
+		uint64(suite.chainA.GetContext().BlockTime().Add(time.Hour).UnixNano()),
+	)
+
+	// send packet is not necessary as the solo machine implementation is mocked
+
+	suite.solomachine.RecvPacket(suite.chainA, packet)
+
+	// close init is not necessary as the solomachine implementation is mocked
+
+	suite.solomachine.ChanCloseConfirm(suite.chainA, transfertypes.PortID, channelID)
+}
+
+func (suite *SoloMachineTestSuite) TestAcknowledgePacket() {
+	channelID := suite.SetupSolomachine()
+
+	packet := suite.solomachine.SendTransfer(suite.chainA, transfertypes.PortID, channelID)
+
+	// recv packet is not necessary as the solo machine implementation is mocked
+
+	suite.solomachine.AcknowledgePacket(suite.chainA, packet)
+
+	// close init is not necessary as the solomachine implementation is mocked
+
+	suite.solomachine.ChanCloseConfirm(suite.chainA, transfertypes.PortID, channelID)
+}
+
+func (suite *SoloMachineTestSuite) TestTimeout() {
+	channelID := suite.SetupSolomachine()
+	packet := suite.solomachine.SendTransfer(suite.chainA, transfertypes.PortID, channelID, func(msg *transfertypes.MsgTransfer) {
+		msg.TimeoutTimestamp = suite.solomachine.Time + 1
+	})
+
+	// simulate solomachine time increment
+	suite.solomachine.Time++
+
+	suite.solomachine.UpdateClient(suite.chainA, clientIDSolomachine)
+
+	suite.solomachine.TimeoutPacket(suite.chainA, packet)
+
+	suite.solomachine.ChanCloseConfirm(suite.chainA, transfertypes.PortID, channelID)
+}
+
+func (suite *SoloMachineTestSuite) TestTimeoutOnClose() {
+	channelID := suite.SetupSolomachine()
+
+	packet := suite.solomachine.SendTransfer(suite.chainA, transfertypes.PortID, channelID)
+
+	suite.solomachine.TimeoutPacketOnClose(suite.chainA, packet, channelID)
 }
 
 func (suite *SoloMachineTestSuite) GetSequenceFromStore() uint64 {

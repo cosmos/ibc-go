@@ -6,7 +6,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
-	"github.com/cosmos/ibc-go/v5/modules/light-clients/08-wasm"
+	wasm "github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm"
 	"github.com/spf13/cobra"
 )
 

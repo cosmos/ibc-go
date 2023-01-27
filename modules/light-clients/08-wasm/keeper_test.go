@@ -4,7 +4,7 @@ import (
 	"encoding/hex"
 	"os"
 
-	wasm "github.com/cosmos/ibc-go/v5/modules/light-clients/08-wasm"
+	wasm "github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm"
 )
 
 func (suite *WasmTestSuite) TestPushNewWasmCode() {

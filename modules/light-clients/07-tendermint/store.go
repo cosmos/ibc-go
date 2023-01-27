@@ -9,9 +9,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
-	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v5/modules/core/exported"
+	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
 /*
@@ -100,11 +100,11 @@ func IterateConsensusMetadata(store sdk.KVStore, cb func(key, val []byte) bool) 
 	}
 
 	// iterate over iteration keys
-	iterator = sdk.KVStorePrefixIterator(store, []byte(KeyIterateConsensusStatePrefix))
+	iter := sdk.KVStorePrefixIterator(store, []byte(KeyIterateConsensusStatePrefix))
 
-	defer iterator.Close()
-	for ; iterator.Valid(); iterator.Next() {
-		if cb(iterator.Key(), iterator.Value()) {
+	defer iter.Close()
+	for ; iter.Valid(); iter.Next() {
+		if cb(iter.Key(), iter.Value()) {
 			break
 		}
 	}
@@ -273,11 +273,11 @@ func GetPreviousConsensusState(clientStore sdk.KVStore, cdc codec.BinaryCodec, h
 
 // PruneAllExpiredConsensusStates iterates over all consensus states for a given
 // client store. If a consensus state is expired, it is deleted and its metadata
-// is deleted.
+// is deleted. The number of consensus states pruned is returned.
 func PruneAllExpiredConsensusStates(
 	ctx sdk.Context, clientStore sdk.KVStore,
 	cdc codec.BinaryCodec, clientState *ClientState,
-) {
+) int {
 	var heights []exported.Height
 
 	pruneCb := func(height exported.Height) bool {
@@ -299,6 +299,8 @@ func PruneAllExpiredConsensusStates(
 		deleteConsensusState(clientStore, height)
 		deleteConsensusMetadata(clientStore, height)
 	}
+
+	return len(heights)
 }
 
 // Helper function for GetNextConsensusState and GetPreviousConsensusState

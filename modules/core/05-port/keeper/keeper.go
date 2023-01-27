@@ -7,19 +7,20 @@ import (
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	"github.com/tendermint/tendermint/libs/log"
 
-	"github.com/cosmos/ibc-go/v5/modules/core/05-port/types"
-	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
+	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
 // Keeper defines the IBC connection keeper
 type Keeper struct {
 	Router *types.Router
 
-	scopedKeeper types.ScopedKeeper
+	scopedKeeper exported.ScopedKeeper
 }
 
 // NewKeeper creates a new IBC connection Keeper instance
-func NewKeeper(sck types.ScopedKeeper) Keeper {
+func NewKeeper(sck exported.ScopedKeeper) Keeper {
 	return Keeper{
 		scopedKeeper: sck,
 	}
@@ -27,7 +28,7 @@ func NewKeeper(sck types.ScopedKeeper) Keeper {
 
 // Logger returns a module-specific logger.
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
-	return ctx.Logger().With("module", "x/"+host.ModuleName+"/"+types.SubModuleName)
+	return ctx.Logger().With("module", "x/"+exported.ModuleName+"/"+types.SubModuleName)
 }
 
 // IsBound checks a given port ID is already bounded.

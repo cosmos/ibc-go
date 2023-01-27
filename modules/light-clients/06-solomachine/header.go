@@ -6,9 +6,12 @@ import (
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v5/modules/core/exported"
+	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
+
+// SentinelHeaderPath defines a placeholder path value used for headers in solomachine client updates
+const SentinelHeaderPath = "solomachine:header"
 
 var _ exported.ClientMessage = &Header{}
 
@@ -33,13 +36,9 @@ func (h Header) GetPubKey() (cryptotypes.PubKey, error) {
 	return publicKey, nil
 }
 
-// ValidateBasic ensures that the sequence, signature and public key have all
+// ValidateBasic ensures that the timestamp, signature and public key have all
 // been initialized.
 func (h Header) ValidateBasic() error {
-	if h.Sequence == 0 {
-		return sdkerrors.Wrap(clienttypes.ErrInvalidHeader, "sequence number cannot be zero")
-	}
-
 	if h.Timestamp == 0 {
 		return sdkerrors.Wrap(clienttypes.ErrInvalidHeader, "timestamp cannot be zero")
 	}

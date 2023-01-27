@@ -6,7 +6,7 @@ import "gogoproto/gogo.proto";
 import "ibc/core/client/v1/client.proto";
 import "ibc/core/commitment/v1/commitment.proto";
 
-option go_package = "github.com/cosmos/ibc-go/v5/modules/light-clients/08-wasm;wasm";
+option go_package = "github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm;wasm";
 
 // Wasm light client's Client state
 message ClientState {

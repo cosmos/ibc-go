@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/tendermint/tendermint/crypto/secp256k1"
 
-	"github.com/cosmos/ibc-go/v5/modules/apps/29-fee/types"
+	"github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
 )
 
 var (
@@ -26,6 +26,8 @@ var (
 	// defaultAccAddress is the default account used for testing purposes
 	defaultAccAddress = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
 )
+
+const invalidAddress = "invalid-address"
 
 func TestFeeTotal(t *testing.T) {
 	fee := types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
@@ -57,7 +59,7 @@ func TestPacketFeeValidation(t *testing.T) {
 		{
 			"should fail when refund address is invalid",
 			func() {
-				packetFee.RefundAddress = "invalid-address"
+				packetFee.RefundAddress = invalidAddress
 			},
 			false,
 		},

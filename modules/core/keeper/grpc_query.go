@@ -3,10 +3,10 @@ package keeper
 import (
 	"context"
 
-	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
-	connectiontypes "github.com/cosmos/ibc-go/v5/modules/core/03-connection/types"
-	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
-	wasm "github.com/cosmos/ibc-go/v5/modules/light-clients/08-wasm"
+	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
+	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	wasm "github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm"
 )
 
 // WasmCode implements the IBC QueryServer interface
@@ -54,6 +54,11 @@ func (q Keeper) UpgradedClientState(c context.Context, req *clienttypes.QueryUpg
 	return q.ClientKeeper.UpgradedClientState(c, req)
 }
 
+// UpgradedConsensusState implements the IBC QueryServer interface
+func (q Keeper) UpgradedConsensusState(c context.Context, req *clienttypes.QueryUpgradedConsensusStateRequest) (*clienttypes.QueryUpgradedConsensusStateResponse, error) {
+	return q.ClientKeeper.UpgradedConsensusState(c, req)
+}
+
 // Connection implements the IBC QueryServer interface
 func (q Keeper) Connection(c context.Context, req *connectiontypes.QueryConnectionRequest) (*connectiontypes.QueryConnectionResponse, error) {
 	return q.ConnectionKeeper.Connection(c, req)
@@ -77,6 +82,11 @@ func (q Keeper) ConnectionClientState(c context.Context, req *connectiontypes.Qu
 // ConnectionConsensusState implements the IBC QueryServer interface
 func (q Keeper) ConnectionConsensusState(c context.Context, req *connectiontypes.QueryConnectionConsensusStateRequest) (*connectiontypes.QueryConnectionConsensusStateResponse, error) {
 	return q.ConnectionKeeper.ConnectionConsensusState(c, req)
+}
+
+// ConnectionParams implements the IBC QueryServer interface
+func (q Keeper) ConnectionParams(c context.Context, req *connectiontypes.QueryConnectionParamsRequest) (*connectiontypes.QueryConnectionParamsResponse, error) {
+	return q.ConnectionKeeper.ConnectionParams(c, req)
 }
 
 // Channel implements the IBC QueryServer interface

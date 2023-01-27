@@ -3,17 +3,18 @@ package ica_test
 import (
 	"testing"
 
+	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	"github.com/stretchr/testify/suite"
 	"github.com/tendermint/tendermint/libs/log"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	dbm "github.com/tendermint/tm-db"
 
-	ica "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts"
-	controllertypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/controller/types"
-	hosttypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/host/types"
-	"github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/types"
-	ibctesting "github.com/cosmos/ibc-go/v5/testing"
-	"github.com/cosmos/ibc-go/v5/testing/simapp"
+	ica "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts"
+	controllertypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
+	hosttypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/types"
+	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
+	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	"github.com/cosmos/ibc-go/v7/testing/simapp"
 )
 
 type InterchainAccountsTestSuite struct {
@@ -32,7 +33,7 @@ func (suite *InterchainAccountsTestSuite) SetupTest() {
 
 func (suite *InterchainAccountsTestSuite) TestInitModule() {
 	// setup and basic testing
-	app := simapp.NewSimApp(log.NewNopLogger(), dbm.NewMemDB(), nil, true, map[int64]bool{}, simapp.DefaultNodeHome, 5, simapp.MakeTestEncodingConfig(), simapp.EmptyAppOptions{})
+	app := simapp.NewSimApp(log.NewNopLogger(), dbm.NewMemDB(), nil, true, map[int64]bool{}, simapp.DefaultNodeHome, 5, simapp.MakeTestEncodingConfig(), simtestutil.EmptyAppOptions{})
 	appModule, ok := app.GetModuleManager().Modules[types.ModuleName].(ica.AppModule)
 	suite.Require().True(ok)
 
@@ -59,7 +60,7 @@ func (suite *InterchainAccountsTestSuite) TestInitModule() {
 	expAllowMessages := []string{"sdk.Msg"}
 	hostParams.HostEnabled = true
 	hostParams.AllowMessages = expAllowMessages
-	suite.Require().False(app.IBCKeeper.PortKeeper.IsBound(ctx, types.PortID))
+	suite.Require().False(app.IBCKeeper.PortKeeper.IsBound(ctx, types.HostPortID))
 
 	testCases := []struct {
 		name              string
@@ -98,7 +99,7 @@ func (suite *InterchainAccountsTestSuite) TestInitModule() {
 			suite.SetupTest() // reset
 
 			// reset app state
-			app = simapp.NewSimApp(log.NewNopLogger(), dbm.NewMemDB(), nil, true, map[int64]bool{}, simapp.DefaultNodeHome, 5, simapp.MakeTestEncodingConfig(), simapp.EmptyAppOptions{})
+			app = simapp.NewSimApp(log.NewNopLogger(), dbm.NewMemDB(), nil, true, map[int64]bool{}, simapp.DefaultNodeHome, 5, simapp.MakeTestEncodingConfig(), simtestutil.EmptyAppOptions{})
 			header := tmproto.Header{
 				ChainID: "testchain",
 				Height:  1,
@@ -123,7 +124,7 @@ func (suite *InterchainAccountsTestSuite) TestInitModule() {
 				suite.Require().True(hostParams.HostEnabled)
 				suite.Require().Equal(expAllowMessages, hostParams.AllowMessages)
 
-				suite.Require().True(app.IBCKeeper.PortKeeper.IsBound(ctx, types.PortID))
+				suite.Require().True(app.IBCKeeper.PortKeeper.IsBound(ctx, types.HostPortID))
 			}
 		})
 	}

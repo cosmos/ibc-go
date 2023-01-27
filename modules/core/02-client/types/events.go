@@ -3,7 +3,7 @@ package types
 import (
 	"fmt"
 
-	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
+	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
 // IBC client events
@@ -31,5 +31,5 @@ var (
 	EventTypeUpgradeClientProposal = "upgrade_client_proposal"
 	EventTypePushWasmCode          = "push_wasm_code"
 
-	AttributeValueCategory = fmt.Sprintf("%s_%s", host.ModuleName, SubModuleName)
+	AttributeValueCategory = fmt.Sprintf("%s_%s", ibcexported.ModuleName, SubModuleName)
 )
