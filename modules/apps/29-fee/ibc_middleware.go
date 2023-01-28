@@ -219,7 +219,9 @@ func (im IBCMiddleware) OnRecvPacket(
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) exported.Acknowledgement {
+	logger := im.keeper.Logger(ctx)
 	if !im.keeper.IsFeeEnabled(ctx, packet.DestinationPort, packet.DestinationChannel) {
+		logger.Info("fee middleware module disable")
 		return im.app.OnRecvPacket(ctx, packet, relayer)
 	}
 

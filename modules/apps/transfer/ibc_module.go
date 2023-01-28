@@ -169,12 +169,14 @@ func (im IBCModule) OnRecvPacket(
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) ibcexported.Acknowledgement {
+	logger := im.keeper.Logger(ctx)
 	ack := channeltypes.NewResultAcknowledgement([]byte{byte(1)})
 
 	var data types.FungibleTokenPacketData
 	var ackErr error
 	if err := types.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
 		ackErr = sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "cannot unmarshal ICS-20 transfer packet data")
+		logger.Error(fmt.Sprintf("%s sequence %d", ackErr.Error(), packet.Sequence))
 		ack = channeltypes.NewErrorAcknowledgement(ackErr)
 	}
 
@@ -183,8 +185,11 @@ func (im IBCModule) OnRecvPacket(
 	if ack.Success() {
 		err := im.keeper.OnRecvPacket(ctx, packet, data)
 		if err != nil {
+			logger.Error(fmt.Sprintf("failed to handle ICS-20 transfer packet sequence %d: %s", packet.Sequence, err.Error()))
 			ack = channeltypes.NewErrorAcknowledgement(err)
 			ackErr = err
+		} else {
+			logger.Info("successfully handle ICS-20 packet sequence: %d", packet.Sequence)
 		}
 	}
 
