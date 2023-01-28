@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"fmt"
+
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -14,27 +16,33 @@ import (
 // OnRecvPacket handles a given interchain accounts packet on a destination host chain.
 // If the transaction is successfully executed, the transaction response bytes will be returned.
 func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet) ([]byte, error) {
+	logger := k.Logger(ctx)
 	var data icatypes.InterchainAccountPacketData
 
 	if err := icatypes.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
 		// UnmarshalJSON errors are indeterminate and therefore are not wrapped and included in failed acks
-		return nil, sdkerrors.Wrapf(icatypes.ErrUnknownDataType, "cannot unmarshal ICS-27 interchain account packet data")
+		err := sdkerrors.Wrapf(icatypes.ErrUnknownDataType, "cannot unmarshal ICS-27 interchain account packet data")
+		logger.Error(err.Error())
+		return nil, err
 	}
 
 	switch data.Type {
 	case icatypes.EXECUTE_TX:
 		msgs, err := icatypes.DeserializeCosmosTx(k.cdc, data.Data)
 		if err != nil {
+			logger.Error(fmt.Sprintf("cannot deserialize cosmos Tx: %s", err.Error()))
 			return nil, err
 		}
 
 		txResponse, err := k.executeTx(ctx, packet.SourcePort, packet.DestinationPort, packet.DestinationChannel, msgs)
 		if err != nil {
+			logger.Error(fmt.Sprintf("error execute Tx: %s", err.Error()))
 			return nil, err
 		}
 
 		return txResponse, nil
 	default:
+		logger.Error("unknown data type")
 		return nil, icatypes.ErrUnknownDataType
 	}
 }
