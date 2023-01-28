@@ -288,7 +288,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 	if err := k.bankKeeper.MintCoins(
 		ctx, types.ModuleName, sdk.NewCoins(voucher),
 	); err != nil {
-		logger.Error(fmt.Sprintf("cannot mint coints %s", err.Error()))
+		logger.Error(fmt.Sprintf("cannot mint coins %s", err.Error()))
 		return err
 	}
 
@@ -296,7 +296,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 	if err := k.bankKeeper.SendCoinsFromModuleToAccount(
 		ctx, types.ModuleName, receiver, sdk.NewCoins(voucher),
 	); err != nil {
-		logger.Error(fmt.Sprintf("cannot send coind to receiver %s: %s", receiver.String(), err.Error()))
+		logger.Error(fmt.Sprintf("cannot send coins to receiver %s: %s", receiver.String(), err.Error()))
 		return err
 	}
 
