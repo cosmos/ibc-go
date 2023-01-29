@@ -9,10 +9,10 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 
-	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v6/modules/core/23-commitment/types"
-	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v6/modules/core/exported"
+	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
+	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
 var _ exported.ClientState = (*ClientState)(nil)
@@ -23,7 +23,6 @@ func NewClientState(latestSequence uint64, consensusState *ConsensusState) *Clie
 		Sequence:       latestSequence,
 		IsFrozen:       false,
 		ConsensusState: consensusState,
-		// AllowUpdateAfterProposal has been DEPRECATED. See 01_concepts in the solo machine spec repo for more details.
 	}
 }
 

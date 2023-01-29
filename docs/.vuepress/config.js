@@ -149,8 +149,12 @@ module.exports = {
         key: "v5.1.0",
       },
       {
-        label: "v6.0.0",
-        key: "v6.0.0",
+        label: "v5.2.0",
+        key: "v5.2.0",
+      },
+      {
+        label: "v6.1.0",
+        key: "v6.1.0",
       },
     ],
     topbar: {
@@ -321,6 +325,11 @@ module.exports = {
                   directory: false,
                   path: "/apps/transfer/params.html",
                 },
+                {
+                  title: "Authorizations",
+                  directory: false,
+                  path: "/apps/transfer/authorizations.html",
+                },
               ],
             },
           ],
@@ -349,9 +358,9 @@ module.exports = {
                   path: "/ibc/light-clients/consensus-state.html",
                 },
                 {
-                  title: "Existence/Non-Existence Proofs",
+                  title: "Setup",
                   directory: false,
-                  path: "/ibc/light-clients/proofs.html",
+                  path: "/ibc/light-clients/setup.html",
                 },
                 {
                   title: "Updates Handling",
@@ -362,6 +371,11 @@ module.exports = {
                   title: "Misbehaviour Handling",
                   directory: false,
                   path: "/ibc/light-clients/misbehaviour.html",
+                },
+                {
+                  title: "Existence/Non-Existence Proofs",
+                  directory: false,
+                  path: "/ibc/light-clients/proofs.html",
                 },
                 {
                   title: "Upgrades Handling",

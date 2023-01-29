@@ -16,9 +16,9 @@ import (
 	"github.com/spf13/cobra"
 	abci "github.com/tendermint/tendermint/abci/types"
 
-	"github.com/cosmos/ibc-go/v6/modules/apps/29-fee/client/cli"
-	"github.com/cosmos/ibc-go/v6/modules/apps/29-fee/keeper"
-	"github.com/cosmos/ibc-go/v6/modules/apps/29-fee/types"
+	"github.com/cosmos/ibc-go/v7/modules/apps/29-fee/client/cli"
+	"github.com/cosmos/ibc-go/v7/modules/apps/29-fee/keeper"
+	"github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
 )
 
 var (
@@ -91,21 +91,6 @@ func NewAppModule(k keeper.Keeper) AppModule {
 
 // RegisterInvariants implements the AppModule interface
 func (AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
-}
-
-// Route implements the AppModule interface
-func (am AppModule) Route() sdk.Route {
-	return sdk.Route{}
-}
-
-// QuerierRoute implements the AppModule interface
-func (AppModule) QuerierRoute() string {
-	return types.QuerierRoute
-}
-
-// LegacyQuerierHandler implements the AppModule interface
-func (am AppModule) LegacyQuerierHandler(*codec.LegacyAmino) sdk.Querier {
-	return nil
 }
 
 // RegisterServices registers module services.

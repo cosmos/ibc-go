@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package ibc.core.connection.v1;
 
-option go_package = "github.com/cosmos/ibc-go/v6/modules/core/03-connection/types";
+option go_package = "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types";
 
 import "gogoproto/gogo.proto";
 import "google/protobuf/any.proto";
@@ -67,6 +67,8 @@ message MsgConnectionOpenTry {
   ibc.core.client.v1.Height consensus_height = 11
       [(gogoproto.moretags) = "yaml:\"consensus_height\"", (gogoproto.nullable) = false];
   string signer = 12;
+  // optional proof data for host state machines that are unable to introspect their own consensus state
+  bytes host_consensus_state_proof = 13;
 }
 
 // MsgConnectionOpenTryResponse defines the Msg/ConnectionOpenTry response type.
@@ -94,6 +96,8 @@ message MsgConnectionOpenAck {
   ibc.core.client.v1.Height consensus_height = 9
       [(gogoproto.moretags) = "yaml:\"consensus_height\"", (gogoproto.nullable) = false];
   string signer = 10;
+  // optional proof data for host state machines that are unable to introspect their own consensus state
+  bytes host_consensus_state_proof = 11;
 }
 
 // MsgConnectionOpenAckResponse defines the Msg/ConnectionOpenAck response type.

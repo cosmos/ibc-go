@@ -6,8 +6,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	"github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/controller/types"
-	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
+	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
+	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
 )
 
 var _ types.MsgServer = msgServer{}
@@ -39,8 +39,11 @@ func (s msgServer) RegisterInterchainAccount(goCtx context.Context, msg *types.M
 
 	channelID, err := s.registerInterchainAccount(ctx, msg.ConnectionId, portID, msg.Version)
 	if err != nil {
+		s.Logger(ctx).Error("error registering interchain account", "error", err.Error())
 		return nil, err
 	}
+
+	s.Logger(ctx).Info("successfully registered interchain account", "channel-id", channelID)
 
 	return &types.MsgRegisterInterchainAccountResponse{
 		ChannelId: channelID,

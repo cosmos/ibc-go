@@ -9,16 +9,16 @@ import (
 	"time"
 
 	paramsproposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
-	"github.com/strangelove-ventures/ibctest/v6/ibc"
-	test "github.com/strangelove-ventures/ibctest/v6/testutil"
+	"github.com/strangelove-ventures/ibctest/v7/ibc"
+	test "github.com/strangelove-ventures/ibctest/v7/testutil"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
-	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
-	connectiontypes "github.com/cosmos/ibc-go/v6/modules/core/03-connection/types"
-	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
-	ibctesting "github.com/cosmos/ibc-go/v6/testing"
+	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
+	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
+	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
 func TestConnectionTestSuite(t *testing.T) {
@@ -33,7 +33,7 @@ type ConnectionTestSuite struct {
 func (s *ConnectionTestSuite) QueryMaxExpectedTimePerBlockParam(ctx context.Context, chain ibc.Chain) uint64 {
 	queryClient := s.GetChainGRCPClients(chain).ParamsQueryClient
 	res, err := queryClient.Params(ctx, &paramsproposaltypes.QueryParamsRequest{
-		Subspace: host.ModuleName,
+		Subspace: ibcexported.ModuleName,
 		Key:      string(connectiontypes.KeyMaxExpectedTimePerBlock),
 	})
 	s.Require().NoError(err)
@@ -58,10 +58,10 @@ func (s *ConnectionTestSuite) TestMaxExpectedTimePerBlockParam() {
 	chainAIBCToken := testsuite.GetIBCToken(chainBDenom, channelA.PortID, channelA.ChannelID)
 
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
-	chainAAddress := chainAWallet.Bech32Address(chainA.Config().Bech32Prefix)
+	chainAAddress := chainAWallet.FormattedAddress()
 
 	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
-	chainBAddress := chainBWallet.Bech32Address(chainB.Config().Bech32Prefix)
+	chainBAddress := chainBWallet.FormattedAddress()
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
 
@@ -74,7 +74,7 @@ func (s *ConnectionTestSuite) TestMaxExpectedTimePerBlockParam() {
 	t.Run("change the delay to 60 seconds", func(t *testing.T) {
 		delay := fmt.Sprintf(`"%d"`, 1*time.Minute)
 		changes := []paramsproposaltypes.ParamChange{
-			paramsproposaltypes.NewParamChange(host.ModuleName, string(connectiontypes.KeyMaxExpectedTimePerBlock), delay),
+			paramsproposaltypes.NewParamChange(ibcexported.ModuleName, string(connectiontypes.KeyMaxExpectedTimePerBlock), delay),
 		}
 
 		proposal := paramsproposaltypes.NewParameterChangeProposal(ibctesting.Title, ibctesting.Description, changes)

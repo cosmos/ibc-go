@@ -4,10 +4,10 @@ import (
 	"context"
 	"testing"
 
-	"github.com/strangelove-ventures/ibctest/v6"
-	"github.com/strangelove-ventures/ibctest/v6/chain/cosmos"
-	"github.com/strangelove-ventures/ibctest/v6/ibc"
-	test "github.com/strangelove-ventures/ibctest/v6/testutil"
+	"github.com/strangelove-ventures/ibctest/v7"
+	"github.com/strangelove-ventures/ibctest/v7/chain/cosmos"
+	"github.com/strangelove-ventures/ibctest/v7/ibc"
+	test "github.com/strangelove-ventures/ibctest/v7/testutil"
 	"github.com/stretchr/testify/suite"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -18,7 +18,7 @@ import (
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 
-	ibctesting "github.com/cosmos/ibc-go/v6/testing"
+	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
 func TestInterTxTestSuite(t *testing.T) {
@@ -30,7 +30,7 @@ type InterTxTestSuite struct {
 }
 
 // RegisterInterchainAccount will attempt to register an interchain account on the counterparty chain.
-func (s *InterTxTestSuite) RegisterInterchainAccount(ctx context.Context, chain *cosmos.CosmosChain, user *ibc.Wallet, msgRegisterAccount *intertxtypes.MsgRegisterAccount) error {
+func (s *InterTxTestSuite) RegisterInterchainAccount(ctx context.Context, chain *cosmos.CosmosChain, user ibc.Wallet, msgRegisterAccount *intertxtypes.MsgRegisterAccount) error {
 	txResp, err := s.BroadcastMessages(ctx, chain, user, msgRegisterAccount)
 	s.Require().NoError(err)
 	s.AssertValidTxResponse(txResp)
@@ -54,7 +54,7 @@ func (s *InterTxTestSuite) TestMsgSubmitTx_SuccessfulTransfer() {
 
 	t.Run("register interchain account", func(t *testing.T) {
 		version := getICAVersion(testconfig.GetChainATag(), testconfig.GetChainBTag())
-		msgRegisterAccount := intertxtypes.NewMsgRegisterAccount(controllerAccount.Bech32Address(chainA.Config().Bech32Prefix), ibctesting.FirstConnectionID, version)
+		msgRegisterAccount := intertxtypes.NewMsgRegisterAccount(controllerAccount.FormattedAddress(), ibctesting.FirstConnectionID, version)
 		err := s.RegisterInterchainAccount(ctx, chainA, controllerAccount, msgRegisterAccount)
 		s.Require().NoError(err)
 	})
@@ -65,7 +65,7 @@ func (s *InterTxTestSuite) TestMsgSubmitTx_SuccessfulTransfer() {
 
 	t.Run("verify interchain account", func(t *testing.T) {
 		var err error
-		hostAccount, err = s.QueryInterchainAccountLegacy(ctx, chainA, controllerAccount.Bech32Address(chainA.Config().Bech32Prefix), ibctesting.FirstConnectionID)
+		hostAccount, err = s.QueryInterchainAccountLegacy(ctx, chainA, controllerAccount.FormattedAddress(), ibctesting.FirstConnectionID)
 		s.Require().NoError(err)
 		s.Require().NotZero(len(hostAccount))
 
@@ -89,7 +89,7 @@ func (s *InterTxTestSuite) TestMsgSubmitTx_SuccessfulTransfer() {
 			// assemble bank transfer message from host account to user account on host chain
 			msgSend := &banktypes.MsgSend{
 				FromAddress: hostAccount,
-				ToAddress:   chainBAccount.Bech32Address(chainB.Config().Bech32Prefix),
+				ToAddress:   chainBAccount.FormattedAddress(),
 				Amount:      sdk.NewCoins(testvalues.DefaultTransferAmount(chainB.Config().Denom)),
 			}
 
@@ -97,7 +97,7 @@ func (s *InterTxTestSuite) TestMsgSubmitTx_SuccessfulTransfer() {
 			msgSubmitTx, err := intertxtypes.NewMsgSubmitTx(
 				msgSend,
 				ibctesting.FirstConnectionID,
-				controllerAccount.Bech32Address(chainA.Config().Bech32Prefix),
+				controllerAccount.FormattedAddress(),
 			)
 			s.Require().NoError(err)
 
@@ -118,7 +118,7 @@ func (s *InterTxTestSuite) TestMsgSubmitTx_SuccessfulTransfer() {
 		})
 
 		t.Run("verify tokens transferred", func(t *testing.T) {
-			balance, err := chainB.GetBalance(ctx, chainBAccount.Bech32Address(chainB.Config().Bech32Prefix), chainB.Config().Denom)
+			balance, err := chainB.GetBalance(ctx, chainBAccount.FormattedAddress(), chainB.Config().Denom)
 			s.Require().NoError(err)
 
 			_, err = chainB.GetBalance(ctx, hostAccount, chainB.Config().Denom)
@@ -147,7 +147,7 @@ func (s *InterTxTestSuite) TestMsgSubmitTx_FailedTransfer_InsufficientFunds() {
 
 	t.Run("register interchain account", func(t *testing.T) {
 		version := getICAVersion(testconfig.GetChainATag(), testconfig.GetChainBTag())
-		msgRegisterAccount := intertxtypes.NewMsgRegisterAccount(controllerAccount.Bech32Address(chainA.Config().Bech32Prefix), ibctesting.FirstConnectionID, version)
+		msgRegisterAccount := intertxtypes.NewMsgRegisterAccount(controllerAccount.FormattedAddress(), ibctesting.FirstConnectionID, version)
 		err := s.RegisterInterchainAccount(ctx, chainA, controllerAccount, msgRegisterAccount)
 		s.Require().NoError(err)
 	})
@@ -158,7 +158,7 @@ func (s *InterTxTestSuite) TestMsgSubmitTx_FailedTransfer_InsufficientFunds() {
 
 	t.Run("verify interchain account", func(t *testing.T) {
 		var err error
-		hostAccount, err = s.QueryInterchainAccountLegacy(ctx, chainA, controllerAccount.Bech32Address(chainA.Config().Bech32Prefix), ibctesting.FirstConnectionID)
+		hostAccount, err = s.QueryInterchainAccountLegacy(ctx, chainA, controllerAccount.FormattedAddress(), ibctesting.FirstConnectionID)
 		s.Require().NoError(err)
 		s.Require().NotZero(len(hostAccount))
 
@@ -178,7 +178,7 @@ func (s *InterTxTestSuite) TestMsgSubmitTx_FailedTransfer_InsufficientFunds() {
 			// assemble bank transfer message from host account to user account on host chain
 			transferMsg := &banktypes.MsgSend{
 				FromAddress: hostAccount,
-				ToAddress:   chainBAccount.Bech32Address(chainB.Config().Bech32Prefix),
+				ToAddress:   chainBAccount.FormattedAddress(),
 				Amount:      sdk.NewCoins(testvalues.DefaultTransferAmount(chainB.Config().Denom)),
 			}
 
@@ -186,7 +186,7 @@ func (s *InterTxTestSuite) TestMsgSubmitTx_FailedTransfer_InsufficientFunds() {
 			submitMsg, err := intertxtypes.NewMsgSubmitTx(
 				transferMsg,
 				ibctesting.FirstConnectionID,
-				controllerAccount.Bech32Address(chainA.Config().Bech32Prefix),
+				controllerAccount.FormattedAddress(),
 			)
 			s.Require().NoError(err)
 
@@ -205,7 +205,7 @@ func (s *InterTxTestSuite) TestMsgSubmitTx_FailedTransfer_InsufficientFunds() {
 		})
 
 		t.Run("verify balance is the same", func(t *testing.T) {
-			balance, err := chainB.GetBalance(ctx, chainBAccount.Bech32Address(chainB.Config().Bech32Prefix), chainB.Config().Denom)
+			balance, err := chainB.GetBalance(ctx, chainBAccount.FormattedAddress(), chainB.Config().Denom)
 			s.Require().NoError(err)
 
 			expected := testvalues.StartingTokenAmount

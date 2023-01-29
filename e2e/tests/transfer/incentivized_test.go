@@ -6,14 +6,14 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/strangelove-ventures/ibctest/v6/ibc"
-	test "github.com/strangelove-ventures/ibctest/v6/testutil"
+	"github.com/strangelove-ventures/ibctest/v7/ibc"
+	test "github.com/strangelove-ventures/ibctest/v7/testutil"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/ibc-go/e2e/testvalues"
-	feetypes "github.com/cosmos/ibc-go/v6/modules/apps/29-fee/types"
-	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
-	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
+	feetypes "github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
+	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 )
 
 type IncentivizedTransferTestSuite struct {
@@ -55,25 +55,25 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_AsyncSingleSender_Su
 	_, chainBRelayerUser := s.GetRelayerUsers(ctx)
 
 	t.Run("register counterparty payee", func(t *testing.T) {
-		resp, err := s.RegisterCounterPartyPayee(ctx, chainB, chainBRelayerUser, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID, chainBRelayerWallet.Address, chainARelayerWallet.Address)
+		resp, err := s.RegisterCounterPartyPayee(ctx, chainB, chainBRelayerUser, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID, chainBRelayerWallet.FormattedAddress(), chainARelayerWallet.FormattedAddress())
 		s.Require().NoError(err)
 		s.AssertValidTxResponse(resp)
 	})
 
 	t.Run("verify counterparty payee", func(t *testing.T) {
-		address, err := s.QueryCounterPartyPayee(ctx, chainB, chainBRelayerWallet.Address, channelA.Counterparty.ChannelID)
+		address, err := s.QueryCounterPartyPayee(ctx, chainB, chainBRelayerWallet.FormattedAddress(), channelA.Counterparty.ChannelID)
 		s.Require().NoError(err)
-		s.Require().Equal(chainARelayerWallet.Address, address)
+		s.Require().Equal(chainARelayerWallet.FormattedAddress(), address)
 	})
 
 	walletAmount := ibc.WalletAmount{
-		Address: chainAWallet.Bech32Address(chainB.Config().Bech32Prefix), // destination address
+		Address: chainAWallet.FormattedAddress(), // destination address
 		Denom:   chainADenom,
 		Amount:  testvalues.IBCTransferAmount,
 	}
 
 	t.Run("send IBC transfer", func(t *testing.T) {
-		chainATx, err = chainA.SendIBCTransfer(ctx, channelA.ChannelID, chainAWallet.KeyName, walletAmount, ibc.TransferOptions{})
+		chainATx, err = chainA.SendIBCTransfer(ctx, channelA.ChannelID, chainAWallet.KeyName(), walletAmount, ibc.TransferOptions{})
 		s.Require().NoError(err)
 		s.Require().NoError(chainATx.Validate(), "chain-a ibc transfer tx is invalid")
 	})
@@ -94,7 +94,7 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_AsyncSingleSender_Su
 		})
 
 		packetId := channeltypes.NewPacketID(channelA.PortID, channelA.ChannelID, chainATx.Packet.Sequence)
-		packetFee := feetypes.NewPacketFee(testFee, chainAWallet.Bech32Address(chainA.Config().Bech32Prefix), nil)
+		packetFee := feetypes.NewPacketFee(testFee, chainAWallet.FormattedAddress(), nil)
 
 		t.Run("should succeed", func(t *testing.T) {
 			payPacketFeeTxResp, err = s.PayPacketFeeAsync(ctx, chainA, chainAWallet, packetId, packetFee)
@@ -173,21 +173,21 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_InvalidReceiverAccou
 	_, chainBRelayerUser := s.GetRelayerUsers(ctx)
 
 	t.Run("register counterparty payee", func(t *testing.T) {
-		resp, err := s.RegisterCounterPartyPayee(ctx, chainB, chainBRelayerUser, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID, chainBRelayerWallet.Address, chainARelayerWallet.Address)
+		resp, err := s.RegisterCounterPartyPayee(ctx, chainB, chainBRelayerUser, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID, chainBRelayerWallet.FormattedAddress(), chainARelayerWallet.FormattedAddress())
 		s.Require().NoError(err)
 		s.AssertValidTxResponse(resp)
 	})
 
 	t.Run("verify counterparty payee", func(t *testing.T) {
-		address, err := s.QueryCounterPartyPayee(ctx, chainB, chainBRelayerWallet.Address, channelA.Counterparty.ChannelID)
+		address, err := s.QueryCounterPartyPayee(ctx, chainB, chainBRelayerWallet.FormattedAddress(), channelA.Counterparty.ChannelID)
 		s.Require().NoError(err)
-		s.Require().Equal(chainARelayerWallet.Address, address)
+		s.Require().Equal(chainARelayerWallet.FormattedAddress(), address)
 	})
 
 	transferAmount := testvalues.DefaultTransferAmount(chainADenom)
 
 	t.Run("send IBC transfer", func(t *testing.T) {
-		transferMsg := transfertypes.NewMsgTransfer(channelA.PortID, channelA.ChannelID, transferAmount, chainAWallet.Bech32Address(chainA.Config().Bech32Prefix), testvalues.InvalidAddress, s.GetTimeoutHeight(ctx, chainB), 0, "")
+		transferMsg := transfertypes.NewMsgTransfer(channelA.PortID, channelA.ChannelID, transferAmount, chainAWallet.FormattedAddress(), testvalues.InvalidAddress, s.GetTimeoutHeight(ctx, chainB), 0, "")
 		txResp, err := s.BroadcastMessages(ctx, chainA, chainAWallet, transferMsg)
 		// this message should be successful, as receiver account is not validated on the sending chain.
 		s.Require().NoError(err)
@@ -210,7 +210,7 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_InvalidReceiverAccou
 		})
 
 		packetId := channeltypes.NewPacketID(channelA.PortID, channelA.ChannelID, 1)
-		packetFee := feetypes.NewPacketFee(testFee, chainAWallet.Bech32Address(chainA.Config().Bech32Prefix), nil)
+		packetFee := feetypes.NewPacketFee(testFee, chainAWallet.FormattedAddress(), nil)
 
 		t.Run("should succeed", func(t *testing.T) {
 			payPacketFeeTxResp, err = s.PayPacketFeeAsync(ctx, chainA, chainAWallet, packetId, packetFee)
@@ -297,15 +297,15 @@ func (s *IncentivizedTransferTestSuite) TestMultiMsg_MsgPayPacketFeeSingleSender
 	t.Logf("relayer A user starting with balance: %d", relayerAStartingBalance)
 
 	t.Run("register counterparty payee", func(t *testing.T) {
-		multiMsgTxResponse, err = s.RegisterCounterPartyPayee(ctx, chainB, chainBRelayerUser, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID, chainBRelayerWallet.Address, chainARelayerWallet.Address)
+		multiMsgTxResponse, err = s.RegisterCounterPartyPayee(ctx, chainB, chainBRelayerUser, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID, chainBRelayerWallet.FormattedAddress(), chainARelayerWallet.FormattedAddress())
 		s.Require().NoError(err)
 		s.AssertValidTxResponse(multiMsgTxResponse)
 	})
 
 	t.Run("verify counterparty payee", func(t *testing.T) {
-		address, err := s.QueryCounterPartyPayee(ctx, chainB, chainBRelayerWallet.Address, channelA.Counterparty.ChannelID)
+		address, err := s.QueryCounterPartyPayee(ctx, chainB, chainBRelayerWallet.FormattedAddress(), channelA.Counterparty.ChannelID)
 		s.Require().NoError(err)
-		s.Require().Equal(chainARelayerWallet.Address, address)
+		s.Require().Equal(chainARelayerWallet.FormattedAddress(), address)
 	})
 
 	t.Run("no incentivized packets", func(t *testing.T) {
@@ -314,8 +314,8 @@ func (s *IncentivizedTransferTestSuite) TestMultiMsg_MsgPayPacketFeeSingleSender
 		s.Require().Empty(packets)
 	})
 
-	payPacketFeeMsg := feetypes.NewMsgPayPacketFee(testFee, channelA.PortID, channelA.ChannelID, chainAWallet.Bech32Address(chainA.Config().Bech32Prefix), nil)
-	transferMsg := transfertypes.NewMsgTransfer(channelA.PortID, channelA.ChannelID, transferAmount, chainAWallet.Bech32Address(chainA.Config().Bech32Prefix), chainBWallet.Bech32Address(chainB.Config().Bech32Prefix), s.GetTimeoutHeight(ctx, chainB), 0, "")
+	payPacketFeeMsg := feetypes.NewMsgPayPacketFee(testFee, channelA.PortID, channelA.ChannelID, chainAWallet.FormattedAddress(), nil)
+	transferMsg := transfertypes.NewMsgTransfer(channelA.PortID, channelA.ChannelID, transferAmount, chainAWallet.FormattedAddress(), chainBWallet.FormattedAddress(), s.GetTimeoutHeight(ctx, chainB), 0, "")
 	resp, err := s.BroadcastMessages(ctx, chainA, chainAWallet, payPacketFeeMsg, transferMsg)
 
 	t.Run("transfer successful", func(t *testing.T) {
@@ -399,25 +399,25 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_SingleSender_TimesOu
 	_, chainBRelayerUser := s.GetRelayerUsers(ctx)
 
 	t.Run("register counterparty payee", func(t *testing.T) {
-		resp, err := s.RegisterCounterPartyPayee(ctx, chainB, chainBRelayerUser, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID, chainBRelayerWallet.Address, chainARelayerWallet.Address)
+		resp, err := s.RegisterCounterPartyPayee(ctx, chainB, chainBRelayerUser, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID, chainBRelayerWallet.FormattedAddress(), chainARelayerWallet.FormattedAddress())
 		s.Require().NoError(err)
 		s.AssertValidTxResponse(resp)
 	})
 
 	t.Run("verify counterparty payee", func(t *testing.T) {
-		address, err := s.QueryCounterPartyPayee(ctx, chainB, chainBRelayerWallet.Address, channelA.Counterparty.ChannelID)
+		address, err := s.QueryCounterPartyPayee(ctx, chainB, chainBRelayerWallet.FormattedAddress(), channelA.Counterparty.ChannelID)
 		s.Require().NoError(err)
-		s.Require().Equal(chainARelayerWallet.Address, address)
+		s.Require().Equal(chainARelayerWallet.FormattedAddress(), address)
 	})
 
 	chainBWalletAmount := ibc.WalletAmount{
-		Address: chainBWallet.Bech32Address(chainB.Config().Bech32Prefix), // destination address
+		Address: chainBWallet.FormattedAddress(), // destination address
 		Denom:   chainA.Config().Denom,
 		Amount:  testvalues.IBCTransferAmount,
 	}
 
 	t.Run("Send IBC transfer", func(t *testing.T) {
-		chainATx, err = chainA.SendIBCTransfer(ctx, channelA.ChannelID, chainAWallet.KeyName, chainBWalletAmount, ibc.TransferOptions{Timeout: testvalues.ImmediatelyTimeout()})
+		chainATx, err = chainA.SendIBCTransfer(ctx, channelA.ChannelID, chainAWallet.KeyName(), chainBWalletAmount, ibc.TransferOptions{Timeout: testvalues.ImmediatelyTimeout()})
 		s.Require().NoError(err)
 		s.Require().NoError(chainATx.Validate(), "source ibc transfer tx is invalid")
 		time.Sleep(time.Nanosecond * 1) // want it to timeout immediately
@@ -433,7 +433,7 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_SingleSender_TimesOu
 
 	t.Run("pay packet fee", func(t *testing.T) {
 		packetId := channeltypes.NewPacketID(channelA.PortID, channelA.ChannelID, chainATx.Packet.Sequence)
-		packetFee := feetypes.NewPacketFee(testFee, chainAWallet.Bech32Address(chainA.Config().Bech32Prefix), nil)
+		packetFee := feetypes.NewPacketFee(testFee, chainAWallet.FormattedAddress(), nil)
 
 		t.Run("no incentivized packets", func(t *testing.T) {
 			packets, err := s.QueryIncentivizedPacketsForChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
@@ -492,7 +492,7 @@ func (s *IncentivizedTransferTestSuite) TestPayPacketFeeAsync_SingleSender_NoCou
 	ctx := context.TODO()
 
 	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, feeMiddlewareChannelOptions())
-	chainA, chainB := s.GetChains()
+	chainA, _ := s.GetChains()
 
 	var (
 		chainADenom        = chainA.Config().Denom
@@ -509,14 +509,14 @@ func (s *IncentivizedTransferTestSuite) TestPayPacketFeeAsync_SingleSender_NoCou
 	})
 
 	chainBWalletAmount := ibc.WalletAmount{
-		Address: chainAWallet.Bech32Address(chainB.Config().Bech32Prefix), // destination address
+		Address: chainAWallet.FormattedAddress(), // destination address
 		Denom:   chainADenom,
 		Amount:  testvalues.IBCTransferAmount,
 	}
 
 	t.Run("send IBC transfer", func(t *testing.T) {
 		var err error
-		chainATx, err = chainA.SendIBCTransfer(ctx, channelA.ChannelID, chainAWallet.KeyName, chainBWalletAmount, ibc.TransferOptions{})
+		chainATx, err = chainA.SendIBCTransfer(ctx, channelA.ChannelID, chainAWallet.KeyName(), chainBWalletAmount, ibc.TransferOptions{})
 		s.Require().NoError(err)
 		s.Require().NoError(chainATx.Validate(), "source ibc transfer tx is invalid")
 	})
@@ -537,7 +537,7 @@ func (s *IncentivizedTransferTestSuite) TestPayPacketFeeAsync_SingleSender_NoCou
 		})
 
 		packetId := channeltypes.NewPacketID(channelA.PortID, channelA.ChannelID, chainATx.Packet.Sequence)
-		packetFee := feetypes.NewPacketFee(testFee, chainAWallet.Bech32Address(chainA.Config().Bech32Prefix), nil)
+		packetFee := feetypes.NewPacketFee(testFee, chainAWallet.FormattedAddress(), nil)
 
 		t.Run("should succeed", func(t *testing.T) {
 			var err error
@@ -618,25 +618,25 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_AsyncMultipleSenders
 	_, chainBRelayerUser := s.GetRelayerUsers(ctx)
 
 	t.Run("register counterparty payee", func(t *testing.T) {
-		resp, err := s.RegisterCounterPartyPayee(ctx, chainB, chainBRelayerUser, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID, chainBRelayerWallet.Address, chainARelayerWallet.Address)
+		resp, err := s.RegisterCounterPartyPayee(ctx, chainB, chainBRelayerUser, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID, chainBRelayerWallet.FormattedAddress(), chainARelayerWallet.FormattedAddress())
 		s.Require().NoError(err)
 		s.AssertValidTxResponse(resp)
 	})
 
 	t.Run("verify counterparty payee", func(t *testing.T) {
-		address, err := s.QueryCounterPartyPayee(ctx, chainB, chainBRelayerWallet.Address, channelA.Counterparty.ChannelID)
+		address, err := s.QueryCounterPartyPayee(ctx, chainB, chainBRelayerWallet.FormattedAddress(), channelA.Counterparty.ChannelID)
 		s.Require().NoError(err)
-		s.Require().Equal(chainARelayerWallet.Address, address)
+		s.Require().Equal(chainARelayerWallet.FormattedAddress(), address)
 	})
 
 	walletAmount1 := ibc.WalletAmount{
-		Address: chainAWallet1.Bech32Address(chainB.Config().Bech32Prefix), // destination address
+		Address: chainAWallet1.FormattedAddress(), // destination address
 		Denom:   chainADenom,
 		Amount:  testvalues.IBCTransferAmount,
 	}
 
 	t.Run("send IBC transfer", func(t *testing.T) {
-		chainATx, err = chainA.SendIBCTransfer(ctx, channelA.ChannelID, chainAWallet1.KeyName, walletAmount1, ibc.TransferOptions{})
+		chainATx, err = chainA.SendIBCTransfer(ctx, channelA.ChannelID, chainAWallet1.KeyName(), walletAmount1, ibc.TransferOptions{})
 		s.Require().NoError(err)
 		s.Require().NoError(chainATx.Validate(), "chain-a ibc transfer tx is invalid")
 	})
@@ -657,8 +657,8 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_AsyncMultipleSenders
 		})
 
 		packetId := channeltypes.NewPacketID(channelA.PortID, channelA.ChannelID, chainATx.Packet.Sequence)
-		packetFee1 := feetypes.NewPacketFee(testFee, chainAWallet1.Bech32Address(chainA.Config().Bech32Prefix), nil)
-		packetFee2 := feetypes.NewPacketFee(testFee, chainAWallet2.Bech32Address(chainA.Config().Bech32Prefix), nil)
+		packetFee1 := feetypes.NewPacketFee(testFee, chainAWallet1.FormattedAddress(), nil)
+		packetFee2 := feetypes.NewPacketFee(testFee, chainAWallet2.FormattedAddress(), nil)
 
 		t.Run("paying packetFee1 should succeed", func(t *testing.T) {
 			payPacketFeeTxResp, err = s.PayPacketFeeAsync(ctx, chainA, chainAWallet1, packetId, packetFee1)

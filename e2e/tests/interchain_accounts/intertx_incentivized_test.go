@@ -7,14 +7,14 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	intertxtypes "github.com/cosmos/interchain-accounts/x/inter-tx/types"
-	"github.com/strangelove-ventures/ibctest/v6"
-	"github.com/strangelove-ventures/ibctest/v6/ibc"
-	test "github.com/strangelove-ventures/ibctest/v6/testutil"
+	"github.com/strangelove-ventures/ibctest/v7"
+	"github.com/strangelove-ventures/ibctest/v7/ibc"
+	test "github.com/strangelove-ventures/ibctest/v7/testutil"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/ibc-go/e2e/testvalues"
-	feetypes "github.com/cosmos/ibc-go/v6/modules/apps/29-fee/types"
-	ibctesting "github.com/cosmos/ibc-go/v6/testing"
+	feetypes "github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
+	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
 func TestIncentivizedInterTxTestSuite(t *testing.T) {
@@ -62,7 +62,7 @@ func (s *IncentivizedInterTxTestSuite) TestMsgSubmitTx_SuccessfulBankSend_Incent
 
 	t.Run("register interchain account", func(t *testing.T) {
 		version := "" // allow app to handle the version as appropriate.
-		msgRegisterAccount := intertxtypes.NewMsgRegisterAccount(controllerAccount.Bech32Address(chainA.Config().Bech32Prefix), ibctesting.FirstConnectionID, version)
+		msgRegisterAccount := intertxtypes.NewMsgRegisterAccount(controllerAccount.FormattedAddress(), ibctesting.FirstConnectionID, version)
 		err := s.RegisterInterchainAccount(ctx, chainA, controllerAccount, msgRegisterAccount)
 		s.Require().NoError(err)
 	})
@@ -74,7 +74,7 @@ func (s *IncentivizedInterTxTestSuite) TestMsgSubmitTx_SuccessfulBankSend_Incent
 	var channelOutput ibc.ChannelOutput
 	t.Run("verify interchain account", func(t *testing.T) {
 		var err error
-		interchainAcc, err = s.QueryInterchainAccountLegacy(ctx, chainA, controllerAccount.Bech32Address(chainA.Config().Bech32Prefix), ibctesting.FirstConnectionID)
+		interchainAcc, err = s.QueryInterchainAccountLegacy(ctx, chainA, controllerAccount.FormattedAddress(), ibctesting.FirstConnectionID)
 		s.Require().NoError(err)
 		s.Require().NotZero(len(interchainAcc))
 
@@ -98,15 +98,15 @@ func (s *IncentivizedInterTxTestSuite) TestMsgSubmitTx_SuccessfulBankSend_Incent
 		})
 
 		t.Run("register counterparty payee", func(t *testing.T) {
-			resp, err := s.RegisterCounterPartyPayee(ctx, chainB, chainBRelayerUser, channelOutput.Counterparty.PortID, channelOutput.Counterparty.ChannelID, chainBRelayerWallet.Address, chainARelayerWallet.Address)
+			resp, err := s.RegisterCounterPartyPayee(ctx, chainB, chainBRelayerUser, channelOutput.Counterparty.PortID, channelOutput.Counterparty.ChannelID, chainBRelayerWallet.FormattedAddress(), chainARelayerWallet.FormattedAddress())
 			s.Require().NoError(err)
 			s.AssertValidTxResponse(resp)
 		})
 
 		t.Run("verify counterparty payee", func(t *testing.T) {
-			address, err := s.QueryCounterPartyPayee(ctx, chainB, chainBRelayerWallet.Address, channelOutput.Counterparty.ChannelID)
+			address, err := s.QueryCounterPartyPayee(ctx, chainB, chainBRelayerWallet.FormattedAddress(), channelOutput.Counterparty.ChannelID)
 			s.Require().NoError(err)
-			s.Require().Equal(chainARelayerWallet.Address, address)
+			s.Require().Equal(chainARelayerWallet.FormattedAddress(), address)
 		})
 
 		t.Run("no incentivized packets", func(t *testing.T) {
@@ -124,16 +124,16 @@ func (s *IncentivizedInterTxTestSuite) TestMsgSubmitTx_SuccessfulBankSend_Incent
 				Fee:             testvalues.DefaultFee(chainADenom),
 				SourcePortId:    channelOutput.PortID,
 				SourceChannelId: channelOutput.ChannelID,
-				Signer:          controllerAccount.Bech32Address(chainA.Config().Bech32Prefix),
+				Signer:          controllerAccount.FormattedAddress(),
 			}
 
 			msgSend := &banktypes.MsgSend{
 				FromAddress: interchainAcc,
-				ToAddress:   chainBAccount.Bech32Address(chainB.Config().Bech32Prefix),
+				ToAddress:   chainBAccount.FormattedAddress(),
 				Amount:      sdk.NewCoins(testvalues.DefaultTransferAmount(chainB.Config().Denom)),
 			}
 
-			msgSubmitTx, err := intertxtypes.NewMsgSubmitTx(msgSend, ibctesting.FirstConnectionID, controllerAccount.Bech32Address(chainA.Config().Bech32Prefix))
+			msgSubmitTx, err := intertxtypes.NewMsgSubmitTx(msgSend, ibctesting.FirstConnectionID, controllerAccount.FormattedAddress())
 			s.Require().NoError(err)
 
 			resp, err := s.BroadcastMessages(ctx, chainA, controllerAccount, msgPayPacketFee, msgSubmitTx)
@@ -165,7 +165,7 @@ func (s *IncentivizedInterTxTestSuite) TestMsgSubmitTx_SuccessfulBankSend_Incent
 		})
 
 		t.Run("verify interchain account sent tokens", func(t *testing.T) {
-			balance, err := chainB.GetBalance(ctx, chainBAccount.Bech32Address(chainB.Config().Bech32Prefix), chainB.Config().Denom)
+			balance, err := chainB.GetBalance(ctx, chainBAccount.FormattedAddress(), chainB.Config().Denom)
 			s.Require().NoError(err)
 
 			_, err = chainB.GetBalance(ctx, interchainAcc, chainB.Config().Denom)
@@ -230,7 +230,7 @@ func (s *IncentivizedInterTxTestSuite) TestMsgSubmitTx_FailedBankSend_Incentiviz
 
 	t.Run("register interchain account", func(t *testing.T) {
 		version := "" // allow app to handle the version as appropriate.
-		msgRegisterAccount := intertxtypes.NewMsgRegisterAccount(controllerAccount.Bech32Address(chainA.Config().Bech32Prefix), ibctesting.FirstConnectionID, version)
+		msgRegisterAccount := intertxtypes.NewMsgRegisterAccount(controllerAccount.FormattedAddress(), ibctesting.FirstConnectionID, version)
 		err := s.RegisterInterchainAccount(ctx, chainA, controllerAccount, msgRegisterAccount)
 		s.Require().NoError(err)
 	})
@@ -242,7 +242,7 @@ func (s *IncentivizedInterTxTestSuite) TestMsgSubmitTx_FailedBankSend_Incentiviz
 	var channelOutput ibc.ChannelOutput
 	t.Run("verify interchain account", func(t *testing.T) {
 		var err error
-		interchainAcc, err = s.QueryInterchainAccountLegacy(ctx, chainA, controllerAccount.Bech32Address(chainA.Config().Bech32Prefix), ibctesting.FirstConnectionID)
+		interchainAcc, err = s.QueryInterchainAccountLegacy(ctx, chainA, controllerAccount.FormattedAddress(), ibctesting.FirstConnectionID)
 		s.Require().NoError(err)
 		s.Require().NotZero(len(interchainAcc))
 
@@ -258,15 +258,15 @@ func (s *IncentivizedInterTxTestSuite) TestMsgSubmitTx_FailedBankSend_Incentiviz
 
 	t.Run("execute interchain account bank send through controller", func(t *testing.T) {
 		t.Run("register counterparty payee", func(t *testing.T) {
-			resp, err := s.RegisterCounterPartyPayee(ctx, chainB, chainBRelayerUser, channelOutput.Counterparty.PortID, channelOutput.Counterparty.ChannelID, chainBRelayerWallet.Address, chainARelayerWallet.Address)
+			resp, err := s.RegisterCounterPartyPayee(ctx, chainB, chainBRelayerUser, channelOutput.Counterparty.PortID, channelOutput.Counterparty.ChannelID, chainBRelayerWallet.FormattedAddress(), chainARelayerWallet.FormattedAddress())
 			s.Require().NoError(err)
 			s.AssertValidTxResponse(resp)
 		})
 
 		t.Run("verify counterparty payee", func(t *testing.T) {
-			address, err := s.QueryCounterPartyPayee(ctx, chainB, chainBRelayerWallet.Address, channelOutput.Counterparty.ChannelID)
+			address, err := s.QueryCounterPartyPayee(ctx, chainB, chainBRelayerWallet.FormattedAddress(), channelOutput.Counterparty.ChannelID)
 			s.Require().NoError(err)
-			s.Require().Equal(chainARelayerWallet.Address, address)
+			s.Require().Equal(chainARelayerWallet.FormattedAddress(), address)
 		})
 
 		t.Run("no incentivized packets", func(t *testing.T) {
@@ -285,16 +285,16 @@ func (s *IncentivizedInterTxTestSuite) TestMsgSubmitTx_FailedBankSend_Incentiviz
 				Fee:             testvalues.DefaultFee(chainADenom),
 				SourcePortId:    channelOutput.PortID,
 				SourceChannelId: channelOutput.ChannelID,
-				Signer:          controllerAccount.Bech32Address(chainA.Config().Bech32Prefix),
+				Signer:          controllerAccount.FormattedAddress(),
 			}
 
 			msgSend := &banktypes.MsgSend{
 				FromAddress: interchainAcc,
-				ToAddress:   chainBAccount.Bech32Address(chainB.Config().Bech32Prefix),
+				ToAddress:   chainBAccount.FormattedAddress(),
 				Amount:      sdk.NewCoins(testvalues.DefaultTransferAmount(chainB.Config().Denom)),
 			}
 
-			msgSubmitTx, err := intertxtypes.NewMsgSubmitTx(msgSend, ibctesting.FirstConnectionID, controllerAccount.Bech32Address(chainA.Config().Bech32Prefix))
+			msgSubmitTx, err := intertxtypes.NewMsgSubmitTx(msgSend, ibctesting.FirstConnectionID, controllerAccount.FormattedAddress())
 			s.Require().NoError(err)
 
 			resp, err := s.BroadcastMessages(ctx, chainA, controllerAccount, msgPayPacketFee, msgSubmitTx)
@@ -326,7 +326,7 @@ func (s *IncentivizedInterTxTestSuite) TestMsgSubmitTx_FailedBankSend_Incentiviz
 		})
 
 		t.Run("verify interchain account did not send tokens", func(t *testing.T) {
-			balance, err := chainB.GetBalance(ctx, chainBAccount.Bech32Address(chainB.Config().Bech32Prefix), chainB.Config().Denom)
+			balance, err := chainB.GetBalance(ctx, chainBAccount.FormattedAddress(), chainB.Config().Denom)
 			s.Require().NoError(err)
 
 			_, err = chainB.GetBalance(ctx, interchainAcc, chainB.Config().Denom)

@@ -5,11 +5,11 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
-	hosttypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/host/types"
-	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
-	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
-	ibctesting "github.com/cosmos/ibc-go/v6/testing"
+	hosttypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/types"
+	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
+	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
+	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
 // open and close channel is a helper function for TestOnChanOpenTry for reopening accounts
@@ -23,10 +23,10 @@ func (suite *KeeperTestSuite) openAndCloseChannel(path *ibctesting.Path) {
 	err = path.EndpointB.ChanOpenConfirm()
 	suite.Require().NoError(err)
 
-	err = path.EndpointA.SetChannelClosed()
+	err = path.EndpointA.SetChannelState(channeltypes.CLOSED)
 	suite.Require().NoError(err)
 
-	err = path.EndpointB.SetChannelClosed()
+	err = path.EndpointB.SetChannelState(channeltypes.CLOSED)
 	suite.Require().NoError(err)
 
 	path.EndpointA.ChannelID = ""
@@ -167,7 +167,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 		{
 			"invalid port ID",
 			func() {
-				path.EndpointB.ChannelConfig.PortID = "invalid-port-id"
+				path.EndpointB.ChannelConfig.PortID = "invalid-port-id" //nolint:goconst
 			},
 			false,
 		},

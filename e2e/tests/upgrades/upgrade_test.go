@@ -9,28 +9,28 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+	"github.com/cosmos/gogoproto/proto"
 	v6upgrades "github.com/cosmos/interchain-accounts/app/upgrades/v6"
 	intertxtypes "github.com/cosmos/interchain-accounts/x/inter-tx/types"
-	"github.com/gogo/protobuf/proto"
-	"github.com/strangelove-ventures/ibctest/v6"
-	"github.com/strangelove-ventures/ibctest/v6/chain/cosmos"
-	"github.com/strangelove-ventures/ibctest/v6/ibc"
-	test "github.com/strangelove-ventures/ibctest/v6/testutil"
+	ibctest "github.com/strangelove-ventures/ibctest/v7"
+	"github.com/strangelove-ventures/ibctest/v7/chain/cosmos"
+	"github.com/strangelove-ventures/ibctest/v7/ibc"
+	test "github.com/strangelove-ventures/ibctest/v7/testutil"
 	"github.com/stretchr/testify/suite"
 	"golang.org/x/mod/semver"
 
 	"github.com/cosmos/ibc-go/e2e/testconfig"
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
-	controllertypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/controller/types"
-	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
-	v7migrations "github.com/cosmos/ibc-go/v6/modules/core/02-client/migrations/v7"
-	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v6/modules/core/exported"
-	solomachine "github.com/cosmos/ibc-go/v6/modules/light-clients/06-solomachine"
-	ibctesting "github.com/cosmos/ibc-go/v6/testing"
-	simappupgrades "github.com/cosmos/ibc-go/v6/testing/simapp/upgrades"
-	v7upgrades "github.com/cosmos/ibc-go/v6/testing/simapp/upgrades/v7"
+	controllertypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
+	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
+	v7migrations "github.com/cosmos/ibc-go/v7/modules/core/02-client/migrations/v7"
+	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	solomachine "github.com/cosmos/ibc-go/v7/modules/light-clients/06-solomachine"
+	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	simappupgrades "github.com/cosmos/ibc-go/v7/testing/simapp/upgrades"
+	v7upgrades "github.com/cosmos/ibc-go/v7/testing/simapp/upgrades/v7"
 )
 
 const (
@@ -48,7 +48,7 @@ type UpgradeTestSuite struct {
 
 // UpgradeChain upgrades a chain to a specific version using the planName provided.
 // The software upgrade proposal is broadcast by the provided wallet.
-func (s *UpgradeTestSuite) UpgradeChain(ctx context.Context, chain *cosmos.CosmosChain, wallet *ibc.Wallet, planName, currentVersion, upgradeVersion string) {
+func (s *UpgradeTestSuite) UpgradeChain(ctx context.Context, chain *cosmos.CosmosChain, wallet ibc.Wallet, planName, currentVersion, upgradeVersion string) {
 	plan := upgradetypes.Plan{
 		Name:   planName,
 		Height: int64(haltHeight),
@@ -112,10 +112,10 @@ func (s *UpgradeTestSuite) TestV4ToV5ChainUpgrade() {
 	chainAUpgradeProposalWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
-	chainAAddress := chainAWallet.Bech32Address(chainA.Config().Bech32Prefix)
+	chainAAddress := chainAWallet.FormattedAddress()
 
 	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
-	chainBAddress := chainBWallet.Bech32Address(chainB.Config().Bech32Prefix)
+	chainBAddress := chainBWallet.FormattedAddress()
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
 
@@ -219,7 +219,7 @@ func (s *UpgradeTestSuite) TestV5ToV6ChainUpgrade() {
 
 	t.Run("register interchain account", func(t *testing.T) {
 		version := getICAVersion(testconfig.GetChainATag(), testconfig.GetChainBTag())
-		msgRegisterAccount := intertxtypes.NewMsgRegisterAccount(controllerAccount.Bech32Address(chainA.Config().Bech32Prefix), ibctesting.FirstConnectionID, version)
+		msgRegisterAccount := intertxtypes.NewMsgRegisterAccount(controllerAccount.FormattedAddress(), ibctesting.FirstConnectionID, version)
 		err := s.RegisterInterchainAccount(ctx, chainA, controllerAccount, msgRegisterAccount)
 		s.Require().NoError(err)
 	})
@@ -230,7 +230,7 @@ func (s *UpgradeTestSuite) TestV5ToV6ChainUpgrade() {
 
 	t.Run("verify interchain account", func(t *testing.T) {
 		var err error
-		hostAccount, err = s.QueryInterchainAccount(ctx, chainA, controllerAccount.Bech32Address(chainA.Config().Bech32Prefix), ibctesting.FirstConnectionID)
+		hostAccount, err = s.QueryInterchainAccount(ctx, chainA, controllerAccount.FormattedAddress(), ibctesting.FirstConnectionID)
 		s.Require().NoError(err)
 		s.Require().NotZero(len(hostAccount))
 
@@ -254,7 +254,7 @@ func (s *UpgradeTestSuite) TestV5ToV6ChainUpgrade() {
 			// assemble bank transfer message from host account to user account on host chain
 			msgSend := &banktypes.MsgSend{
 				FromAddress: hostAccount,
-				ToAddress:   chainBAccount.Bech32Address(chainB.Config().Bech32Prefix),
+				ToAddress:   chainBAccount.FormattedAddress(),
 				Amount:      sdk.NewCoins(testvalues.DefaultTransferAmount(chainB.Config().Denom)),
 			}
 
@@ -262,7 +262,7 @@ func (s *UpgradeTestSuite) TestV5ToV6ChainUpgrade() {
 			msgSubmitTx, err := intertxtypes.NewMsgSubmitTx(
 				msgSend,
 				ibctesting.FirstConnectionID,
-				controllerAccount.Bech32Address(chainA.Config().Bech32Prefix),
+				controllerAccount.FormattedAddress(),
 			)
 			s.Require().NoError(err)
 
@@ -283,7 +283,7 @@ func (s *UpgradeTestSuite) TestV5ToV6ChainUpgrade() {
 		})
 
 		t.Run("verify tokens transferred", func(t *testing.T) {
-			balance, err := chainB.GetBalance(ctx, chainBAccount.Bech32Address(chainB.Config().Bech32Prefix), chainB.Config().Denom)
+			balance, err := chainB.GetBalance(ctx, chainBAccount.FormattedAddress(), chainB.Config().Denom)
 			s.Require().NoError(err)
 
 			_, err = chainB.GetBalance(ctx, hostAccount, chainB.Config().Denom)
@@ -309,7 +309,7 @@ func (s *UpgradeTestSuite) TestV5ToV6ChainUpgrade() {
 		// assemble bank transfer message from host account to user account on host chain
 		msgSend := &banktypes.MsgSend{
 			FromAddress: hostAccount,
-			ToAddress:   chainBAccount.Bech32Address(chainB.Config().Bech32Prefix),
+			ToAddress:   chainBAccount.FormattedAddress(),
 			Amount:      sdk.NewCoins(testvalues.DefaultTransferAmount(chainB.Config().Denom)),
 		}
 
@@ -317,7 +317,7 @@ func (s *UpgradeTestSuite) TestV5ToV6ChainUpgrade() {
 		msgSubmitTx, err := intertxtypes.NewMsgSubmitTx(
 			msgSend,
 			ibctesting.FirstConnectionID,
-			controllerAccount.Bech32Address(chainA.Config().Bech32Prefix),
+			controllerAccount.FormattedAddress(),
 		)
 		s.Require().NoError(err)
 
@@ -338,7 +338,7 @@ func (s *UpgradeTestSuite) TestV5ToV6ChainUpgrade() {
 	})
 
 	t.Run("verify tokens transferred", func(t *testing.T) {
-		balance, err := chainB.GetBalance(ctx, chainBAccount.Bech32Address(chainB.Config().Bech32Prefix), chainB.Config().Denom)
+		balance, err := chainB.GetBalance(ctx, chainBAccount.FormattedAddress(), chainB.Config().Denom)
 		s.Require().NoError(err)
 
 		_, err = chainB.GetBalance(ctx, hostAccount, chainB.Config().Denom)
@@ -352,7 +352,7 @@ func (s *UpgradeTestSuite) TestV5ToV6ChainUpgrade() {
 		// assemble bank transfer message from host account to user account on host chain
 		msgSend := &banktypes.MsgSend{
 			FromAddress: hostAccount,
-			ToAddress:   chainBAccount.Bech32Address(chainB.Config().Bech32Prefix),
+			ToAddress:   chainBAccount.FormattedAddress(),
 			Amount:      sdk.NewCoins(testvalues.DefaultTransferAmount(chainB.Config().Denom)),
 		}
 
@@ -365,7 +365,7 @@ func (s *UpgradeTestSuite) TestV5ToV6ChainUpgrade() {
 		}
 
 		relativeTimeoutTimestamp := uint64(time.Hour.Nanoseconds())
-		msgSendTx := controllertypes.NewMsgSendTx(controllerAccount.Bech32Address(chainA.Config().Bech32Prefix), ibctesting.FirstConnectionID, relativeTimeoutTimestamp, icaPacketData)
+		msgSendTx := controllertypes.NewMsgSendTx(controllerAccount.FormattedAddress(), ibctesting.FirstConnectionID, relativeTimeoutTimestamp, icaPacketData)
 
 		// broadcast MsgSendTx tx from controller account on chain A
 		// this message should trigger the sending of an ICA packet over channel-1 (channel created between controller and host)
@@ -384,7 +384,7 @@ func (s *UpgradeTestSuite) TestV5ToV6ChainUpgrade() {
 	})
 
 	t.Run("verify tokens transferred", func(t *testing.T) {
-		balance, err := chainB.GetBalance(ctx, chainBAccount.Bech32Address(chainB.Config().Bech32Prefix), chainB.Config().Denom)
+		balance, err := chainB.GetBalance(ctx, chainBAccount.FormattedAddress(), chainB.Config().Denom)
 		s.Require().NoError(err)
 
 		_, err = chainB.GetBalance(ctx, hostAccount, chainB.Config().Denom)
@@ -414,10 +414,10 @@ func (s *UpgradeTestSuite) TestV6ToV7ChainUpgrade() {
 	)
 
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
-	chainAAddress := chainAWallet.Bech32Address(chainA.Config().Bech32Prefix)
+	chainAAddress := chainAWallet.FormattedAddress()
 
 	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
-	chainBAddress := chainBWallet.Bech32Address(chainB.Config().Bech32Prefix)
+	chainBAddress := chainBWallet.FormattedAddress()
 
 	// create second tendermint client
 	createClientOptions := ibc.CreateClientOptions{
@@ -550,7 +550,7 @@ func (s *UpgradeTestSuite) TestV6ToV7ChainUpgrade() {
 }
 
 // RegisterInterchainAccount will attempt to register an interchain account on the counterparty chain.
-func (s *UpgradeTestSuite) RegisterInterchainAccount(ctx context.Context, chain *cosmos.CosmosChain, user *ibc.Wallet, msgRegisterAccount *intertxtypes.MsgRegisterAccount) error {
+func (s *UpgradeTestSuite) RegisterInterchainAccount(ctx context.Context, chain *cosmos.CosmosChain, user ibc.Wallet, msgRegisterAccount *intertxtypes.MsgRegisterAccount) error {
 	txResp, err := s.BroadcastMessages(ctx, chain, user, msgRegisterAccount)
 	s.Require().NoError(err)
 	s.AssertValidTxResponse(txResp)

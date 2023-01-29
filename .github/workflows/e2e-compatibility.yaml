@@ -13,6 +13,7 @@ on:
           - release/v4.3.x
           - release/v5.2.x
           - release/v6.1.x
+          - release/v7.0.x
           - main
 
 env:
@@ -46,6 +47,7 @@ jobs:
           - release/v4.3.x
           - release/v5.2.x
           - release/v6.1.x
+          - release/v7.0.x
           - main
     steps:
       - uses: actions/checkout@v3
