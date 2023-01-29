@@ -7,9 +7,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	abci "github.com/tendermint/tendermint/abci/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v6/modules/core/23-commitment/types"
-	ibcexported "github.com/cosmos/ibc-go/v6/modules/core/exported"
+	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
+	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
 // QueryTendermintProof performs an ABCI query with the given key and returns

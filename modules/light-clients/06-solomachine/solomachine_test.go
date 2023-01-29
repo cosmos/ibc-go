@@ -12,14 +12,14 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
-	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v6/modules/core/exported"
-	solomachine "github.com/cosmos/ibc-go/v6/modules/light-clients/06-solomachine"
-	ibctesting "github.com/cosmos/ibc-go/v6/testing"
-	"github.com/cosmos/ibc-go/v6/testing/mock"
+	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	solomachine "github.com/cosmos/ibc-go/v7/modules/light-clients/06-solomachine"
+	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	"github.com/cosmos/ibc-go/v7/testing/mock"
 )
 
 var (

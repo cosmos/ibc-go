@@ -7,10 +7,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktestutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
 
-	"github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
-	ibctesting "github.com/cosmos/ibc-go/v6/testing"
+	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
 // test sending from chainA to chainB using both coin that orignate on
@@ -36,7 +36,7 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 		{
 			"successful transfer from source chain with memo",
 			func() {
-				memo = "memo"
+				memo = "memo" //nolint:goconst
 			}, true,
 		},
 		{
@@ -92,7 +92,7 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 				cap := suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 
 				// Release channel capability
-				suite.chainA.GetSimApp().ScopedTransferKeeper.ReleaseCapability(suite.chainA.GetContext(), cap)
+				suite.chainA.GetSimApp().ScopedTransferKeeper.ReleaseCapability(suite.chainA.GetContext(), cap) //nolint:errcheck // ignore error for testing
 			}, false,
 		},
 		{

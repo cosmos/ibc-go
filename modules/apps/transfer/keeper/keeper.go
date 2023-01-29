@@ -10,10 +10,10 @@ import (
 	tmbytes "github.com/tendermint/tendermint/libs/bytes"
 	"github.com/tendermint/tendermint/libs/log"
 
-	"github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
-	porttypes "github.com/cosmos/ibc-go/v6/modules/core/05-port/types"
-	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v6/modules/core/exported"
+	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
+	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
 // Keeper defines the IBC fungible transfer keeper
@@ -131,7 +131,7 @@ func (k Keeper) IterateDenomTraces(ctx sdk.Context, cb func(denomTrace types.Den
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, types.DenomTraceKey)
 
-	defer iterator.Close()
+	defer sdk.LogDeferred(ctx.Logger(), func() error { return iterator.Close() })
 	for ; iterator.Valid(); iterator.Next() {
 
 		denomTrace := k.MustUnmarshalDenomTrace(iterator.Value())

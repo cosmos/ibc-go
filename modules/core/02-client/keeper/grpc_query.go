@@ -14,9 +14,9 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
-	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v6/modules/core/exported"
+	"github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
 var _ types.QueryServer = Keeper{}
@@ -63,25 +63,26 @@ func (q Keeper) ClientStates(c context.Context, req *types.QueryClientStatesRequ
 	clientStates := types.IdentifiedClientStates{}
 	store := prefix.NewStore(ctx.KVStore(q.storeKey), host.KeyClientStorePrefix)
 
-	pageRes, err := query.Paginate(store, req.Pagination, func(key, value []byte) error {
+	pageRes, err := query.FilteredPaginate(store, req.Pagination, func(key, value []byte, accumulate bool) (bool, error) {
+		// filter any metadata stored under client state key
 		keySplit := strings.Split(string(key), "/")
 		if keySplit[len(keySplit)-1] != "clientState" {
-			return nil
+			return false, nil
 		}
 
 		clientState, err := q.UnmarshalClientState(value)
 		if err != nil {
-			return err
+			return false, err
 		}
 
 		clientID := keySplit[1]
 		if err := host.ClientIdentifierValidator(clientID); err != nil {
-			return err
+			return false, err
 		}
 
 		identifiedClient := types.NewIdentifiedClientState(clientID, clientState)
 		clientStates = append(clientStates, identifiedClient)
-		return nil
+		return true, nil
 	})
 	if err != nil {
 		return nil, err

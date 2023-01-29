@@ -8,11 +8,11 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
-	connectiontypes "github.com/cosmos/ibc-go/v6/modules/core/03-connection/types"
-	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
-	porttypes "github.com/cosmos/ibc-go/v6/modules/core/05-port/types"
-	coretypes "github.com/cosmos/ibc-go/v6/modules/core/types"
+	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
+	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
+	coretypes "github.com/cosmos/ibc-go/v7/modules/core/types"
 )
 
 var (
@@ -282,14 +282,14 @@ func (k Keeper) ChannelOpenAck(goCtx context.Context, msg *channeltypes.MsgChann
 		return nil, sdkerrors.Wrap(err, "channel handshake open ack failed")
 	}
 
+	// Write channel into state
+	k.ChannelKeeper.WriteOpenAckChannel(ctx, msg.PortId, msg.ChannelId, msg.CounterpartyVersion, msg.CounterpartyChannelId)
+
 	// Perform application logic callback
 	if err = cbs.OnChanOpenAck(ctx, msg.PortId, msg.ChannelId, msg.CounterpartyChannelId, msg.CounterpartyVersion); err != nil {
 		ctx.Logger().Error("channel handshake open ack callback failed", "port-id", msg.PortId, "channel-id", msg.ChannelId, "error", err.Error())
 		return nil, sdkerrors.Wrapf(err, "channel open ack callback failed for port ID: %s, channel ID: %s", msg.PortId, msg.ChannelId)
 	}
-
-	// Write channel into state
-	k.ChannelKeeper.WriteOpenAckChannel(ctx, msg.PortId, msg.ChannelId, msg.CounterpartyVersion, msg.CounterpartyChannelId)
 
 	ctx.Logger().Info("channel open ack callback succeeded", "channel-id", msg.ChannelId, "port-id", msg.PortId)
 
@@ -322,14 +322,14 @@ func (k Keeper) ChannelOpenConfirm(goCtx context.Context, msg *channeltypes.MsgC
 		return nil, sdkerrors.Wrap(err, "channel handshake open confirm failed")
 	}
 
+	// Write channel into state
+	k.ChannelKeeper.WriteOpenConfirmChannel(ctx, msg.PortId, msg.ChannelId)
+
 	// Perform application logic callback
 	if err = cbs.OnChanOpenConfirm(ctx, msg.PortId, msg.ChannelId); err != nil {
 		ctx.Logger().Error("channel handshake open confirm callback failed", "port-id", msg.PortId, "channel-id", msg.ChannelId, "error", err.Error())
 		return nil, sdkerrors.Wrapf(err, "channel open confirm callback failed for port ID: %s, channel ID: %s", msg.PortId, msg.ChannelId)
 	}
-
-	// Write channel into state
-	k.ChannelKeeper.WriteOpenConfirmChannel(ctx, msg.PortId, msg.ChannelId)
 
 	ctx.Logger().Info("channel open confirm callback succeeded", "channel-id", msg.ChannelId, "port-id", msg.PortId)
 

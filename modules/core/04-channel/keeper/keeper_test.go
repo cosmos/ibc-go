@@ -6,10 +6,10 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
-	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
-	"github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
-	ibctesting "github.com/cosmos/ibc-go/v6/testing"
-	ibcmock "github.com/cosmos/ibc-go/v6/testing/mock"
+	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	ibcmock "github.com/cosmos/ibc-go/v7/testing/mock"
 )
 
 // KeeperTestSuite is a testing suite to test keeper functions.
@@ -165,7 +165,7 @@ func containsAll(expected, actual []types.IdentifiedChannel) bool {
 
 // TestGetAllChannels creates multiple channels on chain A through various connections
 // and tests their retrieval. 2 channels are on connA0 and 1 channel is on connA1
-func (suite KeeperTestSuite) TestGetAllChannels() {
+func (suite KeeperTestSuite) TestGetAllChannels() { //nolint:govet // this is a test, we are okay with copying locks
 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
 	suite.coordinator.Setup(path)
 	// channel0 on first connection on chainA
@@ -229,7 +229,7 @@ func (suite KeeperTestSuite) TestGetAllChannels() {
 
 // TestGetAllSequences sets all packet sequences for two different channels on chain A and
 // tests their retrieval.
-func (suite KeeperTestSuite) TestGetAllSequences() {
+func (suite KeeperTestSuite) TestGetAllSequences() { //nolint:govet // this is a test, we are okay with copying locks
 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
 	suite.coordinator.Setup(path)
 
@@ -271,7 +271,7 @@ func (suite KeeperTestSuite) TestGetAllSequences() {
 
 // TestGetAllPacketState creates a set of acks, packet commitments, and receipts on two different
 // channels on chain A and tests their retrieval.
-func (suite KeeperTestSuite) TestGetAllPacketState() {
+func (suite KeeperTestSuite) TestGetAllPacketState() { //nolint:govet // this is a test, we are okay with copying locks
 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
 	suite.coordinator.Setup(path)
 
