@@ -34,13 +34,13 @@ func (suite *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 	chainADenom := chainA.Config().Denom
 
 	granterWallet := suite.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
-	granterAddress := granterWallet.Bech32Address(chainA.Config().Bech32Prefix)
+	granterAddress := granterWallet.FormattedAddress()
 
 	granteeWallet := suite.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
-	granteeAddress := granteeWallet.Bech32Address(chainA.Config().Bech32Prefix)
+	granteeAddress := granteeWallet.FormattedAddress()
 
 	receiverWallet := suite.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
-	receiverWalletAddress := receiverWallet.Bech32Address(chainB.Config().Bech32Prefix)
+	receiverWalletAddress := receiverWallet.FormattedAddress()
 
 	t.Run("start relayer", func(t *testing.T) {
 		suite.StartRelayer(relayer)
@@ -188,13 +188,13 @@ func (suite *AuthzTransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 	chainADenom := chainA.Config().Denom
 
 	granterWallet := suite.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
-	granterAddress := granterWallet.Bech32Address(chainA.Config().Bech32Prefix)
+	granterAddress := granterWallet.FormattedAddress()
 
 	granteeWallet := suite.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
-	granteeAddress := granteeWallet.Bech32Address(chainA.Config().Bech32Prefix)
+	granteeAddress := granteeWallet.FormattedAddress()
 
 	receiverWallet := suite.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
-	receiverWalletAddress := receiverWallet.Bech32Address(chainB.Config().Bech32Prefix)
+	receiverWalletAddress := receiverWallet.FormattedAddress()
 
 	t.Run("start relayer", func(t *testing.T) {
 		suite.StartRelayer(relayer)
@@ -287,7 +287,7 @@ func (suite *AuthzTransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 
 	t.Run("send funds to invalid address", func(t *testing.T) {
 		invalidWallet := suite.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
-		invalidWalletAddress := invalidWallet.Bech32Address(chainB.Config().Bech32Prefix)
+		invalidWalletAddress := invalidWallet.FormattedAddress()
 
 		t.Run("broadcast MsgExec for ibc MsgTransfer", func(t *testing.T) {
 			transferMsg := transfertypes.MsgTransfer{
