@@ -63,6 +63,7 @@ jobs:
           echo "Relayer Type:     ${{ inputs.relayer-type }}"
           echo "Relayer Tag:      ${{ inputs.relayer-tag }}"
           echo "Test Entry Point: ${{ inputs.test-entry-point }}"
+          echo "Github Ref Name:   ${{ github.ref_name }}"
 
   # we skip individual steps rather than the full job as e2e-tests will not run if this task
   # is skipped. But will run if every individual task is skipped. There is no current way of conditionally needing
@@ -94,7 +95,8 @@ jobs:
           context: .
           push: true
           tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            IBC_GO_VERSION=${{ github.ref_name }}
 
   # dynamically build a matrix of test/test suite pairs to run
   build-test-matrix:
