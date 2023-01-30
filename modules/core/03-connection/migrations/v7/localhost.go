@@ -6,9 +6,9 @@ import (
 	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
 )
 
-// MigrateLocalhostConnectionEnd creates the sentinel localhost connection end to enable
+// MigrateLocalhostConnection creates the sentinel localhost connection end to enable
 // localhost ibc functionality.
-func MigrateLocalhostConnectionEnd(ctx sdk.Context, connectionKeeper ConnectionKeeper) {
+func MigrateLocalhostConnection(ctx sdk.Context, connectionKeeper ConnectionKeeper) {
 	localhostConnection := connectionKeeper.CreateSentinelLocalhostConnection()
 	connectionKeeper.SetConnection(ctx, connectiontypes.LocalhostID, localhostConnection)
 }

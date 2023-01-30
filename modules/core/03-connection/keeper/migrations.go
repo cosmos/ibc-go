@@ -19,6 +19,6 @@ func NewMigrator(keeper Keeper) Migrator {
 // Migrate3to4 migrates from version 3 to 4.
 // This migration writes the sentinel localhost connection end to state.
 func (m Migrator) Migrate3to4(ctx sdk.Context) error {
-	connectionv7.MigrateLocalhostConnectionEnd(ctx, m.keeper)
+	connectionv7.MigrateLocalhostConnection(ctx, m.keeper)
 	return nil
 }

@@ -17,6 +17,7 @@ import (
 	abci "github.com/tendermint/tendermint/abci/types"
 
 	ibcclient "github.com/cosmos/ibc-go/v7/modules/core/02-client"
+	clientkeeper "github.com/cosmos/ibc-go/v7/modules/core/02-client/keeper"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	connectionkeeper "github.com/cosmos/ibc-go/v7/modules/core/03-connection/keeper"
 	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
@@ -124,9 +125,13 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	channeltypes.RegisterMsgServer(cfg.MsgServer(), am.keeper)
 	types.RegisterQueryService(cfg.QueryServer(), am.keeper)
 
-	m := connectionkeeper.NewMigrator(am.keeper.ConnectionKeeper)
-	err := cfg.RegisterMigration(exported.ModuleName, 3, m.Migrate3to4)
-	if err != nil {
+	clientMigrator := clientkeeper.NewMigrator(am.keeper.ClientKeeper)
+	if err := cfg.RegisterMigration(exported.ModuleName, 2, clientMigrator.Migrate2to3); err != nil {
+		panic(err)
+	}
+
+	connectionMigrator := connectionkeeper.NewMigrator(am.keeper.ConnectionKeeper)
+	if err := cfg.RegisterMigration(exported.ModuleName, 3, connectionMigrator.Migrate3to4); err != nil {
 		panic(err)
 	}
 }
