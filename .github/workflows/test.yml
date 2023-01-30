@@ -52,6 +52,13 @@ jobs:
       - name: Build
         run: GOARCH=${{ matrix.go-arch }} LEDGER_ENABLED=false make build
 
+  docker-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Docker Build
+        run: docker build . --no-cache --build-arg IBC_GO_VERSION=v6.1.0
+
   split-test-files:
     runs-on: ubuntu-latest
     steps:
