@@ -26,7 +26,7 @@ Setting a `TransferAuthorization` is expected to fail if:
 
 Below is the `TransferAuthorization` message:
 
-```golang
+```go
 func NewTransferAuthorization(allocations ...Allocation) *TransferAuthorization {
 	return &TransferAuthorization{
 		Allocations: allocations,
