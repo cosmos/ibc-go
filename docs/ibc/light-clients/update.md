@@ -1,5 +1,5 @@
 <!--
-order: 4
+order:
 -->
 
 # Implementing the `ClientMessage` interface

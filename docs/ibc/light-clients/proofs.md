@@ -1,5 +1,5 @@
 <!--
-order: 7
+order: 6
 -->
 
 # Existence and non-existence proofs 

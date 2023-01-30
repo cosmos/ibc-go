@@ -1,12 +1,46 @@
 <!--
-order: 5
+order: 4
 -->
+# Handling `ClientMessage`s: updates and misbehaviour
 
-# Handling Updates and Misbehaviour
+As mentioned before in the documentation about [implementing the `ConsensusState` interface](./consensus-state.md), [`ClientMessage`](https://github.com/cosmos/ibc-go/blob/main/modules/core/exported/client.go#L145) is an interface used to update an IBC client. This update may be performed by: 
+
++ a single header
++ a batch of headers
++ evidence of misbehaviour,
++ or any type which when verified produces a change to the consensus state of the IBC client. 
+
+This interface has been purposefully kept generic in order to give the maximum amount of flexibility to the light client implementer.
+
+## Implementing the `ClientMessage` interface 
+
+Find the `ClientMessage`interface in `modules/core/exported`:
+
+```go
+type ClientMessage interface {
+  proto.Message
+
+  ClientType() string
+  ValidateBasic() error
+}
+```
+
+The `ClientMessage` will be passed to the client to be used in [`UpdateClient`](https://github.com/cosmos/ibc-go/blob/57da75a70145409247e85365b64a4b2fc6ddad2f/modules/core/02-client/keeper/client.go#L53), which retrieves the `ClientState` by client ID (available in `MsgUpdateClient`). This `ClientState` implements the [`ClientState` interface](./client-state.md) for its specific consenus type (e.g. Tendermint).
+
+`UpdateClient` will then handle a number of cases including misbehaviour and/or updating the consensus state, utilizing the specific methods defined in the relevant `ClientState`.
+
+```go
+VerifyClientMessage(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, clientMsg ClientMessage) error
+CheckForMisbehaviour(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, clientMsg ClientMessage) bool
+UpdateStateOnMisbehaviour(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, clientMsg ClientMessage)
+UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, clientMsg ClientMessage) []Height
+```
+
+## Handling Updates and Misbehaviour
 
 The functions for handling updates to a light client and evidence of misbehaviour are all found in the [`ClientState`](https://github.com/cosmos/ibc-go/blob/v6.0.0/modules/core/exported/client.go#L40) interface, and will be discussed below.
 
-It is important to note that `Misbehaviour` in this particular context is referring to misbehaviour on the chain level intended to fool the light client. This will be defined by each light client. 
+> It is important to note that `Misbehaviour` in this particular context is referring to misbehaviour on the chain level intended to fool the light client. This will be defined by each light client.
 
 ## `VerifyClientMessage` 
 
