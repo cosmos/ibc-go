@@ -636,6 +636,38 @@ func (suite *TendermintTestSuite) TestCheckForMisbehaviour() {
 			false,
 		},
 		{
+			"invalid fork misbehaviour: identical headers", func() {
+				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
+
+				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight) + 1)
+				suite.Require().True(found)
+
+				err := path.EndpointA.UpdateClient()
+				suite.Require().NoError(err)
+
+				height := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
+
+				misbehaviourHeader := suite.chainB.CreateTMClientHeader(suite.chainB.ChainID, int64(height.RevisionHeight), trustedHeight, suite.chainB.CurrentHeader.Time.Add(time.Minute), suite.chainB.Vals, suite.chainB.NextVals, trustedVals, suite.chainB.Signers)
+				clientMessage = &ibctm.Misbehaviour{
+					Header1: misbehaviourHeader,
+					Header2: misbehaviourHeader,
+				}
+			}, false,
+		},
+		{
+			"invalid time misbehaviour: monotonically increasing time", func() {
+				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
+
+				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight) + 1)
+				suite.Require().True(found)
+
+				clientMessage = &ibctm.Misbehaviour{
+					Header1: suite.chainB.CreateTMClientHeader(suite.chainB.ChainID, suite.chainB.CurrentHeader.Height+3, trustedHeight, suite.chainB.CurrentHeader.Time.Add(time.Minute), suite.chainB.Vals, suite.chainB.NextVals, trustedVals, suite.chainB.Signers),
+					Header2: suite.chainB.CreateTMClientHeader(suite.chainB.ChainID, suite.chainB.CurrentHeader.Height, trustedHeight, suite.chainB.CurrentHeader.Time, suite.chainB.Vals, suite.chainB.NextVals, trustedVals, suite.chainB.Signers),
+				}
+			}, false,
+		},
+		{
 			"consensus state already exists, app hash mismatch",
 			func() {
 				header, ok := clientMessage.(*ibctm.Header)
@@ -704,6 +736,19 @@ func (suite *TendermintTestSuite) TestCheckForMisbehaviour() {
 				}
 			},
 			true,
+		},
+		{
+			"valid time misbehaviour: not monotonically increasing time", func() {
+				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
+
+				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight) + 1)
+				suite.Require().True(found)
+
+				clientMessage = &ibctm.Misbehaviour{
+					Header2: suite.chainB.CreateTMClientHeader(suite.chainB.ChainID, suite.chainB.CurrentHeader.Height+3, trustedHeight, suite.chainB.CurrentHeader.Time.Add(time.Minute), suite.chainB.Vals, suite.chainB.NextVals, trustedVals, suite.chainB.Signers),
+					Header1: suite.chainB.CreateTMClientHeader(suite.chainB.ChainID, suite.chainB.CurrentHeader.Height, trustedHeight, suite.chainB.CurrentHeader.Time, suite.chainB.Vals, suite.chainB.NextVals, trustedVals, suite.chainB.Signers),
+				}
+			}, true,
 		},
 	}
 
