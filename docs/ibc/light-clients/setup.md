@@ -6,6 +6,10 @@ order: 10
 
 Learn how to configure light client modules and create clients using core IBC and the `02-client` submodule. {synopsis}
 
+A last step to finish the development of the light client, is to implement the `AppModuleBasic` interface to allow it to be added to the chain's `app.go` alongside other light client types the chain enables.
+
+Finally, a succinct rundown is given of the remaining steps to make the light client operational, getting the light client type passed through governance and creating the clients.
+
 ## Configuring a light client module
 
 An IBC light client module must implement the [`AppModuleBasic`](https://github.com/cosmos/cosmos-sdk/blob/main/types/module/module.go#L50) interface in order to register its concrete types against the core IBC interfaces defined in `modules/core/exported`. This is accomplished via the `RegisterInterfaces` method which provides the light client module with the opportunity to register codec types using the chain's `InterfaceRegistry`. Please refer to the [`07-tendermint` codec registration](https://github.com/cosmos/ibc-go/blob/02-client-refactor-beta1/modules/light-clients/07-tendermint/codec.go#L11).
@@ -65,7 +69,7 @@ func (AppModuleBasic) GetQueryCmd() *cobra.Command {
 ## Creating clients
 
 A client is created by executing a new `MsgCreateClient` transaction composed with a valid `ClientState` and initial `ConsensusState` encoded as protobuf `Any`s.
-Generally, this is normally done by an off-chain process known as an [IBC relayer](https://github.com/cosmos/ibc/tree/main/spec/relayer/ics-018-relayer-algorithms) however, this is not a strict requirement.
+Generally, this is performed by an off-chain process known as an [IBC relayer](https://github.com/cosmos/ibc/tree/main/spec/relayer/ics-018-relayer-algorithms) however, this is not a strict requirement.
 
 See below for a list of IBC relayer implementations:
 
