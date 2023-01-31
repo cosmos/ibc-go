@@ -100,3 +100,128 @@ func (suite *LocalhostTestSuite) TestInitialize() {
 		}
 	}
 }
+
+func (suite *LocalhostTestSuite) TestVerifyMembership() {
+	var (
+		path  exported.Path
+		value []byte
+	)
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expPass  bool
+	}{
+		{
+			"success",
+			func() {
+
+			},
+			true,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+
+			tc.malleate()
+
+			clientState := suite.chain.GetClientState(exported.Localhost)
+			store := suite.chain.GetContext().KVStore(suite.chain.GetSimApp().GetKey(exported.StoreKey))
+
+			err := clientState.VerifyMembership(
+				suite.chain.GetContext(),
+				store,
+				suite.chain.Codec,
+				clienttypes.ZeroHeight(),
+				0, 0, // use zero values for delay periods
+				nil,
+				path,
+				value,
+			)
+
+			if tc.expPass {
+				suite.Require().NoError(err)
+			} else {
+				suite.Require().Error(err)
+			}
+		})
+	}
+}
+
+func (suite *LocalhostTestSuite) TestVerifyNonMembership() {
+	var (
+		path exported.Path
+	)
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expPass  bool
+	}{
+		{
+			"success",
+			func() {
+
+			},
+			true,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+
+			tc.malleate()
+
+			clientState := suite.chain.GetClientState(exported.Localhost)
+			store := suite.chain.GetContext().KVStore(suite.chain.GetSimApp().GetKey(exported.StoreKey))
+
+			err := clientState.VerifyNonMembership(
+				suite.chain.GetContext(),
+				store,
+				suite.chain.Codec,
+				clienttypes.ZeroHeight(),
+				0, 0, // use zero values for delay periods
+				nil,
+				path,
+			)
+
+			if tc.expPass {
+				suite.Require().NoError(err)
+			} else {
+				suite.Require().Error(err)
+			}
+		})
+	}
+}
+
+func (suite *LocalhostTestSuite) TestVerifyClientMessage() {
+	clientState := localhost.NewClientState("chainID", clienttypes.NewHeight(1, 10))
+	suite.Require().Nil(clientState.VerifyClientMessage(suite.chain.GetContext(), nil, nil, nil))
+}
+
+func (suite *LocalhostTestSuite) TestVerifyCheckForMisbehaviour() {
+	clientState := localhost.NewClientState("chainID", clienttypes.NewHeight(1, 10))
+	suite.Require().False(clientState.CheckForMisbehaviour(suite.chain.GetContext(), nil, nil, nil))
+}
+
+func (suite *LocalhostTestSuite) TestUpdateState() {
+	clientState := localhost.NewClientState(suite.chain.ChainID, clienttypes.NewHeight(1, uint64(suite.chain.GetContext().BlockHeight())))
+	store := suite.chain.GetSimApp().GetIBCKeeper().ClientKeeper.ClientStore(suite.chain.GetContext(), exported.Localhost)
+
+	suite.coordinator.CommitBlock(suite.chain)
+
+	heights := clientState.UpdateState(suite.chain.GetContext(), suite.chain.Codec, store, nil)
+
+	expHeight := clienttypes.NewHeight(1, uint64(suite.chain.GetContext().BlockHeight()))
+	suite.Require().True(heights[0].EQ(expHeight))
+
+	clientState = suite.chain.GetClientState(exported.Localhost)
+	suite.Require().True(heights[0].EQ(clientState.GetLatestHeight()))
+}
