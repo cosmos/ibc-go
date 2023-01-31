@@ -67,12 +67,12 @@ func (cs ClientState) Initialize(ctx sdk.Context, cdc codec.BinaryCodec, clientS
 		return sdkerrors.Wrap(clienttypes.ErrInvalidConsensus, "initial consensus state for localhost must be nil.")
 	}
 
-	cs = ClientState{
+	clientState := ClientState{
 		ChainId:      ctx.ChainID(),
-		LatestHeight: clienttypes.NewHeight(clienttypes.ParseChainID(ctx.ChainID()), uint64(ctx.BlockHeight())),
+		LatestHeight: clienttypes.GetSelfHeight(ctx),
 	}
 
-	clientStore.Set([]byte(host.KeyClientState), clienttypes.MustMarshalClientState(cdc, &cs))
+	clientStore.Set([]byte(host.KeyClientState), clienttypes.MustMarshalClientState(cdc, &clientState))
 
 	return nil
 }
@@ -151,7 +151,7 @@ func (cs ClientState) UpdateStateOnMisbehaviour(_ sdk.Context, _ codec.BinaryCod
 // UpdateState updates and stores as necessary any associated information for an IBC client, such as the ClientState and corresponding ConsensusState.
 // Upon successful update, a list of consensus heights is returned. It assumes the ClientMessage has already been verified.
 func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, clientMsg exported.ClientMessage) []exported.Height {
-	height := clienttypes.NewHeight(clienttypes.ParseChainID(ctx.ChainID()), uint64(ctx.BlockHeight()))
+	height := clienttypes.GetSelfHeight(ctx)
 
 	cs.ChainId = ctx.ChainID()
 	cs.LatestHeight = height

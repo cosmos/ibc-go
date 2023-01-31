@@ -41,25 +41,6 @@ func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey, paramSpace paramt
 	}
 }
 
-// EnableLocalhost is called by init genesis or an upgrade handler?
-// EnableLocalhost sets the localhost loopback connection end in store
-// NOTES:
-// - channel handshake code can remain the same
-// - packet handlers require access to a ClientState and use the following methods:
-//   - Status()
-//   - GetLatestHeight()
-//   - GetTimestampAtHeight()
-//   - VerifyMembership
-//   - VerifyNonMembership
-func (k Keeper) EnableLocalhost(ctx sdk.Context) {
-	counterparty := types.NewCounterparty(exported.Localhost, types.LocalhostID, commitmenttypes.NewMerklePrefix(k.GetCommitmentPrefix().Bytes()))
-	connectionEnd := types.NewConnectionEnd(types.OPEN, exported.Localhost, counterparty, types.ExportedVersionsToProto(types.GetCompatibleVersions()), 0)
-
-	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshal(&connectionEnd)
-	store.Set(host.ConnectionKey(types.LocalhostID), bz)
-}
-
 // Logger returns a module-specific logger.
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", "x/"+exported.ModuleName+"/"+types.SubModuleName)
@@ -206,6 +187,12 @@ func (k Keeper) GetAllConnections(ctx sdk.Context) (connections []types.Identifi
 		return false
 	})
 	return connections
+}
+
+// CreateSentinelLocalhostConnection returns the sentinel localhost connection end.
+func (k Keeper) CreateSentinelLocalhostConnection() types.ConnectionEnd {
+	counterparty := types.NewCounterparty(exported.Localhost, types.LocalhostID, commitmenttypes.NewMerklePrefix(k.GetCommitmentPrefix().Bytes()))
+	return types.NewConnectionEnd(types.OPEN, exported.Localhost, counterparty, types.ExportedVersionsToProto(types.GetCompatibleVersions()), 0)
 }
 
 // addConnectionToClient is used to add a connection identifier to the set of

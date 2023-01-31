@@ -46,6 +46,10 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, gs types.GenesisState) {
 	}
 
 	k.SetNextClientSequence(ctx, gs.NextClientSequence)
+
+	if err := k.CreateLocalhostClient(ctx); err != nil {
+		panic(fmt.Sprintf("failed to initialise localhost client: %s", err.Error()))
+	}
 }
 
 // ExportGenesis returns the ibc client submodule's exported genesis.
