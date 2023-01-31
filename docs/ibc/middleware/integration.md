@@ -1,5 +1,5 @@
 <!--
-order: 2
+order: 3
 -->
 
 # Integrating IBC middleware into a chain

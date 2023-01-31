@@ -1,38 +1,12 @@
 <!--
-order: 1
+order: 2
 -->
 
-# IBC middleware
-
-Learn how to write your own custom middleware to wrap an IBC application, and understand how to hook different middleware to IBC base applications to form different IBC application stacks {synopsis}.
-
-This document serves as a guide for middleware developers who want to write their own middleware and for chain developers who want to use IBC middleware on their chains.
-
-IBC applications are designed to be self-contained modules that implement their own application-specific logic through a set of interfaces with the core IBC handlers. These core IBC handlers, in turn, are designed to enforce the correctness properties of IBC (transport, authentication, ordering) while delegating all application-specific handling to the IBC application modules. However, there are cases where some functionality may be desired by many applications, yet not appropriate to place in core IBC.
-
-Middleware allows developers to define the extensions as separate modules that can wrap over the base application. This middleware can thus perform its own custom logic, and pass data into the application so that it may run its logic without being aware of the middleware's existence. This allows both the application and the middleware to implement its own isolated logic while still being able to run as part of a single packet flow.
-
-## Pre-requisite readings
-
-- [IBC Overview](../overview.md) {prereq}
-- [IBC Integration](../integration.md) {prereq}
-- [IBC Application Developer Guide](../apps/apps.md) {prereq}
-
-## Definitions
-
-`Middleware`: A self-contained module that sits between core IBC and an underlying IBC application during packet execution. All messages between core IBC and underlying application must flow through middleware, which may perform its own custom logic.
-
-`Underlying Application`: An underlying application is the application that is directly connected to the middleware in question. This underlying application may itself be middleware that is chained to a base application.
-
-`Base Application`: A base application is an IBC application that does not contain any middleware. It may be nested by 0 or multiple middleware to form an application stack.
-
-`Application Stack (or stack)`: A stack is the complete set of application logic (middleware(s) + base application) that gets connected to core IBC. A stack may be just a base application, or it may be a series of middlewares that nest a base application.
-
-## Create a custom IBC middleware
+# Create a custom IBC middleware
 
 IBC middleware will wrap over an underlying IBC application and sits between core IBC and the application. It has complete control in modifying any message coming from IBC to the application, and any message coming from the application to core IBC. Thus, middleware must be completely trusted by chain developers who wish to integrate them, however this gives them complete flexibility in modifying the application(s) they wrap.
 
-#### Interfaces
+## Interfaces
 
 ```go
 // Middleware implements the ICS26 Module interface
@@ -72,7 +46,7 @@ type ICS4Wrapper interface {
 }
 ```
 
-### Implement `IBCModule` interface and callbacks
+## Implement `IBCModule` interface and callbacks
 
 The `IBCModule` is a struct that implements the [ICS-26 interface (`porttypes.IBCModule`)](https://github.com/cosmos/ibc-go/blob/main/modules/core/05-port/types/module.go#L11-L106). It is recommended to separate these callbacks into a separate file `ibc_module.go`. As will be mentioned in the [integration section](./integration.md), this struct should be different than the struct that implements `AppModule` in case the middleware maintains its own internal state and processes separate SDK messages.
 
@@ -97,9 +71,9 @@ The middleware should simply pass the capability in the callback arguments along
 
 In the case where the middleware wishes to send a packet or acknowledgment without the involvement of the underlying application, it should be given access to the same `scopedKeeper` as the base application so that it can retrieve the capabilities by itself.
 
-### Handshake callbacks
+## Handshake callbacks
 
-#### `OnChanOpenInit`
+### `OnChanOpenInit`
 
 ```go
 func (im IBCModule) OnChanOpenInit(
@@ -167,7 +141,7 @@ func (im IBCModule) OnChanOpenInit(
 
 See [here](https://github.com/cosmos/ibc-go/blob/48a6ae512b4ea42c29fdf6c6f5363f50645591a2/modules/apps/29-fee/ibc_middleware.go#L34-L82) an example implementation of this callback for the ICS29 Fee Middleware module.
 
-#### `OnChanOpenTry`
+### `OnChanOpenTry`
 
 ```go
 func OnChanOpenTry(
@@ -225,7 +199,7 @@ func OnChanOpenTry(
 
 See [here](https://github.com/cosmos/ibc-go/blob/48a6ae512b4ea42c29fdf6c6f5363f50645591a2/modules/apps/29-fee/ibc_middleware.go#L84-L124) an example implementation of this callback for the ICS29 Fee Middleware module.
 
-#### `OnChanOpenAck`
+### `OnChanOpenAck`
 
 ```go
 func OnChanOpenAck(
@@ -271,7 +245,7 @@ func OnChanOpenConfirm(
 
 See [here](https://github.com/cosmos/ibc-go/blob/48a6ae512b4ea42c29fdf6c6f5363f50645591a2/modules/apps/29-fee/ibc_middleware.go#L154-L162) an example implementation of this callback for the ICS29 Fee Middleware module.
 
-#### `OnChanCloseInit`
+### `OnChanCloseInit`
 
 ```go
 func OnChanCloseInit(
@@ -305,11 +279,11 @@ See [here](https://github.com/cosmos/ibc-go/blob/48a6ae512b4ea42c29fdf6c6f5363f5
 
 **NOTE**: Middleware that does not need to negotiate with a counterparty middleware on the remote stack will not implement the version unmarshalling and negotiation, and will simply perform its own custom logic on the callbacks without relying on the counterparty behaving similarly.
 
-### Packet callbacks
+## Packet callbacks
 
 The packet callbacks just like the handshake callbacks wrap the application's packet callbacks. The packet callbacks are where the middleware performs most of its custom logic. The middleware may read the packet flow data and perform some additional packet handling, or it may modify the incoming data before it reaches the underlying application. This enables a wide degree of usecases, as a simple base application like token-transfer can be transformed for a variety of usecases by combining it with custom middleware.
 
-#### `OnRecvPacket`
+### `OnRecvPacket`
 
 ```go
 func OnRecvPacket(
@@ -328,7 +302,7 @@ func OnRecvPacket(
 
 See [here](https://github.com/cosmos/ibc-go/blob/48a6ae512b4ea42c29fdf6c6f5363f50645591a2/modules/apps/29-fee/ibc_middleware.go#L214-L237) an example implementation of this callback for the ICS29 Fee Middleware module.
 
-#### `OnAcknowledgementPacket`
+### `OnAcknowledgementPacket`
 
 ```go
 func OnAcknowledgementPacket(
@@ -345,7 +319,7 @@ func OnAcknowledgementPacket(
 
 See [here](https://github.com/cosmos/ibc-go/blob/48a6ae512b4ea42c29fdf6c6f5363f50645591a2/modules/apps/29-fee/ibc_middleware.go#L239-L292) an example implementation of this callback for the ICS29 Fee Middleware module.
 
-#### `OnTimeoutPacket`
+### `OnTimeoutPacket`
 
 ```go
 func OnTimeoutPacket(
@@ -361,11 +335,11 @@ func OnTimeoutPacket(
 
 See [here](https://github.com/cosmos/ibc-go/blob/48a6ae512b4ea42c29fdf6c6f5363f50645591a2/modules/apps/29-fee/ibc_middleware.go#L294-L334) an example implementation of this callback for the ICS29 Fee Middleware module.
 
-### ICS-4 wrappers
+## ICS-4 wrappers
 
 Middleware must also wrap ICS-4 so that any communication from the application to the `channelKeeper` goes through the middleware first. Similar to the packet callbacks, the middleware may modify outgoing acknowledgements and packets in any way it wishes.
 
-#### `SendPacket`
+### `SendPacket`
 
 ```go
 func SendPacket(
@@ -394,7 +368,7 @@ func SendPacket(
 
 See [here](https://github.com/cosmos/ibc-go/blob/48a6ae512b4ea42c29fdf6c6f5363f50645591a2/modules/apps/29-fee/ibc_middleware.go#L336-L343) an example implementation of this function for the ICS29 Fee Middleware module.
 
-#### `WriteAcknowledgement`
+### `WriteAcknowledgement`
 
 ```go
 // only called for async acks
@@ -413,7 +387,7 @@ func WriteAcknowledgement(
 
 See [here](https://github.com/cosmos/ibc-go/blob/48a6ae512b4ea42c29fdf6c6f5363f50645591a2/modules/apps/29-fee/ibc_middleware.go#L345-L353) an example implementation of this function for the ICS29 Fee Middleware module.
 
-#### `GetAppVersion`
+### `GetAppVersion`
 
 ```go
 // middleware must return the underlying application version
