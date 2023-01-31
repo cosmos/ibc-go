@@ -131,7 +131,17 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	}
 
 	connectionMigrator := connectionkeeper.NewMigrator(am.keeper.ConnectionKeeper)
-	if err := cfg.RegisterMigration(exported.ModuleName, 3, connectionMigrator.Migrate3to4); err != nil {
+	if err := cfg.RegisterMigration(exported.ModuleName, 3, func(ctx sdk.Context) error {
+		if err := connectionMigrator.Migrate3to4(ctx); err != nil {
+			return err
+		}
+
+		if err := clientMigrator.Migrate3to4(ctx); err != nil {
+			return err
+		}
+
+		return nil
+	}); err != nil {
 		panic(err)
 	}
 }
