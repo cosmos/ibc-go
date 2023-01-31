@@ -56,8 +56,8 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 
 // CreateLocalhostClient initialises the 09-localhost client state and sets it in state.
 func (k Keeper) CreateLocalhostClient(ctx sdk.Context) error {
-	var localhostClient localhost.ClientState
-	return localhostClient.Initialize(ctx, k.cdc, k.ClientStore(ctx, exported.Localhost), nil)
+	var clientState localhost.ClientState
+	return clientState.Initialize(ctx, k.cdc, k.ClientStore(ctx, exported.Localhost), nil)
 }
 
 // UpdateLocalhostClient updates the 09-localhost client to the latest block height and chain ID.
