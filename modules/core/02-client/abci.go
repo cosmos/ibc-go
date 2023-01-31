@@ -34,7 +34,7 @@ func BeginBlocker(ctx sdk.Context, k keeper.Keeper) {
 	}
 
 	// update the localhost client with the latest block height
-	if err := k.UpdateClient(ctx, exported.Localhost, nil); err != nil {
-		k.Logger(ctx).Error(err.Error())
+	if clientState, found := k.GetClientState(ctx, exported.Localhost); found {
+		k.UpdateLocalhostClient(ctx, clientState)
 	}
 }

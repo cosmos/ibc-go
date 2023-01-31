@@ -114,6 +114,7 @@ import (
 	ibckeeper "github.com/cosmos/ibc-go/v7/modules/core/keeper"
 	solomachine "github.com/cosmos/ibc-go/v7/modules/light-clients/06-solomachine"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
+	localhost "github.com/cosmos/ibc-go/v7/modules/light-clients/09-localhost"
 	ibcmock "github.com/cosmos/ibc-go/v7/testing/mock"
 	simappparams "github.com/cosmos/ibc-go/v7/testing/simapp/params"
 	simappupgrades "github.com/cosmos/ibc-go/v7/testing/simapp/upgrades"
@@ -159,6 +160,7 @@ var (
 		slashing.AppModuleBasic{},
 		ibc.AppModuleBasic{},
 		ibctm.AppModuleBasic{},
+		localhost.AppModuleBasic{},
 		solomachine.AppModuleBasic{},
 		feegrantmodule.AppModuleBasic{},
 		upgrade.AppModuleBasic{},

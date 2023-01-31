@@ -62,10 +62,17 @@ func (cs ClientState) ZeroCustomFields() exported.ClientState {
 }
 
 // Initialize ensures that initial consensus state for localhost is nil.
-func (cs ClientState) Initialize(_ sdk.Context, _ codec.BinaryCodec, _ sdk.KVStore, consState exported.ConsensusState) error {
+func (cs ClientState) Initialize(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, consState exported.ConsensusState) error {
 	if consState != nil {
 		return sdkerrors.Wrap(clienttypes.ErrInvalidConsensus, "initial consensus state for localhost must be nil.")
 	}
+
+	clientState := ClientState{
+		ChainId:      ctx.ChainID(),
+		LatestHeight: clienttypes.NewHeight(clienttypes.ParseChainID(ctx.ChainID()), uint64(ctx.BlockHeight())),
+	}
+
+	clientStore.Set([]byte(host.KeyClientState), clienttypes.MustMarshalClientState(cdc, &clientState))
 
 	return nil
 }
