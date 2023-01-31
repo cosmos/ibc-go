@@ -52,4 +52,4 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           build-args: |
-            IBC_GO_VERSION="${{ github.ref_name }}"
+            IBC_GO_VERSION=${{ github.ref_name }}
