@@ -176,7 +176,7 @@ func (AppModule) ProposalContents(_ module.SimulationState) []simtypes.WeightedP
 }
 
 // RandomizedParams returns nil since IBC doesn't register parameter changes.
-func (AppModule) RandomizedParams(_ *rand.Rand) []simtypes.ParamChange {
+func (AppModule) RandomizedParams(_ *rand.Rand) []simtypes.LegacyParamChange {
 	return nil
 }
 

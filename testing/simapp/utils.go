@@ -65,7 +65,7 @@ func SimulationOperations(app App, cdc codec.JSONCodec, config simtypes.Config) 
 		}
 	}
 
-	simState.Contents = app.SimulationManager().GetProposalContents(simState)
+	simState.LegacyProposalContents = app.SimulationManager().GetProposalContents(simState)
 	return app.SimulationManager().WeightedOperations(simState)
 }
 
