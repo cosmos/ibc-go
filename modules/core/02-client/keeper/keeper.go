@@ -20,6 +20,7 @@ import (
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
+	localhost "github.com/cosmos/ibc-go/v7/modules/light-clients/09-localhost"
 )
 
 // Keeper represents a type that grants read and write permissions to any client
@@ -51,6 +52,17 @@ func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey, paramSpace paramt
 // Logger returns a module-specific logger.
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", "x/"+exported.ModuleName+"/"+types.SubModuleName)
+}
+
+// CreateLocalhostClient initialises the 09-localhost client state and sets it in state.
+func (k Keeper) CreateLocalhostClient(ctx sdk.Context) error {
+	var clientState localhost.ClientState
+	return clientState.Initialize(ctx, k.cdc, k.ClientStore(ctx, exported.Localhost), nil)
+}
+
+// UpdateLocalhostClient updates the 09-localhost client to the latest block height and chain ID.
+func (k Keeper) UpdateLocalhostClient(ctx sdk.Context, clientState exported.ClientState) []exported.Height {
+	return clientState.UpdateState(ctx, k.cdc, k.ClientStore(ctx, exported.Localhost), nil)
 }
 
 // GenerateClientIdentifier returns the next client identifier.

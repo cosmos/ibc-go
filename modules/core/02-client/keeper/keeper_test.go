@@ -21,6 +21,7 @@ import (
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	solomachine "github.com/cosmos/ibc-go/v7/modules/light-clients/06-solomachine"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
+	localhost "github.com/cosmos/ibc-go/v7/modules/light-clients/09-localhost"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	ibctestingmock "github.com/cosmos/ibc-go/v7/testing/mock"
 	"github.com/cosmos/ibc-go/v7/testing/simapp"
@@ -236,9 +237,10 @@ func (suite *KeeperTestSuite) TestValidateSelfClient() {
 
 func (suite KeeperTestSuite) TestGetAllGenesisClients() { //nolint:govet // this is a test, we are okay with copying locks
 	clientIDs := []string{
-		testClientID2, testClientID3, testClientID,
+		exported.Localhost, testClientID2, testClientID3, testClientID,
 	}
 	expClients := []exported.ClientState{
+		localhost.NewClientState(suite.chainA.ChainID, types.GetSelfHeight(suite.chainA.GetContext())),
 		ibctm.NewClientState(testChainID, ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, types.ZeroHeight(), commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath),
 		ibctm.NewClientState(testChainID, ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, types.ZeroHeight(), commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath),
 		ibctm.NewClientState(testChainID, ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, types.ZeroHeight(), commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath),
@@ -418,22 +420,31 @@ func (suite KeeperTestSuite) TestIterateClientStates() { //nolint:govet // this 
 	testCases := []struct {
 		name         string
 		prefix       []byte
-		expClientIDs []string
+		expClientIDs func() []string
 	}{
 		{
 			"all clientIDs",
 			nil,
-			append(expSMClientIDs, expTMClientIDs...),
+			func() []string {
+				allClientIDs := []string{exported.Localhost}
+				allClientIDs = append(allClientIDs, expSMClientIDs...)
+				allClientIDs = append(allClientIDs, expTMClientIDs...)
+				return allClientIDs
+			},
 		},
 		{
 			"tendermint clientIDs",
 			[]byte(exported.Tendermint),
-			expTMClientIDs,
+			func() []string {
+				return expTMClientIDs
+			},
 		},
 		{
 			"solo machine clientIDs",
 			[]byte(exported.Solomachine),
-			expSMClientIDs,
+			func() []string {
+				return expSMClientIDs
+			},
 		},
 	}
 
@@ -446,7 +457,7 @@ func (suite KeeperTestSuite) TestIterateClientStates() { //nolint:govet // this 
 				return false
 			})
 
-			suite.Require().Equal(tc.expClientIDs, clientIDs)
+			suite.Require().ElementsMatch(tc.expClientIDs(), clientIDs)
 		})
 	}
 }
