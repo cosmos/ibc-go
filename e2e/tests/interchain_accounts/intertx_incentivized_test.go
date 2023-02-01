@@ -89,7 +89,7 @@ func (s *IncentivizedInterTxTestSuite) TestMsgSubmitTx_SuccessfulBankSend_Incent
 	t.Run("execute interchain account bank send through controller", func(t *testing.T) {
 		t.Run("fund interchain account wallet on host chainB", func(t *testing.T) {
 			// fund the interchain account so it has some $$ to send
-			err := chainB.SendFunds(ctx, ibctest.FaucetAccountKeyName, ibc.WalletAmount{
+			err := chainB.SendFunds(ctx, interchaintest.FaucetAccountKeyName, ibc.WalletAmount{
 				Address: interchainAcc,
 				Amount:  testvalues.StartingTokenAmount,
 				Denom:   chainB.Config().Denom,

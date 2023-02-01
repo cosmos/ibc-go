@@ -74,7 +74,7 @@ func (s *InterchainAccountsGovTestSuite) TestInterchainAccountsGovIntegration() 
 	t.Run("interchain account executes a bank transfer on behalf of the corresponding owner account", func(t *testing.T) {
 		t.Run("fund interchain account wallet", func(t *testing.T) {
 			// fund the host account, so it has some $$ to send
-			err := chainB.SendFunds(ctx, ibctest.FaucetAccountKeyName, ibc.WalletAmount{
+			err := chainB.SendFunds(ctx, interchaintest.FaucetAccountKeyName, ibc.WalletAmount{
 				Address: interchainAccAddr,
 				Amount:  testvalues.StartingTokenAmount,
 				Denom:   chainB.Config().Denom,
