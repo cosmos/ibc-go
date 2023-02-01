@@ -6,6 +6,10 @@ on:
         description: 'The tag of the image to build'
         required: true
         type: string
+      ibc-go-version:
+        description: 'The ibc-go version to be added as a label'
+        required: true
+        type: string
 
 env:
    REGISTRY: ghcr.io
@@ -27,11 +31,9 @@ jobs:
               registry: ${{ env.REGISTRY }}
               username: ${{ github.actor }}
               password: ${{ secrets.GITHUB_TOKEN }}
-         - name: Fetch latest Dockerfile
-           run: curl https://raw.githubusercontent.com/cosmos/ibc-go/main/Dockerfile -o Dockerfile
          - name: Build image
            run: |
             # remove any `/` characters from the docker tag and replace them with a -
             docker_tag="$(echo $GIT_TAG | sed 's/\//-/')"
-            docker build . -t "${REGISTRY}/${ORG}/${IMAGE_NAME}:${docker_tag}"
+            docker build . -t "${REGISTRY}/${ORG}/${IMAGE_NAME}:${docker_tag}" --build-arg IBC_GO_VERSION=${{ inputs.ibc-go-version }}
             docker push "${REGISTRY}/${ORG}/${IMAGE_NAME}:${docker_tag}"
