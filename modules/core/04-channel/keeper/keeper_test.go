@@ -46,7 +46,7 @@ func (suite *KeeperTestSuite) TestSetChannel() {
 	suite.coordinator.SetupConnections(path)
 
 	// check for channel to be created on chainA
-	_, found := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+	found := suite.chainA.App.GetIBCKeeper().ChannelKeeper.HasChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 	suite.False(found)
 
 	path.SetChannelOrdered()
