@@ -5,7 +5,7 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/strangelove-ventures/ibctest/v7/ibc"
+	"github.com/strangelove-ventures/interchaintest/v7/ibc"
 
 	feetypes "github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
 )

@@ -35,10 +35,29 @@ jobs:
               echo "Using tag $tag"
               echo "simd-tag=$tag" >> $GITHUB_OUTPUT
             fi
+
+    build-e2e:
+      if: ${{ !github.event.pull_request.head.repo.fork && github.actor != 'dependabot[bot]' }}
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v3
+        - uses: actions/setup-go@v3
+          with:
+            go-version: 1.19
+        - name: Build e2e
+          run: |
+            cd e2e
+            test_dirs="$(ls -A tests)"
+            for td in $test_dirs
+            do
+              go test -c "./tests/${td}"
+            done
+
     e2e:
       if: ${{ !github.event.pull_request.head.repo.fork && github.actor != 'dependabot[bot]' }}
       needs:
         - determine-image-tag
+        - build-e2e # don't attempt any tests unless the e2e code compiles successfully.
       uses: ./.github/workflows/e2e-test-workflow-call.yml
       secrets: inherit
       with:
