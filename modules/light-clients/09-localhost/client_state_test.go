@@ -269,9 +269,7 @@ func (suite *LocalhostTestSuite) TestVerifyMembership() {
 }
 
 func (suite *LocalhostTestSuite) TestVerifyNonMembership() {
-	var (
-		path exported.Path
-	)
+	var path exported.Path
 
 	testCases := []struct {
 		name     string
