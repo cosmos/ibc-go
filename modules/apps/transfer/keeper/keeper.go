@@ -93,7 +93,7 @@ func (k Keeper) SetPort(ctx sdk.Context, portID string) {
 func (k Keeper) GetDenomTrace(ctx sdk.Context, denomTraceHash tmbytes.HexBytes) (types.DenomTrace, bool) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.DenomTraceKey)
 	bz := store.Get(denomTraceHash)
-	if bz == nil {
+	if len(bz) == 0 {
 		return types.DenomTrace{}, false
 	}
 
