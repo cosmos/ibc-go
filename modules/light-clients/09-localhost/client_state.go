@@ -96,8 +96,7 @@ func (cs ClientState) VerifyMembership(
 		return sdkerrors.Wrapf(clienttypes.ErrFailedChannelStateVerification, "todo: update error -- not found for path %s", path)
 	}
 
-	// todo: revisit this
-	if len(merklePath.GetKeyPath()) != 2 && merklePath.KeyPath[0] != exported.StoreKey {
+	if len(merklePath.GetKeyPath()) != 2 {
 		return sdkerrors.Wrapf(clienttypes.ErrFailedChannelStateVerification, "todo: update error -- not found for path %s", path)
 	}
 
@@ -133,8 +132,7 @@ func (cs ClientState) VerifyNonMembership(
 		return sdkerrors.Wrapf(clienttypes.ErrFailedChannelStateVerification, "todo: update error -- not found for path %s", path)
 	}
 
-	// todo: revisit this
-	if len(merklePath.GetKeyPath()) != 2 && merklePath.KeyPath[0] != exported.StoreKey {
+	if len(merklePath.GetKeyPath()) != 2 {
 		return sdkerrors.Wrapf(clienttypes.ErrFailedChannelStateVerification, "todo: update error -- not found for path %s", path)
 	}
 

@@ -235,6 +235,20 @@ func (suite *LocalhostTestSuite) TestVerifyMembership() {
 			},
 			true,
 		},
+		{
+			"invalid type for key path",
+			func() {
+				path = mock.KeyPath{}
+			},
+			false,
+		},
+		{
+			"key path has too many elements",
+			func() {
+				path = commitmenttypes.NewMerklePath("ibc", "test", "key")
+			},
+			false,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -286,6 +300,20 @@ func (suite *LocalhostTestSuite) TestVerifyNonMembership() {
 				path = merklePath
 			},
 			true,
+		},
+		{
+			"invalid type for key path",
+			func() {
+				path = mock.KeyPath{}
+			},
+			false,
+		},
+		{
+			"key path has too many elements",
+			func() {
+				path = commitmenttypes.NewMerklePath("ibc", "test", "key")
+			},
+			false,
 		},
 	}
 
@@ -342,4 +370,21 @@ func (suite *LocalhostTestSuite) TestUpdateState() {
 
 	clientState = suite.chain.GetClientState(exported.Localhost)
 	suite.Require().True(heights[0].EQ(clientState.GetLatestHeight()))
+}
+
+func (suite *LocalhostTestSuite) TestExportMetadata() {
+	clientState := localhost.NewClientState("chainID", clienttypes.NewHeight(1, 10))
+	suite.Require().Nil(clientState.ExportMetadata(nil))
+}
+
+func (suite *LocalhostTestSuite) TestCheckSubstituteAndUpdateState() {
+	clientState := localhost.NewClientState("chainID", clienttypes.NewHeight(1, 10))
+	err := clientState.CheckSubstituteAndUpdateState(suite.chain.GetContext(), suite.chain.Codec, nil, nil, nil)
+	suite.Require().Error(err)
+}
+
+func (suite *LocalhostTestSuite) TestVerifyUpgradeAndUpdateState() {
+	clientState := localhost.NewClientState("chainID", clienttypes.NewHeight(1, 10))
+	err := clientState.VerifyUpgradeAndUpdateState(suite.chain.GetContext(), suite.chain.Codec, nil, nil, nil, nil, nil)
+	suite.Require().Error(err)
 }
