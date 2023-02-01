@@ -7,8 +7,6 @@ import (
 
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
-
-	"golang.org/x/exp/slices"
 )
 
 const gasCostPerIteration = uint64(10)
@@ -46,7 +44,7 @@ func (a TransferAuthorization) Accept(ctx sdk.Context, msg sdk.Msg) (authz.Accep
 			}
 
 			if limitLeft.IsZero() {
-				a.Allocations = slices.Delete(a.Allocations, index, index+1)
+				a.Allocations = append(a.Allocations[:index], a.Allocations[index+1:]...)
 				if len(a.Allocations) == 0 {
 					return authz.AcceptResponse{Accept: true, Delete: true}, nil
 				}
