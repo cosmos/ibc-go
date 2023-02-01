@@ -21,11 +21,11 @@ import (
 	paramsproposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 	intertxtypes "github.com/cosmos/interchain-accounts/x/inter-tx/types"
 	dockerclient "github.com/docker/docker/client"
-	"github.com/strangelove-ventures/ibctest/v7"
-	"github.com/strangelove-ventures/ibctest/v7/chain/cosmos"
-	"github.com/strangelove-ventures/ibctest/v7/ibc"
-	"github.com/strangelove-ventures/ibctest/v7/testreporter"
-	test "github.com/strangelove-ventures/ibctest/v7/testutil"
+	interchaintest "github.com/strangelove-ventures/interchaintest/v7"
+	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
+	"github.com/strangelove-ventures/interchaintest/v7/ibc"
+	"github.com/strangelove-ventures/interchaintest/v7/testreporter"
+	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest"
@@ -133,11 +133,11 @@ func (s *E2ETestSuite) SetupChainsRelayerAndChannel(ctx context.Context, channel
 		opt(&channelOptions)
 	}
 
-	ic := ibctest.NewInterchain().
+	ic := interchaintest.NewInterchain().
 		AddChain(chainA).
 		AddChain(chainB).
 		AddRelayer(r, "r").
-		AddLink(ibctest.InterchainLink{
+		AddLink(interchaintest.InterchainLink{
 			Chain1:            chainA,
 			Chain2:            chainB,
 			Relayer:           r,
@@ -146,7 +146,7 @@ func (s *E2ETestSuite) SetupChainsRelayerAndChannel(ctx context.Context, channel
 		})
 
 	eRep := s.GetRelayerExecReporter()
-	s.Require().NoError(ic.Build(ctx, eRep, ibctest.InterchainBuildOptions{
+	s.Require().NoError(ic.Build(ctx, eRep, interchaintest.InterchainBuildOptions{
 		TestName:  s.T().Name(),
 		Client:    s.DockerClient,
 		NetworkID: s.network,
@@ -231,23 +231,9 @@ func (s *E2ETestSuite) GetChains(chainOpts ...testconfig.ChainOptionConfiguratio
 	return path.chainA, path.chainB
 }
 
-// TODO: remove this type once the broadcast user interface aligns with ibc.Wallet
-type broadcastUser struct {
-	ibc.Wallet
-}
-
-// FormattedAddressWithPrefix implement the broadcast user interface, the FormattedAddress
-// function already includes the correct prefix.
-func (b *broadcastUser) FormattedAddressWithPrefix(prefix string) string {
-	return b.FormattedAddress()
-}
-
 // BroadcastMessages broadcasts the provided messages to the given chain and signs them on behalf of the provided user.
 // Once the broadcast response is returned, we wait for a few blocks to be created on both chain A and chain B.
 func (s *E2ETestSuite) BroadcastMessages(ctx context.Context, chain *cosmos.CosmosChain, user ibc.Wallet, msgs ...sdk.Msg) (sdk.TxResponse, error) {
-	// wrap the user so it is a valid implementation of broadcast user.
-	b := broadcastUser{Wallet: user}
-
 	broadcaster := cosmos.NewBroadcaster(s.T(), chain)
 
 	broadcaster.ConfigureClientContextOptions(func(clientContext client.Context) client.Context {
@@ -261,7 +247,7 @@ func (s *E2ETestSuite) BroadcastMessages(ctx context.Context, chain *cosmos.Cosm
 		return factory.WithGas(DefaultGasValue)
 	})
 
-	resp, err := cosmos.BroadcastTx(ctx, broadcaster, &b, msgs...)
+	resp, err := cosmos.BroadcastTx(ctx, broadcaster, user, msgs...)
 	if err != nil {
 		return sdk.TxResponse{}, err
 	}
@@ -351,13 +337,13 @@ func (s *E2ETestSuite) StopRelayer(ctx context.Context, relayer ibc.Relayer) {
 // CreateUserOnChainA creates a user with the given amount of funds on chain A.
 func (s *E2ETestSuite) CreateUserOnChainA(ctx context.Context, amount int64) ibc.Wallet {
 	chainA, _ := s.GetChains()
-	return ibctest.GetAndFundTestUsers(s.T(), ctx, strings.ReplaceAll(s.T().Name(), " ", "-"), amount, chainA)[0]
+	return interchaintest.GetAndFundTestUsers(s.T(), ctx, strings.ReplaceAll(s.T().Name(), " ", "-"), amount, chainA)[0]
 }
 
 // CreateUserOnChainB creates a user with the given amount of funds on chain B.
 func (s *E2ETestSuite) CreateUserOnChainB(ctx context.Context, amount int64) ibc.Wallet {
 	_, chainB := s.GetChains()
-	return ibctest.GetAndFundTestUsers(s.T(), ctx, strings.ReplaceAll(s.T().Name(), " ", "-"), amount, chainB)[0]
+	return interchaintest.GetAndFundTestUsers(s.T(), ctx, strings.ReplaceAll(s.T().Name(), " ", "-"), amount, chainB)[0]
 }
 
 // GetChainANativeBalance gets the balance of a given user on chain A.
@@ -436,7 +422,7 @@ func (s *E2ETestSuite) AssertPacketRelayed(ctx context.Context, chain *cosmos.Co
 // createCosmosChains creates two separate chains in docker containers.
 // test and can be retrieved with GetChains.
 func (s *E2ETestSuite) createCosmosChains(chainOptions testconfig.ChainOptions) (*cosmos.CosmosChain, *cosmos.CosmosChain) {
-	client, network := ibctest.DockerSetup(s.T())
+	client, network := interchaintest.DockerSetup(s.T())
 
 	s.logger = zap.NewExample()
 	s.DockerClient = client
