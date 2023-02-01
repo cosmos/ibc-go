@@ -9,6 +9,7 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
@@ -21,11 +22,6 @@ func NewClientState(chainID string, height clienttypes.Height) exported.ClientSt
 		ChainId:      chainID,
 		LatestHeight: height,
 	}
-}
-
-// GetChainID returns the client state chain ID.
-func (cs ClientState) GetChainID() string {
-	return cs.ChainId
 }
 
 // ClientType returns the 09-localhost client type.
@@ -95,7 +91,17 @@ func (cs ClientState) VerifyMembership(
 	path exported.Path,
 	value []byte,
 ) error {
-	bz := store.Get([]byte(path.String()))
+	merklePath, ok := path.(commitmenttypes.MerklePath)
+	if !ok {
+		return sdkerrors.Wrapf(clienttypes.ErrFailedChannelStateVerification, "todo: update error -- not found for path %s", path)
+	}
+
+	// todo: revisit this
+	if len(merklePath.GetKeyPath()) != 2 && merklePath.KeyPath[0] != exported.StoreKey {
+		return sdkerrors.Wrapf(clienttypes.ErrFailedChannelStateVerification, "todo: update error -- not found for path %s", path)
+	}
+
+	bz := store.Get([]byte(merklePath.KeyPath[1]))
 	if bz == nil {
 		return sdkerrors.Wrapf(clienttypes.ErrFailedChannelStateVerification, "todo: update error -- not found for path %s", path)
 	}
@@ -122,7 +128,17 @@ func (cs ClientState) VerifyNonMembership(
 	proof []byte,
 	path exported.Path,
 ) error {
-	bz := store.Get([]byte(path.String()))
+	merklePath, ok := path.(commitmenttypes.MerklePath)
+	if !ok {
+		return sdkerrors.Wrapf(clienttypes.ErrFailedChannelStateVerification, "todo: update error -- not found for path %s", path)
+	}
+
+	// todo: revisit this
+	if len(merklePath.GetKeyPath()) != 2 && merklePath.KeyPath[0] != exported.StoreKey {
+		return sdkerrors.Wrapf(clienttypes.ErrFailedChannelStateVerification, "todo: update error -- not found for path %s", path)
+	}
+
+	bz := store.Get([]byte(merklePath.KeyPath[1]))
 	if bz != nil {
 		return sdkerrors.Wrapf(clienttypes.ErrFailedChannelStateVerification, "todo: update error -- found for path %s", path)
 	}

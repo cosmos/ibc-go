@@ -1,10 +1,18 @@
 package localhost_test
 
 import (
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
+	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
+	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 	localhost "github.com/cosmos/ibc-go/v7/modules/light-clients/09-localhost"
+	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	"github.com/cosmos/ibc-go/v7/testing/mock"
 )
 
 func (suite *LocalhostTestSuite) TestStatus() {
@@ -88,10 +96,13 @@ func (suite *LocalhostTestSuite) TestInitialize() {
 		},
 	}
 
-	clientState := localhost.NewClientState("chainID", clienttypes.NewHeight(3, 10))
-
 	for _, tc := range testCases {
-		err := clientState.Initialize(suite.chain.GetContext(), suite.chain.Codec, nil, tc.consState)
+		suite.SetupTest()
+
+		clientState := localhost.NewClientState(suite.chain.ChainID, clienttypes.NewHeight(3, 10))
+		clientStore := suite.chain.GetSimApp().GetIBCKeeper().ClientKeeper.ClientStore(suite.chain.GetContext(), exported.Localhost)
+
+		err := clientState.Initialize(suite.chain.GetContext(), suite.chain.Codec, clientStore, tc.consState)
 
 		if tc.expPass {
 			suite.Require().NoError(err, "valid testcase: %s failed", tc.name)
@@ -113,9 +124,114 @@ func (suite *LocalhostTestSuite) TestVerifyMembership() {
 		expPass  bool
 	}{
 		{
-			"success",
+			"success: client state verification",
 			func() {
+				clientState := suite.chain.GetClientState(exported.Localhost)
 
+				merklePath := commitmenttypes.NewMerklePath(host.FullClientStatePath(exported.Localhost))
+				merklePath, err := commitmenttypes.ApplyPrefix(suite.chain.GetPrefix(), merklePath)
+				suite.Require().NoError(err)
+
+				path = merklePath
+				value = clienttypes.MustMarshalClientState(suite.chain.Codec, clientState)
+			},
+			true,
+		},
+		{
+			"success: connection state verification",
+			func() {
+				connectionEnd := connectiontypes.NewConnectionEnd(
+					connectiontypes.OPEN,
+					exported.Localhost,
+					connectiontypes.NewCounterparty(exported.Localhost, connectiontypes.LocalhostID, suite.chain.GetPrefix()),
+					connectiontypes.ExportedVersionsToProto(connectiontypes.GetCompatibleVersions()), 0,
+				)
+
+				suite.chain.GetSimApp().GetIBCKeeper().ConnectionKeeper.SetConnection(suite.chain.GetContext(), connectiontypes.LocalhostID, connectionEnd)
+
+				merklePath := commitmenttypes.NewMerklePath(host.ConnectionPath(connectiontypes.LocalhostID))
+				merklePath, err := commitmenttypes.ApplyPrefix(suite.chain.GetPrefix(), merklePath)
+				suite.Require().NoError(err)
+
+				path = merklePath
+				value = suite.chain.Codec.MustMarshal(&connectionEnd)
+			},
+			true,
+		},
+		{
+			"success: channel state verification",
+			func() {
+				channel := channeltypes.NewChannel(
+					channeltypes.OPEN,
+					channeltypes.UNORDERED,
+					channeltypes.NewCounterparty(mock.PortID, ibctesting.FirstChannelID),
+					[]string{connectiontypes.LocalhostID},
+					mock.Version,
+				)
+
+				suite.chain.GetSimApp().GetIBCKeeper().ChannelKeeper.SetChannel(suite.chain.GetContext(), mock.PortID, ibctesting.FirstChannelID, channel)
+
+				merklePath := commitmenttypes.NewMerklePath(host.ChannelPath(mock.PortID, ibctesting.FirstChannelID))
+				merklePath, err := commitmenttypes.ApplyPrefix(suite.chain.GetPrefix(), merklePath)
+				suite.Require().NoError(err)
+
+				path = merklePath
+				value = suite.chain.Codec.MustMarshal(&channel)
+			},
+			true,
+		},
+		{
+			"success: next sequence recv verification",
+			func() {
+				nextSeqRecv := uint64(100)
+				suite.chain.GetSimApp().GetIBCKeeper().ChannelKeeper.SetNextSequenceRecv(suite.chain.GetContext(), mock.PortID, ibctesting.FirstChannelID, nextSeqRecv)
+
+				merklePath := commitmenttypes.NewMerklePath(host.NextSequenceRecvPath(mock.PortID, ibctesting.FirstChannelID))
+				merklePath, err := commitmenttypes.ApplyPrefix(suite.chain.GetPrefix(), merklePath)
+				suite.Require().NoError(err)
+
+				path = merklePath
+				value = sdk.Uint64ToBigEndian(nextSeqRecv)
+			},
+			true,
+		},
+		{
+			"success: packet commitment verification",
+			func() {
+				packet := channeltypes.NewPacket(
+					ibctesting.MockPacketData,
+					1,
+					ibctesting.MockPort,
+					ibctesting.FirstChannelID,
+					ibctesting.MockPort,
+					ibctesting.FirstChannelID,
+					clienttypes.NewHeight(0, 10),
+					0,
+				)
+
+				commitmentBz := channeltypes.CommitPacket(suite.chain.Codec, packet)
+				suite.chain.GetSimApp().GetIBCKeeper().ChannelKeeper.SetPacketCommitment(suite.chain.GetContext(), mock.PortID, ibctesting.FirstChannelID, 1, commitmentBz)
+
+				merklePath := commitmenttypes.NewMerklePath(host.PacketCommitmentPath(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence()))
+				merklePath, err := commitmenttypes.ApplyPrefix(suite.chain.GetPrefix(), merklePath)
+				suite.Require().NoError(err)
+
+				path = merklePath
+				value = commitmentBz
+			},
+			true,
+		},
+		{
+			"success: packet acknowledgement verification",
+			func() {
+				suite.chain.GetSimApp().GetIBCKeeper().ChannelKeeper.SetPacketAcknowledgement(suite.chain.GetContext(), mock.PortID, ibctesting.FirstChannelID, 1, ibctesting.MockAcknowledgement)
+
+				merklePath := commitmenttypes.NewMerklePath(host.PacketAcknowledgementPath(mock.PortID, ibctesting.FirstChannelID, 1))
+				merklePath, err := commitmenttypes.ApplyPrefix(suite.chain.GetPrefix(), merklePath)
+				suite.Require().NoError(err)
+
+				path = merklePath
+				value = ibctesting.MockAcknowledgement
 			},
 			true,
 		},
@@ -163,9 +279,13 @@ func (suite *LocalhostTestSuite) TestVerifyNonMembership() {
 		expPass  bool
 	}{
 		{
-			"success",
+			"success: packet receipt absence verification",
 			func() {
+				merklePath := commitmenttypes.NewMerklePath(host.PacketReceiptPath(mock.PortID, ibctesting.FirstChannelID, 1))
+				merklePath, err := commitmenttypes.ApplyPrefix(suite.chain.GetPrefix(), merklePath)
+				suite.Require().NoError(err)
 
+				path = merklePath
 			},
 			true,
 		},
