@@ -65,6 +65,7 @@ func SimulationOperations(app App, cdc codec.JSONCodec, config simtypes.Config) 
 		}
 	}
 
+	//nolint: staticcheck // SA1019: app.SimulationManager().GetProposalContents is deprecated: Use GetProposalMsgs instead. GetProposalContents returns each module's proposal content generator function with their default operation weight and key.
 	simState.LegacyProposalContents = app.SimulationManager().GetProposalContents(simState)
 	return app.SimulationManager().WeightedOperations(simState)
 }
