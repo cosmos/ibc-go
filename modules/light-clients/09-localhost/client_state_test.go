@@ -249,6 +249,42 @@ func (suite *LocalhostTestSuite) TestVerifyMembership() {
 			},
 			false,
 		},
+		{
+			"no value found at provided key path",
+			func() {
+				merklePath := commitmenttypes.NewMerklePath(host.PacketAcknowledgementPath(mock.PortID, ibctesting.FirstChannelID, 100))
+				merklePath, err := commitmenttypes.ApplyPrefix(suite.chain.GetPrefix(), merklePath)
+				suite.Require().NoError(err)
+
+				path = merklePath
+				value = ibctesting.MockAcknowledgement
+			},
+			false,
+		},
+		{
+			"invalid value, bytes are not equal",
+			func() {
+				channel := channeltypes.NewChannel(
+					channeltypes.OPEN,
+					channeltypes.UNORDERED,
+					channeltypes.NewCounterparty(mock.PortID, ibctesting.FirstChannelID),
+					[]string{connectiontypes.LocalhostID},
+					mock.Version,
+				)
+
+				suite.chain.GetSimApp().GetIBCKeeper().ChannelKeeper.SetChannel(suite.chain.GetContext(), mock.PortID, ibctesting.FirstChannelID, channel)
+
+				merklePath := commitmenttypes.NewMerklePath(host.ChannelPath(mock.PortID, ibctesting.FirstChannelID))
+				merklePath, err := commitmenttypes.ApplyPrefix(suite.chain.GetPrefix(), merklePath)
+				suite.Require().NoError(err)
+
+				path = merklePath
+
+				channel.State = channeltypes.CLOSED // modify the channel before marshalling to value bz
+				value = suite.chain.Codec.MustMarshal(&channel)
+			},
+			false,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -268,7 +304,7 @@ func (suite *LocalhostTestSuite) TestVerifyMembership() {
 				suite.chain.Codec,
 				clienttypes.ZeroHeight(),
 				0, 0, // use zero values for delay periods
-				nil,
+				nil, // localhost proofs are nil
 				path,
 				value,
 			)
@@ -300,6 +336,19 @@ func (suite *LocalhostTestSuite) TestVerifyNonMembership() {
 				path = merklePath
 			},
 			true,
+		},
+		{
+			"packet receipt absence verification fails",
+			func() {
+				suite.chain.GetSimApp().GetIBCKeeper().ChannelKeeper.SetPacketReceipt(suite.chain.GetContext(), mock.PortID, ibctesting.FirstChannelID, 1)
+
+				merklePath := commitmenttypes.NewMerklePath(host.PacketReceiptPath(mock.PortID, ibctesting.FirstChannelID, 1))
+				merklePath, err := commitmenttypes.ApplyPrefix(suite.chain.GetPrefix(), merklePath)
+				suite.Require().NoError(err)
+
+				path = merklePath
+			},
+			false,
 		},
 		{
 			"invalid type for key path",
@@ -334,7 +383,7 @@ func (suite *LocalhostTestSuite) TestVerifyNonMembership() {
 				suite.chain.Codec,
 				clienttypes.ZeroHeight(),
 				0, 0, // use zero values for delay periods
-				nil,
+				nil, // localhost proofs are nil
 				path,
 			)
 
