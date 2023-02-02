@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -12,7 +13,7 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
-	"github.com/strangelove-ventures/ibctest/v7/ibc"
+	"github.com/strangelove-ventures/interchaintest/v7/ibc"
 	tmjson "github.com/tendermint/tendermint/libs/json"
 	tmtypes "github.com/tendermint/tendermint/types"
 
@@ -132,6 +133,13 @@ func GetChainBTag() string {
 		return GetChainATag()
 	}
 	return chainBTag
+}
+
+// IsCI returns true if the tests are running in CI, false is returned
+// if the tests are running locally.
+// Note: github actions passes a CI env value of true by default to all runners.
+func IsCI() bool {
+	return strings.ToLower(os.Getenv("CI")) == "true"
 }
 
 // ChainOptions stores chain configurations for the chains that will be
