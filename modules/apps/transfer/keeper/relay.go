@@ -283,7 +283,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 		return err
 	}
 
-	if !k.bankKeeper.HasDenomMetaData(ctx, prefixedDenom) {
+	if !k.bankKeeper.HasDenomMetaData(ctx, voucherDenom) {
 		metadata := banktypes.Metadata{
 			Description: getMetaDataDescription(denomTrace),
 			DenomUnits: []*banktypes.DenomUnit{
@@ -292,8 +292,8 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 					Exponent: 0,
 				},
 			},
-			Base:    prefixedDenom,
-			Display: denomTrace.BaseDenom,
+			Base:    voucherDenom,
+			Display: prefixedDenom,
 		}
 
 		k.bankKeeper.SetDenomMetaData(ctx, metadata)
