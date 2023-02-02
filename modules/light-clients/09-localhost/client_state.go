@@ -100,6 +100,7 @@ func (cs ClientState) VerifyMembership(
 		return sdkerrors.Wrapf(clienttypes.ErrFailedChannelStateVerification, "todo: update error -- not found for path %s", path)
 	}
 
+	// The commitment prefix (eg: "ibc") is omitted when operating on the core IBC store
 	bz := store.Get([]byte(merklePath.KeyPath[1]))
 	if bz == nil {
 		return sdkerrors.Wrapf(clienttypes.ErrFailedChannelStateVerification, "todo: update error -- not found for path %s", path)
@@ -136,6 +137,7 @@ func (cs ClientState) VerifyNonMembership(
 		return sdkerrors.Wrapf(clienttypes.ErrFailedChannelStateVerification, "todo: update error -- not found for path %s", path)
 	}
 
+	// The commitment prefix (eg: "ibc") is omitted when operating on the core IBC store
 	bz := store.Get([]byte(merklePath.KeyPath[1]))
 	if bz != nil {
 		return sdkerrors.Wrapf(clienttypes.ErrFailedChannelStateVerification, "todo: update error -- found for path %s", path)
