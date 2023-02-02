@@ -32,6 +32,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
+	"github.com/cosmos/ibc-go/e2e/semverutil"
 	"github.com/cosmos/ibc-go/e2e/testconfig"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	controllertypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
@@ -496,6 +497,11 @@ func (s *E2ETestSuite) ExecuteGovProposal(ctx context.Context, chain *cosmos.Cos
 	s.Require().Equal(govtypesv1beta1.StatusPassed, proposal.Status)
 }
 
+// govv1ProposalTitleAndSummary represents the releases that support the new title and summary fields.
+var govv1ProposalTitleAndSummary = semverutil.FeatureReleases{
+	MajorVersion: "v7",
+}
+
 // ExecuteGovProposalV1 submits a governance proposal using the provided user and message and uses all validators
 // to vote yes on the proposal. It ensures the proposal successfully passes.
 func (s *E2ETestSuite) ExecuteGovProposalV1(ctx context.Context, msg sdk.Msg, chain *cosmos.CosmosChain, user ibc.Wallet, proposalID uint64) {
@@ -505,6 +511,11 @@ func (s *E2ETestSuite) ExecuteGovProposalV1(ctx context.Context, msg sdk.Msg, ch
 	msgs := []sdk.Msg{msg}
 	msgSubmitProposal, err := govtypesv1.NewMsgSubmitProposal(msgs, sdk.NewCoins(sdk.NewCoin(chain.Config().Denom, govtypesv1.DefaultMinDepositTokens)), sender.String(), "", fmt.Sprintf("e2e gov proposal: %d", proposalID), fmt.Sprintf("executing gov proposal %d", proposalID))
 	s.Require().NoError(err)
+
+	if !govv1ProposalTitleAndSummary.IsSupported(chain.Nodes()[0].Image.Version) {
+		msgSubmitProposal.Title = ""
+		msgSubmitProposal.Summary = ""
+	}
 
 	resp, err := s.BroadcastMessages(ctx, chain, user, msgSubmitProposal)
 	s.AssertValidTxResponse(resp)
