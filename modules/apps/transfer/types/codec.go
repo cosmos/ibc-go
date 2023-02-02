@@ -3,6 +3,13 @@ package types
 import (
 	"bytes"
 
+<<<<<<< HEAD
+=======
+	"github.com/cosmos/cosmos-sdk/x/authz"
+	"github.com/cosmos/gogoproto/jsonpb"
+	"github.com/cosmos/gogoproto/proto"
+
+>>>>>>> 6c008ea2 (feat: Added authz support for ics20 (#3079))
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -21,6 +28,11 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 // Any.
 func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	registry.RegisterImplementations((*sdk.Msg)(nil), &MsgTransfer{})
+
+	registry.RegisterImplementations(
+		(*authz.Authorization)(nil),
+		&TransferAuthorization{},
+	)
 
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
 }
