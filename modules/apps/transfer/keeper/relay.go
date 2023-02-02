@@ -9,6 +9,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
@@ -282,6 +283,22 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 		return err
 	}
 
+	if !k.bankKeeper.HasDenomMetaData(ctx, prefixedDenom) {
+		metadata := banktypes.Metadata{
+			Description: getMetaDataDescription(denomTrace),
+			DenomUnits: []*banktypes.DenomUnit{
+				{
+					Denom:    denomTrace.BaseDenom,
+					Exponent: 0,
+				},
+			},
+			Base:    prefixedDenom,
+			Display: denomTrace.BaseDenom,
+		}
+
+		k.bankKeeper.SetDenomMetaData(ctx, metadata)
+	}
+
 	// send to receiver
 	if err := k.bankKeeper.SendCoinsFromModuleToAccount(
 		ctx, types.ModuleName, receiver, sdk.NewCoins(voucher),
@@ -308,6 +325,10 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 	}()
 
 	return nil
+}
+
+func getMetaDataDescription(denomTrace types.DenomTrace) string {
+	return fmt.Sprintf("IBC Token from %s", denomTrace.Path)
 }
 
 // OnAcknowledgementPacket responds to the the success or failure of a packet
