@@ -29,7 +29,6 @@ func VerifyMultihopProof(
 
 	// check all connections are in OPEN state and that the connection IDs match and are in the right order
 	for i, connData := range proofs.ConnectionProofs {
-		//connData := proofs.ConnectionProofs[len(proofs.ConnectionProofs)-1-i]
 		var connectionEnd connectiontypes.ConnectionEnd
 		if err := cdc.Unmarshal(connData.Value, &connectionEnd); err != nil {
 			return err

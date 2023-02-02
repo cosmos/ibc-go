@@ -11,7 +11,6 @@ import (
 	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
 	"github.com/cosmos/ibc-go/v6/modules/core/multihop"
-	ibcmock "github.com/cosmos/ibc-go/v6/testing/mock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -249,11 +248,9 @@ func (ep *EndpointM) CounterpartyChannel() channeltypes.Counterparty {
 
 // QueryChannelProof queries the multihop channel proof on the endpoint chain.
 func (ep *EndpointM) QueryChannelProof() []byte {
-	channel := ep.GetChannel()
 	channelKey := host.ChannelKey(ep.ChannelConfig.PortID, ep.ChannelID)
 	return ep.QueryMultihopProof(
 		channelKey,
-		ep.Chain.Codec.MustMarshal(&channel),
 		fmt.Sprintf("channel %s", ep.ChannelID),
 	)
 }
@@ -261,9 +258,8 @@ func (ep *EndpointM) QueryChannelProof() []byte {
 // QueryPacketProof queries the multihop packet proof on the endpoint chain.
 func (ep *EndpointM) QueryPacketProof(packet *channeltypes.Packet) []byte {
 	packetKey := host.PacketCommitmentKey(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
-	commitment := channeltypes.CommitPacket(ep.Chain.Codec, packet)
 	return ep.QueryMultihopProof(
-		packetKey, commitment,
+		packetKey,
 		fmt.Sprintf("packet: %s", packet.String()),
 	)
 }
@@ -271,16 +267,15 @@ func (ep *EndpointM) QueryPacketProof(packet *channeltypes.Packet) []byte {
 // QueryPacketAcknowledgementProof queries the multihop packet acknowledgement proof on the endpoint chain.
 func (ep *EndpointM) QueryPacketAcknowledgementProof(packet *channeltypes.Packet) []byte {
 	packetKey := host.PacketAcknowledgementKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
-	commitment := channeltypes.CommitAcknowledgement(ibcmock.MockAcknowledgement.Acknowledgement())
 	return ep.QueryMultihopProof(
-		packetKey, commitment,
+		packetKey,
 		fmt.Sprintf("packet acknowledgement: %s", packet.String()),
 	)
 }
 
 // QueryMultihopProof queries the proof for a key/value on this endpoint, which is verified on the counterparty chain.
-func (ep *EndpointM) QueryMultihopProof(key, expectedValue []byte, name string) []byte {
-	proof, err := ep.mChanPath.GenerateMembershipProof(key, expectedValue)
+func (ep *EndpointM) QueryMultihopProof(key []byte, name string) []byte {
+	proof, err := ep.mChanPath.GenerateMembershipProof(key)
 	require.NoError(
 		ep.Chain.T,
 		err,

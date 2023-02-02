@@ -71,7 +71,6 @@ func (p ChanPath) GetConnectionHops() []string {
 // chain.
 func (p ChanPath) GenerateMembershipProof(
 	key []byte,
-	expectedVal []byte,
 ) (result *channeltypes.MsgMultihopProofs, err error) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -81,8 +80,8 @@ func (p ChanPath) GenerateMembershipProof(
 	}()
 
 	result = &channeltypes.MsgMultihopProofs{}
-	// generate proof for key on source chain, where key/expectedValue are checked
-	result.KeyProof = ensureKeyValueProof(p.source(), key, expectedVal, nil, nil)
+	// generate proof for key on source chain
+	result.KeyProof = ensureKeyValueProof(p.source(), key, nil, nil, nil)
 
 	linkedPathProofs, err := p.GenerateConsensusAndConnectionProofs()
 	if err != nil {
@@ -207,6 +206,11 @@ func genConnProof(
 
 // ensureKeyValueProof ensures that the proof of the key-value pair stored on A can be verified by A's consensus state
 // root stored on B at heightAB. where A--B is connected by a single ibc connection.
+//
+// If value is nil, skip key/value verification.
+// If heightAB is nil, use the latest height of B's client state.
+// If consStateABRoot is nil, use the root of the consensus state of clientAB at heightAB.
+//
 // Panic if proof generation or verification fails.
 func ensureKeyValueProof(
 	chainA Endpoint,
@@ -214,7 +218,7 @@ func ensureKeyValueProof(
 	heightAB exported.Height,
 	consStateABRoot exported.Root,
 ) *channeltypes.MultihopProof {
-	if len(key) == 0 || len(value) == 0 {
+	if len(key) == 0 {
 		panic("key and value must be non-empty")
 	}
 
@@ -246,16 +250,20 @@ func ensureKeyValueProof(
 		chainA.ChainID(), chainB.ChainID(), err,
 	)
 
-	// ensure key-value pair can be verified by consStateBC
-	err = proof.VerifyMembership(
-		commitmenttypes.GetSDKSpecs(), consStateABRoot,
-		keyMerklePath, value,
-	)
-	panicIfErr(
-		err,
-		"fail to verify proof chain [%s]'s key path '%s' at height %s due to: %v",
-		chainA.ChainID(), key, heightAB, err,
-	)
+	// only verify ke/value if value is not nil
+	if len(value) > 0 {
+		// ensure key-value pair can be verified by consStateBC
+		err = proof.VerifyMembership(
+			commitmenttypes.GetSDKSpecs(), consStateABRoot,
+			keyMerklePath, value,
+		)
+		panicIfErr(
+			err,
+			"fail to verify proof chain [%s]'s key path '%s' at height %s due to: %v",
+			chainA.ChainID(), key, heightAB, err,
+		)
+	}
+
 	return &channeltypes.MultihopProof{
 		Proof:       bzProof,
 		Value:       value,
