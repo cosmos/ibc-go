@@ -127,6 +127,10 @@
 - [ibc/applications/interchain_accounts/v1/metadata.proto](#ibc/applications/interchain_accounts/v1/metadata.proto)
     - [Metadata](#ibc.applications.interchain_accounts.v1.Metadata)
   
+- [ibc/applications/transfer/v1/authz.proto](#ibc/applications/transfer/v1/authz.proto)
+    - [Allocation](#ibc.applications.transfer.v1.Allocation)
+    - [TransferAuthorization](#ibc.applications.transfer.v1.TransferAuthorization)
+  
 - [ibc/applications/transfer/v1/transfer.proto](#ibc/applications/transfer/v1/transfer.proto)
     - [DenomTrace](#ibc.applications.transfer.v1.DenomTrace)
     - [Params](#ibc.applications.transfer.v1.Params)
@@ -1943,6 +1947,56 @@ See ICS004: https://github.com/cosmos/ibc/tree/master/spec/core/ics-004-channel-
 | `address` | [string](#string) |  | address defines the interchain account address to be fulfilled upon the OnChanOpenTry handshake step NOTE: the address field is empty on the OnChanOpenInit handshake step |
 | `encoding` | [string](#string) |  | encoding defines the supported codec format |
 | `tx_type` | [string](#string) |  | tx_type defines the type of transactions the interchain account can execute |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="ibc/applications/transfer/v1/authz.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## ibc/applications/transfer/v1/authz.proto
+
+
+
+<a name="ibc.applications.transfer.v1.Allocation"></a>
+
+### Allocation
+Allocation defines the spend limit for a particular port and channel
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `source_port` | [string](#string) |  | the port on which the packet will be sent |
+| `source_channel` | [string](#string) |  | the channel by which the packet will be sent |
+| `spend_limit` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated | spend limitation on the channel |
+| `allow_list` | [string](#string) | repeated | allow list of receivers, an empty allow list permits any receiver address |
+
+
+
+
+
+
+<a name="ibc.applications.transfer.v1.TransferAuthorization"></a>
+
+### TransferAuthorization
+TransferAuthorization allows the grantee to spend up to spend_limit coins from
+the granter's account for ibc transfer on a specific channel
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `allocations` | [Allocation](#ibc.applications.transfer.v1.Allocation) | repeated | port and channel amounts |
 
 
 
