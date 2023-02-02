@@ -292,6 +292,8 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 					Exponent: 0,
 				},
 			},
+			// Setting base as IBChash Denom as SetDenomMetaData uses Base as storeKey
+			// and the bank keeper will only have the IBCHash to get the denom metadata
 			Base:    voucherDenom,
 			Display: prefixedDenom,
 		}
