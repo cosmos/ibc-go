@@ -637,6 +637,12 @@ func (suite *TendermintTestSuite) TestVerifyNonMembership() {
 				proof, proofHeight = suite.chainB.QueryProof(key)
 			}, false,
 		},
+		{
+			"proof is empty", func() {
+				// change the inserted proof
+				proof = []byte{}
+			}, false,
+		},
 	}
 
 	for _, tc := range testCases {
