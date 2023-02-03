@@ -291,3 +291,65 @@ import (
 - host.RouterKey
 + ibcexported.RouterKey
 ```
+
+## Upgrading to Cosmos SDK 0.47
+
+The following should be considered as complementary to [Cosmos SDK v0.47 UPGRADING.md](https://github.com/cosmos/cosmos-sdk/blob/v0.47.0-rc2/UPGRADING.md).
+
+### Protobuf 
+
+Protobuf code generation, linting and formatting has been updated to leverage the `ghcr.io/cosmos/proto-builder:0.11.5` docker container. IBC protobuf definitions are now packaged and published to [buf.build/cosmos/ibc](https://buf.build/cosmos/ibc) via CI workflows. The `third_party/proto` directory has been removed in favour of dependency management using [buf.build](https://docs.buf.build/introduction).
+
+### App Modules
+
+The return values of `RandomizedParams` and `ProposalContents` have been updated.
+
+```diff
+// ProposalContents doesn't return any content functions for governance proposals.
+- func (AppModule) ProposalContents(_ module.SimulationState) []simtypes.WeightedProposalContent {
++ func (AppModule) ProposalContents(_ module.SimulationState) []simtypes.WeightedProposalMsg {
+	return nil
+}
+
+// RandomizedParams creates randomized ibc-transfer param changes for the simulator.
+-func (AppModule) RandomizedParams(r *rand.Rand) []simtypes.ParamChange {
++func (AppModule) RandomizedParams(r *rand.Rand) []simtypes.LegacyParamChange {
+	return simulation.ParamChanges(r)
+}
+```
+
+Legacy APIs of the `AppModule` interface have been removed from ibc-go modules.
+
+```diff
+- // Route implements the AppModule interface
+- func (am AppModule) Route() sdk.Route {
+- 	return sdk.Route{}
+- }
+-
+- // QuerierRoute implements the AppModule interface
+- func (AppModule) QuerierRoute() string {
+-	return types.QuerierRoute
+- }
+-
+- // LegacyQuerierHandler implements the AppModule interface
+- func (am AppModule) LegacyQuerierHandler(*codec.LegacyAmino) sdk.Querier {
+- 	return nil
+- }
+```
+
+### Imports
+
+Imports for ics23 have been updated as the repository have been migrated from confio to cosmos.
+
+```diff
+-	ics23 "github.com/confio/ics23/go"
++	ics23 "github.com/cosmos/ics23/go"
+```
+
+Imports for gogoproto have been updated.
+
+```diff
+-	"github.com/gogo/protobuf/proto"
++	"github.com/cosmos/gogoproto/proto"
+```
+
