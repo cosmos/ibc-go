@@ -26,10 +26,8 @@ type BankKeeper interface {
 	SendCoinsFromAccountToModule(ctx sdk.Context, senderAddr sdk.AccAddress, recipientModule string, amt sdk.Coins) error
 	BlockedAddr(addr sdk.AccAddress) bool
 	IsSendEnabledCoin(ctx sdk.Context, coin sdk.Coin) bool
-	GetDenomMetaData(ctx sdk.Context, denom string) (banktypes.Metadata, bool)
 	HasDenomMetaData(ctx sdk.Context, denom string) bool
 	SetDenomMetaData(ctx sdk.Context, denomMetaData banktypes.Metadata)
-	IterateAllDenomMetaData(ctx sdk.Context, cb func(banktypes.Metadata) bool)
 }
 
 // ChannelKeeper defines the expected IBC channel keeper
