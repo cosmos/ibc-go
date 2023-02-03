@@ -69,9 +69,7 @@ func (p ChanPath) GetConnectionHops() []string {
 
 // GenerateProof generates a proof for the given path with expected value on the the source chain, which is to be verified on the dest
 // chain.
-func (p ChanPath) GenerateMembershipProof(
-	key []byte,
-) (result *channeltypes.MsgMultihopProofs, err error) {
+func (p ChanPath) GenerateMembershipProof(key []byte) (result *channeltypes.MsgMultihopProofs, err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			result = nil
@@ -102,8 +100,32 @@ func (p ChanPath) GenerateMembershipProof(
 
 // GenerateNonMembershipProof generates a proof for the given path with NO value stored on the the source chain, which
 // is to be verified on the dest chain.
-func (p ChanPath) GenerateNonMembershipProof(key []byte) (*channeltypes.MsgMultihopProofs, error) {
-	return nil, nil
+func (p ChanPath) GenerateNonMembershipProof(key []byte) (result *channeltypes.MsgMultihopProofs, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			result = nil
+			err = sdkerrors.Wrapf(channeltypes.ErrMultihopProofGeneration, "%v", r)
+		}
+	}()
+
+	result = &channeltypes.MsgMultihopProofs{}
+	result.KeyProof = ensureKeyAbsentProof(p.source(), key, nil, nil)
+
+	linkedPathProofs, err := p.GenerateConsensusAndConnectionProofs()
+	if err != nil {
+		return nil, err
+	}
+	if len(linkedPathProofs) != 2 {
+		return nil, sdkerrors.Wrapf(
+			channeltypes.ErrMultihopProofGeneration,
+			"expected 2 linked path proofs for both consensus states and connections, but got %d",
+			len(linkedPathProofs),
+		)
+	}
+	result.ConsensusProofs = linkedPathProofs[0]
+	result.ConnectionProofs = linkedPathProofs[1]
+
+	return result, nil
 }
 
 // The source chain
@@ -267,6 +289,70 @@ func ensureKeyValueProof(
 	return &channeltypes.MultihopProof{
 		Proof:       bzProof,
 		Value:       value,
+		PrefixedKey: &keyMerklePath,
+	}
+}
+
+// ensureKeyAbsentProof ensures that the proof of the key absence (ie. non-membership) on A can be verified by A's
+// consensus state root stored on B at heightAB. where A--B is connected by a single ibc connection.
+//
+// If heightAB is nil, use the latest height of B's client state. If consStateABRoot is nil, use the root of the
+// consensus state of clientAB at heightAB.
+//
+// Panic if proof generation or non-membership verification fails.
+func ensureKeyAbsentProof(
+	chainA Endpoint,
+	key []byte,
+	heightAB exported.Height,
+	consStateABRoot exported.Root,
+) *channeltypes.MultihopProof {
+	if len(key) == 0 {
+		panic("key and value must be non-empty")
+	}
+
+	chainB := chainA.Counterparty()
+	// set optional params if not passed in
+	if heightAB == nil {
+		heightAB = chainB.GetClientState().GetLatestHeight()
+	}
+	if consStateABRoot == nil {
+		consState, err := chainB.GetConsensusState(heightAB)
+		panicIfErr(err, "fail to get chain [%s]'s consensus state at height %s on chain '%s' due to: %v",
+			chainA.ChainID(), heightAB, chainB.ChainID(), err,
+		)
+		consStateABRoot = consState.GetRoot()
+	}
+
+	keyMerklePath, err := chainB.GetMerklePath(string(key))
+	panicIfErr(err, "fail to create merkle path on chain '%s' with path '%s' due to: %v",
+		chainB.ChainID(), key, err,
+	)
+
+	bzProof, _, err := chainA.QueryProofAtHeight(key, int64(heightAB.GetRevisionHeight()))
+	panicIfErr(err, "fail to generate proof on chain '%s' for key '%s' at height %d due to: %v",
+		chainA.ChainID(), key, heightAB, err,
+	)
+	var proof commitmenttypes.MerkleProof
+	err = chainA.Codec().Unmarshal(bzProof, &proof)
+	panicIfErr(err, "fail to unmarshal chain [%s]'s proof on chain [%s] due to: %v",
+		chainA.ChainID(), chainB.ChainID(), err,
+	)
+
+	// confirm non-membership
+
+	err = proof.VerifyNonMembership(
+		commitmenttypes.GetSDKSpecs(), consStateABRoot,
+		keyMerklePath,
+	)
+	panicIfErr(
+		err,
+		"fail to verify proof chain [%s]'s key path '%s' at height %s due to: %v",
+		chainA.ChainID(), key, heightAB, err,
+	)
+
+	return &channeltypes.MultihopProof{
+		Proof:       bzProof,
+		Value:       nil,
 		PrefixedKey: &keyMerklePath,
 	}
 }

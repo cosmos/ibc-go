@@ -291,8 +291,7 @@ func (ep *EndpointM) ProofHeight() clienttypes.Height {
 	return ep.GetClientState().GetLatestHeight().(clienttypes.Height)
 }
 
-// Multihop Endpoint implementation
-
+// multihopEndpoint implements the multihop.Endpoint interface for a TestChain endpoint.
 type multihopEndpoint struct {
 	testEndpoint *Endpoint
 }
