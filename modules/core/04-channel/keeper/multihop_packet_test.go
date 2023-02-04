@@ -24,7 +24,6 @@ func (suite *MultihopTestSuite) TestRecvPacket() {
 		packet     *types.Packet
 		channelCap *capabilitytypes.Capability
 		err        error
-		// expError   *sdkerrors.Error
 	)
 
 	testCases := []channelTestCase{

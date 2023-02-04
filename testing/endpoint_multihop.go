@@ -1,8 +1,6 @@
 package ibctesting
 
 import (
-	"fmt"
-
 	"github.com/cosmos/cosmos-sdk/codec"
 	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v6/modules/core/03-connection/types"
@@ -249,38 +247,29 @@ func (ep *EndpointM) CounterpartyChannel() channeltypes.Counterparty {
 // QueryChannelProof queries the multihop channel proof on the endpoint chain.
 func (ep *EndpointM) QueryChannelProof() []byte {
 	channelKey := host.ChannelKey(ep.ChannelConfig.PortID, ep.ChannelID)
-	return ep.QueryMultihopProof(
-		channelKey,
-		fmt.Sprintf("channel %s", ep.ChannelID),
-	)
+	return ep.QueryMultihopProof(channelKey)
 }
 
 // QueryPacketProof queries the multihop packet proof on the endpoint chain.
 func (ep *EndpointM) QueryPacketProof(packet *channeltypes.Packet) []byte {
 	packetKey := host.PacketCommitmentKey(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
-	return ep.QueryMultihopProof(
-		packetKey,
-		fmt.Sprintf("packet: %s", packet.String()),
-	)
+	return ep.QueryMultihopProof(packetKey)
 }
 
 // QueryPacketAcknowledgementProof queries the multihop packet acknowledgement proof on the endpoint chain.
 func (ep *EndpointM) QueryPacketAcknowledgementProof(packet *channeltypes.Packet) []byte {
 	packetKey := host.PacketAcknowledgementKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
-	return ep.QueryMultihopProof(
-		packetKey,
-		fmt.Sprintf("packet acknowledgement: %s", packet.String()),
-	)
+	return ep.QueryMultihopProof(packetKey)
 }
 
 // QueryMultihopProof queries the proof for a key/value on this endpoint, which is verified on the counterparty chain.
-func (ep *EndpointM) QueryMultihopProof(key []byte, name string) []byte {
-	proof, err := ep.mChanPath.GenerateMembershipProof(key)
+func (ep *EndpointM) QueryMultihopProof(key []byte) []byte {
+	proof, err := ep.mChanPath.GenerateProof(key, nil, false)
 	require.NoError(
 		ep.Chain.T,
 		err,
-		"could not generate proof for [%s] with key [%s] on chain [%s]",
-		name, key,
+		"could not generate proof for key [%s] on chain [%s]",
+		key,
 		ep.Chain.ChainID,
 	)
 	return ep.Chain.Codec.MustMarshal(proof)
