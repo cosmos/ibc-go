@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	cosmosRelayerRepository = "ghcr.io/cosmos/relayer"
+	cosmosRelayerRepository = "damiannolan/rly"
 	cosmosRelayerUser       = "100:1000" // docker run -it --rm --entrypoint echo ghcr.io/cosmos/relayer "$(id -u):$(id -g)"
 )
 

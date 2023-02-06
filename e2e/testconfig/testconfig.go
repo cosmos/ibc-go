@@ -89,7 +89,7 @@ func FromEnv() TestConfig {
 	}
 
 	// TODO: remove hard coded value
-	rlyTag = "andrew-tendermint_v0.37"
+	rlyTag = "latest"
 
 	chainAImage := getChainImage(chainBinary)
 	specifiedChainImage, ok := os.LookupEnv(ChainImageEnv)
