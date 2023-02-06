@@ -2,7 +2,6 @@ package localhost
 
 import (
 	"bytes"
-	"strings"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -17,9 +16,8 @@ import (
 var _ exported.ClientState = (*ClientState)(nil)
 
 // NewClientState creates a new 09-localhost ClientState instance.
-func NewClientState(chainID string, height clienttypes.Height) exported.ClientState {
+func NewClientState(height clienttypes.Height) exported.ClientState {
 	return &ClientState{
-		ChainId:      chainID,
 		LatestHeight: height,
 	}
 }
@@ -41,10 +39,6 @@ func (cs ClientState) Status(_ sdk.Context, _ sdk.KVStore, _ codec.BinaryCodec) 
 
 // Validate performs a basic validation of the client state fields.
 func (cs ClientState) Validate() error {
-	if strings.TrimSpace(cs.ChainId) == "" {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidChainID, "chain id cannot be blank")
-	}
-
 	if cs.LatestHeight.RevisionHeight == 0 {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidHeight, "local revision height cannot be zero")
 	}
@@ -64,7 +58,6 @@ func (cs ClientState) Initialize(ctx sdk.Context, cdc codec.BinaryCodec, clientS
 	}
 
 	clientState := ClientState{
-		ChainId:      ctx.ChainID(),
 		LatestHeight: clienttypes.GetSelfHeight(ctx),
 	}
 
@@ -165,8 +158,6 @@ func (cs ClientState) UpdateStateOnMisbehaviour(_ sdk.Context, _ codec.BinaryCod
 // Upon successful update, a list of consensus heights is returned. It assumes the ClientMessage has already been verified.
 func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, clientMsg exported.ClientMessage) []exported.Height {
 	height := clienttypes.GetSelfHeight(ctx)
-
-	cs.ChainId = ctx.ChainID()
 	cs.LatestHeight = height
 
 	clientStore.Set([]byte(host.KeyClientState), clienttypes.MustMarshalClientState(cdc, &cs))

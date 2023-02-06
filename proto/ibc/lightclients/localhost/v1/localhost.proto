@@ -11,8 +11,6 @@ import "gogoproto/gogo.proto";
 message ClientState {
   option (gogoproto.goproto_getters) = false;
 
-  // unique chain identifier
-  string chain_id = 1;
   // the latest block height
-  ibc.core.client.v1.Height latest_height = 2 [(gogoproto.nullable) = false];
+  ibc.core.client.v1.Height latest_height = 1 [(gogoproto.nullable) = false];
 }
