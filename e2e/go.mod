@@ -3,17 +3,16 @@ module github.com/cosmos/ibc-go/e2e
 go 1.19
 
 require (
-	github.com/cosmos/cosmos-sdk v0.47.0-rc1
-	github.com/cosmos/gogoproto v1.4.3
+	github.com/cosmos/cosmos-sdk v0.47.0-rc2
+	github.com/cosmos/gogoproto v1.4.4
 	github.com/cosmos/ibc-go/v7 v7.0.0-20230120105519-ae96bf3d5ee9
 	github.com/cosmos/interchain-accounts v0.4.1-0.20230116203650-08d2a4529a5d
 	github.com/docker/docker v20.10.19+incompatible
-	github.com/strangelove-ventures/ibctest/v7 v7.0.0-20230124162348-0fcd87d2151a
+	github.com/strangelove-ventures/interchaintest/v7 v7.0.0-20230201060741-e0e4e0f9283b
 	github.com/stretchr/testify v1.8.1
-	github.com/tendermint/tendermint v0.37.0-rc2
 	go.uber.org/zap v1.23.0
 	golang.org/x/mod v0.6.0
-	google.golang.org/grpc v1.52.0
+	google.golang.org/grpc v1.52.3
 )
 
 require (
@@ -42,7 +41,7 @@ require (
 	github.com/benbjohnson/clock v1.3.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bgentry/go-netrc v0.0.0-20140422174119-9fd32a8b3d3d // indirect
-	github.com/bgentry/speakeasy v0.1.0 // indirect
+	github.com/bgentry/speakeasy v0.1.1-0.20220910012023-760eaf8b6816 // indirect
 	github.com/btcsuite/btcd v0.22.3 // indirect
 	github.com/btcsuite/btcd/btcec/v2 v2.3.2 // indirect
 	github.com/cenkalti/backoff/v4 v4.1.3 // indirect
@@ -57,7 +56,7 @@ require (
 	github.com/cosmos/go-bip39 v1.0.0 // indirect
 	github.com/cosmos/gogogateway v1.2.0 // indirect
 	github.com/cosmos/gorocksdb v1.2.0 // indirect
-	github.com/cosmos/iavl v0.19.4 // indirect
+	github.com/cosmos/iavl v0.19.5-rc.1 // indirect
 	github.com/cosmos/ics23/go v0.9.1-0.20221207100636-b1abd8678aab // indirect
 	github.com/cosmos/ledger-cosmos-go v0.12.1 // indirect
 	github.com/cosmos/rosetta-sdk-go v0.9.0 // indirect
@@ -178,9 +177,8 @@ require (
 	github.com/spf13/viper v1.15.0 // indirect
 	github.com/subosito/gotenv v1.4.2 // indirect
 	github.com/syndtr/goleveldb v1.0.1-0.20220614013038-64ee5596c38a // indirect
-	github.com/tendermint/btcd v0.1.1 // indirect
-	github.com/tendermint/crypto v0.0.0-20191022145703-50d29ede1e15 // indirect
 	github.com/tendermint/go-amino v0.16.0 // indirect
+	github.com/tendermint/tendermint v0.37.0-rc2 // indirect
 	github.com/tendermint/tm-db v0.6.7 // indirect
 	github.com/tidwall/btree v1.5.2 // indirect
 	github.com/ulikunitz/xz v0.5.8 // indirect

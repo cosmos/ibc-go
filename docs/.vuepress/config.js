@@ -141,6 +141,10 @@ module.exports = {
         key: "v4.2.0",
       },
       {
+        label: "v4.3.0",
+        key: "v4.3.0",
+      },
+      {
         label: "v5.0.0",
         key: "v5.0.0",
       },
@@ -324,6 +328,11 @@ module.exports = {
                   title: "Params",
                   directory: false,
                   path: "/apps/transfer/params.html",
+                },
+                {
+                  title: "Authorizations",
+                  directory: false,
+                  path: "/apps/transfer/authorizations.html",
                 },
               ],
             },
