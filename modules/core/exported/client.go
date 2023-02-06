@@ -144,6 +144,10 @@ type ConsensusState interface {
 
 	ClientType() string // Consensus kind
 
+	// GetRoot returns the commitment root of the consensus state,
+	// which is used for key-value pair verification.
+	GetRoot() Root
+
 	// GetTimestamp returns the timestamp (in nanoseconds) of the consensus state
 	GetTimestamp() uint64
 

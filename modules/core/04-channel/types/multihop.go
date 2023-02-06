@@ -2,8 +2,8 @@ package types
 
 import (
 	"github.com/cosmos/cosmos-sdk/codec"
-	connectiontypes "github.com/cosmos/ibc-go/v6/modules/core/03-connection/types"
-	"github.com/cosmos/ibc-go/v6/modules/core/exported"
+	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
 type ConnectionEnd = connectiontypes.ConnectionEnd

@@ -3,7 +3,7 @@ package keeper_test
 import (
 	"testing"
 
-	ibctesting "github.com/cosmos/ibc-go/v6/testing"
+	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	"github.com/stretchr/testify/suite"
 )
 
