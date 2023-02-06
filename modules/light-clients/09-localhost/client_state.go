@@ -93,24 +93,21 @@ func (cs ClientState) VerifyMembership(
 ) error {
 	merklePath, ok := path.(commitmenttypes.MerklePath)
 	if !ok {
-		return sdkerrors.Wrapf(clienttypes.ErrFailedChannelStateVerification, "todo: update error -- not found for path %s", path)
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "expected %T, got %T", commitmenttypes.MerklePath{}, path)
 	}
 
 	if len(merklePath.GetKeyPath()) != 2 {
-		return sdkerrors.Wrapf(clienttypes.ErrFailedChannelStateVerification, "todo: update error -- not found for path %s", path)
+		return sdkerrors.Wrapf(host.ErrInvalidPath, "path must be of length 2: %s", merklePath.GetKeyPath())
 	}
 
 	// The commitment prefix (eg: "ibc") is omitted when operating on the core IBC store
 	bz := store.Get([]byte(merklePath.KeyPath[1]))
 	if bz == nil {
-		return sdkerrors.Wrapf(clienttypes.ErrFailedChannelStateVerification, "todo: update error -- not found for path %s", path)
+		return sdkerrors.Wrapf(clienttypes.ErrFailedMembershipVerification, "value not found for path %s", path)
 	}
 
 	if !bytes.Equal(bz, value) {
-		return sdkerrors.Wrapf(
-			clienttypes.ErrFailedChannelStateVerification,
-			"todo: update error",
-		)
+		return sdkerrors.Wrapf(clienttypes.ErrFailedMembershipVerification, "value provided does not equal value stored at path: %s", path)
 	}
 
 	return nil
@@ -130,17 +127,17 @@ func (cs ClientState) VerifyNonMembership(
 ) error {
 	merklePath, ok := path.(commitmenttypes.MerklePath)
 	if !ok {
-		return sdkerrors.Wrapf(clienttypes.ErrFailedChannelStateVerification, "todo: update error -- not found for path %s", path)
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "expected %T, got %T", commitmenttypes.MerklePath{}, path)
 	}
 
 	if len(merklePath.GetKeyPath()) != 2 {
-		return sdkerrors.Wrapf(clienttypes.ErrFailedChannelStateVerification, "todo: update error -- not found for path %s", path)
+		return sdkerrors.Wrapf(host.ErrInvalidPath, "path must be of length 2: %s", merklePath.GetKeyPath())
 	}
 
 	// The commitment prefix (eg: "ibc") is omitted when operating on the core IBC store
 	bz := store.Get([]byte(merklePath.KeyPath[1]))
 	if bz != nil {
-		return sdkerrors.Wrapf(clienttypes.ErrFailedChannelStateVerification, "todo: update error -- found for path %s", path)
+		return sdkerrors.Wrapf(clienttypes.ErrFailedNonMembershipVerification, "value found for path %s", path)
 	}
 
 	return nil
