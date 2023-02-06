@@ -1,6 +1,8 @@
 package semverutil
 
 import (
+	"strings"
+
 	"golang.org/x/mod/semver"
 )
 
@@ -16,6 +18,17 @@ type FeatureReleases struct {
 // This is true if the version is greater than or equal to the major version it was released in
 // or is greater than or equal to the list of minor releases it was included in.
 func (fr FeatureReleases) IsSupported(versionStr string) bool {
+
+	// in our compatibility tests, our images are in the format of "release-v1.0.x". We want to actually look at
+	// the "1.0.x" part but we also need this to be a valid version. We can change it to "1.0.0"
+	// TODO: change the way we provide the ibc-go version. This should be done in a more flexible way such
+	// as docker labels/metadata instead of the tag, as this will only work for our versioning scheme.
+	const releasePrefix = "release-"
+	if strings.HasPrefix(versionStr, releasePrefix) {
+		versionStr = versionStr[len(releasePrefix):]
+		versionStr = strings.ReplaceAll(versionStr, "x", "0")
+	}
+
 	// assume any non-semantic version formatted version supports the feature
 	// this will be useful during development of the e2e test with the new feature
 	if !semver.IsValid(versionStr) {
