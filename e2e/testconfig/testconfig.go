@@ -40,7 +40,7 @@ const (
 	defaultBinary = "simd"
 	// defaultRlyTag is the tag that will be used if no relayer tag is specified.
 	// all images are here https://github.com/cosmos/relayer/pkgs/container/relayer/versions
-	defaultRlyTag = "v2.2.0-rc2"
+	defaultRlyTag = "v2.2.0"
 	// defaultChainTag is the tag that will be used for the chains if none is specified.
 	defaultChainTag = "main"
 )
@@ -87,9 +87,6 @@ func FromEnv() TestConfig {
 	if !ok {
 		rlyTag = defaultRlyTag
 	}
-
-	// TODO: remove hard coded value
-	rlyTag = "andrew-tendermint_v0.37"
 
 	chainAImage := getChainImage(chainBinary)
 	specifiedChainImage, ok := os.LookupEnv(ChainImageEnv)
