@@ -250,7 +250,8 @@ func (k Keeper) ChannelOpenTry(goCtx context.Context, msg *channeltypes.MsgChann
 	ctx.Logger().Info("channel open try callback succeeded", "channel-id", channelID, "port-id", msg.PortId, "version", version)
 
 	return &channeltypes.MsgChannelOpenTryResponse{
-		Version: version,
+		ChannelId: channelID,
+		Version:   version,
 	}, nil
 }
 
