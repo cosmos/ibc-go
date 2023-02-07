@@ -16,8 +16,12 @@ import (
 func (k Keeper) CreateClient(
 	ctx sdk.Context, clientState exported.ClientState, consensusState exported.ConsensusState,
 ) (string, error) {
+	if clientState.ClientType() == exported.Localhost {
+		return "", sdkerrors.Wrapf(types.ErrInvalidClientType, "cannot create client of type: %s", clientState.ClientType())
+	}
+
 	params := k.GetParams(ctx)
-	if !params.IsAllowedClient(clientState.ClientType()) || clientState.ClientType() == exported.Localhost {
+	if !params.IsAllowedClient(clientState.ClientType()) {
 		return "", sdkerrors.Wrapf(
 			types.ErrInvalidClientType,
 			"client state type %s is not registered in the allowlist", clientState.ClientType(),
