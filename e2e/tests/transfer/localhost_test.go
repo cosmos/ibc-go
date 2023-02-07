@@ -4,6 +4,8 @@ import (
 	"context"
 	"testing"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/gogoproto/proto"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
@@ -12,6 +14,24 @@ import (
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
 )
+
+func parseChannelIDFromResponse(res sdk.TxResponse) string {
+	var txMsgData sdk.TxMsgData
+	if err := proto.Unmarshal([]byte(res.Data), &txMsgData); err != nil {
+		panic(err)
+	}
+
+	for _, msgResp := range txMsgData.MsgResponses {
+		switch res := msgResp.GetCachedValue().(type) {
+		case *channeltypes.MsgChannelOpenInitResponse:
+			return res.ChannelId
+		case *channeltypes.MsgChannelOpenTryResponse:
+			// TODO: return channel id
+		}
+	}
+
+	return ""
+}
 
 // TestMsgTransfer_Localhost creates two wallets on a single chain and performs MsgTransfers back and forth
 // to ensure ibc functions as expected on localhost. This test is largely the same as TestMsgTransfer_Succeeds_Nonincentivized
@@ -38,10 +58,8 @@ func (s *TransferTestSuite) TestMsgTransfer_Localhost() {
 		s.Require().NoError(msgChannelOpenInit.ValidateBasic())
 
 		txResp, err := s.BroadcastMessages(ctx, chainA, rlyWallet, msgChannelOpenInit)
-		s.AssertValidTxResponse(txResp)
 		s.Require().NoError(err)
-
-		s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA), "failed to wait for blocks")
+		s.AssertValidTxResponse(txResp)
 	})
 
 	t.Run("channel open try localhost", func(t *testing.T) {
@@ -52,11 +70,9 @@ func (s *TransferTestSuite) TestMsgTransfer_Localhost() {
 			transfertypes.Version, nil, clienttypes.ZeroHeight(), rlyWallet.FormattedAddress(),
 		)
 
-		_, err := s.BroadcastMessages(ctx, chainA, rlyWallet, msgChannelOpenTry)
+		txResp, err := s.BroadcastMessages(ctx, chainA, rlyWallet, msgChannelOpenTry)
 		s.Require().NoError(err)
-		// s.AssertValidTxResponse(txResp)
-
-		s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA), "failed to wait for blocks")
+		s.AssertValidTxResponse(txResp)
 	})
 
 	t.Run("channel open ack localhost", func(t *testing.T) {
@@ -66,11 +82,9 @@ func (s *TransferTestSuite) TestMsgTransfer_Localhost() {
 			nil, clienttypes.ZeroHeight(), rlyWallet.FormattedAddress(),
 		)
 
-		_, err := s.BroadcastMessages(ctx, chainA, rlyWallet, msgChannelOpenAck)
+		txResp, err := s.BroadcastMessages(ctx, chainA, rlyWallet, msgChannelOpenAck)
 		s.Require().NoError(err)
-		// s.AssertValidTxResponse(txResp)
-
-		s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA), "failed to wait for blocks")
+		s.AssertValidTxResponse(txResp)
 	})
 
 	t.Run("channel open confirm localhost", func(t *testing.T) {
@@ -79,19 +93,21 @@ func (s *TransferTestSuite) TestMsgTransfer_Localhost() {
 			nil, clienttypes.ZeroHeight(), rlyWallet.FormattedAddress(),
 		)
 
-		_, err := s.BroadcastMessages(ctx, chainA, rlyWallet, msgChannelOpenConfirm)
+		txResp, err := s.BroadcastMessages(ctx, chainA, rlyWallet, msgChannelOpenConfirm)
 		s.Require().NoError(err)
-		// s.AssertValidTxResponse(txResp)
-
-		s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA), "failed to wait for blocks")
+		s.AssertValidTxResponse(txResp)
 	})
 
-	t.Run("query localhost transfer channel", func(t *testing.T) {
-		channel, err := s.QueryChannel(ctx, chainA, transfertypes.PortID, "channel-1")
+	t.Run("query localhost transfer channel ends", func(t *testing.T) {
+		channelEndA, err := s.QueryChannel(ctx, chainA, transfertypes.PortID, "channel-1")
 		s.Require().NoError(err)
-		s.Require().NotNil(channel)
+		s.Require().NotNil(channelEndA)
 
-		t.Logf("output channel response: %v", channel)
+		channelEndB, err := s.QueryChannel(ctx, chainA, transfertypes.PortID, "channel-2")
+		s.Require().NoError(err)
+		s.Require().NotNil(channelEndB)
+
+		s.Require().Equal(channelEndA.GetConnectionHops(), channelEndB.GetConnectionHops())
 	})
 
 	// t.Run("localhost IBC token transfer", func(t *testing.T) {

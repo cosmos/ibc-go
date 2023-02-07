@@ -15,6 +15,7 @@ import (
 	feetypes "github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	simappparams "github.com/cosmos/ibc-go/v7/testing/simapp/params"
 )
 
@@ -42,6 +43,7 @@ func codecAndEncodingConfig() (*codec.ProtoCodec, simappparams.EncodingConfig) {
 	authz.RegisterInterfaces(cfg.InterfaceRegistry)
 	transfertypes.RegisterInterfaces(cfg.InterfaceRegistry)
 	clienttypes.RegisterInterfaces(cfg.InterfaceRegistry)
+	channeltypes.RegisterInterfaces(cfg.InterfaceRegistry)
 
 	cdc := codec.NewProtoCodec(cfg.InterfaceRegistry)
 	return cdc, cfg

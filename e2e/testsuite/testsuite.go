@@ -2,7 +2,6 @@ package testsuite
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -403,7 +402,6 @@ func (s *E2ETestSuite) InitGRPCClients(chain *cosmos.CosmosChain) {
 // AssertValidTxResponse verifies that an sdk.TxResponse
 // has non-empty values.
 func (s *E2ETestSuite) AssertValidTxResponse(resp sdk.TxResponse) {
-	s.T().Logf("response dump: %v", resp)
 	respLogsMsg := resp.Logs.String()
 	if respLogsMsg == emptyLogs {
 		respLogsMsg = resp.RawLog
@@ -550,7 +548,7 @@ func (s *E2ETestSuite) QueryModuleAccountAddress(ctx context.Context, moduleName
 	}
 	moduleAccount, ok := account.(authtypes.ModuleAccountI)
 	if !ok {
-		return nil, errors.New(fmt.Sprintf("failed to cast account: %T as ModuleAccount", moduleAccount))
+		return nil, fmt.Errorf("failed to cast account: %T as ModuleAccount", moduleAccount)
 	}
 
 	return moduleAccount.GetAddress(), nil
