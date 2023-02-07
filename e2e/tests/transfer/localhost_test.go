@@ -11,6 +11,7 @@ import (
 	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 
+	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
 )
@@ -43,8 +44,13 @@ func (s *TransferTestSuite) TestMsgTransfer_Localhost() {
 	_, _ = s.SetupChainsRelayerAndChannel(ctx, transferChannelOptions())
 	chainA, _ := s.GetChains()
 
-	// chainADenom := chainA.Config().Denom
+	chainADenom := chainA.Config().Denom
+
 	rlyWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
+	userAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
+	userBWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
+
+	var packet channeltypes.Packet
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA), "failed to wait for blocks")
 
@@ -63,10 +69,11 @@ func (s *TransferTestSuite) TestMsgTransfer_Localhost() {
 	})
 
 	t.Run("channel open try localhost", func(t *testing.T) {
+		// TODO: parse channel ID from response
 		msgChannelOpenTry := channeltypes.NewMsgChannelOpenTry(
 			transfertypes.PortID, transfertypes.Version,
 			channeltypes.UNORDERED, []string{connectiontypes.LocalhostID},
-			transfertypes.PortID, "channel-1", // TODO: parse channel ID from response
+			transfertypes.PortID, "channel-1",
 			transfertypes.Version, nil, clienttypes.ZeroHeight(), rlyWallet.FormattedAddress(),
 		)
 
@@ -76,8 +83,9 @@ func (s *TransferTestSuite) TestMsgTransfer_Localhost() {
 	})
 
 	t.Run("channel open ack localhost", func(t *testing.T) {
+		// TODO: Parse channel ID from response
 		msgChannelOpenAck := channeltypes.NewMsgChannelOpenAck(
-			transfertypes.PortID, "channel-1", // TODO: Parse channel ID from response
+			transfertypes.PortID, "channel-1",
 			"channel-2", transfertypes.Version,
 			nil, clienttypes.ZeroHeight(), rlyWallet.FormattedAddress(),
 		)
@@ -110,58 +118,64 @@ func (s *TransferTestSuite) TestMsgTransfer_Localhost() {
 		s.Require().Equal(channelEndA.GetConnectionHops(), channelEndB.GetConnectionHops())
 	})
 
-	// t.Run("localhost IBC token transfer", func(t *testing.T) {
-	// 	transferTxResp, err := s.Transfer(ctx, chainA, chainAWallet1, channelA.PortID, channelA.ChannelID, testvalues.DefaultTransferAmount(chainADenom), chainAWallet1.FormattedAddress(), chainAWallet2.FormattedAddress(), s.GetTimeoutHeight(ctx, chainA), 0, "")
-	// 	s.Require().NoError(err)
-	// 	s.AssertValidTxResponse(transferTxResp)
-	// })
+	t.Run("send packet - localhost ibc transfer", func(t *testing.T) {
+		txResp, err := s.Transfer(ctx, chainA, userAWallet, transfertypes.PortID, "channel-1", testvalues.DefaultTransferAmount(chainADenom), userAWallet.FormattedAddress(), userBWallet.FormattedAddress(), clienttypes.NewHeight(1, 100), 0, "")
+		s.Require().NoError(err)
+		s.AssertValidTxResponse(txResp)
 
-	// t.Run("tokens are escrowed", func(t *testing.T) {
-	// 	actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet1)
-	// 	s.Require().NoError(err)
+		// t.Logf("transfer events: %v", txResp.Events)
+		// var events sdk.Events
+		// for _, evt := range txResp.Events {
+		// 	var attributes []sdk.Attribute
+		// 	for _, attr := range evt.GetAttributes() {
+		// 		attributes = append(attributes, sdk.NewAttribute(attr.Key, attr.Value))
+		// 	}
 
-	// 	expected := testvalues.StartingTokenAmount - testvalues.IBCTransferAmount
-	// 	s.Require().Equal(expected, actualBalance)
-	// })
+		// 	events.AppendEvent(sdk.NewEvent(evt.GetType(), attributes...))
+		// }
 
-	// t.Run("start relayer", func(t *testing.T) {
-	// 	s.StartRelayer(relayer)
-	// })
+		// packet, err = ibctesting.ParsePacketFromEvents(events)
+		// s.Require().NoError(err)
+		// s.Require().NotNil(packet)
+	})
 
-	// ibcToken := testsuite.GetIBCToken(chainADenom, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID)
+	t.Run("tokens are escrowed", func(t *testing.T) {
+		actualBalance, err := s.GetChainANativeBalance(ctx, userAWallet)
+		s.Require().NoError(err)
 
-	// t.Run("packets are relayed", func(t *testing.T) {
-	// 	s.AssertPacketRelayed(ctx, chainA, channelA.PortID, channelA.ChannelID, 1)
+		expected := testvalues.StartingTokenAmount - testvalues.IBCTransferAmount
+		s.Require().Equal(expected, actualBalance)
+	})
 
-	// 	actualBalance, err := chainA.GetBalance(ctx, chainAWallet2.FormattedAddress(), ibcToken.IBCDenom())
-	// 	s.Require().NoError(err)
+	t.Run("recv packet - localhost ibc transfer", func(t *testing.T) {
+		packet = channeltypes.NewPacket(transfertypes.NewFungibleTokenPacketData(chainADenom, "10000", userAWallet.FormattedAddress(), userBWallet.FormattedAddress(), "").GetBytes(), 1, "transfer", "channel-1", "transfer", "channel-2", clienttypes.NewHeight(1, 100), 0)
+		msgRecvPacket := channeltypes.NewMsgRecvPacket(packet, nil, clienttypes.ZeroHeight(), rlyWallet.FormattedAddress())
 
-	// 	expected := testvalues.IBCTransferAmount
-	// 	s.Require().Equal(expected, actualBalance)
-	// })
+		txResp, err := s.BroadcastMessages(ctx, chainA, rlyWallet, msgRecvPacket)
+		s.Require().NoError(err)
+		s.AssertValidTxResponse(txResp)
+	})
 
-	// t.Run("non-native IBC token transfer using localhost receiver is source of tokens", func(t *testing.T) {
-	// 	transferTxResp, err := s.Transfer(ctx, chainA, chainAWallet2, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID, testvalues.DefaultTransferAmount(ibcToken.IBCDenom()), chainAWallet2.FormattedAddress(), chainAWallet1.FormattedAddress(), s.GetTimeoutHeight(ctx, chainA), 0, "")
-	// 	s.Require().NoError(err)
-	// 	s.AssertValidTxResponse(transferTxResp)
-	// })
+	t.Run("acknowledge packet - localhost ibc transfer", func(t *testing.T) {
+		packet = channeltypes.NewPacket(transfertypes.NewFungibleTokenPacketData(chainADenom, "10000", userAWallet.FormattedAddress(), userBWallet.FormattedAddress(), "").GetBytes(), 1, "transfer", "channel-1", "transfer", "channel-2", clienttypes.NewHeight(1, 100), 0)
+		msgAcknowledgement := channeltypes.NewMsgAcknowledgement(
+			packet, channeltypes.NewResultAcknowledgement([]byte{byte(1)}).Acknowledgement(),
+			nil, clienttypes.ZeroHeight(), rlyWallet.FormattedAddress(),
+		)
 
-	// t.Run("tokens are escrowed", func(t *testing.T) {
-	// 	actualBalance, err := chainA.GetBalance(ctx, chainAWallet2.FormattedAddress(), ibcToken.IBCDenom())
-	// 	s.Require().NoError(err)
+		txResp, err := s.BroadcastMessages(ctx, chainA, rlyWallet, msgAcknowledgement)
+		s.Require().NoError(err)
+		s.AssertValidTxResponse(txResp)
+	})
 
-	// 	s.Require().Equal(int64(0), actualBalance)
-	// })
+	t.Run("packets are relayed", func(t *testing.T) {
+		s.AssertPacketRelayed(ctx, chainA, transfertypes.PortID, "channel-1", 1)
 
-	// s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA), "failed to wait for blocks")
+		ibcToken := testsuite.GetIBCToken(chainADenom, transfertypes.PortID, "channel-2")
+		actualBalance, err := chainA.GetBalance(ctx, userBWallet.FormattedAddress(), ibcToken.IBCDenom())
+		s.Require().NoError(err)
 
-	// t.Run("packets are relayed", func(t *testing.T) {
-	// 	s.AssertPacketRelayed(ctx, chainA, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID, 1)
-
-	// 	actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet1)
-	// 	s.Require().NoError(err)
-
-	// 	expected := testvalues.StartingTokenAmount
-	// 	s.Require().Equal(expected, actualBalance)
-	// })
+		expected := testvalues.IBCTransferAmount
+		s.Require().Equal(expected, actualBalance)
+	})
 }
