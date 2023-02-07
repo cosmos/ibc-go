@@ -136,21 +136,17 @@ func (cs ClientState) VerifyNonMembership(
 	return nil
 }
 
-// VerifyClientMessage must verify a ClientMessage. A ClientMessage could be a Header, Misbehaviour, or batch update.
-// It must handle each type of ClientMessage appropriately. Calls to CheckForMisbehaviour, UpdateState, and UpdateStateOnMisbehaviour
-// will assume that the content of the ClientMessage has been verified and can be trusted. An error should be returned
-// if the ClientMessage fails to verify.
+// VerifyClientMessage is unsupported by the 09-localhost client type and returns an error.
 func (cs ClientState) VerifyClientMessage(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, clientMsg exported.ClientMessage) error {
-	return nil
+	return sdkerrors.Wrap(clienttypes.ErrUpdateClientFailed, "client message verification is unsupported by the localhost client")
 }
 
-// Checks for evidence of a misbehaviour in Header or Misbehaviour type. It assumes the ClientMessage
-// has already been verified.
+// CheckForMisbehaviour is unsupposed by the 09-localhost client type and performs a no-op, returning false.
 func (cs ClientState) CheckForMisbehaviour(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, clientMsg exported.ClientMessage) bool {
 	return false
 }
 
-// UpdateStateOnMisbehaviour should perform appropriate state changes on a client state given that misbehaviour has been detected and verified.
+// UpdateStateOnMisbehaviour is unsupported by the 09-localhost client type and performs a no-op.
 func (cs ClientState) UpdateStateOnMisbehaviour(_ sdk.Context, _ codec.BinaryCodec, _ sdk.KVStore, _ exported.ClientMessage) {
 }
 
