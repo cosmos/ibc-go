@@ -16,24 +16,6 @@ import (
 	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
 )
 
-func parseChannelIDFromResponse(res sdk.TxResponse) string {
-	var txMsgData sdk.TxMsgData
-	if err := proto.Unmarshal([]byte(res.Data), &txMsgData); err != nil {
-		panic(err)
-	}
-
-	for _, msgResp := range txMsgData.MsgResponses {
-		switch res := msgResp.GetCachedValue().(type) {
-		case *channeltypes.MsgChannelOpenInitResponse:
-			return res.ChannelId
-		case *channeltypes.MsgChannelOpenTryResponse:
-			// TODO: return channel id
-		}
-	}
-
-	return ""
-}
-
 // TestMsgTransfer_Localhost creates two wallets on a single chain and performs MsgTransfers back and forth
 // to ensure ibc functions as expected on localhost. This test is largely the same as TestMsgTransfer_Succeeds_Nonincentivized
 // except that chain B is replaced with an additional wallet on chainA.
@@ -123,6 +105,7 @@ func (s *TransferTestSuite) TestMsgTransfer_Localhost() {
 		s.Require().NoError(err)
 		s.AssertValidTxResponse(txResp)
 
+		// TODO: revisit parsing packet from events
 		// t.Logf("transfer events: %v", txResp.Events)
 		// var events sdk.Events
 		// for _, evt := range txResp.Events {
@@ -148,6 +131,7 @@ func (s *TransferTestSuite) TestMsgTransfer_Localhost() {
 	})
 
 	t.Run("recv packet - localhost ibc transfer", func(t *testing.T) {
+		// TODO: currently building the packet manually, should be possible to parse from events
 		packet = channeltypes.NewPacket(transfertypes.NewFungibleTokenPacketData(chainADenom, "10000", userAWallet.FormattedAddress(), userBWallet.FormattedAddress(), "").GetBytes(), 1, "transfer", "channel-1", "transfer", "channel-2", clienttypes.NewHeight(1, 100), 0)
 		msgRecvPacket := channeltypes.NewMsgRecvPacket(packet, nil, clienttypes.ZeroHeight(), rlyWallet.FormattedAddress())
 
@@ -157,6 +141,7 @@ func (s *TransferTestSuite) TestMsgTransfer_Localhost() {
 	})
 
 	t.Run("acknowledge packet - localhost ibc transfer", func(t *testing.T) {
+		// TODO: currently building the packet manually, should be possible to parse from events
 		packet = channeltypes.NewPacket(transfertypes.NewFungibleTokenPacketData(chainADenom, "10000", userAWallet.FormattedAddress(), userBWallet.FormattedAddress(), "").GetBytes(), 1, "transfer", "channel-1", "transfer", "channel-2", clienttypes.NewHeight(1, 100), 0)
 		msgAcknowledgement := channeltypes.NewMsgAcknowledgement(
 			packet, channeltypes.NewResultAcknowledgement([]byte{byte(1)}).Acknowledgement(),
@@ -178,4 +163,22 @@ func (s *TransferTestSuite) TestMsgTransfer_Localhost() {
 		expected := testvalues.IBCTransferAmount
 		s.Require().Equal(expected, actualBalance)
 	})
+}
+
+func parseChannelIDFromResponse(res sdk.TxResponse) string {
+	var txMsgData sdk.TxMsgData
+	if err := proto.Unmarshal([]byte(res.Data), &txMsgData); err != nil {
+		panic(err)
+	}
+
+	for _, msgResp := range txMsgData.MsgResponses {
+		switch res := msgResp.GetCachedValue().(type) {
+		case *channeltypes.MsgChannelOpenInitResponse:
+			return res.ChannelId
+		case *channeltypes.MsgChannelOpenTryResponse:
+			// TODO: Add channelID to response - https://github.com/cosmos/ibc-go/pull/3117
+		}
+	}
+
+	return ""
 }
