@@ -11,7 +11,7 @@ import (
 
 var (
 	// DefaultAllowedClients are "06-solomachine" and "07-tendermint"
-	DefaultAllowedClients = []string{exported.Solomachine, exported.Tendermint}
+	DefaultAllowedClients = []string{exported.Solomachine, exported.Tendermint, exported.Localhost}
 
 	// KeyAllowedClients is store's key for AllowedClients Params
 	KeyAllowedClients = []byte("AllowedClients")
@@ -48,10 +48,6 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 
 // IsAllowedClient checks if the given client type is registered on the allowlist.
 func (p Params) IsAllowedClient(clientType string) bool {
-	if clientType == exported.Localhost {
-		return false
-	}
-
 	for _, allowedClient := range p.AllowedClients {
 		if allowedClient == clientType {
 			return true
