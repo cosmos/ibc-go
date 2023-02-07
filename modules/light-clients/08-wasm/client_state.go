@@ -101,6 +101,15 @@ func (c ClientState) Initialize(context sdk.Context, marshaler codec.BinaryCodec
 	return nil
 }
 
+type verifyMembershipPayload struct {
+	Height           exported.Height `json:"height"`
+	DelayTimePeriod  uint64          `json:"delay_time_period"`
+	DelayBlockPeriod uint64          `json:"delay_block_period"`
+	Proof            []byte          `json:"proof"`
+	Path             exported.Path   `json:"path"`
+	Value            []byte          `json:"value"`
+}
+
 func (c ClientState) VerifyMembership(
 	ctx sdk.Context,
 	clientStore sdk.KVStore,
@@ -113,18 +122,27 @@ func (c ClientState) VerifyMembership(
 	value []byte,
 ) error {
 	const VerifyClientMessage = "verify_membership"
-	inner := make(map[string]interface{})
-	inner["height"] = height
-	inner["delay_time_period"] = delayTimePeriod
-	inner["delay_block_period"] = delayBlockPeriod
-	inner["proof"] = proof
-	inner["path"] = path
-	inner["value"] = value
-	payload := make(map[string]map[string]interface{})
+	inner := verifyMembershipPayload{
+		Height:           height,
+		DelayTimePeriod:  delayTimePeriod,
+		DelayBlockPeriod: delayBlockPeriod,
+		Proof:            proof,
+		Path:             path,
+		Value:            value,
+	}
+	payload := make(map[string]verifyMembershipPayload)
 	payload[VerifyClientMessage] = inner
 
 	_, err := call[contractResult](payload, &c, ctx, clientStore)
 	return err
+}
+
+type verifyNonMembershipPayload struct {
+	Height           exported.Height `json:"height"`
+	DelayTimePeriod  uint64          `json:"delay_time_period"`
+	DelayBlockPeriod uint64          `json:"delay_block_period"`
+	Proof            []byte          `json:"proof"`
+	Path             exported.Path   `json:"path"`
 }
 
 func (c ClientState) VerifyNonMembership(
@@ -138,13 +156,14 @@ func (c ClientState) VerifyNonMembership(
 	path exported.Path,
 ) error {
 	const VerifyClientMessage = "verify_non_membership"
-	inner := make(map[string]interface{})
-	inner["height"] = height
-	inner["delay_time_period"] = delayTimePeriod
-	inner["delay_block_period"] = delayBlockPeriod
-	inner["proof"] = proof
-	inner["path"] = path
-	payload := make(map[string]map[string]interface{})
+	inner := verifyNonMembershipPayload{
+		Height:           height,
+		DelayTimePeriod:  delayTimePeriod,
+		DelayBlockPeriod: delayBlockPeriod,
+		Proof:            proof,
+		Path:             path,
+	}
+	payload := make(map[string]verifyNonMembershipPayload)
 	payload[VerifyClientMessage] = inner
 
 	_, err := call[contractResult](payload, &c, ctx, clientStore)
@@ -174,6 +193,11 @@ func (c ClientState) VerifyClientMessage(ctx sdk.Context, cdc codec.BinaryCodec,
 	return err
 }
 
+type checkForMisbehaviourPayload struct {
+	ClientState  exported.ClientState `json:"client_state"`
+	Misbehaviour *Misbehaviour        `json:"misbehaviour"`
+}
+
 func (c ClientState) CheckForMisbehaviour(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, msg exported.ClientMessage) bool {
 	wasmMisbehaviour, ok := msg.(*Misbehaviour)
 	if !ok {
@@ -181,11 +205,12 @@ func (c ClientState) CheckForMisbehaviour(ctx sdk.Context, cdc codec.BinaryCodec
 	}
 
 	const checkForMisbehaviourMessage = "check_for_misbehaviour"
-	payload := make(map[string]map[string]interface{})
-	payload[checkForMisbehaviourMessage] = make(map[string]interface{})
-	inner := payload[checkForMisbehaviourMessage]
-	inner["client_state"] = c
-	inner["misbehaviour"] = wasmMisbehaviour
+	payload := make(map[string]checkForMisbehaviourPayload)
+	inner := checkForMisbehaviourPayload{
+		ClientState:  &c,
+		Misbehaviour: wasmMisbehaviour,
+	}
+	payload[checkForMisbehaviourMessage] = inner
 
 	_, err := call[contractResult](payload, &c, ctx, clientStore)
 	if err != nil {
@@ -195,38 +220,52 @@ func (c ClientState) CheckForMisbehaviour(ctx sdk.Context, cdc codec.BinaryCodec
 	return true
 }
 
+type updateStateOnMisbehaviourPayload struct {
+	ClientState   exported.ClientState   `json:"client_state"`
+	ClientMessage exported.ClientMessage `json:"client_message"`
+}
+
 // UpdateStateOnMisbehaviour should perform appropriate state changes on a client state given that misbehaviour has been detected and verified
 func (c ClientState) UpdateStateOnMisbehaviour(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, clientMsg exported.ClientMessage) {
 	const updateStateOnMisbehaviour = "update_state_on_misbehaviour"
-	payload := make(map[string]map[string]interface{})
-	payload[updateStateOnMisbehaviour] = make(map[string]interface{})
-	inner := payload[updateStateOnMisbehaviour]
-	inner["client_state"] = c
-	inner["client_message"] = clientMsg
-
-	encodedData, err := json.Marshal(payload)
-	if err != nil {
-		return
+	payload := make(map[string]updateStateOnMisbehaviourPayload)
+	inner := updateStateOnMisbehaviourPayload{
+		ClientState:   &c,
+		ClientMessage: clientMsg,
 	}
-	_, err = callContract(c.CodeId, ctx, clientStore, encodedData)
+	payload[updateStateOnMisbehaviour] = inner
+
+	_, err := call[contractResult](payload, &c, ctx, clientStore)
 	if err != nil {
 		panic(err)
 	}
 }
 
+type updateStatePayload struct {
+	ClientMessage clientMessageConcretePayload `json:"client_message"`
+	ClientState   ClientState                  `json:"client_state"`
+}
+
+type clientMessageConcretePayload struct {
+	Header       *Header       `json:"header"`
+	Misbehaviour *Misbehaviour `json:"misbehaviour"`
+}
+
 func (c ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, clientMsg exported.ClientMessage) []exported.Height {
 	const VerifyClientMessage = "update_state"
-	inner := make(map[string]interface{})
-	inner["client_state"] = c
-	clientMsgConcrete := make(map[string]interface{})
+	var clientMsgConcrete clientMessageConcretePayload
 	switch clientMsg := clientMsg.(type) {
 	case *Header:
-		clientMsgConcrete["header"] = clientMsg
+		clientMsgConcrete.Header = clientMsg
 	case *Misbehaviour:
-		clientMsgConcrete["misbehaviour"] = clientMsg
+		clientMsgConcrete.Misbehaviour = clientMsg
 	}
-	inner["client_message"] = clientMsgConcrete
-	payload := make(map[string]map[string]interface{})
+	inner := updateStatePayload{
+		ClientMessage: clientMsgConcrete,
+		ClientState:   c,
+	}
+
+	payload := make(map[string]updateStatePayload)
 	payload[VerifyClientMessage] = inner
 
 	output, err := call[contractResult](payload, &c, ctx, clientStore)
