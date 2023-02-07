@@ -141,7 +141,7 @@ func (cs ClientState) VerifyClientMessage(ctx sdk.Context, cdc codec.BinaryCodec
 	return sdkerrors.Wrap(clienttypes.ErrUpdateClientFailed, "client message verification is unsupported by the localhost client")
 }
 
-// CheckForMisbehaviour is unsupposed by the 09-localhost client type and performs a no-op, returning false.
+// CheckForMisbehaviour is unsupported by the 09-localhost client type and performs a no-op, returning false.
 func (cs ClientState) CheckForMisbehaviour(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, clientMsg exported.ClientMessage) bool {
 	return false
 }
