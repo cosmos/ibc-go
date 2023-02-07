@@ -262,3 +262,8 @@ func (cs ConsensusState) GetTimestamp() uint64 {
 func (cs ConsensusState) ValidateBasic() error {
 	panic("legacy solo machine is deprecated!")
 }
+
+// GetRoot panics!
+func (cs ConsensusState) GetRoot() exported.Root {
+	panic("legacy solo machine is deprecated!")
+}
