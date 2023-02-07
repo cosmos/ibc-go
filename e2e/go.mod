@@ -10,6 +10,7 @@ require (
 	github.com/docker/docker v20.10.19+incompatible
 	github.com/strangelove-ventures/interchaintest/v7 v7.0.0-20230201060741-e0e4e0f9283b
 	github.com/stretchr/testify v1.8.1
+	github.com/tendermint/tendermint v0.37.0-rc2
 	go.uber.org/zap v1.23.0
 	golang.org/x/mod v0.6.0
 	google.golang.org/grpc v1.52.3
@@ -178,7 +179,6 @@ require (
 	github.com/subosito/gotenv v1.4.2 // indirect
 	github.com/syndtr/goleveldb v1.0.1-0.20220614013038-64ee5596c38a // indirect
 	github.com/tendermint/go-amino v0.16.0 // indirect
-	github.com/tendermint/tendermint v0.37.0-rc2 // indirect
 	github.com/tendermint/tm-db v0.6.7 // indirect
 	github.com/tidwall/btree v1.5.2 // indirect
 	github.com/ulikunitz/xz v0.5.8 // indirect
