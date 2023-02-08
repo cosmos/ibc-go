@@ -28,6 +28,9 @@ const (
 
 	// ChannelPrefix is the prefix used when creating a channel identifier
 	ChannelPrefix = "channel-"
+
+	// ExistingChannelIDKeyPrefix is the key prefix for the existing channelID key
+	ExistingChannelIDKeyPrefix = "existingChannelID"
 )
 
 // FormatChannelIdentifier returns the channel identifier with the sequence appended.
@@ -64,4 +67,9 @@ func ParseChannelSequence(channelID string) (uint64, error) {
 // FilteredPortPrefix returns the prefix key for the given port prefix.
 func FilteredPortPrefix(portPrefix string) []byte {
 	return []byte(fmt.Sprintf("%s/%s/%s", host.KeyChannelEndPrefix, host.KeyPortPrefix, portPrefix))
+}
+
+// ExistingChannelIDKey returns the key for the channelID key
+func ExistingChannelIDKey(portID, counterpartyChannelID string) string {
+	return fmt.Sprintf("%s/%s/%s", ExistingChannelIDKeyPrefix, portID, counterpartyChannelID)
 }

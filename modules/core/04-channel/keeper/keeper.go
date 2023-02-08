@@ -390,6 +390,26 @@ func (k Keeper) IterateChannels(ctx sdk.Context, cb func(types.IdentifiedChannel
 	}
 }
 
+// SetExistingChannelID sets the generated channelID from the first successful ChanOpenTry from
+// a given portID and counterparty channelID. This prevents multiple ChanOpenTrys from
+// succeeding for the same INIT attempt.
+func (k Keeper) SetExistingChannelID(ctx sdk.Context, portID, counterpartyChannelID, channelID string) {
+	store := ctx.KVStore(k.storeKey)
+	store.Set([]byte(types.ExistingChannelIDKey(portID, counterpartyChannelID)), []byte(channelID))
+}
+
+// GetExistingChannelID returns the generated channelID for a given portID and counterparty channelID
+func (k Keeper) GetExistingChannelID(ctx sdk.Context, portID, counterpartyChannelID string) string {
+	store := ctx.KVStore(k.storeKey)
+	return string(store.Get([]byte(types.ExistingChannelIDKey(portID, counterpartyChannelID))))
+}
+
+// DeleteExistingChannelID removes the ExistingChannelID mapping from the store
+func (k Keeper) DeleteExistingChannelID(ctx sdk.Context, portID, counterpartyChannelID string) {
+	store := ctx.KVStore(k.storeKey)
+	store.Delete([]byte(types.ExistingChannelIDKey(portID, counterpartyChannelID)))
+}
+
 // GetAllChannelsWithPortPrefix returns all channels with the specified port prefix. If an empty prefix is provided
 // all channels will be returned.
 func (k Keeper) GetAllChannelsWithPortPrefix(ctx sdk.Context, portPrefix string) []types.IdentifiedChannel {

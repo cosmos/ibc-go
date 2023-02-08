@@ -40,4 +40,5 @@ var (
 	ErrInvalidChannelVersion = sdkerrors.Register(SubModuleName, 24, "invalid channel version")
 	ErrPacketNotSent         = sdkerrors.Register(SubModuleName, 25, "packet has not been sent")
 	ErrInvalidTimeout        = sdkerrors.Register(SubModuleName, 26, "invalid packet timeout")
+	ErrRedundantHandshake    = sdkerrors.Register(SubModuleName, 27, "redundant handshake attempt")
 )

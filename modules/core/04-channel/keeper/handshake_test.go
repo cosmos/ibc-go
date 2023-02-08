@@ -237,6 +237,19 @@ func (suite *KeeperTestSuite) TestChanOpenTry() {
 			suite.chainA.CreatePortCapability(suite.chainA.GetSimApp().ScopedIBCMockKeeper, ibctesting.MockPort)
 			portCap = suite.chainA.GetPortCapability(ibctesting.MockPort)
 		}, false},
+		{"previous TRY already successful", func() {
+			suite.coordinator.SetupConnections(path)
+			path.SetChannelOrdered()
+			err := path.EndpointA.ChanOpenInit()
+			suite.Require().NoError(err)
+
+			err = path.EndpointB.ChanOpenTry()
+			suite.Require().NoError(err)
+
+			// redundant ChanOpenTry
+			err = path.EndpointB.ChanOpenTry()
+			suite.Require().Equal(types.ErrRedundantHandshake, err)
+		}, false},
 	}
 
 	for _, tc := range testCases {
@@ -275,6 +288,11 @@ func (suite *KeeperTestSuite) TestChanOpenTry() {
 				)
 				suite.Require().True(ok, "could not retrieve channel capapbility after successful ChanOpenTry")
 				suite.Require().Equal(chanCap.String(), cap.String(), "channel capability is not correct")
+
+				existingID := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetExistingChannelID(
+					suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointB.ChannelID,
+				)
+				suite.Require().Equal(channelID, existingID, "channelID generated was not stored in existingChannelID mapping")
 			} else {
 				suite.Require().Error(err)
 			}
@@ -447,6 +465,11 @@ func (suite *KeeperTestSuite) TestChanOpenAck() {
 
 			if tc.expPass {
 				suite.Require().NoError(err)
+
+				existingID := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetExistingChannelID(
+					suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointB.ChannelID,
+				)
+				suite.Require().Empty(existingID, "existingChannelID mapping not deleted after handshake complete")
 			} else {
 				suite.Require().Error(err)
 			}
@@ -587,6 +610,11 @@ func (suite *KeeperTestSuite) TestChanOpenConfirm() {
 
 			if tc.expPass {
 				suite.Require().NoError(err)
+
+				existingID := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetExistingChannelID(
+					suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointB.ChannelID,
+				)
+				suite.Require().Empty(existingID, "existingChannelID mapping not deleted after handshake complete")
 			} else {
 				suite.Require().Error(err)
 			}
