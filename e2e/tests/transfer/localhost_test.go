@@ -4,10 +4,12 @@ import (
 	"context"
 	"testing"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
@@ -33,6 +35,7 @@ func (s *TransferTestSuite) TestMsgTransfer_Localhost() {
 	var (
 		msgChanOpenInitRes channeltypes.MsgChannelOpenInitResponse
 		msgChanOpenTryRes  channeltypes.MsgChannelOpenTryResponse
+		ack                []byte
 		packet             channeltypes.Packet
 	)
 
@@ -104,26 +107,24 @@ func (s *TransferTestSuite) TestMsgTransfer_Localhost() {
 		s.Require().Equal(channelEndA.GetConnectionHops(), channelEndB.GetConnectionHops())
 	})
 
-	t.Run("send packet - localhost ibc transfer", func(t *testing.T) {
-		txResp, err := s.Transfer(ctx, chainA, userAWallet, transfertypes.PortID, "channel-1", testvalues.DefaultTransferAmount(chainADenom), userAWallet.FormattedAddress(), userBWallet.FormattedAddress(), clienttypes.NewHeight(1, 100), 0, "")
+	t.Run("send packet localhost ibc transfer", func(t *testing.T) {
+		txResp, err := s.Transfer(ctx, chainA, userAWallet, transfertypes.PortID, msgChanOpenInitRes.GetChannelId(), testvalues.DefaultTransferAmount(chainADenom), userAWallet.FormattedAddress(), userBWallet.FormattedAddress(), clienttypes.NewHeight(1, 100), 0, "")
 		s.Require().NoError(err)
 		s.AssertValidTxResponse(txResp)
 
-		// TODO: revisit parsing packet from events
-		// t.Logf("transfer events: %v", txResp.Events)
-		// var events sdk.Events
-		// for _, evt := range txResp.Events {
-		// 	var attributes []sdk.Attribute
-		// 	for _, attr := range evt.GetAttributes() {
-		// 		attributes = append(attributes, sdk.NewAttribute(attr.Key, attr.Value))
-		// 	}
+		var events sdk.Events
+		for _, evt := range txResp.Events {
+			var attributes []sdk.Attribute
+			for _, attr := range evt.GetAttributes() {
+				attributes = append(attributes, sdk.NewAttribute(attr.Key, attr.Value))
+			}
 
-		// 	events.AppendEvent(sdk.NewEvent(evt.GetType(), attributes...))
-		// }
+			events = events.AppendEvent(sdk.NewEvent(evt.GetType(), attributes...))
+		}
 
-		// packet, err = ibctesting.ParsePacketFromEvents(events)
-		// s.Require().NoError(err)
-		// s.Require().NotNil(packet)
+		packet, err = ibctesting.ParsePacketFromEvents(events)
+		s.Require().NoError(err)
+		s.Require().NotNil(packet)
 	})
 
 	t.Run("tokens are escrowed", func(t *testing.T) {
@@ -134,23 +135,30 @@ func (s *TransferTestSuite) TestMsgTransfer_Localhost() {
 		s.Require().Equal(expected, actualBalance)
 	})
 
-	t.Run("recv packet - localhost ibc transfer", func(t *testing.T) {
-		// TODO: currently building the packet manually, should be possible to parse from events
-		packet = channeltypes.NewPacket(transfertypes.NewFungibleTokenPacketData(chainADenom, "10000", userAWallet.FormattedAddress(), userBWallet.FormattedAddress(), "").GetBytes(), 1, "transfer", "channel-1", "transfer", "channel-2", clienttypes.NewHeight(1, 100), 0)
+	t.Run("recv packet localhost ibc transfer", func(t *testing.T) {
 		msgRecvPacket := channeltypes.NewMsgRecvPacket(packet, nil, clienttypes.ZeroHeight(), rlyWallet.FormattedAddress())
 
 		txResp, err := s.BroadcastMessages(ctx, chainA, rlyWallet, msgRecvPacket)
 		s.Require().NoError(err)
 		s.AssertValidTxResponse(txResp)
+
+		var events sdk.Events
+		for _, evt := range txResp.Events {
+			var attributes []sdk.Attribute
+			for _, attr := range evt.GetAttributes() {
+				attributes = append(attributes, sdk.NewAttribute(attr.Key, attr.Value))
+			}
+
+			events = events.AppendEvent(sdk.NewEvent(evt.GetType(), attributes...))
+		}
+
+		ack, err = ibctesting.ParseAckFromEvents(events)
+		s.Require().NoError(err)
+		s.Require().NotNil(ack)
 	})
 
-	t.Run("acknowledge packet - localhost ibc transfer", func(t *testing.T) {
-		// TODO: currently building the packet manually, should be possible to parse from events
-		packet = channeltypes.NewPacket(transfertypes.NewFungibleTokenPacketData(chainADenom, "10000", userAWallet.FormattedAddress(), userBWallet.FormattedAddress(), "").GetBytes(), 1, "transfer", "channel-1", "transfer", "channel-2", clienttypes.NewHeight(1, 100), 0)
-		msgAcknowledgement := channeltypes.NewMsgAcknowledgement(
-			packet, channeltypes.NewResultAcknowledgement([]byte{byte(1)}).Acknowledgement(),
-			nil, clienttypes.ZeroHeight(), rlyWallet.FormattedAddress(),
-		)
+	t.Run("acknowledge packet localhost ibc transfer", func(t *testing.T) {
+		msgAcknowledgement := channeltypes.NewMsgAcknowledgement(packet, ack, nil, clienttypes.ZeroHeight(), rlyWallet.FormattedAddress())
 
 		txResp, err := s.BroadcastMessages(ctx, chainA, rlyWallet, msgAcknowledgement)
 		s.Require().NoError(err)
@@ -158,9 +166,9 @@ func (s *TransferTestSuite) TestMsgTransfer_Localhost() {
 	})
 
 	t.Run("packets are relayed", func(t *testing.T) {
-		s.AssertPacketRelayed(ctx, chainA, transfertypes.PortID, "channel-1", 1)
+		s.AssertPacketRelayed(ctx, chainA, transfertypes.PortID, msgChanOpenInitRes.GetChannelId(), 1)
 
-		ibcToken := testsuite.GetIBCToken(chainADenom, transfertypes.PortID, "channel-2")
+		ibcToken := testsuite.GetIBCToken(chainADenom, transfertypes.PortID, msgChanOpenTryRes.GetChannelId())
 		actualBalance, err := chainA.GetBalance(ctx, userBWallet.FormattedAddress(), ibcToken.IBCDenom())
 		s.Require().NoError(err)
 
