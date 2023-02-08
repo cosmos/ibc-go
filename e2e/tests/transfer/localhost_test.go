@@ -4,8 +4,6 @@ import (
 	"context"
 	"testing"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/gogoproto/proto"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
@@ -32,68 +30,74 @@ func (s *TransferTestSuite) TestMsgTransfer_Localhost() {
 	userAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 	userBWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 
-	var packet channeltypes.Packet
+	var (
+		msgChanOpenInitRes channeltypes.MsgChannelOpenInitResponse
+		msgChanOpenTryRes  channeltypes.MsgChannelOpenTryResponse
+		packet             channeltypes.Packet
+	)
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA), "failed to wait for blocks")
 
 	t.Run("channel open init localhost", func(t *testing.T) {
-		msgChannelOpenInit := channeltypes.NewMsgChannelOpenInit(
+		msgChanOpenInit := channeltypes.NewMsgChannelOpenInit(
 			transfertypes.PortID, transfertypes.Version,
 			channeltypes.UNORDERED, []string{connectiontypes.LocalhostID},
 			transfertypes.PortID, rlyWallet.FormattedAddress(),
 		)
 
-		s.Require().NoError(msgChannelOpenInit.ValidateBasic())
+		s.Require().NoError(msgChanOpenInit.ValidateBasic())
 
-		txResp, err := s.BroadcastMessages(ctx, chainA, rlyWallet, msgChannelOpenInit)
+		txResp, err := s.BroadcastMessages(ctx, chainA, rlyWallet, msgChanOpenInit)
 		s.Require().NoError(err)
 		s.AssertValidTxResponse(txResp)
+
+		s.Require().NoError(testsuite.UnmarshalMsgResponses(txResp, &msgChanOpenInitRes))
 	})
 
 	t.Run("channel open try localhost", func(t *testing.T) {
-		// TODO: parse channel ID from response
-		msgChannelOpenTry := channeltypes.NewMsgChannelOpenTry(
+		msgChanOpenTry := channeltypes.NewMsgChannelOpenTry(
 			transfertypes.PortID, transfertypes.Version,
 			channeltypes.UNORDERED, []string{connectiontypes.LocalhostID},
-			transfertypes.PortID, "channel-1",
+			transfertypes.PortID, msgChanOpenInitRes.GetChannelId(),
 			transfertypes.Version, nil, clienttypes.ZeroHeight(), rlyWallet.FormattedAddress(),
 		)
 
-		txResp, err := s.BroadcastMessages(ctx, chainA, rlyWallet, msgChannelOpenTry)
+		txResp, err := s.BroadcastMessages(ctx, chainA, rlyWallet, msgChanOpenTry)
 		s.Require().NoError(err)
 		s.AssertValidTxResponse(txResp)
+
+		s.Require().NoError(testsuite.UnmarshalMsgResponses(txResp, &msgChanOpenTryRes))
 	})
 
 	t.Run("channel open ack localhost", func(t *testing.T) {
-		// TODO: Parse channel ID from response
-		msgChannelOpenAck := channeltypes.NewMsgChannelOpenAck(
-			transfertypes.PortID, "channel-1",
-			"channel-2", transfertypes.Version,
+		msgChanOpenAck := channeltypes.NewMsgChannelOpenAck(
+			transfertypes.PortID, msgChanOpenInitRes.GetChannelId(),
+			msgChanOpenTryRes.GetChannelId(), transfertypes.Version,
 			nil, clienttypes.ZeroHeight(), rlyWallet.FormattedAddress(),
 		)
 
-		txResp, err := s.BroadcastMessages(ctx, chainA, rlyWallet, msgChannelOpenAck)
+		txResp, err := s.BroadcastMessages(ctx, chainA, rlyWallet, msgChanOpenAck)
 		s.Require().NoError(err)
 		s.AssertValidTxResponse(txResp)
 	})
 
 	t.Run("channel open confirm localhost", func(t *testing.T) {
-		msgChannelOpenConfirm := channeltypes.NewMsgChannelOpenConfirm(
-			transfertypes.PortID, "channel-2",
+		msgChanOpenConfirm := channeltypes.NewMsgChannelOpenConfirm(
+			transfertypes.PortID, msgChanOpenTryRes.GetChannelId(),
 			nil, clienttypes.ZeroHeight(), rlyWallet.FormattedAddress(),
 		)
 
-		txResp, err := s.BroadcastMessages(ctx, chainA, rlyWallet, msgChannelOpenConfirm)
+		txResp, err := s.BroadcastMessages(ctx, chainA, rlyWallet, msgChanOpenConfirm)
 		s.Require().NoError(err)
 		s.AssertValidTxResponse(txResp)
 	})
 
 	t.Run("query localhost transfer channel ends", func(t *testing.T) {
-		channelEndA, err := s.QueryChannel(ctx, chainA, transfertypes.PortID, "channel-1")
+		channelEndA, err := s.QueryChannel(ctx, chainA, transfertypes.PortID, msgChanOpenInitRes.GetChannelId())
 		s.Require().NoError(err)
 		s.Require().NotNil(channelEndA)
 
-		channelEndB, err := s.QueryChannel(ctx, chainA, transfertypes.PortID, "channel-2")
+		channelEndB, err := s.QueryChannel(ctx, chainA, transfertypes.PortID, msgChanOpenTryRes.GetChannelId())
 		s.Require().NoError(err)
 		s.Require().NotNil(channelEndB)
 
@@ -163,22 +167,4 @@ func (s *TransferTestSuite) TestMsgTransfer_Localhost() {
 		expected := testvalues.IBCTransferAmount
 		s.Require().Equal(expected, actualBalance)
 	})
-}
-
-func parseChannelIDFromResponse(res sdk.TxResponse) string {
-	var txMsgData sdk.TxMsgData
-	if err := proto.Unmarshal([]byte(res.Data), &txMsgData); err != nil {
-		panic(err)
-	}
-
-	for _, msgResp := range txMsgData.MsgResponses {
-		switch res := msgResp.GetCachedValue().(type) {
-		case *channeltypes.MsgChannelOpenInitResponse:
-			return res.ChannelId
-		case *channeltypes.MsgChannelOpenTryResponse:
-			// TODO: Add channelID to response - https://github.com/cosmos/ibc-go/pull/3117
-		}
-	}
-
-	return ""
 }
