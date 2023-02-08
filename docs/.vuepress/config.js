@@ -399,6 +399,23 @@ module.exports = {
               ]
             },
             {
+              title: "Localhost",
+              directory: true,
+              path: "/ibc/light-clients/localhost",
+              children: [
+                {
+                  title: "Overview",
+                  directory: false,
+                  path: "/ibc/light-clients/localhost/overview.html",
+                },
+                {
+                  title: "ClientState",
+                  directory: false,
+                  path: "/ibc/light-clients/localhost/client-state.html",
+                },
+              ],
+            },
+            {
               title: "Solomachine",
               directory: true,
               path: "/ibc/light-clients/solomachine",
