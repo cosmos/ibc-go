@@ -276,11 +276,12 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 // trace.
 func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 	var (
-		successAck = channeltypes.NewResultAcknowledgement([]byte{byte(1)})
-		failedAck  = channeltypes.NewErrorAcknowledgement(fmt.Errorf("failed packet transfer"))
-		trace      types.DenomTrace
-		amount     math.Int
-		path       *ibctesting.Path
+		successAck        = channeltypes.NewResultAcknowledgement([]byte{byte(1)})
+		failedAck         = channeltypes.NewErrorAcknowledgement(fmt.Errorf("failed packet transfer"))
+		trace             types.DenomTrace
+		amount            math.Int
+		expectedEscrowAmt sdk.Int
+		path              *ibctesting.Path
 	)
 
 	testCases := []struct {
@@ -292,13 +293,17 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 	}{
 		{"success ack causes no-op", successAck, func() {
 			trace = types.ParseDenomTrace(types.GetPrefixedDenom(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, sdk.DefaultBondDenom))
+			expectedEscrowAmt = sdk.ZeroInt()
 		}, true, true},
 		{"successful refund from source chain", failedAck, func() {
 			escrow := types.GetEscrowAddress(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 			trace = types.ParseDenomTrace(sdk.DefaultBondDenom)
 			coin := sdk.NewCoin(sdk.DefaultBondDenom, amount)
+			expectedEscrowAmt = sdk.ZeroInt()
 
 			suite.Require().NoError(banktestutil.FundAccount(suite.chainA.GetSimApp().BankKeeper, suite.chainA.GetContext(), escrow, sdk.NewCoins(coin)))
+			// store the source token thats about to get ibc'd out
+			suite.chainA.GetSimApp().TransferKeeper.SetIBCOutDenomAmount(suite.chainA.GetContext(), coin.Denom, coin.Amount)
 		}, false, true},
 		{
 			"unsuccessful refund from source", failedAck,
@@ -314,6 +319,8 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 				coin := sdk.NewCoin(trace.IBCDenom(), amount)
 
 				suite.Require().NoError(banktestutil.FundAccount(suite.chainA.GetSimApp().BankKeeper, suite.chainA.GetContext(), escrow, sdk.NewCoins(coin)))
+				// store the source token thats about to get ibc'd out
+				suite.chainA.GetSimApp().TransferKeeper.SetIBCOutDenomAmount(suite.chainA.GetContext(), coin.Denom, coin.Amount)
 			}, false, true,
 		},
 	}
@@ -339,6 +346,9 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 				suite.Require().NoError(err)
 				postCoin := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), trace.IBCDenom())
 				deltaAmount := postCoin.Amount.Sub(preCoin.Amount)
+
+				existingToken := suite.chainA.GetSimApp().TransferKeeper.GetIBCOutDenomAmount(suite.chainA.GetContext(), sdk.DefaultBondDenom)
+				suite.Require().Equal(expectedEscrowAmt, existingToken)
 
 				if tc.success {
 					suite.Require().Equal(int64(0), deltaAmount.Int64(), "successful ack changed balance")
