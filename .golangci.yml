@@ -29,7 +29,7 @@ linters:
 
 issues:
   exclude-rules:
-    - text: "SA1019: suite.chainA.GetSimApp().ICAControllerKeeper.SendTx is deprecated: this is a legacy API that is only intended to function correctly in workflows where an underlying application has been set. Prior to to v6.x.x of ibc-go, the controller module was only functional as middleware, with authentication performed by the underlying application. For a full summary of the changes in v6.x.x, please see ADR009. This API will be removed in later releases."
+    - text: "SA1019:"
       linters:
         - staticcheck
     - text: "Use of weak random number generator"

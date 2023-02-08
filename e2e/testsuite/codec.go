@@ -4,6 +4,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdkcodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	"github.com/cosmos/cosmos-sdk/x/authz"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
@@ -38,6 +39,7 @@ func codecAndEncodingConfig() (*codec.ProtoCodec, simappparams.EncodingConfig) {
 	sdkcodec.RegisterInterfaces(cfg.InterfaceRegistry)
 	grouptypes.RegisterInterfaces(cfg.InterfaceRegistry)
 	proposaltypes.RegisterInterfaces(cfg.InterfaceRegistry)
+	authz.RegisterInterfaces(cfg.InterfaceRegistry)
 	transfertypes.RegisterInterfaces(cfg.InterfaceRegistry)
 	clienttypes.RegisterInterfaces(cfg.InterfaceRegistry)
 
