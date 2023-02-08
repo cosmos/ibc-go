@@ -16,10 +16,10 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/tendermint/tendermint/crypto"
 
-	"github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
-	ibctesting "github.com/cosmos/ibc-go/v6/testing"
+	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
 type TlaBalance struct {
@@ -303,7 +303,7 @@ func (suite *KeeperTestSuite) TestModelBasedRelay() {
 
 		for i, tlaTc := range tlaTestCases {
 			tc := OnRecvPacketTestCaseFromTla(tlaTc)
-			registerDenom := func() {
+			registerDenomFn := func() {
 				denomTrace := types.ParseDenomTrace(tc.packet.Data.Denom)
 				traceHash := denomTrace.Hash()
 				if !suite.chainB.GetSimApp().TransferKeeper.HasDenomTrace(suite.chainB.GetContext(), traceHash) {
@@ -330,7 +330,7 @@ func (suite *KeeperTestSuite) TestModelBasedRelay() {
 					if err != nil {
 						panic("MBT failed to convert sender address")
 					}
-					registerDenom()
+					registerDenomFn()
 					denomTrace := types.ParseDenomTrace(tc.packet.Data.Denom)
 					denom := denomTrace.IBCDenom()
 					err = sdk.ValidateDenom(denom)
@@ -355,14 +355,14 @@ func (suite *KeeperTestSuite) TestModelBasedRelay() {
 				case "OnRecvPacket":
 					err = suite.chainB.GetSimApp().TransferKeeper.OnRecvPacket(suite.chainB.GetContext(), packet, tc.packet.Data)
 				case "OnTimeoutPacket":
-					registerDenom()
+					registerDenomFn()
 					err = suite.chainB.GetSimApp().TransferKeeper.OnTimeoutPacket(suite.chainB.GetContext(), packet, tc.packet.Data)
 				case "OnRecvAcknowledgementResult":
 					err = suite.chainB.GetSimApp().TransferKeeper.OnAcknowledgementPacket(
 						suite.chainB.GetContext(), packet, tc.packet.Data,
 						channeltypes.NewResultAcknowledgement(nil))
 				case "OnRecvAcknowledgementError":
-					registerDenom()
+					registerDenomFn()
 					err = suite.chainB.GetSimApp().TransferKeeper.OnAcknowledgementPacket(
 						suite.chainB.GetContext(), packet, tc.packet.Data,
 						channeltypes.NewErrorAcknowledgement(fmt.Errorf("MBT Error Acknowledgement")))

@@ -5,10 +5,10 @@ import (
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
-	client "github.com/cosmos/ibc-go/v6/modules/core/02-client"
-	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
-	ibctm "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint"
-	ibctesting "github.com/cosmos/ibc-go/v6/testing"
+	client "github.com/cosmos/ibc-go/v7/modules/core/02-client"
+	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
+	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
 func (suite *ClientTestSuite) TestNewClientUpdateProposalHandler() {

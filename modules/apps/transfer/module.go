@@ -16,11 +16,11 @@ import (
 	"github.com/spf13/cobra"
 	abci "github.com/tendermint/tendermint/abci/types"
 
-	"github.com/cosmos/ibc-go/v6/modules/apps/transfer/client/cli"
-	"github.com/cosmos/ibc-go/v6/modules/apps/transfer/keeper"
-	"github.com/cosmos/ibc-go/v6/modules/apps/transfer/simulation"
-	"github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
-	porttypes "github.com/cosmos/ibc-go/v6/modules/core/05-port/types"
+	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/client/cli"
+	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/keeper"
+	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/simulation"
+	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
 )
 
 var (
@@ -146,12 +146,12 @@ func (AppModule) GenerateGenesisState(simState *module.SimulationState) {
 }
 
 // ProposalContents doesn't return any content functions for governance proposals.
-func (AppModule) ProposalContents(_ module.SimulationState) []simtypes.WeightedProposalContent {
+func (AppModule) ProposalContents(_ module.SimulationState) []simtypes.WeightedProposalMsg {
 	return nil
 }
 
 // RandomizedParams creates randomized ibc-transfer param changes for the simulator.
-func (AppModule) RandomizedParams(r *rand.Rand) []simtypes.ParamChange {
+func (AppModule) RandomizedParams(r *rand.Rand) []simtypes.LegacyParamChange {
 	return simulation.ParamChanges(r)
 }
 

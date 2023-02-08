@@ -14,30 +14,32 @@ import (
 	signingtypes "github.com/cosmos/cosmos-sdk/types/tx/signing"
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	"github.com/cosmos/cosmos-sdk/x/authz"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	govtypesv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	grouptypes "github.com/cosmos/cosmos-sdk/x/group"
 	paramsproposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 	intertxtypes "github.com/cosmos/interchain-accounts/x/inter-tx/types"
 	dockerclient "github.com/docker/docker/client"
-	"github.com/strangelove-ventures/ibctest/v6"
-	"github.com/strangelove-ventures/ibctest/v6/chain/cosmos"
-	"github.com/strangelove-ventures/ibctest/v6/ibc"
-	"github.com/strangelove-ventures/ibctest/v6/testreporter"
-	test "github.com/strangelove-ventures/ibctest/v6/testutil"
+	interchaintest "github.com/strangelove-ventures/interchaintest/v7"
+	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
+	"github.com/strangelove-ventures/interchaintest/v7/ibc"
+	"github.com/strangelove-ventures/interchaintest/v7/testreporter"
+	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
+	"github.com/cosmos/ibc-go/e2e/semverutil"
 	"github.com/cosmos/ibc-go/e2e/testconfig"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
-	controllertypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/controller/types"
-	feetypes "github.com/cosmos/ibc-go/v6/modules/apps/29-fee/types"
-	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
+	controllertypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
+	feetypes "github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
+	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 )
 
 const (
@@ -84,6 +86,7 @@ type GRPCClients struct {
 	GroupsQueryClient grouptypes.QueryClient
 	ParamsQueryClient paramsproposaltypes.QueryClient
 	AuthQueryClient   authtypes.QueryClient
+	AuthZQueryClient  authz.QueryClient
 }
 
 // path is a pairing of two chains which will be used in a test.
@@ -131,11 +134,11 @@ func (s *E2ETestSuite) SetupChainsRelayerAndChannel(ctx context.Context, channel
 		opt(&channelOptions)
 	}
 
-	ic := ibctest.NewInterchain().
+	ic := interchaintest.NewInterchain().
 		AddChain(chainA).
 		AddChain(chainB).
 		AddRelayer(r, "r").
-		AddLink(ibctest.InterchainLink{
+		AddLink(interchaintest.InterchainLink{
 			Chain1:            chainA,
 			Chain2:            chainB,
 			Relayer:           r,
@@ -144,7 +147,7 @@ func (s *E2ETestSuite) SetupChainsRelayerAndChannel(ctx context.Context, channel
 		})
 
 	eRep := s.GetRelayerExecReporter()
-	s.Require().NoError(ic.Build(ctx, eRep, ibctest.InterchainBuildOptions{
+	s.Require().NoError(ic.Build(ctx, eRep, interchaintest.InterchainBuildOptions{
 		TestName:  s.T().Name(),
 		Client:    s.DockerClient,
 		NetworkID: s.network,
@@ -229,24 +232,9 @@ func (s *E2ETestSuite) GetChains(chainOpts ...testconfig.ChainOptionConfiguratio
 	return path.chainA, path.chainB
 }
 
-// TODO: remove this type once the broadcast user interface aligns with ibc.Wallet
-type broadcastUser struct {
-	ibc.Wallet
-}
-
-// FormattedAddressWithPrefix implement the broadcast user interface, the FormattedAddress
-// function already includes the correct prefix.
-func (b *broadcastUser) FormattedAddressWithPrefix(prefix string) string {
-	return b.FormattedAddress()
-}
-
 // BroadcastMessages broadcasts the provided messages to the given chain and signs them on behalf of the provided user.
 // Once the broadcast response is returned, we wait for a few blocks to be created on both chain A and chain B.
 func (s *E2ETestSuite) BroadcastMessages(ctx context.Context, chain *cosmos.CosmosChain, user ibc.Wallet, msgs ...sdk.Msg) (sdk.TxResponse, error) {
-
-	// wrap the user so it is a valid implementation of broadcast user.
-	b := broadcastUser{Wallet: user}
-
 	broadcaster := cosmos.NewBroadcaster(s.T(), chain)
 
 	broadcaster.ConfigureClientContextOptions(func(clientContext client.Context) client.Context {
@@ -260,7 +248,7 @@ func (s *E2ETestSuite) BroadcastMessages(ctx context.Context, chain *cosmos.Cosm
 		return factory.WithGas(DefaultGasValue)
 	})
 
-	resp, err := cosmos.BroadcastTx(ctx, broadcaster, &b, msgs...)
+	resp, err := cosmos.BroadcastTx(ctx, broadcaster, user, msgs...)
 	if err != nil {
 		return sdk.TxResponse{}, err
 	}
@@ -350,13 +338,13 @@ func (s *E2ETestSuite) StopRelayer(ctx context.Context, relayer ibc.Relayer) {
 // CreateUserOnChainA creates a user with the given amount of funds on chain A.
 func (s *E2ETestSuite) CreateUserOnChainA(ctx context.Context, amount int64) ibc.Wallet {
 	chainA, _ := s.GetChains()
-	return ibctest.GetAndFundTestUsers(s.T(), ctx, strings.ReplaceAll(s.T().Name(), " ", "-"), amount, chainA)[0]
+	return interchaintest.GetAndFundTestUsers(s.T(), ctx, strings.ReplaceAll(s.T().Name(), " ", "-"), amount, chainA)[0]
 }
 
 // CreateUserOnChainB creates a user with the given amount of funds on chain B.
 func (s *E2ETestSuite) CreateUserOnChainB(ctx context.Context, amount int64) ibc.Wallet {
 	_, chainB := s.GetChains()
-	return ibctest.GetAndFundTestUsers(s.T(), ctx, strings.ReplaceAll(s.T().Name(), " ", "-"), amount, chainB)[0]
+	return interchaintest.GetAndFundTestUsers(s.T(), ctx, strings.ReplaceAll(s.T().Name(), " ", "-"), amount, chainB)[0]
 }
 
 // GetChainANativeBalance gets the balance of a given user on chain A.
@@ -408,6 +396,7 @@ func (s *E2ETestSuite) InitGRPCClients(chain *cosmos.CosmosChain) {
 		GroupsQueryClient:  grouptypes.NewQueryClient(grpcConn),
 		ParamsQueryClient:  paramsproposaltypes.NewQueryClient(grpcConn),
 		AuthQueryClient:    authtypes.NewQueryClient(grpcConn),
+		AuthZQueryClient:   authz.NewQueryClient(grpcConn),
 	}
 }
 
@@ -434,7 +423,7 @@ func (s *E2ETestSuite) AssertPacketRelayed(ctx context.Context, chain *cosmos.Co
 // createCosmosChains creates two separate chains in docker containers.
 // test and can be retrieved with GetChains.
 func (s *E2ETestSuite) createCosmosChains(chainOptions testconfig.ChainOptions) (*cosmos.CosmosChain, *cosmos.CosmosChain) {
-	client, network := ibctest.DockerSetup(s.T())
+	client, network := interchaintest.DockerSetup(s.T())
 
 	s.logger = zap.NewExample()
 	s.DockerClient = client
@@ -442,7 +431,7 @@ func (s *E2ETestSuite) createCosmosChains(chainOptions testconfig.ChainOptions) 
 
 	logger := zaptest.NewLogger(s.T())
 
-	numValidators, numFullNodes := 4, 1
+	numValidators, numFullNodes := getValidatorsAndFullNodes()
 
 	chainA := cosmos.NewCosmosChain(s.T().Name(), *chainOptions.ChainAConfig, numValidators, numFullNodes, logger)
 	chainB := cosmos.NewCosmosChain(s.T().Name(), *chainOptions.ChainBConfig, numValidators, numFullNodes, logger)
@@ -508,6 +497,11 @@ func (s *E2ETestSuite) ExecuteGovProposal(ctx context.Context, chain *cosmos.Cos
 	s.Require().Equal(govtypesv1beta1.StatusPassed, proposal.Status)
 }
 
+// govv1ProposalTitleAndSummary represents the releases that support the new title and summary fields.
+var govv1ProposalTitleAndSummary = semverutil.FeatureReleases{
+	MajorVersion: "v7",
+}
+
 // ExecuteGovProposalV1 submits a governance proposal using the provided user and message and uses all validators
 // to vote yes on the proposal. It ensures the proposal successfully passes.
 func (s *E2ETestSuite) ExecuteGovProposalV1(ctx context.Context, msg sdk.Msg, chain *cosmos.CosmosChain, user ibc.Wallet, proposalID uint64) {
@@ -517,6 +511,11 @@ func (s *E2ETestSuite) ExecuteGovProposalV1(ctx context.Context, msg sdk.Msg, ch
 	msgs := []sdk.Msg{msg}
 	msgSubmitProposal, err := govtypesv1.NewMsgSubmitProposal(msgs, sdk.NewCoins(sdk.NewCoin(chain.Config().Denom, govtypesv1.DefaultMinDepositTokens)), sender.String(), "", fmt.Sprintf("e2e gov proposal: %d", proposalID), fmt.Sprintf("executing gov proposal %d", proposalID))
 	s.Require().NoError(err)
+
+	if !govv1ProposalTitleAndSummary.IsSupported(chain.Nodes()[0].Image.Version) {
+		msgSubmitProposal.Title = ""
+		msgSubmitProposal.Summary = ""
+	}
 
 	resp, err := s.BroadcastMessages(ctx, chain, user, msgSubmitProposal)
 	s.AssertValidTxResponse(resp)
@@ -556,7 +555,32 @@ func (s *E2ETestSuite) QueryModuleAccountAddress(ctx context.Context, moduleName
 	return moduleAccount.GetAddress(), nil
 }
 
+// QueryGranterGrants returns all GrantAuthorizations for the given granterAddress.
+func (s *E2ETestSuite) QueryGranterGrants(ctx context.Context, chain *cosmos.CosmosChain, granterAddress string) ([]*authz.GrantAuthorization, error) {
+	authzClient := s.GetChainGRCPClients(chain).AuthZQueryClient
+	queryRequest := &authz.QueryGranterGrantsRequest{
+		Granter: granterAddress,
+	}
+
+	grants, err := authzClient.GranterGrants(ctx, queryRequest)
+	if err != nil {
+		return nil, err
+	}
+
+	return grants.Grants, nil
+}
+
 // GetIBCToken returns the denomination of the full token denom sent to the receiving channel
 func GetIBCToken(fullTokenDenom string, portID, channelID string) transfertypes.DenomTrace {
 	return transfertypes.ParseDenomTrace(fmt.Sprintf("%s/%s/%s", portID, channelID, fullTokenDenom))
+}
+
+// getValidatorsAndFullNodes returns the number of validators and full nodes respectively that should be used for
+// the test. If the test is running in CI, more nodes are used, when running locally a single node is used to
+// use less resources and allow the tests to run faster.
+func getValidatorsAndFullNodes() (int, int) {
+	if testconfig.IsCI() {
+		return 4, 1
+	}
+	return 1, 0
 }
