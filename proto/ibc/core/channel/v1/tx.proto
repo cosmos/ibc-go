@@ -92,7 +92,8 @@ message MsgChannelOpenTry {
 
 // MsgChannelOpenTryResponse defines the Msg/ChannelOpenTry response type.
 message MsgChannelOpenTryResponse {
-  string version = 1;
+  string version    = 1;
+  string channel_id = 2 [(gogoproto.moretags) = "yaml:\"channel_id\""];
 }
 
 // MsgChannelOpenAck defines a msg sent by a Relayer to Chain A to acknowledge

@@ -393,7 +393,7 @@ func (suite *LocalhostTestSuite) TestVerifyNonMembership() {
 
 func (suite *LocalhostTestSuite) TestVerifyClientMessage() {
 	clientState := localhost.NewClientState(clienttypes.NewHeight(1, 10))
-	suite.Require().Nil(clientState.VerifyClientMessage(suite.chain.GetContext(), nil, nil, nil))
+	suite.Require().Error(clientState.VerifyClientMessage(suite.chain.GetContext(), nil, nil, nil))
 }
 
 func (suite *LocalhostTestSuite) TestVerifyCheckForMisbehaviour() {
