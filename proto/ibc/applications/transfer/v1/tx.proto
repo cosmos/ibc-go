@@ -12,6 +12,9 @@ import "ibc/core/client/v1/client.proto";
 service Msg {
   // Transfer defines a rpc handler method for MsgTransfer.
   rpc Transfer(MsgTransfer) returns (MsgTransferResponse);
+
+  // RegisterChain defines a rpc handler method for MsgRegisterChain.
+  rpc RegisterChain(MsgRegisterChain) returns (MsgRegisterChainResponse);
 }
 
 // MsgTransfer defines a msg to transfer fungible tokens (i.e Coins) between
@@ -47,3 +50,16 @@ message MsgTransferResponse {
   // sequence number of the transfer packet sent
   uint64 sequence = 1;
 }
+
+// MsgRegisterChain defines a msg to register a chain with the transfer module.
+message MsgRegisterChain {
+  // the chain id of the chain to be registered
+  string chain_id = 1;
+  // the port of the chain to be registered
+  string port = 2;
+  // the channel of the chain to be registered
+  string channel = 3;
+}
+
+// MsgRegisterChainResponse defines the Msg/RegisterChain response type.
+message MsgRegisterChainResponse {}

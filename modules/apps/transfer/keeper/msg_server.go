@@ -58,3 +58,12 @@ func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.
 
 	return &types.MsgTransferResponse{Sequence: sequence}, nil
 }
+
+func (k Keeper) RegisterChain(goCtx context.Context, msg *types.MsgRegisterChain) (*types.MsgRegisterChainResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	k.SetChainToTuple(ctx, msg.ChainId, msg.Channel, msg.Port)
+	k.SetTupleToChain(ctx, msg.ChainId, msg.Channel, msg.Port)
+
+	return &types.MsgRegisterChainResponse{}, nil
+}

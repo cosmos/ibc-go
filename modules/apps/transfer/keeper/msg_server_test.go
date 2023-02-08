@@ -125,3 +125,44 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 		})
 	}
 }
+
+func (suite *KeeperTestSuite) TestRegisterChain() {
+	var (
+		msg *types.MsgRegisterChain
+	)
+
+	testCases := []struct {
+		description string
+		malleate    func()
+	}{
+		{
+			"success",
+			func() {
+				msg = types.NewMsgRegisterChain("test-chain", "channel-0", "transfer")
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(tc.description, func() {
+			suite.SetupTest()
+
+			tc.malleate()
+
+			ctx := suite.chainA.GetContext()
+			res, err := suite.chainA.GetSimApp().TransferKeeper.RegisterChain(sdk.WrapSDKContext(ctx), msg)
+
+			suite.Require().NoError(err)
+			suite.Require().NotNil(res)
+
+			chain, err := suite.chainA.GetSimApp().TransferKeeper.GetTupleToChain(ctx, msg.Channel, msg.Port)
+			suite.Require().NoError(err)
+			suite.Require().Equal(msg.ChainId, chain)
+
+			channel, port, err := suite.chainA.GetSimApp().TransferKeeper.GetChainToTuple(ctx, msg.ChainId)
+			suite.Require().NoError(err)
+			suite.Require().Equal(msg.Channel, channel)
+			suite.Require().Equal(msg.Port, port)
+		})
+	}
+}

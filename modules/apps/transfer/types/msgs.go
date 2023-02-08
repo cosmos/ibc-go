@@ -77,3 +77,32 @@ func (msg MsgTransfer) GetSigners() []sdk.AccAddress {
 	}
 	return []sdk.AccAddress{signer}
 }
+
+// NewMsgRegisterChain creates a new MsgRegisterChain instance
+func NewMsgRegisterChain(port, channel, chainID string) *MsgRegisterChain {
+	return &MsgRegisterChain{
+		Port:    port,
+		Channel: channel,
+		ChainId: chainID,
+	}
+}
+
+// Route implements sdk.Msg
+func (MsgRegisterChain) Route() string {
+	return RouterKey
+}
+
+// ValidateBasic performs a basic check of the MsgRegisterChain fields.
+func (msg MsgRegisterChain) ValidateBasic() error {
+	return nil
+}
+
+// GetSignBytes implements sdk.Msg.
+func (msg MsgRegisterChain) GetSignBytes() []byte {
+	return sdk.MustSortJSON(AminoCdc.MustMarshalJSON(&msg))
+}
+
+// GetSigners implements sdk.Msg
+func (msg MsgRegisterChain) GetSigners() []sdk.AccAddress {
+	return []sdk.AccAddress{}
+}
