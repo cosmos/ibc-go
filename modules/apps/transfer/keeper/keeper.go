@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"fmt"
-
 	tmbytes "github.com/cometbft/cometbft/libs/bytes"
 	"github.com/cometbft/cometbft/libs/log"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -171,8 +169,8 @@ func (k Keeper) GetIBCOutDenomAmount(ctx sdk.Context, denom string) sdk.Int {
 
 // SetIBCOutDenomAmount stores the source tokens about to get IBC'd out.
 func (k Keeper) SetIBCOutDenomAmount(ctx sdk.Context, denom string, amount sdk.Int) error {
-	if amount.LTE(sdk.ZeroInt()) {
-		return fmt.Errorf("amount cannot be negative.")
+	if amount.LT(sdk.ZeroInt()) {
+		panic("amount cannot be negative.")
 	}
 
 	store := ctx.KVStore(k.storeKey)

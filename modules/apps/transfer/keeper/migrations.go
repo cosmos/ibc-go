@@ -56,29 +56,34 @@ func (m Migrator) MigrateTraces(ctx sdk.Context) error {
 
 // MigrateTotalEscrowOut migrates the total escrow amount to calculate total IBC'd out.
 func (m Migrator) MigrateTotalEscrowOut(ctx sdk.Context) error {
-	getExistingChannels := m.keeper.channelKeeper.GetAllChannelsWithPortPrefix(ctx, types.PortID)
+	var nativeTokens = make(map[string]int64)
 
-	var nativeDenom string
-	escrowAmount := sdk.ZeroInt()
-
-	for _, channel := range getExistingChannels {
+	transferChannels := m.keeper.channelKeeper.GetAllChannelsWithPortPrefix(ctx, types.PortID)
+	for _, channel := range transferChannels {
 		escrowAddress := types.GetEscrowAddress(types.PortID, channel.ChannelId)
 		getEscrowBalances := m.keeper.bankKeeper.GetAllBalances(ctx, escrowAddress)
 
 		for _, escrowBalance := range getEscrowBalances {
-			if !strings.Contains(escrowBalance.Denom, "ibc") {
-				// native tokens
-				nativeDenom = escrowBalance.Denom
-				escrowAmount = escrowAmount.Add(escrowBalance.Amount)
+			// Denom possibilities:
+			// - "atom" = native denom
+			// - "ibc/atom" = non native denom
+			// - "atom/ibc/osmo" = native denom
+
+			denomSplit := strings.SplitN(escrowBalance.Denom, "/", 2)
+			if denomSplit[0] != "ibc" || len(denomSplit) == 1 {
+				// native denom
+				escrowAmount := sdk.NewInt(nativeTokens[escrowBalance.Denom]).Add(escrowBalance.Amount).Int64()
+				nativeTokens[escrowBalance.Denom] = escrowAmount
 			}
 		}
 	}
 
-	if len(nativeDenom) == 0 {
-		return fmt.Errorf("invalid native denom")
+	if len(nativeTokens) != 0 {
+		for denom, amount := range nativeTokens {
+			m.keeper.SetIBCOutDenomAmount(ctx, denom, sdk.NewInt(amount))
+		}
 	}
 
-	m.keeper.SetIBCOutDenomAmount(ctx, nativeDenom, escrowAmount)
 	return nil
 }
 

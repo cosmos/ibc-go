@@ -171,10 +171,10 @@ func GetCmdQueryDenomHash() *cobra.Command {
 // GetCmdQueryDenomHash defines the command to query a denomination hash from a given trace.
 func GetCmdQueryTotalEscrowForDenom() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "token-out [denom]",
-		Short:   "Query the total source chain tokens that has been ibc'd out",
-		Long:    "Query the total source chain tokens that has been ibc'd out",
-		Example: fmt.Sprintf("%s query ibc-transfer token-out uosmo", version.AppName),
+		Use:     "token-escrow [denom]",
+		Short:   "Query the total amount of tokens of a native denom in escrow",
+		Long:    "Query the total amount of tokens of a native denom in escrow",
+		Example: fmt.Sprintf("%s query ibc-transfer token-escrow uosmo", version.AppName),
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
@@ -184,11 +184,11 @@ func GetCmdQueryTotalEscrowForDenom() *cobra.Command {
 
 			queryClient := types.NewQueryClient(clientCtx)
 
-			req := &types.QueryTotalNativeIBCOutRequest{
+			req := &types.QueryTotalEscrowFormDenomRequest{
 				Denom: args[0],
 			}
 
-			res, err := queryClient.TotalNativeIBCOut(cmd.Context(), req)
+			res, err := queryClient.TotalEscrowForDenom(cmd.Context(), req)
 			if err != nil {
 				return err
 			}

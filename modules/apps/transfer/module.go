@@ -107,6 +107,10 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	if err := cfg.RegisterMigration(types.ModuleName, 1, m.MigrateTraces); err != nil {
 		panic(fmt.Sprintf("failed to migrate transfer app from version 1 to 2: %v", err))
 	}
+
+	if err := cfg.RegisterMigration(types.ModuleName, 2, m.MigrateTotalEscrowOut); err != nil {
+		panic(fmt.Sprintf("failed to migrate total escrow amount: %v", err))
+	}
 }
 
 // InitGenesis performs genesis initialization for the ibc-transfer module. It returns

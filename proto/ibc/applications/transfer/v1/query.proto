@@ -36,9 +36,9 @@ service Query {
     option (google.api.http).get = "/ibc/apps/transfer/v1/channels/{channel_id}/ports/{port_id}/escrow_address";
   }
 
-  // TotalNativeIBCOut returns the total native token that's IBC'd out.
-  rpc TotalNativeIBCOut(QueryTotalNativeIBCOutRequest) returns (QueryTotalNativeIBCOutResponse) {
-    option (google.api.http).get = "/ibc/apps/transfer/v1/total_native_ibc_out/{denom}";
+  // TotalEscrowForDenom returns the total amount of tokens of a native denom in escrow.
+  rpc TotalEscrowForDenom(QueryTotalEscrowFormDenomRequest) returns (QueryTotalEscrowForDenomResponse) {
+    option (google.api.http).get = "/ibc/apps/transfer/v1/total_escrow/{denom}";
   }
 }
 
@@ -110,12 +110,11 @@ message QueryEscrowAddressResponse {
 }
 
 // QueryTotalNativeIBCOut is the request type for TotalNativeIBCOut RPC method.
-message QueryTotalNativeIBCOutRequest{
+message QueryTotalEscrowFormDenomRequest {
   string denom = 1;
 }
 
-
 // TotalNativeIBCOutResponse is the response type for TotalNativeIBCOut RPC method.
-message QueryTotalNativeIBCOutResponse{
+message QueryTotalEscrowForDenomResponse {
   int64 amount = 1;
 }

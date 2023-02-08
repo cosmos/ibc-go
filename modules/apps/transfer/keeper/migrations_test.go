@@ -4,7 +4,9 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	banktestutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
 	transferkeeper "github.com/cosmos/ibc-go/v7/modules/apps/transfer/keeper"
+	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 )
 
@@ -128,26 +130,44 @@ func (suite *KeeperTestSuite) TestMigrateTotalEscrowOut() {
 		expectedCoin sdk.Coin
 	}{
 		{
-			msg: "Success: account contains native denom",
+			msg: "Success: chain contains  native denom",
 			malleate: func() {
-				suite.chainA.GetSimApp().TransferKeeper.SetIBCOutDenomAmount(
-					suite.chainA.GetContext(),
-					sdk.DefaultBondDenom,
-					sdk.NewInt(100_000_000),
+				path := NewTransferPath(suite.chainA, suite.chainB)
+				suite.coordinator.Setup(path)
+				coin := sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100))
+				msg := types.NewMsgTransfer(
+					path.EndpointA.ChannelConfig.PortID,
+					path.EndpointA.ChannelID,
+					coin, suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(),
+					suite.chainB.GetTimeoutHeight(), 0, "memo",
 				)
+
+				ctx := suite.chainA.GetContext()
+				_, err := suite.chainA.GetSimApp().TransferKeeper.Transfer(sdk.WrapSDKContext(ctx), msg)
+				suite.Require().NoError(err)
 			},
-			expectedCoin: sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100_000_000)),
+			expectedCoin: sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100)),
 		},
 		{
-			msg: "failure: amount doesnot contain native denom",
+			msg: "Success: chain contains non native denom",
 			malleate: func() {
-				suite.chainA.GetSimApp().TransferKeeper.SetIBCOutDenomAmount(
-					suite.chainA.GetContext(),
-					"ibc/stake",
-					sdk.NewInt(100_000_000),
+				path := NewTransferPath(suite.chainA, suite.chainB)
+				suite.coordinator.Setup(path)
+				coin := sdk.NewCoin("IBC/27394FB092D2ECCD56123C74F36E4C1F926001CEADA9CA97EA622B25F41E5EB2", sdk.NewInt(100))
+				banktestutil.FundAccount(suite.chainA.GetSimApp().BankKeeper, suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), sdk.NewCoins(coin))
+
+				msg := types.NewMsgTransfer(
+					path.EndpointA.ChannelConfig.PortID,
+					path.EndpointA.ChannelID,
+					coin, suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(),
+					suite.chainB.GetTimeoutHeight(), 0, "memo",
 				)
+
+				ctx := suite.chainA.GetContext()
+				_, err := suite.chainA.GetSimApp().TransferKeeper.Transfer(sdk.WrapSDKContext(ctx), msg)
+				suite.Require().NoError(err)
 			},
-			expectedCoin: sdk.NewCoin(sdk.DefaultBondDenom, sdk.ZeroInt()),
+			expectedCoin: sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(0)),
 		},
 	}
 

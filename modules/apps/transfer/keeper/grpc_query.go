@@ -122,8 +122,8 @@ func (q Keeper) EscrowAddress(c context.Context, req *types.QueryEscrowAddressRe
 	}, nil
 }
 
-// TotalNativeIBCOut implements the TotalNativeIBCOut gRPC method.
-func (q Keeper) TotalNativeIBCOut(c context.Context, req *types.QueryTotalNativeIBCOutRequest) (*types.QueryTotalNativeIBCOutResponse, error) {
+// TotalEscrowForDenom implements the TotalEscrowForDenom gRPC method.
+func (q Keeper) TotalEscrowForDenom(c context.Context, req *types.QueryTotalEscrowFormDenomRequest) (*types.QueryTotalEscrowForDenomResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
@@ -131,7 +131,7 @@ func (q Keeper) TotalNativeIBCOut(c context.Context, req *types.QueryTotalNative
 	ctx := sdk.UnwrapSDKContext(c)
 	denomAmount := q.GetIBCOutDenomAmount(ctx, req.Denom)
 
-	return &types.QueryTotalNativeIBCOutResponse{
+	return &types.QueryTotalEscrowForDenomResponse{
 		Amount: denomAmount.Int64(),
 	}, nil
 }

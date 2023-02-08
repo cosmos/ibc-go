@@ -243,7 +243,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 		existingToken := k.GetIBCOutDenomAmount(ctx, token.Denom)
 		existingTokenWithNewTokens := existingToken.Sub(token.Amount)
 
-		// store the token about to be IBC'd Out here
+		// store the token about to be IBC'd Out
 		k.SetIBCOutDenomAmount(ctx, token.GetDenom(), existingTokenWithNewTokens)
 
 		defer func() {

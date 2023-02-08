@@ -155,10 +155,11 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 // malleate function allows for testing invalid cases.
 func (suite *KeeperTestSuite) TestOnRecvPacket() {
 	var (
-		trace    types.DenomTrace
-		amount   math.Int
-		receiver string
-		memo     string
+		trace             types.DenomTrace
+		amount            math.Int
+		receiver          string
+		expectedEscrowAmt sdk.Int
+		memo              string
 	)
 
 	testCases := []struct {
@@ -167,11 +168,15 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 		recvIsSource bool // the receiving chain is the source of the coin originally
 		expPass      bool
 	}{
-		{"success receive on source chain", func() {}, true, true},
+		{"success receive on source chain", func() {
+			expectedEscrowAmt = sdk.ZeroInt()
+		}, true, true},
 		{"success receive on source chain with memo", func() {
 			memo = "memo"
+			expectedEscrowAmt = sdk.ZeroInt()
 		}, true, true},
-		{"success receive with coin from another chain as source", func() {}, false, true},
+		{"success receive with coin from another chain as source", func() {
+		}, false, true},
 		{"success receive with coin from another chain as source with memo", func() {
 			memo = "memo"
 		}, false, true},
@@ -254,6 +259,10 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 
 			if tc.expPass {
 				suite.Require().NoError(err)
+				if tc.recvIsSource {
+					existingToken := suite.chainA.GetSimApp().TransferKeeper.GetIBCOutDenomAmount(suite.chainA.GetContext(), sdk.DefaultBondDenom)
+					suite.Require().Equal(expectedEscrowAmt, existingToken)
+				}
 			} else {
 				suite.Require().Error(err)
 			}
@@ -350,10 +359,11 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 // so the refunds are occurring on chainA.
 func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 	var (
-		trace  types.DenomTrace
-		path   *ibctesting.Path
-		amount math.Int
-		sender string
+		trace             types.DenomTrace
+		path              *ibctesting.Path
+		amount            math.Int
+		expectedEscrowAmt sdk.Int
+		sender            string
 	)
 
 	testCases := []struct {
@@ -367,8 +377,12 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 				escrow := types.GetEscrowAddress(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 				trace = types.ParseDenomTrace(sdk.DefaultBondDenom)
 				coin := sdk.NewCoin(trace.IBCDenom(), amount)
+				expectedEscrowAmt = sdk.ZeroInt()
 
+				// funds the escrow account to have balance
 				suite.Require().NoError(banktestutil.FundAccount(suite.chainA.GetSimApp().BankKeeper, suite.chainA.GetContext(), escrow, sdk.NewCoins(coin)))
+				// store the source token thats about to get ibc'd out
+				suite.chainA.GetSimApp().TransferKeeper.SetIBCOutDenomAmount(suite.chainA.GetContext(), coin.Denom, coin.Amount)
 			}, true,
 		},
 		{
@@ -377,8 +391,12 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 				escrow := types.GetEscrowAddress(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 				trace = types.ParseDenomTrace(types.GetPrefixedDenom(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, sdk.DefaultBondDenom))
 				coin := sdk.NewCoin(trace.IBCDenom(), amount)
+				expectedEscrowAmt = sdk.ZeroInt()
 
+				// funds the escrow account to have balance
 				suite.Require().NoError(banktestutil.FundAccount(suite.chainA.GetSimApp().BankKeeper, suite.chainA.GetContext(), escrow, sdk.NewCoins(coin)))
+				// store the source token thats about to get ibc'd out
+				suite.chainA.GetSimApp().TransferKeeper.SetIBCOutDenomAmount(suite.chainA.GetContext(), coin.Denom, coin.Amount)
 			}, true,
 		},
 		{
@@ -429,6 +447,9 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 			if tc.expPass {
 				suite.Require().NoError(err)
 				suite.Require().Equal(amount.Int64(), deltaAmount.Int64(), "successful timeout did not trigger refund")
+
+				existingToken := suite.chainA.GetSimApp().TransferKeeper.GetIBCOutDenomAmount(suite.chainA.GetContext(), sdk.DefaultBondDenom)
+				suite.Require().Equal(expectedEscrowAmt, existingToken)
 			} else {
 				suite.Require().Error(err)
 			}
