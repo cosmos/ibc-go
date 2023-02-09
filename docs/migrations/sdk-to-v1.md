@@ -47,18 +47,18 @@ The new chain binary will need to run migrations in the upgrade handler. The fro
 Ex:
 ```go
 app.UpgradeKeeper.SetUpgradeHandler("my-upgrade-proposal",
-        func(ctx sdk.Context, _ upgradetypes.Plan, _ module.VersionMap) (module.VersionMap, error) {
-            // set max expected block time parameter. Replace the default with your expected value
-            // https://github.com/cosmos/ibc-go/blob/release/v1.0.x/docs/ibc/proto-docs.md#params-2
-            app.IBCKeeper.ConnectionKeeper.SetParams(ctx, ibcconnectiontypes.DefaultParams())
+  func(ctx sdk.Context, _ upgradetypes.Plan, _ module.VersionMap) (module.VersionMap, error) {
+    // set max expected block time parameter. Replace the default with your expected value
+    // https://github.com/cosmos/ibc-go/blob/release/v1.0.x/docs/ibc/proto-docs.md#params-2
+    app.IBCKeeper.ConnectionKeeper.SetParams(ctx, ibcconnectiontypes.DefaultParams())
 
-            fromVM := map[string]uint64{
-                ... // other modules
-                "ibc":          1,
-                ... 
-            }   
-            return app.mm.RunMigrations(ctx, app.configurator, fromVM)
-        })      
+    fromVM := map[string]uint64{
+      ... // other modules
+      "ibc":          1,
+      ... 
+    }   
+    return app.mm.RunMigrations(ctx, app.configurator, fromVM)
+  })      
 
 ```
 
@@ -69,8 +69,8 @@ To perform genesis migrations, the following code must be added to your existing
 ```go
 // add imports as necessary
 import (
-    ibcv100 "github.com/cosmos/ibc-go/modules/core/legacy/v100"
-    ibchost "github.com/cosmos/ibc-go/modules/core/24-host"
+  ibcv100 "github.com/cosmos/ibc-go/modules/core/legacy/v100"
+  ibchost "github.com/cosmos/ibc-go/modules/core/24-host"
 )
 
 ...
@@ -80,7 +80,7 @@ import (
 // https://github.com/cosmos/ibc-go/blob/release/v1.0.x/docs/ibc/proto-docs.md#params-2
 newGenState, err = ibcv100.MigrateGenesis(newGenState, clientCtx, *genDoc, expectedTimePerBlock)
 if err != nil {
-    return err 
+  return err 
 }
 ```
 
@@ -92,11 +92,11 @@ if err != nil {
 The IBC Keeper now takes in the Upgrade Keeper. Please add the chains' Upgrade Keeper after the Staking Keeper:
 
 ```diff
-        // Create IBC Keeper
-        app.IBCKeeper = ibckeeper.NewKeeper(
--               appCodec, keys[ibchost.StoreKey], app.GetSubspace(ibchost.ModuleName), app.StakingKeeper, scopedIBCKeeper,
-+               appCodec, keys[ibchost.StoreKey], app.GetSubspace(ibchost.ModuleName), app.StakingKeeper, app.UpgradeKeeper, scopedIBCKeeper,
-        )
+  // Create IBC Keeper
+  app.IBCKeeper = ibckeeper.NewKeeper(
+-   appCodec, keys[ibchost.StoreKey], app.GetSubspace(ibchost.ModuleName), app.StakingKeeper, scopedIBCKeeper,
++   appCodec, keys[ibchost.StoreKey], app.GetSubspace(ibchost.ModuleName), app.StakingKeeper, app.UpgradeKeeper, scopedIBCKeeper,
+  )
 
 ``` 
 
@@ -119,14 +119,14 @@ It handles both `UpdateClientProposal`s and `UpgradeProposal`s.
 Add this import: 
 
 ```diff
-+       ibcclienttypes "github.com/cosmos/ibc-go/modules/core/02-client/types"
++  ibcclienttypes "github.com/cosmos/ibc-go/modules/core/02-client/types"
 ```
 
 Please ensure the governance module adds the correct route:
 
 ```diff
--               AddRoute(ibchost.RouterKey, ibcclient.NewClientUpdateProposalHandler(app.IBCKeeper.ClientKeeper))
-+               AddRoute(ibcclienttypes.RouterKey, ibcclient.NewClientProposalHandler(app.IBCKeeper.ClientKeeper))
+-  AddRoute(ibchost.RouterKey, ibcclient.NewClientUpdateProposalHandler(app.IBCKeeper.ClientKeeper))
++  AddRoute(ibcclienttypes.RouterKey, ibcclient.NewClientProposalHandler(app.IBCKeeper.ClientKeeper))
 ```
 
 NOTE: Simapp registration was incorrect in the 0.41.x releases. The `UpdateClient` proposal handler should be registered with the router key belonging to `ibc-go/core/02-client/types` 
@@ -138,16 +138,16 @@ Please ensure both proposal type CLI commands are registered on the governance m
 
 Add the following import:
 ```diff
-+       ibcclientclient "github.com/cosmos/ibc-go/modules/core/02-client/client"
++  ibcclientclient "github.com/cosmos/ibc-go/modules/core/02-client/client"
 ```
 
 Register the cli commands: 
 
 ```diff 
-       gov.NewAppModuleBasic(
-             paramsclient.ProposalHandler, distrclient.ProposalHandler, upgradeclient.ProposalHandler, upgradeclient.CancelProposalHandler,
-+            ibcclientclient.UpdateClientProposalHandler, ibcclientclient.UpgradeProposalHandler,
-       ),
+  gov.NewAppModuleBasic(
+    paramsclient.ProposalHandler, distrclient.ProposalHandler, upgradeclient.ProposalHandler, upgradeclient.CancelProposalHandler,
++   ibcclientclient.UpdateClientProposalHandler, ibcclientclient.UpgradeProposalHandler,
+  ),
 ```
 
 REST routes are not supported for these proposals. 

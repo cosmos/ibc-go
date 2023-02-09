@@ -42,8 +42,6 @@ on:
           - v4.1.1
           - v3.4.0
           - v3.3.1
-          - v2.5.0
-          - v2.4.2
       chain-a-tag-override:
         description: 'Specify an arbitrary tag for chain A'
         required: false
@@ -62,8 +60,6 @@ on:
           - v4.1.1
           - v3.4.0
           - v3.3.1
-          - v2.5.0
-          - v2.4.2
       chain-b-tag-override:
         description: 'Specify an arbitrary tag for chain B'
         required: false

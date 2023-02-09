@@ -37,8 +37,8 @@ IBC middleware will wrap over an underlying IBC application and sits between cor
 ```go
 // Middleware implements the ICS26 Module interface
 type Middleware interface {
-    porttypes.IBCModule // middleware has acccess to an underlying application which may be wrapped by more middleware
-    ics4Wrapper: ICS4Wrapper // middleware has access to ICS4Wrapper which may be core IBC Channel Handler or a higher-level middleware that wraps this middleware.
+  porttypes.IBCModule // middleware has acccess to an underlying application which may be wrapped by more middleware
+  ics4Wrapper: ICS4Wrapper // middleware has access to ICS4Wrapper which may be core IBC Channel Handler or a higher-level middleware that wraps this middleware.
 }
 ```
 
@@ -47,28 +47,28 @@ type Middleware interface {
 // The base application will call `sendPacket` or `writeAcknowledgement` of the middleware directly above them
 // which will call the next middleware until it reaches the core IBC handler.
 type ICS4Wrapper interface {
-    SendPacket(
-        ctx sdk.Context,
-        chanCap *capabilitytypes.Capability,
-        sourcePort string,
-        sourceChannel string,
-        timeoutHeight clienttypes.Height,
-        timeoutTimestamp uint64,
-        data []byte,
-    ) (sequence uint64, err error)
+  SendPacket(
+    ctx sdk.Context,
+    chanCap *capabilitytypes.Capability,
+    sourcePort string,
+    sourceChannel string,
+    timeoutHeight clienttypes.Height,
+    timeoutTimestamp uint64,
+    data []byte,
+  ) (sequence uint64, err error)
 
-    WriteAcknowledgement(
-        ctx sdk.Context,
-        chanCap *capabilitytypes.Capability,
-        packet exported.PacketI,
-        ack exported.Acknowledgement,
-    ) error
+  WriteAcknowledgement(
+    ctx sdk.Context,
+    chanCap *capabilitytypes.Capability,
+    packet exported.PacketI,
+    ack exported.Acknowledgement,
+  ) error
 
-    GetAppVersion(
-        ctx sdk.Context,
-        portID,
-        channelID string,
-    ) (string, bool)
+  GetAppVersion(
+    ctx sdk.Context,
+    portID,
+    channelID string,
+  ) (string, bool)
 }
 ```
 
@@ -103,65 +103,65 @@ In the case where the middleware wishes to send a packet or acknowledgment witho
 
 ```go
 func (im IBCModule) OnChanOpenInit(
-    ctx sdk.Context,
-    order channeltypes.Order,
-    connectionHops []string,
-    portID string,
-    channelID string,
-    channelCap *capabilitytypes.Capability,
-    counterparty channeltypes.Counterparty,
-    version string,
+  ctx sdk.Context,
+  order channeltypes.Order,
+  connectionHops []string,
+  portID string,
+  channelID string,
+  channelCap *capabilitytypes.Capability,
+  counterparty channeltypes.Counterparty,
+  version string,
 ) (string, error) {
-    if version != "" {
-        // try to unmarshal JSON-encoded version string and pass
-        // the app-specific version to app callback.
-        // otherwise, pass version directly to app callback.
-        metadata, err := Unmarshal(version)
-        if err != nil {
-            // Since it is valid for fee version to not be specified,
-            // the above middleware version may be for another middleware.
-            // Pass the entire version string onto the underlying application.
-            return im.app.OnChanOpenInit(
-                ctx,
-                order,
-                connectionHops,
-                portID,
-                channelID,
-                channelCap,
-                counterparty,
-                version,
-            )
-        }
-    else {
-        metadata = {
-            // set middleware version to default value
-            MiddlewareVersion: defaultMiddlewareVersion,
-            // allow application to return its default version
-            AppVersion: "",
-        }
-    }
-
-    doCustomLogic()
-
-    // if the version string is empty, OnChanOpenInit is expected to return
-    // a default version string representing the version(s) it supports
-    appVersion, err := im.app.OnChanOpenInit(
-        ctx,
-        order,
-        connectionHops,
-        portID,
-        channelID,
-        channelCap,
-        counterparty,
-        metadata.AppVersion, // note we only pass app version here
-    )
+  if version != "" {
+    // try to unmarshal JSON-encoded version string and pass
+    // the app-specific version to app callback.
+    // otherwise, pass version directly to app callback.
+    metadata, err := Unmarshal(version)
     if err != nil {
-        return "", err
+    // Since it is valid for fee version to not be specified,
+    // the above middleware version may be for another middleware.
+    // Pass the entire version string onto the underlying application.
+    return im.app.OnChanOpenInit(
+      ctx,
+      order,
+      connectionHops,
+      portID,
+      channelID,
+      channelCap,
+      counterparty,
+      version,
+    )
+  }
+  else {
+    metadata = {
+      // set middleware version to default value
+      MiddlewareVersion: defaultMiddlewareVersion,
+      // allow application to return its default version
+      AppVersion: "",
     }
+  }
 
-    version := constructVersion(metadata.MiddlewareVersion, appVersion)
+  doCustomLogic()
 
-    return version, nil
+  // if the version string is empty, OnChanOpenInit is expected to return
+  // a default version string representing the version(s) it supports
+  appVersion, err := im.app.OnChanOpenInit(
+    ctx,
+    order,
+    connectionHops,
+    portID,
+    channelID,
+    channelCap,
+    counterparty,
+    metadata.AppVersion, // note we only pass app version here
+  )
+  if err != nil {
+    return "", err
+  }
+
+  version := constructVersion(metadata.MiddlewareVersion, appVersion)
+
+  return version, nil
 }
 ```
 
@@ -171,55 +171,55 @@ See [here](https://github.com/cosmos/ibc-go/blob/48a6ae512b4ea42c29fdf6c6f5363f5
 
 ```go
 func OnChanOpenTry(
-    ctx sdk.Context,
-    order channeltypes.Order,
-    connectionHops []string,
-    portID,
-    channelID string,
-    channelCap *capabilitytypes.Capability,
-    counterparty channeltypes.Counterparty,
-    counterpartyVersion string,
+  ctx sdk.Context,
+  order channeltypes.Order,
+  connectionHops []string,
+  portID,
+  channelID string,
+  channelCap *capabilitytypes.Capability,
+  counterparty channeltypes.Counterparty,
+  counterpartyVersion string,
 ) (string, error) {
-    // try to unmarshal JSON-encoded version string and pass
-    // the app-specific version to app callback.
-    // otherwise, pass version directly to app callback.
-    cpMetadata, err := Unmarshal(counterpartyVersion)
-    if err != nil {
-        return app.OnChanOpenTry(
-            ctx,
-            order,
-            connectionHops,
-            portID,
-            channelID,
-            channelCap,
-            counterparty,
-            counterpartyVersion,
-        )
-    }
-
-    doCustomLogic()
-
-    // Call the underlying application's OnChanOpenTry callback.
-    // The try callback must select the final app-specific version string and return it.
-    appVersion, err := app.OnChanOpenTry(
-        ctx,
-        order,
-        connectionHops,
-        portID,
-        channelID,
-        channelCap,
-        counterparty,
-        cpMetadata.AppVersion, // note we only pass counterparty app version here
+  // try to unmarshal JSON-encoded version string and pass
+  // the app-specific version to app callback.
+  // otherwise, pass version directly to app callback.
+  cpMetadata, err := Unmarshal(counterpartyVersion)
+  if err != nil {
+    return app.OnChanOpenTry(
+      ctx,
+      order,
+      connectionHops,
+      portID,
+      channelID,
+      channelCap,
+      counterparty,
+      counterpartyVersion,
     )
-    if err != nil {
-        return "", err
-    }
+  }
 
-    // negotiate final middleware version
-    middlewareVersion := negotiateMiddlewareVersion(cpMetadata.MiddlewareVersion)
-    version := constructVersion(middlewareVersion, appVersion)
+  doCustomLogic()
 
-    return version, nil
+  // Call the underlying application's OnChanOpenTry callback.
+  // The try callback must select the final app-specific version string and return it.
+  appVersion, err := app.OnChanOpenTry(
+    ctx,
+    order,
+    connectionHops,
+    portID,
+    channelID,
+    channelCap,
+    counterparty,
+    cpMetadata.AppVersion, // note we only pass counterparty app version here
+  )
+  if err != nil {
+    return "", err
+  }
+
+  // negotiate final middleware version
+  middlewareVersion := negotiateMiddlewareVersion(cpMetadata.MiddlewareVersion)
+  version := constructVersion(middlewareVersion, appVersion)
+
+  return version, nil
 }
 ```
 
@@ -229,27 +229,27 @@ See [here](https://github.com/cosmos/ibc-go/blob/48a6ae512b4ea42c29fdf6c6f5363f5
 
 ```go
 func OnChanOpenAck(
-    ctx sdk.Context,
-    portID,
-    channelID string,
-    counterpartyChannelID string,
-    counterpartyVersion string,
+  ctx sdk.Context,
+  portID,
+  channelID string,
+  counterpartyChannelID string,
+  counterpartyVersion string,
 ) error {
-    // try to unmarshal JSON-encoded version string and pass
-    // the app-specific version to app callback.
-    // otherwise, pass version directly to app callback.
-    cpMetadata, err = UnmarshalJSON(counterpartyVersion)
-    if err != nil {
-        return app.OnChanOpenAck(ctx, portID, channelID, counterpartyChannelID, counterpartyVersion)
-    }
+  // try to unmarshal JSON-encoded version string and pass
+  // the app-specific version to app callback.
+  // otherwise, pass version directly to app callback.
+  cpMetadata, err = UnmarshalJSON(counterpartyVersion)
+  if err != nil {
+    return app.OnChanOpenAck(ctx, portID, channelID, counterpartyChannelID, counterpartyVersion)
+  }
 
-    if !isCompatible(cpMetadata.MiddlewareVersion) {
-        return error
-    }
-    doCustomLogic()
+  if !isCompatible(cpMetadata.MiddlewareVersion) {
+    return error
+  }
+  doCustomLogic()
 
-    // call the underlying application's OnChanOpenTry callback
-    return app.OnChanOpenAck(ctx, portID, channelID, counterpartyChannelID, cpMetadata.AppVersion)
+  // call the underlying application's OnChanOpenTry callback
+  return app.OnChanOpenAck(ctx, portID, channelID, counterpartyChannelID, cpMetadata.AppVersion)
 }
 ```
 
@@ -259,13 +259,13 @@ See [here](https://github.com/cosmos/ibc-go/blob/48a6ae512b4ea42c29fdf6c6f5363f5
 
 ```go
 func OnChanOpenConfirm(
-    ctx sdk.Context,
-    portID,
-    channelID string,
+  ctx sdk.Context,
+  portID,
+  channelID string,
 ) error {
-    doCustomLogic()
+  doCustomLogic()
 
-    return app.OnChanOpenConfirm(ctx, portID, channelID)
+  return app.OnChanOpenConfirm(ctx, portID, channelID)
 }
 ```
 
@@ -275,13 +275,13 @@ See [here](https://github.com/cosmos/ibc-go/blob/48a6ae512b4ea42c29fdf6c6f5363f5
 
 ```go
 func OnChanCloseInit(
-    ctx sdk.Context,
-    portID,
-    channelID string,
+  ctx sdk.Context,
+  portID,
+  channelID string,
 ) error {
-    doCustomLogic()
+  doCustomLogic()
 
-    return app.OnChanCloseInit(ctx, portID, channelID)
+  return app.OnChanCloseInit(ctx, portID, channelID)
 }
 ```
 
@@ -291,13 +291,13 @@ See [here](https://github.com/cosmos/ibc-go/blob/48a6ae512b4ea42c29fdf6c6f5363f5
 
 ```go
 func OnChanCloseConfirm(
-    ctx sdk.Context,
-    portID,
-    channelID string,
+  ctx sdk.Context,
+  portID,
+  channelID string,
 ) error {
-    doCustomLogic()
+  doCustomLogic()
 
-    return app.OnChanCloseConfirm(ctx, portID, channelID)
+  return app.OnChanCloseConfirm(ctx, portID, channelID)
 }
 ```
 
@@ -313,16 +313,16 @@ The packet callbacks just like the handshake callbacks wrap the application's pa
 
 ```go
 func OnRecvPacket(
-    ctx sdk.Context,
-    packet channeltypes.Packet,
-    relayer sdk.AccAddress,
+  ctx sdk.Context,
+  packet channeltypes.Packet,
+  relayer sdk.AccAddress,
 ) ibcexported.Acknowledgement {
-    doCustomLogic(packet)
+  doCustomLogic(packet)
 
-    ack := app.OnRecvPacket(ctx, packet, relayer)
+  ack := app.OnRecvPacket(ctx, packet, relayer)
 
-    doCustomLogic(ack) // middleware may modify outgoing ack
-    return ack
+  doCustomLogic(ack) // middleware may modify outgoing ack
+  return ack
 }
 ```
 
@@ -332,14 +332,14 @@ See [here](https://github.com/cosmos/ibc-go/blob/48a6ae512b4ea42c29fdf6c6f5363f5
 
 ```go
 func OnAcknowledgementPacket(
-    ctx sdk.Context,
-    packet channeltypes.Packet,
-    acknowledgement []byte,
-    relayer sdk.AccAddress,
+  ctx sdk.Context,
+  packet channeltypes.Packet,
+  acknowledgement []byte,
+  relayer sdk.AccAddress,
 ) error {
-    doCustomLogic(packet, ack)
+  doCustomLogic(packet, ack)
 
-    return app.OnAcknowledgementPacket(ctx, packet, ack, relayer)
+  return app.OnAcknowledgementPacket(ctx, packet, ack, relayer)
 }
 ```
 
@@ -349,13 +349,13 @@ See [here](https://github.com/cosmos/ibc-go/blob/48a6ae512b4ea42c29fdf6c6f5363f5
 
 ```go
 func OnTimeoutPacket(
-    ctx sdk.Context,
-    packet channeltypes.Packet,
-    relayer sdk.AccAddress,
+  ctx sdk.Context,
+  packet channeltypes.Packet,
+  relayer sdk.AccAddress,
 ) error {
-    doCustomLogic(packet)
+  doCustomLogic(packet)
 
-    return app.OnTimeoutPacket(ctx, packet, relayer)
+  return app.OnTimeoutPacket(ctx, packet, relayer)
 }
 ```
 
@@ -369,26 +369,26 @@ Middleware must also wrap ICS-4 so that any communication from the application t
 
 ```go
 func SendPacket(
-    ctx sdk.Context,
-    chanCap *capabilitytypes.Capability,
-    sourcePort string,
-    sourceChannel string,
-    timeoutHeight clienttypes.Height,
-    timeoutTimestamp uint64,
-    appData []byte,
+  ctx sdk.Context,
+  chanCap *capabilitytypes.Capability,
+  sourcePort string,
+  sourceChannel string,
+  timeoutHeight clienttypes.Height,
+  timeoutTimestamp uint64,
+  appData []byte,
 ) {
-    // middleware may modify data
-    data = doCustomLogic(appData)
+  // middleware may modify data
+  data = doCustomLogic(appData)
 
-    return ics4Keeper.SendPacket(
-        ctx, 
-        chanCap, 
-        sourcePort, 
-        sourceChannel, 
-        timeoutHeight, 
-        timeoutTimestamp, 
-        data,
-    )
+  return ics4Keeper.SendPacket(
+    ctx, 
+    chanCap, 
+    sourcePort, 
+    sourceChannel, 
+    timeoutHeight, 
+    timeoutTimestamp, 
+    data,
+  )
 }
 ```
 
@@ -399,15 +399,15 @@ See [here](https://github.com/cosmos/ibc-go/blob/48a6ae512b4ea42c29fdf6c6f5363f5
 ```go
 // only called for async acks
 func WriteAcknowledgement(
-    ctx sdk.Context,
-    chanCap *capabilitytypes.Capability,
-    packet exported.PacketI,
-    ack exported.Acknowledgement,
+  ctx sdk.Context,
+  chanCap *capabilitytypes.Capability,
+  packet exported.PacketI,
+  ack exported.Acknowledgement,
 ) {
-    // middleware may modify acknowledgement
-    ack_bytes = doCustomLogic(ack)
+  // middleware may modify acknowledgement
+  ack_bytes = doCustomLogic(ack)
 
-    return ics4Keeper.WriteAcknowledgement(packet, ack_bytes)
+  return ics4Keeper.WriteAcknowledgement(packet, ack_bytes)
 }
 ```
 
@@ -418,46 +418,46 @@ See [here](https://github.com/cosmos/ibc-go/blob/48a6ae512b4ea42c29fdf6c6f5363f5
 ```go
 // middleware must return the underlying application version
 func GetAppVersion(
-    ctx sdk.Context,
-    portID,
-    channelID string,
+  ctx sdk.Context,
+  portID,
+  channelID string,
 ) (string, bool) {
-    version, found := ics4Keeper.GetAppVersion(ctx, portID, channelID)
-    if !found {
-        return "", false
-    }
+  version, found := ics4Keeper.GetAppVersion(ctx, portID, channelID)
+  if !found {
+    return "", false
+  }
 
-    if !MiddlewareEnabled {
-        return version, true
-    }
+  if !MiddlewareEnabled {
+    return version, true
+  }
 
-    // unwrap channel version
-    metadata, err := Unmarshal(version)
-    if err != nil {
-        panic(fmt.Errof("unable to unmarshal version: %w", err))
-    }
+  // unwrap channel version
+  metadata, err := Unmarshal(version)
+  if err != nil {
+    panic(fmt.Errof("unable to unmarshal version: %w", err))
+  }
 
-    return metadata.AppVersion, true
+  return metadata.AppVersion, true
 }
 
 // middleware must return the underlying application version 
 func GetAppVersion(ctx sdk.Context, portID, channelID string) (string, bool) {
-    version, found := ics4Keeper.GetAppVersion(ctx, portID, channelID)
-    if !found {
-        return "", false
-    }
+  version, found := ics4Keeper.GetAppVersion(ctx, portID, channelID)
+  if !found {
+    return "", false
+  }
 
-    if !MiddlewareEnabled {
-        return version, true
-    }
+  if !MiddlewareEnabled {
+    return version, true
+  }
 
-    // unwrap channel version
-    metadata, err := Unmarshal(version)
-    if err != nil {
-        panic(fmt.Errof("unable to unmarshal version: %w", err))
-    }
+  // unwrap channel version
+  metadata, err := Unmarshal(version)
+  if err != nil {
+    panic(fmt.Errof("unable to unmarshal version: %w", err))
+  }
 
-    return metadata.AppVersion, true
+  return metadata.AppVersion, true
 }
 ```
 

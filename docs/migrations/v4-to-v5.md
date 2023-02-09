@@ -22,15 +22,15 @@ The `AnteDecorator` type in `core/ante` has been renamed to `RedundantRelayDecor
 
 ```diff
 func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
-   // parameter validation
+  // parameter validation
 
-   anteDecorators := []sdk.AnteDecorator{
-      // other ante decorators
--     ibcante.NewAnteDecorator(opts.IBCkeeper),
-+     ibcante.NewRedundantRelayDecorator(options.IBCKeeper),
-   }
+  anteDecorators := []sdk.AnteDecorator{
+    // other ante decorators
+-   ibcante.NewAnteDecorator(opts.IBCkeeper),
++   ibcante.NewRedundantRelayDecorator(options.IBCKeeper),
+  }
 
-   return sdk.ChainAnteDecorators(anteDecorators...), nil
+  return sdk.ChainAnteDecorators(anteDecorators...), nil
 }
 ```
 
@@ -204,19 +204,19 @@ For chains on Cosmos SDK 0.45 and below, the message response was constructed li
 
 ```go
 txMsgData := &sdk.TxMsgData{
-   Data: make([]*sdk.MsgData, len(msgs)),
+  Data: make([]*sdk.MsgData, len(msgs)),
 }
 
 for i, msg := range msgs {
-   // message validation
+  // message validation
 
-   msgResponse, err := k.executeMsg(cacheCtx, msg)
-   // return if err != nil
+  msgResponse, err := k.executeMsg(cacheCtx, msg)
+  // return if err != nil
 
-   txMsgData.Data[i] = &sdk.MsgData{
-      MsgType: sdk.MsgTypeURL(msg),
-      Data:    msgResponse,
-   }
+  txMsgData.Data[i] = &sdk.MsgData{
+    MsgType: sdk.MsgTypeURL(msg),
+    Data:    msgResponse,
+  }
 }
 
 // emit events
@@ -231,16 +231,16 @@ And for chains on Cosmos SDK 0.46 and above, it is now done like this:
 
 ```go
 txMsgData := &sdk.TxMsgData{
-   MsgResponses: make([]*codectypes.Any, len(msgs)),
+  MsgResponses: make([]*codectypes.Any, len(msgs)),
 }
 
 for i, msg := range msgs {
-   // message validation
+  // message validation
 
-   any, err := k.executeMsg(cacheCtx, msg)
-   // return if err != nil
+  any, err := k.executeMsg(cacheCtx, msg)
+  // return if err != nil
 
-   txMsgData.MsgResponses[i] = any
+  txMsgData.MsgResponses[i] = any
 }
 
 // emit events
@@ -256,24 +256,24 @@ When handling the acknowledgement in the `OnAcknowledgementPacket` callback of a
 ```go
 var ack channeltypes.Acknowledgement
 if err := channeltypes.SubModuleCdc.UnmarshalJSON(acknowledgement, &ack); err != nil {
-   return err
+  return err
 }
 
 var txMsgData sdk.TxMsgData
 if err := proto.Unmarshal(ack.GetResult(), txMsgData); err != nil {
-   return err
+  return err
 }
 
 switch len(txMsgData.Data) {
 case 0: // for SDK 0.46 and above
-   for _, msgResponse := range txMsgData.MsgResponses {
-      // unmarshall msgResponse and execute logic based on the response 
-   }
-   return nil
+  for _, msgResponse := range txMsgData.MsgResponses {
+    // unmarshall msgResponse and execute logic based on the response 
+  }
+  return nil
 default: // for SDK 0.45 and below
-   for _, msgData := range txMsgData.Data {
-      // unmarshall msgData and execute logic based on the response 
-   }
+  for _, msgData := range txMsgData.Data {
+    // unmarshall msgData and execute logic based on the response 
+  }
 }
 ```
 

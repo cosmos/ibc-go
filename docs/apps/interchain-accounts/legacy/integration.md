@@ -28,10 +28,10 @@ Interchain Account authentication modules are the base application of a middlewa
 // Register the AppModule for the Interchain Accounts module and the authentication module
 // Note: No `icaauth` exists, this must be substituted with an actual Interchain Accounts authentication module
 ModuleBasics = module.NewBasicManager(
-    ...
-    ica.AppModuleBasic{},
-    icaauth.AppModuleBasic{},
-    ...
+  ...
+  ica.AppModuleBasic{},
+  icaauth.AppModuleBasic{},
+  ...
 )
 
 ... 
@@ -40,8 +40,8 @@ ModuleBasics = module.NewBasicManager(
 // Only necessary for host chain functionality
 // Each Interchain Account created on the host chain is derived from the module account created
 maccPerms = map[string][]string{
-    ...
-    icatypes.ModuleName:            nil,
+  ...
+  icatypes.ModuleName:            nil,
 }
 
 ...
@@ -49,24 +49,24 @@ maccPerms = map[string][]string{
 // Add Interchain Accounts Keepers for each submodule used and the authentication module
 // If a submodule is being statically disabled, the associated Keeper does not need to be added. 
 type App struct {
-    ...
+  ...
 
-    ICAControllerKeeper icacontrollerkeeper.Keeper
-    ICAHostKeeper       icahostkeeper.Keeper
-    ICAAuthKeeper       icaauthkeeper.Keeper
+  ICAControllerKeeper icacontrollerkeeper.Keeper
+  ICAHostKeeper       icahostkeeper.Keeper
+  ICAAuthKeeper       icaauthkeeper.Keeper
 
-    ...
+  ...
 }
 
 ...
 
 // Create store keys for each submodule Keeper and the authentication module
 keys := sdk.NewKVStoreKeys(
-    ...
-    icacontrollertypes.StoreKey,
-    icahosttypes.StoreKey,
-    icaauthtypes.StoreKey,
-    ...
+  ...
+  icacontrollertypes.StoreKey,
+  icahosttypes.StoreKey,
+  icaauthtypes.StoreKey,
+  ...
 )
 
 ... 
@@ -79,16 +79,16 @@ scopedICAHostKeeper := app.CapabilityKeeper.ScopeToModule(icahosttypes.SubModule
 
 // Create the Keeper for each submodule
 app.ICAControllerKeeper = icacontrollerkeeper.NewKeeper(
-		appCodec, keys[icacontrollertypes.StoreKey], app.GetSubspace(icacontrollertypes.SubModuleName),
-		app.IBCKeeper.ChannelKeeper, // may be replaced with middleware such as ics29 fee
-		app.IBCKeeper.ChannelKeeper, &app.IBCKeeper.PortKeeper,
-		scopedICAControllerKeeper, app.MsgServiceRouter(),
+  appCodec, keys[icacontrollertypes.StoreKey], app.GetSubspace(icacontrollertypes.SubModuleName),
+  app.IBCKeeper.ChannelKeeper, // may be replaced with middleware such as ics29 fee
+  app.IBCKeeper.ChannelKeeper, &app.IBCKeeper.PortKeeper,
+  scopedICAControllerKeeper, app.MsgServiceRouter(),
 )
 app.ICAHostKeeper = icahostkeeper.NewKeeper(
-		appCodec, keys[icahosttypes.StoreKey], app.GetSubspace(icahosttypes.SubModuleName),
-		app.IBCKeeper.ChannelKeeper, // may be replaced with middleware such as ics29 fee
-		app.IBCKeeper.ChannelKeeper, &app.IBCKeeper.PortKeeper,
-		app.AccountKeeper, scopedICAHostKeeper, app.MsgServiceRouter(),
+  appCodec, keys[icahosttypes.StoreKey], app.GetSubspace(icahosttypes.SubModuleName),
+  app.IBCKeeper.ChannelKeeper, // may be replaced with middleware such as ics29 fee
+  app.IBCKeeper.ChannelKeeper, &app.IBCKeeper.PortKeeper,
+  app.AccountKeeper, scopedICAHostKeeper, app.MsgServiceRouter(),
 )
 
 // Create Interchain Accounts AppModule
@@ -109,48 +109,48 @@ icaHostIBCModule := icahost.NewIBCModule(app.ICAHostKeeper)
 
 // Register host and authentication routes
 ibcRouter.
-    AddRoute(icacontrollertypes.SubModuleName, icaControllerStack).
-    AddRoute(icahosttypes.SubModuleName, icaHostIBCModule).
-    AddRoute(icaauthtypes.ModuleName, icaControllerStack) // Note, the authentication module is routed to the top level of the middleware stack
+  AddRoute(icacontrollertypes.SubModuleName, icaControllerStack).
+  AddRoute(icahosttypes.SubModuleName, icaHostIBCModule).
+  AddRoute(icaauthtypes.ModuleName, icaControllerStack) // Note, the authentication module is routed to the top level of the middleware stack
 
 ...
 
 // Register Interchain Accounts and authentication module AppModule's
 app.moduleManager = module.NewManager(
-    ...
-    icaModule,
-    icaAuthModule,
+  ...
+  icaModule,
+  icaAuthModule,
 )
 
 ...
 
 // Add fee middleware to begin blocker logic
 app.moduleManager.SetOrderBeginBlockers(
-    ...
-    icatypes.ModuleName,
-    ...
+  ...
+  icatypes.ModuleName,
+  ...
 )
 
 // Add fee middleware to end blocker logic
 app.moduleManager.SetOrderEndBlockers(
-    ...
-    icatypes.ModuleName,
-    ...
+  ...
+  icatypes.ModuleName,
+  ...
 )
 
 // Add Interchain Accounts module InitGenesis logic
 app.moduleManager.SetOrderInitGenesis(
-    ...
-    icatypes.ModuleName,
-    ...
+  ...
+  icatypes.ModuleName,
+  ...
 )
 
 // initParamsKeeper init params keeper and its subspaces
 func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino, key, tkey sdk.StoreKey) paramskeeper.Keeper {
-    ...
-    paramsKeeper.Subspace(icahosttypes.SubModuleName)
-    paramsKeeper.Subspace(icacontrollertypes.SubModuleName)
-    ...
+  ...
+  paramsKeeper.Subspace(icahosttypes.SubModuleName)
+  paramsKeeper.Subspace(icacontrollertypes.SubModuleName)
+  ...
 ```
 
 ## Using submodules exclusively
@@ -190,6 +190,6 @@ icaControllerStack := icacontroller.NewIBCMiddleware(icaAuthIBCModule, app.ICACo
 
 // Register controller and authentication routes
 ibcRouter.
-    AddRoute(icacontrollertypes.SubModuleName, icaControllerStack).
-    AddRoute(icaauthtypes.ModuleName, icaControllerStack) // Note, the authentication module is routed to the top level of the middleware stack
+  AddRoute(icacontrollertypes.SubModuleName, icaControllerStack).
+  AddRoute(icaauthtypes.ModuleName, icaControllerStack) // Note, the authentication module is routed to the top level of the middleware stack
 ```

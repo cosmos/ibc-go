@@ -21,19 +21,19 @@ github.com/cosmos/ibc-go -> github.com/cosmos/ibc-go/v2
 ## IBC Apps
 
 A new function has been added to the app module interface:
+
 ```go
 // NegotiateAppVersion performs application version negotiation given the provided channel ordering, connectionID, portID, counterparty and proposed version.
-    // An error is returned if version negotiation cannot be performed. For example, an application module implementing this interface
-    // may decide to return an error in the event of the proposed version being incompatible with it's own
-    NegotiateAppVersion(
-        ctx sdk.Context,
-        order channeltypes.Order,
-        connectionID string,
-        portID string,
-        counterparty channeltypes.Counterparty,
-        proposedVersion string,
-    ) (version string, err error)
-}
+// An error is returned if version negotiation cannot be performed. For example, an application module implementing this interface
+// may decide to return an error in the event of the proposed version being incompatible with it's own
+NegotiateAppVersion(
+  ctx sdk.Context,
+  order channeltypes.Order,
+  connectionID string,
+  portID string,
+  counterparty channeltypes.Counterparty,
+  proposedVersion string,
+) (version string, err error)
 ```
 
 This function should perform application version negotiation and return the negotiated version. If the version cannot be negotiated, an error should be returned. This function is only used on the client side.
