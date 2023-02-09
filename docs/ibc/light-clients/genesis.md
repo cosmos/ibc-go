@@ -22,10 +22,10 @@ ExportMetadata(clientStore sdk.KVStore) []GenesisMetadata
 
 ```go
 type GenesisMetadata interface {
-	// return store key that contains metadata without clientID-prefix
-	GetKey() []byte
-	// returns metadata value
-	GetValue() []byte
+  // return store key that contains metadata without clientID-prefix
+  GetKey() []byte
+  // returns metadata value
+  GetValue() []byte
 }
 ```
 
