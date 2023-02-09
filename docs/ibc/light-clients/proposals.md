@@ -14,12 +14,12 @@ In the [`ClientState`interface](https://github.com/cosmos/ibc-go/blob/e650be9161
 // CheckSubstituteAndUpdateState must verify that the provided substitute may be used to update the subject client.
 // The light client must set the updated client and consensus states within the clientStore for the subject client.
 CheckSubstituteAndUpdateState(
-    ctx sdk.Context, 
-    cdc codec.BinaryCodec, 
-    subjectClientStore, 
-    substituteClientStore sdk.KVStore, 
-    substituteClient ClientState) 
-    error
+  ctx sdk.Context, 
+  cdc codec.BinaryCodec, 
+  subjectClientStore, 
+  substituteClientStore sdk.KVStore, 
+  substituteClient ClientState) 
+  error
 ```
 
 Prior to updating, this function must verify that:

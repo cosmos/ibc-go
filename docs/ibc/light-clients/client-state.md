@@ -4,7 +4,7 @@ order: 2
 
 # Implementing the `ClientState` interface
 
-Learn how to implement the [`ClientState`](https://github.com/cosmos/ibc-go/blob/v6.0.0/modules/core/exported/client.go#L40) interface.
+Learn how to implement the [`ClientState`](https://github.com/cosmos/ibc-go/blob/v6.0.0/modules/core/exported/client.go#L40) interface. This list of methods described here does not include all methods of the interface. Some methods are explained in detail in the relevant sections of the guide.
 
 ## `ClientType` method
 
