@@ -38,7 +38,7 @@ This field is returned in the response of the gRPC [`ibc.core.client.v1.Query/Cl
 `ZeroCustomFields` should return a copy of the light client with all client customizable fields with their zero value. It should not mutate the fields of the light client.
 This method is used when [scheduling upgrades](https://github.com/cosmos/ibc-go/blob/v6.0.0/modules/core/02-client/keeper/proposal.go#L89). Upgrades are used to upgrade chain specific fields. 
 In the tendermint case, this may be the chain ID or the unbonding period.
-For more information about client upgrades see [the dedicated section of developer guide](./upgrade.md).
+For more information about client upgrades see the [Handling upgrades](./upgrades.md) section.
 
 ## `GetTimestampAtHeight` method
 
