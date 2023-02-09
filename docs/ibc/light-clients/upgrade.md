@@ -1,6 +1,7 @@
 <!--
 order: 5
 -->
+
 # Handling Upgrades
 
 It is vital that high-value IBC clients can upgrade along with their underlying chains to avoid disruption to the IBC ecosystem. Thus, IBC client developers will want to implement upgrade functionality to enable clients to maintain connections and channels even across chain upgrades.
