@@ -1,0 +1,4 @@
+vendor
+e2e/vendor
+docs/node_modules
+docs/ibc/proto-docs.md
