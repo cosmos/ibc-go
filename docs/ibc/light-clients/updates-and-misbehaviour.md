@@ -1,6 +1,7 @@
 <!--
 order: 4
 -->
+
 # Handling `ClientMessage`s: updates and misbehaviour
 
 As mentioned before in the documentation about [implementing the `ConsensusState` interface](./consensus-state.md), [`ClientMessage`](https://github.com/cosmos/ibc-go/blob/main/modules/core/exported/client.go#L145) is an interface used to update an IBC client. This update may be performed by: 
