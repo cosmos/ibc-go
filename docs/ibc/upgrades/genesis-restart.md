@@ -8,7 +8,7 @@ Learn how to upgrade your chain and counterparty clients using genesis restarts.
 
 **NOTE**: Regular genesis restarts are currently unsupported by relayers!
 
-### IBC Client Breaking Upgrades
+## IBC Client Breaking Upgrades
 
 IBC client breaking upgrades are possible using genesis restarts.
 It is highly recommended to use the in-place migrations instead of a genesis restart.
@@ -16,7 +16,7 @@ Genesis restarts should be used sparingly and as backup plans.
 
 Genesis restarts still require the usage of an IBC upgrade proposal in order to correctly upgrade counterparty clients.
 
-#### Step-by-Step Upgrade Process for SDK Chains
+### Step-by-Step Upgrade Process for SDK Chains
 
 If the IBC-connected chain is conducting an upgrade that will break counterparty clients, it must ensure that the upgrade is first supported by IBC using the [IBC Client Breaking Upgrade List](https://github.com/cosmos/ibc-go/blob/main/docs/ibc/upgrades/quick-guide.md#ibc-client-breaking-upgrades) and then execute the upgrade process described below in order to prevent counterparty clients from breaking.
 
@@ -35,11 +35,11 @@ Upon the `UpgradeProposal` passing, the upgrade module will commit the UpgradedC
 
 Once the chain reaches the upgrade height and halts, a relayer can upgrade the counterparty clients to the last block of the old chain. They can then submit the proofs of the `UpgradedClient` and `UpgradedConsensusState` against this last block and upgrade the counterparty client.
 
-#### Step-by-Step Upgrade Process for Relayers Upgrading Counterparty Clients
+### Step-by-Step Upgrade Process for Relayers Upgrading Counterparty Clients
 
 These steps are identical to the regular [IBC client breaking upgrade process](https://github.com/cosmos/ibc-go/blob/main/docs/ibc/upgrades/quick-guide.md#step-by-step-upgrade-process-for-relayers-upgrading-counterparty-clients).
 
-### Non-IBC Client Breaking Upgrades
+## Non-IBC Client Breaking Upgrades
 
 While ibc-go supports genesis restarts which do not break IBC clients, relayers do not support this upgrade path.
 Here is a tracking issue on [Hermes](https://github.com/informalsystems/ibc-rs/issues/1152).

@@ -20,25 +20,17 @@ Reach out to the IBC product team through susannah@interchain.io to coordinate u
 
 Answer these questions in a requirements doc:
 
-    What problem does this feature solve?
+- What problem does this feature solve?
+- What are the current solutions or workarounds?
+- Are there other versions or implementations?
+- If there are other versions of this feature, why is this solution better?
+- What are the use cases?
+- Which users have confirmed they will use this?
+- How urgent is it to implement this feature?
+- How soon after being developed would this be adopted?
+- What is the impact of this feature being adopted?
 
-    What are the current solutions or workarounds? 
-
-    Are there other versions or implementations?
-
-    If there are other versions of this feature, why is this solution better?
-
-    What are the use cases?
-
-    Which users have confirmed they will use this? 
-
-    How urgent is it to implement this feature?
-
-    How soon after being developed would this be adopted? 
-
-    What is the impact of this feature being adopted?
-
-    Is there a specific need for this feature to be included in the `ibc-go` codebase, rather than in its own module repo?
+Is there a specific need for this feature to be included in the `ibc-go` codebase, rather than in its own module repo?
 
 Answers to these questions should also be detailed in a **discussion** in the `ibc-go` repo to open up the discussion to a wider audience, this can be done before or after the walkthrough.
 

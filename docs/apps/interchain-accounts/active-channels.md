@@ -17,7 +17,7 @@ msg := channeltypes.NewMsgChannelOpenInit(portID, string(versionBytes), channelt
 handler := keeper.msgRouter.Handler(msg)
 res, err := handler(ctx, msg)
 if err != nil {
-    return err
+  return err
 }
 ```
 

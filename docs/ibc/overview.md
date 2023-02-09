@@ -64,8 +64,8 @@ IBC Client Heights are represented by the struct:
 
 ```go
 type Height struct {
-   RevisionNumber uint64
-   RevisionHeight uint64
+  RevisionNumber uint64
+  RevisionHeight uint64
 }
 ```
 

@@ -116,20 +116,20 @@ Versions of Golang, Cosmos SDK and Tendermint used by ibc-go in the currently ac
 
 The decision tree above was generated with the following code:
 
-```
+```text
 %%{init: 
-    {'theme': 'default',
-     'themeVariables': 
-        {'fontFamily': 'verdana', 'fontSize': '13px'}
-    }
+  {'theme': 'default',
+    'themeVariables': 
+    {'fontFamily': 'verdana', 'fontSize': '13px'}
+  }
 }%%
 flowchart TD
-    A(Change):::c --> B{API breaking?}
-    B:::c --> |Yes| C(Increase major version):::c
-    B:::c --> |No| D{state-machine breaking?}
-    D:::c --> |Yes| G(Increase minor version):::c
-    D:::c --> |No| H(Increase patch version):::c
-    classDef c fill:#eee,stroke:#aaa
+  A(Change):::c --> B{API breaking?}
+  B:::c --> |Yes| C(Increase major version):::c
+  B:::c --> |No| D{state-machine breaking?}
+  D:::c --> |Yes| G(Increase minor version):::c
+  D:::c --> |No| H(Increase patch version):::c
+  classDef c fill:#eee,stroke:#aaa
 ```
 
 using [Mermaid](https://mermaid-js.github.io)'s [live editor](https://mermaid.live).

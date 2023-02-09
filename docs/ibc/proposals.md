@@ -49,7 +49,7 @@ See also the relevant documentation: [ADR-026, IBC client recovery mechanisms](.
 > **Who is this information for?**
 > Although technically anyone can submit the governance proposal to recover an expired client, often it will be **relayer operators** (at least coordinating the submission).
 
-### Preconditions
+## Preconditions
 
 - The chain is updated with ibc-go >= v1.1.0.
 - There exists an active client (with a known client identifier) for the same counterparty chain as the expired client.
@@ -61,7 +61,7 @@ See also the relevant documentation: [ADR-026, IBC client recovery mechanisms](.
 
 Check if the client is attached to the expected `chain-id`. For example, for an expired Tendermint client representing the Akash chain the client state looks like this on querying the client state:
 
-```
+```text
 {
   client_id: 07-tendermint-146
   client_state:
@@ -82,7 +82,7 @@ If the chain has been updated to ibc-go >= v1.1.0, anyone can submit the governa
 
 - From SDK v0.46.x onwards
 
-  ```
+  ```shell
   <binary> tx gov submit-proposal [path-to-proposal-json]
   ```
 
@@ -106,13 +106,13 @@ If the chain has been updated to ibc-go >= v1.1.0, anyone can submit the governa
 
   Alternatively there's a legacy command (that is no longer recommended though):
 
-  ```
+  ```shell
   <binary> tx gov submit-legacy-proposal update-client <expired-client-id> <active-client-id>
   ```
 
 - Until SDK v0.45.x
 
-  ```
+  ```shell
   <binary> tx gov submit-proposal update-client <expired-client-id> <active-client-id>
   ```
 

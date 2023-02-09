@@ -1,4 +1,4 @@
-## Token Transfer Model-based Testing Guide
+# Token Transfer Model-based Testing Guide
 
 In the process of IBC Audit performed by Informal Systems, we have implemented
 a preliminary set of model-based tests for the ICS-20 Token Transfer implementation.

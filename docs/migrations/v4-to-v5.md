@@ -424,11 +424,11 @@ The `key` parameter of the `NewKeeper` function in `modules/core/02-client/keepe
 
 ```diff
 func NewKeeper(
-   cdc codec.BinaryCodec,
--  key sdk.StoreKey,
-+  key storetypes.StoreKey,
-   paramSpace paramtypes.Subspace,
-   sk types.StakingKeeper,
-   uk types.UpgradeKeeper
+  cdc codec.BinaryCodec,
+- key sdk.StoreKey,
++ key storetypes.StoreKey,
+  paramSpace paramtypes.Subspace,
+  sk types.StakingKeeper,
+  uk types.UpgradeKeeper
 ) Keeper
 ```

@@ -25,12 +25,12 @@ At the time of this writing, Tendermint includes the following information in th
 // deterministicResponseDeliverTx strips non-deterministic fields from
 // ResponseDeliverTx and returns another ResponseDeliverTx.
 func deterministicResponseDeliverTx(response *abci.ResponseDeliverTx) *abci.ResponseDeliverTx {
- return &abci.ResponseDeliverTx{
-  Code:      response.Code,
-  Data:      response.Data,
-  GasWanted: response.GasWanted,
-  GasUsed:   response.GasUsed,
- }
+  return &abci.ResponseDeliverTx{
+    Code:      response.Code,
+    Data:      response.Data,
+    GasWanted: response.GasWanted,
+    GasUsed:   response.GasUsed,
+  }
 }
 ```
 
@@ -49,9 +49,9 @@ At the time of this writing, the next major release of the SDK will change the f
 The current version, v0.45 constructs the transaction response as follows:
 
 ```go
-  proto.Marshal(&sdk.TxMsgData{
-    Data: []*sdk.MsgData{msgResponses...}, 
-  }
+proto.Marshal(&sdk.TxMsgData{
+  Data: []*sdk.MsgData{msgResponses...}, 
+}
 ```
 
 Where `msgResponses` is a slice of `*sdk.MsgData`.
@@ -63,9 +63,9 @@ The `MsgData.Data` contains the proto marshaled `MsgResponse` for the associated
 The next major version will construct the transaction response as follows:
 
 ```go
-  proto.Marshal(&sdk.TxMsgData{
-    MsgResponses: []*codectypes.Any{msgResponses...}, 
-  }
+proto.Marshal(&sdk.TxMsgData{
+  MsgResponses: []*codectypes.Any{msgResponses...}, 
+}
 ```
 
 Where `msgResponses` is a slice of the `MsgResponse`s packed into `Any`s.

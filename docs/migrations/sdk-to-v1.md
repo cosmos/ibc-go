@@ -11,11 +11,11 @@ The most obvious changes is import name changes. We need to change:
 
 On my GNU/Linux based machine I used the following commands, executed in order:
 
-```
+```shell
 grep -RiIl 'cosmos-sdk\/x\/ibc\/applications' | xargs sed -i 's/cosmos-sdk\/x\/ibc\/applications/ibc-go\/modules\/apps/g'
 ```
 
-```
+```shell
 grep -RiIl 'cosmos-sdk\/x\/ibc' | xargs sed -i 's/cosmos-sdk\/x\/ibc/ibc-go\/modules/g'
 ```
 
@@ -94,12 +94,11 @@ if err != nil {
 The IBC Keeper now takes in the Upgrade Keeper. Please add the chains' Upgrade Keeper after the Staking Keeper:
 
 ```diff
-  // Create IBC Keeper
-  app.IBCKeeper = ibckeeper.NewKeeper(
--   appCodec, keys[ibchost.StoreKey], app.GetSubspace(ibchost.ModuleName), app.StakingKeeper, scopedIBCKeeper,
-+   appCodec, keys[ibchost.StoreKey], app.GetSubspace(ibchost.ModuleName), app.StakingKeeper, app.UpgradeKeeper, scopedIBCKeeper,
-  )
-
+// Create IBC Keeper
+app.IBCKeeper = ibckeeper.NewKeeper(
+- appCodec, keys[ibchost.StoreKey], app.GetSubspace(ibchost.ModuleName), app.StakingKeeper, scopedIBCKeeper,
++ appCodec, keys[ibchost.StoreKey], app.GetSubspace(ibchost.ModuleName), app.StakingKeeper, app.UpgradeKeeper, scopedIBCKeeper,
+)
 ```
 
 ## Proposals
@@ -147,10 +146,10 @@ Add the following import:
 Register the cli commands:
 
 ```diff
-  gov.NewAppModuleBasic(
-    paramsclient.ProposalHandler, distrclient.ProposalHandler, upgradeclient.ProposalHandler, upgradeclient.CancelProposalHandler,
-+   ibcclientclient.UpdateClientProposalHandler, ibcclientclient.UpgradeProposalHandler,
-  ),
+gov.NewAppModuleBasic(
+  paramsclient.ProposalHandler, distrclient.ProposalHandler, upgradeclient.ProposalHandler, upgradeclient.CancelProposalHandler,
++ ibcclientclient.UpdateClientProposalHandler, ibcclientclient.UpgradeProposalHandler,
+),
 ```
 
 REST routes are not supported for these proposals.

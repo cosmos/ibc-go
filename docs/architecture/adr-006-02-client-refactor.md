@@ -18,19 +18,19 @@ func (k Keeper) UpdateClient(ctx sdk.Context, clientID string, header exported.H
     ...
 
     switch clientType {
- case exported.Tendermint:
-  clientState, consensusState, err = tendermint.CheckValidityAndUpdateState(
-   clientState, header, ctx.BlockTime(),
-  )
- case exported.Localhost:
-  // override client state and update the block height
-  clientState = localhosttypes.NewClientState(
-   ctx.ChainID(), // use the chain ID from context since the client is from the running chain (i.e self).
-   ctx.BlockHeight(),
-  )
- default:
-  err = types.ErrInvalidClientType
- }
+  case exported.Tendermint:
+    clientState, consensusState, err = tendermint.CheckValidityAndUpdateState(
+    clientState, header, ctx.BlockTime(),
+    )
+  case exported.Localhost:
+    // override client state and update the block height
+    clientState = localhosttypes.NewClientState(
+    ctx.ChainID(), // use the chain ID from context since the client is from the running chain (i.e self).
+    ctx.BlockHeight(),
+    )
+  default:
+    err = types.ErrInvalidClientType
+  }
 ```
 
 To add additional light clients, code would need to be added directly to the 02-client submodule.
@@ -144,14 +144,14 @@ func (k Keeper) UpdateClient(ctx sdk.Context, clientID string, header exported.H
   ...
 
   if err := clientState.VerifyClientMessage(clientMessage); err != nil {
-      return err
+    return err
   }
   
   foundMisbehaviour := clientState.CheckForMisbehaviour(clientMessage)
   if foundMisbehaviour {
-      clientState.UpdateStateOnMisbehaviour(header)
-      // emit misbehaviour event
-      return 
+    clientState.UpdateStateOnMisbehaviour(header)
+    // emit misbehaviour event
+    return 
   }
   
   clientState.UpdateState(clientMessage) // expects no-op on duplicate header

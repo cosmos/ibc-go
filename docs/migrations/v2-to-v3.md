@@ -113,8 +113,8 @@ The field of type `channelkeeper.Keeper` in the `AnteDecorator` structure has be
 
 ```diff
 type AnteDecorator struct {
--  k channelkeeper.Keeper
-+  k *keeper.Keeper
+- k channelkeeper.Keeper
++ k *keeper.Keeper
 }
 
 - func NewAnteDecorator(k channelkeeper.Keeper) AnteDecorator {

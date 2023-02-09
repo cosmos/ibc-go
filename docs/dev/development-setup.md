@@ -56,5 +56,6 @@ Test coverage is continuously deployed at <https://app.codecov.io/github/cosmos/
 ## Documentation
 
 - If you open a PR on ibc-go, it is mandatory to update the relevant documentation in `/docs`.
+- We lint the markdown files for documentation with [markdownlint-cli](https://github.com/igorshubovych/markdownlint-cli). Please run `make docs-lint` before pushing changes in the markdown files (you will need to have `markdownlint-cli` installed, so please follow the [installation instructions](https://github.com/igorshubovych/markdownlint-cli#installation)).
 - Generate the folder `docs/.vuepress/dist` with all the static files for the documentation site with `make build-docs`.
 - Run the documentation site locally with `make view-docs`.

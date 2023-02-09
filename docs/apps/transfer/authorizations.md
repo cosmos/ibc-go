@@ -28,20 +28,20 @@ Below is the `TransferAuthorization` message:
 
 ```go
 func NewTransferAuthorization(allocations ...Allocation) *TransferAuthorization {
- return &TransferAuthorization{
-  Allocations: allocations,
- }
+  return &TransferAuthorization{
+    Allocations: allocations,
+  }
 }
 
 type Allocation struct {
- // the port on which the packet will be sent
- SourcePort string 
- // the channel by which the packet will be sent
- SourceChannel string 
- // spend limitation on the channel
- SpendLimit sdk.Coins  
- // allow list of receivers, an empty allow list permits any receiver address
- AllowList []string 
+  // the port on which the packet will be sent
+  SourcePort string 
+  // the channel by which the packet will be sent
+  SourceChannel string 
+  // spend limitation on the channel
+  SpendLimit sdk.Coins  
+  // allow list of receivers, an empty allow list permits any receiver address
+  AllowList []string 
 }
 
 ```
