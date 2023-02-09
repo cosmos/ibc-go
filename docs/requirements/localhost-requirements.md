@@ -48,7 +48,7 @@ Polymer plans to leverage the localhost client with multiple connections as part
 | -- | ----------- | ------------ | ------ | 
 | 1.01 | The localhost client shall have a client ID of the string `09-localhost`. | ------------ | Drafted | 
 | 1.02 | The localhost client shall have a sentinel connection ID of the string `connection-localhost`. | ------------ | Drafted | 
-| 1.03 | If more than 1 localhost connection is required, this is possible with a different connection ID. | ------------ | Drafted |
+| 1.03 | Only 1 localhost connection is required | ------------ | Drafted |
 | 1.04 | When the localhost client is initialised the consensus state must be `nil`. | ------------ | Drafted |
 | 1.05 | The localhost client can be added to a chain through an upgrade. | ------------ | Drafted |
 | 1.06 | A chain can enable the localhost client by initialising the client in the genesis state. | ------------ | Drafted |
