@@ -14,7 +14,7 @@ interface](https://github.com/cosmos/ibc-go/tree/main/modules/core/05-port/types
 // The implementation of the IBCModule interface could for example be in a file called ibc_module.go,
 // but ultimately file structure is up to the developer
 type IBCModule struct {
-	keeper keeper.Keeper
+ keeper keeper.Keeper
 }
 ```
 
@@ -296,8 +296,8 @@ Reminder, the `Acknowledgement` interface:
 // Acknowledgement defines the interface used to return
 // acknowledgements in the OnRecvPacket callback.
 type Acknowledgement interface {
-	Success() bool
-	Acknowledgement() []byte
+ Success() bool
+ Acknowledgement() []byte
 }
 ```
 

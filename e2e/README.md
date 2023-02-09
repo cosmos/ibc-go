@@ -1,5 +1,6 @@
 
 ## Table of Contents
+
 1. [How to write tests](#how-to-write-tests)
    - a. [Adding a new test](#adding-a-new-test)
    - b. [Running the tests with custom images](#running-tests-with-custom-images)
@@ -15,10 +16,9 @@
 2. [Test design](#test-design)
    - a. [interchaintest](#interchaintest)
    - b. [CI configuration](#ci-configuration)
-3. [Github Workflows](#github-workflows) 
+3. [Github Workflows](#github-workflows)
 4. [Running Compatibility Tests](#running-compatibility-tests)
 5. [Troubleshooting](#troubleshooting)
-
 
 ## How to write tests
 
@@ -32,7 +32,6 @@ New test suites should be composed of `testsuite.E2ETestSuite`. This type has lo
 be quite common in most tests.
 
 > Note: see [here](#how-tests-are-run) for details about these requirements.
-
 
 ### Running tests with custom images
 
@@ -48,7 +47,6 @@ There are several envinronment variables that alter the behaviour of the make ta
 | CHAIN_BINARY         | The binary used in the container         | simd          |
 | RLY_TAG              | The tag used for the go relayer          | main          |
 
-
 > Note: when running tests locally, **no images are pushed** to the `ghcr.io/cosmos/ibc-go-simd` registry.
 The images which are used only exist on your machine.
 
@@ -57,8 +55,7 @@ and the go relayer.
 
 Every time changes are pushed to a branch or to `main`, a new `simd` image is built and pushed [here](https://github.com/cosmos/ibc-go/pkgs/container/ibc-go-simd).
 
-
-#### Example Command:
+#### Example Command
 
 ```sh
 export CHAIN_IMAGE="ghcr.io/cosmos/ibc-go-simd"
@@ -73,7 +70,6 @@ export CHAIN_BINARY="simd"
 export RLY_TAG="v2.0.0"
 make e2e-test entrypoint=TestInterchainAccountsTestSuite test=TestMsgSubmitTx_SuccessfulTransfer
 ```
-
 
 > Note: sometimes it can be useful to make changes to [ibctest](https://github.com/strangelove-ventures/interchaintest) when running tests locally. In order to do this, add the following line to
 e2e/go.mod
@@ -206,12 +202,10 @@ t.Run("send IBC transfer", func(t *testing.T){
 
 ## Test design
 
-
 #### interchaintest
 
 These E2E tests use the [interchaintest framework](https://github.com/strangelove-ventures/interchaintest). This framework creates chains and relayers in containers and allows for arbitrary commands to be executed in the chain containers,
 as well as allowing us to broadcast arbitrary messages which are signed on behalf of a user created in the test.
-
 
 #### CI configuration
 
@@ -245,11 +239,11 @@ Which looks under the `e2e` directory, and creates a task for each test suite fu
 package e2e
 
 func TestFeeMiddlewareTestSuite(t *testing.T) {
-	suite.Run(t, new(FeeMiddlewareTestSuite))
+ suite.Run(t, new(FeeMiddlewareTestSuite))
 }
 
 type FeeMiddlewareTestSuite struct {
-	testsuite.E2ETestSuite
+ testsuite.E2ETestSuite
 }
 
 func (s *FeeMiddlewareTestSuite) TestA() {}
@@ -263,11 +257,11 @@ func (s *FeeMiddlewareTestSuite) TestC() {}
 package e2e
 
 func TestTransferTestSuite(t *testing.T) {
-	suite.Run(t, new(TransferTestSuite))
+ suite.Run(t, new(TransferTestSuite))
 }
 
 type TransferTestSuite struct {
-	testsuite.E2ETestSuite
+ testsuite.E2ETestSuite
 }
 
 func (s *TransferTestSuite) TestD() {}
@@ -313,16 +307,14 @@ This string is used to generate a test matrix in the Github Action that runs the
 
 All tests will be run on different hosts.
 
+#### Misceleneous
 
-#### Misceleneous:
-
-* Gas fees are set to zero to simply calcuations when asserting account balances.
-* When upgrading from e.g. v4 -> v5, in ibc-go, we cannot upgrade the go.mod under `e2e` since v5 will not yet exist. We need to upgrade it in a follow up PR.
-
+- Gas fees are set to zero to simply calcuations when asserting account balances.
+- When upgrading from e.g. v4 -> v5, in ibc-go, we cannot upgrade the go.mod under `e2e` since v5 will not yet exist. We need to upgrade it in a follow up PR.
 
 ### GitHub Workflows
 
-#### Building and pushing a `simd` image.
+#### Building and pushing a `simd` image
 
 If we ever need to manually build and push an image, we can do so with the [Build Simd Image](../.github/workflows/build-simd-image-from-tag.yml) GitHub workflow.
 
@@ -347,20 +339,19 @@ make compatibility-tests release_branch=release/v5.0.x
 ```
 
 This will build an image from the tip of the release branch and run all tests specified in the corresponding
-json matrix files under .github/compatibility-test-matrices and is equivalent to going to the Github UI and navigating to 
+json matrix files under .github/compatibility-test-matrices and is equivalent to going to the Github UI and navigating to
 
 `Actions` -> `Compatibility E2E` -> `Run Workflow` -> `release/v5.0.x`
 
-
 ### Troubleshooting
 
-* On Mac, after running a lot of tests, it can happen that containers start failing. To fix this, you can try clearing existing containers and restarting the docker daemon.
+- On Mac, after running a lot of tests, it can happen that containers start failing. To fix this, you can try clearing existing containers and restarting the docker daemon.
 
   This generally manifests itself as relayer or simd containers timing out during setup stages of the test. This doesn't happen in CI.
+
   ```bash
   # delete all images
   docker system prune -af
   ```
-  This issue doesn't seem to occur on other operating systems.
 
-  
+  This issue doesn't seem to occur on other operating systems.

@@ -4,12 +4,11 @@ This document details the acceptance process for requests from external contribu
 
 For projects who have created a custom IBC application and want us to list this application on the registry, please break out your module into its own repo for ease of import into chains!
 
-- Create a repo with the custom module in a folder `x/` or `modules/`. 
-- Please include an app that contains the custom module along with end-to-end tests that spins up the blockchain and runs the custom module. 
+- Create a repo with the custom module in a folder `x/` or `modules/`.
+- Please include an app that contains the custom module along with end-to-end tests that spins up the blockchain and runs the custom module.
 - See [cosmos/interchain-security](https://github.com/cosmos/interchain-security) for an example of this setup.
 
 For contributors wishing to submit contributions to the codebase, please check our [Contributor Guidelines](https://github.com/cosmos/ibc-go/blob/main/CONTRIBUTING.md) :)
-
 
 <p align="center">
   <img src="maintainership.png?raw=true" alt="maintainership" width="80%" />
@@ -41,19 +40,18 @@ Answer these questions in a requirements doc:
 
     Is there a specific need for this feature to be included in the `ibc-go` codebase, rather than in its own module repo?
 
-
-Answers to these questions should also be detailed in a **discussion** in the `ibc-go` repo to open up the discussion to a wider audience, this can be done before or after the walkthrough. 
+Answers to these questions should also be detailed in a **discussion** in the `ibc-go` repo to open up the discussion to a wider audience, this can be done before or after the walkthrough.
 
 The acceptance criteria is based on the answers to these questions and the results of this product check, as well as of course an acceptable spec should the module be deemed to need one. Please see Step #2 below for the spec considerations.
 
-In summary, the feature must solve a genuine problem, have users that would greatly benefit from the solution and be generic enough to benefit many users of the `ibc-go` implementation. 
+In summary, the feature must solve a genuine problem, have users that would greatly benefit from the solution and be generic enough to benefit many users of the `ibc-go` implementation.
 
 ## Step 2: Submit spec to the IBC protocol repo
 
 A detailed review of the specification can be expected **within 2 weeks** of submission of the specification to the repo. Please notify the specification team if this does not occur, so it can be corrected as soon as possible. Please note that this timeline may be subject to amendment based on complexity of the spec and team capacity considering other ongoing reviews, but we will strive to ensure a 2 week turnaround.
 
-Any IBC code that is expected to be implemented across different chains in order to function correctly must be specified in the IBC repo to be accepted unless exempted by the specification team. 
-    
+Any IBC code that is expected to be implemented across different chains in order to function correctly must be specified in the IBC repo to be accepted unless exempted by the specification team.
+
 Unilateral software (ie. code that only needs to run on a single chain to be functional) need not be submitted. In these cases however, some sort of design document such as [ADR-008](https://github.com/cosmos/ibc-go/pull/1976/files) should be submitted.
 
 If the associated module to be developed is expected to be submitted to the `ibc-go` team for maintainership, this should already be flagged at this step so that we can start thinking about/preparing our own capacity for the engineering team.

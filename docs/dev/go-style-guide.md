@@ -31,22 +31,22 @@ Perhaps more key for code readability than good commenting is having the right s
 - Conversely, sentences in comments should be sentenced-cased and end with a period.
 - Comments should explain _why_ something is being done rather than _what_ the code is doing. For example:
 
-	The comments in 
+ The comments in
 
-	```
-	// assign a variable foo
-	f := foo
-	// assign f to b
-	b := f
-	```
+ ```
+ // assign a variable foo
+ f := foo
+ // assign f to b
+ b := f
+ ```
 
-	have little value,	but the following is more useful:
+ have little value, but the following is more useful:
 
-	```
-	f := foo
-	// we copy the variable f because we want to preserve the state at time of initialization
-	b := f
-	```
+ ```
+ f := foo
+ // we copy the variable f because we want to preserve the state at time of initialization
+ b := f
+ ```
 
 ## Linting
 
@@ -57,11 +57,11 @@ Perhaps more key for code readability than good commenting is having the right s
 - Functions that return functions should have the suffix `Fn`.
 - Names should not [stutter](https://blog.golang.org/package-names). For example, a struct generally shouldn’t have a field named after itself; e.g., this shouldn't occur:
 
-	``` golang
-	type middleware struct {
-		middleware Middleware
-	}
-	```
+ ``` golang
+ type middleware struct {
+  middleware Middleware
+ }
+ ```
 
 - Acronyms are all capitalized, like "RPC", "gRPC", "API". "MyID", rather than "MyId".
 - Whenever it is safe to use Go's built-in `error` instantiation functions (as opposed to Cosmos SDK's error instantiation functions), prefer `errors.New()` instead of `fmt.Errorf()` unless you're actually using the format feature with arguments.
@@ -71,20 +71,20 @@ Perhaps more key for code readability than good commenting is having the right s
 - Use [goimports](https://godoc.org/golang.org/x/tools/cmd/goimports).
 - Separate imports into blocks: one for the standard lib, one for external libs and one for application libs. For example:
 
-	```go
-	import (
-		// standard library imports
-		"fmt"
-		"testing"
-					
-		// external library imports
-		"github.com/stretchr/testify/require"
-		abci "github.com/tendermint/tendermint/abci/types"
-					
-		// ibc-go library imports
-		"github.com/cosmos/ibc-go/modules/core/23-commitment/types"
-	)
-	```
+ ```go
+ import (
+  // standard library imports
+  "fmt"
+  "testing"
+     
+  // external library imports
+  "github.com/stretchr/testify/require"
+  abci "github.com/tendermint/tendermint/abci/types"
+     
+  // ibc-go library imports
+  "github.com/cosmos/ibc-go/modules/core/23-commitment/types"
+ )
+ ```
 
 ## Dependencies
 
@@ -105,11 +105,11 @@ Perhaps more key for code readability than good commenting is having the right s
 - Panic is appropriate when an internal invariant of a system is broken, while all other cases (in particular, incorrect or invalid usage) should return errors.
 - Error messages should be formatted as following:
 
-	```go
-	sdkerrors.Wrapf(
-		<most specific error type possible>,
-		"<optional text description ended by colon and space>expected %s, got %s",
-		<value 1>,
-		<value 2>
-	)
-	```
+ ```go
+ sdkerrors.Wrapf(
+  <most specific error type possible>,
+  "<optional text description ended by colon and space>expected %s, got %s",
+  <value 1>,
+  <value 2>
+ )
+ ```

@@ -30,7 +30,7 @@ the `ibc-transfer` `ModuleAccount` to mint and burn relayed tokens.
 
 ### Integrating light clients
 
-> Note that from v7 onwards, all light clients have to be explicitly registered in a chain's app.go and follow the steps listed below. 
+> Note that from v7 onwards, all light clients have to be explicitly registered in a chain's app.go and follow the steps listed below.
   This is in contrast to earlier versions of ibc-go when `07-tendermint` and `06-solomachine` were added out of the box.
 
 All light clients must be registered with `module.BasicManager` in a chain's app.go file.

@@ -12,7 +12,7 @@ Authentication modules play the role of the `Base Application` as described in [
 
 The controller submodule is used for account registration and packet sending. It executes only logic required of all controllers of interchain accounts. The type of authentication used to manage the interchain accounts remains unspecified. There may exist many different types of authentication which are desirable for different use cases. Thus the purpose of the authentication module is to wrap the controller submodule with custom authentication logic.
 
-In ibc-go, authentication modules are connected to the controller chain via a middleware stack. The controller submodule is implemented as [middleware](https://github.com/cosmos/ibc/tree/master/spec/app/ics-030-middleware) and the authentication module is connected to the controller submodule as the base application of the middleware stack. To implement an authentication module, the `IBCModule` interface must be fulfilled. By implementing the controller submodule as middleware, any amount of authentication modules can be created and connected to the controller submodule without writing redundant code. 
+In ibc-go, authentication modules are connected to the controller chain via a middleware stack. The controller submodule is implemented as [middleware](https://github.com/cosmos/ibc/tree/master/spec/app/ics-030-middleware) and the authentication module is connected to the controller submodule as the base application of the middleware stack. To implement an authentication module, the `IBCModule` interface must be fulfilled. By implementing the controller submodule as middleware, any amount of authentication modules can be created and connected to the controller submodule without writing redundant code.
 
 The authentication module must:
 
@@ -20,7 +20,7 @@ The authentication module must:
 - Track the associated interchain account address for an owner.
 - Send packets on behalf of an owner (after authentication).
 
-> Please note that since ibc-go v6 the channel capability is claimed by the controller submodule and therefore it is not required for authentication modules to claim the capability in the `OnChanOpenInit` callback. When the authentication module sends packets on the channel created for the associated interchain account it can pass a `nil` capability to the legacy function `SendTx` of the controller keeper (see [section `SendTx`](#sendtx) below for mode information). 
+> Please note that since ibc-go v6 the channel capability is claimed by the controller submodule and therefore it is not required for authentication modules to claim the capability in the `OnChanOpenInit` callback. When the authentication module sends packets on the channel created for the associated interchain account it can pass a `nil` capability to the legacy function `SendTx` of the controller keeper (see [section `SendTx`](#sendtx) below for mode information).
 
 ## `IBCModule` implementation
 
@@ -141,8 +141,8 @@ func (im IBCModule) OnRecvPacket(
 
 ## `OnAcknowledgementPacket`
 
-Controller chains will be able to access the acknowledgement written into the host chain state once a relayer relays the acknowledgement. 
-The acknowledgement bytes contain either the response of the execution of the message(s) on the host chain or an error. They will be passed to the auth module via the `OnAcknowledgementPacket` callback. Auth modules are expected to know how to decode the acknowledgement. 
+Controller chains will be able to access the acknowledgement written into the host chain state once a relayer relays the acknowledgement.
+The acknowledgement bytes contain either the response of the execution of the message(s) on the host chain or an error. They will be passed to the auth module via the `OnAcknowledgementPacket` callback. Auth modules are expected to know how to decode the acknowledgement.
 
 If the controller chain is connected to a host chain using the host module on ibc-go, it may interpret the acknowledgement bytes as follows:
 
@@ -160,7 +160,7 @@ if err := proto.Unmarshal(ack.GetResult(), txMsgData); err != nil {
 }
 ```
 
-If the `txMsgData.Data` field is non nil, the host chain is using SDK version <= v0.45. 
+If the `txMsgData.Data` field is non nil, the host chain is using SDK version <= v0.45.
 The auth module should interpret the `txMsgData.Data` as follows:
 
 ```go
@@ -225,10 +225,10 @@ case 0:
     }
   }
 }
-``` 
+```
 
-A handler will be needed to interpret what actions to perform based on the type URL of the Any. 
-A router could be used, or more simply a switch statement. 
+A handler will be needed to interpret what actions to perform based on the type URL of the Any.
+A router could be used, or more simply a switch statement.
 It may be possible to deduplicate logic between `handler` and `handleAny`.
 
 ```go

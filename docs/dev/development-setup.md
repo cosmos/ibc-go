@@ -32,7 +32,7 @@ To update third-party protobuf dependencies, you can run `make proto-update-deps
 
 For generating or updating the swagger file that documents the URLs of the RESTful API that exposes the gRPC endpoints over HTTP, you can run the `proto-swagger-gen` command.
 
-It reads protobuf service definitions and generates a reverse-proxy server which translates a RESTful HTTP API into gRPC. 
+It reads protobuf service definitions and generates a reverse-proxy server which translates a RESTful HTTP API into gRPC.
 
 ## Developing and testing
 
@@ -51,7 +51,7 @@ When testing a function under a variety of different inputs, we prefer to use [t
 
 All unit tests should use the testing package. Please see the testing package [README](../../testing/README.md) for more information.
 
-Test coverage is continuously deployed at https://app.codecov.io/github/cosmos/ibc-go. PRs that improve test coverage are welcome, but in general the test coverage should be used as a guidance for finding API use cases that are not covered by tests. We don't recommend adding tests that only improve coverage but not actually test a meaning use case.
+Test coverage is continuously deployed at <https://app.codecov.io/github/cosmos/ibc-go>. PRs that improve test coverage are welcome, but in general the test coverage should be used as a guidance for finding API use cases that are not covered by tests. We don't recommend adding tests that only improve coverage but not actually test a meaning use case.
 
 ## Documentation
 

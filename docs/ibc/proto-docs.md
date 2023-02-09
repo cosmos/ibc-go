@@ -1,397 +1,390 @@
 <!-- This file is auto-generated. Please do not modify it yourself. -->
 # Protobuf Documentation
+
 <a name="top"></a>
 
 ## Table of Contents
 
 - [ibc/applications/fee/v1/ack.proto](#ibc/applications/fee/v1/ack.proto)
-    - [IncentivizedAcknowledgement](#ibc.applications.fee.v1.IncentivizedAcknowledgement)
+  - [IncentivizedAcknowledgement](#ibc.applications.fee.v1.IncentivizedAcknowledgement)
   
 - [ibc/core/client/v1/client.proto](#ibc/core/client/v1/client.proto)
-    - [ClientConsensusStates](#ibc.core.client.v1.ClientConsensusStates)
-    - [ClientUpdateProposal](#ibc.core.client.v1.ClientUpdateProposal)
-    - [ConsensusStateWithHeight](#ibc.core.client.v1.ConsensusStateWithHeight)
-    - [Height](#ibc.core.client.v1.Height)
-    - [IdentifiedClientState](#ibc.core.client.v1.IdentifiedClientState)
-    - [Params](#ibc.core.client.v1.Params)
-    - [UpgradeProposal](#ibc.core.client.v1.UpgradeProposal)
+  - [ClientConsensusStates](#ibc.core.client.v1.ClientConsensusStates)
+  - [ClientUpdateProposal](#ibc.core.client.v1.ClientUpdateProposal)
+  - [ConsensusStateWithHeight](#ibc.core.client.v1.ConsensusStateWithHeight)
+  - [Height](#ibc.core.client.v1.Height)
+  - [IdentifiedClientState](#ibc.core.client.v1.IdentifiedClientState)
+  - [Params](#ibc.core.client.v1.Params)
+  - [UpgradeProposal](#ibc.core.client.v1.UpgradeProposal)
   
 - [ibc/core/channel/v1/channel.proto](#ibc/core/channel/v1/channel.proto)
-    - [Acknowledgement](#ibc.core.channel.v1.Acknowledgement)
-    - [Channel](#ibc.core.channel.v1.Channel)
-    - [Counterparty](#ibc.core.channel.v1.Counterparty)
-    - [IdentifiedChannel](#ibc.core.channel.v1.IdentifiedChannel)
-    - [Packet](#ibc.core.channel.v1.Packet)
-    - [PacketId](#ibc.core.channel.v1.PacketId)
-    - [PacketState](#ibc.core.channel.v1.PacketState)
+  - [Acknowledgement](#ibc.core.channel.v1.Acknowledgement)
+  - [Channel](#ibc.core.channel.v1.Channel)
+  - [Counterparty](#ibc.core.channel.v1.Counterparty)
+  - [IdentifiedChannel](#ibc.core.channel.v1.IdentifiedChannel)
+  - [Packet](#ibc.core.channel.v1.Packet)
+  - [PacketId](#ibc.core.channel.v1.PacketId)
+  - [PacketState](#ibc.core.channel.v1.PacketState)
   
-    - [Order](#ibc.core.channel.v1.Order)
-    - [State](#ibc.core.channel.v1.State)
+  - [Order](#ibc.core.channel.v1.Order)
+  - [State](#ibc.core.channel.v1.State)
   
 - [ibc/applications/fee/v1/fee.proto](#ibc/applications/fee/v1/fee.proto)
-    - [Fee](#ibc.applications.fee.v1.Fee)
-    - [IdentifiedPacketFees](#ibc.applications.fee.v1.IdentifiedPacketFees)
-    - [PacketFee](#ibc.applications.fee.v1.PacketFee)
-    - [PacketFees](#ibc.applications.fee.v1.PacketFees)
+  - [Fee](#ibc.applications.fee.v1.Fee)
+  - [IdentifiedPacketFees](#ibc.applications.fee.v1.IdentifiedPacketFees)
+  - [PacketFee](#ibc.applications.fee.v1.PacketFee)
+  - [PacketFees](#ibc.applications.fee.v1.PacketFees)
   
 - [ibc/applications/fee/v1/genesis.proto](#ibc/applications/fee/v1/genesis.proto)
-    - [FeeEnabledChannel](#ibc.applications.fee.v1.FeeEnabledChannel)
-    - [ForwardRelayerAddress](#ibc.applications.fee.v1.ForwardRelayerAddress)
-    - [GenesisState](#ibc.applications.fee.v1.GenesisState)
-    - [RegisteredCounterpartyPayee](#ibc.applications.fee.v1.RegisteredCounterpartyPayee)
-    - [RegisteredPayee](#ibc.applications.fee.v1.RegisteredPayee)
+  - [FeeEnabledChannel](#ibc.applications.fee.v1.FeeEnabledChannel)
+  - [ForwardRelayerAddress](#ibc.applications.fee.v1.ForwardRelayerAddress)
+  - [GenesisState](#ibc.applications.fee.v1.GenesisState)
+  - [RegisteredCounterpartyPayee](#ibc.applications.fee.v1.RegisteredCounterpartyPayee)
+  - [RegisteredPayee](#ibc.applications.fee.v1.RegisteredPayee)
   
 - [ibc/applications/fee/v1/metadata.proto](#ibc/applications/fee/v1/metadata.proto)
-    - [Metadata](#ibc.applications.fee.v1.Metadata)
+  - [Metadata](#ibc.applications.fee.v1.Metadata)
   
 - [ibc/applications/fee/v1/query.proto](#ibc/applications/fee/v1/query.proto)
-    - [QueryCounterpartyPayeeRequest](#ibc.applications.fee.v1.QueryCounterpartyPayeeRequest)
-    - [QueryCounterpartyPayeeResponse](#ibc.applications.fee.v1.QueryCounterpartyPayeeResponse)
-    - [QueryFeeEnabledChannelRequest](#ibc.applications.fee.v1.QueryFeeEnabledChannelRequest)
-    - [QueryFeeEnabledChannelResponse](#ibc.applications.fee.v1.QueryFeeEnabledChannelResponse)
-    - [QueryFeeEnabledChannelsRequest](#ibc.applications.fee.v1.QueryFeeEnabledChannelsRequest)
-    - [QueryFeeEnabledChannelsResponse](#ibc.applications.fee.v1.QueryFeeEnabledChannelsResponse)
-    - [QueryIncentivizedPacketRequest](#ibc.applications.fee.v1.QueryIncentivizedPacketRequest)
-    - [QueryIncentivizedPacketResponse](#ibc.applications.fee.v1.QueryIncentivizedPacketResponse)
-    - [QueryIncentivizedPacketsForChannelRequest](#ibc.applications.fee.v1.QueryIncentivizedPacketsForChannelRequest)
-    - [QueryIncentivizedPacketsForChannelResponse](#ibc.applications.fee.v1.QueryIncentivizedPacketsForChannelResponse)
-    - [QueryIncentivizedPacketsRequest](#ibc.applications.fee.v1.QueryIncentivizedPacketsRequest)
-    - [QueryIncentivizedPacketsResponse](#ibc.applications.fee.v1.QueryIncentivizedPacketsResponse)
-    - [QueryPayeeRequest](#ibc.applications.fee.v1.QueryPayeeRequest)
-    - [QueryPayeeResponse](#ibc.applications.fee.v1.QueryPayeeResponse)
-    - [QueryTotalAckFeesRequest](#ibc.applications.fee.v1.QueryTotalAckFeesRequest)
-    - [QueryTotalAckFeesResponse](#ibc.applications.fee.v1.QueryTotalAckFeesResponse)
-    - [QueryTotalRecvFeesRequest](#ibc.applications.fee.v1.QueryTotalRecvFeesRequest)
-    - [QueryTotalRecvFeesResponse](#ibc.applications.fee.v1.QueryTotalRecvFeesResponse)
-    - [QueryTotalTimeoutFeesRequest](#ibc.applications.fee.v1.QueryTotalTimeoutFeesRequest)
-    - [QueryTotalTimeoutFeesResponse](#ibc.applications.fee.v1.QueryTotalTimeoutFeesResponse)
+  - [QueryCounterpartyPayeeRequest](#ibc.applications.fee.v1.QueryCounterpartyPayeeRequest)
+  - [QueryCounterpartyPayeeResponse](#ibc.applications.fee.v1.QueryCounterpartyPayeeResponse)
+  - [QueryFeeEnabledChannelRequest](#ibc.applications.fee.v1.QueryFeeEnabledChannelRequest)
+  - [QueryFeeEnabledChannelResponse](#ibc.applications.fee.v1.QueryFeeEnabledChannelResponse)
+  - [QueryFeeEnabledChannelsRequest](#ibc.applications.fee.v1.QueryFeeEnabledChannelsRequest)
+  - [QueryFeeEnabledChannelsResponse](#ibc.applications.fee.v1.QueryFeeEnabledChannelsResponse)
+  - [QueryIncentivizedPacketRequest](#ibc.applications.fee.v1.QueryIncentivizedPacketRequest)
+  - [QueryIncentivizedPacketResponse](#ibc.applications.fee.v1.QueryIncentivizedPacketResponse)
+  - [QueryIncentivizedPacketsForChannelRequest](#ibc.applications.fee.v1.QueryIncentivizedPacketsForChannelRequest)
+  - [QueryIncentivizedPacketsForChannelResponse](#ibc.applications.fee.v1.QueryIncentivizedPacketsForChannelResponse)
+  - [QueryIncentivizedPacketsRequest](#ibc.applications.fee.v1.QueryIncentivizedPacketsRequest)
+  - [QueryIncentivizedPacketsResponse](#ibc.applications.fee.v1.QueryIncentivizedPacketsResponse)
+  - [QueryPayeeRequest](#ibc.applications.fee.v1.QueryPayeeRequest)
+  - [QueryPayeeResponse](#ibc.applications.fee.v1.QueryPayeeResponse)
+  - [QueryTotalAckFeesRequest](#ibc.applications.fee.v1.QueryTotalAckFeesRequest)
+  - [QueryTotalAckFeesResponse](#ibc.applications.fee.v1.QueryTotalAckFeesResponse)
+  - [QueryTotalRecvFeesRequest](#ibc.applications.fee.v1.QueryTotalRecvFeesRequest)
+  - [QueryTotalRecvFeesResponse](#ibc.applications.fee.v1.QueryTotalRecvFeesResponse)
+  - [QueryTotalTimeoutFeesRequest](#ibc.applications.fee.v1.QueryTotalTimeoutFeesRequest)
+  - [QueryTotalTimeoutFeesResponse](#ibc.applications.fee.v1.QueryTotalTimeoutFeesResponse)
   
-    - [Query](#ibc.applications.fee.v1.Query)
+  - [Query](#ibc.applications.fee.v1.Query)
   
 - [ibc/applications/fee/v1/tx.proto](#ibc/applications/fee/v1/tx.proto)
-    - [MsgPayPacketFee](#ibc.applications.fee.v1.MsgPayPacketFee)
-    - [MsgPayPacketFeeAsync](#ibc.applications.fee.v1.MsgPayPacketFeeAsync)
-    - [MsgPayPacketFeeAsyncResponse](#ibc.applications.fee.v1.MsgPayPacketFeeAsyncResponse)
-    - [MsgPayPacketFeeResponse](#ibc.applications.fee.v1.MsgPayPacketFeeResponse)
-    - [MsgRegisterCounterpartyPayee](#ibc.applications.fee.v1.MsgRegisterCounterpartyPayee)
-    - [MsgRegisterCounterpartyPayeeResponse](#ibc.applications.fee.v1.MsgRegisterCounterpartyPayeeResponse)
-    - [MsgRegisterPayee](#ibc.applications.fee.v1.MsgRegisterPayee)
-    - [MsgRegisterPayeeResponse](#ibc.applications.fee.v1.MsgRegisterPayeeResponse)
+  - [MsgPayPacketFee](#ibc.applications.fee.v1.MsgPayPacketFee)
+  - [MsgPayPacketFeeAsync](#ibc.applications.fee.v1.MsgPayPacketFeeAsync)
+  - [MsgPayPacketFeeAsyncResponse](#ibc.applications.fee.v1.MsgPayPacketFeeAsyncResponse)
+  - [MsgPayPacketFeeResponse](#ibc.applications.fee.v1.MsgPayPacketFeeResponse)
+  - [MsgRegisterCounterpartyPayee](#ibc.applications.fee.v1.MsgRegisterCounterpartyPayee)
+  - [MsgRegisterCounterpartyPayeeResponse](#ibc.applications.fee.v1.MsgRegisterCounterpartyPayeeResponse)
+  - [MsgRegisterPayee](#ibc.applications.fee.v1.MsgRegisterPayee)
+  - [MsgRegisterPayeeResponse](#ibc.applications.fee.v1.MsgRegisterPayeeResponse)
   
-    - [Msg](#ibc.applications.fee.v1.Msg)
+  - [Msg](#ibc.applications.fee.v1.Msg)
   
 - [ibc/applications/interchain_accounts/controller/v1/controller.proto](#ibc/applications/interchain_accounts/controller/v1/controller.proto)
-    - [Params](#ibc.applications.interchain_accounts.controller.v1.Params)
+  - [Params](#ibc.applications.interchain_accounts.controller.v1.Params)
   
 - [ibc/applications/interchain_accounts/controller/v1/query.proto](#ibc/applications/interchain_accounts/controller/v1/query.proto)
-    - [QueryInterchainAccountRequest](#ibc.applications.interchain_accounts.controller.v1.QueryInterchainAccountRequest)
-    - [QueryInterchainAccountResponse](#ibc.applications.interchain_accounts.controller.v1.QueryInterchainAccountResponse)
-    - [QueryParamsRequest](#ibc.applications.interchain_accounts.controller.v1.QueryParamsRequest)
-    - [QueryParamsResponse](#ibc.applications.interchain_accounts.controller.v1.QueryParamsResponse)
+  - [QueryInterchainAccountRequest](#ibc.applications.interchain_accounts.controller.v1.QueryInterchainAccountRequest)
+  - [QueryInterchainAccountResponse](#ibc.applications.interchain_accounts.controller.v1.QueryInterchainAccountResponse)
+  - [QueryParamsRequest](#ibc.applications.interchain_accounts.controller.v1.QueryParamsRequest)
+  - [QueryParamsResponse](#ibc.applications.interchain_accounts.controller.v1.QueryParamsResponse)
   
-    - [Query](#ibc.applications.interchain_accounts.controller.v1.Query)
+  - [Query](#ibc.applications.interchain_accounts.controller.v1.Query)
   
 - [ibc/applications/interchain_accounts/v1/packet.proto](#ibc/applications/interchain_accounts/v1/packet.proto)
-    - [CosmosTx](#ibc.applications.interchain_accounts.v1.CosmosTx)
-    - [InterchainAccountPacketData](#ibc.applications.interchain_accounts.v1.InterchainAccountPacketData)
+  - [CosmosTx](#ibc.applications.interchain_accounts.v1.CosmosTx)
+  - [InterchainAccountPacketData](#ibc.applications.interchain_accounts.v1.InterchainAccountPacketData)
   
-    - [Type](#ibc.applications.interchain_accounts.v1.Type)
+  - [Type](#ibc.applications.interchain_accounts.v1.Type)
   
 - [ibc/applications/interchain_accounts/controller/v1/tx.proto](#ibc/applications/interchain_accounts/controller/v1/tx.proto)
-    - [MsgRegisterInterchainAccount](#ibc.applications.interchain_accounts.controller.v1.MsgRegisterInterchainAccount)
-    - [MsgRegisterInterchainAccountResponse](#ibc.applications.interchain_accounts.controller.v1.MsgRegisterInterchainAccountResponse)
-    - [MsgSendTx](#ibc.applications.interchain_accounts.controller.v1.MsgSendTx)
-    - [MsgSendTxResponse](#ibc.applications.interchain_accounts.controller.v1.MsgSendTxResponse)
+  - [MsgRegisterInterchainAccount](#ibc.applications.interchain_accounts.controller.v1.MsgRegisterInterchainAccount)
+  - [MsgRegisterInterchainAccountResponse](#ibc.applications.interchain_accounts.controller.v1.MsgRegisterInterchainAccountResponse)
+  - [MsgSendTx](#ibc.applications.interchain_accounts.controller.v1.MsgSendTx)
+  - [MsgSendTxResponse](#ibc.applications.interchain_accounts.controller.v1.MsgSendTxResponse)
   
-    - [Msg](#ibc.applications.interchain_accounts.controller.v1.Msg)
+  - [Msg](#ibc.applications.interchain_accounts.controller.v1.Msg)
   
 - [ibc/applications/interchain_accounts/host/v1/host.proto](#ibc/applications/interchain_accounts/host/v1/host.proto)
-    - [Params](#ibc.applications.interchain_accounts.host.v1.Params)
+  - [Params](#ibc.applications.interchain_accounts.host.v1.Params)
   
 - [ibc/applications/interchain_accounts/genesis/v1/genesis.proto](#ibc/applications/interchain_accounts/genesis/v1/genesis.proto)
-    - [ActiveChannel](#ibc.applications.interchain_accounts.genesis.v1.ActiveChannel)
-    - [ControllerGenesisState](#ibc.applications.interchain_accounts.genesis.v1.ControllerGenesisState)
-    - [GenesisState](#ibc.applications.interchain_accounts.genesis.v1.GenesisState)
-    - [HostGenesisState](#ibc.applications.interchain_accounts.genesis.v1.HostGenesisState)
-    - [RegisteredInterchainAccount](#ibc.applications.interchain_accounts.genesis.v1.RegisteredInterchainAccount)
+  - [ActiveChannel](#ibc.applications.interchain_accounts.genesis.v1.ActiveChannel)
+  - [ControllerGenesisState](#ibc.applications.interchain_accounts.genesis.v1.ControllerGenesisState)
+  - [GenesisState](#ibc.applications.interchain_accounts.genesis.v1.GenesisState)
+  - [HostGenesisState](#ibc.applications.interchain_accounts.genesis.v1.HostGenesisState)
+  - [RegisteredInterchainAccount](#ibc.applications.interchain_accounts.genesis.v1.RegisteredInterchainAccount)
   
 - [ibc/applications/interchain_accounts/host/v1/query.proto](#ibc/applications/interchain_accounts/host/v1/query.proto)
-    - [QueryParamsRequest](#ibc.applications.interchain_accounts.host.v1.QueryParamsRequest)
-    - [QueryParamsResponse](#ibc.applications.interchain_accounts.host.v1.QueryParamsResponse)
+  - [QueryParamsRequest](#ibc.applications.interchain_accounts.host.v1.QueryParamsRequest)
+  - [QueryParamsResponse](#ibc.applications.interchain_accounts.host.v1.QueryParamsResponse)
   
-    - [Query](#ibc.applications.interchain_accounts.host.v1.Query)
+  - [Query](#ibc.applications.interchain_accounts.host.v1.Query)
   
 - [ibc/applications/interchain_accounts/v1/account.proto](#ibc/applications/interchain_accounts/v1/account.proto)
-    - [InterchainAccount](#ibc.applications.interchain_accounts.v1.InterchainAccount)
+  - [InterchainAccount](#ibc.applications.interchain_accounts.v1.InterchainAccount)
   
 - [ibc/applications/interchain_accounts/v1/metadata.proto](#ibc/applications/interchain_accounts/v1/metadata.proto)
-    - [Metadata](#ibc.applications.interchain_accounts.v1.Metadata)
+  - [Metadata](#ibc.applications.interchain_accounts.v1.Metadata)
   
 - [ibc/applications/transfer/v1/transfer.proto](#ibc/applications/transfer/v1/transfer.proto)
-    - [DenomTrace](#ibc.applications.transfer.v1.DenomTrace)
-    - [Params](#ibc.applications.transfer.v1.Params)
+  - [DenomTrace](#ibc.applications.transfer.v1.DenomTrace)
+  - [Params](#ibc.applications.transfer.v1.Params)
   
 - [ibc/applications/transfer/v1/genesis.proto](#ibc/applications/transfer/v1/genesis.proto)
-    - [GenesisState](#ibc.applications.transfer.v1.GenesisState)
+  - [GenesisState](#ibc.applications.transfer.v1.GenesisState)
   
 - [ibc/applications/transfer/v1/query.proto](#ibc/applications/transfer/v1/query.proto)
-    - [QueryDenomHashRequest](#ibc.applications.transfer.v1.QueryDenomHashRequest)
-    - [QueryDenomHashResponse](#ibc.applications.transfer.v1.QueryDenomHashResponse)
-    - [QueryDenomTraceRequest](#ibc.applications.transfer.v1.QueryDenomTraceRequest)
-    - [QueryDenomTraceResponse](#ibc.applications.transfer.v1.QueryDenomTraceResponse)
-    - [QueryDenomTracesRequest](#ibc.applications.transfer.v1.QueryDenomTracesRequest)
-    - [QueryDenomTracesResponse](#ibc.applications.transfer.v1.QueryDenomTracesResponse)
-    - [QueryEscrowAddressRequest](#ibc.applications.transfer.v1.QueryEscrowAddressRequest)
-    - [QueryEscrowAddressResponse](#ibc.applications.transfer.v1.QueryEscrowAddressResponse)
-    - [QueryParamsRequest](#ibc.applications.transfer.v1.QueryParamsRequest)
-    - [QueryParamsResponse](#ibc.applications.transfer.v1.QueryParamsResponse)
+  - [QueryDenomHashRequest](#ibc.applications.transfer.v1.QueryDenomHashRequest)
+  - [QueryDenomHashResponse](#ibc.applications.transfer.v1.QueryDenomHashResponse)
+  - [QueryDenomTraceRequest](#ibc.applications.transfer.v1.QueryDenomTraceRequest)
+  - [QueryDenomTraceResponse](#ibc.applications.transfer.v1.QueryDenomTraceResponse)
+  - [QueryDenomTracesRequest](#ibc.applications.transfer.v1.QueryDenomTracesRequest)
+  - [QueryDenomTracesResponse](#ibc.applications.transfer.v1.QueryDenomTracesResponse)
+  - [QueryEscrowAddressRequest](#ibc.applications.transfer.v1.QueryEscrowAddressRequest)
+  - [QueryEscrowAddressResponse](#ibc.applications.transfer.v1.QueryEscrowAddressResponse)
+  - [QueryParamsRequest](#ibc.applications.transfer.v1.QueryParamsRequest)
+  - [QueryParamsResponse](#ibc.applications.transfer.v1.QueryParamsResponse)
   
-    - [Query](#ibc.applications.transfer.v1.Query)
+  - [Query](#ibc.applications.transfer.v1.Query)
   
 - [ibc/applications/transfer/v1/tx.proto](#ibc/applications/transfer/v1/tx.proto)
-    - [MsgTransfer](#ibc.applications.transfer.v1.MsgTransfer)
-    - [MsgTransferResponse](#ibc.applications.transfer.v1.MsgTransferResponse)
+  - [MsgTransfer](#ibc.applications.transfer.v1.MsgTransfer)
+  - [MsgTransferResponse](#ibc.applications.transfer.v1.MsgTransferResponse)
   
-    - [Msg](#ibc.applications.transfer.v1.Msg)
+  - [Msg](#ibc.applications.transfer.v1.Msg)
   
 - [ibc/applications/transfer/v2/authz.proto](#ibc/applications/transfer/v2/authz.proto)
-    - [PortChannelAmount](#ibc.applications.transfer.v2.PortChannelAmount)
-    - [TransferAuthorization](#ibc.applications.transfer.v2.TransferAuthorization)
+  - [PortChannelAmount](#ibc.applications.transfer.v2.PortChannelAmount)
+  - [TransferAuthorization](#ibc.applications.transfer.v2.TransferAuthorization)
   
 - [ibc/applications/transfer/v2/packet.proto](#ibc/applications/transfer/v2/packet.proto)
-    - [FungibleTokenPacketData](#ibc.applications.transfer.v2.FungibleTokenPacketData)
+  - [FungibleTokenPacketData](#ibc.applications.transfer.v2.FungibleTokenPacketData)
   
 - [ibc/core/channel/v1/genesis.proto](#ibc/core/channel/v1/genesis.proto)
-    - [GenesisState](#ibc.core.channel.v1.GenesisState)
-    - [PacketSequence](#ibc.core.channel.v1.PacketSequence)
+  - [GenesisState](#ibc.core.channel.v1.GenesisState)
+  - [PacketSequence](#ibc.core.channel.v1.PacketSequence)
   
 - [ibc/core/channel/v1/query.proto](#ibc/core/channel/v1/query.proto)
-    - [QueryChannelClientStateRequest](#ibc.core.channel.v1.QueryChannelClientStateRequest)
-    - [QueryChannelClientStateResponse](#ibc.core.channel.v1.QueryChannelClientStateResponse)
-    - [QueryChannelConsensusStateRequest](#ibc.core.channel.v1.QueryChannelConsensusStateRequest)
-    - [QueryChannelConsensusStateResponse](#ibc.core.channel.v1.QueryChannelConsensusStateResponse)
-    - [QueryChannelRequest](#ibc.core.channel.v1.QueryChannelRequest)
-    - [QueryChannelResponse](#ibc.core.channel.v1.QueryChannelResponse)
-    - [QueryChannelsRequest](#ibc.core.channel.v1.QueryChannelsRequest)
-    - [QueryChannelsResponse](#ibc.core.channel.v1.QueryChannelsResponse)
-    - [QueryConnectionChannelsRequest](#ibc.core.channel.v1.QueryConnectionChannelsRequest)
-    - [QueryConnectionChannelsResponse](#ibc.core.channel.v1.QueryConnectionChannelsResponse)
-    - [QueryNextSequenceReceiveRequest](#ibc.core.channel.v1.QueryNextSequenceReceiveRequest)
-    - [QueryNextSequenceReceiveResponse](#ibc.core.channel.v1.QueryNextSequenceReceiveResponse)
-    - [QueryPacketAcknowledgementRequest](#ibc.core.channel.v1.QueryPacketAcknowledgementRequest)
-    - [QueryPacketAcknowledgementResponse](#ibc.core.channel.v1.QueryPacketAcknowledgementResponse)
-    - [QueryPacketAcknowledgementsRequest](#ibc.core.channel.v1.QueryPacketAcknowledgementsRequest)
-    - [QueryPacketAcknowledgementsResponse](#ibc.core.channel.v1.QueryPacketAcknowledgementsResponse)
-    - [QueryPacketCommitmentRequest](#ibc.core.channel.v1.QueryPacketCommitmentRequest)
-    - [QueryPacketCommitmentResponse](#ibc.core.channel.v1.QueryPacketCommitmentResponse)
-    - [QueryPacketCommitmentsRequest](#ibc.core.channel.v1.QueryPacketCommitmentsRequest)
-    - [QueryPacketCommitmentsResponse](#ibc.core.channel.v1.QueryPacketCommitmentsResponse)
-    - [QueryPacketReceiptRequest](#ibc.core.channel.v1.QueryPacketReceiptRequest)
-    - [QueryPacketReceiptResponse](#ibc.core.channel.v1.QueryPacketReceiptResponse)
-    - [QueryUnreceivedAcksRequest](#ibc.core.channel.v1.QueryUnreceivedAcksRequest)
-    - [QueryUnreceivedAcksResponse](#ibc.core.channel.v1.QueryUnreceivedAcksResponse)
-    - [QueryUnreceivedPacketsRequest](#ibc.core.channel.v1.QueryUnreceivedPacketsRequest)
-    - [QueryUnreceivedPacketsResponse](#ibc.core.channel.v1.QueryUnreceivedPacketsResponse)
+  - [QueryChannelClientStateRequest](#ibc.core.channel.v1.QueryChannelClientStateRequest)
+  - [QueryChannelClientStateResponse](#ibc.core.channel.v1.QueryChannelClientStateResponse)
+  - [QueryChannelConsensusStateRequest](#ibc.core.channel.v1.QueryChannelConsensusStateRequest)
+  - [QueryChannelConsensusStateResponse](#ibc.core.channel.v1.QueryChannelConsensusStateResponse)
+  - [QueryChannelRequest](#ibc.core.channel.v1.QueryChannelRequest)
+  - [QueryChannelResponse](#ibc.core.channel.v1.QueryChannelResponse)
+  - [QueryChannelsRequest](#ibc.core.channel.v1.QueryChannelsRequest)
+  - [QueryChannelsResponse](#ibc.core.channel.v1.QueryChannelsResponse)
+  - [QueryConnectionChannelsRequest](#ibc.core.channel.v1.QueryConnectionChannelsRequest)
+  - [QueryConnectionChannelsResponse](#ibc.core.channel.v1.QueryConnectionChannelsResponse)
+  - [QueryNextSequenceReceiveRequest](#ibc.core.channel.v1.QueryNextSequenceReceiveRequest)
+  - [QueryNextSequenceReceiveResponse](#ibc.core.channel.v1.QueryNextSequenceReceiveResponse)
+  - [QueryPacketAcknowledgementRequest](#ibc.core.channel.v1.QueryPacketAcknowledgementRequest)
+  - [QueryPacketAcknowledgementResponse](#ibc.core.channel.v1.QueryPacketAcknowledgementResponse)
+  - [QueryPacketAcknowledgementsRequest](#ibc.core.channel.v1.QueryPacketAcknowledgementsRequest)
+  - [QueryPacketAcknowledgementsResponse](#ibc.core.channel.v1.QueryPacketAcknowledgementsResponse)
+  - [QueryPacketCommitmentRequest](#ibc.core.channel.v1.QueryPacketCommitmentRequest)
+  - [QueryPacketCommitmentResponse](#ibc.core.channel.v1.QueryPacketCommitmentResponse)
+  - [QueryPacketCommitmentsRequest](#ibc.core.channel.v1.QueryPacketCommitmentsRequest)
+  - [QueryPacketCommitmentsResponse](#ibc.core.channel.v1.QueryPacketCommitmentsResponse)
+  - [QueryPacketReceiptRequest](#ibc.core.channel.v1.QueryPacketReceiptRequest)
+  - [QueryPacketReceiptResponse](#ibc.core.channel.v1.QueryPacketReceiptResponse)
+  - [QueryUnreceivedAcksRequest](#ibc.core.channel.v1.QueryUnreceivedAcksRequest)
+  - [QueryUnreceivedAcksResponse](#ibc.core.channel.v1.QueryUnreceivedAcksResponse)
+  - [QueryUnreceivedPacketsRequest](#ibc.core.channel.v1.QueryUnreceivedPacketsRequest)
+  - [QueryUnreceivedPacketsResponse](#ibc.core.channel.v1.QueryUnreceivedPacketsResponse)
   
-    - [Query](#ibc.core.channel.v1.Query)
+  - [Query](#ibc.core.channel.v1.Query)
   
 - [ibc/core/channel/v1/tx.proto](#ibc/core/channel/v1/tx.proto)
-    - [MsgAcknowledgement](#ibc.core.channel.v1.MsgAcknowledgement)
-    - [MsgAcknowledgementResponse](#ibc.core.channel.v1.MsgAcknowledgementResponse)
-    - [MsgChannelCloseConfirm](#ibc.core.channel.v1.MsgChannelCloseConfirm)
-    - [MsgChannelCloseConfirmResponse](#ibc.core.channel.v1.MsgChannelCloseConfirmResponse)
-    - [MsgChannelCloseInit](#ibc.core.channel.v1.MsgChannelCloseInit)
-    - [MsgChannelCloseInitResponse](#ibc.core.channel.v1.MsgChannelCloseInitResponse)
-    - [MsgChannelOpenAck](#ibc.core.channel.v1.MsgChannelOpenAck)
-    - [MsgChannelOpenAckResponse](#ibc.core.channel.v1.MsgChannelOpenAckResponse)
-    - [MsgChannelOpenConfirm](#ibc.core.channel.v1.MsgChannelOpenConfirm)
-    - [MsgChannelOpenConfirmResponse](#ibc.core.channel.v1.MsgChannelOpenConfirmResponse)
-    - [MsgChannelOpenInit](#ibc.core.channel.v1.MsgChannelOpenInit)
-    - [MsgChannelOpenInitResponse](#ibc.core.channel.v1.MsgChannelOpenInitResponse)
-    - [MsgChannelOpenTry](#ibc.core.channel.v1.MsgChannelOpenTry)
-    - [MsgChannelOpenTryResponse](#ibc.core.channel.v1.MsgChannelOpenTryResponse)
-    - [MsgRecvPacket](#ibc.core.channel.v1.MsgRecvPacket)
-    - [MsgRecvPacketResponse](#ibc.core.channel.v1.MsgRecvPacketResponse)
-    - [MsgTimeout](#ibc.core.channel.v1.MsgTimeout)
-    - [MsgTimeoutOnClose](#ibc.core.channel.v1.MsgTimeoutOnClose)
-    - [MsgTimeoutOnCloseResponse](#ibc.core.channel.v1.MsgTimeoutOnCloseResponse)
-    - [MsgTimeoutResponse](#ibc.core.channel.v1.MsgTimeoutResponse)
+  - [MsgAcknowledgement](#ibc.core.channel.v1.MsgAcknowledgement)
+  - [MsgAcknowledgementResponse](#ibc.core.channel.v1.MsgAcknowledgementResponse)
+  - [MsgChannelCloseConfirm](#ibc.core.channel.v1.MsgChannelCloseConfirm)
+  - [MsgChannelCloseConfirmResponse](#ibc.core.channel.v1.MsgChannelCloseConfirmResponse)
+  - [MsgChannelCloseInit](#ibc.core.channel.v1.MsgChannelCloseInit)
+  - [MsgChannelCloseInitResponse](#ibc.core.channel.v1.MsgChannelCloseInitResponse)
+  - [MsgChannelOpenAck](#ibc.core.channel.v1.MsgChannelOpenAck)
+  - [MsgChannelOpenAckResponse](#ibc.core.channel.v1.MsgChannelOpenAckResponse)
+  - [MsgChannelOpenConfirm](#ibc.core.channel.v1.MsgChannelOpenConfirm)
+  - [MsgChannelOpenConfirmResponse](#ibc.core.channel.v1.MsgChannelOpenConfirmResponse)
+  - [MsgChannelOpenInit](#ibc.core.channel.v1.MsgChannelOpenInit)
+  - [MsgChannelOpenInitResponse](#ibc.core.channel.v1.MsgChannelOpenInitResponse)
+  - [MsgChannelOpenTry](#ibc.core.channel.v1.MsgChannelOpenTry)
+  - [MsgChannelOpenTryResponse](#ibc.core.channel.v1.MsgChannelOpenTryResponse)
+  - [MsgRecvPacket](#ibc.core.channel.v1.MsgRecvPacket)
+  - [MsgRecvPacketResponse](#ibc.core.channel.v1.MsgRecvPacketResponse)
+  - [MsgTimeout](#ibc.core.channel.v1.MsgTimeout)
+  - [MsgTimeoutOnClose](#ibc.core.channel.v1.MsgTimeoutOnClose)
+  - [MsgTimeoutOnCloseResponse](#ibc.core.channel.v1.MsgTimeoutOnCloseResponse)
+  - [MsgTimeoutResponse](#ibc.core.channel.v1.MsgTimeoutResponse)
   
-    - [ResponseResultType](#ibc.core.channel.v1.ResponseResultType)
+  - [ResponseResultType](#ibc.core.channel.v1.ResponseResultType)
   
-    - [Msg](#ibc.core.channel.v1.Msg)
+  - [Msg](#ibc.core.channel.v1.Msg)
   
 - [ibc/core/client/v1/genesis.proto](#ibc/core/client/v1/genesis.proto)
-    - [GenesisMetadata](#ibc.core.client.v1.GenesisMetadata)
-    - [GenesisState](#ibc.core.client.v1.GenesisState)
-    - [IdentifiedGenesisMetadata](#ibc.core.client.v1.IdentifiedGenesisMetadata)
+  - [GenesisMetadata](#ibc.core.client.v1.GenesisMetadata)
+  - [GenesisState](#ibc.core.client.v1.GenesisState)
+  - [IdentifiedGenesisMetadata](#ibc.core.client.v1.IdentifiedGenesisMetadata)
   
 - [ibc/core/client/v1/query.proto](#ibc/core/client/v1/query.proto)
-    - [QueryClientStateRequest](#ibc.core.client.v1.QueryClientStateRequest)
-    - [QueryClientStateResponse](#ibc.core.client.v1.QueryClientStateResponse)
-    - [QueryClientStatesRequest](#ibc.core.client.v1.QueryClientStatesRequest)
-    - [QueryClientStatesResponse](#ibc.core.client.v1.QueryClientStatesResponse)
-    - [QueryClientStatusRequest](#ibc.core.client.v1.QueryClientStatusRequest)
-    - [QueryClientStatusResponse](#ibc.core.client.v1.QueryClientStatusResponse)
-    - [QueryConsensusStateHeightsRequest](#ibc.core.client.v1.QueryConsensusStateHeightsRequest)
-    - [QueryConsensusStateHeightsResponse](#ibc.core.client.v1.QueryConsensusStateHeightsResponse)
-    - [QueryConsensusStateRequest](#ibc.core.client.v1.QueryConsensusStateRequest)
-    - [QueryConsensusStateResponse](#ibc.core.client.v1.QueryConsensusStateResponse)
-    - [QueryConsensusStatesRequest](#ibc.core.client.v1.QueryConsensusStatesRequest)
-    - [QueryConsensusStatesResponse](#ibc.core.client.v1.QueryConsensusStatesResponse)
-    - [QueryParamsRequest](#ibc.core.client.v1.QueryParamsRequest)
-    - [QueryParamsResponse](#ibc.core.client.v1.QueryParamsResponse)
-    - [QueryUpgradedClientStateRequest](#ibc.core.client.v1.QueryUpgradedClientStateRequest)
-    - [QueryUpgradedClientStateResponse](#ibc.core.client.v1.QueryUpgradedClientStateResponse)
-    - [QueryUpgradedConsensusStateRequest](#ibc.core.client.v1.QueryUpgradedConsensusStateRequest)
-    - [QueryUpgradedConsensusStateResponse](#ibc.core.client.v1.QueryUpgradedConsensusStateResponse)
+  - [QueryClientStateRequest](#ibc.core.client.v1.QueryClientStateRequest)
+  - [QueryClientStateResponse](#ibc.core.client.v1.QueryClientStateResponse)
+  - [QueryClientStatesRequest](#ibc.core.client.v1.QueryClientStatesRequest)
+  - [QueryClientStatesResponse](#ibc.core.client.v1.QueryClientStatesResponse)
+  - [QueryClientStatusRequest](#ibc.core.client.v1.QueryClientStatusRequest)
+  - [QueryClientStatusResponse](#ibc.core.client.v1.QueryClientStatusResponse)
+  - [QueryConsensusStateHeightsRequest](#ibc.core.client.v1.QueryConsensusStateHeightsRequest)
+  - [QueryConsensusStateHeightsResponse](#ibc.core.client.v1.QueryConsensusStateHeightsResponse)
+  - [QueryConsensusStateRequest](#ibc.core.client.v1.QueryConsensusStateRequest)
+  - [QueryConsensusStateResponse](#ibc.core.client.v1.QueryConsensusStateResponse)
+  - [QueryConsensusStatesRequest](#ibc.core.client.v1.QueryConsensusStatesRequest)
+  - [QueryConsensusStatesResponse](#ibc.core.client.v1.QueryConsensusStatesResponse)
+  - [QueryParamsRequest](#ibc.core.client.v1.QueryParamsRequest)
+  - [QueryParamsResponse](#ibc.core.client.v1.QueryParamsResponse)
+  - [QueryUpgradedClientStateRequest](#ibc.core.client.v1.QueryUpgradedClientStateRequest)
+  - [QueryUpgradedClientStateResponse](#ibc.core.client.v1.QueryUpgradedClientStateResponse)
+  - [QueryUpgradedConsensusStateRequest](#ibc.core.client.v1.QueryUpgradedConsensusStateRequest)
+  - [QueryUpgradedConsensusStateResponse](#ibc.core.client.v1.QueryUpgradedConsensusStateResponse)
   
-    - [Query](#ibc.core.client.v1.Query)
+  - [Query](#ibc.core.client.v1.Query)
   
 - [ibc/core/client/v1/tx.proto](#ibc/core/client/v1/tx.proto)
-    - [MsgCreateClient](#ibc.core.client.v1.MsgCreateClient)
-    - [MsgCreateClientResponse](#ibc.core.client.v1.MsgCreateClientResponse)
-    - [MsgSubmitMisbehaviour](#ibc.core.client.v1.MsgSubmitMisbehaviour)
-    - [MsgSubmitMisbehaviourResponse](#ibc.core.client.v1.MsgSubmitMisbehaviourResponse)
-    - [MsgUpdateClient](#ibc.core.client.v1.MsgUpdateClient)
-    - [MsgUpdateClientResponse](#ibc.core.client.v1.MsgUpdateClientResponse)
-    - [MsgUpgradeClient](#ibc.core.client.v1.MsgUpgradeClient)
-    - [MsgUpgradeClientResponse](#ibc.core.client.v1.MsgUpgradeClientResponse)
+  - [MsgCreateClient](#ibc.core.client.v1.MsgCreateClient)
+  - [MsgCreateClientResponse](#ibc.core.client.v1.MsgCreateClientResponse)
+  - [MsgSubmitMisbehaviour](#ibc.core.client.v1.MsgSubmitMisbehaviour)
+  - [MsgSubmitMisbehaviourResponse](#ibc.core.client.v1.MsgSubmitMisbehaviourResponse)
+  - [MsgUpdateClient](#ibc.core.client.v1.MsgUpdateClient)
+  - [MsgUpdateClientResponse](#ibc.core.client.v1.MsgUpdateClientResponse)
+  - [MsgUpgradeClient](#ibc.core.client.v1.MsgUpgradeClient)
+  - [MsgUpgradeClientResponse](#ibc.core.client.v1.MsgUpgradeClientResponse)
   
-    - [Msg](#ibc.core.client.v1.Msg)
+  - [Msg](#ibc.core.client.v1.Msg)
   
 - [ibc/core/commitment/v1/commitment.proto](#ibc/core/commitment/v1/commitment.proto)
-    - [MerklePath](#ibc.core.commitment.v1.MerklePath)
-    - [MerklePrefix](#ibc.core.commitment.v1.MerklePrefix)
-    - [MerkleProof](#ibc.core.commitment.v1.MerkleProof)
-    - [MerkleRoot](#ibc.core.commitment.v1.MerkleRoot)
+  - [MerklePath](#ibc.core.commitment.v1.MerklePath)
+  - [MerklePrefix](#ibc.core.commitment.v1.MerklePrefix)
+  - [MerkleProof](#ibc.core.commitment.v1.MerkleProof)
+  - [MerkleRoot](#ibc.core.commitment.v1.MerkleRoot)
   
 - [ibc/core/connection/v1/connection.proto](#ibc/core/connection/v1/connection.proto)
-    - [ClientPaths](#ibc.core.connection.v1.ClientPaths)
-    - [ConnectionEnd](#ibc.core.connection.v1.ConnectionEnd)
-    - [ConnectionPaths](#ibc.core.connection.v1.ConnectionPaths)
-    - [Counterparty](#ibc.core.connection.v1.Counterparty)
-    - [IdentifiedConnection](#ibc.core.connection.v1.IdentifiedConnection)
-    - [Params](#ibc.core.connection.v1.Params)
-    - [Version](#ibc.core.connection.v1.Version)
+  - [ClientPaths](#ibc.core.connection.v1.ClientPaths)
+  - [ConnectionEnd](#ibc.core.connection.v1.ConnectionEnd)
+  - [ConnectionPaths](#ibc.core.connection.v1.ConnectionPaths)
+  - [Counterparty](#ibc.core.connection.v1.Counterparty)
+  - [IdentifiedConnection](#ibc.core.connection.v1.IdentifiedConnection)
+  - [Params](#ibc.core.connection.v1.Params)
+  - [Version](#ibc.core.connection.v1.Version)
   
-    - [State](#ibc.core.connection.v1.State)
+  - [State](#ibc.core.connection.v1.State)
   
 - [ibc/core/connection/v1/genesis.proto](#ibc/core/connection/v1/genesis.proto)
-    - [GenesisState](#ibc.core.connection.v1.GenesisState)
+  - [GenesisState](#ibc.core.connection.v1.GenesisState)
   
 - [ibc/core/connection/v1/query.proto](#ibc/core/connection/v1/query.proto)
-    - [QueryClientConnectionsRequest](#ibc.core.connection.v1.QueryClientConnectionsRequest)
-    - [QueryClientConnectionsResponse](#ibc.core.connection.v1.QueryClientConnectionsResponse)
-    - [QueryConnectionClientStateRequest](#ibc.core.connection.v1.QueryConnectionClientStateRequest)
-    - [QueryConnectionClientStateResponse](#ibc.core.connection.v1.QueryConnectionClientStateResponse)
-    - [QueryConnectionConsensusStateRequest](#ibc.core.connection.v1.QueryConnectionConsensusStateRequest)
-    - [QueryConnectionConsensusStateResponse](#ibc.core.connection.v1.QueryConnectionConsensusStateResponse)
-    - [QueryConnectionRequest](#ibc.core.connection.v1.QueryConnectionRequest)
-    - [QueryConnectionResponse](#ibc.core.connection.v1.QueryConnectionResponse)
-    - [QueryConnectionsRequest](#ibc.core.connection.v1.QueryConnectionsRequest)
-    - [QueryConnectionsResponse](#ibc.core.connection.v1.QueryConnectionsResponse)
+  - [QueryClientConnectionsRequest](#ibc.core.connection.v1.QueryClientConnectionsRequest)
+  - [QueryClientConnectionsResponse](#ibc.core.connection.v1.QueryClientConnectionsResponse)
+  - [QueryConnectionClientStateRequest](#ibc.core.connection.v1.QueryConnectionClientStateRequest)
+  - [QueryConnectionClientStateResponse](#ibc.core.connection.v1.QueryConnectionClientStateResponse)
+  - [QueryConnectionConsensusStateRequest](#ibc.core.connection.v1.QueryConnectionConsensusStateRequest)
+  - [QueryConnectionConsensusStateResponse](#ibc.core.connection.v1.QueryConnectionConsensusStateResponse)
+  - [QueryConnectionRequest](#ibc.core.connection.v1.QueryConnectionRequest)
+  - [QueryConnectionResponse](#ibc.core.connection.v1.QueryConnectionResponse)
+  - [QueryConnectionsRequest](#ibc.core.connection.v1.QueryConnectionsRequest)
+  - [QueryConnectionsResponse](#ibc.core.connection.v1.QueryConnectionsResponse)
   
-    - [Query](#ibc.core.connection.v1.Query)
+  - [Query](#ibc.core.connection.v1.Query)
   
 - [ibc/core/connection/v1/tx.proto](#ibc/core/connection/v1/tx.proto)
-    - [MsgConnectionOpenAck](#ibc.core.connection.v1.MsgConnectionOpenAck)
-    - [MsgConnectionOpenAckResponse](#ibc.core.connection.v1.MsgConnectionOpenAckResponse)
-    - [MsgConnectionOpenConfirm](#ibc.core.connection.v1.MsgConnectionOpenConfirm)
-    - [MsgConnectionOpenConfirmResponse](#ibc.core.connection.v1.MsgConnectionOpenConfirmResponse)
-    - [MsgConnectionOpenInit](#ibc.core.connection.v1.MsgConnectionOpenInit)
-    - [MsgConnectionOpenInitResponse](#ibc.core.connection.v1.MsgConnectionOpenInitResponse)
-    - [MsgConnectionOpenTry](#ibc.core.connection.v1.MsgConnectionOpenTry)
-    - [MsgConnectionOpenTryResponse](#ibc.core.connection.v1.MsgConnectionOpenTryResponse)
+  - [MsgConnectionOpenAck](#ibc.core.connection.v1.MsgConnectionOpenAck)
+  - [MsgConnectionOpenAckResponse](#ibc.core.connection.v1.MsgConnectionOpenAckResponse)
+  - [MsgConnectionOpenConfirm](#ibc.core.connection.v1.MsgConnectionOpenConfirm)
+  - [MsgConnectionOpenConfirmResponse](#ibc.core.connection.v1.MsgConnectionOpenConfirmResponse)
+  - [MsgConnectionOpenInit](#ibc.core.connection.v1.MsgConnectionOpenInit)
+  - [MsgConnectionOpenInitResponse](#ibc.core.connection.v1.MsgConnectionOpenInitResponse)
+  - [MsgConnectionOpenTry](#ibc.core.connection.v1.MsgConnectionOpenTry)
+  - [MsgConnectionOpenTryResponse](#ibc.core.connection.v1.MsgConnectionOpenTryResponse)
   
-    - [Msg](#ibc.core.connection.v1.Msg)
+  - [Msg](#ibc.core.connection.v1.Msg)
   
 - [ibc/core/types/v1/genesis.proto](#ibc/core/types/v1/genesis.proto)
-    - [GenesisState](#ibc.core.types.v1.GenesisState)
+  - [GenesisState](#ibc.core.types.v1.GenesisState)
   
 - [ibc/lightclients/solomachine/v1/solomachine.proto](#ibc/lightclients/solomachine/v1/solomachine.proto)
-    - [ChannelStateData](#ibc.lightclients.solomachine.v1.ChannelStateData)
-    - [ClientState](#ibc.lightclients.solomachine.v1.ClientState)
-    - [ClientStateData](#ibc.lightclients.solomachine.v1.ClientStateData)
-    - [ConnectionStateData](#ibc.lightclients.solomachine.v1.ConnectionStateData)
-    - [ConsensusState](#ibc.lightclients.solomachine.v1.ConsensusState)
-    - [ConsensusStateData](#ibc.lightclients.solomachine.v1.ConsensusStateData)
-    - [Header](#ibc.lightclients.solomachine.v1.Header)
-    - [HeaderData](#ibc.lightclients.solomachine.v1.HeaderData)
-    - [Misbehaviour](#ibc.lightclients.solomachine.v1.Misbehaviour)
-    - [NextSequenceRecvData](#ibc.lightclients.solomachine.v1.NextSequenceRecvData)
-    - [PacketAcknowledgementData](#ibc.lightclients.solomachine.v1.PacketAcknowledgementData)
-    - [PacketCommitmentData](#ibc.lightclients.solomachine.v1.PacketCommitmentData)
-    - [PacketReceiptAbsenceData](#ibc.lightclients.solomachine.v1.PacketReceiptAbsenceData)
-    - [SignBytes](#ibc.lightclients.solomachine.v1.SignBytes)
-    - [SignatureAndData](#ibc.lightclients.solomachine.v1.SignatureAndData)
-    - [TimestampedSignatureData](#ibc.lightclients.solomachine.v1.TimestampedSignatureData)
+  - [ChannelStateData](#ibc.lightclients.solomachine.v1.ChannelStateData)
+  - [ClientState](#ibc.lightclients.solomachine.v1.ClientState)
+  - [ClientStateData](#ibc.lightclients.solomachine.v1.ClientStateData)
+  - [ConnectionStateData](#ibc.lightclients.solomachine.v1.ConnectionStateData)
+  - [ConsensusState](#ibc.lightclients.solomachine.v1.ConsensusState)
+  - [ConsensusStateData](#ibc.lightclients.solomachine.v1.ConsensusStateData)
+  - [Header](#ibc.lightclients.solomachine.v1.Header)
+  - [HeaderData](#ibc.lightclients.solomachine.v1.HeaderData)
+  - [Misbehaviour](#ibc.lightclients.solomachine.v1.Misbehaviour)
+  - [NextSequenceRecvData](#ibc.lightclients.solomachine.v1.NextSequenceRecvData)
+  - [PacketAcknowledgementData](#ibc.lightclients.solomachine.v1.PacketAcknowledgementData)
+  - [PacketCommitmentData](#ibc.lightclients.solomachine.v1.PacketCommitmentData)
+  - [PacketReceiptAbsenceData](#ibc.lightclients.solomachine.v1.PacketReceiptAbsenceData)
+  - [SignBytes](#ibc.lightclients.solomachine.v1.SignBytes)
+  - [SignatureAndData](#ibc.lightclients.solomachine.v1.SignatureAndData)
+  - [TimestampedSignatureData](#ibc.lightclients.solomachine.v1.TimestampedSignatureData)
   
-    - [DataType](#ibc.lightclients.solomachine.v1.DataType)
+  - [DataType](#ibc.lightclients.solomachine.v1.DataType)
   
 - [ibc/lightclients/solomachine/v2/solomachine.proto](#ibc/lightclients/solomachine/v2/solomachine.proto)
-    - [ChannelStateData](#ibc.lightclients.solomachine.v2.ChannelStateData)
-    - [ClientState](#ibc.lightclients.solomachine.v2.ClientState)
-    - [ClientStateData](#ibc.lightclients.solomachine.v2.ClientStateData)
-    - [ConnectionStateData](#ibc.lightclients.solomachine.v2.ConnectionStateData)
-    - [ConsensusState](#ibc.lightclients.solomachine.v2.ConsensusState)
-    - [ConsensusStateData](#ibc.lightclients.solomachine.v2.ConsensusStateData)
-    - [Header](#ibc.lightclients.solomachine.v2.Header)
-    - [HeaderData](#ibc.lightclients.solomachine.v2.HeaderData)
-    - [Misbehaviour](#ibc.lightclients.solomachine.v2.Misbehaviour)
-    - [NextSequenceRecvData](#ibc.lightclients.solomachine.v2.NextSequenceRecvData)
-    - [PacketAcknowledgementData](#ibc.lightclients.solomachine.v2.PacketAcknowledgementData)
-    - [PacketCommitmentData](#ibc.lightclients.solomachine.v2.PacketCommitmentData)
-    - [PacketReceiptAbsenceData](#ibc.lightclients.solomachine.v2.PacketReceiptAbsenceData)
-    - [SignBytes](#ibc.lightclients.solomachine.v2.SignBytes)
-    - [SignatureAndData](#ibc.lightclients.solomachine.v2.SignatureAndData)
-    - [TimestampedSignatureData](#ibc.lightclients.solomachine.v2.TimestampedSignatureData)
+  - [ChannelStateData](#ibc.lightclients.solomachine.v2.ChannelStateData)
+  - [ClientState](#ibc.lightclients.solomachine.v2.ClientState)
+  - [ClientStateData](#ibc.lightclients.solomachine.v2.ClientStateData)
+  - [ConnectionStateData](#ibc.lightclients.solomachine.v2.ConnectionStateData)
+  - [ConsensusState](#ibc.lightclients.solomachine.v2.ConsensusState)
+  - [ConsensusStateData](#ibc.lightclients.solomachine.v2.ConsensusStateData)
+  - [Header](#ibc.lightclients.solomachine.v2.Header)
+  - [HeaderData](#ibc.lightclients.solomachine.v2.HeaderData)
+  - [Misbehaviour](#ibc.lightclients.solomachine.v2.Misbehaviour)
+  - [NextSequenceRecvData](#ibc.lightclients.solomachine.v2.NextSequenceRecvData)
+  - [PacketAcknowledgementData](#ibc.lightclients.solomachine.v2.PacketAcknowledgementData)
+  - [PacketCommitmentData](#ibc.lightclients.solomachine.v2.PacketCommitmentData)
+  - [PacketReceiptAbsenceData](#ibc.lightclients.solomachine.v2.PacketReceiptAbsenceData)
+  - [SignBytes](#ibc.lightclients.solomachine.v2.SignBytes)
+  - [SignatureAndData](#ibc.lightclients.solomachine.v2.SignatureAndData)
+  - [TimestampedSignatureData](#ibc.lightclients.solomachine.v2.TimestampedSignatureData)
   
-    - [DataType](#ibc.lightclients.solomachine.v2.DataType)
+  - [DataType](#ibc.lightclients.solomachine.v2.DataType)
   
 - [ibc/lightclients/solomachine/v3/solomachine.proto](#ibc/lightclients/solomachine/v3/solomachine.proto)
-    - [ClientState](#ibc.lightclients.solomachine.v3.ClientState)
-    - [ConsensusState](#ibc.lightclients.solomachine.v3.ConsensusState)
-    - [Header](#ibc.lightclients.solomachine.v3.Header)
-    - [HeaderData](#ibc.lightclients.solomachine.v3.HeaderData)
-    - [Misbehaviour](#ibc.lightclients.solomachine.v3.Misbehaviour)
-    - [SignBytes](#ibc.lightclients.solomachine.v3.SignBytes)
-    - [SignatureAndData](#ibc.lightclients.solomachine.v3.SignatureAndData)
-    - [TimestampedSignatureData](#ibc.lightclients.solomachine.v3.TimestampedSignatureData)
+  - [ClientState](#ibc.lightclients.solomachine.v3.ClientState)
+  - [ConsensusState](#ibc.lightclients.solomachine.v3.ConsensusState)
+  - [Header](#ibc.lightclients.solomachine.v3.Header)
+  - [HeaderData](#ibc.lightclients.solomachine.v3.HeaderData)
+  - [Misbehaviour](#ibc.lightclients.solomachine.v3.Misbehaviour)
+  - [SignBytes](#ibc.lightclients.solomachine.v3.SignBytes)
+  - [SignatureAndData](#ibc.lightclients.solomachine.v3.SignatureAndData)
+  - [TimestampedSignatureData](#ibc.lightclients.solomachine.v3.TimestampedSignatureData)
   
 - [ibc/lightclients/tendermint/v1/tendermint.proto](#ibc/lightclients/tendermint/v1/tendermint.proto)
-    - [ClientState](#ibc.lightclients.tendermint.v1.ClientState)
-    - [ConsensusState](#ibc.lightclients.tendermint.v1.ConsensusState)
-    - [Fraction](#ibc.lightclients.tendermint.v1.Fraction)
-    - [Header](#ibc.lightclients.tendermint.v1.Header)
-    - [Misbehaviour](#ibc.lightclients.tendermint.v1.Misbehaviour)
+  - [ClientState](#ibc.lightclients.tendermint.v1.ClientState)
+  - [ConsensusState](#ibc.lightclients.tendermint.v1.ConsensusState)
+  - [Fraction](#ibc.lightclients.tendermint.v1.Fraction)
+  - [Header](#ibc.lightclients.tendermint.v1.Header)
+  - [Misbehaviour](#ibc.lightclients.tendermint.v1.Misbehaviour)
   
 - [Scalar Value Types](#scalar-value-types)
-
-
 
 <a name="ibc/applications/fee/v1/ack.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
 ## ibc/applications/fee/v1/ack.proto
 
-
-
 <a name="ibc.applications.fee.v1.IncentivizedAcknowledgement"></a>
 
 ### IncentivizedAcknowledgement
-IncentivizedAcknowledgement is the acknowledgement format to be used by applications wrapped in the fee middleware
 
+IncentivizedAcknowledgement is the acknowledgement format to be used by applications wrapped in the fee middleware
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `app_acknowledgement` | [bytes](#bytes) |  | the underlying app acknowledgement bytes |
 | `forward_relayer_address` | [string](#string) |  | the relayer address which submits the recv packet message |
 | `underlying_app_success` | [bool](#bool) |  | success flag of the base application callback |
-
-
-
-
 
  <!-- end messages -->
 
@@ -401,40 +394,31 @@ IncentivizedAcknowledgement is the acknowledgement format to be used by applicat
 
  <!-- end services -->
 
-
-
 <a name="ibc/core/client/v1/client.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
 ## ibc/core/client/v1/client.proto
 
-
-
 <a name="ibc.core.client.v1.ClientConsensusStates"></a>
 
 ### ClientConsensusStates
+
 ClientConsensusStates defines all the stored consensus states for a given
 client.
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `client_id` | [string](#string) |  | client identifier |
 | `consensus_states` | [ConsensusStateWithHeight](#ibc.core.client.v1.ConsensusStateWithHeight) | repeated | consensus states and their heights associated with the client |
 
-
-
-
-
-
 <a name="ibc.core.client.v1.ClientUpdateProposal"></a>
 
 ### ClientUpdateProposal
+
 ClientUpdateProposal is a governance proposal. If it passes, the substitute
 client's latest consensus state is copied over to the subject client. The proposal
 handler may fail if the subject and the substitute do not match in client and
 chain parameters (with exception to latest height, frozen height, and chain-id).
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -443,31 +427,22 @@ chain parameters (with exception to latest height, frozen height, and chain-id).
 | `subject_client_id` | [string](#string) |  | the client identifier for the client to be updated if the proposal passes |
 | `substitute_client_id` | [string](#string) |  | the substitute client identifier for the client standing in for the subject client |
 
-
-
-
-
-
 <a name="ibc.core.client.v1.ConsensusStateWithHeight"></a>
 
 ### ConsensusStateWithHeight
+
 ConsensusStateWithHeight defines a consensus state with an additional height
 field.
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `height` | [Height](#ibc.core.client.v1.Height) |  | consensus state height |
 | `consensus_state` | [google.protobuf.Any](#google.protobuf.Any) |  | consensus state |
 
-
-
-
-
-
 <a name="ibc.core.client.v1.Height"></a>
 
 ### Height
+
 Height is a monotonically increasing data type
 that can be compared against another Height for the purposes of updating and
 freezing clients
@@ -479,55 +454,39 @@ breaking changes In these cases, the RevisionNumber is incremented so that
 height continues to be monitonically increasing even as the RevisionHeight
 gets reset
 
-
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `revision_number` | [uint64](#uint64) |  | the revision that the client is currently on |
 | `revision_height` | [uint64](#uint64) |  | the height within the given revision |
 
-
-
-
-
-
 <a name="ibc.core.client.v1.IdentifiedClientState"></a>
 
 ### IdentifiedClientState
+
 IdentifiedClientState defines a client state with an additional client
 identifier field.
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `client_id` | [string](#string) |  | client identifier |
 | `client_state` | [google.protobuf.Any](#google.protobuf.Any) |  | client state |
 
-
-
-
-
-
 <a name="ibc.core.client.v1.Params"></a>
 
 ### Params
-Params defines the set of IBC light client parameters.
 
+Params defines the set of IBC light client parameters.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `allowed_clients` | [string](#string) | repeated | allowed_clients defines the list of allowed client state types. |
 
-
-
-
-
-
 <a name="ibc.core.client.v1.UpgradeProposal"></a>
 
 ### UpgradeProposal
+
 UpgradeProposal is a gov Content type for initiating an IBC breaking
 upgrade.
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -535,10 +494,6 @@ upgrade.
 | `description` | [string](#string) |  |  |
 | `plan` | [cosmos.upgrade.v1beta1.Plan](#cosmos.upgrade.v1beta1.Plan) |  |  |
 | `upgraded_client_state` | [google.protobuf.Any](#google.protobuf.Any) |  | An UpgradedClientState must be provided to perform an IBC breaking upgrade. This will make the chain commit to the correct upgraded (self) client state before the upgrade occurs, so that connecting chains can verify that the new upgraded client is valid by verifying a proof on the previous version of the chain. This will allow IBC connections to persist smoothly across planned chain upgrades |
-
-
-
-
 
  <!-- end messages -->
 
@@ -548,44 +503,35 @@ upgrade.
 
  <!-- end services -->
 
-
-
 <a name="ibc/core/channel/v1/channel.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
 ## ibc/core/channel/v1/channel.proto
 
-
-
 <a name="ibc.core.channel.v1.Acknowledgement"></a>
 
 ### Acknowledgement
+
 Acknowledgement is the recommended acknowledgement format to be used by
 app-specific protocols.
 NOTE: The field numbers 21 and 22 were explicitly chosen to avoid accidental
 conflicts with other protobuf message formats used for acknowledgements.
 The first byte of any message with this format will be the non-ASCII values
 `0xaa` (result) or `0xb2` (error). Implemented as defined by ICS:
-https://github.com/cosmos/ibc/tree/master/spec/core/ics-004-channel-and-packet-semantics#acknowledgement-envelope
-
+<https://github.com/cosmos/ibc/tree/master/spec/core/ics-004-channel-and-packet-semantics#acknowledgement-envelope>
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `result` | [bytes](#bytes) |  |  |
 | `error` | [string](#string) |  |  |
 
-
-
-
-
-
 <a name="ibc.core.channel.v1.Channel"></a>
 
 ### Channel
+
 Channel defines pipeline for exactly-once packet delivery between specific
 modules on separate blockchains, which has at least one end capable of
 sending packets and one end capable of receiving packets.
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -595,33 +541,23 @@ sending packets and one end capable of receiving packets.
 | `connection_hops` | [string](#string) | repeated | list of connection identifiers, in order, along which packets sent on this channel will travel |
 | `version` | [string](#string) |  | opaque channel version, which is agreed upon during the handshake |
 
-
-
-
-
-
 <a name="ibc.core.channel.v1.Counterparty"></a>
 
 ### Counterparty
-Counterparty defines a channel end counterparty
 
+Counterparty defines a channel end counterparty
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `port_id` | [string](#string) |  | port on the counterparty chain which owns the other end of the channel. |
 | `channel_id` | [string](#string) |  | channel end on the counterparty chain |
 
-
-
-
-
-
 <a name="ibc.core.channel.v1.IdentifiedChannel"></a>
 
 ### IdentifiedChannel
+
 IdentifiedChannel defines a channel with additional port and channel
 identifier fields.
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -633,16 +569,11 @@ identifier fields.
 | `port_id` | [string](#string) |  | port identifier |
 | `channel_id` | [string](#string) |  | channel identifier |
 
-
-
-
-
-
 <a name="ibc.core.channel.v1.Packet"></a>
 
 ### Packet
-Packet defines a type that carries data across different chains through IBC
 
+Packet defines a type that carries data across different chains through IBC
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -655,18 +586,13 @@ Packet defines a type that carries data across different chains through IBC
 | `timeout_height` | [ibc.core.client.v1.Height](#ibc.core.client.v1.Height) |  | block height after which the packet times out |
 | `timeout_timestamp` | [uint64](#uint64) |  | block timestamp (in nanoseconds) after which the packet times out |
 
-
-
-
-
-
 <a name="ibc.core.channel.v1.PacketId"></a>
 
 ### PacketId
+
 PacketId is an identifer for a unique Packet
 Source chains refer to packets by source port/channel
 Destination chains refer to packets by destination port/channel
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -674,19 +600,14 @@ Destination chains refer to packets by destination port/channel
 | `channel_id` | [string](#string) |  | channel unique identifier |
 | `sequence` | [uint64](#uint64) |  | packet sequence |
 
-
-
-
-
-
 <a name="ibc.core.channel.v1.PacketState"></a>
 
 ### PacketState
+
 PacketState defines the generic type necessary to retrieve and store
 packet commitments, acknowledgements, and receipts.
 Caller is responsible for knowing the context necessary to interpret this
 state as a commitment, acknowledgement, or a receipt.
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -695,16 +616,12 @@ state as a commitment, acknowledgement, or a receipt.
 | `sequence` | [uint64](#uint64) |  | packet sequence. |
 | `data` | [bytes](#bytes) |  | embedded data that represents packet state. |
 
-
-
-
-
  <!-- end messages -->
-
 
 <a name="ibc.core.channel.v1.Order"></a>
 
 ### Order
+
 Order defines if a channel is ORDERED or UNORDERED
 
 | Name | Number | Description |
@@ -713,11 +630,10 @@ Order defines if a channel is ORDERED or UNORDERED
 | ORDER_UNORDERED | 1 | packets can be delivered in any order, which may differ from the order in which they were sent. |
 | ORDER_ORDERED | 2 | packets are delivered exactly in the order which they were sent |
 
-
-
 <a name="ibc.core.channel.v1.State"></a>
 
 ### State
+
 State defines if a channel is in one of the following states:
 CLOSED, INIT, TRYOPEN, OPEN or UNINITIALIZED.
 
@@ -729,27 +645,22 @@ CLOSED, INIT, TRYOPEN, OPEN or UNINITIALIZED.
 | STATE_OPEN | 3 | A channel has completed the handshake. Open channels are ready to send and receive packets. |
 | STATE_CLOSED | 4 | A channel has been closed and can no longer be used to send or receive packets. |
 
-
  <!-- end enums -->
 
  <!-- end HasExtensions -->
 
  <!-- end services -->
 
-
-
 <a name="ibc/applications/fee/v1/fee.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
 ## ibc/applications/fee/v1/fee.proto
 
-
-
 <a name="ibc.applications.fee.v1.Fee"></a>
 
 ### Fee
-Fee defines the ICS29 receive, acknowledgement and timeout fees
 
+Fee defines the ICS29 receive, acknowledgement and timeout fees
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -757,32 +668,22 @@ Fee defines the ICS29 receive, acknowledgement and timeout fees
 | `ack_fee` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated | the packet acknowledgement fee |
 | `timeout_fee` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated | the packet timeout fee |
 
-
-
-
-
-
 <a name="ibc.applications.fee.v1.IdentifiedPacketFees"></a>
 
 ### IdentifiedPacketFees
-IdentifiedPacketFees contains a list of type PacketFee and associated PacketId
 
+IdentifiedPacketFees contains a list of type PacketFee and associated PacketId
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `packet_id` | [ibc.core.channel.v1.PacketId](#ibc.core.channel.v1.PacketId) |  | unique packet identifier comprised of the channel ID, port ID and sequence |
 | `packet_fees` | [PacketFee](#ibc.applications.fee.v1.PacketFee) | repeated | list of packet fees |
 
-
-
-
-
-
 <a name="ibc.applications.fee.v1.PacketFee"></a>
 
 ### PacketFee
-PacketFee contains ICS29 relayer fees, refund address and optional list of permitted relayers
 
+PacketFee contains ICS29 relayer fees, refund address and optional list of permitted relayers
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -790,24 +691,15 @@ PacketFee contains ICS29 relayer fees, refund address and optional list of permi
 | `refund_address` | [string](#string) |  | the refund address for unspent fees |
 | `relayers` | [string](#string) | repeated | optional list of relayers permitted to receive fees |
 
-
-
-
-
-
 <a name="ibc.applications.fee.v1.PacketFees"></a>
 
 ### PacketFees
-PacketFees contains a list of type PacketFee
 
+PacketFees contains a list of type PacketFee
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `packet_fees` | [PacketFee](#ibc.applications.fee.v1.PacketFee) | repeated | list of packet fees |
-
-
-
-
 
  <!-- end messages -->
 
@@ -817,52 +709,38 @@ PacketFees contains a list of type PacketFee
 
  <!-- end services -->
 
-
-
 <a name="ibc/applications/fee/v1/genesis.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
 ## ibc/applications/fee/v1/genesis.proto
 
-
-
 <a name="ibc.applications.fee.v1.FeeEnabledChannel"></a>
 
 ### FeeEnabledChannel
-FeeEnabledChannel contains the PortID & ChannelID for a fee enabled channel
 
+FeeEnabledChannel contains the PortID & ChannelID for a fee enabled channel
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `port_id` | [string](#string) |  | unique port identifier |
 | `channel_id` | [string](#string) |  | unique channel identifier |
 
-
-
-
-
-
 <a name="ibc.applications.fee.v1.ForwardRelayerAddress"></a>
 
 ### ForwardRelayerAddress
-ForwardRelayerAddress contains the forward relayer address and PacketId used for async acknowledgements
 
+ForwardRelayerAddress contains the forward relayer address and PacketId used for async acknowledgements
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `address` | [string](#string) |  | the forward relayer address |
 | `packet_id` | [ibc.core.channel.v1.PacketId](#ibc.core.channel.v1.PacketId) |  | unique packet identifer comprised of the channel ID, port ID and sequence |
 
-
-
-
-
-
 <a name="ibc.applications.fee.v1.GenesisState"></a>
 
 ### GenesisState
-GenesisState defines the ICS29 fee middleware genesis state
 
+GenesisState defines the ICS29 fee middleware genesis state
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -872,17 +750,12 @@ GenesisState defines the ICS29 fee middleware genesis state
 | `registered_counterparty_payees` | [RegisteredCounterpartyPayee](#ibc.applications.fee.v1.RegisteredCounterpartyPayee) | repeated | list of registered counterparty payees |
 | `forward_relayers` | [ForwardRelayerAddress](#ibc.applications.fee.v1.ForwardRelayerAddress) | repeated | list of forward relayer addresses |
 
-
-
-
-
-
 <a name="ibc.applications.fee.v1.RegisteredCounterpartyPayee"></a>
 
 ### RegisteredCounterpartyPayee
+
 RegisteredCounterpartyPayee contains the relayer address and counterparty payee address for a specific channel (used
 for recv fee distribution)
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -890,16 +763,11 @@ for recv fee distribution)
 | `relayer` | [string](#string) |  | the relayer address |
 | `counterparty_payee` | [string](#string) |  | the counterparty payee address |
 
-
-
-
-
-
 <a name="ibc.applications.fee.v1.RegisteredPayee"></a>
 
 ### RegisteredPayee
-RegisteredPayee contains the relayer address and payee address for a specific channel
 
+RegisteredPayee contains the relayer address and payee address for a specific channel
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -907,10 +775,6 @@ RegisteredPayee contains the relayer address and payee address for a specific ch
 | `relayer` | [string](#string) |  | the relayer address |
 | `payee` | [string](#string) |  | the payee address |
 
-
-
-
-
  <!-- end messages -->
 
  <!-- end enums -->
@@ -918,31 +782,23 @@ RegisteredPayee contains the relayer address and payee address for a specific ch
  <!-- end HasExtensions -->
 
  <!-- end services -->
-
-
 
 <a name="ibc/applications/fee/v1/metadata.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
 ## ibc/applications/fee/v1/metadata.proto
 
-
-
 <a name="ibc.applications.fee.v1.Metadata"></a>
 
 ### Metadata
-Metadata defines the ICS29 channel specific metadata encoded into the channel version bytestring
-See ICS004: https://github.com/cosmos/ibc/tree/master/spec/core/ics-004-channel-and-packet-semantics#Versioning
 
+Metadata defines the ICS29 channel specific metadata encoded into the channel version bytestring
+See ICS004: <https://github.com/cosmos/ibc/tree/master/spec/core/ics-004-channel-and-packet-semantics#Versioning>
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `fee_version` | [string](#string) |  | fee_version defines the ICS29 fee version |
 | `app_version` | [string](#string) |  | app_version defines the underlying application version, which may or may not be a JSON encoded bytestring |
-
-
-
-
 
  <!-- end messages -->
 
@@ -952,145 +808,101 @@ See ICS004: https://github.com/cosmos/ibc/tree/master/spec/core/ics-004-channel-
 
  <!-- end services -->
 
-
-
 <a name="ibc/applications/fee/v1/query.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
 ## ibc/applications/fee/v1/query.proto
 
-
-
 <a name="ibc.applications.fee.v1.QueryCounterpartyPayeeRequest"></a>
 
 ### QueryCounterpartyPayeeRequest
-QueryCounterpartyPayeeRequest defines the request type for the CounterpartyPayee rpc
 
+QueryCounterpartyPayeeRequest defines the request type for the CounterpartyPayee rpc
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `channel_id` | [string](#string) |  | unique channel identifier |
 | `relayer` | [string](#string) |  | the relayer address to which the counterparty is registered |
 
-
-
-
-
-
 <a name="ibc.applications.fee.v1.QueryCounterpartyPayeeResponse"></a>
 
 ### QueryCounterpartyPayeeResponse
-QueryCounterpartyPayeeResponse defines the response type for the CounterpartyPayee rpc
 
+QueryCounterpartyPayeeResponse defines the response type for the CounterpartyPayee rpc
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `counterparty_payee` | [string](#string) |  | the counterparty payee address used to compensate forward relaying |
 
-
-
-
-
-
 <a name="ibc.applications.fee.v1.QueryFeeEnabledChannelRequest"></a>
 
 ### QueryFeeEnabledChannelRequest
-QueryFeeEnabledChannelRequest defines the request type for the FeeEnabledChannel rpc
 
+QueryFeeEnabledChannelRequest defines the request type for the FeeEnabledChannel rpc
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `port_id` | [string](#string) |  | unique port identifier |
 | `channel_id` | [string](#string) |  | unique channel identifier |
 
-
-
-
-
-
 <a name="ibc.applications.fee.v1.QueryFeeEnabledChannelResponse"></a>
 
 ### QueryFeeEnabledChannelResponse
-QueryFeeEnabledChannelResponse defines the response type for the FeeEnabledChannel rpc
 
+QueryFeeEnabledChannelResponse defines the response type for the FeeEnabledChannel rpc
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `fee_enabled` | [bool](#bool) |  | boolean flag representing the fee enabled channel status |
 
-
-
-
-
-
 <a name="ibc.applications.fee.v1.QueryFeeEnabledChannelsRequest"></a>
 
 ### QueryFeeEnabledChannelsRequest
-QueryFeeEnabledChannelsRequest defines the request type for the FeeEnabledChannels rpc
 
+QueryFeeEnabledChannelsRequest defines the request type for the FeeEnabledChannels rpc
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `pagination` | [cosmos.base.query.v1beta1.PageRequest](#cosmos.base.query.v1beta1.PageRequest) |  | pagination defines an optional pagination for the request. |
 | `query_height` | [uint64](#uint64) |  | block height at which to query |
 
-
-
-
-
-
 <a name="ibc.applications.fee.v1.QueryFeeEnabledChannelsResponse"></a>
 
 ### QueryFeeEnabledChannelsResponse
-QueryFeeEnabledChannelsResponse defines the response type for the FeeEnabledChannels rpc
 
+QueryFeeEnabledChannelsResponse defines the response type for the FeeEnabledChannels rpc
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `fee_enabled_channels` | [FeeEnabledChannel](#ibc.applications.fee.v1.FeeEnabledChannel) | repeated | list of fee enabled channels |
 
-
-
-
-
-
 <a name="ibc.applications.fee.v1.QueryIncentivizedPacketRequest"></a>
 
 ### QueryIncentivizedPacketRequest
-QueryIncentivizedPacketRequest defines the request type for the IncentivizedPacket rpc
 
+QueryIncentivizedPacketRequest defines the request type for the IncentivizedPacket rpc
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `packet_id` | [ibc.core.channel.v1.PacketId](#ibc.core.channel.v1.PacketId) |  | unique packet identifier comprised of channel ID, port ID and sequence |
 | `query_height` | [uint64](#uint64) |  | block height at which to query |
 
-
-
-
-
-
 <a name="ibc.applications.fee.v1.QueryIncentivizedPacketResponse"></a>
 
 ### QueryIncentivizedPacketResponse
-QueryIncentivizedPacketsResponse defines the response type for the IncentivizedPacket rpc
 
+QueryIncentivizedPacketsResponse defines the response type for the IncentivizedPacket rpc
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `incentivized_packet` | [IdentifiedPacketFees](#ibc.applications.fee.v1.IdentifiedPacketFees) |  | the identified fees for the incentivized packet |
 
-
-
-
-
-
 <a name="ibc.applications.fee.v1.QueryIncentivizedPacketsForChannelRequest"></a>
 
 ### QueryIncentivizedPacketsForChannelRequest
+
 QueryIncentivizedPacketsForChannelRequest defines the request type for querying for all incentivized packets
 for a specific channel
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -1099,176 +911,117 @@ for a specific channel
 | `channel_id` | [string](#string) |  |  |
 | `query_height` | [uint64](#uint64) |  | Height to query at |
 
-
-
-
-
-
 <a name="ibc.applications.fee.v1.QueryIncentivizedPacketsForChannelResponse"></a>
 
 ### QueryIncentivizedPacketsForChannelResponse
-QueryIncentivizedPacketsResponse defines the response type for the incentivized packets RPC
 
+QueryIncentivizedPacketsResponse defines the response type for the incentivized packets RPC
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `incentivized_packets` | [IdentifiedPacketFees](#ibc.applications.fee.v1.IdentifiedPacketFees) | repeated | Map of all incentivized_packets |
 
-
-
-
-
-
 <a name="ibc.applications.fee.v1.QueryIncentivizedPacketsRequest"></a>
 
 ### QueryIncentivizedPacketsRequest
-QueryIncentivizedPacketsRequest defines the request type for the IncentivizedPackets rpc
 
+QueryIncentivizedPacketsRequest defines the request type for the IncentivizedPackets rpc
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `pagination` | [cosmos.base.query.v1beta1.PageRequest](#cosmos.base.query.v1beta1.PageRequest) |  | pagination defines an optional pagination for the request. |
 | `query_height` | [uint64](#uint64) |  | block height at which to query |
 
-
-
-
-
-
 <a name="ibc.applications.fee.v1.QueryIncentivizedPacketsResponse"></a>
 
 ### QueryIncentivizedPacketsResponse
-QueryIncentivizedPacketsResponse defines the response type for the IncentivizedPackets rpc
 
+QueryIncentivizedPacketsResponse defines the response type for the IncentivizedPackets rpc
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `incentivized_packets` | [IdentifiedPacketFees](#ibc.applications.fee.v1.IdentifiedPacketFees) | repeated | list of identified fees for incentivized packets |
 
-
-
-
-
-
 <a name="ibc.applications.fee.v1.QueryPayeeRequest"></a>
 
 ### QueryPayeeRequest
-QueryPayeeRequest defines the request type for the Payee rpc
 
+QueryPayeeRequest defines the request type for the Payee rpc
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `channel_id` | [string](#string) |  | unique channel identifier |
 | `relayer` | [string](#string) |  | the relayer address to which the distribution address is registered |
 
-
-
-
-
-
 <a name="ibc.applications.fee.v1.QueryPayeeResponse"></a>
 
 ### QueryPayeeResponse
-QueryPayeeResponse defines the response type for the Payee rpc
 
+QueryPayeeResponse defines the response type for the Payee rpc
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `payee_address` | [string](#string) |  | the payee address to which packet fees are paid out |
 
-
-
-
-
-
 <a name="ibc.applications.fee.v1.QueryTotalAckFeesRequest"></a>
 
 ### QueryTotalAckFeesRequest
-QueryTotalAckFeesRequest defines the request type for the TotalAckFees rpc
 
+QueryTotalAckFeesRequest defines the request type for the TotalAckFees rpc
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `packet_id` | [ibc.core.channel.v1.PacketId](#ibc.core.channel.v1.PacketId) |  | the packet identifier for the associated fees |
 
-
-
-
-
-
 <a name="ibc.applications.fee.v1.QueryTotalAckFeesResponse"></a>
 
 ### QueryTotalAckFeesResponse
-QueryTotalAckFeesResponse defines the response type for the TotalAckFees rpc
 
+QueryTotalAckFeesResponse defines the response type for the TotalAckFees rpc
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `ack_fees` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated | the total packet acknowledgement fees |
 
-
-
-
-
-
 <a name="ibc.applications.fee.v1.QueryTotalRecvFeesRequest"></a>
 
 ### QueryTotalRecvFeesRequest
-QueryTotalRecvFeesRequest defines the request type for the TotalRecvFees rpc
 
+QueryTotalRecvFeesRequest defines the request type for the TotalRecvFees rpc
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `packet_id` | [ibc.core.channel.v1.PacketId](#ibc.core.channel.v1.PacketId) |  | the packet identifier for the associated fees |
 
-
-
-
-
-
 <a name="ibc.applications.fee.v1.QueryTotalRecvFeesResponse"></a>
 
 ### QueryTotalRecvFeesResponse
-QueryTotalRecvFeesResponse defines the response type for the TotalRecvFees rpc
 
+QueryTotalRecvFeesResponse defines the response type for the TotalRecvFees rpc
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `recv_fees` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated | the total packet receive fees |
 
-
-
-
-
-
 <a name="ibc.applications.fee.v1.QueryTotalTimeoutFeesRequest"></a>
 
 ### QueryTotalTimeoutFeesRequest
-QueryTotalTimeoutFeesRequest defines the request type for the TotalTimeoutFees rpc
 
+QueryTotalTimeoutFeesRequest defines the request type for the TotalTimeoutFees rpc
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `packet_id` | [ibc.core.channel.v1.PacketId](#ibc.core.channel.v1.PacketId) |  | the packet identifier for the associated fees |
 
-
-
-
-
-
 <a name="ibc.applications.fee.v1.QueryTotalTimeoutFeesResponse"></a>
 
 ### QueryTotalTimeoutFeesResponse
-QueryTotalTimeoutFeesResponse defines the response type for the TotalTimeoutFees rpc
 
+QueryTotalTimeoutFeesResponse defines the response type for the TotalTimeoutFees rpc
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `timeout_fees` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated | the total packet timeout fees |
-
-
-
-
 
  <!-- end messages -->
 
@@ -1276,10 +1029,10 @@ QueryTotalTimeoutFeesResponse defines the response type for the TotalTimeoutFees
 
  <!-- end HasExtensions -->
 
-
 <a name="ibc.applications.fee.v1.Query"></a>
 
 ### Query
+
 Query defines the ICS29 gRPC querier service.
 
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
@@ -1297,22 +1050,18 @@ Query defines the ICS29 gRPC querier service.
 
  <!-- end services -->
 
-
-
 <a name="ibc/applications/fee/v1/tx.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
 ## ibc/applications/fee/v1/tx.proto
 
-
-
 <a name="ibc.applications.fee.v1.MsgPayPacketFee"></a>
 
 ### MsgPayPacketFee
+
 MsgPayPacketFee defines the request type for the PayPacketFee rpc
 This Msg can be used to pay for a packet at the next sequence send & should be combined with the Msg that will be
 paid for
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -1322,53 +1071,35 @@ paid for
 | `signer` | [string](#string) |  | account address to refund fee if necessary |
 | `relayers` | [string](#string) | repeated | optional list of relayers permitted to the receive packet fees |
 
-
-
-
-
-
 <a name="ibc.applications.fee.v1.MsgPayPacketFeeAsync"></a>
 
 ### MsgPayPacketFeeAsync
+
 MsgPayPacketFeeAsync defines the request type for the PayPacketFeeAsync rpc
 This Msg can be used to pay for a packet at a specified sequence (instead of the next sequence send)
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `packet_id` | [ibc.core.channel.v1.PacketId](#ibc.core.channel.v1.PacketId) |  | unique packet identifier comprised of the channel ID, port ID and sequence |
 | `packet_fee` | [PacketFee](#ibc.applications.fee.v1.PacketFee) |  | the packet fee associated with a particular IBC packet |
 
-
-
-
-
-
 <a name="ibc.applications.fee.v1.MsgPayPacketFeeAsyncResponse"></a>
 
 ### MsgPayPacketFeeAsyncResponse
+
 MsgPayPacketFeeAsyncResponse defines the response type for the PayPacketFeeAsync rpc
-
-
-
-
-
 
 <a name="ibc.applications.fee.v1.MsgPayPacketFeeResponse"></a>
 
 ### MsgPayPacketFeeResponse
+
 MsgPayPacketFeeResponse defines the response type for the PayPacketFee rpc
-
-
-
-
-
 
 <a name="ibc.applications.fee.v1.MsgRegisterCounterpartyPayee"></a>
 
 ### MsgRegisterCounterpartyPayee
-MsgRegisterCounterpartyPayee defines the request type for the RegisterCounterpartyPayee rpc
 
+MsgRegisterCounterpartyPayee defines the request type for the RegisterCounterpartyPayee rpc
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -1377,26 +1108,17 @@ MsgRegisterCounterpartyPayee defines the request type for the RegisterCounterpar
 | `relayer` | [string](#string) |  | the relayer address |
 | `counterparty_payee` | [string](#string) |  | the counterparty payee address |
 
-
-
-
-
-
 <a name="ibc.applications.fee.v1.MsgRegisterCounterpartyPayeeResponse"></a>
 
 ### MsgRegisterCounterpartyPayeeResponse
+
 MsgRegisterCounterpartyPayeeResponse defines the response type for the RegisterCounterpartyPayee rpc
-
-
-
-
-
 
 <a name="ibc.applications.fee.v1.MsgRegisterPayee"></a>
 
 ### MsgRegisterPayee
-MsgRegisterPayee defines the request type for the RegisterPayee rpc
 
+MsgRegisterPayee defines the request type for the RegisterPayee rpc
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -1405,19 +1127,11 @@ MsgRegisterPayee defines the request type for the RegisterPayee rpc
 | `relayer` | [string](#string) |  | the relayer address |
 | `payee` | [string](#string) |  | the payee address |
 
-
-
-
-
-
 <a name="ibc.applications.fee.v1.MsgRegisterPayeeResponse"></a>
 
 ### MsgRegisterPayeeResponse
+
 MsgRegisterPayeeResponse defines the response type for the RegisterPayee rpc
-
-
-
-
 
  <!-- end messages -->
 
@@ -1425,10 +1139,10 @@ MsgRegisterPayeeResponse defines the response type for the RegisterPayee rpc
 
  <!-- end HasExtensions -->
 
-
 <a name="ibc.applications.fee.v1.Msg"></a>
 
 ### Msg
+
 Msg defines the ICS29 Msg service.
 
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
@@ -1440,29 +1154,21 @@ Msg defines the ICS29 Msg service.
 
  <!-- end services -->
 
-
-
 <a name="ibc/applications/interchain_accounts/controller/v1/controller.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
 ## ibc/applications/interchain_accounts/controller/v1/controller.proto
 
-
-
 <a name="ibc.applications.interchain_accounts.controller.v1.Params"></a>
 
 ### Params
+
 Params defines the set of on-chain interchain accounts parameters.
 The following parameters may be used to disable the controller submodule.
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `controller_enabled` | [bool](#bool) |  | controller_enabled enables or disables the controller submodule. |
-
-
-
-
 
  <!-- end messages -->
 
@@ -1472,69 +1178,47 @@ The following parameters may be used to disable the controller submodule.
 
  <!-- end services -->
 
-
-
 <a name="ibc/applications/interchain_accounts/controller/v1/query.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
 ## ibc/applications/interchain_accounts/controller/v1/query.proto
 
-
-
 <a name="ibc.applications.interchain_accounts.controller.v1.QueryInterchainAccountRequest"></a>
 
 ### QueryInterchainAccountRequest
-QueryInterchainAccountRequest is the request type for the Query/InterchainAccount RPC method.
 
+QueryInterchainAccountRequest is the request type for the Query/InterchainAccount RPC method.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `owner` | [string](#string) |  |  |
 | `connection_id` | [string](#string) |  |  |
 
-
-
-
-
-
 <a name="ibc.applications.interchain_accounts.controller.v1.QueryInterchainAccountResponse"></a>
 
 ### QueryInterchainAccountResponse
-QueryInterchainAccountResponse the response type for the Query/InterchainAccount RPC method.
 
+QueryInterchainAccountResponse the response type for the Query/InterchainAccount RPC method.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `address` | [string](#string) |  |  |
 
-
-
-
-
-
 <a name="ibc.applications.interchain_accounts.controller.v1.QueryParamsRequest"></a>
 
 ### QueryParamsRequest
+
 QueryParamsRequest is the request type for the Query/Params RPC method.
-
-
-
-
-
 
 <a name="ibc.applications.interchain_accounts.controller.v1.QueryParamsResponse"></a>
 
 ### QueryParamsResponse
-QueryParamsResponse is the response type for the Query/Params RPC method.
 
+QueryParamsResponse is the response type for the Query/Params RPC method.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `params` | [Params](#ibc.applications.interchain_accounts.controller.v1.Params) |  | params defines the parameters of the module. |
-
-
-
-
 
  <!-- end messages -->
 
@@ -1542,10 +1226,10 @@ QueryParamsResponse is the response type for the Query/Params RPC method.
 
  <!-- end HasExtensions -->
 
-
 <a name="ibc.applications.interchain_accounts.controller.v1.Query"></a>
 
 ### Query
+
 Query provides defines the gRPC querier service.
 
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
@@ -1555,35 +1239,26 @@ Query provides defines the gRPC querier service.
 
  <!-- end services -->
 
-
-
 <a name="ibc/applications/interchain_accounts/v1/packet.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
 ## ibc/applications/interchain_accounts/v1/packet.proto
 
-
-
 <a name="ibc.applications.interchain_accounts.v1.CosmosTx"></a>
 
 ### CosmosTx
-CosmosTx contains a list of sdk.Msg's. It should be used when sending transactions to an SDK host chain.
 
+CosmosTx contains a list of sdk.Msg's. It should be used when sending transactions to an SDK host chain.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `messages` | [google.protobuf.Any](#google.protobuf.Any) | repeated |  |
 
-
-
-
-
-
 <a name="ibc.applications.interchain_accounts.v1.InterchainAccountPacketData"></a>
 
 ### InterchainAccountPacketData
-InterchainAccountPacketData is comprised of a raw transaction, type of transaction and optional memo field.
 
+InterchainAccountPacketData is comprised of a raw transaction, type of transaction and optional memo field.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -1591,16 +1266,12 @@ InterchainAccountPacketData is comprised of a raw transaction, type of transacti
 | `data` | [bytes](#bytes) |  |  |
 | `memo` | [string](#string) |  |  |
 
-
-
-
-
  <!-- end messages -->
-
 
 <a name="ibc.applications.interchain_accounts.v1.Type"></a>
 
 ### Type
+
 Type defines a classification of message issued from a controller chain to its associated interchain accounts
 host
 
@@ -1609,27 +1280,22 @@ host
 | TYPE_UNSPECIFIED | 0 | Default zero value enumeration |
 | TYPE_EXECUTE_TX | 1 | Execute a transaction on an interchain accounts host chain |
 
-
  <!-- end enums -->
 
  <!-- end HasExtensions -->
 
  <!-- end services -->
 
-
-
 <a name="ibc/applications/interchain_accounts/controller/v1/tx.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
 ## ibc/applications/interchain_accounts/controller/v1/tx.proto
 
-
-
 <a name="ibc.applications.interchain_accounts.controller.v1.MsgRegisterInterchainAccount"></a>
 
 ### MsgRegisterInterchainAccount
-MsgRegisterInterchainAccount defines the payload for Msg/RegisterAccount
 
+MsgRegisterInterchainAccount defines the payload for Msg/RegisterAccount
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -1637,31 +1303,21 @@ MsgRegisterInterchainAccount defines the payload for Msg/RegisterAccount
 | `connection_id` | [string](#string) |  |  |
 | `version` | [string](#string) |  |  |
 
-
-
-
-
-
 <a name="ibc.applications.interchain_accounts.controller.v1.MsgRegisterInterchainAccountResponse"></a>
 
 ### MsgRegisterInterchainAccountResponse
-MsgRegisterInterchainAccountResponse defines the response for Msg/RegisterAccount
 
+MsgRegisterInterchainAccountResponse defines the response for Msg/RegisterAccount
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `channel_id` | [string](#string) |  |  |
 
-
-
-
-
-
 <a name="ibc.applications.interchain_accounts.controller.v1.MsgSendTx"></a>
 
 ### MsgSendTx
-MsgSendTx defines the payload for Msg/SendTx
 
+MsgSendTx defines the payload for Msg/SendTx
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -1670,24 +1326,15 @@ MsgSendTx defines the payload for Msg/SendTx
 | `packet_data` | [ibc.applications.interchain_accounts.v1.InterchainAccountPacketData](#ibc.applications.interchain_accounts.v1.InterchainAccountPacketData) |  |  |
 | `relative_timeout` | [uint64](#uint64) |  | Relative timeout timestamp provided will be added to the current block time during transaction execution. The timeout timestamp must be non-zero. |
 
-
-
-
-
-
 <a name="ibc.applications.interchain_accounts.controller.v1.MsgSendTxResponse"></a>
 
 ### MsgSendTxResponse
-MsgSendTxResponse defines the response for MsgSendTx
 
+MsgSendTxResponse defines the response for MsgSendTx
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `sequence` | [uint64](#uint64) |  |  |
-
-
-
-
 
  <!-- end messages -->
 
@@ -1695,10 +1342,10 @@ MsgSendTxResponse defines the response for MsgSendTx
 
  <!-- end HasExtensions -->
 
-
 <a name="ibc.applications.interchain_accounts.controller.v1.Msg"></a>
 
 ### Msg
+
 Msg defines the 27-interchain-accounts/controller Msg service.
 
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
@@ -1708,30 +1355,22 @@ Msg defines the 27-interchain-accounts/controller Msg service.
 
  <!-- end services -->
 
-
-
 <a name="ibc/applications/interchain_accounts/host/v1/host.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
 ## ibc/applications/interchain_accounts/host/v1/host.proto
 
-
-
 <a name="ibc.applications.interchain_accounts.host.v1.Params"></a>
 
 ### Params
+
 Params defines the set of on-chain interchain accounts parameters.
 The following parameters may be used to disable the host submodule.
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `host_enabled` | [bool](#bool) |  | host_enabled enables or disables the host submodule. |
 | `allow_messages` | [string](#string) | repeated | allow_messages defines a list of sdk message typeURLs allowed to be executed on a host chain. |
-
-
-
-
 
  <!-- end messages -->
 
@@ -1741,21 +1380,17 @@ The following parameters may be used to disable the host submodule.
 
  <!-- end services -->
 
-
-
 <a name="ibc/applications/interchain_accounts/genesis/v1/genesis.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
 ## ibc/applications/interchain_accounts/genesis/v1/genesis.proto
 
-
-
 <a name="ibc.applications.interchain_accounts.genesis.v1.ActiveChannel"></a>
 
 ### ActiveChannel
+
 ActiveChannel contains a connection ID, port ID and associated active channel ID, as well as a boolean flag to
 indicate if the channel is middleware enabled
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -1764,16 +1399,11 @@ indicate if the channel is middleware enabled
 | `channel_id` | [string](#string) |  |  |
 | `is_middleware_enabled` | [bool](#bool) |  |  |
 
-
-
-
-
-
 <a name="ibc.applications.interchain_accounts.genesis.v1.ControllerGenesisState"></a>
 
 ### ControllerGenesisState
-ControllerGenesisState defines the interchain accounts controller genesis state
 
+ControllerGenesisState defines the interchain accounts controller genesis state
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -1782,32 +1412,22 @@ ControllerGenesisState defines the interchain accounts controller genesis state
 | `ports` | [string](#string) | repeated |  |
 | `params` | [ibc.applications.interchain_accounts.controller.v1.Params](#ibc.applications.interchain_accounts.controller.v1.Params) |  |  |
 
-
-
-
-
-
 <a name="ibc.applications.interchain_accounts.genesis.v1.GenesisState"></a>
 
 ### GenesisState
-GenesisState defines the interchain accounts genesis state
 
+GenesisState defines the interchain accounts genesis state
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `controller_genesis_state` | [ControllerGenesisState](#ibc.applications.interchain_accounts.genesis.v1.ControllerGenesisState) |  |  |
 | `host_genesis_state` | [HostGenesisState](#ibc.applications.interchain_accounts.genesis.v1.HostGenesisState) |  |  |
 
-
-
-
-
-
 <a name="ibc.applications.interchain_accounts.genesis.v1.HostGenesisState"></a>
 
 ### HostGenesisState
-HostGenesisState defines the interchain accounts host genesis state
 
+HostGenesisState defines the interchain accounts host genesis state
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -1816,26 +1436,17 @@ HostGenesisState defines the interchain accounts host genesis state
 | `port` | [string](#string) |  |  |
 | `params` | [ibc.applications.interchain_accounts.host.v1.Params](#ibc.applications.interchain_accounts.host.v1.Params) |  |  |
 
-
-
-
-
-
 <a name="ibc.applications.interchain_accounts.genesis.v1.RegisteredInterchainAccount"></a>
 
 ### RegisteredInterchainAccount
-RegisteredInterchainAccount contains a connection ID, port ID and associated interchain account address
 
+RegisteredInterchainAccount contains a connection ID, port ID and associated interchain account address
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `connection_id` | [string](#string) |  |  |
 | `port_id` | [string](#string) |  |  |
 | `account_address` | [string](#string) |  |  |
-
-
-
-
 
  <!-- end messages -->
 
@@ -1845,38 +1456,26 @@ RegisteredInterchainAccount contains a connection ID, port ID and associated int
 
  <!-- end services -->
 
-
-
 <a name="ibc/applications/interchain_accounts/host/v1/query.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
 ## ibc/applications/interchain_accounts/host/v1/query.proto
 
-
-
 <a name="ibc.applications.interchain_accounts.host.v1.QueryParamsRequest"></a>
 
 ### QueryParamsRequest
+
 QueryParamsRequest is the request type for the Query/Params RPC method.
-
-
-
-
-
 
 <a name="ibc.applications.interchain_accounts.host.v1.QueryParamsResponse"></a>
 
 ### QueryParamsResponse
-QueryParamsResponse is the response type for the Query/Params RPC method.
 
+QueryParamsResponse is the response type for the Query/Params RPC method.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `params` | [Params](#ibc.applications.interchain_accounts.host.v1.Params) |  | params defines the parameters of the module. |
-
-
-
-
 
  <!-- end messages -->
 
@@ -1884,10 +1483,10 @@ QueryParamsResponse is the response type for the Query/Params RPC method.
 
  <!-- end HasExtensions -->
 
-
 <a name="ibc.applications.interchain_accounts.host.v1.Query"></a>
 
 ### Query
+
 Query provides defines the gRPC querier service.
 
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
@@ -1896,29 +1495,21 @@ Query provides defines the gRPC querier service.
 
  <!-- end services -->
 
-
-
 <a name="ibc/applications/interchain_accounts/v1/account.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
 ## ibc/applications/interchain_accounts/v1/account.proto
 
-
-
 <a name="ibc.applications.interchain_accounts.v1.InterchainAccount"></a>
 
 ### InterchainAccount
-An InterchainAccount is defined as a BaseAccount & the address of the account owner on the controller chain
 
+An InterchainAccount is defined as a BaseAccount & the address of the account owner on the controller chain
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `base_account` | [cosmos.auth.v1beta1.BaseAccount](#cosmos.auth.v1beta1.BaseAccount) |  |  |
 | `account_owner` | [string](#string) |  |  |
-
-
-
-
 
  <!-- end messages -->
 
@@ -1928,21 +1519,17 @@ An InterchainAccount is defined as a BaseAccount & the address of the account ow
 
  <!-- end services -->
 
-
-
 <a name="ibc/applications/interchain_accounts/v1/metadata.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
 ## ibc/applications/interchain_accounts/v1/metadata.proto
 
-
-
 <a name="ibc.applications.interchain_accounts.v1.Metadata"></a>
 
 ### Metadata
-Metadata defines a set of protocol specific data encoded into the ICS27 channel version bytestring
-See ICS004: https://github.com/cosmos/ibc/tree/master/spec/core/ics-004-channel-and-packet-semantics#Versioning
 
+Metadata defines a set of protocol specific data encoded into the ICS27 channel version bytestring
+See ICS004: <https://github.com/cosmos/ibc/tree/master/spec/core/ics-004-channel-and-packet-semantics#Versioning>
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -1953,10 +1540,6 @@ See ICS004: https://github.com/cosmos/ibc/tree/master/spec/core/ics-004-channel-
 | `encoding` | [string](#string) |  | encoding defines the supported codec format |
 | `tx_type` | [string](#string) |  | tx_type defines the type of transactions the interchain account can execute |
 
-
-
-
-
  <!-- end messages -->
 
  <!-- end enums -->
@@ -1964,50 +1547,37 @@ See ICS004: https://github.com/cosmos/ibc/tree/master/spec/core/ics-004-channel-
  <!-- end HasExtensions -->
 
  <!-- end services -->
-
-
 
 <a name="ibc/applications/transfer/v1/transfer.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
 ## ibc/applications/transfer/v1/transfer.proto
 
-
-
 <a name="ibc.applications.transfer.v1.DenomTrace"></a>
 
 ### DenomTrace
+
 DenomTrace contains the base denomination for ICS20 fungible tokens and the
 source tracing information path.
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `path` | [string](#string) |  | path defines the chain of port/channel identifiers used for tracing the source of the fungible token. |
 | `base_denom` | [string](#string) |  | base denomination of the relayed fungible token. |
 
-
-
-
-
-
 <a name="ibc.applications.transfer.v1.Params"></a>
 
 ### Params
+
 Params defines the set of IBC transfer parameters.
 NOTE: To prevent a single token from being transferred, set the
 TransfersEnabled parameter to true and then set the bank module's SendEnabled
 parameter for the denomination to false.
 
-
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `send_enabled` | [bool](#bool) |  | send_enabled enables or disables all cross-chain token transfers from this chain. |
 | `receive_enabled` | [bool](#bool) |  | receive_enabled enables or disables all cross-chain token transfers to this chain. |
-
-
-
-
 
  <!-- end messages -->
 
@@ -2017,20 +1587,16 @@ parameter for the denomination to false.
 
  <!-- end services -->
 
-
-
 <a name="ibc/applications/transfer/v1/genesis.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
 ## ibc/applications/transfer/v1/genesis.proto
 
-
-
 <a name="ibc.applications.transfer.v1.GenesisState"></a>
 
 ### GenesisState
-GenesisState defines the ibc-transfer genesis state
 
+GenesisState defines the ibc-transfer genesis state
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -2038,10 +1604,6 @@ GenesisState defines the ibc-transfer genesis state
 | `denom_traces` | [DenomTrace](#ibc.applications.transfer.v1.DenomTrace) | repeated |  |
 | `params` | [Params](#ibc.applications.transfer.v1.Params) |  |  |
 
-
-
-
-
  <!-- end messages -->
 
  <!-- end enums -->
@@ -2050,166 +1612,114 @@ GenesisState defines the ibc-transfer genesis state
 
  <!-- end services -->
 
-
-
 <a name="ibc/applications/transfer/v1/query.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
 ## ibc/applications/transfer/v1/query.proto
 
-
-
 <a name="ibc.applications.transfer.v1.QueryDenomHashRequest"></a>
 
 ### QueryDenomHashRequest
+
 QueryDenomHashRequest is the request type for the Query/DenomHash RPC
 method
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `trace` | [string](#string) |  | The denomination trace ([port_id]/[channel_id])+/[denom] |
 
-
-
-
-
-
 <a name="ibc.applications.transfer.v1.QueryDenomHashResponse"></a>
 
 ### QueryDenomHashResponse
+
 QueryDenomHashResponse is the response type for the Query/DenomHash RPC
 method.
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `hash` | [string](#string) |  | hash (in hex format) of the denomination trace information. |
 
-
-
-
-
-
 <a name="ibc.applications.transfer.v1.QueryDenomTraceRequest"></a>
 
 ### QueryDenomTraceRequest
+
 QueryDenomTraceRequest is the request type for the Query/DenomTrace RPC
 method
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `hash` | [string](#string) |  | hash (in hex format) or denom (full denom with ibc prefix) of the denomination trace information. |
 
-
-
-
-
-
 <a name="ibc.applications.transfer.v1.QueryDenomTraceResponse"></a>
 
 ### QueryDenomTraceResponse
+
 QueryDenomTraceResponse is the response type for the Query/DenomTrace RPC
 method.
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `denom_trace` | [DenomTrace](#ibc.applications.transfer.v1.DenomTrace) |  | denom_trace returns the requested denomination trace information. |
 
-
-
-
-
-
 <a name="ibc.applications.transfer.v1.QueryDenomTracesRequest"></a>
 
 ### QueryDenomTracesRequest
+
 QueryConnectionsRequest is the request type for the Query/DenomTraces RPC
 method
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `pagination` | [cosmos.base.query.v1beta1.PageRequest](#cosmos.base.query.v1beta1.PageRequest) |  | pagination defines an optional pagination for the request. |
 
-
-
-
-
-
 <a name="ibc.applications.transfer.v1.QueryDenomTracesResponse"></a>
 
 ### QueryDenomTracesResponse
+
 QueryConnectionsResponse is the response type for the Query/DenomTraces RPC
 method.
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `denom_traces` | [DenomTrace](#ibc.applications.transfer.v1.DenomTrace) | repeated | denom_traces returns all denominations trace information. |
 | `pagination` | [cosmos.base.query.v1beta1.PageResponse](#cosmos.base.query.v1beta1.PageResponse) |  | pagination defines the pagination in the response. |
 
-
-
-
-
-
 <a name="ibc.applications.transfer.v1.QueryEscrowAddressRequest"></a>
 
 ### QueryEscrowAddressRequest
-QueryEscrowAddressRequest is the request type for the EscrowAddress RPC method.
 
+QueryEscrowAddressRequest is the request type for the EscrowAddress RPC method.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `port_id` | [string](#string) |  | unique port identifier |
 | `channel_id` | [string](#string) |  | unique channel identifier |
 
-
-
-
-
-
 <a name="ibc.applications.transfer.v1.QueryEscrowAddressResponse"></a>
 
 ### QueryEscrowAddressResponse
-QueryEscrowAddressResponse is the response type of the EscrowAddress RPC method.
 
+QueryEscrowAddressResponse is the response type of the EscrowAddress RPC method.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `escrow_address` | [string](#string) |  | the escrow account address |
 
-
-
-
-
-
 <a name="ibc.applications.transfer.v1.QueryParamsRequest"></a>
 
 ### QueryParamsRequest
+
 QueryParamsRequest is the request type for the Query/Params RPC method.
-
-
-
-
-
 
 <a name="ibc.applications.transfer.v1.QueryParamsResponse"></a>
 
 ### QueryParamsResponse
-QueryParamsResponse is the response type for the Query/Params RPC method.
 
+QueryParamsResponse is the response type for the Query/Params RPC method.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `params` | [Params](#ibc.applications.transfer.v1.Params) |  | params defines the parameters of the module. |
-
-
-
-
 
  <!-- end messages -->
 
@@ -2217,10 +1727,10 @@ QueryParamsResponse is the response type for the Query/Params RPC method.
 
  <!-- end HasExtensions -->
 
-
 <a name="ibc.applications.transfer.v1.Query"></a>
 
 ### Query
+
 Query provides defines the gRPC querier service.
 
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
@@ -2233,22 +1743,18 @@ Query provides defines the gRPC querier service.
 
  <!-- end services -->
 
-
-
 <a name="ibc/applications/transfer/v1/tx.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
 ## ibc/applications/transfer/v1/tx.proto
 
-
-
 <a name="ibc.applications.transfer.v1.MsgTransfer"></a>
 
 ### MsgTransfer
+
 MsgTransfer defines a msg to transfer fungible tokens (i.e Coins) between
 ICS20 enabled chains. See ICS Spec here:
-https://github.com/cosmos/ibc/tree/master/spec/app/ics-020-fungible-token-transfer#data-structures
-
+<https://github.com/cosmos/ibc/tree/master/spec/app/ics-020-fungible-token-transfer#data-structures>
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -2261,24 +1767,15 @@ https://github.com/cosmos/ibc/tree/master/spec/app/ics-020-fungible-token-transf
 | `timeout_timestamp` | [uint64](#uint64) |  | Timeout timestamp in absolute nanoseconds since unix epoch. The timeout is disabled when set to 0. |
 | `memo` | [string](#string) |  | optional memo |
 
-
-
-
-
-
 <a name="ibc.applications.transfer.v1.MsgTransferResponse"></a>
 
 ### MsgTransferResponse
-MsgTransferResponse defines the Msg/Transfer response type.
 
+MsgTransferResponse defines the Msg/Transfer response type.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `sequence` | [uint64](#uint64) |  | sequence number of the transfer packet sent |
-
-
-
-
 
  <!-- end messages -->
 
@@ -2286,10 +1783,10 @@ MsgTransferResponse defines the Msg/Transfer response type.
 
  <!-- end HasExtensions -->
 
-
 <a name="ibc.applications.transfer.v1.Msg"></a>
 
 ### Msg
+
 Msg defines the ibc/transfer Msg service.
 
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
@@ -2298,20 +1795,14 @@ Msg defines the ibc/transfer Msg service.
 
  <!-- end services -->
 
-
-
 <a name="ibc/applications/transfer/v2/authz.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
 ## ibc/applications/transfer/v2/authz.proto
 
-
-
 <a name="ibc.applications.transfer.v2.PortChannelAmount"></a>
 
 ### PortChannelAmount
-
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -2320,25 +1811,16 @@ Msg defines the ibc/transfer Msg service.
 | `spend_limit` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated | spend limitation on the channel |
 | `allowed_addresses` | [string](#string) | repeated |  |
 
-
-
-
-
-
 <a name="ibc.applications.transfer.v2.TransferAuthorization"></a>
 
 ### TransferAuthorization
+
 TransferAuthorization allows the grantee to spend up to spend_limit coins from
 the granter's account for ibc transfer on a specific channel
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `allocations` | [PortChannelAmount](#ibc.applications.transfer.v2.PortChannelAmount) | repeated | port and channel amounts |
-
-
-
-
 
  <!-- end messages -->
 
@@ -2348,22 +1830,18 @@ the granter's account for ibc transfer on a specific channel
 
  <!-- end services -->
 
-
-
 <a name="ibc/applications/transfer/v2/packet.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
 ## ibc/applications/transfer/v2/packet.proto
 
-
-
 <a name="ibc.applications.transfer.v2.FungibleTokenPacketData"></a>
 
 ### FungibleTokenPacketData
+
 FungibleTokenPacketData defines a struct for the packet payload
 See FungibleTokenPacketData spec:
-https://github.com/cosmos/ibc/tree/master/spec/app/ics-020-fungible-token-transfer#data-structures
-
+<https://github.com/cosmos/ibc/tree/master/spec/app/ics-020-fungible-token-transfer#data-structures>
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -2373,10 +1851,6 @@ https://github.com/cosmos/ibc/tree/master/spec/app/ics-020-fungible-token-transf
 | `receiver` | [string](#string) |  | the recipient address on the destination chain |
 | `memo` | [string](#string) |  | optional memo |
 
-
-
-
-
  <!-- end messages -->
 
  <!-- end enums -->
@@ -2385,20 +1859,16 @@ https://github.com/cosmos/ibc/tree/master/spec/app/ics-020-fungible-token-transf
 
  <!-- end services -->
 
-
-
 <a name="ibc/core/channel/v1/genesis.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
 ## ibc/core/channel/v1/genesis.proto
 
-
-
 <a name="ibc.core.channel.v1.GenesisState"></a>
 
 ### GenesisState
-GenesisState defines the ibc channel submodule's genesis state.
 
+GenesisState defines the ibc channel submodule's genesis state.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -2411,27 +1881,18 @@ GenesisState defines the ibc channel submodule's genesis state.
 | `ack_sequences` | [PacketSequence](#ibc.core.channel.v1.PacketSequence) | repeated |  |
 | `next_channel_sequence` | [uint64](#uint64) |  | the sequence for the next generated channel identifier |
 
-
-
-
-
-
 <a name="ibc.core.channel.v1.PacketSequence"></a>
 
 ### PacketSequence
+
 PacketSequence defines the genesis type necessary to retrieve and store
 next send and receive sequences.
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `port_id` | [string](#string) |  |  |
 | `channel_id` | [string](#string) |  |  |
 | `sequence` | [uint64](#uint64) |  |  |
-
-
-
-
 
  <!-- end messages -->
 
@@ -2441,38 +1902,29 @@ next send and receive sequences.
 
  <!-- end services -->
 
-
-
 <a name="ibc/core/channel/v1/query.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
 ## ibc/core/channel/v1/query.proto
 
-
-
 <a name="ibc.core.channel.v1.QueryChannelClientStateRequest"></a>
 
 ### QueryChannelClientStateRequest
+
 QueryChannelClientStateRequest is the request type for the Query/ClientState
 RPC method
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `port_id` | [string](#string) |  | port unique identifier |
 | `channel_id` | [string](#string) |  | channel unique identifier |
 
-
-
-
-
-
 <a name="ibc.core.channel.v1.QueryChannelClientStateResponse"></a>
 
 ### QueryChannelClientStateResponse
+
 QueryChannelClientStateResponse is the Response type for the
 Query/QueryChannelClientState RPC method
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -2480,17 +1932,12 @@ Query/QueryChannelClientState RPC method
 | `proof` | [bytes](#bytes) |  | merkle proof of existence |
 | `proof_height` | [ibc.core.client.v1.Height](#ibc.core.client.v1.Height) |  | height at which the proof was retrieved |
 
-
-
-
-
-
 <a name="ibc.core.channel.v1.QueryChannelConsensusStateRequest"></a>
 
 ### QueryChannelConsensusStateRequest
+
 QueryChannelConsensusStateRequest is the request type for the
 Query/ConsensusState RPC method
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -2499,17 +1946,12 @@ Query/ConsensusState RPC method
 | `revision_number` | [uint64](#uint64) |  | revision number of the consensus state |
 | `revision_height` | [uint64](#uint64) |  | revision height of the consensus state |
 
-
-
-
-
-
 <a name="ibc.core.channel.v1.QueryChannelConsensusStateResponse"></a>
 
 ### QueryChannelConsensusStateResponse
+
 QueryChannelClientStateResponse is the Response type for the
 Query/QueryChannelClientState RPC method
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -2518,34 +1960,24 @@ Query/QueryChannelClientState RPC method
 | `proof` | [bytes](#bytes) |  | merkle proof of existence |
 | `proof_height` | [ibc.core.client.v1.Height](#ibc.core.client.v1.Height) |  | height at which the proof was retrieved |
 
-
-
-
-
-
 <a name="ibc.core.channel.v1.QueryChannelRequest"></a>
 
 ### QueryChannelRequest
-QueryChannelRequest is the request type for the Query/Channel RPC method
 
+QueryChannelRequest is the request type for the Query/Channel RPC method
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `port_id` | [string](#string) |  | port unique identifier |
 | `channel_id` | [string](#string) |  | channel unique identifier |
 
-
-
-
-
-
 <a name="ibc.core.channel.v1.QueryChannelResponse"></a>
 
 ### QueryChannelResponse
+
 QueryChannelResponse is the response type for the Query/Channel RPC method.
 Besides the Channel end, it includes a proof and the height from which the
 proof was retrieved.
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -2553,31 +1985,21 @@ proof was retrieved.
 | `proof` | [bytes](#bytes) |  | merkle proof of existence |
 | `proof_height` | [ibc.core.client.v1.Height](#ibc.core.client.v1.Height) |  | height at which the proof was retrieved |
 
-
-
-
-
-
 <a name="ibc.core.channel.v1.QueryChannelsRequest"></a>
 
 ### QueryChannelsRequest
-QueryChannelsRequest is the request type for the Query/Channels RPC method
 
+QueryChannelsRequest is the request type for the Query/Channels RPC method
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `pagination` | [cosmos.base.query.v1beta1.PageRequest](#cosmos.base.query.v1beta1.PageRequest) |  | pagination request |
 
-
-
-
-
-
 <a name="ibc.core.channel.v1.QueryChannelsResponse"></a>
 
 ### QueryChannelsResponse
-QueryChannelsResponse is the response type for the Query/Channels RPC method.
 
+QueryChannelsResponse is the response type for the Query/Channels RPC method.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -2585,34 +2007,24 @@ QueryChannelsResponse is the response type for the Query/Channels RPC method.
 | `pagination` | [cosmos.base.query.v1beta1.PageResponse](#cosmos.base.query.v1beta1.PageResponse) |  | pagination response |
 | `height` | [ibc.core.client.v1.Height](#ibc.core.client.v1.Height) |  | query block height |
 
-
-
-
-
-
 <a name="ibc.core.channel.v1.QueryConnectionChannelsRequest"></a>
 
 ### QueryConnectionChannelsRequest
+
 QueryConnectionChannelsRequest is the request type for the
 Query/QueryConnectionChannels RPC method
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `connection` | [string](#string) |  | connection unique identifier |
 | `pagination` | [cosmos.base.query.v1beta1.PageRequest](#cosmos.base.query.v1beta1.PageRequest) |  | pagination request |
 
-
-
-
-
-
 <a name="ibc.core.channel.v1.QueryConnectionChannelsResponse"></a>
 
 ### QueryConnectionChannelsResponse
+
 QueryConnectionChannelsResponse is the Response type for the
 Query/QueryConnectionChannels RPC method
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -2620,34 +2032,24 @@ Query/QueryConnectionChannels RPC method
 | `pagination` | [cosmos.base.query.v1beta1.PageResponse](#cosmos.base.query.v1beta1.PageResponse) |  | pagination response |
 | `height` | [ibc.core.client.v1.Height](#ibc.core.client.v1.Height) |  | query block height |
 
-
-
-
-
-
 <a name="ibc.core.channel.v1.QueryNextSequenceReceiveRequest"></a>
 
 ### QueryNextSequenceReceiveRequest
+
 QueryNextSequenceReceiveRequest is the request type for the
 Query/QueryNextSequenceReceiveRequest RPC method
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `port_id` | [string](#string) |  | port unique identifier |
 | `channel_id` | [string](#string) |  | channel unique identifier |
 
-
-
-
-
-
 <a name="ibc.core.channel.v1.QueryNextSequenceReceiveResponse"></a>
 
 ### QueryNextSequenceReceiveResponse
+
 QuerySequenceResponse is the request type for the
 Query/QueryNextSequenceReceiveResponse RPC method
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -2655,17 +2057,12 @@ Query/QueryNextSequenceReceiveResponse RPC method
 | `proof` | [bytes](#bytes) |  | merkle proof of existence |
 | `proof_height` | [ibc.core.client.v1.Height](#ibc.core.client.v1.Height) |  | height at which the proof was retrieved |
 
-
-
-
-
-
 <a name="ibc.core.channel.v1.QueryPacketAcknowledgementRequest"></a>
 
 ### QueryPacketAcknowledgementRequest
+
 QueryPacketAcknowledgementRequest is the request type for the
 Query/PacketAcknowledgement RPC method
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -2673,18 +2070,13 @@ Query/PacketAcknowledgement RPC method
 | `channel_id` | [string](#string) |  | channel unique identifier |
 | `sequence` | [uint64](#uint64) |  | packet sequence |
 
-
-
-
-
-
 <a name="ibc.core.channel.v1.QueryPacketAcknowledgementResponse"></a>
 
 ### QueryPacketAcknowledgementResponse
+
 QueryPacketAcknowledgementResponse defines the client query response for a
 packet which also includes a proof and the height from which the
 proof was retrieved
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -2692,17 +2084,12 @@ proof was retrieved
 | `proof` | [bytes](#bytes) |  | merkle proof of existence |
 | `proof_height` | [ibc.core.client.v1.Height](#ibc.core.client.v1.Height) |  | height at which the proof was retrieved |
 
-
-
-
-
-
 <a name="ibc.core.channel.v1.QueryPacketAcknowledgementsRequest"></a>
 
 ### QueryPacketAcknowledgementsRequest
+
 QueryPacketAcknowledgementsRequest is the request type for the
 Query/QueryPacketCommitments RPC method
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -2711,17 +2098,12 @@ Query/QueryPacketCommitments RPC method
 | `pagination` | [cosmos.base.query.v1beta1.PageRequest](#cosmos.base.query.v1beta1.PageRequest) |  | pagination request |
 | `packet_commitment_sequences` | [uint64](#uint64) | repeated | list of packet sequences |
 
-
-
-
-
-
 <a name="ibc.core.channel.v1.QueryPacketAcknowledgementsResponse"></a>
 
 ### QueryPacketAcknowledgementsResponse
+
 QueryPacketAcknowledgemetsResponse is the request type for the
 Query/QueryPacketAcknowledgements RPC method
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -2729,17 +2111,12 @@ Query/QueryPacketAcknowledgements RPC method
 | `pagination` | [cosmos.base.query.v1beta1.PageResponse](#cosmos.base.query.v1beta1.PageResponse) |  | pagination response |
 | `height` | [ibc.core.client.v1.Height](#ibc.core.client.v1.Height) |  | query block height |
 
-
-
-
-
-
 <a name="ibc.core.channel.v1.QueryPacketCommitmentRequest"></a>
 
 ### QueryPacketCommitmentRequest
+
 QueryPacketCommitmentRequest is the request type for the
 Query/PacketCommitment RPC method
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -2747,18 +2124,13 @@ Query/PacketCommitment RPC method
 | `channel_id` | [string](#string) |  | channel unique identifier |
 | `sequence` | [uint64](#uint64) |  | packet sequence |
 
-
-
-
-
-
 <a name="ibc.core.channel.v1.QueryPacketCommitmentResponse"></a>
 
 ### QueryPacketCommitmentResponse
+
 QueryPacketCommitmentResponse defines the client query response for a packet
 which also includes a proof and the height from which the proof was
 retrieved
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -2766,17 +2138,12 @@ retrieved
 | `proof` | [bytes](#bytes) |  | merkle proof of existence |
 | `proof_height` | [ibc.core.client.v1.Height](#ibc.core.client.v1.Height) |  | height at which the proof was retrieved |
 
-
-
-
-
-
 <a name="ibc.core.channel.v1.QueryPacketCommitmentsRequest"></a>
 
 ### QueryPacketCommitmentsRequest
+
 QueryPacketCommitmentsRequest is the request type for the
 Query/QueryPacketCommitments RPC method
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -2784,17 +2151,12 @@ Query/QueryPacketCommitments RPC method
 | `channel_id` | [string](#string) |  | channel unique identifier |
 | `pagination` | [cosmos.base.query.v1beta1.PageRequest](#cosmos.base.query.v1beta1.PageRequest) |  | pagination request |
 
-
-
-
-
-
 <a name="ibc.core.channel.v1.QueryPacketCommitmentsResponse"></a>
 
 ### QueryPacketCommitmentsResponse
+
 QueryPacketCommitmentsResponse is the request type for the
 Query/QueryPacketCommitments RPC method
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -2802,17 +2164,12 @@ Query/QueryPacketCommitments RPC method
 | `pagination` | [cosmos.base.query.v1beta1.PageResponse](#cosmos.base.query.v1beta1.PageResponse) |  | pagination response |
 | `height` | [ibc.core.client.v1.Height](#ibc.core.client.v1.Height) |  | query block height |
 
-
-
-
-
-
 <a name="ibc.core.channel.v1.QueryPacketReceiptRequest"></a>
 
 ### QueryPacketReceiptRequest
+
 QueryPacketReceiptRequest is the request type for the
 Query/PacketReceipt RPC method
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -2820,18 +2177,13 @@ Query/PacketReceipt RPC method
 | `channel_id` | [string](#string) |  | channel unique identifier |
 | `sequence` | [uint64](#uint64) |  | packet sequence |
 
-
-
-
-
-
 <a name="ibc.core.channel.v1.QueryPacketReceiptResponse"></a>
 
 ### QueryPacketReceiptResponse
+
 QueryPacketReceiptResponse defines the client query response for a packet
 receipt which also includes a proof, and the height from which the proof was
 retrieved
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -2839,17 +2191,12 @@ retrieved
 | `proof` | [bytes](#bytes) |  | merkle proof of existence |
 | `proof_height` | [ibc.core.client.v1.Height](#ibc.core.client.v1.Height) |  | height at which the proof was retrieved |
 
-
-
-
-
-
 <a name="ibc.core.channel.v1.QueryUnreceivedAcksRequest"></a>
 
 ### QueryUnreceivedAcksRequest
+
 QueryUnreceivedAcks is the request type for the
 Query/UnreceivedAcks RPC method
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -2857,34 +2204,24 @@ Query/UnreceivedAcks RPC method
 | `channel_id` | [string](#string) |  | channel unique identifier |
 | `packet_ack_sequences` | [uint64](#uint64) | repeated | list of acknowledgement sequences |
 
-
-
-
-
-
 <a name="ibc.core.channel.v1.QueryUnreceivedAcksResponse"></a>
 
 ### QueryUnreceivedAcksResponse
+
 QueryUnreceivedAcksResponse is the response type for the
 Query/UnreceivedAcks RPC method
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `sequences` | [uint64](#uint64) | repeated | list of unreceived acknowledgement sequences |
 | `height` | [ibc.core.client.v1.Height](#ibc.core.client.v1.Height) |  | query block height |
 
-
-
-
-
-
 <a name="ibc.core.channel.v1.QueryUnreceivedPacketsRequest"></a>
 
 ### QueryUnreceivedPacketsRequest
+
 QueryUnreceivedPacketsRequest is the request type for the
 Query/UnreceivedPackets RPC method
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -2892,26 +2229,17 @@ Query/UnreceivedPackets RPC method
 | `channel_id` | [string](#string) |  | channel unique identifier |
 | `packet_commitment_sequences` | [uint64](#uint64) | repeated | list of packet sequences |
 
-
-
-
-
-
 <a name="ibc.core.channel.v1.QueryUnreceivedPacketsResponse"></a>
 
 ### QueryUnreceivedPacketsResponse
+
 QueryUnreceivedPacketsResponse is the response type for the
 Query/UnreceivedPacketCommitments RPC method
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `sequences` | [uint64](#uint64) | repeated | list of unreceived packet sequences |
 | `height` | [ibc.core.client.v1.Height](#ibc.core.client.v1.Height) |  | query block height |
-
-
-
-
 
  <!-- end messages -->
 
@@ -2919,10 +2247,10 @@ Query/UnreceivedPacketCommitments RPC method
 
  <!-- end HasExtensions -->
 
-
 <a name="ibc.core.channel.v1.Query"></a>
 
 ### Query
+
 Query provides defines the gRPC querier service
 
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
@@ -2943,20 +2271,16 @@ Query provides defines the gRPC querier service
 
  <!-- end services -->
 
-
-
 <a name="ibc/core/channel/v1/tx.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
 ## ibc/core/channel/v1/tx.proto
 
-
-
 <a name="ibc.core.channel.v1.MsgAcknowledgement"></a>
 
 ### MsgAcknowledgement
-MsgAcknowledgement receives incoming IBC acknowledgement
 
+MsgAcknowledgement receives incoming IBC acknowledgement
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -2966,32 +2290,22 @@ MsgAcknowledgement receives incoming IBC acknowledgement
 | `proof_height` | [ibc.core.client.v1.Height](#ibc.core.client.v1.Height) |  |  |
 | `signer` | [string](#string) |  |  |
 
-
-
-
-
-
 <a name="ibc.core.channel.v1.MsgAcknowledgementResponse"></a>
 
 ### MsgAcknowledgementResponse
-MsgAcknowledgementResponse defines the Msg/Acknowledgement response type.
 
+MsgAcknowledgementResponse defines the Msg/Acknowledgement response type.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `result` | [ResponseResultType](#ibc.core.channel.v1.ResponseResultType) |  |  |
 
-
-
-
-
-
 <a name="ibc.core.channel.v1.MsgChannelCloseConfirm"></a>
 
 ### MsgChannelCloseConfirm
+
 MsgChannelCloseConfirm defines a msg sent by a Relayer to Chain B
 to acknowledge the change of channel state to CLOSED on Chain A.
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -3001,28 +2315,19 @@ to acknowledge the change of channel state to CLOSED on Chain A.
 | `proof_height` | [ibc.core.client.v1.Height](#ibc.core.client.v1.Height) |  |  |
 | `signer` | [string](#string) |  |  |
 
-
-
-
-
-
 <a name="ibc.core.channel.v1.MsgChannelCloseConfirmResponse"></a>
 
 ### MsgChannelCloseConfirmResponse
+
 MsgChannelCloseConfirmResponse defines the Msg/ChannelCloseConfirm response
 type.
-
-
-
-
-
 
 <a name="ibc.core.channel.v1.MsgChannelCloseInit"></a>
 
 ### MsgChannelCloseInit
+
 MsgChannelCloseInit defines a msg sent by a Relayer to Chain A
 to close a channel with Chain B.
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -3030,27 +2335,18 @@ to close a channel with Chain B.
 | `channel_id` | [string](#string) |  |  |
 | `signer` | [string](#string) |  |  |
 
-
-
-
-
-
 <a name="ibc.core.channel.v1.MsgChannelCloseInitResponse"></a>
 
 ### MsgChannelCloseInitResponse
+
 MsgChannelCloseInitResponse defines the Msg/ChannelCloseInit response type.
-
-
-
-
-
 
 <a name="ibc.core.channel.v1.MsgChannelOpenAck"></a>
 
 ### MsgChannelOpenAck
+
 MsgChannelOpenAck defines a msg sent by a Relayer to Chain A to acknowledge
 the change of channel state to TRYOPEN on Chain B.
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -3062,27 +2358,18 @@ the change of channel state to TRYOPEN on Chain B.
 | `proof_height` | [ibc.core.client.v1.Height](#ibc.core.client.v1.Height) |  |  |
 | `signer` | [string](#string) |  |  |
 
-
-
-
-
-
 <a name="ibc.core.channel.v1.MsgChannelOpenAckResponse"></a>
 
 ### MsgChannelOpenAckResponse
+
 MsgChannelOpenAckResponse defines the Msg/ChannelOpenAck response type.
-
-
-
-
-
 
 <a name="ibc.core.channel.v1.MsgChannelOpenConfirm"></a>
 
 ### MsgChannelOpenConfirm
+
 MsgChannelOpenConfirm defines a msg sent by a Relayer to Chain B to
 acknowledge the change of channel state to OPEN on Chain A.
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -3092,28 +2379,19 @@ acknowledge the change of channel state to OPEN on Chain A.
 | `proof_height` | [ibc.core.client.v1.Height](#ibc.core.client.v1.Height) |  |  |
 | `signer` | [string](#string) |  |  |
 
-
-
-
-
-
 <a name="ibc.core.channel.v1.MsgChannelOpenConfirmResponse"></a>
 
 ### MsgChannelOpenConfirmResponse
+
 MsgChannelOpenConfirmResponse defines the Msg/ChannelOpenConfirm response
 type.
-
-
-
-
-
 
 <a name="ibc.core.channel.v1.MsgChannelOpenInit"></a>
 
 ### MsgChannelOpenInit
+
 MsgChannelOpenInit defines an sdk.Msg to initialize a channel handshake. It
 is called by a relayer on Chain A.
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -3121,34 +2399,24 @@ is called by a relayer on Chain A.
 | `channel` | [Channel](#ibc.core.channel.v1.Channel) |  |  |
 | `signer` | [string](#string) |  |  |
 
-
-
-
-
-
 <a name="ibc.core.channel.v1.MsgChannelOpenInitResponse"></a>
 
 ### MsgChannelOpenInitResponse
-MsgChannelOpenInitResponse defines the Msg/ChannelOpenInit response type.
 
+MsgChannelOpenInitResponse defines the Msg/ChannelOpenInit response type.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `channel_id` | [string](#string) |  |  |
 | `version` | [string](#string) |  |  |
 
-
-
-
-
-
 <a name="ibc.core.channel.v1.MsgChannelOpenTry"></a>
 
 ### MsgChannelOpenTry
+
 MsgChannelOpenInit defines a msg sent by a Relayer to try to open a channel
 on Chain B. The version field within the Channel field has been deprecated. Its
 value will be ignored by core IBC.
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -3160,31 +2428,21 @@ value will be ignored by core IBC.
 | `proof_height` | [ibc.core.client.v1.Height](#ibc.core.client.v1.Height) |  |  |
 | `signer` | [string](#string) |  |  |
 
-
-
-
-
-
 <a name="ibc.core.channel.v1.MsgChannelOpenTryResponse"></a>
 
 ### MsgChannelOpenTryResponse
-MsgChannelOpenTryResponse defines the Msg/ChannelOpenTry response type.
 
+MsgChannelOpenTryResponse defines the Msg/ChannelOpenTry response type.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `version` | [string](#string) |  |  |
 
-
-
-
-
-
 <a name="ibc.core.channel.v1.MsgRecvPacket"></a>
 
 ### MsgRecvPacket
-MsgRecvPacket receives incoming IBC packet
 
+MsgRecvPacket receives incoming IBC packet
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -3193,31 +2451,21 @@ MsgRecvPacket receives incoming IBC packet
 | `proof_height` | [ibc.core.client.v1.Height](#ibc.core.client.v1.Height) |  |  |
 | `signer` | [string](#string) |  |  |
 
-
-
-
-
-
 <a name="ibc.core.channel.v1.MsgRecvPacketResponse"></a>
 
 ### MsgRecvPacketResponse
-MsgRecvPacketResponse defines the Msg/RecvPacket response type.
 
+MsgRecvPacketResponse defines the Msg/RecvPacket response type.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `result` | [ResponseResultType](#ibc.core.channel.v1.ResponseResultType) |  |  |
 
-
-
-
-
-
 <a name="ibc.core.channel.v1.MsgTimeout"></a>
 
 ### MsgTimeout
-MsgTimeout receives timed-out packet
 
+MsgTimeout receives timed-out packet
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -3227,16 +2475,11 @@ MsgTimeout receives timed-out packet
 | `next_sequence_recv` | [uint64](#uint64) |  |  |
 | `signer` | [string](#string) |  |  |
 
-
-
-
-
-
 <a name="ibc.core.channel.v1.MsgTimeoutOnClose"></a>
 
 ### MsgTimeoutOnClose
-MsgTimeoutOnClose timed-out packet upon counterparty channel closure.
 
+MsgTimeoutOnClose timed-out packet upon counterparty channel closure.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -3247,46 +2490,32 @@ MsgTimeoutOnClose timed-out packet upon counterparty channel closure.
 | `next_sequence_recv` | [uint64](#uint64) |  |  |
 | `signer` | [string](#string) |  |  |
 
-
-
-
-
-
 <a name="ibc.core.channel.v1.MsgTimeoutOnCloseResponse"></a>
 
 ### MsgTimeoutOnCloseResponse
-MsgTimeoutOnCloseResponse defines the Msg/TimeoutOnClose response type.
 
+MsgTimeoutOnCloseResponse defines the Msg/TimeoutOnClose response type.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `result` | [ResponseResultType](#ibc.core.channel.v1.ResponseResultType) |  |  |
-
-
-
-
-
 
 <a name="ibc.core.channel.v1.MsgTimeoutResponse"></a>
 
 ### MsgTimeoutResponse
-MsgTimeoutResponse defines the Msg/Timeout response type.
 
+MsgTimeoutResponse defines the Msg/Timeout response type.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `result` | [ResponseResultType](#ibc.core.channel.v1.ResponseResultType) |  |  |
 
-
-
-
-
  <!-- end messages -->
-
 
 <a name="ibc.core.channel.v1.ResponseResultType"></a>
 
 ### ResponseResultType
+
 ResponseResultType defines the possible outcomes of the execution of a message
 
 | Name | Number | Description |
@@ -3295,15 +2524,14 @@ ResponseResultType defines the possible outcomes of the execution of a message
 | RESPONSE_RESULT_TYPE_NOOP | 1 | The message did not call the IBC application callbacks (because, for example, the packet had already been relayed) |
 | RESPONSE_RESULT_TYPE_SUCCESS | 2 | The message was executed successfully |
 
-
  <!-- end enums -->
 
  <!-- end HasExtensions -->
 
-
 <a name="ibc.core.channel.v1.Msg"></a>
 
 ### Msg
+
 Msg defines the ibc/channel Msg service.
 
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
@@ -3321,37 +2549,28 @@ Msg defines the ibc/channel Msg service.
 
  <!-- end services -->
 
-
-
 <a name="ibc/core/client/v1/genesis.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
 ## ibc/core/client/v1/genesis.proto
 
-
-
 <a name="ibc.core.client.v1.GenesisMetadata"></a>
 
 ### GenesisMetadata
+
 GenesisMetadata defines the genesis type for metadata that clients may return
 with ExportMetadata
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `key` | [bytes](#bytes) |  | store key of metadata without clientID-prefix |
 | `value` | [bytes](#bytes) |  | metadata value |
 
-
-
-
-
-
 <a name="ibc.core.client.v1.GenesisState"></a>
 
 ### GenesisState
-GenesisState defines the ibc client submodule's genesis state.
 
+GenesisState defines the ibc client submodule's genesis state.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -3362,26 +2581,17 @@ GenesisState defines the ibc client submodule's genesis state.
 | `create_localhost` | [bool](#bool) |  | create localhost on initialization |
 | `next_client_sequence` | [uint64](#uint64) |  | the sequence for the next generated client identifier |
 
-
-
-
-
-
 <a name="ibc.core.client.v1.IdentifiedGenesisMetadata"></a>
 
 ### IdentifiedGenesisMetadata
+
 IdentifiedGenesisMetadata has the client metadata with the corresponding
 client id.
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `client_id` | [string](#string) |  |  |
 | `client_metadata` | [GenesisMetadata](#ibc.core.client.v1.GenesisMetadata) | repeated |  |
-
-
-
-
 
  <!-- end messages -->
 
@@ -3391,38 +2601,29 @@ client id.
 
  <!-- end services -->
 
-
-
 <a name="ibc/core/client/v1/query.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
 ## ibc/core/client/v1/query.proto
 
-
-
 <a name="ibc.core.client.v1.QueryClientStateRequest"></a>
 
 ### QueryClientStateRequest
+
 QueryClientStateRequest is the request type for the Query/ClientState RPC
 method
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `client_id` | [string](#string) |  | client state unique identifier |
 
-
-
-
-
-
 <a name="ibc.core.client.v1.QueryClientStateResponse"></a>
 
 ### QueryClientStateResponse
+
 QueryClientStateResponse is the response type for the Query/ClientState RPC
 method. Besides the client state, it includes a proof and the height from
 which the proof was retrieved.
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -3430,117 +2631,82 @@ which the proof was retrieved.
 | `proof` | [bytes](#bytes) |  | merkle proof of existence |
 | `proof_height` | [Height](#ibc.core.client.v1.Height) |  | height at which the proof was retrieved |
 
-
-
-
-
-
 <a name="ibc.core.client.v1.QueryClientStatesRequest"></a>
 
 ### QueryClientStatesRequest
+
 QueryClientStatesRequest is the request type for the Query/ClientStates RPC
 method
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `pagination` | [cosmos.base.query.v1beta1.PageRequest](#cosmos.base.query.v1beta1.PageRequest) |  | pagination request |
 
-
-
-
-
-
 <a name="ibc.core.client.v1.QueryClientStatesResponse"></a>
 
 ### QueryClientStatesResponse
+
 QueryClientStatesResponse is the response type for the Query/ClientStates RPC
 method.
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `client_states` | [IdentifiedClientState](#ibc.core.client.v1.IdentifiedClientState) | repeated | list of stored ClientStates of the chain. |
 | `pagination` | [cosmos.base.query.v1beta1.PageResponse](#cosmos.base.query.v1beta1.PageResponse) |  | pagination response |
 
-
-
-
-
-
 <a name="ibc.core.client.v1.QueryClientStatusRequest"></a>
 
 ### QueryClientStatusRequest
+
 QueryClientStatusRequest is the request type for the Query/ClientStatus RPC
 method
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `client_id` | [string](#string) |  | client unique identifier |
 
-
-
-
-
-
 <a name="ibc.core.client.v1.QueryClientStatusResponse"></a>
 
 ### QueryClientStatusResponse
+
 QueryClientStatusResponse is the response type for the Query/ClientStatus RPC
 method. It returns the current status of the IBC client.
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `status` | [string](#string) |  |  |
 
-
-
-
-
-
 <a name="ibc.core.client.v1.QueryConsensusStateHeightsRequest"></a>
 
 ### QueryConsensusStateHeightsRequest
+
 QueryConsensusStateHeightsRequest is the request type for Query/ConsensusStateHeights
 RPC method.
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `client_id` | [string](#string) |  | client identifier |
 | `pagination` | [cosmos.base.query.v1beta1.PageRequest](#cosmos.base.query.v1beta1.PageRequest) |  | pagination request |
 
-
-
-
-
-
 <a name="ibc.core.client.v1.QueryConsensusStateHeightsResponse"></a>
 
 ### QueryConsensusStateHeightsResponse
+
 QueryConsensusStateHeightsResponse is the response type for the
 Query/ConsensusStateHeights RPC method
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `consensus_state_heights` | [Height](#ibc.core.client.v1.Height) | repeated | consensus state heights |
 | `pagination` | [cosmos.base.query.v1beta1.PageResponse](#cosmos.base.query.v1beta1.PageResponse) |  | pagination response |
 
-
-
-
-
-
 <a name="ibc.core.client.v1.QueryConsensusStateRequest"></a>
 
 ### QueryConsensusStateRequest
+
 QueryConsensusStateRequest is the request type for the Query/ConsensusState
 RPC method. Besides the consensus state, it includes a proof and the height
 from which the proof was retrieved.
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -3549,17 +2715,12 @@ from which the proof was retrieved.
 | `revision_height` | [uint64](#uint64) |  | consensus state revision height |
 | `latest_height` | [bool](#bool) |  | latest_height overrrides the height field and queries the latest stored ConsensusState |
 
-
-
-
-
-
 <a name="ibc.core.client.v1.QueryConsensusStateResponse"></a>
 
 ### QueryConsensusStateResponse
+
 QueryConsensusStateResponse is the response type for the Query/ConsensusState
 RPC method
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -3567,124 +2728,83 @@ RPC method
 | `proof` | [bytes](#bytes) |  | merkle proof of existence |
 | `proof_height` | [Height](#ibc.core.client.v1.Height) |  | height at which the proof was retrieved |
 
-
-
-
-
-
 <a name="ibc.core.client.v1.QueryConsensusStatesRequest"></a>
 
 ### QueryConsensusStatesRequest
+
 QueryConsensusStatesRequest is the request type for the Query/ConsensusStates
 RPC method.
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `client_id` | [string](#string) |  | client identifier |
 | `pagination` | [cosmos.base.query.v1beta1.PageRequest](#cosmos.base.query.v1beta1.PageRequest) |  | pagination request |
 
-
-
-
-
-
 <a name="ibc.core.client.v1.QueryConsensusStatesResponse"></a>
 
 ### QueryConsensusStatesResponse
+
 QueryConsensusStatesResponse is the response type for the
 Query/ConsensusStates RPC method
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `consensus_states` | [ConsensusStateWithHeight](#ibc.core.client.v1.ConsensusStateWithHeight) | repeated | consensus states associated with the identifier |
 | `pagination` | [cosmos.base.query.v1beta1.PageResponse](#cosmos.base.query.v1beta1.PageResponse) |  | pagination response |
 
-
-
-
-
-
 <a name="ibc.core.client.v1.QueryParamsRequest"></a>
 
 ### QueryParamsRequest
+
 QueryParamsRequest is the request type for the Query/Params RPC
 method.
-
-
-
-
-
 
 <a name="ibc.core.client.v1.QueryParamsResponse"></a>
 
 ### QueryParamsResponse
+
 QueryParamsResponse is the response type for the Query/Params RPC
 method.
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `params` | [Params](#ibc.core.client.v1.Params) |  | params defines the parameters of the module. |
 
-
-
-
-
-
 <a name="ibc.core.client.v1.QueryUpgradedClientStateRequest"></a>
 
 ### QueryUpgradedClientStateRequest
+
 QueryUpgradedClientStateRequest is the request type for the
 Query/UpgradedClientState RPC method
-
-
-
-
-
 
 <a name="ibc.core.client.v1.QueryUpgradedClientStateResponse"></a>
 
 ### QueryUpgradedClientStateResponse
+
 QueryUpgradedClientStateResponse is the response type for the
 Query/UpgradedClientState RPC method.
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `upgraded_client_state` | [google.protobuf.Any](#google.protobuf.Any) |  | client state associated with the request identifier |
 
-
-
-
-
-
 <a name="ibc.core.client.v1.QueryUpgradedConsensusStateRequest"></a>
 
 ### QueryUpgradedConsensusStateRequest
+
 QueryUpgradedConsensusStateRequest is the request type for the
 Query/UpgradedConsensusState RPC method
-
-
-
-
-
 
 <a name="ibc.core.client.v1.QueryUpgradedConsensusStateResponse"></a>
 
 ### QueryUpgradedConsensusStateResponse
+
 QueryUpgradedConsensusStateResponse is the response type for the
 Query/UpgradedConsensusState RPC method.
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `upgraded_consensus_state` | [google.protobuf.Any](#google.protobuf.Any) |  | Consensus state associated with the request identifier |
-
-
-
-
 
  <!-- end messages -->
 
@@ -3692,10 +2812,10 @@ Query/UpgradedConsensusState RPC method.
 
  <!-- end HasExtensions -->
 
-
 <a name="ibc.core.client.v1.Query"></a>
 
 ### Query
+
 Query provides defines the gRPC querier service
 
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
@@ -3712,20 +2832,16 @@ Query provides defines the gRPC querier service
 
  <!-- end services -->
 
-
-
 <a name="ibc/core/client/v1/tx.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
 ## ibc/core/client/v1/tx.proto
 
-
-
 <a name="ibc.core.client.v1.MsgCreateClient"></a>
 
 ### MsgCreateClient
-MsgCreateClient defines a message to create an IBC client
 
+MsgCreateClient defines a message to create an IBC client
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -3733,28 +2849,19 @@ MsgCreateClient defines a message to create an IBC client
 | `consensus_state` | [google.protobuf.Any](#google.protobuf.Any) |  | consensus state associated with the client that corresponds to a given height. |
 | `signer` | [string](#string) |  | signer address |
 
-
-
-
-
-
 <a name="ibc.core.client.v1.MsgCreateClientResponse"></a>
 
 ### MsgCreateClientResponse
+
 MsgCreateClientResponse defines the Msg/CreateClient response type.
-
-
-
-
-
 
 <a name="ibc.core.client.v1.MsgSubmitMisbehaviour"></a>
 
 ### MsgSubmitMisbehaviour
+
 MsgSubmitMisbehaviour defines an sdk.Msg type that submits Evidence for
 light client misbehaviour.
 Warning: DEPRECATED
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -3762,28 +2869,19 @@ Warning: DEPRECATED
 | `misbehaviour` | [google.protobuf.Any](#google.protobuf.Any) |  | **Deprecated.** misbehaviour used for freezing the light client |
 | `signer` | [string](#string) |  | **Deprecated.** signer address |
 
-
-
-
-
-
 <a name="ibc.core.client.v1.MsgSubmitMisbehaviourResponse"></a>
 
 ### MsgSubmitMisbehaviourResponse
+
 MsgSubmitMisbehaviourResponse defines the Msg/SubmitMisbehaviour response
 type.
-
-
-
-
-
 
 <a name="ibc.core.client.v1.MsgUpdateClient"></a>
 
 ### MsgUpdateClient
+
 MsgUpdateClient defines an sdk.Msg to update a IBC client state using
 the given client message.
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -3791,27 +2889,18 @@ the given client message.
 | `client_message` | [google.protobuf.Any](#google.protobuf.Any) |  | client message to update the light client |
 | `signer` | [string](#string) |  | signer address |
 
-
-
-
-
-
 <a name="ibc.core.client.v1.MsgUpdateClientResponse"></a>
 
 ### MsgUpdateClientResponse
+
 MsgUpdateClientResponse defines the Msg/UpdateClient response type.
-
-
-
-
-
 
 <a name="ibc.core.client.v1.MsgUpgradeClient"></a>
 
 ### MsgUpgradeClient
+
 MsgUpgradeClient defines an sdk.Msg to upgrade an IBC client to a new client
 state
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -3822,19 +2911,11 @@ state
 | `proof_upgrade_consensus_state` | [bytes](#bytes) |  | proof that old chain committed to new consensus state |
 | `signer` | [string](#string) |  | signer address |
 
-
-
-
-
-
 <a name="ibc.core.client.v1.MsgUpgradeClientResponse"></a>
 
 ### MsgUpgradeClientResponse
+
 MsgUpgradeClientResponse defines the Msg/UpgradeClient response type.
-
-
-
-
 
  <!-- end messages -->
 
@@ -3842,10 +2923,10 @@ MsgUpgradeClientResponse defines the Msg/UpgradeClient response type.
 
  <!-- end HasExtensions -->
 
-
 <a name="ibc.core.client.v1.Msg"></a>
 
 ### Msg
+
 Msg defines the ibc/client Msg service.
 
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
@@ -3857,82 +2938,59 @@ Msg defines the ibc/client Msg service.
 
  <!-- end services -->
 
-
-
 <a name="ibc/core/commitment/v1/commitment.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
 ## ibc/core/commitment/v1/commitment.proto
 
-
-
 <a name="ibc.core.commitment.v1.MerklePath"></a>
 
 ### MerklePath
+
 MerklePath is the path used to verify commitment proofs, which can be an
 arbitrary structured object (defined by a commitment type).
 MerklePath is represented from root-to-leaf
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `key_path` | [string](#string) | repeated |  |
 
-
-
-
-
-
 <a name="ibc.core.commitment.v1.MerklePrefix"></a>
 
 ### MerklePrefix
+
 MerklePrefix is merkle path prefixed to the key.
 The constructed key from the Path and the key will be append(Path.KeyPath,
 append(Path.KeyPrefix, key...))
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `key_prefix` | [bytes](#bytes) |  |  |
 
-
-
-
-
-
 <a name="ibc.core.commitment.v1.MerkleProof"></a>
 
 ### MerkleProof
+
 MerkleProof is a wrapper type over a chain of CommitmentProofs.
 It demonstrates membership or non-membership for an element or set of
 elements, verifiable in conjunction with a known commitment root. Proofs
 should be succinct.
 MerkleProofs are ordered from leaf-to-root
 
-
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `proofs` | [ics23.CommitmentProof](#ics23.CommitmentProof) | repeated |  |
 
-
-
-
-
-
 <a name="ibc.core.commitment.v1.MerkleRoot"></a>
 
 ### MerkleRoot
+
 MerkleRoot defines a merkle root hash.
 In the Cosmos SDK, the AppHash of a block header becomes the root.
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `hash` | [bytes](#bytes) |  |  |
-
-
-
-
 
  <!-- end messages -->
 
@@ -3942,38 +3000,29 @@ In the Cosmos SDK, the AppHash of a block header becomes the root.
 
  <!-- end services -->
 
-
-
 <a name="ibc/core/connection/v1/connection.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
 ## ibc/core/connection/v1/connection.proto
 
-
-
 <a name="ibc.core.connection.v1.ClientPaths"></a>
 
 ### ClientPaths
-ClientPaths define all the connection paths for a client state.
 
+ClientPaths define all the connection paths for a client state.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `paths` | [string](#string) | repeated | list of connection paths |
 
-
-
-
-
-
 <a name="ibc.core.connection.v1.ConnectionEnd"></a>
 
 ### ConnectionEnd
+
 ConnectionEnd defines a stateful object on a chain connected to another
 separate one.
 NOTE: there must only be 2 defined ConnectionEnds to establish
 a connection between two chains.
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -3983,32 +3032,22 @@ a connection between two chains.
 | `counterparty` | [Counterparty](#ibc.core.connection.v1.Counterparty) |  | counterparty chain associated with this connection. |
 | `delay_period` | [uint64](#uint64) |  | delay period that must pass before a consensus state can be used for packet-verification NOTE: delay period logic is only implemented by some clients. |
 
-
-
-
-
-
 <a name="ibc.core.connection.v1.ConnectionPaths"></a>
 
 ### ConnectionPaths
-ConnectionPaths define all the connection paths for a given client state.
 
+ConnectionPaths define all the connection paths for a given client state.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `client_id` | [string](#string) |  | client state unique identifier |
 | `paths` | [string](#string) | repeated | list of connection paths |
 
-
-
-
-
-
 <a name="ibc.core.connection.v1.Counterparty"></a>
 
 ### Counterparty
-Counterparty defines the counterparty chain associated with a connection end.
 
+Counterparty defines the counterparty chain associated with a connection end.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -4016,17 +3055,12 @@ Counterparty defines the counterparty chain associated with a connection end.
 | `connection_id` | [string](#string) |  | identifies the connection end on the counterparty chain associated with a given connection. |
 | `prefix` | [ibc.core.commitment.v1.MerklePrefix](#ibc.core.commitment.v1.MerklePrefix) |  | commitment merkle prefix of the counterparty chain. |
 
-
-
-
-
-
 <a name="ibc.core.connection.v1.IdentifiedConnection"></a>
 
 ### IdentifiedConnection
+
 IdentifiedConnection defines a connection with additional connection
 identifier field.
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -4037,48 +3071,34 @@ identifier field.
 | `counterparty` | [Counterparty](#ibc.core.connection.v1.Counterparty) |  | counterparty chain associated with this connection. |
 | `delay_period` | [uint64](#uint64) |  | delay period associated with this connection. |
 
-
-
-
-
-
 <a name="ibc.core.connection.v1.Params"></a>
 
 ### Params
-Params defines the set of Connection parameters.
 
+Params defines the set of Connection parameters.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `max_expected_time_per_block` | [uint64](#uint64) |  | maximum expected time per block (in nanoseconds), used to enforce block delay. This parameter should reflect the largest amount of time that the chain might reasonably take to produce the next block under normal operating conditions. A safe choice is 3-5x the expected time per block. |
 
-
-
-
-
-
 <a name="ibc.core.connection.v1.Version"></a>
 
 ### Version
+
 Version defines the versioning scheme used to negotiate the IBC verison in
 the connection handshake.
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `identifier` | [string](#string) |  | unique version identifier |
 | `features` | [string](#string) | repeated | list of features compatible with the specified identifier |
 
-
-
-
-
  <!-- end messages -->
-
 
 <a name="ibc.core.connection.v1.State"></a>
 
 ### State
+
 State defines if a connection is in one of the following states:
 INIT, TRYOPEN, OPEN or UNINITIALIZED.
 
@@ -4089,27 +3109,22 @@ INIT, TRYOPEN, OPEN or UNINITIALIZED.
 | STATE_TRYOPEN | 2 | A connection end has acknowledged the handshake step on the counterparty chain. |
 | STATE_OPEN | 3 | A connection end has completed the handshake. |
 
-
  <!-- end enums -->
 
  <!-- end HasExtensions -->
 
  <!-- end services -->
 
-
-
 <a name="ibc/core/connection/v1/genesis.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
 ## ibc/core/connection/v1/genesis.proto
 
-
-
 <a name="ibc.core.connection.v1.GenesisState"></a>
 
 ### GenesisState
-GenesisState defines the ibc connection submodule's genesis state.
 
+GenesisState defines the ibc connection submodule's genesis state.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -4118,10 +3133,6 @@ GenesisState defines the ibc connection submodule's genesis state.
 | `next_connection_sequence` | [uint64](#uint64) |  | the sequence for the next generated connection identifier |
 | `params` | [Params](#ibc.core.connection.v1.Params) |  |  |
 
-
-
-
-
  <!-- end messages -->
 
  <!-- end enums -->
@@ -4130,37 +3141,28 @@ GenesisState defines the ibc connection submodule's genesis state.
 
  <!-- end services -->
 
-
-
 <a name="ibc/core/connection/v1/query.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
 ## ibc/core/connection/v1/query.proto
 
-
-
 <a name="ibc.core.connection.v1.QueryClientConnectionsRequest"></a>
 
 ### QueryClientConnectionsRequest
+
 QueryClientConnectionsRequest is the request type for the
 Query/ClientConnections RPC method
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `client_id` | [string](#string) |  | client identifier associated with a connection |
 
-
-
-
-
-
 <a name="ibc.core.connection.v1.QueryClientConnectionsResponse"></a>
 
 ### QueryClientConnectionsResponse
+
 QueryClientConnectionsResponse is the response type for the
 Query/ClientConnections RPC method
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -4168,33 +3170,23 @@ Query/ClientConnections RPC method
 | `proof` | [bytes](#bytes) |  | merkle proof of existence |
 | `proof_height` | [ibc.core.client.v1.Height](#ibc.core.client.v1.Height) |  | height at which the proof was generated |
 
-
-
-
-
-
 <a name="ibc.core.connection.v1.QueryConnectionClientStateRequest"></a>
 
 ### QueryConnectionClientStateRequest
+
 QueryConnectionClientStateRequest is the request type for the
 Query/ConnectionClientState RPC method
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `connection_id` | [string](#string) |  | connection identifier |
 
-
-
-
-
-
 <a name="ibc.core.connection.v1.QueryConnectionClientStateResponse"></a>
 
 ### QueryConnectionClientStateResponse
+
 QueryConnectionClientStateResponse is the response type for the
 Query/ConnectionClientState RPC method
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -4202,17 +3194,12 @@ Query/ConnectionClientState RPC method
 | `proof` | [bytes](#bytes) |  | merkle proof of existence |
 | `proof_height` | [ibc.core.client.v1.Height](#ibc.core.client.v1.Height) |  | height at which the proof was retrieved |
 
-
-
-
-
-
 <a name="ibc.core.connection.v1.QueryConnectionConsensusStateRequest"></a>
 
 ### QueryConnectionConsensusStateRequest
+
 QueryConnectionConsensusStateRequest is the request type for the
 Query/ConnectionConsensusState RPC method
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -4220,17 +3207,12 @@ Query/ConnectionConsensusState RPC method
 | `revision_number` | [uint64](#uint64) |  |  |
 | `revision_height` | [uint64](#uint64) |  |  |
 
-
-
-
-
-
 <a name="ibc.core.connection.v1.QueryConnectionConsensusStateResponse"></a>
 
 ### QueryConnectionConsensusStateResponse
+
 QueryConnectionConsensusStateResponse is the response type for the
 Query/ConnectionConsensusState RPC method
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -4239,34 +3221,24 @@ Query/ConnectionConsensusState RPC method
 | `proof` | [bytes](#bytes) |  | merkle proof of existence |
 | `proof_height` | [ibc.core.client.v1.Height](#ibc.core.client.v1.Height) |  | height at which the proof was retrieved |
 
-
-
-
-
-
 <a name="ibc.core.connection.v1.QueryConnectionRequest"></a>
 
 ### QueryConnectionRequest
+
 QueryConnectionRequest is the request type for the Query/Connection RPC
 method
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `connection_id` | [string](#string) |  | connection unique identifier |
 
-
-
-
-
-
 <a name="ibc.core.connection.v1.QueryConnectionResponse"></a>
 
 ### QueryConnectionResponse
+
 QueryConnectionResponse is the response type for the Query/Connection RPC
 method. Besides the connection end, it includes a proof and the height from
 which the proof was retrieved.
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -4274,33 +3246,23 @@ which the proof was retrieved.
 | `proof` | [bytes](#bytes) |  | merkle proof of existence |
 | `proof_height` | [ibc.core.client.v1.Height](#ibc.core.client.v1.Height) |  | height at which the proof was retrieved |
 
-
-
-
-
-
 <a name="ibc.core.connection.v1.QueryConnectionsRequest"></a>
 
 ### QueryConnectionsRequest
+
 QueryConnectionsRequest is the request type for the Query/Connections RPC
 method
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `pagination` | [cosmos.base.query.v1beta1.PageRequest](#cosmos.base.query.v1beta1.PageRequest) |  |  |
 
-
-
-
-
-
 <a name="ibc.core.connection.v1.QueryConnectionsResponse"></a>
 
 ### QueryConnectionsResponse
+
 QueryConnectionsResponse is the response type for the Query/Connections RPC
 method.
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -4308,20 +3270,16 @@ method.
 | `pagination` | [cosmos.base.query.v1beta1.PageResponse](#cosmos.base.query.v1beta1.PageResponse) |  | pagination response |
 | `height` | [ibc.core.client.v1.Height](#ibc.core.client.v1.Height) |  | query block height |
 
-
-
-
-
  <!-- end messages -->
 
  <!-- end enums -->
 
  <!-- end HasExtensions -->
 
-
 <a name="ibc.core.connection.v1.Query"></a>
 
 ### Query
+
 Query provides defines the gRPC querier service
 
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
@@ -4334,21 +3292,17 @@ Query provides defines the gRPC querier service
 
  <!-- end services -->
 
-
-
 <a name="ibc/core/connection/v1/tx.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
 ## ibc/core/connection/v1/tx.proto
 
-
-
 <a name="ibc.core.connection.v1.MsgConnectionOpenAck"></a>
 
 ### MsgConnectionOpenAck
+
 MsgConnectionOpenAck defines a msg sent by a Relayer to Chain A to
 acknowledge the change of connection state to TRYOPEN on Chain B.
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -4363,27 +3317,18 @@ acknowledge the change of connection state to TRYOPEN on Chain B.
 | `consensus_height` | [ibc.core.client.v1.Height](#ibc.core.client.v1.Height) |  |  |
 | `signer` | [string](#string) |  |  |
 
-
-
-
-
-
 <a name="ibc.core.connection.v1.MsgConnectionOpenAckResponse"></a>
 
 ### MsgConnectionOpenAckResponse
+
 MsgConnectionOpenAckResponse defines the Msg/ConnectionOpenAck response type.
-
-
-
-
-
 
 <a name="ibc.core.connection.v1.MsgConnectionOpenConfirm"></a>
 
 ### MsgConnectionOpenConfirm
+
 MsgConnectionOpenConfirm defines a msg sent by a Relayer to Chain B to
 acknowledge the change of connection state to OPEN on Chain A.
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -4392,28 +3337,19 @@ acknowledge the change of connection state to OPEN on Chain A.
 | `proof_height` | [ibc.core.client.v1.Height](#ibc.core.client.v1.Height) |  |  |
 | `signer` | [string](#string) |  |  |
 
-
-
-
-
-
 <a name="ibc.core.connection.v1.MsgConnectionOpenConfirmResponse"></a>
 
 ### MsgConnectionOpenConfirmResponse
+
 MsgConnectionOpenConfirmResponse defines the Msg/ConnectionOpenConfirm
 response type.
-
-
-
-
-
 
 <a name="ibc.core.connection.v1.MsgConnectionOpenInit"></a>
 
 ### MsgConnectionOpenInit
+
 MsgConnectionOpenInit defines the msg sent by an account on Chain A to
 initialize a connection with Chain B.
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -4423,28 +3359,19 @@ initialize a connection with Chain B.
 | `delay_period` | [uint64](#uint64) |  |  |
 | `signer` | [string](#string) |  |  |
 
-
-
-
-
-
 <a name="ibc.core.connection.v1.MsgConnectionOpenInitResponse"></a>
 
 ### MsgConnectionOpenInitResponse
+
 MsgConnectionOpenInitResponse defines the Msg/ConnectionOpenInit response
 type.
-
-
-
-
-
 
 <a name="ibc.core.connection.v1.MsgConnectionOpenTry"></a>
 
 ### MsgConnectionOpenTry
+
 MsgConnectionOpenTry defines a msg sent by a Relayer to try to open a
 connection on Chain B.
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -4461,19 +3388,11 @@ connection on Chain B.
 | `consensus_height` | [ibc.core.client.v1.Height](#ibc.core.client.v1.Height) |  |  |
 | `signer` | [string](#string) |  |  |
 
-
-
-
-
-
 <a name="ibc.core.connection.v1.MsgConnectionOpenTryResponse"></a>
 
 ### MsgConnectionOpenTryResponse
+
 MsgConnectionOpenTryResponse defines the Msg/ConnectionOpenTry response type.
-
-
-
-
 
  <!-- end messages -->
 
@@ -4481,10 +3400,10 @@ MsgConnectionOpenTryResponse defines the Msg/ConnectionOpenTry response type.
 
  <!-- end HasExtensions -->
 
-
 <a name="ibc.core.connection.v1.Msg"></a>
 
 ### Msg
+
 Msg defines the ibc/connection Msg service.
 
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
@@ -4496,30 +3415,22 @@ Msg defines the ibc/connection Msg service.
 
  <!-- end services -->
 
-
-
 <a name="ibc/core/types/v1/genesis.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
 ## ibc/core/types/v1/genesis.proto
 
-
-
 <a name="ibc.core.types.v1.GenesisState"></a>
 
 ### GenesisState
-GenesisState defines the ibc module's genesis state.
 
+GenesisState defines the ibc module's genesis state.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `client_genesis` | [ibc.core.client.v1.GenesisState](#ibc.core.client.v1.GenesisState) |  | ICS002 - Clients genesis state |
 | `connection_genesis` | [ibc.core.connection.v1.GenesisState](#ibc.core.connection.v1.GenesisState) |  | ICS003 - Connections genesis state |
 | `channel_genesis` | [ibc.core.channel.v1.GenesisState](#ibc.core.channel.v1.GenesisState) |  | ICS004 - Channel genesis state |
-
-
-
-
 
  <!-- end messages -->
 
@@ -4529,38 +3440,29 @@ GenesisState defines the ibc module's genesis state.
 
  <!-- end services -->
 
-
-
 <a name="ibc/lightclients/solomachine/v1/solomachine.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
 ## ibc/lightclients/solomachine/v1/solomachine.proto
 
-
-
 <a name="ibc.lightclients.solomachine.v1.ChannelStateData"></a>
 
 ### ChannelStateData
+
 ChannelStateData returns the SignBytes data for channel state
 verification.
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `path` | [bytes](#bytes) |  |  |
 | `channel` | [ibc.core.channel.v1.Channel](#ibc.core.channel.v1.Channel) |  |  |
 
-
-
-
-
-
 <a name="ibc.lightclients.solomachine.v1.ClientState"></a>
 
 ### ClientState
+
 ClientState defines a solo machine client that tracks the current consensus
 state and if the client is frozen.
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -4569,51 +3471,36 @@ state and if the client is frozen.
 | `consensus_state` | [ConsensusState](#ibc.lightclients.solomachine.v1.ConsensusState) |  |  |
 | `allow_update_after_proposal` | [bool](#bool) |  | when set to true, will allow governance to update a solo machine client. The client will be unfrozen if it is frozen. |
 
-
-
-
-
-
 <a name="ibc.lightclients.solomachine.v1.ClientStateData"></a>
 
 ### ClientStateData
-ClientStateData returns the SignBytes data for client state verification.
 
+ClientStateData returns the SignBytes data for client state verification.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `path` | [bytes](#bytes) |  |  |
 | `client_state` | [google.protobuf.Any](#google.protobuf.Any) |  |  |
 
-
-
-
-
-
 <a name="ibc.lightclients.solomachine.v1.ConnectionStateData"></a>
 
 ### ConnectionStateData
+
 ConnectionStateData returns the SignBytes data for connection state
 verification.
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `path` | [bytes](#bytes) |  |  |
 | `connection` | [ibc.core.connection.v1.ConnectionEnd](#ibc.core.connection.v1.ConnectionEnd) |  |  |
 
-
-
-
-
-
 <a name="ibc.lightclients.solomachine.v1.ConsensusState"></a>
 
 ### ConsensusState
+
 ConsensusState defines a solo machine consensus state. The sequence of a
 consensus state is contained in the "height" key used in storing the
 consensus state.
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -4621,33 +3508,23 @@ consensus state.
 | `diversifier` | [string](#string) |  | diversifier allows the same public key to be re-used across different solo machine clients (potentially on different chains) without being considered misbehaviour. |
 | `timestamp` | [uint64](#uint64) |  |  |
 
-
-
-
-
-
 <a name="ibc.lightclients.solomachine.v1.ConsensusStateData"></a>
 
 ### ConsensusStateData
+
 ConsensusStateData returns the SignBytes data for consensus state
 verification.
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `path` | [bytes](#bytes) |  |  |
 | `consensus_state` | [google.protobuf.Any](#google.protobuf.Any) |  |  |
 
-
-
-
-
-
 <a name="ibc.lightclients.solomachine.v1.Header"></a>
 
 ### Header
-Header defines a solo machine consensus header
 
+Header defines a solo machine consensus header
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -4657,33 +3534,23 @@ Header defines a solo machine consensus header
 | `new_public_key` | [google.protobuf.Any](#google.protobuf.Any) |  |  |
 | `new_diversifier` | [string](#string) |  |  |
 
-
-
-
-
-
 <a name="ibc.lightclients.solomachine.v1.HeaderData"></a>
 
 ### HeaderData
-HeaderData returns the SignBytes data for update verification.
 
+HeaderData returns the SignBytes data for update verification.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `new_pub_key` | [google.protobuf.Any](#google.protobuf.Any) |  | header public key |
 | `new_diversifier` | [string](#string) |  | header diversifier |
 
-
-
-
-
-
 <a name="ibc.lightclients.solomachine.v1.Misbehaviour"></a>
 
 ### Misbehaviour
+
 Misbehaviour defines misbehaviour for a solo machine which consists
 of a sequence and two signatures over different messages at that sequence.
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -4692,83 +3559,58 @@ of a sequence and two signatures over different messages at that sequence.
 | `signature_one` | [SignatureAndData](#ibc.lightclients.solomachine.v1.SignatureAndData) |  |  |
 | `signature_two` | [SignatureAndData](#ibc.lightclients.solomachine.v1.SignatureAndData) |  |  |
 
-
-
-
-
-
 <a name="ibc.lightclients.solomachine.v1.NextSequenceRecvData"></a>
 
 ### NextSequenceRecvData
+
 NextSequenceRecvData returns the SignBytes data for verification of the next
 sequence to be received.
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `path` | [bytes](#bytes) |  |  |
 | `next_seq_recv` | [uint64](#uint64) |  |  |
 
-
-
-
-
-
 <a name="ibc.lightclients.solomachine.v1.PacketAcknowledgementData"></a>
 
 ### PacketAcknowledgementData
+
 PacketAcknowledgementData returns the SignBytes data for acknowledgement
 verification.
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `path` | [bytes](#bytes) |  |  |
 | `acknowledgement` | [bytes](#bytes) |  |  |
 
-
-
-
-
-
 <a name="ibc.lightclients.solomachine.v1.PacketCommitmentData"></a>
 
 ### PacketCommitmentData
+
 PacketCommitmentData returns the SignBytes data for packet commitment
 verification.
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `path` | [bytes](#bytes) |  |  |
 | `commitment` | [bytes](#bytes) |  |  |
 
-
-
-
-
-
 <a name="ibc.lightclients.solomachine.v1.PacketReceiptAbsenceData"></a>
 
 ### PacketReceiptAbsenceData
+
 PacketReceiptAbsenceData returns the SignBytes data for
 packet receipt absence verification.
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `path` | [bytes](#bytes) |  |  |
 
-
-
-
-
-
 <a name="ibc.lightclients.solomachine.v1.SignBytes"></a>
 
 ### SignBytes
-SignBytes defines the signed bytes used for signature verification.
 
+SignBytes defines the signed bytes used for signature verification.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -4778,17 +3620,12 @@ SignBytes defines the signed bytes used for signature verification.
 | `data_type` | [DataType](#ibc.lightclients.solomachine.v1.DataType) |  | type of the data used |
 | `data` | [bytes](#bytes) |  | marshaled data |
 
-
-
-
-
-
 <a name="ibc.lightclients.solomachine.v1.SignatureAndData"></a>
 
 ### SignatureAndData
+
 SignatureAndData contains a signature and the data signed over to create that
 signature.
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -4797,33 +3634,24 @@ signature.
 | `data` | [bytes](#bytes) |  |  |
 | `timestamp` | [uint64](#uint64) |  |  |
 
-
-
-
-
-
 <a name="ibc.lightclients.solomachine.v1.TimestampedSignatureData"></a>
 
 ### TimestampedSignatureData
+
 TimestampedSignatureData contains the signature data and the timestamp of the
 signature.
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `signature_data` | [bytes](#bytes) |  |  |
 | `timestamp` | [uint64](#uint64) |  |  |
 
-
-
-
-
  <!-- end messages -->
-
 
 <a name="ibc.lightclients.solomachine.v1.DataType"></a>
 
 ### DataType
+
 DataType defines the type of solo machine proof being created. This is done
 to preserve uniqueness of different data sign byte encodings.
 
@@ -4840,45 +3668,35 @@ to preserve uniqueness of different data sign byte encodings.
 | DATA_TYPE_NEXT_SEQUENCE_RECV | 8 | Data type for next sequence recv verification |
 | DATA_TYPE_HEADER | 9 | Data type for header verification |
 
-
  <!-- end enums -->
 
  <!-- end HasExtensions -->
 
  <!-- end services -->
 
-
-
 <a name="ibc/lightclients/solomachine/v2/solomachine.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
 ## ibc/lightclients/solomachine/v2/solomachine.proto
 
-
-
 <a name="ibc.lightclients.solomachine.v2.ChannelStateData"></a>
 
 ### ChannelStateData
+
 ChannelStateData returns the SignBytes data for channel state
 verification.
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `path` | [bytes](#bytes) |  |  |
 | `channel` | [ibc.core.channel.v1.Channel](#ibc.core.channel.v1.Channel) |  |  |
 
-
-
-
-
-
 <a name="ibc.lightclients.solomachine.v2.ClientState"></a>
 
 ### ClientState
+
 ClientState defines a solo machine client that tracks the current consensus
 state and if the client is frozen.
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -4887,51 +3705,36 @@ state and if the client is frozen.
 | `consensus_state` | [ConsensusState](#ibc.lightclients.solomachine.v2.ConsensusState) |  |  |
 | `allow_update_after_proposal` | [bool](#bool) |  | when set to true, will allow governance to update a solo machine client. The client will be unfrozen if it is frozen. |
 
-
-
-
-
-
 <a name="ibc.lightclients.solomachine.v2.ClientStateData"></a>
 
 ### ClientStateData
-ClientStateData returns the SignBytes data for client state verification.
 
+ClientStateData returns the SignBytes data for client state verification.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `path` | [bytes](#bytes) |  |  |
 | `client_state` | [google.protobuf.Any](#google.protobuf.Any) |  |  |
 
-
-
-
-
-
 <a name="ibc.lightclients.solomachine.v2.ConnectionStateData"></a>
 
 ### ConnectionStateData
+
 ConnectionStateData returns the SignBytes data for connection state
 verification.
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `path` | [bytes](#bytes) |  |  |
 | `connection` | [ibc.core.connection.v1.ConnectionEnd](#ibc.core.connection.v1.ConnectionEnd) |  |  |
 
-
-
-
-
-
 <a name="ibc.lightclients.solomachine.v2.ConsensusState"></a>
 
 ### ConsensusState
+
 ConsensusState defines a solo machine consensus state. The sequence of a
 consensus state is contained in the "height" key used in storing the
 consensus state.
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -4939,33 +3742,23 @@ consensus state.
 | `diversifier` | [string](#string) |  | diversifier allows the same public key to be re-used across different solo machine clients (potentially on different chains) without being considered misbehaviour. |
 | `timestamp` | [uint64](#uint64) |  |  |
 
-
-
-
-
-
 <a name="ibc.lightclients.solomachine.v2.ConsensusStateData"></a>
 
 ### ConsensusStateData
+
 ConsensusStateData returns the SignBytes data for consensus state
 verification.
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `path` | [bytes](#bytes) |  |  |
 | `consensus_state` | [google.protobuf.Any](#google.protobuf.Any) |  |  |
 
-
-
-
-
-
 <a name="ibc.lightclients.solomachine.v2.Header"></a>
 
 ### Header
-Header defines a solo machine consensus header
 
+Header defines a solo machine consensus header
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -4975,33 +3768,23 @@ Header defines a solo machine consensus header
 | `new_public_key` | [google.protobuf.Any](#google.protobuf.Any) |  |  |
 | `new_diversifier` | [string](#string) |  |  |
 
-
-
-
-
-
 <a name="ibc.lightclients.solomachine.v2.HeaderData"></a>
 
 ### HeaderData
-HeaderData returns the SignBytes data for update verification.
 
+HeaderData returns the SignBytes data for update verification.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `new_pub_key` | [google.protobuf.Any](#google.protobuf.Any) |  | header public key |
 | `new_diversifier` | [string](#string) |  | header diversifier |
 
-
-
-
-
-
 <a name="ibc.lightclients.solomachine.v2.Misbehaviour"></a>
 
 ### Misbehaviour
+
 Misbehaviour defines misbehaviour for a solo machine which consists
 of a sequence and two signatures over different messages at that sequence.
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -5010,83 +3793,58 @@ of a sequence and two signatures over different messages at that sequence.
 | `signature_one` | [SignatureAndData](#ibc.lightclients.solomachine.v2.SignatureAndData) |  |  |
 | `signature_two` | [SignatureAndData](#ibc.lightclients.solomachine.v2.SignatureAndData) |  |  |
 
-
-
-
-
-
 <a name="ibc.lightclients.solomachine.v2.NextSequenceRecvData"></a>
 
 ### NextSequenceRecvData
+
 NextSequenceRecvData returns the SignBytes data for verification of the next
 sequence to be received.
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `path` | [bytes](#bytes) |  |  |
 | `next_seq_recv` | [uint64](#uint64) |  |  |
 
-
-
-
-
-
 <a name="ibc.lightclients.solomachine.v2.PacketAcknowledgementData"></a>
 
 ### PacketAcknowledgementData
+
 PacketAcknowledgementData returns the SignBytes data for acknowledgement
 verification.
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `path` | [bytes](#bytes) |  |  |
 | `acknowledgement` | [bytes](#bytes) |  |  |
 
-
-
-
-
-
 <a name="ibc.lightclients.solomachine.v2.PacketCommitmentData"></a>
 
 ### PacketCommitmentData
+
 PacketCommitmentData returns the SignBytes data for packet commitment
 verification.
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `path` | [bytes](#bytes) |  |  |
 | `commitment` | [bytes](#bytes) |  |  |
 
-
-
-
-
-
 <a name="ibc.lightclients.solomachine.v2.PacketReceiptAbsenceData"></a>
 
 ### PacketReceiptAbsenceData
+
 PacketReceiptAbsenceData returns the SignBytes data for
 packet receipt absence verification.
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `path` | [bytes](#bytes) |  |  |
 
-
-
-
-
-
 <a name="ibc.lightclients.solomachine.v2.SignBytes"></a>
 
 ### SignBytes
-SignBytes defines the signed bytes used for signature verification.
 
+SignBytes defines the signed bytes used for signature verification.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -5096,17 +3854,12 @@ SignBytes defines the signed bytes used for signature verification.
 | `data_type` | [DataType](#ibc.lightclients.solomachine.v2.DataType) |  | type of the data used |
 | `data` | [bytes](#bytes) |  | marshaled data |
 
-
-
-
-
-
 <a name="ibc.lightclients.solomachine.v2.SignatureAndData"></a>
 
 ### SignatureAndData
+
 SignatureAndData contains a signature and the data signed over to create that
 signature.
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -5115,33 +3868,24 @@ signature.
 | `data` | [bytes](#bytes) |  |  |
 | `timestamp` | [uint64](#uint64) |  |  |
 
-
-
-
-
-
 <a name="ibc.lightclients.solomachine.v2.TimestampedSignatureData"></a>
 
 ### TimestampedSignatureData
+
 TimestampedSignatureData contains the signature data and the timestamp of the
 signature.
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `signature_data` | [bytes](#bytes) |  |  |
 | `timestamp` | [uint64](#uint64) |  |  |
 
-
-
-
-
  <!-- end messages -->
-
 
 <a name="ibc.lightclients.solomachine.v2.DataType"></a>
 
 ### DataType
+
 DataType defines the type of solo machine proof being created. This is done
 to preserve uniqueness of different data sign byte encodings.
 
@@ -5158,28 +3902,23 @@ to preserve uniqueness of different data sign byte encodings.
 | DATA_TYPE_NEXT_SEQUENCE_RECV | 8 | Data type for next sequence recv verification |
 | DATA_TYPE_HEADER | 9 | Data type for header verification |
 
-
  <!-- end enums -->
 
  <!-- end HasExtensions -->
 
  <!-- end services -->
 
-
-
 <a name="ibc/lightclients/solomachine/v3/solomachine.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
 ## ibc/lightclients/solomachine/v3/solomachine.proto
 
-
-
 <a name="ibc.lightclients.solomachine.v3.ClientState"></a>
 
 ### ClientState
+
 ClientState defines a solo machine client that tracks the current consensus
 state and if the client is frozen.
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -5188,18 +3927,13 @@ state and if the client is frozen.
 | `consensus_state` | [ConsensusState](#ibc.lightclients.solomachine.v3.ConsensusState) |  |  |
 | `allow_update_after_proposal` | [bool](#bool) |  | when set to true, will allow governance to update a solo machine client. The client will be unfrozen if it is frozen. |
 
-
-
-
-
-
 <a name="ibc.lightclients.solomachine.v3.ConsensusState"></a>
 
 ### ConsensusState
+
 ConsensusState defines a solo machine consensus state. The sequence of a
 consensus state is contained in the "height" key used in storing the
 consensus state.
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -5207,16 +3941,11 @@ consensus state.
 | `diversifier` | [string](#string) |  | diversifier allows the same public key to be re-used across different solo machine clients (potentially on different chains) without being considered misbehaviour. |
 | `timestamp` | [uint64](#uint64) |  |  |
 
-
-
-
-
-
 <a name="ibc.lightclients.solomachine.v3.Header"></a>
 
 ### Header
-Header defines a solo machine consensus header
 
+Header defines a solo machine consensus header
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -5226,33 +3955,23 @@ Header defines a solo machine consensus header
 | `new_public_key` | [google.protobuf.Any](#google.protobuf.Any) |  |  |
 | `new_diversifier` | [string](#string) |  |  |
 
-
-
-
-
-
 <a name="ibc.lightclients.solomachine.v3.HeaderData"></a>
 
 ### HeaderData
-HeaderData returns the SignBytes data for update verification.
 
+HeaderData returns the SignBytes data for update verification.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `new_pub_key` | [google.protobuf.Any](#google.protobuf.Any) |  | header public key |
 | `new_diversifier` | [string](#string) |  | header diversifier |
 
-
-
-
-
-
 <a name="ibc.lightclients.solomachine.v3.Misbehaviour"></a>
 
 ### Misbehaviour
+
 Misbehaviour defines misbehaviour for a solo machine which consists
 of a sequence and two signatures over different messages at that sequence.
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -5261,16 +3980,11 @@ of a sequence and two signatures over different messages at that sequence.
 | `signature_one` | [SignatureAndData](#ibc.lightclients.solomachine.v3.SignatureAndData) |  |  |
 | `signature_two` | [SignatureAndData](#ibc.lightclients.solomachine.v3.SignatureAndData) |  |  |
 
-
-
-
-
-
 <a name="ibc.lightclients.solomachine.v3.SignBytes"></a>
 
 ### SignBytes
-SignBytes defines the signed bytes used for signature verification.
 
+SignBytes defines the signed bytes used for signature verification.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -5280,17 +3994,12 @@ SignBytes defines the signed bytes used for signature verification.
 | `path` | [bytes](#bytes) |  | the standardised path bytes |
 | `data` | [bytes](#bytes) |  | the marshaled data bytes |
 
-
-
-
-
-
 <a name="ibc.lightclients.solomachine.v3.SignatureAndData"></a>
 
 ### SignatureAndData
+
 SignatureAndData contains a signature and the data signed over to create that
 signature.
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -5299,26 +4008,17 @@ signature.
 | `data` | [bytes](#bytes) |  |  |
 | `timestamp` | [uint64](#uint64) |  |  |
 
-
-
-
-
-
 <a name="ibc.lightclients.solomachine.v3.TimestampedSignatureData"></a>
 
 ### TimestampedSignatureData
+
 TimestampedSignatureData contains the signature data and the timestamp of the
 signature.
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `signature_data` | [bytes](#bytes) |  |  |
 | `timestamp` | [uint64](#uint64) |  |  |
-
-
-
-
 
  <!-- end messages -->
 
@@ -5328,21 +4028,17 @@ signature.
 
  <!-- end services -->
 
-
-
 <a name="ibc/lightclients/tendermint/v1/tendermint.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
 ## ibc/lightclients/tendermint/v1/tendermint.proto
 
-
-
 <a name="ibc.lightclients.tendermint.v1.ClientState"></a>
 
 ### ClientState
+
 ClientState from Tendermint tracks the current validator set, latest height,
 and a possible frozen height.
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -5358,16 +4054,11 @@ and a possible frozen height.
 | `allow_update_after_expiry` | [bool](#bool) |  | **Deprecated.** allow_update_after_expiry is deprecated |
 | `allow_update_after_misbehaviour` | [bool](#bool) |  | **Deprecated.** allow_update_after_misbehaviour is deprecated |
 
-
-
-
-
-
 <a name="ibc.lightclients.tendermint.v1.ConsensusState"></a>
 
 ### ConsensusState
-ConsensusState defines the consensus state from Tendermint.
 
+ConsensusState defines the consensus state from Tendermint.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -5375,31 +4066,22 @@ ConsensusState defines the consensus state from Tendermint.
 | `root` | [ibc.core.commitment.v1.MerkleRoot](#ibc.core.commitment.v1.MerkleRoot) |  | commitment root (i.e app hash) |
 | `next_validators_hash` | [bytes](#bytes) |  |  |
 
-
-
-
-
-
 <a name="ibc.lightclients.tendermint.v1.Fraction"></a>
 
 ### Fraction
+
 Fraction defines the protobuf message type for tmmath.Fraction that only
 supports positive values.
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `numerator` | [uint64](#uint64) |  |  |
 | `denominator` | [uint64](#uint64) |  |  |
 
-
-
-
-
-
 <a name="ibc.lightclients.tendermint.v1.Header"></a>
 
 ### Header
+
 Header defines the Tendermint client consensus Header.
 It encapsulates all the information necessary to update from a trusted
 Tendermint ConsensusState. The inclusion of TrustedHeight and
@@ -5413,7 +4095,6 @@ current time in order to correctly verify, and the TrustedValidators must
 hash to TrustedConsensusState.NextValidatorsHash since that is the last
 trusted validator set at the TrustedHeight.
 
-
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `signed_header` | [tendermint.types.SignedHeader](#tendermint.types.SignedHeader) |  |  |
@@ -5421,27 +4102,18 @@ trusted validator set at the TrustedHeight.
 | `trusted_height` | [ibc.core.client.v1.Height](#ibc.core.client.v1.Height) |  |  |
 | `trusted_validators` | [tendermint.types.ValidatorSet](#tendermint.types.ValidatorSet) |  |  |
 
-
-
-
-
-
 <a name="ibc.lightclients.tendermint.v1.Misbehaviour"></a>
 
 ### Misbehaviour
+
 Misbehaviour is a wrapper over two conflicting Headers
 that implements Misbehaviour interface expected by ICS-02
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `client_id` | [string](#string) |  | **Deprecated.** ClientID is deprecated |
 | `header_1` | [Header](#ibc.lightclients.tendermint.v1.Header) |  |  |
 | `header_2` | [Header](#ibc.lightclients.tendermint.v1.Header) |  |  |
-
-
-
-
 
  <!-- end messages -->
 
@@ -5450,8 +4122,6 @@ that implements Misbehaviour interface expected by ICS-02
  <!-- end HasExtensions -->
 
  <!-- end services -->
-
-
 
 ## Scalar Value Types
 
@@ -5472,4 +4142,3 @@ that implements Misbehaviour interface expected by ICS-02
 | <a name="bool" /> bool |  | bool | boolean | boolean | bool | bool | boolean | TrueClass/FalseClass |
 | <a name="string" /> string | A string must always contain UTF-8 encoded or 7-bit ASCII text. | string | String | str/unicode | string | string | string | String (UTF-8) |
 | <a name="bytes" /> bytes | May contain any arbitrary sequence of bytes. | string | ByteString | str | []byte | ByteString | string | String (ASCII-8BIT) |
-
