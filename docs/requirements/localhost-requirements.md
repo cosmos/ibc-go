@@ -2,7 +2,7 @@
 
 # Business requirements
 
-The local host client provides a unified interface to interact with different applications on a single chain.
+The localhost client provides a unified interface to interact with different applications on a single chain.
 
 ## Problem
 
