@@ -159,15 +159,7 @@ func (k Keeper) TimeoutPacket(
 			)
 			prefix := connectionEnd.GetCounterparty().GetPrefix()
 			var value []byte = nil
-			clientState, found := k.clientKeeper.GetClientState(ctx, connectionEnd.Counterparty.ClientId)
 
-			////////////////////////////////////////////////////////////////////////////////////////////////
-			// NOTE: If the clientState is found and type is virtual the do a timeout inclusion check. This
-			// is a hack to work around the fact that virtual chains may not support non-inclusion proofs.
-			////////////////////////////////////////////////////////////////////////////////////////////////
-			if found && clientState.ClientType() == "virtual" {
-				value = commitment
-			}
 			err = mh.VerifyMultihopProof(k.cdc, consensusState, channel.ConnectionHops, proof, prefix, key, value)
 		} else {
 			err = k.connectionKeeper.VerifyPacketReceiptAbsence(
