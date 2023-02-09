@@ -33,29 +33,28 @@ Please see the [ICS27 documentation](../apps/interchain-accounts/overview.md) fo
 If the chain will adopt ICS27, it must set the appropriate params during the execution of the upgrade handler in `app.go`: 
 ```go
 app.UpgradeKeeper.SetUpgradeHandler("v3",
-    func(ctx sdk.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
-        // set the ICS27 consensus version so InitGenesis is not run
-        fromVM[icatypes.ModuleName] = icamodule.ConsensusVersion()
-        
-        // create ICS27 Controller submodule params
-        controllerParams := icacontrollertypes.Params{
-            ControllerEnabled: true, 
-        }
+  func(ctx sdk.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
+    // set the ICS27 consensus version so InitGenesis is not run
+    fromVM[icatypes.ModuleName] = icamodule.ConsensusVersion()
+    
+    // create ICS27 Controller submodule params
+    controllerParams := icacontrollertypes.Params{
+      ControllerEnabled: true, 
+    }
 
-        // create ICS27 Host submodule params
-        hostParams := icahosttypes.Params{
-            HostEnabled: true, 
-            AllowMessages: []string{"/cosmos.bank.v1beta1.MsgSend", ...}, 
-        }
-        
-        // initialize ICS27 module
-        icamodule.InitModule(ctx, controllerParams, hostParams)
-        
-        ...
+    // create ICS27 Host submodule params
+    hostParams := icahosttypes.Params{
+      HostEnabled: true, 
+      AllowMessages: []string{"/cosmos.bank.v1beta1.MsgSend", ...}, 
+    }
+    
+    // initialize ICS27 module
+    icamodule.InitModule(ctx, controllerParams, hostParams)
+    
+    ...
 
-        return app.mm.RunMigrations(ctx, app.configurator, fromVM)
-    })
-
+    return app.mm.RunMigrations(ctx, app.configurator, fromVM)
+  })
 ```
 
 The host and controller submodule params only need to be set if the chain integrates those submodules. 
@@ -67,11 +66,11 @@ For ICS27 it is also necessary to [manually add store upgrades](https://docs.cos
 
 ```go
 if upgradeInfo.Name == "v3" && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
-    storeUpgrades := store.StoreUpgrades{
-        Added: []string{icacontrollertypes.StoreKey, icahosttypes.StoreKey},
-    }
+  storeUpgrades := store.StoreUpgrades{
+    Added: []string{icacontrollertypes.StoreKey, icahosttypes.StoreKey},
+  }
 
-    app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &storeUpgrades))
+  app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &storeUpgrades))
 }
 ```
 
@@ -86,23 +85,23 @@ If the chain will adopt ICS27 and chooses to upgrade via a genesis export, then 
 The migration code required may look like:
 
 ```go
-    controllerGenesisState := icatypes.DefaultControllerGenesis()
-    // overwrite parameters as desired
-    controllerGenesisState.Params = icacontrollertypes.Params{
-        ControllerEnabled: true, 
-    } 
+  controllerGenesisState := icatypes.DefaultControllerGenesis()
+  // overwrite parameters as desired
+  controllerGenesisState.Params = icacontrollertypes.Params{
+    ControllerEnabled: true, 
+  } 
 
-    hostGenesisState := icatypes.DefaultHostGenesis()
-    // overwrite parameters as desired
-    hostGenesisState.Params = icahosttypes.Params{
-        HostEnabled: true, 
-        AllowMessages: []string{"/cosmos.bank.v1beta1.MsgSend", ...}, 
-    }
+  hostGenesisState := icatypes.DefaultHostGenesis()
+  // overwrite parameters as desired
+  hostGenesisState.Params = icahosttypes.Params{
+    HostEnabled: true, 
+    AllowMessages: []string{"/cosmos.bank.v1beta1.MsgSend", ...}, 
+  }
 
-    icaGenesisState := icatypes.NewGenesisState(controllerGenesisState, hostGenesisState)
+  icaGenesisState := icatypes.NewGenesisState(controllerGenesisState, hostGenesisState)
 
-    // set new ics27 genesis state
-    appState[icatypes.ModuleName] = clientCtx.Codec.MustMarshalJSON(icaGenesisState)
+  // set new ics27 genesis state
+  appState[icatypes.ModuleName] = clientCtx.Codec.MustMarshalJSON(icaGenesisState)
 ```
 
 ### Ante decorator
@@ -111,13 +110,13 @@ The field of type `channelkeeper.Keeper` in the `AnteDecorator` structure has be
 
 ```diff
 type AnteDecorator struct {
--    k channelkeeper.Keeper
-+    k *keeper.Keeper
+-  k channelkeeper.Keeper
++  k *keeper.Keeper
 }
 
 - func NewAnteDecorator(k channelkeeper.Keeper) AnteDecorator {
-+ func NewAnteDecorator(k *keeper.Keeper) AnteDecorator {
-    return AnteDecorator{k: k}
++ func NewAnteDecorator(k *keeper.Keeper) AnteDecorator { 
+  return AnteDecorator{k: k}
 }
 ```
 

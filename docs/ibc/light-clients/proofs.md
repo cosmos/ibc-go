@@ -32,28 +32,28 @@ From the [`ClientState` interface definition](https://github.com/cosmos/ibc-go/b
 
 ```go
 VerifyMembership(
-    ctx sdk.Context,
-    clientStore sdk.KVStore,
-    cdc codec.BinaryCodec,
-    height Height,
-    delayTimePeriod uint64,
-    delayBlockPeriod uint64,
-    proof []byte,
-    path Path,
-    value []byte,
+  ctx sdk.Context,
+  clientStore sdk.KVStore,
+  cdc codec.BinaryCodec,
+  height Height,
+  delayTimePeriod uint64,
+  delayBlockPeriod uint64,
+  proof []byte,
+  path Path,
+  value []byte,
 ) error
 
 // VerifyNonMembership is a generic proof verification method which verifies the absence of a given CommitmentPath at a specified height.
 // The caller is expected to construct the full CommitmentPath from a CommitmentPrefix and a standardized path (as defined in ICS 24).
 VerifyNonMembership(
-    ctx sdk.Context,
-    clientStore sdk.KVStore,
-    cdc codec.BinaryCodec,
-    height Height,
-    delayTimePeriod uint64,
-    delayBlockPeriod uint64,
-    proof []byte,
-    path Path,
+  ctx sdk.Context,
+  clientStore sdk.KVStore,
+  cdc codec.BinaryCodec,
+  height Height,
+  delayTimePeriod uint64,
+  delayBlockPeriod uint64,
+  proof []byte,
+  path Path,
 ) error
 ```
 

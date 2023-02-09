@@ -29,66 +29,66 @@ The following `IBCModule` callbacks must be implemented with appropriate custom 
 ```go
 // OnChanOpenInit implements the IBCModule interface
 func (im IBCModule) OnChanOpenInit(
-    ctx sdk.Context,
-    order channeltypes.Order,
-    connectionHops []string,
-    portID string,
-    channelID string,
-    chanCap *capabilitytypes.Capability,
-    counterparty channeltypes.Counterparty,
-    version string,
+  ctx sdk.Context,
+  order channeltypes.Order,
+  connectionHops []string,
+  portID string,
+  channelID string,
+  chanCap *capabilitytypes.Capability,
+  counterparty channeltypes.Counterparty,
+  version string,
 ) (string, error) {
-    // since ibc-go v6 the authentication module *must not* claim the channel capability on OnChanOpenInit
+  // since ibc-go v6 the authentication module *must not* claim the channel capability on OnChanOpenInit
 
-    // perform custom logic
+  // perform custom logic
 
-    return version, nil
+  return version, nil
 }
 
 // OnChanOpenAck implements the IBCModule interface
 func (im IBCModule) OnChanOpenAck(
-    ctx sdk.Context,
-    portID,
-    channelID string,
-    counterpartyVersion string,
+  ctx sdk.Context,
+  portID,
+  channelID string,
+  counterpartyVersion string,
 ) error {
-    // perform custom logic
+  // perform custom logic
 
-    return nil
+  return nil
 }
 
 // OnChanCloseConfirm implements the IBCModule interface
 func (im IBCModule) OnChanCloseConfirm(
-    ctx sdk.Context,
-    portID,
-    channelID string,
+  ctx sdk.Context,
+  portID,
+  channelID string,
 ) error {
-    // perform custom logic
+  // perform custom logic
 
-    return nil
+  return nil
 }
 
 // OnAcknowledgementPacket implements the IBCModule interface
 func (im IBCModule) OnAcknowledgementPacket(
-    ctx sdk.Context,
-    packet channeltypes.Packet,
-    acknowledgement []byte,
-    relayer sdk.AccAddress,
+  ctx sdk.Context,
+  packet channeltypes.Packet,
+  acknowledgement []byte,
+  relayer sdk.AccAddress,
 ) error {
-    // perform custom logic
+  // perform custom logic
 
-    return nil
+  return nil
 }
 
 // OnTimeoutPacket implements the IBCModule interface.
 func (im IBCModule) OnTimeoutPacket(
-    ctx sdk.Context,
-    packet channeltypes.Packet,
-    relayer sdk.AccAddress,
+  ctx sdk.Context,
+  packet channeltypes.Packet,
+  relayer sdk.AccAddress,
 ) error {
-    // perform custom logic
+  // perform custom logic
 
-    return nil
+  return nil
 }
 ```
 
@@ -97,45 +97,45 @@ The following functions must be defined to fulfill the `IBCModule` interface, bu
 ```go
 // OnChanOpenTry implements the IBCModule interface
 func (im IBCModule) OnChanOpenTry(
-    ctx sdk.Context,
-    order channeltypes.Order,
-    connectionHops []string,
-    portID,
-    channelID string,
-    chanCap *capabilitytypes.Capability,
-    counterparty channeltypes.Counterparty,
-    counterpartyVersion string,
+  ctx sdk.Context,
+  order channeltypes.Order,
+  connectionHops []string,
+  portID,
+  channelID string,
+  chanCap *capabilitytypes.Capability,
+  counterparty channeltypes.Counterparty,
+  counterpartyVersion string,
 ) (string, error) {
-    panic("UNIMPLEMENTED")
+  panic("UNIMPLEMENTED")
 }
 
 // OnChanOpenConfirm implements the IBCModule interface
 func (im IBCModule) OnChanOpenConfirm(
-    ctx sdk.Context,
-    portID,
-    channelID string,
+  ctx sdk.Context,
+  portID,
+  channelID string,
 ) error {
-    panic("UNIMPLEMENTED")
+  panic("UNIMPLEMENTED")
 }
 
 // OnChanCloseInit implements the IBCModule interface
 func (im IBCModule) OnChanCloseInit(
-    ctx sdk.Context,
-    portID,
-    channelID string,
+  ctx sdk.Context,
+  portID,
+  channelID string,
 ) error {
-    panic("UNIMPLEMENTED")
+  panic("UNIMPLEMENTED")
 }
 
 // OnRecvPacket implements the IBCModule interface. A successful acknowledgement
 // is returned if the packet data is succesfully decoded and the receive application
 // logic returns without error.
 func (im IBCModule) OnRecvPacket(
-    ctx sdk.Context,
-    packet channeltypes.Packet,
-    relayer sdk.AccAddress,
+  ctx sdk.Context,
+  packet channeltypes.Packet,
+  relayer sdk.AccAddress,
 ) ibcexported.Acknowledgement {
-    panic("UNIMPLEMENTED")
+  panic("UNIMPLEMENTED")
 }
 ```
 
@@ -151,12 +151,12 @@ Begin by unmarshaling the acknowledgement into `sdk.TxMsgData`:
 ```go
 var ack channeltypes.Acknowledgement
 if err := channeltypes.SubModuleCdc.UnmarshalJSON(acknowledgement, &ack); err != nil {
-    return err
+  return err
 }
 
 txMsgData := &sdk.TxMsgData{}
-if err := proto.Unmarshal(ack.GetResult(), txMsgData); err != nil {
-    return err
+if err := proto.Unmarshal(ack.GetResult(), txMsgData); err != nil { 
+  return err
 }
 ```
 
@@ -168,11 +168,11 @@ switch len(txMsgData.Data) {
 case 0:
     // see documentation below for SDK 0.46.x or greater
 default:
-    for _, msgData := range txMsgData.Data {
-        if err := handler(msgData); err != nil {
-            return err
-        }
+  for _, msgData := range txMsgData.Data {
+    if err := handler(msgData); err != nil {
+      return err
     }
+  }
 ...
 }            
 ```
@@ -184,31 +184,31 @@ A router could be used, or more simply a switch statement.
 func handler(msgData sdk.MsgData) error {
 switch msgData.MsgType {
 case sdk.MsgTypeURL(&banktypes.MsgSend{}):
-    msgResponse := &banktypes.MsgSendResponse{}
-    if err := proto.Unmarshal(msgData.Data, msgResponse}; err != nil {
-        return err
-    }
+  msgResponse := &banktypes.MsgSendResponse{}
+  if err := proto.Unmarshal(msgData.Data, msgResponse}; err != nil {
+    return err
+  }
 
-    handleBankSendMsg(msgResponse)
+  handleBankSendMsg(msgResponse)
 
 case sdk.MsgTypeURL(&stakingtypes.MsgDelegate{}):
-    msgResponse := &stakingtypes.MsgDelegateResponse{}
-    if err := proto.Unmarshal(msgData.Data, msgResponse}; err != nil {
-        return err
-    }
+  msgResponse := &stakingtypes.MsgDelegateResponse{}
+  if err := proto.Unmarshal(msgData.Data, msgResponse}; err != nil {
+    return err
+  }
 
-    handleStakingDelegateMsg(msgResponse)
+  handleStakingDelegateMsg(msgResponse)
 
 case sdk.MsgTypeURL(&transfertypes.MsgTransfer{}):
-    msgResponse := &transfertypes.MsgTransferResponse{}
-    if err := proto.Unmarshal(msgData.Data, msgResponse}; err != nil {
-        return err
-    }
+  msgResponse := &transfertypes.MsgTransferResponse{}
+  if err := proto.Unmarshal(msgData.Data, msgResponse}; err != nil {
+      return err
+  }
 
-    handleIBCTransferMsg(msgResponse)
+  handleIBCTransferMsg(msgResponse)
  
 default:
-    return
+  return
 }
 ```
 
@@ -219,11 +219,11 @@ The auth module should interpret the `txMsgData.Responses` as follows:
 ...
 // switch statement from above
 case 0:
-    for _, any := range txMsgData.MsgResponses {
-        if err := handleAny(any); err != nil {
-            return err
-        }
+  for _, any := range txMsgData.MsgResponses {
+    if err := handleAny(any); err != nil {
+      return err
     }
+  }
 }
 ``` 
 
@@ -235,28 +235,28 @@ It may be possible to deduplicate logic between `handler` and `handleAny`.
 func handleAny(any *codectypes.Any) error {
 switch any.TypeURL {
 case banktypes.MsgSend:
-    msgResponse, err := unpackBankMsgSendResponse(any)
-    if err != nil {
-        return err
-    }
+  msgResponse, err := unpackBankMsgSendResponse(any)
+  if err != nil {
+    return err
+  }
 
-    handleBankSendMsg(msgResponse)
+  handleBankSendMsg(msgResponse)
 
 case stakingtypes.MsgDelegate:
-    msgResponse, err := unpackStakingDelegateResponse(any)
-    if err != nil {
-        return err
-    }
+  msgResponse, err := unpackStakingDelegateResponse(any)
+  if err != nil {
+    return err
+  }
 
-    handleStakingDelegateMsg(msgResponse)
+  handleStakingDelegateMsg(msgResponse)
 
-    case transfertypes.MsgTransfer:
-    msgResponse, err := unpackIBCTransferMsgResponse(any)
-    if err != nil {
-        return err
-    }
+  case transfertypes.MsgTransfer:
+  msgResponse, err := unpackIBCTransferMsgResponse(any)
+  if err != nil {
+    return err
+  }
 
-    handleIBCTransferMsg(msgResponse)
+  handleIBCTransferMsg(msgResponse)
  
 default:
     return

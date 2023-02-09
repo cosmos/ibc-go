@@ -148,12 +148,12 @@ chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 
 t.Run("broadcast multi message transaction", func(t *testing.T){
-    payPacketFeeMsg := feetypes.NewMsgPayPacketFee(testFee, channelA.PortID, channelA.ChannelID, chainAWallet.Bech32Address(chainA.Config().Bech32Prefix), nil)
-    transferMsg := transfertypes.NewMsgTransfer(channelA.PortID, channelA.ChannelID, transferAmount, chainAWallet.Bech32Address(chainA.Config().Bech32Prefix), chainBWallet.Bech32Address(chainB.Config().Bech32Prefix), clienttypes.NewHeight(1, 1000), 0)
-    resp, err := s.BroadcastMessages(ctx, chainA, chainAWallet, payPacketFeeMsg, transferMsg)
+  payPacketFeeMsg := feetypes.NewMsgPayPacketFee(testFee, channelA.PortID, channelA.ChannelID, chainAWallet.Bech32Address(chainA.Config().Bech32Prefix), nil)
+  transferMsg := transfertypes.NewMsgTransfer(channelA.PortID, channelA.ChannelID, transferAmount, chainAWallet.Bech32Address(chainA.Config().Bech32Prefix), chainBWallet.Bech32Address(chainB.Config().Bech32Prefix), clienttypes.NewHeight(1, 1000), 0)
+  resp, err := s.BroadcastMessages(ctx, chainA, chainAWallet, payPacketFeeMsg, transferMsg)
 
-    s.AssertValidTxResponse(resp)
-    s.Require().NoError(err)
+  s.AssertValidTxResponse(resp)
+  s.Require().NoError(err)
 })
 ```
 
@@ -163,7 +163,7 @@ The relayer can be started with the following.
 
 ```go
 t.Run("start relayer", func(t *testing.T) {
-		s.StartRelayer(relayer)
+  s.StartRelayer(relayer)
 })
 ```
 
@@ -197,10 +197,10 @@ Broadcast a `MsgTransfer`.
 
 ```go
 t.Run("send IBC transfer", func(t *testing.T){
-    transferMsg := transfertypes.NewMsgTransfer(channelA.PortID, channelA.ChannelID, transferAmount, chainAWallet.Bech32Address(chainA.Config().Bech32Prefix), chainBWallet.Bech32Address(chainB.Config().Bech32Prefix), clienttypes.NewHeight(1, 1000), 0)
-    resp, err := s.BroadcastMessages(ctx, chainA, chainAWallet, transferMsg)
-    s.AssertValidTxResponse(resp)
-    s.Require().NoError(err)
+  transferMsg := transfertypes.NewMsgTransfer(channelA.PortID, channelA.ChannelID, transferAmount, chainAWallet.Bech32Address(chainA.Config().Bech32Prefix), chainBWallet.Bech32Address(chainB.Config().Bech32Prefix), clienttypes.NewHeight(1, 1000), 0)
+  resp, err := s.BroadcastMessages(ctx, chainA, chainAWallet, transferMsg)
+  s.AssertValidTxResponse(resp)
+  s.Require().NoError(err)
 })
 ```
 
@@ -225,7 +225,6 @@ In `e2e.yaml`, the `simd` image is built and pushed to [a registry](https://gith
 that is run uses the image that was built.
 
 In `e2e-fork.yaml`, images are not pushed to this registry, but instead remain local to the host runner.
-
 
 ### How tests are run
 
@@ -281,32 +280,32 @@ In the above example, the following would be generated.
 
 ```json
 {
-   "include": [
-      {
-         "entrypoint": "TestFeeMiddlewareTestSuite",
-         "test": "TestA"
-      },
-      {
-         "entrypoint": "TestFeeMiddlewareTestSuite",
-         "test": "TestB"
-      },
-      {
-         "entrypoint": "TestFeeMiddlewareTestSuite",
-         "test": "TestC"
-      },
-      {
-         "entrypoint": "TestTransferTestSuite",
-         "test": "TestD"
-      },
-      {
-         "entrypoint": "TestTransferTestSuite",
-         "test": "TestE"
-      },
-      {
-         "entrypoint": "TestTransferTestSuite",
-         "test": "TestF"
-      }
-   ]
+  "include": [
+    {
+      "entrypoint": "TestFeeMiddlewareTestSuite",
+      "test": "TestA"
+    },
+    {
+      "entrypoint": "TestFeeMiddlewareTestSuite",
+      "test": "TestB"
+    },
+    {
+      "entrypoint": "TestFeeMiddlewareTestSuite",
+      "test": "TestC"
+    },
+    {
+      "entrypoint": "TestTransferTestSuite",
+      "test": "TestD"
+    },
+    {
+      "entrypoint": "TestTransferTestSuite",
+      "test": "TestE"
+    },
+    {
+      "entrypoint": "TestTransferTestSuite",
+      "test": "TestF"
+    }
+  ]
 }
 ```
 
