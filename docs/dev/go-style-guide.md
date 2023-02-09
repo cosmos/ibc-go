@@ -71,7 +71,7 @@ Perhaps more key for code readability than good commenting is having the right s
 - Use [goimports](https://godoc.org/golang.org/x/tools/cmd/goimports).
 - Separate imports into blocks: one for the standard lib, one for external libs and one for application libs. For example:
 
-	```golang
+	```go
 	import (
 		// standard library imports
 		"fmt"
@@ -105,7 +105,7 @@ Perhaps more key for code readability than good commenting is having the right s
 - Panic is appropriate when an internal invariant of a system is broken, while all other cases (in particular, incorrect or invalid usage) should return errors.
 - Error messages should be formatted as following:
 
-	```golang
+	```go
 	sdkerrors.Wrapf(
 		<most specific error type possible>,
 		"<optional text description ended by colon and space>expected %s, got %s",
