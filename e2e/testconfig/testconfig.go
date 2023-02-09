@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -138,8 +139,7 @@ func GetChainBTag() string {
 // if the tests are running locally.
 // Note: github actions passes a CI env value of true by default to all runners.
 func IsCI() bool {
-	//return strings.ToLower(os.Getenv("CI")) == "true"
-	return false
+	return strings.ToLower(os.Getenv("CI")) == "true"
 }
 
 // ChainOptions stores chain configurations for the chains that will be
