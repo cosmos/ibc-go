@@ -30,7 +30,7 @@ type AppModuleBasic struct{}
 
 // Name returns the tendermint module name.
 func (AppModuleBasic) Name() string {
-	return ModuleName
+  return ModuleName
 }
 
 // RegisterLegacyAminoCodec performs a no-op. The Tendermint client does not support amino.
@@ -39,17 +39,17 @@ func (AppModuleBasic) RegisterLegacyAminoCodec(*codec.LegacyAmino) {}
 // RegisterInterfaces registers module concrete types into protobuf Any. This allows core IBC
 // to unmarshal tendermint light client types.
 func (AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry) {
-	RegisterInterfaces(registry)
+  RegisterInterfaces(registry)
 }
 
 // DefaultGenesis performs a no-op. Genesis is not supported for the tendermint light client.
 func (AppModuleBasic) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
-	return nil
+  return nil
 }
 
 // ValidateGenesis performs a no-op. Genesis is not supported for the tendermint light cilent.
 func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, config client.TxEncodingConfig, bz json.RawMessage) error {
-	return nil
+  return nil
 }
 
 // RegisterGRPCGatewayRoutes performs a no-op.
@@ -57,12 +57,12 @@ func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *r
 
 // GetTxCmd performs a no-op. Please see the 02-client cli commands.
 func (AppModuleBasic) GetTxCmd() *cobra.Command {
-	return nil
+  return nil
 }
 
 // GetQueryCmd performs a no-op. Please see the 02-client cli commands.
 func (AppModuleBasic) GetQueryCmd() *cobra.Command {
-	return nil
+  return nil
 }
 ```
 
