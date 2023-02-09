@@ -29,4 +29,4 @@ Prior to updating, this function must verify that:
 
 After these checks are performed, the function must [set the updated client and consensus states](https://github.com/cosmos/ibc-go/blob/02-client-refactor-beta1/modules/light-clients/07-tendermint/proposal_handle.go#L77) within the client store for the subject client.
 
-Please refer to the [`07-tendermint implementation](https://github.com/cosmos/ibc-go/blob/02-client-refactor-beta1/modules/light-clients/07-tendermint/proposal_handle.go#L27) for reference.
+Please refer to the [Tendermint light client implementation](https://github.com/cosmos/ibc-go/blob/02-client-refactor-beta1/modules/light-clients/07-tendermint/proposal_handle.go#L27) for reference.
