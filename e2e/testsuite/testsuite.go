@@ -49,10 +49,6 @@ const (
 	ChainBRelayerName = "rlyB"
 	// DefaultGasValue is the default gas value used to configure tx.Factory
 	DefaultGasValue = 500000
-	// emptyLogs is the string value returned from `BroadcastMessages`. There are some situations in which
-	// the result is empty, when this happens we include the raw logs instead to get as much information
-	// amount the failure as possible.
-	emptyLogs = "[]"
 )
 
 // E2ETestSuite has methods and functionality which can be shared among all test suites.
@@ -403,14 +399,12 @@ func (s *E2ETestSuite) InitGRPCClients(chain *cosmos.CosmosChain) {
 // AssertValidTxResponse verifies that an sdk.TxResponse
 // has non-empty values.
 func (s *E2ETestSuite) AssertValidTxResponse(resp sdk.TxResponse) {
-	respLogsMsg := resp.Logs.String()
-	if respLogsMsg == emptyLogs {
-		respLogsMsg = resp.RawLog
-	}
-	s.Require().NotEqual(int64(0), resp.GasUsed, respLogsMsg)
-	s.Require().NotEqual(int64(0), resp.GasWanted, respLogsMsg)
-	s.Require().NotEmpty(resp.Events, respLogsMsg)
-	s.Require().NotEmpty(resp.Data, respLogsMsg)
+	errorMsg := fmt.Sprintf("%+v", resp)
+	s.Require().NotEmpty(resp.TxHash, errorMsg)
+	s.Require().NotEqual(int64(0), resp.GasUsed, errorMsg)
+	s.Require().NotEqual(int64(0), resp.GasWanted, errorMsg)
+	s.Require().NotEmpty(resp.Events, errorMsg)
+	s.Require().NotEmpty(resp.Data, errorMsg)
 }
 
 // AssertPacketRelayed asserts that the packet commitment does not exist on the sending chain.
