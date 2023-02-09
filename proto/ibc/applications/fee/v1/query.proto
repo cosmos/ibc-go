@@ -83,6 +83,8 @@ message QueryIncentivizedPacketsRequest {
 message QueryIncentivizedPacketsResponse {
   // list of identified fees for incentivized packets
   repeated ibc.applications.fee.v1.IdentifiedPacketFees incentivized_packets = 1 [(gogoproto.nullable) = false];
+  // pagination defines the pagination in the response.
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
 // QueryIncentivizedPacketRequest defines the request type for the IncentivizedPacket rpc
@@ -114,6 +116,8 @@ message QueryIncentivizedPacketsForChannelRequest {
 message QueryIncentivizedPacketsForChannelResponse {
   // Map of all incentivized_packets
   repeated ibc.applications.fee.v1.IdentifiedPacketFees incentivized_packets = 1;
+  // pagination defines the pagination in the response.
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
 // QueryTotalRecvFeesRequest defines the request type for the TotalRecvFees rpc
@@ -205,6 +209,8 @@ message QueryFeeEnabledChannelsResponse {
   // list of fee enabled channels
   repeated ibc.applications.fee.v1.FeeEnabledChannel fee_enabled_channels = 1
       [(gogoproto.moretags) = "yaml:\"fee_enabled_channels\"", (gogoproto.nullable) = false];
+  // pagination defines the pagination in the response.
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
 // QueryFeeEnabledChannelRequest defines the request type for the FeeEnabledChannel rpc
