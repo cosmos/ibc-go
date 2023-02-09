@@ -352,17 +352,17 @@ module.exports = {
                   path: "/ibc/light-clients/overview.html",
                 },
                 {
-                  title: "ClientState",
+                  title: "Client State interface",
                   directory: false,
                   path: "/ibc/light-clients/client-state.html",
                 },
                 {
-                  title: "ConsensusState",
+                  title: "Consensus State interface",
                   directory: false,
                   path: "/ibc/light-clients/consensus-state.html",
                 },
                 {
-                  title: "Handling ClientMessages",
+                  title: "Handling Updates and Misbehaviour",
                   directory: false,
                   path: "/ibc/light-clients/updates-and-misbehaviour.html",
                 },
@@ -379,7 +379,7 @@ module.exports = {
                 {
                   title: "Handling Proposals",
                   directory: false,
-                  path: "/ibc/light-clients/proposal.html",
+                  path: "/ibc/light-clients/proposals.html",
                 },
                 {
                   title: "Handling Genesis",
