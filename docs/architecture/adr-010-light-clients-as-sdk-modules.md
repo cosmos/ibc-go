@@ -21,7 +21,7 @@ IBC light clients currently are invoked by a `ClientState` and `ConsensusState` 
 The 02-client submodule will retrieve the `ClientState` or `ConsensusState` from the IBC store in order to perform callbacks to the light client. 
 This design requires all required information for the light client to function to be stored in the `ClientState` or `ConsensusState` or potentially under metadata keys for a specific client instance. 
 Additional information may be provided by core IBC via the defined interface arguments if that information is generic enough to be useful to all IBC light clients. 
-This constraint has proved probelmatic as pass through clients (such as wasm) cannot maintain easy access to a VM instance. 
+This constraint has proved problematic as pass through clients (such as wasm) cannot maintain easy access to a VM instance. 
 In addition, without increasing the size of the defined `ClientState` interface, light clients are unable to take advantage of basic built-in SDK functionality such as genesis import/export and migrations. 
 
 The other approach used to perform callback logic is via registered SDK modules. 
