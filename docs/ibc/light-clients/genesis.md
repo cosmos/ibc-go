@@ -2,11 +2,11 @@
 order: 8
 -->
 
-# Genesis Metadata
+# Genesis metadata
 
 Learn how to implement the `ExportMetadata` interface {synopsis}
 
-## Pre-requisite Readings
+## Pre-requisite readings
 
 - [Cosmos SDK module genesis](https://docs.cosmos.network/v0.47/building-modules/genesis) {prereq}
 
