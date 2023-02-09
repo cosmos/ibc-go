@@ -54,7 +54,7 @@ Upgrades must adhere to the IBC Security Model. IBC does not rely on the assumpt
 
 However, when upgrading an existing client, one must keep in mind that there are already many users who depend on this client's particular parameters. **We cannot give the upgrading relayer free choice over these parameters once they have already been chosen. This would violate the security model** since users who rely on the client would have to rely on the upgrading relayer to maintain the same level of security.
 
-Thus, developers must make sure that their upgrade mechanism allows clients to upgrade the chain-specified parameters whenever a chain upgrade changes these parameters (examples in the Tendermint client include `UnbondingPeriod`, `TrustingPeriod`, `ChainID`, `UpgradePath`, etc.), while ensuring that the relayer submitting the `MsgUpgradeClient` cannot alter the client-chosen parameters that the users are relying upon (examples in Tendermint client include `TrustLevel`, `MaxClockDrift`, etc). The previous paragraph discusses how `ZeroCustomFields` helps achieve this.
+Thus, developers must make sure that their upgrade mechanism allows clients to upgrade the chain-specified parameters whenever a chain upgrade changes these parameters (examples in the Tendermint client include `UnbondingPeriod`, `TrustingPeriod`, `ChainID`, `UpgradePath`, etc), while ensuring that the relayer submitting the `MsgUpgradeClient` cannot alter the client-chosen parameters that the users are relying upon (examples in Tendermint client include `TrustLevel`, `MaxClockDrift`, etc). The previous paragraph discusses how `ZeroCustomFields` helps achieve this.
 
 ### Document potential client parameter conflicts during upgrades
 
