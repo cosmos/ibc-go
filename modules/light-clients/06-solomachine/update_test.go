@@ -4,12 +4,12 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
-	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v6/modules/core/exported"
-	solomachine "github.com/cosmos/ibc-go/v6/modules/light-clients/06-solomachine"
-	ibctm "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint"
-	ibctesting "github.com/cosmos/ibc-go/v6/testing"
+	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	solomachine "github.com/cosmos/ibc-go/v7/modules/light-clients/06-solomachine"
+	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
+	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
 func (suite *SoloMachineTestSuite) TestVerifyClientMessageHeader() {
@@ -51,16 +51,6 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageHeader() {
 				"invalid client message type",
 				func() {
 					clientMsg = &ibctm.Header{}
-				},
-				false,
-			},
-			{
-				"wrong sequence in header",
-				func() {
-					// store in temp before assigning to interface type
-					h := sm.CreateHeader(sm.Diversifier)
-					h.Sequence++
-					clientMsg = h
 				},
 				false,
 			},
@@ -201,7 +191,7 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageMisbehaviour() {
 				"old misbehaviour is successful (timestamp is less than current consensus state)",
 				func() {
 					clientState = sm.ClientState()
-					sm.Time = sm.Time - 5
+					sm.Time -= 5
 					clientMsg = sm.CreateMisbehaviour()
 				}, true,
 			},
@@ -458,7 +448,6 @@ func (suite *SoloMachineTestSuite) TestUpdateState() {
 					suite.Require().Equal(newClientState.(*solomachine.ClientState).Sequence, consensusHeights[0].GetRevisionHeight())
 
 					suite.Require().False(newClientState.(*solomachine.ClientState).IsFrozen)
-					suite.Require().Equal(clientMsg.(*solomachine.Header).Sequence+1, newClientState.(*solomachine.ClientState).Sequence)
 					suite.Require().Equal(clientMsg.(*solomachine.Header).NewPublicKey, newClientState.(*solomachine.ClientState).ConsensusState.PublicKey)
 					suite.Require().Equal(clientMsg.(*solomachine.Header).NewDiversifier, newClientState.(*solomachine.ClientState).ConsensusState.Diversifier)
 					suite.Require().Equal(clientMsg.(*solomachine.Header).Timestamp, newClientState.(*solomachine.ClientState).ConsensusState.Timestamp)

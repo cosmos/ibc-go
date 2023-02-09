@@ -16,9 +16,9 @@ import (
 	"github.com/spf13/cobra"
 	abci "github.com/tendermint/tendermint/abci/types"
 
-	"github.com/cosmos/ibc-go/v6/modules/apps/29-fee/client/cli"
-	"github.com/cosmos/ibc-go/v6/modules/apps/29-fee/keeper"
-	"github.com/cosmos/ibc-go/v6/modules/apps/29-fee/types"
+	"github.com/cosmos/ibc-go/v7/modules/apps/29-fee/client/cli"
+	"github.com/cosmos/ibc-go/v7/modules/apps/29-fee/keeper"
+	"github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
 )
 
 var (
@@ -93,21 +93,6 @@ func NewAppModule(k keeper.Keeper) AppModule {
 func (AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
 }
 
-// Route implements the AppModule interface
-func (am AppModule) Route() sdk.Route {
-	return sdk.Route{}
-}
-
-// QuerierRoute implements the AppModule interface
-func (AppModule) QuerierRoute() string {
-	return types.QuerierRoute
-}
-
-// LegacyQuerierHandler implements the AppModule interface
-func (am AppModule) LegacyQuerierHandler(*codec.LegacyAmino) sdk.Querier {
-	return nil
-}
-
 // RegisterServices registers module services.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
 	types.RegisterMsgServer(cfg.MsgServer(), am.keeper)
@@ -149,12 +134,12 @@ func (AppModule) GenerateGenesisState(_ *module.SimulationState) {
 }
 
 // ProposalContents doesn't return any content functions for governance proposals.
-func (AppModule) ProposalContents(_ module.SimulationState) []simtypes.WeightedProposalContent {
+func (AppModule) ProposalContents(_ module.SimulationState) []simtypes.WeightedProposalMsg {
 	return nil
 }
 
 // RandomizedParams creates randomized ibc-29-fee param changes for the simulator.
-func (AppModule) RandomizedParams(_ *rand.Rand) []simtypes.ParamChange {
+func (AppModule) RandomizedParams(_ *rand.Rand) []simtypes.LegacyParamChange {
 	return nil
 }
 

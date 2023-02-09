@@ -4,16 +4,16 @@ import (
 	"strings"
 	"time"
 
-	ics23 "github.com/confio/ics23/go"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	ics23 "github.com/cosmos/ics23/go"
 	"github.com/tendermint/tendermint/light"
 	tmtypes "github.com/tendermint/tendermint/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v6/modules/core/23-commitment/types"
-	"github.com/cosmos/ibc-go/v6/modules/core/exported"
+	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
 var _ exported.ClientState = (*ClientState)(nil)
@@ -188,15 +188,19 @@ func (cs ClientState) ZeroCustomFields() exported.ClientState {
 	}
 }
 
-// Initialize will check that initial consensus state is a Tendermint consensus state
-// and will store ProcessedTime for initial consensus state as ctx.BlockTime()
-func (cs ClientState) Initialize(ctx sdk.Context, _ codec.BinaryCodec, clientStore sdk.KVStore, consState exported.ConsensusState) error {
-	if _, ok := consState.(*ConsensusState); !ok {
+// Initialize checks that the initial consensus state is an 07-tendermint consensus state and
+// sets the client state, consensus state and associated metadata in the provided client store.
+func (cs ClientState) Initialize(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, consState exported.ConsensusState) error {
+	consensusState, ok := consState.(*ConsensusState)
+	if !ok {
 		return sdkerrors.Wrapf(clienttypes.ErrInvalidConsensus, "invalid initial consensus state. expected type: %T, got: %T",
 			&ConsensusState{}, consState)
 	}
-	// set metadata for initial consensus state.
+
+	setClientState(clientStore, cdc, &cs)
+	setConsensusState(clientStore, cdc, consensusState, cs.GetLatestHeight())
 	setConsensusMetadata(ctx, clientStore, cs.GetLatestHeight())
+
 	return nil
 }
 

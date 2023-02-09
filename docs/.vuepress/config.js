@@ -141,6 +141,10 @@ module.exports = {
         key: "v4.2.0",
       },
       {
+        label: "v4.3.0",
+        key: "v4.3.0",
+      },
+      {
         label: "v5.0.0",
         key: "v5.0.0",
       },
@@ -149,8 +153,12 @@ module.exports = {
         key: "v5.1.0",
       },
       {
-        label: "v6.0.0",
-        key: "v6.0.0",
+        label: "v5.2.0",
+        key: "v5.2.0",
+      },
+      {
+        label: "v6.1.0",
+        key: "v6.1.0",
       },
     ],
     topbar: {
@@ -321,6 +329,11 @@ module.exports = {
                   directory: false,
                   path: "/apps/transfer/params.html",
                 },
+                {
+                  title: "Authorizations",
+                  directory: false,
+                  path: "/apps/transfer/authorizations.html",
+                },
               ],
             },
           ],
@@ -339,14 +352,24 @@ module.exports = {
                   path: "/ibc/light-clients/overview.html",
                 },
                 {
-                  title: "ClientState",
+                  title: "Client State interface",
                   directory: false,
                   path: "/ibc/light-clients/client-state.html",
                 },
                 {
-                  title: "ConsensusState",
+                  title: "Consensus State interface",
                   directory: false,
                   path: "/ibc/light-clients/consensus-state.html",
+                },
+                {
+                  title: "Handling Updates and Misbehaviour",
+                  directory: false,
+                  path: "/ibc/light-clients/updates-and-misbehaviour.html",
+                },
+                {
+                  title: "Handling Upgrades",
+                  directory: false,
+                  path: "/ibc/light-clients/upgrades.html",
                 },
                 {
                   title: "Existence/Non-Existence Proofs",
@@ -354,29 +377,19 @@ module.exports = {
                   path: "/ibc/light-clients/proofs.html",
                 },
                 {
-                  title: "Updates Handling",
+                  title: "Handling Proposals",
                   directory: false,
-                  path: "/ibc/light-clients/update.html",
+                  path: "/ibc/light-clients/proposals.html",
                 },
                 {
-                  title: "Misbehaviour Handling",
-                  directory: false,
-                  path: "/ibc/light-clients/misbehaviour.html",
-                },
-                {
-                  title: "Upgrades Handling",
-                  directory: false,
-                  path: "/ibc/light-clients/upgrade.html",
-                },
-                {
-                  title: "Proposal Handling",
-                  directory: false,
-                  path: "/ibc/light-clients/proposal.html",
-                },
-                {
-                  title: "Genesis Handling",
+                  title: "Handling Genesis",
                   directory: false,
                   path: "/ibc/light-clients/genesis.html",
+                },
+                {
+                  title: "Setup",
+                  directory: false,
+                  path: "/ibc/light-clients/setup.html",
                 },
               ]
             },

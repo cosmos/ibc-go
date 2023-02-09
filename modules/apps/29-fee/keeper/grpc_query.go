@@ -10,7 +10,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/cosmos/ibc-go/v6/modules/apps/29-fee/types"
+	"github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
 )
 
 var _ types.QueryServer = Keeper{}
@@ -25,7 +25,7 @@ func (k Keeper) IncentivizedPackets(goCtx context.Context, req *types.QueryIncen
 
 	var identifiedPackets []types.IdentifiedPacketFees
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte(types.FeesInEscrowPrefix))
-	_, err := query.Paginate(store, req.Pagination, func(key, value []byte) error {
+	pagination, err := query.Paginate(store, req.Pagination, func(key, value []byte) error {
 		packetID, err := types.ParseKeyFeesInEscrow(types.FeesInEscrowPrefix + string(key))
 		if err != nil {
 			return err
@@ -41,6 +41,7 @@ func (k Keeper) IncentivizedPackets(goCtx context.Context, req *types.QueryIncen
 
 	return &types.QueryIncentivizedPacketsResponse{
 		IncentivizedPackets: identifiedPackets,
+		Pagination:          pagination,
 	}, nil
 }
 
@@ -75,7 +76,7 @@ func (k Keeper) IncentivizedPacketsForChannel(goCtx context.Context, req *types.
 	var packets []*types.IdentifiedPacketFees
 	keyPrefix := types.KeyFeesInEscrowChannelPrefix(req.PortId, req.ChannelId)
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), keyPrefix)
-	_, err := query.Paginate(store, req.Pagination, func(key, value []byte) error {
+	pagination, err := query.Paginate(store, req.Pagination, func(key, value []byte) error {
 		packetID, err := types.ParseKeyFeesInEscrow(string(keyPrefix) + string(key))
 		if err != nil {
 			return err
@@ -94,6 +95,7 @@ func (k Keeper) IncentivizedPacketsForChannel(goCtx context.Context, req *types.
 
 	return &types.QueryIncentivizedPacketsForChannelResponse{
 		IncentivizedPackets: packets,
+		Pagination:          pagination,
 	}, nil
 }
 
@@ -217,7 +219,7 @@ func (k Keeper) FeeEnabledChannels(goCtx context.Context, req *types.QueryFeeEna
 
 	var feeEnabledChannels []types.FeeEnabledChannel
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte(types.FeeEnabledKeyPrefix))
-	_, err := query.Paginate(store, req.Pagination, func(key, value []byte) error {
+	pagination, err := query.Paginate(store, req.Pagination, func(key, value []byte) error {
 		portID, channelID, err := types.ParseKeyFeeEnabled(types.FeeEnabledKeyPrefix + string(key))
 		if err != nil {
 			return err
@@ -238,6 +240,7 @@ func (k Keeper) FeeEnabledChannels(goCtx context.Context, req *types.QueryFeeEna
 
 	return &types.QueryFeeEnabledChannelsResponse{
 		FeeEnabledChannels: feeEnabledChannels,
+		Pagination:         pagination,
 	}, nil
 }
 

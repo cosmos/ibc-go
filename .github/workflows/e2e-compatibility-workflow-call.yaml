@@ -6,10 +6,9 @@ on:
         required: true
         type: string
       test-suite:
-        description: 'Test suite to run'
+        description: "Test suite to run"
         required: true
         type: string
-
 
 jobs:
   load-test-matrix:
@@ -32,6 +31,7 @@ jobs:
   e2e:
     runs-on: ubuntu-latest
     needs: load-test-matrix
+    if: needs.load-test-matrix.outputs.test-matrix
     strategy:
       fail-fast: false
       matrix: ${{ fromJSON(needs.load-test-matrix.outputs.test-matrix) }}
@@ -42,7 +42,7 @@ jobs:
           repository: cosmos/ibc-go
       - uses: actions/setup-go@v3
         with:
-          go-version: 1.18
+          go-version: 1.19
       - name: Run e2e Test
         run: |
           cd e2e

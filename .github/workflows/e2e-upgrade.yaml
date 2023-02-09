@@ -10,20 +10,26 @@ jobs:
         include:
           - test: TestV4ToV5ChainUpgrade
             chain-image: ghcr.io/cosmos/ibc-go-simd
-            chain-a-tag: v4.1.0
-            chain-b-tag: v4.1.0
-            chain-upgrade-tag: v5.0.1
+            chain-a-tag: v4.3.0
+            chain-b-tag: v4.3.0
+            chain-upgrade-tag: v5.1.0
           - test: TestV5ToV6ChainUpgrade
             chain-image: ghcr.io/cosmos/ibc-go-icad
             chain-binary: icad
             chain-a-tag: v0.3.5
             chain-b-tag: v0.3.5
-            chain-upgrade-tag: v0.4.2
+            chain-upgrade-tag: v0.4.1
+          - test: TestV6ToV7ChainUpgrade
+            chain-image: ghcr.io/cosmos/ibc-go-simd
+            chain-binary: simd
+            chain-a-tag: v6.0.0
+            chain-b-tag: v6.0.0
+            chain-upgrade-tag: v7.0.0
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v3
         with:
-          go-version: 1.18
+          go-version: 1.19
       - name: Run e2e upgrade test
         run: |
           cd e2e

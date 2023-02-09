@@ -13,7 +13,7 @@
      - [Arbitrary commands](#arbitrary-commands)
      - [IBC transfer](#ibc-transfer)
 2. [Test design](#test-design)
-   - a. [ibctest](#ibctest)
+   - a. [interchaintest](#interchaintest)
    - b. [CI configuration](#ci-configuration)
 3. [Github Workflows](#github-workflows) 
 4. [Running Compatibility Tests](#running-compatibility-tests)
@@ -75,10 +75,10 @@ make e2e-test entrypoint=TestInterchainAccountsTestSuite test=TestMsgSubmitTx_Su
 ```
 
 
-> Note: sometimes it can be useful to make changes to [ibctest](https://github.com/strangelove-ventures/ibctest) when running tests locally. In order to do this, add the following line to
+> Note: sometimes it can be useful to make changes to [ibctest](https://github.com/strangelove-ventures/interchaintest) when running tests locally. In order to do this, add the following line to
 e2e/go.mod
 
-`replace github.com/strangelove-ventures/ibctest => ../ibctest`
+`replace github.com/strangelove-ventures/interchaintest => ../ibctest`
 
 Or point it to any local checkout you have.
 
@@ -207,9 +207,9 @@ t.Run("send IBC transfer", func(t *testing.T){
 ## Test design
 
 
-#### ibctest
+#### interchaintest
 
-These E2E tests use the [ibctest framework](https://github.com/strangelove-ventures/ibctest). This framework creates chains and relayers in containers and allows for arbitrary commands to be executed in the chain containers,
+These E2E tests use the [interchaintest framework](https://github.com/strangelove-ventures/interchaintest). This framework creates chains and relayers in containers and allows for arbitrary commands to be executed in the chain containers,
 as well as allowing us to broadcast arbitrary messages which are signed on behalf of a user created in the test.
 
 

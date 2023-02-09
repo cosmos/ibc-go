@@ -6,12 +6,12 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	"github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
+	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 )
 
 var _ types.MsgServer = Keeper{}
 
-// Transfer defines a rpc handler method for MsgTransfer.
+// Transfer defines an rpc handler method for MsgTransfer.
 func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.MsgTransferResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 

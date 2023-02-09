@@ -3,16 +3,17 @@ package v6_test
 import (
 	"testing"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	"github.com/stretchr/testify/suite"
 
-	v6 "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/controller/migrations/v6"
-	"github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/controller/types"
-	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
-	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
-	ibctesting "github.com/cosmos/ibc-go/v6/testing"
-	ibcmock "github.com/cosmos/ibc-go/v6/testing/mock"
+	v6 "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/migrations/v6"
+	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
+	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
+	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
+	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	ibcmock "github.com/cosmos/ibc-go/v7/testing/mock"
 )
 
 type MigrationsTestSuite struct {
@@ -191,7 +192,7 @@ func (suite *MigrationsTestSuite) ResetMemStore() {
 	memStore.Delete(capabilitytypes.KeyMemInitialized)
 
 	iterator := memStore.Iterator(nil, nil)
-	defer iterator.Close()
+	defer sdk.LogDeferred(suite.chainA.GetContext().Logger(), func() error { return iterator.Close() })
 
 	for ; iterator.Valid(); iterator.Next() {
 		memStore.Delete(iterator.Key())

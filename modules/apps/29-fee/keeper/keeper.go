@@ -7,10 +7,10 @@ import (
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	"github.com/tendermint/tendermint/libs/log"
 
-	"github.com/cosmos/ibc-go/v6/modules/apps/29-fee/types"
-	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
-	porttypes "github.com/cosmos/ibc-go/v6/modules/core/05-port/types"
-	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
+	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
+	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
 // Middleware must implement types.ChannelKeeper and types.PortKeeper expected interfaces
@@ -51,7 +51,7 @@ func NewKeeper(
 
 // Logger returns a module-specific logger.
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
-	return ctx.Logger().With("module", "x/"+host.ModuleName+"-"+types.ModuleName)
+	return ctx.Logger().With("module", "x/"+ibcexported.ModuleName+"-"+types.ModuleName)
 }
 
 // BindPort defines a wrapper function for the port Keeper's function in
@@ -130,7 +130,7 @@ func (k Keeper) IsFeeEnabled(ctx sdk.Context, portID, channelID string) bool {
 func (k Keeper) GetAllFeeEnabledChannels(ctx sdk.Context) []types.FeeEnabledChannel {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, []byte(types.FeeEnabledKeyPrefix))
-	defer iterator.Close()
+	defer sdk.LogDeferred(ctx.Logger(), func() error { return iterator.Close() })
 
 	var enabledChArr []types.FeeEnabledChannel
 	for ; iterator.Valid(); iterator.Next() {
@@ -171,7 +171,7 @@ func (k Keeper) SetPayeeAddress(ctx sdk.Context, relayerAddr, payeeAddr, channel
 func (k Keeper) GetAllPayees(ctx sdk.Context) []types.RegisteredPayee {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, []byte(types.PayeeKeyPrefix))
-	defer iterator.Close()
+	defer sdk.LogDeferred(ctx.Logger(), func() error { return iterator.Close() })
 
 	var registeredPayees []types.RegisteredPayee
 	for ; iterator.Valid(); iterator.Next() {
@@ -216,7 +216,7 @@ func (k Keeper) GetCounterpartyPayeeAddress(ctx sdk.Context, address, channelID 
 func (k Keeper) GetAllCounterpartyPayees(ctx sdk.Context) []types.RegisteredCounterpartyPayee {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, []byte(types.CounterpartyPayeeKeyPrefix))
-	defer iterator.Close()
+	defer sdk.LogDeferred(ctx.Logger(), func() error { return iterator.Close() })
 
 	var registeredCounterpartyPayees []types.RegisteredCounterpartyPayee
 	for ; iterator.Valid(); iterator.Next() {
@@ -259,7 +259,7 @@ func (k Keeper) GetRelayerAddressForAsyncAck(ctx sdk.Context, packetID channelty
 func (k Keeper) GetAllForwardRelayerAddresses(ctx sdk.Context) []types.ForwardRelayerAddress {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, []byte(types.ForwardRelayerPrefix))
-	defer iterator.Close()
+	defer sdk.LogDeferred(ctx.Logger(), func() error { return iterator.Close() })
 
 	var forwardRelayerAddr []types.ForwardRelayerAddress
 	for ; iterator.Valid(); iterator.Next() {
@@ -291,7 +291,7 @@ func (k Keeper) GetFeesInEscrow(ctx sdk.Context, packetID channeltypes.PacketId)
 	store := ctx.KVStore(k.storeKey)
 	key := types.KeyFeesInEscrow(packetID)
 	bz := store.Get(key)
-	if bz == nil {
+	if len(bz) == 0 {
 		return types.PacketFees{}, false
 	}
 
@@ -327,7 +327,7 @@ func (k Keeper) GetIdentifiedPacketFeesForChannel(ctx sdk.Context, portID, chann
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, types.KeyFeesInEscrowChannelPrefix(portID, channelID))
 
-	defer iterator.Close()
+	defer sdk.LogDeferred(ctx.Logger(), func() error { return iterator.Close() })
 	for ; iterator.Valid(); iterator.Next() {
 		packetID, err := types.ParseKeyFeesInEscrow(string(iterator.Key()))
 		if err != nil {
@@ -347,7 +347,7 @@ func (k Keeper) GetIdentifiedPacketFeesForChannel(ctx sdk.Context, portID, chann
 func (k Keeper) GetAllIdentifiedPacketFees(ctx sdk.Context) []types.IdentifiedPacketFees {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, []byte(types.FeesInEscrowPrefix))
-	defer iterator.Close()
+	defer sdk.LogDeferred(ctx.Logger(), func() error { return iterator.Close() })
 
 	var identifiedFees []types.IdentifiedPacketFees
 	for ; iterator.Valid(); iterator.Next() {

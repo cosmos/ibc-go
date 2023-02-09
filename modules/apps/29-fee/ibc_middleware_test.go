@@ -6,14 +6,14 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
-	fee "github.com/cosmos/ibc-go/v6/modules/apps/29-fee"
-	"github.com/cosmos/ibc-go/v6/modules/apps/29-fee/types"
-	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
-	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v6/modules/core/exported"
-	ibctesting "github.com/cosmos/ibc-go/v6/testing"
-	ibcmock "github.com/cosmos/ibc-go/v6/testing/mock"
+	fee "github.com/cosmos/ibc-go/v7/modules/apps/29-fee"
+	"github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
+	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	ibcmock "github.com/cosmos/ibc-go/v7/testing/mock"
 )
 
 var (
@@ -172,7 +172,8 @@ func (suite *FeeTestSuite) TestOnChanOpenTry() {
 			// reset suite
 			suite.SetupTest()
 			suite.coordinator.SetupConnections(suite.path)
-			suite.path.EndpointB.ChanOpenInit()
+			err := suite.path.EndpointB.ChanOpenInit()
+			suite.Require().NoError(err)
 
 			// setup mock callback
 			suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnChanOpenTry = func(ctx sdk.Context, order channeltypes.Order, connectionHops []string,
@@ -188,7 +189,6 @@ func (suite *FeeTestSuite) TestOnChanOpenTry() {
 			var (
 				chanCap *capabilitytypes.Capability
 				ok      bool
-				err     error
 			)
 
 			chanCap, err = suite.chainA.App.GetScopedIBCKeeper().NewCapability(suite.chainA.GetContext(), host.ChannelCapabilityPath(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID))
@@ -286,8 +286,10 @@ func (suite *FeeTestSuite) TestOnChanOpenAck() {
 			// malleate test case
 			tc.malleate(suite)
 
-			suite.path.EndpointA.ChanOpenInit()
-			suite.path.EndpointB.ChanOpenTry()
+			err := suite.path.EndpointA.ChanOpenInit()
+			suite.Require().NoError(err)
+			err = suite.path.EndpointB.ChanOpenTry()
+			suite.Require().NoError(err)
 
 			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.MockFeePort)
 			suite.Require().NoError(err)

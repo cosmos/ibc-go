@@ -3,7 +3,7 @@ package exported
 import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	proto "github.com/gogo/protobuf/proto"
+	proto "github.com/cosmos/gogoproto/proto"
 )
 
 // Status represents the status of a client
@@ -59,9 +59,8 @@ type ClientState interface {
 		height Height,
 	) (uint64, error)
 
-	// Initialization function
-	// Clients must validate the initial consensus state, and may store any client-specific metadata
-	// necessary for correct light client operation
+	// Initialize is called upon client creation, it allows the client to perform validation on the initial consensus state and set the
+	// client state, consensus state and any client-specific metadata necessary for correct light client operation in the provided client store.
 	Initialize(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, consensusState ConsensusState) error
 
 	// VerifyMembership is a generic proof verification method which verifies a proof of the existence of a value at a given CommitmentPath at the specified height.

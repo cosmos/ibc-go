@@ -4,9 +4,9 @@ import (
 	"testing"
 
 	dockerclient "github.com/docker/docker/client"
-	"github.com/strangelove-ventures/ibctest/v6"
-	"github.com/strangelove-ventures/ibctest/v6/ibc"
-	"github.com/strangelove-ventures/ibctest/v6/relayer"
+	interchaintest "github.com/strangelove-ventures/interchaintest/v7"
+	"github.com/strangelove-ventures/interchaintest/v7/ibc"
+	"github.com/strangelove-ventures/interchaintest/v7/relayer"
 	"go.uber.org/zap"
 
 	"github.com/cosmos/ibc-go/e2e/testconfig"
@@ -23,7 +23,7 @@ func newCosmosRelayer(t *testing.T, tc testconfig.TestConfig, logger *zap.Logger
 	customImageOption := relayer.CustomDockerImage(cosmosRelayerRepository, tc.RlyTag, cosmosRelayerUser)
 	relayerProcessingOption := relayer.StartupFlags("-p", "events") // relayer processes via events
 
-	relayerFactory := ibctest.NewBuiltinRelayerFactory(ibc.CosmosRly, logger, customImageOption, relayerProcessingOption)
+	relayerFactory := interchaintest.NewBuiltinRelayerFactory(ibc.CosmosRly, logger, customImageOption, relayerProcessingOption)
 
 	return relayerFactory.Build(
 		t, dockerClient, network,

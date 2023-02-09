@@ -5,7 +5,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
-	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
+	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 )
 
 // AccountKeeper defines the contract required for account APIs.
@@ -33,4 +33,5 @@ type BankKeeper interface {
 	SendCoinsFromModuleToAccount(ctx sdk.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins) error
 	SendCoins(ctx sdk.Context, fromAddr sdk.AccAddress, toAddr sdk.AccAddress, amt sdk.Coins) error
 	BlockedAddr(sdk.AccAddress) bool
+	IsSendEnabledCoins(ctx sdk.Context, coins ...sdk.Coin) error
 }
