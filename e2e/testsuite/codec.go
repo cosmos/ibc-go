@@ -16,7 +16,12 @@ import (
 	icacontrollertypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
 	feetypes "github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	v7migrations "github.com/cosmos/ibc-go/v7/modules/core/02-client/migrations/v7"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
+	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	solomachine "github.com/cosmos/ibc-go/v7/modules/light-clients/06-solomachine"
+	ibctmtypes "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 	simappparams "github.com/cosmos/ibc-go/v7/testing/simapp/params"
 )
 
@@ -32,20 +37,30 @@ func EncodingConfig() simappparams.EncodingConfig {
 
 func codecAndEncodingConfig() (*codec.ProtoCodec, simappparams.EncodingConfig) {
 	cfg := simappparams.MakeTestEncodingConfig()
+
+	// ibc types
+	icacontrollertypes.RegisterInterfaces(cfg.InterfaceRegistry)
+	feetypes.RegisterInterfaces(cfg.InterfaceRegistry)
+	intertxtypes.RegisterInterfaces(cfg.InterfaceRegistry)
+	solomachine.RegisterInterfaces(cfg.InterfaceRegistry)
+	v7migrations.RegisterInterfaces(cfg.InterfaceRegistry)
+	transfertypes.RegisterInterfaces(cfg.InterfaceRegistry)
+	clienttypes.RegisterInterfaces(cfg.InterfaceRegistry)
+	channeltypes.RegisterInterfaces(cfg.InterfaceRegistry)
+	connectiontypes.RegisterInterfaces(cfg.InterfaceRegistry)
+	ibctmtypes.RegisterInterfaces(cfg.InterfaceRegistry)
+
+	// all other types
+	upgradetypes.RegisterInterfaces(cfg.InterfaceRegistry)
 	banktypes.RegisterInterfaces(cfg.InterfaceRegistry)
 	govv1beta1.RegisterInterfaces(cfg.InterfaceRegistry)
 	govv1.RegisterInterfaces(cfg.InterfaceRegistry)
 	authtypes.RegisterInterfaces(cfg.InterfaceRegistry)
-	feetypes.RegisterInterfaces(cfg.InterfaceRegistry)
-	icacontrollertypes.RegisterInterfaces(cfg.InterfaceRegistry)
 	sdkcodec.RegisterInterfaces(cfg.InterfaceRegistry)
 	grouptypes.RegisterInterfaces(cfg.InterfaceRegistry)
 	proposaltypes.RegisterInterfaces(cfg.InterfaceRegistry)
 	authz.RegisterInterfaces(cfg.InterfaceRegistry)
-	transfertypes.RegisterInterfaces(cfg.InterfaceRegistry)
-	clienttypes.RegisterInterfaces(cfg.InterfaceRegistry)
-	intertxtypes.RegisterInterfaces(cfg.InterfaceRegistry)
-	upgradetypes.RegisterInterfaces(cfg.InterfaceRegistry)
+
 	cdc := codec.NewProtoCodec(cfg.InterfaceRegistry)
 	return cdc, cfg
 }
