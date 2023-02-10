@@ -393,13 +393,11 @@ func (k Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPacke
 	cacheCtx, writeFn := ctx.CacheContext()
 	err = k.ChannelKeeper.RecvPacket(cacheCtx, cap, msg.Packet, msg.ProofCommitment, msg.ProofHeight)
 
-	// NOTE: The context returned by CacheContext() refers to a new EventManager, so it needs to explicitly set events to the original context.
-	ctx.EventManager().EmitEvents(cacheCtx.EventManager().Events())
-
 	switch err {
 	case nil:
 		writeFn()
 	case channeltypes.ErrNoOpMsg:
+		// no-ops do not need event emission as they will be ignored
 		return &channeltypes.MsgRecvPacketResponse{Result: channeltypes.NOOP}, nil
 	default:
 		return nil, sdkerrors.Wrap(err, "receive packet verification failed")
@@ -410,12 +408,13 @@ func (k Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPacke
 	// Cache context so that we may discard state changes from callback if the acknowledgement is unsuccessful.
 	cacheCtx, writeFn = ctx.CacheContext()
 	ack := cbs.OnRecvPacket(cacheCtx, msg.Packet, relayer)
-	// NOTE: The context returned by CacheContext() refers to a new EventManager, so it needs to explicitly set events to the original context.
-	// Events from callback are emitted regardless of acknowledgement success
-	ctx.EventManager().EmitEvents(cacheCtx.EventManager().Events())
 	if ack == nil || ack.Success() {
 		// write application state changes for asynchronous and successful acknowledgements
 		writeFn()
+	} else {
+		// NOTE: The context returned by CacheContext() refers to a new EventManager, so it needs to explicitly set events to the original context.
+		// Events should still be emitted from failed acks and asynchronous acks
+		ctx.EventManager().EmitEvents(cacheCtx.EventManager().Events())
 	}
 
 	// Set packet acknowledgement only if the acknowledgement is not nil.
@@ -471,13 +470,11 @@ func (k Keeper) Timeout(goCtx context.Context, msg *channeltypes.MsgTimeout) (*c
 	cacheCtx, writeFn := ctx.CacheContext()
 	err = k.ChannelKeeper.TimeoutPacket(cacheCtx, msg.Packet, msg.ProofUnreceived, msg.ProofHeight, msg.NextSequenceRecv)
 
-	// NOTE: The context returned by CacheContext() refers to a new EventManager, so it needs to explicitly set events to the original context.
-	ctx.EventManager().EmitEvents(cacheCtx.EventManager().Events())
-
 	switch err {
 	case nil:
 		writeFn()
 	case channeltypes.ErrNoOpMsg:
+		// no-ops do not need event emission as they will be ignored
 		return &channeltypes.MsgTimeoutResponse{Result: channeltypes.NOOP}, nil
 	default:
 		return nil, sdkerrors.Wrap(err, "timeout packet verification failed")
@@ -539,13 +536,11 @@ func (k Keeper) TimeoutOnClose(goCtx context.Context, msg *channeltypes.MsgTimeo
 	cacheCtx, writeFn := ctx.CacheContext()
 	err = k.ChannelKeeper.TimeoutOnClose(cacheCtx, cap, msg.Packet, msg.ProofUnreceived, msg.ProofClose, msg.ProofHeight, msg.NextSequenceRecv)
 
-	// NOTE: The context returned by CacheContext() refers to a new EventManager, so it needs to explicitly set events to the original context.
-	ctx.EventManager().EmitEvents(cacheCtx.EventManager().Events())
-
 	switch err {
 	case nil:
 		writeFn()
 	case channeltypes.ErrNoOpMsg:
+		// no-ops do not need event emission as they will be ignored
 		return &channeltypes.MsgTimeoutOnCloseResponse{Result: channeltypes.NOOP}, nil
 	default:
 		return nil, sdkerrors.Wrap(err, "timeout on close packet verification failed")
@@ -610,13 +605,11 @@ func (k Keeper) Acknowledgement(goCtx context.Context, msg *channeltypes.MsgAckn
 	cacheCtx, writeFn := ctx.CacheContext()
 	err = k.ChannelKeeper.AcknowledgePacket(cacheCtx, cap, msg.Packet, msg.Acknowledgement, msg.ProofAcked, msg.ProofHeight)
 
-	// NOTE: The context returned by CacheContext() refers to a new EventManager, so it needs to explicitly set events to the original context.
-	ctx.EventManager().EmitEvents(cacheCtx.EventManager().Events())
-
 	switch err {
 	case nil:
 		writeFn()
 	case channeltypes.ErrNoOpMsg:
+		// no-ops do not need event emission as they will be ignored
 		return &channeltypes.MsgAcknowledgementResponse{Result: channeltypes.NOOP}, nil
 	default:
 		return nil, sdkerrors.Wrap(err, "acknowledge packet verification failed")
