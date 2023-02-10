@@ -127,7 +127,7 @@ This function returns the TestingApp and the default genesis state used to initi
 Change the value of `DefaultTestingAppInit` to use your function:
 ```go
 func init() {
-    ibctesting.DefaultTestingAppInit = MySetupTestingAppFunction
+	ibctesting.DefaultTestingAppInit = MySetupTestingAppFunction
 }
 
 ```

@@ -13,7 +13,6 @@ During the initial development of the 02-client submodule, each light client sup
 Here is an example of the [code](https://github.com/cosmos/cosmos-sdk/commit/b93300288e3a04faef9c0774b75c13b24450ba1c#diff-c5f6b956947375f28d611f18d0e670cf28f8f305300a89c5a9b239b0eeec5064R83) that existed in the 02-client submodule:
 ```go
 func (k Keeper) UpdateClient(ctx sdk.Context, clientID string, header exported.Header) (exported.ClientState, error) {
-
     ...
 
     switch clientType {
@@ -137,23 +136,22 @@ Split `CheckHeaderAndUpdateState` into 4 functions:
 The code roughly looks like:
 ```go
 func (k Keeper) UpdateClient(ctx sdk.Context, clientID string, header exported.Header) error {
+  ...
 
-    ...
-
-    if err := clientState.VerifyClientMessage(clientMessage); err != nil {
-        return err
-    }
-    
-    foundMisbehaviour := clientState.CheckForMisbehaviour(clientMessage)
-    if foundMisbehaviour {
-        clientState.UpdateStateOnMisbehaviour(header)
-        // emit misbehaviour event
-        return 
-    }
-    
-    clientState.UpdateState(clientMessage) // expects no-op on duplicate header
-    // emit update event
-    return
+  if err := clientState.VerifyClientMessage(clientMessage); err != nil {
+      return err
+  }
+  
+  foundMisbehaviour := clientState.CheckForMisbehaviour(clientMessage)
+  if foundMisbehaviour {
+      clientState.UpdateStateOnMisbehaviour(header)
+      // emit misbehaviour event
+      return 
+  }
+  
+  clientState.UpdateState(clientMessage) // expects no-op on duplicate header
+  // emit update event
+  return
 }
 ```
 
