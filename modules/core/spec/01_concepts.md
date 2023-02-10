@@ -87,10 +87,10 @@ A `Version` is defined as follows:
 
 ```go
 type Version struct {
- // unique version identifier
- Identifier string 
- // list of features compatible with the specified identifier
- Features []string 
+  // unique version identifier
+  Identifier string 
+  // list of features compatible with the specified identifier
+  Features []string 
 }
 ```
 

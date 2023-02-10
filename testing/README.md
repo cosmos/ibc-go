@@ -47,21 +47,21 @@ will need to be extended to fulfill the `TestingApp` interface.
 
 ```go
 type TestingApp interface {
- abci.Application
+  abci.Application
 
- // ibc-go additions
- GetBaseApp() *baseapp.BaseApp
- GetStakingKeeper() ibctestingtypes.StakingKeeper
- GetIBCKeeper() *keeper.Keeper
- GetScopedIBCKeeper() capabilitykeeper.ScopedKeeper
- GetTxConfig() client.TxConfig
+  // ibc-go additions
+  GetBaseApp() *baseapp.BaseApp
+  GetStakingKeeper() ibctestingtypes.StakingKeeper
+  GetIBCKeeper() *keeper.Keeper
+  GetScopedIBCKeeper() capabilitykeeper.ScopedKeeper
+  GetTxConfig() client.TxConfig
 
- // Implemented by SimApp
- AppCodec() codec.Codec
+  // Implemented by SimApp
+  AppCodec() codec.Codec
 
- // Implemented by BaseApp
- LastCommitID() sdk.CommitID
- LastBlockHeight() int64
+  // Implemented by BaseApp
+  LastCommitID() sdk.CommitID
+  LastBlockHeight() int64
 }
 ```
 
@@ -73,27 +73,27 @@ To begin, you will need to extend your application by adding the following funct
 
 // GetBaseApp implements the TestingApp interface.
 func (app *SimApp) GetBaseApp() *baseapp.BaseApp {
- return app.BaseApp
+  return app.BaseApp
 }
 
 // GetStakingKeeper implements the TestingApp interface.
 func (app *SimApp) GetStakingKeeper() ibctestingtypes.Keeper {
- return app.StakingKeeper
+  return app.StakingKeeper
 }
 
 // GetIBCKeeper implements the TestingApp interface.
 func (app *SimApp) GetIBCKeeper() *ibckeeper.Keeper {
- return app.IBCKeeper
+  return app.IBCKeeper
 }
 
 // GetScopedIBCKeeper implements the TestingApp interface.
 func (app *SimApp) GetScopedIBCKeeper() capabilitykeeper.ScopedKeeper {
- return app.ScopedIBCKeeper
+  return app.ScopedIBCKeeper
 }
 
 // GetTxConfig implements the TestingApp interface.
 func (app *SimApp) GetTxConfig() client.TxConfig {
- return MakeTestEncodingConfig().TxConfig
+  return MakeTestEncodingConfig().TxConfig
 }
 
 ```
@@ -106,7 +106,7 @@ Your application may need to define `AppCodec()` if it does not already exist:
 // NOTE: This is solely to be used for testing purposes as it may be desirable
 // for modules to register their own custom testing types.
 func (app *SimApp) AppCodec() codec.Codec {
- return app.appCodec
+  return app.appCodec
 }
 ```
 
@@ -118,10 +118,10 @@ The testing package requires that you provide a function to initialize your Test
 
 ```go
 func SetupTestingApp() (TestingApp, map[string]json.RawMessage) {
- db := dbm.NewMemDB()
- encCdc := simapp.MakeTestEncodingConfig()
- app := simapp.NewSimApp(log.NewNopLogger(), db, nil, true, map[int64]bool{}, simapp.DefaultNodeHome, 5, encCdc, simapp.EmptyAppOptions{})
- return app, simapp.NewDefaultGenesisState(encCdc.Marshaler)
+  db := dbm.NewMemDB()
+  encCdc := simapp.MakeTestEncodingConfig()
+  app := simapp.NewSimApp(log.NewNopLogger(), db, nil, true, map[int64]bool{}, simapp.DefaultNodeHome, 5, encCdc, simapp.EmptyAppOptions{})
+  return app, simapp.NewDefaultGenesisState(encCdc.Marshaler)
 }
 ```
 
@@ -131,7 +131,7 @@ Change the value of `DefaultTestingAppInit` to use your function:
 
 ```go
 func init() {
- ibctesting.DefaultTestingAppInit = MySetupTestingAppFunction
+  ibctesting.DefaultTestingAppInit = MySetupTestingAppFunction
 }
 
 ```
@@ -143,25 +143,25 @@ Here is an example of how to setup your testing environment in every package you
 ```go
 // KeeperTestSuite is a testing suite to test keeper functions.
 type KeeperTestSuite struct {
- suite.Suite
+  suite.Suite
 
- coordinator *ibctesting.Coordinator
+  coordinator *ibctesting.Coordinator
 
- // testing chains used for convenience and readability
- chainA *ibctesting.TestChain
- chainB *ibctesting.TestChain
+  // testing chains used for convenience and readability
+  chainA *ibctesting.TestChain
+  chainB *ibctesting.TestChain
 }
 
 // TestKeeperTestSuite runs all the tests within this package.
 func TestKeeperTestSuite(t *testing.T) {
- suite.Run(t, new(KeeperTestSuite))
+  suite.Run(t, new(KeeperTestSuite))
 }
 
 // SetupTest creates a coordinator with 2 test chains.
 func (suite *KeeperTestSuite) SetupTest() {
- suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2) // initializes 2 test chains
- suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1)) // convenience and readability
- suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2)) // convenience and readability
+  suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2) // initializes 2 test chains
+  suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1)) // convenience and readability
+  suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2)) // convenience and readability
 }
 
 ```
@@ -179,15 +179,15 @@ Endpoint Struct:
 // configuration parameters. Endpoint functions will utilize the parameters
 // set in the configuration structs when executing IBC messages.
 type Endpoint struct {
- Chain        *TestChain
- Counterparty *Endpoint
- ClientID     string
- ConnectionID string
- ChannelID    string
+  Chain        *TestChain
+  Counterparty *Endpoint
+  ClientID     string
+  ConnectionID string
+  ChannelID    string
 
- ClientConfig     ClientConfig
- ConnectionConfig *ConnectionConfig
- ChannelConfig    *ChannelConfig
+  ClientConfig     ClientConfig
+  ConnectionConfig *ConnectionConfig
+  ChannelConfig    *ChannelConfig
 }
 ```
 
@@ -199,11 +199,11 @@ use your Port IDs, you might add a helper function similar to the one found in t
 
 ```go
 func NewTransferPath(chainA, chainB *ibctesting.TestChain) *ibctesting.Path {
- path := ibctesting.NewPath(chainA, chainB)
- path.EndpointA.ChannelConfig.PortID = ibctesting.TransferPort
- path.EndpointB.ChannelConfig.PortID = ibctesting.TransferPort
+  path := ibctesting.NewPath(chainA, chainB)
+  path.EndpointA.ChannelConfig.PortID = ibctesting.TransferPort
+  path.EndpointB.ChannelConfig.PortID = ibctesting.TransferPort
 
- return path
+  return pa``th
 }
 
 ```
@@ -219,33 +219,33 @@ To initialize the clients, connections, and channels for a path we can call the 
 Here is a basic example of the testing package being used to simulate IBC functionality:
 
 ```go
- path := ibctesting.NewPath(suite.chainA, suite.chainB) // clientID, connectionID, channelID empty
- suite.coordinator.Setup(path) // clientID, connectionID, channelID filled
- suite.Require().Equal("07-tendermint-0", path.EndpointA.ClientID)
- suite.Require().Equal("connection-0", path.EndpointA.ClientID)
- suite.Require().Equal("channel-0", path.EndpointA.ClientID)
+  path := ibctesting.NewPath(suite.chainA, suite.chainB) // clientID, connectionID, channelID empty
+  suite.coordinator.Setup(path) // clientID, connectionID, channelID filled
+  suite.Require().Equal("07-tendermint-0", path.EndpointA.ClientID)
+  suite.Require().Equal("connection-0", path.EndpointA.ClientID)
+  suite.Require().Equal("channel-0", path.EndpointA.ClientID)
 
- // send on endpointA
- sequence, err := path.EndpointA.SendPacket(timeoutHeight1, timeoutTimestamp1, packet1Data)
+  // send on endpointA
+  sequence, err := path.EndpointA.SendPacket(timeoutHeight1, timeoutTimestamp1, packet1Data)
 
- // create packet 1 
- packet1 := NewPacket() // NewPacket would construct your packet
+  // create packet 1 
+  packet1 := NewPacket() // NewPacket would construct your packet
 
- // receive on endpointB
- path.EndpointB.RecvPacket(packet1)
+  // receive on endpointB
+  path.EndpointB.RecvPacket(packet1)
 
- // acknowledge the receipt of the packet
- path.EndpointA.AcknowledgePacket(packet1, ack)
+  // acknowledge the receipt of the packet
+  path.EndpointA.AcknowledgePacket(packet1, ack)
 
- // we can also relay
- sequence, err := path.EndpointA.SendPacket(timeoutHeight2, timeoutTimestamp2, packet2Data)
+  // we can also relay
+  sequence, err := path.EndpointA.SendPacket(timeoutHeight2, timeoutTimestamp2, packet2Data)
 
- packet2 := NewPacket()
+  packet2 := NewPacket()
 
- path.Relay(packet2, expectedAck)
+  path.Relay(packet2, expectedAck)
 
- // if needed we can update our clients
- path.EndpointB.UpdateClient()    
+  // if needed we can update our clients
+  path.EndpointB.UpdateClient()    
 ```
 
 ### Transfer Testing Example
@@ -256,41 +256,41 @@ If ICS 20 had its own simapp, its testing setup might include a `testing/app.go`
 package transfertesting
 
 import (
- "encoding/json"
+  "encoding/json"
 
- "github.com/tendermint/tendermint/libs/log"
- dbm "github.com/tendermint/tm-db"
+  "github.com/tendermint/tendermint/libs/log"
+  dbm "github.com/tendermint/tm-db"
 
- "github.com/cosmos/ibc-go/v7/modules/apps/transfer/simapp"
- ibctesting "github.com/cosmos/ibc-go/v7/testing"
+  "github.com/cosmos/ibc-go/v7/modules/apps/transfer/simapp"
+  ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
 func SetupTransferTestingApp() (ibctesting.TestingApp, map[string]json.RawMessage) {
- db := dbm.NewMemDB()
- encCdc := simapp.MakeTestEncodingConfig()
- app := simapp.NewSimApp(log.NewNopLogger(), db, nil, true, map[int64]bool{}, simapp.DefaultNodeHome, 5, encCdc, simapp.EmptyAppOptions{})
- return app, simapp.NewDefaultGenesisState(encCdc.Marshaler)
+  db := dbm.NewMemDB()
+  encCdc := simapp.MakeTestEncodingConfig()
+  app := simapp.NewSimApp(log.NewNopLogger(), db, nil, true, map[int64]bool{}, simapp.DefaultNodeHome, 5, encCdc, simapp.EmptyAppOptions{})
+  return app, simapp.NewDefaultGenesisState(encCdc.Marshaler)
 }
 
 func init() {
- ibctesting.DefaultTestingAppInit = SetupTransferTestingApp
+  ibctesting.DefaultTestingAppInit = SetupTransferTestingApp
 }
 
 func NewTransferPath(chainA, chainB *ibctesting.TestChain) *ibctesting.Path {
- path := ibctesting.NewPath(chainA, chainB)
- path.EndpointA.ChannelConfig.PortID = ibctesting.TransferPort
- path.EndpointB.ChannelConfig.PortID = ibctesting.TransferPort
+  path := ibctesting.NewPath(chainA, chainB)
+  path.EndpointA.ChannelConfig.PortID = ibctesting.TransferPort
+  path.EndpointB.ChannelConfig.PortID = ibctesting.TransferPort
 
- return path
+  return path
 }
 
 func GetTransferSimApp(chain *ibctesting.TestChain) *simapp.SimApp {
- app, ok := chain.App.(*simapp.SimApp)
- if !ok {
+  app, ok := chain.App.(*simapp.SimApp)
+  if !ok {
   panic("not transfer app")
- }
+  }
 
- return app
+  return app
 }
 ```
 
@@ -308,7 +308,7 @@ For example, if one wanted to test that the base application cannot affect the o
 
 ```go
 mockModule.IBCApp.OnChanOpenTry = func(ctx sdk.Context, portID, channelID, version string) error {
- return fmt.Errorf("mock base app must not be called for OnChanOpenTry")
+  return fmt.Errorf("mock base app must not be called for OnChanOpenTry")
 }
 ```
 
@@ -320,10 +320,10 @@ This might look like:
 
 ```go
 suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnChanOpenInit = func(
- ctx sdk.Context, order channeltypes.Order, connectionHops []string,
- portID, channelID string, chanCap *capabilitytypes.Capability,
- counterparty channeltypes.Counterparty, version string,
+  ctx sdk.Context, order channeltypes.Order, connectionHops []string,
+  portID, channelID string, chanCap *capabilitytypes.Capability,
+  counterparty channeltypes.Counterparty, version string,
 ) error {
- return fmt.Errorf("mock ica auth fails")
+  return fmt.Errorf("mock ica auth fails")
 }
 ```

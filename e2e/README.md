@@ -239,11 +239,11 @@ Which looks under the `e2e` directory, and creates a task for each test suite fu
 package e2e
 
 func TestFeeMiddlewareTestSuite(t *testing.T) {
- suite.Run(t, new(FeeMiddlewareTestSuite))
+  suite.Run(t, new(FeeMiddlewareTestSuite))
 }
 
 type FeeMiddlewareTestSuite struct {
- testsuite.E2ETestSuite
+  testsuite.E2ETestSuite
 }
 
 func (s *FeeMiddlewareTestSuite) TestA() {}
@@ -257,11 +257,11 @@ func (s *FeeMiddlewareTestSuite) TestC() {}
 package e2e
 
 func TestTransferTestSuite(t *testing.T) {
- suite.Run(t, new(TransferTestSuite))
+  suite.Run(t, new(TransferTestSuite))
 }
 
 type TransferTestSuite struct {
- testsuite.E2ETestSuite
+  testsuite.E2ETestSuite
 }
 
 func (s *TransferTestSuite) TestD() {}
