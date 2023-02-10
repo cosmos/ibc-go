@@ -37,14 +37,14 @@ Tests can be run using a Makefile target under the e2e directory. `e2e/Makefile`
 
 There are several envinronment variables that alter the behaviour of the make target.
 
-| Environment Variable | Description                                | Default Value |
-|----------------------|--------------------------------------------|---------------|
-| CHAIN_IMAGE          | The image that will be used for the chain  | ibc-go-simd   |
-| CHAIN_A_TAG          | The tag used for chain B                   | latest        |
-| CHAIN_B_TAG          | The tag used for chain A                   | latest        |
-| CHAIN_BINARY         | The binary used in the container           | simd          |
-| RELAYER_TAG          | The tag used for the relayer               | main          |
-| RELAYER_TYPE         | The type of relayer to use (COSMOS/HERMES) | COSMOS        |
+| Environment Variable | Description                               | Default Value |
+|----------------------|-------------------------------------------|---------------|
+| CHAIN_IMAGE          | The image that will be used for the chain | ibc-go-simd   |
+| CHAIN_A_TAG          | The tag used for chain B                  | latest        |
+| CHAIN_B_TAG          | The tag used for chain A                  | latest        |
+| CHAIN_BINARY         | The binary used in the container          | simd          |
+| RELAYER_TAG          | The tag used for the relayer              | main          |
+| RELAYER_TYPE         | The type of relayer to use (rly/hermes)   | rly           |
 
 > Note: when running tests locally, **no images are pushed** to the `ghcr.io/cosmos/ibc-go-simd` registry.
 The images which are used only exist on your machine.
