@@ -41,7 +41,7 @@ on:
           - v0.2.6
           - v0.1.7
       relayer-type:
-        default: COSMOS
+        default: rly
         description: 'The relayer to use'
         required: true
         type: choice
