@@ -517,6 +517,8 @@ func (s *UpgradeTestSuite) TestV6ToV7ChainUpgrade() {
 	})
 
 	t.Run("check that the tendermint clients are active again after upgrade", func(t *testing.T) {
+		s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA))
+
 		status, err := s.QueryClientStatus(ctx, chainA, testvalues.TendermintClientID(0))
 		s.Require().NoError(err)
 		s.Require().Equal(exported.Active.String(), status)
