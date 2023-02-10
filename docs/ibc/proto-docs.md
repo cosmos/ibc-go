@@ -2,6 +2,6 @@
 order: 7
 -->
 
-# Protobuf Documentation
+# Protobuf documentation
 
 See [ibc-go Buf Protobuf documentation](https://buf.build/cosmos/ibc/tags/main).
