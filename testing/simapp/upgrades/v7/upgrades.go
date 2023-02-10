@@ -1,9 +1,6 @@
 package v7
 
 import (
-	"fmt"
-
-	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
@@ -35,12 +32,12 @@ func CreateUpgradeHandler(
 			return nil, err
 		}
 
-		legacyBaseAppSubspace, ok := paramsKeeper.GetSubspace(baseapp.Paramspace)
-		if !ok {
-			return nil, fmt.Errorf("baseapp subspace not found")
-		}
+		// legacyBaseAppSubspace, ok := paramsKeeper.GetSubspace(baseapp.Paramspace)
+		// if !ok {
+		// 	return nil, fmt.Errorf("baseapp subspace not found")
+		// }
 
-		baseapp.MigrateParams(ctx, legacyBaseAppSubspace, &consensusParamsKeeper)
+		// baseapp.MigrateParams(ctx, legacyBaseAppSubspace, &consensusParamsKeeper)
 
 		return mm.RunMigrations(ctx, configurator, vm)
 	}
