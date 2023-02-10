@@ -2,6 +2,7 @@ package simapp
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -305,7 +306,7 @@ func NewSimApp(
 	app.ParamsKeeper = initParamsKeeper(appCodec, legacyAmino, keys[paramstypes.StoreKey], tkeys[paramstypes.TStoreKey])
 
 	// set the BaseApp's parameter store
-	app.ConsensusParamsKeeper = consensusparamkeeper.NewKeeper(appCodec, keys[upgradetypes.StoreKey], authtypes.NewModuleAddress(govtypes.ModuleName).String())
+	app.ConsensusParamsKeeper = consensusparamkeeper.NewKeeper(appCodec, keys[consensusparamtypes.StoreKey], authtypes.NewModuleAddress(govtypes.ModuleName).String())
 	bApp.SetParamStore(&app.ConsensusParamsKeeper)
 
 	// add capability keeper and ScopeToModule for ibc module
@@ -658,6 +659,7 @@ func NewSimApp(
 	app.SetEndBlocker(app.EndBlocker)
 
 	app.setupUpgradeHandlers()
+	app.setupUpgradeStoreLoaders()
 
 	if loadLatest {
 		if err := app.LoadLatestVersion(); err != nil {
@@ -940,4 +942,21 @@ func (app *SimApp) setupUpgradeHandlers() {
 			app.IBCKeeper.ClientKeeper,
 		),
 	)
+}
+
+// setupUpgradeStoreLoaders sets all necessary store loaders required by upgrades.
+func (app *SimApp) setupUpgradeStoreLoaders() {
+	upgradeInfo, err := app.UpgradeKeeper.ReadUpgradeInfoFromDisk()
+	if err != nil {
+		tmos.Exit(fmt.Sprintf("failed to read upgrade info from disk %s", err))
+	}
+
+	if upgradeInfo.Name == v7.UpgradeName && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
+		storeUpgrades := storetypes.StoreUpgrades{
+			Added: []string{consensusparamtypes.StoreKey},
+		}
+
+		// configure store loader that checks if version == upgradeHeight and applies store upgrades
+		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &storeUpgrades))
+	}
 }
