@@ -940,6 +940,8 @@ func (app *SimApp) setupUpgradeHandlers() {
 			app.configurator,
 			app.appCodec,
 			app.IBCKeeper.ClientKeeper,
+			app.ConsensusParamsKeeper,
+			app.ParamsKeeper,
 		),
 	)
 }
