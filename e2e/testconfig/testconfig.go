@@ -48,7 +48,7 @@ const (
 	// defaultChainTag is the tag that will be used for the chains if none is specified.
 	defaultChainTag = "main"
 	// defaultRelayerType is the default relayer that will be used if none is specified.
-	defaultRelayerType = relayer.Cosmos
+	defaultRelayerType = relayer.Rly
 )
 
 func getChainImage(binary string) string {
@@ -127,7 +127,7 @@ func GetRelayerConfigFromEnv() relayer.Config {
 
 	rlyTag := strings.TrimSpace(os.Getenv(RelayerTagEnv))
 	if rlyTag == "" {
-		if relayerType == relayer.Cosmos {
+		if relayerType == relayer.Rly {
 			rlyTag = defaultCosmosRelayerTag
 		}
 		if relayerType == relayer.Hermes {
