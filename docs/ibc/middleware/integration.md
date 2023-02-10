@@ -25,11 +25,11 @@ mw3Keeper := mw3.NewKeeper(storeKey3)
 // Only create App Module **once** and register in app module
 // if the module maintains independent state and/or processes sdk.Msgs
 app.moduleManager = module.NewManager(
-    ...
-    mw1.NewAppModule(mw1Keeper),
-    mw3.NewAppModule(mw3Keeper),
-    transfer.NewAppModule(transferKeeper),
-    custom.NewAppModule(customKeeper)
+  ...
+  mw1.NewAppModule(mw1Keeper),
+  mw3.NewAppModule(mw3Keeper),
+  transfer.NewAppModule(transferKeeper),
+  custom.NewAppModule(customKeeper)
 )
 
 mw1IBCModule := mw1.NewIBCModule(mw1Keeper)
