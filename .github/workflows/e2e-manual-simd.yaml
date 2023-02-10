@@ -72,8 +72,8 @@ on:
         required: true
         type: choice
         options:
-          - COSMOS
-          - HERMES
+          - rly
+          - hermes
       relayer-tag:
         description: 'The tag to use for the relayer'
         required: true
