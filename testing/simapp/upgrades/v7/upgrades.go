@@ -1,11 +1,13 @@
 package v7
 
 import (
+	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	consensusparamskeeper "github.com/cosmos/cosmos-sdk/x/consensus/keeper"
 	paramskeeper "github.com/cosmos/cosmos-sdk/x/params/keeper"
+	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	clientkeeper "github.com/cosmos/ibc-go/v7/modules/core/02-client/keeper"
@@ -32,12 +34,8 @@ func CreateUpgradeHandler(
 			return nil, err
 		}
 
-		// legacyBaseAppSubspace, ok := paramsKeeper.GetSubspace(baseapp.Paramspace)
-		// if !ok {
-		// 	return nil, fmt.Errorf("baseapp subspace not found")
-		// }
-
-		// baseapp.MigrateParams(ctx, legacyBaseAppSubspace, &consensusParamsKeeper)
+		legacyBaseAppSubspace := paramsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramstypes.ConsensusParamsKeyTable())
+		baseapp.MigrateParams(ctx, legacyBaseAppSubspace, &consensusParamsKeeper)
 
 		return mm.RunMigrations(ctx, configurator, vm)
 	}
