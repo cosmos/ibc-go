@@ -42,9 +42,9 @@ const (
 
 	// defaultBinary is the default binary that will be used by the chains.
 	defaultBinary = "simd"
-	// defaultCosmosRelayerTag is the tag that will be used if no relayer tag is specified.
+	// defaultRlyTag is the tag that will be used if no relayer tag is specified.
 	// all images are here https://github.com/cosmos/relayer/pkgs/container/relayer/versions
-	defaultCosmosRelayerTag = "andrew-tendermint_v0.37" // TODO: reset to "v2.2.0-rc2"
+	defaultRlyTag = "andrew-tendermint_v0.37" // TODO: reset to "v2.2.0-rc2"
 	// defaultChainTag is the tag that will be used for the chains if none is specified.
 	defaultChainTag = "main"
 	// defaultRelayerType is the default relayer that will be used if none is specified.
@@ -128,7 +128,7 @@ func GetRelayerConfigFromEnv() relayer.Config {
 	rlyTag := strings.TrimSpace(os.Getenv(RelayerTagEnv))
 	if rlyTag == "" {
 		if relayerType == relayer.Rly {
-			rlyTag = defaultCosmosRelayerTag
+			rlyTag = defaultRlyTag
 		}
 		if relayerType == relayer.Hermes {
 			// TODO: set default hermes version
