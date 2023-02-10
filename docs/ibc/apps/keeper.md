@@ -31,7 +31,7 @@ type Keeper struct {
 
 // NewKeeper creates a new IBC app module Keeper instance
 func NewKeeper(
- // args
+  // args
 ) Keeper {
   // ...
 

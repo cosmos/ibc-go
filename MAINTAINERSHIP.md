@@ -29,8 +29,7 @@ Answer these questions in a requirements doc:
 - How urgent is it to implement this feature?
 - How soon after being developed would this be adopted?
 - What is the impact of this feature being adopted?
-
-Is there a specific need for this feature to be included in the `ibc-go` codebase, rather than in its own module repo?
+- Is there a specific need for this feature to be included in the `ibc-go` codebase, rather than in its own module repo?
 
 Answers to these questions should also be detailed in a **discussion** in the `ibc-go` repo to open up the discussion to a wider audience, this can be done before or after the walkthrough.
 

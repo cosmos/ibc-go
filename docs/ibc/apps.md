@@ -357,8 +357,8 @@ The Acknowledgement interface:
 // Acknowledgement defines the interface used to return
 // acknowledgements in the OnRecvPacket callback.
 type Acknowledgement interface {
- Success() bool
- Acknowledgement() []byte
+  Success() bool
+  Acknowledgement() []byte
 }
 ```
 
