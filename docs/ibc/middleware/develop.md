@@ -446,7 +446,7 @@ func SendPacket(
   timeoutHeight clienttypes.Height,
   timeoutTimestamp uint64,
   appData []byte,
-) {
+) (uint64, error) {
     // middleware may modify data
     data = doCustomLogic(appData)
 
@@ -473,7 +473,7 @@ func WriteAcknowledgement(
   chanCap *capabilitytypes.Capability,
   packet exported.PacketI,
   ack exported.Acknowledgement,
-) {
+) error {
   // middleware may modify acknowledgement
   ack_bytes = doCustomLogic(ack)
 
