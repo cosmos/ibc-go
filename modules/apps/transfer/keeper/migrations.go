@@ -43,6 +43,11 @@ func (m Migrator) MigrateTraces(ctx sdk.Context) error {
 			if !equalTraces(newTrace, dt) {
 				newTraces = append(newTraces, newTrace)
 			}
+
+			if !m.keeper.bankKeeper.HasDenomMetaData(ctx, newTrace.IBCDenom()) {
+				m.keeper.SetDenomMetaData(ctx, newTrace)
+			}
+
 			return false
 		})
 
