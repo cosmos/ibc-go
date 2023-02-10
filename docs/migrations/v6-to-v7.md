@@ -168,11 +168,11 @@ if err := clientState.VerifyMembership(
 
 The `GetRoot` function has been removed from consensus state interface since it was not used by core IBC.
 
-### Client Keeper
+### Client keeper
 
 Keeper function `CheckMisbehaviourAndUpdateState` has been removed since function `UpdateClient` can now handle updating `ClientState` on `ClientMessage` type which can be any `Misbehaviour` implementations.  
 
-### SDK Message
+### SDK message
 
 `MsgSubmitMisbehaviour` is deprecated since `MsgUpdateClient` can now submit a `ClientMessage` type which can be any `Misbehaviour` implementations.
 
