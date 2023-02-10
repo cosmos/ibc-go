@@ -185,11 +185,10 @@ func (im IBCModule) OnRecvPacket(
 	if ack.Success() {
 		err := im.keeper.OnRecvPacket(ctx, packet, data)
 		if err != nil {
-			logger.Error(fmt.Sprintf("failed to handle ICS-20 transfer packet sequence %d: %s", packet.Sequence, err.Error()))
 			ack = channeltypes.NewErrorAcknowledgement(err)
 			ackErr = err
 		} else {
-			logger.Info("successfully handle ICS-20 packet sequence: %d", packet.Sequence)
+			logger.Info("successfully handled ICS-20 packet sequence: %d", packet.Sequence)
 		}
 	}
 

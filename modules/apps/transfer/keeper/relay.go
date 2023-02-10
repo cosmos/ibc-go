@@ -166,12 +166,12 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 	logger := k.Logger(ctx)
 	// validate packet data upon receiving
 	if err := data.ValidateBasic(); err != nil {
-		logger.Error(fmt.Sprintf("validate FungibleTokenPacketData packet error: %s", err.Error()))
+		logger.Error(fmt.Sprintf("error validating ICS-20 transfer packet data: %s", err.Error()))
 		return err
 	}
 
 	if !k.GetReceiveEnabled(ctx) {
-		logger.Error("receive disabled")
+		logger.Error("receive is disabled")
 		return types.ErrReceiveDisabled
 	}
 
@@ -185,7 +185,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 	// parse the transfer amount
 	transferAmount, ok := sdk.NewIntFromString(data.Amount)
 	if !ok {
-		err := sdkerrors.Wrapf(types.ErrInvalidAmount, "unable to parse transfer amount (%s) into math.Int", data.Amount)
+		err := sdkerrors.Wrapf(types.ErrInvalidAmount, "unable to parse transfer amount: %s", data.Amount)
 		logger.Error(err.Error())
 		return err
 	}
@@ -234,7 +234,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 			// counterparty module. The bug may occur in bank or any part of the code that allows
 			// the escrow address to be drained. A malicious counterparty module could drain the
 			// escrow address by allowing more tokens to be sent back then were escrowed.
-			logger.Error(fmt.Sprintf("unable to unescrow tokens %s", err.Error()))
+			logger.Error(fmt.Sprintf("unable to unescrow tokens: %s", err.Error()))
 			return sdkerrors.Wrap(err, "unable to unescrow tokens, this may be caused by a malicious counterparty module or a bug: please open an issue on counterparty module")
 		}
 
@@ -288,7 +288,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 	if err := k.bankKeeper.MintCoins(
 		ctx, types.ModuleName, sdk.NewCoins(voucher),
 	); err != nil {
-		logger.Error(fmt.Sprintf("cannot mint coins %s", err.Error()))
+		logger.Error(fmt.Sprintf("cannot mint coins: %s", err.Error()))
 		return err
 	}
 

@@ -36,7 +36,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet) ([]byt
 
 		txResponse, err := k.executeTx(ctx, packet.SourcePort, packet.DestinationPort, packet.DestinationChannel, msgs)
 		if err != nil {
-			logger.Error(fmt.Sprintf("error execute Tx: %s", err.Error()))
+			logger.Error(fmt.Sprintf("error executing Tx: %s", err.Error()))
 			return nil, err
 		}
 
