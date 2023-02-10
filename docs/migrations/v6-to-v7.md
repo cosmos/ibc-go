@@ -20,23 +20,23 @@ Add the following to the function call to the upgrade handler in `app/app.go`, t
 
 ```go
 import (
-    // ...
-    ibctmmigrations "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint/migrations"
+  // ...
+  ibctmmigrations "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint/migrations"
 )
 
 // ...
 
 app.UpgradeKeeper.SetUpgradeHandler(
-    upgradeName,
-    func(ctx sdk.Context, _ upgradetypes.Plan, _ module.VersionMap) (module.VersionMap, error) {
-        // prune expired tendermint consensus states to save storage space
-        _, err := ibctmmigrations.PruneExpiredConsensusStates(ctx, app.Codec, app.IBCKeeper.ClientKeeper)
-        if err != nil {
-            return nil, err
-        }
+  upgradeName,
+  func(ctx sdk.Context, _ upgradetypes.Plan, _ module.VersionMap) (module.VersionMap, error) {
+    // prune expired tendermint consensus states to save storage space
+    _, err := ibctmmigrations.PruneExpiredConsensusStates(ctx, app.Codec, app.IBCKeeper.ClientKeeper)
+    if err != nil {
+      return nil, err
+    }
 
-        return app.mm.RunMigrations(ctx, app.configurator, fromVM)
-    },
+    return app.mm.RunMigrations(ctx, app.configurator, fromVM)
+  },
 )
 ```
 
@@ -52,17 +52,17 @@ To register the tendermint client, modify the `app.go` file to include the tende
 
 ```diff
 import (
-    // ...
-+   ibctm "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint"
+  // ...
++ ibctm "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint"
 )
 
 // ...
 
 ModuleBasics = module.NewBasicManager(
-    ...
-    ibc.AppModuleBasic{},
-+   ibctm.AppModuleBasic{},
-    ...
+  ...
+  ibc.AppModuleBasic{},
++ ibctm.AppModuleBasic{},
+  ...
 )
 ```
 
@@ -74,17 +74,17 @@ To register the solo machine client, modify the `app.go` file to include the sol
 
 ```diff
 import (
-    // ...
-+   solomachine "github.com/cosmos/ibc-go/v6/modules/light-clients/06-solomachine"
+  // ...
++ solomachine "github.com/cosmos/ibc-go/v6/modules/light-clients/06-solomachine"
 )
 
 // ...
 
 ModuleBasics = module.NewBasicManager(
-    ...
-    ibc.AppModuleBasic{},
-+   solomachine.AppModuleBasic{},
-    ...
+  ...
+  ibc.AppModuleBasic{},
++ solomachine.AppModuleBasic{},
+  ...
 )
 ```
 
@@ -136,25 +136,25 @@ See below for an example of how ibc-go now performs channel state verification.
 merklePath := commitmenttypes.NewMerklePath(host.ChannelPath(portID, channelID))
 merklePath, err := commitmenttypes.ApplyPrefix(connection.GetCounterparty().GetPrefix(), merklePath)
 if err != nil {
-    return err
+  return err
 }
 
 channelEnd, ok := channel.(channeltypes.Channel)
 if !ok {
-    return sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "invalid channel type %T", channel)
+  return sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "invalid channel type %T", channel)
 }
 
 bz, err := k.cdc.Marshal(&channelEnd)
 if err != nil {
-    return err
+  return err
 }
 
 if err := clientState.VerifyMembership(
-    ctx, clientStore, k.cdc, height,
-    0, 0, // skip delay period checks for non-packet processing verification
-    proof, merklePath, bz,
+  ctx, clientStore, k.cdc, height,
+  0, 0, // skip delay period checks for non-packet processing verification
+  proof, merklePath, bz,
 ); err != nil {
-    return sdkerrors.Wrapf(err, "failed channel state verification for client (%s)", clientID)
+  return sdkerrors.Wrapf(err, "failed channel state verification for client (%s)", clientID)
 }
 ```
 
@@ -273,10 +273,10 @@ IBC module constants have been moved from the `host` package to the `exported` p
 
 ```diff
 import (
-    // ...
--   host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
-+   ibcexported "github.com/cosmos/ibc-go/v6/modules/core/exported"
-    // ...
+  // ...
+- host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
++ ibcexported "github.com/cosmos/ibc-go/v6/modules/core/exported"
+  // ...
 )
 
 - host.ModuleName

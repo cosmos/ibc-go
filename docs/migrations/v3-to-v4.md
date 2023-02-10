@@ -46,11 +46,10 @@ Based on feedback from the community we add now an improved solution to run the 
 If the chain will migrate to supporting base denoms with slashes, it must set the appropriate params during the execution of the upgrade handler in `app.go`: 
 ```go
 app.UpgradeKeeper.SetUpgradeHandler("MigrateTraces",
-    func(ctx sdk.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
-        // transfer module consensus version has been bumped to 2
-        return app.mm.RunMigrations(ctx, app.configurator, fromVM)
-    })
-
+  func(ctx sdk.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
+    // transfer module consensus version has been bumped to 2
+    return app.mm.RunMigrations(ctx, app.configurator, fromVM)
+  })
 ```
 
 If a chain receives coins of a base denom with slashes before it upgrades to supporting it, the receive may pass however the trace information will be incorrect.
@@ -96,20 +95,20 @@ The following code snippet illustrates how to construct an appropriate interchai
 
 ```go
 icaMetadata := icatypes.Metadata{
-    Version:                icatypes.Version,
-    ControllerConnectionId: controllerConnectionID,
-    HostConnectionId:       hostConnectionID,
-    Encoding:               icatypes.EncodingProtobuf,
-    TxType:                 icatypes.TxTypeSDKMultiMsg,
+  Version:                icatypes.Version,
+  ControllerConnectionId: controllerConnectionID,
+  HostConnectionId:       hostConnectionID,
+  Encoding:               icatypes.EncodingProtobuf,
+  TxType:                 icatypes.TxTypeSDKMultiMsg,
 }
 
 appVersion, err := icatypes.ModuleCdc.MarshalJSON(&icaMetadata)
 if err != nil {
-    return err
+  return err
 }
 
 if err := k.icaControllerKeeper.RegisterInterchainAccount(ctx, msg.ConnectionId, msg.Owner, string(appVersion)); err != nil {
-    return err
+  return err
 }
 ```
 
@@ -117,30 +116,30 @@ Similarly, if the application stack is configured to route through ICS29 fee mid
 
 ```go
 icaMetadata := icatypes.Metadata{
-    Version:                icatypes.Version,
-    ControllerConnectionId: controllerConnectionID,
-    HostConnectionId:       hostConnectionID,
-    Encoding:               icatypes.EncodingProtobuf,
-    TxType:                 icatypes.TxTypeSDKMultiMsg,
+  Version:                icatypes.Version,
+  ControllerConnectionId: controllerConnectionID,
+  HostConnectionId:       hostConnectionID,
+  Encoding:               icatypes.EncodingProtobuf,
+  TxType:                 icatypes.TxTypeSDKMultiMsg,
 }
 
 appVersion, err := icatypes.ModuleCdc.MarshalJSON(&icaMetadata)
 if err != nil {
-    return err
+  return err
 }
 
 feeMetadata := feetypes.Metadata{
-    AppVersion: string(appVersion),
-    FeeVersion: feetypes.Version,
+  AppVersion: string(appVersion),
+  FeeVersion: feetypes.Version,
 }
 
 feeEnabledVersion, err := feetypes.ModuleCdc.MarshalJSON(&feeMetadata)
 if err != nil {
-    return err
+  return err
 }
 
 if err := k.icaControllerKeeper.RegisterInterchainAccount(ctx, msg.ConnectionId, msg.Owner, string(feeEnabledVersion)); err != nil {
-    return err
+  return err
 }
 ```
 

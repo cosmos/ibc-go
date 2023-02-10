@@ -27,7 +27,7 @@ on:
           - master
           - v0.4.3
           - v0.3.6
-          - v0.2.5
+          - v0.2.6
           - v0.1.7
       chain-b-tag:
         default: master
@@ -38,7 +38,7 @@ on:
           - master
           - v0.4.3
           - v0.3.6
-          - v0.2.5
+          - v0.2.6
           - v0.1.7
       relayer-type:
         default: COSMOS

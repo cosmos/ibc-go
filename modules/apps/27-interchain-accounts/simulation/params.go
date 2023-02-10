@@ -17,10 +17,10 @@ import (
 
 // ParamChanges defines the parameters that can be modified by param change proposals
 // on the simulation
-func ParamChanges(r *rand.Rand, controllerKeeper *controllerkeeper.Keeper, hostKeeper *hostkeeper.Keeper) []simtypes.ParamChange {
-	var paramChanges []simtypes.ParamChange
+func ParamChanges(r *rand.Rand, controllerKeeper *controllerkeeper.Keeper, hostKeeper *hostkeeper.Keeper) []simtypes.LegacyParamChange {
+	var paramChanges []simtypes.LegacyParamChange
 	if controllerKeeper != nil {
-		paramChanges = append(paramChanges, simulation.NewSimParamChange(controllertypes.SubModuleName, string(controllertypes.KeyControllerEnabled),
+		paramChanges = append(paramChanges, simulation.NewSimLegacyParamChange(controllertypes.SubModuleName, string(controllertypes.KeyControllerEnabled),
 			func(r *rand.Rand) string {
 				controllerEnabled := RandomEnabled(r)
 				return fmt.Sprintf("%s", types.ModuleCdc.MustMarshalJSON(&gogotypes.BoolValue{Value: controllerEnabled})) //nolint:gosimple
@@ -29,7 +29,7 @@ func ParamChanges(r *rand.Rand, controllerKeeper *controllerkeeper.Keeper, hostK
 	}
 
 	if hostKeeper != nil {
-		paramChanges = append(paramChanges, simulation.NewSimParamChange(hosttypes.SubModuleName, string(hosttypes.KeyHostEnabled),
+		paramChanges = append(paramChanges, simulation.NewSimLegacyParamChange(hosttypes.SubModuleName, string(hosttypes.KeyHostEnabled),
 			func(r *rand.Rand) string {
 				receiveEnabled := RandomEnabled(r)
 				return fmt.Sprintf("%s", types.ModuleCdc.MustMarshalJSON(&gogotypes.BoolValue{Value: receiveEnabled})) //nolint:gosimple

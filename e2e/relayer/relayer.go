@@ -5,9 +5,9 @@ import (
 	"testing"
 
 	dockerclient "github.com/docker/docker/client"
-	"github.com/strangelove-ventures/ibctest/v7"
-	"github.com/strangelove-ventures/ibctest/v7/ibc"
-	"github.com/strangelove-ventures/ibctest/v7/relayer"
+	"github.com/strangelove-ventures/interchaintest/v7"
+	"github.com/strangelove-ventures/interchaintest/v7/ibc"
+	"github.com/strangelove-ventures/interchaintest/v7/relayer"
 	"go.uber.org/zap"
 )
 
@@ -45,7 +45,7 @@ func newCosmosRelayer(t *testing.T, tag string, logger *zap.Logger, dockerClient
 	customImageOption := relayer.CustomDockerImage(cosmosRelayerRepository, tag, cosmosRelayerUser)
 	relayerProcessingOption := relayer.StartupFlags("-p", "events") // relayer processes via events
 
-	relayerFactory := ibctest.NewBuiltinRelayerFactory(ibc.CosmosRly, logger, customImageOption, relayerProcessingOption)
+	relayerFactory := interchaintest.NewBuiltinRelayerFactory(ibc.CosmosRly, logger, customImageOption, relayerProcessingOption)
 
 	return relayerFactory.Build(
 		t, dockerClient, network,
@@ -54,5 +54,5 @@ func newCosmosRelayer(t *testing.T, tag string, logger *zap.Logger, dockerClient
 
 // newHermesRelayer returns an instance of the hermes relayer.
 func newHermesRelayer() ibc.Relayer {
-	panic("hermes relayer not yet implemented for ibctest")
+	panic("hermes relayer not yet implemented for interchaintest")
 }

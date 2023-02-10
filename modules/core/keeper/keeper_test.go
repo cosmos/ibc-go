@@ -59,10 +59,10 @@ func (d MockStakingKeeper) UnbondingTime(ctx sdk.Context) time.Duration {
 // It verifies if ibckeeper.NewKeeper panic when any of the keepers passed in is empty.
 func (suite *KeeperTestSuite) TestNewKeeper() {
 	var (
-		stakingKeeper clienttypes.StakingKeeper
-		upgradeKeeper clienttypes.UpgradeKeeper
-		scopedKeeper  capabilitykeeper.ScopedKeeper
-		newIBCKeeper  = func() {
+		stakingKeeper  clienttypes.StakingKeeper
+		upgradeKeeper  clienttypes.UpgradeKeeper
+		scopedKeeper   capabilitykeeper.ScopedKeeper
+		newIBCKeeperFn = func() {
 			ibckeeper.NewKeeper(
 				suite.chainA.GetSimApp().AppCodec(),
 				suite.chainA.GetSimApp().GetKey(ibcexported.StoreKey),
@@ -131,11 +131,11 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 
 			if tc.expPass {
 				suite.Require().NotPanics(
-					newIBCKeeper,
+					newIBCKeeperFn,
 				)
 			} else {
 				suite.Require().Panics(
-					newIBCKeeper,
+					newIBCKeeperFn,
 				)
 			}
 		})

@@ -68,6 +68,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Improvements
 
+* (core) [\#3082](https://github.com/cosmos/ibc-go/pull/3082) Add `HasConnection` and `HasChannel` methods.
 * (tests) [\#2926](https://github.com/cosmos/ibc-go/pull/2926) Lint tests
 * (apps/transfer) [\#2643](https://github.com/cosmos/ibc-go/pull/2643) Add amount, denom, and memo to transfer event emission.
 * (core) [\#2746](https://github.com/cosmos/ibc-go/pull/2746) Allow proof height to be zero for all core IBC `sdk.Msg` types that contain proofs.

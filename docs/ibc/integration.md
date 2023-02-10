@@ -16,7 +16,7 @@ Integrating the IBC module to your SDK-based application is straighforward. The 
 
 - Add required modules to the `module.BasicManager`
 - Define additional `Keeper` fields for the new modules on the `App` type
-- Add the module's `StoreKeys` and initialize their `Keepers`
+- Add the module's `StoreKey`s and initialize their `Keeper`s
 - Set up corresponding routers and routes for the `ibc` module
 - Add the modules to the module `Manager`
 - Add modules to `Begin/EndBlockers` and `InitGenesis`
@@ -28,10 +28,10 @@ The first step is to add the following modules to the `BasicManager`: `x/capabil
 and `x/ibc-transfer`. After that, we need to grant `Minter` and `Burner` permissions to
 the `ibc-transfer` `ModuleAccount` to mint and burn relayed tokens.
 
-### Integrating Light Clients
+### Integrating light clients
 
 > Note that from v7 onwards, all light clients have to be explicitly registered in a chain's app.go and follow the steps listed below. 
-  This is in contrast to earlier versions of ibc-go when 07-tendermint and 06-solomachine were added out of the box.
+  This is in contrast to earlier versions of ibc-go when `07-tendermint` and `06-solomachine` were added out of the box.
 
 All light clients must be registered with `module.BasicManager` in a chain's app.go file.
 
@@ -40,9 +40,9 @@ The following code example shows how to register the existing `ibctm.AppModuleBa
 ```diff
 
 import (
-    ...
-+    ibctm "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint"
-    ...
+  ...
++ ibctm "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint"
+  ...
 )
 
 // app.go
@@ -55,7 +55,7 @@ var (
     transfer.AppModuleBasic{}, // i.e ibc-transfer module
 
     // register light clients on IBC
-+    ibctm.AppModuleBasic{},
++   ibctm.AppModuleBasic{},
   )
 
   // module account permissions
@@ -63,6 +63,7 @@ var (
     // other module accounts permissions
     // ...
     ibctransfertypes.ModuleName:    {authtypes.Minter, authtypes.Burner},
+  }
 )
 ```
 
