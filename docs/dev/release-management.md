@@ -34,9 +34,10 @@ Current release is `v1.0.2`. We then maintain a (living) branch `release/v1.0.x`
 1. Add the `backport-to-v1.0x` label to the PR.
 2. Once the PR is merged, the Mergify GitHub application will automatically copy the changes into another branch and open a new PR agains the desired `release/v1.0.x` branch.
 3. If the following has not been discussed in the original PR, then update the backport PR's description and ensure it contains the following information:
-  - **[Impact]** explanation of how the bug affects users or developers.
-  - **[Test Case]** section with detailed instructions on how to reproduce the bug.
-  - **[Regression Potential]** section with a discussion how regressions are most likely to manifest, or might manifest even if it's unlikely, as a result of the change. **It is assumed that any backport PR is well-tested before it is merged in and has an overall low risk of regression**. This section should discuss the potential for state breaking changes to occur such as through out-of-gas errors. 
+
+- **[Impact]** explanation of how the bug affects users or developers.
+- **[Test Case]** section with detailed instructions on how to reproduce the bug.
+- **[Regression Potential]** section with a discussion how regressions are most likely to manifest, or might manifest even if it's unlikely, as a result of the change. **It is assumed that any backport PR is well-tested before it is merged in and has an overall low risk of regression**. This section should discuss the potential for state breaking changes to occur such as through out-of-gas errors.
 
 It is the PR's author's responsibility to fix merge conflicts, update changelog entries, and ensure CI passes. If a PR originates from an external contributor, it may be a core team member's responsibility to perform this process instead of the original author. Lastly, it is core team's responsibility to ensure that the PR meets all the backport criteria.
 
@@ -44,15 +45,18 @@ Finally, when a point release is ready to be made:
 
 1. Checkout the release branch (e.g. `release/v1.0.x`).
 2. In `CHANGELOG.md`:
-  - Ensure changelog entries are verified.
-  - Remove any sections of the changelog that do not have any entries (e.g. if the release does not have any bug fixes, then remove the section).
-  - Remove the `[Unreleased]` title.
-  - Add release version and date of release.
+
+- Ensure changelog entries are verified.
+- Remove any sections of the changelog that do not have any entries (e.g. if the release does not have any bug fixes, then remove the section).
+- Remove the `[Unreleased]` title.
+- Add release version and date of release.
+
 3. Create release in GitHub:
-  - Select the correct target branch (e.g. `release/v1.0.x`).
-  - Choose a tag (e.g. `v1.0.3`).
-  - Write release notes.
-  - Check the `This is a pre-release` checkbox if needed (this applies for alpha, beta and release candidates).
+
+- Select the correct target branch (e.g. `release/v1.0.x`).
+- Choose a tag (e.g. `v1.0.3`).
+- Write release notes.
+- Check the `This is a pre-release` checkbox if needed (this applies for alpha, beta and release candidates).
 
 ### Post-release procedure
 

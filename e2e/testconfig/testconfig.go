@@ -4,16 +4,20 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module/testutil"
+	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
-	gogoproto "github.com/cosmos/gogoproto/proto"
-	"github.com/strangelove-ventures/ibctest/v7/ibc"
+	"github.com/strangelove-ventures/interchaintest/v7/ibc"
+	tmjson "github.com/tendermint/tendermint/libs/json"
+	tmtypes "github.com/tendermint/tendermint/types"
 
+	"github.com/cosmos/ibc-go/e2e/relayer"
 	"github.com/cosmos/ibc-go/e2e/semverutil"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 )
@@ -27,19 +31,24 @@ const (
 	// ChainBTagEnv specifies the tag that Chain B will use. If unspecified
 	// the value will default to the same value as Chain A.
 	ChainBTagEnv = "CHAIN_B_TAG"
-	// GoRelayerTagEnv specifies the go relayer version. Defaults to "main"
-	GoRelayerTagEnv = "RLY_TAG"
+	// RelayerTagEnv specifies the relayer version. Defaults to "main"
+	RelayerTagEnv = "RELAYER_TAG"
+	// RelayerTypeEnv specifies the type of relayer that should be used.
+	RelayerTypeEnv = "RELAYER_TYPE"
 	// ChainBinaryEnv binary is the binary that will be used for both chains.
 	ChainBinaryEnv = "CHAIN_BINARY"
 	// ChainUpgradeTagEnv specifies the upgrade version tag
 	ChainUpgradeTagEnv = "CHAIN_UPGRADE_TAG"
+
 	// defaultBinary is the default binary that will be used by the chains.
 	defaultBinary = "simd"
 	// defaultRlyTag is the tag that will be used if no relayer tag is specified.
 	// all images are here https://github.com/cosmos/relayer/pkgs/container/relayer/versions
-	defaultRlyTag = "v2.2.0-rc2"
+	defaultRlyTag = "andrew-tendermint_v0.37" // "v2.2.0"
 	// defaultChainTag is the tag that will be used for the chains if none is specified.
 	defaultChainTag = "main"
+	// defaultRelayerType is the default relayer that will be used if none is specified.
+	defaultRelayerType = relayer.Rly
 )
 
 func getChainImage(binary string) string {
@@ -51,12 +60,13 @@ func getChainImage(binary string) string {
 
 // TestConfig holds various fields used in the E2E tests.
 type TestConfig struct {
-	ChainAConfig ChainConfig
-	ChainBConfig ChainConfig
-	RlyTag       string
-	UpgradeTag   string
+	ChainAConfig  ChainConfig
+	ChainBConfig  ChainConfig
+	RelayerConfig relayer.Config
+	UpgradeTag    string
 }
 
+// ChainConfig holds information about an individual chain used in the tests.
 type ChainConfig struct {
 	Image  string
 	Tag    string
@@ -79,14 +89,6 @@ func FromEnv() TestConfig {
 	if !ok {
 		chainBTag = chainATag
 	}
-
-	rlyTag, ok := os.LookupEnv(GoRelayerTagEnv)
-	if !ok {
-		rlyTag = defaultRlyTag
-	}
-
-	// TODO: remove hard coded value
-	rlyTag = "andrew-tendermint_v0.37"
 
 	chainAImage := getChainImage(chainBinary)
 	specifiedChainImage, ok := os.LookupEnv(ChainImageEnv)
@@ -111,8 +113,30 @@ func FromEnv() TestConfig {
 			Tag:    chainBTag,
 			Binary: chainBinary,
 		},
-		RlyTag:     rlyTag,
-		UpgradeTag: upgradeTag,
+		UpgradeTag:    upgradeTag,
+		RelayerConfig: GetRelayerConfigFromEnv(),
+	}
+}
+
+// GetRelayerConfigFromEnv returns the RelayerConfig from present environment variables.
+func GetRelayerConfigFromEnv() relayer.Config {
+	relayerType := strings.TrimSpace(os.Getenv(RelayerTypeEnv))
+	if relayerType == "" {
+		relayerType = defaultRelayerType
+	}
+
+	rlyTag := strings.TrimSpace(os.Getenv(RelayerTagEnv))
+	if rlyTag == "" {
+		if relayerType == relayer.Rly {
+			rlyTag = defaultRlyTag
+		}
+		if relayerType == relayer.Hermes {
+			// TODO: set default hermes version
+		}
+	}
+	return relayer.Config{
+		Tag:  rlyTag,
+		Type: relayerType,
 	}
 }
 
@@ -130,6 +154,13 @@ func GetChainBTag() string {
 		return GetChainATag()
 	}
 	return chainBTag
+}
+
+// IsCI returns true if the tests are running in CI, false is returned
+// if the tests are running locally.
+// Note: github actions passes a CI env value of true by default to all runners.
+func IsCI() bool {
+	return strings.ToLower(os.Getenv("CI")) == "true"
 }
 
 // ChainOptions stores chain configurations for the chains that will be
@@ -157,6 +188,7 @@ func DefaultChainOptions() ChainOptions {
 
 // newDefaultSimappConfig creates an ibc configuration for simd.
 func newDefaultSimappConfig(cc ChainConfig, name, chainID, denom string) ibc.ChainConfig {
+
 	return ibc.ChainConfig{
 		Type:    "cosmos",
 		Name:    name,
@@ -175,8 +207,20 @@ func newDefaultSimappConfig(cc ChainConfig, name, chainID, denom string) ibc.Cha
 		GasAdjustment:  1.3,
 		TrustingPeriod: "508h",
 		NoHostMount:    false,
-		ModifyGenesis:  defaultModifyGenesis(),
+		ModifyGenesis:  getGenesisModificationFunction(cc),
 	}
+}
+
+// getGenesisModificationFunction returns a genesis modification function that handles the GenesisState type
+// correctly depending on if the govv1beta1 gov module is used or if govv1 is being used.
+func getGenesisModificationFunction(cc ChainConfig) func(ibc.ChainConfig, []byte) ([]byte, error) {
+	version := cc.Tag
+
+	if govGenesisFeatureReleases.IsSupported(version) {
+		return defaultGovv1ModifyGenesis()
+	}
+
+	return defaultGovv1Beta1ModifyGenesis()
 }
 
 // govGenesisFeatureReleases represents the releases the governance module genesis
@@ -185,23 +229,44 @@ var govGenesisFeatureReleases = semverutil.FeatureReleases{
 	MajorVersion: "v7",
 }
 
-// defaultModifyGenesis will only modify governance params to ensure the voting period and minimum deposit
+// defaultGovv1ModifyGenesis will only modify governance params to ensure the voting period and minimum deposit
 // are functional for e2e testing purposes.
-// Note: this function intentionally does not use the type defined here https://github.com/tendermint/tendermint/blob/v0.37.0-rc2/types/genesis.go#L38-L46
-// and uses a map[string]interface{} instead.
-// This approach prevents the field block.TimeIotaMs from being lost which happened when using the GenesisDoc type from tendermint version v0.37.0.
-// ibctest performs the following steps when creating the genesis.json file for chains.
-// - 1. Let the chain binary create its own genesis file.
-// - 2. Apply any provided functions to modify the bytes of the file.
-// - 3. Overwrite the file with the new contents.
-// This is a problem because when the tendermint types change, marshalling into the type will cause us to lose
-// values if the types have changed in between the version of the chain in the test and the version of tendermint
-// imported by the e2e tests.
-// By using a raw map[string]interface{} we preserve the values unknown to the e2e tests and can still change
-// the values we care about.
-// TODO: handle these genesis modifications in a way which is type safe and does not require us to rely on
-// map[string]interface{}
-func defaultModifyGenesis() func(ibc.ChainConfig, []byte) ([]byte, error) {
+func defaultGovv1ModifyGenesis() func(ibc.ChainConfig, []byte) ([]byte, error) {
+	return func(chainConfig ibc.ChainConfig, genbz []byte) ([]byte, error) {
+		genDoc, err := tmtypes.GenesisDocFromJSON(genbz)
+		if err != nil {
+			return nil, fmt.Errorf("failed to unmarshal genesis bytes into genesis doc: %w", err)
+		}
+
+		var appState genutiltypes.AppMap
+		if err := json.Unmarshal(genDoc.AppState, &appState); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal genesis bytes into app state: %w", err)
+		}
+
+		govGenBz, err := modifyGovAppState(chainConfig, appState[govtypes.ModuleName])
+		if err != nil {
+			return nil, err
+		}
+
+		appState[govtypes.ModuleName] = govGenBz
+
+		genDoc.AppState, err = json.Marshal(appState)
+		if err != nil {
+			return nil, err
+		}
+
+		bz, err := tmjson.MarshalIndent(genDoc, "", "  ")
+		if err != nil {
+			return nil, err
+		}
+
+		return bz, nil
+	}
+}
+
+// defaultGovv1Beta1ModifyGenesis will only modify governance params to ensure the voting period and minimum deposit
+// // are functional for e2e testing purposes.
+func defaultGovv1Beta1ModifyGenesis() func(ibc.ChainConfig, []byte) ([]byte, error) {
 	const appStateKey = "app_state"
 	return func(chainConfig ibc.ChainConfig, genbz []byte) ([]byte, error) {
 		genesisDocMap := map[string]interface{}{}
@@ -220,7 +285,7 @@ func defaultModifyGenesis() func(ibc.ChainConfig, []byte) ([]byte, error) {
 			return nil, fmt.Errorf("failed to extract gov genesis bytes: %s", err)
 		}
 
-		govModuleGenesisBytes, err := modifyGovAppState(chainConfig, govModuleBytes)
+		govModuleGenesisBytes, err := modifyGovv1Beta1AppState(chainConfig, govModuleBytes)
 		if err != nil {
 			return nil, err
 		}
@@ -243,41 +308,50 @@ func defaultModifyGenesis() func(ibc.ChainConfig, []byte) ([]byte, error) {
 	}
 }
 
-// modifyGovAppState takes the existing gov app state and marshals it to either a govv1 GenesisState
-// or a govv1beta1 GenesisState depending on the simapp version.
+// modifyGovAppState takes the existing gov app state and marshals it to a govv1 GenesisState.
 func modifyGovAppState(chainConfig ibc.ChainConfig, govAppState []byte) ([]byte, error) {
 	cfg := testutil.MakeTestEncodingConfig()
 
 	cdc := codec.NewProtoCodec(cfg.InterfaceRegistry)
 	govv1.RegisterInterfaces(cfg.InterfaceRegistry)
-	govv1beta1.RegisterInterfaces(cfg.InterfaceRegistry)
 
-	shouldUseGovV1 := govGenesisFeatureReleases.IsSupported(chainConfig.Images[0].Version)
-
-	var govGenesisState gogoproto.Message
-	if shouldUseGovV1 {
-		govGenesisState = &govv1.GenesisState{}
-	} else {
-		govGenesisState = &govv1beta1.GenesisState{}
-	}
+	govGenesisState := &govv1.GenesisState{}
 
 	if err := cdc.UnmarshalJSON(govAppState, govGenesisState); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal genesis bytes into gov genesis state: %w", err)
 	}
 
-	switch v := govGenesisState.(type) {
-	case *govv1.GenesisState:
-		if v.Params == nil {
-			v.Params = &govv1.Params{}
-		}
-		// set correct minimum deposit using configured denom
-		v.Params.MinDeposit = sdk.NewCoins(sdk.NewCoin(chainConfig.Denom, govv1beta1.DefaultMinDepositTokens))
-		vp := testvalues.VotingPeriod
-		v.Params.VotingPeriod = &vp
-	case *govv1beta1.GenesisState:
-		v.DepositParams.MinDeposit = sdk.NewCoins(sdk.NewCoin(chainConfig.Denom, govv1beta1.DefaultMinDepositTokens))
-		v.VotingParams.VotingPeriod = testvalues.VotingPeriod
+	if govGenesisState.Params == nil {
+		govGenesisState.Params = &govv1.Params{}
 	}
+
+	govGenesisState.Params.MinDeposit = sdk.NewCoins(sdk.NewCoin(chainConfig.Denom, govv1beta1.DefaultMinDepositTokens))
+	vp := testvalues.VotingPeriod
+	govGenesisState.Params.VotingPeriod = &vp
+
+	govGenBz, err := cdc.MarshalJSON(govGenesisState)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal gov genesis state: %w", err)
+	}
+
+	return govGenBz, nil
+}
+
+// modifyGovv1Beta1AppState takes the existing gov app state and marshals it to a govv1beta1 GenesisState.
+func modifyGovv1Beta1AppState(chainConfig ibc.ChainConfig, govAppState []byte) ([]byte, error) {
+	cfg := testutil.MakeTestEncodingConfig()
+
+	cdc := codec.NewProtoCodec(cfg.InterfaceRegistry)
+	govv1beta1.RegisterInterfaces(cfg.InterfaceRegistry)
+
+	govGenesisState := &govv1beta1.GenesisState{}
+	if err := cdc.UnmarshalJSON(govAppState, govGenesisState); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal genesis bytes into govv1beta1 genesis state: %w", err)
+	}
+
+	govGenesisState.DepositParams.MinDeposit = sdk.NewCoins(sdk.NewCoin(chainConfig.Denom, govv1beta1.DefaultMinDepositTokens))
+	govGenesisState.VotingParams.VotingPeriod = testvalues.VotingPeriod
+
 	govGenBz, err := cdc.MarshalJSON(govGenesisState)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal gov genesis state: %w", err)
