@@ -971,6 +971,7 @@ func (app *SimApp) setupUpgradeStoreLoaders() {
 		storeUpgrades := storetypes.StoreUpgrades{
 			Added: []string{
 				consensusparamtypes.StoreKey,
+				crisistypes.StoreKey,
 			},
 		}
 
