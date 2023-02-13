@@ -1,4 +1,3 @@
-
 ## Table of Contents
 1. [How to write tests](#how-to-write-tests)
    - a. [Adding a new test](#adding-a-new-test)
@@ -19,7 +18,6 @@
 4. [Running Compatibility Tests](#running-compatibility-tests)
 5. [Troubleshooting](#troubleshooting)
 
-
 ## How to write tests
 
 ### Adding a new test
@@ -33,21 +31,20 @@ be quite common in most tests.
 
 > Note: see [here](#how-tests-are-run) for details about these requirements.
 
-
 ### Running tests with custom images
 
 Tests can be run using a Makefile target under the e2e directory. `e2e/Makefile`
 
 There are several envinronment variables that alter the behaviour of the make target.
 
-| Environment Variable | Description                              | Default Value |
-|----------------------|------------------------------------------|---------------|
+| Environment Variable | Description                               | Default Value |
+|----------------------|-------------------------------------------|---------------|
 | CHAIN_IMAGE          | The image that will be used for the chain | ibc-go-simd   |
-| CHAIN_A_TAG          | The tag used for chain B                 | latest        |
-| CHAIN_B_TAG          | The tag used for chain A                 | latest        |
-| CHAIN_BINARY         | The binary used in the container         | simd          |
-| RLY_TAG              | The tag used for the go relayer          | main          |
-
+| CHAIN_A_TAG          | The tag used for chain B                  | latest        |
+| CHAIN_B_TAG          | The tag used for chain A                  | latest        |
+| CHAIN_BINARY         | The binary used in the container          | simd          |
+| RELAYER_TAG          | The tag used for the relayer              | main          |
+| RELAYER_TYPE         | The type of relayer to use (rly/hermes)   | rly           |
 
 > Note: when running tests locally, **no images are pushed** to the `ghcr.io/cosmos/ibc-go-simd` registry.
 The images which are used only exist on your machine.
@@ -70,7 +67,7 @@ export CHAIN_BINARY="simd"
 # export CHAIN_B_TAG="main"
 # export CHAIN_BINARY="icad"
 
-export RLY_TAG="v2.0.0"
+export RELAYER_TAG="v2.0.0"
 make e2e-test entrypoint=TestInterchainAccountsTestSuite test=TestMsgSubmitTx_SuccessfulTransfer
 ```
 
@@ -206,12 +203,10 @@ t.Run("send IBC transfer", func(t *testing.T){
 
 ## Test design
 
-
 #### interchaintest
 
 These E2E tests use the [interchaintest framework](https://github.com/strangelove-ventures/interchaintest). This framework creates chains and relayers in containers and allows for arbitrary commands to be executed in the chain containers,
 as well as allowing us to broadcast arbitrary messages which are signed on behalf of a user created in the test.
-
 
 #### CI configuration
 
@@ -313,7 +308,6 @@ This string is used to generate a test matrix in the Github Action that runs the
 
 All tests will be run on different hosts.
 
-
 #### Misceleneous:
 
 * Gas fees are set to zero to simply calcuations when asserting account balances.
@@ -350,7 +344,6 @@ This will build an image from the tip of the release branch and run all tests sp
 json matrix files under .github/compatibility-test-matrices and is equivalent to going to the Github UI and navigating to 
 
 `Actions` -> `Compatibility E2E` -> `Run Workflow` -> `release/v5.0.x`
-
 
 ### Troubleshooting
 
