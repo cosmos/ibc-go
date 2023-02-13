@@ -173,7 +173,7 @@ func NewTestChain(t *testing.T, coord *Coordinator, chainID string) *TestChain {
 	}
 
 	// construct validator set;
-	// Note that the validators are sorted by voting powerrequire.True(chain.TB
+	// Note that the validators are sorted by voting power
 	// or, if equal, by address lexical order
 	valSet := tmtypes.NewValidatorSet(validators)
 
