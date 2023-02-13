@@ -14,7 +14,7 @@ If you open a PR on ibc-go, it is mandatory to update the relevant documentation
 
 Ensure that you base and target your PR on the either the `main` branch or the corresponding feature branch where a large body of work is being implemented. Please make sure that the PR is made from a branch different than either `main` or the corresponding feature branch.
 
-All development should be then targeted against `main` or the feature branch. Bug fixes which are required for outstanding releases should be backported if the CODEOWNERS decide it is applicable. 
+All development should be then targeted against `main` or the feature branch. Bug fixes which are required for outstanding releases should be backported if the CODEOWNERS decide it is applicable.
 
 ## Commit Messages
 
@@ -52,6 +52,7 @@ All PRs require an approval from at least one CODEOWNER before merge. PRs which 
 - If you are only making "surface level" reviews, submit any notes as `Comments` without submitting an approval.
 
 A thorough review means that:
+
 - You understand the code and make sure that documentation is updated in the right places.
 - You must also think through anything which ought to be included but is not.
 - You must think through whether any added code could be partially combined (DRYed) with existing code.

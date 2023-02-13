@@ -265,7 +265,6 @@ func (k Keeper) DenomPathFromHash(ctx sdk.Context, denom string) (string, error)
 }
 ```
 
-
 ```go
 // OnRecvPacket
 // ...

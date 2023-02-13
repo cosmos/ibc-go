@@ -4,9 +4,9 @@ If you're not familiar with the overall module structure from the SDK modules, p
 
 Every Interchain Standard (ICS) has been developed in its own package. The development team separated the IBC TAO (Transport, Authentication, Ordering) ICS specifications from the IBC application level specification. The following sections describe the architecture of the most relevant directories that comprise this repository.
 
-## `modules` 
+## `modules`
 
-This folder contains implementations for the IBC TAO (`core`), IBC applications (`apps`) and light clients (`light-clients`). 
+This folder contains implementations for the IBC TAO (`core`), IBC applications (`apps`) and light clients (`light-clients`).
 
 ### `core`
 
