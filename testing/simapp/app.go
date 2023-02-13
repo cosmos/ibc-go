@@ -8,6 +8,8 @@ import (
 	"os"
 	"path/filepath"
 
+	autocliv1 "cosmossdk.io/api/cosmos/autocli/v1"
+	reflectionv1 "cosmossdk.io/api/cosmos/reflection/v1"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
 	_ "github.com/cosmos/cosmos-sdk/client/docs/statik" // this is used for serving docs
@@ -15,6 +17,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/codec/types"
+	runtimeservices "github.com/cosmos/cosmos-sdk/runtime/services"
 	"github.com/cosmos/cosmos-sdk/server/api"
 	"github.com/cosmos/cosmos-sdk/server/config"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
@@ -603,6 +606,14 @@ func NewSimApp(
 	app.configurator = module.NewConfigurator(app.appCodec, app.MsgServiceRouter(), app.GRPCQueryRouter())
 	app.mm.RegisterServices(app.configurator)
 
+	autocliv1.RegisterQueryServer(app.GRPCQueryRouter(), runtimeservices.NewAutoCLIQueryService(app.mm.Modules))
+
+	reflectionSvc, err := runtimeservices.NewReflectionService()
+	if err != nil {
+		panic(err)
+	}
+	reflectionv1.RegisterReflectionServiceServer(app.GRPCQueryRouter(), reflectionSvc)
+
 	// add test gRPC service for testing gRPC queries in isolation
 	testdata.RegisterQueryServer(app.GRPCQueryRouter(), testdata.QueryImpl{})
 
@@ -825,6 +836,9 @@ func (app *SimApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APICon
 	// Register legacy and grpc-gateway routes for all modules.
 	ModuleBasics.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
 
+	// Register nodeservice grpc-gateway routes.
+	nodeservice.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
+
 	// register swagger API from root so that other applications can override easily
 	if apiConfig.Swagger {
 		RegisterSwaggerAPI(clientCtx, apiSvr.Router)
@@ -955,7 +969,9 @@ func (app *SimApp) setupUpgradeStoreLoaders() {
 
 	if upgradeInfo.Name == v7.UpgradeName && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
 		storeUpgrades := storetypes.StoreUpgrades{
-			Added: []string{consensusparamtypes.StoreKey},
+			Added: []string{
+				consensusparamtypes.StoreKey,
+			},
 		}
 
 		// configure store loader that checks if version == upgradeHeight and applies store upgrades
