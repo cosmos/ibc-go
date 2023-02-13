@@ -4,12 +4,14 @@ This document is intended to highlight significant changes which may require mor
 Any changes that must be done by a user of ibc-go should be documented here.
 
 There are four sections based on the four potential user groups of this document:
+
 - [Chains](#chains)
 - [IBC Apps](#ibc-apps)
 - [Relayers](#relayers)
 - [IBC Light Clients](#ibc-light-clients)
 
 **Note:** ibc-go supports golang semantic versioning and therefore all imports must be updated to bump the version number on major releases.
+
 ```go
 github.com/cosmos/ibc-go/v4 -> github.com/cosmos/ibc-go/v5
 ```
@@ -70,7 +72,7 @@ func NewKeeper(
 ) Keeper
 ```
 
-### ICS04 - Channel 
+### ICS04 - Channel
 
 The function `NewPacketId` in `modules/core/04-channel/types` has been renamed to `NewPacketID`:
 
@@ -130,10 +132,10 @@ The `RegisterRESTRoutes` function in `modules/apps/transfer` has been removed.
 
 ### ICS27 - Interchain Accounts
 
-The `key` and `msgRouter` parameters of the `NewKeeper` functions in 
+The `key` and `msgRouter` parameters of the `NewKeeper` functions in
 
-- `modules/apps/27-interchain-accounts/controller/keeper` 
-- and `modules/apps/27-interchain-accounts/host/keeper` 
+- `modules/apps/27-interchain-accounts/controller/keeper`
+- and `modules/apps/27-interchain-accounts/host/keeper`
 
 have changed type. The `key` parameter is now of type `storetypes.StoreKey` (where `storetypes` is an import alias for `"github.com/cosmos/cosmos-sdk/store/types"`), and the `msgRouter` parameter is now of type `*icatypes.MessageRouter` (where `icatypes` is an import alias for `"github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/types"`):
 
@@ -173,7 +175,7 @@ The new `MessageRouter` interface is defined as:
 
 ```go
 type MessageRouter interface {
- 	Handler(msg sdk.Msg) baseapp.MsgServiceHandler
+  Handler(msg sdk.Msg) baseapp.MsgServiceHandler
 }
 ```
 
@@ -331,7 +333,7 @@ The `TestingApp` interface in `testing` has gone through some modifications:
 
 ```go
 type StakingKeeper interface {
- 	GetHistoricalInfo(ctx sdk.Context, height int64) (stakingtypes.HistoricalInfo, bool)
+  GetHistoricalInfo(ctx sdk.Context, height int64) (stakingtypes.HistoricalInfo, bool)
 }
 ```
 
@@ -422,11 +424,11 @@ The `key` parameter of the `NewKeeper` function in `modules/core/02-client/keepe
 
 ```diff
 func NewKeeper(
-   cdc codec.BinaryCodec,
--  key sdk.StoreKey,
-+  key storetypes.StoreKey,
-   paramSpace paramtypes.Subspace,
-   sk types.StakingKeeper,
-   uk types.UpgradeKeeper
+  cdc codec.BinaryCodec,
+- key sdk.StoreKey,
++ key storetypes.StoreKey,
+  paramSpace paramtypes.Subspace,
+  sk types.StakingKeeper,
+  uk types.UpgradeKeeper
 ) Keeper
 ```

@@ -4,16 +4,16 @@ order: 4
 
 # Handling `ClientMessage`s: updates and misbehaviour
 
-As mentioned before in the documentation about [implementing the `ConsensusState` interface](./consensus-state.md), [`ClientMessage`](https://github.com/cosmos/ibc-go/blob/main/modules/core/exported/client.go#L145) is an interface used to update an IBC client. This update may be performed by: 
+As mentioned before in the documentation about [implementing the `ConsensusState` interface](./consensus-state.md), [`ClientMessage`](https://github.com/cosmos/ibc-go/blob/main/modules/core/exported/client.go#L145) is an interface used to update an IBC client. This update may be performed by:
 
 + a single header
 + a batch of headers
 + evidence of misbehaviour,
-+ or any type which when verified produces a change to the consensus state of the IBC client. 
++ or any type which when verified produces a change to the consensus state of the IBC client.
 
 This interface has been purposefully kept generic in order to give the maximum amount of flexibility to the light client implementer.
 
-## Implementing the `ClientMessage` interface 
+## Implementing the `ClientMessage` interface
 
 Find the `ClientMessage`interface in `modules/core/exported`:
 
@@ -43,7 +43,7 @@ The functions for handling updates to a light client and evidence of misbehaviou
 
 > It is important to note that `Misbehaviour` in this particular context is referring to misbehaviour on the chain level intended to fool the light client. This will be defined by each light client.
 
-## `VerifyClientMessage` 
+## `VerifyClientMessage`
 
 `VerifyClientMessage` must verify a `ClientMessage`. A `ClientMessage` could be a `Header`, `Misbehaviour`, or batch update. To understand how to implement a `ClientMessage`, please refer to the [Implementing the `ClientMessage` interface](#implementing-the-clientmessage-interface) section.
 
