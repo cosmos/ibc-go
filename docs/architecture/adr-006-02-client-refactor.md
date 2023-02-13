@@ -15,9 +15,9 @@ Here is an example of the [code](https://github.com/cosmos/cosmos-sdk/commit/b93
 
 ```go
 func (k Keeper) UpdateClient(ctx sdk.Context, clientID string, header exported.Header) (exported.ClientState, error) {
-    ...
+  ...
 
-    switch clientType {
+  switch clientType {
   case exported.Tendermint:
     clientState, consensusState, err = tendermint.CheckValidityAndUpdateState(
     clientState, header, ctx.BlockTime(),
