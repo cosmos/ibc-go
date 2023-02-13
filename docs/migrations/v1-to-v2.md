@@ -4,12 +4,14 @@ This document is intended to highlight significant changes which may require mor
 Any changes that must be done by a user of ibc-go should be documented here.
 
 There are four sections based on the four potential user groups of this document:
+
 - Chains
 - IBC Apps
 - Relayers
 - IBC Light Clients
 
 **Note:** ibc-go supports golang semantic versioning and therefore all imports must be updated to bump the version number on major releases.
+
 ```go
 github.com/cosmos/ibc-go -> github.com/cosmos/ibc-go/v2
 ```
@@ -38,9 +40,9 @@ NegotiateAppVersion(
 
 This function should perform application version negotiation and return the negotiated version. If the version cannot be negotiated, an error should be returned. This function is only used on the client side.
 
-#### sdk.Result removed
+### `sdk.Result` removed
 
-sdk.Result has been removed as a return value in the application callbacks. Previously it was being discarded by core IBC and was thus unused.
+`sdk.Result` has been removed as a return value in the application callbacks. Previously it was being discarded by core IBC and was thus unused.
 
 ## Relayers
 

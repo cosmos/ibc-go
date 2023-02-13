@@ -2,7 +2,7 @@
 order: 6
 -->
 
-# Existence and non-existence proofs 
+# Existence and non-existence proofs
 
 IBC uses merkle proofs in order to verify the state of a remote counterparty state machine given a trusted root, and [ICS-23](https://github.com/cosmos/ics23/tree/master/go) is a general approach for verifying merkle trees which is used in ibc-go.
 
