@@ -14,7 +14,7 @@ Interchain Accounts is the Cosmos SDK implementation of the ICS-27 protocol, whi
 
 Regular accounts use a private key to sign transactions. Interchain Accounts are instead controlled programmatically by counterparty chains via IBC packets.
 
-## Concepts 
+## Concepts
 
 `Host Chain`: The chain where the interchain account is registered. The host chain listens for IBC packets from a controller chain which should contain instructions (e.g. Cosmos SDK messages) for which the interchain account will execute.
 
@@ -30,4 +30,4 @@ SDK modules on a chain are assumed to be trustworthy. For example, there are no 
 
 The implementation of ICS-27 in ibc-go uses this assumption in its security considerations.
 
-The implementation assumes other IBC application modules will not bind to ports within the ICS-27 namespace. 
+The implementation assumes other IBC application modules will not bind to ports within the ICS-27 namespace.
