@@ -42,8 +42,6 @@ on:
           - v4.1.1
           - v3.4.0
           - v3.3.1
-          - v2.5.0
-          - v2.4.2
       chain-a-tag-override:
         description: 'Specify an arbitrary tag for chain A'
         required: false
@@ -62,12 +60,18 @@ on:
           - v4.1.1
           - v3.4.0
           - v3.3.1
-          - v2.5.0
-          - v2.4.2
       chain-b-tag-override:
         description: 'Specify an arbitrary tag for chain B'
         required: false
         type: string
+      relayer-type:
+        default: rly
+        description: 'The relayer to use'
+        required: true
+        type: choice
+        options:
+          - rly
+          - hermes
       relayer-tag:
         description: 'The tag to use for the relayer'
         required: true
@@ -83,5 +87,6 @@ jobs:
       chain-a-tag: "${{ github.event.inputs.chain-a-tag-override || github.event.inputs.chain-a-tag }}"
       chain-b-tag: "${{ github.event.inputs.chain-b-tag-override || github.event.inputs.chain-b-tag }}"
       relayer-tag: "${{ github.event.inputs.relayer-tag }}"
+      relayer-type: "${{ github.event.inputs.relayer-type }}"
       test-entry-point:  "${{ github.event.inputs.test-entry-point }}"
       chain-binary: "${{ github.event.inputs.chain-binary }}"
