@@ -24,7 +24,7 @@ func TestTransferLocalhostTestSuite(t *testing.T) {
 }
 
 type LocalhostTransferTestSuite struct {
-	*TransferTestSuite
+	testsuite.E2ETestSuite
 }
 
 // TestMsgTransfer_Localhost creates two wallets on a single chain and performs MsgTransfers back and forth

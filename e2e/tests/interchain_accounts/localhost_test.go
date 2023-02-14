@@ -28,7 +28,7 @@ func TestInterchainAccountsLocalhostTestSuite(t *testing.T) {
 }
 
 type LocalhostInterchainAccountsTestSuite struct {
-	*InterchainAccountsTestSuite
+	testsuite.E2ETestSuite
 }
 
 func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_Localhost() {
