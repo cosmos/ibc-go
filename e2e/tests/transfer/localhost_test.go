@@ -3,23 +3,33 @@ package transfer
 import (
 	"context"
 	"testing"
+	"github.com/stretchr/testify/suite"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
-	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
 )
+
+func TestTransferLocalhostTestSuite(t *testing.T) {
+	suite.Run(t, new(LocalhostTransferTestSuite))
+}
+
+type LocalhostTransferTestSuite struct {
+	*TransferTestSuite
+}
 
 // TestMsgTransfer_Localhost creates two wallets on a single chain and performs MsgTransfers back and forth
 // to ensure ibc functions as expected on localhost. This test is largely the same as TestMsgTransfer_Succeeds_Nonincentivized
 // except that chain B is replaced with an additional wallet on chainA.
-func (s *TransferTestSuite) TestMsgTransfer_Localhost() {
+func (s *LocalhostTransferTestSuite) TestMsgTransfer_Localhost() {
 	t := s.T()
 	ctx := context.TODO()
 
