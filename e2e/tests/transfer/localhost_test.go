@@ -3,6 +3,7 @@ package transfer
 import (
 	"context"
 	"testing"
+
 	"github.com/stretchr/testify/suite"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -11,8 +12,8 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
 
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"

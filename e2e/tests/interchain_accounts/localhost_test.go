@@ -14,6 +14,7 @@ import (
 	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	"github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
@@ -22,7 +23,15 @@ import (
 	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
 )
 
-func (s *InterchainAccountsTestSuite) TestInterchainAccounts_Localhost() {
+func TestInterchainAccountsLocalhostTestSuite(t *testing.T) {
+	suite.Run(t, new(LocalhostInterchainAccountsTestSuite))
+}
+
+type LocalhostInterchainAccountsTestSuite struct {
+	*InterchainAccountsTestSuite
+}
+
+func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_Localhost() {
 	t := s.T()
 	ctx := context.TODO()
 
