@@ -16,7 +16,7 @@ The authentication module can begin registering interchain accounts by calling `
 
 ```go
 if err := keeper.icaControllerKeeper.RegisterInterchainAccount(ctx, connectionID, owner.String(), version); err != nil {
-    return err
+  return err
 }
 
 return nil
@@ -28,20 +28,20 @@ The following code snippet illustrates how to construct an appropriate interchai
 
 ```go
 icaMetadata := icatypes.Metadata{
-    Version:                icatypes.Version,
-    ControllerConnectionId: controllerConnectionID,
-    HostConnectionId:       hostConnectionID,
-    Encoding:               icatypes.EncodingProtobuf,
-    TxType:                 icatypes.TxTypeSDKMultiMsg,
+  Version:                icatypes.Version,
+  ControllerConnectionId: controllerConnectionID,
+  HostConnectionId:       hostConnectionID,
+  Encoding:               icatypes.EncodingProtobuf,
+  TxType:                 icatypes.TxTypeSDKMultiMsg,
 }
 
 appVersion, err := icatypes.ModuleCdc.MarshalJSON(&icaMetadata)
 if err != nil {
-    return err
+  return err
 }
 
 if err := keeper.icaControllerKeeper.RegisterInterchainAccount(ctx, controllerConnectionID, owner.String(), string(appVersion)); err != nil {
-    return err
+  return err
 }
 ```
 
@@ -49,30 +49,30 @@ Similarly, if the application stack is configured to route through ICS-29 fee mi
 
 ```go
 icaMetadata := icatypes.Metadata{
-    Version:                icatypes.Version,
-    ControllerConnectionId: controllerConnectionID,
-    HostConnectionId:       hostConnectionID,
-    Encoding:               icatypes.EncodingProtobuf,
-    TxType:                 icatypes.TxTypeSDKMultiMsg,
+  Version:                icatypes.Version,
+  ControllerConnectionId: controllerConnectionID,
+  HostConnectionId:       hostConnectionID,
+  Encoding:               icatypes.EncodingProtobuf,
+  TxType:                 icatypes.TxTypeSDKMultiMsg,
 }
 
 appVersion, err := icatypes.ModuleCdc.MarshalJSON(&icaMetadata)
 if err != nil {
-    return err
+  return err
 }
 
 feeMetadata := feetypes.Metadata{
-    AppVersion: string(appVersion),
-    FeeVersion: feetypes.Version,
+  AppVersion: string(appVersion),
+  FeeVersion: feetypes.Version,
 }
 
 feeEnabledVersion, err := feetypes.ModuleCdc.MarshalJSON(&feeMetadata)
 if err != nil {
-    return err
+  return err
 }
 
 if err := keeper.icaControllerKeeper.RegisterInterchainAccount(ctx, controllerConnectionID, owner.String(), string(feeEnabledVersion)); err != nil {
-    return err
+  return err
 }
 ```
 
@@ -87,7 +87,7 @@ The authentication module can attempt to send a packet by calling `SendTx`:
 // Construct controller portID based on interchain account owner address
 portID, err := icatypes.NewControllerPortID(owner.String())
 if err != nil {
-    return err
+  return err
 }
     
 // Obtain data to be sent to the host chain. 
@@ -97,13 +97,13 @@ if err != nil {
 msg := &banktypes.MsgSend{FromAddress: fromAddr, ToAddress: toAddr, Amount: amt}
 data, err := icatypes.SerializeCosmosTx(keeper.cdc, []proto.Message{msg})
 if err != nil {
-    return err
+  return err
 }
 
 // Construct packet data
 packetData := icatypes.InterchainAccountPacketData{
-    Type: icatypes.EXECUTE_TX,
-    Data: data,
+  Type: icatypes.EXECUTE_TX,
+  Data: data,
 }
 
 // Obtain timeout timestamp
@@ -117,5 +117,5 @@ timeoutTimestamp := obtainTimeoutTimestamp()
 seq, err = keeper.icaControllerKeeper.SendTx(ctx, nil, portID, packetData, timeoutTimestamp)
 ```
 
-The data within an `InterchainAccountPacketData` must be serialized using a format supported by the host chain. 
+The data within an `InterchainAccountPacketData` must be serialized using a format supported by the host chain.
 If the host chain is using the ibc-go host chain submodule, `SerializeCosmosTx` should be used. If the `InterchainAccountPacketData.Data` is serialized using a format not supported by the host chain, the packet will not be successfully received.  
