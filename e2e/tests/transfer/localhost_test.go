@@ -3,23 +3,30 @@ package transfer
 import (
 	"context"
 	"testing"
+	"github.com/stretchr/testify/suite"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/gogoproto/proto"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
 
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
-	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
 )
+
+func TestTransferLocalhostTestSuite(t *testing.T) {
+	suite.Run(t, new(LocalhostTransferTestSuite))
+}
+
+type LocalhostTransferTestSuite struct {
+	*TransferTestSuite
+}
 
 // TestMsgTransfer_Localhost creates two wallets on a single chain and performs MsgTransfers back and forth
 // to ensure ibc functions as expected on localhost. This test is largely the same as TestMsgTransfer_Succeeds_Nonincentivized
 // except that chain B is replaced with an additional wallet on chainA.
-func (s *TransferTestSuite) TestMsgTransfer_Localhost() {
+func (s *LocalhostTransferTestSuite) TestMsgTransfer_Localhost() {
 	t := s.T()
 	ctx := context.TODO()
 
@@ -163,22 +170,4 @@ func (s *TransferTestSuite) TestMsgTransfer_Localhost() {
 		expected := testvalues.IBCTransferAmount
 		s.Require().Equal(expected, actualBalance)
 	})
-}
-
-func parseChannelIDFromResponse(res sdk.TxResponse) string {
-	var txMsgData sdk.TxMsgData
-	if err := proto.Unmarshal([]byte(res.Data), &txMsgData); err != nil {
-		panic(err)
-	}
-
-	for _, msgResp := range txMsgData.MsgResponses {
-		switch res := msgResp.GetCachedValue().(type) {
-		case *channeltypes.MsgChannelOpenInitResponse:
-			return res.ChannelId
-		case *channeltypes.MsgChannelOpenTryResponse:
-			// TODO: Add channelID to response - https://github.com/cosmos/ibc-go/pull/3117
-		}
-	}
-
-	return ""
 }
