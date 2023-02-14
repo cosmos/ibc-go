@@ -9,9 +9,19 @@ type ClientState struct {
 }
 ```
 
+The 09-localhost `ClientState` is instantiated in the `InitGenesis` handler of the 02-client submodule in core IBC.
+It calls `CreateLocalhostClient`, declaring a new `ClientState` and initializing it with its own client prefixed store.
+
+```go
+func (k Keeper) CreateLocalhostClient(ctx sdk.Context) error {
+	var clientState localhost.ClientState
+	return clientState.Initialize(ctx, k.cdc, k.ClientStore(ctx, exported.Localhost), nil)
+}
+```
+
 ### Updates
 
-The latest height is updated periodically through the ABCI [`BeginBlock`](https://docs.cosmos.network/v0.47/building-modules/beginblock-endblock) interface of the `02-client` submodule in core IBC.
+The latest height is updated periodically through the ABCI [`BeginBlock`](https://docs.cosmos.network/v0.47/building-modules/beginblock-endblock) interface of the 02-client submodule in core IBC.
 
 [See `BeginBlocker` in abci.go](https://github.com/cosmos/ibc-go/blob/09-localhost/modules/core/02-client/abci.go#L12)
 
@@ -39,4 +49,4 @@ func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, client
 }
 ```
 
-Note that the 09-localhost `ClientState` is not updated through the `02-client` interface leveraged by conventional IBC light clients.
+Note that the 09-localhost `ClientState` is not updated through the 02-client interface leveraged by conventional IBC light clients.
