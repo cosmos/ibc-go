@@ -1,9 +1,13 @@
 package v7
 
 import (
+	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	consensusparamskeeper "github.com/cosmos/cosmos-sdk/x/consensus/keeper"
+	paramskeeper "github.com/cosmos/cosmos-sdk/x/params/keeper"
+	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	clientkeeper "github.com/cosmos/ibc-go/v7/modules/core/02-client/keeper"
@@ -21,12 +25,17 @@ func CreateUpgradeHandler(
 	configurator module.Configurator,
 	cdc codec.BinaryCodec,
 	clientKeeper clientkeeper.Keeper,
+	consensusParamsKeeper consensusparamskeeper.Keeper,
+	paramsKeeper paramskeeper.Keeper,
 ) upgradetypes.UpgradeHandler {
 	return func(ctx sdk.Context, _ upgradetypes.Plan, vm module.VersionMap) (module.VersionMap, error) {
 		// OPTIONAL: prune expired tendermint consensus states to save storage space
 		if _, err := ibctmmigrations.PruneExpiredConsensusStates(ctx, cdc, clientKeeper); err != nil {
 			return nil, err
 		}
+
+		legacyBaseAppSubspace := paramsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramstypes.ConsensusParamsKeyTable())
+		baseapp.MigrateParams(ctx, legacyBaseAppSubspace, &consensusParamsKeeper)
 
 		return mm.RunMigrations(ctx, configurator, vm)
 	}
