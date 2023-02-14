@@ -18,6 +18,7 @@ existing IBC light clients as well as adding support for new IBC light clients w
 hard-fork event.
 
 ## Context
+
 Currently in the SDK, light clients are defined as part of the codebase and are implemented as submodules under
 `ibc-go/core/modules/light-clients/`.
 
@@ -48,7 +49,6 @@ With WASM light client module, anybody can add new IBC light client in the form 
 as well as instantiate clients using any created client type. This allows any chain to update its own light client in other chains
 without going through steps outlined above.
 
-
 ## Decision
 
 We decided to use WASM light client module as a light client proxy which will interface with the actual light client
@@ -58,17 +58,17 @@ has prefix of `wasm/`.
 ```go
 // IsAllowedClient checks if the given client type is registered on the allowlist.
 func (p Params) IsAllowedClient(clientType string) bool {
-	if p.AreWASMClientsAllowed && isWASMClient(clientType) {
-		return true
-	}
-	
-	for _, allowedClient := range p.AllowedClients {
-		if allowedClient == clientType {
-			return true
-		}
-	}
+  if p.AreWASMClientsAllowed && isWASMClient(clientType) {
+    return true
+  }
 
-	return false
+  for _, allowedClient := range p.AllowedClients {
+    if allowedClient == clientType {
+      return true
+    }
+  }
+
+  return false
 }
 ```
 
@@ -77,10 +77,10 @@ processed by IBC Wasm module.
 
 ```go
 func (k Keeper) UploadLightClient (wasmCode: []byte, description: String) {
-    wasmRegistry = getWASMRegistry()
-    id := hex.EncodeToString(sha256.Sum256(wasmCode))
-    assert(!wasmRegistry.Exists(id))
-    assert(wasmRegistry.ValidateAndStoreCode(id, description, wasmCode, false))
+  wasmRegistry = getWASMRegistry()
+  id := hex.EncodeToString(sha256.Sum256(wasmCode))
+  assert(!wasmRegistry.Exists(id))
+  assert(wasmRegistry.ValidateAndStoreCode(id, description, wasmCode, false))
 }
 ```
 
@@ -101,47 +101,49 @@ array of bytes returned by the smart contract. This data is deserialized and pas
 
 ```go
 func (c *ClientState) CheckProposedHeaderAndUpdateState(context sdk.Context, marshaler codec.BinaryMarshaler, store sdk.KVStore, header exported.ClientMessage) (exported.ClientState, exported.ConsensusState, error) {
-	// get consensus state corresponding to client state to check if the client is expired
-	consensusState, err := GetConsensusState(store, marshaler, c.LatestHeight)
-	if err != nil {
-		return nil, nil, sdkerrors.Wrapf(
-			err, "could not get consensus state from clientstore at height: %d", c.LatestHeight,
-		)
-	}
-	
-	payload := make(map[string]map[string]interface{})
-	payload[CheckProposedHeaderAndUpdateState] = make(map[string]interface{})
-	inner := payload[CheckProposedHeaderAndUpdateState]
-	inner["me"] = c
-	inner["header"] = header
-	inner["consensus_state"] = consensusState
+  // get consensus state corresponding to client state to check if the client is expired
+  consensusState, err := GetConsensusState(store, marshaler, c.LatestHeight)
+  if err != nil {
+    return nil, nil, sdkerrors.Wrapf(
+    err, "could not get consensus state from clientstore at height: %d", c.LatestHeight,
+    )
+  }
+  
+  payload := make(map[string]map[string]interface{})
+  payload[CheckProposedHeaderAndUpdateState] = make(map[string]interface{})
+  inner := payload[CheckProposedHeaderAndUpdateState]
+  inner["me"] = c
+  inner["header"] = header
+  inner["consensus_state"] = consensusState
 
-	encodedData, err := json.Marshal(payload)
-	if err != nil {
-		return nil, nil, sdkerrors.Wrapf(ErrUnableToMarshalPayload, fmt.Sprintf("underlying error: %s", err.Error()))
-	}
-	out, err := callContract(c.CodeId, context, store, encodedData)
-	if err != nil {
-		return nil, nil, sdkerrors.Wrapf(ErrUnableToCall, fmt.Sprintf("underlying error: %s", err.Error()))
-	}
-	output := clientStateCallResponse{}
-	if err := json.Unmarshal(out.Data, &output); err != nil {
-		return nil, nil, sdkerrors.Wrapf(ErrUnableToUnmarshalPayload, fmt.Sprintf("underlying error: %s", err.Error()))
-	}
-	if !output.Result.IsValid {
-		return nil, nil, fmt.Errorf("%s error ocurred while updating client state", output.Result.ErrorMsg)
-	}
-	output.resetImmutables(c)
-	return output.NewClientState, output.NewConsensusState, nil
+  encodedData, err := json.Marshal(payload)
+  if err != nil {
+    return nil, nil, sdkerrors.Wrapf(ErrUnableToMarshalPayload, fmt.Sprintf("underlying error: %s", err.Error()))
+  }
+  out, err := callContract(c.CodeId, context, store, encodedData)
+  if err != nil {
+    return nil, nil, sdkerrors.Wrapf(ErrUnableToCall, fmt.Sprintf("underlying error: %s", err.Error()))
+  }
+  output := clientStateCallResponse{}
+  if err := json.Unmarshal(out.Data, &output); err != nil {
+    return nil, nil, sdkerrors.Wrapf(ErrUnableToUnmarshalPayload, fmt.Sprintf("underlying error: %s", err.Error()))
+  }
+  if !output.Result.IsValid {
+    return nil, nil, fmt.Errorf("%s error ocurred while updating client state", output.Result.ErrorMsg)
+  }
+  output.resetImmutables(c)
+  return output.NewClientState, output.NewConsensusState, nil
 }
 ```
 
 ## Consequences
 
 ### Positive
+
 - Adding support for new light client or upgrading existing light client is way easier than before and only requires single transaction.
 - Improves maintainability of Cosmos SDK, since no change in codebase is required to support new client or upgrade it.
 
 ### Negative
+
 - Light clients need to be written in subset of rust which could compile in Wasm.
 - Introspecting light client code is difficult as only compiled bytecode exists in the blockchain.

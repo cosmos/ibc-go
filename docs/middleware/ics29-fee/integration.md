@@ -57,10 +57,10 @@ keys := sdk.NewKVStoreKeys(
 ... 
 
 app.IBCFeeKeeper = ibcfeekeeper.NewKeeper(
-	appCodec, keys[ibcfeetypes.StoreKey],
-	app.IBCKeeper.ChannelKeeper, // may be replaced with IBC middleware
-	app.IBCKeeper.ChannelKeeper,
-	&app.IBCKeeper.PortKeeper, app.AccountKeeper, app.BankKeeper,
+  appCodec, keys[ibcfeetypes.StoreKey],
+  app.IBCKeeper.ChannelKeeper, // may be replaced with IBC middleware
+  app.IBCKeeper.ChannelKeeper,
+  &app.IBCKeeper.PortKeeper, app.AccountKeeper, app.BankKeeper,
 )
 
 
@@ -100,11 +100,10 @@ app.moduleManager.SetOrderInitGenesis(
 
 ## Configuring an application stack with Fee Middleware
 
-As mentioned in [IBC middleware development](../../ibc/middleware/develop.md) an application stack may be composed of many or no middlewares that nest a base application. 
+As mentioned in [IBC middleware development](../../ibc/middleware/develop.md) an application stack may be composed of many or no middlewares that nest a base application.
 These layers form the complete set of application logic that enable developers to build composable and flexible IBC application stacks.
 For example, an application stack may be just a single base application like `transfer`, however, the same application stack composed with `29-fee` will nest the `transfer` base application
 by wrapping it with the Fee Middleware module.
-
 
 ### Transfer
 

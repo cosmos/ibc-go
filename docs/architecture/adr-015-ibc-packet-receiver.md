@@ -5,7 +5,7 @@
 - 2019 Oct 22: Initial Draft
 
 ## Context
- 
+
 [ICS 26 - Routing Module](https://github.com/cosmos/ibc/tree/master/spec/core/ics-026-routing-module) defines a function [`handlePacketRecv`](https://github.com/cosmos/ibc/tree/master/spec/core/ics-026-routing-module#packet-relay).
 
 In ICS 26, the routing module is defined as a layer above each application module
@@ -154,16 +154,16 @@ func (keeper ChannelKeeper) DeleteCommitmentTimeout(ctx Context, packet Packet) 
 Each application handler should call respective finalization methods on the `PortKeeper`
 in order to increase sequence (in case of packet) or remove the commitment
 (in case of acknowledgement and timeout).
-Calling those functions implies that the application logic has successfully executed. 
+Calling those functions implies that the application logic has successfully executed.
 However, the handlers can return `Result` with `CodeTxBreak` after calling those methods
-which will persist the state changes that has been already done but prevent any further 
+which will persist the state changes that has been already done but prevent any further
 messages to be executed in case of semantically invalid packet. This will keep the sequence
-increased in the previous IBC packets(thus preventing double execution) without 
+increased in the previous IBC packets(thus preventing double execution) without
 proceeding to the following messages.
-In any case the application modules should never return state reverting result, 
+In any case the application modules should never return state reverting result,
 which will make the channel unable to proceed.
 
-`ChannelKeeper.CheckOpen` method will be introduced. This will replace `onChanOpen*` defined 
+`ChannelKeeper.CheckOpen` method will be introduced. This will replace `onChanOpen*` defined
 under the routing module specification. Instead of define each channel handshake callback
 functions, application modules can provide `ChannelChecker` function with the `AppModule`
 which will be injected to `ChannelKeeper.Port()` at the top level application.
