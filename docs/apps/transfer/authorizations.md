@@ -8,8 +8,7 @@ For the specified channel, the granter must be able to specify a spend limit of 
 
 The granter may be able to specify the list of addresses that they allow to receive funds. If empty, then all addresses are allowed.
 
-
-It takes: 
+It takes:
 
 - a `SourcePort` and a `SourceChannel` which together comprise the unique transfer channel identifier over which authorized funds can be transferred.
 
@@ -18,6 +17,7 @@ It takes:
 - an `AllowList` list that specifies the list of addresses that are allowed to receive funds. If this list is empty, then all addresses are allowed to receive funds from the `TransferAuthorization`.
 
 Setting a `TransferAuthorization` is expected to fail if:
+
 - the spend limit is nil
 - the denomination of the spend limit is an invalid coin type
 - the source port ID is invalid
@@ -28,20 +28,20 @@ Below is the `TransferAuthorization` message:
 
 ```go
 func NewTransferAuthorization(allocations ...Allocation) *TransferAuthorization {
-	return &TransferAuthorization{
-		Allocations: allocations,
-	}
+  return &TransferAuthorization{
+    Allocations: allocations,
+  }
 }
 
 type Allocation struct {
-	// the port on which the packet will be sent
-	SourcePort string 
-	// the channel by which the packet will be sent
-	SourceChannel string 
-	// spend limitation on the channel
-	SpendLimit sdk.Coins  
-	// allow list of receivers, an empty allow list permits any receiver address
-	AllowList []string 
+  // the port on which the packet will be sent
+  SourcePort string 
+  // the channel by which the packet will be sent
+  SourceChannel string 
+  // spend limitation on the channel
+  SpendLimit sdk.Coins  
+  // allow list of receivers, an empty allow list permits any receiver address
+  AllowList []string 
 }
 
 ```

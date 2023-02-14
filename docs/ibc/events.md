@@ -11,7 +11,7 @@ with an attirbute key of `action` will represent the first event for each messag
 being processed as emitted by the SDK's baseapp. Each IBC TAO message will
 also emit its module name in the format 'ibc_sub-modulename'.
 
-All the events for the Channel handshakes, `SendPacket`, `RecvPacket`, `AcknowledgePacket`, 
+All the events for the Channel handshakes, `SendPacket`, `RecvPacket`, `AcknowledgePacket`,
 `TimeoutPacket` and `TimeoutOnClose` will emit additional events not specified here due to
 callbacks to IBC applications.
 
@@ -63,7 +63,7 @@ callbacks to IBC applications.
 | Type                    | Attribute Key   | Attribute Value   |
 |-------------------------|-----------------|-------------------|
 | upgrade_client_proposal | title           | {title}           |
-| upgrade_client_proposal | height          | {height}          |     
+| upgrade_client_proposal | height          | {height}          |
 
 ## ICS 03 - Connection
 
@@ -81,7 +81,7 @@ callbacks to IBC applications.
 
 | Type                | Attribute Key              | Attribute Value             |
 |---------------------|----------------------------|-----------------------------|
-| connection_open_try | connection_id              | {connectionId}              | 
+| connection_open_try | connection_id              | {connectionId}              |
 | connection_open_try | client_id                  | {clientId}                  |
 | connection_open_try | counterparty_client_id     | {counterparty.clientId      |
 | connection_open_try | counterparty_connection_id | {counterparty.connectionId} |
@@ -199,7 +199,7 @@ callbacks to IBC applications.
 | message     | action                   | application-module-defined-field |
 | message     | module                   | ibc-channel                      |
 
-### MsgRecvPacket 
+### MsgRecvPacket
 
 | Type        | Attribute Key            | Attribute Value      |
 |-------------|--------------------------|----------------------|
@@ -216,7 +216,7 @@ callbacks to IBC applications.
 | message     | action                   | recv_packet          |
 | message     | module                   | ibc-channel          |
 
-### MsgAcknowledgePacket 
+### MsgAcknowledgePacket
 
 | Type               | Attribute Key            | Attribute Value      |
 |--------------------|--------------------------|----------------------|
@@ -231,7 +231,7 @@ callbacks to IBC applications.
 | message            | action                   | acknowledge_packet   |
 | message            | module                   | ibc-channel          |
 
-### MsgTimeoutPacket & MsgTimeoutOnClose 
+### MsgTimeoutPacket & MsgTimeoutOnClose
 
 | Type           | Attribute Key            | Attribute Value      |
 |----------------|--------------------------|----------------------|
@@ -245,4 +245,3 @@ callbacks to IBC applications.
 | timeout_packet | packet_channel_ordering  | {channel.Ordering}   |
 | message        | action                   | timeout_packet       |
 | message        | module                   | ibc-channel          |
-
