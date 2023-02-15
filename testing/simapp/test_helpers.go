@@ -209,8 +209,8 @@ func SetupWithGenesisAccounts(genAccs []authtypes.GenesisAccount, balances ...ba
 //
 // CONTRACT: BeginBlock must be called before this function.
 func SignAndDeliver(
-	t *testing.T, txCfg client.TxConfig, app *bam.BaseApp, header tmproto.Header, msgs []sdk.Msg,
-	chainID string, accNums, accSeqs []uint64, expSimPass, expPass bool, priv ...cryptotypes.PrivKey,
+	tb testing.TB, txCfg client.TxConfig, app *bam.BaseApp, msgs []sdk.Msg,
+	chainID string, accNums, accSeqs []uint64, expPass bool, priv ...cryptotypes.PrivKey,
 ) (sdk.GasInfo, *sdk.Result, error) {
 	tx, err := simtestutil.GenSignedMockTx(
 		rand.New(rand.NewSource(time.Now().UnixNano())),
@@ -223,17 +223,17 @@ func SignAndDeliver(
 		accSeqs,
 		priv...,
 	)
-	require.NoError(t, err)
+	require.NoError(tb, err)
 
 	// Simulate a sending a transaction
 	gInfo, res, err := app.SimDeliver(txCfg.TxEncoder(), tx)
 
 	if expPass {
-		require.NoError(t, err)
-		require.NotNil(t, res)
+		require.NoError(tb, err)
+		require.NotNil(tb, res)
 	} else {
-		require.Error(t, err)
-		require.Nil(t, res)
+		require.Error(tb, err)
+		require.Nil(tb, res)
 	}
 
 	return gInfo, res, err

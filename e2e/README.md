@@ -1,5 +1,5 @@
+# Table of Contents
 
-## Table of Contents
 1. [How to write tests](#how-to-write-tests)
    - a. [Adding a new test](#adding-a-new-test)
    - b. [Running the tests with custom images](#running-tests-with-custom-images)
@@ -15,14 +15,13 @@
 2. [Test design](#test-design)
    - a. [interchaintest](#interchaintest)
    - b. [CI configuration](#ci-configuration)
-3. [Github Workflows](#github-workflows) 
+3. [Github Workflows](#github-workflows)
 4. [Running Compatibility Tests](#running-compatibility-tests)
 5. [Troubleshooting](#troubleshooting)
 
+# How to write tests
 
-## How to write tests
-
-### Adding a new test
+## Adding a new test
 
 All tests should go under the [e2e](https://github.com/cosmos/ibc-go/tree/main/e2e) directory. When adding a new test, either add a new test function
 to an existing test suite **_in the same file_**, or create a new test suite in a new file and add test functions there.
@@ -33,21 +32,20 @@ be quite common in most tests.
 
 > Note: see [here](#how-tests-are-run) for details about these requirements.
 
-
-### Running tests with custom images
+## Running tests with custom images
 
 Tests can be run using a Makefile target under the e2e directory. `e2e/Makefile`
 
 There are several envinronment variables that alter the behaviour of the make target.
 
-| Environment Variable | Description                              | Default Value |
-|----------------------|------------------------------------------|---------------|
+| Environment Variable | Description                               | Default Value |
+|----------------------|-------------------------------------------|---------------|
 | CHAIN_IMAGE          | The image that will be used for the chain | ibc-go-simd   |
-| CHAIN_A_TAG          | The tag used for chain B                 | latest        |
-| CHAIN_B_TAG          | The tag used for chain A                 | latest        |
-| CHAIN_BINARY         | The binary used in the container         | simd          |
-| RLY_TAG              | The tag used for the go relayer          | main          |
-
+| CHAIN_A_TAG          | The tag used for chain B                  | latest        |
+| CHAIN_B_TAG          | The tag used for chain A                  | latest        |
+| CHAIN_BINARY         | The binary used in the container          | simd          |
+| RELAYER_TAG          | The tag used for the relayer              | main          |
+| RELAYER_TYPE         | The type of relayer to use (rly/hermes)   | rly           |
 
 > Note: when running tests locally, **no images are pushed** to the `ghcr.io/cosmos/ibc-go-simd` registry.
 The images which are used only exist on your machine.
@@ -57,8 +55,7 @@ and the go relayer.
 
 Every time changes are pushed to a branch or to `main`, a new `simd` image is built and pushed [here](https://github.com/cosmos/ibc-go/pkgs/container/ibc-go-simd).
 
-
-#### Example Command:
+### Example Command
 
 ```sh
 export CHAIN_IMAGE="ghcr.io/cosmos/ibc-go-simd"
@@ -70,10 +67,9 @@ export CHAIN_BINARY="simd"
 # export CHAIN_B_TAG="main"
 # export CHAIN_BINARY="icad"
 
-export RLY_TAG="v2.0.0"
+export RELAYER_TAG="v2.0.0"
 make e2e-test entrypoint=TestInterchainAccountsTestSuite test=TestMsgSubmitTx_SuccessfulTransfer
 ```
-
 
 > Note: sometimes it can be useful to make changes to [ibctest](https://github.com/strangelove-ventures/interchaintest) when running tests locally. In order to do this, add the following line to
 e2e/go.mod
@@ -82,16 +78,16 @@ e2e/go.mod
 
 Or point it to any local checkout you have.
 
-#### Running tests in CI
+### Running tests in CI
 
 To run tests in CI, you can checkout the ibc-go repo and provide these environment variables
 to the CI task.
 
 [This repo](https://github.com/chatton/ibc-go-e2e-demo) contains an example of how to do this with Github Actions.
 
-### Code samples
+## Code samples
 
-#### Setup
+### Setup
 
 Every standard test will start with this. This creates two chains and a relayer,
 initializes relayer accounts on both chains, establishes a connection and a channel
@@ -106,7 +102,7 @@ relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, feeMiddlewareChannelOpt
 chainA, chainB := s.GetChains()
 ```
 
-#### Creating test users
+### Creating test users
 
 There are helper functions to easily create users on both chains.
 
@@ -115,7 +111,7 @@ chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 ```
 
-#### Waiting
+### Waiting
 
 We can wait for some number of blocks on the specified chains if required.
 
@@ -125,7 +121,7 @@ err := test.WaitForBlocks(ctx, 1, chainA, chainB)
 s.Require().NoError(err)
 ```
 
-#### Query wallet balances
+### Query wallet balances
 
 We can fetch balances of wallets on specific chains.
 
@@ -134,7 +130,7 @@ chainABalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
 s.Require().NoError(err)
 ```
 
-#### Broadcasting messages
+### Broadcasting messages
 
 We can broadcast arbitrary messages which are signed on behalf of users created in the test.
 
@@ -148,26 +144,26 @@ chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 
 t.Run("broadcast multi message transaction", func(t *testing.T){
-    payPacketFeeMsg := feetypes.NewMsgPayPacketFee(testFee, channelA.PortID, channelA.ChannelID, chainAWallet.Bech32Address(chainA.Config().Bech32Prefix), nil)
-    transferMsg := transfertypes.NewMsgTransfer(channelA.PortID, channelA.ChannelID, transferAmount, chainAWallet.Bech32Address(chainA.Config().Bech32Prefix), chainBWallet.Bech32Address(chainB.Config().Bech32Prefix), clienttypes.NewHeight(1, 1000), 0)
-    resp, err := s.BroadcastMessages(ctx, chainA, chainAWallet, payPacketFeeMsg, transferMsg)
+  payPacketFeeMsg := feetypes.NewMsgPayPacketFee(testFee, channelA.PortID, channelA.ChannelID, chainAWallet.Bech32Address(chainA.Config().Bech32Prefix), nil)
+  transferMsg := transfertypes.NewMsgTransfer(channelA.PortID, channelA.ChannelID, transferAmount, chainAWallet.Bech32Address(chainA.Config().Bech32Prefix), chainBWallet.Bech32Address(chainB.Config().Bech32Prefix), clienttypes.NewHeight(1, 1000), 0)
+  resp, err := s.BroadcastMessages(ctx, chainA, chainAWallet, payPacketFeeMsg, transferMsg)
 
-    s.AssertValidTxResponse(resp)
-    s.Require().NoError(err)
+  s.AssertValidTxResponse(resp)
+  s.Require().NoError(err)
 })
 ```
 
-#### Starting the relayer
+### Starting the relayer
 
 The relayer can be started with the following.
 
 ```go
 t.Run("start relayer", func(t *testing.T) {
-		s.StartRelayer(relayer)
+  s.StartRelayer(relayer)
 })
 ```
 
-#### Arbitrary commands
+### Arbitrary commands
 
 Arbitrary commands can be executed on a given chain.
 
@@ -179,7 +175,7 @@ However, it is preferable to [broadcast messages](#broadcasting-messages) or use
 stdout, stderr, err := chainA.Exec(ctx, []string{"tx", "..."}, nil)
 ```
 
-#### IBC transfer
+### IBC transfer
 
 It is possible to send an IBC transfer in two ways.
 
@@ -197,23 +193,21 @@ Broadcast a `MsgTransfer`.
 
 ```go
 t.Run("send IBC transfer", func(t *testing.T){
-    transferMsg := transfertypes.NewMsgTransfer(channelA.PortID, channelA.ChannelID, transferAmount, chainAWallet.Bech32Address(chainA.Config().Bech32Prefix), chainBWallet.Bech32Address(chainB.Config().Bech32Prefix), clienttypes.NewHeight(1, 1000), 0)
-    resp, err := s.BroadcastMessages(ctx, chainA, chainAWallet, transferMsg)
-    s.AssertValidTxResponse(resp)
-    s.Require().NoError(err)
+  transferMsg := transfertypes.NewMsgTransfer(channelA.PortID, channelA.ChannelID, transferAmount, chainAWallet.Bech32Address(chainA.Config().Bech32Prefix), chainBWallet.Bech32Address(chainB.Config().Bech32Prefix), clienttypes.NewHeight(1, 1000), 0)
+  resp, err := s.BroadcastMessages(ctx, chainA, chainAWallet, transferMsg)
+  s.AssertValidTxResponse(resp)
+  s.Require().NoError(err)
 })
 ```
 
 ## Test design
 
-
-#### interchaintest
+### interchaintest
 
 These E2E tests use the [interchaintest framework](https://github.com/strangelove-ventures/interchaintest). This framework creates chains and relayers in containers and allows for arbitrary commands to be executed in the chain containers,
 as well as allowing us to broadcast arbitrary messages which are signed on behalf of a user created in the test.
 
-
-#### CI configuration
+### CI configuration
 
 There are two main github actions for e2e tests.
 
@@ -226,8 +220,7 @@ that is run uses the image that was built.
 
 In `e2e-fork.yaml`, images are not pushed to this registry, but instead remain local to the host runner.
 
-
-### How tests are run
+## How tests are run
 
 The tests use the `matrix` feature of Github Actions. The matrix is
 dynamically generated using [this command](https://github.com/cosmos/ibc-go/blob/main/cmd/build_test_matrix/main.go).
@@ -239,18 +232,18 @@ generation process.
 
 Which looks under the `e2e` directory, and creates a task for each test suite function.
 
-#### Example
+### Example
 
 ```go
 // e2e/file_one_test.go
 package e2e
 
 func TestFeeMiddlewareTestSuite(t *testing.T) {
-	suite.Run(t, new(FeeMiddlewareTestSuite))
+  suite.Run(t, new(FeeMiddlewareTestSuite))
 }
 
 type FeeMiddlewareTestSuite struct {
-	testsuite.E2ETestSuite
+  testsuite.E2ETestSuite
 }
 
 func (s *FeeMiddlewareTestSuite) TestA() {}
@@ -264,11 +257,11 @@ func (s *FeeMiddlewareTestSuite) TestC() {}
 package e2e
 
 func TestTransferTestSuite(t *testing.T) {
-	suite.Run(t, new(TransferTestSuite))
+  suite.Run(t, new(TransferTestSuite))
 }
 
 type TransferTestSuite struct {
-	testsuite.E2ETestSuite
+  testsuite.E2ETestSuite
 }
 
 func (s *TransferTestSuite) TestD() {}
@@ -281,32 +274,32 @@ In the above example, the following would be generated.
 
 ```json
 {
-   "include": [
-      {
-         "entrypoint": "TestFeeMiddlewareTestSuite",
-         "test": "TestA"
-      },
-      {
-         "entrypoint": "TestFeeMiddlewareTestSuite",
-         "test": "TestB"
-      },
-      {
-         "entrypoint": "TestFeeMiddlewareTestSuite",
-         "test": "TestC"
-      },
-      {
-         "entrypoint": "TestTransferTestSuite",
-         "test": "TestD"
-      },
-      {
-         "entrypoint": "TestTransferTestSuite",
-         "test": "TestE"
-      },
-      {
-         "entrypoint": "TestTransferTestSuite",
-         "test": "TestF"
-      }
-   ]
+  "include": [
+    {
+      "entrypoint": "TestFeeMiddlewareTestSuite",
+      "test": "TestA"
+    },
+    {
+      "entrypoint": "TestFeeMiddlewareTestSuite",
+      "test": "TestB"
+    },
+    {
+      "entrypoint": "TestFeeMiddlewareTestSuite",
+      "test": "TestC"
+    },
+    {
+      "entrypoint": "TestTransferTestSuite",
+      "test": "TestD"
+    },
+    {
+      "entrypoint": "TestTransferTestSuite",
+      "test": "TestE"
+    },
+    {
+      "entrypoint": "TestTransferTestSuite",
+      "test": "TestF"
+    }
+  ]
 }
 ```
 
@@ -314,16 +307,11 @@ This string is used to generate a test matrix in the Github Action that runs the
 
 All tests will be run on different hosts.
 
+### Misceleneous:
 
-#### Misceleneous:
+## GitHub Workflows
 
-* Gas fees are set to zero to simply calcuations when asserting account balances.
-* When upgrading from e.g. v4 -> v5, in ibc-go, we cannot upgrade the go.mod under `e2e` since v5 will not yet exist. We need to upgrade it in a follow up PR.
-
-
-### GitHub Workflows
-
-#### Building and pushing a `simd` image.
+### Building and pushing a `simd` image
 
 If we ever need to manually build and push an image, we can do so with the [Build Simd Image](../.github/workflows/build-simd-image-from-tag.yml) GitHub workflow.
 
@@ -339,7 +327,7 @@ Alternatively, the [gh](https://cli.github.com/) CLI tool can be used to trigger
 gh workflow run "Build Simd Image" -f tag=v3.0.0
 ```
 
-### Running Compatibility Tests
+## Running Compatibility Tests
 
 To trigger the compatibility tests for a release branch, you can use the following command.
 
@@ -348,20 +336,19 @@ make compatibility-tests release_branch=release/v5.0.x
 ```
 
 This will build an image from the tip of the release branch and run all tests specified in the corresponding
-json matrix files under .github/compatibility-test-matrices and is equivalent to going to the Github UI and navigating to 
+json matrix files under .github/compatibility-test-matrices and is equivalent to going to the Github UI and navigating to
 
 `Actions` -> `Compatibility E2E` -> `Run Workflow` -> `release/v5.0.x`
 
+## Troubleshooting
 
-### Troubleshooting
-
-* On Mac, after running a lot of tests, it can happen that containers start failing. To fix this, you can try clearing existing containers and restarting the docker daemon.
+- On Mac, after running a lot of tests, it can happen that containers start failing. To fix this, you can try clearing existing containers and restarting the docker daemon.
 
   This generally manifests itself as relayer or simd containers timing out during setup stages of the test. This doesn't happen in CI.
+
   ```bash
   # delete all images
   docker system prune -af
   ```
-  This issue doesn't seem to occur on other operating systems.
 
-  
+  This issue doesn't seem to occur on other operating systems.

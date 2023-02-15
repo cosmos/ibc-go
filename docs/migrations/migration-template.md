@@ -3,6 +3,7 @@
 This guide provides instructions for migrating to a new version of ibc-go.
 
 There are four sections based on the four potential user groups of this document:
+
 - [Chains](#chains)
 - [IBC Apps](#ibc-apps)
 - [Relayers](#relayers)
