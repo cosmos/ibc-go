@@ -76,9 +76,9 @@ The CallbackPacketData interface will get extended to add `GetSrcCallbackAddress
 or they may return the empty string. The address may reference an IBCActor or it may be a regular user address. If the address is not an IBCActor, the actor callback must continue processing (no-op). Any IBC application or middleware that uses these methods must handle these cases. In most cases, the `GetSrcCallbackAddress` will be the sender address and the `GetDestCallbackAddress` will be the receiver address. However, these are named generically so that implementors may choose a different contract address for the callback if they choose.
 
 ```go
-type Packet interface {
-    // existing Packet methods
-
+// Implemented by any packet data type that wants to support
+// PacketActor callbacks
+type CallbackPacketData interface {
     // may return the empty string
     GetSrcCallbackAddress() string
 
@@ -198,7 +198,7 @@ func OnRecvPacket(
     // run any necesssary logic first
     // IBCActor logic will postprocess
 
-    acc := k.getAccount(ctx, packet.GetReceiver())
+    acc := k.getAccount(ctx, packet.GetDstCallbackAddress())
     ibcActor, ok := acc.(IBCActor)
     if ok {
         err := ibcActor.OnRecvPacket(ctx, packet, relayer)
@@ -227,7 +227,7 @@ func (im IBCModule) OnAcknowledgementPacket(
     unmarshal(acknowledgement, ack)
 
     // send acknowledgement to original actor
-    acc := k.getAccount(ctx, packet.GetSender())
+    acc := k.getAccount(ctx, packet.GetSrcCallbackAddress())
     ibcActor, ok := acc.(IBCActor)
     if ok {
         err := ibcActor.OnAcknowledgementPacket(ctx, packet, ack, relayer)
@@ -250,7 +250,7 @@ func (im IBCModule) OnTimeoutPacket(
     // application-specific onTimeoutPacket logic
 
     // call timeout callback on original actor
-    acc := k.getAccount(ctx, packet.GetSender())
+    acc := k.getAccount(ctx, packet.GetSrcCallbackAddress())
     ibcActor, ok := acc.(IBCActor)
     if ok {
         err := ibcActor.OnTimeoutPacket(ctx, packet, relayer)
