@@ -65,6 +65,9 @@ compiled to WASM instead.
 
 <!-- A use case describes a sequence of interactions between a system and an external actor that results in the actor being able to achieve some outcome of value. An actor is a person (or sometimes another software system or a hardware device) that interacts with the system to perform a use case. Identify the various user classes that will use the feature. -->
 
+The first use case that this module will enable is the connection between GRANDPA light client chains and Tendermint light client chains. Further implementation of other light clients, such as NEAR, Ethereum, etc.
+will likely consider building on top of this module.
+
 # Functional requirements
 
 <!-- They should describe as completely as necessary the system's behaviors under various conditions. They describe what the engineers must implement to enable users to accomplish their tasks (user requirements), thereby satisfying the business requirements. Software engineers don't implement business requirements or user requirements. They implement functional requirements, specific bits of system behavior. Each requirement should be uniquely identified with a meaningful tag. -->
