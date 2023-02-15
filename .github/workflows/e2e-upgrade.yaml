@@ -30,6 +30,7 @@ jobs:
             chain-upgrade-tag: v7.0.0-rc0 # TODO: needs v7.0.0-rc1 when cut
             upgrade-plan-name: "v7"
     steps:
+    - uses: actions/checkout@v3
     - uses: ./.github/workflows/e2e-test-workflow-call.yml
       with:
         chain-image: "${{ matrix.chain-image }}"
