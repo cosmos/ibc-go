@@ -6,8 +6,6 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
@@ -123,16 +121,7 @@ func (s *LocalhostTransferTestSuite) TestMsgTransfer_Localhost() {
 		s.Require().NoError(err)
 		s.AssertValidTxResponse(txResp)
 
-		var events sdk.Events
-		for _, evt := range txResp.Events {
-			var attributes []sdk.Attribute
-			for _, attr := range evt.GetAttributes() {
-				attributes = append(attributes, sdk.NewAttribute(attr.Key, attr.Value))
-			}
-
-			events = events.AppendEvent(sdk.NewEvent(evt.GetType(), attributes...))
-		}
-
+		events := testsuite.ABCIToSDKEvents(txResp.Events)
 		packet, err = ibctesting.ParsePacketFromEvents(events)
 		s.Require().NoError(err)
 		s.Require().NotNil(packet)
@@ -153,16 +142,7 @@ func (s *LocalhostTransferTestSuite) TestMsgTransfer_Localhost() {
 		s.Require().NoError(err)
 		s.AssertValidTxResponse(txResp)
 
-		var events sdk.Events
-		for _, evt := range txResp.Events {
-			var attributes []sdk.Attribute
-			for _, attr := range evt.GetAttributes() {
-				attributes = append(attributes, sdk.NewAttribute(attr.Key, attr.Value))
-			}
-
-			events = events.AppendEvent(sdk.NewEvent(evt.GetType(), attributes...))
-		}
-
+		events := testsuite.ABCIToSDKEvents(txResp.Events)
 		ack, err = ibctesting.ParseAckFromEvents(events)
 		s.Require().NoError(err)
 		s.Require().NotNil(ack)
