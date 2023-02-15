@@ -2,42 +2,38 @@ name: Tests / E2E Upgrade
 on: workflow_dispatch
 
 jobs:
-  upgrade-tests:
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - test: TestV4ToV5ChainUpgrade
-            chain-image: ghcr.io/cosmos/ibc-go-simd
-            chain-binary: simd
-            chain-a-tag: v4.3.0
-            chain-b-tag: v4.3.0
-            chain-upgrade-tag: v5.1.0
-            upgrade-plan-name: "normal upgrade"
-          - test: TestV5ToV6ChainUpgrade
-            chain-image: ghcr.io/cosmos/ibc-go-icad
-            chain-binary: icad
-            chain-a-tag: v0.3.5
-            chain-b-tag: v0.3.5
-            chain-upgrade-tag: v0.4.1
-            upgrade-plan-name: "ibc-go/v6"
-          - test: TestV6ToV7ChainUpgrade
-            chain-image: ghcr.io/cosmos/ibc-go-simd
-            chain-binary: simd
-            chain-a-tag: v6.1.0
-            chain-b-tag: v6.1.0
-            chain-upgrade-tag: v7.0.0-rc0 # TODO: needs v7.0.0-rc1 when cut
-            upgrade-plan-name: "v7"
-    steps:
-    - uses: actions/checkout@v3
-    - uses: ./.github/workflows/e2e-test-workflow-call.yml
-      with:
-        chain-image: "${{ matrix.chain-image }}"
-        chain-binary: "${{ matrix.chain-binary }}"
-        chain-a-tag: "${{ matrix.chain-a-tag }}"
-        chain-b-tag: "${{ matrix.chain-b-tag }}"
-        chain-upgrade-tag: "${{ matrix.chain-upgrade-tag }}"
-        upgrade-plan-name: "${{ matrix.upgrade-plan-name }}"
-        test-entry-point:  "TestUpgradeTestSuite"
-        test: "${{ matrix.test }}"
+  upgrade-v5:
+    uses: ./.github/workflows/e2e-test-workflow-call.yml
+    with:
+      chain-image: ghcr.io/cosmos/ibc-go/simd
+      chain-binary: simd
+      chain-a-tag: v4.3.0
+      chain-b-tag: v4.3.0
+      chain-upgrade-tag: v5.1.0
+      upgrade-plan-name: "normal upgrade"
+      test-entry-point:  "TestUpgradeTestSuite"
+      test: "TestV4ToV5ChainUpgrade"
+
+  upgrade-v6:
+    uses: ./.github/workflows/e2e-test-workflow-call.yml
+    with:
+      chain-image: ghcr.io/cosmos/ibc-go/icad
+      chain-binary: icad
+      chain-a-tag: v0.3.5
+      chain-b-tag: v0.3.5
+      chain-upgrade-tag: v0.4.1
+      upgrade-plan-name: "ibc-go/v6"
+      test-entry-point:  "TestUpgradeTestSuite"
+      test: "TestV5ToV6ChainUpgrade"
+
+  upgrade-v7:
+    uses: ./.github/workflows/e2e-test-workflow-call.yml
+    with:
+      chain-image: ghcr.io/cosmos/ibc-go/simd
+      chain-binary: simd
+      chain-a-tag: v6.1.0
+      chain-b-tag: v6.1.0
+      chain-upgrade-tag: v7.0.0-rc0 # TODO: needs v7.0.0-rc1 when cut
+      upgrade-plan-name: "v7"
+      test-entry-point:  "TestUpgradeTestSuite"
+      test: "TestV6ToV7ChainUpgrade"
