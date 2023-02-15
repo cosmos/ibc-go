@@ -72,7 +72,6 @@ jobs:
     steps:
       - name: Display Inputs
         run: |
-          echo "Test:              ${{ inputs.test }}"
           echo "Chain Image:       ${{ inputs.chain-image }}"
           echo "Chain A Tag:       ${{ inputs.chain-a-tag }}"
           echo "Chain B Tag:       ${{ inputs.chain-b-tag }}"
@@ -81,6 +80,7 @@ jobs:
           echo "Relayer Type:      ${{ inputs.relayer-type }}"
           echo "Relayer Tag:       ${{ inputs.relayer-tag }}"
           echo "Test Entry Point:  ${{ inputs.test-entry-point }}"
+          echo "Test:              ${{ inputs.test }}"
           echo "Github Ref Name:   ${{ github.ref_name }}"
 
   # we skip individual steps rather than the full job as e2e-tests will not run if this task
