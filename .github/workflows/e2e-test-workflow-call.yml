@@ -6,6 +6,11 @@ on:
         required: false
         type: string
         default: "" # empty string means run all tests
+      test:
+        description: "test name to run as standalone"
+        required: false
+        type: string
+        default: ""
       test-exclusions:
         description: "Comma separated list of tests to skip"
         required: false
@@ -67,6 +72,7 @@ jobs:
     steps:
       - name: Display Inputs
         run: |
+          echo "Test:              ${{ inputs.test }}"
           echo "Chain Image:       ${{ inputs.chain-image }}"
           echo "Chain A Tag:       ${{ inputs.chain-a-tag }}"
           echo "Chain B Tag:       ${{ inputs.chain-b-tag }}"
@@ -128,6 +134,7 @@ jobs:
         env:
           TEST_ENTRYPOINT: "${{ inputs.test-entry-point }}"
           TEST_EXCLUSIONS: "${{ inputs.test-exclusions }}"
+          TEST_NAME: "${{ inputs.test }}"
 
   e2e-tests:
     runs-on: ubuntu-latest
