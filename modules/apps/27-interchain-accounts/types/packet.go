@@ -54,8 +54,8 @@ func (ct CosmosTx) GetBytes() []byte {
 
 // UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
 func (ct CosmosTx) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
-	for _, any := range ct.Messages {
-		err := unpacker.UnpackAny(any, new(sdk.Msg))
+	for _, protoAny := range ct.Messages {
+		err := unpacker.UnpackAny(protoAny, new(sdk.Msg))
 		if err != nil {
 			return err
 		}
