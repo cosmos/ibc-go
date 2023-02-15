@@ -302,19 +302,13 @@ Protobuf code generation, linting and formatting have been updated to leverage t
 
 ### App modules
 
-The return values of `RandomizedParams` and `ProposalContents` have been updated.
+The return value of `ProposalContents` have been updated.
 
 ```diff
 // ProposalContents doesn't return any content functions for governance proposals.
 - func (AppModule) ProposalContents(_ module.SimulationState) []simtypes.WeightedProposalContent {
 + func (AppModule) ProposalContents(_ module.SimulationState) []simtypes.WeightedProposalMsg {
       return nil
-}
-
-// RandomizedParams creates randomized ibc-transfer param changes for the simulator.
-- func (AppModule) RandomizedParams(r *rand.Rand) []simtypes.ParamChange {
-+ func (AppModule) RandomizedParams(r *rand.Rand) []simtypes.LegacyParamChange {
-      return simulation.ParamChanges(r)
 }
 ```
 
