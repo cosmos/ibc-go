@@ -69,7 +69,7 @@ compiled to WASM instead.
 
 <!-- They should describe as completely as necessary the system's behaviors under various conditions. They describe what the engineers must implement to enable users to accomplish their tasks (user requirements), thereby satisfying the business requirements. Software engineers don't implement business requirements or user requirements. They implement functional requirements, specific bits of system behavior. Each requirement should be uniquely identified with a meaningful tag. -->
 
-The scope of this feature is to allow any implemention written in WASM to be feature compliant with the interface expressed
+The scope of this feature is to allow any implemention written in WASM to be compliant with the interface expressed
 in [02-client ClientState interface](../../modules/core/exported/client.go).
 
 ## Assumptions and dependencies
