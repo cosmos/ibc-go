@@ -4,6 +4,7 @@ This document is intended to highlight significant changes which may require mor
 Any changes that must be done by a user of ibc-go should be documented here.
 
 There are four sections based on the four potential user groups of this document:
+
 - Chains
 - IBC Apps
 - Relayers
@@ -13,13 +14,13 @@ There are four sections based on the four potential user groups of this document
 
 ## Chains
 
-The `ibc-go/v6` release introduces a new set of migrations for `27-interchain-accounts`. Ownership of ICS27 channel capabilities is transferred from ICS27 authentication modules and will now reside with the ICS27 controller submodule moving forward. 
+The `ibc-go/v6` release introduces a new set of migrations for `27-interchain-accounts`. Ownership of ICS27 channel capabilities is transferred from ICS27 authentication modules and will now reside with the ICS27 controller submodule moving forward.
 
 For chains which contain a custom authentication module using the ICS27 controller submodule this requires a migration function to be included in the chain upgrade handler. A subsequent migration handler is run automatically, asserting the ownership of ICS27 channel capabilities has been transferred successfully.
 
 This migration is not required for chains which *do not* contain a custom authentication module using the ICS27 controller submodule.
 
-This migration facilitates the addition of the ICS27 controller submodule `MsgServer` which provides a standardised approach to integrating existing forms of authentication such as `x/gov` and `x/group` provided by the Cosmos SDK. 
+This migration facilitates the addition of the ICS27 controller submodule `MsgServer` which provides a standardised approach to integrating existing forms of authentication such as `x/gov` and `x/group` provided by the Cosmos SDK.
 
 For more information please refer to [ADR 009](../architecture/adr-009-v6-ics27-msgserver.md).
 
@@ -33,35 +34,35 @@ Please refer to [PR #2383](https://github.com/cosmos/ibc-go/pull/2383) for integ
 package v6
 
 import (
-    "github.com/cosmos/cosmos-sdk/codec"
-    storetypes "github.com/cosmos/cosmos-sdk/store/types"
-    sdk "github.com/cosmos/cosmos-sdk/types"
-    "github.com/cosmos/cosmos-sdk/types/module"
-    capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
-    upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+  "github.com/cosmos/cosmos-sdk/codec"
+  storetypes "github.com/cosmos/cosmos-sdk/store/types"
+  sdk "github.com/cosmos/cosmos-sdk/types"
+  "github.com/cosmos/cosmos-sdk/types/module"
+  capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
+  upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
-    v6 "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/controller/migrations/v6"
+  v6 "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/controller/migrations/v6"
 )
 
 const (
-    UpgradeName = "v6"
+  UpgradeName = "v6"
 )
 
 func CreateUpgradeHandler(
-    mm *module.Manager,
-    configurator module.Configurator,
-    cdc codec.BinaryCodec,
-    capabilityStoreKey *storetypes.KVStoreKey,
-    capabilityKeeper *capabilitykeeper.Keeper,
-    moduleName string,
+  mm *module.Manager,
+  configurator module.Configurator,
+  cdc codec.BinaryCodec,
+  capabilityStoreKey *storetypes.KVStoreKey,
+  capabilityKeeper *capabilitykeeper.Keeper,
+  moduleName string,
 ) upgradetypes.UpgradeHandler {
-    return func(ctx sdk.Context, _ upgradetypes.Plan, vm module.VersionMap) (module.VersionMap, error) {
-        if err := v6.MigrateICS27ChannelCapability(ctx, cdc, capabilityStoreKey, capabilityKeeper, moduleName); err != nil {
-            return nil, err
-    	}
-
-        return mm.RunMigrations(ctx, configurator, vm)
+  return func(ctx sdk.Context, _ upgradetypes.Plan, vm module.VersionMap) (module.VersionMap, error) {
+    if err := v6.MigrateICS27ChannelCapability(ctx, cdc, capabilityStoreKey, capabilityKeeper, moduleName); err != nil {
+      return nil, err
     }
+
+    return mm.RunMigrations(ctx, configurator, vm)
+  }
 }
 ```
 
@@ -69,15 +70,15 @@ func CreateUpgradeHandler(
 
 ```go
 app.UpgradeKeeper.SetUpgradeHandler(
-    v6.UpgradeName,
-    v6.CreateUpgradeHandler(
-        app.mm, 
-        app.configurator, 
-        app.appCodec, 
-        app.keys[capabilitytypes.ModuleName], 
-        app.CapabilityKeeper, 
-        >>>> moduleName <<<<,
-    ),
+  v6.UpgradeName,
+  v6.CreateUpgradeHandler(
+    app.mm, 
+    app.configurator, 
+    app.appCodec, 
+    app.keys[capabilitytypes.ModuleName], 
+    app.CapabilityKeeper, 
+    >>>> moduleName <<<<,
+  ),
 )
 ```
 
@@ -96,9 +97,9 @@ Prior to ibc-go v6 the controller submodule exposed only these two functions (to
 - [`RegisterInterchainAccount`](https://github.com/cosmos/ibc-go/blob/v5.0.0/modules/apps/27-interchain-accounts/controller/keeper/account.go#L19)
 - [`SendTx`](https://github.com/cosmos/ibc-go/blob/v5.0.0/modules/apps/27-interchain-accounts/controller/keeper/relay.go#L18)
 
-However, these functions have now been deprecated in favour of the new controller submodule `MsgServer` and will be removed in later releases. 
+However, these functions have now been deprecated in favour of the new controller submodule `MsgServer` and will be removed in later releases.
 
-Both APIs remain functional and maintain backwards compatibility in ibc-go v6, however consumers of these APIs are now recommended to follow the message passing paradigm outlined in Cosmos SDK [ADR 031](https://github.com/cosmos/cosmos-sdk/blob/main/docs/architecture/adr-031-msg-service.md) and [ADR 033](https://github.com/cosmos/cosmos-sdk/blob/main/docs/architecture/adr-033-protobuf-inter-module-comm.md). This is facilitated by the Cosmos SDK [`MsgServiceRouter`](https://github.com/cosmos/cosmos-sdk/blob/main/baseapp/msg_service_router.go#L17) and chain developers creating custom application logic can now omit the ICS27 controller submodule `Keeper` from their module and instead depend on message routing. 
+Both APIs remain functional and maintain backwards compatibility in ibc-go v6, however consumers of these APIs are now recommended to follow the message passing paradigm outlined in Cosmos SDK [ADR 031](https://github.com/cosmos/cosmos-sdk/blob/main/docs/architecture/adr-031-msg-service.md) and [ADR 033](https://github.com/cosmos/cosmos-sdk/blob/main/docs/architecture/adr-033-protobuf-inter-module-comm.md). This is facilitated by the Cosmos SDK [`MsgServiceRouter`](https://github.com/cosmos/cosmos-sdk/blob/main/baseapp/msg_service_router.go#L17) and chain developers creating custom application logic can now omit the ICS27 controller submodule `Keeper` from their module and instead depend on message routing.
 
 Depending on the use case, developers of custom authentication modules face one of three scenarios:
 
@@ -110,10 +111,10 @@ Application developers that wish to consume IBC packet callbacks and react upon 
 
 ```diff
 app.ICAAuthKeeper = icaauthkeeper.NewKeeper(
-    appCodec, 
-    keys[icaauthtypes.StoreKey], 
-    app.ICAControllerKeeper, 
--   scopedICAAuthKeeper,
+  appCodec, 
+  keys[icaauthtypes.StoreKey], 
+  app.ICAControllerKeeper, 
+- scopedICAAuthKeeper,
 )
 ```
 
@@ -127,11 +128,11 @@ The authentication module can migrate from using the legacy APIs and it can be c
 
 ```diff
 app.ICAAuthKeeper = icaauthkeeper.NewKeeper(
-    appCodec, 
-    keys[icaauthtypes.StoreKey], 
--   app.ICAControllerKeeper, 
--   scopedICAAuthKeeper,
-+   app.MsgServiceRouter(),
+  appCodec, 
+  keys[icaauthtypes.StoreKey], 
+- app.ICAControllerKeeper, 
+- scopedICAAuthKeeper,
++ app.MsgServiceRouter(),
 )
 ```
 
@@ -139,22 +140,22 @@ In your authentication module you can route messages to the controller submodule
 
 ```diff
 - if err := keeper.icaControllerKeeper.RegisterInterchainAccount(
--    ctx, 
--    connectionID, 
--    owner.String(), 
--    version,
+-   ctx, 
+-   connectionID, 
+-   owner.String(), 
+-   version,
 - ); err != nil {
--    return err
+-   return err
 - }
 + msg := controllertypes.NewMsgRegisterInterchainAccount(
-+    connectionID, 
-+    owner.String(), 
-+    version,
++   connectionID, 
++   owner.String(), 
++   version,
 + )
 + handler := keeper.msgRouter.Handler(msg)
 + res, err := handler(ctx, msg)
 + if err != nil {
-+    return err
++   return err
 + }
 ```
 
@@ -181,8 +182,8 @@ const AllowAllHostMsgs = "*"
 
 // DefaultParams is the default parameter configuration for the host submodule
 func DefaultParams() Params {
--   return NewParams(DefaultHostEnabled, nil)
-+   return NewParams(DefaultHostEnabled, []string{AllowAllHostMsgs})
+-  return NewParams(DefaultHostEnabled, nil)
++  return NewParams(DefaultHostEnabled, []string{AllowAllHostMsgs})
 }
 ```
 
@@ -198,10 +199,10 @@ This provides the host submodule with the ability to correctly unwrap channel ve
 
 ```diff
 func NewKeeper(
-    cdc codec.BinaryCodec, key storetypes.StoreKey, paramSpace paramtypes.Subspace,
--   channelKeeper icatypes.ChannelKeeper, portKeeper icatypes.PortKeeper,
-+   ics4Wrapper icatypes.ICS4Wrapper, channelKeeper icatypes.ChannelKeeper, portKeeper icatypes.PortKeeper,
-    accountKeeper icatypes.AccountKeeper, scopedKeeper icatypes.ScopedKeeper, msgRouter icatypes.MessageRouter,
+  cdc codec.BinaryCodec, key storetypes.StoreKey, paramSpace paramtypes.Subspace,
+- channelKeeper icatypes.ChannelKeeper, portKeeper icatypes.PortKeeper,
++ ics4Wrapper icatypes.ICS4Wrapper, channelKeeper icatypes.ChannelKeeper, portKeeper icatypes.PortKeeper,
+  accountKeeper icatypes.AccountKeeper, scopedKeeper icatypes.ScopedKeeper, msgRouter icatypes.MessageRouter,
 ) Keeper
 ```
 
@@ -211,15 +212,15 @@ The `NewKeeper` function of ICS29 has been updated to remove the `paramSpace` pa
 
 ```diff
 func NewKeeper(
--   cdc codec.BinaryCodec, key storetypes.StoreKey, paramSpace paramtypes.Subspace,
--   ics4Wrapper types.ICS4Wrapper, channelKeeper types.ChannelKeeper, portKeeper types.PortKeeper, authKeeper types.AccountKeeper, bankKeeper types.BankKeeper,
-+   cdc codec.BinaryCodec, key storetypes.StoreKey,
-+   ics4Wrapper types.ICS4Wrapper, channelKeeper types.ChannelKeeper,
-+   portKeeper types.PortKeeper, authKeeper types.AccountKeeper, bankKeeper types.BankKeeper,
+- cdc codec.BinaryCodec, key storetypes.StoreKey, paramSpace paramtypes.Subspace,
+- ics4Wrapper types.ICS4Wrapper, channelKeeper types.ChannelKeeper, portKeeper types.PortKeeper, authKeeper types.AccountKeeper, bankKeeper types.BankKeeper,
++ cdc codec.BinaryCodec, key storetypes.StoreKey,
++ ics4Wrapper types.ICS4Wrapper, channelKeeper types.ChannelKeeper,
++ portKeeper types.PortKeeper, authKeeper types.AccountKeeper, bankKeeper types.BankKeeper,
 ) Keeper {
 ```
 
-### ICS20 - `SendTransfer` is no longer exported.
+### ICS20 - `SendTransfer` is no longer exported
 
 The `SendTransfer` function of ICS20 has been removed. IBC transfers should now be initiated with `MsgTransfer` and routed to the ICS20 `MsgServer`.
 
@@ -227,14 +228,14 @@ See below for example:
 
 ```go
 if handler := msgRouter.Handler(msgTransfer); handler != nil {
-    if err := msgTransfer.ValidateBasic(); err != nil {
-        return nil, err
-    }
-	
-    res, err := handler(ctx, msgTransfer)
-    if err != nil {
-        return nil, err
-    }
+  if err := msgTransfer.ValidateBasic(); err != nil {
+    return nil, err
+  }
+
+  res, err := handler(ctx, msgTransfer)
+  if err != nil {
+    return nil, err
+  }
 }
 ```
 
@@ -245,19 +246,19 @@ The `SendPacket` API has been simplified:
 ```diff
 // SendPacket is called by a module in order to send an IBC packet on a channel
 func (k Keeper) SendPacket(
-    ctx sdk.Context,
-    channelCap *capabilitytypes.Capability,
--   packet exported.PacketI,
+  ctx sdk.Context,
+  channelCap *capabilitytypes.Capability,
+- packet exported.PacketI,
 -) error {
-+   sourcePort string,
-+   sourceChannel string,
-+   timeoutHeight clienttypes.Height,
-+   timeoutTimestamp uint64,
-+   data []byte,
++ sourcePort string,
++ sourceChannel string,
++ timeoutHeight clienttypes.Height,
++ timeoutTimestamp uint64,
++ data []byte,
 +) (uint64, error) {
 ```
 
-Callers no longer need to pass in a pre-constructed packet. 
+Callers no longer need to pass in a pre-constructed packet.
 The destination port/channel identifiers and the packet sequence will be determined by core IBC.
 `SendPacket` will return the packet sequence.
 
@@ -268,15 +269,15 @@ The `SendPacket` API has been simplified:
 ```diff
 // SendPacket is called by a module in order to send an IBC packet on a channel
 func (k Keeper) SendPacket(
-    ctx sdk.Context,
-    channelCap *capabilitytypes.Capability,
--   packet exported.PacketI,
+  ctx sdk.Context,
+  channelCap *capabilitytypes.Capability,
+- packet exported.PacketI,
 -) error {
-+   sourcePort string,
-+   sourceChannel string,
-+   timeoutHeight clienttypes.Height,
-+   timeoutTimestamp uint64,
-+   data []byte,
++ sourcePort string,
++ sourceChannel string,
++ timeoutHeight clienttypes.Height,
++ timeoutTimestamp uint64,
++ data []byte,
 +) (uint64, error) {
 ```
 

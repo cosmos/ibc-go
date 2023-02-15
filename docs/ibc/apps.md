@@ -40,86 +40,86 @@ Here are the channel handshake callbacks that modules are expected to implement:
 ```go
 // Called by IBC Handler on MsgOpenInit
 func (k Keeper) OnChanOpenInit(ctx sdk.Context,
-    order channeltypes.Order,
-    connectionHops []string,
-    portID string,
-    channelID string,
-    channelCap *capabilitytypes.Capability,
-    counterparty channeltypes.Counterparty,
-    version string,
+  order channeltypes.Order,
+  connectionHops []string,
+  portID string,
+  channelID string,
+  channelCap *capabilitytypes.Capability,
+  counterparty channeltypes.Counterparty,
+  version string,
 ) error {
-    // OpenInit must claim the channelCapability that IBC passes into the callback
-    if err := k.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
-			return err
-	}
-
-    // ... do custom initialization logic
-
-    // Use above arguments to determine if we want to abort handshake
-    // Examples: Abort if order == UNORDERED,
-    // Abort if version is unsupported
-    err := checkArguments(args)
+  // OpenInit must claim the channelCapability that IBC passes into the callback
+  if err := k.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
     return err
+ }
+
+  // ... do custom initialization logic
+
+  // Use above arguments to determine if we want to abort handshake
+  // Examples: Abort if order == UNORDERED,
+  // Abort if version is unsupported
+  err := checkArguments(args)
+  return err
 }
 
 // Called by IBC Handler on MsgOpenTry
 OnChanOpenTry(
-    ctx sdk.Context,
-    order channeltypes.Order,
-    connectionHops []string,
-    portID,
-    channelID string,
-    channelCap *capabilitytypes.Capability,
-    counterparty channeltypes.Counterparty,
-    counterpartyVersion string,
+  ctx sdk.Context,
+  order channeltypes.Order,
+  connectionHops []string,
+  portID,
+  channelID string,
+  channelCap *capabilitytypes.Capability,
+  counterparty channeltypes.Counterparty,
+  counterpartyVersion string,
 ) (string, error) {
-    // OpenTry must claim the channelCapability that IBC passes into the callback
-    if err := k.scopedKeeper.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
-        return err
-    }
-    
-    // ... do custom initialization logic
+  // OpenTry must claim the channelCapability that IBC passes into the callback
+  if err := k.scopedKeeper.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
+    return err
+  }
+  
+  // ... do custom initialization logic
 
-    // Use above arguments to determine if we want to abort handshake
-    if err := checkArguments(args); err != nil {
-        return err
-    }
+  // Use above arguments to determine if we want to abort handshake
+  if err := checkArguments(args); err != nil {
+    return err
+  }
 
-    // Construct application version 
-    // IBC applications must return the appropriate application version
-    // This can be a simple string or it can be a complex version constructed
-    // from the counterpartyVersion and other arguments. 
-    // The version returned will be the channel version used for both channel ends. 
-    appVersion := negotiateAppVersion(counterpartyVersion, args)
-    
-    return appVersion, nil
+  // Construct application version 
+  // IBC applications must return the appropriate application version
+  // This can be a simple string or it can be a complex version constructed
+  // from the counterpartyVersion and other arguments. 
+  // The version returned will be the channel version used for both channel ends. 
+  appVersion := negotiateAppVersion(counterpartyVersion, args)
+  
+  return appVersion, nil
 }
 
 // Called by IBC Handler on MsgOpenAck
 OnChanOpenAck(
-    ctx sdk.Context,
-    portID,
-    channelID string,
-    counterpartyVersion string,
+  ctx sdk.Context,
+  portID,
+  channelID string,
+  counterpartyVersion string,
 ) error {
-    // ... do custom initialization logic
+  // ... do custom initialization logic
 
-    // Use above arguments to determine if we want to abort handshake
-    err := checkArguments(args)
-    return err
+  // Use above arguments to determine if we want to abort handshake
+  err := checkArguments(args)
+  return err
 }
 
 // Called by IBC Handler on MsgOpenConfirm
 OnChanOpenConfirm(
-    ctx sdk.Context,
-    portID,
-    channelID string,
+  ctx sdk.Context,
+  portID,
+  channelID string,
 ) error {
-    // ... do custom initialization logic
+  // ... do custom initialization logic
 
-    // Use above arguments to determine if we want to abort handshake
-    err := checkArguments(args)
-    return err
+  // Use above arguments to determine if we want to abort handshake
+  err := checkArguments(args)
+  return err
 }
 ```
 
@@ -130,28 +130,28 @@ closing handshake. Closing a channel is a 2-step handshake, the initiating chain
 ```go
 // Called by IBC Handler on MsgCloseInit
 OnChanCloseInit(
-    ctx sdk.Context,
-    portID,
-    channelID string,
+  ctx sdk.Context,
+  portID,
+  channelID string,
 ) error {
-    // ... do custom finalization logic
+  // ... do custom finalization logic
 
-    // Use above arguments to determine if we want to abort handshake
-    err := checkArguments(args)
-    return err
+  // Use above arguments to determine if we want to abort handshake
+  err := checkArguments(args)
+  return err
 }
 
 // Called by IBC Handler on MsgCloseConfirm
 OnChanCloseConfirm(
-    ctx sdk.Context,
-    portID,
-    channelID string,
+  ctx sdk.Context,
+  portID,
+  channelID string,
 ) error {
-    // ... do custom finalization logic
+  // ... do custom finalization logic
 
-    // Use above arguments to determine if we want to abort handshake
-    err := checkArguments(args)
-    return err
+  // Use above arguments to determine if we want to abort handshake
+  err := checkArguments(args)
+  return err
 }
 ```
 
@@ -159,9 +159,9 @@ OnChanCloseConfirm(
 
 Application modules are expected to verify versioning used during the channel handshake procedure.
 
-* `ChanOpenInit` callback should verify that the `MsgChanOpenInit.Version` is valid
-* `ChanOpenTry` callback should construct the application version used for both channel ends. If no application version can be constructed, it must return an error. 
-* `ChanOpenAck` callback should verify that the `MsgChanOpenAck.CounterpartyVersion` is valid and supported.
+- `ChanOpenInit` callback should verify that the `MsgChanOpenInit.Version` is valid
+- `ChanOpenTry` callback should construct the application version used for both channel ends. If no application version can be constructed, it must return an error.
+- `ChanOpenAck` callback should verify that the `MsgChanOpenAck.CounterpartyVersion` is valid and supported.
 
 IBC expects application modules to perform application version negotiation in `OnChanOpenTry`. The negotiated version
 must be returned to core IBC. If the version cannot be negotiated, an error should be returned.
@@ -187,24 +187,24 @@ like so:
 
 ```go
 func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, state types.GenesisState) {
-    // ... other initialization logic
+  // ... other initialization logic
 
-    // Only try to bind to port if it is not already bound, since we may already own
-    // port capability from capability InitGenesis
-    if !isBound(ctx, state.PortID) {
-        // module binds to desired ports on InitChain
-        // and claims returned capabilities
-        cap1 := keeper.IBCPortKeeper.BindPort(ctx, port1)
-        cap2 := keeper.IBCPortKeeper.BindPort(ctx, port2)
-        cap3 := keeper.IBCPortKeeper.BindPort(ctx, port3)
+  // Only try to bind to port if it is not already bound, since we may already own
+  // port capability from capability InitGenesis
+  if !isBound(ctx, state.PortID) {
+    // module binds to desired ports on InitChain
+    // and claims returned capabilities
+    cap1 := keeper.IBCPortKeeper.BindPort(ctx, port1)
+    cap2 := keeper.IBCPortKeeper.BindPort(ctx, port2)
+    cap3 := keeper.IBCPortKeeper.BindPort(ctx, port3)
 
-        // NOTE: The module's scoped capability keeper must be private
-        keeper.scopedKeeper.ClaimCapability(cap1)
-        keeper.scopedKeeper.ClaimCapability(cap2)
-        keeper.scopedKeeper.ClaimCapability(cap3)
-    }
+    // NOTE: The module's scoped capability keeper must be private
+    keeper.scopedKeeper.ClaimCapability(cap1)
+    keeper.scopedKeeper.ClaimCapability(cap2)
+    keeper.scopedKeeper.ClaimCapability(cap3)
+  }
 
-    // ... more initialization logic
+  // ... more initialization logic
 }
 ```
 
@@ -223,15 +223,15 @@ encode and decode it to and from `[]byte`.
 ```go
 // Custom packet data defined in application module
 type CustomPacketData struct {
-    // Custom fields ...
+  // Custom fields ...
 }
 
 EncodePacketData(packetData CustomPacketData) []byte {
-    // encode packetData to bytes
+  // encode packetData to bytes
 }
 
 DecodePacketData(encoded []byte) (CustomPacketData) {
-    // decode from bytes to packet data
+  // decode from bytes to packet data
 }
 ```
 
@@ -245,13 +245,13 @@ data := EncodePacketData(customPacketData)
 packet.Data = data
 // Send packet to IBC, authenticating with channelCap
 sequence, err := IBCChannelKeeper.SendPacket(
-    ctx, 
-    channelCap, 
-    sourcePort, 
-    sourceChannel, 
-    timeoutHeight, 
-    timeoutTimestamp, 
-    data,
+  ctx, 
+  channelCap, 
+  sourcePort, 
+  sourceChannel, 
+  timeoutHeight, 
+  timeoutTimestamp, 
+  data,
 )
 ```
 
@@ -297,13 +297,13 @@ channelCap := scopedKeeper.GetCapability(ctx, channelCapName)
 data := EncodePacketData(customPacketData)
 // Send packet to IBC, authenticating with channelCap
 sequence, err := IBCChannelKeeper.SendPacket(
-    ctx, 
-    channelCap, 
-    sourcePort, 
-    sourceChannel, 
-    timeoutHeight, 
-    timeoutTimestamp, 
-    data,
+  ctx, 
+  channelCap, 
+  sourcePort, 
+  sourceChannel, 
+  timeoutHeight, 
+  timeoutTimestamp, 
+  data,
 )
 ```
 
@@ -324,49 +324,51 @@ The IBC handler will then commit this acknowledgement of the packet so that a re
 acknowledgement back to the sender module.
 
 The state changes that occurred during this callback will only be written if:
+
 - the acknowledgement was successful as indicated by the `Success()` function of the acknowledgement
 - if the acknowledgement returned is nil indicating that an asynchronous process is occurring
 
 NOTE: Applications which process asynchronous acknowledgements must handle reverting state changes
-when appropriate. Any state changes that occurred during the `OnRecvPacket` callback will be written 
-for asynchronous acknowledgements. 
+when appropriate. Any state changes that occurred during the `OnRecvPacket` callback will be written
+for asynchronous acknowledgements.
 
 ```go
 OnRecvPacket(
-    ctx sdk.Context,
-    packet channeltypes.Packet,
+  ctx sdk.Context,
+  packet channeltypes.Packet,
 ) ibcexported.Acknowledgement {
-    // Decode the packet data
-    packetData := DecodePacketData(packet.Data)
+  // Decode the packet data
+  packetData := DecodePacketData(packet.Data)
 
-    // do application state changes based on packet data and return the acknowledgement
-    // NOTE: The acknowledgement will indicate to the IBC handler if the application 
-    // state changes should be written via the `Success()` function. Application state
-    // changes are only written if the acknowledgement is successful or the acknowledgement
-    // returned is nil indicating that an asynchronous acknowledgement will occur.
-    ack := processPacket(ctx, packet, packetData)
+  // do application state changes based on packet data and return the acknowledgement
+  // NOTE: The acknowledgement will indicate to the IBC handler if the application 
+  // state changes should be written via the `Success()` function. Application state
+  // changes are only written if the acknowledgement is successful or the acknowledgement
+  // returned is nil indicating that an asynchronous acknowledgement will occur.
+  ack := processPacket(ctx, packet, packetData)
 
-    return ack
+  return ack
 }
 ```
 
 The Acknowledgement interface:
+
 ```go
 // Acknowledgement defines the interface used to return
 // acknowledgements in the OnRecvPacket callback.
 type Acknowledgement interface {
-	Success() bool
-	Acknowledgement() []byte
+  Success() bool
+  Acknowledgement() []byte
 }
 ```
 
 ### Acknowledgements
 
 Modules may commit an acknowledgement upon receiving and processing a packet in the case of synchronous packet processing.
-In the case where a packet is processed at some later point after the packet has been received (asynchronous execution), the acknowledgement 
+In the case where a packet is processed at some later point after the packet has been received (asynchronous execution), the acknowledgement
 will be written once the packet has been processed by the application which may be well after the packet receipt.
 
-NOTE: Most blockchain modules will want to use the synchronous execution model in which the module processes and writes the acknowledgement 
+NOTE: Most blockchain modules will want to use the synchronous execution model in which the module processes and writes the acknowledgement
 for a packet as soon as it has been received from the IBC module.
 
 This acknowledgement can then be relayed back to the original sender chain, which can take action
@@ -414,22 +416,22 @@ is responsible for decoding the acknowledgement and processing it.
 
 ```go
 OnAcknowledgementPacket(
-    ctx sdk.Context,
-    packet channeltypes.Packet,
-    acknowledgement []byte,
+  ctx sdk.Context,
+  packet channeltypes.Packet,
+  acknowledgement []byte,
 ) (*sdk.Result, error) {
-    // Decode acknowledgement
-    ack := DecodeAcknowledgement(acknowledgement)
+  // Decode acknowledgement
+  ack := DecodeAcknowledgement(acknowledgement)
 
-    // process ack
-    res, err := processAck(ack)
-    return res, err
+  // process ack
+  res, err := processAck(ack)
+  return res, err
 }
 ```
 
 #### Timeout Packets
 
-If the timeout for a packet is reached before the packet is successfully received or the 
+If the timeout for a packet is reached before the packet is successfully received or the
 counterparty channel end is closed before the packet is successfully received, then the receiving
 chain can no longer process it. Thus, the sending chain must process the timeout using
 `OnTimeoutPacket` to handle this situation. Again the IBC module will verify that the timeout is
@@ -438,10 +440,10 @@ timeout is reached and the packet can no longer be received.
 
 ```go
 OnTimeoutPacket(
-    ctx sdk.Context,
-    packet channeltypes.Packet,
+  ctx sdk.Context,
+  packet channeltypes.Packet,
 ) (*sdk.Result, error) {
-    // do custom timeout logic
+  // do custom timeout logic
 }
 ```
 
