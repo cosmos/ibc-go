@@ -1,9 +1,14 @@
 name: Tests / E2E Upgrade
-on: workflow_dispatch
+on: 
+  workflow_dispatch:
+  
+  schedule:
+    - cron: '0 0 * * *'
 
 jobs:
   upgrade-v5:
     uses: ./.github/workflows/e2e-test-workflow-call.yml
+    secrets: inherit
     with:
       chain-image: ghcr.io/cosmos/ibc-go/simd
       chain-binary: simd
@@ -16,6 +21,7 @@ jobs:
 
   upgrade-v6:
     uses: ./.github/workflows/e2e-test-workflow-call.yml
+    secrets: inherit
     with:
       chain-image: ghcr.io/cosmos/ibc-go/icad
       chain-binary: icad
@@ -28,6 +34,7 @@ jobs:
 
   upgrade-v7:
     uses: ./.github/workflows/e2e-test-workflow-call.yml
+    secrets: inherit
     with:
       chain-image: ghcr.io/cosmos/ibc-go/simd
       chain-binary: simd
