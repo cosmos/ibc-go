@@ -122,7 +122,7 @@ Example output:
 
 A user can query the interchain account module using gRPC endpoints.
 
-### Controller 
+### Controller
 
 A user can query the controller submodule using gRPC endpoints.
 
@@ -136,11 +136,11 @@ ibc.applications.interchain_accounts.controller.v1.Query/InterchainAccount
 
 Example:
 
-```
+```shell
 grpcurl -plaintext \
-    -d '{"owner":"cosmos1..","connection_id":"connection-0"}' \
-    localhost:9090 \
-    ibc.applications.interchain_accounts.controller.v1.Query/InterchainAccount
+  -d '{"owner":"cosmos1..","connection_id":"connection-0"}' \
+  localhost:9090 \
+  ibc.applications.interchain_accounts.controller.v1.Query/InterchainAccount
 ```
 
 #### `Params`
@@ -155,11 +155,11 @@ Example:
 
 ```shell
 grpcurl -plaintext \
-    localhost:9090 \
-    ibc.applications.interchain_accounts.controller.v1.Query/Params
+  localhost:9090 \
+  ibc.applications.interchain_accounts.controller.v1.Query/Params
 ```
 
-### Host 
+### Host
 
 A user can query the host submodule using gRPC endpoints.
 
@@ -175,6 +175,6 @@ Example:
 
 ```shell
 grpcurl -plaintext \
-    localhost:9090 \
-    ibc.applications.interchain_accounts.host.v1.Query/Params
+  localhost:9090 \
+  ibc.applications.interchain_accounts.host.v1.Query/Params
 ```

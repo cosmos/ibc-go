@@ -10,8 +10,8 @@ jobs:
         include:
           - test: TestV4ToV5ChainUpgrade
             chain-image: ghcr.io/cosmos/ibc-go-simd
-            chain-a-tag: v4.2.0
-            chain-b-tag: v4.2.0
+            chain-a-tag: v4.3.0
+            chain-b-tag: v4.3.0
             chain-upgrade-tag: v5.1.0
           - test: TestV5ToV6ChainUpgrade
             chain-image: ghcr.io/cosmos/ibc-go-icad
@@ -22,9 +22,9 @@ jobs:
           - test: TestV6ToV7ChainUpgrade
             chain-image: ghcr.io/cosmos/ibc-go-simd
             chain-binary: simd
-            chain-a-tag: v6.0.0
-            chain-b-tag: v6.0.0
-            chain-upgrade-tag: v7.0.0
+            chain-a-tag: v6.1.0
+            chain-b-tag: v6.1.0
+            chain-upgrade-tag: v7.0.0-rc0 # TODO: needs v7.0.0-rc1 when cut
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v3

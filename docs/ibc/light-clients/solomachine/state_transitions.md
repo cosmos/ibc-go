@@ -14,7 +14,7 @@ Successful state verification by a solo machine light client will result in:
 
 A successful update of a solo machine light client by a header will result in:
 
-- the public key being updated to the new public key provided by the header. 
+- the public key being updated to the new public key provided by the header.
 - the diversifier being updated to the new diviersifier provided by the header.
 - the timestamp being updated to the new timestamp provided by the header.
 - the sequence being incremented by 1

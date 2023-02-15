@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/strangelove-ventures/ibctest/v7/ibc"
-	test "github.com/strangelove-ventures/ibctest/v7/testutil"
+	"github.com/strangelove-ventures/interchaintest/v7/ibc"
+	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/ibc-go/e2e/testsuite"
