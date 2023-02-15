@@ -305,7 +305,7 @@ Protobuf code generation, linting and formatting have been updated to leverage t
 `ProposalContents` has been removed as it is deprecated by the SDK and was non-functional. 
 
 ```diff
-// ProposalContents doesn't return any content functions for governance proposals.
+- // ProposalContents doesn't return any content functions for governance proposals.
 - func (AppModule) ProposalContents(_ module.SimulationState) []simtypes.WeightedProposalContent {
 -     return nil
 - }
