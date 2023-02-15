@@ -290,9 +290,6 @@ import (
 
 - host.RouterKey
 + ibcexported.RouterKey
-<<<<<<< HEAD
-```
-=======
 ```
 
 ## Upgrading to Cosmos SDK 0.47
@@ -352,4 +349,3 @@ import (
     // ...
 )
 ```
->>>>>>> f034e6b8 (docs: adding migration doc info for sdk v0.47 (#3107))
