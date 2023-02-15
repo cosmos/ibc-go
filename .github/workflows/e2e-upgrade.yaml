@@ -30,7 +30,7 @@ jobs:
             chain-upgrade-tag: v7.0.0-rc0 # TODO: needs v7.0.0-rc1 when cut
             upgrade-plan-name: "v7"
     steps:
-      uses: ./.github/workflows/e2e-test-workflow-call.yml
+    - uses: ./.github/workflows/e2e-test-workflow-call.yml
       with:
         chain-image: "${{ matrix.chain-image }}"
         chain-binary: "${{ matrix.chain-binary }}"
@@ -40,4 +40,3 @@ jobs:
         upgrade-plan-name: "${{ matrix.upgrade-plan-name }}"
         test-entry-point:  "TestUpgradeTestSuite"
         test: "${{ matrix.test }}"
-        
