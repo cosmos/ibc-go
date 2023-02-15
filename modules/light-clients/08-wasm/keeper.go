@@ -16,6 +16,8 @@ import (
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 )
 
 var _ QueryServer = (*Keeper)(nil)
@@ -24,6 +26,7 @@ type Keeper struct {
 	storeKey storetypes.StoreKey
 	cdc      codec.BinaryCodec
 	wasmVM   *cosmwasm.VM
+	authority string
 }
 
 func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey) Keeper {
@@ -41,10 +44,14 @@ func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey) Keeper {
 	}
 	WasmVM = vm
 
+	// governance authority
+	authority := authtypes.NewModuleAddress(govtypes.ModuleName)
+
 	return Keeper{
 		cdc:      cdc,
 		storeKey: key,
 		wasmVM:   vm,
+		authority: authority.String(),
 	}
 }
 
