@@ -156,7 +156,7 @@ func (s *LocalhostTransferTestSuite) TestMsgTransfer_Localhost() {
 		s.AssertValidTxResponse(txResp)
 	})
 
-	t.Run("packets are relayed", func(t *testing.T) {
+	t.Run("verify tokens transferred", func(t *testing.T) {
 		s.AssertPacketRelayed(ctx, chainA, transfertypes.PortID, msgChanOpenInitRes.GetChannelId(), 1)
 
 		ibcToken := testsuite.GetIBCToken(chainADenom, transfertypes.PortID, msgChanOpenTryRes.GetChannelId())
