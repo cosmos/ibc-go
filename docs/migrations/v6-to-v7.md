@@ -302,14 +302,13 @@ Protobuf code generation, linting and formatting have been updated to leverage t
 
 ### App modules
 
-The return value of `ProposalContents` have been updated.
+`ProposalContents` has been removed as it is deprecated by the SDK and was non-functional. 
 
 ```diff
 // ProposalContents doesn't return any content functions for governance proposals.
 - func (AppModule) ProposalContents(_ module.SimulationState) []simtypes.WeightedProposalContent {
-+ func (AppModule) ProposalContents(_ module.SimulationState) []simtypes.WeightedProposalMsg {
-      return nil
-}
+-     return nil
+- }
 ```
 
 Legacy APIs of the `AppModule` interface have been removed from ibc-go modules. For example, for 
