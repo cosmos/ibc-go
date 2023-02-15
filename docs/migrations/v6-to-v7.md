@@ -302,15 +302,6 @@ Protobuf code generation, linting and formatting have been updated to leverage t
 
 ### App modules
 
-`ProposalContents` has been removed as it is deprecated by the SDK and was non-functional. 
-
-```diff
-- // ProposalContents doesn't return any content functions for governance proposals.
-- func (AppModule) ProposalContents(_ module.SimulationState) []simtypes.WeightedProposalContent {
--     return nil
-- }
-```
-
 Legacy APIs of the `AppModule` interface have been removed from ibc-go modules. For example, for 
 
 ```diff
@@ -326,6 +317,11 @@ Legacy APIs of the `AppModule` interface have been removed from ibc-go modules. 
 -
 - // LegacyQuerierHandler implements the AppModule interface
 - func (am AppModule) LegacyQuerierHandler(*codec.LegacyAmino) sdk.Querier {
+-     return nil
+- }
+-
+- // ProposalContents doesn't return any content functions for governance proposals.
+- func (AppModule) ProposalContents(_ module.SimulationState) []simtypes.WeightedProposalContent {
 -     return nil
 - }
 ```
