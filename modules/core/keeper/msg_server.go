@@ -27,6 +27,7 @@ var (
 // PushNewWasmCode defines a rpc handler method for MsgPushNewWasmCode
 func (k Keeper) PushNewWasmCode(goCtx context.Context, msg *wasm.MsgPushNewWasmCode) (*wasm.MsgPushNewWasmCodeResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
+
 	response, err := wasm.HandleMsgPushNewWasmCode(ctx, k.WasmClientKeeper, msg)
 	if err != nil {
 		return nil, err
