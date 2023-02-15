@@ -2,7 +2,6 @@ package testsuite
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -544,7 +543,7 @@ func (s *E2ETestSuite) QueryModuleAccountAddress(ctx context.Context, moduleName
 	}
 	moduleAccount, ok := account.(authtypes.ModuleAccountI)
 	if !ok {
-		return nil, errors.New(fmt.Sprintf("failed to cast account: %T as ModuleAccount", moduleAccount))
+		return nil, fmt.Errorf("failed to cast account: %T as ModuleAccount", moduleAccount)
 	}
 
 	return moduleAccount.GetAddress(), nil
