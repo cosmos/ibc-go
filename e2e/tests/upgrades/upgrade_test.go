@@ -10,7 +10,6 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	"github.com/cosmos/gogoproto/proto"
-	v6upgrades "github.com/cosmos/interchain-accounts/app/upgrades/v6"
 	intertxtypes "github.com/cosmos/interchain-accounts/x/inter-tx/types"
 	interchaintest "github.com/strangelove-ventures/interchaintest/v7"
 	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
@@ -29,8 +28,6 @@ import (
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	solomachine "github.com/cosmos/ibc-go/v7/modules/light-clients/06-solomachine"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
-	simappupgrades "github.com/cosmos/ibc-go/v7/testing/simapp/upgrades"
-	v7upgrades "github.com/cosmos/ibc-go/v7/testing/simapp/upgrades/v7"
 )
 
 const (
@@ -150,7 +147,7 @@ func (s *UpgradeTestSuite) TestV4ToV5ChainUpgrade() {
 	s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA, chainB), "failed to wait for blocks")
 
 	t.Run("upgrade chainA", func(t *testing.T) {
-		s.UpgradeChain(ctx, chainA, chainAUpgradeProposalWallet, simappupgrades.DefaultUpgradeName, testCfg.ChainAConfig.Tag, testCfg.UpgradeTag)
+		s.UpgradeChain(ctx, chainA, chainAUpgradeProposalWallet, testCfg.UpgradePlanName, testCfg.ChainAConfig.Tag, testCfg.UpgradeTag)
 	})
 
 	t.Run("restart relayer", func(t *testing.T) {
@@ -297,7 +294,7 @@ func (s *UpgradeTestSuite) TestV5ToV6ChainUpgrade() {
 	s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA, chainB), "failed to wait for blocks")
 
 	t.Run("upgrade chainA", func(t *testing.T) {
-		s.UpgradeChain(ctx, chainA, chainAUpgradeProposalWallet, v6upgrades.UpgradeName, testCfg.ChainAConfig.Tag, testCfg.UpgradeTag)
+		s.UpgradeChain(ctx, chainA, chainAUpgradeProposalWallet, testCfg.UpgradePlanName, testCfg.ChainAConfig.Tag, testCfg.UpgradeTag)
 	})
 
 	t.Run("restart relayer", func(t *testing.T) {
@@ -513,7 +510,7 @@ func (s *UpgradeTestSuite) TestV6ToV7ChainUpgrade() {
 	chainAUpgradeProposalWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 
 	t.Run("upgrade chainA", func(t *testing.T) {
-		s.UpgradeChain(ctx, chainA, chainAUpgradeProposalWallet, v7upgrades.UpgradeName, testCfg.ChainAConfig.Tag, testCfg.UpgradeTag)
+		s.UpgradeChain(ctx, chainA, chainAUpgradeProposalWallet, testCfg.UpgradePlanName, testCfg.ChainAConfig.Tag, testCfg.UpgradeTag)
 	})
 
 	t.Run("check that the tendermint clients are active again after upgrade", func(t *testing.T) {

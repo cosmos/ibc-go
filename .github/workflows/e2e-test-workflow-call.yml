@@ -31,6 +31,16 @@ on:
         description: "The chain binary"
         required: false
         type: string
+      chain-upgrade-tag:
+        default: ""
+        description: "The image tag that the chain will be upgraded to"
+        required: false
+        type: string
+      upgrade-plan-name:
+        default: ""
+        description: "The upgrade plan name"
+        required: false
+        type: string
       relayer-type:
         description: "The type of relayer to use"
         required: false
@@ -57,12 +67,14 @@ jobs:
     steps:
       - name: Display Inputs
         run: |
-          echo "Chain Image:      ${{ inputs.chain-image }}"
-          echo "Chain A Tag:      ${{ inputs.chain-a-tag }}"
-          echo "Chain B Tag:      ${{ inputs.chain-b-tag }}"
-          echo "Relayer Type:     ${{ inputs.relayer-type }}"
-          echo "Relayer Tag:      ${{ inputs.relayer-tag }}"
-          echo "Test Entry Point: ${{ inputs.test-entry-point }}"
+          echo "Chain Image:       ${{ inputs.chain-image }}"
+          echo "Chain A Tag:       ${{ inputs.chain-a-tag }}"
+          echo "Chain B Tag:       ${{ inputs.chain-b-tag }}"
+          echo "Chain Upgrade Tag: ${{ inputs.chain-upgrade-tag }}"
+          echo "Upgrade Plan Name: ${{ inputs.upgrade-plan-name }}"
+          echo "Relayer Type:      ${{ inputs.relayer-type }}"
+          echo "Relayer Tag:       ${{ inputs.relayer-tag }}"
+          echo "Test Entry Point:  ${{ inputs.test-entry-point }}"
           echo "Github Ref Name:   ${{ github.ref_name }}"
 
   # we skip individual steps rather than the full job as e2e-tests will not run if this task
@@ -105,6 +117,9 @@ jobs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
       - uses: actions/checkout@v3
+        with:
+          repository: cosmos/ibc-go
+          ref: damian/cian-upgrade-workflow
       - uses: actions/setup-go@v3
         with:
           go-version: 1.19
@@ -126,11 +141,16 @@ jobs:
       RELAYER_TAG: "${{ inputs.relayer-tag }}"
       RELAYER_TYPE: "${{ inputs.relayer-type }}"
       CHAIN_BINARY: "${{ inputs.chain-binary }}"
+      CHAIN_UPGRADE_TAG: "${{ inputs.chain-upgrade-tag }}"
+      CHAIN_UPGRADE_PLAN: "${{ inputs.upgrade-plan-name }}"
     strategy:
       fail-fast: false
       matrix: ${{ fromJSON(needs.build-test-matrix.outputs.matrix) }}
     steps:
       - uses: actions/checkout@v3
+        with:
+          repository: cosmos/ibc-go
+          ref: damian/cian-upgrade-workflow
       - uses: actions/setup-go@v3
         with:
           go-version: 1.19
