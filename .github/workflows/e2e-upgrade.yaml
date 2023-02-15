@@ -7,7 +7,7 @@ on:
 
 jobs:
   upgrade-v5:
-    uses: ./.github/workflows/e2e-test-workflow-call.yml
+    uses: cosmos/ibc-go/.github/workflows/e2e-test-workflow-call.yml@main
     with:
       chain-image: ghcr.io/cosmos/ibc-go-simd
       chain-binary: simd
@@ -19,7 +19,7 @@ jobs:
       test: "TestV4ToV5ChainUpgrade"
 
   upgrade-v6:
-    uses: ./.github/workflows/e2e-test-workflow-call.yml
+    uses: cosmos/ibc-go/.github/workflows/e2e-test-workflow-call.yml@main
     with:
       chain-image: ghcr.io/cosmos/ibc-go-icad
       chain-binary: icad
@@ -31,7 +31,7 @@ jobs:
       test: "TestV5ToV6ChainUpgrade"
 
   upgrade-v7:
-    uses: ./.github/workflows/e2e-test-workflow-call.yml
+    uses: cosmos/ibc-go/.github/workflows/e2e-test-workflow-call.yml@main
     with:
       chain-image: ghcr.io/cosmos/ibc-go-simd
       chain-binary: simd

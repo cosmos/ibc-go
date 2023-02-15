@@ -36,6 +36,11 @@ const (
 )
 
 func TestUpgradeTestSuite(t *testing.T) {
+	testCfg := testconfig.FromEnv()
+	if testCfg.UpgradeTag == "" || testCfg.UpgradePlanName == "" {
+		t.Fatal("upgrade tag and upgrade plan name must be provided in test configuration")
+	}
+
 	suite.Run(t, new(UpgradeTestSuite))
 }
 
