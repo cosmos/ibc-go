@@ -12,7 +12,7 @@ All middleware must be connected to the IBC router and wrap over an underlying b
 
 The order of middleware **matters**, function calls from IBC to the application travel from top-level middleware to the bottom middleware and then to the application. Function calls from the application to IBC goes through the bottom middleware in order to the top middleware and then to core IBC handlers. Thus the same set of middleware put in different orders may produce different effects.
 
-### Example integration
+## Example integration
 
 ```go
 // app.go
@@ -25,11 +25,11 @@ mw3Keeper := mw3.NewKeeper(storeKey3)
 // Only create App Module **once** and register in app module
 // if the module maintains independent state and/or processes sdk.Msgs
 app.moduleManager = module.NewManager(
-    ...
-    mw1.NewAppModule(mw1Keeper),
-    mw3.NewAppModule(mw3Keeper),
-    transfer.NewAppModule(transferKeeper),
-    custom.NewAppModule(customKeeper)
+  ...
+  mw1.NewAppModule(mw1Keeper),
+  mw3.NewAppModule(mw3Keeper),
+  transfer.NewAppModule(transferKeeper),
+  custom.NewAppModule(customKeeper)
 )
 
 mw1IBCModule := mw1.NewIBCModule(mw1Keeper)
@@ -66,4 +66,3 @@ ibcRouter.AddRoute("custom1", stack2)
 ibcRouter.AddRoute("custom2", stack3)
 app.IBCKeeper.SetRouter(ibcRouter)
 ```
-

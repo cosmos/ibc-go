@@ -13,7 +13,7 @@ export CHAIN_BINARY="${CHAIN_BINARY:-simd}"
 # context for building the image is one directory up.
 if [ "${CI:-}" != "true" ]
 then
-  (cd ..; docker build . -t "${CHAIN_IMAGE}:${CHAIN_A_TAG}")
+  (cd ..; docker build . -t "${CHAIN_IMAGE}:${CHAIN_A_TAG}" --build-arg="IBC_GO_VERSION=${CHAIN_A_TAG}")
 fi
 
 go test -v ./tests/... --run ${ENTRY_POINT} -testify.m ^${TEST}$
