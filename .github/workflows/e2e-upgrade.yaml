@@ -8,9 +8,8 @@ on:
 jobs:
   upgrade-v5:
     uses: ./.github/workflows/e2e-test-workflow-call.yml
-    secrets: inherit
     with:
-      chain-image: ghcr.io/cosmos/ibc-go/simd
+      chain-image: ghcr.io/cosmos/ibc-go-simd
       chain-binary: simd
       chain-a-tag: v4.3.0
       chain-b-tag: v4.3.0
@@ -21,9 +20,8 @@ jobs:
 
   upgrade-v6:
     uses: ./.github/workflows/e2e-test-workflow-call.yml
-    secrets: inherit
     with:
-      chain-image: ghcr.io/cosmos/ibc-go/icad
+      chain-image: ghcr.io/cosmos/ibc-go-icad
       chain-binary: icad
       chain-a-tag: v0.3.5
       chain-b-tag: v0.3.5
@@ -34,9 +32,8 @@ jobs:
 
   upgrade-v7:
     uses: ./.github/workflows/e2e-test-workflow-call.yml
-    secrets: inherit
     with:
-      chain-image: ghcr.io/cosmos/ibc-go/simd
+      chain-image: ghcr.io/cosmos/ibc-go-simd
       chain-binary: simd
       chain-a-tag: v6.1.0
       chain-b-tag: v6.1.0
