@@ -42,9 +42,16 @@ type IBCActor interface {
     // NOTE: currently the channel does not automatically close if the counterparty fails the handhshake so actors must be prepared for an OpenInit to never return a callback for the time being
     OnChannelClose(ctx sdk.Context, portID, channelID string)
 
+    // IBCActor must also implement PacketActor interface
+    PacketActor
+}
+
+// PacketActor is split out into its own separate interface since implementors may choose
+// to only support callbacks for packet methods rather than supporting the full IBCActor interface
+type PacketActor interface {
     // OnRecvPacket will be called on the IBCActor after the IBC Application
     // handles the RecvPacket callback if the packet has an IBC Actor as a receiver.
-    OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, relayer string)
+    OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, relayer string) error
 
     // OnAcknowledgementPacket will be called on the IBC Actor
     // after the IBC Application handles its own OnAcknowledgementPacket callback
@@ -53,7 +60,7 @@ type IBCActor interface {
         packet channeltypes.Packet,
         ack exported.Acknowledgement,
         relayer string
-    )
+    ) error
 
     // OnTimeoutPacket will be called on the IBC Actor
     // after the IBC Application handles its own OnTimeoutPacket callback
@@ -61,23 +68,22 @@ type IBCActor interface {
         ctx sdk.Context,
         packet channeltypes.Packet,
         relayer string
-    )
+    ) error
 }
 ```
 
-The Packet interface will get extended to add `GetSender` and `GetReceiver` methods. These may return an address
-or they may return the empty string. The address may reference an IBCActor or it may be a regular user address. Any 
-IBC application or middleware that uses these methods must handle these cases.
+The CallbackPacketData interface will get extended to add `GetSrcCallbackAddress` and `GetDestCallbackAddress` methods. These may return an address
+or they may return the empty string. The address may reference an IBCActor or it may be a regular user address. If the address is not an IBCActor, the actor callback must continue processing (no-op). Any IBC application or middleware that uses these methods must handle these cases. In most cases, the `GetSrcCallbackAddress` will be the sender address and the `GetDestCallbackAddress` will be the receiver address. However, these are named generically so that implementors may choose a different contract address for the callback if they choose.
 
 ```go
 type Packet interface {
     // existing Packet methods
 
     // may return the empty string
-    GetSender() string
+    GetSrcCallbackAddress() string
 
     // may return the empty string
-    GetReceiver() string
+    GetDestCallbackAddress() string
 }
 ```
 
@@ -181,20 +187,33 @@ func OnChanCloseConfirm(
 No packet callback API will need to change.
 
 ```go
+// Call the IBCActor recvPacket callback after processing the packet
+// if the recvPacket callback exists and returns an error
+// then return an error ack to revert all packet data processing
 func OnRecvPacket(
     ctx sdk.Context,
     packet channeltypes.Packet,
     relayer sdk.AccAddress,
 ) exported.Acknowledgement {
     // run any necesssary logic first
+    // IBCActor logic will postprocess
 
     acc := k.getAccount(ctx, packet.GetReceiver())
     ibcActor, ok := acc.(IBCActor)
     if ok {
-        ibcActor.OnRecvPacket(ctx, packet, relayer)
+        err := ibcActor.OnRecvPacket(ctx, packet, relayer)
+        if err != nil {
+            return AcknowledgementError(err)
+        }
     }
 }
 
+// Call the IBCActor acknowledgementPacket callback after processing the packet
+// if the ackPacket callback exists and returns an error
+// DO NOT return the error upstream. The acknowledgement must complete for the packet
+// lifecycle to end, so the custom callback cannot block completion.
+// Instead we emit error events and set the error in state
+// so that users and on-chain logic can handle this appropriately
 func (im IBCModule) OnAcknowledgementPacket(
     ctx sdk.Context,
     packet channeltypes.Packet,
@@ -211,10 +230,18 @@ func (im IBCModule) OnAcknowledgementPacket(
     acc := k.getAccount(ctx, packet.GetSender())
     ibcActor, ok := acc.(IBCActor)
     if ok {
-        ibcActor.OnAcknowledgementPacket(ctx, packet, ack, relayer)
+        err := ibcActor.OnAcknowledgementPacket(ctx, packet, ack, relayer)
+        setAckCallbackError(ctx, packet, err)
+        emitAckCallbackErrorEvents(err)
     }
 }
 
+// Call the IBCActor timeoutPacket callback after processing the packet
+// if the timeoutPacket callback exists and returns an error
+// DO NOT return the error upstream. The timeout must complete for the packet
+// lifecycle to end, so the custom callback cannot block completion.
+// Instead we emit error events and set the error in state
+// so that users and on-chain logic can handle this appropriately
 func (im IBCModule) OnTimeoutPacket(
     ctx sdk.Context,
     packet channeltypes.Packet,
@@ -226,7 +253,9 @@ func (im IBCModule) OnTimeoutPacket(
     acc := k.getAccount(ctx, packet.GetSender())
     ibcActor, ok := acc.(IBCActor)
     if ok {
-        ibcActor.OnTimeoutPacket(ctx, packet, relayer)
+        err := ibcActor.OnTimeoutPacket(ctx, packet, relayer)
+        setTimeoutCallbackError(ctx, packet, err)
+        emitTimeoutCallbackErrorEvents(err)
     }
 }
 ```
