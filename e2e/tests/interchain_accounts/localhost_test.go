@@ -158,16 +158,7 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_Localhost(
 		s.AssertValidTxResponse(txResp)
 		s.Require().NoError(err)
 
-		var events sdk.Events
-		for _, evt := range txResp.Events {
-			var attributes []sdk.Attribute
-			for _, attr := range evt.GetAttributes() {
-				attributes = append(attributes, sdk.NewAttribute(attr.Key, attr.Value))
-			}
-
-			events = events.AppendEvent(sdk.NewEvent(evt.GetType(), attributes...))
-		}
-
+		events := testsuite.ABCIToSDKEvents(txResp.Events)
 		packet, err = ibctesting.ParsePacketFromEvents(events)
 		s.Require().NoError(err)
 		s.Require().NotNil(packet)
@@ -180,16 +171,7 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_Localhost(
 		s.Require().NoError(err)
 		s.AssertValidTxResponse(txResp)
 
-		var events sdk.Events
-		for _, evt := range txResp.Events {
-			var attributes []sdk.Attribute
-			for _, attr := range evt.GetAttributes() {
-				attributes = append(attributes, sdk.NewAttribute(attr.Key, attr.Value))
-			}
-
-			events = events.AppendEvent(sdk.NewEvent(evt.GetType(), attributes...))
-		}
-
+		events := testsuite.ABCIToSDKEvents(txResp.Events)
 		ack, err = ibctesting.ParseAckFromEvents(events)
 		s.Require().NoError(err)
 		s.Require().NotNil(ack)
@@ -340,16 +322,7 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_ReopenChan
 		s.AssertValidTxResponse(txResp)
 		s.Require().NoError(err)
 
-		var events sdk.Events
-		for _, evt := range txResp.Events {
-			var attributes []sdk.Attribute
-			for _, attr := range evt.GetAttributes() {
-				attributes = append(attributes, sdk.NewAttribute(attr.Key, attr.Value))
-			}
-
-			events = events.AppendEvent(sdk.NewEvent(evt.GetType(), attributes...))
-		}
-
+		events := testsuite.ABCIToSDKEvents(txResp.Events)
 		packet, err = ibctesting.ParsePacketFromEvents(events)
 		s.Require().NoError(err)
 		s.Require().NotNil(packet)
@@ -484,16 +457,7 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_ReopenChan
 		s.AssertValidTxResponse(txResp)
 		s.Require().NoError(err)
 
-		var events sdk.Events
-		for _, evt := range txResp.Events {
-			var attributes []sdk.Attribute
-			for _, attr := range evt.GetAttributes() {
-				attributes = append(attributes, sdk.NewAttribute(attr.Key, attr.Value))
-			}
-
-			events = events.AppendEvent(sdk.NewEvent(evt.GetType(), attributes...))
-		}
-
+		events := testsuite.ABCIToSDKEvents(txResp.Events)
 		packet, err = ibctesting.ParsePacketFromEvents(events)
 		s.Require().NoError(err)
 		s.Require().NotNil(packet)
@@ -506,16 +470,7 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_ReopenChan
 		s.Require().NoError(err)
 		s.AssertValidTxResponse(txResp)
 
-		var events sdk.Events
-		for _, evt := range txResp.Events {
-			var attributes []sdk.Attribute
-			for _, attr := range evt.GetAttributes() {
-				attributes = append(attributes, sdk.NewAttribute(attr.Key, attr.Value))
-			}
-
-			events = events.AppendEvent(sdk.NewEvent(evt.GetType(), attributes...))
-		}
-
+		events := testsuite.ABCIToSDKEvents(txResp.Events)
 		ack, err = ibctesting.ParseAckFromEvents(events)
 		s.Require().NoError(err)
 		s.Require().NotNil(ack)
@@ -530,6 +485,8 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_ReopenChan
 	})
 
 	t.Run("verify tokens transferred", func(t *testing.T) {
+		s.AssertPacketRelayed(ctx, chainA, controllerPortID, msgChanOpenInitRes.GetChannelId(), 1)
+
 		balance, err := chainA.GetBalance(ctx, userBWallet.FormattedAddress(), chainADenom)
 		s.Require().NoError(err)
 
