@@ -16,7 +16,7 @@ jobs:
       chain-upgrade-tag: v5.1.0
       upgrade-plan-name: "normal upgrade"
       test-entry-point:  "TestUpgradeTestSuite"
-      test: "TestV4ToV5ChainUpgrade"
+      test: "TestIBCChainUpgrade"
 
   upgrade-v6:
     uses: cosmos/ibc-go/.github/workflows/e2e-test-workflow-call.yml@main

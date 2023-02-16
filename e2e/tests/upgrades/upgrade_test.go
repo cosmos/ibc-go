@@ -93,7 +93,7 @@ func (s *UpgradeTestSuite) UpgradeChain(ctx context.Context, chain *cosmos.Cosmo
 	s.Require().Greater(height, haltHeight, "height did not increment after upgrade")
 }
 
-func (s *UpgradeTestSuite) TestV4ToV5ChainUpgrade() {
+func (s *UpgradeTestSuite) TestIBCChainUpgrade() {
 	t := s.T()
 	testCfg := testconfig.FromEnv()
 
