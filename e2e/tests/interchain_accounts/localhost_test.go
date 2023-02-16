@@ -186,6 +186,305 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_Localhost(
 	})
 
 	t.Run("verify tokens transferred", func(t *testing.T) {
+		balance, err := chainA.GetBalance(ctx, userBWallet.FormattedAddress(), chainADenom)
+		s.Require().NoError(err)
+
+		expected := testvalues.IBCTransferAmount + testvalues.StartingTokenAmount
+		s.Require().Equal(expected, balance)
+	})
+}
+
+func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_ReopenChannel_Localhost() {
+	t := s.T()
+	ctx := context.TODO()
+
+	// relayer and channel output is discarded, only a single chain is required
+	_, _ = s.SetupChainsRelayerAndChannel(ctx)
+	chainA, _ := s.GetChains()
+
+	chainADenom := chainA.Config().Denom
+
+	rlyWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
+	userAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
+	userBWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
+
+	var (
+		msgChanOpenInitRes channeltypes.MsgChannelOpenInitResponse
+		msgChanOpenTryRes  channeltypes.MsgChannelOpenTryResponse
+		ack                []byte
+		packet             channeltypes.Packet
+	)
+
+	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA), "failed to wait for blocks")
+
+	version := icatypes.NewDefaultMetadataString(connectiontypes.LocalhostID, connectiontypes.LocalhostID)
+	controllerPortID, err := icatypes.NewControllerPortID(userAWallet.FormattedAddress())
+	s.Require().NoError(err)
+
+	t.Run("channel open init localhost - broadcast MsgRegisterInterchainAccount", func(t *testing.T) {
+		msgRegisterAccount := controllertypes.NewMsgRegisterInterchainAccount(connectiontypes.LocalhostID, userAWallet.FormattedAddress(), version)
+
+		txResp, err := s.BroadcastMessages(ctx, chainA, userAWallet, msgRegisterAccount)
+		s.Require().NoError(err)
+		s.AssertValidTxResponse(txResp)
+
+		s.Require().NoError(testsuite.UnmarshalMsgResponses(txResp, &msgChanOpenInitRes))
+	})
+
+	t.Run("channel open try localhost", func(t *testing.T) {
+		msgChanOpenTry := channeltypes.NewMsgChannelOpenTry(
+			icatypes.HostPortID, icatypes.Version,
+			channeltypes.ORDERED, []string{connectiontypes.LocalhostID},
+			controllerPortID, msgChanOpenInitRes.GetChannelId(),
+			version, nil, clienttypes.ZeroHeight(), rlyWallet.FormattedAddress(),
+		)
+
+		txResp, err := s.BroadcastMessages(ctx, chainA, rlyWallet, msgChanOpenTry)
+		s.Require().NoError(err)
+		s.AssertValidTxResponse(txResp)
+
+		s.Require().NoError(testsuite.UnmarshalMsgResponses(txResp, &msgChanOpenTryRes))
+	})
+
+	t.Run("channel open ack localhost", func(t *testing.T) {
+		msgChanOpenAck := channeltypes.NewMsgChannelOpenAck(
+			controllerPortID, msgChanOpenInitRes.GetChannelId(),
+			msgChanOpenTryRes.GetChannelId(), msgChanOpenTryRes.GetVersion(),
+			nil, clienttypes.ZeroHeight(), rlyWallet.FormattedAddress(),
+		)
+
+		txResp, err := s.BroadcastMessages(ctx, chainA, rlyWallet, msgChanOpenAck)
+		s.Require().NoError(err)
+		s.AssertValidTxResponse(txResp)
+	})
+
+	t.Run("channel open confirm localhost", func(t *testing.T) {
+		msgChanOpenConfirm := channeltypes.NewMsgChannelOpenConfirm(
+			icatypes.HostPortID, msgChanOpenTryRes.GetChannelId(),
+			nil, clienttypes.ZeroHeight(), rlyWallet.FormattedAddress(),
+		)
+
+		txResp, err := s.BroadcastMessages(ctx, chainA, rlyWallet, msgChanOpenConfirm)
+		s.Require().NoError(err)
+		s.AssertValidTxResponse(txResp)
+	})
+
+	t.Run("query localhost interchain accounts channel ends", func(t *testing.T) {
+		channelEndA, err := s.QueryChannel(ctx, chainA, controllerPortID, msgChanOpenInitRes.GetChannelId())
+		s.Require().NoError(err)
+		s.Require().NotNil(channelEndA)
+
+		channelEndB, err := s.QueryChannel(ctx, chainA, icatypes.HostPortID, msgChanOpenTryRes.GetChannelId())
+		s.Require().NoError(err)
+		s.Require().NotNil(channelEndB)
+
+		s.Require().Equal(channelEndA.GetConnectionHops(), channelEndB.GetConnectionHops())
+	})
+
+	t.Run("verify interchain account registration and deposit funds", func(t *testing.T) {
+		interchainAccAddress, err := s.QueryInterchainAccount(ctx, chainA, userAWallet.FormattedAddress(), connectiontypes.LocalhostID)
+		s.Require().NoError(err)
+		s.Require().NotZero(len(interchainAccAddress))
+
+		walletAmount := ibc.WalletAmount{
+			Address: interchainAccAddress,
+			Amount:  testvalues.StartingTokenAmount,
+			Denom:   chainADenom,
+		}
+
+		s.Require().NoError(chainA.SendFunds(ctx, interchaintest.FaucetAccountKeyName, walletAmount))
+	})
+
+	t.Run("send localhost interchain accounts packet with timeout", func(t *testing.T) {
+		interchainAccAddress, err := s.QueryInterchainAccount(ctx, chainA, userAWallet.FormattedAddress(), connectiontypes.LocalhostID)
+		s.Require().NoError(err)
+		s.Require().NotZero(len(interchainAccAddress))
+
+		msgSend := &banktypes.MsgSend{
+			FromAddress: interchainAccAddress,
+			ToAddress:   userBWallet.FormattedAddress(),
+			Amount:      sdk.NewCoins(testvalues.DefaultTransferAmount(chainADenom)),
+		}
+
+		cdc := testsuite.Codec()
+		bz, err := icatypes.SerializeCosmosTx(cdc, []proto.Message{msgSend})
+		s.Require().NoError(err)
+
+		packetData := icatypes.InterchainAccountPacketData{
+			Type: icatypes.EXECUTE_TX,
+			Data: bz,
+			Memo: "e2e",
+		}
+
+		msgSendTx := controllertypes.NewMsgSendTx(userAWallet.FormattedAddress(), connectiontypes.LocalhostID, uint64(1), packetData)
+
+		txResp, err := s.BroadcastMessages(ctx, chainA, userAWallet, msgSendTx)
+		s.AssertValidTxResponse(txResp)
+		s.Require().NoError(err)
+
+		events := testsuite.ABCIToSDKEvents(txResp.Events)
+		packet, err = ibctesting.ParsePacketFromEvents(events)
+		s.Require().NoError(err)
+		s.Require().NotNil(packet)
+	})
+
+	t.Run("timeout localhost interchain accounts packet", func(t *testing.T) {
+		msgTimeout := channeltypes.NewMsgTimeout(packet, 1, nil, clienttypes.ZeroHeight(), rlyWallet.FormattedAddress())
+
+		txResp, err := s.BroadcastMessages(ctx, chainA, rlyWallet, msgTimeout)
+		s.Require().NoError(err)
+		s.AssertValidTxResponse(txResp)
+	})
+
+	t.Run("close interchain accounts host channel end", func(t *testing.T) {
+		msgCloseConfirm := channeltypes.NewMsgChannelCloseConfirm(icatypes.HostPortID, msgChanOpenTryRes.ChannelId, nil, clienttypes.ZeroHeight(), rlyWallet.FormattedAddress())
+
+		txResp, err := s.BroadcastMessages(ctx, chainA, rlyWallet, msgCloseConfirm)
+		s.Require().NoError(err)
+		s.AssertValidTxResponse(txResp)
+	})
+
+	t.Run("verify localhost interchain accounts channel is closed", func(t *testing.T) {
+		channelEndA, err := s.QueryChannel(ctx, chainA, controllerPortID, msgChanOpenInitRes.ChannelId)
+		s.Require().NoError(err)
+
+		s.Require().Equal(channeltypes.CLOSED, channelEndA.State, "the channel was not in an expected state")
+
+		channelEndB, err := s.QueryChannel(ctx, chainA, icatypes.HostPortID, msgChanOpenTryRes.ChannelId)
+		s.Require().NoError(err)
+
+		s.Require().Equal(channeltypes.CLOSED, channelEndB.State, "the channel was not in an expected state")
+	})
+
+	t.Run("channel open init localhost: create new channel for existing account", func(t *testing.T) {
+		msgRegisterAccount := controllertypes.NewMsgRegisterInterchainAccount(connectiontypes.LocalhostID, userAWallet.FormattedAddress(), version)
+
+		txResp, err := s.BroadcastMessages(ctx, chainA, userAWallet, msgRegisterAccount)
+		s.Require().NoError(err)
+		s.AssertValidTxResponse(txResp)
+
+		// note: response values are updated here in msgChanOpenInitRes
+		s.Require().NoError(testsuite.UnmarshalMsgResponses(txResp, &msgChanOpenInitRes))
+	})
+
+	t.Run("channel open try localhost", func(t *testing.T) {
+		msgChanOpenTry := channeltypes.NewMsgChannelOpenTry(
+			icatypes.HostPortID, icatypes.Version,
+			channeltypes.ORDERED, []string{connectiontypes.LocalhostID},
+			controllerPortID, msgChanOpenInitRes.GetChannelId(),
+			version, nil, clienttypes.ZeroHeight(), rlyWallet.FormattedAddress(),
+		)
+
+		txResp, err := s.BroadcastMessages(ctx, chainA, rlyWallet, msgChanOpenTry)
+		s.Require().NoError(err)
+		s.AssertValidTxResponse(txResp)
+
+		// note: response values are updated here in msgChanOpenTryRes
+		s.Require().NoError(testsuite.UnmarshalMsgResponses(txResp, &msgChanOpenTryRes))
+	})
+
+	t.Run("channel open ack localhost", func(t *testing.T) {
+		msgChanOpenAck := channeltypes.NewMsgChannelOpenAck(
+			controllerPortID, msgChanOpenInitRes.GetChannelId(),
+			msgChanOpenTryRes.GetChannelId(), msgChanOpenTryRes.GetVersion(),
+			nil, clienttypes.ZeroHeight(), rlyWallet.FormattedAddress(),
+		)
+
+		txResp, err := s.BroadcastMessages(ctx, chainA, rlyWallet, msgChanOpenAck)
+		s.Require().NoError(err)
+		s.AssertValidTxResponse(txResp)
+	})
+
+	t.Run("channel open confirm localhost", func(t *testing.T) {
+		msgChanOpenConfirm := channeltypes.NewMsgChannelOpenConfirm(
+			icatypes.HostPortID, msgChanOpenTryRes.GetChannelId(),
+			nil, clienttypes.ZeroHeight(), rlyWallet.FormattedAddress(),
+		)
+
+		txResp, err := s.BroadcastMessages(ctx, chainA, rlyWallet, msgChanOpenConfirm)
+		s.Require().NoError(err)
+		s.AssertValidTxResponse(txResp)
+	})
+
+	t.Run("query localhost interchain accounts channel ends", func(t *testing.T) {
+		channelEndA, err := s.QueryChannel(ctx, chainA, controllerPortID, msgChanOpenInitRes.GetChannelId())
+		s.Require().NoError(err)
+		s.Require().NotNil(channelEndA)
+
+		channelEndB, err := s.QueryChannel(ctx, chainA, icatypes.HostPortID, msgChanOpenTryRes.GetChannelId())
+		s.Require().NoError(err)
+		s.Require().NotNil(channelEndB)
+
+		s.Require().Equal(channelEndA.GetConnectionHops(), channelEndB.GetConnectionHops())
+	})
+
+	t.Run("verify interchain account and existing balance", func(t *testing.T) {
+		interchainAccAddress, err := s.QueryInterchainAccount(ctx, chainA, userAWallet.FormattedAddress(), connectiontypes.LocalhostID)
+		s.Require().NoError(err)
+		s.Require().NotZero(len(interchainAccAddress))
+
+		balance, err := chainA.GetBalance(ctx, interchainAccAddress, chainADenom)
+		s.Require().NoError(err)
+
+		expected := testvalues.StartingTokenAmount
+		s.Require().Equal(expected, balance)
+	})
+
+	t.Run("send packet localhost interchain accounts", func(t *testing.T) {
+		interchainAccAddress, err := s.QueryInterchainAccount(ctx, chainA, userAWallet.FormattedAddress(), connectiontypes.LocalhostID)
+		s.Require().NoError(err)
+		s.Require().NotZero(len(interchainAccAddress))
+
+		msgSend := &banktypes.MsgSend{
+			FromAddress: interchainAccAddress,
+			ToAddress:   userBWallet.FormattedAddress(),
+			Amount:      sdk.NewCoins(testvalues.DefaultTransferAmount(chainADenom)),
+		}
+
+		cdc := testsuite.Codec()
+		bz, err := icatypes.SerializeCosmosTx(cdc, []proto.Message{msgSend})
+		s.Require().NoError(err)
+
+		packetData := icatypes.InterchainAccountPacketData{
+			Type: icatypes.EXECUTE_TX,
+			Data: bz,
+			Memo: "e2e",
+		}
+
+		msgSendTx := controllertypes.NewMsgSendTx(userAWallet.FormattedAddress(), connectiontypes.LocalhostID, uint64(time.Hour.Nanoseconds()), packetData)
+
+		txResp, err := s.BroadcastMessages(ctx, chainA, userAWallet, msgSendTx)
+		s.AssertValidTxResponse(txResp)
+		s.Require().NoError(err)
+
+		events := testsuite.ABCIToSDKEvents(txResp.Events)
+		packet, err = ibctesting.ParsePacketFromEvents(events)
+		s.Require().NoError(err)
+		s.Require().NotNil(packet)
+	})
+
+	t.Run("recv packet localhost interchain accounts", func(t *testing.T) {
+		msgRecvPacket := channeltypes.NewMsgRecvPacket(packet, nil, clienttypes.ZeroHeight(), rlyWallet.FormattedAddress())
+
+		txResp, err := s.BroadcastMessages(ctx, chainA, rlyWallet, msgRecvPacket)
+		s.Require().NoError(err)
+		s.AssertValidTxResponse(txResp)
+
+		events := testsuite.ABCIToSDKEvents(txResp.Events)
+		ack, err = ibctesting.ParseAckFromEvents(events)
+		s.Require().NoError(err)
+		s.Require().NotNil(ack)
+	})
+
+	t.Run("acknowledge packet localhost interchain accounts", func(t *testing.T) {
+		msgAcknowledgement := channeltypes.NewMsgAcknowledgement(packet, ack, nil, clienttypes.ZeroHeight(), rlyWallet.FormattedAddress())
+
+		txResp, err := s.BroadcastMessages(ctx, chainA, rlyWallet, msgAcknowledgement)
+		s.Require().NoError(err)
+		s.AssertValidTxResponse(txResp)
+	})
+
+	t.Run("verify tokens transferred", func(t *testing.T) {
 		s.AssertPacketRelayed(ctx, chainA, controllerPortID, msgChanOpenInitRes.GetChannelId(), 1)
 
 		balance, err := chainA.GetBalance(ctx, userBWallet.FormattedAddress(), chainADenom)
