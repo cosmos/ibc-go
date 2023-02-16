@@ -203,8 +203,7 @@ func (s *UpgradeTestSuite) TestChainUpgrade() {
 	t := s.T()
 
 	ctx := context.Background()
-	_, _ = s.SetupChainsRelayerAndChannel(ctx)
-	chain, _ := s.GetChains()
+	chain := s.SetupSingleChain(ctx)
 
 	userWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 	userWalletAddr := userWallet.FormattedAddress()
