@@ -199,6 +199,60 @@ func (s *UpgradeTestSuite) TestIBCChainUpgrade() {
 	})
 }
 
+func (s *UpgradeTestSuite) TestChainUpgrade() {
+	t := s.T()
+
+	ctx := context.Background()
+	_, _ = s.SetupChainsRelayerAndChannel(ctx)
+	chain, _ := s.GetChains()
+
+	userWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
+	userWalletAddr := userWallet.FormattedAddress()
+
+	s.Require().NoError(test.WaitForBlocks(ctx, 1, chain), "failed to wait for blocks")
+
+	t.Run("send funds to test wallet", func(t *testing.T) {
+		err := chain.SendFunds(ctx, interchaintest.FaucetAccountKeyName, ibc.WalletAmount{
+			Address: userWalletAddr,
+			Amount:  testvalues.StartingTokenAmount,
+			Denom:   chain.Config().Denom,
+		})
+		s.Require().NoError(err)
+	})
+
+	t.Run("verify tokens sent", func(t *testing.T) {
+		balance, err := chain.GetBalance(ctx, userWalletAddr, chain.Config().Denom)
+		s.Require().NoError(err)
+
+		expected := testvalues.StartingTokenAmount * 2
+		s.Require().Equal(expected, balance)
+	})
+
+	t.Run("upgrade chain", func(t *testing.T) {
+		testCfg := testconfig.FromEnv()
+		proposerWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
+
+		s.UpgradeChain(ctx, chain, proposerWallet, testCfg.UpgradePlanName, testCfg.ChainAConfig.Tag, testCfg.UpgradeTag)
+	})
+
+	t.Run("send funds to test wallet", func(t *testing.T) {
+		err := chain.SendFunds(ctx, interchaintest.FaucetAccountKeyName, ibc.WalletAmount{
+			Address: userWalletAddr,
+			Amount:  testvalues.StartingTokenAmount,
+			Denom:   chain.Config().Denom,
+		})
+		s.Require().NoError(err)
+	})
+
+	t.Run("verify tokens sent", func(t *testing.T) {
+		balance, err := chain.GetBalance(ctx, userWalletAddr, chain.Config().Denom)
+		s.Require().NoError(err)
+
+		expected := testvalues.StartingTokenAmount * 3
+		s.Require().Equal(expected, balance)
+	})
+}
+
 func (s *UpgradeTestSuite) TestV5ToV6ChainUpgrade() {
 	t := s.T()
 	testCfg := testconfig.FromEnv()
