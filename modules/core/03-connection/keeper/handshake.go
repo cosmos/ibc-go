@@ -74,7 +74,7 @@ func (k Keeper) ConnOpenTry(
 	// generate a new connection
 	connectionID := k.GenerateConnectionIdentifier(ctx)
 
-	if err := k.validateHeight(ctx, clientState.ClientType(), consensusHeight); err != nil {
+	if err := k.validateConsensusHeight(ctx, clientState.ClientType(), consensusHeight); err != nil {
 		return "", err
 	}
 
@@ -160,7 +160,7 @@ func (k Keeper) ConnOpenAck(
 	consensusHeight exported.Height, // latest height of chainA that chainB has stored on its chainA client
 ) error {
 	// Check that chainB client hasn't stored invalid height
-	if err := k.validateHeight(ctx, clientState.ClientType(), consensusHeight); err != nil {
+	if err := k.validateConsensusHeight(ctx, clientState.ClientType(), consensusHeight); err != nil {
 		return err
 	}
 
@@ -288,11 +288,16 @@ func (k Keeper) ConnOpenConfirm(
 	return nil
 }
 
-func (k Keeper) validateHeight(
+// validateConsensusHeight validates the consensus height the counterparty is using to store a representation
+// of this chain's consensus state. For non-localhost clients, the consensus height must be a past height.
+// The localhost consensus height must be less than or equal to the current height.
+func (k Keeper) validateConsensusHeight(
 	ctx sdk.Context,
 	clientType string,
 	consensusHeight exported.Height,
 ) error {
+	// if the consensusHeight is greater than the current height,
+	// the self consensus state will fail to be retrieved.
 	if clientType == exported.Localhost {
 		return nil
 	}
