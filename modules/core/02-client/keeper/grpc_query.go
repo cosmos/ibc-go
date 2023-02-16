@@ -40,14 +40,14 @@ func (q Keeper) ClientState(c context.Context, req *types.QueryClientStateReques
 		)
 	}
 
-	any, err := types.PackClientState(clientState)
+	protoAny, err := types.PackClientState(clientState)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	proofHeight := types.GetSelfHeight(ctx)
 	return &types.QueryClientStateResponse{
-		ClientState: any,
+		ClientState: protoAny,
 		ProofHeight: proofHeight,
 	}, nil
 }
@@ -131,14 +131,14 @@ func (q Keeper) ConsensusState(c context.Context, req *types.QueryConsensusState
 		)
 	}
 
-	any, err := types.PackConsensusState(consensusState)
+	protoAny, err := types.PackConsensusState(consensusState)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	proofHeight := types.GetSelfHeight(ctx)
 	return &types.QueryConsensusStateResponse{
-		ConsensusState: any,
+		ConsensusState: protoAny,
 		ProofHeight:    proofHeight,
 	}, nil
 }
@@ -290,13 +290,13 @@ func (q Keeper) UpgradedClientState(c context.Context, req *types.QueryUpgradedC
 		)
 	}
 
-	any, err := types.PackClientState(clientState)
+	protoAny, err := types.PackClientState(clientState)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	return &types.QueryUpgradedClientStateResponse{
-		UpgradedClientState: any,
+		UpgradedClientState: protoAny,
 	}, nil
 }
 
@@ -320,12 +320,12 @@ func (q Keeper) UpgradedConsensusState(c context.Context, req *types.QueryUpgrad
 		)
 	}
 
-	any, err := types.PackConsensusState(consensusState)
+	protoAny, err := types.PackConsensusState(consensusState)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	return &types.QueryUpgradedConsensusStateResponse{
-		UpgradedConsensusState: any,
+		UpgradedConsensusState: protoAny,
 	}, nil
 }

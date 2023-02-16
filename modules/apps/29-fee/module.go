@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"math/rand"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -131,11 +130,6 @@ func (am AppModule) EndBlock(ctx sdk.Context, req abci.RequestEndBlock) []abci.V
 
 // GenerateGenesisState creates a randomized GenState of the 29-fee module.
 func (AppModule) GenerateGenesisState(_ *module.SimulationState) {
-}
-
-// RandomizedParams creates randomized ibc-29-fee param changes for the simulator.
-func (AppModule) RandomizedParams(_ *rand.Rand) []simtypes.LegacyParamChange {
-	return nil
 }
 
 // RegisterStoreDecoder registers a decoder for 29-fee module's types
