@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"fmt"
 
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	transferkeeper "github.com/cosmos/ibc-go/v7/modules/apps/transfer/keeper"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 )
@@ -118,4 +119,65 @@ func (suite *KeeperTestSuite) TestMigratorMigrateTracesCorruptionDetection() {
 	suite.Panics(func() {
 		migrator.MigrateTraces(suite.chainA.GetContext()) //nolint:errcheck // we shouldn't check the error here because we want to ensure that a panic occurs.
 	})
+}
+
+func (suite *KeeperTestSuite) TestMigratorMigrateMetadata() {
+	DenomTraces := []transfertypes.DenomTrace{
+		{
+			BaseDenom: "foo",
+			Path:      "transfer/channel-0",
+		},
+		{
+			BaseDenom: "ubar",
+			Path:      "transfer/channel-1/transfer/channel-2",
+		},
+	}
+
+	expectedMetaData := []banktypes.Metadata{
+		{
+			Description: "IBC Token from transfer/channel-0/foo",
+			DenomUnits: []*banktypes.DenomUnit{
+				{
+					Denom:    "foo",
+					Exponent: 0,
+				},
+			},
+			Base:    DenomTraces[0].IBCDenom(), // ibc/EB7094899ACFB7A6F2A67DB084DEE2E9A83DEFAA5DEF92D9A9814FFD9FF673FA
+			Display: "transfer/channel-0/foo",
+			Name:    "transfer/channel-0/foo IBC Token",
+			Symbol:  "FOO",
+		},
+		{
+			Description: "IBC Token from transfer/channel-1/transfer/channel-2/ubar",
+			DenomUnits: []*banktypes.DenomUnit{
+				{
+					Denom:    "ubar",
+					Exponent: 0,
+				},
+			},
+			Base:    DenomTraces[1].IBCDenom(), // ibc/8243B3EAA19BAB1DB3B0020B81C0C5A953E7B22C042CEE44E639A11A238BA57C
+			Display: "transfer/channel-1/transfer/channel-2/ubar",
+			Name:    "transfer/channel-1/transfer/channel-2/ubar IBC Token",
+			Symbol:  "UBAR",
+		},
+	}
+
+	ctx := suite.chainA.GetContext()
+
+	// set denom traces
+	for _, dt := range DenomTraces {
+		suite.chainA.GetSimApp().TransferKeeper.SetDenomTrace(ctx, dt)
+	}
+
+	// run migration
+	migrator := transferkeeper.NewMigrator(suite.chainA.GetSimApp().TransferKeeper)
+	err := migrator.MigrateMetadata(suite.chainA.GetContext())
+	suite.Require().NoError(err)
+
+	bk := suite.chainA.GetSimApp().BankKeeper
+	for _, exp := range expectedMetaData {
+		got, ok := bk.GetDenomMetaData(ctx, exp.Base)
+		suite.Require().True(ok)
+		suite.Require().Equal(exp, got)
+	}
 }

@@ -55,7 +55,7 @@ func (m Migrator) MigrateTraces(ctx sdk.Context) error {
 }
 
 // MigrateMetaData sets token metadata for all the IBC denom traces
-func (m Migrator) MigrateMetaData(ctx sdk.Context) error {
+func (m Migrator) MigrateMetadata(ctx sdk.Context) error {
 	m.keeper.IterateDenomTraces(ctx,
 		func(dt types.DenomTrace) (stop bool) {
 			// check if the metadata for the given denom trace already exists
