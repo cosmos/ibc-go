@@ -56,7 +56,8 @@ compiled to WASM instead.
 | light client written  |          |
 | in wasm following the |          |
 | `ClientState`         |          |
-| interface             |          |
+| interface. Support    |          |
+| GRANDPA light client. |          |
 
 
 # User requirements
