@@ -56,7 +56,7 @@ func (m Migrator) MigrateTraces(ctx sdk.Context) error {
 
 // MigrateTotalEscrowForDenom migrates the total amount of source chain tokens in escrow.
 func (m Migrator) MigrateTotalEscrowForDenom(ctx sdk.Context) error {
-	var nativeTokens = make(map[string]math.Int)
+	nativeTokens := make(map[string]math.Int)
 
 	transferChannels := m.keeper.channelKeeper.GetAllChannelsWithPortPrefix(ctx, types.PortID)
 	for _, channel := range transferChannels {
