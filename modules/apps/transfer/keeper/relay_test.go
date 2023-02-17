@@ -162,10 +162,10 @@ func (suite *KeeperTestSuite) TestSendTransferDoesNotSetTotalEscrowAmountForSour
 		Given the following flow of tokens:
 
 		chain A (channel 0) -> (channel-0) chain B (channel-1) -> (channel-1) chain A
-		stake									 transfer/channel-0/stake						transfer/channel-1/transfer/channel-0/stake
-																				^
-																				|
-																	SendTransfer
+		stake                  transfer/channel-0/stake           transfer/channel-1/transfer/channel-0/stake
+		                                  ^
+		                                  |
+		                             SendTransfer
 
 		This test will transfer vouchers of denom "transfer/channel-0/stake" from chain B
 		to chain A over channel-1 to assert that no total escrow amount is stored on chain B.
