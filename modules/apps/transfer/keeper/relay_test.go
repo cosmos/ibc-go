@@ -410,11 +410,11 @@ func (suite *KeeperTestSuite) TestOnRecvPacketDoesNotSetTotalEscrowAmountForSour
 	/*
 		Given the following flow of tokens:
 
-		chain A (channel 0) -> (channel-0) chain B (channel-1) -> (channel-1) chain A (channel-1)	 						-> (channel-1) chain B
-		stake									 transfer/channel-0/stake						transfer/channel-1/transfer/channel-0/stake		 transfer/channel-0/stake
-																																																												^
-																																																												|
-																																																									OnRecvPacket
+		chain A (channel 0) -> (channel-0) chain B (channel-1) -> (channel-1) chain A (channel-1)             -> (channel-1) chain B
+		stake                  transfer/channel-0/stake           transfer/channel-1/transfer/channel-0/stake    transfer/channel-0/stake
+		                                                                                                                   ^
+		                                                                                                                   |
+		                                                                                                              OnRecvPacket
 
 		This test will assert that on receiving vouchers of denom "transfer/channel-0/stake"
 		on chain B no total escrow amount is stored on chain B.
@@ -605,10 +605,10 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacketDoesNotSetTotalEscrowAm
 		This test is testing the following scenario. Given tokens travelling like this:
 
 		chain A (channel 0) -> (channel-0) chain B (channel-1) -> (channel-1) chain A (channel-1)
-		stake									 transfer/channel-0/stake						transfer/channel-1/transfer/channel-0/stake
-																			^
-																			|
-															OnAcknowledgePacket
+		stake                  transfer/channel-0/stake           transfer/channel-1/transfer/channel-0/stake
+		                                 ^
+		                                 |
+		                         OnAcknowledgePacket
 
 		We want to assert that on failed acknowledgment of vouchers sent with denom trace
 		"transfer/channel-0/stake" on chain B no total escrow amount is stored.
@@ -801,10 +801,10 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacketDoesNotSetTotalEscrowAmountForS
 		Given the following flow of tokens:
 
 		chain A (channel 0) -> (channel-0) chain B (channel-1) -> (channel-1) chain A (channel-1)
-		stake                  transfer/channel-0/stake						transfer/channel-1/transfer/channel-0/stake
-																			^
-																			|
-																OnTimeoutPacket
+		stake                  transfer/channel-0/stake           transfer/channel-1/transfer/channel-0/stake
+		                                 ^
+		                                 |
+		                           OnTimeoutPacket
 
 		We want to assert that on timeout of vouchers sent with denom trace
 		"transfer/channel-0/stake" on chain B no total escrow amount is stored.
