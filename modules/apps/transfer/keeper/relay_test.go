@@ -172,7 +172,7 @@ func (suite *KeeperTestSuite) TestSendTransferDoesNotSetTotalEscrowAmountForSour
 
 		Set up:
 		- Two transfer channels between chain A and chain B.
-		- Tokens of native denom "stake" on chain A transfered to chain B over channel-0
+		- Tokens of native denom "stake" on chain A transferred to chain B over channel-0
 		and vouchers minted with denom trace "tranfer/channel-0/stake".
 
 		Execute:
