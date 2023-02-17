@@ -12,7 +12,7 @@ service Msg {
 // Message type to push new wasm code
 message MsgPushNewWasmCode {
   string signer = 1;
-  bytes  code   = 3;
+  bytes  code   = 2;
 }
 
 // Response in case of successful handling
