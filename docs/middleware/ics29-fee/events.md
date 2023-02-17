@@ -6,7 +6,7 @@ order: 5
 
 An overview of all events related to ICS-29 {synopsis}
 
-## `MsgPayPacketFee`, `MsgPayPacketFeeAsync`
+## `MsgPayPacketFee` & `MsgPayPacketFeeAsync`
 
 | Type                    | Attribute Key   | Attribute Value |
 | ----------------------- | --------------- | --------------- |
@@ -35,3 +35,12 @@ An overview of all events related to ICS-29 {synopsis}
 | register_counterparty_payee | counterparty_payee | {counterpartyPayee} |
 | register_counterparty_payee | channel_id         | {channelID}         |
 | message                     | module             | fee-ibc             |
+
+## `MsgAcknowledgement` & `MsgTimeout`
+
+| Type           | Attribute Key      | Attribute Value     |
+| ---------------| ------------------ | ------------------- |
+| distribute_fee | distribution_type  | reward/refund       |
+| distribute_fee | receiver           | {receiver}          |
+| distribute_fee | fee                | {fee}               |
+| message        | module             | fee-ibc             |
