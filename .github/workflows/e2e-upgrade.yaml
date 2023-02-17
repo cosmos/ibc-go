@@ -24,7 +24,7 @@ jobs:
             chain-binary: simd
             chain-a-tag: v6.1.0
             chain-b-tag: v6.1.0
-            chain-upgrade-tag: v7.0.0-rc0 # TODO: needs v7.0.0-rc1 when cut
+            chain-upgrade-tag: pr-3136 # TODO: needs v7.0.0-rc1 when cut
           - test: TestV7ChainUpgradeAddLocalhost
             chain-image: ghcr.io/cosmos/ibc-go-simd
             chain-binary: simd
