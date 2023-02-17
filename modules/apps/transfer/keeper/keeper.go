@@ -1,6 +1,10 @@
 package keeper
 
 import (
+	"fmt"
+	"strings"
+
+	"cosmossdk.io/math"
 	tmbytes "github.com/cometbft/cometbft/libs/bytes"
 	"github.com/cometbft/cometbft/libs/log"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -152,25 +156,25 @@ func (k Keeper) ClaimCapability(ctx sdk.Context, cap *capabilitytypes.Capability
 	return k.scopedKeeper.ClaimCapability(ctx, cap, name)
 }
 
-// GetIBCOutDenomAmount gets the total source chain tokens that has been IBC'd out.
-func (k Keeper) GetIBCOutDenomAmount(ctx sdk.Context, denom string) sdk.Int {
+// GetTotalEscrowForDenom gets the total amount of source chain tokens that are in escrow.
+func (k Keeper) GetTotalEscrowForDenom(ctx sdk.Context, denom string) math.Int {
 	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.GetTotalEscrowForDenomKey(denom))
+	bz := store.Get(types.TotalEscrowForDenomKey(denom))
 	if bz == nil {
-		return sdk.NewInt(0)
+		return math.ZeroInt()
 	}
 
-	var amount sdk.Int
+	var amount math.Int
 	if err := amount.Unmarshal(bz); err != nil {
 		panic(err)
 	}
 	return amount
 }
 
-// SetIBCOutDenomAmount stores the source tokens about to get IBC'd out.
-func (k Keeper) SetIBCOutDenomAmount(ctx sdk.Context, denom string, amount sdk.Int) error {
-	if amount.LT(sdk.ZeroInt()) {
-		panic("amount cannot be negative.")
+// SetTotalEscrowForDenom stores the total amount of source chain tokens that are in escrow.
+func (k Keeper) SetTotalEscrowForDenom(ctx sdk.Context, denom string, amount math.Int) {
+	if amount.LT(math.ZeroInt()) {
+		panic(fmt.Sprintf("amount cannot be negative: %s", amount))
 	}
 
 	store := ctx.KVStore(k.storeKey)
@@ -179,6 +183,16 @@ func (k Keeper) SetIBCOutDenomAmount(ctx sdk.Context, denom string, amount sdk.I
 		panic(err)
 	}
 
-	store.Set(types.GetTotalEscrowForDenomKey(denom), bz)
-	return nil
+	store.Set(types.TotalEscrowForDenomKey(denom), bz)
+}
+
+// IsIBCDenom returns true is the denomination is an known on-chain IBC denomination.
+func (k Keeper) IsIBCDenom(ctx sdk.Context, denom string) bool {
+	if strings.HasPrefix(denom, fmt.Sprintf("%s/", types.DenomPrefix)) {
+		_, err := k.DenomPathFromHash(ctx, denom)
+		if err == nil {
+			return true
+		}
+	}
+	return false
 }

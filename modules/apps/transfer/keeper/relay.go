@@ -111,13 +111,15 @@ func (k Keeper) sendTransfer(
 			return 0, err
 		}
 
-		// get the existing escrow amount in store.
-		existingToken := k.GetIBCOutDenomAmount(ctx, token.Denom)
-		existingTokenWithNewTokens := existingToken.Add(token.Amount)
+		denomTrace := types.ParseDenomTrace(fullDenomPath)
+		if denomTrace.GetPath() == "" {
+			// get the existing total amount in escrow
+			currentTotalEscrow := k.GetTotalEscrowForDenom(ctx, token.GetDenom())
+			newTotalEscrow := currentTotalEscrow.Add(token.Amount)
 
-		// store the token about to be IBC'd Out here
-		k.SetIBCOutDenomAmount(ctx, token.GetDenom(), existingTokenWithNewTokens)
-
+			// store the new total amount in escrow
+			k.SetTotalEscrowForDenom(ctx, token.GetDenom(), newTotalEscrow)
+		}
 	} else {
 		labels = append(labels, telemetry.NewLabel(coretypes.LabelSource, "false"))
 
@@ -205,7 +207,6 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 	// NOTE: We use SourcePort and SourceChannel here, because the counterparty
 	// chain would have prefixed with DestPort and DestChannel when originally
 	// receiving this coin as seen in the "sender chain is the source" condition.
-
 	if types.ReceiverChainIsSource(packet.GetSourcePort(), packet.GetSourceChannel(), data.Denom) {
 		// sender chain is not the source, unescrow tokens
 
@@ -238,13 +239,14 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 			return errorsmod.Wrap(err, "unable to unescrow tokens, this may be caused by a malicious counterparty module or a bug: please open an issue on counterparty module")
 		}
 
-		// decrement the total escrow native amount in store
-		// get the existing escrow amount in store.
-		existingToken := k.GetIBCOutDenomAmount(ctx, token.Denom)
-		existingTokenWithNewTokens := existingToken.Sub(token.Amount)
+		if denomTrace.GetPath() == "" {
+			// get the existing total amount in escrow
+			currentTotalEscrow := k.GetTotalEscrowForDenom(ctx, token.GetDenom())
+			newTotalEscrow := currentTotalEscrow.Sub(token.Amount)
 
-		// store the token about to be IBC'd Out
-		k.SetIBCOutDenomAmount(ctx, token.GetDenom(), existingTokenWithNewTokens)
+			// store the new total amount in escrow
+			k.SetTotalEscrowForDenom(ctx, token.GetDenom(), newTotalEscrow)
+		}
 
 		defer func() {
 			if transferAmount.IsInt64() {
@@ -382,12 +384,14 @@ func (k Keeper) refundPacketToken(ctx sdk.Context, packet channeltypes.Packet, d
 			return errorsmod.Wrap(err, "unable to unescrow tokens, this may be caused by a malicious counterparty module or a bug: please open an issue on counterparty module")
 		}
 
-		// get the existing escrow amount in store.
-		existingToken := k.GetIBCOutDenomAmount(ctx, token.Denom)
-		existingTokenWithNewTokens := existingToken.Sub(token.Amount)
+		if trace.GetPath() == "" {
+			// get the existing total amount in escrow
+			currentTotalEscrow := k.GetTotalEscrowForDenom(ctx, token.GetDenom())
+			newTotalEscrow := currentTotalEscrow.Sub(token.Amount)
 
-		// store the token about to be IBC'd Out here
-		k.SetIBCOutDenomAmount(ctx, token.GetDenom(), existingTokenWithNewTokens)
+			// store the new total amount in escrow
+			k.SetTotalEscrowForDenom(ctx, token.GetDenom(), newTotalEscrow)
+		}
 
 		return nil
 	}

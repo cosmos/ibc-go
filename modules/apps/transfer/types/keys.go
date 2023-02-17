@@ -29,6 +29,9 @@ const (
 
 	// DenomPrefix is the prefix used for internal SDK coin representation.
 	DenomPrefix = "ibc"
+
+	KeyTotalEscrowPrefix = "totalEscrow"
+	KeyDenomsPrefix      = "denoms"
 )
 
 var (
@@ -54,7 +57,8 @@ func GetEscrowAddress(portID, channelID string) sdk.AccAddress {
 	return hash[:20]
 }
 
-// GetIBCOutDenom holds the total ibcout for native tokens per transfer.
-func GetTotalEscrowForDenomKey(denom string) []byte {
-	return []byte(fmt.Sprintf("total_escrow/%s", denom))
+// TotalEscrowForDenomKey returns the store key of under which the total amout of
+// source chain tokens in escrow is stored.
+func TotalEscrowForDenomKey(denom string) []byte {
+	return []byte(fmt.Sprintf("%s/%s/%s", KeyTotalEscrowPrefix, KeyDenomsPrefix, denom))
 }

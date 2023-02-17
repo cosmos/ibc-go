@@ -261,3 +261,80 @@ func (suite *KeeperTestSuite) TestEscrowAddress() {
 		})
 	}
 }
+
+func (suite *KeeperTestSuite) TestTotalEscrowForDenom() {
+	var req *types.QueryTotalEscrowFormDenomRequest
+
+	testCases := []struct {
+		msg      string
+		malleate func()
+		expPass  bool
+	}{
+		{
+			"success",
+			func() {
+				req = &types.QueryTotalEscrowFormDenomRequest{
+					Denom: sdk.DefaultBondDenom,
+				}
+			},
+			true,
+		},
+		{
+			"not found denom trace",
+			func() {
+				denomTrace := types.DenomTrace{
+					Path:      "transfer/channel-0",
+					BaseDenom: sdk.DefaultBondDenom,
+				}
+
+				req = &types.QueryTotalEscrowFormDenomRequest{
+					Denom: denomTrace.IBCDenom(),
+				}
+			},
+			true, // consider the denom is of a native token
+		},
+		{
+			"invalid ibc denom",
+			func() {
+				req = &types.QueryTotalEscrowFormDenomRequest{
+					Denom: "ibc/𓃠🐾",
+				}
+			},
+			true, // consider the denom is of a native token
+		},
+		{
+			"non-native denom",
+			func() {
+				denomTrace := types.DenomTrace{
+					Path:      "transfer/channel-0",
+					BaseDenom: sdk.DefaultBondDenom,
+				}
+
+				suite.chainA.GetSimApp().TransferKeeper.SetDenomTrace(suite.chainA.GetContext(), denomTrace)
+
+				req = &types.QueryTotalEscrowFormDenomRequest{
+					Denom: denomTrace.IBCDenom(),
+				}
+			},
+			false,
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
+			suite.SetupTest() // reset
+
+			tc.malleate()
+			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
+
+			res, err := suite.queryClient.TotalEscrowForDenom(ctx, req)
+
+			if tc.expPass {
+				suite.Require().NoError(err)
+				suite.Require().Equal(int64(0), res.Amount)
+			} else {
+				suite.Require().Error(err)
+			}
+		})
+	}
+}

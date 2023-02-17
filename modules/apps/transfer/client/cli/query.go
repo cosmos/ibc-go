@@ -168,7 +168,7 @@ func GetCmdQueryDenomHash() *cobra.Command {
 	return cmd
 }
 
-// GetCmdQueryDenomHash defines the command to query a denomination hash from a given trace.
+// GetCmdQueryTotalEscrowForDenom defines the command to query the total amount of tokens in escrow for a native denom
 func GetCmdQueryTotalEscrowForDenom() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "token-escrow [denom]",

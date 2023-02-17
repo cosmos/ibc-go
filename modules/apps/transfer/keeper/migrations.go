@@ -2,8 +2,8 @@ package keeper
 
 import (
 	"fmt"
-	"strings"
 
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
@@ -54,33 +54,34 @@ func (m Migrator) MigrateTraces(ctx sdk.Context) error {
 	return nil
 }
 
-// MigrateTotalEscrowOut migrates the total escrow amount to calculate total IBC'd out.
-func (m Migrator) MigrateTotalEscrowOut(ctx sdk.Context) error {
-	var nativeTokens = make(map[string]int64)
+// MigrateTotalEscrowForDenom migrates the total amount of source chain tokens in escrow.
+func (m Migrator) MigrateTotalEscrowForDenom(ctx sdk.Context) error {
+	var nativeTokens = make(map[string]math.Int)
 
 	transferChannels := m.keeper.channelKeeper.GetAllChannelsWithPortPrefix(ctx, types.PortID)
 	for _, channel := range transferChannels {
 		escrowAddress := types.GetEscrowAddress(types.PortID, channel.ChannelId)
-		getEscrowBalances := m.keeper.bankKeeper.GetAllBalances(ctx, escrowAddress)
+		escrowBalances := m.keeper.bankKeeper.GetAllBalances(ctx, escrowAddress)
 
-		for _, escrowBalance := range getEscrowBalances {
+		for _, escrowBalance := range escrowBalances {
 			// Denom possibilities:
 			// - "atom" = native denom
-			// - "ibc/atom" = non native denom
+			// - "ibc/<hash>" = non native denom
 			// - "atom/ibc/osmo" = native denom
 
-			denomSplit := strings.SplitN(escrowBalance.Denom, "/", 2)
-			if denomSplit[0] != "ibc" || len(denomSplit) == 1 {
-				// native denom
-				escrowAmount := sdk.NewInt(nativeTokens[escrowBalance.Denom]).Add(escrowBalance.Amount).Int64()
-				nativeTokens[escrowBalance.Denom] = escrowAmount
+			if !m.keeper.IsIBCDenom(ctx, escrowBalance.Denom) {
+				if val, ok := nativeTokens[escrowBalance.Denom]; ok {
+					nativeTokens[escrowBalance.Denom] = val.Add(escrowBalance.Amount)
+				} else {
+					nativeTokens[escrowBalance.Denom] = escrowBalance.Amount
+				}
 			}
 		}
 	}
 
 	if len(nativeTokens) != 0 {
 		for denom, amount := range nativeTokens {
-			m.keeper.SetIBCOutDenomAmount(ctx, denom, sdk.NewInt(amount))
+			m.keeper.SetTotalEscrowForDenom(ctx, denom, amount)
 		}
 	}
 

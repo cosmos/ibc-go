@@ -129,7 +129,12 @@ func (q Keeper) TotalEscrowForDenom(c context.Context, req *types.QueryTotalEscr
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
-	denomAmount := q.GetIBCOutDenomAmount(ctx, req.Denom)
+
+	if q.IsIBCDenom(ctx, req.Denom) {
+		return nil, status.Error(codes.InvalidArgument, "denom is not a native token denomination")
+	}
+
+	denomAmount := q.GetTotalEscrowForDenom(ctx, req.Denom)
 
 	return &types.QueryTotalEscrowForDenomResponse{
 		Amount: denomAmount.Int64(),

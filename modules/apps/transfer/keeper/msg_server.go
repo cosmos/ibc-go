@@ -33,12 +33,15 @@ func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.
 		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "%s is not allowed to send funds", sender)
 	}
 
+	// Use a cached context to prevent accidental state changes when seting the total amount in escrow
+	cacheCtx, writeFn := ctx.CacheContext()
 	sequence, err := k.sendTransfer(
-		ctx, msg.SourcePort, msg.SourceChannel, msg.Token, sender, msg.Receiver, msg.TimeoutHeight, msg.TimeoutTimestamp,
+		cacheCtx, msg.SourcePort, msg.SourceChannel, msg.Token, sender, msg.Receiver, msg.TimeoutHeight, msg.TimeoutTimestamp,
 		msg.Memo)
 	if err != nil {
 		return nil, err
 	}
+	writeFn()
 
 	k.Logger(ctx).Info("IBC fungible token transfer", "token", msg.Token.Denom, "amount", msg.Token.Amount.String(), "sender", msg.Sender, "receiver", msg.Receiver)
 
