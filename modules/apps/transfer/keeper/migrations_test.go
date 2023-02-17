@@ -186,7 +186,7 @@ func (suite *KeeperTestSuite) TestMigrateTotalEscrowForDenom() {
 			tc.malleate() // explicitly fund escrow account
 
 			migrator := transferkeeper.NewMigrator(suite.chainA.GetSimApp().TransferKeeper)
-			migrator.MigrateTotalEscrowForDenom(suite.chainA.GetContext())
+			suite.Require().NoError(migrator.MigrateTotalEscrowForDenom(suite.chainA.GetContext()))
 
 			// check that the migration set the expected amount for the native tokens
 			amount := suite.chainA.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(suite.chainA.GetContext(), sdk.DefaultBondDenom)
