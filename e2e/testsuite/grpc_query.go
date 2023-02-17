@@ -12,6 +12,7 @@ import (
 	controllertypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
 	feetypes "github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
@@ -45,6 +46,19 @@ func (s *E2ETestSuite) QueryClientStatus(ctx context.Context, chain ibc.Chain, c
 	}
 
 	return res.Status, nil
+}
+
+// QueryConnection queries
+func (s *E2ETestSuite) QueryConnection(ctx context.Context, chain ibc.Chain, connectionID string) (connectiontypes.ConnectionEnd, error) {
+	queryClient := s.GetChainGRCPClients(chain).ConnectionQueryClient
+	res, err := queryClient.Connection(ctx, &connectiontypes.QueryConnectionRequest{
+		ConnectionId: connectionID,
+	})
+	if err != nil {
+		return connectiontypes.ConnectionEnd{}, err
+	}
+
+	return *res.Connection, nil
 }
 
 // QueryChannel queries the channel on a given chain for the provided portID and channelID

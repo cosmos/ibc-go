@@ -26,11 +26,13 @@ import (
 	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
 	v7migrations "github.com/cosmos/ibc-go/v7/modules/core/02-client/migrations/v7"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	solomachine "github.com/cosmos/ibc-go/v7/modules/light-clients/06-solomachine"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
-	simappupgrades "github.com/cosmos/ibc-go/v7/testing/simapp/upgrades"
+	v5 "github.com/cosmos/ibc-go/v7/testing/simapp/upgrades/v5"
 	v7upgrades "github.com/cosmos/ibc-go/v7/testing/simapp/upgrades/v7"
+	v71 "github.com/cosmos/ibc-go/v7/testing/simapp/upgrades/v7.1"
 )
 
 const (
@@ -150,7 +152,7 @@ func (s *UpgradeTestSuite) TestV4ToV5ChainUpgrade() {
 	s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA, chainB), "failed to wait for blocks")
 
 	t.Run("upgrade chainA", func(t *testing.T) {
-		s.UpgradeChain(ctx, chainA, chainAUpgradeProposalWallet, simappupgrades.DefaultUpgradeName, testCfg.ChainAConfig.Tag, testCfg.UpgradeTag)
+		s.UpgradeChain(ctx, chainA, chainAUpgradeProposalWallet, v5.UpgradeName, testCfg.ChainAConfig.Tag, testCfg.UpgradeTag)
 	})
 
 	t.Run("restart relayer", func(t *testing.T) {
@@ -546,6 +548,35 @@ func (s *UpgradeTestSuite) TestV6ToV7ChainUpgrade() {
 		res, err := s.ClientState(ctx, chainA, testvalues.SolomachineClientID(2))
 		s.Require().NoError(err)
 		s.Require().Equal(fmt.Sprint("/", proto.MessageName(&solomachine.ClientState{})), res.ClientState.TypeUrl)
+	})
+}
+
+func (s *UpgradeTestSuite) TestV7ChainUpgradeAddLocalhost() {
+	t := s.T()
+	testCfg := testconfig.FromEnv()
+
+	ctx := context.Background()
+	_, _ = s.SetupChainsRelayerAndChannel(ctx)
+	chain, _ := s.GetChains()
+
+	s.Require().NoError(test.WaitForBlocks(ctx, 5, chain), "failed to wait for blocks")
+
+	t.Run("upgrade chain", func(t *testing.T) {
+		govProposalWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
+		s.UpgradeChain(ctx, chain, govProposalWallet, v71.UpgradeName, testCfg.ChainAConfig.Tag, testCfg.UpgradeTag)
+	})
+
+	t.Run("ensure the localhost client is active and sentinel connection is stored in state", func(t *testing.T) {
+		status, err := s.QueryClientStatus(ctx, chain, exported.Localhost)
+		s.Require().NoError(err)
+		s.Require().Equal(exported.Active.String(), status)
+
+		connectionEnd, err := s.QueryConnection(ctx, chain, connectiontypes.LocalhostID)
+		s.Require().NoError(err)
+		s.Require().Equal(connectiontypes.OPEN, connectionEnd.State)
+		s.Require().Equal(exported.Localhost, connectionEnd.ClientId)
+		s.Require().Equal(exported.Localhost, connectionEnd.Counterparty.ClientId)
+		s.Require().Equal(connectiontypes.LocalhostID, connectionEnd.Counterparty.ConnectionId)
 	})
 }
 

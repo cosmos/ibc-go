@@ -122,8 +122,10 @@ import (
 	ibcmock "github.com/cosmos/ibc-go/v7/testing/mock"
 	simappparams "github.com/cosmos/ibc-go/v7/testing/simapp/params"
 	simappupgrades "github.com/cosmos/ibc-go/v7/testing/simapp/upgrades"
+	v5 "github.com/cosmos/ibc-go/v7/testing/simapp/upgrades/v5"
 	v6 "github.com/cosmos/ibc-go/v7/testing/simapp/upgrades/v6"
 	v7 "github.com/cosmos/ibc-go/v7/testing/simapp/upgrades/v7"
+	v71 "github.com/cosmos/ibc-go/v7/testing/simapp/upgrades/v7.1"
 	ibctestingtypes "github.com/cosmos/ibc-go/v7/testing/types"
 )
 
@@ -929,7 +931,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 // setupUpgradeHandlers sets all necessary upgrade handlers for testing purposes
 func (app *SimApp) setupUpgradeHandlers() {
 	app.UpgradeKeeper.SetUpgradeHandler(
-		simappupgrades.DefaultUpgradeName,
+		v5.UpgradeName,
 		simappupgrades.CreateDefaultUpgradeHandler(app.mm, app.configurator),
 	)
 
@@ -959,6 +961,11 @@ func (app *SimApp) setupUpgradeHandlers() {
 			app.ConsensusParamsKeeper,
 			app.ParamsKeeper,
 		),
+	)
+
+	app.UpgradeKeeper.SetUpgradeHandler(
+		v71.UpgradeName,
+		simappupgrades.CreateDefaultUpgradeHandler(app.mm, app.configurator),
 	)
 }
 

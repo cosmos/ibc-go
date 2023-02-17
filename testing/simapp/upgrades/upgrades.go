@@ -6,11 +6,6 @@ import (
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 )
 
-const (
-	// DefaultUpgradeName is the default upgrade name used for upgrade tests which do not require special handling.
-	DefaultUpgradeName = "normal upgrade"
-)
-
 // CreateDefaultUpgradeHandler creates an upgrade handler which can be used for regular upgrade tests
 // that do not require special logic
 func CreateDefaultUpgradeHandler(
