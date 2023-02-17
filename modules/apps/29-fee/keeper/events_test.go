@@ -146,19 +146,22 @@ func (suite *KeeperTestSuite) TestDistributeFeeEvent() {
 	events := res.GetEvents()
 	expectedEvents := sdk.Events{
 		sdk.NewEvent(
-			types.EventTypeDistributeFee,
-			sdk.NewAttribute(types.AttributeKeyReceiver, suite.chainA.SenderAccount.GetAddress().String()),
-			sdk.NewAttribute(types.AttributeKeyFee, defaultRecvFee.String()),
+			"distribute_fee",
+			sdk.NewAttribute("distribution_type", types.Refund.String()), // refund because forward relayer is not set
+			sdk.NewAttribute("receiver", suite.chainA.SenderAccount.GetAddress().String()),
+			sdk.NewAttribute("fee", defaultRecvFee.String()),
 		),
 		sdk.NewEvent(
-			types.EventTypeDistributeFee,
-			sdk.NewAttribute(types.AttributeKeyReceiver, suite.chainA.SenderAccount.GetAddress().String()),
-			sdk.NewAttribute(types.AttributeKeyFee, defaultAckFee.String()),
+			"distribute_fee",
+			sdk.NewAttribute("distribution_type", types.Refund.String()), // refund because reverse relayer and refund address are the same
+			sdk.NewAttribute("receiver", suite.chainA.SenderAccount.GetAddress().String()),
+			sdk.NewAttribute("fee", defaultAckFee.String()),
 		),
 		sdk.NewEvent(
-			types.EventTypeDistributeFee,
-			sdk.NewAttribute(types.AttributeKeyReceiver, suite.chainA.SenderAccount.GetAddress().String()),
-			sdk.NewAttribute(types.AttributeKeyFee, defaultTimeoutFee.String()),
+			"distribute_fee",
+			sdk.NewAttribute("distribution_type", types.Refund.String()),
+			sdk.NewAttribute("receiver", suite.chainA.SenderAccount.GetAddress().String()),
+			sdk.NewAttribute("fee", defaultTimeoutFee.String()),
 		),
 	}
 

@@ -16,4 +16,5 @@ const (
 	AttributeKeyCounterpartyPayee = "counterparty_payee"
 	AttributeKeyReceiver          = "receiver"
 	AttributeKeyFee               = "fee"
+	AttributeKeyDistributionType  = "distribution_type"
 )

@@ -41,6 +41,17 @@ const (
 	ForwardRelayerPrefix = "forwardRelayer"
 )
 
+type DistributionTypeEnum int
+
+const (
+	Refund DistributionTypeEnum = iota
+	Reward
+)
+
+func (dt DistributionTypeEnum) String() string {
+	return []string{"refund", "reward"}[dt]
+}
+
 // KeyLocked returns the key used to lock and unlock the fee module. This key is used
 // in the presence of a severe bug.
 func KeyLocked() []byte {
