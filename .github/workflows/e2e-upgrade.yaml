@@ -25,6 +25,12 @@ jobs:
             chain-a-tag: v6.1.0
             chain-b-tag: v6.1.0
             chain-upgrade-tag: v7.0.0-rc0 # TODO: needs v7.0.0-rc1 when cut
+          - test: TestV7ChainUpgradeAddLocalhost
+            chain-image: ghcr.io/cosmos/ibc-go-simd
+            chain-binary: simd
+            chain-a-tag: pr-3136 # TODO: needs v7.0.0 (with simapp fixes) when cut
+            chain-b-tag: pr-3136 # TODO: needs v7.0.0 (with simapp fixes) when cut
+            chain-upgrade-tag: pr-3164 # TODO: needs v7.1.0 when cut
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v3
