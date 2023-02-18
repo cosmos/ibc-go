@@ -112,21 +112,6 @@ Versions of Golang, Cosmos SDK and Tendermint used by ibc-go in the currently ac
 | 1.18 | v5.2.0 | v0.46.7 | v0.34.24 |
 | 1.18 | v6.1.0 | v0.46.7 | v0.34.24 |
 
-## Version matrix
-
-Versions of Golang, Cosmos SDK and Tendermint used by ibc-go in the currently active releases:
-
-| Go | ibc-go | Cosmos SDK | Tendermint |
-|----|--------|------------|------------|
-| 1.15 | v2.1.0 | v0.44.6 | v0.34.14 |
-| 1.15 | v2.1.1 | v0.44.8 | v0.34.19 |
-| 1.15 | v2.2.0 | v0.45.1 | v0.34.14 |
-| 1.15 | v2.2.1 | v0.45.1 | v0.34.14 |
-| 1.17 | v2.3.0 | v0.45.4 | v0.34.19 |
-| 1.17 | v3.0.0 | v0.45.1 | v0.34.14 |
-| 1.17 | v3.0.1 | v0.45.4 | v0.34.19 |
-| 1.17 | v3.1.0 | v0.45.4 | v0.34.19 |
-
 ## Graphics
 
 The decision tree above was generated with the following code:
