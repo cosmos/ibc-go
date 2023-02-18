@@ -7,6 +7,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/store/rootmulti"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	"github.com/stretchr/testify/suite"
+	"github.com/tendermint/tendermint/libs/log"
 	dbm "github.com/tendermint/tm-db"
 )
 
@@ -20,12 +21,14 @@ type MerkleTestSuite struct {
 
 func (suite *MerkleTestSuite) SetupTest() {
 	db := dbm.NewMemDB()
-	suite.store = rootmulti.NewStore(db)
+	dblog := log.TestingLogger()
+	suite.store = rootmulti.NewStore(db, dblog)
 
 	suite.storeKey = storetypes.NewKVStoreKey("iavlStoreKey")
 
 	suite.store.MountStoreWithDB(suite.storeKey, storetypes.StoreTypeIAVL, nil)
-	suite.store.LoadVersion(0)
+	err := suite.store.LoadVersion(0)
+	suite.Require().NoError(err)
 
 	suite.iavlStore = suite.store.GetCommitStore(suite.storeKey).(*iavl.Store)
 }

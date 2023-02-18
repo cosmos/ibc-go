@@ -26,15 +26,15 @@ encode and decode it to and from `[]byte`.
 ```go
 // Custom packet data defined in application module
 type CustomPacketData struct {
-    // Custom fields ...
+  // Custom fields ...
 }
 
 EncodePacketData(packetData CustomPacketData) []byte {
-    // encode packetData to bytes
+  // encode packetData to bytes
 }
 
 DecodePacketData(encoded []byte) (CustomPacketData) {
-    // decode from bytes to packet data
+  // decode from bytes to packet data
 }
 ```
 
@@ -43,10 +43,20 @@ DecodePacketData(encoded []byte) (CustomPacketData) {
 Then a module must encode its packet data before sending it through IBC.
 
 ```go
+// retrieve the dynamic capability for this channel
+channelCap := scopedKeeper.GetCapability(ctx, channelCapName)
 // Sending custom application packet data
 data := EncodePacketData(customPacketData)
-packet.Data = data
-IBCChannelKeeper.SendPacket(ctx, packet)
+// Send packet to IBC, authenticating with channelCap
+sequence, err := IBCChannelKeeper.SendPacket(
+  ctx, 
+  channelCap, 
+  sourcePort, 
+  sourceChannel, 
+  timeoutHeight, 
+  timeoutTimestamp, 
+  data,
+)
 ```
 
 A module receiving a packet must decode the `PacketData` into a structure it expects so that it can

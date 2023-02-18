@@ -1,0 +1,50 @@
+syntax = "proto3";
+
+package ibc.applications.interchain_accounts.controller.v1;
+
+option go_package = "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types";
+
+import "gogoproto/gogo.proto";
+import "ibc/applications/interchain_accounts/v1/packet.proto";
+
+// Msg defines the 27-interchain-accounts/controller Msg service.
+service Msg {
+  // RegisterInterchainAccount defines a rpc handler for MsgRegisterInterchainAccount.
+  rpc RegisterInterchainAccount(MsgRegisterInterchainAccount) returns (MsgRegisterInterchainAccountResponse);
+  // SendTx defines a rpc handler for MsgSendTx.
+  rpc SendTx(MsgSendTx) returns (MsgSendTxResponse);
+}
+
+// MsgRegisterInterchainAccount defines the payload for Msg/RegisterAccount
+message MsgRegisterInterchainAccount {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string owner         = 1;
+  string connection_id = 2 [(gogoproto.moretags) = "yaml:\"connection_id\""];
+  string version       = 3;
+}
+
+// MsgRegisterInterchainAccountResponse defines the response for Msg/RegisterAccount
+message MsgRegisterInterchainAccountResponse {
+  string channel_id = 1 [(gogoproto.moretags) = "yaml:\"channel_id\""];
+}
+
+// MsgSendTx defines the payload for Msg/SendTx
+message MsgSendTx {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string owner         = 1;
+  string connection_id = 2 [(gogoproto.moretags) = "yaml:\"connection_id\""];
+  ibc.applications.interchain_accounts.v1.InterchainAccountPacketData packet_data = 3
+      [(gogoproto.moretags) = "yaml:\"packet_data\"", (gogoproto.nullable) = false];
+  // Relative timeout timestamp provided will be added to the current block time during transaction execution.
+  // The timeout timestamp must be non-zero.
+  uint64 relative_timeout = 4 [(gogoproto.moretags) = "yaml:\"relative_timeout\""];
+}
+
+// MsgSendTxResponse defines the response for MsgSendTx
+message MsgSendTxResponse {
+  uint64 sequence = 1;
+}

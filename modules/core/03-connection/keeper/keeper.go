@@ -1,18 +1,18 @@
 package keeper
 
 import (
-	"github.com/tendermint/tendermint/libs/log"
-
 	"github.com/cosmos/cosmos-sdk/codec"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
+	"github.com/tendermint/tendermint/libs/log"
 
-	clienttypes "github.com/cosmos/ibc-go/v4/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v4/modules/core/03-connection/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v4/modules/core/23-commitment/types"
-	host "github.com/cosmos/ibc-go/v4/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v4/modules/core/exported"
+	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
+	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
 // Keeper defines the IBC connection keeper
@@ -20,14 +20,14 @@ type Keeper struct {
 	// implements gRPC QueryServer interface
 	types.QueryServer
 
-	storeKey     sdk.StoreKey
+	storeKey     storetypes.StoreKey
 	paramSpace   paramtypes.Subspace
 	cdc          codec.BinaryCodec
 	clientKeeper types.ClientKeeper
 }
 
 // NewKeeper creates a new IBC connection Keeper instance
-func NewKeeper(cdc codec.BinaryCodec, key sdk.StoreKey, paramSpace paramtypes.Subspace, ck types.ClientKeeper) Keeper {
+func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey, paramSpace paramtypes.Subspace, ck types.ClientKeeper) Keeper {
 	// set KeyTable if it has not already been set
 	if !paramSpace.HasKeyTable() {
 		paramSpace = paramSpace.WithKeyTable(types.ParamKeyTable())
@@ -43,7 +43,7 @@ func NewKeeper(cdc codec.BinaryCodec, key sdk.StoreKey, paramSpace paramtypes.Su
 
 // Logger returns a module-specific logger.
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
-	return ctx.Logger().With("module", "x/"+host.ModuleName+"/"+types.SubModuleName)
+	return ctx.Logger().With("module", "x/"+exported.ModuleName+"/"+types.SubModuleName)
 }
 
 // GetCommitmentPrefix returns the IBC connection store prefix as a commitment
@@ -66,7 +66,7 @@ func (k Keeper) GenerateConnectionIdentifier(ctx sdk.Context) string {
 func (k Keeper) GetConnection(ctx sdk.Context, connectionID string) (types.ConnectionEnd, bool) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(host.ConnectionKey(connectionID))
-	if bz == nil {
+	if len(bz) == 0 {
 		return types.ConnectionEnd{}, false
 	}
 
@@ -74,6 +74,13 @@ func (k Keeper) GetConnection(ctx sdk.Context, connectionID string) (types.Conne
 	k.cdc.MustUnmarshal(bz, &connection)
 
 	return connection, true
+}
+
+// HasConnection returns a true if the connection with the given identifier
+// exists in the store.
+func (k Keeper) HasConnection(ctx sdk.Context, connectionID string) bool {
+	store := ctx.KVStore(k.storeKey)
+	return store.Has(host.ConnectionKey(connectionID))
 }
 
 // SetConnection sets a connection to the store
@@ -86,18 +93,19 @@ func (k Keeper) SetConnection(ctx sdk.Context, connectionID string, connection t
 // GetTimestampAtHeight returns the timestamp in nanoseconds of the consensus state at the
 // given height.
 func (k Keeper) GetTimestampAtHeight(ctx sdk.Context, connection types.ConnectionEnd, height exported.Height) (uint64, error) {
-	consensusState, found := k.clientKeeper.GetClientConsensusState(
-		ctx, connection.GetClientID(), height,
-	)
-
+	clientState, found := k.clientKeeper.GetClientState(ctx, connection.GetClientID())
 	if !found {
 		return 0, sdkerrors.Wrapf(
-			clienttypes.ErrConsensusStateNotFound,
-			"clientID (%s), height (%s)", connection.GetClientID(), height,
+			clienttypes.ErrClientNotFound, "clientID (%s)", connection.GetClientID(),
 		)
 	}
 
-	return consensusState.GetTimestamp(), nil
+	timestamp, err := clientState.GetTimestampAtHeight(ctx, k.clientKeeper.ClientStore(ctx, connection.GetClientID()), k.cdc, height)
+	if err != nil {
+		return 0, err
+	}
+
+	return timestamp, nil
 }
 
 // GetClientConnectionPaths returns all the connection paths stored under a
@@ -105,7 +113,7 @@ func (k Keeper) GetTimestampAtHeight(ctx sdk.Context, connection types.Connectio
 func (k Keeper) GetClientConnectionPaths(ctx sdk.Context, clientID string) ([]string, bool) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(host.ClientConnectionsKey(clientID))
-	if bz == nil {
+	if len(bz) == 0 {
 		return nil, false
 	}
 
@@ -126,7 +134,7 @@ func (k Keeper) SetClientConnectionPaths(ctx sdk.Context, clientID string, paths
 func (k Keeper) GetNextConnectionSequence(ctx sdk.Context) uint64 {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get([]byte(types.KeyNextConnectionSequence))
-	if bz == nil {
+	if len(bz) == 0 {
 		panic("next connection sequence is nil")
 	}
 
@@ -145,7 +153,7 @@ func (k Keeper) SetNextConnectionSequence(ctx sdk.Context, sequence uint64) {
 // no paths are stored.
 func (k Keeper) GetAllClientConnectionPaths(ctx sdk.Context) []types.ConnectionPaths {
 	var allConnectionPaths []types.ConnectionPaths
-	k.clientKeeper.IterateClients(ctx, func(clientID string, cs exported.ClientState) bool {
+	k.clientKeeper.IterateClientStates(ctx, nil, func(clientID string, cs exported.ClientState) bool {
 		paths, found := k.GetClientConnectionPaths(ctx, clientID)
 		if !found {
 			// continue when connection handshake is not initialized
@@ -166,7 +174,7 @@ func (k Keeper) IterateConnections(ctx sdk.Context, cb func(types.IdentifiedConn
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, []byte(host.KeyConnectionPrefix))
 
-	defer iterator.Close()
+	defer sdk.LogDeferred(ctx.Logger(), func() error { return iterator.Close() })
 	for ; iterator.Valid(); iterator.Next() {
 		var connection types.ConnectionEnd
 		k.cdc.MustUnmarshal(iterator.Value(), &connection)

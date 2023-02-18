@@ -1,0 +1,12 @@
+{
+  "chain-a": ["main"],
+  "chain-b": ["main"],
+  "entrypoint": ["TestIncentivizedInterchainAccountsTestSuite"],
+  "test": [
+    "TestMsgSendTx_SuccessfulBankSend_Incentivized",
+    "TestMsgSendTx_FailedBankSend_Incentivized"
+  ],
+  "relayer-type": ["rly"],
+  "chain-binary": ["simd"],
+  "chain-image": ["ghcr.io/cosmos/ibc-go-simd"]
+}

@@ -1,13 +1,15 @@
 package keeper_test
 
 import (
+	"reflect"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
 
-	"github.com/cosmos/ibc-go/v4/modules/core/04-channel/types"
-	ibctesting "github.com/cosmos/ibc-go/v4/testing"
-	ibcmock "github.com/cosmos/ibc-go/v4/testing/mock"
+	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	ibcmock "github.com/cosmos/ibc-go/v7/testing/mock"
 )
 
 // KeeperTestSuite is a testing suite to test keeper functions.
@@ -44,7 +46,7 @@ func (suite *KeeperTestSuite) TestSetChannel() {
 	suite.coordinator.SetupConnections(path)
 
 	// check for channel to be created on chainA
-	_, found := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+	found := suite.chainA.App.GetIBCKeeper().ChannelKeeper.HasChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 	suite.False(found)
 
 	path.SetChannelOrdered()
@@ -81,9 +83,89 @@ func (suite *KeeperTestSuite) TestGetAppVersion() {
 	suite.Require().Equal(ibcmock.Version, channelVersion)
 }
 
+// TestGetAllChannelsWithPortPrefix verifies ports are filtered correctly using a port prefix.
+func (suite *KeeperTestSuite) TestGetAllChannelsWithPortPrefix() {
+	const (
+		secondChannelID        = "channel-1"
+		differentChannelPortID = "different-portid"
+	)
+
+	allChannels := []types.IdentifiedChannel{
+		types.NewIdentifiedChannel(transfertypes.PortID, ibctesting.FirstChannelID, types.Channel{}),
+		types.NewIdentifiedChannel(differentChannelPortID, secondChannelID, types.Channel{}),
+	}
+
+	tests := []struct {
+		name             string
+		prefix           string
+		allChannels      []types.IdentifiedChannel
+		expectedChannels []types.IdentifiedChannel
+	}{
+		{
+			name:             "transfer channel is retrieved with prefix",
+			prefix:           "tra",
+			allChannels:      allChannels,
+			expectedChannels: []types.IdentifiedChannel{types.NewIdentifiedChannel(transfertypes.PortID, ibctesting.FirstChannelID, types.Channel{})},
+		},
+		{
+			name:             "matches port with full name as prefix",
+			prefix:           transfertypes.PortID,
+			allChannels:      allChannels,
+			expectedChannels: []types.IdentifiedChannel{types.NewIdentifiedChannel(transfertypes.PortID, ibctesting.FirstChannelID, types.Channel{})},
+		},
+		{
+			name:             "no ports match prefix",
+			prefix:           "wont-match-anything",
+			allChannels:      allChannels,
+			expectedChannels: nil,
+		},
+		{
+			name:             "empty prefix matches everything",
+			prefix:           "",
+			allChannels:      allChannels,
+			expectedChannels: allChannels,
+		},
+	}
+
+	for _, tc := range tests {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+
+			for _, ch := range tc.allChannels {
+				suite.chainA.GetSimApp().GetIBCKeeper().ChannelKeeper.SetChannel(suite.chainA.GetContext(), ch.PortId, ch.ChannelId, types.Channel{})
+			}
+
+			ctxA := suite.chainA.GetContext()
+
+			actualChannels := suite.chainA.GetSimApp().GetIBCKeeper().ChannelKeeper.GetAllChannelsWithPortPrefix(ctxA, tc.prefix)
+
+			suite.Require().True(containsAll(tc.expectedChannels, actualChannels))
+		})
+	}
+}
+
+// containsAll verifies if all elements in the expected slice exist in the actual slice
+// independent of order.
+func containsAll(expected, actual []types.IdentifiedChannel) bool {
+	for _, expectedChannel := range expected {
+		foundMatch := false
+		for _, actualChannel := range actual {
+			if reflect.DeepEqual(actualChannel, expectedChannel) {
+				foundMatch = true
+				break
+			}
+		}
+		if !foundMatch {
+			return false
+		}
+	}
+	return true
+}
+
 // TestGetAllChannels creates multiple channels on chain A through various connections
 // and tests their retrieval. 2 channels are on connA0 and 1 channel is on connA1
-func (suite KeeperTestSuite) TestGetAllChannels() {
+func (suite KeeperTestSuite) TestGetAllChannels() { //nolint:govet // this is a test, we are okay with copying locks
 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
 	suite.coordinator.Setup(path)
 	// channel0 on first connection on chainA
@@ -147,7 +229,7 @@ func (suite KeeperTestSuite) TestGetAllChannels() {
 
 // TestGetAllSequences sets all packet sequences for two different channels on chain A and
 // tests their retrieval.
-func (suite KeeperTestSuite) TestGetAllSequences() {
+func (suite KeeperTestSuite) TestGetAllSequences() { //nolint:govet // this is a test, we are okay with copying locks
 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
 	suite.coordinator.Setup(path)
 
@@ -189,7 +271,7 @@ func (suite KeeperTestSuite) TestGetAllSequences() {
 
 // TestGetAllPacketState creates a set of acks, packet commitments, and receipts on two different
 // channels on chain A and tests their retrieval.
-func (suite KeeperTestSuite) TestGetAllPacketState() {
+func (suite KeeperTestSuite) TestGetAllPacketState() { //nolint:govet // this is a test, we are okay with copying locks
 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
 	suite.coordinator.Setup(path)
 

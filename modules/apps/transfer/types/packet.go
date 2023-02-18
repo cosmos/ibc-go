@@ -25,12 +25,14 @@ var (
 func NewFungibleTokenPacketData(
 	denom string, amount string,
 	sender, receiver string,
+	memo string,
 ) FungibleTokenPacketData {
 	return FungibleTokenPacketData{
 		Denom:    denom,
 		Amount:   amount,
 		Sender:   sender,
 		Receiver: receiver,
+		Memo:     memo,
 	}
 }
 
@@ -40,7 +42,7 @@ func NewFungibleTokenPacketData(
 func (ftpd FungibleTokenPacketData) ValidateBasic() error {
 	amount, ok := sdk.NewIntFromString(ftpd.Amount)
 	if !ok {
-		return sdkerrors.Wrapf(ErrInvalidAmount, "unable to parse transfer amount (%s) into sdk.Int", ftpd.Amount)
+		return sdkerrors.Wrapf(ErrInvalidAmount, "unable to parse transfer amount (%s) into math.Int", ftpd.Amount)
 	}
 	if !amount.IsPositive() {
 		return sdkerrors.Wrapf(ErrInvalidAmount, "amount must be strictly positive: got %d", amount)
@@ -56,5 +58,5 @@ func (ftpd FungibleTokenPacketData) ValidateBasic() error {
 
 // GetBytes is a helper for serialising
 func (ftpd FungibleTokenPacketData) GetBytes() []byte {
-	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(&ftpd))
+	return sdk.MustSortJSON(mustProtoMarshalJSON(&ftpd))
 }

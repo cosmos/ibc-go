@@ -10,6 +10,7 @@ Learn about the different ways to pay for fees, how the fees are paid out and wh
 
 The fee middleware module exposes two different ways to pay fees for relaying IBC packets:
 
+<<<<<<< HEAD
 1. `MsgPayPacketFee`, which enables the escrowing of fees for a packet at the next sequence send and should be combined into one `MultiMsgTx` with the message that will be paid for.
 
    Note that the `Relayers` field has been set up to allow for an optional whitelist of relayers permitted to receive this fee, however, this feature has not yet been enabled at this time.
@@ -38,11 +39,42 @@ The fee middleware module exposes two different ways to pay fees for relaying IB
        TimeoutFee          types.Coins
    }
    ```
+=======
+### `MsgPayPacketFee`
+
+`MsgPayPacketFee` enables the escrowing of fees for a packet at the next sequence send and should be combined into one `MultiMsgTx` with the message that will be paid for. Note that the `Relayers` field has been set up to allow for an optional whitelist of relayers permitted to receive this fee, however, this feature has not yet been enabled at this time.
+
+```go
+type MsgPayPacketFee struct{
+  // fee encapsulates the recv, ack and timeout fees associated with an IBC packet
+  Fee                 Fee
+  // the source port unique identifier
+  SourcePortId        string
+  // the source channel unique identifer
+  SourceChannelId     string
+  // account address to refund fee if necessary
+  Signer              string
+  // optional list of relayers permitted to the receive packet fee
+  Relayers            []string
+}
+```
+
+The `Fee` message contained in this synchronous fee payment method configures different fees which will be paid out for `MsgRecvPacket`, `MsgAcknowledgement`, and `MsgTimeout`/`MsgTimeoutOnClose`.
+
+```go
+type Fee struct {
+  RecvFee             types.Coins
+  AckFee              types.Coins
+  TimeoutFee          types.Coins
+}
+```
+>>>>>>> main
 
 The diagram below shows the `MultiMsgTx` with the `MsgTransfer` coming from a token transfer message, along with `MsgPayPacketFee`.
 
 ![MsgPayPacketFee](../../assets/fee-mw/msgpaypacket.png)
 
+<<<<<<< HEAD
 2. `MsgPayPacketFeeAsync`, which enables the asynchronous escrowing of fees for a specified packet:
 
    Note that a packet can be 'topped up' multiple times with additional fees of any coin denomination by broadcasting multiple `MsgPayPacketFeeAsync` messages.
@@ -65,6 +97,30 @@ The diagram below shows the `MultiMsgTx` with the `MsgTransfer` coming from a to
        Relayers               []string
    }
    ```
+=======
+### `MsgPayPacketFeeAsync`
+
+`MsgPayPacketFeeAsync` enables the asynchronous escrowing of fees for a specified packet. Note that a packet can be 'topped up' multiple times with additional fees of any coin denomination by broadcasting multiple `MsgPayPacketFeeAsync` messages.
+
+```go
+type MsgPayPacketFeeAsync struct {
+  // unique packet identifier comprised of the channel ID, port ID and sequence
+  PacketId            channeltypes.PacketId
+  // the packet fee associated with a particular IBC packet
+  PacketFee           PacketFee
+}
+```
+
+where the `PacketFee` also specifies the `Fee` to be paid as well as the refund address for fees which are not paid out
+
+```go
+type PacketFee struct {
+  Fee                    Fee
+  RefundAddress          string
+  Relayers               []string
+}
+```
+>>>>>>> main
 
 The diagram below shows how multiple `MsgPayPacketFeeAsync` can be broadcasted asynchronously. Escrowing of the fee associated with a packet can be carried out by any party because ICS-29 does not dictate a particular fee payer. In fact, chains can choose to simply not expose this fee payment to end users at all and rely on a different module account or even the community pool as the source of relayer incentives.
 

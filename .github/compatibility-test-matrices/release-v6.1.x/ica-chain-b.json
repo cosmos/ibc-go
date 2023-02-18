@@ -1,0 +1,13 @@
+{
+  "chain-a": ["release-v6.1.x", "v6.1.0"],
+  "chain-b": ["release-v6.1.x"],
+  "entrypoint": ["TestInterchainAccountsTestSuite"],
+  "test": [
+    "TestMsgSendTx_SuccessfulTransfer",
+    "TestMsgSendTx_FailedTransfer_InsufficientFunds",
+    "TestMsgSubmitTx_SuccessfulTransfer_AfterReopeningICA"
+  ],
+  "relayer-type": ["rly"],
+  "chain-binary": ["simd"],
+  "chain-image": ["ghcr.io/cosmos/ibc-go-simd"]
+}
