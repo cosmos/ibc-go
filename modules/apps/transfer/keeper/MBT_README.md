@@ -34,18 +34,10 @@ jsonatr --use apalache-to-relay-test2.json --in counterexample.json --out model_
 Now, if you run `go test` in this directory, the file you have produced above should be picked up by the [model-based test driver](mbt_relay_test.go),
 and executed automatically.
 
-<<<<<<< HEAD
-
-The easiest way to run Apalache is by 
-[using a Docker image](https://apalache.informal.systems/docs/apalache/installation/docker.html); 
-to run Jsonatr you need to locally clone the repository, and then, 
-after building it, add the `target/debug` directory into your `PATH`. 
-=======
 The easiest way to run Apalache is by
 [using a Docker image](https://apalache.informal.systems/docs/apalache/installation/docker.html);
 to run Jsonatr you need to locally clone the repository, and then,
 after building it, add the `target/debug` directory into your `PATH`.
->>>>>>> main
 
 To wrap Apalache docker image into an executable you might create the following executable bash script `apalache-mc`:
 
