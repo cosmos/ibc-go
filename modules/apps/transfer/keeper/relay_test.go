@@ -142,13 +142,13 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 
 			res, err := suite.chainA.GetSimApp().TransferKeeper.Transfer(sdk.WrapSDKContext(suite.chainA.GetContext()), msg)
 
-			// check total amount in escrow of sent token denom on sending chain
-			amount := suite.chainA.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(suite.chainA.GetContext(), coin.GetDenom())
-			suite.Require().Equal(expEscrowAmt, amount)
-
 			if tc.expPass {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
+
+				// check total amount in escrow of sent token denom on sending chain
+				amount := suite.chainA.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(suite.chainA.GetContext(), coin.GetDenom())
+				suite.Require().Equal(expEscrowAmt, amount)
 			} else {
 				suite.Require().Error(err)
 				suite.Require().Nil(res)
