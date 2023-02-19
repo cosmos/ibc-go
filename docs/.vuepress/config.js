@@ -408,6 +408,11 @@ module.exports = {
                   directory: false,
                   path: "/ibc/light-clients/localhost/client-state.html",
                 },
+                {
+                  title: "ConnectionEnd",
+                  directory: false,
+                  path: "/ibc/light-clients/localhost/connection.html",
+                },
               ],
             },
             {

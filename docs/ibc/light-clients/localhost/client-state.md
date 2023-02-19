@@ -1,3 +1,7 @@
+<!--
+order: 2
+-->
+
 ## ClientState
 
 The 09-localhost `ClientState` maintains a single field used to track the latest sequence of the state machine i.e. the height of the blockchain.
