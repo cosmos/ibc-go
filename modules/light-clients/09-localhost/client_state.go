@@ -19,6 +19,7 @@ var _ exported.ClientState = (*ClientState)(nil)
 func NewClientState(height clienttypes.Height) exported.ClientState {
 	return &ClientState{
 		LatestHeight: height,
+		Enabled:      true,
 	}
 }
 
@@ -34,6 +35,9 @@ func (cs ClientState) GetLatestHeight() exported.Height {
 
 // Status always returns Active. The 09-localhost status cannot be changed.
 func (cs ClientState) Status(_ sdk.Context, _ sdk.KVStore, _ codec.BinaryCodec) exported.Status {
+	if !cs.Enabled {
+		return exported.Frozen
+	}
 	return exported.Active
 }
 

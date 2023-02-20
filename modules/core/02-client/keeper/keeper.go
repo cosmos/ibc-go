@@ -31,10 +31,11 @@ type Keeper struct {
 	paramSpace    paramtypes.Subspace
 	stakingKeeper types.StakingKeeper
 	upgradeKeeper types.UpgradeKeeper
+	authority     string
 }
 
 // NewKeeper creates a new NewKeeper instance
-func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey, paramSpace paramtypes.Subspace, sk types.StakingKeeper, uk types.UpgradeKeeper) Keeper {
+func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey, paramSpace paramtypes.Subspace, sk types.StakingKeeper, uk types.UpgradeKeeper, authority string) Keeper {
 	// set KeyTable if it has not already been set
 	if !paramSpace.HasKeyTable() {
 		paramSpace = paramSpace.WithKeyTable(types.ParamKeyTable())
@@ -46,6 +47,7 @@ func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey, paramSpace paramt
 		paramSpace:    paramSpace,
 		stakingKeeper: sk,
 		upgradeKeeper: uk,
+		authority:     authority,
 	}
 }
 
