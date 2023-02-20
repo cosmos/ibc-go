@@ -88,10 +88,10 @@ func NewMsgConnectionOpenTry(
 	proofHeight, consensusHeight clienttypes.Height, signer string,
 ) *MsgConnectionOpenTry {
 	counterparty := NewCounterparty(counterpartyClientID, counterpartyConnectionID, counterpartyPrefix)
-	csAny, _ := clienttypes.PackClientState(counterpartyClient)
+	protoAny, _ := clienttypes.PackClientState(counterpartyClient)
 	return &MsgConnectionOpenTry{
 		ClientId:             clientID,
-		ClientState:          csAny,
+		ClientState:          protoAny,
 		Counterparty:         counterparty,
 		CounterpartyVersions: counterpartyVersions,
 		DelayPeriod:          delayPeriod,
@@ -181,11 +181,11 @@ func NewMsgConnectionOpenAck(
 	version *Version,
 	signer string,
 ) *MsgConnectionOpenAck {
-	csAny, _ := clienttypes.PackClientState(counterpartyClient)
+	protoAny, _ := clienttypes.PackClientState(counterpartyClient)
 	return &MsgConnectionOpenAck{
 		ConnectionId:             connectionID,
 		CounterpartyConnectionId: counterpartyConnectionID,
-		ClientState:              csAny,
+		ClientState:              protoAny,
 		ProofTry:                 proofTry,
 		ProofClient:              proofClient,
 		ProofConsensus:           proofConsensus,

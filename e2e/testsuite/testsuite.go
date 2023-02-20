@@ -171,6 +171,29 @@ func (s *E2ETestSuite) SetupChainsRelayerAndChannel(ctx context.Context, channel
 	return r, chainAChannels[len(chainAChannels)-1]
 }
 
+// SetupSingleChain creates and returns a single CosmosChain for usage in e2e tests.
+// This is useful for testing single chain functionality when performing coordinated upgrades as well as testing localhost ibc client functionality.
+// TODO: Actually setup a single chain. Seeing panic: runtime error: index out of range [0] with length 0 when using a single chain.
+// issue: https://github.com/strangelove-ventures/interchaintest/issues/401
+func (s *E2ETestSuite) SetupSingleChain(ctx context.Context) *cosmos.CosmosChain {
+	chainA, chainB := s.GetChains()
+
+	ic := interchaintest.NewInterchain().AddChain(chainA).AddChain(chainB)
+
+	eRep := s.GetRelayerExecReporter()
+	s.Require().NoError(ic.Build(ctx, eRep, interchaintest.InterchainBuildOptions{
+		TestName:         s.T().Name(),
+		Client:           s.DockerClient,
+		NetworkID:        s.network,
+		SkipPathCreation: true,
+	}))
+
+	s.InitGRPCClients(chainA)
+	s.InitGRPCClients(chainB)
+
+	return chainA
+}
+
 // generatePathName generates the path name using the test suites name
 func (s *E2ETestSuite) generatePathName() string {
 	pathName := fmt.Sprintf("%s-path-%d", s.T().Name(), s.pathNameIndex)
