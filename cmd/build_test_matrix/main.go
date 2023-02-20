@@ -21,6 +21,8 @@ const (
 	// testExclusionsEnv is a comma separated list of test function names that will not be included
 	// in the results of this script.
 	testExclusionsEnv = "TEST_EXCLUSIONS"
+	// testNameEnv if provided returns a single test entry so that only one test is actually run.
+	testNameEnv = "TEST_NAME"
 )
 
 // GithubActionTestMatrix represents
@@ -100,6 +102,13 @@ func getGithubActionMatrixForTests(e2eRootDirectory, suite string, exlcudedItems
 		suiteNameForFile, testCases, err := extractSuiteAndTestNames(f)
 		if err != nil {
 			return fmt.Errorf("failed extracting test suite name and test cases: %s", err)
+		}
+
+		testName := os.Getenv(testNameEnv)
+		if testName != "" && contains(testName, testCases) {
+			testCases = []string{testName}
+		} else if testName != "" {
+			return fmt.Errorf("failed to find test case: %s", testName)
 		}
 
 		if contains(suiteNameForFile, exlcudedItems) {
