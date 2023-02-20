@@ -74,8 +74,14 @@ func (k Keeper) ConnOpenTry(
 	// generate a new connection
 	connectionID := k.GenerateConnectionIdentifier(ctx)
 
-	if err := k.validateHeight(ctx, clientState.ClientType(), consensusHeight); err != nil {
-		return "", err
+	// check that the consensus height the counterparty chain is using to store a representation
+	// of this chain's consensus state is at a height in the past
+	selfHeight := clienttypes.GetSelfHeight(ctx)
+	if consensusHeight.GTE(selfHeight) {
+		return "", sdkerrors.Wrapf(
+			sdkerrors.ErrInvalidHeight,
+			"consensus height is greater than or equal to the current block height (%s >= %s)", consensusHeight, selfHeight,
+		)
 	}
 
 	// validate client parameters of a chainB client stored on chainA
@@ -159,9 +165,14 @@ func (k Keeper) ConnOpenAck(
 	proofHeight exported.Height, // height that relayer constructed proofTry
 	consensusHeight exported.Height, // latest height of chainA that chainB has stored on its chainA client
 ) error {
-	// Check that chainB client hasn't stored invalid height
-	if err := k.validateHeight(ctx, clientState.ClientType(), consensusHeight); err != nil {
-		return err
+	// check that the consensus height the counterparty chain is using to store a representation
+	// of this chain's consensus state is at a height in the past
+	selfHeight := clienttypes.GetSelfHeight(ctx)
+	if consensusHeight.GTE(selfHeight) {
+		return sdkerrors.Wrapf(
+			sdkerrors.ErrInvalidHeight,
+			"consensus height is greater than or equal to the current block height (%s >= %s)", consensusHeight, selfHeight,
+		)
 	}
 
 	// Retrieve connection
@@ -285,24 +296,5 @@ func (k Keeper) ConnOpenConfirm(
 
 	EmitConnectionOpenConfirmEvent(ctx, connectionID, connection)
 
-	return nil
-}
-
-func (k Keeper) validateHeight(
-	ctx sdk.Context,
-	clientType string,
-	consensusHeight exported.Height,
-) error {
-	if clientType == exported.Localhost {
-		return nil
-	}
-
-	selfHeight := clienttypes.GetSelfHeight(ctx)
-	if consensusHeight.GTE(selfHeight) {
-		return sdkerrors.Wrapf(
-			sdkerrors.ErrInvalidHeight,
-			"consensus height is greater than or equal to the current block height (%s >= %s)", consensusHeight, selfHeight,
-		)
-	}
 	return nil
 }

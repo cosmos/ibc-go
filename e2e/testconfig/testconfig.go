@@ -39,6 +39,8 @@ const (
 	ChainBinaryEnv = "CHAIN_BINARY"
 	// ChainUpgradeTagEnv specifies the upgrade version tag
 	ChainUpgradeTagEnv = "CHAIN_UPGRADE_TAG"
+	// ChainUpgradePlanEnv specifies the upgrade plan name
+	ChainUpgradePlanEnv = "CHAIN_UPGRADE_PLAN"
 
 	// defaultBinary is the default binary that will be used by the chains.
 	defaultBinary = "simd"
@@ -60,10 +62,11 @@ func getChainImage(binary string) string {
 
 // TestConfig holds various fields used in the E2E tests.
 type TestConfig struct {
-	ChainAConfig  ChainConfig
-	ChainBConfig  ChainConfig
-	RelayerConfig relayer.Config
-	UpgradeTag    string
+	ChainAConfig    ChainConfig
+	ChainBConfig    ChainConfig
+	RelayerConfig   relayer.Config
+	UpgradeTag      string
+	UpgradePlanName string
 }
 
 // ChainConfig holds information about an individual chain used in the tests.
@@ -102,6 +105,11 @@ func FromEnv() TestConfig {
 		upgradeTag = ""
 	}
 
+	upgradePlan, ok := os.LookupEnv(ChainUpgradePlanEnv)
+	if !ok {
+		upgradePlan = ""
+	}
+
 	return TestConfig{
 		ChainAConfig: ChainConfig{
 			Image:  chainAImage,
@@ -113,8 +121,9 @@ func FromEnv() TestConfig {
 			Tag:    chainBTag,
 			Binary: chainBinary,
 		},
-		UpgradeTag:    upgradeTag,
-		RelayerConfig: GetRelayerConfigFromEnv(),
+		UpgradeTag:      upgradeTag,
+		UpgradePlanName: upgradePlan,
+		RelayerConfig:   GetRelayerConfigFromEnv(),
 	}
 }
 

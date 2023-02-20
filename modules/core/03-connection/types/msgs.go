@@ -43,6 +43,10 @@ func NewMsgConnectionOpenInit(
 
 // ValidateBasic implements sdk.Msg.
 func (msg MsgConnectionOpenInit) ValidateBasic() error {
+	if msg.ClientId == exported.Localhost {
+		return sdkerrors.Wrap(clienttypes.ErrInvalidClientType, "localhost connection handshakes are disallowed")
+	}
+
 	if err := host.ClientIdentifierValidator(msg.ClientId); err != nil {
 		return sdkerrors.Wrap(err, "invalid client ID")
 	}
@@ -84,10 +88,10 @@ func NewMsgConnectionOpenTry(
 	proofHeight, consensusHeight clienttypes.Height, signer string,
 ) *MsgConnectionOpenTry {
 	counterparty := NewCounterparty(counterpartyClientID, counterpartyConnectionID, counterpartyPrefix)
-	csAny, _ := clienttypes.PackClientState(counterpartyClient)
+	protoAny, _ := clienttypes.PackClientState(counterpartyClient)
 	return &MsgConnectionOpenTry{
 		ClientId:             clientID,
-		ClientState:          csAny,
+		ClientState:          protoAny,
 		Counterparty:         counterparty,
 		CounterpartyVersions: counterpartyVersions,
 		DelayPeriod:          delayPeriod,
@@ -102,6 +106,10 @@ func NewMsgConnectionOpenTry(
 
 // ValidateBasic implements sdk.Msg
 func (msg MsgConnectionOpenTry) ValidateBasic() error {
+	if msg.ClientId == exported.Localhost {
+		return sdkerrors.Wrap(clienttypes.ErrInvalidClientType, "localhost connection handshakes are disallowed")
+	}
+
 	if msg.PreviousConnectionId != "" {
 		return sdkerrors.Wrap(ErrInvalidConnectionIdentifier, "previous connection identifier must be empty, this field has been deprecated as crossing hellos are no longer supported")
 	}
@@ -173,11 +181,11 @@ func NewMsgConnectionOpenAck(
 	version *Version,
 	signer string,
 ) *MsgConnectionOpenAck {
-	csAny, _ := clienttypes.PackClientState(counterpartyClient)
+	protoAny, _ := clienttypes.PackClientState(counterpartyClient)
 	return &MsgConnectionOpenAck{
 		ConnectionId:             connectionID,
 		CounterpartyConnectionId: counterpartyConnectionID,
-		ClientState:              csAny,
+		ClientState:              protoAny,
 		ProofTry:                 proofTry,
 		ProofClient:              proofClient,
 		ProofConsensus:           proofConsensus,
