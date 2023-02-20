@@ -1,6 +1,8 @@
 package host
 
 import (
+	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
@@ -115,6 +117,7 @@ func (im IBCModule) OnRecvPacket(
 	ack := channeltypes.NewResultAcknowledgement(txResponse)
 	if err != nil {
 		ack = channeltypes.NewErrorAcknowledgement(err)
+		logger.Error(fmt.Sprintf("%s sequence %d", err.Error(), packet.Sequence))
 	} else {
 		logger.Info("successfully handled packet sequence: %d", packet.Sequence)
 	}

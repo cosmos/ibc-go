@@ -163,31 +163,25 @@ func (k Keeper) sendTransfer(
 // back tokens this chain originally transferred to it, the tokens are
 // unescrowed and sent to the receiving address.
 func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data types.FungibleTokenPacketData) error {
-	logger := k.Logger(ctx)
 	// validate packet data upon receiving
 	if err := data.ValidateBasic(); err != nil {
-		logger.Error(fmt.Sprintf("error validating ICS-20 transfer packet data: %s", err.Error()))
-		return err
+		return sdkerrors.Wrapf(err, "error validating ICS-20 transfer packet data")
 	}
 
 	if !k.GetReceiveEnabled(ctx) {
-		logger.Error("receive is disabled")
-		return types.ErrReceiveDisabled
+		return sdkerrors.Wrapf(types.ErrReceiveDisabled, "receive is disabled")
 	}
 
 	// decode the receiver address
 	receiver, err := sdk.AccAddressFromBech32(data.Receiver)
 	if err != nil {
-		logger.Error(fmt.Sprintf("cannot decode receiver address: %s", data.Receiver))
-		return err
+		return sdkerrors.Wrapf(err, "cannot decode receiver address: %s", data.Receiver)
 	}
 
 	// parse the transfer amount
 	transferAmount, ok := sdk.NewIntFromString(data.Amount)
 	if !ok {
-		err := sdkerrors.Wrapf(types.ErrInvalidAmount, "unable to parse transfer amount: %s", data.Amount)
-		logger.Error(err.Error())
-		return err
+		return sdkerrors.Wrapf(types.ErrInvalidAmount, "unable to parse transfer amount: %s", data.Amount)
 	}
 
 	labels := []metrics.Label{
@@ -222,9 +216,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 		token := sdk.NewCoin(denom, transferAmount)
 
 		if k.bankKeeper.BlockedAddr(receiver) {
-			err := sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "%s is not allowed to receive funds", receiver)
-			logger.Error(err.Error())
-			return err
+			return sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "%s is not allowed to receive funds", receiver)
 		}
 
 		// unescrow tokens
@@ -234,7 +226,6 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 			// counterparty module. The bug may occur in bank or any part of the code that allows
 			// the escrow address to be drained. A malicious counterparty module could drain the
 			// escrow address by allowing more tokens to be sent back then were escrowed.
-			logger.Error(fmt.Sprintf("unable to unescrow tokens: %s", err.Error()))
 			return sdkerrors.Wrap(err, "unable to unescrow tokens, this may be caused by a malicious counterparty module or a bug: please open an issue on counterparty module")
 		}
 
@@ -288,16 +279,14 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 	if err := k.bankKeeper.MintCoins(
 		ctx, types.ModuleName, sdk.NewCoins(voucher),
 	); err != nil {
-		logger.Error(fmt.Sprintf("cannot mint coins: %s", err.Error()))
-		return err
+		return sdkerrors.Wrapf(err, "cannot mint coins")
 	}
 
 	// send to receiver
 	if err := k.bankKeeper.SendCoinsFromModuleToAccount(
 		ctx, types.ModuleName, receiver, sdk.NewCoins(voucher),
 	); err != nil {
-		logger.Error(fmt.Sprintf("cannot send coins to receiver %s: %s", receiver.String(), err.Error()))
-		return err
+		return sdkerrors.Wrapf(err, "cannot send coins to receiver %s: %s", receiver.String(), err.Error())
 	}
 
 	defer func() {
