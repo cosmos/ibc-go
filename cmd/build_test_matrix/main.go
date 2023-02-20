@@ -107,6 +107,8 @@ func getGithubActionMatrixForTests(e2eRootDirectory, suite string, exlcudedItems
 		testName := os.Getenv(testNameEnv)
 		if testName != "" && contains(testName, testCases) {
 			testCases = []string{testName}
+		} else {
+			return fmt.Errorf("failed to find test case: %s", testName)
 		}
 
 		if contains(suiteNameForFile, exlcudedItems) {
