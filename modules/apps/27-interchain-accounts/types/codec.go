@@ -69,10 +69,10 @@ func DeserializeCosmosTx(cdc codec.BinaryCodec, data []byte) ([]sdk.Msg, error) 
 
 	msgs := make([]sdk.Msg, len(cosmosTx.Messages))
 
-	for i, any := range cosmosTx.Messages {
+	for i, protoAny := range cosmosTx.Messages {
 		var msg sdk.Msg
 
-		err := cdc.UnpackAny(any, &msg)
+		err := cdc.UnpackAny(protoAny, &msg)
 		if err != nil {
 			return nil, err
 		}

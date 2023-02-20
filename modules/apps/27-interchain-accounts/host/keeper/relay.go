@@ -64,12 +64,12 @@ func (k Keeper) executeTx(ctx sdk.Context, sourcePort, destPort, destChannel str
 			return nil, err
 		}
 
-		any, err := k.executeMsg(cacheCtx, msg)
+		protoAny, err := k.executeMsg(cacheCtx, msg)
 		if err != nil {
 			return nil, err
 		}
 
-		txMsgData.MsgResponses[i] = any
+		txMsgData.MsgResponses[i] = protoAny
 	}
 
 	writeCache()
