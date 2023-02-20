@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package ibc.lightclients.localhost.v1;
+package ibc.lightclients.localhost.v2;
 
 option go_package = "github.com/cosmos/ibc-go/v7/modules/light-clients/09-localhost;localhost";
 
