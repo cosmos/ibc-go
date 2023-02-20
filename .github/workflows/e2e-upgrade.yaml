@@ -42,7 +42,7 @@ jobs:
       test-entry-point:  "TestUpgradeTestSuite"
       test: "TestV6ToV7ChainUpgrade"
 
-  upgrade-v7.1:
+  upgrade-v7_1:
     uses: cosmos/ibc-go/.github/workflows/e2e-test-workflow-call.yml@main
     with:
       chain-image: ghcr.io/cosmos/ibc-go-simd
