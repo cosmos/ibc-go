@@ -29,7 +29,6 @@ import (
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	solomachine "github.com/cosmos/ibc-go/v7/modules/light-clients/06-solomachine"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
-	v71 "github.com/cosmos/ibc-go/v7/testing/simapp/upgrades/v7.1"
 )
 
 const (
