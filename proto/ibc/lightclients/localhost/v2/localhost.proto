@@ -16,3 +16,29 @@ message ClientState {
 
   bool enabled = 2;
 }
+
+// Msg defines the localhost client message service.
+service Msg {
+  // UpdateParams defines a rpc handler method for MsgUpdateParamsResponse.
+  rpc UpdateParams(MsgUpdateParams) returns (MsgUpdateParamsResponse);
+}
+
+// MsgUpdateParamsResponse defines an update params response.
+message MsgUpdateParamsResponse {}
+
+// MsgUpdateParams defines a message to update params.
+message MsgUpdateParams {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  // authority is the address that controls the module (defaults to x/gov unless overwritten).
+  string authority = 1;
+
+  // params defines the x/auth parameters to update.
+  //
+  // NOTE: All parameters must be supplied.
+  Params params = 2 [(gogoproto.nullable) = false];
+}
+
+// Params defines the params for localhost client.
+message Params {}
