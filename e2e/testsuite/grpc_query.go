@@ -48,7 +48,7 @@ func (s *E2ETestSuite) QueryClientStatus(ctx context.Context, chain ibc.Chain, c
 	return res.Status, nil
 }
 
-// QueryConnection queries
+// QueryConnection queries the connection end using the given chain and connection id.
 func (s *E2ETestSuite) QueryConnection(ctx context.Context, chain ibc.Chain, connectionID string) (connectiontypes.ConnectionEnd, error) {
 	queryClient := s.GetChainGRCPClients(chain).ConnectionQueryClient
 	res, err := queryClient.Connection(ctx, &connectiontypes.QueryConnectionRequest{
