@@ -464,9 +464,8 @@ func (suite KeeperTestSuite) TestIterateClientStates() { //nolint:govet // this 
 	}
 }
 
-func (suite KeeperTestSuite) TestUpdateParams() {
-
-	var govAddress = authtypes.NewModuleAddress(govtypes.ModuleName).String()
+func (suite *KeeperTestSuite) TestUpdateParams() {
+	govAddress := authtypes.NewModuleAddress(govtypes.ModuleName).String()
 
 	testCases := []struct {
 		name     string
