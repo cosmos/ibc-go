@@ -9,6 +9,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/stretchr/testify/suite"
 	tmbytes "github.com/tendermint/tendermint/libs/bytes"
@@ -460,4 +462,61 @@ func (suite KeeperTestSuite) TestIterateClientStates() { //nolint:govet // this 
 			suite.Require().ElementsMatch(tc.expClientIDs(), clientIDs)
 		})
 	}
+}
+
+func (suite KeeperTestSuite) TestUpdateParams() {
+
+	path := ibctesting.NewPath(suite.chainA, suite.chainB)
+
+	ctxA := path.EndpointA.Chain.GetContext()
+	ibcKeeper := path.EndpointA.Chain.App.GetIBCKeeper()
+	clientParams := ibcKeeper.ClientKeeper.GetParams(ctxA)
+
+	// ensure it's enabled at the start
+	suite.Require().Equal(types.DefaultAllowedClients, clientParams.AllowedClients)
+	suite.Require().True(clientParams.IsAllowedClient(exported.Localhost))
+
+	cs := suite.chainA.GetClientState(exported.Localhost)
+	localhostClientState := cs.(*localhost.ClientState)
+	suite.Require().Equal(clientParams.IsAllowedClient(exported.Localhost), localhostClientState.Enabled)
+
+	// once you remove localhost from list, it's disabled
+	_, err := ibcKeeper.ClientKeeper.UpdateParams(ctxA, &types.MsgUpdateParams{
+		Authority: authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		Params: types.Params{
+			AllowedClients: []string{exported.Tendermint, exported.Solomachine},
+		},
+	})
+	suite.Require().NoError(err)
+
+	clientParams = ibcKeeper.ClientKeeper.GetParams(ctxA)
+	cs = suite.chainA.GetClientState(exported.Localhost)
+	localhostClientState = cs.(*localhost.ClientState)
+	suite.Require().False(clientParams.IsAllowedClient(exported.Localhost))
+	suite.Require().Equal(clientParams.IsAllowedClient(exported.Localhost), localhostClientState.Enabled)
+
+	_, err = ibcKeeper.ClientKeeper.UpdateParams(ctxA, &types.MsgUpdateParams{
+		Authority: authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		Params: types.Params{
+			AllowedClients: []string{exported.Tendermint, exported.Solomachine, exported.Localhost},
+		},
+	})
+	suite.Require().NoError(err)
+
+	// once you add localhost to list it's enabled
+	clientParams = ibcKeeper.ClientKeeper.GetParams(ctxA)
+	cs = suite.chainA.GetClientState(exported.Localhost)
+	localhostClientState = cs.(*localhost.ClientState)
+	suite.Require().True(clientParams.IsAllowedClient(exported.Localhost))
+	suite.Require().Equal(clientParams.IsAllowedClient(exported.Localhost), localhostClientState.Enabled)
+
+	// check non-gov account cannot do anything
+	_, err = ibcKeeper.ClientKeeper.UpdateParams(ctxA, &types.MsgUpdateParams{
+		Authority: "foobarbaz",
+		Params: types.Params{
+			AllowedClients: []string{exported.Tendermint, exported.Solomachine},
+		},
+	})
+	suite.Require().Error(err)
+
 }
