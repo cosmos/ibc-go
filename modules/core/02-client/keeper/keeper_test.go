@@ -466,57 +466,71 @@ func (suite KeeperTestSuite) TestIterateClientStates() { //nolint:govet // this 
 
 func (suite KeeperTestSuite) TestUpdateParams() {
 
-	path := ibctesting.NewPath(suite.chainA, suite.chainB)
+	var govAddress = authtypes.NewModuleAddress(govtypes.ModuleName).String()
 
-	ctxA := path.EndpointA.Chain.GetContext()
-	ibcKeeper := path.EndpointA.Chain.App.GetIBCKeeper()
-	clientParams := ibcKeeper.ClientKeeper.GetParams(ctxA)
-
-	// ensure it's enabled at the start
-	suite.Require().Equal(types.DefaultAllowedClients, clientParams.AllowedClients)
-	suite.Require().True(clientParams.IsAllowedClient(exported.Localhost))
-
-	cs := suite.chainA.GetClientState(exported.Localhost)
-	localhostClientState := cs.(*localhost.ClientState)
-	suite.Require().Equal(clientParams.IsAllowedClient(exported.Localhost), localhostClientState.Enabled)
-
-	// once you remove localhost from list, it's disabled
-	_, err := ibcKeeper.ClientKeeper.UpdateParams(ctxA, &types.MsgUpdateParams{
-		Authority: authtypes.NewModuleAddress(govtypes.ModuleName).String(),
-		Params: types.Params{
-			AllowedClients: []string{exported.Tendermint, exported.Solomachine},
+	testCases := []struct {
+		name     string
+		expPass  bool
+		malleate func(params *types.MsgUpdateParams)
+	}{
+		{
+			name:    "disabling localhost",
+			expPass: true,
+			malleate: func(msg *types.MsgUpdateParams) {
+				msg.Authority = govAddress
+				msg.Params = types.Params{AllowedClients: []string{exported.Tendermint, exported.Solomachine}}
+			},
 		},
-	})
-	suite.Require().NoError(err)
-
-	clientParams = ibcKeeper.ClientKeeper.GetParams(ctxA)
-	cs = suite.chainA.GetClientState(exported.Localhost)
-	localhostClientState = cs.(*localhost.ClientState)
-	suite.Require().False(clientParams.IsAllowedClient(exported.Localhost))
-	suite.Require().Equal(clientParams.IsAllowedClient(exported.Localhost), localhostClientState.Enabled)
-
-	_, err = ibcKeeper.ClientKeeper.UpdateParams(ctxA, &types.MsgUpdateParams{
-		Authority: authtypes.NewModuleAddress(govtypes.ModuleName).String(),
-		Params: types.Params{
-			AllowedClients: []string{exported.Tendermint, exported.Solomachine, exported.Localhost},
+		{
+			name:    "non gov address fails to update params",
+			expPass: false,
+			malleate: func(msg *types.MsgUpdateParams) {
+				msg.Authority = "not-gov-address"
+				msg.Params = types.Params{AllowedClients: types.DefaultAllowedClients}
+			},
 		},
-	})
-	suite.Require().NoError(err)
-
-	// once you add localhost to list it's enabled
-	clientParams = ibcKeeper.ClientKeeper.GetParams(ctxA)
-	cs = suite.chainA.GetClientState(exported.Localhost)
-	localhostClientState = cs.(*localhost.ClientState)
-	suite.Require().True(clientParams.IsAllowedClient(exported.Localhost))
-	suite.Require().Equal(clientParams.IsAllowedClient(exported.Localhost), localhostClientState.Enabled)
-
-	// check non-gov account cannot do anything
-	_, err = ibcKeeper.ClientKeeper.UpdateParams(ctxA, &types.MsgUpdateParams{
-		Authority: "foobarbaz",
-		Params: types.Params{
-			AllowedClients: []string{exported.Tendermint, exported.Solomachine},
+		{
+			name:    "empty authority fails",
+			expPass: false,
+			malleate: func(msg *types.MsgUpdateParams) {
+				msg.Authority = ""
+				msg.Params = types.Params{AllowedClients: types.DefaultAllowedClients}
+			},
 		},
-	})
-	suite.Require().Error(err)
+	}
 
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+
+			ctxA := suite.chainA.GetContext()
+			ibcKeeper := suite.chainA.App.GetIBCKeeper()
+			clientParams := ibcKeeper.ClientKeeper.GetParams(ctxA)
+
+			suite.Require().Equal(types.DefaultAllowedClients, clientParams.AllowedClients)
+			suite.Require().True(clientParams.IsAllowedClient(exported.Localhost))
+
+			cs := suite.chainA.GetClientState(exported.Localhost)
+			localhostClientState := cs.(*localhost.ClientState)
+			suite.Require().Equal(clientParams.IsAllowedClient(exported.Localhost), localhostClientState.Enabled)
+
+			msgUpdateParams := &types.MsgUpdateParams{}
+			tc.malleate(msgUpdateParams)
+
+			_, err := ibcKeeper.ClientKeeper.UpdateParams(ctxA, msgUpdateParams)
+
+			clientParams = ibcKeeper.ClientKeeper.GetParams(ctxA)
+			cs = suite.chainA.GetClientState(exported.Localhost)
+			localhostClientState = cs.(*localhost.ClientState)
+
+			suite.Require().Equal(clientParams.IsAllowedClient(exported.Localhost), localhostClientState.Enabled)
+
+			if tc.expPass {
+				suite.Require().NoError(err)
+			} else {
+				suite.Require().Error(err)
+			}
+		})
+	}
 }
