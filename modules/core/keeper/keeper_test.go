@@ -5,7 +5,9 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	upgradekeeper "github.com/cosmos/cosmos-sdk/x/upgrade/keeper"
@@ -70,6 +72,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 				stakingKeeper,
 				upgradeKeeper,
 				scopedKeeper,
+				authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 			)
 		}
 	)
