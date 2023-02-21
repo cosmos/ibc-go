@@ -121,9 +121,7 @@ import (
 	localhost "github.com/cosmos/ibc-go/v7/modules/light-clients/09-localhost"
 	ibcmock "github.com/cosmos/ibc-go/v7/testing/mock"
 	simappparams "github.com/cosmos/ibc-go/v7/testing/simapp/params"
-	simappupgrades "github.com/cosmos/ibc-go/v7/testing/simapp/upgrades"
-	v6 "github.com/cosmos/ibc-go/v7/testing/simapp/upgrades/v6"
-	v7 "github.com/cosmos/ibc-go/v7/testing/simapp/upgrades/v7"
+	"github.com/cosmos/ibc-go/v7/testing/simapp/upgrades"
 	ibctestingtypes "github.com/cosmos/ibc-go/v7/testing/types"
 )
 
@@ -929,8 +927,8 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 // setupUpgradeHandlers sets all necessary upgrade handlers for testing purposes
 func (app *SimApp) setupUpgradeHandlers() {
 	app.UpgradeKeeper.SetUpgradeHandler(
-		simappupgrades.DefaultUpgradeName,
-		simappupgrades.CreateDefaultUpgradeHandler(app.mm, app.configurator),
+		upgrades.V5,
+		upgrades.CreateDefaultUpgradeHandler(app.mm, app.configurator),
 	)
 
 	// NOTE: The moduleName arg of v6.CreateUpgradeHandler refers to the auth module ScopedKeeper name to which the channel capability should be migrated from.
@@ -938,8 +936,8 @@ func (app *SimApp) setupUpgradeHandlers() {
 	// TODO: update git tag in link below
 	// See: https://github.com/cosmos/ibc-go/blob/v5.0.0-rc2/testing/simapp/app.go#L304
 	app.UpgradeKeeper.SetUpgradeHandler(
-		v6.UpgradeName,
-		v6.CreateUpgradeHandler(
+		upgrades.V6,
+		upgrades.CreateV6UpgradeHandler(
 			app.mm,
 			app.configurator,
 			app.appCodec,
@@ -950,8 +948,8 @@ func (app *SimApp) setupUpgradeHandlers() {
 	)
 
 	app.UpgradeKeeper.SetUpgradeHandler(
-		v7.UpgradeName,
-		v7.CreateUpgradeHandler(
+		upgrades.V7,
+		upgrades.CreateV7UpgradeHandler(
 			app.mm,
 			app.configurator,
 			app.appCodec,
@@ -959,6 +957,11 @@ func (app *SimApp) setupUpgradeHandlers() {
 			app.ConsensusParamsKeeper,
 			app.ParamsKeeper,
 		),
+	)
+
+	app.UpgradeKeeper.SetUpgradeHandler(
+		upgrades.V7_1,
+		upgrades.CreateDefaultUpgradeHandler(app.mm, app.configurator),
 	)
 }
 
@@ -969,7 +972,7 @@ func (app *SimApp) setupUpgradeStoreLoaders() {
 		tmos.Exit(fmt.Sprintf("failed to read upgrade info from disk %s", err))
 	}
 
-	if upgradeInfo.Name == v7.UpgradeName && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
+	if upgradeInfo.Name == upgrades.V7 && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
 		storeUpgrades := storetypes.StoreUpgrades{
 			Added: []string{
 				consensusparamtypes.StoreKey,
