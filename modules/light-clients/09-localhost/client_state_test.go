@@ -16,29 +16,29 @@ import (
 )
 
 func (suite *LocalhostTestSuite) TestStatus() {
-	clientState := localhost.NewClientState(clienttypes.NewHeight(3, 10))
+	clientState := localhost.NewClientState(clienttypes.NewHeight(3, 10), true)
 	suite.Require().Equal(exported.Active, clientState.Status(suite.chain.GetContext(), nil, nil))
 }
 
 func (suite *LocalhostTestSuite) TestClientType() {
-	clientState := localhost.NewClientState(clienttypes.NewHeight(3, 10))
+	clientState := localhost.NewClientState(clienttypes.NewHeight(3, 10), true)
 	suite.Require().Equal(exported.Localhost, clientState.ClientType())
 }
 
 func (suite *LocalhostTestSuite) TestGetLatestHeight() {
 	expectedHeight := clienttypes.NewHeight(3, 10)
-	clientState := localhost.NewClientState(expectedHeight)
+	clientState := localhost.NewClientState(expectedHeight, true)
 	suite.Require().Equal(expectedHeight, clientState.GetLatestHeight())
 }
 
 func (suite *LocalhostTestSuite) TestZeroCustomFields() {
-	clientState := localhost.NewClientState(clienttypes.NewHeight(1, 10))
+	clientState := localhost.NewClientState(clienttypes.NewHeight(1, 10), true)
 	suite.Require().Equal(clientState, clientState.ZeroCustomFields())
 }
 
 func (suite *LocalhostTestSuite) TestGetTimestampAtHeight() {
 	ctx := suite.chain.GetContext()
-	clientState := localhost.NewClientState(clienttypes.NewHeight(1, 10))
+	clientState := localhost.NewClientState(clienttypes.NewHeight(1, 10), true)
 
 	timestamp, err := clientState.GetTimestampAtHeight(ctx, nil, nil, nil)
 	suite.Require().NoError(err)
@@ -53,12 +53,12 @@ func (suite *LocalhostTestSuite) TestValidate() {
 	}{
 		{
 			name:        "valid client",
-			clientState: localhost.NewClientState(clienttypes.NewHeight(3, 10)),
+			clientState: localhost.NewClientState(clienttypes.NewHeight(3, 10), true),
 			expPass:     true,
 		},
 		{
 			name:        "invalid height",
-			clientState: localhost.NewClientState(clienttypes.ZeroHeight()),
+			clientState: localhost.NewClientState(clienttypes.ZeroHeight(), true),
 			expPass:     false,
 		},
 	}
@@ -94,7 +94,7 @@ func (suite *LocalhostTestSuite) TestInitialize() {
 	for _, tc := range testCases {
 		suite.SetupTest()
 
-		clientState := localhost.NewClientState(clienttypes.NewHeight(3, 10))
+		clientState := localhost.NewClientState(clienttypes.NewHeight(3, 10), true)
 		clientStore := suite.chain.GetSimApp().GetIBCKeeper().ClientKeeper.ClientStore(suite.chain.GetContext(), exported.Localhost)
 
 		err := clientState.Initialize(suite.chain.GetContext(), suite.chain.Codec, clientStore, tc.consState)
@@ -392,17 +392,17 @@ func (suite *LocalhostTestSuite) TestVerifyNonMembership() {
 }
 
 func (suite *LocalhostTestSuite) TestVerifyClientMessage() {
-	clientState := localhost.NewClientState(clienttypes.NewHeight(1, 10))
+	clientState := localhost.NewClientState(clienttypes.NewHeight(1, 10), true)
 	suite.Require().Error(clientState.VerifyClientMessage(suite.chain.GetContext(), nil, nil, nil))
 }
 
 func (suite *LocalhostTestSuite) TestVerifyCheckForMisbehaviour() {
-	clientState := localhost.NewClientState(clienttypes.NewHeight(1, 10))
+	clientState := localhost.NewClientState(clienttypes.NewHeight(1, 10), true)
 	suite.Require().False(clientState.CheckForMisbehaviour(suite.chain.GetContext(), nil, nil, nil))
 }
 
 func (suite *LocalhostTestSuite) TestUpdateState() {
-	clientState := localhost.NewClientState(clienttypes.NewHeight(1, uint64(suite.chain.GetContext().BlockHeight())))
+	clientState := localhost.NewClientState(clienttypes.NewHeight(1, uint64(suite.chain.GetContext().BlockHeight())), true)
 	store := suite.chain.GetSimApp().GetIBCKeeper().ClientKeeper.ClientStore(suite.chain.GetContext(), exported.Localhost)
 
 	suite.coordinator.CommitBlock(suite.chain)
@@ -417,18 +417,18 @@ func (suite *LocalhostTestSuite) TestUpdateState() {
 }
 
 func (suite *LocalhostTestSuite) TestExportMetadata() {
-	clientState := localhost.NewClientState(clienttypes.NewHeight(1, 10))
+	clientState := localhost.NewClientState(clienttypes.NewHeight(1, 10), true)
 	suite.Require().Nil(clientState.ExportMetadata(nil))
 }
 
 func (suite *LocalhostTestSuite) TestCheckSubstituteAndUpdateState() {
-	clientState := localhost.NewClientState(clienttypes.NewHeight(1, 10))
+	clientState := localhost.NewClientState(clienttypes.NewHeight(1, 10), true)
 	err := clientState.CheckSubstituteAndUpdateState(suite.chain.GetContext(), suite.chain.Codec, nil, nil, nil)
 	suite.Require().Error(err)
 }
 
 func (suite *LocalhostTestSuite) TestVerifyUpgradeAndUpdateState() {
-	clientState := localhost.NewClientState(clienttypes.NewHeight(1, 10))
+	clientState := localhost.NewClientState(clienttypes.NewHeight(1, 10), true)
 	err := clientState.VerifyUpgradeAndUpdateState(suite.chain.GetContext(), suite.chain.Codec, nil, nil, nil, nil, nil)
 	suite.Require().Error(err)
 }

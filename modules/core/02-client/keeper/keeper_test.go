@@ -240,7 +240,7 @@ func (suite KeeperTestSuite) TestGetAllGenesisClients() { //nolint:govet // this
 		exported.Localhost, testClientID2, testClientID3, testClientID,
 	}
 	expClients := []exported.ClientState{
-		localhost.NewClientState(types.GetSelfHeight(suite.chainA.GetContext())),
+		localhost.NewClientState(types.GetSelfHeight(suite.chainA.GetContext()), true),
 		ibctm.NewClientState(testChainID, ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, types.ZeroHeight(), commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath),
 		ibctm.NewClientState(testChainID, ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, types.ZeroHeight(), commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath),
 		ibctm.NewClientState(testChainID, ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, types.ZeroHeight(), commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath),

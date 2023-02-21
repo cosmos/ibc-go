@@ -1,15 +1,18 @@
 package keeper
 
 import (
+	"context"
 	"fmt"
 	"reflect"
 	"strings"
 
+	"cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	"github.com/tendermint/tendermint/libs/log"
@@ -58,7 +61,7 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 
 // CreateLocalhostClient initialises the 09-localhost client state and sets it in state.
 func (k Keeper) CreateLocalhostClient(ctx sdk.Context) error {
-	var clientState localhost.ClientState
+	clientState := localhost.NewClientState(types.GetSelfHeight(ctx), k.GetParams(ctx).IsAllowedClient(exported.Localhost))
 	return clientState.Initialize(ctx, k.cdc, k.ClientStore(ctx, exported.Localhost), nil)
 }
 
@@ -404,4 +407,26 @@ func (k Keeper) GetAllClients(ctx sdk.Context) []exported.ClientState {
 func (k Keeper) ClientStore(ctx sdk.Context, clientID string) sdk.KVStore {
 	clientPrefix := []byte(fmt.Sprintf("%s/%s/", host.KeyClientStorePrefix, clientID))
 	return prefix.NewStore(ctx.KVStore(k.storeKey), clientPrefix)
+}
+
+// UpdateParams implements MsgServer.UpdateParams method.
+// It defines a method to update the 02-client module parameters.
+func (k Keeper) UpdateParams(goCtx context.Context, req *types.MsgUpdateParams) (*types.MsgUpdateParamsResponse, error) {
+	if k.authority != req.Authority {
+		return nil, errors.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", k.authority, req.Authority)
+	}
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	k.SetParams(ctx, req.Params)
+
+	cs, ok := k.GetClientState(ctx, exported.Localhost)
+	if !ok {
+		return nil, errors.Wrapf(types.ErrClientNotFound, "localhost client not found")
+	}
+
+	localhostCs := cs.(*localhost.ClientState)
+	localhostCs.Enabled = req.Params.IsAllowedClient(exported.Localhost)
+	localhostCs.LatestHeight = types.GetSelfHeight(ctx)
+	k.SetClientState(ctx, exported.Localhost, localhostCs)
+
+	return &types.MsgUpdateParamsResponse{}, nil
 }

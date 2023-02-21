@@ -16,10 +16,10 @@ import (
 var _ exported.ClientState = (*ClientState)(nil)
 
 // NewClientState creates a new 09-localhost ClientState instance.
-func NewClientState(height clienttypes.Height) exported.ClientState {
+func NewClientState(height clienttypes.Height, enabled bool) exported.ClientState {
 	return &ClientState{
 		LatestHeight: height,
-		Enabled:      true,
+		Enabled:      enabled,
 	}
 }
 
@@ -61,11 +61,7 @@ func (cs ClientState) Initialize(ctx sdk.Context, cdc codec.BinaryCodec, clientS
 		return sdkerrors.Wrap(clienttypes.ErrInvalidConsensus, "initial consensus state for localhost must be nil.")
 	}
 
-	clientState := ClientState{
-		LatestHeight: clienttypes.GetSelfHeight(ctx),
-	}
-
-	clientStore.Set([]byte(host.KeyClientState), clienttypes.MustMarshalClientState(cdc, &clientState))
+	clientStore.Set([]byte(host.KeyClientState), clienttypes.MustMarshalClientState(cdc, &cs))
 
 	return nil
 }

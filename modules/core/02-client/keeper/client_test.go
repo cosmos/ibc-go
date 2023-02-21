@@ -38,7 +38,7 @@ func (suite *KeeperTestSuite) TestCreateClient() {
 		},
 		{
 			"failure: 09-localhost client type not supported",
-			localhost.NewClientState(clienttypes.GetSelfHeight(suite.ctx)),
+			localhost.NewClientState(clienttypes.GetSelfHeight(suite.ctx), true),
 			nil,
 			false,
 		},

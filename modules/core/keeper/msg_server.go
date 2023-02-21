@@ -79,6 +79,11 @@ func (k Keeper) UpgradeClient(goCtx context.Context, msg *clienttypes.MsgUpgrade
 	return &clienttypes.MsgUpgradeClientResponse{}, nil
 }
 
+// UpdateParams defines a rpc handler method for MsgUpdateParams.
+func (k Keeper) UpdateParams(ctx context.Context, params *clienttypes.MsgUpdateParams) (*clienttypes.MsgUpdateParamsResponse, error) {
+	return k.ClientKeeper.UpdateParams(ctx, params)
+}
+
 // SubmitMisbehaviour defines a rpc handler method for MsgSubmitMisbehaviour.
 // Warning: DEPRECATED
 // This handler is redudant as `MsgUpdateClient` is now capable of handling both a Header and a Misbehaviour
