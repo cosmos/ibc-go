@@ -186,7 +186,7 @@ func (k Keeper) SetTotalEscrowForDenom(ctx sdk.Context, denom string, amount mat
 	store.Set(types.TotalEscrowForDenomKey(denom), bz)
 }
 
-// IsIBCDenom returns true is the denomination is an known on-chain IBC denomination.
+// IsIBCDenom returns true if the denomination is an known on-chain IBC denomination.
 func (k Keeper) IsIBCDenom(ctx sdk.Context, denom string) bool {
 	if strings.HasPrefix(denom, fmt.Sprintf("%s/", types.DenomPrefix)) {
 		_, err := k.DenomPathFromHash(ctx, denom)
