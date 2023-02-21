@@ -169,13 +169,13 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 	}
 
 	if !k.GetReceiveEnabled(ctx) {
-		return sdkerrors.Wrapf(types.ErrReceiveDisabled, "receive is disabled")
+		return types.ErrReceiveDisabled
 	}
 
 	// decode the receiver address
 	receiver, err := sdk.AccAddressFromBech32(data.Receiver)
 	if err != nil {
-		return sdkerrors.Wrapf(err, "cannot decode receiver address: %s", data.Receiver)
+		return sdkerrors.Wrapf(err, "failed to decode receiver address: %s", data.Receiver)
 	}
 
 	// parse the transfer amount
@@ -279,14 +279,14 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 	if err := k.bankKeeper.MintCoins(
 		ctx, types.ModuleName, sdk.NewCoins(voucher),
 	); err != nil {
-		return sdkerrors.Wrapf(err, "cannot mint coins")
+		return sdkerrors.Wrapf(err, "failed to mint IBC tokens")
 	}
 
 	// send to receiver
 	if err := k.bankKeeper.SendCoinsFromModuleToAccount(
 		ctx, types.ModuleName, receiver, sdk.NewCoins(voucher),
 	); err != nil {
-		return sdkerrors.Wrapf(err, "cannot send coins to receiver %s: %s", receiver.String(), err.Error())
+		return sdkerrors.Wrapf(err, "failed to send coins to receiver %s: %s", receiver.String(), err.Error())
 	}
 
 	defer func() {
