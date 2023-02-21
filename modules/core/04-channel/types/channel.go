@@ -1,6 +1,7 @@
 package types
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
@@ -57,16 +58,16 @@ func (ch Channel) ValidateBasic() error {
 		return ErrInvalidChannelState
 	}
 	if !(ch.Ordering == ORDERED || ch.Ordering == UNORDERED) {
-		return sdkerrors.Wrap(ErrInvalidChannelOrdering, ch.Ordering.String())
+		return errorsmod.Wrap(ErrInvalidChannelOrdering, ch.Ordering.String())
 	}
 	if len(ch.ConnectionHops) != 1 {
-		return sdkerrors.Wrap(
+		return errorsmod.Wrap(
 			ErrTooManyConnectionHops,
 			"current IBC version only supports one connection hop",
 		)
 	}
 	if err := host.ConnectionIdentifierValidator(ch.ConnectionHops[0]); err != nil {
-		return sdkerrors.Wrap(err, "invalid connection hop ID")
+		return errorsmod.Wrap(err, "invalid connection hop ID")
 	}
 	return ch.Counterparty.ValidateBasic()
 }
