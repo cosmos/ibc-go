@@ -14,6 +14,7 @@ var (
 	_ sdk.Msg = &MsgUpdateClient{}
 	_ sdk.Msg = &MsgSubmitMisbehaviour{}
 	_ sdk.Msg = &MsgUpgradeClient{}
+	_ sdk.Msg = &MsgUpdateParams{}
 
 	_ codectypes.UnpackInterfacesMessage = MsgCreateClient{}
 	_ codectypes.UnpackInterfacesMessage = MsgUpdateClient{}
@@ -262,4 +263,26 @@ func (msg MsgSubmitMisbehaviour) GetSigners() []sdk.AccAddress {
 func (msg MsgSubmitMisbehaviour) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
 	var misbehaviour exported.ClientMessage
 	return unpacker.UnpackAny(msg.Misbehaviour, &misbehaviour)
+}
+
+// NewMsgUpdateParams creates a new MsgUpdateParams instance.
+func NewMsgUpdateParams(authority string, params Params) *MsgUpdateParams {
+	return &MsgUpdateParams{
+		Authority: authority,
+		Params:    params,
+	}
+}
+
+// ValidateBasic performs basic (non-state-dependant) validation on a MsgUpdateParams.
+func (msg MsgUpdateParams) ValidateBasic() error {
+	if _, err := sdk.AccAddressFromBech32(msg.Authority); err != nil {
+		return sdkerrors.Wrapf(err, "invalid authority address")
+	}
+	return msg.Params.Validate()
+}
+
+// GetSigners returns the single expected signer for a MsgUpdateParams.
+func (msg MsgUpdateParams) GetSigners() []sdk.AccAddress {
+	authority, _ := sdk.AccAddressFromBech32(msg.Authority)
+	return []sdk.AccAddress{authority}
 }
