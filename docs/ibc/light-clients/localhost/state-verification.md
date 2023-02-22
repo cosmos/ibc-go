@@ -1,3 +1,7 @@
+<!--
+order: 4
+-->
+
 # State verification
 
 The localhost client handles state verification through the `ClientState` interface methods `VerifyMembership` and `VerifyNonMembership` by performing read-only operations directly on the core IBC store.
