@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
@@ -39,13 +38,20 @@ func (c ClientState) Status(ctx sdk.Context, store sdk.KVStore, cdc codec.Binary
 	return exported.Active
 }
 
-func (c ClientState) ExportMetadata(store sdk.KVStore) []exported.GenesisMetadata {
-	const ExportMetadataQuery = "exportmetadata"
-	payload := make(map[string]map[string]interface{})
-	payload[ExportMetadataQuery] = make(map[string]interface{})
-	inner := payload[ExportMetadataQuery]
-	inner["client_state"] = c
+type ExportMetadataPayload struct {
+	ExportMetadata ExportMetadataInnerPayload `json:"exportmetadata"`
+}
 
+type ExportMetadataInnerPayload struct {
+	ClientState ClientState `json:"client_state"`
+}
+
+func (c ClientState) ExportMetadata(store sdk.KVStore) []exported.GenesisMetadata {
+	payload := ExportMetadataPayload{
+		ExportMetadata: ExportMetadataInnerPayload{
+			ClientState: c,
+		},
+	}
 	encodedData, err := json.Marshal(payload)
 	if err != nil {
 		panic(err)
@@ -101,6 +107,19 @@ func (c ClientState) Initialize(context sdk.Context, marshaler codec.BinaryCodec
 	return nil
 }
 
+type verifyMembershipPayloadInner struct {
+	Height           exported.Height `json:"height"`
+	DelayTimePeriod  uint64          `json:"delay_time_period"`
+	DelayBlockPeriod uint64          `json:"delay_block_period"`
+	Proof            []byte          `json:"proof"`
+	Path             exported.Path   `json:"path"`
+	Value            []byte          `json:"value"`
+}
+
+type verifyMembershipPayload struct {
+	VerifyMembershipPayloadInner verifyMembershipPayloadInner `json:"verify_membership"`
+}
+
 func (c ClientState) VerifyMembership(
 	ctx sdk.Context,
 	clientStore sdk.KVStore,
@@ -112,19 +131,30 @@ func (c ClientState) VerifyMembership(
 	path exported.Path,
 	value []byte,
 ) error {
-	const VerifyClientMessage = "verify_membership"
-	inner := make(map[string]interface{})
-	inner["height"] = height
-	inner["delay_time_period"] = delayTimePeriod
-	inner["delay_block_period"] = delayBlockPeriod
-	inner["proof"] = proof
-	inner["path"] = path
-	inner["value"] = value
-	payload := make(map[string]map[string]interface{})
-	payload[VerifyClientMessage] = inner
+	payload := verifyMembershipPayload{
+		VerifyMembershipPayloadInner: verifyMembershipPayloadInner{
+			Height:           height,
+			DelayTimePeriod:  delayTimePeriod,
+			DelayBlockPeriod: delayBlockPeriod,
+			Proof:            proof,
+			Path:             path,
+			Value:            value,
+		},
+	}
 
 	_, err := call[contractResult](payload, &c, ctx, clientStore)
 	return err
+}
+
+type verifyNonMembershipPayload struct {
+	VerifyNonMembershipPayloadInner verifyNonMembershipPayloadInner `json:"verify_non_membership"`
+}
+type verifyNonMembershipPayloadInner struct {
+	Height           exported.Height `json:"height"`
+	DelayTimePeriod  uint64          `json:"delay_time_period"`
+	DelayBlockPeriod uint64          `json:"delay_block_period"`
+	Proof            []byte          `json:"proof"`
+	Path             exported.Path   `json:"path"`
 }
 
 func (c ClientState) VerifyNonMembership(
@@ -137,18 +167,30 @@ func (c ClientState) VerifyNonMembership(
 	proof []byte,
 	path exported.Path,
 ) error {
-	const VerifyClientMessage = "verify_non_membership"
-	inner := make(map[string]interface{})
-	inner["height"] = height
-	inner["delay_time_period"] = delayTimePeriod
-	inner["delay_block_period"] = delayBlockPeriod
-	inner["proof"] = proof
-	inner["path"] = path
-	payload := make(map[string]map[string]interface{})
-	payload[VerifyClientMessage] = inner
-
+	payload := verifyNonMembershipPayload{
+		VerifyNonMembershipPayloadInner: verifyNonMembershipPayloadInner{
+			Height:           height,
+			DelayTimePeriod:  delayTimePeriod,
+			DelayBlockPeriod: delayBlockPeriod,
+			Proof:            proof,
+			Path:             path,
+		},
+	}
 	_, err := call[contractResult](payload, &c, ctx, clientStore)
 	return err
+}
+
+type verifyClientMessagePayload struct {
+	VerifyClientMessage verifyClientMessageInnerPayload `json:"verify_client_message"`
+}
+
+type clientMessageConcretePayloadClientMessage struct {
+	Header       *Header       `json:"header"`
+	Misbehaviour *Misbehaviour `json:"misbehaviour"`
+}
+type verifyClientMessageInnerPayload struct {
+	ClientMessage clientMessageConcretePayloadClientMessage `json:"client_message"`
+	ClientState   ClientState                               `json:"client_state"`
 }
 
 // VerifyClientMessage must verify a ClientMessage. A ClientMessage could be a Header, Misbehaviour, or batch update.
@@ -156,22 +198,33 @@ func (c ClientState) VerifyNonMembership(
 // will assume that the content of the ClientMessage has been verified and can be trusted. An error should be returned
 // if the ClientMessage fails to verify.
 func (c ClientState) VerifyClientMessage(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, clientMsg exported.ClientMessage) error {
-	const VerifyClientMessage = "verify_client_message"
-	inner := make(map[string]interface{})
-	clientMsgConcrete := make(map[string]interface{})
+	clientMsgConcrete := clientMessageConcretePayloadClientMessage{
+		Header:       nil,
+		Misbehaviour: nil,
+	}
 	switch clientMsg := clientMsg.(type) {
 	case *Header:
-		clientMsgConcrete["header"] = clientMsg
+		clientMsgConcrete.Header = clientMsg
 	case *Misbehaviour:
-		clientMsgConcrete["misbehaviour"] = clientMsg
+		clientMsgConcrete.Misbehaviour = clientMsg
 	}
-	inner["client_message"] = clientMsgConcrete
-	inner["client_state"] = c
-	payload := make(map[string]map[string]interface{})
-	payload[VerifyClientMessage] = inner
-
+	inner := verifyClientMessageInnerPayload{
+		ClientMessage: clientMsgConcrete,
+		ClientState:   c,
+	}
+	payload := verifyClientMessagePayload{
+		VerifyClientMessage: inner,
+	}
 	_, err := call[contractResult](payload, &c, ctx, clientStore)
 	return err
+}
+
+type checkForMisbehaviourPayload struct {
+	CheckForMisbehaviour checkForMisbehaviourInnerPayload `json:"check_for_misbehaviour"`
+}
+type checkForMisbehaviourInnerPayload struct {
+	ClientState  exported.ClientState `json:"client_state"`
+	Misbehaviour *Misbehaviour        `json:"misbehaviour"`
 }
 
 func (c ClientState) CheckForMisbehaviour(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, msg exported.ClientMessage) bool {
@@ -180,12 +233,12 @@ func (c ClientState) CheckForMisbehaviour(ctx sdk.Context, cdc codec.BinaryCodec
 		return false
 	}
 
-	const checkForMisbehaviourMessage = "check_for_misbehaviour"
-	payload := make(map[string]map[string]interface{})
-	payload[checkForMisbehaviourMessage] = make(map[string]interface{})
-	inner := payload[checkForMisbehaviourMessage]
-	inner["client_state"] = c
-	inner["misbehaviour"] = wasmMisbehaviour
+	payload := checkForMisbehaviourPayload{
+		CheckForMisbehaviour: checkForMisbehaviourInnerPayload{
+			ClientState:  &c,
+			Misbehaviour: wasmMisbehaviour,
+		},
+	}
 
 	_, err := call[contractResult](payload, &c, ctx, clientStore)
 	if err != nil {
@@ -195,39 +248,55 @@ func (c ClientState) CheckForMisbehaviour(ctx sdk.Context, cdc codec.BinaryCodec
 	return true
 }
 
+type updateStateOnMisbehaviourPayload struct {
+	UpdateStateOnMisbehaviour updateStateOnMisbehaviourInnerPayload `json:"update_state_on_misbehaviour"`
+}
+type updateStateOnMisbehaviourInnerPayload struct {
+	ClientState   exported.ClientState   `json:"client_state"`
+	ClientMessage exported.ClientMessage `json:"client_message"`
+}
+
 // UpdateStateOnMisbehaviour should perform appropriate state changes on a client state given that misbehaviour has been detected and verified
 func (c ClientState) UpdateStateOnMisbehaviour(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, clientMsg exported.ClientMessage) {
-	const updateStateOnMisbehaviour = "update_state_on_misbehaviour"
-	payload := make(map[string]map[string]interface{})
-	payload[updateStateOnMisbehaviour] = make(map[string]interface{})
-	inner := payload[updateStateOnMisbehaviour]
-	inner["client_state"] = c
-	inner["client_message"] = clientMsg
-
-	encodedData, err := json.Marshal(payload)
-	if err != nil {
-		return
+	payload := updateStateOnMisbehaviourPayload{
+		UpdateStateOnMisbehaviour: updateStateOnMisbehaviourInnerPayload{
+			ClientState:   &c,
+			ClientMessage: clientMsg,
+		},
 	}
-	_, err = callContract(c.CodeId, ctx, clientStore, encodedData)
+	_, err := call[contractResult](payload, &c, ctx, clientStore)
 	if err != nil {
 		panic(err)
 	}
 }
 
+type updateStatePayload struct {
+	UpdateState updateStateInnerPayload `json:"update_state"`
+}
+type updateStateInnerPayload struct {
+	ClientMessage clientMessageConcretePayload `json:"client_message"`
+	ClientState   ClientState                  `json:"client_state"`
+}
+
+type clientMessageConcretePayload struct {
+	Header       *Header       `json:"header"`
+	Misbehaviour *Misbehaviour `json:"misbehaviour"`
+}
+
 func (c ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, clientMsg exported.ClientMessage) []exported.Height {
-	const VerifyClientMessage = "update_state"
-	inner := make(map[string]interface{})
-	inner["client_state"] = c
-	clientMsgConcrete := make(map[string]interface{})
+	var clientMsgConcrete clientMessageConcretePayload
 	switch clientMsg := clientMsg.(type) {
 	case *Header:
-		clientMsgConcrete["header"] = clientMsg
+		clientMsgConcrete.Header = clientMsg
 	case *Misbehaviour:
-		clientMsgConcrete["misbehaviour"] = clientMsg
+		clientMsgConcrete.Misbehaviour = clientMsg
 	}
-	inner["client_message"] = clientMsgConcrete
-	payload := make(map[string]map[string]interface{})
-	payload[VerifyClientMessage] = inner
+	payload := updateStatePayload{
+		UpdateState: updateStateInnerPayload{
+			ClientMessage: clientMsgConcrete,
+			ClientState:   c,
+		},
+	}
 
 	output, err := call[contractResult](payload, &c, ctx, clientStore)
 	if err != nil {
@@ -243,6 +312,16 @@ func (c ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, clientS
 	// setConsensusMetadata(ctx, clientStore, header.GetHeight())
 
 	return []exported.Height{c.LatestHeight}
+}
+
+type checkSubstituteAndUpdateStatePayload struct {
+	CheckSubstituteAndUpdateState CheckSubstituteAndUpdateStatePayload `json:"check_substitute_and_update_state"`
+}
+
+type CheckSubstituteAndUpdateStatePayload struct {
+	ClientState              ClientState             `json:"client_state"`
+	SubjectConsensusState    exported.ConsensusState `json:"subject_consensus_state"`
+	SubstituteConsensusState exported.ClientState    `json:"substitute_client_state"`
 }
 
 func (c ClientState) CheckSubstituteAndUpdateState(
@@ -263,14 +342,13 @@ func (c ClientState) CheckSubstituteAndUpdateState(
 
 	store := NewWrappedStore(subjectClientStore, substituteClientStore, SubjectPrefix, SubstitutePrefix)
 
-	const CheckSubstituteAndUpdateState = "check_substitute_and_update_state"
-	payload := make(map[string]map[string]interface{})
-	payload[CheckSubstituteAndUpdateState] = make(map[string]interface{})
-	inner := payload[CheckSubstituteAndUpdateState]
-	inner["client_state"] = c
-	inner["subject_consensus_state"] = consensusState
-	inner["substitute_client_state"] = substituteClient
-	// inner["initial_height"] = initialHeight
+	payload := checkSubstituteAndUpdateStatePayload{
+		CheckSubstituteAndUpdateState: CheckSubstituteAndUpdateStatePayload{
+			ClientState:              c,
+			SubjectConsensusState:    consensusState,
+			SubstituteConsensusState: substituteClient,
+		},
+	}
 
 	output, err := call[clientStateCallResponse](payload, &c, ctx, store)
 	if err != nil {
@@ -279,6 +357,18 @@ func (c ClientState) CheckSubstituteAndUpdateState(
 
 	output.resetImmutables(&c)
 	return nil
+}
+
+type verifyUpgradeAndUpdateStatePayload struct {
+	VerifyUpgradeAndUpdateStateMsg verifyUpgradeAndUpdateStateMsgPayload `json:"verify_upgrade_and_update_state_msg"`
+}
+
+type verifyUpgradeAndUpdateStateMsgPayload struct {
+	ClientState                ClientState             `json:"old_client_state"`
+	SubjectConsensusState      exported.ClientState    `json:"upgrade_client_state"`
+	UpgradeConsensusState      exported.ConsensusState `json:"upgrade_consensus_state"`
+	ProofUpgradeClient         []byte                  `json:"proof_upgrade_client"`
+	ProofUpgradeConsensusState []byte                  `json:"proof_upgrade_consensus_state"`
 }
 
 func (c ClientState) VerifyUpgradeAndUpdateState(
@@ -303,15 +393,15 @@ func (c ClientState) VerifyUpgradeAndUpdateState(
 		return sdkerrors.Wrap(err, "could not retrieve consensus state for lastHeight")
 	}
 
-	const checkForMisbehaviourMessage = "verify_upgrade_and_update_state_msg"
-	payload := make(map[string]map[string]interface{})
-	payload[checkForMisbehaviourMessage] = make(map[string]interface{})
-	inner := payload[checkForMisbehaviourMessage]
-	inner["old_client_state"] = c
-	inner["upgrade_client_state"] = newClient
-	inner["upgrade_consensus_state"] = newConsState
-	inner["proof_upgrade_client"] = proofUpgradeClient
-	inner["proof_upgrade_consensus_state"] = proofUpgradeConsState
+	payload := verifyUpgradeAndUpdateStatePayload{
+		VerifyUpgradeAndUpdateStateMsg: verifyUpgradeAndUpdateStateMsgPayload{
+			ClientState:                c,
+			SubjectConsensusState:      newClient,
+			UpgradeConsensusState:      newConsState,
+			ProofUpgradeClient:         proofUpgradeClient,
+			ProofUpgradeConsensusState: proofUpgradeConsState,
+		},
+	}
 
 	encodedData, err := json.Marshal(payload)
 	if err != nil {
@@ -342,7 +432,7 @@ func NewClientState(latestSequence uint64, consensusState *ConsensusState) *Clie
 }
 
 // / Calls the contract with the given payload and writes the result to `output`
-func call[T ContractResult](payload any, c *ClientState, ctx sdk.Context, clientStore types.KVStore) (T, error) {
+func call[T ContractResult](payload any, c *ClientState, ctx sdk.Context, clientStore sdk.KVStore) (T, error) {
 	var output T
 	encodedData, err := json.Marshal(payload)
 	if err != nil {
