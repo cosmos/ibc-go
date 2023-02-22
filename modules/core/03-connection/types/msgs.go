@@ -4,7 +4,6 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	ibcerrors "github.com/cosmos/ibc-go/v7/internal/errors"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
@@ -46,21 +45,21 @@ func NewMsgConnectionOpenInit(
 // ValidateBasic implements sdk.Msg.
 func (msg MsgConnectionOpenInit) ValidateBasic() error {
 	if err := host.ClientIdentifierValidator(msg.ClientId); err != nil {
-		return sdkerrors.Wrap(err, "invalid client ID")
+		return errorsmod.Wrap(err, "invalid client ID")
 	}
 	if msg.Counterparty.ConnectionId != "" {
-		return sdkerrors.Wrap(ErrInvalidCounterparty, "counterparty connection identifier must be empty")
+		return errorsmod.Wrap(ErrInvalidCounterparty, "counterparty connection identifier must be empty")
 	}
 
 	// NOTE: Version can be nil on MsgConnectionOpenInit
 	if msg.Version != nil {
 		if err := ValidateVersion(msg.Version); err != nil {
-			return sdkerrors.Wrap(err, "basic validation of the provided version failed")
+			return errorsmod.Wrap(err, "basic validation of the provided version failed")
 		}
 	}
 	_, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
 	}
 	return msg.Counterparty.ValidateBasic()
 }

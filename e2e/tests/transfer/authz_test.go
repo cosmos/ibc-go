@@ -6,7 +6,7 @@ import (
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	errorsmod "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/authz"
 	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
 	"github.com/stretchr/testify/suite"
@@ -255,7 +255,7 @@ func (suite *AuthzTransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 
 			resp, err := suite.BroadcastMessages(context.TODO(), chainA, granteeWallet, msgExec)
 			suite.Require().NotEqual(0, resp.Code)
-			suite.Require().Contains(resp.RawLog, sdkerrors.ErrInsufficientFunds.Error())
+			suite.Require().Contains(resp.RawLog, errorsmod.ErrInsufficientFunds.Error())
 			suite.Require().NoError(err)
 		})
 
@@ -309,7 +309,7 @@ func (suite *AuthzTransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 
 			resp, err := suite.BroadcastMessages(context.TODO(), chainA, granteeWallet, msgExec)
 			suite.Require().NotEqual(0, resp.Code)
-			suite.Require().Contains(resp.RawLog, sdkerrors.ErrInvalidAddress.Error())
+			suite.Require().Contains(resp.RawLog, errorsmod.ErrInvalidAddress.Error())
 			suite.Require().NoError(err)
 		})
 	})

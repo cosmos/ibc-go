@@ -2,7 +2,6 @@ package types
 
 import (
 	errorsmod "cosmossdk.io/errors"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
@@ -93,11 +92,11 @@ func (c Counterparty) GetChannelID() string {
 // ValidateBasic performs a basic validation check of the identifiers
 func (c Counterparty) ValidateBasic() error {
 	if err := host.PortIdentifierValidator(c.PortId); err != nil {
-		return sdkerrors.Wrap(err, "invalid counterparty port ID")
+		return errorsmod.Wrap(err, "invalid counterparty port ID")
 	}
 	if c.ChannelId != "" {
 		if err := host.ChannelIdentifierValidator(c.ChannelId); err != nil {
-			return sdkerrors.Wrap(err, "invalid counterparty channel ID")
+			return errorsmod.Wrap(err, "invalid counterparty channel ID")
 		}
 	}
 	return nil
@@ -119,10 +118,10 @@ func NewIdentifiedChannel(portID, channelID string, ch Channel) IdentifiedChanne
 // ValidateBasic performs a basic validation of the identifiers and channel fields.
 func (ic IdentifiedChannel) ValidateBasic() error {
 	if err := host.ChannelIdentifierValidator(ic.ChannelId); err != nil {
-		return sdkerrors.Wrap(err, "invalid channel ID")
+		return errorsmod.Wrap(err, "invalid channel ID")
 	}
 	if err := host.PortIdentifierValidator(ic.PortId); err != nil {
-		return sdkerrors.Wrap(err, "invalid port ID")
+		return errorsmod.Wrap(err, "invalid port ID")
 	}
 	channel := NewChannel(ic.State, ic.Ordering, ic.Counterparty, ic.ConnectionHops, ic.Version)
 	return channel.ValidateBasic()
