@@ -6,7 +6,7 @@ import (
 	"reflect"
 	"strings"
 
-	"cosmossdk.io/errors"
+	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
@@ -416,7 +416,7 @@ func (k Keeper) ClientStore(ctx sdk.Context, clientID string) sdk.KVStore {
 // It defines a method to update the 02-client module parameters.
 func (k Keeper) UpdateParams(goCtx context.Context, req *types.MsgUpdateParams) (*types.MsgUpdateParamsResponse, error) {
 	if k.authority != req.Authority {
-		return nil, errors.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", k.authority, req.Authority)
+		return nil, errorsmod.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", k.authority, req.Authority)
 	}
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
@@ -432,7 +432,7 @@ func (k Keeper) UpdateParams(goCtx context.Context, req *types.MsgUpdateParams) 
 func (k Keeper) updateLocalhostClientState(ctx sdk.Context, params types.Params) error {
 	cs, ok := k.GetClientState(ctx, exported.Localhost)
 	if !ok {
-		return errors.Wrapf(types.ErrClientNotFound, "localhost client not found")
+		return errorsmod.Wrapf(types.ErrClientNotFound, "localhost client not found")
 	}
 
 	localhostCs := cs.(*localhost.ClientState)
