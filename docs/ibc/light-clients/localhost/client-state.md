@@ -11,7 +11,7 @@ and a boolean indicating whether or not the localhost client is enabled.
 type ClientState struct {
     // the latest height of the blockchain
     LatestHeight clienttypes.Height
-	// whether or not the localhost client is enabled 
+    // whether or not the localhost client is enabled 
     Enabled bool
 }
 ```
