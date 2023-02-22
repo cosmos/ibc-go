@@ -18,7 +18,7 @@ type ClientState struct {
 
 The 09-localhost `ClientState` is instantiated in the `InitGenesis` handler of the 02-client submodule in core IBC.
 It calls `CreateLocalhostClient`, declaring a new `ClientState` and initializing it with its own client prefixed store.
-Whether or not it is enabled depends on if `09-localhost` is in the list of `allowed_clients`.
+Whether or not it is enabled depends on if `09-localhost` is in the list of [`allowed_clients`](https://github.com/cosmos/ibc-go/blob/v7.0.0-rc0/proto/ibc/core/client/v1/client.proto#L102).
 
 ```go
 func (k Keeper) CreateLocalhostClient(ctx sdk.Context) error {
