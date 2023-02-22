@@ -185,8 +185,8 @@ type verifyClientMessagePayload struct {
 }
 
 type clientMessageConcretePayloadClientMessage struct {
-	Header       *Header       `json:"header"`
-	Misbehaviour *Misbehaviour `json:"misbehaviour"`
+	Header       *Header       `json:"header,omitempty"`
+	Misbehaviour *Misbehaviour `json:"misbehaviour,omitempty"`
 }
 type verifyClientMessageInnerPayload struct {
 	ClientMessage clientMessageConcretePayloadClientMessage `json:"client_message"`
@@ -279,8 +279,8 @@ type updateStateInnerPayload struct {
 }
 
 type clientMessageConcretePayload struct {
-	Header       *Header       `json:"header"`
-	Misbehaviour *Misbehaviour `json:"misbehaviour"`
+	Header       *Header       `json:"header,omitempty"`
+	Misbehaviour *Misbehaviour `json:"misbehaviour,omitempty"`
 }
 
 func (c ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, clientMsg exported.ClientMessage) []exported.Height {
