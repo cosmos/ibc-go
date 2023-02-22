@@ -286,7 +286,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 	if err := k.bankKeeper.SendCoinsFromModuleToAccount(
 		ctx, types.ModuleName, receiver, sdk.NewCoins(voucher),
 	); err != nil {
-		return sdkerrors.Wrapf(err, "failed to send coins to receiver %s: %s", receiver.String(), err.Error())
+		return sdkerrors.Wrapf(err, "failed to send coins to receiver %s", receiver.String())
 	}
 
 	defer func() {
