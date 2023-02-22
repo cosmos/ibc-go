@@ -4,22 +4,43 @@ order: 2
 
 ## ClientState
 
-The 09-localhost `ClientState` maintains a single field used to track the latest sequence of the state machine i.e. the height of the blockchain.
+The 09-localhost `ClientState` maintains a field used to track the latest sequence of the state machine i.e. the height of the blockchain,
+and a boolean indicating whether or not the localhost client is enabled.
 
 ```go
 type ClientState struct {
     // the latest height of the blockchain
     LatestHeight clienttypes.Height
+    // whether or not the localhost client is enabled 
+    Enabled bool
 }
 ```
 
 The 09-localhost `ClientState` is instantiated in the `InitGenesis` handler of the 02-client submodule in core IBC.
 It calls `CreateLocalhostClient`, declaring a new `ClientState` and initializing it with its own client prefixed store.
+Whether or not it is enabled depends on if `09-localhost` is in the list of [`allowed_clients`](https://github.com/cosmos/ibc-go/blob/v7.0.0-rc0/proto/ibc/core/client/v1/client.proto#L102).
 
 ```go
 func (k Keeper) CreateLocalhostClient(ctx sdk.Context) error {
-	var clientState localhost.ClientState
-	return clientState.Initialize(ctx, k.cdc, k.ClientStore(ctx, exported.Localhost), nil)
+    clientState := localhost.NewClientState(types.GetSelfHeight(ctx), k.GetParams(ctx).IsAllowedClient(exported.Localhost))
+    return clientState.Initialize(ctx, k.cdc, k.ClientStore(ctx, exported.Localhost), nil)
+}
+```
+
+It is possible to disable the localhost client by removing the `09-localhost` entry from the `allowed_clients` list through governance
+with a `MsgUpdateParams`.
+
+```go
+type Params struct {
+    // allowed_clients defines the list of allowed client state types.
+    AllowedClients []string
+}
+
+type MsgUpdateParams struct {
+    // authority is the address that controls the module.
+    Authority string
+    // NOTE: All parameters must be supplied.
+    Params Params
 }
 ```
 
