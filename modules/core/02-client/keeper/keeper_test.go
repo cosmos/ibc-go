@@ -523,13 +523,15 @@ func (suite *KeeperTestSuite) TestUpdateParams() {
 			cs = suite.chainA.GetClientState(exported.Localhost)
 			localhostClientState = cs.(*localhost.ClientState)
 
-			suite.Require().Equal(clientParams.IsAllowedClient(exported.Localhost), localhostClientState.Enabled)
-
 			if tc.expPass {
 				suite.Require().NoError(err)
+				suite.Require().False(clientParams.IsAllowedClient(exported.Localhost))
 			} else {
+				suite.Require().True(clientParams.IsAllowedClient(exported.Localhost))
 				suite.Require().Error(err)
 			}
+
+			suite.Require().Equal(clientParams.IsAllowedClient(exported.Localhost), localhostClientState.Enabled)
 		})
 	}
 }

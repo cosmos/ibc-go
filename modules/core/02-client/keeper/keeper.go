@@ -416,17 +416,26 @@ func (k Keeper) UpdateParams(goCtx context.Context, req *types.MsgUpdateParams) 
 		return nil, errors.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", k.authority, req.Authority)
 	}
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	k.SetParams(ctx, req.Params)
 
+	if err := k.updateLocalhostClientState(ctx, req.Params); err != nil {
+		return nil, err
+	}
+
+	k.SetParams(ctx, req.Params)
+	return &types.MsgUpdateParamsResponse{}, nil
+}
+
+// updateLocalhostClientState sets the localhost client state based on the provided client params.
+func (k Keeper) updateLocalhostClientState(ctx sdk.Context, params types.Params) error {
 	cs, ok := k.GetClientState(ctx, exported.Localhost)
 	if !ok {
-		return nil, errors.Wrapf(types.ErrClientNotFound, "localhost client not found")
+		return errors.Wrapf(types.ErrClientNotFound, "localhost client not found")
 	}
 
 	localhostCs := cs.(*localhost.ClientState)
-	localhostCs.Enabled = req.Params.IsAllowedClient(exported.Localhost)
+	localhostCs.Enabled = params.IsAllowedClient(exported.Localhost)
 	localhostCs.LatestHeight = types.GetSelfHeight(ctx)
-	k.SetClientState(ctx, exported.Localhost, localhostCs)
 
-	return &types.MsgUpdateParamsResponse{}, nil
+	k.SetClientState(ctx, exported.Localhost, localhostCs)
+	return nil
 }

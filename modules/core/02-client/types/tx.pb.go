@@ -403,7 +403,7 @@ func (m *MsgUpdateParams) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgUpdateParams proto.InternalMessageInfo
 
-// MsgUpdateParamsResponse this is a comment
+// MsgUpdateParamsResponse defines the MsgUpdateParamsResponse response type.
 type MsgUpdateParamsResponse struct {
 }
 

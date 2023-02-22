@@ -14,6 +14,6 @@ message ClientState {
   // the latest block height
   ibc.core.client.v1.Height latest_height = 1 [(gogoproto.nullable) = false];
 
-  // whether or not the localhost client should be enabled
+  // whether or not the localhost client is enabled
   bool enabled = 2;
 }
