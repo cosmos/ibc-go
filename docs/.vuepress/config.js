@@ -409,9 +409,14 @@ module.exports = {
                   path: "/ibc/light-clients/localhost/client-state.html",
                 },
                 {
-                  title: "ConnectionEnd",
+                  title: "Connection",
                   directory: false,
                   path: "/ibc/light-clients/localhost/connection.html",
+                },
+                {
+                  title: "State Verification",
+                  directory: false,
+                  path: "/ibc/light-clients/localhost/state-verification.html",
                 },
               ],
             },

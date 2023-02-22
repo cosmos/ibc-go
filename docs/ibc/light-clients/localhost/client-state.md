@@ -52,11 +52,11 @@ The latest height is updated periodically through the ABCI [`BeginBlock`](https:
 
 ```go
 func BeginBlocker(ctx sdk.Context, k keeper.Keeper) {
-	// ...
+ // ...
 
-	if clientState, found := k.GetClientState(ctx, exported.Localhost); found {
-		k.UpdateLocalhostClient(ctx, clientState)
-	}
+ if clientState, found := k.GetClientState(ctx, exported.Localhost); found {
+  k.UpdateLocalhostClient(ctx, clientState)
+ }
 }
 ```
 
@@ -65,12 +65,12 @@ It retrieves the current block height from the application context and sets the 
 
 ```go
 func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, clientMsg exported.ClientMessage) []exported.Height {
-	height := clienttypes.GetSelfHeight(ctx)
-	cs.LatestHeight = height
+ height := clienttypes.GetSelfHeight(ctx)
+ cs.LatestHeight = height
 
-	clientStore.Set([]byte(host.KeyClientState), clienttypes.MustMarshalClientState(cdc, &cs))
+ clientStore.Set([]byte(host.KeyClientState), clienttypes.MustMarshalClientState(cdc, &cs))
 
-	return []exported.Height{height}
+ return []exported.Height{height}
 }
 ```
 
