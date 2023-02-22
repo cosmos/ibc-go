@@ -44,7 +44,7 @@ type MsgUpdateParams struct {
 }
 ```
 
-### Updates
+## Client updates
 
 The latest height is updated periodically through the ABCI [`BeginBlock`](https://docs.cosmos.network/v0.47/building-modules/beginblock-endblock) interface of the 02-client submodule in core IBC.
 
