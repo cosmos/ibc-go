@@ -398,7 +398,7 @@ func NewSimApp(
 
 	app.GovKeeper = *govKeeper.SetHooks(
 		govtypes.NewMultiGovHooks(
-		// register the governance hooks
+			// register the governance hooks
 		),
 	)
 
@@ -949,6 +949,11 @@ func (app *SimApp) setupUpgradeHandlers() {
 			app.ConsensusParamsKeeper,
 			app.ParamsKeeper,
 		),
+	)
+
+	app.UpgradeKeeper.SetUpgradeHandler(
+		simappupgrades.ClientUpgradeName,
+		simappupgrades.CreateClientUpgradeHandler(app.mm, app.configurator, app.StakingKeeper),
 	)
 }
 
