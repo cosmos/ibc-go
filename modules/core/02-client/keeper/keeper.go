@@ -67,7 +67,10 @@ func (k Keeper) CreateLocalhostClient(ctx sdk.Context) error {
 
 // UpdateLocalhostClient updates the 09-localhost client to the latest block height and chain ID.
 func (k Keeper) UpdateLocalhostClient(ctx sdk.Context, clientState exported.ClientState) []exported.Height {
-	return clientState.UpdateState(ctx, k.cdc, k.ClientStore(ctx, exported.Localhost), nil)
+	if status := clientState.Status(ctx, k.ClientStore(ctx, exported.Localhost), k.cdc); status == exported.Active {
+		return clientState.UpdateState(ctx, k.cdc, k.ClientStore(ctx, exported.Localhost), nil)
+	}
+	return nil
 }
 
 // GenerateClientIdentifier returns the next client identifier.
