@@ -12,12 +12,12 @@ import (
 	"github.com/tendermint/tendermint/libs/log"
 	db "github.com/tendermint/tm-db"
 
-	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
-	connectiontypes "github.com/cosmos/ibc-go/v6/modules/core/03-connection/types"
-	"github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
-	porttypes "github.com/cosmos/ibc-go/v6/modules/core/05-port/types"
-	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v6/modules/core/exported"
+	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
+	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
+	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
 var _ porttypes.ICS4Wrapper = Keeper{}
@@ -53,7 +53,7 @@ func NewKeeper(
 
 // Logger returns a module-specific logger.
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
-	return ctx.Logger().With("module", "x/"+host.ModuleName+"/"+types.SubModuleName)
+	return ctx.Logger().With("module", "x/"+exported.ModuleName+"/"+types.SubModuleName)
 }
 
 // GenerateChannelIdentifier returns the next channel identifier.
@@ -66,11 +66,17 @@ func (k Keeper) GenerateChannelIdentifier(ctx sdk.Context) string {
 	return channelID
 }
 
+// HasChannel true if the channel with the given identifiers exists in state.
+func (k Keeper) HasChannel(ctx sdk.Context, portID, channelID string) bool {
+	store := ctx.KVStore(k.storeKey)
+	return store.Has(host.ChannelKey(portID, channelID))
+}
+
 // GetChannel returns a channel with a particular identifier binded to a specific port
 func (k Keeper) GetChannel(ctx sdk.Context, portID, channelID string) (types.Channel, bool) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(host.ChannelKey(portID, channelID))
-	if bz == nil {
+	if len(bz) == 0 {
 		return types.Channel{}, false
 	}
 
@@ -100,7 +106,7 @@ func (k Keeper) GetAppVersion(ctx sdk.Context, portID, channelID string) (string
 func (k Keeper) GetNextChannelSequence(ctx sdk.Context) uint64 {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get([]byte(types.KeyNextChannelSequence))
-	if bz == nil {
+	if len(bz) == 0 {
 		panic("next channel sequence is nil")
 	}
 
@@ -118,7 +124,7 @@ func (k Keeper) SetNextChannelSequence(ctx sdk.Context, sequence uint64) {
 func (k Keeper) GetNextSequenceSend(ctx sdk.Context, portID, channelID string) (uint64, bool) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(host.NextSequenceSendKey(portID, channelID))
-	if bz == nil {
+	if len(bz) == 0 {
 		return 0, false
 	}
 
@@ -136,7 +142,7 @@ func (k Keeper) SetNextSequenceSend(ctx sdk.Context, portID, channelID string, s
 func (k Keeper) GetNextSequenceRecv(ctx sdk.Context, portID, channelID string) (uint64, bool) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(host.NextSequenceRecvKey(portID, channelID))
-	if bz == nil {
+	if len(bz) == 0 {
 		return 0, false
 	}
 
@@ -154,7 +160,7 @@ func (k Keeper) SetNextSequenceRecv(ctx sdk.Context, portID, channelID string, s
 func (k Keeper) GetNextSequenceAck(ctx sdk.Context, portID, channelID string) (uint64, bool) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(host.NextSequenceAckKey(portID, channelID))
-	if bz == nil {
+	if len(bz) == 0 {
 		return 0, false
 	}
 
@@ -172,7 +178,7 @@ func (k Keeper) SetNextSequenceAck(ctx sdk.Context, portID, channelID string, se
 func (k Keeper) GetPacketReceipt(ctx sdk.Context, portID, channelID string, sequence uint64) (string, bool) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(host.PacketReceiptKey(portID, channelID, sequence))
-	if bz == nil {
+	if len(bz) == 0 {
 		return "", false
 	}
 
@@ -219,7 +225,7 @@ func (k Keeper) SetPacketAcknowledgement(ctx sdk.Context, portID, channelID stri
 func (k Keeper) GetPacketAcknowledgement(ctx sdk.Context, portID, channelID string, sequence uint64) ([]byte, bool) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(host.PacketAcknowledgementKey(portID, channelID, sequence))
-	if bz == nil {
+	if len(bz) == 0 {
 		return nil, false
 	}
 	return bz, true
@@ -235,7 +241,7 @@ func (k Keeper) HasPacketAcknowledgement(ctx sdk.Context, portID, channelID stri
 // For each sequence, cb will be called. If the cb returns true, the iterator
 // will close and stop.
 func (k Keeper) IteratePacketSequence(ctx sdk.Context, iterator db.Iterator, cb func(portID, channelID string, sequence uint64) bool) {
-	defer iterator.Close()
+	defer sdk.LogDeferred(ctx.Logger(), func() error { return iterator.Close() })
 	for ; iterator.Valid(); iterator.Next() {
 		portID, channelID, err := host.ParseChannelPath(string(iterator.Key()))
 		if err != nil {
@@ -371,7 +377,7 @@ func (k Keeper) IterateChannels(ctx sdk.Context, cb func(types.IdentifiedChannel
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, []byte(host.KeyChannelEndPrefix))
 
-	defer iterator.Close()
+	defer sdk.LogDeferred(ctx.Logger(), func() error { return iterator.Close() })
 	for ; iterator.Valid(); iterator.Next() {
 		var channel types.Channel
 		k.cdc.MustUnmarshal(iterator.Value(), &channel)
@@ -392,7 +398,7 @@ func (k Keeper) GetAllChannelsWithPortPrefix(ctx sdk.Context, portPrefix string)
 	}
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, types.FilteredPortPrefix(portPrefix))
-	defer iterator.Close()
+	defer sdk.LogDeferred(ctx.Logger(), func() error { return iterator.Close() })
 
 	var filteredChannels []types.IdentifiedChannel
 	for ; iterator.Valid(); iterator.Next() {
@@ -473,8 +479,8 @@ func (k Keeper) LookupModuleByChannel(ctx sdk.Context, portID, channelID string)
 }
 
 // common functionality for IteratePacketCommitment and IteratePacketAcknowledgement
-func (k Keeper) iterateHashes(_ sdk.Context, iterator db.Iterator, cb func(portID, channelID string, sequence uint64, hash []byte) bool) {
-	defer iterator.Close()
+func (k Keeper) iterateHashes(ctx sdk.Context, iterator db.Iterator, cb func(portID, channelID string, sequence uint64, hash []byte) bool) {
+	defer sdk.LogDeferred(ctx.Logger(), func() error { return iterator.Close() })
 
 	for ; iterator.Valid(); iterator.Next() {
 		keySplit := strings.Split(string(iterator.Key()), "/")

@@ -9,11 +9,11 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	"github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
-	coretypes "github.com/cosmos/ibc-go/v6/modules/core/types"
+	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
+	coretypes "github.com/cosmos/ibc-go/v7/modules/core/types"
 )
 
 // sendTransfer handles transfer sending logic. There are 2 possible cases:
@@ -165,7 +165,7 @@ func (k Keeper) sendTransfer(
 func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data types.FungibleTokenPacketData) error {
 	// validate packet data upon receiving
 	if err := data.ValidateBasic(); err != nil {
-		return err
+		return sdkerrors.Wrapf(err, "error validating ICS-20 transfer packet data")
 	}
 
 	if !k.GetReceiveEnabled(ctx) {
@@ -175,13 +175,13 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 	// decode the receiver address
 	receiver, err := sdk.AccAddressFromBech32(data.Receiver)
 	if err != nil {
-		return err
+		return sdkerrors.Wrapf(err, "failed to decode receiver address: %s", data.Receiver)
 	}
 
 	// parse the transfer amount
 	transferAmount, ok := sdk.NewIntFromString(data.Amount)
 	if !ok {
-		return sdkerrors.Wrapf(types.ErrInvalidAmount, "unable to parse transfer amount (%s) into math.Int", data.Amount)
+		return sdkerrors.Wrapf(types.ErrInvalidAmount, "unable to parse transfer amount: %s", data.Amount)
 	}
 
 	labels := []metrics.Label{
@@ -279,14 +279,14 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 	if err := k.bankKeeper.MintCoins(
 		ctx, types.ModuleName, sdk.NewCoins(voucher),
 	); err != nil {
-		return err
+		return sdkerrors.Wrapf(err, "failed to mint IBC tokens")
 	}
 
 	// send to receiver
 	if err := k.bankKeeper.SendCoinsFromModuleToAccount(
 		ctx, types.ModuleName, receiver, sdk.NewCoins(voucher),
 	); err != nil {
-		return err
+		return sdkerrors.Wrapf(err, "failed to send coins to receiver %s", receiver.String())
 	}
 
 	defer func() {

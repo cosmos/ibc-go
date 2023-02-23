@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"math/rand"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -16,16 +15,16 @@ import (
 	"github.com/spf13/cobra"
 	abci "github.com/tendermint/tendermint/abci/types"
 
-	ibcclient "github.com/cosmos/ibc-go/v6/modules/core/02-client"
-	clientkeeper "github.com/cosmos/ibc-go/v6/modules/core/02-client/keeper"
-	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
-	connectiontypes "github.com/cosmos/ibc-go/v6/modules/core/03-connection/types"
-	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v6/modules/core/client/cli"
-	"github.com/cosmos/ibc-go/v6/modules/core/keeper"
-	"github.com/cosmos/ibc-go/v6/modules/core/simulation"
-	"github.com/cosmos/ibc-go/v6/modules/core/types"
+	ibcclient "github.com/cosmos/ibc-go/v7/modules/core/02-client"
+	clientkeeper "github.com/cosmos/ibc-go/v7/modules/core/02-client/keeper"
+	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
+	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	"github.com/cosmos/ibc-go/v7/modules/core/client/cli"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	"github.com/cosmos/ibc-go/v7/modules/core/keeper"
+	"github.com/cosmos/ibc-go/v7/modules/core/simulation"
+	"github.com/cosmos/ibc-go/v7/modules/core/types"
 )
 
 var (
@@ -41,7 +40,7 @@ var _ module.AppModuleBasic = AppModuleBasic{}
 
 // Name returns the ibc module's name.
 func (AppModuleBasic) Name() string {
-	return host.ModuleName
+	return exported.ModuleName
 }
 
 // RegisterLegacyAminoCodec does nothing. IBC does not support amino.
@@ -57,7 +56,7 @@ func (AppModuleBasic) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
 func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, config client.TxEncodingConfig, bz json.RawMessage) error {
 	var gs types.GenesisState
 	if err := cdc.UnmarshalJSON(bz, &gs); err != nil {
-		return fmt.Errorf("failed to unmarshal %s genesis state: %w", host.ModuleName, err)
+		return fmt.Errorf("failed to unmarshal %s genesis state: %w", exported.ModuleName, err)
 	}
 
 	return gs.Validate()
@@ -109,27 +108,12 @@ func NewAppModule(k *keeper.Keeper) AppModule {
 
 // Name returns the ibc module's name.
 func (AppModule) Name() string {
-	return host.ModuleName
+	return exported.ModuleName
 }
 
 // RegisterInvariants registers the ibc module invariants.
 func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
 	// TODO:
-}
-
-// Route returns the message routing key for the ibc module.
-func (am AppModule) Route() sdk.Route {
-	return sdk.Route{}
-}
-
-// QuerierRoute returns the ibc module's querier route name.
-func (AppModule) QuerierRoute() string {
-	return host.QuerierRoute
-}
-
-// LegacyQuerierHandler returns nil. IBC does not support the legacy querier.
-func (am AppModule) LegacyQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
-	return nil
 }
 
 // RegisterServices registers module services.
@@ -145,7 +129,7 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	}
 
 	m := clientkeeper.NewMigrator(clientKeeper)
-	err := cfg.RegisterMigration(host.ModuleName, 2, m.Migrate2to3)
+	err := cfg.RegisterMigration(exported.ModuleName, 2, m.Migrate2to3)
 	if err != nil {
 		panic(err)
 	}
@@ -157,7 +141,7 @@ func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, bz json.Ra
 	var gs types.GenesisState
 	err := cdc.UnmarshalJSON(bz, &gs)
 	if err != nil {
-		panic(fmt.Sprintf("failed to unmarshal %s genesis state: %s", host.ModuleName, err))
+		panic(fmt.Sprintf("failed to unmarshal %s genesis state: %s", exported.ModuleName, err))
 	}
 	InitGenesis(ctx, *am.keeper, &gs)
 	return []abci.ValidatorUpdate{}
@@ -190,19 +174,9 @@ func (AppModule) GenerateGenesisState(simState *module.SimulationState) {
 	simulation.RandomizedGenState(simState)
 }
 
-// ProposalContents doesn't return any content functions for governance proposals.
-func (AppModule) ProposalContents(_ module.SimulationState) []simtypes.WeightedProposalContent {
-	return nil
-}
-
-// RandomizedParams returns nil since IBC doesn't register parameter changes.
-func (AppModule) RandomizedParams(_ *rand.Rand) []simtypes.ParamChange {
-	return nil
-}
-
 // RegisterStoreDecoder registers a decoder for ibc module's types
 func (am AppModule) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
-	sdr[host.StoreKey] = simulation.NewDecodeStore(*am.keeper)
+	sdr[exported.StoreKey] = simulation.NewDecodeStore(*am.keeper)
 }
 
 // WeightedOperations returns the all the ibc module operations with their respective weights.

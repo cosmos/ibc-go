@@ -6,7 +6,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	"github.com/gogo/protobuf/proto"
+	"github.com/cosmos/gogoproto/proto"
 )
 
 // ModuleCdc references the global interchain accounts module codec. Note, the codec
@@ -69,10 +69,10 @@ func DeserializeCosmosTx(cdc codec.BinaryCodec, data []byte) ([]sdk.Msg, error) 
 
 	msgs := make([]sdk.Msg, len(cosmosTx.Messages))
 
-	for i, any := range cosmosTx.Messages {
+	for i, protoAny := range cosmosTx.Messages {
 		var msg sdk.Msg
 
-		err := cdc.UnpackAny(any, &msg)
+		err := cdc.UnpackAny(protoAny, &msg)
 		if err != nil {
 			return nil, err
 		}

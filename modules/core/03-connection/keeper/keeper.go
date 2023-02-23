@@ -8,11 +8,11 @@ import (
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/tendermint/tendermint/libs/log"
 
-	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v6/modules/core/03-connection/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v6/modules/core/23-commitment/types"
-	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v6/modules/core/exported"
+	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
+	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
 // Keeper defines the IBC connection keeper
@@ -43,7 +43,7 @@ func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey, paramSpace paramt
 
 // Logger returns a module-specific logger.
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
-	return ctx.Logger().With("module", "x/"+host.ModuleName+"/"+types.SubModuleName)
+	return ctx.Logger().With("module", "x/"+exported.ModuleName+"/"+types.SubModuleName)
 }
 
 // GetCommitmentPrefix returns the IBC connection store prefix as a commitment
@@ -66,7 +66,7 @@ func (k Keeper) GenerateConnectionIdentifier(ctx sdk.Context) string {
 func (k Keeper) GetConnection(ctx sdk.Context, connectionID string) (types.ConnectionEnd, bool) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(host.ConnectionKey(connectionID))
-	if bz == nil {
+	if len(bz) == 0 {
 		return types.ConnectionEnd{}, false
 	}
 
@@ -74,6 +74,13 @@ func (k Keeper) GetConnection(ctx sdk.Context, connectionID string) (types.Conne
 	k.cdc.MustUnmarshal(bz, &connection)
 
 	return connection, true
+}
+
+// HasConnection returns a true if the connection with the given identifier
+// exists in the store.
+func (k Keeper) HasConnection(ctx sdk.Context, connectionID string) bool {
+	store := ctx.KVStore(k.storeKey)
+	return store.Has(host.ConnectionKey(connectionID))
 }
 
 // SetConnection sets a connection to the store
@@ -106,7 +113,7 @@ func (k Keeper) GetTimestampAtHeight(ctx sdk.Context, connection types.Connectio
 func (k Keeper) GetClientConnectionPaths(ctx sdk.Context, clientID string) ([]string, bool) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(host.ClientConnectionsKey(clientID))
-	if bz == nil {
+	if len(bz) == 0 {
 		return nil, false
 	}
 
@@ -127,7 +134,7 @@ func (k Keeper) SetClientConnectionPaths(ctx sdk.Context, clientID string, paths
 func (k Keeper) GetNextConnectionSequence(ctx sdk.Context) uint64 {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get([]byte(types.KeyNextConnectionSequence))
-	if bz == nil {
+	if len(bz) == 0 {
 		panic("next connection sequence is nil")
 	}
 
@@ -167,7 +174,7 @@ func (k Keeper) IterateConnections(ctx sdk.Context, cb func(types.IdentifiedConn
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, []byte(host.KeyConnectionPrefix))
 
-	defer iterator.Close()
+	defer sdk.LogDeferred(ctx.Logger(), func() error { return iterator.Close() })
 	for ; iterator.Valid(); iterator.Next() {
 		var connection types.ConnectionEnd
 		k.cdc.MustUnmarshal(iterator.Value(), &connection)

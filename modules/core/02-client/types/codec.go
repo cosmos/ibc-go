@@ -6,9 +6,9 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/msgservice"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
-	proto "github.com/gogo/protobuf/proto"
+	proto "github.com/cosmos/gogoproto/proto"
 
-	"github.com/cosmos/ibc-go/v6/modules/core/exported"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
 // RegisterInterfaces registers the client interfaces to protobuf Any.
@@ -133,12 +133,12 @@ func PackClientMessage(clientMessage exported.ClientMessage) (*codectypes.Any, e
 		return nil, sdkerrors.Wrapf(sdkerrors.ErrPackAny, "cannot proto marshal %T", clientMessage)
 	}
 
-	any, err := codectypes.NewAnyWithValue(msg)
+	protoAny, err := codectypes.NewAnyWithValue(msg)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrPackAny, err.Error())
 	}
 
-	return any, nil
+	return protoAny, nil
 }
 
 // UnpackClientMessage unpacks an Any into a ClientMessage. It returns an error if the

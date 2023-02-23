@@ -5,10 +5,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v6/modules/core/23-commitment/types"
-	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v6/modules/core/exported"
+	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
+	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
 var (
@@ -84,10 +84,10 @@ func NewMsgConnectionOpenTry(
 	proofHeight, consensusHeight clienttypes.Height, signer string,
 ) *MsgConnectionOpenTry {
 	counterparty := NewCounterparty(counterpartyClientID, counterpartyConnectionID, counterpartyPrefix)
-	csAny, _ := clienttypes.PackClientState(counterpartyClient)
+	protoAny, _ := clienttypes.PackClientState(counterpartyClient)
 	return &MsgConnectionOpenTry{
 		ClientId:             clientID,
-		ClientState:          csAny,
+		ClientState:          protoAny,
 		Counterparty:         counterparty,
 		CounterpartyVersions: counterpartyVersions,
 		DelayPeriod:          delayPeriod,
@@ -173,11 +173,11 @@ func NewMsgConnectionOpenAck(
 	version *Version,
 	signer string,
 ) *MsgConnectionOpenAck {
-	csAny, _ := clienttypes.PackClientState(counterpartyClient)
+	protoAny, _ := clienttypes.PackClientState(counterpartyClient)
 	return &MsgConnectionOpenAck{
 		ConnectionId:             connectionID,
 		CounterpartyConnectionId: counterpartyConnectionID,
-		ClientState:              csAny,
+		ClientState:              protoAny,
 		ProofTry:                 proofTry,
 		ProofClient:              proofClient,
 		ProofConsensus:           proofConsensus,

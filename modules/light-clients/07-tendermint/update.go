@@ -10,10 +10,10 @@ import (
 	"github.com/tendermint/tendermint/light"
 	tmtypes "github.com/tendermint/tendermint/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v6/modules/core/23-commitment/types"
-	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v6/modules/core/exported"
+	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
+	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
 // VerifyClientMessage checks if the clientMessage is of type Header or Misbehaviour and verifies the message
@@ -134,13 +134,13 @@ func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, client
 		panic(fmt.Errorf("expected type %T, got %T", &Header{}, clientMsg))
 	}
 
+	cs.pruneOldestConsensusState(ctx, cdc, clientStore)
+
 	// check for duplicate update
 	if consensusState, _ := GetConsensusState(clientStore, cdc, header.GetHeight()); consensusState != nil {
 		// perform no-op
 		return []exported.Height{header.GetHeight()}
 	}
-
-	cs.pruneOldestConsensusState(ctx, cdc, clientStore)
 
 	height := header.GetHeight().(clienttypes.Height)
 	if height.GT(cs.LatestHeight) {

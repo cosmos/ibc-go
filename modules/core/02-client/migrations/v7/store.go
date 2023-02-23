@@ -10,11 +10,11 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
-	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v6/modules/core/exported"
-	solomachine "github.com/cosmos/ibc-go/v6/modules/light-clients/06-solomachine"
-	ibctm "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint"
+	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	solomachine "github.com/cosmos/ibc-go/v7/modules/light-clients/06-solomachine"
+	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 )
 
 // Localhost is the client type for a localhost client. It is also used as the clientID
@@ -58,7 +58,7 @@ func handleSolomachineMigration(ctx sdk.Context, store sdk.KVStore, cdc codec.Bi
 		clientStore := clientKeeper.ClientStore(ctx, clientID)
 
 		bz := clientStore.Get(host.ClientStateKey())
-		if bz == nil {
+		if len(bz) == 0 {
 			return sdkerrors.Wrapf(clienttypes.ErrClientNotFound, "clientID %s", clientID)
 		}
 
@@ -144,7 +144,7 @@ func collectClients(ctx sdk.Context, store sdk.KVStore, clientType string) (clie
 	clientPrefix := []byte(fmt.Sprintf("%s/%s", host.KeyClientStorePrefix, clientType))
 	iterator := sdk.KVStorePrefixIterator(store, clientPrefix)
 
-	defer iterator.Close()
+	defer sdk.LogDeferred(ctx.Logger(), func() error { return iterator.Close() })
 	for ; iterator.Valid(); iterator.Next() {
 		path := string(iterator.Key())
 		if !strings.Contains(path, host.KeyClientState) {

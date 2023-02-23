@@ -9,7 +9,7 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
-	"github.com/cosmos/ibc-go/v6/modules/core/exported"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
 const (
@@ -73,7 +73,7 @@ func (cup *ClientUpdateProposal) ValidateBasic() error {
 
 // NewUpgradeProposal creates a new IBC breaking upgrade proposal.
 func NewUpgradeProposal(title, description string, plan upgradetypes.Plan, upgradedClientState exported.ClientState) (govtypes.Content, error) {
-	any, err := PackClientState(upgradedClientState)
+	protoAny, err := PackClientState(upgradedClientState)
 	if err != nil {
 		return nil, err
 	}
@@ -82,7 +82,7 @@ func NewUpgradeProposal(title, description string, plan upgradetypes.Plan, upgra
 		Title:               title,
 		Description:         description,
 		Plan:                plan,
-		UpgradedClientState: any,
+		UpgradedClientState: protoAny,
 	}, nil
 }
 

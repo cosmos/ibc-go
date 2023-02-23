@@ -1,15 +1,17 @@
 package host
 
 import (
+	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
-	"github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/host/keeper"
-	"github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/host/types"
-	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
-	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
-	ibcexported "github.com/cosmos/ibc-go/v6/modules/core/exported"
+	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/keeper"
+	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/types"
+	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
+	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
 // IBCModule implements the ICS26 interface for interchain accounts host chains
@@ -105,7 +107,9 @@ func (im IBCModule) OnRecvPacket(
 	packet channeltypes.Packet,
 	_ sdk.AccAddress,
 ) ibcexported.Acknowledgement {
+	logger := im.keeper.Logger(ctx)
 	if !im.keeper.IsHostEnabled(ctx) {
+		logger.Info("host submodule is disabled")
 		return channeltypes.NewErrorAcknowledgement(types.ErrHostSubModuleDisabled)
 	}
 
@@ -113,6 +117,9 @@ func (im IBCModule) OnRecvPacket(
 	ack := channeltypes.NewResultAcknowledgement(txResponse)
 	if err != nil {
 		ack = channeltypes.NewErrorAcknowledgement(err)
+		logger.Error(fmt.Sprintf("%s sequence %d", err.Error(), packet.Sequence))
+	} else {
+		logger.Info("successfully handled packet sequence: %d", packet.Sequence)
 	}
 
 	// Emit an event indicating a successful or failed acknowledgement.
