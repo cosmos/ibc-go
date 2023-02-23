@@ -29,7 +29,7 @@ implementer is in charge of determining which checks are required. See the [Tend
 - An `Expired` status indicates that a client is not allowed to be used because it was not updated for longer than the trusting period.
 - An `Unknown` status indicates that there was an error in determining the status of a client.
 - An `Unauthorized` status indicates that usage of the client is not allowed.
-  - > Note: Removing a client type from the [`AllowedClients`](https://github.com/cosmos/ibc-go/blob/v6.0.0/modules/core/02-client/types/client.pb.go#L345) array will prevent all usage of that client type.
+  - > Removing a client type from the [`AllowedClients`](https://github.com/cosmos/ibc-go/blob/v6.0.0/modules/core/02-client/types/client.pb.go#L345) array will prevent all usage of that client type.
 
 All possible `Status` types can be found [here](https://github.com/cosmos/ibc-go/blob/v6.0.0/modules/core/exported/client.go#L26-L36).
 
