@@ -84,6 +84,10 @@ func (cs ClientState) VerifyMembership(
 	path exported.Path,
 	value []byte,
 ) error {
+	if !bytes.Equal(proof, SentinelProof) {
+		return sdkerrors.Wrapf(commitmenttypes.ErrInvalidProof, "expected %s, got %s", string(SentinelProof), string(proof))
+	}
+
 	merklePath, ok := path.(commitmenttypes.MerklePath)
 	if !ok {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "expected %T, got %T", commitmenttypes.MerklePath{}, path)
@@ -118,6 +122,10 @@ func (cs ClientState) VerifyNonMembership(
 	proof []byte,
 	path exported.Path,
 ) error {
+	if !bytes.Equal(proof, SentinelProof) {
+		return sdkerrors.Wrapf(commitmenttypes.ErrInvalidProof, "expected %s, got %s", string(SentinelProof), string(proof))
+	}
+
 	merklePath, ok := path.(commitmenttypes.MerklePath)
 	if !ok {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "expected %T, got %T", commitmenttypes.MerklePath{}, path)
