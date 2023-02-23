@@ -66,20 +66,22 @@ func (cs ClientState) Initialize(ctx sdk.Context, cdc codec.BinaryCodec, clientS
 	return nil
 }
 
-// GetTimestampAtHeight must return the timestamp for the consensus state associated with the provided height.
+// GetTimestampAtHeight returns the current block time retrieved from the application context. The localhost client does not store consensus states and thus
+// cannot provide a timestamp for the provided height.
 func (cs ClientState) GetTimestampAtHeight(ctx sdk.Context, clientStore sdk.KVStore, cdc codec.BinaryCodec, height exported.Height) (uint64, error) {
 	return uint64(ctx.BlockTime().UnixNano()), nil
 }
 
 // VerifyMembership is a generic proof verification method which verifies a proof of the existence of a value at a given CommitmentPath at the specified height.
 // The caller is expected to construct the full CommitmentPath from a CommitmentPrefix and a standardized path (as defined in ICS 24).
+// Note the store provided to the localhost client is the full IBC core state store.
 func (cs ClientState) VerifyMembership(
 	ctx sdk.Context,
 	store sdk.KVStore,
-	cdc codec.BinaryCodec,
-	height exported.Height,
-	delayTimePeriod uint64,
-	delayBlockPeriod uint64,
+	_ codec.BinaryCodec,
+	_ exported.Height,
+	_ uint64,
+	_ uint64,
 	proof []byte,
 	path exported.Path,
 	value []byte,
@@ -108,13 +110,14 @@ func (cs ClientState) VerifyMembership(
 
 // VerifyNonMembership is a generic proof verification method which verifies the absence of a given CommitmentPath at a specified height.
 // The caller is expected to construct the full CommitmentPath from a CommitmentPrefix and a standardized path (as defined in ICS 24).
+// Note the store provided to the localhost client is the full IBC core state store.
 func (cs ClientState) VerifyNonMembership(
 	ctx sdk.Context,
 	store sdk.KVStore,
-	cdc codec.BinaryCodec,
-	height exported.Height,
-	delayTimePeriod uint64,
-	delayBlockPeriod uint64,
+	_ codec.BinaryCodec,
+	_ exported.Height,
+	_ uint64,
+	_ uint64,
 	proof []byte,
 	path exported.Path,
 ) error {
@@ -128,8 +131,7 @@ func (cs ClientState) VerifyNonMembership(
 	}
 
 	// The commitment prefix (eg: "ibc") is omitted when operating on the core IBC store
-	bz := store.Get([]byte(merklePath.KeyPath[1]))
-	if bz != nil {
+	if store.Has([]byte(merklePath.KeyPath[1])) {
 		return sdkerrors.Wrapf(clienttypes.ErrFailedNonMembershipVerification, "value found for path %s", path)
 	}
 
