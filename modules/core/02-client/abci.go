@@ -3,9 +3,9 @@ package client
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	clientexported "github.com/cosmos/ibc-go/v6/modules/core/02-client/exported"
-	"github.com/cosmos/ibc-go/v6/modules/core/02-client/keeper"
-	ibctm "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint"
+	clientexported "github.com/cosmos/ibc-go/v7/modules/core/02-client/exported"
+	"github.com/cosmos/ibc-go/v7/modules/core/02-client/keeper"
+	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 )
 
 // BeginBlocker is used to perform IBC client upgrades

@@ -111,6 +111,7 @@ import (
 	ibc "github.com/cosmos/ibc-go/v7/modules/core"
 	ibcclient "github.com/cosmos/ibc-go/v7/modules/core/02-client"
 	ibcclientclient "github.com/cosmos/ibc-go/v7/modules/core/02-client/client"
+	ibcclientkeeper "github.com/cosmos/ibc-go/v7/modules/core/02-client/keeper"
 	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
 	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
@@ -939,7 +940,7 @@ func (app *SimApp) setupUpgradeHandlers() {
 		),
 	)
 
-	clientKeeper, ok := app.IBCKeeper.ClientKeeper.(clientkeeper.Keeper)
+	clientKeeper, ok := app.IBCKeeper.ClientKeeper.(ibcclientkeeper.Keeper)
 	if !ok {
 		panic("failed to assert app.IBCKeeper.ClientKeeper into type clientkeeper.Keeper")
 	}
@@ -950,7 +951,7 @@ func (app *SimApp) setupUpgradeHandlers() {
 			app.mm,
 			app.configurator,
 			app.appCodec,
-			app.IBCKeeper.ClientKeeper,
+			clientKeeper,
 			app.ConsensusParamsKeeper,
 			app.ParamsKeeper,
 		),
