@@ -10,7 +10,7 @@ import (
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
-	clientkeeper "github.com/cosmos/ibc-go/v7/modules/core/02-client/keeper"
+	clientexported "github.com/cosmos/ibc-go/v7/modules/core/02-client/exported"
 	ibctmmigrations "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint/migrations"
 )
 
@@ -24,7 +24,7 @@ func CreateUpgradeHandler(
 	mm *module.Manager,
 	configurator module.Configurator,
 	cdc codec.BinaryCodec,
-	clientKeeper clientkeeper.Keeper,
+	clientKeeper clientexported.ClientKeeper,
 	consensusParamsKeeper consensusparamskeeper.Keeper,
 	paramsKeeper paramskeeper.Keeper,
 ) upgradetypes.UpgradeHandler {

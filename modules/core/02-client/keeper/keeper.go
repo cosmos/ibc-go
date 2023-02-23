@@ -391,3 +391,11 @@ func (k Keeper) ClientStore(ctx sdk.Context, clientID string) sdk.KVStore {
 	clientPrefix := []byte(fmt.Sprintf("%s/%s/", host.KeyClientStorePrefix, clientID))
 	return prefix.NewStore(ctx.KVStore(k.storeKey), clientPrefix)
 }
+
+func (k Keeper) GetStoreKey() storetypes.StoreKey {
+	return k.storeKey
+}
+
+func (k Keeper) GetCdc() codec.BinaryCodec {
+	return k.cdc
+}

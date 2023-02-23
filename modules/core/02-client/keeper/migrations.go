@@ -2,17 +2,17 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
+	clientexported "github.com/cosmos/ibc-go/v7/modules/core/02-client/exported"
 	v7 "github.com/cosmos/ibc-go/v7/modules/core/02-client/migrations/v7"
 )
 
 // Migrator is a struct for handling in-place store migrations.
 type Migrator struct {
-	keeper Keeper
+	keeper clientexported.ClientKeeper
 }
 
 // NewMigrator returns a new Migrator.
-func NewMigrator(keeper Keeper) Migrator {
+func NewMigrator(keeper clientexported.ClientKeeper) Migrator {
 	return Migrator{keeper: keeper}
 }
 
@@ -23,5 +23,5 @@ func NewMigrator(keeper Keeper) Migrator {
 // - removes the localhost client
 // - asserts that existing tendermint clients are properly registered on the chain codec
 func (m Migrator) Migrate2to3(ctx sdk.Context) error {
-	return v7.MigrateStore(ctx, m.keeper.storeKey, m.keeper.cdc, m.keeper)
+	return v7.MigrateStore(ctx, m.keeper.GetStoreKey(), m.keeper.GetCdc(), m.keeper)
 }

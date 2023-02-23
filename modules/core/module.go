@@ -123,12 +123,7 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	channeltypes.RegisterMsgServer(cfg.MsgServer(), am.keeper)
 	types.RegisterQueryService(cfg.QueryServer(), am.keeper)
 
-	clientKeeper, ok := am.keeper.ClientKeeper.(clientkeeper.Keeper)
-	if !ok {
-		panic("failed to assert am.keeper.ClientKeeper to type clientkeeper.Keeper")
-	}
-
-	m := clientkeeper.NewMigrator(clientKeeper)
+	m := clientkeeper.NewMigrator(am.keeper.ClientKeeper)
 	err := cfg.RegisterMigration(exported.ModuleName, 2, m.Migrate2to3)
 	if err != nil {
 		panic(err)

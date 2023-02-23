@@ -3,14 +3,23 @@ package exported
 import (
 	"context"
 
+	"github.com/cosmos/cosmos-sdk/codec"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	"github.com/tendermint/tendermint/libs/log"
 )
 
 // ClientKeeper defines the expected interface of the light client used for IBC
 type ClientKeeper interface {
+	// getters
+	GetCdc() codec.BinaryCodec
+	GetStoreKey() storetypes.StoreKey
+	Logger(ctx sdk.Context) log.Logger
+
+	// exposed functions
 	CreateClient(ctx sdk.Context, clientState exported.ClientState, consensusState exported.ConsensusState) (string, error)
 	UpdateClient(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) error
 	UpgradeClient(ctx sdk.Context, clientID string, upgradedClient exported.ClientState, upgradedConsState exported.ConsensusState, proofUpgradeClient, proofUpgradeConsState []byte) error
