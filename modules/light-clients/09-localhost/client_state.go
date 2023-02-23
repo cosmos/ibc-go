@@ -72,9 +72,8 @@ func (cs ClientState) GetTimestampAtHeight(ctx sdk.Context, clientStore sdk.KVSt
 	return uint64(ctx.BlockTime().UnixNano()), nil
 }
 
-// VerifyMembership is a generic proof verification method which verifies a proof of the existence of a value at a given CommitmentPath at the specified height.
-// The caller is expected to construct the full CommitmentPath from a CommitmentPrefix and a standardized path (as defined in ICS 24).
-// Note the store provided to the localhost client is the full IBC core state store.
+// VerifyMembership is a generic proof verification method which verifies the existence of a given key and value within the IBC store. The caller is expected to construct the full CommitmentPath from a CommitmentPrefix 
+// and a standardized path (as defined in ICS 24). The caller must provide the full IBC store. 
 func (cs ClientState) VerifyMembership(
 	ctx sdk.Context,
 	store sdk.KVStore,
