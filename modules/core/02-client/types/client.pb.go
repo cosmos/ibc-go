@@ -4,7 +4,7 @@
 package types
 
 import (
-	types1 "cosmossdk.io/x/upgrade/types"
+	types1 "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	fmt "fmt"
 	_ "github.com/cosmos/cosmos-proto"
 	types "github.com/cosmos/cosmos-sdk/codec/types"
