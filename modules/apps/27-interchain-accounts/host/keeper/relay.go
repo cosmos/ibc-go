@@ -26,12 +26,12 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet) ([]byt
 	case icatypes.EXECUTE_TX:
 		msgs, err := icatypes.DeserializeCosmosTx(k.cdc, data.Data)
 		if err != nil {
-			return nil, sdkerrors.Wrapf(err, "failed to deserialize interchain account transaction")
+			return nil, errorsmod.Wrapf(err, "failed to deserialize interchain account transaction")
 		}
 
 		txResponse, err := k.executeTx(ctx, packet.SourcePort, packet.DestinationPort, packet.DestinationChannel, msgs)
 		if err != nil {
-			return nil, sdkerrors.Wrapf(err, "failed to execute interchain account transaction")
+			return nil, errorsmod.Wrapf(err, "failed to execute interchain account transaction")
 		}
 		return txResponse, nil
 	default:
