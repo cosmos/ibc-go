@@ -1,6 +1,8 @@
 package host
 
 import (
+	"fmt"
+
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
@@ -106,7 +108,9 @@ func (im IBCModule) OnRecvPacket(
 	packet channeltypes.Packet,
 	_ sdk.AccAddress,
 ) ibcexported.Acknowledgement {
+	logger := im.keeper.Logger(ctx)
 	if !im.keeper.IsHostEnabled(ctx) {
+		logger.Info("host submodule is disabled")
 		return channeltypes.NewErrorAcknowledgement(types.ErrHostSubModuleDisabled)
 	}
 
@@ -114,6 +118,9 @@ func (im IBCModule) OnRecvPacket(
 	ack := channeltypes.NewResultAcknowledgement(txResponse)
 	if err != nil {
 		ack = channeltypes.NewErrorAcknowledgement(err)
+		logger.Error(fmt.Sprintf("%s sequence %d", err.Error(), packet.Sequence))
+	} else {
+		logger.Info("successfully handled packet sequence: %d", packet.Sequence)
 	}
 
 	// Emit an event indicating a successful or failed acknowledgement.
