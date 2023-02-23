@@ -12,7 +12,15 @@ import (
 	"github.com/tendermint/tendermint/libs/log"
 )
 
-// ClientKeeper defines the expected interface of the light client used for IBC
+// ClientKeeper defines the expected interface of a client keeper for IBC
+// This allows one to extend, but not modify, the original client keeper
+// implementation, such as new hooks, events, queries and messages.
+// For example, one can add a hook triggered upon a new IBC header with
+// a valid quorum certificate for supporting checkpointing protocols. It
+// enables use cases such as Bitcoin checkpointing and mesh security.
+// See https://github.com/cosmos/ibc-go/issues/2880 for a detailed discussion,
+// and https://github.com/cosmos/ibc-go/blob/main/docs/ibc/integration.md for
+// instructions on extending the client keeper.
 type ClientKeeper interface {
 	// getters
 	GetCdc() codec.BinaryCodec

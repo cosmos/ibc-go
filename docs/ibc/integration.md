@@ -226,6 +226,69 @@ That's it! You have now wired up the IBC module and are now able to send fungibl
 different chains. If you want to have a broader view of the changes take a look into the SDK's
 [`SimApp`](https://github.com/cosmos/ibc-go/blob/main/testing/simapp/app.go).
 
+## Extending the client keeper
+
+IBC-Go allows to extend the client keeper for supporting some extra use cases. Specifically,
+the IBC keeper is defined as follows
+
+```go
+// Keeper defines each ICS keeper for IBC
+type Keeper struct {
+	// implements gRPC QueryServer interface
+	types.QueryServer
+
+	cdc codec.BinaryCodec
+
+	ClientKeeper     clientexported.ClientKeeper
+	ConnectionKeeper connectionkeeper.Keeper
+	ChannelKeeper    channelkeeper.Keeper
+	PortKeeper       portkeeper.Keeper
+	Router           *porttypes.Router
+}
+```
+
+Here `clientexported.ClientKeeper` is an interface rather a concrete keeper struct. One can 
+instantiate `Keeper` with the original client keeper implementation under `02-client`, or an
+extended version of it.
+
+The extended keeper can support extra functionalities on top of the original client keeper, 
+such that other modules or external services can learn light clients' internal state:
+
+- adding new hooks and events upon certain state changes
+- adding new queries and messages
+
+As a concrete usage, one can implement a new hook that is triggered upon a new IBC header with a 
+valid quorum certificate (i.e., a set of signatures from validators with >2/3 voting power).
+This allows a Cosmos zone to timestamp such headers from another Cosmos zone, enabling use
+cases for raising the economic security of Cosmos zones, e.g., Bitcoin timestamping and
+mesh security.
+
+One can implement an extended client keeper as follows
+
+```go
+type ExtendedKeeper struct {
+	Keeper
+}
+```
+
+Here `Keeper` is the original client keeper. Golang's composition feature makes this `ExtendedKeeper` 
+to inherits all functionalities of `Keeper`, while allowing `ExtendedKeeper` to add new functions.
+
+One can then replace the original client keeper object with the extended one in the IBC keeper in `app.go`
+as follows
+
+```go
+	// initialize the extended client keeper
+	extendedClientKeeper := ibcclientkeeper.ExtendedKeeper {
+    Keeper: // ... original client keeper
+    // ... fields of the Extended keeper
+  }
+  // replace the client keeper with the extended one in IBC keeper
+	ibcKeeper.ClientKeeper = extendedClientKeeper
+	// set IBC keeper for the app
+	app.IBCKeeper = ibcKeeper
+```
+
 ## Next {hide}
 
 Learn about how to create [custom IBC modules](./apps/apps.md) for your application {hide}
