@@ -75,6 +75,11 @@ func (dt DenomTrace) GetFullDenomPath() string {
 	return dt.GetPrefix() + dt.BaseDenom
 }
 
+// IsNativeDenom returns true if the denomination is native, thus containing no trace history.
+func (dt DenomTrace) IsNativeDenom() bool {
+	return dt.Path == ""
+}
+
 // extractPathAndBaseFromFullDenom returns the trace path and the base denom from
 // the elements that constitute the complete denom.
 func extractPathAndBaseFromFullDenom(fullDenomItems []string) (string, string) {

@@ -112,7 +112,7 @@ func (k Keeper) sendTransfer(
 		}
 
 		denomTrace := types.ParseDenomTrace(fullDenomPath)
-		if denomTrace.GetPath() == "" {
+		if denomTrace.IsNativeDenom() {
 			// get the existing total amount in escrow
 			currentTotalEscrow := k.GetTotalEscrowForDenom(ctx, token.GetDenom())
 			newTotalEscrow := currentTotalEscrow.Add(token.Amount)
@@ -220,7 +220,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 		// The denomination used to send the coins is either the native denom or the hash of the path
 		// if the denomination is not native.
 		denomTrace := types.ParseDenomTrace(unprefixedDenom)
-		if denomTrace.Path != "" {
+		if !denomTrace.IsNativeDenom() {
 			denom = denomTrace.IBCDenom()
 		}
 		token := sdk.NewCoin(denom, transferAmount)
@@ -239,7 +239,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 			return errorsmod.Wrap(err, "unable to unescrow tokens, this may be caused by a malicious counterparty module or a bug: please open an issue on counterparty module")
 		}
 
-		if denomTrace.GetPath() == "" {
+		if denomTrace.IsNativeDenom() {
 			// get the existing total amount in escrow
 			currentTotalEscrow := k.GetTotalEscrowForDenom(ctx, token.GetDenom())
 			newTotalEscrow := currentTotalEscrow.Sub(token.Amount)
@@ -384,7 +384,7 @@ func (k Keeper) refundPacketToken(ctx sdk.Context, packet channeltypes.Packet, d
 			return errorsmod.Wrap(err, "unable to unescrow tokens, this may be caused by a malicious counterparty module or a bug: please open an issue on counterparty module")
 		}
 
-		if trace.GetPath() == "" {
+		if trace.IsNativeDenom() {
 			// get the existing total amount in escrow
 			currentTotalEscrow := k.GetTotalEscrowForDenom(ctx, token.GetDenom())
 			newTotalEscrow := currentTotalEscrow.Sub(token.Amount)
