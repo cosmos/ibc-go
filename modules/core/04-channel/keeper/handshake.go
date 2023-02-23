@@ -8,6 +8,7 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
+	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
@@ -48,6 +49,15 @@ func (k Keeper) ChanOpenInit(
 			"connection version %s does not support channel ordering: %s",
 			getVersions[0], order.String(),
 		)
+	}
+
+	clientState, found := k.clientKeeper.GetClientState(ctx, connectionEnd.ClientId)
+	if !found {
+		return "", nil, sdkerrors.Wrapf(clienttypes.ErrClientNotFound, "clientID (%s)", connectionEnd.ClientId)
+	}
+
+	if status := k.clientKeeper.GetClientStatus(ctx, clientState, connectionEnd.ClientId); status != exported.Active {
+		return "", nil, sdkerrors.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", connectionEnd.ClientId, status)
 	}
 
 	if !k.portKeeper.Authenticate(ctx, portCap, portID) {

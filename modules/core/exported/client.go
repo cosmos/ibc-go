@@ -34,6 +34,9 @@ const (
 
 	// Unknown indicates there was an error in determining the status of a client.
 	Unknown Status = "Unknown"
+
+	// Unauthorized indicates that the client type is not registered as an allowed client type.
+	Unauthorized Status = "Unauthorized"
 )
 
 // ClientState defines the required common functions for light clients.
