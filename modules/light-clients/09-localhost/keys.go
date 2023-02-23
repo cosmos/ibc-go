@@ -5,7 +5,5 @@ const (
 	ModuleName = "09-localhost"
 )
 
-var (
-	// SentinelProof defines the 09-localhost sentintel proof
-	SentinelProof = []byte("proof_localhost")
-)
+// SentinelProof defines the 09-localhost sentintel proof
+var SentinelProof = []byte("proof_localhost")
