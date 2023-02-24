@@ -27,8 +27,35 @@ func VerifyMultihopProof(
 		return err
 	}
 
+	// verify proof lengths
+	if len(proofs.ConnectionProofs) < 1 || len(proofs.ConsensusProofs) < 1 {
+		return fmt.Errorf("the number of connection (%d) consensus (%d) proofs must be > 0",
+			len(proofs.ConnectionProofs), len(proofs.ConsensusProofs))
+	}
+
+	if len(proofs.ConsensusProofs) != len(proofs.ConnectionProofs) {
+		return fmt.Errorf("the number of connection (%d) and consensus (%d) proofs must be equal",
+			len(proofs.ConnectionProofs), len(proofs.ConsensusProofs))
+	}
+
+	// verify connection states and ordering
+	if err := verifyConnectionStates(cdc, proofs.ConnectionProofs, connectionHops); err != nil {
+		return err
+	}
+
+	// verify intermediate consensus and connection states from destination --> source
+	if err := verifyConsensusAndConnectionStateProofs(consensusState, cdc, proofs.ConsensusProofs, proofs.ConnectionProofs); err != nil {
+		return fmt.Errorf("failed to verify consensus state proof: %w", err)
+	}
+
+	// verify the keyproof on source chain's consensus state.
+	return verifyKeyValueProof(cdc, consensusState, &proofs, prefix, key, value)
+}
+
+// verifyConnectionState verifies that the provided connections match the connectionHops field of the channel and are in OPEN state
+func verifyConnectionStates(cdc codec.BinaryCodec, connectionProofData []*channeltypes.MultihopProof, connectionHops []string) error {
 	// check all connections are in OPEN state and that the connection IDs match and are in the right order
-	for i, connData := range proofs.ConnectionProofs {
+	for i, connData := range connectionProofData {
 		var connectionEnd connectiontypes.ConnectionEnd
 		if err := cdc.Unmarshal(connData.Value, &connectionEnd); err != nil {
 			return err
@@ -55,18 +82,11 @@ func VerifyMultihopProof(
 		}
 	}
 
-	prefixedKey, err := commitmenttypes.ApplyPrefix(prefix, commitmenttypes.NewMerklePath(key))
-	if err != nil {
-		return err
-	}
-
-	// verify each consensus state and connection state starting going from Z --> A
-	// finally verify the keyproof on A within B's verified view of A's consensus state.
-	return verifyMultiHopProofMembership(consensusState, cdc, &proofs, &prefixedKey, value)
+	return nil
 }
 
-// verifyMultiHopConsensusStateProof verifies the consensus state of paths[0].EndpointA on paths[len(paths)-1].EndpointB.
-func verifyMultiHopConsensusStateProof(
+// verifyConsensusAndConnectionStateProofs verifies the consensus and connection states in the multi-hop proof.
+func verifyConsensusAndConnectionStateProofs(
 	consensusState exported.ConsensusState,
 	cdc codec.BinaryCodec,
 	consensusProofs []*channeltypes.MultihopProof,
@@ -113,27 +133,21 @@ func verifyMultiHopConsensusStateProof(
 	return nil
 }
 
-// verifyMultiHopProofMembership verifies a multihop membership proof including all intermediate state proofs.
+// verifyKeyValueProof verifies a multihop membership proof including all intermediate state proofs.
 // If the value is "nil" then a proof of non-membership is verified.
-func verifyMultiHopProofMembership(
-	consensusState exported.ConsensusState,
+func verifyKeyValueProof(
 	cdc codec.BinaryCodec,
+	consensusState exported.ConsensusState,
 	proofs *channeltypes.MsgMultihopProofs,
-	prefixedKey *commitmenttypes.MerklePath,
+	prefix exported.Prefix,
+	key string,
 	value []byte,
 ) error {
-	if len(proofs.ConsensusProofs) < 1 {
-		return fmt.Errorf(
-			"proof must have at least two elements where the first one is the proof for the key and the rest are for the consensus states",
-		)
+	prefixedKey, err := commitmenttypes.ApplyPrefix(prefix, commitmenttypes.NewMerklePath(key))
+	if err != nil {
+		return err
 	}
-	if len(proofs.ConsensusProofs) != len(proofs.ConnectionProofs) {
-		return fmt.Errorf("the number of connection (%d) and consensus (%d) proofs must be equal",
-			len(proofs.ConnectionProofs), len(proofs.ConsensusProofs))
-	}
-	if err := verifyMultiHopConsensusStateProof(consensusState, cdc, proofs.ConsensusProofs, proofs.ConnectionProofs); err != nil {
-		return fmt.Errorf("failed to verify consensus state proof: %w", err)
-	}
+
 	var keyProof commitmenttypes.MerkleProof
 	if err := cdc.Unmarshal(proofs.KeyProof.Proof, &keyProof); err != nil {
 		return fmt.Errorf("failed to unmarshal key proof: %w", err)
@@ -147,13 +161,13 @@ func verifyMultiHopProofMembership(
 		return keyProof.VerifyNonMembership(
 			commitmenttypes.GetSDKSpecs(),
 			secondConsState.GetRoot(),
-			*prefixedKey,
+			prefixedKey,
 		)
 	} else {
 		return keyProof.VerifyMembership(
 			commitmenttypes.GetSDKSpecs(),
 			secondConsState.GetRoot(),
-			*prefixedKey,
+			prefixedKey,
 			value,
 		)
 	}
