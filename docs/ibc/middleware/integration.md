@@ -19,8 +19,9 @@ The order of middleware **matters**, function calls from IBC to the application 
 
 // middleware 1 and middleware 3 are stateful middleware, 
 // perhaps implementing separate sdk.Msg and Handlers
-mw1Keeper := mw1.NewKeeper(storeKey1)
-mw3Keeper := mw3.NewKeeper(storeKey3)
+mw1Keeper := mw1.NewKeeper(storeKey1, ...)
+// middleware 2 is stateless
+mw3Keeper := mw3.NewKeeper(storeKey3, ...)
 
 // Only create App Module **once** and register in app module
 // if the module maintains independent state and/or processes sdk.Msgs
@@ -32,9 +33,7 @@ app.moduleManager = module.NewManager(
   custom.NewAppModule(customKeeper)
 )
 
-mw1IBCModule := mw1.NewIBCModule(mw1Keeper)
-mw2IBCModule := mw2.NewIBCModule() // middleware2 is stateless middleware
-mw3IBCModule := mw3.NewIBCModule(mw3Keeper)
+
 
 scopedKeeperTransfer := capabilityKeeper.NewScopedKeeper("transfer")
 scopedKeeperCustom1 := capabilityKeeper.NewScopedKeeper("custom1")
@@ -53,6 +52,11 @@ customIBCModule2 := custom.NewIBCModule(customKeeper, "portCustom2")
 // create IBC stacks by combining middleware with base application
 // NOTE: since middleware2 is stateless it does not require a Keeper
 // stack 1 contains mw1 -> mw3 -> transfer
+
+mw1IBCMiddleware := mw1.NewIBCMiddleware(mw1Keeper)
+mw2IBCMiddleware := mw2.NewIBCMiddleware() // middleware2 is stateless middleware
+mw3IBCMiddleware := mw3.NewIBCMiddleware(mw3Keeper)
+
 stack1 := mw1.NewIBCMiddleware(mw3.NewIBCMiddleware(transferIBCModule, mw3Keeper), mw1Keeper)
 // stack 2 contains mw3 -> mw2 -> custom1
 stack2 := mw3.NewIBCMiddleware(mw2.NewIBCMiddleware(customIBCModule1), mw3Keeper)
