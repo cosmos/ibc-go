@@ -299,7 +299,7 @@ func (suite *LocalhostTestSuite) TestVerifyMembership() {
 				suite.chain.Codec,
 				clienttypes.ZeroHeight(),
 				0, 0, // use zero values for delay periods
-				nil, // localhost proofs are nil
+				localhost.SentinelProof,
 				path,
 				value,
 			)
@@ -378,7 +378,7 @@ func (suite *LocalhostTestSuite) TestVerifyNonMembership() {
 				suite.chain.Codec,
 				clienttypes.ZeroHeight(),
 				0, 0, // use zero values for delay periods
-				nil, // localhost proofs are nil
+				localhost.SentinelProof,
 				path,
 			)
 
