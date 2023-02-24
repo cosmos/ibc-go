@@ -80,10 +80,11 @@ func (suite KeeperTestSuite) TestGetAllConnections() { //nolint:govet // this is
 	iconn1 := types.NewIdentifiedConnection(path1.EndpointA.ConnectionID, conn1)
 	iconn2 := types.NewIdentifiedConnection(path2.EndpointA.ConnectionID, conn2)
 
-	localhostConnectionEnd := suite.chainA.App.GetIBCKeeper().ConnectionKeeper.CreateSentinelLocalhostConnection()
-	localhostConn := types.NewIdentifiedConnection(types.LocalhostID, localhostConnectionEnd)
+	suite.chainA.App.GetIBCKeeper().ConnectionKeeper.CreateSentinelLocalhostConnection(suite.chainA.GetContext())
+	localhostConn, found := suite.chainA.App.GetIBCKeeper().ConnectionKeeper.GetConnection(suite.chainA.GetContext(), types.LocalhostID)
+	suite.Require().True(found)
 
-	expConnections := []types.IdentifiedConnection{iconn1, iconn2, localhostConn}
+	expConnections := []types.IdentifiedConnection{iconn1, iconn2, types.NewIdentifiedConnection(types.LocalhostID, localhostConn)}
 
 	connections := suite.chainA.App.GetIBCKeeper().ConnectionKeeper.GetAllConnections(suite.chainA.GetContext())
 	suite.Require().Len(connections, len(expConnections))
@@ -164,8 +165,7 @@ func (suite *KeeperTestSuite) TestGetTimestampAtHeight() {
 func (suite *KeeperTestSuite) TestLocalhostConnectionEndCreation() {
 	ctx := suite.chainA.GetContext()
 	connectionKeeper := suite.chainA.App.GetIBCKeeper().ConnectionKeeper
-	localhostConnection := connectionKeeper.CreateSentinelLocalhostConnection()
-	connectionKeeper.SetConnection(ctx, types.LocalhostID, localhostConnection)
+	connectionKeeper.CreateSentinelLocalhostConnection(ctx)
 
 	connectionEnd, found := connectionKeeper.GetConnection(ctx, types.LocalhostID)
 
