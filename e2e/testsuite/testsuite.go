@@ -32,6 +32,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
+	"github.com/cosmos/ibc-go/e2e/relayer"
 	"github.com/cosmos/ibc-go/e2e/semverutil"
 	"github.com/cosmos/ibc-go/e2e/testconfig"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
@@ -49,10 +50,6 @@ const (
 	ChainBRelayerName = "rlyB"
 	// DefaultGasValue is the default gas value used to configure tx.Factory
 	DefaultGasValue = 500000
-	// emptyLogs is the string value returned from `BroadcastMessages`. There are some situations in which
-	// the result is empty, when this happens we include the raw logs instead to get as much information
-	// amount the failure as possible.
-	emptyLogs = "[]"
 )
 
 // E2ETestSuite has methods and functionality which can be shared among all test suites.
@@ -125,7 +122,7 @@ func (s *E2ETestSuite) GetRelayerUsers(ctx context.Context, chainOpts ...testcon
 func (s *E2ETestSuite) SetupChainsRelayerAndChannel(ctx context.Context, channelOpts ...func(*ibc.CreateChannelOptions)) (ibc.Relayer, ibc.ChannelOutput) {
 	chainA, chainB := s.GetChains()
 
-	r := newCosmosRelayer(s.T(), testconfig.FromEnv(), s.logger, s.DockerClient, s.network)
+	r := relayer.New(s.T(), testconfig.FromEnv().RelayerConfig, s.logger, s.DockerClient, s.network)
 
 	pathName := s.generatePathName()
 
@@ -173,6 +170,29 @@ func (s *E2ETestSuite) SetupChainsRelayerAndChannel(ctx context.Context, channel
 	chainAChannels, err := r.GetChannels(ctx, eRep, chainA.Config().ChainID)
 	s.Require().NoError(err)
 	return r, chainAChannels[len(chainAChannels)-1]
+}
+
+// SetupSingleChain creates and returns a single CosmosChain for usage in e2e tests.
+// This is useful for testing single chain functionality when performing coordinated upgrades as well as testing localhost ibc client functionality.
+// TODO: Actually setup a single chain. Seeing panic: runtime error: index out of range [0] with length 0 when using a single chain.
+// issue: https://github.com/strangelove-ventures/interchaintest/issues/401
+func (s *E2ETestSuite) SetupSingleChain(ctx context.Context) *cosmos.CosmosChain {
+	chainA, chainB := s.GetChains()
+
+	ic := interchaintest.NewInterchain().AddChain(chainA).AddChain(chainB)
+
+	eRep := s.GetRelayerExecReporter()
+	s.Require().NoError(ic.Build(ctx, eRep, interchaintest.InterchainBuildOptions{
+		TestName:         s.T().Name(),
+		Client:           s.DockerClient,
+		NetworkID:        s.network,
+		SkipPathCreation: true,
+	}))
+
+	s.InitGRPCClients(chainA)
+	s.InitGRPCClients(chainB)
+
+	return chainA
 }
 
 // generatePathName generates the path name using the test suites name
@@ -403,14 +423,12 @@ func (s *E2ETestSuite) InitGRPCClients(chain *cosmos.CosmosChain) {
 // AssertValidTxResponse verifies that an sdk.TxResponse
 // has non-empty values.
 func (s *E2ETestSuite) AssertValidTxResponse(resp sdk.TxResponse) {
-	respLogsMsg := resp.Logs.String()
-	if respLogsMsg == emptyLogs {
-		respLogsMsg = resp.RawLog
-	}
-	s.Require().NotEqual(int64(0), resp.GasUsed, respLogsMsg)
-	s.Require().NotEqual(int64(0), resp.GasWanted, respLogsMsg)
-	s.Require().NotEmpty(resp.Events, respLogsMsg)
-	s.Require().NotEmpty(resp.Data, respLogsMsg)
+	errorMsg := fmt.Sprintf("%+v", resp)
+	s.Require().NotEmpty(resp.TxHash, errorMsg)
+	s.Require().NotEqual(int64(0), resp.GasUsed, errorMsg)
+	s.Require().NotEqual(int64(0), resp.GasWanted, errorMsg)
+	s.Require().NotEmpty(resp.Events, errorMsg)
+	s.Require().NotEmpty(resp.Data, errorMsg)
 }
 
 // AssertPacketRelayed asserts that the packet commitment does not exist on the sending chain.

@@ -179,13 +179,13 @@ func (suite *KeeperTestSuite) TestHandleUpgradeProposal() {
 		},
 		{
 			"cannot unpack client state", func() {
-				any, err := types.PackConsensusState(&ibctm.ConsensusState{})
+				protoAny, err := types.PackConsensusState(&ibctm.ConsensusState{})
 				suite.Require().NoError(err)
 				content = &types.UpgradeProposal{
 					Title:               ibctesting.Title,
 					Description:         ibctesting.Description,
 					Plan:                plan,
-					UpgradedClientState: any,
+					UpgradedClientState: protoAny,
 				}
 			}, false,
 		},

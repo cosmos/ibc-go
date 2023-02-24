@@ -10,6 +10,7 @@
 - Follow Google developer documentation [style guide](https://developers.google.com/style).
 - Check the meaning of words in Microsoft's [A-Z word list and term collections](https://docs.microsoft.com/en-us/style-guide/a-z-word-list-term-collections/term-collections/accessibility-terms) (use the search input!).
 - We recommend using RFC keywords in user documentation (lowercase). The RFC keywords are: "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED",  "MAY", and "OPTIONAL. They are to be interpreted as described in [RFC 2119](https://datatracker.ietf.org/doc/html/rfc2119).
+- Lint the markdown files for documentation with [markdownlint-cli](https://github.com/igorshubovych/markdownlint-cli). Run `make docs-lint` (you will need to have `markdownlint-cli` installed, so please follow the [installation instructions](https://github.com/igorshubovych/markdownlint-cli#installation)).
 
 ### Links
 
