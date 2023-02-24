@@ -44,4 +44,3 @@ Keep in mind that:
 - **The order of the middleware matters** (more on how to correctly define your stack in the code will follow in the [integration section](./integration.md)).
 - Depending on the type of message, it will either be passed on from the base application up the middleware stack to core IBC or down the stack in the reverse situation (handshake and packet callbacks).
 - IBC middleware will wrap over an underlying IBC application and sits between core IBC and the application. It has complete control in modifying any message coming from IBC to the application, and any message coming from the application to core IBC. **Middleware must be completely trusted by chain developers who wish to integrate them**, as this gives them complete flexibility in modifying the application(s) they wrap.
-

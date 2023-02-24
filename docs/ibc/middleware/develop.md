@@ -4,7 +4,7 @@ order: 2
 
 # Create a custom IBC middleware
 
-IBC middleware will wrap over an underlying IBC application (a base application or downstream middleware) and sits between core IBC and the base application. 
+IBC middleware will wrap over an underlying IBC application (a base application or downstream middleware) and sits between core IBC and the base application.
 
 The interfaces a middleware must implement are found [here](https://github.com/cosmos/ibc-go/blob/v7.0.0-rc0/modules/core/05-port/types/module.go).
 
@@ -432,7 +432,7 @@ type ICS4Wrapper interface {
 }
 ```
 
-:warning: In the following paragraphs, the methods are presented in pseudo code which has been kept general, not stating whether the middleware is stateful or stateless. Remember that when the middleware is stateful, `ics4Wrapper` can be accessed through the keeper. 
+:warning: In the following paragraphs, the methods are presented in pseudo code which has been kept general, not stating whether the middleware is stateful or stateless. Remember that when the middleware is stateful, `ics4Wrapper` can be accessed through the keeper.
 
 Check out the references provided for an actual implementation to clarify, where the `ics4Wrapper` methods in `ibc_middleware.go` simply call the equivalent keeper methods where the actual logic resides.
 
