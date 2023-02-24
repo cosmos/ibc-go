@@ -404,6 +404,11 @@ module.exports = {
                   path: "/ibc/light-clients/localhost/overview.html",
                 },
                 {
+                  title: "Integration",
+                  directory: false,
+                  path: "/ibc/light-clients/localhost/integration.html",
+                },
+                {
                   title: "ClientState",
                   directory: false,
                   path: "/ibc/light-clients/localhost/client-state.html",
