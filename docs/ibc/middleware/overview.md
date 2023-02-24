@@ -11,7 +11,7 @@ This documentation serves as a guide for middleware developers who want to write
 After going through the overview they can consult respectively:
 
 - [documentation on developing custom middleware](develop.md)
-- [documentation on integration middleware into a stack on a chain](integration.md)
+- [documentation on integrating middleware into a stack on a chain](integration.md)
 
 ## Pre-requisite readings
 
@@ -35,7 +35,7 @@ Middleware allows developers to define the extensions as separate modules that c
 
 `Application Stack (or stack)`: A stack is the complete set of application logic (middleware(s) + base application) that gets connected to core IBC. A stack may be just a base application, or it may be a series of middlewares that nest a base application.
 
-The diagram below gives an overview of a middleware stack consisting of two middlewares (one stateless, the other stateful).
+The diagram below gives an overview of a middleware stack consisting of two middleware (one stateless, the other stateful).
 
 ![Middleware stack](../../assets/middleware-stack.png)
 
