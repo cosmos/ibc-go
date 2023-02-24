@@ -1,0 +1,71 @@
+# Migrating from v7 to v7.1
+
+This guide provides instructions for migrating to version `v7.1.0` of ibc-go.
+
+There are four sections based on the four potential user groups of this document:
+
+- [Migrating from v7 to v7.1](#migrating-from-v7-to-v71)
+  - [Chains](#chains)
+  - [IBC Apps](#ibc-apps)
+  - [Relayers](#relayers)
+  - [IBC Light Clients](#ibc-light-clients)
+
+**Note:** ibc-go supports golang semantic versioning and therefore all imports must be updated on major version releases.
+
+## Chains
+
+In the previous release of ibc-go, the localhost `v1` light client module was deprecated and removed. The ibc-go `v7.1.0` release introduces `v2` of the 09-localhost light client module.
+
+Chain developers must register the 09-localhost `AppModuleBasic` in `app.go`.
+
+```go
+import (
+  // ...
+  localhost "github.com/cosmos/ibc-go/v7/modules/light-clients/09-localhost"
+)
+// ...
+ModuleBasics = module.NewBasicManager(
+  ...
+  ibc.AppModuleBasic{},
+  localhost.AppModuleBasic{},
+  ...
+)
+```
+
+<!-- TODO: Update the link to use release version instead of feat branch -->
+An [automatic migration handler](https://github.com/cosmos/ibc-go/blob/09-localhost/modules/core/module.go#L133-L145) is configured in the core IBC module to set the localhost `ClientState` and sentintel `ConnectionEnd` in state.
+
+In order to use the 09-localhost client chains must update the `AllowedClients` parameter in the 02-client submodule of core IBC. This can be configured directly in the application upgrade handler or alternatively updated via the legacy governance parameter change proposal.
+
+```go
+func CreateV7LocalhostUpgradeHandler(
+	mm *module.Manager,
+	configurator module.Configurator,
+	clientKeeper clientkeeper.Keeper,
+) upgradetypes.UpgradeHandler {
+	return func(ctx sdk.Context, _ upgradetypes.Plan, vm module.VersionMap) (module.VersionMap, error) {
+		// explicitly update the IBC 02-client params with the new default allowed clients
+		params := clienttypes.NewParams(clienttypes.DefaultAllowedClients...)
+		clientKeeper.SetParams(ctx, params)
+
+		return mm.RunMigrations(ctx, configurator, vm)
+	}
+}
+```
+
+<!-- TODO: Uncomment below when docs are merged -->
+<!-- [For more information please refer to the 09-localhost light client module documentation](../ibc/light-clients/localhost/overview.md). -->
+
+## IBC Apps
+
+- No relevant changes were made in this release.
+
+## Relayers
+
+The event attribute `packet_connection` (`connectiontypes.AttributeKeyConnection`) has been deprecated. 
+Please use the `connection_id` attribute (`connectiontypes.AttributeKeyConnectionID`) which is emitted by all channel events.
+Only send packet, receive packet, write acknowledgement, and acknowledge packet events used `packet_connection` previously.
+
+## IBC Light Clients
+
+- No relevant changes were made in this release.
