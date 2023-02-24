@@ -37,6 +37,8 @@ An [automatic migration handler](https://github.com/cosmos/ibc-go/blob/09-localh
 
 In order to use the 09-localhost client chains must update the `AllowedClients` parameter in the 02-client submodule of core IBC. This can be configured directly in the application upgrade handler or alternatively updated via the legacy governance parameter change proposal.
 
+<!-- TODO: Add link to simapp upgrade handler in ibc-go -->
+
 ```go
 func CreateV7LocalhostUpgradeHandler(
 	mm *module.Manager,
