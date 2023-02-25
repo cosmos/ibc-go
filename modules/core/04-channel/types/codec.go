@@ -35,6 +35,7 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 		&MsgChannelOpenConfirm{},
 		&MsgChannelCloseInit{},
 		&MsgChannelCloseConfirm{},
+		&MsgChannelCloseFrozen{},
 		&MsgRecvPacket{},
 		&MsgAcknowledgement{},
 		&MsgTimeout{},

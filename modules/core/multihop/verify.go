@@ -17,15 +17,11 @@ func VerifyMultihopProof(
 	cdc codec.BinaryCodec,
 	consensusState exported.ConsensusState,
 	connectionHops []string,
-	proof []byte,
+	proofs *channeltypes.MsgMultihopProofs,
 	prefix exported.Prefix,
 	key string,
 	value []byte,
 ) error {
-	var proofs channeltypes.MsgMultihopProofs
-	if err := cdc.Unmarshal(proof, &proofs); err != nil {
-		return err
-	}
 
 	// verify proof lengths
 	if len(proofs.ConnectionProofs) < 1 || len(proofs.ConsensusProofs) < 1 {
@@ -49,7 +45,7 @@ func VerifyMultihopProof(
 	}
 
 	// verify the keyproof on source chain's consensus state.
-	return verifyKeyValueProof(cdc, consensusState, &proofs, prefix, key, value)
+	return verifyKeyValueProof(cdc, consensusState, proofs, prefix, key, value)
 }
 
 // verifyConnectionState verifies that the provided connections match the connectionHops field of the channel and are in OPEN state

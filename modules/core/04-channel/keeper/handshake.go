@@ -162,20 +162,20 @@ func (k Keeper) ChanOpenTry(
 	// connectionHops A --> Z
 	var counterpartyHops []string
 	var checkEnd *connectiontypes.ConnectionEnd
+	var mProof types.MsgMultihopProofs
 
 	if len(connectionHops) > 1 {
-		var proof types.MsgMultihopProofs
-		if err := k.cdc.Unmarshal(proofInit, &proof); err != nil {
+		if err := k.cdc.Unmarshal(proofInit, &mProof); err != nil {
 			return "", nil, err
 		}
 		var err error
 		// get the connectionEnd associated with chain A
-		checkEnd, err = proof.GetMultihopConnectionEnd(k.cdc)
+		checkEnd, err = mProof.GetMultihopConnectionEnd(k.cdc)
 		if err != nil {
 			return "", nil, err
 		}
 
-		counterpartyHops, err = proof.GetCounterpartyHops(k.cdc, &connectionEnd)
+		counterpartyHops, err = mProof.GetCounterpartyHops(k.cdc, &connectionEnd)
 		if err != nil {
 			return "", nil, err
 		}
@@ -231,7 +231,7 @@ func (k Keeper) ChanOpenTry(
 		key := host.ChannelPath(counterparty.PortId, counterparty.ChannelId)
 		prefix := checkEnd.GetCounterparty().GetPrefix()
 
-		if err := mh.VerifyMultihopProof(k.cdc, consensusState, connectionHops, proofInit, prefix, key, value); err != nil {
+		if err := mh.VerifyMultihopProof(k.cdc, consensusState, connectionHops, &mProof, prefix, key, value); err != nil {
 			return "", nil, err
 		}
 	} else {
@@ -383,7 +383,7 @@ func (k Keeper) ChanOpenAck(
 		key := host.ChannelPath(channel.Counterparty.PortId, counterpartyChannelID)
 		prefix := multihopConnectionEnd.GetCounterparty().GetPrefix()
 
-		if err := mh.VerifyMultihopProof(k.cdc, consensusState, channel.ConnectionHops, proofTry, prefix, key, value); err != nil {
+		if err := mh.VerifyMultihopProof(k.cdc, consensusState, channel.ConnectionHops, &mProof, prefix, key, value); err != nil {
 			return err
 		}
 	} else {
@@ -523,7 +523,7 @@ func (k Keeper) ChanOpenConfirm(
 		key := host.ChannelPath(channel.Counterparty.PortId, channel.Counterparty.ChannelId)
 		prefix := multihopConnectionEnd.GetCounterparty().GetPrefix()
 
-		if err := mh.VerifyMultihopProof(k.cdc, consensusState, channel.ConnectionHops, proofAck, prefix, key, value); err != nil {
+		if err := mh.VerifyMultihopProof(k.cdc, consensusState, channel.ConnectionHops, &mProof, prefix, key, value); err != nil {
 			return err
 		}
 	} else {
@@ -726,7 +726,7 @@ func (k Keeper) ChanCloseConfirm(
 		key := host.ChannelPath(channel.Counterparty.PortId, channel.Counterparty.ChannelId)
 		prefix := multihopConnectionEnd.GetCounterparty().GetPrefix()
 
-		if err := mh.VerifyMultihopProof(k.cdc, consensusState, channel.ConnectionHops, proofInit, prefix, key, value); err != nil {
+		if err := mh.VerifyMultihopProof(k.cdc, consensusState, channel.ConnectionHops, &mProof, prefix, key, value); err != nil {
 			return err
 		}
 
@@ -738,6 +738,111 @@ func (k Keeper) ChanCloseConfirm(
 		); err != nil {
 			return err
 		}
+	}
+
+	k.Logger(ctx).
+		Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", channel.State.String(), "new-state", "CLOSED")
+
+	defer func() {
+		telemetry.IncrCounter(1, "ibc", "channel", "close-confirm")
+	}()
+
+	channel.State = types.CLOSED
+	k.SetChannel(ctx, portID, channelID, channel)
+
+	EmitChannelCloseConfirmEvent(ctx, portID, channelID, channel)
+
+	return nil
+}
+
+// ChanCloseFrozen is called by the counterparty module to close their end of the
+// channel, since the other end has been closed.
+func (k Keeper) ChanCloseFrozen(
+	ctx sdk.Context,
+	portID,
+	channelID string,
+	chanCap *capabilitytypes.Capability,
+	proofFrozen []byte,
+	proofHeight exported.Height,
+) error {
+	if !k.scopedKeeper.AuthenticateCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)) {
+		return sdkerrors.Wrap(
+			types.ErrChannelCapabilityNotFound,
+			"caller does not own capability for channel, port ID (%s) channel ID (%s)",
+		)
+	}
+
+	channel, found := k.GetChannel(ctx, portID, channelID)
+	if !found {
+		return sdkerrors.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
+	}
+
+	// ChanCloseFrozen is only required for multi-hop channels
+	if len(channel.ConnectionHops) == 1 {
+		return sdkerrors.ErrNotSupported
+	}
+
+	if channel.State == types.CLOSED {
+		return sdkerrors.Wrap(types.ErrInvalidChannelState, "channel is already CLOSED")
+	}
+
+	connectionEnd, found := k.connectionKeeper.GetConnection(ctx, channel.ConnectionHops[len(channel.ConnectionHops)-1])
+	if !found {
+		return sdkerrors.Wrap(
+			connectiontypes.ErrConnectionNotFound,
+			channel.ConnectionHops[len(channel.ConnectionHops)-1],
+		)
+	}
+
+	if connectionEnd.GetState() != int32(connectiontypes.OPEN) {
+		return sdkerrors.Wrapf(
+			connectiontypes.ErrInvalidConnectionState,
+			"connection state is not OPEN (got %s)", connectiontypes.State(connectionEnd.GetState()).String(),
+		)
+	}
+
+	// unmarshal the multi-hop proof
+	var mProof types.MsgMultihopProofs
+	if len(channel.ConnectionHops) > 1 {
+		if err := k.cdc.Unmarshal(proofFrozen, &mProof); err != nil {
+			return err
+		}
+	}
+
+	// determine counterparty hops
+	counterpartyHops, err := mProof.GetCounterpartyHops(k.cdc, &connectionEnd)
+	if err != nil {
+		return err
+	}
+
+	counterparty := types.NewCounterparty(portID, channelID)
+	expectedChannel := types.NewChannel(
+		types.CLOSED, channel.Ordering, counterparty,
+		counterpartyHops, channel.Version,
+	)
+
+	// verify client frozen proof
+	value, err := expectedChannel.Marshal()
+	if err != nil {
+		return err
+	}
+
+	consensusState, found := k.clientKeeper.GetClientConsensusState(ctx, connectionEnd.ClientId, proofHeight)
+	if !found {
+		return sdkerrors.Wrapf(clienttypes.ErrConsensusStateNotFound,
+			"consensus state not found for client id: %s", connectionEnd.ClientId)
+	}
+
+	multihopConnectionEnd, err := mProof.GetMultihopConnectionEnd(k.cdc)
+	if err != nil {
+		return err
+	}
+
+	key := host.ChannelPath(channel.Counterparty.PortId, channel.Counterparty.ChannelId)
+	prefix := multihopConnectionEnd.GetCounterparty().GetPrefix()
+
+	if err := mh.VerifyMultihopProof(k.cdc, consensusState, channel.ConnectionHops, &mProof, prefix, key, value); err != nil {
+		return err
 	}
 
 	k.Logger(ctx).

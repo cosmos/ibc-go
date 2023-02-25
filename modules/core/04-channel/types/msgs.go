@@ -301,6 +301,51 @@ func (msg MsgChannelCloseConfirm) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{signer}
 }
 
+var _ sdk.Msg = &MsgChannelCloseFrozen{}
+
+// NewMsgChannelCloseFrozen creates a new MsgChannelCloseFrozen instance
+//
+//nolint:interfacer
+func NewMsgChannelCloseFrozen(
+	portID, channelID string, proofFrozen []byte, proofHeight clienttypes.Height,
+	signer string,
+) *MsgChannelCloseFrozen {
+	return &MsgChannelCloseFrozen{
+		PortId:      portID,
+		ChannelId:   channelID,
+		ProofFrozen: proofFrozen,
+		ProofHeight: proofHeight,
+		Signer:      signer,
+	}
+}
+
+// ValidateBasic implements sdk.Msg
+func (msg MsgChannelCloseFrozen) ValidateBasic() error {
+	if err := host.PortIdentifierValidator(msg.PortId); err != nil {
+		return sdkerrors.Wrap(err, "invalid port ID")
+	}
+	if !IsValidChannelID(msg.ChannelId) {
+		return ErrInvalidChannelIdentifier
+	}
+	if len(msg.ProofFrozen) == 0 {
+		return sdkerrors.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty proof init")
+	}
+	_, err := sdk.AccAddressFromBech32(msg.Signer)
+	if err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
+	}
+	return nil
+}
+
+// GetSigners implements sdk.Msg
+func (msg MsgChannelCloseFrozen) GetSigners() []sdk.AccAddress {
+	signer, err := sdk.AccAddressFromBech32(msg.Signer)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{signer}
+}
+
 var _ sdk.Msg = &MsgRecvPacket{}
 
 // NewMsgRecvPacket constructs new MsgRecvPacket

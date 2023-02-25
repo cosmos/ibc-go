@@ -404,6 +404,41 @@ func (k Keeper) ChannelCloseConfirm(goCtx context.Context, msg *channeltypes.Msg
 	return &channeltypes.MsgChannelCloseConfirmResponse{}, nil
 }
 
+// ChannelCloseFrozen defines a rpc handler method for MsgChannelCloseFrozen.
+func (k Keeper) ChannelCloseFrozen(goCtx context.Context, msg *channeltypes.MsgChannelCloseFrozen) (*channeltypes.MsgChannelCloseFrozenResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	// Lookup module by channel capability
+	module, cap, err := k.ChannelKeeper.LookupModuleByChannel(ctx, msg.PortId, msg.ChannelId)
+	if err != nil {
+		ctx.Logger().Error("channel close frozen callback failed", "port-id", msg.PortId, "error", sdkerrors.Wrap(err, "could not retrieve module from port-id"))
+		return nil, sdkerrors.Wrap(err, "could not retrieve module from port-id")
+	}
+
+	// Retrieve callbacks from router
+	cbs, ok := k.Router.GetRoute(module)
+	if !ok {
+		ctx.Logger().Error("channel close frozen callback failed", "port-id", msg.PortId, "error", sdkerrors.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module))
+		return nil, sdkerrors.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
+	}
+
+	// TODO: create OnChanCloseFrozen callback
+	if err = cbs.OnChanCloseConfirm(ctx, msg.PortId, msg.ChannelId); err != nil {
+		ctx.Logger().Error("channel close confirm callback failed", "port-id", msg.PortId, "channel-id", msg.ChannelId, "error", err.Error())
+		return nil, sdkerrors.Wrapf(err, "channel close confirm callback failed for port ID: %s, channel ID: %s", msg.PortId, msg.ChannelId)
+	}
+
+	err = k.ChannelKeeper.ChanCloseFrozen(ctx, msg.PortId, msg.ChannelId, cap, msg.ProofFrozen, msg.ProofHeight)
+	if err != nil {
+		ctx.Logger().Error("channel handshake close frozen callback failed", "port-id", msg.PortId, "channel-id", msg.ChannelId, "error", err.Error())
+		return nil, sdkerrors.Wrap(err, "channel handshake close frozen failed")
+	}
+
+	ctx.Logger().Info("channel close frozen callback succeeded", "channel-id", msg.ChannelId, "port-id", msg.PortId)
+
+	return &channeltypes.MsgChannelCloseFrozenResponse{}, nil
+}
+
 // RecvPacket defines a rpc handler method for MsgRecvPacket.
 func (k Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPacket) (*channeltypes.MsgRecvPacketResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)

@@ -585,7 +585,7 @@ var xxx_messageInfo_MsgChannelCloseConfirmResponse proto.InternalMessageInfo
 type MsgChannelCloseFrozen struct {
 	PortId      string       `protobuf:"bytes,1,opt,name=port_id,json=portId,proto3" json:"port_id,omitempty" yaml:"port_id"`
 	ChannelId   string       `protobuf:"bytes,2,opt,name=channel_id,json=channelId,proto3" json:"channel_id,omitempty" yaml:"channel_id"`
-	ProofInit   []byte       `protobuf:"bytes,3,opt,name=proof_init,json=proofInit,proto3" json:"proof_init,omitempty" yaml:"proof_init"`
+	ProofFrozen []byte       `protobuf:"bytes,3,opt,name=proof_frozen,json=proofFrozen,proto3" json:"proof_frozen,omitempty" yaml:"proof_frozen"`
 	ProofHeight types.Height `protobuf:"bytes,4,opt,name=proof_height,json=proofHeight,proto3" json:"proof_height" yaml:"proof_height"`
 	Signer      string       `protobuf:"bytes,5,opt,name=signer,proto3" json:"signer,omitempty"`
 }
@@ -2210,10 +2210,10 @@ func (m *MsgChannelCloseFrozen) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	}
 	i--
 	dAtA[i] = 0x22
-	if len(m.ProofInit) > 0 {
-		i -= len(m.ProofInit)
-		copy(dAtA[i:], m.ProofInit)
-		i = encodeVarintTx(dAtA, i, uint64(len(m.ProofInit)))
+	if len(m.ProofFrozen) > 0 {
+		i -= len(m.ProofFrozen)
+		copy(dAtA[i:], m.ProofFrozen)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.ProofFrozen)))
 		i--
 		dAtA[i] = 0x1a
 	}
@@ -2990,7 +2990,7 @@ func (m *MsgChannelCloseFrozen) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovTx(uint64(l))
 	}
-	l = len(m.ProofInit)
+	l = len(m.ProofFrozen)
 	if l > 0 {
 		n += 1 + l + sovTx(uint64(l))
 	}
@@ -5007,7 +5007,7 @@ func (m *MsgChannelCloseFrozen) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 3:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ProofInit", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field ProofFrozen", wireType)
 			}
 			var byteLen int
 			for shift := uint(0); ; shift += 7 {
@@ -5034,9 +5034,9 @@ func (m *MsgChannelCloseFrozen) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.ProofInit = append(m.ProofInit[:0], dAtA[iNdEx:postIndex]...)
-			if m.ProofInit == nil {
-				m.ProofInit = []byte{}
+			m.ProofFrozen = append(m.ProofFrozen[:0], dAtA[iNdEx:postIndex]...)
+			if m.ProofFrozen == nil {
+				m.ProofFrozen = []byte{}
 			}
 			iNdEx = postIndex
 		case 4:

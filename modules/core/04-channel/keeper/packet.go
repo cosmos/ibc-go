@@ -235,7 +235,7 @@ func (k Keeper) RecvPacket(
 
 		prefix := multihopConnectionEnd.GetCounterparty().GetPrefix()
 
-		if err := mh.VerifyMultihopProof(k.cdc, consensusState, channel.ConnectionHops, proof, prefix, key, commitment); err != nil {
+		if err := mh.VerifyMultihopProof(k.cdc, consensusState, channel.ConnectionHops, &mProof, prefix, key, commitment); err != nil {
 			return err
 		}
 	} else {
@@ -514,7 +514,7 @@ func (k Keeper) AcknowledgePacket(
 
 		value := types.CommitAcknowledgement(acknowledgement)
 
-		if err := mh.VerifyMultihopProof(k.cdc, consensusState, channel.ConnectionHops, proof, prefix, key, value); err != nil {
+		if err := mh.VerifyMultihopProof(k.cdc, consensusState, channel.ConnectionHops, &mProof, prefix, key, value); err != nil {
 			return err
 		}
 	} else {

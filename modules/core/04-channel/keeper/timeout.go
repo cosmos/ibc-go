@@ -137,7 +137,7 @@ func (k Keeper) TimeoutPacket(
 			key := host.NextSequenceRecvPath(packet.GetSourcePort(), packet.GetSourceChannel())
 			prefix := connectionEnd.GetCounterparty().GetPrefix()
 			val := sdk.Uint64ToBigEndian(nextSequenceRecv)
-			err = mh.VerifyMultihopProof(k.cdc, consensusState, channel.ConnectionHops, proof, prefix, key, val)
+			err = mh.VerifyMultihopProof(k.cdc, consensusState, channel.ConnectionHops, &mProof, prefix, key, val)
 		} else {
 			err = k.connectionKeeper.VerifyNextSequenceRecv(
 				ctx, connectionEnd, proofHeight, proof,
@@ -160,7 +160,7 @@ func (k Keeper) TimeoutPacket(
 			prefix := connectionEnd.GetCounterparty().GetPrefix()
 			var value []byte = nil
 
-			err = mh.VerifyMultihopProof(k.cdc, consensusState, channel.ConnectionHops, proof, prefix, key, value)
+			err = mh.VerifyMultihopProof(k.cdc, consensusState, channel.ConnectionHops, &mProof, prefix, key, value)
 		} else {
 			err = k.connectionKeeper.VerifyPacketReceiptAbsence(
 				ctx, connectionEnd, proofHeight, proof,
@@ -332,7 +332,7 @@ func (k Keeper) TimeoutOnClose(
 		key := host.ChannelPath(counterparty.PortId, counterparty.ChannelId)
 		prefix := multihopConnectionEnd.GetCounterparty().GetPrefix()
 
-		if err := mh.VerifyMultihopProof(k.cdc, consensusState, channel.ConnectionHops, proofClosed, prefix, key, value); err != nil {
+		if err := mh.VerifyMultihopProof(k.cdc, consensusState, channel.ConnectionHops, &mProof, prefix, key, value); err != nil {
 			return err
 		}
 	} else {
@@ -365,7 +365,7 @@ func (k Keeper) TimeoutOnClose(
 			key := host.NextSequenceRecvPath(packet.GetSourcePort(), packet.GetSourceChannel())
 			prefix := connectionEnd.GetCounterparty().GetPrefix()
 			val := sdk.Uint64ToBigEndian(nextSequenceRecv)
-			err = mh.VerifyMultihopProof(k.cdc, consensusState, channel.ConnectionHops, proof, prefix, key, val)
+			err = mh.VerifyMultihopProof(k.cdc, consensusState, channel.ConnectionHops, &mProof, prefix, key, val)
 		} else {
 			err = k.connectionKeeper.VerifyNextSequenceRecv(
 				ctx, connectionEnd, proofHeight, proof,
@@ -387,17 +387,8 @@ func (k Keeper) TimeoutOnClose(
 			)
 			prefix := connectionEnd.GetCounterparty().GetPrefix()
 			var value []byte = nil
-			clientState, found := k.clientKeeper.GetClientState(ctx, connectionEnd.Counterparty.ClientId)
 
-			////////////////////////////////////////////////////////////////////////////////////////////////
-			// NOTE: If the clientState is found and type is virtual the do a timeout inclusion check. This
-			// is a hack to work around the fact that virtual chains may not support non-inclusion proofs.
-			////////////////////////////////////////////////////////////////////////////////////////////////
-			if found && clientState.ClientType() == "virtual" {
-				value = commitment
-			}
-
-			err = mh.VerifyMultihopProof(k.cdc, consensusState, channel.ConnectionHops, proof, prefix, key, value)
+			err = mh.VerifyMultihopProof(k.cdc, consensusState, channel.ConnectionHops, &mProof, prefix, key, value)
 		} else {
 			err = k.connectionKeeper.VerifyPacketReceiptAbsence(
 				ctx, connectionEnd, proofHeight, proof,
