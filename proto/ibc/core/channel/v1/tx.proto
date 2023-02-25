@@ -31,6 +31,9 @@ service Msg {
   // MsgChannelCloseConfirm.
   rpc ChannelCloseConfirm(MsgChannelCloseConfirm) returns (MsgChannelCloseConfirmResponse);
 
+  // ChannelCloseFrozen defines a rpc handler method for MsgChannelCloseFrozen.
+  rpc ChannelCloseFrozen(MsgChannelCloseFrozen) returns (MsgChannelCloseFrozenResponse);
+
   // RecvPacket defines a rpc handler method for MsgRecvPacket.
   rpc RecvPacket(MsgRecvPacket) returns (MsgRecvPacketResponse);
 
@@ -166,6 +169,24 @@ message MsgChannelCloseConfirm {
 // MsgChannelCloseConfirmResponse defines the Msg/ChannelCloseConfirm response
 // type.
 message MsgChannelCloseConfirmResponse {}
+
+// MsgChannelCloseFrozen defines a msg sent by a Relayer to force close
+// a channel due to a frozen client in a multi-hop channel path.
+message MsgChannelCloseFrozen {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string                    port_id      = 1 [(gogoproto.moretags) = "yaml:\"port_id\""];
+  string                    channel_id   = 2 [(gogoproto.moretags) = "yaml:\"channel_id\""];
+  bytes                     proof_init   = 3 [(gogoproto.moretags) = "yaml:\"proof_init\""];
+  ibc.core.client.v1.Height proof_height = 4
+      [(gogoproto.moretags) = "yaml:\"proof_height\"", (gogoproto.nullable) = false];
+  string signer = 5;
+}
+
+// MsgChannelCloseFrozenResponse defines the Msg/ChannelFrozenConfirm response
+// type.
+message MsgChannelCloseFrozenResponse {}
 
 // MsgRecvPacket receives incoming IBC packet
 message MsgRecvPacket {

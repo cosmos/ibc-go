@@ -580,6 +580,87 @@ func (m *MsgChannelCloseConfirmResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgChannelCloseConfirmResponse proto.InternalMessageInfo
 
+// MsgChannelCloseFrozen defines a msg sent by a Relayer to force close
+// a channel due to a frozen client in a multi-hop channel path.
+type MsgChannelCloseFrozen struct {
+	PortId      string       `protobuf:"bytes,1,opt,name=port_id,json=portId,proto3" json:"port_id,omitempty" yaml:"port_id"`
+	ChannelId   string       `protobuf:"bytes,2,opt,name=channel_id,json=channelId,proto3" json:"channel_id,omitempty" yaml:"channel_id"`
+	ProofInit   []byte       `protobuf:"bytes,3,opt,name=proof_init,json=proofInit,proto3" json:"proof_init,omitempty" yaml:"proof_init"`
+	ProofHeight types.Height `protobuf:"bytes,4,opt,name=proof_height,json=proofHeight,proto3" json:"proof_height" yaml:"proof_height"`
+	Signer      string       `protobuf:"bytes,5,opt,name=signer,proto3" json:"signer,omitempty"`
+}
+
+func (m *MsgChannelCloseFrozen) Reset()         { *m = MsgChannelCloseFrozen{} }
+func (m *MsgChannelCloseFrozen) String() string { return proto.CompactTextString(m) }
+func (*MsgChannelCloseFrozen) ProtoMessage()    {}
+func (*MsgChannelCloseFrozen) Descriptor() ([]byte, []int) {
+	return fileDescriptor_bc4637e0ac3fc7b7, []int{12}
+}
+func (m *MsgChannelCloseFrozen) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgChannelCloseFrozen) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgChannelCloseFrozen.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgChannelCloseFrozen) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgChannelCloseFrozen.Merge(m, src)
+}
+func (m *MsgChannelCloseFrozen) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgChannelCloseFrozen) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgChannelCloseFrozen.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgChannelCloseFrozen proto.InternalMessageInfo
+
+// MsgChannelCloseFrozenResponse defines the Msg/ChannelFrozenConfirm response
+// type.
+type MsgChannelCloseFrozenResponse struct {
+}
+
+func (m *MsgChannelCloseFrozenResponse) Reset()         { *m = MsgChannelCloseFrozenResponse{} }
+func (m *MsgChannelCloseFrozenResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgChannelCloseFrozenResponse) ProtoMessage()    {}
+func (*MsgChannelCloseFrozenResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_bc4637e0ac3fc7b7, []int{13}
+}
+func (m *MsgChannelCloseFrozenResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgChannelCloseFrozenResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgChannelCloseFrozenResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgChannelCloseFrozenResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgChannelCloseFrozenResponse.Merge(m, src)
+}
+func (m *MsgChannelCloseFrozenResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgChannelCloseFrozenResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgChannelCloseFrozenResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgChannelCloseFrozenResponse proto.InternalMessageInfo
+
 // MsgRecvPacket receives incoming IBC packet
 type MsgRecvPacket struct {
 	Packet          Packet       `protobuf:"bytes,1,opt,name=packet,proto3" json:"packet"`
@@ -592,7 +673,7 @@ func (m *MsgRecvPacket) Reset()         { *m = MsgRecvPacket{} }
 func (m *MsgRecvPacket) String() string { return proto.CompactTextString(m) }
 func (*MsgRecvPacket) ProtoMessage()    {}
 func (*MsgRecvPacket) Descriptor() ([]byte, []int) {
-	return fileDescriptor_bc4637e0ac3fc7b7, []int{12}
+	return fileDescriptor_bc4637e0ac3fc7b7, []int{14}
 }
 func (m *MsgRecvPacket) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -630,7 +711,7 @@ func (m *MsgRecvPacketResponse) Reset()         { *m = MsgRecvPacketResponse{} }
 func (m *MsgRecvPacketResponse) String() string { return proto.CompactTextString(m) }
 func (*MsgRecvPacketResponse) ProtoMessage()    {}
 func (*MsgRecvPacketResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_bc4637e0ac3fc7b7, []int{13}
+	return fileDescriptor_bc4637e0ac3fc7b7, []int{15}
 }
 func (m *MsgRecvPacketResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -672,7 +753,7 @@ func (m *MsgTimeout) Reset()         { *m = MsgTimeout{} }
 func (m *MsgTimeout) String() string { return proto.CompactTextString(m) }
 func (*MsgTimeout) ProtoMessage()    {}
 func (*MsgTimeout) Descriptor() ([]byte, []int) {
-	return fileDescriptor_bc4637e0ac3fc7b7, []int{14}
+	return fileDescriptor_bc4637e0ac3fc7b7, []int{16}
 }
 func (m *MsgTimeout) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -710,7 +791,7 @@ func (m *MsgTimeoutResponse) Reset()         { *m = MsgTimeoutResponse{} }
 func (m *MsgTimeoutResponse) String() string { return proto.CompactTextString(m) }
 func (*MsgTimeoutResponse) ProtoMessage()    {}
 func (*MsgTimeoutResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_bc4637e0ac3fc7b7, []int{15}
+	return fileDescriptor_bc4637e0ac3fc7b7, []int{17}
 }
 func (m *MsgTimeoutResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -753,7 +834,7 @@ func (m *MsgTimeoutOnClose) Reset()         { *m = MsgTimeoutOnClose{} }
 func (m *MsgTimeoutOnClose) String() string { return proto.CompactTextString(m) }
 func (*MsgTimeoutOnClose) ProtoMessage()    {}
 func (*MsgTimeoutOnClose) Descriptor() ([]byte, []int) {
-	return fileDescriptor_bc4637e0ac3fc7b7, []int{16}
+	return fileDescriptor_bc4637e0ac3fc7b7, []int{18}
 }
 func (m *MsgTimeoutOnClose) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -791,7 +872,7 @@ func (m *MsgTimeoutOnCloseResponse) Reset()         { *m = MsgTimeoutOnCloseResp
 func (m *MsgTimeoutOnCloseResponse) String() string { return proto.CompactTextString(m) }
 func (*MsgTimeoutOnCloseResponse) ProtoMessage()    {}
 func (*MsgTimeoutOnCloseResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_bc4637e0ac3fc7b7, []int{17}
+	return fileDescriptor_bc4637e0ac3fc7b7, []int{19}
 }
 func (m *MsgTimeoutOnCloseResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -833,7 +914,7 @@ func (m *MsgAcknowledgement) Reset()         { *m = MsgAcknowledgement{} }
 func (m *MsgAcknowledgement) String() string { return proto.CompactTextString(m) }
 func (*MsgAcknowledgement) ProtoMessage()    {}
 func (*MsgAcknowledgement) Descriptor() ([]byte, []int) {
-	return fileDescriptor_bc4637e0ac3fc7b7, []int{18}
+	return fileDescriptor_bc4637e0ac3fc7b7, []int{20}
 }
 func (m *MsgAcknowledgement) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -871,7 +952,7 @@ func (m *MsgAcknowledgementResponse) Reset()         { *m = MsgAcknowledgementRe
 func (m *MsgAcknowledgementResponse) String() string { return proto.CompactTextString(m) }
 func (*MsgAcknowledgementResponse) ProtoMessage()    {}
 func (*MsgAcknowledgementResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_bc4637e0ac3fc7b7, []int{19}
+	return fileDescriptor_bc4637e0ac3fc7b7, []int{21}
 }
 func (m *MsgAcknowledgementResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -911,7 +992,7 @@ func (m *MultihopProof) Reset()         { *m = MultihopProof{} }
 func (m *MultihopProof) String() string { return proto.CompactTextString(m) }
 func (*MultihopProof) ProtoMessage()    {}
 func (*MultihopProof) Descriptor() ([]byte, []int) {
-	return fileDescriptor_bc4637e0ac3fc7b7, []int{20}
+	return fileDescriptor_bc4637e0ac3fc7b7, []int{22}
 }
 func (m *MultihopProof) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -951,7 +1032,7 @@ func (m *MsgMultihopProofs) Reset()         { *m = MsgMultihopProofs{} }
 func (m *MsgMultihopProofs) String() string { return proto.CompactTextString(m) }
 func (*MsgMultihopProofs) ProtoMessage()    {}
 func (*MsgMultihopProofs) Descriptor() ([]byte, []int) {
-	return fileDescriptor_bc4637e0ac3fc7b7, []int{21}
+	return fileDescriptor_bc4637e0ac3fc7b7, []int{23}
 }
 func (m *MsgMultihopProofs) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -994,6 +1075,8 @@ func init() {
 	proto.RegisterType((*MsgChannelCloseInitResponse)(nil), "ibc.core.channel.v1.MsgChannelCloseInitResponse")
 	proto.RegisterType((*MsgChannelCloseConfirm)(nil), "ibc.core.channel.v1.MsgChannelCloseConfirm")
 	proto.RegisterType((*MsgChannelCloseConfirmResponse)(nil), "ibc.core.channel.v1.MsgChannelCloseConfirmResponse")
+	proto.RegisterType((*MsgChannelCloseFrozen)(nil), "ibc.core.channel.v1.MsgChannelCloseFrozen")
+	proto.RegisterType((*MsgChannelCloseFrozenResponse)(nil), "ibc.core.channel.v1.MsgChannelCloseFrozenResponse")
 	proto.RegisterType((*MsgRecvPacket)(nil), "ibc.core.channel.v1.MsgRecvPacket")
 	proto.RegisterType((*MsgRecvPacketResponse)(nil), "ibc.core.channel.v1.MsgRecvPacketResponse")
 	proto.RegisterType((*MsgTimeout)(nil), "ibc.core.channel.v1.MsgTimeout")
@@ -1119,6 +1202,8 @@ type MsgClient interface {
 	// ChannelCloseConfirm defines a rpc handler method for
 	// MsgChannelCloseConfirm.
 	ChannelCloseConfirm(ctx context.Context, in *MsgChannelCloseConfirm, opts ...grpc.CallOption) (*MsgChannelCloseConfirmResponse, error)
+	// ChannelCloseFrozen defines a rpc handler method for MsgChannelCloseFrozen.
+	ChannelCloseFrozen(ctx context.Context, in *MsgChannelCloseFrozen, opts ...grpc.CallOption) (*MsgChannelCloseFrozenResponse, error)
 	// RecvPacket defines a rpc handler method for MsgRecvPacket.
 	RecvPacket(ctx context.Context, in *MsgRecvPacket, opts ...grpc.CallOption) (*MsgRecvPacketResponse, error)
 	// Timeout defines a rpc handler method for MsgTimeout.
@@ -1191,6 +1276,15 @@ func (c *msgClient) ChannelCloseConfirm(ctx context.Context, in *MsgChannelClose
 	return out, nil
 }
 
+func (c *msgClient) ChannelCloseFrozen(ctx context.Context, in *MsgChannelCloseFrozen, opts ...grpc.CallOption) (*MsgChannelCloseFrozenResponse, error) {
+	out := new(MsgChannelCloseFrozenResponse)
+	err := c.cc.Invoke(ctx, "/ibc.core.channel.v1.Msg/ChannelCloseFrozen", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *msgClient) RecvPacket(ctx context.Context, in *MsgRecvPacket, opts ...grpc.CallOption) (*MsgRecvPacketResponse, error) {
 	out := new(MsgRecvPacketResponse)
 	err := c.cc.Invoke(ctx, "/ibc.core.channel.v1.Msg/RecvPacket", in, out, opts...)
@@ -1242,6 +1336,8 @@ type MsgServer interface {
 	// ChannelCloseConfirm defines a rpc handler method for
 	// MsgChannelCloseConfirm.
 	ChannelCloseConfirm(context.Context, *MsgChannelCloseConfirm) (*MsgChannelCloseConfirmResponse, error)
+	// ChannelCloseFrozen defines a rpc handler method for MsgChannelCloseFrozen.
+	ChannelCloseFrozen(context.Context, *MsgChannelCloseFrozen) (*MsgChannelCloseFrozenResponse, error)
 	// RecvPacket defines a rpc handler method for MsgRecvPacket.
 	RecvPacket(context.Context, *MsgRecvPacket) (*MsgRecvPacketResponse, error)
 	// Timeout defines a rpc handler method for MsgTimeout.
@@ -1273,6 +1369,9 @@ func (*UnimplementedMsgServer) ChannelCloseInit(ctx context.Context, req *MsgCha
 }
 func (*UnimplementedMsgServer) ChannelCloseConfirm(ctx context.Context, req *MsgChannelCloseConfirm) (*MsgChannelCloseConfirmResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ChannelCloseConfirm not implemented")
+}
+func (*UnimplementedMsgServer) ChannelCloseFrozen(ctx context.Context, req *MsgChannelCloseFrozen) (*MsgChannelCloseFrozenResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ChannelCloseFrozen not implemented")
 }
 func (*UnimplementedMsgServer) RecvPacket(ctx context.Context, req *MsgRecvPacket) (*MsgRecvPacketResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RecvPacket not implemented")
@@ -1399,6 +1498,24 @@ func _Msg_ChannelCloseConfirm_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Msg_ChannelCloseFrozen_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgChannelCloseFrozen)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).ChannelCloseFrozen(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/ibc.core.channel.v1.Msg/ChannelCloseFrozen",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).ChannelCloseFrozen(ctx, req.(*MsgChannelCloseFrozen))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Msg_RecvPacket_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(MsgRecvPacket)
 	if err := dec(in); err != nil {
@@ -1498,6 +1615,10 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ChannelCloseConfirm",
 			Handler:    _Msg_ChannelCloseConfirm_Handler,
+		},
+		{
+			MethodName: "ChannelCloseFrozen",
+			Handler:    _Msg_ChannelCloseFrozen_Handler,
 		},
 		{
 			MethodName: "RecvPacket",
@@ -2045,6 +2166,90 @@ func (m *MsgChannelCloseConfirmResponse) MarshalTo(dAtA []byte) (int, error) {
 }
 
 func (m *MsgChannelCloseConfirmResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgChannelCloseFrozen) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgChannelCloseFrozen) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgChannelCloseFrozen) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.Signer) > 0 {
+		i -= len(m.Signer)
+		copy(dAtA[i:], m.Signer)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Signer)))
+		i--
+		dAtA[i] = 0x2a
+	}
+	{
+		size, err := m.ProofHeight.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintTx(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x22
+	if len(m.ProofInit) > 0 {
+		i -= len(m.ProofInit)
+		copy(dAtA[i:], m.ProofInit)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.ProofInit)))
+		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.ChannelId) > 0 {
+		i -= len(m.ChannelId)
+		copy(dAtA[i:], m.ChannelId)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.ChannelId)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.PortId) > 0 {
+		i -= len(m.PortId)
+		copy(dAtA[i:], m.PortId)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.PortId)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgChannelCloseFrozenResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgChannelCloseFrozenResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgChannelCloseFrozenResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -2763,6 +2968,42 @@ func (m *MsgChannelCloseConfirm) Size() (n int) {
 }
 
 func (m *MsgChannelCloseConfirmResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
+func (m *MsgChannelCloseFrozen) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.PortId)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = len(m.ChannelId)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = len(m.ProofInit)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = m.ProofHeight.Size()
+	n += 1 + l + sovTx(uint64(l))
+	l = len(m.Signer)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	return n
+}
+
+func (m *MsgChannelCloseFrozenResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -4648,6 +4889,269 @@ func (m *MsgChannelCloseConfirmResponse) Unmarshal(dAtA []byte) error {
 		}
 		if fieldNum <= 0 {
 			return fmt.Errorf("proto: MsgChannelCloseConfirmResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgChannelCloseFrozen) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgChannelCloseFrozen: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgChannelCloseFrozen: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field PortId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.PortId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ChannelId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.ChannelId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ProofInit", wireType)
+			}
+			var byteLen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				byteLen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if byteLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.ProofInit = append(m.ProofInit[:0], dAtA[iNdEx:postIndex]...)
+			if m.ProofInit == nil {
+				m.ProofInit = []byte{}
+			}
+			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ProofHeight", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.ProofHeight.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 5:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Signer", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Signer = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgChannelCloseFrozenResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgChannelCloseFrozenResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgChannelCloseFrozenResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:
