@@ -48,6 +48,7 @@ type ClientState interface {
 	ClientType() string
 	GetLatestHeight() Height
 	Validate() error
+	CheckFrozen() bool
 
 	// Status must return the status of the client. Only Active clients are allowed to process packets.
 	Status(ctx sdk.Context, clientStore sdk.KVStore, cdc codec.BinaryCodec) Status

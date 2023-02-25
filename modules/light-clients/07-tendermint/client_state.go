@@ -53,6 +53,11 @@ func (cs ClientState) GetLatestHeight() exported.Height {
 	return cs.LatestHeight
 }
 
+// CheckFrozen returns true if the client is frozen.
+func (cs ClientState) CheckFrozen() bool {
+	return !cs.FrozenHeight.EQ(clienttypes.Height{RevisionNumber: 0, RevisionHeight: 0})
+}
+
 // GetTimestampAtHeight returns the timestamp in nanoseconds of the consensus state at the given height.
 func (cs ClientState) GetTimestampAtHeight(
 	ctx sdk.Context,

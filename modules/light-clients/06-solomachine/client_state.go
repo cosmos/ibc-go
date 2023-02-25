@@ -38,6 +38,11 @@ func (cs ClientState) GetLatestHeight() exported.Height {
 	return clienttypes.NewHeight(0, cs.Sequence)
 }
 
+// CheckFrozen always returns false for solo machine client.
+func (cs ClientState) CheckFrozen() bool {
+	return cs.IsFrozen
+}
+
 // GetTimestampAtHeight returns the timestamp in nanoseconds of the consensus state at the given height.
 func (cs ClientState) GetTimestampAtHeight(
 	_ sdk.Context,

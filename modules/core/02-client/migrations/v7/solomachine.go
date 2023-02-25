@@ -54,6 +54,11 @@ func (cs ClientState) ClientType() string {
 	panic("legacy solo machine is deprecated!")
 }
 
+// CheckFrozen panics!
+func (cs ClientState) CheckFrozen() bool {
+	panic("legacy solo machine is deprecated!")
+}
+
 // GetLatestHeight panics!
 func (cs ClientState) GetLatestHeight() exported.Height {
 	panic("legacy solo machine is deprecated!")
