@@ -1,20 +1,20 @@
-package wasm_test
+package types_test
 
 import (
-	commitmenttypes "github.com/cosmos/ibc-go/v5/modules/core/23-commitment/types"
-	"github.com/cosmos/ibc-go/v5/modules/core/exported"
-	wasm "github.com/cosmos/ibc-go/v5/modules/light-clients/08-wasm"
+	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	"github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm/types"
 )
 
 func (suite *WasmTestSuite) TestConsensusStateValidateBasic() {
 	testCases := []struct {
 		msg            string
-		consensusState *wasm.ConsensusState
+		consensusState *types.ConsensusState
 		expectPass     bool
 	}{
 		{
 			"success",
-			&wasm.ConsensusState{
+			&types.ConsensusState{
 				Timestamp: uint64(suite.now.Unix()),
 				Root:      &commitmenttypes.MerkleRoot{Hash: []byte("app_hash")},
 				Data:      []byte("data"),
@@ -24,7 +24,7 @@ func (suite *WasmTestSuite) TestConsensusStateValidateBasic() {
 		},
 		{
 			"root is nil",
-			&wasm.ConsensusState{
+			&types.ConsensusState{
 				Timestamp: uint64(suite.now.Unix()),
 				Root:      &commitmenttypes.MerkleRoot{},
 				Data:      []byte("data"),
@@ -34,7 +34,7 @@ func (suite *WasmTestSuite) TestConsensusStateValidateBasic() {
 		},
 		{
 			"root is empty",
-			&wasm.ConsensusState{
+			&types.ConsensusState{
 				Timestamp: uint64(suite.now.Unix()),
 				Root:      &commitmenttypes.MerkleRoot{},
 				Data:      []byte("data"),
@@ -44,7 +44,7 @@ func (suite *WasmTestSuite) TestConsensusStateValidateBasic() {
 		},
 		{
 			"timestamp is zero",
-			&wasm.ConsensusState{
+			&types.ConsensusState{
 				Timestamp: 0,
 				Root:      &commitmenttypes.MerkleRoot{},
 				Data:      []byte("data"),
@@ -54,7 +54,7 @@ func (suite *WasmTestSuite) TestConsensusStateValidateBasic() {
 		},
 		{
 			"data is empty",
-			&wasm.ConsensusState{
+			&types.ConsensusState{
 				Timestamp: 0,
 				Root:      &commitmenttypes.MerkleRoot{},
 				Data:      []byte(""),
@@ -64,7 +64,7 @@ func (suite *WasmTestSuite) TestConsensusStateValidateBasic() {
 		},
 		{
 			"code id is empty",
-			&wasm.ConsensusState{
+			&types.ConsensusState{
 				Timestamp: 0,
 				Root:      &commitmenttypes.MerkleRoot{},
 				Data:      []byte("data"),

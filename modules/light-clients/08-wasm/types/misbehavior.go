@@ -1,12 +1,10 @@
-package wasm
+package types
 
 import (
 	exported "github.com/cosmos/ibc-go/v5/modules/core/exported"
 )
 
-var (
-	_ exported.ClientMessage = &Misbehaviour{}
-)
+var _ exported.ClientMessage = &Misbehaviour{}
 
 func (m Misbehaviour) ClientType() string {
 	return exported.Wasm

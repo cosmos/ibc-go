@@ -7,19 +7,19 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/version"
-	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v5/modules/light-clients/08-wasm"
+	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm/types"
 	"github.com/spf13/cobra"
 )
 
-// GetCmdCode defines the command to query wasm code for given code id
-func GetCmdCode() *cobra.Command {
+// getCmdCode defines the command to query wasm code for given code id
+func getCmdCode() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "code [code-id]",
 		Short: "Query wasm code",
 		Long:  "Query wasm code",
 		Example: fmt.Sprintf(
-			"%s query %s %s code [code-id]", version.AppName, host.ModuleName, wasm.SubModuleName,
+			"%s query %s %s code [code-id]", version.AppName, host.SubModuleName, types.SubModuleName,
 		),
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -27,10 +27,10 @@ func GetCmdCode() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			queryClient := wasm.NewQueryClient(clientCtx)
+			queryClient := types.NewQueryClient(clientCtx)
 
 			codeID := args[0]
-			req := wasm.WasmCodeQuery{
+			req := types.WasmCodeQuery{
 				CodeId: codeID,
 			}
 

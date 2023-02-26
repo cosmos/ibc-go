@@ -7,9 +7,16 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+<<<<<<< HEAD
 	"github.com/gogo/protobuf/grpc"
+=======
+>>>>>>> e5fc5b1a (relocate files to follow regular sdk module folder structure)
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
+
+	"github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm/client/cli"
+	"github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm/keeper"
+	"github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm/types"
 )
 
 var _ module.AppModuleBasic = AppModuleBasic{}
@@ -21,7 +28,7 @@ type AppModuleBasic struct{}
 
 // Name returns the tendermint module name.
 func (AppModuleBasic) Name() string {
-	return SubModuleName
+	return types.SubModuleName
 }
 
 // RegisterLegacyAminoCodec performs a no-op. The Wasm client does not support amino.
@@ -30,7 +37,7 @@ func (AppModuleBasic) RegisterLegacyAminoCodec(*codec.LegacyAmino) {}
 // RegisterInterfaces registers module concrete types into protobuf Any. This allows core IBC
 // to unmarshal wasm light client types.
 func (AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry) {
-	RegisterInterfaces(registry)
+	types.RegisterInterfaces(registry)
 }
 
 // DefaultGenesis performs a no-op. Genesis is not supported for the tendermint light client.
@@ -46,17 +53,31 @@ func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, config client.TxEncod
 // RegisterGRPCGatewayRoutes performs a no-op.
 func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {}
 
-// GetTxCmd performs a no-op. Please see the 02-client cli commands.
+// GetTxCmd implements AppModuleBasic interface
 func (AppModuleBasic) GetTxCmd() *cobra.Command {
-	return nil
+	return cli.NewTxCmd()
 }
 
-// GetQueryCmd performs a no-op. Please see the 02-client cli commands.
+// GetQueryCmd implements AppModuleBasic interface
 func (AppModuleBasic) GetQueryCmd() *cobra.Command {
-	return nil
+	return cli.GetQueryCmd()
 }
 
-// RegisterQueryService registers the gRPC query service for IBC channels.
-func RegisterQueryService(server grpc.Server, queryServer QueryServer) {
-	RegisterQueryServer(server, queryServer)
+// AppModule represents the AppModule for this module
+type AppModule struct {
+	AppModuleBasic
+	keeper keeper.Keeper
+}
+
+// NewAppModule creates a new 08-wasm module
+func NewAppModule(k keeper.Keeper) AppModule {
+	return AppModule{
+		keeper: k,
+	}
+}
+
+// RegisterServices registers module services.
+func (am AppModule) RegisterServices(cfg module.Configurator) {
+	types.RegisterMsgServer(cfg.MsgServer(), am.keeper)
+	types.RegisterQueryServer(cfg.QueryServer(), am.keeper)
 }
