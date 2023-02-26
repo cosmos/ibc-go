@@ -22,7 +22,7 @@ func (k Keeper) PushNewWasmCode(goCtx context.Context, msg *types.MsgPushNewWasm
 		return nil, sdkerrors.Wrapf(govtypes.ErrInvalidSigner, "invalid authority: expected %s, got %s", k.authority, msg.Signer)
 	}
 
-	codeId, err := k.SetWasmCode(ctx, msg.Code)
+	codeId, err := k.storeWasmCode(ctx, msg.Code)
 	if err != nil {
 		return nil, sdkerrors.Wrap(err, "pushing new wasm code failed")
 	}

@@ -54,7 +54,7 @@ func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey) Keeper {
 	}
 }
 
-func (k Keeper) SetWasmCode(ctx sdk.Context, code []byte) ([]byte, error) {
+func (k Keeper) storeWasmCode(ctx sdk.Context, code []byte) ([]byte, error) {
 	store := ctx.KVStore(k.storeKey)
 
 	// Check to see if the store has a code with the same code it
@@ -91,7 +91,7 @@ func generateWasmCodeHash(code []byte) []byte {
 	return hash[:]
 }
 
-func (k Keeper) GetWasmCode(c context.Context, query *types.WasmCodeQuery) (*types.WasmCodeResponse, error) {
+func (k Keeper) getWasmCode(c context.Context, query *types.WasmCodeQuery) (*types.WasmCodeResponse, error) {
 	if query == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
