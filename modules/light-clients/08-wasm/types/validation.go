@@ -1,4 +1,4 @@
-package wasm
+package types
 
 import (
 	"math"
@@ -6,7 +6,7 @@ import (
 
 var MaxWasmSize = int(math.Pow(2, 24))
 
-func validateWasmCode(code []byte) (bool, error) {
+func ValidateWasmCode(code []byte) (bool, error) {
 	if len(code) == 0 {
 		return false, ErrWasmEmptyCode
 	}

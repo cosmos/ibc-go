@@ -1,4 +1,4 @@
-package wasm_test
+package types_test
 
 import (
 	"encoding/hex"
@@ -9,11 +9,15 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
-	wasm "github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm"
+	"github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm/keeper"
+	"github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	"github.com/cosmos/ibc-go/v7/testing/simapp"
 	"github.com/stretchr/testify/suite"
@@ -30,11 +34,11 @@ type WasmTestSuite struct {
 	cdc            codec.Codec
 	now            time.Time
 	store          sdk.KVStore
-	clientState    wasm.ClientState
-	consensusState wasm.ConsensusState
+	clientState    types.ClientState
+	consensusState types.ConsensusState
 	codeId         []byte
 	testData       map[string]string
-	wasmKeeper     wasm.Keeper
+	wasmKeeper     keeper.Keeper
 }
 
 func (suite *WasmTestSuite) SetupTest() {
@@ -67,15 +71,16 @@ func (suite *WasmTestSuite) SetupTest() {
 	data, err = os.ReadFile("test_data/ics10_grandpa_cw.wasm")
 	suite.Require().NoError(err)
 
-	codeId, err := suite.wasmKeeper.PushNewWasmCode(suite.ctx, data)
+	msg := types.NewMsgPushNewWasmCode(authtypes.NewModuleAddress(govtypes.ModuleName).String(), data)
+	response, err := suite.wasmKeeper.PushNewWasmCode(suite.ctx, msg)
 	suite.Require().NoError(err)
 
 	data, err = hex.DecodeString(suite.testData["client_state_a0"])
 	suite.Require().NoError(err)
 
-	clientState := wasm.ClientState{
+	clientState := types.ClientState{
 		Data:   data,
-		CodeId: codeId,
+		CodeId: response.CodeId,
 		LatestHeight: clienttypes.Height{
 			RevisionNumber: 1,
 			RevisionHeight: 2,
@@ -85,7 +90,7 @@ func (suite *WasmTestSuite) SetupTest() {
 	suite.clientState = clientState
 	data, err = hex.DecodeString(suite.testData["consensus_state_a0"])
 	suite.Require().NoError(err)
-	consensusState := wasm.ConsensusState{
+	consensusState := types.ConsensusState{
 		Data:      data,
 		CodeId:    clientState.CodeId,
 		Timestamp: uint64(suite.now.UnixNano()),
@@ -156,10 +161,56 @@ func (suite *WasmTestSuite) SetupTest() {
 // 	}
 // }
 
+func (suite *WasmTestSuite) TestPushNewWasmCode() {
+	signer := authtypes.NewModuleAddress(govtypes.ModuleName).String()
+	data, err := os.ReadFile("test_data/example.wasm")
+	suite.Require().NoError(err)
+
+	// test pushing a valid wasm code
+	msg := types.NewMsgPushNewWasmCode(signer, data)
+	response, err := suite.wasmKeeper.PushNewWasmCode(suite.ctx, msg)
+	suite.Require().NoError(err)
+	suite.Require().NotNil(response.CodeId)
+
+	// test wasmcode duplication
+	msg = types.NewMsgPushNewWasmCode(signer, data)
+	_, err = suite.wasmKeeper.PushNewWasmCode(suite.ctx, msg)
+	suite.Require().Error(err)
+
+	// test invalid wasm code
+	msg = types.NewMsgPushNewWasmCode(signer, []byte{})
+	_, err = suite.wasmKeeper.PushNewWasmCode(suite.ctx, msg)
+	suite.Require().Error(err)
+}
+
+func (suite *WasmTestSuite) TestQueryWasmCode() {
+	signer := authtypes.NewModuleAddress(govtypes.ModuleName).String()
+	data, err := os.ReadFile("test_data/example2.wasm")
+	suite.Require().NoError(err)
+
+	// push a new wasm code
+	msg := types.NewMsgPushNewWasmCode(signer, data)
+	response, err := suite.wasmKeeper.PushNewWasmCode(suite.ctx, msg)
+	suite.Require().NoError(err)
+	suite.Require().NotNil(response.CodeId)
+
+	// test invalid query request
+	_, err = suite.wasmKeeper.WasmCode(suite.ctx, &types.WasmCodeQuery{})
+	suite.Require().Error(err)
+
+	_, err = suite.wasmKeeper.WasmCode(suite.ctx, &types.WasmCodeQuery{CodeId: "test"})
+	suite.Require().Error(err)
+
+	// test valid query request
+	res, err := suite.wasmKeeper.WasmCode(suite.ctx, &types.WasmCodeQuery{CodeId: hex.EncodeToString(response.CodeId)})
+	suite.Require().NoError(err)
+	suite.Require().NotNil(res.Code)
+}
+
 func (suite *WasmTestSuite) TestVerifyClientMessageHeader() {
 	var (
 		clientMsg   exported.ClientMessage
-		clientState *wasm.ClientState
+		clientState *types.ClientState
 	)
 
 	// test singlesig and multisig public keys
@@ -174,7 +225,7 @@ func (suite *WasmTestSuite) TestVerifyClientMessageHeader() {
 				func() {
 					data, err := hex.DecodeString(suite.testData["header_a0"])
 					suite.Require().NoError(err)
-					clientMsg = &wasm.Header{
+					clientMsg = &types.Header{
 						Data: data,
 						Height: clienttypes.Height{
 							RevisionNumber: 1,
@@ -260,7 +311,7 @@ func (suite *WasmTestSuite) TestVerifyClientMessageHeader() {
 func (suite *WasmTestSuite) TestUpdateState() {
 	var (
 		clientMsg   exported.ClientMessage
-		clientState *wasm.ClientState
+		clientState *types.ClientState
 	)
 
 	// test singlesig and multisig public keys
@@ -275,7 +326,7 @@ func (suite *WasmTestSuite) TestUpdateState() {
 				func() {
 					data, err := hex.DecodeString(suite.testData["header_a0"])
 					suite.Require().NoError(err)
-					clientMsg = &wasm.Header{
+					clientMsg = &types.Header{
 						Data: data,
 						Height: clienttypes.Height{
 							RevisionNumber: 1,
@@ -307,7 +358,7 @@ func (suite *WasmTestSuite) TestUpdateState() {
 						RevisionNumber: 2000,
 						RevisionHeight: 89,
 					}, consensusHeights[0])
-					suite.Require().Equal(consensusHeights[0], newClientState.(*wasm.ClientState).LatestHeight)
+					suite.Require().Equal(consensusHeights[0], newClientState.(*types.ClientState).LatestHeight)
 				} else {
 					suite.Require().Panics(func() {
 						clientState.UpdateState(suite.chainA.GetContext(), suite.chainA.Codec, suite.store, clientMsg)
