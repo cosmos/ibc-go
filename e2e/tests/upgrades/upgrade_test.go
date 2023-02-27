@@ -621,16 +621,16 @@ func (s *UpgradeTestSuite) TestV7ChainUpgradeAddLocalhost() {
 	})
 
 	t.Run("ensure the localhost client is active and sentinel connection is stored in state", func(t *testing.T) {
-		status, err := s.QueryClientStatus(ctx, chain, exported.Localhost)
+		status, err := s.QueryClientStatus(ctx, chain, exported.LocalhostClientID)
 		s.Require().NoError(err)
 		s.Require().Equal(exported.Active.String(), status)
 
-		connectionEnd, err := s.QueryConnection(ctx, chain, connectiontypes.LocalhostID)
+		connectionEnd, err := s.QueryConnection(ctx, chain, exported.LocalhostConnectionID)
 		s.Require().NoError(err)
 		s.Require().Equal(connectiontypes.OPEN, connectionEnd.State)
-		s.Require().Equal(exported.Localhost, connectionEnd.ClientId)
-		s.Require().Equal(exported.Localhost, connectionEnd.Counterparty.ClientId)
-		s.Require().Equal(connectiontypes.LocalhostID, connectionEnd.Counterparty.ConnectionId)
+		s.Require().Equal(exported.LocalhostClientID, connectionEnd.ClientId)
+		s.Require().Equal(exported.LocalhostClientID, connectionEnd.Counterparty.ClientId)
+		s.Require().Equal(exported.LocalhostConnectionID, connectionEnd.Counterparty.ConnectionId)
 	})
 }
 

@@ -387,7 +387,7 @@ func (k Keeper) getClientStateAndKVStore(ctx sdk.Context, clientID string) (expo
 	}
 
 	store := k.clientKeeper.ClientStore(ctx, clientID)
-	if clientState.ClientType() == exported.Localhost {
+	if clientID == exported.LocalhostClientID {
 		store = ctx.KVStore(k.storeKey)
 	}
 

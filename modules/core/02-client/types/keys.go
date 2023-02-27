@@ -50,7 +50,7 @@ func IsValidClientID(clientID string) bool {
 
 // ParseClientIdentifier parses the client type and sequence from the client identifier.
 func ParseClientIdentifier(clientID string) (string, uint64, error) {
-	if clientID == exported.Localhost {
+	if clientID == exported.LocalhostClientID {
 		return clientID, 0, nil
 	}
 
