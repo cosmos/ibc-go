@@ -47,7 +47,8 @@ func CreateV7LocalhostUpgradeHandler(
 ) upgradetypes.UpgradeHandler {
 	return func(ctx sdk.Context, _ upgradetypes.Plan, vm module.VersionMap) (module.VersionMap, error) {
 		// explicitly update the IBC 02-client params with the new default allowed clients
-		params := clienttypes.NewParams(clienttypes.DefaultAllowedClients...)
+		params := clientKeeper.GetParams(ctx)
+		params.AllowedClients = append(params.AllowedClients, exported.Localhost)
 		clientKeeper.SetParams(ctx, params)
 
 		return mm.RunMigrations(ctx, configurator, vm)
