@@ -220,11 +220,11 @@ func (cs ClientState) VerifyMembership(
 	value []byte,
 ) error {
 	if height.IsZero() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidHeight, "proof height must be non-zero")
+		return errorsmod.Wrap(ibcerrors.ErrInvalidHeight, "proof height must be non-zero")
 	}
 
 	if len(proof) == 0 {
-		return sdkerrors.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty proof")
+		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty proof")
 	}
 
 	if cs.GetLatestHeight().LT(height) {
@@ -274,11 +274,11 @@ func (cs ClientState) VerifyNonMembership(
 	path exported.Path,
 ) error {
 	if height.IsZero() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidHeight, "proof height must be non-zero")
+		return errorsmod.Wrap(ibcerrors.ErrInvalidHeight, "proof height must be non-zero")
 	}
 
 	if len(proof) == 0 {
-		return sdkerrors.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty proof")
+		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty proof")
 	}
 
 	if cs.GetLatestHeight().LT(height) {
