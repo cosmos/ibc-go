@@ -10,6 +10,7 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	localhost "github.com/cosmos/ibc-go/v7/modules/light-clients/09-localhost"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
 
@@ -71,7 +72,7 @@ func (s *LocalhostTransferTestSuite) TestMsgTransfer_Localhost() {
 			transfertypes.PortID, transfertypes.Version,
 			channeltypes.UNORDERED, []string{exported.LocalhostConnectionID},
 			transfertypes.PortID, msgChanOpenInitRes.GetChannelId(),
-			transfertypes.Version, nil, clienttypes.ZeroHeight(), rlyWallet.FormattedAddress(),
+			transfertypes.Version, localhost.SentinelProof, clienttypes.ZeroHeight(), rlyWallet.FormattedAddress(),
 		)
 
 		txResp, err := s.BroadcastMessages(ctx, chainA, rlyWallet, msgChanOpenTry)
@@ -85,7 +86,7 @@ func (s *LocalhostTransferTestSuite) TestMsgTransfer_Localhost() {
 		msgChanOpenAck := channeltypes.NewMsgChannelOpenAck(
 			transfertypes.PortID, msgChanOpenInitRes.GetChannelId(),
 			msgChanOpenTryRes.GetChannelId(), transfertypes.Version,
-			nil, clienttypes.ZeroHeight(), rlyWallet.FormattedAddress(),
+			localhost.SentinelProof, clienttypes.ZeroHeight(), rlyWallet.FormattedAddress(),
 		)
 
 		txResp, err := s.BroadcastMessages(ctx, chainA, rlyWallet, msgChanOpenAck)
@@ -96,7 +97,7 @@ func (s *LocalhostTransferTestSuite) TestMsgTransfer_Localhost() {
 	t.Run("channel open confirm localhost", func(t *testing.T) {
 		msgChanOpenConfirm := channeltypes.NewMsgChannelOpenConfirm(
 			transfertypes.PortID, msgChanOpenTryRes.GetChannelId(),
-			nil, clienttypes.ZeroHeight(), rlyWallet.FormattedAddress(),
+			localhost.SentinelProof, clienttypes.ZeroHeight(), rlyWallet.FormattedAddress(),
 		)
 
 		txResp, err := s.BroadcastMessages(ctx, chainA, rlyWallet, msgChanOpenConfirm)
@@ -136,7 +137,7 @@ func (s *LocalhostTransferTestSuite) TestMsgTransfer_Localhost() {
 	})
 
 	t.Run("recv packet localhost ibc transfer", func(t *testing.T) {
-		msgRecvPacket := channeltypes.NewMsgRecvPacket(packet, nil, clienttypes.ZeroHeight(), rlyWallet.FormattedAddress())
+		msgRecvPacket := channeltypes.NewMsgRecvPacket(packet, localhost.SentinelProof, clienttypes.ZeroHeight(), rlyWallet.FormattedAddress())
 
 		txResp, err := s.BroadcastMessages(ctx, chainA, rlyWallet, msgRecvPacket)
 		s.Require().NoError(err)
@@ -149,7 +150,7 @@ func (s *LocalhostTransferTestSuite) TestMsgTransfer_Localhost() {
 	})
 
 	t.Run("acknowledge packet localhost ibc transfer", func(t *testing.T) {
-		msgAcknowledgement := channeltypes.NewMsgAcknowledgement(packet, ack, nil, clienttypes.ZeroHeight(), rlyWallet.FormattedAddress())
+		msgAcknowledgement := channeltypes.NewMsgAcknowledgement(packet, ack, localhost.SentinelProof, clienttypes.ZeroHeight(), rlyWallet.FormattedAddress())
 
 		txResp, err := s.BroadcastMessages(ctx, chainA, rlyWallet, msgAcknowledgement)
 		s.Require().NoError(err)
