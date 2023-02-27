@@ -10,6 +10,7 @@ import (
 	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
@@ -25,9 +26,10 @@ type testCase = struct {
 // can succeed.
 func (suite *KeeperTestSuite) TestChanOpenInit() {
 	var (
-		path     *ibctesting.Path
-		features []string
-		portCap  *capabilitytypes.Capability
+		path                 *ibctesting.Path
+		features             []string
+		portCap              *capabilitytypes.Capability
+		expErrorMsgSubstring string
 	)
 
 	testCases := []testCase{
@@ -85,6 +87,22 @@ func (suite *KeeperTestSuite) TestChanOpenInit() {
 			suite.chainA.CreatePortCapability(suite.chainA.GetSimApp().ScopedIBCMockKeeper, ibctesting.MockPort)
 			portCap = suite.chainA.GetPortCapability(ibctesting.MockPort)
 		}, true},
+		{
+			msg:     "inactive client",
+			expPass: false,
+			malleate: func() {
+				expErrorMsgSubstring = "client state is not active"
+				suite.coordinator.SetupConnections(path)
+
+				// ensure the client state is not active.
+				clientState := path.EndpointA.GetClientState().(*ibctm.ClientState)
+				clientState.FrozenHeight = clienttypes.NewHeight(0, 1)
+				path.EndpointA.SetClientState(clientState)
+
+				suite.chainA.CreatePortCapability(suite.chainA.GetSimApp().ScopedIBCMockKeeper, ibctesting.MockPort)
+				portCap = suite.chainA.GetPortCapability(ibctesting.MockPort)
+			},
+		},
 	}
 
 	for _, tc := range testCases {
@@ -96,6 +114,7 @@ func (suite *KeeperTestSuite) TestChanOpenInit() {
 				path = ibctesting.NewPath(suite.chainA, suite.chainB)
 				path.EndpointA.ChannelConfig.Order = order
 				path.EndpointB.ChannelConfig.Order = order
+				expErrorMsgSubstring = ""
 
 				tc.malleate()
 
@@ -129,6 +148,8 @@ func (suite *KeeperTestSuite) TestChanOpenInit() {
 					suite.Require().Equal(chanCap.String(), cap.String(), "channel capability is not correct")
 				} else {
 					suite.Require().Error(err)
+					suite.T().Logf(err.Error())
+					suite.Require().Contains(err.Error(), expErrorMsgSubstring)
 					suite.Require().Nil(cap)
 					suite.Require().Equal("", channelID)
 				}
