@@ -11,8 +11,8 @@ import (
 	controllertypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
 	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	"github.com/stretchr/testify/suite"
 
@@ -53,12 +53,12 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_Localhost(
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA), "failed to wait for blocks")
 
-	version := icatypes.NewDefaultMetadataString(connectiontypes.LocalhostID, connectiontypes.LocalhostID)
+	version := icatypes.NewDefaultMetadataString(exported.LocalhostConnectionID, exported.LocalhostConnectionID)
 	controllerPortID, err := icatypes.NewControllerPortID(userAWallet.FormattedAddress())
 	s.Require().NoError(err)
 
 	t.Run("channel open init localhost - broadcast MsgRegisterInterchainAccount", func(t *testing.T) {
-		msgRegisterAccount := controllertypes.NewMsgRegisterInterchainAccount(connectiontypes.LocalhostID, userAWallet.FormattedAddress(), version)
+		msgRegisterAccount := controllertypes.NewMsgRegisterInterchainAccount(exported.LocalhostConnectionID, userAWallet.FormattedAddress(), version)
 
 		txResp, err := s.BroadcastMessages(ctx, chainA, userAWallet, msgRegisterAccount)
 		s.Require().NoError(err)
@@ -70,7 +70,7 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_Localhost(
 	t.Run("channel open try localhost", func(t *testing.T) {
 		msgChanOpenTry := channeltypes.NewMsgChannelOpenTry(
 			icatypes.HostPortID, icatypes.Version,
-			channeltypes.ORDERED, []string{connectiontypes.LocalhostID},
+			channeltypes.ORDERED, []string{exported.LocalhostConnectionID},
 			controllerPortID, msgChanOpenInitRes.GetChannelId(),
 			version, nil, clienttypes.ZeroHeight(), rlyWallet.FormattedAddress(),
 		)
@@ -118,7 +118,7 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_Localhost(
 	})
 
 	t.Run("verify interchain account registration and deposit funds", func(t *testing.T) {
-		interchainAccAddress, err := s.QueryInterchainAccount(ctx, chainA, userAWallet.FormattedAddress(), connectiontypes.LocalhostID)
+		interchainAccAddress, err := s.QueryInterchainAccount(ctx, chainA, userAWallet.FormattedAddress(), exported.LocalhostConnectionID)
 		s.Require().NoError(err)
 		s.Require().NotZero(len(interchainAccAddress))
 
@@ -132,7 +132,7 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_Localhost(
 	})
 
 	t.Run("send packet localhost interchain accounts", func(t *testing.T) {
-		interchainAccAddress, err := s.QueryInterchainAccount(ctx, chainA, userAWallet.FormattedAddress(), connectiontypes.LocalhostID)
+		interchainAccAddress, err := s.QueryInterchainAccount(ctx, chainA, userAWallet.FormattedAddress(), exported.LocalhostConnectionID)
 		s.Require().NoError(err)
 		s.Require().NotZero(len(interchainAccAddress))
 
@@ -152,7 +152,7 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_Localhost(
 			Memo: "e2e",
 		}
 
-		msgSendTx := controllertypes.NewMsgSendTx(userAWallet.FormattedAddress(), connectiontypes.LocalhostID, uint64(time.Hour.Nanoseconds()), packetData)
+		msgSendTx := controllertypes.NewMsgSendTx(userAWallet.FormattedAddress(), exported.LocalhostConnectionID, uint64(time.Hour.Nanoseconds()), packetData)
 
 		txResp, err := s.BroadcastMessages(ctx, chainA, userAWallet, msgSendTx)
 		s.AssertValidTxResponse(txResp)
@@ -217,12 +217,12 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_ReopenChan
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA), "failed to wait for blocks")
 
-	version := icatypes.NewDefaultMetadataString(connectiontypes.LocalhostID, connectiontypes.LocalhostID)
+	version := icatypes.NewDefaultMetadataString(exported.LocalhostConnectionID, exported.LocalhostConnectionID)
 	controllerPortID, err := icatypes.NewControllerPortID(userAWallet.FormattedAddress())
 	s.Require().NoError(err)
 
 	t.Run("channel open init localhost - broadcast MsgRegisterInterchainAccount", func(t *testing.T) {
-		msgRegisterAccount := controllertypes.NewMsgRegisterInterchainAccount(connectiontypes.LocalhostID, userAWallet.FormattedAddress(), version)
+		msgRegisterAccount := controllertypes.NewMsgRegisterInterchainAccount(exported.LocalhostConnectionID, userAWallet.FormattedAddress(), version)
 
 		txResp, err := s.BroadcastMessages(ctx, chainA, userAWallet, msgRegisterAccount)
 		s.Require().NoError(err)
@@ -234,7 +234,7 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_ReopenChan
 	t.Run("channel open try localhost", func(t *testing.T) {
 		msgChanOpenTry := channeltypes.NewMsgChannelOpenTry(
 			icatypes.HostPortID, icatypes.Version,
-			channeltypes.ORDERED, []string{connectiontypes.LocalhostID},
+			channeltypes.ORDERED, []string{exported.LocalhostConnectionID},
 			controllerPortID, msgChanOpenInitRes.GetChannelId(),
 			version, nil, clienttypes.ZeroHeight(), rlyWallet.FormattedAddress(),
 		)
@@ -282,7 +282,7 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_ReopenChan
 	})
 
 	t.Run("verify interchain account registration and deposit funds", func(t *testing.T) {
-		interchainAccAddress, err := s.QueryInterchainAccount(ctx, chainA, userAWallet.FormattedAddress(), connectiontypes.LocalhostID)
+		interchainAccAddress, err := s.QueryInterchainAccount(ctx, chainA, userAWallet.FormattedAddress(), exported.LocalhostConnectionID)
 		s.Require().NoError(err)
 		s.Require().NotZero(len(interchainAccAddress))
 
@@ -296,7 +296,7 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_ReopenChan
 	})
 
 	t.Run("send localhost interchain accounts packet with timeout", func(t *testing.T) {
-		interchainAccAddress, err := s.QueryInterchainAccount(ctx, chainA, userAWallet.FormattedAddress(), connectiontypes.LocalhostID)
+		interchainAccAddress, err := s.QueryInterchainAccount(ctx, chainA, userAWallet.FormattedAddress(), exported.LocalhostConnectionID)
 		s.Require().NoError(err)
 		s.Require().NotZero(len(interchainAccAddress))
 
@@ -316,7 +316,7 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_ReopenChan
 			Memo: "e2e",
 		}
 
-		msgSendTx := controllertypes.NewMsgSendTx(userAWallet.FormattedAddress(), connectiontypes.LocalhostID, uint64(1), packetData)
+		msgSendTx := controllertypes.NewMsgSendTx(userAWallet.FormattedAddress(), exported.LocalhostConnectionID, uint64(1), packetData)
 
 		txResp, err := s.BroadcastMessages(ctx, chainA, userAWallet, msgSendTx)
 		s.AssertValidTxResponse(txResp)
@@ -357,7 +357,7 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_ReopenChan
 	})
 
 	t.Run("channel open init localhost: create new channel for existing account", func(t *testing.T) {
-		msgRegisterAccount := controllertypes.NewMsgRegisterInterchainAccount(connectiontypes.LocalhostID, userAWallet.FormattedAddress(), version)
+		msgRegisterAccount := controllertypes.NewMsgRegisterInterchainAccount(exported.LocalhostConnectionID, userAWallet.FormattedAddress(), version)
 
 		txResp, err := s.BroadcastMessages(ctx, chainA, userAWallet, msgRegisterAccount)
 		s.Require().NoError(err)
@@ -370,7 +370,7 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_ReopenChan
 	t.Run("channel open try localhost", func(t *testing.T) {
 		msgChanOpenTry := channeltypes.NewMsgChannelOpenTry(
 			icatypes.HostPortID, icatypes.Version,
-			channeltypes.ORDERED, []string{connectiontypes.LocalhostID},
+			channeltypes.ORDERED, []string{exported.LocalhostConnectionID},
 			controllerPortID, msgChanOpenInitRes.GetChannelId(),
 			version, nil, clienttypes.ZeroHeight(), rlyWallet.FormattedAddress(),
 		)
@@ -419,7 +419,7 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_ReopenChan
 	})
 
 	t.Run("verify interchain account and existing balance", func(t *testing.T) {
-		interchainAccAddress, err := s.QueryInterchainAccount(ctx, chainA, userAWallet.FormattedAddress(), connectiontypes.LocalhostID)
+		interchainAccAddress, err := s.QueryInterchainAccount(ctx, chainA, userAWallet.FormattedAddress(), exported.LocalhostConnectionID)
 		s.Require().NoError(err)
 		s.Require().NotZero(len(interchainAccAddress))
 
@@ -431,7 +431,7 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_ReopenChan
 	})
 
 	t.Run("send packet localhost interchain accounts", func(t *testing.T) {
-		interchainAccAddress, err := s.QueryInterchainAccount(ctx, chainA, userAWallet.FormattedAddress(), connectiontypes.LocalhostID)
+		interchainAccAddress, err := s.QueryInterchainAccount(ctx, chainA, userAWallet.FormattedAddress(), exported.LocalhostConnectionID)
 		s.Require().NoError(err)
 		s.Require().NotZero(len(interchainAccAddress))
 
@@ -451,7 +451,7 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_ReopenChan
 			Memo: "e2e",
 		}
 
-		msgSendTx := controllertypes.NewMsgSendTx(userAWallet.FormattedAddress(), connectiontypes.LocalhostID, uint64(time.Hour.Nanoseconds()), packetData)
+		msgSendTx := controllertypes.NewMsgSendTx(userAWallet.FormattedAddress(), exported.LocalhostConnectionID, uint64(time.Hour.Nanoseconds()), packetData)
 
 		txResp, err := s.BroadcastMessages(ctx, chainA, userAWallet, msgSendTx)
 		s.AssertValidTxResponse(txResp)

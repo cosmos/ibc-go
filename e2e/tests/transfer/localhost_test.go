@@ -8,8 +8,8 @@ import (
 
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
 
@@ -53,7 +53,7 @@ func (s *LocalhostTransferTestSuite) TestMsgTransfer_Localhost() {
 	t.Run("channel open init localhost", func(t *testing.T) {
 		msgChanOpenInit := channeltypes.NewMsgChannelOpenInit(
 			transfertypes.PortID, transfertypes.Version,
-			channeltypes.UNORDERED, []string{connectiontypes.LocalhostID},
+			channeltypes.UNORDERED, []string{exported.LocalhostConnectionID},
 			transfertypes.PortID, rlyWallet.FormattedAddress(),
 		)
 
@@ -69,7 +69,7 @@ func (s *LocalhostTransferTestSuite) TestMsgTransfer_Localhost() {
 	t.Run("channel open try localhost", func(t *testing.T) {
 		msgChanOpenTry := channeltypes.NewMsgChannelOpenTry(
 			transfertypes.PortID, transfertypes.Version,
-			channeltypes.UNORDERED, []string{connectiontypes.LocalhostID},
+			channeltypes.UNORDERED, []string{exported.LocalhostConnectionID},
 			transfertypes.PortID, msgChanOpenInitRes.GetChannelId(),
 			transfertypes.Version, nil, clienttypes.ZeroHeight(), rlyWallet.FormattedAddress(),
 		)
