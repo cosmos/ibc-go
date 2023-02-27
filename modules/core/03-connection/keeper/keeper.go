@@ -198,8 +198,8 @@ func (k Keeper) GetAllConnections(ctx sdk.Context) (connections []types.Identifi
 
 // CreateSentinelLocalhostConnection returns the sentinel localhost connection end.
 func (k Keeper) CreateSentinelLocalhostConnection() types.ConnectionEnd {
-	counterparty := types.NewCounterparty(exported.Localhost, types.LocalhostID, commitmenttypes.NewMerklePrefix(k.GetCommitmentPrefix().Bytes()))
-	return types.NewConnectionEnd(types.OPEN, exported.Localhost, counterparty, types.ExportedVersionsToProto(types.GetCompatibleVersions()), 0)
+	counterparty := types.NewCounterparty(exported.LocalhostClientID, exported.LocalhostConnectionID, commitmenttypes.NewMerklePrefix(k.GetCommitmentPrefix().Bytes()))
+	return types.NewConnectionEnd(types.OPEN, exported.LocalhostClientID, counterparty, types.ExportedVersionsToProto(types.GetCompatibleVersions()), 0)
 }
 
 // addConnectionToClient is used to add a connection identifier to the set of
