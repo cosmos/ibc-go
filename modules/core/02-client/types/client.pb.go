@@ -343,7 +343,7 @@ var xxx_messageInfo_Height proto.InternalMessageInfo
 type Params struct {
 	// allowed_clients defines the list of allowed client state types which can be created
 	// and interacted with. If a client type is removed from the allowed clients list, usage
-	// of this client will be temporarily disabled.
+	// of this client will be disabled until it is added again to the list.
 	AllowedClients []string `protobuf:"bytes,1,rep,name=allowed_clients,json=allowedClients,proto3" json:"allowed_clients,omitempty" yaml:"allowed_clients"`
 }
 
