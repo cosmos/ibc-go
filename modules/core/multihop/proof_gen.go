@@ -81,19 +81,25 @@ func (p ChanPath) GenerateProof(key []byte, val []byte, doVerify bool) (result *
 	// generate proof for key on source chain
 	result.KeyProof = queryProof(p.source(), key, val, nil, nil, doVerify)
 
-	linkedPathProofs, err := p.GenerateConsensusAndConnectionProofs()
+	proofGenFuncs := []proofGenFunc{
+		genConsensusStateProof,
+		genConnProof,
+		genClientProof,
+	}
+	linkedPathProofs, err := p.GenerateIntermediateStateProofs(proofGenFuncs)
 	if err != nil {
 		return nil, err
 	}
-	if len(linkedPathProofs) != 2 {
+	if len(linkedPathProofs) != len(proofGenFuncs) {
 		return nil, sdkerrors.Wrapf(
 			channeltypes.ErrMultihopProofGeneration,
-			"expected 2 linked path proofs for both consensus states and connections, but got %d",
-			len(linkedPathProofs),
+			"expected %d linked path proofs for consensus, connections, and client states but got %d",
+			len(proofGenFuncs), len(linkedPathProofs),
 		)
 	}
 	result.ConsensusProofs = linkedPathProofs[0]
 	result.ConnectionProofs = linkedPathProofs[1]
+	result.ClientProofs = linkedPathProofs[2]
 
 	return result, nil
 }
@@ -103,18 +109,8 @@ func (p ChanPath) source() Endpoint {
 	return p[0].EndpointA
 }
 
-// GenerateConsensusAndConnectionProofs generates lists of membership proofs from the source to dest chains.
-func (p ChanPath) GenerateConsensusAndConnectionProofs() (result [][]*channeltypes.MultihopProof, err error) {
-	return p.GenerateProofsOnLinkedPaths([]proofGenFunc{
-		genConsensusStateProof,
-		genConnProof,
-	})
-}
-
-// GenerateProofsOnLinkedPaths generates lists of membership proofs from the source to dest chains.
-func (p ChanPath) GenerateProofsOnLinkedPaths(
-	proofGenFuncs []proofGenFunc,
-) (result [][]*channeltypes.MultihopProof, err error) {
+// GenerateIntermediateStateProofs generates lists of connection, consensus, and client state proofs from the source to dest chains.
+func (p ChanPath) GenerateIntermediateStateProofs(proofGenFuncs []proofGenFunc) (result [][]*channeltypes.MultihopProof, err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			result = nil
@@ -195,6 +191,21 @@ func genConnProof(
 		chainB.ConnectionID(), chainB.ChainID(), err,
 	)
 	return queryProof(chainB, host.ConnectionKey(chainB.ConnectionID()), bzConnAB, heightBC, consStateBCRoot, true)
+}
+
+// Generate a proof for the A's client state stored on B using B's consensusState root stored on C.
+func genClientProof(
+	chainB Endpoint,
+	heightAB, heightBC exported.Height,
+	consStateBCRoot exported.Root,
+) *channeltypes.MultihopProof {
+	clientAB := chainB.GetClientState()
+
+	bzClientAB, err := chainB.Codec().MarshalInterface(clientAB)
+	panicIfErr(err, "fail to marshal client '%s' on chain '%s' due to: %v",
+		chainB.ClientID(), chainB.ChainID(), err,
+	)
+	return queryProof(chainB, host.FullClientStateKey(chainB.ClientID()), bzClientAB, heightBC, consStateBCRoot, true)
 }
 
 // queryProof queries the key-value pair or absence proof stored on A and optionally ensures the proof

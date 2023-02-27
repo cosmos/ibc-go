@@ -6,6 +6,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
@@ -34,13 +35,23 @@ func VerifyMultihopProof(
 			len(proofs.ConnectionProofs), len(proofs.ConsensusProofs))
 	}
 
+	if len(proofs.ConsensusProofs) != len(proofs.ClientProofs) {
+		return fmt.Errorf("the number of client (%d) and consensus (%d) proofs must be equal",
+			len(proofs.ClientProofs), len(proofs.ConsensusProofs))
+	}
+
 	// verify connection states and ordering
 	if err := verifyConnectionStates(cdc, proofs.ConnectionProofs, connectionHops); err != nil {
 		return err
 	}
 
+	// verify client states are not frozen
+	if err := verifyClientStates(cdc, proofs.ClientProofs); err != nil {
+		return err
+	}
+
 	// verify intermediate consensus and connection states from destination --> source
-	if err := verifyConsensusAndConnectionStateProofs(consensusState, cdc, proofs.ConsensusProofs, proofs.ConnectionProofs); err != nil {
+	if err := verifyIntermediateStateProofs(consensusState, cdc, proofs.ConsensusProofs, proofs.ConnectionProofs, proofs.ClientProofs); err != nil {
 		return fmt.Errorf("failed to verify consensus state proof: %w", err)
 	}
 
@@ -87,21 +98,38 @@ func verifyConnectionStates(cdc codec.BinaryCodec, connectionProofData []*channe
 	return nil
 }
 
-// verifyConsensusAndConnectionStateProofs verifies the consensus and connection states in the multi-hop proof.
-func verifyConsensusAndConnectionStateProofs(
+// verifyClientStates verifies that the provided clientstates are not frozen at the proof height
+func verifyClientStates(cdc codec.BinaryCodec, clientProofData []*channeltypes.MultihopProof) error {
+	for _, data := range clientProofData {
+		var clientState exported.ClientState
+		if err := cdc.UnmarshalInterface(data.Value, &clientState); err != nil {
+			return err
+		}
+		if clientState.CheckFrozen() {
+			return sdkerrors.Wrapf(clienttypes.ErrInvalidClient, "Multihop client frozen")
+		}
+	}
+	return nil
+}
+
+// verifyIntermediateStateProofs verifies the intermediate consensus, connection, client states in the multi-hop proof.
+func verifyIntermediateStateProofs(
 	consensusState exported.ConsensusState,
 	cdc codec.BinaryCodec,
 	consensusProofs []*channeltypes.MultihopProof,
 	connectionProofs []*channeltypes.MultihopProof,
+	clientProofs []*channeltypes.MultihopProof,
 ) error {
 	var consState exported.ConsensusState
 	for i := len(consensusProofs) - 1; i >= 0; i-- {
 		consStateProof := consensusProofs[i]
 		connectionProof := connectionProofs[i]
+		clientProof := clientProofs[i]
 		if err := cdc.UnmarshalInterface(consStateProof.Value, &consState); err != nil {
 			return fmt.Errorf("failed to unpack consesnsus state: %w", err)
 		}
 
+		// prove consensus state
 		var proof commitmenttypes.MerkleProof
 		if err := cdc.Unmarshal(consStateProof.Proof, &proof); err != nil {
 			return fmt.Errorf("failed to unmarshal consensus state proof: %w", err)
@@ -116,16 +144,32 @@ func verifyConsensusAndConnectionStateProofs(
 			return fmt.Errorf("failed to verify proof: %w", err)
 		}
 
+		// prove connection state
 		proof.Reset()
 		if err := cdc.Unmarshal(connectionProof.Proof, &proof); err != nil {
-			return fmt.Errorf("failed to unmarshal consensus state proof: %w", err)
+			return fmt.Errorf("failed to unmarshal connection state proof: %w", err)
 		}
 
 		if err := proof.VerifyMembership(
 			commitmenttypes.GetSDKSpecs(),
 			consensusState.GetRoot(),
 			*connectionProof.PrefixedKey,
-			connectionProof.Value, // this should be from connectionHops
+			connectionProof.Value,
+		); err != nil {
+			return fmt.Errorf("failed to verify proof: %w", err)
+		}
+
+		// prove client state
+		proof.Reset()
+		if err := cdc.Unmarshal(clientProof.Proof, &proof); err != nil {
+			return fmt.Errorf("failed to unmarshal cilent state proof: %w", err)
+		}
+
+		if err := proof.VerifyMembership(
+			commitmenttypes.GetSDKSpecs(),
+			consensusState.GetRoot(),
+			*clientProof.PrefixedKey,
+			clientProof.Value,
 		); err != nil {
 			return fmt.Errorf("failed to verify proof: %w", err)
 		}
