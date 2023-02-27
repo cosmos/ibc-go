@@ -24,7 +24,7 @@ func (k Keeper) VerifyClientState(
 	clientState exported.ClientState,
 ) error {
 	clientID := connection.GetClientID()
-	targetClient, clientStore, err := k.getClientStateAndKVStore(ctx, clientID)
+	targetClient, clientStore, err := k.getClientStateAndVerificationStore(ctx, clientID)
 	if err != nil {
 		return err
 	}
@@ -66,7 +66,7 @@ func (k Keeper) VerifyClientConsensusState(
 	consensusState exported.ConsensusState,
 ) error {
 	clientID := connection.GetClientID()
-	clientState, clientStore, err := k.getClientStateAndKVStore(ctx, clientID)
+	clientState, clientStore, err := k.getClientStateAndVerificationStore(ctx, clientID)
 	if err != nil {
 		return err
 	}
@@ -108,7 +108,7 @@ func (k Keeper) VerifyConnectionState(
 	counterpartyConnection exported.ConnectionI, // opposite connection
 ) error {
 	clientID := connection.GetClientID()
-	clientState, clientStore, err := k.getClientStateAndKVStore(ctx, clientID)
+	clientState, clientStore, err := k.getClientStateAndVerificationStore(ctx, clientID)
 	if err != nil {
 		return err
 	}
@@ -156,7 +156,7 @@ func (k Keeper) VerifyChannelState(
 	channel exported.ChannelI,
 ) error {
 	clientID := connection.GetClientID()
-	clientState, clientStore, err := k.getClientStateAndKVStore(ctx, clientID)
+	clientState, clientStore, err := k.getClientStateAndVerificationStore(ctx, clientID)
 	if err != nil {
 		return err
 	}
@@ -205,7 +205,7 @@ func (k Keeper) VerifyPacketCommitment(
 	commitmentBytes []byte,
 ) error {
 	clientID := connection.GetClientID()
-	clientState, clientStore, err := k.getClientStateAndKVStore(ctx, clientID)
+	clientState, clientStore, err := k.getClientStateAndVerificationStore(ctx, clientID)
 	if err != nil {
 		return err
 	}
@@ -248,7 +248,7 @@ func (k Keeper) VerifyPacketAcknowledgement(
 	acknowledgement []byte,
 ) error {
 	clientID := connection.GetClientID()
-	clientState, clientStore, err := k.getClientStateAndKVStore(ctx, clientID)
+	clientState, clientStore, err := k.getClientStateAndVerificationStore(ctx, clientID)
 	if err != nil {
 		return err
 	}
@@ -291,7 +291,7 @@ func (k Keeper) VerifyPacketReceiptAbsence(
 	sequence uint64,
 ) error {
 	clientID := connection.GetClientID()
-	clientState, clientStore, err := k.getClientStateAndKVStore(ctx, clientID)
+	clientState, clientStore, err := k.getClientStateAndVerificationStore(ctx, clientID)
 	if err != nil {
 		return err
 	}
@@ -333,7 +333,7 @@ func (k Keeper) VerifyNextSequenceRecv(
 	nextSequenceRecv uint64,
 ) error {
 	clientID := connection.GetClientID()
-	clientState, clientStore, err := k.getClientStateAndKVStore(ctx, clientID)
+	clientState, clientStore, err := k.getClientStateAndVerificationStore(ctx, clientID)
 	if err != nil {
 		return err
 	}
@@ -378,16 +378,16 @@ func (k Keeper) getBlockDelay(ctx sdk.Context, connection exported.ConnectionI) 
 	return uint64(math.Ceil(float64(timeDelay) / float64(expectedTimePerBlock)))
 }
 
-// getClientStateAndKVStore returns the client state and associated KVStore for the provided client identifier.
+// getClientStateAndVerificationStore returns the client state and associated KVStore for the provided client identifier.
 // If the client type is localhost then the core IBC KVStore is returned, otherwise the client prefixed store is returned.
-func (k Keeper) getClientStateAndKVStore(ctx sdk.Context, clientID string) (exported.ClientState, sdk.KVStore, error) {
+func (k Keeper) getClientStateAndVerificationStore(ctx sdk.Context, clientID string) (exported.ClientState, sdk.KVStore, error) {
 	clientState, found := k.clientKeeper.GetClientState(ctx, clientID)
 	if !found {
 		return nil, nil, sdkerrors.Wrap(clienttypes.ErrClientNotFound, clientID)
 	}
 
 	store := k.clientKeeper.ClientStore(ctx, clientID)
-	if clientState.ClientType() == exported.Localhost {
+	if clientID == exported.LocalhostClientID {
 		store = ctx.KVStore(k.storeKey)
 	}
 
