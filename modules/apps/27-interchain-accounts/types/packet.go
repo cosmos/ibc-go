@@ -3,9 +3,9 @@ package types
 import (
 	"time"
 
+	errorsmod "cosmossdk.io/errors"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 // MaxMemoCharLength defines the maximum length for the InterchainAccountPacketData memo field
@@ -28,15 +28,15 @@ var (
 // The memo may be empty.
 func (iapd InterchainAccountPacketData) ValidateBasic() error {
 	if iapd.Type == UNSPECIFIED {
-		return sdkerrors.Wrap(ErrInvalidOutgoingData, "packet data type cannot be unspecified")
+		return errorsmod.Wrap(ErrInvalidOutgoingData, "packet data type cannot be unspecified")
 	}
 
 	if len(iapd.Data) == 0 {
-		return sdkerrors.Wrap(ErrInvalidOutgoingData, "packet data cannot be empty")
+		return errorsmod.Wrap(ErrInvalidOutgoingData, "packet data cannot be empty")
 	}
 
 	if len(iapd.Memo) > MaxMemoCharLength {
-		return sdkerrors.Wrapf(ErrInvalidOutgoingData, "packet data memo cannot be greater than %d characters", MaxMemoCharLength)
+		return errorsmod.Wrapf(ErrInvalidOutgoingData, "packet data memo cannot be greater than %d characters", MaxMemoCharLength)
 	}
 
 	return nil
