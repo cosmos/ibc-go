@@ -19,6 +19,7 @@ func (suite *KeeperTestSuite) TestConnOpenInit() {
 		version      *types.Version
 		delayPeriod  uint64
 		emptyConnBID bool
+		expErrorMsgSubstring string
 	)
 
 	testCases := []struct {
@@ -45,6 +46,17 @@ func (suite *KeeperTestSuite) TestConnOpenInit() {
 			// set path.EndpointA.ClientID to invalid client identifier
 			path.EndpointA.ClientID = "clientidentifier"
 		}, false},
+		{
+			msg:      "unauthorized client",
+			expPass:  false,
+			malleate: func() {
+				expErrorMsgSubstring = "status is Unauthorized"
+				// remove client from allowed list
+				params := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetParams(suite.chainA.GetContext())
+				params.AllowedClients = []string{}
+				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetParams(suite.chainA.GetContext(), params)
+			},
+		},
 	}
 
 	for _, tc := range testCases {
@@ -70,6 +82,7 @@ func (suite *KeeperTestSuite) TestConnOpenInit() {
 				suite.Require().Equal(types.FormatConnectionIdentifier(0), connectionID)
 			} else {
 				suite.Require().Error(err)
+				suite.Contains(err.Error(), expErrorMsgSubstring)
 				suite.Require().Equal("", connectionID)
 			}
 		})
