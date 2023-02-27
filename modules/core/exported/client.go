@@ -25,9 +25,6 @@ const (
 	// LocalhostClientID is the sentinel client ID for the localhost client.
 	LocalhostClientID string = Localhost
 
-	// LocalhostConnectionID is the sentinel connection ID for the localhost connection.
-	LocalhostConnectionID string = "connection-localhost"
-
 	// Active is a status type of a client. An active client is allowed to be used.
 	Active Status = "Active"
 
