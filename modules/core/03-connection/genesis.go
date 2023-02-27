@@ -5,7 +5,6 @@ import (
 
 	"github.com/cosmos/ibc-go/v7/modules/core/03-connection/keeper"
 	"github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
 // InitGenesis initializes the ibc connection submodule's state from a provided genesis
@@ -21,8 +20,7 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, gs types.GenesisState) {
 	k.SetNextConnectionSequence(ctx, gs.NextConnectionSequence)
 	k.SetParams(ctx, gs.Params)
 
-	localhostConnection := k.CreateSentinelLocalhostConnection()
-	k.SetConnection(ctx, exported.LocalhostConnectionID, localhostConnection)
+	k.CreateSentinelLocalhostConnection(ctx)
 }
 
 // ExportGenesis returns the ibc connection submodule's exported genesis.
