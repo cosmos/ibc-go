@@ -411,6 +411,15 @@ func (k Keeper) ChanCloseInit(
 		return sdkerrors.Wrap(connectiontypes.ErrConnectionNotFound, channel.ConnectionHops[0])
 	}
 
+	clientState, found := k.clientKeeper.GetClientState(ctx, connectionEnd.ClientId)
+	if !found {
+		return sdkerrors.Wrapf(clienttypes.ErrClientNotFound, "clientID (%s)", connectionEnd.ClientId)
+	}
+
+	if status := k.clientKeeper.GetClientStatus(ctx, clientState, connectionEnd.ClientId); status != exported.Active {
+		return sdkerrors.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", connectionEnd.ClientId, status)
+	}
+
 	if connectionEnd.GetState() != int32(connectiontypes.OPEN) {
 		return sdkerrors.Wrapf(
 			connectiontypes.ErrInvalidConnectionState,

@@ -617,8 +617,9 @@ func (suite *KeeperTestSuite) TestChanOpenConfirm() {
 // ChanCloseInit. Both chains will use message passing to setup OPEN channels.
 func (suite *KeeperTestSuite) TestChanCloseInit() {
 	var (
-		path       *ibctesting.Path
-		channelCap *capabilitytypes.Capability
+		path                 *ibctesting.Path
+		channelCap           *capabilitytypes.Capability
+		expErrorMsgSubstring string
 	)
 
 	testCases := []testCase{
@@ -674,6 +675,20 @@ func (suite *KeeperTestSuite) TestChanCloseInit() {
 			suite.coordinator.Setup(path)
 			channelCap = capabilitytypes.NewCapability(3)
 		}, false},
+		{
+			msg:     "unauthorized client",
+			expPass: false,
+			malleate: func() {
+				suite.coordinator.Setup(path)
+				channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+
+				// remove client from allowed list
+				params := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetParams(suite.chainA.GetContext())
+				params.AllowedClients = []string{}
+				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetParams(suite.chainA.GetContext(), params)
+				expErrorMsgSubstring = "status is Unauthorized"
+			},
+		},
 	}
 
 	for _, tc := range testCases {
@@ -681,6 +696,7 @@ func (suite *KeeperTestSuite) TestChanCloseInit() {
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest() // reset
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			expErrorMsgSubstring = ""
 
 			tc.malleate()
 
@@ -692,6 +708,7 @@ func (suite *KeeperTestSuite) TestChanCloseInit() {
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().Error(err)
+				suite.Require().Contains(err.Error(), expErrorMsgSubstring)
 			}
 		})
 	}

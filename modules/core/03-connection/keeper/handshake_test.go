@@ -65,6 +65,7 @@ func (suite *KeeperTestSuite) TestConnOpenInit() {
 			suite.SetupTest()    // reset
 			emptyConnBID = false // must be explicitly changed
 			version = nil        // must be explicitly changed
+			expErrorMsgSubstring = ""
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupClients(path)
 
