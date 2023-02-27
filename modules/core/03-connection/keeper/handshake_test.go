@@ -15,10 +15,10 @@ import (
 // chainB which is yet UNINITIALIZED
 func (suite *KeeperTestSuite) TestConnOpenInit() {
 	var (
-		path         *ibctesting.Path
-		version      *types.Version
-		delayPeriod  uint64
-		emptyConnBID bool
+		path                 *ibctesting.Path
+		version              *types.Version
+		delayPeriod          uint64
+		emptyConnBID         bool
 		expErrorMsgSubstring string
 	)
 
@@ -47,8 +47,8 @@ func (suite *KeeperTestSuite) TestConnOpenInit() {
 			path.EndpointA.ClientID = "clientidentifier"
 		}, false},
 		{
-			msg:      "unauthorized client",
-			expPass:  false,
+			msg:     "unauthorized client",
+			expPass: false,
 			malleate: func() {
 				expErrorMsgSubstring = "status is Unauthorized"
 				// remove client from allowed list
