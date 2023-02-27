@@ -41,6 +41,12 @@ func (k Keeper) CreateClient(
 
 	EmitCreateClientEvent(ctx, clientID, clientState)
 
+	if k.hooks != nil {
+		if err := k.hooks.OnClientCreated(ctx, clientID); err != nil {
+			return "", err
+		}
+	}
+
 	return clientID, nil
 }
 
@@ -83,8 +89,13 @@ func (k Keeper) UpdateClient(ctx sdk.Context, clientID string, clientMsg exporte
 	}
 
 	consensusHeights := clientState.UpdateState(ctx, k.cdc, clientStore, clientMsg)
-
 	k.Logger(ctx).Info("client state updated", "client-id", clientID, "heights", consensusHeights)
+
+	if k.hooks != nil {
+		if err := k.hooks.OnClientUpdated(ctx, clientID, consensusHeights); err != nil {
+			return err
+		}
+	}
 
 	defer telemetry.IncrCounterWithLabels(
 		[]string{"ibc", "client", "update"},
@@ -136,6 +147,12 @@ func (k Keeper) UpgradeClient(ctx sdk.Context, clientID string, upgradedClient e
 	)
 
 	EmitUpgradeClientEvent(ctx, clientID, upgradedClient)
+
+	if k.hooks != nil {
+		if err := k.hooks.OnClientUpgraded(ctx, clientID); err != nil {
+			return err
+		}
+	}
 
 	return nil
 }

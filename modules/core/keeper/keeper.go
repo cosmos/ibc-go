@@ -33,6 +33,7 @@ type Keeper struct {
 	ChannelKeeper    channelkeeper.Keeper
 	PortKeeper       portkeeper.Keeper
 	Router           *porttypes.Router
+	clientHooks      []clienttypes.Hooks
 }
 
 // NewKeeper creates a new ibc Keeper
@@ -73,6 +74,11 @@ func NewKeeper(
 		ChannelKeeper:    channelKeeper,
 		PortKeeper:       portKeeper,
 	}
+}
+
+// SetClientHooks sets hooks to be run after client lifecycle methods.
+func (k Keeper) SetClientHooks(hooks clienttypes.Hooks) {
+	k.ClientKeeper.SetHooks(hooks)
 }
 
 // Codec returns the IBC module codec.

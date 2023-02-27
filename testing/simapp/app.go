@@ -375,6 +375,11 @@ func NewSimApp(
 	app.IBCKeeper = ibckeeper.NewKeeper(
 		appCodec, keys[ibcexported.StoreKey], app.GetSubspace(ibcexported.ModuleName), app.StakingKeeper, app.UpgradeKeeper, scopedIBCKeeper,
 	)
+	app.IBCKeeper.SetClientHooks(
+		ibcclienttypes.NewMultiHooks(
+			&ibcmock.NoopHooks{},
+		),
+	)
 
 	// register the proposal types
 	govRouter := govv1beta1.NewRouter()

@@ -31,6 +31,7 @@ type Keeper struct {
 	paramSpace    paramtypes.Subspace
 	stakingKeeper types.StakingKeeper
 	upgradeKeeper types.UpgradeKeeper
+	hooks         types.Hooks
 }
 
 // NewKeeper creates a new NewKeeper instance
@@ -47,6 +48,14 @@ func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey, paramSpace paramt
 		stakingKeeper: sk,
 		upgradeKeeper: uk,
 	}
+}
+
+// SetHooks sets hooks to be run after client lifecycle methods.
+func (k Keeper) SetHooks(hooks types.Hooks) {
+	if k.hooks != nil {
+		panic("cannot set client hooks twice")
+	}
+	k.hooks = hooks
 }
 
 // Logger returns a module-specific logger.
