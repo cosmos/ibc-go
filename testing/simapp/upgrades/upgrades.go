@@ -14,7 +14,7 @@ import (
 
 	v6 "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/migrations/v6"
 	clientkeeper "github.com/cosmos/ibc-go/v7/modules/core/02-client/keeper"
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	ibctmmigrations "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint/migrations"
 )
 
@@ -89,7 +89,8 @@ func CreateV7LocalhostUpgradeHandler(
 ) upgradetypes.UpgradeHandler {
 	return func(ctx sdk.Context, _ upgradetypes.Plan, vm module.VersionMap) (module.VersionMap, error) {
 		// explicitly update the IBC 02-client params with the new default allowed clients
-		params := clienttypes.NewParams(clienttypes.DefaultAllowedClients...)
+		params := clientKeeper.GetParams(ctx)
+		params.AllowedClients = append(params.AllowedClients, exported.Localhost)
 		clientKeeper.SetParams(ctx, params)
 
 		return mm.RunMigrations(ctx, configurator, vm)
