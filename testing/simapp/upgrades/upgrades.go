@@ -14,6 +14,7 @@ import (
 
 	v6 "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/migrations/v6"
 	clientkeeper "github.com/cosmos/ibc-go/v7/modules/core/02-client/keeper"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	ibctmmigrations "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint/migrations"
 )
 
@@ -75,6 +76,22 @@ func CreateV7UpgradeHandler(
 
 		legacyBaseAppSubspace := paramsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramstypes.ConsensusParamsKeyTable())
 		baseapp.MigrateParams(ctx, legacyBaseAppSubspace, &consensusParamsKeeper)
+
+		return mm.RunMigrations(ctx, configurator, vm)
+	}
+}
+
+// CreateV7LocalhostUpgradeHandler creates an upgrade handler for the ibc-go/v7.1 SimApp upgrade.
+func CreateV7LocalhostUpgradeHandler(
+	mm *module.Manager,
+	configurator module.Configurator,
+	clientKeeper clientkeeper.Keeper,
+) upgradetypes.UpgradeHandler {
+	return func(ctx sdk.Context, _ upgradetypes.Plan, vm module.VersionMap) (module.VersionMap, error) {
+		// explicitly update the IBC 02-client params with the new default allowed clients
+		params := clientKeeper.GetParams(ctx)
+		params.AllowedClients = append(params.AllowedClients, exported.Localhost)
+		clientKeeper.SetParams(ctx, params)
 
 		return mm.RunMigrations(ctx, configurator, vm)
 	}
