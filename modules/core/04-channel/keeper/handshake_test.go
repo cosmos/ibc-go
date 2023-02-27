@@ -10,7 +10,6 @@ import (
 	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
-	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
@@ -88,16 +87,16 @@ func (suite *KeeperTestSuite) TestChanOpenInit() {
 			portCap = suite.chainA.GetPortCapability(ibctesting.MockPort)
 		}, true},
 		{
-			msg:     "inactive client",
+			msg:     "unauthorized client",
 			expPass: false,
 			malleate: func() {
-				expErrorMsgSubstring = "client state is not active"
+				expErrorMsgSubstring = "status is Unauthorized"
 				suite.coordinator.SetupConnections(path)
 
-				// ensure the client state is not active.
-				clientState := path.EndpointA.GetClientState().(*ibctm.ClientState)
-				clientState.FrozenHeight = clienttypes.NewHeight(0, 1)
-				path.EndpointA.SetClientState(clientState)
+				// remove client from allowed list
+				params := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetParams(suite.chainA.GetContext())
+				params.AllowedClients = []string{}
+				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetParams(suite.chainA.GetContext(), params)
 
 				suite.chainA.CreatePortCapability(suite.chainA.GetSimApp().ScopedIBCMockKeeper, ibctesting.MockPort)
 				portCap = suite.chainA.GetPortCapability(ibctesting.MockPort)
@@ -148,7 +147,6 @@ func (suite *KeeperTestSuite) TestChanOpenInit() {
 					suite.Require().Equal(chanCap.String(), cap.String(), "channel capability is not correct")
 				} else {
 					suite.Require().Error(err)
-					suite.T().Logf(err.Error())
 					suite.Require().Contains(err.Error(), expErrorMsgSubstring)
 					suite.Require().Nil(cap)
 					suite.Require().Equal("", channelID)
