@@ -1,11 +1,11 @@
 package keeper
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	"github.com/cometbft/cometbft/libs/log"
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
@@ -95,7 +95,7 @@ func (k Keeper) SetConnection(ctx sdk.Context, connectionID string, connection t
 func (k Keeper) GetTimestampAtHeight(ctx sdk.Context, connection types.ConnectionEnd, height exported.Height) (uint64, error) {
 	clientState, found := k.clientKeeper.GetClientState(ctx, connection.GetClientID())
 	if !found {
-		return 0, sdkerrors.Wrapf(
+		return 0, errorsmod.Wrapf(
 			clienttypes.ErrClientNotFound, "clientID (%s)", connection.GetClientID(),
 		)
 	}
@@ -201,7 +201,7 @@ func (k Keeper) GetAllConnections(ctx sdk.Context) (connections []types.Identifi
 func (k Keeper) addConnectionToClient(ctx sdk.Context, clientID, connectionID string) error {
 	_, found := k.clientKeeper.GetClientState(ctx, clientID)
 	if !found {
-		return sdkerrors.Wrap(clienttypes.ErrClientNotFound, clientID)
+		return errorsmod.Wrap(clienttypes.ErrClientNotFound, clientID)
 	}
 
 	conns, found := k.GetClientConnectionPaths(ctx, clientID)

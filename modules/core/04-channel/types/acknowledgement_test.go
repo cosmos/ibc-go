@@ -3,11 +3,13 @@ package types_test
 import (
 	"fmt"
 
+	errorsmod "cosmossdk.io/errors"
 	abcitypes "github.com/cometbft/cometbft/abci/types"
 	tmprotostate "github.com/cometbft/cometbft/proto/tendermint/state"
 	tmstate "github.com/cometbft/cometbft/state"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
+	ibcerrors "github.com/cosmos/ibc-go/v7/internal/errors"
 	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 )
 
@@ -91,11 +93,11 @@ func (suite TypesTestSuite) TestAcknowledgement() { //nolint:govet // this is a 
 // This test acts as an indicator that the ABCI error codes may no longer be deterministic.
 func (suite *TypesTestSuite) TestABCICodeDeterminism() {
 	// same ABCI error code used
-	err := sdkerrors.Wrap(sdkerrors.ErrOutOfGas, "error string 1")
-	errSameABCICode := sdkerrors.Wrap(sdkerrors.ErrOutOfGas, "error string 2")
+	err := errorsmod.Wrap(ibcerrors.ErrOutOfGas, "error string 1")
+	errSameABCICode := errorsmod.Wrap(ibcerrors.ErrOutOfGas, "error string 2")
 
 	// different ABCI error code used
-	errDifferentABCICode := sdkerrors.ErrNotFound
+	errDifferentABCICode := ibcerrors.ErrNotFound
 
 	deliverTx := sdkerrors.ResponseDeliverTxWithEvents(err, gasUsed, gasWanted, []abcitypes.Event{}, false)
 	responses := tmprotostate.ABCIResponses{
@@ -130,11 +132,11 @@ func (suite *TypesTestSuite) TestABCICodeDeterminism() {
 // ABCI error code are used in constructing the acknowledgement error string
 func (suite *TypesTestSuite) TestAcknowledgementError() {
 	// same ABCI error code used
-	err := sdkerrors.Wrap(sdkerrors.ErrOutOfGas, "error string 1")
-	errSameABCICode := sdkerrors.Wrap(sdkerrors.ErrOutOfGas, "error string 2")
+	err := errorsmod.Wrap(ibcerrors.ErrOutOfGas, "error string 1")
+	errSameABCICode := errorsmod.Wrap(ibcerrors.ErrOutOfGas, "error string 2")
 
 	// different ABCI error code used
-	errDifferentABCICode := sdkerrors.ErrNotFound
+	errDifferentABCICode := ibcerrors.ErrNotFound
 
 	ack := types.NewErrorAcknowledgement(err)
 	ackSameABCICode := types.NewErrorAcknowledgement(errSameABCICode)
