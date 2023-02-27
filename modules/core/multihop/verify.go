@@ -6,11 +6,13 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	tmclient "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 )
 
 // VerifyMultihopProof verifies a multihop proof. A nil value indicates a non-inclusion proof (proof of absence).
@@ -51,7 +53,7 @@ func VerifyMultihopProof(
 	}
 
 	// verify intermediate consensus and connection states from destination --> source
-	if err := verifyIntermediateStateProofs(consensusState, cdc, proofs.ConsensusProofs, proofs.ConnectionProofs, proofs.ClientProofs); err != nil {
+	if err := verifyIntermediateStateProofs(cdc, consensusState, proofs.ConsensusProofs, proofs.ConnectionProofs, proofs.ClientProofs); err != nil {
 		return fmt.Errorf("failed to verify consensus state proof: %w", err)
 	}
 
@@ -94,19 +96,23 @@ func verifyConnectionStates(cdc codec.BinaryCodec, connectionProofData []*channe
 			)
 		}
 	}
-
 	return nil
 }
 
-// verifyClientStates verifies that the provided clientstates are not frozen at the proof height
+// verifyClientStates verifies that the provided clientstates are not frozen/expired
 func verifyClientStates(cdc codec.BinaryCodec, clientProofData []*channeltypes.MultihopProof) error {
 	for _, data := range clientProofData {
 		var clientState exported.ClientState
 		if err := cdc.UnmarshalInterface(data.Value, &clientState); err != nil {
 			return err
 		}
-		if clientState.CheckFrozen() {
-			return sdkerrors.Wrapf(clienttypes.ErrInvalidClient, "Multihop client frozen")
+
+		// clients can not be frozen
+		if clientState.ClientType() == exported.Tendermint {
+			cs, ok := clientState.(*tmclient.ClientState)
+			if ok && cs.FrozenHeight != clienttypes.Height(types.NewHeight(0, 0)) {
+				return sdkerrors.Wrapf(clienttypes.ErrInvalidClient, "Multihop client frozen")
+			}
 		}
 	}
 	return nil
@@ -114,8 +120,8 @@ func verifyClientStates(cdc codec.BinaryCodec, clientProofData []*channeltypes.M
 
 // verifyIntermediateStateProofs verifies the intermediate consensus, connection, client states in the multi-hop proof.
 func verifyIntermediateStateProofs(
-	consensusState exported.ConsensusState,
 	cdc codec.BinaryCodec,
+	consensusState exported.ConsensusState,
 	consensusProofs []*channeltypes.MultihopProof,
 	connectionProofs []*channeltypes.MultihopProof,
 	clientProofs []*channeltypes.MultihopProof,
