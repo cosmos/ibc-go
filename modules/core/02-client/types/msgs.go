@@ -1,10 +1,11 @@
 package types
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
+	ibcerrors "github.com/cosmos/ibc-go/v7/internal/errors"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
@@ -48,7 +49,7 @@ func NewMsgCreateClient(
 func (msg MsgCreateClient) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
 	}
 	clientState, err := UnpackClientState(msg.ClientState)
 	if err != nil {
@@ -62,10 +63,10 @@ func (msg MsgCreateClient) ValidateBasic() error {
 		return err
 	}
 	if clientState.ClientType() != consensusState.ClientType() {
-		return sdkerrors.Wrap(ErrInvalidClientType, "client type for client state and consensus state do not match")
+		return errorsmod.Wrap(ErrInvalidClientType, "client type for client state and consensus state do not match")
 	}
 	if err := ValidateClientType(clientState.ClientType()); err != nil {
-		return sdkerrors.Wrap(err, "client type does not meet naming constraints")
+		return errorsmod.Wrap(err, "client type does not meet naming constraints")
 	}
 	return consensusState.ValidateBasic()
 }
@@ -111,7 +112,7 @@ func NewMsgUpdateClient(id string, clientMsg exported.ClientMessage, signer stri
 func (msg MsgUpdateClient) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
 	}
 	clientMsg, err := UnpackClientMessage(msg.ClientMessage)
 	if err != nil {
@@ -179,18 +180,18 @@ func (msg MsgUpgradeClient) ValidateBasic() error {
 	}
 
 	if clientState.ClientType() != consensusState.ClientType() {
-		return sdkerrors.Wrapf(ErrInvalidUpgradeClient, "consensus state's client-type does not match client. expected: %s, got: %s",
+		return errorsmod.Wrapf(ErrInvalidUpgradeClient, "consensus state's client-type does not match client. expected: %s, got: %s",
 			clientState.ClientType(), consensusState.ClientType())
 	}
 	if len(msg.ProofUpgradeClient) == 0 {
-		return sdkerrors.Wrap(ErrInvalidUpgradeClient, "proof of upgrade client cannot be empty")
+		return errorsmod.Wrap(ErrInvalidUpgradeClient, "proof of upgrade client cannot be empty")
 	}
 	if len(msg.ProofUpgradeConsensusState) == 0 {
-		return sdkerrors.Wrap(ErrInvalidUpgradeClient, "proof of upgrade consensus state cannot be empty")
+		return errorsmod.Wrap(ErrInvalidUpgradeClient, "proof of upgrade consensus state cannot be empty")
 	}
 	_, err = sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
 	}
 	return host.ClientIdentifierValidator(msg.ClientId)
 }
@@ -236,7 +237,7 @@ func NewMsgSubmitMisbehaviour(clientID string, misbehaviour exported.ClientMessa
 func (msg MsgSubmitMisbehaviour) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
 	}
 	misbehaviour, err := UnpackClientMessage(msg.Misbehaviour)
 	if err != nil {
