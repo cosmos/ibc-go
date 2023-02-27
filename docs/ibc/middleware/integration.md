@@ -52,7 +52,6 @@ customIBCModule2 := custom.NewIBCModule(customKeeper, "portCustom2")
 // create IBC stacks by combining middleware with base application
 // NOTE: since middleware2 is stateless it does not require a Keeper
 // stack 1 contains mw1 -> mw3 -> transfer
-
 stack1 := mw1.NewIBCMiddleware(mw3.NewIBCMiddleware(transferIBCModule, mw3Keeper1), mw1Keeper)
 // stack 2 contains mw3 -> mw2 -> custom1
 stack2 := mw3.NewIBCMiddleware(mw2.NewIBCMiddleware(customIBCModule1), mw3Keeper2)
