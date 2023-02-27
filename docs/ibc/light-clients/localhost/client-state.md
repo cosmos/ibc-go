@@ -23,6 +23,9 @@ func (k Keeper) CreateLocalhostClient(ctx sdk.Context) error {
 }
 ```
 
+
+It is possible to disable the localhost client by removing the `09-localhost` entry from the `allowed_clients` list through governance.
+
 ## Client updates
 
 The latest height is updated periodically through the ABCI [`BeginBlock`](https://docs.cosmos.network/v0.47/building-modules/beginblock-endblock) interface of the 02-client submodule in core IBC.
