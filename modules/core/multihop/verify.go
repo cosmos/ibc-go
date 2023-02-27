@@ -50,6 +50,12 @@ func VerifyMultihopProof(
 
 // verifyConnectionState verifies that the provided connections match the connectionHops field of the channel and are in OPEN state
 func verifyConnectionStates(cdc codec.BinaryCodec, connectionProofData []*channeltypes.MultihopProof, connectionHops []string) error {
+	if len(connectionProofData) != len(connectionHops)-1 {
+		return sdkerrors.Wrapf(connectiontypes.ErrInvalidLengthConnection,
+			"connectionHops length (%d) must match the connectionProofData length (%d)",
+			len(connectionHops)-1, len(connectionProofData))
+	}
+
 	// check all connections are in OPEN state and that the connection IDs match and are in the right order
 	for i, connData := range connectionProofData {
 		var connectionEnd connectiontypes.ConnectionEnd
