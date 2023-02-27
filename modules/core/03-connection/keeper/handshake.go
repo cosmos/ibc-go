@@ -1,10 +1,11 @@
 package keeper
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
+	ibcerrors "github.com/cosmos/ibc-go/v7/internal/errors"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
@@ -26,7 +27,7 @@ func (k Keeper) ConnOpenInit(
 	versions := types.GetCompatibleVersions()
 	if version != nil {
 		if !types.IsSupportedVersion(types.GetCompatibleVersions(), version) {
-			return "", sdkerrors.Wrap(types.ErrInvalidVersion, "version is not supported")
+			return "", errorsmod.Wrap(types.ErrInvalidVersion, "version is not supported")
 		}
 
 		versions = []exported.Version{version}
@@ -78,8 +79,8 @@ func (k Keeper) ConnOpenTry(
 	// of this chain's consensus state is at a height in the past
 	selfHeight := clienttypes.GetSelfHeight(ctx)
 	if consensusHeight.GTE(selfHeight) {
-		return "", sdkerrors.Wrapf(
-			sdkerrors.ErrInvalidHeight,
+		return "", errorsmod.Wrapf(
+			ibcerrors.ErrInvalidHeight,
 			"consensus height is greater than or equal to the current block height (%s >= %s)", consensusHeight, selfHeight,
 		)
 	}
@@ -91,7 +92,7 @@ func (k Keeper) ConnOpenTry(
 
 	expectedConsensusState, err := k.clientKeeper.GetSelfConsensusState(ctx, consensusHeight)
 	if err != nil {
-		return "", sdkerrors.Wrapf(err, "self consensus state not found for height %s", consensusHeight.String())
+		return "", errorsmod.Wrapf(err, "self consensus state not found for height %s", consensusHeight.String())
 	}
 
 	// expectedConnection defines Chain A's ConnectionEnd
@@ -134,7 +135,7 @@ func (k Keeper) ConnOpenTry(
 
 	// store connection in chainB state
 	if err := k.addConnectionToClient(ctx, clientID, connectionID); err != nil {
-		return "", sdkerrors.Wrapf(err, "failed to add connection with ID %s to client with ID %s", connectionID, clientID)
+		return "", errorsmod.Wrapf(err, "failed to add connection with ID %s to client with ID %s", connectionID, clientID)
 	}
 
 	k.SetConnection(ctx, connectionID, connection)
@@ -169,8 +170,8 @@ func (k Keeper) ConnOpenAck(
 	// of this chain's consensus state is at a height in the past
 	selfHeight := clienttypes.GetSelfHeight(ctx)
 	if consensusHeight.GTE(selfHeight) {
-		return sdkerrors.Wrapf(
-			sdkerrors.ErrInvalidHeight,
+		return errorsmod.Wrapf(
+			ibcerrors.ErrInvalidHeight,
 			"consensus height is greater than or equal to the current block height (%s >= %s)", consensusHeight, selfHeight,
 		)
 	}
@@ -178,12 +179,12 @@ func (k Keeper) ConnOpenAck(
 	// Retrieve connection
 	connection, found := k.GetConnection(ctx, connectionID)
 	if !found {
-		return sdkerrors.Wrap(types.ErrConnectionNotFound, connectionID)
+		return errorsmod.Wrap(types.ErrConnectionNotFound, connectionID)
 	}
 
 	// verify the previously set connection state
 	if connection.State != types.INIT {
-		return sdkerrors.Wrapf(
+		return errorsmod.Wrapf(
 			types.ErrInvalidConnectionState,
 			"connection state is not INIT (got %s)", connection.State.String(),
 		)
@@ -191,7 +192,7 @@ func (k Keeper) ConnOpenAck(
 
 	// ensure selected version is supported
 	if !types.IsSupportedVersion(types.ProtoVersionsToExported(connection.Versions), version) {
-		return sdkerrors.Wrapf(
+		return errorsmod.Wrapf(
 			types.ErrInvalidConnectionState,
 			"the counterparty selected version %s is not supported by versions selected on INIT", version,
 		)
@@ -205,7 +206,7 @@ func (k Keeper) ConnOpenAck(
 	// Retrieve chainA's consensus state at consensusheight
 	expectedConsensusState, err := k.clientKeeper.GetSelfConsensusState(ctx, consensusHeight)
 	if err != nil {
-		return sdkerrors.Wrapf(err, "self consensus state not found for height %s", consensusHeight.String())
+		return errorsmod.Wrapf(err, "self consensus state not found for height %s", consensusHeight.String())
 	}
 
 	prefix := k.GetCommitmentPrefix()
@@ -262,12 +263,12 @@ func (k Keeper) ConnOpenConfirm(
 	// Retrieve connection
 	connection, found := k.GetConnection(ctx, connectionID)
 	if !found {
-		return sdkerrors.Wrap(types.ErrConnectionNotFound, connectionID)
+		return errorsmod.Wrap(types.ErrConnectionNotFound, connectionID)
 	}
 
 	// Check that connection state on ChainB is on state: TRYOPEN
 	if connection.State != types.TRYOPEN {
-		return sdkerrors.Wrapf(
+		return errorsmod.Wrapf(
 			types.ErrInvalidConnectionState,
 			"connection state is not TRYOPEN (got %s)", connection.State.String(),
 		)
