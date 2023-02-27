@@ -16,6 +16,26 @@ In a multichain environment, application developers will be used to developing c
 
 ### Implementation
 
-There exists a single sentinel `ClientState` instance with the client identifier `09-localhost`.
+There exists a [single sentinel `ClientState`](./client-state.md) instance with the client identifier `09-localhost`.
 
-To supplement this, a sentinel `ConnectionEnd` is stored in core IBC state with the connection identifier `connection-localhost`. This enables IBC applications to create channels directly on top of the sentinel connection which leverage the 09-localhost loopback functionality.
+To supplement this, a [sentinel `ConnectionEnd` is stored in core IBC](./connection.md) state with the connection identifier `connection-localhost`. This enables IBC applications to create channels directly on top of the sentinel connection which leverage the 09-localhost loopback functionality.
+
+[State verification](./state-verification.md) for channel state in handshakes or processing packets is reduced in complexity, the `09-localhost` client can simply compare bytes stored under the standardized key paths.
+
+### Localhost vs *regular* client
+
+The localhost client aims to provide a unified approach to interacting with applications on a single chain, as the IBC application layer provides for cross-chain interactions. To achieve this unified interface though, there are a number of differences under the hood compared to a 'regular' IBC client (excluding `06-solomachine` and `09-localhost` itself).
+
+The table below lists some important differences:
+
+|  | Regular client | Localhost |
+| - | -------------- | --------- |
+| Number of clients | many instances of a client *type* corresponding to different counterparties | 1 single sentinel client with the client identifier `09-localhost`|
+| Client support | governance gated access to `allowed_clients` | added to `allowed_clients` by default |
+| Client creation | Relayer (permissionless) | the 09-localhost `ClientState` is instantiated in the `InitGenesis` handler of the 02-client submodule in core IBC |
+| Number of connection(s) | many connections, 1 (or more) per client | single sentinel `ConnectionEnd` representing a connection |
+| Connection creation | connection handshake, provided underlying client | the `ConnectionEnd` is created and set in store via the `InitGenesis` handler of the 03-connection submodule in core IBC |
+| Counterparty | underlying client, representing another chain | `09-localhost` |
+| Channel creation | channel handshake, provided underlying connection | channel handshake, **out of the box** |
+| Client updates | not automatically: relayer submitting `MsgUpdateClient` |automatically: latest height is updated periodically through the ABCI [`BeginBlock`](https://docs.cosmos.network/v0.47/building-modules/beginblock-endblock) interface of the 02-client submodule in core IBC |
+| `VerifyMembership` and `VerifyNonMembership` | TODO | TODO |
