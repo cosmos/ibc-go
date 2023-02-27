@@ -88,10 +88,10 @@ func (suite *KeeperTestSuite) TestQueryConnection() {
 
 func (suite *KeeperTestSuite) TestQueryConnections() {
 	suite.chainA.App.GetIBCKeeper().ConnectionKeeper.CreateSentinelLocalhostConnection(suite.chainA.GetContext())
-	localhostConn, found := suite.chainA.App.GetIBCKeeper().ConnectionKeeper.GetConnection(suite.chainA.GetContext(), types.LocalhostID)
+	localhostConn, found := suite.chainA.App.GetIBCKeeper().ConnectionKeeper.GetConnection(suite.chainA.GetContext(), exported.LocalhostConnectionID)
 	suite.Require().True(found)
 
-	identifiedConn := types.NewIdentifiedConnection(types.LocalhostID, localhostConn)
+	identifiedConn := types.NewIdentifiedConnection(exported.LocalhostConnectionID, localhostConn)
 
 	var (
 		req            *types.QueryConnectionsRequest

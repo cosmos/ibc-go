@@ -81,10 +81,10 @@ func (suite KeeperTestSuite) TestGetAllConnections() { //nolint:govet // this is
 	iconn2 := types.NewIdentifiedConnection(path2.EndpointA.ConnectionID, conn2)
 
 	suite.chainA.App.GetIBCKeeper().ConnectionKeeper.CreateSentinelLocalhostConnection(suite.chainA.GetContext())
-	localhostConn, found := suite.chainA.App.GetIBCKeeper().ConnectionKeeper.GetConnection(suite.chainA.GetContext(), types.LocalhostID)
+	localhostConn, found := suite.chainA.App.GetIBCKeeper().ConnectionKeeper.GetConnection(suite.chainA.GetContext(), exported.LocalhostConnectionID)
 	suite.Require().True(found)
 
-	expConnections := []types.IdentifiedConnection{iconn1, iconn2, types.NewIdentifiedConnection(types.LocalhostID, localhostConn)}
+	expConnections := []types.IdentifiedConnection{iconn1, iconn2, types.NewIdentifiedConnection(exported.LocalhostConnectionID, localhostConn)}
 
 	connections := suite.chainA.App.GetIBCKeeper().ConnectionKeeper.GetAllConnections(suite.chainA.GetContext())
 	suite.Require().Len(connections, len(expConnections))
@@ -167,12 +167,12 @@ func (suite *KeeperTestSuite) TestLocalhostConnectionEndCreation() {
 	connectionKeeper := suite.chainA.App.GetIBCKeeper().ConnectionKeeper
 	connectionKeeper.CreateSentinelLocalhostConnection(ctx)
 
-	connectionEnd, found := connectionKeeper.GetConnection(ctx, types.LocalhostID)
+	connectionEnd, found := connectionKeeper.GetConnection(ctx, exported.LocalhostConnectionID)
 
 	suite.Require().True(found)
 	suite.Require().Equal(types.OPEN, connectionEnd.State)
-	suite.Require().Equal(exported.Localhost, connectionEnd.ClientId)
+	suite.Require().Equal(exported.LocalhostClientID, connectionEnd.ClientId)
 	suite.Require().Equal(types.ExportedVersionsToProto(types.GetCompatibleVersions()), connectionEnd.Versions)
-	expectedCounterParty := types.NewCounterparty(exported.Localhost, types.LocalhostID, commitmenttypes.NewMerklePrefix(connectionKeeper.GetCommitmentPrefix().Bytes()))
+	expectedCounterParty := types.NewCounterparty(exported.LocalhostClientID, exported.LocalhostConnectionID, commitmenttypes.NewMerklePrefix(connectionKeeper.GetCommitmentPrefix().Bytes()))
 	suite.Require().Equal(expectedCounterParty, connectionEnd.Counterparty)
 }

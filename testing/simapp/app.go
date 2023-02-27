@@ -961,7 +961,7 @@ func (app *SimApp) setupUpgradeHandlers() {
 
 	app.UpgradeKeeper.SetUpgradeHandler(
 		upgrades.V7_1,
-		upgrades.CreateDefaultUpgradeHandler(app.mm, app.configurator),
+		upgrades.CreateV7LocalhostUpgradeHandler(app.mm, app.configurator, app.IBCKeeper.ClientKeeper),
 	)
 }
 

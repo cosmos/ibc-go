@@ -237,7 +237,7 @@ func (suite *KeeperTestSuite) TestValidateSelfClient() {
 
 func (suite KeeperTestSuite) TestGetAllGenesisClients() { //nolint:govet // this is a test, we are okay with copying locks
 	clientIDs := []string{
-		exported.Localhost, testClientID2, testClientID3, testClientID,
+		exported.LocalhostClientID, testClientID2, testClientID3, testClientID,
 	}
 	expClients := []exported.ClientState{
 		localhost.NewClientState(types.GetSelfHeight(suite.chainA.GetContext())),
@@ -426,7 +426,7 @@ func (suite KeeperTestSuite) TestIterateClientStates() { //nolint:govet // this 
 			"all clientIDs",
 			nil,
 			func() []string {
-				allClientIDs := []string{exported.Localhost}
+				allClientIDs := []string{exported.LocalhostClientID}
 				allClientIDs = append(allClientIDs, expSMClientIDs...)
 				allClientIDs = append(allClientIDs, expTMClientIDs...)
 				return allClientIDs
