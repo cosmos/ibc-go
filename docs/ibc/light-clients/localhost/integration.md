@@ -26,7 +26,7 @@ Note that the localhost client is added to `allowed_clients` by default in ibc-g
 
 ```go
 var (
-    // DefaultAllowedClients are "06-solomachine", "07-tendermint" and "09-localhost"
-    DefaultAllowedClients = []string{exported.Solomachine, exported.Tendermint, exported.Localhost}
+  // DefaultAllowedClients are "06-solomachine", "07-tendermint" and "09-localhost"
+  DefaultAllowedClients = []string{exported.Solomachine, exported.Tendermint, exported.Localhost}
 )
 ```
