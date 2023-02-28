@@ -8,6 +8,8 @@ import (
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
+type KvGenFunc func(*MsgMultihopProofs, *connectiontypes.ConnectionEnd) (string, []byte, error)
+
 // ClientKeeper expected account IBC client keeper
 type ClientKeeper interface {
 	GetClientStatus(ctx sdk.Context, clientState exported.ClientState, clientID string) exported.Status
@@ -77,8 +79,7 @@ type ConnectionKeeper interface {
 		height exported.Height,
 		proof []byte,
 		connectionHops []string,
-		key string,
-		value []byte,
+		kvGenerator KvGenFunc,
 	) error
 }
 

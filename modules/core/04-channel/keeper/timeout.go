@@ -127,12 +127,15 @@ func (k Keeper) TimeoutPacket(
 		// check that the recv sequence is as claimed
 		if len(channel.ConnectionHops) > 1 {
 			// verify multihop proof
-			key := host.NextSequenceRecvPath(packet.GetSourcePort(), packet.GetSourceChannel())
-			value := sdk.Uint64ToBigEndian(nextSequenceRecv)
+			kvGenerator := func(_ *types.MsgMultihopProofs, _ *connectiontypes.ConnectionEnd) (string, []byte, error) {
+				key := host.NextSequenceRecvPath(packet.GetSourcePort(), packet.GetSourceChannel())
+				value := sdk.Uint64ToBigEndian(nextSequenceRecv)
+				return key, value, nil
+			}
 
 			err = k.connectionKeeper.VerifyMultihopProof(
 				ctx, connectionEnd, proofHeight, proof,
-				channel.ConnectionHops, key, value)
+				channel.ConnectionHops, kvGenerator)
 		} else {
 			err = k.connectionKeeper.VerifyNextSequenceRecv(
 				ctx, connectionEnd, proofHeight, proof,
@@ -142,16 +145,18 @@ func (k Keeper) TimeoutPacket(
 	case types.UNORDERED:
 		if len(channel.ConnectionHops) > 1 {
 			// verify multihop proof
-			key := host.PacketReceiptPath(
-				packet.GetSourcePort(),
-				packet.GetSourceChannel(),
-				packet.GetSequence(),
-			)
-			var value []byte = nil
+			kvGenerator := func(_ *types.MsgMultihopProofs, _ *connectiontypes.ConnectionEnd) (string, []byte, error) {
+				key := host.PacketReceiptPath(
+					packet.GetSourcePort(),
+					packet.GetSourceChannel(),
+					packet.GetSequence(),
+				)
+				return key, nil, nil
+			}
 
 			err = k.connectionKeeper.VerifyMultihopProof(
 				ctx, connectionEnd, proofHeight, proof,
-				channel.ConnectionHops, key, value)
+				channel.ConnectionHops, kvGenerator)
 		} else {
 			err = k.connectionKeeper.VerifyPacketReceiptAbsence(
 				ctx, connectionEnd, proofHeight, proof,
@@ -280,45 +285,37 @@ func (k Keeper) TimeoutOnClose(
 		return sdkerrors.Wrapf(types.ErrInvalidPacket, "packet commitment bytes are not equal: got (%v), expected (%v)", commitment, packetCommitment)
 	}
 
-	var mProof types.MsgMultihopProofs
-	var mProofClosed types.MsgMultihopProofs
-	var counterpartyHops []string
-	if len(channel.ConnectionHops) > 1 {
-		var err error
-		if err = k.cdc.Unmarshal(proofClosed, &mProofClosed); err != nil {
-			return err
-		}
-		if err = k.cdc.Unmarshal(proof, &mProof); err != nil {
-			return err
-		}
-		counterpartyHops, err = mProof.GetCounterpartyHops(k.cdc, &connectionEnd)
-		if err != nil {
-			return err
-		}
-	} else {
-		counterpartyHops = []string{connectionEnd.GetCounterparty().GetConnectionID()}
-	}
-
-	counterparty := types.NewCounterparty(packet.GetSourcePort(), packet.GetSourceChannel())
-	expectedChannel := types.NewChannel(
-		types.CLOSED, channel.Ordering, counterparty, counterpartyHops, channel.Version,
-	)
-
 	// verify multihop proof
 	if len(channel.ConnectionHops) > 1 {
-		key := host.ChannelPath(counterparty.PortId, counterparty.ChannelId)
-		value, err := expectedChannel.Marshal()
-		if err != nil {
-			return err
+		kvGenerator := func(mProof *types.MsgMultihopProofs, _ *connectiontypes.ConnectionEnd) (string, []byte, error) {
+			counterpartyHops, err := mProof.GetCounterpartyHops(k.cdc, &connectionEnd)
+			if err != nil {
+				return "", nil, err
+			}
+			counterparty := types.NewCounterparty(packet.GetSourcePort(), packet.GetSourceChannel())
+			expectedChannel := types.NewChannel(
+				types.CLOSED, channel.Ordering, counterparty, counterpartyHops, channel.Version,
+			)
+			value, err := expectedChannel.Marshal()
+			if err != nil {
+				return "", nil, err
+			}
+			key := host.ChannelPath(counterparty.PortId, counterparty.ChannelId)
+			return key, value, nil
 		}
 
 		if err := k.connectionKeeper.VerifyMultihopProof(
 			ctx, connectionEnd, proofHeight, proofClosed,
-			channel.ConnectionHops, key, value); err != nil {
+			channel.ConnectionHops, kvGenerator); err != nil {
 			return err
 		}
 
 	} else {
+		counterpartyHops := []string{connectionEnd.GetCounterparty().GetConnectionID()}
+		counterparty := types.NewCounterparty(packet.GetSourcePort(), packet.GetSourceChannel())
+		expectedChannel := types.NewChannel(
+			types.CLOSED, channel.Ordering, counterparty, counterpartyHops, channel.Version,
+		)
 		// check that the opposing channel end has closed
 		if err := k.connectionKeeper.VerifyChannelState(
 			ctx, connectionEnd, proofHeight, proofClosed,
@@ -338,11 +335,14 @@ func (k Keeper) TimeoutOnClose(
 
 		// check that the recv sequence is as claimed
 		if len(channel.ConnectionHops) > 1 {
-			key := host.NextSequenceRecvPath(packet.GetSourcePort(), packet.GetSourceChannel())
-			value := sdk.Uint64ToBigEndian(nextSequenceRecv)
+			kvGenerator := func(_ *types.MsgMultihopProofs, _ *connectiontypes.ConnectionEnd) (string, []byte, error) {
+				key := host.NextSequenceRecvPath(packet.GetSourcePort(), packet.GetSourceChannel())
+				value := sdk.Uint64ToBigEndian(nextSequenceRecv)
+				return key, value, nil
+			}
 			if err := k.connectionKeeper.VerifyMultihopProof(
 				ctx, connectionEnd, proofHeight, proof,
-				channel.ConnectionHops, key, value); err != nil {
+				channel.ConnectionHops, kvGenerator); err != nil {
 				return err
 			}
 
@@ -356,16 +356,17 @@ func (k Keeper) TimeoutOnClose(
 		}
 	case types.UNORDERED:
 		if len(channel.ConnectionHops) > 1 {
-			key := host.PacketReceiptPath(
-				packet.GetSourcePort(),
-				packet.GetSourceChannel(),
-				packet.GetSequence(),
-			)
-			var value []byte = nil
-
+			kvGenerator := func(_ *types.MsgMultihopProofs, _ *connectiontypes.ConnectionEnd) (string, []byte, error) {
+				key := host.PacketReceiptPath(
+					packet.GetSourcePort(),
+					packet.GetSourceChannel(),
+					packet.GetSequence(),
+				)
+				return key, nil, nil
+			}
 			if err := k.connectionKeeper.VerifyMultihopProof(
 				ctx, connectionEnd, proofHeight, proof,
-				channel.ConnectionHops, key, value); err != nil {
+				channel.ConnectionHops, kvGenerator); err != nil {
 				return err
 			}
 		} else {

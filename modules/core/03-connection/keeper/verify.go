@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"fmt"
 	"math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -402,8 +403,7 @@ func (k Keeper) VerifyMultihopProof(
 	height exported.Height,
 	proof []byte,
 	connectionHops []string,
-	key string,
-	value []byte,
+	kvGenerator channeltypes.KvGenFunc,
 ) error {
 
 	var mProof channeltypes.MsgMultihopProofs
@@ -414,6 +414,11 @@ func (k Keeper) VerifyMultihopProof(
 	multihopConnectionEnd, err := mProof.GetMultihopConnectionEnd(k.cdc)
 	if err != nil {
 		return err
+	}
+
+	key, value, err := kvGenerator(&mProof, multihopConnectionEnd)
+	if err != nil {
+		return fmt.Errorf("failed to generate key and value: %s", err)
 	}
 
 	prefix := multihopConnectionEnd.GetCounterparty().GetPrefix()
