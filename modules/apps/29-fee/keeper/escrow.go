@@ -39,7 +39,7 @@ func (k Keeper) escrowPacketFee(ctx sdk.Context, packetID channeltypes.PacketId,
 	packetFees := types.NewPacketFees(fees)
 	k.SetFeesInEscrow(ctx, packetID, packetFees)
 
-	EmitIncentivizedPacketEvent(ctx, packetID, packetFees)
+	emitIncentivizedPacketEvent(ctx, packetID, packetFees)
 
 	return nil
 }
@@ -168,9 +168,9 @@ func (k Keeper) distributeFee(ctx sdk.Context, receiver, refundAccAddress sdk.Ac
 			return // if sending to the refund address fails, no-op
 		}
 
-		EmitDistributeFeeEvent(ctx, refundAccAddress.String(), fee)
+		emitDistributeFeeEvent(ctx, refundAccAddress.String(), fee)
 	} else {
-		EmitDistributeFeeEvent(ctx, receiver.String(), fee)
+		emitDistributeFeeEvent(ctx, receiver.String(), fee)
 	}
 
 	// write the cache
