@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"fmt"
 	"reflect"
 	"strings"
 
@@ -389,6 +388,6 @@ func (k Keeper) GetAllClients(ctx sdk.Context) []exported.ClientState {
 // ClientStore returns isolated prefix store for each client so they can read/write in separate
 // namespace without being able to read/write other client's data
 func (k Keeper) ClientStore(ctx sdk.Context, clientID string) sdk.KVStore {
-	clientPrefix := []byte(fmt.Sprintf("%s/%s/", host.KeyClientStorePrefix, clientID))
+	clientPrefix := host.PrefixedClientStoreKey([]byte(clientID))
 	return prefix.NewStore(ctx.KVStore(k.storeKey), clientPrefix)
 }
