@@ -51,7 +51,7 @@ func (m *MsgMultihopProofs) GetCounterpartyHops(
 	for _, connData := range m.ConnectionProofs {
 		var connectionEnd ConnectionEnd
 		if err := cdc.Unmarshal(connData.Value, &connectionEnd); err != nil {
-			return nil, 0, err
+			return nil, err
 		}
 		counterpartyHops = append(counterpartyHops, connectionEnd.GetCounterparty().GetConnectionID())
 	}

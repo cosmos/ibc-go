@@ -48,7 +48,7 @@ func VerifyMultihopProof(
 	}
 
 	// verify client states are not frozen
-	if err := verifyClientStates(cdc, proofs.ClientProofs); err != nil {
+	if err := verifyClientStates(cdc, proofs.ClientProofs, proofs.ConsensusProofs); err != nil {
 		return err
 	}
 
@@ -100,11 +100,33 @@ func verifyConnectionStates(cdc codec.BinaryCodec, connectionProofData []*channe
 }
 
 // verifyClientStates verifies that the provided clientstates are not frozen/expired
-func verifyClientStates(cdc codec.BinaryCodec, clientProofData []*channeltypes.MultihopProof) error {
-	for _, data := range clientProofData {
+// and that the client id for the client state matches the consensus state.
+func verifyClientStates(
+	cdc codec.BinaryCodec,
+	clientProofData []*channeltypes.MultihopProof,
+	consensusProofData []*channeltypes.MultihopProof,
+) error {
+	for i, data := range clientProofData {
 		var clientState exported.ClientState
 		if err := cdc.UnmarshalInterface(data.Value, &clientState); err != nil {
-			return err
+			return fmt.Errorf("failed to unpack client state: %w", err)
+		}
+		var consensusState exported.ConsensusState
+		if err := cdc.UnmarshalInterface(consensusProofData[i].Value, &consensusState); err != nil {
+			return fmt.Errorf("failed to unpack consesnsus state: %w", err)
+		}
+		if len(consensusProofData[i].PrefixedKey.KeyPath) < 2 || len(clientProofData[i].PrefixedKey.KeyPath) < 2 {
+			return fmt.Errorf("consensus and client proof prefixe length must be > 1")
+		}
+		consensusParts := strings.Split(consensusProofData[i].PrefixedKey.KeyPath[1], "/")
+		clientParts := strings.Split(clientProofData[i].PrefixedKey.KeyPath[1], "/")
+		if len(consensusParts) < 2 || len(clientParts) < 2 {
+			return fmt.Errorf("consensus or client proof prefix component too short")
+		}
+
+		// verify the client ids match
+		if consensusParts[1] != clientParts[1] {
+			return fmt.Errorf("consensus (%s) and client (%s) ids must match", consensusParts[1], clientParts[1])
 		}
 
 		// clients can not be frozen
@@ -128,26 +150,26 @@ func verifyIntermediateStateProofs(
 ) error {
 	var consState exported.ConsensusState
 	for i := len(consensusProofs) - 1; i >= 0; i-- {
-		consStateProof := consensusProofs[i]
+		consensusProof := consensusProofs[i]
 		connectionProof := connectionProofs[i]
 		clientProof := clientProofs[i]
-		if err := cdc.UnmarshalInterface(consStateProof.Value, &consState); err != nil {
+		if err := cdc.UnmarshalInterface(consensusProof.Value, &consState); err != nil {
 			return fmt.Errorf("failed to unpack consesnsus state: %w", err)
 		}
 
 		// prove consensus state
 		var proof commitmenttypes.MerkleProof
-		if err := cdc.Unmarshal(consStateProof.Proof, &proof); err != nil {
+		if err := cdc.Unmarshal(consensusProof.Proof, &proof); err != nil {
 			return fmt.Errorf("failed to unmarshal consensus state proof: %w", err)
 		}
 
 		if err := proof.VerifyMembership(
 			commitmenttypes.GetSDKSpecs(),
 			consensusState.GetRoot(),
-			*consStateProof.PrefixedKey,
-			consStateProof.Value,
+			*consensusProof.PrefixedKey,
+			consensusProof.Value,
 		); err != nil {
-			return fmt.Errorf("failed to verify proof: %w", err)
+			return fmt.Errorf("failed to verify consensus proof: %w", err)
 		}
 
 		// prove connection state
@@ -162,7 +184,7 @@ func verifyIntermediateStateProofs(
 			*connectionProof.PrefixedKey,
 			connectionProof.Value,
 		); err != nil {
-			return fmt.Errorf("failed to verify proof: %w", err)
+			return fmt.Errorf("failed to verify connection proof: %w", err)
 		}
 
 		// prove client state
@@ -177,7 +199,7 @@ func verifyIntermediateStateProofs(
 			*clientProof.PrefixedKey,
 			clientProof.Value,
 		); err != nil {
-			return fmt.Errorf("failed to verify proof: %w", err)
+			return fmt.Errorf("failed to verify client proof: %w", err)
 		}
 
 		consensusState = consState
