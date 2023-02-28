@@ -71,8 +71,7 @@ func (k Keeper) SendPacket(
 	}
 
 	// prevent accidental sends with clients that cannot be updated
-	clientStore := k.clientKeeper.ClientStore(ctx, connectionEnd.GetClientID())
-	if status := clientState.Status(ctx, clientStore, k.cdc); status != exported.Active {
+	if status := k.clientKeeper.GetClientStatus(ctx, clientState, connectionEnd.GetClientID()); status != exported.Active {
 		return 0, sdkerrors.Wrapf(clienttypes.ErrClientNotActive, "cannot send packet using client (%s) with status %s", connectionEnd.GetClientID(), status)
 	}
 

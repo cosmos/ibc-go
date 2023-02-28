@@ -215,6 +215,11 @@ module.exports = {
               directory: false,
               path: "/roadmap/roadmap.html",
             },
+            {
+              title: "Troubleshooting",
+              directory: false,
+              path: "/ibc/troubleshooting.html",
+            },
           ],
         },
         {
