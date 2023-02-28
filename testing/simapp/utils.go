@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/kv"
 	"github.com/cosmos/cosmos-sdk/types/module"
@@ -47,7 +48,7 @@ func SetupSimulation(dirPrefix, dbName string) (simtypes.Config, dbm.DB, string,
 
 // SimulationOperations retrieves the simulation params from the provided file path
 // and returns all the modules weighted operations
-func SimulationOperations(app App, cdc codec.JSONCodec, config simtypes.Config) []simtypes.WeightedOperation {
+func SimulationOperations(app runtime.AppI, cdc codec.JSONCodec, config simtypes.Config) []simtypes.WeightedOperation {
 	simState := module.SimulationState{
 		AppParams: make(simtypes.AppParams),
 		Cdc:       cdc,
@@ -73,11 +74,11 @@ func SimulationOperations(app App, cdc codec.JSONCodec, config simtypes.Config) 
 // CheckExportSimulation exports the app state and simulation parameters to JSON
 // if the export paths are defined.
 func CheckExportSimulation(
-	app App, config simtypes.Config, params simtypes.Params,
+	app runtime.AppI, config simtypes.Config, params simtypes.Params,
 ) error {
 	if config.ExportStatePath != "" {
 		fmt.Println("exporting app state...")
-		exported, err := app.ExportAppStateAndValidators(false, nil)
+		exported, err := app.ExportAppStateAndValidators(false, nil, nil)
 		if err != nil {
 			return err
 		}

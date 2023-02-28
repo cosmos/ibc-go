@@ -17,6 +17,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/codec/types"
+	"github.com/cosmos/cosmos-sdk/runtime"
 	runtimeservices "github.com/cosmos/cosmos-sdk/runtime/services"
 	"github.com/cosmos/cosmos-sdk/server/api"
 	"github.com/cosmos/cosmos-sdk/server/config"
@@ -191,7 +192,7 @@ var (
 )
 
 var (
-	_ App                     = (*SimApp)(nil)
+	_ runtime.AppI            = (*SimApp)(nil)
 	_ servertypes.Application = (*SimApp)(nil)
 )
 
