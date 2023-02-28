@@ -90,7 +90,7 @@ func initContract(codeID []byte, ctx sdk.Context, store sdk.KVStore) (*types.Res
 	chainID := ctx.BlockHeader().ChainID
 	height := ctx.BlockHeader().Height
 	// safety checks before casting below
-	if height < 0 {
+	if height <= 0 {
 		panic("Block height must never be negative")
 	}
 	sec := ctx.BlockTime().Unix()
