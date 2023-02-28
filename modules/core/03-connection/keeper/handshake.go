@@ -48,7 +48,7 @@ func (k Keeper) ConnOpenInit(
 		telemetry.IncrCounter(1, "ibc", "connection", "open-init")
 	}()
 
-	EmitConnectionOpenInitEvent(ctx, connectionID, clientID, counterparty)
+	emitConnectionOpenInitEvent(ctx, connectionID, clientID, counterparty)
 
 	return connectionID, nil
 }
@@ -143,7 +143,7 @@ func (k Keeper) ConnOpenTry(
 		telemetry.IncrCounter(1, "ibc", "connection", "open-try")
 	}()
 
-	EmitConnectionOpenTryEvent(ctx, connectionID, clientID, counterparty)
+	emitConnectionOpenTryEvent(ctx, connectionID, clientID, counterparty)
 
 	return connectionID, nil
 }
@@ -242,7 +242,7 @@ func (k Keeper) ConnOpenAck(
 	connection.Counterparty.ConnectionId = counterpartyConnectionID
 	k.SetConnection(ctx, connectionID, connection)
 
-	EmitConnectionOpenAckEvent(ctx, connectionID, connection)
+	emitConnectionOpenAckEvent(ctx, connectionID, connection)
 
 	return nil
 }
@@ -292,7 +292,7 @@ func (k Keeper) ConnOpenConfirm(
 		telemetry.IncrCounter(1, "ibc", "connection", "open-confirm")
 	}()
 
-	EmitConnectionOpenConfirmEvent(ctx, connectionID, connection)
+	emitConnectionOpenConfirmEvent(ctx, connectionID, connection)
 
 	return nil
 }
