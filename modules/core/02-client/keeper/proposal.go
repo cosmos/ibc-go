@@ -1,10 +1,10 @@
 package keeper
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	metrics "github.com/armon/go-metrics"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
@@ -20,28 +20,28 @@ import (
 func (k Keeper) ClientUpdateProposal(ctx sdk.Context, p *types.ClientUpdateProposal) error {
 	subjectClientState, found := k.GetClientState(ctx, p.SubjectClientId)
 	if !found {
-		return sdkerrors.Wrapf(types.ErrClientNotFound, "subject client with ID %s", p.SubjectClientId)
+		return errorsmod.Wrapf(types.ErrClientNotFound, "subject client with ID %s", p.SubjectClientId)
 	}
 
 	subjectClientStore := k.ClientStore(ctx, p.SubjectClientId)
 
 	if status := k.GetClientStatus(ctx, subjectClientState, p.SubjectClientId); status == exported.Active {
-		return sdkerrors.Wrap(types.ErrInvalidUpdateClientProposal, "cannot update Active subject client")
+		return errorsmod.Wrap(types.ErrInvalidUpdateClientProposal, "cannot update Active subject client")
 	}
 
 	substituteClientState, found := k.GetClientState(ctx, p.SubstituteClientId)
 	if !found {
-		return sdkerrors.Wrapf(types.ErrClientNotFound, "substitute client with ID %s", p.SubstituteClientId)
+		return errorsmod.Wrapf(types.ErrClientNotFound, "substitute client with ID %s", p.SubstituteClientId)
 	}
 
 	if subjectClientState.GetLatestHeight().GTE(substituteClientState.GetLatestHeight()) {
-		return sdkerrors.Wrapf(types.ErrInvalidHeight, "subject client state latest height is greater or equal to substitute client state latest height (%s >= %s)", subjectClientState.GetLatestHeight(), substituteClientState.GetLatestHeight())
+		return errorsmod.Wrapf(types.ErrInvalidHeight, "subject client state latest height is greater or equal to substitute client state latest height (%s >= %s)", subjectClientState.GetLatestHeight(), substituteClientState.GetLatestHeight())
 	}
 
 	substituteClientStore := k.ClientStore(ctx, p.SubstituteClientId)
 
 	if status := k.GetClientStatus(ctx, substituteClientState, p.SubstituteClientId); status != exported.Active {
-		return sdkerrors.Wrapf(types.ErrClientNotActive, "substitute client is not Active, status is %s", status)
+		return errorsmod.Wrapf(types.ErrClientNotActive, "substitute client is not Active, status is %s", status)
 	}
 
 	if err := subjectClientState.CheckSubstituteAndUpdateState(ctx, k.cdc, subjectClientStore, substituteClientStore, substituteClientState); err != nil {
@@ -75,14 +75,14 @@ func (k Keeper) ClientUpdateProposal(ctx sdk.Context, p *types.ClientUpdatePropo
 func (k Keeper) HandleUpgradeProposal(ctx sdk.Context, p *types.UpgradeProposal) error {
 	clientState, err := types.UnpackClientState(p.UpgradedClientState)
 	if err != nil {
-		return sdkerrors.Wrap(err, "could not unpack UpgradedClientState")
+		return errorsmod.Wrap(err, "could not unpack UpgradedClientState")
 	}
 
 	// zero out any custom fields before setting
 	cs := clientState.ZeroCustomFields()
 	bz, err := types.MarshalClientState(k.cdc, cs)
 	if err != nil {
-		return sdkerrors.Wrap(err, "could not marshal UpgradedClientState")
+		return errorsmod.Wrap(err, "could not marshal UpgradedClientState")
 	}
 
 	if err := k.upgradeKeeper.ScheduleUpgrade(ctx, p.Plan); err != nil {

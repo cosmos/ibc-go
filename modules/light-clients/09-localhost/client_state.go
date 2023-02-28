@@ -3,10 +3,11 @@ package localhost
 import (
 	"bytes"
 
+	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
+	ibcerrors "github.com/cosmos/ibc-go/v7/internal/errors"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
@@ -40,7 +41,7 @@ func (cs ClientState) Status(_ sdk.Context, _ sdk.KVStore, _ codec.BinaryCodec) 
 // Validate performs a basic validation of the client state fields.
 func (cs ClientState) Validate() error {
 	if cs.LatestHeight.RevisionHeight == 0 {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidHeight, "local revision height cannot be zero")
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidHeight, "local revision height cannot be zero")
 	}
 
 	return nil
@@ -54,7 +55,7 @@ func (cs ClientState) ZeroCustomFields() exported.ClientState {
 // Initialize ensures that initial consensus state for localhost is nil.
 func (cs ClientState) Initialize(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, consState exported.ConsensusState) error {
 	if consState != nil {
-		return sdkerrors.Wrap(clienttypes.ErrInvalidConsensus, "initial consensus state for localhost must be nil.")
+		return errorsmod.Wrap(clienttypes.ErrInvalidConsensus, "initial consensus state for localhost must be nil.")
 	}
 
 	clientState := ClientState{
@@ -88,26 +89,26 @@ func (cs ClientState) VerifyMembership(
 ) error {
 	// ensure the proof provided is the expected sentintel localhost client proof
 	if !bytes.Equal(proof, SentinelProof) {
-		return sdkerrors.Wrapf(commitmenttypes.ErrInvalidProof, "expected %s, got %s", string(SentinelProof), string(proof))
+		return errorsmod.Wrapf(commitmenttypes.ErrInvalidProof, "expected %s, got %s", string(SentinelProof), string(proof))
 	}
 
 	merklePath, ok := path.(commitmenttypes.MerklePath)
 	if !ok {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "expected %T, got %T", commitmenttypes.MerklePath{}, path)
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", commitmenttypes.MerklePath{}, path)
 	}
 
 	if len(merklePath.GetKeyPath()) != 2 {
-		return sdkerrors.Wrapf(host.ErrInvalidPath, "path must be of length 2: %s", merklePath.GetKeyPath())
+		return errorsmod.Wrapf(host.ErrInvalidPath, "path must be of length 2: %s", merklePath.GetKeyPath())
 	}
 
 	// The commitment prefix (eg: "ibc") is omitted when operating on the core IBC store
 	bz := store.Get([]byte(merklePath.KeyPath[1]))
 	if bz == nil {
-		return sdkerrors.Wrapf(clienttypes.ErrFailedMembershipVerification, "value not found for path %s", path)
+		return errorsmod.Wrapf(clienttypes.ErrFailedMembershipVerification, "value not found for path %s", path)
 	}
 
 	if !bytes.Equal(bz, value) {
-		return sdkerrors.Wrapf(clienttypes.ErrFailedMembershipVerification, "value provided does not equal value stored at path: %s", path)
+		return errorsmod.Wrapf(clienttypes.ErrFailedMembershipVerification, "value provided does not equal value stored at path: %s", path)
 	}
 
 	return nil
@@ -128,21 +129,21 @@ func (cs ClientState) VerifyNonMembership(
 ) error {
 	// ensure the proof provided is the expected sentintel localhost client proof
 	if !bytes.Equal(proof, SentinelProof) {
-		return sdkerrors.Wrapf(commitmenttypes.ErrInvalidProof, "expected %s, got %s", string(SentinelProof), string(proof))
+		return errorsmod.Wrapf(commitmenttypes.ErrInvalidProof, "expected %s, got %s", string(SentinelProof), string(proof))
 	}
 
 	merklePath, ok := path.(commitmenttypes.MerklePath)
 	if !ok {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "expected %T, got %T", commitmenttypes.MerklePath{}, path)
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", commitmenttypes.MerklePath{}, path)
 	}
 
 	if len(merklePath.GetKeyPath()) != 2 {
-		return sdkerrors.Wrapf(host.ErrInvalidPath, "path must be of length 2: %s", merklePath.GetKeyPath())
+		return errorsmod.Wrapf(host.ErrInvalidPath, "path must be of length 2: %s", merklePath.GetKeyPath())
 	}
 
 	// The commitment prefix (eg: "ibc") is omitted when operating on the core IBC store
 	if store.Has([]byte(merklePath.KeyPath[1])) {
-		return sdkerrors.Wrapf(clienttypes.ErrFailedNonMembershipVerification, "value found for path %s", path)
+		return errorsmod.Wrapf(clienttypes.ErrFailedNonMembershipVerification, "value found for path %s", path)
 	}
 
 	return nil
@@ -150,7 +151,7 @@ func (cs ClientState) VerifyNonMembership(
 
 // VerifyClientMessage is unsupported by the 09-localhost client type and returns an error.
 func (cs ClientState) VerifyClientMessage(_ sdk.Context, _ codec.BinaryCodec, _ sdk.KVStore, _ exported.ClientMessage) error {
-	return sdkerrors.Wrap(clienttypes.ErrUpdateClientFailed, "client message verification is unsupported by the localhost client")
+	return errorsmod.Wrap(clienttypes.ErrUpdateClientFailed, "client message verification is unsupported by the localhost client")
 }
 
 // CheckForMisbehaviour is unsupported by the 09-localhost client type and performs a no-op, returning false.
@@ -181,7 +182,7 @@ func (cs ClientState) ExportMetadata(_ sdk.KVStore) []exported.GenesisMetadata {
 // CheckSubstituteAndUpdateState returns an error. The localhost cannot be modified by
 // proposals.
 func (cs ClientState) CheckSubstituteAndUpdateState(_ sdk.Context, _ codec.BinaryCodec, _, _ sdk.KVStore, _ exported.ClientState) error {
-	return sdkerrors.Wrap(clienttypes.ErrUpdateClientFailed, "cannot update localhost client with a proposal")
+	return errorsmod.Wrap(clienttypes.ErrUpdateClientFailed, "cannot update localhost client with a proposal")
 }
 
 // VerifyUpgradeAndUpdateState returns an error since localhost cannot be upgraded
@@ -194,5 +195,5 @@ func (cs ClientState) VerifyUpgradeAndUpdateState(
 	_,
 	_ []byte,
 ) error {
-	return sdkerrors.Wrap(clienttypes.ErrInvalidUpgradeClient, "cannot upgrade localhost client")
+	return errorsmod.Wrap(clienttypes.ErrInvalidUpgradeClient, "cannot upgrade localhost client")
 }

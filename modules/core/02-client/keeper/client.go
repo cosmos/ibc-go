@@ -1,10 +1,10 @@
 package keeper
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	metrics "github.com/armon/go-metrics"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
@@ -17,12 +17,12 @@ func (k Keeper) CreateClient(
 	ctx sdk.Context, clientState exported.ClientState, consensusState exported.ConsensusState,
 ) (string, error) {
 	if clientState.ClientType() == exported.Localhost {
-		return "", sdkerrors.Wrapf(types.ErrInvalidClientType, "cannot create client of type: %s", clientState.ClientType())
+		return "", errorsmod.Wrapf(types.ErrInvalidClientType, "cannot create client of type: %s", clientState.ClientType())
 	}
 
 	params := k.GetParams(ctx)
 	if !params.IsAllowedClient(clientState.ClientType()) {
-		return "", sdkerrors.Wrapf(
+		return "", errorsmod.Wrapf(
 			types.ErrInvalidClientType,
 			"client state type %s is not registered in the allowlist", clientState.ClientType(),
 		)
@@ -52,13 +52,13 @@ func (k Keeper) CreateClient(
 func (k Keeper) UpdateClient(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) error {
 	clientState, found := k.GetClientState(ctx, clientID)
 	if !found {
-		return sdkerrors.Wrapf(types.ErrClientNotFound, "cannot update client with ID %s", clientID)
+		return errorsmod.Wrapf(types.ErrClientNotFound, "cannot update client with ID %s", clientID)
 	}
 
 	clientStore := k.ClientStore(ctx, clientID)
 
 	if status := k.GetClientStatus(ctx, clientState, clientID); status != exported.Active {
-		return sdkerrors.Wrapf(types.ErrClientNotActive, "cannot update client (%s) with status %s", clientID, status)
+		return errorsmod.Wrapf(types.ErrClientNotActive, "cannot update client (%s) with status %s", clientID, status)
 	}
 
 	if err := clientState.VerifyClientMessage(ctx, k.cdc, clientStore, clientMsg); err != nil {
@@ -113,19 +113,19 @@ func (k Keeper) UpgradeClient(ctx sdk.Context, clientID string, upgradedClient e
 ) error {
 	clientState, found := k.GetClientState(ctx, clientID)
 	if !found {
-		return sdkerrors.Wrapf(types.ErrClientNotFound, "cannot update client with ID %s", clientID)
+		return errorsmod.Wrapf(types.ErrClientNotFound, "cannot update client with ID %s", clientID)
 	}
 
 	clientStore := k.ClientStore(ctx, clientID)
 
 	if status := k.GetClientStatus(ctx, clientState, clientID); status != exported.Active {
-		return sdkerrors.Wrapf(types.ErrClientNotActive, "cannot upgrade client (%s) with status %s", clientID, status)
+		return errorsmod.Wrapf(types.ErrClientNotActive, "cannot upgrade client (%s) with status %s", clientID, status)
 	}
 
 	if err := clientState.VerifyUpgradeAndUpdateState(ctx, k.cdc, clientStore,
 		upgradedClient, upgradedConsState, proofUpgradeClient, proofUpgradeConsState,
 	); err != nil {
-		return sdkerrors.Wrapf(err, "cannot upgrade client with ID %s", clientID)
+		return errorsmod.Wrapf(err, "cannot upgrade client with ID %s", clientID)
 	}
 
 	k.Logger(ctx).Info("client state upgraded", "client-id", clientID, "height", upgradedClient.GetLatestHeight().String())
