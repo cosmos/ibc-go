@@ -404,3 +404,12 @@ func (k Keeper) ClientStore(ctx sdk.Context, clientID string) sdk.KVStore {
 	clientPrefix := []byte(fmt.Sprintf("%s/%s/", host.KeyClientStorePrefix, clientID))
 	return prefix.NewStore(ctx.KVStore(k.storeKey), clientPrefix)
 }
+
+// GetClientStatus returns the status for a given clientState. If the client type is not in the allowed
+// clients param field, Unauthorized is returned, otherwise the client state status is returned.
+func (k Keeper) GetClientStatus(ctx sdk.Context, clientState exported.ClientState, clientID string) exported.Status {
+	if !k.GetParams(ctx).IsAllowedClient(clientState.ClientType()) {
+		return exported.Unauthorized
+	}
+	return clientState.Status(ctx, k.ClientStore(ctx, clientID), k.cdc)
+}

@@ -30,7 +30,7 @@ func (k Keeper) VerifyClientState(
 		return err
 	}
 
-	if status := targetClient.Status(ctx, clientStore, k.cdc); status != exported.Active {
+	if status := k.clientKeeper.GetClientStatus(ctx, targetClient, clientID); status != exported.Active {
 		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
 	}
 
@@ -72,7 +72,7 @@ func (k Keeper) VerifyClientConsensusState(
 		return err
 	}
 
-	if status := clientState.Status(ctx, clientStore, k.cdc); status != exported.Active {
+	if status := k.clientKeeper.GetClientStatus(ctx, clientState, clientID); status != exported.Active {
 		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
 	}
 
@@ -114,7 +114,7 @@ func (k Keeper) VerifyConnectionState(
 		return err
 	}
 
-	if status := clientState.Status(ctx, clientStore, k.cdc); status != exported.Active {
+	if status := k.clientKeeper.GetClientStatus(ctx, clientState, clientID); status != exported.Active {
 		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
 	}
 
@@ -162,7 +162,7 @@ func (k Keeper) VerifyChannelState(
 		return err
 	}
 
-	if status := clientState.Status(ctx, clientStore, k.cdc); status != exported.Active {
+	if status := k.clientKeeper.GetClientStatus(ctx, clientState, clientID); status != exported.Active {
 		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
 	}
 
@@ -211,7 +211,7 @@ func (k Keeper) VerifyPacketCommitment(
 		return err
 	}
 
-	if status := clientState.Status(ctx, clientStore, k.cdc); status != exported.Active {
+	if status := k.clientKeeper.GetClientStatus(ctx, clientState, clientID); status != exported.Active {
 		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
 	}
 
@@ -254,7 +254,7 @@ func (k Keeper) VerifyPacketAcknowledgement(
 		return err
 	}
 
-	if status := clientState.Status(ctx, clientStore, k.cdc); status != exported.Active {
+	if status := k.clientKeeper.GetClientStatus(ctx, clientState, clientID); status != exported.Active {
 		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
 	}
 
@@ -297,7 +297,7 @@ func (k Keeper) VerifyPacketReceiptAbsence(
 		return err
 	}
 
-	if status := clientState.Status(ctx, clientStore, k.cdc); status != exported.Active {
+	if status := k.clientKeeper.GetClientStatus(ctx, clientState, clientID); status != exported.Active {
 		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
 	}
 
@@ -339,7 +339,7 @@ func (k Keeper) VerifyNextSequenceRecv(
 		return err
 	}
 
-	if status := clientState.Status(ctx, clientStore, k.cdc); status != exported.Active {
+	if status := k.clientKeeper.GetClientStatus(ctx, clientState, clientID); status != exported.Active {
 		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
 	}
 
