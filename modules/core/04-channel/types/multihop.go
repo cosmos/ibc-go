@@ -23,16 +23,35 @@ func (m *MsgMultihopProofs) GetMultihopCounterpartyConsensus(cdc codec.BinaryCod
 	return
 }
 
+// GetMaximumDelayPeriod returns the maximum delay period over all connections.
+func (m *MsgMultihopProofs) GetMaximumDelayPeriod(
+	cdc codec.BinaryCodec,
+	lastConnection *ConnectionEnd
+	) (uint64, error) {
+	delayPeriod := lastConnection.DelayPeriod
+	for _, connData := range m.ConnectionProofs {
+		var connectionEnd ConnectionEnd
+		if err := cdc.Unmarshal(connData.Value, &connectionEnd); err != nil {
+			return 0, err
+		}
+		if connectionEnd.DelayPeriod > delayPeriod {
+			delayPeriod = connectionEnd.DelayPeriod
+		}
+	}
+	return delayPeriod, nil
+}
+
 // GetCounterpartyHops returns the counter party connectionHops
 func (m *MsgMultihopProofs) GetCounterpartyHops(
 	cdc codec.BinaryCodec,
 	lastConnection *ConnectionEnd,
 ) ([]string, error) {
 	var counterpartyHops []string
+	
 	for _, connData := range m.ConnectionProofs {
 		var connectionEnd ConnectionEnd
 		if err := cdc.Unmarshal(connData.Value, &connectionEnd); err != nil {
-			return nil, err
+			return nil, 0, err
 		}
 		counterpartyHops = append(counterpartyHops, connectionEnd.GetCounterparty().GetConnectionID())
 	}
