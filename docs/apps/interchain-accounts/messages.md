@@ -33,7 +33,7 @@ type MsgRegisterInterchainAccountResponse struct {
 }
 ```
 
-The `ChannelID` and `PortID` is returned in the message response.
+The `ChannelID` and `PortID` are returned in the message response.
 
 ## `MsgSendTx`
 
