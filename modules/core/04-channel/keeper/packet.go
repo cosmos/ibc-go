@@ -14,7 +14,6 @@ import (
 	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
-	mh "github.com/cosmos/ibc-go/v7/modules/core/multihop"
 )
 
 // SendPacket is called by a module in order to send an IBC packet on a channel.
@@ -211,21 +210,6 @@ func (k Keeper) RecvPacket(
 	commitment := types.CommitPacket(k.cdc, packet)
 
 	if len(channel.ConnectionHops) > 1 {
-		// verify multihop proof
-		consensusState, found := k.clientKeeper.GetClientConsensusState(ctx, connectionEnd.ClientId, proofHeight)
-		if !found {
-			return sdkerrors.Wrapf(clienttypes.ErrConsensusStateNotFound,
-				"consensus state not found for client id: %s", connectionEnd.ClientId)
-		}
-		var mProof types.MsgMultihopProofs
-		if err := k.cdc.Unmarshal(proof, &mProof); err != nil {
-			return err
-		}
-
-		multihopConnectionEnd, err := mProof.GetMultihopConnectionEnd(k.cdc)
-		if err != nil {
-			return err
-		}
 
 		key := host.PacketCommitmentPath(
 			packet.GetSourcePort(),
@@ -233,9 +217,9 @@ func (k Keeper) RecvPacket(
 			packet.GetSequence(),
 		)
 
-		prefix := multihopConnectionEnd.GetCounterparty().GetPrefix()
-
-		if err := mh.VerifyMultihopProof(k.cdc, consensusState, channel.ConnectionHops, &mProof, prefix, key, commitment); err != nil {
+		if err := k.connectionKeeper.VerifyMultihopProof(
+			ctx, connectionEnd, proofHeight, proof,
+			channel.ConnectionHops, key, commitment); err != nil {
 			return err
 		}
 	} else {
@@ -486,23 +470,7 @@ func (k Keeper) AcknowledgePacket(
 		)
 	}
 
-	if len(channel.ConnectionHops) > 1 {
-		// verify multihop proof
-		// get the consensus state at the proofHeight
-		consensusState, found := k.clientKeeper.GetClientConsensusState(ctx, connectionEnd.ClientId, proofHeight)
-		if !found {
-			return sdkerrors.Wrapf(clienttypes.ErrConsensusStateNotFound,
-				"consensus state not found for client id: %s", connectionEnd.ClientId)
-		}
-		var mProof types.MsgMultihopProofs
-		if err := k.cdc.Unmarshal(proof, &mProof); err != nil {
-			return err
-		}
-
-		multihopConnectionEnd, err := mProof.GetMultihopConnectionEnd(k.cdc)
-		if err != nil {
-			return err
-		}
+	if len(channel.ConnectionHops) > 1 { // verify multihop proof
 
 		key := host.PacketAcknowledgementPath(
 			packet.GetDestPort(),
@@ -510,13 +478,14 @@ func (k Keeper) AcknowledgePacket(
 			packet.GetSequence(),
 		)
 
-		prefix := multihopConnectionEnd.GetCounterparty().GetPrefix()
+		ackCommitment := types.CommitAcknowledgement(acknowledgement)
 
-		value := types.CommitAcknowledgement(acknowledgement)
-
-		if err := mh.VerifyMultihopProof(k.cdc, consensusState, channel.ConnectionHops, &mProof, prefix, key, value); err != nil {
+		if err := k.connectionKeeper.VerifyMultihopProof(
+			ctx, connectionEnd, proofHeight, proof,
+			channel.ConnectionHops, key, ackCommitment); err != nil {
 			return err
 		}
+
 	} else {
 		if err := k.connectionKeeper.VerifyPacketAcknowledgement(
 			ctx, connectionEnd, proofHeight, proof, packet.GetDestPort(), packet.GetDestChannel(),

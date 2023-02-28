@@ -12,6 +12,7 @@ import (
 	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	mh "github.com/cosmos/ibc-go/v7/modules/core/multihop"
 )
 
 // VerifyClientState verifies a proof of a client state of the running machine
@@ -392,4 +393,66 @@ func (k Keeper) getClientStateAndVerificationStore(ctx sdk.Context, clientID str
 	}
 
 	return clientState, store, nil
+}
+
+// VerifyMultihopProof verifies a multi-hop proof.
+func (k Keeper) VerifyMultihopProof(
+	ctx sdk.Context,
+	connection exported.ConnectionI,
+	height exported.Height,
+	proof []byte,
+	connectionHops []string,
+	key string,
+	value []byte,
+) error {
+
+	var mProof channeltypes.MsgMultihopProofs
+	if err := k.cdc.Unmarshal(proof, &mProof); err != nil {
+		return err
+	}
+
+	multihopConnectionEnd, err := mProof.GetMultihopConnectionEnd(k.cdc)
+	if err != nil {
+		return err
+	}
+
+	prefix := multihopConnectionEnd.GetCounterparty().GetPrefix()
+
+	clientID := connection.GetClientID()
+	clientStore := k.clientKeeper.ClientStore(ctx, clientID)
+
+	clientState, found := k.clientKeeper.GetClientState(ctx, clientID)
+	if !found {
+		return sdkerrors.Wrap(clienttypes.ErrClientNotFound, clientID)
+	}
+
+	if status := clientState.Status(ctx, clientStore, k.cdc); status != exported.Active {
+		return sdkerrors.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
+	}
+
+	if clientState.GetLatestHeight().LT(height) {
+		return sdkerrors.Wrapf(
+			sdkerrors.ErrInvalidHeight,
+			"client state height < proof height (%d < %d), please ensure the client has been updated",
+			clientState.GetLatestHeight(), height,
+		)
+	}
+
+	delayPeriod, err := mProof.GetMaximumDelayPeriod(k.cdc, connection)
+	if err != nil {
+		return err
+	}
+	expectedTimePerBlock := k.GetMaxExpectedTimePerBlock(ctx)
+
+	if err := mh.VerifyDelayPeriodPassed(ctx, clientStore, height, delayPeriod, expectedTimePerBlock); err != nil {
+		return err
+	}
+
+	consensusState, found := k.clientKeeper.GetClientConsensusState(ctx, clientID, height)
+	if !found {
+		return sdkerrors.Wrapf(clienttypes.ErrConsensusStateNotFound,
+			"consensus state not found for client id: %s", clientID)
+	}
+
+	return mh.VerifyMultihopProof(k.cdc, consensusState, connectionHops, &mProof, prefix, key, value)
 }

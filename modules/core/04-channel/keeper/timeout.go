@@ -8,12 +8,10 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
-	mh "github.com/cosmos/ibc-go/v7/modules/core/multihop"
 )
 
 // TimeoutPacket is called by a module which originally attempted to send a
@@ -129,15 +127,12 @@ func (k Keeper) TimeoutPacket(
 		// check that the recv sequence is as claimed
 		if len(channel.ConnectionHops) > 1 {
 			// verify multihop proof
-			consensusState, found := k.clientKeeper.GetClientConsensusState(ctx, connectionEnd.ClientId, proofHeight)
-			if !found {
-				err = sdkerrors.Wrapf(clienttypes.ErrConsensusStateNotFound,
-					"consensus state not found for client id: %s", connectionEnd.ClientId)
-			}
 			key := host.NextSequenceRecvPath(packet.GetSourcePort(), packet.GetSourceChannel())
-			prefix := connectionEnd.GetCounterparty().GetPrefix()
-			val := sdk.Uint64ToBigEndian(nextSequenceRecv)
-			err = mh.VerifyMultihopProof(k.cdc, consensusState, channel.ConnectionHops, &mProof, prefix, key, val)
+			value := sdk.Uint64ToBigEndian(nextSequenceRecv)
+
+			err = k.connectionKeeper.VerifyMultihopProof(
+				ctx, connectionEnd, proofHeight, proof,
+				channel.ConnectionHops, key, value)
 		} else {
 			err = k.connectionKeeper.VerifyNextSequenceRecv(
 				ctx, connectionEnd, proofHeight, proof,
@@ -147,20 +142,16 @@ func (k Keeper) TimeoutPacket(
 	case types.UNORDERED:
 		if len(channel.ConnectionHops) > 1 {
 			// verify multihop proof
-			consensusState, found := k.clientKeeper.GetClientConsensusState(ctx, connectionEnd.ClientId, proofHeight)
-			if !found {
-				err = sdkerrors.Wrapf(clienttypes.ErrConsensusStateNotFound,
-					"consensus state not found for client id: %s", connectionEnd.ClientId)
-			}
 			key := host.PacketReceiptPath(
 				packet.GetSourcePort(),
 				packet.GetSourceChannel(),
 				packet.GetSequence(),
 			)
-			prefix := connectionEnd.GetCounterparty().GetPrefix()
 			var value []byte = nil
 
-			err = mh.VerifyMultihopProof(k.cdc, consensusState, channel.ConnectionHops, &mProof, prefix, key, value)
+			err = k.connectionKeeper.VerifyMultihopProof(
+				ctx, connectionEnd, proofHeight, proof,
+				channel.ConnectionHops, key, value)
 		} else {
 			err = k.connectionKeeper.VerifyPacketReceiptAbsence(
 				ctx, connectionEnd, proofHeight, proof,
@@ -313,32 +304,20 @@ func (k Keeper) TimeoutOnClose(
 		types.CLOSED, channel.Ordering, counterparty, counterpartyHops, channel.Version,
 	)
 
+	// verify multihop proof
 	if len(channel.ConnectionHops) > 1 {
-
-		// expected value bytes
+		key := host.ChannelPath(counterparty.PortId, counterparty.ChannelId)
 		value, err := expectedChannel.Marshal()
 		if err != nil {
 			return err
 		}
 
-		// verify multihop proof
-		consensusState, found := k.clientKeeper.GetClientConsensusState(ctx, connectionEnd.ClientId, proofHeight)
-		if !found {
-			return sdkerrors.Wrapf(clienttypes.ErrConsensusStateNotFound,
-				"consensus state not found for client id: %s", connectionEnd.ClientId)
-		}
-
-		multihopConnectionEnd, err := mProofClosed.GetMultihopConnectionEnd(k.cdc)
-		if err != nil {
+		if err := k.connectionKeeper.VerifyMultihopProof(
+			ctx, connectionEnd, proofHeight, proofClosed,
+			channel.ConnectionHops, key, value); err != nil {
 			return err
 		}
 
-		key := host.ChannelPath(counterparty.PortId, counterparty.ChannelId)
-		prefix := multihopConnectionEnd.GetCounterparty().GetPrefix()
-
-		if err := mh.VerifyMultihopProof(k.cdc, consensusState, channel.ConnectionHops, &mProofClosed, prefix, key, value); err != nil {
-			return err
-		}
 	} else {
 		// check that the opposing channel end has closed
 		if err := k.connectionKeeper.VerifyChannelState(
@@ -359,22 +338,11 @@ func (k Keeper) TimeoutOnClose(
 
 		// check that the recv sequence is as claimed
 		if len(channel.ConnectionHops) > 1 {
-			// verify multihop proof
-			consensusState, found := k.clientKeeper.GetClientConsensusState(ctx, connectionEnd.ClientId, proofHeight)
-			if !found {
-				return sdkerrors.Wrapf(clienttypes.ErrConsensusStateNotFound,
-					"consensus state not found for client id: %s", connectionEnd.ClientId)
-			}
-
-			multihopConnectionEnd, err := mProof.GetMultihopConnectionEnd(k.cdc)
-			if err != nil {
-				return err
-			}
-
 			key := host.NextSequenceRecvPath(packet.GetSourcePort(), packet.GetSourceChannel())
-			prefix := multihopConnectionEnd.GetCounterparty().GetPrefix()
-			val := sdk.Uint64ToBigEndian(nextSequenceRecv)
-			if err := mh.VerifyMultihopProof(k.cdc, consensusState, channel.ConnectionHops, &mProof, prefix, key, val); err != nil {
+			value := sdk.Uint64ToBigEndian(nextSequenceRecv)
+			if err := k.connectionKeeper.VerifyMultihopProof(
+				ctx, connectionEnd, proofHeight, proof,
+				channel.ConnectionHops, key, value); err != nil {
 				return err
 			}
 
@@ -388,27 +356,16 @@ func (k Keeper) TimeoutOnClose(
 		}
 	case types.UNORDERED:
 		if len(channel.ConnectionHops) > 1 {
-			// verify multihop proof
-			consensusState, found := k.clientKeeper.GetClientConsensusState(ctx, connectionEnd.ClientId, proofHeight)
-			if !found {
-				return sdkerrors.Wrapf(clienttypes.ErrConsensusStateNotFound,
-					"consensus state not found for client id: %s", connectionEnd.ClientId)
-			}
-
-			multihopConnectionEnd, err := mProof.GetMultihopConnectionEnd(k.cdc)
-			if err != nil {
-				return err
-			}
-
 			key := host.PacketReceiptPath(
 				packet.GetSourcePort(),
 				packet.GetSourceChannel(),
 				packet.GetSequence(),
 			)
-			prefix := multihopConnectionEnd.GetCounterparty().GetPrefix()
 			var value []byte = nil
 
-			if err := mh.VerifyMultihopProof(k.cdc, consensusState, channel.ConnectionHops, &mProof, prefix, key, value); err != nil {
+			if err := k.connectionKeeper.VerifyMultihopProof(
+				ctx, connectionEnd, proofHeight, proof,
+				channel.ConnectionHops, key, value); err != nil {
 				return err
 			}
 		} else {

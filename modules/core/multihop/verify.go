@@ -2,9 +2,11 @@ package multihop
 
 import (
 	"fmt"
+	"math"
 	"strings"
 
 	"github.com/cosmos/cosmos-sdk/codec"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
@@ -14,6 +16,31 @@ import (
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	tmclient "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 )
+
+// VerifyDelayPeriodPassed will ensure that at least delayTimePeriod amount of time and delayBlockPeriod number of blocks have passed
+// since consensus state was submitted before allowing verification to continue.
+func VerifyDelayPeriodPassed(
+	ctx sdk.Context,
+	store sdk.KVStore,
+	proofHeight exported.Height,
+	timeDelay uint64,
+	expectedTimePerBlock uint64,
+) error {
+	// get time and block delays
+	blockDelay := getBlockDelay(ctx, timeDelay, expectedTimePerBlock)
+	return tmclient.VerifyDelayPeriodPassed(ctx, store, proofHeight, timeDelay, blockDelay)
+}
+
+// getBlockDelay calculates the block delay period from the time delay of the connection
+// and the maximum expected time per block.
+func getBlockDelay(ctx sdk.Context, timeDelay uint64, expectedTimePerBlock uint64) uint64 {
+	// expectedTimePerBlock should never be zero, however if it is then return a 0 block delay for safety
+	// as the expectedTimePerBlock parameter was not set.
+	if expectedTimePerBlock == 0 {
+		return 0
+	}
+	return uint64(math.Ceil(float64(timeDelay) / float64(expectedTimePerBlock)))
+}
 
 // VerifyMultihopProof verifies a multihop proof. A nil value indicates a non-inclusion proof (proof of absence).
 func VerifyMultihopProof(
