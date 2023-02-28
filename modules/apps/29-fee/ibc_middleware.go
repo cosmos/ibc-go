@@ -275,7 +275,7 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 
 	payee, found := im.keeper.GetPayeeAddress(ctx, relayer.String(), packet.SourceChannel)
 	if !found {
-		payee = relayer
+		payee = relayer.String()
 	}
 
 	payeeAddr, err := sdk.AccAddressFromBech32(payee)
@@ -314,8 +314,8 @@ func (im IBCMiddleware) OnTimeoutPacket(
 
 	payee, found := im.keeper.GetPayeeAddress(ctx, relayer.String(), packet.SourceChannel)
 	if !found {
-		payee = relayer
-	}
+		payee = relayer.String()
+	} else {
 
 	payeeAddr, err := sdk.AccAddressFromBech32(payee)
 	if err != nil {
