@@ -7,6 +7,7 @@ import (
 	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
+	localhost "github.com/cosmos/ibc-go/v7/modules/light-clients/09-localhost"
 )
 
 // RegisterInterfaces registers x/ibc interfaces into protobuf Any.
@@ -15,4 +16,5 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	connectiontypes.RegisterInterfaces(registry)
 	channeltypes.RegisterInterfaces(registry)
 	commitmenttypes.RegisterInterfaces(registry)
+	localhost.RegisterInterfaces(registry)
 }
