@@ -67,7 +67,7 @@ func (suite *WasmTestSuite) SetupTest() {
 	suite.store = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), exported.Wasm)
 
 	os.MkdirAll("tmp", 0o755)
-	suite.wasmKeeper = app.IBCKeeper.WasmClientKeeper
+	suite.wasmKeeper = app.WasmClientKeeper
 	data, err = os.ReadFile("test_data/ics10_grandpa_cw.wasm")
 	suite.Require().NoError(err)
 
