@@ -157,7 +157,7 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestSendTransferDoesNotSetTotalEscrowAmountForSourceIBCToken() {
+func (suite *KeeperTestSuite) TestSendTransferSetsTotalEscrowAmountForSourceIBCToken() {
 	/*
 		Given the following flow of tokens:
 
@@ -168,10 +168,12 @@ func (suite *KeeperTestSuite) TestSendTransferDoesNotSetTotalEscrowAmountForSour
 		                             SendTransfer
 
 		This test will transfer vouchers of denom "transfer/channel-0/stake" from chain B
-		to chain A over channel-1 to assert that no total escrow amount is stored on chain B.
+		to chain A over channel-1 to assert that total escrow amount is stored on chain B
+		for vouchers of denom "transfer/channel-0/stake" because chain B acts as source
+		in this case.
 
 		Set up:
-		- Two transfer channels between chain A and chain B.
+		- Two transfer channels between chain A and chain B (channel-0 and channel-1).
 		- Tokens of native denom "stake" on chain A transferred to chain B over channel-0
 		and vouchers minted with denom trace "tranfer/channel-0/stake".
 
@@ -180,8 +182,9 @@ func (suite *KeeperTestSuite) TestSendTransferDoesNotSetTotalEscrowAmountForSour
 		over channel-1.
 
 		Assert:
-		- Since the vouchers are not of a native denom, but chain B is the source, then no
-		value for total escrow amount should be stored for denom trace "tranfer/channel-0/stake".
+		- The vouchers are not of a native denom (because they are of an IBC denom), but chain B
+		is the source, then the value for total escrow amount should still be stored for the IBC
+		denom that corresponds to the trace "tranfer/channel-0/stake".
 	*/
 
 	// set up
@@ -229,7 +232,7 @@ func (suite *KeeperTestSuite) TestSendTransferDoesNotSetTotalEscrowAmountForSour
 
 	// check total amount in escrow of sent token on sending chain
 	totalEscrow := suite.chainB.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(suite.chainB.GetContext(), coin.GetDenom())
-	suite.Require().Equal(math.ZeroInt(), totalEscrow)
+	suite.Require().Equal(math.NewInt(100), totalEscrow)
 }
 
 // test receiving coin on chainB with coin that orignate on chainA and
@@ -406,7 +409,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestOnRecvPacketDoesNotSetTotalEscrowAmountForSourceIBCToken() {
+func (suite *KeeperTestSuite) TestOnRecvPacketSetsTotalEscrowAmountForSourceIBCToken() {
 	/*
 		Given the following flow of tokens:
 
@@ -417,7 +420,8 @@ func (suite *KeeperTestSuite) TestOnRecvPacketDoesNotSetTotalEscrowAmountForSour
 		                                                                                                              OnRecvPacket
 
 		This test will assert that on receiving vouchers of denom "transfer/channel-0/stake"
-		on chain B no total escrow amount is stored on chain B.
+		on chain B the total escrow amount is updated on chain B because chain B acted as source
+		when vouchers were transfered to chain A over channel-1.
 
 		Setup:
 		- Two transfer channels between chain A and chain B.
@@ -429,8 +433,10 @@ func (suite *KeeperTestSuite) TestOnRecvPacketDoesNotSetTotalEscrowAmountForSour
 		over channel-1.
 
 		Assert:
-		- Since the vouchers are not of a native denom, but chain B is the source, then no
-		value for total escrow amount should be stored for denom trace "transfer/channel-0/stake".
+		- The vouchers are not of a native denom (because they are of an IBC denom), but chain B
+		is the source, then the value for total escrow amount should still be updated for the IBC
+		denom that corresponds to the trace "tranfer/channel-0/stake" when the vouchers are
+		received back on chain B.
 	*/
 
 	seq := uint64(1)
@@ -600,7 +606,7 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestOnAcknowledgementPacketDoesNotSetTotalEscrowAmountForSourceIBCToken() {
+func (suite *KeeperTestSuite) TestOnAcknowledgementPacketSetsTotalEscrowAmountForSourceIBCToken() {
 	/*
 		This test is testing the following scenario. Given tokens travelling like this:
 
@@ -611,7 +617,7 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacketDoesNotSetTotalEscrowAm
 		                         OnAcknowledgePacket
 
 		We want to assert that on failed acknowledgment of vouchers sent with denom trace
-		"transfer/channel-0/stake" on chain B no total escrow amount is stored.
+		"transfer/channel-0/stake" on chain B the total escrow amount is updated.
 
 		Set up:
 		- Two transfer channels between chain A and chain B.
@@ -623,8 +629,10 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacketDoesNotSetTotalEscrowAm
 		to chain B over channel-1.
 
 		Assert:
-		- Since the vouchers are not of a native denom, but chain B is the source, then no
-		value for total escrow amount should be stored for denom trace "tranfer/channel-0/stake".
+		- The vouchers are not of a native denom (because they are of an IBC denom), but chain B
+		is the source, then the value for total escrow amount should still be updated for the IBC
+		denom that corresponds to the trace "tranfer/channel-0/stake" when processing the failed
+		acknowledgement.
 	*/
 
 	seq := uint64(1)
@@ -796,7 +804,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestOnTimeoutPacketDoesNotSetTotalEscrowAmountForSourceIBCToken() {
+func (suite *KeeperTestSuite) TestOnTimeoutPacketSetsTotalEscrowAmountForSourceIBCToken() {
 	/*
 		Given the following flow of tokens:
 
@@ -807,7 +815,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacketDoesNotSetTotalEscrowAmountForS
 		                           OnTimeoutPacket
 
 		We want to assert that on timeout of vouchers sent with denom trace
-		"transfer/channel-0/stake" on chain B no total escrow amount is stored.
+		"transfer/channel-0/stake" on chain B the total escrow amount is updated.
 
 		Set up:
 		- Two transfer channels between chain A and chain B.
@@ -819,8 +827,9 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacketDoesNotSetTotalEscrowAmountForS
 		to chain B over channel-1.
 
 		Assert:
-		- Since the vouchers are not of a native denom, but chain B is the source, then no
-		value for total escrow amount should be stored for denom trace "tranfer/channel-0/stake".
+		- The vouchers are not of a native denom (because they are of an IBC denom), but chain B
+		is the source, then the value for total escrow amount should still be updated for the IBC
+		denom that corresponds to the trace "tranfer/channel-0/stake" when processing the timeout.
 	*/
 
 	seq := uint64(1)
