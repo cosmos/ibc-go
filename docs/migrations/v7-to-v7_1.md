@@ -5,10 +5,10 @@ This guide provides instructions for migrating to version `v7.1.0` of ibc-go.
 There are four sections based on the four potential user groups of this document:
 
 - [Migrating from v7 to v7.1](#migrating-from-v7-to-v71)
-  - [Chains](#chains)
-  - [IBC Apps](#ibc-apps)
-  - [Relayers](#relayers)
-  - [IBC Light Clients](#ibc-light-clients)
+	- [Chains](#chains)
+	- [IBC Apps](#ibc-apps)
+	- [Relayers](#relayers)
+	- [IBC Light Clients](#ibc-light-clients)
 
 **Note:** ibc-go supports golang semantic versioning and therefore all imports must be updated on major version releases.
 
@@ -40,8 +40,7 @@ func CreateV7LocalhostUpgradeHandler(
 }
 ```
 
-<!-- TODO: Uncomment below when docs are merged -->
-<!-- [For more information please refer to the 09-localhost light client module documentation](../ibc/light-clients/localhost/overview.md). -->
+[For more information please refer to the 09-localhost light client module documentation](../ibc/light-clients/localhost/overview.md).
 
 ## IBC Apps
 
