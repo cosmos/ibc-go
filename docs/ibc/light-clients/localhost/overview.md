@@ -37,3 +37,4 @@ The table below lists some important differences:
 | Connection creation                          | Connection handshake, provided underlying client | Sentinel `ConnectionEnd` is created and set in store in the `InitGenesis` handler of the 03-connection submodule in core IBC |
 | Counterparty                                 | Underlying client, representing another chain | Client with identifier `09-localhost` in same chain |
 | `VerifyMembership` and `VerifyNonMembership` | Performs proof verification using consensus state roots | Performs state verification using key-value lookups in the core IBC store |
+| Integration | Expected to register codec types using the `AppModuleBasic` interface | Registers codec types within the core IBC module |
