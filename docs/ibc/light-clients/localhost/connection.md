@@ -13,8 +13,11 @@ The `ConnectionEnd` is created and set in store via the `InitGenesis` handler of
 The `ConnectionEnd` and its `Counterparty` both reference the `09-localhost` client identifier, and share the localhost connection identifier `connection-localhost`.
 
 ```go
-func (k Keeper) CreateSentinelLocalhostConnection() types.ConnectionEnd {
-  counterparty := types.NewCounterparty(exported.Localhost, types.LocalhostID, commitmenttypes.NewMerklePrefix(k.GetCommitmentPrefix().Bytes()))
-  return types.NewConnectionEnd(types.OPEN, exported.Localhost, counterparty, types.ExportedVersionsToProto(types.GetCompatibleVersions()), 0)
+// CreateSentinelLocalhostConnection creates and sets the sentinel localhost connection end in the IBC store.
+func (k Keeper) CreateSentinelLocalhostConnection(ctx sdk.Context) {
+	counterparty := types.NewCounterparty(exported.LocalhostClientID, exported.LocalhostConnectionID, commitmenttypes.NewMerklePrefix(k.GetCommitmentPrefix().Bytes()))
+	connectionEnd := types.NewConnectionEnd(types.OPEN, exported.LocalhostClientID, counterparty, types.ExportedVersionsToProto(types.GetCompatibleVersions()), 0)
+
+	k.SetConnection(ctx, exported.LocalhostConnectionID, connectionEnd)
 }
 ```
