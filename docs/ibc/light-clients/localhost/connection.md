@@ -21,3 +21,5 @@ func (k Keeper) CreateSentinelLocalhostConnection(ctx sdk.Context) {
 	k.SetConnection(ctx, exported.LocalhostConnectionID, connectionEnd)
 }
 ```
+
+Note that connection handshakes are disallowed when using the `09-localhost` client type.
