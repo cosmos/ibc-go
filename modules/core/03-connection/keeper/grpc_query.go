@@ -3,9 +3,9 @@ package keeper
 import (
 	"context"
 
+	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/query"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -32,7 +32,7 @@ func (q Keeper) Connection(c context.Context, req *types.QueryConnectionRequest)
 	if !found {
 		return nil, status.Error(
 			codes.NotFound,
-			sdkerrors.Wrap(types.ErrConnectionNotFound, req.ConnectionId).Error(),
+			errorsmod.Wrap(types.ErrConnectionNotFound, req.ConnectionId).Error(),
 		)
 	}
 
@@ -94,7 +94,7 @@ func (q Keeper) ClientConnections(c context.Context, req *types.QueryClientConne
 	if !found {
 		return nil, status.Error(
 			codes.NotFound,
-			sdkerrors.Wrap(types.ErrClientConnectionPathsNotFound, req.ClientId).Error(),
+			errorsmod.Wrap(types.ErrClientConnectionPathsNotFound, req.ClientId).Error(),
 		)
 	}
 
@@ -120,7 +120,7 @@ func (q Keeper) ConnectionClientState(c context.Context, req *types.QueryConnect
 	if !found {
 		return nil, status.Error(
 			codes.NotFound,
-			sdkerrors.Wrapf(types.ErrConnectionNotFound, "connection-id: %s", req.ConnectionId).Error(),
+			errorsmod.Wrapf(types.ErrConnectionNotFound, "connection-id: %s", req.ConnectionId).Error(),
 		)
 	}
 
@@ -128,7 +128,7 @@ func (q Keeper) ConnectionClientState(c context.Context, req *types.QueryConnect
 	if !found {
 		return nil, status.Error(
 			codes.NotFound,
-			sdkerrors.Wrapf(clienttypes.ErrClientNotFound, "client-id: %s", connection.ClientId).Error(),
+			errorsmod.Wrapf(clienttypes.ErrClientNotFound, "client-id: %s", connection.ClientId).Error(),
 		)
 	}
 
@@ -154,7 +154,7 @@ func (q Keeper) ConnectionConsensusState(c context.Context, req *types.QueryConn
 	if !found {
 		return nil, status.Error(
 			codes.NotFound,
-			sdkerrors.Wrapf(types.ErrConnectionNotFound, "connection-id: %s", req.ConnectionId).Error(),
+			errorsmod.Wrapf(types.ErrConnectionNotFound, "connection-id: %s", req.ConnectionId).Error(),
 		)
 	}
 
@@ -163,7 +163,7 @@ func (q Keeper) ConnectionConsensusState(c context.Context, req *types.QueryConn
 	if !found {
 		return nil, status.Error(
 			codes.NotFound,
-			sdkerrors.Wrapf(clienttypes.ErrConsensusStateNotFound, "client-id: %s", connection.ClientId).Error(),
+			errorsmod.Wrapf(clienttypes.ErrConsensusStateNotFound, "client-id: %s", connection.ClientId).Error(),
 		)
 	}
 

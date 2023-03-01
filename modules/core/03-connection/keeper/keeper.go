@@ -1,10 +1,10 @@
 package keeper
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/tendermint/tendermint/libs/log"
 
@@ -95,7 +95,7 @@ func (k Keeper) SetConnection(ctx sdk.Context, connectionID string, connection t
 func (k Keeper) GetTimestampAtHeight(ctx sdk.Context, connection types.ConnectionEnd, height exported.Height) (uint64, error) {
 	clientState, found := k.clientKeeper.GetClientState(ctx, connection.GetClientID())
 	if !found {
-		return 0, sdkerrors.Wrapf(
+		return 0, errorsmod.Wrapf(
 			clienttypes.ErrClientNotFound, "clientID (%s)", connection.GetClientID(),
 		)
 	}
@@ -196,10 +196,12 @@ func (k Keeper) GetAllConnections(ctx sdk.Context) (connections []types.Identifi
 	return connections
 }
 
-// CreateSentinelLocalhostConnection returns the sentinel localhost connection end.
-func (k Keeper) CreateSentinelLocalhostConnection() types.ConnectionEnd {
+// CreateSentinelLocalhostConnection creates and sets the sentinel localhost connection end in the IBC store.
+func (k Keeper) CreateSentinelLocalhostConnection(ctx sdk.Context) {
 	counterparty := types.NewCounterparty(exported.LocalhostClientID, exported.LocalhostConnectionID, commitmenttypes.NewMerklePrefix(k.GetCommitmentPrefix().Bytes()))
-	return types.NewConnectionEnd(types.OPEN, exported.LocalhostClientID, counterparty, types.ExportedVersionsToProto(types.GetCompatibleVersions()), 0)
+	connectionEnd := types.NewConnectionEnd(types.OPEN, exported.LocalhostClientID, counterparty, types.ExportedVersionsToProto(types.GetCompatibleVersions()), 0)
+
+	k.SetConnection(ctx, exported.LocalhostConnectionID, connectionEnd)
 }
 
 // addConnectionToClient is used to add a connection identifier to the set of
@@ -207,7 +209,7 @@ func (k Keeper) CreateSentinelLocalhostConnection() types.ConnectionEnd {
 func (k Keeper) addConnectionToClient(ctx sdk.Context, clientID, connectionID string) error {
 	_, found := k.clientKeeper.GetClientState(ctx, clientID)
 	if !found {
-		return sdkerrors.Wrap(clienttypes.ErrClientNotFound, clientID)
+		return errorsmod.Wrap(clienttypes.ErrClientNotFound, clientID)
 	}
 
 	conns, found := k.GetClientConnectionPaths(ctx, clientID)

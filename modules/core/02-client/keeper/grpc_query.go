@@ -7,9 +7,9 @@ import (
 	"sort"
 	"strings"
 
+	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/query"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -36,7 +36,7 @@ func (q Keeper) ClientState(c context.Context, req *types.QueryClientStateReques
 	if !found {
 		return nil, status.Error(
 			codes.NotFound,
-			sdkerrors.Wrap(types.ErrClientNotFound, req.ClientId).Error(),
+			errorsmod.Wrap(types.ErrClientNotFound, req.ClientId).Error(),
 		)
 	}
 
@@ -127,7 +127,7 @@ func (q Keeper) ConsensusState(c context.Context, req *types.QueryConsensusState
 	if !found {
 		return nil, status.Error(
 			codes.NotFound,
-			sdkerrors.Wrapf(types.ErrConsensusStateNotFound, "client-id: %s, height: %s", req.ClientId, height).Error(),
+			errorsmod.Wrapf(types.ErrConsensusStateNotFound, "client-id: %s, height: %s", req.ClientId, height).Error(),
 		)
 	}
 
@@ -241,12 +241,11 @@ func (q Keeper) ClientStatus(c context.Context, req *types.QueryClientStatusRequ
 	if !found {
 		return nil, status.Error(
 			codes.NotFound,
-			sdkerrors.Wrap(types.ErrClientNotFound, req.ClientId).Error(),
+			errorsmod.Wrap(types.ErrClientNotFound, req.ClientId).Error(),
 		)
 	}
 
-	clientStore := q.ClientStore(ctx, req.ClientId)
-	status := clientState.Status(ctx, clientStore, q.cdc)
+	status := q.GetClientStatus(ctx, clientState, req.ClientId)
 
 	return &types.QueryClientStatusResponse{
 		Status: status.String(),

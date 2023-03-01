@@ -215,6 +215,11 @@ module.exports = {
               directory: false,
               path: "/roadmap/roadmap.html",
             },
+            {
+              title: "Troubleshooting",
+              directory: false,
+              path: "/ibc/troubleshooting.html",
+            },
           ],
         },
         {
@@ -392,6 +397,38 @@ module.exports = {
                   path: "/ibc/light-clients/setup.html",
                 },
               ]
+            },
+            {
+              title: "Localhost",
+              directory: true,
+              path: "/ibc/light-clients/localhost",
+              children: [
+                {
+                  title: "Overview",
+                  directory: false,
+                  path: "/ibc/light-clients/localhost/overview.html",
+                },
+                {
+                  title: "Integration",
+                  directory: false,
+                  path: "/ibc/light-clients/localhost/integration.html",
+                },
+                {
+                  title: "ClientState",
+                  directory: false,
+                  path: "/ibc/light-clients/localhost/client-state.html",
+                },
+                {
+                  title: "Connection",
+                  directory: false,
+                  path: "/ibc/light-clients/localhost/connection.html",
+                },
+                {
+                  title: "State Verification",
+                  directory: false,
+                  path: "/ibc/light-clients/localhost/state-verification.html",
+                },
+              ],
             },
             {
               title: "Solomachine",

@@ -3,9 +3,9 @@ package utils
 import (
 	"context"
 
+	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	tmtypes "github.com/tendermint/tendermint/types"
 
 	"github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
@@ -46,7 +46,7 @@ func QueryClientStateABCI(
 
 	// check if client exists
 	if len(value) == 0 {
-		return nil, sdkerrors.Wrap(types.ErrClientNotFound, clientID)
+		return nil, errorsmod.Wrap(types.ErrClientNotFound, clientID)
 	}
 
 	cdc := codec.NewProtoCodec(clientCtx.InterfaceRegistry)
@@ -99,7 +99,7 @@ func QueryConsensusStateABCI(
 
 	// check if consensus state exists
 	if len(value) == 0 {
-		return nil, sdkerrors.Wrap(types.ErrConsensusStateNotFound, clientID)
+		return nil, errorsmod.Wrap(types.ErrConsensusStateNotFound, clientID)
 	}
 
 	cdc := codec.NewProtoCodec(clientCtx.InterfaceRegistry)
