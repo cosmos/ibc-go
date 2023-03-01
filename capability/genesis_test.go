@@ -1,6 +1,7 @@
 package capability_test
 
 import (
+	"github.com/ibc-go/modules/capability"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	storetypes "cosmossdk.io/store/types"
@@ -8,7 +9,6 @@ import (
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	"github.com/ibc-go/modules/capability"
 	"github.com/ibc-go/modules/capability/keeper"
 	"github.com/ibc-go/modules/capability/testutil"
 )

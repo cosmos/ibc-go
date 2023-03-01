@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/ibc-go/modules/capability/simulation"
 	"github.com/stretchr/testify/require"
 
 	"cosmossdk.io/depinject"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/kv"
-	"github.com/ibc-go/modules/capability/simulation"
 	"github.com/ibc-go/modules/capability/testutil"
 	"github.com/ibc-go/modules/capability/types"
 )

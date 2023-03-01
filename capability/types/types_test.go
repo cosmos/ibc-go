@@ -6,9 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/stretchr/testify/require"
-
 	"github.com/ibc-go/modules/capability/types"
+	"github.com/stretchr/testify/require"
 )
 
 func TestCapabilityKey(t *testing.T) {

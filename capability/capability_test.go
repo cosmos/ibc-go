@@ -3,12 +3,9 @@ package capability_test
 import (
 	"testing"
 
-	"github.com/stretchr/testify/suite"
-	abci "github.com/tendermint/tendermint/abci/types"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-
 	storetypes "cosmossdk.io/store/types"
-
+	abci "github.com/cometbft/cometbft/abci/types"
+	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/runtime"
@@ -16,6 +13,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/ibc-go/modules/capability"
+	"github.com/stretchr/testify/suite"
+
 	"github.com/ibc-go/modules/capability/keeper"
 	"github.com/ibc-go/modules/capability/testutil"
 	"github.com/ibc-go/modules/capability/types"
