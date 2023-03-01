@@ -37,4 +37,4 @@ The table below lists some important differences:
 | Counterparty | underlying client, representing another chain | client with identifier `09-localhost` in same chain |
 | Channel creation | channel handshake, provided underlying connection | channel handshake, **out of the box** |
 | Client updates | not automatic: relayer submitting `MsgUpdateClient` |automatic: latest height is updated periodically through the ABCI [`BeginBlock`](https://docs.cosmos.network/v0.47/building-modules/beginblock-endblock) interface of the 02-client submodule in core IBC |
-| `VerifyMembership` and `VerifyNonMembership` | TODO | TODO |
+| `VerifyMembership` and `VerifyNonMembership` | Performs proof verification using consensus state roots | Performs state verification using key-value lookups in the core IBC store |
