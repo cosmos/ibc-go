@@ -33,8 +33,10 @@ func BeginBlocker(ctx sdk.Context, k keeper.Keeper) {
 		}
 	}
 
-	// update the localhost client with the latest block height
+	// update the localhost client with the latest block height if it is active.
 	if clientState, found := k.GetClientState(ctx, exported.Localhost); found {
-		k.UpdateLocalhostClient(ctx, clientState)
+		if k.GetClientStatus(ctx, clientState, exported.Localhost) == exported.Active {
+			k.UpdateLocalhostClient(ctx, clientState)
+		}
 	}
 }

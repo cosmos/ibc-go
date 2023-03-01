@@ -95,7 +95,7 @@ func (suite *LocalhostTestSuite) TestInitialize() {
 		suite.SetupTest()
 
 		clientState := localhost.NewClientState(clienttypes.NewHeight(3, 10))
-		clientStore := suite.chain.GetSimApp().GetIBCKeeper().ClientKeeper.ClientStore(suite.chain.GetContext(), exported.Localhost)
+		clientStore := suite.chain.GetSimApp().GetIBCKeeper().ClientKeeper.ClientStore(suite.chain.GetContext(), exported.LocalhostClientID)
 
 		err := clientState.Initialize(suite.chain.GetContext(), suite.chain.Codec, clientStore, tc.consState)
 
@@ -121,9 +121,9 @@ func (suite *LocalhostTestSuite) TestVerifyMembership() {
 		{
 			"success: client state verification",
 			func() {
-				clientState := suite.chain.GetClientState(exported.Localhost)
+				clientState := suite.chain.GetClientState(exported.LocalhostClientID)
 
-				merklePath := commitmenttypes.NewMerklePath(host.FullClientStatePath(exported.Localhost))
+				merklePath := commitmenttypes.NewMerklePath(host.FullClientStatePath(exported.LocalhostClientID))
 				merklePath, err := commitmenttypes.ApplyPrefix(suite.chain.GetPrefix(), merklePath)
 				suite.Require().NoError(err)
 
@@ -137,14 +137,14 @@ func (suite *LocalhostTestSuite) TestVerifyMembership() {
 			func() {
 				connectionEnd := connectiontypes.NewConnectionEnd(
 					connectiontypes.OPEN,
-					exported.Localhost,
-					connectiontypes.NewCounterparty(exported.Localhost, connectiontypes.LocalhostID, suite.chain.GetPrefix()),
+					exported.LocalhostClientID,
+					connectiontypes.NewCounterparty(exported.LocalhostClientID, exported.LocalhostConnectionID, suite.chain.GetPrefix()),
 					connectiontypes.ExportedVersionsToProto(connectiontypes.GetCompatibleVersions()), 0,
 				)
 
-				suite.chain.GetSimApp().GetIBCKeeper().ConnectionKeeper.SetConnection(suite.chain.GetContext(), connectiontypes.LocalhostID, connectionEnd)
+				suite.chain.GetSimApp().GetIBCKeeper().ConnectionKeeper.SetConnection(suite.chain.GetContext(), exported.LocalhostConnectionID, connectionEnd)
 
-				merklePath := commitmenttypes.NewMerklePath(host.ConnectionPath(connectiontypes.LocalhostID))
+				merklePath := commitmenttypes.NewMerklePath(host.ConnectionPath(exported.LocalhostConnectionID))
 				merklePath, err := commitmenttypes.ApplyPrefix(suite.chain.GetPrefix(), merklePath)
 				suite.Require().NoError(err)
 
@@ -160,7 +160,7 @@ func (suite *LocalhostTestSuite) TestVerifyMembership() {
 					channeltypes.OPEN,
 					channeltypes.UNORDERED,
 					channeltypes.NewCounterparty(mock.PortID, ibctesting.FirstChannelID),
-					[]string{connectiontypes.LocalhostID},
+					[]string{exported.LocalhostConnectionID},
 					mock.Version,
 				)
 
@@ -263,7 +263,7 @@ func (suite *LocalhostTestSuite) TestVerifyMembership() {
 					channeltypes.OPEN,
 					channeltypes.UNORDERED,
 					channeltypes.NewCounterparty(mock.PortID, ibctesting.FirstChannelID),
-					[]string{connectiontypes.LocalhostID},
+					[]string{exported.LocalhostConnectionID},
 					mock.Version,
 				)
 
@@ -290,7 +290,7 @@ func (suite *LocalhostTestSuite) TestVerifyMembership() {
 
 			tc.malleate()
 
-			clientState := suite.chain.GetClientState(exported.Localhost)
+			clientState := suite.chain.GetClientState(exported.LocalhostClientID)
 			store := suite.chain.GetContext().KVStore(suite.chain.GetSimApp().GetKey(exported.StoreKey))
 
 			err := clientState.VerifyMembership(
@@ -299,7 +299,7 @@ func (suite *LocalhostTestSuite) TestVerifyMembership() {
 				suite.chain.Codec,
 				clienttypes.ZeroHeight(),
 				0, 0, // use zero values for delay periods
-				nil, // localhost proofs are nil
+				localhost.SentinelProof,
 				path,
 				value,
 			)
@@ -369,7 +369,7 @@ func (suite *LocalhostTestSuite) TestVerifyNonMembership() {
 
 			tc.malleate()
 
-			clientState := suite.chain.GetClientState(exported.Localhost)
+			clientState := suite.chain.GetClientState(exported.LocalhostClientID)
 			store := suite.chain.GetContext().KVStore(suite.chain.GetSimApp().GetKey(exported.StoreKey))
 
 			err := clientState.VerifyNonMembership(
@@ -378,7 +378,7 @@ func (suite *LocalhostTestSuite) TestVerifyNonMembership() {
 				suite.chain.Codec,
 				clienttypes.ZeroHeight(),
 				0, 0, // use zero values for delay periods
-				nil, // localhost proofs are nil
+				localhost.SentinelProof,
 				path,
 			)
 
@@ -403,7 +403,7 @@ func (suite *LocalhostTestSuite) TestVerifyCheckForMisbehaviour() {
 
 func (suite *LocalhostTestSuite) TestUpdateState() {
 	clientState := localhost.NewClientState(clienttypes.NewHeight(1, uint64(suite.chain.GetContext().BlockHeight())))
-	store := suite.chain.GetSimApp().GetIBCKeeper().ClientKeeper.ClientStore(suite.chain.GetContext(), exported.Localhost)
+	store := suite.chain.GetSimApp().GetIBCKeeper().ClientKeeper.ClientStore(suite.chain.GetContext(), exported.LocalhostClientID)
 
 	suite.coordinator.CommitBlock(suite.chain)
 
@@ -412,7 +412,7 @@ func (suite *LocalhostTestSuite) TestUpdateState() {
 	expHeight := clienttypes.NewHeight(1, uint64(suite.chain.GetContext().BlockHeight()))
 	suite.Require().True(heights[0].EQ(expHeight))
 
-	clientState = suite.chain.GetClientState(exported.Localhost)
+	clientState = suite.chain.GetClientState(exported.LocalhostClientID)
 	suite.Require().True(heights[0].EQ(clientState.GetLatestHeight()))
 }
 

@@ -111,7 +111,7 @@ func (suite *KeeperTestSuite) TestQueryClientStates() {
 		{
 			"empty pagination",
 			func() {
-				localhost := types.NewIdentifiedClientState(exported.Localhost, suite.chainA.GetClientState(exported.Localhost))
+				localhost := types.NewIdentifiedClientState(exported.LocalhostClientID, suite.chainA.GetClientState(exported.LocalhostClientID))
 				expClientStates = types.IdentifiedClientStates{localhost}
 				req = &types.QueryClientStatesRequest{}
 			},
@@ -120,7 +120,7 @@ func (suite *KeeperTestSuite) TestQueryClientStates() {
 		{
 			"success, only localhost",
 			func() {
-				localhost := types.NewIdentifiedClientState(exported.Localhost, suite.chainA.GetClientState(exported.Localhost))
+				localhost := types.NewIdentifiedClientState(exported.LocalhostClientID, suite.chainA.GetClientState(exported.LocalhostClientID))
 				expClientStates = types.IdentifiedClientStates{localhost}
 				req = &types.QueryClientStatesRequest{
 					Pagination: &query.PageRequest{
@@ -143,7 +143,7 @@ func (suite *KeeperTestSuite) TestQueryClientStates() {
 				clientStateA1 := path1.EndpointA.GetClientState()
 				clientStateA2 := path2.EndpointA.GetClientState()
 
-				localhost := types.NewIdentifiedClientState(exported.Localhost, suite.chainA.GetClientState(exported.Localhost))
+				localhost := types.NewIdentifiedClientState(exported.LocalhostClientID, suite.chainA.GetClientState(exported.LocalhostClientID))
 				idcs := types.NewIdentifiedClientState(path1.EndpointA.ClientID, clientStateA1)
 				idcs2 := types.NewIdentifiedClientState(path2.EndpointA.ClientID, clientStateA2)
 

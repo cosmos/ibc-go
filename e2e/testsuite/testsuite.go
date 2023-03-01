@@ -2,7 +2,6 @@ package testsuite
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -40,6 +39,7 @@ import (
 	feetypes "github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 )
 
@@ -71,11 +71,12 @@ type E2ETestSuite struct {
 // These should typically be used for query clients only. If we need to make changes, we should
 // use E2ETestSuite.BroadcastMessages to broadcast transactions instead.
 type GRPCClients struct {
-	ClientQueryClient  clienttypes.QueryClient
-	ChannelQueryClient channeltypes.QueryClient
-	FeeQueryClient     feetypes.QueryClient
-	ICAQueryClient     controllertypes.QueryClient
-	InterTxQueryClient intertxtypes.QueryClient
+	ClientQueryClient     clienttypes.QueryClient
+	ConnectionQueryClient connectiontypes.QueryClient
+	ChannelQueryClient    channeltypes.QueryClient
+	FeeQueryClient        feetypes.QueryClient
+	ICAQueryClient        controllertypes.QueryClient
+	InterTxQueryClient    intertxtypes.QueryClient
 
 	// SDK query clients
 	GovQueryClient    govtypesv1beta1.QueryClient
@@ -170,6 +171,29 @@ func (s *E2ETestSuite) SetupChainsRelayerAndChannel(ctx context.Context, channel
 	chainAChannels, err := r.GetChannels(ctx, eRep, chainA.Config().ChainID)
 	s.Require().NoError(err)
 	return r, chainAChannels[len(chainAChannels)-1]
+}
+
+// SetupSingleChain creates and returns a single CosmosChain for usage in e2e tests.
+// This is useful for testing single chain functionality when performing coordinated upgrades as well as testing localhost ibc client functionality.
+// TODO: Actually setup a single chain. Seeing panic: runtime error: index out of range [0] with length 0 when using a single chain.
+// issue: https://github.com/strangelove-ventures/interchaintest/issues/401
+func (s *E2ETestSuite) SetupSingleChain(ctx context.Context) *cosmos.CosmosChain {
+	chainA, chainB := s.GetChains()
+
+	ic := interchaintest.NewInterchain().AddChain(chainA).AddChain(chainB)
+
+	eRep := s.GetRelayerExecReporter()
+	s.Require().NoError(ic.Build(ctx, eRep, interchaintest.InterchainBuildOptions{
+		TestName:         s.T().Name(),
+		Client:           s.DockerClient,
+		NetworkID:        s.network,
+		SkipPathCreation: true,
+	}))
+
+	s.InitGRPCClients(chainA)
+	s.InitGRPCClients(chainB)
+
+	return chainA
 }
 
 // generatePathName generates the path name using the test suites name
@@ -383,17 +407,18 @@ func (s *E2ETestSuite) InitGRPCClients(chain *cosmos.CosmosChain) {
 	}
 
 	s.grpcClients[chain.Config().ChainID] = GRPCClients{
-		ClientQueryClient:  clienttypes.NewQueryClient(grpcConn),
-		ChannelQueryClient: channeltypes.NewQueryClient(grpcConn),
-		FeeQueryClient:     feetypes.NewQueryClient(grpcConn),
-		ICAQueryClient:     controllertypes.NewQueryClient(grpcConn),
-		InterTxQueryClient: intertxtypes.NewQueryClient(grpcConn),
-		GovQueryClient:     govtypesv1beta1.NewQueryClient(grpcConn),
-		GovQueryClientV1:   govtypesv1.NewQueryClient(grpcConn),
-		GroupsQueryClient:  grouptypes.NewQueryClient(grpcConn),
-		ParamsQueryClient:  paramsproposaltypes.NewQueryClient(grpcConn),
-		AuthQueryClient:    authtypes.NewQueryClient(grpcConn),
-		AuthZQueryClient:   authz.NewQueryClient(grpcConn),
+		ClientQueryClient:     clienttypes.NewQueryClient(grpcConn),
+		ConnectionQueryClient: connectiontypes.NewQueryClient(grpcConn),
+		ChannelQueryClient:    channeltypes.NewQueryClient(grpcConn),
+		FeeQueryClient:        feetypes.NewQueryClient(grpcConn),
+		ICAQueryClient:        controllertypes.NewQueryClient(grpcConn),
+		InterTxQueryClient:    intertxtypes.NewQueryClient(grpcConn),
+		GovQueryClient:        govtypesv1beta1.NewQueryClient(grpcConn),
+		GovQueryClientV1:      govtypesv1.NewQueryClient(grpcConn),
+		GroupsQueryClient:     grouptypes.NewQueryClient(grpcConn),
+		ParamsQueryClient:     paramsproposaltypes.NewQueryClient(grpcConn),
+		AuthQueryClient:       authtypes.NewQueryClient(grpcConn),
+		AuthZQueryClient:      authz.NewQueryClient(grpcConn),
 	}
 }
 
@@ -544,7 +569,7 @@ func (s *E2ETestSuite) QueryModuleAccountAddress(ctx context.Context, moduleName
 	}
 	moduleAccount, ok := account.(authtypes.ModuleAccountI)
 	if !ok {
-		return nil, errors.New(fmt.Sprintf("failed to cast account: %T as ModuleAccount", moduleAccount))
+		return nil, fmt.Errorf("failed to cast account: %T as ModuleAccount", moduleAccount)
 	}
 
 	return moduleAccount.GetAddress(), nil
