@@ -11,7 +11,7 @@ import (
 	log "cosmossdk.io/log"
 
 	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/ibc-go/capability/types"
+	"github.com/cosmos/ibc-go/capability/types"
 )
 
 type (

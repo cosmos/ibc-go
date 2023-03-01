@@ -1,4 +1,4 @@
-module github.com/ibc-go/capability
+module github.com/cosmos/ibc-go/capability
 
 go 1.19
 

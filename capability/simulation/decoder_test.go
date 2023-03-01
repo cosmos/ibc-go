@@ -4,15 +4,15 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/ibc-go/capability/simulation"
+	"github.com/cosmos/ibc-go/capability/simulation"
 	"github.com/stretchr/testify/require"
 
 	"cosmossdk.io/depinject"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/kv"
-	"github.com/ibc-go/capability/testutil"
-	"github.com/ibc-go/capability/types"
+	"github.com/cosmos/ibc-go/capability/testutil"
+	"github.com/cosmos/ibc-go/capability/types"
 )
 
 func TestDecodeStore(t *testing.T) {

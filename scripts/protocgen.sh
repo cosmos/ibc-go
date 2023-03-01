@@ -11,6 +11,7 @@ cd ..
 
 # move proto files to the right places
 cp -r github.com/cosmos/ibc-go/v*/modules/* modules/
+cp -r github.com/cosmos/ibc-go/capability/* capability/
 rm -rf github.com
 
 go mod tidy

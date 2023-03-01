@@ -6,7 +6,7 @@ import (
 	"math/rand"
 
 	"github.com/cosmos/cosmos-sdk/types/module"
-	"github.com/ibc-go/capability/types"
+	"github.com/cosmos/ibc-go/capability/types"
 )
 
 // Simulation parameter constants
