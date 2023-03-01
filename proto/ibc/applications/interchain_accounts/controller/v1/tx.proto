@@ -28,6 +28,7 @@ message MsgRegisterInterchainAccount {
 // MsgRegisterInterchainAccountResponse defines the response for Msg/RegisterAccount
 message MsgRegisterInterchainAccountResponse {
   string channel_id = 1 [(gogoproto.moretags) = "yaml:\"channel_id\""];
+  string port_id    = 2 [(gogoproto.moretags) = "yaml:\"port_id\""];
 }
 
 // MsgSendTx defines the payload for Msg/SendTx
