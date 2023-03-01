@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/ibc-go/modules/capability/types"
+	"github.com/ibc-go/capability/types"
 	"github.com/stretchr/testify/require"
 )
 

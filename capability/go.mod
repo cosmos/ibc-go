@@ -1,4 +1,4 @@
-module github.com/ibc-go/modules/capability
+module github.com/ibc-go/capability
 
 go 1.19
 
@@ -12,8 +12,8 @@ require (
 	cosmossdk.io/log v0.0.0-20230227204852-3535ee51c728
 	cosmossdk.io/math v1.0.0-beta.6.0.20230216172121-959ce49135e4
 	cosmossdk.io/store v0.0.0-20230227103508-bbe7f8a11b44
-	github.com/cosmos/cosmos-sdk v0.47.0-rc2
 	github.com/cometbft/cometbft v0.37.0-alpha.3
+	github.com/cosmos/cosmos-sdk v0.47.0-rc2
 	github.com/cosmos/gogoproto v1.4.6
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
 	github.com/spf13/cobra v1.6.1
@@ -39,7 +39,6 @@ require (
 	github.com/cockroachdb/logtags v0.0.0-20230118201751-21c54148d20b // indirect
 	github.com/cockroachdb/pebble v0.0.0-20230226194802-02d779ffbc46 // indirect
 	github.com/cockroachdb/redact v1.1.3 // indirect
-	github.com/cometbft/cometbft v0.37.0-alpha.3 // indirect
 	github.com/confio/ics23/go v0.9.0 // indirect
 	github.com/cosmos/btcutil v1.0.5 // indirect
 	github.com/cosmos/cosmos-db v1.0.0-rc.1 // indirect

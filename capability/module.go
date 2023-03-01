@@ -24,9 +24,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
-	"github.com/ibc-go/modules/capability/keeper"
-	"github.com/ibc-go/modules/capability/simulation"
-	"github.com/ibc-go/modules/capability/types"
+	"github.com/ibc-go/capability/keeper"
+	"github.com/ibc-go/capability/simulation"
+	"github.com/ibc-go/capability/types"
 )
 
 var (

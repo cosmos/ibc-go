@@ -2,8 +2,8 @@ package capability
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/ibc-go/modules/capability/keeper"
-	"github.com/ibc-go/modules/capability/types"
+	"github.com/ibc-go/capability/keeper"
+	"github.com/ibc-go/capability/types"
 )
 
 // InitGenesis initializes the capability module's state from a provided genesis

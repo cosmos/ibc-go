@@ -8,7 +8,7 @@ import (
 	_ "github.com/cosmos/cosmos-sdk/x/genutil"        // import as blank for app wiring
 	_ "github.com/cosmos/cosmos-sdk/x/params"         // import as blank for app wiring
 	_ "github.com/cosmos/cosmos-sdk/x/staking"        // import as blank for app wiring
-	_ "github.com/ibc-go/modules/capability"          // import as blank for app wiring
+	_ "github.com/ibc-go/capability"          // import as blank for app wiring
 
 	"cosmossdk.io/core/appconfig"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -17,7 +17,7 @@ import (
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	capabilitytypes "github.com/ibc-go/modules/capability/types"
+	capabilitytypes "github.com/ibc-go/capability/types"
 
 	runtimev1alpha1 "cosmossdk.io/api/cosmos/app/runtime/v1alpha1"
 	appv1alpha1 "cosmossdk.io/api/cosmos/app/v1alpha1"

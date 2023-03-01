@@ -11,7 +11,7 @@ import (
 	log "cosmossdk.io/log"
 
 	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/ibc-go/modules/capability/types"
+	"github.com/ibc-go/capability/types"
 )
 
 type (
@@ -104,9 +104,6 @@ func (k *Keeper) Seal() {
 func (k *Keeper) IsSealed() bool {
 	return k.sealed
 }
-
-// cosmos-sdk/store/types
-// cosmossdk.io/store/types
 
 // InitMemStore will assure that the module store is a memory store (it will panic if it's not)
 // and willl initialize it. The function is safe to be called multiple times.

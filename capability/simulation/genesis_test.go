@@ -5,7 +5,7 @@ import (
 	"math/rand"
 	"testing"
 
-	"github.com/ibc-go/modules/capability/simulation"
+	"github.com/ibc-go/capability/simulation"
 	"github.com/stretchr/testify/require"
 
 	sdkmath "cosmossdk.io/math"
@@ -13,7 +13,7 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
-	"github.com/ibc-go/modules/capability/types"
+	"github.com/ibc-go/capability/types"
 )
 
 // TestRandomizedGenState tests the normal scenario of applying RandomizedGenState.

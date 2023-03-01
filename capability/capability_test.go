@@ -12,12 +12,12 @@ import (
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	"github.com/ibc-go/modules/capability"
+	"github.com/ibc-go/capability"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/ibc-go/modules/capability/keeper"
-	"github.com/ibc-go/modules/capability/testutil"
-	"github.com/ibc-go/modules/capability/types"
+	"github.com/ibc-go/capability/keeper"
+	"github.com/ibc-go/capability/testutil"
+	"github.com/ibc-go/capability/types"
 )
 
 type CapabilityTestSuite struct {

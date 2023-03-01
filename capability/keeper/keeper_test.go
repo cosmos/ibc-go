@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	keeper2 "github.com/ibc-go/modules/capability/keeper"
 	"github.com/stretchr/testify/suite"
 
 	storetypes "cosmossdk.io/store/types"
@@ -12,8 +11,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/testutil"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
-	"github.com/ibc-go/modules/capability"
-	"github.com/ibc-go/modules/capability/types"
+	"github.com/ibc-go/capability"
+	"github.com/ibc-go/capability/keeper"
+	"github.com/ibc-go/capability/types"
 )
 
 var (
@@ -25,7 +25,7 @@ type KeeperTestSuite struct {
 	suite.Suite
 
 	ctx    sdk.Context
-	keeper *keeper2.Keeper
+	keeper *keeper.Keeper
 }
 
 func (suite *KeeperTestSuite) SetupTest() {
@@ -33,7 +33,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 	testCtx := testutil.DefaultContextWithDB(suite.T(), key, storetypes.NewTransientStoreKey("transient_test"))
 	suite.ctx = testCtx.Ctx
 	encCfg := moduletestutil.MakeTestEncodingConfig(capability.AppModuleBasic{})
-	suite.keeper = keeper2.NewKeeper(encCfg.Codec, key, key)
+	suite.keeper = keeper.NewKeeper(encCfg.Codec, key, key)
 }
 
 func (suite *KeeperTestSuite) TestSeal() {
@@ -182,7 +182,7 @@ func (suite *KeeperTestSuite) TestGetOwners() {
 	sk2 := suite.keeper.ScopeToModule(stakingModuleName)
 	sk3 := suite.keeper.ScopeToModule("foo")
 
-	sks := []keeper2.ScopedKeeper{sk1, sk2, sk3}
+	sks := []keeper.ScopedKeeper{sk1, sk2, sk3}
 
 	cap, err := sk1.NewCapability(suite.ctx, "transfer")
 	suite.Require().NoError(err)
@@ -219,7 +219,7 @@ func (suite *KeeperTestSuite) TestGetOwners() {
 
 	// new expected order and scoped capabilities
 	expectedOrder = []string{bankModuleName, stakingModuleName}
-	sks = []keeper2.ScopedKeeper{sk1, sk2}
+	sks = []keeper.ScopedKeeper{sk1, sk2}
 
 	// Ensure all scoped keepers can get owners
 	for _, sk := range sks {
