@@ -15,7 +15,7 @@ The order of middleware **matters**, function calls from IBC to the application 
 ## Example integration
 
 ```go
-// app.go
+// app.go pseudocode
 
 // middleware 1 and middleware 3 are stateful middleware, 
 // perhaps implementing separate sdk.Msg and Handlers
@@ -42,12 +42,15 @@ scopedKeeperCustom2 := capabilityKeeper.NewScopedKeeper("custom2")
 // NOTE: IBC Modules may be initialized any number of times provided they use a separate
 // scopedKeeper and underlying port.
 
+customKeeper1 := custom.NewKeeper(..., scopedKeeperCustom1, ...)
+customKeeper2 := custom.NewKeeper(..., scopedKeeperCustom2, ...)
+
 // initialize base IBC applications
 // if you want to create two different stacks with the same base application,
 // they must be given different scopedKeepers and assigned different ports.
 transferIBCModule := transfer.NewIBCModule(transferKeeper)
-customIBCModule1 := custom.NewIBCModule(customKeeper, "portCustom1")
-customIBCModule2 := custom.NewIBCModule(customKeeper, "portCustom2")
+customIBCModule1 := custom.NewIBCModule(customKeeper1, "portCustom1")
+customIBCModule2 := custom.NewIBCModule(customKeeper2, "portCustom2")
 
 // create IBC stacks by combining middleware with base application
 // NOTE: since middleware2 is stateless it does not require a Keeper
