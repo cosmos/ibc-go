@@ -784,7 +784,7 @@ func (k Keeper) ChanCloseFrozen(
 		telemetry.IncrCounter(1, "ibc", "channel", "close-confirm")
 	}()
 
-	channel.State = types.CLOSED
+	channel.State = types.FROZEN
 	k.SetChannel(ctx, portID, channelID, channel)
 
 	EmitChannelCloseConfirmEvent(ctx, portID, channelID, channel)
