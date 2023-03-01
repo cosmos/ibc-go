@@ -32,8 +32,8 @@ The table below lists some important differences:
 | -------------------------------------------- | --------------------------------------------------------------------------- | --------- |
 | Number of clients                            | Many instances of a client *type* corresponding to different counterparties | A single sentinel client with the client identifier `09-localhost`|
 | Client creation                              | Relayer (permissionless) | `ClientState` is instantiated in the `InitGenesis` handler of the 02-client submodule in core IBC |
+| Client updates                               | Relayer submits headers using `MsgUpdateClient` | Latest height is updated periodically through the ABCI [`BeginBlock`](https://docs.cosmos.network/v0.47/building-modules/beginblock-endblock) interface of the 02-client submodule in core IBC |
 | Number of connections                        | Many connections, 1 (or more) per client | A single sentinel connection with the connection identifier `connection-localhost` |
 | Connection creation                          | Connection handshake, provided underlying client | Sentinel `ConnectionEnd` is created and set in store in the `InitGenesis` handler of the 03-connection submodule in core IBC |
 | Counterparty                                 | Underlying client, representing another chain | Client with identifier `09-localhost` in same chain |
-| Client updates                               | Relayer submits headers using `MsgUpdateClient` | Latest height is updated periodically through the ABCI [`BeginBlock`](https://docs.cosmos.network/v0.47/building-modules/beginblock-endblock) interface of the 02-client submodule in core IBC |
 | `VerifyMembership` and `VerifyNonMembership` | Performs proof verification using consensus state roots | Performs state verification using key-value lookups in the core IBC store |
