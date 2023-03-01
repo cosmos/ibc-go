@@ -361,7 +361,9 @@ can be used to test both non-IBC chains, and also IBC-enabled chains.
 
 ### Prerequisites
 
-In order to run this workflow, a docker container is required with tags for the versions you want to test.
+- In order to run this workflow, a docker container is required with tags for the versions you want to test.
+
+- Have an upgrade handler in the chain binary which is being upgraded to.
 
 > It's worth noting that all github repositories come with a built-in docker registry that makes it convenient to build and push images to.
 
