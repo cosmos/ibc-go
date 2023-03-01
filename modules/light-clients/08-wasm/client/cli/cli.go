@@ -11,7 +11,7 @@ import (
 // GetQueryCmd returns the query commands for IBC channels
 func GetQueryCmd() *cobra.Command {
 	queryCmd := &cobra.Command{
-		Use:                        types.SubModuleName,
+		Use:                        types.ModuleName,
 		Short:                      "IBC wasm manager module query subcommands",
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
@@ -28,7 +28,7 @@ func GetQueryCmd() *cobra.Command {
 // NewTxCmd returns a CLI command handler for all x/ibc channel transaction commands.
 func NewTxCmd() *cobra.Command {
 	txCmd := &cobra.Command{
-		Use:                        types.SubModuleName,
+		Use:                        types.ModuleName,
 		Short:                      "IBC wasm manager module transaction subcommands",
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,

@@ -6,6 +6,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 <<<<<<< HEAD
 	"github.com/gogo/protobuf/grpc"
@@ -13,13 +14,17 @@ import (
 >>>>>>> e5fc5b1a (relocate files to follow regular sdk module folder structure)
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
+	abci "github.com/tendermint/tendermint/abci/types"
 
 	"github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm/client/cli"
 	"github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm/keeper"
 	"github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm/types"
 )
 
-var _ module.AppModuleBasic = AppModuleBasic{}
+var (
+	_ module.AppModule      = AppModule{}
+	_ module.AppModuleBasic = AppModuleBasic{}
+)
 
 // AppModuleBasic defines the basic application module used by the tendermint light client.
 // Only the RegisterInterfaces function needs to be implemented. All other function perform
@@ -28,7 +33,7 @@ type AppModuleBasic struct{}
 
 // Name returns the tendermint module name.
 func (AppModuleBasic) Name() string {
-	return types.SubModuleName
+	return types.ModuleName
 }
 
 // RegisterLegacyAminoCodec performs a no-op. The Wasm client does not support amino.
@@ -80,4 +85,16 @@ func NewAppModule(k keeper.Keeper) AppModule {
 func (am AppModule) RegisterServices(cfg module.Configurator) {
 	types.RegisterMsgServer(cfg.MsgServer(), am.keeper)
 	types.RegisterQueryServer(cfg.QueryServer(), am.keeper)
+}
+
+// ConsensusVersion implements AppModule/ConsensusVersion.
+func (AppModule) ConsensusVersion() uint64 { return 1 }
+
+// BeginBlock implements the AppModule interface
+func (am AppModule) BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock) {
+}
+
+// EndBlock implements the AppModule interface
+func (am AppModule) EndBlock(ctx sdk.Context, req abci.RequestEndBlock) []abci.ValidatorUpdate {
+	return []abci.ValidatorUpdate{}
 }

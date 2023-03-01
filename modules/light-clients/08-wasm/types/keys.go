@@ -6,8 +6,13 @@ import (
 )
 
 const (
-	// SubModuleName for the wasm client
-	SubModuleName     = "wasm-client"
+
+	// ModuleName for the wasm client
+	ModuleName = "08-wasm"
+
+	// StoreKey is the store key string for 08-wasm
+	StoreKey = ModuleName
+
 	LastInstanceIDKey = "lastInstanceId"
 )
 
