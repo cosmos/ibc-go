@@ -1,4 +1,4 @@
-package types
+package exp
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -8,6 +8,7 @@ import (
 
 // Hooks specifies methods to enable writing custom logic which executes
 // after specific client lifecycle methods.
+// Note: this interface is experimental and could be removed in favour of a different solution, requiring code changes.
 type Hooks interface {
 	// OnClientCreated is executed upon client creation.
 	OnClientCreated(ctx sdk.Context, clientID string) error

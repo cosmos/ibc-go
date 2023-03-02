@@ -11,6 +11,7 @@ import (
 
 	clientkeeper "github.com/cosmos/ibc-go/v7/modules/core/02-client/keeper"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	clientexptypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types/exp"
 	connectionkeeper "github.com/cosmos/ibc-go/v7/modules/core/03-connection/keeper"
 	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
 	channelkeeper "github.com/cosmos/ibc-go/v7/modules/core/04-channel/keeper"
@@ -33,7 +34,7 @@ type Keeper struct {
 	ChannelKeeper    channelkeeper.Keeper
 	PortKeeper       portkeeper.Keeper
 	Router           *porttypes.Router
-	clientHooks      []clienttypes.Hooks
+	clientHooks      []clientexptypes.Hooks
 }
 
 // NewKeeper creates a new ibc Keeper
@@ -77,7 +78,7 @@ func NewKeeper(
 }
 
 // SetClientHooks sets hooks to be run after client lifecycle methods.
-func (k Keeper) SetClientHooks(hooks clienttypes.Hooks) {
+func (k Keeper) SetClientHooks(hooks clientexptypes.Hooks) {
 	k.ClientKeeper.SetHooks(hooks)
 }
 

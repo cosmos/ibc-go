@@ -17,6 +17,7 @@ import (
 
 	ibcerrors "github.com/cosmos/ibc-go/v7/internal/errors"
 	"github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	exptypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types/exp"
 	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
@@ -31,7 +32,7 @@ type Keeper struct {
 	paramSpace    paramtypes.Subspace
 	stakingKeeper types.StakingKeeper
 	upgradeKeeper types.UpgradeKeeper
-	hooks         types.Hooks
+	hooks         exptypes.Hooks
 }
 
 // NewKeeper creates a new NewKeeper instance
@@ -51,7 +52,7 @@ func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey, paramSpace paramt
 }
 
 // SetHooks sets hooks to be run after client lifecycle methods.
-func (k Keeper) SetHooks(hooks types.Hooks) {
+func (k Keeper) SetHooks(hooks exptypes.Hooks) {
 	if k.hooks != nil {
 		panic("cannot set client hooks twice")
 	}

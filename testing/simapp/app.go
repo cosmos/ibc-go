@@ -112,6 +112,7 @@ import (
 	ibcclient "github.com/cosmos/ibc-go/v7/modules/core/02-client"
 	ibcclientclient "github.com/cosmos/ibc-go/v7/modules/core/02-client/client"
 	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	clientexptypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types/exp"
 	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
 	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
 	ibckeeper "github.com/cosmos/ibc-go/v7/modules/core/keeper"
@@ -376,7 +377,7 @@ func NewSimApp(
 		appCodec, keys[ibcexported.StoreKey], app.GetSubspace(ibcexported.ModuleName), app.StakingKeeper, app.UpgradeKeeper, scopedIBCKeeper,
 	)
 	app.IBCKeeper.SetClientHooks(
-		ibcclienttypes.NewMultiHooks(
+		clientexptypes.NewMultiHooks(
 			&ibcmock.NoopHooks{},
 		),
 	)
