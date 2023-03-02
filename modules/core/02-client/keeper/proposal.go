@@ -63,7 +63,7 @@ func (k Keeper) ClientUpdateProposal(ctx sdk.Context, p *types.ClientUpdatePropo
 	}()
 
 	// emitting events in the keeper for proposal updates to clients
-	EmitUpdateClientProposalEvent(ctx, p.SubjectClientId, substituteClientState.ClientType())
+	emitUpdateClientProposalEvent(ctx, p.SubjectClientId, substituteClientState.ClientType())
 
 	return nil
 }
@@ -96,7 +96,7 @@ func (k Keeper) HandleUpgradeProposal(ctx sdk.Context, p *types.UpgradeProposal)
 	}
 
 	// emitting an event for handling client upgrade proposal
-	EmitUpgradeClientProposalEvent(ctx, p.Title, p.Plan.Height)
+	emitUpgradeClientProposalEvent(ctx, p.Title, p.Plan.Height)
 
 	return nil
 }
