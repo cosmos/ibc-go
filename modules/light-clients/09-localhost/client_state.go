@@ -62,7 +62,7 @@ func (cs ClientState) Initialize(ctx sdk.Context, cdc codec.BinaryCodec, clientS
 		LatestHeight: clienttypes.GetSelfHeight(ctx),
 	}
 
-	clientStore.Set([]byte(host.KeyClientState), clienttypes.MustMarshalClientState(cdc, &clientState))
+	clientStore.Set(host.ClientStateKey(), clienttypes.MustMarshalClientState(cdc, &clientState))
 
 	return nil
 }
@@ -169,7 +169,7 @@ func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, client
 	height := clienttypes.GetSelfHeight(ctx)
 	cs.LatestHeight = height
 
-	clientStore.Set([]byte(host.KeyClientState), clienttypes.MustMarshalClientState(cdc, &cs))
+	clientStore.Set([]byte(host.ClientStateKey(), clienttypes.MustMarshalClientState(cdc, &cs))
 
 	return []exported.Height{height}
 }
