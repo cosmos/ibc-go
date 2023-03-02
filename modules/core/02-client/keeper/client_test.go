@@ -5,9 +5,11 @@ import (
 	"fmt"
 	"time"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	clientexp "github.com/cosmos/ibc-go/v7/modules/core/02-client/types/exp"
 	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
@@ -27,12 +29,15 @@ func (suite *KeeperTestSuite) TestCreateClient() {
 	}
 
 	for i, tc := range cases {
+		hook := newMockClientHook()
+		suite.keeper.SetHooks(hook)
 
 		clientID, err := suite.keeper.CreateClient(suite.ctx, tc.clientState, suite.consensusState)
 		if tc.expPass {
 			suite.Require().NoError(err, "valid test case %d failed: %s", i, tc.msg)
 			suite.Require().NotNil(clientID, "valid test case %d failed: %s", i, tc.msg)
 			suite.Require().True(suite.keeper.ClientStore(suite.ctx, clientID).Has(host.ClientStateKey()))
+			suite.Require().True(hook[onCreate])
 		} else {
 			suite.Require().Error(err, "invalid test case %d passed: %s", i, tc.msg)
 			suite.Require().Equal("", clientID, "invalid test case %d passed: %s", i, tc.msg)
@@ -206,6 +211,10 @@ func (suite *KeeperTestSuite) TestUpdateClientTendermint() {
 		tc := tc
 		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
 			suite.SetupTest()
+
+			hook := newMockClientHook()
+			suite.chainA.App.GetIBCKeeper().SetClientHooks(hook)
+
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupClients(path)
 
@@ -220,6 +229,7 @@ func (suite *KeeperTestSuite) TestUpdateClientTendermint() {
 
 			if tc.expPass {
 				suite.Require().NoError(err, err)
+				suite.Require().Equal(!tc.expFreeze, hook[onUpdate])
 
 				newClientState := path.EndpointA.GetClientState()
 
@@ -409,12 +419,16 @@ func (suite *KeeperTestSuite) TestUpgradeClient() {
 		upgradedConsStateBz, err = clienttypes.MarshalConsensusState(suite.chainA.App.AppCodec(), upgradedConsState)
 		suite.Require().NoError(err)
 
+		hook := newMockClientHook()
+		suite.chainA.App.GetIBCKeeper().SetClientHooks(hook)
+
 		tc.setup()
 
 		err = suite.chainA.App.GetIBCKeeper().ClientKeeper.UpgradeClient(suite.chainA.GetContext(), path.EndpointA.ClientID, upgradedClient, upgradedConsState, proofUpgradedClient, proofUpgradedConsState)
 
 		if tc.expPass {
 			suite.Require().NoError(err, "verify upgrade failed on valid case: %s", tc.name)
+			suite.Require().True(hook[onUpgrade])
 		} else {
 			suite.Require().Error(err, "verify upgrade passed on invalid case: %s", tc.name)
 		}
@@ -455,4 +469,36 @@ func (suite *KeeperTestSuite) TestUpdateClientEventEmission() {
 		}
 	}
 	suite.Require().True(contains)
+}
+
+var _ clientexp.Hooks = &mockClientHook{}
+
+const (
+	onCreate int = iota
+	onUpdate
+	onUpgrade
+)
+
+// mockClientHook tracks keeps track of calls to specific callback functions to be used in testing.
+type mockClientHook map[int]bool
+
+func newMockClientHook() mockClientHook {
+	return map[int]bool{}
+}
+
+func (m mockClientHook) OnClientUpdated(sdk.Context, string, []exported.Height) error {
+	return m.handleCallback(onUpdate)
+}
+
+func (m mockClientHook) OnClientUpgraded(sdk.Context, string) error {
+	return m.handleCallback(onUpgrade)
+}
+
+func (m mockClientHook) OnClientCreated(sdk.Context, string) error {
+	return m.handleCallback(onCreate)
+}
+
+func (m mockClientHook) handleCallback(fnType int) error {
+	m[fnType] = true
+	return nil
 }

@@ -42,7 +42,7 @@ func (suite *ClientTestSuite) TestBeginBlocker() {
 		suite.coordinator.CommitBlock(suite.chainA, suite.chainB)
 
 		suite.Require().NotPanics(func() {
-			client.BeginBlocker(suite.chainA.GetContext(), suite.chainA.App.GetIBCKeeper().ClientKeeper)
+			client.BeginBlocker(suite.chainA.GetContext(), *suite.chainA.App.GetIBCKeeper().ClientKeeper)
 		}, "BeginBlocker shouldn't panic")
 	}
 }
@@ -98,7 +98,7 @@ func (suite *ClientTestSuite) TestBeginBlockerUpgradeEvents() {
 
 	cacheCtx, writeCache := suite.chainA.GetContext().CacheContext()
 
-	client.BeginBlocker(cacheCtx, suite.chainA.App.GetIBCKeeper().ClientKeeper)
+	client.BeginBlocker(cacheCtx, *suite.chainA.App.GetIBCKeeper().ClientKeeper)
 	writeCache()
 
 	suite.requireContainsEvent(cacheCtx.EventManager().Events(), types.EventTypeUpgradeChain, true)
@@ -106,7 +106,7 @@ func (suite *ClientTestSuite) TestBeginBlockerUpgradeEvents() {
 
 func (suite *ClientTestSuite) TestBeginBlockerUpgradeEventsAbsence() {
 	cacheCtx, writeCache := suite.chainA.GetContext().CacheContext()
-	client.BeginBlocker(suite.chainA.GetContext(), suite.chainA.App.GetIBCKeeper().ClientKeeper)
+	client.BeginBlocker(suite.chainA.GetContext(), *suite.chainA.App.GetIBCKeeper().ClientKeeper)
 	writeCache()
 	suite.requireContainsEvent(cacheCtx.EventManager().Events(), types.EventTypeUpgradeChain, false)
 }

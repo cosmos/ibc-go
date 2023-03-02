@@ -29,7 +29,7 @@ type Keeper struct {
 
 	cdc codec.BinaryCodec
 
-	ClientKeeper     clientkeeper.Keeper
+	ClientKeeper     *clientkeeper.Keeper
 	ConnectionKeeper connectionkeeper.Keeper
 	ChannelKeeper    channelkeeper.Keeper
 	PortKeeper       portkeeper.Keeper
@@ -69,7 +69,7 @@ func NewKeeper(
 
 	return &Keeper{
 		cdc:              cdc,
-		ClientKeeper:     clientKeeper,
+		ClientKeeper:     &clientKeeper,
 		ConnectionKeeper: connectionKeeper,
 		ChannelKeeper:    channelKeeper,
 		PortKeeper:       portKeeper,
@@ -77,7 +77,7 @@ func NewKeeper(
 }
 
 // SetClientHooks sets hooks to be run after client lifecycle methods.
-func (k Keeper) SetClientHooks(hooks clientexptypes.Hooks) {
+func (k *Keeper) SetClientHooks(hooks clientexptypes.Hooks) {
 	k.ClientKeeper.SetHooks(hooks)
 }
 

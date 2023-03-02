@@ -33,7 +33,7 @@ func (suite *MigrationsV7TestSuite) TestMigrateGenesisSolomachine() {
 	solomachine := ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "06-solomachine-0", "testing", 1)
 	solomachineMulti := ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "06-solomachine-1", "testing", 4)
 
-	clientGenState := ibcclient.ExportGenesis(suite.chainA.GetContext(), suite.chainA.App.GetIBCKeeper().ClientKeeper)
+	clientGenState := ibcclient.ExportGenesis(suite.chainA.GetContext(), *suite.chainA.App.GetIBCKeeper().ClientKeeper)
 
 	// manually generate old proto buf definitions and set in genesis
 	// NOTE: we cannot use 'ExportGenesis' for the solo machines since we are
@@ -108,7 +108,7 @@ func (suite *MigrationsV7TestSuite) TestMigrateGenesisSolomachine() {
 	// NOTE: tendermint clients are not pruned in genesis so the test should not have expired tendermint clients
 	err := v7.MigrateStore(suite.chainA.GetContext(), suite.chainA.GetSimApp().GetKey(ibcexported.StoreKey), suite.chainA.App.AppCodec(), suite.chainA.GetSimApp().IBCKeeper.ClientKeeper)
 	suite.Require().NoError(err)
-	expectedClientGenState := ibcclient.ExportGenesis(suite.chainA.GetContext(), suite.chainA.App.GetIBCKeeper().ClientKeeper)
+	expectedClientGenState := ibcclient.ExportGenesis(suite.chainA.GetContext(), *suite.chainA.App.GetIBCKeeper().ClientKeeper)
 
 	cdc, ok := suite.chainA.App.AppCodec().(codec.ProtoCodecMarshaler)
 	suite.Require().True(ok)

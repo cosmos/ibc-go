@@ -53,9 +53,6 @@ func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey, paramSpace paramt
 
 // SetHooks sets hooks to be run after client lifecycle methods.
 func (k *Keeper) SetHooks(hooks clientexp.Hooks) {
-	if k.hooks != nil {
-		panic("cannot set client hooks twice")
-	}
 	k.hooks = hooks
 }
 

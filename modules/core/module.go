@@ -123,7 +123,7 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	channeltypes.RegisterMsgServer(cfg.MsgServer(), am.keeper)
 	types.RegisterQueryService(cfg.QueryServer(), am.keeper)
 
-	m := clientkeeper.NewMigrator(am.keeper.ClientKeeper)
+	m := clientkeeper.NewMigrator(*am.keeper.ClientKeeper)
 	err := cfg.RegisterMigration(exported.ModuleName, 2, m.Migrate2to3)
 	if err != nil {
 		panic(err)
@@ -153,7 +153,7 @@ func (AppModule) ConsensusVersion() uint64 { return 3 }
 
 // BeginBlock returns the begin blocker for the ibc module.
 func (am AppModule) BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock) {
-	ibcclient.BeginBlocker(ctx, am.keeper.ClientKeeper)
+	ibcclient.BeginBlocker(ctx, *am.keeper.ClientKeeper)
 }
 
 // EndBlock returns the end blocker for the ibc module. It returns no validator

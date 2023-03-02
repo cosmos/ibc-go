@@ -387,7 +387,7 @@ func NewSimApp(
 	govRouter.AddRoute(govtypes.RouterKey, govv1beta1.ProposalHandler).
 		AddRoute(paramproposal.RouterKey, params.NewParamChangeProposalHandler(app.ParamsKeeper)).
 		AddRoute(upgradetypes.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(app.UpgradeKeeper)).
-		AddRoute(ibcclienttypes.RouterKey, ibcclient.NewClientProposalHandler(app.IBCKeeper.ClientKeeper))
+		AddRoute(ibcclienttypes.RouterKey, ibcclient.NewClientProposalHandler(*app.IBCKeeper.ClientKeeper))
 
 	govConfig := govtypes.DefaultConfig()
 	/*
@@ -951,7 +951,7 @@ func (app *SimApp) setupUpgradeHandlers() {
 			app.mm,
 			app.configurator,
 			app.appCodec,
-			app.IBCKeeper.ClientKeeper,
+			*app.IBCKeeper.ClientKeeper,
 			app.ConsensusParamsKeeper,
 			app.ParamsKeeper,
 		),
