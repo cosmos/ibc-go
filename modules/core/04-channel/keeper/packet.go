@@ -101,7 +101,7 @@ func (k Keeper) SendPacket(
 	k.SetNextSequenceSend(ctx, sourcePort, sourceChannel, sequence+1)
 	k.SetPacketCommitment(ctx, sourcePort, sourceChannel, packet.GetSequence(), commitment)
 
-	EmitSendPacketEvent(ctx, packet, channel, timeoutHeight)
+	emitSendPacketEvent(ctx, packet, channel, timeoutHeight)
 
 	k.Logger(ctx).Info(
 		"packet sent",
@@ -209,7 +209,7 @@ func (k Keeper) RecvPacket(
 		// check if the packet receipt has been received already for unordered channels
 		_, found := k.GetPacketReceipt(ctx, packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 		if found {
-			EmitRecvPacketEvent(ctx, packet, channel)
+			emitRecvPacketEvent(ctx, packet, channel)
 			// This error indicates that the packet has already been relayed. Core IBC will
 			// treat this error as a no-op in order to prevent an entire relay transaction
 			// from failing and consuming unnecessary fees.
@@ -233,7 +233,7 @@ func (k Keeper) RecvPacket(
 		}
 
 		if packet.GetSequence() < nextSequenceRecv {
-			EmitRecvPacketEvent(ctx, packet, channel)
+			emitRecvPacketEvent(ctx, packet, channel)
 			// This error indicates that the packet has already been relayed. Core IBC will
 			// treat this error as a no-op in order to prevent an entire relay transaction
 			// from failing and consuming unnecessary fees.
@@ -268,7 +268,7 @@ func (k Keeper) RecvPacket(
 	)
 
 	// emit an event that the relayer can query for
-	EmitRecvPacketEvent(ctx, packet, channel)
+	emitRecvPacketEvent(ctx, packet, channel)
 
 	return nil
 }
@@ -343,7 +343,7 @@ func (k Keeper) WriteAcknowledgement(
 		"dst_channel", packet.GetDestChannel(),
 	)
 
-	EmitWriteAcknowledgementEvent(ctx, packet, channel, bz)
+	emitWriteAcknowledgementEvent(ctx, packet, channel, bz)
 
 	return nil
 }
@@ -416,7 +416,7 @@ func (k Keeper) AcknowledgePacket(
 	commitment := k.GetPacketCommitment(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 
 	if len(commitment) == 0 {
-		EmitAcknowledgePacketEvent(ctx, packet, channel)
+		emitAcknowledgePacketEvent(ctx, packet, channel)
 		// This error indicates that the acknowledgement has already been relayed
 		// or there is a misconfigured relayer attempting to prove an acknowledgement
 		// for a packet never sent. Core IBC will treat this error as a no-op in order to
@@ -478,7 +478,7 @@ func (k Keeper) AcknowledgePacket(
 	)
 
 	// emit an event marking that we have processed the acknowledgement
-	EmitAcknowledgePacketEvent(ctx, packet, channel)
+	emitAcknowledgePacketEvent(ctx, packet, channel)
 
 	return nil
 }

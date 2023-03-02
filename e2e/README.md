@@ -18,6 +18,7 @@
 3. [Github Workflows](#github-workflows)
 4. [Running Compatibility Tests](#running-compatibility-tests)
 5. [Troubleshooting](#troubleshooting)
+6. [Importable Workflow](#importable-workflow)
 
 # How to write tests
 
@@ -307,7 +308,7 @@ This string is used to generate a test matrix in the Github Action that runs the
 
 All tests will be run on different hosts.
 
-### Misceleneous:
+### Misceleneous
 
 ## GitHub Workflows
 
@@ -352,3 +353,47 @@ json matrix files under .github/compatibility-test-matrices and is equivalent to
   ```
 
   This issue doesn't seem to occur on other operating systems.
+
+## Importable Workflow
+
+This repository contains an [importable workflow](https://github.com/cosmos/ibc-go/blob/bc963bcfd115a0e06b8196b114496db5ea011247/.github/workflows/e2e-compatibility-workflow-call.yaml) that can be used from any other repository to test chain upgrades. The workflow
+can be used to test both non-IBC chains, and also IBC-enabled chains.
+
+### Prerequisites
+
+- In order to run this workflow, a docker container is required with tags for the versions you want to test.
+
+- Have an upgrade handler in the chain binary which is being upgraded to.
+
+> It's worth noting that all github repositories come with a built-in docker registry that makes it convenient to build and push images to.
+
+[This workflow](https://github.com/cosmos/ibc-go/blob/1da651e5e117872499e3558c2a92f887369ae262/.github/workflows/release.yml#L35-L61) can be used as a reference for how to build a docker image
+whenever a git tag is pushed.
+
+### How to import the workflow
+
+You can refer to [this example](https://github.com/cosmos/ibc-go/blob/2933906d1ed25ae6dce7b7d93aa429dfa94c5a23/.github/workflows/e2e-upgrade.yaml#L9-L19) when including this workflow in your repo.
+
+The referenced job will do the following:
+
+- Create two chains using the image found at `ghcr.io/cosmos/ibc-go-simd:v4.3.0`.
+- Perform IBC transfers verifying core functionality.
+- Upgrade chain A to `ghcr.io/cosmos/ibc-go-simd:v5.1.0` by executing a governance proposal and using the plan name `normal upgrade`.
+- Perform additional IBC transfers and verifies the upgrade and migrations ran successfully.
+
+> Note: The plan name will always be specific to your chain. In this instance `normal upgrade` is referring to [this upgrade handler](https://github.com/cosmos/ibc-go/blob/e9bc0bac38e84e1380ec08552cae15821143a6b6/testing/simapp/app.go#L923)
+
+### Workflow Options
+
+| Workflow Field    | Purpose                                           |
+|-------------------|---------------------------------------------------|
+| chain-image       | The docker image to use for the test              |
+| chain-a-tag       | The tag of chain A to use                         |
+| chain-b-tag       | The tag of chain B to use                         |
+| chain-upgrade-tag | The tag chain A should be upgraded to             |
+| chain-binary      | The chain binary name                             |
+| upgrade-plan-name | The name of the upgrade plan to execute           |
+| test-entry-point  | Always TestUpgradeTestSuite                       |
+| test              | Should be TestIBCChainUpgrade or TestChainUpgrade |
+
+> TestIBCChainUpgrade should be used for ibc tests, while TestChainUpgrade should be used for single chain tests.

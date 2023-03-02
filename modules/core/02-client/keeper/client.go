@@ -43,7 +43,7 @@ func (k Keeper) CreateClient(
 		[]metrics.Label{telemetry.NewLabel(types.LabelClientType, clientState.ClientType())},
 	)
 
-	EmitCreateClientEvent(ctx, clientID, clientState)
+	emitCreateClientEvent(ctx, clientID, clientState)
 
 	return clientID, nil
 }
@@ -81,7 +81,7 @@ func (k Keeper) UpdateClient(ctx sdk.Context, clientID string, clientMsg exporte
 			},
 		)
 
-		EmitSubmitMisbehaviourEvent(ctx, clientID, clientState)
+		emitSubmitMisbehaviourEvent(ctx, clientID, clientState)
 
 		return nil
 	}
@@ -101,7 +101,7 @@ func (k Keeper) UpdateClient(ctx sdk.Context, clientID string, clientMsg exporte
 	)
 
 	// emitting events in the keeper emits for both begin block and handler client updates
-	EmitUpdateClientEvent(ctx, clientID, clientState.ClientType(), consensusHeights, k.cdc, clientMsg)
+	emitUpdateClientEvent(ctx, clientID, clientState.ClientType(), consensusHeights, k.cdc, clientMsg)
 
 	return nil
 }
@@ -139,7 +139,7 @@ func (k Keeper) UpgradeClient(ctx sdk.Context, clientID string, upgradedClient e
 		},
 	)
 
-	EmitUpgradeClientEvent(ctx, clientID, upgradedClient)
+	emitUpgradeClientEvent(ctx, clientID, upgradedClient)
 
 	return nil
 }

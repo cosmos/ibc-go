@@ -99,7 +99,7 @@ func (k Keeper) WriteOpenInitChannel(
 		telemetry.IncrCounter(1, "ibc", "channel", "open-init")
 	}()
 
-	EmitChannelOpenInitEvent(ctx, portID, channelID, channel)
+	emitChannelOpenInitEvent(ctx, portID, channelID, channel)
 }
 
 // ChanOpenTry is called by a module to accept the first step of a channel opening
@@ -212,7 +212,7 @@ func (k Keeper) WriteOpenTryChannel(
 		telemetry.IncrCounter(1, "ibc", "channel", "open-try")
 	}()
 
-	EmitChannelOpenTryEvent(ctx, portID, channelID, channel)
+	emitChannelOpenTryEvent(ctx, portID, channelID, channel)
 }
 
 // ChanOpenAck is called by the handshake-originating module to acknowledge the
@@ -297,7 +297,7 @@ func (k Keeper) WriteOpenAckChannel(
 		telemetry.IncrCounter(1, "ibc", "channel", "open-ack")
 	}()
 
-	EmitChannelOpenAckEvent(ctx, portID, channelID, channel)
+	emitChannelOpenAckEvent(ctx, portID, channelID, channel)
 }
 
 // ChanOpenConfirm is called by the counterparty module to close their end of the
@@ -377,7 +377,7 @@ func (k Keeper) WriteOpenConfirmChannel(
 		telemetry.IncrCounter(1, "ibc", "channel", "open-confirm")
 	}()
 
-	EmitChannelOpenConfirmEvent(ctx, portID, channelID, channel)
+	emitChannelOpenConfirmEvent(ctx, portID, channelID, channel)
 }
 
 // Closing Handshake
@@ -436,7 +436,7 @@ func (k Keeper) ChanCloseInit(
 	channel.State = types.CLOSED
 	k.SetChannel(ctx, portID, channelID, channel)
 
-	EmitChannelCloseInitEvent(ctx, portID, channelID, channel)
+	emitChannelCloseInitEvent(ctx, portID, channelID, channel)
 
 	return nil
 }
@@ -501,7 +501,7 @@ func (k Keeper) ChanCloseConfirm(
 	channel.State = types.CLOSED
 	k.SetChannel(ctx, portID, channelID, channel)
 
-	EmitChannelCloseConfirmEvent(ctx, portID, channelID, channel)
+	emitChannelCloseConfirmEvent(ctx, portID, channelID, channel)
 
 	return nil
 }
