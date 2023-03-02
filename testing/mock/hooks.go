@@ -11,7 +11,7 @@ var _ clienttypes.Hooks = &NoopHooks{}
 
 type NoopHooks struct{}
 
-func (n NoopHooks) OnClientCreated(ctx sdk.Context, clientId string) error {
+func (n NoopHooks) OnClientCreated(ctx sdk.Context, clientID string) error {
 	return nil
 }
 
