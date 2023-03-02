@@ -171,8 +171,8 @@ github.com/cockroachdb/apd/v2 v2.0.2/go.mod h1:DDxRlzC2lo3/vSlmSoS7JkqbbrARPuFOG
 github.com/cockroachdb/apd/v3 v3.1.0 h1:MK3Ow7LH0W8zkd5GMKA1PvS9qG3bWFI95WaVNfyZJ/w=
 github.com/cockroachdb/datadriven v0.0.0-20190809214429-80d97fb3cbaa/go.mod h1:zn76sxSg3SzpJ0PPJaLDCu+Bu0Lg3sKTORVIj19EIF8=
 github.com/codahale/hdrhistogram v0.0.0-20161010025455-3a0bb77429bd/go.mod h1:sE/e/2PUdi/liOCUjSTXgM1o87ZssimdTWN964YiIeI=
-github.com/colin-axner/interchaintest/v7 v7.0.0-20230302165704-8516da440711 h1:eb6a4FIreharXmIAMTlxh3pxgymwkKSY0IArjX34z+o=
-github.com/colin-axner/interchaintest/v7 v7.0.0-20230302165704-8516da440711/go.mod h1:xABocejOFzpH8VR9Se92KE02IqR3cLhzGnl4SHV36Qw=
+github.com/colin-axner/interchaintest/v7 v7.0.0-20230302203901-e1fcba2c366c h1:B89qBgDEKjZu5QUbPewDX3T6WEhjDi4q/Y7nb23gq6o=
+github.com/colin-axner/interchaintest/v7 v7.0.0-20230302203901-e1fcba2c366c/go.mod h1:xABocejOFzpH8VR9Se92KE02IqR3cLhzGnl4SHV36Qw=
 github.com/confio/ics23/go v0.9.0 h1:cWs+wdbS2KRPZezoaaj+qBleXgUk5WOQFMP3CQFGTr4=
 github.com/confio/ics23/go v0.9.0/go.mod h1:4LPZ2NYqnYIVRklaozjNR1FScgDJ2s5Xrp+e/mYVRak=
 github.com/containerd/continuity v0.3.0 h1:nisirsYROK15TAMVukJOUyGJjz4BNQJBVsNvAXZJ/eg=
