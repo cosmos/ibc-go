@@ -234,3 +234,5 @@ replace (
 replace github.com/cosmos/ibc-go/v7 => ../
 
 replace github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
+
+replace github.com/strangelove-ventures/interchaintest/v7 => github.com/colin-axner/interchaintest/v7 v7.0.0-20230302165704-8516da440711
