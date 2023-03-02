@@ -34,7 +34,6 @@ type Keeper struct {
 	ChannelKeeper    channelkeeper.Keeper
 	PortKeeper       portkeeper.Keeper
 	Router           *porttypes.Router
-	clientHooks      []clientexptypes.Hooks
 }
 
 // NewKeeper creates a new ibc Keeper
