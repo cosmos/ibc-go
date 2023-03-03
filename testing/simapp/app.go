@@ -117,6 +117,7 @@ import (
 	ibckeeper "github.com/cosmos/ibc-go/v7/modules/core/keeper"
 	solomachine "github.com/cosmos/ibc-go/v7/modules/light-clients/06-solomachine"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
+	ibcwasm "github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm"
 	ibcmock "github.com/cosmos/ibc-go/v7/testing/mock"
 	simappparams "github.com/cosmos/ibc-go/v7/testing/simapp/params"
 	simappupgrades "github.com/cosmos/ibc-go/v7/testing/simapp/upgrades"
@@ -162,6 +163,7 @@ var (
 		slashing.AppModuleBasic{},
 		ibc.AppModuleBasic{},
 		ibctm.AppModuleBasic{},
+		ibcwasm.AppModuleBasic{},
 		solomachine.AppModuleBasic{},
 		feegrantmodule.AppModuleBasic{},
 		upgrade.AppModuleBasic{},
@@ -371,7 +373,6 @@ func NewSimApp(
 	app.AuthzKeeper = authzkeeper.NewKeeper(keys[authzkeeper.StoreKey], appCodec, app.MsgServiceRouter(), app.AccountKeeper)
 
 	// IBC Keepers
-
 	app.IBCKeeper = ibckeeper.NewKeeper(
 		appCodec, keys[ibcexported.StoreKey], app.GetSubspace(ibcexported.ModuleName), app.StakingKeeper, app.UpgradeKeeper, scopedIBCKeeper,
 	)

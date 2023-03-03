@@ -27,6 +27,7 @@ artifacts
 baseapp/data/*
 client/lcd/keys/*
 mytestnet
+modules/light-clients/08-wasm/wasm_client_data/
 
 # Testing
 coverage.txt
@@ -55,6 +56,5 @@ dependency-graph.png
 
 *.history
 
-# Go
-go.work
-go.work.sum
+tmp/
+*.wasm

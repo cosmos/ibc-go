@@ -40,7 +40,3 @@ This folder contains all the Protobuf files used for
 ## `testing`
 
 This package contains the implementation of the testing package used in unit and integration tests. Please read the [package's documentation](../../testing/README.md) for more information.
-
-## `e2e`
-
-This folder contains all the e2e tests of ibc-go. Please read the [module's documentation](../../e2e/README.md) for more information.

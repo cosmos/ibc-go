@@ -1,0 +1,47 @@
+
+syntax = "proto3";
+package ibc.lightclients.wasm.v1;
+
+import "gogoproto/gogo.proto";
+import "ibc/core/client/v1/client.proto";
+import "ibc/core/commitment/v1/commitment.proto";
+
+option go_package = "github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm/types";
+
+// Wasm light client's Client state
+message ClientState {
+  option (gogoproto.goproto_getters)      = false;
+  bytes                     data          = 1;
+  bytes                     code_id       = 2;
+  ibc.core.client.v1.Height latest_height = 3
+      [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"latest_height\""];
+}
+
+// Wasm light client's ConsensusState
+message ConsensusState {
+  option (gogoproto.goproto_getters) = false;
+  bytes data                         = 1;
+  bytes code_id                      = 2;
+
+  // timestamp that corresponds to the block height in which the ConsensusState
+  // was stored.
+  uint64 timestamp = 3;
+  // commitment root
+  ibc.core.commitment.v1.MerkleRoot root = 4;
+} //
+
+// Wasm light client Header
+message Header {
+  option (gogoproto.goproto_getters) = false;
+
+  bytes                     data   = 1;
+  ibc.core.client.v1.Height height = 2 [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"height\""];
+}
+
+// Wasm light client Misbehaviour
+message Misbehaviour {
+  option (gogoproto.goproto_getters) = false;
+
+  string client_id = 1 [(gogoproto.moretags) = "yaml:\"client_id\""];
+  bytes  data      = 2;
+}

@@ -17,6 +17,7 @@ import (
 	portkeeper "github.com/cosmos/ibc-go/v7/modules/core/05-port/keeper"
 	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/types"
+	wasmkeeper "github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm/keeper"
 )
 
 var _ types.QueryServer = (*Keeper)(nil)
@@ -33,6 +34,7 @@ type Keeper struct {
 	ChannelKeeper    channelkeeper.Keeper
 	PortKeeper       portkeeper.Keeper
 	Router           *porttypes.Router
+	WasmClientKeeper wasmkeeper.Keeper
 }
 
 // NewKeeper creates a new ibc Keeper
@@ -65,6 +67,7 @@ func NewKeeper(
 	connectionKeeper := connectionkeeper.NewKeeper(cdc, key, paramSpace, clientKeeper)
 	portKeeper := portkeeper.NewKeeper(scopedKeeper)
 	channelKeeper := channelkeeper.NewKeeper(cdc, key, clientKeeper, connectionKeeper, portKeeper, scopedKeeper)
+	wasmKeeper := wasmkeeper.NewKeeper(cdc, key)
 
 	return &Keeper{
 		cdc:              cdc,
@@ -72,6 +75,7 @@ func NewKeeper(
 		ConnectionKeeper: connectionKeeper,
 		ChannelKeeper:    channelKeeper,
 		PortKeeper:       portKeeper,
+		WasmClientKeeper: wasmKeeper,
 	}
 }
 

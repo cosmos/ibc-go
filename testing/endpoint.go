@@ -101,7 +101,15 @@ func (endpoint *Endpoint) CreateClient() (err error) {
 		//		solo := NewSolomachine(endpoint.Chain.TB, endpoint.Chain.Codec, clientID, "", 1)
 		//		clientState = solo.ClientState()
 		//		consensusState = solo.ConsensusState()
+	case exported.Wasm:
+		wasmConfig, ok := endpoint.ClientConfig.(*WasmConfig)
+		require.True(endpoint.Chain.T, ok)
 
+		// height := endpoint.Counterparty.Chain.LastHeader.GetHeight().(clienttypes.Height)
+		clientState = &wasmConfig.InitClientState
+		// ibcwasm.NewClientState(0, &wasmConfig.InitConsensusState)
+		// consensusState = endpoint.Counterparty.Chain.LastHeader.ConsensusState()
+		consensusState = &wasmConfig.InitConsensusState
 	default:
 		err = fmt.Errorf("client type %s is not supported", endpoint.ClientConfig.GetClientType())
 	}
@@ -136,9 +144,11 @@ func (endpoint *Endpoint) UpdateClient() (err error) {
 	switch endpoint.ClientConfig.GetClientType() {
 	case exported.Tendermint:
 		header, err = endpoint.Chain.ConstructUpdateTMClientHeader(endpoint.Counterparty.Chain, endpoint.ClientID)
-
+	case exported.Wasm:
+		wasmConfig := endpoint.ClientConfig.(*WasmConfig)
+		header = &wasmConfig.UpdateHeader
 	default:
-		err = fmt.Errorf("client type %s is not supported", endpoint.ClientConfig.GetClientType())
+		err = fmt.Errorf("[UpdateClient] client type %s is not supported", endpoint.ClientConfig.GetClientType())
 	}
 
 	if err != nil {
