@@ -2,7 +2,7 @@
 order: 6
 -->
 
-# Existence and non-existence proofs
+# Existence and non-existence proofs 
 
 IBC uses merkle proofs in order to verify the state of a remote counterparty state machine given a trusted root, and [ICS-23](https://github.com/cosmos/ics23/tree/master/go) is a general approach for verifying merkle trees which is used in ibc-go.
 
@@ -32,28 +32,28 @@ From the [`ClientState` interface definition](https://github.com/cosmos/ibc-go/b
 
 ```go
 VerifyMembership(
-  ctx sdk.Context,
-  clientStore sdk.KVStore,
-  cdc codec.BinaryCodec,
-  height Height,
-  delayTimePeriod uint64,
-  delayBlockPeriod uint64,
-  proof []byte,
-  path Path,
-  value []byte,
+    ctx sdk.Context,
+    clientStore sdk.KVStore,
+    cdc codec.BinaryCodec,
+    height Height,
+    delayTimePeriod uint64,
+    delayBlockPeriod uint64,
+    proof []byte,
+    path Path,
+    value []byte,
 ) error
 
 // VerifyNonMembership is a generic proof verification method which verifies the absence of a given CommitmentPath at a specified height.
 // The caller is expected to construct the full CommitmentPath from a CommitmentPrefix and a standardized path (as defined in ICS 24).
 VerifyNonMembership(
-  ctx sdk.Context,
-  clientStore sdk.KVStore,
-  cdc codec.BinaryCodec,
-  height Height,
-  delayTimePeriod uint64,
-  delayBlockPeriod uint64,
-  proof []byte,
-  path Path,
+    ctx sdk.Context,
+    clientStore sdk.KVStore,
+    cdc codec.BinaryCodec,
+    height Height,
+    delayTimePeriod uint64,
+    delayBlockPeriod uint64,
+    proof []byte,
+    path Path,
 ) error
 ```
 

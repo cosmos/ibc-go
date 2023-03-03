@@ -18,8 +18,8 @@ CheckSubstituteAndUpdateState(
   cdc codec.BinaryCodec, 
   subjectClientStore, 
   substituteClientStore sdk.KVStore, 
-  substituteClient ClientState,
-) error
+  substituteClient ClientState) 
+  error
 ```
 
 Prior to updating, this function must verify that:

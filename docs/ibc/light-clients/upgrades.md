@@ -10,7 +10,7 @@ It is vital that high-value IBC clients can upgrade along with their underlying 
 
 The IBC protocol allows client implementations to provide a path to upgrading clients given the upgraded `ClientState`, upgraded `ConsensusState` and proofs for each. This path is provided in the `VerifyUpgradeAndUpdateState` method:
 
-```go
+```go	
 // NOTE: proof heights are not included as upgrade to a new revision is expected to pass only on the last height committed by the current revision. Clients are responsible for ensuring that the planned last height of the current revision is somehow encoded in the proof verification process.
 // This is to ensure that no premature upgrades occur, since upgrade plans committed to by the counterparty may be cancelled or modified before the last planned height.
 // If the upgrade is verified, the upgraded client and consensus states must be set in the client store.
@@ -33,7 +33,7 @@ Developers must ensure that the `MsgUpgradeClient` does not pass until the last 
 
 ### Upgrade path
 
-Clients should have **prior knowledge of the merkle path** that the upgraded client and upgraded consensus states will use. The height at which the upgrade has occurred should also be encoded in the proof.
+Clients should have **prior knowledge of the merkle path** that the upgraded client and upgraded consensus states will use. The height at which the upgrade has occurred should also be encoded in the proof. 
 > The Tendermint client implementation accomplishes this by including an `UpgradePath` in the `ClientState` itself, which is used along with the upgrade height to construct the merkle path under which the client state and consensus state are committed.
 
 ## Chain specific vs client specific client parameters

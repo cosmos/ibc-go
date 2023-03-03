@@ -71,20 +71,20 @@ type middleware struct {
 - Use [goimports](https://godoc.org/golang.org/x/tools/cmd/goimports).
 - Separate imports into blocks: one for the standard lib, one for external libs and one for application libs. For example:
 
-```go
-import (
-  // standard library imports
-  "fmt"
-  "testing"
-      
-  // external library imports
-  "github.com/stretchr/testify/require"
-  abci "github.com/tendermint/tendermint/abci/types"
-      
-  // ibc-go library imports
-  "github.com/cosmos/ibc-go/modules/core/23-commitment/types"
-)
-```
+	```go
+	import (
+		// standard library imports
+		"fmt"
+		"testing"
+					
+		// external library imports
+		"github.com/stretchr/testify/require"
+		abci "github.com/tendermint/tendermint/abci/types"
+					
+		// ibc-go library imports
+		"github.com/cosmos/ibc-go/modules/core/23-commitment/types"
+	)
+	```
 
 ## Dependencies
 
@@ -105,11 +105,11 @@ import (
 - Panic is appropriate when an internal invariant of a system is broken, while all other cases (in particular, incorrect or invalid usage) should return errors.
 - Error messages should be formatted as following:
 
-```go
-sdkerrors.Wrapf(
-  <most specific error type possible>,
-  "<optional text description ended by colon and space>expected %s, got %s",
-  <value 1>,
-  <value 2>
-)
-```
+	```go
+	sdkerrors.Wrapf(
+		<most specific error type possible>,
+		"<optional text description ended by colon and space>expected %s, got %s",
+		<value 1>,
+		<value 2>
+	)
+	```

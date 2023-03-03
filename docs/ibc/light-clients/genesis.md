@@ -12,7 +12,7 @@ Learn how to implement the `ExportMetadata` interface {synopsis}
 
 `ClientState` instances are provided their own isolated and namespaced client store upon initialisation. `ClientState` implementations may choose to store any amount of arbitrary metadata in order to verify counterparty consensus state and perform light client updates correctly.
 
-The `ExportMetadata` method of the [`ClientState` interface](https://github.com/cosmos/ibc-go/blob/e650be91614ced7be687c30eb42714787a3bbc59/modules/core/exported/client.go) provides light client modules with the ability to persist metadata in genesis exports.
+The `ExportMetadata` method of the [`ClientState` interface](https://github.com/cosmos/ibc-go/blob/e650be91614ced7be687c30eb42714787a3bbc59/modules/core/exported/client.go) provides light client modules with the ability to persist metadata in genesis exports. 
 
 ```go
 ExportMetadata(clientStore sdk.KVStore) []GenesisMetadata
