@@ -54,3 +54,10 @@ jobs:
           CHAIN_B_TAG: "${{ matrix.chain-b }}"
           CHAIN_BINARY: "${{ matrix.chain-binary }}"
           RELAYER_TYPE: "${{ matrix.relayer-type }}"
+      - name: Upload logs on failure
+        uses: actions/upload-artifact@v3
+#        if: true
+        with:
+          name: "${{ matrix.entrypoint }}-${{ matrix.test }}"
+          path: e2e/logs
+          retention-days: 5
