@@ -168,4 +168,5 @@ require (
 replace (
 	github.com/CosmWasm/wasmvm => github.com/notional-labs/wasmvm v1.2.0-cometbft
 	github.com/cometbft/cometbft => github.com/cometbft/cometbft v0.37.0-rc3
+	github.com/cosmos/cosmos-sdk => github.com/cosmos/cosmos-sdk v0.47.0-rc3
 )
