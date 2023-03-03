@@ -1,9 +1,11 @@
 package dockerutil
 
 import (
-	"bytes"
+	"archive/tar"
 	"context"
 	"fmt"
+	"io"
+	"path"
 	"testing"
 
 	dockertypes "github.com/docker/docker/api/types"
@@ -42,12 +44,29 @@ func GetContainerLogs(ctx context.Context, dc *dockerclient.Client, containerNam
 	if err != nil {
 		return nil, fmt.Errorf("failed reading logs in test cleanup: %s", err)
 	}
+	return io.ReadAll(readCloser)
+}
 
-	b := new(bytes.Buffer)
-	_, err = b.ReadFrom(readCloser)
+// GetFileContentsFromContainer reads the contents of a specific file from a container.
+func GetFileContentsFromContainer(ctx context.Context, dc *dockerclient.Client, containerID, absolutePath string) ([]byte, error) {
+	readCloser, _, err := dc.CopyFromContainer(ctx, containerID, absolutePath)
 	if err != nil {
-		return nil, fmt.Errorf("failed reading logs in test cleanup: %s", err)
+		return nil, fmt.Errorf("copying from container: %w", err)
 	}
 
-	return b.Bytes(), nil
+	defer readCloser.Close()
+
+	fileName := path.Base(absolutePath)
+	tr := tar.NewReader(readCloser)
+
+	hdr, err := tr.Next()
+	if err != nil {
+		return nil, err
+	}
+
+	if hdr.Name != fileName {
+		return nil, fmt.Errorf("expected to find %s but found %s", fileName, hdr.Name)
+	}
+
+	return io.ReadAll(tr)
 }

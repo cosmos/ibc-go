@@ -4,11 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"os"
-	ospath "path"
 	"strconv"
 	"strings"
-	"testing"
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -35,10 +32,10 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
-	"github.com/cosmos/ibc-go/e2e/dockerutil"
 	"github.com/cosmos/ibc-go/e2e/relayer"
 	"github.com/cosmos/ibc-go/e2e/semverutil"
 	"github.com/cosmos/ibc-go/e2e/testconfig"
+	"github.com/cosmos/ibc-go/e2e/testsuite/diagnostics"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	controllertypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
 	feetypes "github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
@@ -69,83 +66,6 @@ type E2ETestSuite struct {
 
 	// pathNameIndex is the latest index to be used for generating paths
 	pathNameIndex uint64
-}
-
-// getE2EDir finds the e2e directory above the test.
-func getE2EDir(t *testing.T) (string, error) {
-	t.Helper()
-
-	wd, err := os.Getwd()
-	if err != nil {
-		return "", err
-	}
-
-	count := 0
-	for ; !strings.HasSuffix(wd, "e2e") || count > 100; wd = ospath.Dir(wd) {
-		count++
-	}
-
-	if count > 100 {
-		return "", fmt.Errorf("unable to find e2e directory after 100 tries")
-	}
-
-	return wd, nil
-}
-
-// DumpDockerLogs can be used in `t.Cleanup` and will copy all the of the container logs.
-// into e2e/<test-suite>/<test-name>.log. These log files will be uploaded to GH upon test failure.
-func (s *E2ETestSuite) DumpDockerLogs(t *testing.T) {
-	t.Helper()
-
-	if !t.Failed() {
-		t.Logf("test passed, not uploading logs")
-		return
-	}
-
-	t.Logf("writing logs for test: %s", t.Name())
-
-	ctx := context.TODO()
-	e2eDir, err := getE2EDir(t)
-	if err != nil {
-		t.Logf("failed finding log directory: %s", err)
-	}
-
-	logsDir := fmt.Sprintf("%s/logs", e2eDir)
-
-	if err := os.MkdirAll(fmt.Sprintf("%s/%s", logsDir, t.Name()), 0750); err != nil {
-		t.Logf("failed creating logs directory in test cleanup: %s", err)
-		return
-	}
-
-	testContainers, err := dockerutil.GetTestContainers(t, ctx, s.DockerClient)
-	if err != nil {
-		t.Logf("failed listing containers test cleanup: %s", err)
-		return
-	}
-
-	for _, container := range testContainers {
-		logsBz, err := dockerutil.GetContainerLogs(ctx, s.DockerClient, container.ID)
-		if err != nil {
-			t.Logf("failed reading logs in test cleanup: %s", err)
-			continue
-		}
-
-		// container will always have an id, by may not have a name.
-		containerName := container.ID
-		if len(container.Names) > 0 {
-			containerName = container.Names[0]
-			// remove the test name from the container as the folder structure will provide this
-			// information already.
-			containerName = strings.TrimRight(containerName, "-"+t.Name())
-		}
-
-		logFile := fmt.Sprintf("%s/%s/%s.log", logsDir, t.Name(), containerName)
-		if err := os.WriteFile(logFile, logsBz, 0750); err != nil {
-			t.Logf("failed writing log file for container %s in test cleanup: %s", containerName, err)
-			continue
-		}
-		t.Logf("successfully wrote log file %s", logFile)
-	}
 }
 
 // GRPCClients holds a reference to any GRPC clients that are needed by the tests.
@@ -525,13 +445,6 @@ func (s *E2ETestSuite) createCosmosChains(chainOptions testconfig.ChainOptions) 
 	client, network := interchaintest.DockerSetup(s.T())
 	t := s.T()
 
-	// this is intentionally called after the interchaintest.DockerSetup function. The above function registers a
-	// cleanup task which deletes all containers. By registering a cleanup function afterwards, it is executed first
-	// this allows us to process the logs before the containers are removed.
-	t.Cleanup(func() {
-		s.DumpDockerLogs(t)
-	})
-
 	s.logger = zap.NewExample()
 	s.DockerClient = client
 	s.network = network
@@ -542,6 +455,14 @@ func (s *E2ETestSuite) createCosmosChains(chainOptions testconfig.ChainOptions) 
 
 	chainA := cosmos.NewCosmosChain(t.Name(), *chainOptions.ChainAConfig, numValidators, numFullNodes, logger)
 	chainB := cosmos.NewCosmosChain(t.Name(), *chainOptions.ChainBConfig, numValidators, numFullNodes, logger)
+
+	// this is intentionally called after the interchaintest.DockerSetup function. The above function registers a
+	// cleanup task which deletes all containers. By registering a cleanup function afterwards, it is executed first
+	// this allows us to process the logs before the containers are removed.
+	t.Cleanup(func() {
+		diagnostics.Collect(t, s.DockerClient, chainOptions)
+	})
+
 	return chainA, chainB
 }
 
