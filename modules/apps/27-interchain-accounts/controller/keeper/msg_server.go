@@ -47,6 +47,7 @@ func (s msgServer) RegisterInterchainAccount(goCtx context.Context, msg *types.M
 
 	return &types.MsgRegisterInterchainAccountResponse{
 		ChannelId: channelID,
+		PortId:    portID,
 	}, nil
 }
 
