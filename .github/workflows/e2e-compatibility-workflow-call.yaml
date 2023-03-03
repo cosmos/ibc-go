@@ -44,6 +44,8 @@ jobs:
         with:
           go-version: 1.19
       - name: Run e2e Test
+        continue-on-error: true
+        id: e2e_test # provide an id so that it can be referenced in the next step.
         run: |
           cd e2e
           make e2e-test entrypoint=${{ matrix.entrypoint }} test=${{ matrix.test }}
@@ -56,8 +58,9 @@ jobs:
           RELAYER_TYPE: "${{ matrix.relayer-type }}"
       - name: Upload logs on failure
         uses: actions/upload-artifact@v3
-#        if: true
+        # we only want to upload logs on test failures.
+        if: steps.e2e_test.outcome == 'failure'
         with:
           name: "${{ matrix.entrypoint }}-${{ matrix.test }}"
-          path: e2e/logs
+          path: ibc-go/e2e/logs
           retention-days: 5
