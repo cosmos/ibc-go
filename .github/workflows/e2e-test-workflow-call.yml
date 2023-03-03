@@ -161,14 +161,20 @@ jobs:
           go-version: 1.19
       - name: Run e2e Test
         # set continue-on-error to true so that the next steps run even on failure.
-        continue-on-error: true
+#        continue-on-error: true
         id: e2e_test
         run: |
           cd e2e
           make e2e-test entrypoint=${{ matrix.entrypoint }} test=${{ matrix.test }}
       - name: Upload logs on failure
         uses: actions/upload-artifact@v3
-        if: ${{ always() && steps.e2e_test.outcome == 'failure' }}
+
+        # if a status function is not used (success(), always() or failure()) the workflow will automatically assume success().
+        # this means that if we want to run something when a task failed, we need to use always(). We cannot actually use failure() here
+        # as the `continue-on-error: true` option means that the task will not technically fail. always() is the only status condition that
+        # we can use for this purpose. The stored `outcome` will however be 'failure' which we can use to verify the test itself failed.
+#        if: ${{ always() && steps.e2e_test.outcome == 'failure' }}
+        if: ${{ failure() }}
         continue-on-error: true
         with:
           name: "${{ matrix.entrypoint }}-${{ matrix.test }}"
@@ -176,6 +182,7 @@ jobs:
           retention-days: 5
         # this step is required to mark the action as having failed. Using continue-on-error: true above
         # allows the log collection to happen, but the UI is still green showing that the test succeeded.
-      - name: Fail test
-        if: ${{ always() && steps.e2e_test.outcome == 'failure' }}
-        run: exit 1
+#      - name: Fail test
+#        if: ${{ always() && steps.e2e_test.outcome == 'failure' }}
+#        if: ${{ failure() }}
+#        run: exit 1
