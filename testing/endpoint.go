@@ -103,7 +103,7 @@ func (endpoint *Endpoint) CreateClient() (err error) {
 		//		consensusState = solo.ConsensusState()
 	case exported.Wasm:
 		wasmConfig, ok := endpoint.ClientConfig.(*WasmConfig)
-		require.True(endpoint.Chain.T, ok)
+		require.True(endpoint.Chain.TB, ok)
 
 		// height := endpoint.Counterparty.Chain.LastHeader.GetHeight().(clienttypes.Height)
 		clientState = &wasmConfig.InitClientState
