@@ -169,7 +169,11 @@ jobs:
       - name: Upload logs on failure
         uses: actions/upload-artifact@v3
         if: ${{ always() && steps.e2e_test.outcome == 'failure' }}
+        continue-on-error: true
         with:
           name: "${{ matrix.entrypoint }}-${{ matrix.test }}"
-          path: ibc-go/e2e/logs
+          path: e2e/logs
           retention-days: 5
+#      - name: Fail test
+#        if: ${{ always() && steps.e2e_test.outcome == 'failure' }}
+#        run: exit 1
