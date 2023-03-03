@@ -398,13 +398,16 @@ func (chain *TestChain) ConstructUpdateTMClientHeader(counterparty *TestChain, c
 	return chain.ConstructUpdateTMClientHeaderWithTrustedHeight(counterparty, clientID, clienttypes.ZeroHeight())
 }
 
+// ConstructUpdateWasmClientHeader will construct a valid 08-wasm Header to update the
+// light client on the source chain.
+// TODO: Implement this
 func (chain *TestChain) ConstructUpdateWasmClientHeaderWithTrustedHeight(counterparty *TestChain, clientID string, trustedHeight clienttypes.Height) (*wasmtypes.Header, error) {
-	// header := counterparty.LastHeader
+	//	header := counterparty.LastHeader
 	if trustedHeight.IsZero() {
-		trustedHeight = chain.GetClientState(clientID).GetLatestHeight().(clienttypes.Height)
+		trustedHeight = chain.GetClientState(clientID).GetLatestHeight().(clienttypes.Height) //nolint:staticcheck
 	}
 	panic("not implemented")
-	return nil, nil
+	// return nil, nil // bring this back when the test is implemented
 }
 
 // ConstructUpdateTMClientHeader will construct a valid 07-tendermint Header to update the

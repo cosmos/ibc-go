@@ -162,7 +162,7 @@ func callContractWithEnvAndMeter(codeID cosmwasm.Checksum, ctx sdk.Context, stor
 	// mockQuerier := api.MockQuerier{}
 	desercost := types.UFraction{Numerator: 1, Denominator: 1}
 	resp, gasUsed, err := WasmVM.Execute(codeID, env, msgInfo, msg, store, cosmwasm.GoAPI{}, nil, gasMeter, gasMeter.Limit(), desercost)
-	if &ctx != nil {
+	if &ctx != nil { //nolint:staticcheck // TODO: fix this function and deal with SA4022: the address of a variable cannot be nil
 		consumeGas(ctx, gasUsed)
 	}
 	return resp, err
