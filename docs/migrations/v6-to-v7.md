@@ -307,22 +307,22 @@ Legacy APIs of the `AppModule` interface have been removed from ibc-go modules. 
 ```diff
 - // Route implements the AppModule interface
 - func (am AppModule) Route() sdk.Route {
--     return sdk.Route{}
+-   return sdk.Route{}
 - }
 -
 - // QuerierRoute implements the AppModule interface
 - func (AppModule) QuerierRoute() string {
--     return types.QuerierRoute
+-   return types.QuerierRoute
 - }
 -
 - // LegacyQuerierHandler implements the AppModule interface
 - func (am AppModule) LegacyQuerierHandler(*codec.LegacyAmino) sdk.Querier {
--     return nil
+-   return nil
 - }
 -
 - // ProposalContents doesn't return any content functions for governance proposals.
 - func (AppModule) ProposalContents(_ module.SimulationState) []simtypes.WeightedProposalContent {
--     return nil
+-   return nil
 - }
 ```
 
@@ -332,10 +332,10 @@ Imports for ics23 have been updated as the repository have been migrated from co
 
 ```diff
 import (
-    // ...
--   ics23 "github.com/confio/ics23/go"
-+   ics23 "github.com/cosmos/ics23/go"
-    // ...
+  // ...
+- ics23 "github.com/confio/ics23/go"
++ ics23 "github.com/cosmos/ics23/go"
+  // ...
 )
 ```
 
@@ -343,9 +343,9 @@ Imports for gogoproto have been updated.
 
 ```diff
 import (
-    // ...
--   "github.com/gogo/protobuf/proto"
-+   "github.com/cosmos/gogoproto/proto"
-    // ...
+  // ...
+- "github.com/gogo/protobuf/proto"
++ "github.com/cosmos/gogoproto/proto"
+  // ...
 )
 ```
