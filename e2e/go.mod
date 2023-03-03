@@ -8,7 +8,7 @@ require (
 	github.com/cosmos/gogoproto v1.4.6
 	github.com/cosmos/ibc-go/v7 v7.0.0-20230301203348-9d0682254443
 	github.com/cosmos/interchain-accounts v0.4.1-0.20230116203650-08d2a4529a5d
-	github.com/docker/docker v23.0.1+incompatible
+	github.com/docker/docker v20.10.19+incompatible
 	github.com/strangelove-ventures/interchaintest/v7 v7.0.0-20230302213153-84ec330a137b
 	github.com/stretchr/testify v1.8.2
 	go.uber.org/zap v1.24.0
@@ -167,6 +167,7 @@ require (
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/rs/cors v1.8.3 // indirect
 	github.com/sasha-s/go-deadlock v0.3.1 // indirect
+	github.com/sirupsen/logrus v1.9.0 // indirect
 	github.com/spaolacci/murmur3 v1.1.0 // indirect
 	github.com/spf13/afero v1.9.4 // indirect
 	github.com/spf13/cast v1.5.0 // indirect
