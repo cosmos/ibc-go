@@ -369,7 +369,7 @@ func (suite *WasmTestSuite) TestUpdateState() {
 	}
 }
 
-// TODO: uncomment when test data is aquired
+// TODO: uncomment when test data is acquired
 /*
 func (suite *WasmTestSuite) TestVerifyNonMemership() {
 	var (
@@ -477,7 +477,7 @@ func (suite *WasmTestSuite) TestVerifyMisbehaviour() {
 }
 */
 
-// TODO: uncomment when test data is aquired
+// TODO: uncomment when test data is acquired
 /*
 func (suite *WasmTestSuite) TestVerifyMemership() {
 	var (

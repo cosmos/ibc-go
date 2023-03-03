@@ -12,8 +12,10 @@ import (
 
 // TODO: figure out better handling for the gas settings. ideally these should be in the
 // 28-wasm module and handled as params
-const GasMultiplier uint64 = 100
-const maxGasLimit = uint64(0x7FFFFFFFFFFFFFFF)
+const (
+	GasMultiplier uint64 = 100
+	maxGasLimit          = uint64(0x7FFFFFFFFFFFFFFF)
+)
 
 var WasmVM *cosmwasm.VM
 
