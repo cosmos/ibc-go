@@ -29,10 +29,11 @@ If the `Version` string is omitted, the controller submodule will construct a de
 ```go
 type MsgRegisterInterchainAccountResponse struct {
   ChannelID string
+  PortId string
 }
 ```
 
-The `ChannelID` is returned in the message response.
+The `ChannelID` and `PortID` are returned in the message response.
 
 ## `MsgSendTx`
 
