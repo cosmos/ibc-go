@@ -33,6 +33,7 @@ func GetTestContainers(t *testing.T, ctx context.Context, dc *dockerclient.Clien
 	return testContainers, nil
 }
 
+// GetContainerLogs returns the logs of a container as a byte array.
 func GetContainerLogs(ctx context.Context, dc *dockerclient.Client, containerName string) ([]byte, error) {
 	readCloser, err := dc.ContainerLogs(ctx, containerName, dockertypes.ContainerLogsOptions{
 		ShowStdout: true,
