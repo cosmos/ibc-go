@@ -11,6 +11,9 @@ import (
 	dockerclient "github.com/docker/docker/client"
 )
 
+const testLabel = "ibc-test"
+
+// GetTestContainers returns all docker containers that have been created by interchain test.
 func GetTestContainers(t *testing.T, ctx context.Context, dc *dockerclient.Client) ([]dockertypes.Container, error) {
 	t.Helper()
 
@@ -19,7 +22,7 @@ func GetTestContainers(t *testing.T, ctx context.Context, dc *dockerclient.Clien
 		Filters: filters.NewArgs(
 			// see: https://github.com/strangelove-ventures/interchaintest/blob/0bdc194c2aa11aa32479f32b19e1c50304301981/internal/dockerutil/setup.go#L31-L36
 			// for the label needed to identify test containers.
-			filters.Arg("label", "ibc-test="+t.Name()),
+			filters.Arg("label", testLabel+"="+t.Name()),
 		),
 	})
 
