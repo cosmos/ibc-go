@@ -160,6 +160,15 @@ jobs:
         with:
           go-version: 1.19
       - name: Run e2e Test
+        # set continue-on-error to true so that the next steps run even on failure.
+        continue-on-error: true
         run: |
           cd e2e
           make e2e-test entrypoint=${{ matrix.entrypoint }} test=${{ matrix.test }}
+      - name: Upload logs on failure
+        uses: actions/upload-artifact@v3
+        if: ${{ failure() }}
+        with:
+          name: "${{ matrix.entrypoint }}-${{ matrix.test }}"
+          path: ibc-go/e2e/logs
+          retention-days: 5

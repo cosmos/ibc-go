@@ -46,8 +46,6 @@ jobs:
       - name: Run e2e Test
         # set continue-on-error to true so that the next steps run even on failure.
         continue-on-error: true
-        # provide an id so that it can be referenced in the next step.
-        id: e2e_test
         run: |
           cd e2e
           make e2e-test entrypoint=${{ matrix.entrypoint }} test=${{ matrix.test }}
@@ -61,7 +59,7 @@ jobs:
       - name: Upload logs on failure
         uses: actions/upload-artifact@v3
         # we only want to upload logs on test failures.
-        if: always() && steps.e2e_test.outcome == 'failure'
+        if: ${{ failure() }}
         with:
           name: "${{ matrix.entrypoint }}-${{ matrix.test }}"
           path: ibc-go/e2e/logs
