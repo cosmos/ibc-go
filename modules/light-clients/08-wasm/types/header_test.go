@@ -1,20 +1,20 @@
-package wasm_test
+package types_test
 
 import (
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
-	wasm "github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm"
+	"github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm/types"
 )
 
 func (suite *WasmTestSuite) TestHeaderValidateBasic() {
 	testCases := []struct {
 		name    string
-		header  *wasm.Header
+		header  *types.Header
 		expPass bool
 	}{
 		{
 			"valid header",
-			&wasm.Header{
+			&types.Header{
 				Data:   []byte("data"),
 				Height: clienttypes.NewHeight(0, 0),
 			},
@@ -22,7 +22,7 @@ func (suite *WasmTestSuite) TestHeaderValidateBasic() {
 		},
 		{
 			"data is empty",
-			&wasm.Header{
+			&types.Header{
 				Data:   []byte(""),
 				Height: clienttypes.NewHeight(0, 0),
 			},

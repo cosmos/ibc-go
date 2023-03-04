@@ -6,12 +6,13 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
-	wasm "github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm"
 	"github.com/spf13/cobra"
+
+	types "github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm/types"
 )
 
-// NewPushNewWasmCodeCmd returns the command to create a PushNewWasmCode transaction
-func NewPushNewWasmCodeCmd() *cobra.Command {
+// newPushNewWasmCodeCmd returns the command to create a PushNewWasmCode transaction
+func newPushNewWasmCodeCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "push-wasm [wasm-file]",
 		Short: "Reads wasm code from the file and creates push transaction",
@@ -29,7 +30,7 @@ func NewPushNewWasmCodeCmd() *cobra.Command {
 				return err
 			}
 
-			msg := &wasm.MsgPushNewWasmCode{
+			msg := &types.MsgPushNewWasmCode{
 				Code:   code,
 				Signer: clientCtx.GetFromAddress().String(),
 			}

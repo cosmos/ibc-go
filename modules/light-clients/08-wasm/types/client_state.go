@@ -1,4 +1,4 @@
-package wasm
+package types
 
 import (
 	"encoding/json"

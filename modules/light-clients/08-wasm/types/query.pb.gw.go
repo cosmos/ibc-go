@@ -2,11 +2,11 @@
 // source: ibc/lightclients/wasm/v1/query.proto
 
 /*
-Package wasm is a reverse proxy.
+Package types is a reverse proxy.
 
 It translates gRPC into RESTful JSON APIs.
 */
-package wasm
+package types
 
 import (
 	"context"

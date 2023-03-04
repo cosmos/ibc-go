@@ -107,7 +107,7 @@ func (endpoint *Endpoint) CreateClient() (err error) {
 
 		// height := endpoint.Counterparty.Chain.LastHeader.GetHeight().(clienttypes.Height)
 		clientState = &wasmConfig.InitClientState
-		//ibcwasm.NewClientState(0, &wasmConfig.InitConsensusState)
+		// ibcwasm.NewClientState(0, &wasmConfig.InitConsensusState)
 		// consensusState = endpoint.Counterparty.Chain.LastHeader.ConsensusState()
 		consensusState = &wasmConfig.InitConsensusState
 	default:
