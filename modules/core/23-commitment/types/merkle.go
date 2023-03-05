@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"net/url"
 
-	tmcrypto "github.com/cometbft/cometbft/proto/tendermint/crypto"
 	errorsmod "cosmossdk.io/errors"
+	tmcrypto "github.com/cometbft/cometbft/proto/tendermint/crypto"
 	"github.com/cosmos/gogoproto/proto"
 	ics23 "github.com/cosmos/ics23/go"
 
