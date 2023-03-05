@@ -19,7 +19,7 @@ func getCmdCode() *cobra.Command {
 		Short: "Query wasm code",
 		Long:  "Query wasm code",
 		Example: fmt.Sprintf(
-			"%s query %s %s code [code-id]", version.AppName, host.SubModuleName, types.SubModuleName,
+			"%s query %s %s code [code-id]", version.AppName, host.SubModuleName, types.ModuleName,
 		),
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
