@@ -1,9 +1,13 @@
 package types
 
 import (
+<<<<<<< HEAD
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+=======
+	errorsmod "cosmossdk.io/errors"
+	crypto "github.com/cometbft/cometbft/proto/tendermint/crypto"
+>>>>>>> 143e5d85 (deps: migrate to cometbft v0.37 (#3175))
 	ics23 "github.com/cosmos/ics23/go"
-	crypto "github.com/tendermint/tendermint/proto/tendermint/crypto"
 )
 
 // ConvertProofs converts crypto.ProofOps into MerkleProof

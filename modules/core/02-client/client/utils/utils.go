@@ -3,10 +3,17 @@ package utils
 import (
 	"context"
 
+<<<<<<< HEAD
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	tmtypes "github.com/tendermint/tendermint/types"
+=======
+	errorsmod "cosmossdk.io/errors"
+	tmtypes "github.com/cometbft/cometbft/types"
+	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/codec"
+>>>>>>> 143e5d85 (deps: migrate to cometbft v0.37 (#3175))
 
 	"github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"

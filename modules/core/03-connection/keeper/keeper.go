@@ -1,12 +1,16 @@
 package keeper
 
 import (
+<<<<<<< HEAD
+=======
+	errorsmod "cosmossdk.io/errors"
+	"github.com/cometbft/cometbft/libs/log"
+>>>>>>> 143e5d85 (deps: migrate to cometbft v0.37 (#3175))
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
-	"github.com/tendermint/tendermint/libs/log"
 
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"

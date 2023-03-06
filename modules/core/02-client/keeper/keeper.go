@@ -5,6 +5,12 @@ import (
 	"reflect"
 	"strings"
 
+<<<<<<< HEAD
+=======
+	errorsmod "cosmossdk.io/errors"
+	"github.com/cometbft/cometbft/libs/log"
+	"github.com/cometbft/cometbft/light"
+>>>>>>> 143e5d85 (deps: migrate to cometbft v0.37 (#3175))
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
@@ -12,8 +18,6 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
-	"github.com/tendermint/tendermint/libs/log"
-	"github.com/tendermint/tendermint/light"
 
 	"github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
