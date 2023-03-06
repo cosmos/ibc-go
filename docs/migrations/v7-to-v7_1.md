@@ -5,10 +5,10 @@ This guide provides instructions for migrating to version `v7.1.0` of ibc-go.
 There are four sections based on the four potential user groups of this document:
 
 - [Migrating from v7 to v7.1](#migrating-from-v7-to-v71)
-	- [Chains](#chains)
-	- [IBC Apps](#ibc-apps)
-	- [Relayers](#relayers)
-	- [IBC Light Clients](#ibc-light-clients)
+  - [Chains](#chains)
+  - [IBC Apps](#ibc-apps)
+  - [Relayers](#relayers)
+  - [IBC Light Clients](#ibc-light-clients)
 
 **Note:** ibc-go supports golang semantic versioning and therefore all imports must be updated on major version releases.
 
@@ -25,18 +25,18 @@ See the upgrade handler code sample provided below or [follow this link](https:/
 
 ```go
 func CreateV7LocalhostUpgradeHandler(
-	mm *module.Manager,
-	configurator module.Configurator,
-	clientKeeper clientkeeper.Keeper,
+  mm *module.Manager,
+  configurator module.Configurator,
+  clientKeeper clientkeeper.Keeper,
 ) upgradetypes.UpgradeHandler {
-	return func(ctx sdk.Context, _ upgradetypes.Plan, vm module.VersionMap) (module.VersionMap, error) {
-		// explicitly update the IBC 02-client params, adding the localhost client type
-		params := clientKeeper.GetParams(ctx)
-		params.AllowedClients = append(params.AllowedClients, exported.Localhost)
-		clientKeeper.SetParams(ctx, params)
+  return func(ctx sdk.Context, _ upgradetypes.Plan, vm module.VersionMap) (module.VersionMap, error) {
+    // explicitly update the IBC 02-client params, adding the localhost client type
+    params := clientKeeper.GetParams(ctx)
+    params.AllowedClients = append(params.AllowedClients, exported.Localhost)
+    clientKeeper.SetParams(ctx, params)
 
-		return mm.RunMigrations(ctx, configurator, vm)
-	}
+    return mm.RunMigrations(ctx, configurator, vm)
+  }
 }
 ```
 
