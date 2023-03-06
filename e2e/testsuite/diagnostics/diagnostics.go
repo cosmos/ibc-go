@@ -51,8 +51,8 @@ func Collect(t *testing.T, dc *dockerclient.Client, cfg testconfig.ChainOptions)
 		containerName := getContainerName(t, container)
 		containerDir := fmt.Sprintf("%s/%s/%s", logsDir, t.Name(), containerName)
 		if err := os.MkdirAll(containerDir, 0750); err != nil {
-			t.Logf("failed creating logs directory for container %sL %s", containerDir, err)
-			return
+			t.Logf("failed creating logs directory for container %s: %s", containerDir, err)
+			continue
 		}
 
 		logsBz, err := dockerutil.GetContainerLogs(ctx, dc, container.ID)
