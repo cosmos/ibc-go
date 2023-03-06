@@ -275,10 +275,7 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 
 	payee, found := im.keeper.GetPayeeAddress(ctx, relayer.String(), packet.SourceChannel)
 	if !found {
-		im.keeper.DistributePacketFeesOnAcknowledgement(ctx, ack.ForwardRelayerAddress, relayer, feesInEscrow.PacketFees, packetID)
-
-		// call underlying callback
-		return im.app.OnAcknowledgementPacket(ctx, packet, ack.AppAcknowledgement, relayer)
+		payee = relayer.String()
 	}
 
 	payeeAddr, err := sdk.AccAddressFromBech32(payee)
@@ -317,10 +314,7 @@ func (im IBCMiddleware) OnTimeoutPacket(
 
 	payee, found := im.keeper.GetPayeeAddress(ctx, relayer.String(), packet.SourceChannel)
 	if !found {
-		im.keeper.DistributePacketFeesOnTimeout(ctx, relayer, feesInEscrow.PacketFees, packetID)
-
-		// call underlying callback
-		return im.app.OnTimeoutPacket(ctx, packet, relayer)
+		payee = relayer.String()
 	}
 
 	payeeAddr, err := sdk.AccAddressFromBech32(payee)
