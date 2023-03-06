@@ -84,6 +84,16 @@ type CallbackPacketData interface {
 
     // may return the empty string
     GetDestCallbackAddress() string
+
+    // UserDefinedGasLimit allows the sender of the packet to define inside the packet data
+    // a gas limit for how much the ADR-8 callbacks can consume. If defined, this will be passed
+    // in as the gas limit so that the callback is guaranteed to complete within a specific limit.
+    // On recvPacket, a gas-overflow will just fail the transaction allowing it to timeout on the sender side.
+    // On ackPacket and timeoutPacket, a gas-overflow will reject state changes made during callback but still
+    // commit the transaction. This ensures the packet lifecycle can always complete.
+    // If the packet data returns 0, the remaining gas limit will be passed in (modulo any chain-defined limit)
+    // Otherwise, we will set the gas limit passed into the callback to the `min(ctx.GasLimit, UserDefinedGasLimit())`
+    UserDefinedGasLimit() uint64
 }
 ```
 
@@ -194,18 +204,33 @@ func OnRecvPacket(
     ctx sdk.Context,
     packet channeltypes.Packet,
     relayer sdk.AccAddress,
-) exported.Acknowledgement {
+) (ack exported.Acknowledgement) {
     // run any necesssary logic first
     // IBCActor logic will postprocess
 
-    acc := k.getAccount(ctx, packet.GetDstCallbackAddress())
+    // unmarshal packet data into expected interface
+    var cbPacketData callbackPacketData
+    unmarshalInterface(packet.GetData(), cbPacketData)
+    if cbPacketData == nil {
+        return
+    }
+
+    acc := k.getAccount(ctx, cbPacketData.GetDstCallbackAddress())
     ibcActor, ok := acc.(IBCActor)
     if ok {
-        err := ibcActor.OnRecvPacket(ctx, packet, relayer)
+        // set gas limit for callback
+        gasLimit := getGasLimit(ctx, cbPacketData)
+        cbCtx = ctx.WithGasLimit(gasLimit)
+
+        err := ibcActor.OnRecvPacket(cbCtx, packet, relayer)
+
+        // deduct consumed gas from original context
+        ctx = ctx.WithGasLimit(ctx.GasMeter().RemainingGas() - cbCtx.GasMeter().GasConsumed())
         if err != nil {
             return AcknowledgementError(err)
         }
     }
+    return
 }
 
 // Call the IBCActor acknowledgementPacket callback after processing the packet
@@ -222,15 +247,41 @@ func (im IBCModule) OnAcknowledgementPacket(
 ) error {
     // application-specific onAcknowledgmentPacket logic
 
+    // unmarshal packet data into expected interface
+    var cbPacketData callbackPacketData
+    unmarshalInterface(packet.GetData(), cbPacketData)
+    if cbPacketData == nil {
+        return
+    }
+
     // unmarshal ack bytes into the acknowledgment interface
     var ack exported.Acknowledgement
     unmarshal(acknowledgement, ack)
 
     // send acknowledgement to original actor
-    acc := k.getAccount(ctx, packet.GetSrcCallbackAddress())
+    acc := k.getAccount(ctx, cbPacketData.GetSrcCallbackAddress())
     ibcActor, ok := acc.(IBCActor)
     if ok {
-        err := ibcActor.OnAcknowledgementPacket(ctx, packet, ack, relayer)
+        gasLimit := getGasLimit(ctx, cbPacketData)
+
+        // create cached context with gas limit
+        cacheCtx, writeFn := ctx.CacheContext()
+        cacheCtx = cacheCtx.WithGasLimit(gasLimit)
+        
+        defer func() {
+            if e := recover(); e != nil {
+                log("ran out of gas in callback. reverting callback state")
+            } else {
+                // only write callback state if we did not panic during execution
+                writeFn()
+            }
+        }
+
+        err := ibcActor.OnAcknowledgementPacket(cacheCtx, packet, ack, relayer)
+
+        // deduct consumed gas from original context
+        ctx = ctx.WithGasLimit(ctx.GasMeter().RemainingGas() - cbCtx.GasMeter().GasConsumed())
+
         setAckCallbackError(ctx, packet, err)
         emitAckCallbackErrorEvents(err)
     }
@@ -249,27 +300,72 @@ func (im IBCModule) OnTimeoutPacket(
 ) error {
     // application-specific onTimeoutPacket logic
 
+    // unmarshal packet data into expected interface
+    var cbPacketData callbackPacketData
+    unmarshalInterface(packet.GetData(), cbPacketData)
+    if cbPacketData == nil {
+        return
+    }
+
     // call timeout callback on original actor
-    acc := k.getAccount(ctx, packet.GetSrcCallbackAddress())
+    acc := k.getAccount(ctx, cbPacketData.GetSrcCallbackAddress())
     ibcActor, ok := acc.(IBCActor)
     if ok {
+        gasLimit := getGasLimit(ctx, cbPacketData)
+
+        // create cached context with gas limit
+        cacheCtx, writeFn := ctx.CacheContext()
+        cacheCtx = cacheCtx.WithGasLimit(gasLimit)
+        
+        defer func() {
+            if e := recover(); e != nil {
+                log("ran out of gas in callback. reverting callback state")
+            } else {
+                // only write callback state if we did not panic during execution
+                writeFn()
+            }
+        }
+
         err := ibcActor.OnTimeoutPacket(ctx, packet, relayer)
+
+        // deduct consumed gas from original context
+        ctx = ctx.WithGasLimit(ctx.GasMeter().RemainingGas() - cbCtx.GasMeter().GasConsumed())
+
         setTimeoutCallbackError(ctx, packet, err)
         emitTimeoutCallbackErrorEvents(err)
     }
 }
+
+func getGasLimit(ctx sdk.Context, cbPacketData CallbackPacketData) uint64 {
+    // getGasLimit returns the gas limit to pass into the actor callback
+    // this will be the minimum of the remaining gas limit in the tx
+    // and the config defined gas limit. The config limit is itself
+    // the minimum of a user defined gas limit and the chain-defined gas limit
+    // for actor callbacks
+    var configLimit uint64
+    if cbPacketData == 0 {
+        configLimit = chainDefinedActorCallbackLimit
+    } else {
+        configLimit = min(chainDefinedActorCallbackLimit, cbPacketData.UserDefinedGasLimit())
+    }
+    return min(ctx.GasMeter().GasRemaining(), configLimit)
+}
 ```
+
+Chains are expected to specify a `chainDefinedActorCallbackLimit` to ensure that callbacks do not consume an arbitrary amount of gas. Thus, it should always be possible for a relayer to complete the packet lifecycle even if the actor callbacks cannot run successfully.
 
 ## Consequences
 
 ### Positive
 
 - IBC Actors can now programatically execute logic that involves sending a packet and then performing some additional logic once the packet lifecycle is complete
+- Middleware implementing ADR-8 can be generally used for any application
 - Leverages the same callback architecture used between core IBC and IBC applications
 
 ### Negative
 
 - Callbacks may now have unbounded gas consumption since the actor may execute arbitrary logic. Chains implementing this feature should take care to place limitations on how much gas an actor callback can consume.
+- Application packets that want to support ADR-8 must additionally have their packet data implement the `CallbackPacketData` interface and register their implementation on the chain codec
 
 ### Neutral
 
