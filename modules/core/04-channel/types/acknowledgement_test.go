@@ -3,10 +3,14 @@ package types_test
 import (
 	"fmt"
 
+<<<<<<< HEAD
+=======
+	errorsmod "cosmossdk.io/errors"
+	abcitypes "github.com/cometbft/cometbft/abci/types"
+	tmprotostate "github.com/cometbft/cometbft/proto/tendermint/state"
+	tmstate "github.com/cometbft/cometbft/state"
+>>>>>>> 143e5d85 (deps: migrate to cometbft v0.37 (#3175))
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	abcitypes "github.com/tendermint/tendermint/abci/types"
-	tmprotostate "github.com/tendermint/tendermint/proto/tendermint/state"
-	tmstate "github.com/tendermint/tendermint/state"
 
 	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 )

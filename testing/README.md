@@ -252,8 +252,13 @@ package transfertesting
 import (
 	"encoding/json"
 
+<<<<<<< HEAD
 	"github.com/tendermint/tendermint/libs/log"
 	dbm "github.com/tendermint/tm-db"
+=======
+  "github.com/cometbft/cometbft/libs/log"
+  dbm "github.com/cometbft/cometbft-db"
+>>>>>>> 143e5d85 (deps: migrate to cometbft v0.37 (#3175))
 
 	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/simapp"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
