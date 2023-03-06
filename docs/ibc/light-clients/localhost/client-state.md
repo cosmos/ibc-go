@@ -18,8 +18,8 @@ It calls `CreateLocalhostClient`, declaring a new `ClientState` and initializing
 
 ```go
 func (k Keeper) CreateLocalhostClient(ctx sdk.Context) error {
-	var clientState localhost.ClientState
-	return clientState.Initialize(ctx, k.cdc, k.ClientStore(ctx, exported.LocalhostClientID), nil)
+  var clientState localhost.ClientState
+  return clientState.Initialize(ctx, k.cdc, k.ClientStore(ctx, exported.LocalhostClientID), nil)
 }
 ```
 
@@ -36,10 +36,10 @@ func BeginBlocker(ctx sdk.Context, k keeper.Keeper) {
   // ...
 
   if clientState, found := k.GetClientState(ctx, exported.Localhost); found {
-		if k.GetClientStatus(ctx, clientState, exported.Localhost) == exported.Active {
-			k.UpdateLocalhostClient(ctx, clientState)
-		}
-	}
+    if k.GetClientStatus(ctx, clientState, exported.Localhost) == exported.Active {
+      k.UpdateLocalhostClient(ctx, clientState)
+    }
+  }
 }
 ```
 
