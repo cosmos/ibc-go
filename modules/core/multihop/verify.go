@@ -53,7 +53,7 @@ func VerifyMultihopProof(
 
 	// verify proof lengths
 	if len(proofs.ConnectionProofs) < 1 || len(proofs.ConsensusProofs) < 1 {
-		return fmt.Errorf("the number of connection (%d) and consensus (%d) (%d) proofs must be > 0",
+		return fmt.Errorf("the number of connection (%d) and consensus (%d) proofs must be > 0",
 			len(proofs.ConnectionProofs), len(proofs.ConsensusProofs))
 	}
 
