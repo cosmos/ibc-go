@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	signingtypes "github.com/cosmos/cosmos-sdk/types/tx/signing"
@@ -85,6 +86,8 @@ type GRPCClients struct {
 	ParamsQueryClient paramsproposaltypes.QueryClient
 	AuthQueryClient   authtypes.QueryClient
 	AuthZQueryClient  authz.QueryClient
+
+	ConsensusServiceClient tmservice.ServiceClient
 }
 
 // path is a pairing of two chains which will be used in a test.
@@ -407,17 +410,18 @@ func (s *E2ETestSuite) InitGRPCClients(chain *cosmos.CosmosChain) {
 	}
 
 	s.grpcClients[chain.Config().ChainID] = GRPCClients{
-		ClientQueryClient:  clienttypes.NewQueryClient(grpcConn),
-		ChannelQueryClient: channeltypes.NewQueryClient(grpcConn),
-		FeeQueryClient:     feetypes.NewQueryClient(grpcConn),
-		ICAQueryClient:     controllertypes.NewQueryClient(grpcConn),
-		InterTxQueryClient: intertxtypes.NewQueryClient(grpcConn),
-		GovQueryClient:     govtypesv1beta1.NewQueryClient(grpcConn),
-		GovQueryClientV1:   govtypesv1.NewQueryClient(grpcConn),
-		GroupsQueryClient:  grouptypes.NewQueryClient(grpcConn),
-		ParamsQueryClient:  paramsproposaltypes.NewQueryClient(grpcConn),
-		AuthQueryClient:    authtypes.NewQueryClient(grpcConn),
-		AuthZQueryClient:   authz.NewQueryClient(grpcConn),
+		ClientQueryClient:      clienttypes.NewQueryClient(grpcConn),
+		ChannelQueryClient:     channeltypes.NewQueryClient(grpcConn),
+		FeeQueryClient:         feetypes.NewQueryClient(grpcConn),
+		ICAQueryClient:         controllertypes.NewQueryClient(grpcConn),
+		InterTxQueryClient:     intertxtypes.NewQueryClient(grpcConn),
+		GovQueryClient:         govtypesv1beta1.NewQueryClient(grpcConn),
+		GovQueryClientV1:       govtypesv1.NewQueryClient(grpcConn),
+		GroupsQueryClient:      grouptypes.NewQueryClient(grpcConn),
+		ParamsQueryClient:      paramsproposaltypes.NewQueryClient(grpcConn),
+		AuthQueryClient:        authtypes.NewQueryClient(grpcConn),
+		AuthZQueryClient:       authz.NewQueryClient(grpcConn),
+		ConsensusServiceClient: tmservice.NewServiceClient(grpcConn),
 	}
 }
 

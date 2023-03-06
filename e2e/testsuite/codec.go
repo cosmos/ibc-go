@@ -2,7 +2,7 @@ package testsuite
 
 import (
 	"github.com/cosmos/cosmos-sdk/codec"
-	sdkcodec "github.com/cosmos/cosmos-sdk/crypto/codec"
+	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/authz"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -56,7 +56,7 @@ func codecAndEncodingConfig() (*codec.ProtoCodec, simappparams.EncodingConfig) {
 	govv1beta1.RegisterInterfaces(cfg.InterfaceRegistry)
 	govv1.RegisterInterfaces(cfg.InterfaceRegistry)
 	authtypes.RegisterInterfaces(cfg.InterfaceRegistry)
-	sdkcodec.RegisterInterfaces(cfg.InterfaceRegistry)
+	cryptocodec.RegisterInterfaces(cfg.InterfaceRegistry)
 	grouptypes.RegisterInterfaces(cfg.InterfaceRegistry)
 	proposaltypes.RegisterInterfaces(cfg.InterfaceRegistry)
 	authz.RegisterInterfaces(cfg.InterfaceRegistry)

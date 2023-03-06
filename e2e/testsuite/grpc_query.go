@@ -26,10 +26,14 @@ func (s *E2ETestSuite) QueryClientState(ctx context.Context, chain ibc.Chain, cl
 		return nil, err
 	}
 
-	clientState, err := clienttypes.UnpackClientState(res.ClientState)
-	if err != nil {
-		return nil, err
-	}
+	cfg := EncodingConfig()
+	var clientState ibcexported.ClientState
+	err = cfg.InterfaceRegistry.UnpackAny(res.ClientState, &clientState)
+	s.Require().NoError(err)
+	// clientState, err := clienttypes.UnpackClientState(res.ClientState)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
 	return clientState, nil
 }
