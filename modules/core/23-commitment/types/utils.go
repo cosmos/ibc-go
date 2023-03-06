@@ -2,8 +2,8 @@ package types
 
 import (
 	errorsmod "cosmossdk.io/errors"
+	crypto "github.com/cometbft/cometbft/proto/tendermint/crypto"
 	ics23 "github.com/cosmos/ics23/go"
-	crypto "github.com/tendermint/tendermint/proto/tendermint/crypto"
 )
 
 // ConvertProofs converts crypto.ProofOps into MerkleProof

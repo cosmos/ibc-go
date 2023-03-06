@@ -4,10 +4,10 @@ import (
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
+	abcitypes "github.com/cometbft/cometbft/abci/types"
+	tmprotostate "github.com/cometbft/cometbft/proto/tendermint/state"
+	tmstate "github.com/cometbft/cometbft/state"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	abcitypes "github.com/tendermint/tendermint/abci/types"
-	tmprotostate "github.com/tendermint/tendermint/proto/tendermint/state"
-	tmstate "github.com/tendermint/tendermint/state"
 
 	ibcerrors "github.com/cosmos/ibc-go/v7/internal/errors"
 	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
