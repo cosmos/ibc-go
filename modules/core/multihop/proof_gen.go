@@ -84,7 +84,6 @@ func (p ChanPath) GenerateProof(key []byte, val []byte, doVerify bool) (result *
 	proofGenFuncs := []proofGenFunc{
 		genConsensusStateProof,
 		genConnProof,
-		genClientProof,
 	}
 	linkedPathProofs, err := p.GenerateIntermediateStateProofs(proofGenFuncs)
 	if err != nil {
@@ -99,7 +98,6 @@ func (p ChanPath) GenerateProof(key []byte, val []byte, doVerify bool) (result *
 	}
 	result.ConsensusProofs = linkedPathProofs[0]
 	result.ConnectionProofs = linkedPathProofs[1]
-	result.ClientProofs = linkedPathProofs[2]
 
 	return result, nil
 }

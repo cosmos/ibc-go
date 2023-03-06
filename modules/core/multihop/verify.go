@@ -8,8 +8,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
@@ -54,9 +52,9 @@ func VerifyMultihopProof(
 ) error {
 
 	// verify proof lengths
-	if len(proofs.ConnectionProofs) < 1 || len(proofs.ConsensusProofs) < 1 || len(proofs.ClientProofs) < 1 {
-		return fmt.Errorf("the number of connection (%d), consensus (%d), and client (%d) proofs must be > 0",
-			len(proofs.ConnectionProofs), len(proofs.ConsensusProofs), len(proofs.ClientProofs))
+	if len(proofs.ConnectionProofs) < 1 || len(proofs.ConsensusProofs) < 1 {
+		return fmt.Errorf("the number of connection (%d) and consensus (%d) (%d) proofs must be > 0",
+			len(proofs.ConnectionProofs), len(proofs.ConsensusProofs))
 	}
 
 	if len(proofs.ConsensusProofs) != len(proofs.ConnectionProofs) {
@@ -64,23 +62,13 @@ func VerifyMultihopProof(
 			len(proofs.ConnectionProofs), len(proofs.ConsensusProofs))
 	}
 
-	if len(proofs.ConsensusProofs) != len(proofs.ClientProofs) {
-		return fmt.Errorf("the number of client (%d) and consensus (%d) proofs must be equal",
-			len(proofs.ClientProofs), len(proofs.ConsensusProofs))
-	}
-
 	// verify connection states and ordering
 	if err := verifyConnectionStates(cdc, proofs.ConnectionProofs, connectionHops); err != nil {
 		return err
 	}
 
-	// verify client states are not frozen
-	if err := verifyClientStates(cdc, proofs.ClientProofs, proofs.ConsensusProofs); err != nil {
-		return err
-	}
-
 	// verify intermediate consensus and connection states from destination --> source
-	if err := verifyIntermediateStateProofs(cdc, consensusState, proofs.ConsensusProofs, proofs.ConnectionProofs, proofs.ClientProofs); err != nil {
+	if err := verifyIntermediateStateProofs(cdc, consensusState, proofs.ConsensusProofs, proofs.ConnectionProofs); err != nil {
 		return fmt.Errorf("failed to verify consensus state proof: %w", err)
 	}
 
@@ -126,60 +114,17 @@ func verifyConnectionStates(cdc codec.BinaryCodec, connectionProofData []*channe
 	return nil
 }
 
-// verifyClientStates verifies that the provided clientstates are not frozen/expired
-// and that the client id for the client state matches the consensus state.
-func verifyClientStates(
-	cdc codec.BinaryCodec,
-	clientProofData []*channeltypes.MultihopProof,
-	consensusProofData []*channeltypes.MultihopProof,
-) error {
-	for i, data := range clientProofData {
-		var clientState exported.ClientState
-		if err := cdc.UnmarshalInterface(data.Value, &clientState); err != nil {
-			return fmt.Errorf("failed to unpack client state: %w", err)
-		}
-		var consensusState exported.ConsensusState
-		if err := cdc.UnmarshalInterface(consensusProofData[i].Value, &consensusState); err != nil {
-			return fmt.Errorf("failed to unpack consesnsus state: %w", err)
-		}
-		if len(consensusProofData[i].PrefixedKey.KeyPath) < 2 || len(clientProofData[i].PrefixedKey.KeyPath) < 2 {
-			return fmt.Errorf("consensus and client proof prefixe length must be > 1")
-		}
-		consensusParts := strings.Split(consensusProofData[i].PrefixedKey.KeyPath[1], "/")
-		clientParts := strings.Split(clientProofData[i].PrefixedKey.KeyPath[1], "/")
-		if len(consensusParts) < 2 || len(clientParts) < 2 {
-			return fmt.Errorf("consensus or client proof prefix component too short")
-		}
-
-		// verify the client ids match
-		if consensusParts[1] != clientParts[1] {
-			return fmt.Errorf("consensus (%s) and client (%s) ids must match", consensusParts[1], clientParts[1])
-		}
-
-		// clients can not be frozen
-		if clientState.ClientType() == exported.Tendermint {
-			cs, ok := clientState.(*tmclient.ClientState)
-			if ok && cs.FrozenHeight != clienttypes.Height(types.NewHeight(0, 0)) {
-				return sdkerrors.Wrapf(clienttypes.ErrInvalidClient, "Multihop client frozen")
-			}
-		}
-	}
-	return nil
-}
-
 // verifyIntermediateStateProofs verifies the intermediate consensus, connection, client states in the multi-hop proof.
 func verifyIntermediateStateProofs(
 	cdc codec.BinaryCodec,
 	consensusState exported.ConsensusState,
 	consensusProofs []*channeltypes.MultihopProof,
 	connectionProofs []*channeltypes.MultihopProof,
-	clientProofs []*channeltypes.MultihopProof,
 ) error {
 	var consState exported.ConsensusState
 	for i := len(consensusProofs) - 1; i >= 0; i-- {
 		consensusProof := consensusProofs[i]
 		connectionProof := connectionProofs[i]
-		clientProof := clientProofs[i]
 		if err := cdc.UnmarshalInterface(consensusProof.Value, &consState); err != nil {
 			return fmt.Errorf("failed to unpack consesnsus state: %w", err)
 		}
@@ -212,21 +157,6 @@ func verifyIntermediateStateProofs(
 			connectionProof.Value,
 		); err != nil {
 			return fmt.Errorf("failed to verify connection proof: %w", err)
-		}
-
-		// prove client state
-		proof.Reset()
-		if err := cdc.Unmarshal(clientProof.Proof, &proof); err != nil {
-			return fmt.Errorf("failed to unmarshal cilent state proof: %w", err)
-		}
-
-		if err := proof.VerifyMembership(
-			commitmenttypes.GetSDKSpecs(),
-			consensusState.GetRoot(),
-			*clientProof.PrefixedKey,
-			clientProof.Value,
-		); err != nil {
-			return fmt.Errorf("failed to verify client proof: %w", err)
 		}
 
 		consensusState = consState

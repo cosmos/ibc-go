@@ -286,5 +286,4 @@ message MsgMultihopProofs {
   MultihopProof key_proof = 1;
   repeated MultihopProof connection_proofs = 2;
   repeated MultihopProof consensus_proofs = 3;
-  repeated MultihopProof client_proofs = 4;
 }
