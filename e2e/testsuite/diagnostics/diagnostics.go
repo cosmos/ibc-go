@@ -16,6 +16,10 @@ import (
 	"github.com/cosmos/ibc-go/e2e/testconfig"
 )
 
+const (
+	e2eDir = "e2e"
+)
+
 // Collect can be used in `t.Cleanup` and will copy all the of the container logs and relevant files
 // into e2e/<test-suite>/<test-name>.log. These log files will be uploaded to GH upon test failure.
 func Collect(t *testing.T, dc *dockerclient.Client, cfg testconfig.ChainOptions) {
@@ -32,6 +36,7 @@ func Collect(t *testing.T, dc *dockerclient.Client, cfg testconfig.ChainOptions)
 	e2eDir, err := getE2EDir(t)
 	if err != nil {
 		t.Logf("failed finding log directory: %s", err)
+		return
 	}
 
 	logsDir := fmt.Sprintf("%s/diagnostics", e2eDir)
@@ -136,13 +141,16 @@ func getE2EDir(t *testing.T) (string, error) {
 		return "", err
 	}
 
+	const maxAttempts = 100
 	count := 0
-	for ; !strings.HasSuffix(wd, "e2e") || count > 100; wd = ospath.Dir(wd) {
+	for ; !strings.HasSuffix(wd, e2eDir) || count > maxAttempts; wd = ospath.Dir(wd) {
 		count++
 	}
 
-	if count > 100 {
-		return "", fmt.Errorf("unable to find e2e directory after 100 tries")
+	// arbitrary value to avoid getting stuck in an infinite loop if this is called
+	// in a context where the e2e directory does not exist.
+	if count > maxAttempts {
+		return "", fmt.Errorf("unable to find e2e directory after %d tries", maxAttempts)
 	}
 
 	return wd, nil
