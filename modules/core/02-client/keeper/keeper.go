@@ -5,12 +5,8 @@ import (
 	"reflect"
 	"strings"
 
-<<<<<<< HEAD
-=======
-	errorsmod "cosmossdk.io/errors"
 	"github.com/cometbft/cometbft/libs/log"
 	"github.com/cometbft/cometbft/light"
->>>>>>> 143e5d85 (deps: migrate to cometbft v0.37 (#3175))
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
