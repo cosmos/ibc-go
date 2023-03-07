@@ -18,19 +18,19 @@ must be registered with the module name as a route on the IBC `Router`.
 ```go
 // app.go
 func NewApp(...args) *App {
-// ...
+  // ...
 
-// Create static IBC router, add module routes, then set and seal it
-ibcRouter := port.NewRouter()
+  // Create static IBC router, add module routes, then set and seal it
+  ibcRouter := port.NewRouter()
 
-ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferModule)
-// Note: moduleCallbacks must implement IBCModule interface
-ibcRouter.AddRoute(moduleName, moduleCallbacks)
+  ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferModule)
+  // Note: moduleCallbacks must implement IBCModule interface
+  ibcRouter.AddRoute(moduleName, moduleCallbacks)
 
-// Setting Router will finalize all routes by sealing router
-// No more routes can be added
-app.IBCKeeper.SetRouter(ibcRouter)
+  // Setting Router will finalize all routes by sealing router
+  // No more routes can be added
+  app.IBCKeeper.SetRouter(ibcRouter)
 
-// ...
+  // ...
 }
 ```

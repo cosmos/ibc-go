@@ -2,11 +2,11 @@ syntax = "proto3";
 
 package ibc.lightclients.tendermint.v1;
 
-option go_package = "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint;tendermint";
+option go_package = "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint;tendermint";
 
 import "tendermint/types/validator.proto";
 import "tendermint/types/types.proto";
-import "proofs.proto";
+import "cosmos/ics23/v1/proofs.proto";
 import "google/protobuf/duration.proto";
 import "google/protobuf/timestamp.proto";
 import "ibc/core/client/v1/client.proto";
@@ -41,7 +41,7 @@ message ClientState {
       [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"latest_height\""];
 
   // Proof specifications used in verifying counterparty state
-  repeated ics23.ProofSpec proof_specs = 8 [(gogoproto.moretags) = "yaml:\"proof_specs\""];
+  repeated cosmos.ics23.v1.ProofSpec proof_specs = 8 [(gogoproto.moretags) = "yaml:\"proof_specs\""];
 
   // Path at which next upgraded client will be committed.
   // Each element corresponds to the key for a single CommitmentProof in the
@@ -69,7 +69,7 @@ message ConsensusState {
   // commitment root (i.e app hash)
   ibc.core.commitment.v1.MerkleRoot root                 = 2 [(gogoproto.nullable) = false];
   bytes                             next_validators_hash = 3 [
-    (gogoproto.casttype) = "github.com/tendermint/tendermint/libs/bytes.HexBytes",
+    (gogoproto.casttype) = "github.com/cometbft/cometbft/libs/bytes.HexBytes",
     (gogoproto.moretags) = "yaml:\"next_validators_hash\""
   ];
 }

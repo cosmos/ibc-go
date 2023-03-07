@@ -1,5 +1,5 @@
 {
-  "chain-a": ["release-v4.2.x", "v6.0.0", "v5.1.0", "v5.0.1", "v4.1.1"],
+  "chain-a": ["release-v4.2.x", "v6.1.0", "v5.2.0", "v4.1.1"],
   "chain-b": ["release-v4.2.x"],
   "entrypoint": ["TestIncentivizedTransferTestSuite"],
   "test": [
@@ -10,6 +10,7 @@
     "TestPayPacketFeeAsync_SingleSender_NoCounterPartyAddress",
     "TestMsgPayPacketFee_AsyncMultipleSenders_Succeeds"
   ],
+  "relayer-type": ["rly"],
   "chain-binary": ["simd"],
   "chain-image": ["ghcr.io/cosmos/ibc-go-simd"]
 }
