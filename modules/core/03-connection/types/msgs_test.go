@@ -215,22 +215,22 @@ func (suite *MsgTestSuite) TestNewMsgConnectionOpenConfirm() {
 	}
 
 	testCases := []struct {
+		name    string
 		msg     *types.MsgConnectionOpenConfirm
 		expPass bool
-		errMsg  string
 	}{
-		{testMsgs[0], false, "invalid connection ID"},
-		{testMsgs[1], false, "empty proofTry"},
-		{testMsgs[2], false, "empty signer"},
-		{testMsgs[3], true, "success"},
+		{"invalid connection ID", testMsgs[0], false},
+		{"empty proofTry", testMsgs[1], false},
+		{"empty signer", testMsgs[2], false},
+		{"success", testMsgs[3], true},
 	}
 
-	for i, tc := range testCases {
+	for _, tc := range testCases {
 		err := tc.msg.ValidateBasic()
 		if tc.expPass {
-			suite.Require().NoError(err, "Msg %d failed: %s", i, tc.errMsg)
+			suite.Require().NoError(err, tc.name)
 		} else {
-			suite.Require().Error(err, "Invalid Msg %d passed: %s", i, tc.errMsg)
+			suite.Require().Error(err, tc.name)
 		}
 	}
 }
