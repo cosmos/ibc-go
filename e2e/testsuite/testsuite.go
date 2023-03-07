@@ -66,7 +66,7 @@ type E2ETestSuite struct {
 	startRelayerFn func(relayer ibc.Relayer)
 
 	// pathNameIndex is the latest index to be used for generating paths
-	pathNameIndex uint64
+	pathNameIndex int64
 }
 
 // GRPCClients holds a reference to any GRPC clients that are needed by the tests.
@@ -201,8 +201,15 @@ func (s *E2ETestSuite) SetupSingleChain(ctx context.Context) *cosmos.CosmosChain
 
 // generatePathName generates the path name using the test suites name
 func (s *E2ETestSuite) generatePathName() string {
-	pathName := fmt.Sprintf("%s-path-%d", s.T().Name(), s.pathNameIndex)
+	path := s.GetPathName(s.pathNameIndex)
 	s.pathNameIndex++
+	return path
+}
+
+// GetPathName returns the name of a path at a specific index. This can be used in tests
+// when the path name is required.
+func (s *E2ETestSuite) GetPathName(idx int64) string {
+	pathName := fmt.Sprintf("%s-path-%d", s.T().Name(), idx)
 	return strings.ReplaceAll(pathName, "/", "-")
 }
 
@@ -213,6 +220,7 @@ func (s *E2ETestSuite) generatePath(ctx context.Context, relayer ibc.Relayer) st
 	chainBID := chainB.Config().ChainID
 
 	pathName := s.generatePathName()
+
 	err := relayer.GeneratePath(ctx, s.GetRelayerExecReporter(), chainAID, chainBID, pathName)
 	s.Require().NoError(err)
 

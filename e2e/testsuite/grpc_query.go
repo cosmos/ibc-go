@@ -2,6 +2,7 @@ package testsuite
 
 import (
 	"context"
+	"sort"
 
 	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
@@ -9,6 +10,7 @@ import (
 	intertxtypes "github.com/cosmos/interchain-accounts/x/inter-tx/types"
 	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
 	"github.com/strangelove-ventures/interchaintest/v7/ibc"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	controllertypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
 	feetypes "github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
@@ -160,7 +162,9 @@ func (s *E2ETestSuite) QueryProposalV1(ctx context.Context, chain ibc.Chain, pro
 	return *res.Proposal, nil
 }
 
-func (s *E2ETestSuite) GetBlockByHeight(ctx context.Context, chain ibc.Chain, height uint64) (*tmservice.Block, error) {
+// GetBlockByHeight fetches the block at a given height. Note: we are explicitly using the res.Block type which has been
+// deprecated instead of res.SdkBlock to support backwards compatibility tests.
+func (s *E2ETestSuite) GetBlockByHeight(ctx context.Context, chain ibc.Chain, height uint64) (*tmproto.Block, error) {
 	tmService := s.GetChainGRCPClients(chain).ConsensusServiceClient
 	res, err := tmService.GetBlockByHeight(ctx, &tmservice.GetBlockByHeightRequest{
 		Height: int64(height),
@@ -169,9 +173,11 @@ func (s *E2ETestSuite) GetBlockByHeight(ctx context.Context, chain ibc.Chain, he
 		return nil, err
 	}
 
-	return res.SdkBlock, nil
+	return res.Block, nil
 }
 
+// GetValidatorSetByHeight returns the validators of the given chain at the specified height. The returned validators
+// are sorted by address.
 func (s *E2ETestSuite) GetValidatorSetByHeight(ctx context.Context, chain ibc.Chain, height uint64) ([]*tmservice.Validator, error) {
 	tmService := s.GetChainGRCPClients(chain).ConsensusServiceClient
 	res, err := tmService.GetValidatorSetByHeight(ctx, &tmservice.GetValidatorSetByHeightRequest{
@@ -180,6 +186,10 @@ func (s *E2ETestSuite) GetValidatorSetByHeight(ctx context.Context, chain ibc.Ch
 	if err != nil {
 		return nil, err
 	}
+
+	sort.SliceStable(res.Validators, func(i, j int) bool {
+		return res.Validators[i].Address < res.Validators[j].Address
+	})
 
 	return res.Validators, nil
 }

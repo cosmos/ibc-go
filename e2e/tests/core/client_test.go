@@ -3,10 +3,13 @@ package e2e
 import (
 	"context"
 	"fmt"
+	"sort"
 	"strings"
 	"testing"
 	"time"
 
+	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
+	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
 	"github.com/strangelove-ventures/interchaintest/v7/ibc"
 	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
 	"github.com/stretchr/testify/suite"
@@ -18,8 +21,8 @@ import (
 	tmtypes "github.com/tendermint/tendermint/types"
 	tmversion "github.com/tendermint/tendermint/version"
 
-	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
+
 	"github.com/cosmos/ibc-go/e2e/dockerutil"
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
@@ -28,6 +31,10 @@ import (
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	ibcmock "github.com/cosmos/ibc-go/v7/testing/mock"
+)
+
+const (
+	invalidHashValue = "invalid_hash"
 )
 
 func TestClientTestSuite(t *testing.T) {
@@ -136,117 +143,155 @@ func (s *ClientTestSuite) TestClient_Misbehaviour() {
 	t := s.T()
 	ctx := context.TODO()
 
+	var (
+		trustedHeight   clienttypes.Height
+		latestHeight    clienttypes.Height
+		clientState     ibcexported.ClientState
+		block           *tmproto.Block
+		signers         []tmtypes.PrivValidator
+		validatorSet    []*tmtypes.Validator
+		maliciousHeader *ibctm.Header
+		err             error
+	)
+
 	relayer, _ := s.SetupChainsRelayerAndChannel(ctx)
 	chainA, chainB := s.GetChains()
 
-	testContainers, err := dockerutil.GetTestContainers(t, ctx, s.DockerClient)
-	s.Require().NoError(err)
-
-	t.Logf("found %d containers", len(testContainers))
-
-	var privKeyFileContents []byte
-	for _, container := range testContainers {
-		if !strings.Contains(container.Names[0], chainB.Config().ChainID) { // switched to chain b
-			continue
-		}
-
-		chainBPrivKey := fmt.Sprintf("/var/cosmos-chain/%s/config/priv_validator_key.json", chainB.Config().Name) // switched to chain b
-
-		privKeyFileContents, err = dockerutil.GetFileContentsFromContainer(ctx, s.DockerClient, container.ID, chainBPrivKey)
-		s.Require().NoError(err)
-
-		// TODO don't break after first
-		break
-	}
-
-	var filePV privval.FilePVKey
-	err = tmjson.Unmarshal(privKeyFileContents, &filePV)
-	s.Require().NoError(err)
-
 	s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB))
 
-	t.Run("update client", func(t *testing.T) {
-		// todo: path name is not accessible so manually generating it here
-		err := relayer.UpdateClients(ctx, s.GetRelayerExecReporter(), strings.ReplaceAll(fmt.Sprintf("%s-path-%d", s.T().Name(), 0), "/", "-"))
-		s.Require().NoError(err)
-	})
-
-	t.Run("create misbehaving header", func(t *testing.T) {
-		clientState, err := s.QueryClientState(ctx, chainA, ibctesting.FirstClientID)
-		s.Require().NoError(err)
-
-		tmClientState, ok := clientState.(*ibctm.ClientState)
-		s.Require().True(ok)
-
-		trustedHeight, ok := tmClientState.GetLatestHeight().(clienttypes.Height)
-		s.Require().True(ok)
-
-		err = relayer.UpdateClients(ctx, s.GetRelayerExecReporter(), strings.ReplaceAll(fmt.Sprintf("%s-path-%d", s.T().Name(), 0), "/", "-"))
+	t.Run("update clients", func(t *testing.T) {
+		err := relayer.UpdateClients(ctx, s.GetRelayerExecReporter(), s.GetPathName(0))
 		s.Require().NoError(err)
 
 		clientState, err = s.QueryClientState(ctx, chainA, ibctesting.FirstClientID)
 		s.Require().NoError(err)
+	})
 
-		tmClientState, ok = clientState.(*ibctm.ClientState)
+	t.Run("fetch trusted height", func(t *testing.T) {
+		tmClientState, ok := clientState.(*ibctm.ClientState)
 		s.Require().True(ok)
 
-		height, ok := tmClientState.GetLatestHeight().(clienttypes.Height)
+		trustedHeight, ok = tmClientState.GetLatestHeight().(clienttypes.Height)
+		s.Require().True(ok)
+	})
+
+	t.Run("update clients", func(t *testing.T) {
+		err := relayer.UpdateClients(ctx, s.GetRelayerExecReporter(), s.GetPathName(0))
+		s.Require().NoError(err)
+
+		clientState, err = s.QueryClientState(ctx, chainA, ibctesting.FirstClientID)
+		s.Require().NoError(err)
+	})
+
+	t.Run("fetch client state latest height", func(t *testing.T) {
+		tmClientState, ok := clientState.(*ibctm.ClientState)
 		s.Require().True(ok)
 
-		block, err := s.GetBlockByHeight(ctx, chainB, height.GetRevisionHeight())
-		s.Require().NoError(err)
+		latestHeight, ok = tmClientState.GetLatestHeight().(clienttypes.Height)
+		s.Require().True(ok)
+	})
 
-		validators, err := s.GetValidatorSetByHeight(ctx, chainB, height.GetRevisionHeight())
-		s.Require().NoError(err)
+	t.Run("create validator set", func(t *testing.T) {
+		var validators []*tmservice.Validator
 
-		pv := ibcmock.PV{
-			PrivKey: &ed25519.PrivKey{Key: filePV.PrivKey.Bytes()},
-		}
+		t.Run("fetch block at latest client state height", func(t *testing.T) {
+			block, err = s.GetBlockByHeight(ctx, chainB, latestHeight.GetRevisionHeight())
+			s.Require().NoError(err)
+		})
 
-		pubKey, err := pv.GetPubKey()
-		s.Require().NoError(err)
+		t.Run("get validators at latest height", func(t *testing.T) {
+			validators, err = s.GetValidatorSetByHeight(ctx, chainB, latestHeight.GetRevisionHeight())
+			s.Require().NoError(err)
+		})
 
-		validator := tmtypes.NewValidator(pubKey, validators[0].VotingPower)
-		valSet := tmtypes.NewValidatorSet([]*tmtypes.Validator{validator})
-		signers := []tmtypes.PrivValidator{pv}
+		t.Run("extract validator private keys", func(t *testing.T) {
+			privateKeys := s.extractChainPrivateKeys(ctx, chainB)
+			for i, pv := range privateKeys {
+				pubKey, err := pv.GetPubKey()
+				s.Require().NoError(err)
 
-		// creating duplicate header
-		newHeader, err := createTMClientHeader(chainB.Config().ChainID, int64(height.GetRevisionHeight()), trustedHeight,
+				validator := tmtypes.NewValidator(pubKey, validators[i].VotingPower)
+
+				validatorSet = append(validatorSet, validator)
+				signers = append(signers, pv)
+			}
+		})
+	})
+
+	t.Run("create malicious header", func(t *testing.T) {
+		valSet := tmtypes.NewValidatorSet(validatorSet)
+		maliciousHeader, err = createMaliciousTMHeader(chainB.Config().ChainID, int64(latestHeight.GetRevisionHeight()), trustedHeight,
 			block.Header.GetTime().Add(time.Minute), valSet, valSet, signers, &block.Header)
 		s.Require().NoError(err)
+	})
 
-		// update client with duplicate header
+	t.Run("update client with duplicate misbehaviour header", func(t *testing.T) {
 		rlyWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
-		msgUpdateClient, err := clienttypes.NewMsgUpdateClient(ibctesting.FirstClientID, newHeader, rlyWallet.FormattedAddress())
+		msgUpdateClient, err := clienttypes.NewMsgUpdateClient(ibctesting.FirstClientID, maliciousHeader, rlyWallet.FormattedAddress())
 		s.Require().NoError(err)
 
 		txResp, err := s.BroadcastMessages(ctx, chainA, rlyWallet, msgUpdateClient)
 		s.Require().NoError(err)
 		s.AssertValidTxResponse(txResp)
+	})
 
+	t.Run("ensure client status is frozen", func(t *testing.T) {
 		status, err := s.QueryClientStatus(ctx, chainA, ibctesting.FirstClientID)
 		s.Require().NoError(err)
 		s.Require().Equal(ibcexported.Frozen.String(), status)
 	})
 }
 
-// TODO: see what we can clean up here
-func createTMClientHeader(
+// extractChainPrivateKeys returns a slice of tmtypes.PrivValidator which hold the private keys for all validator
+// nodes for a given chain.
+func (s *ClientTestSuite) extractChainPrivateKeys(ctx context.Context, chain *cosmos.CosmosChain) []tmtypes.PrivValidator {
+	testContainers, err := dockerutil.GetTestContainers(s.T(), ctx, s.DockerClient)
+	s.Require().NoError(err)
+
+	var filePvs []privval.FilePVKey
+	var pvs []tmtypes.PrivValidator
+	for _, container := range testContainers {
+		isNodeForDifferentChain := !strings.Contains(container.Names[0], chain.Config().ChainID)
+		isFullNode := strings.Contains(container.Names[0], fmt.Sprintf("%s-fn", chain.Config().ChainID))
+		if isNodeForDifferentChain || isFullNode {
+			continue
+		}
+
+		validatorPrivKey := fmt.Sprintf("/var/cosmos-chain/%s/config/priv_validator_key.json", chain.Config().Name)
+		privKeyFileContents, err := dockerutil.GetFileContentsFromContainer(ctx, s.DockerClient, container.ID, validatorPrivKey)
+		s.Require().NoError(err)
+
+		var filePV privval.FilePVKey
+		err = tmjson.Unmarshal(privKeyFileContents, &filePV)
+		s.Require().NoError(err)
+		filePvs = append(filePvs, filePV)
+	}
+
+	// we sort by address so that when we iterate through the ibcmock.PV later on they are in sync with the validators
+	// that are also sorted by address.
+	sort.SliceStable(filePvs, func(i, j int) bool {
+		return filePvs[i].Address.String() < filePvs[j].Address.String()
+	})
+
+	for _, filePV := range filePvs {
+		pvs = append(pvs, &ibcmock.PV{
+			PrivKey: &ed25519.PrivKey{Key: filePV.PrivKey.Bytes()},
+		})
+	}
+
+	return pvs
+}
+
+// createMaliciousTMHeader creates a header with the provided trusted height with an invalid app hash.
+func createMaliciousTMHeader(
 	chainID string,
 	blockHeight int64,
 	trustedHeight clienttypes.Height,
 	timestamp time.Time,
 	tmValSet, tmTrustedVals *tmtypes.ValidatorSet,
 	signers []tmtypes.PrivValidator,
-	oldHeader *tmservice.Header,
+	oldHeader *tmproto.Header,
 ) (*ibctm.Header, error) {
-	var (
-		valSet      *tmproto.ValidatorSet
-		trustedVals *tmproto.ValidatorSet
-	)
-
-	vsetHash := tmValSet.Hash()
-
 	tmHeader := tmtypes.Header{
 		Version:            tmprotoversion.Consensus{Block: tmversion.BlockProtocol, App: 2},
 		ChainID:            chainID,
@@ -254,18 +299,18 @@ func createTMClientHeader(
 		Time:               timestamp,
 		LastBlockID:        ibctesting.MakeBlockID(make([]byte, tmhash.Size), 10_000, make([]byte, tmhash.Size)),
 		LastCommitHash:     oldHeader.LastCommitHash,
-		DataHash:           tmhash.Sum([]byte("data_hash")),
-		ValidatorsHash:     vsetHash,
-		NextValidatorsHash: vsetHash,
-		ConsensusHash:      tmhash.Sum([]byte("consensus_hash")),
-		AppHash:            tmhash.Sum([]byte("app_hash")),
-		LastResultsHash:    tmhash.Sum([]byte("last_results_hash")),
-		EvidenceHash:       tmhash.Sum([]byte("evidence_hash")),
+		ValidatorsHash:     tmValSet.Hash(),
+		NextValidatorsHash: tmValSet.Hash(),
+		DataHash:           tmhash.Sum([]byte(invalidHashValue)),
+		ConsensusHash:      tmhash.Sum([]byte(invalidHashValue)),
+		AppHash:            tmhash.Sum([]byte(invalidHashValue)),
+		LastResultsHash:    tmhash.Sum([]byte(invalidHashValue)),
+		EvidenceHash:       tmhash.Sum([]byte(invalidHashValue)),
 		ProposerAddress:    tmValSet.Proposer.Address, //nolint:staticcheck
 	}
 
 	hhash := tmHeader.Hash()
-	blockID := ibctesting.MakeBlockID(hhash, 3, tmhash.Sum([]byte("part_set")))
+	blockID := ibctesting.MakeBlockID(hhash, 3, tmhash.Sum([]byte(invalidHashValue)))
 	voteSet := tmtypes.NewVoteSet(chainID, blockHeight, 1, tmproto.PrecommitType, tmValSet)
 
 	commit, err := tmtypes.MakeCommit(blockID, blockHeight, 1, voteSet, signers, timestamp)
@@ -278,18 +323,14 @@ func createTMClientHeader(
 		Commit: commit.ToProto(),
 	}
 
-	if tmValSet != nil {
-		valSet, err = tmValSet.ToProto()
-		if err != nil {
-			return nil, err
-		}
+	valSet, err := tmValSet.ToProto()
+	if err != nil {
+		return nil, err
 	}
 
-	if tmTrustedVals != nil {
-		trustedVals, err = tmTrustedVals.ToProto()
-		if err != nil {
-			return nil, err
-		}
+	trustedVals, err := tmTrustedVals.ToProto()
+	if err != nil {
+		return nil, err
 	}
 
 	// The trusted fields may be nil. They may be filled before relaying messages to a client.
