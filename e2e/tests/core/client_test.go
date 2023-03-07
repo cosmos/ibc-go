@@ -145,12 +145,11 @@ func (s *ClientTestSuite) TestClient_Misbehaviour() {
 	t.Logf("found %d containers", len(testContainers))
 
 	var privKeyFileContents []byte
-	var misbehavingValidatorContainerIDs []string
 	for _, container := range testContainers {
 		if !strings.Contains(container.Names[0], chainB.Config().ChainID) { // switched to chain b
 			continue
 		}
-		misbehavingValidatorContainerIDs = append(misbehavingValidatorContainerIDs, container.ID)
+
 		chainBPrivKey := fmt.Sprintf("/var/cosmos-chain/%s/config/priv_validator_key.json", chainB.Config().Name) // switched to chain b
 
 		privKeyFileContents, err = dockerutil.GetFileContentsFromContainer(ctx, s.DockerClient, container.ID, chainBPrivKey)
@@ -160,8 +159,8 @@ func (s *ClientTestSuite) TestClient_Misbehaviour() {
 		break
 	}
 
-	var privVal privval.FilePVKey
-	err = tmjson.Unmarshal(privKeyFileContents, &privVal)
+	var filePV privval.FilePVKey
+	err = tmjson.Unmarshal(privKeyFileContents, &filePV)
 	s.Require().NoError(err)
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB))
@@ -173,23 +172,19 @@ func (s *ClientTestSuite) TestClient_Misbehaviour() {
 	})
 
 	t.Run("create misbehaving header", func(t *testing.T) {
-		// query client state from chainA and get latest height.
-		// then query block by height to get the header info
-		clientState, err := s.QueryClientState(ctx, chainA, "07-tendermint-0") // todo: can remove hard coding of client id?
+		clientState, err := s.QueryClientState(ctx, chainA, ibctesting.FirstClientID)
 		s.Require().NoError(err)
 
 		tmClientState, ok := clientState.(*ibctm.ClientState)
 		s.Require().True(ok)
 
-		// trusted height
 		trustedHeight, ok := tmClientState.GetLatestHeight().(clienttypes.Height)
 		s.Require().True(ok)
 
-		// -------------- second update client
 		err = relayer.UpdateClients(ctx, s.GetRelayerExecReporter(), strings.ReplaceAll(fmt.Sprintf("%s-path-%d", s.T().Name(), 0), "/", "-"))
 		s.Require().NoError(err)
 
-		clientState, err = s.QueryClientState(ctx, chainA, "07-tendermint-0") // todo: can remove hard coding of client id?
+		clientState, err = s.QueryClientState(ctx, chainA, ibctesting.FirstClientID)
 		s.Require().NoError(err)
 
 		tmClientState, ok = clientState.(*ibctm.ClientState)
@@ -198,57 +193,57 @@ func (s *ClientTestSuite) TestClient_Misbehaviour() {
 		height, ok := tmClientState.GetLatestHeight().(clienttypes.Height)
 		s.Require().True(ok)
 
-		tmService := s.GetChainGRCPClients(chainB).ConsensusServiceClient
-
-		blockRes, err := tmService.GetBlockByHeight(ctx, &tmservice.GetBlockByHeightRequest{
-			Height: int64(height.GetRevisionHeight()),
-		})
+		block, err := s.GetBlockByHeight(ctx, chainB, height.GetRevisionHeight())
 		s.Require().NoError(err)
 
-		validatorRes, err := tmService.GetValidatorSetByHeight(ctx, &tmservice.GetValidatorSetByHeightRequest{
-			Height: int64(height.GetRevisionHeight()),
-		})
+		validators, err := s.GetValidatorSetByHeight(ctx, chainB, height.GetRevisionHeight())
 		s.Require().NoError(err)
 
 		pv := ibcmock.PV{
-			PrivKey: &ed25519.PrivKey{Key: privVal.PrivKey.Bytes()},
+			PrivKey: &ed25519.PrivKey{Key: filePV.PrivKey.Bytes()},
 		}
 
 		pubKey, err := pv.GetPubKey()
 		s.Require().NoError(err)
 
-		validator := tmtypes.NewValidator(pubKey, validatorRes.Validators[0].VotingPower)
+		validator := tmtypes.NewValidator(pubKey, validators[0].VotingPower)
 		valSet := tmtypes.NewValidatorSet([]*tmtypes.Validator{validator})
 		signers := []tmtypes.PrivValidator{pv}
 
 		// creating duplicate header
-		newHeader := s.createTMClientHeader(t, chainB.Config().ChainID, int64(height.GetRevisionHeight()), trustedHeight,
-			blockRes.SdkBlock.Header.GetTime().Add(time.Minute), valSet, valSet, signers, &blockRes.SdkBlock.Header)
+		newHeader, err := createTMClientHeader(chainB.Config().ChainID, int64(height.GetRevisionHeight()), trustedHeight,
+			block.Header.GetTime().Add(time.Minute), valSet, valSet, signers, &block.Header)
+		s.Require().NoError(err)
 
 		// update client with duplicate header
 		rlyWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
-		msgUpdateClient, err := clienttypes.NewMsgUpdateClient("07-tendermint-0", newHeader, rlyWallet.FormattedAddress())
+		msgUpdateClient, err := clienttypes.NewMsgUpdateClient(ibctesting.FirstClientID, newHeader, rlyWallet.FormattedAddress())
 		s.Require().NoError(err)
 
 		txResp, err := s.BroadcastMessages(ctx, chainA, rlyWallet, msgUpdateClient)
 		s.Require().NoError(err)
 		s.AssertValidTxResponse(txResp)
 
-		status, err := s.QueryClientStatus(ctx, chainA, "07-tendermint-0")
+		status, err := s.QueryClientStatus(ctx, chainA, ibctesting.FirstClientID)
 		s.Require().NoError(err)
 		s.Require().Equal(ibcexported.Frozen.String(), status)
 	})
 }
 
 // TODO: see what we can clean up here
-func (s *ClientTestSuite) createTMClientHeader(t *testing.T, chainID string, blockHeight int64, trustedHeight clienttypes.Height,
-	timestamp time.Time, tmValSet, tmTrustedVals *tmtypes.ValidatorSet, signers []tmtypes.PrivValidator,
-	oldHeader *tmservice.Header) *ibctm.Header {
+func createTMClientHeader(
+	chainID string,
+	blockHeight int64,
+	trustedHeight clienttypes.Height,
+	timestamp time.Time,
+	tmValSet, tmTrustedVals *tmtypes.ValidatorSet,
+	signers []tmtypes.PrivValidator,
+	oldHeader *tmservice.Header,
+) (*ibctm.Header, error) {
 	var (
 		valSet      *tmproto.ValidatorSet
 		trustedVals *tmproto.ValidatorSet
 	)
-	s.Require().NotNil(t, tmValSet)
 
 	vsetHash := tmValSet.Hash()
 
@@ -268,12 +263,15 @@ func (s *ClientTestSuite) createTMClientHeader(t *testing.T, chainID string, blo
 		EvidenceHash:       tmhash.Sum([]byte("evidence_hash")),
 		ProposerAddress:    tmValSet.Proposer.Address, //nolint:staticcheck
 	}
+
 	hhash := tmHeader.Hash()
 	blockID := ibctesting.MakeBlockID(hhash, 3, tmhash.Sum([]byte("part_set")))
 	voteSet := tmtypes.NewVoteSet(chainID, blockHeight, 1, tmproto.PrecommitType, tmValSet)
 
 	commit, err := tmtypes.MakeCommit(blockID, blockHeight, 1, voteSet, signers, timestamp)
-	s.Require().NoError(err)
+	if err != nil {
+		return nil, err
+	}
 
 	signedHeader := &tmproto.SignedHeader{
 		Header: tmHeader.ToProto(),
@@ -283,14 +281,14 @@ func (s *ClientTestSuite) createTMClientHeader(t *testing.T, chainID string, blo
 	if tmValSet != nil {
 		valSet, err = tmValSet.ToProto()
 		if err != nil {
-			panic(err)
+			return nil, err
 		}
 	}
 
 	if tmTrustedVals != nil {
 		trustedVals, err = tmTrustedVals.ToProto()
 		if err != nil {
-			panic(err)
+			return nil, err
 		}
 	}
 
@@ -301,24 +299,5 @@ func (s *ClientTestSuite) createTMClientHeader(t *testing.T, chainID string, blo
 		ValidatorSet:      valSet,
 		TrustedHeight:     trustedHeight,
 		TrustedValidators: trustedVals,
-	}
+	}, nil
 }
-
-// UpdateClients and get trusted height, then update client again.
-// Then build duplicate update header, and use first trusted height
-
-// --------------
-// cfg := testsuite.EncodingConfig()
-
-// var pk cryptotypes.PubKey
-// err = cfg.InterfaceRegistry.UnpackAny(validatorRes.Validators[0].PubKey, &pk)
-// s.Require().NoError(err)
-
-// tmPk, err := cryptocodec.ToTmPubKeyInterface(pk)
-// s.Require().NoError(err)
-
-// s.Require().Equal(pubKey, tmPk)
-
-// t.Logf("public key address: %s", pubKey.Address())
-// t.Logf("public key: %s", pubKey)
-// --------------
