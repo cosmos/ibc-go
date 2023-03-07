@@ -4,7 +4,7 @@
   "entrypoint": ["TestClientTestSuite"],
   "test": [
     "TestClientUpdateProposal_Succeeds",
-    "TestClient_Misbehaviour"
+    "TestClient_Update_Misbehaviour"
   ],
   "relayer-type": ["rly"],
   "chain-binary": ["simd"],

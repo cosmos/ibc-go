@@ -139,7 +139,7 @@ func (s *ClientTestSuite) TestClientUpdateProposal_Succeeds() {
 	})
 }
 
-func (s *ClientTestSuite) TestClient_Misbehaviour() {
+func (s *ClientTestSuite) TestClient_Update_Misbehaviour() {
 	t := s.T()
 	ctx := context.TODO()
 
