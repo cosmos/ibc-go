@@ -71,20 +71,20 @@ Perhaps more key for code readability than good commenting is having the right s
 - Use [goimports](https://godoc.org/golang.org/x/tools/cmd/goimports).
 - Separate imports into blocks: one for the standard lib, one for external libs and one for application libs. For example:
 
-	```go
-	import (
-		// standard library imports
-		"fmt"
-		"testing"
-					
-		// external library imports
-		"github.com/stretchr/testify/require"
-		abci "github.com/tendermint/tendermint/abci/types"
-					
-		// ibc-go library imports
-		"github.com/cosmos/ibc-go/modules/core/23-commitment/types"
-	)
-	```
+```go
+import (
+  // standard library imports
+  "fmt"
+  "testing"
+      
+  // external library imports
+  "github.com/stretchr/testify/require"
+  abci "github.com/cometbft/cometbft/abci/types"
+      
+  // ibc-go library imports
+  "github.com/cosmos/ibc-go/modules/core/23-commitment/types"
+)
+```
 
 ## Dependencies
 
