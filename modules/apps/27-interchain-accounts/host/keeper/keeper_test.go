@@ -5,10 +5,10 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
-	genesistypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/genesis/types"
-	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
-	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
-	ibctesting "github.com/cosmos/ibc-go/v6/testing"
+	genesistypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/genesis/types"
+	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
+	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
 var (
@@ -141,8 +141,8 @@ func (suite *KeeperTestSuite) TestGetInterchainAccountAddress() {
 
 func (suite *KeeperTestSuite) TestGetAllActiveChannels() {
 	var (
-		expectedChannelID string = "test-channel"
-		expectedPortID    string = "test-port"
+		expectedChannelID = "test-channel"
+		expectedPortID    = "test-port"
 	)
 
 	suite.SetupTest()
@@ -175,8 +175,8 @@ func (suite *KeeperTestSuite) TestGetAllActiveChannels() {
 
 func (suite *KeeperTestSuite) TestGetAllInterchainAccounts() {
 	var (
-		expectedAccAddr string = "test-acc-addr"
-		expectedPortID  string = "test-port"
+		expectedAccAddr = "test-acc-addr"
+		expectedPortID  = "test-port"
 	)
 
 	suite.SetupTest()
@@ -225,8 +225,8 @@ func (suite *KeeperTestSuite) TestIsActiveChannel() {
 
 func (suite *KeeperTestSuite) TestSetInterchainAccountAddress() {
 	var (
-		expectedAccAddr string = "test-acc-addr"
-		expectedPortID  string = "test-port"
+		expectedAccAddr = "test-acc-addr"
+		expectedPortID  = "test-port"
 	)
 
 	suite.chainB.GetSimApp().ICAHostKeeper.SetInterchainAccountAddress(suite.chainB.GetContext(), ibctesting.FirstConnectionID, expectedPortID, expectedAccAddr)

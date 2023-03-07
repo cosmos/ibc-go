@@ -5,15 +5,13 @@ import (
 	"fmt"
 	"os"
 
+	dbm "github.com/cometbft/cometbft-db"
+	"github.com/cometbft/cometbft/libs/log"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/kv"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
-	"github.com/tendermint/tendermint/libs/log"
-	dbm "github.com/tendermint/tm-db"
-
-	"github.com/cosmos/ibc-go/v6/testing/simapp/helpers"
 )
 
 // SetupSimulation creates the config, db (levelDB), temporary directory and logger for
@@ -25,7 +23,7 @@ func SetupSimulation(dirPrefix, dbName string) (simtypes.Config, dbm.DB, string,
 	}
 
 	config := NewConfigFromFlags()
-	config.ChainID = helpers.SimAppChainID
+	config.ChainID = "simulation-app"
 
 	var logger log.Logger
 	if FlagVerboseValue {
@@ -39,7 +37,7 @@ func SetupSimulation(dirPrefix, dbName string) (simtypes.Config, dbm.DB, string,
 		return simtypes.Config{}, nil, "", nil, false, err
 	}
 
-	db, err := sdk.NewLevelDB(dbName, dir) //nolint:staticcheck // this is clearer.
+	db, err := dbm.NewDB(dbName, dbm.BackendType(config.DBBackend), dir)
 	if err != nil {
 		return simtypes.Config{}, nil, "", nil, false, err
 	}
@@ -67,8 +65,8 @@ func SimulationOperations(app App, cdc codec.JSONCodec, config simtypes.Config) 
 		}
 	}
 
-	simState.ParamChanges = app.SimulationManager().GenerateParamChanges(config.Seed)
-	simState.Contents = app.SimulationManager().GetProposalContents(simState)
+	//nolint: staticcheck // SA1019: app.SimulationManager().GetProposalContents is deprecated: Use GetProposalMsgs instead. GetProposalContents returns each module's proposal content generator function with their default operation weight and key.
+	simState.LegacyProposalContents = app.SimulationManager().GetProposalContents(simState)
 	return app.SimulationManager().WeightedOperations(simState)
 }
 

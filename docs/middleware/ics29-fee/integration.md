@@ -21,46 +21,46 @@ For Cosmos SDK chains this setup is done via the `app/app.go` file, where module
 
 // Register the AppModule for the fee middleware module
 ModuleBasics = module.NewBasicManager(
-    ...
-    ibcfee.AppModuleBasic{},
-    ...
+  ...
+  ibcfee.AppModuleBasic{},
+  ...
 )
 
 ... 
 
 // Add module account permissions for the fee middleware module
 maccPerms = map[string][]string{
-    ...
-    ibcfeetypes.ModuleName:            nil,
+  ...
+  ibcfeetypes.ModuleName:            nil,
 }
 
 ...
 
 // Add fee middleware Keeper
 type App struct {
-    ...
+  ...
 
-    IBCFeeKeeper ibcfeekeeper.Keeper
+  IBCFeeKeeper ibcfeekeeper.Keeper
 
-    ...
+  ...
 }
 
 ...
 
 // Create store keys 
 keys := sdk.NewKVStoreKeys(
-    ...
-    ibcfeetypes.StoreKey,
-    ...
+  ...
+  ibcfeetypes.StoreKey,
+  ...
 )
 
 ... 
 
 app.IBCFeeKeeper = ibcfeekeeper.NewKeeper(
-	appCodec, keys[ibcfeetypes.StoreKey],
-	app.IBCKeeper.ChannelKeeper, // may be replaced with IBC middleware
-	app.IBCKeeper.ChannelKeeper,
-	&app.IBCKeeper.PortKeeper, app.AccountKeeper, app.BankKeeper,
+  appCodec, keys[ibcfeetypes.StoreKey],
+  app.IBCKeeper.ChannelKeeper, // may be replaced with IBC middleware
+  app.IBCKeeper.ChannelKeeper,
+  &app.IBCKeeper.PortKeeper, app.AccountKeeper, app.BankKeeper,
 )
 
 
@@ -70,41 +70,40 @@ app.IBCFeeKeeper = ibcfeekeeper.NewKeeper(
 
 // Register fee middleware AppModule
 app.moduleManager = module.NewManager(
-    ...
-    ibcfee.NewAppModule(app.IBCFeeKeeper),
+  ...
+  ibcfee.NewAppModule(app.IBCFeeKeeper),
 )
 
 ...
 
 // Add fee middleware to begin blocker logic
 app.moduleManager.SetOrderBeginBlockers(
-    ...
-    ibcfeetypes.ModuleName,
-    ...
+  ...
+  ibcfeetypes.ModuleName,
+  ...
 )
 
 // Add fee middleware to end blocker logic
 app.moduleManager.SetOrderEndBlockers(
-    ...
-    ibcfeetypes.ModuleName,
-    ...
+  ...
+  ibcfeetypes.ModuleName,
+  ...
 )
 
 // Add fee middleware to init genesis logic
 app.moduleManager.SetOrderInitGenesis(
-    ...
-    ibcfeetypes.ModuleName,
-    ...
+  ...
+  ibcfeetypes.ModuleName,
+  ...
 )
 ```
 
 ## Configuring an application stack with Fee Middleware
 
-As mentioned in [IBC middleware development](../../ibc/middleware/develop.md) an application stack may be composed of many or no middlewares that nest a base application. 
+As mentioned in [IBC middleware development](../../ibc/middleware/develop.md) an application stack may be composed of many or no middlewares that nest a base application.
 These layers form the complete set of application logic that enable developers to build composable and flexible IBC application stacks.
 For example, an application stack may be just a single base application like `transfer`, however, the same application stack composed with `29-fee` will nest the `transfer` base application
 by wrapping it with the Fee Middleware module.
-
 
 ### Transfer
 
@@ -160,10 +159,10 @@ icaHostStack = ibcfee.NewIBCMiddleware(icaHostStack, app.IBCFeeKeeper)
 
 // Add authentication module, controller and host to IBC router
 ibcRouter.
-    // the ICA Controller middleware needs to be explicitly added to the IBC Router because the
-    // ICA controller module owns the port capability for ICA. The ICA authentication module
-    // owns the channel capability.
-    AddRoute(ibcmock.ModuleName+icacontrollertypes.SubModuleName, icaControllerStack) // ica with mock auth module stack route to ica (top level of middleware stack)
-    AddRoute(icacontrollertypes.SubModuleName, icaControllerStack).
-    AddRoute(icahosttypes.SubModuleName, icaHostStack).
+  // the ICA Controller middleware needs to be explicitly added to the IBC Router because the
+  // ICA controller module owns the port capability for ICA. The ICA authentication module
+  // owns the channel capability.
+  AddRoute(ibcmock.ModuleName+icacontrollertypes.SubModuleName, icaControllerStack) // ica with mock auth module stack route to ica (top level of middleware stack)
+  AddRoute(icacontrollertypes.SubModuleName, icaControllerStack).
+  AddRoute(icahosttypes.SubModuleName, icaHostStack).
 ```
