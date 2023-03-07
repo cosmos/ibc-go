@@ -34,6 +34,7 @@ import (
 	"github.com/cosmos/ibc-go/e2e/relayer"
 	"github.com/cosmos/ibc-go/e2e/semverutil"
 	"github.com/cosmos/ibc-go/e2e/testconfig"
+	"github.com/cosmos/ibc-go/e2e/testsuite/diagnostics"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	controllertypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
 	feetypes "github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
@@ -444,17 +445,26 @@ func (s *E2ETestSuite) AssertPacketRelayed(ctx context.Context, chain *cosmos.Co
 // test and can be retrieved with GetChains.
 func (s *E2ETestSuite) createCosmosChains(chainOptions testconfig.ChainOptions) (*cosmos.CosmosChain, *cosmos.CosmosChain) {
 	client, network := interchaintest.DockerSetup(s.T())
+	t := s.T()
 
 	s.logger = zap.NewExample()
 	s.DockerClient = client
 	s.network = network
 
-	logger := zaptest.NewLogger(s.T())
+	logger := zaptest.NewLogger(t)
 
 	numValidators, numFullNodes := getValidatorsAndFullNodes()
 
-	chainA := cosmos.NewCosmosChain(s.T().Name(), *chainOptions.ChainAConfig, numValidators, numFullNodes, logger)
-	chainB := cosmos.NewCosmosChain(s.T().Name(), *chainOptions.ChainBConfig, numValidators, numFullNodes, logger)
+	chainA := cosmos.NewCosmosChain(t.Name(), *chainOptions.ChainAConfig, numValidators, numFullNodes, logger)
+	chainB := cosmos.NewCosmosChain(t.Name(), *chainOptions.ChainBConfig, numValidators, numFullNodes, logger)
+
+	// this is intentionally called after the interchaintest.DockerSetup function. The above function registers a
+	// cleanup task which deletes all containers. By registering a cleanup function afterwards, it is executed first
+	// this allows us to process the logs before the containers are removed.
+	t.Cleanup(func() {
+		diagnostics.Collect(t, s.DockerClient, chainOptions)
+	})
+
 	return chainA, chainB
 }
 
