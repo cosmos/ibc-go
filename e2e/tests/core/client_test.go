@@ -164,11 +164,12 @@ func (s *ClientTestSuite) TestClient_Misbehaviour() {
 	err = tmjson.Unmarshal(privKeyFileContents, &privVal)
 	s.Require().NoError(err)
 
-	s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA))
+	s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB))
 
 	t.Run("update client", func(t *testing.T) {
 		// todo: path name is not accessible so manually generating it here
-		relayer.UpdateClients(ctx, s.GetRelayerExecReporter(), strings.ReplaceAll(fmt.Sprintf("%s-path-%d", s.T().Name(), 0), "/", "-"))
+		err := relayer.UpdateClients(ctx, s.GetRelayerExecReporter(), strings.ReplaceAll(fmt.Sprintf("%s-path-%d", s.T().Name(), 0), "/", "-"))
+		s.Require().NoError(err)
 	})
 
 	t.Run("create misbehaving header", func(t *testing.T) {
@@ -185,8 +186,8 @@ func (s *ClientTestSuite) TestClient_Misbehaviour() {
 		s.Require().True(ok)
 
 		// -------------- second update client
-		// s.Require().NoError(test.WaitForBlocks(ctx, 3, chainA, chainB))
-		relayer.UpdateClients(ctx, s.GetRelayerExecReporter(), strings.ReplaceAll(fmt.Sprintf("%s-path-%d", s.T().Name(), 0), "/", "-"))
+		err = relayer.UpdateClients(ctx, s.GetRelayerExecReporter(), strings.ReplaceAll(fmt.Sprintf("%s-path-%d", s.T().Name(), 0), "/", "-"))
+		s.Require().NoError(err)
 
 		clientState, err = s.QueryClientState(ctx, chainA, "07-tendermint-0") // todo: can remove hard coding of client id?
 		s.Require().NoError(err)
