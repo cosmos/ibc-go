@@ -11,6 +11,7 @@ require (
 	github.com/docker/docker v20.10.19+incompatible
 	github.com/strangelove-ventures/interchaintest/v7 v7.0.0-20230302213153-84ec330a137b
 	github.com/stretchr/testify v1.8.2
+	github.com/tendermint/tendermint v0.37.0-rc2
 	go.uber.org/zap v1.24.0
 	golang.org/x/mod v0.8.0
 	google.golang.org/grpc v1.53.0
