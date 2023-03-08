@@ -37,7 +37,7 @@ jobs:
       chain-binary: simd
       chain-a-tag: v6.1.0
       chain-b-tag: v6.1.0
-      chain-upgrade-tag: v7.0.0-rc0 # TODO: needs v7.0.0-rc1 when cut
+      chain-upgrade-tag: v7.0.0-rc1
       upgrade-plan-name: "v7"
       test-entry-point:  "TestUpgradeTestSuite"
       test: "TestV6ToV7ChainUpgrade"
