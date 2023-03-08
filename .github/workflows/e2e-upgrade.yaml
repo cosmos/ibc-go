@@ -41,3 +41,15 @@ jobs:
       upgrade-plan-name: "v7"
       test-entry-point:  "TestUpgradeTestSuite"
       test: "TestV6ToV7ChainUpgrade"
+
+  upgrade-v7_1:
+    uses: cosmos/ibc-go/.github/workflows/e2e-test-workflow-call.yml@main
+    with:
+      chain-image: ghcr.io/cosmos/ibc-go-simd
+      chain-binary: simd
+      chain-a-tag: pr-3136 # TODO: needs v7.0.0 (with simapp fixes) when cut
+      chain-b-tag: pr-3136 # TODO: needs v7.0.0 (with simapp fixes) when cut
+      chain-upgrade-tag: pr-3164 # TODO: needs v7.1.0 when cut
+      upgrade-plan-name: "v7.1"
+      test-entry-point:  "TestUpgradeTestSuite"
+      test: "TestV7ChainUpgradeAddLocalhost"
