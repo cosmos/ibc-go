@@ -133,7 +133,7 @@ func (k Keeper) TimeoutPacket(
 				return key, value, nil
 			}
 
-			err = k.connectionKeeper.VerifyMultihopProof(
+			err = k.connectionKeeper.VerifyMultihopMembership(
 				ctx, connectionEnd, proofHeight, proof,
 				channel.ConnectionHops, kvGenerator)
 		} else {
@@ -145,18 +145,18 @@ func (k Keeper) TimeoutPacket(
 	case types.UNORDERED:
 		if len(channel.ConnectionHops) > 1 {
 			// verify multihop proof
-			kvGenerator := func(_ *types.MsgMultihopProofs, _ *connectiontypes.ConnectionEnd) (string, []byte, error) {
+			keyGenerator := func(_ *types.MsgMultihopProofs, _ *connectiontypes.ConnectionEnd) (string, error) {
 				key := host.PacketReceiptPath(
 					packet.GetSourcePort(),
 					packet.GetSourceChannel(),
 					packet.GetSequence(),
 				)
-				return key, nil, nil
+				return key, nil
 			}
 
-			err = k.connectionKeeper.VerifyMultihopProof(
+			err = k.connectionKeeper.VerifyMultihopNonMembership(
 				ctx, connectionEnd, proofHeight, proof,
-				channel.ConnectionHops, kvGenerator)
+				channel.ConnectionHops, keyGenerator)
 		} else {
 			err = k.connectionKeeper.VerifyPacketReceiptAbsence(
 				ctx, connectionEnd, proofHeight, proof,
@@ -304,7 +304,7 @@ func (k Keeper) TimeoutOnClose(
 			return key, value, nil
 		}
 
-		if err := k.connectionKeeper.VerifyMultihopProof(
+		if err := k.connectionKeeper.VerifyMultihopMembership(
 			ctx, connectionEnd, proofHeight, proofClosed,
 			channel.ConnectionHops, kvGenerator); err != nil {
 			return err
@@ -340,7 +340,7 @@ func (k Keeper) TimeoutOnClose(
 				value := sdk.Uint64ToBigEndian(nextSequenceRecv)
 				return key, value, nil
 			}
-			if err := k.connectionKeeper.VerifyMultihopProof(
+			if err := k.connectionKeeper.VerifyMultihopMembership(
 				ctx, connectionEnd, proofHeight, proof,
 				channel.ConnectionHops, kvGenerator); err != nil {
 				return err
@@ -356,17 +356,17 @@ func (k Keeper) TimeoutOnClose(
 		}
 	case types.UNORDERED:
 		if len(channel.ConnectionHops) > 1 {
-			kvGenerator := func(_ *types.MsgMultihopProofs, _ *connectiontypes.ConnectionEnd) (string, []byte, error) {
+			keyGenerator := func(_ *types.MsgMultihopProofs, _ *connectiontypes.ConnectionEnd) (string, error) {
 				key := host.PacketReceiptPath(
 					packet.GetSourcePort(),
 					packet.GetSourceChannel(),
 					packet.GetSequence(),
 				)
-				return key, nil, nil
+				return key, nil
 			}
-			if err := k.connectionKeeper.VerifyMultihopProof(
+			if err := k.connectionKeeper.VerifyMultihopNonMembership(
 				ctx, connectionEnd, proofHeight, proof,
-				channel.ConnectionHops, kvGenerator); err != nil {
+				channel.ConnectionHops, keyGenerator); err != nil {
 				return err
 			}
 		} else {

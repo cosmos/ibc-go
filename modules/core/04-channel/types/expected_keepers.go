@@ -8,7 +8,8 @@ import (
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
-type KvGenFunc func(*MsgMultihopProofs, *connectiontypes.ConnectionEnd) (string, []byte, error)
+type KeyValueGenFunc func(*MsgMultihopProofs, *connectiontypes.ConnectionEnd) (string, []byte, error)
+type KeyGenFunc func(*MsgMultihopProofs, *connectiontypes.ConnectionEnd) (string, error)
 
 // ClientKeeper expected account IBC client keeper
 type ClientKeeper interface {
@@ -73,13 +74,21 @@ type ConnectionKeeper interface {
 		channelID string,
 		nextSequenceRecv uint64,
 	) error
-	VerifyMultihopProof(
+	VerifyMultihopMembership(
 		ctx sdk.Context,
 		connection exported.ConnectionI,
 		height exported.Height,
 		proof []byte,
 		connectionHops []string,
-		kvGenerator KvGenFunc,
+		kvGenerator KeyValueGenFunc,
+	) error
+	VerifyMultihopNonMembership(
+		ctx sdk.Context,
+		connection exported.ConnectionI,
+		height exported.Height,
+		proof []byte,
+		connectionHops []string,
+		keyGenerator KeyGenFunc,
 	) error
 }
 

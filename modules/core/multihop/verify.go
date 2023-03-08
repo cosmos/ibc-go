@@ -40,8 +40,8 @@ func getBlockDelay(ctx sdk.Context, timeDelay uint64, expectedTimePerBlock uint6
 	return uint64(math.Ceil(float64(timeDelay) / float64(expectedTimePerBlock)))
 }
 
-// VerifyMultihopProof verifies a multihop proof. A nil value indicates a non-inclusion proof (proof of absence).
-func VerifyMultihopProof(
+// VerifyMultihopMembership verifies a multihop proof. A nil value indicates a non-inclusion proof (proof of absence).
+func VerifyMultihopMembership(
 	cdc codec.BinaryCodec,
 	consensusState exported.ConsensusState,
 	connectionHops []string,
@@ -73,7 +73,42 @@ func VerifyMultihopProof(
 	}
 
 	// verify the keyproof on source chain's consensus state.
-	return verifyKeyValueProof(cdc, consensusState, proofs, prefix, key, value)
+	return verifyKeyValueMembership(cdc, consensusState, proofs, prefix, key, value)
+}
+
+// VerifyMultihopNonMembership verifies a multihop proof. A nil value indicates a non-inclusion proof (proof of absence).
+func VerifyMultihopNonMembership(
+	cdc codec.BinaryCodec,
+	consensusState exported.ConsensusState,
+	connectionHops []string,
+	proofs *channeltypes.MsgMultihopProofs,
+	prefix exported.Prefix,
+	key string,
+) error {
+
+	// verify proof lengths
+	if len(proofs.ConnectionProofs) < 1 || len(proofs.ConsensusProofs) < 1 {
+		return fmt.Errorf("the number of connection (%d) and consensus (%d) proofs must be > 0",
+			len(proofs.ConnectionProofs), len(proofs.ConsensusProofs))
+	}
+
+	if len(proofs.ConsensusProofs) != len(proofs.ConnectionProofs) {
+		return fmt.Errorf("the number of connection (%d) and consensus (%d) proofs must be equal",
+			len(proofs.ConnectionProofs), len(proofs.ConsensusProofs))
+	}
+
+	// verify connection states and ordering
+	if err := verifyConnectionStates(cdc, proofs.ConnectionProofs, connectionHops); err != nil {
+		return err
+	}
+
+	// verify intermediate consensus and connection states from destination --> source
+	if err := verifyIntermediateStateProofs(cdc, consensusState, proofs.ConsensusProofs, proofs.ConnectionProofs); err != nil {
+		return fmt.Errorf("failed to verify consensus state proof: %w", err)
+	}
+
+	// verify the keyproof on source chain's consensus state.
+	return verifyKeyNonMembership(cdc, consensusState, proofs, prefix, key)
 }
 
 // verifyConnectionStates verifies that the provided connections match the connectionHops field of the channel and are in OPEN state
@@ -166,9 +201,8 @@ func verifyIntermediateStateProofs(
 	return nil
 }
 
-// verifyKeyValueProof verifies a multihop membership proof including all intermediate state proofs.
-// If the value is "nil" then a proof of non-membership is verified.
-func verifyKeyValueProof(
+// verifyKeyValueMembership verifies a multihop membership proof including all intermediate state proofs.
+func verifyKeyValueMembership(
 	cdc codec.BinaryCodec,
 	consensusState exported.ConsensusState,
 	proofs *channeltypes.MsgMultihopProofs,
@@ -195,18 +229,44 @@ func verifyKeyValueProof(
 		return fmt.Errorf("failed to unpack consensus state: %w", err)
 	}
 
-	if value == nil {
-		return keyProof.VerifyNonMembership(
-			commitmenttypes.GetSDKSpecs(),
-			secondConsState.GetRoot(),
-			prefixedKey,
-		)
-	} else {
-		return keyProof.VerifyMembership(
-			commitmenttypes.GetSDKSpecs(),
-			secondConsState.GetRoot(),
-			prefixedKey,
-			value,
-		)
+	return keyProof.VerifyMembership(
+		commitmenttypes.GetSDKSpecs(),
+		secondConsState.GetRoot(),
+		prefixedKey,
+		value,
+	)
+}
+
+// verifyKeyNonMembership verifies a multihop non-membership proof including all intermediate state proofs.
+func verifyKeyNonMembership(
+	cdc codec.BinaryCodec,
+	consensusState exported.ConsensusState,
+	proofs *channeltypes.MsgMultihopProofs,
+	prefix exported.Prefix,
+	key string,
+) error {
+	// no keyproof provided, nothing to verify
+	if proofs.KeyProof == nil {
+		return nil
 	}
+
+	prefixedKey, err := commitmenttypes.ApplyPrefix(prefix, commitmenttypes.NewMerklePath(key))
+	if err != nil {
+		return err
+	}
+
+	var keyProof commitmenttypes.MerkleProof
+	if err := cdc.Unmarshal(proofs.KeyProof.Proof, &keyProof); err != nil {
+		return fmt.Errorf("failed to unmarshal key proof: %w", err)
+	}
+	var secondConsState exported.ConsensusState
+	if err := cdc.UnmarshalInterface(proofs.ConsensusProofs[proofs.KeyProofIndex].Value, &secondConsState); err != nil {
+		return fmt.Errorf("failed to unpack consensus state: %w", err)
+	}
+
+	return keyProof.VerifyNonMembership(
+		commitmenttypes.GetSDKSpecs(),
+		secondConsState.GetRoot(),
+		prefixedKey,
+	)
 }

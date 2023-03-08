@@ -396,14 +396,14 @@ func (k Keeper) getClientStateAndVerificationStore(ctx sdk.Context, clientID str
 	return clientState, store, nil
 }
 
-// VerifyMultihopProof verifies a multi-hop proof.
-func (k Keeper) VerifyMultihopProof(
+// VerifyMultihopMembership verifies a multi-hop membership proof.
+func (k Keeper) VerifyMultihopMembership(
 	ctx sdk.Context,
 	connection exported.ConnectionI,
 	height exported.Height,
 	proof []byte,
 	connectionHops []string,
-	kvGenerator channeltypes.KvGenFunc,
+	kvGenerator channeltypes.KeyValueGenFunc,
 ) error {
 
 	var mProof channeltypes.MsgMultihopProofs
@@ -462,5 +462,74 @@ func (k Keeper) VerifyMultihopProof(
 			"consensus state not found for client id: %s", clientID)
 	}
 
-	return mh.VerifyMultihopProof(k.cdc, consensusState, connectionHops, &mProof, prefix, key, value)
+	return mh.VerifyMultihopMembership(k.cdc, consensusState, connectionHops, &mProof, prefix, key, value)
+}
+
+// VerifyMultihopNonMembership verifies a multi-hop non-membership proof.
+func (k Keeper) VerifyMultihopNonMembership(
+	ctx sdk.Context,
+	connection exported.ConnectionI,
+	height exported.Height,
+	proof []byte,
+	connectionHops []string,
+	kvGenerator channeltypes.KeyGenFunc,
+) error {
+
+	var mProof channeltypes.MsgMultihopProofs
+	if err := k.cdc.Unmarshal(proof, &mProof); err != nil {
+		return err
+	}
+
+	multihopConnectionEnd, err := mProof.GetMultihopConnectionEnd(k.cdc)
+	if err != nil {
+		return err
+	}
+
+	key, err := kvGenerator(&mProof, multihopConnectionEnd)
+	if err != nil {
+		return fmt.Errorf("failed to generate key: %s", err)
+	}
+
+	prefix := multihopConnectionEnd.GetCounterparty().GetPrefix()
+
+	clientID := connection.GetClientID()
+	clientStore := k.clientKeeper.ClientStore(ctx, clientID)
+
+	clientState, found := k.clientKeeper.GetClientState(ctx, clientID)
+	if !found {
+		return sdkerrors.Wrap(clienttypes.ErrClientNotFound, clientID)
+	}
+
+	// check last client is active
+	if status := clientState.Status(ctx, clientStore, k.cdc); status != exported.Active {
+		return sdkerrors.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
+	}
+
+	if clientState.GetLatestHeight().LT(height) {
+		return sdkerrors.Wrapf(
+			sdkerrors.ErrInvalidHeight,
+			"client state height < proof height (%d < %d), please ensure the client has been updated",
+			clientState.GetLatestHeight(), height,
+		)
+	}
+
+	delayPeriod, err := mProof.GetMaximumDelayPeriod(k.cdc, connection)
+	if err != nil {
+		return err
+	}
+
+	expectedTimePerBlock := k.GetMaxExpectedTimePerBlock(ctx)
+
+	// ensure the delayPeriod passed
+	if err := mh.VerifyDelayPeriodPassed(ctx, clientStore, height, delayPeriod, expectedTimePerBlock); err != nil {
+		return err
+	}
+
+	consensusState, found := k.clientKeeper.GetClientConsensusState(ctx, clientID, height)
+	if !found {
+		return sdkerrors.Wrapf(clienttypes.ErrConsensusStateNotFound,
+			"consensus state not found for client id: %s", clientID)
+	}
+
+	return mh.VerifyMultihopNonMembership(k.cdc, consensusState, connectionHops, &mProof, prefix, key)
 }
