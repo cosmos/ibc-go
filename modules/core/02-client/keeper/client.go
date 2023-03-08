@@ -16,6 +16,10 @@ import (
 func (k Keeper) CreateClient(
 	ctx sdk.Context, clientState exported.ClientState, consensusState exported.ConsensusState,
 ) (string, error) {
+	if clientState.ClientType() == exported.Localhost {
+		return "", errorsmod.Wrapf(types.ErrInvalidClientType, "cannot create client of type: %s", clientState.ClientType())
+	}
+
 	params := k.GetParams(ctx)
 	if !params.IsAllowedClient(clientState.ClientType()) {
 		return "", sdkerrors.Wrapf(
@@ -53,8 +57,13 @@ func (k Keeper) UpdateClient(ctx sdk.Context, clientID string, clientMsg exporte
 
 	clientStore := k.ClientStore(ctx, clientID)
 
+<<<<<<< HEAD
 	if status := clientState.Status(ctx, clientStore, k.cdc); status != exported.Active {
 		return sdkerrors.Wrapf(types.ErrClientNotActive, "cannot update client (%s) with status %s", clientID, status)
+=======
+	if status := k.GetClientStatus(ctx, clientState, clientID); status != exported.Active {
+		return errorsmod.Wrapf(types.ErrClientNotActive, "cannot update client (%s) with status %s", clientID, status)
+>>>>>>> d840c699 (Adding 09-localhost loopback client module (#3229))
 	}
 
 	if err := clientState.VerifyClientMessage(ctx, k.cdc, clientStore, clientMsg); err != nil {
@@ -114,8 +123,13 @@ func (k Keeper) UpgradeClient(ctx sdk.Context, clientID string, upgradedClient e
 
 	clientStore := k.ClientStore(ctx, clientID)
 
+<<<<<<< HEAD
 	if status := clientState.Status(ctx, clientStore, k.cdc); status != exported.Active {
 		return sdkerrors.Wrapf(types.ErrClientNotActive, "cannot upgrade client (%s) with status %s", clientID, status)
+=======
+	if status := k.GetClientStatus(ctx, clientState, clientID); status != exported.Active {
+		return errorsmod.Wrapf(types.ErrClientNotActive, "cannot upgrade client (%s) with status %s", clientID, status)
+>>>>>>> d840c699 (Adding 09-localhost loopback client module (#3229))
 	}
 
 	if err := clientState.VerifyUpgradeAndUpdateState(ctx, k.cdc, clientStore,

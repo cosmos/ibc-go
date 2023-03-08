@@ -25,8 +25,13 @@ func (k Keeper) ClientUpdateProposal(ctx sdk.Context, p *types.ClientUpdatePropo
 
 	subjectClientStore := k.ClientStore(ctx, p.SubjectClientId)
 
+<<<<<<< HEAD
 	if status := subjectClientState.Status(ctx, subjectClientStore, k.cdc); status == exported.Active {
 		return sdkerrors.Wrap(types.ErrInvalidUpdateClientProposal, "cannot update Active subject client")
+=======
+	if status := k.GetClientStatus(ctx, subjectClientState, p.SubjectClientId); status == exported.Active {
+		return errorsmod.Wrap(types.ErrInvalidUpdateClientProposal, "cannot update Active subject client")
+>>>>>>> d840c699 (Adding 09-localhost loopback client module (#3229))
 	}
 
 	substituteClientState, found := k.GetClientState(ctx, p.SubstituteClientId)
@@ -40,8 +45,13 @@ func (k Keeper) ClientUpdateProposal(ctx sdk.Context, p *types.ClientUpdatePropo
 
 	substituteClientStore := k.ClientStore(ctx, p.SubstituteClientId)
 
+<<<<<<< HEAD
 	if status := substituteClientState.Status(ctx, substituteClientStore, k.cdc); status != exported.Active {
 		return sdkerrors.Wrapf(types.ErrClientNotActive, "substitute client is not Active, status is %s", status)
+=======
+	if status := k.GetClientStatus(ctx, substituteClientState, p.SubstituteClientId); status != exported.Active {
+		return errorsmod.Wrapf(types.ErrClientNotActive, "substitute client is not Active, status is %s", status)
+>>>>>>> d840c699 (Adding 09-localhost loopback client module (#3229))
 	}
 
 	if err := subjectClientState.CheckSubstituteAndUpdateState(ctx, k.cdc, subjectClientStore, substituteClientStore, substituteClientState); err != nil {

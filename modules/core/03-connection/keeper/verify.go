@@ -24,6 +24,7 @@ func (k Keeper) VerifyClientState(
 	clientState exported.ClientState,
 ) error {
 	clientID := connection.GetClientID()
+<<<<<<< HEAD
 	clientStore := k.clientKeeper.ClientStore(ctx, clientID)
 
 	targetClient, found := k.clientKeeper.GetClientState(ctx, clientID)
@@ -33,10 +34,19 @@ func (k Keeper) VerifyClientState(
 
 	if status := targetClient.Status(ctx, clientStore, k.cdc); status != exported.Active {
 		return sdkerrors.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
+=======
+	targetClient, clientStore, err := k.getClientStateAndVerificationStore(ctx, clientID)
+	if err != nil {
+		return err
+	}
+
+	if status := k.clientKeeper.GetClientStatus(ctx, targetClient, clientID); status != exported.Active {
+		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
+>>>>>>> d840c699 (Adding 09-localhost loopback client module (#3229))
 	}
 
 	merklePath := commitmenttypes.NewMerklePath(host.FullClientStatePath(connection.GetCounterparty().GetClientID()))
-	merklePath, err := commitmenttypes.ApplyPrefix(connection.GetCounterparty().GetPrefix(), merklePath)
+	merklePath, err = commitmenttypes.ApplyPrefix(connection.GetCounterparty().GetPrefix(), merklePath)
 	if err != nil {
 		return err
 	}
@@ -68,6 +78,7 @@ func (k Keeper) VerifyClientConsensusState(
 	consensusState exported.ConsensusState,
 ) error {
 	clientID := connection.GetClientID()
+<<<<<<< HEAD
 	clientStore := k.clientKeeper.ClientStore(ctx, clientID)
 
 	clientState, found := k.clientKeeper.GetClientState(ctx, clientID)
@@ -77,10 +88,19 @@ func (k Keeper) VerifyClientConsensusState(
 
 	if status := clientState.Status(ctx, clientStore, k.cdc); status != exported.Active {
 		return sdkerrors.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
+=======
+	clientState, clientStore, err := k.getClientStateAndVerificationStore(ctx, clientID)
+	if err != nil {
+		return err
+	}
+
+	if status := k.clientKeeper.GetClientStatus(ctx, clientState, clientID); status != exported.Active {
+		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
+>>>>>>> d840c699 (Adding 09-localhost loopback client module (#3229))
 	}
 
 	merklePath := commitmenttypes.NewMerklePath(host.FullConsensusStatePath(connection.GetCounterparty().GetClientID(), consensusHeight))
-	merklePath, err := commitmenttypes.ApplyPrefix(connection.GetCounterparty().GetPrefix(), merklePath)
+	merklePath, err = commitmenttypes.ApplyPrefix(connection.GetCounterparty().GetPrefix(), merklePath)
 	if err != nil {
 		return err
 	}
@@ -112,6 +132,7 @@ func (k Keeper) VerifyConnectionState(
 	counterpartyConnection exported.ConnectionI, // opposite connection
 ) error {
 	clientID := connection.GetClientID()
+<<<<<<< HEAD
 	clientStore := k.clientKeeper.ClientStore(ctx, clientID)
 
 	clientState, found := k.clientKeeper.GetClientState(ctx, clientID)
@@ -121,10 +142,19 @@ func (k Keeper) VerifyConnectionState(
 
 	if status := clientState.Status(ctx, clientStore, k.cdc); status != exported.Active {
 		return sdkerrors.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
+=======
+	clientState, clientStore, err := k.getClientStateAndVerificationStore(ctx, clientID)
+	if err != nil {
+		return err
+	}
+
+	if status := k.clientKeeper.GetClientStatus(ctx, clientState, clientID); status != exported.Active {
+		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
+>>>>>>> d840c699 (Adding 09-localhost loopback client module (#3229))
 	}
 
 	merklePath := commitmenttypes.NewMerklePath(host.ConnectionPath(connectionID))
-	merklePath, err := commitmenttypes.ApplyPrefix(connection.GetCounterparty().GetPrefix(), merklePath)
+	merklePath, err = commitmenttypes.ApplyPrefix(connection.GetCounterparty().GetPrefix(), merklePath)
 	if err != nil {
 		return err
 	}
@@ -162,6 +192,7 @@ func (k Keeper) VerifyChannelState(
 	channel exported.ChannelI,
 ) error {
 	clientID := connection.GetClientID()
+<<<<<<< HEAD
 	clientStore := k.clientKeeper.ClientStore(ctx, clientID)
 
 	clientState, found := k.clientKeeper.GetClientState(ctx, clientID)
@@ -171,10 +202,19 @@ func (k Keeper) VerifyChannelState(
 
 	if status := clientState.Status(ctx, clientStore, k.cdc); status != exported.Active {
 		return sdkerrors.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
+=======
+	clientState, clientStore, err := k.getClientStateAndVerificationStore(ctx, clientID)
+	if err != nil {
+		return err
+	}
+
+	if status := k.clientKeeper.GetClientStatus(ctx, clientState, clientID); status != exported.Active {
+		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
+>>>>>>> d840c699 (Adding 09-localhost loopback client module (#3229))
 	}
 
 	merklePath := commitmenttypes.NewMerklePath(host.ChannelPath(portID, channelID))
-	merklePath, err := commitmenttypes.ApplyPrefix(connection.GetCounterparty().GetPrefix(), merklePath)
+	merklePath, err = commitmenttypes.ApplyPrefix(connection.GetCounterparty().GetPrefix(), merklePath)
 	if err != nil {
 		return err
 	}
@@ -213,6 +253,7 @@ func (k Keeper) VerifyPacketCommitment(
 	commitmentBytes []byte,
 ) error {
 	clientID := connection.GetClientID()
+<<<<<<< HEAD
 	clientStore := k.clientKeeper.ClientStore(ctx, clientID)
 
 	clientState, found := k.clientKeeper.GetClientState(ctx, clientID)
@@ -222,6 +263,15 @@ func (k Keeper) VerifyPacketCommitment(
 
 	if status := clientState.Status(ctx, clientStore, k.cdc); status != exported.Active {
 		return sdkerrors.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
+=======
+	clientState, clientStore, err := k.getClientStateAndVerificationStore(ctx, clientID)
+	if err != nil {
+		return err
+	}
+
+	if status := k.clientKeeper.GetClientStatus(ctx, clientState, clientID); status != exported.Active {
+		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
+>>>>>>> d840c699 (Adding 09-localhost loopback client module (#3229))
 	}
 
 	// get time and block delays
@@ -229,7 +279,7 @@ func (k Keeper) VerifyPacketCommitment(
 	blockDelay := k.getBlockDelay(ctx, connection)
 
 	merklePath := commitmenttypes.NewMerklePath(host.PacketCommitmentPath(portID, channelID, sequence))
-	merklePath, err := commitmenttypes.ApplyPrefix(connection.GetCounterparty().GetPrefix(), merklePath)
+	merklePath, err = commitmenttypes.ApplyPrefix(connection.GetCounterparty().GetPrefix(), merklePath)
 	if err != nil {
 		return err
 	}
@@ -258,6 +308,7 @@ func (k Keeper) VerifyPacketAcknowledgement(
 	acknowledgement []byte,
 ) error {
 	clientID := connection.GetClientID()
+<<<<<<< HEAD
 	clientStore := k.clientKeeper.ClientStore(ctx, clientID)
 
 	clientState, found := k.clientKeeper.GetClientState(ctx, clientID)
@@ -267,6 +318,15 @@ func (k Keeper) VerifyPacketAcknowledgement(
 
 	if status := clientState.Status(ctx, clientStore, k.cdc); status != exported.Active {
 		return sdkerrors.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
+=======
+	clientState, clientStore, err := k.getClientStateAndVerificationStore(ctx, clientID)
+	if err != nil {
+		return err
+	}
+
+	if status := k.clientKeeper.GetClientStatus(ctx, clientState, clientID); status != exported.Active {
+		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
+>>>>>>> d840c699 (Adding 09-localhost loopback client module (#3229))
 	}
 
 	// get time and block delays
@@ -274,7 +334,7 @@ func (k Keeper) VerifyPacketAcknowledgement(
 	blockDelay := k.getBlockDelay(ctx, connection)
 
 	merklePath := commitmenttypes.NewMerklePath(host.PacketAcknowledgementPath(portID, channelID, sequence))
-	merklePath, err := commitmenttypes.ApplyPrefix(connection.GetCounterparty().GetPrefix(), merklePath)
+	merklePath, err = commitmenttypes.ApplyPrefix(connection.GetCounterparty().GetPrefix(), merklePath)
 	if err != nil {
 		return err
 	}
@@ -303,6 +363,7 @@ func (k Keeper) VerifyPacketReceiptAbsence(
 	sequence uint64,
 ) error {
 	clientID := connection.GetClientID()
+<<<<<<< HEAD
 	clientStore := k.clientKeeper.ClientStore(ctx, clientID)
 
 	clientState, found := k.clientKeeper.GetClientState(ctx, clientID)
@@ -312,6 +373,15 @@ func (k Keeper) VerifyPacketReceiptAbsence(
 
 	if status := clientState.Status(ctx, clientStore, k.cdc); status != exported.Active {
 		return sdkerrors.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
+=======
+	clientState, clientStore, err := k.getClientStateAndVerificationStore(ctx, clientID)
+	if err != nil {
+		return err
+	}
+
+	if status := k.clientKeeper.GetClientStatus(ctx, clientState, clientID); status != exported.Active {
+		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
+>>>>>>> d840c699 (Adding 09-localhost loopback client module (#3229))
 	}
 
 	// get time and block delays
@@ -319,7 +389,7 @@ func (k Keeper) VerifyPacketReceiptAbsence(
 	blockDelay := k.getBlockDelay(ctx, connection)
 
 	merklePath := commitmenttypes.NewMerklePath(host.PacketReceiptPath(portID, channelID, sequence))
-	merklePath, err := commitmenttypes.ApplyPrefix(connection.GetCounterparty().GetPrefix(), merklePath)
+	merklePath, err = commitmenttypes.ApplyPrefix(connection.GetCounterparty().GetPrefix(), merklePath)
 	if err != nil {
 		return err
 	}
@@ -347,6 +417,7 @@ func (k Keeper) VerifyNextSequenceRecv(
 	nextSequenceRecv uint64,
 ) error {
 	clientID := connection.GetClientID()
+<<<<<<< HEAD
 	clientStore := k.clientKeeper.ClientStore(ctx, clientID)
 
 	clientState, found := k.clientKeeper.GetClientState(ctx, clientID)
@@ -356,6 +427,15 @@ func (k Keeper) VerifyNextSequenceRecv(
 
 	if status := clientState.Status(ctx, clientStore, k.cdc); status != exported.Active {
 		return sdkerrors.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
+=======
+	clientState, clientStore, err := k.getClientStateAndVerificationStore(ctx, clientID)
+	if err != nil {
+		return err
+	}
+
+	if status := k.clientKeeper.GetClientStatus(ctx, clientState, clientID); status != exported.Active {
+		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
+>>>>>>> d840c699 (Adding 09-localhost loopback client module (#3229))
 	}
 
 	// get time and block delays
@@ -363,7 +443,7 @@ func (k Keeper) VerifyNextSequenceRecv(
 	blockDelay := k.getBlockDelay(ctx, connection)
 
 	merklePath := commitmenttypes.NewMerklePath(host.NextSequenceRecvPath(portID, channelID))
-	merklePath, err := commitmenttypes.ApplyPrefix(connection.GetCounterparty().GetPrefix(), merklePath)
+	merklePath, err = commitmenttypes.ApplyPrefix(connection.GetCounterparty().GetPrefix(), merklePath)
 	if err != nil {
 		return err
 	}
@@ -392,4 +472,20 @@ func (k Keeper) getBlockDelay(ctx sdk.Context, connection exported.ConnectionI) 
 	// by the expected time per block. Round up the block delay.
 	timeDelay := connection.GetDelayPeriod()
 	return uint64(math.Ceil(float64(timeDelay) / float64(expectedTimePerBlock)))
+}
+
+// getClientStateAndVerificationStore returns the client state and associated KVStore for the provided client identifier.
+// If the client type is localhost then the core IBC KVStore is returned, otherwise the client prefixed store is returned.
+func (k Keeper) getClientStateAndVerificationStore(ctx sdk.Context, clientID string) (exported.ClientState, sdk.KVStore, error) {
+	clientState, found := k.clientKeeper.GetClientState(ctx, clientID)
+	if !found {
+		return nil, nil, errorsmod.Wrap(clienttypes.ErrClientNotFound, clientID)
+	}
+
+	store := k.clientKeeper.ClientStore(ctx, clientID)
+	if clientID == exported.LocalhostClientID {
+		store = ctx.KVStore(k.storeKey)
+	}
+
+	return clientState, store, nil
 }
