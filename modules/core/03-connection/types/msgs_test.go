@@ -208,22 +208,15 @@ func (suite *MsgTestSuite) TestNewMsgConnectionOpenAck() {
 }
 
 func (suite *MsgTestSuite) TestNewMsgConnectionOpenConfirm() {
-	testMsgs := []*types.MsgConnectionOpenConfirm{
-		types.NewMsgConnectionOpenConfirm("test/conn1", suite.proof, clientHeight, signer),
-		types.NewMsgConnectionOpenConfirm(connectionID, emptyProof, clientHeight, signer),
-		types.NewMsgConnectionOpenConfirm(connectionID, suite.proof, clientHeight, ""),
-		types.NewMsgConnectionOpenConfirm(connectionID, suite.proof, clientHeight, signer),
-	}
-
 	testCases := []struct {
 		name    string
 		msg     *types.MsgConnectionOpenConfirm
 		expPass bool
 	}{
-		{"invalid connection ID", testMsgs[0], false},
-		{"empty proofTry", testMsgs[1], false},
-		{"empty signer", testMsgs[2], false},
-		{"success", testMsgs[3], true},
+		{"invalid connection ID", types.NewMsgConnectionOpenConfirm("test/conn1", suite.proof, clientHeight, signer), false},
+		{"empty proofTry", types.NewMsgConnectionOpenConfirm(connectionID, emptyProof, clientHeight, signer), false},
+		{"empty signer", types.NewMsgConnectionOpenConfirm(connectionID, suite.proof, clientHeight, ""), false},
+		{"success", types.NewMsgConnectionOpenConfirm(connectionID, suite.proof, clientHeight, signer), true},
 	}
 
 	for _, tc := range testCases {
