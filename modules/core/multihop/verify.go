@@ -76,7 +76,7 @@ func VerifyMultihopProof(
 	return verifyKeyValueProof(cdc, consensusState, proofs, prefix, key, value)
 }
 
-// verifyConnectionState verifies that the provided connections match the connectionHops field of the channel and are in OPEN state
+// verifyConnectionStates verifies that the provided connections match the connectionHops field of the channel and are in OPEN state
 func verifyConnectionStates(cdc codec.BinaryCodec, connectionProofData []*channeltypes.MultihopProof, connectionHops []string) error {
 	if len(connectionProofData) != len(connectionHops)-1 {
 		return sdkerrors.Wrapf(connectiontypes.ErrInvalidLengthConnection,
@@ -150,6 +150,8 @@ func verifyIntermediateStateProofs(
 			return fmt.Errorf("failed to unmarshal connection state proof: %w", err)
 		}
 
+		// TODO: convert consensusState to tendermint consensusState
+
 		if err := proof.VerifyMembership(
 			commitmenttypes.GetSDKSpecs(),
 			consensusState.GetRoot(),
@@ -174,6 +176,11 @@ func verifyKeyValueProof(
 	key string,
 	value []byte,
 ) error {
+	// no keyproof provided, nothing to verify
+	if proofs.KeyProof == nil {
+		return nil
+	}
+
 	prefixedKey, err := commitmenttypes.ApplyPrefix(prefix, commitmenttypes.NewMerklePath(key))
 	if err != nil {
 		return err
@@ -184,7 +191,7 @@ func verifyKeyValueProof(
 		return fmt.Errorf("failed to unmarshal key proof: %w", err)
 	}
 	var secondConsState exported.ConsensusState
-	if err := cdc.UnmarshalInterface(proofs.ConsensusProofs[0].Value, &secondConsState); err != nil {
+	if err := cdc.UnmarshalInterface(proofs.ConsensusProofs[proofs.KeyProofIndex].Value, &secondConsState); err != nil {
 		return fmt.Errorf("failed to unpack consensus state: %w", err)
 	}
 

@@ -431,6 +431,7 @@ func (k Keeper) VerifyMultihopProof(
 		return sdkerrors.Wrap(clienttypes.ErrClientNotFound, clientID)
 	}
 
+	// check last client is active
 	if status := clientState.Status(ctx, clientStore, k.cdc); status != exported.Active {
 		return sdkerrors.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
 	}
@@ -447,8 +448,10 @@ func (k Keeper) VerifyMultihopProof(
 	if err != nil {
 		return err
 	}
+
 	expectedTimePerBlock := k.GetMaxExpectedTimePerBlock(ctx)
 
+	// ensure the delayPeriod passed
 	if err := mh.VerifyDelayPeriodPassed(ctx, clientStore, height, delayPeriod, expectedTimePerBlock); err != nil {
 		return err
 	}

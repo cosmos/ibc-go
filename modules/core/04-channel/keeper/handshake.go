@@ -707,7 +707,7 @@ func (k Keeper) ChanCloseConfirm(
 }
 
 // ChanCloseFrozen is called by the counterparty module to close their end of the
-// channel, since the other end has been closed.
+// channel due to a frozen client in the channel path.
 func (k Keeper) ChanCloseFrozen(
 	ctx sdk.Context,
 	portID,
@@ -752,28 +752,23 @@ func (k Keeper) ChanCloseFrozen(
 		)
 	}
 
-	kvGenerator := func(mProof *types.MsgMultihopProofs, _ *connectiontypes.ConnectionEnd) (string, []byte, error) {
-		key := host.ChannelPath(channel.Counterparty.PortId, channel.Counterparty.ChannelId)
+	var mProof types.MsgMultihopProofs
+	if err := k.cdc.Unmarshal(proofFrozen, &mProof); err != nil {
+		return fmt.Errorf("cannot unmarshal proof: %v", err)
+	}
 
-		counterpartyHops, err := mProof.GetCounterpartyHops(k.cdc, &connectionEnd)
-		if err != nil {
-			return "", nil, err
-		}
-		counterparty := types.NewCounterparty(portID, channelID)
-		expectedChannel := types.NewChannel(
-			types.CLOSED, channel.Ordering, counterparty,
-			counterpartyHops, channel.Version,
-		)
-		value, err := expectedChannel.Marshal()
-		if err != nil {
-			return "", nil, err
-		}
+	kvGenerator := func(mProof *types.MsgMultihopProofs, multihopConnectionEnd *connectiontypes.ConnectionEnd) (string, []byte, error) {
+		key := host.FullClientStatePath(multihopConnectionEnd.ClientId)
+		value := mProof.KeyProof.Value // client state
 		return key, value, nil
 	}
 
+	// truncated connectionHops 0, 1, 2, 3 -> 1, 2, 3
+	connectionHops := channel.ConnectionHops[:len(mProof.ConnectionProofs)]
+
 	if err := k.connectionKeeper.VerifyMultihopProof(
 		ctx, connectionEnd, proofHeight, proofFrozen,
-		channel.ConnectionHops, kvGenerator); err != nil {
+		connectionHops, kvGenerator); err != nil {
 		return err
 	}
 

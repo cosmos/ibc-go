@@ -273,9 +273,9 @@ message MultihopProof {
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
-  bytes proof = 1;
-	bytes value = 2;
-	ibc.core.commitment.v1.MerklePath prefixed_key = 3;
+  bytes proof = 2;
+	bytes value = 3;
+	ibc.core.commitment.v1.MerklePath prefixed_key = 4;
 }
 
 // MsgMultihopProofs holds the proof information for each intermediary hop for a multihop message
@@ -283,7 +283,8 @@ message MsgMultihopProofs {
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
-  MultihopProof key_proof = 1;
-  repeated MultihopProof connection_proofs = 2;
-  repeated MultihopProof consensus_proofs = 3;
+  uint32 key_proof_index                   = 1;
+  MultihopProof key_proof                  = 2;
+  repeated MultihopProof connection_proofs = 3;
+  repeated MultihopProof consensus_proofs  = 4;
 }
