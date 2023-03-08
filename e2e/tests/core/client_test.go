@@ -8,11 +8,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
-	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
-	"github.com/strangelove-ventures/interchaintest/v7/ibc"
-	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
-	"github.com/stretchr/testify/suite"
 	"github.com/cometbft/cometbft/crypto/tmhash"
 	tmjson "github.com/cometbft/cometbft/libs/json"
 	"github.com/cometbft/cometbft/privval"
@@ -20,6 +15,11 @@ import (
 	tmprotoversion "github.com/cometbft/cometbft/proto/tendermint/version"
 	tmtypes "github.com/cometbft/cometbft/types"
 	tmversion "github.com/cometbft/cometbft/version"
+	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
+	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
+	"github.com/strangelove-ventures/interchaintest/v7/ibc"
+	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
+	"github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 
@@ -267,8 +267,8 @@ func (s *ClientTestSuite) extractChainPrivateKeys(ctx context.Context, chain *co
 		filePvs = append(filePvs, filePV)
 	}
 
-	// we sort by address so that when we iterate through the ibcmock.PV later on they are in sync with the validators
-	// that are also sorted by address.
+	// We sprt by address as GetValidatorSetByHeight also sorts by address. When iterating over them, the index
+	// will correspond to the correct ibcmock.PV.
 	sort.SliceStable(filePvs, func(i, j int) bool {
 		return filePvs[i].Address.String() < filePvs[j].Address.String()
 	})
@@ -334,7 +334,6 @@ func createMaliciousTMHeader(
 	}
 
 	// The trusted fields may be nil. They may be filled before relaying messages to a client.
-	// The relayer is responsible for querying client and injecting appropriate trusted fields.
 	return &ibctm.Header{
 		SignedHeader:      signedHeader,
 		ValidatorSet:      valSet,
