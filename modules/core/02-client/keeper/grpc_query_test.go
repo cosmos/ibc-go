@@ -111,13 +111,17 @@ func (suite *KeeperTestSuite) TestQueryClientStates() {
 		{
 			"empty pagination",
 			func() {
+				localhost := types.NewIdentifiedClientState(exported.LocalhostClientID, suite.chainA.GetClientState(exported.LocalhostClientID))
+				expClientStates = types.IdentifiedClientStates{localhost}
 				req = &types.QueryClientStatesRequest{}
 			},
 			true,
 		},
 		{
-			"success, no results",
+			"success, only localhost",
 			func() {
+				localhost := types.NewIdentifiedClientState(exported.LocalhostClientID, suite.chainA.GetClientState(exported.LocalhostClientID))
+				expClientStates = types.IdentifiedClientStates{localhost}
 				req = &types.QueryClientStatesRequest{
 					Pagination: &query.PageRequest{
 						Limit:      3,
@@ -139,11 +143,12 @@ func (suite *KeeperTestSuite) TestQueryClientStates() {
 				clientStateA1 := path1.EndpointA.GetClientState()
 				clientStateA2 := path2.EndpointA.GetClientState()
 
+				localhost := types.NewIdentifiedClientState(exported.LocalhostClientID, suite.chainA.GetClientState(exported.LocalhostClientID))
 				idcs := types.NewIdentifiedClientState(path1.EndpointA.ClientID, clientStateA1)
 				idcs2 := types.NewIdentifiedClientState(path2.EndpointA.ClientID, clientStateA2)
 
 				// order is sorted by client id
-				expClientStates = types.IdentifiedClientStates{idcs, idcs2}.Sort()
+				expClientStates = types.IdentifiedClientStates{localhost, idcs, idcs2}.Sort()
 				req = &types.QueryClientStatesRequest{
 					Pagination: &query.PageRequest{
 						Limit:      20,
@@ -158,10 +163,10 @@ func (suite *KeeperTestSuite) TestQueryClientStates() {
 	for _, tc := range testCases {
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest() // reset
+
 			tc.malleate()
 
 			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
-
 			res, err := suite.chainA.QueryServer.ClientStates(ctx, req)
 			if tc.expPass {
 				suite.Require().NoError(err)

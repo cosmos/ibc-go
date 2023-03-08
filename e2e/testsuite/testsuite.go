@@ -2,7 +2,6 @@ package testsuite
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -41,6 +40,7 @@ import (
 	feetypes "github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 )
 
@@ -72,11 +72,12 @@ type E2ETestSuite struct {
 // These should typically be used for query clients only. If we need to make changes, we should
 // use E2ETestSuite.BroadcastMessages to broadcast transactions instead.
 type GRPCClients struct {
-	ClientQueryClient  clienttypes.QueryClient
-	ChannelQueryClient channeltypes.QueryClient
-	FeeQueryClient     feetypes.QueryClient
-	ICAQueryClient     controllertypes.QueryClient
-	InterTxQueryClient intertxtypes.QueryClient
+	ClientQueryClient     clienttypes.QueryClient
+	ConnectionQueryClient connectiontypes.QueryClient
+	ChannelQueryClient    channeltypes.QueryClient
+	FeeQueryClient        feetypes.QueryClient
+	ICAQueryClient        controllertypes.QueryClient
+	InterTxQueryClient    intertxtypes.QueryClient
 
 	// SDK query clients
 	GovQueryClient    govtypesv1beta1.QueryClient
@@ -407,17 +408,18 @@ func (s *E2ETestSuite) InitGRPCClients(chain *cosmos.CosmosChain) {
 	}
 
 	s.grpcClients[chain.Config().ChainID] = GRPCClients{
-		ClientQueryClient:  clienttypes.NewQueryClient(grpcConn),
-		ChannelQueryClient: channeltypes.NewQueryClient(grpcConn),
-		FeeQueryClient:     feetypes.NewQueryClient(grpcConn),
-		ICAQueryClient:     controllertypes.NewQueryClient(grpcConn),
-		InterTxQueryClient: intertxtypes.NewQueryClient(grpcConn),
-		GovQueryClient:     govtypesv1beta1.NewQueryClient(grpcConn),
-		GovQueryClientV1:   govtypesv1.NewQueryClient(grpcConn),
-		GroupsQueryClient:  grouptypes.NewQueryClient(grpcConn),
-		ParamsQueryClient:  paramsproposaltypes.NewQueryClient(grpcConn),
-		AuthQueryClient:    authtypes.NewQueryClient(grpcConn),
-		AuthZQueryClient:   authz.NewQueryClient(grpcConn),
+		ClientQueryClient:     clienttypes.NewQueryClient(grpcConn),
+		ConnectionQueryClient: connectiontypes.NewQueryClient(grpcConn),
+		ChannelQueryClient:    channeltypes.NewQueryClient(grpcConn),
+		FeeQueryClient:        feetypes.NewQueryClient(grpcConn),
+		ICAQueryClient:        controllertypes.NewQueryClient(grpcConn),
+		InterTxQueryClient:    intertxtypes.NewQueryClient(grpcConn),
+		GovQueryClient:        govtypesv1beta1.NewQueryClient(grpcConn),
+		GovQueryClientV1:      govtypesv1.NewQueryClient(grpcConn),
+		GroupsQueryClient:     grouptypes.NewQueryClient(grpcConn),
+		ParamsQueryClient:     paramsproposaltypes.NewQueryClient(grpcConn),
+		AuthQueryClient:       authtypes.NewQueryClient(grpcConn),
+		AuthZQueryClient:      authz.NewQueryClient(grpcConn),
 	}
 }
 
@@ -577,7 +579,7 @@ func (s *E2ETestSuite) QueryModuleAccountAddress(ctx context.Context, moduleName
 	}
 	moduleAccount, ok := account.(authtypes.ModuleAccountI)
 	if !ok {
-		return nil, errors.New(fmt.Sprintf("failed to cast account: %T as ModuleAccount", moduleAccount))
+		return nil, fmt.Errorf("failed to cast account: %T as ModuleAccount", moduleAccount)
 	}
 
 	return moduleAccount.GetAddress(), nil
