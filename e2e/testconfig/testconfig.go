@@ -281,8 +281,18 @@ type ChainOptionConfiguration func(options *ChainOptions)
 // These options can be configured by passing configuration functions to E2ETestSuite.GetChains.
 func DefaultChainOptions() ChainOptions {
 	tc := LoadConfig()
-	chainACfg := newDefaultSimappConfig(tc.ChainConfigs[0], "simapp-a", tc.ChainConfigs[0].ChainID, "atoma")
-	chainBCfg := newDefaultSimappConfig(tc.ChainConfigs[1], "simapp-b", tc.ChainConfigs[1].ChainID, "atomb")
+
+	chainAID := tc.ChainConfigs[0].ChainID
+	if chainAID == "" {
+		chainAID = "chain-a"
+	}
+	chainBID := tc.ChainConfigs[1].ChainID
+	if chainBID == "" {
+		chainBID = "chain-b"
+	}
+
+	chainACfg := newDefaultSimappConfig(tc.ChainConfigs[0], "simapp-a", chainAID, "atoma")
+	chainBCfg := newDefaultSimappConfig(tc.ChainConfigs[1], "simapp-b", chainBID, "atomb")
 	return ChainOptions{
 		ChainAConfig: &chainACfg,
 		ChainBConfig: &chainBCfg,
