@@ -211,30 +211,23 @@ func (suite *MsgTestSuite) TestNewMsgConnectionOpenAck() {
 }
 
 func (suite *MsgTestSuite) TestNewMsgConnectionOpenConfirm() {
-	testMsgs := []*types.MsgConnectionOpenConfirm{
-		types.NewMsgConnectionOpenConfirm("test/conn1", suite.proof, clientHeight, signer),
-		types.NewMsgConnectionOpenConfirm(connectionID, emptyProof, clientHeight, signer),
-		types.NewMsgConnectionOpenConfirm(connectionID, suite.proof, clientHeight, ""),
-		types.NewMsgConnectionOpenConfirm(connectionID, suite.proof, clientHeight, signer),
-	}
-
 	testCases := []struct {
+		name    string
 		msg     *types.MsgConnectionOpenConfirm
 		expPass bool
-		errMsg  string
 	}{
-		{testMsgs[0], false, "invalid connection ID"},
-		{testMsgs[1], false, "empty proofTry"},
-		{testMsgs[2], false, "empty signer"},
-		{testMsgs[3], true, "success"},
+		{"invalid connection ID", types.NewMsgConnectionOpenConfirm("test/conn1", suite.proof, clientHeight, signer), false},
+		{"empty proofTry", types.NewMsgConnectionOpenConfirm(connectionID, emptyProof, clientHeight, signer), false},
+		{"empty signer", types.NewMsgConnectionOpenConfirm(connectionID, suite.proof, clientHeight, ""), false},
+		{"success", types.NewMsgConnectionOpenConfirm(connectionID, suite.proof, clientHeight, signer), true},
 	}
 
-	for i, tc := range testCases {
+	for _, tc := range testCases {
 		err := tc.msg.ValidateBasic()
 		if tc.expPass {
-			suite.Require().NoError(err, "Msg %d failed: %s", i, tc.errMsg)
+			suite.Require().NoError(err, tc.name)
 		} else {
-			suite.Require().Error(err, "Invalid Msg %d passed: %s", i, tc.errMsg)
+			suite.Require().Error(err, tc.name)
 		}
 	}
 }
