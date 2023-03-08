@@ -13,6 +13,7 @@ import (
 	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	tmclient "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 )
 
 // ChanOpenInit is called by a module to initiate a channel opening handshake with
@@ -766,6 +767,24 @@ func (k Keeper) ChanCloseFrozen(
 	// truncated connectionHops 0, 1, 2, 3 -> 1, 2, 3
 	connectionHops := channel.ConnectionHops[:len(mProof.ConnectionProofs)]
 
+	// unmarshal to client state interface
+	var exportedClientState exported.ClientState
+	if err := k.cdc.UnmarshalInterface(mProof.KeyProof.Value, &exportedClientState); err != nil {
+		return err
+	}
+
+	// try to cast to tendermint client state
+	cs, ok := exportedClientState.(*tmclient.ClientState)
+	if !ok {
+		return fmt.Errorf("cannot cast exported client state to tendermint client state")
+	}
+
+	// check client is frozen
+	if cs.FrozenHeight.RevisionHeight != 0 && cs.FrozenHeight.RevisionNumber != 0 {
+		return fmt.Errorf("cannot close channel, client is not frozen")
+	}
+
+	// prove frozen client
 	if err := k.connectionKeeper.VerifyMultihopProof(
 		ctx, connectionEnd, proofHeight, proofFrozen,
 		connectionHops, kvGenerator); err != nil {
