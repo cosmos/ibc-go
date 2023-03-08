@@ -40,7 +40,6 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 * [#2672](https://github.com/cosmos/ibc-go/issues/2672) Update to cosmos-sdk v0.47.
 * [#3175](https://github.com/cosmos/ibc-go/issues/3175) Migrate to cometbft v0.37.
-* [#3247](https://github.com/cosmos/ibc-go/issues/3247) Bump github.com/cometbft/cometbft from 0.37.0-rc3 to 0.37.0.
 
 ### API Breaking
 
@@ -63,7 +62,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (06-solomachine) [\#2761](https://github.com/cosmos/ibc-go/pull/2761) Removed deprecated `ClientId` field from `Misbehaviour` and `allow_update_after_proposal` field from `ClientState`.
 * (apps) [\#3154](https://github.com/cosmos/ibc-go/pull/3154)  Remove unused `ProposalContents` function.
 * (apps) [#3149](https://github.com/cosmos/ibc-go/pull/3149) Remove legacy interface function `RandomizedParams`, which is no longer used.
-* (light-clients/08-solomachine) [#2941](https://github.com/cosmos/ibc-go/pull/2941) Removing solomachine header sequence.
+* (light-clients/06-solomachine) [#2941](https://github.com/cosmos/ibc-go/pull/2941) Remove solomachine header sequence.
 * (core) [#2982](https://github.com/cosmos/ibc-go/pull/2982) Moved the ibc module name into the exported package.
  
 ### State Machine Breaking
@@ -104,11 +103,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (light-clients/07-tendermint) [#3046](https://github.com/cosmos/ibc-go/pull/3046) Moved non-verification misbehaviour checks to `CheckForMisbehaviour`.
 * (apps/29-fee) [#2975](https://github.com/cosmos/ibc-go/pull/2975) Adding distribute fee events to ics29.
 * (light-clients/07-tendermint) [#2965](https://github.com/cosmos/ibc-go/pull/2965) Prune expired `07-tendermint` consensus states on duplicate header updates.
-* (light-clients/08-solomachine) [#2802](https://github.com/cosmos/ibc-go/pull/2802) Move solomachine CheckForMisbehaviour to `misbehaviour_handle.go`.
-* (light-clients/07-tendermint) [#2803](https://github.com/cosmos/ibc-go/pull/2803) Move Tendermint CheckForMisbehaviour to `misbehaviour_handle.go`.
-* (light-clients/08-solomachine) [#2743](https://github.com/cosmos/ibc-go/pull/2743) Rename all occurances of smtypes and solomachinetypes import aliases to solomachine.
 * (light-clients) [#2736](https://github.com/cosmos/ibc-go/pull/2736) Updating `VerifyMembership` and `VerifyNonMembership` methods to use `Path` interface.
-* (apps/transfer) [#2425](https://github.com/cosmos/ibc-go/pull/2425) Add private send transfer function.
 * (light-clients) [#3113](https://github.com/cosmos/ibc-go/pull/3113) Align light client module names. 
 
 ### Features
@@ -134,16 +129,9 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (apps/27-interchain-accounts) [#2601](https://github.com/cosmos/ibc-go/pull/2601) Remove bech32 check from owner address on ICA controller msgs RegisterInterchainAccount and SendTx.
 * (apps/transfer) [#2651](https://github.com/cosmos/ibc-go/pull/2651) Skip emission of unpopulated memo field in ics20.
 * (apps/27-interchain-accounts) [#2682](https://github.com/cosmos/ibc-go/pull/2682) Avoid race conditions in ics27 handshakes.
-* (light-clients/08-solomachine) [#2741](https://github.com/cosmos/ibc-go/pull/2741) Added check for empty path in 06-solomachine.
+* (light-clients/06-solomachine) [#2741](https://github.com/cosmos/ibc-go/pull/2741) Added check for empty path in 06-solomachine.
 * (light-clients/07-tendermint) [#3022](https://github.com/cosmos/ibc-go/pull/3022) Correctly close iterator in `07-tendermint` store.
 * (core/02-client) [#3010](https://github.com/cosmos/ibc-go/pull/3010) Update `Paginate` to use `FilterPaginate` in `ClientStates` and `ConnectionChannels` grpc queries.
-
-### Refactor
- 
-* (light-clients/08-solomachine) [#1972](https://github.com/cosmos/ibc-go/pull/1972) Panic on ZeroCustomFields for solo machine implementation.
-* (core/02-client) [#2864](https://github.com/cosmos/ibc-go/issues/2864) Simplify automatic migration code by using client keeper functions.
-* (light-clients/07-tendermint) [#2862](https://github.com/cosmos/ibc-go/issues/2862) Simplify optional tendermint pruning migrations.
-* (core & light-clients) [#2936](https://github.com/cosmos/ibc-go/issues/2936) Require light clients to set the initial client state and consensus state via the client state `Initialize` method.
  
 ## [v6.1.0](https://github.com/cosmos/ibc-go/releases/tag/v6.1.0) - 2022-12-20
 
@@ -229,7 +217,6 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Improvements
 
 * (apps/29-fee) [\#2786](https://github.com/cosmos/ibc-go/pull/2786) Save gas by checking key existence with `KVStore`'s `Has` method.
-
 
 ## [v5.1.0](https://github.com/cosmos/ibc-go/releases/tag/v5.1.0) - 2022-11-09
 
