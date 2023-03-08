@@ -16,15 +16,17 @@ const (
 	Hermes = "hermes"
 
 	cosmosRelayerRepository = "ghcr.io/cosmos/relayer"
-	cosmosRelayerUser       = "100:1000" // docker run -it --rm --entrypoint echo ghcr.io/cosmos/relayer "$(id -u):$(id -g)"
+	cosmosRelayerUser       = "100:1000"
 )
 
 // Config holds configuration values for the relayer used in the tests.
 type Config struct {
 	// Tag is the tag used for the relayer image.
-	Tag string
+	Tag string `json:"tag"`
 	// Type specifies the type of relayer that this is.
-	Type string
+	Type string `json:"type"`
+	// Image is the image that should be used for the relayer.
+	Image string `json:"image"`
 }
 
 // New returns an implementation of ibc.Relayer depending on the provided RelayerType.

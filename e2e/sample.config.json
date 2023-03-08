@@ -1,0 +1,25 @@
+{
+  "chains":[
+    {
+      "chainId":"chain-a",
+      "numValidators":1,
+      "numFullNodes":0,
+      "image":"ghcr.io/cosmos/ibc-go-simd",
+      "tag":"main",
+      "binary":"simd"
+    },
+    {
+      "chainId":"chain-b",
+      "numValidators":1,
+      "numFullNodes":0,
+      "image":"ghcr.io/cosmos/ibc-go-simd",
+      "tag":"main",
+      "binary":"simd"
+    }
+  ],
+  "relayer":{
+    "type":"rly",
+    "image":"ghcr.io/cosmos/relayer",
+    "tag":"main"
+  }
+}

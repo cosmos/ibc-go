@@ -36,8 +36,8 @@ const (
 )
 
 func TestUpgradeTestSuite(t *testing.T) {
-	testCfg := testconfig.FromEnv()
-	if testCfg.UpgradeTag == "" || testCfg.UpgradePlanName == "" {
+	testCfg := testconfig.LoadConfig()
+	if testCfg.UpgradeConfig.Tag == "" || testCfg.UpgradeConfig.PlanName == "" {
 		t.Fatal("upgrade tag and upgrade plan name must be provided in test configuration")
 	}
 
@@ -95,7 +95,7 @@ func (s *UpgradeTestSuite) UpgradeChain(ctx context.Context, chain *cosmos.Cosmo
 
 func (s *UpgradeTestSuite) TestIBCChainUpgrade() {
 	t := s.T()
-	testCfg := testconfig.FromEnv()
+	testCfg := testconfig.LoadConfig()
 
 	ctx := context.Background()
 	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx)
@@ -152,7 +152,7 @@ func (s *UpgradeTestSuite) TestIBCChainUpgrade() {
 	s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA, chainB), "failed to wait for blocks")
 
 	t.Run("upgrade chainA", func(t *testing.T) {
-		s.UpgradeChain(ctx, chainA, chainAUpgradeProposalWallet, testCfg.UpgradePlanName, testCfg.ChainAConfig.Tag, testCfg.UpgradeTag)
+		s.UpgradeChain(ctx, chainA, chainAUpgradeProposalWallet, testCfg.UpgradeConfig.PlanName, testCfg.ChainConfigs[0].Tag, testCfg.UpgradeConfig.Tag)
 	})
 
 	t.Run("restart relayer", func(t *testing.T) {
@@ -228,10 +228,10 @@ func (s *UpgradeTestSuite) TestChainUpgrade() {
 	})
 
 	t.Run("upgrade chain", func(t *testing.T) {
-		testCfg := testconfig.FromEnv()
+		testCfg := testconfig.LoadConfig()
 		proposerWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 
-		s.UpgradeChain(ctx, chain, proposerWallet, testCfg.UpgradePlanName, testCfg.ChainAConfig.Tag, testCfg.UpgradeTag)
+		s.UpgradeChain(ctx, chain, proposerWallet, testCfg.UpgradeConfig.PlanName, testCfg.ChainConfigs[0].Tag, testCfg.UpgradeConfig.Tag)
 	})
 
 	t.Run("send funds to test wallet", func(t *testing.T) {
@@ -254,7 +254,7 @@ func (s *UpgradeTestSuite) TestChainUpgrade() {
 
 func (s *UpgradeTestSuite) TestV5ToV6ChainUpgrade() {
 	t := s.T()
-	testCfg := testconfig.FromEnv()
+	testCfg := testconfig.LoadConfig()
 
 	ctx := context.Background()
 	relayer, _ := s.SetupChainsRelayerAndChannel(ctx)
@@ -352,7 +352,7 @@ func (s *UpgradeTestSuite) TestV5ToV6ChainUpgrade() {
 	s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA, chainB), "failed to wait for blocks")
 
 	t.Run("upgrade chainA", func(t *testing.T) {
-		s.UpgradeChain(ctx, chainA, chainAUpgradeProposalWallet, testCfg.UpgradePlanName, testCfg.ChainAConfig.Tag, testCfg.UpgradeTag)
+		s.UpgradeChain(ctx, chainA, chainAUpgradeProposalWallet, testCfg.UpgradeConfig.PlanName, testCfg.ChainConfigs[0].Tag, testCfg.UpgradeConfig.Tag)
 	})
 
 	t.Run("restart relayer", func(t *testing.T) {
@@ -457,7 +457,7 @@ func (s *UpgradeTestSuite) TestV5ToV6ChainUpgrade() {
 // can be sent before and after the upgrade without issue
 func (s *UpgradeTestSuite) TestV6ToV7ChainUpgrade() {
 	t := s.T()
-	testCfg := testconfig.FromEnv()
+	testCfg := testconfig.LoadConfig()
 
 	ctx := context.Background()
 	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx)
@@ -568,7 +568,7 @@ func (s *UpgradeTestSuite) TestV6ToV7ChainUpgrade() {
 	chainAUpgradeProposalWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 
 	t.Run("upgrade chainA", func(t *testing.T) {
-		s.UpgradeChain(ctx, chainA, chainAUpgradeProposalWallet, testCfg.UpgradePlanName, testCfg.ChainAConfig.Tag, testCfg.UpgradeTag)
+		s.UpgradeChain(ctx, chainA, chainAUpgradeProposalWallet,testCfg.UpgradeConfig.PlanName, testCfg.ChainConfigs[0].Tag, testCfg.UpgradeConfig.Tag)
 	})
 
 	t.Run("check that the tendermint clients are active again after upgrade", func(t *testing.T) {

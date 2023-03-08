@@ -37,7 +37,13 @@ be quite common in most tests.
 
 Tests can be run using a Makefile target under the e2e directory. `e2e/Makefile`
 
-There are several envinronment variables that alter the behaviour of the make target.
+The tests can be configured using a configuration file or environment variables.
+
+See [the example](./sample.config.json) to get started. The default location the tests look is `~/.ibc-go-e2e-config.json`
+But this can be specified directly using the `E2E_CONFIG_PATH` environment variable.
+
+There are several environment variables that alter the behaviour of the make target which will override any
+options specified in your config file.
 
 | Environment Variable | Description                               | Default Value |
 |----------------------|-------------------------------------------|---------------|

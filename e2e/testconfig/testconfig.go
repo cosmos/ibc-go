@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"path"
 	"strings"
 
 	tmjson "github.com/cometbft/cometbft/libs/json"
@@ -41,6 +42,8 @@ const (
 	ChainUpgradeTagEnv = "CHAIN_UPGRADE_TAG"
 	// ChainUpgradePlanEnv specifies the upgrade plan name
 	ChainUpgradePlanEnv = "CHAIN_UPGRADE_PLAN"
+	// E2EConfigFilePath allows you to specify a custom path for the config file to be used.
+	E2EConfigFilePath = "E2E_CONFIG_PATH"
 
 	// defaultBinary is the default binary that will be used by the chains.
 	defaultBinary = "simd"
@@ -51,6 +54,9 @@ const (
 	defaultChainTag = "main"
 	// defaultRelayerType is the default relayer that will be used if none is specified.
 	defaultRelayerType = relayer.Rly
+	// defaultConfigFileName is the default filename for the config file that can be used to configure
+	// e2e tests. See sample.config.json as an example for what this should look like.
+	defaultConfigFileName = ".ibc-go-e2e-config.json"
 )
 
 func getChainImage(binary string) string {
@@ -60,24 +66,99 @@ func getChainImage(binary string) string {
 	return fmt.Sprintf("ghcr.io/cosmos/ibc-go-%s", binary)
 }
 
-// TestConfig holds various fields used in the E2E tests.
+// TestConfig holds configuration used throughout the different e2e tests.
 type TestConfig struct {
-	ChainAConfig    ChainConfig
-	ChainBConfig    ChainConfig
-	RelayerConfig   relayer.Config
-	UpgradeTag      string
-	UpgradePlanName string
+	ChainConfigs  []ChainConfig  `json:"chains"`
+	RelayerConfig relayer.Config `json:"relayer"`
+	UpgradeConfig UpgradeConfig  `json:"upgrade"`
+}
+
+// UpgradeConfig holds values relevant to upgrade tests.
+type UpgradeConfig struct {
+	PlanName string `json:"planName"`
+	Tag      string `json:"tag"`
 }
 
 // ChainConfig holds information about an individual chain used in the tests.
 type ChainConfig struct {
-	Image  string
-	Tag    string
-	Binary string
+	ChainID       string `json:"chainId"`
+	Image         string `json:"image"`
+	Tag           string `json:"tag"`
+	Binary        string `json:"binary"`
+	NumValidators int    `json:"numValidators"`
+	NumFullNodes  int    `json:"numFullNodes"`
 }
 
-// FromEnv returns a TestConfig constructed from environment variables.
-func FromEnv() TestConfig {
+// LoadConfig attempts to load a atest configuration from the default file path.
+// if any environment variables are specified, they will take precedence over the individual configuration
+// options.
+func LoadConfig() TestConfig {
+	fileTc, foundFile := fromFile()
+	envTc := fromEnv()
+	return mergeTestConfigs(fileTc, envTc, foundFile)
+}
+
+// fromFile returns a TestConfig from a json file and a boolean indicating if the file was found.
+func fromFile() (TestConfig, bool) {
+	var tc TestConfig
+	bz, err := os.ReadFile(getConfigFilePath())
+	if err != nil {
+		return TestConfig{}, false
+	}
+
+	if err := json.Unmarshal(bz, &tc); err != nil {
+		panic(err)
+	}
+
+	return tc, true
+}
+
+// mergeTestConfigs takes a config made from a file and a config made from environment variables
+// and returns a new test config with all environment variable options taking precedence.
+func mergeTestConfigs(fromFile, fromEnv TestConfig, foundFile bool) TestConfig {
+	if !foundFile {
+		return fromEnv
+	}
+
+	for i, cfg := range fromEnv.ChainConfigs {
+		if cfg.Image != "" {
+			fromFile.ChainConfigs[i].Image = cfg.Image
+		}
+
+		if cfg.Tag != "" {
+			fromFile.ChainConfigs[i].Tag = cfg.Tag
+		}
+
+		if cfg.Binary != "" {
+			fromFile.ChainConfigs[i].Binary = cfg.Binary
+		}
+	}
+
+	if fromEnv.RelayerConfig.Tag != "" {
+		fromFile.RelayerConfig.Tag = fromEnv.RelayerConfig.Tag
+	}
+
+	if fromEnv.RelayerConfig.Image != "" {
+		fromFile.RelayerConfig.Image = fromEnv.RelayerConfig.Image
+	}
+
+	if fromEnv.RelayerConfig.Type != "" {
+		fromFile.RelayerConfig.Type = fromEnv.RelayerConfig.Type
+	}
+
+	if fromEnv.UpgradeConfig.PlanName != "" {
+		fromFile.UpgradeConfig.PlanName = fromEnv.UpgradeConfig.PlanName
+	}
+
+	if fromEnv.UpgradeConfig.Tag != "" {
+		fromFile.UpgradeConfig.Tag = fromEnv.UpgradeConfig.Tag
+	}
+
+	return fromFile
+}
+
+// fromEnv returns a TestConfig constructed from environment variables.
+func fromEnv() TestConfig {
 	chainBinary, ok := os.LookupEnv(ChainBinaryEnv)
 	if !ok {
 		chainBinary = defaultBinary
@@ -111,24 +192,42 @@ func FromEnv() TestConfig {
 	}
 
 	return TestConfig{
-		ChainAConfig: ChainConfig{
-			Image:  chainAImage,
-			Tag:    chainATag,
-			Binary: chainBinary,
+		ChainConfigs: []ChainConfig{
+			{
+				Image:  chainAImage,
+				Tag:    chainATag,
+				Binary: chainBinary,
+			},
+			{
+				Image:  chainBImage,
+				Tag:    chainBTag,
+				Binary: chainBinary,
+			},
 		},
-		ChainBConfig: ChainConfig{
-			Image:  chainBImage,
-			Tag:    chainBTag,
-			Binary: chainBinary,
+		UpgradeConfig: UpgradeConfig{
+			PlanName: upgradePlan,
+			Tag:      upgradeTag,
 		},
-		UpgradeTag:      upgradeTag,
-		UpgradePlanName: upgradePlan,
-		RelayerConfig:   GetRelayerConfigFromEnv(),
+		RelayerConfig: getRelayerConfigFromEnv(),
 	}
 }
 
-// GetRelayerConfigFromEnv returns the RelayerConfig from present environment variables.
-func GetRelayerConfigFromEnv() relayer.Config {
+// getConfigFilePath returns the absolute path where the e2e config file should be.
+func getConfigFilePath() string {
+	absoluteConfigPath := os.Getenv(E2EConfigFilePath)
+	if absoluteConfigPath != "" {
+		return absoluteConfigPath
+	}
+
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		panic(err)
+	}
+	return path.Join(homeDir, defaultConfigFileName)
+}
+
+// getRelayerConfigFromEnv returns the RelayerConfig from present environment variables.
+func getRelayerConfigFromEnv() relayer.Config {
 	relayerType := strings.TrimSpace(os.Getenv(RelayerTypeEnv))
 	if relayerType == "" {
 		relayerType = defaultRelayerType
@@ -150,19 +249,11 @@ func GetRelayerConfigFromEnv() relayer.Config {
 }
 
 func GetChainATag() string {
-	chainATag, ok := os.LookupEnv(ChainATagEnv)
-	if !ok {
-		panic(fmt.Sprintf("no environment variable specified for %s", ChainATagEnv))
-	}
-	return chainATag
+	return LoadConfig().ChainConfigs[0].Tag
 }
 
 func GetChainBTag() string {
-	chainBTag, ok := os.LookupEnv(ChainBTagEnv)
-	if !ok {
-		return GetChainATag()
-	}
-	return chainBTag
+	return LoadConfig().ChainConfigs[1].Tag
 }
 
 // IsCI returns true if the tests are running in CI, false is returned
@@ -186,9 +277,9 @@ type ChainOptionConfiguration func(options *ChainOptions)
 // DefaultChainOptions returns the default configuration for the chains.
 // These options can be configured by passing configuration functions to E2ETestSuite.GetChains.
 func DefaultChainOptions() ChainOptions {
-	tc := FromEnv()
-	chainACfg := newDefaultSimappConfig(tc.ChainAConfig, "simapp-a", "chain-a", "atoma")
-	chainBCfg := newDefaultSimappConfig(tc.ChainBConfig, "simapp-b", "chain-b", "atomb")
+	tc := LoadConfig()
+	chainACfg := newDefaultSimappConfig(tc.ChainConfigs[0], "simapp-a", tc.ChainConfigs[0].ChainID, "atoma")
+	chainBCfg := newDefaultSimappConfig(tc.ChainConfigs[1], "simapp-b", tc.ChainConfigs[1].ChainID, "atomb")
 	return ChainOptions{
 		ChainAConfig: &chainACfg,
 		ChainBConfig: &chainBCfg,
