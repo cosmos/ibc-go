@@ -253,7 +253,10 @@ func GetChainATag() string {
 }
 
 func GetChainBTag() string {
-	return LoadConfig().ChainConfigs[1].Tag
+	if chainBTag := LoadConfig().ChainConfigs[1].Tag; chainBTag != "" {
+		return chainBTag
+	}
+	return GetChainATag()
 }
 
 // IsCI returns true if the tests are running in CI, false is returned
