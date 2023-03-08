@@ -44,6 +44,10 @@ func NewMsgConnectionOpenInit(
 
 // ValidateBasic implements sdk.Msg.
 func (msg MsgConnectionOpenInit) ValidateBasic() error {
+	if msg.ClientId == exported.LocalhostClientID {
+		return errorsmod.Wrap(clienttypes.ErrInvalidClientType, "localhost connection handshakes are disallowed")
+	}
+
 	if err := host.ClientIdentifierValidator(msg.ClientId); err != nil {
 		return errorsmod.Wrap(err, "invalid client ID")
 	}
@@ -103,6 +107,10 @@ func NewMsgConnectionOpenTry(
 
 // ValidateBasic implements sdk.Msg
 func (msg MsgConnectionOpenTry) ValidateBasic() error {
+	if msg.ClientId == exported.LocalhostClientID {
+		return errorsmod.Wrap(clienttypes.ErrInvalidClientType, "localhost connection handshakes are disallowed")
+	}
+
 	if msg.PreviousConnectionId != "" {
 		return errorsmod.Wrap(ErrInvalidConnectionIdentifier, "previous connection identifier must be empty, this field has been deprecated as crossing hellos are no longer supported")
 	}
