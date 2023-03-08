@@ -1,8 +1,8 @@
 package tendermint
 
 import (
-	tmmath "github.com/tendermint/tendermint/libs/math"
-	"github.com/tendermint/tendermint/light"
+	tmmath "github.com/cometbft/cometbft/libs/math"
+	"github.com/cometbft/cometbft/light"
 )
 
 // DefaultTrustLevel is the tendermint light client default trust level
