@@ -95,7 +95,7 @@ type ChainConfig struct {
 func LoadConfig() TestConfig {
 	fileTc, foundFile := fromFile()
 	envTc := fromEnv()
-	return mergeTestConfigs(fileTc, envTc, foundFile)
+	return applyEnvironmentVariableOverrides(fileTc, envTc, foundFile)
 }
 
 // fromFile returns a TestConfig from a json file and a boolean indicating if the file was found.
@@ -113,44 +113,44 @@ func fromFile() (TestConfig, bool) {
 	return tc, true
 }
 
-// mergeTestConfigs takes a config made from a file and a config made from environment variables
-// and returns a new test config with all environment variable options taking precedence.
-func mergeTestConfigs(fromFile, fromEnv TestConfig, foundFile bool) TestConfig {
+// applyEnvironmentVariableOverrides applies all environment variable changes to the config
+// loaded from a file.
+func applyEnvironmentVariableOverrides(fromFile, fromEnv TestConfig, foundFile bool) TestConfig {
 	if !foundFile {
 		return fromEnv
 	}
 
-	for i, cfg := range fromEnv.ChainConfigs {
-		if cfg.Image != "" {
-			fromFile.ChainConfigs[i].Image = cfg.Image
-		}
-
-		if cfg.Tag != "" {
-			fromFile.ChainConfigs[i].Tag = cfg.Tag
-		}
-
-		if cfg.Binary != "" {
-			fromFile.ChainConfigs[i].Binary = cfg.Binary
-		}
+	if os.Getenv(ChainATagEnv) != "" {
+		fromFile.ChainConfigs[0].Tag = fromEnv.ChainConfigs[0].Tag
 	}
 
-	if fromEnv.RelayerConfig.Tag != "" {
+	if os.Getenv(ChainBTagEnv) != "" {
+		fromFile.ChainConfigs[1].Tag = fromEnv.ChainConfigs[1].Tag
+	}
+
+	if os.Getenv(ChainBinaryEnv) != "" {
+		fromFile.ChainConfigs[0].Binary = fromEnv.ChainConfigs[0].Binary
+		fromFile.ChainConfigs[1].Binary = fromEnv.ChainConfigs[0].Binary
+	}
+
+	if os.Getenv(ChainImageEnv) != "" {
+		fromFile.ChainConfigs[0].Image = fromEnv.ChainConfigs[0].Image
+		fromFile.ChainConfigs[1].Image = fromEnv.ChainConfigs[0].Image
+	}
+
+	if os.Getenv(RelayerTagEnv) != "" {
 		fromFile.RelayerConfig.Tag = fromEnv.RelayerConfig.Tag
 	}
 
-	if fromEnv.RelayerConfig.Image != "" {
-		fromFile.RelayerConfig.Image = fromEnv.RelayerConfig.Image
-	}
-
-	if fromEnv.RelayerConfig.Type != "" {
+	if os.Getenv(RelayerTypeEnv) != "" {
 		fromFile.RelayerConfig.Type = fromEnv.RelayerConfig.Type
 	}
 
-	if fromEnv.UpgradeConfig.PlanName != "" {
+	if os.Getenv(ChainUpgradePlanEnv) != "" {
 		fromFile.UpgradeConfig.PlanName = fromEnv.UpgradeConfig.PlanName
 	}
 
-	if fromEnv.UpgradeConfig.Tag != "" {
+	if os.Getenv(ChainUpgradeTagEnv) != "" {
 		fromFile.UpgradeConfig.Tag = fromEnv.UpgradeConfig.Tag
 	}
 
