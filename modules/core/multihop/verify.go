@@ -73,7 +73,7 @@ func VerifyMultihopMembership(
 	}
 
 	// verify the keyproof on source chain's consensus state.
-	return verifyKeyValueMembership(cdc, consensusState, proofs, prefix, key, value)
+	return verifyKeyValueMembership(cdc, proofs, prefix, key, value)
 }
 
 // VerifyMultihopNonMembership verifies a multihop proof. A nil value indicates a non-inclusion proof (proof of absence).
@@ -108,7 +108,7 @@ func VerifyMultihopNonMembership(
 	}
 
 	// verify the keyproof on source chain's consensus state.
-	return verifyKeyNonMembership(cdc, consensusState, proofs, prefix, key)
+	return verifyKeyNonMembership(cdc, proofs, prefix, key)
 }
 
 // verifyConnectionStates verifies that the provided connections match the connectionHops field of the channel and are in OPEN state
@@ -152,17 +152,18 @@ func verifyConnectionStates(cdc codec.BinaryCodec, connectionProofData []*channe
 // verifyIntermediateStateProofs verifies the intermediate consensus, connection, client states in the multi-hop proof.
 func verifyIntermediateStateProofs(
 	cdc codec.BinaryCodec,
-	consensusState exported.ConsensusState,
+	consensusStateI exported.ConsensusState,
 	consensusProofs []*channeltypes.MultihopProof,
 	connectionProofs []*channeltypes.MultihopProof,
 ) error {
-	var consState exported.ConsensusState
+	consensusState, ok := consensusStateI.(*tmclient.ConsensusState)
+	if !ok {
+		return fmt.Errorf("expected consensus state to be tendermint consensus state, got: %T", consensusStateI)
+	}
+
 	for i := len(consensusProofs) - 1; i >= 0; i-- {
 		consensusProof := consensusProofs[i]
 		connectionProof := connectionProofs[i]
-		if err := cdc.UnmarshalInterface(consensusProof.Value, &consState); err != nil {
-			return fmt.Errorf("failed to unpack consesnsus state: %w", err)
-		}
 
 		// prove consensus state
 		var proof commitmenttypes.MerkleProof
@@ -196,7 +197,14 @@ func verifyIntermediateStateProofs(
 			return fmt.Errorf("failed to verify connection proof: %w", err)
 		}
 
-		consensusState = consState
+		if err := cdc.UnmarshalInterface(consensusProof.Value, &consensusStateI); err != nil {
+			return fmt.Errorf("failed to unpack consesnsus state: %w", err)
+		}
+
+		consensusState, ok = consensusStateI.(*tmclient.ConsensusState)
+		if !ok {
+			return fmt.Errorf("expected consensus state to be tendermint consensus state, got: %T", consensusStateI)
+		}
 	}
 	return nil
 }
@@ -204,7 +212,6 @@ func verifyIntermediateStateProofs(
 // verifyKeyValueMembership verifies a multihop membership proof including all intermediate state proofs.
 func verifyKeyValueMembership(
 	cdc codec.BinaryCodec,
-	consensusState exported.ConsensusState,
 	proofs *channeltypes.MsgMultihopProofs,
 	prefix exported.Prefix,
 	key string,
@@ -224,14 +231,19 @@ func verifyKeyValueMembership(
 	if err := cdc.Unmarshal(proofs.KeyProof.Proof, &keyProof); err != nil {
 		return fmt.Errorf("failed to unmarshal key proof: %w", err)
 	}
-	var secondConsState exported.ConsensusState
-	if err := cdc.UnmarshalInterface(proofs.ConsensusProofs[proofs.KeyProofIndex].Value, &secondConsState); err != nil {
+
+	var consensusStateI exported.ConsensusState
+	if err := cdc.UnmarshalInterface(proofs.ConsensusProofs[proofs.KeyProofIndex].Value, &consensusStateI); err != nil {
 		return fmt.Errorf("failed to unpack consensus state: %w", err)
+	}
+	consensusState, ok := consensusStateI.(*tmclient.ConsensusState)
+	if !ok {
+		return fmt.Errorf("expected consensus state to be tendermint consensus state, got: %T", consensusStateI)
 	}
 
 	return keyProof.VerifyMembership(
 		commitmenttypes.GetSDKSpecs(),
-		secondConsState.GetRoot(),
+		consensusState.GetRoot(),
 		prefixedKey,
 		value,
 	)
@@ -240,7 +252,6 @@ func verifyKeyValueMembership(
 // verifyKeyNonMembership verifies a multihop non-membership proof including all intermediate state proofs.
 func verifyKeyNonMembership(
 	cdc codec.BinaryCodec,
-	consensusState exported.ConsensusState,
 	proofs *channeltypes.MsgMultihopProofs,
 	prefix exported.Prefix,
 	key string,
@@ -264,9 +275,18 @@ func verifyKeyNonMembership(
 		return fmt.Errorf("failed to unpack consensus state: %w", err)
 	}
 
+	var consensusStateI exported.ConsensusState
+	if err := cdc.UnmarshalInterface(proofs.ConsensusProofs[proofs.KeyProofIndex].Value, &consensusStateI); err != nil {
+		return fmt.Errorf("failed to unpack consensus state: %w", err)
+	}
+	consensusState, ok := consensusStateI.(*tmclient.ConsensusState)
+	if !ok {
+		return fmt.Errorf("expected consensus state to be tendermint consensus state, got: %T", consensusStateI)
+	}
+
 	return keyProof.VerifyNonMembership(
 		commitmenttypes.GetSDKSpecs(),
-		secondConsState.GetRoot(),
+		consensusState.GetRoot(),
 		prefixedKey,
 	)
 }

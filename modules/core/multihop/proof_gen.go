@@ -11,6 +11,7 @@ import (
 	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	tmclient "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 )
 
 // Endpoint represents a Cosmos chain endpoint for queries.
@@ -137,10 +138,13 @@ func (p ChanPath) GenerateIntermediateStateProofs(proofGenFuncs []proofGenFunc) 
 			chainB.ChainID(), heightBC, chainC.ChainID(), err,
 		)
 
-		consStateBCRoot := consStateBC.GetRoot()
+		cs, ok := consStateBC.(*tmclient.ConsensusState)
+		if !ok {
+			panic(fmt.Sprintf("expected consensus state to be tendermint consensus state, got: %T", consStateBC))
+		}
 
 		for j, proofGenFunc := range proofGenFuncs {
-			proof := proofGenFunc(chainB, heightAB, heightBC, consStateBCRoot)
+			proof := proofGenFunc(chainB, heightAB, heightBC, cs.GetRoot())
 			result[j] = append(result[j], proof)
 		}
 	}
@@ -237,7 +241,12 @@ func queryProof(
 		panicIfErr(err, "fail to get chain [%s]'s consensus state at height %s on chain '%s' due to: %v",
 			chainA.ChainID(), heightAB, chainB.ChainID(), err,
 		)
-		consStateABRoot = consState.GetRoot()
+		cs, ok := consState.(*tmclient.ConsensusState)
+		if !ok {
+			panic(fmt.Sprintf("expected consensus state to be tendermint consensus state, got: %T", consState))
+		}
+
+		consStateABRoot = cs.GetRoot()
 	}
 
 	keyMerklePath, err := chainB.GetMerklePath(string(key))
