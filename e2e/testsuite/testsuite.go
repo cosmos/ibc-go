@@ -2,7 +2,6 @@ package testsuite
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -35,11 +34,13 @@ import (
 	"github.com/cosmos/ibc-go/e2e/relayer"
 	"github.com/cosmos/ibc-go/e2e/semverutil"
 	"github.com/cosmos/ibc-go/e2e/testconfig"
+	"github.com/cosmos/ibc-go/e2e/testsuite/diagnostics"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	controllertypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
 	feetypes "github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 )
 
@@ -71,11 +72,12 @@ type E2ETestSuite struct {
 // These should typically be used for query clients only. If we need to make changes, we should
 // use E2ETestSuite.BroadcastMessages to broadcast transactions instead.
 type GRPCClients struct {
-	ClientQueryClient  clienttypes.QueryClient
-	ChannelQueryClient channeltypes.QueryClient
-	FeeQueryClient     feetypes.QueryClient
-	ICAQueryClient     controllertypes.QueryClient
-	InterTxQueryClient intertxtypes.QueryClient
+	ClientQueryClient     clienttypes.QueryClient
+	ConnectionQueryClient connectiontypes.QueryClient
+	ChannelQueryClient    channeltypes.QueryClient
+	FeeQueryClient        feetypes.QueryClient
+	ICAQueryClient        controllertypes.QueryClient
+	InterTxQueryClient    intertxtypes.QueryClient
 
 	// SDK query clients
 	GovQueryClient    govtypesv1beta1.QueryClient
@@ -406,17 +408,18 @@ func (s *E2ETestSuite) InitGRPCClients(chain *cosmos.CosmosChain) {
 	}
 
 	s.grpcClients[chain.Config().ChainID] = GRPCClients{
-		ClientQueryClient:  clienttypes.NewQueryClient(grpcConn),
-		ChannelQueryClient: channeltypes.NewQueryClient(grpcConn),
-		FeeQueryClient:     feetypes.NewQueryClient(grpcConn),
-		ICAQueryClient:     controllertypes.NewQueryClient(grpcConn),
-		InterTxQueryClient: intertxtypes.NewQueryClient(grpcConn),
-		GovQueryClient:     govtypesv1beta1.NewQueryClient(grpcConn),
-		GovQueryClientV1:   govtypesv1.NewQueryClient(grpcConn),
-		GroupsQueryClient:  grouptypes.NewQueryClient(grpcConn),
-		ParamsQueryClient:  paramsproposaltypes.NewQueryClient(grpcConn),
-		AuthQueryClient:    authtypes.NewQueryClient(grpcConn),
-		AuthZQueryClient:   authz.NewQueryClient(grpcConn),
+		ClientQueryClient:     clienttypes.NewQueryClient(grpcConn),
+		ConnectionQueryClient: connectiontypes.NewQueryClient(grpcConn),
+		ChannelQueryClient:    channeltypes.NewQueryClient(grpcConn),
+		FeeQueryClient:        feetypes.NewQueryClient(grpcConn),
+		ICAQueryClient:        controllertypes.NewQueryClient(grpcConn),
+		InterTxQueryClient:    intertxtypes.NewQueryClient(grpcConn),
+		GovQueryClient:        govtypesv1beta1.NewQueryClient(grpcConn),
+		GovQueryClientV1:      govtypesv1.NewQueryClient(grpcConn),
+		GroupsQueryClient:     grouptypes.NewQueryClient(grpcConn),
+		ParamsQueryClient:     paramsproposaltypes.NewQueryClient(grpcConn),
+		AuthQueryClient:       authtypes.NewQueryClient(grpcConn),
+		AuthZQueryClient:      authz.NewQueryClient(grpcConn),
 	}
 }
 
@@ -442,17 +445,26 @@ func (s *E2ETestSuite) AssertPacketRelayed(ctx context.Context, chain *cosmos.Co
 // test and can be retrieved with GetChains.
 func (s *E2ETestSuite) createCosmosChains(chainOptions testconfig.ChainOptions) (*cosmos.CosmosChain, *cosmos.CosmosChain) {
 	client, network := interchaintest.DockerSetup(s.T())
+	t := s.T()
 
 	s.logger = zap.NewExample()
 	s.DockerClient = client
 	s.network = network
 
-	logger := zaptest.NewLogger(s.T())
+	logger := zaptest.NewLogger(t)
 
 	numValidators, numFullNodes := getValidatorsAndFullNodes()
 
-	chainA := cosmos.NewCosmosChain(s.T().Name(), *chainOptions.ChainAConfig, numValidators, numFullNodes, logger)
-	chainB := cosmos.NewCosmosChain(s.T().Name(), *chainOptions.ChainBConfig, numValidators, numFullNodes, logger)
+	chainA := cosmos.NewCosmosChain(t.Name(), *chainOptions.ChainAConfig, numValidators, numFullNodes, logger)
+	chainB := cosmos.NewCosmosChain(t.Name(), *chainOptions.ChainBConfig, numValidators, numFullNodes, logger)
+
+	// this is intentionally called after the interchaintest.DockerSetup function. The above function registers a
+	// cleanup task which deletes all containers. By registering a cleanup function afterwards, it is executed first
+	// this allows us to process the logs before the containers are removed.
+	t.Cleanup(func() {
+		diagnostics.Collect(t, s.DockerClient, chainOptions)
+	})
+
 	return chainA, chainB
 }
 
@@ -567,7 +579,7 @@ func (s *E2ETestSuite) QueryModuleAccountAddress(ctx context.Context, moduleName
 	}
 	moduleAccount, ok := account.(authtypes.ModuleAccountI)
 	if !ok {
-		return nil, errors.New(fmt.Sprintf("failed to cast account: %T as ModuleAccount", moduleAccount))
+		return nil, fmt.Errorf("failed to cast account: %T as ModuleAccount", moduleAccount)
 	}
 
 	return moduleAccount.GetAddress(), nil

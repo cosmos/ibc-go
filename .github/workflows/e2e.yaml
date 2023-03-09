@@ -62,6 +62,7 @@ jobs:
       secrets: inherit
       with:
         build-and-push-docker-image: true
+        upload-logs: true
         chain-image: ghcr.io/cosmos/ibc-go-simd
         chain-a-tag: "${{ needs.determine-image-tag.outputs.simd-tag }}"
         chain-b-tag: "${{ needs.determine-image-tag.outputs.simd-tag }}"
