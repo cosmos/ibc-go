@@ -3,11 +3,11 @@ package types_test
 import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 
-	"github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v6/modules/core/23-commitment/types"
-	"github.com/cosmos/ibc-go/v6/modules/core/exported"
-	ibctm "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint"
-	ibctesting "github.com/cosmos/ibc-go/v6/testing"
+	"github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
+	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
 type caseAny struct {
@@ -42,14 +42,14 @@ func (suite *TypesTestSuite) TestPackClientState() {
 	testCasesAny := []caseAny{}
 
 	for _, tc := range testCases {
-		clientAny, err := types.PackClientState(tc.clientState)
+		protoAny, err := types.PackClientState(tc.clientState)
 		if tc.expPass {
 			suite.Require().NoError(err, tc.name)
 		} else {
 			suite.Require().Error(err, tc.name)
 		}
 
-		testCasesAny = append(testCasesAny, caseAny{tc.name, clientAny, tc.expPass})
+		testCasesAny = append(testCasesAny, caseAny{tc.name, protoAny, tc.expPass})
 	}
 
 	for i, tc := range testCasesAny {
@@ -89,13 +89,13 @@ func (suite *TypesTestSuite) TestPackConsensusState() {
 	testCasesAny := []caseAny{}
 
 	for _, tc := range testCases {
-		clientAny, err := types.PackConsensusState(tc.consensusState)
+		protoAny, err := types.PackConsensusState(tc.consensusState)
 		if tc.expPass {
 			suite.Require().NoError(err, tc.name)
 		} else {
 			suite.Require().Error(err, tc.name)
 		}
-		testCasesAny = append(testCasesAny, caseAny{tc.name, clientAny, tc.expPass})
+		testCasesAny = append(testCasesAny, caseAny{tc.name, protoAny, tc.expPass})
 	}
 
 	for i, tc := range testCasesAny {
@@ -135,14 +135,14 @@ func (suite *TypesTestSuite) TestPackClientMessage() {
 	testCasesAny := []caseAny{}
 
 	for _, tc := range testCases {
-		clientAny, err := types.PackClientMessage(tc.clientMessage)
+		protoAny, err := types.PackClientMessage(tc.clientMessage)
 		if tc.expPass {
 			suite.Require().NoError(err, tc.name)
 		} else {
 			suite.Require().Error(err, tc.name)
 		}
 
-		testCasesAny = append(testCasesAny, caseAny{tc.name, clientAny, tc.expPass})
+		testCasesAny = append(testCasesAny, caseAny{tc.name, protoAny, tc.expPass})
 	}
 
 	for i, tc := range testCasesAny {

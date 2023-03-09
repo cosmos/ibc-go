@@ -3,11 +3,11 @@ package solomachine
 import (
 	"strings"
 
+	errorsmod "cosmossdk.io/errors"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v6/modules/core/exported"
+	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
 // SentinelHeaderPath defines a placeholder path value used for headers in solomachine client updates
@@ -25,12 +25,12 @@ func (Header) ClientType() string {
 // is not a PubKey.
 func (h Header) GetPubKey() (cryptotypes.PubKey, error) {
 	if h.NewPublicKey == nil {
-		return nil, sdkerrors.Wrap(ErrInvalidHeader, "header NewPublicKey cannot be nil")
+		return nil, errorsmod.Wrap(ErrInvalidHeader, "header NewPublicKey cannot be nil")
 	}
 
 	publicKey, ok := h.NewPublicKey.GetCachedValue().(cryptotypes.PubKey)
 	if !ok {
-		return nil, sdkerrors.Wrap(ErrInvalidHeader, "header NewPublicKey is not cryptotypes.PubKey")
+		return nil, errorsmod.Wrap(ErrInvalidHeader, "header NewPublicKey is not cryptotypes.PubKey")
 	}
 
 	return publicKey, nil
@@ -40,20 +40,20 @@ func (h Header) GetPubKey() (cryptotypes.PubKey, error) {
 // been initialized.
 func (h Header) ValidateBasic() error {
 	if h.Timestamp == 0 {
-		return sdkerrors.Wrap(clienttypes.ErrInvalidHeader, "timestamp cannot be zero")
+		return errorsmod.Wrap(clienttypes.ErrInvalidHeader, "timestamp cannot be zero")
 	}
 
 	if h.NewDiversifier != "" && strings.TrimSpace(h.NewDiversifier) == "" {
-		return sdkerrors.Wrap(clienttypes.ErrInvalidHeader, "diversifier cannot contain only spaces")
+		return errorsmod.Wrap(clienttypes.ErrInvalidHeader, "diversifier cannot contain only spaces")
 	}
 
 	if len(h.Signature) == 0 {
-		return sdkerrors.Wrap(clienttypes.ErrInvalidHeader, "signature cannot be empty")
+		return errorsmod.Wrap(clienttypes.ErrInvalidHeader, "signature cannot be empty")
 	}
 
 	newPublicKey, err := h.GetPubKey()
 	if err != nil || newPublicKey == nil || len(newPublicKey.Bytes()) == 0 {
-		return sdkerrors.Wrap(clienttypes.ErrInvalidHeader, "new public key cannot be empty")
+		return errorsmod.Wrap(clienttypes.ErrInvalidHeader, "new public key cannot be empty")
 	}
 
 	return nil

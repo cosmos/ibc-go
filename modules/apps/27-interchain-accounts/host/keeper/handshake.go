@@ -3,13 +3,13 @@ package keeper
 import (
 	"fmt"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
-	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
-	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
+	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
+	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 )
 
 // OnChanOpenTry performs basic validation of the ICA channel
@@ -27,16 +27,16 @@ func (k Keeper) OnChanOpenTry(
 	counterpartyVersion string,
 ) (string, error) {
 	if order != channeltypes.ORDERED {
-		return "", sdkerrors.Wrapf(channeltypes.ErrInvalidChannelOrdering, "expected %s channel, got %s", channeltypes.ORDERED, order)
+		return "", errorsmod.Wrapf(channeltypes.ErrInvalidChannelOrdering, "expected %s channel, got %s", channeltypes.ORDERED, order)
 	}
 
 	if portID != icatypes.HostPortID {
-		return "", sdkerrors.Wrapf(icatypes.ErrInvalidHostPort, "expected %s, got %s", icatypes.HostPortID, portID)
+		return "", errorsmod.Wrapf(icatypes.ErrInvalidHostPort, "expected %s, got %s", icatypes.HostPortID, portID)
 	}
 
 	var metadata icatypes.Metadata
 	if err := icatypes.ModuleCdc.UnmarshalJSON([]byte(counterpartyVersion), &metadata); err != nil {
-		return "", sdkerrors.Wrapf(icatypes.ErrUnknownDataType, "cannot unmarshal ICS-27 interchain accounts metadata")
+		return "", errorsmod.Wrapf(icatypes.ErrUnknownDataType, "cannot unmarshal ICS-27 interchain accounts metadata")
 	}
 
 	if err := icatypes.ValidateHostMetadata(ctx, k.channelKeeper, connectionHops, metadata); err != nil {
@@ -51,7 +51,7 @@ func (k Keeper) OnChanOpenTry(
 		}
 
 		if channel.State == channeltypes.OPEN {
-			return "", sdkerrors.Wrapf(icatypes.ErrActiveChannelAlreadySet, "existing active channel %s for portID %s is already OPEN", activeChannelID, portID)
+			return "", errorsmod.Wrapf(icatypes.ErrActiveChannelAlreadySet, "existing active channel %s for portID %s is already OPEN", activeChannelID, portID)
 		}
 
 		appVersion, found := k.GetAppVersion(ctx, portID, activeChannelID)
@@ -60,14 +60,14 @@ func (k Keeper) OnChanOpenTry(
 		}
 
 		if !icatypes.IsPreviousMetadataEqual(appVersion, metadata) {
-			return "", sdkerrors.Wrap(icatypes.ErrInvalidVersion, "previous active channel metadata does not match provided version")
+			return "", errorsmod.Wrap(icatypes.ErrInvalidVersion, "previous active channel metadata does not match provided version")
 		}
 	}
 
 	// On the host chain the capability may only be claimed during the OnChanOpenTry
 	// The capability being claimed in OpenInit is for a controller chain (the port is different)
 	if err := k.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
-		return "", sdkerrors.Wrapf(err, "failed to claim capability for channel %s on port %s", channelID, portID)
+		return "", errorsmod.Wrapf(err, "failed to claim capability for channel %s on port %s", channelID, portID)
 	}
 
 	var (
@@ -78,9 +78,10 @@ func (k Keeper) OnChanOpenTry(
 	interchainAccAddr, found := k.GetInterchainAccountAddress(ctx, metadata.HostConnectionId, counterparty.PortId)
 	if found {
 		// reopening an interchain account
+		k.Logger(ctx).Info("reopening existing interchain account", "address", interchainAccAddr)
 		accAddress = sdk.MustAccAddressFromBech32(interchainAccAddr)
 		if _, ok := k.accountKeeper.GetAccount(ctx, accAddress).(*icatypes.InterchainAccount); !ok {
-			return "", sdkerrors.Wrapf(icatypes.ErrInvalidAccountReopening, "existing account address %s, does not have interchain account type", accAddress)
+			return "", errorsmod.Wrapf(icatypes.ErrInvalidAccountReopening, "existing account address %s, does not have interchain account type", accAddress)
 		}
 
 	} else {
@@ -88,6 +89,7 @@ func (k Keeper) OnChanOpenTry(
 		if err != nil {
 			return "", err
 		}
+		k.Logger(ctx).Info("successfully created new interchain account", "host-connection-id", metadata.HostConnectionId, "port-id", counterparty.PortId, "address", accAddress)
 	}
 
 	metadata.Address = accAddress.String()
@@ -107,7 +109,7 @@ func (k Keeper) OnChanOpenConfirm(
 ) error {
 	channel, found := k.channelKeeper.GetChannel(ctx, portID, channelID)
 	if !found {
-		return sdkerrors.Wrapf(channeltypes.ErrChannelNotFound, "failed to retrieve channel %s on port %s", channelID, portID)
+		return errorsmod.Wrapf(channeltypes.ErrChannelNotFound, "failed to retrieve channel %s on port %s", channelID, portID)
 	}
 
 	// It is assumed the controller chain will not allow multiple active channels to be created for the same connectionID/portID
