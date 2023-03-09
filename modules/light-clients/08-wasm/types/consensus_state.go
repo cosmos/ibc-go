@@ -23,7 +23,7 @@ func (m ConsensusState) GetRoot() exported.Root {
 }
 
 func (m ConsensusState) ValidateBasic() error {
-	if m.Root.Empty() {
+	if m.Root == nil || m.Root.Empty() {
 		return sdkerrors.Wrap(clienttypes.ErrInvalidConsensus, "root cannot be empty")
 	}
 	if m.Timestamp == 0 {

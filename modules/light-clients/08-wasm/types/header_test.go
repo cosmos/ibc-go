@@ -21,6 +21,14 @@ func (suite *WasmTestSuite) TestHeaderValidateBasic() {
 			true,
 		},
 		{
+			"data is nil",
+			&types.Header{
+				Data:   nil,
+				Height: clienttypes.NewHeight(0, 0),
+			},
+			false,
+		},
+		{
 			"data is empty",
 			&types.Header{
 				Data:   []byte(""),

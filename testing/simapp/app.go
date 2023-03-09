@@ -805,6 +805,11 @@ func (app *SimApp) GetIBCKeeper() *ibckeeper.Keeper {
 	return app.IBCKeeper
 }
 
+// GetWasmKeeper implements the TestingApp interface.
+func (app *SimApp) GetWasmKeeper() ibcwasmkeeper.Keeper {
+	return app.WasmClientKeeper
+}
+
 // GetScopedIBCKeeper implements the TestingApp interface.
 func (app *SimApp) GetScopedIBCKeeper() capabilitykeeper.ScopedKeeper {
 	return app.ScopedIBCKeeper

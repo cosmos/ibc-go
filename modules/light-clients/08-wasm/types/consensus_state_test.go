@@ -26,7 +26,7 @@ func (suite *WasmTestSuite) TestConsensusStateValidateBasic() {
 			"root is nil",
 			&types.ConsensusState{
 				Timestamp: uint64(suite.now.Unix()),
-				Root:      &commitmenttypes.MerkleRoot{},
+				Root:      nil,
 				Data:      []byte("data"),
 				CodeId:    []byte("codeid"),
 			},
@@ -46,8 +46,18 @@ func (suite *WasmTestSuite) TestConsensusStateValidateBasic() {
 			"timestamp is zero",
 			&types.ConsensusState{
 				Timestamp: 0,
-				Root:      &commitmenttypes.MerkleRoot{},
+				Root:      &commitmenttypes.MerkleRoot{Hash: []byte("app_hash")},
 				Data:      []byte("data"),
+				CodeId:    []byte("codeid"),
+			},
+			false,
+		},
+		{
+			"data is nil",
+			&types.ConsensusState{
+				Timestamp: uint64(suite.now.Unix()),
+				Root:      &commitmenttypes.MerkleRoot{Hash: []byte("app_hash")},
+				Data:      nil,
 				CodeId:    []byte("codeid"),
 			},
 			false,
@@ -55,18 +65,28 @@ func (suite *WasmTestSuite) TestConsensusStateValidateBasic() {
 		{
 			"data is empty",
 			&types.ConsensusState{
-				Timestamp: 0,
-				Root:      &commitmenttypes.MerkleRoot{},
+				Timestamp: uint64(suite.now.Unix()),
+				Root:      &commitmenttypes.MerkleRoot{Hash: []byte("app_hash")},
 				Data:      []byte(""),
 				CodeId:    []byte("codeid"),
 			},
 			false,
 		},
 		{
+			"code id is nil",
+			&types.ConsensusState{
+				Timestamp: uint64(suite.now.Unix()),
+				Root:      &commitmenttypes.MerkleRoot{Hash: []byte("app_hash")},
+				Data:      []byte("data"),
+				CodeId:    nil,
+			},
+			false,
+		},
+		{
 			"code id is empty",
 			&types.ConsensusState{
-				Timestamp: 0,
-				Root:      &commitmenttypes.MerkleRoot{},
+				Timestamp: uint64(suite.now.Unix()),
+				Root:      &commitmenttypes.MerkleRoot{Hash: []byte("app_hash")},
 				Data:      []byte("data"),
 				CodeId:    []byte(""),
 			},

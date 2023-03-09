@@ -8,6 +8,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	tm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
@@ -47,30 +48,16 @@ type ExportMetadataInnerPayload struct {
 }
 
 func (c ClientState) ExportMetadata(store sdk.KVStore) []exported.GenesisMetadata {
-	payload := ExportMetadataPayload{
-		ExportMetadata: ExportMetadataInnerPayload{
-			ClientState: c,
-		},
+	gm := make([]exported.GenesisMetadata, 0)
+	tm.IterateConsensusMetadata(store, func(key, val []byte) bool {
+		gm = append(gm, clienttypes.NewGenesisMetadata(key, val))
+		return false
+	})
+	if len(gm) == 0 {
+		return nil
 	}
-	encodedData, err := json.Marshal(payload)
-	if err != nil {
-		panic(err)
-	}
-	response, err := queryContractWithStore(c.CodeId, store, encodedData)
-	if err != nil {
-		panic(err)
-	}
-
-	output := queryResponse{}
-	if err := json.Unmarshal(response, &output); err != nil {
-		panic(err)
-	}
-
-	genesisMetadata := make([]exported.GenesisMetadata, len(output.GenesisMetadata))
-	for i, metadata := range output.GenesisMetadata {
-		genesisMetadata[i] = metadata
-	}
-	return genesisMetadata
+	return gm
+	
 }
 
 func (c ClientState) ZeroCustomFields() exported.ClientState {
@@ -423,11 +410,11 @@ func (c ClientState) VerifyUpgradeAndUpdateState(
 }
 
 // NewClientState creates a new ClientState instance.
-func NewClientState(latestSequence uint64, consensusState *ConsensusState) *ClientState {
+func NewClientState(data []byte, codeID []byte, height clienttypes.Height) *ClientState {
 	return &ClientState{
-		Data:         []byte{0},
-		CodeId:       []byte{},
-		LatestHeight: clienttypes.Height{},
+		Data:         data,
+		CodeId:       codeID,
+		LatestHeight: height,
 	}
 }
 
