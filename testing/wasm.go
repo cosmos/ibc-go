@@ -52,7 +52,7 @@ func NewWasm(t *testing.T, cdc codec.BinaryCodec, clientID, diversifier string, 
 
 // ClientState returns a new wasm machine ClientState instance.
 func (wasm *Wasm) ClientState() *wasmtypes.ClientState {
-	return wasmtypes.NewClientState(wasm.Sequence, wasm.ConsensusState())
+	return wasmtypes.NewClientState([]byte{0}, []byte{}, clienttypes.Height{})
 }
 
 // ConsensusState returns a new wasm machine ConsensusState instance
