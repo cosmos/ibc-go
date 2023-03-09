@@ -202,6 +202,7 @@ func newDefaultSimappConfig(cc ChainConfig, name, chainID, denom string) ibc.Cha
 	tmTomlOverrides := make(interchaintestutil.Toml)
 
 	tmTomlOverrides["log_level"] = "debug"
+	configFileOverrides["config/config.toml"] = tmTomlOverrides
 
 	return ibc.ChainConfig{
 		Type:    "cosmos",
