@@ -343,14 +343,12 @@ github.com/cosmos/gogogateway v1.2.0/go.mod h1:iQpLkGWxYcnCdz5iAdLcRBSw3h7NXeOkZ
 github.com/cosmos/gogoproto v1.4.2/go.mod h1:cLxOsn1ljAHSV527CHOtaIP91kK6cCrZETRBrkzItWU=
 github.com/cosmos/gogoproto v1.4.6 h1:Ee7z15dWJaGlgM2rWrK8N2IX7PQcuccu8oG68jp5RL4=
 github.com/cosmos/gogoproto v1.4.6/go.mod h1:VS/ASYmPgv6zkPKLjR9EB91lwbLHOzaGCirmKKhncfI=
-github.com/cosmos/gorocksdb v1.2.0 h1:d0l3jJG8M4hBouIZq0mDUHZ+zjOx044J3nGRskwTb4Y=
 github.com/cosmos/iavl v0.20.0-alpha4 h1:49SZoxNwah5nqbVE1da8BAhenC7HMSVOTZ0XKVhZpOE=
 github.com/cosmos/iavl v0.20.0-alpha4/go.mod h1:WO7FyvaZJoH65+HFOsDir7xU9FWk2w9cHXNW1XHcl7A=
-github.com/cosmos/ibc-go/v6 v6.1.0 h1:o7oXws2vKkKfOFzJI+oNylRn44PCNt5wzHd/zKQKbvQ=
 github.com/cosmos/ics23/go v0.9.1-0.20221207100636-b1abd8678aab h1:I9ialKTQo7248V827Bba4OuKPmk+FPzmTVHsLXaIJWw=
 github.com/cosmos/ics23/go v0.9.1-0.20221207100636-b1abd8678aab/go.mod h1:2CwqasX5dSD7Hbp/9b6lhK6BwoBDCBldx7gPKRukR60=
-github.com/cosmos/interchain-accounts v0.4.3 h1:WedxEa/Hj/2GY7AF6CafkEPJ/Z9rhl3rT1mRwNHsdts=
-github.com/cosmos/interchain-accounts v0.4.3/go.mod h1:qibHB6y/R2YsuuZdamI2BcIUBPMyhyELDWAr8Nk8x4g=
+github.com/cosmos/interchain-accounts v0.5.0 h1:bD4U5PzaRbgsGCTwKEShPjKXFxSIp9D+kAqFutYKl1E=
+github.com/cosmos/interchain-accounts v0.5.0/go.mod h1:0Pzv5xHq+TVY7ExRIsrzJ33+t22TUoJ1k8UgSxvv1X4=
 github.com/cosmos/ledger-cosmos-go v0.13.0 h1:ex0CvCxToSR7j5WjrghPu2Bu9sSXKikjnVvUryNnx4s=
 github.com/cosmos/ledger-cosmos-go v0.13.0/go.mod h1:ZcqYgnfNJ6lAXe4HPtWgarNEY+B74i+2/8MhZw4ziiI=
 github.com/cosmos/rosetta-sdk-go v0.10.0 h1:E5RhTruuoA7KTIXUcMicL76cffyeoyvNybzUGSKFTcM=
@@ -918,7 +916,6 @@ github.com/rakyll/statik v0.1.7/go.mod h1:AlZONWzMtEnMs7W4e/1LURLiI49pIMmp6V9Ung
 github.com/rcrowley/go-metrics v0.0.0-20181016184325-3113b8401b8a/go.mod h1:bCqnVzQkZxMG4s8nGwiZ5l3QUCyqpo9Y+/ZMZ9VjZe4=
 github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 h1:N/ElC8H3+5XpJzTSTfLsJV/mx9Q9g7kxmchpfZyxgzM=
 github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475/go.mod h1:bCqnVzQkZxMG4s8nGwiZ5l3QUCyqpo9Y+/ZMZ9VjZe4=
-github.com/regen-network/cosmos-proto v0.3.1 h1:rV7iM4SSFAagvy8RiyhiACbWEGotmqzywPxOvwMdxcg=
 github.com/regen-network/gocuke v0.6.2 h1:pHviZ0kKAq2U2hN2q3smKNxct6hS0mGByFMHGnWA97M=
 github.com/regen-network/protobuf v1.3.3-alpha.regen.1 h1:OHEc+q5iIAXpqiqFKeLpu5NwTIkVXUs48vFMwzqpqY4=
 github.com/regen-network/protobuf v1.3.3-alpha.regen.1/go.mod h1:2DjTFR1HhMQhiWC5sZ4OhQ3+NtdbZ6oBDKQwq5Ou+FI=
@@ -1007,8 +1004,6 @@ github.com/tecbot/gorocksdb v0.0.0-20191217155057-f0fad39f321c h1:g+WoO5jjkqGAzH
 github.com/tecbot/gorocksdb v0.0.0-20191217155057-f0fad39f321c/go.mod h1:ahpPrc7HpcfEWDQRZEmnXMzHY03mLDYMCxeDzy46i+8=
 github.com/tendermint/go-amino v0.16.0 h1:GyhmgQKvqF82e2oZeuMSp9JTN0N09emoSZlb2lyGa2E=
 github.com/tendermint/go-amino v0.16.0/go.mod h1:TQU0M1i/ImAo+tYpZi73AU3V/dKeCoMC9Sphe2ZwGME=
-github.com/tendermint/tendermint v0.34.24 h1:879MKKJWYYPJEMMKME+DWUTY4V9f/FBpnZDI82ky+4k=
-github.com/tendermint/tm-db v0.6.7 h1:fE00Cbl0jayAoqlExN6oyQJ7fR/ZtoVOmvPJ//+shu8=
 github.com/tidwall/btree v1.6.0 h1:LDZfKfQIBHGHWSwckhXI0RPSXzlo+KYdjK7FWSqOzzg=
 github.com/tidwall/btree v1.6.0/go.mod h1:twD9XRA5jj9VUQGELzDO4HPQTNJsoWWfYEL+EUQ2cKY=
 github.com/tklauser/go-sysconf v0.3.5 h1:uu3Xl4nkLzQfXNsWn15rPc/HQCJKObbt1dKJeWp3vU4=
