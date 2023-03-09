@@ -6,6 +6,11 @@ import (
 	"testing"
 	"time"
 
+	dbm "github.com/cometbft/cometbft-db"
+	abci "github.com/cometbft/cometbft/abci/types"
+	"github.com/cometbft/cometbft/libs/log"
+	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	tmtypes "github.com/cometbft/cometbft/types"
 	bam "github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -18,13 +23,8 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/stretchr/testify/require"
-	abci "github.com/tendermint/tendermint/abci/types"
-	"github.com/tendermint/tendermint/libs/log"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-	tmtypes "github.com/tendermint/tendermint/types"
-	dbm "github.com/tendermint/tm-db"
 
-	"github.com/cosmos/ibc-go/v6/testing/mock"
+	"github.com/cosmos/ibc-go/v7/testing/mock"
 )
 
 // DefaultConsensusParams defines the default Tendermint consensus params used in
@@ -209,8 +209,8 @@ func SetupWithGenesisAccounts(genAccs []authtypes.GenesisAccount, balances ...ba
 //
 // CONTRACT: BeginBlock must be called before this function.
 func SignAndDeliver(
-	t *testing.T, txCfg client.TxConfig, app *bam.BaseApp, header tmproto.Header, msgs []sdk.Msg,
-	chainID string, accNums, accSeqs []uint64, expSimPass, expPass bool, priv ...cryptotypes.PrivKey,
+	tb testing.TB, txCfg client.TxConfig, app *bam.BaseApp, msgs []sdk.Msg,
+	chainID string, accNums, accSeqs []uint64, expPass bool, priv ...cryptotypes.PrivKey,
 ) (sdk.GasInfo, *sdk.Result, error) {
 	tx, err := simtestutil.GenSignedMockTx(
 		rand.New(rand.NewSource(time.Now().UnixNano())),
@@ -223,17 +223,17 @@ func SignAndDeliver(
 		accSeqs,
 		priv...,
 	)
-	require.NoError(t, err)
+	require.NoError(tb, err)
 
 	// Simulate a sending a transaction
 	gInfo, res, err := app.SimDeliver(txCfg.TxEncoder(), tx)
 
 	if expPass {
-		require.NoError(t, err)
-		require.NotNil(t, res)
+		require.NoError(tb, err)
+		require.NotNil(tb, res)
 	} else {
-		require.Error(t, err)
-		require.Nil(t, res)
+		require.Error(tb, err)
+		require.Nil(tb, res)
 	}
 
 	return gInfo, res, err

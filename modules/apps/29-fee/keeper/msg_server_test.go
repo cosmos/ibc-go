@@ -4,12 +4,12 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
-	"github.com/cosmos/ibc-go/v6/modules/apps/29-fee/types"
-	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
-	ibctesting "github.com/cosmos/ibc-go/v6/testing"
-	ibcmock "github.com/cosmos/ibc-go/v6/testing/mock"
+	"github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
+	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	ibcmock "github.com/cosmos/ibc-go/v7/testing/mock"
 )
 
 func (suite *KeeperTestSuite) TestRegisterPayee() {
@@ -29,7 +29,7 @@ func (suite *KeeperTestSuite) TestRegisterPayee() {
 			"channel does not exist",
 			false,
 			func() {
-				msg.ChannelId = "channel-100"
+				msg.ChannelId = "channel-100" //nolint:goconst
 			},
 		},
 		{
@@ -201,18 +201,19 @@ func (suite *KeeperTestSuite) TestPayPacketFee() {
 		{
 			"bank send enabled for fee denom",
 			func() {
-				suite.chainA.GetSimApp().BankKeeper.SetParams(suite.chainA.GetContext(),
+				err := suite.chainA.GetSimApp().BankKeeper.SetParams(suite.chainA.GetContext(),
 					banktypes.Params{
 						SendEnabled: []*banktypes.SendEnabled{{Denom: sdk.DefaultBondDenom, Enabled: true}},
 					},
 				)
+				suite.Require().NoError(err)
 			},
 			true,
 		},
 		{
 			"refund account is module account",
 			func() {
-				suite.chainA.GetSimApp().BankKeeper.SendCoinsFromAccountToModule(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), ibcmock.ModuleName, fee.Total())
+				suite.chainA.GetSimApp().BankKeeper.SendCoinsFromAccountToModule(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), ibcmock.ModuleName, fee.Total()) //nolint:errcheck // ignore error for testing
 				msg.Signer = suite.chainA.GetSimApp().AccountKeeper.GetModuleAddress(ibcmock.ModuleName).String()
 				expPacketFee := types.NewPacketFee(fee, msg.Signer, nil)
 				expFeesInEscrow = []types.PacketFee{expPacketFee}
@@ -259,11 +260,12 @@ func (suite *KeeperTestSuite) TestPayPacketFee() {
 		{
 			"bank send disabled for fee denom",
 			func() {
-				suite.chainA.GetSimApp().BankKeeper.SetParams(suite.chainA.GetContext(),
+				err := suite.chainA.GetSimApp().BankKeeper.SetParams(suite.chainA.GetContext(),
 					banktypes.Params{
 						SendEnabled: []*banktypes.SendEnabled{{Denom: sdk.DefaultBondDenom, Enabled: false}},
 					},
 				)
+				suite.Require().NoError(err)
 			},
 			false,
 		},
@@ -373,11 +375,12 @@ func (suite *KeeperTestSuite) TestPayPacketFeeAsync() {
 		{
 			"bank send enabled for fee denom",
 			func() {
-				suite.chainA.GetSimApp().BankKeeper.SetParams(suite.chainA.GetContext(),
+				err := suite.chainA.GetSimApp().BankKeeper.SetParams(suite.chainA.GetContext(),
 					banktypes.Params{
 						SendEnabled: []*banktypes.SendEnabled{{Denom: sdk.DefaultBondDenom, Enabled: true}},
 					},
 				)
+				suite.Require().NoError(err)
 			},
 			true,
 		},
@@ -410,7 +413,7 @@ func (suite *KeeperTestSuite) TestPayPacketFeeAsync() {
 		{
 			"packet not sent",
 			func() {
-				msg.PacketId.Sequence = msg.PacketId.Sequence + 1
+				msg.PacketId.Sequence++
 			},
 			false,
 		},
@@ -469,11 +472,12 @@ func (suite *KeeperTestSuite) TestPayPacketFeeAsync() {
 		{
 			"bank send disabled for fee denom",
 			func() {
-				suite.chainA.GetSimApp().BankKeeper.SetParams(suite.chainA.GetContext(),
+				err := suite.chainA.GetSimApp().BankKeeper.SetParams(suite.chainA.GetContext(),
 					banktypes.Params{
 						SendEnabled: []*banktypes.SendEnabled{{Denom: sdk.DefaultBondDenom, Enabled: false}},
 					},
 				)
+				suite.Require().NoError(err)
 			},
 			false,
 		},

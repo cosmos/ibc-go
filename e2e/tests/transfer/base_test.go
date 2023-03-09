@@ -7,15 +7,15 @@ import (
 	"time"
 
 	paramsproposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
-	"github.com/strangelove-ventures/ibctest/v6/ibc"
-	test "github.com/strangelove-ventures/ibctest/v6/testutil"
+	"github.com/strangelove-ventures/interchaintest/v7/ibc"
+	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/ibc-go/e2e/semverutil"
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
-	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
-	ibctesting "github.com/cosmos/ibc-go/v6/testing"
+	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
 func TestTransferTestSuite(t *testing.T) {
@@ -41,7 +41,7 @@ func (s *TransferTestSuite) QueryTransferSendEnabledParam(ctx context.Context, c
 	return enabled
 }
 
-// QueryTransferSendEnabledParam queries the on-chain receive enabled param for the transfer module
+// QueryTransferReceiveEnabledParam queries the on-chain receive enabled param for the transfer module
 func (s *TransferTestSuite) QueryTransferReceiveEnabledParam(ctx context.Context, chain ibc.Chain) bool {
 	queryClient := s.GetChainGRCPClients(chain).ParamsQueryClient
 	res, err := queryClient.Params(ctx, &paramsproposaltypes.QueryParamsRequest{
@@ -336,7 +336,7 @@ func (s *TransferTestSuite) TestReceiveEnabledParam() {
 		})
 	})
 
-	t.Run("change send enabled parameter to disabled ", func(t *testing.T) {
+	t.Run("change receive enabled parameter to disabled ", func(t *testing.T) {
 		changes := []paramsproposaltypes.ParamChange{
 			paramsproposaltypes.NewParamChange(transfertypes.StoreKey, string(transfertypes.KeyReceiveEnabled), "false"),
 		}

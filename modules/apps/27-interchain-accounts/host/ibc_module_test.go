@@ -11,14 +11,14 @@ import (
 	"github.com/cosmos/gogoproto/proto"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/host/types"
-	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
-	feetypes "github.com/cosmos/ibc-go/v6/modules/apps/29-fee/types"
-	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v6/modules/core/exported"
-	ibctesting "github.com/cosmos/ibc-go/v6/testing"
+	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/types"
+	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
+	feetypes "github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
+	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
 var (
@@ -251,7 +251,8 @@ func (suite *InterchainAccountsTestSuite) TestChanOpenAck() {
 	// commit state changes so proof can be created
 	suite.chainA.NextBlock()
 
-	path.EndpointB.UpdateClient()
+	err = path.EndpointB.UpdateClient()
+	suite.Require().NoError(err)
 
 	// query proof from ChainA
 	channelKey := host.ChannelKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
@@ -456,11 +457,11 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 			packetData = icaPacketData.GetBytes()
 
 			// build expected ack
-			any, err := codectypes.NewAnyWithValue(&banktypes.MsgSendResponse{})
+			protoAny, err := codectypes.NewAnyWithValue(&banktypes.MsgSendResponse{})
 			suite.Require().NoError(err)
 
 			expectedTxResponse, err := proto.Marshal(&sdk.TxMsgData{
-				MsgResponses: []*codectypes.Any{any},
+				MsgResponses: []*codectypes.Any{protoAny},
 			})
 			suite.Require().NoError(err)
 
@@ -666,9 +667,11 @@ func (suite *InterchainAccountsTestSuite) TestControlAccountAfterChannelClose() 
 	params := types.NewParams(true, []string{sdk.MsgTypeURL(msg)})
 	suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
 
+	//nolint: staticcheck // SA1019: ibctesting.FirstConnectionID is deprecated: use path.EndpointA.ConnectionID instead. (staticcheck)
 	_, err = suite.chainA.GetSimApp().ICAControllerKeeper.SendTx(suite.chainA.GetContext(), nil, ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID, icaPacketData, ^uint64(0))
 	suite.Require().NoError(err)
-	path.EndpointB.UpdateClient()
+	err = path.EndpointB.UpdateClient()
+	suite.Require().NoError(err)
 
 	// relay the packet
 	packetRelay := channeltypes.NewPacket(icaPacketData.GetBytes(), 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.ZeroHeight(), ^uint64(0))
@@ -682,9 +685,9 @@ func (suite *InterchainAccountsTestSuite) TestControlAccountAfterChannelClose() 
 	suite.assertBalance(icaAddr, expBalAfterFirstSend)
 
 	// close the channel
-	err = path.EndpointA.SetChannelClosed()
+	err = path.EndpointA.SetChannelState(channeltypes.CLOSED)
 	suite.Require().NoError(err)
-	err = path.EndpointB.SetChannelClosed()
+	err = path.EndpointB.SetChannelState(channeltypes.CLOSED)
 	suite.Require().NoError(err)
 
 	// open a new channel on the same port
@@ -692,9 +695,11 @@ func (suite *InterchainAccountsTestSuite) TestControlAccountAfterChannelClose() 
 	path.EndpointB.ChannelID = ""
 	suite.coordinator.CreateChannels(path)
 
+	//nolint: staticcheck // SA1019: ibctesting.FirstConnectionID is deprecated: use path.EndpointA.ConnectionID instead. (staticcheck)
 	_, err = suite.chainA.GetSimApp().ICAControllerKeeper.SendTx(suite.chainA.GetContext(), nil, ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID, icaPacketData, ^uint64(0))
 	suite.Require().NoError(err)
-	path.EndpointB.UpdateClient()
+	err = path.EndpointB.UpdateClient()
+	suite.Require().NoError(err)
 
 	// relay the packet
 	packetRelay = channeltypes.NewPacket(icaPacketData.GetBytes(), 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.ZeroHeight(), ^uint64(0))

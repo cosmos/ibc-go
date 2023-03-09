@@ -1,12 +1,13 @@
 package client
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
-	"github.com/cosmos/ibc-go/v6/modules/core/02-client/keeper"
-	"github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
+	ibcerrors "github.com/cosmos/ibc-go/v7/internal/errors"
+	"github.com/cosmos/ibc-go/v7/modules/core/02-client/keeper"
+	"github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 )
 
 // NewClientProposalHandler defines the 02-client proposal handler
@@ -19,7 +20,7 @@ func NewClientProposalHandler(k keeper.Keeper) govtypes.Handler {
 			return k.HandleUpgradeProposal(ctx, c)
 
 		default:
-			return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized ibc proposal content type: %T", c)
+			return errorsmod.Wrapf(ibcerrors.ErrUnknownRequest, "unrecognized ibc proposal content type: %T", c)
 		}
 	}
 }
