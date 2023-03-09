@@ -7,7 +7,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	ibcerrors "github.com/cosmos/ibc-go/v7/internal/errors"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
@@ -41,7 +40,7 @@ func (cs ClientState) Status(_ sdk.Context, _ sdk.KVStore, _ codec.BinaryCodec) 
 // Validate performs a basic validation of the client state fields.
 func (cs ClientState) Validate() error {
 	if cs.LatestHeight.RevisionHeight == 0 {
-		return sdkerrors.Wrapf(ibcerrors.ErrInvalidHeight, "local revision height cannot be zero")
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidHeight, "local revision height cannot be zero")
 	}
 
 	return nil
@@ -94,7 +93,7 @@ func (cs ClientState) VerifyMembership(
 
 	merklePath, ok := path.(commitmenttypes.MerklePath)
 	if !ok {
-		return sdkerrors.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", commitmenttypes.MerklePath{}, path)
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "expected %T, got %T", commitmenttypes.MerklePath{}, path)
 	}
 
 	if len(merklePath.GetKeyPath()) != 2 {
@@ -134,7 +133,7 @@ func (cs ClientState) VerifyNonMembership(
 
 	merklePath, ok := path.(commitmenttypes.MerklePath)
 	if !ok {
-		return sdkerrors.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", commitmenttypes.MerklePath{}, path)
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "expected %T, got %T", commitmenttypes.MerklePath{}, path)
 	}
 
 	if len(merklePath.GetKeyPath()) != 2 {
