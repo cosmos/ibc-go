@@ -53,11 +53,11 @@ func (k Keeper) ChanOpenInit(
 
 	clientState, found := k.clientKeeper.GetClientState(ctx, connectionEnd.ClientId)
 	if !found {
-		return "", nil, errorsmod.Wrapf(clienttypes.ErrClientNotFound, "clientID (%s)", connectionEnd.ClientId)
+		return "", nil, sdkerrors.Wrapf(clienttypes.ErrClientNotFound, "clientID (%s)", connectionEnd.ClientId)
 	}
 
 	if status := k.clientKeeper.GetClientStatus(ctx, clientState, connectionEnd.ClientId); status != exported.Active {
-		return "", nil, errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", connectionEnd.ClientId, status)
+		return "", nil, sdkerrors.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", connectionEnd.ClientId, status)
 	}
 
 	if !k.portKeeper.Authenticate(ctx, portCap, portID) {
@@ -413,11 +413,11 @@ func (k Keeper) ChanCloseInit(
 
 	clientState, found := k.clientKeeper.GetClientState(ctx, connectionEnd.ClientId)
 	if !found {
-		return errorsmod.Wrapf(clienttypes.ErrClientNotFound, "clientID (%s)", connectionEnd.ClientId)
+		return sdkerrors.Wrapf(clienttypes.ErrClientNotFound, "clientID (%s)", connectionEnd.ClientId)
 	}
 
 	if status := k.clientKeeper.GetClientStatus(ctx, clientState, connectionEnd.ClientId); status != exported.Active {
-		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", connectionEnd.ClientId, status)
+		return sdkerrors.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", connectionEnd.ClientId, status)
 	}
 
 	if connectionEnd.GetState() != int32(connectiontypes.OPEN) {

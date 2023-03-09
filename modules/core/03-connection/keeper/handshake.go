@@ -34,11 +34,11 @@ func (k Keeper) ConnOpenInit(
 
 	clientState, found := k.clientKeeper.GetClientState(ctx, clientID)
 	if !found {
-		return "", errorsmod.Wrapf(clienttypes.ErrClientNotFound, "clientID (%s)", clientID)
+		return "", sdkerrors.Wrapf(clienttypes.ErrClientNotFound, "clientID (%s)", clientID)
 	}
 
 	if status := k.clientKeeper.GetClientStatus(ctx, clientState, clientID); status != exported.Active {
-		return "", errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
+		return "", sdkerrors.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
 	}
 
 	connectionID := k.GenerateConnectionIdentifier(ctx)

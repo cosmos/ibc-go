@@ -44,7 +44,7 @@ func NewMsgConnectionOpenInit(
 // ValidateBasic implements sdk.Msg.
 func (msg MsgConnectionOpenInit) ValidateBasic() error {
 	if msg.ClientId == exported.LocalhostClientID {
-		return errorsmod.Wrap(clienttypes.ErrInvalidClientType, "localhost connection handshakes are disallowed")
+		return sdkerrors.Wrap(clienttypes.ErrInvalidClientType, "localhost connection handshakes are disallowed")
 	}
 
 	if err := host.ClientIdentifierValidator(msg.ClientId); err != nil {
@@ -107,7 +107,7 @@ func NewMsgConnectionOpenTry(
 // ValidateBasic implements sdk.Msg
 func (msg MsgConnectionOpenTry) ValidateBasic() error {
 	if msg.ClientId == exported.LocalhostClientID {
-		return errorsmod.Wrap(clienttypes.ErrInvalidClientType, "localhost connection handshakes are disallowed")
+		return sdkerrors.Wrap(clienttypes.ErrInvalidClientType, "localhost connection handshakes are disallowed")
 	}
 
 	if msg.PreviousConnectionId != "" {

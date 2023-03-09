@@ -71,14 +71,8 @@ func (k Keeper) SendPacket(
 	}
 
 	// prevent accidental sends with clients that cannot be updated
-<<<<<<< HEAD
-	clientStore := k.clientKeeper.ClientStore(ctx, connectionEnd.GetClientID())
-	if status := clientState.Status(ctx, clientStore, k.cdc); status != exported.Active {
-		return 0, sdkerrors.Wrapf(clienttypes.ErrClientNotActive, "cannot send packet using client (%s) with status %s", connectionEnd.GetClientID(), status)
-=======
 	if status := k.clientKeeper.GetClientStatus(ctx, clientState, connectionEnd.GetClientID()); status != exported.Active {
-		return 0, errorsmod.Wrapf(clienttypes.ErrClientNotActive, "cannot send packet using client (%s) with status %s", connectionEnd.GetClientID(), status)
->>>>>>> d840c699 (Adding 09-localhost loopback client module (#3229))
+		return 0, sdkerrors.Wrapf(clienttypes.ErrClientNotActive, "cannot send packet using client (%s) with status %s", connectionEnd.GetClientID(), status)
 	}
 
 	// check if packet is timed out on the receiving chain

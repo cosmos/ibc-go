@@ -93,11 +93,7 @@ func (msg MsgChannelOpenTry) ValidateBasic() error {
 		return sdkerrors.Wrap(ErrInvalidChannelIdentifier, "previous channel identifier must be empty, this field has been deprecated as crossing hellos are no longer supported")
 	}
 	if len(msg.ProofInit) == 0 {
-<<<<<<< HEAD
 		return sdkerrors.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty proof init")
-=======
-		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty init proof")
->>>>>>> d840c699 (Adding 09-localhost loopback client module (#3229))
 	}
 	if msg.Channel.State != TRYOPEN {
 		return sdkerrors.Wrapf(ErrInvalidChannelState,
@@ -158,11 +154,7 @@ func (msg MsgChannelOpenAck) ValidateBasic() error {
 		return sdkerrors.Wrap(err, "invalid counterparty channel ID")
 	}
 	if len(msg.ProofTry) == 0 {
-<<<<<<< HEAD
 		return sdkerrors.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty proof try")
-=======
-		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty try proof")
->>>>>>> d840c699 (Adding 09-localhost loopback client module (#3229))
 	}
 	_, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
@@ -207,11 +199,7 @@ func (msg MsgChannelOpenConfirm) ValidateBasic() error {
 		return ErrInvalidChannelIdentifier
 	}
 	if len(msg.ProofAck) == 0 {
-<<<<<<< HEAD
 		return sdkerrors.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty proof ack")
-=======
-		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty acknowledgement proof")
->>>>>>> d840c699 (Adding 09-localhost loopback client module (#3229))
 	}
 	_, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
@@ -295,11 +283,7 @@ func (msg MsgChannelCloseConfirm) ValidateBasic() error {
 		return ErrInvalidChannelIdentifier
 	}
 	if len(msg.ProofInit) == 0 {
-<<<<<<< HEAD
 		return sdkerrors.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty proof init")
-=======
-		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty init proof")
->>>>>>> d840c699 (Adding 09-localhost loopback client module (#3229))
 	}
 	_, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
@@ -337,11 +321,7 @@ func NewMsgRecvPacket(
 // ValidateBasic implements sdk.Msg
 func (msg MsgRecvPacket) ValidateBasic() error {
 	if len(msg.ProofCommitment) == 0 {
-<<<<<<< HEAD
 		return sdkerrors.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty proof")
-=======
-		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty commitment proof")
->>>>>>> d840c699 (Adding 09-localhost loopback client module (#3229))
 	}
 	_, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
@@ -432,11 +412,7 @@ func (msg MsgTimeoutOnClose) ValidateBasic() error {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidSequence, "next sequence receive cannot be 0")
 	}
 	if len(msg.ProofUnreceived) == 0 {
-<<<<<<< HEAD
 		return sdkerrors.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty proof")
-=======
-		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty unreceived proof")
->>>>>>> d840c699 (Adding 09-localhost loopback client module (#3229))
 	}
 	if len(msg.ProofClose) == 0 {
 		return sdkerrors.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty proof of closed counterparty channel end")
@@ -480,11 +456,7 @@ func NewMsgAcknowledgement(
 // ValidateBasic implements sdk.Msg
 func (msg MsgAcknowledgement) ValidateBasic() error {
 	if len(msg.ProofAcked) == 0 {
-<<<<<<< HEAD
 		return sdkerrors.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty proof")
-=======
-		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty acknowledgement proof")
->>>>>>> d840c699 (Adding 09-localhost loopback client module (#3229))
 	}
 	if len(msg.Acknowledgement) == 0 {
 		return sdkerrors.Wrap(ErrInvalidAcknowledgement, "ack bytes cannot be empty")
