@@ -21,8 +21,8 @@ We believe that the lack of controller chains so far have been because:
 
 | Features  | Release |
 | --------- | ------- |
-| Register interchain accounts and send transactions to host chain via message passing. | v2 |
-| Support application callbacks with message server in controller submodule (requires ADR 008). | v3 |
+| Register interchain accounts and send transactions to host chain via message passing. | v6.0.0 |
+| Support application callbacks with message server in controller submodule (requires ADR 008). | N/A |
 
 # User requirements
 
@@ -60,13 +60,13 @@ See section [Definitions](https://github.com/cosmos/ibc/blob/main/spec/app/ics-0
 
 | ID  | Description | Verification | Status | Release |
 | --- | ----------- | ------------ | ------ | ------- |
-| 1.01 | An application shall have the ability to use an RPC endpoint to create interchain accounts on the host chain. | [Acceptance test](https://github.com/cosmos/ibc-go/blob/v6.0.0/modules/apps/27-interchain-accounts/controller/keeper/msg_server_test.go#L31) | `Verified` | v2 |
+| 1.01 | An application shall have the ability to use an RPC endpoint to create interchain accounts on the host chain. | [Acceptance test](https://github.com/cosmos/ibc-go/blob/v6.0.0/modules/apps/27-interchain-accounts/controller/keeper/msg_server_test.go#L31) | `Verified` | v6.0.0 |
 
 ### 2 - Control
 
 | ID  | Description | Verification | Status | Release |
 | --- | ----------- | ------------ | ------ | ------- |
-| 2.01 | An application shall have the ability to use an RPC endpoint to submit transactions to be executed on the host chain on the behalf of the interchain account. | [Acceptance test](https://github.com/cosmos/ibc-go/blob/v6.0.0/modules/apps/27-interchain-accounts/controller/keeper/msg_server_test.go#L31) | `Verified` | v2 |
+| 2.01 | An application shall have the ability to use an RPC endpoint to submit transactions to be executed on the host chain on the behalf of the interchain account. | [Acceptance test](https://github.com/cosmos/ibc-go/blob/v6.0.0/modules/apps/27-interchain-accounts/controller/keeper/msg_server_test.go#L31) | `Verified` | v6.0.0 |
 
 
 # Non-functional requirements
@@ -75,7 +75,7 @@ See section [Definitions](https://github.com/cosmos/ibc/blob/main/spec/app/ics-0
 
 | ID | Description | Verification | Status | Release |
 | -- | ----------- | ------------ | ------ | ------- |     
-| 3.01 | Chains shall be able to run a migration to assign ownership of the channel capability of a custom authentication module to the ICS 27 controller submodule. | [Acceptance test](https://github.com/cosmos/ibc-go/blob/v6.0.0/modules/apps/27-interchain-accounts/controller/migrations/v6/migrations_test.go#L89) | `Verified` | v2 |
+| 3.01 | Chains shall be able to run a migration to assign ownership of the channel capability of a custom authentication module to the ICS 27 controller submodule. | [Acceptance test](https://github.com/cosmos/ibc-go/blob/v6.0.0/modules/apps/27-interchain-accounts/controller/migrations/v6/migrations_test.go#L89) | `Verified` | v6.0.0 |
 
 # External interface requirements
 
@@ -85,4 +85,4 @@ See section [Definitions](https://github.com/cosmos/ibc/blob/main/spec/app/ics-0
 
 | ID | Description | Verification | Status | Release |
 | -- | ----------- | ------------ | ------ | ------- |
-| 4.01 | There shall be a CLI command available to generate the Interchain Accounts packet data required to send  | [CLI](https://github.com/cosmos/ibc-go/blob/v6.0.0/modules/apps/27-interchain-accounts/host/client/cli/tx.go#L21) | `Verified` | v2 |
+| 4.01 | There shall be a CLI command available to generate the Interchain Accounts packet data required to send  | [CLI](https://github.com/cosmos/ibc-go/blob/v6.0.0/modules/apps/27-interchain-accounts/host/client/cli/tx.go#L21) | `Verified` | v6.0.0 |
