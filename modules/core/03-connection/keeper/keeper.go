@@ -196,6 +196,14 @@ func (k Keeper) GetAllConnections(ctx sdk.Context) (connections []types.Identifi
 	return connections
 }
 
+// CreateSentinelLocalhostConnection creates and sets the sentinel localhost connection end in the IBC store.
+func (k Keeper) CreateSentinelLocalhostConnection(ctx sdk.Context) {
+	counterparty := types.NewCounterparty(exported.LocalhostClientID, exported.LocalhostConnectionID, commitmenttypes.NewMerklePrefix(k.GetCommitmentPrefix().Bytes()))
+	connectionEnd := types.NewConnectionEnd(types.OPEN, exported.LocalhostClientID, counterparty, types.ExportedVersionsToProto(types.GetCompatibleVersions()), 0)
+
+	k.SetConnection(ctx, exported.LocalhostConnectionID, connectionEnd)
+}
+
 // addConnectionToClient is used to add a connection identifier to the set of
 // connections associated with a client.
 func (k Keeper) addConnectionToClient(ctx sdk.Context, clientID, connectionID string) error {
