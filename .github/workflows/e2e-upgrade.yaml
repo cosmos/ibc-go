@@ -17,6 +17,7 @@ jobs:
       upgrade-plan-name: "normal upgrade"
       test-entry-point:  "TestUpgradeTestSuite"
       test: "TestIBCChainUpgrade"
+      upload-logs: true
 
   upgrade-v6:
     uses: cosmos/ibc-go/.github/workflows/e2e-test-workflow-call.yml@main
@@ -29,6 +30,7 @@ jobs:
       upgrade-plan-name: "ibc-go/v6"
       test-entry-point:  "TestUpgradeTestSuite"
       test: "TestV5ToV6ChainUpgrade"
+      upload-logs: true
 
   upgrade-v7:
     uses: cosmos/ibc-go/.github/workflows/e2e-test-workflow-call.yml@main
@@ -41,6 +43,7 @@ jobs:
       upgrade-plan-name: "v7"
       test-entry-point:  "TestUpgradeTestSuite"
       test: "TestV6ToV7ChainUpgrade"
+      upload-logs: true
 
   upgrade-v7_1:
     uses: cosmos/ibc-go/.github/workflows/e2e-test-workflow-call.yml@main
@@ -53,3 +56,4 @@ jobs:
       upgrade-plan-name: "v7.1"
       test-entry-point:  "TestUpgradeTestSuite"
       test: "TestV7ChainUpgradeAddLocalhost"
+      upload-logs: true
