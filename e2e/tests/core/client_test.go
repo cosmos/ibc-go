@@ -333,7 +333,6 @@ func createMaliciousTMHeader(
 		return nil, err
 	}
 
-	// The trusted fields may be nil. They may be filled before relaying messages to a client.
 	return &ibctm.Header{
 		SignedHeader:      signedHeader,
 		ValidatorSet:      valSet,
