@@ -221,7 +221,7 @@ func (s *ClientTestSuite) TestClient_Update_Misbehaviour() {
 	t.Run("create malicious header", func(t *testing.T) {
 		valSet := tmtypes.NewValidatorSet(validatorSet)
 		maliciousHeader, err = createMaliciousTMHeader(chainB.Config().ChainID, int64(latestHeight.GetRevisionHeight()), trustedHeight,
-			block.Header.GetTime().Add(time.Minute), valSet, valSet, signers, &block.Header)
+			block.Header.GetTime(), valSet, valSet, signers, &block.Header)
 		s.Require().NoError(err)
 	})
 
