@@ -85,4 +85,4 @@ See section [Definitions](https://github.com/cosmos/ibc/blob/main/spec/app/ics-0
 
 | ID | Description | Verification | Status | Release |
 | -- | ----------- | ------------ | ------ | ------- |
-| 4.01 | There shall be a CLI command available to generate the Interchain Accounts packet data required to send  | [CLI](https://github.com/cosmos/ibc-go/blob/v6.0.0/modules/apps/27-interchain-accounts/host/client/cli/tx.go#L21) | `Verified` | v6.0.0 |
+| 4.01 | There shall be a CLI command available to generate the Interchain Accounts packet data required to send.  | [CLI](https://github.com/cosmos/ibc-go/blob/v6.0.0/modules/apps/27-interchain-accounts/host/client/cli/tx.go#L21) | `Verified` | v6.0.0 |
