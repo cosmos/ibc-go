@@ -25,7 +25,7 @@ func (k Keeper) ClientUpdateProposal(ctx sdk.Context, p *types.ClientUpdatePropo
 
 	subjectClientStore := k.ClientStore(ctx, p.SubjectClientId)
 
-	if status := subjectClientState.Status(ctx, subjectClientStore, k.cdc); status == exported.Active {
+	if status := k.GetClientStatus(ctx, subjectClientState, p.SubjectClientId); status == exported.Active {
 		return errorsmod.Wrap(types.ErrInvalidUpdateClientProposal, "cannot update Active subject client")
 	}
 
@@ -40,7 +40,7 @@ func (k Keeper) ClientUpdateProposal(ctx sdk.Context, p *types.ClientUpdatePropo
 
 	substituteClientStore := k.ClientStore(ctx, p.SubstituteClientId)
 
-	if status := substituteClientState.Status(ctx, substituteClientStore, k.cdc); status != exported.Active {
+	if status := k.GetClientStatus(ctx, substituteClientState, p.SubstituteClientId); status != exported.Active {
 		return errorsmod.Wrapf(types.ErrClientNotActive, "substitute client is not Active, status is %s", status)
 	}
 
@@ -63,7 +63,7 @@ func (k Keeper) ClientUpdateProposal(ctx sdk.Context, p *types.ClientUpdatePropo
 	}()
 
 	// emitting events in the keeper for proposal updates to clients
-	EmitUpdateClientProposalEvent(ctx, p.SubjectClientId, substituteClientState.ClientType())
+	emitUpdateClientProposalEvent(ctx, p.SubjectClientId, substituteClientState.ClientType())
 
 	return nil
 }
@@ -96,7 +96,7 @@ func (k Keeper) HandleUpgradeProposal(ctx sdk.Context, p *types.UpgradeProposal)
 	}
 
 	// emitting an event for handling client upgrade proposal
-	EmitUpgradeClientProposalEvent(ctx, p.Title, p.Plan.Height)
+	emitUpgradeClientProposalEvent(ctx, p.Title, p.Plan.Height)
 
 	return nil
 }

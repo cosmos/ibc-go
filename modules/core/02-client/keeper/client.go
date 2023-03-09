@@ -16,6 +16,10 @@ import (
 func (k Keeper) CreateClient(
 	ctx sdk.Context, clientState exported.ClientState, consensusState exported.ConsensusState,
 ) (string, error) {
+	if clientState.ClientType() == exported.Localhost {
+		return "", errorsmod.Wrapf(types.ErrInvalidClientType, "cannot create client of type: %s", clientState.ClientType())
+	}
+
 	params := k.GetParams(ctx)
 	if !params.IsAllowedClient(clientState.ClientType()) {
 		return "", errorsmod.Wrapf(
@@ -39,7 +43,7 @@ func (k Keeper) CreateClient(
 		[]metrics.Label{telemetry.NewLabel(types.LabelClientType, clientState.ClientType())},
 	)
 
-	EmitCreateClientEvent(ctx, clientID, clientState)
+	emitCreateClientEvent(ctx, clientID, clientState)
 
 	return clientID, nil
 }
@@ -53,7 +57,7 @@ func (k Keeper) UpdateClient(ctx sdk.Context, clientID string, clientMsg exporte
 
 	clientStore := k.ClientStore(ctx, clientID)
 
-	if status := clientState.Status(ctx, clientStore, k.cdc); status != exported.Active {
+	if status := k.GetClientStatus(ctx, clientState, clientID); status != exported.Active {
 		return errorsmod.Wrapf(types.ErrClientNotActive, "cannot update client (%s) with status %s", clientID, status)
 	}
 
@@ -77,7 +81,7 @@ func (k Keeper) UpdateClient(ctx sdk.Context, clientID string, clientMsg exporte
 			},
 		)
 
-		EmitSubmitMisbehaviourEvent(ctx, clientID, clientState)
+		emitSubmitMisbehaviourEvent(ctx, clientID, clientState)
 
 		return nil
 	}
@@ -97,7 +101,7 @@ func (k Keeper) UpdateClient(ctx sdk.Context, clientID string, clientMsg exporte
 	)
 
 	// emitting events in the keeper emits for both begin block and handler client updates
-	EmitUpdateClientEvent(ctx, clientID, clientState.ClientType(), consensusHeights, k.cdc, clientMsg)
+	emitUpdateClientEvent(ctx, clientID, clientState.ClientType(), consensusHeights, k.cdc, clientMsg)
 
 	return nil
 }
@@ -114,7 +118,7 @@ func (k Keeper) UpgradeClient(ctx sdk.Context, clientID string, upgradedClient e
 
 	clientStore := k.ClientStore(ctx, clientID)
 
-	if status := clientState.Status(ctx, clientStore, k.cdc); status != exported.Active {
+	if status := k.GetClientStatus(ctx, clientState, clientID); status != exported.Active {
 		return errorsmod.Wrapf(types.ErrClientNotActive, "cannot upgrade client (%s) with status %s", clientID, status)
 	}
 
@@ -135,7 +139,7 @@ func (k Keeper) UpgradeClient(ctx sdk.Context, clientID string, upgradedClient e
 		},
 	)
 
-	EmitUpgradeClientEvent(ctx, clientID, upgradedClient)
+	emitUpgradeClientEvent(ctx, clientID, upgradedClient)
 
 	return nil
 }

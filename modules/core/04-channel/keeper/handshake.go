@@ -8,6 +8,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
+	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
@@ -50,6 +51,15 @@ func (k Keeper) ChanOpenInit(
 		)
 	}
 
+	clientState, found := k.clientKeeper.GetClientState(ctx, connectionEnd.ClientId)
+	if !found {
+		return "", nil, errorsmod.Wrapf(clienttypes.ErrClientNotFound, "clientID (%s)", connectionEnd.ClientId)
+	}
+
+	if status := k.clientKeeper.GetClientStatus(ctx, clientState, connectionEnd.ClientId); status != exported.Active {
+		return "", nil, errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", connectionEnd.ClientId, status)
+	}
+
 	if !k.portKeeper.Authenticate(ctx, portCap, portID) {
 		return "", nil, errorsmod.Wrapf(porttypes.ErrInvalidPort, "caller does not own port capability for port ID %s", portID)
 	}
@@ -89,7 +99,7 @@ func (k Keeper) WriteOpenInitChannel(
 		telemetry.IncrCounter(1, "ibc", "channel", "open-init")
 	}()
 
-	EmitChannelOpenInitEvent(ctx, portID, channelID, channel)
+	emitChannelOpenInitEvent(ctx, portID, channelID, channel)
 }
 
 // ChanOpenTry is called by a module to accept the first step of a channel opening
@@ -202,7 +212,7 @@ func (k Keeper) WriteOpenTryChannel(
 		telemetry.IncrCounter(1, "ibc", "channel", "open-try")
 	}()
 
-	EmitChannelOpenTryEvent(ctx, portID, channelID, channel)
+	emitChannelOpenTryEvent(ctx, portID, channelID, channel)
 }
 
 // ChanOpenAck is called by the handshake-originating module to acknowledge the
@@ -287,7 +297,7 @@ func (k Keeper) WriteOpenAckChannel(
 		telemetry.IncrCounter(1, "ibc", "channel", "open-ack")
 	}()
 
-	EmitChannelOpenAckEvent(ctx, portID, channelID, channel)
+	emitChannelOpenAckEvent(ctx, portID, channelID, channel)
 }
 
 // ChanOpenConfirm is called by the counterparty module to close their end of the
@@ -367,7 +377,7 @@ func (k Keeper) WriteOpenConfirmChannel(
 		telemetry.IncrCounter(1, "ibc", "channel", "open-confirm")
 	}()
 
-	EmitChannelOpenConfirmEvent(ctx, portID, channelID, channel)
+	emitChannelOpenConfirmEvent(ctx, portID, channelID, channel)
 }
 
 // Closing Handshake
@@ -401,6 +411,15 @@ func (k Keeper) ChanCloseInit(
 		return errorsmod.Wrap(connectiontypes.ErrConnectionNotFound, channel.ConnectionHops[0])
 	}
 
+	clientState, found := k.clientKeeper.GetClientState(ctx, connectionEnd.ClientId)
+	if !found {
+		return errorsmod.Wrapf(clienttypes.ErrClientNotFound, "clientID (%s)", connectionEnd.ClientId)
+	}
+
+	if status := k.clientKeeper.GetClientStatus(ctx, clientState, connectionEnd.ClientId); status != exported.Active {
+		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", connectionEnd.ClientId, status)
+	}
+
 	if connectionEnd.GetState() != int32(connectiontypes.OPEN) {
 		return errorsmod.Wrapf(
 			connectiontypes.ErrInvalidConnectionState,
@@ -417,7 +436,7 @@ func (k Keeper) ChanCloseInit(
 	channel.State = types.CLOSED
 	k.SetChannel(ctx, portID, channelID, channel)
 
-	EmitChannelCloseInitEvent(ctx, portID, channelID, channel)
+	emitChannelCloseInitEvent(ctx, portID, channelID, channel)
 
 	return nil
 }
@@ -482,7 +501,7 @@ func (k Keeper) ChanCloseConfirm(
 	channel.State = types.CLOSED
 	k.SetChannel(ctx, portID, channelID, channel)
 
-	EmitChannelCloseConfirmEvent(ctx, portID, channelID, channel)
+	emitChannelCloseConfirmEvent(ctx, portID, channelID, channel)
 
 	return nil
 }
