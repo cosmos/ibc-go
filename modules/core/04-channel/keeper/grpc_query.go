@@ -5,17 +5,17 @@ import (
 	"strconv"
 	"strings"
 
+	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/query"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	clienttypes "github.com/cosmos/ibc-go/v4/modules/core/02-client/types"
-	connectiontypes "github.com/cosmos/ibc-go/v4/modules/core/03-connection/types"
-	"github.com/cosmos/ibc-go/v4/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v4/modules/core/24-host"
+	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
+	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 )
 
 var _ types.QueryServer = (*Keeper)(nil)
@@ -35,7 +35,7 @@ func (q Keeper) Channel(c context.Context, req *types.QueryChannelRequest) (*typ
 	if !found {
 		return nil, status.Error(
 			codes.NotFound,
-			sdkerrors.Wrapf(types.ErrChannelNotFound, "port-id: %s, channel-id %s", req.PortId, req.ChannelId).Error(),
+			errorsmod.Wrapf(types.ErrChannelNotFound, "port-id: %s, channel-id %s", req.PortId, req.ChannelId).Error(),
 		)
 	}
 
@@ -96,26 +96,27 @@ func (q Keeper) ConnectionChannels(c context.Context, req *types.QueryConnection
 	channels := []*types.IdentifiedChannel{}
 	store := prefix.NewStore(ctx.KVStore(q.storeKey), []byte(host.KeyChannelEndPrefix))
 
-	pageRes, err := query.Paginate(store, req.Pagination, func(key, value []byte) error {
+	pageRes, err := query.FilteredPaginate(store, req.Pagination, func(key, value []byte, accumulate bool) (bool, error) {
+		// filter any metadata stored under channel key
 		var result types.Channel
 		if err := q.cdc.Unmarshal(value, &result); err != nil {
-			return err
+			return false, err
 		}
 
 		// ignore channel and continue to the next item if the connection is
 		// different than the requested one
 		if result.ConnectionHops[0] != req.Connection {
-			return nil
+			return false, nil
 		}
 
 		portID, channelID, err := host.ParseChannelPath(string(key))
 		if err != nil {
-			return err
+			return false, err
 		}
 
 		identifiedChannel := types.NewIdentifiedChannel(portID, channelID, result)
 		channels = append(channels, &identifiedChannel)
-		return nil
+		return true, nil
 	})
 	if err != nil {
 		return nil, err
@@ -168,7 +169,7 @@ func (q Keeper) ChannelConsensusState(c context.Context, req *types.QueryChannel
 	if !found {
 		return nil, status.Error(
 			codes.NotFound,
-			sdkerrors.Wrapf(types.ErrChannelNotFound, "port-id: %s, channel-id %s", req.PortId, req.ChannelId).Error(),
+			errorsmod.Wrapf(types.ErrChannelNotFound, "port-id: %s, channel-id %s", req.PortId, req.ChannelId).Error(),
 		)
 	}
 
@@ -176,7 +177,7 @@ func (q Keeper) ChannelConsensusState(c context.Context, req *types.QueryChannel
 	if !found {
 		return nil, status.Error(
 			codes.NotFound,
-			sdkerrors.Wrapf(connectiontypes.ErrConnectionNotFound, "connection-id: %s", channel.ConnectionHops[0]).Error(),
+			errorsmod.Wrapf(connectiontypes.ErrConnectionNotFound, "connection-id: %s", channel.ConnectionHops[0]).Error(),
 		)
 	}
 
@@ -185,7 +186,7 @@ func (q Keeper) ChannelConsensusState(c context.Context, req *types.QueryChannel
 	if !found {
 		return nil, status.Error(
 			codes.NotFound,
-			sdkerrors.Wrapf(clienttypes.ErrConsensusStateNotFound, "client-id: %s", connection.ClientId).Error(),
+			errorsmod.Wrapf(clienttypes.ErrConsensusStateNotFound, "client-id: %s", connection.ClientId).Error(),
 		)
 	}
 
@@ -483,7 +484,7 @@ func (q Keeper) NextSequenceReceive(c context.Context, req *types.QueryNextSeque
 	if !found {
 		return nil, status.Error(
 			codes.NotFound,
-			sdkerrors.Wrapf(types.ErrSequenceReceiveNotFound, "port-id: %s, channel-id %s", req.PortId, req.ChannelId).Error(),
+			errorsmod.Wrapf(types.ErrSequenceReceiveNotFound, "port-id: %s, channel-id %s", req.PortId, req.ChannelId).Error(),
 		)
 	}
 

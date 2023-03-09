@@ -3,18 +3,16 @@ package keeper_test
 import (
 	"fmt"
 
-	transferkeeper "github.com/cosmos/ibc-go/v4/modules/apps/transfer/keeper"
-	transfertypes "github.com/cosmos/ibc-go/v4/modules/apps/transfer/types"
+	transferkeeper "github.com/cosmos/ibc-go/v7/modules/apps/transfer/keeper"
+	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 )
 
 func (suite *KeeperTestSuite) TestMigratorMigrateTraces() {
-
 	testCases := []struct {
 		msg            string
 		malleate       func()
 		expectedTraces transfertypes.Traces
 	}{
-
 		{
 			"success: two slashes in base denom",
 			func() {
@@ -118,6 +116,6 @@ func (suite *KeeperTestSuite) TestMigratorMigrateTracesCorruptionDetection() {
 
 	migrator := transferkeeper.NewMigrator(suite.chainA.GetSimApp().TransferKeeper)
 	suite.Panics(func() {
-		migrator.MigrateTraces(suite.chainA.GetContext())
+		migrator.MigrateTraces(suite.chainA.GetContext()) //nolint:errcheck // we shouldn't check the error here because we want to ensure that a panic occurs.
 	})
 }

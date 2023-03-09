@@ -1,16 +1,21 @@
 package keeper
 
 import (
+	"encoding/hex"
 	"fmt"
+	"strconv"
+	"strings"
 
+	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
-	"github.com/cosmos/ibc-go/v4/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v4/modules/core/exported"
+	"github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
-// EmitCreateClientEvent emits a create client event
-func EmitCreateClientEvent(ctx sdk.Context, clientID string, clientState exported.ClientState) {
+// emitCreateClientEvent emits a create client event
+func emitCreateClientEvent(ctx sdk.Context, clientID string, clientState exported.ClientState) {
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeCreateClient,
@@ -25,15 +30,33 @@ func EmitCreateClientEvent(ctx sdk.Context, clientID string, clientState exporte
 	})
 }
 
-// EmitUpdateClientEvent emits an update client event
-func EmitUpdateClientEvent(ctx sdk.Context, clientID string, clientState exported.ClientState, consensusHeight exported.Height, headerStr string) {
+// emitUpdateClientEvent emits an update client event
+func emitUpdateClientEvent(ctx sdk.Context, clientID string, clientType string, consensusHeights []exported.Height, cdc codec.BinaryCodec, clientMsg exported.ClientMessage) {
+	// Marshal the ClientMessage as an Any and encode the resulting bytes to hex.
+	// This prevents the event value from containing invalid UTF-8 characters
+	// which may cause data to be lost when JSON encoding/decoding.
+	clientMsgStr := hex.EncodeToString(types.MustMarshalClientMessage(cdc, clientMsg))
+
+	var consensusHeightAttr string
+	if len(consensusHeights) != 0 {
+		consensusHeightAttr = consensusHeights[0].String()
+	}
+
+	consensusHeightsAttr := make([]string, len(consensusHeights))
+	for i, height := range consensusHeights {
+		consensusHeightsAttr[i] = height.String()
+	}
+
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeUpdateClient,
 			sdk.NewAttribute(types.AttributeKeyClientID, clientID),
-			sdk.NewAttribute(types.AttributeKeyClientType, clientState.ClientType()),
-			sdk.NewAttribute(types.AttributeKeyConsensusHeight, consensusHeight.String()),
-			sdk.NewAttribute(types.AttributeKeyHeader, headerStr),
+			sdk.NewAttribute(types.AttributeKeyClientType, clientType),
+			// Deprecated: AttributeKeyConsensusHeight is deprecated and will be removed in a future release.
+			// Please use AttributeKeyConsensusHeights instead.
+			sdk.NewAttribute(types.AttributeKeyConsensusHeight, consensusHeightAttr),
+			sdk.NewAttribute(types.AttributeKeyConsensusHeights, strings.Join(consensusHeightsAttr, ",")),
+			sdk.NewAttribute(types.AttributeKeyHeader, clientMsgStr),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
@@ -42,8 +65,8 @@ func EmitUpdateClientEvent(ctx sdk.Context, clientID string, clientState exporte
 	})
 }
 
-// EmitUpdateClientEvent emits an upgrade client event
-func EmitUpgradeClientEvent(ctx sdk.Context, clientID string, clientState exported.ClientState) {
+// emitUpgradeClientEvent emits an upgrade client event
+func emitUpgradeClientEvent(ctx sdk.Context, clientID string, clientState exported.ClientState) {
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeUpgradeClient,
@@ -58,49 +81,62 @@ func EmitUpgradeClientEvent(ctx sdk.Context, clientID string, clientState export
 	})
 }
 
-// EmitUpdateClientProposalEvent emits an update client proposal event
-func EmitUpdateClientProposalEvent(ctx sdk.Context, clientID string, clientState exported.ClientState) {
-	ctx.EventManager().EmitEvent(
+// emitUpdateClientProposalEvent emits an update client proposal event
+func emitUpdateClientProposalEvent(ctx sdk.Context, clientID, clientType string) {
+	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeUpdateClientProposal,
 			sdk.NewAttribute(types.AttributeKeySubjectClientID, clientID),
-			sdk.NewAttribute(types.AttributeKeyClientType, clientState.ClientType()),
-			sdk.NewAttribute(types.AttributeKeyConsensusHeight, clientState.GetLatestHeight().String()),
+			sdk.NewAttribute(types.AttributeKeyClientType, clientType),
 		),
-	)
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+		),
+	})
 }
 
-// EmitUpgradeClientProposalEvent emits an upgrade client proposal event
-func EmitUpgradeClientProposalEvent(ctx sdk.Context, title string, height int64) {
-	ctx.EventManager().EmitEvent(
+// emitUpgradeClientProposalEvent emits an upgrade client proposal event
+func emitUpgradeClientProposalEvent(ctx sdk.Context, title string, height int64) {
+	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeUpgradeClientProposal,
 			sdk.NewAttribute(types.AttributeKeyUpgradePlanTitle, title),
 			sdk.NewAttribute(types.AttributeKeyUpgradePlanHeight, fmt.Sprintf("%d", height)),
 		),
-	)
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+		),
+	})
 }
 
-// EmitSubmitMisbehaviourEvent emits a client misbehaviour event
-func EmitSubmitMisbehaviourEvent(ctx sdk.Context, clientID string, clientState exported.ClientState) {
-	ctx.EventManager().EmitEvent(
+// emitSubmitMisbehaviourEvent emits a client misbehaviour event
+func emitSubmitMisbehaviourEvent(ctx sdk.Context, clientID string, clientState exported.ClientState) {
+	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeSubmitMisbehaviour,
 			sdk.NewAttribute(types.AttributeKeyClientID, clientID),
 			sdk.NewAttribute(types.AttributeKeyClientType, clientState.ClientType()),
 		),
-	)
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+		),
+	})
 }
 
-// EmitSubmitMisbehaviourEventOnUpdate emits a client misbehaviour event on a client update event
-func EmitSubmitMisbehaviourEventOnUpdate(ctx sdk.Context, clientID string, clientState exported.ClientState, consensusHeight exported.Height, headerStr string) {
-	ctx.EventManager().EmitEvent(
+// EmitUpgradeChainEvent emits an upgrade chain event.
+func EmitUpgradeChainEvent(ctx sdk.Context, height int64) {
+	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
-			types.EventTypeSubmitMisbehaviour,
-			sdk.NewAttribute(types.AttributeKeyClientID, clientID),
-			sdk.NewAttribute(types.AttributeKeyClientType, clientState.ClientType()),
-			sdk.NewAttribute(types.AttributeKeyConsensusHeight, consensusHeight.String()),
-			sdk.NewAttribute(types.AttributeKeyHeader, headerStr),
+			types.EventTypeUpgradeChain,
+			sdk.NewAttribute(types.AttributeKeyUpgradePlanHeight, strconv.FormatInt(height, 10)),
+			sdk.NewAttribute(types.AttributeKeyUpgradeStore, upgradetypes.StoreKey), // which store to query proof of consensus state from
 		),
-	)
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+		),
+	})
 }

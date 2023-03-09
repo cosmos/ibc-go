@@ -5,10 +5,10 @@ import (
 	"regexp"
 	"strings"
 
+	errorsmod "cosmossdk.io/errors"
 	crypto "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkaddress "github.com/cosmos/cosmos-sdk/types/address"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	yaml "gopkg.in/yaml.v2"
 )
@@ -39,17 +39,24 @@ type interchainAccountPretty struct {
 	AccountOwner  string         `json:"account_owner" yaml:"account_owner"`
 }
 
-// GenerateAddress returns an sdk.AccAddress derived using the provided module account address and connection and port identifiers.
-// The sdk.AccAddress returned is a sub-address of the module account, using the host chain connection ID and controller chain's port ID as the derivation key
-func GenerateAddress(moduleAccAddr sdk.AccAddress, connectionID, portID string) sdk.AccAddress {
-	return sdk.AccAddress(sdkaddress.Derive(moduleAccAddr, []byte(connectionID+portID)))
+// GenerateAddress returns an sdk.AccAddress derived using a host module account address, host connection ID, the controller portID,
+// the current block app hash, and the current block data hash. The sdk.AccAddress returned is a sub-address of the host module account.
+func GenerateAddress(ctx sdk.Context, connectionID, portID string) sdk.AccAddress {
+	hostModuleAcc := sdkaddress.Module(ModuleName, []byte(hostAccountsKey))
+	header := ctx.BlockHeader()
+
+	buf := []byte(connectionID + portID)
+	buf = append(buf, header.AppHash...)
+	buf = append(buf, header.DataHash...)
+
+	return sdkaddress.Derive(hostModuleAcc, buf)
 }
 
 // ValidateAccountAddress performs basic validation of interchain account addresses, enforcing constraints
 // on address length and character set
 func ValidateAccountAddress(addr string) error {
 	if !isValidAddr(addr) || len(addr) > DefaultMaxAddrLength {
-		return sdkerrors.Wrapf(
+		return errorsmod.Wrapf(
 			ErrInvalidAccountAddress,
 			"address must contain strictly alphanumeric characters, not exceeding %d characters in length",
 			DefaultMaxAddrLength,
@@ -69,18 +76,18 @@ func NewInterchainAccount(ba *authtypes.BaseAccount, accountOwner string) *Inter
 
 // SetPubKey implements the authtypes.AccountI interface
 func (ia InterchainAccount) SetPubKey(pubKey crypto.PubKey) error {
-	return sdkerrors.Wrap(ErrUnsupported, "cannot set public key for interchain account")
+	return errorsmod.Wrap(ErrUnsupported, "cannot set public key for interchain account")
 }
 
 // SetSequence implements the authtypes.AccountI interface
 func (ia InterchainAccount) SetSequence(seq uint64) error {
-	return sdkerrors.Wrap(ErrUnsupported, "cannot set sequence number for interchain account")
+	return errorsmod.Wrap(ErrUnsupported, "cannot set sequence number for interchain account")
 }
 
 // Validate implements basic validation of the InterchainAccount
 func (ia InterchainAccount) Validate() error {
 	if strings.TrimSpace(ia.AccountOwner) == "" {
-		return sdkerrors.Wrap(ErrInvalidAccountAddress, "AccountOwner cannot be empty")
+		return errorsmod.Wrap(ErrInvalidAccountAddress, "AccountOwner cannot be empty")
 	}
 
 	return ia.BaseAccount.Validate()

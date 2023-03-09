@@ -6,14 +6,14 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
-	fee "github.com/cosmos/ibc-go/v4/modules/apps/29-fee"
-	"github.com/cosmos/ibc-go/v4/modules/apps/29-fee/types"
-	transfertypes "github.com/cosmos/ibc-go/v4/modules/apps/transfer/types"
-	channeltypes "github.com/cosmos/ibc-go/v4/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v4/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v4/modules/core/exported"
-	ibctesting "github.com/cosmos/ibc-go/v4/testing"
-	ibcmock "github.com/cosmos/ibc-go/v4/testing/mock"
+	fee "github.com/cosmos/ibc-go/v7/modules/apps/29-fee"
+	"github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
+	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	ibcmock "github.com/cosmos/ibc-go/v7/testing/mock"
 )
 
 var (
@@ -172,7 +172,8 @@ func (suite *FeeTestSuite) TestOnChanOpenTry() {
 			// reset suite
 			suite.SetupTest()
 			suite.coordinator.SetupConnections(suite.path)
-			suite.path.EndpointB.ChanOpenInit()
+			err := suite.path.EndpointB.ChanOpenInit()
+			suite.Require().NoError(err)
 
 			// setup mock callback
 			suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnChanOpenTry = func(ctx sdk.Context, order channeltypes.Order, connectionHops []string,
@@ -188,7 +189,6 @@ func (suite *FeeTestSuite) TestOnChanOpenTry() {
 			var (
 				chanCap *capabilitytypes.Capability
 				ok      bool
-				err     error
 			)
 
 			chanCap, err = suite.chainA.App.GetScopedIBCKeeper().NewCapability(suite.chainA.GetContext(), host.ChannelCapabilityPath(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID))
@@ -286,8 +286,10 @@ func (suite *FeeTestSuite) TestOnChanOpenAck() {
 			// malleate test case
 			tc.malleate(suite)
 
-			suite.path.EndpointA.ChanOpenInit()
-			suite.path.EndpointB.ChanOpenTry()
+			err := suite.path.EndpointA.ChanOpenInit()
+			suite.Require().NoError(err)
+			err = suite.path.EndpointB.ChanOpenTry()
+			suite.Require().NoError(err)
 
 			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.MockFeePort)
 			suite.Require().NoError(err)
@@ -331,7 +333,7 @@ func (suite *FeeTestSuite) TestOnChanCloseInit() {
 		{
 			"RefundFeesOnChannelClosure continues - invalid refund address", func() {
 				// store the fee in state & update escrow account balance
-				packetID := channeltypes.NewPacketId(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, uint64(1))
+				packetID := channeltypes.NewPacketID(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, uint64(1))
 				packetFees := types.NewPacketFees([]types.PacketFee{types.NewPacketFee(fee, "invalid refund address", nil)})
 
 				suite.chainA.GetSimApp().IBCFeeKeeper.SetFeesInEscrow(suite.chainA.GetContext(), packetID, packetFees)
@@ -360,7 +362,7 @@ func (suite *FeeTestSuite) TestOnChanCloseInit() {
 			suite.SetupTest()
 			suite.coordinator.Setup(suite.path) // setup channel
 
-			packetID := channeltypes.NewPacketId(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, 1)
+			packetID := channeltypes.NewPacketID(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, 1)
 			fee = types.Fee{
 				RecvFee:    defaultRecvFee,
 				AckFee:     defaultAckFee,
@@ -420,7 +422,7 @@ func (suite *FeeTestSuite) TestOnChanCloseConfirm() {
 		{
 			"RefundChannelFeesOnClosure continues - refund address is invalid", func() {
 				// store the fee in state & update escrow account balance
-				packetID := channeltypes.NewPacketId(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, uint64(1))
+				packetID := channeltypes.NewPacketID(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, uint64(1))
 				packetFees := types.NewPacketFees([]types.PacketFee{types.NewPacketFee(fee, "invalid refund address", nil)})
 
 				suite.chainA.GetSimApp().IBCFeeKeeper.SetFeesInEscrow(suite.chainA.GetContext(), packetID, packetFees)
@@ -450,7 +452,7 @@ func (suite *FeeTestSuite) TestOnChanCloseConfirm() {
 			suite.SetupTest()
 			suite.coordinator.Setup(suite.path) // setup channel
 
-			packetID := channeltypes.NewPacketId(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, 1)
+			packetID := channeltypes.NewPacketID(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, 1)
 			fee = types.Fee{
 				RecvFee:    defaultRecvFee,
 				AckFee:     defaultAckFee,
@@ -573,7 +575,7 @@ func (suite *FeeTestSuite) TestOnRecvPacket() {
 
 			case tc.forwardRelayer && result == nil:
 				suite.Require().Equal(nil, result)
-				packetID := channeltypes.NewPacketId(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
+				packetID := channeltypes.NewPacketID(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 
 				// retrieve the forward relayer that was stored in `onRecvPacket`
 				relayer, _ := suite.chainB.GetSimApp().IBCFeeKeeper.GetRelayerAddressForAsyncAck(suite.chainB.GetContext(), packetID)
@@ -787,7 +789,7 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 			refundAddr = suite.chainA.SenderAccounts[1].SenderAccount.GetAddress()
 
 			packet := suite.CreateMockPacket()
-			packetID = channeltypes.NewPacketId(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
+			packetID = channeltypes.NewPacketID(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 			packetFee = types.NewPacketFee(types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee), refundAddr.String(), nil)
 
 			suite.chainA.GetSimApp().IBCFeeKeeper.SetFeesInEscrow(suite.chainA.GetContext(), packetID, types.NewPacketFees([]types.PacketFee{packetFee}))
@@ -973,7 +975,7 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 			refundAddr = suite.chainA.SenderAccounts[1].SenderAccount.GetAddress()
 
 			packet := suite.CreateMockPacket()
-			packetID = channeltypes.NewPacketId(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
+			packetID = channeltypes.NewPacketID(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 			packetFee = types.NewPacketFee(types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee), refundAddr.String(), nil)
 
 			suite.chainA.GetSimApp().IBCFeeKeeper.SetFeesInEscrow(suite.chainA.GetContext(), packetID, types.NewPacketFees([]types.PacketFee{packetFee}))

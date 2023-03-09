@@ -10,7 +10,7 @@ If you want to update the documentation please open a pr on ibc-go.
 
 ## Docs Build Workflow
 
-The documentation for IBC-Go is hosted at https://ibc.cosmos.network.
+The documentation for IBC-Go is hosted at <https://ibc.cosmos.network>.
 
 built from the files in this (`/docs`) directory for
 [main](https://github.com/cosmos/ibc-go/tree/main/docs).
@@ -83,7 +83,7 @@ Install the theme and all dependencies.
 npm run serve
 ```
 
-Run `pre` and `post` hooks and start a hot-reloading web-server. See output of this command for the URL (it is often https://localhost:8080).
+Run `pre` and `post` hooks and start a hot-reloading web-server. See output of this command for the URL (it is often <https://localhost:8080>).
 
 To build documentation as a static website run `npm run build`. You will find the website in `.vuepress/dist` directory.
 
@@ -96,19 +96,22 @@ We are using [Algolia](https://www.algolia.com) to power full-text search. This 
 ## Consistency
 
 Because the build processes are identical (as is the information contained herein), this file should be kept in sync as
-much as possible with its [counterpart in the Cosmos SDK repo](https://github.com/cosmos/cosmos-sdk/tree/master/docs/DOCS_README.md).
+much as possible with its [counterpart in the Cosmos SDK repo](https://github.com/cosmos/cosmos-sdk/blob/main/docs/README.md).
 
 ### Update and Build the RPC docs
 
 1. Execute the following command at the root directory to install the swagger-ui generate tool.
+
    ```bash
    make tools
    ```
+
 2. Edit API docs
    1. Directly Edit API docs manually: `client/lcd/swagger-ui/swagger.yaml`.
    2. Edit API docs within the [Swagger Editor](https://editor.swagger.io/). Please refer to this [document](https://swagger.io/docs/specification/2-0/basic-structure/) for the correct structure in `.yaml`.
 3. Download `swagger.yaml` and replace the old `swagger.yaml` under fold `client/lcd/swagger-ui`.
 4. Compile simd
+
    ```bash
    make install
    ```

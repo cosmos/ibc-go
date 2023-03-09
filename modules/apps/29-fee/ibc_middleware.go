@@ -3,15 +3,16 @@ package fee
 import (
 	"strings"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
-	"github.com/cosmos/ibc-go/v4/modules/apps/29-fee/keeper"
-	"github.com/cosmos/ibc-go/v4/modules/apps/29-fee/types"
-	channeltypes "github.com/cosmos/ibc-go/v4/modules/core/04-channel/types"
-	porttypes "github.com/cosmos/ibc-go/v4/modules/core/05-port/types"
-	"github.com/cosmos/ibc-go/v4/modules/core/exported"
+	"github.com/cosmos/ibc-go/v7/modules/apps/29-fee/keeper"
+	"github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
+	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
 var _ porttypes.Middleware = &IBCMiddleware{}
@@ -61,7 +62,7 @@ func (im IBCMiddleware) OnChanOpenInit(
 	}
 
 	if versionMetadata.FeeVersion != types.Version {
-		return "", sdkerrors.Wrapf(types.ErrInvalidVersion, "expected %s, got %s", types.Version, versionMetadata.FeeVersion)
+		return "", errorsmod.Wrapf(types.ErrInvalidVersion, "expected %s, got %s", types.Version, versionMetadata.FeeVersion)
 	}
 
 	appVersion, err := im.app.OnChanOpenInit(ctx, order, connectionHops, portID, channelID, chanCap, counterparty, versionMetadata.AppVersion)
@@ -103,7 +104,7 @@ func (im IBCMiddleware) OnChanOpenTry(
 	}
 
 	if versionMetadata.FeeVersion != types.Version {
-		return "", sdkerrors.Wrapf(types.ErrInvalidVersion, "expected %s, got %s", types.Version, versionMetadata.FeeVersion)
+		return "", errorsmod.Wrapf(types.ErrInvalidVersion, "expected %s, got %s", types.Version, versionMetadata.FeeVersion)
 	}
 
 	im.keeper.SetFeeEnabled(ctx, portID, channelID)
@@ -136,11 +137,11 @@ func (im IBCMiddleware) OnChanOpenAck(
 	if im.keeper.IsFeeEnabled(ctx, portID, channelID) {
 		var versionMetadata types.Metadata
 		if err := types.ModuleCdc.UnmarshalJSON([]byte(counterpartyVersion), &versionMetadata); err != nil {
-			return sdkerrors.Wrapf(err, "failed to unmarshal ICS29 counterparty version metadata: %s", counterpartyVersion)
+			return errorsmod.Wrapf(err, "failed to unmarshal ICS29 counterparty version metadata: %s", counterpartyVersion)
 		}
 
 		if versionMetadata.FeeVersion != types.Version {
-			return sdkerrors.Wrapf(types.ErrInvalidVersion, "expected counterparty fee version: %s, got: %s", types.Version, versionMetadata.FeeVersion)
+			return errorsmod.Wrapf(types.ErrInvalidVersion, "expected counterparty fee version: %s, got: %s", types.Version, versionMetadata.FeeVersion)
 		}
 
 		// call underlying app's OnChanOpenAck callback with the counterparty app version.
@@ -226,7 +227,7 @@ func (im IBCMiddleware) OnRecvPacket(
 
 	// in case of async aknowledgement (ack == nil) store the relayer address for use later during async WriteAcknowledgement
 	if ack == nil {
-		im.keeper.SetRelayerAddressForAsyncAck(ctx, channeltypes.NewPacketId(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence()), relayer.String())
+		im.keeper.SetRelayerAddressForAsyncAck(ctx, channeltypes.NewPacketID(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence()), relayer.String())
 		return nil
 	}
 
@@ -248,9 +249,9 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 		return im.app.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
 	}
 
-	var ack = &types.IncentivizedAcknowledgement{}
-	if err := types.ModuleCdc.UnmarshalJSON(acknowledgement, ack); err != nil {
-		return sdkerrors.Wrapf(err, "cannot unmarshal ICS-29 incentivized packet acknowledgement: %v", ack)
+	var ack types.IncentivizedAcknowledgement
+	if err := types.ModuleCdc.UnmarshalJSON(acknowledgement, &ack); err != nil {
+		return errorsmod.Wrapf(err, "cannot unmarshal ICS-29 incentivized packet acknowledgement: %v", ack)
 	}
 
 	if im.keeper.IsLocked(ctx) {
@@ -265,7 +266,7 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 		return im.app.OnAcknowledgementPacket(ctx, packet, ack.AppAcknowledgement, relayer)
 	}
 
-	packetID := channeltypes.NewPacketId(packet.SourcePort, packet.SourceChannel, packet.Sequence)
+	packetID := channeltypes.NewPacketID(packet.SourcePort, packet.SourceChannel, packet.Sequence)
 	feesInEscrow, found := im.keeper.GetFeesInEscrow(ctx, packetID)
 	if !found {
 		// call underlying callback
@@ -282,7 +283,7 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 
 	payeeAddr, err := sdk.AccAddressFromBech32(payee)
 	if err != nil {
-		return sdkerrors.Wrapf(err, "failed to create sdk.Address from payee: %s", payee)
+		return errorsmod.Wrapf(err, "failed to create sdk.Address from payee: %s", payee)
 	}
 
 	im.keeper.DistributePacketFeesOnAcknowledgement(ctx, ack.ForwardRelayerAddress, payeeAddr, feesInEscrow.PacketFees, packetID)
@@ -307,7 +308,7 @@ func (im IBCMiddleware) OnTimeoutPacket(
 		return im.app.OnTimeoutPacket(ctx, packet, relayer)
 	}
 
-	packetID := channeltypes.NewPacketId(packet.SourcePort, packet.SourceChannel, packet.Sequence)
+	packetID := channeltypes.NewPacketID(packet.SourcePort, packet.SourceChannel, packet.Sequence)
 	feesInEscrow, found := im.keeper.GetFeesInEscrow(ctx, packetID)
 	if !found {
 		// call underlying callback
@@ -324,7 +325,7 @@ func (im IBCMiddleware) OnTimeoutPacket(
 
 	payeeAddr, err := sdk.AccAddressFromBech32(payee)
 	if err != nil {
-		return sdkerrors.Wrapf(err, "failed to create sdk.Address from payee: %s", payee)
+		return errorsmod.Wrapf(err, "failed to create sdk.Address from payee: %s", payee)
 	}
 
 	im.keeper.DistributePacketFeesOnTimeout(ctx, payeeAddr, feesInEscrow.PacketFees, packetID)
@@ -337,9 +338,13 @@ func (im IBCMiddleware) OnTimeoutPacket(
 func (im IBCMiddleware) SendPacket(
 	ctx sdk.Context,
 	chanCap *capabilitytypes.Capability,
-	packet exported.PacketI,
-) error {
-	return im.keeper.SendPacket(ctx, chanCap, packet)
+	sourcePort string,
+	sourceChannel string,
+	timeoutHeight clienttypes.Height,
+	timeoutTimestamp uint64,
+	data []byte,
+) (uint64, error) {
+	return im.keeper.SendPacket(ctx, chanCap, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, data)
 }
 
 // WriteAcknowledgement implements the ICS4 Wrapper interface

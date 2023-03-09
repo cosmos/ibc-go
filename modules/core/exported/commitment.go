@@ -1,6 +1,6 @@
 package exported
 
-import ics23 "github.com/confio/ics23/go"
+import ics23 "github.com/cosmos/ics23/go"
 
 // ICS 023 Types Implementation
 //
@@ -35,7 +35,7 @@ type Path interface {
 // Proof implements spec:CommitmentProof.
 // Proof can prove whether the key-value pair is a part of the Root or not.
 // Each proof has designated key-value pair it is able to prove.
-// Proofs includes key but value is provided dynamically at the verification time.
+// Proofs include key but value is provided dynamically at the verification time.
 type Proof interface {
 	VerifyMembership([]*ics23.ProofSpec, Root, Path, []byte) error
 	VerifyNonMembership([]*ics23.ProofSpec, Root, Path) error

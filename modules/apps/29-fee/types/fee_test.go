@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/tendermint/tendermint/crypto/secp256k1"
 
-	"github.com/cosmos/ibc-go/v4/modules/apps/29-fee/types"
+	"github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
 )
 
 var (
@@ -26,6 +26,8 @@ var (
 	// defaultAccAddress is the default account used for testing purposes
 	defaultAccAddress = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
 )
+
+const invalidAddress = "invalid-address"
 
 func TestFeeTotal(t *testing.T) {
 	fee := types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
@@ -48,9 +50,16 @@ func TestPacketFeeValidation(t *testing.T) {
 			true,
 		},
 		{
+			"success with empty slice for Relayers",
+			func() {
+				packetFee.Relayers = []string{}
+			},
+			true,
+		},
+		{
 			"should fail when refund address is invalid",
 			func() {
-				packetFee.RefundAddress = "invalid-address"
+				packetFee.RefundAddress = invalidAddress
 			},
 			false,
 		},
@@ -102,6 +111,13 @@ func TestPacketFeeValidation(t *testing.T) {
 			},
 			false,
 		},
+		{
+			"should fail with non empty Relayers",
+			func() {
+				packetFee.Relayers = []string{"relayer"}
+			},
+			false,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -113,9 +129,9 @@ func TestPacketFeeValidation(t *testing.T) {
 		err := packetFee.Validate()
 
 		if tc.expPass {
-			require.NoError(t, err)
+			require.NoError(t, err, tc.name)
 		} else {
-			require.Error(t, err)
+			require.Error(t, err, tc.name)
 		}
 	}
 }

@@ -3,7 +3,7 @@ package simapp
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"os"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -12,8 +12,6 @@ import (
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/tendermint/tendermint/libs/log"
 	dbm "github.com/tendermint/tm-db"
-
-	"github.com/cosmos/ibc-go/v4/testing/simapp/helpers"
 )
 
 // SetupSimulation creates the config, db (levelDB), temporary directory and logger for
@@ -25,7 +23,7 @@ func SetupSimulation(dirPrefix, dbName string) (simtypes.Config, dbm.DB, string,
 	}
 
 	config := NewConfigFromFlags()
-	config.ChainID = helpers.SimAppChainID
+	config.ChainID = "simulation-app"
 
 	var logger log.Logger
 	if FlagVerboseValue {
@@ -34,12 +32,12 @@ func SetupSimulation(dirPrefix, dbName string) (simtypes.Config, dbm.DB, string,
 		logger = log.NewNopLogger()
 	}
 
-	dir, err := ioutil.TempDir("", dirPrefix)
+	dir, err := os.MkdirTemp("", dirPrefix)
 	if err != nil {
 		return simtypes.Config{}, nil, "", nil, false, err
 	}
 
-	db, err := sdk.NewLevelDB(dbName, dir)
+	db, err := dbm.NewDB(dbName, dbm.BackendType(config.DBBackend), dir)
 	if err != nil {
 		return simtypes.Config{}, nil, "", nil, false, err
 	}
@@ -56,7 +54,7 @@ func SimulationOperations(app App, cdc codec.JSONCodec, config simtypes.Config) 
 	}
 
 	if config.ParamsFile != "" {
-		bz, err := ioutil.ReadFile(config.ParamsFile)
+		bz, err := os.ReadFile(config.ParamsFile)
 		if err != nil {
 			panic(err)
 		}
@@ -67,8 +65,8 @@ func SimulationOperations(app App, cdc codec.JSONCodec, config simtypes.Config) 
 		}
 	}
 
-	simState.ParamChanges = app.SimulationManager().GenerateParamChanges(config.Seed)
-	simState.Contents = app.SimulationManager().GetProposalContents(simState)
+	//nolint: staticcheck // SA1019: app.SimulationManager().GetProposalContents is deprecated: Use GetProposalMsgs instead. GetProposalContents returns each module's proposal content generator function with their default operation weight and key.
+	simState.LegacyProposalContents = app.SimulationManager().GetProposalContents(simState)
 	return app.SimulationManager().WeightedOperations(simState)
 }
 
@@ -84,7 +82,7 @@ func CheckExportSimulation(
 			return err
 		}
 
-		if err := ioutil.WriteFile(config.ExportStatePath, []byte(exported.AppState), 0o600); err != nil {
+		if err := os.WriteFile(config.ExportStatePath, []byte(exported.AppState), 0o600); err != nil {
 			return err
 		}
 	}
@@ -96,7 +94,7 @@ func CheckExportSimulation(
 			return err
 		}
 
-		if err := ioutil.WriteFile(config.ExportParamsPath, paramsBz, 0o600); err != nil {
+		if err := os.WriteFile(config.ExportParamsPath, paramsBz, 0o600); err != nil {
 			return err
 		}
 	}

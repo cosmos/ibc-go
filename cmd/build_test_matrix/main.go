@@ -16,6 +16,13 @@ const (
 	testNamePrefix     = "Test"
 	testFileNameSuffix = "_test.go"
 	e2eTestDirectory   = "e2e"
+	// testEntryPointEnv specifes a single test function to run if provided.
+	testEntryPointEnv = "TEST_ENTRYPOINT"
+	// testExclusionsEnv is a comma separated list of test function names that will not be included
+	// in the results of this script.
+	testExclusionsEnv = "TEST_EXCLUSIONS"
+	// testNameEnv if provided returns a single test entry so that only one test is actually run.
+	testNameEnv = "TEST_NAME"
 )
 
 // GithubActionTestMatrix represents
@@ -24,12 +31,12 @@ type GithubActionTestMatrix struct {
 }
 
 type TestSuitePair struct {
-	Test  string `json:"test"`
-	Suite string `json:"suite"`
+	Test       string `json:"test"`
+	EntryPoint string `json:"entrypoint"`
 }
 
 func main() {
-	githubActionMatrix, err := getGithubActionMatrixForTests(e2eTestDirectory)
+	githubActionMatrix, err := getGithubActionMatrixForTests(e2eTestDirectory, getTestToRun(), getTestEntrypointToRun(), getExcludedTestFunctions())
 	if err != nil {
 		fmt.Printf("error generating github action json: %s", err)
 		os.Exit(1)
@@ -43,13 +50,55 @@ func main() {
 	fmt.Println(string(ghBytes))
 }
 
+// getTestEntrypointToRun returns the specified test function to run if present, otherwise
+// it returns an empty string which will result in running all test suites.
+func getTestEntrypointToRun() string {
+	testSuite, ok := os.LookupEnv(testEntryPointEnv)
+	if !ok {
+		return ""
+	}
+	return testSuite
+}
+
+// getTestToRun returns the specified test function to run if present.
+// If specified, only this test will be run.
+func getTestToRun() string {
+	testName, ok := os.LookupEnv(testNameEnv)
+	if !ok {
+		return ""
+	}
+	return testName
+}
+
+// getExcludedTestFunctions returns a list of test functions that we don't want to run.
+func getExcludedTestFunctions() []string {
+	exclusions, ok := os.LookupEnv(testExclusionsEnv)
+	if !ok {
+		return nil
+	}
+	return strings.Split(exclusions, ",")
+}
+
+func contains(s string, items []string) bool {
+	for _, elem := range items {
+		if elem == s {
+			return true
+		}
+	}
+	return false
+}
+
 // getGithubActionMatrixForTests returns a json string representing the contents that should go in the matrix
 // field in a github action workflow. This string can be used with `fromJSON(str)` to dynamically build
 // the workflow matrix to include all E2E tests under the e2eRootDirectory directory.
-func getGithubActionMatrixForTests(e2eRootDirectory string) (GithubActionTestMatrix, error) {
+func getGithubActionMatrixForTests(e2eRootDirectory, testName string, suite string, excludedItems []string) (GithubActionTestMatrix, error) {
 	testSuiteMapping := map[string][]string{}
 	fset := token.NewFileSet()
 	err := filepath.Walk(e2eRootDirectory, func(path string, info fs.FileInfo, err error) error {
+		if err != nil {
+			return fmt.Errorf("error walking e2e directory: %s", err)
+		}
+
 		// only look at test files
 		if !strings.HasSuffix(path, testFileNameSuffix) {
 			return nil
@@ -65,11 +114,20 @@ func getGithubActionMatrixForTests(e2eRootDirectory string) (GithubActionTestMat
 			return fmt.Errorf("failed extracting test suite name and test cases: %s", err)
 		}
 
-		testSuiteMapping[suiteNameForFile] = testCases
+		if testName != "" && contains(testName, testCases) {
+			testCases = []string{testName}
+		}
+
+		if contains(suiteNameForFile, excludedItems) {
+			return nil
+		}
+
+		if suite == "" || suiteNameForFile == suite {
+			testSuiteMapping[suiteNameForFile] = testCases
+		}
 
 		return nil
 	})
-
 	if err != nil {
 		return GithubActionTestMatrix{}, err
 	}
@@ -81,10 +139,14 @@ func getGithubActionMatrixForTests(e2eRootDirectory string) (GithubActionTestMat
 	for testSuiteName, testCases := range testSuiteMapping {
 		for _, testCaseName := range testCases {
 			gh.Include = append(gh.Include, TestSuitePair{
-				Test:  testCaseName,
-				Suite: testSuiteName,
+				Test:       testCaseName,
+				EntryPoint: testSuiteName,
 			})
 		}
+	}
+
+	if testName != "" && len(gh.Include) != 1 {
+		return GithubActionTestMatrix{}, fmt.Errorf("expected exactly 1 test in the output matrix but got %d", len(gh.Include))
 	}
 
 	return gh, nil

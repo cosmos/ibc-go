@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"strings"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
-	icatypes "github.com/cosmos/ibc-go/v4/modules/apps/27-interchain-accounts/types"
-	channeltypes "github.com/cosmos/ibc-go/v4/modules/core/04-channel/types"
+	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
+	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 )
 
 // OnChanOpenInit performs basic validation of channel initialization.
@@ -30,15 +30,15 @@ func (k Keeper) OnChanOpenInit(
 	version string,
 ) (string, error) {
 	if order != channeltypes.ORDERED {
-		return "", sdkerrors.Wrapf(channeltypes.ErrInvalidChannelOrdering, "expected %s channel, got %s", channeltypes.ORDERED, order)
+		return "", errorsmod.Wrapf(channeltypes.ErrInvalidChannelOrdering, "expected %s channel, got %s", channeltypes.ORDERED, order)
 	}
 
-	if !strings.HasPrefix(portID, icatypes.PortPrefix) {
-		return "", sdkerrors.Wrapf(icatypes.ErrInvalidControllerPort, "expected %s{owner-account-address}, got %s", icatypes.PortPrefix, portID)
+	if !strings.HasPrefix(portID, icatypes.ControllerPortPrefix) {
+		return "", errorsmod.Wrapf(icatypes.ErrInvalidControllerPort, "expected %s{owner-account-address}, got %s", icatypes.ControllerPortPrefix, portID)
 	}
 
-	if counterparty.PortId != icatypes.PortID {
-		return "", sdkerrors.Wrapf(icatypes.ErrInvalidHostPort, "expected %s, got %s", icatypes.PortID, counterparty.PortId)
+	if counterparty.PortId != icatypes.HostPortID {
+		return "", errorsmod.Wrapf(icatypes.ErrInvalidHostPort, "expected %s, got %s", icatypes.HostPortID, counterparty.PortId)
 	}
 
 	var metadata icatypes.Metadata
@@ -51,7 +51,7 @@ func (k Keeper) OnChanOpenInit(
 		metadata = icatypes.NewDefaultMetadata(connectionHops[0], connection.GetCounterparty().GetConnectionID())
 	} else {
 		if err := icatypes.ModuleCdc.UnmarshalJSON([]byte(version), &metadata); err != nil {
-			return "", sdkerrors.Wrapf(icatypes.ErrUnknownDataType, "cannot unmarshal ICS-27 interchain accounts metadata")
+			return "", errorsmod.Wrapf(icatypes.ErrUnknownDataType, "cannot unmarshal ICS-27 interchain accounts metadata")
 		}
 	}
 
@@ -67,11 +67,16 @@ func (k Keeper) OnChanOpenInit(
 		}
 
 		if channel.State == channeltypes.OPEN {
-			return "", sdkerrors.Wrapf(icatypes.ErrActiveChannelAlreadySet, "existing active channel %s for portID %s is already OPEN", activeChannelID, portID)
+			return "", errorsmod.Wrapf(icatypes.ErrActiveChannelAlreadySet, "existing active channel %s for portID %s is already OPEN", activeChannelID, portID)
 		}
 
-		if !icatypes.IsPreviousMetadataEqual(channel.Version, metadata) {
-			return "", sdkerrors.Wrap(icatypes.ErrInvalidVersion, "previous active channel metadata does not match provided version")
+		appVersion, found := k.GetAppVersion(ctx, portID, activeChannelID)
+		if !found {
+			panic(fmt.Sprintf("active channel mapping set for %s, but channel does not exist in channel store", activeChannelID))
+		}
+
+		if !icatypes.IsPreviousMetadataEqual(appVersion, metadata) {
+			return "", errorsmod.Wrap(icatypes.ErrInvalidVersion, "previous active channel metadata does not match provided version")
 		}
 	}
 
@@ -86,26 +91,26 @@ func (k Keeper) OnChanOpenAck(
 	channelID string,
 	counterpartyVersion string,
 ) error {
-	if portID == icatypes.PortID {
-		return sdkerrors.Wrapf(icatypes.ErrInvalidControllerPort, "portID cannot be host chain port ID: %s", icatypes.PortID)
+	if portID == icatypes.HostPortID {
+		return errorsmod.Wrapf(icatypes.ErrInvalidControllerPort, "portID cannot be host chain port ID: %s", icatypes.HostPortID)
 	}
 
-	if !strings.HasPrefix(portID, icatypes.PortPrefix) {
-		return sdkerrors.Wrapf(icatypes.ErrInvalidControllerPort, "expected %s{owner-account-address}, got %s", icatypes.PortPrefix, portID)
+	if !strings.HasPrefix(portID, icatypes.ControllerPortPrefix) {
+		return errorsmod.Wrapf(icatypes.ErrInvalidControllerPort, "expected %s{owner-account-address}, got %s", icatypes.ControllerPortPrefix, portID)
 	}
 
 	var metadata icatypes.Metadata
 	if err := icatypes.ModuleCdc.UnmarshalJSON([]byte(counterpartyVersion), &metadata); err != nil {
-		return sdkerrors.Wrapf(icatypes.ErrUnknownDataType, "cannot unmarshal ICS-27 interchain accounts metadata")
+		return errorsmod.Wrapf(icatypes.ErrUnknownDataType, "cannot unmarshal ICS-27 interchain accounts metadata")
 	}
 
 	if activeChannelID, found := k.GetOpenActiveChannel(ctx, metadata.ControllerConnectionId, portID); found {
-		return sdkerrors.Wrapf(icatypes.ErrActiveChannelAlreadySet, "existing active channel %s for portID %s", activeChannelID, portID)
+		return errorsmod.Wrapf(icatypes.ErrActiveChannelAlreadySet, "existing active channel %s for portID %s", activeChannelID, portID)
 	}
 
 	channel, found := k.channelKeeper.GetChannel(ctx, portID, channelID)
 	if !found {
-		return sdkerrors.Wrapf(channeltypes.ErrChannelNotFound, "failed to retrieve channel %s on port %s", channelID, portID)
+		return errorsmod.Wrapf(channeltypes.ErrChannelNotFound, "failed to retrieve channel %s on port %s", channelID, portID)
 	}
 
 	if err := icatypes.ValidateControllerMetadata(ctx, k.channelKeeper, channel.ConnectionHops, metadata); err != nil {
@@ -113,7 +118,7 @@ func (k Keeper) OnChanOpenAck(
 	}
 
 	if strings.TrimSpace(metadata.Address) == "" {
-		return sdkerrors.Wrap(icatypes.ErrInvalidAccountAddress, "interchain account address cannot be empty")
+		return errorsmod.Wrap(icatypes.ErrInvalidAccountAddress, "interchain account address cannot be empty")
 	}
 
 	k.SetActiveChannelID(ctx, metadata.ControllerConnectionId, portID, channelID)

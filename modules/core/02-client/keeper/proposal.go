@@ -1,68 +1,61 @@
 package keeper
 
 import (
-	"github.com/armon/go-metrics"
+	errorsmod "cosmossdk.io/errors"
+	metrics "github.com/armon/go-metrics"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	"github.com/cosmos/ibc-go/v4/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v4/modules/core/exported"
+	"github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
 // ClientUpdateProposal will retrieve the subject and substitute client.
 // A callback will occur to the subject client state with the client
 // prefixed store being provided for both the subject and the substitute client.
-// The localhost client is not allowed to be modified with a proposal. The IBC
-// client implementations are responsible for validating the parameters of the
+// The IBC client implementations are responsible for validating the parameters of the
 // subtitute (enusring they match the subject's parameters) as well as copying
 // the necessary consensus states from the subtitute to the subject client
 // store. The substitute must be Active and the subject must not be Active.
 func (k Keeper) ClientUpdateProposal(ctx sdk.Context, p *types.ClientUpdateProposal) error {
-	if p.SubjectClientId == exported.Localhost || p.SubstituteClientId == exported.Localhost {
-		return sdkerrors.Wrap(types.ErrInvalidUpdateClientProposal, "cannot update localhost client with proposal")
-	}
-
 	subjectClientState, found := k.GetClientState(ctx, p.SubjectClientId)
 	if !found {
-		return sdkerrors.Wrapf(types.ErrClientNotFound, "subject client with ID %s", p.SubjectClientId)
+		return errorsmod.Wrapf(types.ErrClientNotFound, "subject client with ID %s", p.SubjectClientId)
 	}
 
 	subjectClientStore := k.ClientStore(ctx, p.SubjectClientId)
 
 	if status := subjectClientState.Status(ctx, subjectClientStore, k.cdc); status == exported.Active {
-		return sdkerrors.Wrap(types.ErrInvalidUpdateClientProposal, "cannot update Active subject client")
+		return errorsmod.Wrap(types.ErrInvalidUpdateClientProposal, "cannot update Active subject client")
 	}
 
 	substituteClientState, found := k.GetClientState(ctx, p.SubstituteClientId)
 	if !found {
-		return sdkerrors.Wrapf(types.ErrClientNotFound, "substitute client with ID %s", p.SubstituteClientId)
+		return errorsmod.Wrapf(types.ErrClientNotFound, "substitute client with ID %s", p.SubstituteClientId)
 	}
 
 	if subjectClientState.GetLatestHeight().GTE(substituteClientState.GetLatestHeight()) {
-		return sdkerrors.Wrapf(types.ErrInvalidHeight, "subject client state latest height is greater or equal to substitute client state latest height (%s >= %s)", subjectClientState.GetLatestHeight(), substituteClientState.GetLatestHeight())
+		return errorsmod.Wrapf(types.ErrInvalidHeight, "subject client state latest height is greater or equal to substitute client state latest height (%s >= %s)", subjectClientState.GetLatestHeight(), substituteClientState.GetLatestHeight())
 	}
 
 	substituteClientStore := k.ClientStore(ctx, p.SubstituteClientId)
 
 	if status := substituteClientState.Status(ctx, substituteClientStore, k.cdc); status != exported.Active {
-		return sdkerrors.Wrapf(types.ErrClientNotActive, "substitute client is not Active, status is %s", status)
+		return errorsmod.Wrapf(types.ErrClientNotActive, "substitute client is not Active, status is %s", status)
 	}
 
-	clientState, err := subjectClientState.CheckSubstituteAndUpdateState(ctx, k.cdc, subjectClientStore, substituteClientStore, substituteClientState)
-	if err != nil {
+	if err := subjectClientState.CheckSubstituteAndUpdateState(ctx, k.cdc, subjectClientStore, substituteClientStore, substituteClientState); err != nil {
 		return err
 	}
-	k.SetClientState(ctx, p.SubjectClientId, clientState)
 
-	k.Logger(ctx).Info("client updated after governance proposal passed", "client-id", p.SubjectClientId, "height", clientState.GetLatestHeight().String())
+	k.Logger(ctx).Info("client updated after governance proposal passed", "client-id", p.SubjectClientId)
 
 	defer func() {
 		telemetry.IncrCounterWithLabels(
 			[]string{"ibc", "client", "update"},
 			1,
 			[]metrics.Label{
-				telemetry.NewLabel(types.LabelClientType, clientState.ClientType()),
+				telemetry.NewLabel(types.LabelClientType, substituteClientState.ClientType()),
 				telemetry.NewLabel(types.LabelClientID, p.SubjectClientId),
 				telemetry.NewLabel(types.LabelUpdateType, "proposal"),
 			},
@@ -70,7 +63,7 @@ func (k Keeper) ClientUpdateProposal(ctx sdk.Context, p *types.ClientUpdatePropo
 	}()
 
 	// emitting events in the keeper for proposal updates to clients
-	EmitUpdateClientProposalEvent(ctx, p.SubjectClientId, clientState)
+	emitUpdateClientProposalEvent(ctx, p.SubjectClientId, substituteClientState.ClientType())
 
 	return nil
 }
@@ -82,14 +75,14 @@ func (k Keeper) ClientUpdateProposal(ctx sdk.Context, p *types.ClientUpdatePropo
 func (k Keeper) HandleUpgradeProposal(ctx sdk.Context, p *types.UpgradeProposal) error {
 	clientState, err := types.UnpackClientState(p.UpgradedClientState)
 	if err != nil {
-		return sdkerrors.Wrap(err, "could not unpack UpgradedClientState")
+		return errorsmod.Wrap(err, "could not unpack UpgradedClientState")
 	}
 
 	// zero out any custom fields before setting
 	cs := clientState.ZeroCustomFields()
 	bz, err := types.MarshalClientState(k.cdc, cs)
 	if err != nil {
-		return sdkerrors.Wrap(err, "could not marshal UpgradedClientState")
+		return errorsmod.Wrap(err, "could not marshal UpgradedClientState")
 	}
 
 	if err := k.upgradeKeeper.ScheduleUpgrade(ctx, p.Plan); err != nil {
@@ -103,7 +96,7 @@ func (k Keeper) HandleUpgradeProposal(ctx sdk.Context, p *types.UpgradeProposal)
 	}
 
 	// emitting an event for handling client upgrade proposal
-	EmitUpgradeClientProposalEvent(ctx, p.Title, p.Plan.Height)
+	emitUpgradeClientProposalEvent(ctx, p.Title, p.Plan.Height)
 
 	return nil
 }

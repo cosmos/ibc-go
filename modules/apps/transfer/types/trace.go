@@ -7,13 +7,13 @@ import (
 	"sort"
 	"strings"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	tmbytes "github.com/tendermint/tendermint/libs/bytes"
 	tmtypes "github.com/tendermint/tendermint/types"
 
-	channeltypes "github.com/cosmos/ibc-go/v4/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v4/modules/core/24-host"
+	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 )
 
 // ParseDenomTrace parses a string with the ibc prefix (denom trace) and the base denomination
@@ -84,8 +84,8 @@ func extractPathAndBaseFromFullDenom(fullDenomItems []string) (string, string) {
 	)
 
 	length := len(fullDenomItems)
-	for i := 0; i < length; i = i + 2 {
-		// The IBC specification does not guarentee the expected format of the
+	for i := 0; i < length; i += 2 {
+		// The IBC specification does not guarantee the expected format of the
 		// destination port or destination channel identifier. A short term solution
 		// to determine base denomination is to expect the channel identifier to be the
 		// one ibc-go specifies. A longer term solution is to separate the path and base
@@ -113,10 +113,10 @@ func validateTraceIdentifiers(identifiers []string) error {
 	// validate correctness of port and channel identifiers
 	for i := 0; i < len(identifiers); i += 2 {
 		if err := host.PortIdentifierValidator(identifiers[i]); err != nil {
-			return sdkerrors.Wrapf(err, "invalid port ID at position %d", i)
+			return errorsmod.Wrapf(err, "invalid port ID at position %d", i)
 		}
 		if err := host.ChannelIdentifierValidator(identifiers[i+1]); err != nil {
-			return sdkerrors.Wrapf(err, "invalid channel ID at position %d", i)
+			return errorsmod.Wrapf(err, "invalid channel ID at position %d", i)
 		}
 	}
 	return nil
@@ -151,7 +151,7 @@ func (t Traces) Validate() error {
 		}
 
 		if err := trace.Validate(); err != nil {
-			return sdkerrors.Wrapf(err, "failed denom trace %d validation", i)
+			return errorsmod.Wrapf(err, "failed denom trace %d validation", i)
 		}
 		seenTraces[hash] = true
 	}
@@ -178,8 +178,8 @@ func (t Traces) Sort() Traces {
 // ValidatePrefixedDenom checks that the denomination for an IBC fungible token packet denom is correctly prefixed.
 // The function will return no error if the given string follows one of the two formats:
 //
-//  - Prefixed denomination: '{portIDN}/{channelIDN}/.../{portID0}/{channelID0}/baseDenom'
-//  - Unprefixed denomination: 'baseDenom'
+//   - Prefixed denomination: '{portIDN}/{channelIDN}/.../{portID0}/{channelID0}/baseDenom'
+//   - Unprefixed denomination: 'baseDenom'
 //
 // 'baseDenom' may or may not contain '/'s
 func ValidatePrefixedDenom(denom string) error {
@@ -190,7 +190,7 @@ func ValidatePrefixedDenom(denom string) error {
 	}
 
 	if strings.TrimSpace(denomSplit[len(denomSplit)-1]) == "" {
-		return sdkerrors.Wrap(ErrInvalidDenomForTransfer, "base denomination cannot be blank")
+		return errorsmod.Wrap(ErrInvalidDenomForTransfer, "base denomination cannot be blank")
 	}
 
 	path, _ := extractPathAndBaseFromFullDenom(denomSplit)
@@ -205,8 +205,8 @@ func ValidatePrefixedDenom(denom string) error {
 
 // ValidateIBCDenom validates that the given denomination is either:
 //
-//  - A valid base denomination (eg: 'uatom' or 'gamm/pool/1' as in https://github.com/cosmos/ibc-go/issues/894)
-//  - A valid fungible token representation (i.e 'ibc/{hash}') per ADR 001 https://github.com/cosmos/ibc-go/blob/main/docs/architecture/adr-001-coin-source-tracing.md
+//   - A valid base denomination (eg: 'uatom' or 'gamm/pool/1' as in https://github.com/cosmos/ibc-go/issues/894)
+//   - A valid fungible token representation (i.e 'ibc/{hash}') per ADR 001 https://github.com/cosmos/ibc-go/blob/main/docs/architecture/adr-001-coin-source-tracing.md
 func ValidateIBCDenom(denom string) error {
 	if err := sdk.ValidateDenom(denom); err != nil {
 		return err
@@ -216,15 +216,15 @@ func ValidateIBCDenom(denom string) error {
 
 	switch {
 	case denom == DenomPrefix:
-		return sdkerrors.Wrapf(ErrInvalidDenomForTransfer, "denomination should be prefixed with the format 'ibc/{hash(trace + \"/\" + %s)}'", denom)
+		return errorsmod.Wrapf(ErrInvalidDenomForTransfer, "denomination should be prefixed with the format 'ibc/{hash(trace + \"/\" + %s)}'", denom)
 
 	case len(denomSplit) == 2 && denomSplit[0] == DenomPrefix:
 		if strings.TrimSpace(denomSplit[1]) == "" {
-			return sdkerrors.Wrapf(ErrInvalidDenomForTransfer, "denomination should be prefixed with the format 'ibc/{hash(trace + \"/\" + %s)}'", denom)
+			return errorsmod.Wrapf(ErrInvalidDenomForTransfer, "denomination should be prefixed with the format 'ibc/{hash(trace + \"/\" + %s)}'", denom)
 		}
 
 		if _, err := ParseHexHash(denomSplit[1]); err != nil {
-			return sdkerrors.Wrapf(err, "invalid denom trace hash %s", denomSplit[1])
+			return errorsmod.Wrapf(err, "invalid denom trace hash %s", denomSplit[1])
 		}
 	}
 
