@@ -5,8 +5,8 @@ set -eo pipefail
 TEST="${1}"
 ENTRY_POINT="${2:-}"
 
-export CHAIN_A_TAG="${CHAIN_A_TAG:-latest}"
-export CHAIN_IMAGE="${CHAIN_IMAGE:-ibc-go-simd}"
+export CHAIN_A_TAG="${CHAIN_A_TAG:-main}"
+export CHAIN_IMAGE="${CHAIN_IMAGE:-ghcr.io/cosmos/ibc-go-simd}"
 export CHAIN_BINARY="${CHAIN_BINARY:-simd}"
 
 # if jq is installed, we can automatically determine the test entrypoint.
