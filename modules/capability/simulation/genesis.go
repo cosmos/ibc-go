@@ -1,12 +1,14 @@
 package simulation
 
+// DONTCOVER
+
 import (
 	"encoding/json"
 	"fmt"
 	"math/rand"
 
 	"github.com/cosmos/cosmos-sdk/types/module"
-	"github.com/cosmos/ibc-go/capability/types"
+	"github.com/cosmos/cosmos-sdk/x/capability/types"
 )
 
 // Simulation parameter constants

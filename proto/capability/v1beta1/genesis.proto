@@ -6,7 +6,7 @@ import "gogoproto/gogo.proto";
 import "capability/v1beta1/capability.proto";
 import "amino/amino.proto";
 
-option go_package = "github.com/cosmos/ibc-go/capability/types";
+option go_package = "github.com/cosmos/ibc-go/modules/capability/types";
 
 // GenesisOwners defines the capability owners with their corresponding index.
 message GenesisOwners {

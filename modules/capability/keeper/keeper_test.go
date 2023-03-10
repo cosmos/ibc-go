@@ -6,19 +6,17 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
-	storetypes "cosmossdk.io/store/types"
-
 	"github.com/cosmos/cosmos-sdk/testutil"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
-	"github.com/cosmos/ibc-go/capability"
-	"github.com/cosmos/ibc-go/capability/keeper"
-	"github.com/cosmos/ibc-go/capability/types"
+	"github.com/cosmos/cosmos-sdk/x/capability"
+	"github.com/cosmos/cosmos-sdk/x/capability/keeper"
+	"github.com/cosmos/cosmos-sdk/x/capability/types"
 )
 
 var (
-	stakingModuleName = "staking"
-	bankModuleName    = "bank"
+	stakingModuleName string = "staking"
+	bankModuleName    string = "bank"
 )
 
 type KeeperTestSuite struct {
@@ -29,8 +27,8 @@ type KeeperTestSuite struct {
 }
 
 func (suite *KeeperTestSuite) SetupTest() {
-	key := storetypes.NewKVStoreKey(types.StoreKey)
-	testCtx := testutil.DefaultContextWithDB(suite.T(), key, storetypes.NewTransientStoreKey("transient_test"))
+	key := sdk.NewKVStoreKey(types.StoreKey)
+	testCtx := testutil.DefaultContextWithDB(suite.T(), key, sdk.NewTransientStoreKey("transient_test"))
 	suite.ctx = testCtx.Ctx
 	encCfg := moduletestutil.MakeTestEncodingConfig(capability.AppModuleBasic{})
 	suite.keeper = keeper.NewKeeper(encCfg.Codec, key, key)
@@ -274,7 +272,7 @@ func (suite *KeeperTestSuite) TestReleaseCapability() {
 	suite.Require().Error(sk1.ReleaseCapability(suite.ctx, nil))
 }
 
-func (suite KeeperTestSuite) TestRevertCapability() { //nolint:govet // this is a test, we can copy locks
+func (suite KeeperTestSuite) TestRevertCapability() {
 	sk := suite.keeper.ScopeToModule(bankModuleName)
 
 	ms := suite.ctx.MultiStore()

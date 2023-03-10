@@ -12,11 +12,6 @@ import (
 
 	abci "github.com/cometbft/cometbft/abci/types"
 
-	modulev1 "cosmossdk.io/api/cosmos/capability/module/v1"
-	"cosmossdk.io/depinject"
-
-	store "cosmossdk.io/store/types"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -24,9 +19,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
-	"github.com/cosmos/ibc-go/capability/keeper"
-	"github.com/cosmos/ibc-go/capability/simulation"
-	"github.com/cosmos/ibc-go/capability/types"
+	"github.com/cosmos/cosmos-sdk/x/capability/keeper"
+	"github.com/cosmos/cosmos-sdk/x/capability/simulation"
+	"github.com/cosmos/cosmos-sdk/x/capability/types"
 )
 
 var (
@@ -164,50 +159,11 @@ func (AppModule) GenerateGenesisState(simState *module.SimulationState) {
 }
 
 // RegisterStoreDecoder registers a decoder for capability module's types
-func (am AppModule) RegisterStoreDecoder(sdr simtypes.StoreDecoderRegistry) {
+func (am AppModule) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
 	sdr[types.StoreKey] = simulation.NewDecodeStore(am.cdc)
 }
 
 // WeightedOperations returns the all the gov module operations with their respective weights.
 func (am AppModule) WeightedOperations(simState module.SimulationState) []simtypes.WeightedOperation {
 	return nil
-}
-
-//
-// App Wiring Setup
-//
-
-func init() {
-	appmodule.Register(&modulev1.Module{},
-		appmodule.Provide(ProvideModule),
-	)
-}
-
-//nolint:revive
-type CapabilityInputs struct {
-	depinject.In
-
-	Config *modulev1.Module
-
-	KvStoreKey  *store.KVStoreKey
-	MemStoreKey *store.MemoryStoreKey
-	Cdc         codec.Codec
-}
-
-//nolint:revive
-type CapabilityOutputs struct {
-	depinject.Out
-
-	CapabilityKeeper *keeper.Keeper
-	Module           appmodule.AppModule
-}
-
-func ProvideModule(in CapabilityInputs) CapabilityOutputs {
-	k := keeper.NewKeeper(in.Cdc, in.KvStoreKey, in.MemStoreKey)
-	m := NewAppModule(in.Cdc, *k, in.Config.SealKeeper)
-
-	return CapabilityOutputs{
-		CapabilityKeeper: k,
-		Module:           m,
-	}
 }

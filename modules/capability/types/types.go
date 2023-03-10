@@ -4,13 +4,22 @@ import (
 	"fmt"
 	"sort"
 
-	errorsmod "cosmossdk.io/errors"
+	"sigs.k8s.io/yaml"
+
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 // NewCapability returns a reference to a new Capability to be used as an
 // actual capability.
 func NewCapability(index uint64) *Capability {
 	return &Capability{Index: index}
+}
+
+// String returns the string representation of a Capability. The string contains
+// the Capability's memory reference as the string is to be used in a composite
+// key and to authenticate capabilities.
+func (ck *Capability) String() string {
+	return fmt.Sprintf("Capability{%p, %d}", ck, ck.Index)
 }
 
 func NewOwner(module, name string) Owner {
@@ -20,6 +29,11 @@ func NewOwner(module, name string) Owner {
 // Key returns a composite key for an Owner.
 func (o Owner) Key() string {
 	return fmt.Sprintf("%s/%s", o.Module, o.Name)
+}
+
+func (o Owner) String() string {
+	bz, _ := yaml.Marshal(o)
+	return string(bz)
 }
 
 func NewCapabilityOwners() *CapabilityOwners {
@@ -33,7 +47,7 @@ func (co *CapabilityOwners) Set(owner Owner) error {
 	i, ok := co.Get(owner)
 	if ok {
 		// owner already exists at co.Owners[i]
-		return errorsmod.Wrapf(ErrOwnerClaimed, owner.String())
+		return sdkerrors.Wrapf(ErrOwnerClaimed, owner.String())
 	}
 
 	// owner does not exist in the set of owners, so we insert at position i
