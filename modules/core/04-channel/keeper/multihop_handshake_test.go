@@ -68,7 +68,6 @@ func (suite *MultihopTestSuite) TestChanOpenInit() {
 					suite.Require().True(ok, "could not retrieve channel capability after successful ChanOpenInit")
 					suite.Require().
 						Equal(cap.String(), chanCap.String(), "channel capability is not equal to retrieved capability")
-					suite.T().Logf("capability: %s\n", cap.String())
 				} else {
 					suite.Require().Error(err, "channel open init should fail but passed")
 					suite.Require().Equal("", channelID, "channel ID is not empty")

@@ -156,21 +156,37 @@ func verifyIntermediateStateProofs(
 	consensusProofs []*channeltypes.MultihopProof,
 	connectionProofs []*channeltypes.MultihopProof,
 ) error {
+	// trusted consensusState on verifier
 	consensusState, ok := consensusStateI.(*tmclient.ConsensusState)
 	if !ok {
 		return fmt.Errorf("expected consensus state to be tendermint consensus state, got: %T", consensusStateI)
 	}
 
+	var connectionEnd connectiontypes.ConnectionEnd
+	var expectedClientID string
 	for i := len(consensusProofs) - 1; i >= 0; i-- {
 		consensusProof := consensusProofs[i]
 		connectionProof := connectionProofs[i]
+
+		// verify consensus state client id matches previous connection counterparty client id
+		if len(expectedClientID) > 0 {
+			if len(consensusProof.PrefixedKey.KeyPath) < 2 {
+				return fmt.Errorf("invalid consensus proof key path length: %d", len(consensusProof.PrefixedKey.KeyPath))
+			}
+			parts := strings.Split(consensusProof.PrefixedKey.KeyPath[1], "/")
+			if len(parts) < 2 {
+				return fmt.Errorf("invalid consensus proof key path: %s", consensusProof.PrefixedKey.KeyPath[1])
+			}
+			if parts[1] != expectedClientID {
+				return fmt.Errorf("consensus state client id (%s) does not match expected client id (%s)", parts[1], expectedClientID)
+			}
+		}
 
 		// prove consensus state
 		var proof commitmenttypes.MerkleProof
 		if err := cdc.Unmarshal(consensusProof.Proof, &proof); err != nil {
 			return fmt.Errorf("failed to unmarshal consensus state proof: %w", err)
 		}
-
 		if err := proof.VerifyMembership(
 			commitmenttypes.GetSDKSpecs(),
 			consensusState.GetRoot(),
@@ -185,9 +201,6 @@ func verifyIntermediateStateProofs(
 		if err := cdc.Unmarshal(connectionProof.Proof, &proof); err != nil {
 			return fmt.Errorf("failed to unmarshal connection state proof: %w", err)
 		}
-
-		// TODO: convert consensusState to tendermint consensusState
-
 		if err := proof.VerifyMembership(
 			commitmenttypes.GetSDKSpecs(),
 			consensusState.GetRoot(),
@@ -197,10 +210,16 @@ func verifyIntermediateStateProofs(
 			return fmt.Errorf("failed to verify connection proof: %w", err)
 		}
 
+		// determine the next expected client id
+		if err := cdc.Unmarshal(connectionProof.Value, &connectionEnd); err != nil {
+			return fmt.Errorf("failed to unmarshal connection end: %w", err)
+		}
+		expectedClientID = connectionEnd.ClientId
+
+		// set the next consensus state
 		if err := cdc.UnmarshalInterface(consensusProof.Value, &consensusStateI); err != nil {
 			return fmt.Errorf("failed to unpack consesnsus state: %w", err)
 		}
-
 		consensusState, ok = consensusStateI.(*tmclient.ConsensusState)
 		if !ok {
 			return fmt.Errorf("expected consensus state to be tendermint consensus state, got: %T", consensusStateI)
