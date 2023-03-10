@@ -10,8 +10,6 @@ import (
 	"github.com/cosmos/ibc-go/v5/modules/core/exported"
 )
 
-// TODO: figure out better handling for the gas settings. ideally these should be in the
-// 28-wasm module and handled as params
 const GasMultiplier uint64 = 100
 const maxGasLimit = uint64(0x7FFFFFFFFFFFFFFF)
 
@@ -19,7 +17,6 @@ var WasmVM *cosmwasm.VM
 
 var _ exported.ClientState = (*ClientState)(nil)
 
-// generalize this maybe?
 type queryResponse struct {
 	ProofSpecs      []*ics23.ProofSpec            `json:"proof_specs,omitempty"`
 	Height          clienttypes.Height            `json:"height,omitempty"`
@@ -53,7 +50,6 @@ func (r contractResult) Error() string {
 	return r.ErrorMsg
 }
 
-// TODO: Move this into the 28-wasm keeper
 type clientStateCallResponse struct {
 	Me                *ClientState    `json:"me,omitempty"`
 	NewConsensusState *ConsensusState `json:"new_consensus_state,omitempty"`
@@ -84,7 +80,6 @@ func (r clientStateCallResponse) Error() string {
 }
 
 // Calls vm.Init with appropriate arguments
-// TODO: Move this into a public method on the 28-wasm keeper
 func initContract(codeID []byte, ctx sdk.Context, store sdk.KVStore) (*types.Response, error) {
 	gasMeter := ctx.GasMeter()
 	chainID := ctx.BlockHeader().ChainID
@@ -121,7 +116,6 @@ func initContract(codeID []byte, ctx sdk.Context, store sdk.KVStore) (*types.Res
 }
 
 // Calls vm.Execute with internally constructed Gas meter and environment
-// TODO: Move this into a public method on the 28-wasm keeper
 func callContract(codeID []byte, ctx sdk.Context, store sdk.KVStore, msg []byte) (*types.Response, error) {
 	gasMeter := ctx.GasMeter()
 	chainID := ctx.BlockHeader().ChainID
@@ -149,7 +143,6 @@ func callContract(codeID []byte, ctx sdk.Context, store sdk.KVStore, msg []byte)
 }
 
 // Calls vm.Execute with supplied environment and gas meter
-// TODO: Move this into a private method on the 28-wasm keeper
 func callContractWithEnvAndMeter(codeID cosmwasm.Checksum, ctx sdk.Context, store sdk.KVStore, env types.Env, gasMeter sdk.GasMeter, msg []byte) (*types.Response, error) {
 	msgInfo := types.MessageInfo{
 		Sender: "",
