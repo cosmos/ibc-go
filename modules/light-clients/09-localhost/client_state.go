@@ -87,7 +87,7 @@ func (cs ClientState) VerifyMembership(
 	path exported.Path,
 	value []byte,
 ) error {
-	// ensure the proof provided is the expected sentintel localhost client proof
+	// ensure the proof provided is the expected sentinel localhost client proof
 	if !bytes.Equal(proof, SentinelProof) {
 		return errorsmod.Wrapf(commitmenttypes.ErrInvalidProof, "expected %s, got %s", string(SentinelProof), string(proof))
 	}
@@ -127,7 +127,7 @@ func (cs ClientState) VerifyNonMembership(
 	proof []byte,
 	path exported.Path,
 ) error {
-	// ensure the proof provided is the expected sentintel localhost client proof
+	// ensure the proof provided is the expected sentinel localhost client proof
 	if !bytes.Equal(proof, SentinelProof) {
 		return errorsmod.Wrapf(commitmenttypes.ErrInvalidProof, "expected %s, got %s", string(SentinelProof), string(proof))
 	}

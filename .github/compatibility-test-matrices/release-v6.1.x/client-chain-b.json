@@ -3,7 +3,8 @@
   "chain-b": ["release-v6.1.x"],
   "entrypoint": ["TestClientTestSuite"],
   "test": [
-    "TestClientUpdateProposal_Succeeds"
+    "TestClientUpdateProposal_Succeeds",
+    "TestClient_Update_Misbehaviour"
   ],
   "relayer-type": ["rly"],
   "chain-binary": ["simd"],
