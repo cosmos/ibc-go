@@ -38,6 +38,8 @@ For more details, see the design proposal and discussion [here](https://github.c
 
 A special shout out to Strangelove for their substantial contribution on this feature.
 
+## v7.2.0
+
 ### Support for Wasm light clients
 
 We will add support for Wasm light clients. The first Wasm client developed with ibc-go/v7 02-client refactor and stored as Wasm bytecode will be the GRANDPA light client used for Cosmos <> Substrate IBC connections. This feature will be used also for a NEAR light client in the future.
