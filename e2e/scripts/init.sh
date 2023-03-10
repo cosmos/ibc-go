@@ -6,7 +6,7 @@ set -euo pipefail
 # it is copied to either the default location or the specified env location.
 function ensure_config_file(){
   local config_file_path="${HOME}/.ibc-go-e2e-config.json"
-  if [[ ! -z ${E2E_CONFIG_PATH} ]]; then
+  if [[ ! -z "${E2E_CONFIG_PATH:-}" ]]; then
     config_file_path="${E2E_CONFIG_PATH}"
   fi
   if [[ ! -f "${config_file_path}" ]]; then

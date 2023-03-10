@@ -128,8 +128,10 @@ type ChainConfig struct {
 // options.
 func LoadConfig() TestConfig {
 	fileTc, foundFile := fromFile()
-	envTc := fromEnv()
-	return applyEnvironmentVariableOverrides(fileTc, envTc, foundFile)
+	if !foundFile {
+		return fromEnv()
+	}
+	return applyEnvironmentVariableOverrides(fileTc)
 }
 
 // fromFile returns a TestConfig from a json file and a boolean indicating if the file was found.
@@ -149,43 +151,43 @@ func fromFile() (TestConfig, bool) {
 
 // applyEnvironmentVariableOverrides applies all environment variable changes to the config
 // loaded from a file.
-func applyEnvironmentVariableOverrides(fromFile, fromEnv TestConfig, foundFile bool) TestConfig {
-	if !foundFile {
-		return fromEnv
-	}
+func applyEnvironmentVariableOverrides(fromFile TestConfig) TestConfig {
+	envTc := fromEnv()
 
 	if os.Getenv(ChainATagEnv) != "" {
-		fromFile.ChainConfigs[0].Tag = fromEnv.ChainConfigs[0].Tag
+		fromFile.ChainConfigs[0].Tag = envTc.ChainConfigs[0].Tag
 	}
 
 	if os.Getenv(ChainBTagEnv) != "" {
-		fromFile.ChainConfigs[1].Tag = fromEnv.ChainConfigs[1].Tag
+		fromFile.ChainConfigs[1].Tag = envTc.ChainConfigs[1].Tag
 	}
 
 	if os.Getenv(ChainBinaryEnv) != "" {
-		fromFile.ChainConfigs[0].Binary = fromEnv.ChainConfigs[0].Binary
-		fromFile.ChainConfigs[1].Binary = fromEnv.ChainConfigs[0].Binary
+		for i := range fromFile.ChainConfigs {
+			fromFile.ChainConfigs[i].Binary = envTc.ChainConfigs[i].Binary
+		}
 	}
 
 	if os.Getenv(ChainImageEnv) != "" {
-		fromFile.ChainConfigs[0].Image = fromEnv.ChainConfigs[0].Image
-		fromFile.ChainConfigs[1].Image = fromEnv.ChainConfigs[0].Image
+		for i := range fromFile.ChainConfigs {
+			fromFile.ChainConfigs[i].Image = envTc.ChainConfigs[i].Image
+		}
 	}
 
 	if os.Getenv(RelayerTagEnv) != "" {
-		fromFile.RelayerConfig.Tag = fromEnv.RelayerConfig.Tag
+		fromFile.RelayerConfig.Tag = envTc.RelayerConfig.Tag
 	}
 
 	if os.Getenv(RelayerTypeEnv) != "" {
-		fromFile.RelayerConfig.Type = fromEnv.RelayerConfig.Type
+		fromFile.RelayerConfig.Type = envTc.RelayerConfig.Type
 	}
 
 	if os.Getenv(ChainUpgradePlanEnv) != "" {
-		fromFile.UpgradeConfig.PlanName = fromEnv.UpgradeConfig.PlanName
+		fromFile.UpgradeConfig.PlanName = envTc.UpgradeConfig.PlanName
 	}
 
 	if os.Getenv(ChainUpgradeTagEnv) != "" {
-		fromFile.UpgradeConfig.Tag = fromEnv.UpgradeConfig.Tag
+		fromFile.UpgradeConfig.Tag = envTc.UpgradeConfig.Tag
 	}
 
 	return fromFile
