@@ -37,7 +37,7 @@ ifeq ($(LEDGER_ENABLED),true)
       ifeq ($(GCC),)
         $(error gcc not installed for ledger support, please install or set LEDGER_ENABLED=false)
       else
-#        build_tags += ledger TODO: uncomment this, build is failing with this set. cannot use device (variable of type *ledger_cosmos_go.LedgerCosmos) as type SECP256K1 in return statement:
+        build_tags += ledger
       endif
     endif
   endif

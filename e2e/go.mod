@@ -4,6 +4,8 @@ go 1.19
 
 replace github.com/cosmos/iavl => github.com/cosmos/iavl v0.20.0-alpha4
 
+replace github.com/cosmos/ledger-cosmos-go => github.com/cosmos/ledger-cosmos-go v0.12.1
+
 require (
 	github.com/cometbft/cometbft v0.37.0
 	github.com/cosmos/cosmos-sdk v0.47.0-rc3
