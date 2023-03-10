@@ -611,13 +611,6 @@ func getValidatorsAndFullNodes(chainIdx int) (int, int) {
 	if testconfig.IsCI() {
 		return 4, 1
 	}
-	numFullNodes, numValidators := 1, 0
 	tc := testconfig.LoadConfig()
-	if tc.ChainConfigs[chainIdx].NumFullNodes > 0 {
-		numFullNodes = tc.ChainConfigs[chainIdx].NumFullNodes
-	}
-	if tc.ChainConfigs[chainIdx].NumValidators > 0 {
-		numValidators = tc.ChainConfigs[chainIdx].NumValidators
-	}
-	return numValidators, numFullNodes
+	return tc.GetChainNumValidators(chainIdx), tc.GetChainNumFullNodes(chainIdx)
 }

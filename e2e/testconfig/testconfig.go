@@ -73,6 +73,40 @@ type TestConfig struct {
 	UpgradeConfig UpgradeConfig  `json:"upgrade"`
 }
 
+// GetChainNumValidators returns the number of validators for the specific chain index.
+// default 1
+func (tc TestConfig) GetChainNumValidators(idx int) int {
+	if tc.ChainConfigs[idx].NumValidators > 0 {
+		return tc.ChainConfigs[idx].NumValidators
+	}
+	return 1
+}
+
+// GetChainNumFullNodes returns the number of full nodes for the specific chain index.
+// default 0
+func (tc TestConfig) GetChainNumFullNodes(idx int) int {
+	if tc.ChainConfigs[idx].NumFullNodes > 0 {
+		return tc.ChainConfigs[idx].NumFullNodes
+	}
+	return 0
+}
+
+// GetChainAID returns the chain-id for chain A.
+func (tc TestConfig) GetChainAID() string {
+	if tc.ChainConfigs[0].ChainID != "" {
+		return tc.ChainConfigs[0].ChainID
+	}
+	return "chain-a"
+}
+
+// GetChainBID returns the chain-id for chain B.
+func (tc TestConfig) GetChainBID() string {
+	if tc.ChainConfigs[1].ChainID != "" {
+		return tc.ChainConfigs[1].ChainID
+	}
+	return "chain-b"
+}
+
 // UpgradeConfig holds values relevant to upgrade tests.
 type UpgradeConfig struct {
 	PlanName string `json:"planName"`
@@ -282,17 +316,8 @@ type ChainOptionConfiguration func(options *ChainOptions)
 func DefaultChainOptions() ChainOptions {
 	tc := LoadConfig()
 
-	chainAID := tc.ChainConfigs[0].ChainID
-	if chainAID == "" {
-		chainAID = "chain-a"
-	}
-	chainBID := tc.ChainConfigs[1].ChainID
-	if chainBID == "" {
-		chainBID = "chain-b"
-	}
-
-	chainACfg := newDefaultSimappConfig(tc.ChainConfigs[0], "simapp-a", chainAID, "atoma")
-	chainBCfg := newDefaultSimappConfig(tc.ChainConfigs[1], "simapp-b", chainBID, "atomb")
+	chainACfg := newDefaultSimappConfig(tc.ChainConfigs[0], "simapp-a", tc.GetChainAID(), "atoma")
+	chainBCfg := newDefaultSimappConfig(tc.ChainConfigs[1], "simapp-b", tc.GetChainBID(), "atomb")
 	return ChainOptions{
 		ChainAConfig: &chainACfg,
 		ChainBConfig: &chainBCfg,
