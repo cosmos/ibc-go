@@ -18,7 +18,6 @@ type FeatureReleases struct {
 // This is true if the version is greater than or equal to the major version it was released in
 // or is greater than or equal to the list of minor releases it was included in.
 func (fr FeatureReleases) IsSupported(versionStr string) bool {
-
 	// in our compatibility tests, our images are in the format of "release-v1.0.x". We want to actually look at
 	// the "1.0.x" part but we also need this to be a valid version. We can change it to "1.0.0"
 	// TODO: change the way we provide the ibc-go version. This should be done in a more flexible way such

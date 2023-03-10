@@ -1,7 +1,6 @@
 package v7
 
 import (
-	"fmt"
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
@@ -142,7 +141,7 @@ func handleLocalhostMigration(ctx sdk.Context, store sdk.KVStore, cdc codec.Bina
 // for tendermint clients is included as only one tendermint clientID is required for
 // v7 migrations.
 func collectClients(ctx sdk.Context, store sdk.KVStore, clientType string) (clients []string, err error) {
-	clientPrefix := []byte(fmt.Sprintf("%s/%s", host.KeyClientStorePrefix, clientType))
+	clientPrefix := host.PrefixedClientStoreKey([]byte(clientType))
 	iterator := sdk.KVStorePrefixIterator(store, clientPrefix)
 
 	defer sdk.LogDeferred(ctx.Logger(), func() error { return iterator.Close() })

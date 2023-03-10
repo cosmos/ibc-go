@@ -11,7 +11,7 @@ This is visually explained in the following decision tree:
   <img src="releases-decision-tree.png?raw=true" alt="Releases decision tree" width="40%" />
 </p>
 
-When bumping the dependencies of [Cosmos SDK](https://github.com/cosmos/cosmos-sdk) and [Tendermint](https://github.com/tendermint/tendermint) we will only treat patch releases as non state-machine breaking.
+When bumping the dependencies of [Cosmos SDK](https://github.com/cosmos/cosmos-sdk) and [CometBFT](https://github.com/cometbft/cometbft) we will only treat patch releases as non state-machine breaking.
 
 ## <a name="backwards"></a> Backwards compatibility
 

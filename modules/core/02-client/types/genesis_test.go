@@ -3,7 +3,7 @@ package types_test
 import (
 	"time"
 
-	tmtypes "github.com/tendermint/tendermint/types"
+	tmtypes "github.com/cometbft/cometbft/types"
 
 	client "github.com/cosmos/ibc-go/v7/modules/core/02-client"
 	"github.com/cosmos/ibc-go/v7/modules/core/02-client/types"

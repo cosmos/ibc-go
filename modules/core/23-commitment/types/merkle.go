@@ -6,9 +6,9 @@ import (
 	"net/url"
 
 	errorsmod "cosmossdk.io/errors"
+	tmcrypto "github.com/cometbft/cometbft/proto/tendermint/crypto"
 	"github.com/cosmos/gogoproto/proto"
 	ics23 "github.com/cosmos/ics23/go"
-	tmcrypto "github.com/tendermint/tendermint/proto/tendermint/crypto"
 
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
