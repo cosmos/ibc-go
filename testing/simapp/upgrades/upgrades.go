@@ -6,7 +6,7 @@ import (
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
+	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
 	consensusparamskeeper "github.com/cosmos/cosmos-sdk/x/consensus/keeper"
 	paramskeeper "github.com/cosmos/cosmos-sdk/x/params/keeper"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
