@@ -157,6 +157,10 @@ func (msg MsgChannelOpenAck) ValidateBasic() error {
 	if len(msg.ProofTry) == 0 {
 		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty try proof")
 	}
+	_, err := sdk.AccAddressFromBech32(msg.Signer)
+	if err != nil {
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
+	}
 	return nil
 }
 
