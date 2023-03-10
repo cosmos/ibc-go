@@ -200,7 +200,7 @@ callbacks to IBC applications.
 | send_packet | packet_connection        | {channel.ConnectionHops[0]}      | Deprecated |
 | send_packet | connection_id            | {channel.ConnectionHops[0]}      |            |
 | message     | action                   | application-module-defined-field |            |
-| message     | module                   | ibc-channel                      |            |
+| message     | module                   | ibc_channel                      |            |
 
 ### MsgRecvPacket
 
@@ -219,7 +219,7 @@ callbacks to IBC applications.
 | recv_packet | packet_connection        | {channel.ConnectionHops[0]}   | Deprecated |
 | recv_packet | connection_id            | {channel.ConnectionHops[0]}   |            |
 | message     | action                   | recv_packet                   |            |
-| message     | module                   | ibc-channel                   |            |
+| message     | module                   | ibc_channel                   |            |
 
 | Type                  | Attribute Key            | Attribute Value               | Status     |
 |-----------------------|--------------------------|-------------------------------|------------|
@@ -238,7 +238,7 @@ callbacks to IBC applications.
 | write_acknowledgement | packet_connection        | {channel.ConnectionHops[0]}   | Deprecated |
 | write_acknowledgement | connection_id            | {channel.ConnectionHops[0]}   |            |
 | message               | action                   | write_acknowledgement         |            |
-| message               | module                   | ibc-channel                   |            |
+| message               | module                   | ibc_channel                   |            |
 
 ### MsgAcknowledgePacket
 
@@ -255,7 +255,7 @@ callbacks to IBC applications.
 | acknowledge_packet | packet_connection        | {channel.ConnectionHops[0]}   | Deprecated |
 | acknowledge_packet | connection_id            | {channel.ConnectionHops[0]}   |            |
 | message            | action                   | acknowledge_packet            |            |
-| message            | module                   | ibc-channel                   |            |
+| message            | module                   | ibc_channel                   |            |
 
 ### MsgTimeoutPacket & MsgTimeoutOnClose
 
@@ -271,4 +271,4 @@ callbacks to IBC applications.
 | timeout_packet | packet_channel_ordering  | {channel.Ordering}            |
 | timeout_packet | connection_id            | {channel.ConnectionHops[0]}   |
 | message        | action                   | timeout_packet                |
-| message        | module                   | ibc-channel                   |
+| message        | module                   | ibc_channel                   |
