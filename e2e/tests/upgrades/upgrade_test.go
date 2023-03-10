@@ -38,7 +38,7 @@ const (
 func TestUpgradeTestSuite(t *testing.T) {
 	testCfg := testconfig.LoadConfig()
 	if testCfg.UpgradeConfig.Tag == "" || testCfg.UpgradeConfig.PlanName == "" {
-		t.Fatal("upgrade tag and upgrade plan name must be provided in test configuration")
+		t.Fatalf("%s and %s must be set when running an upgrade test", testconfig.ChainUpgradeTagEnv, testconfig.ChainUpgradePlanEnv)
 	}
 
 	suite.Run(t, new(UpgradeTestSuite))
@@ -568,7 +568,7 @@ func (s *UpgradeTestSuite) TestV6ToV7ChainUpgrade() {
 	chainAUpgradeProposalWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 
 	t.Run("upgrade chainA", func(t *testing.T) {
-		s.UpgradeChain(ctx, chainA, chainAUpgradeProposalWallet,testCfg.UpgradeConfig.PlanName, testCfg.ChainConfigs[0].Tag, testCfg.UpgradeConfig.Tag)
+		s.UpgradeChain(ctx, chainA, chainAUpgradeProposalWallet, testCfg.UpgradeConfig.PlanName, testCfg.ChainConfigs[0].Tag, testCfg.UpgradeConfig.Tag)
 	})
 
 	t.Run("check that the tendermint clients are active again after upgrade", func(t *testing.T) {
