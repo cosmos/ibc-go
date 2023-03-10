@@ -94,7 +94,7 @@ func (msg MsgChannelOpenTry) ValidateBasic() error {
 		return errorsmod.Wrap(ErrInvalidChannelIdentifier, "previous channel identifier must be empty, this field has been deprecated as crossing hellos are no longer supported")
 	}
 	if len(msg.ProofInit) == 0 {
-		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty proof init")
+		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty init proof")
 	}
 	if msg.Channel.State != TRYOPEN {
 		return errorsmod.Wrapf(ErrInvalidChannelState,
@@ -155,11 +155,7 @@ func (msg MsgChannelOpenAck) ValidateBasic() error {
 		return errorsmod.Wrap(err, "invalid counterparty channel ID")
 	}
 	if len(msg.ProofTry) == 0 {
-		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty proof try")
-	}
-	_, err := sdk.AccAddressFromBech32(msg.Signer)
-	if err != nil {
-		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
+		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty try proof")
 	}
 	return nil
 }
@@ -200,7 +196,7 @@ func (msg MsgChannelOpenConfirm) ValidateBasic() error {
 		return ErrInvalidChannelIdentifier
 	}
 	if len(msg.ProofAck) == 0 {
-		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty proof ack")
+		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty acknowledgement proof")
 	}
 	_, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
@@ -284,7 +280,7 @@ func (msg MsgChannelCloseConfirm) ValidateBasic() error {
 		return ErrInvalidChannelIdentifier
 	}
 	if len(msg.ProofInit) == 0 {
-		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty proof init")
+		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty init proof")
 	}
 	_, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
@@ -322,7 +318,7 @@ func NewMsgRecvPacket(
 // ValidateBasic implements sdk.Msg
 func (msg MsgRecvPacket) ValidateBasic() error {
 	if len(msg.ProofCommitment) == 0 {
-		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty proof")
+		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty commitment proof")
 	}
 	_, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
@@ -413,7 +409,7 @@ func (msg MsgTimeoutOnClose) ValidateBasic() error {
 		return errorsmod.Wrap(ibcerrors.ErrInvalidSequence, "next sequence receive cannot be 0")
 	}
 	if len(msg.ProofUnreceived) == 0 {
-		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty proof")
+		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty unreceived proof")
 	}
 	if len(msg.ProofClose) == 0 {
 		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty proof of closed counterparty channel end")
@@ -457,7 +453,7 @@ func NewMsgAcknowledgement(
 // ValidateBasic implements sdk.Msg
 func (msg MsgAcknowledgement) ValidateBasic() error {
 	if len(msg.ProofAcked) == 0 {
-		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty proof")
+		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty acknowledgement proof")
 	}
 	if len(msg.Acknowledgement) == 0 {
 		return errorsmod.Wrap(ErrInvalidAcknowledgement, "ack bytes cannot be empty")

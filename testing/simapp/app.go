@@ -10,6 +10,10 @@ import (
 
 	autocliv1 "cosmossdk.io/api/cosmos/autocli/v1"
 	reflectionv1 "cosmossdk.io/api/cosmos/reflection/v1"
+	dbm "github.com/cometbft/cometbft-db"
+	abci "github.com/cometbft/cometbft/abci/types"
+	"github.com/cometbft/cometbft/libs/log"
+	tmos "github.com/cometbft/cometbft/libs/os"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
 	_ "github.com/cosmos/cosmos-sdk/client/docs/statik" // this is used for serving docs
@@ -17,6 +21,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/codec/types"
+	"github.com/cosmos/cosmos-sdk/runtime"
 	runtimeservices "github.com/cosmos/cosmos-sdk/runtime/services"
 	"github.com/cosmos/cosmos-sdk/server/api"
 	"github.com/cosmos/cosmos-sdk/server/config"
@@ -89,10 +94,6 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/rakyll/statik/fs"
 	"github.com/spf13/cast"
-	abci "github.com/tendermint/tendermint/abci/types"
-	"github.com/tendermint/tendermint/libs/log"
-	tmos "github.com/tendermint/tendermint/libs/os"
-	dbm "github.com/tendermint/tm-db"
 
 	ica "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts"
 	icacontroller "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller"
@@ -119,9 +120,7 @@ import (
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 	ibcmock "github.com/cosmos/ibc-go/v7/testing/mock"
 	simappparams "github.com/cosmos/ibc-go/v7/testing/simapp/params"
-	simappupgrades "github.com/cosmos/ibc-go/v7/testing/simapp/upgrades"
-	v6 "github.com/cosmos/ibc-go/v7/testing/simapp/upgrades/v6"
-	v7 "github.com/cosmos/ibc-go/v7/testing/simapp/upgrades/v7"
+	"github.com/cosmos/ibc-go/v7/testing/simapp/upgrades"
 	ibctestingtypes "github.com/cosmos/ibc-go/v7/testing/types"
 )
 
@@ -191,7 +190,7 @@ var (
 )
 
 var (
-	_ App                     = (*SimApp)(nil)
+	_ runtime.AppI            = (*SimApp)(nil)
 	_ servertypes.Application = (*SimApp)(nil)
 )
 
@@ -920,16 +919,16 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 // setupUpgradeHandlers sets all necessary upgrade handlers for testing purposes
 func (app *SimApp) setupUpgradeHandlers() {
 	app.UpgradeKeeper.SetUpgradeHandler(
-		simappupgrades.DefaultUpgradeName,
-		simappupgrades.CreateDefaultUpgradeHandler(app.mm, app.configurator),
+		upgrades.V5,
+		upgrades.CreateDefaultUpgradeHandler(app.mm, app.configurator),
 	)
 
 	// NOTE: The moduleName arg of v6.CreateUpgradeHandler refers to the auth module ScopedKeeper name to which the channel capability should be migrated from.
 	// This should be the same string value provided upon instantiation of the ScopedKeeper with app.CapabilityKeeper.ScopeToModule()
 	// See: https://github.com/cosmos/ibc-go/blob/v6.1.0/testing/simapp/app.go#L310
 	app.UpgradeKeeper.SetUpgradeHandler(
-		v6.UpgradeName,
-		v6.CreateUpgradeHandler(
+		upgrades.V6,
+		upgrades.CreateV6UpgradeHandler(
 			app.mm,
 			app.configurator,
 			app.appCodec,
@@ -940,8 +939,8 @@ func (app *SimApp) setupUpgradeHandlers() {
 	)
 
 	app.UpgradeKeeper.SetUpgradeHandler(
-		v7.UpgradeName,
-		v7.CreateUpgradeHandler(
+		upgrades.V7,
+		upgrades.CreateV7UpgradeHandler(
 			app.mm,
 			app.configurator,
 			app.appCodec,
@@ -949,6 +948,11 @@ func (app *SimApp) setupUpgradeHandlers() {
 			app.ConsensusParamsKeeper,
 			app.ParamsKeeper,
 		),
+	)
+
+	app.UpgradeKeeper.SetUpgradeHandler(
+		upgrades.V7_1,
+		upgrades.CreateV7LocalhostUpgradeHandler(app.mm, app.configurator, app.IBCKeeper.ClientKeeper),
 	)
 }
 
@@ -959,7 +963,7 @@ func (app *SimApp) setupUpgradeStoreLoaders() {
 		tmos.Exit(fmt.Sprintf("failed to read upgrade info from disk %s", err))
 	}
 
-	if upgradeInfo.Name == v7.UpgradeName && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
+	if upgradeInfo.Name == upgrades.V7 && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
 		storeUpgrades := storetypes.StoreUpgrades{
 			Added: []string{
 				consensusparamtypes.StoreKey,

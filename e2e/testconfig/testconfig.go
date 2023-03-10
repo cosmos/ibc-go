@@ -6,6 +6,8 @@ import (
 	"os"
 	"strings"
 
+	tmjson "github.com/cometbft/cometbft/libs/json"
+	tmtypes "github.com/cometbft/cometbft/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module/testutil"
@@ -14,8 +16,6 @@ import (
 	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	"github.com/strangelove-ventures/interchaintest/v7/ibc"
-	tmjson "github.com/tendermint/tendermint/libs/json"
-	tmtypes "github.com/tendermint/tendermint/types"
 
 	"github.com/cosmos/ibc-go/e2e/relayer"
 	"github.com/cosmos/ibc-go/e2e/semverutil"
@@ -46,7 +46,7 @@ const (
 	defaultBinary = "simd"
 	// defaultRlyTag is the tag that will be used if no relayer tag is specified.
 	// all images are here https://github.com/cosmos/relayer/pkgs/container/relayer/versions
-	defaultRlyTag = "andrew-tendermint_v0.37" // "v2.2.0"
+	defaultRlyTag = "latest" // "andrew-tendermint_v0.37" // "v2.2.0"
 	// defaultChainTag is the tag that will be used for the chains if none is specified.
 	defaultChainTag = "main"
 	// defaultRelayerType is the default relayer that will be used if none is specified.
@@ -197,7 +197,6 @@ func DefaultChainOptions() ChainOptions {
 
 // newDefaultSimappConfig creates an ibc configuration for simd.
 func newDefaultSimappConfig(cc ChainConfig, name, chainID, denom string) ibc.ChainConfig {
-
 	return ibc.ChainConfig{
 		Type:    "cosmos",
 		Name:    name,
