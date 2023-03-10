@@ -250,8 +250,7 @@ func fromEnv() TestConfig {
 
 // getConfigFilePath returns the absolute path where the e2e config file should be.
 func getConfigFilePath() string {
-	absoluteConfigPath := os.Getenv(E2EConfigFilePath)
-	if absoluteConfigPath != "" {
+	if absoluteConfigPath := os.Getenv(E2EConfigFilePath); absoluteConfigPath != "" {
 		return absoluteConfigPath
 	}
 

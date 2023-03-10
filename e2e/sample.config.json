@@ -1,25 +1,47 @@
 {
-  "chains":[
+  "chains": [
     {
-      "chainId":"chain-a",
-      "numValidators":1,
-      "numFullNodes":0,
-      "image":"ghcr.io/cosmos/ibc-go-simd",
-      "tag":"main",
-      "binary":"simd"
+      "chainId": "chain-a",
+      "numValidators": 1,
+      "numFullNodes": 0,
+      "image": "ghcr.io/cosmos/ibc-go-simd",
+      "tag": "main",
+      "binary": "simd"
     },
     {
-      "chainId":"chain-b",
-      "numValidators":1,
-      "numFullNodes":0,
-      "image":"ghcr.io/cosmos/ibc-go-simd",
-      "tag":"main",
-      "binary":"simd"
+      "chainId": "chain-b",
+      "numValidators": 1,
+      "numFullNodes": 0,
+      "image": "ghcr.io/cosmos/ibc-go-simd",
+      "tag": "main",
+      "binary": "simd"
     }
   ],
-  "relayer":{
-    "type":"rly",
-    "image":"ghcr.io/cosmos/relayer",
-    "tag":"main"
-  }
+  "relayer": {
+    "type": "rly",
+    "image": "ghcr.io/cosmos/relayer",
+    "tag": "main"
+  },
+  "upgrades": [
+    {
+      "tag": "v7.0.0-rc0",
+      "planName": "v7"
+    },
+    {
+      "tag": "v7.0.0-rc1",
+      "planName": "v7"
+    },
+    {
+      "tag": "v7.0.0",
+      "planName": "v7"
+    },
+    {
+      "tag": "v0.4.1",
+      "planName": "ibc-go/v6"
+    },
+    {
+      "tag": "v5.1.0",
+      "planName": "normal upgrade"
+    }
+  ]
 }
