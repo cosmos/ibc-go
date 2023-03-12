@@ -462,6 +462,7 @@ func (s *E2ETestSuite) createCosmosChains(chainOptions testconfig.ChainOptions) 
 	t.Cleanup(func() {
 		diagnostics.Collect(t, s.DockerClient, chainOptions)
 	})
+
 	return chainA, chainB
 }
 
