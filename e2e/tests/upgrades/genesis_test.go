@@ -4,21 +4,16 @@ import (
 	"context"
 	"os"
 	"time"
-	// "os"
 	"encoding/json"
 	"testing"
 
 	"github.com/cosmos/ibc-go/e2e/testconfig"
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	tmjson "github.com/tendermint/tendermint/libs/json"
-
-	// interchaintest "github.com/strangelove-ventures/interchaintest/v7"
 	cosmos "github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
-	// "github.com/strangelove-ventures/interchaintest/v7/ibc"
 	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
 	"github.com/stretchr/testify/suite"
 
-	// "go.uber.org/zap/zaptest"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 )
 type GenesisState map[string]json.RawMessage
@@ -47,7 +42,7 @@ func (s *GenesisTestSuite) TestIBCGenesis() {
 
 	var (
 		chainADenom    = chainA.Config().Denom
-		// chainBIBCToken = testsuite.GetIBCToken(chainADenom, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID) // IBC token sent to chainB
+		chainBIBCToken = testsuite.GetIBCToken(chainADenom, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID) // IBC token sent to chainB
 
 		// chainBDenom    = chainB.Config().Denom
 		//chainAIBCToken = testsuite.GetIBCToken(chainBDenom, channelA.PortID, channelA.ChannelID) // IBC token sent to chainA
@@ -79,12 +74,34 @@ func (s *GenesisTestSuite) TestIBCGenesis() {
 		s.StartRelayer(relayer)
 	})
 
+	t.Run("packets are relayed", func(t *testing.T) {
+		s.AssertPacketRelayed(ctx, chainA, channelA.PortID, channelA.ChannelID, 1)
+
+		actualBalance, err := chainB.GetBalance(ctx, chainBAddress, chainBIBCToken.IBCDenom())
+		s.Require().NoError(err)
+
+		expected := testvalues.IBCTransferAmount
+		s.Require().Equal(expected, actualBalance)
+	})
+
 	s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA, chainB), "failed to wait for blocks")
 
 	t.Run("Halt chain and export genesis", func(t *testing.T) {
 		s.HaltChainAndExportGenesis(ctx, chainA, int64(haltHeight))
 	})
 
+	t.Run("restart relayer", func(t *testing.T) {
+		s.StopRelayer(ctx, relayer)
+		s.StartRelayer(relayer)
+	})
+
+	t.Run("native IBC token transfer from chainA to chainB, sender is source of tokens", func(t *testing.T) {
+		transferTxResp, err := s.Transfer(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, testvalues.DefaultTransferAmount(chainADenom), chainAAddress, chainBAddress, s.GetTimeoutHeight(ctx, chainB), 0, "")
+		s.Require().NoError(err)
+		s.AssertValidTxResponse(transferTxResp)
+	})
+
+	s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA, chainB), "failed to wait for blocks")
 }
 
 func (s *GenesisTestSuite) HaltChainAndExportGenesis(ctx context.Context, chain *cosmos.CosmosChain, haltHeight int64) {
@@ -102,7 +119,7 @@ func (s *GenesisTestSuite) HaltChainAndExportGenesis(ctx context.Context, chain 
 	s.Require().NoError(err, "error stopping node(s)")
 
 	state, err := chain.ExportState(ctx, int64(haltHeight))
-	println("check data: ", state)
+
 	s.Require().NoError(err)
 	err = tmjson.Unmarshal([]byte(state), &genesisState)
 	s.Require().NoError(err)
@@ -112,6 +129,25 @@ func (s *GenesisTestSuite) HaltChainAndExportGenesis(ctx context.Context, chain 
 	err = WriteFile("genesis.json", genesisJson)
 	s.Require().NoError(err)
 
+	for _, node := range chain.FullNodes {
+		err = node.UnsafeResetAll(ctx)
+		s.Require().NoError(err)
+	}
+
+	// we are reinitializing the clients because we need to update the hostGRPCAddress after
+	// halt chain and subsequent restarting of nodes
+	s.InitGRPCClients(chain)
+
+	timeoutCtx, timeoutCtxCancel = context.WithTimeout(ctx, time.Minute*2)
+	defer timeoutCtxCancel()
+
+	err = test.WaitForBlocks(timeoutCtx, int(blocksAfterUpgrade), chain)
+	s.Require().NoError(err, "chain did not produce blocks after halt")
+
+	height, err = chain.Height(ctx)
+	s.Require().NoError(err, "error fetching height after halt")
+
+	s.Require().Greater(height, haltHeight, "height did not increment after halt")
 }
 
 func WriteFile(path string, body []byte) error {
