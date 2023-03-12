@@ -1,7 +1,7 @@
 package types_test
 
 import (
-	"encoding/base64"
+	"encoding/hex"
 	"time"
 
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
@@ -13,7 +13,7 @@ import (
 	tmtypes "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 	wasmtypes "github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
-	//ibcmock "github.com/cosmos/ibc-go/v7/testing/mock"
+	ibcmock "github.com/cosmos/ibc-go/v7/testing/mock"
 )
 func (suite *WasmTestSuite) TestStatus() {
 	testCases := []struct {
@@ -22,25 +22,51 @@ func (suite *WasmTestSuite) TestStatus() {
 		expStatus exported.Status
 	}{
 		{"client is active", func() {}, exported.Active},
-		/*{"client is frozen", func() {
-			clientState.FrozenHeight = clienttypes.NewHeight(0, 1)
-			path.EndpointA.SetClientState(clientState)
+		{"client is frozen", func() {
+			cs, err := hex.DecodeString(suite.testData["client_state_frozen"])
+			suite.Require().NoError(err)
+
+			frozenClientState := wasmtypes.ClientState{
+				Data: cs,
+				CodeId: suite.codeId,
+				LatestHeight: clienttypes.Height{
+					RevisionNumber: 2000,
+					RevisionHeight: 5,
+				},
+			}
+
+			suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.ctx, "08-wasm-0", &frozenClientState)
 		}, exported.Frozen},
 		{"client status without consensus state", func() {
-			clientState.LatestHeight = clientState.LatestHeight.Increment().(clienttypes.Height)
-			path.EndpointA.SetClientState(clientState)
+			cs, err := hex.DecodeString(suite.testData["client_state_no_consensus"])
+			suite.Require().NoError(err)
+
+			clientState := wasmtypes.ClientState{
+				Data: cs,
+				CodeId: suite.codeId,
+				LatestHeight: clienttypes.Height{
+					RevisionNumber: 2000,
+					RevisionHeight: 36, // This doesn't matter, but the grandpa client state is set to this
+				},
+			}
+			
+			suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.ctx, "08-wasm-0", &clientState)
 		}, exported.Expired},
-		{"client status is expired", func() {
+		// ics10-grandpa client state doesn't have a trusting period, so this might be removed
+		/*{"client status is expired", func() {
 			suite.coordinator.IncrementTimeBy(clientState.TrustingPeriod)
 		}, exported.Expired},*/
 	}
 
 	for _, tc := range testCases {
-		tc.malleate()
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupWithChannel()
+			tc.malleate()
 
-		status := suite.clientState.Status(suite.chainA.GetContext(), suite.store, suite.chainA.App.AppCodec())
-		suite.Require().Equal(tc.expStatus, status)
-
+			status := suite.clientState.Status(suite.ctx, suite.store, suite.chainA.App.AppCodec())
+			suite.Require().Equal(tc.expStatus, status)
+		})
 	}
 }
 
@@ -135,7 +161,7 @@ func (suite *WasmTestSuite) TestInitialize() {
 	}
 }
 
-func (suite *WasmTestSuite) TestVerifyMemership() {
+func (suite *WasmTestSuite) TestVerifyMembership() {
 	var (
 		clientState exported.ClientState
 		err    error
@@ -143,52 +169,14 @@ func (suite *WasmTestSuite) TestVerifyMemership() {
 		path   exported.Path
 		proof  []byte
 		value  []byte
+		delayTimePeriod uint64
+		delayBlockPeriod uint64
 	)
 	clientID := "07-tendermint-0"
 	connectionID := "connection-0"
 	channelID := "channel-0"
 	portID := "transfer"
 	pathPrefix := "ibc/"
-	delayTimePeriod := uint64(0)
-	delayBlockPeriod := uint64(0)
-
-	clientStateSetup := func() {
-		clientState = suite.clientState
-
-		height = clienttypes.NewHeight(2000, 10)
-		key := host.FullClientStateKey(clientID)
-		merklePath := commitmenttypes.NewMerklePath(string(key))
-		path = commitmenttypes.NewMerklePath(append([]string{pathPrefix}, merklePath.KeyPath...)...) 
-		suite.Require().NoError(err)
-
-		proof = make([]byte, base64.StdEncoding.DecodedLen(len(suite.testData["client_state_proof"])))
-		_, err = base64.StdEncoding.Decode(proof, []byte(suite.testData["client_state_proof"]))
-		suite.Require().NoError(err)
-
-		value, err = suite.chainA.Codec.MarshalInterface(&tmtypes.ClientState{
-			ChainId: "simd",
-			TrustLevel: tmtypes.Fraction{
-				Numerator: 1,
-				Denominator: 3,
-			},
-			TrustingPeriod: time.Duration(time.Second * 64000),
-			UnbondingPeriod: time.Duration(time.Second * 1814400),
-			MaxClockDrift: time.Duration(time.Second * 15),
-			FrozenHeight: clienttypes.Height{
-				RevisionNumber: 0,
-				RevisionHeight: 0,
-			},
-			LatestHeight: clienttypes.Height{
-				RevisionNumber: 0,
-				RevisionHeight: 36,
-			},
-			ProofSpecs: commitmenttypes.GetSDKSpecs(),
-			UpgradePath: []string{"upgrade", "upgradedIBCState"},
-			AllowUpdateAfterExpiry: false,
-			AllowUpdateAfterMisbehaviour: false,
-		})
-		suite.Require().NoError(err)
-	}
 
 	testCases := []struct {
 		name    string
@@ -198,33 +186,9 @@ func (suite *WasmTestSuite) TestVerifyMemership() {
 		{
 			"successful ClientState verification",
 			func() {
-				clientStateSetup()
 			},
 			true,
 		},
-		/*{
-			"successful ConsensusState verification",
-			func() {
-
-				clientState = suite.clientState
-
-				height = clienttypes.NewHeight(2000, 10)
-				key := host.FullConsensusStatePath(clientID, height)
-				merklePath := commitmenttypes.NewMerklePath(key)
-				path = commitmenttypes.NewMerklePath(append([]string{pathPrefix}, merklePath.KeyPath...)...) 
-				suite.Require().NoError(err)
-
-				proof = make([]byte, base64.StdEncoding.DecodedLen(len(suite.testData["consensus_state_proof"])))
-				_, err = base64.StdEncoding.Decode(proof, []byte(suite.testData["consensus_state_proof"]))
-				suite.Require().NoError(err)
-
-				value, err = suite.chainA.Codec.MarshalInterface(&tmtypes.ConsensusState{
-
-				})
-				suite.Require().NoError(err)
-			},
-			true,
-		},*/
 		{
 			"successful Connection verification",
 			func() {
@@ -237,8 +201,7 @@ func (suite *WasmTestSuite) TestVerifyMemership() {
 				path = commitmenttypes.NewMerklePath(append([]string{pathPrefix}, merklePath.KeyPath...)...) 
 				suite.Require().NoError(err)
 
-				proof = make([]byte, base64.StdEncoding.DecodedLen(len(suite.testData["connection_proof_ack"])))
-				_, err = base64.StdEncoding.Decode(proof, []byte(suite.testData["connection_proof_ack"]))
+				proof, err = hex.DecodeString(suite.testData["connection_proof_ack"])
 				suite.Require().NoError(err)
 
 				value, err = suite.chainA.Codec.Marshal(&types.ConnectionEnd{
@@ -267,8 +230,7 @@ func (suite *WasmTestSuite) TestVerifyMemership() {
 				merklePath := commitmenttypes.NewMerklePath(key)
 				path = commitmenttypes.NewMerklePath(append([]string{pathPrefix}, merklePath.KeyPath...)...) 
 
-				proof = make([]byte, base64.StdEncoding.DecodedLen(len(suite.testData["channel_proof_try"])))
-				_, err = base64.StdEncoding.Decode(proof, []byte(suite.testData["channel_proof_try"]))
+				proof, err = hex.DecodeString(suite.testData["channel_proof_try"])
 				suite.Require().NoError(err)
 
 				value, err = suite.chainA.Codec.Marshal(&channeltypes.Channel{
@@ -285,17 +247,14 @@ func (suite *WasmTestSuite) TestVerifyMemership() {
 			},
 			true,
 		},
-		/*{
+		{
 			"successful PacketCommitment verification",
 			func() {
-
 				clientState = suite.clientState
 
-				data := make([]byte, base64.StdEncoding.DecodedLen(len(suite.testData["packet_commitment_data"])))
-				_, err = base64.StdEncoding.Decode(data, []byte(suite.testData["packet_commitment_data"]))
+				data, err := hex.DecodeString(suite.testData["packet_commitment_data"])
 				suite.Require().NoError(err)
 
-				fmt.Println("Data: ", string(data))
 				height = clienttypes.NewHeight(2000, 35)
 				packet := channeltypes.NewPacket(
 					data,
@@ -306,110 +265,136 @@ func (suite *WasmTestSuite) TestVerifyMemership() {
 				merklePath := commitmenttypes.NewMerklePath(key)
 				path = commitmenttypes.NewMerklePath(append([]string{pathPrefix}, merklePath.KeyPath...)...) 
 
-				proof = make([]byte, base64.StdEncoding.DecodedLen(len(suite.testData["packet_commitment_proof"])))
-				_, err = base64.StdEncoding.Decode(proof, []byte(suite.testData["packet_commitment_proof"]))
+				proof, err = hex.DecodeString(suite.testData["packet_commitment_proof"])
 				suite.Require().NoError(err)
 				
 				value = channeltypes.CommitPacket(suite.chainA.App.GetIBCKeeper().Codec(), packet)
 			},
 			true,
-		},*/
-		/*{
+		},
+		{
 			"successful Acknowledgement verification",
 			func() {
-
 				clientState = suite.clientState
 
-				data := make([]byte, base64.StdEncoding.DecodedLen(len(suite.testData["acknowledgement"])))
-				_, err = base64.StdEncoding.Decode(data, []byte(suite.testData["acknowledgement"]))
+				data, err := hex.DecodeString(suite.testData["ack_data"])
 				suite.Require().NoError(err)
 
 				height = clienttypes.NewHeight(2000, 32)
 				packet := channeltypes.NewPacket(
 					data,
-					//[]byte(suite.testData["packet_commitment_data"]),
-					1, portID, channelID, portID, channelID, clienttypes.NewHeight(2000, 1025),
+					uint64(1), portID, channelID, portID, channelID, clienttypes.NewHeight(2000, 1025),
 					1678305199550951251,
 				)
 				key := host.PacketAcknowledgementKey(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 				merklePath := commitmenttypes.NewMerklePath(string(key))
 				path = commitmenttypes.NewMerklePath(append([]string{pathPrefix}, merklePath.KeyPath...)...) 
 
-				proof = make([]byte, base64.StdEncoding.DecodedLen(len(suite.testData["acknowledgement_proof"])))
-				_, err = base64.StdEncoding.Decode(proof, []byte(suite.testData["acknowledgement_proof"]))
+				proof, err = hex.DecodeString(suite.testData["ack_proof"])
 				suite.Require().NoError(err)
 
-				value = []byte(suite.testData["acknowledgement"])//data//channeltypes.CommitPacket(suite.chainA.App.GetIBCKeeper().Codec(), packet)
+				value, err = hex.DecodeString(suite.testData["ack"])
+				suite.Require().NoError(err)
+				value = channeltypes.CommitAcknowledgement(value)
 			},
 			true,
-		},*/
+		},
 		{
 			"delay time period has passed", func() {
-				clientStateSetup()
 				delayTimePeriod = uint64(time.Second.Nanoseconds())
 			},
 			true,
 		},
+		//  Error: An error is expected but got nil (i.e. succeeds, but shouldn't)
 		/*{
 			"delay time period has not passed", func() {
-				clientStateSetup()
 				delayTimePeriod = uint64(time.Hour.Nanoseconds())
 			},
 			false,
 		},*/
 		{
 			"delay block period has passed", func() {
-				clientStateSetup()
 				delayBlockPeriod = 1
 			},
 			true,
 		},
+		// Error: An error is expected but got nil.
 		/*{
 			"delay block period has not passed", func() {
-				clientStateSetup()
 				delayBlockPeriod = 1000
 			},
 			false,
 		},*/
 		{
 			"latest client height < height", func() {
-				clientStateSetup()
 				height = height.Increment()
 			}, false,
 		},
-		/*{ // Panics
+		{
 			"invalid path type",
 			func() {
-				clientStateSetup()
 				path = ibcmock.KeyPath{}
 			},
 			false,
-		},*/
-		/*{ // Panics
+		},
+		{
 			"failed to unmarshal merkle proof", func() {
-				clientStateSetup()
 				proof = []byte("invalid proof")
 			}, false,
-		},*/
-		/*{ //Panics
+		},
+		{
 			"consensus state not found", func() {
-				clientStateSetup()
 				height = clienttypes.ZeroHeight()
 			}, false,
-		},*/
-		/*{ // Panics
+		},
+		{
 			"proof verification failed", func() {
-				clientStateSetup()
 				// change the value being proved
 				value = []byte("invalid value")
 			}, false,
-		},*/
+		},
 	}
 
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(tc.name, func() {
 			suite.SetupWithChannel() // reset
+			clientState = suite.clientState
+
+			delayTimePeriod = 0
+			delayBlockPeriod = 0
+			height = clienttypes.NewHeight(2000, 10)
+			key := host.FullClientStateKey(clientID)
+			merklePath := commitmenttypes.NewMerklePath(string(key))
+			path = commitmenttypes.NewMerklePath(append([]string{pathPrefix}, merklePath.KeyPath...)...) 
+
+			proof, err = hex.DecodeString(suite.testData["client_state_proof"])
+			suite.Require().NoError(err)
+
+			value, err = suite.chainA.Codec.MarshalInterface(&tmtypes.ClientState{
+				ChainId: "simd",
+				TrustLevel: tmtypes.Fraction{
+					Numerator: 1,
+					Denominator: 3,
+				},
+				TrustingPeriod: time.Duration(time.Second * 64000),
+				UnbondingPeriod: time.Duration(time.Second * 1814400),
+				MaxClockDrift: time.Duration(time.Second * 15),
+				FrozenHeight: clienttypes.Height{
+					RevisionNumber: 0,
+					RevisionHeight: 0,
+				},
+				LatestHeight: clienttypes.Height{
+					RevisionNumber: 0,
+					RevisionHeight: 36,
+				},
+				ProofSpecs: commitmenttypes.GetSDKSpecs(),
+				UpgradePath: []string{"upgrade", "upgradedIBCState"},
+				AllowUpdateAfterExpiry: false,
+				AllowUpdateAfterMisbehaviour: false,
+			})
+			suite.Require().NoError(err)
+
 			tc.setup()
 
 			err = clientState.VerifyMembership(
@@ -434,47 +419,162 @@ func (suite *WasmTestSuite) TestVerifyNonMembership() {
 		height exported.Height
 		path   exported.Path
 		proof  []byte
+		delayTimePeriod uint64
+		delayBlockPeriod uint64
 	)
-	//clientID := "07-tendermint-0"
-	//connectionID := "connection-0"
-	//channelID := "channel-0"
-	//portID := "transfer"
+	clientID := "07-tendermint-0"
+	portID := "transfer"
+	invalidClientID := "09-tendermint-0"
+	invalidConnectionID := "connection-100"
+	invalidChannelID    := "channel-800"
 	pathPrefix := "ibc/"
-	delayTimePeriod := uint64(0)
-	delayBlockPeriod := uint64(0)
-
-	clientStateSetup := func() {
-		clientState = suite.clientState
-
-		height = clienttypes.NewHeight(2000, 10)
-		key := host.FullClientStateKey("invalid-client-id")
-		merklePath := commitmenttypes.NewMerklePath(string(key))
-		path = commitmenttypes.NewMerklePath(append([]string{pathPrefix}, merklePath.KeyPath...)...) 
-		suite.Require().NoError(err)
-		proof = make([]byte, base64.StdEncoding.DecodedLen(len(suite.testData["client_state_proof"])))
-		_, err = base64.StdEncoding.Decode(proof, []byte(suite.testData["client_state_proof"]))
-		suite.Require().NoError(err)
-	}
 
 	testCases := []struct {
 		name    string
 		setup   func()
 		expPass bool
 	}{
-		/*{
+		{
 			"successful ClientState verification of non membership",
 			func() {
 			},
 			true,
+		},
+		{
+			"successful ConsensusState verification of non membership", func() {
+				height = clienttypes.NewHeight(2000, 10)
+				key := host.FullConsensusStateKey(invalidClientID, suite.clientState.GetLatestHeight())
+				merklePath := commitmenttypes.NewMerklePath(string(key))
+				path = commitmenttypes.NewMerklePath(append([]string{pathPrefix}, merklePath.KeyPath...)...) 
+
+				proof, err = hex.DecodeString(suite.testData["client_state_proof"])
+				suite.Require().NoError(err)
+			},
+			true,
+		},
+		{
+			"successful Connection verification of non membership", func() {
+				height = clienttypes.NewHeight(2000, 16)
+				key := host.ConnectionKey(invalidConnectionID)
+				merklePath := commitmenttypes.NewMerklePath(string(key))
+				path = commitmenttypes.NewMerklePath(append([]string{pathPrefix}, merklePath.KeyPath...)...) 
+
+				proof, err = hex.DecodeString(suite.testData["connection_proof_ack"])
+				suite.Require().NoError(err)
+			},
+			true,
+		},
+		{
+			"successful Channel verification of non membership", func() {
+				height = clienttypes.NewHeight(2000, 23)
+				key := host.ChannelKey(portID, invalidChannelID)
+				merklePath := commitmenttypes.NewMerklePath(string(key))
+				path = commitmenttypes.NewMerklePath(append([]string{pathPrefix}, merklePath.KeyPath...)...) 
+
+				proof, err = hex.DecodeString(suite.testData["channel_proof_try"])
+				suite.Require().NoError(err)
+			},
+			true,
+		},
+		{
+			"successful PacketCommitment verification of non membership", func() {
+				height = clienttypes.NewHeight(2000, 35)
+				key := host.PacketCommitmentKey(portID, invalidChannelID, 1)
+				merklePath := commitmenttypes.NewMerklePath(string(key))
+				path = commitmenttypes.NewMerklePath(append([]string{pathPrefix}, merklePath.KeyPath...)...) 
+
+				proof, err = hex.DecodeString(suite.testData["packet_commitment_proof"])
+				suite.Require().NoError(err)
+			}, true,
+		},
+		{
+			"successful Acknowledgement verification of non membership", func() {
+				height = clienttypes.NewHeight(2000, 32)
+				key := host.PacketAcknowledgementKey(portID, invalidChannelID, 1)
+				merklePath := commitmenttypes.NewMerklePath(string(key))
+				path = commitmenttypes.NewMerklePath(append([]string{pathPrefix}, merklePath.KeyPath...)...) 
+
+				proof, err = hex.DecodeString(suite.testData["ack_proof"])
+				suite.Require().NoError(err)
+			},
+			true,
+		},
+		{
+			"delay time period has passed", func() {
+				delayTimePeriod = uint64(time.Second.Nanoseconds())
+			},
+			true,
+		},
+		// Succeeds when it shouldn't
+		/*{
+			"delay time period has not passed", func() {
+				delayTimePeriod = uint64(time.Hour.Nanoseconds())
+			},
+			false,
 		},*/
-		// Once this first test passes, add most of the next 16 from tm test case
+		{
+			"delay block period has passed", func() {
+				delayBlockPeriod = 1
+			},
+			true,
+		},
+		// Succeeds when it shouldn't
+		/*{
+			"delay block period has not passed", func() {
+				delayBlockPeriod = 1000
+			},
+			false,
+		},*/
+		{
+			"latest client height < height", func() {
+				height = clientState.GetLatestHeight().Increment()
+			}, false,
+		},
+		{
+			"invalid path type",
+			func() {
+				path = ibcmock.KeyPath{}
+			},
+			false,
+		},
+		{
+			"failed to unmarshal merkle proof", func() {
+				proof = []byte("invalid proof")
+			}, false,
+		},
+		{
+			"consensus state not found", func() {
+				height = clienttypes.ZeroHeight()
+			}, false,
+		},
+		{
+			"verify non membership fails as path exists", func() {
+				height = clienttypes.NewHeight(2000, 10)
+				// change the value being proved
+				key := host.FullClientStateKey(clientID)
+				merklePath := commitmenttypes.NewMerklePath(string(key))
+				path = commitmenttypes.NewMerklePath(append([]string{pathPrefix}, merklePath.KeyPath...)...) 
+
+				proof, err = hex.DecodeString(suite.testData["client_state_proof"])
+				suite.Require().NoError(err)
+			}, false,
+		},
 	}
 
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(tc.name, func() {
 			suite.SetupWithChannel() // reset
-			clientStateSetup()
+
+			clientState = suite.clientState
+			delayTimePeriod = 0
+			delayBlockPeriod = 0
+			height = clienttypes.NewHeight(2000, 10)
+			key := host.FullClientStateKey(invalidClientID)
+			merklePath := commitmenttypes.NewMerklePath(string(key))
+			path = commitmenttypes.NewMerklePath(append([]string{pathPrefix}, merklePath.KeyPath...)...) 
+			proof, err = hex.DecodeString(suite.testData["client_state_proof"])
+			suite.Require().NoError(err)
 			tc.setup()
 
 			err = clientState.VerifyNonMembership(

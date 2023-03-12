@@ -22,7 +22,6 @@ import (
 	"github.com/stretchr/testify/suite"
 	tmjson "github.com/tendermint/tendermint/libs/json"
 	"github.com/tendermint/tendermint/libs/log"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtypes "github.com/tendermint/tendermint/types"
 	dbm "github.com/tendermint/tm-db"
 )
@@ -77,9 +76,10 @@ func SetupTestingWithChannel() (ibctesting.TestingApp, map[string]json.RawMessag
 func (suite *WasmTestSuite) SetupWithChannel() {
 	ibctesting.DefaultTestingAppInit = SetupTestingWithChannel
     suite.SetupTest()
-	clientState, ok := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.chainA.GetContext(), "08-wasm-0")
+	clientState, ok := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.ctx, "08-wasm-0")
 	if ok {
 		suite.clientState = clientState
+		suite.clientState.(*wasmtypes.ClientState).CodeId = suite.codeId
 	}
 }
 
@@ -103,8 +103,8 @@ func (suite *WasmTestSuite) SetupTest() {
 	err = json.Unmarshal(createClientData, &suite.testData)
 	suite.Require().NoError(err)
 	
-	suite.ctx = suite.chainA.App.GetBaseApp().NewContext(checkTx, tmproto.Header{Height: 1, Time: suite.now}).WithGasMeter(sdk.NewInfiniteGasMeter())
-	suite.store = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), "08-wasm-0")
+	suite.ctx = suite.chainA.GetContext().WithGasMeter(sdk.NewInfiniteGasMeter())
+	suite.store = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, "08-wasm-0")
 
 	os.MkdirAll("tmp", 0o755)
 	suite.wasmKeeper = suite.chainA.App.GetWasmKeeper()
@@ -117,13 +117,11 @@ func (suite *WasmTestSuite) SetupTest() {
 	suite.Require().NotNil(response.CodeId)
 	suite.codeId = response.CodeId
 
-	//clientStateData := make([]byte, base64.StdEncoding.DecodedLen(len(suite.testData["create_client_client_state_data"])))
-	//_, err = base64.StdEncoding.Decode(clientStateData, []byte(suite.testData["create_client_client_state_data"]))
-	//suite.Require().NoError(err)
-
+	clientStateData, err := hex.DecodeString(suite.testData["client_state_data"])
+	suite.Require().NoError(err)
 
 	wasmClientState := wasmtypes.ClientState{
-		Data:   []byte(suite.testData["create_client_client_state_data"]),//clientStateData,
+		Data:   clientStateData,
 		CodeId: response.CodeId,
 		LatestHeight: clienttypes.Height{
 			RevisionNumber: 2000,
@@ -175,12 +173,6 @@ func (suite *WasmTestSuite) TestQueryWasmCode() {
 	suite.Require().NoError(err)
 	suite.Require().NotNil(res.Code)
 }
-
-/*func (suite *WasmTestSuite) TestWasm() {
-	suite.Run("Init contract", func() {
-		suite.SetupTest()
-	})
-}*/
 
 func TestWasmTestSuite(t *testing.T) {
 	suite.Run(t, new(WasmTestSuite))
