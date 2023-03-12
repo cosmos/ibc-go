@@ -33,9 +33,29 @@ func (c ClientState) Validate() error {
 	return nil
 }
 
-// TODO call into the contract here to get the status once it is implemented in the contract, for now, returns active
+type statusPayloadInner struct {}
+type statusPayload struct {
+	Status statusPayloadInner `json:"status"`
+}
 func (c ClientState) Status(ctx sdk.Context, store sdk.KVStore, cdc codec.BinaryCodec) exported.Status {
-	return exported.Active
+	status := exported.Unknown
+	payload := statusPayload{Status: statusPayloadInner{}}
+
+	encodedData, err := json.Marshal(payload)
+	if err != nil {
+		return status
+	}
+
+	response, err := queryContractWithStore(c.CodeId, ctx, store, encodedData)
+	if err != nil {
+		return status
+	}
+	output := queryResponse{}
+	if err := json.Unmarshal(response, &output); err != nil {
+		return status
+	}
+	
+	return output.Status
 }
 
 func (c ClientState) ZeroCustomFields() exported.ClientState {
