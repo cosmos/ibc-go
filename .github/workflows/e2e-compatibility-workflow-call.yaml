@@ -46,7 +46,7 @@ jobs:
       - name: Run e2e Test
         run: |
           cd e2e
-          make e2e-test entrypoint=${{ matrix.entrypoint }} test=${{ matrix.test }}
+          make e2e-test test=${{ matrix.test }}
         env:
           # each test has its own set of variables to specify which images are used.
           CHAIN_IMAGE: "${{ matrix.chain-image }}"
