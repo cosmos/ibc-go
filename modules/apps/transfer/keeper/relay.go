@@ -382,7 +382,7 @@ func (k Keeper) refundPacketToken(ctx sdk.Context, packet channeltypes.Packet, d
 		// get the existing total amount in escrow
 		currentTotalEscrow := k.GetTotalEscrowForDenom(ctx, token.GetDenom())
 		newTotalEscrow := currentTotalEscrow.Sub(token.Amount)
-
+		fmt.Println("SISHIR: ", token.GetDenom(), newTotalEscrow)
 		// store the new total amount in escrow
 		k.SetTotalEscrowForDenom(ctx, token.GetDenom(), newTotalEscrow)
 

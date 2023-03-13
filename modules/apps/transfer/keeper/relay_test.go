@@ -490,7 +490,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacketSetsTotalEscrowAmountForSourceIBCT
 	// execute and assert (an attempt to set total escrow will panic because amount will
 	// be negative, since non-native token denominations are not tracked on send transfer)
 	var err error
-	suite.Require().NotPanics(func() {
+	suite.Require().Panics(func() {
 		err = suite.chainB.GetSimApp().TransferKeeper.OnRecvPacket(suite.chainB.GetContext(), packet, data)
 	})
 	suite.Require().NoError(err)
@@ -682,7 +682,7 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacketSetsTotalEscrowAmountFo
 	// execute and assert (an attempt to set total escrow will panic because amount will
 	// be negative, since non-native token denominations are not tracked on send transfer)
 	var err error
-	suite.Require().NotPanics(func() {
+	suite.Require().Panics(func() {
 		err = suite.chainB.GetSimApp().TransferKeeper.OnAcknowledgementPacket(suite.chainB.GetContext(), packet, data, ack)
 	})
 	suite.Require().NoError(err)
@@ -878,7 +878,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacketSetsTotalEscrowAmountForSourceI
 	// execute and assert (an attempt to set total escrow will panic because amount will
 	// be negative, since non-native token denominations are not tracked on send transfer)
 	var err error
-	suite.Require().NotPanics(func() {
+	suite.Require().Panics(func() {
 		err = suite.chainB.GetSimApp().TransferKeeper.OnTimeoutPacket(suite.chainB.GetContext(), packet, data)
 	})
 	suite.Require().NoError(err)
