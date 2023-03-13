@@ -420,6 +420,12 @@ func (suite *TendermintTestSuite) TestVerifyMembership() {
 				value = []byte("invalid value")
 			}, false,
 		},
+		{
+			"proof is empty", func() {
+				// change the inserted proof
+				proof = []byte{}
+			}, false,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -629,6 +635,12 @@ func (suite *TendermintTestSuite) TestVerifyNonMembership() {
 				suite.Require().NoError(err)
 
 				proof, proofHeight = suite.chainB.QueryProof(key)
+			}, false,
+		},
+		{
+			"proof is empty", func() {
+				// change the inserted proof
+				proof = []byte{}
 			}, false,
 		},
 	}
