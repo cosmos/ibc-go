@@ -64,7 +64,7 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", "x/"+exported.ModuleName+"-"+types.ModuleName)
 }
 
-// HasCapability checks if the transfer module is already bound to the desired port
+// HasCapability checks if the transfer module owns the port capability for the desired port
 func (k Keeper) HasCapability(ctx sdk.Context, portID string) bool {
 	_, ok := k.scopedKeeper.GetCapability(ctx, host.PortPath(portID))
 	return ok
