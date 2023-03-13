@@ -51,6 +51,32 @@ func (iapd InterchainAccountPacketData) GetBytes() []byte {
 	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(&iapd))
 }
 
+/**
+
+ADR-8 CallbackPacketData implementation
+
+InterchainAccountPacketData implements CallbackPacketDataI interface. This will allow middlewares targetting specific VMs
+to retrieve the desired callback addresses for the ICA packet on the source and destination chains.
+
+The Memo is used to set the desired callback addresses.
+
+The Memo format is defined like so:
+
+```json
+{
+	// ... other memo fields we don't care about
+	"callbacks": {
+		"src_callback_address": {contractAddrOnSrcChain},
+		"dest_callback_address": {contractAddrOnDestChain},
+		"src_callback_msg": {jsonObjectForSrcChainCallback},
+		"dest_callback_msg": {jsonObjectForDestChainCallback},
+	}
+
+}
+```
+
+**/
+
 // ADR-8 middleware should callback on the sender address on the source chain
 // if the sender address is an IBC Actor (i.e. smart contract that accepts IBC callbacks)
 func (iapd InterchainAccountPacketData) GetSrcCallbackAddress() (addr string) {

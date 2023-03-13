@@ -67,8 +67,42 @@ func (ftpd FungibleTokenPacketData) GetBytes() []byte {
 	return sdk.MustSortJSON(mustProtoMarshalJSON(&ftpd))
 }
 
+/**
+
+ADR-8 CallbackPacketData implementation
+
+FungibleTokenPacketData implements CallbackPacketDataI interface. This will allow middlewares targetting specific VMs
+to retrieve the desired callback addresses for the ICS20 packet on the source and destination chains.
+
+The Memo is used to ensure that the callback is desired by the user. This allows a user to send an ICS20 packet
+to a contract with ADR-8 enabled without automatically triggering the callback logic which may lead to unexpected
+behaviour.
+
+The Memo format is defined like so:
+
+```json
+{
+	// ... other memo fields we don't care about
+	"callbacks": {
+		"src_callback_address": {contractAddrOnSrcChain},
+		"dest_callback_address": {contractAddrOnDestChain},
+		"src_callback_msg": {jsonObjectForSrcChainCallback},
+		"dest_callback_msg": {jsonObjectForDestChainCallback},
+	}
+
+}
+```
+
+For transfer, we will enforce that the src_callback_address is the same as sender and dest_callback_address is the same as receiver.
+However, we may remove this restriction at a later date if it proves useful.
+
+**/
+
 // ADR-8 middleware should callback on the sender address on the source chain
 // if the sender address is an IBC Actor (i.e. smart contract that accepts IBC callbacks)
+// The desired callback address must be confirmed in the memo under the "callbacks" key.
+// This ensures that the callback is explicitly desired by the user and not just called
+// automatically.
 func (ftpd FungibleTokenPacketData) GetSrcCallbackAddress() (addr string) {
 	if len(ftpd.Memo) == 0 {
 		return
@@ -94,6 +128,9 @@ func (ftpd FungibleTokenPacketData) GetSrcCallbackAddress() (addr string) {
 
 // ADR-8 middleware should callback on the receiver address on the destination chain
 // if the receiver address is an IBC Actor (i.e. smart contract that accepts IBC callbacks)
+// The desired callback address must be confirmed in the memo under the "callbacks" key.
+// This ensures that the callback is explicitly desired by the user and not just called
+// automatically.
 func (ftpd FungibleTokenPacketData) GetDestCallbackAddress() (addr string) {
 	if len(ftpd.Memo) == 0 {
 		return
