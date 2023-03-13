@@ -123,7 +123,7 @@ func (k Keeper) ChanOpenTry(
 	// verify that this is the first attempt to establish a connection with the proposed counterparty
 	// if a previous attempt was successful then abort this transaction and return the generated channelID of this chain in the error
 	if channelID := k.GetExistingChannelID(ctx, portID, counterparty.ChannelId); channelID != "" {
-		return "", nil, sdkerrors.Wrapf(types.ErrRedundantHandshake, "channelID: %s was already established for the given counterparty", channelID)
+		return "", nil, errorsmod.Wrapf(types.ErrRedundantHandshake, "channelID: %s was already established for the given counterparty", channelID)
 	}
 
 	// generate a new channel
@@ -310,7 +310,7 @@ func (k Keeper) WriteOpenAckChannel(
 	// we no longer need to store it for redundancy protection
 	k.DeleteExistingChannelID(ctx, portID, counterpartyChannelID)
 
-	EmitChannelOpenAckEvent(ctx, portID, channelID, channel)
+	emitChannelOpenAckEvent(ctx, portID, channelID, channel)
 }
 
 // ChanOpenConfirm is called by the counterparty module to close their end of the
@@ -394,7 +394,7 @@ func (k Keeper) WriteOpenConfirmChannel(
 	// we no longer need to store it for redundancy protection
 	k.DeleteExistingChannelID(ctx, portID, channel.Counterparty.ChannelId)
 
-	EmitChannelOpenConfirmEvent(ctx, portID, channelID, channel)
+	emitChannelOpenConfirmEvent(ctx, portID, channelID, channel)
 }
 
 // Closing Handshake
