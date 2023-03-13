@@ -1,6 +1,6 @@
 package exported
 
-type CallbackPacketData interface {
+type CallbackPacketDataI interface {
 	// may return the empty string
 	GetSrcCallbackAddress() string
 

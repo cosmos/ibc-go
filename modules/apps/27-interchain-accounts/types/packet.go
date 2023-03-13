@@ -7,6 +7,7 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
 // MaxMemoCharLength defines the maximum length for the InterchainAccountPacketData memo field
@@ -24,6 +25,8 @@ var (
 	// timeout.
 	DefaultRelativePacketTimeoutTimestamp = uint64((time.Duration(10) * time.Minute).Nanoseconds())
 )
+
+var _ exported.CallbackPacketDataI = (*InterchainAccountPacketData)(nil)
 
 // ValidateBasic performs basic validation of the interchain account packet data.
 // The memo may be empty.
