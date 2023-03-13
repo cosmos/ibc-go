@@ -20,8 +20,8 @@ Add the following to the function call to the upgrade handler in `app/app.go`, t
 
 ```go
 import (
-    // ...
-    ibctmmigrations "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint/migrations"
+  // ...
+  ibctmmigrations "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint/migrations"
 )
 
 // ...
@@ -52,8 +52,8 @@ To register the tendermint client, modify the `app.go` file to include the tende
 
 ```diff
 import (
-    // ...
-+   ibctm "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint"
+  // ...
++ ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 )
 
 // ...
@@ -74,8 +74,8 @@ To register the solo machine client, modify the `app.go` file to include the sol
 
 ```diff
 import (
-    // ...
-+   solomachine "github.com/cosmos/ibc-go/v6/modules/light-clients/06-solomachine"
+  // ...
++ solomachine "github.com/cosmos/ibc-go/v7/modules/light-clients/06-solomachine"
 )
 
 // ...
@@ -273,10 +273,10 @@ IBC module constants have been moved from the `host` package to the `exported` p
 
 ```diff
 import (
-    // ...
--   host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
-+   ibcexported "github.com/cosmos/ibc-go/v6/modules/core/exported"
-    // ...
+  // ...
+- host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
++ ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
+  // ...
 )
 
 - host.ModuleName
