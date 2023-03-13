@@ -4,10 +4,10 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
-	"github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v6/modules/core/exported"
-	ibctm "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint"
-	ibctesting "github.com/cosmos/ibc-go/v6/testing"
+	"github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
+	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
 func (suite *KeeperTestSuite) TestClientUpdateProposal() {
@@ -179,13 +179,13 @@ func (suite *KeeperTestSuite) TestHandleUpgradeProposal() {
 		},
 		{
 			"cannot unpack client state", func() {
-				any, err := types.PackConsensusState(&ibctm.ConsensusState{})
+				protoAny, err := types.PackConsensusState(&ibctm.ConsensusState{})
 				suite.Require().NoError(err)
 				content = &types.UpgradeProposal{
 					Title:               ibctesting.Title,
 					Description:         ibctesting.Description,
 					Plan:                plan,
-					UpgradedClientState: any,
+					UpgradedClientState: protoAny,
 				}
 			}, false,
 		},

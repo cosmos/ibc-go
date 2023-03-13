@@ -5,14 +5,14 @@ import (
 	"fmt"
 	"strings"
 
+	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/query"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
+	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 )
 
 var _ types.QueryServer = Keeper{}
@@ -33,7 +33,7 @@ func (q Keeper) DenomTrace(c context.Context, req *types.QueryDenomTraceRequest)
 	if !found {
 		return nil, status.Error(
 			codes.NotFound,
-			sdkerrors.Wrap(types.ErrTraceNotFound, req.Hash).Error(),
+			errorsmod.Wrap(types.ErrTraceNotFound, req.Hash).Error(),
 		)
 	}
 
@@ -100,7 +100,7 @@ func (q Keeper) DenomHash(c context.Context, req *types.QueryDenomHashRequest) (
 	if !found {
 		return nil, status.Error(
 			codes.NotFound,
-			sdkerrors.Wrap(types.ErrTraceNotFound, req.Trace).Error(),
+			errorsmod.Wrap(types.ErrTraceNotFound, req.Trace).Error(),
 		)
 	}
 

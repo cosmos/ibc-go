@@ -10,7 +10,7 @@ The 02-client submodule contains the following parameters:
 
 | Key              | Type | Default Value |
 |------------------|------|---------------|
-| `AllowedClients`    | []string | `"06-solomachine","07-tendermint"`        |
+| `AllowedClients` | []string | `"06-solomachine","07-tendermint","09-localhost"` |
 
 ### AllowedClients
 

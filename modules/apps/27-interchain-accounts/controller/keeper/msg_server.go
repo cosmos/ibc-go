@@ -3,11 +3,11 @@ package keeper
 import (
 	"context"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	"github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/controller/types"
-	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
+	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
+	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
 )
 
 var _ types.MsgServer = msgServer{}
@@ -32,7 +32,7 @@ func (s msgServer) RegisterInterchainAccount(goCtx context.Context, msg *types.M
 	}
 
 	if s.IsMiddlewareEnabled(ctx, portID, msg.ConnectionId) && !s.IsActiveChannelClosed(ctx, msg.ConnectionId, portID) {
-		return nil, sdkerrors.Wrap(icatypes.ErrInvalidChannelFlow, "channel is already active or a handshake is in flight")
+		return nil, errorsmod.Wrap(icatypes.ErrInvalidChannelFlow, "channel is already active or a handshake is in flight")
 	}
 
 	s.SetMiddlewareDisabled(ctx, portID, msg.ConnectionId)
@@ -47,6 +47,7 @@ func (s msgServer) RegisterInterchainAccount(goCtx context.Context, msg *types.M
 
 	return &types.MsgRegisterInterchainAccountResponse{
 		ChannelId: channelID,
+		PortId:    portID,
 	}, nil
 }
 

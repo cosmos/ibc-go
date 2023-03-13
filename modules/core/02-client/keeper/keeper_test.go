@@ -5,25 +5,26 @@ import (
 	"testing"
 	"time"
 
+	tmbytes "github.com/cometbft/cometbft/libs/bytes"
+	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	tmtypes "github.com/cometbft/cometbft/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/stretchr/testify/suite"
-	tmbytes "github.com/tendermint/tendermint/libs/bytes"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-	tmtypes "github.com/tendermint/tendermint/types"
 
-	"github.com/cosmos/ibc-go/v6/modules/core/02-client/keeper"
-	"github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v6/modules/core/23-commitment/types"
-	"github.com/cosmos/ibc-go/v6/modules/core/exported"
-	solomachine "github.com/cosmos/ibc-go/v6/modules/light-clients/06-solomachine"
-	ibctm "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint"
-	ibctesting "github.com/cosmos/ibc-go/v6/testing"
-	ibctestingmock "github.com/cosmos/ibc-go/v6/testing/mock"
-	"github.com/cosmos/ibc-go/v6/testing/simapp"
+	"github.com/cosmos/ibc-go/v7/modules/core/02-client/keeper"
+	"github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	solomachine "github.com/cosmos/ibc-go/v7/modules/light-clients/06-solomachine"
+	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
+	localhost "github.com/cosmos/ibc-go/v7/modules/light-clients/09-localhost"
+	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	ibctestingmock "github.com/cosmos/ibc-go/v7/testing/mock"
+	"github.com/cosmos/ibc-go/v7/testing/simapp"
 )
 
 const (
@@ -236,9 +237,10 @@ func (suite *KeeperTestSuite) TestValidateSelfClient() {
 
 func (suite KeeperTestSuite) TestGetAllGenesisClients() { //nolint:govet // this is a test, we are okay with copying locks
 	clientIDs := []string{
-		testClientID2, testClientID3, testClientID,
+		exported.LocalhostClientID, testClientID2, testClientID3, testClientID,
 	}
 	expClients := []exported.ClientState{
+		localhost.NewClientState(types.GetSelfHeight(suite.chainA.GetContext())),
 		ibctm.NewClientState(testChainID, ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, types.ZeroHeight(), commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath),
 		ibctm.NewClientState(testChainID, ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, types.ZeroHeight(), commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath),
 		ibctm.NewClientState(testChainID, ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, types.ZeroHeight(), commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath),
@@ -418,22 +420,31 @@ func (suite KeeperTestSuite) TestIterateClientStates() { //nolint:govet // this 
 	testCases := []struct {
 		name         string
 		prefix       []byte
-		expClientIDs []string
+		expClientIDs func() []string
 	}{
 		{
 			"all clientIDs",
 			nil,
-			append(expSMClientIDs, expTMClientIDs...),
+			func() []string {
+				allClientIDs := []string{exported.LocalhostClientID}
+				allClientIDs = append(allClientIDs, expSMClientIDs...)
+				allClientIDs = append(allClientIDs, expTMClientIDs...)
+				return allClientIDs
+			},
 		},
 		{
 			"tendermint clientIDs",
 			[]byte(exported.Tendermint),
-			expTMClientIDs,
+			func() []string {
+				return expTMClientIDs
+			},
 		},
 		{
 			"solo machine clientIDs",
 			[]byte(exported.Solomachine),
-			expSMClientIDs,
+			func() []string {
+				return expSMClientIDs
+			},
 		},
 	}
 
@@ -446,7 +457,7 @@ func (suite KeeperTestSuite) TestIterateClientStates() { //nolint:govet // this 
 				return false
 			})
 
-			suite.Require().Equal(tc.expClientIDs, clientIDs)
+			suite.Require().ElementsMatch(tc.expClientIDs(), clientIDs)
 		})
 	}
 }
