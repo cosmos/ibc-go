@@ -14,8 +14,8 @@ Provide a way to programmatically create accounts on a destination blockchain (c
 
 | Features  | Release |
 | --------- | ------- |
-| Deterministically create a new interchain account over IBC on the host chain. | v1 |
-| Send over IBC a packet that contains the message to be executed by the interchain account on the host. | v1 |
+| Deterministically create a new interchain account over IBC on the host chain. | v3.0.0 |
+| Send over IBC a packet that contains the message to be executed by the interchain account on the host. | v3.0.0 |
 
 # User requirements
 
@@ -53,66 +53,66 @@ Using Interchain Accounts, a service could be built in which a user sends tokens
 
 ### 1 - Configuration
 
-| ID  | Description | Verification | Status |
-| --- | ----------- | ------------ | ------ |
-| 1.01 | A chain shall have the ability to enable or disable Interchain Accounts controller functionality in the genesis state. | The controller parameters have a [flag](https://github.com/cosmos/ibc-go/blob/v3.0.0/modules/apps/27-interchain-accounts/host/types/host.pb.go#L30) to enable/disable the controller submodule, and this flag [is stored during genesis initialization](https://github.com/cosmos/ibc-go/blob/v3.0.0/modules/apps/27-interchain-accounts/controller/keeper/params.go#L24). | `Verified` |
-| 1.02 | A chain shall have the ability to export the Interchain Accounts controller genesis state. | [Acceptance tests](https://github.com/cosmos/ibc-go/blob/v3.0.0/modules/apps/27-interchain-accounts/controller/keeper/genesis_test.go#L47) | `Verified` |
-| 1.03 | A chain shall have the ability to initialize the Interchain Accounts controller genesis state. | [Acceptance tests](https://github.com/cosmos/ibc-go/blob/v3.0.0/modules/apps/27-interchain-accounts/controller/keeper/genesis_test.go#L10) | `Verified` |
-| 1.04 | A chain shall have the ability to set the Interchain Accounts controller parameters when upgrading or via proposal. | [Acceptance tests](https://github.com/cosmos/ibc-go/blob/v3.0.0/modules/apps/27-interchain-accounts/module_test.go#L33) | `Verified` |
-| 1.05 | A chain shall have the ability to enable or disable Interchain Accounts host functionality in the genesis state. | The host parameters have a [flag](https://github.com/cosmos/ibc-go/blob/v3.0.0/modules/apps/27-interchain-accounts/host/types/host.pb.go#L30) to enable/disable the host submodule, and this flag [is stored during genesis initialization](https://github.com/cosmos/ibc-go/blob/v3.0.0/modules/apps/27-interchain-accounts/host/keeper/params.go#L31) | `Verified` |
-| 1.06 | A chain shall have the ability to export the Interchain Accounts host genesis state. | [Acceptance tests](https://github.com/cosmos/ibc-go/blob/v3.0.0/modules/apps/27-interchain-accounts/host/keeper/genesis_test.go#L46) | `Verified` |
-| 1.07 | A chain shall have the ability to initialize the Interchain Accounts host genesis state. | [Acceptance tests](https://github.com/cosmos/ibc-go/blob/v3.0.0/modules/apps/27-interchain-accounts/host/keeper/genesis_test.go#L10) | `Verified` |
-| 1.08 | A chain shall have the ability to set the Interchain Accounts host parameters when upgrading or via proposal. | [Acceptance tests](https://github.com/cosmos/ibc-go/blob/v3.0.0/modules/apps/27-interchain-accounts/module_test.go#L33) | `Verified` |
-| 1.09 | The host chain shall have the ability to whitelist what types of messages or transactions that it chooses to facilitate (e.g. it can decide that registered interchain accounts cannot execute staking messages). | [Acceptance tests](https://github.com/cosmos/ibc-go/blob/v3.0.0/modules/apps/27-interchain-accounts/host/keeper/params_test.go#L5) | `Verified` |
+| ID  | Description | Verification | Status | Release |
+| --- | ----------- | ------------ | ------ | ------- |
+| 1.01 | A chain shall have the ability to enable or disable Interchain Accounts controller functionality in the genesis state. | The controller parameters have a [flag](https://github.com/cosmos/ibc-go/blob/v3.0.0/modules/apps/27-interchain-accounts/host/types/host.pb.go#L30) to enable/disable the controller submodule, and this flag [is stored during genesis initialization](https://github.com/cosmos/ibc-go/blob/v3.0.0/modules/apps/27-interchain-accounts/controller/keeper/params.go#L24). | `Verified` | v3.0.0 |
+| 1.02 | A chain shall have the ability to export the Interchain Accounts controller genesis state. | [Acceptance tests](https://github.com/cosmos/ibc-go/blob/v3.0.0/modules/apps/27-interchain-accounts/controller/keeper/genesis_test.go#L47) | `Verified` | v3.0.0 |
+| 1.03 | A chain shall have the ability to initialize the Interchain Accounts controller genesis state. | [Acceptance tests](https://github.com/cosmos/ibc-go/blob/v3.0.0/modules/apps/27-interchain-accounts/controller/keeper/genesis_test.go#L10) | `Verified` | v3.0.0 |
+| 1.04 | A chain shall have the ability to set the Interchain Accounts controller parameters when upgrading or via proposal. | [Acceptance tests](https://github.com/cosmos/ibc-go/blob/v3.0.0/modules/apps/27-interchain-accounts/module_test.go#L33) | `Verified` | v3.0.0 |
+| 1.05 | A chain shall have the ability to enable or disable Interchain Accounts host functionality in the genesis state. | The host parameters have a [flag](https://github.com/cosmos/ibc-go/blob/v3.0.0/modules/apps/27-interchain-accounts/host/types/host.pb.go#L30) to enable/disable the host submodule, and this flag [is stored during genesis initialization](https://github.com/cosmos/ibc-go/blob/v3.0.0/modules/apps/27-interchain-accounts/host/keeper/params.go#L31) | `Verified` | v3.0.0 |
+| 1.06 | A chain shall have the ability to export the Interchain Accounts host genesis state. | [Acceptance tests](https://github.com/cosmos/ibc-go/blob/v3.0.0/modules/apps/27-interchain-accounts/host/keeper/genesis_test.go#L46) | `Verified` | v3.0.0 |
+| 1.07 | A chain shall have the ability to initialize the Interchain Accounts host genesis state. | [Acceptance tests](https://github.com/cosmos/ibc-go/blob/v3.0.0/modules/apps/27-interchain-accounts/host/keeper/genesis_test.go#L10) | `Verified` | v3.0.0 |
+| 1.08 | A chain shall have the ability to set the Interchain Accounts host parameters when upgrading or via proposal. | [Acceptance tests](https://github.com/cosmos/ibc-go/blob/v3.0.0/modules/apps/27-interchain-accounts/module_test.go#L33) | `Verified` | v3.0.0 |
+| 1.09 | The host chain shall have the ability to whitelist what types of messages or transactions that it chooses to facilitate (e.g. it can decide that registered interchain accounts cannot execute staking messages). | [Acceptance tests](https://github.com/cosmos/ibc-go/blob/v3.0.0/modules/apps/27-interchain-accounts/host/keeper/params_test.go#L5) | `Verified` | v3.0.0 |
 
 ### 2 - Registration
 
-| ID  | Description | Verification | Status |
-| --- | ----------- | ------------ | ------ |
-| 2.01 | The controller chain can programmatically create interchain accounts on the host chain that shall be controlled only by the owner account on the controller chain. | [Acceptance tests](https://github.com/cosmos/ibc-go/blob/v3.0.0/modules/apps/27-interchain-accounts/host/keeper/account_test.go#L10) | `Verified` |
-| 2.02 | An interchain account shall be created by any actor without the approval of a third party (e.g. chain governance). | [Acceptance tests](https://github.com/cosmos/ibc-go/blob/v3.0.0/modules/apps/27-interchain-accounts/host/keeper/account_test.go#L10) | `Verified` |
+| ID  | Description | Verification | Status | Release |
+| --- | ----------- | ------------ | ------ | ------- |
+| 2.01 | The controller chain can programmatically create interchain accounts on the host chain that shall be controlled only by the owner account on the controller chain. | [Acceptance tests](https://github.com/cosmos/ibc-go/blob/v3.0.0/modules/apps/27-interchain-accounts/host/keeper/account_test.go#L10) | `Verified` | v3.0.0 |
+| 2.02 | An interchain account shall be created by any actor without the approval of a third party (e.g. chain governance). | [Acceptance tests](https://github.com/cosmos/ibc-go/blob/v3.0.0/modules/apps/27-interchain-accounts/host/keeper/account_test.go#L10) | `Verified` | v3.0.0 |
 
 ### 3 - Control
 
-| ID  | Description | Verification | Status |
-| --- | ----------- | ------------ | ------ |
-| 3.01 | The controller chain can programmatically control the interchain account by submitting transactions to be executed on the host chain on the behalf of the interchain account. | [Acceptance tests](https://github.com/cosmos/ibc-go/blob/v3.0.0/modules/apps/27-interchain-accounts/controller/keeper/relay_test.go#L29) | `Verified` |
-| 3.02 | Under no circumstances shall the owner account on the controller chain irretrievably lose control over the registered interchain account on the host chain. | If the channel between controller and host closes, then [a relayer can open a new channel on the existing controller port](https://github.com/cosmos/ibc-go/blob/v3.0.0/modules/apps/27-interchain-accounts/controller/keeper/account.go#L16-L17). | `Verified` |
+| ID  | Description | Verification | Status | Release |
+| --- | ----------- | ------------ | ------ | ------- |
+| 3.01 | The controller chain can programmatically control the interchain account by submitting transactions to be executed on the host chain on the behalf of the interchain account. | [Acceptance tests](https://github.com/cosmos/ibc-go/blob/v3.0.0/modules/apps/27-interchain-accounts/controller/keeper/relay_test.go#L29) | `Verified` | v3.0.0 |
+| 3.02 | Under no circumstances shall the owner account on the controller chain irretrievably lose control over the registered interchain account on the host chain. | If the channel between controller and host closes, then [a relayer can open a new channel on the existing controller port](https://github.com/cosmos/ibc-go/blob/v3.0.0/modules/apps/27-interchain-accounts/controller/keeper/account.go#L16-L17). | `Verified` | v3.0.0 |
 
 ### 4 - Host execution
 
-| ID  | Description | Verification | Status |
-| --- | ----------- | ------------ | ------ |
-| 4.01 | Transactions shall be executed by an interchain account on the host chain in exactly the same order in which they are submitted by the controller chain. | IBC packets with SDK messages will be sent from the controller to the host over an [ordered channel](https://github.com/cosmos/ibc-go/blob/v3.0.0/modules/apps/27-interchain-accounts/controller/keeper/account.go#L60). | `Verified` |
-| 4.02 | The host shall execute only messages in the allow list. | [Acceptance tests](https://github.com/cosmos/ibc-go/blob/v3.0.0/modules/apps/27-interchain-accounts/host/keeper/relay_test.go#L340) | `Verified` |
-| 4.03 | The controller chain shall know how the host chain will handle the transaction bytes in advance. | [Acceptance tests](https://github.com/cosmos/ibc-go/blob/v3.0.0/modules/apps/27-interchain-accounts/controller/keeper/handshake_test.go#L109-L133) | `Verified` |
-| 4.04 | Each transaction submitted by the controller chain shall be executed only once by the interchain account on the host chain. | [Acceptance tests](https://github.com/cosmos/ibc-go/blob/v3.0.0/modules/apps/27-interchain-accounts/host/keeper/relay_test.go#L248) | `Verified` |
+| ID  | Description | Verification | Status | Release |
+| --- | ----------- | ------------ | ------ | ------- |
+| 4.01 | Transactions shall be executed by an interchain account on the host chain in exactly the same order in which they are submitted by the controller chain. | IBC packets with SDK messages will be sent from the controller to the host over an [ordered channel](https://github.com/cosmos/ibc-go/blob/v3.0.0/modules/apps/27-interchain-accounts/controller/keeper/account.go#L60). | `Verified` | v3.0.0 |
+| 4.02 | The host shall execute only messages in the allow list. | [Acceptance tests](https://github.com/cosmos/ibc-go/blob/v3.0.0/modules/apps/27-interchain-accounts/host/keeper/relay_test.go#L340) | `Verified` | v3.0.0 |
+| 4.03 | The controller chain shall know how the host chain will handle the transaction bytes in advance. | [Acceptance tests](https://github.com/cosmos/ibc-go/blob/v3.0.0/modules/apps/27-interchain-accounts/controller/keeper/handshake_test.go#L109-L133) | `Verified` | v3.0.0 |
+| 4.04 | Each transaction submitted by the controller chain shall be executed only once by the interchain account on the host chain. | [Acceptance tests](https://github.com/cosmos/ibc-go/blob/v3.0.0/modules/apps/27-interchain-accounts/host/keeper/relay_test.go#L248) | `Verified` | v3.0.0 |
 
 # Non-functional requirements
 
 ## 5 - Security
 
-| ID | Description | Verification | Status |  
-| -- | ----------- | ------------ | ------ |
-| 5.01 | There shall be no means for the interchain account to execute transactions that have not been submitted first by the respective owner account on the controller chain. |[Acceptance tests](https://github.com/cosmos/ibc-go/blob/v3.0.0/modules/apps/27-interchain-accounts/host/keeper/relay_test.go#L361) |  `Verified` |
-| 5.02 | Every interchain account on the host chain shall have one and only one respective owner account on the controller chain. | The interchain account on the host [is generated using the host connection ID and the address of the owner on the controller](https://github.com/cosmos/ibc-go/blob/v3.0.0/modules/apps/27-interchain-accounts/host/keeper/handshake.go#L73-L76). | `Verified` |
-| 5.03 | The owner account on a controller chain shall not be able to control interchain accounts registered by other owner accounts on the same controller chain. | Before the host logic executes the received messages, it [retrieves the interchain account associated with the port ID](https://github.com/cosmos/ibc-go/blob/v3.0.0/modules/apps/27-interchain-accounts/host/keeper/relay.go#L94) over which it received the message. For owner address B to be able to execute a message with the interchain account registered with owner address A, it would need to send the messages over a channel that binds to a port ID that contains the owner address A, and since we have assumption number 3, this should not be allowed by applications. | `Verified` |
-| 5.04 | A controller chain shall not be able to control interchain accounts registered by owner accounts on different controller chains. | Same as 5.03. | `Verified` |  |
-| 5.05 | Each interchain account on the host chain is owned by a single owner account on the controller chain. It shall not be possible to register a second interchain account with the same owner account on the controller chain. | [Acceptance tests](https://github.com/cosmos/ibc-go/blob/v3.0.0/modules/apps/27-interchain-accounts/controller/keeper/account_test.go#L42) | `Verified` |
+| ID | Description | Verification | Status | Release |
+| -- | ----------- | ------------ | ------ | ------- |
+| 5.01 | There shall be no means for the interchain account to execute transactions that have not been submitted first by the respective owner account on the controller chain. |[Acceptance tests](https://github.com/cosmos/ibc-go/blob/v3.0.0/modules/apps/27-interchain-accounts/host/keeper/relay_test.go#L361) |  `Verified` | v3.0.0 |
+| 5.02 | Every interchain account on the host chain shall have one and only one respective owner account on the controller chain. | The interchain account on the host [is generated using the host connection ID and the address of the owner on the controller](https://github.com/cosmos/ibc-go/blob/v3.0.0/modules/apps/27-interchain-accounts/host/keeper/handshake.go#L73-L76). | `Verified` | v3.0.0 |
+| 5.03 | The owner account on a controller chain shall not be able to control interchain accounts registered by other owner accounts on the same controller chain. | Before the host logic executes the received messages, it [retrieves the interchain account associated with the port ID](https://github.com/cosmos/ibc-go/blob/v3.0.0/modules/apps/27-interchain-accounts/host/keeper/relay.go#L94) over which it received the message. For owner address B to be able to execute a message with the interchain account registered with owner address A, it would need to send the messages over a channel that binds to a port ID that contains the owner address A, and since we have assumption number 3, this should not be allowed by applications. | `Verified` | v3.0.0 |
+| 5.04 | A controller chain shall not be able to control interchain accounts registered by owner accounts on different controller chains. | Same as 5.03. | `Verified` | v3.0.0 |
+| 5.05 | Each interchain account on the host chain is owned by a single owner account on the controller chain. It shall not be possible to register a second interchain account with the same owner account on the controller chain. | [Acceptance tests](https://github.com/cosmos/ibc-go/blob/v3.0.0/modules/apps/27-interchain-accounts/controller/keeper/account_test.go#L42) | `Verified` | v3.0.0 |
 
 # External interface requirements
 
 ## 6 - CLI
 
-| ID | Description | Verification | Status |
-| -- | ----------- | ------------ | ------ |
-| 6.01 | There shall be a CLI command available to query the host parameters. | [Acceptance tests](https://github.com/cosmos/ibc-go/blob/v3.0.0/modules/apps/27-interchain-accounts/host/client/cli/query.go#L22) | `Verified` |
-| 6.02 | There shall be a CLI command available to query the receive packet events on the host chain to check the result of the execution of the message on the host. | [Acceptance tests](https://github.com/cosmos/ibc-go/blob/v3.0.0/modules/apps/27-interchain-accounts/host/client/cli/query.go#L51) | `Verified` |
-| 6.03 | There shall be a CLI command available to query the controller parameters. | [Acceptance tests](https://github.com/cosmos/ibc-go/blob/v3.0.0/modules/apps/27-interchain-accounts/controller/client/cli/query.go#L15) | `Verified` |
+| ID | Description | Verification | Status | Release |
+| -- | ----------- | ------------ | ------ | ------- |
+| 6.01 | There shall be a CLI command available to query the host parameters. | [Acceptance tests](https://github.com/cosmos/ibc-go/blob/v3.0.0/modules/apps/27-interchain-accounts/host/client/cli/query.go#L22) | `Verified` | v3.0.0 |
+| 6.02 | There shall be a CLI command available to query the receive packet events on the host chain to check the result of the execution of the message on the host. | [Acceptance tests](https://github.com/cosmos/ibc-go/blob/v3.0.0/modules/apps/27-interchain-accounts/host/client/cli/query.go#L51) | `Verified` | v3.0.0 |
+| 6.03 | There shall be a CLI command available to query the controller parameters. | [Acceptance tests](https://github.com/cosmos/ibc-go/blob/v3.0.0/modules/apps/27-interchain-accounts/controller/client/cli/query.go#L15) | `Verified` | v3.0.0 |
 
 ## 7 - Application developers
 
-| ID | Description | Verification | Status |
-| -- | ----------- | ------------ | ------ |
-| 7.01 | An IBC application developer shall be able to develop an Interchain Accounts authentication module that can register interchain accounts. | The [`RegisterInterchainAccount` function](https://github.com/cosmos/ibc-go/blob/v3.0.0/modules/apps/27-interchain-accounts/controller/keeper/account.go#L18) is the entry point to registering an interchain account. | `Verified` |
-| 7.02 | An IBC application developer shall be able to develop an Interchain Accounts authentication module that can send messages from the controller to the host. | The [`SendTx` function](https://github.com/cosmos/ibc-go/blob/v3.0.0/modules/apps/27-interchain-accounts/controller/keeper/relay.go#L18) takes pre-built packet data containing messages to be executed on the host chain from an authentication module and attempts to send the packet. | `Verified` |
+| ID | Description | Verification | Status | Release |
+| -- | ----------- | ------------ | ------ | ------- |
+| 7.01 | An IBC application developer shall be able to develop an Interchain Accounts authentication module that can register interchain accounts. | The [`RegisterInterchainAccount` function](https://github.com/cosmos/ibc-go/blob/v3.0.0/modules/apps/27-interchain-accounts/controller/keeper/account.go#L18) is the entry point to registering an interchain account. | `Verified` | v3.0.0 |
+| 7.02 | An IBC application developer shall be able to develop an Interchain Accounts authentication module that can send messages from the controller to the host. | The [`SendTx` function](https://github.com/cosmos/ibc-go/blob/v3.0.0/modules/apps/27-interchain-accounts/controller/keeper/relay.go#L18) takes pre-built packet data containing messages to be executed on the host chain from an authentication module and attempts to send the packet. | `Verified` | v3.0.0 |
