@@ -201,7 +201,7 @@ func newDefaultSimappConfig(cc ChainConfig, name, chainID, denom string) ibc.Cha
 	configFileOverrides := make(map[string]any)
 	tmTomlOverrides := make(interchaintestutil.Toml)
 
-	tmTomlOverrides["log_level"] = "debug"
+	tmTomlOverrides["log_level"] = "info" // change to debug to increase cometbft logging
 	configFileOverrides["config/config.toml"] = tmTomlOverrides
 
 	return ibc.ChainConfig{
