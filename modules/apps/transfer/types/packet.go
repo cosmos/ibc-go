@@ -9,6 +9,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	ibcerrors "github.com/cosmos/ibc-go/v7/internal/errors"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
 var (
@@ -23,6 +24,8 @@ var (
 	// timeout.
 	DefaultRelativePacketTimeoutTimestamp = uint64((time.Duration(10) * time.Minute).Nanoseconds())
 )
+
+var _ exported.CallbackPacketDataI = (*FungibleTokenPacketData)(nil)
 
 // NewFungibleTokenPacketData contructs a new FungibleTokenPacketData instance
 func NewFungibleTokenPacketData(
