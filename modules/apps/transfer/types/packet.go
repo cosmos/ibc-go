@@ -1,6 +1,7 @@
 package types
 
 import (
+	"encoding/json"
 	"strings"
 	"time"
 
@@ -61,4 +62,59 @@ func (ftpd FungibleTokenPacketData) ValidateBasic() error {
 // GetBytes is a helper for serialising
 func (ftpd FungibleTokenPacketData) GetBytes() []byte {
 	return sdk.MustSortJSON(mustProtoMarshalJSON(&ftpd))
+}
+
+// ADR-8 middleware should callback on the sender address on the source chain
+// if the sender address is an IBC Actor (i.e. smart contract that accepts IBC callbacks)
+func (ftpd FungibleTokenPacketData) GetSrcCallbackAddress() (addr string) {
+	if len(ftpd.Memo) == 0 {
+		return
+	}
+
+	jsonObject := make(map[string]interface{})
+	// the jsonObject must be a valid JSON object
+	err := json.Unmarshal([]byte(ftpd.Memo), &jsonObject)
+	if err != nil {
+		return
+	}
+
+	callbackData, ok := jsonObject["callbacks"].(map[string]interface{})
+	if !ok {
+		return
+	}
+
+	if callbackData["src_callback_address"] == ftpd.Sender {
+		return ftpd.Sender
+	}
+	return
+}
+
+// ADR-8 middleware should callback on the receiver address on the destination chain
+// if the receiver address is an IBC Actor (i.e. smart contract that accepts IBC callbacks)
+func (ftpd FungibleTokenPacketData) GetDestCallbackAddress() (addr string) {
+	if len(ftpd.Memo) == 0 {
+		return
+	}
+
+	jsonObject := make(map[string]interface{})
+	// the jsonObject must be a valid JSON object
+	err := json.Unmarshal([]byte(ftpd.Memo), &jsonObject)
+	if err != nil {
+		return
+	}
+
+	callbackData, ok := jsonObject["callbacks"].(map[string]interface{})
+	if !ok {
+		return
+	}
+
+	if callbackData["dest_callback_address"] == ftpd.Receiver {
+		return ftpd.Receiver
+	}
+	return
+}
+
+// no-op on this method to use relayer passed in gas
+func (fptd FungibleTokenPacketData) UserDefinedGasLimit() uint64 {
+	return 0
 }
