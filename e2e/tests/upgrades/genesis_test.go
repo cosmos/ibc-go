@@ -118,7 +118,7 @@ func (s *GenesisTestSuite) HaltChainAndExportGenesis(ctx context.Context, chain 
 	err = chain.StopAllNodes(ctx)
 	s.Require().NoError(err, "error stopping node(s)")
 
-	state, err := chain.ExportState(ctx, int64(haltHeight))
+	state, err := chain.ExportState(ctx, int64(haltHeight-int64(height))+1)
 
 	s.Require().NoError(err)
 	err = tmjson.Unmarshal([]byte(state), &genesisState)
