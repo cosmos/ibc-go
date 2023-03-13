@@ -11,11 +11,12 @@ import (
 	"strconv"
 	"strings"
 
+	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
+	"github.com/cometbft/cometbft/crypto"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/tendermint/tendermint/crypto"
 
+	ibcerrors "github.com/cosmos/ibc-go/v7/internal/errors"
 	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
@@ -270,7 +271,7 @@ func (suite *KeeperTestSuite) CheckBankBalances(chain *ibctesting.TestChain, ban
 	diff := bankChange.Sub(expectedBankChange)
 	NonZeroString := diff.NonZeroString()
 	if len(NonZeroString) != 0 {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, "Unexpected changes in the bank: \n"+NonZeroString)
+		return errorsmod.Wrap(ibcerrors.ErrInvalidCoins, "Unexpected changes in the bank: \n"+NonZeroString)
 	}
 	return nil
 }

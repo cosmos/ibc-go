@@ -40,6 +40,14 @@ on:
           - v0.3.6
           - v0.2.6
           - v0.1.7
+      relayer-type:
+        default: rly
+        description: 'The relayer to use'
+        required: true
+        type: choice
+        options:
+          - rly
+          - hermes
       relayer-tag:
         description: 'The tag to use for the relayer'
         required: true

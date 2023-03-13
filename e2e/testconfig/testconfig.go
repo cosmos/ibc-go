@@ -6,6 +6,8 @@ import (
 	"os"
 	"strings"
 
+	tmjson "github.com/cometbft/cometbft/libs/json"
+	tmtypes "github.com/cometbft/cometbft/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module/testutil"
@@ -14,9 +16,8 @@ import (
 	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	"github.com/strangelove-ventures/interchaintest/v7/ibc"
-	tmjson "github.com/tendermint/tendermint/libs/json"
-	tmtypes "github.com/tendermint/tendermint/types"
 
+	"github.com/cosmos/ibc-go/e2e/relayer"
 	"github.com/cosmos/ibc-go/e2e/semverutil"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 )
@@ -30,19 +31,26 @@ const (
 	// ChainBTagEnv specifies the tag that Chain B will use. If unspecified
 	// the value will default to the same value as Chain A.
 	ChainBTagEnv = "CHAIN_B_TAG"
-	// GoRelayerTagEnv specifies the go relayer version. Defaults to "main"
-	GoRelayerTagEnv = "RLY_TAG"
+	// RelayerTagEnv specifies the relayer version. Defaults to "main"
+	RelayerTagEnv = "RELAYER_TAG"
+	// RelayerTypeEnv specifies the type of relayer that should be used.
+	RelayerTypeEnv = "RELAYER_TYPE"
 	// ChainBinaryEnv binary is the binary that will be used for both chains.
 	ChainBinaryEnv = "CHAIN_BINARY"
 	// ChainUpgradeTagEnv specifies the upgrade version tag
 	ChainUpgradeTagEnv = "CHAIN_UPGRADE_TAG"
+	// ChainUpgradePlanEnv specifies the upgrade plan name
+	ChainUpgradePlanEnv = "CHAIN_UPGRADE_PLAN"
+
 	// defaultBinary is the default binary that will be used by the chains.
 	defaultBinary = "simd"
 	// defaultRlyTag is the tag that will be used if no relayer tag is specified.
 	// all images are here https://github.com/cosmos/relayer/pkgs/container/relayer/versions
-	defaultRlyTag = "v2.2.0-rc2"
+	defaultRlyTag = "latest" // "andrew-tendermint_v0.37" // "v2.2.0"
 	// defaultChainTag is the tag that will be used for the chains if none is specified.
 	defaultChainTag = "main"
+	// defaultRelayerType is the default relayer that will be used if none is specified.
+	defaultRelayerType = relayer.Rly
 )
 
 func getChainImage(binary string) string {
@@ -54,12 +62,14 @@ func getChainImage(binary string) string {
 
 // TestConfig holds various fields used in the E2E tests.
 type TestConfig struct {
-	ChainAConfig ChainConfig
-	ChainBConfig ChainConfig
-	RlyTag       string
-	UpgradeTag   string
+	ChainAConfig    ChainConfig
+	ChainBConfig    ChainConfig
+	RelayerConfig   relayer.Config
+	UpgradeTag      string
+	UpgradePlanName string
 }
 
+// ChainConfig holds information about an individual chain used in the tests.
 type ChainConfig struct {
 	Image  string
 	Tag    string
@@ -83,14 +93,6 @@ func FromEnv() TestConfig {
 		chainBTag = chainATag
 	}
 
-	rlyTag, ok := os.LookupEnv(GoRelayerTagEnv)
-	if !ok {
-		rlyTag = defaultRlyTag
-	}
-
-	// TODO: remove hard coded value
-	rlyTag = "andrew-tendermint_v0.37"
-
 	chainAImage := getChainImage(chainBinary)
 	specifiedChainImage, ok := os.LookupEnv(ChainImageEnv)
 	if ok {
@@ -101,6 +103,11 @@ func FromEnv() TestConfig {
 	upgradeTag, ok := os.LookupEnv(ChainUpgradeTagEnv)
 	if !ok {
 		upgradeTag = ""
+	}
+
+	upgradePlan, ok := os.LookupEnv(ChainUpgradePlanEnv)
+	if !ok {
+		upgradePlan = ""
 	}
 
 	return TestConfig{
@@ -114,8 +121,31 @@ func FromEnv() TestConfig {
 			Tag:    chainBTag,
 			Binary: chainBinary,
 		},
-		RlyTag:     rlyTag,
-		UpgradeTag: upgradeTag,
+		UpgradeTag:      upgradeTag,
+		UpgradePlanName: upgradePlan,
+		RelayerConfig:   GetRelayerConfigFromEnv(),
+	}
+}
+
+// GetRelayerConfigFromEnv returns the RelayerConfig from present environment variables.
+func GetRelayerConfigFromEnv() relayer.Config {
+	relayerType := strings.TrimSpace(os.Getenv(RelayerTypeEnv))
+	if relayerType == "" {
+		relayerType = defaultRelayerType
+	}
+
+	rlyTag := strings.TrimSpace(os.Getenv(RelayerTagEnv))
+	if rlyTag == "" {
+		if relayerType == relayer.Rly {
+			rlyTag = defaultRlyTag
+		}
+		if relayerType == relayer.Hermes {
+			// TODO: set default hermes version
+		}
+	}
+	return relayer.Config{
+		Tag:  rlyTag,
+		Type: relayerType,
 	}
 }
 
@@ -167,7 +197,6 @@ func DefaultChainOptions() ChainOptions {
 
 // newDefaultSimappConfig creates an ibc configuration for simd.
 func newDefaultSimappConfig(cc ChainConfig, name, chainID, denom string) ibc.ChainConfig {
-
 	return ibc.ChainConfig{
 		Type:    "cosmos",
 		Name:    name,

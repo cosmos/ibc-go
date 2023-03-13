@@ -12,7 +12,7 @@ See the policy linked above for more details on submissions and rewards and read
 this [blog post](https://blog.cosmos.network/bug-bounty-program-for-tendermint-cosmos-833c67693586) for the program scope.
 
 The following is a list of examples of the kinds of bugs we're most interested
-in for the IBC Golang repository. Please refer to the corresponding repositories for vulnerabilities on the [Cosmos SDK](https://github.com/cosmos/cosmos-sdk/blob/master/SECURITY.md) and [Tendermint](https://github.com/tendermint/tendermint/blob/master/SECURITY.md) repositories.
+in for the IBC Golang repository. Please refer to the corresponding repositories for vulnerabilities on the [Cosmos SDK](https://github.com/cosmos/cosmos-sdk/blob/master/SECURITY.md) and [CometBFT](https://github.com/cometbft/cometbft/blob/master/SECURITY.md) repositories.
 
 ### IBC Core
 
