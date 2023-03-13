@@ -191,7 +191,7 @@ func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, state types.GenesisState
 
   // Only try to bind to port if it is not already bound, since we may already own
   // port capability from capability InitGenesis
-  if !isBound(ctx, state.PortID) {
+  if !hasCapability(ctx, state.PortID) {
     // module binds to desired ports on InitChain
     // and claims returned capabilities
     cap1 := keeper.IBCPortKeeper.BindPort(ctx, port1)
