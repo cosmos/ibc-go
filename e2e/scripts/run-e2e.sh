@@ -13,12 +13,12 @@ export CHAIN_BINARY="${CHAIN_BINARY:-simd}"
 if command -v jq > /dev/null; then
    cd ..
    ENTRY_POINT="$(go run -mod=readonly cmd/build_test_matrix/main.go | jq -r --arg TEST "${TEST}" '.include[] | select( .test == $TEST)  | .entrypoint')"
-   cd -
+   cd - > /dev/null
 fi
 
 
 # find the name of the file that has this test in it.
-test_file="$(grep --recursive --files-with-matches './' -e "${TEST}")"
+test_file="$(grep --recursive --files-with-matches './' -e "${TEST}()")"
 
 # we run the test on the directory as specific files may reference types in other files but within the package.
 test_dir="$(dirname $test_file)"
