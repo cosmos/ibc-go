@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	signingtypes "github.com/cosmos/cosmos-sdk/types/tx/signing"
@@ -65,7 +66,7 @@ type E2ETestSuite struct {
 	startRelayerFn func(relayer ibc.Relayer)
 
 	// pathNameIndex is the latest index to be used for generating paths
-	pathNameIndex uint64
+	pathNameIndex int64
 }
 
 // GRPCClients holds a reference to any GRPC clients that are needed by the tests.
@@ -86,6 +87,8 @@ type GRPCClients struct {
 	ParamsQueryClient paramsproposaltypes.QueryClient
 	AuthQueryClient   authtypes.QueryClient
 	AuthZQueryClient  authz.QueryClient
+
+	ConsensusServiceClient tmservice.ServiceClient
 }
 
 // path is a pairing of two chains which will be used in a test.
@@ -199,8 +202,15 @@ func (s *E2ETestSuite) SetupSingleChain(ctx context.Context) *cosmos.CosmosChain
 
 // generatePathName generates the path name using the test suites name
 func (s *E2ETestSuite) generatePathName() string {
-	pathName := fmt.Sprintf("%s-path-%d", s.T().Name(), s.pathNameIndex)
+	path := s.GetPathName(s.pathNameIndex)
 	s.pathNameIndex++
+	return path
+}
+
+// GetPathName returns the name of a path at a specific index. This can be used in tests
+// when the path name is required.
+func (s *E2ETestSuite) GetPathName(idx int64) string {
+	pathName := fmt.Sprintf("%s-path-%d", s.T().Name(), idx)
 	return strings.ReplaceAll(pathName, "/", "-")
 }
 
@@ -211,6 +221,7 @@ func (s *E2ETestSuite) generatePath(ctx context.Context, relayer ibc.Relayer) st
 	chainBID := chainB.Config().ChainID
 
 	pathName := s.generatePathName()
+
 	err := relayer.GeneratePath(ctx, s.GetRelayerExecReporter(), chainAID, chainBID, pathName)
 	s.Require().NoError(err)
 
@@ -408,18 +419,18 @@ func (s *E2ETestSuite) InitGRPCClients(chain *cosmos.CosmosChain) {
 	}
 
 	s.grpcClients[chain.Config().ChainID] = GRPCClients{
-		ClientQueryClient:     clienttypes.NewQueryClient(grpcConn),
-		ConnectionQueryClient: connectiontypes.NewQueryClient(grpcConn),
-		ChannelQueryClient:    channeltypes.NewQueryClient(grpcConn),
-		FeeQueryClient:        feetypes.NewQueryClient(grpcConn),
-		ICAQueryClient:        controllertypes.NewQueryClient(grpcConn),
-		InterTxQueryClient:    intertxtypes.NewQueryClient(grpcConn),
-		GovQueryClient:        govtypesv1beta1.NewQueryClient(grpcConn),
-		GovQueryClientV1:      govtypesv1.NewQueryClient(grpcConn),
-		GroupsQueryClient:     grouptypes.NewQueryClient(grpcConn),
-		ParamsQueryClient:     paramsproposaltypes.NewQueryClient(grpcConn),
-		AuthQueryClient:       authtypes.NewQueryClient(grpcConn),
-		AuthZQueryClient:      authz.NewQueryClient(grpcConn),
+		ClientQueryClient:      clienttypes.NewQueryClient(grpcConn),
+		ChannelQueryClient:     channeltypes.NewQueryClient(grpcConn),
+		FeeQueryClient:         feetypes.NewQueryClient(grpcConn),
+		ICAQueryClient:         controllertypes.NewQueryClient(grpcConn),
+		InterTxQueryClient:     intertxtypes.NewQueryClient(grpcConn),
+		GovQueryClient:         govtypesv1beta1.NewQueryClient(grpcConn),
+		GovQueryClientV1:       govtypesv1.NewQueryClient(grpcConn),
+		GroupsQueryClient:      grouptypes.NewQueryClient(grpcConn),
+		ParamsQueryClient:      paramsproposaltypes.NewQueryClient(grpcConn),
+		AuthQueryClient:        authtypes.NewQueryClient(grpcConn),
+		AuthZQueryClient:       authz.NewQueryClient(grpcConn),
+		ConsensusServiceClient: tmservice.NewServiceClient(grpcConn),
 	}
 }
 
