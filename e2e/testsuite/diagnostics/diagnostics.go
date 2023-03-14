@@ -2,6 +2,7 @@ package diagnostics
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 	ospath "path"
@@ -84,6 +85,13 @@ func Collect(t *testing.T, dc *dockerclient.Client, cfg testconfig.ChainOptions)
 			}
 			t.Logf("successfully wrote diagnostics file %s", absoluteFilePathInContainer)
 		}
+
+		localFilePath := ospath.Join(containerDir, "docker-inspect.json")
+		if err := fetchAndWriteDockerInspectOutput(ctx, dc, container.ID, localFilePath); err != nil {
+			t.Logf("failed to fetch docker inspect output: %s", err)
+			continue
+		}
+		t.Logf("successfully wrote docker inspect output")
 	}
 }
 
@@ -105,6 +113,16 @@ func getContainerName(t *testing.T, container dockertypes.Container) string {
 	return containerName
 }
 
+// writeLocalFile writes the provided contents to the specified path.
+func writeLocalFile(fileBz []byte, localPath string) error {
+	filePath := ospath.Join(localPath)
+	if err := os.WriteFile(filePath, fileBz, 0750); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // fetchAndWriteDiagnosticsFile fetches the contents of a single file from the given container id and writes
 // the contents of the file to a local path provided.
 func fetchAndWriteDiagnosticsFile(ctx context.Context, dc *dockerclient.Client, containerID, localPath, absoluteFilePathInContainer string) error {
@@ -113,12 +131,22 @@ func fetchAndWriteDiagnosticsFile(ctx context.Context, dc *dockerclient.Client, 
 		return err
 	}
 
-	filePath := ospath.Join(localPath)
-	if err := os.WriteFile(filePath, fileBz, 0750); err != nil {
+	return writeLocalFile(fileBz, localPath)
+}
+
+// fetchAndWriteDockerInspectOutput writes the contents of docker inspect to the specified file.
+func fetchAndWriteDockerInspectOutput(ctx context.Context, dc *dockerclient.Client, containerID, localPath string) error {
+	containerJSON, err := dc.ContainerInspect(ctx, containerID)
+	if err != nil {
 		return err
 	}
 
-	return nil
+	fileBz, err := json.MarshalIndent(containerJSON, "", "\t")
+	if err != nil {
+		return err
+	}
+
+	return writeLocalFile(fileBz, localPath)
 }
 
 // chainDiagnosticAbsoluteFilePaths returns a slice of absolute file paths (in the containers) which are the files that should be
