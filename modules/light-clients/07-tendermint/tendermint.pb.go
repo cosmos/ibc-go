@@ -12,7 +12,7 @@ import (
 	github_com_cosmos_gogoproto_types "github.com/cosmos/gogoproto/types"
 	types "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	types1 "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
-	_go "github.com/cosmos/ics23/go"
+	_go "github.com/confio/ics23/go"
 	_ "google.golang.org/protobuf/types/known/durationpb"
 	_ "google.golang.org/protobuf/types/known/timestamppb"
 	io "io"

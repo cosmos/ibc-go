@@ -7,9 +7,9 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	"github.com/cometbft/cometbft/light"
 	tmtypes "github.com/cometbft/cometbft/types"
+	ics23 "github.com/confio/ics23/go"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	ics23 "github.com/cosmos/ics23/go"
 
 	ibcerrors "github.com/cosmos/ibc-go/v7/internal/errors"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
