@@ -18,6 +18,7 @@ import (
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	"github.com/strangelove-ventures/interchaintest/v7/ibc"
 	interchaintestutil "github.com/strangelove-ventures/interchaintest/v7/testutil"
+	"gopkg.in/yaml.v2"
 
 	"github.com/cosmos/ibc-go/e2e/relayer"
 	"github.com/cosmos/ibc-go/e2e/semverutil"
@@ -56,8 +57,8 @@ const (
 	// defaultRelayerType is the default relayer that will be used if none is specified.
 	defaultRelayerType = relayer.Rly
 	// defaultConfigFileName is the default filename for the config file that can be used to configure
-	// e2e tests. See sample.config.json as an example for what this should look like.
-	defaultConfigFileName = ".ibc-go-e2e-config.json"
+	// e2e tests. See sample.config.yaml as an example for what this should look like.
+	defaultConfigFileName = ".ibc-go-e2e-config.yaml"
 )
 
 func getChainImage(binary string) string {
@@ -70,13 +71,13 @@ func getChainImage(binary string) string {
 // TestConfig holds configuration used throughout the different e2e tests.
 type TestConfig struct {
 	// ChainConfigs holds configuration values related to the chains used in the tests.
-	ChainConfigs []ChainConfig `json:"chains"`
+	ChainConfigs []ChainConfig `yaml:"chains"`
 	// RelayerConfig holds configuration for the relayer to be used.
-	RelayerConfig relayer.Config `json:"relayer"`
+	RelayerConfig relayer.Config `yaml:"relayer"`
 	// UpgradeConfig holds values used only for the upgrade tests.
-	UpgradeConfig UpgradeConfig `json:"upgrade"`
+	UpgradeConfig UpgradeConfig `yaml:"upgrade"`
 	// CometBFTConfig holds values for configuring CometBFT.
-	CometBFTConfig CometBFTConfig `json:"cometbft"`
+	CometBFTConfig CometBFTConfig `yaml:"cometbft"`
 }
 
 // GetChainNumValidators returns the number of validators for the specific chain index.
@@ -115,22 +116,22 @@ func (tc TestConfig) GetChainBID() string {
 
 // UpgradeConfig holds values relevant to upgrade tests.
 type UpgradeConfig struct {
-	PlanName string `json:"planName"`
-	Tag      string `json:"tag"`
+	PlanName string `yaml:"planName"`
+	Tag      string `yaml:"tag"`
 }
 
 // ChainConfig holds information about an individual chain used in the tests.
 type ChainConfig struct {
-	ChainID       string `json:"chainId"`
-	Image         string `json:"image"`
-	Tag           string `json:"tag"`
-	Binary        string `json:"binary"`
-	NumValidators int    `json:"numValidators"`
-	NumFullNodes  int    `json:"numFullNodes"`
+	ChainID       string `yaml:"chainId"`
+	Image         string `yaml:"image"`
+	Tag           string `yaml:"tag"`
+	Binary        string `yaml:"binary"`
+	NumValidators int    `yaml:"numValidators"`
+	NumFullNodes  int    `yaml:"numFullNodes"`
 }
 
 type CometBFTConfig struct {
-	LogLevel string `json:"logLevel"`
+	LogLevel string `yaml:"logLevel"`
 }
 
 // LoadConfig attempts to load a atest configuration from the default file path.
@@ -152,7 +153,7 @@ func fromFile() (TestConfig, bool) {
 		return TestConfig{}, false
 	}
 
-	if err := json.Unmarshal(bz, &tc); err != nil {
+	if err := yaml.Unmarshal(bz, &tc); err != nil {
 		panic(err)
 	}
 
