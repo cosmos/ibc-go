@@ -78,6 +78,8 @@ type TestConfig struct {
 	UpgradeConfig UpgradeConfig `yaml:"upgrade"`
 	// CometBFTConfig holds values for configuring CometBFT.
 	CometBFTConfig CometBFTConfig `yaml:"cometbft"`
+	// DebugConfig holds configuration for miscellaneous options.
+	DebugConfig DebugConfig `yaml:"debug"`
 }
 
 // GetChainNumValidators returns the number of validators for the specific chain index.
@@ -132,6 +134,11 @@ type ChainConfig struct {
 
 type CometBFTConfig struct {
 	LogLevel string `yaml:"logLevel"`
+}
+
+type DebugConfig struct {
+	// DumpLogs forces the logs to be collected before removing test containers.
+	DumpLogs bool `yaml:"dumpLogs"`
 }
 
 // LoadConfig attempts to load a atest configuration from the default file path.

@@ -18,8 +18,9 @@ import (
 )
 
 const (
-	e2eDir          = "e2e"
-	defaultFilePerm = 0750
+	e2eDir                = "e2e"
+	defaultFilePerm       = 0750
+	dockerInspectFileName = "docker-inspect.json"
 )
 
 // Collect can be used in `t.Cleanup` and will copy all the of the container logs and relevant files
@@ -27,7 +28,8 @@ const (
 func Collect(t *testing.T, dc *dockerclient.Client, cfg testconfig.ChainOptions) {
 	t.Helper()
 
-	if !t.Failed() {
+	debugCfg := testconfig.LoadConfig().DebugConfig
+	if !t.Failed() || debugCfg.DumpLogs {
 		t.Logf("test passed, not uploading logs")
 		return
 	}
@@ -87,7 +89,7 @@ func Collect(t *testing.T, dc *dockerclient.Client, cfg testconfig.ChainOptions)
 			t.Logf("successfully wrote diagnostics file %s", absoluteFilePathInContainer)
 		}
 
-		localFilePath := ospath.Join(containerDir, "docker-inspect.json")
+		localFilePath := ospath.Join(containerDir, dockerInspectFileName)
 		if err := fetchAndWriteDockerInspectOutput(ctx, dc, container.ID, localFilePath); err != nil {
 			t.Logf("failed to fetch docker inspect output: %s", err)
 			continue

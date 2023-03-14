@@ -28,6 +28,10 @@ relayer:
 cometbft:
   logLevel: info
 
+debug:
+  # setting this value to true will force log collection even if the test passes.
+  dumpLogs: false
+
 # Required only for upgrade tests.
 # Chain A will be upgraded the specified tag.
 # The plan name must be registered as an upgrade handler in the given tag.
