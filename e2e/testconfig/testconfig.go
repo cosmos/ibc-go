@@ -75,6 +75,8 @@ type TestConfig struct {
 	RelayerConfig relayer.Config `json:"relayer"`
 	// UpgradeConfig holds values used only for the upgrade tests.
 	UpgradeConfig UpgradeConfig `json:"upgrade"`
+	// CometBFTConfig holds values for configuring CometBFT.
+	CometBFTConfig CometBFTConfig `json:"cometbft"`
 }
 
 // GetChainNumValidators returns the number of validators for the specific chain index.
@@ -125,6 +127,10 @@ type ChainConfig struct {
 	Binary        string `json:"binary"`
 	NumValidators int    `json:"numValidators"`
 	NumFullNodes  int    `json:"numFullNodes"`
+}
+
+type CometBFTConfig struct {
+	LogLevel string `json:"logLevel"`
 }
 
 // LoadConfig attempts to load a atest configuration from the default file path.
@@ -330,8 +336,8 @@ type ChainOptionConfiguration func(options *ChainOptions)
 func DefaultChainOptions() ChainOptions {
 	tc := LoadConfig()
 
-	chainACfg := newDefaultSimappConfig(tc.ChainConfigs[0], "simapp-a", tc.GetChainAID(), "atoma")
-	chainBCfg := newDefaultSimappConfig(tc.ChainConfigs[1], "simapp-b", tc.GetChainBID(), "atomb")
+	chainACfg := newDefaultSimappConfig(tc.ChainConfigs[0], "simapp-a", tc.GetChainAID(), "atoma", tc.CometBFTConfig)
+	chainBCfg := newDefaultSimappConfig(tc.ChainConfigs[1], "simapp-b", tc.GetChainBID(), "atomb", tc.CometBFTConfig)
 	return ChainOptions{
 		ChainAConfig: &chainACfg,
 		ChainBConfig: &chainBCfg,
@@ -339,11 +345,11 @@ func DefaultChainOptions() ChainOptions {
 }
 
 // newDefaultSimappConfig creates an ibc configuration for simd.
-func newDefaultSimappConfig(cc ChainConfig, name, chainID, denom string) ibc.ChainConfig {
+func newDefaultSimappConfig(cc ChainConfig, name, chainID, denom string, cometCfg CometBFTConfig) ibc.ChainConfig {
 	configFileOverrides := make(map[string]any)
 	tmTomlOverrides := make(interchaintestutil.Toml)
 
-	tmTomlOverrides["log_level"] = "info" // change to debug to increase cometbft logging
+	tmTomlOverrides["log_level"] = cometCfg.LogLevel // change to debug in ~/.ibc-go-e2e-config.json to increase cometbft logging.
 	configFileOverrides["config/config.toml"] = tmTomlOverrides
 
 	return ibc.ChainConfig{
