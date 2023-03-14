@@ -19,7 +19,7 @@
   ],
   "relayer": {
     "type": "rly",
-    "image": "ghcr.io/cosmos/relayer",
-    "tag": "main"
+    "image": "damiannolan/rly",
+    "tag": "latest"
   }
 }
