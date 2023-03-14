@@ -2,11 +2,6 @@ module github.com/cosmos/ibc-go/modules/capability
 
 go 1.19
 
-// the sdk version used depends on a type defined in v0.20 alpha4 instead of v0.21 alpha1
-// replace github.com/cosmos/iavl => github.com/cosmos/iavl v0.20.0-alpha4
-
-// replace github.com/cosmos/ledger-cosmos-go => github.com/cosmos/ledger-cosmos-go v0.12.1
-
 require (
 	cosmossdk.io/core v0.5.1
 	cosmossdk.io/math v1.0.0-beta.6.0.20230216172121-959ce49135e4
