@@ -54,7 +54,7 @@ func (c ClientState) Status(ctx sdk.Context, store sdk.KVStore, cdc codec.Binary
 	if err := json.Unmarshal(response, &output); err != nil {
 		return status
 	}
-	
+
 	return output.Status
 }
 
