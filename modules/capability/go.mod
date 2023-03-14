@@ -3,9 +3,9 @@ module github.com/cosmos/ibc-go/modules/capability
 go 1.19
 
 // the sdk version used depends on a type defined in v0.20 alpha4 instead of v0.21 alpha1
-replace github.com/cosmos/iavl => github.com/cosmos/iavl v0.20.0-alpha4
+// replace github.com/cosmos/iavl => github.com/cosmos/iavl v0.20.0-alpha4
 
-replace github.com/cosmos/ledger-cosmos-go => github.com/cosmos/ledger-cosmos-go v0.12.1
+// replace github.com/cosmos/ledger-cosmos-go => github.com/cosmos/ledger-cosmos-go v0.12.1
 
 require (
 	cosmossdk.io/core v0.5.1
@@ -38,8 +38,8 @@ require (
 	github.com/cosmos/btcutil v1.0.5 // indirect
 	github.com/cosmos/cosmos-proto v1.0.0-beta.2 // indirect
 	github.com/cosmos/go-bip39 v1.0.0 // indirect
-	github.com/cosmos/iavl v0.21.0-alpha.1 // indirect
-	github.com/cosmos/ledger-cosmos-go v0.13.0 // indirect
+	github.com/cosmos/iavl v0.20.0-alpha4 // indirect
+	github.com/cosmos/ledger-cosmos-go v0.12.1 // indirect
 	github.com/danieljoos/wincred v1.1.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.1.0 // indirect
@@ -108,12 +108,12 @@ require (
 	github.com/zondax/hid v0.9.1 // indirect
 	github.com/zondax/ledger-go v0.14.1 // indirect
 	go.etcd.io/bbolt v1.3.6 // indirect
-	golang.org/x/crypto v0.6.0 // indirect
+	golang.org/x/crypto v0.7.0 // indirect
 	golang.org/x/exp v0.0.0-20230224173230-c95f2b4c22f2 // indirect
-	golang.org/x/net v0.7.0 // indirect
-	golang.org/x/sys v0.5.0 // indirect
-	golang.org/x/term v0.5.0 // indirect
-	golang.org/x/text v0.7.0 // indirect
+	golang.org/x/net v0.8.0 // indirect
+	golang.org/x/sys v0.6.0 // indirect
+	golang.org/x/term v0.6.0 // indirect
+	golang.org/x/text v0.8.0 // indirect
 	google.golang.org/genproto v0.0.0-20230216225411-c8e22ba71e44 // indirect
 	google.golang.org/grpc v1.53.0 // indirect
 	google.golang.org/protobuf v1.28.2-0.20230222093303-bc1253ad3743 // indirect
