@@ -1,6 +1,7 @@
 package types_test
 
 import (
+	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
 	"os"
@@ -11,7 +12,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-
+	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
@@ -24,6 +25,7 @@ import (
 	"github.com/tendermint/tendermint/libs/log"
 	tmtypes "github.com/tendermint/tendermint/types"
 	dbm "github.com/tendermint/tm-db"
+	//tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 )
 
 type WasmTestSuite struct {
@@ -103,7 +105,8 @@ func (suite *WasmTestSuite) SetupTest() {
 	err = json.Unmarshal(createClientData, &suite.testData)
 	suite.Require().NoError(err)
 	
-	suite.ctx = suite.chainA.GetContext().WithGasMeter(sdk.NewInfiniteGasMeter())
+	//suite.ctx = suite.chainA.App.GetBaseApp().NewContext(checkTx, tmproto.Header{Height: 1, Time: suite.now}).WithGasMeter(sdk.NewInfiniteGasMeter())
+	suite.ctx = suite.chainA.GetContext().WithBlockGasMeter(sdk.NewInfiniteGasMeter())
 	suite.store = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, "08-wasm-0")
 
 	os.MkdirAll("tmp", 0o755)
@@ -117,7 +120,7 @@ func (suite *WasmTestSuite) SetupTest() {
 	suite.Require().NotNil(response.CodeId)
 	suite.codeId = response.CodeId
 
-	clientStateData, err := hex.DecodeString(suite.testData["client_state_data"])
+	clientStateData, err := base64.StdEncoding.DecodeString(suite.testData["client_state_data"])
 	suite.Require().NoError(err)
 
 	wasmClientState := wasmtypes.ClientState{
@@ -125,23 +128,24 @@ func (suite *WasmTestSuite) SetupTest() {
 		CodeId: response.CodeId,
 		LatestHeight: clienttypes.Height{
 			RevisionNumber: 2000,
-			RevisionHeight: 5,
+			RevisionHeight: 4,
 		},
 	}
 	suite.clientState = &wasmClientState
 
-	//consensusStateData := make([]byte, base64.StdEncoding.DecodedLen(len(suite.testData["create_client_consensus_state_data"])))
-	//_, err = base64.StdEncoding.Decode(consensusStateData, []byte(suite.testData["create_client_consensus_state_data"]))
-	//suite.Require().NoError(err)
-	/*wasmConsensusState := wasmtypes.ConsensusState{
-		Data:      []byte(suite.testData["create_client_consensus_state_data"]),//consensusStateData,
+	consensusStateData, err := base64.StdEncoding.DecodeString(suite.testData["consensus_state_data"])
+	suite.Require().NoError(err)
+	root, err := base64.StdEncoding.DecodeString(suite.testData["root"])
+	suite.Require().NoError(err)
+	wasmConsensusState := wasmtypes.ConsensusState{
+		Data:      consensusStateData,
 		CodeId:    response.CodeId,
-		Timestamp: uint64(suite.now.UnixNano()),
+		Timestamp: uint64(1678304292),
 		Root: &commitmenttypes.MerkleRoot{
-			Hash: []byte{0},
+			Hash: root,
 		},
 	}
-	suite.consensusState = wasmConsensusState*/
+	suite.consensusState = wasmConsensusState
 }
 
 func (suite *WasmTestSuite) TestPushNewWasmCodeWithErrors() {
