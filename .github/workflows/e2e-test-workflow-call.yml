@@ -168,7 +168,7 @@ jobs:
         id: e2e_test
         run: |
           cd e2e
-          make e2e-test entrypoint=${{ matrix.entrypoint }} test=${{ matrix.test }}
+          make e2e-test test=${{ matrix.test }}
       - name: Upload Diagnostics
         uses: actions/upload-artifact@v3
         if: ${{ failure() && inputs.upload-logs }}

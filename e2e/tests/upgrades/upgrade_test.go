@@ -607,7 +607,7 @@ func (s *UpgradeTestSuite) TestV6ToV7ChainUpgrade() {
 
 func (s *UpgradeTestSuite) TestV7ChainUpgradeAddLocalhost() {
 	t := s.T()
-	testCfg := testconfig.FromEnv()
+	testCfg := testconfig.LoadConfig()
 
 	ctx := context.Background()
 	_, _ = s.SetupChainsRelayerAndChannel(ctx)
@@ -617,7 +617,7 @@ func (s *UpgradeTestSuite) TestV7ChainUpgradeAddLocalhost() {
 
 	t.Run("upgrade chain", func(t *testing.T) {
 		govProposalWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
-		s.UpgradeChain(ctx, chain, govProposalWallet, testCfg.UpgradePlanName, testCfg.ChainAConfig.Tag, testCfg.UpgradeTag)
+		s.UpgradeChain(ctx, chain, govProposalWallet, testCfg.UpgradeConfig.PlanName, testCfg.ChainConfigs[0].Tag, testCfg.UpgradeConfig.Tag)
 	})
 
 	t.Run("ensure the localhost client is active and sentinel connection is stored in state", func(t *testing.T) {
