@@ -42,8 +42,8 @@ const (
 	ChainUpgradeTagEnv = "CHAIN_UPGRADE_TAG"
 	// ChainUpgradePlanEnv specifies the upgrade plan name
 	ChainUpgradePlanEnv = "CHAIN_UPGRADE_PLAN"
-	// E2EConfigFilePath allows you to specify a custom path for the config file to be used.
-	E2EConfigFilePath = "E2E_CONFIG_PATH"
+	// E2EConfigFilePathEnv allows you to specify a custom path for the config file to be used.
+	E2EConfigFilePathEnv = "E2E_CONFIG_PATH"
 
 	// defaultBinary is the default binary that will be used by the chains.
 	defaultBinary = "simd"
@@ -68,9 +68,12 @@ func getChainImage(binary string) string {
 
 // TestConfig holds configuration used throughout the different e2e tests.
 type TestConfig struct {
-	ChainConfigs  []ChainConfig  `json:"chains"`
+	// ChainConfigs holds configuration values related to the chains used in the tests.
+	ChainConfigs []ChainConfig `json:"chains"`
+	// RelayerConfig holds configuration for the relayer to be used.
 	RelayerConfig relayer.Config `json:"relayer"`
-	UpgradeConfig UpgradeConfig  `json:"upgrade"`
+	// UpgradeConfig holds values used only for the upgrade tests.
+	UpgradeConfig UpgradeConfig `json:"upgrade"`
 }
 
 // GetChainNumValidators returns the number of validators for the specific chain index.
@@ -195,6 +198,15 @@ func applyEnvironmentVariableOverrides(fromFile TestConfig) TestConfig {
 
 // fromEnv returns a TestConfig constructed from environment variables.
 func fromEnv() TestConfig {
+	return TestConfig{
+		ChainConfigs:  getChainConfigsFromEnv(),
+		UpgradeConfig: getUpgradePlanConfigFromEnv(),
+		RelayerConfig: getRelayerConfigFromEnv(),
+	}
+}
+
+// getChainConfigsFromEnv returns the chain configs from environment variables.
+func getChainConfigsFromEnv() []ChainConfig {
 	chainBinary, ok := os.LookupEnv(ChainBinaryEnv)
 	if !ok {
 		chainBinary = defaultBinary
@@ -215,42 +227,25 @@ func fromEnv() TestConfig {
 	if ok {
 		chainAImage = specifiedChainImage
 	}
+
 	chainBImage := chainAImage
-
-	upgradeTag, ok := os.LookupEnv(ChainUpgradeTagEnv)
-	if !ok {
-		upgradeTag = ""
-	}
-
-	upgradePlan, ok := os.LookupEnv(ChainUpgradePlanEnv)
-	if !ok {
-		upgradePlan = ""
-	}
-
-	return TestConfig{
-		ChainConfigs: []ChainConfig{
-			{
-				Image:  chainAImage,
-				Tag:    chainATag,
-				Binary: chainBinary,
-			},
-			{
-				Image:  chainBImage,
-				Tag:    chainBTag,
-				Binary: chainBinary,
-			},
+	return []ChainConfig{
+		{
+			Image:  chainAImage,
+			Tag:    chainATag,
+			Binary: chainBinary,
 		},
-		UpgradeConfig: UpgradeConfig{
-			PlanName: upgradePlan,
-			Tag:      upgradeTag,
+		{
+			Image:  chainBImage,
+			Tag:    chainBTag,
+			Binary: chainBinary,
 		},
-		RelayerConfig: getRelayerConfigFromEnv(),
 	}
 }
 
 // getConfigFilePath returns the absolute path where the e2e config file should be.
 func getConfigFilePath() string {
-	if absoluteConfigPath := os.Getenv(E2EConfigFilePath); absoluteConfigPath != "" {
+	if absoluteConfigPath := os.Getenv(E2EConfigFilePathEnv); absoluteConfigPath != "" {
 		return absoluteConfigPath
 	}
 
@@ -280,6 +275,23 @@ func getRelayerConfigFromEnv() relayer.Config {
 	return relayer.Config{
 		Tag:  rlyTag,
 		Type: relayerType,
+	}
+}
+
+// getUpgradePlanConfigFromEnv returns the upgrade config from environment variables.
+func getUpgradePlanConfigFromEnv() UpgradeConfig {
+	upgradeTag, ok := os.LookupEnv(ChainUpgradeTagEnv)
+	if !ok {
+		upgradeTag = ""
+	}
+
+	upgradePlan, ok := os.LookupEnv(ChainUpgradePlanEnv)
+	if !ok {
+		upgradePlan = ""
+	}
+	return UpgradeConfig{
+		PlanName: upgradePlan,
+		Tag:      upgradeTag,
 	}
 }
 
