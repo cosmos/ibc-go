@@ -19,7 +19,7 @@ import (
 
 const (
 	e2eDir          = "e2e"
-	defaultFilePerm = 0750
+	defaultFilePerm = 0o750
 )
 
 // Collect can be used in `t.Cleanup` and will copy all the of the container logs and relevant files
@@ -69,7 +69,7 @@ func Collect(t *testing.T, dc *dockerclient.Client, cfg testconfig.ChainOptions)
 		}
 
 		logFile := fmt.Sprintf("%s/%s.log", containerDir, containerName)
-		if err := os.WriteFile(logFile, logsBz, 0750); err != nil {
+		if err := os.WriteFile(logFile, logsBz, 0o750); err != nil {
 			t.Logf("failed writing log file for container %s in test cleanup: %s", containerName, err)
 			continue
 		}
