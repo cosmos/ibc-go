@@ -10,7 +10,7 @@ cleanup-ibc-test-containers:
 init:
 	./scripts/init.sh
 
-e2e-test: cleanup-ibc-test-containers
+e2e-test: init cleanup-ibc-test-containers
 	./scripts/run-e2e.sh $(test) $(entrypoint)
 
 compatibility-tests:
