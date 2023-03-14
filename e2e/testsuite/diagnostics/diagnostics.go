@@ -18,7 +18,8 @@ import (
 )
 
 const (
-	e2eDir = "e2e"
+	e2eDir          = "e2e"
+	defaultFilePerm = 0750
 )
 
 // Collect can be used in `t.Cleanup` and will copy all the of the container logs and relevant files
@@ -42,7 +43,7 @@ func Collect(t *testing.T, dc *dockerclient.Client, cfg testconfig.ChainOptions)
 
 	logsDir := fmt.Sprintf("%s/diagnostics", e2eDir)
 
-	if err := os.MkdirAll(fmt.Sprintf("%s/%s", logsDir, t.Name()), 0750); err != nil {
+	if err := os.MkdirAll(fmt.Sprintf("%s/%s", logsDir, t.Name()), defaultFilePerm); err != nil {
 		t.Logf("failed creating logs directory in test cleanup: %s", err)
 		return
 	}
@@ -56,7 +57,7 @@ func Collect(t *testing.T, dc *dockerclient.Client, cfg testconfig.ChainOptions)
 	for _, container := range testContainers {
 		containerName := getContainerName(t, container)
 		containerDir := fmt.Sprintf("%s/%s/%s", logsDir, t.Name(), containerName)
-		if err := os.MkdirAll(containerDir, 0750); err != nil {
+		if err := os.MkdirAll(containerDir, defaultFilePerm); err != nil {
 			t.Logf("failed creating logs directory for container %s: %s", containerDir, err)
 			continue
 		}
@@ -113,16 +114,6 @@ func getContainerName(t *testing.T, container dockertypes.Container) string {
 	return containerName
 }
 
-// writeLocalFile writes the provided contents to the specified path.
-func writeLocalFile(fileBz []byte, localPath string) error {
-	filePath := ospath.Join(localPath)
-	if err := os.WriteFile(filePath, fileBz, 0750); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 // fetchAndWriteDiagnosticsFile fetches the contents of a single file from the given container id and writes
 // the contents of the file to a local path provided.
 func fetchAndWriteDiagnosticsFile(ctx context.Context, dc *dockerclient.Client, containerID, localPath, absoluteFilePathInContainer string) error {
@@ -131,7 +122,7 @@ func fetchAndWriteDiagnosticsFile(ctx context.Context, dc *dockerclient.Client, 
 		return err
 	}
 
-	return writeLocalFile(fileBz, localPath)
+	return os.WriteFile(localPath, fileBz, defaultFilePerm)
 }
 
 // fetchAndWriteDockerInspectOutput writes the contents of docker inspect to the specified file.
@@ -146,7 +137,7 @@ func fetchAndWriteDockerInspectOutput(ctx context.Context, dc *dockerclient.Clie
 		return err
 	}
 
-	return writeLocalFile(fileBz, localPath)
+	return os.WriteFile(localPath, fileBz, defaultFilePerm)
 }
 
 // chainDiagnosticAbsoluteFilePaths returns a slice of absolute file paths (in the containers) which are the files that should be
