@@ -65,6 +65,19 @@ func (suite *KeeperTestSuite) TestSetChannel() {
 	suite.Equal(expectedCounterparty, storedChannel.Counterparty)
 }
 
+func (suite *KeeperTestSuite) TestSetGetAndDeleteExistingChannelID() {
+	chanID := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetExistingChannelID(suite.chainA.GetContext(), "mock", "channel-0")
+	suite.Require().Empty(chanID, "channelID is not empty before set")
+
+	suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetExistingChannelID(suite.chainA.GetContext(), "mock", "channel-0", "channel-1")
+	chanID = suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetExistingChannelID(suite.chainA.GetContext(), "mock", "channel-0")
+	suite.Require().Equal("channel-1", chanID, "channelID is not same as set value")
+
+	suite.chainA.App.GetIBCKeeper().ChannelKeeper.DeleteExistingChannelID(suite.chainA.GetContext(), "mock", "channel-0")
+	chanID = suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetExistingChannelID(suite.chainA.GetContext(), "mock", "channel-0")
+	suite.Require().Empty(chanID, "channelID is not empty after delete")
+}
+
 func (suite *KeeperTestSuite) TestGetAppVersion() {
 	// create client and connections on both chains
 	path := ibctesting.NewPath(suite.chainA, suite.chainB)

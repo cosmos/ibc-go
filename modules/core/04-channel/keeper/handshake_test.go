@@ -262,12 +262,9 @@ func (suite *KeeperTestSuite) TestChanOpenTry() {
 			err := path.EndpointA.ChanOpenInit()
 			suite.Require().NoError(err)
 
+			// add a first ChanOpenTry here to set the existing channelID
 			err = path.EndpointB.ChanOpenTry()
 			suite.Require().NoError(err)
-
-			// redundant ChanOpenTry
-			err = path.EndpointB.ChanOpenTry()
-			suite.Require().Equal(types.ErrRedundantHandshake, err)
 		}, false},
 	}
 
@@ -305,13 +302,24 @@ func (suite *KeeperTestSuite) TestChanOpenTry() {
 					suite.chainB.GetContext(),
 					host.ChannelCapabilityPath(path.EndpointB.ChannelConfig.PortID, channelID),
 				)
-				suite.Require().True(ok, "could not retrieve channel capapbility after successful ChanOpenTry")
+				suite.Require().True(ok, "could not retrieve channel capability after successful ChanOpenTry")
 				suite.Require().Equal(chanCap.String(), cap.String(), "channel capability is not correct")
 
-				existingID := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetExistingChannelID(
-					suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointB.ChannelID,
+				suite.chainB.App.GetIBCKeeper().ChannelKeeper.WriteOpenTryChannel(
+					suite.chainB.GetContext(),
+					path.EndpointB.ChannelConfig.PortID,
+					channelID,
+					types.ORDERED,
+					[]string{path.EndpointB.ConnectionID},
+					counterparty,
+					path.EndpointB.ChannelConfig.Version,
 				)
-				suite.Require().Equal(channelID, existingID, "channelID generated was not stored in existingChannelID mapping")
+
+				existingID := suite.chainB.App.GetIBCKeeper().ChannelKeeper.GetExistingChannelID(
+					suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.Counterparty.ChannelID,
+				)
+
+				suite.Require().Equal(channelID, existingID)
 			} else {
 				suite.Require().Error(err)
 			}
