@@ -1,8 +1,6 @@
-
-
+# This file contains configuration for running e2e tests.
 # Many of these fields can be overridden with environment variables.
-# All fields that support this have the corresponding environment variable name
-# in a comment beside the field.
+# All fields that support this have the corresponding environment variable name in a comment beside the field.
 
 ---
 chains:
