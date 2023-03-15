@@ -259,21 +259,6 @@ callbacks to IBC applications.
 
 ### MsgTimeoutPacket & MsgTimeoutOnClose 
 
-<<<<<<< HEAD
-| Type           | Attribute Key            | Attribute Value      |
-|----------------|--------------------------|----------------------|
-| timeout_packet | packet_timeout_height    | {timeoutHeight}      |
-| timeout_packet | packet_timeout_timestamp | {timeoutTimestamp}   |
-| timeout_packet | packet_sequence          | {sequence}           |
-| timeout_packet | packet_src_port          | {sourcePort}         |
-| timeout_packet | packet_src_channel       | {sourceChannel}      |
-| timeout_packet | packet_dst_port          | {destinationPort}    |
-| timeout_packet | packet_dst_channel       | {destinationChannel} |
-| timeout_packet | packet_channel_ordering  | {channel.Ordering}   |
-| message        | action                   | timeout_packet       |
-| message        | module                   | ibc-channel          |
-
-=======
 | Type           | Attribute Key            | Attribute Value               |
 |----------------|--------------------------|-------------------------------|
 | timeout_packet | packet_timeout_height    | {timeoutHeight}               |
@@ -287,4 +272,3 @@ callbacks to IBC applications.
 | timeout_packet | connection_id            | {channel.ConnectionHops[0]}   |
 | message        | action                   | timeout_packet                |
 | message        | module                   | ibc-channel                   |
->>>>>>> d840c699 (Adding 09-localhost loopback client module (#3229))
