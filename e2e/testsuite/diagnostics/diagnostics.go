@@ -69,7 +69,7 @@ func Collect(t *testing.T, dc *dockerclient.Client, cfg testconfig.ChainOptions)
 		}
 
 		logFile := fmt.Sprintf("%s/%s.log", containerDir, containerName)
-		if err := os.WriteFile(logFile, logsBz, 0o750); err != nil {
+		if err := os.WriteFile(logFile, logsBz, defaultFilePerm); err != nil {
 			t.Logf("failed writing log file for container %s in test cleanup: %s", containerName, err)
 			continue
 		}
