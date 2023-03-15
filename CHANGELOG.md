@@ -64,7 +64,6 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (apps) [#3149](https://github.com/cosmos/ibc-go/pull/3149) Remove legacy interface function `RandomizedParams`, which is no longer used.
 * (light-clients/06-solomachine) [#2941](https://github.com/cosmos/ibc-go/pull/2941) Remove solomachine header sequence.
 * (core) [#2982](https://github.com/cosmos/ibc-go/pull/2982) Moved the ibc module name into the exported package.
-* (testing) [\#3295](https://github.com/cosmos/ibc-go/pull/3295) The function to initialize the `TestingApp` takes now the chain ID as parameter.
  
 ### State Machine Breaking
 
@@ -122,6 +121,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Bug Fixes
 
+* (testing) [\#3295](https://github.com/cosmos/ibc-go/pull/3295) The function `SetupWithGenesisValSet` will set the baseapp chainID before running `InitChain`
 * (light-clients/solomachine) [#1839](https://github.com/cosmos/ibc-go/pull/1839) Fixed usage of the new diversifier in validation of changing diversifiers for the solo machine. The current diversifier must sign over the new diversifier.
 * (light-clients/07-tendermint) [\#1674](https://github.com/cosmos/ibc-go/pull/1674) Submitted ClientState is zeroed out before checking the proof in order to prevent the proposal from containing information governance is not actually voting on.
 * (modules/core/02-client)[\#1676](https://github.com/cosmos/ibc-go/pull/1676) ClientState must be zeroed out for `UpgradeProposals` to pass validation. This prevents a proposal containing information governance is not actually voting on.

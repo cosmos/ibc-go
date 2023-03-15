@@ -95,15 +95,6 @@ It may be useful to reference the [PR](https://github.com/cosmos/ibc-go/pull/282
 
 The `SetChannelClosed` utility method in `testing/endpoint.go` has been updated to `SetChannelState`, which will take a `channeltypes.State` argument so that the `ChannelState` can be set to any of the possible channel states.
 
-The function to initialize the `TestingApp` takes now the chain ID as parameter:
-
- ```go
-- func SetupTestingApp() (TestingApp, map[string]json.RawMessage)
-+ func SetupTestingApp(chainID string) (TestingApp, map[string]json.RawMessage)
-```
-
-The chain ID should then be pass to `SetChainID` and used as a `baseapp` option in the `NewSimApp` constructor.
-
 ## IBC Apps
 
 - No relevant changes were made in this release.

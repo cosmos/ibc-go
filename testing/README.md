@@ -117,7 +117,7 @@ It is assumed your application contains an embedded BaseApp and thus implements 
 The testing package requires that you provide a function to initialize your TestingApp. This is how ibc-go implements the initialize function with its `SimApp`:
 
 ```go
-func SetupTestingApp(chainID string) (TestingApp, map[string]json.RawMessage) {
+func SetupTestingApp() (TestingApp, map[string]json.RawMessage) {
   db := dbm.NewMemDB()
   encCdc := simapp.MakeTestEncodingConfig()
   app := simapp.NewSimApp(
@@ -130,7 +130,6 @@ func SetupTestingApp(chainID string) (TestingApp, map[string]json.RawMessage) {
     5,
     encCdc, 
     simapp.EmptyAppOptions{},
-    baseapp.SetChainID(chainID),
   )
   return app, simapp.NewDefaultGenesisState(encCdc.Marshaler)
 }
@@ -276,7 +275,7 @@ import (
   ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
-func SetupTransferTestingApp(chainID string) (ibctesting.TestingApp, map[string]json.RawMessage) {
+func SetupTransferTestingApp() (ibctesting.TestingApp, map[string]json.RawMessage) {
   db := dbm.NewMemDB()
   encCdc := simapp.MakeTestEncodingConfig()
   app := simapp.NewSimApp(
@@ -289,7 +288,6 @@ func SetupTransferTestingApp(chainID string) (ibctesting.TestingApp, map[string]
     5,
     encCdc,
     simapp.EmptyAppOptions{},
-    baseapp.SetChainID(chainID),
   )
   return app, simapp.NewDefaultGenesisState(encCdc.Marshaler)
 }
