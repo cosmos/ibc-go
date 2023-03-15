@@ -19,8 +19,6 @@ type KeeperTestSuite struct {
 	chainA *ibctesting.TestChain
 	chainB *ibctesting.TestChain
 	chainC *ibctesting.TestChain
-
-	queryClient types.QueryClient
 }
 
 func (suite *KeeperTestSuite) SetupTest() {
@@ -31,7 +29,6 @@ func (suite *KeeperTestSuite) SetupTest() {
 
 	queryHelper := baseapp.NewQueryServerTestHelper(suite.chainA.GetContext(), suite.chainA.GetSimApp().InterfaceRegistry())
 	types.RegisterQueryServer(queryHelper, suite.chainA.GetSimApp().TransferKeeper)
-	suite.queryClient = types.NewQueryClient(queryHelper)
 }
 
 func NewTransferPath(chainA, chainB *ibctesting.TestChain) *ibctesting.Path {
