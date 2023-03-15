@@ -9,7 +9,7 @@ import (
 
 	"github.com/cosmos/ibc-go/e2e/testconfig"
 	"github.com/cosmos/ibc-go/e2e/testsuite"
-	tmjson "github.com/tendermint/tendermint/libs/json"
+	tmjson "github.com/cometbft/cometbft/libs/json"
 	cosmos "github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
 	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
 	"github.com/stretchr/testify/suite"
@@ -32,20 +32,23 @@ func (s *GenesisTestSuite) TestIBCGenesis() {
 
 	configFileOverrides := make(map[string]any)
 	appTomlOverrides := make(test.Toml)
-	configFileOverrides["halt-height"] = haltHeight
-
-	testconfig.DefaultChainOptions().ChainAConfig.ConfigFileOverrides = appTomlOverrides
-
+	
+	appTomlOverrides["halt-height"] = haltHeight
+	configFileOverrides["config/app.toml"] = appTomlOverrides
+	chainOpts := func(options * testconfig.ChainOptions) {
+	    options.ChainAConfig.ConfigFileOverrides = configFileOverrides
+	}
+	
+	// create chains with specified chain configuration options
+	chainA, chainB := s.GetChains(chainOpts)
+	
 	ctx := context.Background()
 	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx)
-	chainA, chainB := s.GetChains()
 
 	var (
 		chainADenom    = chainA.Config().Denom
 		chainBIBCToken = testsuite.GetIBCToken(chainADenom, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID) // IBC token sent to chainB
 
-		// chainBDenom    = chainB.Config().Denom
-		//chainAIBCToken = testsuite.GetIBCToken(chainBDenom, channelA.PortID, channelA.ChannelID) // IBC token sent to chainA
 	)
 
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
@@ -84,15 +87,10 @@ func (s *GenesisTestSuite) TestIBCGenesis() {
 		s.Require().Equal(expected, actualBalance)
 	})
 
-	s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA, chainB), "failed to wait for blocks")
+	s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB), "failed to wait for blocks")
 
 	t.Run("Halt chain and export genesis", func(t *testing.T) {
 		s.HaltChainAndExportGenesis(ctx, chainA, int64(haltHeight))
-	})
-
-	t.Run("restart relayer", func(t *testing.T) {
-		s.StopRelayer(ctx, relayer)
-		s.StartRelayer(relayer)
 	})
 
 	t.Run("native IBC token transfer from chainA to chainB, sender is source of tokens", func(t *testing.T) {
@@ -110,15 +108,13 @@ func (s *GenesisTestSuite) HaltChainAndExportGenesis(ctx context.Context, chain 
 	timeoutCtx, timeoutCtxCancel := context.WithTimeout(ctx, time.Minute*2)
 	defer timeoutCtxCancel()
 
-	height, err := chain.Height(ctx)
-	s.Require().NoError(err, "error fetching height before halt")
-	
-	err = test.WaitForBlocks(timeoutCtx, int(haltHeight - int64(height)) +1, chain)
-	s.Require().NoError(err)
+	err := test.WaitForBlocks(timeoutCtx, int(haltHeight), chain)
+	s.Require().Error(err, "chain did not halt at halt height")
+
 	err = chain.StopAllNodes(ctx)
 	s.Require().NoError(err, "error stopping node(s)")
 
-	state, err := chain.ExportState(ctx, int64(haltHeight-int64(height))+1)
+	state, err := chain.ExportState(ctx, int64(haltHeight))
 
 	s.Require().NoError(err)
 	err = tmjson.Unmarshal([]byte(state), &genesisState)
@@ -144,7 +140,7 @@ func (s *GenesisTestSuite) HaltChainAndExportGenesis(ctx context.Context, chain 
 	err = test.WaitForBlocks(timeoutCtx, int(blocksAfterUpgrade), chain)
 	s.Require().NoError(err, "chain did not produce blocks after halt")
 
-	height, err = chain.Height(ctx)
+	height, err := chain.Height(ctx)
 	s.Require().NoError(err, "error fetching height after halt")
 
 	s.Require().Greater(height, haltHeight, "height did not increment after halt")
