@@ -269,7 +269,6 @@ import (
 
   "github.com/cometbft/cometbft/libs/log"
   dbm "github.com/cometbft/cometbft-db"
-  "github.com/cosmos/cosmos-sdk/baseapp"
 
   "github.com/cosmos/ibc-go/v7/modules/apps/transfer/simapp"
   ibctesting "github.com/cosmos/ibc-go/v7/testing"
