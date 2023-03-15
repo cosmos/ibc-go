@@ -72,6 +72,12 @@ export RELAYER_TAG="v2.0.0"
 make e2e-test entrypoint=TestInterchainAccountsTestSuite test=TestMsgSubmitTx_SuccessfulTransfer
 ```
 
+If `jq` is installed, you only need to specify the `test`.
+
+```sh
+make e2e-test test=TestMsgSubmitTx_SuccessfulTransfer
+```
+
 > Note: sometimes it can be useful to make changes to [ibctest](https://github.com/strangelove-ventures/interchaintest) when running tests locally. In order to do this, add the following line to
 e2e/go.mod
 
@@ -353,6 +359,12 @@ json matrix files under .github/compatibility-test-matrices and is equivalent to
   ```
 
   This issue doesn't seem to occur on other operating systems.
+
+### Accessing Logs
+
+- When a test fails in GitHub. The logs of the test will be uploaded (viewable in the summary page of the workflow). Note: There 
+  may be some discrepancy in the logs collected and the output of interchain test. The containers may run for a some
+  time after the logs are collected, resulting in the displayed logs to differ slightly.
 
 ## Importable Workflow
 

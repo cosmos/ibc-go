@@ -2,11 +2,11 @@ package keeper
 
 import (
 	errorsmod "cosmossdk.io/errors"
+	"github.com/cometbft/cometbft/libs/log"
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
-	"github.com/tendermint/tendermint/libs/log"
 
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
@@ -194,6 +194,14 @@ func (k Keeper) GetAllConnections(ctx sdk.Context) (connections []types.Identifi
 		return false
 	})
 	return connections
+}
+
+// CreateSentinelLocalhostConnection creates and sets the sentinel localhost connection end in the IBC store.
+func (k Keeper) CreateSentinelLocalhostConnection(ctx sdk.Context) {
+	counterparty := types.NewCounterparty(exported.LocalhostClientID, exported.LocalhostConnectionID, commitmenttypes.NewMerklePrefix(k.GetCommitmentPrefix().Bytes()))
+	connectionEnd := types.NewConnectionEnd(types.OPEN, exported.LocalhostClientID, counterparty, types.ExportedVersionsToProto(types.GetCompatibleVersions()), 0)
+
+	k.SetConnection(ctx, exported.LocalhostConnectionID, connectionEnd)
 }
 
 // addConnectionToClient is used to add a connection identifier to the set of

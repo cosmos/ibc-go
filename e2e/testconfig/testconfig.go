@@ -6,6 +6,8 @@ import (
 	"os"
 	"strings"
 
+	tmjson "github.com/cometbft/cometbft/libs/json"
+	tmtypes "github.com/cometbft/cometbft/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module/testutil"
@@ -14,8 +16,7 @@ import (
 	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	"github.com/strangelove-ventures/interchaintest/v7/ibc"
-	tmjson "github.com/tendermint/tendermint/libs/json"
-	tmtypes "github.com/tendermint/tendermint/types"
+	interchaintestutil "github.com/strangelove-ventures/interchaintest/v7/testutil"
 
 	"github.com/cosmos/ibc-go/e2e/relayer"
 	"github.com/cosmos/ibc-go/e2e/semverutil"
@@ -46,7 +47,7 @@ const (
 	defaultBinary = "simd"
 	// defaultRlyTag is the tag that will be used if no relayer tag is specified.
 	// all images are here https://github.com/cosmos/relayer/pkgs/container/relayer/versions
-	defaultRlyTag = "andrew-tendermint_v0.37" // "v2.2.0"
+	defaultRlyTag = "latest" // "andrew-tendermint_v0.37" // "v2.2.0"
 	// defaultChainTag is the tag that will be used for the chains if none is specified.
 	defaultChainTag = "main"
 	// defaultRelayerType is the default relayer that will be used if none is specified.
@@ -197,6 +198,11 @@ func DefaultChainOptions() ChainOptions {
 
 // newDefaultSimappConfig creates an ibc configuration for simd.
 func newDefaultSimappConfig(cc ChainConfig, name, chainID, denom string) ibc.ChainConfig {
+	configFileOverrides := make(map[string]any)
+	tmTomlOverrides := make(interchaintestutil.Toml)
+
+	tmTomlOverrides["log_level"] = "info" // change to debug to increase cometbft logging
+	configFileOverrides["config/config.toml"] = tmTomlOverrides
 
 	return ibc.ChainConfig{
 		Type:    "cosmos",
@@ -208,15 +214,16 @@ func newDefaultSimappConfig(cc ChainConfig, name, chainID, denom string) ibc.Cha
 				Version:    cc.Tag,
 			},
 		},
-		Bin:            cc.Binary,
-		Bech32Prefix:   "cosmos",
-		CoinType:       fmt.Sprint(sdk.GetConfig().GetCoinType()),
-		Denom:          denom,
-		GasPrices:      fmt.Sprintf("0.00%s", denom),
-		GasAdjustment:  1.3,
-		TrustingPeriod: "508h",
-		NoHostMount:    false,
-		ModifyGenesis:  getGenesisModificationFunction(cc),
+		Bin:                 cc.Binary,
+		Bech32Prefix:        "cosmos",
+		CoinType:            fmt.Sprint(sdk.GetConfig().GetCoinType()),
+		Denom:               denom,
+		GasPrices:           fmt.Sprintf("0.00%s", denom),
+		GasAdjustment:       1.3,
+		TrustingPeriod:      "508h",
+		NoHostMount:         false,
+		ModifyGenesis:       getGenesisModificationFunction(cc),
+		ConfigFileOverrides: configFileOverrides,
 	}
 }
 

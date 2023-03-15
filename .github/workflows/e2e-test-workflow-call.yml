@@ -61,6 +61,11 @@ on:
         required: false
         type: boolean
         default: false
+      upload-logs:
+        description: "Specify flag to indicate that logs should be uploaded on failure"
+        required: false
+        type: boolean
+        default: false
 
 env:
   REGISTRY: ghcr.io
@@ -160,6 +165,15 @@ jobs:
         with:
           go-version: 1.19
       - name: Run e2e Test
+        id: e2e_test
         run: |
           cd e2e
-          make e2e-test entrypoint=${{ matrix.entrypoint }} test=${{ matrix.test }}
+          make e2e-test test=${{ matrix.test }}
+      - name: Upload Diagnostics
+        uses: actions/upload-artifact@v3
+        if: ${{ failure() && inputs.upload-logs }}
+        continue-on-error: true
+        with:
+          name: "${{ matrix.entrypoint }}-${{ matrix.test }}"
+          path: e2e/diagnostics
+          retention-days: 5
