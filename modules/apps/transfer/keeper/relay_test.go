@@ -451,6 +451,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacketSetsTotalEscrowAmountForSourceIBCT
 	path2 := NewTransferPath(suite.chainA, suite.chainB)
 	suite.coordinator.Setup(path2)
 
+	// denomTrace path: {transfer/channel-1/transfer/channel-0}
 	denomTrace := types.DenomTrace{
 		BaseDenom: sdk.DefaultBondDenom,
 		Path:      fmt.Sprintf("%s/%s/%s/%s", path2.EndpointA.ChannelConfig.PortID, path2.EndpointA.ChannelID, path1.EndpointB.ChannelConfig.PortID, path1.EndpointB.ChannelID),
@@ -472,6 +473,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacketSetsTotalEscrowAmountForSourceIBCT
 	)
 
 	// fund escrow account for transfer and channel-1 on chain B
+	// denomTrace path: transfer/channel-0
 	denomTrace = types.DenomTrace{
 		BaseDenom: sdk.DefaultBondDenom,
 		Path:      fmt.Sprintf("%s/%s", path1.EndpointB.ChannelConfig.PortID, path1.EndpointB.ChannelID),
@@ -487,19 +489,21 @@ func (suite *KeeperTestSuite) TestOnRecvPacketSetsTotalEscrowAmountForSourceIBCT
 		),
 	)
 
-	// execute and assert (an attempt to set total escrow will panic because amount will
-	// be negative, since non-native token denominations are not tracked on send transfer)
-	var err error
-	suite.Require().Panics(func() {
-		err = suite.chainB.GetSimApp().TransferKeeper.OnRecvPacket(suite.chainB.GetContext(), packet, data)
-	})
+	suite.chainB.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(suite.chainB.GetContext(), coin.GetDenom(), coin.Amount)
+
+	// execute onRecvPacket, when chaninB recieves the source token the escrow amount should decrease
+	err := suite.chainB.GetSimApp().TransferKeeper.OnRecvPacket(suite.chainB.GetContext(), packet, data)
 	suite.Require().NoError(err)
+
+	// check total amount in escrow of sent token on reveiving chain
+	totalEscrow := suite.chainB.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(suite.chainB.GetContext(), coin.GetDenom())
+	suite.Require().Equal(math.NewInt(0), totalEscrow)
 }
 
 // TestOnAcknowledgementPacket tests that successful acknowledgement is a no-op
 // and failure acknowledment leads to refund when attempting to send from chainA
 // to chainB. If sender is source then the denomination being refunded has no
-// trace.
+// trace
 func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 	var (
 		successAck   = channeltypes.NewResultAcknowledgement([]byte{byte(1)})
@@ -648,6 +652,7 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacketSetsTotalEscrowAmountFo
 	suite.coordinator.Setup(path2)
 
 	// fund escrow account for transfer and channel-1 on chain B
+	// denomTrace path = transfer/channel-0
 	denomTrace := types.DenomTrace{
 		BaseDenom: sdk.DefaultBondDenom,
 		Path:      fmt.Sprintf("%s/%s", path1.EndpointB.ChannelConfig.PortID, path1.EndpointB.ChannelID),
@@ -679,13 +684,15 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacketSetsTotalEscrowAmountFo
 		suite.chainA.GetTimeoutHeight(), 0,
 	)
 
-	// execute and assert (an attempt to set total escrow will panic because amount will
-	// be negative, since non-native token denominations are not tracked on send transfer)
-	var err error
-	suite.Require().Panics(func() {
-		err = suite.chainB.GetSimApp().TransferKeeper.OnAcknowledgementPacket(suite.chainB.GetContext(), packet, data, ack)
-	})
+	suite.chainB.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(suite.chainB.GetContext(), coin.GetDenom(), coin.Amount)
+
+	err := suite.chainB.GetSimApp().TransferKeeper.OnAcknowledgementPacket(suite.chainB.GetContext(), packet, data, ack)
 	suite.Require().NoError(err)
+
+	// check total amount in escrow of sent token on sending chain
+	totalEscrowChainA := suite.chainA.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(suite.chainA.GetContext(), coin.GetDenom())
+	suite.Require().Equal(math.NewInt(0), totalEscrowChainA)
+
 }
 
 // TestOnTimeoutPacket test private refundPacket function since it is a simple
@@ -875,11 +882,12 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacketSetsTotalEscrowAmountForSourceI
 		suite.chainA.GetTimeoutHeight(), 0,
 	)
 
-	// execute and assert (an attempt to set total escrow will panic because amount will
-	// be negative, since non-native token denominations are not tracked on send transfer)
-	var err error
-	suite.Require().Panics(func() {
-		err = suite.chainB.GetSimApp().TransferKeeper.OnTimeoutPacket(suite.chainB.GetContext(), packet, data)
-	})
+	suite.chainB.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(suite.chainB.GetContext(), coin.GetDenom(), coin.Amount)
+
+	err := suite.chainB.GetSimApp().TransferKeeper.OnTimeoutPacket(suite.chainB.GetContext(), packet, data)
 	suite.Require().NoError(err)
+
+	// check total amount in escrow of sent token on reveiving chain
+	totalEscrowChainA := suite.chainA.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(suite.chainA.GetContext(), coin.GetDenom())
+	suite.Require().Equal(math.NewInt(0), totalEscrowChainA)
 }
