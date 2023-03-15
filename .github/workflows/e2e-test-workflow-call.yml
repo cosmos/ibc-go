@@ -171,7 +171,7 @@ jobs:
           make e2e-test test=${{ matrix.test }}
       - name: Upload Diagnostics
         uses: actions/upload-artifact@v3
-        if: ${{ failure() && inputs.upload-logs }}
+        if: ${{ inputs.upload-logs }}
         continue-on-error: true
         with:
           name: "${{ matrix.entrypoint }}-${{ matrix.test }}"
