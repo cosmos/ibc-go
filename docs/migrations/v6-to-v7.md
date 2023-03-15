@@ -102,6 +102,8 @@ The function to initialize the `TestingApp` takes now the chain ID as parameter:
 + func SetupTestingApp(chainID string) (TestingApp, map[string]json.RawMessage)
 ```
 
+The chain ID should then be pass to `SetChainID` and used as a `baseapp` option in the `NewSimApp` constructor.
+
 ## IBC Apps
 
 - No relevant changes were made in this release.
