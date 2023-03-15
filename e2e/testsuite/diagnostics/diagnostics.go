@@ -28,12 +28,6 @@ const (
 func Collect(t *testing.T, dc *dockerclient.Client, cfg testconfig.ChainOptions) {
 	t.Helper()
 
-	debugCfg := testconfig.LoadConfig().DebugConfig
-	if !t.Failed() || debugCfg.DumpLogs {
-		t.Logf("test passed, not uploading logs")
-		return
-	}
-
 	t.Logf("writing logs for test: %s", t.Name())
 
 	ctx := context.TODO()
