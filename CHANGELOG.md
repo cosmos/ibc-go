@@ -64,6 +64,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (apps) [#3149](https://github.com/cosmos/ibc-go/pull/3149) Remove legacy interface function `RandomizedParams`, which is no longer used.
 * (light-clients/06-solomachine) [#2941](https://github.com/cosmos/ibc-go/pull/2941) Remove solomachine header sequence.
 * (core) [#2982](https://github.com/cosmos/ibc-go/pull/2982) Moved the ibc module name into the exported package.
+* (testing) [\#3295](https://github.com/cosmos/ibc-go/pull/3295) The function to initialize the `TestingApp` takes now the chain ID as parameter.
  
 ### State Machine Breaking
 
