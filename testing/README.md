@@ -115,20 +115,20 @@ The testing package requires that you provide a function to initialize your Test
 
 ```go
 func SetupTestingApp() (TestingApp, map[string]json.RawMessage) {
-  db := dbm.NewMemDB()
-  encCdc := simapp.MakeTestEncodingConfig()
-  app := simapp.NewSimApp(
-    log.NewNopLogger(), 
-    db, 
-    nil, 
-    true,
-    map[int64]bool{},
-    simapp.DefaultNodeHome,
-    5,
-    encCdc, 
-    simapp.EmptyAppOptions{},
-  )
-  return app, simapp.NewDefaultGenesisState(encCdc.Marshaler)
+	db := dbm.NewMemDB()
+	encCdc := simapp.MakeTestEncodingConfig()
+	app := simapp.NewSimApp(
+		log.NewNopLogger(), 
+		db, 
+		nil, 
+		true,
+		map[int64]bool{},
+		simapp.DefaultNodeHome,
+		5,
+		encCdc, 
+		simapp.EmptyAppOptions{},
+	)
+	return app, simapp.NewDefaultGenesisState(encCdc.Marshaler)
 }
 ```
 
@@ -259,30 +259,30 @@ If ICS 20 had its own simapp, its testing setup might include a `testing/app.go`
 package transfertesting
 
 import (
-  "encoding/json"
+	"encoding/json"
 
-  "github.com/cometbft/cometbft/libs/log"
-  dbm "github.com/cometbft/cometbft-db"
+	"github.com/cometbft/cometbft/libs/log"
+	dbm "github.com/cometbft/cometbft-db"
 
-  "github.com/cosmos/ibc-go/v7/modules/apps/transfer/simapp"
-  ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/simapp"
+	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
 func SetupTransferTestingApp() (ibctesting.TestingApp, map[string]json.RawMessage) {
-  db := dbm.NewMemDB()
-  encCdc := simapp.MakeTestEncodingConfig()
-  app := simapp.NewSimApp(
-    log.NewNopLogger(),
-    db,
-    nil,
-    true,
-    map[int64]bool{},
-    simapp.DefaultNodeHome,
-    5,
-    encCdc,
-    simapp.EmptyAppOptions{},
-  )
-  return app, simapp.NewDefaultGenesisState(encCdc.Marshaler)
+	db := dbm.NewMemDB()
+	encCdc := simapp.MakeTestEncodingConfig()
+	app := simapp.NewSimApp(
+		log.NewNopLogger(),
+		db,
+		nil,
+		true,
+		map[int64]bool{},
+		simapp.DefaultNodeHome,
+		5,
+		encCdc,
+		simapp.EmptyAppOptions{},
+	)
+	return app, simapp.NewDefaultGenesisState(encCdc.Marshaler)
 }
 
 func init() {
