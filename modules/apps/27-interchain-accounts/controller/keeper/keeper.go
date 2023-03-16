@@ -98,8 +98,8 @@ func (k Keeper) BindPort(ctx sdk.Context, portID string) *capabilitytypes.Capabi
 	return k.portKeeper.BindPort(ctx, portID)
 }
 
-// HasCapability checks if the interchain account controller module owns the port capability for the desired port
-func (k Keeper) HasCapability(ctx sdk.Context, portID string) bool {
+// hasCapability checks if the interchain account controller module owns the port capability for the desired port
+func (k Keeper) hasCapability(ctx sdk.Context, portID string) bool {
 	_, ok := k.scopedKeeper.GetCapability(ctx, host.PortPath(portID))
 	return ok
 }
