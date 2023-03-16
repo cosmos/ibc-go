@@ -64,6 +64,9 @@ func SetupTestingApp() (TestingApp, map[string]json.RawMessage) {
 func SetupWithGenesisValSet(t *testing.T, valSet *tmtypes.ValidatorSet, genAccs []authtypes.GenesisAccount, chainID string, powerReduction math.Int, balances ...banktypes.Balance) TestingApp {
 	app, genesisState := DefaultTestingAppInit()
 
+	// ensure baseapp has a chain-id set before running InitChain
+	baseapp.SetChainID(chainID)(app.GetBaseApp())
+
 	// set genesis accounts
 	authGenesis := authtypes.NewGenesisState(authtypes.DefaultParams(), genAccs)
 	genesisState[authtypes.ModuleName] = app.AppCodec().MustMarshalJSON(authGenesis)
