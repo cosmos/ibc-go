@@ -7,47 +7,41 @@ import (
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/runtime"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
-	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/module"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	ibcmock "github.com/cosmos/ibc-go/v7/testing/mock"
+	"github.com/cosmos/ibc-go/v7/testing/simapp"
 
 	"github.com/cosmos/ibc-go/modules/capability"
 	"github.com/cosmos/ibc-go/modules/capability/keeper"
-	"github.com/cosmos/ibc-go/modules/capability/testutil"
 	"github.com/cosmos/ibc-go/modules/capability/types"
 )
 
 type CapabilityTestSuite struct {
 	suite.Suite
 
-	app    *runtime.App
 	cdc    codec.Codec
 	ctx    sdk.Context
+	app    *simapp.SimApp
 	keeper *keeper.Keeper
-	memKey *storetypes.MemoryStoreKey
+	module module.AppModule
 }
 
 func (suite *CapabilityTestSuite) SetupTest() {
-	suite.memKey = storetypes.NewMemoryStoreKey("testingkey")
+	checkTx := false
+	app := simapp.Setup(checkTx)
+	cdc := app.AppCodec()
 
-	startupCfg := simtestutil.DefaultStartUpConfig()
-	startupCfg.BaseAppOption = func(ba *baseapp.BaseApp) {
-		ba.MountStores(suite.memKey)
-	}
-
-	app, err := simtestutil.SetupWithConfiguration(testutil.AppConfig,
-		startupCfg,
-		&suite.cdc,
-		&suite.keeper,
-	)
-	suite.Require().NoError(err)
+	// create new keeper so we can define custom scoping before init and seal
+	keeper := keeper.NewKeeper(cdc, app.GetKey(types.StoreKey), app.GetMemKey(types.MemStoreKey))
 
 	suite.app = app
-	suite.ctx = app.BaseApp.NewContext(false, tmproto.Header{Height: 1})
+	suite.ctx = app.BaseApp.NewContext(checkTx, tmproto.Header{Height: 1})
+	suite.keeper = keeper
+	suite.cdc = cdc
+	suite.module = capability.NewAppModule(cdc, *keeper, false)
 }
 
 // The following test case mocks a specific bug discovered in https://github.com/cosmos/cosmos-sdk/issues/9800
@@ -60,7 +54,7 @@ func (suite *CapabilityTestSuite) TestInitializeMemStore() {
 	suite.Require().NotNil(cap1)
 
 	// mock statesync by creating new keeper that shares persistent state but loses in-memory map
-	newKeeper := keeper.NewKeeper(suite.cdc, suite.app.UnsafeFindStoreKey(types.StoreKey).(*storetypes.KVStoreKey), suite.memKey)
+	newKeeper := keeper.NewKeeper(suite.cdc, suite.app.GetKey(types.StoreKey), suite.app.GetMemKey(ibcmock.MemStoreKey))
 	newSk1 := newKeeper.ScopeToModule(banktypes.ModuleName)
 
 	// Mock App startup
@@ -70,13 +64,19 @@ func (suite *CapabilityTestSuite) TestInitializeMemStore() {
 
 	// Mock app beginblock and ensure that no gas has been consumed and memstore is initialized
 	ctx = suite.app.BaseApp.NewContext(false, tmproto.Header{}).WithBlockGasMeter(sdk.NewGasMeter(50))
-	prevGas := ctx.BlockGasMeter().GasConsumed()
-	restartedModule := capability.NewAppModule(suite.cdc, *newKeeper, true)
-	restartedModule.BeginBlock(ctx, abci.RequestBeginBlock{})
-	suite.Require().True(newKeeper.IsInitialized(ctx), "memstore initialized flag not set")
-	gasUsed := ctx.BlockGasMeter().GasConsumed()
 
-	suite.Require().Equal(prevGas, gasUsed, "beginblocker consumed gas during execution")
+	prevBlockGas := ctx.BlockGasMeter().GasConsumed()
+	prevGas := ctx.BlockGasMeter().GasConsumed()
+
+	restartedModule := capability.NewAppModule(suite.cdc, *newKeeper, false)
+	restartedModule.BeginBlock(ctx, abci.RequestBeginBlock{})
+	gasUsed := ctx.GasMeter().GasConsumed()
+
+	suite.Require().True(newKeeper.IsInitialized(ctx), "memstore initialized flag not set")
+	blockGasUsed := ctx.BlockGasMeter().GasConsumed()
+
+	suite.Require().Equal(prevBlockGas, blockGasUsed, "ensure beginblocker consumed no block gas during execution")
+	suite.Require().Equal(prevGas, gasUsed, "ensure beginblocker consumed no gas during execution")
 
 	// Mock the first transaction getting capability and subsequently failing
 	// by using a cached context and discarding all cached writes.

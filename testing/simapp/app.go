@@ -119,6 +119,7 @@ import (
 	ibckeeper "github.com/cosmos/ibc-go/v7/modules/core/keeper"
 	solomachine "github.com/cosmos/ibc-go/v7/modules/light-clients/06-solomachine"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
+	"github.com/cosmos/ibc-go/v7/testing/mock"
 	ibcmock "github.com/cosmos/ibc-go/v7/testing/mock"
 	simappparams "github.com/cosmos/ibc-go/v7/testing/simapp/params"
 	"github.com/cosmos/ibc-go/v7/testing/simapp/upgrades"
@@ -291,7 +292,7 @@ func NewSimApp(
 		authzkeeper.StoreKey, ibcfeetypes.StoreKey, consensusparamtypes.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
-	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
+	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey, mock.MemStoreKey)
 
 	app := &SimApp{
 		BaseApp:           bApp,
