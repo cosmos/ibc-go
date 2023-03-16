@@ -59,6 +59,7 @@ func (suite *ClientTestSuite) TestBeginBlockerConsensusState() {
 
 	nextValsHash := []byte("nextValsHash")
 	newCtx := suite.chainA.GetContext().WithBlockHeader(tmproto.Header{
+		ChainID:            suite.chainA.ChainID,
 		Height:             suite.chainA.GetContext().BlockHeight(),
 		NextValidatorsHash: nextValsHash,
 	})
