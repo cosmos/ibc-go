@@ -4,11 +4,6 @@ module github.com/cosmos/ibc-go/v7
 
 replace github.com/cosmos/ibc-go/modules/capability => ./modules/capability
 
-replace github.com/cosmos/iavl => github.com/cosmos/iavl v0.20.0-alpha4
-
-// sdk 47-rc3 needs this version for make build to work.
-replace github.com/cosmos/ledger-cosmos-go => github.com/cosmos/ledger-cosmos-go v0.12.1
-
 require (
 	cosmossdk.io/api v0.3.1
 	cosmossdk.io/errors v1.0.0-beta.7
