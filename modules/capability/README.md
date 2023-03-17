@@ -70,12 +70,16 @@ func NewApp(...) *App {
 
 ## Contents
 
-* [Concepts](#concepts)
-    * [Capabilities](#capabilities)
-    * [Stores](#stores)
-* [State](#state)
-    * [In persisted KV store](#in-persisted-kv-store)
-    * [In-memory KV store](#in-memory-kv-store)
+- [`x/capability`](#xcapability)
+  - [Overview](#overview)
+  - [Initialization](#initialization)
+  - [Contents](#contents)
+  - [Concepts](#concepts)
+    - [Capabilities](#capabilities)
+    - [Stores](#stores)
+  - [State](#state)
+    - [In persisted KV store](#in-persisted-kv-store)
+    - [In-memory KV store](#in-memory-kv-store)
 
 ## Concepts
 
