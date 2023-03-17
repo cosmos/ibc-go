@@ -34,7 +34,7 @@ func (fr FeatureReleases) IsSupported(versionStr string) bool {
 		return true
 	}
 
-	if fr.MajorVersion != "" && SemverGTE(versionStr, fr.MajorVersion) {
+	if fr.MajorVersion != "" && semverGTE(versionStr, fr.MajorVersion) {
 		return true
 	}
 
@@ -42,7 +42,7 @@ func (fr FeatureReleases) IsSupported(versionStr string) bool {
 		mvMajor, versionStrMajor := semver.Major(mv), semver.Major(versionStr)
 
 		if semverEqual(mvMajor, versionStrMajor) {
-			return SemverGTE(versionStr, mv)
+			return semverGTE(versionStr, mv)
 		}
 	}
 
@@ -50,7 +50,7 @@ func (fr FeatureReleases) IsSupported(versionStr string) bool {
 }
 
 // semverGTE returns true if versionA is greater than or equal to versionB.
-func SemverGTE(versionA, versionB string) bool {
+func semverGTE(versionA, versionB string) bool {
 	return semver.Compare(versionA, versionB) >= 0
 }
 
