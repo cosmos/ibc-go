@@ -181,8 +181,3 @@ func (suite *WasmTestSuite) TestQueryWasmCode() {
 func TestWasmTestSuite(t *testing.T) {
 	suite.Run(t, new(WasmTestSuite))
 }
-
-func (suite *WasmTestSuite) Initialize() {
-	err := suite.clientState.Initialize(suite.chainA.GetContext(), suite.chainA.Codec, suite.store, &suite.consensusState)
-	suite.Require().NoError(err)
-}

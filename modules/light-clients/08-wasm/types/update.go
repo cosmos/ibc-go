@@ -89,9 +89,6 @@ func (c ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, clientS
 	}
 
 	setClientState(clientStore, cdc, &c)
-	// TODO: do we need to set consensus state?
-	// setConsensusState(clientStore, cdc, consensusState, header.GetHeight())
-	// setConsensusMetadata(ctx, clientStore, header.GetHeight())
 
 	return []exported.Height{c.LatestHeight}
 }
@@ -112,8 +109,13 @@ func (c ClientState) UpdateStateOnMisbehaviour(ctx sdk.Context, cdc codec.Binary
 			ClientMessage: clientMsg,
 		},
 	}
-	_, err := call[contractResult](payload, &c, ctx, clientStore)
+	output, err := call[contractResult](payload, &c, ctx, clientStore)
 	if err != nil {
 		panic(err)
 	}
+	if err := json.Unmarshal(output.Data, &c); err != nil {
+		panic(sdkerrors.Wrapf(ErrUnableToUnmarshalPayload, fmt.Sprintf("underlying error: %s", err.Error())))
+	}
+
+	setClientState(clientStore, cdc, &c)
 }

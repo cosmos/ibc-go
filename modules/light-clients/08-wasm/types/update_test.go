@@ -130,8 +130,7 @@ func (suite *WasmTestSuite) TestUpdateState() {
 		},
 		{
 			"invalid ClientMessage type", func() {
-				// TODO: update with misbehaviour
-				data, err := base64.StdEncoding.DecodeString(suite.testData["header"])
+				data, err := base64.StdEncoding.DecodeString(suite.testData["misbehaviour"])
 				suite.Require().NoError(err)
 				clientMsg = &wasmtypes.Misbehaviour{
 					ClientId: "08-wasm-0",
@@ -183,10 +182,10 @@ func (suite *WasmTestSuite) TestUpdateStateOnMisbehaviour() {
 		setup   func()
 		expPass bool
 	}{
-		/*{
+		{
 			"successful update",
 			func() {
-				data, err := base64.StdEncoding.DecodeString(suite.testData["header_old"])
+				data, err := base64.StdEncoding.DecodeString(suite.testData["misbehaviour"])
 				suite.Require().NoError(err)
 				clientMsg = &wasmtypes.Misbehaviour{
 					Data: data,
@@ -195,7 +194,7 @@ func (suite *WasmTestSuite) TestUpdateStateOnMisbehaviour() {
 				clientState = suite.clientState
 			},
 			true,
-		},*/
+		},
 	}
 
 	for _, tc := range testCases {
@@ -208,6 +207,12 @@ func (suite *WasmTestSuite) TestUpdateStateOnMisbehaviour() {
 				suite.Require().NotPanics(func() {
 					clientState.UpdateStateOnMisbehaviour(suite.ctx, suite.chainA.Codec, suite.store, clientMsg)
 				})
+				clientStateBz := suite.store.Get(host.ClientStateKey())
+				suite.Require().NotEmpty(clientStateBz)
+
+				newClientState := clienttypes.MustUnmarshalClientState(suite.chainA.Codec, clientStateBz)
+				status := newClientState.Status(suite.ctx, suite.store, suite.chainA.Codec)
+				suite.Require().Equal(exported.Frozen, status)
 			} else {
 				suite.Require().Panics(func() {
 					clientState.UpdateStateOnMisbehaviour(suite.ctx, suite.chainA.Codec, suite.store, clientMsg)
