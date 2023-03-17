@@ -343,8 +343,6 @@ var xxx_messageInfo_Height proto.InternalMessageInfo
 type Params struct {
 	// allowed_clients defines the list of allowed client state types.
 	AllowedClients []string `protobuf:"bytes,1,rep,name=allowed_clients,json=allowedClients,proto3" json:"allowed_clients,omitempty" yaml:"allowed_clients"`
-	// ehether or not wasm clients are enabled
-	WasmClientsEnabled bool `protobuf:"varint,2,opt,name=wasm_clients_enabled,json=wasmClientsEnabled,proto3" json:"wasm_clients_enabled,omitempty" yaml:"wasm_clients_enabled"`
 }
 
 func (m *Params) Reset()         { *m = Params{} }
@@ -385,13 +383,6 @@ func (m *Params) GetAllowedClients() []string {
 		return m.AllowedClients
 	}
 	return nil
-}
-
-func (m *Params) GetWasmClientsEnabled() bool {
-	if m != nil {
-		return m.WasmClientsEnabled
-	}
-	return false
 }
 
 func init() {
@@ -783,16 +774,6 @@ func (m *Params) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	if m.WasmClientsEnabled {
-		i--
-		if m.WasmClientsEnabled {
-			dAtA[i] = 1
-		} else {
-			dAtA[i] = 0
-		}
-		i--
-		dAtA[i] = 0x10
-	}
 	if len(m.AllowedClients) > 0 {
 		for iNdEx := len(m.AllowedClients) - 1; iNdEx >= 0; iNdEx-- {
 			i -= len(m.AllowedClients[iNdEx])
@@ -941,9 +922,6 @@ func (m *Params) Size() (n int) {
 			l = len(s)
 			n += 1 + l + sovClient(uint64(l))
 		}
-	}
-	if m.WasmClientsEnabled {
-		n += 2
 	}
 	return n
 }
@@ -1817,26 +1795,6 @@ func (m *Params) Unmarshal(dAtA []byte) error {
 			}
 			m.AllowedClients = append(m.AllowedClients, string(dAtA[iNdEx:postIndex]))
 			iNdEx = postIndex
-		case 2:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field WasmClientsEnabled", wireType)
-			}
-			var v int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowClient
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				v |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			m.WasmClientsEnabled = bool(v != 0)
 		default:
 			iNdEx = preIndex
 			skippy, err := skipClient(dAtA[iNdEx:])

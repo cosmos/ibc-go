@@ -927,8 +927,7 @@
             "06-solomachine",
             "07-tendermint",
             "08-wasm"
-          ],
-          "wasm_clients_enabled": false
+          ]
         }
       },
       "connection_genesis": {
