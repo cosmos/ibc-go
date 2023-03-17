@@ -55,9 +55,14 @@ const (
 
 	// icadBinary is the binary for interchain-accounts-demo repository.
 	icadBinary = "icad"
-	// icadTagNewGenesisCommands is the tag of the interchain-account-demo repository using new genesis commands.
-	icadTagNewGenesisCommands = "v0.5.0"
 )
+
+// icadNewGenesisCommandsFeatureReleases represents the release of icad where new genesis commands was released.
+var icadNewGenesisCommandsFeatureReleases = semverutil.FeatureReleases{
+	MinorVersions: []string{
+		"v0.5",
+	},
+}
 
 func getChainImage(binary string) string {
 	if binary == "" {
@@ -209,7 +214,7 @@ func newDefaultSimappConfig(cc ChainConfig, name, chainID, denom string) ibc.Cha
 	tmTomlOverrides["log_level"] = "info" // change to debug to increase cometbft logging
 	configFileOverrides["config/config.toml"] = tmTomlOverrides
 
-	useNewGenesisCommand := cc.Binary == icadBinary && semverutil.SemverGTE(cc.Tag, icadTagNewGenesisCommands)
+	useNewGenesisCommand := cc.Binary == icadBinary && icadNewGenesisCommandsFeatureReleases.IsSupported(cc.Tag)
 
 	return ibc.ChainConfig{
 		Type:    "cosmos",
