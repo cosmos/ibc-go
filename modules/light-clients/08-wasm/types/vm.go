@@ -13,7 +13,7 @@ const GasMultiplier uint64 = 140_000_000 // Cosmwasm equivalent
 var WasmVM *cosmwasm.VM
 
 type queryResponse struct {
-	Status          exported.Status               `json:"status,omitempty"`
+	Status exported.Status `json:"status,omitempty"`
 }
 
 type ClientCreateRequest struct {

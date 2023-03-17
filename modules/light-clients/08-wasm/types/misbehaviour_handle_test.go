@@ -86,10 +86,7 @@ func (suite *WasmTestSuite) TestVerifyMisbehaviour() {
 }
 
 func (suite *WasmTestSuite) TestCheckForMisbehaviour() {
-	var (
-		clientMsg   exported.ClientMessage
-		//clientState exported.ClientState
-	)
+	var clientMsg exported.ClientMessage // clientState exported.ClientState
 
 	testCases := []struct {
 		name    string

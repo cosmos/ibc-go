@@ -8,24 +8,24 @@ import (
 	"testing"
 	"time"
 
+	dbm "github.com/cometbft/cometbft-db"
+	tmjson "github.com/cometbft/cometbft/libs/json"
+	"github.com/cometbft/cometbft/libs/log"
+	tmtypes "github.com/cometbft/cometbft/types"
 	"github.com/cosmos/cosmos-sdk/codec"
+	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
+	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	"github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm/keeper"
 	wasmtypes "github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	"github.com/cosmos/ibc-go/v7/testing/simapp"
 	"github.com/stretchr/testify/suite"
-	tmjson "github.com/cometbft/cometbft/libs/json"
-	"github.com/cometbft/cometbft/libs/log"
-	tmtypes "github.com/cometbft/cometbft/types"
-	dbm "github.com/cometbft/cometbft-db"
-	//tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
+	// tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 )
 
 type WasmTestSuite struct {
@@ -44,6 +44,7 @@ type WasmTestSuite struct {
 	testData       map[string]string
 	wasmKeeper     keeper.Keeper
 }
+
 func SetupTestingWithChannel() (ibctesting.TestingApp, map[string]json.RawMessage) {
 	db := dbm.NewMemDB()
 	encCdc := simapp.MakeTestEncodingConfig()
@@ -77,7 +78,7 @@ func SetupTestingWithChannel() (ibctesting.TestingApp, map[string]json.RawMessag
 
 func (suite *WasmTestSuite) SetupWithChannel() {
 	ibctesting.DefaultTestingAppInit = SetupTestingWithChannel
-    suite.SetupTest()
+	suite.SetupTest()
 	clientState, ok := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.ctx, "08-wasm-0")
 	if ok {
 		suite.clientState = clientState
@@ -104,8 +105,8 @@ func (suite *WasmTestSuite) SetupTest() {
 	suite.Require().NoError(err)
 	err = json.Unmarshal(createClientData, &suite.testData)
 	suite.Require().NoError(err)
-	
-	//suite.ctx = suite.chainA.App.GetBaseApp().NewContext(checkTx, tmproto.Header{Height: 1, Time: suite.now}).WithGasMeter(sdk.NewInfiniteGasMeter())
+
+	// suite.ctx = suite.chainA.App.GetBaseApp().NewContext(checkTx, tmproto.Header{Height: 1, Time: suite.now}).WithGasMeter(sdk.NewInfiniteGasMeter())
 	suite.ctx = suite.chainA.GetContext().WithBlockGasMeter(sdk.NewInfiniteGasMeter())
 	suite.store = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, "08-wasm-0")
 

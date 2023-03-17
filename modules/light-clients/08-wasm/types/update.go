@@ -12,7 +12,6 @@ import (
 
 var _ exported.ClientState = (*ClientState)(nil)
 
-
 type verifyClientMessagePayload struct {
 	VerifyClientMessage verifyClientMessageInnerPayload `json:"verify_client_message"`
 }

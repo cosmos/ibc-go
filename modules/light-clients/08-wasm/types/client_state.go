@@ -33,10 +33,13 @@ func (c ClientState) Validate() error {
 	return nil
 }
 
-type statusPayloadInner struct {}
-type statusPayload struct {
-	Status statusPayloadInner `json:"status"`
-}
+type (
+	statusPayloadInner struct{}
+	statusPayload      struct {
+		Status statusPayloadInner `json:"status"`
+	}
+)
+
 func (c ClientState) Status(ctx sdk.Context, store sdk.KVStore, cdc codec.BinaryCodec) exported.Status {
 	status := exported.Unknown
 	payload := statusPayload{Status: statusPayloadInner{}}
