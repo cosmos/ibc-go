@@ -258,8 +258,6 @@ func (s *E2ETestSuite) GetChains(chainOpts ...testconfig.ChainOptionConfiguratio
 		opt(&chainOptions)
 	}
 
-	s.T().Logf("chain config images: %s new genesis command: %s", chainOptions.ChainAConfig.Images, chainOptions.ChainAConfig.UsingNewGenesisCommand)
-
 	chainA, chainB := s.createCosmosChains(chainOptions)
 	path = newPath(chainA, chainB)
 	s.paths[s.T().Name()] = path
