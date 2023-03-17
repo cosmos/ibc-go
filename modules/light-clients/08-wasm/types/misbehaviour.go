@@ -1,6 +1,8 @@
 package types
 
 import (
+	"fmt"
+
 	exported "github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
@@ -15,5 +17,8 @@ func (m Misbehaviour) GetClientID() string {
 }
 
 func (m Misbehaviour) ValidateBasic() error {
+	if m.Data == nil || len(m.Data) == 0 {
+		return fmt.Errorf("data cannot be empty")
+	}
 	return nil
 }

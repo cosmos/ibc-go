@@ -8,7 +8,7 @@ import (
 
 func (suite *WasmTestSuite) TestConsensusStateValidateBasic() {
 	testCases := []struct {
-		msg            string
+		name           string
 		consensusState *types.ConsensusState
 		expectPass     bool
 	}{
@@ -103,9 +103,9 @@ func (suite *WasmTestSuite) TestConsensusStateValidateBasic() {
 
 		err := tc.consensusState.ValidateBasic()
 		if tc.expectPass {
-			suite.Require().NoError(err, "valid test case %d failed: %s", i, tc.msg)
+			suite.Require().NoError(err, "valid test case %d failed: %s", i, tc.name)
 		} else {
-			suite.Require().Error(err, "invalid test case %d passed: %s", i, tc.msg)
+			suite.Require().Error(err, "invalid test case %d passed: %s", i, tc.name)
 		}
 	}
 }
