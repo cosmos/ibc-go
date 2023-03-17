@@ -4,9 +4,9 @@ import (
 	"encoding/base64"
 
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	wasmtypes "github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm/types"
-	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 )
 
 func (suite *WasmTestSuite) TestVerifyHeader() {
@@ -30,7 +30,7 @@ func (suite *WasmTestSuite) TestVerifyHeader() {
 				suite.Require().NoError(err)
 
 				clientState = &wasmtypes.ClientState{
-					Data: cs,
+					Data:   cs,
 					CodeId: suite.codeId,
 					LatestHeight: clienttypes.Height{
 						RevisionNumber: 2000,
@@ -134,7 +134,7 @@ func (suite *WasmTestSuite) TestUpdateState() {
 				suite.Require().NoError(err)
 				clientMsg = &wasmtypes.Misbehaviour{
 					ClientId: "08-wasm-0",
-					Data: data,
+					Data:     data,
 				}
 			},
 			false,
@@ -172,10 +172,10 @@ func (suite *WasmTestSuite) TestUpdateState() {
 }
 
 func (suite *WasmTestSuite) TestUpdateStateOnMisbehaviour() {
- 	var (
- 		clientMsg   exported.ClientMessage
- 		clientState exported.ClientState
- 	)
+	var (
+		clientMsg   exported.ClientMessage
+		clientState exported.ClientState
+	)
 
 	testCases := []struct {
 		name    string
@@ -188,7 +188,7 @@ func (suite *WasmTestSuite) TestUpdateStateOnMisbehaviour() {
 				data, err := base64.StdEncoding.DecodeString(suite.testData["misbehaviour"])
 				suite.Require().NoError(err)
 				clientMsg = &wasmtypes.Misbehaviour{
-					Data: data,
+					Data:     data,
 					ClientId: "08-wasm-0",
 				}
 				clientState = suite.clientState
