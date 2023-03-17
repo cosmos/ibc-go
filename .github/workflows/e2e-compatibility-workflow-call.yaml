@@ -39,7 +39,7 @@ jobs:
       - name: Checkout the ibc-go repo
         uses: actions/checkout@v3
         with:
-          repository: cosmos/ibc-go
+          repository: cosmos/ibc-go@carlos/e2e-support-binary-new-genesis-commands
       - uses: actions/setup-go@v4
         with:
           go-version: 1.19
