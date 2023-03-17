@@ -32,6 +32,15 @@ func (k Keeper) ConnOpenInit(
 		versions = []exported.Version{version}
 	}
 
+	clientState, found := k.clientKeeper.GetClientState(ctx, clientID)
+	if !found {
+		return "", sdkerrors.Wrapf(clienttypes.ErrClientNotFound, "clientID (%s)", clientID)
+	}
+
+	if status := k.clientKeeper.GetClientStatus(ctx, clientState, clientID); status != exported.Active {
+		return "", sdkerrors.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
+	}
+
 	connectionID := k.GenerateConnectionIdentifier(ctx)
 	if err := k.addConnectionToClient(ctx, clientID, connectionID); err != nil {
 		return "", err
@@ -74,6 +83,8 @@ func (k Keeper) ConnOpenTry(
 	// generate a new connection
 	connectionID := k.GenerateConnectionIdentifier(ctx)
 
+	// check that the consensus height the counterparty chain is using to store a representation
+	// of this chain's consensus state is at a height in the past
 	selfHeight := clienttypes.GetSelfHeight(ctx)
 	if consensusHeight.GTE(selfHeight) {
 		return "", sdkerrors.Wrapf(
@@ -163,7 +174,8 @@ func (k Keeper) ConnOpenAck(
 	proofHeight exported.Height, // height that relayer constructed proofTry
 	consensusHeight exported.Height, // latest height of chainA that chainB has stored on its chainA client
 ) error {
-	// Check that chainB client hasn't stored invalid height
+	// check that the consensus height the counterparty chain is using to store a representation
+	// of this chain's consensus state is at a height in the past
 	selfHeight := clienttypes.GetSelfHeight(ctx)
 	if consensusHeight.GTE(selfHeight) {
 		return sdkerrors.Wrapf(

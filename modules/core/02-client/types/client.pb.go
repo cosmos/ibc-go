@@ -341,7 +341,9 @@ var xxx_messageInfo_Height proto.InternalMessageInfo
 
 // Params defines the set of IBC light client parameters.
 type Params struct {
-	// allowed_clients defines the list of allowed client state types.
+	// allowed_clients defines the list of allowed client state types which can be created
+	// and interacted with. If a client type is removed from the allowed clients list, usage
+	// of this client will be disabled until it is added again to the list.
 	AllowedClients []string `protobuf:"bytes,1,rep,name=allowed_clients,json=allowedClients,proto3" json:"allowed_clients,omitempty" yaml:"allowed_clients"`
 	// ehether or not wasm clients are enabled
 	WasmClientsEnabled bool `protobuf:"varint,2,opt,name=wasm_clients_enabled,json=wasmClientsEnabled,proto3" json:"wasm_clients_enabled,omitempty" yaml:"wasm_clients_enabled"`

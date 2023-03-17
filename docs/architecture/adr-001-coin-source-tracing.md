@@ -114,7 +114,7 @@ trace the token back to the originating chain, as specified on ICS20.
 
 The new proposed format will be the following:
 
-```golang
+```go
 ibcDenom = "ibc/" + hash(trace path + "/" + base denom)
 ```
 
@@ -133,7 +133,7 @@ message DenomTrace {
 
 The `IBCDenom` function constructs the `Coin` denomination used when creating the ICS20 fungible token packet data:
 
-```golang
+```go
 // Hash returns the hex bytes of the SHA256 hash of the DenomTrace fields using the following formula:
 //
 // hash = sha256(tracePath + "/" + baseDenom)
@@ -157,7 +157,7 @@ In order to retrieve the trace information from an IBC denomination, a lookup ta
 added to the `ibc-transfer` module. These values need to also be persisted between upgrades, meaning
 that a new `[]DenomTrace` `GenesisState` field state needs to be added to the module:
 
-```golang
+```go
 // GetDenomTrace retrieves the full identifiers trace and base denomination from the store.
 func (k Keeper) GetDenomTrace(ctx Context, denomTraceHash []byte) (DenomTrace, bool) {
   store := ctx.KVStore(k.storeKey)
@@ -188,14 +188,14 @@ func (k Keeper) SetDenomTrace(ctx Context, denomTrace DenomTrace) {
 The `MsgTransfer` will validate that the `Coin` denomination from the `Token` field contains a valid
 hash, if the trace info is provided, or that the base denominations matches:
 
-```golang
+```go
 func (msg MsgTransfer) ValidateBasic() error {
   // ...
   return ValidateIBCDenom(msg.Token.Denom)
 }
 ```
 
-```golang
+```go
 // ValidateIBCDenom validates that the given denomination is either:
 //
 //  - A valid base denomination (eg: 'uatom')
@@ -226,7 +226,7 @@ The denomination trace info only needs to be updated when token is received:
 - Receiver is **source** chain: The receiver created the token and must have the trace lookup already stored (if necessary _ie_ native token case wouldn't need a lookup).
 - Receiver is **not source** chain: Store the received info. For example, during step 1, when chain `B` receives `transfer/channelToA/denom`.
 
-```golang
+```go
 // SendTransfer
 // ...
 
@@ -245,7 +245,7 @@ if types.SenderChainIsSource(sourcePort, sourceChannel, fullDenomPath) {
 //...
 ```
 
-```golang
+```go
 // DenomPathFromHash returns the full denomination path prefix from an ibc denom with a hash
 // component.
 func (k Keeper) DenomPathFromHash(ctx sdk.Context, denom string) (string, error) {
@@ -266,7 +266,7 @@ func (k Keeper) DenomPathFromHash(ctx sdk.Context, denom string) (string, error)
 ```
 
 
-```golang
+```go
 // OnRecvPacket
 // ...
 
@@ -322,7 +322,7 @@ return k.bankKeeper.SendCoinsFromModuleToAccount(
 )
 ```
 
-```golang
+```go
 func NewDenomTraceFromRawDenom(denom string) DenomTrace{
   denomSplit := strings.Split(denom, "/")
   trace := ""

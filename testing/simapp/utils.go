@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"os"
 
+	dbm "github.com/cometbft/cometbft-db"
+	"github.com/cometbft/cometbft/libs/log"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/kv"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
-	"github.com/tendermint/tendermint/libs/log"
-	dbm "github.com/tendermint/tm-db"
 )
 
 // SetupSimulation creates the config, db (levelDB), temporary directory and logger for
@@ -65,7 +65,8 @@ func SimulationOperations(app App, cdc codec.JSONCodec, config simtypes.Config) 
 		}
 	}
 
-	simState.Contents = app.SimulationManager().GetProposalContents(simState)
+	//nolint: staticcheck // SA1019: app.SimulationManager().GetProposalContents is deprecated: Use GetProposalMsgs instead. GetProposalContents returns each module's proposal content generator function with their default operation weight and key.
+	simState.LegacyProposalContents = app.SimulationManager().GetProposalContents(simState)
 	return app.SimulationManager().WeightedOperations(simState)
 }
 

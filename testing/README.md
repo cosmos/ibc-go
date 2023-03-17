@@ -117,7 +117,17 @@ The testing package requires that you provide a function to initialize your Test
 func SetupTestingApp() (TestingApp, map[string]json.RawMessage) {
 	db := dbm.NewMemDB()
 	encCdc := simapp.MakeTestEncodingConfig()
-	app := simapp.NewSimApp(log.NewNopLogger(), db, nil, true, map[int64]bool{}, simapp.DefaultNodeHome, 5, encCdc, simapp.EmptyAppOptions{})
+	app := simapp.NewSimApp(
+		log.NewNopLogger(), 
+		db, 
+		nil, 
+		true,
+		map[int64]bool{},
+		simapp.DefaultNodeHome,
+		5,
+		encCdc, 
+		simapp.EmptyAppOptions{},
+	)
 	return app, simapp.NewDefaultGenesisState(encCdc.Marshaler)
 }
 ```
@@ -127,9 +137,8 @@ This function returns the TestingApp and the default genesis state used to initi
 Change the value of `DefaultTestingAppInit` to use your function:
 ```go
 func init() {
-    ibctesting.DefaultTestingAppInit = MySetupTestingAppFunction
+  ibctesting.DefaultTestingAppInit = SetupTestingApp
 }
-
 ```
 
 ## Example
@@ -252,9 +261,9 @@ package transfertesting
 import (
 	"encoding/json"
 
-	"github.com/tendermint/tendermint/libs/log"
-	dbm "github.com/tendermint/tm-db"
-
+	"github.com/cometbft/cometbft/libs/log"
+	dbm "github.com/cometbft/cometbft-db"
+	
 	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/simapp"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
@@ -262,7 +271,17 @@ import (
 func SetupTransferTestingApp() (ibctesting.TestingApp, map[string]json.RawMessage) {
 	db := dbm.NewMemDB()
 	encCdc := simapp.MakeTestEncodingConfig()
-	app := simapp.NewSimApp(log.NewNopLogger(), db, nil, true, map[int64]bool{}, simapp.DefaultNodeHome, 5, encCdc, simapp.EmptyAppOptions{})
+	app := simapp.NewSimApp(
+		log.NewNopLogger(),
+		db,
+		nil,
+		true,
+		map[int64]bool{},
+		simapp.DefaultNodeHome,
+		5,
+		encCdc,
+		simapp.EmptyAppOptions{},
+	)
 	return app, simapp.NewDefaultGenesisState(encCdc.Marshaler)
 }
 

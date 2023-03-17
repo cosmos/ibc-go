@@ -4,13 +4,13 @@ import (
 	"strconv"
 	"strings"
 
+	db "github.com/cometbft/cometbft-db"
+	"github.com/cometbft/cometbft/libs/log"
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
-	"github.com/tendermint/tendermint/libs/log"
-	db "github.com/tendermint/tm-db"
 
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
@@ -66,11 +66,17 @@ func (k Keeper) GenerateChannelIdentifier(ctx sdk.Context) string {
 	return channelID
 }
 
+// HasChannel true if the channel with the given identifiers exists in state.
+func (k Keeper) HasChannel(ctx sdk.Context, portID, channelID string) bool {
+	store := ctx.KVStore(k.storeKey)
+	return store.Has(host.ChannelKey(portID, channelID))
+}
+
 // GetChannel returns a channel with a particular identifier binded to a specific port
 func (k Keeper) GetChannel(ctx sdk.Context, portID, channelID string) (types.Channel, bool) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(host.ChannelKey(portID, channelID))
-	if bz == nil {
+	if len(bz) == 0 {
 		return types.Channel{}, false
 	}
 
@@ -100,7 +106,7 @@ func (k Keeper) GetAppVersion(ctx sdk.Context, portID, channelID string) (string
 func (k Keeper) GetNextChannelSequence(ctx sdk.Context) uint64 {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get([]byte(types.KeyNextChannelSequence))
-	if bz == nil {
+	if len(bz) == 0 {
 		panic("next channel sequence is nil")
 	}
 
@@ -118,7 +124,7 @@ func (k Keeper) SetNextChannelSequence(ctx sdk.Context, sequence uint64) {
 func (k Keeper) GetNextSequenceSend(ctx sdk.Context, portID, channelID string) (uint64, bool) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(host.NextSequenceSendKey(portID, channelID))
-	if bz == nil {
+	if len(bz) == 0 {
 		return 0, false
 	}
 
@@ -136,7 +142,7 @@ func (k Keeper) SetNextSequenceSend(ctx sdk.Context, portID, channelID string, s
 func (k Keeper) GetNextSequenceRecv(ctx sdk.Context, portID, channelID string) (uint64, bool) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(host.NextSequenceRecvKey(portID, channelID))
-	if bz == nil {
+	if len(bz) == 0 {
 		return 0, false
 	}
 
@@ -154,7 +160,7 @@ func (k Keeper) SetNextSequenceRecv(ctx sdk.Context, portID, channelID string, s
 func (k Keeper) GetNextSequenceAck(ctx sdk.Context, portID, channelID string) (uint64, bool) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(host.NextSequenceAckKey(portID, channelID))
-	if bz == nil {
+	if len(bz) == 0 {
 		return 0, false
 	}
 
@@ -172,7 +178,7 @@ func (k Keeper) SetNextSequenceAck(ctx sdk.Context, portID, channelID string, se
 func (k Keeper) GetPacketReceipt(ctx sdk.Context, portID, channelID string, sequence uint64) (string, bool) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(host.PacketReceiptKey(portID, channelID, sequence))
-	if bz == nil {
+	if len(bz) == 0 {
 		return "", false
 	}
 
@@ -219,7 +225,7 @@ func (k Keeper) SetPacketAcknowledgement(ctx sdk.Context, portID, channelID stri
 func (k Keeper) GetPacketAcknowledgement(ctx sdk.Context, portID, channelID string, sequence uint64) ([]byte, bool) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(host.PacketAcknowledgementKey(portID, channelID, sequence))
-	if bz == nil {
+	if len(bz) == 0 {
 		return nil, false
 	}
 	return bz, true

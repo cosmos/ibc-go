@@ -211,6 +211,11 @@ module.exports = {
               directory: false,
               path: "/roadmap/roadmap.html",
             },
+            {
+              title: "Troubleshooting",
+              directory: false,
+              path: "/ibc/troubleshooting.html",
+            },
           ],
         },
         {
@@ -325,6 +330,11 @@ module.exports = {
                   directory: false,
                   path: "/apps/transfer/params.html",
                 },
+                {
+                  title: "Authorizations",
+                  directory: false,
+                  path: "/apps/transfer/authorizations.html",
+                },
               ],
             },
           ],
@@ -343,29 +353,24 @@ module.exports = {
                   path: "/ibc/light-clients/overview.html",
                 },
                 {
-                  title: "ClientState",
+                  title: "Client State interface",
                   directory: false,
                   path: "/ibc/light-clients/client-state.html",
                 },
                 {
-                  title: "ConsensusState",
+                  title: "Consensus State interface",
                   directory: false,
                   path: "/ibc/light-clients/consensus-state.html",
                 },
                 {
-                  title: "Setup",
+                  title: "Handling Updates and Misbehaviour",
                   directory: false,
-                  path: "/ibc/light-clients/setup.html",
+                  path: "/ibc/light-clients/updates-and-misbehaviour.html",
                 },
                 {
-                  title: "Updates Handling",
+                  title: "Handling Upgrades",
                   directory: false,
-                  path: "/ibc/light-clients/update.html",
-                },
-                {
-                  title: "Misbehaviour Handling",
-                  directory: false,
-                  path: "/ibc/light-clients/misbehaviour.html",
+                  path: "/ibc/light-clients/upgrades.html",
                 },
                 {
                   title: "Existence/Non-Existence Proofs",
@@ -373,21 +378,53 @@ module.exports = {
                   path: "/ibc/light-clients/proofs.html",
                 },
                 {
-                  title: "Upgrades Handling",
+                  title: "Handling Proposals",
                   directory: false,
-                  path: "/ibc/light-clients/upgrade.html",
+                  path: "/ibc/light-clients/proposals.html",
                 },
                 {
-                  title: "Proposal Handling",
-                  directory: false,
-                  path: "/ibc/light-clients/proposal.html",
-                },
-                {
-                  title: "Genesis Handling",
+                  title: "Handling Genesis",
                   directory: false,
                   path: "/ibc/light-clients/genesis.html",
                 },
+                {
+                  title: "Setup",
+                  directory: false,
+                  path: "/ibc/light-clients/setup.html",
+                },
               ]
+            },
+            {
+              title: "Localhost",
+              directory: true,
+              path: "/ibc/light-clients/localhost",
+              children: [
+                {
+                  title: "Overview",
+                  directory: false,
+                  path: "/ibc/light-clients/localhost/overview.html",
+                },
+                {
+                  title: "Integration",
+                  directory: false,
+                  path: "/ibc/light-clients/localhost/integration.html",
+                },
+                {
+                  title: "ClientState",
+                  directory: false,
+                  path: "/ibc/light-clients/localhost/client-state.html",
+                },
+                {
+                  title: "Connection",
+                  directory: false,
+                  path: "/ibc/light-clients/localhost/connection.html",
+                },
+                {
+                  title: "State Verification",
+                  directory: false,
+                  path: "/ibc/light-clients/localhost/state-verification.html",
+                },
+              ],
             },
             {
               title: "Solomachine",
@@ -503,6 +540,11 @@ module.exports = {
               title: "IBC-Go v6 to v7",
               directory: false,
               path: "/migrations/v6-to-v7.html",
+            },
+            {
+              title: "IBC-Go v7 to v7.1",
+              directory: false,
+              path: "/migrations/v7-to-v7_1.html",
             },
           ],
         },

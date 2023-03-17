@@ -21,7 +21,7 @@ jobs:
 
       - uses: actions/setup-go@v3
         with:
-          go-version: '1.18'
+          go-version: '1.19'
           
       - name: Release
         uses: goreleaser/goreleaser-action@v4
@@ -52,4 +52,4 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           build-args: |
-            IBC_GO_VERSION="${{ github.ref_name }}"
+            IBC_GO_VERSION=${{ github.ref_name }}

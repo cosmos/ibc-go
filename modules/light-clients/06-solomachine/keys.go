@@ -1,5 +1,5 @@
 package solomachine
 
 const (
-	ModuleName = "solo machine"
+	ModuleName = "06-solomachine"
 )

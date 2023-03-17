@@ -33,6 +33,7 @@ modules/light-clients/08-wasm/types/wasm_client_data/
 coverage.txt
 profile.out
 sim_log_file
+e2e
 
 # Vagrant
 .vagrant/
