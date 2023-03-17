@@ -102,6 +102,4 @@ message Params {
   // and interacted with. If a client type is removed from the allowed clients list, usage
   // of this client will be disabled until it is added again to the list.
   repeated string allowed_clients = 1 [(gogoproto.moretags) = "yaml:\"allowed_clients\""];
-  // ehether or not wasm clients are enabled
-  bool wasm_clients_enabled = 2 [(gogoproto.moretags) = "yaml:\"wasm_clients_enabled\""];
 }
