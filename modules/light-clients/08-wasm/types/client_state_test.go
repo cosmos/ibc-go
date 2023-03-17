@@ -15,6 +15,7 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	ibcmock "github.com/cosmos/ibc-go/v7/testing/mock"
 )
+
 func (suite *WasmTestSuite) TestStatus() {
 	testCases := []struct {
 		name      string
@@ -27,8 +28,8 @@ func (suite *WasmTestSuite) TestStatus() {
 			suite.Require().NoError(err)
 
 			frozenClientState := wasmtypes.ClientState{
-				Data: cs,
-				CodeId: suite.codeId,
+				Data:   cs,
+				CodeId: suite.codeID,
 				LatestHeight: clienttypes.Height{
 					RevisionNumber: 2000,
 					RevisionHeight: 5,
@@ -42,14 +43,14 @@ func (suite *WasmTestSuite) TestStatus() {
 			suite.Require().NoError(err)
 
 			clientState := wasmtypes.ClientState{
-				Data: cs,
-				CodeId: suite.codeId,
+				Data:   cs,
+				CodeId: suite.codeID,
 				LatestHeight: clienttypes.Height{
 					RevisionNumber: 2000,
 					RevisionHeight: 36, // This doesn't matter, but the grandpa client state is set to this
 				},
 			}
-			
+
 			suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.ctx, "08-wasm-0", &clientState)
 		}, exported.Expired},
 		// ics10-grandpa client state doesn't have a trusting period, so this might be removed
@@ -101,7 +102,6 @@ func (suite *WasmTestSuite) TestValidate() {
 			clientState: wasmtypes.NewClientState([]byte{0}, []byte{}, clienttypes.Height{}),
 			expPass:     false,
 		},
-		
 	}
 
 	for _, tc := range testCases {
@@ -156,13 +156,13 @@ func (suite *WasmTestSuite) TestInitialize() {
 
 func (suite *WasmTestSuite) TestVerifyMembership() {
 	var (
-		clientState exported.ClientState
-		err    error
-		height exported.Height
-		path   exported.Path
-		proof  []byte
-		value  []byte
-		delayTimePeriod uint64
+		clientState      exported.ClientState
+		err              error
+		height           exported.Height
+		path             exported.Path
+		proof            []byte
+		value            []byte
+		delayTimePeriod  uint64
 		delayBlockPeriod uint64
 	)
 	clientID := "07-tendermint-0"
@@ -185,13 +185,12 @@ func (suite *WasmTestSuite) TestVerifyMembership() {
 		{
 			"successful Connection verification",
 			func() {
-
 				clientState = suite.clientState
 
 				height = clienttypes.NewHeight(2000, 11)
 				key := host.ConnectionPath(connectionID)
 				merklePath := commitmenttypes.NewMerklePath(key)
-				path = commitmenttypes.NewMerklePath(append([]string{pathPrefix}, merklePath.KeyPath...)...) 
+				path = commitmenttypes.NewMerklePath(append([]string{pathPrefix}, merklePath.KeyPath...)...)
 				suite.Require().NoError(err)
 
 				proof, err = base64.StdEncoding.DecodeString(suite.testData["connection_proof_try"])
@@ -200,13 +199,13 @@ func (suite *WasmTestSuite) TestVerifyMembership() {
 				value, err = suite.chainA.Codec.Marshal(&types.ConnectionEnd{
 					ClientId: clientID,
 					Counterparty: types.Counterparty{
-						ClientId: "08-wasm-0",
+						ClientId:     "08-wasm-0",
 						ConnectionId: connectionID,
-						Prefix: suite.chainA.GetPrefix(),
+						Prefix:       suite.chainA.GetPrefix(),
 					},
 					DelayPeriod: 0,
-					State: types.TRYOPEN,
-					Versions: []*types.Version{types.DefaultIBCVersion},
+					State:       types.TRYOPEN,
+					Versions:    []*types.Version{types.DefaultIBCVersion},
 				})
 				suite.Require().NoError(err)
 			},
@@ -215,26 +214,25 @@ func (suite *WasmTestSuite) TestVerifyMembership() {
 		{
 			"successful Channel verification",
 			func() {
-
 				clientState = suite.clientState
 
 				height = clienttypes.NewHeight(2000, 20)
 				key := host.ChannelPath(portID, channelID)
 				merklePath := commitmenttypes.NewMerklePath(key)
-				path = commitmenttypes.NewMerklePath(append([]string{pathPrefix}, merklePath.KeyPath...)...) 
+				path = commitmenttypes.NewMerklePath(append([]string{pathPrefix}, merklePath.KeyPath...)...)
 
 				proof, err = base64.StdEncoding.DecodeString(suite.testData["channel_proof_try"])
 				suite.Require().NoError(err)
 
 				value, err = suite.chainA.Codec.Marshal(&channeltypes.Channel{
-					State: channeltypes.TRYOPEN,
+					State:    channeltypes.TRYOPEN,
 					Ordering: channeltypes.UNORDERED,
 					Counterparty: channeltypes.Counterparty{
-						PortId: portID,
+						PortId:    portID,
 						ChannelId: channelID,
 					},
 					ConnectionHops: []string{connectionID},
-					Version: "ics20-1",
+					Version:        "ics20-1",
 				})
 				suite.Require().NoError(err)
 			},
@@ -256,11 +254,11 @@ func (suite *WasmTestSuite) TestVerifyMembership() {
 				)
 				key := host.PacketCommitmentPath(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 				merklePath := commitmenttypes.NewMerklePath(key)
-				path = commitmenttypes.NewMerklePath(append([]string{pathPrefix}, merklePath.KeyPath...)...) 
+				path = commitmenttypes.NewMerklePath(append([]string{pathPrefix}, merklePath.KeyPath...)...)
 
 				proof, err = base64.StdEncoding.DecodeString(suite.testData["packet_commitment_proof"])
 				suite.Require().NoError(err)
-				
+
 				value = channeltypes.CommitPacket(suite.chainA.App.GetIBCKeeper().Codec(), packet)
 			},
 			true,
@@ -281,7 +279,7 @@ func (suite *WasmTestSuite) TestVerifyMembership() {
 				)
 				key := host.PacketAcknowledgementKey(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 				merklePath := commitmenttypes.NewMerklePath(string(key))
-				path = commitmenttypes.NewMerklePath(append([]string{pathPrefix}, merklePath.KeyPath...)...) 
+				path = commitmenttypes.NewMerklePath(append([]string{pathPrefix}, merklePath.KeyPath...)...)
 
 				proof, err = base64.StdEncoding.DecodeString(suite.testData["ack_proof"])
 				suite.Require().NoError(err)
@@ -357,7 +355,7 @@ func (suite *WasmTestSuite) TestVerifyMembership() {
 			height = clienttypes.NewHeight(2000, 11)
 			key := host.FullClientStateKey(clientID)
 			merklePath := commitmenttypes.NewMerklePath(string(key))
-			path = commitmenttypes.NewMerklePath(append([]string{pathPrefix}, merklePath.KeyPath...)...) 
+			path = commitmenttypes.NewMerklePath(append([]string{pathPrefix}, merklePath.KeyPath...)...)
 
 			proof, err = base64.StdEncoding.DecodeString(suite.testData["client_state_proof"])
 			suite.Require().NoError(err)
@@ -365,12 +363,12 @@ func (suite *WasmTestSuite) TestVerifyMembership() {
 			value, err = suite.chainA.Codec.MarshalInterface(&tmtypes.ClientState{
 				ChainId: "simd",
 				TrustLevel: tmtypes.Fraction{
-					Numerator: 1,
+					Numerator:   1,
 					Denominator: 3,
 				},
-				TrustingPeriod: time.Duration(time.Second * 64000),
-				UnbondingPeriod: time.Duration(time.Second * 1814400),
-				MaxClockDrift: time.Duration(time.Second * 15),
+				TrustingPeriod:  time.Second * 64000,
+				UnbondingPeriod: time.Second * 1814400,
+				MaxClockDrift:   time.Second * 15,
 				FrozenHeight: clienttypes.Height{
 					RevisionNumber: 0,
 					RevisionHeight: 0,
@@ -379,9 +377,9 @@ func (suite *WasmTestSuite) TestVerifyMembership() {
 					RevisionNumber: 0,
 					RevisionHeight: 46,
 				},
-				ProofSpecs: commitmenttypes.GetSDKSpecs(),
-				UpgradePath: []string{"upgrade", "upgradedIBCState"},
-				AllowUpdateAfterExpiry: false,
+				ProofSpecs:                   commitmenttypes.GetSDKSpecs(),
+				UpgradePath:                  []string{"upgrade", "upgradedIBCState"},
+				AllowUpdateAfterExpiry:       false,
 				AllowUpdateAfterMisbehaviour: false,
 			})
 			suite.Require().NoError(err)
@@ -405,19 +403,19 @@ func (suite *WasmTestSuite) TestVerifyMembership() {
 
 func (suite *WasmTestSuite) TestVerifyNonMembership() {
 	var (
-		clientState exported.ClientState
-		err    error
-		height exported.Height
-		path   exported.Path
-		proof  []byte
-		delayTimePeriod uint64
+		clientState      exported.ClientState
+		err              error
+		height           exported.Height
+		path             exported.Path
+		proof            []byte
+		delayTimePeriod  uint64
 		delayBlockPeriod uint64
 	)
 	clientID := "07-tendermint-0"
 	portID := "transfer"
 	invalidClientID := "09-tendermint-0"
 	invalidConnectionID := "connection-100"
-	invalidChannelID    := "channel-800"
+	invalidChannelID := "channel-800"
 	pathPrefix := "ibc/"
 
 	testCases := []struct {
@@ -436,7 +434,7 @@ func (suite *WasmTestSuite) TestVerifyNonMembership() {
 				height = clienttypes.NewHeight(2000, 11)
 				key := host.FullConsensusStateKey(invalidClientID, suite.clientState.GetLatestHeight())
 				merklePath := commitmenttypes.NewMerklePath(string(key))
-				path = commitmenttypes.NewMerklePath(append([]string{pathPrefix}, merklePath.KeyPath...)...) 
+				path = commitmenttypes.NewMerklePath(append([]string{pathPrefix}, merklePath.KeyPath...)...)
 
 				proof, err = base64.StdEncoding.DecodeString(suite.testData["client_state_proof"])
 				suite.Require().NoError(err)
@@ -448,7 +446,7 @@ func (suite *WasmTestSuite) TestVerifyNonMembership() {
 				height = clienttypes.NewHeight(2000, 11)
 				key := host.ConnectionKey(invalidConnectionID)
 				merklePath := commitmenttypes.NewMerklePath(string(key))
-				path = commitmenttypes.NewMerklePath(append([]string{pathPrefix}, merklePath.KeyPath...)...) 
+				path = commitmenttypes.NewMerklePath(append([]string{pathPrefix}, merklePath.KeyPath...)...)
 
 				proof, err = base64.StdEncoding.DecodeString(suite.testData["connection_proof_try"])
 				suite.Require().NoError(err)
@@ -460,7 +458,7 @@ func (suite *WasmTestSuite) TestVerifyNonMembership() {
 				height = clienttypes.NewHeight(2000, 20)
 				key := host.ChannelKey(portID, invalidChannelID)
 				merklePath := commitmenttypes.NewMerklePath(string(key))
-				path = commitmenttypes.NewMerklePath(append([]string{pathPrefix}, merklePath.KeyPath...)...) 
+				path = commitmenttypes.NewMerklePath(append([]string{pathPrefix}, merklePath.KeyPath...)...)
 
 				proof, err = base64.StdEncoding.DecodeString(suite.testData["channel_proof_try"])
 				suite.Require().NoError(err)
@@ -472,7 +470,7 @@ func (suite *WasmTestSuite) TestVerifyNonMembership() {
 				height = clienttypes.NewHeight(2000, 32)
 				key := host.PacketCommitmentKey(portID, invalidChannelID, 1)
 				merklePath := commitmenttypes.NewMerklePath(string(key))
-				path = commitmenttypes.NewMerklePath(append([]string{pathPrefix}, merklePath.KeyPath...)...) 
+				path = commitmenttypes.NewMerklePath(append([]string{pathPrefix}, merklePath.KeyPath...)...)
 
 				proof, err = base64.StdEncoding.DecodeString(suite.testData["packet_commitment_proof"])
 				suite.Require().NoError(err)
@@ -483,7 +481,7 @@ func (suite *WasmTestSuite) TestVerifyNonMembership() {
 				height = clienttypes.NewHeight(2000, 29)
 				key := host.PacketAcknowledgementKey(portID, invalidChannelID, 1)
 				merklePath := commitmenttypes.NewMerklePath(string(key))
-				path = commitmenttypes.NewMerklePath(append([]string{pathPrefix}, merklePath.KeyPath...)...) 
+				path = commitmenttypes.NewMerklePath(append([]string{pathPrefix}, merklePath.KeyPath...)...)
 
 				proof, err = base64.StdEncoding.DecodeString(suite.testData["ack_proof"])
 				suite.Require().NoError(err)
@@ -542,7 +540,7 @@ func (suite *WasmTestSuite) TestVerifyNonMembership() {
 				// change the value being proved
 				key := host.FullClientStateKey(clientID)
 				merklePath := commitmenttypes.NewMerklePath(string(key))
-				path = commitmenttypes.NewMerklePath(append([]string{pathPrefix}, merklePath.KeyPath...)...) 
+				path = commitmenttypes.NewMerklePath(append([]string{pathPrefix}, merklePath.KeyPath...)...)
 
 				proof, err = base64.StdEncoding.DecodeString(suite.testData["client_state_proof"])
 				suite.Require().NoError(err)
@@ -561,7 +559,7 @@ func (suite *WasmTestSuite) TestVerifyNonMembership() {
 			height = clienttypes.NewHeight(2000, 11)
 			key := host.FullClientStateKey(invalidClientID)
 			merklePath := commitmenttypes.NewMerklePath(string(key))
-			path = commitmenttypes.NewMerklePath(append([]string{pathPrefix}, merklePath.KeyPath...)...) 
+			path = commitmenttypes.NewMerklePath(append([]string{pathPrefix}, merklePath.KeyPath...)...)
 			proof, err = base64.StdEncoding.DecodeString(suite.testData["client_state_proof"])
 			suite.Require().NoError(err)
 			tc.setup()

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"io"
 
+	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/cachekv"
 	"github.com/cosmos/cosmos-sdk/store/listenkv"
@@ -14,7 +15,6 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
-	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
 )
 
 // WrappedStore combines two KVStores into one while transparently routing the calls based on key prefix

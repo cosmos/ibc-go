@@ -8,24 +8,24 @@ import (
 	"testing"
 	"time"
 
+	dbm "github.com/cometbft/cometbft-db"
+	tmjson "github.com/cometbft/cometbft/libs/json"
+	"github.com/cometbft/cometbft/libs/log"
+	tmtypes "github.com/cometbft/cometbft/types"
 	"github.com/cosmos/cosmos-sdk/codec"
+	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
+	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	"github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm/keeper"
 	wasmtypes "github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	"github.com/cosmos/ibc-go/v7/testing/simapp"
 	"github.com/stretchr/testify/suite"
-	tmjson "github.com/cometbft/cometbft/libs/json"
-	"github.com/cometbft/cometbft/libs/log"
-	tmtypes "github.com/cometbft/cometbft/types"
-	dbm "github.com/cometbft/cometbft-db"
-	//tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
+	// tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 )
 
 type WasmTestSuite struct {
@@ -33,17 +33,17 @@ type WasmTestSuite struct {
 	coordinator    *ibctesting.Coordinator
 	wasm           *ibctesting.Wasm // singlesig public key
 	chainA         *ibctesting.TestChain
-	chainB         *ibctesting.TestChain
 	ctx            sdk.Context
 	cdc            codec.Codec
 	now            time.Time
 	store          sdk.KVStore
 	clientState    exported.ClientState
 	consensusState wasmtypes.ConsensusState
-	codeId         []byte
+	codeID         []byte
 	testData       map[string]string
 	wasmKeeper     keeper.Keeper
 }
+
 func SetupTestingWithChannel() (ibctesting.TestingApp, map[string]json.RawMessage) {
 	db := dbm.NewMemDB()
 	encCdc := simapp.MakeTestEncodingConfig()
@@ -77,11 +77,11 @@ func SetupTestingWithChannel() (ibctesting.TestingApp, map[string]json.RawMessag
 
 func (suite *WasmTestSuite) SetupWithChannel() {
 	ibctesting.DefaultTestingAppInit = SetupTestingWithChannel
-    suite.SetupTest()
+	suite.SetupTest()
 	clientState, ok := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.ctx, "08-wasm-0")
 	if ok {
 		suite.clientState = clientState
-		suite.clientState.(*wasmtypes.ClientState).CodeId = suite.codeId
+		suite.clientState.(*wasmtypes.ClientState).CodeId = suite.codeID
 	}
 }
 
@@ -104,12 +104,13 @@ func (suite *WasmTestSuite) SetupTest() {
 	suite.Require().NoError(err)
 	err = json.Unmarshal(createClientData, &suite.testData)
 	suite.Require().NoError(err)
-	
-	//suite.ctx = suite.chainA.App.GetBaseApp().NewContext(checkTx, tmproto.Header{Height: 1, Time: suite.now}).WithGasMeter(sdk.NewInfiniteGasMeter())
+
+	// suite.ctx = suite.chainA.App.GetBaseApp().NewContext(checkTx, tmproto.Header{Height: 1, Time: suite.now}).WithGasMeter(sdk.NewInfiniteGasMeter())
 	suite.ctx = suite.chainA.GetContext().WithBlockGasMeter(sdk.NewInfiniteGasMeter())
 	suite.store = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, "08-wasm-0")
 
-	os.MkdirAll("tmp", 0o755)
+	err = os.MkdirAll("tmp", 0o755)
+	suite.Require().NoError(err)
 	suite.wasmKeeper = suite.chainA.App.GetWasmKeeper()
 	wasmContract, err := os.ReadFile("test_data/ics10_grandpa_cw.wasm")
 	suite.Require().NoError(err)
@@ -118,7 +119,7 @@ func (suite *WasmTestSuite) SetupTest() {
 	response, err := suite.wasmKeeper.PushNewWasmCode(suite.ctx, msg)
 	suite.Require().NoError(err)
 	suite.Require().NotNil(response.CodeId)
-	suite.codeId = response.CodeId
+	suite.codeID = response.CodeId
 
 	clientStateData, err := base64.StdEncoding.DecodeString(suite.testData["client_state_data"])
 	suite.Require().NoError(err)
@@ -173,7 +174,7 @@ func (suite *WasmTestSuite) TestQueryWasmCode() {
 	suite.Require().Error(err)
 
 	// test valid query request
-	res, err := suite.wasmKeeper.WasmCode(suite.ctx, &wasmtypes.WasmCodeQuery{CodeId: hex.EncodeToString(suite.codeId)})
+	res, err := suite.wasmKeeper.WasmCode(suite.ctx, &wasmtypes.WasmCodeQuery{CodeId: hex.EncodeToString(suite.codeID)})
 	suite.Require().NoError(err)
 	suite.Require().NotNil(res.Code)
 }
