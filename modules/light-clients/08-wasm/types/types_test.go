@@ -77,7 +77,7 @@ func SetupTestingWithChannel() (ibctesting.TestingApp, map[string]json.RawMessag
 
 func (suite *WasmTestSuite) SetupWithChannel() {
 	ibctesting.DefaultTestingAppInit = SetupTestingWithChannel
-	suite.SetupTest()
+	suite.CommonSetupTest()
 	clientState, ok := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.ctx, "08-wasm-0")
 	if ok {
 		suite.clientState = clientState
@@ -85,24 +85,48 @@ func (suite *WasmTestSuite) SetupWithChannel() {
 	}
 }
 
-func (suite *WasmTestSuite) SetupTest() {
+func (suite *WasmTestSuite) SetupWithEmptyClient() {
+	ibctesting.DefaultTestingAppInit = ibctesting.SetupTestingApp
+	suite.CommonSetupTest()
+	
+	clientStateData, err := base64.StdEncoding.DecodeString(suite.testData["client_state_data"])
+	suite.Require().NoError(err)
+
+	wasmClientState := wasmtypes.ClientState{
+		Data:   clientStateData,
+		CodeId: suite.codeID,
+		LatestHeight: clienttypes.Height{
+			RevisionNumber: 2000,
+			RevisionHeight: 4,
+		},
+	}
+	suite.clientState = &wasmClientState
+	
+	consensusStateData, err := base64.StdEncoding.DecodeString(suite.testData["consensus_state_data"])
+	suite.Require().NoError(err)
+	root, err := base64.StdEncoding.DecodeString(suite.testData["root"])
+	suite.Require().NoError(err)
+	wasmConsensusState := wasmtypes.ConsensusState{
+		Data:      consensusStateData,
+		CodeId:    suite.codeID,
+		Timestamp: uint64(1678304292),
+		Root: &commitmenttypes.MerkleRoot{
+			Hash: root,
+		},
+	}
+	suite.consensusState = wasmConsensusState
+}
+
+func (suite *WasmTestSuite) CommonSetupTest() {
 	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 1)
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
-
-	suite.wasm = ibctesting.NewWasm(suite.T(), suite.chainA.Codec, "wasmsingle", "testing", 1)
 
 	// commit some blocks so that QueryProof returns valid proof (cannot return valid query if height <= 1)
 	suite.coordinator.CommitNBlocks(suite.chainA, 2)
 
-	// TODO: deprecate usage in favor of testing package
-	checkTx := false
-	app := simapp.Setup(checkTx)
-	suite.cdc = app.AppCodec()
-	suite.now = time.Date(2020, 1, 2, 0, 0, 0, 0, time.UTC)
-
-	createClientData, err := os.ReadFile("test_data/data.json")
+	testData, err := os.ReadFile("test_data/data.json")
 	suite.Require().NoError(err)
-	err = json.Unmarshal(createClientData, &suite.testData)
+	err = json.Unmarshal(testData, &suite.testData)
 	suite.Require().NoError(err)
 
 	// suite.ctx = suite.chainA.App.GetBaseApp().NewContext(checkTx, tmproto.Header{Height: 1, Time: suite.now}).WithGasMeter(sdk.NewInfiniteGasMeter())
@@ -120,33 +144,6 @@ func (suite *WasmTestSuite) SetupTest() {
 	suite.Require().NoError(err)
 	suite.Require().NotNil(response.CodeId)
 	suite.codeID = response.CodeId
-
-	clientStateData, err := base64.StdEncoding.DecodeString(suite.testData["client_state_data"])
-	suite.Require().NoError(err)
-
-	wasmClientState := wasmtypes.ClientState{
-		Data:   clientStateData,
-		CodeId: response.CodeId,
-		LatestHeight: clienttypes.Height{
-			RevisionNumber: 2000,
-			RevisionHeight: 4,
-		},
-	}
-	suite.clientState = &wasmClientState
-
-	consensusStateData, err := base64.StdEncoding.DecodeString(suite.testData["consensus_state_data"])
-	suite.Require().NoError(err)
-	root, err := base64.StdEncoding.DecodeString(suite.testData["root"])
-	suite.Require().NoError(err)
-	wasmConsensusState := wasmtypes.ConsensusState{
-		Data:      consensusStateData,
-		CodeId:    response.CodeId,
-		Timestamp: uint64(1678304292),
-		Root: &commitmenttypes.MerkleRoot{
-			Hash: root,
-		},
-	}
-	suite.consensusState = wasmConsensusState
 }
 
 func (suite *WasmTestSuite) TestPushNewWasmCodeWithErrors() {

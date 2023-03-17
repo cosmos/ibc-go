@@ -86,14 +86,17 @@ func (suite *WasmTestSuite) TestVerifyMisbehaviour() {
 }
 
 func (suite *WasmTestSuite) TestCheckForMisbehaviour() {
-	var clientMsg exported.ClientMessage // clientState exported.ClientState
+	var (
+		clientMsg exported.ClientMessage 
+		clientState exported.ClientState
+	)
 
 	testCases := []struct {
 		name    string
 		setup   func()
 		expPass bool
 	}{
-		/*{
+		{
 			"valid update no misbehaviour",
 			func() {
 				data, err := base64.StdEncoding.DecodeString(suite.testData["header"])
@@ -105,20 +108,61 @@ func (suite *WasmTestSuite) TestCheckForMisbehaviour() {
 						RevisionHeight: 39,
 					},
 				}
+				
+				err = clientState.VerifyClientMessage(suite.ctx, suite.chainA.Codec, suite.store, clientMsg)
+				suite.Require().NoError(err)
 			},
 			false,
 		},
-		{
-			"consensus state already exists, already updated",
+		// Need misbehaviour_identical_headers data
+		/*{
+			"identical misbehaviour data/headers",
 			func() {
-				data, err := base64.StdEncoding.DecodeString(suite.testData["misbehaviour"])
+				data, err := base64.StdEncoding.DecodeString(suite.testData["misbehaviour_identical_headers"])
 				suite.Require().NoError(err)
 				clientMsg = &wasmtypes.Misbehaviour{
 					ClientId: "08-wasm-0",
 					Data:     data,
 				}
+				
+				err = clientState.VerifyClientMessage(suite.ctx, suite.chainA.Codec, suite.store, clientMsg)
+				suite.Require().NoError(err)
 			},
 			false,
+		},*/
+		/*{ // Create consensus state data with empty bytes of app hash / merkle root, set it as consensus state, check misbehaviour using valid header
+			"consensus state already exists, app hash mismatch", 
+			func() {},
+			true,
+		},*/
+		{
+			"valid fork misbehaviour returns true",
+			func() {
+				data, err := base64.StdEncoding.DecodeString(suite.testData["header"])
+				suite.Require().NoError(err)
+				clientMsg = &wasmtypes.Header{
+					Data: data,
+					Height: clienttypes.Height{
+						RevisionNumber: 2000,
+						RevisionHeight: 39,
+					},
+				}
+				// VerifyClientMessage must be run first
+				err = clientState.VerifyClientMessage(suite.ctx, suite.chainA.Codec, suite.store, clientMsg)
+				suite.Require().NoError(err)
+				clientState.UpdateState(suite.ctx, suite.chainA.Codec, suite.store, clientMsg)
+
+				data, err = base64.StdEncoding.DecodeString(suite.testData["misbehaviour"])
+				suite.Require().NoError(err)
+				clientMsg = &wasmtypes.Misbehaviour{
+					ClientId: "08-wasm-0",
+					Data:     data,
+				}
+				
+				err = clientState.VerifyClientMessage(suite.ctx, suite.chainA.Codec, suite.store, clientMsg)
+				suite.Require().NoError(err)
+			},
+			true,
 		},
 		{
 			"invalid wasm misbehaviour",
@@ -126,19 +170,17 @@ func (suite *WasmTestSuite) TestCheckForMisbehaviour() {
 				clientMsg = &solomachine.Misbehaviour{}
 			},
 			false,
-		},*/
+		},
 	}
 
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(tc.name, func() {
 			suite.SetupWithChannel()
+			clientState = suite.clientState
 			tc.setup()
 
-			err := suite.clientState.VerifyClientMessage(suite.ctx, suite.chainA.Codec, suite.store, clientMsg)
-			suite.Require().NoError(err)
-
-			foundMisbehaviour := suite.clientState.CheckForMisbehaviour(suite.ctx, suite.chainA.Codec, suite.store, clientMsg)
+			foundMisbehaviour := clientState.CheckForMisbehaviour(suite.ctx, suite.chainA.Codec, suite.store, clientMsg)
 
 			if tc.expPass {
 				suite.Require().True(foundMisbehaviour)

@@ -136,7 +136,7 @@ func (suite *WasmTestSuite) TestInitialize() {
 		tc := tc
 
 		suite.Run(tc.name, func() {
-			suite.SetupTest() // reset
+			suite.SetupWithEmptyClient() // reset
 
 			store := suite.store
 			err := suite.clientState.Initialize(suite.ctx, suite.chainA.Codec, store, tc.consensusState)
