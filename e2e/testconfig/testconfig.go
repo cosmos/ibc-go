@@ -209,7 +209,7 @@ func newDefaultSimappConfig(cc ChainConfig, name, chainID, denom string) ibc.Cha
 	tmTomlOverrides["log_level"] = "info" // change to debug to increase cometbft logging
 	configFileOverrides["config/config.toml"] = tmTomlOverrides
 
-	useNewGenesisCommand := cc.Binary == icadBinary && semverutil.semverGTE(cc.Tag, icadTagNewGenesisCommands)
+	useNewGenesisCommand := cc.Binary == icadBinary && semverutil.SemverGTE(cc.Tag, icadTagNewGenesisCommands)
 
 	return ibc.ChainConfig{
 		Type:    "cosmos",
