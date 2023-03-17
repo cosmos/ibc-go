@@ -98,7 +98,7 @@ func initContract(codeID []byte, ctx sdk.Context, store sdk.KVStore) (*wasmvmtyp
 	}
 
 	desercost := wasmvmtypes.UFraction{Numerator: 0, Denominator: 1}
-	response, _, err := WasmVM.Instantiate(codeID, env, msgInfo, []byte("{}"), store, cosmwasm.GoAPI{}, nil, gasMeter, gasMeter.Limit(), desercost)
+	response, _, err := WasmVM.Instantiate(codeID, env, msgInfo, []byte("{}"), NewStoreAdapter(store), cosmwasm.GoAPI{}, nil, gasMeter, gasMeter.Limit(), desercost)
 	return response, err
 }
 
@@ -136,7 +136,7 @@ func callContractWithEnvAndMeter(codeID cosmwasm.Checksum, ctx sdk.Context, stor
 		Funds:  nil,
 	}
 	desercost := wasmvmtypes.UFraction{Numerator: 1, Denominator: 1}
-	resp, gasUsed, err := WasmVM.Execute(codeID, env, msgInfo, msg, store, cosmwasm.GoAPI{}, nil, gasMeter, gasMeter.Limit(), desercost)
+	resp, gasUsed, err := WasmVM.Execute(codeID, env, msgInfo, msg, NewStoreAdapter(store), cosmwasm.GoAPI{}, nil, gasMeter, gasMeter.Limit(), desercost)
 	if &ctx != nil {
 		consumeGas(ctx, gasUsed)
 	}
@@ -167,7 +167,7 @@ func queryContractWithStore(codeID cosmwasm.Checksum, ctx sdk.Context, store sdk
 		},
 	}
 	desercost := wasmvmtypes.UFraction{Numerator: 1, Denominator: 1}
-	resp, _, err := WasmVM.Query(codeID, env, msg, store, cosmwasm.GoAPI{}, nil, gasMeter, gasMeter.Limit(), desercost)
+	resp, _, err := WasmVM.Query(codeID, env, msg, NewStoreAdapter(store), cosmwasm.GoAPI{}, nil, gasMeter, gasMeter.Limit(), desercost)
 	return resp, err
 }
 
