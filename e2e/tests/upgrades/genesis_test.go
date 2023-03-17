@@ -2,18 +2,19 @@ package upgrades
 
 import (
 	"context"
-	"os"
-	"time"
 	"encoding/json"
 	"testing"
-
+	"time"
+	"bytes"
+	tmjson "github.com/cometbft/cometbft/libs/json"
 	"github.com/cosmos/ibc-go/e2e/testconfig"
 	"github.com/cosmos/ibc-go/e2e/testsuite"
-	tmjson "github.com/cometbft/cometbft/libs/json"
+	"github.com/docker/docker/api/types"
 	cosmos "github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
 	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
 	"github.com/stretchr/testify/suite"
 
+	"github.com/cosmos/ibc-go/e2e/dockerutil"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 )
 type GenesisState map[string]json.RawMessage
@@ -41,7 +42,7 @@ func (s *GenesisTestSuite) TestIBCGenesis() {
 	
 	// create chains with specified chain configuration options
 	chainA, chainB := s.GetChains(chainOpts)
-	
+
 	ctx := context.Background()
 	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx)
 
@@ -104,7 +105,7 @@ func (s *GenesisTestSuite) TestIBCGenesis() {
 
 func (s *GenesisTestSuite) HaltChainAndExportGenesis(ctx context.Context, chain *cosmos.CosmosChain, haltHeight int64) {
 	var genesisState GenesisState
-	
+
 	timeoutCtx, timeoutCtxCancel := context.WithTimeout(ctx, time.Minute*2)
 	defer timeoutCtxCancel()
 
@@ -122,12 +123,16 @@ func (s *GenesisTestSuite) HaltChainAndExportGenesis(ctx context.Context, chain 
 	genesisJson, err := tmjson.MarshalIndent(genesisState, "", "  ")
 	s.Require().NoError(err)
 
-	err = WriteFile("genesis.json", genesisJson)
+
+
+	err = dockerutil.SetGenesisContentsToContainer(s.T(), ctx, s.E2ETestSuite.DockerClient ,chain.Config(), bytes.NewReader(genesisJson), types.CopyToContainerOptions{
+		AllowOverwriteDirWithFile: true,
+	})
 	s.Require().NoError(err)
 
 	for _, node := range chain.FullNodes {
 		err = node.UnsafeResetAll(ctx)
-		s.Require().NoError(err)
+		s.Require().NoError(err) 
 	}
 
 	// we are reinitializing the clients because we need to update the hostGRPCAddress after
@@ -144,12 +149,4 @@ func (s *GenesisTestSuite) HaltChainAndExportGenesis(ctx context.Context, chain 
 	s.Require().NoError(err, "error fetching height after halt")
 
 	s.Require().Greater(height, haltHeight, "height did not increment after halt")
-}
-
-func WriteFile(path string, body []byte) error {
-	_, err := os.Create(path)
-	if err != nil {
-		return err
-	}
-	return os.WriteFile(path, body, 0o600)
 }
