@@ -33,14 +33,13 @@ type WasmTestSuite struct {
 	coordinator    *ibctesting.Coordinator
 	wasm           *ibctesting.Wasm // singlesig public key
 	chainA         *ibctesting.TestChain
-	chainB         *ibctesting.TestChain
 	ctx            sdk.Context
 	cdc            codec.Codec
 	now            time.Time
 	store          sdk.KVStore
 	clientState    exported.ClientState
 	consensusState wasmtypes.ConsensusState
-	codeId         []byte
+	codeID         []byte
 	testData       map[string]string
 	wasmKeeper     keeper.Keeper
 }
@@ -82,7 +81,7 @@ func (suite *WasmTestSuite) SetupWithChannel() {
 	clientState, ok := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.ctx, "08-wasm-0")
 	if ok {
 		suite.clientState = clientState
-		suite.clientState.(*wasmtypes.ClientState).CodeId = suite.codeId
+		suite.clientState.(*wasmtypes.ClientState).CodeId = suite.codeID
 	}
 }
 
@@ -110,7 +109,8 @@ func (suite *WasmTestSuite) SetupTest() {
 	suite.ctx = suite.chainA.GetContext().WithBlockGasMeter(sdk.NewInfiniteGasMeter())
 	suite.store = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, "08-wasm-0")
 
-	os.MkdirAll("tmp", 0o755)
+	err = os.MkdirAll("tmp", 0o755)
+	suite.Require().NoError(err)
 	suite.wasmKeeper = suite.chainA.App.GetWasmKeeper()
 	wasmContract, err := os.ReadFile("test_data/ics10_grandpa_cw.wasm")
 	suite.Require().NoError(err)
@@ -119,7 +119,7 @@ func (suite *WasmTestSuite) SetupTest() {
 	response, err := suite.wasmKeeper.PushNewWasmCode(suite.ctx, msg)
 	suite.Require().NoError(err)
 	suite.Require().NotNil(response.CodeId)
-	suite.codeId = response.CodeId
+	suite.codeID = response.CodeId
 
 	clientStateData, err := base64.StdEncoding.DecodeString(suite.testData["client_state_data"])
 	suite.Require().NoError(err)
@@ -174,7 +174,7 @@ func (suite *WasmTestSuite) TestQueryWasmCode() {
 	suite.Require().Error(err)
 
 	// test valid query request
-	res, err := suite.wasmKeeper.WasmCode(suite.ctx, &wasmtypes.WasmCodeQuery{CodeId: hex.EncodeToString(suite.codeId)})
+	res, err := suite.wasmKeeper.WasmCode(suite.ctx, &wasmtypes.WasmCodeQuery{CodeId: hex.EncodeToString(suite.codeID)})
 	suite.Require().NoError(err)
 	suite.Require().NotNil(res.Code)
 }

@@ -31,7 +31,7 @@ func (suite *WasmTestSuite) TestVerifyHeader() {
 
 				clientState = &wasmtypes.ClientState{
 					Data:   cs,
-					CodeId: suite.codeId,
+					CodeId: suite.codeID,
 					LatestHeight: clienttypes.Height{
 						RevisionNumber: 2000,
 						RevisionHeight: 36,

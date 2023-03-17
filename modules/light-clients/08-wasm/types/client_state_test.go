@@ -29,7 +29,7 @@ func (suite *WasmTestSuite) TestStatus() {
 
 			frozenClientState := wasmtypes.ClientState{
 				Data:   cs,
-				CodeId: suite.codeId,
+				CodeId: suite.codeID,
 				LatestHeight: clienttypes.Height{
 					RevisionNumber: 2000,
 					RevisionHeight: 5,
@@ -44,7 +44,7 @@ func (suite *WasmTestSuite) TestStatus() {
 
 			clientState := wasmtypes.ClientState{
 				Data:   cs,
-				CodeId: suite.codeId,
+				CodeId: suite.codeID,
 				LatestHeight: clienttypes.Height{
 					RevisionNumber: 2000,
 					RevisionHeight: 36, // This doesn't matter, but the grandpa client state is set to this
@@ -366,9 +366,9 @@ func (suite *WasmTestSuite) TestVerifyMembership() {
 					Numerator:   1,
 					Denominator: 3,
 				},
-				TrustingPeriod:  time.Duration(time.Second * 64000),
-				UnbondingPeriod: time.Duration(time.Second * 1814400),
-				MaxClockDrift:   time.Duration(time.Second * 15),
+				TrustingPeriod:  time.Second * 64000,
+				UnbondingPeriod: time.Second * 1814400,
+				MaxClockDrift:   time.Second * 15,
 				FrozenHeight: clienttypes.Height{
 					RevisionNumber: 0,
 					RevisionHeight: 0,

@@ -22,7 +22,7 @@ func (k Keeper) PushNewWasmCode(goCtx context.Context, msg *types.MsgPushNewWasm
 		return nil, sdkerrors.Wrapf(govtypes.ErrInvalidSigner, "invalid authority: expected %s, got %s", k.authority, msg.Signer)
 	}
 
-	codeId, err := k.storeWasmCode(ctx, msg.Code)
+	codeID, err := k.storeWasmCode(ctx, msg.Code)
 	if err != nil {
 		return nil, sdkerrors.Wrap(err, "pushing new wasm code failed")
 	}
@@ -30,7 +30,7 @@ func (k Keeper) PushNewWasmCode(goCtx context.Context, msg *types.MsgPushNewWasm
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			clienttypes.EventTypePushWasmCode,
-			sdk.NewAttribute(clienttypes.AttributeKeyWasmCodeID, hex.EncodeToString(codeId)),
+			sdk.NewAttribute(clienttypes.AttributeKeyWasmCodeID, hex.EncodeToString(codeID)),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
@@ -39,6 +39,6 @@ func (k Keeper) PushNewWasmCode(goCtx context.Context, msg *types.MsgPushNewWasm
 	})
 
 	return &types.MsgPushNewWasmCodeResponse{
-		CodeId: codeId,
+		CodeId: codeID,
 	}, nil
 }
