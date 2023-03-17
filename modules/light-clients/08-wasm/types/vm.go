@@ -2,13 +2,13 @@ package types
 
 import (
 	cosmwasm "github.com/CosmWasm/wasmvm"
-	"github.com/CosmWasm/wasmvm/types"
+	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
-const GasMultiplier uint64 = 100
-const maxGasLimit = uint64(0x7FFFFFFFFFFFFFFF)
+// TODO: Gas consumption still needs work
+const GasMultiplier uint64 = 140_000_000 // Cosmwasm equivalent
 
 var WasmVM *cosmwasm.VM
 
@@ -69,7 +69,7 @@ func (r clientStateCallResponse) Error() string {
 }
 
 // Calls vm.Init with appropriate arguments
-func initContract(codeID []byte, ctx sdk.Context, store sdk.KVStore) (*types.Response, error) {
+func initContract(codeID []byte, ctx sdk.Context, store sdk.KVStore) (*wasmvmtypes.Response, error) {
 	gasMeter := ctx.GasMeter()
 	chainID := ctx.BlockHeader().ChainID
 	height := ctx.BlockHeader().Height
@@ -81,29 +81,29 @@ func initContract(codeID []byte, ctx sdk.Context, store sdk.KVStore) (*types.Res
 	if sec < 0 {
 		panic("Block (unix) time must never be negative ")
 	}
-	env := types.Env{
-		Block: types.BlockInfo{
+	env := wasmvmtypes.Env{
+		Block: wasmvmtypes.BlockInfo{
 			Height:  uint64(height),
 			Time:    uint64(sec),
 			ChainID: chainID,
 		},
-		Contract: types.ContractInfo{
+		Contract: wasmvmtypes.ContractInfo{
 			Address: "",
 		},
 	}
 
-	msgInfo := types.MessageInfo{
+	msgInfo := wasmvmtypes.MessageInfo{
 		Sender: "",
 		Funds:  nil,
 	}
 
-	desercost := types.UFraction{Numerator: 0, Denominator: 1}
+	desercost := wasmvmtypes.UFraction{Numerator: 0, Denominator: 1}
 	response, _, err := WasmVM.Instantiate(codeID, env, msgInfo, []byte("{}"), store, cosmwasm.GoAPI{}, nil, gasMeter, gasMeter.Limit(), desercost)
 	return response, err
 }
 
 // Calls vm.Execute with internally constructed Gas meter and environment
-func callContract(codeID []byte, ctx sdk.Context, store sdk.KVStore, msg []byte) (*types.Response, error) {
+func callContract(codeID []byte, ctx sdk.Context, store sdk.KVStore, msg []byte) (*wasmvmtypes.Response, error) {
 	gasMeter := ctx.GasMeter()
 	chainID := ctx.BlockHeader().ChainID
 	height := ctx.BlockHeader().Height
@@ -115,13 +115,13 @@ func callContract(codeID []byte, ctx sdk.Context, store sdk.KVStore, msg []byte)
 	if sec < 0 {
 		panic("Block (unix) time must never be negative ")
 	}
-	env := types.Env{
-		Block: types.BlockInfo{
+	env := wasmvmtypes.Env{
+		Block: wasmvmtypes.BlockInfo{
 			Height:  uint64(height),
 			Time:    uint64(sec),
 			ChainID: chainID,
 		},
-		Contract: types.ContractInfo{
+		Contract: wasmvmtypes.ContractInfo{
 			Address: "",
 		},
 	}
@@ -130,12 +130,12 @@ func callContract(codeID []byte, ctx sdk.Context, store sdk.KVStore, msg []byte)
 }
 
 // Calls vm.Execute with supplied environment and gas meter
-func callContractWithEnvAndMeter(codeID cosmwasm.Checksum, ctx sdk.Context, store sdk.KVStore, env types.Env, gasMeter sdk.GasMeter, msg []byte) (*types.Response, error) {
-	msgInfo := types.MessageInfo{
+func callContractWithEnvAndMeter(codeID cosmwasm.Checksum, ctx sdk.Context, store sdk.KVStore, env wasmvmtypes.Env, gasMeter sdk.GasMeter, msg []byte) (*wasmvmtypes.Response, error) {
+	msgInfo := wasmvmtypes.MessageInfo{
 		Sender: "",
 		Funds:  nil,
 	}
-	desercost := types.UFraction{Numerator: 1, Denominator: 1}
+	desercost := wasmvmtypes.UFraction{Numerator: 1, Denominator: 1}
 	resp, gasUsed, err := WasmVM.Execute(codeID, env, msgInfo, msg, store, cosmwasm.GoAPI{}, nil, gasMeter, gasMeter.Limit(), desercost)
 	if &ctx != nil {
 		consumeGas(ctx, gasUsed)
@@ -156,17 +156,17 @@ func queryContractWithStore(codeID cosmwasm.Checksum, ctx sdk.Context, store sdk
 	if sec < 0 {
 		panic("Block (unix) time must never be negative ")
 	}
-	env := types.Env{
-		Block: types.BlockInfo{
+	env := wasmvmtypes.Env{
+		Block: wasmvmtypes.BlockInfo{
 			Height:  uint64(height),
 			Time:    uint64(sec),
 			ChainID: chainID,
 		},
-		Contract: types.ContractInfo{
+		Contract: wasmvmtypes.ContractInfo{
 			Address: "",
 		},
 	}
-	desercost := types.UFraction{Numerator: 1, Denominator: 1}
+	desercost := wasmvmtypes.UFraction{Numerator: 1, Denominator: 1}
 	resp, _, err := WasmVM.Query(codeID, env, msg, store, cosmwasm.GoAPI{}, nil, gasMeter, gasMeter.Limit(), desercost)
 	return resp, err
 }
