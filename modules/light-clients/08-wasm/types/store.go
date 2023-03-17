@@ -14,6 +14,7 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
 )
 
 // WrappedStore combines two KVStores into one while transparently routing the calls based on key prefix
@@ -131,4 +132,39 @@ func GetConsensusState(store sdk.KVStore, cdc codec.BinaryCodec, height exported
 	}
 
 	return consensusState, nil
+}
+
+var _ wasmvmtypes.KVStore = &StoreAdapter{}
+
+// StoreAdapter adapter to bridge SDK store impl to wasmvm
+type StoreAdapter struct {
+	parent sdk.KVStore
+}
+
+// NewStoreAdapter constructor
+func NewStoreAdapter(s sdk.KVStore) *StoreAdapter {
+	if s == nil {
+		panic("store must not be nil")
+	}
+	return &StoreAdapter{parent: s}
+}
+
+func (s StoreAdapter) Get(key []byte) []byte {
+	return s.parent.Get(key)
+}
+
+func (s StoreAdapter) Set(key, value []byte) {
+	s.parent.Set(key, value)
+}
+
+func (s StoreAdapter) Delete(key []byte) {
+	s.parent.Delete(key)
+}
+
+func (s StoreAdapter) Iterator(start, end []byte) wasmvmtypes.Iterator {
+	return s.parent.Iterator(start, end)
+}
+
+func (s StoreAdapter) ReverseIterator(start, end []byte) wasmvmtypes.Iterator {
+	return s.parent.ReverseIterator(start, end)
 }

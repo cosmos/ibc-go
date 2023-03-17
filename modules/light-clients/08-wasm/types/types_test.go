@@ -21,10 +21,10 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	"github.com/cosmos/ibc-go/v7/testing/simapp"
 	"github.com/stretchr/testify/suite"
-	tmjson "github.com/tendermint/tendermint/libs/json"
-	"github.com/tendermint/tendermint/libs/log"
-	tmtypes "github.com/tendermint/tendermint/types"
-	dbm "github.com/tendermint/tm-db"
+	tmjson "github.com/cometbft/cometbft/libs/json"
+	"github.com/cometbft/cometbft/libs/log"
+	tmtypes "github.com/cometbft/cometbft/types"
+	dbm "github.com/cometbft/cometbft-db"
 	//tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 )
 
