@@ -57,7 +57,7 @@ const (
 	icadBinary = "icad"
 )
 
-// icadNewGenesisCommandsFeatureReleases represents the release of icad where new genesis commands was released.
+// icadNewGenesisCommandsFeatureReleases represents the releases of icad using the new genesis commands.
 var icadNewGenesisCommandsFeatureReleases = semverutil.FeatureReleases{
 	MinorVersions: []string{
 		"v0.5",
@@ -243,9 +243,10 @@ func newDefaultSimappConfig(cc ChainConfig, name, chainID, denom string) ibc.Cha
 // getGenesisModificationFunction returns a genesis modification function that handles the GenesisState type
 // correctly depending on if the govv1beta1 gov module is used or if govv1 is being used.
 func getGenesisModificationFunction(cc ChainConfig) func(ibc.ChainConfig, []byte) ([]byte, error) {
+	binary := cc.Binary
 	version := cc.Tag
 
-	if govGenesisFeatureReleases.IsSupported(version) {
+	if (binary == "defaultBinary" && govGenesisFeatureReleases.IsSupported(version)) || (binary == icadBinary && icadGovGenesisFeatureReleases.IsSupported(version)) {
 		return defaultGovv1ModifyGenesis()
 	}
 
@@ -256,6 +257,14 @@ func getGenesisModificationFunction(cc ChainConfig) func(ibc.ChainConfig, []byte
 // was upgraded from v1beta1 to v1.
 var govGenesisFeatureReleases = semverutil.FeatureReleases{
 	MajorVersion: "v7",
+}
+
+// icadGovGenesisFeatureReleases represents the releases of icad where the governance module genesis
+// was upgraded from v1beta1 to v1.
+var icadGovGenesisFeatureReleases = semverutil.FeatureReleases{
+	MinorVersions: []string{
+		"v0.5",
+	},
 }
 
 // defaultGovv1ModifyGenesis will only modify governance params to ensure the voting period and minimum deposit
