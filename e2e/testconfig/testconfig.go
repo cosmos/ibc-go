@@ -52,6 +52,11 @@ const (
 	defaultChainTag = "main"
 	// defaultRelayerType is the default relayer that will be used if none is specified.
 	defaultRelayerType = relayer.Rly
+
+	// icadBinary is the binary for interchain-accounts-demo repository.
+	icadBinary = "icad"
+	// icadTagNewGenesisCommands is the tag of the interchain-account-demo repository using new genesis commands.
+	icadTagNewGenesisCommands = "v0.5.0"
 )
 
 func getChainImage(binary string) string {
@@ -204,6 +209,8 @@ func newDefaultSimappConfig(cc ChainConfig, name, chainID, denom string) ibc.Cha
 	tmTomlOverrides["log_level"] = "info" // change to debug to increase cometbft logging
 	configFileOverrides["config/config.toml"] = tmTomlOverrides
 
+	useNewGenesisCommand := cc.Binary == icadBinary && semverutil.semverGTE(cc.Tag, icadTagNewGenesisCommands)
+
 	return ibc.ChainConfig{
 		Type:    "cosmos",
 		Name:    name,
@@ -214,16 +221,17 @@ func newDefaultSimappConfig(cc ChainConfig, name, chainID, denom string) ibc.Cha
 				Version:    cc.Tag,
 			},
 		},
-		Bin:                 cc.Binary,
-		Bech32Prefix:        "cosmos",
-		CoinType:            fmt.Sprint(sdk.GetConfig().GetCoinType()),
-		Denom:               denom,
-		GasPrices:           fmt.Sprintf("0.00%s", denom),
-		GasAdjustment:       1.3,
-		TrustingPeriod:      "508h",
-		NoHostMount:         false,
-		ModifyGenesis:       getGenesisModificationFunction(cc),
-		ConfigFileOverrides: configFileOverrides,
+		Bin:                    cc.Binary,
+		Bech32Prefix:           "cosmos",
+		CoinType:               fmt.Sprint(sdk.GetConfig().GetCoinType()),
+		Denom:                  denom,
+		GasPrices:              fmt.Sprintf("0.00%s", denom),
+		GasAdjustment:          1.3,
+		TrustingPeriod:         "508h",
+		NoHostMount:            false,
+		ModifyGenesis:          getGenesisModificationFunction(cc),
+		ConfigFileOverrides:    configFileOverrides,
+		UsingNewGenesisCommand: useNewGenesisCommand,
 	}
 }
 
