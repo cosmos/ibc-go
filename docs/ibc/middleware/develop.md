@@ -6,7 +6,7 @@ order: 2
 
 IBC middleware will wrap over an underlying IBC application (a base application or downstream middleware) and sits between core IBC and the base application.
 
-The interfaces a middleware must implement are found [here](https://github.com/cosmos/ibc-go/blob/v7.0.0-rc0/modules/core/05-port/types/module.go).
+The interfaces a middleware must implement are found [here](https://github.com/cosmos/ibc-go/blob/v7.0.0/modules/core/05-port/types/module.go).
 
 ```go
 // Middleware implements the ICS26 Module interface
@@ -39,7 +39,7 @@ func NewIBCMiddleware(app porttypes.IBCModule, k keeper.Keeper) IBCMiddleware {
 
 ## Implement `IBCModule` interface
 
-`IBCMiddleware` is a struct that implements the [ICS-26 `IBCModule` interface (`porttypes.IBCModule`)](https://github.com/cosmos/ibc-go/blob/v7.0.0-rc0/modules/core/05-port/types/module.go#L14-L107). It is recommended to separate these callbacks into a separate file `ibc_middleware.go`.
+`IBCMiddleware` is a struct that implements the [ICS-26 `IBCModule` interface (`porttypes.IBCModule`)](https://github.com/cosmos/ibc-go/blob/v7.0.0/modules/core/05-port/types/module.go#L14-L107). It is recommended to separate these callbacks into a separate file `ibc_middleware.go`.
 
 > Note how this is analogous to implementing the same interfaces for IBC applications that act as base applications.
 
@@ -177,7 +177,7 @@ func (im IBCMiddleware) OnChanOpenInit(
 }
 ```
 
-See [here](https://github.com/cosmos/ibc-go/blob/v7.0.0-rc0/modules/apps/29-fee/ibc_middleware.go#L36-L83) an example implementation of this callback for the ICS-29 Fee Middleware module.
+See [here](https://github.com/cosmos/ibc-go/blob/v7.0.0/modules/apps/29-fee/ibc_middleware.go#L36-L83) an example implementation of this callback for the ICS-29 Fee Middleware module.
 
 #### `OnChanOpenTry`
 
@@ -235,7 +235,7 @@ func (im IBCMiddleware) OnChanOpenTry(
 }
 ```
 
-See [here](https://github.com/cosmos/ibc-go/blob/v7.0.0-rc0/modules/apps/29-fee/ibc_middleware.go#L88-L125) an example implementation of this callback for the ICS-29 Fee Middleware module.
+See [here](https://github.com/cosmos/ibc-go/blob/v7.0.0/modules/apps/29-fee/ibc_middleware.go#L88-L125) an example implementation of this callback for the ICS-29 Fee Middleware module.
 
 #### `OnChanOpenAck`
 
@@ -265,7 +265,7 @@ func (im IBCMiddleware) OnChanOpenAck(
 }
 ```
 
-See [here](https://github.com/cosmos/ibc-go/blob/v7.0.0-rc0/modules/apps/29-fee/ibc_middleware.go#L128-L153)) an example implementation of this callback for the ICS-29 Fee Middleware module.
+See [here](https://github.com/cosmos/ibc-go/blob/v7.0.0/modules/apps/29-fee/ibc_middleware.go#L128-L153)) an example implementation of this callback for the ICS-29 Fee Middleware module.
 
 #### `OnChanOpenConfirm`
 
@@ -281,7 +281,7 @@ func OnChanOpenConfirm(
 }
 ```
 
-See [here](https://github.com/cosmos/ibc-go/blob/v7.0.0-rc0/modules/apps/29-fee/ibc_middleware.go#L156-L163) an example implementation of this callback for the ICS-29 Fee Middleware module.
+See [here](https://github.com/cosmos/ibc-go/blob/v7.0.0/modules/apps/29-fee/ibc_middleware.go#L156-L163) an example implementation of this callback for the ICS-29 Fee Middleware module.
 
 #### `OnChanCloseInit`
 
@@ -297,7 +297,7 @@ func OnChanCloseInit(
 }
 ```
 
-See [here](https://github.com/cosmos/ibc-go/blob/v7.0.0-rc0/modules/apps/29-fee/ibc_middleware.go#L166-L188) an example implementation of this callback for the ICS-29 Fee Middleware module.
+See [here](https://github.com/cosmos/ibc-go/blob/v7.0.0/modules/apps/29-fee/ibc_middleware.go#L166-L188) an example implementation of this callback for the ICS-29 Fee Middleware module.
 
 #### `OnChanCloseConfirm`
 
@@ -313,7 +313,7 @@ func OnChanCloseConfirm(
 }
 ```
 
-See [here](https://github.com/cosmos/ibc-go/blob/v7.0.0-rc0/modules/apps/29-fee/ibc_middleware.go#L191-L213) an example implementation of this callback for the ICS-29 Fee Middleware module.
+See [here](https://github.com/cosmos/ibc-go/blob/v7.0.0/modules/apps/29-fee/ibc_middleware.go#L191-L213) an example implementation of this callback for the ICS-29 Fee Middleware module.
 
 #### Capabilities
 
@@ -343,7 +343,7 @@ func (im IBCMiddleware) OnRecvPacket(
 }
 ```
 
-See [here](https://github.com/cosmos/ibc-go/blob/v7.0.0-rc0/modules/apps/29-fee/ibc_middleware.go#L217-L238) an example implementation of this callback for the ICS-29 Fee Middleware module.
+See [here](https://github.com/cosmos/ibc-go/blob/v7.0.0/modules/apps/29-fee/ibc_middleware.go#L217-L238) an example implementation of this callback for the ICS-29 Fee Middleware module.
 
 #### `OnAcknowledgementPacket`
 
@@ -360,7 +360,7 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 }
 ```
 
-See [here](https://github.com/cosmos/ibc-go/blob/v7.0.0-rc0/modules/apps/29-fee/ibc_middleware.go#L242-L293) an example implementation of this callback for the ICS-29 Fee Middleware module.
+See [here](https://github.com/cosmos/ibc-go/blob/v7.0.0/modules/apps/29-fee/ibc_middleware.go#L242-L293) an example implementation of this callback for the ICS-29 Fee Middleware module.
 
 #### `OnTimeoutPacket`
 
@@ -376,7 +376,7 @@ func (im IBCMiddleware) OnTimeoutPacket(
 }
 ```
 
-See [here](https://github.com/cosmos/ibc-go/blob/v7.0.0-rc0/modules/apps/29-fee/ibc_middleware.go#L297-L335) an example implementation of this callback for the ICS-29 Fee Middleware module.
+See [here](https://github.com/cosmos/ibc-go/blob/v7.0.0/modules/apps/29-fee/ibc_middleware.go#L297-L335) an example implementation of this callback for the ICS-29 Fee Middleware module.
 
 ## ICS-04 wrappers
 
@@ -400,7 +400,7 @@ type Keeper struct {
 
 For stateless middleware, the `ics4Wrapper` can be passed on directly without having to instantiate a keeper struct for the middleware.
 
-[The interface](https://github.com/cosmos/ibc-go/blob/v7.0.0-rc0/modules/core/05-port/types/module.go#L110-L133) looks as follows:
+[The interface](https://github.com/cosmos/ibc-go/blob/v7.0.0/modules/core/05-port/types/module.go#L110-L133) looks as follows:
 
 ```go
 // This is implemented by ICS4 and all middleware that are wrapping base application.
@@ -463,7 +463,7 @@ func SendPacket(
 }
 ```
 
-See [here](https://github.com/cosmos/ibc-go/blob/v7.0.0-rc0/modules/apps/29-fee/keeper/relay.go#L17-L27) an example implementation of this function for the ICS-29 Fee Middleware module.
+See [here](https://github.com/cosmos/ibc-go/blob/v7.0.0/modules/apps/29-fee/keeper/relay.go#L17-L27) an example implementation of this function for the ICS-29 Fee Middleware module.
 
 ### `WriteAcknowledgement`
 
@@ -482,7 +482,7 @@ func WriteAcknowledgement(
 }
 ```
 
-See [here](https://github.com/cosmos/ibc-go/blob/v7.0.0-rc0/modules/apps/29-fee/keeper/relay.go#L31-L55) an example implementation of this function for the ICS-29 Fee Middleware module.
+See [here](https://github.com/cosmos/ibc-go/blob/v7.0.0/modules/apps/29-fee/keeper/relay.go#L31-L55) an example implementation of this function for the ICS-29 Fee Middleware module.
 
 ### `GetAppVersion`
 
@@ -512,4 +512,4 @@ func GetAppVersion(
 }
 ```
 
-See [here](https://github.com/cosmos/ibc-go/blob/v7.0.0-rc0/modules/apps/29-fee/keeper/relay.go#L58-L74) an example implementation of this function for the ICS-29 Fee Middleware module.
+See [here](https://github.com/cosmos/ibc-go/blob/v7.0.0/modules/apps/29-fee/keeper/relay.go#L58-L74) an example implementation of this function for the ICS-29 Fee Middleware module.

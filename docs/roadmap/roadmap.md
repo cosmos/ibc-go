@@ -10,22 +10,6 @@ This document endeavours to inform the wider IBC community about plans and prior
 
 This roadmap should be read as a high-level guide, rather than a commitment to schedules and deliverables. The degree of specificity is inversely proportional to the timeline. We will update this document periodically to reflect the status and plans. For the latest expected release timelines, please check [here](https://github.com/cosmos/ibc-go/wiki/Release-timeline).
 
-## v7.0.0
-
-### 02-client refactor
-
-This refactor will make the development of light clients easier. The ibc-go implementation will finally align with the spec and light clients will be required to set their own client and consensus states. This will allow more flexibility for light clients to manage their own internal storage and do batch updates. See [ADR 006](../architecture/adr-006-02-client-refactor.md) for more information.
-
-Follow the progress with the [beta](https://github.com/cosmos/ibc-go/milestone/25) and [RC](https://github.com/cosmos/ibc-go/milestone/27) milestones or in the [project board](https://github.com/orgs/cosmos/projects/7/views/14).
-
-### Upgrade Cosmos SDK v0.47
-
-Follow the progress with the [milestone](https://github.com/cosmos/ibc-go/milestone/36).
-
-### Add `authz` support to 20-transfer
-
-Authz goes cross chain: users can grant permission for their tokens to be transferred to another chain on their behalf. See [this issue](https://github.com/cosmos/ibc-go/issues/2431) for more details.
-
 ## v7.1.0
 
 Because it is so important to have an ibc-go release compatible with the latest Cosmos SDK release, a couple of features will take a little longer and be released in [v7.1.0](https://github.com/cosmos/ibc-go/milestone/37).
