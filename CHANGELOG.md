@@ -34,6 +34,20 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Changelog
 
+## [Unreleased]
+
+### Dependencies
+
+### API Breaking
+
+### State Machine Breaking
+
+### Improvements
+
+### Features
+
+### Bug Fixes
+ 
 ## [v7.0.0](https://github.com/cosmos/ibc-go/releases/tag/v6.1.0) - 2023-03-17 
 
 ### Dependencies
@@ -83,13 +97,13 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (modules/core/02-client) [\#1188](https://github.com/cosmos/ibc-go/pull/1188/files) Routing `MsgSubmitMisbehaviour` to `UpdateClient` keeper function. Deprecating `SubmitMisbehaviour` endpoint.
 * (modules/core/02-client) [\#1208](https://github.com/cosmos/ibc-go/pull/1208) Replace `CheckHeaderAndUpdateState` usage in 02-client with calls to `VerifyClientMessage`, `CheckForMisbehaviour`, `UpdateStateOnMisbehaviour` and `UpdateState`.
 * (modules/light-clients/09-localhost) [\#1187](https://github.com/cosmos/ibc-go/pull/1187/) Removing localhost light client implementation as it is not functional. An upgrade handler is provided in `modules/migrations/v5` to prune `09-localhost` clients and consensus states from the store.
-* [\#1186](https://github.com/cosmos/ibc-go/pull/1186/files) Removing `GetRoot` function from ConsensusState interface in `02-client`. `GetRoot` is unused by core IBC.
+* (modules/core/02-client) [\#1186](https://github.com/cosmos/ibc-go/pull/1186) Removing `GetRoot` function from ConsensusState interface in `02-client`. `GetRoot` is unused by core IBC.
 * (modules/core/02-client) [\#1196](https://github.com/cosmos/ibc-go/pull/1196) Adding VerifyClientMessage to ClientState interface.
 * (modules/core/02-client) [\#1198](https://github.com/cosmos/ibc-go/pull/1198) Adding UpdateStateOnMisbehaviour to ClientState interface.
 * (modules/core/02-client) [\#1170](https://github.com/cosmos/ibc-go/pull/1170) Updating `ClientUpdateProposal` to set client state in lightclient implementations `CheckSubstituteAndUpdateState` methods.
 * (modules/core/02-client) [\#1197](https://github.com/cosmos/ibc-go/pull/1197) Adding `CheckForMisbehaviour` to `ClientState` interface.
-* (modules/core/02-client) [\#1195](https://github.com/cosmos/ibc-go/pull/1210) Removing `CheckHeaderAndUpdateState` from `ClientState` interface & associated light client implementations.
-* (modules/core/02-client) [\#1189](https://github.com/cosmos/ibc-go/pull/1212) Removing `CheckMisbehaviourAndUpdateState` from `ClientState` interface & associated light client implementations.
+* (modules/core/02-client) [\#1210](https://github.com/cosmos/ibc-go/pull/1210) Removing `CheckHeaderAndUpdateState` from `ClientState` interface & associated light client implementations.
+* (modules/core/02-client) [\#1212](https://github.com/cosmos/ibc-go/pull/1212) Removing `CheckMisbehaviourAndUpdateState` from `ClientState` interface & associated light client implementations.
 * (modules/core/exported) [\#1206](https://github.com/cosmos/ibc-go/pull/1206) Adding new method `UpdateState` to `ClientState` interface.
 * (modules/core/02-client) [\#1741](https://github.com/cosmos/ibc-go/pull/1741) Emitting a new `upgrade_chain` event upon setting upgrade consensus state.
 * (client) [\#724](https://github.com/cosmos/ibc-go/pull/724) `IsRevisionFormat` and `IsClientIDFormat` have been updated to disallow newlines before the dash used to separate the chainID and revision number, and the client type and client sequence.
@@ -97,7 +111,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (06-solomachine) [\#1972](https://github.com/cosmos/ibc-go/pull/1972) Solo machine implementation of `ZeroCustomFields` fn now panics as the fn is only used for upgrades which solo machine does not support.    
 * (light-clients/06-solomachine) Moving `verifyMisbehaviour` function from update.go to misbehaviour_handle.go.
 * [\#2434](https://github.com/cosmos/ibc-go/pull/2478) Removed all `TypeMsg` constants
-* (modules/core/exported) [#1689] (https://github.com/cosmos/ibc-go/pull/2539) Removing `GetVersions` from `ConnectionI` interface.
+* (modules/core/exported) [#2539] (https://github.com/cosmos/ibc-go/pull/2539) Removing `GetVersions` from `ConnectionI` interface.
 * (core/02-connection) [#2419](https://github.com/cosmos/ibc-go/pull/2419) Add optional proof data to proto definitions of `MsgConnectionOpenTry` and `MsgConnectionOpenAck` for host state machines that are unable to introspect their own consensus state.
 * (light-clients/07-tendermint) [#3046](https://github.com/cosmos/ibc-go/pull/3046) Moved non-verification misbehaviour checks to `CheckForMisbehaviour`.
 * (apps/29-fee) [#2975](https://github.com/cosmos/ibc-go/pull/2975) Adding distribute fee events to ics29.
