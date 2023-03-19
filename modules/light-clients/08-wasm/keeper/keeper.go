@@ -57,6 +57,15 @@ func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey) Keeper {
 func (k Keeper) storeWasmCode(ctx sdk.Context, code []byte) ([]byte, error) {
 	store := ctx.KVStore(k.storeKey)
 
+	var err error
+	if IsGzip(code) {
+		ctx.GasMeter().ConsumeGas(types.VMGasRegister.UncompressCosts(len(code)), "Uncompress gzip bytecode")
+		code, err = Uncompress(code, uint64(types.MaxWasmSize))
+		if err != nil {
+			return nil, sdkerrors.Wrap(types.ErrCreateFailed, err.Error())
+		}
+	}
+
 	// Check to see if the store has a code with the same code it
 	codeHash := generateWasmCodeHash(code)
 	codeIDKey := types.CodeID(codeHash)
@@ -72,6 +81,7 @@ func (k Keeper) storeWasmCode(ctx sdk.Context, code []byte) ([]byte, error) {
 	}
 
 	// create the code in the vm
+	ctx.GasMeter().ConsumeGas(types.VMGasRegister.CompileCosts(len(code)), "Compiling wasm bytecode")
 	codeID, err := types.WasmVM.Create(code)
 	if err != nil {
 		return nil, types.ErrWasmInvalidCode

@@ -1,10 +1,6 @@
 package types
 
-import (
-	"math"
-)
-
-var MaxWasmSize = int(math.Pow(2, 24))
+var MaxWasmSize = 3 * 1024 * 1024
 
 func ValidateWasmCode(code []byte) (bool, error) {
 	if len(code) == 0 {

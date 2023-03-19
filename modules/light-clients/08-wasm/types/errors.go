@@ -18,4 +18,6 @@ var (
 	ErrWasmInvalidCode    = sdkerrors.Register(ModuleName, 12, "invalid wasm code")
 	ErrWasmInvalidCodeID  = sdkerrors.Register(ModuleName, 13, "invalid wasm code id")
 	ErrWasmCodeIDNotFound = sdkerrors.Register(ModuleName, 14, "wasm code id not found")
+	ErrInvalid            = sdkerrors.Register(ModuleName, 15, "invalid")
+	ErrCreateFailed       = sdkerrors.Register(ModuleName, 16, "create wasm contract failed")
 )
