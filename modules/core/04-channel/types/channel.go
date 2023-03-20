@@ -126,3 +126,8 @@ func (ic IdentifiedChannel) ValidateBasic() error {
 	channel := NewChannel(ic.State, ic.Ordering, ic.Counterparty, ic.ConnectionHops, ic.Version)
 	return channel.ValidateBasic()
 }
+
+// TODO: find an elegant way of implementing this method
+func (o Order) SubsetOf(order Order) bool {
+	return true
+}

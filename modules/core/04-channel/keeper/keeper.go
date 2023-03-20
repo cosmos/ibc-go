@@ -478,6 +478,60 @@ func (k Keeper) LookupModuleByChannel(ctx sdk.Context, portID, channelID string)
 	return porttypes.GetModuleOwner(modules), cap, nil
 }
 
+func (k Keeper) GetUpgradeRestoreChannel(ctx sdk.Context, portID, channelID string) (types.Channel, bool) {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(host.ChannelRestoreKey(portID, channelID))
+	if bz == nil {
+		return types.Channel{}, false
+	}
+
+	var channel types.Channel
+	k.cdc.MustUnmarshal(bz, &channel)
+
+	return channel, true
+}
+
+func (k Keeper) SetUpgradeRestoreChannel(ctx sdk.Context, portID, channelID string, channel types.Channel) {
+	store := ctx.KVStore(k.storeKey)
+	bz := k.cdc.MustMarshal(&channel)
+	store.Set(host.ChannelRestoreKey(portID, channelID), bz)
+}
+
+func (k Keeper) GetUpgradeSequence(ctx sdk.Context, portID, channelID string) (uint64, bool) {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(host.ChannelUpgradeSequenceKey(portID, channelID))
+	if bz == nil {
+		return 0, false
+	}
+
+	return sdk.BigEndianToUint64(bz), true
+}
+
+func (k Keeper) SetUpgradeSequence(ctx sdk.Context, portID, channelID string, sequence uint64) {
+	store := ctx.KVStore(k.storeKey)
+	bz := sdk.Uint64ToBigEndian(sequence)
+	store.Set(host.ChannelUpgradeSequenceKey(portID, channelID), bz)
+}
+
+func (k Keeper) GetUpgradeTimeout(ctx sdk.Context, portID, channelID string) (types.UpgradeTimeout, bool) {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(host.ChannelUpgradeTimeoutKey(portID, channelID))
+	if bz == nil {
+		return types.UpgradeTimeout{}, false
+	}
+
+	var upgradeTimeout types.UpgradeTimeout
+	k.cdc.MustUnmarshal(bz, &upgradeTimeout)
+
+	return upgradeTimeout, true
+}
+
+func (k Keeper) SetUpgradeTimeout(ctx sdk.Context, portID, channelID string, upgradeTimeout types.UpgradeTimeout) {
+	store := ctx.KVStore(k.storeKey)
+	bz := k.cdc.MustMarshal(&upgradeTimeout)
+	store.Set(host.ChannelUpgradeTimeoutKey(portID, channelID), bz)
+}
+
 // common functionality for IteratePacketCommitment and IteratePacketAcknowledgement
 func (k Keeper) iterateHashes(ctx sdk.Context, iterator db.Iterator, cb func(portID, channelID string, sequence uint64, hash []byte) bool) {
 	defer sdk.LogDeferred(ctx.Logger(), func() error { return iterator.Close() })

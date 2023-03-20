@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	ibcmock "github.com/cosmos/ibc-go/v7/testing/mock"
@@ -464,4 +465,55 @@ func (suite *KeeperTestSuite) TestSetPacketAcknowledgement() {
 	suite.Require().True(found)
 	suite.Require().Equal(ackHash, storedAckHash)
 	suite.Require().True(suite.chainA.App.GetIBCKeeper().ChannelKeeper.HasPacketAcknowledgement(ctxA, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, seq))
+}
+
+func (suite *KeeperTestSuite) TestSetRestoreChannel() {
+	path := ibctesting.NewPath(suite.chainA, suite.chainB)
+	suite.coordinator.SetupConnections(path)
+	suite.coordinator.CreateChannels(path)
+
+	restoreChannel, found := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetUpgradeRestoreChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+	suite.Require().False(found)
+	suite.Require().Empty(restoreChannel)
+
+	expChannel := types.NewChannel(types.OPEN, types.UNORDERED, types.NewCounterparty(ibcmock.PortID, ibctesting.FirstChannelID), []string{ibctesting.FirstConnectionID}, ibcmock.Version)
+	suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetUpgradeRestoreChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, expChannel)
+
+	restoreChannel, found = suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetUpgradeRestoreChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+	suite.Require().True(found)
+	suite.Require().Equal(expChannel, restoreChannel)
+}
+
+func (suite *KeeperTestSuite) TestSetUpgradeSequence() {
+	path := ibctesting.NewPath(suite.chainA, suite.chainB)
+	suite.coordinator.SetupConnections(path)
+	suite.coordinator.CreateChannels(path)
+
+	sequence, found := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetUpgradeSequence(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+	suite.Require().False(found)
+	suite.Require().Zero(sequence)
+
+	expSequence := uint64(1)
+	suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetUpgradeSequence(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, expSequence)
+
+	sequence, found = suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetUpgradeSequence(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+	suite.Require().True(found)
+	suite.Require().Equal(expSequence, sequence)
+}
+
+func (suite *KeeperTestSuite) TestSetUpgradeTimeout() {
+	path := ibctesting.NewPath(suite.chainA, suite.chainB)
+	suite.coordinator.SetupConnections(path)
+	suite.coordinator.CreateChannels(path)
+
+	upgradeTimeout, found := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetUpgradeTimeout(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+	suite.Require().False(found)
+	suite.Require().Empty(upgradeTimeout)
+
+	expUpgradeTimeout := types.UpgradeTimeout{TimeoutHeight: clienttypes.NewHeight(1, 10), TimeoutTimestamp: uint64(suite.coordinator.CurrentTime.UnixNano())}
+	suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetUpgradeTimeout(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, expUpgradeTimeout)
+
+	upgradeTimeout, found = suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetUpgradeTimeout(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+	suite.Require().True(found)
+	suite.Require().Equal(expUpgradeTimeout, upgradeTimeout)
 }
