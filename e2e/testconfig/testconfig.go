@@ -16,6 +16,7 @@ import (
 	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	"github.com/strangelove-ventures/interchaintest/v7/ibc"
+	interchaintestutil "github.com/strangelove-ventures/interchaintest/v7/testutil"
 
 	"github.com/cosmos/ibc-go/e2e/relayer"
 	"github.com/cosmos/ibc-go/e2e/semverutil"
@@ -197,6 +198,12 @@ func DefaultChainOptions() ChainOptions {
 
 // newDefaultSimappConfig creates an ibc configuration for simd.
 func newDefaultSimappConfig(cc ChainConfig, name, chainID, denom string) ibc.ChainConfig {
+	configFileOverrides := make(map[string]any)
+	tmTomlOverrides := make(interchaintestutil.Toml)
+
+	tmTomlOverrides["log_level"] = "info" // change to debug to increase cometbft logging
+	configFileOverrides["config/config.toml"] = tmTomlOverrides
+
 	return ibc.ChainConfig{
 		Type:    "cosmos",
 		Name:    name,
@@ -207,15 +214,16 @@ func newDefaultSimappConfig(cc ChainConfig, name, chainID, denom string) ibc.Cha
 				Version:    cc.Tag,
 			},
 		},
-		Bin:            cc.Binary,
-		Bech32Prefix:   "cosmos",
-		CoinType:       fmt.Sprint(sdk.GetConfig().GetCoinType()),
-		Denom:          denom,
-		GasPrices:      fmt.Sprintf("0.00%s", denom),
-		GasAdjustment:  1.3,
-		TrustingPeriod: "508h",
-		NoHostMount:    false,
-		ModifyGenesis:  getGenesisModificationFunction(cc),
+		Bin:                 cc.Binary,
+		Bech32Prefix:        "cosmos",
+		CoinType:            fmt.Sprint(sdk.GetConfig().GetCoinType()),
+		Denom:               denom,
+		GasPrices:           fmt.Sprintf("0.00%s", denom),
+		GasAdjustment:       1.3,
+		TrustingPeriod:      "508h",
+		NoHostMount:         false,
+		ModifyGenesis:       getGenesisModificationFunction(cc),
+		ConfigFileOverrides: configFileOverrides,
 	}
 }
 
