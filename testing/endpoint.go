@@ -202,11 +202,7 @@ func (endpoint *Endpoint) UpgradeChain() error {
 	endpoint.Chain.Coordinator.IncrementTime()
 	endpoint.Chain.NextBlock()
 
-	if err = endpoint.Counterparty.UpdateClient(); err != nil {
-		return err
-	}
-
-	return nil
+	return endpoint.Counterparty.UpdateClient()
 }
 
 // ConnOpenInit will construct and execute a MsgConnectionOpenInit on the associated endpoint.
