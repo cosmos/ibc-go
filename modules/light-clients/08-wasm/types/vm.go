@@ -1,6 +1,7 @@
 package types
 
 import (
+	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	cosmwasm "github.com/CosmWasm/wasmvm"
 	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -14,6 +15,7 @@ var (
 
 type queryResponse struct {
 	Status exported.Status `json:"status,omitempty"`
+	GenesisMetadata []clienttypes.GenesisMetadata `json:"genesis_metadata,omitempty"`
 }
 
 type ClientCreateRequest struct {
