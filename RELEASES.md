@@ -102,13 +102,13 @@ As rule of thumb, the following changes will **NOT** be automatically accepted i
 Versions of Golang, Cosmos SDK and Tendermint used by ibc-go in the currently active releases:
 
 | Go | ibc-go | Cosmos SDK | Tendermint/CometBFT |
-|----|--------|------------|------------|
+|----|--------|------------|---------------------|
 | 1.18 | v4.1.1 | v0.45.10 | v0.34.22 |
 | 1.18 | v4.2.0 | v0.45.10 | v0.34.22 |
 | 1.18 | v4.3.0 | v0.45.12 | v0.34.24 |
-| 1.18 | v5.2.0 | v0.46.7 | v0.34.24 |
-| 1.18 | v6.1.0 | v0.46.7 | v0.34.24 |
-| 1.19 | v7.0.0 | v0.47.0 | v0.37.0 |
+| 1.18 | v5.2.0 | v0.46.7  | v0.34.24 |
+| 1.18 | v6.1.0 | v0.46.7  | v0.34.24 |
+| 1.19 | v7.0.0 | v0.47.0  | v0.37.0  |
 
 ## Graphics
 
