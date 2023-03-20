@@ -95,9 +95,7 @@ func (k Keeper) WriteOpenInitChannel(
 
 	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", "NONE", "new-state", "INIT")
 
-	defer func() {
-		telemetry.IncrCounter(1, "ibc", "channel", "open-init")
-	}()
+	defer telemetry.IncrCounter(1, "ibc", "channel", "open-init")
 
 	emitChannelOpenInitEvent(ctx, portID, channelID, channel)
 }
@@ -208,9 +206,7 @@ func (k Keeper) WriteOpenTryChannel(
 
 	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", "NONE", "new-state", "TRYOPEN")
 
-	defer func() {
-		telemetry.IncrCounter(1, "ibc", "channel", "open-try")
-	}()
+	defer telemetry.IncrCounter(1, "ibc", "channel", "open-try")
 
 	emitChannelOpenTryEvent(ctx, portID, channelID, channel)
 }
@@ -293,9 +289,7 @@ func (k Keeper) WriteOpenAckChannel(
 
 	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", channel.State.String(), "new-state", "OPEN")
 
-	defer func() {
-		telemetry.IncrCounter(1, "ibc", "channel", "open-ack")
-	}()
+	defer telemetry.IncrCounter(1, "ibc", "channel", "open-ack")
 
 	emitChannelOpenAckEvent(ctx, portID, channelID, channel)
 }
@@ -373,9 +367,7 @@ func (k Keeper) WriteOpenConfirmChannel(
 	k.SetChannel(ctx, portID, channelID, channel)
 	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", "TRYOPEN", "new-state", "OPEN")
 
-	defer func() {
-		telemetry.IncrCounter(1, "ibc", "channel", "open-confirm")
-	}()
+	defer telemetry.IncrCounter(1, "ibc", "channel", "open-confirm")
 
 	emitChannelOpenConfirmEvent(ctx, portID, channelID, channel)
 }
@@ -429,9 +421,7 @@ func (k Keeper) ChanCloseInit(
 
 	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", channel.State.String(), "new-state", "CLOSED")
 
-	defer func() {
-		telemetry.IncrCounter(1, "ibc", "channel", "close-init")
-	}()
+	defer telemetry.IncrCounter(1, "ibc", "channel", "close-init")
 
 	channel.State = types.CLOSED
 	k.SetChannel(ctx, portID, channelID, channel)
@@ -494,9 +484,7 @@ func (k Keeper) ChanCloseConfirm(
 
 	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", channel.State.String(), "new-state", "CLOSED")
 
-	defer func() {
-		telemetry.IncrCounter(1, "ibc", "channel", "close-confirm")
-	}()
+	defer telemetry.IncrCounter(1, "ibc", "channel", "close-confirm")
 
 	channel.State = types.CLOSED
 	k.SetChannel(ctx, portID, channelID, channel)

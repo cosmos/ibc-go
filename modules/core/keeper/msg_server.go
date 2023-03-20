@@ -469,18 +469,16 @@ func (k Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPacke
 		}
 	}
 
-	defer func() {
-		telemetry.IncrCounterWithLabels(
-			[]string{"tx", "msg", "ibc", channeltypes.EventTypeRecvPacket},
-			1,
-			[]metrics.Label{
-				telemetry.NewLabel(coretypes.LabelSourcePort, msg.Packet.SourcePort),
-				telemetry.NewLabel(coretypes.LabelSourceChannel, msg.Packet.SourceChannel),
-				telemetry.NewLabel(coretypes.LabelDestinationPort, msg.Packet.DestinationPort),
-				telemetry.NewLabel(coretypes.LabelDestinationChannel, msg.Packet.DestinationChannel),
-			},
-		)
-	}()
+	defer telemetry.IncrCounterWithLabels(
+		[]string{"tx", "msg", "ibc", channeltypes.EventTypeRecvPacket},
+		1,
+		[]metrics.Label{
+			telemetry.NewLabel(coretypes.LabelSourcePort, msg.Packet.SourcePort),
+			telemetry.NewLabel(coretypes.LabelSourceChannel, msg.Packet.SourceChannel),
+			telemetry.NewLabel(coretypes.LabelDestinationPort, msg.Packet.DestinationPort),
+			telemetry.NewLabel(coretypes.LabelDestinationChannel, msg.Packet.DestinationChannel),
+		},
+	)
 
 	ctx.Logger().Info("receive packet callback succeeded", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel, "result", channeltypes.SUCCESS.String())
 
@@ -541,19 +539,17 @@ func (k Keeper) Timeout(goCtx context.Context, msg *channeltypes.MsgTimeout) (*c
 		return nil, err
 	}
 
-	defer func() {
-		telemetry.IncrCounterWithLabels(
-			[]string{"ibc", "timeout", "packet"},
-			1,
-			[]metrics.Label{
-				telemetry.NewLabel(coretypes.LabelSourcePort, msg.Packet.SourcePort),
-				telemetry.NewLabel(coretypes.LabelSourceChannel, msg.Packet.SourceChannel),
-				telemetry.NewLabel(coretypes.LabelDestinationPort, msg.Packet.DestinationPort),
-				telemetry.NewLabel(coretypes.LabelDestinationChannel, msg.Packet.DestinationChannel),
-				telemetry.NewLabel(coretypes.LabelTimeoutType, "height"),
-			},
-		)
-	}()
+	defer telemetry.IncrCounterWithLabels(
+		[]string{"ibc", "timeout", "packet"},
+		1,
+		[]metrics.Label{
+			telemetry.NewLabel(coretypes.LabelSourcePort, msg.Packet.SourcePort),
+			telemetry.NewLabel(coretypes.LabelSourceChannel, msg.Packet.SourceChannel),
+			telemetry.NewLabel(coretypes.LabelDestinationPort, msg.Packet.DestinationPort),
+			telemetry.NewLabel(coretypes.LabelDestinationChannel, msg.Packet.DestinationChannel),
+			telemetry.NewLabel(coretypes.LabelTimeoutType, "height"),
+		},
+	)
 
 	ctx.Logger().Info("timeout packet callback succeeded", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel, "result", channeltypes.SUCCESS.String())
 
@@ -617,19 +613,17 @@ func (k Keeper) TimeoutOnClose(goCtx context.Context, msg *channeltypes.MsgTimeo
 		return nil, err
 	}
 
-	defer func() {
-		telemetry.IncrCounterWithLabels(
-			[]string{"ibc", "timeout", "packet"},
-			1,
-			[]metrics.Label{
-				telemetry.NewLabel(coretypes.LabelSourcePort, msg.Packet.SourcePort),
-				telemetry.NewLabel(coretypes.LabelSourceChannel, msg.Packet.SourceChannel),
-				telemetry.NewLabel(coretypes.LabelDestinationPort, msg.Packet.DestinationPort),
-				telemetry.NewLabel(coretypes.LabelDestinationChannel, msg.Packet.DestinationChannel),
-				telemetry.NewLabel(coretypes.LabelTimeoutType, "channel-closed"),
-			},
-		)
-	}()
+	defer telemetry.IncrCounterWithLabels(
+		[]string{"ibc", "timeout", "packet"},
+		1,
+		[]metrics.Label{
+			telemetry.NewLabel(coretypes.LabelSourcePort, msg.Packet.SourcePort),
+			telemetry.NewLabel(coretypes.LabelSourceChannel, msg.Packet.SourceChannel),
+			telemetry.NewLabel(coretypes.LabelDestinationPort, msg.Packet.DestinationPort),
+			telemetry.NewLabel(coretypes.LabelDestinationChannel, msg.Packet.DestinationChannel),
+			telemetry.NewLabel(coretypes.LabelTimeoutType, "channel-closed"),
+		},
+	)
 
 	ctx.Logger().Info("timeout on close callback succeeded", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel, "result", channeltypes.SUCCESS.String())
 
@@ -685,18 +679,16 @@ func (k Keeper) Acknowledgement(goCtx context.Context, msg *channeltypes.MsgAckn
 		return nil, errorsmod.Wrap(err, "acknowledge packet callback failed")
 	}
 
-	defer func() {
-		telemetry.IncrCounterWithLabels(
-			[]string{"tx", "msg", "ibc", channeltypes.EventTypeAcknowledgePacket},
-			1,
-			[]metrics.Label{
-				telemetry.NewLabel(coretypes.LabelSourcePort, msg.Packet.SourcePort),
-				telemetry.NewLabel(coretypes.LabelSourceChannel, msg.Packet.SourceChannel),
-				telemetry.NewLabel(coretypes.LabelDestinationPort, msg.Packet.DestinationPort),
-				telemetry.NewLabel(coretypes.LabelDestinationChannel, msg.Packet.DestinationChannel),
-			},
-		)
-	}()
+	defer telemetry.IncrCounterWithLabels(
+		[]string{"tx", "msg", "ibc", channeltypes.EventTypeAcknowledgePacket},
+		1,
+		[]metrics.Label{
+			telemetry.NewLabel(coretypes.LabelSourcePort, msg.Packet.SourcePort),
+			telemetry.NewLabel(coretypes.LabelSourceChannel, msg.Packet.SourceChannel),
+			telemetry.NewLabel(coretypes.LabelDestinationPort, msg.Packet.DestinationPort),
+			telemetry.NewLabel(coretypes.LabelDestinationChannel, msg.Packet.DestinationChannel),
+		},
+	)
 
 	ctx.Logger().Info("acknowledgement succeeded", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel, "result", channeltypes.SUCCESS.String())
 
