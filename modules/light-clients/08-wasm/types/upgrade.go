@@ -1,9 +1,6 @@
 package types
 
 import (
-	"encoding/json"
-	"fmt"
-
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -12,7 +9,7 @@ import (
 )
 
 type verifyUpgradeAndUpdateStatePayload struct {
-	VerifyUpgradeAndUpdateStateMsg verifyUpgradeAndUpdateStateMsgPayload `json:"verify_upgrade_and_update_state_msg"`
+	VerifyUpgradeAndUpdateStateMsg verifyUpgradeAndUpdateStateMsgPayload `json:"verify_upgrade_and_update_state"`
 }
 
 type verifyUpgradeAndUpdateStateMsgPayload struct {
@@ -23,6 +20,8 @@ type verifyUpgradeAndUpdateStateMsgPayload struct {
 	ProofUpgradeConsensusState []byte                  `json:"proof_upgrade_consensus_state"`
 }
 
+// VerifyUpgradeAndUpdateState, on a successful verification expects the contract to update
+// the new client state, consensus state, and any other client metadata
 func (c ClientState) VerifyUpgradeAndUpdateState(
 	ctx sdk.Context,
 	cdc codec.BinaryCodec,
@@ -32,6 +31,12 @@ func (c ClientState) VerifyUpgradeAndUpdateState(
 	proofUpgradeClient,
 	proofUpgradeConsState []byte,
 ) error {
+	wasmUpgradeClientState, ok := newClient.(*ClientState)
+	if !ok {
+		return sdkerrors.Wrapf(clienttypes.ErrInvalidClient, "upgraded client state must be wasm light client state. expected %T, got: %T",
+			&ClientState{}, wasmUpgradeClientState)
+	}
+
 	wasmUpgradeConsState, ok := newConsState.(*ConsensusState)
 	if !ok {
 		return sdkerrors.Wrapf(clienttypes.ErrInvalidConsensus, "upgraded consensus state must be wasm light consensus state. expected %T, got: %T",
@@ -55,21 +60,7 @@ func (c ClientState) VerifyUpgradeAndUpdateState(
 		},
 	}
 
-	encodedData, err := json.Marshal(payload)
-	if err != nil {
-		return sdkerrors.Wrapf(ErrUnableToMarshalPayload, fmt.Sprintf("underlying error: %s", err.Error()))
-	}
-	out, err := callContract(c.CodeId, ctx, store, encodedData)
-	if err != nil {
-		return sdkerrors.Wrapf(ErrUnableToCall, fmt.Sprintf("underlying error: %s", err.Error()))
-	}
-	output := contractResult{}
-	if err := json.Unmarshal(out.Data, &output); err != nil {
-		return sdkerrors.Wrapf(ErrUnableToUnmarshalPayload, fmt.Sprintf("underlying error: %s", err.Error()))
-	}
-	if !output.IsValid {
-		return fmt.Errorf("%s error occurred while verifyig upgrade and updating client state", output.ErrorMsg)
-	}
+	_, err = call[contractResult](payload, &c, ctx, store)
 
-	return nil
+	return err
 }
