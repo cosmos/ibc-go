@@ -57,6 +57,9 @@ func (suite *WasmTestSuite) TestStatus() {
 		/*{"client status is expired", func() {
 			suite.coordinator.IncrementTimeBy(clientState.TrustingPeriod)
 		}, exported.Expired},*/
+		{"no client state", func() {
+			suite.SetupWithEmptyClient()
+		}, exported.Unknown},
 	}
 
 	for _, tc := range testCases {
