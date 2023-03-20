@@ -304,7 +304,7 @@ func (k Keeper) ChannelOpenConfirm(goCtx context.Context, msg *channeltypes.MsgC
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	// Lookup module by channel capability
-	module, cability, err := k.ChannelKeeper.LookupModuleByChannel(ctx, msg.PortId, msg.ChannelId)
+	module, capability, err := k.ChannelKeeper.LookupModuleByChannel(ctx, msg.PortId, msg.ChannelId)
 	if err != nil {
 		ctx.Logger().Error("channel open confirm callback failed", "port-id", msg.PortId, "error", errorsmod.Wrap(err, "could not retrieve module from port-id"))
 		return nil, errorsmod.Wrap(err, "could not retrieve module from port-id")
@@ -318,7 +318,7 @@ func (k Keeper) ChannelOpenConfirm(goCtx context.Context, msg *channeltypes.MsgC
 	}
 
 	// Perform 04-channel verification
-	if err = k.ChannelKeeper.ChanOpenConfirm(ctx, msg.PortId, msg.ChannelId, cability, msg.ProofAck, msg.ProofHeight); err != nil {
+	if err = k.ChannelKeeper.ChanOpenConfirm(ctx, msg.PortId, msg.ChannelId, capability, msg.ProofAck, msg.ProofHeight); err != nil {
 		ctx.Logger().Error("channel open confirm callback failed", "error", errorsmod.Wrap(err, "channel handshake open confirm failed"))
 		return nil, errorsmod.Wrap(err, "channel handshake open confirm failed")
 	}
