@@ -6,7 +6,7 @@ package types
 import (
 	context "context"
 	fmt "fmt"
-	_ "github.com/cosmos/cosmos-sdk/types/query"
+	query "github.com/cosmos/cosmos-sdk/types/query"
 	grpc1 "github.com/cosmos/gogoproto/grpc"
 	proto "github.com/cosmos/gogoproto/proto"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
@@ -75,21 +75,23 @@ func (m *WasmCodeQuery) GetCodeId() string {
 }
 
 // AllWasmCode query
-type AllWasmCodeQuery struct {
+type AllWasmCodeIDQuery struct {
+	// pagination defines an optional pagination for the request.
+	Pagination *query.PageRequest `protobuf:"bytes,1,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
-func (m *AllWasmCodeQuery) Reset()         { *m = AllWasmCodeQuery{} }
-func (m *AllWasmCodeQuery) String() string { return proto.CompactTextString(m) }
-func (*AllWasmCodeQuery) ProtoMessage()    {}
-func (*AllWasmCodeQuery) Descriptor() ([]byte, []int) {
+func (m *AllWasmCodeIDQuery) Reset()         { *m = AllWasmCodeIDQuery{} }
+func (m *AllWasmCodeIDQuery) String() string { return proto.CompactTextString(m) }
+func (*AllWasmCodeIDQuery) ProtoMessage()    {}
+func (*AllWasmCodeIDQuery) Descriptor() ([]byte, []int) {
 	return fileDescriptor_9e3718a8cb915777, []int{1}
 }
-func (m *AllWasmCodeQuery) XXX_Unmarshal(b []byte) error {
+func (m *AllWasmCodeIDQuery) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *AllWasmCodeQuery) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *AllWasmCodeIDQuery) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_AllWasmCodeQuery.Marshal(b, m, deterministic)
+		return xxx_messageInfo_AllWasmCodeIDQuery.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -99,35 +101,44 @@ func (m *AllWasmCodeQuery) XXX_Marshal(b []byte, deterministic bool) ([]byte, er
 		return b[:n], nil
 	}
 }
-func (m *AllWasmCodeQuery) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_AllWasmCodeQuery.Merge(m, src)
+func (m *AllWasmCodeIDQuery) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_AllWasmCodeIDQuery.Merge(m, src)
 }
-func (m *AllWasmCodeQuery) XXX_Size() int {
+func (m *AllWasmCodeIDQuery) XXX_Size() int {
 	return m.Size()
 }
-func (m *AllWasmCodeQuery) XXX_DiscardUnknown() {
-	xxx_messageInfo_AllWasmCodeQuery.DiscardUnknown(m)
+func (m *AllWasmCodeIDQuery) XXX_DiscardUnknown() {
+	xxx_messageInfo_AllWasmCodeIDQuery.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_AllWasmCodeQuery proto.InternalMessageInfo
+var xxx_messageInfo_AllWasmCodeIDQuery proto.InternalMessageInfo
+
+func (m *AllWasmCodeIDQuery) GetPagination() *query.PageRequest {
+	if m != nil {
+		return m.Pagination
+	}
+	return nil
+}
 
 // AllWasmCode response
-type AllWasmCodeResponse struct {
-	CodeStr []string `protobuf:"bytes,1,rep,name=code_str,json=codeStr,proto3" json:"code_str,omitempty"`
+type AllWasmCodeIDResponse struct {
+	CodeIds []string `protobuf:"bytes,1,rep,name=code_ids,json=codeIds,proto3" json:"code_ids,omitempty"`
+	// pagination defines an optional pagination for the request.
+	Pagination *query.PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
-func (m *AllWasmCodeResponse) Reset()         { *m = AllWasmCodeResponse{} }
-func (m *AllWasmCodeResponse) String() string { return proto.CompactTextString(m) }
-func (*AllWasmCodeResponse) ProtoMessage()    {}
-func (*AllWasmCodeResponse) Descriptor() ([]byte, []int) {
+func (m *AllWasmCodeIDResponse) Reset()         { *m = AllWasmCodeIDResponse{} }
+func (m *AllWasmCodeIDResponse) String() string { return proto.CompactTextString(m) }
+func (*AllWasmCodeIDResponse) ProtoMessage()    {}
+func (*AllWasmCodeIDResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_9e3718a8cb915777, []int{2}
 }
-func (m *AllWasmCodeResponse) XXX_Unmarshal(b []byte) error {
+func (m *AllWasmCodeIDResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *AllWasmCodeResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *AllWasmCodeIDResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_AllWasmCodeResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_AllWasmCodeIDResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -137,21 +148,28 @@ func (m *AllWasmCodeResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte,
 		return b[:n], nil
 	}
 }
-func (m *AllWasmCodeResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_AllWasmCodeResponse.Merge(m, src)
+func (m *AllWasmCodeIDResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_AllWasmCodeIDResponse.Merge(m, src)
 }
-func (m *AllWasmCodeResponse) XXX_Size() int {
+func (m *AllWasmCodeIDResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *AllWasmCodeResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_AllWasmCodeResponse.DiscardUnknown(m)
+func (m *AllWasmCodeIDResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_AllWasmCodeIDResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_AllWasmCodeResponse proto.InternalMessageInfo
+var xxx_messageInfo_AllWasmCodeIDResponse proto.InternalMessageInfo
 
-func (m *AllWasmCodeResponse) GetCodeStr() []string {
+func (m *AllWasmCodeIDResponse) GetCodeIds() []string {
 	if m != nil {
-		return m.CodeStr
+		return m.CodeIds
+	}
+	return nil
+}
+
+func (m *AllWasmCodeIDResponse) GetPagination() *query.PageResponse {
+	if m != nil {
+		return m.Pagination
 	}
 	return nil
 }
@@ -203,8 +221,8 @@ func (m *WasmCodeResponse) GetCode() []byte {
 
 func init() {
 	proto.RegisterType((*WasmCodeQuery)(nil), "ibc.lightclients.wasm.v1.WasmCodeQuery")
-	proto.RegisterType((*AllWasmCodeQuery)(nil), "ibc.lightclients.wasm.v1.AllWasmCodeQuery")
-	proto.RegisterType((*AllWasmCodeResponse)(nil), "ibc.lightclients.wasm.v1.AllWasmCodeResponse")
+	proto.RegisterType((*AllWasmCodeIDQuery)(nil), "ibc.lightclients.wasm.v1.AllWasmCodeIDQuery")
+	proto.RegisterType((*AllWasmCodeIDResponse)(nil), "ibc.lightclients.wasm.v1.AllWasmCodeIDResponse")
 	proto.RegisterType((*WasmCodeResponse)(nil), "ibc.lightclients.wasm.v1.WasmCodeResponse")
 }
 
@@ -213,33 +231,36 @@ func init() {
 }
 
 var fileDescriptor_9e3718a8cb915777 = []byte{
-	// 404 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x92, 0x4f, 0x6f, 0xd3, 0x30,
-	0x18, 0xc6, 0xeb, 0x02, 0xa5, 0x35, 0x20, 0x55, 0xe6, 0x40, 0x89, 0x50, 0x54, 0x45, 0xd0, 0x56,
-	0x95, 0x12, 0x37, 0x70, 0x80, 0x1b, 0x02, 0x4e, 0x1c, 0x09, 0x07, 0x04, 0x17, 0xe4, 0x38, 0x56,
-	0x6a, 0xc9, 0x89, 0x43, 0xec, 0x06, 0x55, 0x88, 0xcb, 0x3e, 0xc0, 0x54, 0x69, 0x1f, 0x63, 0x5f,
-	0x64, 0xc7, 0x4a, 0xbb, 0xec, 0x38, 0xb5, 0xfb, 0x20, 0x53, 0x9c, 0x66, 0x6a, 0x37, 0x75, 0xdb,
-	0x2d, 0x7f, 0x7e, 0x7e, 0x9f, 0xc7, 0xcf, 0xfb, 0xc0, 0xd7, 0x3c, 0xa4, 0x58, 0xf0, 0x78, 0xaa,
-	0xa9, 0xe0, 0x2c, 0xd5, 0x0a, 0xff, 0x25, 0x2a, 0xc1, 0x85, 0x8f, 0xff, 0xcc, 0x58, 0x3e, 0xf7,
-	0xb2, 0x5c, 0x6a, 0x89, 0x7a, 0x3c, 0xa4, 0xde, 0x36, 0xe5, 0x95, 0x94, 0x57, 0xf8, 0xd6, 0xab,
-	0x58, 0xca, 0x58, 0x30, 0x4c, 0x32, 0x8e, 0x49, 0x9a, 0x4a, 0x4d, 0x34, 0x97, 0xa9, 0xaa, 0xce,
-	0x59, 0x63, 0x2a, 0x55, 0x22, 0x15, 0x0e, 0x89, 0x62, 0xd5, 0x40, 0x5c, 0xf8, 0x21, 0xd3, 0xc4,
-	0xc7, 0x19, 0x89, 0x79, 0x6a, 0xe0, 0x8a, 0x75, 0x46, 0xf0, 0xd9, 0x0f, 0xa2, 0x92, 0x2f, 0x32,
-	0x62, 0xdf, 0x4a, 0x12, 0xbd, 0x80, 0x8f, 0xa9, 0x8c, 0xd8, 0x6f, 0x1e, 0xf5, 0x40, 0x1f, 0x8c,
-	0x3a, 0x41, 0xab, 0x7c, 0xfd, 0x1a, 0x39, 0x08, 0x76, 0x3f, 0x09, 0xb1, 0x03, 0x3b, 0x13, 0xf8,
-	0x7c, 0xeb, 0x5b, 0xc0, 0x54, 0x26, 0x53, 0xc5, 0xd0, 0x4b, 0xd8, 0x36, 0x33, 0x94, 0xce, 0x7b,
-	0xa0, 0xff, 0x60, 0xd4, 0x09, 0xcc, 0xcc, 0xef, 0x3a, 0x77, 0x06, 0xb0, 0x7b, 0x03, 0x47, 0xf0,
-	0x61, 0xf9, 0xdb, 0xe8, 0x3d, 0x0d, 0xcc, 0xf3, 0xdb, 0xe3, 0x26, 0x7c, 0x54, 0x19, 0x3a, 0x04,
-	0xb0, 0x5d, 0x1f, 0x41, 0x43, 0x6f, 0x5f, 0x26, 0xde, 0x8e, 0x33, 0x6b, 0x7c, 0x37, 0x58, 0xeb,
-	0x3b, 0xee, 0xc1, 0xe9, 0xc5, 0x51, 0x73, 0x88, 0xde, 0xe0, 0x72, 0x2d, 0x54, 0xe6, 0xac, 0x5e,
-	0x47, 0x15, 0x5a, 0x69, 0x08, 0xff, 0xdb, 0xa4, 0xf2, 0x1f, 0x2d, 0x00, 0x7c, 0xb2, 0x75, 0x6b,
-	0x74, 0x8b, 0xd4, 0xf5, 0xc0, 0x2c, 0xf7, 0x5e, 0xec, 0x95, 0xb3, 0x81, 0x71, 0xd6, 0x47, 0xf6,
-	0x1e, 0x67, 0x44, 0x88, 0xd2, 0xd6, 0xe7, 0x9f, 0x27, 0x2b, 0x1b, 0x2c, 0x57, 0x36, 0x38, 0x5f,
-	0xd9, 0x60, 0xb1, 0xb6, 0x1b, 0xcb, 0xb5, 0xdd, 0x38, 0x5b, 0xdb, 0x8d, 0x5f, 0x1f, 0x63, 0xae,
-	0xa7, 0xb3, 0xd0, 0xa3, 0x32, 0xc1, 0x9b, 0x5a, 0xf0, 0x90, 0xba, 0xb1, 0xc4, 0xc5, 0x7b, 0x9c,
-	0xc8, 0x68, 0x26, 0x98, 0xaa, 0x9a, 0xe8, 0xd6, 0x55, 0x9c, 0x7c, 0x70, 0x8d, 0x88, 0x9e, 0x67,
-	0x4c, 0x85, 0x2d, 0xd3, 0x93, 0x77, 0x97, 0x01, 0x00, 0x00, 0xff, 0xff, 0x4c, 0x50, 0xf4, 0x9b,
-	0xb3, 0x02, 0x00, 0x00,
+	// 454 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x93, 0x4d, 0x8b, 0xd4, 0x30,
+	0x18, 0xc7, 0x27, 0xa3, 0xee, 0x4b, 0x56, 0x41, 0x02, 0xe2, 0x58, 0xa4, 0x2c, 0x65, 0xdd, 0x19,
+	0x06, 0x9b, 0xd8, 0xf5, 0xa0, 0x37, 0xf1, 0x05, 0x65, 0x6f, 0xda, 0x8b, 0x28, 0xc2, 0x92, 0xa6,
+	0xa1, 0x1b, 0x48, 0x9b, 0xee, 0x24, 0xad, 0x2c, 0x8b, 0x17, 0x3f, 0x80, 0x08, 0x5e, 0xfc, 0x1e,
+	0x7e, 0x09, 0x8f, 0x0b, 0x5e, 0x3c, 0xca, 0x8c, 0x1f, 0x44, 0x9a, 0xb4, 0xeb, 0x14, 0x19, 0xc6,
+	0x5b, 0x0b, 0xff, 0xe7, 0xf9, 0xfd, 0x92, 0xe7, 0x09, 0xdc, 0x13, 0x09, 0x23, 0x52, 0x64, 0xc7,
+	0x86, 0x49, 0xc1, 0x0b, 0xa3, 0xc9, 0x7b, 0xaa, 0x73, 0x52, 0x47, 0xe4, 0xa4, 0xe2, 0xb3, 0x53,
+	0x5c, 0xce, 0x94, 0x51, 0x68, 0x24, 0x12, 0x86, 0x97, 0x53, 0xb8, 0x49, 0xe1, 0x3a, 0xf2, 0x6e,
+	0x67, 0x4a, 0x65, 0x92, 0x13, 0x5a, 0x0a, 0x42, 0x8b, 0x42, 0x19, 0x6a, 0x84, 0x2a, 0xb4, 0xab,
+	0xf3, 0xa6, 0x4c, 0xe9, 0x5c, 0x69, 0x92, 0x50, 0xcd, 0x5d, 0x43, 0x52, 0x47, 0x09, 0x37, 0x34,
+	0x22, 0x25, 0xcd, 0x44, 0x61, 0xc3, 0x2e, 0x1b, 0x4c, 0xe0, 0xb5, 0xd7, 0x54, 0xe7, 0x4f, 0x55,
+	0xca, 0x5f, 0x35, 0x49, 0x74, 0x13, 0x6e, 0x32, 0x95, 0xf2, 0x23, 0x91, 0x8e, 0xc0, 0x2e, 0x98,
+	0x6c, 0xc7, 0x1b, 0xcd, 0xef, 0x61, 0x1a, 0xbc, 0x83, 0xe8, 0xb1, 0x94, 0x5d, 0xf8, 0xf0, 0x99,
+	0x8b, 0x3f, 0x87, 0xf0, 0x6f, 0x4f, 0x5b, 0xb1, 0x73, 0xb0, 0x8f, 0x9d, 0x00, 0x6e, 0x04, 0xb0,
+	0x3b, 0x51, 0x2b, 0x80, 0x5f, 0xd2, 0x8c, 0xc7, 0xfc, 0xa4, 0xe2, 0xda, 0xc4, 0x4b, 0x95, 0xc1,
+	0x19, 0xbc, 0xd1, 0xeb, 0x1e, 0x73, 0x5d, 0xaa, 0x42, 0x73, 0x74, 0x0b, 0x6e, 0xb5, 0x3e, 0x7a,
+	0x04, 0x76, 0x2f, 0x4d, 0xb6, 0xe3, 0x4d, 0x27, 0xa4, 0xd1, 0x8b, 0x1e, 0x7b, 0x68, 0xd9, 0xe3,
+	0xb5, 0x6c, 0xd7, 0xb7, 0x07, 0xdf, 0x87, 0xd7, 0x3b, 0xf2, 0x05, 0x17, 0xc1, 0xcb, 0x0d, 0xc7,
+	0x1e, 0xe9, 0x6a, 0x6c, 0xbf, 0x0f, 0xbe, 0x0d, 0xe1, 0x15, 0x77, 0xec, 0x4f, 0x00, 0x6e, 0x75,
+	0x25, 0x68, 0x8c, 0x57, 0x0d, 0x0a, 0xf7, 0xee, 0xd6, 0x9b, 0xae, 0x0f, 0x76, 0xfc, 0x20, 0xfc,
+	0xf8, 0xe3, 0xf7, 0x97, 0xe1, 0x18, 0xdd, 0x21, 0xcd, 0xae, 0x30, 0x35, 0xe3, 0xdd, 0x8e, 0xb8,
+	0x49, 0x36, 0x42, 0xe4, 0xac, 0xbd, 0x9a, 0x0f, 0xe8, 0x2b, 0x80, 0x3b, 0x4b, 0x17, 0x88, 0xee,
+	0xae, 0x46, 0xfd, 0x3b, 0x45, 0x8f, 0xfc, 0x67, 0xfa, 0xc2, 0x6e, 0x6a, 0xed, 0xf6, 0x50, 0xb0,
+	0xc2, 0x8e, 0x4a, 0x79, 0xd4, 0xba, 0x3d, 0x79, 0xf3, 0x7d, 0xee, 0x83, 0xf3, 0xb9, 0x0f, 0x7e,
+	0xcd, 0x7d, 0xf0, 0x79, 0xe1, 0x0f, 0xce, 0x17, 0xfe, 0xe0, 0xe7, 0xc2, 0x1f, 0xbc, 0x7d, 0x94,
+	0x09, 0x73, 0x5c, 0x25, 0x98, 0xa9, 0x9c, 0xb4, 0x3b, 0x2b, 0x12, 0x16, 0x66, 0x8a, 0xd4, 0x0f,
+	0x48, 0xae, 0xd2, 0x4a, 0x72, 0xed, 0x9e, 0x49, 0xd8, 0xbd, 0x93, 0x7b, 0x0f, 0x43, 0x0b, 0x32,
+	0xa7, 0x25, 0xd7, 0xc9, 0x86, 0x5d, 0xe2, 0xfb, 0x7f, 0x02, 0x00, 0x00, 0xff, 0xff, 0x91, 0x52,
+	0xcd, 0xcc, 0x50, 0x03, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -257,7 +278,7 @@ type QueryClient interface {
 	// Get Wasm code for given code id
 	WasmCode(ctx context.Context, in *WasmCodeQuery, opts ...grpc.CallOption) (*WasmCodeResponse, error)
 	// Get All Wasm code for given code id
-	AllWasmCode(ctx context.Context, in *AllWasmCodeQuery, opts ...grpc.CallOption) (*AllWasmCodeResponse, error)
+	AllWasmCode(ctx context.Context, in *AllWasmCodeIDQuery, opts ...grpc.CallOption) (*AllWasmCodeIDResponse, error)
 }
 
 type queryClient struct {
@@ -277,8 +298,8 @@ func (c *queryClient) WasmCode(ctx context.Context, in *WasmCodeQuery, opts ...g
 	return out, nil
 }
 
-func (c *queryClient) AllWasmCode(ctx context.Context, in *AllWasmCodeQuery, opts ...grpc.CallOption) (*AllWasmCodeResponse, error) {
-	out := new(AllWasmCodeResponse)
+func (c *queryClient) AllWasmCode(ctx context.Context, in *AllWasmCodeIDQuery, opts ...grpc.CallOption) (*AllWasmCodeIDResponse, error) {
+	out := new(AllWasmCodeIDResponse)
 	err := c.cc.Invoke(ctx, "/ibc.lightclients.wasm.v1.Query/AllWasmCode", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -291,7 +312,7 @@ type QueryServer interface {
 	// Get Wasm code for given code id
 	WasmCode(context.Context, *WasmCodeQuery) (*WasmCodeResponse, error)
 	// Get All Wasm code for given code id
-	AllWasmCode(context.Context, *AllWasmCodeQuery) (*AllWasmCodeResponse, error)
+	AllWasmCode(context.Context, *AllWasmCodeIDQuery) (*AllWasmCodeIDResponse, error)
 }
 
 // UnimplementedQueryServer can be embedded to have forward compatible implementations.
@@ -301,7 +322,7 @@ type UnimplementedQueryServer struct {
 func (*UnimplementedQueryServer) WasmCode(ctx context.Context, req *WasmCodeQuery) (*WasmCodeResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method WasmCode not implemented")
 }
-func (*UnimplementedQueryServer) AllWasmCode(ctx context.Context, req *AllWasmCodeQuery) (*AllWasmCodeResponse, error) {
+func (*UnimplementedQueryServer) AllWasmCode(ctx context.Context, req *AllWasmCodeIDQuery) (*AllWasmCodeIDResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AllWasmCode not implemented")
 }
 
@@ -328,7 +349,7 @@ func _Query_WasmCode_Handler(srv interface{}, ctx context.Context, dec func(inte
 }
 
 func _Query_AllWasmCode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(AllWasmCodeQuery)
+	in := new(AllWasmCodeIDQuery)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -340,7 +361,7 @@ func _Query_AllWasmCode_Handler(srv interface{}, ctx context.Context, dec func(i
 		FullMethod: "/ibc.lightclients.wasm.v1.Query/AllWasmCode",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(QueryServer).AllWasmCode(ctx, req.(*AllWasmCodeQuery))
+		return srv.(QueryServer).AllWasmCode(ctx, req.(*AllWasmCodeIDQuery))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -392,7 +413,7 @@ func (m *WasmCodeQuery) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *AllWasmCodeQuery) Marshal() (dAtA []byte, err error) {
+func (m *AllWasmCodeIDQuery) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -402,20 +423,32 @@ func (m *AllWasmCodeQuery) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *AllWasmCodeQuery) MarshalTo(dAtA []byte) (int, error) {
+func (m *AllWasmCodeIDQuery) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *AllWasmCodeQuery) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *AllWasmCodeIDQuery) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
+	if m.Pagination != nil {
+		{
+			size, err := m.Pagination.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintQuery(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0xa
+	}
 	return len(dAtA) - i, nil
 }
 
-func (m *AllWasmCodeResponse) Marshal() (dAtA []byte, err error) {
+func (m *AllWasmCodeIDResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -425,21 +458,33 @@ func (m *AllWasmCodeResponse) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *AllWasmCodeResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *AllWasmCodeIDResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *AllWasmCodeResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *AllWasmCodeIDResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
-	if len(m.CodeStr) > 0 {
-		for iNdEx := len(m.CodeStr) - 1; iNdEx >= 0; iNdEx-- {
-			i -= len(m.CodeStr[iNdEx])
-			copy(dAtA[i:], m.CodeStr[iNdEx])
-			i = encodeVarintQuery(dAtA, i, uint64(len(m.CodeStr[iNdEx])))
+	if m.Pagination != nil {
+		{
+			size, err := m.Pagination.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintQuery(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.CodeIds) > 0 {
+		for iNdEx := len(m.CodeIds) - 1; iNdEx >= 0; iNdEx-- {
+			i -= len(m.CodeIds[iNdEx])
+			copy(dAtA[i:], m.CodeIds[iNdEx])
+			i = encodeVarintQuery(dAtA, i, uint64(len(m.CodeIds[iNdEx])))
 			i--
 			dAtA[i] = 0xa
 		}
@@ -501,26 +546,34 @@ func (m *WasmCodeQuery) Size() (n int) {
 	return n
 }
 
-func (m *AllWasmCodeQuery) Size() (n int) {
+func (m *AllWasmCodeIDQuery) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
+	if m.Pagination != nil {
+		l = m.Pagination.Size()
+		n += 1 + l + sovQuery(uint64(l))
+	}
 	return n
 }
 
-func (m *AllWasmCodeResponse) Size() (n int) {
+func (m *AllWasmCodeIDResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	if len(m.CodeStr) > 0 {
-		for _, s := range m.CodeStr {
+	if len(m.CodeIds) > 0 {
+		for _, s := range m.CodeIds {
 			l = len(s)
 			n += 1 + l + sovQuery(uint64(l))
 		}
+	}
+	if m.Pagination != nil {
+		l = m.Pagination.Size()
+		n += 1 + l + sovQuery(uint64(l))
 	}
 	return n
 }
@@ -626,7 +679,7 @@ func (m *WasmCodeQuery) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *AllWasmCodeQuery) Unmarshal(dAtA []byte) error {
+func (m *AllWasmCodeIDQuery) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -649,12 +702,48 @@ func (m *AllWasmCodeQuery) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: AllWasmCodeQuery: wiretype end group for non-group")
+			return fmt.Errorf("proto: AllWasmCodeIDQuery: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: AllWasmCodeQuery: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: AllWasmCodeIDQuery: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Pagination", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Pagination == nil {
+				m.Pagination = &query.PageRequest{}
+			}
+			if err := m.Pagination.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipQuery(dAtA[iNdEx:])
@@ -676,7 +765,7 @@ func (m *AllWasmCodeQuery) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *AllWasmCodeResponse) Unmarshal(dAtA []byte) error {
+func (m *AllWasmCodeIDResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -699,15 +788,15 @@ func (m *AllWasmCodeResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: AllWasmCodeResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: AllWasmCodeIDResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: AllWasmCodeResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: AllWasmCodeIDResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field CodeStr", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field CodeIds", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -735,7 +824,43 @@ func (m *AllWasmCodeResponse) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.CodeStr = append(m.CodeStr, string(dAtA[iNdEx:postIndex]))
+			m.CodeIds = append(m.CodeIds, string(dAtA[iNdEx:postIndex]))
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Pagination", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Pagination == nil {
+				m.Pagination = &query.PageResponse{}
+			}
+			if err := m.Pagination.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex

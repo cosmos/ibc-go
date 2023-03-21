@@ -85,9 +85,20 @@ func local_request_Query_WasmCode_0(ctx context.Context, marshaler runtime.Marsh
 
 }
 
+var (
+	filter_Query_AllWasmCode_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
+)
+
 func request_Query_AllWasmCode_0(ctx context.Context, marshaler runtime.Marshaler, client QueryClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq AllWasmCodeQuery
+	var protoReq AllWasmCodeIDQuery
 	var metadata runtime.ServerMetadata
+
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Query_AllWasmCode_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
 
 	msg, err := client.AllWasmCode(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
@@ -95,8 +106,15 @@ func request_Query_AllWasmCode_0(ctx context.Context, marshaler runtime.Marshale
 }
 
 func local_request_Query_AllWasmCode_0(ctx context.Context, marshaler runtime.Marshaler, server QueryServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq AllWasmCodeQuery
+	var protoReq AllWasmCodeIDQuery
 	var metadata runtime.ServerMetadata
+
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Query_AllWasmCode_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
 
 	msg, err := server.AllWasmCode(ctx, &protoReq)
 	return msg, metadata, err
@@ -239,7 +257,7 @@ func RegisterQueryHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 var (
 	pattern_Query_WasmCode_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4, 1, 0, 4, 1, 5, 5}, []string{"ibc", "core", "wasm", "v1beta1", "code", "code_id"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_AllWasmCode_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4}, []string{"ibc", "core", "wasm", "v1beta1", "allcode"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_AllWasmCode_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4}, []string{"ibc", "core", "wasm", "v1beta1", "all_code_id"}, "", runtime.AssumeColonVerbOpt(false)))
 )
 
 var (

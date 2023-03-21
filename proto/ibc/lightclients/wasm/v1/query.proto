@@ -12,12 +12,16 @@ message WasmCodeQuery {
 }
 
 // AllWasmCode query
-message AllWasmCodeQuery {
+message AllWasmCodeIDQuery {
+  // pagination defines an optional pagination for the request.
+  cosmos.base.query.v1beta1.PageRequest pagination = 1;
 }
 
 // AllWasmCode response
-message AllWasmCodeResponse {
-  repeated string code_str = 1;
+message AllWasmCodeIDResponse {
+  repeated string code_ids = 1;
+    // pagination defines an optional pagination for the request.
+    cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
 // WasmCode response
@@ -33,7 +37,7 @@ service Query {
   }
 
   // Get All Wasm code for given code id
-  rpc AllWasmCode(AllWasmCodeQuery) returns (AllWasmCodeResponse) {
-    option (google.api.http).get = "/ibc/core/wasm/v1beta1/allcode";
+  rpc AllWasmCode(AllWasmCodeIDQuery) returns (AllWasmCodeIDResponse) {
+    option (google.api.http).get = "/ibc/core/wasm/v1beta1/all_code_id";
   }
 }
