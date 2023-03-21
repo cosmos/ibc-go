@@ -2,10 +2,8 @@
 name: Capability Module
 on:
   push:
-    branches: [main]
-  pull_request:
     paths:
-      - './modules/capability/**'
+      - './modules/capability'
 
 jobs:
   build:
