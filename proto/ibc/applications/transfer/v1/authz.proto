@@ -11,9 +11,9 @@ import "cosmos/base/v1beta1/coin.proto";
 // Allocation defines the spend limit for a particular port and channel
 message Allocation {
   // the port on which the packet will be sent
-  string source_port = 1 [(gogoproto.moretags) = "yaml:\"source_port\""];
+  string source_port = 1;
   // the channel by which the packet will be sent
-  string source_channel = 2 [(gogoproto.moretags) = "yaml:\"source_channel\""];
+  string source_channel = 2;
   // spend limitation on the channel
   repeated cosmos.base.v1beta1.Coin spend_limit = 3
       [(gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"];

@@ -14,8 +14,8 @@ message ClientState {
   // latest sequence of the client state
   uint64 sequence = 1;
   // frozen sequence of the solo machine
-  bool           is_frozen       = 2 [(gogoproto.moretags) = "yaml:\"is_frozen\""];
-  ConsensusState consensus_state = 3 [(gogoproto.moretags) = "yaml:\"consensus_state\""];
+  bool           is_frozen       = 2;
+  ConsensusState consensus_state = 3;
 }
 
 // ConsensusState defines a solo machine consensus state. The sequence of a
@@ -24,7 +24,7 @@ message ClientState {
 message ConsensusState {
   option (gogoproto.goproto_getters) = false;
   // public key of the solo machine
-  google.protobuf.Any public_key = 1 [(gogoproto.moretags) = "yaml:\"public_key\""];
+  google.protobuf.Any public_key = 1;
   // diversifier allows the same public key to be re-used across different solo
   // machine clients (potentially on different chains) without being considered
   // misbehaviour.
@@ -38,8 +38,8 @@ message Header {
 
   uint64              timestamp       = 1;
   bytes               signature       = 2;
-  google.protobuf.Any new_public_key  = 3 [(gogoproto.moretags) = "yaml:\"new_public_key\""];
-  string              new_diversifier = 4 [(gogoproto.moretags) = "yaml:\"new_diversifier\""];
+  google.protobuf.Any new_public_key  = 3;
+  string              new_diversifier = 4;
 }
 
 // Misbehaviour defines misbehaviour for a solo machine which consists
@@ -48,8 +48,8 @@ message Misbehaviour {
   option (gogoproto.goproto_getters) = false;
 
   uint64           sequence      = 1;
-  SignatureAndData signature_one = 2 [(gogoproto.moretags) = "yaml:\"signature_one\""];
-  SignatureAndData signature_two = 3 [(gogoproto.moretags) = "yaml:\"signature_two\""];
+  SignatureAndData signature_one = 2;
+  SignatureAndData signature_two = 3;
 }
 
 // SignatureAndData contains a signature and the data signed over to create that
@@ -68,7 +68,7 @@ message SignatureAndData {
 message TimestampedSignatureData {
   option (gogoproto.goproto_getters) = false;
 
-  bytes  signature_data = 1 [(gogoproto.moretags) = "yaml:\"signature_data\""];
+  bytes  signature_data = 1;
   uint64 timestamp      = 2;
 }
 
@@ -93,7 +93,7 @@ message HeaderData {
   option (gogoproto.goproto_getters) = false;
 
   // header public key
-  google.protobuf.Any new_pub_key = 1 [(gogoproto.moretags) = "yaml:\"new_pub_key\""];
+  google.protobuf.Any new_pub_key = 1;
   // header diversifier
-  string new_diversifier = 2 [(gogoproto.moretags) = "yaml:\"new_diversifier\""];
+  string new_diversifier = 2;
 }
