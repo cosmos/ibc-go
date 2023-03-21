@@ -16,7 +16,7 @@ const (
 	LastInstanceIDKey = "lastInstanceId"
 )
 
-var PrefixCodeIDKey = []byte("code_id")
+var PrefixCodeIDKey = []byte("code_id/")
 
 func CodeID(codeID []byte) []byte {
 	return []byte(fmt.Sprintf("code_id/%s", hex.EncodeToString(codeID)))

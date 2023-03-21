@@ -65,7 +65,14 @@ func getAllWasmCode() *cobra.Command {
 			}
 			queryClient := types.NewQueryClient(clientCtx)
 
-			req := types.AllWasmCodeQuery{}
+			pageReq, err := client.ReadPageRequest(cmd.Flags())
+			if err != nil {
+				return err
+			}
+
+			req := types.AllWasmCodeIDQuery{
+				Pagination: pageReq,
+			}
 
 			res, err := queryClient.AllWasmCode(context.Background(), &req)
 			if err != nil {
