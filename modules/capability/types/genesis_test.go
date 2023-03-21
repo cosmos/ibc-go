@@ -3,8 +3,9 @@ package types_test
 import (
 	"testing"
 
-	"github.com/cosmos/ibc-go/modules/capability/types"
 	"github.com/stretchr/testify/require"
+
+	"github.com/cosmos/ibc-go/modules/capability/types"
 )
 
 func TestValidateGenesis(t *testing.T) {

@@ -4,9 +4,8 @@ import (
 	"fmt"
 	"sort"
 
-	"sigs.k8s.io/yaml"
-
 	errorsmod "cosmossdk.io/errors"
+	"sigs.k8s.io/yaml"
 )
 
 // NewCapability returns a reference to a new Capability to be used as an
