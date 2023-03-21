@@ -31,6 +31,9 @@ var (
 	channelIDSolomachine    = "channel-on-solomachine"    // channelID generated on solo machine side
 )
 
+// DefaultSolomachineClientID is the default solo machine client id used for testing
+var DefaultSolomachineClientID = "06-solomachine-0"
+
 // Solomachine is a testing helper used to simulate a counterparty
 // solo machine client.
 type Solomachine struct {

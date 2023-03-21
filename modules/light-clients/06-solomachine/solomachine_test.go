@@ -24,7 +24,6 @@ import (
 
 var (
 	channelIDSolomachine = "channel-on-solomachine" // channelID generated on solo machine side
-	clientIDSolomachine  = "06-solomachine-0"
 )
 
 type SoloMachineTestSuite struct {
@@ -123,7 +122,7 @@ func (suite *SoloMachineTestSuite) TestTimeout() {
 	// simulate solomachine time increment
 	suite.solomachine.Time++
 
-	suite.solomachine.UpdateClient(suite.chainA, clientIDSolomachine)
+	suite.solomachine.UpdateClient(suite.chainA, ibctesting.DefaultSolomachineClientID)
 
 	suite.solomachine.TimeoutPacket(suite.chainA, packet)
 
