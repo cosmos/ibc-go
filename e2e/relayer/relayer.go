@@ -22,9 +22,11 @@ const (
 // Config holds configuration values for the relayer used in the tests.
 type Config struct {
 	// Tag is the tag used for the relayer image.
-	Tag string
+	Tag string `yaml:"tag"`
 	// Type specifies the type of relayer that this is.
-	Type string
+	Type string `yaml:"type"`
+	// Image is the image that should be used for the relayer.
+	Image string `yaml:"image"`
 }
 
 // New returns an implementation of ibc.Relayer depending on the provided RelayerType.
