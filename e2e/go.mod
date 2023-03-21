@@ -16,6 +16,7 @@ require (
 	go.uber.org/zap v1.24.0
 	golang.org/x/mod v0.9.0
 	google.golang.org/grpc v1.53.0
+	gopkg.in/yaml.v2 v2.4.0
 )
 
 require (
@@ -60,7 +61,7 @@ require (
 	github.com/cosmos/go-bip39 v1.0.0 // indirect
 	github.com/cosmos/gogogateway v1.2.0 // indirect
 	github.com/cosmos/iavl v0.20.0 // indirect
-	github.com/cosmos/ibc-go/modules/capability v0.0.0-00010101000000-000000000000 // indirect
+	github.com/cosmos/ibc-go/modules/capability v1.0.0-alpha1 // indirect
 	github.com/cosmos/ics23/go v0.9.1-0.20221207100636-b1abd8678aab // indirect
 	github.com/cosmos/ledger-cosmos-go v0.13.0 // indirect
 	github.com/cosmos/rosetta-sdk-go v0.10.0 // indirect
@@ -206,7 +207,6 @@ require (
 	google.golang.org/protobuf v1.29.1 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/natefinch/npipe.v2 v2.0.0-20160621034901-c1b8fa8bdcce // indirect
-	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	lukechampine.com/blake3 v1.1.7 // indirect
 	lukechampine.com/uint128 v1.2.0 // indirect
