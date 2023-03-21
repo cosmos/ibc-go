@@ -25,7 +25,7 @@ func (cs ClientState) VerifyUpgradeAndUpdateState(
 ) error
 ```
 
-> Please refer to the [Tendermint light client implementation](https://github.com/cosmos/ibc-go/blob/02-client-refactor-beta1/modules/light-clients/07-tendermint/upgrade.go#L27) as an example for implementation.
+> Please refer to the [Tendermint light client implementation](https://github.com/cosmos/ibc-go/blob/v7.0.0/modules/light-clients/07-tendermint/upgrade.go#L27) as an example for implementation.
 
 It is important to note that light clients **must** handle all management of client and consensus states including the setting of updated `ClientState` and `ConsensusState` in the client store. This can include verifying that the submitted upgraded `ClientState` is of a valid `ClientState` type, that the height of the upgraded client is not greater than the height of the current client (in order to preserve BFT monotonic time), or that certain parameters which should not be changed have not been altered in the upgraded `ClientState`.
 
