@@ -1,9 +1,0 @@
-name: Goimports
-on: pull_request
-jobs:
-  goimports:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: "Go Imports"
-        run: .github/scripts/go-imports.sh

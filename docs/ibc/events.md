@@ -11,7 +11,7 @@ with an attirbute key of `action` will represent the first event for each messag
 being processed as emitted by the SDK's baseapp. Each IBC TAO message will
 also emit its module name in the format 'ibc_sub-modulename'.
 
-All the events for the Channel handshakes, `SendPacket`, `RecvPacket`, `AcknowledgePacket`, 
+All the events for the Channel handshakes, `SendPacket`, `RecvPacket`, `AcknowledgePacket`,
 `TimeoutPacket` and `TimeoutOnClose` will emit additional events not specified here due to
 callbacks to IBC applications.
 
@@ -63,7 +63,7 @@ callbacks to IBC applications.
 | Type                    | Attribute Key   | Attribute Value   |
 |-------------------------|-----------------|-------------------|
 | upgrade_client_proposal | title           | {title}           |
-| upgrade_client_proposal | height          | {height}          |     
+| upgrade_client_proposal | height          | {height}          |
 
 ## ICS 03 - Connection
 
@@ -81,7 +81,7 @@ callbacks to IBC applications.
 
 | Type                | Attribute Key              | Attribute Value             |
 |---------------------|----------------------------|-----------------------------|
-| connection_open_try | connection_id              | {connectionId}              | 
+| connection_open_try | connection_id              | {connectionId}              |
 | connection_open_try | client_id                  | {clientId}                  |
 | connection_open_try | counterparty_client_id     | {counterparty.clientId      |
 | connection_open_try | counterparty_connection_id | {counterparty.connectionId} |
@@ -185,64 +185,90 @@ callbacks to IBC applications.
 
 ### SendPacket (application module call)
 
-| Type        | Attribute Key            | Attribute Value                  |
-|-------------|--------------------------|----------------------------------|
-| send_packet | packet_data              | {data}                           |
-| send_packet | packet_timeout_height    | {timeoutHeight}                  |
-| send_packet | packet_timeout_timestamp | {timeoutTimestamp}               |
-| send_packet | packet_sequence          | {sequence}                       |
-| send_packet | packet_src_port          | {sourcePort}                     |
-| send_packet | packet_src_channel       | {sourceChannel}                  |
-| send_packet | packet_dst_port          | {destinationPort}                |
-| send_packet | packet_dst_channel       | {destinationChannel}             |
-| send_packet | packet_channel_ordering  | {channel.Ordering}               |
-| message     | action                   | application-module-defined-field |
-| message     | module                   | ibc-channel                      |
+| Type        | Attribute Key            | Attribute Value                  | Status     |
+|-------------|--------------------------|----------------------------------|------------|
+| send_packet | packet_data              | {data}                           | Deprecated |
+| send_packet | packet_data_hex          | {hex.Encode(data)}               |            |
+| send_packet | packet_timeout_height    | {timeoutHeight}                  |            |
+| send_packet | packet_timeout_timestamp | {timeoutTimestamp}               |            |
+| send_packet | packet_sequence          | {sequence}                       |            |
+| send_packet | packet_src_port          | {sourcePort}                     |            |
+| send_packet | packet_src_channel       | {sourceChannel}                  |            |
+| send_packet | packet_dst_port          | {destinationPort}                |            |
+| send_packet | packet_dst_channel       | {destinationChannel}             |            |
+| send_packet | packet_channel_ordering  | {channel.Ordering}               |            |
+| send_packet | packet_connection        | {channel.ConnectionHops[0]}      | Deprecated |
+| send_packet | connection_id            | {channel.ConnectionHops[0]}      |            |
+| message     | action                   | application-module-defined-field |            |
+| message     | module                   | ibc_channel                      |            |
 
-### MsgRecvPacket 
+### MsgRecvPacket
 
-| Type        | Attribute Key            | Attribute Value      |
-|-------------|--------------------------|----------------------|
-| recv_packet | packet_data              | {data}               |
-| recv_packet | packet_ack               | {acknowledgement}    |
-| recv_packet | packet_timeout_height    | {timeoutHeight}      |
-| recv_packet | packet_timeout_timestamp | {timeoutTimestamp}   |
-| recv_packet | packet_sequence          | {sequence}           |
-| recv_packet | packet_src_port          | {sourcePort}         |
-| recv_packet | packet_src_channel       | {sourceChannel}      |
-| recv_packet | packet_dst_port          | {destinationPort}    |
-| recv_packet | packet_dst_channel       | {destinationChannel} |
-| recv_packet | packet_channel_ordering  | {channel.Ordering}   |
-| message     | action                   | recv_packet          |
-| message     | module                   | ibc-channel          |
+| Type        | Attribute Key            | Attribute Value               | Status     |
+|-------------|--------------------------|-------------------------------|------------|
+| recv_packet | packet_data              | {data}                        | Deprecated |
+| recv_packet | packet_data_hex          | {hex.Encode(data)}            |            |
+| recv_packet | packet_timeout_height    | {timeoutHeight}               |            |
+| recv_packet | packet_timeout_timestamp | {timeoutTimestamp}            |            |
+| recv_packet | packet_sequence          | {sequence}                    |            |
+| recv_packet | packet_src_port          | {sourcePort}                  |            |
+| recv_packet | packet_src_channel       | {sourceChannel}               |            |
+| recv_packet | packet_dst_port          | {destinationPort}             |            |
+| recv_packet | packet_dst_channel       | {destinationChannel}          |            |
+| recv_packet | packet_channel_ordering  | {channel.Ordering}            |            |
+| recv_packet | packet_connection        | {channel.ConnectionHops[0]}   | Deprecated |
+| recv_packet | connection_id            | {channel.ConnectionHops[0]}   |            |
+| message     | action                   | recv_packet                   |            |
+| message     | module                   | ibc_channel                   |            |
 
-### MsgAcknowledgePacket 
+| Type                  | Attribute Key            | Attribute Value               | Status     |
+|-----------------------|--------------------------|-------------------------------|------------|
+| write_acknowledgement | packet_data              | {data}                        | Deprecated |
+| write_acknowledgement | packet_data_hex          | {hex.Encode(data)}            |            |
+| write_acknowledgement | packet_timeout_height    | {timeoutHeight}               |            |
+| write_acknowledgement | packet_timeout_timestamp | {timeoutTimestamp}            |            |
+| write_acknowledgement | packet_sequence          | {sequence}                    |            |
+| write_acknowledgement | packet_src_port          | {sourcePort}                  |            |
+| write_acknowledgement | packet_src_channel       | {sourceChannel}               |            |
+| write_acknowledgement | packet_dst_port          | {destinationPort}             |            |
+| write_acknowledgement | packet_dst_channel       | {destinationChannel}          |            |
+| write_acknowledgement | packet_ack               | {ack}                         | Deprecated |
+| write_acknowledgement | packet_ack_hex           | {hex.Encode(ack)}             |            |
+| write_acknowledgement | packet_channel_ordering  | {channel.Ordering}            |            |
+| write_acknowledgement | packet_connection        | {channel.ConnectionHops[0]}   | Deprecated |
+| write_acknowledgement | connection_id            | {channel.ConnectionHops[0]}   |            |
+| message               | action                   | write_acknowledgement         |            |
+| message               | module                   | ibc_channel                   |            |
 
-| Type               | Attribute Key            | Attribute Value      |
-|--------------------|--------------------------|----------------------|
-| acknowledge_packet | packet_timeout_height    | {timeoutHeight}      |
-| acknowledge_packet | packet_timeout_timestamp | {timeoutTimestamp}   |
-| acknowledge_packet | packet_sequence          | {sequence}           |
-| acknowledge_packet | packet_src_port          | {sourcePort}         |
-| acknowledge_packet | packet_src_channel       | {sourceChannel}      |
-| acknowledge_packet | packet_dst_port          | {destinationPort}    |
-| acknowledge_packet | packet_dst_channel       | {destinationChannel} |
-| acknowledge_packet | packet_channel_ordering  | {channel.Ordering}   |
-| message            | action                   | acknowledge_packet   |
-| message            | module                   | ibc-channel          |
+### MsgAcknowledgePacket
 
-### MsgTimeoutPacket & MsgTimeoutOnClose 
+| Type               | Attribute Key            | Attribute Value               | Status     |
+|--------------------|--------------------------|-------------------------------|------------|
+| acknowledge_packet | packet_timeout_height    | {timeoutHeight}               |            |
+| acknowledge_packet | packet_timeout_timestamp | {timeoutTimestamp}            |            | 
+| acknowledge_packet | packet_sequence          | {sequence}                    |            |
+| acknowledge_packet | packet_src_port          | {sourcePort}                  |            |
+| acknowledge_packet | packet_src_channel       | {sourceChannel}               |            |
+| acknowledge_packet | packet_dst_port          | {destinationPort}             |            |
+| acknowledge_packet | packet_dst_channel       | {destinationChannel}          |            |
+| acknowledge_packet | packet_channel_ordering  | {channel.Ordering}            |            |
+| acknowledge_packet | packet_connection        | {channel.ConnectionHops[0]}   | Deprecated |
+| acknowledge_packet | connection_id            | {channel.ConnectionHops[0]}   |            |
+| message            | action                   | acknowledge_packet            |            |
+| message            | module                   | ibc_channel                   |            |
 
-| Type           | Attribute Key            | Attribute Value      |
-|----------------|--------------------------|----------------------|
-| timeout_packet | packet_timeout_height    | {timeoutHeight}      |
-| timeout_packet | packet_timeout_timestamp | {timeoutTimestamp}   |
-| timeout_packet | packet_sequence          | {sequence}           |
-| timeout_packet | packet_src_port          | {sourcePort}         |
-| timeout_packet | packet_src_channel       | {sourceChannel}      |
-| timeout_packet | packet_dst_port          | {destinationPort}    |
-| timeout_packet | packet_dst_channel       | {destinationChannel} |
-| timeout_packet | packet_channel_ordering  | {channel.Ordering}   |
-| message        | action                   | timeout_packet       |
-| message        | module                   | ibc-channel          |
+### MsgTimeoutPacket & MsgTimeoutOnClose
 
+| Type           | Attribute Key            | Attribute Value               |
+|----------------|--------------------------|-------------------------------|
+| timeout_packet | packet_timeout_height    | {timeoutHeight}               |
+| timeout_packet | packet_timeout_timestamp | {timeoutTimestamp}            |
+| timeout_packet | packet_sequence          | {sequence}                    |
+| timeout_packet | packet_src_port          | {sourcePort}                  |
+| timeout_packet | packet_src_channel       | {sourceChannel}               |
+| timeout_packet | packet_dst_port          | {destinationPort}             |
+| timeout_packet | packet_dst_channel       | {destinationChannel}          |
+| timeout_packet | packet_channel_ordering  | {channel.Ordering}            |
+| timeout_packet | connection_id            | {channel.ConnectionHops[0]}   |
+| message        | action                   | timeout_packet                |
+| message        | module                   | ibc_channel                   |

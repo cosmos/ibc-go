@@ -5,10 +5,10 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
-	genesistypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/genesis/types"
-	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
-	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
-	ibctesting "github.com/cosmos/ibc-go/v6/testing"
+	genesistypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/genesis/types"
+	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
+	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
 var (
@@ -48,8 +48,8 @@ func (suite *KeeperTestSuite) SetupTest() {
 
 func NewICAPath(chainA, chainB *ibctesting.TestChain) *ibctesting.Path {
 	path := ibctesting.NewPath(chainA, chainB)
-	path.EndpointA.ChannelConfig.PortID = icatypes.PortID
-	path.EndpointB.ChannelConfig.PortID = icatypes.PortID
+	path.EndpointA.ChannelConfig.PortID = icatypes.HostPortID
+	path.EndpointB.ChannelConfig.PortID = icatypes.HostPortID
 	path.EndpointA.ChannelConfig.Order = channeltypes.ORDERED
 	path.EndpointB.ChannelConfig.Order = channeltypes.ORDERED
 	path.EndpointA.ChannelConfig.Version = TestVersion
@@ -106,7 +106,7 @@ func TestKeeperTestSuite(t *testing.T) {
 	suite.Run(t, new(KeeperTestSuite))
 }
 
-func (suite *KeeperTestSuite) TestIsBound() {
+func (suite *KeeperTestSuite) TestHasCapability() {
 	suite.SetupTest()
 
 	path := NewICAPath(suite.chainA, suite.chainB)
@@ -115,8 +115,8 @@ func (suite *KeeperTestSuite) TestIsBound() {
 	err := SetupICAPath(path, TestOwnerAddress)
 	suite.Require().NoError(err)
 
-	isBound := suite.chainB.GetSimApp().ICAHostKeeper.IsBound(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID)
-	suite.Require().True(isBound)
+	hasCapability := suite.chainB.GetSimApp().ICAHostKeeper.HasCapability(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID)
+	suite.Require().True(hasCapability)
 }
 
 func (suite *KeeperTestSuite) TestGetInterchainAccountAddress() {
@@ -141,8 +141,8 @@ func (suite *KeeperTestSuite) TestGetInterchainAccountAddress() {
 
 func (suite *KeeperTestSuite) TestGetAllActiveChannels() {
 	var (
-		expectedChannelID string = "test-channel"
-		expectedPortID    string = "test-port"
+		expectedChannelID = "test-channel"
+		expectedPortID    = "test-port"
 	)
 
 	suite.SetupTest()
@@ -175,8 +175,8 @@ func (suite *KeeperTestSuite) TestGetAllActiveChannels() {
 
 func (suite *KeeperTestSuite) TestGetAllInterchainAccounts() {
 	var (
-		expectedAccAddr string = "test-acc-addr"
-		expectedPortID  string = "test-port"
+		expectedAccAddr = "test-acc-addr"
+		expectedPortID  = "test-port"
 	)
 
 	suite.SetupTest()
@@ -225,8 +225,8 @@ func (suite *KeeperTestSuite) TestIsActiveChannel() {
 
 func (suite *KeeperTestSuite) TestSetInterchainAccountAddress() {
 	var (
-		expectedAccAddr string = "test-acc-addr"
-		expectedPortID  string = "test-port"
+		expectedAccAddr = "test-acc-addr"
+		expectedPortID  = "test-port"
 	)
 
 	suite.chainB.GetSimApp().ICAHostKeeper.SetInterchainAccountAddress(suite.chainB.GetContext(), ibctesting.FirstConnectionID, expectedPortID, expectedAccAddr)

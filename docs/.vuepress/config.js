@@ -105,6 +105,10 @@ module.exports = {
         key: "v2.4.0",
       },
       {
+        label: "v2.5.0",
+        key: "v2.5.0",
+      },
+      {
         label: "v3.0.0",
         key: "v3.0.0",
       },
@@ -121,6 +125,10 @@ module.exports = {
         key: "v3.3.0",
       },
       {
+        label: "v3.4.0",
+        key: "v3.4.0",
+      },
+      {
         label: "v4.0.0",
         key: "v4.0.0",
       },
@@ -129,8 +137,28 @@ module.exports = {
         key: "v4.1.0",
       },
       {
+        label: "v4.2.0",
+        key: "v4.2.0",
+      },
+      {
+        label: "v4.3.0",
+        key: "v4.3.0",
+      },
+      {
         label: "v5.0.0",
         key: "v5.0.0",
+      },
+      {
+        label: "v5.1.0",
+        key: "v5.1.0",
+      },
+      {
+        label: "v5.2.0",
+        key: "v5.2.0",
+      },
+      {
+        label: "v6.1.0",
+        key: "v6.1.0",
       },
     ],
     topbar: {
@@ -187,6 +215,11 @@ module.exports = {
               directory: false,
               path: "/roadmap/roadmap.html",
             },
+            {
+              title: "Troubleshooting",
+              directory: false,
+              path: "/ibc/troubleshooting.html",
+            },
           ],
         },
         {
@@ -203,14 +236,14 @@ module.exports = {
                   path: "/apps/interchain-accounts/overview.html",
                 },
                 {
+                  title: "Development Use Cases",
+                  directory: false,
+                  path: "/apps/interchain-accounts/development.html",
+                },
+                {
                   title: "Authentication Modules",
                   directory: false,
                   path: "/apps/interchain-accounts/auth-modules.html",
-                },
-                {
-                  title: "Active Channels",
-                  directory: false,
-                  path: "/apps/interchain-accounts/active-channels.html",
                 },
                 {
                   title: "Integration",
@@ -218,14 +251,46 @@ module.exports = {
                   path: "/apps/interchain-accounts/integration.html",
                 },
                 {
+                  title: "Messages",
+                  directory: false,
+                  path: "/apps/interchain-accounts/messages.html",
+                },
+                {
                   title: "Parameters",
                   directory: false,
                   path: "/apps/interchain-accounts/parameters.html",
                 },
                 {
-                  title: "Transactions",
+                  title: "Client",
                   directory: false,
-                  path: "/apps/interchain-accounts/transactions.html",
+                  path: "/apps/interchain-accounts/client.html",
+                },
+                {
+                  title: "Active Channels",
+                  directory: false,
+                  path: "/apps/interchain-accounts/active-channels.html",
+                },
+                {
+                  title: "Legacy",
+                  directory: true,
+                  path: "/apps/interchain-accounts",
+                  children: [
+                    {
+                      title: "Authentication Modules",
+                      directory: false,
+                      path: "/apps/interchain-accounts/legacy/auth-modules.html",
+                    },
+                    {
+                      title: "Integration",
+                      directory: false,
+                      path: "/apps/interchain-accounts/legacy/integration.html",
+                    },
+                    {
+                      title: "Keeper API",
+                      directory: false,
+                      path: "/apps/interchain-accounts/legacy/keeper-api.html",
+                    },
+                  ]
                 },
               ],
             },
@@ -268,6 +333,127 @@ module.exports = {
                   title: "Params",
                   directory: false,
                   path: "/apps/transfer/params.html",
+                },
+                {
+                  title: "Authorizations",
+                  directory: false,
+                  path: "/apps/transfer/authorizations.html",
+                },
+              ],
+            },
+          ],
+        },
+        {
+          title: "IBC Light Clients",
+          children: [
+            {
+              title: "Developer Guide",
+              directory: true,
+              path: "/ibc/light-clients",
+              children: [
+                {
+                  title: "Overview",
+                  directory: false,
+                  path: "/ibc/light-clients/overview.html",
+                },
+                {
+                  title: "Client State interface",
+                  directory: false,
+                  path: "/ibc/light-clients/client-state.html",
+                },
+                {
+                  title: "Consensus State interface",
+                  directory: false,
+                  path: "/ibc/light-clients/consensus-state.html",
+                },
+                {
+                  title: "Handling Updates and Misbehaviour",
+                  directory: false,
+                  path: "/ibc/light-clients/updates-and-misbehaviour.html",
+                },
+                {
+                  title: "Handling Upgrades",
+                  directory: false,
+                  path: "/ibc/light-clients/upgrades.html",
+                },
+                {
+                  title: "Existence/Non-Existence Proofs",
+                  directory: false,
+                  path: "/ibc/light-clients/proofs.html",
+                },
+                {
+                  title: "Handling Proposals",
+                  directory: false,
+                  path: "/ibc/light-clients/proposals.html",
+                },
+                {
+                  title: "Handling Genesis",
+                  directory: false,
+                  path: "/ibc/light-clients/genesis.html",
+                },
+                {
+                  title: "Setup",
+                  directory: false,
+                  path: "/ibc/light-clients/setup.html",
+                },
+              ]
+            },
+            {
+              title: "Localhost",
+              directory: true,
+              path: "/ibc/light-clients/localhost",
+              children: [
+                {
+                  title: "Overview",
+                  directory: false,
+                  path: "/ibc/light-clients/localhost/overview.html",
+                },
+                {
+                  title: "Integration",
+                  directory: false,
+                  path: "/ibc/light-clients/localhost/integration.html",
+                },
+                {
+                  title: "ClientState",
+                  directory: false,
+                  path: "/ibc/light-clients/localhost/client-state.html",
+                },
+                {
+                  title: "Connection",
+                  directory: false,
+                  path: "/ibc/light-clients/localhost/connection.html",
+                },
+                {
+                  title: "State Verification",
+                  directory: false,
+                  path: "/ibc/light-clients/localhost/state-verification.html",
+                },
+              ],
+            },
+            {
+              title: "Solomachine",
+              directory: true,
+              path: "/ibc/light-clients/solomachine",
+              children: [
+                {
+                  title: "Solomachine",
+                  directory: false,
+                  path: "/ibc/light-clients/solomachine/solomachine.html",
+                },
+                {
+                  title: "Concepts",
+                  directory: false,
+                  path: "/ibc/light-clients/solomachine/concepts.html",
+                },
+                {
+                  title: "State",
+                  directory: false,
+                  path: "/ibc/light-clients/solomachine/state.html",
+                },
+                {
+                  title: "State Transitions",
+                  directory: false,
+                  path: "/ibc/light-clients/solomachine/state_transitions.html",
                 },
               ],
             },
@@ -349,6 +535,21 @@ module.exports = {
               directory: false,
               path: "/migrations/v4-to-v5.html",
             },
+            {
+              title: "IBC-Go v5 to v6",
+              directory: false,
+              path: "/migrations/v5-to-v6.html",
+            },
+            {
+              title: "IBC-Go v6 to v7",
+              directory: false,
+              path: "/migrations/v6-to-v7.html",
+            },
+            {
+              title: "IBC-Go v7 to v7.1",
+              directory: false,
+              path: "/migrations/v7-to-v7_1.html",
+            },
           ],
         },
         {
@@ -381,8 +582,8 @@ module.exports = {
         text: "Chat with IBC developers in <a href='https://discord.gg/W8trcGV' target='_blank'>Discord</a>.",
       },
       textLink: {
-        text: "ibcprotocol.org",
-        url: "https://ibcprotocol.org",
+        text: "ibcprotocol.dev",
+        url: "https://ibcprotocol.dev",
       },
       services: [
         {

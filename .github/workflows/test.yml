@@ -19,9 +19,9 @@ jobs:
   install-tparse:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/setup-go@v3
+      - uses: actions/setup-go@v4
         with:
-          go-version: 1.18
+          go-version: 1.19
       - name: Display go version
         run: go version
       - name: install tparse
@@ -39,10 +39,10 @@ jobs:
         go-arch: ["amd64", "arm", "arm64"]
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-go@v3
+      - uses: actions/setup-go@v4
         with:
-          go-version: 1.18
-      - uses: technote-space/get-diff-action@v6.1.0
+          go-version: 1.19
+      - uses: technote-space/get-diff-action@v6.1.2
         id: git_diff
         with:
           PATTERNS: |
@@ -52,7 +52,14 @@ jobs:
       - name: Build ibc-go
         run: GOARCH=${{ matrix.go-arch }} LEDGER_ENABLED=false make build
       - name: Build e2e
-        run: (cd e2e; GOARCH=${{ matrix.go-arch }} go build ./...)
+        run: |
+          cd e2e
+          test_dirs="$(ls -A tests)"
+          for td in $test_dirs
+          do
+            GOARCH=${{ matrix.go-arch }} go test -c "./tests/${td}"
+          done
+
   split-test-files:
     runs-on: ubuntu-latest
     steps:
@@ -88,10 +95,10 @@ jobs:
         part: ["00", "01", "02", "03"]
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-go@v3
+      - uses: actions/setup-go@v4
         with:
-          go-version: 1.18
-      - uses: technote-space/get-diff-action@v6.1.0
+          go-version: 1.19
+      - uses: technote-space/get-diff-action@v6.1.2
         with:
           PATTERNS: |
             **/**.go
@@ -115,7 +122,7 @@ jobs:
     needs: tests
     steps:
       - uses: actions/checkout@v3
-      - uses: technote-space/get-diff-action@v6.1.0
+      - uses: technote-space/get-diff-action@v6.1.2
         with:
           PATTERNS: |
             **/**.go

@@ -1,0 +1,11 @@
+{
+  "chain-a": ["main", "v5.1.0", "v5.0.1", "v4.2.0", "v4.1.1"],
+  "chain-b": ["main"],
+  "entrypoint": ["TestClientTestSuite"],
+  "test": [
+    "TestClientUpdateProposal_Succeeds"
+  ],
+  "relayer-type": ["rly"],
+  "chain-binary": ["simd"],
+  "chain-image": ["ghcr.io/cosmos/ibc-go-simd"]
+}

@@ -6,10 +6,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 
-	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v6/modules/core/03-connection/types"
-	"github.com/cosmos/ibc-go/v6/modules/core/exported"
-	ibctesting "github.com/cosmos/ibc-go/v6/testing"
+	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
 func (suite *KeeperTestSuite) TestQueryConnection() {
@@ -87,9 +87,15 @@ func (suite *KeeperTestSuite) TestQueryConnection() {
 }
 
 func (suite *KeeperTestSuite) TestQueryConnections() {
+	suite.chainA.App.GetIBCKeeper().ConnectionKeeper.CreateSentinelLocalhostConnection(suite.chainA.GetContext())
+	localhostConn, found := suite.chainA.App.GetIBCKeeper().ConnectionKeeper.GetConnection(suite.chainA.GetContext(), exported.LocalhostConnectionID)
+	suite.Require().True(found)
+
+	identifiedConn := types.NewIdentifiedConnection(exported.LocalhostConnectionID, localhostConn)
+
 	var (
 		req            *types.QueryConnectionsRequest
-		expConnections = []*types.IdentifiedConnection{}
+		expConnections = []*types.IdentifiedConnection{&identifiedConn}
 	)
 
 	testCases := []struct {
@@ -137,11 +143,11 @@ func (suite *KeeperTestSuite) TestQueryConnections() {
 				iconn2 := types.NewIdentifiedConnection(path2.EndpointA.ConnectionID, conn2)
 				iconn3 := types.NewIdentifiedConnection(path3.EndpointA.ConnectionID, conn3)
 
-				expConnections = []*types.IdentifiedConnection{&iconn1, &iconn2, &iconn3}
+				expConnections = []*types.IdentifiedConnection{&iconn1, &iconn2, &iconn3, &identifiedConn}
 
 				req = &types.QueryConnectionsRequest{
 					Pagination: &query.PageRequest{
-						Limit:      3,
+						Limit:      4,
 						CountTotal: true,
 					},
 				}
@@ -439,4 +445,11 @@ func (suite *KeeperTestSuite) TestQueryConnectionConsensusState() {
 			}
 		})
 	}
+}
+
+func (suite *KeeperTestSuite) TestQueryConnectionParams() {
+	ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
+	expParams := types.DefaultParams()
+	res, _ := suite.chainA.QueryServer.ConnectionParams(ctx, &types.QueryConnectionParamsRequest{})
+	suite.Require().Equal(&expParams, res.Params)
 }

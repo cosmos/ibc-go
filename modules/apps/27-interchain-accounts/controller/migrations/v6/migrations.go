@@ -8,7 +8,8 @@ import (
 	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
-	controllertypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/controller/types"
+	controllertypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
+	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
 // MigrateICS27ChannelCapability performs a search on a prefix store using the provided store key and module name.
@@ -23,7 +24,7 @@ func MigrateICS27ChannelCapability(
 	// construct a prefix store using the x/capability index prefix: index->capability owners
 	prefixStore := prefix.NewStore(ctx.KVStore(capabilityStoreKey), capabilitytypes.KeyPrefixIndexCapability)
 	iterator := sdk.KVStorePrefixIterator(prefixStore, nil)
-	defer iterator.Close()
+	defer sdk.LogDeferred(ctx.Logger(), func() error { return iterator.Close() })
 
 	for ; iterator.Valid(); iterator.Next() {
 		// unmarshal the capability index value and set of owners
@@ -31,6 +32,10 @@ func MigrateICS27ChannelCapability(
 
 		var owners capabilitytypes.CapabilityOwners
 		cdc.MustUnmarshal(iterator.Value(), &owners)
+
+		if !hasIBCOwner(owners.GetOwners()) {
+			continue
+		}
 
 		for _, owner := range owners.GetOwners() {
 			if owner.Module == module {
@@ -55,4 +60,18 @@ func MigrateICS27ChannelCapability(
 	capabilityKeeper.InitMemStore(ctx)
 
 	return nil
+}
+
+func hasIBCOwner(owners []capabilitytypes.Owner) bool {
+	if len(owners) != 2 {
+		return false
+	}
+
+	for _, owner := range owners {
+		if owner.Module == ibcexported.ModuleName {
+			return true
+		}
+	}
+
+	return false
 }

@@ -3,16 +3,17 @@ package solomachine
 import (
 	"reflect"
 
+	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/codec"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 
-	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v6/modules/core/23-commitment/types"
-	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v6/modules/core/exported"
+	ibcerrors "github.com/cosmos/ibc-go/v7/internal/errors"
+	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
+	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
 var _ exported.ClientState = (*ClientState)(nil)
@@ -23,7 +24,6 @@ func NewClientState(latestSequence uint64, consensusState *ConsensusState) *Clie
 		Sequence:       latestSequence,
 		IsFrozen:       false,
 		ConsensusState: consensusState,
-		// AllowUpdateAfterProposal has been DEPRECATED. See 01_concepts in the solo machine spec repo for more details.
 	}
 }
 
@@ -46,9 +46,6 @@ func (cs ClientState) GetTimestampAtHeight(
 	cdc codec.BinaryCodec,
 	height exported.Height,
 ) (uint64, error) {
-	if !cs.GetLatestHeight().EQ(height) {
-		return 0, sdkerrors.Wrapf(ErrInvalidSequence, "not latest height (%s)", height)
-	}
 	return cs.ConsensusState.Timestamp, nil
 }
 
@@ -67,10 +64,10 @@ func (cs ClientState) Status(_ sdk.Context, _ sdk.KVStore, _ codec.BinaryCodec) 
 // Validate performs basic validation of the client state fields.
 func (cs ClientState) Validate() error {
 	if cs.Sequence == 0 {
-		return sdkerrors.Wrap(clienttypes.ErrInvalidClient, "sequence cannot be 0")
+		return errorsmod.Wrap(clienttypes.ErrInvalidClient, "sequence cannot be 0")
 	}
 	if cs.ConsensusState == nil {
-		return sdkerrors.Wrap(clienttypes.ErrInvalidConsensus, "consensus state cannot be nil")
+		return errorsmod.Wrap(clienttypes.ErrInvalidConsensus, "consensus state cannot be nil")
 	}
 	return cs.ConsensusState.ValidateBasic()
 }
@@ -80,12 +77,16 @@ func (cs ClientState) ZeroCustomFields() exported.ClientState {
 	panic("ZeroCustomFields is not implemented as the solo machine implementation does not support upgrades.")
 }
 
-// Initialize will check that initial consensus state is equal to the latest consensus state of the initial client.
-func (cs ClientState) Initialize(_ sdk.Context, _ codec.BinaryCodec, _ sdk.KVStore, consState exported.ConsensusState) error {
+// Initialize checks that the initial consensus state is equal to the latest consensus state of the initial client and
+// sets the client state in the provided client store.
+func (cs ClientState) Initialize(_ sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, consState exported.ConsensusState) error {
 	if !reflect.DeepEqual(cs.ConsensusState, consState) {
-		return sdkerrors.Wrapf(clienttypes.ErrInvalidConsensus, "consensus state in initial client does not equal initial consensus state. expected: %s, got: %s",
+		return errorsmod.Wrapf(clienttypes.ErrInvalidConsensus, "consensus state in initial client does not equal initial consensus state. expected: %s, got: %s",
 			cs.ConsensusState, consState)
 	}
+
+	setClientState(clientStore, cdc, &cs)
+
 	return nil
 }
 
@@ -99,30 +100,34 @@ func (cs ClientState) VerifyUpgradeAndUpdateState(
 	_ sdk.Context, _ codec.BinaryCodec, _ sdk.KVStore,
 	_ exported.ClientState, _ exported.ConsensusState, _, _ []byte,
 ) error {
-	return sdkerrors.Wrap(clienttypes.ErrInvalidUpgradeClient, "cannot upgrade solomachine client")
+	return errorsmod.Wrap(clienttypes.ErrInvalidUpgradeClient, "cannot upgrade solomachine client")
 }
 
-// VerifyMembership is a generic proof verification method which verifies a proof of the existence of a value at a given CommitmentPath at the specified height.
+// VerifyMembership is a generic proof verification method which verifies a proof of the existence of a value at a given CommitmentPath at the latest sequence.
 // The caller is expected to construct the full CommitmentPath from a CommitmentPrefix and a standardized path (as defined in ICS 24).
 func (cs *ClientState) VerifyMembership(
 	ctx sdk.Context,
 	clientStore sdk.KVStore,
 	cdc codec.BinaryCodec,
-	height exported.Height,
+	_ exported.Height,
 	delayTimePeriod uint64,
 	delayBlockPeriod uint64,
 	proof []byte,
-	path []byte,
+	path exported.Path,
 	value []byte,
 ) error {
-	publicKey, sigData, timestamp, sequence, err := produceVerificationArgs(cdc, cs, height, proof)
+	publicKey, sigData, timestamp, sequence, err := produceVerificationArgs(cdc, cs, proof)
 	if err != nil {
 		return err
 	}
 
-	var merklePath commitmenttypes.MerklePath
-	if err := cdc.Unmarshal(path, &merklePath); err != nil {
-		return sdkerrors.Wrap(commitmenttypes.ErrInvalidProof, "failed to unmarshal path into ICS 23 commitment merkle path")
+	merklePath, ok := path.(commitmenttypes.MerklePath)
+	if !ok {
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", commitmenttypes.MerklePath{}, path)
+	}
+
+	if merklePath.Empty() {
+		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "path is empty")
 	}
 
 	signBytes := &SignBytes{
@@ -149,26 +154,26 @@ func (cs *ClientState) VerifyMembership(
 	return nil
 }
 
-// VerifyNonMembership is a generic proof verification method which verifies the absence of a given CommitmentPath at a specified height.
+// VerifyNonMembership is a generic proof verification method which verifies the absence of a given CommitmentPath at the latest sequence.
 // The caller is expected to construct the full CommitmentPath from a CommitmentPrefix and a standardized path (as defined in ICS 24).
 func (cs *ClientState) VerifyNonMembership(
 	ctx sdk.Context,
 	clientStore sdk.KVStore,
 	cdc codec.BinaryCodec,
-	height exported.Height,
+	_ exported.Height,
 	delayTimePeriod uint64,
 	delayBlockPeriod uint64,
 	proof []byte,
-	path []byte,
+	path exported.Path,
 ) error {
-	publicKey, sigData, timestamp, sequence, err := produceVerificationArgs(cdc, cs, height, proof)
+	publicKey, sigData, timestamp, sequence, err := produceVerificationArgs(cdc, cs, proof)
 	if err != nil {
 		return err
 	}
 
-	var merklePath commitmenttypes.MerklePath
-	if err := cdc.Unmarshal(path, &merklePath); err != nil {
-		return sdkerrors.Wrap(commitmenttypes.ErrInvalidProof, "failed to unmarshal path into ICS 23 commitment merkle path")
+	merklePath, ok := path.(commitmenttypes.MerklePath)
+	if !ok {
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", commitmenttypes.MerklePath{}, path)
 	}
 
 	signBytes := &SignBytes{
@@ -197,30 +202,24 @@ func (cs *ClientState) VerifyNonMembership(
 
 // produceVerificationArgs perfoms the basic checks on the arguments that are
 // shared between the verification functions and returns the public key of the
-// consensus state, the unmarshalled proof representing the signature and timestamp
-// along with the solo-machine sequence encoded in the proofHeight.
+// consensus state, the unmarshalled proof representing the signature and timestamp.
 func produceVerificationArgs(
 	cdc codec.BinaryCodec,
 	cs *ClientState,
-	height exported.Height,
 	proof []byte,
 ) (cryptotypes.PubKey, signing.SignatureData, uint64, uint64, error) {
-	if revision := height.GetRevisionNumber(); revision != 0 {
-		return nil, nil, 0, 0, sdkerrors.Wrapf(sdkerrors.ErrInvalidHeight, "revision must be 0 for solomachine, got revision-number: %d", revision)
-	}
-
 	if proof == nil {
-		return nil, nil, 0, 0, sdkerrors.Wrap(ErrInvalidProof, "proof cannot be empty")
+		return nil, nil, 0, 0, errorsmod.Wrap(ErrInvalidProof, "proof cannot be empty")
 	}
 
 	var timestampedSigData TimestampedSignatureData
 	if err := cdc.Unmarshal(proof, &timestampedSigData); err != nil {
-		return nil, nil, 0, 0, sdkerrors.Wrapf(err, "failed to unmarshal proof into type %T", timestampedSigData)
+		return nil, nil, 0, 0, errorsmod.Wrapf(err, "failed to unmarshal proof into type %T", timestampedSigData)
 	}
 
 	timestamp := timestampedSigData.Timestamp
 	if len(timestampedSigData.SignatureData) == 0 {
-		return nil, nil, 0, 0, sdkerrors.Wrap(ErrInvalidProof, "signature data cannot be empty")
+		return nil, nil, 0, 0, errorsmod.Wrap(ErrInvalidProof, "signature data cannot be empty")
 	}
 
 	sigData, err := UnmarshalSignatureData(cdc, timestampedSigData.SignatureData)
@@ -228,20 +227,11 @@ func produceVerificationArgs(
 		return nil, nil, 0, 0, err
 	}
 
-	// sequence is encoded in the revision height of height struct
-	sequence := height.GetRevisionHeight()
-	latestSequence := cs.GetLatestHeight().GetRevisionHeight()
-	if latestSequence != sequence {
-		return nil, nil, 0, 0, sdkerrors.Wrapf(
-			sdkerrors.ErrInvalidHeight,
-			"client state sequence != proof sequence (%d != %d)", latestSequence, sequence,
-		)
-	}
-
 	if cs.ConsensusState.GetTimestamp() > timestamp {
-		return nil, nil, 0, 0, sdkerrors.Wrapf(ErrInvalidProof, "the consensus state timestamp is greater than the signature timestamp (%d >= %d)", cs.ConsensusState.GetTimestamp(), timestamp)
+		return nil, nil, 0, 0, errorsmod.Wrapf(ErrInvalidProof, "the consensus state timestamp is greater than the signature timestamp (%d >= %d)", cs.ConsensusState.GetTimestamp(), timestamp)
 	}
 
+	sequence := cs.GetLatestHeight().GetRevisionHeight()
 	publicKey, err := cs.ConsensusState.GetPubKey()
 	if err != nil {
 		return nil, nil, 0, 0, err
@@ -253,5 +243,5 @@ func produceVerificationArgs(
 // sets the client state to the store
 func setClientState(store sdk.KVStore, cdc codec.BinaryCodec, clientState exported.ClientState) {
 	bz := clienttypes.MustMarshalClientState(cdc, clientState)
-	store.Set([]byte(host.KeyClientState), bz)
+	store.Set(host.ClientStateKey(), bz)
 }

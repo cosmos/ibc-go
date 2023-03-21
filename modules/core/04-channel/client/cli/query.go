@@ -9,9 +9,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/spf13/cobra"
 
-	"github.com/cosmos/ibc-go/v6/modules/core/04-channel/client/utils"
-	"github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/client/utils"
+	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
 const (
@@ -25,7 +25,7 @@ func GetCmdQueryChannels() *cobra.Command {
 		Use:     "channels",
 		Short:   "Query all channels",
 		Long:    "Query all channels from a chain",
-		Example: fmt.Sprintf("%s query %s %s channels", version.AppName, host.ModuleName, types.SubModuleName),
+		Example: fmt.Sprintf("%s query %s %s channels", version.AppName, ibcexported.ModuleName, types.SubModuleName),
 		Args:    cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
@@ -65,7 +65,7 @@ func GetCmdQueryChannel() *cobra.Command {
 		Short: "Query a channel end",
 		Long:  "Query an IBC channel end from a port and channel identifiers",
 		Example: fmt.Sprintf(
-			"%s query %s %s end [port-id] [channel-id]", version.AppName, host.ModuleName, types.SubModuleName,
+			"%s query %s %s end [port-id] [channel-id]", version.AppName, ibcexported.ModuleName, types.SubModuleName,
 		),
 		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -99,7 +99,7 @@ func GetCmdQueryConnectionChannels() *cobra.Command {
 		Use:     "connections [connection-id]",
 		Short:   "Query all channels associated with a connection",
 		Long:    "Query all channels associated with a connection",
-		Example: fmt.Sprintf("%s query %s %s connections [connection-id]", version.AppName, host.ModuleName, types.SubModuleName),
+		Example: fmt.Sprintf("%s query %s %s connections [connection-id]", version.AppName, ibcexported.ModuleName, types.SubModuleName),
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
@@ -169,7 +169,7 @@ func GetCmdQueryPacketCommitments() *cobra.Command {
 		Use:     "packet-commitments [port-id] [channel-id]",
 		Short:   "Query all packet commitments associated with a channel",
 		Long:    "Query all packet commitments associated with a channel",
-		Example: fmt.Sprintf("%s query %s %s packet-commitments [port-id] [channel-id]", version.AppName, host.ModuleName, types.SubModuleName),
+		Example: fmt.Sprintf("%s query %s %s packet-commitments [port-id] [channel-id]", version.AppName, ibcexported.ModuleName, types.SubModuleName),
 		Args:    cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
@@ -210,7 +210,7 @@ func GetCmdQueryPacketCommitment() *cobra.Command {
 		Short: "Query a packet commitment",
 		Long:  "Query a packet commitment",
 		Example: fmt.Sprintf(
-			"%s query %s %s packet-commitment [port-id] [channel-id] [sequence]", version.AppName, host.ModuleName, types.SubModuleName,
+			"%s query %s %s packet-commitment [port-id] [channel-id] [sequence]", version.AppName, ibcexported.ModuleName, types.SubModuleName,
 		),
 		Args: cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -249,7 +249,7 @@ func GetCmdQueryPacketReceipt() *cobra.Command {
 		Short: "Query a packet receipt",
 		Long:  "Query a packet receipt",
 		Example: fmt.Sprintf(
-			"%s query %s %s packet-receipt [port-id] [channel-id] [sequence]", version.AppName, host.ModuleName, types.SubModuleName,
+			"%s query %s %s packet-receipt [port-id] [channel-id] [sequence]", version.AppName, ibcexported.ModuleName, types.SubModuleName,
 		),
 		Args: cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -288,7 +288,7 @@ func GetCmdQueryPacketAcknowledgement() *cobra.Command {
 		Short: "Query a packet acknowledgement",
 		Long:  "Query a packet acknowledgement",
 		Example: fmt.Sprintf(
-			"%s query %s %s packet-ack [port-id] [channel-id] [sequence]", version.AppName, host.ModuleName, types.SubModuleName,
+			"%s query %s %s packet-ack [port-id] [channel-id] [sequence]", version.AppName, ibcexported.ModuleName, types.SubModuleName,
 		),
 		Args: cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -331,7 +331,7 @@ func GetCmdQueryUnreceivedPackets() *cobra.Command {
 The return value represents:
 - Unreceived packet commitments: no acknowledgement exists on receiving chain for the given packet commitment sequence on sending chain.
 `,
-		Example: fmt.Sprintf("%s query %s %s unreceived-packets [port-id] [channel-id] --sequences=1,2,3", version.AppName, host.ModuleName, types.SubModuleName),
+		Example: fmt.Sprintf("%s query %s %s unreceived-packets [port-id] [channel-id] --sequences=1,2,3", version.AppName, ibcexported.ModuleName, types.SubModuleName),
 		Args:    cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
@@ -381,7 +381,7 @@ func GetCmdQueryUnreceivedAcks() *cobra.Command {
 The return value represents:
 - Unreceived packet acknowledgement: packet commitment exists on original sending (executing) chain and ack exists on receiving chain.
 `,
-		Example: fmt.Sprintf("%s query %s %s unreceived-acks [port-id] [channel-id] --sequences=1,2,3", version.AppName, host.ModuleName, types.SubModuleName),
+		Example: fmt.Sprintf("%s query %s %s unreceived-acks [port-id] [channel-id] --sequences=1,2,3", version.AppName, ibcexported.ModuleName, types.SubModuleName),
 		Args:    cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
@@ -428,7 +428,7 @@ func GetCmdQueryNextSequenceReceive() *cobra.Command {
 		Short: "Query a next receive sequence",
 		Long:  "Query the next receive sequence for a given channel",
 		Example: fmt.Sprintf(
-			"%s query %s %s next-sequence-receive [port-id] [channel-id]", version.AppName, host.ModuleName, types.SubModuleName,
+			"%s query %s %s next-sequence-receive [port-id] [channel-id]", version.AppName, ibcexported.ModuleName, types.SubModuleName,
 		),
 		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {

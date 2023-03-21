@@ -7,16 +7,16 @@ import (
 	"sort"
 	"strings"
 
+	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/query"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
-	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v6/modules/core/exported"
+	"github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
 var _ types.QueryServer = Keeper{}
@@ -36,18 +36,18 @@ func (q Keeper) ClientState(c context.Context, req *types.QueryClientStateReques
 	if !found {
 		return nil, status.Error(
 			codes.NotFound,
-			sdkerrors.Wrap(types.ErrClientNotFound, req.ClientId).Error(),
+			errorsmod.Wrap(types.ErrClientNotFound, req.ClientId).Error(),
 		)
 	}
 
-	any, err := types.PackClientState(clientState)
+	protoAny, err := types.PackClientState(clientState)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	proofHeight := types.GetSelfHeight(ctx)
 	return &types.QueryClientStateResponse{
-		ClientState: any,
+		ClientState: protoAny,
 		ProofHeight: proofHeight,
 	}, nil
 }
@@ -63,25 +63,26 @@ func (q Keeper) ClientStates(c context.Context, req *types.QueryClientStatesRequ
 	clientStates := types.IdentifiedClientStates{}
 	store := prefix.NewStore(ctx.KVStore(q.storeKey), host.KeyClientStorePrefix)
 
-	pageRes, err := query.Paginate(store, req.Pagination, func(key, value []byte) error {
+	pageRes, err := query.FilteredPaginate(store, req.Pagination, func(key, value []byte, accumulate bool) (bool, error) {
+		// filter any metadata stored under client state key
 		keySplit := strings.Split(string(key), "/")
 		if keySplit[len(keySplit)-1] != "clientState" {
-			return nil
+			return false, nil
 		}
 
 		clientState, err := q.UnmarshalClientState(value)
 		if err != nil {
-			return err
+			return false, err
 		}
 
 		clientID := keySplit[1]
 		if err := host.ClientIdentifierValidator(clientID); err != nil {
-			return err
+			return false, err
 		}
 
 		identifiedClient := types.NewIdentifiedClientState(clientID, clientState)
 		clientStates = append(clientStates, identifiedClient)
-		return nil
+		return true, nil
 	})
 	if err != nil {
 		return nil, err
@@ -126,18 +127,18 @@ func (q Keeper) ConsensusState(c context.Context, req *types.QueryConsensusState
 	if !found {
 		return nil, status.Error(
 			codes.NotFound,
-			sdkerrors.Wrapf(types.ErrConsensusStateNotFound, "client-id: %s, height: %s", req.ClientId, height).Error(),
+			errorsmod.Wrapf(types.ErrConsensusStateNotFound, "client-id: %s, height: %s", req.ClientId, height).Error(),
 		)
 	}
 
-	any, err := types.PackConsensusState(consensusState)
+	protoAny, err := types.PackConsensusState(consensusState)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	proofHeight := types.GetSelfHeight(ctx)
 	return &types.QueryConsensusStateResponse{
-		ConsensusState: any,
+		ConsensusState: protoAny,
 		ProofHeight:    proofHeight,
 	}, nil
 }
@@ -240,12 +241,11 @@ func (q Keeper) ClientStatus(c context.Context, req *types.QueryClientStatusRequ
 	if !found {
 		return nil, status.Error(
 			codes.NotFound,
-			sdkerrors.Wrap(types.ErrClientNotFound, req.ClientId).Error(),
+			errorsmod.Wrap(types.ErrClientNotFound, req.ClientId).Error(),
 		)
 	}
 
-	clientStore := q.ClientStore(ctx, req.ClientId)
-	status := clientState.Status(ctx, clientStore, q.cdc)
+	status := q.GetClientStatus(ctx, clientState, req.ClientId)
 
 	return &types.QueryClientStatusResponse{
 		Status: status.String(),
@@ -289,13 +289,13 @@ func (q Keeper) UpgradedClientState(c context.Context, req *types.QueryUpgradedC
 		)
 	}
 
-	any, err := types.PackClientState(clientState)
+	protoAny, err := types.PackClientState(clientState)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	return &types.QueryUpgradedClientStateResponse{
-		UpgradedClientState: any,
+		UpgradedClientState: protoAny,
 	}, nil
 }
 
@@ -319,12 +319,12 @@ func (q Keeper) UpgradedConsensusState(c context.Context, req *types.QueryUpgrad
 		)
 	}
 
-	any, err := types.PackConsensusState(consensusState)
+	protoAny, err := types.PackConsensusState(consensusState)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	return &types.QueryUpgradedConsensusStateResponse{
-		UpgradedConsensusState: any,
+		UpgradedConsensusState: protoAny,
 	}, nil
 }

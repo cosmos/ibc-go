@@ -1,9 +1,9 @@
 package solomachine_test
 
 import (
-	"github.com/cosmos/ibc-go/v6/modules/core/exported"
-	solomachine "github.com/cosmos/ibc-go/v6/modules/light-clients/06-solomachine"
-	ibctesting "github.com/cosmos/ibc-go/v6/testing"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	solomachine "github.com/cosmos/ibc-go/v7/modules/light-clients/06-solomachine"
+	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
 func (suite *SoloMachineTestSuite) TestMisbehaviour() {
@@ -25,13 +25,6 @@ func (suite *SoloMachineTestSuite) TestMisbehaviourValidateBasic() {
 				"valid misbehaviour",
 				func(*solomachine.Misbehaviour) {},
 				true,
-			},
-			{
-				"invalid client ID",
-				func(misbehaviour *solomachine.Misbehaviour) {
-					misbehaviour.ClientId = "(badclientid)"
-				},
-				false,
 			},
 			{
 				"sequence is zero",
@@ -76,8 +69,16 @@ func (suite *SoloMachineTestSuite) TestMisbehaviourValidateBasic() {
 				false,
 			},
 			{
-				"data signed is identical",
+				"data signed is identical but path differs",
 				func(misbehaviour *solomachine.Misbehaviour) {
+					misbehaviour.SignatureTwo.Data = misbehaviour.SignatureOne.Data
+				},
+				true,
+			},
+			{
+				"data signed and path are identical",
+				func(misbehaviour *solomachine.Misbehaviour) {
+					misbehaviour.SignatureTwo.Path = misbehaviour.SignatureOne.Path
 					misbehaviour.SignatureTwo.Data = misbehaviour.SignatureOne.Data
 				},
 				false,

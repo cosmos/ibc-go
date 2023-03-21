@@ -4,14 +4,13 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/cosmos/ibc-go/v6/modules/apps/29-fee/types"
-	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
-	ibctesting "github.com/cosmos/ibc-go/v6/testing"
-	ibcmock "github.com/cosmos/ibc-go/v6/testing/mock"
+	"github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
+	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	ibcmock "github.com/cosmos/ibc-go/v7/testing/mock"
 )
 
 var (
@@ -33,8 +32,6 @@ type KeeperTestSuite struct {
 
 	path     *ibctesting.Path
 	pathAToC *ibctesting.Path
-
-	queryClient types.QueryClient
 }
 
 func (suite *KeeperTestSuite) SetupTest() {
@@ -57,10 +54,6 @@ func (suite *KeeperTestSuite) SetupTest() {
 	path.EndpointA.ChannelConfig.PortID = ibctesting.MockFeePort
 	path.EndpointB.ChannelConfig.PortID = ibctesting.MockFeePort
 	suite.pathAToC = path
-
-	queryHelper := baseapp.NewQueryServerTestHelper(suite.chainA.GetContext(), suite.chainA.GetSimApp().InterfaceRegistry())
-	types.RegisterQueryServer(queryHelper, suite.chainA.GetSimApp().IBCFeeKeeper)
-	suite.queryClient = types.NewQueryClient(queryHelper)
 }
 
 func TestKeeperTestSuite(t *testing.T) {
@@ -237,14 +230,14 @@ func (suite *KeeperTestSuite) TestGetAllIdentifiedPacketFees() {
 }
 
 func (suite *KeeperTestSuite) TestGetAllFeeEnabledChannels() {
-	validPortId := "ibcmoduleport"
+	validPortID := "ibcmoduleport"
 	// set two channels enabled
 	suite.chainA.GetSimApp().IBCFeeKeeper.SetFeeEnabled(suite.chainA.GetContext(), ibctesting.MockFeePort, ibctesting.FirstChannelID)
-	suite.chainA.GetSimApp().IBCFeeKeeper.SetFeeEnabled(suite.chainA.GetContext(), validPortId, ibctesting.FirstChannelID)
+	suite.chainA.GetSimApp().IBCFeeKeeper.SetFeeEnabled(suite.chainA.GetContext(), validPortID, ibctesting.FirstChannelID)
 
 	expectedCh := []types.FeeEnabledChannel{
 		{
-			PortId:    validPortId,
+			PortId:    validPortID,
 			ChannelId: ibctesting.FirstChannelID,
 		},
 		{

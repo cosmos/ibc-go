@@ -7,12 +7,12 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
-	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v6/modules/core/ante"
-	"github.com/cosmos/ibc-go/v6/modules/core/exported"
-	ibctesting "github.com/cosmos/ibc-go/v6/testing"
+	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v7/modules/core/ante"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
 type AnteTestSuite struct {
@@ -45,14 +45,14 @@ func TestAnteTestSuite(t *testing.T) {
 }
 
 // createRecvPacketMessage creates a RecvPacket message for a packet sent from chain A to chain B.
-func (suite *AnteTestSuite) createRecvPacketMessage(sequenceNumber uint64, isRedundant bool) sdk.Msg {
-	packet := channeltypes.NewPacket(ibctesting.MockPacketData, sequenceNumber,
+func (suite *AnteTestSuite) createRecvPacketMessage(isRedundant bool) sdk.Msg {
+	sequence, err := suite.path.EndpointA.SendPacket(clienttypes.NewHeight(2, 0), 0, ibctesting.MockPacketData)
+	suite.Require().NoError(err)
+
+	packet := channeltypes.NewPacket(ibctesting.MockPacketData, sequence,
 		suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID,
 		suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID,
 		clienttypes.NewHeight(2, 0), 0)
-
-	err := suite.path.EndpointA.SendPacket(packet)
-	suite.Require().NoError(err)
 
 	if isRedundant {
 		err = suite.path.EndpointB.RecvPacket(packet)
@@ -69,14 +69,14 @@ func (suite *AnteTestSuite) createRecvPacketMessage(sequenceNumber uint64, isRed
 }
 
 // createAcknowledgementMessage creates an Acknowledgement message for a packet sent from chain B to chain A.
-func (suite *AnteTestSuite) createAcknowledgementMessage(sequenceNumber uint64, isRedundant bool) sdk.Msg {
-	packet := channeltypes.NewPacket(ibctesting.MockPacketData, sequenceNumber,
+func (suite *AnteTestSuite) createAcknowledgementMessage(isRedundant bool) sdk.Msg {
+	sequence, err := suite.path.EndpointB.SendPacket(clienttypes.NewHeight(2, 0), 0, ibctesting.MockPacketData)
+	suite.Require().NoError(err)
+
+	packet := channeltypes.NewPacket(ibctesting.MockPacketData, sequence,
 		suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID,
 		suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID,
 		clienttypes.NewHeight(2, 0), 0)
-
-	err := suite.path.EndpointB.SendPacket(packet)
-	suite.Require().NoError(err)
 	err = suite.path.EndpointA.RecvPacket(packet)
 	suite.Require().NoError(err)
 
@@ -92,21 +92,22 @@ func (suite *AnteTestSuite) createAcknowledgementMessage(sequenceNumber uint64, 
 }
 
 // createTimeoutMessage creates an Timeout message for a packet sent from chain B to chain A.
-func (suite *AnteTestSuite) createTimeoutMessage(sequenceNumber uint64, isRedundant bool) sdk.Msg {
+func (suite *AnteTestSuite) createTimeoutMessage(isRedundant bool) sdk.Msg {
 	height := suite.chainA.LastHeader.GetHeight()
 	timeoutHeight := clienttypes.NewHeight(height.GetRevisionNumber(), height.GetRevisionHeight()+1)
-	packet := channeltypes.NewPacket(ibctesting.MockPacketData, sequenceNumber,
-		suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID,
-		suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID,
-		timeoutHeight, 0)
 
-	err := suite.path.EndpointB.SendPacket(packet)
+	sequence, err := suite.path.EndpointB.SendPacket(timeoutHeight, 0, ibctesting.MockPacketData)
 	suite.Require().NoError(err)
 
 	suite.coordinator.CommitNBlocks(suite.chainA, 3)
 
 	err = suite.path.EndpointB.UpdateClient()
 	suite.Require().NoError(err)
+
+	packet := channeltypes.NewPacket(ibctesting.MockPacketData, sequence,
+		suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID,
+		suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID,
+		timeoutHeight, 0)
 
 	if isRedundant {
 		err = suite.path.EndpointB.TimeoutPacket(packet)
@@ -116,22 +117,23 @@ func (suite *AnteTestSuite) createTimeoutMessage(sequenceNumber uint64, isRedund
 	packetKey := host.PacketReceiptKey(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 	proof, proofHeight := suite.chainA.QueryProof(packetKey)
 
-	return channeltypes.NewMsgTimeout(packet, sequenceNumber, proof, proofHeight, suite.path.EndpointA.Chain.SenderAccount.GetAddress().String())
+	return channeltypes.NewMsgTimeout(packet, sequence, proof, proofHeight, suite.path.EndpointA.Chain.SenderAccount.GetAddress().String())
 }
 
 // createTimeoutOnCloseMessage creates an TimeoutOnClose message for a packet sent from chain B to chain A.
-func (suite *AnteTestSuite) createTimeoutOnCloseMessage(sequenceNumber uint64, isRedundant bool) sdk.Msg {
+func (suite *AnteTestSuite) createTimeoutOnCloseMessage(isRedundant bool) sdk.Msg {
 	height := suite.chainA.LastHeader.GetHeight()
 	timeoutHeight := clienttypes.NewHeight(height.GetRevisionNumber(), height.GetRevisionHeight()+1)
-	packet := channeltypes.NewPacket(ibctesting.MockPacketData, sequenceNumber,
+
+	sequence, err := suite.path.EndpointB.SendPacket(timeoutHeight, 0, ibctesting.MockPacketData)
+	suite.Require().NoError(err)
+	err = suite.path.EndpointA.SetChannelState(channeltypes.CLOSED)
+	suite.Require().NoError(err)
+
+	packet := channeltypes.NewPacket(ibctesting.MockPacketData, sequence,
 		suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID,
 		suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID,
 		timeoutHeight, 0)
-
-	err := suite.path.EndpointB.SendPacket(packet)
-	suite.Require().NoError(err)
-	err = suite.path.EndpointA.SetChannelClosed()
-	suite.Require().NoError(err)
 
 	if isRedundant {
 		err = suite.path.EndpointB.TimeoutOnClose(packet)
@@ -166,7 +168,7 @@ func (suite *AnteTestSuite) createUpdateClientMessage() sdk.Msg {
 		endpoint.ClientID, header,
 		endpoint.Chain.SenderAccount.GetAddress().String(),
 	)
-	require.NoError(endpoint.Chain.T, err)
+	require.NoError(endpoint.Chain.TB, err)
 
 	return msg
 }
@@ -181,7 +183,7 @@ func (suite *AnteTestSuite) TestAnteDecorator() {
 			"success on one new RecvPacket message",
 			func(suite *AnteTestSuite) []sdk.Msg {
 				// the RecvPacket message has not been submitted to the chain yet, so it will succeed
-				return []sdk.Msg{suite.createRecvPacketMessage(1, false)}
+				return []sdk.Msg{suite.createRecvPacketMessage(false)}
 			},
 			true,
 		},
@@ -189,7 +191,7 @@ func (suite *AnteTestSuite) TestAnteDecorator() {
 			"success on one new Acknowledgement message",
 			func(suite *AnteTestSuite) []sdk.Msg {
 				// the Acknowledgement message has not been submitted to the chain yet, so it will succeed
-				return []sdk.Msg{suite.createAcknowledgementMessage(1, false)}
+				return []sdk.Msg{suite.createAcknowledgementMessage(false)}
 			},
 			true,
 		},
@@ -197,7 +199,7 @@ func (suite *AnteTestSuite) TestAnteDecorator() {
 			"success on one new Timeout message",
 			func(suite *AnteTestSuite) []sdk.Msg {
 				// the Timeout message has not been submitted to the chain yet, so it will succeed
-				return []sdk.Msg{suite.createTimeoutMessage(1, false)}
+				return []sdk.Msg{suite.createTimeoutMessage(false)}
 			},
 			true,
 		},
@@ -205,7 +207,7 @@ func (suite *AnteTestSuite) TestAnteDecorator() {
 			"success on one new TimeoutOnClose message",
 			func(suite *AnteTestSuite) []sdk.Msg {
 				// the TimeoutOnClose message has not been submitted to the chain yet, so it will succeed
-				return []sdk.Msg{suite.createTimeoutOnCloseMessage(uint64(1), false)}
+				return []sdk.Msg{suite.createTimeoutOnCloseMessage(false)}
 			},
 			true,
 		},
@@ -220,18 +222,18 @@ func (suite *AnteTestSuite) TestAnteDecorator() {
 
 				// from A to B
 				for i := 1; i <= 3; i++ {
-					msgs = append(msgs, suite.createRecvPacketMessage(uint64(i), false))
+					msgs = append(msgs, suite.createRecvPacketMessage(false))
 				}
 
 				// from B to A
 				for i := 1; i <= 9; i++ {
 					switch {
 					case i >= 1 && i <= 3:
-						msgs = append(msgs, suite.createAcknowledgementMessage(uint64(i), false))
+						msgs = append(msgs, suite.createAcknowledgementMessage(false))
 					case i >= 4 && i <= 6:
-						msgs = append(msgs, suite.createTimeoutMessage(uint64(i), false))
+						msgs = append(msgs, suite.createTimeoutMessage(false))
 					case i >= 7 && i <= 9:
-						msgs = append(msgs, suite.createTimeoutOnCloseMessage(uint64(i), false))
+						msgs = append(msgs, suite.createTimeoutOnCloseMessage(false))
 					}
 				}
 				return msgs
@@ -250,18 +252,18 @@ func (suite *AnteTestSuite) TestAnteDecorator() {
 
 				// from A to B
 				for i := 1; i <= 3; i++ {
-					msgs = append(msgs, suite.createRecvPacketMessage(uint64(i), true))
+					msgs = append(msgs, suite.createRecvPacketMessage(true))
 				}
 
 				// from B to A
 				for i := 1; i <= 7; i++ {
 					switch {
 					case i >= 1 && i <= 3:
-						msgs = append(msgs, suite.createAcknowledgementMessage(uint64(i), true))
+						msgs = append(msgs, suite.createAcknowledgementMessage(true))
 					case i == 4:
-						msgs = append(msgs, suite.createTimeoutMessage(uint64(i), false))
+						msgs = append(msgs, suite.createTimeoutMessage(false))
 					case i >= 5 && i <= 7:
-						msgs = append(msgs, suite.createTimeoutOnCloseMessage(uint64(i), true))
+						msgs = append(msgs, suite.createTimeoutOnCloseMessage(true))
 					}
 				}
 				return msgs
@@ -280,18 +282,18 @@ func (suite *AnteTestSuite) TestAnteDecorator() {
 
 				// from A to B
 				for i := 1; i <= 3; i++ {
-					msgs = append(msgs, suite.createRecvPacketMessage(uint64(i), i != 2))
+					msgs = append(msgs, suite.createRecvPacketMessage(i != 2))
 				}
 
 				// from B to A
 				for i := 1; i <= 9; i++ {
 					switch {
 					case i >= 1 && i <= 3:
-						msgs = append(msgs, suite.createAcknowledgementMessage(uint64(i), i != 2))
+						msgs = append(msgs, suite.createAcknowledgementMessage(i != 2))
 					case i >= 4 && i <= 6:
-						msgs = append(msgs, suite.createTimeoutMessage(uint64(i), i != 5))
+						msgs = append(msgs, suite.createTimeoutMessage(i != 5))
 					case i >= 7 && i <= 9:
-						msgs = append(msgs, suite.createTimeoutOnCloseMessage(uint64(i), i != 8))
+						msgs = append(msgs, suite.createTimeoutOnCloseMessage(i != 8))
 					}
 				}
 				return msgs
@@ -319,7 +321,7 @@ func (suite *AnteTestSuite) TestAnteDecorator() {
 					suite.createUpdateClientMessage(),
 					suite.createUpdateClientMessage(),
 					suite.createUpdateClientMessage(),
-					suite.createRecvPacketMessage(uint64(1), false),
+					suite.createRecvPacketMessage(false),
 				}
 			},
 			true,
@@ -330,7 +332,7 @@ func (suite *AnteTestSuite) TestAnteDecorator() {
 				msgs := []sdk.Msg{suite.createUpdateClientMessage()}
 
 				for i := 1; i <= 3; i++ {
-					msgs = append(msgs, suite.createRecvPacketMessage(uint64(i), true))
+					msgs = append(msgs, suite.createRecvPacketMessage(true))
 				}
 
 				// append non packet and update message to msgs to ensure multimsg tx should pass
@@ -342,7 +344,7 @@ func (suite *AnteTestSuite) TestAnteDecorator() {
 		{
 			"no success on one redundant RecvPacket message",
 			func(suite *AnteTestSuite) []sdk.Msg {
-				return []sdk.Msg{suite.createRecvPacketMessage(uint64(1), true)}
+				return []sdk.Msg{suite.createRecvPacketMessage(true)}
 			},
 			false,
 		},
@@ -353,18 +355,18 @@ func (suite *AnteTestSuite) TestAnteDecorator() {
 
 				// from A to B
 				for i := 1; i <= 3; i++ {
-					msgs = append(msgs, suite.createRecvPacketMessage(uint64(i), true))
+					msgs = append(msgs, suite.createRecvPacketMessage(true))
 				}
 
 				// from B to A
 				for i := 1; i <= 9; i++ {
 					switch {
 					case i >= 1 && i <= 3:
-						msgs = append(msgs, suite.createAcknowledgementMessage(uint64(i), true))
+						msgs = append(msgs, suite.createAcknowledgementMessage(true))
 					case i >= 4 && i <= 6:
-						msgs = append(msgs, suite.createTimeoutMessage(uint64(i), true))
+						msgs = append(msgs, suite.createTimeoutMessage(true))
 					case i >= 7 && i <= 9:
-						msgs = append(msgs, suite.createTimeoutOnCloseMessage(uint64(i), true))
+						msgs = append(msgs, suite.createTimeoutOnCloseMessage(true))
 					}
 				}
 				return msgs
@@ -377,7 +379,7 @@ func (suite *AnteTestSuite) TestAnteDecorator() {
 				msgs := []sdk.Msg{&clienttypes.MsgUpdateClient{}}
 
 				for i := 1; i <= 3; i++ {
-					msgs = append(msgs, suite.createRecvPacketMessage(uint64(i), true))
+					msgs = append(msgs, suite.createRecvPacketMessage(true))
 				}
 
 				return msgs
@@ -391,18 +393,18 @@ func (suite *AnteTestSuite) TestAnteDecorator() {
 
 				// from A to B
 				for i := 1; i <= 3; i++ {
-					msgs = append(msgs, suite.createRecvPacketMessage(uint64(i), true))
+					msgs = append(msgs, suite.createRecvPacketMessage(true))
 				}
 
 				// from B to A
 				for i := 1; i <= 9; i++ {
 					switch {
 					case i >= 1 && i <= 3:
-						msgs = append(msgs, suite.createAcknowledgementMessage(uint64(i), true))
+						msgs = append(msgs, suite.createAcknowledgementMessage(true))
 					case i >= 4 && i <= 6:
-						msgs = append(msgs, suite.createTimeoutMessage(uint64(i), true))
+						msgs = append(msgs, suite.createTimeoutMessage(true))
 					case i >= 7 && i <= 9:
-						msgs = append(msgs, suite.createTimeoutOnCloseMessage(uint64(i), true))
+						msgs = append(msgs, suite.createTimeoutOnCloseMessage(true))
 					}
 				}
 				return msgs
@@ -418,7 +420,7 @@ func (suite *AnteTestSuite) TestAnteDecorator() {
 					clienttypes.NewHeight(2, 0), 0)
 
 				return []sdk.Msg{
-					suite.createRecvPacketMessage(uint64(1), false),
+					suite.createRecvPacketMessage(false),
 					channeltypes.NewMsgRecvPacket(packet, []byte("proof"), clienttypes.NewHeight(1, 1), "signer"),
 				}
 			},
@@ -427,7 +429,7 @@ func (suite *AnteTestSuite) TestAnteDecorator() {
 		{
 			"no success on one new message and one redundant message in the same block",
 			func(suite *AnteTestSuite) []sdk.Msg {
-				msg := suite.createRecvPacketMessage(uint64(1), false)
+				msg := suite.createRecvPacketMessage(false)
 
 				// We want to be able to run check tx with the non-redundant message without
 				// committing it to a block, so that the when check tx runs with the redundant

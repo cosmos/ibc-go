@@ -3,11 +3,37 @@ package solomachine
 import (
 	"github.com/cosmos/cosmos-sdk/codec"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	commitmenttypes "github.com/cosmos/ibc-go/v6/modules/core/23-commitment/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
+
+// CheckForMisbehaviour returns true for type Misbehaviour (passed VerifyClientMessage check), otherwise returns false
+func (cs ClientState) CheckForMisbehaviour(_ sdk.Context, _ codec.BinaryCodec, _ sdk.KVStore, clientMsg exported.ClientMessage) bool {
+	if _, ok := clientMsg.(*Misbehaviour); ok {
+		return true
+	}
+
+	return false
+}
+
+func (cs ClientState) verifyMisbehaviour(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, misbehaviour *Misbehaviour) error {
+	// NOTE: a check that the misbehaviour message data are not equal is done by
+	// misbehaviour.ValidateBasic which is called by the 02-client keeper.
+	// verify first signature
+	if err := cs.verifySignatureAndData(cdc, misbehaviour, misbehaviour.SignatureOne); err != nil {
+		return errorsmod.Wrap(err, "failed to verify signature one")
+	}
+
+	// verify second signature
+	if err := cs.verifySignatureAndData(cdc, misbehaviour, misbehaviour.SignatureTwo); err != nil {
+		return errorsmod.Wrap(err, "failed to verify signature two")
+	}
+
+	return nil
+}
 
 // verifySignatureAndData verifies that the currently registered public key has signed
 // over the provided data and that the data is valid. The data is valid if it can be
@@ -43,22 +69,6 @@ func (cs ClientState) verifySignatureAndData(cdc codec.BinaryCodec, misbehaviour
 
 	if err := VerifySignature(publicKey, data, sigData); err != nil {
 		return err
-	}
-
-	return nil
-}
-
-func (cs ClientState) verifyMisbehaviour(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, misbehaviour *Misbehaviour) error {
-	// NOTE: a check that the misbehaviour message data are not equal is done by
-	// misbehaviour.ValidateBasic which is called by the 02-client keeper.
-	// verify first signature
-	if err := cs.verifySignatureAndData(cdc, misbehaviour, misbehaviour.SignatureOne); err != nil {
-		return sdkerrors.Wrap(err, "failed to verify signature one")
-	}
-
-	// verify second signature
-	if err := cs.verifySignatureAndData(cdc, misbehaviour, misbehaviour.SignatureTwo); err != nil {
-		return sdkerrors.Wrap(err, "failed to verify signature two")
 	}
 
 	return nil

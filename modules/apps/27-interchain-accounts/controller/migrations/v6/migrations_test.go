@@ -3,16 +3,17 @@ package v6_test
 import (
 	"testing"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	"github.com/stretchr/testify/suite"
 
-	v6 "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/controller/migrations/v6"
-	"github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/controller/types"
-	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
-	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
-	ibctesting "github.com/cosmos/ibc-go/v6/testing"
-	ibcmock "github.com/cosmos/ibc-go/v6/testing/mock"
+	v6 "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/migrations/v6"
+	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
+	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
+	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
+	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	ibcmock "github.com/cosmos/ibc-go/v7/testing/mock"
 )
 
 type MigrationsTestSuite struct {
@@ -32,8 +33,8 @@ func (suite *MigrationsTestSuite) SetupTest() {
 	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
 
 	suite.path = ibctesting.NewPath(suite.chainA, suite.chainB)
-	suite.path.EndpointA.ChannelConfig.PortID = icatypes.PortID
-	suite.path.EndpointB.ChannelConfig.PortID = icatypes.PortID
+	suite.path.EndpointA.ChannelConfig.PortID = icatypes.HostPortID
+	suite.path.EndpointB.ChannelConfig.PortID = icatypes.HostPortID
 	suite.path.EndpointA.ChannelConfig.Order = channeltypes.ORDERED
 	suite.path.EndpointB.ChannelConfig.Order = channeltypes.ORDERED
 	suite.path.EndpointA.ChannelConfig.Version = icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
@@ -93,6 +94,9 @@ func (suite *MigrationsTestSuite) TestMigrateICS27ChannelCapability() {
 	err := suite.SetupPath()
 	suite.Require().NoError(err)
 
+	// create additional capabilities to cover edge cases
+	suite.CreateMockCapabilities()
+
 	// create and claim a new capability with ibc/mock for "channel-1"
 	// note: suite.SetupPath() now claims the chanel capability using icacontroller for "channel-0"
 	capName := host.ChannelCapabilityPath(suite.path.EndpointA.ChannelConfig.PortID, channeltypes.FormatChannelIdentifier(1))
@@ -147,6 +151,38 @@ func (suite *MigrationsTestSuite) TestMigrateICS27ChannelCapability() {
 
 	isAuthenticated = suite.chainA.GetSimApp().ScopedICAControllerKeeper.AuthenticateCapability(suite.chainA.GetContext(), cap, capName)
 	suite.Require().True(isAuthenticated)
+
+	suite.AssertMockCapabiltiesUnchanged()
+}
+
+// CreateMockCapabilities creates an additional two capabilities used for testing purposes:
+// 1. A capability with a single owner
+// 2. A capability with two owners, neither of which is "ibc"
+func (suite *MigrationsTestSuite) CreateMockCapabilities() {
+	cap, err := suite.chainA.GetSimApp().ScopedIBCMockKeeper.NewCapability(suite.chainA.GetContext(), "mock_one")
+	suite.Require().NoError(err)
+	suite.Require().NotNil(cap)
+
+	cap, err = suite.chainA.GetSimApp().ScopedICAMockKeeper.NewCapability(suite.chainA.GetContext(), "mock_two")
+	suite.Require().NoError(err)
+	suite.Require().NotNil(cap)
+
+	err = suite.chainA.GetSimApp().ScopedIBCMockKeeper.ClaimCapability(suite.chainA.GetContext(), cap, "mock_two")
+	suite.Require().NoError(err)
+}
+
+// AssertMockCapabiltiesUnchanged authenticates the mock capabilities created at the start of the test to ensure they remain unchanged
+func (suite *MigrationsTestSuite) AssertMockCapabiltiesUnchanged() {
+	cap, found := suite.chainA.GetSimApp().ScopedIBCMockKeeper.GetCapability(suite.chainA.GetContext(), "mock_one")
+	suite.Require().True(found)
+	suite.Require().NotNil(cap)
+
+	cap, found = suite.chainA.GetSimApp().ScopedIBCMockKeeper.GetCapability(suite.chainA.GetContext(), "mock_two")
+	suite.Require().True(found)
+	suite.Require().NotNil(cap)
+
+	isAuthenticated := suite.chainA.GetSimApp().ScopedICAMockKeeper.AuthenticateCapability(suite.chainA.GetContext(), cap, "mock_two")
+	suite.Require().True(isAuthenticated)
 }
 
 // ResetMemstore removes all existing fwd and rev capability kv pairs and deletes `KeyMemInitialised` from the x/capability memstore.
@@ -156,7 +192,7 @@ func (suite *MigrationsTestSuite) ResetMemStore() {
 	memStore.Delete(capabilitytypes.KeyMemInitialized)
 
 	iterator := memStore.Iterator(nil, nil)
-	defer iterator.Close()
+	defer sdk.LogDeferred(suite.chainA.GetContext().Logger(), func() error { return iterator.Close() })
 
 	for ; iterator.Valid(); iterator.Next() {
 		memStore.Delete(iterator.Key())

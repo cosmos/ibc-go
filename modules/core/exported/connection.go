@@ -1,11 +1,13 @@
 package exported
 
+// LocalhostConnectionID is the sentinel connection ID for the localhost connection.
+const LocalhostConnectionID string = "connection-localhost"
+
 // ConnectionI describes the required methods for a connection.
 type ConnectionI interface {
 	GetClientID() string
 	GetState() int32
 	GetCounterparty() CounterpartyConnectionI
-	GetVersions() []Version
 	GetDelayPeriod() uint64
 	ValidateBasic() error
 }

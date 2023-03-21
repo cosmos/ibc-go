@@ -5,25 +5,24 @@ import (
 	"testing"
 	"time"
 
-	"github.com/cosmos/cosmos-sdk/baseapp"
+	tmbytes "github.com/cometbft/cometbft/libs/bytes"
+	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	tmtypes "github.com/cometbft/cometbft/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/cosmos/ibc-go/v7/modules/core/02-client/keeper"
+	"github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	solomachine "github.com/cosmos/ibc-go/v7/modules/light-clients/06-solomachine"
+	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
+	localhost "github.com/cosmos/ibc-go/v7/modules/light-clients/09-localhost"
+	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	ibctestingmock "github.com/cosmos/ibc-go/v7/testing/mock"
+	"github.com/cosmos/ibc-go/v7/testing/simapp"
 	"github.com/stretchr/testify/suite"
-	tmbytes "github.com/tendermint/tendermint/libs/bytes"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-	tmtypes "github.com/tendermint/tendermint/types"
-
-	"github.com/cosmos/ibc-go/v6/modules/core/02-client/keeper"
-	"github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v6/modules/core/23-commitment/types"
-	"github.com/cosmos/ibc-go/v6/modules/core/exported"
-	solomachinetypes "github.com/cosmos/ibc-go/v6/modules/light-clients/06-solomachine"
-	ibctm "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint"
-	ibctesting "github.com/cosmos/ibc-go/v6/testing"
-	ibctestingmock "github.com/cosmos/ibc-go/v6/testing/mock"
-	"github.com/cosmos/ibc-go/v6/testing/simapp"
 )
 
 const (
@@ -67,9 +66,6 @@ type KeeperTestSuite struct {
 	solomachine    *ibctesting.Solomachine
 
 	signers map[string]tmtypes.PrivValidator
-
-	// TODO: deprecate
-	queryClient types.QueryClient
 }
 
 func (suite *KeeperTestSuite) SetupTest() {
@@ -88,7 +84,6 @@ func (suite *KeeperTestSuite) SetupTest() {
 	suite.ctx = app.BaseApp.NewContext(isCheckTx, tmproto.Header{Height: height, ChainID: testClientID, Time: now2})
 	suite.keeper = &app.IBCKeeper.ClientKeeper
 	suite.privVal = ibctestingmock.NewPV()
-
 	pubKey, err := suite.privVal.GetPubKey()
 	suite.Require().NoError(err)
 
@@ -123,11 +118,6 @@ func (suite *KeeperTestSuite) SetupTest() {
 	}
 
 	suite.solomachine = ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "solomachinesingle", "testing", 1)
-
-	// TODO: deprecate
-	queryHelper := baseapp.NewQueryServerTestHelper(suite.ctx, app.InterfaceRegistry())
-	types.RegisterQueryServer(queryHelper, app.IBCKeeper.ClientKeeper)
-	suite.queryClient = types.NewQueryClient(queryHelper)
 }
 
 func TestKeeperTestSuite(t *testing.T) {
@@ -190,7 +180,7 @@ func (suite *KeeperTestSuite) TestValidateSelfClient() {
 		},
 		{
 			"invalid client type",
-			solomachinetypes.NewClientState(0, &solomachinetypes.ConsensusState{suite.solomachine.ConsensusState().PublicKey, suite.solomachine.Diversifier, suite.solomachine.Time}),
+			solomachine.NewClientState(0, &solomachine.ConsensusState{PublicKey: suite.solomachine.ConsensusState().PublicKey, Diversifier: suite.solomachine.Diversifier, Timestamp: suite.solomachine.Time}),
 			false,
 		},
 		{
@@ -205,7 +195,7 @@ func (suite *KeeperTestSuite) TestValidateSelfClient() {
 		},
 		{
 			"invalid trust level",
-			ibctm.NewClientState(suite.chainA.ChainID, ibctm.Fraction{0, 1}, trustingPeriod, ubdPeriod, maxClockDrift, testClientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath), false,
+			ibctm.NewClientState(suite.chainA.ChainID, ibctm.Fraction{Numerator: 0, Denominator: 1}, trustingPeriod, ubdPeriod, maxClockDrift, testClientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath), false,
 		},
 		{
 			"invalid unbonding period",
@@ -234,11 +224,12 @@ func (suite *KeeperTestSuite) TestValidateSelfClient() {
 	}
 }
 
-func (suite KeeperTestSuite) TestGetAllGenesisClients() {
+func (suite KeeperTestSuite) TestGetAllGenesisClients() { //nolint:govet // this is a test, we are okay with copying locks
 	clientIDs := []string{
-		testClientID2, testClientID3, testClientID,
+		exported.LocalhostClientID, testClientID2, testClientID3, testClientID,
 	}
 	expClients := []exported.ClientState{
+		localhost.NewClientState(types.GetSelfHeight(suite.chainA.GetContext())),
 		ibctm.NewClientState(testChainID, ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, types.ZeroHeight(), commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath),
 		ibctm.NewClientState(testChainID, ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, types.ZeroHeight(), commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath),
 		ibctm.NewClientState(testChainID, ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, types.ZeroHeight(), commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath),
@@ -256,7 +247,7 @@ func (suite KeeperTestSuite) TestGetAllGenesisClients() {
 	suite.Require().Equal(expGenClients.Sort(), genClients)
 }
 
-func (suite KeeperTestSuite) TestGetAllGenesisMetadata() {
+func (suite KeeperTestSuite) TestGetAllGenesisMetadata() { //nolint:govet // this is a test, we are okay with copying locks
 	expectedGenMetadata := []types.IdentifiedGenesisMetadata{
 		types.NewIdentifiedGenesisMetadata(
 			"07-tendermint-1",
@@ -286,7 +277,7 @@ func (suite KeeperTestSuite) TestGetAllGenesisMetadata() {
 	suite.Require().Equal(expectedGenMetadata, actualGenMetadata, "retrieved metadata is unexpected")
 }
 
-func (suite KeeperTestSuite) TestGetConsensusState() {
+func (suite KeeperTestSuite) TestGetConsensusState() { //nolint:govet // this is a test, we are okay with copying locks
 	suite.ctx = suite.ctx.WithBlockHeight(10)
 	cases := []struct {
 		name    string
@@ -312,7 +303,7 @@ func (suite KeeperTestSuite) TestGetConsensusState() {
 	}
 }
 
-func (suite KeeperTestSuite) TestConsensusStateHelpers() {
+func (suite KeeperTestSuite) TestConsensusStateHelpers() { //nolint:govet // this is a test, we are okay with copying locks
 	// initial setup
 	clientState := ibctm.NewClientState(testChainID, ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, testClientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath)
 
@@ -338,7 +329,7 @@ func (suite KeeperTestSuite) TestConsensusStateHelpers() {
 
 // 2 clients in total are created on chainA. The first client is updated so it contains an initial consensus state
 // and a consensus state at the update height.
-func (suite KeeperTestSuite) TestGetAllConsensusStates() {
+func (suite KeeperTestSuite) TestGetAllConsensusStates() { //nolint:govet // this is a test, we are okay with copying locks
 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
 	suite.coordinator.SetupClients(path)
 
@@ -385,4 +376,77 @@ func (suite KeeperTestSuite) TestGetAllConsensusStates() {
 
 	consStates := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetAllConsensusStates(suite.chainA.GetContext())
 	suite.Require().Equal(expConsensusStates, consStates, "%s \n\n%s", expConsensusStates, consStates)
+}
+
+func (suite KeeperTestSuite) TestIterateClientStates() { //nolint:govet // this is a test, we are okay with copying locks
+	paths := []*ibctesting.Path{
+		ibctesting.NewPath(suite.chainA, suite.chainB),
+		ibctesting.NewPath(suite.chainA, suite.chainB),
+		ibctesting.NewPath(suite.chainA, suite.chainB),
+	}
+
+	solomachines := []*ibctesting.Solomachine{
+		ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "06-solomachine-0", "testing", 1),
+		ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "06-solomachine-1", "testing", 4),
+	}
+
+	var (
+		expTMClientIDs = make([]string, len(paths))
+		expSMClientIDs = make([]string, len(solomachines))
+	)
+
+	// create tendermint clients
+	for i, path := range paths {
+		suite.coordinator.SetupClients(path)
+		expTMClientIDs[i] = path.EndpointA.ClientID
+	}
+
+	// create solomachine clients
+	for i, sm := range solomachines {
+		expSMClientIDs[i] = sm.CreateClient(suite.chainA)
+	}
+
+	testCases := []struct {
+		name         string
+		prefix       []byte
+		expClientIDs func() []string
+	}{
+		{
+			"all clientIDs",
+			nil,
+			func() []string {
+				allClientIDs := []string{exported.LocalhostClientID}
+				allClientIDs = append(allClientIDs, expSMClientIDs...)
+				allClientIDs = append(allClientIDs, expTMClientIDs...)
+				return allClientIDs
+			},
+		},
+		{
+			"tendermint clientIDs",
+			[]byte(exported.Tendermint),
+			func() []string {
+				return expTMClientIDs
+			},
+		},
+		{
+			"solo machine clientIDs",
+			[]byte(exported.Solomachine),
+			func() []string {
+				return expSMClientIDs
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			var clientIDs []string
+			suite.chainA.GetSimApp().IBCKeeper.ClientKeeper.IterateClientStates(suite.chainA.GetContext(), tc.prefix, func(clientID string, _ exported.ClientState) bool {
+				clientIDs = append(clientIDs, clientID)
+				return false
+			})
+
+			suite.Require().ElementsMatch(tc.expClientIDs(), clientIDs)
+		})
+	}
 }

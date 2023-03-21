@@ -3,10 +3,11 @@ package keeper
 import (
 	"context"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/controller/types"
-	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
+	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
+	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
 )
 
 var _ types.MsgServer = msgServer{}
@@ -30,13 +31,23 @@ func (s msgServer) RegisterInterchainAccount(goCtx context.Context, msg *types.M
 		return nil, err
 	}
 
+	if s.IsMiddlewareEnabled(ctx, portID, msg.ConnectionId) && !s.IsActiveChannelClosed(ctx, msg.ConnectionId, portID) {
+		return nil, errorsmod.Wrap(icatypes.ErrInvalidChannelFlow, "channel is already active or a handshake is in flight")
+	}
+
+	s.SetMiddlewareDisabled(ctx, portID, msg.ConnectionId)
+
 	channelID, err := s.registerInterchainAccount(ctx, msg.ConnectionId, portID, msg.Version)
 	if err != nil {
+		s.Logger(ctx).Error("error registering interchain account", "error", err.Error())
 		return nil, err
 	}
 
+	s.Logger(ctx).Info("successfully registered interchain account", "channel-id", channelID)
+
 	return &types.MsgRegisterInterchainAccountResponse{
 		ChannelId: channelID,
+		PortId:    portID,
 	}, nil
 }
 
@@ -49,9 +60,10 @@ func (s msgServer) SendTx(goCtx context.Context, msg *types.MsgSendTx) (*types.M
 		return nil, err
 	}
 
-	// explicitly passing nil as the argument is discarded as the channel capability is retrieved in SendTx.
+	// the absolute timeout value is calculated using the controller chain block time + the relative timeout value
+	// this assumes time synchrony to a certain degree between the controller and counterparty host chain
 	absoluteTimeout := uint64(ctx.BlockTime().UnixNano()) + msg.RelativeTimeout
-	seq, err := s.Keeper.SendTx(ctx, nil, msg.ConnectionId, portID, msg.PacketData, absoluteTimeout)
+	seq, err := s.sendTx(ctx, msg.ConnectionId, portID, msg.PacketData, absoluteTimeout)
 	if err != nil {
 		return nil, err
 	}

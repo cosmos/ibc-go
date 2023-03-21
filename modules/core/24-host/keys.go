@@ -3,21 +3,7 @@ package host
 import (
 	"fmt"
 
-	"github.com/cosmos/ibc-go/v6/modules/core/exported"
-)
-
-const (
-	// ModuleName is the name of the IBC module
-	ModuleName = "ibc"
-
-	// StoreKey is the string store representation
-	StoreKey string = ModuleName
-
-	// QuerierRoute is the querier route for the IBC module
-	QuerierRoute string = ModuleName
-
-	// RouterKey is the msg router key for the IBC module
-	RouterKey string = ModuleName
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
 // KVStore key prefixes for IBC
@@ -53,6 +39,20 @@ func FullClientPath(clientID string, path string) string {
 // "clients/{clientID}/{path}" as a byte array.
 func FullClientKey(clientID string, path []byte) []byte {
 	return []byte(FullClientPath(clientID, string(path)))
+}
+
+// PrefixedClientStorePath returns a key path which can be used for prefixed
+// key store iteration. The prefix may be a clientType, clientID, or any
+// valid key prefix which may be concatenated with the client store constant.
+func PrefixedClientStorePath(prefix []byte) string {
+	return fmt.Sprintf("%s/%s", KeyClientStorePrefix, prefix)
+}
+
+// PrefixedClientStoreKey returns a key which can be used for prefixed
+// key store iteration. The prefix may be a clientType, clientID, or any
+// valid key prefix which may be concatenated with the client store constant.
+func PrefixedClientStoreKey(prefix []byte) []byte {
+	return []byte(PrefixedClientStorePath(prefix))
 }
 
 // ICS02

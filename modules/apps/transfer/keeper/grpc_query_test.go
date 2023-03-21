@@ -6,8 +6,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 
-	"github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
-	ibctesting "github.com/cosmos/ibc-go/v6/testing"
+	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
 func (suite *KeeperTestSuite) TestQueryDenomTrace() {
@@ -24,8 +24,8 @@ func (suite *KeeperTestSuite) TestQueryDenomTrace() {
 		{
 			"success: correct ibc denom",
 			func() {
-				expTrace.Path = "transfer/channelToA/transfer/channelToB"
-				expTrace.BaseDenom = "uatom"
+				expTrace.Path = "transfer/channelToA/transfer/channelToB" //nolint:goconst
+				expTrace.BaseDenom = "uatom"                              //nolint:goconst
 				suite.chainA.GetSimApp().TransferKeeper.SetDenomTrace(suite.chainA.GetContext(), expTrace)
 
 				req = &types.QueryDenomTraceRequest{
@@ -76,7 +76,7 @@ func (suite *KeeperTestSuite) TestQueryDenomTrace() {
 			tc.malleate()
 			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
 
-			res, err := suite.queryClient.DenomTrace(ctx, req)
+			res, err := suite.chainA.GetSimApp().TransferKeeper.DenomTrace(ctx, req)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -92,7 +92,7 @@ func (suite *KeeperTestSuite) TestQueryDenomTrace() {
 func (suite *KeeperTestSuite) TestQueryDenomTraces() {
 	var (
 		req       *types.QueryDenomTracesRequest
-		expTraces = types.Traces(nil)
+		expTraces = types.Traces{}
 	)
 
 	testCases := []struct {
@@ -136,7 +136,7 @@ func (suite *KeeperTestSuite) TestQueryDenomTraces() {
 			tc.malleate()
 			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
 
-			res, err := suite.queryClient.DenomTraces(ctx, req)
+			res, err := suite.chainA.GetSimApp().TransferKeeper.DenomTraces(ctx, req)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -152,7 +152,7 @@ func (suite *KeeperTestSuite) TestQueryDenomTraces() {
 func (suite *KeeperTestSuite) TestQueryParams() {
 	ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
 	expParams := types.DefaultParams()
-	res, _ := suite.queryClient.Params(ctx, &types.QueryParamsRequest{})
+	res, _ := suite.chainA.GetSimApp().TransferKeeper.Params(ctx, &types.QueryParamsRequest{})
 	suite.Require().Equal(&expParams, res.Params)
 }
 
@@ -209,7 +209,7 @@ func (suite *KeeperTestSuite) TestQueryDenomHash() {
 			tc.malleate()
 			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
 
-			res, err := suite.queryClient.DenomHash(ctx, req)
+			res, err := suite.chainA.GetSimApp().TransferKeeper.DenomHash(ctx, req)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -249,7 +249,7 @@ func (suite *KeeperTestSuite) TestEscrowAddress() {
 			tc.malleate()
 			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
 
-			res, err := suite.queryClient.EscrowAddress(ctx, req)
+			res, err := suite.chainA.GetSimApp().TransferKeeper.EscrowAddress(ctx, req)
 
 			if tc.expPass {
 				suite.Require().NoError(err)

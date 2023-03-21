@@ -1,11 +1,11 @@
 package keeper_test
 
 import (
-	genesistypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/genesis/types"
-	"github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/host/keeper"
-	"github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/host/types"
-	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
-	ibctesting "github.com/cosmos/ibc-go/v6/testing"
+	genesistypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/genesis/types"
+	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/keeper"
+	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/types"
+	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
+	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
 func (suite *KeeperTestSuite) TestInitGenesis() {
@@ -28,7 +28,7 @@ func (suite *KeeperTestSuite) TestInitGenesis() {
 				AccountAddress: interchainAccAddr.String(),
 			},
 		},
-		Port: icatypes.PortID,
+		Port: icatypes.HostPortID,
 	}
 
 	keeper.InitGenesis(suite.chainA.GetContext(), suite.chainA.GetSimApp().ICAHostKeeper, genesisState)
@@ -66,7 +66,7 @@ func (suite *KeeperTestSuite) TestExportGenesis() {
 	suite.Require().Equal(interchainAccAddr, genesisState.InterchainAccounts[0].AccountAddress)
 	suite.Require().Equal(path.EndpointA.ChannelConfig.PortID, genesisState.InterchainAccounts[0].PortId)
 
-	suite.Require().Equal(icatypes.PortID, genesisState.GetPort())
+	suite.Require().Equal(icatypes.HostPortID, genesisState.GetPort())
 
 	expParams := types.DefaultParams()
 	suite.Require().Equal(expParams, genesisState.GetParams())

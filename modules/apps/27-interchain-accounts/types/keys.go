@@ -8,11 +8,11 @@ const (
 	// ModuleName defines the interchain accounts module name
 	ModuleName = "interchainaccounts"
 
-	// PortID is the default port id that the interchain accounts host submodule binds to
-	PortID = "icahost"
+	// HostPortID is the default port id that the interchain accounts host submodule binds to
+	HostPortID = "icahost"
 
-	// PortPrefix is the default port prefix that the interchain accounts controller submodule binds to
-	PortPrefix = "icacontroller-"
+	// ControllerPortPrefix is the default port prefix that the interchain accounts controller submodule binds to
+	ControllerPortPrefix = "icacontroller-"
 
 	// Version defines the current version for interchain accounts
 	Version = "ics27-1"
@@ -42,6 +42,12 @@ var (
 
 	// IsMiddlewareEnabledPrefix defines the key prefix used to store a flag for legacy API callback routing via ibc middleware
 	IsMiddlewareEnabledPrefix = "isMiddlewareEnabled"
+
+	// MiddlewareEnabled is the value used to signal that controller middleware is enabled
+	MiddlewareEnabled = []byte{0x01}
+
+	// MiddlewareDisabled is the value used to signal that controller midleware is disabled
+	MiddlewareDisabled = []byte{0x02}
 )
 
 // KeyActiveChannel creates and returns a new key used for active channels store operations

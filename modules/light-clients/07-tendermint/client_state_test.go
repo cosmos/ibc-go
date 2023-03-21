@@ -3,18 +3,18 @@ package tendermint_test
 import (
 	"time"
 
-	ics23 "github.com/confio/ics23/go"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	ics23 "github.com/cosmos/ics23/go"
 
-	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v6/modules/core/23-commitment/types"
-	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v6/modules/core/exported"
-	ibctm "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint"
-	ibctesting "github.com/cosmos/ibc-go/v6/testing"
-	ibcmock "github.com/cosmos/ibc-go/v6/testing/mock"
+	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
+	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
+	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	ibcmock "github.com/cosmos/ibc-go/v7/testing/mock"
 )
 
 const (
@@ -108,18 +108,33 @@ func (suite *TendermintTestSuite) TestValidate() {
 			expPass:     false,
 		},
 		{
-			name:        "invalid trusting period",
+			name:        "invalid zero trusting period",
 			clientState: ibctm.NewClientState(chainID, ibctm.DefaultTrustLevel, 0, ubdPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath),
 			expPass:     false,
 		},
 		{
-			name:        "invalid unbonding period",
+			name:        "invalid negative trusting period",
+			clientState: ibctm.NewClientState(chainID, ibctm.DefaultTrustLevel, -1, ubdPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath),
+			expPass:     false,
+		},
+		{
+			name:        "invalid zero unbonding period",
 			clientState: ibctm.NewClientState(chainID, ibctm.DefaultTrustLevel, trustingPeriod, 0, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath),
 			expPass:     false,
 		},
 		{
-			name:        "invalid max clock drift",
+			name:        "invalid negative unbonding period",
+			clientState: ibctm.NewClientState(chainID, ibctm.DefaultTrustLevel, trustingPeriod, -1, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath),
+			expPass:     false,
+		},
+		{
+			name:        "invalid zero max clock drift",
 			clientState: ibctm.NewClientState(chainID, ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod, 0, height, commitmenttypes.GetSDKSpecs(), upgradePath),
+			expPass:     false,
+		},
+		{
+			name:        "invalid negative max clock drift",
+			clientState: ibctm.NewClientState(chainID, ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod, -1, height, commitmenttypes.GetSDKSpecs(), upgradePath),
 			expPass:     false,
 		},
 		{
@@ -177,19 +192,30 @@ func (suite *TendermintTestSuite) TestInitialize() {
 		},
 	}
 
-	path := ibctesting.NewPath(suite.chainA, suite.chainB)
-	err := path.EndpointA.CreateClient()
-	suite.Require().NoError(err)
-
-	clientState := suite.chainA.GetClientState(path.EndpointA.ClientID)
-	store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
-
 	for _, tc := range testCases {
+		suite.SetupTest()
+		path := ibctesting.NewPath(suite.chainA, suite.chainB)
+
+		tmConfig, ok := path.EndpointB.ClientConfig.(*ibctesting.TendermintConfig)
+		suite.Require().True(ok)
+
+		clientState := ibctm.NewClientState(
+			path.EndpointB.Chain.ChainID,
+			tmConfig.TrustLevel, tmConfig.TrustingPeriod, tmConfig.UnbondingPeriod, tmConfig.MaxClockDrift,
+			suite.chainB.LastHeader.GetTrustedHeight(), commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath,
+		)
+
+		store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
 		err := clientState.Initialize(suite.chainA.GetContext(), suite.chainA.Codec, store, tc.consensusState)
+
 		if tc.expPass {
 			suite.Require().NoError(err, "valid case returned an error")
+			suite.Require().True(store.Has(host.ClientStateKey()))
+			suite.Require().True(store.Has(host.ConsensusStateKey(suite.chainB.LastHeader.GetTrustedHeight())))
 		} else {
 			suite.Require().Error(err, "invalid case didn't return an error")
+			suite.Require().False(store.Has(host.ClientStateKey()))
+			suite.Require().False(store.Has(host.ConsensusStateKey(suite.chainB.LastHeader.GetTrustedHeight())))
 		}
 	}
 }
@@ -199,9 +225,10 @@ func (suite *TendermintTestSuite) TestVerifyMembership() {
 		testingpath      *ibctesting.Path
 		delayTimePeriod  uint64
 		delayBlockPeriod uint64
+		err              error
 		proofHeight      exported.Height
 		proof            []byte
-		path             []byte
+		path             exported.Path
 		value            []byte
 	)
 
@@ -221,10 +248,7 @@ func (suite *TendermintTestSuite) TestVerifyMembership() {
 			"successful ConsensusState verification", func() {
 				key := host.FullConsensusStateKey(testingpath.EndpointB.ClientID, testingpath.EndpointB.GetClientState().GetLatestHeight())
 				merklePath := commitmenttypes.NewMerklePath(string(key))
-				merklePath, err := commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
-				suite.Require().NoError(err)
-
-				path, err = suite.chainB.Codec.Marshal(&merklePath)
+				path, err = commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
 				suite.Require().NoError(err)
 
 				proof, proofHeight = suite.chainB.QueryProof(key)
@@ -239,10 +263,7 @@ func (suite *TendermintTestSuite) TestVerifyMembership() {
 			"successful Connection verification", func() {
 				key := host.ConnectionKey(testingpath.EndpointB.ConnectionID)
 				merklePath := commitmenttypes.NewMerklePath(string(key))
-				merklePath, err := commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
-				suite.Require().NoError(err)
-
-				path, err = suite.chainB.Codec.Marshal(&merklePath)
+				path, err = commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
 				suite.Require().NoError(err)
 
 				proof, proofHeight = suite.chainB.QueryProof(key)
@@ -257,10 +278,7 @@ func (suite *TendermintTestSuite) TestVerifyMembership() {
 			"successful Channel verification", func() {
 				key := host.ChannelKey(testingpath.EndpointB.ChannelConfig.PortID, testingpath.EndpointB.ChannelID)
 				merklePath := commitmenttypes.NewMerklePath(string(key))
-				merklePath, err := commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
-				suite.Require().NoError(err)
-
-				path, err = suite.chainB.Codec.Marshal(&merklePath)
+				path, err = commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
 				suite.Require().NoError(err)
 
 				proof, proofHeight = suite.chainB.QueryProof(key)
@@ -274,17 +292,14 @@ func (suite *TendermintTestSuite) TestVerifyMembership() {
 		{
 			"successful PacketCommitment verification", func() {
 				// send from chainB to chainA since we are proving chainB sent a packet
-				packet := channeltypes.NewPacket(ibctesting.MockPacketData, 1, testingpath.EndpointB.ChannelConfig.PortID, testingpath.EndpointB.ChannelID, testingpath.EndpointA.ChannelConfig.PortID, testingpath.EndpointA.ChannelID, clienttypes.NewHeight(1, 100), 0)
-				err := testingpath.EndpointB.SendPacket(packet)
+				sequence, err := testingpath.EndpointB.SendPacket(clienttypes.NewHeight(1, 100), 0, ibctesting.MockPacketData)
 				suite.Require().NoError(err)
 
 				// make packet commitment proof
+				packet := channeltypes.NewPacket(ibctesting.MockPacketData, sequence, testingpath.EndpointB.ChannelConfig.PortID, testingpath.EndpointB.ChannelID, testingpath.EndpointA.ChannelConfig.PortID, testingpath.EndpointA.ChannelID, clienttypes.NewHeight(1, 100), 0)
 				key := host.PacketCommitmentKey(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 				merklePath := commitmenttypes.NewMerklePath(string(key))
-				merklePath, err = commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
-				suite.Require().NoError(err)
-
-				path, err = suite.chainB.Codec.Marshal(&merklePath)
+				path, err = commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
 				suite.Require().NoError(err)
 
 				proof, proofHeight = testingpath.EndpointB.QueryProof(key)
@@ -295,20 +310,17 @@ func (suite *TendermintTestSuite) TestVerifyMembership() {
 		{
 			"successful Acknowledgement verification", func() {
 				// send from chainA to chainB since we are proving chainB wrote an acknowledgement
-				packet := channeltypes.NewPacket(ibctesting.MockPacketData, 1, testingpath.EndpointA.ChannelConfig.PortID, testingpath.EndpointA.ChannelID, testingpath.EndpointB.ChannelConfig.PortID, testingpath.EndpointB.ChannelID, clienttypes.NewHeight(1, 100), 0)
-				err := testingpath.EndpointA.SendPacket(packet)
+				sequence, err := testingpath.EndpointA.SendPacket(clienttypes.NewHeight(1, 100), 0, ibctesting.MockPacketData)
 				suite.Require().NoError(err)
 
 				// write receipt and ack
+				packet := channeltypes.NewPacket(ibctesting.MockPacketData, sequence, testingpath.EndpointA.ChannelConfig.PortID, testingpath.EndpointA.ChannelID, testingpath.EndpointB.ChannelConfig.PortID, testingpath.EndpointB.ChannelID, clienttypes.NewHeight(1, 100), 0)
 				err = testingpath.EndpointB.RecvPacket(packet)
 				suite.Require().NoError(err)
 
 				key := host.PacketAcknowledgementKey(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 				merklePath := commitmenttypes.NewMerklePath(string(key))
-				merklePath, err = commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
-				suite.Require().NoError(err)
-
-				path, err = suite.chainB.Codec.Marshal(&merklePath)
+				path, err = commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
 				suite.Require().NoError(err)
 
 				proof, proofHeight = testingpath.EndpointB.QueryProof(key)
@@ -320,22 +332,19 @@ func (suite *TendermintTestSuite) TestVerifyMembership() {
 		{
 			"successful NextSequenceRecv verification", func() {
 				// send from chainA to chainB since we are proving chainB incremented the sequence recv
-				packet := channeltypes.NewPacket(ibctesting.MockPacketData, 1, testingpath.EndpointA.ChannelConfig.PortID, testingpath.EndpointA.ChannelID, testingpath.EndpointB.ChannelConfig.PortID, testingpath.EndpointB.ChannelID, clienttypes.NewHeight(1, 100), 0)
 
 				// send packet
-				err := testingpath.EndpointA.SendPacket(packet)
+				sequence, err := testingpath.EndpointA.SendPacket(clienttypes.NewHeight(1, 100), 0, ibctesting.MockPacketData)
 				suite.Require().NoError(err)
 
 				// next seq recv incremented
+				packet := channeltypes.NewPacket(ibctesting.MockPacketData, sequence, testingpath.EndpointA.ChannelConfig.PortID, testingpath.EndpointA.ChannelID, testingpath.EndpointB.ChannelConfig.PortID, testingpath.EndpointB.ChannelID, clienttypes.NewHeight(1, 100), 0)
 				err = testingpath.EndpointB.RecvPacket(packet)
 				suite.Require().NoError(err)
 
 				key := host.NextSequenceRecvKey(packet.GetSourcePort(), packet.GetSourceChannel())
 				merklePath := commitmenttypes.NewMerklePath(string(key))
-				merklePath, err = commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
-				suite.Require().NoError(err)
-
-				path, err = suite.chainB.Codec.Marshal(&merklePath)
+				path, err = commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
 				suite.Require().NoError(err)
 
 				proof, proofHeight = testingpath.EndpointB.QueryProof(key)
@@ -348,10 +357,7 @@ func (suite *TendermintTestSuite) TestVerifyMembership() {
 			"successful verification outside IBC store", func() {
 				key := transfertypes.PortKey
 				merklePath := commitmenttypes.NewMerklePath(string(key))
-				merklePath, err := commitmenttypes.ApplyPrefix(commitmenttypes.NewMerklePrefix([]byte(transfertypes.StoreKey)), merklePath)
-				suite.Require().NoError(err)
-
-				path, err = suite.chainB.Codec.Marshal(&merklePath)
+				path, err = commitmenttypes.ApplyPrefix(commitmenttypes.NewMerklePrefix([]byte(transfertypes.StoreKey)), merklePath)
 				suite.Require().NoError(err)
 
 				clientState := testingpath.EndpointA.GetClientState()
@@ -392,9 +398,11 @@ func (suite *TendermintTestSuite) TestVerifyMembership() {
 			}, false,
 		},
 		{
-			"failed to unmarshal merkle path", func() {
-				path = []byte("invalid merkle path")
-			}, false,
+			"invalid path type",
+			func() {
+				path = ibcmock.KeyPath{}
+			},
+			false,
 		},
 		{
 			"failed to unmarshal merkle proof", func() {
@@ -410,6 +418,12 @@ func (suite *TendermintTestSuite) TestVerifyMembership() {
 			"proof verification failed", func() {
 				// change the value being proved
 				value = []byte("invalid value")
+			}, false,
+		},
+		{
+			"proof is empty", func() {
+				// change the inserted proof
+				proof = []byte{}
 			}, false,
 		},
 	}
@@ -431,10 +445,7 @@ func (suite *TendermintTestSuite) TestVerifyMembership() {
 			// may be overwritten by malleate()
 			key := host.FullClientStateKey(testingpath.EndpointB.ClientID)
 			merklePath := commitmenttypes.NewMerklePath(string(key))
-			merklePath, err := commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
-			suite.Require().NoError(err)
-
-			path, err = suite.chainA.Codec.Marshal(&merklePath)
+			path, err = commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
 			suite.Require().NoError(err)
 
 			proof, proofHeight = suite.chainB.QueryProof(key)
@@ -469,9 +480,10 @@ func (suite *TendermintTestSuite) TestVerifyNonMembership() {
 		testingpath         *ibctesting.Path
 		delayTimePeriod     uint64
 		delayBlockPeriod    uint64
+		err                 error
 		proofHeight         exported.Height
+		path                exported.Path
 		proof               []byte
-		path                []byte
 		invalidClientID     = "09-tendermint"
 		invalidConnectionID = "connection-100"
 		invalidChannelID    = "channel-800"
@@ -494,10 +506,7 @@ func (suite *TendermintTestSuite) TestVerifyNonMembership() {
 			"successful ConsensusState verification of non membership", func() {
 				key := host.FullConsensusStateKey(invalidClientID, testingpath.EndpointB.GetClientState().GetLatestHeight())
 				merklePath := commitmenttypes.NewMerklePath(string(key))
-				merklePath, err := commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
-				suite.Require().NoError(err)
-
-				path, err = suite.chainB.Codec.Marshal(&merklePath)
+				path, err = commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
 				suite.Require().NoError(err)
 
 				proof, proofHeight = suite.chainB.QueryProof(key)
@@ -508,10 +517,7 @@ func (suite *TendermintTestSuite) TestVerifyNonMembership() {
 			"successful Connection verification of non membership", func() {
 				key := host.ConnectionKey(invalidConnectionID)
 				merklePath := commitmenttypes.NewMerklePath(string(key))
-				merklePath, err := commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
-				suite.Require().NoError(err)
-
-				path, err = suite.chainB.Codec.Marshal(&merklePath)
+				path, err = commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
 				suite.Require().NoError(err)
 
 				proof, proofHeight = suite.chainB.QueryProof(key)
@@ -522,10 +528,7 @@ func (suite *TendermintTestSuite) TestVerifyNonMembership() {
 			"successful Channel verification of non membership", func() {
 				key := host.ChannelKey(testingpath.EndpointB.ChannelConfig.PortID, invalidChannelID)
 				merklePath := commitmenttypes.NewMerklePath(string(key))
-				merklePath, err := commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
-				suite.Require().NoError(err)
-
-				path, err = suite.chainB.Codec.Marshal(&merklePath)
+				path, err = commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
 				suite.Require().NoError(err)
 
 				proof, proofHeight = suite.chainB.QueryProof(key)
@@ -537,10 +540,7 @@ func (suite *TendermintTestSuite) TestVerifyNonMembership() {
 				// make packet commitment proof
 				key := host.PacketCommitmentKey(invalidPortID, invalidChannelID, 1)
 				merklePath := commitmenttypes.NewMerklePath(string(key))
-				merklePath, err := commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
-				suite.Require().NoError(err)
-
-				path, err = suite.chainB.Codec.Marshal(&merklePath)
+				path, err = commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
 				suite.Require().NoError(err)
 
 				proof, proofHeight = testingpath.EndpointB.QueryProof(key)
@@ -550,10 +550,7 @@ func (suite *TendermintTestSuite) TestVerifyNonMembership() {
 			"successful Acknowledgement verification of non membership", func() {
 				key := host.PacketAcknowledgementKey(invalidPortID, invalidChannelID, 1)
 				merklePath := commitmenttypes.NewMerklePath(string(key))
-				merklePath, err := commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
-				suite.Require().NoError(err)
-
-				path, err = suite.chainB.Codec.Marshal(&merklePath)
+				path, err = commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
 				suite.Require().NoError(err)
 
 				proof, proofHeight = testingpath.EndpointB.QueryProof(key)
@@ -564,10 +561,7 @@ func (suite *TendermintTestSuite) TestVerifyNonMembership() {
 			"successful NextSequenceRecv verification of non membership", func() {
 				key := host.NextSequenceRecvKey(invalidPortID, invalidChannelID)
 				merklePath := commitmenttypes.NewMerklePath(string(key))
-				merklePath, err := commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
-				suite.Require().NoError(err)
-
-				path, err = suite.chainB.Codec.Marshal(&merklePath)
+				path, err = commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
 				suite.Require().NoError(err)
 
 				proof, proofHeight = testingpath.EndpointB.QueryProof(key)
@@ -578,10 +572,7 @@ func (suite *TendermintTestSuite) TestVerifyNonMembership() {
 			"successful verification of non membership outside IBC store", func() {
 				key := []byte{0x08}
 				merklePath := commitmenttypes.NewMerklePath(string(key))
-				merklePath, err := commitmenttypes.ApplyPrefix(commitmenttypes.NewMerklePrefix([]byte(transfertypes.StoreKey)), merklePath)
-				suite.Require().NoError(err)
-
-				path, err = suite.chainB.Codec.Marshal(&merklePath)
+				path, err = commitmenttypes.ApplyPrefix(commitmenttypes.NewMerklePrefix([]byte(transfertypes.StoreKey)), merklePath)
 				suite.Require().NoError(err)
 
 				clientState := testingpath.EndpointA.GetClientState()
@@ -619,9 +610,11 @@ func (suite *TendermintTestSuite) TestVerifyNonMembership() {
 			}, false,
 		},
 		{
-			"failed to unmarshal merkle path", func() {
-				path = []byte("invalid merkle path")
-			}, false,
+			"invalid path type",
+			func() {
+				path = ibcmock.KeyPath{}
+			},
+			false,
 		},
 		{
 			"failed to unmarshal merkle proof", func() {
@@ -638,13 +631,16 @@ func (suite *TendermintTestSuite) TestVerifyNonMembership() {
 				// change the value being proved
 				key := host.FullClientStateKey(testingpath.EndpointB.ClientID)
 				merklePath := commitmenttypes.NewMerklePath(string(key))
-				merklePath, err := commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
-				suite.Require().NoError(err)
-
-				path, err = suite.chainA.Codec.Marshal(&merklePath)
+				path, err = commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
 				suite.Require().NoError(err)
 
 				proof, proofHeight = suite.chainB.QueryProof(key)
+			}, false,
+		},
+		{
+			"proof is empty", func() {
+				// change the inserted proof
+				proof = []byte{}
 			}, false,
 		},
 	}
@@ -667,10 +663,7 @@ func (suite *TendermintTestSuite) TestVerifyNonMembership() {
 			key := host.FullClientStateKey("invalid-client-id")
 
 			merklePath := commitmenttypes.NewMerklePath(string(key))
-			merklePath, err := commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
-			suite.Require().NoError(err)
-
-			path, err = suite.chainA.Codec.Marshal(&merklePath)
+			path, err = commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
 			suite.Require().NoError(err)
 
 			proof, proofHeight = suite.chainB.QueryProof(key)
