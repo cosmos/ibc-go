@@ -2,11 +2,10 @@
 name: Capability Module
 on:
   push:
-#    branches: [main]
+    branches: [main]
   pull_request:
     paths:
-      - './modules/capability'
-      - './.github/workflows/capability.yml'
+      - './modules/capability/**'
 
 jobs:
   build:
