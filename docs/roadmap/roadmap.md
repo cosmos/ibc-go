@@ -4,7 +4,7 @@ order: 1
 
 # Roadmap ibc-go
 
-_Lastest update: December 21st, 2022_
+_Lastest update: March 19th, 2023_
 
 This document endeavours to inform the wider IBC community about plans and priorities for work on ibc-go by the team at Interchain GmbH. It is intended to broadly inform all users of ibc-go, including developers and operators of IBC, relayer, chain and wallet applications.
 
@@ -18,9 +18,9 @@ Because it is so important to have an ibc-go release compatible with the latest 
 
 This feature will add support for applications on a chain to communicate with applications on the same chain using the existing standard interface to communicate with applications on remote chains. This is a powerful UX improvement, particularly for those users interested in interacting with multiple smart contracts on a single chain through one interface.
 
-For more details, see the design proposal and discussion [here](https://github.com/cosmos/ibc-go/discussions/2191).
+For more details, see the new [ICS 09 specification](https://github.com/cosmos/ibc/pull/936).
 
-A special shout out to Strangelove for their substantial contribution on this feature.
+A special shout out to Strangelove Ventures and Polymer Labs for their substantial contribution on this feature.
 
 ## v7.2.0
 
