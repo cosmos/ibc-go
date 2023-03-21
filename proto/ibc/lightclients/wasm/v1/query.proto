@@ -33,7 +33,7 @@ service Query {
   }
 
   // Get All Wasm code for given code id
-  rpc AllWasmCode(WasmCodeQuery) returns (AllWasmCodeResponse) {
+  rpc AllWasmCode(AllWasmCodeQuery) returns (AllWasmCodeResponse) {
     option (google.api.http).get = "/ibc/core/wasm/v1beta1/allcode";
   }
 }
