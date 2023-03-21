@@ -11,6 +11,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+
 	ibcmock "github.com/cosmos/ibc-go/v7/testing/mock"
 	"github.com/cosmos/ibc-go/v7/testing/simapp"
 
@@ -21,7 +22,6 @@ import (
 
 type CapabilityTestSuite struct {
 	suite.Suite
-
 	cdc    codec.Codec
 	ctx    sdk.Context
 	app    *simapp.SimApp
