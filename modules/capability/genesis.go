@@ -18,7 +18,7 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 	for _, genOwner := range genState.Owners {
 		k.SetOwners(ctx, genOwner.Index, genOwner.IndexOwners)
 	}
-	
+
 	// initialize in-memory capabilities
 	k.InitMemStore(ctx)
 }
