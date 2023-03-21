@@ -11,13 +11,13 @@ function _get_test(){
     if [ -n "$1" ]; then
         echo "$1"
         return
-    # if fzf is installed, we can use it to provide an interactively mechanism to select all available tests.
-    elif command -v fzf > /dev/null; then
+    # if fzf and jq are installed, we can use them to provide an interactive mechanism to select from all available tests.
+    elif command -v fzf > /dev/null && command -v jq > /dev/null; then
         cd ..
         go run -mod=readonly cmd/build_test_matrix/main.go | jq  -r '.include[] | .test' | fzf
         cd - > /dev/null
     else
-        echo "TEST was not provided and fzf is not installed. Unable to determine which test should be used."
+        echo "TEST was not provided and both fzf and jq are not present. Unable to determine which test should be used."
         exit 1
     fi
 }
