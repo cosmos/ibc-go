@@ -127,3 +127,21 @@ func (k Keeper) getWasmCode(c context.Context, query *types.WasmCodeQuery) (*typ
 		Code: code,
 	}, nil
 }
+
+func (k Keeper) getAllWasmCode(c context.Context, query *types.AllWasmCodeQuery) (*types.AllWasmCodeResponse, error) {
+	ctx := sdk.UnwrapSDKContext(c)
+
+	var allCode []string
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, types.PrefixCodeIDKey)
+
+	for ; iterator.Valid(); iterator.Next() {
+		codeKey := types.CodeID(iterator.Value())
+		code := store.Get(codeKey)
+		allCode = append(allCode, string(code))
+	}
+
+	return &types.AllWasmCodeResponse{
+		CodeStr: allCode,
+	}, nil
+}
