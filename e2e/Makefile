@@ -16,11 +16,4 @@ e2e-test: init cleanup-ibc-test-containers
 compatibility-tests:
 	./scripts/run-compatibility-tests.sh $(release_branch)
 
-<<<<<<< HEAD
-list:
-	./scripts/list-e2e.sh
-
-.PHONY: cleanup-ibc-test-containers e2e-test compatibility-tests
-=======
 .PHONY: cleanup-ibc-test-containers e2e-test compatibility-tests init
->>>>>>> main
