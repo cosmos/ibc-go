@@ -34,9 +34,3 @@ func (m MsgPushNewWasmCode) GetSigners() []sdk.AccAddress {
 	}
 	return []sdk.AccAddress{signer}
 }
-
-// Route Implements Msg.
-func (m MsgPushNewWasmCode) Route() string { return sdk.MsgTypeURL(&m) }
-
-// Type Implements Msg.
-func (m MsgPushNewWasmCode) Type() string { return sdk.MsgTypeURL(&m) }
