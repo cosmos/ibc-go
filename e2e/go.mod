@@ -2,8 +2,6 @@ module github.com/cosmos/ibc-go/e2e
 
 go 1.19
 
-replace github.com/strangelove-ventures/interchaintest/v7 => github.com/strangelove-ventures/interchaintest/v7 v7.0.0-20230314162526-1e2bf4264b75
-
 require (
 	github.com/cometbft/cometbft v0.37.0
 	github.com/cosmos/cosmos-sdk v0.47.0
@@ -11,7 +9,7 @@ require (
 	github.com/cosmos/ibc-go/v7 v7.0.0-rc1
 	github.com/cosmos/interchain-accounts v0.5.0
 	github.com/docker/docker v20.10.19+incompatible
-	github.com/strangelove-ventures/interchaintest/v7 v7.0.0-00010101000000-000000000000
+	github.com/strangelove-ventures/interchaintest/v7 v7.0.0-20230302213153-84ec330a137b
 	github.com/stretchr/testify v1.8.2
 	go.uber.org/zap v1.24.0
 	golang.org/x/mod v0.9.0
