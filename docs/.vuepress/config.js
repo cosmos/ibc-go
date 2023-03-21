@@ -160,6 +160,10 @@ module.exports = {
         label: "v6.1.0",
         key: "v6.1.0",
       },
+      {
+        label: "v7.0.0",
+        key: "v7.0.0",
+      },
     ],
     topbar: {
       banner: true,
