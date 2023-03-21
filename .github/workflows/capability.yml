@@ -2,7 +2,7 @@
 name: Capability Module
 on:
   push:
-    branches: [main]
+#    branches: [main]
   pull_request:
     paths:
       - './modules/capability'
