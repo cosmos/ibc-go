@@ -7,13 +7,20 @@ cleanup-ibc-test-containers:
 		$(DOCKER) rm $$id ; \
 	done
 
-e2e-test: cleanup-ibc-test-containers
+init:
+	./scripts/init.sh
+
+e2e-test: init cleanup-ibc-test-containers
 	./scripts/run-e2e.sh $(test) $(entrypoint)
 
 compatibility-tests:
 	./scripts/run-compatibility-tests.sh $(release_branch)
 
+<<<<<<< HEAD
 list:
 	./scripts/list-e2e.sh
 
 .PHONY: cleanup-ibc-test-containers e2e-test compatibility-tests
+=======
+.PHONY: cleanup-ibc-test-containers e2e-test compatibility-tests init
+>>>>>>> main
