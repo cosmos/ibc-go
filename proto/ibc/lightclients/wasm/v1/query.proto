@@ -4,10 +4,20 @@ package ibc.lightclients.wasm.v1;
 import "google/api/annotations.proto";
 
 option go_package = "github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm/types";
+import "cosmos/base/query/v1beta1/pagination.proto";
 
 // WasmCode query
 message WasmCodeQuery {
   string code_id = 1;
+}
+
+// AllWasmCode query
+message AllWasmCodeQuery {
+}
+
+// AllWasmCode response
+message AllWasmCodeResponse {
+  repeated string code_str = 1;
 }
 
 // WasmCode response
@@ -20,5 +30,10 @@ service Query {
   // Get Wasm code for given code id
   rpc WasmCode(WasmCodeQuery) returns (WasmCodeResponse) {
     option (google.api.http).get = "/ibc/core/wasm/v1beta1/code/{code_id}";
+  }
+
+  // Get All Wasm code for given code id
+  rpc AllWasmCode(WasmCodeQuery) returns (AllWasmCodeResponse) {
+    option (google.api.http).get = "/ibc/core/wasm/v1beta1/allcode";
   }
 }
