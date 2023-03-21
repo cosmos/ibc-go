@@ -2,8 +2,9 @@ name: Capability Module
 on:
   push:
     pull_request:
-      - 'modules/capability/**'
       - '.github/workflows/capability.yml'
+      - 'modules/capability/**'
+      - 'proto/capability/**'
 
 jobs:
   build:
@@ -31,4 +32,4 @@ jobs:
       - name: Go Test
         run: |
           cd modules/capability
-          go test -mod=readonly ./...
+          go test -v -mod=readonly ./...
