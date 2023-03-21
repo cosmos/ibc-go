@@ -14,7 +14,7 @@ function _get_test(){
     # if fzf is installed, we can use it to provide an interactively mechanism to select all available tests.
     elif command -v fzf > /dev/null; then
         cd ..
-        go run cmd/build_test_matrix/main.go | jq  -r '.include[] | .test' | fzf
+        go run -mod=readonly cmd/build_test_matrix/main.go | jq  -r '.include[] | .test' | fzf
         cd - > /dev/null
     else
         echo "TEST was not provided and fzf is not installed. Unable to determine which test should be used."
