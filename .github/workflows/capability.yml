@@ -6,6 +6,7 @@ on:
   pull_request:
     paths:
       - './modules/capability'
+      - './.github/workflows/capability.yml'
 
 jobs:
   build:
