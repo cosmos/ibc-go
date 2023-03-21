@@ -20,6 +20,7 @@ func GetQueryCmd() *cobra.Command {
 
 	queryCmd.AddCommand(
 		getCmdCode(),
+		getAllWasmCode(),
 	)
 
 	return queryCmd
