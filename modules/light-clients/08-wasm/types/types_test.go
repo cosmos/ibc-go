@@ -88,7 +88,7 @@ func (suite *WasmTestSuite) SetupWithChannel() {
 func (suite *WasmTestSuite) SetupWithEmptyClient() {
 	ibctesting.DefaultTestingAppInit = ibctesting.SetupTestingApp
 	suite.CommonSetupTest()
-	
+
 	clientStateData, err := base64.StdEncoding.DecodeString(suite.testData["client_state_data"])
 	suite.Require().NoError(err)
 
@@ -101,7 +101,7 @@ func (suite *WasmTestSuite) SetupWithEmptyClient() {
 		},
 	}
 	suite.clientState = &wasmClientState
-	
+
 	consensusStateData, err := base64.StdEncoding.DecodeString(suite.testData["consensus_state_data"])
 	suite.Require().NoError(err)
 	root, err := base64.StdEncoding.DecodeString(suite.testData["root"])
@@ -174,6 +174,13 @@ func (suite *WasmTestSuite) TestQueryWasmCode() {
 	res, err := suite.wasmKeeper.WasmCode(suite.ctx, &wasmtypes.WasmCodeQuery{CodeId: hex.EncodeToString(suite.codeID)})
 	suite.Require().NoError(err)
 	suite.Require().NotNil(res.Code)
+}
+
+func (suite *WasmTestSuite) TestQueryAllWasmCode() {
+	// test valid query request
+	res, err := suite.wasmKeeper.AllWasmCodeID(suite.ctx, &wasmtypes.AllWasmCodeIDQuery{})
+	suite.Require().NoError(err)
+	suite.Require().NotNil(res.CodeIds)
 }
 
 func TestWasmTestSuite(t *testing.T) {

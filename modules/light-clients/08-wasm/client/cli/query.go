@@ -74,7 +74,7 @@ func getAllWasmCode() *cobra.Command {
 				Pagination: pageReq,
 			}
 
-			res, err := queryClient.AllWasmCode(context.Background(), &req)
+			res, err := queryClient.AllWasmCodeID(context.Background(), &req)
 			if err != nil {
 				return err
 			}

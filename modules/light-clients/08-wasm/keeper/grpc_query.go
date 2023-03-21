@@ -14,6 +14,6 @@ func (q Keeper) WasmCode(c context.Context, req *types.WasmCodeQuery) (*types.Wa
 }
 
 // WasmCode implements the IBC QueryServer interface
-func (q Keeper) AllWasmCode(c context.Context, req *types.AllWasmCodeIDQuery) (*types.AllWasmCodeIDResponse, error) {
+func (q Keeper) AllWasmCodeID(c context.Context, req *types.AllWasmCodeIDQuery) (*types.AllWasmCodeIDResponse, error) {
 	return q.getAllWasmCodeID(c, req)
 }
