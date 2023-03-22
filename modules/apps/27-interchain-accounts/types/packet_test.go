@@ -85,10 +85,9 @@ func (suite *TypesTestSuite) TestValidateBasic() {
 
 func (suite *TypesTestSuite) TestGetCallbackAddresses() {
 	testCases := []struct {
-		name                string
-		packetData          types.InterchainAccountPacketData
-		expSrcCallbackAddr  string
-		expDestCallbackAddr string
+		name               string
+		packetData         types.InterchainAccountPacketData
+		expSrcCallbackAddr string
 	}{
 		{
 			"memo is empty",
@@ -97,7 +96,6 @@ func (suite *TypesTestSuite) TestGetCallbackAddresses() {
 				Data: []byte("data"),
 				Memo: "",
 			},
-			"",
 			"",
 		},
 		{
@@ -108,17 +106,47 @@ func (suite *TypesTestSuite) TestGetCallbackAddresses() {
 				Memo: "memo",
 			},
 			"",
-			"",
 		},
 		{
 			"memo is does not have callbacks in json struct",
 			types.InterchainAccountPacketData{
 				Type: types.EXECUTE_TX,
 				Data: []byte("data"),
-				Memo: json.MustMarshalJSON,
+				Memo: "{\"Key\": 10}",
 			},
 			"",
+		},
+		{
+			"memo has callbacks in json struct but does not have src_callback_address key",
+			types.InterchainAccountPacketData{
+				Type: types.EXECUTE_TX,
+				Data: []byte("data"),
+				Memo: "{\"callbacks\": {\"Key\": 10}}",
+			},
 			"",
 		},
+		{
+			"memo has callbacks in json struct but does not have string value for src_callback_address key",
+			types.InterchainAccountPacketData{
+				Type: types.EXECUTE_TX,
+				Data: []byte("data"),
+				Memo: "{\"callbacks\": {\"src_callback_address\": 10}}",
+			},
+			"",
+		},
+		{
+			"memo has callbacks in json struct but does not have string value for src_callback_address key",
+			types.InterchainAccountPacketData{
+				Type: types.EXECUTE_TX,
+				Data: []byte("data"),
+				Memo: "{\"callbacks\": {\"src_callback_address\": \"testAddress\"}}",
+			},
+			"testAddress",
+		},
+	}
+
+	for _, tc := range testCases {
+		srcCbAddr := tc.packetData.GetSrcCallbackAddress()
+		suite.Require().Equal(tc.expSrcCallbackAddr, srcCbAddr, "%s testcase does not have expected src_callback_address", tc.name)
 	}
 }

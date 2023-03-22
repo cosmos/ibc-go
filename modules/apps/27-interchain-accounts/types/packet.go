@@ -97,7 +97,10 @@ func (iapd InterchainAccountPacketData) GetSrcCallbackAddress() string {
 		return ""
 	}
 
-	callbackAddr := callbackData["src_callback_address"].(string)
+	callbackAddr, ok := callbackData["src_callback_address"].(string)
+	if !ok {
+		return ""
+	}
 	return callbackAddr
 }
 
