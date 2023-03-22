@@ -31,11 +31,7 @@ func (p PacketFee) Validate() error {
 		return ErrRelayersNotEmpty
 	}
 
-	if err := p.Fee.Validate(); err != nil {
-		return err
-	}
-
-	return nil
+	return p.Fee.Validate()
 }
 
 // NewPacketFees creates and returns a new PacketFees struct including a list of type PacketFee
