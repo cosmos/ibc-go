@@ -245,11 +245,7 @@ func (cs ClientState) VerifyMembership(
 		return errorsmod.Wrap(clienttypes.ErrConsensusStateNotFound, "please ensure the proof was constructed against a height that exists on the client")
 	}
 
-	if err := merkleProof.VerifyMembership(cs.ProofSpecs, consensusState.GetRoot(), merklePath, value); err != nil {
-		return err
-	}
-
-	return nil
+	return merkleProof.VerifyMembership(cs.ProofSpecs, consensusState.GetRoot(), merklePath, value)
 }
 
 // VerifyNonMembership is a generic proof verification method which verifies the absence of a given CommitmentPath at a specified height.
@@ -291,11 +287,7 @@ func (cs ClientState) VerifyNonMembership(
 		return errorsmod.Wrap(clienttypes.ErrConsensusStateNotFound, "please ensure the proof was constructed against a height that exists on the client")
 	}
 
-	if err := merkleProof.VerifyNonMembership(cs.ProofSpecs, consensusState.GetRoot(), merklePath); err != nil {
-		return err
-	}
-
-	return nil
+	return merkleProof.VerifyNonMembership(cs.ProofSpecs, consensusState.GetRoot(), merklePath)
 }
 
 // verifyDelayPeriodPassed will ensure that at least delayTimePeriod amount of time and delayBlockPeriod number of blocks have passed
