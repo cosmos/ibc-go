@@ -82,3 +82,43 @@ func (suite *TypesTestSuite) TestValidateBasic() {
 		})
 	}
 }
+
+func (suite *TypesTestSuite) TestGetCallbackAddresses() {
+	testCases := []struct {
+		name                string
+		packetData          types.InterchainAccountPacketData
+		expSrcCallbackAddr  string
+		expDestCallbackAddr string
+	}{
+		{
+			"memo is empty",
+			types.InterchainAccountPacketData{
+				Type: types.EXECUTE_TX,
+				Data: []byte("data"),
+				Memo: "",
+			},
+			"",
+			"",
+		},
+		{
+			"memo is not json string",
+			types.InterchainAccountPacketData{
+				Type: types.EXECUTE_TX,
+				Data: []byte("data"),
+				Memo: "memo",
+			},
+			"",
+			"",
+		},
+		{
+			"memo is does not have callbacks in json struct",
+			types.InterchainAccountPacketData{
+				Type: types.EXECUTE_TX,
+				Data: []byte("data"),
+				Memo: json.MustMarshalJSON,
+			},
+			"",
+			"",
+		},
+	}
+}

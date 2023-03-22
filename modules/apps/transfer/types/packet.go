@@ -103,27 +103,27 @@ However, we may remove this restriction at a later date if it proves useful.
 // The desired callback address must be confirmed in the memo under the "callbacks" key.
 // This ensures that the callback is explicitly desired by the user and not just called
 // automatically.
-func (ftpd FungibleTokenPacketData) GetSrcCallbackAddress() (addr string) {
+func (ftpd FungibleTokenPacketData) GetSrcCallbackAddress() string {
 	if len(ftpd.Memo) == 0 {
-		return
+		return ""
 	}
 
 	jsonObject := make(map[string]interface{})
 	// the jsonObject must be a valid JSON object
 	err := json.Unmarshal([]byte(ftpd.Memo), &jsonObject)
 	if err != nil {
-		return
+		return ""
 	}
 
 	callbackData, ok := jsonObject["callbacks"].(map[string]interface{})
 	if !ok {
-		return
+		return ""
 	}
 
 	if callbackData["src_callback_address"] == ftpd.Sender {
 		return ftpd.Sender
 	}
-	return
+	return ""
 }
 
 // ADR-8 middleware should callback on the receiver address on the destination chain
@@ -131,27 +131,27 @@ func (ftpd FungibleTokenPacketData) GetSrcCallbackAddress() (addr string) {
 // The desired callback address must be confirmed in the memo under the "callbacks" key.
 // This ensures that the callback is explicitly desired by the user and not just called
 // automatically.
-func (ftpd FungibleTokenPacketData) GetDestCallbackAddress() (addr string) {
+func (ftpd FungibleTokenPacketData) GetDestCallbackAddress() string {
 	if len(ftpd.Memo) == 0 {
-		return
+		return ""
 	}
 
 	jsonObject := make(map[string]interface{})
 	// the jsonObject must be a valid JSON object
 	err := json.Unmarshal([]byte(ftpd.Memo), &jsonObject)
 	if err != nil {
-		return
+		return ""
 	}
 
 	callbackData, ok := jsonObject["callbacks"].(map[string]interface{})
 	if !ok {
-		return
+		return ""
 	}
 
 	if callbackData["dest_callback_address"] == ftpd.Receiver {
 		return ftpd.Receiver
 	}
-	return
+	return ""
 }
 
 // no-op on this method to use relayer passed in gas
