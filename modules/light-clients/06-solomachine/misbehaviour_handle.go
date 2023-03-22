@@ -67,9 +67,5 @@ func (cs ClientState) verifySignatureAndData(cdc codec.BinaryCodec, misbehaviour
 		return err
 	}
 
-	if err := VerifySignature(publicKey, data, sigData); err != nil {
-		return err
-	}
-
-	return nil
+	return VerifySignature(publicKey, data, sigData)
 }
