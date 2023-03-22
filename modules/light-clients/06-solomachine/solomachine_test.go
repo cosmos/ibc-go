@@ -22,9 +22,7 @@ import (
 	"github.com/cosmos/ibc-go/v7/testing/mock"
 )
 
-var (
-	channelIDSolomachine = "channel-on-solomachine" // channelID generated on solo machine side
-)
+var channelIDSolomachine = "channel-on-solomachine" // channelID generated on solo machine side
 
 type SoloMachineTestSuite struct {
 	suite.Suite
