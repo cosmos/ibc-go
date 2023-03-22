@@ -12,10 +12,6 @@ func (m Misbehaviour) ClientType() string {
 	return exported.Wasm
 }
 
-func (m Misbehaviour) GetClientID() string {
-	return m.ClientId
-}
-
 func (m Misbehaviour) ValidateBasic() error {
 	if m.Data == nil || len(m.Data) == 0 {
 		return fmt.Errorf("data cannot be empty")

@@ -664,11 +664,7 @@
               {
                 "consensus_state": {
                   "@type": "/ibc.lightclients.wasm.v1.ConsensusState",
-                  "code_id": "qEhUhMKM7GGnyK17wPer4etkuFC9HpCVmi3ouKmMNbE=",
                   "data": "CisvaWJjLmxpZ2h0Y2xpZW50cy5ncmFuZHBhLnYxLkNvbnNlbnN1c1N0YXRlEi8KCwjk172gBhDA5/sKEiCxz/FeXbc6Uu2aLdVOA1fjIuLsgk81wsnHVDXZu6Frag==",
-                  "root": {
-                    "hash": "AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE="
-                  },
                   "timestamp": "1678732260023000000"
                 },
                 "height": {
@@ -679,11 +675,7 @@
               {
                 "consensus_state": {
                   "@type": "/ibc.lightclients.wasm.v1.ConsensusState",
-                  "code_id": "qEhUhMKM7GGnyK17wPer4etkuFC9HpCVmi3ouKmMNbE=",
                   "data": "CisvaWJjLmxpZ2h0Y2xpZW50cy5ncmFuZHBhLnYxLkNvbnNlbnN1c1N0YXRlEi8KCwjw172gBhCA2sQJEiCUVURioVp2e3PeQs32GYwooFYvKDy4xq7xjuH9ovEMYg==",
-                  "root": {
-                    "hash": "AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE="
-                  },
                   "timestamp": "1678732272020000000"
                 },
                 "height": {
@@ -694,11 +686,7 @@
               {
                 "consensus_state": {
                   "@type": "/ibc.lightclients.wasm.v1.ConsensusState",
-                  "code_id": "qEhUhMKM7GGnyK17wPer4etkuFC9HpCVmi3ouKmMNbE=",
                   "data": "CisvaWJjLmxpZ2h0Y2xpZW50cy5ncmFuZHBhLnYxLkNvbnNlbnN1c1N0YXRlEi8KCwiI2L2gBhDA3oEKEiBDZp8J7WNcN6R/FXqt++yVvRQishmR/ekpCTL4VLGPtw==",
-                  "root": {
-                    "hash": "AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE="
-                  },
                   "timestamp": "1678732296021000000"
                 },
                 "height": {
@@ -709,11 +697,7 @@
               {
                 "consensus_state": {
                   "@type": "/ibc.lightclients.wasm.v1.ConsensusState",
-                  "code_id": "qEhUhMKM7GGnyK17wPer4etkuFC9HpCVmi3ouKmMNbE=",
                   "data": "CisvaWJjLmxpZ2h0Y2xpZW50cy5ncmFuZHBhLnYxLkNvbnNlbnN1c1N0YXRlEi8KCwis2L2gBhCA0coIEiDuoRRScNClshs/aFbFiaiThk/yHhnPkbVBxpFz1bbcig==",
-                  "root": {
-                    "hash": "AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE="
-                  },
                   "timestamp": "1678732332018000000"
                 },
                 "height": {
@@ -724,11 +708,7 @@
               {
                 "consensus_state": {
                   "@type": "/ibc.lightclients.wasm.v1.ConsensusState",
-                  "code_id": "qEhUhMKM7GGnyK17wPer4etkuFC9HpCVmi3ouKmMNbE=",
                   "data": "CisvaWJjLmxpZ2h0Y2xpZW50cy5ncmFuZHBhLnYxLkNvbnNlbnN1c1N0YXRlEi8KCwjE2L2gBhDA1YcJEiCGQB+V59DtqGuNWzRmstmnn2rCJvAdMwVX/IsKl/K5Gw==",
-                  "root": {
-                    "hash": "AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE="
-                  },
                   "timestamp": "1678732356019000000"
                 },
                 "height": {
@@ -739,11 +719,7 @@
               {
                 "consensus_state": {
                   "@type": "/ibc.lightclients.wasm.v1.ConsensusState",
-                  "code_id": "qEhUhMKM7GGnyK17wPer4etkuFC9HpCVmi3ouKmMNbE=",
                   "data": "CisvaWJjLmxpZ2h0Y2xpZW50cy5ncmFuZHBhLnYxLkNvbnNlbnN1c1N0YXRlEi8KCwjQ2L2gBhCA/qwNEiAyq5xRoDB/d6aLlScmuQnXJgIBH4re9v7ff1vFCm1FHQ==",
-                  "root": {
-                    "hash": "AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE="
-                  },
                   "timestamp": "1678732368028000000"
                 },
                 "height": {
@@ -754,11 +730,7 @@
               {
                 "consensus_state": {
                   "@type": "/ibc.lightclients.wasm.v1.ConsensusState",
-                  "code_id": "qEhUhMKM7GGnyK17wPer4etkuFC9HpCVmi3ouKmMNbE=",
                   "data": "CisvaWJjLmxpZ2h0Y2xpZW50cy5ncmFuZHBhLnYxLkNvbnNlbnN1c1N0YXRlEi8KCwjc2L2gBhCA474KEiCu5YPygMhsgVaTYqXDCxGJC4TceH1JIrheOSzw7/0gAw==",
-                  "root": {
-                    "hash": "AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE="
-                  },
                   "timestamp": "1678732380022000000"
                 },
                 "height": {
@@ -769,11 +741,7 @@
               {
                 "consensus_state": {
                   "@type": "/ibc.lightclients.wasm.v1.ConsensusState",
-                  "code_id": "qEhUhMKM7GGnyK17wPer4etkuFC9HpCVmi3ouKmMNbE=",
                   "data": "CisvaWJjLmxpZ2h0Y2xpZW50cy5ncmFuZHBhLnYxLkNvbnNlbnN1c1N0YXRlEi8KCwjo2L2gBhCAv9YGEiBbRxFYy/mIbLrabhU+htmIIwJePBHSP19tVObgYtL1DQ==",
-                  "root": {
-                    "hash": "AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE="
-                  },
                   "timestamp": "1678732392014000000"
                 },
                 "height": {
@@ -784,11 +752,7 @@
               {
                 "consensus_state": {
                   "@type": "/ibc.lightclients.wasm.v1.ConsensusState",
-                  "code_id": "qEhUhMKM7GGnyK17wPer4etkuFC9HpCVmi3ouKmMNbE=",
                   "data": "CisvaWJjLmxpZ2h0Y2xpZW50cy5ncmFuZHBhLnYxLkNvbnNlbnN1c1N0YXRlEi8KCwj02L2gBhCA474KEiBxj4WrT7hUXfZKhmWMK/gCTSwwmXoeGZX3TfxLn78t4A==",
-                  "root": {
-                    "hash": "AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE="
-                  },
                   "timestamp": "1678732404022000000"
                 },
                 "height": {
@@ -799,11 +763,7 @@
               {
                 "consensus_state": {
                   "@type": "/ibc.lightclients.wasm.v1.ConsensusState",
-                  "code_id": "qEhUhMKM7GGnyK17wPer4etkuFC9HpCVmi3ouKmMNbE=",
                   "data": "CisvaWJjLmxpZ2h0Y2xpZW50cy5ncmFuZHBhLnYxLkNvbnNlbnN1c1N0YXRlEi8KCwiM2b2gBhDA3oEKEiCeOiRV4Vx4N1DI9Dp+Ub0wzrWoupirn45ylrECVfIpZA==",
-                  "root": {
-                    "hash": "AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE="
-                  },
                   "timestamp": "1678732428021000000"
                 },
                 "height": {
@@ -814,11 +774,7 @@
               {
                 "consensus_state": {
                   "@type": "/ibc.lightclients.wasm.v1.ConsensusState",
-                  "code_id": "qEhUhMKM7GGnyK17wPer4etkuFC9HpCVmi3ouKmMNbE=",
                   "data": "CisvaWJjLmxpZ2h0Y2xpZW50cy5ncmFuZHBhLnYxLkNvbnNlbnN1c1N0YXRlEi8KCwi82b2gBhCA2sQJEiC397GIaf3oNsLSi6IO+XvjRZtVdmBZ++z+iXdYKTlqaA==",
-                  "root": {
-                    "hash": "AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE="
-                  },
                   "timestamp": "1678732476020000000"
                 },
                 "height": {
@@ -829,11 +785,7 @@
               {
                 "consensus_state": {
                   "@type": "/ibc.lightclients.wasm.v1.ConsensusState",
-                  "code_id": "qEhUhMKM7GGnyK17wPer4etkuFC9HpCVmi3ouKmMNbE=",
                   "data": "CisvaWJjLmxpZ2h0Y2xpZW50cy5ncmFuZHBhLnYxLkNvbnNlbnN1c1N0YXRlEi8KCwjU2b2gBhDAw5MHEiAcM49cFsJaLC2uqpE5hurhfHmAsYYs/X2SgWQYOjshpw==",
-                  "root": {
-                    "hash": "AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE="
-                  },
                   "timestamp": "1678732500015000000"
                 },
                 "height": {
@@ -844,11 +796,7 @@
               {
                 "consensus_state": {
                   "@type": "/ibc.lightclients.wasm.v1.ConsensusState",
-                  "code_id": "qEhUhMKM7GGnyK17wPer4etkuFC9HpCVmi3ouKmMNbE=",
                   "data": "CisvaWJjLmxpZ2h0Y2xpZW50cy5ncmFuZHBhLnYxLkNvbnNlbnN1c1N0YXRlEi8KCwjg2b2gBhDA8PULEiCcWwMjE3VzRo8kkCuRdWM2MzWLYiZ5P+NavlbXuNbVyA==",
-                  "root": {
-                    "hash": "AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE="
-                  },
                   "timestamp": "1678732512025000000"
                 },
                 "height": {
@@ -859,11 +807,7 @@
               {
                 "consensus_state": {
                   "@type": "/ibc.lightclients.wasm.v1.ConsensusState",
-                  "code_id": "qEhUhMKM7GGnyK17wPer4etkuFC9HpCVmi3ouKmMNbE=",
                   "data": "CisvaWJjLmxpZ2h0Y2xpZW50cy5ncmFuZHBhLnYxLkNvbnNlbnN1c1N0YXRlEi8KCwjs2b2gBhDAw5MHEiAPLfukr21eJIE+w3WdiXxpFIBxIkSRunXwWF7hCgkHig==",
-                  "root": {
-                    "hash": "AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE="
-                  },
                   "timestamp": "1678732524015000000"
                 },
                 "height": {
@@ -874,11 +818,7 @@
               {
                 "consensus_state": {
                   "@type": "/ibc.lightclients.wasm.v1.ConsensusState",
-                  "code_id": "qEhUhMKM7GGnyK17wPer4etkuFC9HpCVmi3ouKmMNbE=",
                   "data": "CisvaWJjLmxpZ2h0Y2xpZW50cy5ncmFuZHBhLnYxLkNvbnNlbnN1c1N0YXRlEi8KCwiK172gBhCA474KEiCToFdrcI9A1O4GLta0Kanx2ojz8G/L0FHd3Q4msEKRYQ==",
-                  "root": {
-                    "hash": "AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE="
-                  },
                   "timestamp": "1678732170022000000"
                 },
                 "height": {
@@ -889,11 +829,7 @@
               {
                 "consensus_state": {
                   "@type": "/ibc.lightclients.wasm.v1.ConsensusState",
-                  "code_id": "qEhUhMKM7GGnyK17wPer4etkuFC9HpCVmi3ouKmMNbE=",
                   "data": "CisvaWJjLmxpZ2h0Y2xpZW50cy5ncmFuZHBhLnYxLkNvbnNlbnN1c1N0YXRlEi8KCwi6172gBhDA1YcJEiA9CmJ8h2gNSHLZww4KEoFDp2nZcFU8/u7HhaK+5tgIdg==",
-                  "root": {
-                    "hash": "AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE="
-                  },
                   "timestamp": "1678732218019000000"
                 },
                 "height": {
@@ -904,11 +840,7 @@
               {
                 "consensus_state": {
                   "@type": "/ibc.lightclients.wasm.v1.ConsensusState",
-                  "code_id": "qEhUhMKM7GGnyK17wPer4etkuFC9HpCVmi3ouKmMNbE=",
                   "data": "CisvaWJjLmxpZ2h0Y2xpZW50cy5ncmFuZHBhLnYxLkNvbnNlbnN1c1N0YXRlEi8KCwjG172gBhDA3oEKEiDQ4SMptYofqyN64XxT1hpoUxlQUr3Q0R8ZgfQOzmX6YA==",
-                  "root": {
-                    "hash": "AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE="
-                  },
                   "timestamp": "1678732230021000000"
                 },
                 "height": {

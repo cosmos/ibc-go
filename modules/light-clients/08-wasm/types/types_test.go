@@ -18,7 +18,6 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	"github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm/keeper"
 	wasmtypes "github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm/types"
@@ -104,15 +103,9 @@ func (suite *WasmTestSuite) SetupWithEmptyClient() {
 	
 	consensusStateData, err := base64.StdEncoding.DecodeString(suite.testData["consensus_state_data"])
 	suite.Require().NoError(err)
-	root, err := base64.StdEncoding.DecodeString(suite.testData["root"])
-	suite.Require().NoError(err)
 	wasmConsensusState := wasmtypes.ConsensusState{
 		Data:      consensusStateData,
-		CodeId:    suite.codeID,
 		Timestamp: uint64(1678304292),
-		Root: &commitmenttypes.MerkleRoot{
-			Hash: root,
-		},
 	}
 	suite.consensusState = wasmConsensusState
 }
