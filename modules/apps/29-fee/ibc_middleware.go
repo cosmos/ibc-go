@@ -180,11 +180,7 @@ func (im IBCMiddleware) OnChanCloseInit(
 		return types.ErrFeeModuleLocked
 	}
 
-	if err := im.keeper.RefundFeesOnChannelClosure(ctx, portID, channelID); err != nil {
-		return err
-	}
-
-	return nil
+	return im.keeper.RefundFeesOnChannelClosure(ctx, portID, channelID)
 }
 
 // OnChanCloseConfirm implements the IBCMiddleware interface
@@ -205,11 +201,7 @@ func (im IBCMiddleware) OnChanCloseConfirm(
 		return types.ErrFeeModuleLocked
 	}
 
-	if err := im.keeper.RefundFeesOnChannelClosure(ctx, portID, channelID); err != nil {
-		return err
-	}
-
-	return nil
+	return im.keeper.RefundFeesOnChannelClosure(ctx, portID, channelID)
 }
 
 // OnRecvPacket implements the IBCMiddleware interface.
