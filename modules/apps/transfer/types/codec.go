@@ -32,7 +32,7 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 
 	registry.RegisterImplementations(
 		(*exported.CallbackPacketDataI)(nil),
-		&FungibleTokenPacketData{}
+		&FungibleTokenPacketData{},
 	)
 
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
