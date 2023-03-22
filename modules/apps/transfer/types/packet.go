@@ -25,7 +25,7 @@ var (
 	DefaultRelativePacketTimeoutTimestamp = uint64((time.Duration(10) * time.Minute).Nanoseconds())
 )
 
-var _ exported.CallbackPacketDataI = (*FungibleTokenPacketData)(nil)
+var _ exported.CallbackPacketData = (*FungibleTokenPacketData)(nil)
 
 // NewFungibleTokenPacketData contructs a new FungibleTokenPacketData instance
 func NewFungibleTokenPacketData(
@@ -91,7 +91,6 @@ The Memo format is defined like so:
 		"src_callback_msg": {jsonObjectForSrcChainCallback},
 		"dest_callback_msg": {jsonObjectForDestChainCallback},
 	}
-
 }
 ```
 

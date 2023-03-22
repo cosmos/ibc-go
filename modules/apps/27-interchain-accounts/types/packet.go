@@ -26,7 +26,7 @@ var (
 	DefaultRelativePacketTimeoutTimestamp = uint64((time.Duration(10) * time.Minute).Nanoseconds())
 )
 
-var _ exported.CallbackPacketDataI = (*InterchainAccountPacketData)(nil)
+var _ exported.CallbackPacketData = (*InterchainAccountPacketData)(nil)
 
 // ValidateBasic performs basic validation of the interchain account packet data.
 // The memo may be empty.
@@ -68,10 +68,11 @@ The Memo format is defined like so:
 	"callbacks": {
 		"src_callback_address": {contractAddrOnSrcChain},
 		"dest_callback_address": {contractAddrOnDestChain},
-		"src_callback_msg": {jsonObjectForSrcChainCallback}, // optional field
-		"dest_callback_msg": {jsonObjectForDestChainCallback}, // optional field
-	}
 
+		// optional fields
+		"src_callback_msg": {jsonObjectForSrcChainCallback},
+		"dest_callback_msg": {jsonObjectForDestChainCallback},
+	}
 }
 ```
 
