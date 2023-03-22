@@ -721,7 +721,6 @@ func (k Keeper) ChannelUpgradeInit(goCtx context.Context, msg *channeltypes.MsgC
 		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
 	}
 
-	// Perform 04-channel verification
 	sequence, err := k.ChannelKeeper.ChanUpgradeInit(ctx, msg.PortId, msg.ChannelId, cap, msg.ProposedUpgradeChannel, msg.TimeoutHeight, msg.TimeoutTimestamp)
 	if err != nil {
 		ctx.Logger().Error("channel open init callback failed", "error", errorsmod.Wrap(err, "channel handshake open init failed"))
@@ -729,30 +728,28 @@ func (k Keeper) ChannelUpgradeInit(goCtx context.Context, msg *channeltypes.MsgC
 	}
 
 	// Perform application logic callback
-	_ = cbs
-	_ = sequence
-	// version, err := cbs.OnChanUpgradeInit(
-	// 	ctx,
-	// 	msg.ProposedUpgradeChannel.Ordering,
-	// 	msg.ProposedUpgradeChannel.ConnectionHops,
-	// 	msg.PortId,
-	// 	msg.ChannelId,
-	// 	sequence,
-	// 	msg.ProposedUpgradeChannel.Counterparty.PortId,
-	// 	msg.ProposedUpgradeChannel.Counterparty.ChannelId,
-	// 	msg.ProposedUpgradeChannel.Version,
-	// )
-	// if err != nil {
-	// 	ctx.Logger().Error("channel open init callback failed", "port-id", msg.PortId, "channel-id", channelID, "error", err.Error())
-	// 	return nil, errorsmod.Wrapf(err, "channel open init callback failed for port ID: %s, channel ID: %s", msg.PortId, channelID)
-	// }
+	version, err := cbs.OnChanUpgradeInit(
+		ctx,
+		msg.ProposedUpgradeChannel.Ordering,
+		msg.ProposedUpgradeChannel.ConnectionHops,
+		msg.PortId,
+		msg.ChannelId,
+		sequence,
+		msg.ProposedUpgradeChannel.Counterparty,
+		msg.ProposedUpgradeChannel.Version,
+		"previous-version-can-be-looked-up-from-within-cb??",
+	)
+	if err != nil {
+		ctx.Logger().Error("channel open init callback failed", "port-id", msg.PortId, "channel-id", msg.ChannelId, "error", err.Error())
+		return nil, errorsmod.Wrapf(err, "channel open init callback failed for port ID: %s, channel ID: %s", msg.PortId, msg.ChannelId)
+	}
 
-	// msg.ProposedUpgradeChannel.Version = version
+	msg.ProposedUpgradeChannel.Version = version
 
 	// Write channel into state
 	k.ChannelKeeper.WriteUpgradeInitChannel(ctx, msg.PortId, msg.ChannelId, msg.ProposedUpgradeChannel)
 
-	// ctx.Logger().Info("channel upgrade init callback succeeded", "channel-id", channelID, "version", version)
+	ctx.Logger().Info("channel upgrade init callback succeeded", "channel-id", msg.ChannelId, "version", version)
 
 	// TODO: return channel ID and version in response
 	return &channeltypes.MsgChannelUpgradeInitResponse{}, nil

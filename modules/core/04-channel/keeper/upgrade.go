@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"strings"
+
 	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -22,10 +24,6 @@ func (k Keeper) ChanUpgradeInit(
 	counterpartyTimeoutHeight clienttypes.Height,
 	counterpartyTimeoutTimestamp uint64,
 ) (uint64, error) {
-	if !k.scopedKeeper.AuthenticateCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)) {
-		return 0, errorsmod.Wrapf(types.ErrChannelCapabilityNotFound, "caller does not own capability for channel, port ID (%s) channel ID (%s)", portID, channelID)
-	}
-
 	channel, found := k.GetChannel(ctx, portID, channelID)
 	if !found {
 		return 0, errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
@@ -35,13 +33,17 @@ func (k Keeper) ChanUpgradeInit(
 		return 0, errorsmod.Wrapf(types.ErrInvalidChannelState, "expected %s, got %s", types.OPEN, channel.State)
 	}
 
-	if propsedUpgradeChannel.State != types.INITUPGRADE &&
-		propsedUpgradeChannel.Counterparty.PortId != channel.Counterparty.PortId &&
+	if !k.scopedKeeper.AuthenticateCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)) {
+		return 0, errorsmod.Wrapf(types.ErrChannelCapabilityNotFound, "caller does not own capability for channel, port ID (%s) channel ID (%s)", portID, channelID)
+	}
+
+	if propsedUpgradeChannel.State != types.INITUPGRADE ||
+		propsedUpgradeChannel.Counterparty.PortId != channel.Counterparty.PortId ||
 		propsedUpgradeChannel.Counterparty.ChannelId != channel.Counterparty.ChannelId {
 		return 0, errorsmod.Wrap(types.ErrInvalidChannel, "TODO: update error")
 	}
 
-	if propsedUpgradeChannel.Version == "" {
+	if strings.TrimSpace(propsedUpgradeChannel.Version) == "" {
 		return 0, errorsmod.Wrap(types.ErrInvalidChannelVersion, "channel version must be not be empty")
 	}
 
