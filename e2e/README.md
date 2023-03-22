@@ -80,6 +80,8 @@ make e2e-test entrypoint=TestInterchainAccountsTestSuite test=TestMsgSubmitTx_Su
 
 If `jq` is installed, you only need to specify the `test`.
 
+If `fzf` is also installed, you only need to run `make e2e-test` and you will be prompted with interactive test selection.
+
 ```sh
 make e2e-test test=TestMsgSubmitTx_SuccessfulTransfer
 ```
