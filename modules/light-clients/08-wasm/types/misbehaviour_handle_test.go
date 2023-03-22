@@ -37,6 +37,9 @@ func (suite *WasmTestSuite) TestVerifyMisbehaviour() {
 				suite.Require().NoError(err)
 				clientState.UpdateState(suite.ctx, suite.chainA.Codec, suite.store, clientMsg)
 
+				// Reset client state to the previous for the test
+				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.ctx, "08-wasm-0", clientState)
+
 				data, err = base64.StdEncoding.DecodeString(suite.testData["misbehaviour"])
 				suite.Require().NoError(err)
 				clientMsg = &wasmtypes.Misbehaviour{
@@ -150,6 +153,9 @@ func (suite *WasmTestSuite) TestCheckForMisbehaviour() {
 				suite.Require().NoError(err)
 				clientState.UpdateState(suite.ctx, suite.chainA.Codec, suite.store, clientMsg)
 
+				// Reset client state to the previous for the test
+				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.ctx, "08-wasm-0", clientState)
+
 				data, err = base64.StdEncoding.DecodeString(suite.testData["misbehaviour"])
 				suite.Require().NoError(err)
 				clientMsg = &wasmtypes.Misbehaviour{
@@ -176,7 +182,6 @@ func (suite *WasmTestSuite) TestCheckForMisbehaviour() {
 			suite.SetupWithChannel()
 			clientState = suite.clientState
 			tc.setup()
-
 			foundMisbehaviour := clientState.CheckForMisbehaviour(suite.ctx, suite.chainA.Codec, suite.store, clientMsg)
 
 			if tc.expPass {

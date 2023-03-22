@@ -21,7 +21,7 @@ func (suite *WasmTestSuite) TestVerifyHeader() {
 		expPass bool
 	}{
 		{
-			"successful verifyt header", func() {},
+			"successful verify header", func() {},
 			true,
 		},
 		{
@@ -37,6 +37,7 @@ func (suite *WasmTestSuite) TestVerifyHeader() {
 						RevisionHeight: 36,
 					},
 				}
+				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.ctx, "08-wasm-0", clientState)
 			},
 			false,
 		},
@@ -110,6 +111,21 @@ func (suite *WasmTestSuite) TestUpdateState() {
 				// VerifyClientMessage must be run first
 				err = clientState.VerifyClientMessage(suite.ctx, suite.chainA.Codec, suite.store, clientMsg)
 				suite.Require().NoError(err)
+			},
+			true,
+		},
+		{
+			"success with not verifying client message",
+			func() {
+				data, err := base64.StdEncoding.DecodeString(suite.testData["header"])
+				suite.Require().NoError(err)
+				clientMsg = &wasmtypes.Header{
+					Data: data,
+					Height: clienttypes.Height{
+						RevisionNumber: 2000,
+						RevisionHeight: 39,
+					},
+				}
 			},
 			true,
 		},

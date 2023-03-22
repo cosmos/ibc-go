@@ -10,7 +10,6 @@ type checkForMisbehaviourPayload struct {
 	CheckForMisbehaviour checkForMisbehaviourInnerPayload `json:"check_for_misbehaviour"`
 }
 type checkForMisbehaviourInnerPayload struct {
-	ClientState  exported.ClientState `json:"client_state"`
 	Misbehaviour *Misbehaviour        `json:"misbehaviour"`
 }
 
@@ -22,7 +21,6 @@ func (c ClientState) CheckForMisbehaviour(ctx sdk.Context, cdc codec.BinaryCodec
 
 	payload := checkForMisbehaviourPayload{
 		CheckForMisbehaviour: checkForMisbehaviourInnerPayload{
-			ClientState:  &c,
 			Misbehaviour: wasmMisbehaviour,
 		},
 	}

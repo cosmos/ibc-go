@@ -80,7 +80,9 @@ func (suite *WasmTestSuite) SetupWithChannel() {
 	clientState, ok := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.ctx, "08-wasm-0")
 	if ok {
 		suite.clientState = clientState
+		// Update with current contract hash
 		suite.clientState.(*wasmtypes.ClientState).CodeId = suite.codeID
+		suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.ctx, "08-wasm-0", suite.clientState)
 	}
 }
 
