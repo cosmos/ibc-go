@@ -5,8 +5,6 @@ import (
 )
 
 var (
-	// TODO: these codes have all been incremented as codes 2-8 have already been registered in the SDK and so panics
-	// during var declaration.
 	ErrInvalidCapabilityName    = errorsmod.Register(ModuleName, 2, "capability name not valid")
 	ErrNilCapability            = errorsmod.Register(ModuleName, 3, "provided capability is nil")
 	ErrCapabilityTaken          = errorsmod.Register(ModuleName, 4, "capability name already taken")
