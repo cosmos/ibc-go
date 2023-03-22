@@ -55,7 +55,7 @@ func (iapd InterchainAccountPacketData) GetBytes() []byte {
 
 ADR-8 CallbackPacketData implementation
 
-InterchainAccountPacketData implements CallbackPacketDataI interface. This will allow middlewares targetting specific VMs
+InterchainAccountPacketData implements CallbackPacketDataI interface. This will allow middlewares targeting specific VMs
 to retrieve the desired callback addresses for the ICA packet on the source and destination chains.
 
 The Memo is used to set the desired callback addresses.

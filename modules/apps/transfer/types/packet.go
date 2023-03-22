@@ -71,7 +71,7 @@ func (ftpd FungibleTokenPacketData) GetBytes() []byte {
 
 ADR-8 CallbackPacketData implementation
 
-FungibleTokenPacketData implements CallbackPacketDataI interface. This will allow middlewares targetting specific VMs
+FungibleTokenPacketData implements CallbackPacketDataI interface. This will allow middlewares targeting specific VMs
 to retrieve the desired callback addresses for the ICS20 packet on the source and destination chains.
 
 The Memo is used to ensure that the callback is desired by the user. This allows a user to send an ICS20 packet
