@@ -1,11 +1,13 @@
 # ADR 008: Callback to IBC Actors
 
 ## Changelog
+
 * 2022-08-10: Initial Draft
+* 2023-03-22: Merged
 
 ## Status
 
-Proposed
+Accepted, packet callback interface implemented
 
 ## Context
 
@@ -51,7 +53,7 @@ type IBCActor interface {
 type PacketActor interface {
     // OnRecvPacket will be called on the IBCActor after the IBC Application
     // handles the RecvPacket callback if the packet has an IBC Actor as a receiver.
-    OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, relayer string) error
+    OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress) error
 
     // OnAcknowledgementPacket will be called on the IBC Actor
     // after the IBC Application handles its own OnAcknowledgementPacket callback
@@ -59,7 +61,7 @@ type PacketActor interface {
         ctx sdk.Context,
         packet channeltypes.Packet,
         ack exported.Acknowledgement,
-        relayer string
+        relayer sdk.AccAddress,
     ) error
 
     // OnTimeoutPacket will be called on the IBC Actor
@@ -67,7 +69,7 @@ type PacketActor interface {
     OnTimeoutPacket(
         ctx sdk.Context,
         packet channeltypes.Packet,
-        relayer string
+        relayer sdk.AccAddress,
     ) error
 }
 ```
@@ -245,7 +247,7 @@ func (im IBCModule) OnAcknowledgementPacket(
     ctx sdk.Context,
     packet channeltypes.Packet,
     acknowledgement []byte,
-    relayer string,
+    relayer sdk.AccAddress,
 ) error {
     // application-specific onAcknowledgmentPacket logic
 
@@ -298,7 +300,7 @@ func (im IBCModule) OnAcknowledgementPacket(
 func (im IBCModule) OnTimeoutPacket(
     ctx sdk.Context,
     packet channeltypes.Packet,
-    relayer string,
+    relayer sdk.AccAddress,
 ) error {
     // application-specific onTimeoutPacket logic
 
