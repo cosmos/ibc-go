@@ -43,9 +43,9 @@ message MsgRegisterPayee {
   option (gogoproto.goproto_getters) = false;
 
   // unique port identifier
-  string port_id = 1 [(gogoproto.moretags) = "yaml:\"port_id\""];
+  string port_id = 1;
   // unique channel identifier
-  string channel_id = 2 [(gogoproto.moretags) = "yaml:\"channel_id\""];
+  string channel_id = 2;
   // the relayer address
   string relayer = 3;
   // the payee address
@@ -61,13 +61,13 @@ message MsgRegisterCounterpartyPayee {
   option (gogoproto.goproto_getters) = false;
 
   // unique port identifier
-  string port_id = 1 [(gogoproto.moretags) = "yaml:\"port_id\""];
+  string port_id = 1;
   // unique channel identifier
-  string channel_id = 2 [(gogoproto.moretags) = "yaml:\"channel_id\""];
+  string channel_id = 2;
   // the relayer address
   string relayer = 3;
   // the counterparty payee address
-  string counterparty_payee = 4 [(gogoproto.moretags) = "yaml:\"counterparty_payee\""];
+  string counterparty_payee = 4;
 }
 
 // MsgRegisterCounterpartyPayeeResponse defines the response type for the RegisterCounterpartyPayee rpc
@@ -83,9 +83,9 @@ message MsgPayPacketFee {
   // fee encapsulates the recv, ack and timeout fees associated with an IBC packet
   ibc.applications.fee.v1.Fee fee = 1 [(gogoproto.nullable) = false];
   // the source port unique identifier
-  string source_port_id = 2 [(gogoproto.moretags) = "yaml:\"source_port_id\""];
+  string source_port_id = 2;
   // the source channel unique identifer
-  string source_channel_id = 3 [(gogoproto.moretags) = "yaml:\"source_channel_id\""];
+  string source_channel_id = 3;
   // account address to refund fee if necessary
   string signer = 4;
   // optional list of relayers permitted to the receive packet fees
@@ -102,10 +102,9 @@ message MsgPayPacketFeeAsync {
   option (gogoproto.goproto_getters) = false;
 
   // unique packet identifier comprised of the channel ID, port ID and sequence
-  ibc.core.channel.v1.PacketId packet_id = 1
-      [(gogoproto.moretags) = "yaml:\"packet_id\"", (gogoproto.nullable) = false];
+  ibc.core.channel.v1.PacketId packet_id = 1 [(gogoproto.nullable) = false];
   // the packet fee associated with a particular IBC packet
-  PacketFee packet_fee = 2 [(gogoproto.moretags) = "yaml:\"packet_fee\"", (gogoproto.nullable) = false];
+  PacketFee packet_fee = 2 [(gogoproto.nullable) = false];
 }
 
 // MsgPayPacketFeeAsyncResponse defines the response type for the PayPacketFeeAsync rpc
