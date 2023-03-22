@@ -31,7 +31,7 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	)
 
 	registry.RegisterImplementations(
-		(*exported.CallbackPacketDataI)(nil),
+		(*exported.CallbackPacketData)(nil),
 		&FungibleTokenPacketData{},
 	)
 

@@ -24,7 +24,7 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	registry.RegisterImplementations((*authtypes.GenesisAccount)(nil), &InterchainAccount{})
 
 	registry.RegisterImplementations(
-		(*exported.CallbackPacketDataI)(nil),
+		(*exported.CallbackPacketData)(nil),
 		&InterchainAccountPacketData{},
 	)
 }

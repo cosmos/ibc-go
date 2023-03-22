@@ -106,6 +106,7 @@ func (iapd InterchainAccountPacketData) GetSourceCallbackAddress() string {
 	if !ok {
 		return ""
 	}
+
 	return callbackAddr
 }
 

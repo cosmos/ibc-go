@@ -7,7 +7,7 @@ import (
 // RegisterInterfaces registers the CallbackPacketDataI interface.
 func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	registry.RegisterInterface(
-		"ibc.core.exported.v1.CallbackPacketDataI",
-		(*CallbackPacketDataI)(nil),
+		"ibc.core.exported.v1.CallbackPacketData",
+		(*CallbackPacketData)(nil),
 	)
 }
