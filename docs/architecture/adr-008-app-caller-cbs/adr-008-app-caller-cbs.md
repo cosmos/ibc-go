@@ -86,10 +86,14 @@ IBC Apps which provide the base packet data type must implement the `CallbackPac
 // PacketActor's will be unable to act on any packet data type that does not implement
 // this interface. 
 type CallbackPacketData interface {
-    // may return the empty string
+    // GetSourceCallbackAddress should return the callback address of a packet data on the source chain.
+    // This may or may not be the sender of the packet. If no source callback address exists for the packet, 
+    // an empty string may be returned. 
     GetSourceCallbackAddress() string
 
-    // may return the empty string
+    // GetDestCallbackAddress should return the callback address of a packet data on the destination chain.
+    // This may or may not be the receiver of the packet. If no dest callback address exists for the packet, 
+    // an empty string may be returned. 
     GetDestCallbackAddress() string
 
     // UserDefinedGasLimit allows the sender of the packet to define inside the packet data
