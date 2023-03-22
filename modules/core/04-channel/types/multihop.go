@@ -1,8 +1,6 @@
 package types
 
 import (
-	"fmt"
-
 	"github.com/cosmos/cosmos-sdk/codec"
 	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
@@ -19,15 +17,6 @@ func (m *MsgMultihopProofs) GetMultihopConnectionEnd(cdc codec.BinaryCodec) (*Co
 		return nil, err
 	}
 	return &connectionEnd, nil
-}
-
-// GetMisbehavingConnectionHop returns the connection hop on the misbehaving chain
-func (m *MsgMultihopProofs) GetMisbehavingConnectionHop(cdc codec.BinaryCodec, connectionHops []string) (string, error) {
-	if len(m.ConnectionProofs) >= len(connectionHops) {
-		return "", fmt.Errorf("connection proof length cannot be greater than connection hops length")
-	}
-
-	return connectionHops[0], nil
 }
 
 // GetMultihopCounterpartyConsensus returns the final consensusState from the counterparty perspective (e.g. the source chain state).
