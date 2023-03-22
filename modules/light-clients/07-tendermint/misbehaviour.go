@@ -101,11 +101,8 @@ func (misbehaviour Misbehaviour) ValidateBasic() error {
 		misbehaviour.Header1.Commit, misbehaviour.Header1.ValidatorSet); err != nil {
 		return err
 	}
-	if err := validCommit(misbehaviour.Header2.Header.ChainID, *blockID2,
-		misbehaviour.Header2.Commit, misbehaviour.Header2.ValidatorSet); err != nil {
-		return err
-	}
-	return nil
+	return validCommit(misbehaviour.Header2.Header.ChainID, *blockID2,
+		misbehaviour.Header2.Commit, misbehaviour.Header2.ValidatorSet)
 }
 
 // validCommit checks if the given commit is a valid commit from the passed-in validatorset
