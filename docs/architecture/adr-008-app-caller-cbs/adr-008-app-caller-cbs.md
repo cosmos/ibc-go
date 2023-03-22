@@ -79,7 +79,7 @@ or they may return the empty string. The address may reference an PacketActor or
 
 The interface also defines a `UserDefinedGasLimit` method. Any middleware targeting this interface for callback handling should cap the gas that a callback is allowed to take (especially on AcknowledgePacket and TimeoutPacket) so that a custom callback does not prevent the packet lifecycle from completing. However, since this is a global cap it is likely to be very large. Thus, users may specify a smaller limit to cap the amount of fees a relayer must pay in order to complete the packet lifecycle on the user's behalf.
 
-IBC Apps which provide the base packet data type must implement the `CallbackPacketData` interface to allow `PacketActor` callbacks.
+IBC applications which provide the base packet data type must implement the `CallbackPacketData` interface to allow `PacketActor` callbacks.
 
 ```go
 // Implemented by any packet data type that wants to support PacketActor callbacks
