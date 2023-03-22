@@ -1,12 +1,8 @@
 package types
 
 import (
-	"encoding/json"
-	"fmt"
-
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
@@ -22,7 +18,6 @@ type clientMessageConcretePayloadClientMessage struct {
 }
 type verifyClientMessageInnerPayload struct {
 	ClientMessage clientMessageConcretePayloadClientMessage `json:"client_message"`
-	ClientState   ClientState                               `json:"client_state"`
 }
 
 // VerifyClientMessage must verify a ClientMessage. A ClientMessage could be a Header, Misbehaviour, or batch update.
@@ -42,7 +37,6 @@ func (c ClientState) VerifyClientMessage(ctx sdk.Context, cdc codec.BinaryCodec,
 	}
 	inner := verifyClientMessageInnerPayload{
 		ClientMessage: clientMsgConcrete,
-		ClientState:   c,
 	}
 	payload := verifyClientMessagePayload{
 		VerifyClientMessage: inner,
@@ -56,7 +50,6 @@ type updateStatePayload struct {
 }
 type updateStateInnerPayload struct {
 	ClientMessage clientMessageConcretePayload `json:"client_message"`
-	ClientState   ClientState                  `json:"client_state"`
 }
 
 type clientMessageConcretePayload struct {
@@ -64,7 +57,8 @@ type clientMessageConcretePayload struct {
 	Misbehaviour *Misbehaviour `json:"misbehaviour,omitempty"`
 }
 
-func (c ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, clientMsg exported.ClientMessage) []exported.Height {
+// Client state and new consensus states are updated in the store by the contract
+func (c ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, store sdk.KVStore, clientMsg exported.ClientMessage) []exported.Height {
 	var clientMsgConcrete clientMessageConcretePayload
 	switch clientMsg := clientMsg.(type) {
 	case *Header:
@@ -75,46 +69,35 @@ func (c ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, clientS
 	payload := updateStatePayload{
 		UpdateState: updateStateInnerPayload{
 			ClientMessage: clientMsgConcrete,
-			ClientState:   c,
 		},
 	}
 
-	output, err := call[contractResult](payload, &c, ctx, clientStore)
+	_, err := call[contractResult](payload, &c, ctx, store)
 	if err != nil {
 		panic(err)
 	}
-	if err := json.Unmarshal(output.Data, &c); err != nil {
-		panic(sdkerrors.Wrapf(ErrUnableToUnmarshalPayload, fmt.Sprintf("underlying error: %s", err.Error())))
-	}
+	newClientState, err := getClientState(store, cdc)
 
-	setClientState(clientStore, cdc, &c)
-
-	return []exported.Height{c.LatestHeight}
+	return []exported.Height{newClientState.LatestHeight}
 }
 
 type updateStateOnMisbehaviourPayload struct {
 	UpdateStateOnMisbehaviour updateStateOnMisbehaviourInnerPayload `json:"update_state_on_misbehaviour"`
 }
 type updateStateOnMisbehaviourInnerPayload struct {
-	ClientState   exported.ClientState   `json:"client_state"`
 	ClientMessage exported.ClientMessage `json:"client_message"`
 }
 
 // UpdateStateOnMisbehaviour should perform appropriate state changes on a client state given that misbehaviour has been detected and verified
+// Client state is updated in the store by contract
 func (c ClientState) UpdateStateOnMisbehaviour(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, clientMsg exported.ClientMessage) {
 	payload := updateStateOnMisbehaviourPayload{
 		UpdateStateOnMisbehaviour: updateStateOnMisbehaviourInnerPayload{
-			ClientState:   &c,
 			ClientMessage: clientMsg,
 		},
 	}
-	output, err := call[contractResult](payload, &c, ctx, clientStore)
+	_, err := call[contractResult](payload, &c, ctx, clientStore)
 	if err != nil {
 		panic(err)
 	}
-	if err := json.Unmarshal(output.Data, &c); err != nil {
-		panic(sdkerrors.Wrapf(ErrUnableToUnmarshalPayload, fmt.Sprintf("underlying error: %s", err.Error())))
-	}
-
-	setClientState(clientStore, cdc, &c)
 }
