@@ -164,7 +164,7 @@ func verifyIntermediateStateProofs(
 
 	var connectionEnd connectiontypes.ConnectionEnd
 	var expectedClientID string
-	for i := len(consensusProofs) - 1; i >= 0; i-- {
+	for i := 0; i < len(consensusProofs); i++ {
 		consensusProof := consensusProofs[i]
 		connectionProof := connectionProofs[i]
 
@@ -236,6 +236,7 @@ func verifyKeyValueMembership(
 	key string,
 	value []byte,
 ) error {
+
 	// no keyproof provided, nothing to verify
 	if proofs.KeyProof == nil {
 		return nil
@@ -252,7 +253,8 @@ func verifyKeyValueMembership(
 	}
 
 	var consensusStateI exported.ConsensusState
-	if err := cdc.UnmarshalInterface(proofs.ConsensusProofs[proofs.KeyProofIndex].Value, &consensusStateI); err != nil {
+	index := uint32(len(proofs.ConsensusProofs)) - proofs.KeyProofIndex - 1
+	if err := cdc.UnmarshalInterface(proofs.ConsensusProofs[index].Value, &consensusStateI); err != nil {
 		return fmt.Errorf("failed to unpack consensus state: %w", err)
 	}
 	consensusState, ok := consensusStateI.(*tmclient.ConsensusState)
@@ -289,13 +291,10 @@ func verifyKeyNonMembership(
 	if err := cdc.Unmarshal(proofs.KeyProof.Proof, &keyProof); err != nil {
 		return fmt.Errorf("failed to unmarshal key proof: %w", err)
 	}
-	var secondConsState exported.ConsensusState
-	if err := cdc.UnmarshalInterface(proofs.ConsensusProofs[proofs.KeyProofIndex].Value, &secondConsState); err != nil {
-		return fmt.Errorf("failed to unpack consensus state: %w", err)
-	}
 
 	var consensusStateI exported.ConsensusState
-	if err := cdc.UnmarshalInterface(proofs.ConsensusProofs[proofs.KeyProofIndex].Value, &consensusStateI); err != nil {
+	index := uint32(len(proofs.ConsensusProofs)) - proofs.KeyProofIndex - 1
+	if err := cdc.UnmarshalInterface(proofs.ConsensusProofs[index].Value, &consensusStateI); err != nil {
 		return fmt.Errorf("failed to unpack consensus state: %w", err)
 	}
 	consensusState, ok := consensusStateI.(*tmclient.ConsensusState)

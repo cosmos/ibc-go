@@ -145,9 +145,11 @@ func (p ChanPath) GenerateIntermediateStateProofs(proofGenFuncs []proofGenFunc) 
 
 		for j, proofGenFunc := range proofGenFuncs {
 			proof := proofGenFunc(chainB, heightAB, heightBC, cs.GetRoot())
-			result[j] = append(result[j], proof)
+			result[j] = append([]*channeltypes.MultihopProof{proof}, result[j]...)
 		}
+
 	}
+
 	return result, nil
 }
 
