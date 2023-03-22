@@ -74,7 +74,7 @@ type PacketActor interface {
 }
 ```
 
-The CallbackPacketData interface will get created to add `GetSourceCallbackAddress` and `GetDestCallbackAddress` methods. These may return an address
+The `CallbackPacketData` interface will get created to add `GetSourceCallbackAddress` and `GetDestCallbackAddress` methods. These may return an address
 or they may return the empty string. The address may reference an PacketActor or it may be a regular user address. If the address is not a PacketActor, the actor callback must continue processing (no-op). Any IBC application or middleware that uses these methods must handle these cases. In most cases, the `GetSourceCallbackAddress` will be the sender address and the `GetDestCallbackAddress` will be the receiver address. However, these are named generically so that implementors may choose a different contract address for the callback if they choose.
 
 The interface also defines a `UserDefinedGasLimit` method. Any middleware targeting this interface for callback handling should cap the gas that a callback is allowed to take (especially on AcknowledgePacket and TimeoutPacket) so that a custom callback does not prevent the packet lifecycle from completing. However, since this is a global cap it is likely to be very large. Thus, users may specify a smaller limit to cap the amount of fees a relayer must pay in order to complete the packet lifecycle on the user's behalf.
