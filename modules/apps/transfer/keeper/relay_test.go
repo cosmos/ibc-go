@@ -97,6 +97,7 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 		{
 			"channel capability not found",
 			func() {
+<<<<<<< HEAD
 				suite.coordinator.CreateTransferChannels(path)
 				cap := suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 
@@ -104,6 +105,19 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 				suite.chainA.GetSimApp().ScopedTransferKeeper.ReleaseCapability(suite.chainA.GetContext(), cap)
 				amount = sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100))
 			}, true, false,
+=======
+				capability := suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+
+				// Release channel capability
+				suite.chainA.GetSimApp().ScopedTransferKeeper.ReleaseCapability(suite.chainA.GetContext(), capability) //nolint:errcheck // ignore error for testing
+			}, false,
+		},
+		{
+			"SendPacket fails, timeout height and timeout timestamp are zero",
+			func() {
+				timeoutHeight = clienttypes.ZeroHeight()
+			}, false,
+>>>>>>> 5a67efc4 (chore: fix linter warnings (#3311))
 		},
 	}
 

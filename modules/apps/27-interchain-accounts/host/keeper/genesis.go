@@ -10,10 +10,17 @@ import (
 )
 
 // InitGenesis initializes the interchain accounts host application state from a provided genesis state
+<<<<<<< HEAD
 func InitGenesis(ctx sdk.Context, keeper Keeper, state icatypes.HostGenesisState) {
 	if !keeper.IsBound(ctx, state.Port) {
 		cap := keeper.BindPort(ctx, state.Port)
 		if err := keeper.ClaimCapability(ctx, cap, host.PortPath(state.Port)); err != nil {
+=======
+func InitGenesis(ctx sdk.Context, keeper Keeper, state genesistypes.HostGenesisState) {
+	if !keeper.HasCapability(ctx, state.Port) {
+		capability := keeper.BindPort(ctx, state.Port)
+		if err := keeper.ClaimCapability(ctx, capability, host.PortPath(state.Port)); err != nil {
+>>>>>>> 5a67efc4 (chore: fix linter warnings (#3311))
 			panic(fmt.Sprintf("could not claim port capability: %v", err))
 		}
 	}

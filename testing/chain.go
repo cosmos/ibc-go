@@ -532,12 +532,21 @@ func (chain *TestChain) CreatePortCapability(scopedKeeper capabilitykeeper.Scope
 	_, ok := chain.App.GetScopedIBCKeeper().GetCapability(chain.GetContext(), host.PortPath(portID))
 	if !ok {
 		// create capability using the IBC capability keeper
+<<<<<<< HEAD
 		cap, err := chain.App.GetScopedIBCKeeper().NewCapability(chain.GetContext(), host.PortPath(portID))
 		require.NoError(chain.T, err)
 
 		// claim capability using the scopedKeeper
 		err = scopedKeeper.ClaimCapability(chain.GetContext(), cap, host.PortPath(portID))
 		require.NoError(chain.T, err)
+=======
+		capability, err := chain.App.GetScopedIBCKeeper().NewCapability(chain.GetContext(), host.PortPath(portID))
+		require.NoError(chain.TB, err)
+
+		// claim capability using the scopedKeeper
+		err = scopedKeeper.ClaimCapability(chain.GetContext(), capability, host.PortPath(portID))
+		require.NoError(chain.TB, err)
+>>>>>>> 5a67efc4 (chore: fix linter warnings (#3311))
 	}
 
 	chain.NextBlock()
@@ -546,10 +555,15 @@ func (chain *TestChain) CreatePortCapability(scopedKeeper capabilitykeeper.Scope
 // GetPortCapability returns the port capability for the given portID. The capability must
 // exist, otherwise testing will fail.
 func (chain *TestChain) GetPortCapability(portID string) *capabilitytypes.Capability {
+<<<<<<< HEAD
 	cap, ok := chain.App.GetScopedIBCKeeper().GetCapability(chain.GetContext(), host.PortPath(portID))
 	require.True(chain.T, ok)
+=======
+	capability, ok := chain.App.GetScopedIBCKeeper().GetCapability(chain.GetContext(), host.PortPath(portID))
+	require.True(chain.TB, ok)
+>>>>>>> 5a67efc4 (chore: fix linter warnings (#3311))
 
-	return cap
+	return capability
 }
 
 // CreateChannelCapability binds and claims a capability for the given portID and channelID
@@ -560,10 +574,17 @@ func (chain *TestChain) CreateChannelCapability(scopedKeeper capabilitykeeper.Sc
 	// check if the portId is already binded, if not bind it
 	_, ok := chain.App.GetScopedIBCKeeper().GetCapability(chain.GetContext(), capName)
 	if !ok {
+<<<<<<< HEAD
 		cap, err := chain.App.GetScopedIBCKeeper().NewCapability(chain.GetContext(), capName)
 		require.NoError(chain.T, err)
 		err = scopedKeeper.ClaimCapability(chain.GetContext(), cap, capName)
 		require.NoError(chain.T, err)
+=======
+		capability, err := chain.App.GetScopedIBCKeeper().NewCapability(chain.GetContext(), capName)
+		require.NoError(chain.TB, err)
+		err = scopedKeeper.ClaimCapability(chain.GetContext(), capability, capName)
+		require.NoError(chain.TB, err)
+>>>>>>> 5a67efc4 (chore: fix linter warnings (#3311))
 	}
 
 	chain.NextBlock()
@@ -572,10 +593,15 @@ func (chain *TestChain) CreateChannelCapability(scopedKeeper capabilitykeeper.Sc
 // GetChannelCapability returns the channel capability for the given portID and channelID.
 // The capability must exist, otherwise testing will fail.
 func (chain *TestChain) GetChannelCapability(portID, channelID string) *capabilitytypes.Capability {
+<<<<<<< HEAD
 	cap, ok := chain.App.GetScopedIBCKeeper().GetCapability(chain.GetContext(), host.ChannelCapabilityPath(portID, channelID))
 	require.True(chain.T, ok)
+=======
+	capability, ok := chain.App.GetScopedIBCKeeper().GetCapability(chain.GetContext(), host.ChannelCapabilityPath(portID, channelID))
+	require.True(chain.TB, ok)
+>>>>>>> 5a67efc4 (chore: fix linter warnings (#3311))
 
-	return cap
+	return capability
 }
 
 // GetTimeoutHeight is a convenience function which returns a IBC packet timeout height

@@ -142,9 +142,25 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	channeltypes.RegisterMsgServer(cfg.MsgServer(), am.keeper)
 	types.RegisterQueryService(cfg.QueryServer(), am.keeper)
 
+<<<<<<< HEAD
 	m := clientkeeper.NewMigrator(am.keeper.ClientKeeper)
 	err := cfg.RegisterMigration(host.ModuleName, 1, m.Migrate1to2)
 	if err != nil {
+=======
+	clientMigrator := clientkeeper.NewMigrator(am.keeper.ClientKeeper)
+	if err := cfg.RegisterMigration(exported.ModuleName, 2, clientMigrator.Migrate2to3); err != nil {
+		panic(err)
+	}
+
+	connectionMigrator := connectionkeeper.NewMigrator(am.keeper.ConnectionKeeper)
+	if err := cfg.RegisterMigration(exported.ModuleName, 3, func(ctx sdk.Context) error {
+		if err := connectionMigrator.Migrate3to4(ctx); err != nil {
+			return err
+		}
+
+		return clientMigrator.Migrate3to4(ctx)
+	}); err != nil {
+>>>>>>> 5a67efc4 (chore: fix linter warnings (#3311))
 		panic(err)
 	}
 }

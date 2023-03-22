@@ -33,6 +33,15 @@ linters:
 
 issues:
   exclude-rules:
+<<<<<<< HEAD
+=======
+    - text: "unused-parameter"
+      linters:
+        - revive
+    - text: "SA1019:"
+      linters:
+        - staticcheck
+>>>>>>> 5a67efc4 (chore: fix linter warnings (#3311))
     - text: "Use of weak random number generator"
       linters:
         - gosec

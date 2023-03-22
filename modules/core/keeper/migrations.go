@@ -24,9 +24,13 @@ func NewMigrator(keeper Keeper) Migrator {
 // - adds ProcessedHeight and Iteration keys for unexpired tendermint consensus states
 func (m Migrator) Migrate1to2(ctx sdk.Context) error {
 	clientMigrator := clientkeeper.NewMigrator(m.keeper.ClientKeeper)
+<<<<<<< HEAD
 	if err := clientMigrator.Migrate1to2(ctx); err != nil {
 		return err
 	}
 
 	return nil
+=======
+	return clientMigrator.Migrate2to3(ctx)
+>>>>>>> 5a67efc4 (chore: fix linter warnings (#3311))
 }

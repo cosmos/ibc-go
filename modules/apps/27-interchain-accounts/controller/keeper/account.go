@@ -52,3 +52,47 @@ func (k Keeper) RegisterInterchainAccount(ctx sdk.Context, connectionID, owner, 
 
 	return nil
 }
+<<<<<<< HEAD
+=======
+
+// registerInterchainAccount registers an interchain account, returning the channel id of the MsgChannelOpenInitResponse
+// and an error if one occurred.
+func (k Keeper) registerInterchainAccount(ctx sdk.Context, connectionID, portID, version string) (string, error) {
+	// if there is an active channel for this portID / connectionID return an error
+	activeChannelID, found := k.GetOpenActiveChannel(ctx, connectionID, portID)
+	if found {
+		return "", errorsmod.Wrapf(icatypes.ErrActiveChannelAlreadySet, "existing active channel %s for portID %s on connection %s", activeChannelID, portID, connectionID)
+	}
+
+	switch {
+	case k.portKeeper.IsBound(ctx, portID) && !k.HasCapability(ctx, portID):
+		return "", errorsmod.Wrapf(icatypes.ErrPortAlreadyBound, "another module has claimed capability for and bound port with portID: %s", portID)
+	case !k.portKeeper.IsBound(ctx, portID):
+		capability := k.BindPort(ctx, portID)
+		if err := k.ClaimCapability(ctx, capability, host.PortPath(portID)); err != nil {
+			return "", errorsmod.Wrapf(err, "unable to bind to newly generated portID: %s", portID)
+		}
+	}
+
+	msg := channeltypes.NewMsgChannelOpenInit(portID, version, channeltypes.ORDERED, []string{connectionID}, icatypes.HostPortID, authtypes.NewModuleAddress(icatypes.ModuleName).String())
+	handler := k.msgRouter.Handler(msg)
+	res, err := handler(ctx, msg)
+	if err != nil {
+		return "", err
+	}
+
+	events := res.GetEvents()
+	k.Logger(ctx).Debug("emitting interchain account registration events", logging.SdkEventsToLogArguments(events))
+
+	// NOTE: The sdk msg handler creates a new EventManager, so events must be correctly propagated back to the current context
+	ctx.EventManager().EmitEvents(events)
+
+	firstMsgResponse := res.MsgResponses[0]
+	channelOpenInitResponse, ok := firstMsgResponse.GetCachedValue().(*channeltypes.MsgChannelOpenInitResponse)
+	if !ok {
+		return "", errorsmod.Wrapf(ibcerrors.ErrInvalidType, "failed to covert %T message response to %T", firstMsgResponse.GetCachedValue(), &channeltypes.MsgChannelOpenInitResponse{})
+	}
+
+	return channelOpenInitResponse.ChannelId, nil
+}
+>>>>>>> 5a67efc4 (chore: fix linter warnings (#3311))

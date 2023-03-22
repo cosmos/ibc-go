@@ -22,5 +22,10 @@ jobs:
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v3.2.0
         with:
+<<<<<<< HEAD
           version: latest
           args: --timeout 5m
+=======
+          version: v1.52.0
+          args: --timeout 5m
+>>>>>>> 5a67efc4 (chore: fix linter warnings (#3311))

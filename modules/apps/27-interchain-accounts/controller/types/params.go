@@ -33,11 +33,15 @@ func DefaultParams() Params {
 
 // Validate validates all controller submodule parameters
 func (p Params) Validate() error {
+<<<<<<< HEAD
 	if err := validateEnabled(p.ControllerEnabled); err != nil {
 		return err
 	}
 
 	return nil
+=======
+	return validateEnabledType(p.ControllerEnabled)
+>>>>>>> 5a67efc4 (chore: fix linter warnings (#3311))
 }
 
 // ParamSetPairs implements params.ParamSet

@@ -116,8 +116,13 @@ func (am AppModule) InitModule(ctx sdk.Context, controllerParams controllertypes
 	if am.hostKeeper != nil {
 		am.hostKeeper.SetParams(ctx, hostParams)
 
+<<<<<<< HEAD
 		cap := am.hostKeeper.BindPort(ctx, types.PortID)
 		if err := am.hostKeeper.ClaimCapability(ctx, cap, ibchost.PortPath(types.PortID)); err != nil {
+=======
+		capability := am.hostKeeper.BindPort(ctx, types.HostPortID)
+		if err := am.hostKeeper.ClaimCapability(ctx, capability, ibchost.PortPath(types.HostPortID)); err != nil {
+>>>>>>> 5a67efc4 (chore: fix linter warnings (#3311))
 			panic(fmt.Sprintf("could not claim port capability: %v", err))
 		}
 	}
