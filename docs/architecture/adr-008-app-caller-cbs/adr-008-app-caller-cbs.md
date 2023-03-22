@@ -75,13 +75,16 @@ type PacketActor interface {
 ```
 
 The CallbackPacketData interface will get created to add `GetSrcCallbackAddress` and `GetDestCallbackAddress` methods. These may return an address
-or they may return the empty string. The address may reference an IBCActor or it may be a regular user address. If the address is not an IBCActor, the actor callback must continue processing (no-op). Any IBC application or middleware that uses these methods must handle these cases. In most cases, the `GetSrcCallbackAddress` will be the sender address and the `GetDestCallbackAddress` will be the receiver address. However, these are named generically so that implementors may choose a different contract address for the callback if they choose.
+or they may return the empty string. The address may reference an PacketActor or it may be a regular user address. If the address is not a PacketActor, the actor callback must continue processing (no-op). Any IBC application or middleware that uses these methods must handle these cases. In most cases, the `GetSrcCallbackAddress` will be the sender address and the `GetDestCallbackAddress` will be the receiver address. However, these are named generically so that implementors may choose a different contract address for the callback if they choose.
 
-The interface also defines a `UserDefinedGasLimit` method. Any middleware targetting this interface for callback handling should cap the gas that a callback is allowed to take (especially on AcknowledgePacket and TimeoutPacket) so that a custom callback does not prevent the packet lifecycle from completing. However, since this is a global cap it is likely to be very large. Thus, users may specify a smaller limit to cap the amount of fees a relayer must pay in order to complete the packet lifecycle on the user's behalf.
+The interface also defines a `UserDefinedGasLimit` method. Any middleware targeting this interface for callback handling should cap the gas that a callback is allowed to take (especially on AcknowledgePacket and TimeoutPacket) so that a custom callback does not prevent the packet lifecycle from completing. However, since this is a global cap it is likely to be very large. Thus, users may specify a smaller limit to cap the amount of fees a relayer must pay in order to complete the packet lifecycle on the user's behalf.
+
+IBC Apps which provide the base packet data type must implement the `CallbackPacketData` interface to allow `PacketActor` callbacks.
 
 ```go
-// Implemented by any packet data type that wants to support
-// PacketActor callbacks
+// Implemented by any packet data type that wants to support PacketActor callbacks
+// PacketActor's will be unable to act on any packet data type that does not implement
+// this interface. 
 type CallbackPacketData interface {
     // may return the empty string
     GetSrcCallbackAddress() string
@@ -105,7 +108,8 @@ IBC Apps or middleware can then call the IBCActor callbacks like so in their own
 
 ### Handshake Callbacks
 
-The handshake init callbacks (`OnChanOpenInit` and `OnChanCloseInit`) will need to include an additional field so that the initiating actor can be tracked and called upon during handshake completion.
+The `OnChanOpenInit` handshake callback will need to include an additional field so that the initiating actor can be tracked and called upon during handshake completion.
+The actor provided in the `OnChanOpenInit` callback will be the signer of the `MsgChanOpenInit` message. 
 
 ```go
 func OnChanOpenInit(
@@ -143,40 +147,24 @@ func OnChanOpenAck(
         ibcActor, _ := acc.(IBCActor)
         ibcActor.OnChanOpen(ctx, portID, channelID, version)
     }
-    // cleanup state
-    k.deleteActor(ctx, portID, channelID)
-}
 
-func OnChanOpenConfirm(
-    ctx sdk.Context,
-    portID,
-    channelID string,
-) error {
-    // run any necesssary logic first
-    // retrieve final version
-
-    actor := k.getActor(ctx, portID, channelID)
-    if actor != "" {
-        ibcActor, _ := acc.(IBCActor)
-        ibcActor.OnChanOpen(ctx, portID, channelID, version)
-    }
-    // cleanup state
-    k.deleteActor(ctx, portID, channelID)
+    // the same actor will be used for channel closure
 }
 
 func OnChanCloseInit(
     ctx sdk.Context,
     portID,
     channelID,
-    actor string,
 ) error {
-    acc := k.getAccount(ctx, actor)
-    ibcActor, ok := acc.(IBCActor)
-    if ok {
-        k.setActor(ctx, portID, channelID, actor)
+    // run any necesssary logic first
+
+    actor := k.getActor(ctx, portID, channelID)
+    if actor != "" {
+        ibcActor, _ := acc.(IBCActor)
+        ibcActor.OnChanClose(ctx, portID, channelID)
     }
-    
-    // continued logic
+    // cleanup state
+    k.deleteActor(ctx, portID, channelID)
 }
 
 func OnChanCloseConfirm(
@@ -196,14 +184,16 @@ func OnChanCloseConfirm(
 }
 ```
 
+NOTE: The handshake calls `OnChanOpenTry` and `OnChanOpenConfirm` are explicitly left out as it is still to be determined how the actor of the `OnChanOpenTry` step should be provided. Initially only the initiating side of the channel handshake may support setting a channel actor, future improvements should allow both sides of the channel handshake to set channel actors. 
+
 ### PacketCallbacks
 
 No packet callback API will need to change.
 
 ```go
 // Call the IBCActor recvPacket callback after processing the packet
-// if the recvPacket callback exists and returns an error
-// then return an error ack to revert all packet data processing
+// if the recvPacket callback exists. If the callback returns an error
+// then return an error ack to revert all packet data processing. 
 func OnRecvPacket(
     ctx sdk.Context,
     packet channeltypes.Packet,
@@ -212,10 +202,16 @@ func OnRecvPacket(
     // run any necesssary logic first
     // IBCActor logic will postprocess
 
+    // postprocessing should only if the underlying application
+    // returns a successful ack
+
     // unmarshal packet data into expected interface
     var cbPacketData callbackPacketData
     unmarshalInterface(packet.GetData(), cbPacketData)
+
     if cbPacketData == nil {
+        // the packet data does not implement the CallbackPacketData interface
+        // continue processing (no-op)
         return
     }
 
@@ -231,6 +227,21 @@ func OnRecvPacket(
         // deduct consumed gas from original context
         ctx = ctx.WithGasLimit(ctx.GasMeter().RemainingGas() - cbCtx.GasMeter().GasConsumed())
         if err != nil {
+            // NOTE: by returning an error acknowledgement, it is assumed that the
+            // base IBC application on the counterparty callback stack will be able
+            // to properly unmarshal the error acknowledgement. It should not expect
+            // some custom error acknowledgement. If it does, failed acknowledgements
+            // will be unsuccessfully processed which can be catastrophic in processing
+            // refund logic. 
+            // 
+            // If this issue is a serious concern, an ADR 8 implementation can construct its own
+            // acknowledgement type which wraps the underlying application acknowledgement. This 
+            // would require deployment on both sides of the packet flow, in addition to version 
+            // negotiation to enable the custom acknowledgement type usage. 
+            // 
+            // Future improvmenets should allow for each IBC application in a stack of
+            // callbacks to provide their own acknowledgement without disrupting the unmarshaling
+            // of an application above or below it in the stack. 
             return AcknowledgementError(err)
         }
     }
@@ -254,7 +265,10 @@ func (im IBCModule) OnAcknowledgementPacket(
     // unmarshal packet data into expected interface
     var cbPacketData callbackPacketData
     unmarshalInterface(packet.GetData(), cbPacketData)
+
     if cbPacketData == nil {
+        // the packet data does not implement the CallbackPacketData interface
+        // continue processing (no-op)
         return
     }
 
@@ -307,7 +321,10 @@ func (im IBCModule) OnTimeoutPacket(
     // unmarshal packet data into expected interface
     var cbPacketData callbackPacketData
     unmarshalInterface(packet.GetData(), cbPacketData)
+
     if cbPacketData == nil {
+        // the packet data does not implement the CallbackPacketData interface
+        // continue processing (no-op)
         return
     }
 
@@ -376,5 +393,6 @@ Chains are expected to specify a `chainDefinedActorCallbackLimit` to ensure that
 
 ## References
 
-- https://github.com/cosmos/ibc-go/issues/1660
-- https://github.com/cosmos/ibc-go/pull/3287
+- [Original issue](https://github.com/cosmos/ibc-go/issues/1660)
+- [CallbackPacketData interface implementation](https://github.com/cosmos/ibc-go/pull/3287) 
+- [ICS 20, ICS 27 implementations of the CallbackPacketData interface](https://github.com/cosmos/ibc-go/pull/3287)
