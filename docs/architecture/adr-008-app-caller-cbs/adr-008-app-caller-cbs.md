@@ -369,10 +369,12 @@ Chains are expected to specify a `chainDefinedActorCallbackLimit` to ensure that
 ### Negative
 
 - Callbacks may now have unbounded gas consumption since the actor may execute arbitrary logic. Chains implementing this feature should take care to place limitations on how much gas an actor callback can consume.
-- Application packets that want to support ADR-8 must additionally have their packet data implement the `CallbackPacketData` interface and register their implementation on the chain codec
 
 ### Neutral
+
+- Application packets that want to support ADR-8 must additionally have their packet data implement the `CallbackPacketData` interface and register their implementation on the chain codec
 
 ## References
 
 - https://github.com/cosmos/ibc-go/issues/1660
+- https://github.com/cosmos/ibc-go/pull/3287
