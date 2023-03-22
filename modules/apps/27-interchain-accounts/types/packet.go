@@ -51,7 +51,7 @@ func (iapd InterchainAccountPacketData) GetBytes() []byte {
 	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(&iapd))
 }
 
-/**
+/*
 
 ADR-8 CallbackPacketData implementation
 
@@ -68,62 +68,47 @@ The Memo format is defined like so:
 	"callbacks": {
 		"src_callback_address": {contractAddrOnSrcChain},
 		"dest_callback_address": {contractAddrOnDestChain},
-		"src_callback_msg": {jsonObjectForSrcChainCallback},
-		"dest_callback_msg": {jsonObjectForDestChainCallback},
+		"src_callback_msg": {jsonObjectForSrcChainCallback}, // optional field
+		"dest_callback_msg": {jsonObjectForDestChainCallback}, // optional field
 	}
 
 }
 ```
 
-**/
+*/
 
+// GetSrcCallbackAddress returns the callback address on the source chain.
 // ADR-8 middleware should callback on the sender address on the source chain
 // if the sender address is an IBC Actor (i.e. smart contract that accepts IBC callbacks)
-func (iapd InterchainAccountPacketData) GetSrcCallbackAddress() (addr string) {
+func (iapd InterchainAccountPacketData) GetSrcCallbackAddress() string {
 	if len(iapd.Memo) == 0 {
-		return
+		return ""
 	}
 
 	jsonObject := make(map[string]interface{})
 	// the jsonObject must be a valid JSON object
 	err := json.Unmarshal([]byte(iapd.Memo), &jsonObject)
 	if err != nil {
-		return
+		return ""
 	}
 
 	callbackData, ok := jsonObject["callbacks"].(map[string]interface{})
 	if !ok {
-		return
+		return ""
 	}
 
 	callbackAddr := callbackData["src_callback_address"].(string)
 	return callbackAddr
 }
 
+// GetDestCallbackAddress returns the callback address on the destination chain.
 // ADR-8 middleware should callback on the receiver address on the destination chain
 // if the receiver address is an IBC Actor (i.e. smart contract that accepts IBC callbacks)
-func (iapd InterchainAccountPacketData) GetDestCallbackAddress() (addr string) {
-	if len(iapd.Memo) == 0 {
-		return
-	}
-
-	jsonObject := make(map[string]interface{})
-	// the jsonObject must be a valid JSON object
-	err := json.Unmarshal([]byte(iapd.Memo), &jsonObject)
-	if err != nil {
-		return
-	}
-
-	callbackData, ok := jsonObject["callbacks"].(map[string]interface{})
-	if !ok {
-		return
-	}
-
-	callbackAddr := callbackData["dest_callback_address"].(string)
-	return callbackAddr
+func (iapd InterchainAccountPacketData) GetDestCallbackAddress() string {
+	return ""
 }
 
-// no-op on this method to use relayer passed in gas
+// UserDefinedGasLimit no-ops on this method to use relayer passed in gas
 func (fptd InterchainAccountPacketData) UserDefinedGasLimit() uint64 {
 	return 0
 }
