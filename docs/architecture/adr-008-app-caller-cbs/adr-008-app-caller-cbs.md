@@ -74,8 +74,8 @@ type PacketActor interface {
 }
 ```
 
-The CallbackPacketData interface will get created to add `GetSrcCallbackAddress` and `GetDestCallbackAddress` methods. These may return an address
-or they may return the empty string. The address may reference an PacketActor or it may be a regular user address. If the address is not a PacketActor, the actor callback must continue processing (no-op). Any IBC application or middleware that uses these methods must handle these cases. In most cases, the `GetSrcCallbackAddress` will be the sender address and the `GetDestCallbackAddress` will be the receiver address. However, these are named generically so that implementors may choose a different contract address for the callback if they choose.
+The CallbackPacketData interface will get created to add `GetSourceCallbackAddress` and `GetDestCallbackAddress` methods. These may return an address
+or they may return the empty string. The address may reference an PacketActor or it may be a regular user address. If the address is not a PacketActor, the actor callback must continue processing (no-op). Any IBC application or middleware that uses these methods must handle these cases. In most cases, the `GetSourceCallbackAddress` will be the sender address and the `GetDestCallbackAddress` will be the receiver address. However, these are named generically so that implementors may choose a different contract address for the callback if they choose.
 
 The interface also defines a `UserDefinedGasLimit` method. Any middleware targeting this interface for callback handling should cap the gas that a callback is allowed to take (especially on AcknowledgePacket and TimeoutPacket) so that a custom callback does not prevent the packet lifecycle from completing. However, since this is a global cap it is likely to be very large. Thus, users may specify a smaller limit to cap the amount of fees a relayer must pay in order to complete the packet lifecycle on the user's behalf.
 
@@ -87,7 +87,7 @@ IBC Apps which provide the base packet data type must implement the `CallbackPac
 // this interface. 
 type CallbackPacketData interface {
     // may return the empty string
-    GetSrcCallbackAddress() string
+    GetSourceCallbackAddress() string
 
     // may return the empty string
     GetDestCallbackAddress() string
@@ -277,32 +277,42 @@ func (im IBCModule) OnAcknowledgementPacket(
     unmarshal(acknowledgement, ack)
 
     // send acknowledgement to original actor
-    acc := k.getAccount(ctx, cbPacketData.GetSrcCallbackAddress())
+    acc := k.getAccount(ctx, cbPacketData.GetSourceCallbackAddress())
     ibcActor, ok := acc.(IBCActor)
     if ok {
         gasLimit := getGasLimit(ctx, cbPacketData)
 
-        // create cached context with gas limit
-        cacheCtx, writeFn := ctx.CacheContext()
-        cacheCtx = cacheCtx.WithGasLimit(gasLimit)
+
+        handleCallback := func() error {
+            // create cached context with gas limit
+            cacheCtx, writeFn := ctx.CacheContext()
+            cacheCtx = cacheCtx.WithGasLimit(gasLimit)
         
-        defer func() {
-            if e := recover(); e != nil {
-                log("ran out of gas in callback. reverting callback state")
-            } else {
-                // only write callback state if we did not panic during execution
-                writeFn()
+            defer func() {
+                if e := recover(); e != nil {
+                    log("ran out of gas in callback. reverting callback state")
+                } else if err == nil {
+                    // only write callback state if we did not panic during execution
+                    // and the error returned is nil
+                    writeFn()
+                }
             }
+
+            err := ibcActor.OnAcknowledgementPacket(cacheCtx, packet, ack, relayer) 
+
+            // deduct consumed gas from original context
+            ctx = ctx.WithGasLimit(ctx.GasMeter().RemainingGas() - cbCtx.GasMeter().GasConsumed())
+
+            return err
         }
 
-        err := ibcActor.OnAcknowledgementPacket(cacheCtx, packet, ack, relayer)
-
-        // deduct consumed gas from original context
-        ctx = ctx.WithGasLimit(ctx.GasMeter().RemainingGas() - cbCtx.GasMeter().GasConsumed())
-
-        setAckCallbackError(ctx, packet, err)
-        emitAckCallbackErrorEvents(err)
+        if err := handleCallback(); err != nil {
+            setAckCallbackError(ctx, packet, err) // optional
+            emitAckCallbackErrorEvents(err)
+        }     
     }
+
+    return nil
 }
 
 // Call the IBCActor timeoutPacket callback after processing the packet
@@ -329,32 +339,41 @@ func (im IBCModule) OnTimeoutPacket(
     }
 
     // call timeout callback on original actor
-    acc := k.getAccount(ctx, cbPacketData.GetSrcCallbackAddress())
+    acc := k.getAccount(ctx, cbPacketData.GetSourceCallbackAddress())
     ibcActor, ok := acc.(IBCActor)
     if ok {
         gasLimit := getGasLimit(ctx, cbPacketData)
 
-        // create cached context with gas limit
-        cacheCtx, writeFn := ctx.CacheContext()
-        cacheCtx = cacheCtx.WithGasLimit(gasLimit)
+        handleCallback := func() error {
+            // create cached context with gas limit
+            cacheCtx, writeFn := ctx.CacheContext()
+            cacheCtx = cacheCtx.WithGasLimit(gasLimit)
         
-        defer func() {
-            if e := recover(); e != nil {
-                log("ran out of gas in callback. reverting callback state")
-            } else {
-                // only write callback state if we did not panic during execution
-                writeFn()
+            defer func() {
+                if e := recover(); e != nil {
+                    log("ran out of gas in callback. reverting callback state")
+                } else if err == nil {
+                    // only write callback state if we did not panic during execution
+                    // and the error returned is nil
+                    writeFn()
+                }
             }
+
+            err := ibcActor.OnTimeoutPacket(ctx, packet, relayer)
+
+            // deduct consumed gas from original context
+            ctx = ctx.WithGasLimit(ctx.GasMeter().RemainingGas() - cbCtx.GasMeter().GasConsumed())
+
+            return err
         }
 
-        err := ibcActor.OnTimeoutPacket(ctx, packet, relayer)
-
-        // deduct consumed gas from original context
-        ctx = ctx.WithGasLimit(ctx.GasMeter().RemainingGas() - cbCtx.GasMeter().GasConsumed())
-
-        setTimeoutCallbackError(ctx, packet, err)
-        emitTimeoutCallbackErrorEvents(err)
+        if err := handleCallback(); err != nil {
+            setTimeoutCallbackError(ctx, packet, err) // optional
+            emitTimeoutCallbackErrorEvents(err)
+        }     
     }
+
+    return nil
 }
 
 func getGasLimit(ctx sdk.Context, cbPacketData CallbackPacketData) uint64 {
