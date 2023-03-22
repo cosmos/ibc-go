@@ -12,7 +12,7 @@ require (
 	github.com/cometbft/cometbft-db v0.7.0
 	github.com/cosmos/cosmos-sdk v0.47.0
 	github.com/cosmos/gogoproto v1.4.6
-	github.com/cosmos/ibc-go/v7 v7.0.0-rc1
+	github.com/cosmos/ibc-go/v7 v7.0.0
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
 	github.com/spf13/cobra v1.6.1
 	github.com/stretchr/testify v1.8.2
