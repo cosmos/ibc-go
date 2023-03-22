@@ -8,7 +8,7 @@ It is possible to update the client with the state of the substitute client thro
 
 ## Implementing `CheckSubstituteAndUpdateState`
 
-In the [`ClientState`interface](https://github.com/cosmos/ibc-go/blob/e650be91614ced7be687c30eb42714787a3bbc59/modules/core/exported/client.go), we find:
+In the [`ClientState`interface](https://github.com/cosmos/ibc-go/blob/v7.0.0/modules/core/exported/client.go), we find:
 
 ```go
 // CheckSubstituteAndUpdateState must verify that the provided substitute may be used to update the subject client.
@@ -24,9 +24,9 @@ CheckSubstituteAndUpdateState(
 
 Prior to updating, this function must verify that:
 
-- the substitute client is the same type as the subject client. For a reference implementation, please see the [Tendermint light client](https://github.com/cosmos/ibc-go/blob/02-client-refactor-beta1/modules/light-clients/07-tendermint/proposal_handle.go#L32).
-- the provided substitute may be used to update the subject client. This may mean that certain parameters must remain unaltered. For example, a [valid substitute Tendermint light client](https://github.com/cosmos/ibc-go/blob/02-client-refactor-beta1/modules/light-clients/07-tendermint/proposal_handle.go#L84) must NOT change the chain ID, trust level, max clock drift, unbonding period, proof specs or upgrade path. Please note that `AllowUpdateAfterMisbehaviour` and `AllowUpdateAfterExpiry` have been deprecated (see ADR 026 for more information).
+- the substitute client is the same type as the subject client. For a reference implementation, please see the [Tendermint light client](https://github.com/cosmos/ibc-go/blob/v7.0.0/modules/light-clients/07-tendermint/proposal_handle.go#L32).
+- the provided substitute may be used to update the subject client. This may mean that certain parameters must remain unaltered. For example, a [valid substitute Tendermint light client](https://github.com/cosmos/ibc-go/blob/v7.0.0/modules/light-clients/07-tendermint/proposal_handle.go#L84) must NOT change the chain ID, trust level, max clock drift, unbonding period, proof specs or upgrade path. Please note that `AllowUpdateAfterMisbehaviour` and `AllowUpdateAfterExpiry` have been deprecated (see ADR 026 for more information).
 
-After these checks are performed, the function must [set the updated client and consensus states](https://github.com/cosmos/ibc-go/blob/02-client-refactor-beta1/modules/light-clients/07-tendermint/proposal_handle.go#L77) within the client store for the subject client.
+After these checks are performed, the function must [set the updated client and consensus states](https://github.com/cosmos/ibc-go/blob/v7.0.0/modules/light-clients/07-tendermint/proposal_handle.go#L77) within the client store for the subject client.
 
-Please refer to the [Tendermint light client implementation](https://github.com/cosmos/ibc-go/blob/02-client-refactor-beta1/modules/light-clients/07-tendermint/proposal_handle.go#L27) for reference.
+Please refer to the [Tendermint light client implementation](https://github.com/cosmos/ibc-go/blob/v7.0.0/modules/light-clients/07-tendermint/proposal_handle.go#L27) for reference.

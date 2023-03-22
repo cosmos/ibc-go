@@ -103,6 +103,15 @@ jobs:
       test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
       test-suite: "transfer-authz-chain-a"
 
+  transfer-authz-chain-b:
+    needs:
+      - build-release-images
+      - determine-test-directory
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
+      test-suite: "transfer-authz-chain-b"
+
   connection-chain-a:
     needs:
       - build-release-images
