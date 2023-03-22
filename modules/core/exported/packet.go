@@ -26,7 +26,7 @@ type CallbackPacketData interface {
 	// GetSourceCallbackAddress should return the callback address of a packet data on the source chain.
 	// This may or may not be the sender of the packet. If no source callback address exists for the packet,
 	// an empty string may be returned.
-	GetSrcCallbackAddress() string
+	GetSourceCallbackAddress() string
 
 	// GetDestCallbackAddress should return the callback address of a packet data on the destination chain.
 	// This may or may not be the receiver of the packet. If no dest callback address exists for the packet,

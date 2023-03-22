@@ -66,11 +66,11 @@ The Memo format is defined like so:
 {
 	// ... other memo fields we don't care about
 	"callbacks": {
-		"src_callback_address": {contractAddrOnSrcChain},
+		"src_callback_address": {contractAddrOnSourceChain},
 		"dest_callback_address": {contractAddrOnDestChain},
 
 		// optional fields
-		"src_callback_msg": {jsonObjectForSrcChainCallback},
+		"src_callback_msg": {jsonObjectForSourceChainCallback},
 		"dest_callback_msg": {jsonObjectForDestChainCallback},
 	}
 }
@@ -78,16 +78,20 @@ The Memo format is defined like so:
 
 */
 
-// GetSrcCallbackAddress returns the callback address on the source chain.
-// ADR-8 middleware should callback on the sender address on the source chain
-// if the sender address is an IBC Actor (i.e. smart contract that accepts IBC callbacks)
-func (iapd InterchainAccountPacketData) GetSrcCallbackAddress() string {
+// GetSourceCallbackAddress returns the source callback address provided in the packet data memo.
+// If no callback address is specified, an empty string is returned.
+//
+// The memo is expected to specify the callback address in the following format:
+// { "callbacks": { "src_callback_address": {contractAddrOnSourceChain}}
+//
+// ADR-8 middleware should callback on the returned address if it is a PacketActor
+// (i.e. smart contract that accepts IBC callbacks).
+func (iapd InterchainAccountPacketData) GetSourceCallbackAddress() string {
 	if len(iapd.Memo) == 0 {
 		return ""
 	}
 
 	jsonObject := make(map[string]interface{})
-	// the jsonObject must be a valid JSON object
 	err := json.Unmarshal([]byte(iapd.Memo), &jsonObject)
 	if err != nil {
 		return ""
@@ -105,14 +109,15 @@ func (iapd InterchainAccountPacketData) GetSrcCallbackAddress() string {
 	return callbackAddr
 }
 
-// GetDestCallbackAddress returns the callback address on the destination chain.
-// ADR-8 middleware should callback on the receiver address on the destination chain
-// if the receiver address is an IBC Actor (i.e. smart contract that accepts IBC callbacks)
+// GetDestCallbackAddress returns an empty string. Destination callback addresses
+// are not supported for ICS 27 since this feature is natively supported by
+// interchain accounts host submodule transaction execution.
 func (iapd InterchainAccountPacketData) GetDestCallbackAddress() string {
 	return ""
 }
 
-// UserDefinedGasLimit no-ops on this method to use relayer passed in gas
+// UserDefinedGasLimit returns 0 (no-op). The gas limit of the executing
+// transaction will be used.
 func (fptd InterchainAccountPacketData) UserDefinedGasLimit() uint64 {
 	return 0
 }
