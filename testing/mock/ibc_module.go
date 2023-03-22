@@ -162,6 +162,31 @@ func (im IBCModule) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet,
 	return nil
 }
 
+// OnChanUpgradeInit implements the IBCModule interface
+func (im IBCModule) OnChanUpgradeInit(ctx sdk.Context, order channeltypes.Order, connectionHops []string, portID, channelID string, sequence uint64, counterparty channeltypes.Counterparty, version, previousVersion string) (string, error) {
+	return Version, nil
+}
+
+// OnChanUpgradeTry implements the IBCModule interface
+func (im IBCModule) OnChanUpgradeTry(ctx sdk.Context, order channeltypes.Order, connectionHops []string, portID, channelID string, sequence uint64, counterparty channeltypes.Counterparty, previousVersion, counterpartyVersion string) (string, error) {
+	return Version, nil
+}
+
+// OnChanUpgradeAck implements the IBCModule interface
+func (im IBCModule) OnChanUpgradeAck(ctx sdk.Context, portID, channelID, counterpartyChannelID, counterpartyVersion string) error {
+	return nil
+}
+
+// OnChanUpgradeConfirm implements the IBCModule interface
+func (im IBCModule) OnChanUpgradeConfirm(ctx sdk.Context, portID, channelID string) error {
+	return nil
+}
+
+// OnChanUpgradeRestore implements the IBCModule interface
+func (im IBCModule) OnChanUpgradeRestore(ctx sdk.Context, portID, channelID string) error {
+	return nil
+}
+
 // GetMockRecvCanaryCapabilityName generates a capability name for testing OnRecvPacket functionality.
 func GetMockRecvCanaryCapabilityName(packet channeltypes.Packet) string {
 	return fmt.Sprintf("%s%s%s%s", MockRecvCanaryCapabilityName, packet.GetDestPort(), packet.GetDestChannel(), strconv.Itoa(int(packet.GetSequence())))

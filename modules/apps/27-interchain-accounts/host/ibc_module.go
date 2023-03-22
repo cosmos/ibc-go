@@ -148,3 +148,28 @@ func (im IBCModule) OnTimeoutPacket(
 ) error {
 	return errorsmod.Wrap(icatypes.ErrInvalidChannelFlow, "cannot cause a packet timeout on a host channel end, a host chain does not send a packet over the channel")
 }
+
+// OnChanUpgradeInit implements the IBCModule interface
+func (im IBCModule) OnChanUpgradeInit(ctx sdk.Context, order channeltypes.Order, connectionHops []string, portID, channelID string, sequence uint64, counterparty channeltypes.Counterparty, version, previousVersion string) (string, error) {
+	return "", errorsmod.Wrap(icatypes.ErrInvalidChannelFlow, "channel handshake must be initiated by controller chain")
+}
+
+// OnChanUpgradeTry implements the IBCModule interface
+func (im IBCModule) OnChanUpgradeTry(ctx sdk.Context, order channeltypes.Order, connectionHops []string, portID, channelID string, sequence uint64, counterparty channeltypes.Counterparty, previousVersion, counterpartyVersion string) (string, error) {
+	return icatypes.Version, nil
+}
+
+// OnChanUpgradeAck implements the IBCModule interface
+func (im IBCModule) OnChanUpgradeAck(ctx sdk.Context, portID, channelID, counterpartyChannelID, counterpartyVersion string) error {
+	return  errorsmod.Wrap(icatypes.ErrInvalidChannelFlow, "channel handshake must be initiated by controller chain")
+}
+
+// OnChanUpgradeConfirm implements the IBCModule interface
+func (im IBCModule) OnChanUpgradeConfirm(ctx sdk.Context, portID, channelID string) error {
+	return nil
+}
+
+// OnChanUpgradeRestore implements the IBCModule interface
+func (im IBCModule) OnChanUpgradeRestore(ctx sdk.Context, portID, channelID string) error {
+	return nil
+}
