@@ -4,7 +4,6 @@ package ibc.lightclients.wasm.v1;
 
 import "gogoproto/gogo.proto";
 import "ibc/core/client/v1/client.proto";
-import "ibc/core/commitment/v1/commitment.proto";
 
 option go_package = "github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm/types";
 
@@ -21,13 +20,10 @@ message ClientState {
 message ConsensusState {
   option (gogoproto.goproto_getters) = false;
   bytes data                         = 1;
-  bytes code_id                      = 2;
 
   // timestamp that corresponds to the block height in which the ConsensusState
   // was stored.
-  uint64 timestamp = 3;
-  // commitment root
-  ibc.core.commitment.v1.MerkleRoot root = 4;
+  uint64 timestamp = 2;
 } //
 
 // Wasm light client Header
@@ -42,6 +38,5 @@ message Header {
 message Misbehaviour {
   option (gogoproto.goproto_getters) = false;
 
-  string client_id = 1 [(gogoproto.moretags) = "yaml:\"client_id\""];
-  bytes  data      = 2;
+  bytes data = 1;
 }

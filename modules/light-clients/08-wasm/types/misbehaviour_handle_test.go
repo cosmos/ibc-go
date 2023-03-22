@@ -40,7 +40,6 @@ func (suite *WasmTestSuite) TestVerifyMisbehaviour() {
 				data, err = base64.StdEncoding.DecodeString(suite.testData["misbehaviour"])
 				suite.Require().NoError(err)
 				clientMsg = &wasmtypes.Misbehaviour{
-					ClientId: "08-wasm-0",
 					Data:     data,
 				}
 			},
@@ -52,7 +51,6 @@ func (suite *WasmTestSuite) TestVerifyMisbehaviour() {
 				data, err := base64.StdEncoding.DecodeString(suite.testData["misbehaviour"])
 				suite.Require().NoError(err)
 				clientMsg = &wasmtypes.Misbehaviour{
-					ClientId: "08-wasm-0",
 					Data:     data,
 				}
 			},
@@ -155,7 +153,6 @@ func (suite *WasmTestSuite) TestCheckForMisbehaviour() {
 				data, err = base64.StdEncoding.DecodeString(suite.testData["misbehaviour"])
 				suite.Require().NoError(err)
 				clientMsg = &wasmtypes.Misbehaviour{
-					ClientId: "08-wasm-0",
 					Data:     data,
 				}
 				

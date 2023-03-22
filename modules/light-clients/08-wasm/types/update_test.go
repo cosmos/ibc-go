@@ -114,26 +114,10 @@ func (suite *WasmTestSuite) TestUpdateState() {
 			true,
 		},
 		{
-			"failure with not verifying client message",
-			func() {
-				data, err := base64.StdEncoding.DecodeString(suite.testData["header"])
-				suite.Require().NoError(err)
-				clientMsg = &wasmtypes.Header{
-					Data: data,
-					Height: clienttypes.Height{
-						RevisionNumber: 2000,
-						RevisionHeight: 39,
-					},
-				}
-			},
-			false,
-		},
-		{
 			"invalid ClientMessage type", func() {
 				data, err := base64.StdEncoding.DecodeString(suite.testData["misbehaviour"])
 				suite.Require().NoError(err)
 				clientMsg = &wasmtypes.Misbehaviour{
-					ClientId: "08-wasm-0",
 					Data:     data,
 				}
 			},
@@ -189,7 +173,6 @@ func (suite *WasmTestSuite) TestUpdateStateOnMisbehaviour() {
 				suite.Require().NoError(err)
 				clientMsg = &wasmtypes.Misbehaviour{
 					Data:     data,
-					ClientId: "08-wasm-0",
 				}
 				clientState = suite.clientState
 			},
