@@ -67,7 +67,7 @@ func (ftpd FungibleTokenPacketData) GetBytes() []byte {
 	return sdk.MustSortJSON(mustProtoMarshalJSON(&ftpd))
 }
 
-/**
+/*
 
 ADR-8 CallbackPacketData implementation
 
@@ -86,6 +86,8 @@ The Memo format is defined like so:
 	"callbacks": {
 		"src_callback_address": {contractAddrOnSrcChain},
 		"dest_callback_address": {contractAddrOnDestChain},
+
+		// optional fields
 		"src_callback_msg": {jsonObjectForSrcChainCallback},
 		"dest_callback_msg": {jsonObjectForDestChainCallback},
 	}
@@ -96,20 +98,25 @@ The Memo format is defined like so:
 For transfer, we will enforce that the src_callback_address is the same as sender and dest_callback_address is the same as receiver.
 However, we may remove this restriction at a later date if it proves useful.
 
-**/
+*/
 
-// ADR-8 middleware should callback on the sender address on the source chain
-// if the sender address is an IBC Actor (i.e. smart contract that accepts IBC callbacks)
-// The desired callback address must be confirmed in the memo under the "callbacks" key.
-// This ensures that the callback is explicitly desired by the user and not just called
-// automatically.
+// GetSrcCallbackAddress returns the sender address if it is also specified in
+// the packet data memo. The desired callback address must be confirmed in the
+// memo under the "callbacks" key. This ensures that the callback is explicitly
+// desired by the user and not called automatically. If no callback address is
+// specified, an empty string is returned.
+//
+// The memo is expected to contain the source callback address in the following format:
+// { "callbacks": { "src_callback_address": {contractAddrOnSrcChain}}
+//
+// ADR-8 middleware should callback on the returned address if it is a PacketActor
+// (i.e. smart contract that accepts IBC callbacks).
 func (ftpd FungibleTokenPacketData) GetSrcCallbackAddress() string {
 	if len(ftpd.Memo) == 0 {
 		return ""
 	}
 
 	jsonObject := make(map[string]interface{})
-	// the jsonObject must be a valid JSON object
 	err := json.Unmarshal([]byte(ftpd.Memo), &jsonObject)
 	if err != nil {
 		return ""
@@ -123,21 +130,27 @@ func (ftpd FungibleTokenPacketData) GetSrcCallbackAddress() string {
 	if callbackData["src_callback_address"] == ftpd.Sender {
 		return ftpd.Sender
 	}
+
 	return ""
 }
 
-// ADR-8 middleware should callback on the receiver address on the destination chain
-// if the receiver address is an IBC Actor (i.e. smart contract that accepts IBC callbacks)
-// The desired callback address must be confirmed in the memo under the "callbacks" key.
-// This ensures that the callback is explicitly desired by the user and not just called
-// automatically.
+// GetDestCallbackAddress returns the receiving address if it is also specified in
+// the packet data memo. The desired callback address must be confirmed in the
+// memo under the "callbacks" key. This ensures that the callback is explicitly
+// desired by the user and not called automatically. If no callback address is
+// specified, an empty string is returned.
+//
+// The memo is expected to contain the destination callback address in the following format:
+// { "callbacks": { "dest_callback_address": {contractAddrOnDestChain}}
+//
+// ADR-8 middleware should callback on the returned address if it is a PacketActor
+// (i.e. smart contract that accepts IBC callbacks).
 func (ftpd FungibleTokenPacketData) GetDestCallbackAddress() string {
 	if len(ftpd.Memo) == 0 {
 		return ""
 	}
 
 	jsonObject := make(map[string]interface{})
-	// the jsonObject must be a valid JSON object
 	err := json.Unmarshal([]byte(ftpd.Memo), &jsonObject)
 	if err != nil {
 		return ""
@@ -151,10 +164,12 @@ func (ftpd FungibleTokenPacketData) GetDestCallbackAddress() string {
 	if callbackData["dest_callback_address"] == ftpd.Receiver {
 		return ftpd.Receiver
 	}
+
 	return ""
 }
 
-// no-op on this method to use relayer passed in gas
+// UserDefinedGasLimit returns 0 (no-op). The gas limit of the executing
+// transaction will be used.
 func (fptd FungibleTokenPacketData) UserDefinedGasLimit() uint64 {
 	return 0
 }
