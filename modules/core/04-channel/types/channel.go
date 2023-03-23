@@ -127,7 +127,22 @@ func (ic IdentifiedChannel) ValidateBasic() error {
 	return channel.ValidateBasic()
 }
 
-// TODO: find an elegant way of implementing this method
+// SubsetOf returns true if Order is a valid subset of the provided Order.
 func (o Order) SubsetOf(order Order) bool {
-	return true
+	if o == order {
+		return true
+	}
+
+	switch o {
+	case ORDERED:
+		if order == UNORDERED {
+			return true
+		}
+	case UNORDERED:
+		if order == ORDERED {
+			return false
+		}
+	}
+
+	return false
 }
