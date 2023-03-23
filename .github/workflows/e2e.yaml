@@ -2,6 +2,11 @@ name: Tests / E2E
 on:
   workflow_dispatch:
   pull_request:
+    types:
+      # trigger workflow if changes are pushed to the branch.
+      - synchronize
+      # trigger workflow if PR is marked ready for review.
+      - ready_for_review
     paths-ignore:
       - "docs/**"
       - "**.md"
@@ -16,7 +21,7 @@ on:
 
 jobs:
     determine-image-tag:
-      if: ${{ !github.event.pull_request.head.repo.fork && github.actor != 'dependabot[bot]' }}
+      if: ${{ !github.event.pull_request.draft && !github.event.pull_request.head.repo.fork && github.actor != 'dependabot[bot]' }}
       runs-on: ubuntu-latest
       outputs:
         simd-tag: ${{ steps.get-tag.outputs.simd-tag }}
@@ -37,7 +42,7 @@ jobs:
             fi
 
     build-e2e:
-      if: ${{ !github.event.pull_request.head.repo.fork && github.actor != 'dependabot[bot]' }}
+      if: ${{ !github.event.pull_request.draft && !github.event.pull_request.head.repo.fork && github.actor != 'dependabot[bot]' }}
       runs-on: ubuntu-latest
       steps:
         - uses: actions/checkout@v3
@@ -54,7 +59,9 @@ jobs:
             done
 
     e2e:
-      if: ${{ !github.event.pull_request.head.repo.fork && github.actor != 'dependabot[bot]' }}
+      # we will be running this job if the PR has not yet been marked for review, and we push additional changes.
+      # we skip the job in this case.
+      if: ${{ !github.event.pull_request.draft && !github.event.pull_request.head.repo.fork && github.actor != 'dependabot[bot]' }}
       needs:
         - determine-image-tag
         - build-e2e # don't attempt any tests unless the e2e code compiles successfully.
