@@ -699,7 +699,7 @@ func (k Keeper) Acknowledgement(goCtx context.Context, msg *channeltypes.MsgAckn
 func (k Keeper) ChannelUpgradeInit(goCtx context.Context, msg *channeltypes.MsgChannelUpgradeInit) (*channeltypes.MsgChannelUpgradeInitResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	module, cap, err := k.ChannelKeeper.LookupModuleByChannel(ctx, msg.PortId, msg.ChannelId)
+	module, chanCap, err := k.ChannelKeeper.LookupModuleByChannel(ctx, msg.PortId, msg.ChannelId)
 	if err != nil {
 		ctx.Logger().Error("channel upgrade init callback failed", "port-id", msg.PortId, "error", errorsmod.Wrap(err, "could not retrieve module from port-id"))
 		return nil, errorsmod.Wrap(err, "could not retrieve module from port-id")
@@ -711,7 +711,7 @@ func (k Keeper) ChannelUpgradeInit(goCtx context.Context, msg *channeltypes.MsgC
 		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
 	}
 
-	sequence, err := k.ChannelKeeper.ChanUpgradeInit(ctx, msg.PortId, msg.ChannelId, cap, msg.ProposedUpgradeChannel, msg.TimeoutHeight, msg.TimeoutTimestamp)
+	sequence, err := k.ChannelKeeper.ChanUpgradeInit(ctx, msg.PortId, msg.ChannelId, chanCap, msg.ProposedUpgradeChannel, msg.TimeoutHeight, msg.TimeoutTimestamp)
 	if err != nil {
 		ctx.Logger().Error("channel upgrade init callback failed", "error", errorsmod.Wrap(err, "channel handshake upgrade init failed"))
 		return nil, errorsmod.Wrap(err, "channel handshake upgrade init failed")
