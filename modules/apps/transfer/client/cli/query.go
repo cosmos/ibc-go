@@ -168,12 +168,12 @@ func GetCmdQueryDenomHash() *cobra.Command {
 	return cmd
 }
 
-// GetCmdQueryTotalEscrowForDenom defines the command to query the total amount of tokens in escrow for a native denom
+// GetCmdQueryTotalEscrowForDenom defines the command to query the total amount of tokens in escrow for a denom
 func GetCmdQueryTotalEscrowForDenom() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "token-escrow [denom]",
-		Short:   "Query the total amount of tokens of a native denom in escrow",
-		Long:    "Query the total amount of tokens of a native denom in escrow",
+		Short:   "Query the total amount of tokens in escrow for a denom",
+		Long:    "Query the total amount of tokens in escrow for a denom",
 		Example: fmt.Sprintf("%s query ibc-transfer token-escrow uosmo", version.AppName),
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -184,7 +184,7 @@ func GetCmdQueryTotalEscrowForDenom() *cobra.Command {
 
 			queryClient := types.NewQueryClient(clientCtx)
 
-			req := &types.QueryTotalEscrowFormDenomRequest{
+			req := &types.QueryTotalEscrowForDenomRequest{
 				Denom: args[0],
 			}
 

@@ -123,17 +123,12 @@ func (q Keeper) EscrowAddress(c context.Context, req *types.QueryEscrowAddressRe
 }
 
 // TotalEscrowForDenom implements the TotalEscrowForDenom gRPC method.
-func (q Keeper) TotalEscrowForDenom(c context.Context, req *types.QueryTotalEscrowFormDenomRequest) (*types.QueryTotalEscrowForDenomResponse, error) {
+func (q Keeper) TotalEscrowForDenom(c context.Context, req *types.QueryTotalEscrowForDenomRequest) (*types.QueryTotalEscrowForDenomResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
-
-	if q.IsIBCDenom(ctx, req.Denom) {
-		return nil, status.Error(codes.InvalidArgument, "denom is not a native token denomination")
-	}
-
 	denomAmount := q.GetTotalEscrowForDenom(ctx, req.Denom)
 
 	return &types.QueryTotalEscrowForDenomResponse{

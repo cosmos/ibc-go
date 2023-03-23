@@ -130,6 +130,12 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized() {
 		expected := testvalues.StartingTokenAmount
 		s.Require().Equal(expected, actualBalance)
 	})
+
+	t.Run("escrow amount for denom is updated", func(t *testing.T) {
+		actualTotalEscrow := s.QueryTotalEscrowForDenom(chainA, chainADenom)
+		expectedTotalEscrow := testvalues.StartingTokenAmount
+		s.Require().Equal(expectedTotalEscrow, actualTotalEscrow)
+	})
 }
 
 // TestMsgTransfer_Fails_InvalidAddress attempts to send an IBC transfer to an invalid address and ensures

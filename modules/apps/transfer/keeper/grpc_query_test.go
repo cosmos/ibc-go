@@ -263,7 +263,7 @@ func (suite *KeeperTestSuite) TestEscrowAddress() {
 }
 
 func (suite *KeeperTestSuite) TestTotalEscrowForDenom() {
-	var req *types.QueryTotalEscrowFormDenomRequest
+	var req *types.QueryTotalEscrowForDenomRequest
 
 	testCases := []struct {
 		msg      string
@@ -271,9 +271,9 @@ func (suite *KeeperTestSuite) TestTotalEscrowForDenom() {
 		expPass  bool
 	}{
 		{
-			"success",
+			"valid native denom",
 			func() {
-				req = &types.QueryTotalEscrowFormDenomRequest{
+				req = &types.QueryTotalEscrowForDenomRequest{
 					Denom: sdk.DefaultBondDenom,
 				}
 			},
@@ -287,7 +287,7 @@ func (suite *KeeperTestSuite) TestTotalEscrowForDenom() {
 					BaseDenom: sdk.DefaultBondDenom,
 				}
 
-				req = &types.QueryTotalEscrowFormDenomRequest{
+				req = &types.QueryTotalEscrowForDenomRequest{
 					Denom: denomTrace.IBCDenom(),
 				}
 			},
@@ -296,14 +296,14 @@ func (suite *KeeperTestSuite) TestTotalEscrowForDenom() {
 		{
 			"invalid ibc denom",
 			func() {
-				req = &types.QueryTotalEscrowFormDenomRequest{
+				req = &types.QueryTotalEscrowForDenomRequest{
 					Denom: "ibc/𓃠🐾",
 				}
 			},
 			true, // consider the denom is of a native token
 		},
 		{
-			"non-native denom",
+			"valid ibc denom",
 			func() {
 				denomTrace := types.DenomTrace{
 					Path:      "transfer/channel-0",
@@ -312,11 +312,11 @@ func (suite *KeeperTestSuite) TestTotalEscrowForDenom() {
 
 				suite.chainA.GetSimApp().TransferKeeper.SetDenomTrace(suite.chainA.GetContext(), denomTrace)
 
-				req = &types.QueryTotalEscrowFormDenomRequest{
+				req = &types.QueryTotalEscrowForDenomRequest{
 					Denom: denomTrace.IBCDenom(),
 				}
 			},
-			false,
+			true,
 		},
 	}
 
@@ -327,7 +327,7 @@ func (suite *KeeperTestSuite) TestTotalEscrowForDenom() {
 			tc.malleate()
 			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
 
-			res, err := suite.queryClient.TotalEscrowForDenom(ctx, req)
+			res, err := suite.chainA.GetSimApp().TransferKeeper.TotalEscrowForDenom(ctx, req)
 
 			if tc.expPass {
 				suite.Require().NoError(err)

@@ -76,6 +76,7 @@ type GRPCClients struct {
 	ClientQueryClient     clienttypes.QueryClient
 	ConnectionQueryClient connectiontypes.QueryClient
 	ChannelQueryClient    channeltypes.QueryClient
+	TransferQueryClient   transfertypes.QueryClient
 	FeeQueryClient        feetypes.QueryClient
 	ICAQueryClient        controllertypes.QueryClient
 	InterTxQueryClient    intertxtypes.QueryClient
@@ -421,6 +422,7 @@ func (s *E2ETestSuite) InitGRPCClients(chain *cosmos.CosmosChain) {
 	s.grpcClients[chain.Config().ChainID] = GRPCClients{
 		ClientQueryClient:      clienttypes.NewQueryClient(grpcConn),
 		ChannelQueryClient:     channeltypes.NewQueryClient(grpcConn),
+		TransferQueryClient:    transfertypes.NewQueryClient(grpcConn),
 		FeeQueryClient:         feetypes.NewQueryClient(grpcConn),
 		ICAQueryClient:         controllertypes.NewQueryClient(grpcConn),
 		InterTxQueryClient:     intertxtypes.NewQueryClient(grpcConn),

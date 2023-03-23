@@ -56,7 +56,7 @@ func (m Migrator) MigrateTraces(ctx sdk.Context) error {
 
 // MigrateTotalEscrowForDenom migrates the total amount of source chain tokens in escrow.
 func (m Migrator) MigrateTotalEscrowForDenom(ctx sdk.Context) error {
-	nativeTokens := make(map[string]math.Int)
+	tokenDenomToTotalEscrowMap := make(map[string]math.Int)
 
 	transferChannels := m.keeper.channelKeeper.GetAllChannelsWithPortPrefix(ctx, types.PortID)
 	for _, channel := range transferChannels {
@@ -64,23 +64,16 @@ func (m Migrator) MigrateTotalEscrowForDenom(ctx sdk.Context) error {
 		escrowBalances := m.keeper.bankKeeper.GetAllBalances(ctx, escrowAddress)
 
 		for _, escrowBalance := range escrowBalances {
-			// Denom possibilities:
-			// - "atom" = native denom
-			// - "ibc/<hash>" = non native denom
-			// - "atom/ibc/osmo" = native denom
-
-			if !m.keeper.IsIBCDenom(ctx, escrowBalance.Denom) {
-				if val, ok := nativeTokens[escrowBalance.Denom]; ok {
-					nativeTokens[escrowBalance.Denom] = val.Add(escrowBalance.Amount)
-				} else {
-					nativeTokens[escrowBalance.Denom] = escrowBalance.Amount
-				}
+			if val, ok := tokenDenomToTotalEscrowMap[escrowBalance.Denom]; ok {
+				tokenDenomToTotalEscrowMap[escrowBalance.Denom] = val.Add(escrowBalance.Amount)
+			} else {
+				tokenDenomToTotalEscrowMap[escrowBalance.Denom] = escrowBalance.Amount
 			}
 		}
 	}
 
-	if len(nativeTokens) != 0 {
-		for denom, amount := range nativeTokens {
+	if len(tokenDenomToTotalEscrowMap) != 0 {
+		for denom, amount := range tokenDenomToTotalEscrowMap {
 			m.keeper.SetTotalEscrowForDenom(ctx, denom, amount)
 		}
 	}
