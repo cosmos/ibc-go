@@ -22,6 +22,7 @@ type Acknowledgement interface {
 
 // CallbackPacketData defines the interface used by ADR 8 implementations
 // to obtain callback addresses associated with a specific packet data type.
+// This is an optional interface which indicates support for ADR 8 implementations.
 type CallbackPacketData interface {
 	// GetSourceCallbackAddress should return the callback address of a packet data on the source chain.
 	// This may or may not be the sender of the packet. If no source callback address exists for the packet,
