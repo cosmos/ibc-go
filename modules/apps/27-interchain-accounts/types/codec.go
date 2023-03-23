@@ -7,7 +7,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/gogoproto/proto"
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
 // ModuleCdc references the global interchain accounts module codec. Note, the codec
