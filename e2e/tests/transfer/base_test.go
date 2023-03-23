@@ -132,7 +132,7 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized() {
 	})
 
 	t.Run("escrow amount for denom is updated", func(t *testing.T) {
-		actualTotalEscrow := s.QueryTotalEscrowForDenom(chainA, chainADenom)
+		actualTotalEscrow := s.QueryTotalEscrowForDenom(ctx, chainA, chainADenom)
 		expectedTotalEscrow := testvalues.StartingTokenAmount
 		s.Require().Equal(expectedTotalEscrow, actualTotalEscrow)
 	})
