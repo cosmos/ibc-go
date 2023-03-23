@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package capability.v1beta1;
+package capability.v1;
 
 import "gogoproto/gogo.proto";
 import "amino/amino.proto";

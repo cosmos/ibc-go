@@ -1,9 +1,9 @@
 syntax = "proto3";
 
-package capability.v1beta1;
+package capability.v1;
 
 import "gogoproto/gogo.proto";
-import "capability/v1beta1/capability.proto";
+import "capability/v1/capability.proto";
 import "amino/amino.proto";
 
 option go_package = "github.com/cosmos/ibc-go/modules/capability/types";
