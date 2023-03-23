@@ -29,6 +29,9 @@ linters:
 
 issues:
   exclude-rules:
+    - text: "unused-parameter"
+      linters:
+        - revive
     - text: "SA1019:"
       linters:
         - staticcheck

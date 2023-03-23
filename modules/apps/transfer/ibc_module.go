@@ -301,7 +301,6 @@ func (im IBCModule) OnTimeoutPacket(
 	return nil
 }
 
-
 // OnChanUpgradeInit implements the IBCModule interface
 func (im IBCModule) OnChanUpgradeInit(ctx sdk.Context, order channeltypes.Order, connectionHops []string, portID, channelID string, sequence uint64, counterparty channeltypes.Counterparty, version, previousVersion string) (string, error) {
 	return types.Version, nil
