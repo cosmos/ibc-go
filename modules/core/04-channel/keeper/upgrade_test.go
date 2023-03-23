@@ -76,6 +76,13 @@ func (suite *KeeperTestSuite) TestChanUpgradeInit() {
 			},
 			false,
 		},
+		{
+			"invalid proposed channel upgrade ordering",
+			func() {
+				channelUpgrade.Ordering = types.ORDERED
+			},
+			false,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -87,7 +94,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeInit() {
 			suite.coordinator.Setup(path)
 
 			chanCap, _ = suite.chainA.GetSimApp().GetScopedIBCKeeper().GetCapability(suite.chainA.GetContext(), host.ChannelCapabilityPath(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
-			channelUpgrade = types.NewChannel(types.INITUPGRADE, types.ORDERED, types.NewCounterparty(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID), []string{path.EndpointA.ConnectionID}, mock.Version)
+			channelUpgrade = types.NewChannel(types.INITUPGRADE, types.UNORDERED, types.NewCounterparty(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID), []string{path.EndpointA.ConnectionID}, mock.Version)
 
 			tc.malleate()
 
