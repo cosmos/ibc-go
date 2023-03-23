@@ -740,7 +740,45 @@ func (k Keeper) ChannelUpgradeInit(goCtx context.Context, msg *channeltypes.MsgC
 
 // ChannelUpgradeTry defines a rpc handler method for MsgChannelUpgradeTry.
 func (k Keeper) ChannelUpgradeTry(goCtx context.Context, msg *channeltypes.MsgChannelUpgradeTry) (*channeltypes.MsgChannelUpgradeTryResponse, error) {
-	return nil, nil
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	module, chanCap, err := k.ChannelKeeper.LookupModuleByChannel(ctx, msg.PortId, msg.ChannelId)
+	if err != nil {
+		ctx.Logger().Error("channel upgrade try callback failed", "port-id", msg.PortId, "error", errorsmod.Wrap(err, "could not retrieve module from port-id"))
+		return nil, errorsmod.Wrap(err, "could not retrieve module from port-id")
+	}
+
+	cbs, ok := k.Router.GetRoute(module)
+	if !ok {
+		ctx.Logger().Error("channel upgrade try callback failed", "port-id", msg.PortId, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module))
+		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
+	}
+
+	err = k.ChannelKeeper.ChanUpgradeTry(
+		ctx,
+		msg.PortId,
+		msg.ChannelId,
+		chanCap,
+		msg.CounterpartyChannel,
+		msg.CounterpartySequence,
+		msg.ProposedUpgradeChannel,
+		msg.TimeoutHeight,
+		msg.TimeoutTimestamp,
+		msg.ProofChannel,
+		msg.ProofUpgradeTimeout,
+		msg.ProofUpgradeSequence,
+		msg.ProofHeight,
+	)
+
+	if err != nil {
+		ctx.Logger().Error("channel upgrade try callback failed", "error", errorsmod.Wrap(err, "channel handshake upgrade try failed"))
+		return nil, errorsmod.Wrap(err, "channel handshake upgrade try failed")
+	}
+
+	// TODO: call application callbacks.
+	_ = cbs
+
+	return &channeltypes.MsgChannelUpgradeTryResponse{}, nil
 }
 
 // ChannelUpgradeAck defines a rpc handler method for MsgChannelUpgradeAck.
