@@ -9,11 +9,12 @@ require (
 	github.com/cosmos/ibc-go/v7 v7.0.0
 	github.com/cosmos/interchain-accounts v0.5.0
 	github.com/docker/docker v20.10.19+incompatible
-	github.com/strangelove-ventures/interchaintest/v7 v7.0.0-20230302213153-84ec330a137b
+	github.com/strangelove-ventures/interchaintest/v7 v7.0.0-20230322043324-cb6ba0947fff
 	github.com/stretchr/testify v1.8.2
 	go.uber.org/zap v1.24.0
 	golang.org/x/mod v0.9.0
 	google.golang.org/grpc v1.53.0
+	gopkg.in/yaml.v2 v2.4.0
 )
 
 require (
@@ -197,7 +198,7 @@ require (
 	golang.org/x/sys v0.6.0 // indirect
 	golang.org/x/term v0.6.0 // indirect
 	golang.org/x/text v0.8.0 // indirect
-	golang.org/x/tools v0.6.0 // indirect
+	golang.org/x/tools v0.7.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 	google.golang.org/api v0.111.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
@@ -205,7 +206,6 @@ require (
 	google.golang.org/protobuf v1.29.1 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/natefinch/npipe.v2 v2.0.0-20160621034901-c1b8fa8bdcce // indirect
-	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	lukechampine.com/blake3 v1.1.7 // indirect
 	lukechampine.com/uint128 v1.2.0 // indirect
