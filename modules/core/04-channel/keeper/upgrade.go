@@ -37,10 +37,9 @@ func (k Keeper) ChanUpgradeInit(
 		return 0, errorsmod.Wrapf(types.ErrChannelCapabilityNotFound, "caller does not own capability for channel, port ID (%s) channel ID (%s)", portID, channelID)
 	}
 
-	if propsedUpgradeChannel.State != types.INITUPGRADE ||
-		propsedUpgradeChannel.Counterparty.PortId != channel.Counterparty.PortId ||
+	if propsedUpgradeChannel.State != types.INITUPGRADE || propsedUpgradeChannel.Counterparty.PortId != channel.Counterparty.PortId ||
 		propsedUpgradeChannel.Counterparty.ChannelId != channel.Counterparty.ChannelId {
-		return 0, errorsmod.Wrap(types.ErrInvalidChannel, "TODO: update error")
+		return 0, errorsmod.Wrap(types.ErrInvalidChannel, "proposed channel upgrade is invalid")
 	}
 
 	if strings.TrimSpace(propsedUpgradeChannel.Version) == "" {
@@ -51,13 +50,13 @@ func (k Keeper) ChanUpgradeInit(
 		return 0, errorsmod.Wrap(types.ErrInvalidChannelOrdering, "channel ordering must be a subset of the new ordering")
 	}
 
-	sequence, found := k.GetUpgradeSequence(ctx, portID, channelID)
+	upgradeSequence, found := k.GetUpgradeSequence(ctx, portID, channelID)
 	if !found {
-		sequence = 1
-		k.SetUpgradeSequence(ctx, portID, channelID, sequence)
+		upgradeSequence = 1
+		k.SetUpgradeSequence(ctx, portID, channelID, upgradeSequence)
 	} else {
-		sequence = sequence + 1
-		k.SetUpgradeSequence(ctx, portID, channelID, sequence)
+		upgradeSequence = upgradeSequence + 1
+		k.SetUpgradeSequence(ctx, portID, channelID, upgradeSequence)
 	}
 
 	upgradeTimeout := types.UpgradeTimeout{
@@ -68,7 +67,7 @@ func (k Keeper) ChanUpgradeInit(
 	k.SetUpgradeTimeout(ctx, portID, channelID, upgradeTimeout)
 	k.SetUpgradeRestoreChannel(ctx, portID, channelID, channel)
 
-	return sequence, nil
+	return upgradeSequence, nil
 }
 
 // WriteUpgradeInitChannel writes a channel which has successfully passed the UpgradeInit handshake step.
@@ -77,12 +76,12 @@ func (k Keeper) WriteUpgradeInitChannel(
 	ctx sdk.Context,
 	portID,
 	channelID string,
-	proposedUpgradeChannel types.Channel,
+	channelUpgrade types.Channel,
 ) {
 	defer telemetry.IncrCounter(1, "ibc", "channel", "upgrade-init")
 
-	k.SetChannel(ctx, portID, channelID, proposedUpgradeChannel)
-	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", "NONE", "new-state", "INITUPGRADE")
+	k.SetChannel(ctx, portID, channelID, channelUpgrade)
+	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", "OPEN", "new-state", "INITUPGRADE")
 
-	// emitChannelOpenInitEvent(ctx, portID, channelID, channel)
+	emitChannelUpgradeInitEvent(ctx, portID, channelID, channelUpgrade)
 }
