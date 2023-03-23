@@ -54,11 +54,11 @@ The methods which make up this interface are detailed at a more granular level i
 ### `Height`
 
 `Height` defines a monotonically increasing sequence number which provides ordering of consensus state data persisted through client updates.
-IBC light client module developers are expected to use the [concrete type](https://github.com/cosmos/ibc-go/tree/02-client-refactor-beta1/proto/ibc/core/client/v1/client.proto#L89) provided by the `02-client` submodule. This implements the expectations required by the [`Height`](https://github.com/cosmos/ibc-go/blob/02-client-refactor-beta1/modules/core/exported/client.go#L157) interface defined in `modules/core/exported/client.go`.
+IBC light client module developers are expected to use the [concrete type](https://github.com/cosmos/ibc-go/tree/02-client-refactor-beta1/proto/ibc/core/client/v1/client.proto#L89) provided by the `02-client` submodule. This implements the expectations required by the [`Height`](https://github.com/cosmos/ibc-go/blob/v7.0.0/modules/core/exported/client.go#L156) interface defined in `modules/core/exported/client.go`.
 
 ### `ClientMessage`
 
-`ClientMessage` refers to the interface type [`ClientMessage`](https://github.com/cosmos/ibc-go/tree/02-client-refactor-beta1/modules/core/exported/client.go#L148) used for performing updates to a `ClientState` stored on chain.
+`ClientMessage` refers to the interface type [`ClientMessage`](https://github.com/cosmos/ibc-go/blob/v7.0.0/modules/core/exported/client.go#L147) used for performing updates to a `ClientState` stored on chain.
 This may be any concrete type which produces a change in state to the IBC client when verified.
 
 The following are considered as valid update scenarios:
