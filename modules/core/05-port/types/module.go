@@ -109,7 +109,6 @@ type IBCModule interface {
 
 // UpgradableModule defines the callbacks required to perform a channel upgrade.
 type UpgradableModule interface {
-
 	// OnChanUpgradeInit initializes the channel upgrade handshake.
 	OnChanUpgradeInit(
 		ctx sdk.Context,
