@@ -328,6 +328,31 @@ func (im IBCMiddleware) OnTimeoutPacket(
 	return im.app.OnTimeoutPacket(ctx, packet, relayer)
 }
 
+// OnChanUpgradeInit implements the IBCModule interface
+func (im IBCMiddleware) OnChanUpgradeInit(ctx sdk.Context, order channeltypes.Order, connectionHops []string, portID, channelID string, sequence uint64, counterparty channeltypes.Counterparty, version, previousVersion string) (string, error) {
+	return im.app.OnChanUpgradeInit(ctx, order, connectionHops, portID, channelID, sequence, counterparty, version, previousVersion)
+}
+
+// OnChanUpgradeTry implement s the IBCModule interface
+func (im IBCMiddleware) OnChanUpgradeTry(ctx sdk.Context, order channeltypes.Order, connectionHops []string, portID, channelID string, sequence uint64, counterparty channeltypes.Counterparty, previousVersion, counterpartyVersion string) (string, error) {
+	return im.app.OnChanUpgradeTry(ctx, order, connectionHops, portID, channelID, sequence, counterparty, previousVersion, counterpartyVersion)
+}
+
+// OnChanUpgradeAck implements the IBCModule interface
+func (im IBCMiddleware) OnChanUpgradeAck(ctx sdk.Context, portID, channelID, counterpartyChannelID, counterpartyVersion string) error {
+	return im.app.OnChanUpgradeAck(ctx, portID, channelID, counterpartyChannelID, counterpartyVersion)
+}
+
+// OnChanUpgradeConfirm implements the IBCModule interface
+func (im IBCMiddleware) OnChanUpgradeConfirm(ctx sdk.Context, portID, channelID string) error {
+	return im.app.OnChanUpgradeConfirm(ctx, portID, channelID)
+}
+
+// OnChanUpgradeRestore implements the IBCModule interface
+func (im IBCMiddleware) OnChanUpgradeRestore(ctx sdk.Context, portID, channelID string) error {
+	return im.app.OnChanUpgradeRestore(ctx, portID, channelID)
+}
+
 // SendPacket implements the ICS4 Wrapper interface
 func (im IBCMiddleware) SendPacket(
 	ctx sdk.Context,
