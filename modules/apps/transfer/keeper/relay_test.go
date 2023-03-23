@@ -696,7 +696,6 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacketSetsTotalEscrowAmountFo
 	// check total amount in escrow of sent token on sending chain
 	totalEscrowChainB = suite.chainB.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(suite.chainB.GetContext(), coin.GetDenom())
 	suite.Require().Equal(math.NewInt(0), totalEscrowChainB)
-
 }
 
 // TestOnTimeoutPacket test private refundPacket function since it is a simple
