@@ -682,7 +682,7 @@ func (suite *KeeperTestSuite) TestVerifyNextSequenceRecv() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestVerifyUpgradeSequenceRecv() {
+func (suite *KeeperTestSuite) TestVerifyUpgradeSequence() {
 	var (
 		path                    *ibctesting.Path
 		expectedUpgradeSequence uint64
