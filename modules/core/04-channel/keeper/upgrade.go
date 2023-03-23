@@ -55,7 +55,7 @@ func (k Keeper) ChanUpgradeInit(
 		upgradeSequence = 1
 		k.SetUpgradeSequence(ctx, portID, channelID, upgradeSequence)
 	} else {
-		upgradeSequence = upgradeSequence + 1
+		upgradeSequence++
 		k.SetUpgradeSequence(ctx, portID, channelID, upgradeSequence)
 	}
 

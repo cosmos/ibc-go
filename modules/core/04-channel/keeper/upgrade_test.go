@@ -51,7 +51,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeInit() {
 		{
 			"channel state is not in OPEN state",
 			func() {
-				path.EndpointA.SetChannelState(types.CLOSED)
+				suite.Require().NoError(path.EndpointA.SetChannelState(types.CLOSED))
 			},
 			false,
 		},
