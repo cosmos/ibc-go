@@ -14,28 +14,6 @@ import (
 	"github.com/cosmos/ibc-go/v7/testing/simapp"
 )
 
-func (suite *TypesTestSuite) TestUnmarshalCallbackPacketData() {
-	sourceCallbackAddress := "sourceCallbackAddress"
-
-	packetData := types.InterchainAccountPacketData{
-		Type: types.EXECUTE_TX,
-		Data: []byte("data"),
-		Memo: fmt.Sprintf("{\"callbacks\": {\"src_callback_address\": \"%s\"}}", sourceCallbackAddress),
-	}
-
-	types.RegisterInterfaces(types.ModuleCdc.InterfaceRegistry())
-	data, err := types.ModuleCdc.MarshalInterfaceJSON(&packetData)
-	suite.Require().NoError(err)
-
-	var callbackPacketData exported.CallbackPacketData
-	err = suite.chainA.App.AppCodec().UnmarshalInterfaceJSON(data, &callbackPacketData)
-	suite.Require().NoError(err, "failed to unmarshal into callback packet data interface")
-
-	suite.Require().Equal(sourceCallbackAddress, callbackPacketData.GetSourceCallbackAddress())
-	suite.Require().Equal("", callbackPacketData.GetDestCallbackAddress())
-	suite.Require().Equal(uint64(0), callbackPacketData.UserDefinedGasLimit())
-}
-
 // mockSdkMsg defines a mock struct, used for testing codec error scenarios
 type mockSdkMsg struct{}
 

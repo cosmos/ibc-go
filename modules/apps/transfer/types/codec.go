@@ -30,11 +30,6 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 		&TransferAuthorization{},
 	)
 
-	registry.RegisterImplementations(
-		(*exported.CallbackPacketData)(nil),
-		&FungibleTokenPacketData{},
-	)
-
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
 }
 
