@@ -9,14 +9,16 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	ibcmock "github.com/cosmos/ibc-go/v7/testing/mock"
-	"github.com/cosmos/ibc-go/v7/testing/simapp"
 	"github.com/stretchr/testify/suite"
+
+	"github.com/cosmos/ibc-go/v7/testing/simapp"
 
 	"github.com/cosmos/ibc-go/modules/capability"
 	"github.com/cosmos/ibc-go/modules/capability/keeper"
 	"github.com/cosmos/ibc-go/modules/capability/types"
 )
+
+const memStoreKey = "memory:mock"
 
 type CapabilityTestSuite struct {
 	suite.Suite
@@ -52,7 +54,7 @@ func (suite *CapabilityTestSuite) TestInitializeMemStore() {
 	suite.Require().NotNil(cap1)
 
 	// mock statesync by creating new keeper that shares persistent state but loses in-memory map
-	newKeeper := keeper.NewKeeper(suite.cdc, suite.app.GetKey(types.StoreKey), suite.app.GetMemKey(ibcmock.MemStoreKey))
+	newKeeper := keeper.NewKeeper(suite.cdc, suite.app.GetKey(types.StoreKey), suite.app.GetMemKey(memStoreKey))
 	newSk1 := newKeeper.ScopeToModule(banktypes.ModuleName)
 
 	// Mock App startup
@@ -66,7 +68,7 @@ func (suite *CapabilityTestSuite) TestInitializeMemStore() {
 	prevBlockGas := ctx.BlockGasMeter().GasConsumed()
 	prevGas := ctx.BlockGasMeter().GasConsumed()
 
-	restartedModule := capability.NewAppModule(suite.cdc, *newKeeper, false)
+	restartedModule := capability.NewAppModule(suite.cdc, *newKeeper, true)
 	restartedModule.BeginBlock(ctx, abci.RequestBeginBlock{})
 	gasUsed := ctx.GasMeter().GasConsumed()
 
