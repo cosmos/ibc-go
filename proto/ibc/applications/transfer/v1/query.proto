@@ -36,7 +36,7 @@ service Query {
     option (google.api.http).get = "/ibc/apps/transfer/v1/channels/{channel_id}/ports/{port_id}/escrow_address";
   }
 
-  // TotalEscrowForDenom returns the total amount of tokens of a native denom in escrow.
+  // TotalEscrowForDenom returns the total amount of tokens in escrow based on the denom.
   rpc TotalEscrowForDenom(QueryTotalEscrowFormDenomRequest) returns (QueryTotalEscrowForDenomResponse) {
     option (google.api.http).get = "/ibc/apps/transfer/v1/total_escrow/{denom}";
   }
