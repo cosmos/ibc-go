@@ -13,9 +13,11 @@ import (
 
 	cosmwasm "github.com/CosmWasm/wasmvm"
 	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/store/prefix"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	sdkquery "github.com/cosmos/cosmos-sdk/types/query"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
@@ -126,4 +128,33 @@ func (k Keeper) getWasmCode(c context.Context, query *types.WasmCodeQuery) (*typ
 	return &types.WasmCodeResponse{
 		Code: code,
 	}, nil
+}
+
+func (k Keeper) getAllWasmCodeID(c context.Context, query *types.AllWasmCodeIDQuery) (*types.AllWasmCodeIDResponse, error) {
+	ctx := sdk.UnwrapSDKContext(c)
+
+	var allCode []string
+
+	store := ctx.KVStore(k.storeKey)
+	prefixStore := prefix.NewStore(store, types.PrefixCodeIDKey)
+
+	iter := prefixStore.Iterator(nil, nil)
+	defer iter.Close()
+
+	pageRes, err := sdkquery.FilteredPaginate(prefixStore, query.Pagination, func(key []byte, _ []byte, accumulate bool) (bool, error) {
+		if accumulate {
+			allCode = append(allCode, string(key))
+		}
+		return true, nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &types.AllWasmCodeIDResponse{
+		CodeIds:    allCode,
+		Pagination: pageRes,
+	}, nil
+
 }
