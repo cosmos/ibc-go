@@ -84,6 +84,7 @@ func getAllWasmCode() *cobra.Command {
 	}
 
 	flags.AddQueryFlagsToCmd(cmd)
+	flags.AddPaginationFlagsToCmd(cmd, "all wasm code")
 
 	return cmd
 }
