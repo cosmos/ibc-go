@@ -18,8 +18,9 @@ import (
 )
 
 const (
-	e2eDir          = "e2e"
-	defaultFilePerm = 0750
+	dockerInspectFileName = "docker-inspect.json"
+	e2eDir                = "e2e"
+	defaultFilePerm       = 0o750
 )
 
 // Collect can be used in `t.Cleanup` and will copy all the of the container logs and relevant files
@@ -27,9 +28,13 @@ const (
 func Collect(t *testing.T, dc *dockerclient.Client, cfg testconfig.ChainOptions) {
 	t.Helper()
 
-	if !t.Failed() {
-		t.Logf("test passed, not uploading logs")
-		return
+	debugCfg := testconfig.LoadConfig().DebugConfig
+	if !debugCfg.DumpLogs {
+		// when we are not forcing log collection, we only upload upon test failing.
+		if !t.Failed() {
+			t.Logf("test passed, not uploading logs")
+			return
+		}
 	}
 
 	t.Logf("writing logs for test: %s", t.Name())
@@ -69,7 +74,7 @@ func Collect(t *testing.T, dc *dockerclient.Client, cfg testconfig.ChainOptions)
 		}
 
 		logFile := fmt.Sprintf("%s/%s.log", containerDir, containerName)
-		if err := os.WriteFile(logFile, logsBz, 0750); err != nil {
+		if err := os.WriteFile(logFile, logsBz, defaultFilePerm); err != nil {
 			t.Logf("failed writing log file for container %s in test cleanup: %s", containerName, err)
 			continue
 		}
@@ -87,7 +92,7 @@ func Collect(t *testing.T, dc *dockerclient.Client, cfg testconfig.ChainOptions)
 			t.Logf("successfully wrote diagnostics file %s", absoluteFilePathInContainer)
 		}
 
-		localFilePath := ospath.Join(containerDir, "docker-inspect.json")
+		localFilePath := ospath.Join(containerDir, dockerInspectFileName)
 		if err := fetchAndWriteDockerInspectOutput(ctx, dc, container.ID, localFilePath); err != nil {
 			t.Logf("failed to fetch docker inspect output: %s", err)
 			continue

@@ -135,11 +135,7 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 			return err
 		}
 
-		if err := clientMigrator.Migrate3to4(ctx); err != nil {
-			return err
-		}
-
-		return nil
+		return clientMigrator.Migrate3to4(ctx)
 	}); err != nil {
 		panic(err)
 	}

@@ -13,8 +13,8 @@ import (
 func InitGenesis(ctx sdk.Context, keeper Keeper, state genesistypes.ControllerGenesisState) {
 	for _, portID := range state.Ports {
 		if !keeper.HasCapability(ctx, portID) {
-			cap := keeper.BindPort(ctx, portID)
-			if err := keeper.ClaimCapability(ctx, cap, host.PortPath(portID)); err != nil {
+			capability := keeper.BindPort(ctx, portID)
+			if err := keeper.ClaimCapability(ctx, capability, host.PortPath(portID)); err != nil {
 				panic(fmt.Sprintf("could not claim port capability: %v", err))
 			}
 		}
