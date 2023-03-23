@@ -582,7 +582,8 @@ func (endpoint *Endpoint) ChanUpgradeInit(timeoutHeight clienttypes.Height, time
 	// NOTE: this update must be performed after SendMsgs()
 	endpoint.ChannelConfig.Version = endpoint.GetChannel().Version
 
-	return nil
+	endpoint.Chain.Coordinator.CommitBlock(endpoint.Chain)
+	return endpoint.Counterparty.UpdateClient()
 }
 
 // SetChannelState sets a channel state
