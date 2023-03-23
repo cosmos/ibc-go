@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 
@@ -181,7 +180,6 @@ func (endpoint *Endpoint) UpgradeChain() error {
 	}
 
 	// update chain
-	baseapp.SetChainID(newChainID)(endpoint.Chain.GetSimApp().GetBaseApp())
 	endpoint.Chain.ChainID = newChainID
 	endpoint.Chain.CurrentHeader.ChainID = newChainID
 	endpoint.Chain.NextBlock() // commit changes
@@ -202,7 +200,11 @@ func (endpoint *Endpoint) UpgradeChain() error {
 	endpoint.Chain.Coordinator.IncrementTime()
 	endpoint.Chain.NextBlock()
 
-	return endpoint.Counterparty.UpdateClient()
+	if err = endpoint.Counterparty.UpdateClient(); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // ConnOpenInit will construct and execute a MsgConnectionOpenInit on the associated endpoint.

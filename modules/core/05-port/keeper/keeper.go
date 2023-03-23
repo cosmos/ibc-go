@@ -73,10 +73,10 @@ func (k Keeper) Authenticate(ctx sdk.Context, key *capabilitytypes.Capability, p
 
 // LookupModuleByPort will return the IBCModule along with the capability associated with a given portID
 func (k Keeper) LookupModuleByPort(ctx sdk.Context, portID string) (string, *capabilitytypes.Capability, error) {
-	modules, capability, err := k.scopedKeeper.LookupModules(ctx, host.PortPath(portID))
+	modules, cap, err := k.scopedKeeper.LookupModules(ctx, host.PortPath(portID))
 	if err != nil {
 		return "", nil, err
 	}
 
-	return types.GetModuleOwner(modules), capability, nil
+	return types.GetModuleOwner(modules), cap, nil
 }

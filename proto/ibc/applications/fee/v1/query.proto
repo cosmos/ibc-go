@@ -129,8 +129,11 @@ message QueryTotalRecvFeesRequest {
 // QueryTotalRecvFeesResponse defines the response type for the TotalRecvFees rpc
 message QueryTotalRecvFeesResponse {
   // the total packet receive fees
-  repeated cosmos.base.v1beta1.Coin recv_fees = 1
-      [(gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"];
+  repeated cosmos.base.v1beta1.Coin recv_fees = 1 [
+    (gogoproto.moretags)     = "yaml:\"recv_fees\"",
+    (gogoproto.nullable)     = false,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+  ];
 }
 
 // QueryTotalAckFeesRequest defines the request type for the TotalAckFees rpc
@@ -142,8 +145,11 @@ message QueryTotalAckFeesRequest {
 // QueryTotalAckFeesResponse defines the response type for the TotalAckFees rpc
 message QueryTotalAckFeesResponse {
   // the total packet acknowledgement fees
-  repeated cosmos.base.v1beta1.Coin ack_fees = 1
-      [(gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"];
+  repeated cosmos.base.v1beta1.Coin ack_fees = 1 [
+    (gogoproto.moretags)     = "yaml:\"ack_fees\"",
+    (gogoproto.nullable)     = false,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+  ];
 }
 
 // QueryTotalTimeoutFeesRequest defines the request type for the TotalTimeoutFees rpc
@@ -155,14 +161,17 @@ message QueryTotalTimeoutFeesRequest {
 // QueryTotalTimeoutFeesResponse defines the response type for the TotalTimeoutFees rpc
 message QueryTotalTimeoutFeesResponse {
   // the total packet timeout fees
-  repeated cosmos.base.v1beta1.Coin timeout_fees = 1
-      [(gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"];
+  repeated cosmos.base.v1beta1.Coin timeout_fees = 1 [
+    (gogoproto.moretags)     = "yaml:\"timeout_fees\"",
+    (gogoproto.nullable)     = false,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+  ];
 }
 
 // QueryPayeeRequest defines the request type for the Payee rpc
 message QueryPayeeRequest {
   // unique channel identifier
-  string channel_id = 1;
+  string channel_id = 1 [(gogoproto.moretags) = "yaml:\"channel_id\""];
   // the relayer address to which the distribution address is registered
   string relayer = 2;
 }
@@ -170,13 +179,13 @@ message QueryPayeeRequest {
 // QueryPayeeResponse defines the response type for the Payee rpc
 message QueryPayeeResponse {
   // the payee address to which packet fees are paid out
-  string payee_address = 1;
+  string payee_address = 1 [(gogoproto.moretags) = "yaml:\"payee_address\""];
 }
 
 // QueryCounterpartyPayeeRequest defines the request type for the CounterpartyPayee rpc
 message QueryCounterpartyPayeeRequest {
   // unique channel identifier
-  string channel_id = 1;
+  string channel_id = 1 [(gogoproto.moretags) = "yaml:\"channel_id\""];
   // the relayer address to which the counterparty is registered
   string relayer = 2;
 }
@@ -184,7 +193,7 @@ message QueryCounterpartyPayeeRequest {
 // QueryCounterpartyPayeeResponse defines the response type for the CounterpartyPayee rpc
 message QueryCounterpartyPayeeResponse {
   // the counterparty payee address used to compensate forward relaying
-  string counterparty_payee = 1;
+  string counterparty_payee = 1 [(gogoproto.moretags) = "yaml:\"counterparty_payee\""];
 }
 
 // QueryFeeEnabledChannelsRequest defines the request type for the FeeEnabledChannels rpc
@@ -198,7 +207,8 @@ message QueryFeeEnabledChannelsRequest {
 // QueryFeeEnabledChannelsResponse defines the response type for the FeeEnabledChannels rpc
 message QueryFeeEnabledChannelsResponse {
   // list of fee enabled channels
-  repeated ibc.applications.fee.v1.FeeEnabledChannel fee_enabled_channels = 1 [(gogoproto.nullable) = false];
+  repeated ibc.applications.fee.v1.FeeEnabledChannel fee_enabled_channels = 1
+      [(gogoproto.moretags) = "yaml:\"fee_enabled_channels\"", (gogoproto.nullable) = false];
   // pagination defines the pagination in the response.
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
@@ -206,13 +216,13 @@ message QueryFeeEnabledChannelsResponse {
 // QueryFeeEnabledChannelRequest defines the request type for the FeeEnabledChannel rpc
 message QueryFeeEnabledChannelRequest {
   // unique port identifier
-  string port_id = 1;
+  string port_id = 1 [(gogoproto.moretags) = "yaml:\"port_id\""];
   // unique channel identifier
-  string channel_id = 2;
+  string channel_id = 2 [(gogoproto.moretags) = "yaml:\"channel_id\""];
 }
 
 // QueryFeeEnabledChannelResponse defines the response type for the FeeEnabledChannel rpc
 message QueryFeeEnabledChannelResponse {
   // boolean flag representing the fee enabled channel status
-  bool fee_enabled = 1;
+  bool fee_enabled = 1 [(gogoproto.moretags) = "yaml:\"fee_enabled\""];
 }

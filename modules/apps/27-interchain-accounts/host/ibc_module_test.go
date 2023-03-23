@@ -106,7 +106,11 @@ func SetupICAPath(path *ibctesting.Path, owner string) error {
 		return err
 	}
 
-	return path.EndpointB.ChanOpenConfirm()
+	if err := path.EndpointB.ChanOpenConfirm(); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // Test initiating a ChanOpenInit using the host chain instead of the controller chain

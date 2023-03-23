@@ -27,6 +27,7 @@ func GetTestContainers(t *testing.T, ctx context.Context, dc *dockerclient.Clien
 			filters.Arg("label", testLabel+"="+t.Name()),
 		),
 	})
+
 	if err != nil {
 		return nil, fmt.Errorf("failed listing containers: %s", err)
 	}

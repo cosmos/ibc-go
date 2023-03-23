@@ -59,7 +59,11 @@ func SetupPath(path *ibctesting.Path, owner string) error {
 		return err
 	}
 
-	return path.EndpointB.ChanOpenConfirm()
+	if err := path.EndpointB.ChanOpenConfirm(); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // RegisterInterchainAccount invokes the the InterchainAccounts entrypoint, routes a new MsgChannelOpenInit to the appropriate handler,

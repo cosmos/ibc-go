@@ -5,7 +5,9 @@ import (
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	grpctypes "github.com/cosmos/cosmos-sdk/types/grpc"
 	"github.com/cosmos/cosmos-sdk/types/query"
+	"google.golang.org/grpc/metadata"
 
 	"github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
@@ -629,7 +631,10 @@ func (suite *KeeperTestSuite) TestQueryUpgradedConsensusStates() {
 
 			tc.malleate()
 
-			res, err := suite.keeper.UpgradedConsensusState(suite.ctx, req)
+			ctx := sdk.WrapSDKContext(suite.ctx)
+			ctx = metadata.AppendToOutgoingContext(ctx, grpctypes.GRPCBlockHeightHeader, fmt.Sprintf("%d", height))
+
+			res, err := suite.queryClient.UpgradedConsensusState(ctx, req)
 			if tc.expPass {
 				suite.Require().NoError(err)
 				suite.Require().True(expConsensusState.Equal(res.UpgradedConsensusState))

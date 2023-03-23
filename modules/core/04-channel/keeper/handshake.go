@@ -95,7 +95,9 @@ func (k Keeper) WriteOpenInitChannel(
 
 	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", "NONE", "new-state", "INIT")
 
-	defer telemetry.IncrCounter(1, "ibc", "channel", "open-init")
+	defer func() {
+		telemetry.IncrCounter(1, "ibc", "channel", "open-init")
+	}()
 
 	emitChannelOpenInitEvent(ctx, portID, channelID, channel)
 }
@@ -206,7 +208,9 @@ func (k Keeper) WriteOpenTryChannel(
 
 	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", "NONE", "new-state", "TRYOPEN")
 
-	defer telemetry.IncrCounter(1, "ibc", "channel", "open-try")
+	defer func() {
+		telemetry.IncrCounter(1, "ibc", "channel", "open-try")
+	}()
 
 	emitChannelOpenTryEvent(ctx, portID, channelID, channel)
 }
@@ -257,10 +261,15 @@ func (k Keeper) ChanOpenAck(
 		counterpartyHops, counterpartyVersion,
 	)
 
-	return k.connectionKeeper.VerifyChannelState(
+	if err := k.connectionKeeper.VerifyChannelState(
 		ctx, connectionEnd, proofHeight, proofTry,
 		channel.Counterparty.PortId, counterpartyChannelID,
-		expectedChannel)
+		expectedChannel,
+	); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // WriteOpenAckChannel writes an updated channel state for the successful OpenAck handshake step.
@@ -284,7 +293,9 @@ func (k Keeper) WriteOpenAckChannel(
 
 	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", channel.State.String(), "new-state", "OPEN")
 
-	defer telemetry.IncrCounter(1, "ibc", "channel", "open-ack")
+	defer func() {
+		telemetry.IncrCounter(1, "ibc", "channel", "open-ack")
+	}()
 
 	emitChannelOpenAckEvent(ctx, portID, channelID, channel)
 }
@@ -335,10 +346,15 @@ func (k Keeper) ChanOpenConfirm(
 		counterpartyHops, channel.Version,
 	)
 
-	return k.connectionKeeper.VerifyChannelState(
+	if err := k.connectionKeeper.VerifyChannelState(
 		ctx, connectionEnd, proofHeight, proofAck,
 		channel.Counterparty.PortId, channel.Counterparty.ChannelId,
-		expectedChannel)
+		expectedChannel,
+	); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // WriteOpenConfirmChannel writes an updated channel state for the successful OpenConfirm handshake step.
@@ -357,7 +373,9 @@ func (k Keeper) WriteOpenConfirmChannel(
 	k.SetChannel(ctx, portID, channelID, channel)
 	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", "TRYOPEN", "new-state", "OPEN")
 
-	defer telemetry.IncrCounter(1, "ibc", "channel", "open-confirm")
+	defer func() {
+		telemetry.IncrCounter(1, "ibc", "channel", "open-confirm")
+	}()
 
 	emitChannelOpenConfirmEvent(ctx, portID, channelID, channel)
 }
@@ -411,7 +429,9 @@ func (k Keeper) ChanCloseInit(
 
 	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", channel.State.String(), "new-state", "CLOSED")
 
-	defer telemetry.IncrCounter(1, "ibc", "channel", "close-init")
+	defer func() {
+		telemetry.IncrCounter(1, "ibc", "channel", "close-init")
+	}()
 
 	channel.State = types.CLOSED
 	k.SetChannel(ctx, portID, channelID, channel)
@@ -474,7 +494,9 @@ func (k Keeper) ChanCloseConfirm(
 
 	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", channel.State.String(), "new-state", "CLOSED")
 
-	defer telemetry.IncrCounter(1, "ibc", "channel", "close-confirm")
+	defer func() {
+		telemetry.IncrCounter(1, "ibc", "channel", "close-confirm")
+	}()
 
 	channel.State = types.CLOSED
 	k.SetChannel(ctx, portID, channelID, channel)

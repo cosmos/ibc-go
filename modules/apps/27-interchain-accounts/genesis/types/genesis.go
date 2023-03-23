@@ -29,7 +29,11 @@ func (gs GenesisState) Validate() error {
 		return err
 	}
 
-	return gs.HostGenesisState.Validate()
+	if err := gs.HostGenesisState.Validate(); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // DefaultControllerGenesis creates and returns the default interchain accounts ControllerGenesisState
@@ -77,7 +81,11 @@ func (gs ControllerGenesisState) Validate() error {
 		}
 	}
 
-	return gs.Params.Validate()
+	if err := gs.Params.Validate(); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // DefaultHostGenesis creates and returns the default interchain accounts HostGenesisState
@@ -124,5 +132,9 @@ func (gs HostGenesisState) Validate() error {
 		return err
 	}
 
-	return gs.Params.Validate()
+	if err := gs.Params.Validate(); err != nil {
+		return err
+	}
+
+	return nil
 }

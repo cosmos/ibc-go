@@ -53,7 +53,9 @@ func (k Keeper) ConnOpenInit(
 
 	k.Logger(ctx).Info("connection state updated", "connection-id", connectionID, "previous-state", "NONE", "new-state", "INIT")
 
-	defer telemetry.IncrCounter(1, "ibc", "connection", "open-init")
+	defer func() {
+		telemetry.IncrCounter(1, "ibc", "connection", "open-init")
+	}()
 
 	emitConnectionOpenInitEvent(ctx, connectionID, clientID, counterparty)
 
@@ -148,7 +150,9 @@ func (k Keeper) ConnOpenTry(
 	k.SetConnection(ctx, connectionID, connection)
 	k.Logger(ctx).Info("connection state updated", "connection-id", connectionID, "previous-state", "NONE", "new-state", "TRYOPEN")
 
-	defer telemetry.IncrCounter(1, "ibc", "connection", "open-try")
+	defer func() {
+		telemetry.IncrCounter(1, "ibc", "connection", "open-try")
+	}()
 
 	emitConnectionOpenTryEvent(ctx, connectionID, clientID, counterparty)
 
@@ -240,7 +244,9 @@ func (k Keeper) ConnOpenAck(
 
 	k.Logger(ctx).Info("connection state updated", "connection-id", connectionID, "previous-state", "INIT", "new-state", "OPEN")
 
-	defer telemetry.IncrCounter(1, "ibc", "connection", "open-ack")
+	defer func() {
+		telemetry.IncrCounter(1, "ibc", "connection", "open-ack")
+	}()
 
 	// Update connection state to Open
 	connection.State = types.OPEN
@@ -294,7 +300,9 @@ func (k Keeper) ConnOpenConfirm(
 	k.SetConnection(ctx, connectionID, connection)
 	k.Logger(ctx).Info("connection state updated", "connection-id", connectionID, "previous-state", "TRYOPEN", "new-state", "OPEN")
 
-	defer telemetry.IncrCounter(1, "ibc", "connection", "open-confirm")
+	defer func() {
+		telemetry.IncrCounter(1, "ibc", "connection", "open-confirm")
+	}()
 
 	emitConnectionOpenConfirmEvent(ctx, connectionID, connection)
 

@@ -66,8 +66,7 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPackets() {
 			tc.malleate() // malleate mutates test data
 
 			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
-
-			res, err := suite.chainA.GetSimApp().IBCFeeKeeper.IncentivizedPackets(ctx, req)
+			res, err := suite.queryClient.IncentivizedPackets(ctx, req)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -126,7 +125,7 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPacket() {
 			tc.malleate() // malleate mutates test data
 
 			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
-			res, err := suite.chainA.GetSimApp().IBCFeeKeeper.IncentivizedPacket(ctx, req)
+			res, err := suite.queryClient.IncentivizedPacket(ctx, req)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -220,7 +219,7 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPacketsForChannel() {
 			tc.malleate()
 			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
 
-			res, err := suite.chainA.GetSimApp().IBCFeeKeeper.IncentivizedPacketsForChannel(ctx, req)
+			res, err := suite.queryClient.IncentivizedPacketsForChannel(ctx, req)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -276,7 +275,7 @@ func (suite *KeeperTestSuite) TestQueryTotalRecvFees() {
 			tc.malleate()
 
 			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
-			res, err := suite.chainA.GetSimApp().IBCFeeKeeper.TotalRecvFees(ctx, req)
+			res, err := suite.queryClient.TotalRecvFees(ctx, req)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -335,7 +334,7 @@ func (suite *KeeperTestSuite) TestQueryTotalAckFees() {
 			tc.malleate()
 
 			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
-			res, err := suite.chainA.GetSimApp().IBCFeeKeeper.TotalAckFees(ctx, req)
+			res, err := suite.queryClient.TotalAckFees(ctx, req)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -394,7 +393,7 @@ func (suite *KeeperTestSuite) TestQueryTotalTimeoutFees() {
 			tc.malleate()
 
 			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
-			res, err := suite.chainA.GetSimApp().IBCFeeKeeper.TotalTimeoutFees(ctx, req)
+			res, err := suite.queryClient.TotalTimeoutFees(ctx, req)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -461,7 +460,7 @@ func (suite *KeeperTestSuite) TestQueryPayee() {
 			tc.malleate()
 
 			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
-			res, err := suite.chainA.GetSimApp().IBCFeeKeeper.Payee(ctx, req)
+			res, err := suite.queryClient.Payee(ctx, req)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -524,7 +523,7 @@ func (suite *KeeperTestSuite) TestQueryCounterpartyPayee() {
 			tc.malleate()
 
 			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
-			res, err := suite.chainA.GetSimApp().IBCFeeKeeper.CounterpartyPayee(ctx, req)
+			res, err := suite.queryClient.CounterpartyPayee(ctx, req)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -631,7 +630,7 @@ func (suite *KeeperTestSuite) TestQueryFeeEnabledChannels() {
 			tc.malleate()
 
 			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
-			res, err := suite.chainA.GetSimApp().IBCFeeKeeper.FeeEnabledChannels(ctx, req)
+			res, err := suite.queryClient.FeeEnabledChannels(ctx, req)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -680,7 +679,7 @@ func (suite *KeeperTestSuite) TestQueryFeeEnabledChannel() {
 			tc.malleate()
 
 			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
-			res, err := suite.chainA.GetSimApp().IBCFeeKeeper.FeeEnabledChannel(ctx, req)
+			res, err := suite.queryClient.FeeEnabledChannel(ctx, req)
 
 			if tc.expPass {
 				suite.Require().NoError(err)

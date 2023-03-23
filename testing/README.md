@@ -120,17 +120,7 @@ The testing package requires that you provide a function to initialize your Test
 func SetupTestingApp() (TestingApp, map[string]json.RawMessage) {
   db := dbm.NewMemDB()
   encCdc := simapp.MakeTestEncodingConfig()
-  app := simapp.NewSimApp(
-    log.NewNopLogger(), 
-    db, 
-    nil, 
-    true,
-    map[int64]bool{},
-    simapp.DefaultNodeHome,
-    5,
-    encCdc, 
-    simapp.EmptyAppOptions{},
-  )
+  app := simapp.NewSimApp(log.NewNopLogger(), db, nil, true, map[int64]bool{}, simapp.DefaultNodeHome, 5, encCdc, simapp.EmptyAppOptions{})
   return app, simapp.NewDefaultGenesisState(encCdc.Marshaler)
 }
 ```
@@ -141,8 +131,9 @@ Change the value of `DefaultTestingAppInit` to use your function:
 
 ```go
 func init() {
-  ibctesting.DefaultTestingAppInit = SetupTestingApp
+  ibctesting.DefaultTestingAppInit = MySetupTestingAppFunction
 }
+
 ```
 
 ## Example
@@ -277,17 +268,7 @@ import (
 func SetupTransferTestingApp() (ibctesting.TestingApp, map[string]json.RawMessage) {
   db := dbm.NewMemDB()
   encCdc := simapp.MakeTestEncodingConfig()
-  app := simapp.NewSimApp(
-    log.NewNopLogger(),
-    db,
-    nil,
-    true,
-    map[int64]bool{},
-    simapp.DefaultNodeHome,
-    5,
-    encCdc,
-    simapp.EmptyAppOptions{},
-  )
+  app := simapp.NewSimApp(log.NewNopLogger(), db, nil, true, map[int64]bool{}, simapp.DefaultNodeHome, 5, encCdc, simapp.EmptyAppOptions{})
   return app, simapp.NewDefaultGenesisState(encCdc.Marshaler)
 }
 

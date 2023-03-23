@@ -133,7 +133,11 @@ func (msg MsgPayPacketFee) ValidateBasic() error {
 		return ErrRelayersNotEmpty
 	}
 
-	return msg.Fee.Validate()
+	if err := msg.Fee.Validate(); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // GetSigners implements sdk.Msg
@@ -169,7 +173,11 @@ func (msg MsgPayPacketFeeAsync) ValidateBasic() error {
 		return err
 	}
 
-	return msg.PacketFee.Validate()
+	if err := msg.PacketFee.Validate(); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // GetSigners implements sdk.Msg

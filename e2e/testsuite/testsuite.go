@@ -127,7 +127,7 @@ func (s *E2ETestSuite) GetRelayerUsers(ctx context.Context, chainOpts ...testcon
 func (s *E2ETestSuite) SetupChainsRelayerAndChannel(ctx context.Context, channelOpts ...func(*ibc.CreateChannelOptions)) (ibc.Relayer, ibc.ChannelOutput) {
 	chainA, chainB := s.GetChains()
 
-	r := relayer.New(s.T(), testconfig.LoadConfig().RelayerConfig, s.logger, s.DockerClient, s.network)
+	r := relayer.New(s.T(), testconfig.FromEnv().RelayerConfig, s.logger, s.DockerClient, s.network)
 
 	pathName := s.generatePathName()
 
@@ -464,9 +464,9 @@ func (s *E2ETestSuite) createCosmosChains(chainOptions testconfig.ChainOptions) 
 
 	logger := zaptest.NewLogger(t)
 
-	numValidators, numFullNodes := getValidatorsAndFullNodes(0)
+	numValidators, numFullNodes := getValidatorsAndFullNodes()
+
 	chainA := cosmos.NewCosmosChain(t.Name(), *chainOptions.ChainAConfig, numValidators, numFullNodes, logger)
-	numValidators, numFullNodes = getValidatorsAndFullNodes(1)
 	chainB := cosmos.NewCosmosChain(t.Name(), *chainOptions.ChainBConfig, numValidators, numFullNodes, logger)
 
 	// this is intentionally called after the interchaintest.DockerSetup function. The above function registers a
@@ -617,13 +617,11 @@ func GetIBCToken(fullTokenDenom string, portID, channelID string) transfertypes.
 }
 
 // getValidatorsAndFullNodes returns the number of validators and full nodes respectively that should be used for
-// the test. If the test is running in CI, more nodes are used, when running locally a single node is used by default to
+// the test. If the test is running in CI, more nodes are used, when running locally a single node is used to
 // use less resources and allow the tests to run faster.
-// both the number of validators and full nodes can be overwritten in a config file.
-func getValidatorsAndFullNodes(chainIdx int) (int, int) {
+func getValidatorsAndFullNodes() (int, int) {
 	if testconfig.IsCI() {
 		return 4, 1
 	}
-	tc := testconfig.LoadConfig()
-	return tc.GetChainNumValidators(chainIdx), tc.GetChainNumFullNodes(chainIdx)
+	return 1, 0
 }

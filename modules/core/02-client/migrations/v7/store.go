@@ -39,7 +39,11 @@ func MigrateStore(ctx sdk.Context, storeKey storetypes.StoreKey, cdc codec.Binar
 		return err
 	}
 
-	return handleLocalhostMigration(ctx, store, cdc, clientKeeper)
+	if err := handleLocalhostMigration(ctx, store, cdc, clientKeeper); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // handleSolomachineMigration iterates over the solo machine clients and migrates client state from
@@ -58,13 +62,13 @@ func handleSolomachineMigration(ctx sdk.Context, store sdk.KVStore, cdc codec.Bi
 			return errorsmod.Wrapf(clienttypes.ErrClientNotFound, "clientID %s", clientID)
 		}
 
-		var protoAny codectypes.Any
-		if err := cdc.Unmarshal(bz, &protoAny); err != nil {
+		var any codectypes.Any
+		if err := cdc.Unmarshal(bz, &any); err != nil {
 			return errorsmod.Wrap(err, "failed to unmarshal client state bytes into solo machine client state")
 		}
 
 		var clientState ClientState
-		if err := cdc.Unmarshal(protoAny.Value, &clientState); err != nil {
+		if err := cdc.Unmarshal(any.Value, &clientState); err != nil {
 			return errorsmod.Wrap(err, "failed to unmarshal client state bytes into solo machine client state")
 		}
 

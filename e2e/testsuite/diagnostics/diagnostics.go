@@ -2,7 +2,6 @@ package diagnostics
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"os"
 	ospath "path"
@@ -18,9 +17,7 @@ import (
 )
 
 const (
-	dockerInspectFileName = "docker-inspect.json"
-	e2eDir                = "e2e"
-	defaultFilePerm       = 0o750
+	e2eDir = "e2e"
 )
 
 // Collect can be used in `t.Cleanup` and will copy all the of the container logs and relevant files
@@ -28,13 +25,9 @@ const (
 func Collect(t *testing.T, dc *dockerclient.Client, cfg testconfig.ChainOptions) {
 	t.Helper()
 
-	debugCfg := testconfig.LoadConfig().DebugConfig
-	if !debugCfg.DumpLogs {
-		// when we are not forcing log collection, we only upload upon test failing.
-		if !t.Failed() {
-			t.Logf("test passed, not uploading logs")
-			return
-		}
+	if !t.Failed() {
+		t.Logf("test passed, not uploading logs")
+		return
 	}
 
 	t.Logf("writing logs for test: %s", t.Name())
@@ -48,7 +41,7 @@ func Collect(t *testing.T, dc *dockerclient.Client, cfg testconfig.ChainOptions)
 
 	logsDir := fmt.Sprintf("%s/diagnostics", e2eDir)
 
-	if err := os.MkdirAll(fmt.Sprintf("%s/%s", logsDir, t.Name()), defaultFilePerm); err != nil {
+	if err := os.MkdirAll(fmt.Sprintf("%s/%s", logsDir, t.Name()), 0750); err != nil {
 		t.Logf("failed creating logs directory in test cleanup: %s", err)
 		return
 	}
@@ -62,7 +55,7 @@ func Collect(t *testing.T, dc *dockerclient.Client, cfg testconfig.ChainOptions)
 	for _, container := range testContainers {
 		containerName := getContainerName(t, container)
 		containerDir := fmt.Sprintf("%s/%s/%s", logsDir, t.Name(), containerName)
-		if err := os.MkdirAll(containerDir, defaultFilePerm); err != nil {
+		if err := os.MkdirAll(containerDir, 0750); err != nil {
 			t.Logf("failed creating logs directory for container %s: %s", containerDir, err)
 			continue
 		}
@@ -74,7 +67,7 @@ func Collect(t *testing.T, dc *dockerclient.Client, cfg testconfig.ChainOptions)
 		}
 
 		logFile := fmt.Sprintf("%s/%s.log", containerDir, containerName)
-		if err := os.WriteFile(logFile, logsBz, defaultFilePerm); err != nil {
+		if err := os.WriteFile(logFile, logsBz, 0750); err != nil {
 			t.Logf("failed writing log file for container %s in test cleanup: %s", containerName, err)
 			continue
 		}
@@ -91,13 +84,6 @@ func Collect(t *testing.T, dc *dockerclient.Client, cfg testconfig.ChainOptions)
 			}
 			t.Logf("successfully wrote diagnostics file %s", absoluteFilePathInContainer)
 		}
-
-		localFilePath := ospath.Join(containerDir, dockerInspectFileName)
-		if err := fetchAndWriteDockerInspectOutput(ctx, dc, container.ID, localFilePath); err != nil {
-			t.Logf("failed to fetch docker inspect output: %s", err)
-			continue
-		}
-		t.Logf("successfully wrote docker inspect output")
 	}
 }
 
@@ -127,22 +113,12 @@ func fetchAndWriteDiagnosticsFile(ctx context.Context, dc *dockerclient.Client, 
 		return err
 	}
 
-	return os.WriteFile(localPath, fileBz, defaultFilePerm)
-}
-
-// fetchAndWriteDockerInspectOutput writes the contents of docker inspect to the specified file.
-func fetchAndWriteDockerInspectOutput(ctx context.Context, dc *dockerclient.Client, containerID, localPath string) error {
-	containerJSON, err := dc.ContainerInspect(ctx, containerID)
-	if err != nil {
+	filePath := ospath.Join(localPath)
+	if err := os.WriteFile(filePath, fileBz, 0750); err != nil {
 		return err
 	}
 
-	fileBz, err := json.MarshalIndent(containerJSON, "", "\t")
-	if err != nil {
-		return err
-	}
-
-	return os.WriteFile(localPath, fileBz, defaultFilePerm)
+	return nil
 }
 
 // chainDiagnosticAbsoluteFilePaths returns a slice of absolute file paths (in the containers) which are the files that should be
