@@ -1,6 +1,8 @@
 package types
 
 import (
+	"fmt"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -11,11 +13,7 @@ type checkSubstituteAndUpdateStatePayload struct {
 	CheckSubstituteAndUpdateState CheckSubstituteAndUpdateStatePayload `json:"check_substitute_and_update_state"`
 }
 
-type CheckSubstituteAndUpdateStatePayload struct {
-	ClientState              ClientState             `json:"client_state"`
-	SubjectConsensusState    exported.ConsensusState `json:"subject_consensus_state"`
-	SubstituteConsensusState exported.ClientState    `json:"substitute_client_state"`
-}
+type CheckSubstituteAndUpdateStatePayload struct {}
 
 func (c ClientState) CheckSubstituteAndUpdateState(
 	ctx sdk.Context, cdc codec.BinaryCodec, subjectClientStore,
@@ -26,28 +24,24 @@ func (c ClientState) CheckSubstituteAndUpdateState(
 		SubstitutePrefix = []byte("substitute/")
 	)
 
-	consensusState, err := GetConsensusState(subjectClientStore, cdc, c.LatestHeight)
-	if err != nil {
+	_, ok := substituteClient.(*ClientState)
+	if !ok {
 		return sdkerrors.Wrapf(
-			err, "unexpected error: could not get consensus state from clientstore at height: %d", c.GetLatestHeight(),
+			ErrUnableToCall, 
+			fmt.Sprintf("substitute client state, expected type %T, got %T", &ClientState{}, substituteClient),
 		)
 	}
 
 	store := NewWrappedStore(subjectClientStore, substituteClientStore, SubjectPrefix, SubstitutePrefix)
 
 	payload := checkSubstituteAndUpdateStatePayload{
-		CheckSubstituteAndUpdateState: CheckSubstituteAndUpdateStatePayload{
-			ClientState:              c,
-			SubjectConsensusState:    consensusState,
-			SubstituteConsensusState: substituteClient,
-		},
+		CheckSubstituteAndUpdateState: CheckSubstituteAndUpdateStatePayload{},
 	}
 
-	output, err := call[clientStateCallResponse](payload, &c, ctx, store)
+	_, err := call[contractResult](payload, &c, ctx, store)
 	if err != nil {
 		return err
 	}
 
-	output.resetImmutables(&c)
 	return nil
 }

@@ -24,7 +24,6 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	"github.com/cosmos/ibc-go/v7/testing/simapp"
 	"github.com/stretchr/testify/suite"
-	// tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 )
 
 type WasmTestSuite struct {
@@ -124,7 +123,6 @@ func (suite *WasmTestSuite) CommonSetupTest() {
 	err = json.Unmarshal(testData, &suite.testData)
 	suite.Require().NoError(err)
 
-	// suite.ctx = suite.chainA.App.GetBaseApp().NewContext(checkTx, tmproto.Header{Height: 1, Time: suite.now}).WithGasMeter(sdk.NewInfiniteGasMeter())
 	suite.ctx = suite.chainA.GetContext().WithBlockGasMeter(sdk.NewInfiniteGasMeter())
 	suite.store = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, "08-wasm-0")
 

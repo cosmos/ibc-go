@@ -41,30 +41,6 @@ func (r contractResult) Error() string {
 	return r.ErrorMsg
 }
 
-type clientStateCallResponse struct {
-	Me                *ClientState    `json:"me,omitempty"`
-	NewConsensusState *ConsensusState `json:"new_consensus_state,omitempty"`
-	NewClientState    *ClientState    `json:"new_client_state,omitempty"`
-	Result            contractResult  `json:"result,omitempty"`
-}
-
-func (r *clientStateCallResponse) resetImmutables(c *ClientState) {
-	if r.Me != nil {
-		r.Me.CodeId = c.CodeId
-	}
-
-	if r.NewClientState != nil {
-		r.NewClientState.CodeId = c.CodeId
-	}
-}
-
-func (r clientStateCallResponse) Validate() bool {
-	return r.Result.Validate()
-}
-
-func (r clientStateCallResponse) Error() string {
-	return r.Result.Error()
-}
 
 // Calls vm.Init with appropriate arguments
 func initContract(codeID []byte, ctx sdk.Context, store sdk.KVStore) (*wasmvmtypes.Response, error) {
