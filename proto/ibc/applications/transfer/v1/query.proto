@@ -110,7 +110,7 @@ message QueryEscrowAddressResponse {
 }
 
 // QueryTotalNativeIBCOut is the request type for TotalNativeIBCOut RPC method.
-message QueryTotalEscrowFormDenomRequest {
+message QueryTotalEscrowForDenomRequest {
   string denom = 1;
 }
 
