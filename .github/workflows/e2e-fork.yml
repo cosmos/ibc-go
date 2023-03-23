@@ -25,12 +25,11 @@ jobs:
         run: echo "matrix=$(go run cmd/build_test_matrix/main.go)" >> $GITHUB_OUTPUT
         env:
           TEST_EXCLUSIONS: "TestInterTxTestSuite,TestIncentivizedInterTxTestSuite,TestUpgradeTestSuite"
-
   e2e:
     env:
       CHAIN_A_TAG: latest
       CHAIN_IMAGE: ibc-go-simd
-    if: ${{ github.event.pull_request.head.repo.fork || github.actor == 'dependabot[bot]' || github.event_name == 'workflow_dispatch' }}
+    if: ${{ (!github.event.pull_request.draft && github.event.pull_request.head.repo.fork) || github.actor == 'dependabot[bot]' || github.event_name == 'workflow_dispatch' }}
     needs:
       - build-test-matrix
     runs-on: ubuntu-latest

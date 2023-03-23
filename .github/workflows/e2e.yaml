@@ -54,7 +54,7 @@ jobs:
             done
 
     e2e:
-      if: ${{ !github.event.pull_request.head.repo.fork && github.actor != 'dependabot[bot]' }}
+      if: ${{ !github.event.pull_request.draft && !github.event.pull_request.head.repo.fork && github.actor != 'dependabot[bot]' }}
       needs:
         - determine-image-tag
         - build-e2e # don't attempt any tests unless the e2e code compiles successfully.
