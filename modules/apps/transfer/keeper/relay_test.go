@@ -421,7 +421,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacketSetsTotalEscrowAmountForSourceIBCT
 
 		This test will assert that on receiving vouchers of denom "transfer/channel-0/stake"
 		on chain B the total escrow amount is updated on because chain B acted as source
-		when vouchers were transfered to chain A over channel-1.
+		when vouchers were transferred to chain A over channel-1.
 
 		Setup:
 		- Two transfer channels between chain A and chain B.
@@ -493,7 +493,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacketSetsTotalEscrowAmountForSourceIBCT
 	totalEscrowChainB := suite.chainB.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(suite.chainB.GetContext(), coin.GetDenom())
 	suite.Require().Equal(math.NewInt(100), totalEscrowChainB)
 
-	// execute onRecvPacket, when chaninB recieves the source token the escrow amount should decrease
+	// execute onRecvPacket, when chaninB receives the source token the escrow amount should decrease
 	err := suite.chainB.GetSimApp().TransferKeeper.OnRecvPacket(suite.chainB.GetContext(), packet, data)
 	suite.Require().NoError(err)
 
