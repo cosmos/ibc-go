@@ -29,6 +29,7 @@ jobs:
   e2e:
     env:
       CHAIN_A_TAG: latest
+      CHAIN_B_TAG: latest
       CHAIN_IMAGE: ibc-go-simd
     if: ${{ github.event.pull_request.head.repo.fork || github.actor == 'dependabot[bot]' || github.event_name == 'workflow_dispatch' }}
     needs:
