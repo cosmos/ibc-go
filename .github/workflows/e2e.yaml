@@ -21,7 +21,7 @@ on:
 
 jobs:
     determine-image-tag:
-      if: ${{ !github.event.pull_request.head.repo.fork && github.actor != 'dependabot[bot]' }}
+      if: ${{ !github.event.pull_request.draft && !github.event.pull_request.head.repo.fork && github.actor != 'dependabot[bot]' }}
       runs-on: ubuntu-latest
       outputs:
         simd-tag: ${{ steps.get-tag.outputs.simd-tag }}
@@ -42,7 +42,7 @@ jobs:
             fi
 
     build-e2e:
-      if: ${{ !github.event.pull_request.head.repo.fork && github.actor != 'dependabot[bot]' }}
+      if: ${{ !github.event.pull_request.draft && !github.event.pull_request.head.repo.fork && github.actor != 'dependabot[bot]' }}
       runs-on: ubuntu-latest
       steps:
         - uses: actions/checkout@v3
