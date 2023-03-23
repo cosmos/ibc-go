@@ -8,13 +8,10 @@ import (
 	tmbytes "github.com/cometbft/cometbft/libs/bytes"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	tmtypes "github.com/cometbft/cometbft/types"
-	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	"github.com/stretchr/testify/suite"
-
 	"github.com/cosmos/ibc-go/v7/modules/core/02-client/keeper"
 	"github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
@@ -25,6 +22,7 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	ibctestingmock "github.com/cosmos/ibc-go/v7/testing/mock"
 	"github.com/cosmos/ibc-go/v7/testing/simapp"
+	"github.com/stretchr/testify/suite"
 )
 
 const (
@@ -68,9 +66,6 @@ type KeeperTestSuite struct {
 	solomachine    *ibctesting.Solomachine
 
 	signers map[string]tmtypes.PrivValidator
-
-	// TODO: deprecate
-	queryClient types.QueryClient
 }
 
 func (suite *KeeperTestSuite) SetupTest() {
@@ -89,7 +84,6 @@ func (suite *KeeperTestSuite) SetupTest() {
 	suite.ctx = app.BaseApp.NewContext(isCheckTx, tmproto.Header{Height: height, ChainID: testClientID, Time: now2})
 	suite.keeper = &app.IBCKeeper.ClientKeeper
 	suite.privVal = ibctestingmock.NewPV()
-
 	pubKey, err := suite.privVal.GetPubKey()
 	suite.Require().NoError(err)
 
@@ -124,11 +118,6 @@ func (suite *KeeperTestSuite) SetupTest() {
 	}
 
 	suite.solomachine = ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "solomachinesingle", "testing", 1)
-
-	// TODO: deprecate
-	queryHelper := baseapp.NewQueryServerTestHelper(suite.ctx, app.InterfaceRegistry())
-	types.RegisterQueryServer(queryHelper, app.IBCKeeper.ClientKeeper)
-	suite.queryClient = types.NewQueryClient(queryHelper)
 }
 
 func TestKeeperTestSuite(t *testing.T) {

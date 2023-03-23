@@ -5,7 +5,6 @@ package ibc.applications.interchain_accounts.controller.v1;
 option go_package = "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types";
 
 import "ibc/applications/interchain_accounts/controller/v1/controller.proto";
-import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 
 // Query provides defines the gRPC querier service.
@@ -25,7 +24,7 @@ service Query {
 // QueryInterchainAccountRequest is the request type for the Query/InterchainAccount RPC method.
 message QueryInterchainAccountRequest {
   string owner         = 1;
-  string connection_id = 2 [(gogoproto.moretags) = "yaml:\"connection_id\""];
+  string connection_id = 2;
 }
 
 // QueryInterchainAccountResponse the response type for the Query/InterchainAccount RPC method.
