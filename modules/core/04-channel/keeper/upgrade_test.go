@@ -205,7 +205,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 
 			tc.malleate()
 
-			err = suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.ChanUpgradeTry(
+			_, err = suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.ChanUpgradeTry(
 				suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID,
 				chanCap, path.EndpointA.GetChannel(), upgradeSequence, channelUpgrade, upgradeTimeout.TimeoutHeight, upgradeTimeout.TimeoutTimestamp,
 				proofChannel, proofUpgradeTimeout, proofUpgradeSequence, proofHeight,

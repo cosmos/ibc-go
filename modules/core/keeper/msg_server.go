@@ -755,7 +755,7 @@ func (k Keeper) ChannelUpgradeTry(goCtx context.Context, msg *channeltypes.MsgCh
 		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
 	}
 
-	err = k.ChannelKeeper.ChanUpgradeTry(
+	_, err = k.ChannelKeeper.ChanUpgradeTry(
 		ctx,
 		msg.PortId,
 		msg.ChannelId,
