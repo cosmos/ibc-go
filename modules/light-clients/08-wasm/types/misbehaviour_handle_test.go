@@ -115,27 +115,6 @@ func (suite *WasmTestSuite) TestCheckForMisbehaviour() {
 			},
 			false,
 		},
-		// Need misbehaviour_identical_headers data
-		/*{
-			"identical misbehaviour data/headers",
-			func() {
-				data, err := base64.StdEncoding.DecodeString(suite.testData["misbehaviour_identical_headers"])
-				suite.Require().NoError(err)
-				clientMsg = &wasmtypes.Misbehaviour{
-					ClientId: "08-wasm-0",
-					Data:     data,
-				}
-
-				err = clientState.VerifyClientMessage(suite.ctx, suite.chainA.Codec, suite.store, clientMsg)
-				suite.Require().NoError(err)
-			},
-			false,
-		},*/
-		/*{ // Create consensus state data with empty bytes of app hash / merkle root, set it as consensus state, check misbehaviour using valid header
-			"consensus state already exists, app hash mismatch",
-			func() {},
-			true,
-		},*/
 		{
 			"valid fork misbehaviour returns true",
 			func() {
