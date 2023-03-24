@@ -364,15 +364,14 @@ func (k Keeper) VerifyNextSequenceRecv(
 	return nil
 }
 
-// VerifyChannelUpgradeTimeout verifies the counterparty proof that a particular timeout has
-// been stored in the upgrade timeout path.
+// VerifyChannelUpgradeTimeout verifies the proof that a particular timeout has been stored in the upgrade timeout path.
 func (k Keeper) VerifyChannelUpgradeTimeout(
 	ctx sdk.Context,
 	connection exported.ConnectionI,
 	height exported.Height,
 	proof []byte,
-	counterpartyPortID,
-	counterpartyChannelID string,
+	portID,
+	channelID string,
 	upgradeTimeout channeltypes.UpgradeTimeout,
 ) error {
 	clientID := connection.GetClientID()
@@ -385,7 +384,7 @@ func (k Keeper) VerifyChannelUpgradeTimeout(
 		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
 	}
 
-	merklePath := commitmenttypes.NewMerklePath(host.ChannelUpgradeTimeoutPath(counterpartyPortID, counterpartyChannelID))
+	merklePath := commitmenttypes.NewMerklePath(host.ChannelUpgradeTimeoutPath(portID, channelID))
 	merklePath, err = commitmenttypes.ApplyPrefix(connection.GetCounterparty().GetPrefix(), merklePath)
 	if err != nil {
 		return err
@@ -401,7 +400,7 @@ func (k Keeper) VerifyChannelUpgradeTimeout(
 		0, 0, // skip delay period checks for non-packet processing verification
 		proof, merklePath, bz,
 	); err != nil {
-		return errorsmod.Wrapf(err, "failed upgrade timeout verification for client (%s) on channel (%s)", clientID, counterpartyChannelID)
+		return errorsmod.Wrapf(err, "failed upgrade timeout verification for client (%s) on channel (%s)", clientID, channelID)
 	}
 
 	return nil
