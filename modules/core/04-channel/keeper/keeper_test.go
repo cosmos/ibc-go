@@ -467,6 +467,23 @@ func (suite *KeeperTestSuite) TestSetPacketAcknowledgement() {
 	suite.Require().True(suite.chainA.App.GetIBCKeeper().ChannelKeeper.HasPacketAcknowledgement(ctxA, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, seq))
 }
 
+func (suite *KeeperTestSuite) TestSetUpgradeErrorReceipt() {
+	path := ibctesting.NewPath(suite.chainA, suite.chainB)
+	suite.coordinator.SetupConnections(path)
+	suite.coordinator.CreateChannels(path)
+
+	errorReceipt, found := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetUpgradeErrorReceipt(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+	suite.Require().False(found)
+	suite.Require().Empty(errorReceipt)
+
+	expErrorReceipt := types.ErrorReceipt{Sequence: 1, Error: "testing"}
+	suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetUpgradeErrorReceipt(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, expErrorReceipt)
+
+	errorReceipt, found = suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetUpgradeErrorReceipt(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+	suite.Require().True(found)
+	suite.Require().Equal(expErrorReceipt, errorReceipt)
+}
+
 func (suite *KeeperTestSuite) TestSetRestoreChannel() {
 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
 	suite.coordinator.SetupConnections(path)

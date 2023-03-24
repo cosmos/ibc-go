@@ -478,6 +478,27 @@ func (k Keeper) LookupModuleByChannel(ctx sdk.Context, portID, channelID string)
 	return porttypes.GetModuleOwner(modules), capability, nil
 }
 
+// GetUpgradeErrorReceipt returns the upgrade error receipt for the provided port and channel identifiers.
+func (k Keeper) GetUpgradeErrorReceipt(ctx sdk.Context, portID, channelID string) (types.ErrorReceipt, bool) {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get([]byte(host.ChannelUpgradeErrorKey(portID, channelID)))
+	if bz == nil {
+		return types.ErrorReceipt{}, false
+	}
+
+	var errorReceipt types.ErrorReceipt
+	k.cdc.MustUnmarshal(bz, &errorReceipt)
+
+	return errorReceipt, true
+}
+
+// SetUpgradeErrorReceipt sets the provided error receipt in store using the port and channel identifiers.
+func (k Keeper) SetUpgradeErrorReceipt(ctx sdk.Context, portID, channelID string, errorReceipt types.ErrorReceipt) {
+	store := ctx.KVStore(k.storeKey)
+	bz := k.cdc.MustMarshal(&errorReceipt)
+	store.Set(host.ChannelUpgradeErrorKey(portID, channelID), bz)
+}
+
 // GetUpgradeRestoreChannel returns the upgrade restore channel for the provided port and channel identifiers.
 func (k Keeper) GetUpgradeRestoreChannel(ctx sdk.Context, portID, channelID string) (types.Channel, bool) {
 	store := ctx.KVStore(k.storeKey)
