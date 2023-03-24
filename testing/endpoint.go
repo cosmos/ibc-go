@@ -586,6 +586,38 @@ func (endpoint *Endpoint) ChanUpgradeInit(timeoutHeight clienttypes.Height, time
 	return endpoint.Counterparty.UpdateClient()
 }
 
+func (endpoint *Endpoint) ChanUpgradeTry(timeoutHeight clienttypes.Height, timeoutTimestamp, counterpartyUpgradeSequence uint64) error {
+	counterparty := channeltypes.NewCounterparty(endpoint.Counterparty.ChannelConfig.PortID, endpoint.Counterparty.ChannelID)
+	channelUpgrade := channeltypes.NewChannel(channeltypes.TRYUPGRADE, endpoint.ChannelConfig.Order, counterparty, []string{endpoint.ConnectionID}, endpoint.ChannelConfig.Version)
+
+	channelKey := host.ChannelKey(endpoint.Counterparty.ChannelConfig.PortID, endpoint.Counterparty.ChannelID)
+	proofChannel, proofHeight := endpoint.Counterparty.Chain.QueryProof(channelKey)
+
+	upgradeSequenceKey := host.ChannelUpgradeSequenceKey(endpoint.Counterparty.ChannelConfig.PortID, endpoint.Counterparty.ChannelID)
+	proofUpgradeSequence, proofHeight := endpoint.Counterparty.Chain.QueryProof(upgradeSequenceKey)
+
+	upgradeTimeoutKey := host.ChannelUpgradeTimeoutKey(endpoint.Counterparty.ChannelConfig.PortID, endpoint.Counterparty.ChannelID)
+	proofUpgradeTimeout, proofHeight := endpoint.Counterparty.Chain.QueryProof(upgradeTimeoutKey)
+
+	msg := channeltypes.NewMsgChannelUpgradeTry(
+		endpoint.ChannelConfig.PortID, endpoint.ChannelID, endpoint.Counterparty.GetChannel(),
+		counterpartyUpgradeSequence, channelUpgrade, timeoutHeight, timeoutTimestamp,
+		proofChannel, proofUpgradeTimeout, proofUpgradeSequence, proofHeight,
+		endpoint.Chain.SenderAccount.GetAddress().String(),
+	)
+
+	if err := endpoint.Chain.sendMsgs(msg); err != nil {
+		return err
+	}
+
+	// update version to selected app version
+	// NOTE: this update must be performed after SendMsgs()
+	endpoint.ChannelConfig.Version = endpoint.GetChannel().Version
+
+	endpoint.Chain.Coordinator.CommitBlock(endpoint.Chain)
+	return endpoint.Counterparty.UpdateClient()
+}
+
 // SetChannelState sets a channel state
 func (endpoint *Endpoint) SetChannelState(state channeltypes.State) error {
 	channel := endpoint.GetChannel()

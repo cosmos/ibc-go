@@ -87,8 +87,8 @@ func (k Keeper) ChanUpgradeTry(
 	portID string,
 	channelID string,
 	chanCap *capabilitytypes.Capability,
-	counterPartyChannel types.Channel,
-	counterPartyUpgradeSequence uint64,
+	counterpartyChannel types.Channel,
+	counterpartyUpgradeSequence uint64,
 	proposedUpgradeChannel types.Channel,
 	timeoutHeight clienttypes.Height,
 	timeoutTimestamp uint64,
@@ -97,7 +97,6 @@ func (k Keeper) ChanUpgradeTry(
 	upgradeSequenceProof []byte,
 	proofHeight clienttypes.Height,
 ) error {
-
 	channel, found := k.GetChannel(ctx, portID, channelID)
 	if !found {
 		return errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
@@ -124,7 +123,7 @@ func (k Keeper) ChanUpgradeTry(
 		return errorsmod.Wrap(types.ErrInvalidChannelOrdering, "channel ordering must be a subset of the new ordering")
 	}
 
-	if counterPartyChannel.Ordering != proposedUpgradeChannel.Ordering {
+	if counterpartyChannel.Ordering != proposedUpgradeChannel.Ordering {
 		return errorsmod.Wrapf(types.ErrInvalidChannelOrdering, "channel ordering of counterparty channel and proposed channel must be equal")
 	}
 
@@ -133,7 +132,7 @@ func (k Keeper) ChanUpgradeTry(
 		return err
 	}
 
-	if err := k.connectionKeeper.VerifyChannelState(ctx, connection, proofHeight, channelProof, portID, channelID, counterPartyChannel); err != nil {
+	if err := k.connectionKeeper.VerifyChannelState(ctx, connection, proofHeight, channelProof, portID, channelID, counterpartyChannel); err != nil {
 		return err
 	}
 
@@ -146,18 +145,18 @@ func (k Keeper) ChanUpgradeTry(
 	_ = upgradeTimeout
 	//abortTransactionUnless(verifyChannelUpgradeTimeout(connection, proofHeight, proofUpgradeTimeout, currentChannel.counterpartyPortIdentifier, currentChannel.counterpartyChannelIdentifier, upgradeTimeout))
 
-	if err := k.connectionKeeper.VerifyChannelUpgradeSequence(ctx, connection, proofHeight, upgradeSequenceProof, portID, channelID, counterPartyUpgradeSequence); err != nil {
+	if err := k.connectionKeeper.VerifyChannelUpgradeSequence(ctx, connection, proofHeight, upgradeSequenceProof, portID, channelID, counterpartyUpgradeSequence); err != nil {
 		return err
 	}
 
 	currentSequence, found := k.GetUpgradeSequence(ctx, portID, channelID)
-	if counterPartyUpgradeSequence > currentSequence {
-		currentSequence = counterPartyUpgradeSequence
-		k.SetUpgradeSequence(ctx, portID, channelID, counterPartyUpgradeSequence)
+	if counterpartyUpgradeSequence > currentSequence {
+		currentSequence = counterpartyUpgradeSequence
+		k.SetUpgradeSequence(ctx, portID, channelID, counterpartyUpgradeSequence)
 	} else {
 		errorReceipt := types.ErrorReceipt{
 			Sequence: currentSequence,
-			Error:    errorsmod.Wrapf(types.ErrInvalidUpgradeSequence, "upgrade sequence %d was not smaller than the counter party chain upgrade sequence %d", currentSequence, counterPartyUpgradeSequence).Error(),
+			Error:    errorsmod.Wrapf(types.ErrInvalidUpgradeSequence, "upgrade sequence %d was not smaller than the counter party chain upgrade sequence %d", currentSequence, counterpartyUpgradeSequence).Error(),
 		}
 
 		// TODO: provableStore.set(channelUpgradeErrorPath(portIdentifier, channelIdentifier), errorReceipt)
