@@ -127,7 +127,7 @@ func (k Keeper) ChanUpgradeTry(
 		return errorsmod.Wrapf(types.ErrInvalidChannelOrdering, "channel ordering of counterparty channel and proposed channel must be equal")
 	}
 
-	connection, err := k.GetConnection(ctx, channel.ConnectionHops[0])
+	connection, err := k.GetConnection(ctx, proposedUpgradeChannel.ConnectionHops[0])
 	if err != nil {
 		return err
 	}

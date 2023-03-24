@@ -169,6 +169,13 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 			},
 			false,
 		},
+		{
+			"connection not found",
+			func() {
+				channelUpgrade.ConnectionHops = []string{"connection-100"}
+			},
+			false,
+		},
 	}
 
 	for _, tc := range testCases {
