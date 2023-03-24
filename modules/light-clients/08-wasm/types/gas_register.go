@@ -2,8 +2,9 @@ package types
 
 import (
 	"math"
-	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
+
 	wasmvm "github.com/CosmWasm/wasmvm"
+	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -57,9 +58,9 @@ var defaultPerByteUncompressCost = wasmvmtypes.UFraction{
 }
 
 var costJSONDeserialization = wasmvmtypes.UFraction{
-		Numerator:   DefaultDeserializationCostPerByte * DefaultGasMultiplier,
-		Denominator: 1,
-	}
+	Numerator:   DefaultDeserializationCostPerByte * DefaultGasMultiplier,
+	Denominator: 1,
+}
 
 // DefaultPerByteUncompressCost is how much SDK gas we charge per source byte to unpack
 func DefaultPerByteUncompressCost() wasmvmtypes.UFraction {
@@ -99,11 +100,11 @@ type WasmGasRegisterConfig struct {
 // DefaultGasRegisterConfig default values
 func DefaultGasRegisterConfig() WasmGasRegisterConfig {
 	return WasmGasRegisterConfig{
-		InstanceCost:               DefaultInstanceCost,
-		CompileCost:                DefaultCompileCost,
-		GasMultiplier:              DefaultGasMultiplier,
-		ContractMessageDataCost:    DefaultContractMessageDataCost,
-		UncompressCost:             DefaultPerByteUncompressCost(),
+		InstanceCost:            DefaultInstanceCost,
+		CompileCost:             DefaultCompileCost,
+		GasMultiplier:           DefaultGasMultiplier,
+		ContractMessageDataCost: DefaultContractMessageDataCost,
+		UncompressCost:          DefaultPerByteUncompressCost(),
 	}
 }
 
@@ -177,7 +178,7 @@ func (g WasmGasRegister) runtimeGasForContract(ctx sdk.Context) uint64 {
 		return 0
 	}
 	// infinite gas meter with limit=0 or MaxUint64
-	if meter.Limit() == 0 || meter.Limit() == math.MaxUint64 { 
+	if meter.Limit() == 0 || meter.Limit() == math.MaxUint64 {
 		return math.MaxUint64
 	}
 	return g.ToWasmVMGas(meter.Limit() - meter.GasConsumedToLimit())
