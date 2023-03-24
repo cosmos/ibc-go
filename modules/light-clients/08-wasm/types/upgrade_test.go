@@ -1,9 +1,9 @@
 package types_test
 
 import (
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	solomachine "github.com/cosmos/ibc-go/v7/modules/light-clients/06-solomachine"
 )
 
@@ -87,11 +87,11 @@ func (suite *WasmTestSuite) TestVerifyUpgrade() {
 
 		if tc.expPass {
 			suite.Require().NoError(err, "verify upgrade failed on valid case: %s", tc.name)
-				clientStateBz := suite.store.Get(host.ClientStateKey())
-				suite.Require().NotEmpty(clientStateBz)
-				newClientState := clienttypes.MustUnmarshalClientState(suite.chainA.Codec, clientStateBz)
-				// Stubbed code will increment client state
-				suite.Require().Equal(clientState.GetLatestHeight().Increment(), newClientState.GetLatestHeight())
+			clientStateBz := suite.store.Get(host.ClientStateKey())
+			suite.Require().NotEmpty(clientStateBz)
+			newClientState := clienttypes.MustUnmarshalClientState(suite.chainA.Codec, clientStateBz)
+			// Stubbed code will increment client state
+			suite.Require().Equal(clientState.GetLatestHeight().Increment(), newClientState.GetLatestHeight())
 		} else {
 			suite.Require().Error(err, "verify upgrade passed on invalid case: %s", tc.name)
 		}

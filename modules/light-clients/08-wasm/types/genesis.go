@@ -9,11 +9,11 @@ import (
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
-type ExportMetadataPayload struct {	
+type ExportMetadataPayload struct {
 	ExportMetadata ExportMetadataInnerPayload `json:"export_metadata"`
-}	
+}
 
-type ExportMetadataInnerPayload struct {}
+type ExportMetadataInnerPayload struct{}
 
 // ExportMetadata is a no-op since wasm client does not store any metadata in client store
 func (c ClientState) ExportMetadata(store sdk.KVStore) []exported.GenesisMetadata {

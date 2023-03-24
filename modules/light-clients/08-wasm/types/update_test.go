@@ -134,7 +134,7 @@ func (suite *WasmTestSuite) TestUpdateState() {
 				data, err := base64.StdEncoding.DecodeString(suite.testData["misbehaviour"])
 				suite.Require().NoError(err)
 				clientMsg = &wasmtypes.Misbehaviour{
-					Data:     data,
+					Data: data,
 				}
 			},
 			false,
@@ -188,7 +188,7 @@ func (suite *WasmTestSuite) TestUpdateStateOnMisbehaviour() {
 				data, err := base64.StdEncoding.DecodeString(suite.testData["misbehaviour"])
 				suite.Require().NoError(err)
 				clientMsg = &wasmtypes.Misbehaviour{
-					Data:     data,
+					Data: data,
 				}
 				clientState = suite.clientState
 			},
