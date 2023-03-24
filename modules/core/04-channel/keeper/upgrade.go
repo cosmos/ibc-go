@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"strings"
-
 	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -20,7 +18,7 @@ func (k Keeper) ChanUpgradeInit(
 	portID string,
 	channelID string,
 	chanCap *capabilitytypes.Capability,
-	propsedUpgradeChannel types.Channel,
+	proposedUpgradeChannel types.Channel,
 	counterpartyTimeoutHeight clienttypes.Height,
 	counterpartyTimeoutTimestamp uint64,
 ) (uint64, error) {
@@ -37,26 +35,18 @@ func (k Keeper) ChanUpgradeInit(
 		return 0, errorsmod.Wrapf(types.ErrChannelCapabilityNotFound, "caller does not own capability for channel, port ID (%s) channel ID (%s)", portID, channelID)
 	}
 
-	if propsedUpgradeChannel.State != types.INITUPGRADE || propsedUpgradeChannel.Counterparty.PortId != channel.Counterparty.PortId ||
-		propsedUpgradeChannel.Counterparty.ChannelId != channel.Counterparty.ChannelId {
-		return 0, errorsmod.Wrap(types.ErrInvalidChannel, "proposed channel upgrade is invalid")
+	if proposedUpgradeChannel.Counterparty.PortId != channel.Counterparty.PortId ||
+		proposedUpgradeChannel.Counterparty.ChannelId != channel.Counterparty.ChannelId {
+		return 0, errorsmod.Wrap(types.ErrInvalidCounterparty, "counterparty port ID and channel ID cannot be upgraded")
 	}
 
-	if strings.TrimSpace(propsedUpgradeChannel.Version) == "" {
-		return 0, errorsmod.Wrap(types.ErrInvalidChannelVersion, "channel version must be not be empty")
-	}
-
-	if !channel.Ordering.SubsetOf(propsedUpgradeChannel.Ordering) {
+	if !channel.Ordering.SubsetOf(proposedUpgradeChannel.Ordering) {
 		return 0, errorsmod.Wrap(types.ErrInvalidChannelOrdering, "channel ordering must be a subset of the new ordering")
 	}
 
-	upgradeSequence, found := k.GetUpgradeSequence(ctx, portID, channelID)
-	if !found {
-		upgradeSequence = 1
-		k.SetUpgradeSequence(ctx, portID, channelID, upgradeSequence)
-	} else {
-		upgradeSequence++
-		k.SetUpgradeSequence(ctx, portID, channelID, upgradeSequence)
+	upgradeSequence := uint64(1)
+	if seq, found := k.GetUpgradeSequence(ctx, portID, channelID); found {
+		upgradeSequence = seq + 1
 	}
 
 	upgradeTimeout := types.UpgradeTimeout{
@@ -64,8 +54,9 @@ func (k Keeper) ChanUpgradeInit(
 		TimeoutTimestamp: counterpartyTimeoutTimestamp,
 	}
 
-	k.SetUpgradeTimeout(ctx, portID, channelID, upgradeTimeout)
 	k.SetUpgradeRestoreChannel(ctx, portID, channelID, channel)
+	k.SetUpgradeSequence(ctx, portID, channelID, upgradeSequence)
+	k.SetUpgradeTimeout(ctx, portID, channelID, upgradeTimeout)
 
 	return upgradeSequence, nil
 }
@@ -76,12 +67,13 @@ func (k Keeper) WriteUpgradeInitChannel(
 	ctx sdk.Context,
 	portID,
 	channelID string,
+	upgradeSequence uint64,
 	channelUpgrade types.Channel,
 ) {
 	defer telemetry.IncrCounter(1, "ibc", "channel", "upgrade-init")
 
 	k.SetChannel(ctx, portID, channelID, channelUpgrade)
-	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", "OPEN", "new-state", "INITUPGRADE")
+	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", types.OPEN.String(), "new-state", types.INITUPGRADE.String())
 
-	emitChannelUpgradeInitEvent(ctx, portID, channelID, channelUpgrade)
+	emitChannelUpgradeInitEvent(ctx, portID, channelID, upgradeSequence, channelUpgrade)
 }
