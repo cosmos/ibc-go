@@ -56,23 +56,9 @@ func (suite *KeeperTestSuite) TestChanUpgradeInit() {
 			false,
 		},
 		{
-			"invalid proposed channel upgrade state",
-			func() {
-				channelUpgrade.State = types.TRYUPGRADE
-			},
-			false,
-		},
-		{
 			"invalid proposed channel counterparty",
 			func() {
 				channelUpgrade.Counterparty = types.NewCounterparty(mock.PortID, "channel-100")
-			},
-			false,
-		},
-		{
-			"empty proposed channel upgrade version",
-			func() {
-				channelUpgrade.Version = "  "
 			},
 			false,
 		},
