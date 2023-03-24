@@ -129,7 +129,7 @@ func (suite *WasmTestSuite) CommonSetupTest() {
 	err = os.MkdirAll("tmp", 0o755)
 	suite.Require().NoError(err)
 	suite.wasmKeeper = suite.chainA.App.GetWasmKeeper()
-	wasmContract, err := os.ReadFile("test_data/ics10_grandpa_cw.wasm")
+	wasmContract, err := os.ReadFile("test_data/ics10_grandpa_cw.wasm.gz")
 	suite.Require().NoError(err)
 
 	msg := wasmtypes.NewMsgPushNewWasmCode(authtypes.NewModuleAddress(govtypes.ModuleName).String(), wasmContract)
@@ -141,7 +141,7 @@ func (suite *WasmTestSuite) CommonSetupTest() {
 
 func (suite *WasmTestSuite) TestPushNewWasmCodeWithErrors() {
 	signer := authtypes.NewModuleAddress(govtypes.ModuleName).String()
-	data, err := os.ReadFile("test_data/ics10_grandpa_cw.wasm")
+	data, err := os.ReadFile("test_data/ics10_grandpa_cw.wasm.gz")
 	suite.Require().NoError(err)
 
 	// test wasmcode duplication
