@@ -594,10 +594,10 @@ func (endpoint *Endpoint) ChanUpgradeTry(timeoutHeight clienttypes.Height, timeo
 	proofChannel, proofHeight := endpoint.Counterparty.Chain.QueryProof(channelKey)
 
 	upgradeSequenceKey := host.ChannelUpgradeSequenceKey(endpoint.Counterparty.ChannelConfig.PortID, endpoint.Counterparty.ChannelID)
-	proofUpgradeSequence, proofHeight := endpoint.Counterparty.Chain.QueryProof(upgradeSequenceKey)
+	proofUpgradeSequence, _ := endpoint.Counterparty.Chain.QueryProof(upgradeSequenceKey)
 
 	upgradeTimeoutKey := host.ChannelUpgradeTimeoutKey(endpoint.Counterparty.ChannelConfig.PortID, endpoint.Counterparty.ChannelID)
-	proofUpgradeTimeout, proofHeight := endpoint.Counterparty.Chain.QueryProof(upgradeTimeoutKey)
+	proofUpgradeTimeout, _ := endpoint.Counterparty.Chain.QueryProof(upgradeTimeoutKey)
 
 	msg := channeltypes.NewMsgChannelUpgradeTry(
 		endpoint.ChannelConfig.PortID, endpoint.ChannelID, endpoint.Counterparty.GetChannel(),
