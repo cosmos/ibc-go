@@ -364,6 +364,49 @@ func (k Keeper) VerifyNextSequenceRecv(
 	return nil
 }
 
+// VerifyChannelUpgradeTimeout verifies the counterparty proof that a particular timeout has
+// been stored in the upgrade timeout path.
+func (k Keeper) VerifyChannelUpgradeTimeout(
+	ctx sdk.Context,
+	connection exported.ConnectionI,
+	height exported.Height,
+	proof []byte,
+	counterpartyPortID,
+	counterpartyChannelID string,
+	upgradeTimeout channeltypes.UpgradeTimeout,
+) error {
+	clientID := connection.GetClientID()
+	clientState, clientStore, err := k.getClientStateAndVerificationStore(ctx, clientID)
+	if err != nil {
+		return err
+	}
+
+	if status := k.clientKeeper.GetClientStatus(ctx, clientState, clientID); status != exported.Active {
+		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
+	}
+
+	merklePath := commitmenttypes.NewMerklePath(host.ChannelUpgradeTimeoutPath(counterpartyPortID, counterpartyChannelID))
+	merklePath, err = commitmenttypes.ApplyPrefix(connection.GetCounterparty().GetPrefix(), merklePath)
+	if err != nil {
+		return err
+	}
+
+	bz, err := k.cdc.MarshalInterface(&upgradeTimeout)
+	if err != nil {
+		return err
+	}
+
+	if err := clientState.VerifyMembership(
+		ctx, clientStore, k.cdc, height,
+		0, 0, // skip delay period checks for non-packet processing verification
+		proof, merklePath, bz,
+	); err != nil {
+		return errorsmod.Wrapf(err, "failed upgrade timeout verification for client (%s) on channel (%s)", clientID, counterpartyChannelID)
+	}
+
+	return nil
+}
+
 // getBlockDelay calculates the block delay period from the time delay of the connection
 // and the maximum expected time per block.
 func (k Keeper) getBlockDelay(ctx sdk.Context, connection exported.ConnectionI) uint64 {
