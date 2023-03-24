@@ -481,7 +481,7 @@ func (k Keeper) LookupModuleByChannel(ctx sdk.Context, portID, channelID string)
 // GetUpgradeErrorReceipt returns the upgrade error receipt for the provided port and channel identifiers.
 func (k Keeper) GetUpgradeErrorReceipt(ctx sdk.Context, portID, channelID string) (types.ErrorReceipt, bool) {
 	store := ctx.KVStore(k.storeKey)
-	bz := store.Get([]byte(host.ChannelUpgradeErrorKey(portID, channelID)))
+	bz := store.Get(host.ChannelUpgradeErrorKey(portID, channelID))
 	if bz == nil {
 		return types.ErrorReceipt{}, false
 	}

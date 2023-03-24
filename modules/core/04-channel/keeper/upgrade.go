@@ -151,15 +151,11 @@ func (k Keeper) ChanUpgradeTry(
 		upgradeSequence = seq + 1
 	}
 
-	// if the counterparty sequence is greater than the current sequence, we fast forward to the counterparty sequence
-	// so that both channel ends are using the same sequence for the current upgrade
-	if counterpartyUpgradeSequence > upgradeSequence {
+	// if the counterparty upgrade sequence is ahead then fast forward so both channel ends are using the same sequence for the current upgrade
+	if counterpartyUpgradeSequence >= upgradeSequence {
 		upgradeSequence = counterpartyUpgradeSequence
 		k.SetUpgradeSequence(ctx, portID, channelID, upgradeSequence)
 	} else {
-		// if the counterparty sequence is less than or equal to the current sequence, then either the counterparty chain is out-of-sync or
-		// the message is out-of-sync and we write an error receipt with our own sequence so that the counterparty can update
-		// their sequence as well.
 		errorReceipt := types.ErrorReceipt{
 			Sequence: upgradeSequence,
 			Error:    errorsmod.Wrapf(types.ErrInvalidUpgradeSequence, "upgrade sequence %d was not smaller than the counter party chain upgrade sequence %d", upgradeSequence, counterpartyUpgradeSequence).Error(),
@@ -171,9 +167,9 @@ func (k Keeper) ChanUpgradeTry(
 		k.SetUpgradeErrorReceipt(ctx, portID, channelID, errorReceipt)
 		k.SetUpgradeSequence(ctx, portID, channelID, upgradeSequence)
 
-		// TODO: emit events
-		// TODO: we do not want to proceed with app callbacks when returning here, but we want to commit state
-		return 0, nil
+		// TODO: emit error receipt events
+
+		return 0, errorsmod.Wrapf(types.ErrInvalidUpgradeSequence, "upgrade aborted, error receipt written for upgrade sequence: %d", errorReceipt.GetSequence())
 	}
 
 	switch channel.State {
