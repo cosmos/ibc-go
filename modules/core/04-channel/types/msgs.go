@@ -596,9 +596,6 @@ func (msg MsgChannelUpgradeTry) ValidateBasic() error {
 	if len(msg.ProofUpgradeSequence) == 0 {
 		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty upgrade sequence proof")
 	}
-	if msg.ProofHeight.IsZero() {
-		return errorsmod.Wrap(ibcerrors.ErrInvalidHeight, "proof height must be non-zero")
-	}
 	_, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
@@ -646,9 +643,6 @@ func (msg MsgChannelUpgradeAck) ValidateBasic() error {
 	}
 	if len(msg.ProofUpgradeSequence) == 0 {
 		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty upgrade sequence proof")
-	}
-	if msg.ProofHeight.IsZero() {
-		return errorsmod.Wrap(ibcerrors.ErrInvalidHeight, "proof height must be non-zero")
 	}
 	if msg.CounterpartyChannel.State != TRYUPGRADE {
 		return errorsmod.Wrapf(ErrInvalidChannelState, "expected: %s, got: %s", "TRYUPGRADE", msg.CounterpartyChannel.State)
@@ -718,10 +712,6 @@ func (msg MsgChannelUpgradeConfirm) ValidateBasic() error {
 		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty upgrade sequence proof")
 	}
 
-	if msg.ProofHeight.IsZero() {
-		return errorsmod.Wrap(ibcerrors.ErrInvalidHeight, "proof height must be non-zero")
-	}
-
 	if msg.CounterpartyChannel.State != OPEN {
 		return errorsmod.Wrapf(ErrInvalidChannelState, "expected: %s, got: %s", OPEN, msg.CounterpartyChannel.State)
 	}
@@ -781,10 +771,6 @@ func (msg MsgChannelUpgradeTimeout) ValidateBasic() error {
 		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty proof")
 	}
 
-	if msg.ProofHeight.IsZero() {
-		return errorsmod.Wrap(ibcerrors.ErrInvalidHeight, "proof height must be non-zero")
-	}
-
 	if msg.CounterpartyChannel.State != OPEN {
 		return errorsmod.Wrapf(ErrInvalidChannelState, "expected: %s, got: %s", OPEN, msg.CounterpartyChannel.State)
 	}
@@ -840,10 +826,6 @@ func (msg MsgChannelUpgradeCancel) ValidateBasic() error {
 
 	if len(msg.ProofErrorReceipt) == 0 {
 		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty proof")
-	}
-
-	if msg.ProofHeight.IsZero() {
-		return errorsmod.Wrap(ibcerrors.ErrInvalidHeight, "proof height must be non-zero")
 	}
 
 	if msg.ErrorReceipt.Sequence == 0 {
