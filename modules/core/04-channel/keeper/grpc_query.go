@@ -398,18 +398,53 @@ func (q Keeper) UnreceivedPackets(c context.Context, req *types.QueryUnreceivedP
 
 	ctx := sdk.UnwrapSDKContext(c)
 
+	channel, found := q.GetChannel(sdk.UnwrapSDKContext(c), req.PortId, req.ChannelId)
+	if !found {
+		return nil, status.Error(
+			codes.NotFound,
+			errorsmod.Wrapf(types.ErrChannelNotFound, "port-id: %s, channel-id %s", req.PortId, req.ChannelId).Error(),
+		)
+	}
+
 	unreceivedSequences := []uint64{}
+	switch channel.Ordering {
+	case types.UNORDERED:
+		for i, seq := range req.PacketCommitmentSequences {
+			if seq == 0 {
+				return nil, status.Errorf(codes.InvalidArgument, "packet sequence %d cannot be 0", i)
+			}
 
-	for i, seq := range req.PacketCommitmentSequences {
-		if seq == 0 {
-			return nil, status.Errorf(codes.InvalidArgument, "packet sequence %d cannot be 0", i)
+			// if packet receipt exists on the receiving chain, then packet has already been received
+			if _, found := q.GetPacketReceipt(ctx, req.PortId, req.ChannelId, seq); !found {
+				unreceivedSequences = append(unreceivedSequences, seq)
+			}
+		}
+	case types.ORDERED:
+		nextSequenceRecv, found := q.GetNextSequenceRecv(ctx, req.PortId, req.ChannelId)
+		if !found {
+			return nil, status.Error(
+				codes.InvalidArgument,
+				errorsmod.Wrapf(
+					types.ErrSequenceReceiveNotFound,
+					"destination port: %s, destination channel: %s", req.PortId, req.ChannelId,
+				).Error(),
+			)
 		}
 
-		// if packet receipt exists on the receiving chain, then packet has already been received
-		if _, found := q.GetPacketReceipt(ctx, req.PortId, req.ChannelId, seq); !found {
-			unreceivedSequences = append(unreceivedSequences, seq)
-		}
+		for i, seq := range req.PacketCommitmentSequences {
+			if seq == 0 {
+				return nil, status.Errorf(codes.InvalidArgument, "packet sequence %d cannot be 0", i)
+			}
 
+			// If the packet sequence is greater than the sequence most recently received, then the packet has not been received.
+			if seq >= nextSequenceRecv {
+				unreceivedSequences = append(unreceivedSequences, seq)
+			}
+		}
+	default:
+		return nil, status.Error(
+			codes.InvalidArgument,
+			errorsmod.Wrapf(types.ErrInvalidChannelOrdering, channel.Ordering.String()).Error())
 	}
 
 	selfHeight := clienttypes.GetSelfHeight(ctx)

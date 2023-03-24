@@ -1159,6 +1159,16 @@ func (suite *KeeperTestSuite) TestQueryUnreceivedPackets() {
 			false,
 		},
 		{
+			"channel not found",
+			func() {
+				req = &types.QueryUnreceivedPacketsRequest{
+					PortId:    "test-port-id",
+					ChannelId: "test-channel-id",
+				}
+			},
+			false,
+		},
+		{
 			"basic success unreceived packet commitments",
 			func() {
 				path := ibctesting.NewPath(suite.chainA, suite.chainB)
@@ -1210,6 +1220,45 @@ func (suite *KeeperTestSuite) TestQueryUnreceivedPackets() {
 						expSeq = append(expSeq, seq)
 					}
 				}
+
+				req = &types.QueryUnreceivedPacketsRequest{
+					PortId:                    path.EndpointA.ChannelConfig.PortID,
+					ChannelId:                 path.EndpointA.ChannelID,
+					PacketCommitmentSequences: packetCommitments,
+				}
+			},
+			true,
+		},
+		{
+			"success basic unreceived packet commitments, ordered channel",
+			func() {
+				path := ibctesting.NewPath(suite.chainA, suite.chainB)
+				path.SetChannelOrdered()
+				suite.coordinator.Setup(path)
+
+				suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetNextSequenceRecv(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, 1)
+
+				expSeq = []uint64{1}
+				req = &types.QueryUnreceivedPacketsRequest{
+					PortId:                    path.EndpointA.ChannelConfig.PortID,
+					ChannelId:                 path.EndpointA.ChannelID,
+					PacketCommitmentSequences: []uint64{1},
+				}
+			},
+			true,
+		},
+		{
+			"success basic multiple unreceived packet commitments, ordered channel",
+			func() {
+				path := ibctesting.NewPath(suite.chainA, suite.chainB)
+				path.SetChannelOrdered()
+				suite.coordinator.Setup(path)
+
+				// Excersise scenario from issue 1532. NextSequenceRecv is 5, commitments for 2, 7, 9, 10
+				// are present. 2 is received so 7, 9, 10 should be unreceived.
+				expSeq = []uint64{7, 9, 10}
+				packetCommitments := []uint64{2, 7, 9, 10}
+				suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetNextSequenceRecv(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, 5)
 
 				req = &types.QueryUnreceivedPacketsRequest{
 					PortId:                    path.EndpointA.ChannelConfig.PortID,
