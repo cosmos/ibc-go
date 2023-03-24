@@ -91,9 +91,9 @@ func (k Keeper) ChanUpgradeTry(
 	proposedUpgradeChannel types.Channel,
 	timeoutHeight clienttypes.Height,
 	timeoutTimestamp uint64,
-	channelProof []byte,
-	upgradeTimeoutProof []byte,
-	upgradeSequenceProof []byte,
+	proofChannel []byte,
+	proofUpgradeTimeout []byte,
+	proofUpgradeSequence []byte,
 	proofHeight clienttypes.Height,
 ) error {
 	channel, found := k.GetChannel(ctx, portID, channelID)
@@ -127,7 +127,7 @@ func (k Keeper) ChanUpgradeTry(
 		return err
 	}
 
-	if err := k.connectionKeeper.VerifyChannelState(ctx, connection, proofHeight, channelProof, channel.Counterparty.PortId, channel.Counterparty.ChannelId, counterpartyChannel); err != nil {
+	if err := k.connectionKeeper.VerifyChannelState(ctx, connection, proofHeight, proofChannel, proposedUpgradeChannel.Counterparty.PortId, proposedUpgradeChannel.Counterparty.ChannelId, counterpartyChannel); err != nil {
 		return err
 	}
 
@@ -140,7 +140,7 @@ func (k Keeper) ChanUpgradeTry(
 	_ = upgradeTimeout
 	//abortTransactionUnless(verifyChannelUpgradeTimeout(connection, proofHeight, proofUpgradeTimeout, currentChannel.counterpartyPortIdentifier, currentChannel.counterpartyChannelIdentifier, upgradeTimeout))
 
-	if err := k.connectionKeeper.VerifyChannelUpgradeSequence(ctx, connection, proofHeight, upgradeSequenceProof, channel.Counterparty.PortId, channel.Counterparty.ChannelId, counterpartyUpgradeSequence); err != nil {
+	if err := k.connectionKeeper.VerifyChannelUpgradeSequence(ctx, connection, proofHeight, proofUpgradeSequence, proposedUpgradeChannel.Counterparty.PortId, proposedUpgradeChannel.Counterparty.ChannelId, counterpartyUpgradeSequence); err != nil {
 		return err
 	}
 
