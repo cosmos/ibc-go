@@ -391,7 +391,7 @@ func (k Keeper) VerifyChannelUpgradeTimeout(
 		return err
 	}
 
-	bz, err := k.cdc.MarshalInterface(&upgradeTimeout)
+	bz, err := k.cdc.Marshal(&upgradeTimeout)
 	if err != nil {
 		return err
 	}
