@@ -106,9 +106,11 @@ func (suite *KeeperTestSuite) TestChanUpgradeInit() {
 
 func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 	var (
-		path           *ibctesting.Path
-		chanCap        *capabilitytypes.Capability
-		channelUpgrade types.Channel
+		path            *ibctesting.Path
+		chanCap         *capabilitytypes.Capability
+		channelUpgrade  types.Channel
+		upgradeSequence uint64
+		upgradeTimeout  types.UpgradeTimeout
 	)
 
 	testCases := []struct {
@@ -121,6 +123,52 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 			func() {},
 			true,
 		},
+		{
+			"invalid capability",
+			func() {
+				chanCap = capabilitytypes.NewCapability(42)
+			},
+			false,
+		},
+		{
+			"channel not found",
+			func() {
+				path.EndpointB.ChannelID = "invalid-channel"
+				path.EndpointB.ChannelConfig.PortID = "invalid-port"
+			},
+			false,
+		},
+		{
+			"channel state is not in OPEN or INITUPGRADE state",
+			func() {
+				suite.Require().NoError(path.EndpointB.SetChannelState(types.CLOSED))
+			},
+			false,
+		},
+		{
+			"invalid proposed channel counterparty",
+			func() {
+				channelUpgrade.Counterparty = types.NewCounterparty(mock.PortID, "channel-100")
+			},
+			false,
+		},
+		{
+			"invalid proposed channel upgrade ordering",
+			func() {
+				channelUpgrade.Ordering = types.ORDERED
+			},
+			false,
+		},
+		{
+			"counterparty channel order mismatch",
+			func() {
+				channelEnd := path.EndpointA.GetChannel()
+				channelEnd.Ordering = types.ORDERED
+
+				path.EndpointA.SetChannel(channelEnd)
+			},
+			false,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -131,7 +179,8 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.Setup(path)
 
-			upgradeTimeout := types.UpgradeTimeout{TimeoutHeight: path.EndpointB.Chain.GetTimeoutHeight(), TimeoutTimestamp: uint64(suite.coordinator.CurrentTime.Add(time.Hour).UnixNano())}
+			upgradeSequence = 1
+			upgradeTimeout = types.UpgradeTimeout{TimeoutHeight: path.EndpointB.Chain.GetTimeoutHeight(), TimeoutTimestamp: uint64(suite.coordinator.CurrentTime.Add(time.Hour).UnixNano())}
 			err := path.EndpointA.ChanUpgradeInit(upgradeTimeout.TimeoutHeight, upgradeTimeout.TimeoutTimestamp)
 			suite.Require().NoError(err)
 
@@ -151,7 +200,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 
 			err = suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.ChanUpgradeTry(
 				suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID,
-				chanCap, path.EndpointA.GetChannel(), 1, channelUpgrade, upgradeTimeout.TimeoutHeight, upgradeTimeout.TimeoutTimestamp,
+				chanCap, path.EndpointA.GetChannel(), upgradeSequence, channelUpgrade, upgradeTimeout.TimeoutHeight, upgradeTimeout.TimeoutTimestamp,
 				proofChannel, proofUpgradeTimeout, proofUpgradeSequence, proofHeight,
 			)
 
