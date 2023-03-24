@@ -56,6 +56,13 @@ func (suite *KeeperTestSuite) TestChanUpgradeInit() {
 			false,
 		},
 		{
+			"invalid proposed channel connection",
+			func() {
+				channelUpgrade.ConnectionHops = []string{"connection-100"}
+			},
+			false,
+		},
+		{
 			"invalid proposed channel counterparty",
 			func() {
 				channelUpgrade.Counterparty = types.NewCounterparty(mock.PortID, "channel-100")
