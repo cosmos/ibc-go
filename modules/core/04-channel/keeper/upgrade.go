@@ -11,6 +11,7 @@ import (
 	"github.com/cosmos/ibc-go/v7/internal/collections"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	portkeeper "github.com/cosmos/ibc-go/v7/modules/core/05-port/keeper"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 )
 
@@ -189,8 +190,8 @@ func (k Keeper) ChanUpgradeTry(
 		k.SetChannel(ctx, portID, channelID, channel)
 
 		if !reflect.DeepEqual(channel, proposedUpgradeChannel) {
-			// TODO: restore channel
-			// log that the channel was restored?
+			// TODO: restore channel, log and emit events
+			k.RestoreChannel(ctx, portID, channelID, upgradeSequence)
 			return 0, nil
 		}
 	default:
@@ -198,4 +199,42 @@ func (k Keeper) ChanUpgradeTry(
 	}
 
 	return upgradeSequence, nil
+}
+
+func (k Keeper) RestoreChannel(ctx sdk.Context, portID, channelID string, upgradeSequence uint64) {
+	errorReceipt := types.ErrorReceipt{
+		Sequence: upgradeSequence,
+		Error:    "",
+	}
+
+	k.SetUpgradeErrorReceipt(ctx, portID, channelID, errorReceipt)
+
+	channel, found := k.GetUpgradeRestoreChannel(ctx, portID, channelID)
+	if !found {
+		panic("todo unreachable state")
+	}
+
+	k.SetChannel(ctx, portID, channelID, channel)
+	k.DeleteUpgradeRestoreChannel(ctx, portID, channelID)
+	k.DeleteUpgradeTimeout(ctx, portID, channelID)
+
+	module, _, err := k.LookupModuleByChannel(ctx, portID, channelID)
+	if err != nil {
+		panic("todo")
+	}
+
+	// TODO: add some methods to expected keeper
+	portKeeper, ok := k.portKeeper.(portkeeper.Keeper)
+	if !ok {
+		panic("todo")
+	}
+
+	cbs, found := portKeeper.Router.GetRoute(module)
+	if !found {
+		panic("todo")
+	}
+
+	if err := cbs.OnChanUpgradeRestore(ctx, portID, channelID); err != nil {
+		panic(err)
+	}
 }

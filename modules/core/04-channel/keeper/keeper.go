@@ -520,6 +520,12 @@ func (k Keeper) SetUpgradeRestoreChannel(ctx sdk.Context, portID, channelID stri
 	store.Set(host.ChannelRestoreKey(portID, channelID), bz)
 }
 
+// DeleteUpgradeRestoreChannel deletes the restore channel end in state for the provided port and channel identifiers.
+func (k Keeper) DeleteUpgradeRestoreChannel(ctx sdk.Context, portID, channelID string) {
+	store := ctx.KVStore(k.storeKey)
+	store.Delete(host.ChannelRestoreKey(portID, channelID))
+}
+
 // GetUpgradeSequence returns the upgrade sequence for the provided port and channel identifers.
 func (k Keeper) GetUpgradeSequence(ctx sdk.Context, portID, channelID string) (uint64, bool) {
 	store := ctx.KVStore(k.storeKey)
@@ -557,6 +563,12 @@ func (k Keeper) SetUpgradeTimeout(ctx sdk.Context, portID, channelID string, upg
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshal(&upgradeTimeout)
 	store.Set(host.ChannelUpgradeTimeoutKey(portID, channelID), bz)
+}
+
+// DeleteUpgradeTimeout deletes the upgrade timeout in state for the provided port and channel identifiers.
+func (k Keeper) DeleteUpgradeTimeout(ctx sdk.Context, portID, channelID string) {
+	store := ctx.KVStore(k.storeKey)
+	store.Delete(host.ChannelUpgradeTimeoutKey(portID, channelID))
 }
 
 // common functionality for IteratePacketCommitment and IteratePacketAcknowledgement

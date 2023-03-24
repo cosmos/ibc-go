@@ -776,8 +776,16 @@ func (k Keeper) ChannelUpgradeTry(goCtx context.Context, msg *channeltypes.MsgCh
 		return nil, errorsmod.Wrap(err, "channel handshake upgrade try failed")
 	}
 
-	// TODO: call application callbacks.
+	// TODO: call application callbacks and write the new channel with the final version
 	_ = cbs
+	// version, err := cbs.OnChanOpenTry(ctx, msg.ProposedUpgradeChannel.Ordering, msg.ProposedUpgradeChannel.ConnectionHops, msg.PortId, msg.ChannelId, chanCap,
+	// 	msg.ProposedUpgradeChannel.Counterparty, msg.ProposedUpgradeChannel.Version)
+	// if err != nil {
+	// 	k.ChannelKeeper.RestoreChannel()
+	// 	return &channeltypes.MsgChannelUpgradeTryResponse{}, nil
+	// }
+	//
+	// msg.ProposedUpgradeChannel.Version = version
 
 	return &channeltypes.MsgChannelUpgradeTryResponse{}, nil
 }
