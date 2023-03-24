@@ -2,6 +2,7 @@ package types
 
 import (
 	"encoding/base64"
+	"strings"
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -509,6 +510,9 @@ func (msg MsgChannelUpgradeInit) ValidateBasic() error {
 	}
 	if msg.ProposedUpgradeChannel.State != INITUPGRADE {
 		return errorsmod.Wrapf(ErrInvalidChannelState, "expected: %s, got: %s", INITUPGRADE, msg.ProposedUpgradeChannel.State)
+	}
+	if strings.TrimSpace(msg.ProposedUpgradeChannel.Version) == "" {
+		return errorsmod.Wrap(ErrInvalidChannelVersion, "channel version must not be empty")
 	}
 	if msg.TimeoutHeight.IsZero() && msg.TimeoutTimestamp == 0 {
 		return errorsmod.Wrap(ErrInvalidUpgradeTimeout, "timeout height and timeout timestamp cannot both be 0")
