@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"reflect"
-	"strings"
 
 	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/telemetry"
@@ -113,10 +112,6 @@ func (k Keeper) ChanUpgradeTry(
 	if proposedUpgradeChannel.State != types.TRYUPGRADE || proposedUpgradeChannel.Counterparty.PortId != channel.Counterparty.PortId ||
 		proposedUpgradeChannel.Counterparty.ChannelId != channel.Counterparty.ChannelId {
 		return errorsmod.Wrap(types.ErrInvalidChannel, "proposed channel upgrade is invalid")
-	}
-
-	if strings.TrimSpace(proposedUpgradeChannel.Version) == "" {
-		return errorsmod.Wrap(types.ErrInvalidChannelVersion, "channel version must be not be empty")
 	}
 
 	if !channel.Ordering.SubsetOf(proposedUpgradeChannel.Ordering) {

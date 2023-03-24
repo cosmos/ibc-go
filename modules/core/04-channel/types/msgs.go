@@ -585,6 +585,9 @@ func (msg MsgChannelUpgradeTry) ValidateBasic() error {
 	if msg.ProposedUpgradeChannel.State != TRYUPGRADE {
 		return errorsmod.Wrapf(ErrInvalidChannelState, "expected: %s, got: %s", TRYUPGRADE, msg.CounterpartyChannel.State)
 	}
+	if strings.TrimSpace(msg.ProposedUpgradeChannel.Version) == "" {
+		return errorsmod.Wrap(ErrInvalidChannelVersion, "channel version must not be empty")
+	}
 	if msg.TimeoutHeight.IsZero() {
 		return errorsmod.Wrap(ibcerrors.ErrInvalidHeight, "timeout height must be non-zero")
 	}

@@ -561,6 +561,13 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeTryValidateBasic() {
 			false,
 		},
 		{
+			"empty proposed upgrade channel version",
+			func() {
+				msg.ProposedUpgradeChannel.Version = "  "
+			},
+			false,
+		},
+		{
 			"timeout height is zero && timeout timestamp is zero",
 			func() {
 				msg.TimeoutHeight = clienttypes.ZeroHeight()
@@ -612,7 +619,7 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeTryValidateBasic() {
 				ibctesting.MockPort, ibctesting.FirstChannelID,
 				types.Channel{State: types.INITUPGRADE},
 				1,
-				types.Channel{State: types.TRYUPGRADE},
+				types.Channel{State: types.TRYUPGRADE, Version: mock.Version},
 				clienttypes.NewHeight(0, 10000),
 				0,
 				suite.proof, suite.proof, suite.proof,
