@@ -261,14 +261,12 @@ message MsgChannelUpgradeInit {
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
-  string  port_id                  = 1 [(gogoproto.moretags) = "yaml:\"port_id\""];
-  string  channel_id               = 2 [(gogoproto.moretags) = "yaml:\"channel_id\""];
-  Channel proposed_upgrade_channel = 3
-      [(gogoproto.moretags) = "yaml:\"proposed_upgrade_channel\"", (gogoproto.nullable) = false];
-  ibc.core.client.v1.Height timeout_height = 4
-      [(gogoproto.moretags) = "yaml:\"timeout_height\"", (gogoproto.nullable) = false];
-  uint64 timeout_timestamp = 5 [(gogoproto.moretags) = "yaml:\"timeout_timestamp\""];
-  string signer            = 6;
+  string                    port_id                  = 1;
+  string                    channel_id               = 2;
+  Channel                   proposed_upgrade_channel = 3 [(gogoproto.nullable) = false];
+  ibc.core.client.v1.Height timeout_height           = 4 [(gogoproto.nullable) = false];
+  uint64                    timeout_timestamp        = 5;
+  string                    signer                   = 6;
 }
 
 // MsgChannelUpgradeInitResponse defines the MsgChannelUpgradeInit response type
@@ -279,22 +277,18 @@ message MsgChannelUpgradeTry {
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
-  string  port_id              = 1 [(gogoproto.moretags) = "yaml:\"port_id\""];
-  string  channel_id           = 2 [(gogoproto.moretags) = "yaml:\"channel_id\""];
-  Channel counterparty_channel = 3
-      [(gogoproto.moretags) = "yaml:\"counterparty_channel\"", (gogoproto.nullable) = false];
-  uint64  counterparty_sequence    = 4 [(gogoproto.moretags) = "yaml:\"counterparty_sequence\""];
-  Channel proposed_upgrade_channel = 5
-      [(gogoproto.moretags) = "yaml:\"proposed_upgrade_channel\"", (gogoproto.nullable) = false];
-  ibc.core.client.v1.Height timeout_height = 6
-      [(gogoproto.moretags) = "yaml:\"timeout_height\"", (gogoproto.nullable) = false];
-  uint64                    timeout_timestamp      = 7 [(gogoproto.moretags) = "yaml:\"timeout_timestamp\""];
-  bytes                     proof_channel          = 8 [(gogoproto.moretags) = "yaml:\"proof_channel\""];
-  bytes                     proof_upgrade_timeout  = 9 [(gogoproto.moretags) = "yaml:\"proof_upgrade_timeout\""];
-  bytes                     proof_upgrade_sequence = 10 [(gogoproto.moretags) = "yaml:\"proof_upgrade_sequence\""];
-  ibc.core.client.v1.Height proof_height           = 11
-      [(gogoproto.moretags) = "yaml:\"proof_height\"", (gogoproto.nullable) = false];
-  string signer = 12;
+  string                    port_id                  = 1;
+  string                    channel_id               = 2;
+  Channel                   counterparty_channel     = 3 [(gogoproto.nullable) = false];
+  uint64                    counterparty_sequence    = 4;
+  Channel                   proposed_upgrade_channel = 5 [(gogoproto.nullable) = false];
+  ibc.core.client.v1.Height timeout_height           = 6 [(gogoproto.nullable) = false];
+  uint64                    timeout_timestamp        = 7;
+  bytes                     proof_channel            = 8;
+  bytes                     proof_upgrade_timeout    = 9;
+  bytes                     proof_upgrade_sequence   = 10;
+  ibc.core.client.v1.Height proof_height             = 11 [(gogoproto.nullable) = false];
+  string                    signer                   = 12;
 }
 
 // MsgChannelUpgradeTryResponse defines the MsgChannelUpgradeTry response type
@@ -302,17 +296,15 @@ message MsgChannelUpgradeTryResponse {}
 
 // MsgChannelUpgradeAck defines the request type for the ChannelUpgradeAck rpc
 message MsgChannelUpgradeAck {
-  option (gogoproto.equal)           = false;
-  option (gogoproto.goproto_getters) = false;
-  string  port_id                    = 1 [(gogoproto.moretags) = "yaml:\"port_id\""];
-  string  channel_id                 = 2 [(gogoproto.moretags) = "yaml:\"channel_id\""];
-  Channel counterparty_channel       = 3
-      [(gogoproto.moretags) = "yaml:\"counterparty_channel\"", (gogoproto.nullable) = false];
-  bytes                     proof_channel          = 4 [(gogoproto.moretags) = "yaml:\"proof_channel\""];
-  bytes                     proof_upgrade_sequence = 5 [(gogoproto.moretags) = "yaml:\"proof_upgrade_sequence\""];
-  ibc.core.client.v1.Height proof_height           = 6
-      [(gogoproto.moretags) = "yaml:\"proof_height\"", (gogoproto.nullable) = false];
-  string signer = 7;
+  option (gogoproto.equal)                         = false;
+  option (gogoproto.goproto_getters)               = false;
+  string                    port_id                = 1;
+  string                    channel_id             = 2;
+  Channel                   counterparty_channel   = 3 [(gogoproto.nullable) = false];
+  bytes                     proof_channel          = 4;
+  bytes                     proof_upgrade_sequence = 5;
+  ibc.core.client.v1.Height proof_height           = 6 [(gogoproto.nullable) = false];
+  string                    signer                 = 7;
 }
 
 // MsgChannelUpgradeAckResponse defines MsgChannelUpgradeAck response type
@@ -320,18 +312,16 @@ message MsgChannelUpgradeAckResponse {}
 
 // MsgChannelUpgradeConfirm defines the request type for the ChannelUpgradeConfirm rpc
 message MsgChannelUpgradeConfirm {
-  option (gogoproto.equal)           = false;
-  option (gogoproto.goproto_getters) = false;
-  string  port_id                    = 1 [(gogoproto.moretags) = "yaml:\"port_id\""];
-  string  channel_id                 = 2 [(gogoproto.moretags) = "yaml:\"channel_id\""];
-  Channel counterparty_channel       = 3
-      [(gogoproto.moretags) = "yaml:\"counterparty_channel\"", (gogoproto.nullable) = false];
-  bytes                     proof_channel          = 4 [(gogoproto.moretags) = "yaml:\"proof_channel\""];
-  bytes                     proof_upgrade_error    = 5 [(gogoproto.moretags) = "yaml:\"proof_upgrade_error\""];
-  bytes                     proof_upgrade_sequence = 6 [(gogoproto.moretags) = "yaml:\"proof_upgrade_sequence\""];
-  ibc.core.client.v1.Height proof_height           = 7
-      [(gogoproto.moretags) = "yaml:\"proof_height\"", (gogoproto.nullable) = false];
-  string signer = 8;
+  option (gogoproto.equal)                         = false;
+  option (gogoproto.goproto_getters)               = false;
+  string                    port_id                = 1;
+  string                    channel_id             = 2;
+  Channel                   counterparty_channel   = 3 [(gogoproto.nullable) = false];
+  bytes                     proof_channel          = 4;
+  bytes                     proof_upgrade_error    = 5;
+  bytes                     proof_upgrade_sequence = 6;
+  ibc.core.client.v1.Height proof_height           = 7 [(gogoproto.nullable) = false];
+  string                    signer                 = 8;
 }
 
 // MsgChannelUpgradeConfirmResponse defines the MsgChannelUpgradeConfirm response type
@@ -342,17 +332,14 @@ message MsgChannelUpgradeTimeout {
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
-  string  port_id              = 1 [(gogoproto.moretags) = "yaml:\"port_id\""];
-  string  channel_id           = 2 [(gogoproto.moretags) = "yaml:\"channel_id\""];
-  Channel counterparty_channel = 3
-      [(gogoproto.moretags) = "yaml:\"counterparty_channel\"", (gogoproto.nullable) = false];
-  ErrorReceipt previous_error_receipt = 4
-      [(gogoproto.moretags) = "yaml:\"previous_error_receipt\"", (gogoproto.nullable) = false];
-  bytes                     proof_channel       = 5 [(gogoproto.moretags) = "yaml:\"proof_channel\""];
-  bytes                     proof_error_receipt = 6 [(gogoproto.moretags) = "yaml:\"proof_error_receipt\""];
-  ibc.core.client.v1.Height proof_height        = 7
-      [(gogoproto.moretags) = "yaml:\"proof_height\"", (gogoproto.nullable) = false];
-  string signer = 8;
+  string                    port_id                = 1;
+  string                    channel_id             = 2;
+  Channel                   counterparty_channel   = 3 [(gogoproto.nullable) = false];
+  ErrorReceipt              previous_error_receipt = 4 [(gogoproto.nullable) = false];
+  bytes                     proof_channel          = 5;
+  bytes                     proof_error_receipt    = 6;
+  ibc.core.client.v1.Height proof_height           = 7 [(gogoproto.nullable) = false];
+  string                    signer                 = 8;
 }
 
 // MsgChannelUpgradeTimeoutRepsonse defines the MsgChannelUpgradeTimeout response type
@@ -363,13 +350,12 @@ message MsgChannelUpgradeCancel {
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
-  string       port_id             = 1 [(gogoproto.moretags) = "yaml:\"port_id\""];
-  string       channel_id          = 2 [(gogoproto.moretags) = "yaml:\"channel_id\""];
-  ErrorReceipt error_receipt       = 3 [(gogoproto.moretags) = "yaml:\"error_receipt\"", (gogoproto.nullable) = false];
-  bytes        proof_error_receipt = 4 [(gogoproto.moretags) = "yaml:\"proof_error_receipt\""];
-  ibc.core.client.v1.Height proof_height = 5
-      [(gogoproto.moretags) = "yaml:\"proof_height\"", (gogoproto.nullable) = false];
-  string signer = 6;
+  string                    port_id             = 1;
+  string                    channel_id          = 2;
+  ErrorReceipt              error_receipt       = 3 [(gogoproto.nullable) = false];
+  bytes                     proof_error_receipt = 4;
+  ibc.core.client.v1.Height proof_height        = 5 [(gogoproto.nullable) = false];
+  string                    signer              = 6;
 }
 
 // MsgChannelUpgradeCancelResponse defines the MsgChannelUpgradeCancel response type
