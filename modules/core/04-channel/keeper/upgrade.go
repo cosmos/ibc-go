@@ -127,7 +127,7 @@ func (k Keeper) ChanUpgradeTry(
 		return err
 	}
 
-	if err := k.connectionKeeper.VerifyChannelState(ctx, connection, proofHeight, channelProof, portID, channelID, counterpartyChannel); err != nil {
+	if err := k.connectionKeeper.VerifyChannelState(ctx, connection, proofHeight, channelProof, channel.Counterparty.PortId, channel.Counterparty.ChannelId, counterpartyChannel); err != nil {
 		return err
 	}
 
@@ -140,7 +140,7 @@ func (k Keeper) ChanUpgradeTry(
 	_ = upgradeTimeout
 	//abortTransactionUnless(verifyChannelUpgradeTimeout(connection, proofHeight, proofUpgradeTimeout, currentChannel.counterpartyPortIdentifier, currentChannel.counterpartyChannelIdentifier, upgradeTimeout))
 
-	if err := k.connectionKeeper.VerifyChannelUpgradeSequence(ctx, connection, proofHeight, upgradeSequenceProof, portID, channelID, counterpartyUpgradeSequence); err != nil {
+	if err := k.connectionKeeper.VerifyChannelUpgradeSequence(ctx, connection, proofHeight, upgradeSequenceProof, channel.Counterparty.PortId, channel.Counterparty.ChannelId, counterpartyUpgradeSequence); err != nil {
 		return err
 	}
 
