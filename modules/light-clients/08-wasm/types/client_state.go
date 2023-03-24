@@ -9,6 +9,9 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	ibcerrors "github.com/cosmos/ibc-go/v7/internal/errors"
+	errorsmod "cosmossdk.io/errors"
+	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
 )
 
 var _ exported.ClientState = (*ClientState)(nil)
@@ -88,6 +91,7 @@ func (c ClientState) Initialize(context sdk.Context, marshaler codec.BinaryCodec
 	setClientState(store, marshaler, &c)
 	setConsensusState(store, marshaler, consensusState, c.GetLatestHeight())
 
+	// Any contract specific metadata can be stored in the contract's init
 	_, err := initContract(c.CodeId, context, store)
 	if err != nil {
 		return sdkerrors.Wrapf(ErrUnableToInit, fmt.Sprintf("underlying error: %s", err.Error()))
@@ -119,6 +123,23 @@ func (c ClientState) VerifyMembership(
 	path exported.Path,
 	value []byte,
 ) error {
+	if c.GetLatestHeight().LT(height) {
+		return errorsmod.Wrapf(
+			ibcerrors.ErrInvalidHeight,
+			"client state height < proof height (%d < %d), please ensure the client has been updated", c.GetLatestHeight(), height,
+		)
+	}
+
+	_, ok := path.(commitmenttypes.MerklePath)
+	if !ok {
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", commitmenttypes.MerklePath{}, path)
+	}
+
+	_, err := GetConsensusState(clientStore, cdc, height)
+	if err != nil {
+		return errorsmod.Wrap(clienttypes.ErrConsensusStateNotFound, "please ensure the proof was constructed against a height that exists on the client")
+	}
+
 	payload := verifyMembershipPayload{
 		VerifyMembershipPayloadInner: verifyMembershipPayloadInner{
 			Height:           height,
@@ -130,7 +151,7 @@ func (c ClientState) VerifyMembership(
 		},
 	}
 
-	_, err := call[contractResult](payload, &c, ctx, clientStore)
+	_, err = call[contractResult](payload, &c, ctx, clientStore)
 	return err
 }
 
@@ -155,6 +176,23 @@ func (c ClientState) VerifyNonMembership(
 	proof []byte,
 	path exported.Path,
 ) error {
+	if c.GetLatestHeight().LT(height) {
+		return errorsmod.Wrapf(
+			ibcerrors.ErrInvalidHeight,
+			"client state height < proof height (%d < %d), please ensure the client has been updated", c.GetLatestHeight(), height,
+		)
+	}
+
+	_, ok := path.(commitmenttypes.MerklePath)
+	if !ok {
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", commitmenttypes.MerklePath{}, path)
+	}
+
+	_, err := GetConsensusState(clientStore, cdc, height)
+	if err != nil {
+		return errorsmod.Wrap(clienttypes.ErrConsensusStateNotFound, "please ensure the proof was constructed against a height that exists on the client")
+	}
+
 	payload := verifyNonMembershipPayload{
 		VerifyNonMembershipPayloadInner: verifyNonMembershipPayloadInner{
 			Height:           height,
@@ -164,7 +202,7 @@ func (c ClientState) VerifyNonMembership(
 			Path:             path,
 		},
 	}
-	_, err := call[contractResult](payload, &c, ctx, clientStore)
+	_, err = call[contractResult](payload, &c, ctx, clientStore)
 	return err
 }
 
