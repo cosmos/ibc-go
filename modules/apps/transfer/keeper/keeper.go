@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"fmt"
+	"strings"
 
 	"cosmossdk.io/math"
 	tmbytes "github.com/cometbft/cometbft/libs/bytes"
@@ -144,17 +145,6 @@ func (k Keeper) IterateDenomTraces(ctx sdk.Context, cb func(denomTrace types.Den
 	}
 }
 
-// AuthenticateCapability wraps the scopedKeeper's AuthenticateCapability function
-func (k Keeper) AuthenticateCapability(ctx sdk.Context, cap *capabilitytypes.Capability, name string) bool {
-	return k.scopedKeeper.AuthenticateCapability(ctx, cap, name)
-}
-
-// ClaimCapability allows the transfer module that can claim a capability that IBC module
-// passes to it
-func (k Keeper) ClaimCapability(ctx sdk.Context, cap *capabilitytypes.Capability, name string) error {
-	return k.scopedKeeper.ClaimCapability(ctx, cap, name)
-}
-
 // GetTotalEscrowForDenom gets the total amount of source chain tokens that are in escrow.
 func (k Keeper) GetTotalEscrowForDenom(ctx sdk.Context, denom string) math.Int {
 	store := ctx.KVStore(k.storeKey)
@@ -183,4 +173,49 @@ func (k Keeper) SetTotalEscrowForDenom(ctx sdk.Context, denom string, amount mat
 	}
 
 	store.Set(types.TotalEscrowForDenomKey(denom), bz)
+}
+
+// GetAllDenomEscrows returns the escrow information for all the denominations.
+func (k Keeper) GetAllDenomEscrows(ctx sdk.Context) types.Escrows {
+	escrows := types.Escrows{}
+	k.IterateDenomEscrows(ctx, func(denomEscrow types.DenomEscrow) bool {
+		escrows = append(escrows, denomEscrow)
+		return false
+	})
+
+	return escrows.Sort()
+}
+
+// IterateDenomEscrows iterates over the denomination escrows in the store
+// and performs a callback function.
+func (k Keeper) IterateDenomEscrows(ctx sdk.Context, cb func(denomEscrow types.DenomEscrow) bool) {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, []byte(types.KeyTotalEscrowPrefix))
+
+	defer sdk.LogDeferred(ctx.Logger(), func() error { return iterator.Close() })
+	for ; iterator.Valid(); iterator.Next() {
+		keySplit := strings.Split(string(iterator.Key()), "/")
+		denom := keySplit[2:]
+
+		var amount math.Int
+		if err := amount.Unmarshal(iterator.Value()); err != nil {
+			continue
+		}
+
+		denomEscrow := types.DenomEscrow{Denom: strings.Join(denom, "/"), TotalEscrow: amount.Int64()}
+		if cb(denomEscrow) {
+			break
+		}
+	}
+}
+
+// AuthenticateCapability wraps the scopedKeeper's AuthenticateCapability function
+func (k Keeper) AuthenticateCapability(ctx sdk.Context, cap *capabilitytypes.Capability, name string) bool {
+	return k.scopedKeeper.AuthenticateCapability(ctx, cap, name)
+}
+
+// ClaimCapability allows the transfer module that can claim a capability that IBC module
+// passes to it
+func (k Keeper) ClaimCapability(ctx sdk.Context, cap *capabilitytypes.Capability, name string) error {
+	return k.scopedKeeper.ClaimCapability(ctx, cap, name)
 }

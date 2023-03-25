@@ -3,6 +3,7 @@ package keeper
 import (
 	"fmt"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
@@ -28,13 +29,18 @@ func (k Keeper) InitGenesis(ctx sdk.Context, state types.GenesisState) {
 	}
 
 	k.SetParams(ctx, state.Params)
+
+	for _, denomEscrow := range state.DenomEscrows {
+		k.SetTotalEscrowForDenom(ctx, denomEscrow.Denom, sdkmath.NewInt(denomEscrow.TotalEscrow))
+	}
 }
 
 // ExportGenesis exports ibc-transfer module's portID and denom trace info into its genesis state.
 func (k Keeper) ExportGenesis(ctx sdk.Context) *types.GenesisState {
 	return &types.GenesisState{
-		PortId:      k.GetPort(ctx),
-		DenomTraces: k.GetAllDenomTraces(ctx),
-		Params:      k.GetParams(ctx),
+		PortId:       k.GetPort(ctx),
+		DenomTraces:  k.GetAllDenomTraces(ctx),
+		Params:       k.GetParams(ctx),
+		DenomEscrows: k.GetAllDenomEscrows(ctx),
 	}
 }

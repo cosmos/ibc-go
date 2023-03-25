@@ -26,3 +26,12 @@ message Params {
   // chain.
   bool receive_enabled = 2;
 }
+
+// DenomEscrow contains the denomination and the total amount of tokens of
+// the denomination in escrow in the transfer channels accounts
+message DenomEscrow {
+  // denomination.
+  string denom = 1;
+  // total amount of tokens in escrow in the transfer channels accounts
+  int64 total_escrow = 2;
+}

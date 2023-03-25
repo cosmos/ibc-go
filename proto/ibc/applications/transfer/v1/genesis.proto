@@ -9,7 +9,8 @@ import "gogoproto/gogo.proto";
 
 // GenesisState defines the ibc-transfer genesis state
 message GenesisState {
-  string              port_id      = 1;
-  repeated DenomTrace denom_traces = 2 [(gogoproto.castrepeated) = "Traces", (gogoproto.nullable) = false];
-  Params              params       = 3 [(gogoproto.nullable) = false];
+  string               port_id       = 1;
+  repeated DenomTrace  denom_traces  = 2 [(gogoproto.castrepeated) = "Traces", (gogoproto.nullable) = false];
+  Params               params        = 3 [(gogoproto.nullable) = false];
+  repeated DenomEscrow denom_escrows = 4 [(gogoproto.castrepeated) = "Escrows", (gogoproto.nullable) = false];
 }
