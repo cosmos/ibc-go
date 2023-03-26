@@ -10,25 +10,36 @@ type checkForMisbehaviourPayload struct {
 	CheckForMisbehaviour checkForMisbehaviourInnerPayload `json:"check_for_misbehaviour"`
 }
 type checkForMisbehaviourInnerPayload struct {
-	Misbehaviour *Misbehaviour        `json:"misbehaviour"`
+	ClientMessage clientMessageConcretePayloadClientMessage `json:"client_message"`
 }
 
 func (c ClientState) CheckForMisbehaviour(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, msg exported.ClientMessage) bool {
-	wasmMisbehaviour, ok := msg.(*Misbehaviour)
-	if !ok {
+	clientMsgConcrete := clientMessageConcretePayloadClientMessage{
+		Header:       nil,
+		Misbehaviour: nil,
+	}
+	switch clientMsg := msg.(type) {
+	case *Header:
+		clientMsgConcrete.Header = clientMsg
+	case *Misbehaviour:
+		clientMsgConcrete.Misbehaviour = clientMsg
+	}
+
+	if clientMsgConcrete.Header == nil && clientMsgConcrete.Misbehaviour == nil {
 		return false
 	}
 
+	inner := checkForMisbehaviourInnerPayload{
+		ClientMessage: clientMsgConcrete,
+	}
 	payload := checkForMisbehaviourPayload{
-		CheckForMisbehaviour: checkForMisbehaviourInnerPayload{
-			Misbehaviour: wasmMisbehaviour,
-		},
+		CheckForMisbehaviour: inner,
 	}
 
-	_, err := call[contractResult](payload, &c, ctx, clientStore)
+	result, err := call[contractResult](payload, &c, ctx, clientStore)
 	if err != nil {
-		panic(err)
+		return false
 	}
 
-	return true
+	return result.FoundMisbehaviour
 }

@@ -13,7 +13,7 @@ type checkSubstituteAndUpdateStatePayload struct {
 	CheckSubstituteAndUpdateState CheckSubstituteAndUpdateStatePayload `json:"check_substitute_and_update_state"`
 }
 
-type CheckSubstituteAndUpdateStatePayload struct {}
+type CheckSubstituteAndUpdateStatePayload struct{}
 
 func (c ClientState) CheckSubstituteAndUpdateState(
 	ctx sdk.Context, cdc codec.BinaryCodec, subjectClientStore,
@@ -27,7 +27,7 @@ func (c ClientState) CheckSubstituteAndUpdateState(
 	_, ok := substituteClient.(*ClientState)
 	if !ok {
 		return sdkerrors.Wrapf(
-			ErrUnableToCall, 
+			ErrUnableToCall,
 			fmt.Sprintf("substitute client state, expected type %T, got %T", &ClientState{}, substituteClient),
 		)
 	}

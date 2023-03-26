@@ -1,20 +1,20 @@
 package types
 
 import (
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	cosmwasm "github.com/CosmWasm/wasmvm"
 	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
 var (
-	WasmVM *cosmwasm.VM
+	WasmVM        *cosmwasm.VM
 	VMGasRegister = NewDefaultWasmGasRegister()
 )
 
 type queryResponse struct {
-	Status exported.Status `json:"status,omitempty"`
+	Status          exported.Status               `json:"status,omitempty"`
 	GenesisMetadata []clienttypes.GenesisMetadata `json:"genesis_metadata,omitempty"`
 }
 
@@ -28,9 +28,10 @@ type ContractResult interface {
 }
 
 type contractResult struct {
-	IsValid  bool   `json:"is_valid,omitempty"`
-	ErrorMsg string `json:"error_msg,omitempty"`
-	Data     []byte `json:"data,omitempty"`
+	IsValid           bool   `json:"is_valid,omitempty"`
+	ErrorMsg          string `json:"error_msg,omitempty"`
+	Data              []byte `json:"data,omitempty"`
+	FoundMisbehaviour bool   `json:"found_misbehaviour"`
 }
 
 func (r contractResult) Validate() bool {
@@ -40,7 +41,6 @@ func (r contractResult) Validate() bool {
 func (r contractResult) Error() string {
 	return r.ErrorMsg
 }
-
 
 // Calls vm.Init with appropriate arguments
 func initContract(codeID []byte, ctx sdk.Context, store sdk.KVStore) (*wasmvmtypes.Response, error) {

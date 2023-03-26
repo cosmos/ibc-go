@@ -7,9 +7,9 @@ import (
 
 func (suite *WasmTestSuite) TestMisbehaviourValidateBasic() {
 	testCases := []struct {
-		name                 string
-		misbehaviour         *wasmtypes.Misbehaviour
-		expPass              bool
+		name         string
+		misbehaviour *wasmtypes.Misbehaviour
+		expPass      bool
 	}{
 		{
 			"valid misbehaviour",

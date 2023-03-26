@@ -43,7 +43,7 @@ func (suite *WasmTestSuite) TestVerifyMisbehaviour() {
 				data, err = base64.StdEncoding.DecodeString(suite.testData["misbehaviour"])
 				suite.Require().NoError(err)
 				clientMsg = &wasmtypes.Misbehaviour{
-					Data:     data,
+					Data: data,
 				}
 			},
 			true,
@@ -54,7 +54,7 @@ func (suite *WasmTestSuite) TestVerifyMisbehaviour() {
 				data, err := base64.StdEncoding.DecodeString(suite.testData["misbehaviour"])
 				suite.Require().NoError(err)
 				clientMsg = &wasmtypes.Misbehaviour{
-					Data:     data,
+					Data: data,
 				}
 			},
 			false,
@@ -88,7 +88,7 @@ func (suite *WasmTestSuite) TestVerifyMisbehaviour() {
 
 func (suite *WasmTestSuite) TestCheckForMisbehaviour() {
 	var (
-		clientMsg exported.ClientMessage 
+		clientMsg   exported.ClientMessage
 		clientState exported.ClientState
 	)
 
@@ -109,33 +109,12 @@ func (suite *WasmTestSuite) TestCheckForMisbehaviour() {
 						RevisionHeight: 39,
 					},
 				}
-				
+
 				err = clientState.VerifyClientMessage(suite.ctx, suite.chainA.Codec, suite.store, clientMsg)
 				suite.Require().NoError(err)
 			},
 			false,
 		},
-		// Need misbehaviour_identical_headers data
-		/*{
-			"identical misbehaviour data/headers",
-			func() {
-				data, err := base64.StdEncoding.DecodeString(suite.testData["misbehaviour_identical_headers"])
-				suite.Require().NoError(err)
-				clientMsg = &wasmtypes.Misbehaviour{
-					ClientId: "08-wasm-0",
-					Data:     data,
-				}
-				
-				err = clientState.VerifyClientMessage(suite.ctx, suite.chainA.Codec, suite.store, clientMsg)
-				suite.Require().NoError(err)
-			},
-			false,
-		},*/
-		/*{ // Create consensus state data with empty bytes of app hash / merkle root, set it as consensus state, check misbehaviour using valid header
-			"consensus state already exists, app hash mismatch", 
-			func() {},
-			true,
-		},*/
 		{
 			"valid fork misbehaviour returns true",
 			func() {
@@ -159,9 +138,9 @@ func (suite *WasmTestSuite) TestCheckForMisbehaviour() {
 				data, err = base64.StdEncoding.DecodeString(suite.testData["misbehaviour"])
 				suite.Require().NoError(err)
 				clientMsg = &wasmtypes.Misbehaviour{
-					Data:     data,
+					Data: data,
 				}
-				
+
 				err = clientState.VerifyClientMessage(suite.ctx, suite.chainA.Codec, suite.store, clientMsg)
 				suite.Require().NoError(err)
 			},
