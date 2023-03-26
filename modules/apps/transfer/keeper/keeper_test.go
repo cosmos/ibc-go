@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"testing"
 
+	"cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/stretchr/testify/suite"
 
@@ -43,4 +44,53 @@ func NewTransferPath(chainA, chainB *ibctesting.TestChain) *ibctesting.Path {
 
 func TestKeeperTestSuite(t *testing.T) {
 	suite.Run(t, new(KeeperTestSuite))
+}
+
+func (suite *KeeperTestSuite) TestSetGetTotalEscrowForDenom() {
+	var amount math.Int
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expPass  bool
+	}{
+		{
+			"success: with escrow amount > 2^63",
+			func() {
+				amount, _ = math.NewIntFromString("100000000000000000000")
+			},
+			true,
+		},
+		{
+			"failure: setter panics with negative escrow amount",
+			func() {
+				amount = math.NewInt(-1)
+			},
+			false,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+
+		suite.Run(tc.name, func() {
+			suite.SetupTest() // reset
+			amount = math.ZeroInt()
+			ctx := suite.chainA.GetContext()
+
+			tc.malleate()
+
+			if tc.expPass {
+				suite.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(ctx, "atom", amount)
+				total := suite.chainA.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(ctx, "atom")
+				suite.Require().Equal(amount, total)
+			} else {
+				suite.Require().PanicsWithValue("amount cannot be negative: -1", func() {
+					suite.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(ctx, "atom", amount)
+				})
+				total := suite.chainA.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(ctx, "atom")
+				suite.Require().Equal(math.ZeroInt(), total)
+			}
+		})
+	}
 }

@@ -9,7 +9,10 @@ import (
 )
 
 func (suite *KeeperTestSuite) TestGenesis() {
-	const prefix = "transfer/channelToChain"
+	getTrace := func(index uint) string {
+		return fmt.Sprintf("transfer/channelToChain%d", index)
+	}
+
 	var (
 		traces                types.Traces
 		escrows               sdk.Coins
@@ -17,11 +20,11 @@ func (suite *KeeperTestSuite) TestGenesis() {
 			path   string
 			escrow string
 		}{
-			{fmt.Sprintf("%s%d", prefix, 0), "10"},
-			{fmt.Sprintf("%s%d/%s%d", prefix, 1, prefix, 0), "100000"},
-			{fmt.Sprintf("%s%d/%s%d/%s%d", prefix, 1, prefix, 1, prefix, 0), "10000000000"},
-			{fmt.Sprintf("%s%d/%s%d/%s%d/%s%d", prefix, 3, prefix, 2, prefix, 1, prefix, 0), "1000000000000000"},
-			{fmt.Sprintf("%s%d/%s%d/%s%d/%s%d/%s%d", prefix, 4, prefix, 3, prefix, 2, prefix, 1, prefix, 0), "100000000000000000000"},
+			{getTrace(0), "10"},
+			{fmt.Sprintf("%s/%s", getTrace(1), getTrace(0)), "100000"},
+			{fmt.Sprintf("%s/%s/%s", getTrace(2), getTrace(1), getTrace(0)), "10000000000"},
+			{fmt.Sprintf("%s/%s/%s/%s", getTrace(3), getTrace(2), getTrace(1), getTrace(0)), "1000000000000000"},
+			{fmt.Sprintf("%s/%s/%s/%s/%s", getTrace(4), getTrace(3), getTrace(2), getTrace(1), getTrace(0)), "100000000000000000000"},
 		}
 	)
 
