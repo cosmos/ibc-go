@@ -20,8 +20,8 @@ message AllWasmCodeIDQuery {
 // AllWasmCode response
 message AllWasmCodeIDResponse {
   repeated string code_ids = 1;
-    // pagination defines an optional pagination for the request.
-    cosmos.base.query.v1beta1.PageResponse pagination = 2;
+  // pagination defines an optional pagination for the request.
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
 // WasmCode response

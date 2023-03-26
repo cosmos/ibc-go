@@ -2,6 +2,7 @@ package wasm
 
 import (
 	"encoding/json"
+	"fmt"
 
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -41,12 +42,14 @@ func (AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry) 
 	types.RegisterInterfaces(registry)
 }
 
-// DefaultGenesis performs a no-op. Genesis is not supported for the tendermint light client.
+// DefaultGenesis returns an empty state, i.e. no contracts
 func (AppModuleBasic) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
-	return nil
+	return cdc.MustMarshalJSON(&types.GenesisState{
+		Contracts: []types.GenesisContract{},
+	})
 }
 
-// ValidateGenesis performs a no-op. Genesis is not supported for the tendermint light cilent.
+// ValidateGenesis performs a no-op.
 func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, config client.TxEncodingConfig, bz json.RawMessage) error {
 	return nil
 }
@@ -85,6 +88,21 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 
 // ConsensusVersion implements AppModule/ConsensusVersion.
 func (AppModule) ConsensusVersion() uint64 { return 1 }
+
+func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, bz json.RawMessage) []abci.ValidatorUpdate {
+	var gs types.GenesisState
+	err := cdc.UnmarshalJSON(bz, &gs)
+	if err != nil {
+		panic(fmt.Sprintf("failed to unmarshal %s genesis state: %s", am.Name(), err))
+	}
+	am.keeper.InitGenesis(ctx, gs)
+	return []abci.ValidatorUpdate{}
+}
+
+func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.RawMessage {
+	gs := am.keeper.ExportGenesis(ctx)
+	return cdc.MustMarshalJSON(&gs)
+}
 
 // BeginBlock implements the AppModule interface
 func (am AppModule) BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock) {
