@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"cosmossdk.io/math"
 	paramsproposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 	"github.com/strangelove-ventures/interchaintest/v7/ibc"
 	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
@@ -110,7 +111,7 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized() {
 		actualTotalEscrow, err := s.QueryTotalEscrowForDenom(ctx, chainA, chainADenom)
 		s.Require().NoError(err)
 
-		expectedTotalEscrow := testvalues.IBCTransferAmount
+		expectedTotalEscrow := math.NewInt(testvalues.IBCTransferAmount)
 		s.Require().Equal(expectedTotalEscrow, actualTotalEscrow)
 	})
 
@@ -142,7 +143,7 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized() {
 	t.Run("escrow amount for native denom is updated", func(t *testing.T) {
 		actualTotalEscrow, err := s.QueryTotalEscrowForDenom(ctx, chainA, chainADenom)
 		s.Require().NoError(err)
-		s.Require().Equal(uint64(0), actualTotalEscrow)
+		s.Require().Equal(math.ZeroInt(), actualTotalEscrow)
 	})
 }
 

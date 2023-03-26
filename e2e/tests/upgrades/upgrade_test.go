@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
@@ -639,7 +640,7 @@ func (s *UpgradeTestSuite) TestV7ChainUpgradeAddTotalEscrowForDenom() {
 	testCfg := testconfig.LoadConfig()
 
 	ctx := context.Background()
-	relayer, channelA = s.SetupChainsRelayerAndChannel(ctx)
+	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx)
 	chainA, chainB := s.GetChains()
 
 	chainADenom := chainA.Config().Denom
@@ -699,8 +700,8 @@ func (s *UpgradeTestSuite) TestV7ChainUpgradeAddTotalEscrowForDenom() {
 		actualTotalEscrow, err := s.QueryTotalEscrowForDenom(ctx, chainA, chainADenom)
 		s.Require().NoError(err)
 
-		expectedTotalEscrow := testvalues.IBCTransferAmount
-		s.Require().Equal(math.ZeroInt(), actualTotalEscrow)
+		expectedTotalEscrow := math.NewInt(testvalues.IBCTransferAmount)
+		s.Require().Equal(expectedTotalEscrow, actualTotalEscrow)
 	})
 }
 
