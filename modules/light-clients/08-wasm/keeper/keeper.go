@@ -168,7 +168,6 @@ func (k Keeper) getAllWasmCodeID(c context.Context, query *types.AllWasmCodeIDQu
 		}
 		return true, nil
 	})
-
 	if err != nil {
 		return nil, err
 	}
@@ -177,7 +176,6 @@ func (k Keeper) getAllWasmCodeID(c context.Context, query *types.AllWasmCodeIDQu
 		CodeIds:    allCode,
 		Pagination: pageRes,
 	}, nil
-
 }
 
 func (k Keeper) InitGenesis(ctx sdk.Context, gs types.GenesisState) error {
@@ -198,7 +196,7 @@ func (k Keeper) ExportGenesis(ctx sdk.Context) types.GenesisState {
 	var genesisState types.GenesisState
 	for ; iterator.Valid(); iterator.Next() {
 		genesisState.Contracts = append(genesisState.Contracts, types.GenesisContract{
-			CodeHash: iterator.Key(),
+			CodeHash:     iterator.Key(),
 			ContractCode: iterator.Value(),
 		})
 	}

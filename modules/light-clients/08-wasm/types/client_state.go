@@ -4,14 +4,14 @@ import (
 	"encoding/json"
 	"fmt"
 
+	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	ibcerrors "github.com/cosmos/ibc-go/v7/internal/errors"
-	errorsmod "cosmossdk.io/errors"
+	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
 var _ exported.ClientState = (*ClientState)(nil)
@@ -43,7 +43,7 @@ type (
 	}
 )
 
-func (c ClientState) Status(ctx sdk.Context, store sdk.KVStore, cdc codec.BinaryCodec) exported.Status {
+func (c ClientState) Status(ctx sdk.Context, store sdk.KVStore, _ codec.BinaryCodec) exported.Status {
 	status := exported.Unknown
 	payload := statusPayload{Status: statusPayloadInner{}}
 
@@ -69,7 +69,7 @@ func (c ClientState) ZeroCustomFields() exported.ClientState {
 }
 
 func (c ClientState) GetTimestampAtHeight(
-	ctx sdk.Context,
+	_ sdk.Context,
 	clientStore sdk.KVStore,
 	cdc codec.BinaryCodec,
 	height exported.Height,

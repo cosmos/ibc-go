@@ -16,7 +16,7 @@ type checkSubstituteAndUpdateStatePayload struct {
 type CheckSubstituteAndUpdateStatePayload struct{}
 
 func (c ClientState) CheckSubstituteAndUpdateState(
-	ctx sdk.Context, cdc codec.BinaryCodec, subjectClientStore,
+	ctx sdk.Context, _ codec.BinaryCodec, subjectClientStore,
 	substituteClientStore sdk.KVStore, substituteClient exported.ClientState,
 ) error {
 	var (

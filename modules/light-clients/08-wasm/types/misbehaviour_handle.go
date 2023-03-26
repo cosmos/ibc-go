@@ -13,7 +13,7 @@ type checkForMisbehaviourInnerPayload struct {
 	ClientMessage clientMessageConcretePayloadClientMessage `json:"client_message"`
 }
 
-func (c ClientState) CheckForMisbehaviour(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, msg exported.ClientMessage) bool {
+func (c ClientState) CheckForMisbehaviour(ctx sdk.Context, _ codec.BinaryCodec, clientStore sdk.KVStore, msg exported.ClientMessage) bool {
 	clientMsgConcrete := clientMessageConcretePayloadClientMessage{
 		Header:       nil,
 		Misbehaviour: nil,

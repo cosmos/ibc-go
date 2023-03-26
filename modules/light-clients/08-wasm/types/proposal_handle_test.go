@@ -57,6 +57,7 @@ func (suite *WasmTestSuite) TestCheckSubstituteAndUpdateState() {
 
 		substituteClientStore = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, "08-wasm-1")
 		err = substituteClientState.Initialize(suite.ctx, suite.chainA.Codec, substituteClientStore, &substituteConsensusState)
+		suite.Require().NoError(err)
 
 		tc.setup()
 
