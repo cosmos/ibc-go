@@ -175,7 +175,7 @@ func (suite *KeeperTestSuite) TestMigrateTotalEscrowForDenom() {
 
 				suite.chainA.GetSimApp().TransferKeeper.SetDenomTrace(suite.chainA.GetContext(), trace)
 
-				// funds the escrow accounts to have balance
+				// funds the escrow account to have balance
 				suite.Require().NoError(banktestutil.FundAccount(suite.chainA.GetSimApp().BankKeeper, suite.chainA.GetContext(), escrowAddress, sdk.NewCoins(coin)))
 			},
 			sdk.NewInt(100),

@@ -137,7 +137,6 @@ func (k Keeper) IterateDenomTraces(ctx sdk.Context, cb func(denomTrace types.Den
 
 	defer sdk.LogDeferred(ctx.Logger(), func() error { return iterator.Close() })
 	for ; iterator.Valid(); iterator.Next() {
-
 		denomTrace := k.MustUnmarshalDenomTrace(iterator.Value())
 		if cb(denomTrace) {
 			break
@@ -195,6 +194,13 @@ func (k Keeper) IterateDenomEscrows(ctx sdk.Context, cb func(denomEscrow sdk.Coi
 	defer sdk.LogDeferred(ctx.Logger(), func() error { return iterator.Close() })
 	for ; iterator.Valid(); iterator.Next() {
 		keySplit := strings.Split(string(iterator.Key()), "/")
+		if len(keySplit) < 3 { // key should be at least contains 3 elements: "totalEscrow/denoms/{denomination}
+			continue
+		}
+		if keySplit[1] != types.KeyDenomsPrefix {
+			continue
+		}
+
 		denom := keySplit[2:]
 
 		var amount math.Int
