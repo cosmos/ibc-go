@@ -98,6 +98,27 @@ func (k Keeper) storeWasmCode(ctx sdk.Context, code []byte) ([]byte, error) {
 	return codeID, nil
 }
 
+func (k Keeper) importWasmCode(ctx sdk.Context, codeHash, wasmCode []byte) error {
+	store := ctx.KVStore(k.storeKey)
+	if IsGzip(wasmCode) {
+		var err error
+		wasmCode, err = Uncompress(wasmCode, uint64(types.MaxWasmSize))
+		if err != nil {
+			return sdkerrors.Wrap(types.ErrCreateFailed, err.Error())
+		}
+	}
+	newCodeHash, err := k.wasmVM.Create(wasmCode)
+	if err != nil {
+		return sdkerrors.Wrap(types.ErrCreateFailed, err.Error())
+	}
+	if !bytes.Equal(codeHash, types.CodeID(newCodeHash)) {
+		return sdkerrors.Wrap(types.ErrInvalid, "code hashes not same")
+	}
+
+	store.Set(codeHash, wasmCode)
+	return nil
+}
+
 func generateWasmCodeHash(code []byte) []byte {
 	hash := sha256.Sum256(code)
 	return hash[:]
@@ -157,4 +178,29 @@ func (k Keeper) getAllWasmCodeID(c context.Context, query *types.AllWasmCodeIDQu
 		Pagination: pageRes,
 	}, nil
 
+}
+
+func (k Keeper) InitGenesis(ctx sdk.Context, gs types.GenesisState) error {
+	for _, contract := range gs.Contracts {
+		err := k.importWasmCode(ctx, contract.CodeHash, contract.ContractCode)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (k Keeper) ExportGenesis(ctx sdk.Context) types.GenesisState {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, types.PrefixCodeIDKey)
+	defer iterator.Close()
+
+	var genesisState types.GenesisState
+	for ; iterator.Valid(); iterator.Next() {
+		genesisState.Contracts = append(genesisState.Contracts, types.GenesisContract{
+			CodeHash: iterator.Key(),
+			ContractCode: iterator.Value(),
+		})
+	}
+	return genesisState
 }
