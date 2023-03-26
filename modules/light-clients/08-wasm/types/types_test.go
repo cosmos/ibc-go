@@ -12,7 +12,6 @@ import (
 	tmjson "github.com/cometbft/cometbft/libs/json"
 	"github.com/cometbft/cometbft/libs/log"
 	tmtypes "github.com/cometbft/cometbft/types"
-	"github.com/cosmos/cosmos-sdk/codec"
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -29,10 +28,8 @@ import (
 type WasmTestSuite struct {
 	suite.Suite
 	coordinator    *ibctesting.Coordinator
-	wasm           *ibctesting.Wasm // singlesig public key
 	chainA         *ibctesting.TestChain
 	ctx            sdk.Context
-	cdc            codec.Codec
 	now            time.Time
 	store          sdk.KVStore
 	clientState    exported.ClientState

@@ -24,7 +24,7 @@ type verifyClientMessageInnerPayload struct {
 // It must handle each type of ClientMessage appropriately. Calls to CheckForMisbehaviour, UpdateState, and UpdateStateOnMisbehaviour
 // will assume that the content of the ClientMessage has been verified and can be trusted. An error should be returned
 // if the ClientMessage fails to verify.
-func (c ClientState) VerifyClientMessage(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, clientMsg exported.ClientMessage) error {
+func (c ClientState) VerifyClientMessage(ctx sdk.Context, _ codec.BinaryCodec, clientStore sdk.KVStore, clientMsg exported.ClientMessage) error {
 	clientMsgConcrete := clientMessageConcretePayloadClientMessage{
 		Header:       nil,
 		Misbehaviour: nil,
@@ -77,6 +77,9 @@ func (c ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, store s
 		panic(err)
 	}
 	newClientState, err := getClientState(store, cdc)
+	if err != nil {
+		panic(err)
+	}
 
 	return []exported.Height{newClientState.LatestHeight}
 }
@@ -90,7 +93,7 @@ type updateStateOnMisbehaviourInnerPayload struct {
 
 // UpdateStateOnMisbehaviour should perform appropriate state changes on a client state given that misbehaviour has been detected and verified
 // Client state is updated in the store by contract
-func (c ClientState) UpdateStateOnMisbehaviour(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, clientMsg exported.ClientMessage) {
+func (c ClientState) UpdateStateOnMisbehaviour(ctx sdk.Context, _ codec.BinaryCodec, clientStore sdk.KVStore, clientMsg exported.ClientMessage) {
 	clientMsgConcrete := clientMessageConcretePayloadClientMessage{
 		Header:       nil,
 		Misbehaviour: nil,
