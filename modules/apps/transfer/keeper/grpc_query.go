@@ -132,6 +132,6 @@ func (q Keeper) TotalEscrowForDenom(c context.Context, req *types.QueryTotalEscr
 	denomAmount := q.GetTotalEscrowForDenom(ctx, req.Denom)
 
 	return &types.QueryTotalEscrowForDenomResponse{
-		Amount: denomAmount,
+		Amount: denomAmount.String(),
 	}, nil
 }

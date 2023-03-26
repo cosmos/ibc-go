@@ -342,7 +342,7 @@ func (suite *KeeperTestSuite) TestTotalEscrowForDenom() {
 
 			if tc.expPass {
 				suite.Require().NoError(err)
-				suite.Require().Equal(expEscrowAmt, res.Amount)
+				suite.Require().Equal(expEscrowAmt.String(), res.Amount)
 			} else {
 				suite.Require().Error(err)
 			}
