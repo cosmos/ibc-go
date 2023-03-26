@@ -17,12 +17,12 @@ import (
 // chainA and coin that orignate on chainB
 func (suite *KeeperTestSuite) TestSendTransfer() {
 	var (
-		coin          sdk.Coin
-		path          *ibctesting.Path
-		sender        sdk.AccAddress
-		timeoutHeight clienttypes.Height
-		memo          string
-		expEscrowAmt  math.Int // total amount in escrow for denom on receiving chain
+		coin            sdk.Coin
+		path            *ibctesting.Path
+		sender          sdk.AccAddress
+		timeoutHeight   clienttypes.Height
+		memo            string
+		expEscrowAmount math.Int // total amount in escrow for denom on receiving chain
 	)
 
 	testCases := []struct {
@@ -33,14 +33,14 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 		{
 			"successful transfer with native token",
 			func() {
-				expEscrowAmt = math.NewInt(100)
+				expEscrowAmount = math.NewInt(100)
 			}, true,
 		},
 		{
 			"successful transfer from source chain with memo",
 			func() {
 				memo = "memo" //nolint:goconst
-				expEscrowAmt = math.NewInt(100)
+				expEscrowAmount = math.NewInt(100)
 			}, true,
 		},
 		{
@@ -117,7 +117,7 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 			sender = suite.chainA.SenderAccount.GetAddress()
 			memo = ""
 			timeoutHeight = suite.chainB.GetTimeoutHeight()
-			expEscrowAmt = math.ZeroInt()
+			expEscrowAmount = math.ZeroInt()
 
 			// create IBC token on chainA
 			transferMsg := types.NewMsgTransfer(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, coin, suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String(), suite.chainA.GetTimeoutHeight(), 0, "")
@@ -148,7 +148,7 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 
 				// check total amount in escrow of sent token denom on sending chain
 				amount := suite.chainA.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(suite.chainA.GetContext(), coin.GetDenom())
-				suite.Require().Equal(expEscrowAmt, amount)
+				suite.Require().Equal(expEscrowAmount, amount)
 			} else {
 				suite.Require().Error(err)
 				suite.Require().Nil(res)
@@ -241,11 +241,11 @@ func (suite *KeeperTestSuite) TestSendTransferSetsTotalEscrowAmountForSourceIBCT
 // malleate function allows for testing invalid cases.
 func (suite *KeeperTestSuite) TestOnRecvPacket() {
 	var (
-		trace        types.DenomTrace
-		amount       math.Int
-		receiver     string
-		memo         string
-		expEscrowAmt math.Int // total amount in escrow for denom on receiving chain
+		trace           types.DenomTrace
+		amount          math.Int
+		receiver        string
+		memo            string
+		expEscrowAmount math.Int // total amount in escrow for denom on receiving chain
 	)
 
 	testCases := []struct {
@@ -262,7 +262,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			"success receive on source chain of half the amount",
 			func() {
 				amount = math.NewInt(50)
-				expEscrowAmt = math.NewInt(50)
+				expEscrowAmount = math.NewInt(50)
 			}, true, true,
 		},
 		{
@@ -286,14 +286,14 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			func() {
 				trace = types.DenomTrace{}
 				amount = sdk.ZeroInt()
-				expEscrowAmt = math.NewInt(100)
+				expEscrowAmount = math.NewInt(100)
 			}, true, false,
 		},
 		{
 			"invalid receiver address",
 			func() {
 				receiver = "gaia1scqhwpgsmr6vmztaa7suurfl52my6nd2kmrudl"
-				expEscrowAmt = math.NewInt(100)
+				expEscrowAmount = math.NewInt(100)
 			}, true, false,
 		},
 
@@ -311,7 +311,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			"tries to unescrow more tokens than allowed",
 			func() {
 				amount = sdk.NewInt(1000000)
-				expEscrowAmt = math.NewInt(100)
+				expEscrowAmount = math.NewInt(100)
 			}, true, false,
 		},
 
@@ -328,7 +328,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			"failure: receive on module account on source chain",
 			func() {
 				receiver = suite.chainB.GetSimApp().AccountKeeper.GetModuleAddress(types.ModuleName).String()
-				expEscrowAmt = math.NewInt(100)
+				expEscrowAmount = math.NewInt(100)
 			}, true, false,
 		},
 	}
@@ -343,9 +343,9 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			suite.coordinator.Setup(path)
 			receiver = suite.chainB.SenderAccount.GetAddress().String() // must be explicitly changed in malleate
 
-			memo = ""                     // can be explicitly changed in malleate
-			amount = sdk.NewInt(100)      // must be explicitly changed in malleate
-			expEscrowAmt = math.ZeroInt() // total amount in escrow of voucher denom on receiving chain
+			memo = ""                        // can be explicitly changed in malleate
+			amount = sdk.NewInt(100)         // must be explicitly changed in malleate
+			expEscrowAmount = math.ZeroInt() // total amount in escrow of voucher denom on receiving chain
 			seq := uint64(1)
 
 			if tc.recvIsSource {
@@ -398,7 +398,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				).IBCDenom()
 			}
 			totalEscrow = suite.chainB.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(suite.chainB.GetContext(), denom)
-			suite.Require().Equal(expEscrowAmt, totalEscrow)
+			suite.Require().Equal(expEscrowAmount, totalEscrow)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -508,12 +508,12 @@ func (suite *KeeperTestSuite) TestOnRecvPacketSetsTotalEscrowAmountForSourceIBCT
 // trace
 func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 	var (
-		successAck   = channeltypes.NewResultAcknowledgement([]byte{byte(1)})
-		failedAck    = channeltypes.NewErrorAcknowledgement(fmt.Errorf("failed packet transfer"))
-		trace        types.DenomTrace
-		amount       math.Int
-		path         *ibctesting.Path
-		expEscrowAmt math.Int
+		successAck      = channeltypes.NewResultAcknowledgement([]byte{byte(1)})
+		failedAck       = channeltypes.NewErrorAcknowledgement(fmt.Errorf("failed packet transfer"))
+		trace           types.DenomTrace
+		amount          math.Int
+		path            *ibctesting.Path
+		expEscrowAmount math.Int
 	)
 
 	testCases := []struct {
@@ -552,7 +552,7 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 
 				// set escrow amount that would have been stored after successful execution of MsgTransfer
 				suite.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(suite.chainA.GetContext(), sdk.DefaultBondDenom, amount)
-				expEscrowAmt = math.NewInt(100)
+				expEscrowAmount = math.NewInt(100)
 			}, false, false,
 		},
 		{
@@ -576,7 +576,7 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 			path = NewTransferPath(suite.chainA, suite.chainB)
 			suite.coordinator.Setup(path)
 			amount = sdk.NewInt(100) // must be explicitly changed
-			expEscrowAmt = math.ZeroInt()
+			expEscrowAmount = math.ZeroInt()
 
 			tc.malleate()
 
@@ -593,7 +593,7 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 
 			// check total amount in escrow of sent token denom on sending chain
 			totalEscrow := suite.chainA.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(suite.chainA.GetContext(), trace.IBCDenom())
-			suite.Require().Equal(expEscrowAmt, totalEscrow)
+			suite.Require().Equal(expEscrowAmount, totalEscrow)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -704,11 +704,11 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacketSetsTotalEscrowAmountFo
 // so the refunds are occurring on chainA.
 func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 	var (
-		trace        types.DenomTrace
-		path         *ibctesting.Path
-		amount       math.Int
-		sender       string
-		expEscrowAmt math.Int
+		trace           types.DenomTrace
+		path            *ibctesting.Path
+		amount          math.Int
+		sender          string
+		expEscrowAmount math.Int
 	)
 
 	testCases := []struct {
@@ -722,7 +722,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 				escrow := types.GetEscrowAddress(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 				trace = types.ParseDenomTrace(sdk.DefaultBondDenom)
 				coin := sdk.NewCoin(trace.IBCDenom(), amount)
-				expEscrowAmt = math.ZeroInt()
+				expEscrowAmount = math.ZeroInt()
 
 				// funds the escrow account to have balance
 				suite.Require().NoError(banktestutil.FundAccount(suite.chainA.GetSimApp().BankKeeper, suite.chainA.GetContext(), escrow, sdk.NewCoins(coin)))
@@ -736,7 +736,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 				escrow := types.GetEscrowAddress(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 				trace = types.ParseDenomTrace(types.GetPrefixedDenom(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, sdk.DefaultBondDenom))
 				coin := sdk.NewCoin(trace.IBCDenom(), amount)
-				expEscrowAmt = math.ZeroInt()
+				expEscrowAmount = math.ZeroInt()
 
 				// funds the escrow account to have balance
 				suite.Require().NoError(banktestutil.FundAccount(suite.chainA.GetSimApp().BankKeeper, suite.chainA.GetContext(), escrow, sdk.NewCoins(coin)))
@@ -746,7 +746,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 			"no balance for coin denom",
 			func() {
 				trace = types.ParseDenomTrace("bitcoin")
-				expEscrowAmt = amount
+				expEscrowAmount = amount
 
 				// set escrow amount that would have been stored after successful execution of MsgTransfer
 				suite.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(suite.chainA.GetContext(), trace.IBCDenom(), amount)
@@ -756,7 +756,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 			"unescrow failed",
 			func() {
 				trace = types.ParseDenomTrace(sdk.DefaultBondDenom)
-				expEscrowAmt = amount
+				expEscrowAmount = amount
 
 				// set escrow amount that would have been stored after successful execution of MsgTransfer
 				suite.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(suite.chainA.GetContext(), trace.IBCDenom(), amount)
@@ -782,7 +782,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 			suite.coordinator.Setup(path)
 			amount = sdk.NewInt(100) // must be explicitly changed
 			sender = suite.chainA.SenderAccount.GetAddress().String()
-			expEscrowAmt = math.ZeroInt()
+			expEscrowAmount = math.ZeroInt()
 
 			tc.malleate()
 
@@ -802,7 +802,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 
 			// check total amount in escrow of sent token denom on sending chain
 			totalEscrow := suite.chainA.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(suite.chainA.GetContext(), trace.IBCDenom())
-			suite.Require().Equal(expEscrowAmt, totalEscrow)
+			suite.Require().Equal(expEscrowAmount, totalEscrow)
 
 			if tc.expPass {
 				suite.Require().NoError(err)

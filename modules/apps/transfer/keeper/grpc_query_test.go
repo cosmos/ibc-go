@@ -265,8 +265,8 @@ func (suite *KeeperTestSuite) TestEscrowAddress() {
 
 func (suite *KeeperTestSuite) TestTotalEscrowForDenom() {
 	var (
-		req          *types.QueryTotalEscrowForDenomRequest
-		expEscrowAmt math.Int
+		req             *types.QueryTotalEscrowForDenomRequest
+		expEscrowAmount math.Int
 	)
 
 	testCases := []struct {
@@ -281,8 +281,8 @@ func (suite *KeeperTestSuite) TestTotalEscrowForDenom() {
 					Denom: sdk.DefaultBondDenom,
 				}
 
-				expEscrowAmt = math.NewInt(100)
-				suite.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(suite.chainA.GetContext(), sdk.DefaultBondDenom, expEscrowAmt)
+				expEscrowAmount = math.NewInt(100)
+				suite.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(suite.chainA.GetContext(), sdk.DefaultBondDenom, expEscrowAmount)
 			},
 			true,
 		},
@@ -295,9 +295,9 @@ func (suite *KeeperTestSuite) TestTotalEscrowForDenom() {
 				}
 
 				suite.chainA.GetSimApp().TransferKeeper.SetDenomTrace(suite.chainA.GetContext(), denomTrace)
-				expEscrowAmt, ok := math.NewIntFromString("100000000000000000000")
+				expEscrowAmount, ok := math.NewIntFromString("100000000000000000000")
 				suite.Require().True(ok)
-				suite.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(suite.chainA.GetContext(), sdk.DefaultBondDenom, expEscrowAmt)
+				suite.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(suite.chainA.GetContext(), sdk.DefaultBondDenom, expEscrowAmount)
 
 				req = &types.QueryTotalEscrowForDenomRequest{
 					Denom: denomTrace.IBCDenom(),
@@ -334,7 +334,7 @@ func (suite *KeeperTestSuite) TestTotalEscrowForDenom() {
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest() // reset
 
-			expEscrowAmt = math.ZeroInt()
+			expEscrowAmount = math.ZeroInt()
 			tc.malleate()
 			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
 
@@ -342,7 +342,7 @@ func (suite *KeeperTestSuite) TestTotalEscrowForDenom() {
 
 			if tc.expPass {
 				suite.Require().NoError(err)
-				suite.Require().Equal(expEscrowAmt.String(), res.Amount)
+				suite.Require().Equal(expEscrowAmount.String(), res.Amount)
 			} else {
 				suite.Require().Error(err)
 			}
