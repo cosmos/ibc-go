@@ -110,7 +110,7 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized() {
 		actualTotalEscrow, err := s.QueryTotalEscrowForDenom(ctx, chainA, chainADenom)
 		s.Require().NoError(err)
 
-		expectedTotalEscrow := testvalues.StartingTokenAmount
+		expectedTotalEscrow := testvalues.IBCTransferAmount
 		s.Require().Equal(expectedTotalEscrow, actualTotalEscrow)
 	})
 
