@@ -4,6 +4,7 @@ import (
 	"context"
 	"sort"
 
+	"cosmossdk.io/math"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
@@ -95,13 +96,13 @@ func (s *E2ETestSuite) QueryPacketCommitment(ctx context.Context, chain ibc.Chai
 }
 
 // QueryTotalEscrowForDenom queries the total amount of tokens in escrow for a denom
-func (s *E2ETestSuite) QueryTotalEscrowForDenom(ctx context.Context, chain ibc.Chain, denom string) (int64, error) {
+func (s *E2ETestSuite) QueryTotalEscrowForDenom(ctx context.Context, chain ibc.Chain, denom string) (math.Int, error) {
 	queryClient := s.GetChainGRCPClients(chain).TransferQueryClient
 	res, err := queryClient.TotalEscrowForDenom(ctx, &transfertypes.QueryTotalEscrowForDenomRequest{
 		Denom: denom,
 	})
 	if err != nil {
-		return 0, err
+		return math.ZeroInt(), err
 	}
 	return res.Amount, nil
 }

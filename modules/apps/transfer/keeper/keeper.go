@@ -176,9 +176,9 @@ func (k Keeper) SetTotalEscrowForDenom(ctx sdk.Context, denom string, amount mat
 }
 
 // GetAllDenomEscrows returns the escrow information for all the denominations.
-func (k Keeper) GetAllDenomEscrows(ctx sdk.Context) types.Escrows {
-	escrows := types.Escrows{}
-	k.IterateDenomEscrows(ctx, func(denomEscrow types.DenomEscrow) bool {
+func (k Keeper) GetAllDenomEscrows(ctx sdk.Context) sdk.Coins {
+	escrows := sdk.Coins{}
+	k.IterateDenomEscrows(ctx, func(denomEscrow sdk.Coin) bool {
 		escrows = append(escrows, denomEscrow)
 		return false
 	})
@@ -188,7 +188,7 @@ func (k Keeper) GetAllDenomEscrows(ctx sdk.Context) types.Escrows {
 
 // IterateDenomEscrows iterates over the denomination escrows in the store
 // and performs a callback function.
-func (k Keeper) IterateDenomEscrows(ctx sdk.Context, cb func(denomEscrow types.DenomEscrow) bool) {
+func (k Keeper) IterateDenomEscrows(ctx sdk.Context, cb func(denomEscrow sdk.Coin) bool) {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, []byte(types.KeyTotalEscrowPrefix))
 
@@ -202,7 +202,7 @@ func (k Keeper) IterateDenomEscrows(ctx sdk.Context, cb func(denomEscrow types.D
 			continue
 		}
 
-		denomEscrow := types.DenomEscrow{Denom: strings.Join(denom, "/"), TotalEscrow: amount.Int64()}
+		denomEscrow := sdk.NewCoin(strings.Join(denom, "/"), amount)
 		if cb(denomEscrow) {
 			break
 		}

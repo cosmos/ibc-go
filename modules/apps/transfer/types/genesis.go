@@ -1,6 +1,8 @@
 package types
 
 import (
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 )
 
@@ -19,7 +21,7 @@ func DefaultGenesisState() *GenesisState {
 		PortId:       PortID,
 		DenomTraces:  Traces{},
 		Params:       DefaultParams(),
-		DenomEscrows: Escrows{},
+		DenomEscrows: sdk.Coins{},
 	}
 }
 

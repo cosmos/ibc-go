@@ -499,7 +499,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacketSetsTotalEscrowAmountForSourceIBCT
 
 	// check total amount in escrow of sent token on reveiving chain
 	totalEscrowChainB = suite.chainB.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(suite.chainB.GetContext(), coin.GetDenom())
-	suite.Require().Equal(math.NewInt(0), totalEscrowChainB)
+	suite.Require().Equal(math.ZeroInt(), totalEscrowChainB)
 }
 
 // TestOnAcknowledgementPacket tests that successful acknowledgement is a no-op
@@ -695,7 +695,7 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacketSetsTotalEscrowAmountFo
 
 	// check total amount in escrow of sent token on sending chain
 	totalEscrowChainB = suite.chainB.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(suite.chainB.GetContext(), coin.GetDenom())
-	suite.Require().Equal(math.NewInt(0), totalEscrowChainB)
+	suite.Require().Equal(math.ZeroInt(), totalEscrowChainB)
 }
 
 // TestOnTimeoutPacket test private refundPacket function since it is a simple
@@ -894,5 +894,5 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacketSetsTotalEscrowAmountForSourceI
 
 	// check total amount in escrow of sent token on sending chain
 	totalEscrowChainB = suite.chainB.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(suite.chainB.GetContext(), coin.GetDenom())
-	suite.Require().Equal(math.NewInt(0), totalEscrowChainB)
+	suite.Require().Equal(math.ZeroInt(), totalEscrowChainB)
 }

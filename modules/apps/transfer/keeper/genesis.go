@@ -3,7 +3,6 @@ package keeper
 import (
 	"fmt"
 
-	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
@@ -31,7 +30,7 @@ func (k Keeper) InitGenesis(ctx sdk.Context, state types.GenesisState) {
 	k.SetParams(ctx, state.Params)
 
 	for _, denomEscrow := range state.DenomEscrows {
-		k.SetTotalEscrowForDenom(ctx, denomEscrow.Denom, sdkmath.NewInt(denomEscrow.TotalEscrow))
+		k.SetTotalEscrowForDenom(ctx, denomEscrow.Denom, denomEscrow.Amount)
 	}
 }
 

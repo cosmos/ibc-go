@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"fmt"
 
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 
@@ -263,7 +264,10 @@ func (suite *KeeperTestSuite) TestEscrowAddress() {
 }
 
 func (suite *KeeperTestSuite) TestTotalEscrowForDenom() {
-	var req *types.QueryTotalEscrowForDenomRequest
+	var (
+		req          *types.QueryTotalEscrowForDenomRequest
+		expEscrowAmt math.Int
+	)
 
 	testCases := []struct {
 		msg      string
@@ -271,39 +275,19 @@ func (suite *KeeperTestSuite) TestTotalEscrowForDenom() {
 		expPass  bool
 	}{
 		{
-			"valid native denom",
+			"valid native denom with escrow amount < 2^63",
 			func() {
 				req = &types.QueryTotalEscrowForDenomRequest{
 					Denom: sdk.DefaultBondDenom,
 				}
+
+				expEscrowAmt = math.NewInt(100)
+				suite.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(suite.chainA.GetContext(), sdk.DefaultBondDenom, expEscrowAmt)
 			},
 			true,
 		},
 		{
-			"not found denom trace",
-			func() {
-				denomTrace := types.DenomTrace{
-					Path:      "transfer/channel-0",
-					BaseDenom: sdk.DefaultBondDenom,
-				}
-
-				req = &types.QueryTotalEscrowForDenomRequest{
-					Denom: denomTrace.IBCDenom(),
-				}
-			},
-			true, // consider the denom is of a native token
-		},
-		{
-			"invalid ibc denom",
-			func() {
-				req = &types.QueryTotalEscrowForDenomRequest{
-					Denom: "ibc/𓃠🐾",
-				}
-			},
-			true, // consider the denom is of a native token
-		},
-		{
-			"valid ibc denom",
+			"valid ibc denom with escrow amount > 2^63",
 			func() {
 				denomTrace := types.DenomTrace{
 					Path:      "transfer/channel-0",
@@ -311,6 +295,9 @@ func (suite *KeeperTestSuite) TestTotalEscrowForDenom() {
 				}
 
 				suite.chainA.GetSimApp().TransferKeeper.SetDenomTrace(suite.chainA.GetContext(), denomTrace)
+				expEscrowAmt, ok := math.NewIntFromString("100000000000000000000")
+				suite.Require().True(ok)
+				suite.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(suite.chainA.GetContext(), sdk.DefaultBondDenom, expEscrowAmt)
 
 				req = &types.QueryTotalEscrowForDenomRequest{
 					Denom: denomTrace.IBCDenom(),
@@ -318,12 +305,36 @@ func (suite *KeeperTestSuite) TestTotalEscrowForDenom() {
 			},
 			true,
 		},
+		{
+			"valid ibc denom treated as native denom",
+			func() {
+				denomTrace := types.DenomTrace{
+					Path:      "transfer/channel-0",
+					BaseDenom: sdk.DefaultBondDenom,
+				}
+
+				req = &types.QueryTotalEscrowForDenomRequest{
+					Denom: denomTrace.IBCDenom(),
+				}
+			},
+			true, // denom trace is not found, so the denom is considered a native token
+		},
+		{
+			"invalid ibc denom treated as valid native denom",
+			func() {
+				req = &types.QueryTotalEscrowForDenomRequest{
+					Denom: "ibc/𓃠🐾",
+				}
+			},
+			true, // the denom is considered a native token
+		},
 	}
 
 	for _, tc := range testCases {
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest() // reset
 
+			expEscrowAmt = math.ZeroInt()
 			tc.malleate()
 			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
 
@@ -331,7 +342,7 @@ func (suite *KeeperTestSuite) TestTotalEscrowForDenom() {
 
 			if tc.expPass {
 				suite.Require().NoError(err)
-				suite.Require().Equal(int64(0), res.Amount)
+				suite.Require().Equal(expEscrowAmt, res.Amount)
 			} else {
 				suite.Require().Error(err)
 			}
