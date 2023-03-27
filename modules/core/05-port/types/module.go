@@ -138,3 +138,9 @@ type Middleware interface {
 	IBCModule
 	ICS4Wrapper
 }
+
+// PacketDataUnmarshaler defines an optional interface which allows a middleware to
+// request the packet data to be unmarshaled by the base application.
+type PacketDataUnmarshaler interface {
+	UnmarshalPacketData([]byte) (interface{}, error)
+}

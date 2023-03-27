@@ -252,3 +252,14 @@ func (im IBCMiddleware) WriteAcknowledgement(
 func (im IBCMiddleware) GetAppVersion(ctx sdk.Context, portID, channelID string) (string, bool) {
 	return im.keeper.GetAppVersion(ctx, portID, channelID)
 }
+
+// UnmarshalPacketData attempts to unmarshal the provided packet data bytes
+// into a InterchainAccountPacketData.
+func (im IBCMiddleware) UnmarshalPacketData(bz []byte) (interface{}, error) {
+	var packetData icatypes.InterchainAccountPacketData
+	if err := icatypes.ModuleCdc.UnmarshalJSON(bz, &packetData); err != nil {
+		return nil, err
+	}
+
+	return packetData, nil
+}

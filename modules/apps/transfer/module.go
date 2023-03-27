@@ -23,9 +23,10 @@ import (
 )
 
 var (
-	_ module.AppModule      = AppModule{}
-	_ module.AppModuleBasic = AppModuleBasic{}
-	_ porttypes.IBCModule   = IBCModule{}
+	_ module.AppModule                = AppModule{}
+	_ module.AppModuleBasic           = AppModuleBasic{}
+	_ porttypes.IBCModule             = IBCModule{}
+	_ porttypes.PacketDataUnmarshaler = IBCModule{}
 )
 
 // AppModuleBasic is the IBC Transfer AppModuleBasic

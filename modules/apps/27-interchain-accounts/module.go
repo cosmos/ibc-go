@@ -33,7 +33,9 @@ var (
 	_ module.AppModuleBasic      = AppModuleBasic{}
 	_ module.AppModuleSimulation = AppModule{}
 
-	_ porttypes.IBCModule = host.IBCModule{}
+	_ porttypes.IBCModule             = host.IBCModule{}
+	_ porttypes.PacketDataUnmarshaler = host.IBCModule{}
+	_ porttypes.PacketDataUnmarshaler = controller.IBCMiddleware{}
 )
 
 // AppModuleBasic is the IBC interchain accounts AppModuleBasic
