@@ -124,6 +124,19 @@ func (suite *KeeperTestSuite) TestGetAllGetAllDenomEscrows() {
 			true,
 		},
 		{
+			"success: denom with non-alphanumeric characters",
+			func() {
+				expDenom = "ibc/123-456"
+				expAmount = math.NewInt(100)
+
+				bz, err := expAmount.Marshal()
+				suite.Require().NoError(err)
+
+				store.Set(types.TotalEscrowForDenomKey(expDenom), bz)
+			},
+			true,
+		},
+		{
 			"failure: empty denom",
 			func() {
 				bz, err := expAmount.Marshal()
