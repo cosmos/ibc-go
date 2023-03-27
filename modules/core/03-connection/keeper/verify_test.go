@@ -694,9 +694,10 @@ func (suite *KeeperTestSuite) TestVerifyUpgradeTimeout() {
 		expPass  bool
 	}{
 		{
-			name:     "success",
-			malleate: func() {},
-			expPass:  true,
+			name: "success",
+			malleate: func() {
+			},
+			expPass: true,
 		},
 		// {
 		// 	name: "fails when client state is frozen",
@@ -747,18 +748,17 @@ func (suite *KeeperTestSuite) TestVerifyUpgradeTimeout() {
 
 			// chain A initiates an upgrade and stores the timeout height/timestamp by which point chain B must have proceeded
 			// to the TRY step. In this case, we set it to the current height/timestamp to ensure timeout.
-
 			err := path.EndpointA.ChanUpgradeInit(height, timestamp)
-			suite.Require().NoError(err)
-
-			// need to update chainA's client representing chainB to prove timeout has passed
-			err = path.EndpointA.UpdateClient()
 			suite.Require().NoError(err)
 
 			tc.malleate()
 
-			upgradeSequenceKey := host.ChannelUpgradeSequenceKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+			upgradeSequenceKey := host.ChannelUpgradeSequenceKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 			proof, proofHeight := suite.chainA.QueryProof(upgradeSequenceKey)
+
+			// need to update chainA's client representing chainB to prove timeout has passed
+			err = path.EndpointA.UpdateClient()
+			suite.Require().NoError(err)
 
 			// The TRY step will prove the timeout values set by chain A and ensures the timeout on chain B has not passed.
 			err = suite.chainA.GetSimApp().IBCKeeper.ConnectionKeeper.VerifyChannelUpgradeTimeout(
@@ -766,6 +766,7 @@ func (suite *KeeperTestSuite) TestVerifyUpgradeTimeout() {
 				path.EndpointA.GetConnection(),
 				malleateHeight(proofHeight, 0),
 				proof,
+				// this should be the counterparty port and channel id
 				path.EndpointB.ChannelConfig.PortID,
 				path.EndpointB.ChannelID,
 				upgradeTimeout,
