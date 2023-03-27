@@ -41,6 +41,13 @@ func (suite *KeeperTestSuite) TestChanUpgradeInit() {
 			false,
 		},
 		{
+			"identical upgrade channel end",
+			func() {
+				channelUpgrade = path.EndpointA.GetChannel()
+			},
+			false,
+		},
+		{
 			"channel not found",
 			func() {
 				path.EndpointA.ChannelID = "invalid-channel"
