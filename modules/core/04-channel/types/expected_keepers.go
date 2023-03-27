@@ -5,6 +5,7 @@ import (
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
 	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
+	"github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
@@ -77,4 +78,5 @@ type ConnectionKeeper interface {
 // PortKeeper expected account IBC port keeper
 type PortKeeper interface {
 	Authenticate(ctx sdk.Context, key *capabilitytypes.Capability, portID string) bool
+	GetRoute(module string) (types.IBCModule, bool)
 }

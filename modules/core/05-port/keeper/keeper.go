@@ -80,3 +80,7 @@ func (k Keeper) LookupModuleByPort(ctx sdk.Context, portID string) (string, *cap
 
 	return types.GetModuleOwner(modules), capability, nil
 }
+
+func (k Keeper) GetRoute(module string) (types.IBCModule, bool) {
+	return k.Router.GetRoute(module)
+}
