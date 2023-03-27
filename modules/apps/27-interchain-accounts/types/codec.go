@@ -7,7 +7,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/gogoproto/proto"
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
 // ModuleCdc references the global interchain accounts module codec. Note, the codec
@@ -22,11 +21,6 @@ var ModuleCdc = codec.NewProtoCodec(codectypes.NewInterfaceRegistry())
 func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	registry.RegisterImplementations((*authtypes.AccountI)(nil), &InterchainAccount{})
 	registry.RegisterImplementations((*authtypes.GenesisAccount)(nil), &InterchainAccount{})
-
-	registry.RegisterImplementations(
-		(*exported.CallbackPacketDataI)(nil),
-		&InterchainAccountPacketData{},
-	)
 }
 
 // SerializeCosmosTx serializes a slice of sdk.Msg's using the CosmosTx type. The sdk.Msg's are
