@@ -36,10 +36,7 @@ func DefaultParams() Params {
 
 // Validate all ibc-client module parameters
 func (p Params) Validate() error {
-	if err := validateClients(p.AllowedClients); err != nil {
-		return err
-	}
-	return nil
+	return validateClients(p.AllowedClients)
 }
 
 // ParamSetPairs implements params.ParamSet
