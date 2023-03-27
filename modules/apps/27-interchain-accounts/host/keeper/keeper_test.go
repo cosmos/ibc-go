@@ -72,11 +72,7 @@ func SetupICAPath(path *ibctesting.Path, owner string) error {
 		return err
 	}
 
-	if err := path.EndpointB.ChanOpenConfirm(); err != nil {
-		return err
-	}
-
-	return nil
+	return path.EndpointB.ChanOpenConfirm()
 }
 
 // RegisterInterchainAccount is a helper function for starting the channel handshake
@@ -106,7 +102,7 @@ func TestKeeperTestSuite(t *testing.T) {
 	suite.Run(t, new(KeeperTestSuite))
 }
 
-func (suite *KeeperTestSuite) TestIsBound() {
+func (suite *KeeperTestSuite) TestHasCapability() {
 	suite.SetupTest()
 
 	path := NewICAPath(suite.chainA, suite.chainB)
@@ -115,8 +111,8 @@ func (suite *KeeperTestSuite) TestIsBound() {
 	err := SetupICAPath(path, TestOwnerAddress)
 	suite.Require().NoError(err)
 
-	isBound := suite.chainB.GetSimApp().ICAHostKeeper.IsBound(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID)
-	suite.Require().True(isBound)
+	hasCapability := suite.chainB.GetSimApp().ICAHostKeeper.HasCapability(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID)
+	suite.Require().True(hasCapability)
 }
 
 func (suite *KeeperTestSuite) TestGetInterchainAccountAddress() {
