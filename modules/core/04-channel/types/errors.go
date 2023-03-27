@@ -23,6 +23,7 @@ var (
 	ErrInvalidAcknowledgement    = errorsmod.Register(SubModuleName, 16, "invalid acknowledgement")
 	ErrAcknowledgementExists     = errorsmod.Register(SubModuleName, 17, "acknowledgement for packet already exists")
 	ErrInvalidChannelIdentifier  = errorsmod.Register(SubModuleName, 18, "invalid channel identifier")
+	ErrUpgradeSequenceNotFound   = errorsmod.Register(SubModuleName, 19, "upgrade sequence not found")
 
 	// packets already relayed errors
 	ErrPacketReceived           = errorsmod.Register(SubModuleName, 19, "packet already received")
