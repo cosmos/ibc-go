@@ -699,34 +699,34 @@ func (suite *KeeperTestSuite) TestVerifyUpgradeTimeout() {
 			},
 			expPass: true,
 		},
-		// {
-		// 	name: "fails when client state is frozen",
-		// 	malleate: func() {
-		// 		clientState := path.EndpointB.GetClientState().(*ibctm.ClientState)
-		// 		clientState.FrozenHeight = clienttypes.NewHeight(0, 1)
-		// 		path.EndpointB.SetClientState(clientState)
-		// 	},
-		// 	expPass: false,
-		// },
-		// {
-		// 	name: "fails with bad client id",
-		// 	malleate: func() {
-		// 		connection := path.EndpointB.GetConnection()
-		// 		connection.ClientId = ibctesting.InvalidID
-		// 		path.EndpointB.SetConnection(connection)
-		// 	},
-		// 	expPass: false,
-		// },
-		// {
-		// 	name: "verification fails when the key does not exist",
-		// 	malleate: func() {
-		// 		storeKey := path.EndpointA.Chain.GetSimApp().GetKey(exported.StoreKey)
-		// 		kvStore := path.EndpointA.Chain.GetContext().KVStore(storeKey)
-		// 		kvStore.Delete(host.ChannelUpgradeTimeoutKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
-		// 		suite.coordinator.CommitBlock(suite.chainA)
-		// 	},
-		// 	expPass: false,
-		// },
+		{
+			name: "fails when client state is frozen",
+			malleate: func() {
+				clientState := path.EndpointB.GetClientState().(*ibctm.ClientState)
+				clientState.FrozenHeight = clienttypes.NewHeight(0, 1)
+				path.EndpointB.SetClientState(clientState)
+			},
+			expPass: false,
+		},
+		{
+			name: "fails with bad client id",
+			malleate: func() {
+				connection := path.EndpointB.GetConnection()
+				connection.ClientId = ibctesting.InvalidID
+				path.EndpointB.SetConnection(connection)
+			},
+			expPass: false,
+		},
+		{
+			name: "verification fails when the key does not exist",
+			malleate: func() {
+				storeKey := path.EndpointA.Chain.GetSimApp().GetKey(exported.StoreKey)
+				kvStore := path.EndpointA.Chain.GetContext().KVStore(storeKey)
+				kvStore.Delete(host.ChannelUpgradeTimeoutKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID))
+				suite.coordinator.CommitBlock(suite.chainA)
+			},
+			expPass: false,
+		},
 	}
 
 	for _, tc := range cases {
@@ -753,22 +753,19 @@ func (suite *KeeperTestSuite) TestVerifyUpgradeTimeout() {
 
 			tc.malleate()
 
-			upgradeSequenceKey := host.ChannelUpgradeSequenceKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
-			proof, proofHeight := suite.chainA.QueryProof(upgradeSequenceKey)
+			upgradeTimeoutKey := host.ChannelUpgradeTimeoutKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+			proof, proofHeight := suite.chainA.QueryProof(upgradeTimeoutKey)
 
-			// need to update chainA's client representing chainB to prove timeout has passed
-			err = path.EndpointA.UpdateClient()
-			suite.Require().NoError(err)
-
-			// The TRY step will prove the timeout values set by chain A and ensures the timeout on chain B has not passed.
-			err = suite.chainA.GetSimApp().IBCKeeper.ConnectionKeeper.VerifyChannelUpgradeTimeout(
-				suite.chainA.GetContext(),
-				path.EndpointA.GetConnection(),
+			// The VerifyChannelUpgrade step is called by chain B, and will prove the timeout values set by chain A
+			// have not passed on chain B.
+			err = suite.chainB.GetSimApp().IBCKeeper.ConnectionKeeper.VerifyChannelUpgradeTimeout(
+				suite.chainB.GetContext(),
+				path.EndpointB.GetConnection(),
 				malleateHeight(proofHeight, 0),
 				proof,
-				// this should be the counterparty port and channel id
-				path.EndpointB.ChannelConfig.PortID,
-				path.EndpointB.ChannelID,
+				// this should be the counterparty port and channel id (chain A)
+				path.EndpointA.ChannelConfig.PortID,
+				path.EndpointA.ChannelID,
 				upgradeTimeout,
 			)
 
