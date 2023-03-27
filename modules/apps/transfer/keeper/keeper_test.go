@@ -183,5 +183,4 @@ func (suite *KeeperTestSuite) TestGetAllGetAllDenomEscrows() {
 			}
 		})
 	}
-
 }
