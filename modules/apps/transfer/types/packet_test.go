@@ -56,8 +56,8 @@ func (suite *TypesTestSuite) TestGetSourceCallbackAddress() {
 			types.FungibleTokenPacketData{
 				Denom:    denom,
 				Amount:   amount,
-				Sender:   addr1,
-				Receiver: addr2,
+				Sender:   sender,
+				Receiver: receiver,
 				Memo:     "",
 			},
 			false,
@@ -67,8 +67,8 @@ func (suite *TypesTestSuite) TestGetSourceCallbackAddress() {
 			types.FungibleTokenPacketData{
 				Denom:    denom,
 				Amount:   amount,
-				Sender:   addr1,
-				Receiver: addr2,
+				Sender:   sender,
+				Receiver: receiver,
 				Memo:     "memo",
 			},
 			false,
@@ -78,8 +78,8 @@ func (suite *TypesTestSuite) TestGetSourceCallbackAddress() {
 			types.FungibleTokenPacketData{
 				Denom:    denom,
 				Amount:   amount,
-				Sender:   addr1,
-				Receiver: addr2,
+				Sender:   sender,
+				Receiver: receiver,
 				Memo:     `{"Key": 10}`,
 			},
 			false,
@@ -89,8 +89,8 @@ func (suite *TypesTestSuite) TestGetSourceCallbackAddress() {
 			types.FungibleTokenPacketData{
 				Denom:    denom,
 				Amount:   amount,
-				Sender:   addr1,
-				Receiver: addr2,
+				Sender:   sender,
+				Receiver: receiver,
 				Memo:     `{"callbacks": {"Key": 10}}`,
 			},
 			false,
@@ -100,8 +100,8 @@ func (suite *TypesTestSuite) TestGetSourceCallbackAddress() {
 			types.FungibleTokenPacketData{
 				Denom:    denom,
 				Amount:   amount,
-				Sender:   addr1,
-				Receiver: addr2,
+				Sender:   sender,
+				Receiver: receiver,
 				Memo:     `{"callbacks": {"src_callback_address": 10}}`,
 			},
 			false,
@@ -111,8 +111,8 @@ func (suite *TypesTestSuite) TestGetSourceCallbackAddress() {
 			types.FungibleTokenPacketData{
 				Denom:    denom,
 				Amount:   amount,
-				Sender:   addr1,
-				Receiver: addr2,
+				Sender:   sender,
+				Receiver: receiver,
 				Memo:     `{"callbacks": {"src_callback_address": "testAddress"}}`,
 			},
 			false,
@@ -122,9 +122,9 @@ func (suite *TypesTestSuite) TestGetSourceCallbackAddress() {
 			types.FungibleTokenPacketData{
 				Denom:    denom,
 				Amount:   amount,
-				Sender:   addr1,
-				Receiver: addr2,
-				Memo:     fmt.Sprintf(`{"callbacks": {"src_callback_address": "%s"}}`, addr1),
+				Sender:   sender,
+				Receiver: receiver,
+				Memo:     fmt.Sprintf(`{"callbacks": {"src_callback_address": "%s"}}`, sender),
 			},
 			true,
 		},
@@ -136,7 +136,7 @@ func (suite *TypesTestSuite) TestGetSourceCallbackAddress() {
 			srcCbAddr := tc.packetData.GetSourceCallbackAddress()
 
 			if tc.expPass {
-				suite.Require().Equal(addr1, srcCbAddr)
+				suite.Require().Equal(sender, srcCbAddr)
 			} else {
 				suite.Require().Equal("", srcCbAddr)
 			}
@@ -155,8 +155,8 @@ func (suite *TypesTestSuite) TestGetDestCallbackAddress() {
 			types.FungibleTokenPacketData{
 				Denom:    denom,
 				Amount:   amount,
-				Sender:   addr1,
-				Receiver: addr2,
+				Sender:   sender,
+				Receiver: receiver,
 				Memo:     "",
 			},
 			false,
@@ -166,8 +166,8 @@ func (suite *TypesTestSuite) TestGetDestCallbackAddress() {
 			types.FungibleTokenPacketData{
 				Denom:    denom,
 				Amount:   amount,
-				Sender:   addr1,
-				Receiver: addr2,
+				Sender:   sender,
+				Receiver: receiver,
 				Memo:     "memo",
 			},
 			false,
@@ -177,8 +177,8 @@ func (suite *TypesTestSuite) TestGetDestCallbackAddress() {
 			types.FungibleTokenPacketData{
 				Denom:    denom,
 				Amount:   amount,
-				Sender:   addr1,
-				Receiver: addr2,
+				Sender:   sender,
+				Receiver: receiver,
 				Memo:     `{"Key": 10}`,
 			},
 			false,
@@ -188,8 +188,8 @@ func (suite *TypesTestSuite) TestGetDestCallbackAddress() {
 			types.FungibleTokenPacketData{
 				Denom:    denom,
 				Amount:   amount,
-				Sender:   addr1,
-				Receiver: addr2,
+				Sender:   sender,
+				Receiver: receiver,
 				Memo:     `{"callbacks": {"Key": 10}}`,
 			},
 			false,
@@ -199,8 +199,8 @@ func (suite *TypesTestSuite) TestGetDestCallbackAddress() {
 			types.FungibleTokenPacketData{
 				Denom:    denom,
 				Amount:   amount,
-				Sender:   addr1,
-				Receiver: addr2,
+				Sender:   sender,
+				Receiver: receiver,
 				Memo:     `{"callbacks": {"dest_callback_address": 10}}`,
 			},
 			false,
@@ -210,8 +210,8 @@ func (suite *TypesTestSuite) TestGetDestCallbackAddress() {
 			types.FungibleTokenPacketData{
 				Denom:    denom,
 				Amount:   amount,
-				Sender:   addr1,
-				Receiver: addr2,
+				Sender:   sender,
+				Receiver: receiver,
 				Memo:     `{"callbacks": {"dest_callback_address": "testAddress"}}`,
 			},
 			false,
@@ -221,9 +221,9 @@ func (suite *TypesTestSuite) TestGetDestCallbackAddress() {
 			types.FungibleTokenPacketData{
 				Denom:    denom,
 				Amount:   amount,
-				Sender:   addr1,
-				Receiver: addr2,
-				Memo:     fmt.Sprintf(`{"callbacks": {"dest_callback_address": "%s"}}`, addr2),
+				Sender:   sender,
+				Receiver: receiver,
+				Memo:     fmt.Sprintf(`{"callbacks": {"dest_callback_address": "%s"}}`, receiver),
 			},
 			true,
 		},
@@ -235,7 +235,7 @@ func (suite *TypesTestSuite) TestGetDestCallbackAddress() {
 			destCbAddr := tc.packetData.GetDestCallbackAddress()
 
 			if tc.expPass {
-				suite.Require().Equal(addr2, destCbAddr)
+				suite.Require().Equal(receiver, destCbAddr)
 			} else {
 				suite.Require().Equal("", destCbAddr)
 			}
@@ -247,8 +247,8 @@ func (suite *TypesTestSuite) TestUserDefinedGasLimit() {
 	packetData := types.FungibleTokenPacketData{
 		Denom:    denom,
 		Amount:   amount,
-		Sender:   addr1,
-		Receiver: addr2,
+		Sender:   sender,
+		Receiver: receiver,
 		Memo:     `{"callbacks": {"user_defined_gas_limit": 100}}`,
 	}
 
