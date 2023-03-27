@@ -7,7 +7,6 @@ import (
 	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	localhost "github.com/cosmos/ibc-go/v7/modules/light-clients/09-localhost"
 )
 
@@ -19,5 +18,4 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	channeltypes.RegisterInterfaces(registry)
 	commitmenttypes.RegisterInterfaces(registry)
 	localhost.RegisterInterfaces(registry)
-	exported.RegisterInterfaces(registry)
 }
