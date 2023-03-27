@@ -55,7 +55,7 @@ type (
 	}
 )
 
-// Status returns the status of the tendermint client.
+// Status returns the status of the wasm client.
 // The client may be:
 // - Active: frozen height is zero and client is not expired
 // - Frozen: frozen height is not zero
