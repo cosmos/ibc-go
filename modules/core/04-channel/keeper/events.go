@@ -3,7 +3,6 @@ package keeper
 import (
 	"encoding/hex"
 	"fmt"
-	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -20,7 +19,7 @@ func EmitChannelOpenInitEvent(ctx sdk.Context, portID string, channelID string, 
 			sdk.NewAttribute(types.AttributeKeyChannelID, channelID),
 			sdk.NewAttribute(types.AttributeCounterpartyPortID, channel.Counterparty.PortId),
 			sdk.NewAttribute(types.AttributeCounterpartyChannelID, channel.Counterparty.ChannelId),
-			sdk.NewAttribute(types.AttributeKeyConnectionID, strings.Join(channel.ConnectionHops, ".")),
+			sdk.NewAttribute(types.AttributeKeyConnectionID, types.FormatConnectionID(channel.ConnectionHops)),
 			sdk.NewAttribute(types.AttributeVersion, channel.Version),
 		),
 		sdk.NewEvent(
@@ -39,7 +38,7 @@ func EmitChannelOpenTryEvent(ctx sdk.Context, portID string, channelID string, c
 			sdk.NewAttribute(types.AttributeKeyChannelID, channelID),
 			sdk.NewAttribute(types.AttributeCounterpartyPortID, channel.Counterparty.PortId),
 			sdk.NewAttribute(types.AttributeCounterpartyChannelID, channel.Counterparty.ChannelId),
-			sdk.NewAttribute(types.AttributeKeyConnectionID, strings.Join(channel.ConnectionHops, ".")),
+			sdk.NewAttribute(types.AttributeKeyConnectionID, types.FormatConnectionID(channel.ConnectionHops)),
 			sdk.NewAttribute(types.AttributeVersion, channel.Version),
 		),
 		sdk.NewEvent(
@@ -58,7 +57,7 @@ func EmitChannelOpenAckEvent(ctx sdk.Context, portID string, channelID string, c
 			sdk.NewAttribute(types.AttributeKeyChannelID, channelID),
 			sdk.NewAttribute(types.AttributeCounterpartyPortID, channel.Counterparty.PortId),
 			sdk.NewAttribute(types.AttributeCounterpartyChannelID, channel.Counterparty.ChannelId),
-			sdk.NewAttribute(types.AttributeKeyConnectionID, strings.Join(channel.ConnectionHops, ".")),
+			sdk.NewAttribute(types.AttributeKeyConnectionID, types.FormatConnectionID(channel.ConnectionHops)),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
@@ -76,7 +75,7 @@ func EmitChannelOpenConfirmEvent(ctx sdk.Context, portID string, channelID strin
 			sdk.NewAttribute(types.AttributeKeyChannelID, channelID),
 			sdk.NewAttribute(types.AttributeCounterpartyPortID, channel.Counterparty.PortId),
 			sdk.NewAttribute(types.AttributeCounterpartyChannelID, channel.Counterparty.ChannelId),
-			sdk.NewAttribute(types.AttributeKeyConnectionID, strings.Join(channel.ConnectionHops, ".")),
+			sdk.NewAttribute(types.AttributeKeyConnectionID, types.FormatConnectionID(channel.ConnectionHops)),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
@@ -94,7 +93,7 @@ func EmitChannelCloseInitEvent(ctx sdk.Context, portID string, channelID string,
 			sdk.NewAttribute(types.AttributeKeyChannelID, channelID),
 			sdk.NewAttribute(types.AttributeCounterpartyPortID, channel.Counterparty.PortId),
 			sdk.NewAttribute(types.AttributeCounterpartyChannelID, channel.Counterparty.ChannelId),
-			sdk.NewAttribute(types.AttributeKeyConnectionID, strings.Join(channel.ConnectionHops, ".")),
+			sdk.NewAttribute(types.AttributeKeyConnectionID, types.FormatConnectionID(channel.ConnectionHops)),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
@@ -112,7 +111,7 @@ func EmitChannelCloseConfirmEvent(ctx sdk.Context, portID string, channelID stri
 			sdk.NewAttribute(types.AttributeKeyChannelID, channelID),
 			sdk.NewAttribute(types.AttributeCounterpartyPortID, channel.Counterparty.PortId),
 			sdk.NewAttribute(types.AttributeCounterpartyChannelID, channel.Counterparty.ChannelId),
-			sdk.NewAttribute(types.AttributeKeyConnectionID, strings.Join(channel.ConnectionHops, ".")),
+			sdk.NewAttribute(types.AttributeKeyConnectionID, types.FormatConnectionID(channel.ConnectionHops)),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
@@ -137,8 +136,8 @@ func EmitSendPacketEvent(ctx sdk.Context, packet exported.PacketI, channel types
 			sdk.NewAttribute(types.AttributeKeyDstPort, packet.GetDestPort()),
 			sdk.NewAttribute(types.AttributeKeyDstChannel, packet.GetDestChannel()),
 			sdk.NewAttribute(types.AttributeKeyChannelOrdering, channel.Ordering.String()),
-			sdk.NewAttribute(types.AttributeKeyConnection, strings.Join(channel.ConnectionHops, ".")),
-			sdk.NewAttribute(types.AttributeKeyConnectionID, strings.Join(channel.ConnectionHops, ".")),
+			sdk.NewAttribute(types.AttributeKeyConnection, channel.ConnectionHops[0]),
+			sdk.NewAttribute(types.AttributeKeyConnectionID, types.FormatConnectionID(channel.ConnectionHops)),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
@@ -163,8 +162,8 @@ func EmitRecvPacketEvent(ctx sdk.Context, packet exported.PacketI, channel types
 			sdk.NewAttribute(types.AttributeKeyDstPort, packet.GetDestPort()),
 			sdk.NewAttribute(types.AttributeKeyDstChannel, packet.GetDestChannel()),
 			sdk.NewAttribute(types.AttributeKeyChannelOrdering, channel.Ordering.String()),
-			sdk.NewAttribute(types.AttributeKeyConnection, strings.Join(channel.ConnectionHops, ".")), //nolint:staticcheck // DEPRECATED
-			sdk.NewAttribute(types.AttributeKeyConnectionID, strings.Join(channel.ConnectionHops, ".")),
+			sdk.NewAttribute(types.AttributeKeyConnection, channel.ConnectionHops[0]), //nolint:staticcheck // DEPRECATED
+			sdk.NewAttribute(types.AttributeKeyConnectionID, types.FormatConnectionID(channel.ConnectionHops)),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
@@ -189,8 +188,8 @@ func EmitWriteAcknowledgementEvent(ctx sdk.Context, packet exported.PacketI, cha
 			sdk.NewAttribute(types.AttributeKeyDstChannel, packet.GetDestChannel()),
 			sdk.NewAttribute(types.AttributeKeyAck, string(acknowledgement)), //nolint:staticcheck // DEPRECATED
 			sdk.NewAttribute(types.AttributeKeyAckHex, hex.EncodeToString(acknowledgement)),
-			sdk.NewAttribute(types.AttributeKeyConnection, strings.Join(channel.ConnectionHops, ".")), //nolint:staticcheck // DEPRECATED
-			sdk.NewAttribute(types.AttributeKeyConnectionID, strings.Join(channel.ConnectionHops, ".")),
+			sdk.NewAttribute(types.AttributeKeyConnection, channel.ConnectionHops[0]), //nolint:staticcheck // DEPRECATED
+			sdk.NewAttribute(types.AttributeKeyConnectionID, types.FormatConnectionID(channel.ConnectionHops)),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
@@ -213,8 +212,8 @@ func EmitAcknowledgePacketEvent(ctx sdk.Context, packet exported.PacketI, channe
 			sdk.NewAttribute(types.AttributeKeyDstPort, packet.GetDestPort()),
 			sdk.NewAttribute(types.AttributeKeyDstChannel, packet.GetDestChannel()),
 			sdk.NewAttribute(types.AttributeKeyChannelOrdering, channel.Ordering.String()),
-			sdk.NewAttribute(types.AttributeKeyConnection, strings.Join(channel.ConnectionHops, ".")), //nolint:staticcheck // DEPRECATED
-			sdk.NewAttribute(types.AttributeKeyConnectionID, strings.Join(channel.ConnectionHops, ".")),
+			sdk.NewAttribute(types.AttributeKeyConnection, channel.ConnectionHops[0]), //nolint:staticcheck // DEPRECATED
+			sdk.NewAttribute(types.AttributeKeyConnectionID, types.FormatConnectionID(channel.ConnectionHops)),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
@@ -236,7 +235,7 @@ func EmitTimeoutPacketEvent(ctx sdk.Context, packet exported.PacketI, channel ty
 			sdk.NewAttribute(types.AttributeKeySrcChannel, packet.GetSourceChannel()),
 			sdk.NewAttribute(types.AttributeKeyDstPort, packet.GetDestPort()),
 			sdk.NewAttribute(types.AttributeKeyDstChannel, packet.GetDestChannel()),
-			sdk.NewAttribute(types.AttributeKeyConnectionID, channel.ConnectionHops[0]),
+			sdk.NewAttribute(types.AttributeKeyConnectionID, types.FormatConnectionID(channel.ConnectionHops)),
 			sdk.NewAttribute(types.AttributeKeyChannelOrdering, channel.Ordering.String()),
 		),
 		sdk.NewEvent(
@@ -255,7 +254,7 @@ func EmitChannelClosedEvent(ctx sdk.Context, packet exported.PacketI, channel ty
 			sdk.NewAttribute(types.AttributeKeyChannelID, packet.GetSourceChannel()),
 			sdk.NewAttribute(types.AttributeCounterpartyPortID, channel.Counterparty.PortId),
 			sdk.NewAttribute(types.AttributeCounterpartyChannelID, channel.Counterparty.ChannelId),
-			sdk.NewAttribute(types.AttributeKeyConnectionID, strings.Join(channel.ConnectionHops, ".")),
+			sdk.NewAttribute(types.AttributeKeyConnectionID, types.FormatConnectionID(channel.ConnectionHops)),
 			sdk.NewAttribute(types.AttributeKeyChannelOrdering, channel.Ordering.String()),
 		),
 		sdk.NewEvent(

@@ -3,6 +3,7 @@ package types
 import (
 	"fmt"
 	"regexp"
+	"strings"
 
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -34,6 +35,11 @@ const (
 // This is a SDK specific format not enforced by IBC protocol.
 func FormatChannelIdentifier(sequence uint64) string {
 	return fmt.Sprintf("%s%d", ChannelPrefix, sequence)
+}
+
+// FormatConnectionID returns the formatted connection identifier
+func FormatConnectionID(connectionHops []string) string {
+	return strings.Join(connectionHops, "/")
 }
 
 // IsChannelIDFormat checks if a channelID is in the format required on the SDK for
