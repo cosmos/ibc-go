@@ -115,3 +115,77 @@ func (suite *KeeperTestSuite) TestChanUpgradeInit() {
 		})
 	}
 }
+
+func (suite *KeeperTestSuite) TestRestoreChannel() {
+	var (
+		path           *ibctesting.Path
+		channelUpgrade types.Channel
+	)
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expPass  bool
+	}{
+		{
+			"succeeds when restore channel is set",
+			func() {},
+			true,
+		},
+		{
+			name: "fails when no restore channel is present",
+			malleate: func() {
+				// remove the restore channel
+				path.EndpointA.Chain.GetSimApp().IBCKeeper.ChannelKeeper.DeleteUpgradeRestoreChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+			},
+			expPass: false,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.Setup(path)
+
+			originalChannel := path.EndpointA.GetChannel()
+
+			chanCap, _ := suite.chainA.GetSimApp().GetScopedIBCKeeper().GetCapability(suite.chainA.GetContext(), host.ChannelCapabilityPath(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
+			channelUpgrade = types.NewChannel(types.INITUPGRADE, types.UNORDERED, types.NewCounterparty(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID), []string{path.EndpointA.ConnectionID}, mock.Version)
+
+			sequence, err := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.ChanUpgradeInit(
+				suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID,
+				chanCap, channelUpgrade, path.EndpointB.Chain.GetTimeoutHeight(), 0,
+			)
+
+			// update the channel to have some other state.
+			modifiedChannel := originalChannel
+			modifiedChannel.Version = "different-version"
+			modifiedChannel.ConnectionHops = []string{"different-connection-id"}
+			path.EndpointA.Chain.GetSimApp().IBCKeeper.ChannelKeeper.SetChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, modifiedChannel)
+
+			tc.malleate()
+
+			err = suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.RestoreChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, sequence)
+
+			actualChannel, ok := path.EndpointA.Chain.GetSimApp().IBCKeeper.ChannelKeeper.GetChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+			errReceipt, errReceiptPresent := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetUpgradeErrorReceipt(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+
+			if tc.expPass {
+				suite.Require().NoError(err)
+				suite.Require().True(ok)
+				suite.Require().Equal(originalChannel, actualChannel)
+				suite.Require().True(errReceiptPresent)
+				suite.Require().Equal(sequence, errReceipt.Sequence)
+			} else {
+				suite.Require().Error(err)
+				suite.Require().True(ok)
+				suite.Require().Equal(modifiedChannel, actualChannel)
+				suite.Require().True(errReceiptPresent)
+				suite.Require().Equal(sequence, errReceipt.Sequence)
+			}
+		})
+	}
+}
