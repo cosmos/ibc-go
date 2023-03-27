@@ -42,7 +42,7 @@ func (cs ClientState) Validate() error {
 	}
 
 	if len(cs.CodeId) == 0 {
-		return sdkerrors.Wrap(ErrInvalidCodeId, "code ID cannot be empty")
+		return sdkerrors.Wrap(ErrInvalidCodeID, "code ID cannot be empty")
 	}
 
 	return nil
@@ -91,7 +91,7 @@ func (cs ClientState) ZeroCustomFields() exported.ClientState {
 	return &cs
 }
 
-func (c ClientState) GetTimestampAtHeight(
+func (cs ClientState) GetTimestampAtHeight(
 	_ sdk.Context,
 	clientStore sdk.KVStore,
 	cdc codec.BinaryCodec,

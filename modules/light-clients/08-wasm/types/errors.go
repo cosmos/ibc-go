@@ -4,7 +4,7 @@ import sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 var (
 	ErrInvalidData              = sdkerrors.Register(ModuleName, 1, "invalid data")
-	ErrInvalidCodeId            = sdkerrors.Register(ModuleName, 2, "invalid code ID")
+	ErrInvalidCodeID            = sdkerrors.Register(ModuleName, 2, "invalid code ID")
 	ErrInvalidHeader            = sdkerrors.Register(ModuleName, 3, "invalid header")
 	ErrUnableToUnmarshalPayload = sdkerrors.Register(ModuleName, 4, "unable to unmarshal wasm contract return value")
 	ErrUnableToInit             = sdkerrors.Register(ModuleName, 5, "unable to initialize wasm contract")
