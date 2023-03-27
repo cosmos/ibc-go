@@ -4,27 +4,11 @@ order: 1
 
 # Roadmap ibc-go
 
-_Lastest update: December 21st, 2022_
+_Lastest update: March 19th, 2023_
 
 This document endeavours to inform the wider IBC community about plans and priorities for work on ibc-go by the team at Interchain GmbH. It is intended to broadly inform all users of ibc-go, including developers and operators of IBC, relayer, chain and wallet applications.
 
 This roadmap should be read as a high-level guide, rather than a commitment to schedules and deliverables. The degree of specificity is inversely proportional to the timeline. We will update this document periodically to reflect the status and plans. For the latest expected release timelines, please check [here](https://github.com/cosmos/ibc-go/wiki/Release-timeline).
-
-## v7.0.0
-
-### 02-client refactor
-
-This refactor will make the development of light clients easier. The ibc-go implementation will finally align with the spec and light clients will be required to set their own client and consensus states. This will allow more flexibility for light clients to manage their own internal storage and do batch updates. See [ADR 006](../architecture/adr-006-02-client-refactor.md) for more information.
-
-Follow the progress with the [beta](https://github.com/cosmos/ibc-go/milestone/25) and [RC](https://github.com/cosmos/ibc-go/milestone/27) milestones or in the [project board](https://github.com/orgs/cosmos/projects/7/views/14).
-
-### Upgrade Cosmos SDK v0.47
-
-Follow the progress with the [milestone](https://github.com/cosmos/ibc-go/milestone/36).
-
-### Add `authz` support to 20-transfer
-
-Authz goes cross chain: users can grant permission for their tokens to be transferred to another chain on their behalf. See [this issue](https://github.com/cosmos/ibc-go/issues/2431) for more details.
 
 ## v7.1.0
 
@@ -34,9 +18,11 @@ Because it is so important to have an ibc-go release compatible with the latest 
 
 This feature will add support for applications on a chain to communicate with applications on the same chain using the existing standard interface to communicate with applications on remote chains. This is a powerful UX improvement, particularly for those users interested in interacting with multiple smart contracts on a single chain through one interface.
 
-For more details, see the design proposal and discussion [here](https://github.com/cosmos/ibc-go/discussions/2191).
+For more details, see the new [ICS 09 specification](https://github.com/cosmos/ibc/pull/936).
 
-A special shout out to Strangelove for their substantial contribution on this feature.
+A special shout out to Strangelove Ventures and Polymer Labs for their substantial contribution on this feature.
+
+## v7.2.0
 
 ### Support for Wasm light clients
 

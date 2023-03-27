@@ -2,41 +2,46 @@ package testsuite
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	signingtypes "github.com/cosmos/cosmos-sdk/types/tx/signing"
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	"github.com/cosmos/cosmos-sdk/x/authz"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	govtypesv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	grouptypes "github.com/cosmos/cosmos-sdk/x/group"
 	paramsproposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 	intertxtypes "github.com/cosmos/interchain-accounts/x/inter-tx/types"
 	dockerclient "github.com/docker/docker/client"
-	"github.com/strangelove-ventures/ibctest/v7"
-	"github.com/strangelove-ventures/ibctest/v7/chain/cosmos"
-	"github.com/strangelove-ventures/ibctest/v7/ibc"
-	"github.com/strangelove-ventures/ibctest/v7/testreporter"
-	test "github.com/strangelove-ventures/ibctest/v7/testutil"
+	interchaintest "github.com/strangelove-ventures/interchaintest/v7"
+	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
+	"github.com/strangelove-ventures/interchaintest/v7/ibc"
+	"github.com/strangelove-ventures/interchaintest/v7/testreporter"
+	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
+	"github.com/cosmos/ibc-go/e2e/relayer"
+	"github.com/cosmos/ibc-go/e2e/semverutil"
 	"github.com/cosmos/ibc-go/e2e/testconfig"
+	"github.com/cosmos/ibc-go/e2e/testsuite/diagnostics"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	controllertypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
 	feetypes "github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 )
 
@@ -47,10 +52,6 @@ const (
 	ChainBRelayerName = "rlyB"
 	// DefaultGasValue is the default gas value used to configure tx.Factory
 	DefaultGasValue = 500000
-	// emptyLogs is the string value returned from `BroadcastMessages`. There are some situations in which
-	// the result is empty, when this happens we include the raw logs instead to get as much information
-	// amount the failure as possible.
-	emptyLogs = "[]"
 )
 
 // E2ETestSuite has methods and functionality which can be shared among all test suites.
@@ -65,18 +66,19 @@ type E2ETestSuite struct {
 	startRelayerFn func(relayer ibc.Relayer)
 
 	// pathNameIndex is the latest index to be used for generating paths
-	pathNameIndex uint64
+	pathNameIndex int64
 }
 
 // GRPCClients holds a reference to any GRPC clients that are needed by the tests.
 // These should typically be used for query clients only. If we need to make changes, we should
 // use E2ETestSuite.BroadcastMessages to broadcast transactions instead.
 type GRPCClients struct {
-	ClientQueryClient  clienttypes.QueryClient
-	ChannelQueryClient channeltypes.QueryClient
-	FeeQueryClient     feetypes.QueryClient
-	ICAQueryClient     controllertypes.QueryClient
-	InterTxQueryClient intertxtypes.QueryClient
+	ClientQueryClient     clienttypes.QueryClient
+	ConnectionQueryClient connectiontypes.QueryClient
+	ChannelQueryClient    channeltypes.QueryClient
+	FeeQueryClient        feetypes.QueryClient
+	ICAQueryClient        controllertypes.QueryClient
+	InterTxQueryClient    intertxtypes.QueryClient
 
 	// SDK query clients
 	GovQueryClient    govtypesv1beta1.QueryClient
@@ -84,6 +86,9 @@ type GRPCClients struct {
 	GroupsQueryClient grouptypes.QueryClient
 	ParamsQueryClient paramsproposaltypes.QueryClient
 	AuthQueryClient   authtypes.QueryClient
+	AuthZQueryClient  authz.QueryClient
+
+	ConsensusServiceClient tmservice.ServiceClient
 }
 
 // path is a pairing of two chains which will be used in a test.
@@ -122,7 +127,7 @@ func (s *E2ETestSuite) GetRelayerUsers(ctx context.Context, chainOpts ...testcon
 func (s *E2ETestSuite) SetupChainsRelayerAndChannel(ctx context.Context, channelOpts ...func(*ibc.CreateChannelOptions)) (ibc.Relayer, ibc.ChannelOutput) {
 	chainA, chainB := s.GetChains()
 
-	r := newCosmosRelayer(s.T(), testconfig.FromEnv(), s.logger, s.DockerClient, s.network)
+	r := relayer.New(s.T(), testconfig.LoadConfig().RelayerConfig, s.logger, s.DockerClient, s.network)
 
 	pathName := s.generatePathName()
 
@@ -131,11 +136,11 @@ func (s *E2ETestSuite) SetupChainsRelayerAndChannel(ctx context.Context, channel
 		opt(&channelOptions)
 	}
 
-	ic := ibctest.NewInterchain().
+	ic := interchaintest.NewInterchain().
 		AddChain(chainA).
 		AddChain(chainB).
 		AddRelayer(r, "r").
-		AddLink(ibctest.InterchainLink{
+		AddLink(interchaintest.InterchainLink{
 			Chain1:            chainA,
 			Chain2:            chainB,
 			Relayer:           r,
@@ -144,7 +149,7 @@ func (s *E2ETestSuite) SetupChainsRelayerAndChannel(ctx context.Context, channel
 		})
 
 	eRep := s.GetRelayerExecReporter()
-	s.Require().NoError(ic.Build(ctx, eRep, ibctest.InterchainBuildOptions{
+	s.Require().NoError(ic.Build(ctx, eRep, interchaintest.InterchainBuildOptions{
 		TestName:  s.T().Name(),
 		Client:    s.DockerClient,
 		NetworkID: s.network,
@@ -172,10 +177,40 @@ func (s *E2ETestSuite) SetupChainsRelayerAndChannel(ctx context.Context, channel
 	return r, chainAChannels[len(chainAChannels)-1]
 }
 
+// SetupSingleChain creates and returns a single CosmosChain for usage in e2e tests.
+// This is useful for testing single chain functionality when performing coordinated upgrades as well as testing localhost ibc client functionality.
+// TODO: Actually setup a single chain. Seeing panic: runtime error: index out of range [0] with length 0 when using a single chain.
+// issue: https://github.com/strangelove-ventures/interchaintest/issues/401
+func (s *E2ETestSuite) SetupSingleChain(ctx context.Context) *cosmos.CosmosChain {
+	chainA, chainB := s.GetChains()
+
+	ic := interchaintest.NewInterchain().AddChain(chainA).AddChain(chainB)
+
+	eRep := s.GetRelayerExecReporter()
+	s.Require().NoError(ic.Build(ctx, eRep, interchaintest.InterchainBuildOptions{
+		TestName:         s.T().Name(),
+		Client:           s.DockerClient,
+		NetworkID:        s.network,
+		SkipPathCreation: true,
+	}))
+
+	s.InitGRPCClients(chainA)
+	s.InitGRPCClients(chainB)
+
+	return chainA
+}
+
 // generatePathName generates the path name using the test suites name
 func (s *E2ETestSuite) generatePathName() string {
-	pathName := fmt.Sprintf("%s-path-%d", s.T().Name(), s.pathNameIndex)
+	path := s.GetPathName(s.pathNameIndex)
 	s.pathNameIndex++
+	return path
+}
+
+// GetPathName returns the name of a path at a specific index. This can be used in tests
+// when the path name is required.
+func (s *E2ETestSuite) GetPathName(idx int64) string {
+	pathName := fmt.Sprintf("%s-path-%d", s.T().Name(), idx)
 	return strings.ReplaceAll(pathName, "/", "-")
 }
 
@@ -186,6 +221,7 @@ func (s *E2ETestSuite) generatePath(ctx context.Context, relayer ibc.Relayer) st
 	chainBID := chainB.Config().ChainID
 
 	pathName := s.generatePathName()
+
 	err := relayer.GeneratePath(ctx, s.GetRelayerExecReporter(), chainAID, chainBID, pathName)
 	s.Require().NoError(err)
 
@@ -229,23 +265,9 @@ func (s *E2ETestSuite) GetChains(chainOpts ...testconfig.ChainOptionConfiguratio
 	return path.chainA, path.chainB
 }
 
-// TODO: remove this type once the broadcast user interface aligns with ibc.Wallet
-type broadcastUser struct {
-	ibc.Wallet
-}
-
-// FormattedAddressWithPrefix implement the broadcast user interface, the FormattedAddress
-// function already includes the correct prefix.
-func (b *broadcastUser) FormattedAddressWithPrefix(prefix string) string {
-	return b.FormattedAddress()
-}
-
 // BroadcastMessages broadcasts the provided messages to the given chain and signs them on behalf of the provided user.
 // Once the broadcast response is returned, we wait for a few blocks to be created on both chain A and chain B.
 func (s *E2ETestSuite) BroadcastMessages(ctx context.Context, chain *cosmos.CosmosChain, user ibc.Wallet, msgs ...sdk.Msg) (sdk.TxResponse, error) {
-	// wrap the user so it is a valid implementation of broadcast user.
-	b := broadcastUser{Wallet: user}
-
 	broadcaster := cosmos.NewBroadcaster(s.T(), chain)
 
 	broadcaster.ConfigureClientContextOptions(func(clientContext client.Context) client.Context {
@@ -259,7 +281,7 @@ func (s *E2ETestSuite) BroadcastMessages(ctx context.Context, chain *cosmos.Cosm
 		return factory.WithGas(DefaultGasValue)
 	})
 
-	resp, err := cosmos.BroadcastTx(ctx, broadcaster, &b, msgs...)
+	resp, err := cosmos.BroadcastTx(ctx, broadcaster, user, msgs...)
 	if err != nil {
 		return sdk.TxResponse{}, err
 	}
@@ -349,13 +371,13 @@ func (s *E2ETestSuite) StopRelayer(ctx context.Context, relayer ibc.Relayer) {
 // CreateUserOnChainA creates a user with the given amount of funds on chain A.
 func (s *E2ETestSuite) CreateUserOnChainA(ctx context.Context, amount int64) ibc.Wallet {
 	chainA, _ := s.GetChains()
-	return ibctest.GetAndFundTestUsers(s.T(), ctx, strings.ReplaceAll(s.T().Name(), " ", "-"), amount, chainA)[0]
+	return interchaintest.GetAndFundTestUsers(s.T(), ctx, strings.ReplaceAll(s.T().Name(), " ", "-"), amount, chainA)[0]
 }
 
 // CreateUserOnChainB creates a user with the given amount of funds on chain B.
 func (s *E2ETestSuite) CreateUserOnChainB(ctx context.Context, amount int64) ibc.Wallet {
 	_, chainB := s.GetChains()
-	return ibctest.GetAndFundTestUsers(s.T(), ctx, strings.ReplaceAll(s.T().Name(), " ", "-"), amount, chainB)[0]
+	return interchaintest.GetAndFundTestUsers(s.T(), ctx, strings.ReplaceAll(s.T().Name(), " ", "-"), amount, chainB)[0]
 }
 
 // GetChainANativeBalance gets the balance of a given user on chain A.
@@ -397,30 +419,30 @@ func (s *E2ETestSuite) InitGRPCClients(chain *cosmos.CosmosChain) {
 	}
 
 	s.grpcClients[chain.Config().ChainID] = GRPCClients{
-		ClientQueryClient:  clienttypes.NewQueryClient(grpcConn),
-		ChannelQueryClient: channeltypes.NewQueryClient(grpcConn),
-		FeeQueryClient:     feetypes.NewQueryClient(grpcConn),
-		ICAQueryClient:     controllertypes.NewQueryClient(grpcConn),
-		InterTxQueryClient: intertxtypes.NewQueryClient(grpcConn),
-		GovQueryClient:     govtypesv1beta1.NewQueryClient(grpcConn),
-		GovQueryClientV1:   govtypesv1.NewQueryClient(grpcConn),
-		GroupsQueryClient:  grouptypes.NewQueryClient(grpcConn),
-		ParamsQueryClient:  paramsproposaltypes.NewQueryClient(grpcConn),
-		AuthQueryClient:    authtypes.NewQueryClient(grpcConn),
+		ClientQueryClient:      clienttypes.NewQueryClient(grpcConn),
+		ChannelQueryClient:     channeltypes.NewQueryClient(grpcConn),
+		FeeQueryClient:         feetypes.NewQueryClient(grpcConn),
+		ICAQueryClient:         controllertypes.NewQueryClient(grpcConn),
+		InterTxQueryClient:     intertxtypes.NewQueryClient(grpcConn),
+		GovQueryClient:         govtypesv1beta1.NewQueryClient(grpcConn),
+		GovQueryClientV1:       govtypesv1.NewQueryClient(grpcConn),
+		GroupsQueryClient:      grouptypes.NewQueryClient(grpcConn),
+		ParamsQueryClient:      paramsproposaltypes.NewQueryClient(grpcConn),
+		AuthQueryClient:        authtypes.NewQueryClient(grpcConn),
+		AuthZQueryClient:       authz.NewQueryClient(grpcConn),
+		ConsensusServiceClient: tmservice.NewServiceClient(grpcConn),
 	}
 }
 
 // AssertValidTxResponse verifies that an sdk.TxResponse
 // has non-empty values.
 func (s *E2ETestSuite) AssertValidTxResponse(resp sdk.TxResponse) {
-	respLogsMsg := resp.Logs.String()
-	if respLogsMsg == emptyLogs {
-		respLogsMsg = resp.RawLog
-	}
-	s.Require().NotEqual(int64(0), resp.GasUsed, respLogsMsg)
-	s.Require().NotEqual(int64(0), resp.GasWanted, respLogsMsg)
-	s.Require().NotEmpty(resp.Events, respLogsMsg)
-	s.Require().NotEmpty(resp.Data, respLogsMsg)
+	errorMsg := fmt.Sprintf("%+v", resp)
+	s.Require().NotEmpty(resp.TxHash, errorMsg)
+	s.Require().NotEqual(int64(0), resp.GasUsed, errorMsg)
+	s.Require().NotEqual(int64(0), resp.GasWanted, errorMsg)
+	s.Require().NotEmpty(resp.Events, errorMsg)
+	s.Require().NotEmpty(resp.Data, errorMsg)
 }
 
 // AssertPacketRelayed asserts that the packet commitment does not exist on the sending chain.
@@ -433,18 +455,27 @@ func (s *E2ETestSuite) AssertPacketRelayed(ctx context.Context, chain *cosmos.Co
 // createCosmosChains creates two separate chains in docker containers.
 // test and can be retrieved with GetChains.
 func (s *E2ETestSuite) createCosmosChains(chainOptions testconfig.ChainOptions) (*cosmos.CosmosChain, *cosmos.CosmosChain) {
-	client, network := ibctest.DockerSetup(s.T())
+	client, network := interchaintest.DockerSetup(s.T())
+	t := s.T()
 
 	s.logger = zap.NewExample()
 	s.DockerClient = client
 	s.network = network
 
-	logger := zaptest.NewLogger(s.T())
+	logger := zaptest.NewLogger(t)
 
-	numValidators, numFullNodes := 4, 1
+	numValidators, numFullNodes := getValidatorsAndFullNodes(0)
+	chainA := cosmos.NewCosmosChain(t.Name(), *chainOptions.ChainAConfig, numValidators, numFullNodes, logger)
+	numValidators, numFullNodes = getValidatorsAndFullNodes(1)
+	chainB := cosmos.NewCosmosChain(t.Name(), *chainOptions.ChainBConfig, numValidators, numFullNodes, logger)
 
-	chainA := cosmos.NewCosmosChain(s.T().Name(), *chainOptions.ChainAConfig, numValidators, numFullNodes, logger)
-	chainB := cosmos.NewCosmosChain(s.T().Name(), *chainOptions.ChainBConfig, numValidators, numFullNodes, logger)
+	// this is intentionally called after the interchaintest.DockerSetup function. The above function registers a
+	// cleanup task which deletes all containers. By registering a cleanup function afterwards, it is executed first
+	// this allows us to process the logs before the containers are removed.
+	t.Cleanup(func() {
+		diagnostics.Collect(t, s.DockerClient, chainOptions)
+	})
+
 	return chainA, chainB
 }
 
@@ -507,6 +538,11 @@ func (s *E2ETestSuite) ExecuteGovProposal(ctx context.Context, chain *cosmos.Cos
 	s.Require().Equal(govtypesv1beta1.StatusPassed, proposal.Status)
 }
 
+// govv1ProposalTitleAndSummary represents the releases that support the new title and summary fields.
+var govv1ProposalTitleAndSummary = semverutil.FeatureReleases{
+	MajorVersion: "v7",
+}
+
 // ExecuteGovProposalV1 submits a governance proposal using the provided user and message and uses all validators
 // to vote yes on the proposal. It ensures the proposal successfully passes.
 func (s *E2ETestSuite) ExecuteGovProposalV1(ctx context.Context, msg sdk.Msg, chain *cosmos.CosmosChain, user ibc.Wallet, proposalID uint64) {
@@ -516,6 +552,11 @@ func (s *E2ETestSuite) ExecuteGovProposalV1(ctx context.Context, msg sdk.Msg, ch
 	msgs := []sdk.Msg{msg}
 	msgSubmitProposal, err := govtypesv1.NewMsgSubmitProposal(msgs, sdk.NewCoins(sdk.NewCoin(chain.Config().Denom, govtypesv1.DefaultMinDepositTokens)), sender.String(), "", fmt.Sprintf("e2e gov proposal: %d", proposalID), fmt.Sprintf("executing gov proposal %d", proposalID))
 	s.Require().NoError(err)
+
+	if !govv1ProposalTitleAndSummary.IsSupported(chain.Nodes()[0].Image.Version) {
+		msgSubmitProposal.Title = ""
+		msgSubmitProposal.Summary = ""
+	}
 
 	resp, err := s.BroadcastMessages(ctx, chain, user, msgSubmitProposal)
 	s.AssertValidTxResponse(resp)
@@ -549,13 +590,40 @@ func (s *E2ETestSuite) QueryModuleAccountAddress(ctx context.Context, moduleName
 	}
 	moduleAccount, ok := account.(authtypes.ModuleAccountI)
 	if !ok {
-		return nil, errors.New(fmt.Sprintf("failed to cast account: %T as ModuleAccount", moduleAccount))
+		return nil, fmt.Errorf("failed to cast account: %T as ModuleAccount", moduleAccount)
 	}
 
 	return moduleAccount.GetAddress(), nil
 }
 
+// QueryGranterGrants returns all GrantAuthorizations for the given granterAddress.
+func (s *E2ETestSuite) QueryGranterGrants(ctx context.Context, chain *cosmos.CosmosChain, granterAddress string) ([]*authz.GrantAuthorization, error) {
+	authzClient := s.GetChainGRCPClients(chain).AuthZQueryClient
+	queryRequest := &authz.QueryGranterGrantsRequest{
+		Granter: granterAddress,
+	}
+
+	grants, err := authzClient.GranterGrants(ctx, queryRequest)
+	if err != nil {
+		return nil, err
+	}
+
+	return grants.Grants, nil
+}
+
 // GetIBCToken returns the denomination of the full token denom sent to the receiving channel
 func GetIBCToken(fullTokenDenom string, portID, channelID string) transfertypes.DenomTrace {
 	return transfertypes.ParseDenomTrace(fmt.Sprintf("%s/%s/%s", portID, channelID, fullTokenDenom))
+}
+
+// getValidatorsAndFullNodes returns the number of validators and full nodes respectively that should be used for
+// the test. If the test is running in CI, more nodes are used, when running locally a single node is used by default to
+// use less resources and allow the tests to run faster.
+// both the number of validators and full nodes can be overwritten in a config file.
+func getValidatorsAndFullNodes(chainIdx int) (int, int) {
+	if testconfig.IsCI() {
+		return 4, 1
+	}
+	tc := testconfig.LoadConfig()
+	return tc.GetChainNumValidators(chainIdx), tc.GetChainNumFullNodes(chainIdx)
 }

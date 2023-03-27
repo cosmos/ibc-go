@@ -26,7 +26,7 @@ Fee distribution for incentivized packet relays takes place on the packet source
 The counterparty payee address registered on the destination chain is encoded into the packet acknowledgement and communicated as such to the source chain for fee distribution.
 **If a counterparty payee is not registered for the forward relayer on the destination chain, the escrowed fees will be refunded upon fee distribution.**
 
-### Relayer operator actions?
+### Relayer operator actions
 
 A transaction must be submitted **to the destination chain** including a `CounterpartyPayee` address of an account on the source chain.
 The transaction must be signed by the `Relayer`.
@@ -35,14 +35,14 @@ Note: If a module account address is used as the `CounterpartyPayee` but the mod
 
 ```go
 type MsgRegisterCounterpartyPayee struct {
-	// unique port identifier
-	PortId string
-	// unique channel identifier
-	ChannelId string
-	// the relayer address
-	Relayer string
-	// the counterparty payee address
-	CounterpartyPayee string
+  // unique port identifier
+  PortId string
+  // unique channel identifier
+  ChannelId string
+  // the relayer address
+  Relayer string
+  // the counterparty payee address
+  CounterpartyPayee string
 }
 ```
 
@@ -57,9 +57,9 @@ See below for an example CLI command:
 
 ```bash
 simd tx ibc-fee register-counterparty-payee transfer channel-0 \
-cosmos1rsp837a4kvtgp2m4uqzdge0zzu6efqgucm0qdh \
-osmo1v5y0tz01llxzf4c2afml8s3awue0ymju22wxx2 \
---from cosmos1rsp837a4kvtgp2m4uqzdge0zzu6efqgucm0qdh
+  cosmos1rsp837a4kvtgp2m4uqzdge0zzu6efqgucm0qdh \
+  osmo1v5y0tz01llxzf4c2afml8s3awue0ymju22wxx2 \
+  --from cosmos1rsp837a4kvtgp2m4uqzdge0zzu6efqgucm0qdh
 ```
 
 ## Register an alternative payee address for reverse and timeout relaying
@@ -76,18 +76,18 @@ If a payee is not registered for the reverse or timeout relayer on the source ch
 A transaction must be submitted **to the source chain** including a `Payee` address of an account on the source chain.
 The transaction must be signed by the `Relayer`.
 
-Note: If a module account address is used as the `Payee` it is recommended to [turn off invariant checks](https://github.com/cosmos/ibc-go/blob/71d7480c923f4227453e8a80f51be01ae7ee845e/testing/simapp/app.go#L659) for that module.
+Note: If a module account address is used as the `Payee` it is recommended to [turn off invariant checks](https://github.com/cosmos/ibc-go/blob/v7.0.0/testing/simapp/app.go#L727) for that module.
 
 ```go
 type MsgRegisterPayee struct {
-	// unique port identifier
-	PortId string
-	// unique channel identifier
-	ChannelId string
-	// the relayer address
-	Relayer string
-	// the payee address
-	Payee string
+  // unique port identifier
+  PortId string
+  // unique channel identifier
+  ChannelId string
+  // the relayer address
+  Relayer string
+  // the payee address
+  Payee string
 }
 ```
 
@@ -102,7 +102,7 @@ See below for an example CLI command:
 
 ```bash
 simd tx ibc-fee register-payee transfer channel-0 \
-cosmos1rsp837a4kvtgp2m4uqzdge0zzu6efqgucm0qdh \
-cosmos153lf4zntqt33a4v0sm5cytrxyqn78q7kz8j8x5 \
---from cosmos1rsp837a4kvtgp2m4uqzdge0zzu6efqgucm0qdh
+  cosmos1rsp837a4kvtgp2m4uqzdge0zzu6efqgucm0qdh \
+  cosmos153lf4zntqt33a4v0sm5cytrxyqn78q7kz8j8x5 \
+  --from cosmos1rsp837a4kvtgp2m4uqzdge0zzu6efqgucm0qdh
 ```

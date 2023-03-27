@@ -106,11 +106,7 @@ func SetupICAPath(path *ibctesting.Path, owner string) error {
 		return err
 	}
 
-	if err := path.EndpointB.ChanOpenConfirm(); err != nil {
-		return err
-	}
-
-	return nil
+	return path.EndpointB.ChanOpenConfirm()
 }
 
 // Test initiating a ChanOpenInit using the host chain instead of the controller chain
@@ -457,11 +453,11 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 			packetData = icaPacketData.GetBytes()
 
 			// build expected ack
-			any, err := codectypes.NewAnyWithValue(&banktypes.MsgSendResponse{})
+			protoAny, err := codectypes.NewAnyWithValue(&banktypes.MsgSendResponse{})
 			suite.Require().NoError(err)
 
 			expectedTxResponse, err := proto.Marshal(&sdk.TxMsgData{
-				MsgResponses: []*codectypes.Any{any},
+				MsgResponses: []*codectypes.Any{protoAny},
 			})
 			suite.Require().NoError(err)
 
