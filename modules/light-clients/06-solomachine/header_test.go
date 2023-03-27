@@ -1,9 +1,9 @@
 package solomachine_test
 
 import (
-	"github.com/cosmos/ibc-go/v5/modules/core/exported"
-	solomachine "github.com/cosmos/ibc-go/v5/modules/light-clients/06-solomachine"
-	ibctesting "github.com/cosmos/ibc-go/v5/testing"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	solomachine "github.com/cosmos/ibc-go/v7/modules/light-clients/06-solomachine"
+	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
 func (suite *SoloMachineTestSuite) TestHeaderValidateBasic() {
@@ -23,20 +23,8 @@ func (suite *SoloMachineTestSuite) TestHeaderValidateBasic() {
 				true,
 			},
 			{
-				"sequence is zero",
-				&solomachine.Header{
-					Sequence:       0,
-					Timestamp:      header.Timestamp,
-					Signature:      header.Signature,
-					NewPublicKey:   header.NewPublicKey,
-					NewDiversifier: header.NewDiversifier,
-				},
-				false,
-			},
-			{
 				"timestamp is zero",
 				&solomachine.Header{
-					Sequence:       header.Sequence,
 					Timestamp:      0,
 					Signature:      header.Signature,
 					NewPublicKey:   header.NewPublicKey,
@@ -47,7 +35,6 @@ func (suite *SoloMachineTestSuite) TestHeaderValidateBasic() {
 			{
 				"signature is empty",
 				&solomachine.Header{
-					Sequence:       header.Sequence,
 					Timestamp:      header.Timestamp,
 					Signature:      []byte{},
 					NewPublicKey:   header.NewPublicKey,
@@ -58,7 +45,6 @@ func (suite *SoloMachineTestSuite) TestHeaderValidateBasic() {
 			{
 				"diversifier contains only spaces",
 				&solomachine.Header{
-					Sequence:       header.Sequence,
 					Timestamp:      header.Timestamp,
 					Signature:      header.Signature,
 					NewPublicKey:   header.NewPublicKey,
@@ -69,7 +55,6 @@ func (suite *SoloMachineTestSuite) TestHeaderValidateBasic() {
 			{
 				"public key is nil",
 				&solomachine.Header{
-					Sequence:       header.Sequence,
 					Timestamp:      header.Timestamp,
 					Signature:      header.Signature,
 					NewPublicKey:   nil,

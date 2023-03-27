@@ -6,8 +6,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	"github.com/cosmos/ibc-go/v5/modules/apps/29-fee/types"
-	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
+	"github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
+	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 )
 
 var _ types.MsgServer = Keeper{}
@@ -92,6 +92,10 @@ func (k Keeper) PayPacketFee(goCtx context.Context, msg *types.MsgPayPacketFee) 
 		return nil, err
 	}
 
+	if err := k.bankKeeper.IsSendEnabledCoins(ctx, msg.Fee.Total()...); err != nil {
+		return nil, err
+	}
+
 	if k.bankKeeper.BlockedAddr(refundAcc) {
 		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "%s is not allowed to escrow fees", refundAcc)
 	}
@@ -130,6 +134,10 @@ func (k Keeper) PayPacketFeeAsync(goCtx context.Context, msg *types.MsgPayPacket
 
 	refundAcc, err := sdk.AccAddressFromBech32(msg.PacketFee.RefundAddress)
 	if err != nil {
+		return nil, err
+	}
+
+	if err := k.bankKeeper.IsSendEnabledCoins(ctx, msg.PacketFee.Fee.Total()...); err != nil {
 		return nil, err
 	}
 

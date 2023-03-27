@@ -3,12 +3,12 @@ package keeper_test
 import (
 	"time"
 
-	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v5/modules/core/03-connection/types"
-	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v5/modules/core/exported"
-	ibctm "github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint"
-	ibctesting "github.com/cosmos/ibc-go/v5/testing"
+	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
+	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
+	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
 // TestConnOpenInit - chainA initializes (INIT state) a connection with
@@ -112,7 +112,8 @@ func (suite *KeeperTestSuite) TestConnOpenTry() {
 
 			// commit in order for proof to return correct value
 			suite.coordinator.CommitBlock(suite.chainA)
-			path.EndpointB.UpdateClient()
+			err = path.EndpointB.UpdateClient()
+			suite.Require().NoError(err)
 
 			// retrieve client state of chainA to pass as counterpartyClient
 			counterpartyClient = suite.chainA.GetClientState(path.EndpointA.ClientID)
