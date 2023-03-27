@@ -1,6 +1,8 @@
 package keeper_test
 
 import (
+	"fmt"
+
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
 	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
@@ -43,7 +45,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeInit() {
 		{
 			"identical upgrade channel end",
 			func() {
-				channelUpgrade = path.EndpointA.GetChannel()
+				channelUpgrade = types.NewChannel(types.INITUPGRADE, types.UNORDERED, types.NewCounterparty(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID), []string{path.EndpointA.ConnectionID}, mock.Version)
 			},
 			false,
 		},
@@ -94,7 +96,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeInit() {
 			suite.coordinator.Setup(path)
 
 			chanCap, _ = suite.chainA.GetSimApp().GetScopedIBCKeeper().GetCapability(suite.chainA.GetContext(), host.ChannelCapabilityPath(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
-			channelUpgrade = types.NewChannel(types.INITUPGRADE, types.UNORDERED, types.NewCounterparty(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID), []string{path.EndpointA.ConnectionID}, mock.Version)
+			channelUpgrade = types.NewChannel(types.INITUPGRADE, types.UNORDERED, types.NewCounterparty(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID), []string{path.EndpointA.ConnectionID}, fmt.Sprintf("%s-v2", mock.Version))
 
 			tc.malleate()
 
