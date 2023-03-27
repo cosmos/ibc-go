@@ -24,7 +24,7 @@ message ConsensusState {
   // timestamp that corresponds to the block height in which the ConsensusState
   // was stored.
   uint64 timestamp = 2;
-} //
+}
 
 // Wasm light client Header
 message Header {
