@@ -55,8 +55,9 @@ func (iapd InterchainAccountPacketData) GetBytes() []byte {
 
 ADR-8 CallbackPacketData implementation
 
-InterchainAccountPacketData implements CallbackPacketDataI interface. This will allow middlewares targeting specific VMs
-to retrieve the desired callback addresses for the ICA packet on the source and destination chains.
+InterchainAccountPacketData implements CallbackPacketData interface. This will allow middlewares targeting specific VMs
+to retrieve the desired callback address for the ICA packet on the source chain. Destination callback addresses are not
+supported for ICS 27.
 
 The Memo is used to set the desired callback addresses.
 
@@ -67,11 +68,9 @@ The Memo format is defined like so:
 	// ... other memo fields we don't care about
 	"callbacks": {
 		"src_callback_address": {contractAddrOnSourceChain},
-		"dest_callback_address": {contractAddrOnDestChain},
 
 		// optional fields
 		"src_callback_msg": {jsonObjectForSourceChainCallback},
-		"dest_callback_msg": {jsonObjectForDestChainCallback},
 	}
 }
 ```
@@ -111,7 +110,7 @@ func (iapd InterchainAccountPacketData) GetSourceCallbackAddress() string {
 }
 
 // GetDestCallbackAddress returns an empty string. Destination callback addresses
-// are not supported for ICS 27 since this feature is natively supported by
+// are not supported for ICS 27. This feature is natively supported by
 // interchain accounts host submodule transaction execution.
 func (iapd InterchainAccountPacketData) GetDestCallbackAddress() string {
 	return ""
@@ -119,7 +118,7 @@ func (iapd InterchainAccountPacketData) GetDestCallbackAddress() string {
 
 // UserDefinedGasLimit returns 0 (no-op). The gas limit of the executing
 // transaction will be used.
-func (fptd InterchainAccountPacketData) UserDefinedGasLimit() uint64 {
+func (iapd InterchainAccountPacketData) UserDefinedGasLimit() uint64 {
 	return 0
 }
 
