@@ -93,3 +93,5 @@ func NewQueryNextSequenceReceiveResponse(
 		ProofHeight:         height,
 	}
 }
+
+func UpgradeSequence(QueryUpgradeSequence)
