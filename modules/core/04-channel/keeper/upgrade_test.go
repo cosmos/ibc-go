@@ -98,7 +98,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeInit() {
 
 			tc.malleate()
 
-			sequence, err := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.ChanUpgradeInit(
+			sequence, version, err := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.ChanUpgradeInit(
 				suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID,
 				chanCap, channelUpgrade, path.EndpointB.Chain.GetTimeoutHeight(), 0,
 			)
@@ -109,6 +109,10 @@ func (suite *KeeperTestSuite) TestChanUpgradeInit() {
 				expSequence, found := suite.chainA.GetSimApp().GetIBCKeeper().ChannelKeeper.GetUpgradeSequence(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 				suite.Require().True(found)
 				suite.Require().Equal(expSequence, sequence)
+
+				expVersion, found := suite.chainA.GetSimApp().GetIBCKeeper().ChannelKeeper.GetAppVersion(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				suite.Require().True(found)
+				suite.Require().Equal(expVersion, version)
 			} else {
 				suite.Require().Error(err)
 			}
