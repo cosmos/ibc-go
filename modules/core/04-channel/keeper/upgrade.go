@@ -130,6 +130,10 @@ func (k Keeper) ChanUpgradeTry(
 		return 0, err
 	}
 
+	if connection.GetCounterparty().GetConnectionID() != counterpartyChannel.ConnectionHops[0] {
+		return 0, err
+	}
+
 	if err := k.connectionKeeper.VerifyChannelState(ctx, connection, proofHeight, proofChannel, proposedUpgradeChannel.Counterparty.PortId,
 		proposedUpgradeChannel.Counterparty.ChannelId, counterpartyChannel); err != nil {
 		return 0, err
