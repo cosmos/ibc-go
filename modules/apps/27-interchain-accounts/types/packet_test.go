@@ -86,7 +86,7 @@ func (suite *TypesTestSuite) TestValidateBasic() {
 }
 
 func (suite *TypesTestSuite) TestGetSourceCallbackAddress() {
-	expSrcCbAddr := "srcCbAddr"
+	const expSrcCbAddr = "srcCbAddr"
 
 	testCases := []struct {
 		name       string
@@ -112,7 +112,7 @@ func (suite *TypesTestSuite) TestGetSourceCallbackAddress() {
 			false,
 		},
 		{
-			"memo is does not have callbacks in json struct",
+			"memo does not have callbacks in json struct",
 			types.InterchainAccountPacketData{
 				Type: types.EXECUTE_TX,
 				Data: []byte("data"),

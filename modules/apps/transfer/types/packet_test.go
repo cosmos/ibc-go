@@ -74,7 +74,7 @@ func (suite *TypesTestSuite) TestGetSourceCallbackAddress() {
 			false,
 		},
 		{
-			"memo is does not have callbacks in json struct",
+			"memo does not have callbacks in json struct",
 			types.FungibleTokenPacketData{
 				Denom:    denom,
 				Amount:   amount,
@@ -173,7 +173,7 @@ func (suite *TypesTestSuite) TestGetDestCallbackAddress() {
 			false,
 		},
 		{
-			"memo is does not have callbacks in json struct",
+			"memo does not have callbacks in json struct",
 			types.FungibleTokenPacketData{
 				Denom:    denom,
 				Amount:   amount,
