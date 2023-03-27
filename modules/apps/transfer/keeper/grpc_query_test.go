@@ -323,10 +323,19 @@ func (suite *KeeperTestSuite) TestTotalEscrowForDenom() {
 			"invalid ibc denom treated as valid native denom",
 			func() {
 				req = &types.QueryTotalEscrowForDenomRequest{
-					Denom: "ibc/𓃠🐾",
+					Denom: "ibc/123",
 				}
 			},
 			true, // the denom is considered a native token
+		},
+		{
+			"invalid denom",
+			func() {
+				req = &types.QueryTotalEscrowForDenomRequest{
+					Denom: "??𓃠🐾??",
+				}
+			},
+			false,
 		},
 	}
 
