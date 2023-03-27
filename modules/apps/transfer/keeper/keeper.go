@@ -2,7 +2,7 @@ package keeper
 
 import (
 	"fmt"
-	"strings"
+	"regexp"
 
 	"cosmossdk.io/math"
 	tmbytes "github.com/cometbft/cometbft/libs/bytes"
@@ -188,27 +188,26 @@ func (k Keeper) GetAllDenomEscrows(ctx sdk.Context) sdk.Coins {
 // IterateDenomEscrows iterates over the denomination escrows in the store
 // and performs a callback function.
 func (k Keeper) IterateDenomEscrows(ctx sdk.Context, cb func(denomEscrow sdk.Coin) bool) {
+	re := regexp.MustCompile(fmt.Sprintf(`%s\/%s\/(.*[^\s])`, types.KeyTotalEscrowPrefix, types.KeyDenomsPrefix))
+
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, []byte(types.KeyTotalEscrowPrefix))
 
 	defer sdk.LogDeferred(ctx.Logger(), func() error { return iterator.Close() })
 	for ; iterator.Valid(); iterator.Next() {
-		keySplit := strings.Split(string(iterator.Key()), "/")
-		if len(keySplit) < 3 { // key should be at least contains 3 elements: "totalEscrow/denoms/{denomination}
-			continue
-		}
-		if keySplit[1] != types.KeyDenomsPrefix {
+		matches := re.FindStringSubmatch(string(iterator.Key()))
+		if len(matches) != 2 { // there should be two matches: 1st one for the whole string, 2nd for the denomination
 			continue
 		}
 
-		denom := keySplit[2:]
+		denom := matches[1]
 
 		var amount math.Int
 		if err := amount.Unmarshal(iterator.Value()); err != nil {
 			continue
 		}
 
-		denomEscrow := sdk.NewCoin(strings.Join(denom, "/"), amount)
+		denomEscrow := sdk.NewCoin(denom, amount)
 		if cb(denomEscrow) {
 			break
 		}
