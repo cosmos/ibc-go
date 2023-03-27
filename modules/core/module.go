@@ -21,7 +21,6 @@ import (
 	connectionkeeper "github.com/cosmos/ibc-go/v7/modules/core/03-connection/keeper"
 	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	wasmclient "github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm"
 	"github.com/cosmos/ibc-go/v7/modules/core/client/cli"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	"github.com/cosmos/ibc-go/v7/modules/core/keeper"

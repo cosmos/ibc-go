@@ -65,12 +65,6 @@ func NewKeeper(
 	connectionKeeper := connectionkeeper.NewKeeper(cdc, key, paramSpace, clientKeeper)
 	portKeeper := portkeeper.NewKeeper(scopedKeeper)
 	channelKeeper := channelkeeper.NewKeeper(cdc, key, clientKeeper, connectionKeeper, portKeeper, scopedKeeper)
-<<<<<<< HEAD
-	wasmKeeper := wasmkeeper.NewKeeper(cdc, key)	
-	
-=======
-
->>>>>>> 35be27ab (remove wasm client keeper from IBC keeper)
 	return &Keeper{
 		cdc:              cdc,
 		ClientKeeper:     clientKeeper,

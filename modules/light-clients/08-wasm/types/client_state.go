@@ -148,7 +148,7 @@ func (cs ClientState) VerifyMembership(
 	delayTimePeriod uint64,
 	delayBlockPeriod uint64,
 	proof []byte,
-	path []byte,
+	path exported.Path,
 	value []byte,
 ) error {
 	if cs.GetLatestHeight().LT(height) {
@@ -203,7 +203,7 @@ func (cs ClientState) VerifyNonMembership(
 	delayTimePeriod uint64,
 	delayBlockPeriod uint64,
 	proof []byte,
-	path []byte,
+	path exported.Path,
 ) error {
 	if cs.GetLatestHeight().LT(height) {
 		return errorsmod.Wrapf(
