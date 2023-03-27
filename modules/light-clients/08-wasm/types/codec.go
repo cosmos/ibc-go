@@ -2,9 +2,9 @@ package types
 
 import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/msgservice"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
 // RegisterInterfaces registers the tendermint concrete client-related
@@ -19,17 +19,17 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 		&ConsensusState{},
 	)
 	registry.RegisterImplementations(
-	 	(*exported.ClientMessage)(nil),
-	 	&Header{},
+		(*exported.ClientMessage)(nil),
+		&Header{},
 	)
 	registry.RegisterImplementations(
 		(*exported.ClientMessage)(nil),
-	 	&Misbehaviour{},
+		&Misbehaviour{},
 	)
 	registry.RegisterImplementations(
 		(*sdk.Msg)(nil),
 		&MsgPushNewWasmCode{},
 	)
-		
+
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
 }

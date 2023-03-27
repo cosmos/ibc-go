@@ -39,7 +39,7 @@ type Keeper struct {
 func NewKeeper(
 	cdc codec.BinaryCodec, key storetypes.StoreKey, paramSpace paramtypes.Subspace,
 	stakingKeeper clienttypes.StakingKeeper, upgradeKeeper clienttypes.UpgradeKeeper,
-	scopedKeeper capabilitykeeper.ScopedKeeper, 
+	scopedKeeper capabilitykeeper.ScopedKeeper,
 ) *Keeper {
 	// register paramSpace at top level keeper
 	// set KeyTable if it has not already been set
