@@ -492,6 +492,7 @@ func (q Keeper) NextSequenceReceive(c context.Context, req *types.QueryNextSeque
 	return types.NewQueryNextSequenceReceiveResponse(sequence, nil, selfHeight), nil
 }
 
+// UpgradeSequence implements the Query/UpgradeSequence gRPC method
 func (q Keeper) UpgradeSequence(c context.Context, req *types.QueryUpgradeSequenceRequest) (*types.QueryUpgradeSequenceResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
