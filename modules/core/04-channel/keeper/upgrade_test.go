@@ -1,6 +1,8 @@
 package keeper_test
 
 import (
+	"fmt"
+
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
 	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
@@ -41,6 +43,13 @@ func (suite *KeeperTestSuite) TestChanUpgradeInit() {
 			false,
 		},
 		{
+			"identical upgrade channel end",
+			func() {
+				channelUpgrade = types.NewChannel(types.INITUPGRADE, types.UNORDERED, types.NewCounterparty(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID), []string{path.EndpointA.ConnectionID}, mock.Version)
+			},
+			false,
+		},
+		{
 			"channel not found",
 			func() {
 				path.EndpointA.ChannelID = "invalid-channel"
@@ -52,6 +61,13 @@ func (suite *KeeperTestSuite) TestChanUpgradeInit() {
 			"channel state is not in OPEN state",
 			func() {
 				suite.Require().NoError(path.EndpointA.SetChannelState(types.CLOSED))
+			},
+			false,
+		},
+		{
+			"invalid proposed channel connection",
+			func() {
+				channelUpgrade.ConnectionHops = []string{"connection-100"}
 			},
 			false,
 		},
@@ -80,11 +96,11 @@ func (suite *KeeperTestSuite) TestChanUpgradeInit() {
 			suite.coordinator.Setup(path)
 
 			chanCap, _ = suite.chainA.GetSimApp().GetScopedIBCKeeper().GetCapability(suite.chainA.GetContext(), host.ChannelCapabilityPath(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
-			channelUpgrade = types.NewChannel(types.INITUPGRADE, types.UNORDERED, types.NewCounterparty(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID), []string{path.EndpointA.ConnectionID}, mock.Version)
+			channelUpgrade = types.NewChannel(types.INITUPGRADE, types.UNORDERED, types.NewCounterparty(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID), []string{path.EndpointA.ConnectionID}, fmt.Sprintf("%s-v2", mock.Version))
 
 			tc.malleate()
 
-			sequence, err := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.ChanUpgradeInit(
+			sequence, version, err := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.ChanUpgradeInit(
 				suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID,
 				chanCap, channelUpgrade, path.EndpointB.Chain.GetTimeoutHeight(), 0,
 			)
@@ -95,6 +111,10 @@ func (suite *KeeperTestSuite) TestChanUpgradeInit() {
 				expSequence, found := suite.chainA.GetSimApp().GetIBCKeeper().ChannelKeeper.GetUpgradeSequence(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 				suite.Require().True(found)
 				suite.Require().Equal(expSequence, sequence)
+
+				expVersion, found := suite.chainA.GetSimApp().GetIBCKeeper().ChannelKeeper.GetAppVersion(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				suite.Require().True(found)
+				suite.Require().Equal(expVersion, version)
 			} else {
 				suite.Require().Error(err)
 			}
