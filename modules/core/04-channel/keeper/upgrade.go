@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"fmt"
 	"reflect"
 
 	errorsmod "cosmossdk.io/errors"
@@ -11,7 +12,15 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	portkeeper "github.com/cosmos/ibc-go/v7/modules/core/05-port/keeper"
+	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
+)
+
+const (
+	// restoreErrorString defines a string constant included in error receipts.
+	// NOTE: Changing this const is state machine breaking as it is written into state.
+	restoreErrorString = "restored channel to pre-upgrade state"
 )
 
 // ChanUpgradeInit is called by a module to initiate a channel upgrade handshake with
@@ -89,4 +98,42 @@ func (k Keeper) WriteUpgradeInitChannel(
 	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", types.OPEN.String(), "new-state", types.INITUPGRADE.String())
 
 	emitChannelUpgradeInitEvent(ctx, portID, channelID, upgradeSequence, channelUpgrade)
+}
+
+// RestoreChannel restores the given channel to the state prior to upgrade.
+func (k Keeper) RestoreChannel(ctx sdk.Context, portID, channelID string, upgradeSequence uint64) error {
+	_, code, _ := errorsmod.ABCIInfo(types.ErrChannelRestored, false) // discard non-determinstic codespace and log values
+
+	errorReceipt := types.ErrorReceipt{
+		Sequence: upgradeSequence,
+		Error:    fmt.Sprintf("ABCI code: %d: %s", code, restoreErrorString),
+	}
+
+	k.SetUpgradeErrorReceipt(ctx, portID, channelID, errorReceipt)
+
+	channel, found := k.GetUpgradeRestoreChannel(ctx, portID, channelID)
+	if !found {
+		return errorsmod.Wrapf(types.ErrRestoreChannelNotFound, "channel-id: %s", channelID)
+	}
+
+	k.SetChannel(ctx, portID, channelID, channel)
+	k.DeleteUpgradeRestoreChannel(ctx, portID, channelID)
+	k.DeleteUpgradeTimeout(ctx, portID, channelID)
+
+	module, _, err := k.LookupModuleByChannel(ctx, portID, channelID)
+	if err != nil {
+		return errorsmod.Wrap(err, "could not retrieve module from port-id")
+	}
+
+	portKeeper, ok := k.portKeeper.(*portkeeper.Keeper)
+	if !ok {
+		panic("todo: handle this situation")
+	}
+
+	cbs, found := portKeeper.Router.GetRoute(module)
+	if !found {
+		return errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
+	}
+
+	return cbs.OnChanUpgradeRestore(ctx, portID, channelID)
 }
