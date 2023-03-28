@@ -1370,7 +1370,7 @@ func (suite *KeeperTestSuite) TestQueryUnreceivedAcks() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestQueryUpgradeSequence() {
+func (suite *KeeperTestSuite) TestQueryNextSequenceReceive() {
 	var (
 		req    *types.QueryNextSequenceReceiveRequest
 		expSeq uint64
@@ -1455,11 +1455,10 @@ func (suite *KeeperTestSuite) TestQueryUpgradeSequence() {
 	}
 }
 
-
-func (suite *KeeperTestSuite) TestQueryNextSequenceReceive() {
+func (suite *KeeperTestSuite) TestQueryUpgradeSequence() {
 	var (
-		req    *types.QueryNextSequenceReceiveRequest
-		expSeq uint64
+		req        *types.QueryUpgradeSequenceRequest
+		upgradeSeq uint64
 	)
 
 	testCases := []struct {
@@ -1467,52 +1466,52 @@ func (suite *KeeperTestSuite) TestQueryNextSequenceReceive() {
 		malleate func()
 		expPass  bool
 	}{
-		// {
-		// 	"empty request",
-		// 	func() {
-		// 		req = nil
-		// 	},
-		// 	false,
-		// },
-		// {
-		// 	"invalid port ID",
-		// 	func() {
-		// 		req = &types.QueryNextSequenceReceiveRequest{
-		// 			PortId:    "",
-		// 			ChannelId: "test-channel-id",
-		// 		}
-		// 	},
-		// 	false,
-		// },
-		// {
-		// 	"invalid channel ID",
-		// 	func() {
-		// 		req = &types.QueryNextSequenceReceiveRequest{
-		// 			PortId:    "test-port-id",
-		// 			ChannelId: "",
-		// 		}
-		// 	},
-		// 	false,
-		// },
-		// {
-		// 	"channel not found",
-		// 	func() {
-		// 		req = &types.QueryNextSequenceReceiveRequest{
-		// 			PortId:    "test-port-id",
-		// 			ChannelId: "test-channel-id",
-		// 		}
-		// 	},
-		// 	false,
-		// },
+		{
+			"empty request",
+			func() {
+				req = nil
+			},
+			false,
+		},
+		{
+			"invalid port ID",
+			func() {
+				req = &types.QueryUpgradeSequenceRequest{
+					PortId:    "",
+					ChannelId: "test-channel-id",
+				}
+			},
+			false,
+		},
+		{
+			"invalid channel ID",
+			func() {
+				req = &types.QueryUpgradeSequenceRequest{
+					PortId:    "test-port-id",
+					ChannelId: "",
+				}
+			},
+			false,
+		},
+		{
+			"channel not found",
+			func() {
+				req = &types.QueryUpgradeSequenceRequest{
+					PortId:    "test-port-id",
+					ChannelId: "test-channel-id",
+				}
+			},
+			false,
+		},
 		{
 			"success",
 			func() {
 				path := ibctesting.NewPath(suite.chainA, suite.chainB)
 				suite.coordinator.Setup(path)
-				expSeq = 1
-				suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetNextSequenceRecv(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, expSeq)
+				upgradeSeq = 1
+				suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetUpgradeSequence(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, upgradeSeq)
 
-				req = &types.QueryNextSequenceReceiveRequest{
+				req = &types.QueryUpgradeSequenceRequest{
 					PortId:    path.EndpointA.ChannelConfig.PortID,
 					ChannelId: path.EndpointA.ChannelID,
 				}
@@ -1528,12 +1527,12 @@ func (suite *KeeperTestSuite) TestQueryNextSequenceReceive() {
 			tc.malleate()
 			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
 
-			res, err := suite.chainA.QueryServer.NextSequenceReceive(ctx, req)
+			res, err := suite.chainA.QueryServer.UpgradeSequence(ctx, req)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
-				suite.Require().Equal(expSeq, res.NextSequenceReceive)
+				suite.Require().Equal(upgradeSeq, res.UpgradeSequence)
 			} else {
 				suite.Require().Error(err)
 			}

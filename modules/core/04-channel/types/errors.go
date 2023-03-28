@@ -23,7 +23,6 @@ var (
 	ErrInvalidAcknowledgement    = errorsmod.Register(SubModuleName, 16, "invalid acknowledgement")
 	ErrAcknowledgementExists     = errorsmod.Register(SubModuleName, 17, "acknowledgement for packet already exists")
 	ErrInvalidChannelIdentifier  = errorsmod.Register(SubModuleName, 18, "invalid channel identifier")
-	ErrUpgradeSequenceNotFound   = errorsmod.Register(SubModuleName, 19, "upgrade sequence not found")
 
 	// packets already relayed errors
 	ErrPacketReceived           = errorsmod.Register(SubModuleName, 19, "packet already received")
@@ -38,8 +37,9 @@ var (
 	// Perform a no-op on the current Msg
 	ErrNoOpMsg = errorsmod.Register(SubModuleName, 23, "message is redundant, no-op will be performed")
 
-	ErrInvalidChannelVersion = errorsmod.Register(SubModuleName, 24, "invalid channel version")
-	ErrPacketNotSent         = errorsmod.Register(SubModuleName, 25, "packet has not been sent")
-	ErrInvalidTimeout        = errorsmod.Register(SubModuleName, 26, "invalid packet timeout")
-	ErrInvalidUpgradeTimeout = errorsmod.Register(SubModuleName, 27, "either timeout height or timeout timestamp must be non-zero")
+	ErrInvalidChannelVersion   = errorsmod.Register(SubModuleName, 24, "invalid channel version")
+	ErrPacketNotSent           = errorsmod.Register(SubModuleName, 25, "packet has not been sent")
+	ErrInvalidTimeout          = errorsmod.Register(SubModuleName, 26, "invalid packet timeout")
+	ErrInvalidUpgradeTimeout   = errorsmod.Register(SubModuleName, 27, "either timeout height or timeout timestamp must be non-zero")
+	ErrUpgradeSequenceNotFound = errorsmod.Register(SubModuleName, 28, "upgrade sequence not found")
 )
