@@ -768,6 +768,102 @@ func (suite *KeeperTestSuite) TestVerifyUpgradeSequence() {
 	}
 }
 
+func (suite *KeeperTestSuite) TestVerifyUpgradeErrorReceipt() {
+	var (
+		path         *ibctesting.Path
+		errorReceipt *channeltypes.ErrorReceipt
+	)
+
+	cases := []struct {
+		name     string
+		malleate func()
+		expPass  bool
+	}{
+		{
+			name:     "success",
+			malleate: func() {},
+			expPass:  true,
+		},
+		//{
+		//	name: "fails with different upgrade sequence",
+		//	malleate: func() {
+		//		expectedUpgradeSequence = 10
+		//	},
+		//	expPass: false,
+		//},
+		//{
+		//	name: "fails when client state is frozen",
+		//	malleate: func() {
+		//		clientState := path.EndpointB.GetClientState().(*ibctm.ClientState)
+		//		clientState.FrozenHeight = clienttypes.NewHeight(0, 1)
+		//		path.EndpointB.SetClientState(clientState)
+		//	},
+		//	expPass: false,
+		//},
+		//{
+		//	name: "fails with bad client id",
+		//	malleate: func() {
+		//		connection := path.EndpointB.GetConnection()
+		//		connection.ClientId = ibctesting.InvalidID
+		//		path.EndpointB.SetConnection(connection)
+		//	},
+		//	expPass: false,
+		//},
+		//{
+		//	name: "verification fails when the key does not exist",
+		//	malleate: func() {
+		//		storeKey := path.EndpointA.Chain.GetSimApp().GetKey(exported.StoreKey)
+		//		kvStore := path.EndpointA.Chain.GetContext().KVStore(storeKey)
+		//		kvStore.Delete(host.ChannelUpgradeSequenceKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
+		//		suite.coordinator.CommitBlock(suite.chainA)
+		//	},
+		//	expPass: false,
+		//},
+	}
+
+	for _, tc := range cases {
+		tc := tc
+
+		suite.Run(tc.name, func() {
+			suite.SetupTest() // reset
+
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.Setup(path)
+
+			// specify a new version to upgrade to.
+			//path.EndpointA.ChannelConfig.Version = fmt.Sprintf("%s-v2", ibcmock.Version)
+
+			//err := path.EndpointA.ChanUpgradeInit(path.EndpointB.Chain.GetTimeoutHeight(), 0)
+			//suite.Require().NoError(err)
+
+			errorReceipt = &channeltypes.ErrorReceipt{
+				Sequence: 1,
+				Error:    "error message",
+			}
+
+			tc.malleate()
+
+			suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetUpgradeSequence(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+
+			path.EndpointA.Chain.Coordinator.CommitBlock(path.EndpointB.Chain)
+			path.EndpointB.UpdateClient()
+
+
+			upgradeErrorReceiptKey := host.ChannelUpgradeErrorKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+			proof, proofHeight := suite.chainA.QueryProof(upgradeErrorReceiptKey)
+
+
+			err := suite.chainB.GetSimApp().IBCKeeper.ConnectionKeeper.VerifyChannelUpgradeError(suite.chainB.GetContext(), path.EndpointB.GetConnection(), proofHeight, proof, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, errorReceipt)
+
+			if tc.expPass {
+				suite.Require().NoError(err)
+			} else {
+				suite.Require().Error(err)
+			}
+		})
+	}
+}
+
 func malleateHeight(height exported.Height, diff uint64) exported.Height {
 	return clienttypes.NewHeight(height.GetRevisionNumber(), height.GetRevisionHeight()+diff)
 }
