@@ -438,7 +438,7 @@ func (k Keeper) VerifyChannelUpgradeError(
 		0, 0, // skip delay period checks for non-packet processing verification
 		proof, merklePath, bz,
 	); err != nil {
-		return errorsmod.Wrapf(err, "failed error receipt verification for client (%s)", clientID)
+		return errorsmod.Wrapf(err, "failed upgrade error receipt verification for client (%s)", clientID)
 	}
 
 	return nil
