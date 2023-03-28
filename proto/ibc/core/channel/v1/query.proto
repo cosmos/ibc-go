@@ -10,6 +10,7 @@ import "ibc/core/channel/v1/channel.proto";
 import "google/api/annotations.proto";
 import "google/protobuf/any.proto";
 import "gogoproto/gogo.proto";
+import "ibc/core/channel/v1/upgrade.proto";
 
 // Query provides defines the gRPC querier service
 service Query {
@@ -97,6 +98,12 @@ service Query {
   rpc NextSequenceReceive(QueryNextSequenceReceiveRequest) returns (QueryNextSequenceReceiveResponse) {
     option (google.api.http).get = "/ibc/core/channel/v1/channels/{channel_id}/"
                                    "ports/{port_id}/next_sequence";
+  }
+
+  // UpgradeError returns the error receipt if the upgrade handshake failed.
+  rpc UpgradeError(QueryUpgradeErrorRequest) returns (QueryUpgradeErrorResponse) {
+    option (google.api.http).get = "/ibc/core/channel/v1/channels/{channel_id}/"
+                                   "ports/{port_id}/upgrade_error";
   }
 }
 
@@ -373,4 +380,15 @@ message QueryNextSequenceReceiveResponse {
   bytes proof = 2;
   // height at which the proof was retrieved
   ibc.core.client.v1.Height proof_height = 3 [(gogoproto.nullable) = false];
+}
+
+// QueryUpgradeErrorRequest is the request type for the Query/QueryUpgradeError RPC method
+message QueryUpgradeErrorRequest {
+  string port_id    = 1;
+  string channel_id = 2;
+}
+
+// QueryUpgradeErrorResponse is the response type for the Query/QueryUpgradeError RPC method
+message QueryUpgradeErrorResponse {
+  ErrorReceipt err = 1;
 }

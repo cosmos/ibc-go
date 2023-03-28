@@ -538,6 +538,27 @@ func (k Keeper) SetUpgradeTimeout(ctx sdk.Context, portID, channelID string, upg
 	store.Set(host.ChannelUpgradeTimeoutKey(portID, channelID), bz)
 }
 
+// GetUpgradeError returns the upgrade error stored in state for the provided port and channel identifiers.
+func (k Keeper) GetUpgradeError(ctx sdk.Context, portID, channelID string) (types.ErrorReceipt, bool) {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(host.ChannelUpgradeErrorKey(portID, channelID))
+	if bz == nil {
+		return types.ErrorReceipt{}, false
+	}
+
+	var upgradeError types.ErrorReceipt
+	k.cdc.MustUnmarshal(bz, &upgradeError)
+
+	return upgradeError, true
+}
+
+// SetUpgradeError sets the upgrade error in store using the provided port and channel identifiers.
+func (k Keeper) SetUpgradeError(ctx sdk.Context, portID, channelID string, upgradeError types.ErrorReceipt) {
+	store := ctx.KVStore(k.storeKey)
+	bz := k.cdc.MustMarshal(&upgradeError)
+	store.Set(host.ChannelUpgradeErrorKey(portID, channelID), bz)
+}
+
 // common functionality for IteratePacketCommitment and IteratePacketAcknowledgement
 func (k Keeper) iterateHashes(ctx sdk.Context, iterator db.Iterator, cb func(portID, channelID string, sequence uint64, hash []byte) bool) {
 	defer sdk.LogDeferred(ctx.Logger(), func() error { return iterator.Close() })

@@ -492,6 +492,28 @@ func (q Keeper) NextSequenceReceive(c context.Context, req *types.QueryNextSeque
 	return types.NewQueryNextSequenceReceiveResponse(sequence, nil, selfHeight), nil
 }
 
+func (q Keeper) UpgradeError(c context.Context, req *types.QueryUpgradeErrorRequest) (*types.QueryUpgradeErrorResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "empty request")
+	}
+
+	if err := host.ChannelIdentifierValidator(req.ChannelId); err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+
+	ctx := sdk.UnwrapSDKContext(c)
+	receipt, found := q.GetUpgradeError(ctx, req.PortId, req.ChannelId)
+	if !found {
+		return nil, status.Error(
+			codes.NotFound,
+			errorsmod.Wrapf(types.ErrUpgradeErrorNotFound, "channel-id %s", req.ChannelId).Error(),
+		)
+	}
+
+	// selfHeight := clienttypes.GetSelfHeight(ctx)
+	return types.NewQueryUpgradeErrorResponse(receipt.Sequence, receipt.Error), nil
+}
+
 func validategRPCRequest(portID, channelID string) error {
 	if err := host.PortIdentifierValidator(portID); err != nil {
 		return status.Error(codes.InvalidArgument, err.Error())
