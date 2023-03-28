@@ -764,7 +764,7 @@ func (suite *KeeperTestSuite) TestVerifyUpgradeTimeout() {
 			err = suite.chainB.GetSimApp().IBCKeeper.ConnectionKeeper.VerifyChannelUpgradeTimeout(
 				suite.chainB.GetContext(),
 				path.EndpointB.GetConnection(),
-				malleateHeight(proofHeight, 0),
+				proofHeight,
 				proof,
 				// this should be the counterparty port and channel id (chain A)
 				path.EndpointA.ChannelConfig.PortID,
