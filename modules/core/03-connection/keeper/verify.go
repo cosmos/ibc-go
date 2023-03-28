@@ -410,7 +410,7 @@ func (k Keeper) VerifyChannelUpgradeError(
 	proof []byte,
 	portID,
 	channelID string,
-	errorReceipt *channeltypes.ErrorReceipt,
+	errorReceipt channeltypes.ErrorReceipt,
 ) error {
 	clientID := connection.GetClientID()
 	clientState, clientStore, err := k.getClientStateAndVerificationStore(ctx, clientID)
@@ -428,7 +428,7 @@ func (k Keeper) VerifyChannelUpgradeError(
 		return err
 	}
 
-	bz, err := k.cdc.Marshal(errorReceipt)
+	bz, err := k.cdc.Marshal(&errorReceipt)
 	if err != nil {
 		return err
 	}

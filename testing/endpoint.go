@@ -662,3 +662,9 @@ func (endpoint *Endpoint) QueryClientStateProof() (exported.ClientState, []byte)
 
 	return clientState, proofClient
 }
+
+func (endpoint *Endpoint) DeleteKey(key []byte) {
+	storeKey := endpoint.Chain.GetSimApp().GetKey(exported.StoreKey)
+	kvStore := endpoint.Chain.GetContext().KVStore(storeKey)
+	kvStore.Delete(key)
+}

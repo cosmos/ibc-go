@@ -589,3 +589,10 @@ func (chain *TestChain) GetChannelCapability(portID, channelID string) *capabili
 func (chain *TestChain) GetTimeoutHeight() clienttypes.Height {
 	return clienttypes.NewHeight(clienttypes.ParseChainID(chain.ChainID), uint64(chain.GetContext().BlockHeight())+100)
 }
+
+// DeleteKey deletes the specified key from the ibc store.
+func (chain *TestChain) DeleteKey(key []byte) {
+	storeKey := chain.GetSimApp().GetKey(exported.StoreKey)
+	kvStore := chain.GetContext().KVStore(storeKey)
+	kvStore.Delete(key)
+}
