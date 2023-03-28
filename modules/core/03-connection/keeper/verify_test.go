@@ -746,6 +746,9 @@ func (suite *KeeperTestSuite) TestVerifyUpgradeTimeout() {
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.Setup(path)
 
+			// specify a new version to upgrade to.
+			path.EndpointA.ChannelConfig.Version = fmt.Sprintf("%s-v2", ibcmock.Version)
+
 			// chain A initiates an upgrade and stores the timeout height/timestamp by which point chain B must have proceeded
 			// to the TRY step. In this case, we set it to the current height/timestamp to ensure timeout.
 			err := path.EndpointA.ChanUpgradeInit(height, timestamp)
