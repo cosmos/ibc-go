@@ -1,14 +1,18 @@
 package transfer_test
 
 import (
+	"fmt"
 	"math"
 
+	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
 	"github.com/cosmos/ibc-go/v7/modules/apps/transfer"
 	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
+	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
@@ -238,4 +242,35 @@ func (suite *TransferTestSuite) TestOnChanOpenAck() {
 			}
 		})
 	}
+}
+
+func (suite *TransferTestSuite) TestUnmarshalPacketData() {
+	var (
+		sender   = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
+		receiver = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
+		denom    = "transfer/channel-0/atom"
+		amount   = "100"
+	)
+
+	expPacketData := types.FungibleTokenPacketData{
+		Denom:    denom,
+		Amount:   amount,
+		Sender:   sender,
+		Receiver: receiver,
+		Memo:     fmt.Sprintf(`{"callbacks": {"src_callback_address": "%s", "dest_callback_address": "%s"}}`, sender, receiver),
+	}
+
+	packetData, err := transfer.IBCModule{}.UnmarshalPacketData(expPacketData.GetBytes())
+	suite.Require().NoError(err)
+	suite.Require().Equal(expPacketData, packetData)
+
+	callbackPacketData, ok := packetData.(ibcexported.CallbackPacketData)
+	suite.Require().True(ok)
+	suite.Require().Equal(sender, callbackPacketData.GetSourceCallbackAddress(), "incorrect source callback address")
+	suite.Require().Equal(receiver, callbackPacketData.GetDestCallbackAddress(), "incorrect destination callback address")
+
+	invalidPacketData := []byte("invalid packet data")
+	packetData, err = transfer.IBCModule{}.UnmarshalPacketData(invalidPacketData)
+	suite.Require().Error(err)
+	suite.Require().Nil(packetData)
 }
