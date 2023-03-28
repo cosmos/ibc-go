@@ -38,7 +38,6 @@ func (k Keeper) ChanUpgradeInit(
 	if !found {
 		return 0, "", errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
 	}
-	restoreChannel := channel
 
 	if channel.State != types.OPEN {
 		return 0, "", errorsmod.Wrapf(types.ErrInvalidChannelState, "expected %s, got %s", types.OPEN, channel.State)
