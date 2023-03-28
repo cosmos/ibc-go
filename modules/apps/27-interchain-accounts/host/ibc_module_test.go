@@ -721,7 +721,6 @@ func (suite *InterchainAccountsTestSuite) TestUnmarshalPacketData() {
 	packetData, err = icahost.IBCModule{}.UnmarshalPacketData(invalidPacketData)
 	suite.Require().Error(err)
 	suite.Require().Nil(packetData)
-
 }
 
 // assertBalance asserts that the provided address has exactly the expected balance.
