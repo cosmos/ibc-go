@@ -270,7 +270,11 @@ message MsgChannelUpgradeInit {
 }
 
 // MsgChannelUpgradeInitResponse defines the MsgChannelUpgradeInit response type
-message MsgChannelUpgradeInitResponse {}
+message MsgChannelUpgradeInitResponse {
+  string channel_id       = 1;
+  string version          = 2;
+  uint64 upgrade_sequence = 3;
+}
 
 // MsgChannelUpgradeTry defines the request type for the ChannelUpgradeTry rpc
 message MsgChannelUpgradeTry {

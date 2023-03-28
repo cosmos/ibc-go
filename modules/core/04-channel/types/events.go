@@ -38,6 +38,8 @@ const (
 	AttributeKeyDstChannel       = "packet_dst_channel"
 	AttributeKeyChannelOrdering  = "packet_channel_ordering"
 	AttributeKeyConnection       = "packet_connection"
+
+	AttributeKeyUpgradeSequence = "upgrade_sequence"
 )
 
 // IBC channel events vars
@@ -49,6 +51,7 @@ var (
 	EventTypeChannelCloseInit    = "channel_close_init"
 	EventTypeChannelCloseConfirm = "channel_close_confirm"
 	EventTypeChannelClosed       = "channel_close"
+	EventTypeChannelUpgradeInit  = "channel_upgrade_init"
 
 	AttributeValueCategory = fmt.Sprintf("%s_%s", ibcexported.ModuleName, SubModuleName)
 )

@@ -17,6 +17,7 @@ import (
 	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	"github.com/cosmos/ibc-go/v7/testing/mock"
 	"github.com/cosmos/ibc-go/v7/testing/simapp"
 )
 
@@ -465,6 +466,13 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeInitValidateBasic() {
 			false,
 		},
 		{
+			"empty proposed upgrade channel version",
+			func() {
+				msg.ProposedUpgradeChannel.Version = "  "
+			},
+			false,
+		},
+		{
 			"timeout height is zero && timeout timestamp is zero",
 			func() {
 				msg.TimeoutHeight = clienttypes.ZeroHeight()
@@ -486,7 +494,7 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeInitValidateBasic() {
 		suite.Run(tc.name, func() {
 			msg = types.NewMsgChannelUpgradeInit(
 				ibctesting.MockPort, ibctesting.FirstChannelID,
-				types.Channel{State: types.INITUPGRADE},
+				types.Channel{State: types.INITUPGRADE, Version: mock.Version},
 				clienttypes.NewHeight(0, 10000),
 				0,
 				addr,

@@ -3,6 +3,7 @@ package types
 import (
 	errorsmod "cosmossdk.io/errors"
 
+	"github.com/cosmos/ibc-go/v7/internal/collections"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
@@ -125,4 +126,19 @@ func (ic IdentifiedChannel) ValidateBasic() error {
 	}
 	channel := NewChannel(ic.State, ic.Ordering, ic.Counterparty, ic.ConnectionHops, ic.Version)
 	return channel.ValidateBasic()
+}
+
+// orderSubsets defines a map of supported ordering subsets
+var orderSubsets = map[Order][]Order{
+	ORDERED:   {UNORDERED, ORDERED},
+	UNORDERED: {UNORDERED},
+}
+
+// SubsetOf returns true if the provided Order is a valid subset of Order.
+func (o Order) SubsetOf(order Order) bool {
+	if supported, ok := orderSubsets[o]; ok {
+		return collections.Contains(order, supported)
+	}
+
+	return false
 }

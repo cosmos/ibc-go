@@ -564,6 +564,28 @@ func (endpoint *Endpoint) TimeoutOnClose(packet channeltypes.Packet) error {
 	return endpoint.Chain.sendMsgs(timeoutOnCloseMsg)
 }
 
+func (endpoint *Endpoint) ChanUpgradeInit(timeoutHeight clienttypes.Height, timeoutTimestamp uint64) error {
+	counterparty := channeltypes.NewCounterparty(endpoint.Counterparty.ChannelConfig.PortID, endpoint.Counterparty.ChannelID)
+	channelUpgrade := channeltypes.NewChannel(channeltypes.INITUPGRADE, endpoint.ChannelConfig.Order, counterparty, []string{endpoint.ConnectionID}, endpoint.ChannelConfig.Version)
+
+	msg := channeltypes.NewMsgChannelUpgradeInit(
+		endpoint.ChannelConfig.PortID, endpoint.ChannelID,
+		channelUpgrade, timeoutHeight, timeoutTimestamp,
+		endpoint.Chain.SenderAccount.GetAddress().String(),
+	)
+
+	if err := endpoint.Chain.sendMsgs(msg); err != nil {
+		return err
+	}
+
+	// update version to selected app version
+	// NOTE: this update must be performed after SendMsgs()
+	endpoint.ChannelConfig.Version = endpoint.GetChannel().Version
+
+	endpoint.Chain.Coordinator.CommitBlock(endpoint.Chain)
+	return endpoint.Counterparty.UpdateClient()
+}
+
 // SetChannelState sets a channel state
 func (endpoint *Endpoint) SetChannelState(state channeltypes.State) error {
 	channel := endpoint.GetChannel()
