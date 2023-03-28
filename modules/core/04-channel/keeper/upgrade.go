@@ -101,7 +101,6 @@ func (k Keeper) WriteUpgradeInitChannel(
 
 // RestoreChannel restores the given channel to the state prior to upgrade.
 func (k Keeper) RestoreChannel(ctx sdk.Context, portID, channelID string, upgradeSequence uint64) error {
-
 	_, code, _ := errorsmod.ABCIInfo(types.ErrChannelRestored, false) // discard non-determinstic codespace and log values
 
 	errorReceipt := types.ErrorReceipt{
