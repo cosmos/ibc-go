@@ -364,6 +364,44 @@ func (k Keeper) VerifyNextSequenceRecv(
 	return nil
 }
 
+// VerifyChannelUpgradeSequence verifies a proof of the upgrade sequence number to be
+// used during channel upgrades.
+func (k Keeper) VerifyChannelUpgradeSequence(
+	ctx sdk.Context,
+	connection exported.ConnectionI,
+	height exported.Height,
+	proof []byte,
+	portID,
+	channelID string,
+	upgradeSequence uint64,
+) error {
+	clientID := connection.GetClientID()
+	clientState, clientStore, err := k.getClientStateAndVerificationStore(ctx, clientID)
+	if err != nil {
+		return err
+	}
+
+	if status := k.clientKeeper.GetClientStatus(ctx, clientState, clientID); status != exported.Active {
+		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
+	}
+
+	merklePath := commitmenttypes.NewMerklePath(host.ChannelUpgradeSequencePath(portID, channelID))
+	merklePath, err = commitmenttypes.ApplyPrefix(connection.GetCounterparty().GetPrefix(), merklePath)
+	if err != nil {
+		return err
+	}
+
+	if err := clientState.VerifyMembership(
+		ctx, clientStore, k.cdc, height,
+		0, 0, // skip delay period checks for non-packet processing verification
+		proof, merklePath, sdk.Uint64ToBigEndian(upgradeSequence),
+	); err != nil {
+		return errorsmod.Wrapf(err, "failed upgrade sequence verification for client (%s)", clientID)
+	}
+
+	return nil
+}
+
 // VerifyChannelUpgradeTimeout verifies the proof that a particular timeout has been stored in the upgrade timeout path.
 func (k Keeper) VerifyChannelUpgradeTimeout(
 	ctx sdk.Context,
