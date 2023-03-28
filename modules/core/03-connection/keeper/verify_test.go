@@ -754,7 +754,7 @@ func (suite *KeeperTestSuite) TestVerifyUpgradeSequence() {
 			upgradeSequenceKey := host.ChannelUpgradeSequenceKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 			proof, proofHeight := suite.chainA.QueryProof(upgradeSequenceKey)
 
-			err = suite.chainB.GetSimApp().IBCKeeper.ConnectionKeeper.VerifyChannelUpgradeSequence(suite.chainB.GetContext(), path.EndpointB.GetConnection(), malleateHeight(proofHeight, 0), proof, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, expectedUpgradeSequence)
+			err = suite.chainB.GetSimApp().IBCKeeper.ConnectionKeeper.VerifyChannelUpgradeSequence(suite.chainB.GetContext(), path.EndpointB.GetConnection(), proofHeight, proof, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, expectedUpgradeSequence)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
