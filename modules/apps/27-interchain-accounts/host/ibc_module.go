@@ -150,7 +150,8 @@ func (im IBCModule) OnTimeoutPacket(
 }
 
 // UnmarshalPacketData attempts to unmarshal the provided packet data bytes
-// into an InterchainAccountPacketData.
+// into an InterchainAccountPacketData. This function implements the optional
+// PacketDataUnmarshaler interface required for ADR 008 support.
 func (im IBCModule) UnmarshalPacketData(bz []byte) (interface{}, error) {
 	var packetData icatypes.InterchainAccountPacketData
 	if err := icatypes.ModuleCdc.UnmarshalJSON(bz, &packetData); err != nil {
