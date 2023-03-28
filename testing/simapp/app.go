@@ -3,6 +3,7 @@ package simapp
 import (
 	"encoding/json"
 	"fmt"
+	callbacks "github.com/cosmos/ibc-go/v7/modules/apps/08-callbacks"
 	"io"
 	"net/http"
 	"os"
@@ -471,7 +472,12 @@ func NewSimApp(
 	// create IBC module from bottom to top of stack
 	var transferStack porttypes.IBCModule
 	transferStack = transfer.NewIBCModule(app.TransferKeeper)
-	transferStack = ibcfee.NewIBCMiddleware(transferStack, app.IBCFeeKeeper)
+	transferStack = callbacks.NewIBCMiddleware[callbacks.MyICS20Payload](
+		ibcfee.NewIBCMiddleware(transferStack, app.IBCFeeKeeper),
+		callbacks.MyICS20Decoder{},
+		callbacks.MyICS20Callbacks{},
+		callbacks.GasLimits{},
+	)
 
 	// Add transfer stack to IBC Router
 	ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferStack)
