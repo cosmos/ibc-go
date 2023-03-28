@@ -590,13 +590,6 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeTryValidateBasic() {
 			false,
 		},
 		{
-			"proof height must be > 0",
-			func() {
-				msg.ProofHeight = clienttypes.ZeroHeight()
-			},
-			false,
-		},
-		{
 			"missing signer address",
 			func() {
 				msg.Signer = emptyAddr
@@ -669,13 +662,6 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeAckValidateBasic() {
 			"cannot submit an empty upgrade sequence proof",
 			func() {
 				msg.ProofUpgradeSequence = emptyProof
-			},
-			false,
-		},
-		{
-			"proof height must be > 0",
-			func() {
-				msg.ProofHeight = clienttypes.ZeroHeight()
 			},
 			false,
 		},
@@ -773,13 +759,6 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeConfirmValidateBasic() {
 			false,
 		},
 		{
-			"proof height must be > 0",
-			func() {
-				msg.ProofHeight = clienttypes.ZeroHeight()
-			},
-			false,
-		},
-		{
 			"missing signer address",
 			func() {
 				msg.Signer = emptyAddr
@@ -841,13 +820,6 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeTimeoutValidateBasic() {
 			"cannot submit an empty proof",
 			func() {
 				msg.ProofChannel = emptyProof
-			},
-			false,
-		},
-		{
-			"proof height must be > 0",
-			func() {
-				msg.ProofHeight = clienttypes.ZeroHeight()
 			},
 			false,
 		},
@@ -934,13 +906,6 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeCancelValidateBasic() {
 			"cannot submit an empty proof",
 			func() {
 				msg.ProofErrorReceipt = emptyProof
-			},
-			false,
-		},
-		{
-			"proof height must be > 0",
-			func() {
-				msg.ProofHeight = clienttypes.ZeroHeight()
 			},
 			false,
 		},
