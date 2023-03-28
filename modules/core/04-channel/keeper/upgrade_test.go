@@ -170,7 +170,7 @@ func (suite *KeeperTestSuite) TestRestoreChannel() {
 
 			suite.Require().NoError(err)
 
-			//update the channel to have some other state.
+			// update the channel to have some other state.
 			modifiedChannel := originalChannel
 			modifiedChannel.Version = "different-version"
 			modifiedChannel.ConnectionHops = []string{"different-connection-id"}
