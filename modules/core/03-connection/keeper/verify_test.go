@@ -746,6 +746,9 @@ func (suite *KeeperTestSuite) TestVerifyUpgradeSequence() {
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.Setup(path)
 
+			// specify a new version to upgrade to.
+			path.EndpointA.ChannelConfig.Version =  fmt.Sprintf("%s-v2", ibcmock.Version)
+
 			err := path.EndpointA.ChanUpgradeInit(path.EndpointB.Chain.GetTimeoutHeight(), 0)
 			suite.Require().NoError(err)
 
