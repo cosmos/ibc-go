@@ -423,7 +423,7 @@ func (q Keeper) UnreceivedPackets(c context.Context, req *types.QueryUnreceivedP
 		nextSequenceRecv, found := q.GetNextSequenceRecv(ctx, req.PortId, req.ChannelId)
 		if !found {
 			return nil, status.Error(
-				codes.InvalidArgument,
+				codes.NotFound,
 				errorsmod.Wrapf(
 					types.ErrSequenceReceiveNotFound,
 					"destination port: %s, destination channel: %s", req.PortId, req.ChannelId,
@@ -444,7 +444,7 @@ func (q Keeper) UnreceivedPackets(c context.Context, req *types.QueryUnreceivedP
 	default:
 		return nil, status.Error(
 			codes.InvalidArgument,
-			errorsmod.Wrapf(types.ErrInvalidChannelOrdering, channel.Ordering.String()).Error())
+			errorsmod.Wrap(types.ErrInvalidChannelOrdering, channel.Ordering.String()).Error())
 	}
 
 	selfHeight := clienttypes.GetSelfHeight(ctx)

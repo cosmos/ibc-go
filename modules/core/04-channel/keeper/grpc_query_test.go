@@ -1159,11 +1159,26 @@ func (suite *KeeperTestSuite) TestQueryUnreceivedPackets() {
 			false,
 		},
 		{
+			"invalid seq, ordered channel",
+			func() {
+				path := ibctesting.NewPath(suite.chainA, suite.chainB)
+				path.SetChannelOrdered()
+				suite.coordinator.Setup(path)
+
+				req = &types.QueryUnreceivedPacketsRequest{
+					PortId:                    path.EndpointA.ChannelConfig.PortID,
+					ChannelId:                 path.EndpointA.ChannelID,
+					PacketCommitmentSequences: []uint64{0},
+				}
+			},
+			false,
+		},
+		{
 			"channel not found",
 			func() {
 				req = &types.QueryUnreceivedPacketsRequest{
-					PortId:    "test-port-id",
-					ChannelId: "test-channel-id",
+					PortId:    "invalid-port-id",
+					ChannelId: "invalid-channel-id",
 				}
 			},
 			false,
@@ -1230,14 +1245,13 @@ func (suite *KeeperTestSuite) TestQueryUnreceivedPackets() {
 			true,
 		},
 		{
-			"success basic unreceived packet commitments, ordered channel",
+			"basic success unreceived packet commitments, ordered channel",
 			func() {
 				path := ibctesting.NewPath(suite.chainA, suite.chainB)
 				path.SetChannelOrdered()
 				suite.coordinator.Setup(path)
 
-				suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetNextSequenceRecv(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, 1)
-
+				// Note: NextSequenceRecv is set to 1 on channel creation.
 				expSeq = []uint64{1}
 				req = &types.QueryUnreceivedPacketsRequest{
 					PortId:                    path.EndpointA.ChannelConfig.PortID,
@@ -1248,7 +1262,7 @@ func (suite *KeeperTestSuite) TestQueryUnreceivedPackets() {
 			true,
 		},
 		{
-			"success basic multiple unreceived packet commitments, ordered channel",
+			"basic success multiple unreceived packet commitments, ordered channel",
 			func() {
 				path := ibctesting.NewPath(suite.chainA, suite.chainB)
 				path.SetChannelOrdered()
