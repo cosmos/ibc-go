@@ -200,6 +200,25 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 			},
 			false,
 		},
+		{
+			name: "crossing hellos",
+			malleate: func() {
+				// modify the version on chain B so the channel and upgrade channel are not identical.
+				path.EndpointB.ChannelConfig.Version = fmt.Sprintf("%s-v2", mock.Version)
+				channel := path.EndpointB.GetChannel()
+				// call ChanUpgradeInit on chain B to ensure there is restore channel
+				err := path.EndpointB.ChanUpgradeInit(path.EndpointA.Chain.GetTimeoutHeight(), 0)
+				suite.Require().NoError(err)
+				channel.State = types.INITUPGRADE
+				path.EndpointB.SetChannel(channel)
+			},
+			expPass: true,
+		},
+
+		// TODO: add test cases
+		// error receipt if counterpartyUpgradeSequence > upgradeSequence
+		// connection.GetCounterparty().GetConnectionID() != counterpartyChannel.ConnectionHops[0]
+		// connection, err := k.GetConnection(ctx, proposedUpgradeChannel.ConnectionHops[0])
 	}
 
 	for _, tc := range testCases {
