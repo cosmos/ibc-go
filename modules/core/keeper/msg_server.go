@@ -755,7 +755,7 @@ func (k Keeper) ChannelUpgradeTry(goCtx context.Context, msg *channeltypes.MsgCh
 		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
 	}
 
-	upgradeSequence, err := k.ChannelKeeper.ChanUpgradeTry(
+	upgradeSequence, previousVersion, err := k.ChannelKeeper.ChanUpgradeTry(
 		ctx,
 		msg.PortId,
 		msg.ChannelId,
@@ -783,8 +783,8 @@ func (k Keeper) ChannelUpgradeTry(goCtx context.Context, msg *channeltypes.MsgCh
 		return nil, errorsmod.Wrap(err, "channel handshake upgrade try failed")
 	}
 
-	version, err := cbs.OnChanOpenTry(ctx, msg.ProposedUpgradeChannel.Ordering, msg.ProposedUpgradeChannel.ConnectionHops, msg.PortId, msg.ChannelId, chanCap,
-		msg.ProposedUpgradeChannel.Counterparty, msg.ProposedUpgradeChannel.Version)
+	proposedUpgradeVersion, err := cbs.OnChanUpgradeTry(ctx, msg.ProposedUpgradeChannel.Ordering, msg.ProposedUpgradeChannel.ConnectionHops, msg.PortId, msg.ChannelId, upgradeSequence,
+		msg.ProposedUpgradeChannel.Counterparty, previousVersion, msg.CounterpartyChannel.Version)
 	if err != nil {
 		if err := k.ChannelKeeper.RestoreChannel(ctx, msg.PortId, msg.ChannelId, upgradeSequence, err); err != nil {
 			return nil, err
@@ -792,7 +792,7 @@ func (k Keeper) ChannelUpgradeTry(goCtx context.Context, msg *channeltypes.MsgCh
 		return &channeltypes.MsgChannelUpgradeTryResponse{}, nil
 	}
 
-	msg.ProposedUpgradeChannel.Version = version
+	msg.ProposedUpgradeChannel.Version = proposedUpgradeVersion
 
 	k.ChannelKeeper.WriteUpgradeTryChannel(ctx, msg.PortId, msg.ChannelId, upgradeSequence, msg.ProposedUpgradeChannel)
 
