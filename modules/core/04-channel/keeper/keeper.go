@@ -478,6 +478,27 @@ func (k Keeper) LookupModuleByChannel(ctx sdk.Context, portID, channelID string)
 	return porttypes.GetModuleOwner(modules), capability, nil
 }
 
+// GetUpgradeErrorReceipt returns the upgrade error receipt for the provided port and channel identifiers.
+func (k Keeper) GetUpgradeErrorReceipt(ctx sdk.Context, portID, channelID string) (types.ErrorReceipt, bool) {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(host.ChannelUpgradeErrorKey(portID, channelID))
+	if bz == nil {
+		return types.ErrorReceipt{}, false
+	}
+
+	var errorReceipt types.ErrorReceipt
+	k.cdc.MustUnmarshal(bz, &errorReceipt)
+
+	return errorReceipt, true
+}
+
+// SetUpgradeErrorReceipt sets the provided error receipt in store using the port and channel identifiers.
+func (k Keeper) SetUpgradeErrorReceipt(ctx sdk.Context, portID, channelID string, errorReceipt types.ErrorReceipt) {
+	store := ctx.KVStore(k.storeKey)
+	bz := k.cdc.MustMarshal(&errorReceipt)
+	store.Set(host.ChannelUpgradeErrorKey(portID, channelID), bz)
+}
+
 // GetUpgradeRestoreChannel returns the upgrade restore channel for the provided port and channel identifiers.
 func (k Keeper) GetUpgradeRestoreChannel(ctx sdk.Context, portID, channelID string) (types.Channel, bool) {
 	store := ctx.KVStore(k.storeKey)
@@ -497,6 +518,12 @@ func (k Keeper) SetUpgradeRestoreChannel(ctx sdk.Context, portID, channelID stri
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshal(&channel)
 	store.Set(host.ChannelRestoreKey(portID, channelID), bz)
+}
+
+// DeleteUpgradeRestoreChannel deletes the restore channel end in state for the provided port and channel identifiers.
+func (k Keeper) DeleteUpgradeRestoreChannel(ctx sdk.Context, portID, channelID string) {
+	store := ctx.KVStore(k.storeKey)
+	store.Delete(host.ChannelRestoreKey(portID, channelID))
 }
 
 // GetUpgradeSequence returns the upgrade sequence for the provided port and channel identifers.
@@ -538,25 +565,10 @@ func (k Keeper) SetUpgradeTimeout(ctx sdk.Context, portID, channelID string, upg
 	store.Set(host.ChannelUpgradeTimeoutKey(portID, channelID), bz)
 }
 
-// GetUpgradeError returns the upgrade error stored in state for the provided port and channel identifiers.
-func (k Keeper) GetUpgradeError(ctx sdk.Context, portID, channelID string) (types.ErrorReceipt, bool) {
+// DeleteUpgradeTimeout deletes the upgrade timeout in state for the provided port and channel identifiers.
+func (k Keeper) DeleteUpgradeTimeout(ctx sdk.Context, portID, channelID string) {
 	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(host.ChannelUpgradeErrorKey(portID, channelID))
-	if bz == nil {
-		return types.ErrorReceipt{}, false
-	}
-
-	var upgradeError types.ErrorReceipt
-	k.cdc.MustUnmarshal(bz, &upgradeError)
-
-	return upgradeError, true
-}
-
-// SetUpgradeError sets the upgrade error in store using the provided port and channel identifiers.
-func (k Keeper) SetUpgradeError(ctx sdk.Context, portID, channelID string, upgradeError types.ErrorReceipt) {
-	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshal(&upgradeError)
-	store.Set(host.ChannelUpgradeErrorKey(portID, channelID), bz)
+	store.Delete(host.ChannelUpgradeTimeoutKey(portID, channelID))
 }
 
 // common functionality for IteratePacketCommitment and IteratePacketAcknowledgement

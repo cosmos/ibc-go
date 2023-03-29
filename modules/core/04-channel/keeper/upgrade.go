@@ -11,6 +11,8 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	portkeeper "github.com/cosmos/ibc-go/v7/modules/core/05-port/keeper"
+	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 )
 
@@ -24,7 +26,7 @@ func (k Keeper) ChanUpgradeInit(
 	proposedUpgradeChannel types.Channel,
 	counterpartyTimeoutHeight clienttypes.Height,
 	counterpartyTimeoutTimestamp uint64,
-) (uint64, string, error) {
+) (upgradeSequence uint64, previousVersion string, err error) {
 	channel, found := k.GetChannel(ctx, portID, channelID)
 	if !found {
 		return 0, "", errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
@@ -38,6 +40,8 @@ func (k Keeper) ChanUpgradeInit(
 		return 0, "", errorsmod.Wrapf(types.ErrChannelCapabilityNotFound, "caller does not own capability for channel, port ID (%s) channel ID (%s)", portID, channelID)
 	}
 
+	// set the restore channel to the current channel and reassign channel state to INITUPGRADE,
+	// if the channel == proposedUpgradeChannel then fail fast as no upgradable fields have been modified.
 	restoreChannel := channel
 	channel.State = types.INITUPGRADE
 	if reflect.DeepEqual(channel, proposedUpgradeChannel) {
@@ -57,7 +61,7 @@ func (k Keeper) ChanUpgradeInit(
 		return 0, "", errorsmod.Wrap(types.ErrInvalidChannelOrdering, "channel ordering must be a subset of the new ordering")
 	}
 
-	upgradeSequence := uint64(1)
+	upgradeSequence = uint64(1)
 	if seq, found := k.GetUpgradeSequence(ctx, portID, channelID); found {
 		upgradeSequence = seq + 1
 	}
@@ -89,4 +93,36 @@ func (k Keeper) WriteUpgradeInitChannel(
 	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", types.OPEN.String(), "new-state", types.INITUPGRADE.String())
 
 	emitChannelUpgradeInitEvent(ctx, portID, channelID, upgradeSequence, channelUpgrade)
+}
+
+// RestoreChannel restores the given channel to the state prior to upgrade.
+func (k Keeper) RestoreChannel(ctx sdk.Context, portID, channelID string, upgradeSequence uint64, err error) error {
+	errorReceipt := types.NewErrorReceipt(upgradeSequence, err)
+	k.SetUpgradeErrorReceipt(ctx, portID, channelID, errorReceipt)
+
+	channel, found := k.GetUpgradeRestoreChannel(ctx, portID, channelID)
+	if !found {
+		return errorsmod.Wrapf(types.ErrChannelNotFound, "channel-id: %s", channelID)
+	}
+
+	k.SetChannel(ctx, portID, channelID, channel)
+	k.DeleteUpgradeRestoreChannel(ctx, portID, channelID)
+	k.DeleteUpgradeTimeout(ctx, portID, channelID)
+
+	module, _, err := k.LookupModuleByChannel(ctx, portID, channelID)
+	if err != nil {
+		return errorsmod.Wrap(err, "could not retrieve module from port-id")
+	}
+
+	portKeeper, ok := k.portKeeper.(*portkeeper.Keeper)
+	if !ok {
+		panic("todo: handle this situation")
+	}
+
+	cbs, found := portKeeper.Router.GetRoute(module)
+	if !found {
+		return errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
+	}
+
+	return cbs.OnChanUpgradeRestore(ctx, portID, channelID)
 }
