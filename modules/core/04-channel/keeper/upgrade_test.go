@@ -124,8 +124,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeInit() {
 
 func (suite *KeeperTestSuite) TestRestoreChannel() {
 	var (
-		path           *ibctesting.Path
-		channelUpgrade types.Channel
+		path *ibctesting.Path
 	)
 
 	testCases := []struct {
@@ -153,30 +152,20 @@ func (suite *KeeperTestSuite) TestRestoreChannel() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 
+			upgradeSequence := uint64(1)
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.Setup(path)
 
+			path.EndpointA.ChannelConfig.Version = fmt.Sprintf("%s-v2", mock.Version)
+
 			originalChannel := path.EndpointA.GetChannel()
 
-			chanCap, _ := suite.chainA.GetSimApp().GetScopedIBCKeeper().GetCapability(suite.chainA.GetContext(), host.ChannelCapabilityPath(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
-			channelUpgrade = types.NewChannel(types.INITUPGRADE, types.UNORDERED, types.NewCounterparty(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID), []string{path.EndpointA.ConnectionID}, fmt.Sprintf("%s-v2", mock.Version))
-
-			sequence, _, err := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.ChanUpgradeInit(
-				suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID,
-				chanCap, channelUpgrade, path.EndpointB.Chain.GetTimeoutHeight(), 0,
-			)
-
+			err := path.EndpointA.ChanUpgradeInit(path.EndpointB.Chain.GetTimeoutHeight(), 0)
 			suite.Require().NoError(err)
-
-			// update the channel to have some other state.
-			modifiedChannel := originalChannel
-			modifiedChannel.Version = "different-version"
-			modifiedChannel.ConnectionHops = []string{"different-connection-id"}
-			path.EndpointA.Chain.GetSimApp().IBCKeeper.ChannelKeeper.SetChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, modifiedChannel)
 
 			tc.malleate()
 
-			err = suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.RestoreChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, sequence, types.ErrInvalidChannel)
+			err = suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.RestoreChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, upgradeSequence, types.ErrInvalidChannel)
 
 			actualChannel, ok := path.EndpointA.Chain.GetSimApp().IBCKeeper.ChannelKeeper.GetChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 			errReceipt, errReceiptPresent := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetUpgradeErrorReceipt(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
@@ -186,13 +175,17 @@ func (suite *KeeperTestSuite) TestRestoreChannel() {
 				suite.Require().True(ok)
 				suite.Require().Equal(originalChannel, actualChannel)
 				suite.Require().True(errReceiptPresent)
-				suite.Require().Equal(sequence, errReceipt.Sequence)
+				suite.Require().Equal(upgradeSequence, errReceipt.Sequence)
 			} else {
+				// channel should still be in INITUPGRADE if restore did not happen.
+				expectedChannel := originalChannel
+				expectedChannel.State = types.INITUPGRADE
+
 				suite.Require().Error(err)
 				suite.Require().True(ok)
-				suite.Require().Equal(modifiedChannel, actualChannel)
+				suite.Require().Equal(expectedChannel, actualChannel)
 				suite.Require().True(errReceiptPresent)
-				suite.Require().Equal(sequence, errReceipt.Sequence)
+				suite.Require().Equal(upgradeSequence, errReceipt.Sequence)
 			}
 		})
 	}
