@@ -147,3 +147,8 @@ func (q Keeper) UnreceivedAcks(c context.Context, req *channeltypes.QueryUnrecei
 func (q Keeper) NextSequenceReceive(c context.Context, req *channeltypes.QueryNextSequenceReceiveRequest) (*channeltypes.QueryNextSequenceReceiveResponse, error) {
 	return q.ChannelKeeper.NextSequenceReceive(c, req)
 }
+
+// UpgradeSequence implements the IBC QueryServer interface
+func (q Keeper) UpgradeSequence(c context.Context, req *channeltypes.QueryUpgradeSequenceRequest) (*channeltypes.QueryUpgradeSequenceResponse, error) {
+	return q.ChannelKeeper.UpgradeSequence(c, req)
+}
