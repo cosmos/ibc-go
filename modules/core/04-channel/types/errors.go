@@ -41,5 +41,4 @@ var (
 	ErrPacketNotSent         = errorsmod.Register(SubModuleName, 25, "packet has not been sent")
 	ErrInvalidTimeout        = errorsmod.Register(SubModuleName, 26, "invalid packet timeout")
 	ErrInvalidUpgradeTimeout = errorsmod.Register(SubModuleName, 27, "either timeout height or timeout timestamp must be non-zero")
-	ErrChannelRestored       = errorsmod.Register(SubModuleName, 28, "channel restored")
 )
