@@ -113,7 +113,7 @@ func (k Keeper) RestoreChannel(ctx sdk.Context, portID, channelID string, upgrad
 
 	channel, found := k.GetUpgradeRestoreChannel(ctx, portID, channelID)
 	if !found {
-		return errorsmod.Wrapf(types.ErrRestoreChannelNotFound, "channel-id: %s", channelID)
+		return errorsmod.Wrapf(types.ErrChannelNotFound, "channel-id: %s", channelID)
 	}
 
 	k.SetChannel(ctx, portID, channelID, channel)
