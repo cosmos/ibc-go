@@ -137,15 +137,18 @@ func getGithubActionMatrixForTests(e2eRootDirectory, testName string, suite stri
 		Include: []TestSuitePair{},
 	}
 
-	suites := sortedSuiteNames(testSuiteMapping)
-	for _, testSuiteName := range suites {
-		for _, testCaseName := range testSuiteMapping[testSuiteName] {
+	for testSuiteName, testCases := range testSuiteMapping {
+		for _, testCaseName := range testCases {
 			gh.Include = append(gh.Include, TestSuitePair{
 				Test:       testCaseName,
 				EntryPoint: testSuiteName,
 			})
 		}
 	}
+	// Sort the test cases by name so that the order is consistent.
+	sort.SliceStable(gh.Include, func(i, j int) bool {
+		return gh.Include[i].Test < gh.Include[j].Test
+	})
 
 	if testName != "" && len(gh.Include) != 1 {
 		return GithubActionTestMatrix{}, fmt.Errorf("expected exactly 1 test in the output matrix but got %d", len(gh.Include))
@@ -179,16 +182,6 @@ func extractSuiteAndTestNames(file *ast.File) (string, []string, error) {
 		return "", nil, fmt.Errorf("file %s had no test suite test case", file.Name.Name)
 	}
 	return suiteNameForFile, testCases, nil
-}
-
-// sortedSuiteNames returns a sorted list of suite names.
-func sortedSuiteNames(suiteMapping map[string][]string) []string {
-	var suiteNames []string
-	for suiteName := range suiteMapping {
-		suiteNames = append(suiteNames, suiteName)
-	}
-	sort.Strings(suiteNames)
-	return suiteNames
 }
 
 // isTestSuiteMethod returns true if the function is a test suite function.
