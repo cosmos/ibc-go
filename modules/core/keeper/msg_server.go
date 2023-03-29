@@ -783,8 +783,17 @@ func (k Keeper) ChannelUpgradeTry(goCtx context.Context, msg *channeltypes.MsgCh
 		return nil, errorsmod.Wrap(err, "channel handshake upgrade try failed")
 	}
 
-	proposedUpgradeVersion, err := cbs.OnChanUpgradeTry(ctx, msg.ProposedUpgradeChannel.Ordering, msg.ProposedUpgradeChannel.ConnectionHops, msg.PortId, msg.ChannelId, upgradeSequence,
-		msg.ProposedUpgradeChannel.Counterparty, previousVersion, msg.CounterpartyChannel.Version)
+	proposedUpgradeVersion, err := cbs.OnChanUpgradeTry(ctx,
+		msg.ProposedUpgradeChannel.Ordering,
+		msg.ProposedUpgradeChannel.ConnectionHops,
+		msg.PortId,
+		msg.ChannelId,
+		upgradeSequence,
+		msg.ProposedUpgradeChannel.Counterparty,
+		previousVersion,
+		msg.CounterpartyChannel.Version,
+	)
+
 	if err != nil {
 		if err := k.ChannelKeeper.RestoreChannel(ctx, msg.PortId, msg.ChannelId, upgradeSequence, err); err != nil {
 			return nil, err

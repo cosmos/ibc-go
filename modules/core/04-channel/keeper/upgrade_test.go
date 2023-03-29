@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"fmt"
+	"time"
 
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
@@ -127,6 +128,117 @@ func (suite *KeeperTestSuite) TestChanUpgradeInit() {
 				suite.Require().NoError(err)
 				suite.Require().Equal(expSequence, sequence)
 				suite.Require().Equal(expVersion, previousVersion)
+			} else {
+				suite.Require().Error(err)
+			}
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestChanUpgradeTry() {
+	var (
+		path            *ibctesting.Path
+		chanCap         *capabilitytypes.Capability
+		channelUpgrade  types.Channel
+		upgradeSequence uint64
+		upgradeTimeout  types.UpgradeTimeout
+	)
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expPass  bool
+	}{
+		{
+			"success",
+			func() {},
+			true,
+		},
+		{
+			"invalid capability",
+			func() {
+				chanCap = capabilitytypes.NewCapability(42)
+			},
+			false,
+		},
+		{
+			"channel not found",
+			func() {
+				path.EndpointB.ChannelID = "invalid-channel"
+				path.EndpointB.ChannelConfig.PortID = "invalid-port"
+			},
+			false,
+		},
+		{
+			"channel state is not in OPEN or INITUPGRADE state",
+			func() {
+				suite.Require().NoError(path.EndpointB.SetChannelState(types.CLOSED))
+			},
+			false,
+		},
+		{
+			"invalid proposed channel counterparty",
+			func() {
+				channelUpgrade.Counterparty = types.NewCounterparty(mock.PortID, "channel-100")
+			},
+			false,
+		},
+		{
+			"invalid proposed channel upgrade ordering",
+			func() {
+				channelUpgrade.Ordering = types.ORDERED
+			},
+			false,
+		},
+		{
+			"counterparty channel order mismatch",
+			func() {
+				channelEnd := path.EndpointA.GetChannel()
+				channelEnd.Ordering = types.ORDERED
+
+				path.EndpointA.SetChannel(channelEnd)
+			},
+			false,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.Setup(path)
+
+			path.EndpointA.ChannelConfig.Version = fmt.Sprintf("%s-v2", mock.Version)
+
+			upgradeSequence = 1
+			upgradeTimeout = types.UpgradeTimeout{TimeoutHeight: path.EndpointB.Chain.GetTimeoutHeight(), TimeoutTimestamp: uint64(suite.coordinator.CurrentTime.Add(time.Hour).UnixNano())}
+			err := path.EndpointA.ChanUpgradeInit(upgradeTimeout.TimeoutHeight, upgradeTimeout.TimeoutTimestamp)
+			suite.Require().NoError(err)
+
+			chanCap, _ = suite.chainB.GetSimApp().GetScopedIBCKeeper().GetCapability(suite.chainB.GetContext(), host.ChannelCapabilityPath(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID))
+			channelUpgrade = types.NewChannel(types.TRYUPGRADE, types.UNORDERED, types.NewCounterparty(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID), []string{path.EndpointB.ConnectionID}, fmt.Sprintf("%s-v2", mock.Version))
+
+			channelKey := host.ChannelKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+			proofChannel, proofHeight := suite.chainA.QueryProof(channelKey)
+
+			upgradeSequenceKey := host.ChannelUpgradeSequenceKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+			proofUpgradeSequence, _ := suite.chainA.QueryProof(upgradeSequenceKey)
+
+			upgradeTimeoutKey := host.ChannelUpgradeTimeoutKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+			proofUpgradeTimeout, _ := suite.chainA.QueryProof(upgradeTimeoutKey)
+
+			tc.malleate()
+
+			_, _, err = suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.ChanUpgradeTry(
+				suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID,
+				chanCap, path.EndpointA.GetChannel(), upgradeSequence, channelUpgrade, upgradeTimeout.TimeoutHeight, upgradeTimeout.TimeoutTimestamp,
+				proofChannel, proofUpgradeTimeout, proofUpgradeSequence, proofHeight,
+			)
+
+			if tc.expPass {
+				suite.Require().NoError(err)
 			} else {
 				suite.Require().Error(err)
 			}
