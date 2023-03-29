@@ -516,7 +516,7 @@ func (q Keeper) UpgradeSequence(c context.Context, req *types.QueryUpgradeSequen
 	return types.NewQueryUpgradeSequenceResponse(sequence, nil, selfHeight), nil
 }
 
-func (q Keeper) UpgradeError(c context.Context, req *types.QueryUpgradeErrorRequest) (*types.QueryUpgradeErrorResponse, error) {
+func (q Keeper) UpgradeErrorReceipt(c context.Context, req *types.QueryUpgradeErrorRequest) (*types.QueryUpgradeErrorResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
@@ -526,7 +526,7 @@ func (q Keeper) UpgradeError(c context.Context, req *types.QueryUpgradeErrorRequ
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
-	receipt, found := q.GetUpgradeError(ctx, req.PortId, req.ChannelId)
+	receipt, found := q.GetUpgradeErrorReceipt(ctx, req.PortId, req.ChannelId)
 	if !found {
 		return nil, status.Error(
 			codes.NotFound,
@@ -535,7 +535,7 @@ func (q Keeper) UpgradeError(c context.Context, req *types.QueryUpgradeErrorRequ
 	}
 
 	selfHeight := clienttypes.GetSelfHeight(ctx)
-	return types.NewQueryUpgradeErrorResponse(receipt.Sequence, nil, selfHeight, receipt.Error), nil
+	return types.NewQueryUpgradeErrorResponse(receipt.Sequence, receipt.Error, nil, selfHeight), nil
 }
 
 func validategRPCRequest(portID, channelID string) error {

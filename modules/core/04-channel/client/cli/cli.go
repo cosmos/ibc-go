@@ -29,6 +29,8 @@ func GetQueryCmd() *cobra.Command {
 		GetCmdQueryUnreceivedPackets(),
 		GetCmdQueryUnreceivedAcks(),
 		GetCmdQueryNextSequenceReceive(),
+		GetCmdQueryUpgradeSequence(),
+		GetCmdQueryUpgradeError(),
 		// TODO: next sequence Send ?
 	)
 
