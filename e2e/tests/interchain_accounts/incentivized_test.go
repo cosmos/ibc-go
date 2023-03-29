@@ -31,14 +31,6 @@ type IncentivizedInterchainAccountsTestSuite struct {
 	InterchainAccountsTestSuite
 }
 
-// RegisterCounterPartyPayee broadcasts a MsgRegisterCounterpartyPayee message.
-func (s *IncentivizedInterchainAccountsTestSuite) RegisterCounterPartyPayee(ctx context.Context, chain *cosmos.CosmosChain,
-	user ibc.Wallet, portID, channelID, relayerAddr, counterpartyPayeeAddr string,
-) (sdk.TxResponse, error) {
-	msg := feetypes.NewMsgRegisterCounterpartyPayee(portID, channelID, relayerAddr, counterpartyPayeeAddr)
-	return s.BroadcastMessages(ctx, chain, user, msg)
-}
-
 func (s *IncentivizedInterchainAccountsTestSuite) TestMsgSendTx_SuccessfulBankSend_Incentivized() {
 	t := s.T()
 	ctx := context.TODO()
