@@ -24,7 +24,7 @@ func (k Keeper) ChanUpgradeInit(
 	proposedUpgradeChannel types.Channel,
 	counterpartyTimeoutHeight clienttypes.Height,
 	counterpartyTimeoutTimestamp uint64,
-) (uint64, string, error) {
+) (upgradeSequence uint64, previousVersion string, err error) {
 	channel, found := k.GetChannel(ctx, portID, channelID)
 	if !found {
 		return 0, "", errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
@@ -38,6 +38,8 @@ func (k Keeper) ChanUpgradeInit(
 		return 0, "", errorsmod.Wrapf(types.ErrChannelCapabilityNotFound, "caller does not own capability for channel, port ID (%s) channel ID (%s)", portID, channelID)
 	}
 
+	// set the restore channel to the current channel and reassign channel state to INITUPGRADE,
+	// if the channel == proposedUpgradeChannel then fail fast as no upgradable fields have been modified.
 	restoreChannel := channel
 	channel.State = types.INITUPGRADE
 	if reflect.DeepEqual(channel, proposedUpgradeChannel) {
@@ -57,7 +59,7 @@ func (k Keeper) ChanUpgradeInit(
 		return 0, "", errorsmod.Wrap(types.ErrInvalidChannelOrdering, "channel ordering must be a subset of the new ordering")
 	}
 
-	upgradeSequence := uint64(1)
+	upgradeSequence = uint64(1)
 	if seq, found := k.GetUpgradeSequence(ctx, portID, channelID); found {
 		upgradeSequence = seq + 1
 	}
