@@ -150,7 +150,7 @@ func (q Keeper) NextSequenceReceive(c context.Context, req *channeltypes.QueryNe
 
 // UpgradeError implements the IBC QueryServer interface
 func (q Keeper) UpgradeError(c context.Context, req *channeltypes.QueryUpgradeErrorRequest) (*channeltypes.QueryUpgradeErrorResponse, error) {
-	return q.ChannelKeeper.UpgradeError(c, req)
+	return q.ChannelKeeper.UpgradeErrorReceipt(c, req)
 }
 
 // UpgradeSequence implements the IBC QueryServer interface
