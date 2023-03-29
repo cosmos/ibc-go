@@ -133,3 +133,70 @@ func (suite *KeeperTestSuite) TestChanUpgradeInit() {
 		})
 	}
 }
+
+func (suite *KeeperTestSuite) TestRestoreChannel() {
+	var path *ibctesting.Path
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expPass  bool
+	}{
+		{
+			"succeeds when restore channel is set",
+			func() {},
+			true,
+		},
+		{
+			name: "fails when no restore channel is present",
+			malleate: func() {
+				// remove the restore channel
+				path.EndpointA.Chain.GetSimApp().IBCKeeper.ChannelKeeper.DeleteUpgradeRestoreChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+			},
+			expPass: false,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+
+			upgradeSequence := uint64(1)
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.Setup(path)
+
+			path.EndpointA.ChannelConfig.Version = fmt.Sprintf("%s-v2", mock.Version)
+
+			originalChannel := path.EndpointA.GetChannel()
+
+			err := path.EndpointA.ChanUpgradeInit(path.EndpointB.Chain.GetTimeoutHeight(), 0)
+			suite.Require().NoError(err)
+
+			tc.malleate()
+
+			err = suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.RestoreChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, upgradeSequence, types.ErrInvalidChannel)
+
+			actualChannel, ok := path.EndpointA.Chain.GetSimApp().IBCKeeper.ChannelKeeper.GetChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+			errReceipt, errReceiptPresent := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetUpgradeErrorReceipt(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+
+			if tc.expPass {
+				suite.Require().NoError(err)
+				suite.Require().True(ok)
+				suite.Require().Equal(originalChannel, actualChannel)
+				suite.Require().True(errReceiptPresent)
+				suite.Require().Equal(upgradeSequence, errReceipt.Sequence)
+			} else {
+				// channel should still be in INITUPGRADE if restore did not happen.
+				expectedChannel := originalChannel
+				expectedChannel.State = types.INITUPGRADE
+
+				suite.Require().Error(err)
+				suite.Require().True(ok)
+				suite.Require().Equal(expectedChannel, actualChannel)
+				suite.Require().True(errReceiptPresent)
+				suite.Require().Equal(upgradeSequence, errReceipt.Sequence)
+			}
+		})
+	}
+}
