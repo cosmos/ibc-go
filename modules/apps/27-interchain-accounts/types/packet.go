@@ -1,11 +1,13 @@
 package types
 
 import (
+	"encoding/json"
 	"time"
 
 	errorsmod "cosmossdk.io/errors"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
 // MaxMemoCharLength defines the maximum length for the InterchainAccountPacketData memo field
@@ -23,6 +25,8 @@ var (
 	// timeout.
 	DefaultRelativePacketTimeoutTimestamp = uint64((time.Duration(10) * time.Minute).Nanoseconds())
 )
+
+var _ exported.CallbackPacketData = (*InterchainAccountPacketData)(nil)
 
 // ValidateBasic performs basic validation of the interchain account packet data.
 // The memo may be empty.
@@ -45,6 +49,77 @@ func (iapd InterchainAccountPacketData) ValidateBasic() error {
 // GetBytes returns the JSON marshalled interchain account packet data.
 func (iapd InterchainAccountPacketData) GetBytes() []byte {
 	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(&iapd))
+}
+
+/*
+
+ADR-8 CallbackPacketData implementation
+
+InterchainAccountPacketData implements CallbackPacketData interface. This will allow middlewares targeting specific VMs
+to retrieve the desired callback address for the ICA packet on the source chain. Destination callback addresses are not
+supported for ICS 27.
+
+The Memo is used to set the desired callback addresses.
+
+The Memo format is defined like so:
+
+```json
+{
+	// ... other memo fields we don't care about
+	"callbacks": {
+		"src_callback_address": {contractAddrOnSourceChain},
+
+		// optional fields
+		"src_callback_msg": {jsonObjectForSourceChainCallback},
+	}
+}
+```
+
+*/
+
+// GetSourceCallbackAddress returns the source callback address provided in the packet data memo.
+// If no callback address is specified, an empty string is returned.
+//
+// The memo is expected to specify the callback address in the following format:
+// { "callbacks": { "src_callback_address": {contractAddrOnSourceChain}}
+//
+// ADR-8 middleware should callback on the returned address if it is a PacketActor
+// (i.e. smart contract that accepts IBC callbacks).
+func (iapd InterchainAccountPacketData) GetSourceCallbackAddress() string {
+	if len(iapd.Memo) == 0 {
+		return ""
+	}
+
+	jsonObject := make(map[string]interface{})
+	err := json.Unmarshal([]byte(iapd.Memo), &jsonObject)
+	if err != nil {
+		return ""
+	}
+
+	callbackData, ok := jsonObject["callbacks"].(map[string]interface{})
+	if !ok {
+		return ""
+	}
+
+	callbackAddr, ok := callbackData["src_callback_address"].(string)
+	if !ok {
+		return ""
+	}
+
+	return callbackAddr
+}
+
+// GetDestCallbackAddress returns an empty string. Destination callback addresses
+// are not supported for ICS 27. This feature is natively supported by
+// interchain accounts host submodule transaction execution.
+func (iapd InterchainAccountPacketData) GetDestCallbackAddress() string {
+	return ""
+}
+
+// UserDefinedGasLimit returns 0 (no-op). The gas limit of the executing
+// transaction will be used.
+func (iapd InterchainAccountPacketData) UserDefinedGasLimit() uint64 {
+	return 0
 }
 
 // GetBytes returns the JSON marshalled interchain account CosmosTx.

@@ -1,6 +1,8 @@
 package types_test
 
 import (
+	"fmt"
+
 	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
 )
 
@@ -81,4 +83,124 @@ func (suite *TypesTestSuite) TestValidateBasic() {
 			}
 		})
 	}
+}
+
+func (suite *TypesTestSuite) TestGetSourceCallbackAddress() {
+	const expSrcCbAddr = "srcCbAddr"
+
+	testCases := []struct {
+		name       string
+		packetData types.InterchainAccountPacketData
+		expPass    bool
+	}{
+		{
+			"memo is empty",
+			types.InterchainAccountPacketData{
+				Type: types.EXECUTE_TX,
+				Data: []byte("data"),
+				Memo: "",
+			},
+			false,
+		},
+		{
+			"memo is not json string",
+			types.InterchainAccountPacketData{
+				Type: types.EXECUTE_TX,
+				Data: []byte("data"),
+				Memo: "memo",
+			},
+			false,
+		},
+		{
+			"memo does not have callbacks in json struct",
+			types.InterchainAccountPacketData{
+				Type: types.EXECUTE_TX,
+				Data: []byte("data"),
+				Memo: `{"Key": 10}`,
+			},
+			false,
+		},
+		{
+			"memo has callbacks in json struct but does not have src_callback_address key",
+			types.InterchainAccountPacketData{
+				Type: types.EXECUTE_TX,
+				Data: []byte("data"),
+				Memo: `{"callbacks": {"Key": 10}}`,
+			},
+			false,
+		},
+		{
+			"memo has callbacks in json struct but does not have string value for src_callback_address key",
+			types.InterchainAccountPacketData{
+				Type: types.EXECUTE_TX,
+				Data: []byte("data"),
+				Memo: `{"callbacks": {"src_callback_address": 10}}`,
+			},
+			false,
+		},
+		{
+			"memo has callbacks in json struct and properly formatted src_callback_address",
+			types.InterchainAccountPacketData{
+				Type: types.EXECUTE_TX,
+				Data: []byte("data"),
+				Memo: fmt.Sprintf(`{"callbacks": {"src_callback_address": "%s"}}`, expSrcCbAddr),
+			},
+			true,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			srcCbAddr := tc.packetData.GetSourceCallbackAddress()
+
+			if tc.expPass {
+				suite.Require().Equal(expSrcCbAddr, srcCbAddr)
+			} else {
+				suite.Require().Equal("", srcCbAddr)
+			}
+		})
+	}
+}
+
+func (suite *TypesTestSuite) TestGetDestCallbackAddress() {
+	testCases := []struct {
+		name       string
+		packetData types.InterchainAccountPacketData
+	}{
+		{
+			"memo is empty",
+			types.InterchainAccountPacketData{
+				Type: types.EXECUTE_TX,
+				Data: []byte("data"),
+				Memo: "",
+			},
+		},
+		{
+			"memo has dest callback address specified in json struct",
+			types.InterchainAccountPacketData{
+				Type: types.EXECUTE_TX,
+				Data: []byte("data"),
+				Memo: `{"callbacks": {"dest_callback_address": "testAddress"}}`,
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			destCbAddr := tc.packetData.GetDestCallbackAddress()
+			suite.Require().Equal("", destCbAddr)
+		})
+	}
+}
+
+func (suite *TypesTestSuite) TestUserDefinedGasLimit() {
+	packetData := types.InterchainAccountPacketData{
+		Type: types.EXECUTE_TX,
+		Data: []byte("data"),
+		Memo: `{"callbacks": {"user_defined_gas_limit": 100}}`,
+	}
+
+	suite.Require().Equal(uint64(0), packetData.UserDefinedGasLimit(), "user defined gas limit does not return 0")
 }
