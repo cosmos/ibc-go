@@ -206,7 +206,7 @@ func (k Keeper) ChanUpgradeTry(
 		if !reflect.DeepEqual(channel, proposedUpgradeChannel) {
 			// TODO: log and emit events
 			if err := k.RestoreChannel(ctx, portID, channelID, upgradeSequence, types.ErrInvalidChannel); err != nil {
-				return 0, errorsmod.Wrap(types.ErrChannelRestoreFailure, err.Error())
+				return 0, errorsmod.Wrap(types.ErrChannelUpgradeRestoreFailure, err.Error())
 			}
 			return 0, nil
 		}
