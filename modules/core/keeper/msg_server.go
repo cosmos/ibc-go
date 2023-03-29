@@ -711,7 +711,7 @@ func (k Keeper) ChannelUpgradeInit(goCtx context.Context, msg *channeltypes.MsgC
 		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
 	}
 
-	upgradeSequence, err := k.ChannelKeeper.ChanUpgradeInit(ctx, msg.PortId, msg.ChannelId, chanCap, msg.ProposedUpgradeChannel, msg.TimeoutHeight, msg.TimeoutTimestamp)
+	upgradeSequence, previousVersion, err := k.ChannelKeeper.ChanUpgradeInit(ctx, msg.PortId, msg.ChannelId, chanCap, msg.ProposedUpgradeChannel, msg.TimeoutHeight, msg.TimeoutTimestamp)
 	if err != nil {
 		ctx.Logger().Error("channel upgrade init callback failed", "error", errorsmod.Wrap(err, "channel handshake upgrade init failed"))
 		return nil, errorsmod.Wrap(err, "channel handshake upgrade init failed")
@@ -719,7 +719,7 @@ func (k Keeper) ChannelUpgradeInit(goCtx context.Context, msg *channeltypes.MsgC
 
 	version, err := cbs.OnChanUpgradeInit(ctx, msg.ProposedUpgradeChannel.Ordering, msg.ProposedUpgradeChannel.ConnectionHops,
 		msg.PortId, msg.ChannelId, upgradeSequence, msg.ProposedUpgradeChannel.Counterparty, msg.ProposedUpgradeChannel.Version,
-		"previous-version-can-be-looked-up-from-within-cb??",
+		previousVersion,
 	)
 	if err != nil {
 		ctx.Logger().Error("channel upgrade init callback failed", "port-id", msg.PortId, "channel-id", msg.ChannelId, "error", err.Error())
@@ -755,7 +755,7 @@ func (k Keeper) ChannelUpgradeTry(goCtx context.Context, msg *channeltypes.MsgCh
 		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
 	}
 
-	_, err = k.ChannelKeeper.ChanUpgradeTry(
+	upgradeSequence, err := k.ChannelKeeper.ChanUpgradeTry(
 		ctx,
 		msg.PortId,
 		msg.ChannelId,
@@ -774,6 +774,7 @@ func (k Keeper) ChannelUpgradeTry(goCtx context.Context, msg *channeltypes.MsgCh
 	if errorsmod.IsOf(err, channeltypes.ErrInvalidUpgradeSequence) {
 		// NOTE: commit error receipt to state and abort channel upgrade
 		ctx.Logger().Error("channel upgrade try callback failed", "error", errorsmod.Wrap(err, "channel handshake upgrade try failed"))
+		// TODO: add error, channel id, upgrade sequence, version to response.
 		return &channeltypes.MsgChannelUpgradeTryResponse{}, nil
 	}
 
@@ -782,16 +783,18 @@ func (k Keeper) ChannelUpgradeTry(goCtx context.Context, msg *channeltypes.MsgCh
 		return nil, errorsmod.Wrap(err, "channel handshake upgrade try failed")
 	}
 
-	// TODO: call application callbacks and write the new channel with the final version
-	_ = cbs
-	// version, err := cbs.OnChanOpenTry(ctx, msg.ProposedUpgradeChannel.Ordering, msg.ProposedUpgradeChannel.ConnectionHops, msg.PortId, msg.ChannelId, chanCap,
-	// 	msg.ProposedUpgradeChannel.Counterparty, msg.ProposedUpgradeChannel.Version)
-	// if err != nil {
-	// 	k.ChannelKeeper.RestoreChannel()
-	// 	return &channeltypes.MsgChannelUpgradeTryResponse{}, nil
-	// }
-	//
-	// msg.ProposedUpgradeChannel.Version = version
+	version, err := cbs.OnChanOpenTry(ctx, msg.ProposedUpgradeChannel.Ordering, msg.ProposedUpgradeChannel.ConnectionHops, msg.PortId, msg.ChannelId, chanCap,
+		msg.ProposedUpgradeChannel.Counterparty, msg.ProposedUpgradeChannel.Version)
+	if err != nil {
+		if err := k.ChannelKeeper.RestoreChannel(ctx, msg.PortId, msg.ChannelId, upgradeSequence, err); err != nil {
+			return nil, err
+		}
+		return &channeltypes.MsgChannelUpgradeTryResponse{}, nil
+	}
+
+	msg.ProposedUpgradeChannel.Version = version
+
+	k.ChannelKeeper.WriteUpgradeTryChannel(ctx, msg.PortId, msg.ChannelId, upgradeSequence, msg.ProposedUpgradeChannel)
 
 	return &channeltypes.MsgChannelUpgradeTryResponse{}, nil
 }

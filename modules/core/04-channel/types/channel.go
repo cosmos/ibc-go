@@ -1,6 +1,8 @@
 package types
 
 import (
+	"fmt"
+
 	errorsmod "cosmossdk.io/errors"
 
 	"github.com/cosmos/ibc-go/v7/internal/collections"
@@ -11,6 +13,12 @@ import (
 var (
 	_ exported.ChannelI             = (*Channel)(nil)
 	_ exported.CounterpartyChannelI = (*Counterparty)(nil)
+)
+
+const (
+	// restoreErrorString defines a string constant included in error receipts.
+	// NOTE: Changing this const is state machine breaking as it is written into state.
+	restoreErrorString = "restored channel to pre-upgrade state"
 )
 
 // NewChannel creates a new Channel instance
@@ -141,4 +149,14 @@ func (o Order) SubsetOf(order Order) bool {
 	}
 
 	return false
+}
+
+// NewErrorReceipt returns an error receipt with the code from the provided error type stripped
+// out to ensure changes of the error message don't cause state machine breaking changes.
+func NewErrorReceipt(upgradeSequence uint64, err error) ErrorReceipt {
+	_, code, _ := errorsmod.ABCIInfo(err, false) // discard non-determinstic codespace and log values
+	return ErrorReceipt{
+		Sequence: upgradeSequence,
+		Error:    fmt.Sprintf("ABCI code: %d: %s", code, restoreErrorString),
+	}
 }
