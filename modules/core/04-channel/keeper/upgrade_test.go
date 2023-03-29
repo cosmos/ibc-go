@@ -123,9 +123,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeInit() {
 }
 
 func (suite *KeeperTestSuite) TestRestoreChannel() {
-	var (
-		path *ibctesting.Path
-	)
+	var path *ibctesting.Path
 
 	testCases := []struct {
 		name     string

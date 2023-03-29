@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"fmt"
 	"reflect"
 
 	errorsmod "cosmossdk.io/errors"
@@ -17,11 +16,6 @@ import (
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 )
 
-const (
-	// restoreErrorString defines a string constant included in error receipts.
-	// NOTE: Changing this const is state machine breaking as it is written into state.
-	restoreErrorString = "restored channel to pre-upgrade state"
-)
 
 // ChanUpgradeInit is called by a module to initiate a channel upgrade handshake with
 // a module on another chain.
@@ -102,13 +96,7 @@ func (k Keeper) WriteUpgradeInitChannel(
 
 // RestoreChannel restores the given channel to the state prior to upgrade.
 func (k Keeper) RestoreChannel(ctx sdk.Context, portID, channelID string, upgradeSequence uint64, err error) error {
-	_, code, _ := errorsmod.ABCIInfo(err, false) // discard non-determinstic codespace and log values
-
-	errorReceipt := types.ErrorReceipt{
-		Sequence: upgradeSequence,
-		Error:    fmt.Sprintf("ABCI code: %d: %s", code, restoreErrorString),
-	}
-
+	errorReceipt := types.NewErrorReceipt(upgradeSequence, err)
 	k.SetUpgradeErrorReceipt(ctx, portID, channelID, errorReceipt)
 
 	channel, found := k.GetUpgradeRestoreChannel(ctx, portID, channelID)
