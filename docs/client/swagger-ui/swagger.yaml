@@ -640,7 +640,7 @@ paths:
                           foo = any.unpack(Foo.class);
                         }
 
-                     Example 3: Pack and unpack a message in Python.
+                    Example 3: Pack and unpack a message in Python.
 
                         foo = Foo(...)
                         any = Any()
@@ -650,7 +650,7 @@ paths:
                           any.Unpack(foo)
                           ...
 
-                     Example 4: Pack and unpack a message in Go
+                    Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
                          any, err := anypb.New(foo)
@@ -681,7 +681,6 @@ paths:
 
                     JSON
 
-                    ====
 
                     The JSON representation of an `Any` value uses the regular
 
@@ -848,6 +847,25 @@ paths:
                     IdentifiedPacketFees contains a list of type PacketFee and
                     associated PacketId
                 title: Map of all incentivized_packets
+              pagination:
+                description: pagination defines the pagination in the response.
+                type: object
+                properties:
+                  next_key:
+                    type: string
+                    format: byte
+                    description: |-
+                      next_key is the key to be passed to PageRequest.key to
+                      query the next page most efficiently. It will be empty if
+                      there are no more results.
+                  total:
+                    type: string
+                    format: uint64
+                    title: >-
+                      total is total number of results available if
+                      PageRequest.count_total
+
+                      was set, its value is undefined otherwise
             title: >-
               QueryIncentivizedPacketsResponse defines the response type for the
               incentivized packets RPC
@@ -965,7 +983,7 @@ paths:
                           foo = any.unpack(Foo.class);
                         }
 
-                     Example 3: Pack and unpack a message in Python.
+                    Example 3: Pack and unpack a message in Python.
 
                         foo = Foo(...)
                         any = Any()
@@ -975,7 +993,7 @@ paths:
                           any.Unpack(foo)
                           ...
 
-                     Example 4: Pack and unpack a message in Go
+                    Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
                          any, err := anypb.New(foo)
@@ -1006,7 +1024,6 @@ paths:
 
                     JSON
 
-                    ====
 
                     The JSON representation of an `Any` value uses the regular
 
@@ -1250,7 +1267,7 @@ paths:
                           foo = any.unpack(Foo.class);
                         }
 
-                     Example 3: Pack and unpack a message in Python.
+                    Example 3: Pack and unpack a message in Python.
 
                         foo = Foo(...)
                         any = Any()
@@ -1260,7 +1277,7 @@ paths:
                           any.Unpack(foo)
                           ...
 
-                     Example 4: Pack and unpack a message in Go
+                    Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
                          any, err := anypb.New(foo)
@@ -1291,7 +1308,6 @@ paths:
 
                     JSON
 
-                    ====
 
                     The JSON representation of an `Any` value uses the regular
 
@@ -1471,7 +1487,7 @@ paths:
                           foo = any.unpack(Foo.class);
                         }
 
-                     Example 3: Pack and unpack a message in Python.
+                    Example 3: Pack and unpack a message in Python.
 
                         foo = Foo(...)
                         any = Any()
@@ -1481,7 +1497,7 @@ paths:
                           any.Unpack(foo)
                           ...
 
-                     Example 4: Pack and unpack a message in Go
+                    Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
                          any, err := anypb.New(foo)
@@ -1512,7 +1528,6 @@ paths:
 
                     JSON
 
-                    ====
 
                     The JSON representation of an `Any` value uses the regular
 
@@ -1793,7 +1808,7 @@ paths:
                           foo = any.unpack(Foo.class);
                         }
 
-                     Example 3: Pack and unpack a message in Python.
+                    Example 3: Pack and unpack a message in Python.
 
                         foo = Foo(...)
                         any = Any()
@@ -1803,7 +1818,7 @@ paths:
                           any.Unpack(foo)
                           ...
 
-                     Example 4: Pack and unpack a message in Go
+                    Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
                          any, err := anypb.New(foo)
@@ -1834,7 +1849,6 @@ paths:
 
                     JSON
 
-                    ====
 
                     The JSON representation of an `Any` value uses the regular
 
@@ -2043,7 +2057,7 @@ paths:
                           foo = any.unpack(Foo.class);
                         }
 
-                     Example 3: Pack and unpack a message in Python.
+                    Example 3: Pack and unpack a message in Python.
 
                         foo = Foo(...)
                         any = Any()
@@ -2053,7 +2067,7 @@ paths:
                           any.Unpack(foo)
                           ...
 
-                     Example 4: Pack and unpack a message in Go
+                    Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
                          any, err := anypb.New(foo)
@@ -2084,7 +2098,6 @@ paths:
 
                     JSON
 
-                    ====
 
                     The JSON representation of an `Any` value uses the regular
 
@@ -2287,7 +2300,7 @@ paths:
                           foo = any.unpack(Foo.class);
                         }
 
-                     Example 3: Pack and unpack a message in Python.
+                    Example 3: Pack and unpack a message in Python.
 
                         foo = Foo(...)
                         any = Any()
@@ -2297,7 +2310,7 @@ paths:
                           any.Unpack(foo)
                           ...
 
-                     Example 4: Pack and unpack a message in Go
+                    Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
                          any, err := anypb.New(foo)
@@ -2328,7 +2341,6 @@ paths:
 
                     JSON
 
-                    ====
 
                     The JSON representation of an `Any` value uses the regular
 
@@ -2531,7 +2543,7 @@ paths:
                           foo = any.unpack(Foo.class);
                         }
 
-                     Example 3: Pack and unpack a message in Python.
+                    Example 3: Pack and unpack a message in Python.
 
                         foo = Foo(...)
                         any = Any()
@@ -2541,7 +2553,7 @@ paths:
                           any.Unpack(foo)
                           ...
 
-                     Example 4: Pack and unpack a message in Go
+                    Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
                          any, err := anypb.New(foo)
@@ -2572,7 +2584,6 @@ paths:
 
                     JSON
 
-                    ====
 
                     The JSON representation of an `Any` value uses the regular
 
@@ -2653,6 +2664,25 @@ paths:
                     FeeEnabledChannel contains the PortID & ChannelID for a fee
                     enabled channel
                 title: list of fee enabled channels
+              pagination:
+                description: pagination defines the pagination in the response.
+                type: object
+                properties:
+                  next_key:
+                    type: string
+                    format: byte
+                    description: |-
+                      next_key is the key to be passed to PageRequest.key to
+                      query the next page most efficiently. It will be empty if
+                      there are no more results.
+                  total:
+                    type: string
+                    format: uint64
+                    title: >-
+                      total is total number of results available if
+                      PageRequest.count_total
+
+                      was set, its value is undefined otherwise
             title: >-
               QueryFeeEnabledChannelsResponse defines the response type for the
               FeeEnabledChannels rpc
@@ -2770,7 +2800,7 @@ paths:
                           foo = any.unpack(Foo.class);
                         }
 
-                     Example 3: Pack and unpack a message in Python.
+                    Example 3: Pack and unpack a message in Python.
 
                         foo = Foo(...)
                         any = Any()
@@ -2780,7 +2810,7 @@ paths:
                           any.Unpack(foo)
                           ...
 
-                     Example 4: Pack and unpack a message in Go
+                    Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
                          any, err := anypb.New(foo)
@@ -2811,7 +2841,6 @@ paths:
 
                     JSON
 
-                    ====
 
                     The JSON representation of an `Any` value uses the regular
 
@@ -3032,6 +3061,25 @@ paths:
                     IdentifiedPacketFees contains a list of type PacketFee and
                     associated PacketId
                 title: list of identified fees for incentivized packets
+              pagination:
+                description: pagination defines the pagination in the response.
+                type: object
+                properties:
+                  next_key:
+                    type: string
+                    format: byte
+                    description: |-
+                      next_key is the key to be passed to PageRequest.key to
+                      query the next page most efficiently. It will be empty if
+                      there are no more results.
+                  total:
+                    type: string
+                    format: uint64
+                    title: >-
+                      total is total number of results available if
+                      PageRequest.count_total
+
+                      was set, its value is undefined otherwise
             title: >-
               QueryIncentivizedPacketsResponse defines the response type for the
               IncentivizedPackets rpc
@@ -3149,7 +3197,7 @@ paths:
                           foo = any.unpack(Foo.class);
                         }
 
-                     Example 3: Pack and unpack a message in Python.
+                    Example 3: Pack and unpack a message in Python.
 
                         foo = Foo(...)
                         any = Any()
@@ -3159,7 +3207,7 @@ paths:
                           any.Unpack(foo)
                           ...
 
-                     Example 4: Pack and unpack a message in Go
+                    Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
                          any, err := anypb.New(foo)
@@ -3190,7 +3238,6 @@ paths:
 
                     JSON
 
-                    ====
 
                     The JSON representation of an `Any` value uses the regular
 
@@ -3411,7 +3458,7 @@ paths:
                               foo = any.unpack(Foo.class);
                             }
 
-                         Example 3: Pack and unpack a message in Python.
+                        Example 3: Pack and unpack a message in Python.
 
                             foo = Foo(...)
                             any = Any()
@@ -3421,7 +3468,7 @@ paths:
                               any.Unpack(foo)
                               ...
 
-                         Example 4: Pack and unpack a message in Go
+                        Example 4: Pack and unpack a message in Go
 
                              foo := &pb.Foo{...}
                              any, err := anypb.New(foo)
@@ -3452,7 +3499,6 @@ paths:
 
                         JSON
 
-                        ====
 
                         The JSON representation of an `Any` value uses the
                         regular
@@ -3645,7 +3691,7 @@ paths:
                           foo = any.unpack(Foo.class);
                         }
 
-                     Example 3: Pack and unpack a message in Python.
+                    Example 3: Pack and unpack a message in Python.
 
                         foo = Foo(...)
                         any = Any()
@@ -3655,7 +3701,7 @@ paths:
                           any.Unpack(foo)
                           ...
 
-                     Example 4: Pack and unpack a message in Go
+                    Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
                          any, err := anypb.New(foo)
@@ -3686,7 +3732,6 @@ paths:
 
                     JSON
 
-                    ====
 
                     The JSON representation of an `Any` value uses the regular
 
@@ -3891,7 +3936,7 @@ paths:
                         foo = any.unpack(Foo.class);
                       }
 
-                   Example 3: Pack and unpack a message in Python.
+                  Example 3: Pack and unpack a message in Python.
 
                       foo = Foo(...)
                       any = Any()
@@ -3901,7 +3946,7 @@ paths:
                         any.Unpack(foo)
                         ...
 
-                   Example 4: Pack and unpack a message in Go
+                  Example 4: Pack and unpack a message in Go
 
                        foo := &pb.Foo{...}
                        any, err := anypb.New(foo)
@@ -3932,7 +3977,6 @@ paths:
 
                   JSON
 
-                  ====
 
                   The JSON representation of an `Any` value uses the regular
 
@@ -4122,7 +4166,7 @@ paths:
                           foo = any.unpack(Foo.class);
                         }
 
-                     Example 3: Pack and unpack a message in Python.
+                    Example 3: Pack and unpack a message in Python.
 
                         foo = Foo(...)
                         any = Any()
@@ -4132,7 +4176,7 @@ paths:
                           any.Unpack(foo)
                           ...
 
-                     Example 4: Pack and unpack a message in Go
+                    Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
                          any, err := anypb.New(foo)
@@ -4163,7 +4207,6 @@ paths:
 
                     JSON
 
-                    ====
 
                     The JSON representation of an `Any` value uses the regular
 
@@ -4339,7 +4382,7 @@ paths:
                           foo = any.unpack(Foo.class);
                         }
 
-                     Example 3: Pack and unpack a message in Python.
+                    Example 3: Pack and unpack a message in Python.
 
                         foo = Foo(...)
                         any = Any()
@@ -4349,7 +4392,7 @@ paths:
                           any.Unpack(foo)
                           ...
 
-                     Example 4: Pack and unpack a message in Go
+                    Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
                          any, err := anypb.New(foo)
@@ -4380,7 +4423,6 @@ paths:
 
                     JSON
 
-                    ====
 
                     The JSON representation of an `Any` value uses the regular
 
@@ -4571,7 +4613,7 @@ paths:
                               foo = any.unpack(Foo.class);
                             }
 
-                         Example 3: Pack and unpack a message in Python.
+                        Example 3: Pack and unpack a message in Python.
 
                             foo = Foo(...)
                             any = Any()
@@ -4581,7 +4623,7 @@ paths:
                               any.Unpack(foo)
                               ...
 
-                         Example 4: Pack and unpack a message in Go
+                        Example 4: Pack and unpack a message in Go
 
                              foo := &pb.Foo{...}
                              any, err := anypb.New(foo)
@@ -4612,7 +4654,6 @@ paths:
 
                         JSON
 
-                        ====
 
                         The JSON representation of an `Any` value uses the
                         regular
@@ -4804,7 +4845,7 @@ paths:
                           foo = any.unpack(Foo.class);
                         }
 
-                     Example 3: Pack and unpack a message in Python.
+                    Example 3: Pack and unpack a message in Python.
 
                         foo = Foo(...)
                         any = Any()
@@ -4814,7 +4855,7 @@ paths:
                           any.Unpack(foo)
                           ...
 
-                     Example 4: Pack and unpack a message in Go
+                    Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
                          any, err := anypb.New(foo)
@@ -4845,7 +4886,6 @@ paths:
 
                     JSON
 
-                    ====
 
                     The JSON representation of an `Any` value uses the regular
 
@@ -5142,7 +5182,7 @@ paths:
                           foo = any.unpack(Foo.class);
                         }
 
-                     Example 3: Pack and unpack a message in Python.
+                    Example 3: Pack and unpack a message in Python.
 
                         foo = Foo(...)
                         any = Any()
@@ -5152,7 +5192,7 @@ paths:
                           any.Unpack(foo)
                           ...
 
-                     Example 4: Pack and unpack a message in Go
+                    Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
                          any, err := anypb.New(foo)
@@ -5183,7 +5223,6 @@ paths:
 
                     JSON
 
-                    ====
 
                     The JSON representation of an `Any` value uses the regular
 
@@ -5397,7 +5436,7 @@ paths:
                         foo = any.unpack(Foo.class);
                       }
 
-                   Example 3: Pack and unpack a message in Python.
+                  Example 3: Pack and unpack a message in Python.
 
                       foo = Foo(...)
                       any = Any()
@@ -5407,7 +5446,7 @@ paths:
                         any.Unpack(foo)
                         ...
 
-                   Example 4: Pack and unpack a message in Go
+                  Example 4: Pack and unpack a message in Go
 
                        foo := &pb.Foo{...}
                        any, err := anypb.New(foo)
@@ -5438,7 +5477,6 @@ paths:
 
                   JSON
 
-                  ====
 
                   The JSON representation of an `Any` value uses the regular
 
@@ -5633,7 +5671,7 @@ paths:
                           foo = any.unpack(Foo.class);
                         }
 
-                     Example 3: Pack and unpack a message in Python.
+                    Example 3: Pack and unpack a message in Python.
 
                         foo = Foo(...)
                         any = Any()
@@ -5643,7 +5681,7 @@ paths:
                           any.Unpack(foo)
                           ...
 
-                     Example 4: Pack and unpack a message in Go
+                    Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
                          any, err := anypb.New(foo)
@@ -5674,7 +5712,6 @@ paths:
 
                     JSON
 
-                    ====
 
                     The JSON representation of an `Any` value uses the regular
 
@@ -5760,7 +5797,13 @@ paths:
                       type: string
                     description: >-
                       allowed_clients defines the list of allowed client state
-                      types.
+                      types which can be created
+
+                      and interacted with. If a client type is removed from the
+                      allowed clients list, usage
+
+                      of this client will be disabled until it is added again to
+                      the list.
             description: >-
               QueryClientParamsResponse is the response type for the
               Query/ClientParams RPC
@@ -5880,7 +5923,7 @@ paths:
                           foo = any.unpack(Foo.class);
                         }
 
-                     Example 3: Pack and unpack a message in Python.
+                    Example 3: Pack and unpack a message in Python.
 
                         foo = Foo(...)
                         any = Any()
@@ -5890,7 +5933,7 @@ paths:
                           any.Unpack(foo)
                           ...
 
-                     Example 4: Pack and unpack a message in Go
+                    Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
                          any, err := anypb.New(foo)
@@ -5921,7 +5964,6 @@ paths:
 
                     JSON
 
-                    ====
 
                     The JSON representation of an `Any` value uses the regular
 
@@ -6069,7 +6111,7 @@ paths:
                         foo = any.unpack(Foo.class);
                       }
 
-                   Example 3: Pack and unpack a message in Python.
+                  Example 3: Pack and unpack a message in Python.
 
                       foo = Foo(...)
                       any = Any()
@@ -6079,7 +6121,7 @@ paths:
                         any.Unpack(foo)
                         ...
 
-                   Example 4: Pack and unpack a message in Go
+                  Example 4: Pack and unpack a message in Go
 
                        foo := &pb.Foo{...}
                        any, err := anypb.New(foo)
@@ -6110,7 +6152,6 @@ paths:
 
                   JSON
 
-                  ====
 
                   The JSON representation of an `Any` value uses the regular
 
@@ -6262,7 +6303,7 @@ paths:
                           foo = any.unpack(Foo.class);
                         }
 
-                     Example 3: Pack and unpack a message in Python.
+                    Example 3: Pack and unpack a message in Python.
 
                         foo = Foo(...)
                         any = Any()
@@ -6272,7 +6313,7 @@ paths:
                           any.Unpack(foo)
                           ...
 
-                     Example 4: Pack and unpack a message in Go
+                    Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
                          any, err := anypb.New(foo)
@@ -6303,7 +6344,6 @@ paths:
 
                     JSON
 
-                    ====
 
                     The JSON representation of an `Any` value uses the regular
 
@@ -6451,7 +6491,7 @@ paths:
                         foo = any.unpack(Foo.class);
                       }
 
-                   Example 3: Pack and unpack a message in Python.
+                  Example 3: Pack and unpack a message in Python.
 
                       foo = Foo(...)
                       any = Any()
@@ -6461,7 +6501,7 @@ paths:
                         any.Unpack(foo)
                         ...
 
-                   Example 4: Pack and unpack a message in Go
+                  Example 4: Pack and unpack a message in Go
 
                        foo := &pb.Foo{...}
                        any, err := anypb.New(foo)
@@ -6492,7 +6532,6 @@ paths:
 
                   JSON
 
-                  ====
 
                   The JSON representation of an `Any` value uses the regular
 
@@ -6644,7 +6683,7 @@ paths:
                           foo = any.unpack(Foo.class);
                         }
 
-                     Example 3: Pack and unpack a message in Python.
+                    Example 3: Pack and unpack a message in Python.
 
                         foo = Foo(...)
                         any = Any()
@@ -6654,7 +6693,7 @@ paths:
                           any.Unpack(foo)
                           ...
 
-                     Example 4: Pack and unpack a message in Go
+                    Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
                          any, err := anypb.New(foo)
@@ -6685,7 +6724,6 @@ paths:
 
                     JSON
 
-                    ====
 
                     The JSON representation of an `Any` value uses the regular
 
@@ -6891,7 +6929,7 @@ paths:
                           foo = any.unpack(Foo.class);
                         }
 
-                     Example 3: Pack and unpack a message in Python.
+                    Example 3: Pack and unpack a message in Python.
 
                         foo = Foo(...)
                         any = Any()
@@ -6901,7 +6939,7 @@ paths:
                           any.Unpack(foo)
                           ...
 
-                     Example 4: Pack and unpack a message in Go
+                    Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
                          any, err := anypb.New(foo)
@@ -6932,7 +6970,6 @@ paths:
 
                     JSON
 
-                    ====
 
                     The JSON representation of an `Any` value uses the regular
 
@@ -7251,7 +7288,7 @@ paths:
                           foo = any.unpack(Foo.class);
                         }
 
-                     Example 3: Pack and unpack a message in Python.
+                    Example 3: Pack and unpack a message in Python.
 
                         foo = Foo(...)
                         any = Any()
@@ -7261,7 +7298,7 @@ paths:
                           any.Unpack(foo)
                           ...
 
-                     Example 4: Pack and unpack a message in Go
+                    Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
                          any, err := anypb.New(foo)
@@ -7292,7 +7329,6 @@ paths:
 
                     JSON
 
-                    ====
 
                     The JSON representation of an `Any` value uses the regular
 
@@ -7646,7 +7682,7 @@ paths:
                           foo = any.unpack(Foo.class);
                         }
 
-                     Example 3: Pack and unpack a message in Python.
+                    Example 3: Pack and unpack a message in Python.
 
                         foo = Foo(...)
                         any = Any()
@@ -7656,7 +7692,7 @@ paths:
                           any.Unpack(foo)
                           ...
 
-                     Example 4: Pack and unpack a message in Go
+                    Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
                          any, err := anypb.New(foo)
@@ -7687,7 +7723,6 @@ paths:
 
                     JSON
 
-                    ====
 
                     The JSON representation of an `Any` value uses the regular
 
@@ -7851,7 +7886,7 @@ paths:
                             foo = any.unpack(Foo.class);
                           }
 
-                       Example 3: Pack and unpack a message in Python.
+                      Example 3: Pack and unpack a message in Python.
 
                           foo = Foo(...)
                           any = Any()
@@ -7861,7 +7896,7 @@ paths:
                             any.Unpack(foo)
                             ...
 
-                       Example 4: Pack and unpack a message in Go
+                      Example 4: Pack and unpack a message in Go
 
                            foo := &pb.Foo{...}
                            any, err := anypb.New(foo)
@@ -7892,7 +7927,6 @@ paths:
 
                       JSON
 
-                      ====
 
                       The JSON representation of an `Any` value uses the regular
 
@@ -8085,7 +8119,7 @@ paths:
                           foo = any.unpack(Foo.class);
                         }
 
-                     Example 3: Pack and unpack a message in Python.
+                    Example 3: Pack and unpack a message in Python.
 
                         foo = Foo(...)
                         any = Any()
@@ -8095,7 +8129,7 @@ paths:
                           any.Unpack(foo)
                           ...
 
-                     Example 4: Pack and unpack a message in Go
+                    Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
                          any, err := anypb.New(foo)
@@ -8126,7 +8160,6 @@ paths:
 
                     JSON
 
-                    ====
 
                     The JSON representation of an `Any` value uses the regular
 
@@ -8282,7 +8315,7 @@ paths:
                         foo = any.unpack(Foo.class);
                       }
 
-                   Example 3: Pack and unpack a message in Python.
+                  Example 3: Pack and unpack a message in Python.
 
                       foo = Foo(...)
                       any = Any()
@@ -8292,7 +8325,7 @@ paths:
                         any.Unpack(foo)
                         ...
 
-                   Example 4: Pack and unpack a message in Go
+                  Example 4: Pack and unpack a message in Go
 
                        foo := &pb.Foo{...}
                        any, err := anypb.New(foo)
@@ -8323,7 +8356,6 @@ paths:
 
                   JSON
 
-                  ====
 
                   The JSON representation of an `Any` value uses the regular
 
@@ -8511,7 +8543,7 @@ paths:
                           foo = any.unpack(Foo.class);
                         }
 
-                     Example 3: Pack and unpack a message in Python.
+                    Example 3: Pack and unpack a message in Python.
 
                         foo = Foo(...)
                         any = Any()
@@ -8521,7 +8553,7 @@ paths:
                           any.Unpack(foo)
                           ...
 
-                     Example 4: Pack and unpack a message in Go
+                    Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
                          any, err := anypb.New(foo)
@@ -8552,7 +8584,6 @@ paths:
 
                     JSON
 
-                    ====
 
                     The JSON representation of an `Any` value uses the regular
 
@@ -8750,7 +8781,7 @@ paths:
                           foo = any.unpack(Foo.class);
                         }
 
-                     Example 3: Pack and unpack a message in Python.
+                    Example 3: Pack and unpack a message in Python.
 
                         foo = Foo(...)
                         any = Any()
@@ -8760,7 +8791,7 @@ paths:
                           any.Unpack(foo)
                           ...
 
-                     Example 4: Pack and unpack a message in Go
+                    Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
                          any, err := anypb.New(foo)
@@ -8791,7 +8822,6 @@ paths:
 
                     JSON
 
-                    ====
 
                     The JSON representation of an `Any` value uses the regular
 
@@ -8854,12 +8884,15 @@ paths:
                         - STATE_TRYOPEN
                         - STATE_OPEN
                         - STATE_CLOSED
+                        - STATE_INITUPGRADE
+                        - STATE_TRYUPGRADE
                       default: STATE_UNINITIALIZED_UNSPECIFIED
                       description: >-
                         State defines if a channel is in one of the following
                         states:
 
-                        CLOSED, INIT, TRYOPEN, OPEN or UNINITIALIZED.
+                        CLOSED, INIT, TRYOPEN, OPEN, INITUPGRADE, TRYUPGRADE or
+                        UNINITIALIZED.
 
                          - STATE_UNINITIALIZED_UNSPECIFIED: Default State
                          - STATE_INIT: A channel has just started the opening handshake.
@@ -8868,6 +8901,12 @@ paths:
                         ready to send and receive packets.
                          - STATE_CLOSED: A channel has been closed and can no longer be used to send or receive
                         packets.
+                         - STATE_INITUPGRADE: A channel has just started the channel upgrade handshake.
+                        The chain that is proposing the upgrade should set the
+                        channel state from OPEN to UPGRADEINIT.
+                         - STATE_TRYUPGRADE: A channel has acknowledged the upgrade handshake step on the counterparty chain.
+                        The counterparty chain that accepts the upgrade should
+                        set the channel state from OPEN to UPGRADETRY.
                     ordering:
                       title: whether the channel is ordered or unordered
                       type: string
@@ -9095,7 +9134,7 @@ paths:
                           foo = any.unpack(Foo.class);
                         }
 
-                     Example 3: Pack and unpack a message in Python.
+                    Example 3: Pack and unpack a message in Python.
 
                         foo = Foo(...)
                         any = Any()
@@ -9105,7 +9144,7 @@ paths:
                           any.Unpack(foo)
                           ...
 
-                     Example 4: Pack and unpack a message in Go
+                    Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
                          any, err := anypb.New(foo)
@@ -9136,7 +9175,6 @@ paths:
 
                     JSON
 
-                    ====
 
                     The JSON representation of an `Any` value uses the regular
 
@@ -9255,12 +9293,15 @@ paths:
                       - STATE_TRYOPEN
                       - STATE_OPEN
                       - STATE_CLOSED
+                      - STATE_INITUPGRADE
+                      - STATE_TRYUPGRADE
                     default: STATE_UNINITIALIZED_UNSPECIFIED
                     description: >-
                       State defines if a channel is in one of the following
                       states:
 
-                      CLOSED, INIT, TRYOPEN, OPEN or UNINITIALIZED.
+                      CLOSED, INIT, TRYOPEN, OPEN, INITUPGRADE, TRYUPGRADE or
+                      UNINITIALIZED.
 
                        - STATE_UNINITIALIZED_UNSPECIFIED: Default State
                        - STATE_INIT: A channel has just started the opening handshake.
@@ -9269,6 +9310,12 @@ paths:
                       ready to send and receive packets.
                        - STATE_CLOSED: A channel has been closed and can no longer be used to send or receive
                       packets.
+                       - STATE_INITUPGRADE: A channel has just started the channel upgrade handshake.
+                      The chain that is proposing the upgrade should set the
+                      channel state from OPEN to UPGRADEINIT.
+                       - STATE_TRYUPGRADE: A channel has acknowledged the upgrade handshake step on the counterparty chain.
+                      The counterparty chain that accepts the upgrade should set
+                      the channel state from OPEN to UPGRADETRY.
                   ordering:
                     title: whether the channel is ordered or unordered
                     type: string
@@ -9471,7 +9518,7 @@ paths:
                           foo = any.unpack(Foo.class);
                         }
 
-                     Example 3: Pack and unpack a message in Python.
+                    Example 3: Pack and unpack a message in Python.
 
                         foo = Foo(...)
                         any = Any()
@@ -9481,7 +9528,7 @@ paths:
                           any.Unpack(foo)
                           ...
 
-                     Example 4: Pack and unpack a message in Go
+                    Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
                          any, err := anypb.New(foo)
@@ -9512,7 +9559,6 @@ paths:
 
                     JSON
 
-                    ====
 
                     The JSON representation of an `Any` value uses the regular
 
@@ -9683,7 +9729,7 @@ paths:
                             foo = any.unpack(Foo.class);
                           }
 
-                       Example 3: Pack and unpack a message in Python.
+                      Example 3: Pack and unpack a message in Python.
 
                           foo = Foo(...)
                           any = Any()
@@ -9693,7 +9739,7 @@ paths:
                             any.Unpack(foo)
                             ...
 
-                       Example 4: Pack and unpack a message in Go
+                      Example 4: Pack and unpack a message in Go
 
                            foo := &pb.Foo{...}
                            any, err := anypb.New(foo)
@@ -9724,7 +9770,6 @@ paths:
 
                       JSON
 
-                      ====
 
                       The JSON representation of an `Any` value uses the regular
 
@@ -9917,7 +9962,7 @@ paths:
                           foo = any.unpack(Foo.class);
                         }
 
-                     Example 3: Pack and unpack a message in Python.
+                    Example 3: Pack and unpack a message in Python.
 
                         foo = Foo(...)
                         any = Any()
@@ -9927,7 +9972,7 @@ paths:
                           any.Unpack(foo)
                           ...
 
-                     Example 4: Pack and unpack a message in Go
+                    Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
                          any, err := anypb.New(foo)
@@ -9958,7 +10003,6 @@ paths:
 
                     JSON
 
-                    ====
 
                     The JSON representation of an `Any` value uses the regular
 
@@ -10119,7 +10163,7 @@ paths:
                         foo = any.unpack(Foo.class);
                       }
 
-                   Example 3: Pack and unpack a message in Python.
+                  Example 3: Pack and unpack a message in Python.
 
                       foo = Foo(...)
                       any = Any()
@@ -10129,7 +10173,7 @@ paths:
                         any.Unpack(foo)
                         ...
 
-                   Example 4: Pack and unpack a message in Go
+                  Example 4: Pack and unpack a message in Go
 
                        foo := &pb.Foo{...}
                        any, err := anypb.New(foo)
@@ -10160,7 +10204,6 @@ paths:
 
                   JSON
 
-                  ====
 
                   The JSON representation of an `Any` value uses the regular
 
@@ -10348,7 +10391,7 @@ paths:
                           foo = any.unpack(Foo.class);
                         }
 
-                     Example 3: Pack and unpack a message in Python.
+                    Example 3: Pack and unpack a message in Python.
 
                         foo = Foo(...)
                         any = Any()
@@ -10358,7 +10401,7 @@ paths:
                           any.Unpack(foo)
                           ...
 
-                     Example 4: Pack and unpack a message in Go
+                    Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
                          any, err := anypb.New(foo)
@@ -10389,7 +10432,6 @@ paths:
 
                     JSON
 
-                    ====
 
                     The JSON representation of an `Any` value uses the regular
 
@@ -10501,7 +10543,7 @@ paths:
 
                   gets reset
             title: |-
-              QuerySequenceResponse is the request type for the
+              QuerySequenceResponse is the response type for the
               Query/QueryNextSequenceReceiveResponse RPC method
         default:
           description: An unexpected error response.
@@ -10617,7 +10659,7 @@ paths:
                           foo = any.unpack(Foo.class);
                         }
 
-                     Example 3: Pack and unpack a message in Python.
+                    Example 3: Pack and unpack a message in Python.
 
                         foo = Foo(...)
                         any = Any()
@@ -10627,7 +10669,7 @@ paths:
                           any.Unpack(foo)
                           ...
 
-                     Example 4: Pack and unpack a message in Go
+                    Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
                          any, err := anypb.New(foo)
@@ -10658,7 +10700,6 @@ paths:
 
                     JSON
 
-                    ====
 
                     The JSON representation of an `Any` value uses the regular
 
@@ -10926,7 +10967,7 @@ paths:
                           foo = any.unpack(Foo.class);
                         }
 
-                     Example 3: Pack and unpack a message in Python.
+                    Example 3: Pack and unpack a message in Python.
 
                         foo = Foo(...)
                         any = Any()
@@ -10936,7 +10977,7 @@ paths:
                           any.Unpack(foo)
                           ...
 
-                     Example 4: Pack and unpack a message in Go
+                    Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
                          any, err := anypb.New(foo)
@@ -10967,7 +11008,6 @@ paths:
 
                     JSON
 
-                    ====
 
                     The JSON representation of an `Any` value uses the regular
 
@@ -11250,7 +11290,7 @@ paths:
                           foo = any.unpack(Foo.class);
                         }
 
-                     Example 3: Pack and unpack a message in Python.
+                    Example 3: Pack and unpack a message in Python.
 
                         foo = Foo(...)
                         any = Any()
@@ -11260,7 +11300,7 @@ paths:
                           any.Unpack(foo)
                           ...
 
-                     Example 4: Pack and unpack a message in Go
+                    Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
                          any, err := anypb.New(foo)
@@ -11291,7 +11331,6 @@ paths:
 
                     JSON
 
-                    ====
 
                     The JSON representation of an `Any` value uses the regular
 
@@ -11563,7 +11602,7 @@ paths:
                           foo = any.unpack(Foo.class);
                         }
 
-                     Example 3: Pack and unpack a message in Python.
+                    Example 3: Pack and unpack a message in Python.
 
                         foo = Foo(...)
                         any = Any()
@@ -11573,7 +11612,7 @@ paths:
                           any.Unpack(foo)
                           ...
 
-                     Example 4: Pack and unpack a message in Go
+                    Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
                          any, err := anypb.New(foo)
@@ -11604,7 +11643,6 @@ paths:
 
                     JSON
 
-                    ====
 
                     The JSON representation of an `Any` value uses the regular
 
@@ -11876,7 +11914,7 @@ paths:
                           foo = any.unpack(Foo.class);
                         }
 
-                     Example 3: Pack and unpack a message in Python.
+                    Example 3: Pack and unpack a message in Python.
 
                         foo = Foo(...)
                         any = Any()
@@ -11886,7 +11924,7 @@ paths:
                           any.Unpack(foo)
                           ...
 
-                     Example 4: Pack and unpack a message in Go
+                    Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
                          any, err := anypb.New(foo)
@@ -11917,7 +11955,6 @@ paths:
 
                     JSON
 
-                    ====
 
                     The JSON representation of an `Any` value uses the regular
 
@@ -12143,7 +12180,7 @@ paths:
                           foo = any.unpack(Foo.class);
                         }
 
-                     Example 3: Pack and unpack a message in Python.
+                    Example 3: Pack and unpack a message in Python.
 
                         foo = Foo(...)
                         any = Any()
@@ -12153,7 +12190,7 @@ paths:
                           any.Unpack(foo)
                           ...
 
-                     Example 4: Pack and unpack a message in Go
+                    Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
                          any, err := anypb.New(foo)
@@ -12184,7 +12221,6 @@ paths:
 
                     JSON
 
-                    ====
 
                     The JSON representation of an `Any` value uses the regular
 
@@ -12413,7 +12449,7 @@ paths:
                           foo = any.unpack(Foo.class);
                         }
 
-                     Example 3: Pack and unpack a message in Python.
+                    Example 3: Pack and unpack a message in Python.
 
                         foo = Foo(...)
                         any = Any()
@@ -12423,7 +12459,7 @@ paths:
                           any.Unpack(foo)
                           ...
 
-                     Example 4: Pack and unpack a message in Go
+                    Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
                          any, err := anypb.New(foo)
@@ -12454,7 +12490,6 @@ paths:
 
                     JSON
 
-                    ====
 
                     The JSON representation of an `Any` value uses the regular
 
@@ -12682,7 +12717,7 @@ paths:
                           foo = any.unpack(Foo.class);
                         }
 
-                     Example 3: Pack and unpack a message in Python.
+                    Example 3: Pack and unpack a message in Python.
 
                         foo = Foo(...)
                         any = Any()
@@ -12692,7 +12727,7 @@ paths:
                           any.Unpack(foo)
                           ...
 
-                     Example 4: Pack and unpack a message in Go
+                    Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
                          any, err := anypb.New(foo)
@@ -12723,7 +12758,6 @@ paths:
 
                     JSON
 
-                    ====
 
                     The JSON representation of an `Any` value uses the regular
 
@@ -12779,6 +12813,262 @@ paths:
           format: uint64
       tags:
         - Query
+  /ibc/core/channel/v1/channels/{channel_id}/ports/{port_id}/upgrade_sequence:
+    get:
+      summary: UpgradeSequence returns the upgrade sequence for a given channel.
+      operationId: UpgradeSequence
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              upgrade_sequence:
+                type: string
+                format: uint64
+              proof:
+                type: string
+                format: byte
+              proof_height:
+                type: object
+                properties:
+                  revision_number:
+                    type: string
+                    format: uint64
+                    title: the revision that the client is currently on
+                  revision_height:
+                    type: string
+                    format: uint64
+                    title: the height within the given revision
+                description: >-
+                  Normally the RevisionHeight is incremented at each height
+                  while keeping
+
+                  RevisionNumber the same. However some consensus algorithms may
+                  choose to
+
+                  reset the height in certain conditions e.g. hard forks,
+                  state-machine
+
+                  breaking changes In these cases, the RevisionNumber is
+                  incremented so that
+
+                  height continues to be monitonically increasing even as the
+                  RevisionHeight
+
+                  gets reset
+                title: >-
+                  Height is a monotonically increasing data type
+
+                  that can be compared against another Height for the purposes
+                  of updating and
+
+                  freezing clients
+            title: >-
+              QueryUpgradeSequenceResponse is the response type for the
+              QueryUpgradeSequence RPC method
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                      description: >-
+                        A URL/resource name that uniquely identifies the type of
+                        the serialized
+
+                        protocol buffer message. This string must contain at
+                        least
+
+                        one "/" character. The last segment of the URL's path
+                        must represent
+
+                        the fully qualified name of the type (as in
+
+                        `path/google.protobuf.Duration`). The name should be in
+                        a canonical form
+
+                        (e.g., leading "." is not accepted).
+
+
+                        In practice, teams usually precompile into the binary
+                        all types that they
+
+                        expect it to use in the context of Any. However, for
+                        URLs which use the
+
+                        scheme `http`, `https`, or no scheme, one can optionally
+                        set up a type
+
+                        server that maps type URLs to message definitions as
+                        follows:
+
+
+                        * If no scheme is provided, `https` is assumed.
+
+                        * An HTTP GET on the URL must yield a
+                        [google.protobuf.Type][]
+                          value in binary format, or produce an error.
+                        * Applications are allowed to cache lookup results based
+                        on the
+                          URL, or have them precompiled into a binary to avoid any
+                          lookup. Therefore, binary compatibility needs to be preserved
+                          on changes to types. (Use versioned type names to manage
+                          breaking changes.)
+
+                        Note: this functionality is not currently available in
+                        the official
+
+                        protobuf release, and it is not used for type URLs
+                        beginning with
+
+                        type.googleapis.com.
+
+
+                        Schemes other than `http`, `https` (or the empty scheme)
+                        might be
+
+                        used with implementation specific semantics.
+                    value:
+                      type: string
+                      format: byte
+                      description: >-
+                        Must be a valid serialized protocol buffer of the above
+                        specified type.
+                  description: >-
+                    `Any` contains an arbitrary serialized protocol buffer
+                    message along with a
+
+                    URL that describes the type of the serialized message.
+
+
+                    Protobuf library provides support to pack/unpack Any values
+                    in the form
+
+                    of utility functions or additional generated methods of the
+                    Any type.
+
+
+                    Example 1: Pack and unpack a message in C++.
+
+                        Foo foo = ...;
+                        Any any;
+                        any.PackFrom(foo);
+                        ...
+                        if (any.UnpackTo(&foo)) {
+                          ...
+                        }
+
+                    Example 2: Pack and unpack a message in Java.
+
+                        Foo foo = ...;
+                        Any any = Any.pack(foo);
+                        ...
+                        if (any.is(Foo.class)) {
+                          foo = any.unpack(Foo.class);
+                        }
+
+                    Example 3: Pack and unpack a message in Python.
+
+                        foo = Foo(...)
+                        any = Any()
+                        any.Pack(foo)
+                        ...
+                        if any.Is(Foo.DESCRIPTOR):
+                          any.Unpack(foo)
+                          ...
+
+                    Example 4: Pack and unpack a message in Go
+
+                         foo := &pb.Foo{...}
+                         any, err := anypb.New(foo)
+                         if err != nil {
+                           ...
+                         }
+                         ...
+                         foo := &pb.Foo{}
+                         if err := any.UnmarshalTo(foo); err != nil {
+                           ...
+                         }
+
+                    The pack methods provided by protobuf library will by
+                    default use
+
+                    'type.googleapis.com/full.type.name' as the type URL and the
+                    unpack
+
+                    methods only use the fully qualified type name after the
+                    last '/'
+
+                    in the type URL, for example "foo.bar.com/x/y.z" will yield
+                    type
+
+                    name "y.z".
+
+
+
+                    JSON
+
+
+                    The JSON representation of an `Any` value uses the regular
+
+                    representation of the deserialized, embedded message, with
+                    an
+
+                    additional field `@type` which contains the type URL.
+                    Example:
+
+                        package google.profile;
+                        message Person {
+                          string first_name = 1;
+                          string last_name = 2;
+                        }
+
+                        {
+                          "@type": "type.googleapis.com/google.profile.Person",
+                          "firstName": <string>,
+                          "lastName": <string>
+                        }
+
+                    If the embedded message type is well-known and has a custom
+                    JSON
+
+                    representation, that representation will be embedded adding
+                    a field
+
+                    `value` which holds the custom JSON in addition to the
+                    `@type`
+
+                    field. Example (for message [google.protobuf.Duration][]):
+
+                        {
+                          "@type": "type.googleapis.com/google.protobuf.Duration",
+                          "value": "1.212s"
+                        }
+      parameters:
+        - name: channel_id
+          in: path
+          required: true
+          type: string
+        - name: port_id
+          in: path
+          required: true
+          type: string
+      tags:
+        - Query
   /ibc/core/channel/v1/connections/{connection}/channels:
     get:
       summary: |-
@@ -12805,12 +13095,15 @@ paths:
                         - STATE_TRYOPEN
                         - STATE_OPEN
                         - STATE_CLOSED
+                        - STATE_INITUPGRADE
+                        - STATE_TRYUPGRADE
                       default: STATE_UNINITIALIZED_UNSPECIFIED
                       description: >-
                         State defines if a channel is in one of the following
                         states:
 
-                        CLOSED, INIT, TRYOPEN, OPEN or UNINITIALIZED.
+                        CLOSED, INIT, TRYOPEN, OPEN, INITUPGRADE, TRYUPGRADE or
+                        UNINITIALIZED.
 
                          - STATE_UNINITIALIZED_UNSPECIFIED: Default State
                          - STATE_INIT: A channel has just started the opening handshake.
@@ -12819,6 +13112,12 @@ paths:
                         ready to send and receive packets.
                          - STATE_CLOSED: A channel has been closed and can no longer be used to send or receive
                         packets.
+                         - STATE_INITUPGRADE: A channel has just started the channel upgrade handshake.
+                        The chain that is proposing the upgrade should set the
+                        channel state from OPEN to UPGRADEINIT.
+                         - STATE_TRYUPGRADE: A channel has acknowledged the upgrade handshake step on the counterparty chain.
+                        The counterparty chain that accepts the upgrade should
+                        set the channel state from OPEN to UPGRADETRY.
                     ordering:
                       title: whether the channel is ordered or unordered
                       type: string
@@ -12901,7 +13200,6 @@ paths:
                            PageResponse page = 2;
                    }
               height:
-                title: query block height
                 type: object
                 properties:
                   revision_number:
@@ -12929,6 +13227,13 @@ paths:
                   RevisionHeight
 
                   gets reset
+                title: >-
+                  Height is a monotonically increasing data type
+
+                  that can be compared against another Height for the purposes
+                  of updating and
+
+                  freezing clients
             title: |-
               QueryConnectionChannelsResponse is the Response type for the
               Query/QueryConnectionChannels RPC method
@@ -13046,7 +13351,7 @@ paths:
                           foo = any.unpack(Foo.class);
                         }
 
-                     Example 3: Pack and unpack a message in Python.
+                    Example 3: Pack and unpack a message in Python.
 
                         foo = Foo(...)
                         any = Any()
@@ -13056,7 +13361,7 @@ paths:
                           any.Unpack(foo)
                           ...
 
-                     Example 4: Pack and unpack a message in Go
+                    Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
                          any, err := anypb.New(foo)
@@ -13087,7 +13392,6 @@ paths:
 
                     JSON
 
-                    ====
 
                     The JSON representation of an `Any` value uses the regular
 
@@ -13355,7 +13659,7 @@ definitions:
             foo = any.unpack(Foo.class);
           }
 
-       Example 3: Pack and unpack a message in Python.
+      Example 3: Pack and unpack a message in Python.
 
           foo = Foo(...)
           any = Any()
@@ -13365,7 +13669,7 @@ definitions:
             any.Unpack(foo)
             ...
 
-       Example 4: Pack and unpack a message in Go
+      Example 4: Pack and unpack a message in Go
 
            foo := &pb.Foo{...}
            any, err := anypb.New(foo)
@@ -13392,7 +13696,6 @@ definitions:
 
       JSON
 
-      ====
 
       The JSON representation of an `Any` value uses the regular
 
@@ -13532,7 +13835,7 @@ definitions:
                   foo = any.unpack(Foo.class);
                 }
 
-             Example 3: Pack and unpack a message in Python.
+            Example 3: Pack and unpack a message in Python.
 
                 foo = Foo(...)
                 any = Any()
@@ -13542,7 +13845,7 @@ definitions:
                   any.Unpack(foo)
                   ...
 
-             Example 4: Pack and unpack a message in Go
+            Example 4: Pack and unpack a message in Go
 
                  foo := &pb.Foo{...}
                  any, err := anypb.New(foo)
@@ -13569,7 +13872,6 @@ definitions:
 
             JSON
 
-            ====
 
             The JSON representation of an `Any` value uses the regular
 
@@ -14101,6 +14403,25 @@ definitions:
             FeeEnabledChannel contains the PortID & ChannelID for a fee enabled
             channel
         title: list of fee enabled channels
+      pagination:
+        description: pagination defines the pagination in the response.
+        type: object
+        properties:
+          next_key:
+            type: string
+            format: byte
+            description: |-
+              next_key is the key to be passed to PageRequest.key to
+              query the next page most efficiently. It will be empty if
+              there are no more results.
+          total:
+            type: string
+            format: uint64
+            title: >-
+              total is total number of results available if
+              PageRequest.count_total
+
+              was set, its value is undefined otherwise
     title: >-
       QueryFeeEnabledChannelsResponse defines the response type for the
       FeeEnabledChannels rpc
@@ -14320,6 +14641,25 @@ definitions:
             IdentifiedPacketFees contains a list of type PacketFee and
             associated PacketId
         title: Map of all incentivized_packets
+      pagination:
+        description: pagination defines the pagination in the response.
+        type: object
+        properties:
+          next_key:
+            type: string
+            format: byte
+            description: |-
+              next_key is the key to be passed to PageRequest.key to
+              query the next page most efficiently. It will be empty if
+              there are no more results.
+          total:
+            type: string
+            format: uint64
+            title: >-
+              total is total number of results available if
+              PageRequest.count_total
+
+              was set, its value is undefined otherwise
     title: >-
       QueryIncentivizedPacketsResponse defines the response type for the
       incentivized packets RPC
@@ -14431,6 +14771,25 @@ definitions:
             IdentifiedPacketFees contains a list of type PacketFee and
             associated PacketId
         title: list of identified fees for incentivized packets
+      pagination:
+        description: pagination defines the pagination in the response.
+        type: object
+        properties:
+          next_key:
+            type: string
+            format: byte
+            description: |-
+              next_key is the key to be passed to PageRequest.key to
+              query the next page most efficiently. It will be empty if
+              there are no more results.
+          total:
+            type: string
+            format: uint64
+            title: >-
+              total is total number of results available if
+              PageRequest.count_total
+
+              was set, its value is undefined otherwise
     title: >-
       QueryIncentivizedPacketsResponse defines the response type for the
       IncentivizedPackets rpc
@@ -14645,7 +15004,7 @@ definitions:
                 foo = any.unpack(Foo.class);
               }
 
-           Example 3: Pack and unpack a message in Python.
+          Example 3: Pack and unpack a message in Python.
 
               foo = Foo(...)
               any = Any()
@@ -14655,7 +15014,7 @@ definitions:
                 any.Unpack(foo)
                 ...
 
-           Example 4: Pack and unpack a message in Go
+          Example 4: Pack and unpack a message in Go
 
                foo := &pb.Foo{...}
                any, err := anypb.New(foo)
@@ -14682,7 +15041,6 @@ definitions:
 
           JSON
 
-          ====
 
           The JSON representation of an `Any` value uses the regular
 
@@ -14845,7 +15203,7 @@ definitions:
                 foo = any.unpack(Foo.class);
               }
 
-           Example 3: Pack and unpack a message in Python.
+          Example 3: Pack and unpack a message in Python.
 
               foo = Foo(...)
               any = Any()
@@ -14855,7 +15213,7 @@ definitions:
                 any.Unpack(foo)
                 ...
 
-           Example 4: Pack and unpack a message in Go
+          Example 4: Pack and unpack a message in Go
 
                foo := &pb.Foo{...}
                any, err := anypb.New(foo)
@@ -14882,7 +15240,6 @@ definitions:
 
           JSON
 
-          ====
 
           The JSON representation of an `Any` value uses the regular
 
@@ -14924,7 +15281,14 @@ definitions:
         type: array
         items:
           type: string
-        description: allowed_clients defines the list of allowed client state types.
+        description: >-
+          allowed_clients defines the list of allowed client state types which
+          can be created
+
+          and interacted with. If a client type is removed from the allowed
+          clients list, usage
+
+          of this client will be disabled until it is added again to the list.
     description: Params defines the set of IBC light client parameters.
   ibc.core.client.v1.QueryClientParamsResponse:
     type: object
@@ -14937,7 +15301,15 @@ definitions:
             type: array
             items:
               type: string
-            description: allowed_clients defines the list of allowed client state types.
+            description: >-
+              allowed_clients defines the list of allowed client state types
+              which can be created
+
+              and interacted with. If a client type is removed from the allowed
+              clients list, usage
+
+              of this client will be disabled until it is added again to the
+              list.
     description: >-
       QueryClientParamsResponse is the response type for the Query/ClientParams
       RPC
@@ -15039,7 +15411,7 @@ definitions:
                 foo = any.unpack(Foo.class);
               }
 
-           Example 3: Pack and unpack a message in Python.
+          Example 3: Pack and unpack a message in Python.
 
               foo = Foo(...)
               any = Any()
@@ -15049,7 +15421,7 @@ definitions:
                 any.Unpack(foo)
                 ...
 
-           Example 4: Pack and unpack a message in Go
+          Example 4: Pack and unpack a message in Go
 
                foo := &pb.Foo{...}
                any, err := anypb.New(foo)
@@ -15076,7 +15448,6 @@ definitions:
 
           JSON
 
-          ====
 
           The JSON representation of an `Any` value uses the regular
 
@@ -15259,7 +15630,7 @@ definitions:
                       foo = any.unpack(Foo.class);
                     }
 
-                 Example 3: Pack and unpack a message in Python.
+                Example 3: Pack and unpack a message in Python.
 
                     foo = Foo(...)
                     any = Any()
@@ -15269,7 +15640,7 @@ definitions:
                       any.Unpack(foo)
                       ...
 
-                 Example 4: Pack and unpack a message in Go
+                Example 4: Pack and unpack a message in Go
 
                      foo := &pb.Foo{...}
                      any, err := anypb.New(foo)
@@ -15299,7 +15670,6 @@ definitions:
 
                 JSON
 
-                ====
 
                 The JSON representation of an `Any` value uses the regular
 
@@ -15547,7 +15917,7 @@ definitions:
                 foo = any.unpack(Foo.class);
               }
 
-           Example 3: Pack and unpack a message in Python.
+          Example 3: Pack and unpack a message in Python.
 
               foo = Foo(...)
               any = Any()
@@ -15557,7 +15927,7 @@ definitions:
                 any.Unpack(foo)
                 ...
 
-           Example 4: Pack and unpack a message in Go
+          Example 4: Pack and unpack a message in Go
 
                foo := &pb.Foo{...}
                any, err := anypb.New(foo)
@@ -15584,7 +15954,6 @@ definitions:
 
           JSON
 
-          ====
 
           The JSON representation of an `Any` value uses the regular
 
@@ -15798,7 +16167,7 @@ definitions:
                       foo = any.unpack(Foo.class);
                     }
 
-                 Example 3: Pack and unpack a message in Python.
+                Example 3: Pack and unpack a message in Python.
 
                     foo = Foo(...)
                     any = Any()
@@ -15808,7 +16177,7 @@ definitions:
                       any.Unpack(foo)
                       ...
 
-                 Example 4: Pack and unpack a message in Go
+                Example 4: Pack and unpack a message in Go
 
                      foo := &pb.Foo{...}
                      any, err := anypb.New(foo)
@@ -15838,7 +16207,6 @@ definitions:
 
                 JSON
 
-                ====
 
                 The JSON representation of an `Any` value uses the regular
 
@@ -16004,7 +16372,7 @@ definitions:
                 foo = any.unpack(Foo.class);
               }
 
-           Example 3: Pack and unpack a message in Python.
+          Example 3: Pack and unpack a message in Python.
 
               foo = Foo(...)
               any = Any()
@@ -16014,7 +16382,7 @@ definitions:
                 any.Unpack(foo)
                 ...
 
-           Example 4: Pack and unpack a message in Go
+          Example 4: Pack and unpack a message in Go
 
                foo := &pb.Foo{...}
                any, err := anypb.New(foo)
@@ -16041,7 +16409,6 @@ definitions:
 
           JSON
 
-          ====
 
           The JSON representation of an `Any` value uses the regular
 
@@ -16173,7 +16540,7 @@ definitions:
                 foo = any.unpack(Foo.class);
               }
 
-           Example 3: Pack and unpack a message in Python.
+          Example 3: Pack and unpack a message in Python.
 
               foo = Foo(...)
               any = Any()
@@ -16183,7 +16550,7 @@ definitions:
                 any.Unpack(foo)
                 ...
 
-           Example 4: Pack and unpack a message in Go
+          Example 4: Pack and unpack a message in Go
 
                foo := &pb.Foo{...}
                any, err := anypb.New(foo)
@@ -16210,7 +16577,6 @@ definitions:
 
           JSON
 
-          ====
 
           The JSON representation of an `Any` value uses the regular
 
@@ -16620,7 +16986,7 @@ definitions:
                     foo = any.unpack(Foo.class);
                   }
 
-               Example 3: Pack and unpack a message in Python.
+              Example 3: Pack and unpack a message in Python.
 
                   foo = Foo(...)
                   any = Any()
@@ -16630,7 +16996,7 @@ definitions:
                     any.Unpack(foo)
                     ...
 
-               Example 4: Pack and unpack a message in Go
+              Example 4: Pack and unpack a message in Go
 
                    foo := &pb.Foo{...}
                    any, err := anypb.New(foo)
@@ -16658,7 +17024,6 @@ definitions:
 
               JSON
 
-              ====
 
               The JSON representation of an `Any` value uses the regular
 
@@ -16826,7 +17191,7 @@ definitions:
                 foo = any.unpack(Foo.class);
               }
 
-           Example 3: Pack and unpack a message in Python.
+          Example 3: Pack and unpack a message in Python.
 
               foo = Foo(...)
               any = Any()
@@ -16836,7 +17201,7 @@ definitions:
                 any.Unpack(foo)
                 ...
 
-           Example 4: Pack and unpack a message in Go
+          Example 4: Pack and unpack a message in Go
 
                foo := &pb.Foo{...}
                any, err := anypb.New(foo)
@@ -16863,7 +17228,6 @@ definitions:
 
           JSON
 
-          ====
 
           The JSON representation of an `Any` value uses the regular
 
@@ -17277,10 +17641,13 @@ definitions:
           - STATE_TRYOPEN
           - STATE_OPEN
           - STATE_CLOSED
+          - STATE_INITUPGRADE
+          - STATE_TRYUPGRADE
         default: STATE_UNINITIALIZED_UNSPECIFIED
-        description: |-
+        description: >-
           State defines if a channel is in one of the following states:
-          CLOSED, INIT, TRYOPEN, OPEN or UNINITIALIZED.
+
+          CLOSED, INIT, TRYOPEN, OPEN, INITUPGRADE, TRYUPGRADE or UNINITIALIZED.
 
            - STATE_UNINITIALIZED_UNSPECIFIED: Default State
            - STATE_INIT: A channel has just started the opening handshake.
@@ -17289,6 +17656,12 @@ definitions:
           ready to send and receive packets.
            - STATE_CLOSED: A channel has been closed and can no longer be used to send or receive
           packets.
+           - STATE_INITUPGRADE: A channel has just started the channel upgrade handshake.
+          The chain that is proposing the upgrade should set the channel state
+          from OPEN to UPGRADEINIT.
+           - STATE_TRYUPGRADE: A channel has acknowledged the upgrade handshake step on the counterparty chain.
+          The counterparty chain that accepts the upgrade should set the channel
+          state from OPEN to UPGRADETRY.
       ordering:
         title: whether the channel is ordered or unordered
         type: string
@@ -17352,10 +17725,13 @@ definitions:
           - STATE_TRYOPEN
           - STATE_OPEN
           - STATE_CLOSED
+          - STATE_INITUPGRADE
+          - STATE_TRYUPGRADE
         default: STATE_UNINITIALIZED_UNSPECIFIED
-        description: |-
+        description: >-
           State defines if a channel is in one of the following states:
-          CLOSED, INIT, TRYOPEN, OPEN or UNINITIALIZED.
+
+          CLOSED, INIT, TRYOPEN, OPEN, INITUPGRADE, TRYUPGRADE or UNINITIALIZED.
 
            - STATE_UNINITIALIZED_UNSPECIFIED: Default State
            - STATE_INIT: A channel has just started the opening handshake.
@@ -17364,6 +17740,12 @@ definitions:
           ready to send and receive packets.
            - STATE_CLOSED: A channel has been closed and can no longer be used to send or receive
           packets.
+           - STATE_INITUPGRADE: A channel has just started the channel upgrade handshake.
+          The chain that is proposing the upgrade should set the channel state
+          from OPEN to UPGRADEINIT.
+           - STATE_TRYUPGRADE: A channel has acknowledged the upgrade handshake step on the counterparty chain.
+          The counterparty chain that accepts the upgrade should set the channel
+          state from OPEN to UPGRADETRY.
       ordering:
         title: whether the channel is ordered or unordered
         type: string
@@ -17550,7 +17932,7 @@ definitions:
                     foo = any.unpack(Foo.class);
                   }
 
-               Example 3: Pack and unpack a message in Python.
+              Example 3: Pack and unpack a message in Python.
 
                   foo = Foo(...)
                   any = Any()
@@ -17560,7 +17942,7 @@ definitions:
                     any.Unpack(foo)
                     ...
 
-               Example 4: Pack and unpack a message in Go
+              Example 4: Pack and unpack a message in Go
 
                    foo := &pb.Foo{...}
                    any, err := anypb.New(foo)
@@ -17588,7 +17970,6 @@ definitions:
 
               JSON
 
-              ====
 
               The JSON representation of an `Any` value uses the regular
 
@@ -17756,7 +18137,7 @@ definitions:
                 foo = any.unpack(Foo.class);
               }
 
-           Example 3: Pack and unpack a message in Python.
+          Example 3: Pack and unpack a message in Python.
 
               foo = Foo(...)
               any = Any()
@@ -17766,7 +18147,7 @@ definitions:
                 any.Unpack(foo)
                 ...
 
-           Example 4: Pack and unpack a message in Go
+          Example 4: Pack and unpack a message in Go
 
                foo := &pb.Foo{...}
                any, err := anypb.New(foo)
@@ -17793,7 +18174,6 @@ definitions:
 
           JSON
 
-          ====
 
           The JSON representation of an `Any` value uses the regular
 
@@ -17880,10 +18260,14 @@ definitions:
               - STATE_TRYOPEN
               - STATE_OPEN
               - STATE_CLOSED
+              - STATE_INITUPGRADE
+              - STATE_TRYUPGRADE
             default: STATE_UNINITIALIZED_UNSPECIFIED
-            description: |-
+            description: >-
               State defines if a channel is in one of the following states:
-              CLOSED, INIT, TRYOPEN, OPEN or UNINITIALIZED.
+
+              CLOSED, INIT, TRYOPEN, OPEN, INITUPGRADE, TRYUPGRADE or
+              UNINITIALIZED.
 
                - STATE_UNINITIALIZED_UNSPECIFIED: Default State
                - STATE_INIT: A channel has just started the opening handshake.
@@ -17892,6 +18276,12 @@ definitions:
               ready to send and receive packets.
                - STATE_CLOSED: A channel has been closed and can no longer be used to send or receive
               packets.
+               - STATE_INITUPGRADE: A channel has just started the channel upgrade handshake.
+              The chain that is proposing the upgrade should set the channel
+              state from OPEN to UPGRADEINIT.
+               - STATE_TRYUPGRADE: A channel has acknowledged the upgrade handshake step on the counterparty chain.
+              The counterparty chain that accepts the upgrade should set the
+              channel state from OPEN to UPGRADETRY.
           ordering:
             title: whether the channel is ordered or unordered
             type: string
@@ -17992,10 +18382,14 @@ definitions:
                 - STATE_TRYOPEN
                 - STATE_OPEN
                 - STATE_CLOSED
+                - STATE_INITUPGRADE
+                - STATE_TRYUPGRADE
               default: STATE_UNINITIALIZED_UNSPECIFIED
-              description: |-
+              description: >-
                 State defines if a channel is in one of the following states:
-                CLOSED, INIT, TRYOPEN, OPEN or UNINITIALIZED.
+
+                CLOSED, INIT, TRYOPEN, OPEN, INITUPGRADE, TRYUPGRADE or
+                UNINITIALIZED.
 
                  - STATE_UNINITIALIZED_UNSPECIFIED: Default State
                  - STATE_INIT: A channel has just started the opening handshake.
@@ -18004,6 +18398,12 @@ definitions:
                 ready to send and receive packets.
                  - STATE_CLOSED: A channel has been closed and can no longer be used to send or receive
                 packets.
+                 - STATE_INITUPGRADE: A channel has just started the channel upgrade handshake.
+                The chain that is proposing the upgrade should set the channel
+                state from OPEN to UPGRADEINIT.
+                 - STATE_TRYUPGRADE: A channel has acknowledged the upgrade handshake step on the counterparty chain.
+                The counterparty chain that accepts the upgrade should set the
+                channel state from OPEN to UPGRADETRY.
             ordering:
               title: whether the channel is ordered or unordered
               type: string
@@ -18128,10 +18528,14 @@ definitions:
                 - STATE_TRYOPEN
                 - STATE_OPEN
                 - STATE_CLOSED
+                - STATE_INITUPGRADE
+                - STATE_TRYUPGRADE
               default: STATE_UNINITIALIZED_UNSPECIFIED
-              description: |-
+              description: >-
                 State defines if a channel is in one of the following states:
-                CLOSED, INIT, TRYOPEN, OPEN or UNINITIALIZED.
+
+                CLOSED, INIT, TRYOPEN, OPEN, INITUPGRADE, TRYUPGRADE or
+                UNINITIALIZED.
 
                  - STATE_UNINITIALIZED_UNSPECIFIED: Default State
                  - STATE_INIT: A channel has just started the opening handshake.
@@ -18140,6 +18544,12 @@ definitions:
                 ready to send and receive packets.
                  - STATE_CLOSED: A channel has been closed and can no longer be used to send or receive
                 packets.
+                 - STATE_INITUPGRADE: A channel has just started the channel upgrade handshake.
+                The chain that is proposing the upgrade should set the channel
+                state from OPEN to UPGRADEINIT.
+                 - STATE_TRYUPGRADE: A channel has acknowledged the upgrade handshake step on the counterparty chain.
+                The counterparty chain that accepts the upgrade should set the
+                channel state from OPEN to UPGRADETRY.
             ordering:
               title: whether the channel is ordered or unordered
               type: string
@@ -18217,7 +18627,6 @@ definitions:
                    PageResponse page = 2;
            }
       height:
-        title: query block height
         type: object
         properties:
           revision_number:
@@ -18244,6 +18653,13 @@ definitions:
           RevisionHeight
 
           gets reset
+        title: >-
+          Height is a monotonically increasing data type
+
+          that can be compared against another Height for the purposes of
+          updating and
+
+          freezing clients
     title: |-
       QueryConnectionChannelsResponse is the Response type for the
       Query/QueryConnectionChannels RPC method
@@ -18287,7 +18703,7 @@ definitions:
 
           gets reset
     title: |-
-      QuerySequenceResponse is the request type for the
+      QuerySequenceResponse is the response type for the
       Query/QueryNextSequenceReceiveResponse RPC method
   ibc.core.channel.v1.QueryPacketAcknowledgementResponse:
     type: object
@@ -18681,6 +19097,52 @@ definitions:
     title: |-
       QueryUnreceivedPacketsResponse is the response type for the
       Query/UnreceivedPacketCommitments RPC method
+  ibc.core.channel.v1.QueryUpgradeSequenceResponse:
+    type: object
+    properties:
+      upgrade_sequence:
+        type: string
+        format: uint64
+      proof:
+        type: string
+        format: byte
+      proof_height:
+        type: object
+        properties:
+          revision_number:
+            type: string
+            format: uint64
+            title: the revision that the client is currently on
+          revision_height:
+            type: string
+            format: uint64
+            title: the height within the given revision
+        description: >-
+          Normally the RevisionHeight is incremented at each height while
+          keeping
+
+          RevisionNumber the same. However some consensus algorithms may choose
+          to
+
+          reset the height in certain conditions e.g. hard forks, state-machine
+
+          breaking changes In these cases, the RevisionNumber is incremented so
+          that
+
+          height continues to be monitonically increasing even as the
+          RevisionHeight
+
+          gets reset
+        title: >-
+          Height is a monotonically increasing data type
+
+          that can be compared against another Height for the purposes of
+          updating and
+
+          freezing clients
+    title: >-
+      QueryUpgradeSequenceResponse is the response type for the
+      QueryUpgradeSequence RPC method
   ibc.core.channel.v1.State:
     type: string
     enum:
@@ -18689,10 +19151,13 @@ definitions:
       - STATE_TRYOPEN
       - STATE_OPEN
       - STATE_CLOSED
+      - STATE_INITUPGRADE
+      - STATE_TRYUPGRADE
     default: STATE_UNINITIALIZED_UNSPECIFIED
-    description: |-
+    description: >-
       State defines if a channel is in one of the following states:
-      CLOSED, INIT, TRYOPEN, OPEN or UNINITIALIZED.
+
+      CLOSED, INIT, TRYOPEN, OPEN, INITUPGRADE, TRYUPGRADE or UNINITIALIZED.
 
        - STATE_UNINITIALIZED_UNSPECIFIED: Default State
        - STATE_INIT: A channel has just started the opening handshake.
@@ -18701,3 +19166,9 @@ definitions:
       ready to send and receive packets.
        - STATE_CLOSED: A channel has been closed and can no longer be used to send or receive
       packets.
+       - STATE_INITUPGRADE: A channel has just started the channel upgrade handshake.
+      The chain that is proposing the upgrade should set the channel state from
+      OPEN to UPGRADEINIT.
+       - STATE_TRYUPGRADE: A channel has acknowledged the upgrade handshake step on the counterparty chain.
+      The counterparty chain that accepts the upgrade should set the channel
+      state from OPEN to UPGRADETRY.
