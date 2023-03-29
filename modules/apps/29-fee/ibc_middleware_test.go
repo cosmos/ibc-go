@@ -1078,3 +1078,17 @@ func (suite *FeeTestSuite) TestGetAppVersion() {
 		})
 	}
 }
+
+func (suite *FeeTestSuite) TestUnmarshalPacketData() {
+	module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.MockFeePort)
+	suite.Require().NoError(err)
+
+	cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
+	suite.Require().True(ok)
+
+	feeModule := cbs.(fee.IBCMiddleware)
+
+	packetData, err := feeModule.UnmarshalPacketData(ibcmock.MockPacketData)
+	suite.Require().NoError(err)
+	suite.Require().Equal(ibcmock.MockPacketData, packetData)
+}

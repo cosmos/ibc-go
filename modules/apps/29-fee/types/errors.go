@@ -16,4 +16,5 @@ var (
 	ErrFeeNotEnabled                 = errorsmod.Register(ModuleName, 9, "fee module is not enabled for this channel. If this error occurs after channel setup, fee module may not be enabled")
 	ErrRelayerNotFoundForAsyncAck    = errorsmod.Register(ModuleName, 10, "relayer address must be stored for async WriteAcknowledgement")
 	ErrFeeModuleLocked               = errorsmod.Register(ModuleName, 11, "the fee module is currently locked, a severe bug has been detected")
+	ErrUnsupportedAction             = errorsmod.Register(ModuleName, 12, "unsupported action")
 )
