@@ -16,7 +16,6 @@ import (
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 )
 
-
 // ChanUpgradeInit is called by a module to initiate a channel upgrade handshake with
 // a module on another chain.
 func (k Keeper) ChanUpgradeInit(
