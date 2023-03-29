@@ -611,35 +611,6 @@ func (s *UpgradeTestSuite) TestV7ChainUpgradeAddLocalhost() {
 	testCfg := testconfig.LoadConfig()
 
 	ctx := context.Background()
-	_, _ = s.SetupChainsRelayerAndChannel(ctx)
-	chain, _ := s.GetChains()
-
-	s.Require().NoError(test.WaitForBlocks(ctx, 5, chain), "failed to wait for blocks")
-
-	t.Run("upgrade chain", func(t *testing.T) {
-		govProposalWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
-		s.UpgradeChain(ctx, chain, govProposalWallet, testCfg.UpgradeConfig.PlanName, testCfg.ChainConfigs[0].Tag, testCfg.UpgradeConfig.Tag)
-	})
-
-	t.Run("ensure the localhost client is active and sentinel connection is stored in state", func(t *testing.T) {
-		status, err := s.QueryClientStatus(ctx, chain, exported.LocalhostClientID)
-		s.Require().NoError(err)
-		s.Require().Equal(exported.Active.String(), status)
-
-		connectionEnd, err := s.QueryConnection(ctx, chain, exported.LocalhostConnectionID)
-		s.Require().NoError(err)
-		s.Require().Equal(connectiontypes.OPEN, connectionEnd.State)
-		s.Require().Equal(exported.LocalhostClientID, connectionEnd.ClientId)
-		s.Require().Equal(exported.LocalhostClientID, connectionEnd.Counterparty.ClientId)
-		s.Require().Equal(exported.LocalhostConnectionID, connectionEnd.Counterparty.ConnectionId)
-	})
-}
-
-func (s *UpgradeTestSuite) TestV7ChainUpgradeAddTotalEscrowForDenom() {
-	t := s.T()
-	testCfg := testconfig.LoadConfig()
-
-	ctx := context.Background()
 	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx)
 	chainA, chainB := s.GetChains()
 
@@ -683,20 +654,33 @@ func (s *UpgradeTestSuite) TestV7ChainUpgradeAddTotalEscrowForDenom() {
 		s.Require().Equal(expected, actualBalance)
 	})
 
-	t.Run("escrow amount for native denom is not set", func(t *testing.T) {
+	t.Run("escrow amount for native denom is not stored in state", func(t *testing.T) {
 		actualTotalEscrow, err := s.QueryTotalEscrowForDenom(ctx, chainA, chainADenom)
 		s.Require().NoError(err)
 		s.Require().Equal(math.ZeroInt(), actualTotalEscrow)
 	})
 
-	s.Require().NoError(test.WaitForBlocks(ctx, 5, chain), "failed to wait for blocks")
+	s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA), "failed to wait for blocks")
 
 	t.Run("upgrade chain", func(t *testing.T) {
 		govProposalWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
-		s.UpgradeChain(ctx, chain, govProposalWallet, testCfg.UpgradeConfig.PlanName, testCfg.ChainConfigs[0].Tag, testCfg.UpgradeConfig.Tag)
+		s.UpgradeChain(ctx, chainA, govProposalWallet, testCfg.UpgradeConfig.PlanName, testCfg.ChainConfigs[0].Tag, testCfg.UpgradeConfig.Tag)
 	})
 
-	t.Run("escrow amount for native denom is set", func(t *testing.T) {
+	t.Run("ensure the localhost client is active and sentinel connection is stored in state", func(t *testing.T) {
+		status, err := s.QueryClientStatus(ctx, chainA, exported.LocalhostClientID)
+		s.Require().NoError(err)
+		s.Require().Equal(exported.Active.String(), status)
+
+		connectionEnd, err := s.QueryConnection(ctx, chainA, exported.LocalhostConnectionID)
+		s.Require().NoError(err)
+		s.Require().Equal(connectiontypes.OPEN, connectionEnd.State)
+		s.Require().Equal(exported.LocalhostClientID, connectionEnd.ClientId)
+		s.Require().Equal(exported.LocalhostClientID, connectionEnd.Counterparty.ClientId)
+		s.Require().Equal(exported.LocalhostConnectionID, connectionEnd.Counterparty.ConnectionId)
+	})
+
+	t.Run("ensure escrow amount for native denom is stored in state", func(t *testing.T) {
 		actualTotalEscrow, err := s.QueryTotalEscrowForDenom(ctx, chainA, chainADenom)
 		s.Require().NoError(err)
 
