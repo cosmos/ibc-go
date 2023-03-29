@@ -222,7 +222,7 @@ func queryUpgradeSequenceABCI(clientCtx client.Context, portID, channelID string
 		return nil, err
 	}
 
-	//check if upgrade sequence exists
+	// check if upgrade sequence exists
 	if len(value) == 0 {
 		return nil, errorsmod.Wrapf(types.ErrUpgradeSequenceNotFound, "portID (%s), channelID (%s)", portID, channelID)
 	}
