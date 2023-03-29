@@ -84,7 +84,7 @@ func TestSubsetOf(t *testing.T) {
 			true,
 		},
 		{
-			"unordered -> unordered",
+			"unordered -> ordered",
 			types.UNORDERED,
 			types.ORDERED,
 			false,
