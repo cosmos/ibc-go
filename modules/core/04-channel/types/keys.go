@@ -42,6 +42,11 @@ func FormatConnectionID(connectionHops []string) string {
 	return strings.Join(connectionHops, "/")
 }
 
+// ParseConnectionID parses the connection identifier into a slice of connection identifiers
+func ParseConnectionID(connectionID string) []string {
+	return strings.Split(connectionID, "/")
+}
+
 // IsChannelIDFormat checks if a channelID is in the format required on the SDK for
 // parsing channel identifiers. The channel identifier must be in the form: `channel-{N}
 var IsChannelIDFormat = regexp.MustCompile(`^channel-[0-9]{1,20}$`).MatchString
