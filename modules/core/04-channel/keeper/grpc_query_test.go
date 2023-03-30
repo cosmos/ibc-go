@@ -1419,12 +1419,29 @@ func (suite *KeeperTestSuite) TestQueryNextSequenceReceive() {
 			false,
 		},
 		{
-			"success",
+			"basic success on unordered channel returns zero",
 			func() {
 				path := ibctesting.NewPath(suite.chainA, suite.chainB)
 				suite.coordinator.Setup(path)
-				expSeq = 1
-				suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetNextSequenceRecv(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, expSeq)
+
+				expSeq = 0
+				req = &types.QueryNextSequenceReceiveRequest{
+					PortId:    path.EndpointA.ChannelConfig.PortID,
+					ChannelId: path.EndpointA.ChannelID,
+				}
+			},
+			true,
+		},
+		{
+			"basic success on ordered channel returns the set receive sequence",
+			func() {
+				path := ibctesting.NewPath(suite.chainA, suite.chainB)
+				path.SetChannelOrdered()
+				suite.coordinator.Setup(path)
+
+				expSeq = 3
+				seq := uint64(3)
+				suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetNextSequenceRecv(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, seq)
 
 				req = &types.QueryNextSequenceReceiveRequest{
 					PortId:    path.EndpointA.ChannelConfig.PortID,
