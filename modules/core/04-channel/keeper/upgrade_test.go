@@ -137,11 +137,11 @@ func (suite *KeeperTestSuite) TestChanUpgradeInit() {
 
 func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 	var (
-		path            *ibctesting.Path
-		chanCap         *capabilitytypes.Capability
-		channelUpgrade  types.Channel
-		upgradeSequence uint64
-		upgradeTimeout  types.UpgradeTimeout
+		path                        *ibctesting.Path
+		chanCap                     *capabilitytypes.Capability
+		channelUpgrade              types.Channel
+		counterpartyUpgradeSequence uint64
+		upgradeTimeout              types.UpgradeTimeout
 	)
 
 	testCases := []struct {
@@ -152,6 +152,49 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 		{
 			"success",
 			func() {},
+			true,
+		},
+		{
+			"success with later upgrade sequence",
+			func() {
+				counterpartyUpgradeSequence = 10
+				suite.chainA.GetSimApp().GetIBCKeeper().ChannelKeeper.SetUpgradeSequence(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, counterpartyUpgradeSequence)
+
+				suite.coordinator.CommitBlock(suite.chainA)
+				path.EndpointB.UpdateClient()
+			},
+			true,
+		},
+		{
+			"success with crossing hellos",
+			func() {
+				// modify the version on chain B so the channel and upgrade channel are not identical.
+				path.EndpointB.ChannelConfig.Version = fmt.Sprintf("%s-v2", mock.Version)
+				// call ChanUpgradeInit on chain B to ensure there is restore channel
+				err := path.EndpointB.ChanUpgradeInit(path.EndpointA.Chain.GetTimeoutHeight(), 0)
+				suite.Require().NoError(err)
+
+				path.EndpointB.UpdateClient()
+			},
+			true,
+		},
+		{
+			"success with crossing hellos with later upgrade sequence",
+			func() {
+				// modify the version on chain B so the channel and upgrade channel are not identical.
+				path.EndpointB.ChannelConfig.Version = fmt.Sprintf("%s-v2", mock.Version)
+				// call ChanUpgradeInit on chain B to ensure there is restore channel
+				err := path.EndpointB.ChanUpgradeInit(path.EndpointA.Chain.GetTimeoutHeight(), 0)
+				suite.Require().NoError(err)
+
+				counterpartyUpgradeSequence = 10
+				suite.chainA.GetSimApp().GetIBCKeeper().ChannelKeeper.SetUpgradeSequence(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, counterpartyUpgradeSequence)
+				suite.chainB.GetSimApp().GetIBCKeeper().ChannelKeeper.SetUpgradeSequence(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, counterpartyUpgradeSequence)
+
+				suite.coordinator.CommitBlock(suite.chainA, suite.chainB)
+
+				path.EndpointB.UpdateClient()
+			},
 			true,
 		},
 		{
@@ -200,20 +243,6 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 			},
 			false,
 		},
-		{
-			name: "crossing hellos",
-			malleate: func() {
-				// modify the version on chain B so the channel and upgrade channel are not identical.
-				path.EndpointB.ChannelConfig.Version = fmt.Sprintf("%s-v2", mock.Version)
-				channel := path.EndpointB.GetChannel()
-				// call ChanUpgradeInit on chain B to ensure there is restore channel
-				err := path.EndpointB.ChanUpgradeInit(path.EndpointA.Chain.GetTimeoutHeight(), 0)
-				suite.Require().NoError(err)
-				channel.State = types.INITUPGRADE
-				path.EndpointB.SetChannel(channel)
-			},
-			expPass: true,
-		},
 
 		// TODO: add test cases
 		// error receipt if counterpartyUpgradeSequence > upgradeSequence
@@ -231,13 +260,15 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 
 			path.EndpointA.ChannelConfig.Version = fmt.Sprintf("%s-v2", mock.Version)
 
-			upgradeSequence = 1
+			counterpartyUpgradeSequence = 1
 			upgradeTimeout = types.UpgradeTimeout{TimeoutHeight: path.EndpointB.Chain.GetTimeoutHeight(), TimeoutTimestamp: uint64(suite.coordinator.CurrentTime.Add(time.Hour).UnixNano())}
 			err := path.EndpointA.ChanUpgradeInit(upgradeTimeout.TimeoutHeight, upgradeTimeout.TimeoutTimestamp)
 			suite.Require().NoError(err)
 
 			chanCap, _ = suite.chainB.GetSimApp().GetScopedIBCKeeper().GetCapability(suite.chainB.GetContext(), host.ChannelCapabilityPath(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID))
 			channelUpgrade = types.NewChannel(types.TRYUPGRADE, types.UNORDERED, types.NewCounterparty(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID), []string{path.EndpointB.ConnectionID}, fmt.Sprintf("%s-v2", mock.Version))
+
+			tc.malleate()
 
 			channelKey := host.ChannelKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 			proofChannel, proofHeight := suite.chainA.QueryProof(channelKey)
@@ -248,16 +279,15 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 			upgradeTimeoutKey := host.ChannelUpgradeTimeoutKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 			proofUpgradeTimeout, _ := suite.chainA.QueryProof(upgradeTimeoutKey)
 
-			tc.malleate()
-
-			_, _, err = suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.ChanUpgradeTry(
+			upgradeSequence, _, err := suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.ChanUpgradeTry(
 				suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID,
-				chanCap, path.EndpointA.GetChannel(), upgradeSequence, channelUpgrade, upgradeTimeout.TimeoutHeight, upgradeTimeout.TimeoutTimestamp,
+				chanCap, path.EndpointA.GetChannel(), counterpartyUpgradeSequence, channelUpgrade, upgradeTimeout.TimeoutHeight, upgradeTimeout.TimeoutTimestamp,
 				proofChannel, proofUpgradeTimeout, proofUpgradeSequence, proofHeight,
 			)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
+				suite.Require().Equal(counterpartyUpgradeSequence, upgradeSequence)
 			} else {
 				suite.Require().Error(err)
 			}
@@ -321,6 +351,7 @@ func (suite *KeeperTestSuite) TestRestoreChannel() {
 				// channel should still be in INITUPGRADE if restore did not happen.
 				expectedChannel := originalChannel
 				expectedChannel.State = types.INITUPGRADE
+				expectedChannel.Version = fmt.Sprintf("%s-v2", mock.Version)
 
 				suite.Require().Error(err)
 				suite.Require().True(ok)

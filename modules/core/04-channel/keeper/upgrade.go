@@ -164,38 +164,50 @@ func (k Keeper) ChanUpgradeTry(
 		return 0, "", err
 	}
 
-	upgradeSequence = 0
-	if seq, found := k.GetUpgradeSequence(ctx, portID, channelID); found {
-		upgradeSequence = seq + 1
-	}
-
-	// if the counterparty upgrade sequence is ahead then fast forward so both channel ends are using the same sequence for the current upgrade
-	if counterpartyUpgradeSequence > upgradeSequence {
-		upgradeSequence = counterpartyUpgradeSequence
-		k.SetUpgradeSequence(ctx, portID, channelID, upgradeSequence)
-	} else {
-		errorReceipt := types.ErrorReceipt{
-			Sequence: upgradeSequence,
-			Error:    errorsmod.Wrapf(types.ErrInvalidUpgradeSequence, "upgrade sequence %d was not smaller than the counter party chain upgrade sequence %d", upgradeSequence, counterpartyUpgradeSequence).Error(),
-		}
-
-		// the upgrade sequence is incremented so both sides start the next upgrade with a fresh sequence.
-		upgradeSequence++
-
-		k.SetUpgradeErrorReceipt(ctx, portID, channelID, errorReceipt)
-		k.SetUpgradeSequence(ctx, portID, channelID, upgradeSequence)
-
-		// TODO: emit error receipt events
-
-		return 0, "", errorsmod.Wrapf(types.ErrInvalidUpgradeSequence, "upgrade aborted, error receipt written for upgrade sequence: %d", errorReceipt.GetSequence())
-	}
-
 	switch channel.State {
 	case types.OPEN:
+		upgradeSequence = uint64(0)
+		if seq, found := k.GetUpgradeSequence(ctx, portID, channelID); found {
+			upgradeSequence = seq
+		}
+
+		// if the counterparty upgrade sequence is ahead then fast forward so both channel ends are using the same sequence for the current upgrade
+		if counterpartyUpgradeSequence > upgradeSequence {
+			upgradeSequence = counterpartyUpgradeSequence
+			k.SetUpgradeSequence(ctx, portID, channelID, upgradeSequence)
+		} else {
+			errorReceipt := types.ErrorReceipt{
+				Sequence: upgradeSequence,
+				Error:    errorsmod.Wrapf(types.ErrInvalidUpgradeSequence, "upgrade sequence %d was not smaller than the counter party chain upgrade sequence %d", upgradeSequence, counterpartyUpgradeSequence).Error(),
+			}
+
+			// the upgrade sequence is incremented so both sides start the next upgrade with a fresh sequence.
+			// upgradeSequence++
+
+			k.SetUpgradeErrorReceipt(ctx, portID, channelID, errorReceipt)
+			k.SetUpgradeSequence(ctx, portID, channelID, upgradeSequence)
+
+			// TODO: emit error receipt events
+
+			// do we want to return upgrade sequence here to include in response??
+			return 0, "", errorsmod.Wrapf(types.ErrInvalidUpgradeSequence, "upgrade aborted, error receipt written for upgrade sequence: %d", errorReceipt.GetSequence())
+		}
+
 		// this is first message in upgrade handshake on this chain so we must store original channel in restore channel path
 		// in case we need to restore channel later.
 		k.SetUpgradeRestoreChannel(ctx, portID, channelID, channel)
 	case types.INITUPGRADE:
+		upgradeSequence, found := k.GetUpgradeSequence(ctx, portID, channelID)
+		if !found {
+			// TODO: write error receipt for upgrade sequence and abort / cancel upgrade
+			return 0, "", errorsmod.Wrapf(types.ErrInvalidUpgradeSequence, "upgrade aborted, error receipt written for upgrade sequence: %d", upgradeSequence)
+		}
+
+		if upgradeSequence != counterpartyUpgradeSequence {
+			// TODO: write error receipt for upgrade sequence and abort / cancel upgrade
+			return 0, "", errorsmod.Wrapf(types.ErrInvalidUpgradeSequence, "upgrade aborted, error receipt written for upgrade sequence: %d", upgradeSequence)
+		}
+
 		// if there is a crossing hello, i.e an UpgradeInit has been called on both channelEnds,
 		// then we must ensure that the proposedUpgrade by the counterparty is the same as the currentChannel
 		// except for the channel state (upgrade channel will be in TRYUPGRADE and current channel will be in INITUPGRADE)
@@ -210,6 +222,9 @@ func (k Keeper) ChanUpgradeTry(
 			}
 			return 0, "", nil
 		}
+
+		// todo: channel.Version here is the current/upgrade version (not prev version - need to lookup restore channel for prev version)
+		return upgradeSequence, channel.Version, nil
 	default:
 		return 0, "", errorsmod.Wrapf(types.ErrInvalidChannelState, "expected one of [%s, %s] but got %s", types.OPEN, types.INITUPGRADE, channel.State)
 	}
