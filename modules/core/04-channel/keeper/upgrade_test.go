@@ -276,9 +276,6 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 			},
 			false,
 		},
-
-		// TODO: add test cases
-		// error receipt if counterpartyUpgradeSequence > upgradeSequence
 	}
 
 	for _, tc := range testCases {

@@ -199,7 +199,7 @@ func (k Keeper) ChanUpgradeTry(
 			}
 
 			// the upgrade sequence is incremented so both sides start the next upgrade with a fresh sequence.
-			// upgradeSequence++
+			upgradeSequence++
 
 			k.SetUpgradeErrorReceipt(ctx, portID, channelID, errorReceipt)
 			k.SetUpgradeSequence(ctx, portID, channelID, upgradeSequence)
