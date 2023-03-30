@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	errorsmod "cosmossdk.io/errors"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
 	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
@@ -157,10 +158,14 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 		{
 			"success with later upgrade sequence",
 			func() {
+				// set the counterparty (chainA) upgrade sequence to 10
 				counterpartyUpgradeSequence = 10
 				suite.chainA.GetSimApp().GetIBCKeeper().ChannelKeeper.SetUpgradeSequence(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, counterpartyUpgradeSequence)
 
-				suite.coordinator.CommitBlock(suite.chainA)
+				// set the TRY handler upgrade sequence to the expected value (counterpartySequence - 1)
+				suite.chainB.GetSimApp().GetIBCKeeper().ChannelKeeper.SetUpgradeSequence(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, counterpartyUpgradeSequence-1)
+
+				suite.coordinator.CommitBlock(suite.chainA, suite.chainB)
 				path.EndpointB.UpdateClient()
 			},
 			true,
@@ -260,6 +265,17 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 			},
 			false,
 		},
+		{
+			"error receipt is written for invalid upgrade sequence",
+			func() {
+				// set the TRY handler upgrade sequence to 10 to trigger a failure
+				suite.chainB.GetSimApp().GetIBCKeeper().ChannelKeeper.SetUpgradeSequence(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, 10)
+
+				suite.coordinator.CommitBlock(suite.chainA, suite.chainB)
+				path.EndpointB.UpdateClient()
+			},
+			false,
+		},
 
 		// TODO: add test cases
 		// error receipt if counterpartyUpgradeSequence > upgradeSequence
@@ -294,7 +310,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 			upgradeTimeoutKey := host.ChannelUpgradeTimeoutKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 			proofUpgradeTimeout, _ := suite.chainA.QueryProof(upgradeTimeoutKey)
 
-			upgradeSequence, _, err := suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.ChanUpgradeTry(
+			upgradeSequence, previousVersion, err := suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.ChanUpgradeTry(
 				suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID,
 				chanCap, path.EndpointA.GetChannel(), counterpartyUpgradeSequence, channelUpgrade, upgradeTimeout.TimeoutHeight, upgradeTimeout.TimeoutTimestamp,
 				proofChannel, proofUpgradeTimeout, proofUpgradeSequence, proofHeight,
@@ -303,8 +319,15 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 			if tc.expPass {
 				suite.Require().NoError(err)
 				suite.Require().Equal(counterpartyUpgradeSequence, upgradeSequence)
+				suite.Require().Equal(mock.Version, previousVersion)
 			} else {
 				suite.Require().Error(err)
+
+				if errorsmod.IsOf(err, types.ErrInvalidUpgradeSequence) {
+					errorReceipt, found := suite.chainB.GetSimApp().GetIBCKeeper().ChannelKeeper.GetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+					suite.Require().True(found)
+					suite.Require().NotNil(errorReceipt)
+				}
 			}
 		})
 	}

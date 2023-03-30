@@ -164,6 +164,23 @@ func (k Keeper) ChanUpgradeTry(
 		return 0, "", err
 	}
 
+	// // check if upgrade timed out by comparing it with the latest height of the chain
+	// selfHeight := clienttypes.GetSelfHeight(ctx)
+	// if !timeoutHeight.IsZero() && selfHeight.GTE(timeoutHeight) {
+	// 	return 0, "", errorsmod.Wrapf(
+	// 		types.ErrPacketTimeout, // TODO: new error
+	// 		"block height >= packet timeout height (%s >= %s)", selfHeight, timeoutHeight,
+	// 	)
+	// }
+
+	// // check if upgrade timed out by comparing it with the latest timestamp of the chain
+	// if timeoutTimestamp != 0 && uint64(ctx.BlockTime().UnixNano()) >= timeoutTimestamp {
+	// 	return 0, "", errorsmod.Wrapf(
+	// 		types.ErrPacketTimeout, // TODO: new error
+	// 		"block timestamp >= packet timeout timestamp (%s >= %s)", ctx.BlockTime(), time.Unix(0, int64(timeoutTimestamp)),
+	// 	)
+	// }
+
 	switch channel.State {
 	case types.OPEN:
 		upgradeSequence = uint64(0)
@@ -223,8 +240,14 @@ func (k Keeper) ChanUpgradeTry(
 			return 0, "", nil
 		}
 
-		// todo: channel.Version here is the current/upgrade version (not prev version - need to lookup restore channel for prev version)
-		return upgradeSequence, channel.Version, nil
+		// retrieve restore channel to return previous version
+		restoreChannel, found := k.GetUpgradeRestoreChannel(ctx, portID, channelID)
+		if !found {
+			// TODO(this case should be unreachable): write error receipt for upgrade sequence and abort / cancel upgrade
+			return 0, "", errorsmod.Wrapf(types.ErrChannelNotFound, "upgrade aborted, error receipt written for upgrade sequence: %d", upgradeSequence)
+		}
+
+		return upgradeSequence, restoreChannel.Version, nil
 	default:
 		return 0, "", errorsmod.Wrapf(types.ErrInvalidChannelState, "expected one of [%s, %s] but got %s", types.OPEN, types.INITUPGRADE, channel.State)
 	}
