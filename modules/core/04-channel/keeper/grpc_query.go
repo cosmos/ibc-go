@@ -5,9 +5,9 @@ import (
 	"strconv"
 	"strings"
 
+	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/query"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -35,7 +35,7 @@ func (q Keeper) Channel(c context.Context, req *types.QueryChannelRequest) (*typ
 	if !found {
 		return nil, status.Error(
 			codes.NotFound,
-			sdkerrors.Wrapf(types.ErrChannelNotFound, "port-id: %s, channel-id %s", req.PortId, req.ChannelId).Error(),
+			errorsmod.Wrapf(types.ErrChannelNotFound, "port-id: %s, channel-id %s", req.PortId, req.ChannelId).Error(),
 		)
 	}
 
@@ -169,7 +169,7 @@ func (q Keeper) ChannelConsensusState(c context.Context, req *types.QueryChannel
 	if !found {
 		return nil, status.Error(
 			codes.NotFound,
-			sdkerrors.Wrapf(types.ErrChannelNotFound, "port-id: %s, channel-id %s", req.PortId, req.ChannelId).Error(),
+			errorsmod.Wrapf(types.ErrChannelNotFound, "port-id: %s, channel-id %s", req.PortId, req.ChannelId).Error(),
 		)
 	}
 
@@ -177,7 +177,7 @@ func (q Keeper) ChannelConsensusState(c context.Context, req *types.QueryChannel
 	if !found {
 		return nil, status.Error(
 			codes.NotFound,
-			sdkerrors.Wrapf(connectiontypes.ErrConnectionNotFound, "connection-id: %s", channel.ConnectionHops[0]).Error(),
+			errorsmod.Wrapf(connectiontypes.ErrConnectionNotFound, "connection-id: %s", channel.ConnectionHops[0]).Error(),
 		)
 	}
 
@@ -186,7 +186,7 @@ func (q Keeper) ChannelConsensusState(c context.Context, req *types.QueryChannel
 	if !found {
 		return nil, status.Error(
 			codes.NotFound,
-			sdkerrors.Wrapf(clienttypes.ErrConsensusStateNotFound, "client-id: %s", connection.ClientId).Error(),
+			errorsmod.Wrapf(clienttypes.ErrConsensusStateNotFound, "client-id: %s", connection.ClientId).Error(),
 		)
 	}
 
@@ -480,14 +480,25 @@ func (q Keeper) NextSequenceReceive(c context.Context, req *types.QueryNextSeque
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
-	sequence, found := q.GetNextSequenceRecv(ctx, req.PortId, req.ChannelId)
+	channel, found := q.GetChannel(ctx, req.PortId, req.ChannelId)
 	if !found {
 		return nil, status.Error(
 			codes.NotFound,
-			sdkerrors.Wrapf(types.ErrSequenceReceiveNotFound, "port-id: %s, channel-id %s", req.PortId, req.ChannelId).Error(),
+			errorsmod.Wrapf(types.ErrChannelNotFound, "port-id: %s, channel-id %s", req.PortId, req.ChannelId).Error(),
 		)
 	}
 
+	// Return the next sequence received for ordered channels and 0 for unordered channels.
+	var sequence uint64
+	if channel.Ordering == types.ORDERED {
+		sequence, found = q.GetNextSequenceRecv(ctx, req.PortId, req.ChannelId)
+		if !found {
+			return nil, status.Error(
+				codes.NotFound,
+				errorsmod.Wrapf(types.ErrSequenceReceiveNotFound, "port-id: %s, channel-id %s", req.PortId, req.ChannelId).Error(),
+			)
+		}
+	}
 	selfHeight := clienttypes.GetSelfHeight(ctx)
 	return types.NewQueryNextSequenceReceiveResponse(sequence, nil, selfHeight), nil
 }

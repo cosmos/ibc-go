@@ -22,7 +22,7 @@ Add the following to the function call to the upgrade handler in `app/app.go`, t
 ```go
 import (
   // ...
-  ibctmmigrations "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint/migrations"
+  ibctmmigrations "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint/migrations"
 )
 
 // ...
@@ -54,7 +54,7 @@ To register the tendermint client, modify the `app.go` file to include the tende
 ```diff
 import (
   // ...
-+ ibctm "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint"
++ ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 )
 
 // ...
@@ -76,7 +76,7 @@ To register the solo machine client, modify the `app.go` file to include the sol
 ```diff
 import (
   // ...
-+ solomachine "github.com/cosmos/ibc-go/v6/modules/light-clients/06-solomachine"
++ solomachine "github.com/cosmos/ibc-go/v7/modules/light-clients/06-solomachine"
 )
 
 // ...
@@ -274,8 +274,8 @@ IBC module constants have been moved from the `host` package to the `exported` p
 ```diff
 import (
   // ...
-- host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
-+ ibcexported "github.com/cosmos/ibc-go/v6/modules/core/exported"
+- host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
++ ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
   // ...
 )
 
@@ -307,22 +307,22 @@ Legacy APIs of the `AppModule` interface have been removed from ibc-go modules. 
 ```diff
 - // Route implements the AppModule interface
 - func (am AppModule) Route() sdk.Route {
--     return sdk.Route{}
+-   return sdk.Route{}
 - }
 -
 - // QuerierRoute implements the AppModule interface
 - func (AppModule) QuerierRoute() string {
--     return types.QuerierRoute
+-   return types.QuerierRoute
 - }
 -
 - // LegacyQuerierHandler implements the AppModule interface
 - func (am AppModule) LegacyQuerierHandler(*codec.LegacyAmino) sdk.Querier {
--     return nil
+-   return nil
 - }
 -
 - // ProposalContents doesn't return any content functions for governance proposals.
 - func (AppModule) ProposalContents(_ module.SimulationState) []simtypes.WeightedProposalContent {
--     return nil
+-   return nil
 - }
 ```
 
@@ -332,10 +332,10 @@ Imports for ics23 have been updated as the repository have been migrated from co
 
 ```diff
 import (
-    // ...
--   ics23 "github.com/confio/ics23/go"
-+   ics23 "github.com/cosmos/ics23/go"
-    // ...
+  // ...
+- ics23 "github.com/confio/ics23/go"
++ ics23 "github.com/cosmos/ics23/go"
+  // ...
 )
 ```
 
@@ -343,9 +343,9 @@ Imports for gogoproto have been updated.
 
 ```diff
 import (
-    // ...
--   "github.com/gogo/protobuf/proto"
-+   "github.com/cosmos/gogoproto/proto"
-    // ...
+  // ...
+- "github.com/gogo/protobuf/proto"
++ "github.com/cosmos/gogoproto/proto"
+  // ...
 )
 ```

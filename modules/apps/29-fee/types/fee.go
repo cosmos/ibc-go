@@ -3,9 +3,10 @@ package types
 import (
 	"strings"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
+	ibcerrors "github.com/cosmos/ibc-go/v7/internal/errors"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 )
 
@@ -22,7 +23,7 @@ func NewPacketFee(fee Fee, refundAddr string, relayers []string) PacketFee {
 func (p PacketFee) Validate() error {
 	_, err := sdk.AccAddressFromBech32(p.RefundAddress)
 	if err != nil {
-		return sdkerrors.Wrap(err, "failed to convert RefundAddress into sdk.AccAddress")
+		return errorsmod.Wrap(err, "failed to convert RefundAddress into sdk.AccAddress")
 	}
 
 	// enforce relayers are not set
@@ -30,11 +31,7 @@ func (p PacketFee) Validate() error {
 		return ErrRelayersNotEmpty
 	}
 
-	if err := p.Fee.Validate(); err != nil {
-		return err
-	}
-
-	return nil
+	return p.Fee.Validate()
 }
 
 // NewPacketFees creates and returns a new PacketFees struct including a list of type PacketFee
@@ -80,12 +77,12 @@ func (f Fee) Validate() error {
 	}
 
 	if len(errFees) > 0 {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "contains invalid fees: %s", strings.Join(errFees, " , "))
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidCoins, "contains invalid fees: %s", strings.Join(errFees, " , "))
 	}
 
 	// if all three fee's are zero or empty return an error
 	if f.AckFee.IsZero() && f.RecvFee.IsZero() && f.TimeoutFee.IsZero() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, "all fees are zero")
+		return errorsmod.Wrap(ibcerrors.ErrInvalidCoins, "all fees are zero")
 	}
 
 	return nil

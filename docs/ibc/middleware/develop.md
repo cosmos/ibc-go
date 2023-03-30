@@ -1,82 +1,59 @@
 <!--
-order: 1
+order: 2
 -->
 
-# IBC middleware
+# Create a custom IBC middleware
 
-Learn how to write your own custom middleware to wrap an IBC application, and understand how to hook different middleware to IBC base applications to form different IBC application stacks {synopsis}.
+IBC middleware will wrap over an underlying IBC application (a base application or downstream middleware) and sits between core IBC and the base application.
 
-This document serves as a guide for middleware developers who want to write their own middleware and for chain developers who want to use IBC middleware on their chains.
-
-IBC applications are designed to be self-contained modules that implement their own application-specific logic through a set of interfaces with the core IBC handlers. These core IBC handlers, in turn, are designed to enforce the correctness properties of IBC (transport, authentication, ordering) while delegating all application-specific handling to the IBC application modules. However, there are cases where some functionality may be desired by many applications, yet not appropriate to place in core IBC.
-
-Middleware allows developers to define the extensions as separate modules that can wrap over the base application. This middleware can thus perform its own custom logic, and pass data into the application so that it may run its logic without being aware of the middleware's existence. This allows both the application and the middleware to implement its own isolated logic while still being able to run as part of a single packet flow.
-
-## Pre-requisite readings
-
-- [IBC Overview](../overview.md) {prereq}
-- [IBC Integration](../integration.md) {prereq}
-- [IBC Application Developer Guide](../apps/apps.md) {prereq}
-
-## Definitions
-
-`Middleware`: A self-contained module that sits between core IBC and an underlying IBC application during packet execution. All messages between core IBC and underlying application must flow through middleware, which may perform its own custom logic.
-
-`Underlying Application`: An underlying application is the application that is directly connected to the middleware in question. This underlying application may itself be middleware that is chained to a base application.
-
-`Base Application`: A base application is an IBC application that does not contain any middleware. It may be nested by 0 or multiple middleware to form an application stack.
-
-`Application Stack (or stack)`: A stack is the complete set of application logic (middleware(s) + base application) that gets connected to core IBC. A stack may be just a base application, or it may be a series of middlewares that nest a base application.
-
-## Create a custom IBC middleware
-
-IBC middleware will wrap over an underlying IBC application and sits between core IBC and the application. It has complete control in modifying any message coming from IBC to the application, and any message coming from the application to core IBC. Thus, middleware must be completely trusted by chain developers who wish to integrate them, however this gives them complete flexibility in modifying the application(s) they wrap.
-
-### Interfaces
+The interfaces a middleware must implement are found [here](https://github.com/cosmos/ibc-go/blob/v7.0.0/modules/core/05-port/types/module.go).
 
 ```go
 // Middleware implements the ICS26 Module interface
 type Middleware interface {
-  porttypes.IBCModule // middleware has acccess to an underlying application which may be wrapped by more middleware
-  ics4Wrapper: ICS4Wrapper // middleware has access to ICS4Wrapper which may be core IBC Channel Handler or a higher-level middleware that wraps this middleware.
+  IBCModule // middleware has acccess to an underlying application which may be wrapped by more middleware
+  ICS4Wrapper // middleware has access to ICS4Wrapper which may be core IBC Channel Handler or a higher-level middleware that wraps this middleware.
 }
 ```
 
-```typescript
-// This is implemented by ICS4 and all middleware that are wrapping base application.
-// The base application will call `sendPacket` or `writeAcknowledgement` of the middleware directly above them
-// which will call the next middleware until it reaches the core IBC handler.
-type ICS4Wrapper interface {
-  SendPacket(
-    ctx sdk.Context,
-    chanCap *capabilitytypes.Capability,
-    sourcePort string,
-    sourceChannel string,
-    timeoutHeight clienttypes.Height,
-    timeoutTimestamp uint64,
-    data []byte,
-  ) (sequence uint64, err error)
+An `IBCMiddleware` struct implementing the `Middleware` interface, can be defined with its constructor as follows:
 
-  WriteAcknowledgement(
-    ctx sdk.Context,
-    chanCap *capabilitytypes.Capability,
-    packet exported.PacketI,
-    ack exported.Acknowledgement,
-  ) error
+```go
+// @ x/module_name/ibc_middleware.go
 
-  GetAppVersion(
-    ctx sdk.Context,
-    portID,
-    channelID string,
-  ) (string, bool)
+// IBCMiddleware implements the ICS26 callbacks and ICS4Wrapper for the fee middleware given the
+// fee keeper and the underlying application.
+type IBCMiddleware struct {
+  app    porttypes.IBCModule
+  keeper keeper.Keeper
+}
+
+// NewIBCMiddleware creates a new IBCMiddlware given the keeper and underlying application
+func NewIBCMiddleware(app porttypes.IBCModule, k keeper.Keeper) IBCMiddleware {
+  return IBCMiddleware{
+    app:    app,
+    keeper: k,
+  }
 }
 ```
 
-### Implement `IBCModule` interface and callbacks
+## Implement `IBCModule` interface
 
-The `IBCModule` is a struct that implements the [ICS-26 interface (`porttypes.IBCModule`)](https://github.com/cosmos/ibc-go/blob/main/modules/core/05-port/types/module.go#L11-L106). It is recommended to separate these callbacks into a separate file `ibc_module.go`. As will be mentioned in the [integration section](./integration.md), this struct should be different than the struct that implements `AppModule` in case the middleware maintains its own internal state and processes separate SDK messages.
+`IBCMiddleware` is a struct that implements the [ICS-26 `IBCModule` interface (`porttypes.IBCModule`)](https://github.com/cosmos/ibc-go/blob/v7.0.0/modules/core/05-port/types/module.go#L14-L107). It is recommended to separate these callbacks into a separate file `ibc_middleware.go`.
 
-The middleware must have access to the underlying application, and be called before during all ICS-26 callbacks. It may execute custom logic during these callbacks, and then call the underlying application's callback. Middleware **may** choose not to call the underlying application's callback at all. Though these should generally be limited to error cases.
+> Note how this is analogous to implementing the same interfaces for IBC applications that act as base applications.
+
+As will be mentioned in the [integration section](./integration.md), this struct should be different than the struct that implements `AppModule` in case the middleware maintains its own internal state and processes separate SDK messages.
+
+The middleware must have access to the underlying application, and be called before it during all ICS-26 callbacks. It may execute custom logic during these callbacks, and then call the underlying application's callback.
+
+> Middleware **may** choose not to call the underlying application's callback at all. Though these should generally be limited to error cases.
+
+The `IBCModule` interface consists of the channel handshake callbacks and packet callbacks. Most of the custom logic will be performed in the packet callbacks, in the case of the channel handshake callbacks, introducing the middleware requires consideration to the version negotiation and passing of capabilities.
+
+### Channel handshake callbacks
+
+#### Version negotiation
 
 In the case where the IBC middleware expects to speak to a compatible IBC middleware on the counterparty chain, they must use the channel handshake to negotiate the middleware version without interfering in the version negotiation of the underlying application.
 
@@ -93,16 +70,12 @@ The `<middleware_version_key>` key in the JSON struct should be replaced by the 
 
 During the handshake callbacks, the middleware can unmarshal the version string and retrieve the middleware and application versions. It can do its negotiation logic on `<middleware_version_value>`, and pass the `<application_version_value>` to the underlying application.
 
-The middleware should simply pass the capability in the callback arguments along to the underlying application so that it may be claimed by the base application. The base application will then pass the capability up the stack in order to authenticate an outgoing packet/acknowledgement.
-
-In the case where the middleware wishes to send a packet or acknowledgment without the involvement of the underlying application, it should be given access to the same `scopedKeeper` as the base application so that it can retrieve the capabilities by itself.
-
-### Handshake callbacks
+> **NOTE**: Middleware that does not need to negotiate with a counterparty middleware on the remote stack will not implement the version unmarshalling and negotiation, and will simply perform its own custom logic on the callbacks without relying on the counterparty behaving similarly.
 
 #### `OnChanOpenInit`
 
 ```go
-func (im IBCModule) OnChanOpenInit(
+func (im IBCMiddleware) OnChanOpenInit(
   ctx sdk.Context,
   order channeltypes.Order,
   connectionHops []string,
@@ -117,6 +90,45 @@ func (im IBCModule) OnChanOpenInit(
     // the app-specific version to app callback.
     // otherwise, pass version directly to app callback.
     metadata, err := Unmarshal(version)
+    if err != nil {
+      // Since it is valid for fee version to not be specified,
+      // the above middleware version may be for another middleware.
+      // Pass the entire version string onto the underlying application.
+      return im.app.OnChanOpenInit(
+        ctx,
+        order,
+        connectionHops,
+        portID,
+        channelID,
+        channelCap,
+        counterparty,
+        version,
+      )
+    }
+    else {
+      metadata = {
+        // set middleware version to default value
+        MiddlewareVersion: defaultMiddlewareVersion,
+        // allow application to return its default version
+        AppVersion: "",
+      }
+    }
+  }
+
+  doCustomLogic()
+
+  // if the version string is empty, OnChanOpenInit is expected to return
+  // a default version string representing the version(s) it supports
+  appVersion, err := im.app.OnChanOpenInit(
+    ctx,
+    order,
+    connectionHops,
+        portID,
+        channelID,
+        channelCap,
+        counterparty,
+        metadata.AppVersion, // note we only pass app version here
+    )
     if err != nil {
     // Since it is valid for fee version to not be specified,
     // the above middleware version may be for another middleware.
@@ -165,12 +177,12 @@ func (im IBCModule) OnChanOpenInit(
 }
 ```
 
-See [here](https://github.com/cosmos/ibc-go/blob/48a6ae512b4ea42c29fdf6c6f5363f50645591a2/modules/apps/29-fee/ibc_middleware.go#L34-L82) an example implementation of this callback for the ICS29 Fee Middleware module.
+See [here](https://github.com/cosmos/ibc-go/blob/v7.0.0/modules/apps/29-fee/ibc_middleware.go#L36-L83) an example implementation of this callback for the ICS-29 Fee Middleware module.
 
 #### `OnChanOpenTry`
 
 ```go
-func OnChanOpenTry(
+func (im IBCMiddleware) OnChanOpenTry(
   ctx sdk.Context,
   order channeltypes.Order,
   connectionHops []string,
@@ -223,12 +235,12 @@ func OnChanOpenTry(
 }
 ```
 
-See [here](https://github.com/cosmos/ibc-go/blob/48a6ae512b4ea42c29fdf6c6f5363f50645591a2/modules/apps/29-fee/ibc_middleware.go#L84-L124) an example implementation of this callback for the ICS29 Fee Middleware module.
+See [here](https://github.com/cosmos/ibc-go/blob/v7.0.0/modules/apps/29-fee/ibc_middleware.go#L88-L125) an example implementation of this callback for the ICS-29 Fee Middleware module.
 
 #### `OnChanOpenAck`
 
 ```go
-func OnChanOpenAck(
+func (im IBCMiddleware) OnChanOpenAck(
   ctx sdk.Context,
   portID,
   channelID string,
@@ -253,9 +265,9 @@ func OnChanOpenAck(
 }
 ```
 
-See [here](https://github.com/cosmos/ibc-go/blob/48a6ae512b4ea42c29fdf6c6f5363f50645591a2/modules/apps/29-fee/ibc_middleware.go#L126-L152) an example implementation of this callback for the ICS29 Fee Middleware module.
+See [here](https://github.com/cosmos/ibc-go/blob/v7.0.0/modules/apps/29-fee/ibc_middleware.go#L128-L153)) an example implementation of this callback for the ICS-29 Fee Middleware module.
 
-### `OnChanOpenConfirm`
+#### `OnChanOpenConfirm`
 
 ```go
 func OnChanOpenConfirm(
@@ -269,7 +281,7 @@ func OnChanOpenConfirm(
 }
 ```
 
-See [here](https://github.com/cosmos/ibc-go/blob/48a6ae512b4ea42c29fdf6c6f5363f50645591a2/modules/apps/29-fee/ibc_middleware.go#L154-L162) an example implementation of this callback for the ICS29 Fee Middleware module.
+See [here](https://github.com/cosmos/ibc-go/blob/v7.0.0/modules/apps/29-fee/ibc_middleware.go#L156-L163) an example implementation of this callback for the ICS-29 Fee Middleware module.
 
 #### `OnChanCloseInit`
 
@@ -285,7 +297,7 @@ func OnChanCloseInit(
 }
 ```
 
-See [here](https://github.com/cosmos/ibc-go/blob/48a6ae512b4ea42c29fdf6c6f5363f50645591a2/modules/apps/29-fee/ibc_middleware.go#L164-L187) an example implementation of this callback for the ICS29 Fee Middleware module.
+See [here](https://github.com/cosmos/ibc-go/blob/v7.0.0/modules/apps/29-fee/ibc_middleware.go#L166-L188) an example implementation of this callback for the ICS-29 Fee Middleware module.
 
 #### `OnChanCloseConfirm`
 
@@ -301,9 +313,13 @@ func OnChanCloseConfirm(
 }
 ```
 
-See [here](https://github.com/cosmos/ibc-go/blob/48a6ae512b4ea42c29fdf6c6f5363f50645591a2/modules/apps/29-fee/ibc_middleware.go#L189-L212) an example implementation of this callback for the ICS29 Fee Middleware module.
+See [here](https://github.com/cosmos/ibc-go/blob/v7.0.0/modules/apps/29-fee/ibc_middleware.go#L191-L213) an example implementation of this callback for the ICS-29 Fee Middleware module.
 
-**NOTE**: Middleware that does not need to negotiate with a counterparty middleware on the remote stack will not implement the version unmarshalling and negotiation, and will simply perform its own custom logic on the callbacks without relying on the counterparty behaving similarly.
+#### Capabilities
+
+The middleware should simply pass the capability in the callback arguments along to the underlying application so that it may be claimed by the base application. The base application will then pass the capability up the stack in order to authenticate an outgoing packet/acknowledgement, which you can check in the [`ICS4Wrapper` section](./develop.md#ics-4-wrappers).
+
+In the case where the middleware wishes to send a packet or acknowledgment without the involvement of the underlying application, it should be given access to the same `scopedKeeper` as the base application so that it can retrieve the capabilities by itself.
 
 ### Packet callbacks
 
@@ -312,7 +328,7 @@ The packet callbacks just like the handshake callbacks wrap the application's pa
 #### `OnRecvPacket`
 
 ```go
-func OnRecvPacket(
+func (im IBCMiddleware) OnRecvPacket(
   ctx sdk.Context,
   packet channeltypes.Packet,
   relayer sdk.AccAddress,
@@ -322,16 +338,17 @@ func OnRecvPacket(
   ack := app.OnRecvPacket(ctx, packet, relayer)
 
   doCustomLogic(ack) // middleware may modify outgoing ack
+    
   return ack
 }
 ```
 
-See [here](https://github.com/cosmos/ibc-go/blob/48a6ae512b4ea42c29fdf6c6f5363f50645591a2/modules/apps/29-fee/ibc_middleware.go#L214-L237) an example implementation of this callback for the ICS29 Fee Middleware module.
+See [here](https://github.com/cosmos/ibc-go/blob/v7.0.0/modules/apps/29-fee/ibc_middleware.go#L217-L238) an example implementation of this callback for the ICS-29 Fee Middleware module.
 
 #### `OnAcknowledgementPacket`
 
 ```go
-func OnAcknowledgementPacket(
+func (im IBCMiddleware) OnAcknowledgementPacket(
   ctx sdk.Context,
   packet channeltypes.Packet,
   acknowledgement []byte,
@@ -343,12 +360,12 @@ func OnAcknowledgementPacket(
 }
 ```
 
-See [here](https://github.com/cosmos/ibc-go/blob/48a6ae512b4ea42c29fdf6c6f5363f50645591a2/modules/apps/29-fee/ibc_middleware.go#L239-L292) an example implementation of this callback for the ICS29 Fee Middleware module.
+See [here](https://github.com/cosmos/ibc-go/blob/v7.0.0/modules/apps/29-fee/ibc_middleware.go#L242-L293) an example implementation of this callback for the ICS-29 Fee Middleware module.
 
 #### `OnTimeoutPacket`
 
 ```go
-func OnTimeoutPacket(
+func (im IBCMiddleware) OnTimeoutPacket(
   ctx sdk.Context,
   packet channeltypes.Packet,
   relayer sdk.AccAddress,
@@ -359,13 +376,67 @@ func OnTimeoutPacket(
 }
 ```
 
-See [here](https://github.com/cosmos/ibc-go/blob/48a6ae512b4ea42c29fdf6c6f5363f50645591a2/modules/apps/29-fee/ibc_middleware.go#L294-L334) an example implementation of this callback for the ICS29 Fee Middleware module.
+See [here](https://github.com/cosmos/ibc-go/blob/v7.0.0/modules/apps/29-fee/ibc_middleware.go#L297-L335) an example implementation of this callback for the ICS-29 Fee Middleware module.
 
-### ICS-4 wrappers
+## ICS-04 wrappers
 
-Middleware must also wrap ICS-4 so that any communication from the application to the `channelKeeper` goes through the middleware first. Similar to the packet callbacks, the middleware may modify outgoing acknowledgements and packets in any way it wishes.
+Middleware must also wrap ICS-04 so that any communication from the application to the `channelKeeper` goes through the middleware first. Similar to the packet callbacks, the middleware may modify outgoing acknowledgements and packets in any way it wishes.
 
-#### `SendPacket`
+To ensure optimal generalisability, the `ICS4Wrapper` abstraction serves to abstract away whether a middleware is the topmost middleware (and thus directly caling into the ICS-04 `channelKeeper`) or itself being wrapped by another middleware.
+
+Remember that middleware can be stateful or stateless. When defining the stateful middleware's keeper, the `ics4Wrapper` field is included. Then the appropriate keeper can be passed when instantiating the middleware's keeper in `app.go`
+
+```go
+type Keeper struct {
+  storeKey storetypes.StoreKey
+  cdc      codec.BinaryCodec
+
+  ics4Wrapper   porttypes.ICS4Wrapper
+  channelKeeper types.ChannelKeeper
+  portKeeper    types.PortKeeper
+  ...
+}
+```
+
+For stateless middleware, the `ics4Wrapper` can be passed on directly without having to instantiate a keeper struct for the middleware.
+
+[The interface](https://github.com/cosmos/ibc-go/blob/v7.0.0/modules/core/05-port/types/module.go#L110-L133) looks as follows:
+
+```go
+// This is implemented by ICS4 and all middleware that are wrapping base application.
+// The base application will call `sendPacket` or `writeAcknowledgement` of the middleware directly above them
+// which will call the next middleware until it reaches the core IBC handler.
+type ICS4Wrapper interface {
+  SendPacket(
+    ctx sdk.Context,
+    chanCap *capabilitytypes.Capability,
+    sourcePort string,
+    sourceChannel string,
+    timeoutHeight clienttypes.Height,
+    timeoutTimestamp uint64,
+    data []byte,
+  ) (sequence uint64, err error)
+
+  WriteAcknowledgement(
+    ctx sdk.Context,
+    chanCap *capabilitytypes.Capability,
+    packet exported.PacketI,
+    ack exported.Acknowledgement,
+  ) error
+
+  GetAppVersion(
+    ctx sdk.Context,
+    portID,
+    channelID string,
+  ) (string, bool)
+}
+```
+
+:warning: In the following paragraphs, the methods are presented in pseudo code which has been kept general, not stating whether the middleware is stateful or stateless. Remember that when the middleware is stateful, `ics4Wrapper` can be accessed through the keeper.
+
+Check out the references provided for an actual implementation to clarify, where the `ics4Wrapper` methods in `ibc_middleware.go` simply call the equivalent keeper methods where the actual logic resides.
+
+### `SendPacket`
 
 ```go
 func SendPacket(
@@ -376,11 +447,11 @@ func SendPacket(
   timeoutHeight clienttypes.Height,
   timeoutTimestamp uint64,
   appData []byte,
-) {
+) (uint64, error) {
   // middleware may modify data
   data = doCustomLogic(appData)
 
-  return ics4Keeper.SendPacket(
+  return ics4Wrapper.SendPacket(
     ctx, 
     chanCap, 
     sourcePort, 
@@ -392,9 +463,9 @@ func SendPacket(
 }
 ```
 
-See [here](https://github.com/cosmos/ibc-go/blob/48a6ae512b4ea42c29fdf6c6f5363f50645591a2/modules/apps/29-fee/ibc_middleware.go#L336-L343) an example implementation of this function for the ICS29 Fee Middleware module.
+See [here](https://github.com/cosmos/ibc-go/blob/v7.0.0/modules/apps/29-fee/keeper/relay.go#L17-L27) an example implementation of this function for the ICS-29 Fee Middleware module.
 
-#### `WriteAcknowledgement`
+### `WriteAcknowledgement`
 
 ```go
 // only called for async acks
@@ -403,17 +474,17 @@ func WriteAcknowledgement(
   chanCap *capabilitytypes.Capability,
   packet exported.PacketI,
   ack exported.Acknowledgement,
-) {
+) error {
   // middleware may modify acknowledgement
   ack_bytes = doCustomLogic(ack)
 
-  return ics4Keeper.WriteAcknowledgement(packet, ack_bytes)
+  return ics4Wrapper.WriteAcknowledgement(packet, ack_bytes)
 }
 ```
 
-See [here](https://github.com/cosmos/ibc-go/blob/48a6ae512b4ea42c29fdf6c6f5363f50645591a2/modules/apps/29-fee/ibc_middleware.go#L345-L353) an example implementation of this function for the ICS29 Fee Middleware module.
+See [here](https://github.com/cosmos/ibc-go/blob/v7.0.0/modules/apps/29-fee/keeper/relay.go#L31-L55) an example implementation of this function for the ICS-29 Fee Middleware module.
 
-#### `GetAppVersion`
+### `GetAppVersion`
 
 ```go
 // middleware must return the underlying application version
@@ -422,27 +493,7 @@ func GetAppVersion(
   portID,
   channelID string,
 ) (string, bool) {
-  version, found := ics4Keeper.GetAppVersion(ctx, portID, channelID)
-  if !found {
-    return "", false
-  }
-
-  if !MiddlewareEnabled {
-    return version, true
-  }
-
-  // unwrap channel version
-  metadata, err := Unmarshal(version)
-  if err != nil {
-    panic(fmt.Errof("unable to unmarshal version: %w", err))
-  }
-
-  return metadata.AppVersion, true
-}
-
-// middleware must return the underlying application version 
-func GetAppVersion(ctx sdk.Context, portID, channelID string) (string, bool) {
-  version, found := ics4Keeper.GetAppVersion(ctx, portID, channelID)
+  version, found := ics4Wrapper.GetAppVersion(ctx, portID, channelID)
   if !found {
     return "", false
   }
@@ -461,4 +512,4 @@ func GetAppVersion(ctx sdk.Context, portID, channelID string) (string, bool) {
 }
 ```
 
-See [here](https://github.com/cosmos/ibc-go/blob/48a6ae512b4ea42c29fdf6c6f5363f50645591a2/modules/apps/29-fee/ibc_middleware.go#L355-L358) an example implementation of this function for the ICS29 Fee Middleware module.
+See [here](https://github.com/cosmos/ibc-go/blob/v7.0.0/modules/apps/29-fee/keeper/relay.go#L58-L74) an example implementation of this function for the ICS-29 Fee Middleware module.

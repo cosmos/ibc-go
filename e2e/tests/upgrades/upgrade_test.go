@@ -25,6 +25,7 @@ import (
 	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
 	v7migrations "github.com/cosmos/ibc-go/v7/modules/core/02-client/migrations/v7"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	solomachine "github.com/cosmos/ibc-go/v7/modules/light-clients/06-solomachine"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
@@ -36,9 +37,9 @@ const (
 )
 
 func TestUpgradeTestSuite(t *testing.T) {
-	testCfg := testconfig.FromEnv()
-	if testCfg.UpgradeTag == "" || testCfg.UpgradePlanName == "" {
-		t.Fatal("upgrade tag and upgrade plan name must be provided in test configuration")
+	testCfg := testconfig.LoadConfig()
+	if testCfg.UpgradeConfig.Tag == "" || testCfg.UpgradeConfig.PlanName == "" {
+		t.Fatalf("%s and %s must be set when running an upgrade test", testconfig.ChainUpgradeTagEnv, testconfig.ChainUpgradePlanEnv)
 	}
 
 	suite.Run(t, new(UpgradeTestSuite))
@@ -72,7 +73,7 @@ func (s *UpgradeTestSuite) UpgradeChain(ctx context.Context, chain *cosmos.Cosmo
 	err = chain.StopAllNodes(ctx)
 	s.Require().NoError(err, "error stopping node(s)")
 
-	chain.UpgradeVersion(ctx, s.DockerClient, upgradeVersion)
+	chain.UpgradeVersion(ctx, s.DockerClient, getChainImage(chain), upgradeVersion)
 
 	err = chain.StartAllNodes(ctx)
 	s.Require().NoError(err, "error starting upgraded node(s)")
@@ -95,7 +96,7 @@ func (s *UpgradeTestSuite) UpgradeChain(ctx context.Context, chain *cosmos.Cosmo
 
 func (s *UpgradeTestSuite) TestIBCChainUpgrade() {
 	t := s.T()
-	testCfg := testconfig.FromEnv()
+	testCfg := testconfig.LoadConfig()
 
 	ctx := context.Background()
 	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx)
@@ -152,7 +153,7 @@ func (s *UpgradeTestSuite) TestIBCChainUpgrade() {
 	s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA, chainB), "failed to wait for blocks")
 
 	t.Run("upgrade chainA", func(t *testing.T) {
-		s.UpgradeChain(ctx, chainA, chainAUpgradeProposalWallet, testCfg.UpgradePlanName, testCfg.ChainAConfig.Tag, testCfg.UpgradeTag)
+		s.UpgradeChain(ctx, chainA, chainAUpgradeProposalWallet, testCfg.UpgradeConfig.PlanName, testCfg.ChainConfigs[0].Tag, testCfg.UpgradeConfig.Tag)
 	})
 
 	t.Run("restart relayer", func(t *testing.T) {
@@ -228,10 +229,10 @@ func (s *UpgradeTestSuite) TestChainUpgrade() {
 	})
 
 	t.Run("upgrade chain", func(t *testing.T) {
-		testCfg := testconfig.FromEnv()
+		testCfg := testconfig.LoadConfig()
 		proposerWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 
-		s.UpgradeChain(ctx, chain, proposerWallet, testCfg.UpgradePlanName, testCfg.ChainAConfig.Tag, testCfg.UpgradeTag)
+		s.UpgradeChain(ctx, chain, proposerWallet, testCfg.UpgradeConfig.PlanName, testCfg.ChainConfigs[0].Tag, testCfg.UpgradeConfig.Tag)
 	})
 
 	t.Run("send funds to test wallet", func(t *testing.T) {
@@ -254,7 +255,7 @@ func (s *UpgradeTestSuite) TestChainUpgrade() {
 
 func (s *UpgradeTestSuite) TestV5ToV6ChainUpgrade() {
 	t := s.T()
-	testCfg := testconfig.FromEnv()
+	testCfg := testconfig.LoadConfig()
 
 	ctx := context.Background()
 	relayer, _ := s.SetupChainsRelayerAndChannel(ctx)
@@ -352,7 +353,7 @@ func (s *UpgradeTestSuite) TestV5ToV6ChainUpgrade() {
 	s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA, chainB), "failed to wait for blocks")
 
 	t.Run("upgrade chainA", func(t *testing.T) {
-		s.UpgradeChain(ctx, chainA, chainAUpgradeProposalWallet, testCfg.UpgradePlanName, testCfg.ChainAConfig.Tag, testCfg.UpgradeTag)
+		s.UpgradeChain(ctx, chainA, chainAUpgradeProposalWallet, testCfg.UpgradeConfig.PlanName, testCfg.ChainConfigs[0].Tag, testCfg.UpgradeConfig.Tag)
 	})
 
 	t.Run("restart relayer", func(t *testing.T) {
@@ -457,7 +458,7 @@ func (s *UpgradeTestSuite) TestV5ToV6ChainUpgrade() {
 // can be sent before and after the upgrade without issue
 func (s *UpgradeTestSuite) TestV6ToV7ChainUpgrade() {
 	t := s.T()
-	testCfg := testconfig.FromEnv()
+	testCfg := testconfig.LoadConfig()
 
 	ctx := context.Background()
 	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx)
@@ -568,7 +569,7 @@ func (s *UpgradeTestSuite) TestV6ToV7ChainUpgrade() {
 	chainAUpgradeProposalWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 
 	t.Run("upgrade chainA", func(t *testing.T) {
-		s.UpgradeChain(ctx, chainA, chainAUpgradeProposalWallet, testCfg.UpgradePlanName, testCfg.ChainAConfig.Tag, testCfg.UpgradeTag)
+		s.UpgradeChain(ctx, chainA, chainAUpgradeProposalWallet, testCfg.UpgradeConfig.PlanName, testCfg.ChainConfigs[0].Tag, testCfg.UpgradeConfig.Tag)
 	})
 
 	t.Run("check that the tendermint clients are active again after upgrade", func(t *testing.T) {
@@ -604,6 +605,35 @@ func (s *UpgradeTestSuite) TestV6ToV7ChainUpgrade() {
 	})
 }
 
+func (s *UpgradeTestSuite) TestV7ChainUpgradeAddLocalhost() {
+	t := s.T()
+	testCfg := testconfig.LoadConfig()
+
+	ctx := context.Background()
+	_, _ = s.SetupChainsRelayerAndChannel(ctx)
+	chain, _ := s.GetChains()
+
+	s.Require().NoError(test.WaitForBlocks(ctx, 5, chain), "failed to wait for blocks")
+
+	t.Run("upgrade chain", func(t *testing.T) {
+		govProposalWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
+		s.UpgradeChain(ctx, chain, govProposalWallet, testCfg.UpgradeConfig.PlanName, testCfg.ChainConfigs[0].Tag, testCfg.UpgradeConfig.Tag)
+	})
+
+	t.Run("ensure the localhost client is active and sentinel connection is stored in state", func(t *testing.T) {
+		status, err := s.QueryClientStatus(ctx, chain, exported.LocalhostClientID)
+		s.Require().NoError(err)
+		s.Require().Equal(exported.Active.String(), status)
+
+		connectionEnd, err := s.QueryConnection(ctx, chain, exported.LocalhostConnectionID)
+		s.Require().NoError(err)
+		s.Require().Equal(connectiontypes.OPEN, connectionEnd.State)
+		s.Require().Equal(exported.LocalhostClientID, connectionEnd.ClientId)
+		s.Require().Equal(exported.LocalhostClientID, connectionEnd.Counterparty.ClientId)
+		s.Require().Equal(exported.LocalhostConnectionID, connectionEnd.Counterparty.ConnectionId)
+	})
+}
+
 // RegisterInterchainAccount will attempt to register an interchain account on the counterparty chain.
 func (s *UpgradeTestSuite) RegisterInterchainAccount(ctx context.Context, chain *cosmos.CosmosChain, user ibc.Wallet, msgRegisterAccount *intertxtypes.MsgRegisterAccount) error {
 	txResp, err := s.BroadcastMessages(ctx, chain, user, msgRegisterAccount)
@@ -635,4 +665,15 @@ func (s *UpgradeTestSuite) ClientState(ctx context.Context, chain ibc.Chain, cli
 	}
 
 	return res, nil
+}
+
+// getChainImage returns the image of a given chain.
+func getChainImage(chain *cosmos.CosmosChain) string {
+	tc := testconfig.LoadConfig()
+	for _, c := range tc.ChainConfigs {
+		if c.ChainID == chain.Config().ChainID {
+			return c.Image
+		}
+	}
+	panic("unable to find image for chain: " + chain.Config().ChainID)
 }

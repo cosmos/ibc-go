@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -13,7 +14,6 @@ import (
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
-	abci "github.com/tendermint/tendermint/abci/types"
 
 	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/client/cli"
 	controllerkeeper "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/keeper"
@@ -117,8 +117,8 @@ func (am AppModule) InitModule(ctx sdk.Context, controllerParams controllertypes
 	if am.hostKeeper != nil {
 		am.hostKeeper.SetParams(ctx, hostParams)
 
-		cap := am.hostKeeper.BindPort(ctx, types.HostPortID)
-		if err := am.hostKeeper.ClaimCapability(ctx, cap, ibchost.PortPath(types.HostPortID)); err != nil {
+		capability := am.hostKeeper.BindPort(ctx, types.HostPortID)
+		if err := am.hostKeeper.ClaimCapability(ctx, capability, ibchost.PortPath(types.HostPortID)); err != nil {
 			panic(fmt.Sprintf("could not claim port capability: %v", err))
 		}
 	}

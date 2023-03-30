@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"fmt"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
@@ -21,7 +21,7 @@ func (k Keeper) escrowPacketFee(ctx sdk.Context, packetID channeltypes.PacketId,
 
 	refundAcc := k.authKeeper.GetAccount(ctx, refundAddr)
 	if refundAcc == nil {
-		return sdkerrors.Wrapf(types.ErrRefundAccNotFound, "account with address: %s not found", packetFee.RefundAddress)
+		return errorsmod.Wrapf(types.ErrRefundAccNotFound, "account with address: %s not found", packetFee.RefundAddress)
 	}
 
 	coins := packetFee.Fee.Total()
@@ -39,7 +39,7 @@ func (k Keeper) escrowPacketFee(ctx sdk.Context, packetID channeltypes.PacketId,
 	packetFees := types.NewPacketFees(fees)
 	k.SetFeesInEscrow(ctx, packetID, packetFees)
 
-	EmitIncentivizedPacketEvent(ctx, packetID, packetFees)
+	emitIncentivizedPacketEvent(ctx, packetID, packetFees)
 
 	return nil
 }
@@ -168,9 +168,9 @@ func (k Keeper) distributeFee(ctx sdk.Context, receiver, refundAccAddress sdk.Ac
 			return // if sending to the refund address fails, no-op
 		}
 
-		EmitDistributeFeeEvent(ctx, refundAccAddress.String(), fee)
+		emitDistributeFeeEvent(ctx, refundAccAddress.String(), fee)
 	} else {
-		EmitDistributeFeeEvent(ctx, receiver.String(), fee)
+		emitDistributeFeeEvent(ctx, receiver.String(), fee)
 	}
 
 	// write the cache
