@@ -525,9 +525,10 @@ func (q Keeper) NextSequenceReceive(c context.Context, req *types.QueryNextSeque
 		)
 	}
 
-	// Return the next sequence received for ordered channels and 0 for unordered channels.
+	// Return the next sequence received for ordered channels. Unordered channels
+	// do not make use of the next sequence receive.
 	var sequence uint64
-	if channel.Ordering == types.ORDERED {
+	if channel.Ordering != types.UNORDERED {
 		sequence, found = q.GetNextSequenceRecv(ctx, req.PortId, req.ChannelId)
 		if !found {
 			return nil, status.Error(
