@@ -606,7 +606,7 @@ func (s *UpgradeTestSuite) TestV6ToV7ChainUpgrade() {
 	})
 }
 
-func (s *UpgradeTestSuite) TestV7ChainUpgradeAddLocalhost() {
+func (s *UpgradeTestSuite) TestV7ToV7_1ChainUpgrade() {
 	t := s.T()
 	testCfg := testconfig.LoadConfig()
 

@@ -98,7 +98,7 @@ func (suite *KeeperTestSuite) TestSetGetTotalEscrowForDenom() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestGetAllGetAllDenomEscrows() {
+func (suite *KeeperTestSuite) TestGetAllDenomEscrows() {
 	var (
 		store     storetypes.KVStore
 		expDenom  string
