@@ -193,11 +193,7 @@ func (k Keeper) ChanUpgradeTry(
 			upgradeSequence = counterpartyUpgradeSequence
 			k.SetUpgradeSequence(ctx, portID, channelID, upgradeSequence)
 		} else {
-			errorReceipt := types.ErrorReceipt{
-				Sequence: upgradeSequence,
-				Error:    errorsmod.Wrapf(types.ErrInvalidUpgradeSequence, "upgrade sequence %d was not smaller than the counter party chain upgrade sequence %d", upgradeSequence, counterpartyUpgradeSequence).Error(),
-			}
-
+			errorReceipt := types.NewErrorReceipt(upgradeSequence, errorsmod.Wrapf(types.ErrInvalidUpgradeSequence, "upgrade sequence %d was not smaller than the counter party chain upgrade sequence %d", upgradeSequence, counterpartyUpgradeSequence))
 			// the upgrade sequence is incremented so both sides start the next upgrade with a fresh sequence.
 			upgradeSequence++
 
@@ -216,13 +212,22 @@ func (k Keeper) ChanUpgradeTry(
 	case types.INITUPGRADE:
 		upgradeSequence, found := k.GetUpgradeSequence(ctx, portID, channelID)
 		if !found {
-			// TODO: write error receipt for upgrade sequence and abort / cancel upgrade
-			return 0, "", errorsmod.Wrapf(types.ErrInvalidUpgradeSequence, "upgrade aborted, error receipt written for upgrade sequence: %d", upgradeSequence)
+			errorReceipt := types.NewErrorReceipt(upgradeSequence, errorsmod.Wrapf(types.ErrInvalidUpgradeSequence, "upgrade sequence %d was not smaller than the counter party chain upgrade sequence %d", upgradeSequence, counterpartyUpgradeSequence))
+			upgradeSequence++
+
+			k.SetUpgradeErrorReceipt(ctx, portID, channelID, errorReceipt)
+			k.SetUpgradeSequence(ctx, portID, channelID, upgradeSequence)
+
+			return 0, "", errorsmod.Wrapf(types.ErrUpgradeAborted, "upgrade aborted, error receipt written for upgrade sequence: %d", upgradeSequence)
 		}
 
 		if upgradeSequence != counterpartyUpgradeSequence {
-			// TODO: write error receipt for upgrade sequence and abort / cancel upgrade
-			return 0, "", errorsmod.Wrapf(types.ErrInvalidUpgradeSequence, "upgrade aborted, error receipt written for upgrade sequence: %d", upgradeSequence)
+			errorReceipt := types.NewErrorReceipt(upgradeSequence, errorsmod.Wrapf(types.ErrInvalidUpgradeSequence, "upgrade sequence %d was not smaller than the counter party chain upgrade sequence %d", upgradeSequence, counterpartyUpgradeSequence))
+			upgradeSequence++
+
+			k.SetUpgradeErrorReceipt(ctx, portID, channelID, errorReceipt)
+			k.SetUpgradeSequence(ctx, portID, channelID, upgradeSequence)
+			return 0, "", errorsmod.Wrapf(types.ErrUpgradeAborted, "upgrade aborted, error receipt written for upgrade sequence: %d", upgradeSequence)
 		}
 
 		// if there is a crossing hello, i.e an UpgradeInit has been called on both channelEnds,
@@ -235,9 +240,9 @@ func (k Keeper) ChanUpgradeTry(
 		if !reflect.DeepEqual(channel, proposedUpgradeChannel) {
 			// TODO: log and emit events
 			if err := k.RestoreChannel(ctx, portID, channelID, upgradeSequence, types.ErrInvalidChannel); err != nil {
-				return 0, "", errorsmod.Wrap(types.ErrChannelUpgradeRestoreFailure, err.Error())
+				return 0, "", errorsmod.Wrap(types.ErrUpgradeAborted, err.Error())
 			}
-			return 0, "", nil
+			return 0, "", errorsmod.Wrap(types.ErrUpgradeAborted, "proposed upgrade channel did not equal expected channel")
 		}
 
 		// retrieve restore channel to return previous version

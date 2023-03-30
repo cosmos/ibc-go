@@ -771,7 +771,8 @@ func (k Keeper) ChannelUpgradeTry(goCtx context.Context, msg *channeltypes.MsgCh
 		msg.ProofHeight,
 	)
 
-	if errorsmod.IsOf(err, channeltypes.ErrInvalidUpgradeSequence) {
+	// TODO: wrap ErrInvalidUpgradeSequence with ErrUpgradeAborted
+	if errorsmod.IsOf(err, channeltypes.ErrUpgradeAborted, channeltypes.ErrInvalidUpgradeSequence) {
 		// NOTE: commit error receipt to state and abort channel upgrade
 		ctx.Logger().Error("channel upgrade try callback failed", "error", errorsmod.Wrap(err, "channel handshake upgrade try failed"))
 		// TODO: add error, channel id, upgrade sequence, version to response.
@@ -793,10 +794,10 @@ func (k Keeper) ChannelUpgradeTry(goCtx context.Context, msg *channeltypes.MsgCh
 		previousVersion,
 		msg.CounterpartyChannel.Version,
 	)
-
 	if err != nil {
 		if err := k.ChannelKeeper.RestoreChannel(ctx, msg.PortId, msg.ChannelId, upgradeSequence, err); err != nil {
-			return nil, err
+			// TODO: in order to preserve the state of the written error receipt we must return nil here.
+			return &channeltypes.MsgChannelUpgradeTryResponse{}, nil
 		}
 		return &channeltypes.MsgChannelUpgradeTryResponse{}, nil
 	}

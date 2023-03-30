@@ -6,9 +6,10 @@ import (
 
 // IBC channel sentinel errors
 var (
-	ErrChannelExists             = errorsmod.Register(SubModuleName, 2, "channel already exists")
-	ErrChannelNotFound           = errorsmod.Register(SubModuleName, 3, "channel not found")
-	ErrInvalidChannel            = errorsmod.Register(SubModuleName, 4, "invalid channel")
+	ErrChannelExists   = errorsmod.Register(SubModuleName, 2, "channel already exists")
+	ErrChannelNotFound = errorsmod.Register(SubModuleName, 3, "channel not found")
+	ErrInvalidChannel  = errorsmod.Register(SubModuleName, 4, "invalid channel")
+
 	ErrInvalidChannelState       = errorsmod.Register(SubModuleName, 5, "invalid channel state")
 	ErrInvalidChannelOrdering    = errorsmod.Register(SubModuleName, 6, "invalid channel ordering")
 	ErrInvalidCounterparty       = errorsmod.Register(SubModuleName, 7, "invalid counterparty channel")
@@ -43,4 +44,5 @@ var (
 	ErrInvalidUpgradeTimeout        = errorsmod.Register(SubModuleName, 27, "either timeout height or timeout timestamp must be non-zero")
 	ErrInvalidUpgradeSequence       = errorsmod.Register(SubModuleName, 28, "invalid upgrade sequence")
 	ErrChannelUpgradeRestoreFailure = errorsmod.Register(SubModuleName, 29, "failed to restore channel during upgrade")
+	ErrUpgradeAborted               = errorsmod.Register(SubModuleName, 30, "upgrade aborted")
 )
