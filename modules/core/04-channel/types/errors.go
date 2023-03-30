@@ -45,4 +45,5 @@ var (
 	ErrInvalidUpgradeSequence       = errorsmod.Register(SubModuleName, 28, "invalid upgrade sequence")
 	ErrChannelUpgradeRestoreFailure = errorsmod.Register(SubModuleName, 29, "failed to restore channel during upgrade")
 	ErrUpgradeAborted               = errorsmod.Register(SubModuleName, 30, "upgrade aborted")
+	ErrUpgradeTimeout               = errorsmod.Register(SubModuleName, 31, "upgrade timeout")
 )

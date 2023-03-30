@@ -164,22 +164,16 @@ func (k Keeper) ChanUpgradeTry(
 		return 0, "", err
 	}
 
-	// // check if upgrade timed out by comparing it with the latest height of the chain
-	// selfHeight := clienttypes.GetSelfHeight(ctx)
-	// if !timeoutHeight.IsZero() && selfHeight.GTE(timeoutHeight) {
-	// 	return 0, "", errorsmod.Wrapf(
-	// 		types.ErrPacketTimeout, // TODO: new error
-	// 		"block height >= packet timeout height (%s >= %s)", selfHeight, timeoutHeight,
-	// 	)
-	// }
+	// check if upgrade timed out by comparing it with the latest height of the chain
+	selfHeight := clienttypes.GetSelfHeight(ctx)
+	if !timeoutHeight.IsZero() && selfHeight.GTE(timeoutHeight) {
+		return 0, "", k.RestoreChannel(ctx, portID, channelID, upgradeSequence, types.ErrUpgradeTimeout)
+	}
 
-	// // check if upgrade timed out by comparing it with the latest timestamp of the chain
-	// if timeoutTimestamp != 0 && uint64(ctx.BlockTime().UnixNano()) >= timeoutTimestamp {
-	// 	return 0, "", errorsmod.Wrapf(
-	// 		types.ErrPacketTimeout, // TODO: new error
-	// 		"block timestamp >= packet timeout timestamp (%s >= %s)", ctx.BlockTime(), time.Unix(0, int64(timeoutTimestamp)),
-	// 	)
-	// }
+	// check if upgrade timed out by comparing it with the latest timestamp of the chain
+	if timeoutTimestamp != 0 && uint64(ctx.BlockTime().UnixNano()) >= timeoutTimestamp {
+		return 0, "", k.RestoreChannel(ctx, portID, channelID, upgradeSequence, types.ErrUpgradeTimeout)
+	}
 
 	switch channel.State {
 	case types.OPEN:
@@ -210,7 +204,7 @@ func (k Keeper) ChanUpgradeTry(
 		// in case we need to restore channel later.
 		k.SetUpgradeRestoreChannel(ctx, portID, channelID, channel)
 	case types.INITUPGRADE:
-		upgradeSequence, found := k.GetUpgradeSequence(ctx, portID, channelID)
+		upgradeSequence, found = k.GetUpgradeSequence(ctx, portID, channelID)
 		if !found {
 			errorReceipt := types.NewErrorReceipt(upgradeSequence, errorsmod.Wrapf(types.ErrInvalidUpgradeSequence, "upgrade sequence %d was not smaller than the counter party chain upgrade sequence %d", upgradeSequence, counterpartyUpgradeSequence))
 			upgradeSequence++

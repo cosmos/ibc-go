@@ -7,6 +7,7 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
+	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
@@ -232,6 +233,8 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 				counterpartyUpgradeSequence = 20
 				suite.chainA.GetSimApp().GetIBCKeeper().ChannelKeeper.SetUpgradeSequence(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, counterpartyUpgradeSequence)
 
+				suite.coordinator.CommitBlock(suite.chainA, suite.chainB)
+
 				suite.Require().NoError(path.EndpointB.UpdateClient())
 			},
 			false,
@@ -329,6 +332,32 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 			},
 			false,
 		},
+		{
+			"error timeout height",
+			func() {
+				upgradeTimeout.TimeoutHeight = clienttypes.NewHeight(1, 1)
+				upgradeTimeout.TimeoutTimestamp = 0
+
+				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.SetUpgradeTimeout(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, upgradeTimeout)
+
+				suite.coordinator.CommitBlock(suite.chainA, suite.chainB)
+				suite.Require().NoError(path.EndpointB.UpdateClient())
+			},
+			false,
+		},
+		{
+			"error timeout timestamp",
+			func() {
+				upgradeTimeout.TimeoutHeight = clienttypes.ZeroHeight()
+				upgradeTimeout.TimeoutTimestamp = uint64(time.Second)
+
+				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.SetUpgradeTimeout(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, upgradeTimeout)
+
+				suite.coordinator.CommitBlock(suite.chainA, suite.chainB)
+				suite.Require().NoError(path.EndpointB.UpdateClient())
+			},
+			false,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -373,7 +402,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 			} else {
 				suite.Require().Error(err)
 
-				if errorsmod.IsOf(err, types.ErrInvalidUpgradeSequence, types.ErrUpgradeAborted) {
+				if errorsmod.IsOf(err, types.ErrInvalidUpgradeSequence, types.ErrUpgradeAborted, types.ErrUpgradeTimeout) {
 					errorReceipt, found := suite.chainB.GetSimApp().GetIBCKeeper().ChannelKeeper.GetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 					suite.Require().True(found)
 					suite.Require().NotNil(errorReceipt)

@@ -771,8 +771,7 @@ func (k Keeper) ChannelUpgradeTry(goCtx context.Context, msg *channeltypes.MsgCh
 		msg.ProofHeight,
 	)
 
-	// TODO: wrap ErrInvalidUpgradeSequence with ErrUpgradeAborted
-	if errorsmod.IsOf(err, channeltypes.ErrUpgradeAborted, channeltypes.ErrInvalidUpgradeSequence) {
+	if errorsmod.IsOf(err, channeltypes.ErrUpgradeAborted, channeltypes.ErrInvalidUpgradeSequence, channeltypes.ErrUpgradeTimeout) {
 		// NOTE: commit error receipt to state and abort channel upgrade
 		ctx.Logger().Error("channel upgrade try callback failed", "error", errorsmod.Wrap(err, "channel handshake upgrade try failed"))
 		// TODO: add error, channel id, upgrade sequence, version to response.
