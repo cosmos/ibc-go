@@ -1299,8 +1299,8 @@ func (suite *KeeperTestSuite) TestQueryUnreceivedPackets() {
 				path.SetChannelOrdered()
 				suite.coordinator.Setup(path)
 
-				// Excersise scenario from issue 1532. NextSequenceRecv is 5, commitments for 2, 7, 9, 10
-				// are present. 2 is received so 7, 9, 10 should be unreceived.
+				// Exercise scenario from issue #1532. NextSequenceRecv is 5, packet commitments provided are 2, 7, 9, 10.
+				// Packet sequence 2 is already received so only sequences 7, 9, 10 should be considered unreceived.
 				expSeq = []uint64{7, 9, 10}
 				packetCommitments := []uint64{2, 7, 9, 10}
 				suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetNextSequenceRecv(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, 5)
