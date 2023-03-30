@@ -13,13 +13,6 @@ on:
       - "docs/**"
       - "**.md"
       - "LICENSE"
-  push:
-    branches:
-      - main
-    paths-ignore:
-      - "docs/**"
-      - "**.md"
-      - "LICENSE"
 
 jobs:
     # determine-image-tag will either output the PR number e.g. pr-1234 or the string main.
