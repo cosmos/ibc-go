@@ -1112,7 +1112,7 @@ func (suite *KeeperTestSuite) TestQueryPacketAcknowledgements() {
 func (suite *KeeperTestSuite) TestQueryUnreceivedPackets() {
 	var (
 		req    *types.QueryUnreceivedPacketsRequest
-		expSeq = []uint64{}
+		expSeq = []uint64(nil)
 	)
 
 	testCases := []struct {
@@ -1184,6 +1184,21 @@ func (suite *KeeperTestSuite) TestQueryUnreceivedPackets() {
 			false,
 		},
 		{
+			"basic success empty packet commitments",
+			func() {
+				path := ibctesting.NewPath(suite.chainA, suite.chainB)
+				suite.coordinator.Setup(path)
+
+				expSeq = []uint64(nil)
+				req = &types.QueryUnreceivedPacketsRequest{
+					PortId:                    path.EndpointA.ChannelConfig.PortID,
+					ChannelId:                 path.EndpointA.ChannelID,
+					PacketCommitmentSequences: []uint64{},
+				}
+			},
+			true,
+		},
+		{
 			"basic success unreceived packet commitments",
 			func() {
 				path := ibctesting.NewPath(suite.chainA, suite.chainB)
@@ -1208,7 +1223,7 @@ func (suite *KeeperTestSuite) TestQueryUnreceivedPackets() {
 
 				suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetPacketReceipt(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, 1)
 
-				expSeq = []uint64{}
+				expSeq = []uint64(nil)
 				req = &types.QueryUnreceivedPacketsRequest{
 					PortId:                    path.EndpointA.ChannelConfig.PortID,
 					ChannelId:                 path.EndpointA.ChannelID,
@@ -1222,7 +1237,7 @@ func (suite *KeeperTestSuite) TestQueryUnreceivedPackets() {
 			func() {
 				path := ibctesting.NewPath(suite.chainA, suite.chainB)
 				suite.coordinator.Setup(path)
-				expSeq = []uint64{} // reset
+				expSeq = []uint64(nil) // reset
 				packetCommitments := []uint64{}
 
 				// set packet receipt for every other sequence
@@ -1240,6 +1255,22 @@ func (suite *KeeperTestSuite) TestQueryUnreceivedPackets() {
 					PortId:                    path.EndpointA.ChannelConfig.PortID,
 					ChannelId:                 path.EndpointA.ChannelID,
 					PacketCommitmentSequences: packetCommitments,
+				}
+			},
+			true,
+		},
+		{
+			"basic success empty packet commitments, ordered channel",
+			func() {
+				path := ibctesting.NewPath(suite.chainA, suite.chainB)
+				path.SetChannelOrdered()
+				suite.coordinator.Setup(path)
+
+				expSeq = []uint64(nil)
+				req = &types.QueryUnreceivedPacketsRequest{
+					PortId:                    path.EndpointA.ChannelConfig.PortID,
+					ChannelId:                 path.EndpointA.ChannelID,
+					PacketCommitmentSequences: []uint64{},
 				}
 			},
 			true,

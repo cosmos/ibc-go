@@ -406,15 +406,16 @@ func (q Keeper) UnreceivedPackets(c context.Context, req *types.QueryUnreceivedP
 		)
 	}
 
-	unreceivedSequences := []uint64{}
+	var unreceivedSequences []uint64
 	switch channel.Ordering {
 	case types.UNORDERED:
 		for i, seq := range req.PacketCommitmentSequences {
+			// filter for invalid sequences to ensure they are not included in the response value.
 			if seq == 0 {
 				return nil, status.Errorf(codes.InvalidArgument, "packet sequence %d cannot be 0", i)
 			}
 
-			// if packet receipt exists on the receiving chain, then packet has already been received
+			// if the packet receipt does not exist, then it is unreceived
 			if _, found := q.GetPacketReceipt(ctx, req.PortId, req.ChannelId, seq); !found {
 				unreceivedSequences = append(unreceivedSequences, seq)
 			}
@@ -432,11 +433,12 @@ func (q Keeper) UnreceivedPackets(c context.Context, req *types.QueryUnreceivedP
 		}
 
 		for i, seq := range req.PacketCommitmentSequences {
+			// filter for invalid sequences to ensure they are not included in the response value.
 			if seq == 0 {
 				return nil, status.Errorf(codes.InvalidArgument, "packet sequence %d cannot be 0", i)
 			}
 
-			// If the packet sequence is greater than the sequence most recently received, then the packet has not been received.
+			// Any sequence greater than or equal to the next sequence to be received is not received.
 			if seq >= nextSequenceRecv {
 				unreceivedSequences = append(unreceivedSequences, seq)
 			}
@@ -444,7 +446,7 @@ func (q Keeper) UnreceivedPackets(c context.Context, req *types.QueryUnreceivedP
 	default:
 		return nil, status.Error(
 			codes.InvalidArgument,
-			errorsmod.Wrap(types.ErrInvalidChannelOrdering, channel.Ordering.String()).Error())
+			errorsmod.Wrapf(types.ErrInvalidChannelOrdering, "channel order %s is not supported", channel.Ordering.String()).Error())
 	}
 
 	selfHeight := clienttypes.GetSelfHeight(ctx)
