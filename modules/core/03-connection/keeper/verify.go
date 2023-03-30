@@ -486,6 +486,43 @@ func (k Keeper) VerifyChannelUpgradeError(
 	return nil
 }
 
+// VerifyChannelUpgradeErrorAbsence verifies a proof of the absence of a
+// channel upgrade error.
+func (k Keeper) VerifyChannelUpgradeErrorAbsence(
+	ctx sdk.Context,
+	connection exported.ConnectionI,
+	height exported.Height,
+	proof []byte,
+	portID,
+	channelID string,
+) error {
+	clientID := connection.GetClientID()
+	clientState, clientStore, err := k.getClientStateAndVerificationStore(ctx, clientID)
+	if err != nil {
+		return err
+	}
+
+	if status := k.clientKeeper.GetClientStatus(ctx, clientState, clientID); status != exported.Active {
+		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
+	}
+
+	merklePath := commitmenttypes.NewMerklePath(host.ChannelUpgradeErrorPath(portID, channelID))
+	merklePath, err = commitmenttypes.ApplyPrefix(connection.GetCounterparty().GetPrefix(), merklePath)
+	if err != nil {
+		return err
+	}
+
+	if err := clientState.VerifyNonMembership(
+		ctx, clientStore, k.cdc, height,
+		0, 0,
+		proof, merklePath,
+	); err != nil {
+		return errorsmod.Wrapf(err, "failed upgrade error receipt absence verification for client (%s)", clientID)
+	}
+
+	return nil
+}
+
 // getBlockDelay calculates the block delay period from the time delay of the connection
 // and the maximum expected time per block.
 func (k Keeper) getBlockDelay(ctx sdk.Context, connection exported.ConnectionI) uint64 {
