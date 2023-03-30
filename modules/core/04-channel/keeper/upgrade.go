@@ -145,7 +145,7 @@ func (k Keeper) ChanUpgradeTry(
 	}
 
 	if connection.GetCounterparty().GetConnectionID() != counterpartyChannel.ConnectionHops[0] {
-		return 0, "", err
+		return 0, "", errorsmod.Wrapf(connectiontypes.ErrInvalidConnection, "unexpected counterparty channel connection hops, expected %s but got %s", connection.GetCounterparty().GetConnectionID(), counterpartyChannel.ConnectionHops[0])
 	}
 
 	if err := k.connectionKeeper.VerifyChannelState(ctx, connection, proofHeight, proofChannel, proposedUpgradeChannel.Counterparty.PortId,

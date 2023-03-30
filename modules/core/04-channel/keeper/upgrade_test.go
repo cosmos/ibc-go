@@ -243,11 +243,26 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 			},
 			false,
 		},
+		{
+			"connection not found",
+			func() {
+				channelUpgrade.ConnectionHops = []string{"connection-100"}
+			},
+			false,
+		},
+		{
+			"invalid connection upgrade, counterparty mismatch",
+			func() {
+				channel := path.EndpointA.GetChannel()
+				channel.ConnectionHops = []string{"connection-100"}
+
+				path.EndpointA.SetChannel(channel)
+			},
+			false,
+		},
 
 		// TODO: add test cases
 		// error receipt if counterpartyUpgradeSequence > upgradeSequence
-		// connection.GetCounterparty().GetConnectionID() != counterpartyChannel.ConnectionHops[0]
-		// connection, err := k.GetConnection(ctx, proposedUpgradeChannel.ConnectionHops[0])
 	}
 
 	for _, tc := range testCases {
