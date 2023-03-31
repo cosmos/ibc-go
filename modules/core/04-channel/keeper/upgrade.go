@@ -48,8 +48,8 @@ func (k Keeper) ChanUpgradeInit(
 		return 0, "", errorsmod.Wrap(types.ErrChannelExists, "existing channel end is identical to proposed upgrade channel end")
 	}
 
-	connectionEnd, found := k.connectionKeeper.GetConnection(ctx, proposedUpgradeChannel.ConnectionHops[0])
-	if !found {
+	connectionEnd, err := k.GetConnection(ctx, proposedUpgradeChannel.ConnectionHops[0])
+	if err != nil {
 		return 0, "", errorsmod.Wrapf(connectiontypes.ErrConnectionNotFound, "failed to retrieve connection: %s", proposedUpgradeChannel.ConnectionHops[0])
 	}
 
