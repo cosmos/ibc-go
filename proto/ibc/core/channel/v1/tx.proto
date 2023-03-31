@@ -296,7 +296,11 @@ message MsgChannelUpgradeTry {
 }
 
 // MsgChannelUpgradeTryResponse defines the MsgChannelUpgradeTry response type
-message MsgChannelUpgradeTryResponse {}
+message MsgChannelUpgradeTryResponse {
+  string channel_id       = 1;
+  string version          = 2;
+  uint64 upgrade_sequence = 3;
+}
 
 // MsgChannelUpgradeAck defines the request type for the ChannelUpgradeAck rpc
 message MsgChannelUpgradeAck {

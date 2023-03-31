@@ -783,7 +783,7 @@ func (k Keeper) ChannelUpgradeTry(goCtx context.Context, msg *channeltypes.MsgCh
 		return nil, errorsmod.Wrap(err, "channel handshake upgrade try failed")
 	}
 
-	proposedUpgradeVersion, err := cbs.OnChanUpgradeTry(ctx,
+	version, err := cbs.OnChanUpgradeTry(ctx,
 		msg.ProposedUpgradeChannel.Ordering,
 		msg.ProposedUpgradeChannel.ConnectionHops,
 		msg.PortId,
@@ -801,11 +801,15 @@ func (k Keeper) ChannelUpgradeTry(goCtx context.Context, msg *channeltypes.MsgCh
 		return &channeltypes.MsgChannelUpgradeTryResponse{}, nil
 	}
 
-	msg.ProposedUpgradeChannel.Version = proposedUpgradeVersion
+	msg.ProposedUpgradeChannel.Version = version
 
 	k.ChannelKeeper.WriteUpgradeTryChannel(ctx, msg.PortId, msg.ChannelId, upgradeSequence, msg.ProposedUpgradeChannel)
 
-	return &channeltypes.MsgChannelUpgradeTryResponse{}, nil
+	return &channeltypes.MsgChannelUpgradeTryResponse{
+		ChannelId:       msg.ChannelId,
+		Version:         version,
+		UpgradeSequence: upgradeSequence,
+	}, nil
 }
 
 // ChannelUpgradeAck defines a rpc handler method for MsgChannelUpgradeAck.
