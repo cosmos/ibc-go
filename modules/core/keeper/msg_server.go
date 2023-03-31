@@ -756,7 +756,29 @@ func (k Keeper) ChannelUpgradeConfirm(goCtx context.Context, msg *channeltypes.M
 
 // ChannelUpgradeTimeout defines a rpc handler method for MsgChannelUpgradeTimeout.
 func (k Keeper) ChannelUpgradeTimeout(goCtx context.Context, msg *channeltypes.MsgChannelUpgradeTimeout) (*channeltypes.MsgChannelUpgradeTimeoutResponse, error) {
-	return nil, nil
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	module, chanCap, err := k.ChannelKeeper.LookupModuleByChannel(ctx, msg.PortId, msg.ChannelId)
+	if err != nil {
+		ctx.Logger().Error("channel upgrade timeout failed", "port-id", msg.PortId, "error", errorsmod.Wrap(err, "could not retrieve module from port-id"))
+		return nil, errorsmod.Wrap(err, "could not retrieve module from port-id")
+	}
+
+	cbs, ok := k.Router.GetRoute(module)
+	if !ok {
+		ctx.Logger().Error("channel upgrade timeout failed", "port-id", msg.PortId, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module))
+		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
+	}
+	
+	// verify proof that upgrade timeout has passed on the counterparty chain
+	
+
+
+
+
+
+	ctx.Logger().Info("channel upgrade timeout succeeded", "channel-id", msg.ChannelId, "version")
+	return &channeltypes.MsgChannelUpgradeTimeoutResponse{}, nil
 }
 
 // ChannelUpgradeCancel defines a rpc handler method for MsgChannelUpgradeCancel.
