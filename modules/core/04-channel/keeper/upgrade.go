@@ -95,7 +95,7 @@ func (k Keeper) ChanUpgradeTimeout(
 	channelID string,
 	counterpartyChannel types.Channel,
 	chanCap *capabilitytypes.Capability,
-	errorReceipt types.ErrorReceipt,
+	prevErrorReceipt types.ErrorReceipt,
 	proofChannel,
 	proofErrorReceipt []byte,
 	proofHeight clienttypes.Height,
@@ -168,12 +168,14 @@ func (k Keeper) ChanUpgradeTimeout(
 		return errorsmod.Wrapf(types.ErrUpgradeSequenceNotFound, "failed to retrieve upgrade sequence for channel, port ID (%s) channel ID (%s)", portID, channelID)
 	}
 
-	if upgradeSequence < errorReceipt.Sequence {
+	// grab error receipt associated with upgrade sequence
+
+	if upgradeSequence < prevErrorReceipt.Sequence {
 		return errorsmod.Wrapf(types.ErrInvalidUpgradeSequence, "upgrade sequence (%d) must be greater than error receipt sequence (%d)", upgradeSequence, errorReceipt.Sequence)
 	}
 
 	// TODO: isn't this called on the counterparty chain (not initializing chain?)
-	k.connectionKeeper.VerifyChannelUpgradeError(ctx, connection, proofHeight, proofErrorReceipt, channel.Counterparty.PortId, channel.Counterparty.ChannelId, errorReceipt)
+	k.connectionKeeper.VerifyChannelUpgradeError(ctx, connection, proofHeight, proofErrorReceipt, channel.Counterparty.PortId, channel.Counterparty.ChannelId, prevErrorReceipt)
 
 	return nil
 	// return k.RestoreChannel(ctx, portID, channelID, sequence, types.ErrUpgradeTimeout)
