@@ -291,3 +291,23 @@ func emitChannelUpgradeInitEvent(ctx sdk.Context, portID string, channelID strin
 		),
 	})
 }
+
+// emitChannelUpgradeTryEvent emits a channel upgrade try event
+func emitChannelUpgradeTryEvent(ctx sdk.Context, portID string, channelID string, upgradeSequence uint64, channel types.Channel) {
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeChannelUpgradeTry,
+			sdk.NewAttribute(types.AttributeKeyPortID, portID),
+			sdk.NewAttribute(types.AttributeKeyChannelID, channelID),
+			sdk.NewAttribute(types.AttributeCounterpartyPortID, channel.Counterparty.PortId),
+			sdk.NewAttribute(types.AttributeCounterpartyChannelID, channel.Counterparty.ChannelId),
+			sdk.NewAttribute(types.AttributeKeyConnectionID, channel.ConnectionHops[0]),
+			sdk.NewAttribute(types.AttributeVersion, channel.Version),
+			sdk.NewAttribute(types.AttributeKeyUpgradeSequence, fmt.Sprintf("%d", upgradeSequence)),
+		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+		),
+	})
+}

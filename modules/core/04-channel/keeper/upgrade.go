@@ -275,8 +275,7 @@ func (k Keeper) WriteUpgradeTryChannel(
 	k.SetChannel(ctx, portID, channelID, channelUpgrade)
 	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", types.OPEN.String(), "new-state", types.TRYUPGRADE.String())
 
-	// TODO: add events
-	// emitChannelUpgradeTryEvent(ctx, portID, channelID, upgradeSequence, channelUpgrade)
+	emitChannelUpgradeTryEvent(ctx, portID, channelID, upgradeSequence, channelUpgrade)
 }
 
 // RestoreChannel restores the given channel to the state prior to upgrade.
