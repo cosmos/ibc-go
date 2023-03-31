@@ -535,7 +535,7 @@ func (q Keeper) UpgradeErrorReceipt(c context.Context, req *types.QueryUpgradeEr
 	}
 
 	selfHeight := clienttypes.GetSelfHeight(ctx)
-	return types.NewQueryUpgradeErrorResponse(receipt.Sequence, receipt.Error, nil, selfHeight), nil
+	return types.NewQueryUpgradeErrorResponse(receipt, nil, selfHeight), nil
 }
 
 func validategRPCRequest(portID, channelID string) error {

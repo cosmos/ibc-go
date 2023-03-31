@@ -95,14 +95,11 @@ func NewQueryNextSequenceReceiveResponse(
 }
 
 // NewQueryUpgradeErrorResponse creates a new QueryUpgradeErrorResponse instance
-func NewQueryUpgradeErrorResponse(sequence uint64, errReceipt string, proof []byte, height clienttypes.Height) *QueryUpgradeErrorResponse {
+func NewQueryUpgradeErrorResponse(errorReceipt ErrorReceipt, proof []byte, height clienttypes.Height) *QueryUpgradeErrorResponse {
 	return &QueryUpgradeErrorResponse{
-		Err: &ErrorReceipt{
-			Sequence: sequence,
-			Error:    errReceipt,
-		},
-		Proof:       proof,
-		ProofHeight: height,
+		ErrorReceipt: errorReceipt,
+		Proof:        proof,
+		ProofHeight:  height,
 	}
 }
 

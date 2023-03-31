@@ -1593,10 +1593,7 @@ func (suite *KeeperTestSuite) TestQueryUpgradeError() {
 			func() {
 				path := ibctesting.NewPath(suite.chainA, suite.chainB)
 				suite.coordinator.Setup(path)
-				upgradeErr = types.ErrorReceipt{
-					Sequence: 1,
-					Error:    "test error",
-				}
+				upgradeErr = types.NewErrorReceipt(uint64(1), "test error")
 				suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetUpgradeErrorReceipt(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, upgradeErr)
 
 				req = &types.QueryUpgradeErrorRequest{
@@ -1620,7 +1617,7 @@ func (suite *KeeperTestSuite) TestQueryUpgradeError() {
 			if tc.expPass {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
-				suite.Require().Equal(upgradeErr, *res.Err)
+				suite.Require().Equal(upgradeErr, *&res.ErrorReceipt)
 			} else {
 				suite.Require().Error(err)
 			}

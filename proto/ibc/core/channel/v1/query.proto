@@ -400,6 +400,7 @@ message QueryUpgradeSequenceResponse {
   bytes                     proof            = 2;
   ibc.core.client.v1.Height proof_height     = 3 [(gogoproto.nullable) = false];
 }
+
 // QueryUpgradeErrorRequest is the request type for the Query/QueryUpgradeError RPC method
 message QueryUpgradeErrorRequest {
   string port_id    = 1;
@@ -408,7 +409,7 @@ message QueryUpgradeErrorRequest {
 
 // QueryUpgradeErrorResponse is the response type for the Query/QueryUpgradeError RPC method
 message QueryUpgradeErrorResponse {
-  ErrorReceipt err = 1;
+  ErrorReceipt error_receipt = 1 [(gogoproto.nullable) = false];
   // merkle proof of existence
   bytes proof = 2;
   // height at which the proof was retrieved

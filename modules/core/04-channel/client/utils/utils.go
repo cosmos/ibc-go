@@ -272,7 +272,7 @@ func queryUpgradeErrorABCI(clientCtx client.Context, portID, channelID string) (
 		return nil, err
 	}
 
-	return types.NewQueryUpgradeErrorResponse(receipt.Sequence, receipt.Error, proofBz, proofHeight), nil
+	return types.NewQueryUpgradeErrorResponse(receipt, proofBz, proofHeight), nil
 }
 
 // QueryPacketCommitment returns a packet commitment.
