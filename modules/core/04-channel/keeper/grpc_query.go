@@ -521,8 +521,8 @@ func (q Keeper) UpgradeErrorReceipt(c context.Context, req *types.QueryUpgradeEr
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
-	if err := host.ChannelIdentifierValidator(req.ChannelId); err != nil {
-		return nil, status.Error(codes.InvalidArgument, err.Error())
+	if err := validategRPCRequest(req.PortId, req.ChannelId); err != nil {
+		return nil, err
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
@@ -530,7 +530,7 @@ func (q Keeper) UpgradeErrorReceipt(c context.Context, req *types.QueryUpgradeEr
 	if !found {
 		return nil, status.Error(
 			codes.NotFound,
-			errorsmod.Wrapf(types.ErrUpgradeErrorNotFound, "channel-id %s", req.ChannelId).Error(),
+			errorsmod.Wrapf(types.ErrUpgradeErrorNotFound, "port-id %s", "channel-id %s", req.PortId, req.ChannelId).Error(),
 		)
 	}
 
