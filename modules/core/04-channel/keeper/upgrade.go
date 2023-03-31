@@ -50,7 +50,7 @@ func (k Keeper) ChanUpgradeInit(
 
 	connectionEnd, err := k.GetConnection(ctx, proposedUpgradeChannel.ConnectionHops[0])
 	if err != nil {
-		return 0, "", errorsmod.Wrapf(connectiontypes.ErrConnectionNotFound, "failed to retrieve connection: %s", proposedUpgradeChannel.ConnectionHops[0])
+		return 0, "", err
 	}
 
 	if connectionEnd.GetState() != int32(connectiontypes.OPEN) {
