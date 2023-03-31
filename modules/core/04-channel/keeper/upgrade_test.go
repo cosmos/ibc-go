@@ -72,8 +72,8 @@ func (suite *KeeperTestSuite) TestChanUpgradeInit() {
 		{
 			"channel not found",
 			func() {
-				path.EndpointA.ChannelID = "invalid-channel"
-				path.EndpointA.ChannelConfig.PortID = "invalid-port"
+				path.EndpointA.ChannelID = ibctesting.InvalidID
+				path.EndpointA.ChannelConfig.PortID = ibctesting.InvalidID
 			},
 			false,
 		},
@@ -268,8 +268,8 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 		{
 			"channel not found",
 			func() {
-				path.EndpointB.ChannelID = "invalid-channel"
-				path.EndpointB.ChannelConfig.PortID = "invalid-port"
+				path.EndpointB.ChannelID = ibctesting.InvalidID
+				path.EndpointB.ChannelConfig.PortID = ibctesting.InvalidID
 			},
 			false,
 		},
@@ -454,8 +454,8 @@ func (suite *KeeperTestSuite) TestChanUpgradeCancel() {
 		{
 			"channel not found",
 			func() {
-				portID = "invalid-port"
-				channelID = "invalid-channel"
+				portID = ibctesting.InvalidID
+				channelID = ibctesting.InvalidID
 			},
 			false,
 		},
