@@ -857,6 +857,7 @@ func (suite *KeeperTestSuite) TestVerifyUpgradeTimeout() {
 				path.EndpointA.ChannelID,
 				upgradeTimeout,
 			)
+
 			if tc.expPass {
 				suite.Require().NoError(err)
 			} else {
