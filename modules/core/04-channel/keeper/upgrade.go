@@ -278,6 +278,62 @@ func (k Keeper) WriteUpgradeTryChannel(
 	emitChannelUpgradeTryEvent(ctx, portID, channelID, upgradeSequence, channelUpgrade)
 }
 
+// ChanUpgradeCancel is called by a module to abort an upgrade in progress and restore the channel to its previous state.
+func (k Keeper) ChanUpgradeCancel(
+	ctx sdk.Context,
+	portID string,
+	channelID string,
+	chanCap *capabilitytypes.Capability,
+	errorReceipt types.ErrorReceipt,
+	proofErrorReceipt []byte,
+	proofHeight clienttypes.Height,
+) error {
+	channel, found := k.GetChannel(ctx, portID, channelID)
+	if !found {
+		return errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
+	}
+
+	if !collections.Contains(channel.State, []types.State{types.INITUPGRADE, types.TRYUPGRADE}) {
+		return errorsmod.Wrapf(types.ErrInvalidChannelState, "expected one of [%s, %s], got %s", types.OPEN, types.INITUPGRADE, channel.State)
+	}
+
+	if !k.scopedKeeper.AuthenticateCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)) {
+		return errorsmod.Wrapf(types.ErrChannelCapabilityNotFound, "caller does not own capability for channel, port ID (%s) channel ID (%s)", portID, channelID)
+	}
+
+	upgradeSequence, found := k.GetUpgradeSequence(ctx, portID, channelID)
+	if !found {
+		return errorsmod.Wrapf(types.ErrUpgradeSequenceNotFound, "failed to retrieve upgrade sequence for channel, port ID (%s) channel ID (%s)", portID, channelID)
+	}
+
+	if errorReceipt.Sequence < upgradeSequence {
+		return errorsmod.Wrapf(types.ErrInvalidUpgradeSequence, "channel upgrade expired for upgrade sequence: %d", errorReceipt.Sequence)
+	}
+
+	k.SetUpgradeSequence(ctx, portID, channelID, errorReceipt.Sequence+1)
+
+	connectionEnd, err := k.GetConnection(ctx, channel.ConnectionHops[0])
+	if err != nil {
+		return err
+	}
+
+	if err := k.connectionKeeper.VerifyChannelUpgradeError(ctx, connectionEnd, proofHeight, proofErrorReceipt,
+		channel.Counterparty.PortId, channel.Counterparty.ChannelId, errorReceipt); err != nil {
+		return err
+	}
+
+	restoreChannel, found := k.GetUpgradeRestoreChannel(ctx, portID, channelID)
+	if !found {
+		return errorsmod.Wrapf(types.ErrChannelNotFound, "failed to retrieve restore channel for port ID (%s) channel ID (%s)", portID, channelID)
+	}
+
+	k.SetChannel(ctx, portID, channelID, restoreChannel)
+	k.DeleteUpgradeRestoreChannel(ctx, portID, channelID)
+	k.DeleteUpgradeTimeout(ctx, portID, channelID)
+
+	return nil
+}
+
 // RestoreChannel restores the given channel to the state prior to upgrade.
 func (k Keeper) RestoreChannel(ctx sdk.Context, portID, channelID string, upgradeSequence uint64, err error) error {
 	errorReceipt := types.NewErrorReceipt(upgradeSequence, err)
