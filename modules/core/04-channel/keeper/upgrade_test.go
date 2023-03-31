@@ -489,6 +489,14 @@ func (suite *KeeperTestSuite) TestChanUpgradeCancel() {
 
 			if tc.expPass {
 				suite.Require().NoError(err)
+
+				nextUpgradeSequenceA, found := suite.chainA.GetSimApp().GetIBCKeeper().ChannelKeeper.GetUpgradeSequence(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				suite.Require().True(found)
+				suite.Require().Equal(errorReceipt.Sequence+1, nextUpgradeSequenceA)
+
+				nextUpgradeSequenceB, found := suite.chainB.GetSimApp().GetIBCKeeper().ChannelKeeper.GetUpgradeSequence(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+				suite.Require().True(found)
+				suite.Require().Equal(errorReceipt.Sequence+1, nextUpgradeSequenceB)
 			} else {
 				suite.Require().Error(err)
 			}
