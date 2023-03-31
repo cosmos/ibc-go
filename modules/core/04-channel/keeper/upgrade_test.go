@@ -427,6 +427,8 @@ func (suite *KeeperTestSuite) TestChanUpgradeCancel() {
 	var (
 		path             *ibctesting.Path
 		chanCap          *capabilitytypes.Capability
+		channelID        string
+		portID           string
 		timeoutHeight    clienttypes.Height
 		timeoutTimestamp uint64
 		upgradeSequence  uint64
@@ -439,18 +441,67 @@ func (suite *KeeperTestSuite) TestChanUpgradeCancel() {
 	}{
 		{
 			"success",
-			func() {
-				// force an error receipt on ChanUpgradeTry by setting an upgrade sequence ahead of the counterparty
-				suite.chainB.GetSimApp().GetIBCKeeper().ChannelKeeper.SetUpgradeSequence(
-					suite.chainB.GetContext(),
-					path.EndpointB.ChannelConfig.PortID,
-					path.EndpointB.ChannelID,
-					10,
-				)
-
-				suite.coordinator.CommitBlock(suite.chainA, suite.chainB)
-			},
+			func() {},
 			true,
+		},
+		{
+			"invalid capability",
+			func() {
+				chanCap = capabilitytypes.NewCapability(42)
+			},
+			false,
+		},
+		{
+			"channel not found",
+			func() {
+				portID = "invalid-port"
+				channelID = "invalid-channel"
+			},
+			false,
+		},
+		{
+			"channel state is not in INITUPGRADE or TRYUPGRADE state",
+			func() {
+				channel := path.EndpointA.GetChannel()
+				channel.State = types.UNINITIALIZED
+
+				path.EndpointA.SetChannel(channel)
+			},
+			false,
+		},
+		{
+			"upgrade sequence not found",
+			func() {
+				// delete the upgrade sequence from chainA store
+				store := suite.chainA.GetContext().KVStore(suite.chainA.GetSimApp().GetKey(exported.StoreKey))
+				store.Delete(host.ChannelUpgradeSequenceKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
+			},
+			false,
+		},
+		{
+			"error receipt upgrade sequence exipred",
+			func() {
+				// set chainA upgrade sequence ahead of the error receipt (sequence: 100)
+				suite.chainA.GetSimApp().GetIBCKeeper().ChannelKeeper.SetUpgradeSequence(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, 100)
+			},
+			false,
+		},
+		{
+			"connection not found",
+			func() {
+				channel := path.EndpointA.GetChannel()
+				channel.ConnectionHops = []string{"connection-100"}
+
+				path.EndpointA.SetChannel(channel)
+			},
+			false,
+		},
+		{
+			"restore channel not found",
+			func() {
+				suite.chainA.GetSimApp().GetIBCKeeper().ChannelKeeper.DeleteUpgradeRestoreChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+			},
+			false,
 		},
 	}
 
@@ -470,11 +521,22 @@ func (suite *KeeperTestSuite) TestChanUpgradeCancel() {
 			upgradeSequence = 1
 
 			chanCap, _ = suite.chainA.GetSimApp().GetScopedIBCKeeper().GetCapability(suite.chainA.GetContext(), host.ChannelCapabilityPath(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
+			portID, channelID = path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID
 
-			tc.malleate()
+			// force an error receipt on ChanUpgradeTry by setting an upgrade sequence ahead of the counterparty
+			suite.chainB.GetSimApp().GetIBCKeeper().ChannelKeeper.SetUpgradeSequence(
+				suite.chainB.GetContext(),
+				path.EndpointB.ChannelConfig.PortID,
+				path.EndpointB.ChannelID,
+				10,
+			)
+
+			suite.coordinator.CommitBlock(suite.chainA, suite.chainB)
 
 			suite.Require().NoError(path.EndpointA.ChanUpgradeInit(timeoutHeight, timeoutTimestamp))
 			suite.Require().NoError(path.EndpointB.ChanUpgradeTry(timeoutHeight, timeoutTimestamp, upgradeSequence))
+
+			tc.malleate()
 
 			errorReceipt, found := suite.chainB.GetSimApp().GetIBCKeeper().ChannelKeeper.GetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 			suite.Require().True(found)
@@ -483,7 +545,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeCancel() {
 			proofErrorReceipt, proofHeight := suite.chainB.QueryProof(errorReceiptKey)
 
 			err := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.ChanUpgradeCancel(
-				suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID,
+				suite.chainA.GetContext(), portID, channelID,
 				chanCap, errorReceipt, proofErrorReceipt, proofHeight,
 			)
 
