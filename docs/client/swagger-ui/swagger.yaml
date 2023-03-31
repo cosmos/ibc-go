@@ -12823,7 +12823,7 @@ paths:
           schema:
             type: object
             properties:
-              err:
+              error_receipt:
                 type: object
                 properties:
                   sequence:
@@ -19384,7 +19384,7 @@ definitions:
   ibc.core.channel.v1.QueryUpgradeErrorResponse:
     type: object
     properties:
-      err:
+      error_receipt:
         type: object
         properties:
           sequence:
