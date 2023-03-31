@@ -769,15 +769,17 @@ func (k Keeper) ChannelUpgradeTimeout(goCtx context.Context, msg *channeltypes.M
 		ctx.Logger().Error("channel upgrade timeout failed", "port-id", msg.PortId, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module))
 		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
 	}
-	
-	// verify proof that upgrade timeout has passed on the counterparty chain
-	
 
+	// if err := k.ChannelKeeper.ChannelUpgradeTimeout(); err != nil {
+	// 	return nil, err
+	// }
 
-
-
+	if err := cbs.OnChanUpgradeRestore(ctx, msg.PortId, msg.ChannelId); err != nil {
+		return nil, err
+	}
 
 	ctx.Logger().Info("channel upgrade timeout succeeded", "channel-id", msg.ChannelId, "version")
+
 	return &channeltypes.MsgChannelUpgradeTimeoutResponse{}, nil
 }
 

@@ -27,17 +27,10 @@ func (k Keeper) ChanUpgradeInit(
 	counterpartyTimeoutHeight clienttypes.Height,
 	counterpartyTimeoutTimestamp uint64,
 ) (upgradeSequence uint64, previousVersion string, err error) {
-	channel, found := k.GetChannel(ctx, portID, channelID)
-	if !found {
-		return 0, "", errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
-	}
+	channel, err := k.verifyChannel(ctx, portID, channelID, chanCap)
 
 	if channel.State != types.OPEN {
-		return 0, "", errorsmod.Wrapf(types.ErrInvalidChannelState, "expected %s, got %s", types.OPEN, channel.State)
-	}
-
-	if !k.scopedKeeper.AuthenticateCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)) {
-		return 0, "", errorsmod.Wrapf(types.ErrChannelCapabilityNotFound, "caller does not own capability for channel, port ID (%s) channel ID (%s)", portID, channelID)
+		err = errorsmod.Wrapf(types.ErrInvalidChannelState, "expected %s, got %s", types.OPEN, channel.State)
 	}
 
 	// set the restore channel to the current channel and reassign channel state to INITUPGRADE,
@@ -95,6 +88,97 @@ func (k Keeper) WriteUpgradeInitChannel(
 	emitChannelUpgradeInitEvent(ctx, portID, channelID, upgradeSequence, channelUpgrade)
 }
 
+// ChanUpgradeTimeout is called by a module to timeout a channel upgrade handshake
+func (k Keeper) ChanUpgradeTimeout(
+	ctx sdk.Context,
+	portID string,
+	channelID string,
+	counterpartyChannel types.Channel,
+	chanCap *capabilitytypes.Capability,
+	errorReceipt types.ErrorReceipt,
+	proofChannel,
+	proofErrorReceipt []byte,
+	proofHeight clienttypes.Height,
+) error {
+	channel, err := k.verifyChannel(ctx, portID, channelID, chanCap)
+	if err != nil {
+		return err
+	}
+
+	// current channel must be in INITUPGRADE
+	if channel.State != types.INITUPGRADE {
+		return errorsmod.Wrapf(types.ErrInvalidChannelState, "expected %s, got %s", types.INITUPGRADE, channel.State)
+	}
+
+	upgradeTimeout, found := k.GetUpgradeTimeout(ctx, portID, channelID)
+	if !found {
+		return errorsmod.Wrap(types.ErrUpgradeTimeoutNotFound, "upgrade timeout not found")
+	}
+
+	// either timeoutHeight or timeoutTimestamp must be defined.
+	if upgradeTimeout.TimeoutHeight.IsZero() || upgradeTimeout.TimeoutTimestamp == 0 {
+		return errorsmod.Wrap(types.ErrInvalidUpgradeTimeout, "upgrade timeout must have a height or timestamp")
+	}
+
+	// if timeoutHeight is defined then proof height must be greater than timeout height
+	if !upgradeTimeout.TimeoutHeight.IsZero() {
+		if proofHeight.RevisionHeight <= upgradeTimeout.TimeoutHeight.RevisionHeight {
+			return errorsmod.Wrap(types.ErrInvalidUpgradeTimeout, "proof height must be greater than upgrade timeout height")
+		}
+	}
+
+	// get underlying connection for proof verification
+	connection, found := k.connectionKeeper.GetConnection(ctx, channel.ConnectionHops[0])
+	if !found {
+		return errorsmod.Wrapf(connectiontypes.ErrConnectionNotFound, "failed to retrieve connection: %s", channel.ConnectionHops[0])
+	}
+
+	// if timeoutTimestamp is defined then the consensus time from proof height must be greater than timeout timestamp
+	if upgradeTimeout.TimeoutTimestamp != 0 {
+		proofTimestamp, err := k.connectionKeeper.GetTimestampAtHeight(ctx, connection, proofHeight)
+		if err != nil {
+			return err
+		}
+
+		if proofTimestamp <= upgradeTimeout.TimeoutTimestamp {
+			return errorsmod.Wrap(types.ErrInvalidUpgradeTimeout, "proof timestamp must be greater than upgrade timeout timestamp")
+		}
+	}
+
+	// counterparty channel must be proved to still be in OPEN state or INITUPGRADE state (crossing hellos)
+	if counterpartyChannel.State != types.OPEN || counterpartyChannel.State != types.INITUPGRADE {
+		return errorsmod.Wrapf(types.ErrInvalidChannelState, "expected one of [%s, %s], got %s", types.OPEN, types.INITUPGRADE, counterpartyChannel.State)
+	}
+
+	k.connectionKeeper.VerifyChannelState(ctx, connection, proofHeight, proofChannel, channel.Counterparty.PortId, channel.Counterparty.ChannelId, counterpartyChannel)
+
+	// TODO: Error receipt passed in is either nil or it is a stale error receipt from a previous upgrade
+	// if prevErrorReceipt == nil {
+	// 	abortTransactionUnless(verifyErrorReceiptAbsence(connection, proofHeight, proofErrorReceipt, currentChannel.counterpartyPortIdentifier, currentChannel.counterpartyChannelIdentifier))
+	// } else {
+
+	// timeout for this sequence can only succeed if the error receipt written into the error path on the counterparty
+	// was for a previous sequence by the timeout deadline.
+	// 	sequence = provableStore.get(channelUpgradeSequencePath(portIdentifier, channelIdentifier))
+	// 	abortTransactionUnless(sequence > prevErrorReceipt.sequence)
+	// 	abortTransactionUnless(verifyErrorReceipt(connection, proofHeight, proofErrorReceipt, currentChannel.counterpartyPortIdentifier, currentChannel.counterpartyChannelIdentifier, prevErrorReceipt))
+	// }
+	upgradeSequence, found := k.GetUpgradeSequence(ctx, portID, channelID)
+	if !found {
+		return errorsmod.Wrapf(types.ErrUpgradeSequenceNotFound, "failed to retrieve upgrade sequence for channel, port ID (%s) channel ID (%s)", portID, channelID)
+	}
+
+	if upgradeSequence < errorReceipt.Sequence {
+		return errorsmod.Wrapf(types.ErrInvalidUpgradeSequence, "upgrade sequence (%d) must be greater than error receipt sequence (%d)", upgradeSequence, errorReceipt.Sequence)
+	}
+
+	// TODO: isn't this called on the counterparty chain (not initializing chain?)
+	k.connectionKeeper.VerifyChannelUpgradeError(ctx, connection, proofHeight, proofErrorReceipt, channel.Counterparty.PortId, channel.Counterparty.ChannelId, errorReceipt)
+
+	return nil
+	// return k.RestoreChannel(ctx, portID, channelID, sequence, types.ErrUpgradeTimeout)
+}
+
 // RestoreChannel restores the given channel to the state prior to upgrade.
 func (k Keeper) RestoreChannel(ctx sdk.Context, portID, channelID string, upgradeSequence uint64, err error) error {
 	errorReceipt := types.NewErrorReceipt(upgradeSequence, err)
@@ -125,4 +209,18 @@ func (k Keeper) RestoreChannel(ctx sdk.Context, portID, channelID string, upgrad
 	}
 
 	return cbs.OnChanUpgradeRestore(ctx, portID, channelID)
+}
+
+func (k Keeper) verifyChannel(ctx sdk.Context, portID, channelID string, chanCap *capabilitytypes.Capability) (types.Channel, error) {
+	var err error
+	channel, found := k.GetChannel(ctx, portID, channelID)
+	if !found {
+		err = errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
+	}
+
+	if !k.scopedKeeper.AuthenticateCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)) {
+		err = errorsmod.Wrapf(types.ErrChannelCapabilityNotFound, "caller does not own capability for channel, port ID (%s) channel ID (%s)", portID, channelID)
+	}
+
+	return channel, err
 }

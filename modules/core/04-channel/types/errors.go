@@ -42,4 +42,6 @@ var (
 	ErrInvalidTimeout          = errorsmod.Register(SubModuleName, 26, "invalid packet timeout")
 	ErrInvalidUpgradeTimeout   = errorsmod.Register(SubModuleName, 27, "either timeout height or timeout timestamp must be non-zero")
 	ErrUpgradeSequenceNotFound = errorsmod.Register(SubModuleName, 28, "upgrade sequence not found")
+	ErrUpgradeTimeoutNotFound = errorsmod.Register(SubModuleName, 29, "upgrade timeout not found")
+	ErrUpgradeTimeout          = errorsmod.Register(SubModuleName, 30, "channel upgrade handshake has timed out")
 )
