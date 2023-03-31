@@ -139,27 +139,34 @@ func (k Keeper) ChanUpgradeTry(
 		return 0, "", errorsmod.Wrapf(types.ErrInvalidChannelOrdering, "channel ordering of counterparty channel and proposed channel must be equal")
 	}
 
-	connection, err := k.GetConnection(ctx, proposedUpgradeChannel.ConnectionHops[0])
+	connectionEnd, err := k.GetConnection(ctx, proposedUpgradeChannel.ConnectionHops[0])
 	if err != nil {
 		return 0, "", err
 	}
 
-	if connection.GetCounterparty().GetConnectionID() != counterpartyChannel.ConnectionHops[0] {
-		return 0, "", errorsmod.Wrapf(connectiontypes.ErrInvalidConnection, "unexpected counterparty channel connection hops, expected %s but got %s", connection.GetCounterparty().GetConnectionID(), counterpartyChannel.ConnectionHops[0])
+	if connectionEnd.GetState() != int32(connectiontypes.OPEN) {
+		return 0, "", errorsmod.Wrapf(
+			connectiontypes.ErrInvalidConnectionState,
+			"connection state is not OPEN (got %s)", connectiontypes.State(connectionEnd.GetState()).String(),
+		)
 	}
 
-	if err := k.connectionKeeper.VerifyChannelState(ctx, connection, proofHeight, proofChannel, proposedUpgradeChannel.Counterparty.PortId,
+	if connectionEnd.GetCounterparty().GetConnectionID() != counterpartyChannel.ConnectionHops[0] {
+		return 0, "", errorsmod.Wrapf(connectiontypes.ErrInvalidConnection, "unexpected counterparty channel connection hops, expected %s but got %s", connectionEnd.GetCounterparty().GetConnectionID(), counterpartyChannel.ConnectionHops[0])
+	}
+
+	if err := k.connectionKeeper.VerifyChannelState(ctx, connectionEnd, proofHeight, proofChannel, proposedUpgradeChannel.Counterparty.PortId,
 		proposedUpgradeChannel.Counterparty.ChannelId, counterpartyChannel); err != nil {
 		return 0, "", err
 	}
 
 	upgradeTimeout := types.UpgradeTimeout{TimeoutHeight: timeoutHeight, TimeoutTimestamp: timeoutTimestamp}
-	if err := k.connectionKeeper.VerifyChannelUpgradeTimeout(ctx, connection, proofHeight, proofUpgradeTimeout, proposedUpgradeChannel.Counterparty.PortId,
+	if err := k.connectionKeeper.VerifyChannelUpgradeTimeout(ctx, connectionEnd, proofHeight, proofUpgradeTimeout, proposedUpgradeChannel.Counterparty.PortId,
 		proposedUpgradeChannel.Counterparty.ChannelId, upgradeTimeout); err != nil {
 		return 0, "", err
 	}
 
-	if err := k.connectionKeeper.VerifyChannelUpgradeSequence(ctx, connection, proofHeight, proofUpgradeSequence, proposedUpgradeChannel.Counterparty.PortId,
+	if err := k.connectionKeeper.VerifyChannelUpgradeSequence(ctx, connectionEnd, proofHeight, proofUpgradeSequence, proposedUpgradeChannel.Counterparty.PortId,
 		proposedUpgradeChannel.Counterparty.ChannelId, counterpartyUpgradeSequence); err != nil {
 		return 0, "", err
 	}
