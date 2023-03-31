@@ -1617,7 +1617,7 @@ func (suite *KeeperTestSuite) TestQueryUpgradeError() {
 			if tc.expPass {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
-				suite.Require().Equal(upgradeErr, *&res.ErrorReceipt)
+				suite.Require().Equal(upgradeErr, res.ErrorReceipt)
 			} else {
 				suite.Require().Error(err)
 			}
