@@ -331,6 +331,8 @@ func (k Keeper) ChanUpgradeCancel(
 	k.DeleteUpgradeRestoreChannel(ctx, portID, channelID)
 	k.DeleteUpgradeTimeout(ctx, portID, channelID)
 
+	// TODO: emit events
+
 	return nil
 }
 

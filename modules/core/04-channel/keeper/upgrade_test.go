@@ -423,6 +423,79 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 	}
 }
 
+func (suite *KeeperTestSuite) TestChanUpgradeCancel() {
+	var (
+		path             *ibctesting.Path
+		chanCap          *capabilitytypes.Capability
+		timeoutHeight    clienttypes.Height
+		timeoutTimestamp uint64
+		upgradeSequence  uint64
+	)
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expPass  bool
+	}{
+		{
+			"success",
+			func() {
+				// force an error receipt on ChanUpgradeTry by setting an upgrade sequence ahead of the counterparty
+				suite.chainB.GetSimApp().GetIBCKeeper().ChannelKeeper.SetUpgradeSequence(
+					suite.chainB.GetContext(),
+					path.EndpointB.ChannelConfig.PortID,
+					path.EndpointB.ChannelID,
+					10,
+				)
+
+				suite.coordinator.CommitBlock(suite.chainA, suite.chainB)
+			},
+			true,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.Setup(path)
+
+			// modify the channel versions to initiate upgrade
+			path.EndpointA.ChannelConfig.Version = fmt.Sprintf("%s-v2", mock.Version)
+			path.EndpointB.ChannelConfig.Version = fmt.Sprintf("%s-v2", mock.Version)
+
+			timeoutHeight, timeoutTimestamp = suite.chainB.GetTimeoutHeight(), uint64(0)
+			upgradeSequence = 1
+
+			chanCap, _ = suite.chainA.GetSimApp().GetScopedIBCKeeper().GetCapability(suite.chainA.GetContext(), host.ChannelCapabilityPath(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
+
+			tc.malleate()
+
+			suite.Require().NoError(path.EndpointA.ChanUpgradeInit(timeoutHeight, timeoutTimestamp))
+			suite.Require().NoError(path.EndpointB.ChanUpgradeTry(timeoutHeight, timeoutTimestamp, upgradeSequence))
+
+			errorReceipt, found := suite.chainB.GetSimApp().GetIBCKeeper().ChannelKeeper.GetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+			suite.Require().True(found)
+
+			errorReceiptKey := host.ChannelUpgradeErrorKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+			proofErrorReceipt, proofHeight := suite.chainB.QueryProof(errorReceiptKey)
+
+			err := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.ChanUpgradeCancel(
+				suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID,
+				chanCap, errorReceipt, proofErrorReceipt, proofHeight,
+			)
+
+			if tc.expPass {
+				suite.Require().NoError(err)
+			} else {
+				suite.Require().Error(err)
+			}
+		})
+	}
+}
+
 func (suite *KeeperTestSuite) TestRestoreChannel() {
 	var path *ibctesting.Path
 
