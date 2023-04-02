@@ -3,10 +3,10 @@ package errors
 import (
 	errorsmod "cosmossdk.io/errors"
 
-	"github.com/cosmos/ibc-go/v5/modules/core/exported"
+	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
 )
 
-const codespace = exported.ModuleName
+const codespace = host.ModuleName
 
 var (
 	// ErrInvalidSequence is used the sequence number (nonce) is incorrect
