@@ -32,6 +32,9 @@ linters:
 
 issues:
   exclude-rules:
+    - text: "is unused for linter"
+      linters:
+        - nolintlint
     - text: "SA1019:"
       linters:
         - staticcheck
