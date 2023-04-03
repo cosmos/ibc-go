@@ -14,7 +14,7 @@ require (
 	github.com/cosmos/cosmos-proto v1.0.0-beta.2
 	github.com/cosmos/cosmos-sdk v0.47.0
 	github.com/cosmos/gogoproto v1.4.7
-	github.com/cosmos/ibc-go/modules/capability v1.0.0-alpha1
+	github.com/cosmos/ibc-go/modules/capability v1.0.0-rc0
 	github.com/cosmos/ics23/go v0.9.1-0.20221207100636-b1abd8678aab
 	github.com/golang/protobuf v1.5.3
 	github.com/gorilla/mux v1.8.0
