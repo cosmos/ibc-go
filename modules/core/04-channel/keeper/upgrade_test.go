@@ -8,7 +8,7 @@ import (
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	// connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
+	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
@@ -208,6 +208,25 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 			true,
 		},
 		{
+			"crossing hellos: invalid restore channel connection",
+			func() {
+				// modify the version on chain B so the channel and upgrade channel are not identical.
+				path.EndpointB.ChannelConfig.Version = fmt.Sprintf("%s-v2", mock.Version)
+
+				err := path.EndpointB.ChanUpgradeInit(path.EndpointA.Chain.GetTimeoutHeight(), 0)
+				suite.Require().NoError(err)
+
+				suite.Require().NoError(path.EndpointB.UpdateClient())
+
+
+				channel, _ := suite.chainB.GetSimApp().GetIBCKeeper().ChannelKeeper.GetUpgradeRestoreChannel(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+				channel.ConnectionHops = []string{"connection-100"}
+				suite.chainB.GetSimApp().GetIBCKeeper().ChannelKeeper.SetUpgradeRestoreChannel(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, channel)
+			},
+
+			false,
+		},
+		{
 			"crossing hellos: invalid proposed upgrade channel",
 			func() {
 				// modify the version on chain B so the channel and upgrade channel are not identical.
@@ -304,24 +323,25 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 			},
 			false,
 		},
-		// {
-		// 	"proposed upgrade channel connection not found",
-		// 	func() {
-		// 		channelUpgrade.ConnectionHops = []string{"connection-100"}
-		// 	},
-		// 	false,
-		// },
-		// {
-		// 	"invalid proposed upgrade channel connection state",
-		// 	func() {
-		// 		connectionEnd := path.EndpointB.GetConnection()
-		// 		connectionEnd.State = connectiontypes.UNINITIALIZED
+		{
+			"upgrade channel connection not found",
+			func() {
+				channel := path.EndpointB.GetChannel()
+				channel.ConnectionHops = []string{"connection-100"}
+				suite.chainB.GetSimApp().GetIBCKeeper().ChannelKeeper.SetChannel(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, channel)
+			},
+			false,
+		},
+		{
+			"invalid proposed upgrade channel connection state",
+			func() {
+				connectionEnd := path.EndpointB.GetConnection()
+				connectionEnd.State = connectiontypes.UNINITIALIZED
 
-		// 		suite.chainB.GetSimApp().GetIBCKeeper().ConnectionKeeper.SetConnection(suite.chainB.GetContext(), "connection-100", connectionEnd)
-		// 		channelUpgrade.ConnectionHops = []string{"connection-100"}
-		// 	},
-		// 	false,
-		// },
+				suite.chainB.GetSimApp().GetIBCKeeper().ConnectionKeeper.SetConnection(suite.chainB.GetContext(), "connection-0", connectionEnd)
+			},
+			false,
+		},
 		{
 			"invalid connection upgrade, counterparty mismatch",
 			func() {
