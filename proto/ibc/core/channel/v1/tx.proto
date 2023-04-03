@@ -256,7 +256,7 @@ message MsgAcknowledgementResponse {
   ResponseResultType result = 1;
 }
 
-// MsgChanelUpgradeInit defines the request type for the ChannelUpgradeInit rpc
+// MsgChannelUpgradeInit defines the request type for the ChannelUpgradeInit rpc
 message MsgChannelUpgradeInit {
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;

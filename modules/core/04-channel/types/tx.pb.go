@@ -898,7 +898,7 @@ func (m *MsgAcknowledgementResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgAcknowledgementResponse proto.InternalMessageInfo
 
-// MsgChanelUpgradeInit defines the request type for the ChannelUpgradeInit rpc
+// MsgChannelUpgradeInit defines the request type for the ChannelUpgradeInit rpc
 type MsgChannelUpgradeInit struct {
 	PortId                 string       `protobuf:"bytes,1,opt,name=port_id,json=portId,proto3" json:"port_id,omitempty"`
 	ChannelId              string       `protobuf:"bytes,2,opt,name=channel_id,json=channelId,proto3" json:"channel_id,omitempty"`
