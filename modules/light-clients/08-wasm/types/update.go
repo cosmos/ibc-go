@@ -1,6 +1,8 @@
 package types
 
 import (
+	"fmt"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
@@ -59,16 +61,16 @@ type clientMessageConcretePayload struct {
 
 // Client state and new consensus states are updated in the store by the contract
 func (c ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, store sdk.KVStore, clientMsg exported.ClientMessage) []exported.Height {
-	var clientMsgConcrete clientMessageConcretePayload
-	switch clientMsg := clientMsg.(type) {
-	case *Header:
-		clientMsgConcrete.Header = clientMsg
-	case *Misbehaviour:
-		clientMsgConcrete.Misbehaviour = clientMsg
+	header, ok := clientMsg.(*Header)
+	if !ok {
+		panic(fmt.Errorf("expected type %T, got %T", &Header{}, clientMsg))
 	}
+	
 	payload := updateStatePayload{
 		UpdateState: updateStateInnerPayload{
-			ClientMessage: clientMsgConcrete,
+			ClientMessage: clientMessageConcretePayload{
+				Header: header,
+			},
 		},
 	}
 
@@ -76,12 +78,8 @@ func (c ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, store s
 	if err != nil {
 		panic(err)
 	}
-	newClientState, err := getClientState(store, cdc)
-	if err != nil {
-		panic(err)
-	}
 
-	return []exported.Height{newClientState.LatestHeight}
+	return []exported.Height{clientMsg.(*Header).Height}
 }
 
 type updateStateOnMisbehaviourPayload struct {
