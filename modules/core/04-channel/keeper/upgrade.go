@@ -15,6 +15,7 @@ import (
 	portkeeper "github.com/cosmos/ibc-go/v7/modules/core/05-port/keeper"
 	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
 // ChanUpgradeInit is called by a module to initiate a channel upgrade handshake with
@@ -114,6 +115,7 @@ func (k Keeper) ChanUpgradeTry(
 	proofHeight clienttypes.Height,
 ) (upgradeSequence uint64, previousVersion string, err error) {
 	channel, found := k.GetChannel(ctx, portID, channelID)
+	isCrossingHellos := channel.State == types.INITUPGRADE
 	if !found {
 		return 0, "", errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
 	}
@@ -139,9 +141,23 @@ func (k Keeper) ChanUpgradeTry(
 		return 0, "", errorsmod.Wrapf(types.ErrInvalidChannelOrdering, "channel ordering of counterparty channel and proposed channel must be equal")
 	}
 
-	connectionEnd, err := k.GetConnection(ctx, proposedUpgradeChannel.ConnectionHops[0])
-	if err != nil {
-		return 0, "", err
+	var connectionEnd exported.ConnectionI
+	if isCrossingHellos {
+		// fetch restore channel
+		restoreChannel, found := k.GetUpgradeRestoreChannel(ctx, portID, channelID)
+		if !found {
+			return 0, "", errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
+		}
+		connectionEnd, err = k.GetConnection(ctx, restoreChannel.ConnectionHops[0])
+		if err != nil {
+			return 0, "", err
+		}
+	} else {
+		// use current channel
+		connectionEnd, err = k.GetConnection(ctx, channel.ConnectionHops[0])
+		if err != nil {
+			return 0, "", err
+		}
 	}
 
 	if connectionEnd.GetState() != int32(connectiontypes.OPEN) {
@@ -214,15 +230,13 @@ func (k Keeper) ChanUpgradeTry(
 		upgradeSequence, found = k.GetUpgradeSequence(ctx, portID, channelID)
 		if !found {
 			errorReceipt := types.NewErrorReceipt(upgradeSequence, errorsmod.Wrapf(types.ErrInvalidUpgradeSequence, "upgrade sequence %d was not smaller than the counter party chain upgrade sequence %d", upgradeSequence, counterpartyUpgradeSequence))
-			upgradeSequence++
-
 			k.SetUpgradeErrorReceipt(ctx, portID, channelID, errorReceipt)
-			k.SetUpgradeSequence(ctx, portID, channelID, upgradeSequence)
 
 			return 0, "", errorsmod.Wrapf(types.ErrUpgradeAborted, "upgrade aborted, error receipt written for upgrade sequence: %d", upgradeSequence)
 		}
 
 		if upgradeSequence != counterpartyUpgradeSequence {
+			// set to the max of the two
 			errorReceipt := types.NewErrorReceipt(upgradeSequence, errorsmod.Wrapf(types.ErrInvalidUpgradeSequence, "upgrade sequence %d was not smaller than the counter party chain upgrade sequence %d", upgradeSequence, counterpartyUpgradeSequence))
 			upgradeSequence++
 
@@ -307,5 +321,6 @@ func (k Keeper) RestoreChannel(ctx sdk.Context, portID, channelID string, upgrad
 		return errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
 	}
 
-	return cbs.OnChanUpgradeRestore(ctx, portID, channelID)
+	cbs.OnChanUpgradeRestore(ctx, portID, channelID)
+	return nil
 }

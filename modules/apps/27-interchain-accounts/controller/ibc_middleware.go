@@ -246,8 +246,8 @@ func (im IBCMiddleware) OnChanUpgradeConfirm(ctx sdk.Context, portID, channelID 
 }
 
 // OnChanUpgradeRestore implements the IBCModule interface
-func (im IBCMiddleware) OnChanUpgradeRestore(ctx sdk.Context, portID, channelID string) error {
-	return nil
+func (im IBCMiddleware) OnChanUpgradeRestore(ctx sdk.Context, portID, channelID string) {
+	return 
 }
 
 // SendPacket implements the ICS4 Wrapper interface

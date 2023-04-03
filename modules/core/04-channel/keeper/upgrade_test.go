@@ -8,7 +8,7 @@ import (
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
+	// connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
@@ -304,24 +304,24 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 			},
 			false,
 		},
-		{
-			"proposed upgrade channel connection not found",
-			func() {
-				channelUpgrade.ConnectionHops = []string{"connection-100"}
-			},
-			false,
-		},
-		{
-			"invalid proposed upgrade channel connection state",
-			func() {
-				connectionEnd := path.EndpointB.GetConnection()
-				connectionEnd.State = connectiontypes.UNINITIALIZED
+		// {
+		// 	"proposed upgrade channel connection not found",
+		// 	func() {
+		// 		channelUpgrade.ConnectionHops = []string{"connection-100"}
+		// 	},
+		// 	false,
+		// },
+		// {
+		// 	"invalid proposed upgrade channel connection state",
+		// 	func() {
+		// 		connectionEnd := path.EndpointB.GetConnection()
+		// 		connectionEnd.State = connectiontypes.UNINITIALIZED
 
-				suite.chainB.GetSimApp().GetIBCKeeper().ConnectionKeeper.SetConnection(suite.chainB.GetContext(), "connection-100", connectionEnd)
-				channelUpgrade.ConnectionHops = []string{"connection-100"}
-			},
-			false,
-		},
+		// 		suite.chainB.GetSimApp().GetIBCKeeper().ConnectionKeeper.SetConnection(suite.chainB.GetContext(), "connection-100", connectionEnd)
+		// 		channelUpgrade.ConnectionHops = []string{"connection-100"}
+		// 	},
+		// 	false,
+		// },
 		{
 			"invalid connection upgrade, counterparty mismatch",
 			func() {

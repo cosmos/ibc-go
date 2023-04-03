@@ -775,7 +775,9 @@ func (k Keeper) ChannelUpgradeTry(goCtx context.Context, msg *channeltypes.MsgCh
 		// NOTE: commit error receipt to state and abort channel upgrade
 		ctx.Logger().Error("channel upgrade try callback failed", "error", errorsmod.Wrap(err, "channel handshake upgrade try failed"))
 		// TODO: add error, channel id, upgrade sequence, version to response.
-		return &channeltypes.MsgChannelUpgradeTryResponse{}, nil
+		return &channeltypes.MsgChannelUpgradeTryResponse{
+			Success: false,
+		}, nil
 	}
 
 	if err != nil {
@@ -794,11 +796,13 @@ func (k Keeper) ChannelUpgradeTry(goCtx context.Context, msg *channeltypes.MsgCh
 		msg.CounterpartyChannel.Version,
 	)
 	if err != nil {
+		// we are not returning the error here because we want to commit the error receipt to state
 		if err := k.ChannelKeeper.RestoreChannel(ctx, msg.PortId, msg.ChannelId, upgradeSequence, err); err != nil {
-			// TODO: in order to preserve the state of the written error receipt we must return nil here.
-			return &channeltypes.MsgChannelUpgradeTryResponse{}, nil
+			ctx.Logger().Error("error %s restoring channel on portID %s, channelID %s", err, msg.PortId, msg.ChannelId)
 		}
-		return &channeltypes.MsgChannelUpgradeTryResponse{}, nil
+		return &channeltypes.MsgChannelUpgradeTryResponse{
+			Success: false,
+		}, nil
 	}
 
 	msg.ProposedUpgradeChannel.Version = version
@@ -809,6 +813,7 @@ func (k Keeper) ChannelUpgradeTry(goCtx context.Context, msg *channeltypes.MsgCh
 		ChannelId:       msg.ChannelId,
 		Version:         version,
 		UpgradeSequence: upgradeSequence,
+		Success:         true,
 	}, nil
 }
 
