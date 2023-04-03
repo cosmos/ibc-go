@@ -60,6 +60,7 @@ type E2ETestSuite struct {
 
 	grpcClients    map[string]GRPCClients
 	paths          map[string]path
+	relayers       map[ibc.Wallet]bool
 	logger         *zap.Logger
 	DockerClient   *dockerclient.Client
 	network        string
@@ -116,6 +117,12 @@ func (s *E2ETestSuite) GetRelayerUsers(ctx context.Context, chainOpts ...testcon
 
 	chainARelayerUser := cosmos.NewWallet(ChainARelayerName, chainAAccountBytes, "", chainA.Config())
 	chainBRelayerUser := cosmos.NewWallet(ChainBRelayerName, chainBAccountBytes, "", chainB.Config())
+
+	if s.relayers == nil {
+		s.relayers = make(map[ibc.Wallet]bool)
+	}
+	s.relayers[chainARelayerUser] = true
+	s.relayers[chainBRelayerUser] = true
 
 	return chainARelayerUser, chainBRelayerUser
 }
@@ -281,7 +288,17 @@ func (s *E2ETestSuite) BroadcastMessages(ctx context.Context, chain *cosmos.Cosm
 		return factory.WithGas(DefaultGasValue)
 	})
 
-	resp, err := cosmos.BroadcastTx(ctx, broadcaster, user, msgs...)
+	// Retry the operation a few times if the user signing the transaction is a relayer. (See issue #3264)
+	var resp sdk.TxResponse
+	var err error
+	broadcastFunc := func() (sdk.TxResponse, error) {
+		return cosmos.BroadcastTx(ctx, broadcaster, user, msgs...)
+	}
+	if s.IsRelayer(user) {
+		resp, err = s.retryNtimes(broadcastFunc, 5)
+	} else {
+		resp, err = broadcastFunc()
+	}
 	if err != nil {
 		return sdk.TxResponse{}, err
 	}
@@ -609,6 +626,43 @@ func (s *E2ETestSuite) QueryGranterGrants(ctx context.Context, chain *cosmos.Cos
 	}
 
 	return grants.Grants, nil
+}
+
+// IsRelayer returns true if the provided wallet is used by a relayer.
+func (s *E2ETestSuite) IsRelayer(user ibc.Wallet) bool {
+	if s.relayers == nil {
+		return false
+	}
+	return s.relayers[user]
+}
+
+// retryNtimes retries the provided function up to the provided number of attempts.
+func (s *E2ETestSuite) retryNtimes(f func() (sdk.TxResponse, error), attempts int) (sdk.TxResponse, error) {
+	// Ignore account sequence mismatch errors.
+	allowedMessages := []string{"account sequence mismatch"}
+	var err error
+	var resp sdk.TxResponse
+	for i := 0; i < attempts; i++ {
+		// If the response's raw log doesn't contain any of the allowed prefixes we return, else, we retry.
+		resp, err = f()
+		if !containsMessage(resp.RawLog, allowedMessages) {
+			return resp, err
+		}
+		s.T().Logf("retrying tx due to ignored raw log: %s", resp.RawLog)
+	}
+	return resp, err
+}
+
+// containsPrefix returns true if the string s contains any of the prefixes in the slice.
+func containsMessage(s string, messages []string) bool {
+	var hasPrefix bool
+	for _, message := range messages {
+		if strings.Contains(s, message) {
+			hasPrefix = true
+			break
+		}
+	}
+	return hasPrefix
 }
 
 // GetIBCToken returns the denomination of the full token denom sent to the receiving channel
