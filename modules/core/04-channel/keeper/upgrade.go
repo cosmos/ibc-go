@@ -236,12 +236,15 @@ func (k Keeper) ChanUpgradeTry(
 		}
 
 		if upgradeSequence != counterpartyUpgradeSequence {
+			errorReceipt := types.NewErrorReceipt(upgradeSequence, errorsmod.Wrapf(types.ErrInvalidUpgradeSequence, "upgrade sequence %d was not equal to the counter party chain upgrade sequence %d", upgradeSequence, counterpartyUpgradeSequence))
+
 			// set to the max of the two
-			errorReceipt := types.NewErrorReceipt(upgradeSequence, errorsmod.Wrapf(types.ErrInvalidUpgradeSequence, "upgrade sequence %d was not smaller than the counter party chain upgrade sequence %d", upgradeSequence, counterpartyUpgradeSequence))
-			upgradeSequence++
+			if counterpartyUpgradeSequence > upgradeSequence {
+				upgradeSequence = counterpartyUpgradeSequence
+				k.SetUpgradeSequence(ctx, portID, channelID, upgradeSequence)
+			}
 
 			k.SetUpgradeErrorReceipt(ctx, portID, channelID, errorReceipt)
-			k.SetUpgradeSequence(ctx, portID, channelID, upgradeSequence)
 			return 0, "", errorsmod.Wrapf(types.ErrUpgradeAborted, "upgrade aborted, error receipt written for upgrade sequence: %d", upgradeSequence)
 		}
 
