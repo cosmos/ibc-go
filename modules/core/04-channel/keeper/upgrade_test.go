@@ -218,7 +218,6 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 
 				suite.Require().NoError(path.EndpointB.UpdateClient())
 
-
 				channel, _ := suite.chainB.GetSimApp().GetIBCKeeper().ChannelKeeper.GetUpgradeRestoreChannel(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 				channel.ConnectionHops = []string{"connection-100"}
 				suite.chainB.GetSimApp().GetIBCKeeper().ChannelKeeper.SetUpgradeRestoreChannel(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, channel)

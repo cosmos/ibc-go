@@ -171,5 +171,4 @@ func (im IBCModule) OnChanUpgradeConfirm(ctx sdk.Context, portID, channelID stri
 
 // OnChanUpgradeRestore implements the IBCModule interface
 func (im IBCModule) OnChanUpgradeRestore(ctx sdk.Context, portID, channelID string) {
-	return
 }
