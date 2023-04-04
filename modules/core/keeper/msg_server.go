@@ -771,11 +771,12 @@ func (k Keeper) ChannelUpgradeTry(goCtx context.Context, msg *channeltypes.MsgCh
 		msg.ProofHeight,
 	)
 
+	// TODO: handle the situation where we have return errors but also want to write state in a cleaner way.
 	if errorsmod.IsOf(err, channeltypes.ErrUpgradeAborted, channeltypes.ErrInvalidUpgradeSequence, channeltypes.ErrUpgradeTimeout) {
 		// NOTE: commit error receipt to state and abort channel upgrade
 		ctx.Logger().Error("channel upgrade try callback failed", "error", errorsmod.Wrap(err, "channel handshake upgrade try failed"))
 		return &channeltypes.MsgChannelUpgradeTryResponse{
-			ChannelId:       msg.ChannelId,
+			ChannelId: msg.ChannelId,
 			// leave version explicitly blank as the callback did not succeed.
 			Version:         "",
 			UpgradeSequence: upgradeSequence,
@@ -804,7 +805,7 @@ func (k Keeper) ChannelUpgradeTry(goCtx context.Context, msg *channeltypes.MsgCh
 			ctx.Logger().Error("error restoring channel on portID %s, channelID %s: %s", msg.PortId, msg.ChannelId, err)
 		}
 		return &channeltypes.MsgChannelUpgradeTryResponse{
-			ChannelId:       msg.ChannelId,
+			ChannelId: msg.ChannelId,
 			// leave version explicitly blank as the callback did not succeed.
 			Version:         "",
 			UpgradeSequence: upgradeSequence,
@@ -819,7 +820,7 @@ func (k Keeper) ChannelUpgradeTry(goCtx context.Context, msg *channeltypes.MsgCh
 		return nil, err
 	}
 
-    // TODO: add port id to MsgChannelUpgradeTryResponse?
+	// TODO: add port id to MsgChannelUpgradeTryResponse?
 	return &channeltypes.MsgChannelUpgradeTryResponse{
 		ChannelId:       msg.ChannelId,
 		Version:         version,

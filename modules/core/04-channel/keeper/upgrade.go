@@ -91,6 +91,7 @@ func (k Keeper) WriteUpgradeInitChannel(
 ) {
 	defer telemetry.IncrCounter(1, "ibc", "channel", "upgrade-init")
 
+	// TODO: don't set the channel directly, instead modify the existing channel and re-assign the modifiable fields.
 	k.SetChannel(ctx, portID, channelID, channelUpgrade)
 	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", types.OPEN.String(), "new-state", types.INITUPGRADE.String())
 
@@ -285,6 +286,12 @@ func (k Keeper) WriteUpgradeTryChannel(
 	channel.Ordering = channelUpgrade.Ordering
 	channel.ConnectionHops = channelUpgrade.ConnectionHops
 
+	// prevent silent failures if fields that are not allowed to be modified are changed in the upgrade channel
+	// request.
+	if !reflect.DeepEqual(channel, channelUpgrade) {
+		return errorsmod.Wrapf(types.ErrInvalidChannel, "expected: %v but got: %v", channel, channelUpgrade)
+	}
+
 	k.SetChannel(ctx, portID, channelID, channel)
 
 	// TODO: previous state will not be OPEN in the case of crossing hellos. Determine this state correctly.
@@ -293,6 +300,8 @@ func (k Keeper) WriteUpgradeTryChannel(
 	emitChannelUpgradeTryEvent(ctx, portID, channelID, upgradeSequence, channelUpgrade)
 	return nil
 }
+
+// TODO: should we pull out the error receipt logic from this function? They seem like two discrete operations.
 
 // RestoreChannel restores the given channel to the state prior to upgrade.
 func (k Keeper) RestoreChannel(ctx sdk.Context, portID, channelID string, upgradeSequence uint64, err error) error {
