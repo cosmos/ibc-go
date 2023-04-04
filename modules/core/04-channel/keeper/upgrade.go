@@ -11,8 +11,6 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	portkeeper "github.com/cosmos/ibc-go/v7/modules/core/05-port/keeper"
-	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 )
 
@@ -95,8 +93,18 @@ func (k Keeper) WriteUpgradeInitChannel(
 	emitChannelUpgradeInitEvent(ctx, portID, channelID, upgradeSequence, channelUpgrade)
 }
 
+// Restorable defines an interface for an ibc module which can be restored.
+// All upgradable modules should implement this interface.
+type Restorable interface {
+	OnChanUpgradeRestore(
+		ctx sdk.Context,
+		portID,
+		channelID string,
+	) error
+}
+
 // RestoreChannel restores the given channel to the state prior to upgrade.
-func (k Keeper) RestoreChannel(ctx sdk.Context, portID, channelID string, upgradeSequence uint64, err error) error {
+func (k Keeper) RestoreChannel(ctx sdk.Context, restorable Restorable, portID, channelID string, upgradeSequence uint64, err error) error {
 	errorReceipt := types.NewErrorReceipt(upgradeSequence, err)
 	k.SetUpgradeErrorReceipt(ctx, portID, channelID, errorReceipt)
 
@@ -109,20 +117,5 @@ func (k Keeper) RestoreChannel(ctx sdk.Context, portID, channelID string, upgrad
 	k.DeleteUpgradeRestoreChannel(ctx, portID, channelID)
 	k.DeleteUpgradeTimeout(ctx, portID, channelID)
 
-	module, _, err := k.LookupModuleByChannel(ctx, portID, channelID)
-	if err != nil {
-		return errorsmod.Wrap(err, "could not retrieve module from port-id")
-	}
-
-	portKeeper, ok := k.portKeeper.(*portkeeper.Keeper)
-	if !ok {
-		panic("todo: handle this situation")
-	}
-
-	cbs, found := portKeeper.Router.GetRoute(module)
-	if !found {
-		return errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
-	}
-
-	return cbs.OnChanUpgradeRestore(ctx, portID, channelID)
+	return restorable.OnChanUpgradeRestore(ctx, portID, channelID)
 }
