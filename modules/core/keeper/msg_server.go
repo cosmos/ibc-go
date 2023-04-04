@@ -169,7 +169,7 @@ func (k Keeper) ChannelOpenInit(goCtx context.Context, msg *channeltypes.MsgChan
 	// Lookup module by port capability
 	module, portCap, err := k.PortKeeper.LookupModuleByPort(ctx, msg.PortId)
 	if err != nil {
-		ctx.Logger().Error("channel open init callback failed", "port-id", msg.PortId, "error", errorsmod.Wrap(err, "could not retrieve module from port-id"))
+		ctx.Logger().Error("channel open init failed", "port-id", msg.PortId, "error", errorsmod.Wrap(err, "could not retrieve module from port-id"))
 		return nil, errorsmod.Wrap(err, "could not retrieve module from port-id")
 	}
 
@@ -186,7 +186,7 @@ func (k Keeper) ChannelOpenInit(goCtx context.Context, msg *channeltypes.MsgChan
 		portCap, msg.Channel.Counterparty, msg.Channel.Version,
 	)
 	if err != nil {
-		ctx.Logger().Error("channel open init callback failed", "error", errorsmod.Wrap(err, "channel handshake open init failed"))
+		ctx.Logger().Error("channel open init  failed", "error", errorsmod.Wrap(err, "channel handshake open init failed"))
 		return nil, errorsmod.Wrap(err, "channel handshake open init failed")
 	}
 
@@ -200,7 +200,7 @@ func (k Keeper) ChannelOpenInit(goCtx context.Context, msg *channeltypes.MsgChan
 	// Write channel into state
 	k.ChannelKeeper.WriteOpenInitChannel(ctx, msg.PortId, channelID, msg.Channel.Ordering, msg.Channel.ConnectionHops, msg.Channel.Counterparty, version)
 
-	ctx.Logger().Info("channel open init callback succeeded", "channel-id", channelID, "version", version)
+	ctx.Logger().Info("channel open init succeeded", "channel-id", channelID, "version", version)
 
 	return &channeltypes.MsgChannelOpenInitResponse{
 		ChannelId: channelID,
@@ -217,7 +217,7 @@ func (k Keeper) ChannelOpenTry(goCtx context.Context, msg *channeltypes.MsgChann
 	// Lookup module by port capability
 	module, portCap, err := k.PortKeeper.LookupModuleByPort(ctx, msg.PortId)
 	if err != nil {
-		ctx.Logger().Error("channel open try callback failed", "port-id", msg.PortId, "error", errorsmod.Wrap(err, "could not retrieve module from port-id"))
+		ctx.Logger().Error("channel open try  failed", "port-id", msg.PortId, "error", errorsmod.Wrap(err, "could not retrieve module from port-id"))
 		return nil, errorsmod.Wrap(err, "could not retrieve module from port-id")
 	}
 
@@ -233,7 +233,7 @@ func (k Keeper) ChannelOpenTry(goCtx context.Context, msg *channeltypes.MsgChann
 		portCap, msg.Channel.Counterparty, msg.CounterpartyVersion, msg.ProofInit, msg.ProofHeight,
 	)
 	if err != nil {
-		ctx.Logger().Error("channel open try callback failed", "error", errorsmod.Wrap(err, "channel handshake open try failed"))
+		ctx.Logger().Error("channel open try  failed", "error", errorsmod.Wrap(err, "channel handshake open try failed"))
 		return nil, errorsmod.Wrap(err, "channel handshake open try failed")
 	}
 
@@ -247,7 +247,7 @@ func (k Keeper) ChannelOpenTry(goCtx context.Context, msg *channeltypes.MsgChann
 	// Write channel into state
 	k.ChannelKeeper.WriteOpenTryChannel(ctx, msg.PortId, channelID, msg.Channel.Ordering, msg.Channel.ConnectionHops, msg.Channel.Counterparty, version)
 
-	ctx.Logger().Info("channel open try callback succeeded", "channel-id", channelID, "port-id", msg.PortId, "version", version)
+	ctx.Logger().Info("channel open try  succeeded", "channel-id", channelID, "port-id", msg.PortId, "version", version)
 
 	return &channeltypes.MsgChannelOpenTryResponse{
 		ChannelId: channelID,
@@ -264,7 +264,7 @@ func (k Keeper) ChannelOpenAck(goCtx context.Context, msg *channeltypes.MsgChann
 	// Lookup module by channel capability
 	module, capability, err := k.ChannelKeeper.LookupModuleByChannel(ctx, msg.PortId, msg.ChannelId)
 	if err != nil {
-		ctx.Logger().Error("channel open ack callback failed", "port-id", msg.PortId, "error", errorsmod.Wrap(err, "could not retrieve module from port-id"))
+		ctx.Logger().Error("channel open ack  failed", "port-id", msg.PortId, "error", errorsmod.Wrap(err, "could not retrieve module from port-id"))
 		return nil, errorsmod.Wrap(err, "could not retrieve module from port-id")
 	}
 
@@ -279,7 +279,7 @@ func (k Keeper) ChannelOpenAck(goCtx context.Context, msg *channeltypes.MsgChann
 	if err = k.ChannelKeeper.ChanOpenAck(
 		ctx, msg.PortId, msg.ChannelId, capability, msg.CounterpartyVersion, msg.CounterpartyChannelId, msg.ProofTry, msg.ProofHeight,
 	); err != nil {
-		ctx.Logger().Error("channel open ack callback failed", "error", err.Error())
+		ctx.Logger().Error("channel open ack  failed", "error", err.Error())
 		return nil, errorsmod.Wrap(err, "channel handshake open ack failed")
 	}
 
@@ -292,7 +292,7 @@ func (k Keeper) ChannelOpenAck(goCtx context.Context, msg *channeltypes.MsgChann
 		return nil, errorsmod.Wrapf(err, "channel open ack callback failed for port ID: %s, channel ID: %s", msg.PortId, msg.ChannelId)
 	}
 
-	ctx.Logger().Info("channel open ack callback succeeded", "channel-id", msg.ChannelId, "port-id", msg.PortId)
+	ctx.Logger().Info("channel open ack  succeeded", "channel-id", msg.ChannelId, "port-id", msg.PortId)
 
 	return &channeltypes.MsgChannelOpenAckResponse{}, nil
 }
@@ -306,7 +306,7 @@ func (k Keeper) ChannelOpenConfirm(goCtx context.Context, msg *channeltypes.MsgC
 	// Lookup module by channel capability
 	module, capability, err := k.ChannelKeeper.LookupModuleByChannel(ctx, msg.PortId, msg.ChannelId)
 	if err != nil {
-		ctx.Logger().Error("channel open confirm callback failed", "port-id", msg.PortId, "error", errorsmod.Wrap(err, "could not retrieve module from port-id"))
+		ctx.Logger().Error("channel open confirm failed", "port-id", msg.PortId, "error", errorsmod.Wrap(err, "could not retrieve module from port-id"))
 		return nil, errorsmod.Wrap(err, "could not retrieve module from port-id")
 	}
 
@@ -319,7 +319,7 @@ func (k Keeper) ChannelOpenConfirm(goCtx context.Context, msg *channeltypes.MsgC
 
 	// Perform 04-channel verification
 	if err = k.ChannelKeeper.ChanOpenConfirm(ctx, msg.PortId, msg.ChannelId, capability, msg.ProofAck, msg.ProofHeight); err != nil {
-		ctx.Logger().Error("channel open confirm callback failed", "error", errorsmod.Wrap(err, "channel handshake open confirm failed"))
+		ctx.Logger().Error("channel open confirm  failed", "error", errorsmod.Wrap(err, "channel handshake open confirm failed"))
 		return nil, errorsmod.Wrap(err, "channel handshake open confirm failed")
 	}
 
@@ -332,7 +332,7 @@ func (k Keeper) ChannelOpenConfirm(goCtx context.Context, msg *channeltypes.MsgC
 		return nil, errorsmod.Wrapf(err, "channel open confirm callback failed for port ID: %s, channel ID: %s", msg.PortId, msg.ChannelId)
 	}
 
-	ctx.Logger().Info("channel open confirm callback succeeded", "channel-id", msg.ChannelId, "port-id", msg.PortId)
+	ctx.Logger().Info("channel open confirm  succeeded", "channel-id", msg.ChannelId, "port-id", msg.PortId)
 
 	return &channeltypes.MsgChannelOpenConfirmResponse{}, nil
 }
@@ -343,7 +343,7 @@ func (k Keeper) ChannelCloseInit(goCtx context.Context, msg *channeltypes.MsgCha
 	// Lookup module by channel capability
 	module, capability, err := k.ChannelKeeper.LookupModuleByChannel(ctx, msg.PortId, msg.ChannelId)
 	if err != nil {
-		ctx.Logger().Error("channel close init callback failed", "port-id", msg.PortId, "error", errorsmod.Wrap(err, "could not retrieve module from port-id"))
+		ctx.Logger().Error("channel close init  failed", "port-id", msg.PortId, "error", errorsmod.Wrap(err, "could not retrieve module from port-id"))
 		return nil, errorsmod.Wrap(err, "could not retrieve module from port-id")
 	}
 
@@ -355,17 +355,17 @@ func (k Keeper) ChannelCloseInit(goCtx context.Context, msg *channeltypes.MsgCha
 	}
 
 	if err = cbs.OnChanCloseInit(ctx, msg.PortId, msg.ChannelId); err != nil {
-		ctx.Logger().Error("channel close init callback failed", "port-id", msg.PortId, "channel-id", msg.ChannelId, "error", err.Error())
+		ctx.Logger().Error("channel close init  failed", "port-id", msg.PortId, "channel-id", msg.ChannelId, "error", err.Error())
 		return nil, errorsmod.Wrapf(err, "channel close init callback failed for port ID: %s, channel ID: %s", msg.PortId, msg.ChannelId)
 	}
 
 	err = k.ChannelKeeper.ChanCloseInit(ctx, msg.PortId, msg.ChannelId, capability)
 	if err != nil {
-		ctx.Logger().Error("channel handshake close init callback failed", "port-id", msg.PortId, "channel-id", msg.ChannelId, "error", err.Error())
+		ctx.Logger().Error("channel handshake close init  failed", "port-id", msg.PortId, "channel-id", msg.ChannelId, "error", err.Error())
 		return nil, errorsmod.Wrap(err, "channel handshake close init failed")
 	}
 
-	ctx.Logger().Info("channel close init callback succeeded", "channel-id", msg.ChannelId, "port-id", msg.PortId)
+	ctx.Logger().Info("channel close init  succeeded", "channel-id", msg.ChannelId, "port-id", msg.PortId)
 
 	return &channeltypes.MsgChannelCloseInitResponse{}, nil
 }
@@ -377,7 +377,7 @@ func (k Keeper) ChannelCloseConfirm(goCtx context.Context, msg *channeltypes.Msg
 	// Lookup module by channel capability
 	module, capability, err := k.ChannelKeeper.LookupModuleByChannel(ctx, msg.PortId, msg.ChannelId)
 	if err != nil {
-		ctx.Logger().Error("channel close confirm callback failed", "port-id", msg.PortId, "error", errorsmod.Wrap(err, "could not retrieve module from port-id"))
+		ctx.Logger().Error("channel close confirm failed", "port-id", msg.PortId, "error", errorsmod.Wrap(err, "could not retrieve module from port-id"))
 		return nil, errorsmod.Wrap(err, "could not retrieve module from port-id")
 	}
 
@@ -389,17 +389,17 @@ func (k Keeper) ChannelCloseConfirm(goCtx context.Context, msg *channeltypes.Msg
 	}
 
 	if err = cbs.OnChanCloseConfirm(ctx, msg.PortId, msg.ChannelId); err != nil {
-		ctx.Logger().Error("channel close confirm callback failed", "port-id", msg.PortId, "channel-id", msg.ChannelId, "error", err.Error())
+		ctx.Logger().Error("channel close confirm failed", "port-id", msg.PortId, "channel-id", msg.ChannelId, "error", err.Error())
 		return nil, errorsmod.Wrapf(err, "channel close confirm callback failed for port ID: %s, channel ID: %s", msg.PortId, msg.ChannelId)
 	}
 
 	err = k.ChannelKeeper.ChanCloseConfirm(ctx, msg.PortId, msg.ChannelId, capability, msg.ProofInit, msg.ProofHeight)
 	if err != nil {
-		ctx.Logger().Error("channel handshake close confirm callback failed", "port-id", msg.PortId, "channel-id", msg.ChannelId, "error", err.Error())
+		ctx.Logger().Error("channel handshake close confirm  failed", "port-id", msg.PortId, "channel-id", msg.ChannelId, "error", err.Error())
 		return nil, errorsmod.Wrap(err, "channel handshake close confirm failed")
 	}
 
-	ctx.Logger().Info("channel close confirm callback succeeded", "channel-id", msg.ChannelId, "port-id", msg.PortId)
+	ctx.Logger().Info("channel close confirm  succeeded", "channel-id", msg.ChannelId, "port-id", msg.PortId)
 
 	return &channeltypes.MsgChannelCloseConfirmResponse{}, nil
 }
