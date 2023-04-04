@@ -352,6 +352,24 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 			false,
 		},
 		{
+			"invalid state, counterparty mismatch",
+			func() {
+				channel := path.EndpointA.GetChannel()
+				channel.State = types.OPEN
+				path.EndpointA.SetChannel(channel)
+			},
+			false,
+		},
+		{
+			"invalid ordering, counterparty mismatch",
+			func() {
+				channel := path.EndpointA.GetChannel()
+				channel.Ordering = types.ORDERED
+				path.EndpointA.SetChannel(channel)
+			},
+			false,
+		},
+		{
 			"error receipt is written for invalid upgrade sequence",
 			func() {
 				// set the TRY handler upgrade sequence ahead to trigger a failure

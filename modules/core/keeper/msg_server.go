@@ -774,9 +774,12 @@ func (k Keeper) ChannelUpgradeTry(goCtx context.Context, msg *channeltypes.MsgCh
 	if errorsmod.IsOf(err, channeltypes.ErrUpgradeAborted, channeltypes.ErrInvalidUpgradeSequence, channeltypes.ErrUpgradeTimeout) {
 		// NOTE: commit error receipt to state and abort channel upgrade
 		ctx.Logger().Error("channel upgrade try callback failed", "error", errorsmod.Wrap(err, "channel handshake upgrade try failed"))
-		// TODO: add error, channel id, upgrade sequence, version to response.
 		return &channeltypes.MsgChannelUpgradeTryResponse{
-			Success: false,
+			ChannelId:       msg.ChannelId,
+			// leave version explicitly blank as the callback did not succeed.
+			Version:         "",
+			UpgradeSequence: upgradeSequence,
+			Success:         false,
 		}, nil
 	}
 
@@ -798,17 +801,25 @@ func (k Keeper) ChannelUpgradeTry(goCtx context.Context, msg *channeltypes.MsgCh
 	if err != nil {
 		// we are not returning the error here because we want to commit the error receipt to state
 		if err := k.ChannelKeeper.RestoreChannel(ctx, msg.PortId, msg.ChannelId, upgradeSequence, err); err != nil {
-			ctx.Logger().Error("error %s restoring channel on portID %s, channelID %s", err, msg.PortId, msg.ChannelId)
+			ctx.Logger().Error("error restoring channel on portID %s, channelID %s: %s", msg.PortId, msg.ChannelId, err)
 		}
 		return &channeltypes.MsgChannelUpgradeTryResponse{
-			Success: false,
+			ChannelId:       msg.ChannelId,
+			// leave version explicitly blank as the callback did not succeed.
+			Version:         "",
+			UpgradeSequence: upgradeSequence,
+			Success:         false,
 		}, nil
 	}
 
 	msg.ProposedUpgradeChannel.Version = version
 
-	k.ChannelKeeper.WriteUpgradeTryChannel(ctx, msg.PortId, msg.ChannelId, upgradeSequence, msg.ProposedUpgradeChannel)
+	if err := k.ChannelKeeper.WriteUpgradeTryChannel(ctx, msg.PortId, msg.ChannelId, upgradeSequence, msg.ProposedUpgradeChannel); err != nil {
+		ctx.Logger().Error("error writing upgrade try channel on portID %s, channelID %s: %s", msg.PortId, msg.ChannelId, err)
+		return nil, err
+	}
 
+    // TODO: add port id to MsgChannelUpgradeTryResponse?
 	return &channeltypes.MsgChannelUpgradeTryResponse{
 		ChannelId:       msg.ChannelId,
 		Version:         version,

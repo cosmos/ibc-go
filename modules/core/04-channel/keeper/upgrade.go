@@ -271,13 +271,27 @@ func (k Keeper) WriteUpgradeTryChannel(
 	channelID string,
 	upgradeSequence uint64,
 	channelUpgrade types.Channel,
-) {
+) error {
 	defer telemetry.IncrCounter(1, "ibc", "channel", "upgrade-try")
 
-	k.SetChannel(ctx, portID, channelID, channelUpgrade)
+	channel, found := k.GetChannel(ctx, portID, channelID)
+	if !found {
+		return errorsmod.Wrapf(types.ErrChannelNotFound, "failed to retrieve channel %s on port %s", channelID, portID)
+	}
+
+	// assign directly the fields that are modifiable.
+	// counterparty fields may not be changed.
+	channel.Version = channelUpgrade.Version
+	channel.Ordering = channelUpgrade.Ordering
+	channel.ConnectionHops = channelUpgrade.ConnectionHops
+
+	k.SetChannel(ctx, portID, channelID, channel)
+
+	// TODO: previous state will not be OPEN in the case of crossing hellos. Determine this state correctly.
 	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", types.OPEN.String(), "new-state", types.TRYUPGRADE.String())
 
 	emitChannelUpgradeTryEvent(ctx, portID, channelID, upgradeSequence, channelUpgrade)
+	return nil
 }
 
 // RestoreChannel restores the given channel to the state prior to upgrade.
