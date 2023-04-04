@@ -450,7 +450,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 			} else {
 				suite.Require().Error(err)
 
-				if errorsmod.IsOf(err, types.ErrInvalidUpgradeSequence, types.ErrUpgradeAborted, types.ErrUpgradeTimeout) {
+				if errorsmod.IsOf(err, types.ErrUpgradeAborted, types.ErrUpgradeTimeout) {
 					errorReceipt, found := suite.chainB.GetSimApp().GetIBCKeeper().ChannelKeeper.GetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 					suite.Require().True(found)
 					suite.Require().NotNil(errorReceipt)
@@ -501,7 +501,7 @@ func (suite *KeeperTestSuite) TestRestoreChannel() {
 
 			tc.malleate()
 
-			err = suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.RestoreChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, upgradeSequence, types.ErrInvalidChannel)
+			err = suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.RestoreChannelAndWriteErrorReceipt(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, upgradeSequence, types.ErrInvalidChannel)
 
 			actualChannel, ok := path.EndpointA.Chain.GetSimApp().IBCKeeper.ChannelKeeper.GetChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 			errReceipt, errReceiptPresent := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetUpgradeErrorReceipt(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)

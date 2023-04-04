@@ -88,14 +88,31 @@ func (k Keeper) WriteUpgradeInitChannel(
 	channelID string,
 	upgradeSequence uint64,
 	channelUpgrade types.Channel,
-) {
+) error {
 	defer telemetry.IncrCounter(1, "ibc", "channel", "upgrade-init")
 
-	// TODO: don't set the channel directly, instead modify the existing channel and re-assign the modifiable fields.
+	channel, found := k.GetChannel(ctx, portID, channelID)
+	if !found {
+		return errorsmod.Wrapf(types.ErrChannelNotFound, "failed to retrieve channel %s on port %s", channelID, portID)
+	}
+
+	// assign directly the fields that are modifiable.
+	// counterparty fields may not be changed.
+	channel.Version = channelUpgrade.Version
+	channel.Ordering = channelUpgrade.Ordering
+	channel.ConnectionHops = channelUpgrade.ConnectionHops
+
+	// prevent silent failures if fields that are not allowed to be modified are changed in the upgrade channel
+	// request.
+	if !reflect.DeepEqual(channel, channelUpgrade) {
+		return errorsmod.Wrapf(types.ErrInvalidChannel, "expected: %v but got: %v", channel, channelUpgrade)
+	}
+
 	k.SetChannel(ctx, portID, channelID, channelUpgrade)
 	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", types.OPEN.String(), "new-state", types.INITUPGRADE.String())
 
 	emitChannelUpgradeInitEvent(ctx, portID, channelID, upgradeSequence, channelUpgrade)
+	return nil
 }
 
 // ChanUpgradeTry is called by a module to accept the first step of a channel upgrade
@@ -176,12 +193,18 @@ func (k Keeper) ChanUpgradeTry(
 	// check if upgrade timed out by comparing it with the latest height of the chain
 	selfHeight := clienttypes.GetSelfHeight(ctx)
 	if !timeoutHeight.IsZero() && selfHeight.GTE(timeoutHeight) {
-		return 0, "", k.RestoreChannel(ctx, portID, channelID, upgradeSequence, types.ErrUpgradeTimeout)
+		if err := k.RestoreChannelAndWriteErrorReceipt(ctx, portID, channelID, upgradeSequence, types.ErrUpgradeTimeout); err != nil {
+			return 0, "", errorsmod.Wrap(types.ErrUpgradeAborted, err.Error())
+		}
+		return 0, "", errorsmod.Wrap(types.ErrUpgradeAborted, "upgrade timed out")
 	}
 
 	// check if upgrade timed out by comparing it with the latest timestamp of the chain
 	if timeoutTimestamp != 0 && uint64(ctx.BlockTime().UnixNano()) >= timeoutTimestamp {
-		return 0, "", k.RestoreChannel(ctx, portID, channelID, upgradeSequence, types.ErrUpgradeTimeout)
+		if err := k.RestoreChannelAndWriteErrorReceipt(ctx, portID, channelID, upgradeSequence, types.ErrUpgradeTimeout); err != nil {
+			return 0, "", errorsmod.Wrap(types.ErrUpgradeAborted, err.Error())
+		}
+		return 0, "", errorsmod.Wrap(types.ErrUpgradeAborted, "upgrade timed out")
 	}
 
 	switch channel.State {
@@ -196,7 +219,7 @@ func (k Keeper) ChanUpgradeTry(
 			upgradeSequence = counterpartyUpgradeSequence
 			k.SetUpgradeSequence(ctx, portID, channelID, upgradeSequence)
 		} else {
-			errorReceipt := types.NewErrorReceipt(upgradeSequence, errorsmod.Wrapf(types.ErrInvalidUpgradeSequence, "upgrade sequence %d was not smaller than the counter party chain upgrade sequence %d", upgradeSequence, counterpartyUpgradeSequence))
+			errorReceipt := types.NewErrorReceipt(upgradeSequence, errorsmod.Wrapf(types.ErrUpgradeAborted, "upgrade sequence %d was not smaller than the counter party chain upgrade sequence %d", upgradeSequence, counterpartyUpgradeSequence))
 			// the upgrade sequence is incremented so both sides start the next upgrade with a fresh sequence.
 			upgradeSequence++
 
@@ -206,7 +229,7 @@ func (k Keeper) ChanUpgradeTry(
 			// TODO: emit error receipt events
 
 			// do we want to return upgrade sequence here to include in response??
-			return 0, "", errorsmod.Wrapf(types.ErrInvalidUpgradeSequence, "upgrade aborted, error receipt written for upgrade sequence: %d", errorReceipt.GetSequence())
+			return 0, "", errorsmod.Wrapf(types.ErrUpgradeAborted, "upgrade aborted, error receipt written for upgrade sequence: %d", errorReceipt.GetSequence())
 		}
 
 		// this is first message in upgrade handshake on this chain so we must store original channel in restore channel path
@@ -215,14 +238,14 @@ func (k Keeper) ChanUpgradeTry(
 	case types.INITUPGRADE:
 		upgradeSequence, found = k.GetUpgradeSequence(ctx, portID, channelID)
 		if !found {
-			errorReceipt := types.NewErrorReceipt(upgradeSequence, errorsmod.Wrapf(types.ErrInvalidUpgradeSequence, "upgrade sequence %d was not smaller than the counter party chain upgrade sequence %d", upgradeSequence, counterpartyUpgradeSequence))
+			errorReceipt := types.NewErrorReceipt(upgradeSequence, errorsmod.Wrapf(types.ErrUpgradeAborted, "upgrade sequence %d was not smaller than the counter party chain upgrade sequence %d", upgradeSequence, counterpartyUpgradeSequence))
 			k.SetUpgradeErrorReceipt(ctx, portID, channelID, errorReceipt)
 
 			return 0, "", errorsmod.Wrapf(types.ErrUpgradeAborted, "upgrade aborted, error receipt written for upgrade sequence: %d", upgradeSequence)
 		}
 
 		if upgradeSequence != counterpartyUpgradeSequence {
-			errorReceipt := types.NewErrorReceipt(upgradeSequence, errorsmod.Wrapf(types.ErrInvalidUpgradeSequence, "upgrade sequence %d was not equal to the counter party chain upgrade sequence %d", upgradeSequence, counterpartyUpgradeSequence))
+			errorReceipt := types.NewErrorReceipt(upgradeSequence, errorsmod.Wrapf(types.ErrUpgradeAborted, "upgrade sequence %d was not equal to the counter party chain upgrade sequence %d", upgradeSequence, counterpartyUpgradeSequence))
 
 			// set to the max of the two
 			if counterpartyUpgradeSequence > upgradeSequence {
@@ -243,7 +266,7 @@ func (k Keeper) ChanUpgradeTry(
 
 		if !reflect.DeepEqual(channel, proposedUpgradeChannel) {
 			// TODO: log and emit events
-			if err := k.RestoreChannel(ctx, portID, channelID, upgradeSequence, types.ErrInvalidChannel); err != nil {
+			if err := k.RestoreChannelAndWriteErrorReceipt(ctx, portID, channelID, upgradeSequence, types.ErrInvalidChannel); err != nil {
 				return 0, "", errorsmod.Wrap(types.ErrUpgradeAborted, err.Error())
 			}
 			return 0, "", errorsmod.Wrap(types.ErrUpgradeAborted, "proposed upgrade channel did not equal expected channel")
@@ -252,7 +275,9 @@ func (k Keeper) ChanUpgradeTry(
 		// retrieve restore channel to return previous version
 		restoreChannel, found := k.GetUpgradeRestoreChannel(ctx, portID, channelID)
 		if !found {
-			// TODO(this case should be unreachable): write error receipt for upgrade sequence and abort / cancel upgrade
+			//(this case should be unreachable): write error receipt for upgrade sequence and abort / cancel upgrade
+			errorReceipt := types.NewErrorReceipt(upgradeSequence, err)
+			k.SetUpgradeErrorReceipt(ctx, portID, channelID, errorReceipt)
 			return 0, "", errorsmod.Wrapf(types.ErrChannelNotFound, "upgrade aborted, error receipt written for upgrade sequence: %d", upgradeSequence)
 		}
 
@@ -269,7 +294,8 @@ func (k Keeper) ChanUpgradeTry(
 func (k Keeper) WriteUpgradeTryChannel(
 	ctx sdk.Context,
 	portID,
-	channelID string,
+	channelID,
+	proposedUpgradeVersion string,
 	upgradeSequence uint64,
 	channelUpgrade types.Channel,
 ) error {
@@ -282,7 +308,7 @@ func (k Keeper) WriteUpgradeTryChannel(
 
 	// assign directly the fields that are modifiable.
 	// counterparty fields may not be changed.
-	channel.Version = channelUpgrade.Version
+	channel.Version = proposedUpgradeVersion
 	channel.Ordering = channelUpgrade.Ordering
 	channel.ConnectionHops = channelUpgrade.ConnectionHops
 
@@ -303,8 +329,8 @@ func (k Keeper) WriteUpgradeTryChannel(
 
 // TODO: should we pull out the error receipt logic from this function? They seem like two discrete operations.
 
-// RestoreChannel restores the given channel to the state prior to upgrade.
-func (k Keeper) RestoreChannel(ctx sdk.Context, portID, channelID string, upgradeSequence uint64, err error) error {
+// RestoreChannelAndWriteErrorReceipt restores the given channel to the state prior to upgrade.
+func (k Keeper) RestoreChannelAndWriteErrorReceipt(ctx sdk.Context, portID, channelID string, upgradeSequence uint64, err error) error {
 	errorReceipt := types.NewErrorReceipt(upgradeSequence, err)
 	k.SetUpgradeErrorReceipt(ctx, portID, channelID, errorReceipt)
 
