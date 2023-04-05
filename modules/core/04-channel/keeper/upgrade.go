@@ -147,7 +147,7 @@ func (k Keeper) ChanUpgradeTry(
 		return 0, "", errorsmod.Wrapf(types.ErrInvalidChannelOrdering, "channel ordering of counterparty channel and proposed channel must be equal")
 	}
 
-	connectionEnd, err := k.getUpgradeTryConnectionEnd(ctx, portID, channelID, channel)
+	connectionEnd, err := k.getConnectionForVerification(ctx, portID, channelID, channel, types.INITUPGRADE)
 	if err != nil {
 		return 0, "", err
 	}
@@ -346,60 +346,11 @@ func (k Keeper) RestoreChannelAndWriteErrorReceipt(ctx sdk.Context, portID, chan
 	return nil
 }
 
-// getUpgradeTryConnectionEnd returns the connection end that should be used. During crossing hellos, the restore
-// channel connection end is used, while in a regular flow the current channel connection end is used.
-func (k Keeper) getUpgradeTryConnectionEnd(ctx sdk.Context, portID string, channelID string, currentChannel types.Channel) (exported.ConnectionI, error) {
-	isCrossingHellos := currentChannel.State == types.INITUPGRADE
-	if isCrossingHellos {
-		// fetch restore channel
-		restoreChannel, found := k.GetUpgradeRestoreChannel(ctx, portID, channelID)
-		if !found {
-			return nil, errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
-		}
-		connectionEnd, err := k.GetConnection(ctx, restoreChannel.ConnectionHops[0])
-		if err != nil {
-			return nil, err
-		}
-		return connectionEnd, nil
-	}
-
-	// use current channel
-	connectionEnd, err := k.GetConnection(ctx, currentChannel.ConnectionHops[0])
-	if err != nil {
-		return nil, err
-	}
-	return connectionEnd, nil
-}
-
-// getUpgradeTryConnectionEnd returns the connection end that should be used. During crossing hellos, the restore
-// channel connection end is used, while in a regular flow the current channel connection end is used.
-func (k Keeper) getUpgradeAckConnectionEnd(ctx sdk.Context, portID string, channelID string, currentChannel types.Channel) (exported.ConnectionI, error) {
-	isCrossingHellos := currentChannel.State == types.TRYUPGRADE
-	if isCrossingHellos {
-		// fetch restore channel
-		restoreChannel, found := k.GetUpgradeRestoreChannel(ctx, portID, channelID)
-		if !found {
-			return nil, errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
-		}
-		connectionEnd, err := k.GetConnection(ctx, restoreChannel.ConnectionHops[0])
-		if err != nil {
-			return nil, err
-		}
-		return connectionEnd, nil
-	}
-
-	// use current channel
-	connectionEnd, err := k.GetConnection(ctx, currentChannel.ConnectionHops[0])
-	if err != nil {
-		return nil, err
-	}
-	return connectionEnd, nil
-}
-
+// ChanUpgradeAck handles an upgrade ack on a channel.
 func (k Keeper) ChanUpgradeAck(ctx sdk.Context, portID, channelID string, counterpartyChannel types.Channel, proofCounterpartyChannel, proofCounterpartyUpgradeSequence []byte, proofHeight clienttypes.Height) (types.Channel, uint64, error) {
 	channel, found := k.GetChannel(ctx, portID, channelID)
 	if !found {
-		return types.Channel{}, 0, errorsmod.Wrapf(types.ErrChannelNotFound, "failed to retrieve channel %s on port %s", channelID, portID)
+		panic(errorsmod.Wrapf(types.ErrChannelNotFound, "failed to retrieve channel %s on port %s", channelID, portID))
 	}
 
 	// current channel is in INITUPGRADE or TRYUPGRADE (crossing hellos)
@@ -408,14 +359,11 @@ func (k Keeper) ChanUpgradeAck(ctx sdk.Context, portID, channelID string, counte
 	}
 
 	// verify that the counterparty sequence is the same as the current sequence to ensure that the proofs were
-	// retrieved from the current upgrade attempt
-	// since all proofs are retrieved from same proof height, and there can not be multiple upgrade states in the store for a given
-	// channel at the same time
+	// retrieved from the current upgrade attempt since all proofs are retrieved from same proof height,
+	// and there can not be multiple upgrade states in the store for a given channel at the same time
 	upgradeSequence, found := k.GetUpgradeSequence(ctx, portID, channelID)
 	if !found {
-		errorReceipt := types.NewErrorReceipt(upgradeSequence, errorsmod.Wrapf(types.ErrUpgradeSequenceNotFound, "portID (%s), channelID (%s)", portID, channelID))
-		k.SetUpgradeErrorReceipt(ctx, portID, channelID, errorReceipt)
-		return types.Channel{}, 0, errorsmod.Wrapf(types.ErrUpgradeAborted, "upgrade aborted, error receipt written for upgrade sequence: %d", upgradeSequence)
+		panic(errorsmod.Wrapf(types.ErrUpgradeAborted, "upgrade aborted, error receipt written for upgrade sequence: %d", upgradeSequence))
 	}
 
 	if counterpartyChannel.State != types.TRYUPGRADE {
@@ -436,7 +384,7 @@ func (k Keeper) ChanUpgradeAck(ctx sdk.Context, portID, channelID string, counte
 		return types.Channel{}, 0, errorsmod.Wrapf(types.ErrInvalidChannelState, "expected counterparty ordering to equal upgrade channel ordering. counterparty channel: %s, upgrade channel: %s", counterpartyChannel.Ordering, channel.Ordering)
 	}
 
-	connectionEnd, err := k.getUpgradeAckConnectionEnd(ctx, portID, channelID, channel)
+	connectionEnd, err := k.getConnectionForVerification(ctx, portID, channelID, channel, types.TRYUPGRADE)
 	if err != nil {
 		return types.Channel{}, 0, err
 	}
@@ -465,7 +413,7 @@ func (k Keeper) ChanUpgradeAck(ctx sdk.Context, portID, channelID string, counte
 	return channel, upgradeSequence, nil
 }
 
-// WriteUpgradeAckChannel
+// WriteUpgradeAckChannel sets the channel state to OPEN.
 func (k Keeper) WriteUpgradeAckChannel(
 	ctx sdk.Context,
 	portID,
@@ -480,4 +428,29 @@ func (k Keeper) WriteUpgradeAckChannel(
 	k.DeleteUpgradeRestoreChannel(ctx, portID, channelID)
 
 	// TODO: emit events
+}
+
+// getConnectionForVerification returns the connection end that should be used. During crossing hellos, the restore
+// channel connection end is used, while in a regular flow the current channel connection end is used.
+func (k Keeper) getConnectionForVerification(ctx sdk.Context, portID string, channelID string, currentChannel types.Channel, crossingHelloState types.State) (exported.ConnectionI, error) {
+	isCrossingHellos := currentChannel.State == crossingHelloState
+	if isCrossingHellos {
+		// fetch restore channel
+		restoreChannel, found := k.GetUpgradeRestoreChannel(ctx, portID, channelID)
+		if !found {
+			return nil, errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
+		}
+		connectionEnd, err := k.GetConnection(ctx, restoreChannel.ConnectionHops[0])
+		if err != nil {
+			return nil, err
+		}
+		return connectionEnd, nil
+	}
+
+	// use current channel
+	connectionEnd, err := k.GetConnection(ctx, currentChannel.ConnectionHops[0])
+	if err != nil {
+		return nil, err
+	}
+	return connectionEnd, nil
 }
