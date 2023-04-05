@@ -310,11 +310,7 @@ func (k Keeper) WriteUpgradeTryChannel(
 	channel.Ordering = channelUpgrade.Ordering
 	channel.ConnectionHops = channelUpgrade.ConnectionHops
 
-	// prevent silent failures if fields that are not allowed to be modified are changed in the upgrade channel
-	// request.
-	if !reflect.DeepEqual(channel, channelUpgrade) {
-		return errorsmod.Wrapf(types.ErrInvalidChannel, "expected: %v but got: %v", channel, channelUpgrade)
-	}
+	// TODO: ZeroCustomFields()
 
 	k.SetChannel(ctx, portID, channelID, channel)
 
