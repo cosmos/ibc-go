@@ -648,21 +648,19 @@ func (s *E2ETestSuite) retryNtimes(f func() (sdk.TxResponse, error), attempts in
 		if !containsMessage(resp.RawLog, retryMessages) {
 			return resp, err
 		}
-		s.T().Logf("retrying tx due to ignored raw log: %s", resp.RawLog)
+		s.T().Logf("ignoring non deterministic tx: %+v", resp)
 	}
 	return resp, err
 }
 
 // containsMessages returns true if the string s contains any of the messages in the slice.
 func containsMessage(s string, messages []string) bool {
-	var containsText bool
 	for _, message := range messages {
 		if strings.Contains(s, message) {
-			containsText = true
-			break
+			return true
 		}
 	}
-	return containsText
+	return false
 }
 
 // GetIBCToken returns the denomination of the full token denom sent to the receiving channel
