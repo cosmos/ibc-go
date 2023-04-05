@@ -336,7 +336,7 @@ func (k Keeper) RestoreChannelAndWriteErrorReceipt(ctx sdk.Context, portID, chan
 
 	channel, found := k.GetUpgradeRestoreChannel(ctx, portID, channelID)
 	if !found {
-		return errorsmod.Wrapf(types.ErrChannelNotFound, "channel-id: %s", channelID)
+		return errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
 	}
 
 	k.SetChannel(ctx, portID, channelID, channel)
