@@ -5,7 +5,6 @@ import (
 	"time"
 
 	errorsmod "cosmossdk.io/errors"
-	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
@@ -19,7 +18,6 @@ import (
 func (suite *KeeperTestSuite) TestChanUpgradeInit() {
 	var (
 		path           *ibctesting.Path
-		chanCap        *capabilitytypes.Capability
 		upgradeChannel types.Channel
 		expSequence    uint64
 		expVersion     string
@@ -54,13 +52,6 @@ func (suite *KeeperTestSuite) TestChanUpgradeInit() {
 				path.EndpointA.SetChannel(channel)
 			},
 			true,
-		},
-		{
-			"invalid capability",
-			func() {
-				chanCap = capabilitytypes.NewCapability(42)
-			},
-			false,
 		},
 		{
 			"identical upgrade channel end",
@@ -115,7 +106,6 @@ func (suite *KeeperTestSuite) TestChanUpgradeInit() {
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.Setup(path)
 
-			chanCap, _ = suite.chainA.GetSimApp().GetScopedIBCKeeper().GetCapability(suite.chainA.GetContext(), host.ChannelCapabilityPath(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
 			upgradeChannel = types.NewChannel(types.INITUPGRADE, types.UNORDERED, types.NewCounterparty(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID), []string{path.EndpointA.ConnectionID}, fmt.Sprintf("%s-v2", mock.Version))
 
 			expSequence = 1
@@ -125,10 +115,10 @@ func (suite *KeeperTestSuite) TestChanUpgradeInit() {
 
 			sequence, previousVersion, err := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.ChanUpgradeInit(
 				suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID,
-				chanCap, upgradeChannel, path.EndpointB.Chain.GetTimeoutHeight(), 0,
+				upgradeChannel, path.EndpointB.Chain.GetTimeoutHeight(), 0,
 			)
 
-			err = suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.WriteUpgradeInitChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, sequence, upgradeChannel)
+			suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.WriteUpgradeInitChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, sequence, upgradeChannel)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -145,7 +135,6 @@ func (suite *KeeperTestSuite) TestChanUpgradeInit() {
 func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 	var (
 		path                        *ibctesting.Path
-		chanCap                     *capabilitytypes.Capability
 		upgradeChannel              types.Channel
 		counterpartyUpgradeSequence uint64
 		upgradeTimeout              types.UpgradeTimeout
@@ -276,13 +265,6 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 				suite.coordinator.CommitBlock(suite.chainA, suite.chainB)
 
 				suite.Require().NoError(path.EndpointB.UpdateClient())
-			},
-			false,
-		},
-		{
-			"invalid capability",
-			func() {
-				chanCap = capabilitytypes.NewCapability(42)
 			},
 			false,
 		},
@@ -426,7 +408,6 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 			err := path.EndpointA.ChanUpgradeInit(upgradeTimeout.TimeoutHeight, upgradeTimeout.TimeoutTimestamp)
 			suite.Require().NoError(err)
 
-			chanCap, _ = suite.chainB.GetSimApp().GetScopedIBCKeeper().GetCapability(suite.chainB.GetContext(), host.ChannelCapabilityPath(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID))
 			upgradeChannel = types.NewChannel(types.TRYUPGRADE, types.UNORDERED, types.NewCounterparty(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID), []string{path.EndpointB.ConnectionID}, fmt.Sprintf("%s-v2", mock.Version))
 
 			tc.malleate()
@@ -442,7 +423,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 
 			upgradeSequence, previousVersion, err := suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.ChanUpgradeTry(
 				suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID,
-				chanCap, path.EndpointA.GetChannel(), counterpartyUpgradeSequence, upgradeChannel, upgradeTimeout.TimeoutHeight, upgradeTimeout.TimeoutTimestamp,
+				path.EndpointA.GetChannel(), counterpartyUpgradeSequence, upgradeChannel, upgradeTimeout.TimeoutHeight, upgradeTimeout.TimeoutTimestamp,
 				proofChannel, proofUpgradeTimeout, proofUpgradeSequence, proofHeight,
 			)
 

@@ -717,7 +717,7 @@ func (k Keeper) ChannelUpgradeInit(goCtx context.Context, msg *channeltypes.MsgC
 		return nil, errorsmod.Wrap(err, "channel handshake upgrade init failed")
 	}
 
-	version, err := cbs.OnChanUpgradeInit(ctx, msg.ProposedUpgradeChannel.Ordering, msg.ProposedUpgradeChannel.ConnectionHops,
+	proposedVersion, err := cbs.OnChanUpgradeInit(ctx, msg.ProposedUpgradeChannel.Ordering, msg.ProposedUpgradeChannel.ConnectionHops,
 		msg.PortId, msg.ChannelId, upgradeSequence, msg.ProposedUpgradeChannel.Counterparty, msg.ProposedUpgradeChannel.Version,
 		previousVersion,
 	)
@@ -726,18 +726,12 @@ func (k Keeper) ChannelUpgradeInit(goCtx context.Context, msg *channeltypes.MsgC
 		return nil, errorsmod.Wrapf(err, "channel upgrade init callback failed for port ID: %s, channel ID: %s", msg.PortId, msg.ChannelId)
 	}
 
-	msg.ProposedUpgradeChannel.Version = version
-
-	if err := k.ChannelKeeper.WriteUpgradeInitChannel(ctx, msg.PortId, msg.ChannelId, upgradeSequence, msg.ProposedUpgradeChannel); err != nil {
-		ctx.Logger().Error("channel upgrade init failed", "port-id", msg.PortId, "channel-id", msg.ChannelId, "error", err.Error())
-		return nil, errorsmod.Wrapf(err, "channel upgrade init failed for port ID: %s, channel ID: %s", msg.PortId, msg.ChannelId)
-	}
-
-	ctx.Logger().Info("channel upgrade init callback succeeded", "channel-id", msg.ChannelId, "version", version)
+	k.ChannelKeeper.WriteUpgradeInitChannel(ctx, msg.PortId, msg.ChannelId, upgradeSequence, msg.ProposedUpgradeChannel)
+	ctx.Logger().Info("channel upgrade init callback succeeded", "channel-id", msg.ChannelId, "version", proposedVersion)
 
 	return &channeltypes.MsgChannelUpgradeInitResponse{
 		ChannelId:       msg.ChannelId,
-		Version:         version,
+		Version:         proposedVersion,
 		UpgradeSequence: upgradeSequence,
 	}, nil
 }
