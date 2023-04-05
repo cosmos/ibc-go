@@ -5,13 +5,13 @@ import (
 	"testing"
 	"time"
 
+	interchaintest "github.com/DimitrisJim/ictest/v7"
+	"github.com/DimitrisJim/ictest/v7/ibc"
+	test "github.com/DimitrisJim/ictest/v7/testutil"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	grouptypes "github.com/cosmos/cosmos-sdk/x/group"
 	"github.com/cosmos/gogoproto/proto"
-	interchaintest "github.com/strangelove-ventures/interchaintest/v7"
-	"github.com/strangelove-ventures/interchaintest/v7/ibc"
-	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/ibc-go/e2e/testsuite"

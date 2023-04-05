@@ -7,6 +7,8 @@ import (
 	"path"
 	"strings"
 
+	"github.com/DimitrisJim/ictest/v7/ibc"
+	interchaintestutil "github.com/DimitrisJim/ictest/v7/testutil"
 	tmjson "github.com/cometbft/cometbft/libs/json"
 	tmtypes "github.com/cometbft/cometbft/types"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -16,8 +18,6 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
-	"github.com/strangelove-ventures/interchaintest/v7/ibc"
-	interchaintestutil "github.com/strangelove-ventures/interchaintest/v7/testutil"
 	"gopkg.in/yaml.v2"
 
 	"github.com/cosmos/ibc-go/e2e/relayer"

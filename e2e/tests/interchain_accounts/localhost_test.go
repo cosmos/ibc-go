@@ -17,11 +17,11 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	"github.com/stretchr/testify/suite"
 
+	interchaintest "github.com/DimitrisJim/ictest/v7"
+	"github.com/DimitrisJim/ictest/v7/ibc"
+	test "github.com/DimitrisJim/ictest/v7/testutil"
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
-	"github.com/strangelove-ventures/interchaintest/v7"
-	"github.com/strangelove-ventures/interchaintest/v7/ibc"
-	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
 )
 
 func TestInterchainAccountsLocalhostTestSuite(t *testing.T) {

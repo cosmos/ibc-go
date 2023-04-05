@@ -8,6 +8,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/DimitrisJim/ictest/v7/chain/cosmos"
+	"github.com/DimitrisJim/ictest/v7/ibc"
+	test "github.com/DimitrisJim/ictest/v7/testutil"
 	"github.com/cometbft/cometbft/crypto/tmhash"
 	tmjson "github.com/cometbft/cometbft/libs/json"
 	"github.com/cometbft/cometbft/privval"
@@ -16,9 +19,6 @@ import (
 	tmtypes "github.com/cometbft/cometbft/types"
 	tmversion "github.com/cometbft/cometbft/version"
 	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
-	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
-	"github.com/strangelove-ventures/interchaintest/v7/ibc"
-	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"

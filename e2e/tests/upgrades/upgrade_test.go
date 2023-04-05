@@ -6,16 +6,19 @@ import (
 	"testing"
 	"time"
 
+<<<<<<< HEAD
 	"cosmossdk.io/math"
+=======
+	interchaintest "github.com/DimitrisJim/ictest/v7"
+	"github.com/DimitrisJim/ictest/v7/chain/cosmos"
+	"github.com/DimitrisJim/ictest/v7/ibc"
+	test "github.com/DimitrisJim/ictest/v7/testutil"
+>>>>>>> f44dd9ae (Point interchaintest to fork.)
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	"github.com/cosmos/gogoproto/proto"
 	intertxtypes "github.com/cosmos/interchain-accounts/x/inter-tx/types"
-	interchaintest "github.com/strangelove-ventures/interchaintest/v7"
-	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
-	"github.com/strangelove-ventures/interchaintest/v7/ibc"
-	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
 	"github.com/stretchr/testify/suite"
 	"golang.org/x/mod/semver"
 

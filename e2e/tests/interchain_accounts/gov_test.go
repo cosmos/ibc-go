@@ -10,9 +10,9 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/cosmos/gogoproto/proto"
 
-	"github.com/strangelove-ventures/interchaintest/v7"
-	"github.com/strangelove-ventures/interchaintest/v7/ibc"
-	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
+	interchaintest "github.com/DimitrisJim/ictest/v7"
+	"github.com/DimitrisJim/ictest/v7/ibc"
+	test "github.com/DimitrisJim/ictest/v7/testutil"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/ibc-go/e2e/testsuite"
