@@ -639,13 +639,13 @@ func (s *E2ETestSuite) IsRelayer(user ibc.Wallet) bool {
 // retryNtimes retries the provided function up to the provided number of attempts.
 func (s *E2ETestSuite) retryNtimes(f func() (sdk.TxResponse, error), attempts int) (sdk.TxResponse, error) {
 	// Ignore account sequence mismatch errors.
-	allowedMessages := []string{"account sequence mismatch"}
+	retryMessages := []string{"account sequence mismatch"}
 	var err error
 	var resp sdk.TxResponse
 	for i := 0; i < attempts; i++ {
 		// If the response's raw log doesn't contain any of the allowed prefixes we return, else, we retry.
 		resp, err = f()
-		if !containsMessage(resp.RawLog, allowedMessages) {
+		if !containsMessage(resp.RawLog, retryMessages) {
 			return resp, err
 		}
 		s.T().Logf("retrying tx due to ignored raw log: %s", resp.RawLog)
@@ -653,16 +653,16 @@ func (s *E2ETestSuite) retryNtimes(f func() (sdk.TxResponse, error), attempts in
 	return resp, err
 }
 
-// containsPrefix returns true if the string s contains any of the prefixes in the slice.
+// containsMessages returns true if the string s contains any of the messages in the slice.
 func containsMessage(s string, messages []string) bool {
-	var hasPrefix bool
+	var containsText bool
 	for _, message := range messages {
 		if strings.Contains(s, message) {
-			hasPrefix = true
+			containsText = true
 			break
 		}
 	}
-	return hasPrefix
+	return containsText
 }
 
 // GetIBCToken returns the denomination of the full token denom sent to the receiving channel
