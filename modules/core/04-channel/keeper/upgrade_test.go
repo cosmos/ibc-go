@@ -20,7 +20,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeInit() {
 	var (
 		path           *ibctesting.Path
 		chanCap        *capabilitytypes.Capability
-		channelUpgrade types.Channel
+		upgradeChannel types.Channel
 		expSequence    uint64
 		expVersion     string
 	)
@@ -65,7 +65,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeInit() {
 		{
 			"identical upgrade channel end",
 			func() {
-				channelUpgrade = types.NewChannel(types.INITUPGRADE, types.UNORDERED, types.NewCounterparty(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID), []string{path.EndpointA.ConnectionID}, mock.Version)
+				upgradeChannel = types.NewChannel(types.INITUPGRADE, types.UNORDERED, types.NewCounterparty(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID), []string{path.EndpointA.ConnectionID}, mock.Version)
 			},
 			false,
 		},
@@ -87,21 +87,21 @@ func (suite *KeeperTestSuite) TestChanUpgradeInit() {
 		{
 			"invalid proposed channel connection",
 			func() {
-				channelUpgrade.ConnectionHops = []string{"connection-100"}
+				upgradeChannel.ConnectionHops = []string{"connection-100"}
 			},
 			false,
 		},
 		{
 			"invalid proposed channel counterparty",
 			func() {
-				channelUpgrade.Counterparty = types.NewCounterparty(mock.PortID, "channel-100")
+				upgradeChannel.Counterparty = types.NewCounterparty(mock.PortID, "channel-100")
 			},
 			false,
 		},
 		{
 			"invalid proposed channel upgrade ordering",
 			func() {
-				channelUpgrade.Ordering = types.ORDERED
+				upgradeChannel.Ordering = types.ORDERED
 			},
 			false,
 		},
@@ -116,7 +116,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeInit() {
 			suite.coordinator.Setup(path)
 
 			chanCap, _ = suite.chainA.GetSimApp().GetScopedIBCKeeper().GetCapability(suite.chainA.GetContext(), host.ChannelCapabilityPath(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
-			channelUpgrade = types.NewChannel(types.INITUPGRADE, types.UNORDERED, types.NewCounterparty(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID), []string{path.EndpointA.ConnectionID}, fmt.Sprintf("%s-v2", mock.Version))
+			upgradeChannel = types.NewChannel(types.INITUPGRADE, types.UNORDERED, types.NewCounterparty(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID), []string{path.EndpointA.ConnectionID}, fmt.Sprintf("%s-v2", mock.Version))
 
 			expSequence = 1
 			expVersion = mock.Version
@@ -125,13 +125,16 @@ func (suite *KeeperTestSuite) TestChanUpgradeInit() {
 
 			sequence, previousVersion, err := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.ChanUpgradeInit(
 				suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID,
-				chanCap, channelUpgrade, path.EndpointB.Chain.GetTimeoutHeight(), 0,
+				chanCap, upgradeChannel, path.EndpointB.Chain.GetTimeoutHeight(), 0,
 			)
+
+			suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.WriteUpgradeInitChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, sequence, upgradeChannel)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
 				suite.Require().Equal(expSequence, sequence)
 				suite.Require().Equal(expVersion, previousVersion)
+				suite.Require().Equal(types.INITUPGRADE, path.EndpointA.GetChannel().State)
 			} else {
 				suite.Require().Error(err)
 			}
@@ -143,7 +146,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 	var (
 		path                        *ibctesting.Path
 		chanCap                     *capabilitytypes.Capability
-		channelUpgrade              types.Channel
+		upgradeChannel              types.Channel
 		counterpartyUpgradeSequence uint64
 		upgradeTimeout              types.UpgradeTimeout
 	)
@@ -230,7 +233,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 			func() {
 				// modify the version on chain B so the channel and upgrade channel are not identical.
 				path.EndpointB.ChannelConfig.Version = fmt.Sprintf("%s-v2", mock.Version)
-				channelUpgrade.Version = "different-version"
+				upgradeChannel.Version = "different-version"
 
 				err := path.EndpointB.ChanUpgradeInit(path.EndpointA.Chain.GetTimeoutHeight(), 0)
 				suite.Require().NoError(err)
@@ -301,14 +304,14 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 		{
 			"invalid proposed channel counterparty",
 			func() {
-				channelUpgrade.Counterparty = types.NewCounterparty(mock.PortID, "channel-100")
+				upgradeChannel.Counterparty = types.NewCounterparty(mock.PortID, "channel-100")
 			},
 			false,
 		},
 		{
 			"invalid proposed channel upgrade ordering",
 			func() {
-				channelUpgrade.Ordering = types.ORDERED
+				upgradeChannel.Ordering = types.ORDERED
 			},
 			false,
 		},
@@ -424,7 +427,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 			suite.Require().NoError(err)
 
 			chanCap, _ = suite.chainB.GetSimApp().GetScopedIBCKeeper().GetCapability(suite.chainB.GetContext(), host.ChannelCapabilityPath(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID))
-			channelUpgrade = types.NewChannel(types.TRYUPGRADE, types.UNORDERED, types.NewCounterparty(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID), []string{path.EndpointB.ConnectionID}, fmt.Sprintf("%s-v2", mock.Version))
+			upgradeChannel = types.NewChannel(types.TRYUPGRADE, types.UNORDERED, types.NewCounterparty(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID), []string{path.EndpointB.ConnectionID}, fmt.Sprintf("%s-v2", mock.Version))
 
 			tc.malleate()
 
@@ -439,14 +442,17 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 
 			upgradeSequence, previousVersion, err := suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.ChanUpgradeTry(
 				suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID,
-				chanCap, path.EndpointA.GetChannel(), counterpartyUpgradeSequence, channelUpgrade, upgradeTimeout.TimeoutHeight, upgradeTimeout.TimeoutTimestamp,
+				chanCap, path.EndpointA.GetChannel(), counterpartyUpgradeSequence, upgradeChannel, upgradeTimeout.TimeoutHeight, upgradeTimeout.TimeoutTimestamp,
 				proofChannel, proofUpgradeTimeout, proofUpgradeSequence, proofHeight,
 			)
+
+			suite.chainB.GetSimApp().GetIBCKeeper().ChannelKeeper.WriteUpgradeTryChannel(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, upgradeChannel.Version, upgradeSequence, upgradeChannel)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
 				suite.Require().Equal(counterpartyUpgradeSequence, upgradeSequence)
 				suite.Require().Equal(mock.Version, previousVersion)
+				suite.Require().Equal(types.TRYUPGRADE, path.EndpointB.GetChannel().State)
 			} else {
 				suite.Require().Error(err)
 

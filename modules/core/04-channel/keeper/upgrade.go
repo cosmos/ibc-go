@@ -88,7 +88,7 @@ func (k Keeper) WriteUpgradeInitChannel(
 	portID,
 	channelID string,
 	upgradeSequence uint64,
-	channelUpgrade types.Channel,
+	upgradeChannel types.Channel,
 ) error {
 	defer telemetry.IncrCounter(1, "ibc", "channel", "upgrade-init")
 
@@ -99,16 +99,17 @@ func (k Keeper) WriteUpgradeInitChannel(
 
 	// assign directly the fields that are modifiable.
 	// counterparty fields may not be changed.
-	channel.Version = channelUpgrade.Version
-	channel.Ordering = channelUpgrade.Ordering
-	channel.ConnectionHops = channelUpgrade.ConnectionHops
+	channel.State = types.INITUPGRADE
+	channel.Version = upgradeChannel.Version
+	channel.Ordering = upgradeChannel.Ordering
+	channel.ConnectionHops = upgradeChannel.ConnectionHops
 
-	// TODO: do a deep equal on channel / channelUpgrade and return a failure?
+	// TODO: do a deep equal on channel / upgradeChannel and return a failure?
 
-	k.SetChannel(ctx, portID, channelID, channelUpgrade)
+	k.SetChannel(ctx, portID, channelID, upgradeChannel)
 	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", types.OPEN.String(), "new-state", types.INITUPGRADE.String())
 
-	emitChannelUpgradeInitEvent(ctx, portID, channelID, upgradeSequence, channelUpgrade)
+	emitChannelUpgradeInitEvent(ctx, portID, channelID, upgradeSequence, upgradeChannel)
 	return nil
 }
 
@@ -234,6 +235,7 @@ func (k Keeper) ChanUpgradeTry(
 		// this is first message in upgrade handshake on this chain so we must store original channel in restore channel path
 		// in case we need to restore channel later.
 		k.SetUpgradeRestoreChannel(ctx, portID, channelID, channel)
+
 	case types.INITUPGRADE:
 		upgradeSequence, found = k.GetUpgradeSequence(ctx, portID, channelID)
 		if !found {
@@ -260,7 +262,6 @@ func (k Keeper) ChanUpgradeTry(
 		// except for the channel state (upgrade channel will be in TRYUPGRADE and current channel will be in INITUPGRADE)
 		// if the proposed upgrades on either side are incompatible, then we will restore the channel and cancel the upgrade.
 		channel.State = types.TRYUPGRADE
-		k.SetChannel(ctx, portID, channelID, channel)
 
 		if !reflect.DeepEqual(channel, proposedUpgradeChannel) {
 			// TODO: log and emit events
@@ -306,6 +307,7 @@ func (k Keeper) WriteUpgradeTryChannel(
 
 	// assign directly the fields that are modifiable.
 	// counterparty fields may not be changed.
+	channel.State = types.TRYUPGRADE
 	channel.Version = proposedUpgradeVersion
 	channel.Ordering = channelUpgrade.Ordering
 	channel.ConnectionHops = channelUpgrade.ConnectionHops
