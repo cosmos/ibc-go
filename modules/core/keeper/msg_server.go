@@ -844,11 +844,28 @@ func (k Keeper) ChannelUpgradeAck(goCtx context.Context, msg *channeltypes.MsgCh
 		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
 	}
 
-	k.ChannelKeeper.ChanUpgradeAck(ctx, msg.ChannelId, msg.ChannelId, msg.CounterpartyChannel, msg.ProofChannel, msg.ProofUpgradeSequence, msg.ProofHeight)
+	if err := k.ChannelKeeper.ChanUpgradeAck(ctx, msg.PortId, msg.ChannelId, msg.CounterpartyChannel, msg.ProofChannel, msg.ProofUpgradeSequence, msg.ProofHeight); err != nil {
+		ctx.Logger().Error("channel upgrade ack failed", "error", errorsmod.Wrap(err, "channel handshake upgrade ack failed"))
+		return nil, errorsmod.Wrap(err, "channel handshake upgrade ack failed")
+	}
 
-	_ = cbs
+	// TODO set these
+	upgradeSequence := uint64(0)
+	upgradeChannel := channeltypes.Channel{}
+	proposedUpgradeVersion := ""
 
-	return nil, nil
+	if err := cbs.OnChanOpenAck(ctx, msg.PortId, msg.ChannelId, msg.CounterpartyChannel.Counterparty.ChannelId, msg.CounterpartyChannel.Version); err != nil {
+		if err := k.ChannelKeeper.RestoreChannelAndWriteErrorReceipt(ctx, msg.PortId, msg.ChannelId, upgradeSequence, err); err != nil {
+			ctx.Logger().Error("error restoring channel on portID %s, channelID %s: %s", msg.PortId, msg.ChannelId, err)
+		}
+	}
+
+	if err := k.ChannelKeeper.WriteUpgradeAckChannel(ctx, msg.PortId, msg.ChannelId, proposedUpgradeVersion, upgradeSequence, upgradeChannel); err != nil {
+		ctx.Logger().Error("error writing upgrade ack channel on portID %s, channelID %s: %s", msg.PortId, msg.ChannelId, err)
+		return nil, err
+	}
+
+	return &channeltypes.MsgChannelUpgradeAckResponse{}, nil
 }
 
 // ChannelUpgradeConfirm defines a rpc handler method for MsgChannelUpgradeConfirm.

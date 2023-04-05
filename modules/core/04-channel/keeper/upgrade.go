@@ -387,6 +387,61 @@ func (k Keeper) getUpgradeTryConnectionEnd(ctx sdk.Context, portID string, chann
 	return connectionEnd, nil
 }
 
-func (k Keeper) ChanUpgradeAck(ctx sdk.Context, portID, channelID string, counterpartyChannel types.Channel, proofChannel, proofUpgradeSequence []byte, proofHeight clienttypes.Height) {
+func (k Keeper) ChanUpgradeAck(ctx sdk.Context, portID, channelID string, counterpartyChannel types.Channel, proofChannel, proofUpgradeSequence []byte, proofHeight clienttypes.Height) error {
+	/*
+	  // current channel is in INITUPGRADE or TRYUPGRADE (crossing hellos)
+	    currentChannel = provableStore.get(channelPath(portIdentifier, channelIdentifier))
+	    abortTransactionUnless(currentChannel.state == INITUPGRADE || currentChannel.state == TRYUPGRADE)
 
+	    // get underlying connection for proof verification
+	    connection = getConnection(currentChannel.connectionIdentifier)
+
+	    // verify proofs of counterparty state
+	    abortTransactionUnless(verifyChannelState(connection, proofHeight, proofChannel, currentChannel.counterpartyPortIdentifier, currentChannel.counterpartyChannelIdentifier, counterpartyChannel))
+
+	    // verify that the counterparty sequence is the same as the current sequence to ensure that the proofs were
+	    // retrieved from the current upgrade attempt
+	    // since all proofs are retrieved from same proof height, and there can not be multiple upgrade states in the store for a given
+	    // channel at the same time
+	    sequence = provableStore.get(channelUpgradeSequencePath(portIdentifier, channelIdentifier))
+	    abortTransactionUnless(verifyUpgradeSequence(connection, proofHeight, proofUpgradeSequence, currentChannel.counterpartyPortIdentifier,
+	    currentChannel.counterpartyChannelIdentifier, sequence))
+
+	    // counterparty must be in TRY state
+	    if counterpartyChannel.State != TRYUPGRADE {
+	        restoreChannel(portIdentifier, channelIdentifier)
+	        return
+	    }
+
+
+	    // both channel ends must be mutually compatible.
+	    // this means that the ordering must be the same and
+	    // any future introduced fields that must be compatible
+	    // should also be checked
+	    if counterpartyChannel.ordering != proposedUpgradeChannel.ordering {
+	        restoreChannel(portIdentifier, channelIdentifier)
+	        return
+	    }
+
+	*/
+	return nil
+}
+
+// WriteUpgradeAckChannel
+func (k Keeper) WriteUpgradeAckChannel(
+	ctx sdk.Context,
+	portID,
+	channelID,
+	proposedUpgradeVersion string,
+	upgradeSequence uint64,
+	channelUpgrade types.Channel,
+) error {
+
+	// upgrade is complete
+	// set channel to OPEN and remove unnecessary state
+	//	currentChannel.state = OPEN
+	//	provableStore.set(channelPath(portIdentifier, channelIdentifier), currentChannel)
+	//	provableStore.delete(channelUpgradeTimeoutPath(portIdentifier, channelIdentifier))
+	//	privateStore.delete(channelRestorePath(portIdentifier, channelIdentifier))
+	return nil
 }
