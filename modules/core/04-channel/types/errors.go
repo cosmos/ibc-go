@@ -45,5 +45,5 @@ var (
 	ErrChannelUpgradeRestoreFailure = errorsmod.Register(SubModuleName, 29, "failed to restore channel during upgrade")
 	ErrUpgradeAborted               = errorsmod.Register(SubModuleName, 30, "upgrade aborted")
 	ErrUpgradeTimeout               = errorsmod.Register(SubModuleName, 31, "upgrade timeout")
-	ErrUpgradeErrorNotFound         = errorsmod.Register(SubModuleName, 32, "upgrade error receipt not found")
+	ErrUpgradeErrorReceiptNotFound  = errorsmod.Register(SubModuleName, 32, "upgrade error receipt not found")
 )

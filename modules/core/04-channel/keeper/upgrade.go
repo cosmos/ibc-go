@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"reflect"
+	"time"
 
 	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/telemetry"
@@ -102,11 +103,7 @@ func (k Keeper) WriteUpgradeInitChannel(
 	channel.Ordering = channelUpgrade.Ordering
 	channel.ConnectionHops = channelUpgrade.ConnectionHops
 
-	// prevent silent failures if fields that are not allowed to be modified are changed in the upgrade channel
-	// request.
-	if !reflect.DeepEqual(channel, channelUpgrade) {
-		return errorsmod.Wrapf(types.ErrInvalidChannel, "expected: %v but got: %v", channel, channelUpgrade)
-	}
+	// TODO: do a deep equal on channel / channelUpgrade and return a failure?
 
 	k.SetChannel(ctx, portID, channelID, channelUpgrade)
 	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", types.OPEN.String(), "new-state", types.INITUPGRADE.String())
@@ -116,7 +113,9 @@ func (k Keeper) WriteUpgradeInitChannel(
 }
 
 // ChanUpgradeTry is called by a module to accept the first step of a channel upgrade
-// handshake initiated by a module on another chain.
+// handshake initiated by a module on another chain. If this function is successful, the upgrade sequence
+// will be returned. If an error occurs in the callback, 0 will be returned but the upgrade sequence will
+// be incremented.
 func (k Keeper) ChanUpgradeTry(
 	ctx sdk.Context,
 	portID string,
@@ -147,7 +146,7 @@ func (k Keeper) ChanUpgradeTry(
 
 	if proposedUpgradeChannel.Counterparty.PortId != channel.Counterparty.PortId ||
 		proposedUpgradeChannel.Counterparty.ChannelId != channel.Counterparty.ChannelId {
-		return 0, "", errorsmod.Wrap(types.ErrInvalidChannel, "proposed channel upgrade is invalid")
+		return 0, "", errorsmod.Wrap(types.ErrInvalidChannel, "counterparty port ID and channel ID cannot be upgraded")
 	}
 
 	if !channel.Ordering.SubsetOf(proposedUpgradeChannel.Ordering) {
@@ -196,7 +195,7 @@ func (k Keeper) ChanUpgradeTry(
 		if err := k.RestoreChannelAndWriteErrorReceipt(ctx, portID, channelID, upgradeSequence, types.ErrUpgradeTimeout); err != nil {
 			return 0, "", errorsmod.Wrap(types.ErrUpgradeAborted, err.Error())
 		}
-		return 0, "", errorsmod.Wrap(types.ErrUpgradeAborted, "upgrade timed out")
+		return 0, "", errorsmod.Wrapf(types.ErrUpgradeAborted, "block height >= upgrade timeout height (%s >= %s)", selfHeight, timeoutHeight)
 	}
 
 	// check if upgrade timed out by comparing it with the latest timestamp of the chain
@@ -204,7 +203,7 @@ func (k Keeper) ChanUpgradeTry(
 		if err := k.RestoreChannelAndWriteErrorReceipt(ctx, portID, channelID, upgradeSequence, types.ErrUpgradeTimeout); err != nil {
 			return 0, "", errorsmod.Wrap(types.ErrUpgradeAborted, err.Error())
 		}
-		return 0, "", errorsmod.Wrap(types.ErrUpgradeAborted, "upgrade timed out")
+		return 0, "", errorsmod.Wrapf(types.ErrUpgradeAborted, "block timestamp >= upgrade timeout timestamp (%s >= %s)", ctx.BlockTime(), time.Unix(0, int64(timeoutTimestamp)))
 	}
 
 	switch channel.State {
@@ -219,7 +218,7 @@ func (k Keeper) ChanUpgradeTry(
 			upgradeSequence = counterpartyUpgradeSequence
 			k.SetUpgradeSequence(ctx, portID, channelID, upgradeSequence)
 		} else {
-			errorReceipt := types.NewErrorReceipt(upgradeSequence, errorsmod.Wrapf(types.ErrUpgradeAborted, "upgrade sequence %d was not smaller than the counter party chain upgrade sequence %d", upgradeSequence, counterpartyUpgradeSequence))
+			errorReceipt := types.NewErrorReceipt(upgradeSequence, errorsmod.Wrapf(types.ErrUpgradeAborted, "counterparty chain upgrade sequence <= upgrade sequence (%d <= %d)", counterpartyUpgradeSequence, upgradeSequence))
 			// the upgrade sequence is incremented so both sides start the next upgrade with a fresh sequence.
 			upgradeSequence++
 
@@ -238,15 +237,14 @@ func (k Keeper) ChanUpgradeTry(
 	case types.INITUPGRADE:
 		upgradeSequence, found = k.GetUpgradeSequence(ctx, portID, channelID)
 		if !found {
-			errorReceipt := types.NewErrorReceipt(upgradeSequence, errorsmod.Wrapf(types.ErrUpgradeAborted, "upgrade sequence %d was not smaller than the counter party chain upgrade sequence %d", upgradeSequence, counterpartyUpgradeSequence))
+			errorReceipt := types.NewErrorReceipt(upgradeSequence, errorsmod.Wrap(types.ErrUpgradeAborted, "upgrade sequence not found"))
 			k.SetUpgradeErrorReceipt(ctx, portID, channelID, errorReceipt)
 
 			return 0, "", errorsmod.Wrapf(types.ErrUpgradeAborted, "upgrade aborted, error receipt written for upgrade sequence: %d", upgradeSequence)
 		}
 
 		if upgradeSequence != counterpartyUpgradeSequence {
-			errorReceipt := types.NewErrorReceipt(upgradeSequence, errorsmod.Wrapf(types.ErrUpgradeAborted, "upgrade sequence %d was not equal to the counter party chain upgrade sequence %d", upgradeSequence, counterpartyUpgradeSequence))
-
+			errorReceipt := types.NewErrorReceipt(upgradeSequence, errorsmod.Wrapf(types.ErrUpgradeAborted, "upgrade sequence ≠ counterparty chain upgrade sequence (%d ≠ %d)", upgradeSequence, counterpartyUpgradeSequence))
 			// set to the max of the two
 			if counterpartyUpgradeSequence > upgradeSequence {
 				upgradeSequence = counterpartyUpgradeSequence
@@ -254,7 +252,7 @@ func (k Keeper) ChanUpgradeTry(
 			}
 
 			k.SetUpgradeErrorReceipt(ctx, portID, channelID, errorReceipt)
-			return 0, "", errorsmod.Wrapf(types.ErrUpgradeAborted, "upgrade aborted, error receipt written for upgrade sequence: %d", upgradeSequence)
+			return 0, "", errorsmod.Wrapf(types.ErrUpgradeAborted, "upgrade aborted, error receipt written for upgrade sequence: %d", errorReceipt.Sequence)
 		}
 
 		// if there is a crossing hello, i.e an UpgradeInit has been called on both channelEnds,
