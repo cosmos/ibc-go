@@ -462,8 +462,8 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 
 func (suite *KeeperTestSuite) TestChanUpgradeAck() {
 	var (
-		path    *ibctesting.Path
-		chanCap *capabilitytypes.Capability
+		path                        *ibctesting.Path
+		chanCap                     *capabilitytypes.Capability
 		counterpartyUpgradeSequence uint64
 		upgradeTimeout              types.UpgradeTimeout
 	)
@@ -508,7 +508,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeAck() {
 			upgradeSequenceKey := host.ChannelUpgradeSequenceKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 			proofUpgradeSequence, _ := suite.chainB.QueryProof(upgradeSequenceKey)
 
-			channel, upgradeSequence, err := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.ChanUpgradeAck(
+			upgradeChannel, upgradeSequence, err := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.ChanUpgradeAck(
 				suite.chainA.GetContext(),
 				chanCap,
 				path.EndpointA.ChannelConfig.PortID,
@@ -519,11 +519,12 @@ func (suite *KeeperTestSuite) TestChanUpgradeAck() {
 				proofHeight,
 			)
 
-			_ = channel
+			suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.WriteUpgradeAckChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, upgradeChannel)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
 				suite.Require().Equal(counterpartyUpgradeSequence, upgradeSequence)
+				suite.Require().Equal(types.OPEN, path.EndpointA.GetChannel().State)
 			} else {
 				suite.Require().Error(err)
 			}
