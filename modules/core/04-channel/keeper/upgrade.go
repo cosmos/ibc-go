@@ -1,13 +1,13 @@
 package keeper
 
 import (
+	"fmt"
 	"reflect"
 	"time"
 
 	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
 	"github.com/cosmos/ibc-go/v7/internal/collections"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
@@ -15,7 +15,6 @@ import (
 	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	portkeeper "github.com/cosmos/ibc-go/v7/modules/core/05-port/keeper"
 	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
-	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
@@ -25,7 +24,6 @@ func (k Keeper) ChanUpgradeInit(
 	ctx sdk.Context,
 	portID string,
 	channelID string,
-	chanCap *capabilitytypes.Capability,
 	proposedUpgradeChannel types.Channel,
 	counterpartyTimeoutHeight clienttypes.Height,
 	counterpartyTimeoutTimestamp uint64,
@@ -37,10 +35,6 @@ func (k Keeper) ChanUpgradeInit(
 
 	if channel.State != types.OPEN {
 		return 0, "", errorsmod.Wrapf(types.ErrInvalidChannelState, "expected %s, got %s", types.OPEN, channel.State)
-	}
-
-	if !k.scopedKeeper.AuthenticateCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)) {
-		return 0, "", errorsmod.Wrapf(types.ErrChannelCapabilityNotFound, "caller does not own capability for channel, port ID (%s) channel ID (%s)", portID, channelID)
 	}
 
 	// set the restore channel to the current channel and reassign channel state to INITUPGRADE,
@@ -88,28 +82,28 @@ func (k Keeper) WriteUpgradeInitChannel(
 	portID,
 	channelID string,
 	upgradeSequence uint64,
-	channelUpgrade types.Channel,
-) error {
+	upgradeChannel types.Channel,
+) {
 	defer telemetry.IncrCounter(1, "ibc", "channel", "upgrade-init")
 
 	channel, found := k.GetChannel(ctx, portID, channelID)
 	if !found {
-		return errorsmod.Wrapf(types.ErrChannelNotFound, "failed to retrieve channel %s on port %s", channelID, portID)
+		panic(fmt.Sprintf("failed to retrieve channel %s on port %s", channelID, portID))
 	}
 
 	// assign directly the fields that are modifiable.
 	// counterparty fields may not be changed.
-	channel.Version = channelUpgrade.Version
-	channel.Ordering = channelUpgrade.Ordering
-	channel.ConnectionHops = channelUpgrade.ConnectionHops
+	channel.State = types.INITUPGRADE
+	channel.Version = upgradeChannel.Version
+	channel.Ordering = upgradeChannel.Ordering
+	channel.ConnectionHops = upgradeChannel.ConnectionHops
 
-	// TODO: do a deep equal on channel / channelUpgrade and return a failure?
+	// TODO: do a deep equal on channel / upgradeChannel and return a failure?
 
-	k.SetChannel(ctx, portID, channelID, channelUpgrade)
+	k.SetChannel(ctx, portID, channelID, upgradeChannel)
 	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", types.OPEN.String(), "new-state", types.INITUPGRADE.String())
 
-	emitChannelUpgradeInitEvent(ctx, portID, channelID, upgradeSequence, channelUpgrade)
-	return nil
+	emitChannelUpgradeInitEvent(ctx, portID, channelID, upgradeSequence, upgradeChannel)
 }
 
 // ChanUpgradeTry is called by a module to accept the first step of a channel upgrade
@@ -120,8 +114,7 @@ func (k Keeper) ChanUpgradeTry(
 	ctx sdk.Context,
 	portID string,
 	channelID string,
-	chanCap *capabilitytypes.Capability,
-	counterpartyChannel types.Channel,
+	counterpartyUpgradeChannel types.Channel,
 	counterpartyUpgradeSequence uint64,
 	proposedUpgradeChannel types.Channel,
 	timeoutHeight clienttypes.Height,
@@ -136,12 +129,9 @@ func (k Keeper) ChanUpgradeTry(
 		return 0, "", errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
 	}
 
+	// the channel state could be in INITUPGRADE if we are in a crossing hellos situation
 	if !collections.Contains(channel.State, []types.State{types.OPEN, types.INITUPGRADE}) {
 		return 0, "", errorsmod.Wrapf(types.ErrInvalidChannelState, "expected one of [%s, %s], got %s", types.OPEN, types.INITUPGRADE, channel.State)
-	}
-
-	if !k.scopedKeeper.AuthenticateCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)) {
-		return 0, "", errorsmod.Wrapf(types.ErrChannelCapabilityNotFound, "caller does not own capability for channel, port ID (%s) channel ID (%s)", portID, channelID)
 	}
 
 	if proposedUpgradeChannel.Counterparty.PortId != channel.Counterparty.PortId ||
@@ -153,7 +143,7 @@ func (k Keeper) ChanUpgradeTry(
 		return 0, "", errorsmod.Wrap(types.ErrInvalidChannelOrdering, "channel ordering must be a subset of the new ordering")
 	}
 
-	if counterpartyChannel.Ordering != proposedUpgradeChannel.Ordering {
+	if counterpartyUpgradeChannel.Ordering != proposedUpgradeChannel.Ordering {
 		return 0, "", errorsmod.Wrapf(types.ErrInvalidChannelOrdering, "channel ordering of counterparty channel and proposed channel must be equal")
 	}
 
@@ -169,23 +159,23 @@ func (k Keeper) ChanUpgradeTry(
 		)
 	}
 
-	if connectionEnd.GetCounterparty().GetConnectionID() != counterpartyChannel.ConnectionHops[0] {
-		return 0, "", errorsmod.Wrapf(connectiontypes.ErrInvalidConnection, "unexpected counterparty channel connection hops, expected %s but got %s", connectionEnd.GetCounterparty().GetConnectionID(), counterpartyChannel.ConnectionHops[0])
+	if connectionEnd.GetCounterparty().GetConnectionID() != counterpartyUpgradeChannel.ConnectionHops[0] {
+		return 0, "", errorsmod.Wrapf(connectiontypes.ErrInvalidConnection, "unexpected counterparty channel connection hops, expected %s but got %s", connectionEnd.GetCounterparty().GetConnectionID(), counterpartyUpgradeChannel.ConnectionHops[0])
 	}
 
-	if err := k.connectionKeeper.VerifyChannelState(ctx, connectionEnd, proofHeight, proofChannel, proposedUpgradeChannel.Counterparty.PortId,
-		proposedUpgradeChannel.Counterparty.ChannelId, counterpartyChannel); err != nil {
+	if err := k.connectionKeeper.VerifyChannelState(ctx, connectionEnd, proofHeight, proofChannel, channel.Counterparty.PortId,
+		channel.Counterparty.ChannelId, counterpartyUpgradeChannel); err != nil {
 		return 0, "", err
 	}
 
 	upgradeTimeout := types.UpgradeTimeout{TimeoutHeight: timeoutHeight, TimeoutTimestamp: timeoutTimestamp}
-	if err := k.connectionKeeper.VerifyChannelUpgradeTimeout(ctx, connectionEnd, proofHeight, proofUpgradeTimeout, proposedUpgradeChannel.Counterparty.PortId,
-		proposedUpgradeChannel.Counterparty.ChannelId, upgradeTimeout); err != nil {
+	if err := k.connectionKeeper.VerifyChannelUpgradeTimeout(ctx, connectionEnd, proofHeight, proofUpgradeTimeout, channel.Counterparty.PortId,
+		channel.Counterparty.ChannelId, upgradeTimeout); err != nil {
 		return 0, "", err
 	}
 
-	if err := k.connectionKeeper.VerifyChannelUpgradeSequence(ctx, connectionEnd, proofHeight, proofUpgradeSequence, proposedUpgradeChannel.Counterparty.PortId,
-		proposedUpgradeChannel.Counterparty.ChannelId, counterpartyUpgradeSequence); err != nil {
+	if err := k.connectionKeeper.VerifyChannelUpgradeSequence(ctx, connectionEnd, proofHeight, proofUpgradeSequence, channel.Counterparty.PortId,
+		channel.Counterparty.ChannelId, counterpartyUpgradeSequence); err != nil {
 		return 0, "", err
 	}
 
@@ -235,8 +225,6 @@ func (k Keeper) ChanUpgradeTry(
 		// in case we need to restore channel later.
 		k.SetUpgradeRestoreChannel(ctx, portID, channelID, channel)
 
-		channel.State = types.TRYUPGRADE
-		k.SetChannel(ctx, portID, channelID, channel)
 	case types.INITUPGRADE:
 		upgradeSequence, found = k.GetUpgradeSequence(ctx, portID, channelID)
 		if !found {
@@ -263,7 +251,6 @@ func (k Keeper) ChanUpgradeTry(
 		// except for the channel state (upgrade channel will be in TRYUPGRADE and current channel will be in INITUPGRADE)
 		// if the proposed upgrades on either side are incompatible, then we will restore the channel and cancel the upgrade.
 		channel.State = types.TRYUPGRADE
-		k.SetChannel(ctx, portID, channelID, channel)
 
 		if !reflect.DeepEqual(channel, proposedUpgradeChannel) {
 			// TODO: log and emit events
@@ -299,19 +286,22 @@ func (k Keeper) WriteUpgradeTryChannel(
 	proposedUpgradeVersion string,
 	upgradeSequence uint64,
 	channelUpgrade types.Channel,
-) error {
+) {
 	defer telemetry.IncrCounter(1, "ibc", "channel", "upgrade-try")
 
 	channel, found := k.GetChannel(ctx, portID, channelID)
 	if !found {
-		return errorsmod.Wrapf(types.ErrChannelNotFound, "failed to retrieve channel %s on port %s", channelID, portID)
+		panic(fmt.Sprintf("failed to retrieve channel %s on port %s", channelID, portID))
 	}
 
 	// assign directly the fields that are modifiable.
 	// counterparty fields may not be changed.
+	channel.State = types.TRYUPGRADE
 	channel.Version = proposedUpgradeVersion
 	channel.Ordering = channelUpgrade.Ordering
 	channel.ConnectionHops = channelUpgrade.ConnectionHops
+
+	// TODO: ZeroCustomFields()
 
 	k.SetChannel(ctx, portID, channelID, channel)
 
@@ -319,7 +309,6 @@ func (k Keeper) WriteUpgradeTryChannel(
 	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", types.OPEN.String(), "new-state", types.TRYUPGRADE.String())
 
 	emitChannelUpgradeTryEvent(ctx, portID, channelID, upgradeSequence, channelUpgrade)
-	return nil
 }
 
 // TODO: should we pull out the error receipt logic from this function? They seem like two discrete operations.
