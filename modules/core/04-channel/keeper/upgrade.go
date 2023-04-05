@@ -387,61 +387,117 @@ func (k Keeper) getUpgradeTryConnectionEnd(ctx sdk.Context, portID string, chann
 	return connectionEnd, nil
 }
 
-func (k Keeper) ChanUpgradeAck(ctx sdk.Context, portID, channelID string, counterpartyChannel types.Channel, proofChannel, proofUpgradeSequence []byte, proofHeight clienttypes.Height) error {
-	/*
-	  // current channel is in INITUPGRADE or TRYUPGRADE (crossing hellos)
-	    currentChannel = provableStore.get(channelPath(portIdentifier, channelIdentifier))
-	    abortTransactionUnless(currentChannel.state == INITUPGRADE || currentChannel.state == TRYUPGRADE)
+// getUpgradeTryConnectionEnd returns the connection end that should be used. During crossing hellos, the restore
+// channel connection end is used, while in a regular flow the current channel connection end is used.
+func (k Keeper) getUpgradeAckConnectionEnd(ctx sdk.Context, portID string, channelID string, currentChannel types.Channel) (exported.ConnectionI, error) {
+	isCrossingHellos := currentChannel.State == types.TRYUPGRADE
+	if isCrossingHellos {
+		// fetch restore channel
+		restoreChannel, found := k.GetUpgradeRestoreChannel(ctx, portID, channelID)
+		if !found {
+			return nil, errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
+		}
+		connectionEnd, err := k.GetConnection(ctx, restoreChannel.ConnectionHops[0])
+		if err != nil {
+			return nil, err
+		}
+		return connectionEnd, nil
+	}
 
-	    // get underlying connection for proof verification
-	    connection = getConnection(currentChannel.connectionIdentifier)
+	// use current channel
+	connectionEnd, err := k.GetConnection(ctx, currentChannel.ConnectionHops[0])
+	if err != nil {
+		return nil, err
+	}
+	return connectionEnd, nil
+}
 
-	    // verify proofs of counterparty state
-	    abortTransactionUnless(verifyChannelState(connection, proofHeight, proofChannel, currentChannel.counterpartyPortIdentifier, currentChannel.counterpartyChannelIdentifier, counterpartyChannel))
+func (k Keeper) ChanUpgradeAck(ctx sdk.Context, chanCap *capabilitytypes.Capability, portID, channelID string, counterpartyChannel types.Channel, proofCounterpartyChannel, proofCounterpartyUpgradeSequence []byte, proofHeight clienttypes.Height) (types.Channel, uint64, error) {
+	channel, found := k.GetChannel(ctx, portID, channelID)
+	if !found {
+		return types.Channel{}, 0, errorsmod.Wrapf(types.ErrChannelNotFound, "failed to retrieve channel %s on port %s", channelID, portID)
+	}
 
-	    // verify that the counterparty sequence is the same as the current sequence to ensure that the proofs were
-	    // retrieved from the current upgrade attempt
-	    // since all proofs are retrieved from same proof height, and there can not be multiple upgrade states in the store for a given
-	    // channel at the same time
-	    sequence = provableStore.get(channelUpgradeSequencePath(portIdentifier, channelIdentifier))
-	    abortTransactionUnless(verifyUpgradeSequence(connection, proofHeight, proofUpgradeSequence, currentChannel.counterpartyPortIdentifier,
-	    currentChannel.counterpartyChannelIdentifier, sequence))
+	// current channel is in INITUPGRADE or TRYUPGRADE (crossing hellos)
+	if !collections.Contains(channel.State, []types.State{types.INITUPGRADE, types.TRYUPGRADE}) {
+		return types.Channel{}, 0, errorsmod.Wrapf(types.ErrInvalidChannelState, "expected one of [%s, %s], got %s", types.INITUPGRADE, types.TRYUPGRADE, channel.State)
+	}
 
-	    // counterparty must be in TRY state
-	    if counterpartyChannel.State != TRYUPGRADE {
-	        restoreChannel(portIdentifier, channelIdentifier)
-	        return
-	    }
+	if !k.scopedKeeper.AuthenticateCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)) {
+		return types.Channel{}, 0, errorsmod.Wrapf(types.ErrChannelCapabilityNotFound, "caller does not own capability for channel, port ID (%s) channel ID (%s)", portID, channelID)
+	}
 
+	// verify that the counterparty sequence is the same as the current sequence to ensure that the proofs were
+	// retrieved from the current upgrade attempt
+	// since all proofs are retrieved from same proof height, and there can not be multiple upgrade states in the store for a given
+	// channel at the same time
+	upgradeSequence, found := k.GetUpgradeSequence(ctx, portID, channelID)
+	if !found {
+		errorReceipt := types.NewErrorReceipt(upgradeSequence, errorsmod.Wrapf(types.ErrUpgradeSequenceNotFound, "portID (%s), channelID (%s)", portID, channelID))
+		k.SetUpgradeErrorReceipt(ctx, portID, channelID, errorReceipt)
+		return types.Channel{}, 0, errorsmod.Wrapf(types.ErrUpgradeAborted, "upgrade aborted, error receipt written for upgrade sequence: %d", upgradeSequence)
+	}
 
-	    // both channel ends must be mutually compatible.
-	    // this means that the ordering must be the same and
-	    // any future introduced fields that must be compatible
-	    // should also be checked
-	    if counterpartyChannel.ordering != proposedUpgradeChannel.ordering {
-	        restoreChannel(portIdentifier, channelIdentifier)
-	        return
-	    }
+	if counterpartyChannel.State != types.TRYUPGRADE {
+		if err := k.RestoreChannelAndWriteErrorReceipt(ctx, portID, channelID, upgradeSequence, types.ErrInvalidChannel); err != nil {
+			return types.Channel{}, 0, errorsmod.Wrap(types.ErrUpgradeAborted, err.Error())
+		}
+		return types.Channel{}, 0, errorsmod.Wrapf(types.ErrInvalidChannelState, "expected counterparty to be in %s state but was %s", types.TRYUPGRADE, counterpartyChannel.State)
+	}
 
-	*/
-	return nil
+	// both channel ends must be mutually compatible.
+	// this means that the ordering must be the same and
+	// any future introduced fields that must be compatible
+	// should also be checked
+	if counterpartyChannel.Ordering != channel.Ordering {
+		if err := k.RestoreChannelAndWriteErrorReceipt(ctx, portID, channelID, upgradeSequence, types.ErrInvalidChannel); err != nil {
+			return types.Channel{}, 0, errorsmod.Wrap(types.ErrUpgradeAborted, err.Error())
+		}
+		return types.Channel{}, 0, errorsmod.Wrapf(types.ErrInvalidChannelState, "expected counterparty ordering to equal upgrade channel ordering. counterparty channel: %s, upgrade channel: %s", counterpartyChannel.Ordering, channel.Ordering)
+	}
+
+	connectionEnd, err := k.getUpgradeAckConnectionEnd(ctx, portID, channelID, channel)
+	if err != nil {
+		return types.Channel{}, 0, err
+	}
+
+	if connectionEnd.GetState() != int32(connectiontypes.OPEN) {
+		return types.Channel{}, 0, errorsmod.Wrapf(
+			connectiontypes.ErrInvalidConnectionState,
+			"connection state is not OPEN (got %s)", connectiontypes.State(connectionEnd.GetState()).String(),
+		)
+	}
+
+	if connectionEnd.GetCounterparty().GetConnectionID() != counterpartyChannel.ConnectionHops[0] {
+		return types.Channel{}, 0, errorsmod.Wrapf(connectiontypes.ErrInvalidConnection, "unexpected counterparty channel connection hops, expected %s but got %s", connectionEnd.GetCounterparty().GetConnectionID(), counterpartyChannel.ConnectionHops[0])
+	}
+
+	if err := k.connectionKeeper.VerifyChannelState(ctx, connectionEnd, proofHeight, proofCounterpartyChannel, channel.Counterparty.PortId,
+		channel.Counterparty.ChannelId, counterpartyChannel); err != nil {
+		return types.Channel{}, 0, err
+	}
+
+	if err := k.connectionKeeper.VerifyChannelUpgradeSequence(ctx, connectionEnd, proofHeight, proofCounterpartyUpgradeSequence, channel.Counterparty.PortId,
+		channel.Counterparty.ChannelId, upgradeSequence); err != nil {
+		return types.Channel{}, 0, err
+	}
+
+	return channel, upgradeSequence, nil
 }
 
 // WriteUpgradeAckChannel
 func (k Keeper) WriteUpgradeAckChannel(
 	ctx sdk.Context,
 	portID,
-	channelID,
-	proposedUpgradeVersion string,
-	upgradeSequence uint64,
-	channelUpgrade types.Channel,
-) error {
-
+	channelID string,
+	upgradeChannel types.Channel,
+) {
 	// upgrade is complete
 	// set channel to OPEN and remove unnecessary state
-	//	currentChannel.state = OPEN
-	//	provableStore.set(channelPath(portIdentifier, channelIdentifier), currentChannel)
-	//	provableStore.delete(channelUpgradeTimeoutPath(portIdentifier, channelIdentifier))
-	//	privateStore.delete(channelRestorePath(portIdentifier, channelIdentifier))
-	return nil
+	upgradeChannel.State = types.OPEN
+	k.SetChannel(ctx, portID, channelID, upgradeChannel)
+	k.DeleteUpgradeTimeout(ctx, portID, channelID)
+	k.DeleteUpgradeRestoreChannel(ctx, portID, channelID)
+
+	// TODO: emit events
 }
