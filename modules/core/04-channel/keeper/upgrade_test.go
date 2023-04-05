@@ -463,7 +463,6 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 func (suite *KeeperTestSuite) TestChanUpgradeAck() {
 	var (
 		path                        *ibctesting.Path
-		chanCap                     *capabilitytypes.Capability
 		counterpartyUpgradeSequence uint64
 		upgradeTimeout              types.UpgradeTimeout
 	)
@@ -498,8 +497,6 @@ func (suite *KeeperTestSuite) TestChanUpgradeAck() {
 			err = path.EndpointB.ChanUpgradeTry(upgradeTimeout.TimeoutHeight, upgradeTimeout.TimeoutTimestamp, counterpartyUpgradeSequence)
 			suite.Require().NoError(err)
 
-			chanCap, _ = suite.chainA.GetSimApp().GetScopedIBCKeeper().GetCapability(suite.chainA.GetContext(), host.ChannelCapabilityPath(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
-
 			tc.malleate()
 
 			channelKey := host.ChannelKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
@@ -510,7 +507,6 @@ func (suite *KeeperTestSuite) TestChanUpgradeAck() {
 
 			upgradeChannel, upgradeSequence, err := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.ChanUpgradeAck(
 				suite.chainA.GetContext(),
-				chanCap,
 				path.EndpointA.ChannelConfig.PortID,
 				path.EndpointA.ChannelID,
 				path.EndpointB.GetChannel(),

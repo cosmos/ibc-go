@@ -407,7 +407,7 @@ func (k Keeper) getUpgradeAckConnectionEnd(ctx sdk.Context, portID string, chann
 	return connectionEnd, nil
 }
 
-func (k Keeper) ChanUpgradeAck(ctx sdk.Context, chanCap *capabilitytypes.Capability, portID, channelID string, counterpartyChannel types.Channel, proofCounterpartyChannel, proofCounterpartyUpgradeSequence []byte, proofHeight clienttypes.Height) (types.Channel, uint64, error) {
+func (k Keeper) ChanUpgradeAck(ctx sdk.Context, portID, channelID string, counterpartyChannel types.Channel, proofCounterpartyChannel, proofCounterpartyUpgradeSequence []byte, proofHeight clienttypes.Height) (types.Channel, uint64, error) {
 	channel, found := k.GetChannel(ctx, portID, channelID)
 	if !found {
 		return types.Channel{}, 0, errorsmod.Wrapf(types.ErrChannelNotFound, "failed to retrieve channel %s on port %s", channelID, portID)
@@ -416,10 +416,6 @@ func (k Keeper) ChanUpgradeAck(ctx sdk.Context, chanCap *capabilitytypes.Capabil
 	// current channel is in INITUPGRADE or TRYUPGRADE (crossing hellos)
 	if !collections.Contains(channel.State, []types.State{types.INITUPGRADE, types.TRYUPGRADE}) {
 		return types.Channel{}, 0, errorsmod.Wrapf(types.ErrInvalidChannelState, "expected one of [%s, %s], got %s", types.INITUPGRADE, types.TRYUPGRADE, channel.State)
-	}
-
-	if !k.scopedKeeper.AuthenticateCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)) {
-		return types.Channel{}, 0, errorsmod.Wrapf(types.ErrChannelCapabilityNotFound, "caller does not own capability for channel, port ID (%s) channel ID (%s)", portID, channelID)
 	}
 
 	// verify that the counterparty sequence is the same as the current sequence to ensure that the proofs were
