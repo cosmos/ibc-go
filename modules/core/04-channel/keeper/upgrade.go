@@ -386,3 +386,7 @@ func (k Keeper) getUpgradeTryConnectionEnd(ctx sdk.Context, portID string, chann
 	}
 	return connectionEnd, nil
 }
+
+func (k Keeper) ChanUpgradeAck(ctx sdk.Context, portID, channelID string, counterpartyChannel types.Channel, proofChannel, proofUpgradeSequence []byte, proofHeight clienttypes.Height) {
+
+}

@@ -830,6 +830,24 @@ func (k Keeper) ChannelUpgradeTry(goCtx context.Context, msg *channeltypes.MsgCh
 
 // ChannelUpgradeAck defines a rpc handler method for MsgChannelUpgradeAck.
 func (k Keeper) ChannelUpgradeAck(goCtx context.Context, msg *channeltypes.MsgChannelUpgradeAck) (*channeltypes.MsgChannelUpgradeAckResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	module, _, err := k.ChannelKeeper.LookupModuleByChannel(ctx, msg.PortId, msg.ChannelId)
+	if err != nil {
+		ctx.Logger().Error("channel upgrade ack callback failed", "port-id", msg.PortId, "error", errorsmod.Wrap(err, "could not retrieve module from port-id"))
+		return nil, errorsmod.Wrap(err, "could not retrieve module from port-id")
+	}
+
+	cbs, ok := k.Router.GetRoute(module)
+	if !ok {
+		ctx.Logger().Error("channel upgrade ack callback failed", "port-id", msg.PortId, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module))
+		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
+	}
+
+	k.ChannelKeeper.ChanUpgradeAck(ctx, msg.ChannelId, msg.ChannelId, msg.CounterpartyChannel, msg.ProofChannel, msg.ProofUpgradeSequence, msg.ProofHeight)
+
+	_ = cbs
+
 	return nil, nil
 }
 
