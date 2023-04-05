@@ -128,7 +128,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeInit() {
 				chanCap, upgradeChannel, path.EndpointB.Chain.GetTimeoutHeight(), 0,
 			)
 
-			suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.WriteUpgradeInitChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, sequence, upgradeChannel)
+			err = suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.WriteUpgradeInitChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, sequence, upgradeChannel)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -446,7 +446,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 				proofChannel, proofUpgradeTimeout, proofUpgradeSequence, proofHeight,
 			)
 
-			suite.chainB.GetSimApp().GetIBCKeeper().ChannelKeeper.WriteUpgradeTryChannel(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, upgradeChannel.Version, upgradeSequence, upgradeChannel)
+			err = suite.chainB.GetSimApp().GetIBCKeeper().ChannelKeeper.WriteUpgradeTryChannel(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, upgradeChannel.Version, upgradeSequence, upgradeChannel)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
