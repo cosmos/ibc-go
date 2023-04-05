@@ -234,6 +234,9 @@ func (k Keeper) ChanUpgradeTry(
 		// this is first message in upgrade handshake on this chain so we must store original channel in restore channel path
 		// in case we need to restore channel later.
 		k.SetUpgradeRestoreChannel(ctx, portID, channelID, channel)
+
+		channel.State = types.TRYUPGRADE
+		k.SetChannel(ctx, portID, channelID, channel)
 	case types.INITUPGRADE:
 		upgradeSequence, found = k.GetUpgradeSequence(ctx, portID, channelID)
 		if !found {
@@ -309,12 +312,6 @@ func (k Keeper) WriteUpgradeTryChannel(
 	channel.Version = proposedUpgradeVersion
 	channel.Ordering = channelUpgrade.Ordering
 	channel.ConnectionHops = channelUpgrade.ConnectionHops
-
-	// prevent silent failures if fields that are not allowed to be modified are changed in the upgrade channel
-	// request.
-	if !reflect.DeepEqual(channel, channelUpgrade) {
-		return errorsmod.Wrapf(types.ErrInvalidChannel, "expected: %v but got: %v", channel, channelUpgrade)
-	}
 
 	k.SetChannel(ctx, portID, channelID, channel)
 
@@ -440,7 +437,7 @@ func (k Keeper) ChanUpgradeAck(ctx sdk.Context, chanCap *capabilitytypes.Capabil
 		if err := k.RestoreChannelAndWriteErrorReceipt(ctx, portID, channelID, upgradeSequence, types.ErrInvalidChannel); err != nil {
 			return types.Channel{}, 0, errorsmod.Wrap(types.ErrUpgradeAborted, err.Error())
 		}
-		return types.Channel{}, 0, errorsmod.Wrapf(types.ErrInvalidChannelState, "expected counterparty to be in %s state but was %s", types.TRYUPGRADE, counterpartyChannel.State)
+		return types.Channel{}, 0, errorsmod.Wrapf(types.ErrInvalidChannelState, "expected counterparty to be in %s but was %s", types.TRYUPGRADE, counterpartyChannel.State)
 	}
 
 	// both channel ends must be mutually compatible.

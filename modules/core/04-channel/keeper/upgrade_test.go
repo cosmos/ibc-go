@@ -460,6 +460,77 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 	}
 }
 
+func (suite *KeeperTestSuite) TestChanUpgradeAck() {
+	var (
+		path    *ibctesting.Path
+		chanCap *capabilitytypes.Capability
+		counterpartyUpgradeSequence uint64
+		upgradeTimeout              types.UpgradeTimeout
+	)
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expPass  bool
+	}{
+		{
+			"success",
+			func() {},
+			true,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.Setup(path)
+
+			path.EndpointA.ChannelConfig.Version = fmt.Sprintf("%s-v2", mock.Version)
+
+			counterpartyUpgradeSequence = 1
+			upgradeTimeout = types.UpgradeTimeout{TimeoutHeight: path.EndpointB.Chain.GetTimeoutHeight(), TimeoutTimestamp: uint64(suite.coordinator.CurrentTime.Add(time.Hour).UnixNano())}
+			err := path.EndpointA.ChanUpgradeInit(upgradeTimeout.TimeoutHeight, upgradeTimeout.TimeoutTimestamp)
+			suite.Require().NoError(err)
+
+			err = path.EndpointB.ChanUpgradeTry(upgradeTimeout.TimeoutHeight, upgradeTimeout.TimeoutTimestamp, counterpartyUpgradeSequence)
+			suite.Require().NoError(err)
+
+			chanCap, _ = suite.chainA.GetSimApp().GetScopedIBCKeeper().GetCapability(suite.chainA.GetContext(), host.ChannelCapabilityPath(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
+
+			tc.malleate()
+
+			channelKey := host.ChannelKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+			proofUpgradeChannel, proofHeight := suite.chainB.QueryProof(channelKey)
+
+			upgradeSequenceKey := host.ChannelUpgradeSequenceKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+			proofUpgradeSequence, _ := suite.chainB.QueryProof(upgradeSequenceKey)
+
+			channel, upgradeSequence, err := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.ChanUpgradeAck(
+				suite.chainA.GetContext(),
+				chanCap,
+				path.EndpointA.ChannelConfig.PortID,
+				path.EndpointA.ChannelID,
+				path.EndpointB.GetChannel(),
+				proofUpgradeChannel,
+				proofUpgradeSequence,
+				proofHeight,
+			)
+
+			_ = channel
+
+			if tc.expPass {
+				suite.Require().NoError(err)
+				suite.Require().Equal(counterpartyUpgradeSequence, upgradeSequence)
+			} else {
+				suite.Require().Error(err)
+			}
+		})
+	}
+}
+
 func (suite *KeeperTestSuite) TestRestoreChannel() {
 	var path *ibctesting.Path
 
