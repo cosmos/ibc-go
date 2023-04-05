@@ -104,7 +104,6 @@ func (k Keeper) WriteUpgradeInitChannel(
 	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", types.OPEN.String(), "new-state", types.INITUPGRADE.String())
 
 	emitChannelUpgradeInitEvent(ctx, portID, channelID, upgradeSequence, upgradeChannel)
-	return
 }
 
 // ChanUpgradeTry is called by a module to accept the first step of a channel upgrade

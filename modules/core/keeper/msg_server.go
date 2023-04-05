@@ -699,7 +699,7 @@ func (k Keeper) Acknowledgement(goCtx context.Context, msg *channeltypes.MsgAckn
 func (k Keeper) ChannelUpgradeInit(goCtx context.Context, msg *channeltypes.MsgChannelUpgradeInit) (*channeltypes.MsgChannelUpgradeInitResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	module, chanCap, err := k.ChannelKeeper.LookupModuleByChannel(ctx, msg.PortId, msg.ChannelId)
+	module, _, err := k.ChannelKeeper.LookupModuleByChannel(ctx, msg.PortId, msg.ChannelId)
 	if err != nil {
 		ctx.Logger().Error("channel upgrade init callback failed", "port-id", msg.PortId, "error", errorsmod.Wrap(err, "could not retrieve module from port-id"))
 		return nil, errorsmod.Wrap(err, "could not retrieve module from port-id")
@@ -711,7 +711,7 @@ func (k Keeper) ChannelUpgradeInit(goCtx context.Context, msg *channeltypes.MsgC
 		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
 	}
 
-	upgradeSequence, previousVersion, err := k.ChannelKeeper.ChanUpgradeInit(ctx, msg.PortId, msg.ChannelId, chanCap, msg.ProposedUpgradeChannel, msg.TimeoutHeight, msg.TimeoutTimestamp)
+	upgradeSequence, previousVersion, err := k.ChannelKeeper.ChanUpgradeInit(ctx, msg.PortId, msg.ChannelId, msg.ProposedUpgradeChannel, msg.TimeoutHeight, msg.TimeoutTimestamp)
 	if err != nil {
 		ctx.Logger().Error("channel upgrade init callback failed", "error", errorsmod.Wrap(err, "channel handshake upgrade init failed"))
 		return nil, errorsmod.Wrap(err, "channel handshake upgrade init failed")
@@ -740,7 +740,7 @@ func (k Keeper) ChannelUpgradeInit(goCtx context.Context, msg *channeltypes.MsgC
 func (k Keeper) ChannelUpgradeTry(goCtx context.Context, msg *channeltypes.MsgChannelUpgradeTry) (*channeltypes.MsgChannelUpgradeTryResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	module, chanCap, err := k.ChannelKeeper.LookupModuleByChannel(ctx, msg.PortId, msg.ChannelId)
+	module, _, err := k.ChannelKeeper.LookupModuleByChannel(ctx, msg.PortId, msg.ChannelId)
 	if err != nil {
 		ctx.Logger().Error("channel upgrade try failed", "port-id", msg.PortId, "error", errorsmod.Wrap(err, "could not retrieve module from port-id"))
 		return nil, errorsmod.Wrap(err, "could not retrieve module from port-id")
@@ -756,7 +756,6 @@ func (k Keeper) ChannelUpgradeTry(goCtx context.Context, msg *channeltypes.MsgCh
 		ctx,
 		msg.PortId,
 		msg.ChannelId,
-		chanCap,
 		msg.CounterpartyChannel,
 		msg.CounterpartySequence,
 		msg.ProposedUpgradeChannel,
