@@ -198,7 +198,7 @@ func (k Keeper) ChanUpgradeTry(
 
 	switch channel.State {
 	case types.OPEN:
-		upgradeSequence = uint64(1)
+		upgradeSequence = uint64(0)
 		if seq, found := k.GetUpgradeSequence(ctx, portID, channelID); found {
 			upgradeSequence = seq
 		}
@@ -286,12 +286,12 @@ func (k Keeper) WriteUpgradeTryChannel(
 	proposedUpgradeVersion string,
 	upgradeSequence uint64,
 	channelUpgrade types.Channel,
-) error {
+) {
 	defer telemetry.IncrCounter(1, "ibc", "channel", "upgrade-try")
 
 	channel, found := k.GetChannel(ctx, portID, channelID)
 	if !found {
-		return errorsmod.Wrapf(types.ErrChannelNotFound, "failed to retrieve channel %s on port %s", channelID, portID)
+		panic(fmt.Sprintf("failed to retrieve channel %s on port %s", channelID, portID))
 	}
 
 	// assign directly the fields that are modifiable.
@@ -309,7 +309,6 @@ func (k Keeper) WriteUpgradeTryChannel(
 	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", types.OPEN.String(), "new-state", types.TRYUPGRADE.String())
 
 	emitChannelUpgradeTryEvent(ctx, portID, channelID, upgradeSequence, channelUpgrade)
-	return nil
 }
 
 // TODO: should we pull out the error receipt logic from this function? They seem like two discrete operations.

@@ -804,10 +804,7 @@ func (k Keeper) ChannelUpgradeTry(goCtx context.Context, msg *channeltypes.MsgCh
 		}, nil
 	}
 
-	if err := k.ChannelKeeper.WriteUpgradeTryChannel(ctx, msg.PortId, msg.ChannelId, proposedUpgradeVersion, upgradeSequence, msg.ProposedUpgradeChannel); err != nil {
-		ctx.Logger().Error("error writing upgrade try channel on portID %s, channelID %s: %s", msg.PortId, msg.ChannelId, err)
-		return nil, err
-	}
+	k.ChannelKeeper.WriteUpgradeTryChannel(ctx, msg.PortId, msg.ChannelId, proposedUpgradeVersion, upgradeSequence, msg.ProposedUpgradeChannel)
 
 	return &channeltypes.MsgChannelUpgradeTryResponse{
 		ChannelId:       msg.ChannelId,
