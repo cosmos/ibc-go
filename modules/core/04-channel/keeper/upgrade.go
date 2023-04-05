@@ -275,7 +275,7 @@ func (k Keeper) ChanUpgradeTry(
 		// retrieve restore channel to return previous version
 		restoreChannel, found := k.GetUpgradeRestoreChannel(ctx, portID, channelID)
 		if !found {
-			//(this case should be unreachable): write error receipt for upgrade sequence and abort / cancel upgrade
+			// (this case should be unreachable): write error receipt for upgrade sequence and abort / cancel upgrade
 			errorReceipt := types.NewErrorReceipt(upgradeSequence, err)
 			k.SetUpgradeErrorReceipt(ctx, portID, channelID, errorReceipt)
 			return 0, "", errorsmod.Wrapf(types.ErrChannelNotFound, "upgrade aborted, error receipt written for upgrade sequence: %d", upgradeSequence)
