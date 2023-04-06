@@ -171,7 +171,8 @@ func (k Keeper) ChanUpgradeTimeout(
 	// grab error receipt associated with upgrade sequence
 
 	if upgradeSequence < prevErrorReceipt.Sequence {
-		return errorsmod.Wrapf(types.ErrInvalidUpgradeSequence, "upgrade sequence (%d) must be greater than error receipt sequence (%d)", upgradeSequence, errorReceipt.Sequence)
+		// TODO: update error type here
+		return errorsmod.Wrapf(types.ErrUpgradeSequenceNotFound, "upgrade sequence (%d) must be greater than error receipt sequence (%d)", upgradeSequence, prevErrorReceipt.Sequence)
 	}
 
 	// TODO: isn't this called on the counterparty chain (not initializing chain?)
