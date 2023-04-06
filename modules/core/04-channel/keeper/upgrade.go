@@ -95,7 +95,20 @@ func (k Keeper) WriteUpgradeInitChannel(ctx sdk.Context, portID, channelID, prop
 // handshake initiated by a module on another chain. If this function is successful, the upgrade sequence
 // will be returned. If an error occurs in the callback, 0 will be returned but the upgrade sequence will
 // be incremented.
-func (k Keeper) ChanUpgradeTry(ctx sdk.Context, portID string, channelID string, counterpartyUpgradeChannel types.Channel, counterpartyUpgradeSequence uint64, proposedUpgradeChannel types.Channel, timeoutHeight clienttypes.Height, timeoutTimestamp uint64, proofChannel []byte, proofUpgradeTimeout []byte, proofUpgradeSequence []byte, proofHeight clienttypes.Height) (upgradeSequence uint64, err error) {
+func (k Keeper) ChanUpgradeTry(
+	ctx sdk.Context,
+	portID string,
+	channelID string,
+	counterpartyUpgradeChannel types.Channel,
+	counterpartyUpgradeSequence uint64,
+	proposedUpgradeChannel types.Channel,
+	timeoutHeight clienttypes.Height,
+	timeoutTimestamp uint64,
+	proofChannel []byte,
+	proofUpgradeTimeout []byte,
+	proofUpgradeSequence []byte,
+	proofHeight clienttypes.Height,
+) (upgradeSequence uint64, err error) {
 	channel, found := k.GetChannel(ctx, portID, channelID)
 	if !found {
 		return 0, errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
@@ -154,18 +167,11 @@ func (k Keeper) ChanUpgradeTry(ctx sdk.Context, portID string, channelID string,
 	// check if upgrade timed out by comparing it with the latest height of the chain
 	selfHeight := clienttypes.GetSelfHeight(ctx)
 	if !timeoutHeight.IsZero() && selfHeight.GTE(timeoutHeight) {
-		if err := k.RestoreChannelAndWriteErrorReceipt(ctx, portID, channelID, upgradeSequence, types.ErrUpgradeTimeout); err != nil {
-			return 0, errorsmod.Wrap(types.ErrUpgradeAborted, err.Error())
-		}
 		return 0, errorsmod.Wrapf(types.ErrUpgradeAborted, "block height >= upgrade timeout height (%s >= %s)", selfHeight, timeoutHeight)
 	}
 
 	// check if upgrade timed out by comparing it with the latest timestamp of the chain
 	if timeoutTimestamp != 0 && uint64(ctx.BlockTime().UnixNano()) >= timeoutTimestamp {
-		upgradeSequence = uint64(0)
-		if err := k.RestoreChannelAndWriteErrorReceipt(ctx, portID, channelID, upgradeSequence, types.ErrUpgradeTimeout); err != nil {
-			return 0, errorsmod.Wrap(types.ErrUpgradeAborted, err.Error())
-		}
 		return 0, errorsmod.Wrapf(types.ErrUpgradeAborted, "block timestamp >= upgrade timeout timestamp (%s >= %s)", ctx.BlockTime(), time.Unix(0, int64(timeoutTimestamp)))
 	}
 
