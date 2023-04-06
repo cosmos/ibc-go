@@ -37,6 +37,18 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Dependencies
+
+### API Breaking
+
+### State Machine Breaking
+
+### Improvements
+
+### Features
+
+### Bug Fixes
+
 ## [v4.3.0](https://github.com/cosmos/ibc-go/releases/tag/v4.3.0) - 2023-01-24
 
 ### Dependencies
