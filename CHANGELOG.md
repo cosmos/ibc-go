@@ -37,6 +37,20 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Dependencies
+
+* [\#3416](https://github.com/cosmos/ibc-go/pull/3416) Bump Cosmos SDK to v0.45.15 and replace Tendermint with CometBFT v0.34.27.
+
+### API Breaking
+
+### State Machine Breaking
+
+### Improvements
+
+### Features
+
+### Bug Fixes
+
 ## [v4.3.0](https://github.com/cosmos/ibc-go/releases/tag/v4.3.0) - 2023-01-24
 
 ### Dependencies
