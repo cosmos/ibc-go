@@ -565,9 +565,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeAck_HappyPath() {
 }
 
 func (suite *KeeperTestSuite) TestChanUpgradeAck_CrossingHellos() {
-	var (
-		path *ibctesting.Path
-	)
+	var path *ibctesting.Path
 
 	testCases := []struct {
 		name     string
