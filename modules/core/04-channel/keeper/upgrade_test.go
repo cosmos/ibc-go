@@ -470,7 +470,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeAck_HappyPath() {
 		{
 			"channel state is not in OPEN or INITUPGRADE state",
 			func() {
-				suite.Require().NoError(path.EndpointB.SetChannelState(types.CLOSED))
+				suite.Require().NoError(path.EndpointA.SetChannelState(types.CLOSED))
 			},
 			false,
 		},
@@ -578,6 +578,16 @@ func (suite *KeeperTestSuite) TestChanUpgradeAck_CrossingHellos() {
 			"success",
 			func() {},
 			true,
+		},
+		{
+			"fail: connection end not found",
+			func() {
+				channel, found := path.EndpointA.Chain.GetSimApp().IBCKeeper.ChannelKeeper.GetUpgradeRestoreChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				suite.Require().True(found)
+				channel.ConnectionHops = []string{"connection-100"}
+				path.EndpointA.Chain.GetSimApp().IBCKeeper.ChannelKeeper.SetUpgradeRestoreChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, channel)
+			},
+			false,
 		},
 	}
 
