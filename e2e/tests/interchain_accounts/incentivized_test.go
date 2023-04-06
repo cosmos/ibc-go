@@ -78,6 +78,9 @@ func (s *IncentivizedInterchainAccountsTestSuite) TestMsgSendTx_SuccessfulBankSe
 		s.StartRelayer(relayer)
 	})
 
+	// Wait for a couple of blocks to ensure channel handshake is complete
+	s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA, chainB), "failed to wait for blocks")
+
 	var channelOutput ibc.ChannelOutput
 	t.Run("verify interchain account", func(t *testing.T) {
 		var err error
@@ -258,6 +261,9 @@ func (s *IncentivizedInterchainAccountsTestSuite) TestMsgSendTx_FailedBankSend_I
 	t.Run("start relayer", func(t *testing.T) {
 		s.StartRelayer(relayer)
 	})
+
+	// Wait for a couple of blocks to ensure channel handshake is complete
+	s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA, chainB), "failed to wait for blocks")
 
 	var channelOutput ibc.ChannelOutput
 	t.Run("verify interchain account", func(t *testing.T) {
