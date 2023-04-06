@@ -113,17 +113,20 @@ func (suite *KeeperTestSuite) TestChanUpgradeInit() {
 
 			tc.malleate()
 
-			sequence, previousVersion, err := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.ChanUpgradeInit(
+			sequence, err := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.ChanUpgradeInit(
 				suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID,
 				upgradeChannel, path.EndpointB.Chain.GetTimeoutHeight(), 0,
 			)
 
-			suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.WriteUpgradeInitChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, sequence, upgradeChannel)
+			suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.WriteUpgradeInitChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, expVersion, sequence, upgradeChannel)
 
 			if tc.expPass {
+				restoreChannel, found := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetUpgradeRestoreChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				suite.Require().True(found)
+
 				suite.Require().NoError(err)
 				suite.Require().Equal(expSequence, sequence)
-				suite.Require().Equal(expVersion, previousVersion)
+				suite.Require().Equal(expVersion, restoreChannel.Version)
 				suite.Require().Equal(types.INITUPGRADE, path.EndpointA.GetChannel().State)
 			} else {
 				suite.Require().Error(err)
@@ -422,7 +425,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 			upgradeTimeoutKey := host.ChannelUpgradeTimeoutKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 			proofUpgradeTimeout, _ := suite.chainA.QueryProof(upgradeTimeoutKey)
 
-			upgradeSequence, previousVersion, err := suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.ChanUpgradeTry(
+			upgradeSequence, err := suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.ChanUpgradeTry(
 				suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID,
 				path.EndpointA.GetChannel(), counterpartyUpgradeSequence, upgradeChannel, upgradeTimeout.TimeoutHeight, upgradeTimeout.TimeoutTimestamp,
 				proofChannel, proofUpgradeTimeout, proofUpgradeSequence, proofHeight,
@@ -431,9 +434,11 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 			suite.chainB.GetSimApp().GetIBCKeeper().ChannelKeeper.WriteUpgradeTryChannel(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, upgradeChannel.Version, upgradeSequence, upgradeChannel)
 
 			if tc.expPass {
+				restoreChannel, found := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetUpgradeRestoreChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				suite.Require().True(found)
 				suite.Require().NoError(err)
 				suite.Require().Equal(counterpartyUpgradeSequence, upgradeSequence)
-				suite.Require().Equal(mock.Version, previousVersion)
+				suite.Require().Equal(mock.Version, restoreChannel.Version)
 				suite.Require().Equal(types.TRYUPGRADE, path.EndpointB.GetChannel().State)
 			} else {
 				suite.Require().Error(err)
