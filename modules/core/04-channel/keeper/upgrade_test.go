@@ -566,8 +566,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeAck_HappyPath() {
 
 func (suite *KeeperTestSuite) TestChanUpgradeAck_CrossingHellos() {
 	var (
-		path           *ibctesting.Path
-		upgradeTimeout types.UpgradeTimeout
+		path *ibctesting.Path
 	)
 
 	testCases := []struct {
@@ -580,55 +579,6 @@ func (suite *KeeperTestSuite) TestChanUpgradeAck_CrossingHellos() {
 			func() {},
 			true,
 		},
-		// {
-		// TODO: panic if channel is not found
-		// },
-		// {
-		// 	"channel state is not in OPEN or INITUPGRADE state",
-		// 	func() {
-		// 		suite.Require().NoError(path.EndpointB.SetChannelState(types.CLOSED))
-		// 	},
-		// 	false,
-		// },
-		// {
-		// TODO: panic if upgrade sequence is not found
-		// },
-		// {
-		// 	"counterparty channel state is not in TRYUPGRADE",
-		// 	func() {
-		// 		counterparty := path.EndpointB.GetChannel()
-		// 		counterparty.State = types.OPEN
-		// 		path.EndpointB.SetChannel(counterparty)
-		// 	},
-		// 	false,
-		// },
-		// {
-		// 	"counterparty channel ordering is not equal to the channel ordering",
-		// 	func() {
-		// 		counterparty := path.EndpointB.GetChannel()
-		// 		counterparty.Ordering = types.ORDERED
-		// 		path.EndpointB.SetChannel(counterparty)
-		// 	},
-		// 	false,
-		// },
-		// {
-		// 	"counterparty channel connection not found",
-		// 	func() {
-		// 		channel := path.EndpointB.GetChannel()
-		// 		channel.ConnectionHops = []string{"connection-100"}
-		// 		path.EndpointB.SetChannel(channel)
-		// 	},
-		// 	false,
-		// },
-		// {
-		// 	"invalid proposed upgrade channel connection state",
-		// 	func() {
-		// 		connectionEnd := path.EndpointA.GetConnection()
-		// 		connectionEnd.State = connectiontypes.UNINITIALIZED
-		// 		path.EndpointA.SetConnection(connectionEnd)
-		// 	},
-		// 	false,
-		// },
 	}
 
 	for _, tc := range testCases {
@@ -640,12 +590,19 @@ func (suite *KeeperTestSuite) TestChanUpgradeAck_CrossingHellos() {
 			suite.coordinator.Setup(path)
 
 			path.EndpointA.ChannelConfig.Version = fmt.Sprintf("%s-v2", mock.Version)
+			path.EndpointB.ChannelConfig.Version = fmt.Sprintf("%s-v2", mock.Version)
 
-			upgradeTimeout = types.UpgradeTimeout{TimeoutHeight: path.EndpointB.Chain.GetTimeoutHeight(), TimeoutTimestamp: uint64(suite.coordinator.CurrentTime.Add(time.Hour).UnixNano())}
-			err := path.EndpointA.ChanUpgradeInit(upgradeTimeout.TimeoutHeight, upgradeTimeout.TimeoutTimestamp)
+			upgradeTimeoutB := types.UpgradeTimeout{TimeoutHeight: path.EndpointB.Chain.GetTimeoutHeight(), TimeoutTimestamp: uint64(suite.coordinator.CurrentTime.Add(time.Hour).UnixNano())}
+			upgradeTimeoutA := types.UpgradeTimeout{TimeoutHeight: path.EndpointA.Chain.GetTimeoutHeight(), TimeoutTimestamp: uint64(suite.coordinator.CurrentTime.Add(time.Hour).UnixNano())}
+
+			err := path.EndpointA.ChanUpgradeInit(upgradeTimeoutB.TimeoutHeight, upgradeTimeoutB.TimeoutTimestamp)
 			suite.Require().NoError(err)
 
-			err = path.EndpointB.ChanUpgradeInit(upgradeTimeout.TimeoutHeight, upgradeTimeout.TimeoutTimestamp)
+			err = path.EndpointB.ChanUpgradeInit(upgradeTimeoutA.TimeoutHeight, upgradeTimeoutA.TimeoutTimestamp)
+			suite.Require().NoError(err)
+
+			// update chain B's client on chain A because we have now run chanUpgradeInit on chain B
+			err = path.EndpointB.UpdateClient()
 			suite.Require().NoError(err)
 
 			chainASequence, found := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetUpgradeSequence(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
@@ -654,10 +611,14 @@ func (suite *KeeperTestSuite) TestChanUpgradeAck_CrossingHellos() {
 			chainBSequence, found := suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.GetUpgradeSequence(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 			suite.Require().True(found)
 
-			err = path.EndpointB.ChanUpgradeTry(upgradeTimeout.TimeoutHeight, upgradeTimeout.TimeoutTimestamp, chainASequence)
+			err = path.EndpointB.ChanUpgradeTry(upgradeTimeoutA.TimeoutHeight, upgradeTimeoutA.TimeoutTimestamp, chainASequence)
 			suite.Require().NoError(err)
 
-			err = path.EndpointA.ChanUpgradeTry(upgradeTimeout.TimeoutHeight, upgradeTimeout.TimeoutTimestamp, chainBSequence)
+			err = path.EndpointA.ChanUpgradeTry(upgradeTimeoutB.TimeoutHeight, upgradeTimeoutB.TimeoutTimestamp, chainBSequence)
+			suite.Require().NoError(err)
+
+			// update chain A's client on chain B because we have now run chanUpgradeTry on chain A
+			err = path.EndpointA.UpdateClient()
 			suite.Require().NoError(err)
 
 			tc.malleate()
