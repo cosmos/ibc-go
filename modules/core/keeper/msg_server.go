@@ -773,9 +773,12 @@ func (k Keeper) ChannelUpgradeTry(goCtx context.Context, msg *channeltypes.MsgCh
 		msg.ProofHeight,
 	)
 
-	if errorsmod.IsOf(err, channeltypes.ErrUpgradeAborted) {
-		// NOTE: commit error receipt to state and abort channel upgrade
-		ctx.Logger().Error("channel upgrade try failed", "error", errorsmod.Wrap(err, "channel handshake upgrade try failed"))
+	// if an error receipt is returned, it means we want to write an error receipt and restore the upgrade channel.
+	if errReceipt, ok := err.(*channeltypes.ErrorReceipt); ok {
+		k.ChannelKeeper.SetUpgradeErrorReceipt(ctx, msg.PortId, msg.ChannelId, *errReceipt)
+		if err := k.ChannelKeeper.RestoreChannel(ctx, msg.PortId, msg.ChannelId); err != nil {
+			ctx.Logger().Error("error restoring channel on portID %s, channelID %s: %s", msg.PortId, msg.ChannelId, err)
+		}
 		return &channeltypes.MsgChannelUpgradeTryResponse{
 			ChannelId: msg.ChannelId,
 			Success:   false,
@@ -807,7 +810,7 @@ func (k Keeper) ChannelUpgradeTry(goCtx context.Context, msg *channeltypes.MsgCh
 		ctx.Logger().Error("channel upgrade try callback failed", "port-id", msg.PortId, "channel-id", msg.ChannelId, "error", err.Error())
 
 		// we are not returning the error here because we want to commit the error receipt to state
-		if err := k.ChannelKeeper.RestoreChannelAndWriteErrorReceipt(ctx, msg.PortId, msg.ChannelId, upgradeSequence, err); err != nil {
+		if err := k.ChannelKeeper.RestoreChannel(ctx, msg.PortId, msg.ChannelId); err != nil {
 			ctx.Logger().Error("error restoring channel on portID %s, channelID %s: %s", msg.PortId, msg.ChannelId, err)
 		}
 		return &channeltypes.MsgChannelUpgradeTryResponse{

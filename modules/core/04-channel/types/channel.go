@@ -153,10 +153,14 @@ func (o Order) SubsetOf(order Order) bool {
 
 // NewErrorReceipt returns an error receipt with the code from the provided error type stripped
 // out to ensure changes of the error message don't cause state machine breaking changes.
-func NewErrorReceipt(upgradeSequence uint64, err error) ErrorReceipt {
+func NewErrorReceipt(upgradeSequence uint64, err error) *ErrorReceipt {
 	_, code, _ := errorsmod.ABCIInfo(err, false) // discard non-determinstic codespace and log values
-	return ErrorReceipt{
+	return &ErrorReceipt{
 		Sequence: upgradeSequence,
-		Error:    fmt.Sprintf("ABCI code: %d: %s", code, restoreErrorString),
+		ErrorMessage:    fmt.Sprintf("ABCI code: %d: %s", code, restoreErrorString),
 	}
+}
+
+func (e *ErrorReceipt) Error() string {
+	return e.ErrorMessage
 }

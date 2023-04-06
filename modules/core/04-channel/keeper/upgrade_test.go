@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"time"
 
-	errorsmod "cosmossdk.io/errors"
-
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
@@ -431,7 +429,14 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 				proofChannel, proofUpgradeTimeout, proofUpgradeSequence, proofHeight,
 			)
 
-			suite.chainB.GetSimApp().GetIBCKeeper().ChannelKeeper.WriteUpgradeTryChannel(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, upgradeChannel.Version, upgradeSequence, upgradeChannel)
+			// mock what is happening in the msg server handler.
+			if errReceipt, ok := err.(*types.ErrorReceipt); ok {
+				suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.SetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, *errReceipt)
+				err := suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.RestoreChannel(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+				suite.Require().NoError(err)
+			} else {
+				suite.chainB.GetSimApp().GetIBCKeeper().ChannelKeeper.WriteUpgradeTryChannel(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, upgradeChannel.Version, upgradeSequence, upgradeChannel)
+			}
 
 			if tc.expPass {
 				restoreChannel, found := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetUpgradeRestoreChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
@@ -443,7 +448,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 			} else {
 				suite.Require().Error(err)
 
-				if errorsmod.IsOf(err, types.ErrUpgradeAborted, types.ErrUpgradeTimeout) {
+				if _, ok := err.(*types.ErrorReceipt); ok {
 					errorReceipt, found := suite.chainB.GetSimApp().GetIBCKeeper().ChannelKeeper.GetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 					suite.Require().True(found)
 					suite.Require().NotNil(errorReceipt)
@@ -457,22 +462,22 @@ func (suite *KeeperTestSuite) TestRestoreChannel() {
 	var path *ibctesting.Path
 
 	testCases := []struct {
-		name     string
-		malleate func()
-		expPass  bool
+		name          string
+		malleate      func()
+		shouldRestore bool
 	}{
 		{
-			"succeeds when restore channel is set",
-			func() {},
-			true,
+			name:          "succeeds when restore channel is set",
+			malleate:      func() {},
+			shouldRestore: true,
 		},
 		{
-			name: "fails when no restore channel is present",
+			name: "no-op when no restore channel is present",
 			malleate: func() {
 				// remove the restore channel
 				path.EndpointA.Chain.GetSimApp().IBCKeeper.ChannelKeeper.DeleteUpgradeRestoreChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 			},
-			expPass: false,
+			shouldRestore: false,
 		},
 	}
 
@@ -481,7 +486,6 @@ func (suite *KeeperTestSuite) TestRestoreChannel() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 
-			upgradeSequence := uint64(1)
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.Setup(path)
 
@@ -494,28 +498,16 @@ func (suite *KeeperTestSuite) TestRestoreChannel() {
 
 			tc.malleate()
 
-			err = suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.RestoreChannelAndWriteErrorReceipt(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, upgradeSequence, types.ErrInvalidChannel)
+			err = suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.RestoreChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 
 			actualChannel, ok := path.EndpointA.Chain.GetSimApp().IBCKeeper.ChannelKeeper.GetChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-			errReceipt, errReceiptPresent := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetUpgradeErrorReceipt(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 
-			if tc.expPass {
-				suite.Require().NoError(err)
-				suite.Require().True(ok)
+			suite.Require().NoError(err)
+			suite.Require().True(ok)
+			if tc.shouldRestore {
 				suite.Require().Equal(originalChannel, actualChannel)
-				suite.Require().True(errReceiptPresent)
-				suite.Require().Equal(upgradeSequence, errReceipt.Sequence)
 			} else {
-				// channel should still be in INITUPGRADE if restore did not happen.
-				expectedChannel := originalChannel
-				expectedChannel.State = types.INITUPGRADE
-				expectedChannel.Version = fmt.Sprintf("%s-v2", mock.Version)
-
-				suite.Require().Error(err)
-				suite.Require().True(ok)
-				suite.Require().Equal(expectedChannel, actualChannel)
-				suite.Require().True(errReceiptPresent)
-				suite.Require().Equal(upgradeSequence, errReceipt.Sequence)
+				suite.Require().NotEqual(originalChannel, actualChannel)
 			}
 		})
 	}

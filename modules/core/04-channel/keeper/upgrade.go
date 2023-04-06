@@ -167,12 +167,12 @@ func (k Keeper) ChanUpgradeTry(
 	// check if upgrade timed out by comparing it with the latest height of the chain
 	selfHeight := clienttypes.GetSelfHeight(ctx)
 	if !timeoutHeight.IsZero() && selfHeight.GTE(timeoutHeight) {
-		return 0, errorsmod.Wrapf(types.ErrUpgradeAborted, "block height >= upgrade timeout height (%s >= %s)", selfHeight, timeoutHeight)
+		return 0, errorsmod.Wrapf(types.ErrUpgradeTimeout, "block height >= upgrade timeout height (%s >= %s)", selfHeight, timeoutHeight)
 	}
 
 	// check if upgrade timed out by comparing it with the latest timestamp of the chain
 	if timeoutTimestamp != 0 && uint64(ctx.BlockTime().UnixNano()) >= timeoutTimestamp {
-		return 0, errorsmod.Wrapf(types.ErrUpgradeAborted, "block timestamp >= upgrade timeout timestamp (%s >= %s)", ctx.BlockTime(), time.Unix(0, int64(timeoutTimestamp)))
+		return 0, errorsmod.Wrapf(types.ErrUpgradeTimeout, "block timestamp >= upgrade timeout timestamp (%s >= %s)", ctx.BlockTime(), time.Unix(0, int64(timeoutTimestamp)))
 	}
 
 	switch channel.State {
@@ -187,17 +187,13 @@ func (k Keeper) ChanUpgradeTry(
 			upgradeSequence = counterpartyUpgradeSequence
 			k.SetUpgradeSequence(ctx, portID, channelID, upgradeSequence)
 		} else {
-			errorReceipt := types.NewErrorReceipt(upgradeSequence, errorsmod.Wrapf(types.ErrUpgradeAborted, "counterparty chain upgrade sequence <= upgrade sequence (%d <= %d)", counterpartyUpgradeSequence, upgradeSequence))
 			// the upgrade sequence is incremented so both sides start the next upgrade with a fresh sequence.
 			upgradeSequence++
-
-			k.SetUpgradeErrorReceipt(ctx, portID, channelID, errorReceipt)
+			errorReceipt := types.NewErrorReceipt(upgradeSequence, errorsmod.Wrapf(types.ErrUpgradeAborted, "counterparty chain upgrade sequence <= upgrade sequence (%d <= %d)", counterpartyUpgradeSequence, upgradeSequence))
 			k.SetUpgradeSequence(ctx, portID, channelID, upgradeSequence)
-
 			// TODO: emit error receipt events
-
 			// do we want to return upgrade sequence here to include in response??
-			return 0, errorsmod.Wrapf(types.ErrUpgradeAborted, "upgrade aborted, error receipt written for upgrade sequence: %d", errorReceipt.GetSequence())
+			return 0, errorReceipt
 		}
 
 		// this is first message in upgrade handshake on this chain so we must store original channel in restore channel path
@@ -207,22 +203,17 @@ func (k Keeper) ChanUpgradeTry(
 	case types.INITUPGRADE:
 		upgradeSequence, found = k.GetUpgradeSequence(ctx, portID, channelID)
 		if !found {
-			errorReceipt := types.NewErrorReceipt(upgradeSequence, errorsmod.Wrap(types.ErrUpgradeAborted, "upgrade sequence not found"))
-			k.SetUpgradeErrorReceipt(ctx, portID, channelID, errorReceipt)
-
-			return 0, errorsmod.Wrapf(types.ErrUpgradeAborted, "upgrade aborted, error receipt written for upgrade sequence: %d", upgradeSequence)
+			return 0, types.NewErrorReceipt(upgradeSequence, errorsmod.Wrapf(types.ErrUpgradeAborted, "upgrade aborted, error receipt written for upgrade sequence: %d", upgradeSequence))
 		}
 
 		if upgradeSequence != counterpartyUpgradeSequence {
-			errorReceipt := types.NewErrorReceipt(upgradeSequence, errorsmod.Wrapf(types.ErrUpgradeAborted, "upgrade sequence ≠ counterparty chain upgrade sequence (%d ≠ %d)", upgradeSequence, counterpartyUpgradeSequence))
 			// set to the max of the two
 			if counterpartyUpgradeSequence > upgradeSequence {
 				upgradeSequence = counterpartyUpgradeSequence
 				k.SetUpgradeSequence(ctx, portID, channelID, upgradeSequence)
 			}
 
-			k.SetUpgradeErrorReceipt(ctx, portID, channelID, errorReceipt)
-			return 0, errorsmod.Wrapf(types.ErrUpgradeAborted, "upgrade aborted, error receipt written for upgrade sequence: %d", errorReceipt.Sequence)
+			return 0, types.NewErrorReceipt(upgradeSequence, errorsmod.Wrapf(types.ErrUpgradeAborted, "upgrade sequence ≠ counterparty chain upgrade sequence (%d ≠ %d)", upgradeSequence, counterpartyUpgradeSequence))
 		}
 
 		// if there is a crossing hello, i.e an UpgradeInit has been called on both channelEnds,
@@ -232,13 +223,8 @@ func (k Keeper) ChanUpgradeTry(
 		channel.State = types.TRYUPGRADE
 
 		if !reflect.DeepEqual(channel, proposedUpgradeChannel) {
-			// TODO: log and emit events
-			if err := k.RestoreChannelAndWriteErrorReceipt(ctx, portID, channelID, upgradeSequence, types.ErrInvalidChannel); err != nil {
-				return 0, errorsmod.Wrap(types.ErrUpgradeAborted, err.Error())
-			}
-			return 0, errorsmod.Wrap(types.ErrUpgradeAborted, "proposed upgrade channel did not equal expected channel")
+			return 0, types.NewErrorReceipt(upgradeSequence, errorsmod.Wrapf(types.ErrUpgradeAborted, "channel was not equal to proposed upgrade channel"))
 		}
-
 		return upgradeSequence, nil
 	default:
 		return 0, errorsmod.Wrapf(types.ErrInvalidChannelState, "expected one of [%s, %s] but got %s", types.OPEN, types.INITUPGRADE, channel.State)
@@ -281,16 +267,14 @@ func (k Keeper) WriteUpgradeTryChannel(
 	emitChannelUpgradeTryEvent(ctx, portID, channelID, upgradeSequence, channelUpgrade)
 }
 
-// TODO: should we pull out the error receipt logic from this function? They seem like two discrete operations.
-
-// RestoreChannelAndWriteErrorReceipt restores the given channel to the state prior to upgrade.
-func (k Keeper) RestoreChannelAndWriteErrorReceipt(ctx sdk.Context, portID, channelID string, upgradeSequence uint64, err error) error {
-	errorReceipt := types.NewErrorReceipt(upgradeSequence, err)
-	k.SetUpgradeErrorReceipt(ctx, portID, channelID, errorReceipt)
-
+// RestoreChannel restores the given channel to the state prior to upgrade.
+func (k Keeper) RestoreChannel(ctx sdk.Context, portID, channelID string) error {
 	channel, found := k.GetUpgradeRestoreChannel(ctx, portID, channelID)
 	if !found {
-		return errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
+		// in some situations, for example if a bad upgrade sequence causes an error receipt to be written, there wil not
+		// yet be a channel to restore.
+		// This operation performs a no-op in these cases.
+		return nil
 	}
 
 	k.SetChannel(ctx, portID, channelID, channel)
