@@ -156,8 +156,8 @@ func (o Order) SubsetOf(order Order) bool {
 func NewErrorReceipt(upgradeSequence uint64, err error) *ErrorReceipt {
 	_, code, _ := errorsmod.ABCIInfo(err, false) // discard non-determinstic codespace and log values
 	return &ErrorReceipt{
-		Sequence: upgradeSequence,
-		ErrorMessage:    fmt.Sprintf("ABCI code: %d: %s", code, restoreErrorString),
+		Sequence:     upgradeSequence,
+		ErrorMessage: fmt.Sprintf("ABCI code: %d: %s", code, restoreErrorString),
 	}
 }
 
