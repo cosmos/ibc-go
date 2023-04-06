@@ -3,7 +3,7 @@ package keeper_test
 import (
 	"fmt"
 
-	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
+	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
@@ -119,7 +119,7 @@ func (suite *KeeperTestSuite) TestChanOpenInit() {
 
 				counterparty := types.NewCounterparty(ibctesting.MockPort, ibctesting.FirstChannelID)
 
-				channelID, cap, err := suite.chainA.App.GetIBCKeeper().ChannelKeeper.ChanOpenInit(
+				channelID, capability, err := suite.chainA.App.GetIBCKeeper().ChannelKeeper.ChanOpenInit(
 					suite.chainA.GetContext(), path.EndpointA.ChannelConfig.Order, []string{path.EndpointA.ConnectionID},
 					path.EndpointA.ChannelConfig.PortID, portCap, counterparty, path.EndpointA.ChannelConfig.Version,
 				)
@@ -136,7 +136,7 @@ func (suite *KeeperTestSuite) TestChanOpenInit() {
 				// asserting the channel handshake initiation succeeded
 				if tc.expPass && orderSupported {
 					suite.Require().NoError(err)
-					suite.Require().NotNil(cap)
+					suite.Require().NotNil(capability)
 					suite.Require().Equal(types.FormatChannelIdentifier(0), channelID)
 
 					chanCap, ok := suite.chainA.App.GetScopedIBCKeeper().GetCapability(
@@ -144,11 +144,11 @@ func (suite *KeeperTestSuite) TestChanOpenInit() {
 						host.ChannelCapabilityPath(path.EndpointA.ChannelConfig.PortID, channelID),
 					)
 					suite.Require().True(ok, "could not retrieve channel capability after successful ChanOpenInit")
-					suite.Require().Equal(chanCap.String(), cap.String(), "channel capability is not correct")
+					suite.Require().Equal(chanCap.String(), capability.String(), "channel capability is not correct")
 				} else {
 					suite.Require().Error(err)
 					suite.Require().Contains(err.Error(), expErrorMsgSubstring)
-					suite.Require().Nil(cap)
+					suite.Require().Nil(capability)
 					suite.Require().Equal("", channelID)
 				}
 			}
@@ -278,7 +278,7 @@ func (suite *KeeperTestSuite) TestChanOpenTry() {
 			channelKey := host.ChannelKey(counterparty.PortId, counterparty.ChannelId)
 			proof, proofHeight := suite.chainA.QueryProof(channelKey)
 
-			channelID, cap, err := suite.chainB.App.GetIBCKeeper().ChannelKeeper.ChanOpenTry(
+			channelID, capability, err := suite.chainB.App.GetIBCKeeper().ChannelKeeper.ChanOpenTry(
 				suite.chainB.GetContext(), types.ORDERED, []string{path.EndpointB.ConnectionID},
 				path.EndpointB.ChannelConfig.PortID, portCap, counterparty, path.EndpointA.ChannelConfig.Version,
 				proof, malleateHeight(proofHeight, heightDiff),
@@ -286,14 +286,14 @@ func (suite *KeeperTestSuite) TestChanOpenTry() {
 
 			if tc.expPass {
 				suite.Require().NoError(err)
-				suite.Require().NotNil(cap)
+				suite.Require().NotNil(capability)
 
 				chanCap, ok := suite.chainB.App.GetScopedIBCKeeper().GetCapability(
 					suite.chainB.GetContext(),
 					host.ChannelCapabilityPath(path.EndpointB.ChannelConfig.PortID, channelID),
 				)
 				suite.Require().True(ok, "could not retrieve channel capapbility after successful ChanOpenTry")
-				suite.Require().Equal(chanCap.String(), cap.String(), "channel capability is not correct")
+				suite.Require().Equal(chanCap.String(), capability.String(), "channel capability is not correct")
 			} else {
 				suite.Require().Error(err)
 			}

@@ -5,7 +5,7 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
+	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 
 	"github.com/cosmos/ibc-go/v7/modules/apps/29-fee/keeper"
 	"github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
@@ -180,11 +180,7 @@ func (im IBCMiddleware) OnChanCloseInit(
 		return types.ErrFeeModuleLocked
 	}
 
-	if err := im.keeper.RefundFeesOnChannelClosure(ctx, portID, channelID); err != nil {
-		return err
-	}
-
-	return nil
+	return im.keeper.RefundFeesOnChannelClosure(ctx, portID, channelID)
 }
 
 // OnChanCloseConfirm implements the IBCMiddleware interface
@@ -205,11 +201,7 @@ func (im IBCMiddleware) OnChanCloseConfirm(
 		return types.ErrFeeModuleLocked
 	}
 
-	if err := im.keeper.RefundFeesOnChannelClosure(ctx, portID, channelID); err != nil {
-		return err
-	}
-
-	return nil
+	return im.keeper.RefundFeesOnChannelClosure(ctx, portID, channelID)
 }
 
 // OnRecvPacket implements the IBCMiddleware interface.
