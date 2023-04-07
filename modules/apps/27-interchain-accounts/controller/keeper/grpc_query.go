@@ -15,6 +15,7 @@ var _ types.QueryServer = Keeper{}
 
 // InterchainAccount implements the Query/InterchainAccount gRPC method
 func (k Keeper) InterchainAccount(goCtx context.Context, req *types.QueryInterchainAccountRequest) (*types.QueryInterchainAccountResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
@@ -24,7 +25,6 @@ func (k Keeper) InterchainAccount(goCtx context.Context, req *types.QueryInterch
 		return nil, status.Errorf(codes.InvalidArgument, "failed to generate portID from owner address: %s", err)
 	}
 
-	ctx := sdk.UnwrapSDKContext(goCtx)
 	addr, found := k.GetInterchainAccountAddress(ctx, req.ConnectionId, portID)
 	if !found {
 		return nil, status.Errorf(codes.NotFound, "failed to retrieve account address for %s on connection %s", portID, req.ConnectionId)
