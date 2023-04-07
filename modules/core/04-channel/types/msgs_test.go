@@ -495,8 +495,10 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeInitValidateBasic() {
 			msg = types.NewMsgChannelUpgradeInit(
 				ibctesting.MockPort, ibctesting.FirstChannelID,
 				types.Channel{State: types.INITUPGRADE, Version: mock.Version},
-				clienttypes.NewHeight(0, 10000),
-				0,
+				types.UpgradeTimeout{
+					TimeoutHeight:    clienttypes.NewHeight(0, 1000),
+					TimeoutTimestamp: 0,
+				},
 				addr,
 			)
 
