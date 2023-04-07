@@ -486,16 +486,15 @@ var _ sdk.Msg = &MsgChannelUpgradeInit{}
 func NewMsgChannelUpgradeInit(
 	portID, channelID string,
 	proposedUpgradeChannel Channel,
-	timeoutHeight clienttypes.Height,
-	timeoutTimestamp uint64,
+	time UpgradeTimeout,
 	signer string,
 ) *MsgChannelUpgradeInit {
 	return &MsgChannelUpgradeInit{
 		PortId:                 portID,
 		ChannelId:              channelID,
 		ProposedUpgradeChannel: proposedUpgradeChannel,
-		TimeoutHeight:          timeoutHeight,
-		TimeoutTimestamp:       timeoutTimestamp,
+		TimeoutHeight:          time.TimeoutHeight,
+		TimeoutTimestamp:       time.TimeoutTimestamp,
 		Signer:                 signer,
 	}
 }

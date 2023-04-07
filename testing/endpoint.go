@@ -570,7 +570,7 @@ func (endpoint *Endpoint) ChanUpgradeInit(timeoutHeight clienttypes.Height, time
 
 	msg := channeltypes.NewMsgChannelUpgradeInit(
 		endpoint.ChannelConfig.PortID, endpoint.ChannelID,
-		channelUpgrade, timeoutHeight, timeoutTimestamp,
+		channelUpgrade, channeltypes.UpgradeTimeout{TimeoutHeight: timeoutHeight, TimeoutTimestamp: timeoutTimestamp},
 		endpoint.Chain.SenderAccount.GetAddress().String(),
 	)
 
