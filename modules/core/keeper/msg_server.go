@@ -169,7 +169,7 @@ func (k Keeper) ChannelOpenInit(goCtx context.Context, msg *channeltypes.MsgChan
 	// Lookup module by port capability
 	module, portCap, err := k.PortKeeper.LookupModuleByPort(ctx, msg.PortId)
 	if err != nil {
-		ctx.Logger().Error("channel open initfailed", "port-id", msg.PortId, "error", errorsmod.Wrap(err, "could not retrieve module from port-id"))
+		ctx.Logger().Error("channel open init failed", "port-id", msg.PortId, "error", errorsmod.Wrap(err, "could not retrieve module from port-id"))
 		return nil, errorsmod.Wrap(err, "could not retrieve module from port-id")
 	}
 
