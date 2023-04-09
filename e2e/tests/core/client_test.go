@@ -147,7 +147,7 @@ func (s *ClientTestSuite) TestClient_Update_Misbehaviour() {
 		trustedHeight   clienttypes.Height
 		latestHeight    clienttypes.Height
 		clientState     ibcexported.ClientState
-		block           *tmproto.Block
+		block           *tmservice.Block
 		signers         []tmtypes.PrivValidator
 		validatorSet    []*tmtypes.Validator
 		maliciousHeader *ibctm.Header
@@ -290,7 +290,7 @@ func createMaliciousTMHeader(
 	timestamp time.Time,
 	tmValSet, tmTrustedVals *tmtypes.ValidatorSet,
 	signers []tmtypes.PrivValidator,
-	oldHeader *tmproto.Header,
+	oldHeader *tmservice.Header,
 ) (*ibctm.Header, error) {
 	tmHeader := tmtypes.Header{
 		Version:            tmprotoversion.Consensus{Block: tmversion.BlockProtocol, App: 2},
