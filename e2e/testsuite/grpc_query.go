@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"sort"
 
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -243,7 +242,7 @@ func (s *E2ETestSuite) QueryProposalV1(ctx context.Context, chain ibc.Chain, pro
 
 // GetBlockByHeight fetches the block at a given height. Note: we are explicitly using the res.Block type which has been
 // deprecated instead of res.SdkBlock to support backwards compatibility tests.
-func (s *E2ETestSuite) GetBlockByHeight(ctx context.Context, chain ibc.Chain, height uint64) (*tmproto.Block, error) {
+func (s *E2ETestSuite) GetBlockByHeight(ctx context.Context, chain ibc.Chain, height uint64) (*tmservice.Block, error) {
 	tmService := s.GetChainGRCPClients(chain).ConsensusServiceClient
 	res, err := tmService.GetBlockByHeight(ctx, &tmservice.GetBlockByHeightRequest{
 		Height: int64(height),
@@ -252,7 +251,7 @@ func (s *E2ETestSuite) GetBlockByHeight(ctx context.Context, chain ibc.Chain, he
 		return nil, err
 	}
 
-	return res.Block, nil
+	return res.SdkBlock, nil
 }
 
 // GetValidatorSetByHeight returns the validators of the given chain at the specified height. The returned validators
