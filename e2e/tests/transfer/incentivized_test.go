@@ -351,6 +351,8 @@ func (s *IncentivizedTransferTestSuite) TestMultiMsg_MsgPayPacketFeeSingleSender
 		s.StartRelayer(relayer)
 	})
 
+	s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA, chainB), "failed to wait for blocks")
+
 	t.Run("packets are relayed", func(t *testing.T) {
 		packets, err := s.QueryIncentivizedPacketsForChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
 		s.Require().NoError(err)
