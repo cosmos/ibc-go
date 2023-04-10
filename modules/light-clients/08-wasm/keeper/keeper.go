@@ -86,7 +86,7 @@ func (k Keeper) storeWasmCode(ctx sdk.Context, code []byte) ([]byte, error) {
 	ctx.GasMeter().ConsumeGas(types.VMGasRegister.CompileCosts(len(code)), "Compiling wasm bytecode")
 	codeID, err := types.WasmVM.Create(code)
 	if err != nil {
-		return nil, types.ErrWasmInvalidCode
+		return nil, sdkerrors.Wrapf(types.ErrWasmInvalidCode, "unable to compile wasm code: %s", err)
 	}
 
 	// safety check to assert that code id returned by WasmVM equals to code hash

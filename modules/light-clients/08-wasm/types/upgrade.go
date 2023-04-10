@@ -13,7 +13,7 @@ type verifyUpgradeAndUpdateStatePayload struct {
 }
 
 type verifyUpgradeAndUpdateStateMsgPayload struct {
-	SubjectConsensusState      exported.ClientState    `json:"upgrade_client_state"`
+	UpgradeClientState         exported.ClientState    `json:"upgrade_client_state"`
 	UpgradeConsensusState      exported.ConsensusState `json:"upgrade_consensus_state"`
 	ProofUpgradeClient         []byte                  `json:"proof_upgrade_client"`
 	ProofUpgradeConsensusState []byte                  `json:"proof_upgrade_consensus_state"`
@@ -51,7 +51,7 @@ func (c ClientState) VerifyUpgradeAndUpdateState(
 
 	payload := verifyUpgradeAndUpdateStatePayload{
 		VerifyUpgradeAndUpdateStateMsg: verifyUpgradeAndUpdateStateMsgPayload{
-			SubjectConsensusState:      newClient,
+			UpgradeClientState:         newClient,
 			UpgradeConsensusState:      newConsState,
 			ProofUpgradeClient:         proofUpgradeClient,
 			ProofUpgradeConsensusState: proofUpgradeConsState,
