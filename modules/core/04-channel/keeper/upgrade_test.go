@@ -5,6 +5,7 @@ import (
 
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
+	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
@@ -80,8 +81,19 @@ func (suite *KeeperTestSuite) TestChanUpgradeInit() {
 			false,
 		},
 		{
-			"invalid proposed channel connection",
+			"proposed channel connection not found",
 			func() {
+				channelUpgrade.ConnectionHops = []string{"connection-100"}
+			},
+			false,
+		},
+		{
+			"invalid proposed channel connection state",
+			func() {
+				connectionEnd := path.EndpointA.GetConnection()
+				connectionEnd.State = connectiontypes.UNINITIALIZED
+
+				suite.chainA.GetSimApp().GetIBCKeeper().ConnectionKeeper.SetConnection(suite.chainA.GetContext(), "connection-100", connectionEnd)
 				channelUpgrade.ConnectionHops = []string{"connection-100"}
 			},
 			false,
