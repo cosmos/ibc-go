@@ -912,7 +912,7 @@ func (suite *KeeperTestSuite) TestVerifyUpgradeErrorReceipt() {
 		{
 			name: "verification fails when message differs",
 			malleate: func() {
-				errorReceipt.ErrorMessage = "new error"
+				errorReceipt.Message = "new error"
 			},
 			expPass: false,
 		},

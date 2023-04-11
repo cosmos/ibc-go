@@ -476,7 +476,7 @@ func (suite *KeeperTestSuite) TestSetUpgradeErrorReceipt() {
 	suite.Require().False(found)
 	suite.Require().Empty(errorReceipt)
 
-	expErrorReceipt := types.ErrorReceipt{Sequence: 1, ErrorMessage: "testing"}
+	expErrorReceipt := types.ErrorReceipt{Sequence: 1, Message: "testing"}
 	suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetUpgradeErrorReceipt(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, expErrorReceipt)
 
 	errorReceipt, found = suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetUpgradeErrorReceipt(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
