@@ -542,7 +542,8 @@ func (q Keeper) NextSequenceReceive(c context.Context, req *types.QueryNextSeque
 }
 
 // NextSequenceSend implements the Query/NextSequenceSend gRPC method
-func (q Keeper) NextSequenceSend(c context.Context, req *types.QueryNextSequenceSendRequest) (*types.QueryNextSequenceSendResponse, error) {
+func (k Keeper) NextSequenceSend(c context.Context, req *types.QueryNextSequenceSendRequest) (*types.QueryNextSequenceSendResponse, error) {
+	ctx := sdk.UnwrapSDKContext(c)
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
@@ -551,8 +552,7 @@ func (q Keeper) NextSequenceSend(c context.Context, req *types.QueryNextSequence
 		return nil, err
 	}
 
-	ctx := sdk.UnwrapSDKContext(c)
-	channel, found := q.GetChannel(ctx, req.PortId, req.ChannelId)
+	channel, found := k.GetChannel(ctx, req.PortId, req.ChannelId)
 	if !found {
 		return nil, status.Error(
 			codes.NotFound,
@@ -564,11 +564,11 @@ func (q Keeper) NextSequenceSend(c context.Context, req *types.QueryNextSequence
 	// do not make use of the next sequence send.
 	var sequence uint64
 	if channel.Ordering != types.UNORDERED {
-		sequence, found = q.GetNextSequenceSend(ctx, req.PortId, req.ChannelId)
+		sequence, found = k.GetNextSequenceSend(ctx, req.PortId, req.ChannelId)
 		if !found {
 			return nil, status.Error(
 				codes.NotFound,
-				errorsmod.Wrapf(types.ErrSequenceReceiveNotFound, "port-id: %s, channel-id %s", req.PortId, req.ChannelId).Error(),
+				errorsmod.Wrapf(types.ErrSequenceSendNotFound, "port-id: %s, channel-id %s", req.PortId, req.ChannelId).Error(),
 			)
 		}
 	}

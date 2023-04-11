@@ -1629,7 +1629,7 @@ func (suite *KeeperTestSuite) TestQueryNextSequenceSend() {
 			true,
 		},
 		{
-			"basic success on ordered channel returns the set receive sequence",
+			"basic success on ordered channel returns the set send sequence",
 			func() {
 				path := ibctesting.NewPath(suite.chainA, suite.chainB)
 				path.SetChannelOrdered()

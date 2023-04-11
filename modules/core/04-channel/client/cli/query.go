@@ -460,8 +460,8 @@ func GetCmdQueryNextSequenceReceive() *cobra.Command {
 func GetCmdQueryNextSequenceSend() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "next-sequence-send [port-id] [channel-id]",
-		Short: "Query a next receive send",
-		Long:  "Query the next receive send for a given channel",
+		Short: "Query a next send sequence",
+		Long:  "Query the next sequence send for a given channel",
 		Example: fmt.Sprintf(
 			"%s query %s %s next-sequence-send [port-id] [channel-id]", version.AppName, ibcexported.ModuleName, types.SubModuleName,
 		),
