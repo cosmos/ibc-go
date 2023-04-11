@@ -1,4 +1,4 @@
-package upgrades
+package channel
 
 import (
 	"context"
