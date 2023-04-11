@@ -8,12 +8,12 @@ openness of Cosmos core contributors to help continually secure our operations.
 
 ## Scope
 
-| Scope                 |
-|-----------------------|
-| last release (tagged) |
-| main branch           |
+| Scope                                                                           |
+|---------------------------------------------------------------------------------|
+| All [actively supported releases branches](./RELEASES.md#stable-release-policy) |
+| main branch                                                                     |
 
-The latest **release tag** of this repository is supported for security updates as well as the **main** branch.
+All activeliy supported release branches (see table in [section Stable Release Policy in RELEASES.md](./RELEASES.md#stable-release-policy)) of this repository is supported for security updates as well as the **main** branch.
 Security vulnerabilities should be reported if the vulnerability can be reproduced on either one of those.
 
 ## Reporting a vulnerability
@@ -23,7 +23,7 @@ Security vulnerabilities should be reported if the vulnerability can be reproduc
 | [GitHub Private Vulnerability Reporting](security/advisories/new) |
 | [HackerOne bug bounty program](https://hackerone.com/cosmos)      |
 
-All security vulnerabilities can be reported under GitHub's [Private vulnerability reporting](security/advisories/new) system.
+All security vulnerabilities can be reported under GitHub's [Private vulnerability reporting](https://github.com/cosmos/ibc-go/security/advisories/new) system.
 This will open a private issue for the developers. Try to fill in as much of the questions as possible. If you are not familiar
 with the CVSS system for assessing vulnerabilities, just use the Low/High/Critical severity ratings. A partially filled in report
 for a critical vulnerability is still better than no report at all.
