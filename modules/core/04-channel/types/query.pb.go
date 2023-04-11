@@ -1677,7 +1677,7 @@ func (m *QueryNextSequenceReceiveResponse) GetProofHeight() types.Height {
 }
 
 // QueryNextSequenceSendRequest is the request type for the
-// Query/QueryNextSequenceSendRequest RPC method
+// Query/QueryNextSequenceSend RPC method
 type QueryNextSequenceSendRequest struct {
 	// port unique identifier
 	PortId string `protobuf:"bytes,1,opt,name=port_id,json=portId,proto3" json:"port_id,omitempty"`
@@ -1732,8 +1732,8 @@ func (m *QueryNextSequenceSendRequest) GetChannelId() string {
 	return ""
 }
 
-// QuerySequenceResponse is the request type for the
-// Query/QueryNextSequenceSendResponse RPC method
+// QueryNextSequenceSendResponse is the request type for the
+// Query/QueryNextSequenceSend RPC method
 type QueryNextSequenceSendResponse struct {
 	// next sequence send number
 	NextSequenceSend uint64 `protobuf:"varint,1,opt,name=next_sequence_send,json=nextSequenceSend,proto3" json:"next_sequence_send,omitempty"`
