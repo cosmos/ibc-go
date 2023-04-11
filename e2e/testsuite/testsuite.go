@@ -60,7 +60,7 @@ type E2ETestSuite struct {
 
 	grpcClients    map[string]GRPCClients
 	paths          map[string]path
-	relayers       relayerMap
+	relayers       relayer.RelayerMap
 	logger         *zap.Logger
 	DockerClient   *dockerclient.Client
 	network        string
@@ -105,25 +105,6 @@ func newPath(chainA, chainB *cosmos.CosmosChain) path {
 	}
 }
 
-// relayerMap is a mapping from test names to a relayer set for that test.
-type relayerMap map[string]map[ibc.Wallet]bool
-
-// addRelayer adds the given relayer to the relayer set for the given test name.
-func (r relayerMap) addRelayer(testName string, relayer ibc.Wallet) {
-	if _, ok := r[testName]; !ok {
-		r[testName] = make(map[ibc.Wallet]bool)
-	}
-	r[testName][relayer] = true
-}
-
-// containsRelayer returns true if the given relayer is in the relayer set for the given test name.
-func (r relayerMap) containsRelayer(testName string, wallet ibc.Wallet) bool {
-	if relayerSet, ok := r[testName]; ok {
-		return relayerSet[wallet]
-	}
-	return false
-}
-
 // GetRelayerUsers returns two ibc.Wallet instances which can be used for the relayer users
 // on the two chains.
 func (s *E2ETestSuite) GetRelayerUsers(ctx context.Context, chainOpts ...testconfig.ChainOptionConfiguration) (ibc.Wallet, ibc.Wallet) {
@@ -138,10 +119,10 @@ func (s *E2ETestSuite) GetRelayerUsers(ctx context.Context, chainOpts ...testcon
 	chainBRelayerUser := cosmos.NewWallet(ChainBRelayerName, chainBAccountBytes, "", chainB.Config())
 
 	if s.relayers == nil {
-		s.relayers = make(relayerMap)
+		s.relayers = make(relayer.RelayerMap)
 	}
-	s.relayers.addRelayer(s.T().Name(), chainARelayerUser)
-	s.relayers.addRelayer(s.T().Name(), chainBRelayerUser)
+	s.relayers.AddRelayer(s.T().Name(), chainARelayerUser)
+	s.relayers.AddRelayer(s.T().Name(), chainBRelayerUser)
 
 	return chainARelayerUser, chainBRelayerUser
 }
@@ -313,7 +294,7 @@ func (s *E2ETestSuite) BroadcastMessages(ctx context.Context, chain *cosmos.Cosm
 	broadcastFunc := func() (sdk.TxResponse, error) {
 		return cosmos.BroadcastTx(ctx, broadcaster, user, msgs...)
 	}
-	if s.relayers.containsRelayer(s.T().Name(), user) {
+	if s.relayers.ContainsRelayer(s.T().Name(), user) {
 		// Retry five times, the value of 5 chosen is arbitrary.
 		resp, err = s.retryNtimes(broadcastFunc, 5)
 	} else {
@@ -658,10 +639,10 @@ func (s *E2ETestSuite) retryNtimes(f func() (sdk.TxResponse, error), attempts in
 	for i := 0; i < attempts; i++ {
 		resp, err = f()
 		if err != nil {
-			return resp, err
+			return sdk.TxResponse{}, err
 		}
 		if !containsMessage(resp.RawLog, retryMessages) {
-			return sdk.TxResponse{}, err
+			return resp, err
 		}
 		s.T().Logf("retrying tx due to non deterministic failure: %+v", resp)
 	}
