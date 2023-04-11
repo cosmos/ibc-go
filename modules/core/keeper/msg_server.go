@@ -761,26 +761,41 @@ func (k Keeper) ChannelUpgradeTimeout(goCtx context.Context, msg *channeltypes.M
 	module, chanCap, err := k.ChannelKeeper.LookupModuleByChannel(ctx, msg.PortId, msg.ChannelId)
 	if err != nil {
 		ctx.Logger().Error("channel upgrade timeout failed on channel %s with portID %s", msg.ChannelId, msg.PortId, "error", errorsmod.Wrap(err, "could not retrieve module from port-id"))
-		return nil, errorsmod.Wrap(err, "could not retrieve module from port-id")
+		return &channeltypes.MsgChannelUpgradeTimeoutResponse{
+			ChannelId: msg.ChannelId,
+			Success:   false,
+		}, errorsmod.Wrap(err, "could not retrieve module from port-id")
 	}
 
 	cbs, ok := k.Router.GetRoute(module)
 	if !ok {
 		ctx.Logger().Error("channel upgrade timeout failed on channel %s with portID %s", msg.ChannelId, msg.PortId, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module))
-		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
+		return &channeltypes.MsgChannelUpgradeTimeoutResponse{
+			ChannelId: msg.ChannelId,
+			Success:   false,
+		}, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
 	}
 
 	if err := k.ChannelKeeper.ChanUpgradeTimeout(ctx, msg.PortId, msg.PortId, msg.CounterpartyChannel, chanCap, &msg.PreviousErrorReceipt, msg.ProofChannel, msg.ProofErrorReceipt, msg.ProofHeight); err != nil {
-		return nil, err
+		return &channeltypes.MsgChannelUpgradeTimeoutResponse{
+			ChannelId: msg.ChannelId,
+			Success:   false,
+		}, err
 	}
 
 	if err := cbs.OnChanUpgradeRestore(ctx, msg.PortId, msg.ChannelId); err != nil {
-		return nil, err
+		return &channeltypes.MsgChannelUpgradeTimeoutResponse{
+			ChannelId: msg.ChannelId,
+			Success:   false,
+		}, err
 	}
 
 	ctx.Logger().Info("channel upgrade timeout succeeded, channel %s with portID %s restored ", msg.ChannelId, msg.PortId)
 
-	return &channeltypes.MsgChannelUpgradeTimeoutResponse{}, nil
+	return &channeltypes.MsgChannelUpgradeTimeoutResponse{
+		ChannelId: msg.ChannelId,
+		Success:   true,
+	}, nil
 }
 
 // ChannelUpgradeCancel defines a rpc handler method for MsgChannelUpgradeCancel.
