@@ -29,19 +29,60 @@ Upgrading an existing application module from v1 to v2, e.g. new features could 
 
 Adding middleware on both sides of an existing channel, e.g. relayer incentivisation middleware, ICS 29, requires middleware to be added to both ends of a channel to incentivise the `recvPacket`, `acknowledgePacket` and `timeoutPacket`.
 
-### Governance-gated upgrades on both sides
+A few sample use case flows are described below. For the sake of simplicity, the samples below make the following assumptions:
 
-Governance-gated upgrades on chains A and B: chains A and B both gate the upgrade by a full chain governance or a DAO/technical committee via the groups module.
+1. The relayer can construct correct messages.
+2. There exists a transfer channel between chain A and chain B, with channel ID `channel-0` on both ends.
+3. The channel is upgraded to use fee incentivization (i.e. stack fee middleware on top of the transfer application). Both chains' binary has wired up the fee middleware.
 
-#### Preconditions
+Further exception flows can be explored if some of the asumptions above do not apply. For example: if chain B's binary has not wired up the fee middleware and `MsgChannelUpgradeTry` is submitted, the upgrade will be aborted and a cancellation message can be submitted to chain A to restore the channel to its previous state.
 
-- The relayer can construct correct messages.
-- There exists a transfer channel between chain A and chain B, with channel ID `channel-0` on both ends.
+### Pre-approved upgrades on both sides
 
-#### Postconditions
+Normal flow:
 
-- If channel upgrade handshake succeeds, then the channel has upgraded to the new parameters.
-- If the channel upgrade handshake fails, then the channel remains operational with the previous parameters.
+1. Governance proposal is submitted on chain A to allow upgrade for port ID `transfer`, channel ID `channel-0`.
+2. Governance proposal is submitted on chain B to allow upgrade for port ID `transfer`, channel ID `channel-0`.
+3. Governance proposal passes on chain A and it allows port ID `transfer`, channel ID `channel-0` to be upgraded.
+4. Governance proposal passes on chain B and it allows port ID `transfer`, channel ID `channel-0` to be upgraded.
+5. Relayer submits `MsgChannelUpgradeInit` on chain A proposing to upgrade channel version to `{"fee_version":"ics29-1","app_version":"ics20-1"}`.
+6. Execution of `MsgChannelUpgradeInit` succeeds on chain A.
+7. Relayer detects execution of `MsgChannelUpgradeInit` and submits `MsgChannelUpgradeTry` on chain B proposing to upgrade channel version to `{"fee_version":"ics29-1","app_version":"ics20-1"}`.
+8. Execution of `MsgChannelUpgradeTry` succeeds on chain B.
+9. Relayer detects execution of `MsgChannelUpgradeTry` and submits `MsgChannelUpgradeAck` on chain A.
+10. Execution of `MsgChannelUpgradeAck` succeeds on chain A.
+11. Chain A disallows port ID `transfer`, channel ID `channel-0` to be upgraded (now that upgrade has completed, then we can disallow future upgrades until approved again by governance).
+12. Relayer detects execution of `MsgChannelUpgradeAck` and submits `MsgChannelUpgradeConfirm` on chain A.
+13. Execution of `MsgChannelUpgradeConfirms` succeeds on chain B.
+14. Chain B disallows port ID `transfer`, channel ID `channel-0` to be upgraded (now that upgrade has completed, then we can disallow future upgrades until approved again by governance).
+
+Exception flows:
+
+##### Chain B has not pre-approved upgrade yet
+
+Pre-steps: 1 to 3 of normal flow.
+
+4. Relayer detects execution of `MsgChannelUpgradeInit` and submits `MsgChannelUpgradeTry` on chain B proposing to upgrade channel version to `{"fee_version":"ics29-1","app_version":"ics20-1"}`.
+5. Execution of `MsgChannelUpgradeTry` fails on chain B since the upgrade is not approved.
+6. Governance proposal passes on chain B and it allows port ID `transfer`, channel ID `channel-0` to be upgraded.
+7. Relayer re-submits `MsgChannelUpgradeTry` on chain B proposing to upgrade channel version to `{"fee_version":"ics29-1","app_version":"ics20-1"}`.
+
+Post-steps: 8 to 14 of normal flow.
+
+##### Chain B pre-approves upgrade after timeout
+
+Pre-steps: 1 to 3 of normal flow.
+
+4. Relayer detects execution of `MsgChannelUpgradeInit` and submits `MsgChannelUpgradeTry` on chain B proposing to upgrade channel version to `{"fee_version":"ics29-1","app_version":"ics20-1"}`.
+5. Execution of `MsgChannelUpgradeTry` fails on chain B since the upgrade is not approved.
+6. Governance proposal passes on chain B and it allows port ID `transfer`, channel ID `channel-0` to be upgraded.
+5. Relayer detects execution of `MsgChannelUpgradeInit` and submits `MsgChannelUpgradeTry` on chain B proposing to upgrade channel version to `{"fee_version":"ics29-1","app_version":"ics20-1"}`.
+6. Execution of `MsgChannelUpgradeTry` fails on chain B because chain B have moved on after the specified timeout.
+because chain B have moved on after the specified timeout.
+7. Relayer submits `MsgChannelUpgradeTimeout` on chain A.
+8. Execution of `MsgChannelUpgradeTimeout` on chain A succeeds and channel is restored to previous state.
+
+### Governance-gated upgrade on one side / pre-approved upgrade on another side
 
 Normal flow:
 
@@ -50,8 +91,8 @@ Normal flow:
 3. Governance proposal passes on chain A and:
     a. it allows port ID `transfer`, channel ID `channel-0` to be upgraded;
     b. it executes `MsgChannelUpgradeInit` to upgrade channel version from `ics20-1` to `{"fee_version":"ics29-1","app_version":"ics20-1"}`.
-4. Governance proposal passes on chain B and upgrading port ID `transfer`, channel ID `channel-0` will be allowed.
-5. Relayer detects execution of `MsgChannelUpgradeInit` and submits `MsgChannelUpgradeTry` on chain B proposing to upgrade channel version to `{"fee_version":"ics29-1","app_version":"ics20-1"}`.
+4. Governance proposal passes on chain B and it allows port ID `transfer`, channel ID `channel-0` to be upgraded.
+5. Relayer detects execution of `MsgChannelUpgradeInit` on chain A and submits `MsgChannelUpgradeTry` on chain B proposing to upgrade channel version to `{"fee_version":"ics29-1","app_version":"ics20-1"}`.
 6. Execution of `MsgChannelUpgradeTry` succeeds on chain B.
 7. Relayer detects execution of `MsgChannelUpgradeTry` and submits `MsgChannelUpgradeAck` on chain A.
 8. Execution of `MsgChannelUpgradeAck` succeeds on chain A.
@@ -60,23 +101,13 @@ Normal flow:
 11. Execution of `MsgChannelUpgradeConfirms` succeeds on chain B.
 12. Chain B disallows port ID `transfer`, channel ID `channel-0` to be upgraded (now that upgrade has completed, then we can disallow future upgrades until approved again by governance).
 
-Exception flows:
+### Governance-gated upgrades on both sides
 
-##### Chain B has not approved upgrade yet
+Normal flow:
 
-Steps 1 to 3 of normal flow remain the same.
+This is a crossing hellos scenario.
 
-4. Relayer detects execution of `MsgChannelUpgradeInit` and submits `MsgChannelUpgradeTry` on chain B proposing to upgrade channel version to `{"fee_version":"ics29-1","app_version":"ics20-1"}`.
-5. Execution of `MsgChannelUpgradeTry` fails on chain B since the upgrade is not approved.
-6. Relayer submits `MsgChannelUpgradeTimeout` on chain A.
-7. Execution of `MsgChannelUpgradeTimeout` on chain A succeeds and channel is restored to previous state.
-
-Question: Should both chains A and B disallow the upgrade now that it failed because of the timeout? That would mean that new proposals need to pass to attempt the upgrade again.
-
-##### Chain B submits proposal to initiate upgrade
-
-This is a crossing hellos scenario. Step 1 of normal flow remains the same.
-
+1. Governance proposal is submitted on chain A to upgrade port ID `transfer`, channel ID `channel-0`.
 2. Governance proposal is submitted on chain B to upgrade port ID `transfer`, channel ID `channel-0`.
 3. Governance proposal passes on chain A and:
     a. it allows port ID `transfer`, channel ID `channel-0` to be upgraded;
@@ -86,23 +117,45 @@ This is a crossing hellos scenario. Step 1 of normal flow remains the same.
     b. it executes `MsgChannelUpgradeInit` to upgrade channel version from `ics20-1` to `{"fee_version":"ics29-1","app_version":"ics20-1"}`.
 5. Relayer detects execution of `MsgChannelUpgradeInit` on chain A and submits `MsgChannelUpgradeTry` on chain B proposing to upgrade channel version to `{"fee_version":"ics29-1","app_version":"ics20-1"}`.
 6. Chain B is already on `INITUPGRADE` state, so this a crossing hello. Execution of `MsgChannelUpgradeTry` succeeds on chain B.
+7. Relayer detects execution of `MsgChannelUpgradeTry` and submits `MsgChannelUpgradeAck` on chain A.
+8. Execution of `MsgChannelUpgradeAck` succeeds on chain A.
+9. Chain A disallows port ID `transfer`, channel ID `channel-0` to be upgraded (now that upgrade has completed, then we can disallow future upgrades until approved again by governance).
+10. Relayer detects execution of `MsgChannelUpgradeAck` and submits `MsgChannelUpgradeConfirm` on chain A.
+11. Execution of `MsgChannelUpgradeConfirms` succeeds on chain B.
+12. Chain B disallows port ID `transfer`, channel ID `channel-0` to be upgraded (now that upgrade has completed, then we can disallow future upgrades until approved again by governance).
 
-Steps 7 to 12 of normal flow remain the same.
+Exception flows:
+
+##### Upgrade handshake on chain B needs to be re-tried
+
+Pre-steps: 1 of normal flow.
+
+2. Governance proposal is submitted on chain B to upgrade port ID `transfer`, channel ID `channel-0`.
+3. Governance proposal passes on chain A and:
+    a. it allows port ID `transfer`, channel ID `channel-0` to be upgraded;
+    b. it executes `MsgChannelUpgradeInit` to upgrade channel version from `ics20-1` to `{"fee_version":"ics29-1","app_version":"ics20-1"}`.
+4. Relayer detects execution of `MsgChannelUpgradeInit` on chain A and submits `MsgChannelUpgradeTry` on chain B proposing to upgrade channel version to `{"fee_version":"ics29-1","app_version":"ics20-1"}`.
+5. Governance proposal on chain B has not passed yet (i.e. `MsgChannelUpgradeInit` has not executed yet) and upgrade has not been pre-aproved, therefore `MsgChannelUpgradeTry` on chain B fails. 
+6. Governance proposal passes on chain B and:
+    a. it allows port ID `transfer`, channel ID `channel-0` to be upgraded;
+    b. it executes `MsgChannelUpgradeInit` to upgrade channel version from `ics20-1` to `{"fee_version":"ics29-1","app_version":"ics20-1"}`.
+7. Relayer re-submits `MsgChannelUpgradeTry` on chain B proposing to upgrade channel version to `{"fee_version":"ics29-1","app_version":"ics20-1"}`.
+8. Chain B is now on `INITUPGRADE` state, so this a crossing hello. Execution of `MsgChannelUpgradeTry` succeeds on chain B.
+
+Post-steps: 7 to 12 of normal flow.
 
 ##### Upgrade attempt on chain B is initiated after timeout
 
-Step 1 to 2 of normal flow remain the same.
+Pre-steps: 1 of normal flow.
 
-3. Governance proposal passes on chain B and upgrading port ID `transfer`, channel ID `channel-0` will be allowed.
-4. Governance proposal passes on chain A and:
+2. Governance proposal is submitted on chain B to upgrade port ID `transfer`, channel ID `channel-0`.
+3. Governance proposal passes on chain A and:
     a. it allows port ID `transfer`, channel ID `channel-0` to be upgraded;
     b. it executes `MsgChannelUpgradeInit` to upgrade channel version from `ics20-1` to `{"fee_version":"ics29-1","app_version":"ics20-1"}`.
-5. Relayer detects execution of `MsgChannelUpgradeInit` and submits `MsgChannelUpgradeTry` on chain B proposing to upgrade channel version to `{"fee_version":"ics29-1","app_version":"ics20-1"}`.
-6. Execution of `MsgChannelUpgradeTry` fails on chain B because chain B have moved on after the specified timeout.
-7. Relayer submits `MsgChannelUpgradeTimeout` on chain A.
-8. Execution of `MsgChannelUpgradeTimeout` on chain A succeeds and channel is restored to previous state.
-
-Question: Should both chains A and B disallow the upgrade now that it failed because of the timeout? That would mean that new proposals need to pass to attempt the upgrade again.
+4. Relayer detects execution of `MsgChannelUpgradeInit` and submits `MsgChannelUpgradeTry` on chain B proposing to upgrade channel version to `{"fee_version":"ics29-1","app_version":"ics20-1"}`.
+5. Execution of `MsgChannelUpgradeTry` fails on chain B because chain B have moved on after the specified timeout.
+6. Relayer submits `MsgChannelUpgradeTimeout` on chain A.
+7. Execution of `MsgChannelUpgradeTimeout` on chain A succeeds and channel is restored to previous state.
 
 # Functional requirements
 
