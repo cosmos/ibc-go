@@ -543,7 +543,6 @@ func (q Keeper) NextSequenceReceive(c context.Context, req *types.QueryNextSeque
 
 // NextSequenceSend implements the Query/NextSequenceSend gRPC method
 func (k Keeper) NextSequenceSend(c context.Context, req *types.QueryNextSequenceSendRequest) (*types.QueryNextSequenceSendResponse, error) {
-	ctx := sdk.UnwrapSDKContext(c)
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
@@ -551,6 +550,8 @@ func (k Keeper) NextSequenceSend(c context.Context, req *types.QueryNextSequence
 	if err := validategRPCRequest(req.PortId, req.ChannelId); err != nil {
 		return nil, err
 	}
+	
+	ctx := sdk.UnwrapSDKContext(c)
 
 	channel, found := k.GetChannel(ctx, req.PortId, req.ChannelId)
 	if !found {
