@@ -19,6 +19,7 @@ type ClientKeeper interface {
 // ConnectionKeeper expected account IBC connection keeper
 type ConnectionKeeper interface {
 	GetConnection(ctx sdk.Context, connectionID string) (connectiontypes.ConnectionEnd, bool)
+	HasConnection(ctx sdk.Context, connectionID string) bool
 	GetTimestampAtHeight(
 		ctx sdk.Context,
 		connection connectiontypes.ConnectionEnd,
