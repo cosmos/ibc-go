@@ -59,10 +59,10 @@ func newHermesRelayer() ibc.Relayer {
 	panic("hermes relayer not yet implemented for interchaintest")
 }
 
-// relayerMap is a mapping from test names to a relayer set for that test.
+// RelayerMap is a mapping from test names to a relayer set for that test.
 type RelayerMap map[string]map[ibc.Wallet]bool
 
-// addRelayer adds the given relayer to the relayer set for the given test name.
+// AddRelayer adds the given relayer to the relayer set for the given test name.
 func (r RelayerMap) AddRelayer(testName string, relayer ibc.Wallet) {
 	if _, ok := r[testName]; !ok {
 		r[testName] = make(map[ibc.Wallet]bool)
