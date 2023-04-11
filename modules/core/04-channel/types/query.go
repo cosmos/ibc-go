@@ -94,7 +94,7 @@ func NewQueryNextSequenceReceiveResponse(
 	}
 }
 
-// NewQueryNextSequenceSendResponse creates a new QueryNextSequenceReceiveResponse instance
+// NewQueryNextSequenceSendResponse creates a new QueryNextSequenceSendResponse instance
 func NewQueryNextSequenceSendResponse(
 	sequence uint64, proof []byte, height clienttypes.Height,
 ) *QueryNextSequenceSendResponse {
