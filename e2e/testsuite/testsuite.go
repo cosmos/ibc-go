@@ -221,6 +221,7 @@ func (s *E2ETestSuite) generatePath(ctx context.Context, relayer ibc.Relayer) st
 	chainBID := chainB.Config().ChainID
 
 	pathName := s.generatePathName()
+
 	err := relayer.GeneratePath(ctx, s.GetRelayerExecReporter(), chainAID, chainBID, pathName)
 	s.Require().NoError(err)
 
