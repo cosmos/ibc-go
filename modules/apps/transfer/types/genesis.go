@@ -38,5 +38,5 @@ func (gs GenesisState) Validate() error {
 	if err := gs.Params.Validate(); err != nil {
 		return err
 	}
-	return gs.DenomEscrows.Validate()
+	return gs.DenomEscrows.Validate() // will fail if there are duplicates for any denom
 }

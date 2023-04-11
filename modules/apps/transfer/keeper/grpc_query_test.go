@@ -317,7 +317,7 @@ func (suite *KeeperTestSuite) TestTotalEscrowForDenom() {
 					Denom: denomTrace.IBCDenom(),
 				}
 			},
-			true, // denom trace is not found, so the denom is considered a native token
+			true, // denom trace is not found, thus the denom is considered a native token
 		},
 		{
 			"invalid ibc denom treated as valid native denom",
@@ -326,7 +326,7 @@ func (suite *KeeperTestSuite) TestTotalEscrowForDenom() {
 					Denom: "ibc/123",
 				}
 			},
-			true, // the denom is considered a native token
+			true, // the ibc denom does not contain a valid hash, thus the denom is considered a native token
 		},
 		{
 			"invalid denom",
@@ -351,7 +351,7 @@ func (suite *KeeperTestSuite) TestTotalEscrowForDenom() {
 
 			if tc.expPass {
 				suite.Require().NoError(err)
-				suite.Require().Equal(expEscrowAmount.String(), res.Amount)
+				suite.Require().Equal(expEscrowAmount, res.Amount)
 			} else {
 				suite.Require().Error(err)
 			}

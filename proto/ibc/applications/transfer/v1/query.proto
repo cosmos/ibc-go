@@ -3,6 +3,8 @@ syntax = "proto3";
 package ibc.applications.transfer.v1;
 
 import "gogoproto/gogo.proto";
+import "cosmos_proto/cosmos.proto";
+import "amino/amino.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
 import "ibc/applications/transfer/v1/transfer.proto";
 import "google/api/annotations.proto";
@@ -38,7 +40,7 @@ service Query {
 
   // TotalEscrowForDenom returns the total amount of tokens in escrow based on the denom.
   rpc TotalEscrowForDenom(QueryTotalEscrowForDenomRequest) returns (QueryTotalEscrowForDenomResponse) {
-    option (google.api.http).get = "/ibc/apps/transfer/v1/total_escrow/{denom}";
+    option (google.api.http).get = "/ibc/apps/transfer/v1/denoms/total_escrow/{denom=**}";
   }
 }
 
@@ -116,5 +118,10 @@ message QueryTotalEscrowForDenomRequest {
 
 // QueryTotalEscrowForDenomResponse is the response type for TotalEscrowForDenom RPC method.
 message QueryTotalEscrowForDenomResponse {
-  string amount = 1;
+  string amount = 1 [
+    (cosmos_proto.scalar)  = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable)   = false,
+    (amino.dont_omitempty) = true
+  ];
 }

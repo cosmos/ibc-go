@@ -144,7 +144,8 @@ func (k Keeper) IterateDenomTraces(ctx sdk.Context, cb func(denomTrace types.Den
 	}
 }
 
-// GetTotalEscrowForDenom gets the total amount of source chain tokens that are in escrow.
+// GetTotalEscrowForDenom gets the total amount of source chain tokens that
+// are in escrow, keyed by the denomination.
 func (k Keeper) GetTotalEscrowForDenom(ctx sdk.Context, denom string) math.Int {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.TotalEscrowForDenomKey(denom))
@@ -176,22 +177,23 @@ func (k Keeper) SetTotalEscrowForDenom(ctx sdk.Context, denom string, amount mat
 
 // GetAllDenomEscrows returns the escrow information for all the denominations.
 func (k Keeper) GetAllDenomEscrows(ctx sdk.Context) sdk.Coins {
-	escrows := sdk.Coins{}
-	k.IterateDenomEscrows(ctx, func(denomEscrow sdk.Coin) bool {
+	var escrows sdk.Coins
+	k.IterateDenomEscrows(ctx, []byte(types.KeyTotalEscrowPrefix), func(denomEscrow sdk.Coin) bool {
 		escrows = append(escrows, denomEscrow)
 		return false
 	})
 
-	return escrows.Sort()
+	return escrows
 }
 
 // IterateDenomEscrows iterates over the denomination escrows in the store
-// and performs a callback function.
-func (k Keeper) IterateDenomEscrows(ctx sdk.Context, cb func(denomEscrow sdk.Coin) bool) {
+// and performs a callback function. Denominations for which an invalid value
+// (i.e. not integer) is stored, will be skipped.
+func (k Keeper) IterateDenomEscrows(ctx sdk.Context, prefix []byte, cb func(denomEscrow sdk.Coin) bool) {
 	re := regexp.MustCompile(fmt.Sprintf(`%s\/%s\/(.*[^\s])`, types.KeyTotalEscrowPrefix, types.KeyDenomsPrefix))
 
 	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, []byte(types.KeyTotalEscrowPrefix))
+	iterator := sdk.KVStorePrefixIterator(store, prefix)
 
 	defer sdk.LogDeferred(ctx.Logger(), func() error { return iterator.Close() })
 	for ; iterator.Valid(); iterator.Next() {
@@ -204,7 +206,7 @@ func (k Keeper) IterateDenomEscrows(ctx sdk.Context, cb func(denomEscrow sdk.Coi
 
 		var amount math.Int
 		if err := amount.Unmarshal(iterator.Value()); err != nil {
-			continue
+			continue // total escrow amount cannot be unmarshalled to integer
 		}
 
 		denomEscrow := sdk.NewCoin(denom, amount)

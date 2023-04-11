@@ -89,6 +89,12 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized() {
 
 		expected := testvalues.StartingTokenAmount - testvalues.IBCTransferAmount
 		s.Require().Equal(expected, actualBalance)
+
+		actualTotalEscrow, err := s.QueryTotalEscrowForDenom(ctx, chainA, chainADenom)
+		s.Require().NoError(err)
+
+		expectedTotalEscrow := math.NewInt(testvalues.IBCTransferAmount)
+		s.Require().Equal(expectedTotalEscrow, actualTotalEscrow)
 	})
 
 	t.Run("start relayer", func(t *testing.T) {
@@ -107,14 +113,6 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized() {
 		s.Require().Equal(expected, actualBalance)
 	})
 
-	t.Run("escrow amount for native denom is set", func(t *testing.T) {
-		actualTotalEscrow, err := s.QueryTotalEscrowForDenom(ctx, chainA, chainADenom)
-		s.Require().NoError(err)
-
-		expectedTotalEscrow := math.NewInt(testvalues.IBCTransferAmount)
-		s.Require().Equal(expectedTotalEscrow, actualTotalEscrow)
-	})
-
 	t.Run("non-native IBC token transfer from chainB to chainA, receiver is source of tokens", func(t *testing.T) {
 		transferTxResp, err := s.Transfer(ctx, chainB, chainBWallet, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID, testvalues.DefaultTransferAmount(chainBIBCToken.IBCDenom()), chainBAddress, chainAAddress, s.GetTimeoutHeight(ctx, chainA), 0, "")
 		s.Require().NoError(err)
@@ -126,6 +124,10 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized() {
 		s.Require().NoError(err)
 
 		s.Require().Equal(int64(0), actualBalance)
+
+		actualTotalEscrow, err := s.QueryTotalEscrowForDenom(ctx, chainB, chainBIBCToken.IBCDenom())
+		s.Require().NoError(err)
+		s.Require().Equal(math.ZeroInt(), actualTotalEscrow) // total escrow is zero because sending chain is not source for tokens
 	})
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA, chainB), "failed to wait for blocks")
@@ -140,10 +142,10 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized() {
 		s.Require().Equal(expected, actualBalance)
 	})
 
-	t.Run("escrow amount for native denom is updated", func(t *testing.T) {
+	t.Run("tokens are un-escrowed", func(t *testing.T) {
 		actualTotalEscrow, err := s.QueryTotalEscrowForDenom(ctx, chainA, chainADenom)
 		s.Require().NoError(err)
-		s.Require().Equal(math.ZeroInt(), actualTotalEscrow)
+		s.Require().Equal(math.ZeroInt(), actualTotalEscrow) // total escrow is zero because tokens have come back
 	})
 }
 

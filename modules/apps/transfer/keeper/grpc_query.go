@@ -129,13 +129,13 @@ func (q Keeper) TotalEscrowForDenom(c context.Context, req *types.QueryTotalEscr
 	}
 
 	if err := sdk.ValidateDenom(req.Denom); err != nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid denom")
+		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
 	denomAmount := q.GetTotalEscrowForDenom(ctx, req.Denom)
 
 	return &types.QueryTotalEscrowForDenomResponse{
-		Amount: denomAmount.String(),
+		Amount: denomAmount,
 	}, nil
 }

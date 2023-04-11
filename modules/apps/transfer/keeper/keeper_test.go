@@ -50,6 +50,7 @@ func TestKeeperTestSuite(t *testing.T) {
 }
 
 func (suite *KeeperTestSuite) TestSetGetTotalEscrowForDenom() {
+	const denom = "atom"
 	var expAmount math.Int
 
 	testCases := []struct {
@@ -57,6 +58,11 @@ func (suite *KeeperTestSuite) TestSetGetTotalEscrowForDenom() {
 		malleate func()
 		expPass  bool
 	}{
+		{
+			"success: with 0 escrow amount",
+			func() {},
+			true,
+		},
 		{
 			"success: with escrow amount > 2^63",
 			func() {
@@ -84,14 +90,14 @@ func (suite *KeeperTestSuite) TestSetGetTotalEscrowForDenom() {
 			tc.malleate()
 
 			if tc.expPass {
-				suite.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(ctx, "atom", expAmount)
-				total := suite.chainA.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(ctx, "atom")
+				suite.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(ctx, denom, expAmount)
+				total := suite.chainA.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(ctx, denom)
 				suite.Require().Equal(expAmount, total)
 			} else {
 				suite.Require().PanicsWithValue("amount cannot be negative: -1", func() {
-					suite.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(ctx, "atom", expAmount)
+					suite.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(ctx, denom, expAmount)
 				})
-				total := suite.chainA.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(ctx, "atom")
+				total := suite.chainA.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(ctx, denom)
 				suite.Require().Equal(math.ZeroInt(), total)
 			}
 		})
@@ -100,9 +106,8 @@ func (suite *KeeperTestSuite) TestSetGetTotalEscrowForDenom() {
 
 func (suite *KeeperTestSuite) TestGetAllDenomEscrows() {
 	var (
-		store     storetypes.KVStore
-		expDenom  string
-		expAmount math.Int
+		store           storetypes.KVStore
+		expDenomEscrows sdk.Coins
 	)
 
 	testCases := []struct {
@@ -113,47 +118,76 @@ func (suite *KeeperTestSuite) TestGetAllDenomEscrows() {
 		{
 			"success",
 			func() {
-				expDenom = "uatom"
-				expAmount = math.NewInt(100)
+				denom := "uatom"
+				amount := math.NewInt(100)
+				expDenomEscrows = append(expDenomEscrows, sdk.NewCoin(denom, amount))
 
-				bz, err := expAmount.Marshal()
+				bz, err := amount.Marshal()
 				suite.Require().NoError(err)
 
-				store.Set(types.TotalEscrowForDenomKey(expDenom), bz)
+				store.Set(types.TotalEscrowForDenomKey(denom), bz)
+			},
+			true,
+		},
+		{
+			"success: multiple denoms",
+			func() {
+				denom := "uatom"
+				amount := math.NewInt(100)
+				expDenomEscrows = append(expDenomEscrows, sdk.NewCoin(denom, amount))
+
+				bz, err := amount.Marshal()
+				suite.Require().NoError(err)
+
+				store.Set(types.TotalEscrowForDenomKey(denom), bz)
+
+				denom = "bar/foo"
+				amount = math.NewInt(50)
+				expDenomEscrows = append(expDenomEscrows, sdk.NewCoin(denom, amount))
+
+				bz, err = amount.Marshal()
+				suite.Require().NoError(err)
+
+				store.Set(types.TotalEscrowForDenomKey(denom), bz)
 			},
 			true,
 		},
 		{
 			"success: denom with non-alphanumeric characters",
 			func() {
-				expDenom = "ibc/123-456"
-				expAmount = math.NewInt(100)
+				denom := "ibc/123-456"
+				amount := math.NewInt(100)
+				expDenomEscrows = append(expDenomEscrows, sdk.NewCoin(denom, amount))
 
-				bz, err := expAmount.Marshal()
+				bz, err := amount.Marshal()
 				suite.Require().NoError(err)
 
-				store.Set(types.TotalEscrowForDenomKey(expDenom), bz)
+				store.Set(types.TotalEscrowForDenomKey(denom), bz)
 			},
 			true,
 		},
 		{
 			"failure: empty denom",
 			func() {
-				bz, err := expAmount.Marshal()
+				denom := ""
+				amount := math.ZeroInt()
+
+				bz, err := amount.Marshal()
 				suite.Require().NoError(err)
 
-				store.Set(types.TotalEscrowForDenomKey(expDenom), bz)
+				store.Set(types.TotalEscrowForDenomKey(denom), bz)
 			},
 			false,
 		},
 		{
 			"failure: wrong prefix key",
 			func() {
-				expDenom = "uatom"
+				denom := "uatom"
+				amount := math.ZeroInt()
 
-				bz, err := expAmount.Marshal()
+				bz, err := amount.Marshal()
 				suite.Require().NoError(err)
-				store.Set([]byte(fmt.Sprintf("%s/wrong-prefix/%s", types.KeyTotalEscrowPrefix, expDenom)), bz)
+				store.Set([]byte(fmt.Sprintf("%s/wrong-prefix/%s", types.KeyTotalEscrowPrefix, denom)), bz)
 			},
 			false,
 		},
@@ -165,8 +199,7 @@ func (suite *KeeperTestSuite) TestGetAllDenomEscrows() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 
-			expDenom = ""
-			expAmount = math.ZeroInt()
+			expDenomEscrows = sdk.Coins{}
 			ctx := suite.chainA.GetContext()
 
 			storeKey := suite.chainA.GetSimApp().GetKey(types.ModuleName)
@@ -177,7 +210,8 @@ func (suite *KeeperTestSuite) TestGetAllDenomEscrows() {
 			denomEscrows := suite.chainA.GetSimApp().TransferKeeper.GetAllDenomEscrows(ctx)
 
 			if tc.expPass {
-				suite.Require().Equal(sdk.NewCoins(sdk.NewCoin(expDenom, expAmount)), denomEscrows)
+				suite.Require().Len(expDenomEscrows, len(denomEscrows))
+				suite.Require().ElementsMatch(expDenomEscrows, denomEscrows)
 			} else {
 				suite.Require().Empty(denomEscrows)
 			}
