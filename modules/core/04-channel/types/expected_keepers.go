@@ -80,6 +80,14 @@ type ConnectionKeeper interface {
 		channelID string,
 		errorReceipt ErrorReceipt,
 	) error
+	VerifyChannelUpgradeErrorAbsence(
+		ctx sdk.Context,
+		connection exported.ConnectionI,
+		height exported.Height,
+		proof []byte,
+		portID,
+		channelID string,
+	) error
 }
 
 // PortKeeper expected account IBC port keeper

@@ -770,7 +770,7 @@ func (k Keeper) ChannelUpgradeTimeout(goCtx context.Context, msg *channeltypes.M
 		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
 	}
 
-	if err := k.ChannelKeeper.ChanUpgradeTimeout(ctx, msg.PortId, msg.PortId, msg.CounterpartyChannel, chanCap, msg.PreviousErrorReceipt, msg.ProofChannel, msg.ProofErrorReceipt, msg.ProofHeight); err != nil {
+	if err := k.ChannelKeeper.ChanUpgradeTimeout(ctx, msg.PortId, msg.PortId, msg.CounterpartyChannel, chanCap, &msg.PreviousErrorReceipt, msg.ProofChannel, msg.ProofErrorReceipt, msg.ProofHeight); err != nil {
 		return nil, err
 	}
 

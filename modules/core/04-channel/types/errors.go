@@ -45,4 +45,5 @@ var (
 	ErrUpgradeErrorReceiptNotFound = errorsmod.Register(SubModuleName, 29, "upgrade error receipt not found")
 	ErrUpgradeTimeoutNotFound      = errorsmod.Register(SubModuleName, 30, "upgrade timeout not found")
 	ErrUpgradeTimeout              = errorsmod.Register(SubModuleName, 31, "channel upgrade handshake has timed out")
+	ErrInvalidUpgradeSequence      = errorsmod.Register(SubModuleName, 32, "invalid upgrade sequence")
 )

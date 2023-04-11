@@ -8,6 +8,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
+	"github.com/cosmos/ibc-go/v7/internal/collections"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
@@ -103,7 +104,7 @@ func (k Keeper) ChanUpgradeTimeout(
 	channelID string,
 	counterpartyChannel types.Channel,
 	chanCap *capabilitytypes.Capability,
-	prevErrorReceipt types.ErrorReceipt,
+	prevErrorReceipt *types.ErrorReceipt,
 	proofChannel,
 	proofErrorReceipt []byte,
 	proofHeight clienttypes.Height,
@@ -154,40 +155,39 @@ func (k Keeper) ChanUpgradeTimeout(
 	}
 
 	// counterparty channel must be proved to still be in OPEN state or INITUPGRADE state (crossing hellos)
-	if counterpartyChannel.State != types.OPEN || counterpartyChannel.State != types.INITUPGRADE {
+	if !collections.Contains(channel.State, []types.State{types.OPEN, types.INITUPGRADE}) {
 		return errorsmod.Wrapf(types.ErrInvalidChannelState, "expected one of [%s, %s], got %s", types.OPEN, types.INITUPGRADE, counterpartyChannel.State)
 	}
 
-	k.connectionKeeper.VerifyChannelState(ctx, connection, proofHeight, proofChannel, channel.Counterparty.PortId, channel.Counterparty.ChannelId, counterpartyChannel)
+	if err := k.connectionKeeper.VerifyChannelState(ctx, connection, proofHeight, proofChannel, channel.Counterparty.PortId, channel.Counterparty.ChannelId, counterpartyChannel); err != nil {
+		return err
+	}
 
-	// TODO: Error receipt passed in is either nil or it is a stale error receipt from a previous upgrade
-	// if prevErrorReceipt == nil {
-	// 	abortTransactionUnless(verifyErrorReceiptAbsence(connection, proofHeight, proofErrorReceipt, currentChannel.counterpartyPortIdentifier, currentChannel.counterpartyChannelIdentifier))
-	// } else {
-
-	// timeout for this sequence can only succeed if the error receipt written into the error path on the counterparty
-	// was for a previous sequence by the timeout deadline.
-	// 	sequence = provableStore.get(channelUpgradeSequencePath(portIdentifier, channelIdentifier))
-	// 	abortTransactionUnless(sequence > prevErrorReceipt.sequence)
-	// 	abortTransactionUnless(verifyErrorReceipt(connection, proofHeight, proofErrorReceipt, currentChannel.counterpartyPortIdentifier, currentChannel.counterpartyChannelIdentifier, prevErrorReceipt))
-	// }
-	upgradeSequence, found := k.GetUpgradeSequence(ctx, portID, channelID)
+	// Error receipt passed in is either nil or it is a stale error receipt from a previous upgrade
+	sequence, found := k.GetUpgradeSequence(ctx, portID, channelID)
 	if !found {
 		return errorsmod.Wrapf(types.ErrUpgradeSequenceNotFound, "failed to retrieve upgrade sequence for channel, port ID (%s) channel ID (%s)", portID, channelID)
 	}
 
-	// grab error receipt associated with upgrade sequence
+	if prevErrorReceipt != nil {
+		// timeout for this sequence can only succeed if the error receipt written into the error path on the counterparty
+		// was for a previous sequence by the timeout deadline.
+		if sequence <= prevErrorReceipt.Sequence {
+			return errorsmod.Wrapf(types.ErrInvalidUpgradeSequence, "sequence (%d) must be greater than previous error receipt sequence (%d)", sequence, prevErrorReceipt.Sequence)
+		}
+		if err := k.connectionKeeper.VerifyChannelUpgradeError(ctx, connection, proofHeight, proofErrorReceipt, channel.Counterparty.PortId, channel.Counterparty.ChannelId, *prevErrorReceipt); err != nil {
+			return err
+		}
+		// TODO: isn't this called on the counterparty chain (not initializing chain?)
+		k.connectionKeeper.VerifyChannelUpgradeError(ctx, connection, proofHeight, proofErrorReceipt, channel.Counterparty.PortId, channel.Counterparty.ChannelId, *prevErrorReceipt)
 
-	if upgradeSequence < prevErrorReceipt.Sequence {
-		// TODO: update error type here
-		return errorsmod.Wrapf(types.ErrUpgradeSequenceNotFound, "upgrade sequence (%d) must be greater than error receipt sequence (%d)", upgradeSequence, prevErrorReceipt.Sequence)
+		return k.RestoreChannel(ctx, portID, channelID, sequence, types.ErrUpgradeTimeout)
 	}
-
-	// TODO: isn't this called on the counterparty chain (not initializing chain?)
-	k.connectionKeeper.VerifyChannelUpgradeError(ctx, connection, proofHeight, proofErrorReceipt, channel.Counterparty.PortId, channel.Counterparty.ChannelId, prevErrorReceipt)
-
-	return nil
-	// return k.RestoreChannel(ctx, portID, channelID, sequence, types.ErrUpgradeTimeout)
+	// error receipt must not exist on counterparty, can we verify this with connectionkeeper of chainA?
+	if err := k.connectionKeeper.VerifyChannelUpgradeErrorAbsence(ctx, connection, proofHeight, proofErrorReceipt, channel.Counterparty.PortId, channel.Counterparty.ChannelId); err != nil {
+		return err
+	}
+	return k.RestoreChannel(ctx, portID, channelID, sequence, types.ErrUpgradeTimeout)
 }
 
 // RestoreChannel restores the given channel to the state prior to upgrade.
