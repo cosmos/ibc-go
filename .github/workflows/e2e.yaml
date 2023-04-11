@@ -55,7 +55,8 @@ jobs:
             test_dirs="$(ls -A tests)"
             for td in $test_dirs
             do
-              if [[ ls "./tests/${td}" | grep .go ]];
+              # only test directories that contain go files.
+              if ls "./tests/${td}" | grep .go > /dev/null;
               then
                 go test -c "./tests/${td}"
               fi
