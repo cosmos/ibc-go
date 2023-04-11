@@ -1,4 +1,4 @@
-package client
+package e2e
 
 import (
 	"context"
