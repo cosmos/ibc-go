@@ -18,10 +18,10 @@ Security vulnerabilities should be reported if the vulnerability can be reproduc
 
 ## Reporting a vulnerability
 
-| Reporting methods                                                 |
-|-------------------------------------------------------------------|
-| [GitHub Private Vulnerability Reporting](security/advisories/new) |
-| [HackerOne bug bounty program](https://hackerone.com/cosmos)      |
+| Reporting methods                                                                                  |
+|----------------------------------------------------------------------------------------------------|
+| [GitHub Private Vulnerability Reporting](https://github.com/cosmos/ibc-go/security/advisories/new) |
+| [HackerOne bug bounty program](https://hackerone.com/cosmos)                                       |
 
 All security vulnerabilities can be reported under GitHub's [Private vulnerability reporting](https://github.com/cosmos/ibc-go/security/advisories/new) system.
 This will open a private issue for the developers. Try to fill in as much of the questions as possible. If you are not familiar
