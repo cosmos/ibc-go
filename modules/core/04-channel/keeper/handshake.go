@@ -200,19 +200,11 @@ func (k Keeper) WriteOpenTryChannel(
 	k.SetNextSequenceRecv(ctx, portID, channelID, 1)
 	k.SetNextSequenceAck(ctx, portID, channelID, 1)
 
-	channelBefore, found := k.GetChannel(ctx, portID, channelID)
-	var prevState string
-	if found != true {
-		prevState = "None"
-	} else {
-		prevState = channelBefore.State.String()
-	}
-
 	channel := types.NewChannel(types.TRYOPEN, order, counterparty, connectionHops, version)
 
 	k.SetChannel(ctx, portID, channelID, channel)
 
-	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", prevState, "new-state", types.TRYOPEN.String())
+	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", types.UNINITIALIZED.String(), "new-state", types.TRYOPEN.String())
 
 	defer telemetry.IncrCounter(1, "ibc", "channel", "open-try")
 
