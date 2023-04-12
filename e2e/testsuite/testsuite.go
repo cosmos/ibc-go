@@ -60,6 +60,7 @@ type E2ETestSuite struct {
 
 	grpcClients    map[string]GRPCClients
 	paths          map[string]path
+	relayers       relayer.RelayerMap
 	logger         *zap.Logger
 	DockerClient   *dockerclient.Client
 	network        string
@@ -116,6 +117,12 @@ func (s *E2ETestSuite) GetRelayerUsers(ctx context.Context, chainOpts ...testcon
 
 	chainARelayerUser := cosmos.NewWallet(ChainARelayerName, chainAAccountBytes, "", chainA.Config())
 	chainBRelayerUser := cosmos.NewWallet(ChainBRelayerName, chainBAccountBytes, "", chainB.Config())
+
+	if s.relayers == nil {
+		s.relayers = make(relayer.RelayerMap)
+	}
+	s.relayers.AddRelayer(s.T().Name(), chainARelayerUser)
+	s.relayers.AddRelayer(s.T().Name(), chainBRelayerUser)
 
 	return chainARelayerUser, chainBRelayerUser
 }
@@ -281,7 +288,18 @@ func (s *E2ETestSuite) BroadcastMessages(ctx context.Context, chain *cosmos.Cosm
 		return factory.WithGas(DefaultGasValue)
 	})
 
-	resp, err := cosmos.BroadcastTx(ctx, broadcaster, user, msgs...)
+	// Retry the operation a few times if the user signing the transaction is a relayer. (See issue #3264)
+	var resp sdk.TxResponse
+	var err error
+	broadcastFunc := func() (sdk.TxResponse, error) {
+		return cosmos.BroadcastTx(ctx, broadcaster, user, msgs...)
+	}
+	if s.relayers.ContainsRelayer(s.T().Name(), user) {
+		// Retry five times, the value of 5 chosen is arbitrary.
+		resp, err = s.retryNtimes(broadcastFunc, 5)
+	} else {
+		resp, err = broadcastFunc()
+	}
 	if err != nil {
 		return sdk.TxResponse{}, err
 	}
@@ -609,6 +627,36 @@ func (s *E2ETestSuite) QueryGranterGrants(ctx context.Context, chain *cosmos.Cos
 	}
 
 	return grants.Grants, nil
+}
+
+// retryNtimes retries the provided function up to the provided number of attempts.
+func (s *E2ETestSuite) retryNtimes(f func() (sdk.TxResponse, error), attempts int) (sdk.TxResponse, error) {
+	// Ignore account sequence mismatch errors.
+	retryMessages := []string{"account sequence mismatch"}
+	var resp sdk.TxResponse
+	var err error
+	// If the response's raw log doesn't contain any of the allowed prefixes we return, else, we retry.
+	for i := 0; i < attempts; i++ {
+		resp, err = f()
+		if err != nil {
+			return sdk.TxResponse{}, err
+		}
+		if !containsMessage(resp.RawLog, retryMessages) {
+			return resp, err
+		}
+		s.T().Logf("retrying tx due to non deterministic failure: %+v", resp)
+	}
+	return resp, err
+}
+
+// containsMessages returns true if the string s contains any of the messages in the slice.
+func containsMessage(s string, messages []string) bool {
+	for _, message := range messages {
+		if strings.Contains(s, message) {
+			return true
+		}
+	}
+	return false
 }
 
 // GetIBCToken returns the denomination of the full token denom sent to the receiving channel
