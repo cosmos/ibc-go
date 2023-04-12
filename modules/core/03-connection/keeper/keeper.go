@@ -83,6 +83,18 @@ func (k Keeper) HasConnection(ctx sdk.Context, connectionID string) bool {
 	return store.Has(host.ConnectionKey(connectionID))
 }
 
+// CheckIsOpen returns nil if the connection with the given id is OPEN. Otherwise an error is returned.
+func (k Keeper) CheckIsOpen(ctx sdk.Context, connectionID string) error {
+	connection, found := k.GetConnection(ctx, connectionID)
+	if !found {
+		return errorsmod.Wrapf(types.ErrConnectionNotFound, "failed to retrieve connection: %s", connectionID)
+	}
+	if connection.State != types.OPEN {
+		return errorsmod.Wrapf(types.ErrInvalidConnectionState, "connectionID (%s) state is not OPEN (got %s)", connectionID, connection.State.String())
+	}
+	return nil
+}
+
 // SetConnection sets a connection to the store
 func (k Keeper) SetConnection(ctx sdk.Context, connectionID string, connection types.ConnectionEnd) {
 	store := ctx.KVStore(k.storeKey)

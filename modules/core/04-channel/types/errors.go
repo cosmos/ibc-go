@@ -43,4 +43,5 @@ var (
 	ErrInvalidUpgradeTimeout   = errorsmod.Register(SubModuleName, 27, "either timeout height or timeout timestamp must be non-zero")
 	ErrUpgradeSequenceNotFound = errorsmod.Register(SubModuleName, 28, "upgrade sequence not found")
 	ErrUpgradeErrorNotFound    = errorsmod.Register(SubModuleName, 29, "upgrade error receipt not found")
+	ErrInvalidUpgrade          = errorsmod.Register(SubModuleName, 30, "invalid upgrade")
 )
