@@ -3,13 +3,10 @@ package host
 import "fmt"
 
 const (
-	KeyChannelEndPrefix      = "channelEnds"
-	KeyChannelPrefix         = "channels"
-	KeyChannelUpgradePrefix  = "channelUpgrades"
-	KeyChannelRestorePrefix  = "restore"
-	KeyUpgradeTimeoutPrefix  = "upgradeTimeout"
-	KeyUpgradeSequencePrefix = "upgradeSequence"
-	KeyUpgradeErrorPrefix    = "upgradeError"
+	KeyChannelEndPrefix     = "channelEnds"
+	KeyChannelPrefix        = "channels"
+	KeyChannelUpgradePrefix = "channelUpgrades"
+	KeyUpgradeErrorPrefix   = "upgradeError"
 )
 
 // ICS04
@@ -41,16 +38,6 @@ func ChannelUpgradeKey(portID, channelID string) []byte {
 	return []byte(ChannelUpgradeTimeoutPath(portID, channelID))
 }
 
-// ChannelUpgradeTimeoutPath defines the path set by the upgrade initiator to determine when the TRYUPGRADE step should timeout
-func ChannelUpgradeTimeoutPath(portID, channelID string) string {
-	return fmt.Sprintf("%s/%s/%s", KeyChannelUpgradePrefix, KeyUpgradeTimeoutPrefix, channelPath(portID, channelID))
-}
-
-// ChannelUpgradeTimeoutKey returns the store key for a particular channel upgrade timeout
-func ChannelUpgradeTimeoutKey(portID, channelID string) []byte {
-	return []byte(ChannelUpgradeTimeoutPath(portID, channelID))
-}
-
 // ChannelUpgradeErrorPath defines the path under which the ErrorReceipt is stored in the case that a chain does not accept the proposed upgrade
 func ChannelUpgradeErrorPath(portID, channelID string) string {
 	return fmt.Sprintf("%s/%s/%s", KeyChannelUpgradePrefix, KeyUpgradeErrorPrefix, channelPath(portID, channelID))
@@ -59,26 +46,6 @@ func ChannelUpgradeErrorPath(portID, channelID string) string {
 // ChannelUpgradeErrorKey returns the store key for a particular channelEnd used to stor the ErrorReceipt in the case that a chain does not accept the proposed upgrade
 func ChannelUpgradeErrorKey(portID, channelID string) []byte {
 	return []byte(ChannelUpgradeErrorPath(portID, channelID))
-}
-
-// ChannelRestorePath defines the path under which channel ends are stored for restoration in the event of upgrade handshake failure
-func ChannelRestorePath(portID, channelID string) string {
-	return fmt.Sprintf("%s/%s/%s", KeyChannelUpgradePrefix, KeyChannelRestorePrefix, channelPath(portID, channelID))
-}
-
-// ChannelRestoreKey returns the store key for a particular channel end used for restoration in the event of upgrade handshake failure
-func ChannelRestoreKey(portID, channelID string) []byte {
-	return []byte(ChannelRestorePath(portID, channelID))
-}
-
-// ChannelUpgradeSequencePath defines the path under which the current channel upgrade sequence attempt is stored
-func ChannelUpgradeSequencePath(portID, channelID string) string {
-	return fmt.Sprintf("%s/%s/%s", KeyChannelUpgradePrefix, KeyUpgradeSequencePrefix, channelPath(portID, channelID))
-}
-
-// ChannelUpgradeSequenceKey returns the store key for the current channel upgrade sequence attempt
-func ChannelUpgradeSequenceKey(portID, channelID string) []byte {
-	return []byte(ChannelUpgradeSequencePath(portID, channelID))
 }
 
 func channelPath(portID, channelID string) string {

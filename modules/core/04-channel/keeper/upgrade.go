@@ -132,7 +132,7 @@ func (k Keeper) ChanUpgradeTry(ctx sdk.Context, portID string, channelID string,
 	selfHeight := clienttypes.GetSelfHeight(ctx)
 	timeoutHeight := counterpartyProposedUpgrade.Timeout.TimeoutHeight
 	if !timeoutHeight.IsZero() && selfHeight.GTE(timeoutHeight) {
-		if err := k.RestoreChannelAndWriteErrorReceipt(ctx, portID, channelID, upgradeSequence, types.ErrUpgradeTimeout); err != nil {
+		if err := k.WriteErrorReceipt(ctx, portID, channelID, upgradeSequence, types.ErrUpgradeTimeout); err != nil {
 			return 0, errorsmod.Wrap(types.ErrUpgradeAborted, err.Error())
 		}
 		return 0, errorsmod.Wrapf(types.ErrUpgradeAborted, "block height >= upgrade timeout height (%s >= %s)", selfHeight, timeoutHeight)
@@ -142,7 +142,7 @@ func (k Keeper) ChanUpgradeTry(ctx sdk.Context, portID string, channelID string,
 	timeoutTimestamp := counterpartyProposedUpgrade.Timeout.TimeoutTimestamp
 	if timeoutTimestamp != 0 && uint64(ctx.BlockTime().UnixNano()) >= timeoutTimestamp {
 		upgradeSequence = uint64(0)
-		if err := k.RestoreChannelAndWriteErrorReceipt(ctx, portID, channelID, upgradeSequence, types.ErrUpgradeTimeout); err != nil {
+		if err := k.WriteErrorReceipt(ctx, portID, channelID, upgradeSequence, types.ErrUpgradeTimeout); err != nil {
 			return 0, errorsmod.Wrap(types.ErrUpgradeAborted, err.Error())
 		}
 		return 0, errorsmod.Wrapf(types.ErrUpgradeAborted, "block timestamp >= upgrade timeout timestamp (%s >= %s)", ctx.BlockTime(), time.Unix(0, int64(timeoutTimestamp)))
@@ -163,11 +163,7 @@ func (k Keeper) ChanUpgradeTry(ctx sdk.Context, portID string, channelID string,
 	// check that both sides have the same upgrade sequence
 	if counterpartyUpgradeSequence != upgradeSequence {
 		errorReceipt := types.NewErrorReceipt(upgradeSequence, errorsmod.Wrapf(types.ErrUpgradeAborted, "counterparty chain upgrade sequence <= upgrade sequence (%d <= %d)", counterpartyUpgradeSequence, upgradeSequence))
-		// the upgrade sequence is incremented so both sides start the next upgrade with a fresh sequence.
-		upgradeSequence++
-
 		k.SetUpgradeErrorReceipt(ctx, portID, channelID, errorReceipt)
-		k.SetUpgradeSequence(ctx, portID, channelID, upgradeSequence)
 
 		// fast forward sequence for crossing hellos case
 		if channel.State == types.INITUPGRADE {
@@ -183,9 +179,6 @@ func (k Keeper) ChanUpgradeTry(ctx sdk.Context, portID string, channelID string,
 
 	// TODO: emit error receipt events
 
-	// this is first message in upgrade handshake on this chain so we must store original channel in restore channel path
-	// in case we need to restore channel later.
-	k.SetUpgradeRestoreChannel(ctx, portID, channelID, channel)
 	return upgradeSequence, nil
 }
 
@@ -217,36 +210,31 @@ func (k Keeper) WriteUpgradeTryChannel(
 
 // TODO: should we pull out the error receipt logic from this function? They seem like two discrete operations.
 
-// RestoreChannelAndWriteErrorReceipt restores the given channel to the state prior to upgrade.
-func (k Keeper) RestoreChannelAndWriteErrorReceipt(ctx sdk.Context, portID, channelID string, upgradeSequence uint64, err error) error {
+// WriteErrorReceipt restores the given channel to the state prior to upgrade.
+func (k Keeper) WriteErrorReceipt(ctx sdk.Context, portID, channelID string, upgradeSequence uint64, err error) error {
 	errorReceipt := types.NewErrorReceipt(upgradeSequence, err)
 	k.SetUpgradeErrorReceipt(ctx, portID, channelID, errorReceipt)
 
-	channel, found := k.GetUpgradeRestoreChannel(ctx, portID, channelID)
-	if !found {
-		return errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
-	}
+	/*
+		TODO: This should still callback?
 
-	k.SetChannel(ctx, portID, channelID, channel)
-	k.DeleteUpgradeRestoreChannel(ctx, portID, channelID)
-	k.DeleteUpgradeTimeout(ctx, portID, channelID)
+			module, _, err := k.LookupModuleByChannel(ctx, portID, channelID)
+			if err != nil {
+				return errorsmod.Wrap(err, "could not retrieve module from port-id")
+			}
 
-	module, _, err := k.LookupModuleByChannel(ctx, portID, channelID)
-	if err != nil {
-		return errorsmod.Wrap(err, "could not retrieve module from port-id")
-	}
+			portKeeper, ok := k.portKeeper.(*portkeeper.Keeper)
+			if !ok {
+				panic("todo: handle this situation")
+			}
 
-	portKeeper, ok := k.portKeeper.(*portkeeper.Keeper)
-	if !ok {
-		panic("todo: handle this situation")
-	}
+			cbs, found := portKeeper.Router.GetRoute(module)
+			if !found {
+				return errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
+			}
 
-	cbs, found := portKeeper.Router.GetRoute(module)
-	if !found {
-		return errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
-	}
-
-	cbs.OnChanUpgradeRestore(ctx, portID, channelID)
+			cbs.OnChanUpgradeRestore(ctx, portID, channelID)
+	*/
 	return nil
 }
 

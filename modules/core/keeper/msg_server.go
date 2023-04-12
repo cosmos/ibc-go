@@ -717,17 +717,17 @@ func (k Keeper) ChannelUpgradeInit(goCtx context.Context, msg *channeltypes.MsgC
 		return nil, errorsmod.Wrap(err, "channel handshake upgrade init failed")
 	}
 
-	restoreChannel, found := k.ChannelKeeper.GetUpgradeRestoreChannel(ctx, msg.PortId, msg.ChannelId)
-	if !found {
-		ctx.Logger().Error("channel upgrade init callback failed", "port-id", msg.PortId, "error", errorsmod.Wrap(channeltypes.ErrChannelNotFound, "restore channel not found"))
-		return nil, errorsmod.Wrap(channeltypes.ErrChannelNotFound, "channel handshake upgrade init failed")
-	}
-
 	upgrade := msg.ProposedUpgrade
 	proposedUpgradeFields := msg.ProposedUpgrade.ProposedUpgrade
+
+	channel, found := k.ChannelKeeper.GetChannel(ctx, msg.PortId, msg.ChannelId)
+	if !found {
+		return nil, errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
+	}
+
 	proposedVersion, err := cbs.OnChanUpgradeInit(ctx, proposedUpgradeFields.Ordering, proposedUpgradeFields.ConnectionHops,
 		msg.PortId, msg.ChannelId, upgradeSequence, proposedUpgradeFields.Version,
-		restoreChannel.Version,
+		channel.Version,
 	)
 	if err != nil {
 		ctx.Logger().Error("channel upgrade init callback failed", "port-id", msg.PortId, "channel-id", msg.ChannelId, "error", err.Error())
@@ -736,7 +736,7 @@ func (k Keeper) ChannelUpgradeInit(goCtx context.Context, msg *channeltypes.MsgC
 
 	proposedUpgradeFields.Version = proposedVersion
 	upgrade.ProposedUpgrade = proposedUpgradeFields
-	k.ChannelKeeper.WriteUpgradeInit(ctx, msg.PortId, msg.ChannelId, upgradeSequence, upgrade)
+	k.ChannelKeeper.WriteUpgradeInit(ctx, msg.PortId, msg.ChannelId, upgrade)
 	ctx.Logger().Info("channel upgrade init callback succeeded", "channel-id", msg.ChannelId, "version", proposedVersion)
 
 	return &channeltypes.MsgChannelUpgradeInitResponse{
@@ -788,7 +788,7 @@ func (k Keeper) ChannelUpgradeTry(goCtx context.Context, msg *channeltypes.MsgCh
 		return nil, errorsmod.Wrap(err, "channel handshake upgrade try failed")
 	}
 
-	channel, found := k.GetChannel(ctx, msg.PortId, msg.ChannelId)
+	channel, found := k.ChannelKeeper.GetChannel(ctx, msg.PortId, msg.ChannelId)
 	if !found {
 		return nil, errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
 	}
@@ -806,7 +806,7 @@ func (k Keeper) ChannelUpgradeTry(goCtx context.Context, msg *channeltypes.MsgCh
 		ctx.Logger().Error("channel upgrade try callback failed", "port-id", msg.PortId, "channel-id", msg.ChannelId, "error", err.Error())
 
 		// we are not returning the error here because we want to commit the error receipt to state
-		if err := k.ChannelKeeper.RestoreChannelAndWriteErrorReceipt(ctx, msg.PortId, msg.ChannelId, upgradeSequence, err); err != nil {
+		if err := k.ChannelKeeper.WriteErrorReceipt(ctx, msg.PortId, msg.ChannelId, upgradeSequence, err); err != nil {
 			ctx.Logger().Error("error restoring channel on portID %s, channelID %s: %s", msg.PortId, msg.ChannelId, err)
 		}
 		return &channeltypes.MsgChannelUpgradeTryResponse{
