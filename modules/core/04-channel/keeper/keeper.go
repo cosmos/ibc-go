@@ -526,6 +526,27 @@ func (k Keeper) DeleteUpgradeRestoreChannel(ctx sdk.Context, portID, channelID s
 	store.Delete(host.ChannelRestoreKey(portID, channelID))
 }
 
+// GetProposedUpgrade returns the proposed upgrade for the provided port and channel identifers.
+func (k Keeper) GetUpgrade(ctx sdk.Context, portID, channelID string) (types.Upgrade, bool) {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(host.ChannelUpgradeKey(portID, channelID))
+	if bz == nil {
+		return types.Upgrade{}, false
+	}
+
+	var upgrade types.Upgrade
+	k.cdc.MustUnmarshal(bz, &upgrade)
+
+	return upgrade, true
+}
+
+// SetUpgradeSequence sets the proposed upgrade using the provided port and channel identifiers.
+func (k Keeper) SetUpgrade(ctx sdk.Context, portID, channelID string, upgrade types.Upgrade) {
+	store := ctx.KVStore(k.storeKey)
+	bz := k.cdc.MustMarshal(&upgrade)
+	store.Set(host.ChannelUpgradeKey(portID, channelID), bz)
+}
+
 // GetUpgradeSequence returns the upgrade sequence for the provided port and channel identifers.
 func (k Keeper) GetUpgradeSequence(ctx sdk.Context, portID, channelID string) (uint64, bool) {
 	store := ctx.KVStore(k.storeKey)

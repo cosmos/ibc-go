@@ -364,6 +364,48 @@ func (k Keeper) VerifyNextSequenceRecv(
 	return nil
 }
 
+// VerifyChannelUpgrade verifies the proof that a particular proposed upgrade has been stored in the upgrade path.
+func (k Keeper) VerifyChannelUpgrade(
+	ctx sdk.Context,
+	connection exported.ConnectionI,
+	height exported.Height,
+	proof []byte,
+	portID,
+	channelID string,
+	upgrade channeltypes.Upgrade,
+) error {
+	clientID := connection.GetClientID()
+	clientState, clientStore, err := k.getClientStateAndVerificationStore(ctx, clientID)
+	if err != nil {
+		return err
+	}
+
+	if status := k.clientKeeper.GetClientStatus(ctx, clientState, clientID); status != exported.Active {
+		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
+	}
+
+	merklePath := commitmenttypes.NewMerklePath(host.ChannelUpgradePath(portID, channelID))
+	merklePath, err = commitmenttypes.ApplyPrefix(connection.GetCounterparty().GetPrefix(), merklePath)
+	if err != nil {
+		return err
+	}
+
+	bz, err := k.cdc.Marshal(&upgrade)
+	if err != nil {
+		return err
+	}
+
+	if err := clientState.VerifyMembership(
+		ctx, clientStore, k.cdc, height,
+		0, 0, // skip delay period checks for non-packet processing verification
+		proof, merklePath, bz,
+	); err != nil {
+		return errorsmod.Wrapf(err, "failed upgrade verification for client (%s) on channel (%s)", clientID, channelID)
+	}
+
+	return nil
+}
+
 // VerifyChannelUpgradeSequence verifies a proof of the upgrade sequence number to be
 // used during channel upgrades.
 func (k Keeper) VerifyChannelUpgradeSequence(

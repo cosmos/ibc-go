@@ -31,6 +31,16 @@ func ChannelCapabilityPath(portID, channelID string) string {
 	return fmt.Sprintf("%s/%s", KeyChannelCapabilityPrefix, channelPath(portID, channelID))
 }
 
+// ChannelUpgradePath defines the path which stores the information related to an upgrade attempt
+func ChannelUpgradePath(portID, channelID string) string {
+	return fmt.Sprintf("%s/%s", KeyChannelUpgradePrefix, channelPath(portID, channelID))
+}
+
+// ChannelUpgradeKey returns the store key for a particular channel upgrade attempt
+func ChannelUpgradeKey(portID, channelID string) []byte {
+	return []byte(ChannelUpgradeTimeoutPath(portID, channelID))
+}
+
 // ChannelUpgradeTimeoutPath defines the path set by the upgrade initiator to determine when the TRYUPGRADE step should timeout
 func ChannelUpgradeTimeoutPath(portID, channelID string) string {
 	return fmt.Sprintf("%s/%s/%s", KeyChannelUpgradePrefix, KeyUpgradeTimeoutPrefix, channelPath(portID, channelID))
