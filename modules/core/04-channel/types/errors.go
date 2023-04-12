@@ -46,4 +46,5 @@ var (
 	ErrUpgradeAborted               = errorsmod.Register(SubModuleName, 30, "upgrade aborted")
 	ErrUpgradeTimeout               = errorsmod.Register(SubModuleName, 31, "upgrade timeout")
 	ErrUpgradeErrorReceiptNotFound  = errorsmod.Register(SubModuleName, 32, "upgrade error receipt not found")
+	ErrInvalidUpgrade               = errorsmod.Register(SubModuleName, 33, "invalid upgrade")
 )
