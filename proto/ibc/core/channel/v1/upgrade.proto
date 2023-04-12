@@ -13,8 +13,8 @@ import "ibc/core/channel/v1/channel.proto";
 // end, the timeout for this upgrade attempt and the last packet sequence sent
 // to allow the counterparty to block sends after the upgrade has started.
 message Upgrade {
-  ModifiableUpgradeFields proposed_upgrade = 1;
-  UpgradeTimeout          timeout          = 2;
+  ModifiableUpgradeFields proposed_upgrade = 1 [(gogoproto.nullable) = false];
+  UpgradeTimeout          timeout          = 2 [(gogoproto.nullable) = false];
   uint64                  last_packet_sent = 3;
 }
 
