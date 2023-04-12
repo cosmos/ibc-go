@@ -115,7 +115,7 @@ This is a crossing hellos scenario.
     a. it allows port ID `transfer`, channel ID `channel-0` to be upgraded;
     b. it executes `MsgChannelUpgradeInit` to upgrade channel version from `ics20-1` to `{"fee_version":"ics29-1","app_version":"ics20-1"}`.
 5. Relayer detects execution of `MsgChannelUpgradeInit` on chain A and submits `MsgChannelUpgradeTry` on chain B proposing to upgrade channel version to `{"fee_version":"ics29-1","app_version":"ics20-1"}`.
-6. Chain B is already on `INITUPGRADE` state, so this a crossing hello. Execution of `MsgChannelUpgradeTry` succeeds on chain B.
+6. Chain B is already on `INITUPGRADE` state, so this is a crossing hello. Execution of `MsgChannelUpgradeTry` succeeds on chain B.
 7. Relayer detects execution of `MsgChannelUpgradeTry` and submits `MsgChannelUpgradeAck` on chain A.
 8. Execution of `MsgChannelUpgradeAck` succeeds on chain A.
 9. Chain A disallows port ID `transfer`, channel ID `channel-0` to be upgraded (now that upgrade has completed, then we can disallow future upgrades until approved again by governance).
