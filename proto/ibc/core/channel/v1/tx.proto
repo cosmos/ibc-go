@@ -279,18 +279,14 @@ message MsgChannelUpgradeTry {
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
-  string                    port_id                  = 1;
-  string                    channel_id               = 2;
-  Channel                   counterparty_channel     = 3 [(gogoproto.nullable) = false];
-  uint64                    counterparty_sequence    = 4;
-  Channel                   proposed_upgrade_channel = 5 [(gogoproto.nullable) = false];
-  ibc.core.client.v1.Height timeout_height           = 6 [(gogoproto.nullable) = false];
-  uint64                    timeout_timestamp        = 7;
-  bytes                     proof_channel            = 8;
-  bytes                     proof_upgrade_timeout    = 9;
-  bytes                     proof_upgrade_sequence   = 10;
-  ibc.core.client.v1.Height proof_height             = 11 [(gogoproto.nullable) = false];
-  string                    signer                   = 12;
+  string                    port_id                       = 1;
+  string                    channel_id                    = 2;
+  Upgrade                   proposed_upgrade              = 3 [(gogoproto.nullable) = false];
+  Upgrade                   counterparty_proposed_upgrade = 4 [(gogoproto.nullable) = false];
+  bytes                     proof_channel                 = 5;
+  bytes                     proof_upgrade                 = 6;
+  ibc.core.client.v1.Height proof_height                  = 7 [(gogoproto.nullable) = false];
+  string                    signer                        = 8;
 }
 
 // MsgChannelUpgradeTryResponse defines the MsgChannelUpgradeTry response type

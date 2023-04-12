@@ -72,6 +72,15 @@ type ConnectionKeeper interface {
 		channelID string,
 		nextSequenceRecv uint64,
 	) error
+	VerifyChannelUpgrade(
+		ctx sdk.Context,
+		connection exported.ConnectionI,
+		height exported.Height,
+		proof []byte,
+		portID,
+		channelID string,
+		upgrade Upgrade,
+	) error
 	VerifyChannelUpgradeSequence(
 		ctx sdk.Context,
 		connection exported.ConnectionI,

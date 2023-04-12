@@ -766,14 +766,11 @@ func (k Keeper) ChannelUpgradeTry(goCtx context.Context, msg *channeltypes.MsgCh
 		ctx,
 		msg.PortId,
 		msg.ChannelId,
-		msg.CounterpartyChannel,
-		msg.CounterpartySequence,
-		msg.ProposedUpgradeChannel,
-		msg.TimeoutHeight,
-		msg.TimeoutTimestamp,
+		msg.ProposedUpgrade,
+		msg.CounterpartyProposedUpgrade,
+		msg.CounterpartyUpgradeSequence,
 		msg.ProofChannel,
-		msg.ProofUpgradeTimeout,
-		msg.ProofUpgradeSequence,
+		msg.ProofUpgrade,
 		msg.ProofHeight,
 	)
 
@@ -791,21 +788,19 @@ func (k Keeper) ChannelUpgradeTry(goCtx context.Context, msg *channeltypes.MsgCh
 		return nil, errorsmod.Wrap(err, "channel handshake upgrade try failed")
 	}
 
-	restoreChannel, found := k.ChannelKeeper.GetUpgradeRestoreChannel(ctx, msg.PortId, msg.ChannelId)
+	channel, found := k.GetChannel(ctx, msg.PortId, msg.ChannelId)
 	if !found {
-		ctx.Logger().Error("channel upgrade try callback failed", "port-id", msg.PortId, "error", errorsmod.Wrap(channeltypes.ErrChannelNotFound, "restore channel not found"))
-		return nil, errorsmod.Wrap(channeltypes.ErrChannelNotFound, "channel handshake upgrade try failed")
+		return nil, errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
 	}
 
 	proposedUpgradeVersion, err := cbs.OnChanUpgradeTry(ctx,
-		msg.ProposedUpgradeChannel.Ordering,
-		msg.ProposedUpgradeChannel.ConnectionHops,
+		msg.ProposedUpgrade.ProposedUpgrade.Ordering,
+		msg.ProposedUpgrade.ProposedUpgrade.ConnectionHops,
 		msg.PortId,
 		msg.ChannelId,
 		upgradeSequence,
-		msg.ProposedUpgradeChannel.Counterparty,
-		restoreChannel.Version,
-		msg.CounterpartyChannel.Version,
+		channel.Version,
+		msg.CounterpartyProposedUpgrade.ProposedUpgrade.Version,
 	)
 	if err != nil {
 		ctx.Logger().Error("channel upgrade try callback failed", "port-id", msg.PortId, "channel-id", msg.ChannelId, "error", err.Error())
@@ -820,7 +815,7 @@ func (k Keeper) ChannelUpgradeTry(goCtx context.Context, msg *channeltypes.MsgCh
 		}, nil
 	}
 
-	k.ChannelKeeper.WriteUpgradeTryChannel(ctx, msg.PortId, msg.ChannelId, proposedUpgradeVersion, upgradeSequence, msg.ProposedUpgradeChannel)
+	k.ChannelKeeper.WriteUpgradeTryChannel(ctx, msg.PortId, msg.ChannelId, msg.ProposedUpgrade)
 
 	return &channeltypes.MsgChannelUpgradeTryResponse{
 		ChannelId:       msg.ChannelId,

@@ -533,30 +533,21 @@ var _ sdk.Msg = &MsgChannelUpgradeTry{}
 // nolint:interfacer
 func NewMsgChannelUpgradeTry(
 	portID, channelID string,
-	counterpartyChannel Channel,
-	counterpartySequence uint64,
-	proposedUpgradeChannel Channel,
-	timeoutHeight clienttypes.Height,
-	timeoutTimestamp uint64,
+	proposedUpgrade, counterpartyProposedUpgrade Upgrade,
 	proofChannel []byte,
-	proofUpgradeTimeout []byte,
-	proofUpgradeSequence []byte,
+	proofUpgrade []byte,
 	proofHeight clienttypes.Height,
 	signer string,
 ) *MsgChannelUpgradeTry {
 	return &MsgChannelUpgradeTry{
-		PortId:                 portID,
-		ChannelId:              channelID,
-		CounterpartyChannel:    counterpartyChannel,
-		CounterpartySequence:   counterpartySequence,
-		ProposedUpgradeChannel: proposedUpgradeChannel,
-		TimeoutHeight:          timeoutHeight,
-		TimeoutTimestamp:       timeoutTimestamp,
-		ProofChannel:           proofChannel,
-		ProofUpgradeTimeout:    proofUpgradeTimeout,
-		ProofUpgradeSequence:   proofUpgradeSequence,
-		ProofHeight:            proofHeight,
-		Signer:                 signer,
+		PortId:                      portID,
+		ChannelId:                   channelID,
+		ProposedUpgrade:             proposedUpgrade,
+		CounterpartyProposedUpgrade: counterpartyProposedUpgrade,
+		ProofChannel:                proofChannel,
+		ProofUpgrade:                proofUpgrade,
+		ProofHeight:                 proofHeight,
+		Signer:                      signer,
 	}
 }
 
@@ -568,32 +559,17 @@ func (msg MsgChannelUpgradeTry) ValidateBasic() error {
 	if !IsValidChannelID(msg.ChannelId) {
 		return ErrInvalidChannelIdentifier
 	}
-	if msg.CounterpartyChannel.State != INITUPGRADE {
-		return errorsmod.Wrapf(ErrInvalidChannelState, "expected: %s, got: %s", INITUPGRADE, msg.CounterpartyChannel.State)
+	if err := msg.ProposedUpgrade.ValidateBasic(); err != nil {
+		return err
 	}
-	if msg.CounterpartySequence == 0 {
-		return errorsmod.Wrap(ibcerrors.ErrInvalidSequence, "counterparty sequence cannot be 0")
-	}
-	if msg.ProposedUpgradeChannel.State != TRYUPGRADE {
-		return errorsmod.Wrapf(ErrInvalidChannelState, "expected: %s, got: %s", TRYUPGRADE, msg.CounterpartyChannel.State)
-	}
-	if strings.TrimSpace(msg.ProposedUpgradeChannel.Version) == "" {
-		return errorsmod.Wrap(ErrInvalidChannelVersion, "channel version must not be empty")
-	}
-	if msg.TimeoutHeight.IsZero() {
-		return errorsmod.Wrap(ibcerrors.ErrInvalidHeight, "timeout height must be non-zero")
-	}
-	if msg.TimeoutTimestamp == 0 && msg.TimeoutHeight.IsZero() {
-		return errorsmod.Wrap(ErrInvalidUpgradeTimeout, "invalid upgrade timeout timestamp or timeout height")
+	if err := msg.CounterpartyProposedUpgrade.ValidateBasic(); err != nil {
+		return err
 	}
 	if len(msg.ProofChannel) == 0 {
 		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty channel proof")
 	}
-	if len(msg.ProofUpgradeTimeout) == 0 {
-		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty upgrade timeout proof")
-	}
-	if len(msg.ProofUpgradeSequence) == 0 {
-		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty upgrade sequence proof")
+	if len(msg.ProofUpgrade) == 0 {
+		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty upgrade proof")
 	}
 	_, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
