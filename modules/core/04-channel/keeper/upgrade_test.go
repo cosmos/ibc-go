@@ -3,11 +3,8 @@ package keeper_test
 import (
 	"fmt"
 
-	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
-
 	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	"github.com/cosmos/ibc-go/v7/testing/mock"
 )
@@ -15,7 +12,6 @@ import (
 func (suite *KeeperTestSuite) TestChanUpgradeInit() {
 	var (
 		path           *ibctesting.Path
-		chanCap        *capabilitytypes.Capability
 		channelUpgrade types.Channel
 		expSequence    uint64
 		expVersion     string
@@ -50,13 +46,6 @@ func (suite *KeeperTestSuite) TestChanUpgradeInit() {
 				path.EndpointA.SetChannel(channel)
 			},
 			true,
-		},
-		{
-			"invalid capability",
-			func() {
-				chanCap = capabilitytypes.NewCapability(42)
-			},
-			false,
 		},
 		{
 			"identical upgrade channel end",
@@ -122,7 +111,6 @@ func (suite *KeeperTestSuite) TestChanUpgradeInit() {
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.Setup(path)
 
-			chanCap, _ = suite.chainA.GetSimApp().GetScopedIBCKeeper().GetCapability(suite.chainA.GetContext(), host.ChannelCapabilityPath(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
 			channelUpgrade = types.NewChannel(types.INITUPGRADE, types.UNORDERED, types.NewCounterparty(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID), []string{path.EndpointA.ConnectionID}, fmt.Sprintf("%s-v2", mock.Version))
 
 			expSequence = 1
@@ -132,7 +120,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeInit() {
 
 			sequence, previousVersion, err := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.ChanUpgradeInit(
 				suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID,
-				chanCap, channelUpgrade, path.EndpointB.Chain.GetTimeoutHeight(), 0,
+				channelUpgrade, path.EndpointB.Chain.GetTimeoutHeight(), 0,
 			)
 
 			if tc.expPass {

@@ -6,7 +6,6 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
 	"github.com/cosmos/ibc-go/v7/internal/collections"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
@@ -14,7 +13,6 @@ import (
 	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	portkeeper "github.com/cosmos/ibc-go/v7/modules/core/05-port/keeper"
 	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
-	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 )
 
 // ChanUpgradeInit is called by a module to initiate a channel upgrade handshake with
@@ -23,12 +21,14 @@ func (k Keeper) ChanUpgradeInit(
 	ctx sdk.Context,
 	portID string,
 	channelID string,
-	chanCap *capabilitytypes.Capability,
 	proposedUpgradeChannel types.Channel,
 	counterpartyTimeoutHeight clienttypes.Height,
 	counterpartyTimeoutTimestamp uint64,
 ) (upgradeSequence uint64, previousVersion string, err error) {
-	channel, err := k.verifyChannel(ctx, portID, channelID, chanCap)
+	channel, found := k.GetChannel(ctx, portID, channelID)
+	if !found {
+		return 0, "", errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
+	}
 
 	if channel.State != types.OPEN {
 		err = errorsmod.Wrapf(types.ErrInvalidChannelState, "expected %s, got %s", types.OPEN, channel.State)
@@ -103,15 +103,14 @@ func (k Keeper) ChanUpgradeTimeout(
 	portID string,
 	channelID string,
 	counterpartyChannel types.Channel,
-	chanCap *capabilitytypes.Capability,
 	prevErrorReceipt *types.ErrorReceipt,
 	proofChannel,
 	proofErrorReceipt []byte,
 	proofHeight clienttypes.Height,
 ) error {
-	channel, err := k.verifyChannel(ctx, portID, channelID, chanCap)
-	if err != nil {
-		return err
+	channel, found := k.GetChannel(ctx, portID, channelID)
+	if !found {
+		return errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
 	}
 
 	// current channel must be in INITUPGRADE
@@ -179,7 +178,9 @@ func (k Keeper) ChanUpgradeTimeout(
 			return err
 		}
 		// TODO: isn't this called on the counterparty chain (not initializing chain?)
-		k.connectionKeeper.VerifyChannelUpgradeError(ctx, connection, proofHeight, proofErrorReceipt, channel.Counterparty.PortId, channel.Counterparty.ChannelId, *prevErrorReceipt)
+		if err := k.connectionKeeper.VerifyChannelUpgradeError(ctx, connection, proofHeight, proofErrorReceipt, channel.Counterparty.PortId, channel.Counterparty.ChannelId, *prevErrorReceipt); err != nil {
+			return err
+		}
 
 		return k.RestoreChannel(ctx, portID, channelID, sequence, types.ErrUpgradeTimeout)
 	}
@@ -220,18 +221,4 @@ func (k Keeper) RestoreChannel(ctx sdk.Context, portID, channelID string, upgrad
 	}
 
 	return cbs.OnChanUpgradeRestore(ctx, portID, channelID)
-}
-
-func (k Keeper) verifyChannel(ctx sdk.Context, portID, channelID string, chanCap *capabilitytypes.Capability) (types.Channel, error) {
-	var err error
-	channel, found := k.GetChannel(ctx, portID, channelID)
-	if !found {
-		err = errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
-	}
-
-	if !k.scopedKeeper.AuthenticateCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)) {
-		err = errorsmod.Wrapf(types.ErrChannelCapabilityNotFound, "caller does not own capability for channel, port ID (%s) channel ID (%s)", portID, channelID)
-	}
-
-	return channel, err
 }
