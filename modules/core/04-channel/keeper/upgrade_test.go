@@ -74,8 +74,19 @@ func (suite *KeeperTestSuite) TestChanUpgradeInit() {
 			false,
 		},
 		{
-			"invalid proposed channel connection",
+			"proposed channel connection not found",
 			func() {
+				upgradeChannel.ConnectionHops = []string{"connection-100"}
+			},
+			false,
+		},
+		{
+			"invalid proposed channel connection state",
+			func() {
+				connectionEnd := path.EndpointA.GetConnection()
+				connectionEnd.State = connectiontypes.UNINITIALIZED
+
+				suite.chainA.GetSimApp().GetIBCKeeper().ConnectionKeeper.SetConnection(suite.chainA.GetContext(), "connection-100", connectionEnd)
 				upgradeChannel.ConnectionHops = []string{"connection-100"}
 			},
 			false,
