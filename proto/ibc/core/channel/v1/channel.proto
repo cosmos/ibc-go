@@ -24,6 +24,9 @@ message Channel {
   repeated string connection_hops = 4;
   // opaque channel version, which is agreed upon during the handshake
   string version = 5;
+  // upgrade sequence indicates the latest upgrade attempt performed by this channel
+  // the value of 0 indicates the channel has never been upgraded
+  uint64 upgrade_sequence = 6;
 }
 
 // IdentifiedChannel defines a channel with additional port and channel
