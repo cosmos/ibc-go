@@ -214,6 +214,7 @@ func (k Keeper) WriteUpgradeTryChannel(
 func (k Keeper) WriteErrorReceipt(ctx sdk.Context, portID, channelID string, upgradeSequence uint64, err error) error {
 	errorReceipt := types.NewErrorReceipt(upgradeSequence, err)
 	k.SetUpgradeErrorReceipt(ctx, portID, channelID, errorReceipt)
+	// TODO: add abort function which call this function and sets the channel to OPEN
 
 	/*
 		TODO: This should still callback?
