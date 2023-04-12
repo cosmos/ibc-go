@@ -31,7 +31,7 @@ func (k Keeper) ChanUpgradeInit(
 	}
 
 	if channel.State != types.OPEN {
-		err = errorsmod.Wrapf(types.ErrInvalidChannelState, "expected %s, got %s", types.OPEN, channel.State)
+		return 0, "", errorsmod.Wrapf(types.ErrInvalidChannelState, "expected %s, got %s", types.OPEN, channel.State)
 	}
 
 	// set the restore channel to the current channel and reassign channel state to INITUPGRADE,
