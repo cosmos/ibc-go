@@ -7,6 +7,7 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/cosmos/ibc-go/v7/internal/collections"
 	ibcerrors "github.com/cosmos/ibc-go/v7/internal/errors"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
@@ -599,6 +600,9 @@ func (msg MsgChannelUpgradeTry) ValidateBasic() error {
 	}
 	if len(msg.ProofUpgradeSequence) == 0 {
 		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty upgrade sequence proof")
+	}
+	if !collections.Contains(msg.CounterpartyChannel.State, []State{INITUPGRADE, TRYUPGRADE}) {
+		return errorsmod.Wrapf(ErrInvalidChannelState, "expected one of: [%s, %s], got: %s", INITUPGRADE, TRYUPGRADE, msg.CounterpartyChannel.State)
 	}
 	_, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {

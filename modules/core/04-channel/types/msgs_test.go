@@ -542,7 +542,7 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeTryValidateBasic() {
 		{
 			"invalid counterparty channel state",
 			func() {
-				msg.CounterpartyChannel.State = types.TRYUPGRADE
+				msg.CounterpartyChannel.State = types.OPEN
 			},
 			false,
 		},
