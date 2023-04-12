@@ -136,7 +136,7 @@ Pre-steps: 1 of normal flow.
 4. Relayer detects execution of `MsgChannelUpgradeInit` on chain A and submits `MsgChannelUpgradeTry` on chain B proposing to upgrade channel version to `{"fee_version":"ics29-1","app_version":"ics20-1"}`.
 5. Governance proposal on chain B has not passed yet (i.e. `MsgChannelUpgradeInit` has not executed yet) and upgrade has not been pre-aproved, therefore `MsgChannelUpgradeTry` on chain B fails. 
 6. Governance proposal passes on chain B and:
-    a. it allows port ID `transfer`, channel ID `channel-0` to be upgraded;
+    a. it allows port ID `transfer`, channel ID `channel-0` to be upgraded.
     b. it executes `MsgChannelUpgradeInit` to upgrade channel version from `ics20-1` to `{"fee_version":"ics29-1","app_version":"ics20-1"}`.
 7. Relayer re-submits `MsgChannelUpgradeTry` on chain B proposing to upgrade channel version to `{"fee_version":"ics29-1","app_version":"ics20-1"}`.
 8. Chain B is now on `INITUPGRADE` state, so this a crossing hello. Execution of `MsgChannelUpgradeTry` succeeds on chain B.
