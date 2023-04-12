@@ -77,8 +77,7 @@ Pre-steps: 1 to 3 of normal flow.
 5. Execution of `MsgChannelUpgradeTry` fails on chain B since the upgrade is not approved.
 6. Governance proposal passes on chain B and it allows port ID `transfer`, channel ID `channel-0` to be upgraded.
 5. Relayer detects execution of `MsgChannelUpgradeInit` and submits `MsgChannelUpgradeTry` on chain B proposing to upgrade channel version to `{"fee_version":"ics29-1","app_version":"ics20-1"}`.
-6. Execution of `MsgChannelUpgradeTry` fails on chain B because chain B have moved on after the specified timeout.
-because chain B have moved on after the specified timeout.
+6. Execution of `MsgChannelUpgradeTry` fails on chain B because chain B has moved on after the specified timeout.
 7. Relayer submits `MsgChannelUpgradeTimeout` on chain A.
 8. Execution of `MsgChannelUpgradeTimeout` on chain A succeeds and channel is restored to previous state.
 
