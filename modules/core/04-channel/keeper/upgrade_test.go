@@ -454,7 +454,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 			} else {
 				suite.Require().Error(err)
 
-				if errorsmod.IsOf(err, types.ErrUpgradeAborted, types.ErrUpgradeTimeout) {
+				if errorsmod.IsOf(err, types.ErrUpgradeAborted) {
 					errorReceipt, found := suite.chainB.GetSimApp().GetIBCKeeper().ChannelKeeper.GetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 					suite.Require().True(found)
 					suite.Require().NotNil(errorReceipt)

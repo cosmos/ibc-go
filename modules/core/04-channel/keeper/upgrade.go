@@ -38,8 +38,16 @@ func (k Keeper) ChanUpgradeInit(ctx sdk.Context, portID string, channelID string
 		return 0, errorsmod.Wrap(types.ErrChannelExists, "existing channel end is identical to proposed upgrade channel end")
 	}
 
-	if !k.connectionKeeper.HasConnection(ctx, proposedUpgradeChannel.ConnectionHops[0]) {
-		return 0, errorsmod.Wrapf(connectiontypes.ErrConnectionNotFound, "failed to retrieve connection: %s", proposedUpgradeChannel.ConnectionHops[0])
+	connectionEnd, err := k.GetConnection(ctx, proposedUpgradeChannel.ConnectionHops[0])
+	if err != nil {
+		return 0, err
+	}
+
+	if connectionEnd.GetState() != int32(connectiontypes.OPEN) {
+		return 0, errorsmod.Wrapf(
+			connectiontypes.ErrInvalidConnectionState,
+			"connection state is not OPEN (got %s)", connectiontypes.State(connectionEnd.GetState()).String(),
+		)
 	}
 
 	if proposedUpgradeChannel.Counterparty.PortId != channel.Counterparty.PortId ||
@@ -167,12 +175,12 @@ func (k Keeper) ChanUpgradeTry(
 	// check if upgrade timed out by comparing it with the latest height of the chain
 	selfHeight := clienttypes.GetSelfHeight(ctx)
 	if !timeoutHeight.IsZero() && selfHeight.GTE(timeoutHeight) {
-		return 0, errorsmod.Wrapf(types.ErrUpgradeAborted, "block height >= upgrade timeout height (%s >= %s)", selfHeight, timeoutHeight)
+		return 0, errorsmod.Wrapf(types.ErrUpgradeTimeout, "block height >= upgrade timeout height (%s >= %s)", selfHeight, timeoutHeight)
 	}
 
 	// check if upgrade timed out by comparing it with the latest timestamp of the chain
 	if timeoutTimestamp != 0 && uint64(ctx.BlockTime().UnixNano()) >= timeoutTimestamp {
-		return 0, errorsmod.Wrapf(types.ErrUpgradeAborted, "block timestamp >= upgrade timeout timestamp (%s >= %s)", ctx.BlockTime(), time.Unix(0, int64(timeoutTimestamp)))
+		return 0, errorsmod.Wrapf(types.ErrUpgradeTimeout, "block timestamp >= upgrade timeout timestamp (%s >= %s)", ctx.BlockTime(), time.Unix(0, int64(timeoutTimestamp)))
 	}
 
 	switch channel.State {
