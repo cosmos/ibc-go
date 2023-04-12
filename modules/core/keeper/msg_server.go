@@ -711,7 +711,7 @@ func (k Keeper) ChannelUpgradeInit(goCtx context.Context, msg *channeltypes.MsgC
 		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
 	}
 
-	upgradeSequence, err := k.ChannelKeeper.ChanUpgradeInit(ctx, msg.PortId, msg.ChannelId, msg.ProposedUpgradeChannel, msg.TimeoutHeight, msg.TimeoutTimestamp)
+	upgradeSequence, err := k.ChannelKeeper.ChanUpgradeInit(ctx, msg.PortId, msg.ChannelId, msg.ProposedUpgrade)
 	if err != nil {
 		ctx.Logger().Error("channel upgrade init callback failed", "error", errorsmod.Wrap(err, "channel handshake upgrade init failed"))
 		return nil, errorsmod.Wrap(err, "channel handshake upgrade init failed")
@@ -723,8 +723,10 @@ func (k Keeper) ChannelUpgradeInit(goCtx context.Context, msg *channeltypes.MsgC
 		return nil, errorsmod.Wrap(channeltypes.ErrChannelNotFound, "channel handshake upgrade init failed")
 	}
 
-	proposedVersion, err := cbs.OnChanUpgradeInit(ctx, msg.ProposedUpgradeChannel.Ordering, msg.ProposedUpgradeChannel.ConnectionHops,
-		msg.PortId, msg.ChannelId, upgradeSequence, msg.ProposedUpgradeChannel.Counterparty, msg.ProposedUpgradeChannel.Version,
+	upgrade := msg.ProposedUpgrade
+	proposedUpgradeFields := msg.ProposedUpgrade.ProposedUpgrade
+	proposedVersion, err := cbs.OnChanUpgradeInit(ctx, proposedUpgradeFields.Ordering, proposedUpgradeFields.ConnectionHops,
+		msg.PortId, msg.ChannelId, upgradeSequence, proposedUpgradeFields.Version,
 		restoreChannel.Version,
 	)
 	if err != nil {
@@ -732,7 +734,9 @@ func (k Keeper) ChannelUpgradeInit(goCtx context.Context, msg *channeltypes.MsgC
 		return nil, errorsmod.Wrapf(err, "channel upgrade init callback failed for port ID: %s, channel ID: %s", msg.PortId, msg.ChannelId)
 	}
 
-	k.ChannelKeeper.WriteUpgradeInitChannel(ctx, msg.PortId, msg.ChannelId, proposedVersion, upgradeSequence, msg.ProposedUpgradeChannel)
+	proposedUpgradeFields.Version = proposedVersion
+	upgrade.ProposedUpgrade = proposedUpgradeFields
+	k.ChannelKeeper.WriteUpgradeInit(ctx, msg.PortId, msg.ChannelId, upgradeSequence, upgrade)
 	ctx.Logger().Info("channel upgrade init callback succeeded", "channel-id", msg.ChannelId, "version", proposedVersion)
 
 	return &channeltypes.MsgChannelUpgradeInitResponse{

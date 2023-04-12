@@ -485,18 +485,14 @@ var _ sdk.Msg = &MsgChannelUpgradeInit{}
 // nolint:interfacer
 func NewMsgChannelUpgradeInit(
 	portID, channelID string,
-	proposedUpgradeChannel Channel,
-	timeoutHeight clienttypes.Height,
-	timeoutTimestamp uint64,
+	upgrade Upgrade,
 	signer string,
 ) *MsgChannelUpgradeInit {
 	return &MsgChannelUpgradeInit{
-		PortId:                 portID,
-		ChannelId:              channelID,
-		ProposedUpgradeChannel: proposedUpgradeChannel,
-		TimeoutHeight:          timeoutHeight,
-		TimeoutTimestamp:       timeoutTimestamp,
-		Signer:                 signer,
+		PortId:          portID,
+		ChannelId:       channelID,
+		ProposedUpgrade: upgrade,
+		Signer:          signer,
 	}
 }
 
@@ -508,15 +504,11 @@ func (msg MsgChannelUpgradeInit) ValidateBasic() error {
 	if !IsValidChannelID(msg.ChannelId) {
 		return ErrInvalidChannelIdentifier
 	}
-	if msg.ProposedUpgradeChannel.State != INITUPGRADE {
-		return errorsmod.Wrapf(ErrInvalidChannelState, "expected: %s, got: %s", INITUPGRADE, msg.ProposedUpgradeChannel.State)
+
+	if err := msg.ProposedUpgrade.ValidateBasic(); err != nil {
+		return err
 	}
-	if strings.TrimSpace(msg.ProposedUpgradeChannel.Version) == "" {
-		return errorsmod.Wrap(ErrInvalidChannelVersion, "channel version must not be empty")
-	}
-	if msg.TimeoutHeight.IsZero() && msg.TimeoutTimestamp == 0 {
-		return errorsmod.Wrap(ErrInvalidUpgradeTimeout, "timeout height and timeout timestamp cannot both be 0")
-	}
+
 	_, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)

@@ -20,7 +20,7 @@ import (
 
 // ChanUpgradeInit is called by a module to initiate a channel upgrade handshake with
 // a module on another chain.
-func (k Keeper) ChanUpgradeInit(ctx sdk.Context, portID string, channelID string, proposedUpgradeChannel types.Channel, counterpartyTimeoutHeight clienttypes.Height, counterpartyTimeoutTimestamp uint64) (upgradeSequence uint64, err error) {
+func (k Keeper) ChanUpgradeInit(ctx sdk.Context, portID string, channelID string, upgrade types.Upgrade) (upgradeSequence uint64, err error) {
 	channel, found := k.GetChannel(ctx, portID, channelID)
 	if !found {
 		return 0, errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
@@ -30,25 +30,8 @@ func (k Keeper) ChanUpgradeInit(ctx sdk.Context, portID string, channelID string
 		return 0, errorsmod.Wrapf(types.ErrInvalidChannelState, "expected %s, got %s", types.OPEN, channel.State)
 	}
 
-	// set the restore channel to the current channel and reassign channel state to INITUPGRADE,
-	// if the channel == proposedUpgradeChannel then fail fast as no upgradable fields have been modified.
-	restoreChannel := channel
-	channel.State = types.INITUPGRADE
-	if reflect.DeepEqual(channel, proposedUpgradeChannel) {
-		return 0, errorsmod.Wrap(types.ErrChannelExists, "existing channel end is identical to proposed upgrade channel end")
-	}
-
-	if !k.connectionKeeper.HasConnection(ctx, proposedUpgradeChannel.ConnectionHops[0]) {
-		return 0, errorsmod.Wrapf(connectiontypes.ErrConnectionNotFound, "failed to retrieve connection: %s", proposedUpgradeChannel.ConnectionHops[0])
-	}
-
-	if proposedUpgradeChannel.Counterparty.PortId != channel.Counterparty.PortId ||
-		proposedUpgradeChannel.Counterparty.ChannelId != channel.Counterparty.ChannelId {
-		return 0, errorsmod.Wrap(types.ErrInvalidCounterparty, "counterparty port ID and channel ID cannot be upgraded")
-	}
-
-	if !channel.Ordering.SubsetOf(proposedUpgradeChannel.Ordering) {
-		return 0, errorsmod.Wrap(types.ErrInvalidChannelOrdering, "channel ordering must be a subset of the new ordering")
+	if err := k.validateProposedUpgradeFields(ctx, channel, upgrade.ProposedUpgrade); err != nil {
+		return 0, err
 	}
 
 	upgradeSequence = uint64(1)
@@ -56,21 +39,12 @@ func (k Keeper) ChanUpgradeInit(ctx sdk.Context, portID string, channelID string
 		upgradeSequence = seq + 1
 	}
 
-	upgradeTimeout := types.UpgradeTimeout{
-		TimeoutHeight:    counterpartyTimeoutHeight,
-		TimeoutTimestamp: counterpartyTimeoutTimestamp,
-	}
-
-	k.SetUpgradeRestoreChannel(ctx, portID, channelID, restoreChannel)
-	k.SetUpgradeSequence(ctx, portID, channelID, upgradeSequence)
-	k.SetUpgradeTimeout(ctx, portID, channelID, upgradeTimeout)
-
 	return upgradeSequence, nil
 }
 
 // WriteUpgradeInitChannel writes a channel which has successfully passed the UpgradeInit handshake step.
 // An event is emitted for the handshake step.
-func (k Keeper) WriteUpgradeInitChannel(ctx sdk.Context, portID, channelID, proposedVersion string, upgradeSequence uint64, upgradeChannel types.Channel) {
+func (k Keeper) WriteUpgradeInit(ctx sdk.Context, portID, channelID string, upgradeSequence uint64, upgrade types.Upgrade) {
 	defer telemetry.IncrCounter(1, "ibc", "channel", "upgrade-init")
 
 	channel, found := k.GetChannel(ctx, portID, channelID)
@@ -78,17 +52,14 @@ func (k Keeper) WriteUpgradeInitChannel(ctx sdk.Context, portID, channelID, prop
 		panic(fmt.Sprintf("failed to retrieve channel %s on port %s", channelID, portID))
 	}
 
-	// assign directly the fields that are modifiable.
-	// counterparty fields may not be changed.
 	channel.State = types.INITUPGRADE
-	channel.Version = proposedVersion
-	channel.Ordering = upgradeChannel.Ordering
-	channel.ConnectionHops = upgradeChannel.ConnectionHops
+	channel.UpgradeSequence = upgradeSequence
+	k.SetChannel(ctx, portID, channelID, channel)
+	k.SetUpgrade(ctx, portID, channelID, upgrade)
 
-	k.SetChannel(ctx, portID, channelID, upgradeChannel)
 	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", types.OPEN.String(), "new-state", types.INITUPGRADE.String())
 
-	emitChannelUpgradeInitEvent(ctx, portID, channelID, upgradeSequence, upgradeChannel)
+	// emitChannelUpgradeInitEvent(ctx, portID, channelID, upgradeSequence, upgradeChannel)
 }
 
 // ChanUpgradeTry is called by a module to accept the first step of a channel upgrade
@@ -341,7 +312,7 @@ func (k Keeper) getUpgradeTryConnectionEnd(ctx sdk.Context, portID string, chann
 // - the proposed order is a subset of the existing order
 // - the proposed connection hops do not exist
 // - the proposed version is non empty (checked in ModifiableUpgradeFields.ValidateBasic())
-func (k Keeper) validateProposedUpgradeFields(ctx sdk.Context, proposedUpgrade types.ModifiableUpgradeFields, existingChannel types.Channel) error {
+func (k Keeper) validateProposedUpgradeFields(ctx sdk.Context, existingChannel types.Channel, proposedUpgrade types.ModifiableUpgradeFields) error {
 	currentFields := types.ModifiableUpgradeFields{
 		Ordering:       existingChannel.Ordering,
 		ConnectionHops: existingChannel.ConnectionHops,
