@@ -1,6 +1,7 @@
 package fee
 
 import (
+	"fmt"
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
@@ -22,13 +23,15 @@ var _ porttypes.Middleware = &IBCMiddleware{}
 type IBCMiddleware struct {
 	app    porttypes.IBCModule
 	keeper keeper.Keeper
+	next   porttypes.ICS4Wrapper
 }
 
 // NewIBCMiddleware creates a new IBCMiddlware given the keeper and underlying application
-func NewIBCMiddleware(app porttypes.IBCModule, k keeper.Keeper) IBCMiddleware {
+func NewIBCMiddleware(app porttypes.IBCModule, k keeper.Keeper, next porttypes.ICS4Wrapper) IBCMiddleware {
 	return IBCMiddleware{
 		app:    app,
 		keeper: k,
+		next:   next,
 	}
 }
 
@@ -330,7 +333,7 @@ func (im IBCMiddleware) SendPacket(
 	timeoutTimestamp uint64,
 	data []byte,
 ) (uint64, error) {
-	return im.keeper.SendPacket(ctx, chanCap, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, data)
+	return im.next.SendPacket(ctx, chanCap, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, data)
 }
 
 // WriteAcknowledgement implements the ICS4 Wrapper interface
@@ -340,10 +343,46 @@ func (im IBCMiddleware) WriteAcknowledgement(
 	packet exported.PacketI,
 	ack exported.Acknowledgement,
 ) error {
-	return im.keeper.WriteAcknowledgement(ctx, chanCap, packet, ack)
+	if !im.keeper.IsFeeEnabled(ctx, packet.GetDestPort(), packet.GetDestChannel()) {
+		// ics4Wrapper may be core IBC or higher-level middleware
+		return im.next.WriteAcknowledgement(ctx, chanCap, packet, ack)
+	}
+
+	packetID := channeltypes.NewPacketID(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
+
+	// retrieve the forward relayer that was stored in `onRecvPacket`
+	relayer, found := im.keeper.GetRelayerAddressForAsyncAck(ctx, packetID)
+	if !found {
+		return errorsmod.Wrapf(types.ErrRelayerNotFoundForAsyncAck, "no relayer address stored for async acknowledgement for packet with portID: %s, channelID: %s, sequence: %d", packetID.PortId, packetID.ChannelId, packetID.Sequence)
+	}
+
+	// it is possible that a relayer has not registered a counterparty address.
+	// if there is no registered counterparty address then write acknowledgement with empty relayer address and refund recv_fee.
+	forwardRelayer, _ := im.keeper.GetCounterpartyPayeeAddress(ctx, relayer, packet.GetDestChannel())
+
+	newAck := types.NewIncentivizedAcknowledgement(forwardRelayer, ack.Acknowledgement(), ack.Success())
+
+	im.keeper.DeleteForwardRelayerAddress(ctx, packetID)
+
+	// ics4Wrapper may be core IBC or higher-level middleware
+	return im.next.WriteAcknowledgement(ctx, chanCap, packet, newAck)
 }
 
 // GetAppVersion returns the application version of the underlying application
 func (im IBCMiddleware) GetAppVersion(ctx sdk.Context, portID, channelID string) (string, bool) {
-	return im.keeper.GetAppVersion(ctx, portID, channelID)
+	version, found := im.next.GetAppVersion(ctx, portID, channelID)
+	if !found {
+		return "", false
+	}
+
+	if !im.keeper.IsFeeEnabled(ctx, portID, channelID) {
+		return version, true
+	}
+
+	var metadata types.Metadata
+	if err := types.ModuleCdc.UnmarshalJSON([]byte(version), &metadata); err != nil {
+		panic(fmt.Errorf("unable to unmarshal metadata for fee enabled channel: %w", err))
+	}
+
+	return metadata.AppVersion, true
 }
