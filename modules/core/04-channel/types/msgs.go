@@ -577,6 +577,9 @@ func (msg MsgChannelUpgradeTry) ValidateBasic() error {
 	if !IsValidChannelID(msg.ChannelId) {
 		return ErrInvalidChannelIdentifier
 	}
+	if msg.CounterpartyChannel.State != INITUPGRADE {
+		return errorsmod.Wrapf(ErrInvalidChannelState, "expected: %s, got: %s", INITUPGRADE, msg.CounterpartyChannel.State)
+	}
 	if msg.CounterpartySequence == 0 {
 		return errorsmod.Wrap(ibcerrors.ErrInvalidSequence, "counterparty sequence cannot be 0")
 	}
