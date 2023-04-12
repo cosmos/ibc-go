@@ -152,7 +152,7 @@ Pre-steps: 1 of normal flow.
     a. it allows port ID `transfer`, channel ID `channel-0` to be upgraded;
     b. it executes `MsgChannelUpgradeInit` to upgrade channel version from `ics20-1` to `{"fee_version":"ics29-1","app_version":"ics20-1"}`.
 4. Relayer detects execution of `MsgChannelUpgradeInit` and submits `MsgChannelUpgradeTry` on chain B proposing to upgrade channel version to `{"fee_version":"ics29-1","app_version":"ics20-1"}`.
-5. Execution of `MsgChannelUpgradeTry` fails on chain B because chain B have moved on after the specified timeout.
+5. Execution of `MsgChannelUpgradeTry` fails on chain B because chain B has moved on after the specified timeout.
 6. Relayer submits `MsgChannelUpgradeTimeout` on chain A.
 7. Execution of `MsgChannelUpgradeTimeout` on chain A succeeds and channel is restored to previous state.
 
