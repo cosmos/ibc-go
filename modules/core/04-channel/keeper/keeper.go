@@ -572,15 +572,15 @@ func (k Keeper) DeleteUpgradeTimeout(ctx sdk.Context, portID, channelID string) 
 	store.Delete(host.ChannelUpgradeTimeoutKey(portID, channelID))
 }
 
-// ValidateProposedUpgradeFields validates the proposed upgrade fields against the existing channel.
+// ValidateUpgradeFields validates the proposed upgrade fields against the existing channel.
 // It returns an error if the following constraints are not met:
 // - there exists at least one valid proposed change to the existing channel fields
 // - the proposed order is a subset of the existing order
 // - the proposed connection hops do not exist
 // - the proposed version is non-empty (checked in ModifiableUpgradeFields.ValidateBasic())
 // - the proposed connection hops are not open
-func (k Keeper) ValidateProposedUpgradeFields(ctx sdk.Context, proposedUpgrade types.ModifiableUpgradeFields, existingChannel types.Channel) error {
-	currentFields := types.ModifiableUpgradeFields{
+func (k Keeper) ValidateUpgradeFields(ctx sdk.Context, proposedUpgrade types.UpgradeFields, existingChannel types.Channel) error {
+	currentFields := types.UpgradeFields{
 		Ordering:       existingChannel.Ordering,
 		ConnectionHops: existingChannel.ConnectionHops,
 		Version:        existingChannel.Version,

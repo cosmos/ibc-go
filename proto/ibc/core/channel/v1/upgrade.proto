@@ -13,14 +13,14 @@ import "ibc/core/channel/v1/channel.proto";
 // end, the timeout for this upgrade attempt and the last packet sequence sent
 // to allow the counterparty to block sends after the upgrade has started.
 message Upgrade {
-  ModifiableUpgradeFields upgrade_fields   = 1 [(gogoproto.nullable) = false];
-  UpgradeTimeout          timeout          = 2 [(gogoproto.nullable) = false];
-  uint64                  last_packet_sent = 3;
+  UpgradeFields  upgrade_fields   = 1 [(gogoproto.nullable) = false];
+  UpgradeTimeout timeout          = 2 [(gogoproto.nullable) = false];
+  uint64         last_packet_sent = 3;
 }
 
 // ModifiableUpgradeFields are the fields in a channel end which may be changed
 // during a channel upgrade.
-message ModifiableUpgradeFields {
+message UpgradeFields {
   Order           ordering        = 1;
   repeated string connection_hops = 2;
   string          version         = 3;

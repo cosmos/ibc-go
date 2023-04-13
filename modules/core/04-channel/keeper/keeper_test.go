@@ -563,7 +563,7 @@ func (suite *KeeperTestSuite) TestUpgradeTimeoutAccessors() {
 
 func (suite *KeeperTestSuite) TestValidateProposedUpgradeFields() {
 	var (
-		proposedUpgrade *types.ModifiableUpgradeFields
+		proposedUpgrade *types.UpgradeFields
 		path            *ibctesting.Path
 	)
 
@@ -628,7 +628,7 @@ func (suite *KeeperTestSuite) TestValidateProposedUpgradeFields() {
 			suite.coordinator.Setup(path)
 
 			existingChannel := path.EndpointA.GetChannel()
-			proposedUpgrade = &types.ModifiableUpgradeFields{
+			proposedUpgrade = &types.UpgradeFields{
 				Ordering:       existingChannel.Ordering,
 				ConnectionHops: existingChannel.ConnectionHops,
 				Version:        existingChannel.Version,
@@ -636,7 +636,7 @@ func (suite *KeeperTestSuite) TestValidateProposedUpgradeFields() {
 
 			tc.malleate()
 
-			err := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.ValidateProposedUpgradeFields(suite.chainA.GetContext(), *proposedUpgrade, existingChannel)
+			err := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.ValidateUpgradeFields(suite.chainA.GetContext(), *proposedUpgrade, existingChannel)
 			if tc.expPass {
 				suite.Require().NoError(err)
 			} else {
