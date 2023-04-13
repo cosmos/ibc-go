@@ -16,7 +16,7 @@ type (
 		ProofUpgradeConsensusState []byte                  `json:"proof_upgrade_consensus_state"`
 	}
 	verifyUpgradeAndUpdateStatePayload struct {
-		VerifyUpgradeAndUpdateStateMsg verifyUpgradeAndUpdateStateInnerPayload `json:"verify_upgrade_and_update_state"`
+		VerifyUpgradeAndUpdateState verifyUpgradeAndUpdateStateInnerPayload `json:"verify_upgrade_and_update_state"`
 	}
 )
 
@@ -61,7 +61,7 @@ func (cs ClientState) VerifyUpgradeAndUpdateState(
 	}
 
 	payload := verifyUpgradeAndUpdateStatePayload{
-		VerifyUpgradeAndUpdateStateMsg: verifyUpgradeAndUpdateStateInnerPayload{
+		VerifyUpgradeAndUpdateState: verifyUpgradeAndUpdateStateInnerPayload{
 			UpgradeClientState:         upgradedClient,
 			UpgradeConsensusState:      upgradedConsState,
 			ProofUpgradeClient:         proofUpgradeClient,
