@@ -98,7 +98,7 @@ func (cs ClientState) GetTimestampAtHeight(
 	height exported.Height,
 ) (uint64, error) {
 	// get consensus state at height from clientStore to check for expiry
-	consState, err := getConsensusState(clientStore, cdc, height)
+	consState, err := GetConsensusState(clientStore, cdc, height)
 	if err != nil {
 		return 0, sdkerrors.Wrapf(err, "height (%s)", height)
 	}
@@ -164,7 +164,7 @@ func (cs ClientState) VerifyMembership(
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", commitmenttypes.MerklePath{}, path)
 	}
 
-	_, err := getConsensusState(clientStore, cdc, height)
+	_, err := GetConsensusState(clientStore, cdc, height)
 	if err != nil {
 		return errorsmod.Wrap(err, "please ensure the proof was constructed against a height that exists on the client")
 	}
@@ -221,7 +221,7 @@ func (cs ClientState) VerifyNonMembership(
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", commitmenttypes.MerklePath{}, path)
 	}
 
-	_, err := getConsensusState(clientStore, cdc, height)
+	_, err := GetConsensusState(clientStore, cdc, height)
 	if err != nil {
 		return errorsmod.Wrap(err, "please ensure the proof was constructed against a height that exists on the client")
 	}

@@ -49,14 +49,14 @@ func initContract(codeID []byte, ctx sdk.Context, store sdk.KVStore) (*wasmvmtyp
 	if height < 0 {
 		panic("Block height must never be negative")
 	}
-	sec := ctx.BlockTime().Unix()
-	if sec < 0 {
+	nsec := ctx.BlockTime().UnixNano()
+	if nsec < 0 {
 		panic("Block (unix) time must never be negative ")
 	}
 	env := wasmvmtypes.Env{
 		Block: wasmvmtypes.BlockInfo{
 			Height:  uint64(height),
-			Time:    uint64(sec),
+			Time:    uint64(nsec),
 			ChainID: chainID,
 		},
 		Contract: wasmvmtypes.ContractInfo{
@@ -87,14 +87,14 @@ func callContract(codeID []byte, ctx sdk.Context, store sdk.KVStore, msg []byte)
 	if height < 0 {
 		panic("Block height must never be negative")
 	}
-	sec := ctx.BlockTime().Unix()
-	if sec < 0 {
+	nsec := ctx.BlockTime().UnixNano()
+	if nsec < 0 {
 		panic("Block (unix) time must never be negative ")
 	}
 	env := wasmvmtypes.Env{
 		Block: wasmvmtypes.BlockInfo{
 			Height:  uint64(height),
-			Time:    uint64(sec),
+			Time:    uint64(nsec),
 			ChainID: chainID,
 		},
 		Contract: wasmvmtypes.ContractInfo{
@@ -123,14 +123,14 @@ func queryContractWithStore(ctx sdk.Context, store sdk.KVStore, codeID cosmwasm.
 	if height < 0 {
 		panic("Block height must never be negative")
 	}
-	sec := ctx.BlockTime().Unix()
-	if sec < 0 {
+	nsec := ctx.BlockTime().UnixNano()
+	if nsec < 0 {
 		panic("Block (unix) time must never be negative ")
 	}
 	env := wasmvmtypes.Env{
 		Block: wasmvmtypes.BlockInfo{
 			Height:  uint64(height),
-			Time:    uint64(sec),
+			Time:    uint64(nsec),
 			ChainID: chainID,
 		},
 		Contract: wasmvmtypes.ContractInfo{

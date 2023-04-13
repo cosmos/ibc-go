@@ -55,7 +55,7 @@ func (cs ClientState) VerifyUpgradeAndUpdateState(
 	// Must prove against latest consensus state to ensure we are verifying against latest upgrade plan
 	// This verifies that upgrade is intended for the provided revision, since committed client must exist
 	// at this consensus state
-	_, err := getConsensusState(clientStore, cdc, lastHeight)
+	_, err := GetConsensusState(clientStore, cdc, lastHeight)
 	if err != nil {
 		return sdkerrors.Wrapf(err, "could not retrieve consensus state for height %s", lastHeight)
 	}
