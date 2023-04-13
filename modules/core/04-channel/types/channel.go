@@ -32,6 +32,8 @@ func NewChannel(
 		Counterparty:   counterparty,
 		ConnectionHops: hops,
 		Version:        version,
+		// UpgradeSequence is intentionally left empty as a new channel has not performed an upgrade.
+		UpgradeSequence: 0,
 	}
 }
 
