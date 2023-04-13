@@ -98,6 +98,12 @@ service Query {
     option (google.api.http).get = "/ibc/core/channel/v1/channels/{channel_id}/"
                                    "ports/{port_id}/next_sequence";
   }
+
+  // NextSequenceSend returns the next send sequence for a given channel.
+  rpc NextSequenceSend(QueryNextSequenceSendRequest) returns (QueryNextSequenceSendResponse) {
+    option (google.api.http).get = "/ibc/core/channel/v1/channels/{channel_id}/"
+                                   "ports/{port_id}/next_sequence_send";
+  }
 }
 
 // QueryChannelRequest is the request type for the Query/Channel RPC method
@@ -369,6 +375,26 @@ message QueryNextSequenceReceiveRequest {
 message QueryNextSequenceReceiveResponse {
   // next sequence receive number
   uint64 next_sequence_receive = 1;
+  // merkle proof of existence
+  bytes proof = 2;
+  // height at which the proof was retrieved
+  ibc.core.client.v1.Height proof_height = 3 [(gogoproto.nullable) = false];
+}
+
+// QueryNextSequenceSendRequest is the request type for the
+// Query/QueryNextSequenceSend RPC method
+message QueryNextSequenceSendRequest {
+  // port unique identifier
+  string port_id = 1;
+  // channel unique identifier
+  string channel_id = 2;
+}
+
+// QueryNextSequenceSendResponse is the request type for the
+// Query/QueryNextSequenceSend RPC method
+message QueryNextSequenceSendResponse {
+  // next sequence send number
+  uint64 next_sequence_send = 1;
   // merkle proof of existence
   bytes proof = 2;
   // height at which the proof was retrieved

@@ -3,6 +3,8 @@ on:
   workflow_dispatch:
   pull_request:
     types:
+      # trigger workflow if PR is opened directly as R4R.
+      - opened
       # trigger workflow if changes are pushed to the branch.
       - synchronize
       # trigger workflow if PR is marked ready for review.
@@ -11,15 +13,10 @@ on:
       - "docs/**"
       - "**.md"
       - "LICENSE"
-  push:
-    branches:
-      - main
-    paths-ignore:
-      - "docs/**"
-      - "**.md"
-      - "LICENSE"
 
 jobs:
+    # determine-image-tag will either output the PR number e.g. pr-1234 or the string main.
+    # this will be used to tag the images that are built during the workflow.
     determine-image-tag:
       if: ${{ !github.event.pull_request.draft && !github.event.pull_request.head.repo.fork && github.actor != 'dependabot[bot]' }}
       runs-on: ubuntu-latest
@@ -41,6 +38,7 @@ jobs:
               echo "simd-tag=$tag" >> $GITHUB_OUTPUT
             fi
 
+    # build-e2e ensures that all test code compiles.
     build-e2e:
       if: ${{ !github.event.pull_request.draft && !github.event.pull_request.head.repo.fork && github.actor != 'dependabot[bot]' }}
       runs-on: ubuntu-latest
@@ -63,14 +61,19 @@ jobs:
       # we skip the job in this case.
       if: ${{ !github.event.pull_request.draft && !github.event.pull_request.head.repo.fork && github.actor != 'dependabot[bot]' }}
       needs:
-        - determine-image-tag
+        - determine-image-tag # we are required to have a docker tag before we can build any images.
         - build-e2e # don't attempt any tests unless the e2e code compiles successfully.
       uses: ./.github/workflows/e2e-test-workflow-call.yml
+      # unless we explicitly tell the workflow to inherit secrets, required secrets such as GITHUB_TOKEN will not be
+      # provided to the workflow. This would cause privileged operations to fail.
       secrets: inherit
       with:
+        # with each test, we build an image from the current code.
         build-and-push-docker-image: true
+        # if the test fails, we upload logs so that we can download them from the UI.
         upload-logs: true
         chain-image: ghcr.io/cosmos/ibc-go-simd
+        # with regular tests, both images are the same.
         chain-a-tag: "${{ needs.determine-image-tag.outputs.simd-tag }}"
         chain-b-tag: "${{ needs.determine-image-tag.outputs.simd-tag }}"
         chain-binary: "simd"
