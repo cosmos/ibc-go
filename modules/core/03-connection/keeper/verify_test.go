@@ -1085,8 +1085,8 @@ func (suite *KeeperTestSuite) TestVerifyUpgrade() {
 
 			tc.malleate()
 
-			upgradeErrorReceiptKey := host.ChannelUpgradeKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-			proof, proofHeight := suite.chainA.QueryProof(upgradeErrorReceiptKey)
+			channelUpgradeKey := host.ChannelUpgradeKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+			proof, proofHeight := suite.chainA.QueryProof(channelUpgradeKey)
 
 			err := suite.chainB.GetSimApp().IBCKeeper.ConnectionKeeper.VerifyChannelUpgrade(suite.chainB.GetContext(), path.EndpointB.GetConnection(), proofHeight, proof, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, *upgrade)
 
