@@ -8,24 +8,25 @@ import (
 
 var _ exported.ClientState = (*ClientState)(nil)
 
-type verifyClientMessagePayload struct {
-	VerifyClientMessage verifyClientMessageInnerPayload `json:"verify_client_message"`
-}
-
-type clientMessageConcretePayloadClientMessage struct {
-	Header       *Header       `json:"header,omitempty"`
-	Misbehaviour *Misbehaviour `json:"misbehaviour,omitempty"`
-}
-type verifyClientMessageInnerPayload struct {
-	ClientMessage clientMessageConcretePayloadClientMessage `json:"client_message"`
-}
+type (
+	verifyClientMessageInnerPayload struct {
+		ClientMessage clientMessage `json:"client_message"`
+	}
+	clientMessage struct {
+		Header       *Header       `json:"header,omitempty"`
+		Misbehaviour *Misbehaviour `json:"misbehaviour,omitempty"`
+	}
+	verifyClientMessagePayload struct {
+		VerifyClientMessage verifyClientMessageInnerPayload `json:"verify_client_message"`
+	}
+)
 
 // VerifyClientMessage must verify a ClientMessage. A ClientMessage could be a Header, Misbehaviour, or batch update.
 // It must handle each type of ClientMessage appropriately. Calls to CheckForMisbehaviour, UpdateState, and UpdateStateOnMisbehaviour
 // will assume that the content of the ClientMessage has been verified and can be trusted. An error should be returned
 // if the ClientMessage fails to verify.
-func (c ClientState) VerifyClientMessage(ctx sdk.Context, _ codec.BinaryCodec, clientStore sdk.KVStore, clientMsg exported.ClientMessage) error {
-	clientMsgConcrete := clientMessageConcretePayloadClientMessage{
+func (cs ClientState) VerifyClientMessage(ctx sdk.Context, _ codec.BinaryCodec, clientStore sdk.KVStore, clientMsg exported.ClientMessage) error {
+	clientMsgConcrete := clientMessage{
 		Header:       nil,
 		Misbehaviour: nil,
 	}
@@ -41,25 +42,22 @@ func (c ClientState) VerifyClientMessage(ctx sdk.Context, _ codec.BinaryCodec, c
 	payload := verifyClientMessagePayload{
 		VerifyClientMessage: inner,
 	}
-	_, err := call[contractResult](payload, &c, ctx, clientStore)
+	_, err := call[contractResult](ctx, clientStore, &cs, payload)
 	return err
 }
 
-type updateStatePayload struct {
-	UpdateState updateStateInnerPayload `json:"update_state"`
-}
-type updateStateInnerPayload struct {
-	ClientMessage clientMessageConcretePayload `json:"client_message"`
-}
+type (
+	updateStateInnerPayload struct {
+		ClientMessage clientMessage `json:"client_message"`
+	}
+	updateStatePayload struct {
+		UpdateState updateStateInnerPayload `json:"update_state"`
+	}
+)
 
-type clientMessageConcretePayload struct {
-	Header       *Header       `json:"header,omitempty"`
-	Misbehaviour *Misbehaviour `json:"misbehaviour,omitempty"`
-}
-
-// Client state and new consensus states are updated in the store by the contract
-func (c ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, store sdk.KVStore, clientMsg exported.ClientMessage) []exported.Height {
-	var clientMsgConcrete clientMessageConcretePayload
+// Client state and new consensus states are updated in the store by the contract.
+func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, store sdk.KVStore, clientMsg exported.ClientMessage) []exported.Height {
+	var clientMsgConcrete clientMessage
 	switch clientMsg := clientMsg.(type) {
 	case *Header:
 		clientMsgConcrete.Header = clientMsg
@@ -72,7 +70,7 @@ func (c ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, store s
 		},
 	}
 
-	_, err := call[contractResult](payload, &c, ctx, store)
+	_, err := call[contractResult](ctx, store, &cs, payload)
 	if err != nil {
 		panic(err)
 	}
@@ -84,20 +82,19 @@ func (c ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, store s
 	return []exported.Height{newClientState.LatestHeight}
 }
 
-type updateStateOnMisbehaviourPayload struct {
-	UpdateStateOnMisbehaviour updateStateOnMisbehaviourInnerPayload `json:"update_state_on_misbehaviour"`
-}
-type updateStateOnMisbehaviourInnerPayload struct {
-	ClientMessage clientMessageConcretePayloadClientMessage `json:"client_message"`
-}
+type (
+	updateStateOnMisbehaviourInnerPayload struct {
+		ClientMessage clientMessage `json:"client_message"`
+	}
+	updateStateOnMisbehaviourPayload struct {
+		UpdateStateOnMisbehaviour updateStateOnMisbehaviourInnerPayload `json:"update_state_on_misbehaviour"`
+	}
+)
 
 // UpdateStateOnMisbehaviour should perform appropriate state changes on a client state given that misbehaviour has been detected and verified
-// Client state is updated in the store by contract
-func (c ClientState) UpdateStateOnMisbehaviour(ctx sdk.Context, _ codec.BinaryCodec, clientStore sdk.KVStore, clientMsg exported.ClientMessage) {
-	clientMsgConcrete := clientMessageConcretePayloadClientMessage{
-		Header:       nil,
-		Misbehaviour: nil,
-	}
+// Client state is updated in the store by contract.
+func (cs ClientState) UpdateStateOnMisbehaviour(ctx sdk.Context, _ codec.BinaryCodec, clientStore sdk.KVStore, clientMsg exported.ClientMessage) {
+	var clientMsgConcrete clientMessage
 	switch clientMsg := clientMsg.(type) {
 	case *Header:
 		clientMsgConcrete.Header = clientMsg
@@ -113,7 +110,7 @@ func (c ClientState) UpdateStateOnMisbehaviour(ctx sdk.Context, _ codec.BinaryCo
 		UpdateStateOnMisbehaviour: inner,
 	}
 
-	_, err := call[contractResult](payload, &c, ctx, clientStore)
+	_, err := call[contractResult](ctx, clientStore, &cs, payload)
 	if err != nil {
 		panic(err)
 	}

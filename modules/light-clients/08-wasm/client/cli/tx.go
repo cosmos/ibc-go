@@ -1,22 +1,27 @@
 package cli
 
 import (
+	"fmt"
 	"io/ioutil"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
+	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/spf13/cobra"
 
+	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
 	types "github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm/types"
 )
 
-// newPushNewWasmCodeCmd returns the command to create a PushNewWasmCode transaction
-func newPushNewWasmCodeCmd() *cobra.Command {
+// newStoreCodeCmd returns the command to create a MsgStoreCode transaction
+func newStoreCodeCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "push-wasm [wasm-file]",
-		Short: "Reads wasm code from the file and creates push transaction",
-		Args:  cobra.ExactArgs(1),
+		Use:     "store-code [path/to/wasm-file]",
+		Short:   "Reads wasm code from the file and creates transaction to store code",
+		Long:    "Reads wasm code from the file and creates transaction to store code",
+		Example: fmt.Sprintf("%s tx %s wasm [path/to/wasm_file]", version.AppName, ibcexported.ModuleName),
+		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
@@ -30,7 +35,7 @@ func newPushNewWasmCodeCmd() *cobra.Command {
 				return err
 			}
 
-			msg := &types.MsgPushNewWasmCode{
+			msg := &types.MsgStoreCode{
 				Code:   code,
 				Signer: clientCtx.GetFromAddress().String(),
 			}

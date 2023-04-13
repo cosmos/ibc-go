@@ -20,8 +20,8 @@ import (
 )
 
 var (
-	_ module.AppModule      = AppModule{}
-	_ module.AppModuleBasic = AppModuleBasic{}
+	_ module.AppModule      = (*AppModule)(nil)
+	_ module.AppModuleBasic = (*AppModule)(nil)
 )
 
 // AppModuleBasic defines the basic application module used by the tendermint light client.

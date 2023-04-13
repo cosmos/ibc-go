@@ -27,24 +27,24 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-// Message type to push new wasm code
-type MsgPushNewWasmCode struct {
+// MsgStoreCode defines the request type for the StoreCode rpc.
+type MsgStoreCode struct {
 	Signer string `protobuf:"bytes,1,opt,name=signer,proto3" json:"signer,omitempty"`
 	Code   []byte `protobuf:"bytes,2,opt,name=code,proto3" json:"code,omitempty"`
 }
 
-func (m *MsgPushNewWasmCode) Reset()         { *m = MsgPushNewWasmCode{} }
-func (m *MsgPushNewWasmCode) String() string { return proto.CompactTextString(m) }
-func (*MsgPushNewWasmCode) ProtoMessage()    {}
-func (*MsgPushNewWasmCode) Descriptor() ([]byte, []int) {
+func (m *MsgStoreCode) Reset()         { *m = MsgStoreCode{} }
+func (m *MsgStoreCode) String() string { return proto.CompactTextString(m) }
+func (*MsgStoreCode) ProtoMessage()    {}
+func (*MsgStoreCode) Descriptor() ([]byte, []int) {
 	return fileDescriptor_1d9737363bf1e38d, []int{0}
 }
-func (m *MsgPushNewWasmCode) XXX_Unmarshal(b []byte) error {
+func (m *MsgStoreCode) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgPushNewWasmCode) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgStoreCode) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgPushNewWasmCode.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgStoreCode.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -54,49 +54,49 @@ func (m *MsgPushNewWasmCode) XXX_Marshal(b []byte, deterministic bool) ([]byte, 
 		return b[:n], nil
 	}
 }
-func (m *MsgPushNewWasmCode) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgPushNewWasmCode.Merge(m, src)
+func (m *MsgStoreCode) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgStoreCode.Merge(m, src)
 }
-func (m *MsgPushNewWasmCode) XXX_Size() int {
+func (m *MsgStoreCode) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgPushNewWasmCode) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgPushNewWasmCode.DiscardUnknown(m)
+func (m *MsgStoreCode) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgStoreCode.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgPushNewWasmCode proto.InternalMessageInfo
+var xxx_messageInfo_MsgStoreCode proto.InternalMessageInfo
 
-func (m *MsgPushNewWasmCode) GetSigner() string {
+func (m *MsgStoreCode) GetSigner() string {
 	if m != nil {
 		return m.Signer
 	}
 	return ""
 }
 
-func (m *MsgPushNewWasmCode) GetCode() []byte {
+func (m *MsgStoreCode) GetCode() []byte {
 	if m != nil {
 		return m.Code
 	}
 	return nil
 }
 
-// Response in case of successful handling
-type MsgPushNewWasmCodeResponse struct {
+// MsgStoreCodeResponse defines the response type for the StoreCode rpc
+type MsgStoreCodeResponse struct {
 	CodeId []byte `protobuf:"bytes,1,opt,name=code_id,json=codeId,proto3" json:"code_id,omitempty"`
 }
 
-func (m *MsgPushNewWasmCodeResponse) Reset()         { *m = MsgPushNewWasmCodeResponse{} }
-func (m *MsgPushNewWasmCodeResponse) String() string { return proto.CompactTextString(m) }
-func (*MsgPushNewWasmCodeResponse) ProtoMessage()    {}
-func (*MsgPushNewWasmCodeResponse) Descriptor() ([]byte, []int) {
+func (m *MsgStoreCodeResponse) Reset()         { *m = MsgStoreCodeResponse{} }
+func (m *MsgStoreCodeResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgStoreCodeResponse) ProtoMessage()    {}
+func (*MsgStoreCodeResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_1d9737363bf1e38d, []int{1}
 }
-func (m *MsgPushNewWasmCodeResponse) XXX_Unmarshal(b []byte) error {
+func (m *MsgStoreCodeResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgPushNewWasmCodeResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgStoreCodeResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgPushNewWasmCodeResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgStoreCodeResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -106,19 +106,19 @@ func (m *MsgPushNewWasmCodeResponse) XXX_Marshal(b []byte, deterministic bool) (
 		return b[:n], nil
 	}
 }
-func (m *MsgPushNewWasmCodeResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgPushNewWasmCodeResponse.Merge(m, src)
+func (m *MsgStoreCodeResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgStoreCodeResponse.Merge(m, src)
 }
-func (m *MsgPushNewWasmCodeResponse) XXX_Size() int {
+func (m *MsgStoreCodeResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgPushNewWasmCodeResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgPushNewWasmCodeResponse.DiscardUnknown(m)
+func (m *MsgStoreCodeResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgStoreCodeResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgPushNewWasmCodeResponse proto.InternalMessageInfo
+var xxx_messageInfo_MsgStoreCodeResponse proto.InternalMessageInfo
 
-func (m *MsgPushNewWasmCodeResponse) GetCodeId() []byte {
+func (m *MsgStoreCodeResponse) GetCodeId() []byte {
 	if m != nil {
 		return m.CodeId
 	}
@@ -126,32 +126,31 @@ func (m *MsgPushNewWasmCodeResponse) GetCodeId() []byte {
 }
 
 func init() {
-	proto.RegisterType((*MsgPushNewWasmCode)(nil), "ibc.lightclients.wasm.v1.MsgPushNewWasmCode")
-	proto.RegisterType((*MsgPushNewWasmCodeResponse)(nil), "ibc.lightclients.wasm.v1.MsgPushNewWasmCodeResponse")
+	proto.RegisterType((*MsgStoreCode)(nil), "ibc.lightclients.wasm.v1.MsgStoreCode")
+	proto.RegisterType((*MsgStoreCodeResponse)(nil), "ibc.lightclients.wasm.v1.MsgStoreCodeResponse")
 }
 
 func init() { proto.RegisterFile("ibc/lightclients/wasm/v1/tx.proto", fileDescriptor_1d9737363bf1e38d) }
 
 var fileDescriptor_1d9737363bf1e38d = []byte{
-	// 276 bytes of a gzipped FileDescriptorProto
+	// 270 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x52, 0xcc, 0x4c, 0x4a, 0xd6,
 	0xcf, 0xc9, 0x4c, 0xcf, 0x28, 0x49, 0xce, 0xc9, 0x4c, 0xcd, 0x2b, 0x29, 0xd6, 0x2f, 0x4f, 0x2c,
 	0xce, 0xd5, 0x2f, 0x33, 0xd4, 0x2f, 0xa9, 0xd0, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0x92, 0xc8,
-	0x4c, 0x4a, 0xd6, 0x43, 0x56, 0xa2, 0x07, 0x52, 0xa2, 0x57, 0x66, 0xa8, 0xe4, 0xc0, 0x25, 0xe4,
-	0x5b, 0x9c, 0x1e, 0x50, 0x5a, 0x9c, 0xe1, 0x97, 0x5a, 0x1e, 0x9e, 0x58, 0x9c, 0xeb, 0x9c, 0x9f,
-	0x92, 0x2a, 0x24, 0xc6, 0xc5, 0x56, 0x9c, 0x99, 0x9e, 0x97, 0x5a, 0x24, 0xc1, 0xa8, 0xc0, 0xa8,
-	0xc1, 0x19, 0x04, 0xe5, 0x09, 0x09, 0x71, 0xb1, 0x24, 0xe7, 0xa7, 0xa4, 0x4a, 0x30, 0x29, 0x30,
-	0x6a, 0xf0, 0x04, 0x81, 0xd9, 0x4a, 0xa6, 0x5c, 0x52, 0x98, 0x26, 0x04, 0xa5, 0x16, 0x17, 0xe4,
-	0xe7, 0x15, 0xa7, 0x0a, 0x89, 0x73, 0xb1, 0x83, 0x54, 0xc5, 0x67, 0xa6, 0x80, 0x8d, 0xe2, 0x09,
-	0x62, 0x03, 0x71, 0x3d, 0x53, 0x8c, 0x6a, 0xb8, 0x98, 0x7d, 0x8b, 0xd3, 0x85, 0x4a, 0xb9, 0xf8,
-	0xd1, 0x2d, 0xd7, 0xd1, 0xc3, 0xe5, 0x5a, 0x3d, 0x4c, 0x8b, 0xa4, 0x4c, 0x48, 0x51, 0x0d, 0x73,
-	0x96, 0x53, 0xe4, 0x89, 0x47, 0x72, 0x8c, 0x17, 0x1e, 0xc9, 0x31, 0x3e, 0x78, 0x24, 0xc7, 0x38,
-	0xe1, 0xb1, 0x1c, 0xc3, 0x85, 0xc7, 0x72, 0x0c, 0x37, 0x1e, 0xcb, 0x31, 0x44, 0xd9, 0xa7, 0x67,
-	0x96, 0x64, 0x94, 0x26, 0xe9, 0x25, 0xe7, 0xe7, 0xea, 0x27, 0xe7, 0x17, 0xe7, 0xe6, 0x17, 0xeb,
-	0x67, 0x26, 0x25, 0xeb, 0xa6, 0xe7, 0xeb, 0x97, 0x99, 0xeb, 0xe7, 0xe6, 0xa7, 0x94, 0xe6, 0xa4,
-	0x16, 0x43, 0x42, 0x5b, 0x17, 0x16, 0xdc, 0x06, 0x16, 0xba, 0xe0, 0x10, 0x2f, 0xa9, 0x2c, 0x48,
-	0x2d, 0x4e, 0x62, 0x03, 0x07, 0xb9, 0x31, 0x20, 0x00, 0x00, 0xff, 0xff, 0x60, 0xe3, 0x92, 0xd7,
-	0x97, 0x01, 0x00, 0x00,
+	0x4c, 0x4a, 0xd6, 0x43, 0x56, 0xa2, 0x07, 0x52, 0xa2, 0x57, 0x66, 0xa8, 0x64, 0xc5, 0xc5, 0xe3,
+	0x5b, 0x9c, 0x1e, 0x5c, 0x92, 0x5f, 0x94, 0xea, 0x9c, 0x9f, 0x92, 0x2a, 0x24, 0xc6, 0xc5, 0x56,
+	0x9c, 0x99, 0x9e, 0x97, 0x5a, 0x24, 0xc1, 0xa8, 0xc0, 0xa8, 0xc1, 0x19, 0x04, 0xe5, 0x09, 0x09,
+	0x71, 0xb1, 0x24, 0xe7, 0xa7, 0xa4, 0x4a, 0x30, 0x29, 0x30, 0x6a, 0xf0, 0x04, 0x81, 0xd9, 0x4a,
+	0xfa, 0x5c, 0x22, 0xc8, 0x7a, 0x83, 0x52, 0x8b, 0x0b, 0xf2, 0xf3, 0x8a, 0x53, 0x85, 0xc4, 0xb9,
+	0xd8, 0x41, 0xf2, 0xf1, 0x99, 0x29, 0x60, 0x43, 0x78, 0x82, 0xd8, 0x40, 0x5c, 0xcf, 0x14, 0xa3,
+	0x2c, 0x2e, 0x66, 0xdf, 0xe2, 0x74, 0xa1, 0x64, 0x2e, 0x4e, 0x84, 0x85, 0x6a, 0x7a, 0xb8, 0xdc,
+	0xa6, 0x87, 0x6c, 0xb8, 0x94, 0x1e, 0x71, 0xea, 0x60, 0x8e, 0x70, 0x8a, 0x3c, 0xf1, 0x48, 0x8e,
+	0xf1, 0xc2, 0x23, 0x39, 0xc6, 0x07, 0x8f, 0xe4, 0x18, 0x27, 0x3c, 0x96, 0x63, 0xb8, 0xf0, 0x58,
+	0x8e, 0xe1, 0xc6, 0x63, 0x39, 0x86, 0x28, 0xfb, 0xf4, 0xcc, 0x92, 0x8c, 0xd2, 0x24, 0xbd, 0xe4,
+	0xfc, 0x5c, 0xfd, 0xe4, 0xfc, 0xe2, 0xdc, 0xfc, 0x62, 0xfd, 0xcc, 0xa4, 0x64, 0xdd, 0xf4, 0x7c,
+	0xfd, 0x32, 0x73, 0xfd, 0xdc, 0xfc, 0x94, 0xd2, 0x9c, 0xd4, 0x62, 0x48, 0x78, 0xea, 0xc2, 0x02,
+	0xd4, 0xc0, 0x42, 0x17, 0x1c, 0xa6, 0x25, 0x95, 0x05, 0xa9, 0xc5, 0x49, 0x6c, 0xe0, 0x40, 0x35,
+	0x06, 0x04, 0x00, 0x00, 0xff, 0xff, 0xc3, 0x99, 0x32, 0xbd, 0x79, 0x01, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -166,8 +165,8 @@ const _ = grpc.SupportPackageIsVersion4
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type MsgClient interface {
-	// PushNewWasmCode defines a rpc handler method for PushNewWasmCode.
-	PushNewWasmCode(ctx context.Context, in *MsgPushNewWasmCode, opts ...grpc.CallOption) (*MsgPushNewWasmCodeResponse, error)
+	// StoreCode defines a rpc handler method for MsgStoreCode.
+	StoreCode(ctx context.Context, in *MsgStoreCode, opts ...grpc.CallOption) (*MsgStoreCodeResponse, error)
 }
 
 type msgClient struct {
@@ -178,9 +177,9 @@ func NewMsgClient(cc grpc1.ClientConn) MsgClient {
 	return &msgClient{cc}
 }
 
-func (c *msgClient) PushNewWasmCode(ctx context.Context, in *MsgPushNewWasmCode, opts ...grpc.CallOption) (*MsgPushNewWasmCodeResponse, error) {
-	out := new(MsgPushNewWasmCodeResponse)
-	err := c.cc.Invoke(ctx, "/ibc.lightclients.wasm.v1.Msg/PushNewWasmCode", in, out, opts...)
+func (c *msgClient) StoreCode(ctx context.Context, in *MsgStoreCode, opts ...grpc.CallOption) (*MsgStoreCodeResponse, error) {
+	out := new(MsgStoreCodeResponse)
+	err := c.cc.Invoke(ctx, "/ibc.lightclients.wasm.v1.Msg/StoreCode", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -189,36 +188,36 @@ func (c *msgClient) PushNewWasmCode(ctx context.Context, in *MsgPushNewWasmCode,
 
 // MsgServer is the server API for Msg service.
 type MsgServer interface {
-	// PushNewWasmCode defines a rpc handler method for PushNewWasmCode.
-	PushNewWasmCode(context.Context, *MsgPushNewWasmCode) (*MsgPushNewWasmCodeResponse, error)
+	// StoreCode defines a rpc handler method for MsgStoreCode.
+	StoreCode(context.Context, *MsgStoreCode) (*MsgStoreCodeResponse, error)
 }
 
 // UnimplementedMsgServer can be embedded to have forward compatible implementations.
 type UnimplementedMsgServer struct {
 }
 
-func (*UnimplementedMsgServer) PushNewWasmCode(ctx context.Context, req *MsgPushNewWasmCode) (*MsgPushNewWasmCodeResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method PushNewWasmCode not implemented")
+func (*UnimplementedMsgServer) StoreCode(ctx context.Context, req *MsgStoreCode) (*MsgStoreCodeResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method StoreCode not implemented")
 }
 
 func RegisterMsgServer(s grpc1.Server, srv MsgServer) {
 	s.RegisterService(&_Msg_serviceDesc, srv)
 }
 
-func _Msg_PushNewWasmCode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MsgPushNewWasmCode)
+func _Msg_StoreCode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgStoreCode)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(MsgServer).PushNewWasmCode(ctx, in)
+		return srv.(MsgServer).StoreCode(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/ibc.lightclients.wasm.v1.Msg/PushNewWasmCode",
+		FullMethod: "/ibc.lightclients.wasm.v1.Msg/StoreCode",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).PushNewWasmCode(ctx, req.(*MsgPushNewWasmCode))
+		return srv.(MsgServer).StoreCode(ctx, req.(*MsgStoreCode))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -228,15 +227,15 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 	HandlerType: (*MsgServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "PushNewWasmCode",
-			Handler:    _Msg_PushNewWasmCode_Handler,
+			MethodName: "StoreCode",
+			Handler:    _Msg_StoreCode_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "ibc/lightclients/wasm/v1/tx.proto",
 }
 
-func (m *MsgPushNewWasmCode) Marshal() (dAtA []byte, err error) {
+func (m *MsgStoreCode) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -246,12 +245,12 @@ func (m *MsgPushNewWasmCode) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgPushNewWasmCode) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgStoreCode) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgPushNewWasmCode) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgStoreCode) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -273,7 +272,7 @@ func (m *MsgPushNewWasmCode) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgPushNewWasmCodeResponse) Marshal() (dAtA []byte, err error) {
+func (m *MsgStoreCodeResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -283,12 +282,12 @@ func (m *MsgPushNewWasmCodeResponse) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgPushNewWasmCodeResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgStoreCodeResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgPushNewWasmCodeResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgStoreCodeResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -314,7 +313,7 @@ func encodeVarintTx(dAtA []byte, offset int, v uint64) int {
 	dAtA[offset] = uint8(v)
 	return base
 }
-func (m *MsgPushNewWasmCode) Size() (n int) {
+func (m *MsgStoreCode) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -331,7 +330,7 @@ func (m *MsgPushNewWasmCode) Size() (n int) {
 	return n
 }
 
-func (m *MsgPushNewWasmCodeResponse) Size() (n int) {
+func (m *MsgStoreCodeResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -350,7 +349,7 @@ func sovTx(x uint64) (n int) {
 func sozTx(x uint64) (n int) {
 	return sovTx(uint64((x << 1) ^ uint64((int64(x) >> 63))))
 }
-func (m *MsgPushNewWasmCode) Unmarshal(dAtA []byte) error {
+func (m *MsgStoreCode) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -373,10 +372,10 @@ func (m *MsgPushNewWasmCode) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgPushNewWasmCode: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgStoreCode: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgPushNewWasmCode: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgStoreCode: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -466,7 +465,7 @@ func (m *MsgPushNewWasmCode) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgPushNewWasmCodeResponse) Unmarshal(dAtA []byte) error {
+func (m *MsgStoreCodeResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -489,10 +488,10 @@ func (m *MsgPushNewWasmCodeResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgPushNewWasmCodeResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgStoreCodeResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgPushNewWasmCodeResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgStoreCodeResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:

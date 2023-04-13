@@ -536,7 +536,7 @@
           "id": "1",
           "messages": [
             {
-              "@type": "/ibc.lightclients.wasm.v1.MsgPushNewWasmCode",
+              "@type": "/ibc.lightclients.wasm.v1.MsgStoreCode",
               "code": "",
               "signer": "cosmos10d07y265gmmuvt4z0w9aw880jnsr700j6zn9kn"
             }

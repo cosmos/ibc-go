@@ -25,7 +25,7 @@ func NewClientState(data []byte, codeID []byte, height clienttypes.Height) *Clie
 	}
 }
 
-// ClientType is wasm.
+// ClientType is Wasm light client.
 func (cs ClientState) ClientType() string {
 	return exported.Wasm
 }
@@ -49,9 +49,9 @@ func (cs ClientState) Validate() error {
 }
 
 type (
-	statusPayloadInner struct{}
+	statusInnerPayload struct{}
 	statusPayload      struct {
-		Status statusPayloadInner `json:"status"`
+		Status statusInnerPayload `json:"status"`
 	}
 )
 
@@ -66,18 +66,18 @@ type (
 // has higher precedence.
 func (cs ClientState) Status(ctx sdk.Context, clientStore sdk.KVStore, _ codec.BinaryCodec) exported.Status {
 	status := exported.Unknown
-	payload := statusPayload{Status: statusPayloadInner{}}
+	payload := statusPayload{Status: statusInnerPayload{}}
 
 	encodedData, err := json.Marshal(payload)
 	if err != nil {
 		return status
 	}
 
-	response, err := queryContractWithStore(cs.CodeId, ctx, clientStore, encodedData)
+	response, err := queryContractWithStore(ctx, clientStore, cs.CodeId, encodedData)
 	if err != nil {
 		return status
 	}
-	output := queryResponse{}
+	var output queryResponse
 	if err := json.Unmarshal(response, &output); err != nil {
 		return status
 	}
@@ -98,16 +98,17 @@ func (cs ClientState) GetTimestampAtHeight(
 	height exported.Height,
 ) (uint64, error) {
 	// get consensus state at height from clientStore to check for expiry
-	consState, found := GetConsensusState(clientStore, cdc, height)
-	if found != nil {
-		return 0, sdkerrors.Wrapf(clienttypes.ErrConsensusStateNotFound, "height (%s)", height)
+	consState, err := getConsensusState(clientStore, cdc, height)
+	if err != nil {
+		return 0, sdkerrors.Wrapf(err, "height (%s)", height)
 	}
 	return consState.GetTimestamp(), nil
 }
 
 // Initialize checks that the initial consensus state is an 08-wasm consensus state and
 // sets the client state, consensus state in the provided client store.
-func (cs ClientState) Initialize(context sdk.Context, marshaler codec.BinaryCodec, clientStore sdk.KVStore, state exported.ConsensusState) error {
+// It also initializes the wasm contract for the client.
+func (cs ClientState) Initialize(ctx sdk.Context, marshaler codec.BinaryCodec, clientStore sdk.KVStore, state exported.ConsensusState) error {
 	consensusState, ok := state.(*ConsensusState)
 	if !ok {
 		return sdkerrors.Wrapf(clienttypes.ErrInvalidConsensus, "invalid initial consensus state. expected type: %T, got: %T",
@@ -116,15 +117,15 @@ func (cs ClientState) Initialize(context sdk.Context, marshaler codec.BinaryCode
 	setClientState(clientStore, marshaler, &cs)
 	setConsensusState(clientStore, marshaler, consensusState, cs.GetLatestHeight())
 
-	_, err := initContract(cs.CodeId, context, clientStore)
+	_, err := initContract(cs.CodeId, ctx, clientStore)
 	if err != nil {
-		return sdkerrors.Wrapf(ErrUnableToInit, "err: %s", err)
+		return sdkerrors.Wrapf(ErrInitContractFailed, "err: %s", err)
 	}
 	return nil
 }
 
 type (
-	verifyMembershipPayloadInner struct {
+	verifyMembershipInnerPayload struct {
 		Height           exported.Height `json:"height"`
 		DelayTimePeriod  uint64          `json:"delay_time_period"`
 		DelayBlockPeriod uint64          `json:"delay_block_period"`
@@ -133,7 +134,7 @@ type (
 		Value            []byte          `json:"value"`
 	}
 	verifyMembershipPayload struct {
-		VerifyMembershipPayloadInner verifyMembershipPayloadInner `json:"verify_membership"`
+		VerifyMembership verifyMembershipInnerPayload `json:"verify_membership"`
 	}
 )
 
@@ -163,13 +164,13 @@ func (cs ClientState) VerifyMembership(
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", commitmenttypes.MerklePath{}, path)
 	}
 
-	_, err := GetConsensusState(clientStore, cdc, height)
+	_, err := getConsensusState(clientStore, cdc, height)
 	if err != nil {
-		return errorsmod.Wrap(clienttypes.ErrConsensusStateNotFound, "please ensure the proof was constructed against a height that exists on the client")
+		return errorsmod.Wrap(err, "please ensure the proof was constructed against a height that exists on the client")
 	}
 
 	payload := verifyMembershipPayload{
-		VerifyMembershipPayloadInner: verifyMembershipPayloadInner{
+		VerifyMembership: verifyMembershipInnerPayload{
 			Height:           height,
 			DelayTimePeriod:  delayTimePeriod,
 			DelayBlockPeriod: delayBlockPeriod,
@@ -178,12 +179,12 @@ func (cs ClientState) VerifyMembership(
 			Value:            value,
 		},
 	}
-	_, err = call[contractResult](payload, &cs, ctx, clientStore)
+	_, err = call[contractResult](ctx, clientStore, &cs, payload)
 	return err
 }
 
 type (
-	verifyNonMembershipPayloadInner struct {
+	verifyNonMembershipInnerPayload struct {
 		Height           exported.Height `json:"height"`
 		DelayTimePeriod  uint64          `json:"delay_time_period"`
 		DelayBlockPeriod uint64          `json:"delay_block_period"`
@@ -191,10 +192,13 @@ type (
 		Path             exported.Path   `json:"path"`
 	}
 	verifyNonMembershipPayload struct {
-		VerifyNonMembershipPayloadInner verifyNonMembershipPayloadInner `json:"verify_non_membership"`
+		VerifyNonMembership verifyNonMembershipInnerPayload `json:"verify_non_membership"`
 	}
 )
 
+// VerifyNonMembership is a generic proof verification method which verifies the absence of a given CommitmentPath at a specified height.
+// The caller is expected to construct the full CommitmentPath from a CommitmentPrefix and a standardized path (as defined in ICS 24).
+// If a zero proof height is passed in, it will fail to retrieve the associated consensus state.
 func (cs ClientState) VerifyNonMembership(
 	ctx sdk.Context,
 	clientStore sdk.KVStore,
@@ -217,13 +221,13 @@ func (cs ClientState) VerifyNonMembership(
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", commitmenttypes.MerklePath{}, path)
 	}
 
-	_, err := GetConsensusState(clientStore, cdc, height)
+	_, err := getConsensusState(clientStore, cdc, height)
 	if err != nil {
-		return errorsmod.Wrap(clienttypes.ErrConsensusStateNotFound, "please ensure the proof was constructed against a height that exists on the client")
+		return errorsmod.Wrap(err, "please ensure the proof was constructed against a height that exists on the client")
 	}
 
 	payload := verifyNonMembershipPayload{
-		VerifyNonMembershipPayloadInner: verifyNonMembershipPayloadInner{
+		VerifyNonMembership: verifyNonMembershipInnerPayload{
 			Height:           height,
 			DelayTimePeriod:  delayTimePeriod,
 			DelayBlockPeriod: delayBlockPeriod,
@@ -231,23 +235,23 @@ func (cs ClientState) VerifyNonMembership(
 			Path:             path,
 		},
 	}
-	_, err = call[contractResult](payload, &cs, ctx, clientStore)
+	_, err = call[contractResult](ctx, clientStore, &cs, payload)
 	return err
 }
 
-// / Calls the contract with the given payload and writes the result to `output`
-func call[T ContractResult](payload any, cs *ClientState, ctx sdk.Context, clientStore sdk.KVStore) (T, error) {
+// call calls the contract with the given payload and writes the result to output.
+func call[T ContractResult](ctx sdk.Context, clientStore sdk.KVStore, cs *ClientState, payload any) (T, error) {
 	var output T
 	encodedData, err := json.Marshal(payload)
 	if err != nil {
-		return output, sdkerrors.Wrapf(ErrUnableToMarshalPayload, "err: %s", err)
+		return output, sdkerrors.Wrapf(ErrMarshalPayloadFailed, "err: %s", err)
 	}
 	out, err := callContract(cs.CodeId, ctx, clientStore, encodedData)
 	if err != nil {
-		return output, sdkerrors.Wrapf(ErrUnableToCall, "err: %s", err)
+		return output, sdkerrors.Wrapf(ErrCallContractFailed, "err: %s", err)
 	}
 	if err := json.Unmarshal(out.Data, &output); err != nil {
-		return output, sdkerrors.Wrapf(ErrUnableToUnmarshalPayload, "err: %s", err)
+		return output, sdkerrors.Wrapf(ErrUnmarshalPayloadFailed, "err: %s", err)
 	}
 	if !output.Validate() {
 		return output, sdkerrors.Wrapf(errors.New(output.Error()), "error occurred while calling contract with code ID %s", cs.CodeId)

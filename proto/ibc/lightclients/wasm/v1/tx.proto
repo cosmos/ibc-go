@@ -3,19 +3,19 @@ package ibc.lightclients.wasm.v1;
 
 option go_package = "github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm/types";
 
-// Msg defines the ibc/wasm Msg service.
+// Msg defines the ibc/08-wasm Msg service.
 service Msg {
-  // PushNewWasmCode defines a rpc handler method for PushNewWasmCode.
-  rpc PushNewWasmCode(MsgPushNewWasmCode) returns (MsgPushNewWasmCodeResponse);
+  // StoreCode defines a rpc handler method for MsgStoreCode.
+  rpc StoreCode(MsgStoreCode) returns (MsgStoreCodeResponse);
 }
 
-// Message type to push new wasm code
-message MsgPushNewWasmCode {
+// MsgStoreCode defines the request type for the StoreCode rpc.
+message MsgStoreCode {
   string signer = 1;
   bytes  code   = 2;
 }
 
-// Response in case of successful handling
-message MsgPushNewWasmCodeResponse {
+// MsgStoreCodeResponse defines the response type for the StoreCode rpc
+message MsgStoreCodeResponse {
   bytes code_id = 1;
 }

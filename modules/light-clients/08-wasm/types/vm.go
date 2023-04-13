@@ -18,10 +18,6 @@ type queryResponse struct {
 	GenesisMetadata []clienttypes.GenesisMetadata `json:"genesis_metadata,omitempty"`
 }
 
-type ClientCreateRequest struct {
-	ClientCreateRequest ClientState `json:"client_create_request,omitempty"`
-}
-
 type ContractResult interface {
 	Validate() bool
 	Error() string
@@ -42,7 +38,7 @@ func (r contractResult) Error() string {
 	return r.ErrorMsg
 }
 
-// Calls vm.Init with appropriate arguments
+// initContract calls vm.Init with appropriate arguments.
 func initContract(codeID []byte, ctx sdk.Context, store sdk.KVStore) (*wasmvmtypes.Response, error) {
 	sdkGasMeter := ctx.GasMeter()
 	multipliedGasMeter := NewMultipliedGasMeter(sdkGasMeter, VMGasRegister)
@@ -75,12 +71,12 @@ func initContract(codeID []byte, ctx sdk.Context, store sdk.KVStore) (*wasmvmtyp
 
 	initMsg := []byte("{}")
 	ctx.GasMeter().ConsumeGas(VMGasRegister.NewContractInstanceCosts(len(initMsg)), "Loading CosmWasm module: instantiate")
-	response, gasUsed, err := WasmVM.Instantiate(codeID, env, msgInfo, initMsg, NewStoreAdapter(store), cosmwasm.GoAPI{}, nil, multipliedGasMeter, gasLimit, costJSONDeserialization)
+	response, gasUsed, err := WasmVM.Instantiate(codeID, env, msgInfo, initMsg, newStoreAdapter(store), cosmwasm.GoAPI{}, nil, multipliedGasMeter, gasLimit, costJSONDeserialization)
 	VMGasRegister.consumeRuntimeGas(ctx, gasUsed)
 	return response, err
 }
 
-// Calls vm.Execute with internally constructed Gas meter and environment
+// Calls vm.Execute with internally constructed Gas meter and environment.
 func callContract(codeID []byte, ctx sdk.Context, store sdk.KVStore, msg []byte) (*wasmvmtypes.Response, error) {
 	sdkGasMeter := ctx.GasMeter()
 	multipliedGasMeter := NewMultipliedGasMeter(sdkGasMeter, VMGasRegister)
@@ -111,13 +107,13 @@ func callContract(codeID []byte, ctx sdk.Context, store sdk.KVStore, msg []byte)
 		Funds:  nil,
 	}
 	ctx.GasMeter().ConsumeGas(VMGasRegister.InstantiateContractCosts(len(msg)), "Loading CosmWasm module: execute")
-	resp, gasUsed, err := WasmVM.Execute(codeID, env, msgInfo, msg, NewStoreAdapter(store), cosmwasm.GoAPI{}, nil, multipliedGasMeter, gasLimit, costJSONDeserialization)
+	resp, gasUsed, err := WasmVM.Execute(codeID, env, msgInfo, msg, newStoreAdapter(store), cosmwasm.GoAPI{}, nil, multipliedGasMeter, gasLimit, costJSONDeserialization)
 	VMGasRegister.consumeRuntimeGas(ctx, gasUsed)
 	return resp, err
 }
 
-// Call vm.Query
-func queryContractWithStore(codeID cosmwasm.Checksum, ctx sdk.Context, store sdk.KVStore, msg []byte) ([]byte, error) {
+// queryContractWithStore calls vm.Query.
+func queryContractWithStore(ctx sdk.Context, store sdk.KVStore, codeID cosmwasm.Checksum, msg []byte) ([]byte, error) {
 	sdkGasMeter := ctx.GasMeter()
 	multipliedGasMeter := NewMultipliedGasMeter(sdkGasMeter, VMGasRegister)
 	gasLimit := VMGasRegister.runtimeGasForContract(ctx)
@@ -142,7 +138,7 @@ func queryContractWithStore(codeID cosmwasm.Checksum, ctx sdk.Context, store sdk
 		},
 	}
 	ctx.GasMeter().ConsumeGas(VMGasRegister.InstantiateContractCosts(len(msg)), "Loading CosmWasm module: query")
-	resp, gasUsed, err := WasmVM.Query(codeID, env, msg, NewStoreAdapter(store), cosmwasm.GoAPI{}, nil, multipliedGasMeter, gasLimit, costJSONDeserialization)
+	resp, gasUsed, err := WasmVM.Query(codeID, env, msg, newStoreAdapter(store), cosmwasm.GoAPI{}, nil, multipliedGasMeter, gasLimit, costJSONDeserialization)
 	VMGasRegister.consumeRuntimeGas(ctx, gasUsed)
 	return resp, err
 }

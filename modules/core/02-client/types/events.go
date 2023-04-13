@@ -29,7 +29,7 @@ var (
 	EventTypeUpdateClientProposal  = "update_client_proposal"
 	EventTypeUpgradeChain          = "upgrade_chain"
 	EventTypeUpgradeClientProposal = "upgrade_client_proposal"
-	EventTypePushWasmCode          = "push_wasm_code"
+	EventTypeStoreWasmCode         = "store_wasm_code"
 
 	AttributeValueCategory = fmt.Sprintf("%s_%s", ibcexported.ModuleName, SubModuleName)
 )

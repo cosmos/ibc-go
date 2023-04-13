@@ -28,7 +28,7 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	)
 	registry.RegisterImplementations(
 		(*sdk.Msg)(nil),
-		&MsgPushNewWasmCode{},
+		&MsgStoreCode{},
 	)
 
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)

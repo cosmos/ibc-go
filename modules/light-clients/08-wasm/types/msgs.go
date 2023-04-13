@@ -2,32 +2,31 @@ package types
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
-var _ sdk.Msg = &MsgPushNewWasmCode{}
+var _ sdk.Msg = (*MsgStoreCode)(nil)
 
-// NewMsgPushNewWasmCode creates a new MsgPushNewWasmCode instance
+// MsgStoreCode creates a new MsgStoreCode instance
 //
 //nolint:interfacer
-func NewMsgPushNewWasmCode(signer string, code []byte) *MsgPushNewWasmCode {
-	return &MsgPushNewWasmCode{
+func NewMsgStoreCode(signer string, code []byte) *MsgStoreCode {
+	return &MsgStoreCode{
 		Signer: signer,
 		Code:   code,
 	}
 }
 
-func (m MsgPushNewWasmCode) ValidateBasic() error {
+// ValidateBasic implements sdk.Msg
+func (m MsgStoreCode) ValidateBasic() error {
 	if len(m.Code) == 0 {
-		return sdkerrors.Wrapf(ErrWasmEmptyCode,
-			"empty wasm code",
-		)
+		return ErrWasmEmptyCode
 	}
 
 	return nil
 }
 
-func (m MsgPushNewWasmCode) GetSigners() []sdk.AccAddress {
+// GetSigners implements sdk.Msg
+func (m MsgStoreCode) GetSigners() []sdk.AccAddress {
 	signer, err := sdk.AccAddressFromBech32(m.Signer)
 	if err != nil {
 		panic(err)

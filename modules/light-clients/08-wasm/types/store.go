@@ -17,8 +17,8 @@ import (
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
-// WrappedStore combines two KVStores into one while transparently routing the calls based on key prefix
-type WrappedStore struct {
+// wrappedStore combines two KVStores into one while transparently routing the calls based on key prefix
+type wrappedStore struct {
 	first  sdk.KVStore
 	second sdk.KVStore
 
@@ -26,8 +26,8 @@ type WrappedStore struct {
 	secondPrefix []byte
 }
 
-func NewWrappedStore(first, second sdk.KVStore, firstPrefix, secondPrefix []byte) WrappedStore {
-	return WrappedStore{
+func newWrappedStore(first, second sdk.KVStore, firstPrefix, secondPrefix []byte) wrappedStore {
+	return wrappedStore{
 		first:        first,
 		second:       second,
 		firstPrefix:  firstPrefix,
@@ -35,47 +35,47 @@ func NewWrappedStore(first, second sdk.KVStore, firstPrefix, secondPrefix []byte
 	}
 }
 
-func (ws WrappedStore) Get(key []byte) []byte {
+func (ws wrappedStore) Get(key []byte) []byte {
 	return ws.getStore(key).Get(ws.trimPrefix(key))
 }
 
-func (ws WrappedStore) Has(key []byte) bool {
+func (ws wrappedStore) Has(key []byte) bool {
 	return ws.getStore(key).Has(ws.trimPrefix(key))
 }
 
-func (ws WrappedStore) Set(key, value []byte) {
+func (ws wrappedStore) Set(key, value []byte) {
 	ws.getStore(key).Set(ws.trimPrefix(key), value)
 }
 
-func (ws WrappedStore) Delete(key []byte) {
+func (ws wrappedStore) Delete(key []byte) {
 	ws.getStore(key).Delete(ws.trimPrefix(key))
 }
 
-func (ws WrappedStore) GetStoreType() storetypes.StoreType {
+func (ws wrappedStore) GetStoreType() storetypes.StoreType {
 	return ws.first.GetStoreType()
 }
 
-func (ws WrappedStore) Iterator(start, end []byte) sdk.Iterator {
+func (ws wrappedStore) Iterator(start, end []byte) sdk.Iterator {
 	return ws.getStore(start).Iterator(ws.trimPrefix(start), ws.trimPrefix(end))
 }
 
-func (ws WrappedStore) ReverseIterator(start, end []byte) sdk.Iterator {
+func (ws wrappedStore) ReverseIterator(start, end []byte) sdk.Iterator {
 	return ws.getStore(start).ReverseIterator(ws.trimPrefix(start), ws.trimPrefix(end))
 }
 
-func (ws WrappedStore) CacheWrap() storetypes.CacheWrap {
+func (ws wrappedStore) CacheWrap() storetypes.CacheWrap {
 	return cachekv.NewStore(ws)
 }
 
-func (ws WrappedStore) CacheWrapWithTrace(w io.Writer, tc storetypes.TraceContext) storetypes.CacheWrap {
+func (ws wrappedStore) CacheWrapWithTrace(w io.Writer, tc storetypes.TraceContext) storetypes.CacheWrap {
 	return cachekv.NewStore(tracekv.NewStore(ws, w, tc))
 }
 
-func (ws WrappedStore) CacheWrapWithListeners(storeKey storetypes.StoreKey, listeners []storetypes.WriteListener) storetypes.CacheWrap {
+func (ws wrappedStore) CacheWrapWithListeners(storeKey storetypes.StoreKey, listeners []storetypes.WriteListener) storetypes.CacheWrap {
 	return cachekv.NewStore(listenkv.NewStore(ws, storeKey, listeners))
 }
 
-func (ws WrappedStore) trimPrefix(key []byte) []byte {
+func (ws wrappedStore) trimPrefix(key []byte) []byte {
 	if bytes.HasPrefix(key, ws.firstPrefix) {
 		key = bytes.TrimPrefix(key, ws.firstPrefix)
 	} else {
@@ -85,7 +85,7 @@ func (ws WrappedStore) trimPrefix(key []byte) []byte {
 	return key
 }
 
-func (ws WrappedStore) getStore(key []byte) sdk.KVStore {
+func (ws wrappedStore) getStore(key []byte) sdk.KVStore {
 	if bytes.HasPrefix(key, ws.firstPrefix) {
 		return ws.first
 	}
@@ -93,7 +93,7 @@ func (ws WrappedStore) getStore(key []byte) sdk.KVStore {
 	return ws.second
 }
 
-// setClientState stores the client state
+// setClientState stores the client state.
 func setClientState(clientStore sdk.KVStore, cdc codec.BinaryCodec, clientState *ClientState) {
 	key := host.ClientStateKey()
 	val := clienttypes.MustMarshalClientState(cdc, clientState)
@@ -107,13 +107,11 @@ func setConsensusState(clientStore sdk.KVStore, cdc codec.BinaryCodec, consensus
 	clientStore.Set(key, val)
 }
 
+// getClientState gets the client state.
 func getClientState(store sdk.KVStore, cdc codec.BinaryCodec) (*ClientState, error) {
 	bz := store.Get(host.ClientStateKey())
 	if bz == nil {
-		return nil, sdkerrors.Wrapf(
-			clienttypes.ErrClientNotFound,
-			"client state does not exist",
-		)
+		return nil, sdkerrors.Wrapf(clienttypes.ErrClientNotFound, "client state does not exist")
 	}
 
 	clientStateI, err := clienttypes.UnmarshalClientState(cdc, bz)
@@ -123,24 +121,18 @@ func getClientState(store sdk.KVStore, cdc codec.BinaryCodec) (*ClientState, err
 
 	clientState, ok := clientStateI.(*ClientState)
 	if !ok {
-		return nil, sdkerrors.Wrapf(
-			clienttypes.ErrInvalidClient,
-			"invalid client state type %T, expected %T", clientState, &ClientState{},
-		)
+		return nil, sdkerrors.Wrapf(clienttypes.ErrInvalidClient, "invalid client state. expected %T, got %T", &ClientState{}, clientState)
 	}
 
 	return clientState, nil
 }
 
-// GetConsensusState retrieves the consensus state from the client prefixed
-// store. An error is returned if the consensus state does not exist.
-func GetConsensusState(store sdk.KVStore, cdc codec.BinaryCodec, height exported.Height) (*ConsensusState, error) {
+// getConsensusState retrieves the consensus state from the client prefixed
+// store. An error is returned if the consensus state does not exist or it cannot be unmarshalled.
+func getConsensusState(store sdk.KVStore, cdc codec.BinaryCodec, height exported.Height) (*ConsensusState, error) {
 	bz := store.Get(host.ConsensusStateKey(height))
-	if bz == nil {
-		return nil, sdkerrors.Wrapf(
-			clienttypes.ErrConsensusStateNotFound,
-			"consensus state does not exist for height %s", height,
-		)
+	if len(bz) == 0 {
+		return nil, sdkerrors.Wrapf(clienttypes.ErrConsensusStateNotFound, "consensus state does not exist for height %s", height)
 	}
 
 	consensusStateI, err := clienttypes.UnmarshalConsensusState(cdc, bz)
@@ -150,46 +142,43 @@ func GetConsensusState(store sdk.KVStore, cdc codec.BinaryCodec, height exported
 
 	consensusState, ok := consensusStateI.(*ConsensusState)
 	if !ok {
-		return nil, sdkerrors.Wrapf(
-			clienttypes.ErrInvalidConsensus,
-			"invalid consensus type %T, expected %T", consensusState, &ConsensusState{},
-		)
+		return nil, sdkerrors.Wrapf(clienttypes.ErrInvalidConsensus, "invalid consensus type. expected %T, got %T", &ConsensusState{}, consensusState)
 	}
 
 	return consensusState, nil
 }
 
-var _ wasmvmtypes.KVStore = &StoreAdapter{}
+var _ wasmvmtypes.KVStore = &storeAdapter{}
 
-// StoreAdapter adapter to bridge SDK store impl to wasmvm
-type StoreAdapter struct {
+// storeAdapter adapter to bridge SDK store impl to wasmvm
+type storeAdapter struct {
 	parent sdk.KVStore
 }
 
-// NewStoreAdapter constructor
-func NewStoreAdapter(s sdk.KVStore) *StoreAdapter {
+// newStoreAdapter constructor
+func newStoreAdapter(s sdk.KVStore) *storeAdapter {
 	if s == nil {
 		panic("store must not be nil")
 	}
-	return &StoreAdapter{parent: s}
+	return &storeAdapter{parent: s}
 }
 
-func (s StoreAdapter) Get(key []byte) []byte {
+func (s storeAdapter) Get(key []byte) []byte {
 	return s.parent.Get(key)
 }
 
-func (s StoreAdapter) Set(key, value []byte) {
+func (s storeAdapter) Set(key, value []byte) {
 	s.parent.Set(key, value)
 }
 
-func (s StoreAdapter) Delete(key []byte) {
+func (s storeAdapter) Delete(key []byte) {
 	s.parent.Delete(key)
 }
 
-func (s StoreAdapter) Iterator(start, end []byte) wasmvmtypes.Iterator {
+func (s storeAdapter) Iterator(start, end []byte) wasmvmtypes.Iterator {
 	return s.parent.Iterator(start, end)
 }
 
-func (s StoreAdapter) ReverseIterator(start, end []byte) wasmvmtypes.Iterator {
+func (s storeAdapter) ReverseIterator(start, end []byte) wasmvmtypes.Iterator {
 	return s.parent.ReverseIterator(start, end)
 }
