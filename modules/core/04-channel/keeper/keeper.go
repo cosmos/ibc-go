@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"reflect"
 	"strconv"
 	"strings"
 
@@ -570,6 +571,31 @@ func (k Keeper) DeleteUpgradeTimeout(ctx sdk.Context, portID, channelID string) 
 	store := ctx.KVStore(k.storeKey)
 	store.Delete(host.ChannelUpgradeTimeoutKey(portID, channelID))
 }
+
+// ValidateProposedUpgradeFields validates the proposed upgrade fields against the existing channel.
+// It returns an error if the following constraints are not met:
+// - there exists at least one valid proposed change to the existing channel fields
+// - the proposed order is a subset of the existing order
+// - the proposed connection hops do not exist
+// - the proposed version is non-empty (checked in ModifiableUpgradeFields.ValidateBasic())
+// - the proposed connection hops are not open
+func (k Keeper) ValidateProposedUpgradeFields(ctx sdk.Context, proposedUpgrade types.ModifiableUpgradeFields, existingChannel types.Channel) error {
+	currentFields := types.ModifiableUpgradeFields{
+		Ordering:       existingChannel.Ordering,
+		ConnectionHops: existingChannel.ConnectionHops,
+		Version:        existingChannel.Version,
+	}
+	if reflect.DeepEqual(proposedUpgrade, currentFields) {
+		return errorsmod.Wrap(types.ErrChannelExists, "existing channel end is identical to proposed upgrade channel end")
+	}
+
+	if !currentFields.Ordering.SubsetOf(proposedUpgrade.Ordering) {
+		return errorsmod.Wrap(types.ErrInvalidChannelOrdering, "channel ordering must be a subset of the new ordering")
+	}
+
+	return k.connectionKeeper.CheckIsOpen(ctx, proposedUpgrade.ConnectionHops[0])
+}
+
 
 // common functionality for IteratePacketCommitment and IteratePacketAcknowledgement
 func (k Keeper) iterateHashes(ctx sdk.Context, iterator db.Iterator, cb func(portID, channelID string, sequence uint64, hash []byte) bool) {
