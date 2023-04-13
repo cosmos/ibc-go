@@ -33,25 +33,31 @@ func (a TransferAuthorization) Accept(ctx sdk.Context, msg sdk.Msg) (authz.Accep
 		return authz.AcceptResponse{}, errorsmod.Wrap(ibcerrors.ErrInvalidType, "type mismatch")
 	}
 
+	var (
+		limitLeft  sdk.Coins
+		isNegative bool
+	)
 	for index, allocation := range a.Allocations {
 		if allocation.SourceChannel == msgTransfer.SourceChannel && allocation.SourcePort == msgTransfer.SourcePort {
-			limitLeft, isNegative := allocation.SpendLimit.SafeSub(msgTransfer.Token)
-			if isNegative {
-				return authz.AcceptResponse{}, errorsmod.Wrapf(ibcerrors.ErrInsufficientFunds, "requested amount is more than spend limit")
-			}
-
-			if !isAllowedAddress(ctx, msgTransfer.Receiver, allocation.AllowList) {
-				return authz.AcceptResponse{}, errorsmod.Wrap(ibcerrors.ErrInvalidAddress, "not allowed address for transfer")
-			}
-
-			if limitLeft.IsZero() {
-				a.Allocations = append(a.Allocations[:index], a.Allocations[index+1:]...)
-				if len(a.Allocations) == 0 {
-					return authz.AcceptResponse{Accept: true, Delete: true}, nil
+			if allocation.SpendLimit != nil {
+				limitLeft, isNegative = allocation.SpendLimit.SafeSub(msgTransfer.Token)
+				if isNegative {
+					return authz.AcceptResponse{}, errorsmod.Wrapf(ibcerrors.ErrInsufficientFunds, "requested amount is more than spend limit")
 				}
-				return authz.AcceptResponse{Accept: true, Delete: false, Updated: &TransferAuthorization{
-					Allocations: a.Allocations,
-				}}, nil
+
+				if !isAllowedAddress(ctx, msgTransfer.Receiver, allocation.AllowList) {
+					return authz.AcceptResponse{}, errorsmod.Wrap(ibcerrors.ErrInvalidAddress, "not allowed address for transfer")
+				}
+
+				if limitLeft.IsZero() {
+					a.Allocations = append(a.Allocations[:index], a.Allocations[index+1:]...)
+					if len(a.Allocations) == 0 {
+						return authz.AcceptResponse{Accept: true, Delete: true}, nil
+					}
+					return authz.AcceptResponse{Accept: true, Delete: false, Updated: &TransferAuthorization{
+						Allocations: a.Allocations,
+					}}, nil
+				}
 			}
 			a.Allocations[index] = Allocation{
 				SourcePort:    allocation.SourcePort,
@@ -83,12 +89,10 @@ func (a TransferAuthorization) ValidateBasic() error {
 
 		foundChannels[allocation.SourceChannel] = true
 
-		if allocation.SpendLimit == nil {
-			return errorsmod.Wrap(ibcerrors.ErrInvalidCoins, "spend limit cannot be nil")
-		}
-
-		if err := allocation.SpendLimit.Validate(); err != nil {
-			return errorsmod.Wrapf(ibcerrors.ErrInvalidCoins, err.Error())
+		if allocation.SpendLimit != nil {
+			if err := allocation.SpendLimit.Validate(); err != nil {
+				return errorsmod.Wrapf(ibcerrors.ErrInvalidCoins, err.Error())
+			}
 		}
 
 		if err := host.PortIdentifierValidator(allocation.SourcePort); err != nil {
