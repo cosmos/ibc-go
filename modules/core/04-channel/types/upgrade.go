@@ -4,7 +4,34 @@ import (
 	errorsmod "cosmossdk.io/errors"
 
 	"github.com/cosmos/ibc-go/v7/internal/collections"
+	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 )
+
+// NewUpgrade creates a new Upgrade instance.
+func NewUpgrade(modifiableFields ModifiableUpgradeFields, timeout UpgradeTimeout, lastPacketSent uint64) *Upgrade {
+	return &Upgrade{
+		UpgradeFields:  modifiableFields,
+		Timeout:        timeout,
+		LastPacketSent: lastPacketSent,
+	}
+}
+
+// NewModifiableUpgradeFields returns a new ModifiableUpgradeFields instance.
+func NewModifiableUpgradeFields(ordering Order, connectionHops []string, version string) ModifiableUpgradeFields {
+	return ModifiableUpgradeFields{
+		Ordering:       ordering,
+		ConnectionHops: connectionHops,
+		Version:        version,
+	}
+}
+
+// NewUpgradeTimeout returns a new UpgradeTimeout instance.
+func NewUpgradeTimeout(height clienttypes.Height, timestamp uint64) UpgradeTimeout {
+	return UpgradeTimeout{
+		TimeoutHeight:    height,
+		TimeoutTimestamp: timestamp,
+	}
+}
 
 // ValidateBasic performs a basic validation of the upgrade fields
 func (u Upgrade) ValidateBasic() error {
