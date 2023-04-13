@@ -1,6 +1,8 @@
 package types
 
 import (
+	"strings"
+
 	errorsmod "cosmossdk.io/errors"
 
 	"github.com/cosmos/ibc-go/v7/internal/collections"
@@ -57,7 +59,7 @@ func (muf ModifiableUpgradeFields) ValidateBasic() error {
 		return errorsmod.Wrap(ErrTooManyConnectionHops, "current IBC version only supports one connection hop")
 	}
 
-	if muf.Version == "" {
+	if strings.TrimSpace(muf.Version) == "" {
 		return errorsmod.Wrap(ErrInvalidUpgrade, "proposed upgrade version cannot be empty")
 	}
 

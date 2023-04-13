@@ -459,24 +459,17 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeInitValidateBasic() {
 			false,
 		},
 		{
-			"invalid proposed upgrade channel state",
-			func() {
-				msg.ProposedUpgradeChannel.State = types.TRYUPGRADE
-			},
-			false,
-		},
-		{
 			"empty proposed upgrade channel version",
 			func() {
-				msg.ProposedUpgradeChannel.Version = "  "
+				msg.ProposedUpgrade.UpgradeFields.Version = "  "
 			},
 			false,
 		},
 		{
 			"timeout height is zero && timeout timestamp is zero",
 			func() {
-				msg.TimeoutHeight = clienttypes.ZeroHeight()
-				msg.TimeoutTimestamp = 0
+				msg.ProposedUpgrade.Timeout.TimeoutHeight = clienttypes.ZeroHeight()
+				msg.ProposedUpgrade.Timeout.TimeoutTimestamp = 0
 			},
 			false,
 		},
@@ -492,11 +485,14 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeInitValidateBasic() {
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(tc.name, func() {
+			proposedUpgrade := types.NewUpgrade(
+				types.NewModifiableUpgradeFields(types.UNORDERED, []string{ibctesting.FirstChannelID}, mock.Version),
+				types.NewUpgradeTimeout(clienttypes.NewHeight(0, 10000), timeoutTimestamp),
+				0,
+			)
 			msg = types.NewMsgChannelUpgradeInit(
 				ibctesting.MockPort, ibctesting.FirstChannelID,
-				types.Channel{State: types.INITUPGRADE, Version: mock.Version},
-				clienttypes.NewHeight(0, 10000),
-				0,
+				*proposedUpgrade,
 				addr,
 			)
 

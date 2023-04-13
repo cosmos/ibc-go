@@ -116,7 +116,6 @@ type UpgradableModule interface {
 		connectionHops []string,
 		portID, channelID string,
 		sequence uint64,
-		counterparty channeltypes.Counterparty,
 		version, previousVersion string,
 	) (string, error)
 
