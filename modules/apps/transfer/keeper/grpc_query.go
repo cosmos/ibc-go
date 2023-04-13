@@ -50,7 +50,7 @@ func (q Keeper) DenomTraces(c context.Context, req *types.QueryDenomTracesReques
 
 	ctx := sdk.UnwrapSDKContext(c)
 
-	traces := types.Traces{}
+	var traces types.Traces
 	store := prefix.NewStore(ctx.KVStore(q.storeKey), types.DenomTraceKey)
 
 	pageRes, err := query.Paginate(store, req.Pagination, func(_, value []byte) error {
