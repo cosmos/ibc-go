@@ -562,7 +562,6 @@ func (suite *KeeperTestSuite) TestUpgradeTimeoutAccessors() {
 }
 
 func (suite *KeeperTestSuite) TestValidateProposedUpgradeFields() {
-
 	var (
 		proposedUpgrade *types.ModifiableUpgradeFields
 		path            *ibctesting.Path

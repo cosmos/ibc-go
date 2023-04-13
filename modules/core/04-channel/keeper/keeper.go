@@ -596,7 +596,6 @@ func (k Keeper) ValidateProposedUpgradeFields(ctx sdk.Context, proposedUpgrade t
 	return k.connectionKeeper.CheckIsOpen(ctx, proposedUpgrade.ConnectionHops[0])
 }
 
-
 // common functionality for IteratePacketCommitment and IteratePacketAcknowledgement
 func (k Keeper) iterateHashes(ctx sdk.Context, iterator db.Iterator, cb func(portID, channelID string, sequence uint64, hash []byte) bool) {
 	defer sdk.LogDeferred(ctx.Logger(), func() error { return iterator.Close() })
