@@ -573,18 +573,6 @@ func (suite *KeeperTestSuite) TestValidateProposedUpgradeFields() {
 		expPass  bool
 	}{
 		{
-			name: "modify ordering to invalid value",
-			malleate: func() {
-				proposedUpgrade.Ordering = types.ORDERED
-			},
-			expPass: false,
-		},
-		{
-			name:     "no modified fields in proposed upgrade",
-			malleate: func() {},
-			expPass:  false,
-		},
-		{
 			name: "change channel version",
 			malleate: func() {
 				proposedUpgrade.Version = "1.0.0"
@@ -599,6 +587,18 @@ func (suite *KeeperTestSuite) TestValidateProposedUpgradeFields() {
 				proposedUpgrade.ConnectionHops = []string{path.EndpointA.ConnectionID}
 			},
 			expPass: true,
+		},
+		{
+			name: "modify ordering to invalid value",
+			malleate: func() {
+				proposedUpgrade.Ordering = types.ORDERED
+			},
+			expPass: false,
+		},
+		{
+			name:     "no modified fields in proposed upgrade",
+			malleate: func() {},
+			expPass:  false,
 		},
 		{
 			name: "attempt upgrade when connection is not set",
