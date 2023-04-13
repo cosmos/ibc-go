@@ -10,7 +10,7 @@ import (
 	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
 )
 
-var _ types.MsgServer = msgServer{}
+var _ types.MsgServer = (*msgServer)(nil)
 
 type msgServer struct {
 	*Keeper

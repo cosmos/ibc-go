@@ -1565,3 +1565,104 @@ func (suite *KeeperTestSuite) TestQueryNextSequenceReceive() {
 		})
 	}
 }
+
+func (suite *KeeperTestSuite) TestQueryNextSequenceSend() {
+	var (
+		req    *types.QueryNextSequenceSendRequest
+		expSeq uint64
+	)
+
+	testCases := []struct {
+		msg      string
+		malleate func()
+		expPass  bool
+	}{
+		{
+			"empty request",
+			func() {
+				req = nil
+			},
+			false,
+		},
+		{
+			"invalid port ID",
+			func() {
+				req = &types.QueryNextSequenceSendRequest{
+					PortId:    "",
+					ChannelId: "test-channel-id",
+				}
+			},
+			false,
+		},
+		{
+			"invalid channel ID",
+			func() {
+				req = &types.QueryNextSequenceSendRequest{
+					PortId:    "test-port-id",
+					ChannelId: "",
+				}
+			},
+			false,
+		},
+		{
+			"channel not found",
+			func() {
+				req = &types.QueryNextSequenceSendRequest{
+					PortId:    "test-port-id",
+					ChannelId: "test-channel-id",
+				}
+			},
+			false,
+		},
+		{
+			"basic success on unordered channel returns zero",
+			func() {
+				path := ibctesting.NewPath(suite.chainA, suite.chainB)
+				suite.coordinator.Setup(path)
+
+				expSeq = 0
+				req = &types.QueryNextSequenceSendRequest{
+					PortId:    path.EndpointA.ChannelConfig.PortID,
+					ChannelId: path.EndpointA.ChannelID,
+				}
+			},
+			true,
+		},
+		{
+			"basic success on ordered channel returns the set send sequence",
+			func() {
+				path := ibctesting.NewPath(suite.chainA, suite.chainB)
+				path.SetChannelOrdered()
+				suite.coordinator.Setup(path)
+
+				expSeq = 3
+				seq := uint64(3)
+				suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetNextSequenceSend(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, seq)
+
+				req = &types.QueryNextSequenceSendRequest{
+					PortId:    path.EndpointA.ChannelConfig.PortID,
+					ChannelId: path.EndpointA.ChannelID,
+				}
+			},
+			true,
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
+			suite.SetupTest() // reset
+
+			tc.malleate()
+			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
+			res, err := suite.chainA.QueryServer.NextSequenceSend(ctx, req)
+
+			if tc.expPass {
+				suite.Require().NoError(err)
+				suite.Require().NotNil(res)
+				suite.Require().Equal(expSeq, res.NextSequenceSend)
+			} else {
+				suite.Require().Error(err)
+			}
+		})
+	}
+}

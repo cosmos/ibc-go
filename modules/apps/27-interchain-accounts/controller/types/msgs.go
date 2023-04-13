@@ -11,7 +11,7 @@ import (
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 )
 
-var _ sdk.Msg = &MsgRegisterInterchainAccount{}
+var _ sdk.Msg = (*MsgRegisterInterchainAccount)(nil)
 
 // NewMsgRegisterInterchainAccount creates a new instance of MsgRegisterInterchainAccount
 func NewMsgRegisterInterchainAccount(connectionID, owner, version string) *MsgRegisterInterchainAccount {

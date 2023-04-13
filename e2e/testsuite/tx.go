@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -41,7 +42,18 @@ func (s *E2ETestSuite) BroadcastMessages(ctx context.Context, chain *cosmos.Cosm
 		return factory.WithGas(DefaultGasValue)
 	})
 
-	resp, err := cosmos.BroadcastTx(ctx, broadcaster, user, msgs...)
+	// Retry the operation a few times if the user signing the transaction is a relayer. (See issue #3264)
+	var resp sdk.TxResponse
+	var err error
+	broadcastFunc := func() (sdk.TxResponse, error) {
+		return cosmos.BroadcastTx(ctx, broadcaster, user, msgs...)
+	}
+	if s.relayers.ContainsRelayer(s.T().Name(), user) {
+		// Retry five times, the value of 5 chosen is arbitrary.
+		resp, err = s.retryNtimes(broadcastFunc, 5)
+	} else {
+		resp, err = broadcastFunc()
+	}
 	if err != nil {
 		return sdk.TxResponse{}, err
 	}
@@ -49,6 +61,36 @@ func (s *E2ETestSuite) BroadcastMessages(ctx context.Context, chain *cosmos.Cosm
 	chainA, chainB := s.GetChains()
 	err = test.WaitForBlocks(ctx, 2, chainA, chainB)
 	return resp, err
+}
+
+// retryNtimes retries the provided function up to the provided number of attempts.
+func (s *E2ETestSuite) retryNtimes(f func() (sdk.TxResponse, error), attempts int) (sdk.TxResponse, error) {
+	// Ignore account sequence mismatch errors.
+	retryMessages := []string{"account sequence mismatch"}
+	var resp sdk.TxResponse
+	var err error
+	// If the response's raw log doesn't contain any of the allowed prefixes we return, else, we retry.
+	for i := 0; i < attempts; i++ {
+		resp, err = f()
+		if err != nil {
+			return sdk.TxResponse{}, err
+		}
+		if !containsMessage(resp.RawLog, retryMessages) {
+			return resp, err
+		}
+		s.T().Logf("retrying tx due to non deterministic failure: %+v", resp)
+	}
+	return resp, err
+}
+
+// containsMessages returns true if the string s contains any of the messages in the slice.
+func containsMessage(s string, messages []string) bool {
+	for _, message := range messages {
+		if strings.Contains(s, message) {
+			return true
+		}
+	}
+	return false
 }
 
 // AssertValidTxResponse verifies that an sdk.TxResponse

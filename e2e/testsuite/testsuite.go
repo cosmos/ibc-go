@@ -37,6 +37,7 @@ type E2ETestSuite struct {
 
 	grpcClients    map[string]GRPCClients
 	paths          map[string]path
+	relayers       relayer.RelayerMap
 	logger         *zap.Logger
 	DockerClient   *dockerclient.Client
 	network        string
@@ -71,6 +72,12 @@ func (s *E2ETestSuite) GetRelayerUsers(ctx context.Context, chainOpts ...testcon
 
 	chainARelayerUser := cosmos.NewWallet(ChainARelayerName, chainAAccountBytes, "", chainA.Config())
 	chainBRelayerUser := cosmos.NewWallet(ChainBRelayerName, chainBAccountBytes, "", chainB.Config())
+
+	if s.relayers == nil {
+		s.relayers = make(relayer.RelayerMap)
+	}
+	s.relayers.AddRelayer(s.T().Name(), chainARelayerUser)
+	s.relayers.AddRelayer(s.T().Name(), chainBRelayerUser)
 
 	return chainARelayerUser, chainBRelayerUser
 }

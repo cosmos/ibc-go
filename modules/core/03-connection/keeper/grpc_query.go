@@ -15,7 +15,7 @@ import (
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 )
 
-var _ types.QueryServer = Keeper{}
+var _ types.QueryServer = (*Keeper)(nil)
 
 // Connection implements the Query/Connection gRPC method
 func (q Keeper) Connection(c context.Context, req *types.QueryConnectionRequest) (*types.QueryConnectionResponse, error) {
