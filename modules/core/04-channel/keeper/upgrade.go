@@ -7,15 +7,12 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
 	"github.com/cosmos/ibc-go/v7/internal/collections"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	portkeeper "github.com/cosmos/ibc-go/v7/modules/core/05-port/keeper"
 	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
-	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 )
 
 // ChanUpgradeInit is called by a module to initiate a channel upgrade handshake with
@@ -24,10 +21,7 @@ func (k Keeper) ChanUpgradeInit(
 	ctx sdk.Context,
 	portID string,
 	channelID string,
-	chanCap *capabilitytypes.Capability,
-	proposedUpgradeChannel types.Channel,
-	counterpartyTimeoutHeight clienttypes.Height,
-	counterpartyTimeoutTimestamp uint64,
+	upgrade types.Upgrade,
 ) (upgradeSequence uint64, previousVersion string, err error) {
 	channel, found := k.GetChannel(ctx, portID, channelID)
 	if !found {
@@ -38,71 +32,34 @@ func (k Keeper) ChanUpgradeInit(
 		return 0, "", errorsmod.Wrapf(types.ErrInvalidChannelState, "expected %s, got %s", types.OPEN, channel.State)
 	}
 
-	if !k.scopedKeeper.AuthenticateCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)) {
-		return 0, "", errorsmod.Wrapf(types.ErrChannelCapabilityNotFound, "caller does not own capability for channel, port ID (%s) channel ID (%s)", portID, channelID)
-	}
-
-	// set the restore channel to the current channel and reassign channel state to INITUPGRADE,
-	// if the channel == proposedUpgradeChannel then fail fast as no upgradable fields have been modified.
-	restoreChannel := channel
-	channel.State = types.INITUPGRADE
-	if reflect.DeepEqual(channel, proposedUpgradeChannel) {
-		return 0, "", errorsmod.Wrap(types.ErrChannelExists, "existing channel end is identical to proposed upgrade channel end")
-	}
-
-	connectionEnd, err := k.GetConnection(ctx, proposedUpgradeChannel.ConnectionHops[0])
-	if err != nil {
+	if err := k.ValidateProposedUpgradeFields(ctx, upgrade.UpgradeFields, channel); err != nil {
 		return 0, "", err
 	}
 
-	if connectionEnd.GetState() != int32(connectiontypes.OPEN) {
-		return 0, "", errorsmod.Wrapf(
-			connectiontypes.ErrInvalidConnectionState,
-			"connection state is not OPEN (got %s)", connectiontypes.State(connectionEnd.GetState()).String(),
-		)
-	}
+	channel.UpgradeSequence++
+	k.SetChannel(ctx, portID, channelID, channel)
 
-	if proposedUpgradeChannel.Counterparty.PortId != channel.Counterparty.PortId ||
-		proposedUpgradeChannel.Counterparty.ChannelId != channel.Counterparty.ChannelId {
-		return 0, "", errorsmod.Wrap(types.ErrInvalidCounterparty, "counterparty port ID and channel ID cannot be upgraded")
-	}
-
-	if !channel.Ordering.SubsetOf(proposedUpgradeChannel.Ordering) {
-		return 0, "", errorsmod.Wrap(types.ErrInvalidChannelOrdering, "channel ordering must be a subset of the new ordering")
-	}
-
-	upgradeSequence = uint64(1)
-	if seq, found := k.GetUpgradeSequence(ctx, portID, channelID); found {
-		upgradeSequence = seq + 1
-	}
-
-	upgradeTimeout := types.UpgradeTimeout{
-		TimeoutHeight:    counterpartyTimeoutHeight,
-		TimeoutTimestamp: counterpartyTimeoutTimestamp,
-	}
-
-	k.SetUpgradeRestoreChannel(ctx, portID, channelID, restoreChannel)
-	k.SetUpgradeSequence(ctx, portID, channelID, upgradeSequence)
-	k.SetUpgradeTimeout(ctx, portID, channelID, upgradeTimeout)
-
-	return upgradeSequence, channel.Version, nil
+	return channel.UpgradeSequence, channel.Version, nil
 }
 
 // WriteUpgradeInitChannel writes a channel which has successfully passed the UpgradeInit handshake step.
 // An event is emitted for the handshake step.
-func (k Keeper) WriteUpgradeInitChannel(
-	ctx sdk.Context,
-	portID,
-	channelID string,
-	upgradeSequence uint64,
-	channelUpgrade types.Channel,
-) {
+func (k Keeper) WriteUpgradeInitChannel(ctx sdk.Context, portID, channelID string, upgrade types.Upgrade) {
 	defer telemetry.IncrCounter(1, "ibc", "channel", "upgrade-init")
 
-	k.SetChannel(ctx, portID, channelID, channelUpgrade)
+	channel, found := k.GetChannel(ctx, portID, channelID)
+	if !found {
+		panic(fmt.Sprintf("failed to retrieve channel %s on port %s", channelID, portID))
+	}
+
+	channel.State = types.INITUPGRADE
+
+	k.SetChannel(ctx, portID, channelID, channel)
+	k.SetUpgrade(ctx, portID, channelID, upgrade)
+
 	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", types.OPEN.String(), "new-state", types.INITUPGRADE.String())
 
-	emitChannelUpgradeInitEvent(ctx, portID, channelID, upgradeSequence, channelUpgrade)
+	emitChannelUpgradeInitEvent(ctx, portID, channelID, channel, upgrade)
 }
 
 // ChanUpgradeTry is called by a module to accept the first step of a channel upgrade
