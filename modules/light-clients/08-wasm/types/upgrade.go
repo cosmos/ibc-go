@@ -4,6 +4,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	ibcerrors "github.com/cosmos/ibc-go/v7/internal/errors"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
@@ -46,11 +47,10 @@ func (cs ClientState) VerifyUpgradeAndUpdateState(
 	// last height of current counterparty chain must be client's latest height
 	lastHeight := cs.GetLatestHeight()
 
-	// TODO: a test fails with this check enabled.
-	// if !upgradedClient.GetLatestHeight().GT(lastHeight) {
-	// 	return sdkerrors.Wrapf(ibcerrors.ErrInvalidHeight, "upgraded client height %s must be greater than current client height %s",
-	// 		upgradedClient.GetLatestHeight(), lastHeight)
-	// }
+	if !upgradedClient.GetLatestHeight().GT(lastHeight) {
+		return sdkerrors.Wrapf(ibcerrors.ErrInvalidHeight, "upgraded client height %s must be greater than current client height %s",
+			upgradedClient.GetLatestHeight(), lastHeight)
+	}
 
 	// Must prove against latest consensus state to ensure we are verifying against latest upgrade plan
 	// This verifies that upgrade is intended for the provided revision, since committed client must exist
