@@ -99,7 +99,7 @@ func (k Keeper) storeWasmCode(ctx sdk.Context, code []byte) ([]byte, error) {
 	return codeID, nil
 }
 
-func (k Keeper) importWasmCode(ctx sdk.Context, codeHash, wasmCode []byte) error {
+func (k Keeper) importWasmCode(ctx sdk.Context, codeIdKey, wasmCode []byte) error {
 	store := ctx.KVStore(k.storeKey)
 	if IsGzip(wasmCode) {
 		var err error
@@ -113,10 +113,10 @@ func (k Keeper) importWasmCode(ctx sdk.Context, codeHash, wasmCode []byte) error
 	if err != nil {
 		return sdkerrors.Wrap(types.ErrCreateContractFailed, err.Error())
 	}
-	if !bytes.Equal(codeHash, types.CodeIDKey(codeID)) {
+	if !bytes.Equal(codeIdKey, types.CodeIDKey(codeID)) {
 		return sdkerrors.Wrap(types.ErrInvalid, "code hashes not same")
 	}
 
-	store.Set(codeHash, wasmCode)
+	store.Set(codeIdKey, wasmCode)
 	return nil
 }
