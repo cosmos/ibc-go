@@ -12,11 +12,11 @@ message GenesisState {
   repeated GenesisContract contracts = 1 [(gogoproto.nullable) = false];
 }
 
-// A contract's code hash and code
+// A contract's store key and code
 message GenesisContract {
   option (gogoproto.goproto_getters) = false;
   // store key of metadata without clientID-prefix
-  bytes code_hash = 1;
+  bytes code_id_key = 1;
   // metadata value
   bytes contract_code = 2;
 }

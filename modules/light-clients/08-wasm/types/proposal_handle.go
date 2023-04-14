@@ -7,17 +7,31 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+
+	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 )
 
-type checkSubstituteAndUpdateStatePayload struct {
-	CheckSubstituteAndUpdateState CheckSubstituteAndUpdateStatePayload `json:"check_substitute_and_update_state"`
-}
+type (
+	checkSubstituteAndUpdateStateInnerPayload struct{}
+	checkSubstituteAndUpdateStatePayload      struct {
+		CheckSubstituteAndUpdateState checkSubstituteAndUpdateStateInnerPayload `json:"check_substitute_and_update_state"`
+	}
+)
 
-type CheckSubstituteAndUpdateStatePayload struct{}
-
-func (c ClientState) CheckSubstituteAndUpdateState(
-	ctx sdk.Context, _ codec.BinaryCodec, subjectClientStore,
-	substituteClientStore sdk.KVStore, substituteClient exported.ClientState,
+// CheckSubstituteAndUpdateState will try to update the client with the state of the
+// substitute.
+//
+// The following must always be true:
+//   - The substitute client is the same type as the subject client
+//   - The subject and substitute client states match in all parameters (expect frozen height, latest height, and chain-id)
+//
+// In case 1) before updating the client, the client will be unfrozen by resetting
+// the FrozenHeight to the zero Height.
+func (cs ClientState) CheckSubstituteAndUpdateState(
+	ctx sdk.Context,
+	_ codec.BinaryCodec,
+	subjectClientStore, substituteClientStore sdk.KVStore,
+	substituteClient exported.ClientState,
 ) error {
 	var (
 		SubjectPrefix    = []byte("subject/")
@@ -27,21 +41,17 @@ func (c ClientState) CheckSubstituteAndUpdateState(
 	_, ok := substituteClient.(*ClientState)
 	if !ok {
 		return sdkerrors.Wrapf(
-			ErrUnableToCall,
-			fmt.Sprintf("substitute client state, expected type %T, got %T", &ClientState{}, substituteClient),
+			clienttypes.ErrInvalidClient,
+			fmt.Sprintf("invalid substitute client state. expected type %T, got %T", &ClientState{}, substituteClient),
 		)
 	}
 
-	store := NewWrappedStore(subjectClientStore, substituteClientStore, SubjectPrefix, SubstitutePrefix)
+	store := newWrappedStore(subjectClientStore, substituteClientStore, SubjectPrefix, SubstitutePrefix)
 
 	payload := checkSubstituteAndUpdateStatePayload{
-		CheckSubstituteAndUpdateState: CheckSubstituteAndUpdateStatePayload{},
+		CheckSubstituteAndUpdateState: checkSubstituteAndUpdateStateInnerPayload{},
 	}
 
-	_, err := call[contractResult](payload, &c, ctx, store)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	_, err := call[contractResult](ctx, store, &cs, payload)
+	return err
 }

@@ -847,6 +847,25 @@ paths:
                     IdentifiedPacketFees contains a list of type PacketFee and
                     associated PacketId
                 title: Map of all incentivized_packets
+              pagination:
+                description: pagination defines the pagination in the response.
+                type: object
+                properties:
+                  next_key:
+                    type: string
+                    format: byte
+                    description: |-
+                      next_key is the key to be passed to PageRequest.key to
+                      query the next page most efficiently. It will be empty if
+                      there are no more results.
+                  total:
+                    type: string
+                    format: uint64
+                    title: >-
+                      total is total number of results available if
+                      PageRequest.count_total
+
+                      was set, its value is undefined otherwise
             title: >-
               QueryIncentivizedPacketsResponse defines the response type for the
               incentivized packets RPC
@@ -2645,6 +2664,25 @@ paths:
                     FeeEnabledChannel contains the PortID & ChannelID for a fee
                     enabled channel
                 title: list of fee enabled channels
+              pagination:
+                description: pagination defines the pagination in the response.
+                type: object
+                properties:
+                  next_key:
+                    type: string
+                    format: byte
+                    description: |-
+                      next_key is the key to be passed to PageRequest.key to
+                      query the next page most efficiently. It will be empty if
+                      there are no more results.
+                  total:
+                    type: string
+                    format: uint64
+                    title: >-
+                      total is total number of results available if
+                      PageRequest.count_total
+
+                      was set, its value is undefined otherwise
             title: >-
               QueryFeeEnabledChannelsResponse defines the response type for the
               FeeEnabledChannels rpc
@@ -3023,6 +3061,25 @@ paths:
                     IdentifiedPacketFees contains a list of type PacketFee and
                     associated PacketId
                 title: list of identified fees for incentivized packets
+              pagination:
+                description: pagination defines the pagination in the response.
+                type: object
+                properties:
+                  next_key:
+                    type: string
+                    format: byte
+                    description: |-
+                      next_key is the key to be passed to PageRequest.key to
+                      query the next page most efficiently. It will be empty if
+                      there are no more results.
+                  total:
+                    type: string
+                    format: uint64
+                    title: >-
+                      total is total number of results available if
+                      PageRequest.count_total
+
+                      was set, its value is undefined otherwise
             title: >-
               QueryIncentivizedPacketsResponse defines the response type for the
               IncentivizedPackets rpc
@@ -13146,10 +13203,10 @@ paths:
           type: boolean
       tags:
         - Query
-  /ibc/lightclients/wasm/v1/all_code_id:
+  /ibc/lightclients/wasm/v1/code_ids:
     get:
-      summary: Get All Wasm code for given code id
-      operationId: AllWasmCodeID
+      summary: Get all Wasm code IDs
+      operationId: CodeIds
       responses:
         '200':
           description: A successful response.
@@ -13179,7 +13236,9 @@ paths:
                       PageRequest.count_total
 
                       was set, its value is undefined otherwise
-            title: AllWasmCode response
+            description: >-
+              QueryCodeIdsResponse is the response type for the Query/CodeIds
+              RPC method.
         default:
           description: An unexpected error response.
           schema:
@@ -13261,10 +13320,10 @@ paths:
           type: boolean
       tags:
         - Query
-  /ibc/lightclients/wasm/v1/code/{code_id}:
+  /ibc/lightclients/wasm/v1/code_ids/{code_id}/code:
     get:
-      summary: Get Wasm code for given code id
-      operationId: WasmCode
+      summary: Get Wasm code for given code ID
+      operationId: Code
       responses:
         '200':
           description: A successful response.
@@ -13274,7 +13333,9 @@ paths:
               code:
                 type: string
                 format: byte
-            title: WasmCode response
+            description: >-
+              QueryCodeResponse is the response type for the Query/Code RPC
+              method.
         default:
           description: An unexpected error response.
           schema:
@@ -14215,6 +14276,25 @@ definitions:
             FeeEnabledChannel contains the PortID & ChannelID for a fee enabled
             channel
         title: list of fee enabled channels
+      pagination:
+        description: pagination defines the pagination in the response.
+        type: object
+        properties:
+          next_key:
+            type: string
+            format: byte
+            description: |-
+              next_key is the key to be passed to PageRequest.key to
+              query the next page most efficiently. It will be empty if
+              there are no more results.
+          total:
+            type: string
+            format: uint64
+            title: >-
+              total is total number of results available if
+              PageRequest.count_total
+
+              was set, its value is undefined otherwise
     title: >-
       QueryFeeEnabledChannelsResponse defines the response type for the
       FeeEnabledChannels rpc
@@ -14434,6 +14514,25 @@ definitions:
             IdentifiedPacketFees contains a list of type PacketFee and
             associated PacketId
         title: Map of all incentivized_packets
+      pagination:
+        description: pagination defines the pagination in the response.
+        type: object
+        properties:
+          next_key:
+            type: string
+            format: byte
+            description: |-
+              next_key is the key to be passed to PageRequest.key to
+              query the next page most efficiently. It will be empty if
+              there are no more results.
+          total:
+            type: string
+            format: uint64
+            title: >-
+              total is total number of results available if
+              PageRequest.count_total
+
+              was set, its value is undefined otherwise
     title: >-
       QueryIncentivizedPacketsResponse defines the response type for the
       incentivized packets RPC
@@ -14545,6 +14644,25 @@ definitions:
             IdentifiedPacketFees contains a list of type PacketFee and
             associated PacketId
         title: list of identified fees for incentivized packets
+      pagination:
+        description: pagination defines the pagination in the response.
+        type: object
+        properties:
+          next_key:
+            type: string
+            format: byte
+            description: |-
+              next_key is the key to be passed to PageRequest.key to
+              query the next page most efficiently. It will be empty if
+              there are no more results.
+          total:
+            type: string
+            format: uint64
+            title: >-
+              total is total number of results available if
+              PageRequest.count_total
+
+              was set, its value is undefined otherwise
     title: >-
       QueryIncentivizedPacketsResponse defines the response type for the
       IncentivizedPackets rpc
@@ -18818,7 +18936,7 @@ definitions:
       ready to send and receive packets.
        - STATE_CLOSED: A channel has been closed and can no longer be used to send or receive
       packets.
-  ibc.lightclients.wasm.v1.AllWasmCodeIDResponse:
+  ibc.lightclients.wasm.v1.QueryCodeIdsResponse:
     type: object
     properties:
       code_ids:
@@ -18844,11 +18962,13 @@ definitions:
               PageRequest.count_total
 
               was set, its value is undefined otherwise
-    title: AllWasmCode response
-  ibc.lightclients.wasm.v1.WasmCodeResponse:
+    description: >-
+      QueryCodeIdsResponse is the response type for the Query/CodeIds RPC
+      method.
+  ibc.lightclients.wasm.v1.QueryCodeResponse:
     type: object
     properties:
       code:
         type: string
         format: byte
-    title: WasmCode response
+    description: QueryCodeResponse is the response type for the Query/Code RPC method.

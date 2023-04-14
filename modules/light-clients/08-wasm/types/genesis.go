@@ -9,15 +9,17 @@ import (
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
-type ExportMetadataPayload struct {
-	ExportMetadata ExportMetadataInnerPayload `json:"export_metadata"`
-}
+type (
+	exportMetadataInnerPayload struct{}
+	exportMetadataPayload      struct {
+		ExportMetadata exportMetadataInnerPayload `json:"export_metadata"`
+	}
+)
 
-type ExportMetadataInnerPayload struct{}
-
-// ExportMetadata is a no-op since wasm client does not store any metadata in client store
-func (c ClientState) ExportMetadata(store sdk.KVStore) []exported.GenesisMetadata {
-	payload := ExportMetadataPayload{}
+// ExportMetadata exports all the consensus metadata in the client store so they
+// can be included in clients genesis and imported by a ClientKeeper
+func (cs ClientState) ExportMetadata(store sdk.KVStore) []exported.GenesisMetadata {
+	var payload exportMetadataPayload
 
 	encodedData, err := json.Marshal(payload)
 	if err != nil {
@@ -25,12 +27,12 @@ func (c ClientState) ExportMetadata(store sdk.KVStore) []exported.GenesisMetadat
 	}
 
 	ctx := sdk.NewContext(nil, tmproto.Header{Height: 1, Time: time.Now()}, true, nil) // context with infinite gas meter
-	response, err := queryContractWithStore(c.CodeId, ctx, store, encodedData)
+	response, err := queryContractWithStore(ctx, store, cs.CodeId, encodedData)
 	if err != nil {
 		panic(err)
 	}
 
-	output := queryResponse{}
+	var output queryResponse
 	if err := json.Unmarshal(response, &output); err != nil {
 		panic(err)
 	}

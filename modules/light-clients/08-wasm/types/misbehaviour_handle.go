@@ -6,15 +6,17 @@ import (
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
-type checkForMisbehaviourPayload struct {
-	CheckForMisbehaviour checkForMisbehaviourInnerPayload `json:"check_for_misbehaviour"`
-}
-type checkForMisbehaviourInnerPayload struct {
-	ClientMessage clientMessageConcretePayloadClientMessage `json:"client_message"`
-}
+type (
+	checkForMisbehaviourInnerPayload struct {
+		ClientMessage clientMessage `json:"client_message"`
+	}
+	checkForMisbehaviourPayload struct {
+		CheckForMisbehaviour checkForMisbehaviourInnerPayload `json:"check_for_misbehaviour"`
+	}
+)
 
-func (c ClientState) CheckForMisbehaviour(ctx sdk.Context, _ codec.BinaryCodec, clientStore sdk.KVStore, msg exported.ClientMessage) bool {
-	clientMsgConcrete := clientMessageConcretePayloadClientMessage{
+func (cs ClientState) CheckForMisbehaviour(ctx sdk.Context, _ codec.BinaryCodec, clientStore sdk.KVStore, msg exported.ClientMessage) bool {
+	clientMsgConcrete := clientMessage{
 		Header:       nil,
 		Misbehaviour: nil,
 	}
@@ -36,7 +38,7 @@ func (c ClientState) CheckForMisbehaviour(ctx sdk.Context, _ codec.BinaryCodec, 
 		CheckForMisbehaviour: inner,
 	}
 
-	result, err := call[contractResult](payload, &c, ctx, clientStore)
+	result, err := call[contractResult](ctx, clientStore, &cs, payload)
 	if err != nil {
 		panic(err)
 	}

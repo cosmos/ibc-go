@@ -11,10 +11,10 @@ import (
 	"github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm/types"
 )
 
-var _ types.MsgServer = Keeper{}
+var _ types.MsgServer = (*Keeper)(nil)
 
-// PushNewWasmCode defines a rpc handler method for MsgPushNewWasmCode
-func (k Keeper) PushNewWasmCode(goCtx context.Context, msg *types.MsgPushNewWasmCode) (*types.MsgPushNewWasmCodeResponse, error) {
+// StoreCode defines a rpc handler method for MsgStoreCode
+func (k Keeper) StoreCode(goCtx context.Context, msg *types.MsgStoreCode) (*types.MsgStoreCodeResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	if k.authority != msg.Signer {
@@ -23,12 +23,12 @@ func (k Keeper) PushNewWasmCode(goCtx context.Context, msg *types.MsgPushNewWasm
 
 	codeID, err := k.storeWasmCode(ctx, msg.Code)
 	if err != nil {
-		return nil, sdkerrors.Wrap(err, "pushing new wasm code failed")
+		return nil, sdkerrors.Wrap(err, "storing wasm code failed")
 	}
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
-			clienttypes.EventTypePushWasmCode,
+			clienttypes.EventTypeStoreWasmCode,
 			sdk.NewAttribute(clienttypes.AttributeKeyWasmCodeID, hex.EncodeToString(codeID)),
 		),
 		sdk.NewEvent(
@@ -37,7 +37,7 @@ func (k Keeper) PushNewWasmCode(goCtx context.Context, msg *types.MsgPushNewWasm
 		),
 	})
 
-	return &types.MsgPushNewWasmCodeResponse{
+	return &types.MsgStoreCodeResponse{
 		CodeId: codeID,
 	}, nil
 }

@@ -79,13 +79,13 @@ func (suite *WasmTestSuite) SetupWasmTendermint() {
 	wasmContract, err := os.ReadFile("test_data/ics07_tendermint_cw.wasm.gz")
 	suite.Require().NoError(err)
 
-	msg := wasmtypes.NewMsgPushNewWasmCode(authtypes.NewModuleAddress(govtypes.ModuleName).String(), wasmContract)
-	response, err := suite.wasmKeeper.PushNewWasmCode(suite.chainA.GetContext(), msg)
+	msg := wasmtypes.NewMsgStoreCode(authtypes.NewModuleAddress(govtypes.ModuleName).String(), wasmContract)
+	response, err := suite.wasmKeeper.StoreCode(suite.chainA.GetContext(), msg)
 	suite.Require().NoError(err)
 	suite.Require().NotNil(response.CodeId)
 	suite.codeID = response.CodeId
 
-	response, err = suite.chainB.App.GetWasmKeeper().PushNewWasmCode(suite.chainB.GetContext(), msg)
+	response, err = suite.chainB.App.GetWasmKeeper().StoreCode(suite.chainB.GetContext(), msg)
 	suite.Require().NoError(err)
 	suite.Require().NotNil(response.CodeId)
 	suite.codeID = response.CodeId
@@ -185,47 +185,47 @@ func (suite *WasmTestSuite) CommonSetupTest() {
 	wasmContract, err := os.ReadFile("test_data/ics10_grandpa_cw.wasm.gz")
 	suite.Require().NoError(err)
 
-	msg := wasmtypes.NewMsgPushNewWasmCode(authtypes.NewModuleAddress(govtypes.ModuleName).String(), wasmContract)
-	response, err := suite.wasmKeeper.PushNewWasmCode(suite.ctx, msg)
+	msg := wasmtypes.NewMsgStoreCode(authtypes.NewModuleAddress(govtypes.ModuleName).String(), wasmContract)
+	response, err := suite.wasmKeeper.StoreCode(suite.ctx, msg)
 	suite.Require().NoError(err)
 	suite.Require().NotNil(response.CodeId)
 	suite.codeID = response.CodeId
 }
 
-func (suite *WasmTestSuite) TestPushNewWasmCodeWithErrors() {
+func (suite *WasmTestSuite) TestMsgStoreCodeWithErrors() {
 	suite.SetupWithEmptyClient()
 	signer := authtypes.NewModuleAddress(govtypes.ModuleName).String()
 	data, err := os.ReadFile("test_data/ics10_grandpa_cw.wasm.gz")
 	suite.Require().NoError(err)
 
 	// test wasmcode duplication
-	msg := wasmtypes.NewMsgPushNewWasmCode(signer, data)
-	_, err = suite.wasmKeeper.PushNewWasmCode(suite.ctx, msg)
+	msg := wasmtypes.NewMsgStoreCode(signer, data)
+	_, err = suite.wasmKeeper.StoreCode(suite.ctx, msg)
 	suite.Require().Error(err)
 
 	// test invalid wasm code
-	msg = wasmtypes.NewMsgPushNewWasmCode(signer, []byte{})
-	_, err = suite.wasmKeeper.PushNewWasmCode(suite.ctx, msg)
+	msg = wasmtypes.NewMsgStoreCode(signer, []byte{})
+	_, err = suite.wasmKeeper.StoreCode(suite.ctx, msg)
 	suite.Require().Error(err)
 }
 
-func (suite *WasmTestSuite) TestQueryWasmCode() {
+func (suite *WasmTestSuite) TestQueryCode() {
 	// test invalid query request
-	_, err := suite.wasmKeeper.WasmCode(suite.ctx, &wasmtypes.WasmCodeQuery{})
+	_, err := suite.wasmKeeper.Code(suite.ctx, &wasmtypes.QueryCodeRequest{})
 	suite.Require().Error(err)
 
-	_, err = suite.wasmKeeper.WasmCode(suite.ctx, &wasmtypes.WasmCodeQuery{CodeId: "test"})
+	_, err = suite.wasmKeeper.Code(suite.ctx, &wasmtypes.QueryCodeRequest{CodeId: "test"})
 	suite.Require().Error(err)
 
 	// test valid query request
-	res, err := suite.wasmKeeper.WasmCode(suite.ctx, &wasmtypes.WasmCodeQuery{CodeId: hex.EncodeToString(suite.codeID)})
+	res, err := suite.wasmKeeper.Code(suite.ctx, &wasmtypes.QueryCodeRequest{CodeId: hex.EncodeToString(suite.codeID)})
 	suite.Require().NoError(err)
 	suite.Require().NotNil(res.Code)
 }
 
-func (suite *WasmTestSuite) TestQueryAllWasmCode() {
+func (suite *WasmTestSuite) TestQueryCodeIDs() {
 	// test valid query request
-	res, err := suite.wasmKeeper.AllWasmCodeID(suite.ctx, &wasmtypes.AllWasmCodeIDQuery{})
+	res, err := suite.wasmKeeper.CodeIds(suite.ctx, &wasmtypes.QueryCodeIdsRequest{})
 	suite.Require().NoError(err)
 	suite.Require().NotNil(res.CodeIds)
 }
