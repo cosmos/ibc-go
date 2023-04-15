@@ -163,7 +163,7 @@ func (t Traces) Validate() error {
 	return nil
 }
 
-var _ sort.Interface = Traces{}
+var _ sort.Interface = (*Traces)(nil)
 
 // Len implements sort.Interface for Traces
 func (t Traces) Len() int { return len(t) }

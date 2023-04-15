@@ -19,7 +19,7 @@ import (
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
-var _ types.QueryServer = Keeper{}
+var _ types.QueryServer = (*Keeper)(nil)
 
 // ClientState implements the Query/ClientState gRPC method
 func (q Keeper) ClientState(c context.Context, req *types.QueryClientStateRequest) (*types.QueryClientStateResponse, error) {

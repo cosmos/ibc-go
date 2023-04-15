@@ -3,7 +3,7 @@ package controller
 import (
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
+	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 
 	ibcerrors "github.com/cosmos/ibc-go/v7/internal/errors"
 	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/keeper"
@@ -16,7 +16,7 @@ import (
 	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
-var _ porttypes.Middleware = &IBCMiddleware{}
+var _ porttypes.Middleware = (*IBCMiddleware)(nil)
 
 // IBCMiddleware implements the ICS26 callbacks for the fee middleware given the
 // ICA controller keeper and the underlying application.

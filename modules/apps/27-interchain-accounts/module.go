@@ -29,11 +29,11 @@ import (
 )
 
 var (
-	_ module.AppModule           = AppModule{}
-	_ module.AppModuleBasic      = AppModuleBasic{}
-	_ module.AppModuleSimulation = AppModule{}
+	_ module.AppModule           = (*AppModule)(nil)
+	_ module.AppModuleBasic      = (*AppModuleBasic)(nil)
+	_ module.AppModuleSimulation = (*AppModule)(nil)
 
-	_ porttypes.IBCModule = host.IBCModule{}
+	_ porttypes.IBCModule = (*host.IBCModule)(nil)
 )
 
 // AppModuleBasic is the IBC interchain accounts AppModuleBasic
