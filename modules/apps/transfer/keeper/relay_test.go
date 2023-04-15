@@ -102,6 +102,7 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 			"SendPacket fails, timeout height and timeout timestamp are zero",
 			func() {
 				timeoutHeight = clienttypes.ZeroHeight()
+				expEscrowAmount = math.NewInt(100)
 			}, false,
 		},
 	}
@@ -142,13 +143,13 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 
 			res, err := suite.chainA.GetSimApp().TransferKeeper.Transfer(sdk.WrapSDKContext(suite.chainA.GetContext()), msg)
 
+			// check total amount in escrow of sent token denom on sending chain
+			amount := suite.chainA.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(suite.chainA.GetContext(), coin.GetDenom())
+			suite.Require().Equal(expEscrowAmount, amount)
+
 			if tc.expPass {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
-
-				// check total amount in escrow of sent token denom on sending chain
-				amount := suite.chainA.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(suite.chainA.GetContext(), coin.GetDenom())
-				suite.Require().Equal(expEscrowAmount, amount)
 			} else {
 				suite.Require().Error(err)
 				suite.Require().Nil(res)
@@ -361,9 +362,6 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				err = path.RelayPacket(packet)
 				suite.Require().NoError(err) // relay committed
 
-				// set escrow amount that would have been stored after successful execution of MsgTransfer
-				suite.chainB.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(suite.chainB.GetContext(), coinFromBToA.GetDenom(), coinFromBToA.Amount)
-
 				seq++
 
 				// NOTE: trace must be explicitly changed in malleate to test invalid cases
@@ -383,9 +381,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			data := types.NewFungibleTokenPacketData(trace.GetFullDenomPath(), amount.String(), suite.chainA.SenderAccount.GetAddress().String(), receiver, memo)
 			packet := channeltypes.NewPacket(data.GetBytes(), seq, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.NewHeight(1, 100), 0)
 
-			suite.Require().NotPanics(func() {
-				err = suite.chainB.GetSimApp().TransferKeeper.OnRecvPacket(suite.chainB.GetContext(), packet, data)
-			})
+			err = suite.chainB.GetSimApp().TransferKeeper.OnRecvPacket(suite.chainB.GetContext(), packet, data)
 
 			// check total amount in escrow of received token denom on receiving chain
 			var denom string
@@ -582,14 +578,9 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 
 			data := types.NewFungibleTokenPacketData(trace.GetFullDenomPath(), amount.String(), suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), "")
 			packet := channeltypes.NewPacket(data.GetBytes(), 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.NewHeight(1, 100), 0)
-
 			preCoin := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), trace.IBCDenom())
 
-			// assert that no attempt to set total escrow amount with negative value happens
-			var err error
-			suite.Require().NotPanics(func() {
-				err = suite.chainA.GetSimApp().TransferKeeper.OnAcknowledgementPacket(suite.chainA.GetContext(), packet, data, tc.ack)
-			})
+			err := suite.chainA.GetSimApp().TransferKeeper.OnAcknowledgementPacket(suite.chainA.GetContext(), packet, data, tc.ack)
 
 			// check total amount in escrow of sent token denom on sending chain
 			totalEscrow := suite.chainA.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(suite.chainA.GetContext(), trace.IBCDenom())
@@ -788,14 +779,9 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 
 			data := types.NewFungibleTokenPacketData(trace.GetFullDenomPath(), amount.String(), sender, suite.chainB.SenderAccount.GetAddress().String(), "")
 			packet := channeltypes.NewPacket(data.GetBytes(), 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.NewHeight(1, 100), 0)
-
 			preCoin := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), trace.IBCDenom())
 
-			// assert that no attempt to set total escrow amount with negative value happens
-			var err error
-			suite.Require().NotPanics(func() {
-				err = suite.chainA.GetSimApp().TransferKeeper.OnTimeoutPacket(suite.chainA.GetContext(), packet, data)
-			})
+			err := suite.chainA.GetSimApp().TransferKeeper.OnTimeoutPacket(suite.chainA.GetContext(), packet, data)
 
 			postCoin := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), trace.IBCDenom())
 			deltaAmount := postCoin.Amount.Sub(preCoin.Amount)

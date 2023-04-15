@@ -111,11 +111,9 @@ func (k Keeper) sendTransfer(
 			return 0, err
 		}
 
-		// get the existing total amount in escrow
+		// track the total amount in escrow keyed by denomination to allow for efficient iteration
 		currentTotalEscrow := k.GetTotalEscrowForDenom(ctx, token.GetDenom())
 		newTotalEscrow := currentTotalEscrow.Add(token.Amount)
-
-		// store the new total amount in escrow
 		k.SetTotalEscrowForDenom(ctx, token.GetDenom(), newTotalEscrow)
 	} else {
 		labels = append(labels, telemetry.NewLabel(coretypes.LabelSource, "false"))
@@ -236,11 +234,9 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 			return errorsmod.Wrap(err, "unable to unescrow tokens, this may be caused by a malicious counterparty module or a bug: please open an issue on counterparty module")
 		}
 
-		// get the existing total amount in escrow
+		// track the total amount in escrow keyed by denomination to allow for efficient iteration
 		currentTotalEscrow := k.GetTotalEscrowForDenom(ctx, token.GetDenom())
 		newTotalEscrow := currentTotalEscrow.Sub(token.Amount)
-
-		// store the new total amount in escrow
 		k.SetTotalEscrowForDenom(ctx, token.GetDenom(), newTotalEscrow)
 
 		defer func() {
@@ -379,11 +375,9 @@ func (k Keeper) refundPacketToken(ctx sdk.Context, packet channeltypes.Packet, d
 			return errorsmod.Wrap(err, "unable to unescrow tokens, this may be caused by a malicious counterparty module or a bug: please open an issue on counterparty module")
 		}
 
-		// get the existing total amount in escrow
+		// track the total amount in escrow keyed by denomination to allow for efficient iteration
 		currentTotalEscrow := k.GetTotalEscrowForDenom(ctx, token.GetDenom())
 		newTotalEscrow := currentTotalEscrow.Sub(token.Amount)
-
-		// store the new total amount in escrow
 		k.SetTotalEscrowForDenom(ctx, token.GetDenom(), newTotalEscrow)
 
 		return nil
