@@ -30,8 +30,8 @@ type GenesisState struct {
 	PortId      string `protobuf:"bytes,1,opt,name=port_id,json=portId,proto3" json:"port_id,omitempty"`
 	DenomTraces Traces `protobuf:"bytes,2,rep,name=denom_traces,json=denomTraces,proto3,castrepeated=Traces" json:"denom_traces"`
 	Params      Params `protobuf:"bytes,3,opt,name=params,proto3" json:"params"`
-	// denom_escrows contains the denomination and the total amount of tokens of
-	// the denomination in escrow in the transfer channels accounts
+	// denom_escrows contains the total amount of tokens escrowed
+	// by the transfer module
 	DenomEscrows github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,4,rep,name=denom_escrows,json=denomEscrows,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"denom_escrows"`
 }
 
