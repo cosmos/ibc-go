@@ -102,19 +102,6 @@ func TestKeeperTestSuite(t *testing.T) {
 	suite.Run(t, new(KeeperTestSuite))
 }
 
-func (suite *KeeperTestSuite) TestHasCapability() {
-	suite.SetupTest()
-
-	path := NewICAPath(suite.chainA, suite.chainB)
-	suite.coordinator.SetupConnections(path)
-
-	err := SetupICAPath(path, TestOwnerAddress)
-	suite.Require().NoError(err)
-
-	hasCapability := suite.chainA.GetSimApp().ICAControllerKeeper.HasCapability(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID)
-	suite.Require().True(hasCapability)
-}
-
 func (suite *KeeperTestSuite) TestGetAllPorts() {
 	suite.SetupTest()
 

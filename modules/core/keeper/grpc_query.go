@@ -147,3 +147,8 @@ func (k Keeper) UnreceivedAcks(c context.Context, req *channeltypes.QueryUnrecei
 func (k Keeper) NextSequenceReceive(c context.Context, req *channeltypes.QueryNextSequenceReceiveRequest) (*channeltypes.QueryNextSequenceReceiveResponse, error) {
 	return k.ChannelKeeper.NextSequenceReceive(c, req)
 }
+
+// NextSequenceSend implements the IBC QueryServer interface
+func (q Keeper) NextSequenceSend(c context.Context, req *channeltypes.QueryNextSequenceSendRequest) (*channeltypes.QueryNextSequenceSendResponse, error) {
+	return q.ChannelKeeper.NextSequenceSend(c, req)
+}
