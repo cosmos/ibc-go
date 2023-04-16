@@ -15,10 +15,11 @@ var _ types.QueryServer = Keeper{}
 
 // InterchainAccount implements the Query/InterchainAccount gRPC method
 func (k Keeper) InterchainAccount(goCtx context.Context, req *types.QueryInterchainAccountRequest) (*types.QueryInterchainAccountResponse, error) {
-	ctx := sdk.UnwrapSDKContext(goCtx)
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	portID, err := icatypes.NewControllerPortID(req.Owner)
 	if err != nil {

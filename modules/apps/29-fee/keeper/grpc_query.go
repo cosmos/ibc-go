@@ -17,10 +17,11 @@ var _ types.QueryServer = Keeper{}
 
 // IncentivizedPackets implements the Query/IncentivizedPackets gRPC method
 func (k Keeper) IncentivizedPackets(goCtx context.Context, req *types.QueryIncentivizedPacketsRequest) (*types.QueryIncentivizedPacketsResponse, error) {
-	ctx := sdk.UnwrapSDKContext(goCtx).WithBlockHeight(int64(req.QueryHeight))
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx).WithBlockHeight(int64(req.QueryHeight))
 
 	var identifiedPackets []types.IdentifiedPacketFees
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte(types.FeesInEscrowPrefix))
@@ -46,10 +47,11 @@ func (k Keeper) IncentivizedPackets(goCtx context.Context, req *types.QueryIncen
 
 // IncentivizedPacket implements the Query/IncentivizedPacket gRPC method
 func (k Keeper) IncentivizedPacket(goCtx context.Context, req *types.QueryIncentivizedPacketRequest) (*types.QueryIncentivizedPacketResponse, error) {
-	ctx := sdk.UnwrapSDKContext(goCtx).WithBlockHeight(int64(req.QueryHeight))
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx).WithBlockHeight(int64(req.QueryHeight))
 
 	feesInEscrow, exists := k.GetFeesInEscrow(ctx, req.PacketId)
 	if !exists {
@@ -65,10 +67,11 @@ func (k Keeper) IncentivizedPacket(goCtx context.Context, req *types.QueryIncent
 
 // IncentivizedPacketsForChannel implements the Query/IncentivizedPacketsForChannel gRPC method
 func (k Keeper) IncentivizedPacketsForChannel(goCtx context.Context, req *types.QueryIncentivizedPacketsForChannelRequest) (*types.QueryIncentivizedPacketsForChannelResponse, error) {
-	ctx := sdk.UnwrapSDKContext(goCtx).WithBlockHeight(int64(req.QueryHeight))
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx).WithBlockHeight(int64(req.QueryHeight))
 
 	var packets []*types.IdentifiedPacketFees
 	keyPrefix := types.KeyFeesInEscrowChannelPrefix(req.PortId, req.ChannelId)
@@ -120,10 +123,11 @@ func (k Keeper) TotalRecvFees(goCtx context.Context, req *types.QueryTotalRecvFe
 
 // TotalAckFees implements the Query/TotalAckFees gRPC method
 func (k Keeper) TotalAckFees(goCtx context.Context, req *types.QueryTotalAckFeesRequest) (*types.QueryTotalAckFeesResponse, error) {
-	ctx := sdk.UnwrapSDKContext(goCtx)
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	feesInEscrow, found := k.GetFeesInEscrow(ctx, req.PacketId)
 	if !found {
@@ -145,10 +149,11 @@ func (k Keeper) TotalAckFees(goCtx context.Context, req *types.QueryTotalAckFees
 
 // TotalTimeoutFees implements the Query/TotalTimeoutFees gRPC method
 func (k Keeper) TotalTimeoutFees(goCtx context.Context, req *types.QueryTotalTimeoutFeesRequest) (*types.QueryTotalTimeoutFeesResponse, error) {
-	ctx := sdk.UnwrapSDKContext(goCtx)
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	feesInEscrow, found := k.GetFeesInEscrow(ctx, req.PacketId)
 	if !found {
@@ -170,10 +175,11 @@ func (k Keeper) TotalTimeoutFees(goCtx context.Context, req *types.QueryTotalTim
 
 // Payee implements the Query/Payee gRPC method and returns the registered payee address to which packet fees are paid out
 func (k Keeper) Payee(goCtx context.Context, req *types.QueryPayeeRequest) (*types.QueryPayeeResponse, error) {
-	ctx := sdk.UnwrapSDKContext(goCtx)
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	payeeAddr, found := k.GetPayeeAddress(ctx, req.Relayer, req.ChannelId)
 	if !found {
@@ -187,10 +193,11 @@ func (k Keeper) Payee(goCtx context.Context, req *types.QueryPayeeRequest) (*typ
 
 // CounterpartyPayee implements the Query/CounterpartyPayee gRPC method and returns the registered counterparty payee address for forward relaying
 func (k Keeper) CounterpartyPayee(goCtx context.Context, req *types.QueryCounterpartyPayeeRequest) (*types.QueryCounterpartyPayeeResponse, error) {
-	ctx := sdk.UnwrapSDKContext(goCtx)
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	counterpartyPayeeAddr, found := k.GetCounterpartyPayeeAddress(ctx, req.Relayer, req.ChannelId)
 	if !found {
@@ -204,10 +211,11 @@ func (k Keeper) CounterpartyPayee(goCtx context.Context, req *types.QueryCounter
 
 // FeeEnabledChannels implements the Query/FeeEnabledChannels gRPC method and returns a list of fee enabled channels
 func (k Keeper) FeeEnabledChannels(goCtx context.Context, req *types.QueryFeeEnabledChannelsRequest) (*types.QueryFeeEnabledChannelsResponse, error) {
-	ctx := sdk.UnwrapSDKContext(goCtx).WithBlockHeight(int64(req.QueryHeight))
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx).WithBlockHeight(int64(req.QueryHeight))
 
 	var feeEnabledChannels []types.FeeEnabledChannel
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte(types.FeeEnabledKeyPrefix))
@@ -239,10 +247,11 @@ func (k Keeper) FeeEnabledChannels(goCtx context.Context, req *types.QueryFeeEna
 // FeeEnabledChannel implements the Query/FeeEnabledChannel gRPC method and returns true if the provided
 // port and channel identifiers belong to a fee enabled channel
 func (k Keeper) FeeEnabledChannel(goCtx context.Context, req *types.QueryFeeEnabledChannelRequest) (*types.QueryFeeEnabledChannelResponse, error) {
-	ctx := sdk.UnwrapSDKContext(goCtx)
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	isFeeEnabled := k.IsFeeEnabled(ctx, req.PortId, req.ChannelId)
 
