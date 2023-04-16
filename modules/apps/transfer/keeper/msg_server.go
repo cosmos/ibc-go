@@ -5,6 +5,8 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	ibcerrors "github.com/cosmos/ibc-go/v7/internal/errors"
 	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
@@ -14,6 +16,10 @@ var _ types.MsgServer = (*Keeper)(nil)
 
 // Transfer defines an rpc handler method for MsgTransfer.
 func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.MsgTransferResponse, error) {
+	if msg == nil {
+		return nil, status.Error(codes.InvalidArgument, "empty message")
+	}
+
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	if !k.GetSendEnabled(ctx) {

@@ -5,6 +5,8 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	ibcerrors "github.com/cosmos/ibc-go/v7/internal/errors"
 	"github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
@@ -19,6 +21,10 @@ var _ types.MsgServer = (*Keeper)(nil)
 // the source chain from which packets originate as this is where fee distribution takes place. This function may be
 // called more than once by a relayer, in which case, the latest payee is always used.
 func (k Keeper) RegisterPayee(goCtx context.Context, msg *types.MsgRegisterPayee) (*types.MsgRegisterPayeeResponse, error) {
+	if msg == nil {
+		return nil, status.Error(codes.InvalidArgument, "empty message")
+	}
+
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	payee, err := sdk.AccAddressFromBech32(msg.Payee)
@@ -54,6 +60,10 @@ func (k Keeper) RegisterPayee(goCtx context.Context, msg *types.MsgRegisterPayee
 // the destination chain must include the registered counterparty payee address in the acknowledgement. This function
 // may be called more than once by a relayer, in which case, the latest counterparty payee address is always used.
 func (k Keeper) RegisterCounterpartyPayee(goCtx context.Context, msg *types.MsgRegisterCounterpartyPayee) (*types.MsgRegisterCounterpartyPayeeResponse, error) {
+	if msg == nil {
+		return nil, status.Error(codes.InvalidArgument, "empty message")
+	}
+
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	// only register counterparty payee if the channel exists and is fee enabled
@@ -77,6 +87,10 @@ func (k Keeper) RegisterCounterpartyPayee(goCtx context.Context, msg *types.MsgR
 // PayPacketFee defines a rpc handler method for MsgPayPacketFee
 // PayPacketFee is an open callback that may be called by any module/user that wishes to escrow funds in order to relay the packet with the next sequence
 func (k Keeper) PayPacketFee(goCtx context.Context, msg *types.MsgPayPacketFee) (*types.MsgPayPacketFeeResponse, error) {
+	if msg == nil {
+		return nil, status.Error(codes.InvalidArgument, "empty message")
+	}
+
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	if !k.IsFeeEnabled(ctx, msg.SourcePortId, msg.SourceChannelId) {
@@ -122,6 +136,10 @@ func (k Keeper) PayPacketFee(goCtx context.Context, msg *types.MsgPayPacketFee) 
 // incentivize the relaying of a known packet. Only packets which have been sent and have not gone through the
 // packet life cycle may be incentivized.
 func (k Keeper) PayPacketFeeAsync(goCtx context.Context, msg *types.MsgPayPacketFeeAsync) (*types.MsgPayPacketFeeAsyncResponse, error) {
+	if msg == nil {
+		return nil, status.Error(codes.InvalidArgument, "empty message")
+	}
+
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	if !k.IsFeeEnabled(ctx, msg.PacketId.PortId, msg.PacketId.ChannelId) {
