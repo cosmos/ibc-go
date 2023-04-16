@@ -5,8 +5,6 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 
 	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
 	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
@@ -26,10 +24,6 @@ func NewMsgServerImpl(keeper *Keeper) types.MsgServer {
 
 // RegisterInterchainAccount defines a rpc handler for MsgRegisterInterchainAccount
 func (s msgServer) RegisterInterchainAccount(goCtx context.Context, msg *types.MsgRegisterInterchainAccount) (*types.MsgRegisterInterchainAccountResponse, error) {
-	if msg == nil {
-		return nil, status.Error(codes.InvalidArgument, "empty message")
-	}
-
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	portID, err := icatypes.NewControllerPortID(msg.Owner)
@@ -59,10 +53,6 @@ func (s msgServer) RegisterInterchainAccount(goCtx context.Context, msg *types.M
 
 // SendTx defines a rpc handler for MsgSendTx
 func (s msgServer) SendTx(goCtx context.Context, msg *types.MsgSendTx) (*types.MsgSendTxResponse, error) {
-	if msg == nil {
-		return nil, status.Error(codes.InvalidArgument, "empty message")
-	}
-
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	portID, err := icatypes.NewControllerPortID(msg.Owner)

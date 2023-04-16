@@ -7,8 +7,6 @@ import (
 	metrics "github.com/armon/go-metrics"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
@@ -25,10 +23,6 @@ var (
 
 // CreateClient defines a rpc handler method for MsgCreateClient.
 func (k Keeper) CreateClient(goCtx context.Context, msg *clienttypes.MsgCreateClient) (*clienttypes.MsgCreateClientResponse, error) {
-	if msg == nil {
-		return nil, status.Error(codes.InvalidArgument, "empty message")
-	}
-
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	clientState, err := clienttypes.UnpackClientState(msg.ClientState)
@@ -50,10 +44,6 @@ func (k Keeper) CreateClient(goCtx context.Context, msg *clienttypes.MsgCreateCl
 
 // UpdateClient defines a rpc handler method for MsgUpdateClient.
 func (k Keeper) UpdateClient(goCtx context.Context, msg *clienttypes.MsgUpdateClient) (*clienttypes.MsgUpdateClientResponse, error) {
-	if msg == nil {
-		return nil, status.Error(codes.InvalidArgument, "empty message")
-	}
-
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	clientMsg, err := clienttypes.UnpackClientMessage(msg.ClientMessage)
@@ -70,10 +60,6 @@ func (k Keeper) UpdateClient(goCtx context.Context, msg *clienttypes.MsgUpdateCl
 
 // UpgradeClient defines a rpc handler method for MsgUpgradeClient.
 func (k Keeper) UpgradeClient(goCtx context.Context, msg *clienttypes.MsgUpgradeClient) (*clienttypes.MsgUpgradeClientResponse, error) {
-	if msg == nil {
-		return nil, status.Error(codes.InvalidArgument, "empty message")
-	}
-
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	upgradedClient, err := clienttypes.UnpackClientState(msg.ClientState)
@@ -97,10 +83,6 @@ func (k Keeper) UpgradeClient(goCtx context.Context, msg *clienttypes.MsgUpgrade
 // Warning: DEPRECATED
 // This handler is redudant as `MsgUpdateClient` is now capable of handling both a Header and a Misbehaviour
 func (k Keeper) SubmitMisbehaviour(goCtx context.Context, msg *clienttypes.MsgSubmitMisbehaviour) (*clienttypes.MsgSubmitMisbehaviourResponse, error) {
-	if msg == nil {
-		return nil, status.Error(codes.InvalidArgument, "empty message")
-	}
-
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	misbehaviour, err := clienttypes.UnpackClientMessage(msg.Misbehaviour)
@@ -117,10 +99,6 @@ func (k Keeper) SubmitMisbehaviour(goCtx context.Context, msg *clienttypes.MsgSu
 
 // ConnectionOpenInit defines a rpc handler method for MsgConnectionOpenInit.
 func (k Keeper) ConnectionOpenInit(goCtx context.Context, msg *connectiontypes.MsgConnectionOpenInit) (*connectiontypes.MsgConnectionOpenInitResponse, error) {
-	if msg == nil {
-		return nil, status.Error(codes.InvalidArgument, "empty message")
-	}
-
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	if _, err := k.ConnectionKeeper.ConnOpenInit(ctx, msg.ClientId, msg.Counterparty, msg.Version, msg.DelayPeriod); err != nil {
@@ -132,10 +110,6 @@ func (k Keeper) ConnectionOpenInit(goCtx context.Context, msg *connectiontypes.M
 
 // ConnectionOpenTry defines a rpc handler method for MsgConnectionOpenTry.
 func (k Keeper) ConnectionOpenTry(goCtx context.Context, msg *connectiontypes.MsgConnectionOpenTry) (*connectiontypes.MsgConnectionOpenTryResponse, error) {
-	if msg == nil {
-		return nil, status.Error(codes.InvalidArgument, "empty message")
-	}
-
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	targetClient, err := clienttypes.UnpackClientState(msg.ClientState)
@@ -156,10 +130,6 @@ func (k Keeper) ConnectionOpenTry(goCtx context.Context, msg *connectiontypes.Ms
 
 // ConnectionOpenAck defines a rpc handler method for MsgConnectionOpenAck.
 func (k Keeper) ConnectionOpenAck(goCtx context.Context, msg *connectiontypes.MsgConnectionOpenAck) (*connectiontypes.MsgConnectionOpenAckResponse, error) {
-	if msg == nil {
-		return nil, status.Error(codes.InvalidArgument, "empty message")
-	}
-
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	targetClient, err := clienttypes.UnpackClientState(msg.ClientState)
@@ -180,10 +150,6 @@ func (k Keeper) ConnectionOpenAck(goCtx context.Context, msg *connectiontypes.Ms
 
 // ConnectionOpenConfirm defines a rpc handler method for MsgConnectionOpenConfirm.
 func (k Keeper) ConnectionOpenConfirm(goCtx context.Context, msg *connectiontypes.MsgConnectionOpenConfirm) (*connectiontypes.MsgConnectionOpenConfirmResponse, error) {
-	if msg == nil {
-		return nil, status.Error(codes.InvalidArgument, "empty message")
-	}
-
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	if err := k.ConnectionKeeper.ConnOpenConfirm(
@@ -199,10 +165,6 @@ func (k Keeper) ConnectionOpenConfirm(goCtx context.Context, msg *connectiontype
 // ChannelOpenInit will perform 04-channel checks, route to the application
 // callback, and write an OpenInit channel into state upon successful execution.
 func (k Keeper) ChannelOpenInit(goCtx context.Context, msg *channeltypes.MsgChannelOpenInit) (*channeltypes.MsgChannelOpenInitResponse, error) {
-	if msg == nil {
-		return nil, status.Error(codes.InvalidArgument, "empty message")
-	}
-
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	// Lookup module by port capability
@@ -251,10 +213,6 @@ func (k Keeper) ChannelOpenInit(goCtx context.Context, msg *channeltypes.MsgChan
 // ChannelOpenTry will perform 04-channel checks, route to the application
 // callback, and write an OpenTry channel into state upon successful execution.
 func (k Keeper) ChannelOpenTry(goCtx context.Context, msg *channeltypes.MsgChannelOpenTry) (*channeltypes.MsgChannelOpenTryResponse, error) {
-	if msg == nil {
-		return nil, status.Error(codes.InvalidArgument, "empty message")
-	}
-
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	// Lookup module by port capability
@@ -302,10 +260,6 @@ func (k Keeper) ChannelOpenTry(goCtx context.Context, msg *channeltypes.MsgChann
 // ChannelOpenAck will perform 04-channel checks, route to the application
 // callback, and write an OpenAck channel into state upon successful execution.
 func (k Keeper) ChannelOpenAck(goCtx context.Context, msg *channeltypes.MsgChannelOpenAck) (*channeltypes.MsgChannelOpenAckResponse, error) {
-	if msg == nil {
-		return nil, status.Error(codes.InvalidArgument, "empty message")
-	}
-
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	// Lookup module by channel capability
@@ -348,10 +302,6 @@ func (k Keeper) ChannelOpenAck(goCtx context.Context, msg *channeltypes.MsgChann
 // ChannelOpenConfirm will perform 04-channel checks, route to the application
 // callback, and write an OpenConfirm channel into state upon successful execution.
 func (k Keeper) ChannelOpenConfirm(goCtx context.Context, msg *channeltypes.MsgChannelOpenConfirm) (*channeltypes.MsgChannelOpenConfirmResponse, error) {
-	if msg == nil {
-		return nil, status.Error(codes.InvalidArgument, "empty message")
-	}
-
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	// Lookup module by channel capability
@@ -390,10 +340,6 @@ func (k Keeper) ChannelOpenConfirm(goCtx context.Context, msg *channeltypes.MsgC
 
 // ChannelCloseInit defines a rpc handler method for MsgChannelCloseInit.
 func (k Keeper) ChannelCloseInit(goCtx context.Context, msg *channeltypes.MsgChannelCloseInit) (*channeltypes.MsgChannelCloseInitResponse, error) {
-	if msg == nil {
-		return nil, status.Error(codes.InvalidArgument, "empty message")
-	}
-
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	// Lookup module by channel capability
@@ -428,10 +374,6 @@ func (k Keeper) ChannelCloseInit(goCtx context.Context, msg *channeltypes.MsgCha
 
 // ChannelCloseConfirm defines a rpc handler method for MsgChannelCloseConfirm.
 func (k Keeper) ChannelCloseConfirm(goCtx context.Context, msg *channeltypes.MsgChannelCloseConfirm) (*channeltypes.MsgChannelCloseConfirmResponse, error) {
-	if msg == nil {
-		return nil, status.Error(codes.InvalidArgument, "empty message")
-	}
-
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	// Lookup module by channel capability
@@ -466,10 +408,6 @@ func (k Keeper) ChannelCloseConfirm(goCtx context.Context, msg *channeltypes.Msg
 
 // RecvPacket defines a rpc handler method for MsgRecvPacket.
 func (k Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPacket) (*channeltypes.MsgRecvPacketResponse, error) {
-	if msg == nil {
-		return nil, status.Error(codes.InvalidArgument, "empty message")
-	}
-
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	relayer, err := sdk.AccAddressFromBech32(msg.Signer)
@@ -551,10 +489,6 @@ func (k Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPacke
 
 // Timeout defines a rpc handler method for MsgTimeout.
 func (k Keeper) Timeout(goCtx context.Context, msg *channeltypes.MsgTimeout) (*channeltypes.MsgTimeoutResponse, error) {
-	if msg == nil {
-		return nil, status.Error(codes.InvalidArgument, "empty message")
-	}
-
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	relayer, err := sdk.AccAddressFromBech32(msg.Signer)
@@ -626,10 +560,6 @@ func (k Keeper) Timeout(goCtx context.Context, msg *channeltypes.MsgTimeout) (*c
 
 // TimeoutOnClose defines a rpc handler method for MsgTimeoutOnClose.
 func (k Keeper) TimeoutOnClose(goCtx context.Context, msg *channeltypes.MsgTimeoutOnClose) (*channeltypes.MsgTimeoutOnCloseResponse, error) {
-	if msg == nil {
-		return nil, status.Error(codes.InvalidArgument, "empty message")
-	}
-
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	relayer, err := sdk.AccAddressFromBech32(msg.Signer)
@@ -704,10 +634,6 @@ func (k Keeper) TimeoutOnClose(goCtx context.Context, msg *channeltypes.MsgTimeo
 
 // Acknowledgement defines a rpc handler method for MsgAcknowledgement.
 func (k Keeper) Acknowledgement(goCtx context.Context, msg *channeltypes.MsgAcknowledgement) (*channeltypes.MsgAcknowledgementResponse, error) {
-	if msg == nil {
-		return nil, status.Error(codes.InvalidArgument, "empty message")
-	}
-
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	relayer, err := sdk.AccAddressFromBech32(msg.Signer)

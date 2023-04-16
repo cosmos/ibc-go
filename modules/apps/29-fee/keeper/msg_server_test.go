@@ -26,13 +26,6 @@ func (suite *KeeperTestSuite) TestRegisterPayee() {
 			func() {},
 		},
 		{
-			"empty message",
-			false,
-			func() {
-				msg = nil
-			},
-		},
-		{
 			"channel does not exist",
 			false,
 			func() {
@@ -112,13 +105,6 @@ func (suite *KeeperTestSuite) TestRegisterCounterpartyPayee() {
 			func() {},
 		},
 		{
-			"empty message",
-			false,
-			func() {
-				msg = nil
-			},
-		},
-		{
 			"counterparty payee is an arbitrary string",
 			true,
 			func() {
@@ -193,13 +179,6 @@ func (suite *KeeperTestSuite) TestPayPacketFee() {
 			"success",
 			func() {},
 			true,
-		},
-		{
-			"empty message",
-			func() {
-				msg = nil
-			},
-			false,
 		},
 		{
 			"success with existing packet fees in escrow",
@@ -374,13 +353,6 @@ func (suite *KeeperTestSuite) TestPayPacketFeeAsync() {
 			"success",
 			func() {},
 			true,
-		},
-		{
-			"empty message",
-			func() {
-				msg = nil
-			},
-			false,
 		},
 		{
 			"success with existing packet fees in escrow",
