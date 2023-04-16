@@ -32,6 +32,13 @@ func (suite *KeeperTestSuite) TestRegisterInterchainAccount_MsgServer() {
 			func() {},
 		},
 		{
+			"empty message",
+			false,
+			func() {
+				msg = nil
+			},
+		},
+		{
 			"invalid connection id",
 			false,
 			func() {
@@ -108,6 +115,13 @@ func (suite *KeeperTestSuite) TestSubmitTx() {
 			"success", func() {
 			},
 			true,
+		},
+		{
+			"empty message",
+			func() {
+				msg = nil
+			},
+			false,
 		},
 		{
 			"failure - owner address is empty", func() {

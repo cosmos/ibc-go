@@ -29,6 +29,7 @@ func (suite *KeeperTestSuite) TestHandleRecvPacket() {
 	var (
 		packet channeltypes.Packet
 		path   *ibctesting.Path
+		msg    *channeltypes.MsgRecvPacket
 		async  bool // indicate no ack written
 	)
 
@@ -94,6 +95,9 @@ func (suite *KeeperTestSuite) TestHandleRecvPacket() {
 
 			packet = channeltypes.NewPacket(ibcmock.MockAsyncPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, 0)
 		}, true, false},
+		{"failure: empty message", func() {
+			msg = nil
+		}, false, false},
 		{"failure: ORDERED out of order packet", func() {
 			path.SetChannelOrdered()
 			suite.coordinator.Setup(path)
@@ -160,7 +164,7 @@ func (suite *KeeperTestSuite) TestHandleRecvPacket() {
 				proof, proofHeight = path.EndpointA.QueryProof(packetKey)
 			}
 
-			msg := channeltypes.NewMsgRecvPacket(packet, proof, proofHeight, suite.chainB.SenderAccount.GetAddress().String())
+			msg = channeltypes.NewMsgRecvPacket(packet, proof, proofHeight, suite.chainB.SenderAccount.GetAddress().String())
 
 			_, err := keeper.Keeper.RecvPacket(*suite.chainB.App.GetIBCKeeper(), sdk.WrapSDKContext(suite.chainB.GetContext()), msg)
 
@@ -206,6 +210,7 @@ func (suite *KeeperTestSuite) TestHandleAcknowledgePacket() {
 	var (
 		packet channeltypes.Packet
 		path   *ibctesting.Path
+		msg    *channeltypes.MsgAcknowledgement
 	)
 
 	testCases := []struct {
@@ -248,6 +253,9 @@ func (suite *KeeperTestSuite) TestHandleAcknowledgePacket() {
 				suite.Require().NoError(err)
 			}
 		}, true},
+		{"failure: empty message", func() {
+			msg = nil
+		}, false},
 		{"failure: ORDERED acknowledge out of order packet", func() {
 			path.SetChannelOrdered()
 			suite.coordinator.Setup(path)
@@ -320,7 +328,7 @@ func (suite *KeeperTestSuite) TestHandleAcknowledgePacket() {
 				proof, proofHeight = path.EndpointB.QueryProof(packetKey)
 			}
 
-			msg := channeltypes.NewMsgAcknowledgement(packet, ibcmock.MockAcknowledgement.Acknowledgement(), proof, proofHeight, suite.chainA.SenderAccount.GetAddress().String())
+			msg = channeltypes.NewMsgAcknowledgement(packet, ibcmock.MockAcknowledgement.Acknowledgement(), proof, proofHeight, suite.chainA.SenderAccount.GetAddress().String())
 
 			_, err := keeper.Keeper.Acknowledgement(*suite.chainA.App.GetIBCKeeper(), sdk.WrapSDKContext(suite.chainA.GetContext()), msg)
 
@@ -351,6 +359,7 @@ func (suite *KeeperTestSuite) TestHandleTimeoutPacket() {
 		packet    channeltypes.Packet
 		packetKey []byte
 		path      *ibctesting.Path
+		msg       *channeltypes.MsgTimeout
 	)
 
 	testCases := []struct {
@@ -435,6 +444,9 @@ func (suite *KeeperTestSuite) TestHandleTimeoutPacket() {
 
 			packetKey = host.NextSequenceRecvKey(packet.GetDestPort(), packet.GetDestChannel())
 		}, true},
+		{"empty message", func() {
+			msg = nil
+		}, false},
 		{"channel does not exist", func() {
 			// any non-nil value of packet is valid
 			suite.Require().NotNil(packet)
@@ -465,7 +477,7 @@ func (suite *KeeperTestSuite) TestHandleTimeoutPacket() {
 				proof, proofHeight = path.EndpointB.QueryProof(packetKey)
 			}
 
-			msg := channeltypes.NewMsgTimeout(packet, 1, proof, proofHeight, suite.chainA.SenderAccount.GetAddress().String())
+			msg = channeltypes.NewMsgTimeout(packet, 1, proof, proofHeight, suite.chainA.SenderAccount.GetAddress().String())
 
 			_, err := keeper.Keeper.Timeout(*suite.chainA.App.GetIBCKeeper(), sdk.WrapSDKContext(suite.chainA.GetContext()), msg)
 
@@ -497,6 +509,7 @@ func (suite *KeeperTestSuite) TestHandleTimeoutOnClosePacket() {
 		packet    channeltypes.Packet
 		packetKey []byte
 		path      *ibctesting.Path
+		msg       *channeltypes.MsgTimeoutOnClose
 	)
 
 	testCases := []struct {
@@ -587,6 +600,9 @@ func (suite *KeeperTestSuite) TestHandleTimeoutOnClosePacket() {
 			err = path.EndpointB.SetChannelState(channeltypes.CLOSED)
 			suite.Require().NoError(err)
 		}, true},
+		{"empty message", func() {
+			msg = nil
+		}, false},
 		{"channel does not exist", func() {
 			// any non-nil value of packet is valid
 			suite.Require().NotNil(packet)
@@ -633,7 +649,7 @@ func (suite *KeeperTestSuite) TestHandleTimeoutOnClosePacket() {
 			channelKey := host.ChannelKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 			proofClosed, _ := suite.chainB.QueryProof(channelKey)
 
-			msg := channeltypes.NewMsgTimeoutOnClose(packet, 1, proof, proofClosed, proofHeight, suite.chainA.SenderAccount.GetAddress().String())
+			msg = channeltypes.NewMsgTimeoutOnClose(packet, 1, proof, proofClosed, proofHeight, suite.chainA.SenderAccount.GetAddress().String())
 
 			_, err := keeper.Keeper.TimeoutOnClose(*suite.chainA.App.GetIBCKeeper(), sdk.WrapSDKContext(suite.chainA.GetContext()), msg)
 
@@ -740,6 +756,13 @@ func (suite *KeeperTestSuite) TestUpgradeClient() {
 
 				msg, err = clienttypes.NewMsgUpgradeClient(path.EndpointA.ClientID, upgradedClient, upgradedConsState, nil, nil, suite.chainA.SenderAccount.GetAddress().String())
 				suite.Require().NoError(err)
+			},
+			expPass: false,
+		},
+		{
+			name: "failure: empty message",
+			setup: func() {
+				msg = nil
 			},
 			expPass: false,
 		},

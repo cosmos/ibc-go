@@ -22,6 +22,13 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 			true,
 		},
 		{
+			"empty message",
+			func() {
+				msg = nil
+			},
+			false,
+		},
+		{
 			"bank send enabled for denom",
 			func() {
 				err := suite.chainA.GetSimApp().BankKeeper.SetParams(suite.chainA.GetContext(),
