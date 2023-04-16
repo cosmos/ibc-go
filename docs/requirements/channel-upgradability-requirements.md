@@ -35,7 +35,7 @@ A few sample use case flows are described below. For the sake of simplicity, the
 2. There exists a transfer channel between chain A and chain B, with channel ID `channel-0` on both ends.
 3. The channel is upgraded to use fee incentivization (i.e. stack fee middleware on top of the transfer application). Both chains' binary has wired up the fee middleware.
 
-Further exception flows can be explored if some of the asumptions above do not apply. For example: if chain B's binary has not wired up the fee middleware and `MsgChannelUpgradeTry` is submitted, the upgrade will be aborted and a cancellation message can be submitted to chain A to restore the channel to its previous state.
+Further exception flows can be explored if some of the assumptions above do not apply. For example: if chain B's binary has not wired up the fee middleware and `MsgChannelUpgradeTry` is submitted, the upgrade will be aborted and a cancellation message can be submitted to chain A to restore the channel to its previous state.
 
 ### Pre-approved upgrades on both sides
 
