@@ -149,6 +149,6 @@ func (k Keeper) NextSequenceReceive(c context.Context, req *channeltypes.QueryNe
 }
 
 // NextSequenceSend implements the IBC QueryServer interface
-func (q Keeper) NextSequenceSend(c context.Context, req *channeltypes.QueryNextSequenceSendRequest) (*channeltypes.QueryNextSequenceSendResponse, error) {
-	return q.ChannelKeeper.NextSequenceSend(c, req)
+func (k Keeper) NextSequenceSend(c context.Context, req *channeltypes.QueryNextSequenceSendRequest) (*channeltypes.QueryNextSequenceSendResponse, error) {
+	return k.ChannelKeeper.NextSequenceSend(c, req)
 }
