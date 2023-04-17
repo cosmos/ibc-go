@@ -230,9 +230,8 @@ func (s *ClientTestSuite) TestClient_Update_Misbehaviour() {
 		msgUpdateClient, err := clienttypes.NewMsgUpdateClient(ibctesting.FirstClientID, maliciousHeader, rlyWallet.FormattedAddress())
 		s.Require().NoError(err)
 
-		txResp, err := s.BroadcastMessages(ctx, chainA, rlyWallet, msgUpdateClient)
-		s.Require().NoError(err)
-		s.AssertValidTxResponse(txResp)
+		txResp := s.BroadcastMessages(ctx, chainA, rlyWallet, msgUpdateClient)
+		s.AssertTxSuccess(txResp)
 	})
 
 	t.Run("ensure client status is frozen", func(t *testing.T) {

@@ -28,7 +28,7 @@ import (
 
 // BroadcastMessages broadcasts the provided messages to the given chain and signs them on behalf of the provided user.
 // Once the broadcast response is returned, we wait for a few blocks to be created on both chain A and chain B.
-func (s *E2ETestSuite) BroadcastMessages(ctx context.Context, chain *cosmos.CosmosChain, user ibc.Wallet, msgs ...sdk.Msg) (sdk.TxResponse, error) {
+func (s *E2ETestSuite) BroadcastMessages(ctx context.Context, chain *cosmos.CosmosChain, user ibc.Wallet, msgs ...sdk.Msg) sdk.TxResponse {
 	broadcaster := cosmos.NewBroadcaster(s.T(), chain)
 
 	broadcaster.ConfigureClientContextOptions(func(clientContext client.Context) client.Context {
@@ -54,13 +54,11 @@ func (s *E2ETestSuite) BroadcastMessages(ctx context.Context, chain *cosmos.Cosm
 	} else {
 		resp, err = broadcastFunc()
 	}
-	if err != nil {
-		return sdk.TxResponse{}, err
-	}
+	s.Require().NoError(err)
 
 	chainA, chainB := s.GetChains()
-	err = test.WaitForBlocks(ctx, 2, chainA, chainB)
-	return resp, err
+	s.Require().NoError(test.WaitForBlocks(ctx, 2, chainA, chainB))
+	return resp
 }
 
 // retryNtimes retries the provided function up to the provided number of attempts.
@@ -93,9 +91,16 @@ func containsMessage(s string, messages []string) bool {
 	return false
 }
 
-// AssertValidTxResponse verifies that an sdk.TxResponse
+// TODO: Maybe Allow specified error code too, see ensure ics20 transfer fails in base test (and there's one more)
+func (s *E2ETestSuite) AssertTxFailure(resp sdk.TxResponse, expectedMsg string) {
+	errorMsg := fmt.Sprintf("expected tx to fail with error: %s, got: %s", expectedMsg, resp.RawLog)
+	s.Require().NotEqual(resp.Code, 0)
+	s.Require().Contains(resp.RawLog, expectedMsg, errorMsg)
+}
+
+// AssertTxSuccess verifies that an sdk.TxResponse
 // has non-empty values.
-func (s *E2ETestSuite) AssertValidTxResponse(resp sdk.TxResponse) {
+func (s *E2ETestSuite) AssertTxSuccess(resp sdk.TxResponse) {
 	errorMsg := fmt.Sprintf("%+v", resp)
 	s.Require().NotEmpty(resp.TxHash, errorMsg)
 	s.Require().NotEqual(int64(0), resp.GasUsed, errorMsg)
@@ -124,9 +129,8 @@ func (s *E2ETestSuite) ExecuteGovProposalV1(ctx context.Context, msg sdk.Msg, ch
 		msgSubmitProposal.Summary = ""
 	}
 
-	resp, err := s.BroadcastMessages(ctx, chain, user, msgSubmitProposal)
-	s.AssertValidTxResponse(resp)
-	s.Require().NoError(err)
+	resp := s.BroadcastMessages(ctx, chain, user, msgSubmitProposal)
+	s.AssertTxSuccess(resp)
 
 	s.Require().NoError(chain.VoteOnProposalAllValidators(ctx, strconv.Itoa(int(proposalID)), cosmos.ProposalVoteYes))
 
@@ -146,9 +150,8 @@ func (s *E2ETestSuite) ExecuteGovProposal(ctx context.Context, chain *cosmos.Cos
 	msgSubmitProposal, err := govtypesv1beta1.NewMsgSubmitProposal(content, sdk.NewCoins(sdk.NewCoin(chain.Config().Denom, govtypesv1beta1.DefaultMinDepositTokens)), sender)
 	s.Require().NoError(err)
 
-	txResp, err := s.BroadcastMessages(ctx, chain, user, msgSubmitProposal)
-	s.Require().NoError(err)
-	s.AssertValidTxResponse(txResp)
+	txResp := s.BroadcastMessages(ctx, chain, user, msgSubmitProposal)
+	s.AssertTxSuccess(txResp)
 
 	// TODO: replace with parsed proposal ID from MsgSubmitProposalResponse
 	// https://github.com/cosmos/ibc-go/issues/2122
@@ -175,7 +178,7 @@ func (s *E2ETestSuite) ExecuteGovProposal(ctx context.Context, chain *cosmos.Cos
 // Transfer broadcasts a MsgTransfer message.
 func (s *E2ETestSuite) Transfer(ctx context.Context, chain *cosmos.CosmosChain, user ibc.Wallet,
 	portID, channelID string, token sdk.Coin, sender, receiver string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64, memo string,
-) (sdk.TxResponse, error) {
+) sdk.TxResponse {
 	msg := transfertypes.NewMsgTransfer(portID, channelID, token, sender, receiver, timeoutHeight, timeoutTimestamp, memo)
 	return s.BroadcastMessages(ctx, chain, user, msg)
 }
@@ -183,7 +186,7 @@ func (s *E2ETestSuite) Transfer(ctx context.Context, chain *cosmos.CosmosChain, 
 // RegisterCounterPartyPayee broadcasts a MsgRegisterCounterpartyPayee message.
 func (s *E2ETestSuite) RegisterCounterPartyPayee(ctx context.Context, chain *cosmos.CosmosChain,
 	user ibc.Wallet, portID, channelID, relayerAddr, counterpartyPayeeAddr string,
-) (sdk.TxResponse, error) {
+) sdk.TxResponse {
 	msg := feetypes.NewMsgRegisterCounterpartyPayee(portID, channelID, relayerAddr, counterpartyPayeeAddr)
 	return s.BroadcastMessages(ctx, chain, user, msg)
 }
@@ -195,7 +198,7 @@ func (s *E2ETestSuite) PayPacketFeeAsync(
 	user ibc.Wallet,
 	packetID channeltypes.PacketId,
 	packetFee feetypes.PacketFee,
-) (sdk.TxResponse, error) {
+) sdk.TxResponse {
 	msg := feetypes.NewMsgPayPacketFeeAsync(packetID, packetFee)
 	return s.BroadcastMessages(ctx, chain, user, msg)
 }
