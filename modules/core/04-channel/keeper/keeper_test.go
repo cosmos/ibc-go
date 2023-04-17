@@ -563,7 +563,7 @@ func (suite *KeeperTestSuite) TestUpgradeTimeoutAccessors() {
 
 func (suite *KeeperTestSuite) TestValidateProposedUpgradeFields() {
 	var (
-		proposedUpgrade *types.ModifiableUpgradeFields
+		proposedUpgrade *types.UpgradeFields
 		path            *ibctesting.Path
 	)
 
@@ -589,19 +589,19 @@ func (suite *KeeperTestSuite) TestValidateProposedUpgradeFields() {
 			expPass: true,
 		},
 		{
-			name: "modify ordering to invalid value",
+			name: "fails with stricter ordering",
 			malleate: func() {
 				proposedUpgrade.Ordering = types.ORDERED
 			},
 			expPass: false,
 		},
 		{
-			name:     "no modified fields in proposed upgrade",
+			name:     "fails with unmodified fields",
 			malleate: func() {},
 			expPass:  false,
 		},
 		{
-			name: "attempt upgrade when connection is not set",
+			name: "fails when connection is not set",
 			malleate: func() {
 				storeKey := suite.chainA.GetSimApp().GetKey(exported.StoreKey)
 				kvStore := suite.chainA.GetContext().KVStore(storeKey)
@@ -610,7 +610,7 @@ func (suite *KeeperTestSuite) TestValidateProposedUpgradeFields() {
 			expPass: false,
 		},
 		{
-			name: "attempt upgrade when connection is not open",
+			name: "fails when connection is not open",
 			malleate: func() {
 				connection := path.EndpointA.GetConnection()
 				connection.State = connectiontypes.UNINITIALIZED
@@ -628,7 +628,7 @@ func (suite *KeeperTestSuite) TestValidateProposedUpgradeFields() {
 			suite.coordinator.Setup(path)
 
 			existingChannel := path.EndpointA.GetChannel()
-			proposedUpgrade = &types.ModifiableUpgradeFields{
+			proposedUpgrade = &types.UpgradeFields{
 				Ordering:       existingChannel.Ordering,
 				ConnectionHops: existingChannel.ConnectionHops,
 				Version:        existingChannel.Version,
@@ -636,7 +636,7 @@ func (suite *KeeperTestSuite) TestValidateProposedUpgradeFields() {
 
 			tc.malleate()
 
-			err := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.ValidateProposedUpgradeFields(suite.chainA.GetContext(), *proposedUpgrade, existingChannel)
+			err := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.ValidateUpgradeFields(suite.chainA.GetContext(), *proposedUpgrade, existingChannel)
 			if tc.expPass {
 				suite.Require().NoError(err)
 			} else {
