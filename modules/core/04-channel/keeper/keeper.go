@@ -598,7 +598,7 @@ func (k Keeper) SetUpgrade(ctx sdk.Context, portID, channelID string, upgrade ty
 // - there exists at least one valid proposed change to the existing channel fields
 // - the proposed order is a subset of the existing order
 // - the proposed connection hops do not exist
-// - the proposed version is non-empty (checked in ModifiableUpgradeFields.ValidateBasic())
+// - the proposed version is non-empty (checked in UpgradeFields.ValidateBasic())
 // - the proposed connection hops are not open
 func (k Keeper) ValidateUpgradeFields(ctx sdk.Context, proposedUpgrade types.UpgradeFields, existingChannel types.Channel) error {
 	currentFields := extractUpgradeFields(existingChannel)
