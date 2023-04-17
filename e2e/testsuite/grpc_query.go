@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"sort"
+	"time"
 
 	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -82,6 +83,13 @@ func (s *E2ETestSuite) InitGRPCClients(chain *cosmos.CosmosChain) {
 		AuthZQueryClient:       authz.NewQueryClient(grpcConn),
 		ConsensusServiceClient: tmservice.NewServiceClient(grpcConn),
 	}
+}
+
+// Header defines an interface which is implemented by both the sdk block header and the cometbft Block Header.
+// this interfaces allows us to use the same function to fetch the block header for both chains.
+type Header interface {
+	GetTime() time.Time
+	GetLastCommitHash() []byte
 }
 
 // QueryClientState queries the client state on the given chain for the provided clientID.
@@ -240,9 +248,8 @@ func (s *E2ETestSuite) QueryProposalV1(ctx context.Context, chain ibc.Chain, pro
 	return *res.Proposal, nil
 }
 
-// GetBlockByHeight fetches the block at a given height. Note: we are explicitly using the res.Block type which has been
-// deprecated instead of res.SdkBlock to support backwards compatibility tests.
-func (s *E2ETestSuite) GetBlockByHeight(ctx context.Context, chain ibc.Chain, height uint64) (*tmservice.Block, error) {
+// GetBlockHeaderByHeight fetches the block header at a given height.
+func (s *E2ETestSuite) GetBlockHeaderByHeight(ctx context.Context, chain ibc.Chain, height uint64) (Header, error) {
 	tmService := s.GetChainGRCPClients(chain).ConsensusServiceClient
 	res, err := tmService.GetBlockByHeight(ctx, &tmservice.GetBlockByHeightRequest{
 		Height: int64(height),
@@ -251,7 +258,13 @@ func (s *E2ETestSuite) GetBlockByHeight(ctx context.Context, chain ibc.Chain, he
 		return nil, err
 	}
 
-	return res.SdkBlock, nil
+	// versions newer than 0.47 SDK have the SdkBlock field.
+	if res.SdkBlock != nil {
+		return &res.SdkBlock.Header, nil
+	}
+
+	// older versions of the SDK do not have the SdkBlock field.
+	return &res.Block.Header, nil
 }
 
 // GetValidatorSetByHeight returns the validators of the given chain at the specified height. The returned validators
