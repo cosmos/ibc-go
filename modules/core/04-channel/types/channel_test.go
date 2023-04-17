@@ -72,9 +72,9 @@ func TestSubsetOf(t *testing.T) {
 			true,
 		},
 		{
-			"ordered -> unordered",
-			types.ORDERED,
+			"unordered -> ordered",
 			types.UNORDERED,
+			types.ORDERED,
 			true,
 		},
 		{
@@ -84,20 +84,8 @@ func TestSubsetOf(t *testing.T) {
 			true,
 		},
 		{
-			"unordered -> ordered",
-			types.UNORDERED,
+			"ordered -> unordered",
 			types.ORDERED,
-			false,
-		},
-		{
-			"none -> ordered",
-			types.NONE,
-			types.ORDERED,
-			false,
-		},
-		{
-			"none -> unordered",
-			types.NONE,
 			types.UNORDERED,
 			false,
 		},
@@ -111,6 +99,18 @@ func TestSubsetOf(t *testing.T) {
 			"unordered -> none",
 			types.UNORDERED,
 			types.NONE,
+			false,
+		},
+		{
+			"none -> ordered",
+			types.NONE,
+			types.ORDERED,
+			false,
+		},
+		{
+			"none -> unordered",
+			types.NONE,
+			types.UNORDERED,
 			false,
 		},
 	}

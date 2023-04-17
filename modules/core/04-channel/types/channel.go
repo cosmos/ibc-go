@@ -146,10 +146,9 @@ var orderSubsets = map[Order][]Order{
 
 // SubsetOf returns true if the provided Order is a valid subset of Order.
 func (o Order) SubsetOf(order Order) bool {
-	if supported, ok := orderSubsets[o]; ok {
-		return collections.Contains(order, supported)
+	if supported, ok := orderSubsets[order]; ok {
+		return collections.Contains(o, supported)
 	}
-
 	return false
 }
 

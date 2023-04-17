@@ -607,7 +607,7 @@ func (k Keeper) ValidateUpgradeFields(ctx sdk.Context, proposedUpgrade types.Upg
 		return errorsmod.Wrap(types.ErrChannelExists, "existing channel end is identical to proposed upgrade channel end")
 	}
 
-	if !currentFields.Ordering.SubsetOf(proposedUpgrade.Ordering) {
+	if !proposedUpgrade.Ordering.SubsetOf(currentFields.Ordering) {
 		return errorsmod.Wrap(types.ErrInvalidChannelOrdering, "channel ordering must be a subset of the new ordering")
 	}
 
