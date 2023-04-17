@@ -15,7 +15,7 @@ contributors to help continually secure our operations.
 | All [actively supported releases branches](./RELEASES.md#stable-release-policy) |
 | main branch                                                                     |
 
-All activeliy supported release branches (see table in [section Stable Release Policy in RELEASES.md](./RELEASES.md#stable-release-policy)) 
+All actively supported release branches (see table in [section Stable Release Policy in RELEASES.md](./RELEASES.md#stable-release-policy)) 
 of this repository is supported for security updates as well as the **main** 
 branch. Security vulnerabilities should be reported if the vulnerability can be
 reproduced on either one of those.
