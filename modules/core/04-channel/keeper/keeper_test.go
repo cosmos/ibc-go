@@ -596,12 +596,12 @@ func (suite *KeeperTestSuite) TestValidateProposedUpgradeFields() {
 			expPass: false,
 		},
 		{
-			name:     "no modified fields in proposed upgrade",
+			name:     "fails with unmodified fields",
 			malleate: func() {},
 			expPass:  false,
 		},
 		{
-			name: "attempt upgrade when connection is not set",
+			name: "fails when connection is not set",
 			malleate: func() {
 				storeKey := suite.chainA.GetSimApp().GetKey(exported.StoreKey)
 				kvStore := suite.chainA.GetContext().KVStore(storeKey)
@@ -610,7 +610,7 @@ func (suite *KeeperTestSuite) TestValidateProposedUpgradeFields() {
 			expPass: false,
 		},
 		{
-			name: "attempt upgrade when connection is not open",
+			name: "fails when connection is not open",
 			malleate: func() {
 				connection := path.EndpointA.GetConnection()
 				connection.State = connectiontypes.UNINITIALIZED

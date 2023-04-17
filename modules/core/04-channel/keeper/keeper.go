@@ -593,7 +593,20 @@ func (k Keeper) ValidateUpgradeFields(ctx sdk.Context, proposedUpgrade types.Upg
 		return errorsmod.Wrap(types.ErrInvalidChannelOrdering, "channel ordering must be a subset of the new ordering")
 	}
 
-	return k.connectionKeeper.CheckIsOpen(ctx, proposedUpgrade.ConnectionHops[0])
+	connectionID := proposedUpgrade.ConnectionHops[0]
+	connection, err := k.GetConnection(ctx, connectionID)
+	if err != nil {
+		return errorsmod.Wrapf(connectiontypes.ErrConnectionNotFound, "failed to retrieve connection: %s", connectionID)
+	}
+
+	if connection.GetState() != int32(connectiontypes.OPEN) {
+		return errorsmod.Wrapf(
+			connectiontypes.ErrInvalidConnectionState,
+			"connection state is not OPEN (got %s)", connectiontypes.State(connection.GetState()).String(),
+		)
+	}
+
+	return nil
 }
 
 // common functionality for IteratePacketCommitment and IteratePacketAcknowledgement

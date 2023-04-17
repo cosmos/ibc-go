@@ -10,7 +10,7 @@ import (
 
 // ValidateBasic performs a basic validation of the upgrade fields
 func (u Upgrade) ValidateBasic() error {
-	if err := u.UpgradeFields.ValidateBasic(); err != nil {
+	if err := u.Fields.ValidateBasic(); err != nil {
 		return errorsmod.Wrap(err, "proposed upgrade fields are invalid")
 	}
 
@@ -23,17 +23,17 @@ func (u Upgrade) ValidateBasic() error {
 }
 
 // ValidateBasic performs a basic validation of the proposed upgrade fields
-func (muf UpgradeFields) ValidateBasic() error {
-	if !collections.Contains(muf.Ordering, []Order{ORDERED, UNORDERED}) {
-		return errorsmod.Wrap(ErrInvalidChannelOrdering, muf.Ordering.String())
+func (uf UpgradeFields) ValidateBasic() error {
+	if !collections.Contains(uf.Ordering, []Order{ORDERED, UNORDERED}) {
+		return errorsmod.Wrap(ErrInvalidChannelOrdering, uf.Ordering.String())
 	}
 
-	if len(muf.ConnectionHops) != 1 {
+	if len(uf.ConnectionHops) != 1 {
 		return errorsmod.Wrap(ErrTooManyConnectionHops, "current IBC version only supports one connection hop")
 	}
 
-	if strings.TrimSpace(muf.Version) == "" {
-		return errorsmod.Wrap(ErrInvalidUpgrade, "proposed upgrade version cannot be empty")
+	if strings.TrimSpace(uf.Version) == "" {
+		return errorsmod.Wrap(ErrInvalidChannelVersion, "version cannot be empty")
 	}
 
 	return nil
