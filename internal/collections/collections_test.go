@@ -15,7 +15,7 @@ func TestContainsString(t *testing.T) {
 		expected bool
 	}{
 		{"failure empty haystack", []string{}, "needle", false},
-		{"failure emtpy needle", []string{"hay", "stack"}, "", false},
+		{"failure empty needle", []string{"hay", "stack"}, "", false},
 		{"failure needle not in haystack", []string{"hay", "stack"}, "needle", false},
 		{"success needle in haystack", []string{"hay", "stack", "needle"}, "needle", true},
 	}
