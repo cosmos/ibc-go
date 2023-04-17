@@ -589,7 +589,7 @@ func (suite *KeeperTestSuite) TestValidateProposedUpgradeFields() {
 			expPass: true,
 		},
 		{
-			name: "modify ordering to invalid value",
+			name: "fails with stricter ordering",
 			malleate: func() {
 				proposedUpgrade.Ordering = types.ORDERED
 			},

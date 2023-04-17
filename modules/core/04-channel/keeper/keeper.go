@@ -580,11 +580,8 @@ func (k Keeper) DeleteUpgradeTimeout(ctx sdk.Context, portID, channelID string) 
 // - the proposed version is non-empty (checked in ModifiableUpgradeFields.ValidateBasic())
 // - the proposed connection hops are not open
 func (k Keeper) ValidateUpgradeFields(ctx sdk.Context, proposedUpgrade types.UpgradeFields, existingChannel types.Channel) error {
-	currentFields := types.UpgradeFields{
-		Ordering:       existingChannel.Ordering,
-		ConnectionHops: existingChannel.ConnectionHops,
-		Version:        existingChannel.Version,
-	}
+	currentFields := extractUpgradeFields(existingChannel)
+
 	if reflect.DeepEqual(proposedUpgrade, currentFields) {
 		return errorsmod.Wrap(types.ErrChannelExists, "existing channel end is identical to proposed upgrade channel end")
 	}
@@ -607,6 +604,15 @@ func (k Keeper) ValidateUpgradeFields(ctx sdk.Context, proposedUpgrade types.Upg
 	}
 
 	return nil
+}
+
+// extractUpgradeFields returns the upgrade fields from the provided channel.
+func extractUpgradeFields(channel types.Channel) types.UpgradeFields {
+	return types.UpgradeFields{
+		Ordering:       channel.Ordering,
+		ConnectionHops: channel.ConnectionHops,
+		Version:        channel.Version,
+	}
 }
 
 // common functionality for IteratePacketCommitment and IteratePacketAcknowledgement
