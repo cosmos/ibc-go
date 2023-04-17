@@ -50,7 +50,7 @@ func NewKeeper(
 	}
 
 	// panic if any of the keepers passed in is empty
-	if isEmpty(stakingKeeper) {
+	if reflect.ValueOf(stakingKeeper).IsZero() {
 		panic(fmt.Errorf("cannot initialize IBC keeper: empty staking keeper"))
 	}
 	if isEmpty(upgradeKeeper) {
