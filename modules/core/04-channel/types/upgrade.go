@@ -46,6 +46,8 @@ func (u Upgrade) ValidateBasic() error {
 		return errorsmod.Wrap(ErrInvalidUpgrade, "upgrade timeout cannot be empty")
 	}
 
+	// check LatestSequenceSend to show intent. As this is a uint64 a negative value is not possible.
+	//nolint
 	if u.LatestSequenceSend < 0 {
 		return errorsmod.Wrap(ibcerrors.ErrInvalidSequence, "latest sequence send must be greater than or equal to 0")
 	}
