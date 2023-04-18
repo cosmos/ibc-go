@@ -61,9 +61,9 @@ We require that all researchers:
 If you follow these guidelines when reporting an issue to us, we commit to:
 
 * Not pursue or support any legal action related to your research on this
-  vulnerability
+  vulnerability.
 * Work with you to understand, resolve and ultimately disclose the issue in a
-  timely fashion
+  timely fashion.
 
 ### More information
 
