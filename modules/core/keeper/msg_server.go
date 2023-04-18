@@ -719,12 +719,12 @@ func (k Keeper) ChannelUpgradeInit(goCtx context.Context, msg *channeltypes.MsgC
 
 	proposedVersion, err := cbs.OnChanUpgradeInit(
 		ctx,
-		msg.ProposedUpgrade.UpgradeFields.Ordering,
-		msg.ProposedUpgrade.UpgradeFields.ConnectionHops,
+		msg.ProposedUpgrade.Fields.Ordering,
+		msg.ProposedUpgrade.Fields.ConnectionHops,
 		msg.PortId,
 		msg.ChannelId,
 		upgradeSequence,
-		msg.ProposedUpgrade.UpgradeFields.Version,
+		msg.ProposedUpgrade.Fields.Version,
 		previousVersion,
 	)
 	if err != nil {
@@ -733,7 +733,7 @@ func (k Keeper) ChannelUpgradeInit(goCtx context.Context, msg *channeltypes.MsgC
 	}
 
 	upgrade := msg.ProposedUpgrade
-	upgrade.UpgradeFields.Version = proposedVersion
+	upgrade.Fields.Version = proposedVersion
 
 	k.ChannelKeeper.WriteUpgradeInitChannel(ctx, msg.PortId, msg.ChannelId, upgrade)
 

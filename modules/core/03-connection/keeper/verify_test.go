@@ -872,7 +872,7 @@ func (suite *KeeperTestSuite) TestVerifyUpgrade() {
 		{
 			name: "verification fails when the ordering is different",
 			malleate: func() {
-				upgrade.UpgradeFields.Ordering = channeltypes.ORDERED
+				upgrade.Fields.Ordering = channeltypes.ORDERED
 			},
 			expPass: false,
 		},
@@ -888,7 +888,7 @@ func (suite *KeeperTestSuite) TestVerifyUpgrade() {
 			suite.coordinator.Setup(path)
 
 			upgrade = channeltypes.NewUpgrade(
-				channeltypes.NewModifiableUpgradeFields(channeltypes.UNORDERED, []string{path.EndpointA.ConnectionID}, "v1.0.0"),
+				channeltypes.NewUpgradeFields(channeltypes.UNORDERED, []string{path.EndpointA.ConnectionID}, "v1.0.0"),
 				channeltypes.NewUpgradeTimeout(clienttypes.ZeroHeight(), 100000),
 				0,
 			)

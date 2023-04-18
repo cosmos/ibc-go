@@ -600,12 +600,9 @@ func (k Keeper) SetUpgrade(ctx sdk.Context, portID, channelID string, upgrade ty
 // - the proposed connection hops do not exist
 // - the proposed version is non-empty (checked in UpgradeFields.ValidateBasic())
 // - the proposed connection hops are not open
-func (k Keeper) ValidateUpgradeFields(ctx sdk.Context, proposedUpgrade types.ModifiableUpgradeFields, existingChannel types.Channel) error {
-	currentFields := types.ModifiableUpgradeFields{
-		Ordering:       existingChannel.Ordering,
-		ConnectionHops: existingChannel.ConnectionHops,
-		Version:        existingChannel.Version,
-	}
+func (k Keeper) ValidateUpgradeFields(ctx sdk.Context, proposedUpgrade types.UpgradeFields, existingChannel types.Channel) error {
+	currentFields := extractUpgradeFields(existingChannel)
+
 	if reflect.DeepEqual(proposedUpgrade, currentFields) {
 		return errorsmod.Wrap(types.ErrChannelExists, "existing channel end is identical to proposed upgrade channel end")
 	}
@@ -614,7 +611,29 @@ func (k Keeper) ValidateUpgradeFields(ctx sdk.Context, proposedUpgrade types.Mod
 		return errorsmod.Wrap(types.ErrInvalidChannelOrdering, "channel ordering must be a subset of the new ordering")
 	}
 
-	return k.connectionKeeper.CheckIsOpen(ctx, proposedUpgrade.ConnectionHops[0])
+	connectionID := proposedUpgrade.ConnectionHops[0]
+	connection, err := k.GetConnection(ctx, connectionID)
+	if err != nil {
+		return errorsmod.Wrapf(connectiontypes.ErrConnectionNotFound, "failed to retrieve connection: %s", connectionID)
+	}
+
+	if connection.GetState() != int32(connectiontypes.OPEN) {
+		return errorsmod.Wrapf(
+			connectiontypes.ErrInvalidConnectionState,
+			"connection state is not OPEN (got %s)", connectiontypes.State(connection.GetState()).String(),
+		)
+	}
+
+	return nil
+}
+
+// extractUpgradeFields returns the upgrade fields from the provided channel.
+func extractUpgradeFields(channel types.Channel) types.UpgradeFields {
+	return types.UpgradeFields{
+		Ordering:       channel.Ordering,
+		ConnectionHops: channel.ConnectionHops,
+		Version:        channel.Version,
+	}
 }
 
 // common functionality for IteratePacketCommitment and IteratePacketAcknowledgement

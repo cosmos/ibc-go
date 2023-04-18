@@ -29,7 +29,7 @@ func (k Keeper) ChanUpgradeInit(
 		return 0, "", errorsmod.Wrapf(types.ErrInvalidChannelState, "expected %s, got %s", types.OPEN, channel.State)
 	}
 
-	if err := k.ValidateUpgradeFields(ctx, upgrade.UpgradeFields, channel); err != nil {
+	if err := k.ValidateUpgradeFields(ctx, upgrade.Fields, channel); err != nil {
 		return 0, "", err
 	}
 

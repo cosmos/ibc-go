@@ -566,7 +566,7 @@ func (endpoint *Endpoint) TimeoutOnClose(packet channeltypes.Packet) error {
 
 func (endpoint *Endpoint) ChanUpgradeInit(timeoutHeight clienttypes.Height, timeoutTimestamp uint64) error {
 	proposedUpgrade := channeltypes.NewUpgrade(
-		channeltypes.NewModifiableUpgradeFields(endpoint.ChannelConfig.Order, []string{endpoint.ConnectionID}, endpoint.ChannelConfig.Version),
+		channeltypes.NewUpgradeFields(endpoint.ChannelConfig.Order, []string{endpoint.ConnectionID}, endpoint.ChannelConfig.Version),
 		channeltypes.NewUpgradeTimeout(timeoutHeight, timeoutTimestamp),
 		0,
 	)

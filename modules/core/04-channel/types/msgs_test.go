@@ -461,7 +461,7 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeInitValidateBasic() {
 		{
 			"empty proposed upgrade channel version",
 			func() {
-				msg.ProposedUpgrade.UpgradeFields.Version = "  "
+				msg.ProposedUpgrade.Fields.Version = "  "
 			},
 			false,
 		},
@@ -486,7 +486,7 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeInitValidateBasic() {
 		tc := tc
 		suite.Run(tc.name, func() {
 			proposedUpgrade := types.NewUpgrade(
-				types.NewModifiableUpgradeFields(types.UNORDERED, []string{ibctesting.FirstChannelID}, mock.Version),
+				types.NewUpgradeFields(types.UNORDERED, []string{ibctesting.FirstChannelID}, mock.Version),
 				types.NewUpgradeTimeout(clienttypes.NewHeight(0, 10000), timeoutTimestamp),
 				0,
 			)

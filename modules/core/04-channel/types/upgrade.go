@@ -10,17 +10,17 @@ import (
 )
 
 // NewUpgrade creates a new Upgrade instance.
-func NewUpgrade(modifiableFields ModifiableUpgradeFields, timeout UpgradeTimeout, lastPacketSent uint64) *Upgrade {
+func NewUpgrade(upgradeFields UpgradeFields, timeout UpgradeTimeout, lastSequenceSend uint64) *Upgrade {
 	return &Upgrade{
-		UpgradeFields:  modifiableFields,
-		Timeout:        timeout,
-		LastPacketSent: lastPacketSent,
+		Fields:             upgradeFields,
+		Timeout:            timeout,
+		LatestSequenceSend: lastSequenceSend,
 	}
 }
 
-// NewModifiableUpgradeFields returns a new ModifiableUpgradeFields instance.
-func NewModifiableUpgradeFields(ordering Order, connectionHops []string, version string) ModifiableUpgradeFields {
-	return ModifiableUpgradeFields{
+// NewUpgradeFields returns a new ModifiableUpgradeFields instance.
+func NewUpgradeFields(ordering Order, connectionHops []string, version string) UpgradeFields {
+	return UpgradeFields{
 		Ordering:       ordering,
 		ConnectionHops: connectionHops,
 		Version:        version,
@@ -37,7 +37,7 @@ func NewUpgradeTimeout(height clienttypes.Height, timestamp uint64) UpgradeTimeo
 
 // ValidateBasic performs a basic validation of the upgrade fields
 func (u Upgrade) ValidateBasic() error {
-	if err := u.UpgradeFields.ValidateBasic(); err != nil {
+	if err := u.Fields.ValidateBasic(); err != nil {
 		return errorsmod.Wrap(err, "proposed upgrade fields are invalid")
 	}
 
@@ -50,17 +50,17 @@ func (u Upgrade) ValidateBasic() error {
 }
 
 // ValidateBasic performs a basic validation of the proposed upgrade fields
-func (muf ModifiableUpgradeFields) ValidateBasic() error {
-	if !collections.Contains(muf.Ordering, []Order{ORDERED, UNORDERED}) {
-		return errorsmod.Wrap(ErrInvalidChannelOrdering, muf.Ordering.String())
+func (uf UpgradeFields) ValidateBasic() error {
+	if !collections.Contains(uf.Ordering, []Order{ORDERED, UNORDERED}) {
+		return errorsmod.Wrap(ErrInvalidChannelOrdering, uf.Ordering.String())
 	}
 
-	if len(muf.ConnectionHops) != 1 {
+	if len(uf.ConnectionHops) != 1 {
 		return errorsmod.Wrap(ErrTooManyConnectionHops, "current IBC version only supports one connection hop")
 	}
 
-	if strings.TrimSpace(muf.Version) == "" {
-		return errorsmod.Wrap(ErrInvalidUpgrade, "proposed upgrade version cannot be empty")
+	if strings.TrimSpace(uf.Version) == "" {
+		return errorsmod.Wrap(ErrInvalidChannelVersion, "version cannot be empty")
 	}
 
 	return nil
