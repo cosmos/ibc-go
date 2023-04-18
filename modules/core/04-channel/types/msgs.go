@@ -568,11 +568,11 @@ func (msg MsgChannelUpgradeTry) ValidateBasic() error {
 	if msg.CounterpartyUpgradeSequence == 0 {
 		return errorsmod.Wrap(ibcerrors.ErrInvalidSequence, "counterparty sequence cannot be 0")
 	}
-	if msg.ProposedUpgrade.Timeout.TimeoutHeight.IsZero() && msg.ProposedUpgrade.Timeout.TimeoutTimestamp == 0 {
+	if msg.ProposedUpgrade.Timeout.Height.IsZero() && msg.ProposedUpgrade.Timeout.Timestamp == 0 {
 		return errorsmod.Wrap(ErrInvalidUpgradeTimeout, "timeout height or timeout timestamp must be non-zero")
 	}
 
-	if !reflect.DeepEqual(msg.ProposedUpgrade.UpgradeFields, msg.CounterpartyProposedUpgrade.UpgradeFields) {
+	if !reflect.DeepEqual(msg.ProposedUpgrade.Fields, msg.CounterpartyProposedUpgrade.Fields) {
 		return errorsmod.Wrap(ErrInvalidUpgrade, "proposed upgrade fields are not equal on both sides of the upgrade")
 	}
 

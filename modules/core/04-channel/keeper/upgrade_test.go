@@ -248,7 +248,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 			expVersion = mock.Version
 
 			counterpartyUpgrade = types.NewUpgrade(
-				types.NewModifiableUpgradeFields(
+				types.NewUpgradeFields(
 					types.UNORDERED, []string{path.EndpointA.ConnectionID}, fmt.Sprintf("%s-v2", mock.Version),
 				),
 				types.NewUpgradeTimeout(path.EndpointB.Chain.GetTimeoutHeight(), 0),

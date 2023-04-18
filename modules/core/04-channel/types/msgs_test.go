@@ -541,16 +541,16 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeTryValidateBasic() {
 		{
 			"timeout height is zero && timeout timestamp is zero",
 			func() {
-				msg.ProposedUpgrade.Timeout.TimeoutHeight = clienttypes.ZeroHeight()
-				msg.ProposedUpgrade.Timeout.TimeoutTimestamp = 0
+				msg.ProposedUpgrade.Timeout.Height = clienttypes.ZeroHeight()
+				msg.ProposedUpgrade.Timeout.Timestamp = 0
 			},
 			false,
 		},
 		{
 			"cannot submit a proposed upgrade and counterparty proposed upgrade with differing modifiable fields",
 			func() {
-				msg.ProposedUpgrade.UpgradeFields.Version = "different-version"
-				msg.CounterpartyProposedUpgrade.UpgradeFields.Version = "very-different-version"
+				msg.ProposedUpgrade.Fields.Version = "different-version"
+				msg.CounterpartyProposedUpgrade.Fields.Version = "very-different-version"
 			},
 			false,
 		},
@@ -588,13 +588,13 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeTryValidateBasic() {
 		tc := tc
 		suite.Run(tc.name, func() {
 			proposedUpgrade := types.NewUpgrade(
-				types.NewModifiableUpgradeFields(types.UNORDERED, []string{ibctesting.FirstChannelID}, mock.Version),
+				types.NewUpgradeFields(types.UNORDERED, []string{ibctesting.FirstChannelID}, mock.Version),
 				types.NewUpgradeTimeout(clienttypes.NewHeight(0, 10000), timeoutTimestamp),
 				1,
 			)
 
 			counterpartyProposedUpgrade := types.NewUpgrade(
-				types.NewModifiableUpgradeFields(types.UNORDERED, []string{ibctesting.FirstChannelID}, mock.Version),
+				types.NewUpgradeFields(types.UNORDERED, []string{ibctesting.FirstChannelID}, mock.Version),
 				types.NewUpgradeTimeout(clienttypes.NewHeight(0, 10000), timeoutTimestamp),
 				1,
 			)

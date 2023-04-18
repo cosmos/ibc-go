@@ -68,13 +68,13 @@ func (ut UpgradeTimeout) HasPassed(ctx sdk.Context) (bool, error) {
 
 	selfHeight := clienttypes.GetSelfHeight(ctx)
 
-	timeoutHeight := ut.TimeoutHeight
+	timeoutHeight := ut.Height
 	if selfHeight.GTE(timeoutHeight) {
 		return true, errorsmod.Wrapf(ErrInvalidUpgrade, "block height >= upgrade timeout height (%s >= %s)", selfHeight, timeoutHeight)
 	}
 
 	selfTime := uint64(ctx.BlockTime().UnixNano())
-	timeoutTimestamp := ut.TimeoutTimestamp
+	timeoutTimestamp := ut.Timestamp
 	if selfTime >= timeoutTimestamp {
 		return true, errorsmod.Wrapf(ErrInvalidUpgrade, "block timestamp >= upgrade timeout timestamp (%s >= %s)", ctx.BlockTime(), time.Unix(0, int64(timeoutTimestamp)))
 	}
