@@ -797,14 +797,14 @@ func (k Keeper) ChannelUpgradeTry(goCtx context.Context, msg *channeltypes.MsgCh
 
 	proposedUpgradeVersion, err := cbs.OnChanUpgradeTry(
 		ctx,
-		msg.CounterpartyProposedUpgrade.UpgradeFields.Ordering,
-		msg.CounterpartyProposedUpgrade.UpgradeFields.ConnectionHops,
+		msg.CounterpartyProposedUpgrade.Fields.Ordering,
+		msg.CounterpartyProposedUpgrade.Fields.ConnectionHops,
 		msg.PortId,
 		msg.ChannelId,
 		upgradeSequence,
 		channel.Counterparty,
 		channel.Version,
-		msg.CounterpartyProposedUpgrade.UpgradeFields.Version,
+		msg.CounterpartyProposedUpgrade.Fields.Version,
 	)
 	if err != nil {
 		ctx.Logger().Error("channel upgrade try callback failed", "port-id", msg.PortId, "channel-id", msg.ChannelId, "error", err.Error())

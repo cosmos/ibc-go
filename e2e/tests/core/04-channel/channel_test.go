@@ -51,3 +51,4 @@ func (s *ChannelUpgradeTestSuite) TestChannelUpgrade() {
 		s.Require().Equal(channeltypes.INITUPGRADE, channel.State)
 	})
 }
+

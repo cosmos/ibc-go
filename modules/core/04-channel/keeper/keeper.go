@@ -527,51 +527,6 @@ func (k Keeper) DeleteUpgradeRestoreChannel(ctx sdk.Context, portID, channelID s
 	store.Delete(host.ChannelRestoreKey(portID, channelID))
 }
 
-// GetUpgradeSequence returns the upgrade sequence for the provided port and channel identifers.
-func (k Keeper) GetUpgradeSequence(ctx sdk.Context, portID, channelID string) (uint64, bool) {
-	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(host.ChannelUpgradeSequenceKey(portID, channelID))
-	if bz == nil {
-		return 0, false
-	}
-
-	return sdk.BigEndianToUint64(bz), true
-}
-
-// SetUpgradeSequence sets the upgrade sequence using the provided port and channel identifiers.
-func (k Keeper) SetUpgradeSequence(ctx sdk.Context, portID, channelID string, sequence uint64) {
-	store := ctx.KVStore(k.storeKey)
-	bz := sdk.Uint64ToBigEndian(sequence)
-	store.Set(host.ChannelUpgradeSequenceKey(portID, channelID), bz)
-}
-
-// GetUpgradeTimeout returns the upgrade timeout stored in state for the provided port and channel identifiers.
-func (k Keeper) GetUpgradeTimeout(ctx sdk.Context, portID, channelID string) (types.UpgradeTimeout, bool) {
-	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(host.ChannelUpgradeTimeoutKey(portID, channelID))
-	if bz == nil {
-		return types.UpgradeTimeout{}, false
-	}
-
-	var upgradeTimeout types.UpgradeTimeout
-	k.cdc.MustUnmarshal(bz, &upgradeTimeout)
-
-	return upgradeTimeout, true
-}
-
-// SetUpgradeTimeout sets the upgrade timeout in store using the provided port and channel identifiers.
-func (k Keeper) SetUpgradeTimeout(ctx sdk.Context, portID, channelID string, upgradeTimeout types.UpgradeTimeout) {
-	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshal(&upgradeTimeout)
-	store.Set(host.ChannelUpgradeTimeoutKey(portID, channelID), bz)
-}
-
-// DeleteUpgradeTimeout deletes the upgrade timeout in state for the provided port and channel identifiers.
-func (k Keeper) DeleteUpgradeTimeout(ctx sdk.Context, portID, channelID string) {
-	store := ctx.KVStore(k.storeKey)
-	store.Delete(host.ChannelUpgradeTimeoutKey(portID, channelID))
-}
-
 // GetUpgrade returns the proposed upgrade for the provided port and channel identifiers.
 func (k Keeper) GetUpgrade(ctx sdk.Context, portID, channelID string) (types.Upgrade, bool) {
 	store := ctx.KVStore(k.storeKey)

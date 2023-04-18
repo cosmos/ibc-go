@@ -5,6 +5,7 @@ import (
 
 	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	"github.com/cosmos/ibc-go/v7/testing/mock"
 )
@@ -142,10 +143,10 @@ func (suite *KeeperTestSuite) TestChanUpgradeInit() {
 
 func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 	var (
-		path        *ibctesting.Path
-		expSequence uint64
-		expVersion  string
-		counterpartyUpgrade     *types.Upgrade
+		path                *ibctesting.Path
+		expSequence         uint64
+		expVersion          string
+		counterpartyUpgrade *types.Upgrade
 		proposedUpgrade     *types.Upgrade
 	)
 
@@ -255,17 +256,29 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 				0,
 			)
 
+			proposedUpgrade = types.NewUpgrade(
+				types.NewUpgradeFields(
+					types.UNORDERED, []string{path.EndpointB.ConnectionID}, fmt.Sprintf("%s-v2", mock.Version),
+				),
+				types.NewUpgradeTimeout(path.EndpointA.Chain.GetTimeoutHeight(), 0),
+				0,
+			)
+
 			tc.malleate()
 
 			counterpartySequence, previousVersion, err := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.ChanUpgradeInit(
 				suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, *counterpartyUpgrade,
 			)
 
+			channelKey := host.ChannelKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+			proofCounterpartyChannel, proofHeight := suite.chainA.QueryProof(channelKey)
+
+			upgradeKey := host.ChannelUpgradeKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+			proofUpgrade, _ := suite.chainA.QueryProof(upgradeKey)
+
 			sequence, err := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.ChanUpgradeTry(
 				suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, *proposedUpgrade,
 				*counterpartyUpgrade, counterpartySequence, proofCounterpartyChannel, proofUpgrade, proofHeight)
-
-			
 
 			if tc.expPass {
 				suite.Require().NoError(err)
