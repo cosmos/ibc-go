@@ -593,14 +593,14 @@ func (k Keeper) SetUpgrade(ctx sdk.Context, portID, channelID string, upgrade ty
 	store.Set(host.ChannelUpgradeKey(portID, channelID), bz)
 }
 
-// ValidateProposedUpgradeFields validates the proposed upgrade fields against the existing channel.
+// ValidateUpgradeFields validates the proposed upgrade fields against the existing channel.
 // It returns an error if the following constraints are not met:
 // - there exists at least one valid proposed change to the existing channel fields
 // - the proposed order is a subset of the existing order
 // - the proposed connection hops do not exist
-// - the proposed version is non-empty (checked in ModifiableUpgradeFields.ValidateBasic())
+// - the proposed version is non-empty (checked in UpgradeFields.ValidateBasic())
 // - the proposed connection hops are not open
-func (k Keeper) ValidateProposedUpgradeFields(ctx sdk.Context, proposedUpgrade types.ModifiableUpgradeFields, existingChannel types.Channel) error {
+func (k Keeper) ValidateUpgradeFields(ctx sdk.Context, proposedUpgrade types.ModifiableUpgradeFields, existingChannel types.Channel) error {
 	currentFields := types.ModifiableUpgradeFields{
 		Ordering:       existingChannel.Ordering,
 		ConnectionHops: existingChannel.ConnectionHops,
