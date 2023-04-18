@@ -1,15 +1,16 @@
 package keeper
 
 import (
+	"reflect"
 	"strconv"
 	"strings"
 
+	errorsmod "cosmossdk.io/errors"
 	db "github.com/cometbft/cometbft-db"
 	"github.com/cometbft/cometbft/libs/log"
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	errorsmod "github.com/cosmos/cosmos-sdk/types/errors"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
@@ -569,6 +570,49 @@ func (k Keeper) SetUpgradeTimeout(ctx sdk.Context, portID, channelID string, upg
 func (k Keeper) DeleteUpgradeTimeout(ctx sdk.Context, portID, channelID string) {
 	store := ctx.KVStore(k.storeKey)
 	store.Delete(host.ChannelUpgradeTimeoutKey(portID, channelID))
+}
+
+// ValidateUpgradeFields validates the proposed upgrade fields against the existing channel.
+// It returns an error if the following constraints are not met:
+// - there exists at least one valid proposed change to the existing channel fields
+// - the proposed order is a subset of the existing order
+// - the proposed connection hops do not exist
+// - the proposed version is non-empty (checked in UpgradeFields.ValidateBasic())
+// - the proposed connection hops are not open
+func (k Keeper) ValidateUpgradeFields(ctx sdk.Context, proposedUpgrade types.UpgradeFields, existingChannel types.Channel) error {
+	currentFields := extractUpgradeFields(existingChannel)
+
+	if reflect.DeepEqual(proposedUpgrade, currentFields) {
+		return errorsmod.Wrap(types.ErrChannelExists, "existing channel end is identical to proposed upgrade channel end")
+	}
+
+	if !currentFields.Ordering.SubsetOf(proposedUpgrade.Ordering) {
+		return errorsmod.Wrap(types.ErrInvalidChannelOrdering, "channel ordering must be a subset of the new ordering")
+	}
+
+	connectionID := proposedUpgrade.ConnectionHops[0]
+	connection, err := k.GetConnection(ctx, connectionID)
+	if err != nil {
+		return errorsmod.Wrapf(connectiontypes.ErrConnectionNotFound, "failed to retrieve connection: %s", connectionID)
+	}
+
+	if connection.GetState() != int32(connectiontypes.OPEN) {
+		return errorsmod.Wrapf(
+			connectiontypes.ErrInvalidConnectionState,
+			"connection state is not OPEN (got %s)", connectiontypes.State(connection.GetState()).String(),
+		)
+	}
+
+	return nil
+}
+
+// extractUpgradeFields returns the upgrade fields from the provided channel.
+func extractUpgradeFields(channel types.Channel) types.UpgradeFields {
+	return types.UpgradeFields{
+		Ordering:       channel.Ordering,
+		ConnectionHops: channel.ConnectionHops,
+		Version:        channel.Version,
+	}
 }
 
 // common functionality for IteratePacketCommitment and IteratePacketAcknowledgement

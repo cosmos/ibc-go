@@ -8,7 +8,10 @@ import (
 
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	ibcmock "github.com/cosmos/ibc-go/v7/testing/mock"
 )
@@ -556,4 +559,89 @@ func (suite *KeeperTestSuite) TestUpgradeTimeoutAccessors() {
 		_, found := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetUpgradeTimeout(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 		suite.Require().False(found)
 	})
+}
+
+func (suite *KeeperTestSuite) TestValidateProposedUpgradeFields() {
+	var (
+		proposedUpgrade *types.UpgradeFields
+		path            *ibctesting.Path
+	)
+
+	tests := []struct {
+		name     string
+		malleate func()
+		expPass  bool
+	}{
+		{
+			name: "change channel version",
+			malleate: func() {
+				proposedUpgrade.Version = "1.0.0"
+			},
+			expPass: true,
+		},
+		{
+			name: "change connection hops",
+			malleate: func() {
+				path := ibctesting.NewPath(suite.chainA, suite.chainB)
+				suite.coordinator.Setup(path)
+				proposedUpgrade.ConnectionHops = []string{path.EndpointA.ConnectionID}
+			},
+			expPass: true,
+		},
+		{
+			name: "fails with stricter ordering",
+			malleate: func() {
+				proposedUpgrade.Ordering = types.ORDERED
+			},
+			expPass: false,
+		},
+		{
+			name:     "fails with unmodified fields",
+			malleate: func() {},
+			expPass:  false,
+		},
+		{
+			name: "fails when connection is not set",
+			malleate: func() {
+				storeKey := suite.chainA.GetSimApp().GetKey(exported.StoreKey)
+				kvStore := suite.chainA.GetContext().KVStore(storeKey)
+				kvStore.Delete(host.ConnectionKey(ibctesting.FirstConnectionID))
+			},
+			expPass: false,
+		},
+		{
+			name: "fails when connection is not open",
+			malleate: func() {
+				connection := path.EndpointA.GetConnection()
+				connection.State = connectiontypes.UNINITIALIZED
+				path.EndpointA.SetConnection(connection)
+			},
+			expPass: false,
+		},
+	}
+
+	for _, tc := range tests {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.Setup(path)
+
+			existingChannel := path.EndpointA.GetChannel()
+			proposedUpgrade = &types.UpgradeFields{
+				Ordering:       existingChannel.Ordering,
+				ConnectionHops: existingChannel.ConnectionHops,
+				Version:        existingChannel.Version,
+			}
+
+			tc.malleate()
+
+			err := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.ValidateUpgradeFields(suite.chainA.GetContext(), *proposedUpgrade, existingChannel)
+			if tc.expPass {
+				suite.Require().NoError(err)
+			} else {
+				suite.Require().Error(err)
+			}
+		})
+	}
 }
