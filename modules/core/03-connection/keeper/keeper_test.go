@@ -8,7 +8,6 @@ import (
 
 	"github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
-	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
@@ -176,65 +175,4 @@ func (suite *KeeperTestSuite) TestLocalhostConnectionEndCreation() {
 	suite.Require().Equal(types.ExportedVersionsToProto(types.GetCompatibleVersions()), connectionEnd.Versions)
 	expectedCounterParty := types.NewCounterparty(exported.LocalhostClientID, exported.LocalhostConnectionID, commitmenttypes.NewMerklePrefix(connectionKeeper.GetCommitmentPrefix().Bytes()))
 	suite.Require().Equal(expectedCounterParty, connectionEnd.Counterparty)
-}
-
-func (suite *KeeperTestSuite) TestCheckIsOpen() {
-	var path *ibctesting.Path
-
-	cases := []struct {
-		msg      string
-		malleate func()
-		expPass  bool
-	}{
-		{
-			msg:      "success",
-			malleate: func() {},
-			expPass:  true,
-		},
-		{
-			msg: "uninitialized connection",
-			malleate: func() {
-				connection := path.EndpointA.GetConnection()
-				connection.State = types.UNINITIALIZED
-				path.EndpointA.SetConnection(connection)
-			},
-			expPass: false,
-		},
-		{
-			msg: "init connection",
-			malleate: func() {
-				connection := path.EndpointA.GetConnection()
-				connection.State = types.INIT
-				path.EndpointA.SetConnection(connection)
-			},
-			expPass: false,
-		},
-		{
-			msg: "no connection",
-			malleate: func() {
-				storeKey := suite.chainA.GetSimApp().GetKey(exported.StoreKey)
-				kvStore := suite.chainA.GetContext().KVStore(storeKey)
-				kvStore.Delete(host.ConnectionKey(ibctesting.FirstConnectionID))
-			},
-			expPass: false,
-		},
-	}
-
-	for _, tc := range cases {
-		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
-			suite.SetupTest() // reset
-			path = ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.Setup(path)
-
-			tc.malleate()
-
-			connectionKeeper := suite.chainA.GetSimApp().IBCKeeper.ConnectionKeeper
-
-			if tc.expPass {
-				suite.Require().NoError(connectionKeeper.CheckIsOpen(suite.chainA.GetContext(), ibctesting.FirstConnectionID))
-			} else {
-				suite.Require().Error(connectionKeeper.CheckIsOpen(suite.chainA.GetContext(), ibctesting.FirstConnectionID))
-			}
-		})
-	}
 }

@@ -26,12 +26,12 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // Upgrade is a verifiable type which contains the relevant information
 // for an attempted upgrade. It provides the proposed changes to the channel
-// end, the timeout for this upgrade attempt and the last packet sequence sent
+// end, the timeout for this upgrade attempt and the latest packet sequence sent
 // to allow the counterparty to block sends after the upgrade has started.
 type Upgrade struct {
-	UpgradeFields  ModifiableUpgradeFields `protobuf:"bytes,1,opt,name=upgrade_fields,json=upgradeFields,proto3" json:"upgrade_fields"`
-	Timeout        UpgradeTimeout          `protobuf:"bytes,2,opt,name=timeout,proto3" json:"timeout"`
-	LastPacketSent uint64                  `protobuf:"varint,3,opt,name=last_packet_sent,json=lastPacketSent,proto3" json:"last_packet_sent,omitempty"`
+	Fields             UpgradeFields  `protobuf:"bytes,1,opt,name=fields,proto3" json:"fields"`
+	Timeout            UpgradeTimeout `protobuf:"bytes,2,opt,name=timeout,proto3" json:"timeout"`
+	LatestSequenceSend uint64         `protobuf:"varint,3,opt,name=latest_sequence_send,json=latestSequenceSend,proto3" json:"latest_sequence_send,omitempty"`
 }
 
 func (m *Upgrade) Reset()         { *m = Upgrade{} }
@@ -67,11 +67,11 @@ func (m *Upgrade) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_Upgrade proto.InternalMessageInfo
 
-func (m *Upgrade) GetUpgradeFields() ModifiableUpgradeFields {
+func (m *Upgrade) GetFields() UpgradeFields {
 	if m != nil {
-		return m.UpgradeFields
+		return m.Fields
 	}
-	return ModifiableUpgradeFields{}
+	return UpgradeFields{}
 }
 
 func (m *Upgrade) GetTimeout() UpgradeTimeout {
@@ -81,33 +81,33 @@ func (m *Upgrade) GetTimeout() UpgradeTimeout {
 	return UpgradeTimeout{}
 }
 
-func (m *Upgrade) GetLastPacketSent() uint64 {
+func (m *Upgrade) GetLatestSequenceSend() uint64 {
 	if m != nil {
-		return m.LastPacketSent
+		return m.LatestSequenceSend
 	}
 	return 0
 }
 
-// ModifiableUpgradeFields are the fields in a channel end which may be changed
+// UpgradeFields are the fields in a channel end which may be changed
 // during a channel upgrade.
-type ModifiableUpgradeFields struct {
+type UpgradeFields struct {
 	Ordering       Order    `protobuf:"varint,1,opt,name=ordering,proto3,enum=ibc.core.channel.v1.Order" json:"ordering,omitempty"`
 	ConnectionHops []string `protobuf:"bytes,2,rep,name=connection_hops,json=connectionHops,proto3" json:"connection_hops,omitempty"`
 	Version        string   `protobuf:"bytes,3,opt,name=version,proto3" json:"version,omitempty"`
 }
 
-func (m *ModifiableUpgradeFields) Reset()         { *m = ModifiableUpgradeFields{} }
-func (m *ModifiableUpgradeFields) String() string { return proto.CompactTextString(m) }
-func (*ModifiableUpgradeFields) ProtoMessage()    {}
-func (*ModifiableUpgradeFields) Descriptor() ([]byte, []int) {
+func (m *UpgradeFields) Reset()         { *m = UpgradeFields{} }
+func (m *UpgradeFields) String() string { return proto.CompactTextString(m) }
+func (*UpgradeFields) ProtoMessage()    {}
+func (*UpgradeFields) Descriptor() ([]byte, []int) {
 	return fileDescriptor_fb1cef68588848b2, []int{1}
 }
-func (m *ModifiableUpgradeFields) XXX_Unmarshal(b []byte) error {
+func (m *UpgradeFields) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *ModifiableUpgradeFields) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *UpgradeFields) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_ModifiableUpgradeFields.Marshal(b, m, deterministic)
+		return xxx_messageInfo_UpgradeFields.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -117,33 +117,33 @@ func (m *ModifiableUpgradeFields) XXX_Marshal(b []byte, deterministic bool) ([]b
 		return b[:n], nil
 	}
 }
-func (m *ModifiableUpgradeFields) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ModifiableUpgradeFields.Merge(m, src)
+func (m *UpgradeFields) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UpgradeFields.Merge(m, src)
 }
-func (m *ModifiableUpgradeFields) XXX_Size() int {
+func (m *UpgradeFields) XXX_Size() int {
 	return m.Size()
 }
-func (m *ModifiableUpgradeFields) XXX_DiscardUnknown() {
-	xxx_messageInfo_ModifiableUpgradeFields.DiscardUnknown(m)
+func (m *UpgradeFields) XXX_DiscardUnknown() {
+	xxx_messageInfo_UpgradeFields.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_ModifiableUpgradeFields proto.InternalMessageInfo
+var xxx_messageInfo_UpgradeFields proto.InternalMessageInfo
 
-func (m *ModifiableUpgradeFields) GetOrdering() Order {
+func (m *UpgradeFields) GetOrdering() Order {
 	if m != nil {
 		return m.Ordering
 	}
 	return NONE
 }
 
-func (m *ModifiableUpgradeFields) GetConnectionHops() []string {
+func (m *UpgradeFields) GetConnectionHops() []string {
 	if m != nil {
 		return m.ConnectionHops
 	}
 	return nil
 }
 
-func (m *ModifiableUpgradeFields) GetVersion() string {
+func (m *UpgradeFields) GetVersion() string {
 	if m != nil {
 		return m.Version
 	}
@@ -154,9 +154,9 @@ func (m *ModifiableUpgradeFields) GetVersion() string {
 // must no longer proceed with the upgrade handshake.
 type UpgradeTimeout struct {
 	// block height after which the upgrade times out
-	TimeoutHeight types.Height `protobuf:"bytes,1,opt,name=timeout_height,json=timeoutHeight,proto3" json:"timeout_height"`
+	Height types.Height `protobuf:"bytes,1,opt,name=height,proto3" json:"height"`
 	// block timestamp (in nanoseconds) after which the upgrade times out
-	TimeoutTimestamp uint64 `protobuf:"varint,2,opt,name=timeout_timestamp,json=timeoutTimestamp,proto3" json:"timeout_timestamp,omitempty"`
+	Timestamp uint64 `protobuf:"varint,2,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
 }
 
 func (m *UpgradeTimeout) Reset()         { *m = UpgradeTimeout{} }
@@ -192,16 +192,16 @@ func (m *UpgradeTimeout) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_UpgradeTimeout proto.InternalMessageInfo
 
-func (m *UpgradeTimeout) GetTimeoutHeight() types.Height {
+func (m *UpgradeTimeout) GetHeight() types.Height {
 	if m != nil {
-		return m.TimeoutHeight
+		return m.Height
 	}
 	return types.Height{}
 }
 
-func (m *UpgradeTimeout) GetTimeoutTimestamp() uint64 {
+func (m *UpgradeTimeout) GetTimestamp() uint64 {
 	if m != nil {
-		return m.TimeoutTimestamp
+		return m.Timestamp
 	}
 	return 0
 }
@@ -265,7 +265,7 @@ func (m *ErrorReceipt) GetError() string {
 
 func init() {
 	proto.RegisterType((*Upgrade)(nil), "ibc.core.channel.v1.Upgrade")
-	proto.RegisterType((*ModifiableUpgradeFields)(nil), "ibc.core.channel.v1.ModifiableUpgradeFields")
+	proto.RegisterType((*UpgradeFields)(nil), "ibc.core.channel.v1.UpgradeFields")
 	proto.RegisterType((*UpgradeTimeout)(nil), "ibc.core.channel.v1.UpgradeTimeout")
 	proto.RegisterType((*ErrorReceipt)(nil), "ibc.core.channel.v1.ErrorReceipt")
 }
@@ -273,37 +273,36 @@ func init() {
 func init() { proto.RegisterFile("ibc/core/channel/v1/upgrade.proto", fileDescriptor_fb1cef68588848b2) }
 
 var fileDescriptor_fb1cef68588848b2 = []byte{
-	// 479 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x74, 0x92, 0x31, 0x6f, 0xd4, 0x30,
-	0x14, 0xc7, 0x2f, 0xed, 0xc1, 0xf5, 0x0c, 0x84, 0x62, 0x2a, 0x11, 0xdd, 0x90, 0x1e, 0xc7, 0xc0,
-	0x49, 0xd0, 0x84, 0x2b, 0x08, 0xc4, 0x86, 0x8a, 0x80, 0x2e, 0x08, 0x94, 0x96, 0x01, 0x96, 0x28,
-	0x71, 0x5e, 0x13, 0x8b, 0xc4, 0x2f, 0xc4, 0x4e, 0x24, 0xbe, 0x00, 0x33, 0x03, 0x1f, 0xaa, 0x63,
-	0x25, 0x16, 0x26, 0x84, 0xee, 0xbe, 0x08, 0x8a, 0xe3, 0xb4, 0x45, 0x3a, 0xa6, 0xd8, 0x7f, 0xff,
-	0xde, 0xdf, 0x7f, 0xbf, 0x3c, 0x72, 0x97, 0xc7, 0xcc, 0x67, 0x58, 0x81, 0xcf, 0xb2, 0x48, 0x08,
-	0xc8, 0xfd, 0x66, 0xe1, 0xd7, 0x65, 0x5a, 0x45, 0x09, 0x78, 0x65, 0x85, 0x0a, 0xe9, 0x6d, 0x1e,
-	0x33, 0xaf, 0x45, 0x3c, 0x83, 0x78, 0xcd, 0x62, 0xb2, 0x93, 0x62, 0x8a, 0xfa, 0xdc, 0x6f, 0x57,
-	0x1d, 0x3a, 0xd9, 0xbd, 0x70, 0xcb, 0x39, 0x08, 0xd5, 0x9a, 0x75, 0x2b, 0x03, 0xac, 0xbd, 0xae,
-	0xb7, 0xd5, 0xc8, 0xec, 0xa7, 0x45, 0x46, 0x1f, 0xba, 0x00, 0xf4, 0x23, 0xb1, 0x4d, 0x96, 0xf0,
-	0x84, 0x43, 0x9e, 0x48, 0xc7, 0x9a, 0x5a, 0xf3, 0x6b, 0xfb, 0x0f, 0xbd, 0x35, 0x99, 0xbc, 0xb7,
-	0x98, 0xf0, 0x13, 0x1e, 0xc5, 0x39, 0x98, 0xfa, 0xd7, 0xba, 0xe6, 0x60, 0x78, 0xfa, 0x7b, 0x77,
-	0x10, 0xdc, 0xa8, 0x2f, 0x8b, 0xf4, 0x25, 0x19, 0x29, 0x5e, 0x00, 0xd6, 0xca, 0xd9, 0xd0, 0x9e,
-	0xf7, 0xd6, 0x7a, 0x1a, 0xa7, 0xe3, 0x0e, 0x35, 0x56, 0x7d, 0x25, 0x9d, 0x93, 0xed, 0x3c, 0x92,
-	0x2a, 0x2c, 0x23, 0xf6, 0x19, 0x54, 0x28, 0x41, 0x28, 0x67, 0x73, 0x6a, 0xcd, 0x87, 0x81, 0xdd,
-	0xea, 0xef, 0xb5, 0x7c, 0x04, 0x42, 0xcd, 0x7e, 0x58, 0xe4, 0xce, 0x7f, 0xf2, 0xd1, 0xa7, 0x64,
-	0x0b, 0xab, 0x04, 0x2a, 0x2e, 0x52, 0xfd, 0x3e, 0x7b, 0x7f, 0xb2, 0x36, 0xcb, 0xbb, 0x16, 0x0a,
-	0xce, 0x59, 0x7a, 0x9f, 0xdc, 0x64, 0x28, 0x04, 0x30, 0xc5, 0x51, 0x84, 0x19, 0x96, 0xd2, 0xd9,
-	0x98, 0x6e, 0xce, 0xc7, 0x81, 0x7d, 0x21, 0x1f, 0x62, 0x29, 0xa9, 0x43, 0x46, 0x0d, 0x54, 0x92,
-	0xa3, 0xd0, 0xe9, 0xc6, 0x41, 0xbf, 0x9d, 0x7d, 0xb3, 0x88, 0xfd, 0xef, 0x13, 0xe9, 0x1b, 0x62,
-	0x9b, 0xe7, 0x85, 0x19, 0xf0, 0x34, 0x53, 0xa6, 0xe7, 0x97, 0x33, 0x75, 0xbf, 0xb4, 0x59, 0x78,
-	0x87, 0x9a, 0xe8, 0x3b, 0x6c, 0xea, 0x3a, 0x91, 0x3e, 0x20, 0xb7, 0x7a, 0xa3, 0xf6, 0x2b, 0x55,
-	0x54, 0x94, 0xba, 0xd7, 0xc3, 0x60, 0xdb, 0x1c, 0x1c, 0xf7, 0xfa, 0xec, 0x05, 0xb9, 0xfe, 0xaa,
-	0xaa, 0xb0, 0x0a, 0x80, 0x01, 0x2f, 0x15, 0x9d, 0x90, 0x2d, 0x09, 0x5f, 0x6a, 0x10, 0x0c, 0xf4,
-	0xfd, 0xc3, 0xe0, 0x7c, 0x4f, 0x77, 0xc8, 0x15, 0x68, 0x59, 0x6d, 0x36, 0x0e, 0xba, 0xcd, 0xc1,
-	0xd1, 0xe9, 0xd2, 0xb5, 0xce, 0x96, 0xae, 0xf5, 0x67, 0xe9, 0x5a, 0xdf, 0x57, 0xee, 0xe0, 0x6c,
-	0xe5, 0x0e, 0x7e, 0xad, 0xdc, 0xc1, 0xa7, 0xe7, 0x29, 0x57, 0x59, 0x1d, 0x7b, 0x0c, 0x0b, 0x9f,
-	0xa1, 0x2c, 0x50, 0xfa, 0x3c, 0x66, 0x7b, 0x29, 0xfa, 0xcd, 0x33, 0xbf, 0xc0, 0xa4, 0xce, 0x41,
-	0x76, 0x43, 0xf9, 0xe8, 0xc9, 0x5e, 0x3f, 0x97, 0xea, 0x6b, 0x09, 0x32, 0xbe, 0xaa, 0x67, 0xf2,
-	0xf1, 0xdf, 0x00, 0x00, 0x00, 0xff, 0xff, 0xa8, 0x15, 0x49, 0xab, 0x27, 0x03, 0x00, 0x00,
+	// 450 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x7c, 0x92, 0x4f, 0x6f, 0xd3, 0x30,
+	0x18, 0xc6, 0x9b, 0xad, 0xb4, 0xab, 0x81, 0x22, 0x99, 0x1e, 0xa2, 0x0a, 0x65, 0x25, 0x1c, 0xe8,
+	0x65, 0xc9, 0x3a, 0x10, 0x7f, 0x6e, 0xd3, 0x10, 0x68, 0x37, 0xa4, 0x14, 0x2e, 0x5c, 0xaa, 0xc6,
+	0x79, 0x49, 0x2c, 0x25, 0x7e, 0x83, 0xed, 0x44, 0xe2, 0x2b, 0x70, 0xe2, 0x33, 0x71, 0xda, 0x71,
+	0x47, 0x4e, 0x08, 0xb5, 0x5f, 0x04, 0xc5, 0x4e, 0x56, 0x26, 0x55, 0xbb, 0xf9, 0xf5, 0xfb, 0xf3,
+	0xe3, 0xc7, 0x8f, 0x5f, 0xf2, 0x94, 0xc7, 0x2c, 0x64, 0x28, 0x21, 0x64, 0xd9, 0x5a, 0x08, 0xc8,
+	0xc3, 0x7a, 0x11, 0x56, 0x65, 0x2a, 0xd7, 0x09, 0x04, 0xa5, 0x44, 0x8d, 0xf4, 0x31, 0x8f, 0x59,
+	0xd0, 0x20, 0x41, 0x8b, 0x04, 0xf5, 0x62, 0x3a, 0x49, 0x31, 0x45, 0xd3, 0x0f, 0x9b, 0x95, 0x45,
+	0xa7, 0xc7, 0x3b, 0xb5, 0x9c, 0x83, 0xd0, 0x8d, 0x98, 0x5d, 0xb5, 0xc0, 0xde, 0xeb, 0x3a, 0x59,
+	0x83, 0xf8, 0xbf, 0x1c, 0x32, 0xfc, 0x6c, 0x0d, 0xd0, 0x73, 0x32, 0xf8, 0xca, 0x21, 0x4f, 0x94,
+	0xeb, 0xcc, 0x9c, 0xf9, 0xfd, 0x33, 0x3f, 0xd8, 0xe3, 0x25, 0x68, 0xe9, 0x0f, 0x86, 0xbc, 0xe8,
+	0x5f, 0xfd, 0x39, 0xee, 0x45, 0xed, 0x39, 0xfa, 0x8e, 0x0c, 0x35, 0x2f, 0x00, 0x2b, 0xed, 0x1e,
+	0x18, 0x89, 0x67, 0x77, 0x49, 0x7c, 0xb2, 0x68, 0xab, 0xd1, 0x9d, 0xa4, 0xa7, 0x64, 0x92, 0xaf,
+	0x35, 0x28, 0xbd, 0x52, 0xf0, 0xad, 0x02, 0xc1, 0x60, 0xa5, 0x40, 0x24, 0xee, 0xe1, 0xcc, 0x99,
+	0xf7, 0x23, 0x6a, 0x7b, 0xcb, 0xb6, 0xb5, 0x04, 0x91, 0xf8, 0x3f, 0x1c, 0xf2, 0xf0, 0x96, 0x2d,
+	0xfa, 0x8a, 0x1c, 0xa1, 0x4c, 0x40, 0x72, 0x91, 0x9a, 0xc7, 0x8c, 0xcf, 0xa6, 0x7b, 0x9d, 0x7c,
+	0x6c, 0xa0, 0xe8, 0x86, 0xa5, 0xcf, 0xc9, 0x23, 0x86, 0x42, 0x00, 0xd3, 0x1c, 0xc5, 0x2a, 0xc3,
+	0x52, 0xb9, 0x07, 0xb3, 0xc3, 0xf9, 0x28, 0x1a, 0xef, 0xb6, 0x2f, 0xb1, 0x54, 0xd4, 0x25, 0xc3,
+	0x1a, 0xa4, 0xe2, 0x28, 0x8c, 0xaf, 0x51, 0xd4, 0x95, 0x7e, 0x46, 0xc6, 0xb7, 0xdf, 0x47, 0xdf,
+	0x90, 0x41, 0x06, 0x3c, 0xcd, 0x74, 0x9b, 0xeb, 0xff, 0x56, 0xec, 0x77, 0xd5, 0x8b, 0xe0, 0xd2,
+	0x10, 0x5d, 0x9e, 0x96, 0xa7, 0x4f, 0xc8, 0xa8, 0x49, 0x45, 0xe9, 0x75, 0x51, 0x9a, 0x44, 0xfb,
+	0xd1, 0x6e, 0xc3, 0x3f, 0x27, 0x0f, 0xde, 0x4b, 0x89, 0x32, 0x02, 0x06, 0xbc, 0xd4, 0x74, 0x4a,
+	0x8e, 0xba, 0xc4, 0xcc, 0x4d, 0xfd, 0xe8, 0xa6, 0xa6, 0x13, 0x72, 0x0f, 0x1a, 0xd6, 0xa8, 0x8c,
+	0x22, 0x5b, 0x5c, 0x2c, 0xaf, 0x36, 0x9e, 0x73, 0xbd, 0xf1, 0x9c, 0xbf, 0x1b, 0xcf, 0xf9, 0xb9,
+	0xf5, 0x7a, 0xd7, 0x5b, 0xaf, 0xf7, 0x7b, 0xeb, 0xf5, 0xbe, 0xbc, 0x4d, 0xb9, 0xce, 0xaa, 0x38,
+	0x60, 0x58, 0x84, 0x0c, 0x55, 0x81, 0x2a, 0xe4, 0x31, 0x3b, 0x49, 0x31, 0xac, 0x5f, 0x87, 0x05,
+	0x26, 0x55, 0x0e, 0xca, 0x8e, 0xd6, 0xe9, 0xcb, 0x93, 0x6e, 0xba, 0xf4, 0xf7, 0x12, 0x54, 0x3c,
+	0x30, 0x93, 0xf5, 0xe2, 0x5f, 0x00, 0x00, 0x00, 0xff, 0xff, 0x22, 0x32, 0xbd, 0xfd, 0xed, 0x02,
+	0x00, 0x00,
 }
 
 func (m *Upgrade) Marshal() (dAtA []byte, err error) {
@@ -326,8 +325,8 @@ func (m *Upgrade) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	if m.LastPacketSent != 0 {
-		i = encodeVarintUpgrade(dAtA, i, uint64(m.LastPacketSent))
+	if m.LatestSequenceSend != 0 {
+		i = encodeVarintUpgrade(dAtA, i, uint64(m.LatestSequenceSend))
 		i--
 		dAtA[i] = 0x18
 	}
@@ -342,7 +341,7 @@ func (m *Upgrade) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i--
 	dAtA[i] = 0x12
 	{
-		size, err := m.UpgradeFields.MarshalToSizedBuffer(dAtA[:i])
+		size, err := m.Fields.MarshalToSizedBuffer(dAtA[:i])
 		if err != nil {
 			return 0, err
 		}
@@ -354,7 +353,7 @@ func (m *Upgrade) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *ModifiableUpgradeFields) Marshal() (dAtA []byte, err error) {
+func (m *UpgradeFields) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -364,12 +363,12 @@ func (m *ModifiableUpgradeFields) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *ModifiableUpgradeFields) MarshalTo(dAtA []byte) (int, error) {
+func (m *UpgradeFields) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *ModifiableUpgradeFields) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *UpgradeFields) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -418,13 +417,13 @@ func (m *UpgradeTimeout) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	if m.TimeoutTimestamp != 0 {
-		i = encodeVarintUpgrade(dAtA, i, uint64(m.TimeoutTimestamp))
+	if m.Timestamp != 0 {
+		i = encodeVarintUpgrade(dAtA, i, uint64(m.Timestamp))
 		i--
 		dAtA[i] = 0x10
 	}
 	{
-		size, err := m.TimeoutHeight.MarshalToSizedBuffer(dAtA[:i])
+		size, err := m.Height.MarshalToSizedBuffer(dAtA[:i])
 		if err != nil {
 			return 0, err
 		}
@@ -488,17 +487,17 @@ func (m *Upgrade) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = m.UpgradeFields.Size()
+	l = m.Fields.Size()
 	n += 1 + l + sovUpgrade(uint64(l))
 	l = m.Timeout.Size()
 	n += 1 + l + sovUpgrade(uint64(l))
-	if m.LastPacketSent != 0 {
-		n += 1 + sovUpgrade(uint64(m.LastPacketSent))
+	if m.LatestSequenceSend != 0 {
+		n += 1 + sovUpgrade(uint64(m.LatestSequenceSend))
 	}
 	return n
 }
 
-func (m *ModifiableUpgradeFields) Size() (n int) {
+func (m *UpgradeFields) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -526,10 +525,10 @@ func (m *UpgradeTimeout) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = m.TimeoutHeight.Size()
+	l = m.Height.Size()
 	n += 1 + l + sovUpgrade(uint64(l))
-	if m.TimeoutTimestamp != 0 {
-		n += 1 + sovUpgrade(uint64(m.TimeoutTimestamp))
+	if m.Timestamp != 0 {
+		n += 1 + sovUpgrade(uint64(m.Timestamp))
 	}
 	return n
 }
@@ -587,7 +586,7 @@ func (m *Upgrade) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field UpgradeFields", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Fields", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -614,7 +613,7 @@ func (m *Upgrade) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if err := m.UpgradeFields.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+			if err := m.Fields.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
@@ -653,9 +652,9 @@ func (m *Upgrade) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 3:
 			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field LastPacketSent", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field LatestSequenceSend", wireType)
 			}
-			m.LastPacketSent = 0
+			m.LatestSequenceSend = 0
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowUpgrade
@@ -665,7 +664,7 @@ func (m *Upgrade) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.LastPacketSent |= uint64(b&0x7F) << shift
+				m.LatestSequenceSend |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -691,7 +690,7 @@ func (m *Upgrade) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *ModifiableUpgradeFields) Unmarshal(dAtA []byte) error {
+func (m *UpgradeFields) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -714,10 +713,10 @@ func (m *ModifiableUpgradeFields) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: ModifiableUpgradeFields: wiretype end group for non-group")
+			return fmt.Errorf("proto: UpgradeFields: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: ModifiableUpgradeFields: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: UpgradeFields: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -855,7 +854,7 @@ func (m *UpgradeTimeout) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field TimeoutHeight", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Height", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -882,15 +881,15 @@ func (m *UpgradeTimeout) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if err := m.TimeoutHeight.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+			if err := m.Height.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
 		case 2:
 			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field TimeoutTimestamp", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Timestamp", wireType)
 			}
-			m.TimeoutTimestamp = 0
+			m.Timestamp = 0
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowUpgrade
@@ -900,7 +899,7 @@ func (m *UpgradeTimeout) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.TimeoutTimestamp |= uint64(b&0x7F) << shift
+				m.Timestamp |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}

@@ -53,7 +53,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeInit() {
 			func() {
 				channel := path.EndpointA.GetChannel()
 				upgrade = types.NewUpgrade(
-					types.NewModifiableUpgradeFields(
+					types.NewUpgradeFields(
 						channel.Ordering, channel.ConnectionHops, channel.Version,
 					),
 					types.NewUpgradeTimeout(path.EndpointB.Chain.GetTimeoutHeight(), 0),
@@ -80,7 +80,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeInit() {
 		{
 			"proposed channel connection not found",
 			func() {
-				upgrade.UpgradeFields.ConnectionHops = []string{"connection-100"}
+				upgrade.Fields.ConnectionHops = []string{"connection-100"}
 			},
 			false,
 		},
@@ -91,14 +91,14 @@ func (suite *KeeperTestSuite) TestChanUpgradeInit() {
 				connectionEnd.State = connectiontypes.UNINITIALIZED
 
 				suite.chainA.GetSimApp().GetIBCKeeper().ConnectionKeeper.SetConnection(suite.chainA.GetContext(), "connection-100", connectionEnd)
-				upgrade.UpgradeFields.ConnectionHops = []string{"connection-100"}
+				upgrade.Fields.ConnectionHops = []string{"connection-100"}
 			},
 			false,
 		},
 		{
 			"invalid proposed channel upgrade ordering",
 			func() {
-				upgrade.UpgradeFields.Ordering = types.ORDERED
+				upgrade.Fields.Ordering = types.ORDERED
 			},
 			false,
 		},
@@ -116,7 +116,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeInit() {
 			expVersion = mock.Version
 
 			upgrade = types.NewUpgrade(
-				types.NewModifiableUpgradeFields(
+				types.NewUpgradeFields(
 					types.UNORDERED, []string{path.EndpointA.ConnectionID}, fmt.Sprintf("%s-v2", mock.Version),
 				),
 				types.NewUpgradeTimeout(path.EndpointB.Chain.GetTimeoutHeight(), 0),

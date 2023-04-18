@@ -30,7 +30,7 @@ func (k Keeper) ChanUpgradeInit(
 		return 0, "", errorsmod.Wrapf(types.ErrInvalidChannelState, "expected %s, got %s", types.OPEN, channel.State)
 	}
 
-	if err := k.ValidateProposedUpgradeFields(ctx, upgrade.UpgradeFields, channel); err != nil {
+	if err := k.ValidateUpgradeFields(ctx, upgrade.Fields, channel); err != nil {
 		return 0, "", err
 	}
 
@@ -86,7 +86,7 @@ func (k Keeper) ChanUpgradeTry(
 	}
 
 	// validate the proposed upgrade fields against the existing channel
-	if err = k.ValidateProposedUpgradeFields(ctx, counterpartyProposedUpgrade.UpgradeFields, channel); err != nil {
+	if err = k.ValidateUpgradeFields(ctx, counterpartyProposedUpgrade.Fields, channel); err != nil {
 		return 0, errorsmod.Wrapf(types.ErrInvalidUpgrade, "proposed upgrade fields are invalid: %s", err.Error())
 	}
 
@@ -162,7 +162,7 @@ func (k Keeper) ChanUpgradeTry(
 			return 0, errorsmod.Wrap(types.ErrInvalidUpgrade, "failed to retrieve upgrade")
 		}
 
-		if !reflect.DeepEqual(currentUpgrade.UpgradeFields, proposedUpgrade.UpgradeFields) {
+		if !reflect.DeepEqual(currentUpgrade.Fields, proposedUpgrade.Fields) {
 			return 0, errorsmod.Wrap(types.ErrInvalidUpgrade, "proposed upgrade fields have changed since UpgradeInit")
 		}
 

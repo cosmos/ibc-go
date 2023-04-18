@@ -485,14 +485,16 @@ var _ sdk.Msg = &MsgChannelUpgradeInit{}
 // nolint:interfacer
 func NewMsgChannelUpgradeInit(
 	portID, channelID string,
-	upgrade Upgrade,
+	upgradeFields UpgradeFields,
+	upgradeTimeout UpgradeTimeout,
 	signer string,
 ) *MsgChannelUpgradeInit {
 	return &MsgChannelUpgradeInit{
-		PortId:          portID,
-		ChannelId:       channelID,
-		Signer:          signer,
-		ProposedUpgrade: upgrade,
+		PortId:    portID,
+		ChannelId: channelID,
+		Fields:    upgradeFields,
+		Timeout:   upgradeTimeout,
+		Signer:    signer,
 	}
 }
 
@@ -510,7 +512,11 @@ func (msg MsgChannelUpgradeInit) ValidateBasic() error {
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
 	}
 
-	return msg.ProposedUpgrade.ValidateBasic()
+	if !msg.Timeout.IsValid() {
+		return errorsmod.Wrap(ErrInvalidUpgrade, "upgrade timeout cannot be empty")
+	}
+
+	return msg.Fields.ValidateBasic()
 }
 
 // GetSigners implements sdk.Msg
