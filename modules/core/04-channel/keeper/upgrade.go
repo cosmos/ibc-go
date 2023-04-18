@@ -65,7 +65,7 @@ func (k Keeper) ChanUpgradeInit(
 		return 0, "", errorsmod.Wrap(types.ErrInvalidCounterparty, "counterparty port ID and channel ID cannot be upgraded")
 	}
 
-	if !channel.Ordering.SubsetOf(proposedUpgradeChannel.Ordering) {
+	if !proposedUpgradeChannel.Ordering.SubsetOf(channel.Ordering) {
 		return 0, "", errorsmod.Wrap(types.ErrInvalidChannelOrdering, "channel ordering must be a subset of the new ordering")
 	}
 
