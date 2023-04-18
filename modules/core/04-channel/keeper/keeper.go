@@ -572,7 +572,7 @@ func (k Keeper) DeleteUpgradeTimeout(ctx sdk.Context, portID, channelID string) 
 	store.Delete(host.ChannelUpgradeTimeoutKey(portID, channelID))
 }
 
-// GetUpgrade returns the proposed upgrade for the provided port and channel identifers.
+// GetUpgrade returns the proposed upgrade for the provided port and channel identifiers.
 func (k Keeper) GetUpgrade(ctx sdk.Context, portID, channelID string) (types.Upgrade, bool) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(host.ChannelUpgradeKey(portID, channelID))
@@ -600,14 +600,14 @@ func (k Keeper) SetUpgrade(ctx sdk.Context, portID, channelID string, upgrade ty
 // - the proposed connection hops do not exist
 // - the proposed version is non-empty (checked in UpgradeFields.ValidateBasic())
 // - the proposed connection hops are not open
-func (k Keeper) ValidateUpgradeFields(ctx sdk.Context, proposedUpgrade types.UpgradeFields, existingChannel types.Channel) error {
-	currentFields := extractUpgradeFields(existingChannel)
+func (k Keeper) ValidateUpgradeFields(ctx sdk.Context, proposedUpgrade types.UpgradeFields, currentChannel types.Channel) error {
+	currentFields := extractUpgradeFields(currentChannel)
 
 	if reflect.DeepEqual(proposedUpgrade, currentFields) {
 		return errorsmod.Wrap(types.ErrChannelExists, "existing channel end is identical to proposed upgrade channel end")
 	}
 
-	if !currentFields.Ordering.SubsetOf(proposedUpgrade.Ordering) {
+	if !proposedUpgrade.Ordering.SubsetOf(currentFields.Ordering) {
 		return errorsmod.Wrap(types.ErrInvalidChannelOrdering, "channel ordering must be a subset of the new ordering")
 	}
 

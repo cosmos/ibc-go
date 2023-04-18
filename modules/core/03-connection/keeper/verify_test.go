@@ -870,7 +870,7 @@ func (suite *KeeperTestSuite) TestVerifyUpgrade() {
 			expPass: false,
 		},
 		{
-			name: "verification fails when the ordering is different",
+			name: "fails when the upgrade field is different",
 			malleate: func() {
 				upgrade.Fields.Ordering = channeltypes.ORDERED
 			},
