@@ -2,7 +2,7 @@ package keeper
 
 import (
 	"fmt"
-	"regexp"
+	"strings"
 
 	"cosmossdk.io/math"
 	tmbytes "github.com/cometbft/cometbft/libs/bytes"
@@ -153,30 +153,25 @@ func (k Keeper) GetTotalEscrowForDenom(ctx sdk.Context, denom string) math.Int {
 		return math.ZeroInt()
 	}
 
-	var amount math.Int
-	if err := amount.Unmarshal(bz); err != nil {
-		panic(err)
-	}
-	return amount
+	amount := sdk.IntProto{}
+	k.cdc.MustUnmarshal(bz, &amount)
+
+	return amount.Int
 }
 
 // SetTotalEscrowForDenom stores the total amount of source chain tokens that are in escrow.
 func (k Keeper) SetTotalEscrowForDenom(ctx sdk.Context, denom string, amount math.Int) {
-	if amount.LT(math.ZeroInt()) {
+	if amount.IsNegative() {
 		panic(fmt.Sprintf("amount cannot be negative: %s", amount))
 	}
 
 	store := ctx.KVStore(k.storeKey)
-	bz, err := amount.Marshal()
-	if err != nil {
-		panic(err)
-	}
-
+	bz := k.cdc.MustMarshal(&sdk.IntProto{Int: amount})
 	store.Set(types.TotalEscrowForDenomKey(denom), bz)
 }
 
-// GetAllDenomEscrows returns the escrow information for all the denominations.
-func (k Keeper) GetAllDenomEscrows(ctx sdk.Context) sdk.Coins {
+// GetAllTotalEscrowed returns the escrow information for all the denominations.
+func (k Keeper) GetAllTotalEscrowed(ctx sdk.Context) sdk.Coins {
 	var escrows sdk.Coins
 	k.IterateDenomEscrows(ctx, []byte(types.KeyTotalEscrowPrefix), func(denomEscrow sdk.Coin) bool {
 		escrows = append(escrows, denomEscrow)
@@ -190,26 +185,27 @@ func (k Keeper) GetAllDenomEscrows(ctx sdk.Context) sdk.Coins {
 // and performs a callback function. Denominations for which an invalid value
 // (i.e. not integer) is stored, will be skipped.
 func (k Keeper) IterateDenomEscrows(ctx sdk.Context, prefix []byte, cb func(denomEscrow sdk.Coin) bool) {
-	re := regexp.MustCompile(fmt.Sprintf(`%s\/%s\/(.*[^\s])`, types.KeyTotalEscrowPrefix, types.KeyDenomsPrefix))
-
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, prefix)
 
 	defer sdk.LogDeferred(ctx.Logger(), func() error { return iterator.Close() })
 	for ; iterator.Valid(); iterator.Next() {
-		matches := re.FindStringSubmatch(string(iterator.Key()))
-		if len(matches) != 2 { // there should be two matches: 1st one for the whole string, 2nd for the denomination
+		keySplit := strings.Split(string(iterator.Key()), "/")
+		if len(keySplit) < 2 {
 			continue
 		}
 
-		denom := matches[1]
+		denom := strings.Join(keySplit[1:], "/")
+		if strings.TrimSpace(denom) == "" {
+			continue
+		}
 
-		var amount math.Int
-		if err := amount.Unmarshal(iterator.Value()); err != nil {
+		amount := sdk.IntProto{}
+		if err := k.cdc.Unmarshal(iterator.Value(), &amount); err != nil {
 			continue // total escrow amount cannot be unmarshalled to integer
 		}
 
-		denomEscrow := sdk.NewCoin(denom, amount)
+		denomEscrow := sdk.NewCoin(denom, amount.Int)
 		if cb(denomEscrow) {
 			break
 		}

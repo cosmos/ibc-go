@@ -47,7 +47,7 @@ func (suite *KeeperTestSuite) TestGenesis() {
 
 	suite.Require().Equal(types.PortID, genesis.PortId)
 	suite.Require().Equal(traces.Sort(), genesis.DenomTraces)
-	suite.Require().Equal(escrows.Sort(), genesis.DenomEscrows)
+	suite.Require().Equal(escrows.Sort(), genesis.TotalEscrowed)
 
 	suite.Require().NotPanics(func() {
 		suite.chainA.GetSimApp().TransferKeeper.InitGenesis(suite.chainA.GetContext(), *genesis)

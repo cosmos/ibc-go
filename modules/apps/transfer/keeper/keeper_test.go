@@ -6,6 +6,7 @@ import (
 
 	"cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/baseapp"
+	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
@@ -107,6 +108,7 @@ func (suite *KeeperTestSuite) TestSetGetTotalEscrowForDenom() {
 func (suite *KeeperTestSuite) TestGetAllDenomEscrows() {
 	var (
 		store           storetypes.KVStore
+		cdc             codec.Codec
 		expDenomEscrows sdk.Coins
 	)
 
@@ -122,9 +124,7 @@ func (suite *KeeperTestSuite) TestGetAllDenomEscrows() {
 				amount := math.NewInt(100)
 				expDenomEscrows = append(expDenomEscrows, sdk.NewCoin(denom, amount))
 
-				bz, err := amount.Marshal()
-				suite.Require().NoError(err)
-
+				bz := cdc.MustMarshal(&sdk.IntProto{Int: amount})
 				store.Set(types.TotalEscrowForDenomKey(denom), bz)
 			},
 			true,
@@ -136,18 +136,14 @@ func (suite *KeeperTestSuite) TestGetAllDenomEscrows() {
 				amount := math.NewInt(100)
 				expDenomEscrows = append(expDenomEscrows, sdk.NewCoin(denom, amount))
 
-				bz, err := amount.Marshal()
-				suite.Require().NoError(err)
-
+				bz := cdc.MustMarshal(&sdk.IntProto{Int: amount})
 				store.Set(types.TotalEscrowForDenomKey(denom), bz)
 
 				denom = "bar/foo"
 				amount = math.NewInt(50)
 				expDenomEscrows = append(expDenomEscrows, sdk.NewCoin(denom, amount))
 
-				bz, err = amount.Marshal()
-				suite.Require().NoError(err)
-
+				bz = cdc.MustMarshal(&sdk.IntProto{Int: amount})
 				store.Set(types.TotalEscrowForDenomKey(denom), bz)
 			},
 			true,
@@ -159,9 +155,7 @@ func (suite *KeeperTestSuite) TestGetAllDenomEscrows() {
 				amount := math.NewInt(100)
 				expDenomEscrows = append(expDenomEscrows, sdk.NewCoin(denom, amount))
 
-				bz, err := amount.Marshal()
-				suite.Require().NoError(err)
-
+				bz := cdc.MustMarshal(&sdk.IntProto{Int: amount})
 				store.Set(types.TotalEscrowForDenomKey(denom), bz)
 			},
 			true,
@@ -172,9 +166,7 @@ func (suite *KeeperTestSuite) TestGetAllDenomEscrows() {
 				denom := ""
 				amount := math.ZeroInt()
 
-				bz, err := amount.Marshal()
-				suite.Require().NoError(err)
-
+				bz := cdc.MustMarshal(&sdk.IntProto{Int: amount})
 				store.Set(types.TotalEscrowForDenomKey(denom), bz)
 			},
 			false,
@@ -185,9 +177,8 @@ func (suite *KeeperTestSuite) TestGetAllDenomEscrows() {
 				denom := "uatom"
 				amount := math.ZeroInt()
 
-				bz, err := amount.Marshal()
-				suite.Require().NoError(err)
-				store.Set([]byte(fmt.Sprintf("%s/wrong-prefix/%s", types.KeyTotalEscrowPrefix, denom)), bz)
+				bz := cdc.MustMarshal(&sdk.IntProto{Int: amount})
+				store.Set([]byte(fmt.Sprintf("wrong-prefix/%s", denom)), bz)
 			},
 			false,
 		},
@@ -204,10 +195,11 @@ func (suite *KeeperTestSuite) TestGetAllDenomEscrows() {
 
 			storeKey := suite.chainA.GetSimApp().GetKey(types.ModuleName)
 			store = ctx.KVStore(storeKey)
+			cdc = suite.chainA.App.AppCodec()
 
 			tc.malleate()
 
-			denomEscrows := suite.chainA.GetSimApp().TransferKeeper.GetAllDenomEscrows(ctx)
+			denomEscrows := suite.chainA.GetSimApp().TransferKeeper.GetAllTotalEscrowed(ctx)
 
 			if tc.expPass {
 				suite.Require().Len(expDenomEscrows, len(denomEscrows))

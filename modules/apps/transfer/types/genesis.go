@@ -7,22 +7,22 @@ import (
 )
 
 // NewGenesisState creates a new ibc-transfer GenesisState instance.
-func NewGenesisState(portID string, denomTraces Traces, params Params, denomEscrows sdk.Coins) *GenesisState {
+func NewGenesisState(portID string, denomTraces Traces, params Params, totalEscrowed sdk.Coins) *GenesisState {
 	return &GenesisState{
-		PortId:       portID,
-		DenomTraces:  denomTraces,
-		Params:       params,
-		DenomEscrows: denomEscrows,
+		PortId:        portID,
+		DenomTraces:   denomTraces,
+		Params:        params,
+		TotalEscrowed: totalEscrowed,
 	}
 }
 
 // DefaultGenesisState returns a GenesisState with "transfer" as the default PortID.
 func DefaultGenesisState() *GenesisState {
 	return &GenesisState{
-		PortId:       PortID,
-		DenomTraces:  Traces{},
-		Params:       DefaultParams(),
-		DenomEscrows: sdk.Coins{},
+		PortId:        PortID,
+		DenomTraces:   Traces{},
+		Params:        DefaultParams(),
+		TotalEscrowed: sdk.Coins{},
 	}
 }
 
@@ -38,5 +38,5 @@ func (gs GenesisState) Validate() error {
 	if err := gs.Params.Validate(); err != nil {
 		return err
 	}
-	return gs.DenomEscrows.Validate() // will fail if there are duplicates for any denom
+	return gs.TotalEscrowed.Validate() // will fail if there are duplicates for any denom
 }

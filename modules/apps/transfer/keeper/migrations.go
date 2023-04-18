@@ -3,7 +3,6 @@ package keeper
 import (
 	"fmt"
 
-	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
@@ -56,26 +55,19 @@ func (m Migrator) MigrateTraces(ctx sdk.Context) error {
 
 // MigrateTotalEscrowForDenom migrates the total amount of source chain tokens in escrow.
 func (m Migrator) MigrateTotalEscrowForDenom(ctx sdk.Context) error {
-	tokenDenomToTotalEscrowMap := make(map[string]math.Int)
+	var totalEscrowed sdk.Coins
+	portID := m.keeper.GetPort(ctx)
 
-	transferChannels := m.keeper.channelKeeper.GetAllChannelsWithPortPrefix(ctx, types.PortID)
+	transferChannels := m.keeper.channelKeeper.GetAllChannelsWithPortPrefix(ctx, portID)
 	for _, channel := range transferChannels {
-		escrowAddress := types.GetEscrowAddress(types.PortID, channel.ChannelId)
+		escrowAddress := types.GetEscrowAddress(portID, channel.ChannelId)
 		escrowBalances := m.keeper.bankKeeper.GetAllBalances(ctx, escrowAddress)
 
-		for _, escrowBalance := range escrowBalances {
-			if val, ok := tokenDenomToTotalEscrowMap[escrowBalance.Denom]; ok {
-				tokenDenomToTotalEscrowMap[escrowBalance.Denom] = val.Add(escrowBalance.Amount)
-			} else {
-				tokenDenomToTotalEscrowMap[escrowBalance.Denom] = escrowBalance.Amount
-			}
-		}
+		totalEscrowed = totalEscrowed.Add(escrowBalances...)
 	}
 
-	if len(tokenDenomToTotalEscrowMap) != 0 {
-		for denom, amount := range tokenDenomToTotalEscrowMap {
-			m.keeper.SetTotalEscrowForDenom(ctx, denom, amount)
-		}
+	for _, totalEscrow := range totalEscrowed {
+		m.keeper.SetTotalEscrowForDenom(ctx, totalEscrow.Denom, totalEscrow.Amount)
 	}
 
 	return nil
