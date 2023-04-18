@@ -398,7 +398,7 @@ func (k Keeper) UnreceivedPackets(c context.Context, req *types.QueryUnreceivedP
 
 	ctx := sdk.UnwrapSDKContext(c)
 
-	channel, found := k.GetChannel(sdk.UnwrapSDKContext(c), req.PortId, req.ChannelId)
+	channel, found := k.GetChannel(ctx, req.PortId, req.ChannelId)
 	if !found {
 		return nil, status.Error(
 			codes.NotFound,
