@@ -489,11 +489,11 @@ func NewMsgChannelUpgradeInit(
 	signer string,
 ) *MsgChannelUpgradeInit {
 	return &MsgChannelUpgradeInit{
-		PortId:         portID,
-		ChannelId:      channelID,
-		UpgradeFields:  upgradeFields,
-		UpgradeTimeout: upgradeTimeout,
-		Signer:         signer,
+		PortId:    portID,
+		ChannelId: channelID,
+		Fields:    upgradeFields,
+		Timeout:   upgradeTimeout,
+		Signer:    signer,
 	}
 }
 
@@ -511,11 +511,11 @@ func (msg MsgChannelUpgradeInit) ValidateBasic() error {
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
 	}
 
-	if !msg.UpgradeTimeout.IsValid() {
+	if !msg.Timeout.IsValid() {
 		return errorsmod.Wrap(ErrInvalidUpgrade, "upgrade timeout cannot be empty")
 	}
 
-	return msg.UpgradeFields.ValidateBasic()
+	return msg.Fields.ValidateBasic()
 }
 
 // GetSigners implements sdk.Msg

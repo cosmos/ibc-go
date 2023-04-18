@@ -461,15 +461,15 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeInitValidateBasic() {
 		{
 			"empty proposed upgrade channel version",
 			func() {
-				msg.UpgradeFields.Version = "  "
+				msg.Fields.Version = "  "
 			},
 			false,
 		},
 		{
 			"timeout height is zero && timeout timestamp is zero",
 			func() {
-				msg.UpgradeTimeout.TimeoutHeight = clienttypes.ZeroHeight()
-				msg.UpgradeTimeout.TimeoutTimestamp = 0
+				msg.Timeout.Height = clienttypes.ZeroHeight()
+				msg.Timeout.Timestamp = 0
 			},
 			false,
 		},

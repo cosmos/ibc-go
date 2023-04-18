@@ -261,11 +261,11 @@ message MsgChannelUpgradeInit {
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
-  string         port_id         = 1;
-  string         channel_id      = 2;
-  UpgradeTimeout upgrade_timeout = 3 [(gogoproto.nullable) = false];
-  UpgradeFields  upgrade_fields  = 4 [(gogoproto.nullable) = false];
-  string         signer          = 5;
+  string         port_id    = 1;
+  string         channel_id = 2;
+  UpgradeTimeout timeout    = 3 [(gogoproto.nullable) = false];
+  UpgradeFields  fields     = 4 [(gogoproto.nullable) = false];
+  string         signer     = 5;
 }
 
 // MsgChannelUpgradeInitResponse defines the MsgChannelUpgradeInit response type

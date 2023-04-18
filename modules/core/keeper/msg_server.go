@@ -783,13 +783,13 @@ func (k Keeper) extractUpgradeFromMessage(ctx sdk.Context, msg *channeltypes.Msg
 	}
 	return channeltypes.Upgrade{
 		Fields: channeltypes.UpgradeFields{
-			Ordering:       msg.UpgradeFields.Ordering,
-			ConnectionHops: msg.UpgradeFields.ConnectionHops,
-			Version:        msg.UpgradeFields.Version,
+			Ordering:       msg.Fields.Ordering,
+			ConnectionHops: msg.Fields.ConnectionHops,
+			Version:        msg.Fields.Version,
 		},
 		Timeout: channeltypes.UpgradeTimeout{
-			TimeoutHeight:    msg.UpgradeTimeout.TimeoutHeight,
-			TimeoutTimestamp: msg.UpgradeTimeout.TimeoutTimestamp,
+			Height:    msg.Timeout.Height,
+			Timestamp: msg.Timeout.Timestamp,
 		},
 		LatestSequenceSend: seq - 1,
 	}, nil
