@@ -6,6 +6,7 @@ import (
 	errorsmod "cosmossdk.io/errors"
 
 	"github.com/cosmos/ibc-go/v7/internal/collections"
+	ibcerrors "github.com/cosmos/ibc-go/v7/internal/errors"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 )
 
@@ -33,6 +34,23 @@ func NewUpgradeTimeout(height clienttypes.Height, timestamp uint64) UpgradeTimeo
 		Height:    height,
 		Timestamp: timestamp,
 	}
+}
+
+// ValidateBasic performs a basic validation of the upgrade fields
+func (u Upgrade) ValidateBasic() error {
+	if err := u.Fields.ValidateBasic(); err != nil {
+		return errorsmod.Wrap(err, "proposed upgrade fields are invalid")
+	}
+
+	if !u.Timeout.IsValid() {
+		return errorsmod.Wrap(ErrInvalidUpgrade, "upgrade timeout cannot be empty")
+	}
+
+	if u.LatestSequenceSend < 0 {
+		return errorsmod.Wrap(ibcerrors.ErrInvalidSequence, "latest sequence send must be greater than or equal to 0")
+	}
+
+	return nil
 }
 
 // ValidateBasic performs a basic validation of the proposed upgrade fields

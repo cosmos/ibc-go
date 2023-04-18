@@ -263,8 +263,8 @@ message MsgChannelUpgradeInit {
 
   string         port_id    = 1;
   string         channel_id = 2;
-  UpgradeTimeout timeout    = 3 [(gogoproto.nullable) = false];
-  UpgradeFields  fields     = 4 [(gogoproto.nullable) = false];
+  UpgradeFields  fields     = 3 [(gogoproto.nullable) = false];
+  UpgradeTimeout timeout    = 4 [(gogoproto.nullable) = false];
   string         signer     = 5;
 }
 
