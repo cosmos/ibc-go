@@ -18,8 +18,8 @@ func NewUpgrade(upgradeFields UpgradeFields, timeout UpgradeTimeout, latestPacke
 	}
 }
 
-// NewModifiableUpgradeFields returns a new ModifiableUpgradeFields instance.
-func NewModifiableUpgradeFields(ordering Order, connectionHops []string, version string) UpgradeFields {
+// NewUpgradeFields returns a new ModifiableUpgradeFields instance.
+func NewUpgradeFields(ordering Order, connectionHops []string, version string) UpgradeFields {
 	return UpgradeFields{
 		Ordering:       ordering,
 		ConnectionHops: connectionHops,
