@@ -572,6 +572,27 @@ func (k Keeper) DeleteUpgradeTimeout(ctx sdk.Context, portID, channelID string) 
 	store.Delete(host.ChannelUpgradeTimeoutKey(portID, channelID))
 }
 
+// GetUpgrade returns the proposed upgrade for the provided port and channel identifiers.
+func (k Keeper) GetUpgrade(ctx sdk.Context, portID, channelID string) (types.Upgrade, bool) {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(host.ChannelUpgradeKey(portID, channelID))
+	if bz == nil {
+		return types.Upgrade{}, false
+	}
+
+	var upgrade types.Upgrade
+	k.cdc.MustUnmarshal(bz, &upgrade)
+
+	return upgrade, true
+}
+
+// SetUpgrade sets the proposed upgrade using the provided port and channel identifiers.
+func (k Keeper) SetUpgrade(ctx sdk.Context, portID, channelID string, upgrade types.Upgrade) {
+	store := ctx.KVStore(k.storeKey)
+	bz := k.cdc.MustMarshal(&upgrade)
+	store.Set(host.ChannelUpgradeKey(portID, channelID), bz)
+}
+
 // ValidateUpgradeFields validates the proposed upgrade fields against the existing channel.
 // It returns an error if the following constraints are not met:
 // - there exists at least one valid proposed change to the existing channel fields
@@ -579,8 +600,8 @@ func (k Keeper) DeleteUpgradeTimeout(ctx sdk.Context, portID, channelID string) 
 // - the proposed connection hops do not exist
 // - the proposed version is non-empty (checked in UpgradeFields.ValidateBasic())
 // - the proposed connection hops are not open
-func (k Keeper) ValidateUpgradeFields(ctx sdk.Context, proposedUpgrade types.UpgradeFields, existingChannel types.Channel) error {
-	currentFields := extractUpgradeFields(existingChannel)
+func (k Keeper) ValidateUpgradeFields(ctx sdk.Context, proposedUpgrade types.UpgradeFields, currentChannel types.Channel) error {
+	currentFields := extractUpgradeFields(currentChannel)
 
 	if reflect.DeepEqual(proposedUpgrade, currentFields) {
 		return errorsmod.Wrap(types.ErrChannelExists, "existing channel end is identical to proposed upgrade channel end")

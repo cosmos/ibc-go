@@ -71,6 +71,16 @@ func ChannelUpgradeSequenceKey(portID, channelID string) []byte {
 	return []byte(ChannelUpgradeSequencePath(portID, channelID))
 }
 
+// ChannelUpgradePath defines the path which stores the information related to an upgrade attempt
+func ChannelUpgradePath(portID, channelID string) string {
+	return fmt.Sprintf("%s/%s", KeyChannelUpgradePrefix, channelPath(portID, channelID))
+}
+
+// ChannelUpgradeKey returns the store key for a particular channel upgrade attempt
+func ChannelUpgradeKey(portID, channelID string) []byte {
+	return []byte(ChannelUpgradePath(portID, channelID))
+}
+
 func channelPath(portID, channelID string) string {
 	return fmt.Sprintf("%s/%s/%s/%s", KeyPortPrefix, portID, KeyChannelPrefix, channelID)
 }
