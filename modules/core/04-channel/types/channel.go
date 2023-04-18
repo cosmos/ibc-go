@@ -144,11 +144,12 @@ var orderSubsets = map[Order][]Order{
 	UNORDERED: {UNORDERED},
 }
 
-// SubsetOf returns true if the provided Order is a valid subset of Order.
-func (o Order) SubsetOf(order Order) bool {
-	if supported, ok := orderSubsets[order]; ok {
+// SubsetOf returns true if Order is a valid subset of the provided parent Order.
+func (o Order) SubsetOf(parentOrder Order) bool {
+	if supported, ok := orderSubsets[parentOrder]; ok {
 		return collections.Contains(o, supported)
 	}
+
 	return false
 }
 

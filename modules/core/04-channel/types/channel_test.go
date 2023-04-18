@@ -60,10 +60,10 @@ func TestCounterpartyValidateBasic(t *testing.T) {
 
 func TestSubsetOf(t *testing.T) {
 	testCases := []struct {
-		name     string
-		order    types.Order
-		newOrder types.Order
-		expPass  bool
+		name        string
+		order       types.Order
+		parentOrder types.Order
+		expPass     bool
 	}{
 		{
 			"ordered -> ordered",
@@ -72,7 +72,7 @@ func TestSubsetOf(t *testing.T) {
 			true,
 		},
 		{
-			"unordered -> ordered",
+			"ordered -> unordered",
 			types.UNORDERED,
 			types.ORDERED,
 			true,
@@ -84,31 +84,31 @@ func TestSubsetOf(t *testing.T) {
 			true,
 		},
 		{
-			"ordered -> unordered",
+			"unordered -> ordered",
 			types.ORDERED,
 			types.UNORDERED,
-			false,
-		},
-		{
-			"ordered -> none",
-			types.ORDERED,
-			types.NONE,
-			false,
-		},
-		{
-			"unordered -> none",
-			types.UNORDERED,
-			types.NONE,
 			false,
 		},
 		{
 			"none -> ordered",
+			types.ORDERED,
+			types.NONE,
+			false,
+		},
+		{
+			"none -> unordered",
+			types.UNORDERED,
+			types.NONE,
+			false,
+		},
+		{
+			"ordered -> none",
 			types.NONE,
 			types.ORDERED,
 			false,
 		},
 		{
-			"none -> unordered",
+			"unordered -> none",
 			types.NONE,
 			types.UNORDERED,
 			false,
@@ -116,7 +116,7 @@ func TestSubsetOf(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		ok := tc.order.SubsetOf(tc.newOrder)
+		ok := tc.order.SubsetOf(tc.parentOrder)
 		if tc.expPass {
 			require.True(t, ok, tc.name)
 		} else {
