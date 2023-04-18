@@ -279,22 +279,24 @@ message MsgChannelUpgradeTry {
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
-  string                    port_id                  = 1;
-  string                    channel_id               = 2;
-  Channel                   counterparty_channel     = 3 [(gogoproto.nullable) = false];
-  uint64                    counterparty_sequence    = 4;
-  Channel                   proposed_upgrade_channel = 5 [(gogoproto.nullable) = false];
-  ibc.core.client.v1.Height timeout_height           = 6 [(gogoproto.nullable) = false];
-  uint64                    timeout_timestamp        = 7;
-  bytes                     proof_channel            = 8;
-  bytes                     proof_upgrade_timeout    = 9;
-  bytes                     proof_upgrade_sequence   = 10;
-  ibc.core.client.v1.Height proof_height             = 11 [(gogoproto.nullable) = false];
-  string                    signer                   = 12;
+  string                    port_id                       = 1;
+  string                    channel_id                    = 2;
+  Upgrade                   proposed_upgrade              = 3 [(gogoproto.nullable) = false];
+  Upgrade                   counterparty_proposed_upgrade = 4 [(gogoproto.nullable) = false];
+  uint64                    counterparty_upgrade_sequence = 5;
+  bytes                     proof_channel                 = 6;
+  bytes                     proof_upgrade                 = 7;
+  ibc.core.client.v1.Height proof_height                  = 8 [(gogoproto.nullable) = false];
+  string                    signer                        = 9;
 }
 
 // MsgChannelUpgradeTryResponse defines the MsgChannelUpgradeTry response type
-message MsgChannelUpgradeTryResponse {}
+message MsgChannelUpgradeTryResponse {
+  string channel_id       = 1;
+  string version          = 2;
+  uint64 upgrade_sequence = 3;
+  bool   success          = 4;
+}
 
 // MsgChannelUpgradeAck defines the request type for the ChannelUpgradeAck rpc
 message MsgChannelUpgradeAck {

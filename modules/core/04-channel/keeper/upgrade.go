@@ -11,8 +11,6 @@ import (
 	"github.com/cosmos/ibc-go/v7/internal/collections"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	portkeeper "github.com/cosmos/ibc-go/v7/modules/core/05-port/keeper"
-	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
 )
 
 // ChanUpgradeInit is called by a module to initiate a channel upgrade handshake with
@@ -73,7 +71,7 @@ func (k Keeper) ChanUpgradeTry(
 	proposedUpgrade,
 	counterpartyProposedUpgrade types.Upgrade,
 	counterpartyUpgradeSequence uint64,
-	proofChannel,
+	proofCounterpartyChannel,
 	proofUpgrade []byte,
 	proofHeight clienttypes.Height,
 ) (upgradeSequence uint64, err error) {
@@ -87,7 +85,8 @@ func (k Keeper) ChanUpgradeTry(
 		return 0, errorsmod.Wrapf(types.ErrInvalidChannelState, "expected one of [%s, %s], got %s", types.OPEN, types.INITUPGRADE, channel.State)
 	}
 
-	if err = k.ValidateProposedUpgradeFields(ctx, proposedUpgrade.UpgradeFields, channel); err != nil {
+	// validate the proposed upgrade fields against the existing channel
+	if err = k.ValidateProposedUpgradeFields(ctx, counterpartyProposedUpgrade.UpgradeFields, channel); err != nil {
 		return 0, errorsmod.Wrapf(types.ErrInvalidUpgrade, "proposed upgrade fields are invalid: %s", err.Error())
 	}
 
@@ -107,67 +106,75 @@ func (k Keeper) ChanUpgradeTry(
 		UpgradeSequence: counterpartyUpgradeSequence,
 	}
 
-	// verify that the counterparty channel has entered into the upgrade process
+	// verify that the counterparty channel has correctly entered into the upgrade process
 	if err := k.connectionKeeper.VerifyChannelState(
 		ctx,
 		connectionEnd,
 		proofHeight,
-		proofChannel,
+		proofCounterpartyChannel,
 		channel.Counterparty.PortId,
 		channel.Counterparty.ChannelId,
 		expectedCounterpartyChannel,
 	); err != nil {
 		return 0, err
 	}
-	// verify the proposed upgrade information provided by the counterparty
+
+	// verifies the proof that a particular proposed upgrade has been stored in the upgrade path.
 	if err := k.connectionKeeper.VerifyChannelUpgrade(ctx, connectionEnd, proofHeight, proofUpgrade, channel.Counterparty.PortId,
 		channel.Counterparty.ChannelId, counterpartyProposedUpgrade); err != nil {
 		return 0, err
 	}
+
 	// verify that the timeout set in UpgradeInit has not passed on this chain
 	if hasPassed, err := counterpartyProposedUpgrade.Timeout.HasPassed(ctx); hasPassed {
-		return 0, err
+		errorReceipt := types.NewErrorReceipt(channel.UpgradeSequence, err)
+		// TODO: emit error receipt events
+		k.SetUpgradeErrorReceipt(ctx, portID, channelID, errorReceipt)
+		return 0, errorsmod.Wrapf(types.ErrInvalidUpgrade, "upgrade aborted, error receipt written for upgrade sequence: %d", channel.UpgradeSequence)
 	}
 
 	// if the counterparty sequence is less than or equal to the current sequence, then either the counterparty chain is out-of-sync or
 	// the message is out-of-sync and we write an error receipt with our own sequence so that the counterparty can update
 	// their sequence as well.
 	// We must then increment our sequence so both sides start the next upgrade with a fresh sequence.
-	if counterpartyUpgradeSequence <= upgradeSequence {
-		errorReceipt := types.NewErrorReceipt(upgradeSequence, errorsmod.Wrapf(types.ErrInvalidUpgrade, "counterparty chain upgrade sequence <= upgrade sequence (%d <= %d)", counterpartyUpgradeSequence, upgradeSequence))
-		upgradeSequence++
+	if counterpartyUpgradeSequence <= channel.UpgradeSequence {
+		errorReceipt := types.NewErrorReceipt(channel.UpgradeSequence, errorsmod.Wrapf(types.ErrInvalidUpgrade, "counterparty chain upgrade sequence <= upgrade sequence (%d <= %d)", counterpartyUpgradeSequence, channel.UpgradeSequence))
+		channel.UpgradeSequence++
+		// TODO: emit error receipt events
 		k.SetUpgradeErrorReceipt(ctx, portID, channelID, errorReceipt)
-		k.SetUpgradeSequence(ctx, portID, channelID, upgradeSequence)
-
-		return 0, errorsmod.Wrapf(types.ErrInvalidUpgrade, "upgrade aborted, error receipt written for upgrade sequence: %d", upgradeSequence)
-	}
-
-	// if the counterparty sequence is greater than the current sequence, we fast forward to the counterparty sequence
-	// so that both channel ends are using the same sequence for the current upgrade
-	if counterpartyUpgradeSequence > upgradeSequence {
-		channel.UpgradeSequence = counterpartyUpgradeSequence
 		k.SetChannel(ctx, portID, channelID, channel)
+
+		return 0, errorsmod.Wrapf(types.ErrInvalidUpgrade, "upgrade aborted, error receipt written for upgrade sequence: %d", channel.UpgradeSequence)
 	}
 
 	// happy path case
 	// increment upgrade sequence appropriately
 	if channel.State == types.OPEN {
-		upgradeSequence++
-		k.SetUpgradeSequence(ctx, portID, channelID, upgradeSequence)
+		channel.UpgradeSequence++
+		k.SetChannel(ctx, portID, channelID, channel)
+		k.SetUpgrade(ctx, portID, channelID, proposedUpgrade)
 	}
 
 	// crossing hellos case
 	if channel.State == types.INITUPGRADE {
-		if !reflect.DeepEqual(proposedUpgrade.UpgradeFields, counterpartyProposedUpgrade.UpgradeFields) {
-			return 0, errorsmod.Wrap(types.ErrInvalidUpgrade, "crossing hellos, but proposed upgrade fields do not match")
+		currentUpgrade, found := k.GetUpgrade(ctx, portID, channelID)
+		if !found {
+			return 0, errorsmod.Wrap(types.ErrInvalidUpgrade, "failed to retrieve upgrade")
+		}
+
+		if !reflect.DeepEqual(currentUpgrade.UpgradeFields, proposedUpgrade.UpgradeFields) {
+			return 0, errorsmod.Wrap(types.ErrInvalidUpgrade, "proposed upgrade fields have changed since UpgradeInit")
+		}
+
+		// if the counterparty sequence is greater than the current sequence, we fast forward to the counterparty sequence
+		// so that both channel ends are using the same sequence for the current upgrade
+		if counterpartyUpgradeSequence > channel.UpgradeSequence {
+			channel.UpgradeSequence = counterpartyUpgradeSequence
+			k.SetChannel(ctx, portID, channelID, channel)
 		}
 	}
-	// TODO: emit error receipt events
 
-	// this is first message in upgrade handshake on this chain so we must store original channel in restore channel path
-	// in case we need to restore channel later.
-	k.SetUpgradeRestoreChannel(ctx, portID, channelID, channel)
-	return upgradeSequence, nil
+	return channel.UpgradeSequence, nil
 }
 
 // WriteUpgradeTryChannel writes a channel which has successfully passed the UpgradeTry handshake step.
@@ -186,41 +193,8 @@ func (k Keeper) WriteUpgradeTryChannel(
 	channel.State = types.TRYUPGRADE
 
 	k.SetChannel(ctx, portID, channelID, channel)
-	k.SetUpgrade(ctx, portID, channelID, upgrade)
 
 	// TODO: previous state will not be OPEN in the case of crossing hellos. Determine this state correctly.
 	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", types.OPEN.String(), "new-state", types.TRYUPGRADE.String())
 	emitChannelUpgradeTryEvent(ctx, portID, channelID, channel, upgrade)
-}
-
-// RestoreChannel restores the given channel to the state prior to upgrade.
-func (k Keeper) RestoreChannel(ctx sdk.Context, portID, channelID string, upgradeSequence uint64, err error) error {
-	errorReceipt := types.NewErrorReceipt(upgradeSequence, err)
-	k.SetUpgradeErrorReceipt(ctx, portID, channelID, errorReceipt)
-
-	channel, found := k.GetUpgradeRestoreChannel(ctx, portID, channelID)
-	if !found {
-		return errorsmod.Wrapf(types.ErrChannelNotFound, "channel-id: %s", channelID)
-	}
-
-	k.SetChannel(ctx, portID, channelID, channel)
-	k.DeleteUpgradeRestoreChannel(ctx, portID, channelID)
-	k.DeleteUpgradeTimeout(ctx, portID, channelID)
-
-	module, _, err := k.LookupModuleByChannel(ctx, portID, channelID)
-	if err != nil {
-		return errorsmod.Wrap(err, "could not retrieve module from port-id")
-	}
-
-	portKeeper, ok := k.portKeeper.(*portkeeper.Keeper)
-	if !ok {
-		panic("todo: handle this situation")
-	}
-
-	cbs, found := portKeeper.Router.GetRoute(module)
-	if !found {
-		return errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
-	}
-
-	return cbs.OnChanUpgradeRestore(ctx, portID, channelID)
 }

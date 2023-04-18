@@ -10,6 +10,7 @@ import (
 
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
+	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
 	coretypes "github.com/cosmos/ibc-go/v7/modules/core/types"
@@ -748,7 +749,81 @@ func (k Keeper) ChannelUpgradeInit(goCtx context.Context, msg *channeltypes.MsgC
 
 // ChannelUpgradeTry defines a rpc handler method for MsgChannelUpgradeTry.
 func (k Keeper) ChannelUpgradeTry(goCtx context.Context, msg *channeltypes.MsgChannelUpgradeTry) (*channeltypes.MsgChannelUpgradeTryResponse, error) {
-	return nil, nil
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	module, _, err := k.ChannelKeeper.LookupModuleByChannel(ctx, msg.PortId, msg.ChannelId)
+	if err != nil {
+		ctx.Logger().Error("channel upgrade try failed", "port-id", msg.PortId, "error", errorsmod.Wrap(err, "could not retrieve module from port-id"))
+		return nil, errorsmod.Wrap(err, "could not retrieve module from port-id")
+	}
+	cbs, ok := k.Router.GetRoute(module)
+	if !ok {
+		ctx.Logger().Error("channel upgrade try failed", "port-id", msg.PortId, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module))
+		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
+	}
+
+	upgradeSequence, err := k.ChannelKeeper.ChanUpgradeTry(
+		ctx,
+		msg.PortId,
+		msg.ChannelId,
+		msg.ProposedUpgrade,
+		msg.CounterpartyProposedUpgrade,
+		msg.CounterpartyUpgradeSequence,
+		msg.ProofChannel,
+		msg.ProofUpgrade,
+		msg.ProofHeight,
+	)
+
+	if errorsmod.IsOf(err, channeltypes.ErrInvalidUpgrade) {
+		// TODO: commit error receipt to state and abort channel upgrade
+		ctx.Logger().Error("channel upgrade try failed", "error", errorsmod.Wrap(err, "channel handshake upgrade try failed"))
+		return &channeltypes.MsgChannelUpgradeTryResponse{
+			ChannelId: msg.ChannelId,
+			Success:   false,
+		}, nil
+	}
+	if err != nil {
+		ctx.Logger().Error("channel upgrade try failed", "error", errorsmod.Wrap(err, "channel handshake upgrade try failed"))
+		return nil, errorsmod.Wrap(err, "channel handshake upgrade try failed")
+	}
+
+	channel, found := k.ChannelKeeper.GetChannel(ctx, msg.PortId, msg.ChannelId)
+	if !found {
+		return nil, errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", msg.PortId, msg.ChannelId)
+	}
+
+	proposedUpgradeVersion, err := cbs.OnChanUpgradeTry(
+		ctx,
+		msg.CounterpartyProposedUpgrade.UpgradeFields.Ordering,
+		msg.CounterpartyProposedUpgrade.UpgradeFields.ConnectionHops,
+		msg.PortId,
+		msg.ChannelId,
+		upgradeSequence,
+		channel.Counterparty,
+		channel.Version,
+		msg.CounterpartyProposedUpgrade.UpgradeFields.Version,
+	)
+	if err != nil {
+		ctx.Logger().Error("channel upgrade try callback failed", "port-id", msg.PortId, "channel-id", msg.ChannelId, "error", err.Error())
+		// TODO: commit error receipt to state and abort channel upgrade
+		// if err := k.ChannelKeeper.RestoreChannelAndWriteErrorReceipt(ctx, msg.PortId, msg.ChannelId, upgradeSequence, err); err != nil {
+		// 	ctx.Logger().Error("error restoring channel on portID %s, channelID %s: %s", msg.PortId, msg.ChannelId, err)
+		// }
+		return &channeltypes.MsgChannelUpgradeTryResponse{
+			ChannelId:       msg.ChannelId,
+			Version:         proposedUpgradeVersion,
+			UpgradeSequence: upgradeSequence,
+			Success:         false,
+		}, nil
+	}
+
+	k.ChannelKeeper.WriteUpgradeTryChannel(ctx, msg.PortId, msg.ChannelId, msg.CounterpartyProposedUpgrade)
+
+	return &channeltypes.MsgChannelUpgradeTryResponse{
+		ChannelId:       msg.ChannelId,
+		Version:         proposedUpgradeVersion,
+		UpgradeSequence: upgradeSequence,
+		Success:         true,
+	}, nil
 }
 
 // ChannelUpgradeAck defines a rpc handler method for MsgChannelUpgradeAck.
