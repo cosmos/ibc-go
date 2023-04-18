@@ -711,7 +711,12 @@ func (k Keeper) ChannelUpgradeInit(goCtx context.Context, msg *channeltypes.MsgC
 		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
 	}
 
-	upgradeSequence, previousVersion, err := k.ChannelKeeper.ChanUpgradeInit(ctx, msg.PortId, msg.ChannelId, msg.ProposedUpgrade)
+	proposedUpgrade, err := k.extractUpgradeFromMessage(ctx, msg)
+	if err != nil {
+		return nil, errorsmod.Wrap(err, "failed to get upgrade")
+	}
+
+	upgradeSequence, previousVersion, err := k.ChannelKeeper.ChanUpgradeInit(ctx, msg.PortId, msg.ChannelId, proposedUpgrade)
 	if err != nil {
 		ctx.Logger().Error("channel upgrade init callback failed", "error", errorsmod.Wrap(err, "channel handshake upgrade init failed"))
 		return nil, errorsmod.Wrap(err, "channel handshake upgrade init failed")
@@ -719,12 +724,12 @@ func (k Keeper) ChannelUpgradeInit(goCtx context.Context, msg *channeltypes.MsgC
 
 	proposedVersion, err := cbs.OnChanUpgradeInit(
 		ctx,
-		msg.ProposedUpgrade.Fields.Ordering,
-		msg.ProposedUpgrade.Fields.ConnectionHops,
+		proposedUpgrade.Fields.Ordering,
+		proposedUpgrade.Fields.ConnectionHops,
 		msg.PortId,
 		msg.ChannelId,
 		upgradeSequence,
-		msg.ProposedUpgrade.Fields.Version,
+		proposedUpgrade.Fields.Version,
 		previousVersion,
 	)
 	if err != nil {
@@ -732,10 +737,9 @@ func (k Keeper) ChannelUpgradeInit(goCtx context.Context, msg *channeltypes.MsgC
 		return nil, errorsmod.Wrapf(err, "channel upgrade init callback failed for port ID: %s, channel ID: %s", msg.PortId, msg.ChannelId)
 	}
 
-	upgrade := msg.ProposedUpgrade
-	upgrade.Fields.Version = proposedVersion
+	proposedUpgrade.Fields.Version = proposedVersion
 
-	k.ChannelKeeper.WriteUpgradeInitChannel(ctx, msg.PortId, msg.ChannelId, upgrade)
+	k.ChannelKeeper.WriteUpgradeInitChannel(ctx, msg.PortId, msg.ChannelId, proposedUpgrade)
 
 	ctx.Logger().Info("channel upgrade init callback succeeded", "channel-id", msg.ChannelId, "version", proposedVersion)
 
@@ -769,4 +773,24 @@ func (k Keeper) ChannelUpgradeTimeout(goCtx context.Context, msg *channeltypes.M
 // ChannelUpgradeCancel defines a rpc handler method for MsgChannelUpgradeCancel.
 func (k Keeper) ChannelUpgradeCancel(goCtx context.Context, msg *channeltypes.MsgChannelUpgradeCancel) (*channeltypes.MsgChannelUpgradeCancelResponse, error) {
 	return nil, nil
+}
+
+// extractUpgradeFromMessage returns the proposed upgrade from the provided MsgChannelUpgradeInit message.
+func (k Keeper) extractUpgradeFromMessage(ctx sdk.Context, msg *channeltypes.MsgChannelUpgradeInit) (channeltypes.Upgrade, error) {
+	seq, found := k.ChannelKeeper.GetNextSequenceSend(ctx, msg.PortId, msg.ChannelId)
+	if !found {
+		return channeltypes.Upgrade{}, channeltypes.ErrSequenceSendNotFound
+	}
+	return channeltypes.Upgrade{
+		Fields: channeltypes.UpgradeFields{
+			Ordering:       msg.UpgradeFields.Ordering,
+			ConnectionHops: msg.UpgradeFields.ConnectionHops,
+			Version:        msg.UpgradeFields.Version,
+		},
+		Timeout: channeltypes.UpgradeTimeout{
+			TimeoutHeight:    msg.UpgradeTimeout.TimeoutHeight,
+			TimeoutTimestamp: msg.UpgradeTimeout.TimeoutTimestamp,
+		},
+		LatestSequenceSend: seq - 1,
+	}, nil
 }

@@ -35,20 +35,6 @@ func NewUpgradeTimeout(height clienttypes.Height, timestamp uint64) UpgradeTimeo
 	}
 }
 
-// ValidateBasic performs a basic validation of the upgrade fields
-func (u Upgrade) ValidateBasic() error {
-	if err := u.Fields.ValidateBasic(); err != nil {
-		return errorsmod.Wrap(err, "proposed upgrade fields are invalid")
-	}
-
-	if !u.Timeout.IsValid() {
-		return errorsmod.Wrap(ErrInvalidUpgrade, "upgrade timeout cannot be empty")
-	}
-
-	// TODO: determine if last packet sequence sent can be 0?
-	return nil
-}
-
 // ValidateBasic performs a basic validation of the proposed upgrade fields
 func (uf UpgradeFields) ValidateBasic() error {
 	if !collections.Contains(uf.Ordering, []Order{ORDERED, UNORDERED}) {
