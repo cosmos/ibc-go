@@ -194,44 +194,6 @@ func queryNextSequenceRecvABCI(clientCtx client.Context, portID, channelID strin
 	return types.NewQueryNextSequenceReceiveResponse(sequence, proofBz, proofHeight), nil
 }
 
-// QueryUpgradeSequence returns the upgrade sequence.
-// If prove is true, it performs an ABCI store query in order to retrieve the merkle proof. Otherwise,
-// it uses the gRPC query client.
-func QueryUpgradeSequence(
-	clientCtx client.Context, portID, channelID string, prove bool,
-) (*types.QueryUpgradeSequenceResponse, error) {
-	if prove {
-		return queryUpgradeSequenceABCI(clientCtx, portID, channelID)
-	}
-
-	queryClient := types.NewQueryClient(clientCtx)
-	req := &types.QueryUpgradeSequenceRequest{
-		PortId:    portID,
-		ChannelId: channelID,
-	}
-
-	return queryClient.UpgradeSequence(context.Background(), req)
-}
-
-// queryUpgradeSequenceABCI queries the upgrade sequence from the store.
-func queryUpgradeSequenceABCI(clientCtx client.Context, portID, channelID string) (*types.QueryUpgradeSequenceResponse, error) {
-	key := host.ChannelUpgradeSequenceKey(portID, channelID)
-
-	value, proofBz, proofHeight, err := ibcclient.QueryTendermintProof(clientCtx, key)
-	if err != nil {
-		return nil, err
-	}
-
-	// check if upgrade sequence exists
-	if len(value) == 0 {
-		return nil, errorsmod.Wrapf(types.ErrUpgradeSequenceNotFound, "portID (%s), channelID (%s)", portID, channelID)
-	}
-
-	sequence := binary.BigEndian.Uint64(value)
-
-	return types.NewQueryUpgradeSequenceResponse(sequence, proofBz, proofHeight), nil
-}
-
 // QueryUpgradeError returns the upgrade error.
 // If prove is true, it performs an ABCI store query in order to retrieve the merkle proof. Otherwise,
 // it uses the gRPC query client.
@@ -249,6 +211,25 @@ func QueryUpgradeError(
 	}
 
 	return queryClient.UpgradeError(context.Background(), req)
+}
+
+// QueryUpgrade returns the upgrade error.
+// If prove is true, it performs an ABCI store query in order to retrieve the merkle proof. Otherwise,
+// it uses the gRPC query client.
+func QueryUpgrade(
+	clientCtx client.Context, portID, channelID string, prove bool,
+) (*types.QueryUpgradeResponse, error) {
+	if prove {
+		return queryUpgradeABCI(clientCtx, portID, channelID)
+	}
+
+	queryClient := types.NewQueryClient(clientCtx)
+	req := &types.QueryUpgradeRequest{
+		PortId:    portID,
+		ChannelId: channelID,
+	}
+
+	return queryClient.Upgrade(context.Background(), req)
 }
 
 // queryUpgradeErrorABCI queries the upgrade error from the store.
@@ -273,6 +254,30 @@ func queryUpgradeErrorABCI(clientCtx client.Context, portID, channelID string) (
 	}
 
 	return types.NewQueryUpgradeErrorResponse(receipt, proofBz, proofHeight), nil
+}
+
+// queryUpgradeABCI queries the upgrade from the store.
+func queryUpgradeABCI(clientCtx client.Context, portID, channelID string) (*types.QueryUpgradeResponse, error) {
+	key := host.ChannelUpgradeKey(portID, channelID)
+
+	value, proofBz, proofHeight, err := ibcclient.QueryTendermintProof(clientCtx, key)
+	if err != nil {
+		return nil, err
+	}
+
+	// check if upgrade exists
+	if len(value) == 0 {
+		return nil, errorsmod.Wrapf(types.ErrUpgradeErrorNotFound, "portID (%s), channelID (%s)", portID, channelID)
+	}
+
+	cdc := codec.NewProtoCodec(clientCtx.InterfaceRegistry)
+
+	var upgrade types.Upgrade
+	if err := cdc.Unmarshal(value, &upgrade); err != nil {
+		return nil, err
+	}
+
+	return types.NewQueryUpgradeResponse(upgrade, proofBz, proofHeight), nil
 }
 
 // QueryPacketCommitment returns a packet commitment.
