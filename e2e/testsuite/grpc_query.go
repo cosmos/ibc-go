@@ -2,15 +2,23 @@ package testsuite
 
 import (
 	"context"
+	"fmt"
 	"sort"
 
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	"github.com/cosmos/cosmos-sdk/x/authz"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
-	govtypesbeta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
+	govtypesv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
+	grouptypes "github.com/cosmos/cosmos-sdk/x/group"
+	paramsproposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 	intertxtypes "github.com/cosmos/interchain-accounts/x/inter-tx/types"
 	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
 	"github.com/strangelove-ventures/interchaintest/v7/ibc"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 
 	controllertypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
 	feetypes "github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
@@ -19,6 +27,63 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
+
+// GRPCClients holds a reference to any GRPC clients that are needed by the tests.
+// These should typically be used for query clients only. If we need to make changes, we should
+// use E2ETestSuite.BroadcastMessages to broadcast transactions instead.
+type GRPCClients struct {
+	ClientQueryClient     clienttypes.QueryClient
+	ConnectionQueryClient connectiontypes.QueryClient
+	ChannelQueryClient    channeltypes.QueryClient
+	FeeQueryClient        feetypes.QueryClient
+	ICAQueryClient        controllertypes.QueryClient
+	InterTxQueryClient    intertxtypes.QueryClient
+
+	// SDK query clients
+	GovQueryClient    govtypesv1beta1.QueryClient
+	GovQueryClientV1  govtypesv1.QueryClient
+	GroupsQueryClient grouptypes.QueryClient
+	ParamsQueryClient paramsproposaltypes.QueryClient
+	AuthQueryClient   authtypes.QueryClient
+	AuthZQueryClient  authz.QueryClient
+
+	ConsensusServiceClient tmservice.ServiceClient
+}
+
+// InitGRPCClients establishes GRPC clients with the given chain.
+// The created GRPCClients can be retrieved with GetChainGRCPClients.
+func (s *E2ETestSuite) InitGRPCClients(chain *cosmos.CosmosChain) {
+	// Create a connection to the gRPC server.
+	grpcConn, err := grpc.Dial(
+		chain.GetHostGRPCAddress(),
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+	)
+	s.Require().NoError(err)
+	s.T().Cleanup(func() {
+		if err := grpcConn.Close(); err != nil {
+			s.T().Logf("failed closing GRPC connection to chain %s: %s", chain.Config().ChainID, err)
+		}
+	})
+
+	if s.grpcClients == nil {
+		s.grpcClients = make(map[string]GRPCClients)
+	}
+
+	s.grpcClients[chain.Config().ChainID] = GRPCClients{
+		ClientQueryClient:      clienttypes.NewQueryClient(grpcConn),
+		ChannelQueryClient:     channeltypes.NewQueryClient(grpcConn),
+		FeeQueryClient:         feetypes.NewQueryClient(grpcConn),
+		ICAQueryClient:         controllertypes.NewQueryClient(grpcConn),
+		InterTxQueryClient:     intertxtypes.NewQueryClient(grpcConn),
+		GovQueryClient:         govtypesv1beta1.NewQueryClient(grpcConn),
+		GovQueryClientV1:       govtypesv1.NewQueryClient(grpcConn),
+		GroupsQueryClient:      grouptypes.NewQueryClient(grpcConn),
+		ParamsQueryClient:      paramsproposaltypes.NewQueryClient(grpcConn),
+		AuthQueryClient:        authtypes.NewQueryClient(grpcConn),
+		AuthZQueryClient:       authz.NewQueryClient(grpcConn),
+		ConsensusServiceClient: tmservice.NewServiceClient(grpcConn),
+	}
+}
 
 // QueryClientState queries the client state on the given chain for the provided clientID.
 func (s *E2ETestSuite) QueryClientState(ctx context.Context, chain ibc.Chain, clientID string) (ibcexported.ClientState, error) {
@@ -152,13 +217,13 @@ func (s *E2ETestSuite) QueryCounterPartyPayee(ctx context.Context, chain ibc.Cha
 }
 
 // QueryProposal queries the governance proposal on the given chain with the given proposal ID.
-func (s *E2ETestSuite) QueryProposal(ctx context.Context, chain ibc.Chain, proposalID uint64) (govtypesbeta1.Proposal, error) {
+func (s *E2ETestSuite) QueryProposal(ctx context.Context, chain ibc.Chain, proposalID uint64) (govtypesv1beta1.Proposal, error) {
 	queryClient := s.GetChainGRCPClients(chain).GovQueryClient
-	res, err := queryClient.Proposal(ctx, &govtypesbeta1.QueryProposalRequest{
+	res, err := queryClient.Proposal(ctx, &govtypesv1beta1.QueryProposalRequest{
 		ProposalId: proposalID,
 	})
 	if err != nil {
-		return govtypesbeta1.Proposal{}, err
+		return govtypesv1beta1.Proposal{}, err
 	}
 
 	return res.Proposal, nil
@@ -206,4 +271,44 @@ func (s *E2ETestSuite) GetValidatorSetByHeight(ctx context.Context, chain ibc.Ch
 	})
 
 	return res.Validators, nil
+}
+
+// QueryModuleAccountAddress returns the sdk.AccAddress of a given module name.
+func (s *E2ETestSuite) QueryModuleAccountAddress(ctx context.Context, moduleName string, chain *cosmos.CosmosChain) (sdk.AccAddress, error) {
+	authClient := s.GetChainGRCPClients(chain).AuthQueryClient
+
+	resp, err := authClient.ModuleAccountByName(ctx, &authtypes.QueryModuleAccountByNameRequest{
+		Name: moduleName,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	cfg := EncodingConfig()
+
+	var account authtypes.AccountI
+	if err := cfg.InterfaceRegistry.UnpackAny(resp.Account, &account); err != nil {
+		return nil, err
+	}
+	moduleAccount, ok := account.(authtypes.ModuleAccountI)
+	if !ok {
+		return nil, fmt.Errorf("failed to cast account: %T as ModuleAccount", moduleAccount)
+	}
+
+	return moduleAccount.GetAddress(), nil
+}
+
+// QueryGranterGrants returns all GrantAuthorizations for the given granterAddress.
+func (s *E2ETestSuite) QueryGranterGrants(ctx context.Context, chain *cosmos.CosmosChain, granterAddress string) ([]*authz.GrantAuthorization, error) {
+	authzClient := s.GetChainGRCPClients(chain).AuthZQueryClient
+	queryRequest := &authz.QueryGranterGrantsRequest{
+		Granter: granterAddress,
+	}
+
+	grants, err := authzClient.GranterGrants(ctx, queryRequest)
+	if err != nil {
+		return nil, err
+	}
+
+	return grants.Grants, nil
 }

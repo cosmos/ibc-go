@@ -13,7 +13,7 @@ import (
 	"github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
 )
 
-var _ types.QueryServer = Keeper{}
+var _ types.QueryServer = (*Keeper)(nil)
 
 // IncentivizedPackets implements the Query/IncentivizedPackets gRPC method
 func (k Keeper) IncentivizedPackets(goCtx context.Context, req *types.QueryIncentivizedPacketsRequest) (*types.QueryIncentivizedPacketsResponse, error) {
@@ -101,6 +101,10 @@ func (k Keeper) IncentivizedPacketsForChannel(goCtx context.Context, req *types.
 
 // TotalRecvFees implements the Query/TotalRecvFees gRPC method
 func (k Keeper) TotalRecvFees(goCtx context.Context, req *types.QueryTotalRecvFeesRequest) (*types.QueryTotalRecvFeesResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "empty request")
+	}
+
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	feesInEscrow, found := k.GetFeesInEscrow(ctx, req.PacketId)
