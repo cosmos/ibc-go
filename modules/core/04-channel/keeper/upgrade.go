@@ -146,6 +146,13 @@ func (k Keeper) ChanUpgradeTry(
 		return 0, errorsmod.Wrapf(types.ErrInvalidUpgrade, "upgrade timeout has passed, error receipt written for upgrade sequence: %d", channel.UpgradeSequence)
 	}
 
+	// TODO: fix this
+	seq, found := k.GetNextSequenceSend(ctx, portID, channelID)
+	if !found {
+		return 0, types.ErrSequenceSendNotFound
+	}
+	proposedUpgrade.LatestSequenceSend = seq - 1
+
 	// happy path case
 	// increment upgrade sequence appropriately
 	if channel.State == types.OPEN {
