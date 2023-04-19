@@ -226,3 +226,46 @@ func (k Keeper) WriteUpgradeTryChannel(
 	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", types.OPEN.String(), "new-state", types.TRYUPGRADE.String())
 	emitChannelUpgradeTryEvent(ctx, portID, channelID, currentChannel, upgrade)
 }
+
+// ChanUpgradeCancel is called by a module to abort an upgrade in progress and restore the channel to its previous state.
+func (k Keeper) ChanUpgradeCancel(
+	ctx sdk.Context,
+	portID string,
+	channelID string,
+	errorReceipt types.ErrorReceipt,
+	proofErrorReceipt []byte,
+	proofHeight clienttypes.Height,
+) error {
+	channel, found := k.GetChannel(ctx, portID, channelID)
+	if !found {
+		return errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
+	}
+
+	if !collections.Contains(channel.State, []types.State{types.INITUPGRADE, types.TRYUPGRADE}) {
+		return errorsmod.Wrapf(types.ErrInvalidChannelState, "expected one of [%s, %s], got %s", types.OPEN, types.INITUPGRADE, channel.State)
+	}
+
+	if errorReceipt.Sequence < channel.UpgradeSequence {
+		return errorsmod.Wrapf(types.ErrInvalidUpgrade, "channel upgrade expired for upgrade sequence: %d", errorReceipt.Sequence)
+	}
+
+	connectionEnd, err := k.GetConnection(ctx, channel.ConnectionHops[0])
+	if err != nil {
+		return err
+	}
+
+	if err := k.connectionKeeper.VerifyChannelUpgradeError(ctx, connectionEnd, proofHeight, proofErrorReceipt,
+		channel.Counterparty.PortId, channel.Counterparty.ChannelId, errorReceipt); err != nil {
+		return err
+	}
+
+	channel.State = types.OPEN
+	channel.UpgradeSequence = errorReceipt.Sequence + 1
+
+	k.SetChannel(ctx, portID, channelID, channel)
+	k.DeleteUpgrade(ctx, portID, channelID)
+
+	// TODO: emit events
+
+	return nil
+}

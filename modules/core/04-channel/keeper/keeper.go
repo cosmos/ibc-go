@@ -548,6 +548,12 @@ func (k Keeper) SetUpgrade(ctx sdk.Context, portID, channelID string, upgrade ty
 	store.Set(host.ChannelUpgradeKey(portID, channelID), bz)
 }
 
+// DeleteUpgrade deletes the proposed upgrade using the provided port and channel identifiers.
+func (k Keeper) DeleteUpgrade(ctx sdk.Context, portID, channelID string) {
+	store := ctx.KVStore(k.storeKey)
+	store.Delete(host.ChannelUpgradeKey(portID, channelID))
+}
+
 // ValidateUpgradeFields validates the proposed upgrade fields against the existing channel.
 // It returns an error if the following constraints are not met:
 // - there exists at least one valid proposed change to the existing channel fields
