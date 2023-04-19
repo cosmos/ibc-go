@@ -51,7 +51,7 @@ func (k Keeper) Connections(c context.Context, req *types.QueryConnectionsReques
 	ctx := sdk.UnwrapSDKContext(c)
 
 	var connections []*types.IdentifiedConnection
-	store := prefix.NewStore(ctx.KVStore(q.storeKey), []byte(host.KeyConnectionPrefix))
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte(host.KeyConnectionPrefix))
 
 	pageRes, err := query.Paginate(store, req.Pagination, func(key, value []byte) error {
 		var result types.ConnectionEnd

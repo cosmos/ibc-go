@@ -61,7 +61,7 @@ func (k Keeper) ClientStates(c context.Context, req *types.QueryClientStatesRequ
 	ctx := sdk.UnwrapSDKContext(c)
 
 	var clientStates types.IdentifiedClientStates
-	store := prefix.NewStore(ctx.KVStore(q.storeKey), host.KeyClientStorePrefix)
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), host.KeyClientStorePrefix)
 
 	pageRes, err := query.FilteredPaginate(store, req.Pagination, func(key, value []byte, accumulate bool) (bool, error) {
 		// filter any metadata stored under client state key
@@ -156,7 +156,7 @@ func (k Keeper) ConsensusStates(c context.Context, req *types.QueryConsensusStat
 	ctx := sdk.UnwrapSDKContext(c)
 
 	var consensusStates []types.ConsensusStateWithHeight
-	store := prefix.NewStore(ctx.KVStore(q.storeKey), host.FullClientKey(req.ClientId, []byte(fmt.Sprintf("%s/", host.KeyConsensusStatePrefix))))
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), host.FullClientKey(req.ClientId, []byte(fmt.Sprintf("%s/", host.KeyConsensusStatePrefix))))
 
 	pageRes, err := query.FilteredPaginate(store, req.Pagination, func(key, value []byte, accumulate bool) (bool, error) {
 		// filter any metadata stored under consensus state key

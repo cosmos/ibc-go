@@ -52,7 +52,7 @@ func (k Keeper) Channels(c context.Context, req *types.QueryChannelsRequest) (*t
 	ctx := sdk.UnwrapSDKContext(c)
 
 	var channels []*types.IdentifiedChannel
-	store := prefix.NewStore(ctx.KVStore(q.storeKey), []byte(host.KeyChannelEndPrefix))
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte(host.KeyChannelEndPrefix))
 
 	pageRes, err := query.Paginate(store, req.Pagination, func(key, value []byte) error {
 		var result types.Channel
@@ -94,7 +94,7 @@ func (k Keeper) ConnectionChannels(c context.Context, req *types.QueryConnection
 	ctx := sdk.UnwrapSDKContext(c)
 
 	var channels []*types.IdentifiedChannel
-	store := prefix.NewStore(ctx.KVStore(q.storeKey), []byte(host.KeyChannelEndPrefix))
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte(host.KeyChannelEndPrefix))
 
 	pageRes, err := query.FilteredPaginate(store, req.Pagination, func(key, value []byte, accumulate bool) (bool, error) {
 		// filter any metadata stored under channel key
@@ -237,7 +237,7 @@ func (k Keeper) PacketCommitments(c context.Context, req *types.QueryPacketCommi
 	ctx := sdk.UnwrapSDKContext(c)
 
 	var commitments []*types.PacketState
-	store := prefix.NewStore(ctx.KVStore(q.storeKey), []byte(host.PacketCommitmentPrefixPath(req.PortId, req.ChannelId)))
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte(host.PacketCommitmentPrefixPath(req.PortId, req.ChannelId)))
 
 	pageRes, err := query.Paginate(store, req.Pagination, func(key, value []byte) error {
 		keySplit := strings.Split(string(key), "/")
@@ -323,8 +323,8 @@ func (k Keeper) PacketAcknowledgements(c context.Context, req *types.QueryPacket
 	ctx := sdk.UnwrapSDKContext(c)
 
 	var acks []*types.PacketState
-	store := prefix.NewStore(ctx.KVStore(q.storeKey), []byte(host.PacketAcknowledgementPrefixPath(req.PortId, req.ChannelId)))
-  
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte(host.PacketAcknowledgementPrefixPath(req.PortId, req.ChannelId)))
+
 	// if a list of packet sequences is provided then query for each specific ack and return a list <= len(req.PacketCommitmentSequences)
 	// otherwise, maintain previous behaviour and perform paginated query
 	for _, seq := range req.PacketCommitmentSequences {

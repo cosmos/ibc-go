@@ -51,7 +51,7 @@ func (k Keeper) DenomTraces(c context.Context, req *types.QueryDenomTracesReques
 	ctx := sdk.UnwrapSDKContext(c)
 
 	var traces types.Traces
-	store := prefix.NewStore(ctx.KVStore(q.storeKey), types.DenomTraceKey)
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.DenomTraceKey)
 
 	pageRes, err := query.Paginate(store, req.Pagination, func(_, value []byte) error {
 		result, err := k.UnmarshalDenomTrace(value)
