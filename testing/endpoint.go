@@ -608,13 +608,6 @@ func (endpoint *Endpoint) ChanUpgradeTry(timeoutHeight clienttypes.Height, timeo
 	return endpoint.Counterparty.UpdateClient()
 }
 
-func (endpoint *Endpoint) GetChannelUpgrade() channeltypes.Upgrade {
-	chanUpgrade, found := endpoint.Chain.GetSimApp().GetIBCKeeper().ChannelKeeper.GetUpgrade(endpoint.Chain.GetContext(), endpoint.ChannelConfig.PortID, endpoint.ChannelID)
-	require.True(endpoint.Chain.TB, found)
-
-	return chanUpgrade
-}
-
 // SetChannelState sets a channel state
 func (endpoint *Endpoint) SetChannelState(state channeltypes.State) error {
 	channel := endpoint.GetChannel()
@@ -678,6 +671,14 @@ func (endpoint *Endpoint) GetChannel() channeltypes.Channel {
 // SetChannel sets the channel for this endpoint.
 func (endpoint *Endpoint) SetChannel(channel channeltypes.Channel) {
 	endpoint.Chain.App.GetIBCKeeper().ChannelKeeper.SetChannel(endpoint.Chain.GetContext(), endpoint.ChannelConfig.PortID, endpoint.ChannelID, channel)
+}
+
+// GetChannelUpgrade retrieves the channel upgrade for the endpoint. The upgrade is expected to exist otherwise testing will fail.
+func (endpoint *Endpoint) GetChannelUpgrade() channeltypes.Upgrade {
+	chanUpgrade, found := endpoint.Chain.GetSimApp().GetIBCKeeper().ChannelKeeper.GetUpgrade(endpoint.Chain.GetContext(), endpoint.ChannelConfig.PortID, endpoint.ChannelID)
+	require.True(endpoint.Chain.TB, found)
+
+	return chanUpgrade
 }
 
 // QueryClientStateProof performs and abci query for a client stat associated
