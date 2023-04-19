@@ -577,11 +577,6 @@ func (endpoint *Endpoint) ChanUpgradeInit(timeoutHeight clienttypes.Height, time
 		return err
 	}
 
-	// TODO: remove this as version will remain the same until upgrade handshake completes (right now this is redundant)
-	// update version to selected app version
-	// NOTE: this update must be performed after SendMsgs()
-	endpoint.ChannelConfig.Version = endpoint.GetChannel().Version
-
 	endpoint.Chain.Coordinator.CommitBlock(endpoint.Chain)
 	return endpoint.Counterparty.UpdateClient()
 }
@@ -608,11 +603,6 @@ func (endpoint *Endpoint) ChanUpgradeTry(timeoutHeight clienttypes.Height, timeo
 	if err := endpoint.Chain.sendMsgs(msg); err != nil {
 		return err
 	}
-
-	// TODO: remove this as version will remain the same until upgrade handshake completes (right now this is redundant)
-	// update version to selected app version
-	// NOTE: this update must be performed after SendMsgs()
-	endpoint.ChannelConfig.Version = endpoint.GetChannel().Version
 
 	endpoint.Chain.Coordinator.CommitBlock(endpoint.Chain)
 	return endpoint.Counterparty.UpdateClient()
