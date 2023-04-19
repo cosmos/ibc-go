@@ -8,6 +8,7 @@ import (
 
 	// "cosmossdk.io/math"
 	paramsproposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
+
 	"github.com/strangelove-ventures/interchaintest/v7/ibc"
 	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
 	"github.com/stretchr/testify/suite"
@@ -434,7 +435,7 @@ func (s *TransferTestSuite) TestMsgTransfer_WithMemo() {
 			s.AssertTxSuccess(transferTxResp)
 		} else {
 			s.Require().Equal(uint32(2), transferTxResp.Code)
-			s.AssertTxFailure(transferTxResp, "errUnknownField")
+			s.Require().Contains("errUnknownField", transferTxResp.RawLog)
 		}
 	})
 

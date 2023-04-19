@@ -169,7 +169,7 @@ func (suite *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 		}
 
 		resp := suite.BroadcastMessages(context.TODO(), chainA, granteeWallet, msgExec)
-		suite.AssertTxFailure(resp, authz.ErrNoAuthorizationFound.Error())
+		suite.AssertTxFailure(resp, authz.ErrNoAuthorizationFound)
 	})
 }
 
@@ -248,7 +248,7 @@ func (suite *AuthzTransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 			}
 
 			resp := suite.BroadcastMessages(context.TODO(), chainA, granteeWallet, msgExec)
-			suite.AssertTxFailure(resp, sdkerrors.ErrInsufficientFunds.Error())
+			suite.AssertTxFailure(resp, sdkerrors.ErrInsufficientFunds)
 		})
 
 		t.Run("verify granter wallet amount", func(t *testing.T) {
@@ -300,7 +300,7 @@ func (suite *AuthzTransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 			}
 
 			resp := suite.BroadcastMessages(context.TODO(), chainA, granteeWallet, msgExec)
-			suite.AssertTxFailure(resp, sdkerrors.ErrInvalidAddress.Error())
+			suite.AssertTxFailure(resp, sdkerrors.ErrInvalidAddress)
 		})
 	})
 }

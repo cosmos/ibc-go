@@ -53,8 +53,7 @@ func (s *InterTxTestSuite) TestMsgSubmitTx_SuccessfulTransfer() {
 	t.Run("register interchain account", func(t *testing.T) {
 		version := getICAVersion(testconfig.GetChainATag(), testconfig.GetChainBTag())
 		msgRegisterAccount := intertxtypes.NewMsgRegisterAccount(controllerAccount.FormattedAddress(), ibctesting.FirstConnectionID, version)
-		txResp := s.BroadcastMessages(ctx, chainA, controllerAccount, msgRegisterAccount)
-		s.AssertTxSuccess(txResp)
+		s.RegisterInterchainAccount(ctx, chainA, controllerAccount, msgRegisterAccount)
 	})
 
 	t.Run("start relayer", func(t *testing.T) {
@@ -145,8 +144,7 @@ func (s *InterTxTestSuite) TestMsgSubmitTx_FailedTransfer_InsufficientFunds() {
 	t.Run("register interchain account", func(t *testing.T) {
 		version := getICAVersion(testconfig.GetChainATag(), testconfig.GetChainBTag())
 		msgRegisterAccount := intertxtypes.NewMsgRegisterAccount(controllerAccount.FormattedAddress(), ibctesting.FirstConnectionID, version)
-		txResp := s.BroadcastMessages(ctx, chainA, controllerAccount, msgRegisterAccount)
-		s.AssertTxSuccess(txResp)
+		s.RegisterInterchainAccount(ctx, chainA, controllerAccount, msgRegisterAccount)
 	})
 
 	t.Run("start relayer", func(t *testing.T) {

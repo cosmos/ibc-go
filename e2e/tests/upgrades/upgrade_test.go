@@ -274,8 +274,7 @@ func (s *UpgradeTestSuite) TestV5ToV6ChainUpgrade() {
 	t.Run("register interchain account", func(t *testing.T) {
 		version := getICAVersion(testconfig.GetChainATag(), testconfig.GetChainBTag())
 		msgRegisterAccount := intertxtypes.NewMsgRegisterAccount(controllerAccount.FormattedAddress(), ibctesting.FirstConnectionID, version)
-		txResp := s.BroadcastMessages(ctx, chainA, controllerAccount, msgRegisterAccount)
-		s.AssertTxSuccess(txResp)
+		s.RegisterInterchainAccount(ctx, chainA, controllerAccount, msgRegisterAccount)
 	})
 
 	t.Run("start relayer", func(t *testing.T) {
@@ -616,9 +615,8 @@ func (s *UpgradeTestSuite) TestV7ToV7_1ChainUpgrade() {
 	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
 
 	t.Run("transfer native tokens from chainA to chainB", func(t *testing.T) {
-		transferTxResp, err := s.Transfer(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, testvalues.DefaultTransferAmount(chainADenom), chainAAddress, chainBAddress, s.GetTimeoutHeight(ctx, chainB), 0, "")
-		s.Require().NoError(err)
-		s.AssertValidTxResponse(transferTxResp)
+		transferTxResp := s.Transfer(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, testvalues.DefaultTransferAmount(chainADenom), chainAAddress, chainBAddress, s.GetTimeoutHeight(ctx, chainB), 0, "")
+		s.AssertTxSuccess(transferTxResp)
 	})
 
 	t.Run("tokens are escrowed", func(t *testing.T) {
@@ -677,6 +675,12 @@ func (s *UpgradeTestSuite) TestV7ToV7_1ChainUpgrade() {
 		expectedTotalEscrow := math.NewInt(testvalues.IBCTransferAmount)
 		s.Require().Equal(expectedTotalEscrow, actualTotalEscrow) // migration has run and total escrow amount has been set
 	})
+}
+
+// RegisterInterchainAccount will attempt to register an interchain account on the counterparty chain.
+func (s *UpgradeTestSuite) RegisterInterchainAccount(ctx context.Context, chain *cosmos.CosmosChain, user ibc.Wallet, msgRegisterAccount *intertxtypes.MsgRegisterAccount) {
+	txResp := s.BroadcastMessages(ctx, chain, user, msgRegisterAccount)
+	s.AssertTxSuccess(txResp)
 }
 
 // getICAVersion returns the version which should be used in the MsgRegisterAccount broadcast from the

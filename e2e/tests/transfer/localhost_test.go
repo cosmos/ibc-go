@@ -114,11 +114,12 @@ func (s *LocalhostTransferTestSuite) TestMsgTransfer_Localhost() {
 	})
 
 	t.Run("send packet localhost ibc transfer", func(t *testing.T) {
+		var err error
 		txResp := s.Transfer(ctx, chainA, userAWallet, transfertypes.PortID, msgChanOpenInitRes.GetChannelId(), testvalues.DefaultTransferAmount(chainADenom), userAWallet.FormattedAddress(), userBWallet.FormattedAddress(), clienttypes.NewHeight(1, 100), 0, "")
 		s.AssertTxSuccess(txResp)
 
 		events := testsuite.ABCIToSDKEvents(txResp.Events)
-		packet, err := ibctesting.ParsePacketFromEvents(events)
+		packet, err = ibctesting.ParsePacketFromEvents(events)
 		s.Require().NoError(err)
 		s.Require().NotNil(packet)
 	})
@@ -132,13 +133,14 @@ func (s *LocalhostTransferTestSuite) TestMsgTransfer_Localhost() {
 	})
 
 	t.Run("recv packet localhost ibc transfer", func(t *testing.T) {
+		var err error
 		msgRecvPacket := channeltypes.NewMsgRecvPacket(packet, localhost.SentinelProof, clienttypes.ZeroHeight(), rlyWallet.FormattedAddress())
 
 		txResp := s.BroadcastMessages(ctx, chainA, rlyWallet, msgRecvPacket)
 		s.AssertTxSuccess(txResp)
 
 		events := testsuite.ABCIToSDKEvents(txResp.Events)
-		ack, err := ibctesting.ParseAckFromEvents(events)
+		ack, err = ibctesting.ParseAckFromEvents(events)
 		s.Require().NoError(err)
 		s.Require().NotNil(ack)
 	})

@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -91,17 +92,18 @@ func containsMessage(s string, messages []string) bool {
 	return false
 }
 
-// TODO: Maybe Allow specified error code too, see ensure ics20 transfer fails in base test (and there's one more)
-func (s *E2ETestSuite) AssertTxFailure(resp sdk.TxResponse, expectedMsg string) {
-	errorMsg := fmt.Sprintf("expected tx to fail with error: %s, got: %s", expectedMsg, resp.RawLog)
-	s.Require().NotEqual(resp.Code, 0)
-	s.Require().Contains(resp.RawLog, expectedMsg, errorMsg)
+// AssertTxFailure verifies that an sdk.TxResponse has failed.
+func (s *E2ETestSuite) AssertTxFailure(resp sdk.TxResponse, expectedError *errorsmod.Error) {
+	errorMsg := fmt.Sprintf("%+v", resp)
+	s.Require().Equal(resp.Code, expectedError.ABCICode(), errorMsg)
+	s.Require().Equal(resp.Codespace, expectedError.Codespace(), errorMsg)
+	s.Require().Contains(resp.RawLog, expectedError.Error(), errorMsg)
 }
 
-// AssertTxSuccess verifies that an sdk.TxResponse
-// has non-empty values.
+// AssertTxSuccess verifies that an sdk.TxResponse has succeeded.
 func (s *E2ETestSuite) AssertTxSuccess(resp sdk.TxResponse) {
 	errorMsg := fmt.Sprintf("%+v", resp)
+	s.Require().Equal(resp.Code, uint32(0), errorMsg)
 	s.Require().NotEmpty(resp.TxHash, errorMsg)
 	s.Require().NotEqual(int64(0), resp.GasUsed, errorMsg)
 	s.Require().NotEqual(int64(0), resp.GasWanted, errorMsg)
