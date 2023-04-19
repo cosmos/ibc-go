@@ -399,13 +399,14 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry_CrossingHellos() {
 			suite.Require().NoError(path.EndpointB.UpdateClient())
 
 			// we also UpgradeInit to simulate crossing hellos situation
-			suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.ChanUpgradeInit(
+			_, err = suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.ChanUpgradeInit(
 				suite.chainB.GetContext(),
 				path.EndpointB.ChannelConfig.PortID,
 				path.EndpointB.ChannelID,
 				proposedUpgrade.Fields,
 				proposedUpgrade.Timeout,
 			)
+			suite.Require().NoError(err)
 
 			// we need to write the upgradeInit so that the correct channel state is returned for chain B
 			suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.WriteUpgradeInitChannel(
