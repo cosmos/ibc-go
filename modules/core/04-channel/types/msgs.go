@@ -513,7 +513,7 @@ func (msg MsgChannelUpgradeInit) ValidateBasic() error {
 	}
 
 	if !msg.Timeout.IsValid() {
-		return errorsmod.Wrap(ErrInvalidUpgrade, "upgrade timeout cannot be empty")
+		return errorsmod.Wrap(ErrInvalidUpgrade, "upgrade timeout height and upgrade timeout timestamp cannot both be 0")
 	}
 
 	return msg.Fields.ValidateBasic()

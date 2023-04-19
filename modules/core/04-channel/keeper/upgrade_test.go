@@ -103,7 +103,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeInit() {
 			false,
 		},
 		{
-			"invalid proposed channel upgrade ordering",
+			"stricter proposed channel upgrade ordering",
 			func() {
 				upgrade.Fields.Ordering = types.ORDERED
 			},

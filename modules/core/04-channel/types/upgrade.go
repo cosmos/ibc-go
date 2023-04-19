@@ -8,7 +8,6 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/ibc-go/v7/internal/collections"
-	ibcerrors "github.com/cosmos/ibc-go/v7/internal/errors"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 )
 
@@ -45,11 +44,7 @@ func (u Upgrade) ValidateBasic() error {
 	}
 
 	if !u.Timeout.IsValid() {
-		return errorsmod.Wrap(ErrInvalidUpgrade, "upgrade timeout cannot be empty")
-	}
-
-	if u.LatestSequenceSend < 0 {
-		return errorsmod.Wrap(ibcerrors.ErrInvalidSequence, "latest sequence send must be greater than or equal to 0")
+		return errorsmod.Wrap(ErrInvalidUpgrade, "upgrade timeout height and upgrade timeout timestamp cannot both be 0")
 	}
 
 	return nil
