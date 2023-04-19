@@ -550,7 +550,7 @@ func (q Keeper) Upgrade(c context.Context, req *types.QueryUpgradeRequest) (*typ
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
-	upgrade, found := k.GetUpgrade(ctx, req.PortId, req.ChannelId)
+	upgrade, found := q.GetUpgrade(ctx, req.PortId, req.ChannelId)
 	if !found {
 		return nil, status.Error(
 			codes.NotFound,
