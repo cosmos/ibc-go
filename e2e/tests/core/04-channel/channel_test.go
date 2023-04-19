@@ -63,8 +63,6 @@ func (s *ChannelUpgradeTestSuite) TestChannelUpgrade() {
 
 		upgradeTimeout := channeltypes.NewUpgradeTimeout(clienttypes.NewHeight(0, 10000), 0)
 		upgradeFields := channeltypes.NewUpgradeFields(channeltypes.UNORDERED, chainBChannels[len(chainBChannels)-1].ConnectionHops, upgradeVersion)
-		// TODO: latest packet sent is ignored for now, and set explicitly in the try handler.
-		proposedUpgrade := channeltypes.NewUpgrade(upgradeFields, upgradeTimeout, 0)
 
 		// TODO: get channel proof
 		var channelProof []byte
@@ -74,7 +72,8 @@ func (s *ChannelUpgradeTestSuite) TestChannelUpgrade() {
 		msgChannelUpgradeTry := channeltypes.NewMsgChannelUpgradeTry(
 			channelA.Counterparty.PortID,
 			channelA.Counterparty.ChannelID,
-			*proposedUpgrade,
+			upgradeFields,
+			upgradeTimeout,
 			msgChanUpgradeInitRes.Upgrade,
 			msgChanUpgradeInitRes.UpgradeSequence,
 			channelProof,
