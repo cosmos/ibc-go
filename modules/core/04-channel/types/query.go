@@ -111,3 +111,10 @@ func NewQueryUpgradeSequenceResponse(sequence uint64, proof []byte, height clien
 		ProofHeight:     height,
 	}
 }
+
+// NewQueryUpgradeResponse creates a new QueryUpgradeResponse instance
+func NewQueryUpgradeResponse(upgrade Upgrade) *QueryUpgradeResponse {
+	return &QueryUpgradeResponse{
+		Upgrade: upgrade,
+	}
+}

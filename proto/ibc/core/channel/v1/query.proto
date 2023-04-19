@@ -111,6 +111,12 @@ service Query {
     option (google.api.http).get = "/ibc/core/channel/v1/channels/{channel_id}/"
                                    "ports/{port_id}/upgrade_error";
   }
+
+  // UpgradeError returns the error receipt if the upgrade handshake failed.
+  rpc Upgrade(QueryUpgradeRequest) returns (QueryUpgradeResponse) {
+    option (google.api.http).get = "/ibc/core/channel/v1/channels/{channel_id}/"
+                                   "ports/{port_id}/upgrade";
+  }
 }
 
 // QueryChannelRequest is the request type for the Query/Channel RPC method
@@ -414,4 +420,15 @@ message QueryUpgradeErrorResponse {
   bytes proof = 2;
   // height at which the proof was retrieved
   ibc.core.client.v1.Height proof_height = 3 [(gogoproto.nullable) = false];
+}
+
+// QueryUpgradeRequest is the request type for the QueryUpgradeRequest RPC method
+message QueryUpgradeRequest {
+  string port_id    = 1;
+  string channel_id = 2;
+}
+
+// QueryUpgradeResponse is the response type for the QueryUpgradeResponse RPC method
+message QueryUpgradeResponse {
+  Upgrade upgrade = 1 [(gogoproto.nullable) = false];
 }

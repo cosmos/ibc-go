@@ -157,3 +157,8 @@ func (q Keeper) UpgradeError(c context.Context, req *channeltypes.QueryUpgradeEr
 func (q Keeper) UpgradeSequence(c context.Context, req *channeltypes.QueryUpgradeSequenceRequest) (*channeltypes.QueryUpgradeSequenceResponse, error) {
 	return q.ChannelKeeper.UpgradeSequence(c, req)
 }
+
+// Upgrade implements the IBC QueryServer interface
+func (q Keeper) Upgrade(c context.Context, req *channeltypes.QueryUpgradeRequest) (*channeltypes.QueryUpgradeResponse, error) {
+	return q.ChannelKeeper.Upgrade(c, req)
+}
