@@ -265,7 +265,7 @@ func (k Keeper) ChanUpgradeCancel(
 	k.SetChannel(ctx, portID, channelID, channel)
 	k.DeleteUpgrade(ctx, portID, channelID)
 
-	// TODO: emit events
+	emitChannelUpgradeCancelEvent(ctx, portID, channelID, channel)
 
 	return nil
 }

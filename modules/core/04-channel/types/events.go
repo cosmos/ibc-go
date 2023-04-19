@@ -48,15 +48,16 @@ const (
 
 // IBC channel events vars
 var (
-	EventTypeChannelOpenInit     = "channel_open_init"
-	EventTypeChannelOpenTry      = "channel_open_try"
-	EventTypeChannelOpenAck      = "channel_open_ack"
-	EventTypeChannelOpenConfirm  = "channel_open_confirm"
-	EventTypeChannelCloseInit    = "channel_close_init"
-	EventTypeChannelCloseConfirm = "channel_close_confirm"
-	EventTypeChannelClosed       = "channel_close"
-	EventTypeChannelUpgradeInit  = "channel_upgrade_init"
-	EventTypeChannelUpgradeTry   = "channel_upgrade_try"
+	EventTypeChannelOpenInit      = "channel_open_init"
+	EventTypeChannelOpenTry       = "channel_open_try"
+	EventTypeChannelOpenAck       = "channel_open_ack"
+	EventTypeChannelOpenConfirm   = "channel_open_confirm"
+	EventTypeChannelCloseInit     = "channel_close_init"
+	EventTypeChannelCloseConfirm  = "channel_close_confirm"
+	EventTypeChannelClosed        = "channel_close"
+	EventTypeChannelUpgradeInit   = "channel_upgrade_init"
+	EventTypeChannelUpgradeTry    = "channel_upgrade_try"
+	EventTypeChannelUpgradeCancel = "channel_upgrade_cancel"
 
 	AttributeValueCategory = fmt.Sprintf("%s_%s", ibcexported.ModuleName, SubModuleName)
 )

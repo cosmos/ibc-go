@@ -313,3 +313,21 @@ func emitChannelUpgradeTryEvent(ctx sdk.Context, portID string, channelID string
 		),
 	})
 }
+
+// emitChannelUpgradeCancelEvent emits a channel upgrade init event
+func emitChannelUpgradeCancelEvent(ctx sdk.Context, portID string, channelID string, channel types.Channel) {
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeChannelUpgradeCancel,
+			sdk.NewAttribute(types.AttributeKeyPortID, portID),
+			sdk.NewAttribute(types.AttributeKeyChannelID, channelID),
+			sdk.NewAttribute(types.AttributeCounterpartyPortID, channel.Counterparty.PortId),
+			sdk.NewAttribute(types.AttributeCounterpartyChannelID, channel.Counterparty.ChannelId),
+			sdk.NewAttribute(types.AttributeKeyUpgradeSequence, fmt.Sprintf("%d", channel.UpgradeSequence)),
+		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+		),
+	})
+}
