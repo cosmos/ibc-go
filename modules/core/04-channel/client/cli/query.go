@@ -456,7 +456,6 @@ func GetCmdQueryNextSequenceReceive() *cobra.Command {
 	return cmd
 }
 
-
 // GetCmdQueryUpgradeSequence defines the command to query the upgrade sequence
 func GetCmdQueryUpgradeSequence() *cobra.Command {
 	cmd := &cobra.Command{
