@@ -133,7 +133,6 @@ func (suite *KeeperTestSuite) TestChanUpgradeInit() {
 	}
 }
 
-
 func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 	var (
 		path                       *ibctesting.Path
