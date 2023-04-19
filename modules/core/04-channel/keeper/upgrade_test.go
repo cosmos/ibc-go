@@ -13,7 +13,6 @@ func (suite *KeeperTestSuite) TestChanUpgradeInit() {
 	var (
 		path        *ibctesting.Path
 		expSequence uint64
-		expVersion  string
 		upgrade     *types.Upgrade
 	)
 
@@ -34,17 +33,6 @@ func (suite *KeeperTestSuite) TestChanUpgradeInit() {
 				channel.UpgradeSequence = 4
 				path.EndpointA.SetChannel(channel)
 				expSequence = 5
-			},
-			true,
-		},
-		{
-			"success with alternative previous version",
-			func() {
-				expVersion = "mock-v1.1"
-				channel := path.EndpointA.GetChannel()
-				channel.Version = expVersion
-
-				path.EndpointA.SetChannel(channel)
 			},
 			true,
 		},
@@ -113,7 +101,6 @@ func (suite *KeeperTestSuite) TestChanUpgradeInit() {
 			suite.coordinator.Setup(path)
 
 			expSequence = 1
-			expVersion = mock.Version
 
 			upgrade = types.NewUpgrade(
 				types.NewUpgradeFields(
@@ -125,15 +112,18 @@ func (suite *KeeperTestSuite) TestChanUpgradeInit() {
 
 			tc.malleate()
 
-			_, err := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.ChanUpgradeInit(
+			proposedUpgrade, err := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.ChanUpgradeInit(
 				suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, upgrade.Fields, upgrade.Timeout,
 			)
 
 			if tc.expPass {
+				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.WriteUpgradeInitChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointA.GetChannel(), proposedUpgrade)
 				channel := path.EndpointA.GetChannel()
+
 				suite.Require().NoError(err)
 				suite.Require().Equal(expSequence, channel.UpgradeSequence)
-				suite.Require().Equal(expVersion, channel.Version)
+				suite.Require().Equal(mock.Version, channel.Version)
+				suite.Require().Equal(types.INITUPGRADE, channel.State)
 			} else {
 				suite.Require().Error(err)
 			}
