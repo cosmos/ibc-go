@@ -42,7 +42,7 @@ func (u Upgrade) ValidateBasic() error {
 	}
 
 	if !u.Timeout.IsValid() {
-		return errorsmod.Wrap(ErrInvalidUpgrade, "upgrade timeout cannot be empty")
+		return errorsmod.Wrap(ErrInvalidUpgrade, "upgrade timeout height and upgrade timeout timestamp cannot both be 0")
 	}
 
 	return nil
