@@ -30,8 +30,8 @@ func NewUpgradeFields(ordering Order, connectionHops []string, version string) U
 // NewUpgradeTimeout returns a new UpgradeTimeout instance.
 func NewUpgradeTimeout(height clienttypes.Height, timestamp uint64) UpgradeTimeout {
 	return UpgradeTimeout{
-		TimeoutHeight:    height,
-		TimeoutTimestamp: timestamp,
+		Height:    height,
+		Timestamp: timestamp,
 	}
 }
 
@@ -42,10 +42,9 @@ func (u Upgrade) ValidateBasic() error {
 	}
 
 	if !u.Timeout.IsValid() {
-		return errorsmod.Wrap(ErrInvalidUpgrade, "upgrade timeout cannot be empty")
+		return errorsmod.Wrap(ErrInvalidUpgrade, "upgrade timeout height and upgrade timeout timestamp cannot both be 0")
 	}
 
-	// TODO: determine if last packet sequence sent can be 0?
 	return nil
 }
 
@@ -68,5 +67,5 @@ func (uf UpgradeFields) ValidateBasic() error {
 
 // IsValid returns true if either the height or timestamp is non-zero
 func (ut UpgradeTimeout) IsValid() bool {
-	return !ut.TimeoutHeight.IsZero() || ut.TimeoutTimestamp != 0
+	return !ut.Height.IsZero() || ut.Timestamp != 0
 }

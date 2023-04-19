@@ -538,7 +538,7 @@ func (suite *KeeperTestSuite) TestUpgradeTimeoutAccessors() {
 	suite.coordinator.SetupConnections(path)
 	suite.coordinator.CreateChannels(path)
 
-	expUpgradeTimeout := types.UpgradeTimeout{TimeoutHeight: clienttypes.NewHeight(1, 10), TimeoutTimestamp: uint64(suite.coordinator.CurrentTime.UnixNano())}
+	expUpgradeTimeout := types.UpgradeTimeout{Height: clienttypes.NewHeight(1, 10), Timestamp: uint64(suite.coordinator.CurrentTime.UnixNano())}
 
 	suite.Run("set upgrade timeout", func() {
 		upgradeTimeout, found := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetUpgradeTimeout(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)

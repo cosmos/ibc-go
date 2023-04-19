@@ -30,9 +30,9 @@ message UpgradeFields {
 // must no longer proceed with the upgrade handshake.
 message UpgradeTimeout {
   // block height after which the upgrade times out
-  ibc.core.client.v1.Height timeout_height = 1 [(gogoproto.nullable) = false];
+  ibc.core.client.v1.Height height = 1 [(gogoproto.nullable) = false];
   // block timestamp (in nanoseconds) after which the upgrade times out
-  uint64 timeout_timestamp = 2;
+  uint64 timestamp = 2;
 }
 
 // ErrorReceipt defines a type which encapsulates the upgrade sequence and error associated with the
