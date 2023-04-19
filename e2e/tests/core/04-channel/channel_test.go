@@ -4,7 +4,6 @@ import (
 	"context"
 	"testing"
 
-	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/ibc-go/e2e/testsuite"
@@ -43,8 +42,6 @@ func (s *ChannelUpgradeTestSuite) TestChannelUpgrade() {
 		txResp, err := s.BroadcastMessages(ctx, chainA, rlyWallet, msgChanUpgradeInit)
 		s.Require().NoError(err)
 		s.AssertValidTxResponse(txResp)
-
-		s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA))
 
 		channel, err := s.QueryChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
 		s.Require().NoError(err)

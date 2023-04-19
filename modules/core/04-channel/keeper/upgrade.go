@@ -16,23 +16,23 @@ func (k Keeper) ChanUpgradeInit(
 	channelID string,
 	upgradeFields types.UpgradeFields,
 	upgradeTimeout types.UpgradeTimeout,
-) (proposedUpgrade types.Upgrade, err error) {
+) (types.Upgrade, error) {
 	channel, found := k.GetChannel(ctx, portID, channelID)
 	if !found {
-		return proposedUpgrade, errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
+		return types.Upgrade{}, errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
 	}
 
 	if channel.State != types.OPEN {
-		return proposedUpgrade, errorsmod.Wrapf(types.ErrInvalidChannelState, "expected %s, got %s", types.OPEN, channel.State)
+		return types.Upgrade{}, errorsmod.Wrapf(types.ErrInvalidChannelState, "expected %s, got %s", types.OPEN, channel.State)
 	}
 
 	if err := k.ValidateUpgradeFields(ctx, upgradeFields, channel); err != nil {
-		return proposedUpgrade, err
+		return types.Upgrade{}, err
 	}
 
-	proposedUpgrade, err = k.constructProposedUpgrade(ctx, portID, channelID, upgradeFields, upgradeTimeout)
+	proposedUpgrade, err := k.constructProposedUpgrade(ctx, portID, channelID, upgradeFields, upgradeTimeout)
 	if err != nil {
-		return proposedUpgrade, errorsmod.Wrap(err, "failed to construct proposed upgrade")
+		return types.Upgrade{}, errorsmod.Wrap(err, "failed to construct proposed upgrade")
 	}
 
 	channel.UpgradeSequence++
@@ -63,15 +63,8 @@ func (k Keeper) constructProposedUpgrade(ctx sdk.Context, portID, channelID stri
 		return types.Upgrade{}, types.ErrSequenceSendNotFound
 	}
 	return types.Upgrade{
-		Fields: types.UpgradeFields{
-			Ordering:       fields.Ordering,
-			ConnectionHops: fields.ConnectionHops,
-			Version:        fields.Version,
-		},
-		Timeout: types.UpgradeTimeout{
-			Height:    timeout.Height,
-			Timestamp: timeout.Timestamp,
-		},
+		Fields:             fields,
+		Timeout:            timeout,
 		LatestSequenceSend: seq - 1,
 	}, nil
 }

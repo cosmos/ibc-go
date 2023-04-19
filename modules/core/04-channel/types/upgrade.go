@@ -6,7 +6,6 @@ import (
 	errorsmod "cosmossdk.io/errors"
 
 	"github.com/cosmos/ibc-go/v7/internal/collections"
-	ibcerrors "github.com/cosmos/ibc-go/v7/internal/errors"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 )
 
@@ -44,12 +43,6 @@ func (u Upgrade) ValidateBasic() error {
 
 	if !u.Timeout.IsValid() {
 		return errorsmod.Wrap(ErrInvalidUpgrade, "upgrade timeout cannot be empty")
-	}
-
-	// check LatestSequenceSend to show intent. As this is a uint64 a negative value is not possible.
-	//nolint
-	if u.LatestSequenceSend < 0 {
-		return errorsmod.Wrap(ibcerrors.ErrInvalidSequence, "latest sequence send must be greater than or equal to 0")
 	}
 
 	return nil
