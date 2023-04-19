@@ -444,8 +444,6 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry_CrossingHellos() {
 func (suite *KeeperTestSuite) TestChanUpgradeCancel() {
 	var (
 		path             *ibctesting.Path
-		channelID        string
-		portID           string
 		timeoutHeight    clienttypes.Height
 		timeoutTimestamp uint64
 		upgradeSequence  uint64
@@ -464,8 +462,8 @@ func (suite *KeeperTestSuite) TestChanUpgradeCancel() {
 		{
 			"channel not found",
 			func() {
-				portID = ibctesting.InvalidID
-				channelID = ibctesting.InvalidID
+				path.EndpointA.ChannelConfig.PortID = ibctesting.InvalidID
+				path.EndpointA.ChannelID = ibctesting.InvalidID
 			},
 			false,
 		},
@@ -517,8 +515,6 @@ func (suite *KeeperTestSuite) TestChanUpgradeCancel() {
 			timeoutHeight, timeoutTimestamp = suite.chainB.GetTimeoutHeight(), uint64(0)
 			upgradeSequence = 1
 
-			portID, channelID = path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID
-
 			// force an error receipt on ChanUpgradeTry by setting an upgrade sequence ahead of the counterparty
 			channel := path.EndpointB.GetChannel()
 			channel.UpgradeSequence = 10
@@ -537,7 +533,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeCancel() {
 			errorReceiptKey := host.ChannelUpgradeErrorKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 			proofErrorReceipt, proofHeight := suite.chainB.QueryProof(errorReceiptKey)
 
-			err := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.ChanUpgradeCancel(suite.chainA.GetContext(), portID, channelID, errorReceipt, proofErrorReceipt, proofHeight)
+			err := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.ChanUpgradeCancel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, errorReceipt, proofErrorReceipt, proofHeight)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -547,6 +543,10 @@ func (suite *KeeperTestSuite) TestChanUpgradeCancel() {
 
 				channelB := path.EndpointB.GetChannel()
 				suite.Require().Equal(errorReceipt.Sequence+1, channelB.UpgradeSequence)
+
+				upgrade, found := suite.chainA.GetSimApp().GetIBCKeeper().ChannelKeeper.GetUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				suite.Require().False(found)
+				suite.Require().Empty(upgrade)
 			} else {
 				suite.Require().Error(err)
 			}
