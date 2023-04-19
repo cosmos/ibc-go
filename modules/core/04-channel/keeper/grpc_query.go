@@ -552,7 +552,7 @@ func (k Keeper) Upgrade(c context.Context, req *types.QueryUpgradeRequest) (*typ
 	if !found {
 		return nil, status.Error(
 			codes.NotFound,
-			errorsmod.Wrapf(types.ErrUpgradeSequenceNotFound, "port-id: %s, channel-id %s", req.PortId, req.ChannelId).Error(),
+			errorsmod.Wrapf(types.ErrUpgradeNotFound, "port-id: %s, channel-id %s", req.PortId, req.ChannelId).Error(),
 		)
 	}
 

@@ -11,6 +11,7 @@ import (
 	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	"github.com/cosmos/ibc-go/v7/testing/mock"
 )
 
 const doesnotexist = "doesnotexist"
@@ -1676,14 +1677,6 @@ func (suite *KeeperTestSuite) TestQueryUpgrade() {
 		{
 			"success",
 			func() {
-				//path := ibctesting.NewPath(suite.chainA, suite.chainB)
-				//suite.coordinator.Setup(path)
-				//suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetUpgradeErrorReceipt(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, upgradeErr)
-				//
-				//req = &types.QueryUpgradeRequest{
-				//	PortId:    path.EndpointA.ChannelConfig.PortID,
-				//	ChannelId: path.EndpointA.ChannelID,
-				//}
 			},
 			true,
 		},
@@ -1692,24 +1685,24 @@ func (suite *KeeperTestSuite) TestQueryUpgrade() {
 	for _, tc := range testCases {
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest() // reset
+			path := ibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.Setup(path)
 
-			expectedUpgrade = types.Upgrade{
-				Fields:             types.UpgradeFields{
-					Ordering:       0,
-					ConnectionHops: nil,
-					Version:        "",
-				},
-				Timeout:            types.UpgradeTimeout{
-					TimeoutHeight:    clienttypes.Height{},
-					TimeoutTimestamp: 0,
-				},
-				LatestSequenceSend: 0,
+			expectedUpgrade = *types.NewUpgrade(
+				types.NewUpgradeFields(types.UNORDERED, []string{ibctesting.FirstConnectionID}, mock.Version),
+				types.NewUpgradeTimeout(clienttypes.ZeroHeight(), 1000000),
+				1,
+			)
+
+			suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.SetUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, expectedUpgrade)
+
+			req = &types.QueryUpgradeRequest{
+				PortId:    path.EndpointA.ChannelConfig.PortID,
+				ChannelId: path.EndpointA.ChannelID,
 			}
 
-
-			//suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.WriteUpgradeInitChannel()
-
 			tc.malleate()
+
 			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
 
 			res, err := suite.chainA.QueryServer.Upgrade(ctx, req)
@@ -1717,7 +1710,6 @@ func (suite *KeeperTestSuite) TestQueryUpgrade() {
 			if tc.expPass {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
-				//suite.Require().Equal(upgradeErr, res.ErrorReceipt)
 				suite.Require().Equal(expectedUpgrade, res.Upgrade)
 			} else {
 				suite.Require().Error(err)
