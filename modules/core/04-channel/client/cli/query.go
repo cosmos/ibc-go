@@ -544,13 +544,13 @@ func GetCmdQueryUpgrade() *cobra.Command {
 			channelID := args[1]
 			prove, _ := cmd.Flags().GetBool(flags.FlagProve)
 
-			errRes, err := utils.QueryUpgrade(clientCtx, portID, channelID, prove)
+			upgrade, err := utils.QueryUpgrade(clientCtx, portID, channelID, prove)
 			if err != nil {
 				return err
 			}
 
-			clientCtx = clientCtx.WithHeight(int64(errRes.ProofHeight.RevisionHeight))
-			return clientCtx.PrintProto(errRes)
+			clientCtx = clientCtx.WithHeight(int64(upgrade.ProofHeight.RevisionHeight))
+			return clientCtx.PrintProto(upgrade)
 		},
 	}
 	cmd.Flags().Bool(flags.FlagProve, true, "show proofs for the query results")
