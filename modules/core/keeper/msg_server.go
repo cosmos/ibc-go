@@ -744,7 +744,7 @@ func (k Keeper) ChannelUpgradeInit(goCtx context.Context, msg *channeltypes.MsgC
 
 	return &channeltypes.MsgChannelUpgradeInitResponse{
 		ChannelId:       msg.ChannelId,
-		Version:         proposedVersion,
+		Upgrade:         proposedUpgrade,
 		UpgradeSequence: channel.UpgradeSequence,
 	}, nil
 }
