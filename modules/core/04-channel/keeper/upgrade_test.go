@@ -271,7 +271,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 			// commit a block to update chain A for correct proof querying
 			path.EndpointA.Chain.Coordinator.CommitBlock(path.EndpointA.Chain)
 			// update chainB's client of chain A to account for ChanUpgradeInit
-			path.EndpointB.UpdateClient()
+			suite.Require().NoError(path.EndpointB.UpdateClient())
 
 			channelKey := host.ChannelKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 			proofCounterpartyChannel, proofHeight := suite.chainA.QueryProof(channelKey)
@@ -396,7 +396,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry_CrossingHellos() {
 			// commit a block to update chain A for correct proof querying
 			path.EndpointA.Chain.Coordinator.CommitBlock(path.EndpointA.Chain)
 			// update chainB's client of chain A to account for ChanUpgradeInit
-			path.EndpointB.UpdateClient()
+			suite.Require().NoError(path.EndpointB.UpdateClient())
 
 			// we also UpgradeInit to simulate crossing hellos situation
 			suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.ChanUpgradeInit(
@@ -416,13 +416,13 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry_CrossingHellos() {
 			// commit a block to update chain B for correct proof querying
 			path.EndpointB.Chain.Coordinator.CommitBlock(path.EndpointB.Chain)
 			// update chainA's client of chain B to account for ChanUpgradeInit
-			path.EndpointA.UpdateClient()
+			suite.Require().NoError(path.EndpointA.UpdateClient())
 
 			tc.malleate()
 
 			// we need to update the clients again because malleation has changed the channel state
-			path.EndpointA.UpdateClient()
-			path.EndpointB.UpdateClient()
+			suite.Require().NoError(path.EndpointA.UpdateClient())
+			suite.Require().NoError(path.EndpointB.UpdateClient())
 
 			channelKey := host.ChannelKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 			proofCounterpartyChannel, proofHeight := suite.chainA.QueryProof(channelKey)
