@@ -261,19 +261,18 @@ message MsgChannelUpgradeInit {
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
-  string                    port_id                  = 1;
-  string                    channel_id               = 2;
-  Channel                   proposed_upgrade_channel = 3 [(gogoproto.nullable) = false];
-  ibc.core.client.v1.Height timeout_height           = 4 [(gogoproto.nullable) = false];
-  uint64                    timeout_timestamp        = 5;
-  string                    signer                   = 6;
+  string         port_id    = 1;
+  string         channel_id = 2;
+  UpgradeFields  fields     = 3 [(gogoproto.nullable) = false];
+  UpgradeTimeout timeout    = 4 [(gogoproto.nullable) = false];
+  string         signer     = 5;
 }
 
 // MsgChannelUpgradeInitResponse defines the MsgChannelUpgradeInit response type
 message MsgChannelUpgradeInitResponse {
-  string channel_id       = 1;
-  string version          = 2;
-  uint64 upgrade_sequence = 3;
+  string  channel_id       = 1;
+  Upgrade upgrade          = 2 [(gogoproto.nullable) = false];
+  uint64  upgrade_sequence = 3;
 }
 
 // MsgChannelUpgradeTry defines the request type for the ChannelUpgradeTry rpc
