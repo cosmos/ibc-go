@@ -536,7 +536,8 @@ var _ sdk.Msg = &MsgChannelUpgradeTry{}
 func NewMsgChannelUpgradeTry(
 	portID,
 	channelID string,
-	proposedUpgrade,
+	proposedUpgradeFields UpgradeFields,
+	proposedUpgradeTimeout UpgradeTimeout,
 	counterpartyProposedUpgrade Upgrade,
 	counterpartyUpgradeSequence uint64,
 	proofChannel []byte,
@@ -547,7 +548,8 @@ func NewMsgChannelUpgradeTry(
 	return &MsgChannelUpgradeTry{
 		PortId:                      portID,
 		ChannelId:                   channelID,
-		ProposedUpgrade:             proposedUpgrade,
+		ProposedUpgradeFields:       proposedUpgradeFields,
+		ProposedUpgradeTimeout:      proposedUpgradeTimeout,
 		CounterpartyProposedUpgrade: counterpartyProposedUpgrade,
 		CounterpartyUpgradeSequence: counterpartyUpgradeSequence,
 		ProofChannel:                proofChannel,
@@ -568,11 +570,11 @@ func (msg MsgChannelUpgradeTry) ValidateBasic() error {
 	if msg.CounterpartyUpgradeSequence == 0 {
 		return errorsmod.Wrap(ibcerrors.ErrInvalidSequence, "counterparty sequence cannot be 0")
 	}
-	if msg.ProposedUpgrade.Timeout.Height.IsZero() && msg.ProposedUpgrade.Timeout.Timestamp == 0 {
+	if msg.ProposedUpgradeTimeout.Height.IsZero() && msg.ProposedUpgradeTimeout.Timestamp == 0 {
 		return errorsmod.Wrap(ErrInvalidUpgradeTimeout, "timeout height or timeout timestamp must be non-zero")
 	}
 
-	if !reflect.DeepEqual(msg.ProposedUpgrade.Fields, msg.CounterpartyProposedUpgrade.Fields) {
+	if !reflect.DeepEqual(msg.ProposedUpgradeFields, msg.CounterpartyProposedUpgrade.Fields) {
 		return errorsmod.Wrap(ErrInvalidUpgrade, "proposed upgrade fields are not equal on both sides of the upgrade")
 	}
 

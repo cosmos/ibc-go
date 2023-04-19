@@ -541,15 +541,15 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeTryValidateBasic() {
 		{
 			"timeout height is zero && timeout timestamp is zero",
 			func() {
-				msg.ProposedUpgrade.Timeout.Height = clienttypes.ZeroHeight()
-				msg.ProposedUpgrade.Timeout.Timestamp = 0
+				msg.ProposedUpgradeTimeout.Height = clienttypes.ZeroHeight()
+				msg.ProposedUpgradeTimeout.Timestamp = 0
 			},
 			false,
 		},
 		{
 			"cannot submit a proposed upgrade and counterparty proposed upgrade with differing modifiable fields",
 			func() {
-				msg.ProposedUpgrade.Fields.Version = "different-version"
+				msg.ProposedUpgradeFields.Version = "different-version"
 				msg.CounterpartyProposedUpgrade.Fields.Version = "very-different-version"
 			},
 			false,
@@ -602,7 +602,8 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeTryValidateBasic() {
 			msg = types.NewMsgChannelUpgradeTry(
 				ibctesting.MockPort,
 				ibctesting.FirstChannelID,
-				*proposedUpgrade,
+				proposedUpgrade.Fields,
+				proposedUpgrade.Timeout,
 				*counterpartyProposedUpgrade,
 				1,
 				suite.proof,

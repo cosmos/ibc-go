@@ -282,7 +282,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 			counterpartyUpgradeSequence := path.EndpointA.GetChannel().UpgradeSequence
 
 			sequence, err := suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.ChanUpgradeTry(
-				suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, *proposedUpgrade,
+				suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, proposedUpgrade.Fields, proposedUpgrade.Timeout,
 				counterpartyUpgrade, counterpartyUpgradeSequence, proofCounterpartyChannel, proofUpgrade, proofHeight)
 
 			// we need to write the upgradeTry so that the correct channel state is returned for chain B
@@ -432,7 +432,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry_CrossingHellos() {
 			proofUpgrade, _ := suite.chainA.QueryProof(upgradeKey)
 
 			sequence, err := suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.ChanUpgradeTry(
-				suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, *proposedUpgrade,
+				suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, proposedUpgrade.Fields, proposedUpgrade.Timeout,
 				counterpartyUpgrade, path.EndpointA.GetChannel().UpgradeSequence, proofCounterpartyChannel, proofUpgrade, proofHeight)
 
 			// we need to write the upgradeTry so that the correct channel state is returned for chain B

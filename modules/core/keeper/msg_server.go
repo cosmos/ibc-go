@@ -767,7 +767,8 @@ func (k Keeper) ChannelUpgradeTry(goCtx context.Context, msg *channeltypes.MsgCh
 		ctx,
 		msg.PortId,
 		msg.ChannelId,
-		msg.ProposedUpgrade,
+		msg.ProposedUpgradeFields,
+		msg.ProposedUpgradeTimeout,
 		msg.CounterpartyProposedUpgrade,
 		msg.CounterpartyUpgradeSequence,
 		msg.ProofChannel,
@@ -780,7 +781,7 @@ func (k Keeper) ChannelUpgradeTry(goCtx context.Context, msg *channeltypes.MsgCh
 		ctx.Logger().Error("channel upgrade try failed", "error", errorsmod.Wrap(err, "channel handshake upgrade try failed"))
 		return &channeltypes.MsgChannelUpgradeTryResponse{
 			ChannelId:       msg.ChannelId,
-			Version:         msg.ProposedUpgrade.Fields.Version,
+			Version:         msg.ProposedUpgradeFields.Version,
 			UpgradeSequence: upgradeSequence,
 			Success:         false,
 		}, nil

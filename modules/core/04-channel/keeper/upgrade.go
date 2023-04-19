@@ -81,7 +81,8 @@ func (k Keeper) ChanUpgradeTry(
 	ctx sdk.Context,
 	portID,
 	channelID string,
-	proposedUpgrade,
+	proposedUpgradeFields types.UpgradeFields,
+	proposedUpgradeTimeout types.UpgradeTimeout,
 	counterpartyProposedUpgrade types.Upgrade,
 	counterpartyUpgradeSequence uint64,
 	proofCounterpartyChannel,
@@ -99,7 +100,7 @@ func (k Keeper) ChanUpgradeTry(
 	}
 
 	// validate the proposed upgrade fields against the existing channel
-	if err = k.ValidateUpgradeFields(ctx, proposedUpgrade.Fields, channel); err != nil {
+	if err = k.ValidateUpgradeFields(ctx, proposedUpgradeFields, channel); err != nil {
 		return 0, errorsmod.Wrapf(types.ErrInvalidUpgrade, "proposed upgrade fields are invalid: %s", err.Error())
 	}
 
@@ -154,6 +155,18 @@ func (k Keeper) ChanUpgradeTry(
 		} else {
 			channel.UpgradeSequence++
 		}
+
+		proposedUpgrade, err := k.constructProposedUpgrade(
+			ctx,
+			portID,
+			channelID,
+			proposedUpgradeFields,
+			proposedUpgradeTimeout,
+		)
+		if err != nil {
+			return 0, errorsmod.Wrap(types.ErrInvalidUpgrade, "failed to construct proposed upgrade")
+		}
+
 		k.SetChannel(ctx, portID, channelID, channel)
 		k.SetUpgrade(ctx, portID, channelID, proposedUpgrade)
 	}
@@ -165,7 +178,7 @@ func (k Keeper) ChanUpgradeTry(
 			return 0, errorsmod.Wrap(types.ErrInvalidUpgrade, "failed to retrieve upgrade")
 		}
 
-		if !reflect.DeepEqual(currentUpgrade.Fields, proposedUpgrade.Fields) {
+		if !reflect.DeepEqual(currentUpgrade.Fields, proposedUpgradeFields) {
 			return 0, errorsmod.Wrap(types.ErrInvalidUpgrade, "proposed upgrade fields have changed since UpgradeInit")
 		}
 
