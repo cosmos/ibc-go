@@ -516,6 +516,7 @@ func (q Keeper) UpgradeSequence(c context.Context, req *types.QueryUpgradeSequen
 	return types.NewQueryUpgradeSequenceResponse(sequence, nil, selfHeight), nil
 }
 
+// UpgradeErrorReceipt implements the Query/UpgradeSequence gRPC method
 func (q Keeper) UpgradeErrorReceipt(c context.Context, req *types.QueryUpgradeErrorRequest) (*types.QueryUpgradeErrorResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
@@ -538,6 +539,7 @@ func (q Keeper) UpgradeErrorReceipt(c context.Context, req *types.QueryUpgradeEr
 	return types.NewQueryUpgradeErrorResponse(receipt, nil, selfHeight), nil
 }
 
+// Upgrade implements the Query/UpgradeSequence gRPC method
 func (k Keeper) Upgrade(c context.Context, req *types.QueryUpgradeRequest) (*types.QueryUpgradeResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")

@@ -251,7 +251,7 @@ func QueryUpgradeError(
 	return queryClient.UpgradeError(context.Background(), req)
 }
 
-// QueryUpgrade returns the upgrade error.
+// QueryUpgrade returns the upgrade.
 // If prove is true, it performs an ABCI store query in order to retrieve the merkle proof. Otherwise,
 // it uses the gRPC query client.
 func QueryUpgrade(
