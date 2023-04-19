@@ -61,8 +61,9 @@ func (s *ChannelUpgradeTestSuite) TestChannelUpgrade() {
 		s.Require().NoError(err)
 		s.Require().Len(chainBChannels, 1)
 
+		chainBChannel := chainBChannels[len(chainBChannels)-1]
 		upgradeTimeout := channeltypes.NewUpgradeTimeout(clienttypes.NewHeight(0, 10000), 0)
-		upgradeFields := channeltypes.NewUpgradeFields(channeltypes.UNORDERED, chainBChannels[len(chainBChannels)-1].ConnectionHops, upgradeVersion)
+		upgradeFields := channeltypes.NewUpgradeFields(channeltypes.UNORDERED, chainBChannel.ConnectionHops, upgradeVersion)
 
 		// TODO: get channel proof
 		var channelProof []byte
@@ -89,7 +90,7 @@ func (s *ChannelUpgradeTestSuite) TestChannelUpgrade() {
 		s.Require().NoError(testsuite.UnmarshalMsgResponses(txResp, &msgChanUpgradeTryRes))
 		s.Require().True(msgChanUpgradeTryRes.Success)
 
-		channel, err := s.QueryChannel(ctx, chainB, channelA.PortID, channelA.ChannelID)
+		channel, err := s.QueryChannel(ctx, chainB, chainBChannel.PortID, chainBChannel.ChannelID)
 		s.Require().NoError(err)
 		s.Require().Equal(channeltypes.TRYUPGRADE, channel.State)
 	})
