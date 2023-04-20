@@ -554,7 +554,6 @@ func (k Keeper) DeleteUpgrade(ctx sdk.Context, portID, channelID string) {
 	store.Delete(host.ChannelUpgradeKey(portID, channelID))
 }
 
-
 // ValidateUpgradeFields validates the proposed upgrade fields against the existing channel.
 // It returns an error if the following constraints are not met:
 // - there exists at least one valid proposed change to the existing channel fields

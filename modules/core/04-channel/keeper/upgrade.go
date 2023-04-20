@@ -266,7 +266,6 @@ func (k Keeper) ChanUpgradeAck(ctx sdk.Context, portID, channelID string, counte
 		return err
 	}
 
-	// TODO: set channel state to upgraded.
 	return nil
 }
 
@@ -277,9 +276,18 @@ func (k Keeper) WriteUpgradeAckChannel(
 	channelID string,
 	currentChannel types.Channel,
 ) {
+	upgrade, found := k.GetUpgrade(ctx, portID, channelID)
+	if !found {
+		panic("failed to retrieve upgrade")
+	}
+
 	// upgrade is complete
 	// set channel to OPEN and remove unnecessary state
 	currentChannel.State = types.OPEN
+	currentChannel.Version = upgrade.Fields.Version
+	currentChannel.Ordering = upgrade.Fields.Ordering
+	currentChannel.ConnectionHops = upgrade.Fields.ConnectionHops
+
 	k.SetChannel(ctx, portID, channelID, currentChannel)
 	k.DeleteUpgrade(ctx, portID, channelID)
 	// TODO: emit events
