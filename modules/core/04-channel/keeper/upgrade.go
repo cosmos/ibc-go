@@ -168,7 +168,6 @@ func (k Keeper) ChanUpgradeTry(
 		}
 
 		k.SetChannel(ctx, portID, channelID, channel)
-		// k.SetUpgrade(ctx, portID, channelID, proposedUpgrade)
 	}
 
 	// crossing hellos case

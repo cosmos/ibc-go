@@ -812,6 +812,9 @@ func (k Keeper) ChannelUpgradeTry(goCtx context.Context, msg *channeltypes.MsgCh
 		}, err
 	}
 
+	// set version to return value of callback
+	proposedUpgrade.Fields.Version = proposedUpgradeVersion
+
 	k.ChannelKeeper.WriteUpgradeTryChannel(
 		ctx,
 		msg.PortId,
