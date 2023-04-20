@@ -108,7 +108,7 @@ func (suite *KeeperTestSuite) TestQueryChannel() {
 func (suite *KeeperTestSuite) TestQueryChannels() {
 	var (
 		req         *types.QueryChannelsRequest
-		expChannels = []*types.IdentifiedChannel{}
+		expChannels = []*types.IdentifiedChannel(nil)
 	)
 
 	testCases := []struct {
@@ -284,7 +284,7 @@ func (suite *KeeperTestSuite) TestQueryConnectionChannels() {
 			func() {
 				path := ibctesting.NewPath(suite.chainA, suite.chainB)
 				suite.coordinator.Setup(path)
-				expChannels = []*types.IdentifiedChannel{}
+				expChannels = []*types.IdentifiedChannel(nil)
 				req = &types.QueryConnectionChannelsRequest{
 					Connection: "externalConnID",
 					Pagination: &query.PageRequest{
@@ -722,7 +722,7 @@ func (suite *KeeperTestSuite) TestQueryPacketCommitments() {
 		{
 			"success, empty res",
 			func() {
-				expCommitments = []*types.PacketState{}
+				expCommitments = []*types.PacketState(nil)
 
 				req = &types.QueryPacketCommitmentsRequest{
 					PortId:    "test-port-id",
@@ -1020,7 +1020,7 @@ func (suite *KeeperTestSuite) TestQueryPacketAcknowledgements() {
 		{
 			"success, empty res",
 			func() {
-				expAcknowledgements = []*types.PacketState{}
+				expAcknowledgements = []*types.PacketState(nil)
 
 				req = &types.QueryPacketAcknowledgementsRequest{
 					PortId:    "test-port-id",
@@ -1407,7 +1407,7 @@ func (suite *KeeperTestSuite) TestQueryUnreceivedAcks() {
 				path := ibctesting.NewPath(suite.chainA, suite.chainB)
 				suite.coordinator.Setup(path)
 
-				expSeq = []uint64{}
+				expSeq = []uint64(nil)
 				req = &types.QueryUnreceivedAcksRequest{
 					PortId:             path.EndpointA.ChannelConfig.PortID,
 					ChannelId:          path.EndpointA.ChannelID,

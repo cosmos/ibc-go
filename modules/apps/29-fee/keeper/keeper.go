@@ -15,8 +15,8 @@ import (
 // Middleware must implement types.ChannelKeeper and types.PortKeeper expected interfaces
 // so that it can wrap IBC channel and port logic for underlying application.
 var (
-	_ types.ChannelKeeper = Keeper{}
-	_ types.PortKeeper    = Keeper{}
+	_ types.ChannelKeeper = (*Keeper)(nil)
+	_ types.PortKeeper    = (*Keeper)(nil)
 )
 
 // Keeper defines the IBC fungible transfer keeper

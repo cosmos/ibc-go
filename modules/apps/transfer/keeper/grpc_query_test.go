@@ -92,7 +92,7 @@ func (suite *KeeperTestSuite) TestQueryDenomTrace() {
 func (suite *KeeperTestSuite) TestQueryDenomTraces() {
 	var (
 		req       *types.QueryDenomTracesRequest
-		expTraces = types.Traces{}
+		expTraces = types.Traces(nil)
 	)
 
 	testCases := []struct {
