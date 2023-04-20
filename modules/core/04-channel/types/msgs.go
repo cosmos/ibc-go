@@ -2,7 +2,6 @@ package types
 
 import (
 	"encoding/base64"
-	"reflect"
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -572,10 +571,6 @@ func (msg MsgChannelUpgradeTry) ValidateBasic() error {
 	}
 	if msg.ProposedUpgradeTimeout.Height.IsZero() && msg.ProposedUpgradeTimeout.Timestamp == 0 {
 		return errorsmod.Wrap(ErrInvalidUpgradeTimeout, "timeout height or timeout timestamp must be non-zero")
-	}
-
-	if !reflect.DeepEqual(msg.ProposedUpgradeFields, msg.CounterpartyProposedUpgrade.Fields) {
-		return errorsmod.Wrap(ErrInvalidUpgrade, "proposed upgrade fields are not equal on both sides of the upgrade")
 	}
 
 	if len(msg.ProofChannel) == 0 {

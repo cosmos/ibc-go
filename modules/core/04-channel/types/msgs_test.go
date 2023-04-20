@@ -547,14 +547,6 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeTryValidateBasic() {
 			false,
 		},
 		{
-			"cannot submit a proposed upgrade and counterparty proposed upgrade with differing modifiable fields",
-			func() {
-				msg.ProposedUpgradeFields.Version = "different-version"
-				msg.CounterpartyProposedUpgrade.Fields.Version = "very-different-version"
-			},
-			false,
-		},
-		{
 			"cannot submit an empty channel proof",
 			func() {
 				msg.ProofChannel = emptyProof
