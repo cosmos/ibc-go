@@ -442,7 +442,6 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry_CrossingHellos() {
 	}
 }
 
-
 func (suite *KeeperTestSuite) TestChanUpgradeAck() {
 	var (
 		path                        *ibctesting.Path
@@ -481,7 +480,6 @@ func (suite *KeeperTestSuite) TestChanUpgradeAck() {
 				path.EndpointB.SetChannel(counterparty)
 				path.EndpointB.Chain.Coordinator.CommitBlock(path.EndpointB.Chain)
 				suite.Require().NoError(path.EndpointA.UpdateClient())
-
 			},
 			false,
 		},
@@ -504,7 +502,6 @@ func (suite *KeeperTestSuite) TestChanUpgradeAck() {
 				path.EndpointB.SetChannel(channel)
 				path.EndpointB.Chain.Coordinator.CommitBlock(path.EndpointB.Chain)
 				suite.Require().NoError(path.EndpointA.UpdateClient())
-
 			},
 			false,
 		},

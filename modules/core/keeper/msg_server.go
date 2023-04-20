@@ -818,7 +818,6 @@ func (k Keeper) ChannelUpgradeTry(goCtx context.Context, msg *channeltypes.MsgCh
 		}, nil
 	}
 
-
 	msg.ProposedUpgradeFields.Version = proposedUpgradeVersion
 	k.ChannelKeeper.WriteUpgradeTryChannel(ctx, msg.PortId, msg.ChannelId, channel, msg.CounterpartyProposedUpgrade)
 
@@ -858,9 +857,8 @@ func (k Keeper) ChannelUpgradeAck(goCtx context.Context, msg *channeltypes.MsgCh
 	}
 
 	// TODO: figure out args here.
-	if err := cbs.OnChanUpgradeAck(ctx, msg.PortId, msg.ChannelId, channel.Counterparty.ChannelId, ""); err != nil {
-		// TODO: error receipt
-	}
+	err = cbs.OnChanUpgradeAck(ctx, msg.PortId, msg.ChannelId, channel.Counterparty.ChannelId, "")
+	_ = err
 
 	k.ChannelKeeper.WriteUpgradeAckChannel(ctx, msg.PortId, msg.ChannelId, channel)
 

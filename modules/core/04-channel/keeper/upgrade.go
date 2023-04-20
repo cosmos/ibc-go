@@ -262,11 +262,7 @@ func (k Keeper) ChanUpgradeAck(ctx sdk.Context, portID, channelID string, counte
 		UpgradeSequence: counterpartyUpgradeSequence,
 	}
 
-	if err := k.connectionKeeper.VerifyChannelState(ctx, connectionEnd, proofHeight, proofCounterpartyChannel, channel.Counterparty.PortId, channel.Counterparty.ChannelId, expectedCounterpartyChannel); err != nil {
-		return err
-	}
-
-	return nil
+	return k.connectionKeeper.VerifyChannelState(ctx, connectionEnd, proofHeight, proofCounterpartyChannel, channel.Counterparty.PortId, channel.Counterparty.ChannelId, expectedCounterpartyChannel)
 }
 
 // WriteUpgradeAckChannel sets the channel state to OPEN.
