@@ -1,0 +1,8 @@
+{
+  "label": "Fee Middleware",
+  "position": 1,
+  "link": {
+    "type": "generated-index",
+    "description": "Learn about what the Fee Middleware module is, and how to build custom modules that utilize the Fee Middleware functionality."
+  }
+}
