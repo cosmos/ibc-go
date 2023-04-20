@@ -288,7 +288,7 @@ func (k Keeper) ChannelOpenAck(goCtx context.Context, msg *channeltypes.MsgChann
 
 	// Perform application logic callback
 	if err = cbs.OnChanOpenAck(ctx, msg.PortId, msg.ChannelId, msg.CounterpartyChannelId, msg.CounterpartyVersion); err != nil {
-		ctx.Logger().Error("channel handshake open ack callback failed", "port-id", msg.PortId, "channel-id", msg.ChannelId, "error", err.Error())
+		ctx.Logger().Error("channel open ack callback failed", "port-id", msg.PortId, "channel-id", msg.ChannelId, "error", err.Error())
 		return nil, errorsmod.Wrapf(err, "channel open ack callback failed for port ID: %s, channel ID: %s", msg.PortId, msg.ChannelId)
 	}
 
@@ -328,7 +328,7 @@ func (k Keeper) ChannelOpenConfirm(goCtx context.Context, msg *channeltypes.MsgC
 
 	// Perform application logic callback
 	if err = cbs.OnChanOpenConfirm(ctx, msg.PortId, msg.ChannelId); err != nil {
-		ctx.Logger().Error("channel handshake open confirm callback failed", "port-id", msg.PortId, "channel-id", msg.ChannelId, "error", err.Error())
+		ctx.Logger().Error("channel open confirm callback failed", "port-id", msg.PortId, "channel-id", msg.ChannelId, "error", err.Error())
 		return nil, errorsmod.Wrapf(err, "channel open confirm callback failed for port ID: %s, channel ID: %s", msg.PortId, msg.ChannelId)
 	}
 
@@ -355,13 +355,13 @@ func (k Keeper) ChannelCloseInit(goCtx context.Context, msg *channeltypes.MsgCha
 	}
 
 	if err = cbs.OnChanCloseInit(ctx, msg.PortId, msg.ChannelId); err != nil {
-		ctx.Logger().Error("channel close init failed", "port-id", msg.PortId, "channel-id", msg.ChannelId, "error", err.Error())
+		ctx.Logger().Error("channel close init callback failed", "port-id", msg.PortId, "channel-id", msg.ChannelId, "error", err.Error())
 		return nil, errorsmod.Wrapf(err, "channel close init callback failed for port ID: %s, channel ID: %s", msg.PortId, msg.ChannelId)
 	}
 
 	err = k.ChannelKeeper.ChanCloseInit(ctx, msg.PortId, msg.ChannelId, capability)
 	if err != nil {
-		ctx.Logger().Error("channel handshake close init failed", "port-id", msg.PortId, "channel-id", msg.ChannelId, "error", err.Error())
+		ctx.Logger().Error("channel close init failed", "port-id", msg.PortId, "channel-id", msg.ChannelId, "error", err.Error())
 		return nil, errorsmod.Wrap(err, "channel handshake close init failed")
 	}
 
@@ -389,13 +389,13 @@ func (k Keeper) ChannelCloseConfirm(goCtx context.Context, msg *channeltypes.Msg
 	}
 
 	if err = cbs.OnChanCloseConfirm(ctx, msg.PortId, msg.ChannelId); err != nil {
-		ctx.Logger().Error("channel close confirm failed", "port-id", msg.PortId, "channel-id", msg.ChannelId, "error", err.Error())
+		ctx.Logger().Error("channel close confirm callback failed", "port-id", msg.PortId, "channel-id", msg.ChannelId, "error", err.Error())
 		return nil, errorsmod.Wrapf(err, "channel close confirm callback failed for port ID: %s, channel ID: %s", msg.PortId, msg.ChannelId)
 	}
 
 	err = k.ChannelKeeper.ChanCloseConfirm(ctx, msg.PortId, msg.ChannelId, capability, msg.ProofInit, msg.ProofHeight)
 	if err != nil {
-		ctx.Logger().Error("channel handshake close confirm failed", "port-id", msg.PortId, "channel-id", msg.ChannelId, "error", err.Error())
+		ctx.Logger().Error("channel close confirm failed", "port-id", msg.PortId, "channel-id", msg.ChannelId, "error", err.Error())
 		return nil, errorsmod.Wrap(err, "channel handshake close confirm failed")
 	}
 
@@ -604,7 +604,7 @@ func (k Keeper) TimeoutOnClose(goCtx context.Context, msg *channeltypes.MsgTimeo
 	// application logic callback.
 	err = cbs.OnTimeoutPacket(ctx, msg.Packet, relayer)
 	if err != nil {
-		ctx.Logger().Error("timeout on close failed", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel, "error", errorsmod.Wrap(err, "timeout packet callback failed"))
+		ctx.Logger().Error("timeout on close callback failed", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel, "error", errorsmod.Wrap(err, "timeout packet callback failed"))
 		return nil, errorsmod.Wrap(err, "timeout packet callback failed")
 	}
 
@@ -675,7 +675,7 @@ func (k Keeper) Acknowledgement(goCtx context.Context, msg *channeltypes.MsgAckn
 	// Perform application logic callback
 	err = cbs.OnAcknowledgementPacket(ctx, msg.Packet, msg.Acknowledgement, relayer)
 	if err != nil {
-		ctx.Logger().Error("acknowledgement failed", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel, "error", errorsmod.Wrap(err, "acknowledge packet callback failed"))
+		ctx.Logger().Error("acknowledgement callback failed", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel, "error", errorsmod.Wrap(err, "acknowledge packet callback failed"))
 		return nil, errorsmod.Wrap(err, "acknowledge packet callback failed")
 	}
 
