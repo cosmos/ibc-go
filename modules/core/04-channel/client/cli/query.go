@@ -553,7 +553,7 @@ func GetCmdQueryUpgrade() *cobra.Command {
 			return clientCtx.PrintProto(upgrade)
 		},
 	}
-	cmd.Flags().Bool(flags.FlagProve, true, "show proofs for the query results")
+	cmd.Flags().Bool(flags.FlagProve, false, "show proofs for the query results")
 	flags.AddQueryFlagsToCmd(cmd)
 
 	return cmd
