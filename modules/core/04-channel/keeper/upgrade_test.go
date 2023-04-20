@@ -8,6 +8,7 @@ import (
 	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	"github.com/cosmos/ibc-go/v7/testing/mock"
 )
@@ -450,28 +451,35 @@ func (suite *KeeperTestSuite) TestChanUpgradeAck() {
 	)
 
 	testCases := []struct {
-		name     string
-		malleate func()
-		expPass  bool
+		name        string
+		malleate    func()
+		expPass     bool
+		shouldPanic bool
 	}{
 		{
 			"success",
 			func() {},
 			true,
+			false,
 		},
-		// {
-		// TODO: panic if channel is not found
-		// },
+		{
+			name: "panics if channel not found",
+			malleate: func() {
+				storeKey := suite.chainA.GetSimApp().GetKey(exported.StoreKey)
+				kvStore := suite.chainA.GetContext().KVStore(storeKey)
+				kvStore.Delete(host.ChannelKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
+			},
+			expPass:     false,
+			shouldPanic: true,
+		},
 		{
 			"channel state is not in OPEN or INITUPGRADE state",
 			func() {
 				suite.Require().NoError(path.EndpointA.SetChannelState(types.CLOSED))
 			},
 			false,
+			false,
 		},
-		// {
-		// TODO: panic if upgrade sequence is not found
-		// },
 		{
 			"counterparty channel state is not in TRYUPGRADE",
 			func() {
@@ -482,9 +490,10 @@ func (suite *KeeperTestSuite) TestChanUpgradeAck() {
 				suite.Require().NoError(path.EndpointA.UpdateClient())
 			},
 			false,
+			false,
 		},
 		{
-			"counterparty channel ordering is not equal to the channel ordering",
+			"counterparty channel ordering is not equal to current channel ordering",
 			func() {
 				counterparty := path.EndpointB.GetChannel()
 				counterparty.Ordering = types.ORDERED
@@ -492,6 +501,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeAck() {
 				path.EndpointB.Chain.Coordinator.CommitBlock(path.EndpointB.Chain)
 				suite.Require().NoError(path.EndpointA.UpdateClient())
 			},
+			false,
 			false,
 		},
 		{
@@ -504,6 +514,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeAck() {
 				suite.Require().NoError(path.EndpointA.UpdateClient())
 			},
 			false,
+			false,
 		},
 		{
 			"invalid proposed upgrade channel connection state",
@@ -514,6 +525,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeAck() {
 				path.EndpointB.Chain.Coordinator.CommitBlock(path.EndpointB.Chain)
 				suite.Require().NoError(path.EndpointA.UpdateClient())
 			},
+			false,
 			false,
 		},
 	}
@@ -542,14 +554,23 @@ func (suite *KeeperTestSuite) TestChanUpgradeAck() {
 			channelKey := host.ChannelKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 			counterpartyChannelProof, proofHeight := suite.chainB.QueryProof(channelKey)
 
-			err = suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.ChanUpgradeAck(
-				suite.chainA.GetContext(),
-				path.EndpointA.ChannelConfig.PortID,
-				path.EndpointA.ChannelID,
-				counterpartyUpgradeSequence,
-				counterpartyChannelProof,
-				proofHeight,
-			)
+			testFn := func() {
+				err = suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.ChanUpgradeAck(
+					suite.chainA.GetContext(),
+					path.EndpointA.ChannelConfig.PortID,
+					path.EndpointA.ChannelID,
+					counterpartyUpgradeSequence,
+					counterpartyChannelProof,
+					proofHeight,
+				)
+			}
+
+			if tc.shouldPanic {
+				suite.Require().Panics(testFn)
+				return
+			}
+
+			suite.Require().NotPanicsf(testFn, "unexpected panic for test case %s", tc.name)
 
 			suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.WriteUpgradeAckChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointA.GetChannel())
 
@@ -562,4 +583,3 @@ func (suite *KeeperTestSuite) TestChanUpgradeAck() {
 		})
 	}
 }
-
