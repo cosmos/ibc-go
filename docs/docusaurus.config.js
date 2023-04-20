@@ -6,20 +6,20 @@ const darkCodeTheme = require("prism-react-renderer/themes/dracula");
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
-  title: "My Site",
-  tagline: "Dinosaurs are cool",
-  favicon: "img/favicon.ico",
+  title: "IBC-Go Documentation",
+  tagline: "Documentation for IBC-Go",
+  favicon: "img/white-cosmos-icon.svg",
 
   // Set the production url of your site here
-  url: "https://your-docusaurus-test-site.com",
+  url: "https://ibc.cosmos.network/",
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
   baseUrl: "/",
 
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
-  organizationName: "facebook", // Usually your GitHub org/user name.
-  projectName: "docusaurus", // Usually your repo name.
+  organizationName: "cosmos", // Usually your GitHub org/user name.
+  projectName: "ibc-go", // Usually your repo name.
 
   onBrokenLinks: "throw",
   onBrokenMarkdownLinks: "warn",
@@ -56,23 +56,23 @@ const config = {
   themeConfig:
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
-      // Replace with your project's social card
-      image: "img/docusaurus-social-card.jpg",
+      // TODO: Replace with your project's social card
+      image: "img/todo-social-card.jpg",
       navbar: {
-        title: "My Site",
+        title: "IBC-Go",
         logo: {
-          alt: "My Site Logo",
-          src: "img/logo.svg",
+          alt: "Black Cosmos Icon",
+          src: "img/black-cosmos-icon.svg",
         },
         items: [
           {
             type: "docSidebar",
             sidebarId: "tutorialSidebar",
             position: "left",
-            label: "Tutorial",
+            label: "Documentation",
           },
           {
-            href: "https://github.com/facebook/docusaurus",
+            href: "https://github.com/cosmos/ibc-go",
             label: "GitHub",
             position: "right",
           },
@@ -82,11 +82,19 @@ const config = {
         style: "dark",
         links: [
           {
-            title: "Docs",
+            title: "Documentation",
             items: [
               {
-                label: "Tutorial",
-                to: "/docs/intro",
+                label: "Cosmos Hub",
+                href: "https://hub.cosmos.network",
+              },
+              {
+                label: "CometBFT",
+                href: "https://docs.cometbft.com",
+              },
+              {
+                label: "IBC Go",
+                href: "https://ibc.cosmos.network",
               },
             ],
           },
@@ -94,16 +102,12 @@ const config = {
             title: "Community",
             items: [
               {
-                label: "Stack Overflow",
-                href: "https://stackoverflow.com/questions/tagged/docusaurus",
-              },
-              {
                 label: "Discord",
-                href: "https://discordapp.com/invite/docusaurus",
+                href: "https://discord.gg/Wtmk6ZNa8G",
               },
               {
                 label: "Twitter",
-                href: "https://twitter.com/docusaurus",
+                href: "https://twitter.com/cosmosibc",
               },
             ],
           },
@@ -112,12 +116,12 @@ const config = {
             items: [
               {
                 label: "GitHub",
-                href: "https://github.com/facebook/docusaurus",
+                href: "https://github.com/cosmos/ibc-go",
               },
             ],
           },
         ],
-        copyright: `Copyright © ${new Date().getFullYear()} My Project, Inc. Built with Docusaurus.`,
+        copyright: `<p>The development of IBC-Go is led primarily by <a href="https://interchain.berlin/">Interchain GmbH</a>. Funding for this development comes primarily from the Interchain Foundation, a Swiss non-profit.</p>`,
       },
       prism: {
         theme: lightCodeTheme,
