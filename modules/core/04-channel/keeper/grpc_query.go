@@ -506,7 +506,7 @@ func (q Keeper) UpgradeErrorReceipt(c context.Context, req *types.QueryUpgradeEr
 	if !found {
 		return nil, status.Error(
 			codes.NotFound,
-			errorsmod.Wrapf(types.ErrUpgradeErrorReceiptNotFound, "port-id %s, channel-id %s", req.PortId, req.ChannelId).Error(),
+			errorsmod.Wrapf(types.ErrUpgradeErrorNotFound, "port-id %s, channel-id %s", req.PortId, req.ChannelId).Error(),
 		)
 	}
 

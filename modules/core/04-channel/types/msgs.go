@@ -7,7 +7,6 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v7/internal/collections"
 	ibcerrors "github.com/cosmos/ibc-go/v7/internal/errors"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
@@ -588,9 +587,6 @@ func (msg MsgChannelUpgradeTry) ValidateBasic() error {
 	if msg.ProofHeight.IsZero() {
 		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit a proof with zero height")
 	}
-	if !collections.Contains(msg.CounterpartyChannel.State, []State{INITUPGRADE, TRYUPGRADE}) {
-		return errorsmod.Wrapf(ErrInvalidChannelState, "expected one of: [%s, %s], got: %s", INITUPGRADE, TRYUPGRADE, msg.CounterpartyChannel.State)
-	}
 	_, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
@@ -613,15 +609,14 @@ var _ sdk.Msg = &MsgChannelUpgradeAck{}
 
 // NewMsgChannelUpgradeAck constructs a new MsgChannelUpgradeAck
 // nolint:interfacer
-func NewMsgChannelUpgradeAck(portID, channelID string, counterpartyChannel Channel, proofChannel, proofUpgradeSequence []byte, proofHeight clienttypes.Height, signer string) *MsgChannelUpgradeAck {
+func NewMsgChannelUpgradeAck(portID, channelID string, counterpartyUpgradeSequence uint64, proofChannel []byte, proofHeight clienttypes.Height, signer string) *MsgChannelUpgradeAck {
 	return &MsgChannelUpgradeAck{
-		PortId:               portID,
-		ChannelId:            channelID,
-		CounterpartyChannel:  counterpartyChannel,
-		ProofChannel:         proofChannel,
-		ProofUpgradeSequence: proofUpgradeSequence,
-		ProofHeight:          proofHeight,
-		Signer:               signer,
+		PortId:                      portID,
+		ChannelId:                   channelID,
+		CounterpartyUpgradeSequence: counterpartyUpgradeSequence,
+		ProofChannel:                proofChannel,
+		ProofHeight:                 proofHeight,
+		Signer:                      signer,
 	}
 }
 
@@ -636,16 +631,9 @@ func (msg MsgChannelUpgradeAck) ValidateBasic() error {
 	if len(msg.ProofChannel) == 0 {
 		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty channel proof")
 	}
-	if len(msg.ProofUpgradeSequence) == 0 {
-		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty upgrade sequence proof")
-	}
-	if msg.CounterpartyChannel.State != TRYUPGRADE {
-		return errorsmod.Wrapf(ErrInvalidChannelState, "expected: %s, got: %s", "TRYUPGRADE", msg.CounterpartyChannel.State)
-	}
 	if _, err := sdk.AccAddressFromBech32(msg.Signer); err != nil {
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
 	}
-
 	return nil
 }
 

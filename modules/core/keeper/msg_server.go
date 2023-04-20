@@ -844,19 +844,23 @@ func (k Keeper) ChannelUpgradeAck(goCtx context.Context, msg *channeltypes.MsgCh
 		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
 	}
 
-	upgradeChannel, upgradeSequence, err := k.ChannelKeeper.ChanUpgradeAck(ctx, msg.PortId, msg.ChannelId, msg.CounterpartyChannel, msg.ProofChannel, msg.ProofUpgradeSequence, msg.ProofHeight)
+	err = k.ChannelKeeper.ChanUpgradeAck(ctx, msg.PortId, msg.ChannelId, msg.CounterpartyUpgradeSequence, msg.ProofChannel, msg.ProofHeight)
 	if err != nil {
 		ctx.Logger().Error("channel upgrade ack failed", "error", errorsmod.Wrap(err, "channel handshake upgrade ack failed"))
 		return nil, errorsmod.Wrap(err, "channel handshake upgrade ack failed")
 	}
 
-	if err := cbs.OnChanUpgradeAck(ctx, msg.PortId, msg.ChannelId, msg.CounterpartyChannel.Counterparty.ChannelId, msg.CounterpartyChannel.Version); err != nil {
-		if err := k.ChannelKeeper.RestoreChannelAndWriteErrorReceipt(ctx, msg.PortId, msg.ChannelId, upgradeSequence, err); err != nil {
-			ctx.Logger().Error("error restoring channel on portID %s, channelID %s: %s", msg.PortId, msg.ChannelId, err)
-		}
+	channel, found := k.ChannelKeeper.GetChannel(ctx, msg.PortId, msg.ChannelId)
+	if !found {
+		return &channeltypes.MsgChannelUpgradeAckResponse{}, errorsmod.Wrapf(channeltypes.ErrChannelNotFound, "failed to retrieve channel %s on port %s", msg.ChannelId, msg.PortId)
 	}
 
-	k.ChannelKeeper.WriteUpgradeAckChannel(ctx, msg.PortId, msg.ChannelId, upgradeChannel)
+	// TODO: figure out args here.
+	if err := cbs.OnChanUpgradeAck(ctx, msg.PortId, msg.ChannelId, channel.Counterparty.ChannelId, ""); err != nil {
+		// TODO: error receipt
+	}
+
+	k.ChannelKeeper.WriteUpgradeAckChannel(ctx, msg.PortId, msg.ChannelId, channel)
 
 	return &channeltypes.MsgChannelUpgradeAckResponse{}, nil
 }

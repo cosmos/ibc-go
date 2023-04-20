@@ -224,7 +224,7 @@ func queryUpgradeErrorABCI(clientCtx client.Context, portID, channelID string) (
 
 	// check if upgrade error exists
 	if len(value) == 0 {
-		return nil, errorsmod.Wrapf(types.ErrUpgradeErrorReceiptNotFound, "portID (%s), channelID (%s)", portID, channelID)
+		return nil, errorsmod.Wrapf(types.ErrUpgradeErrorNotFound, "portID (%s), channelID (%s)", portID, channelID)
 	}
 
 	cdc := codec.NewProtoCodec(clientCtx.InterfaceRegistry)

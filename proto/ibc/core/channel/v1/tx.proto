@@ -302,15 +302,14 @@ message MsgChannelUpgradeTryResponse {
 
 // MsgChannelUpgradeAck defines the request type for the ChannelUpgradeAck rpc
 message MsgChannelUpgradeAck {
-  option (gogoproto.equal)                         = false;
-  option (gogoproto.goproto_getters)               = false;
-  string                    port_id                = 1;
-  string                    channel_id             = 2;
-  Channel                   counterparty_channel   = 3 [(gogoproto.nullable) = false];
-  bytes                     proof_channel          = 4;
-  bytes                     proof_upgrade_sequence = 5;
-  ibc.core.client.v1.Height proof_height           = 6 [(gogoproto.nullable) = false];
-  string                    signer                 = 7;
+  option (gogoproto.equal)                                = false;
+  option (gogoproto.goproto_getters)                      = false;
+  string                    port_id                       = 1;
+  string                    channel_id                    = 2;
+  uint64                    counterparty_upgrade_sequence = 3;
+  bytes                     proof_channel                 = 4;
+  ibc.core.client.v1.Height proof_height                  = 5 [(gogoproto.nullable) = false];
+  string                    signer                        = 6;
 }
 
 // MsgChannelUpgradeAckResponse defines MsgChannelUpgradeAck response type

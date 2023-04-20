@@ -1,9 +1,7 @@
 package keeper
 
 import (
-	"fmt"
 	"reflect"
-	"time"
 
 	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/telemetry"
@@ -11,6 +9,7 @@ import (
 
 	"github.com/cosmos/ibc-go/v7/internal/collections"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 )
 
@@ -227,4 +226,61 @@ func (k Keeper) WriteUpgradeTryChannel(
 	// TODO: previous state will not be OPEN in the case of crossing hellos. Determine this state correctly.
 	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", types.OPEN.String(), "new-state", types.TRYUPGRADE.String())
 	emitChannelUpgradeTryEvent(ctx, portID, channelID, currentChannel, upgrade)
+}
+
+// ChanUpgradeAck handles an upgrade ack on a channel.
+func (k Keeper) ChanUpgradeAck(ctx sdk.Context, portID, channelID string, counterpartyUpgradeSequence uint64, proofCounterpartyChannel []byte, proofHeight clienttypes.Height) error {
+	channel, found := k.GetChannel(ctx, portID, channelID)
+	if !found {
+		panic(errorsmod.Wrapf(types.ErrChannelNotFound, "failed to retrieve channel %s on port %s", channelID, portID))
+	}
+
+	// current channel is in INITUPGRADE or TRYUPGRADE (crossing hellos)
+	if !collections.Contains(channel.State, []types.State{types.INITUPGRADE, types.TRYUPGRADE}) {
+		return errorsmod.Wrapf(types.ErrInvalidChannelState, "expected one of [%s, %s], got %s", types.INITUPGRADE, types.TRYUPGRADE, channel.State)
+	}
+
+	connectionEnd, err := k.GetConnection(ctx, channel.ConnectionHops[0])
+	if err != nil {
+		return err
+	}
+
+	if connectionEnd.GetState() != int32(connectiontypes.OPEN) {
+		return errorsmod.Wrapf(
+			connectiontypes.ErrInvalidConnectionState,
+			"connection state is not OPEN (got %s)", connectiontypes.State(connectionEnd.GetState()).String(),
+		)
+	}
+
+	counterpartyConnectionHops := []string{connectionEnd.GetCounterparty().GetConnectionID()}
+	expectedCounterpartyChannel := types.Channel{
+		State:           types.TRYUPGRADE,
+		Counterparty:    types.NewCounterparty(channel.Counterparty.PortId, channel.Counterparty.ChannelId),
+		Ordering:        channel.Ordering,
+		ConnectionHops:  counterpartyConnectionHops,
+		Version:         channel.Version,
+		UpgradeSequence: counterpartyUpgradeSequence,
+	}
+
+	if err := k.connectionKeeper.VerifyChannelState(ctx, connectionEnd, proofHeight, proofCounterpartyChannel, channel.Counterparty.PortId, channel.Counterparty.ChannelId, expectedCounterpartyChannel); err != nil {
+		return err
+	}
+
+	// TODO: set channel state to upgraded.
+	return nil
+}
+
+// WriteUpgradeAckChannel sets the channel state to OPEN.
+func (k Keeper) WriteUpgradeAckChannel(
+	ctx sdk.Context,
+	portID,
+	channelID string,
+	currentChannel types.Channel,
+) {
+	// upgrade is complete
+	// set channel to OPEN and remove unnecessary state
+	currentChannel.State = types.OPEN
+	k.SetChannel(ctx, portID, channelID, currentChannel)
+	k.DeleteUpgrade(ctx, portID, channelID)
+	// TODO: emit events
 }
