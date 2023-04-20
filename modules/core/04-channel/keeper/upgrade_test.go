@@ -479,6 +479,9 @@ func (suite *KeeperTestSuite) TestChanUpgradeAck_HappyPath() {
 				counterparty := path.EndpointB.GetChannel()
 				counterparty.State = types.OPEN
 				path.EndpointB.SetChannel(counterparty)
+				path.EndpointB.Chain.Coordinator.CommitBlock(path.EndpointB.Chain)
+				suite.Require().NoError(path.EndpointA.UpdateClient())
+
 			},
 			false,
 		},
@@ -488,6 +491,8 @@ func (suite *KeeperTestSuite) TestChanUpgradeAck_HappyPath() {
 				counterparty := path.EndpointB.GetChannel()
 				counterparty.Ordering = types.ORDERED
 				path.EndpointB.SetChannel(counterparty)
+				path.EndpointB.Chain.Coordinator.CommitBlock(path.EndpointB.Chain)
+				suite.Require().NoError(path.EndpointA.UpdateClient())
 			},
 			false,
 		},
@@ -497,6 +502,9 @@ func (suite *KeeperTestSuite) TestChanUpgradeAck_HappyPath() {
 				channel := path.EndpointB.GetChannel()
 				channel.ConnectionHops = []string{"connection-100"}
 				path.EndpointB.SetChannel(channel)
+				path.EndpointB.Chain.Coordinator.CommitBlock(path.EndpointB.Chain)
+				suite.Require().NoError(path.EndpointA.UpdateClient())
+
 			},
 			false,
 		},
@@ -506,6 +514,8 @@ func (suite *KeeperTestSuite) TestChanUpgradeAck_HappyPath() {
 				connectionEnd := path.EndpointA.GetConnection()
 				connectionEnd.State = connectiontypes.UNINITIALIZED
 				path.EndpointA.SetConnection(connectionEnd)
+				path.EndpointB.Chain.Coordinator.CommitBlock(path.EndpointB.Chain)
+				suite.Require().NoError(path.EndpointA.UpdateClient())
 			},
 			false,
 		},
@@ -533,15 +543,14 @@ func (suite *KeeperTestSuite) TestChanUpgradeAck_HappyPath() {
 			tc.malleate()
 
 			channelKey := host.ChannelKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
-			proofUpgradeChannel, proofHeight := suite.chainB.QueryProof(channelKey)
-
+			counterpartyChannelProof, proofHeight := suite.chainB.QueryProof(channelKey)
 
 			err = suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.ChanUpgradeAck(
 				suite.chainA.GetContext(),
 				path.EndpointA.ChannelConfig.PortID,
 				path.EndpointA.ChannelID,
 				counterpartyUpgradeSequence,
-				proofUpgradeChannel,
+				counterpartyChannelProof,
 				proofHeight,
 			)
 
@@ -549,7 +558,6 @@ func (suite *KeeperTestSuite) TestChanUpgradeAck_HappyPath() {
 
 			if tc.expPass {
 				suite.Require().NoError(err)
-				//suite.Require().Equal(counterpartyUpgradeSequence, upgradeSequence)
 				suite.Require().Equal(types.OPEN, path.EndpointA.GetChannel().State)
 			} else {
 				suite.Require().Error(err)
