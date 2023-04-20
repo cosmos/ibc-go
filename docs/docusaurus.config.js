@@ -59,6 +59,7 @@ const config = {
         logo: {
           alt: "Black Cosmos Icon",
           src: "img/black-cosmos-icon.svg",
+          srcDark: "img/white-cosmos-icon.svg",
         },
         items: [
           {
