@@ -71,6 +71,8 @@ enum ResponseResultType {
   RESPONSE_RESULT_TYPE_NOOP = 1 [(gogoproto.enumvalue_customname) = "NOOP"];
   // The message was executed successfully
   RESPONSE_RESULT_TYPE_SUCCESS = 2 [(gogoproto.enumvalue_customname) = "SUCCESS"];
+  // The message was executed unsuccessfully
+  RESPONSE_RESULT_TYPE_FAILED = 3 [(gogoproto.enumvalue_customname) = "FAILED"];
 }
 
 // MsgChannelOpenInit defines an sdk.Msg to initialize a channel handshake. It
@@ -294,10 +296,10 @@ message MsgChannelUpgradeTry {
 
 // MsgChannelUpgradeTryResponse defines the MsgChannelUpgradeTry response type
 message MsgChannelUpgradeTryResponse {
-  string channel_id       = 1;
-  string version          = 2;
-  uint64 upgrade_sequence = 3;
-  bool   success          = 4;
+  string             channel_id           = 1;
+  string             version              = 2;
+  uint64             upgrade_sequence     = 3;
+  ResponseResultType response_result_type = 4;
 }
 
 // MsgChannelUpgradeAck defines the request type for the ChannelUpgradeAck rpc
