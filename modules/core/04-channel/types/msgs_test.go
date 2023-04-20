@@ -561,13 +561,6 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeTryValidateBasic() {
 			false,
 		},
 		{
-			"cannot submit a zero proof height",
-			func() {
-				msg.ProofHeight = clienttypes.ZeroHeight()
-			},
-			false,
-		},
-		{
 			"missing signer address",
 			func() {
 				msg.Signer = emptyAddr

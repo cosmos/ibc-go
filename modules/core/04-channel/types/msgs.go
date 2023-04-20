@@ -563,12 +563,15 @@ func (msg MsgChannelUpgradeTry) ValidateBasic() error {
 	if err := host.PortIdentifierValidator(msg.PortId); err != nil {
 		return errorsmod.Wrap(err, "invalid port ID")
 	}
+
 	if !IsValidChannelID(msg.ChannelId) {
 		return ErrInvalidChannelIdentifier
 	}
+
 	if msg.CounterpartyUpgradeSequence == 0 {
 		return errorsmod.Wrap(ibcerrors.ErrInvalidSequence, "counterparty sequence cannot be 0")
 	}
+
 	if msg.ProposedUpgradeTimeout.Height.IsZero() && msg.ProposedUpgradeTimeout.Timestamp == 0 {
 		return errorsmod.Wrap(ErrInvalidUpgradeTimeout, "timeout height or timeout timestamp must be non-zero")
 	}
@@ -576,12 +579,11 @@ func (msg MsgChannelUpgradeTry) ValidateBasic() error {
 	if len(msg.ProofChannel) == 0 {
 		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty channel proof")
 	}
+
 	if len(msg.ProofUpgrade) == 0 {
 		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty upgrade proof")
 	}
-	if msg.ProofHeight.IsZero() {
-		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit a proof with zero height")
-	}
+
 	_, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
