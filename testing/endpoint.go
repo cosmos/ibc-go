@@ -565,12 +565,11 @@ func (endpoint *Endpoint) TimeoutOnClose(packet channeltypes.Packet) error {
 }
 
 func (endpoint *Endpoint) ChanUpgradeInit(timeoutHeight clienttypes.Height, timeoutTimestamp uint64) error {
-	counterparty := channeltypes.NewCounterparty(endpoint.Counterparty.ChannelConfig.PortID, endpoint.Counterparty.ChannelID)
-	channelUpgrade := channeltypes.NewChannel(channeltypes.INITUPGRADE, endpoint.ChannelConfig.Order, counterparty, []string{endpoint.ConnectionID}, endpoint.ChannelConfig.Version)
-
 	msg := channeltypes.NewMsgChannelUpgradeInit(
-		endpoint.ChannelConfig.PortID, endpoint.ChannelID,
-		channelUpgrade, timeoutHeight, timeoutTimestamp,
+		endpoint.ChannelConfig.PortID,
+		endpoint.ChannelID,
+		channeltypes.NewUpgradeFields(endpoint.ChannelConfig.Order, []string{endpoint.ConnectionID}, endpoint.ChannelConfig.Version),
+		channeltypes.NewUpgradeTimeout(timeoutHeight, timeoutTimestamp),
 		endpoint.Chain.SenderAccount.GetAddress().String(),
 	)
 

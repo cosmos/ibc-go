@@ -2,7 +2,7 @@ package types
 
 import (
 	"encoding/base64"
-	"strings"
+	"reflect"
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -486,18 +486,16 @@ var _ sdk.Msg = &MsgChannelUpgradeInit{}
 // nolint:interfacer
 func NewMsgChannelUpgradeInit(
 	portID, channelID string,
-	proposedUpgradeChannel Channel,
-	timeoutHeight clienttypes.Height,
-	timeoutTimestamp uint64,
+	upgradeFields UpgradeFields,
+	upgradeTimeout UpgradeTimeout,
 	signer string,
 ) *MsgChannelUpgradeInit {
 	return &MsgChannelUpgradeInit{
-		PortId:                 portID,
-		ChannelId:              channelID,
-		ProposedUpgradeChannel: proposedUpgradeChannel,
-		TimeoutHeight:          timeoutHeight,
-		TimeoutTimestamp:       timeoutTimestamp,
-		Signer:                 signer,
+		PortId:    portID,
+		ChannelId: channelID,
+		Fields:    upgradeFields,
+		Timeout:   upgradeTimeout,
+		Signer:    signer,
 	}
 }
 
@@ -509,21 +507,17 @@ func (msg MsgChannelUpgradeInit) ValidateBasic() error {
 	if !IsValidChannelID(msg.ChannelId) {
 		return ErrInvalidChannelIdentifier
 	}
-	if msg.ProposedUpgradeChannel.State != INITUPGRADE {
-		return errorsmod.Wrapf(ErrInvalidChannelState, "expected: %s, got: %s", INITUPGRADE, msg.ProposedUpgradeChannel.State)
-	}
-	if strings.TrimSpace(msg.ProposedUpgradeChannel.Version) == "" {
-		return errorsmod.Wrap(ErrInvalidChannelVersion, "channel version must not be empty")
-	}
-	if msg.TimeoutHeight.IsZero() && msg.TimeoutTimestamp == 0 {
-		return errorsmod.Wrap(ErrInvalidUpgradeTimeout, "timeout height and timeout timestamp cannot both be 0")
-	}
+
 	_, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
 	}
 
-	return nil
+	if !msg.Timeout.IsValid() {
+		return errorsmod.Wrap(ErrInvalidUpgrade, "upgrade timeout height and upgrade timeout timestamp cannot both be 0")
+	}
+
+	return msg.Fields.ValidateBasic()
 }
 
 // GetSigners implements sdk.Msg
@@ -541,31 +535,28 @@ var _ sdk.Msg = &MsgChannelUpgradeTry{}
 // NewMsgChannelUpgradeTry constructs a new MsgChannelUpgradeTry
 // nolint:interfacer
 func NewMsgChannelUpgradeTry(
-	portID, channelID string,
-	counterpartyChannel Channel,
-	counterpartySequence uint64,
-	proposedUpgradeChannel Channel,
-	timeoutHeight clienttypes.Height,
-	timeoutTimestamp uint64,
+	portID,
+	channelID string,
+	proposedUpgradeFields UpgradeFields,
+	proposedUpgradeTimeout UpgradeTimeout,
+	counterpartyProposedUpgrade Upgrade,
+	counterpartyUpgradeSequence uint64,
 	proofChannel []byte,
-	proofUpgradeTimeout []byte,
-	proofUpgradeSequence []byte,
+	proofUpgrade []byte,
 	proofHeight clienttypes.Height,
 	signer string,
 ) *MsgChannelUpgradeTry {
 	return &MsgChannelUpgradeTry{
-		PortId:                 portID,
-		ChannelId:              channelID,
-		CounterpartyChannel:    counterpartyChannel,
-		CounterpartySequence:   counterpartySequence,
-		ProposedUpgradeChannel: proposedUpgradeChannel,
-		TimeoutHeight:          timeoutHeight,
-		TimeoutTimestamp:       timeoutTimestamp,
-		ProofChannel:           proofChannel,
-		ProofUpgradeTimeout:    proofUpgradeTimeout,
-		ProofUpgradeSequence:   proofUpgradeSequence,
-		ProofHeight:            proofHeight,
-		Signer:                 signer,
+		PortId:                      portID,
+		ChannelId:                   channelID,
+		ProposedUpgradeFields:       proposedUpgradeFields,
+		ProposedUpgradeTimeout:      proposedUpgradeTimeout,
+		CounterpartyProposedUpgrade: counterpartyProposedUpgrade,
+		CounterpartyUpgradeSequence: counterpartyUpgradeSequence,
+		ProofChannel:                proofChannel,
+		ProofUpgrade:                proofUpgrade,
+		ProofHeight:                 proofHeight,
+		Signer:                      signer,
 	}
 }
 
@@ -577,29 +568,25 @@ func (msg MsgChannelUpgradeTry) ValidateBasic() error {
 	if !IsValidChannelID(msg.ChannelId) {
 		return ErrInvalidChannelIdentifier
 	}
-	if msg.CounterpartySequence == 0 {
+	if msg.CounterpartyUpgradeSequence == 0 {
 		return errorsmod.Wrap(ibcerrors.ErrInvalidSequence, "counterparty sequence cannot be 0")
 	}
-	if msg.ProposedUpgradeChannel.State != TRYUPGRADE {
-		return errorsmod.Wrapf(ErrInvalidChannelState, "expected: %s, got: %s", TRYUPGRADE, msg.CounterpartyChannel.State)
+	if msg.ProposedUpgradeTimeout.Height.IsZero() && msg.ProposedUpgradeTimeout.Timestamp == 0 {
+		return errorsmod.Wrap(ErrInvalidUpgradeTimeout, "timeout height or timeout timestamp must be non-zero")
 	}
-	if strings.TrimSpace(msg.ProposedUpgradeChannel.Version) == "" {
-		return errorsmod.Wrap(ErrInvalidChannelVersion, "channel version must not be empty")
+
+	if !reflect.DeepEqual(msg.ProposedUpgradeFields, msg.CounterpartyProposedUpgrade.Fields) {
+		return errorsmod.Wrap(ErrInvalidUpgrade, "proposed upgrade fields are not equal on both sides of the upgrade")
 	}
-	if msg.TimeoutHeight.IsZero() {
-		return errorsmod.Wrap(ibcerrors.ErrInvalidHeight, "timeout height must be non-zero")
-	}
-	if msg.TimeoutTimestamp == 0 && msg.TimeoutHeight.IsZero() {
-		return errorsmod.Wrap(ErrInvalidUpgradeTimeout, "invalid upgrade timeout timestamp or timeout height")
-	}
+
 	if len(msg.ProofChannel) == 0 {
 		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty channel proof")
 	}
-	if len(msg.ProofUpgradeTimeout) == 0 {
-		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty upgrade timeout proof")
+	if len(msg.ProofUpgrade) == 0 {
+		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty upgrade proof")
 	}
-	if len(msg.ProofUpgradeSequence) == 0 {
-		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty upgrade sequence proof")
+	if msg.ProofHeight.IsZero() {
+		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit a proof with zero height")
 	}
 	if !collections.Contains(msg.CounterpartyChannel.State, []State{INITUPGRADE, TRYUPGRADE}) {
 		return errorsmod.Wrapf(ErrInvalidChannelState, "expected one of: [%s, %s], got: %s", INITUPGRADE, TRYUPGRADE, msg.CounterpartyChannel.State)

@@ -32,6 +32,8 @@ func NewChannel(
 		Counterparty:   counterparty,
 		ConnectionHops: hops,
 		Version:        version,
+		// UpgradeSequence is intentionally left empty as a new channel has not performed an upgrade.
+		UpgradeSequence: 0,
 	}
 }
 
@@ -142,10 +144,10 @@ var orderSubsets = map[Order][]Order{
 	UNORDERED: {UNORDERED},
 }
 
-// SubsetOf returns true if the provided Order is a valid subset of Order.
-func (o Order) SubsetOf(order Order) bool {
-	if supported, ok := orderSubsets[o]; ok {
-		return collections.Contains(order, supported)
+// SubsetOf returns true if Order is a valid subset of the provided parent Order.
+func (o Order) SubsetOf(parentOrder Order) bool {
+	if supported, ok := orderSubsets[parentOrder]; ok {
+		return collections.Contains(o, supported)
 	}
 
 	return false

@@ -24,18 +24,28 @@ func (s *ChannelUpgradeTestSuite) TestChannelUpgrade() {
 	t := s.T()
 	ctx := context.TODO()
 
-	_, channelA := s.SetupChainsRelayerAndChannel(ctx)
+	const upgradeVersion string = `{"fee_version":"ics29-1","app_version":"ics20-1"}`
 
-	chainA, _ := s.GetChains()
+	var (
+		msgChanUpgradeInitRes channeltypes.MsgChannelUpgradeInitResponse
+		msgChanUpgradeTryRes  channeltypes.MsgChannelUpgradeTryResponse
+	)
+
+	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx)
+
+	chainA, chainB := s.GetChains()
+
+	_ = msgChanUpgradeTryRes
+	_ = relayer
+	_ = chainB
 
 	rlyWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 
-	counterParty := channeltypes.NewCounterparty(channelA.Counterparty.PortID, channelA.Counterparty.ChannelID)
-	proposedUpgradeChannel := channeltypes.NewChannel(channeltypes.INITUPGRADE, channeltypes.UNORDERED, counterParty, channelA.ConnectionHops, `{"fee_version":"ics29-1","app_version":"ics20-1"}`)
-
 	t.Run("channel upgrade init", func(t *testing.T) {
+		upgradeTimeout := channeltypes.NewUpgradeTimeout(clienttypes.NewHeight(0, 10000), 0)
+		upgradeFields := channeltypes.NewUpgradeFields(channeltypes.UNORDERED, channelA.ConnectionHops, upgradeVersion)
 		msgChanUpgradeInit := channeltypes.NewMsgChannelUpgradeInit(
-			channelA.PortID, channelA.ChannelID, proposedUpgradeChannel, clienttypes.NewHeight(0, 10000), 0, rlyWallet.FormattedAddress(),
+			channelA.PortID, channelA.ChannelID, upgradeFields, upgradeTimeout, rlyWallet.FormattedAddress(),
 		)
 
 		s.Require().NoError(msgChanUpgradeInit.ValidateBasic())
@@ -43,5 +53,50 @@ func (s *ChannelUpgradeTestSuite) TestChannelUpgrade() {
 		txResp, err := s.BroadcastMessages(ctx, chainA, rlyWallet, msgChanUpgradeInit)
 		s.Require().NoError(err)
 		s.AssertValidTxResponse(txResp)
+
+		s.Require().NoError(testsuite.UnmarshalMsgResponses(txResp, &msgChanUpgradeInitRes))
+
+		channel, err := s.QueryChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
+		s.Require().NoError(err)
+		s.Require().Equal(channeltypes.INITUPGRADE, channel.State)
+	})
+
+	t.Run("channel upgrade try", func(t *testing.T) {
+		//chainBChannels, err := relayer.GetChannels(ctx, s.GetRelayerExecReporter(), chainB.Config().ChainID)
+		//s.Require().NoError(err)
+		//s.Require().Len(chainBChannels, 1)
+		//
+		//chainBChannel := chainBChannels[len(chainBChannels)-1]
+		//upgradeTimeout := channeltypes.NewUpgradeTimeout(clienttypes.NewHeight(0, 10000), 0)
+		//upgradeFields := channeltypes.NewUpgradeFields(channeltypes.UNORDERED, chainBChannel.ConnectionHops, upgradeVersion)
+		//
+		//// TODO: get channel proof
+		//var channelProof []byte
+		//// TODO: get upgrade proof
+		//var upgradeProof []byte
+		//
+		//msgChannelUpgradeTry := channeltypes.NewMsgChannelUpgradeTry(
+		//	channelA.Counterparty.PortID,
+		//	channelA.Counterparty.ChannelID,
+		//	upgradeFields,
+		//	upgradeTimeout,
+		//	msgChanUpgradeInitRes.Upgrade,
+		//	msgChanUpgradeInitRes.UpgradeSequence,
+		//	channelProof,
+		//	upgradeProof,
+		//	clienttypes.ZeroHeight(), // proof height
+		//	rlyWallet.FormattedAddress(),
+		//)
+		//
+		//txResp, err := s.BroadcastMessages(ctx, chainB, rlyWallet, msgChannelUpgradeTry)
+		//s.Require().NoError(err)
+		//s.AssertValidTxResponse(txResp)
+		//
+		//s.Require().NoError(testsuite.UnmarshalMsgResponses(txResp, &msgChanUpgradeTryRes))
+		//s.Require().True(msgChanUpgradeTryRes.Success)
+		//
+		//channel, err := s.QueryChannel(ctx, chainB, chainBChannel.PortID, chainBChannel.ChannelID)
+		//s.Require().NoError(err)
+		//s.Require().Equal(channeltypes.TRYUPGRADE, channel.State)
 	})
 }

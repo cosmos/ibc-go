@@ -39,7 +39,11 @@ const (
 	AttributeKeyChannelOrdering  = "packet_channel_ordering"
 	AttributeKeyConnection       = "packet_connection"
 
-	AttributeKeyUpgradeSequence = "upgrade_sequence"
+	// upgrade specific keys
+	AttributeKeyUpgradeSequence       = "upgrade_sequence"
+	AttributeKeyUpgradeVersion        = "upgrade_version"
+	AttributeKeyUpgradeConnectionHops = "upgrade_connection_hops"
+	AttributeKeyUpgradeOrdering       = "upgrade_ordering"
 )
 
 // IBC channel events vars
