@@ -244,14 +244,6 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 
 			counterpartyUpgradeTimeout = types.NewUpgradeTimeout(path.EndpointB.Chain.GetTimeoutHeight(), 0)
 
-			proposedUpgrade = types.NewUpgrade(
-				types.NewUpgradeFields(
-					types.UNORDERED, []string{path.EndpointB.ConnectionID}, fmt.Sprintf("%s-v2", mock.Version),
-				),
-				types.NewUpgradeTimeout(path.EndpointA.Chain.GetTimeoutHeight(), 0),
-				0,
-			)
-
 			channel := path.EndpointB.GetChannel()
 
 			tc.malleate()
@@ -281,7 +273,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 
 			counterpartyUpgradeSequence := path.EndpointA.GetChannel().UpgradeSequence
 
-			sequence, err := suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.ChanUpgradeTry(
+			proposedUpgrade, err := suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.ChanUpgradeTry(
 				suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, proposedUpgrade.Fields, proposedUpgrade.Timeout,
 				counterpartyUpgrade, counterpartyUpgradeSequence, proofCounterpartyChannel, proofUpgrade, proofHeight)
 
@@ -292,12 +284,12 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 				path.EndpointB.ChannelID,
 				// use the channel we saved before malleate so that we can trigger "channel not found" test
 				channel,
-				*proposedUpgrade,
+				proposedUpgrade,
 			)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
-				suite.Require().Equal(expSequence, sequence)
+				suite.Require().Equal(expSequence, channel.UpgradeSequence)
 				suite.Require().Equal(mock.Version, path.EndpointB.GetChannel().Version)
 				suite.Require().Equal(path.EndpointB.GetChannel().State, types.TRYUPGRADE)
 			} else {
