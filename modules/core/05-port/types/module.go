@@ -125,9 +125,7 @@ type UpgradableModule interface {
 		order channeltypes.Order,
 		connectionHops []string,
 		portID, channelID string,
-		sequence uint64,
-		counterparty channeltypes.Counterparty,
-		previousVersion, counterpartyVersion string,
+		counterpartyVersion string,
 	) (string, error)
 
 	// OnChanUpgradeAck TODO

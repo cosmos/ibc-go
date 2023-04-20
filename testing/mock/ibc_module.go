@@ -168,7 +168,7 @@ func (im IBCModule) OnChanUpgradeInit(ctx sdk.Context, order channeltypes.Order,
 }
 
 // OnChanUpgradeTry implements the IBCModule interface
-func (im IBCModule) OnChanUpgradeTry(ctx sdk.Context, order channeltypes.Order, connectionHops []string, portID, channelID string, sequence uint64, counterparty channeltypes.Counterparty, previousVersion, counterpartyVersion string) (string, error) {
+func (im IBCModule) OnChanUpgradeTry(ctx sdk.Context, order channeltypes.Order, connectionHops []string, portID, channelID string, counterpartyVersion string) (string, error) {
 	return Version, nil
 }
 

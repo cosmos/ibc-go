@@ -163,6 +163,7 @@ func (k Keeper) ChanUpgradeTry(
 			proposedUpgradeFields,
 			proposedUpgradeTimeout,
 		)
+
 		if err != nil {
 			return types.Upgrade{}, errorsmod.Wrap(err, "failed to construct proposed upgrade")
 		}

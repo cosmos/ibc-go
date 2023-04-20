@@ -796,9 +796,6 @@ func (k Keeper) ChannelUpgradeTry(goCtx context.Context, msg *channeltypes.MsgCh
 		msg.CounterpartyProposedUpgrade.Fields.ConnectionHops,
 		msg.PortId,
 		msg.ChannelId,
-		channel.UpgradeSequence,
-		channel.Counterparty,
-		channel.Version,
 		msg.CounterpartyProposedUpgrade.Fields.Version,
 	)
 	if err != nil {
