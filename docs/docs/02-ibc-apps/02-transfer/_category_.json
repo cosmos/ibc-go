@@ -1,0 +1,8 @@
+{
+  "label": "Transfer",
+  "position": 2,
+  "link": {
+    "type": "generated-index",
+    "description": "Learn about what the token Transfer module is."
+  }
+}
