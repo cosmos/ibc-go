@@ -1,9 +1,9 @@
 ---
-id: 03-01-03-integration
+id: 04-01-03-integration
 title: Integration
 sidebar_label: Integration
 sidebar_position: 3
-slug: /03/01/03
+slug: /04/01/03
 ---
 
 # Fee messages

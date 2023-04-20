@@ -1,9 +1,9 @@
 ---
-id: 03-01-04-fee-distribution
+id: 04-01-04-fee-distribution
 title: Fee Distribution
 sidebar_label: Fee Distribution
 sidebar_position: 4
-slug: /03/01/04
+slug: /04/01/04
 ---
 
 # Fee Distribution
