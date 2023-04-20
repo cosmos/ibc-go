@@ -818,6 +818,8 @@ func (k Keeper) ChannelUpgradeTry(goCtx context.Context, msg *channeltypes.MsgCh
 		}, nil
 	}
 
+
+	msg.ProposedUpgradeFields.Version = proposedUpgradeVersion
 	k.ChannelKeeper.WriteUpgradeTryChannel(ctx, msg.PortId, msg.ChannelId, channel, msg.CounterpartyProposedUpgrade)
 
 	return &channeltypes.MsgChannelUpgradeTryResponse{

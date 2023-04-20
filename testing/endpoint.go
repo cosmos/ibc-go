@@ -584,38 +584,46 @@ func (endpoint *Endpoint) ChanUpgradeInit(timeoutHeight clienttypes.Height, time
 	endpoint.Chain.Coordinator.CommitBlock(endpoint.Chain)
 	return endpoint.Counterparty.UpdateClient()
 }
-//
-//func (endpoint *Endpoint) ChanUpgradeTry(timeoutHeight clienttypes.Height, timeoutTimestamp, counterpartyUpgradeSequence uint64) error {
-//	counterparty := channeltypes.NewCounterparty(endpoint.Counterparty.ChannelConfig.PortID, endpoint.Counterparty.ChannelID)
-//	channelUpgrade := channeltypes.NewChannel(channeltypes.TRYUPGRADE, endpoint.ChannelConfig.Order, counterparty, []string{endpoint.ConnectionID}, endpoint.ChannelConfig.Version)
-//
-//	channelKey := host.ChannelKey(endpoint.Counterparty.ChannelConfig.PortID, endpoint.Counterparty.ChannelID)
-//	proofChannel, proofHeight := endpoint.Counterparty.Chain.QueryProof(channelKey)
-//
-//	upgradeSequenceKey := host.ChannelUpgradeSequenceKey(endpoint.Counterparty.ChannelConfig.PortID, endpoint.Counterparty.ChannelID)
-//	proofUpgradeSequence, _ := endpoint.Counterparty.Chain.QueryProof(upgradeSequenceKey)
-//
-//	upgradeTimeoutKey := host.ChannelUpgradeTimeoutKey(endpoint.Counterparty.ChannelConfig.PortID, endpoint.Counterparty.ChannelID)
-//	proofUpgradeTimeout, _ := endpoint.Counterparty.Chain.QueryProof(upgradeTimeoutKey)
-//
-//	msg := channeltypes.NewMsgChannelUpgradeTry(
-//		endpoint.ChannelConfig.PortID, endpoint.ChannelID, endpoint.Counterparty.GetChannel(),
-//		counterpartyUpgradeSequence, channelUpgrade, timeoutHeight, timeoutTimestamp,
-//		proofChannel, proofUpgradeTimeout, proofUpgradeSequence, proofHeight,
-//		endpoint.Chain.SenderAccount.GetAddress().String(),
-//	)
-//
-//	if err := endpoint.Chain.sendMsgs(msg); err != nil {
-//		return err
-//	}
-//
-//	// update version to selected app version
-//	// NOTE: this update must be performed after SendMsgs()
-//	endpoint.ChannelConfig.Version = endpoint.GetChannel().Version
-//
-//	endpoint.Chain.Coordinator.CommitBlock(endpoint.Chain)
-//	return endpoint.Counterparty.UpdateClient()
-//}
+
+func (endpoint *Endpoint) ChanUpgradeTry(timeoutHeight clienttypes.Height, timeoutTimestamp, counterpartyUpgradeSequence uint64) error {
+	channelKey := host.ChannelKey(endpoint.Counterparty.ChannelConfig.PortID, endpoint.Counterparty.ChannelID)
+	proofChannel, proofHeight := endpoint.Counterparty.Chain.QueryProof(channelKey)
+
+	counterPartyProposedUpgrade, found := endpoint.Counterparty.Chain.GetSimApp().IBCKeeper.ChannelKeeper.GetUpgrade(endpoint.Counterparty.Chain.GetContext(), endpoint.Counterparty.ChannelConfig.PortID, endpoint.Counterparty.ChannelID)
+	require.True(endpoint.Chain.TB, found)
+
+	upgradeKey := host.ChannelUpgradeKey(endpoint.Counterparty.ChannelConfig.PortID, endpoint.Counterparty.ChannelID)
+	proofUpgrade, _ := endpoint.Counterparty.Chain.QueryProof(upgradeKey)
+
+	msg := channeltypes.NewMsgChannelUpgradeTry(
+		endpoint.ChannelConfig.PortID,
+		endpoint.ChannelID,
+		channeltypes.NewUpgradeFields(endpoint.ChannelConfig.Order, []string{endpoint.ConnectionID}, endpoint.ChannelConfig.Version),
+		channeltypes.NewUpgradeTimeout(timeoutHeight, timeoutTimestamp),
+		counterPartyProposedUpgrade,
+		//*channeltypes.NewUpgrade(
+		//	channeltypes.NewUpgradeFields(endpoint.ChannelConfig.Order, []string{endpoint.ConnectionID}, endpoint.ChannelConfig.Version),
+		//	channeltypes.NewUpgradeTimeout(timeoutHeight, timeoutTimestamp),
+		//	counterpartyUpgradeSequence,
+		//),
+		counterpartyUpgradeSequence,
+		proofChannel,
+		proofUpgrade,
+		proofHeight,
+		endpoint.Chain.SenderAccount.GetAddress().String(),
+	)
+
+	if err := endpoint.Chain.sendMsgs(msg); err != nil {
+		return err
+	}
+
+	// update version to selected app version
+	// NOTE: this update must be performed after SendMsgs()
+	endpoint.ChannelConfig.Version = endpoint.GetChannel().Version
+
+	endpoint.Chain.Coordinator.CommitBlock(endpoint.Chain)
+	return endpoint.Counterparty.UpdateClient()
+}
 
 // SetChannelState sets a channel state
 func (endpoint *Endpoint) SetChannelState(state channeltypes.State) error {
