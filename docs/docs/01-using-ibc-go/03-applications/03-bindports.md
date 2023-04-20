@@ -2,7 +2,7 @@
 id: 01-03-03-bindports
 title: Bind Ports
 sidebar_label: Bind Ports
-sidebar_position: 2
+sidebar_position: 3
 slug: /01/03/03
 ---
 
