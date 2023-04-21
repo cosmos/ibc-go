@@ -1,0 +1,8 @@
+{
+  "label": "Localhost Client",
+  "position": 2,
+  "link": {
+    "type": "generated-index",
+    "description": "Learn about the 09-localhost light client module."
+  }
+}
