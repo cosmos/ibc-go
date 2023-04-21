@@ -44,4 +44,5 @@ var (
 	ErrUpgradeSequenceNotFound = errorsmod.Register(SubModuleName, 28, "upgrade sequence not found")
 	ErrUpgradeErrorNotFound    = errorsmod.Register(SubModuleName, 29, "upgrade error receipt not found")
 	ErrInvalidUpgrade          = errorsmod.Register(SubModuleName, 30, "invalid upgrade")
+	ErrInvalidConnectionHops   = errorsmod.Register(SubModuleName, 31, "invalid connection hops")
 )

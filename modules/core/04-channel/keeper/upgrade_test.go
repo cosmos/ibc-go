@@ -139,6 +139,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 		expSequence                uint64
 		upgrade                    *types.Upgrade
 		counterpartyUpgradeTimeout types.UpgradeTimeout
+		proposedConnectionHops     []string
 	)
 
 	testCases := []struct {
@@ -165,7 +166,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 			"errors with smaller counterparty upgrade sequence",
 			func() {
 				counterpartyChannel := path.EndpointA.GetChannel()
-				counterpartyChannel.UpgradeSequence = 2
+				counterpartyChannel.UpgradeSequence = 1
 				path.EndpointA.SetChannel(counterpartyChannel)
 
 				channel := path.EndpointB.GetChannel()
@@ -175,16 +176,9 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 			false,
 		},
 		{
-			"identical upgrade channel end",
+			"proposed connection hops do not match the counterparty proposed connection hops",
 			func() {
-				channel := path.EndpointB.GetChannel()
-				upgrade = types.NewUpgrade(
-					types.NewUpgradeFields(
-						channel.Ordering, channel.ConnectionHops, channel.Version,
-					),
-					types.NewUpgradeTimeout(path.EndpointA.Chain.GetTimeoutHeight(), 0),
-					0,
-				)
+				proposedConnectionHops = []string{"connection-100"}
 			},
 			false,
 		},
@@ -228,10 +222,11 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 			)
 
 			counterpartyUpgradeTimeout = types.NewUpgradeTimeout(path.EndpointB.Chain.GetTimeoutHeight(), 0)
+			proposedConnectionHops = []string{path.EndpointB.ConnectionID}
 
 			upgrade = types.NewUpgrade(
 				types.NewUpgradeFields(
-					types.UNORDERED, []string{path.EndpointB.ConnectionID}, fmt.Sprintf("%s-v2", mock.Version),
+					types.UNORDERED, proposedConnectionHops, fmt.Sprintf("%s-v2", mock.Version),
 				),
 				types.NewUpgradeTimeout(path.EndpointA.Chain.GetTimeoutHeight(), 0),
 				0,
@@ -264,8 +259,8 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 
 			counterpartyUpgradeSequence := path.EndpointA.GetChannel().UpgradeSequence
 
-			proposedUpgrade, err := suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.ChanUpgradeTry(
-				suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, upgrade.Fields, upgrade.Timeout,
+			proposedUpgrade, _, err := suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.ChanUpgradeTry(
+				suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, proposedConnectionHops, upgrade.Timeout,
 				counterpartyUpgrade, counterpartyUpgradeSequence, proofCounterpartyChannel, proofUpgrade, proofHeight)
 
 			if err == nil {
@@ -297,6 +292,8 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry_CrossingHellos() {
 		expSequence                uint64
 		upgrade                    *types.Upgrade
 		counterpartyUpgradeTimeout types.UpgradeTimeout
+		counterpartyUpgrade        types.Upgrade
+		err                        error
 	)
 
 	testCases := []struct {
@@ -327,15 +324,10 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry_CrossingHellos() {
 			true,
 		},
 		{
-			"fail: upgrade fields have changed",
+			"fail: upgrade fields have changed. NOTE that this actually fails on verifying the channel proof",
 			func() {
-				upgrade = types.NewUpgrade(
-					types.NewUpgradeFields(
-						types.UNORDERED, []string{path.EndpointB.ConnectionID}, fmt.Sprintf("%s-v3", mock.Version),
-					),
-					types.NewUpgradeTimeout(path.EndpointA.Chain.GetTimeoutHeight(), 0),
-					0,
-				)
+				counterpartyUpgrade.Fields.Ordering = types.ORDERED
+				counterpartyUpgrade.Fields.Version = fmt.Sprintf("%s-v3", mock.Version)
 			},
 			false,
 		},
@@ -355,17 +347,19 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry_CrossingHellos() {
 				fmt.Sprintf("%s-v2", mock.Version),
 			)
 
+			proposedConnectionHops := []string{path.EndpointB.ConnectionID}
+
 			counterpartyUpgradeTimeout = types.NewUpgradeTimeout(path.EndpointB.Chain.GetTimeoutHeight(), 0)
 
 			upgrade = types.NewUpgrade(
 				types.NewUpgradeFields(
-					types.UNORDERED, []string{path.EndpointB.ConnectionID}, fmt.Sprintf("%s-v2", mock.Version),
+					types.UNORDERED, proposedConnectionHops, fmt.Sprintf("%s-v2", mock.Version),
 				),
 				types.NewUpgradeTimeout(path.EndpointA.Chain.GetTimeoutHeight(), 0),
 				0,
 			)
 
-			counterpartyUpgrade, err := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.ChanUpgradeInit(
+			counterpartyUpgrade, err = suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.ChanUpgradeInit(
 				suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, counterpartyUpgradeFields,
 				counterpartyUpgradeTimeout,
 			)
@@ -415,9 +409,11 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry_CrossingHellos() {
 			upgradeKey := host.ChannelUpgradeKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 			proofUpgrade, _ := suite.chainA.QueryProof(upgradeKey)
 
-			proposedUpgrade, err := suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.ChanUpgradeTry(
-				suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, upgrade.Fields, upgrade.Timeout,
-				counterpartyUpgrade, path.EndpointA.GetChannel().UpgradeSequence, proofCounterpartyChannel, proofUpgrade, proofHeight)
+			counterpartyUpgradeSequence := path.EndpointA.GetChannel().UpgradeSequence
+
+			proposedUpgrade, _, err := suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.ChanUpgradeTry(
+				suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, proposedConnectionHops, upgrade.Timeout,
+				counterpartyUpgrade, counterpartyUpgradeSequence, proofCounterpartyChannel, proofUpgrade, proofHeight)
 
 			if err == nil {
 				// we need to write the upgradeTry so that the correct channel state is returned for chain B

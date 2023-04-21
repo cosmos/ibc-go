@@ -535,7 +535,7 @@ var _ sdk.Msg = &MsgChannelUpgradeTry{}
 func NewMsgChannelUpgradeTry(
 	portID,
 	channelID string,
-	proposedUpgradeFields UpgradeFields,
+	proposedConnectionHops []string,
 	proposedUpgradeTimeout UpgradeTimeout,
 	counterpartyProposedUpgrade Upgrade,
 	counterpartyUpgradeSequence uint64,
@@ -545,16 +545,16 @@ func NewMsgChannelUpgradeTry(
 	signer string,
 ) *MsgChannelUpgradeTry {
 	return &MsgChannelUpgradeTry{
-		PortId:                      portID,
-		ChannelId:                   channelID,
-		ProposedUpgradeFields:       proposedUpgradeFields,
-		ProposedUpgradeTimeout:      proposedUpgradeTimeout,
-		CounterpartyProposedUpgrade: counterpartyProposedUpgrade,
-		CounterpartyUpgradeSequence: counterpartyUpgradeSequence,
-		ProofChannel:                proofChannel,
-		ProofUpgrade:                proofUpgrade,
-		ProofHeight:                 proofHeight,
-		Signer:                      signer,
+		PortId:                        portID,
+		ChannelId:                     channelID,
+		ProposedUpgradeConnectionHops: proposedConnectionHops,
+		ProposedUpgradeTimeout:        proposedUpgradeTimeout,
+		CounterpartyProposedUpgrade:   counterpartyProposedUpgrade,
+		CounterpartyUpgradeSequence:   counterpartyUpgradeSequence,
+		ProofChannel:                  proofChannel,
+		ProofUpgrade:                  proofUpgrade,
+		ProofHeight:                   proofHeight,
+		Signer:                        signer,
 	}
 }
 
