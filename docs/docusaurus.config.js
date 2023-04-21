@@ -58,8 +58,7 @@ const config = {
         title: "IBC-Go",
         logo: {
           alt: "Black Cosmos Icon",
-          src: "img/black-cosmos-icon.svg",
-          srcDark: "img/white-cosmos-icon.svg",
+          src: "img/ibc.svg",
         },
         items: [
           {
