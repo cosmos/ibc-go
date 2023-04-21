@@ -134,7 +134,7 @@ func (k Keeper) ChanUpgradeTry(
 		Ordering:     channel.Ordering,
 		// q: are we supposed to use the counterparty connection hops here? if so how to grab?
 		ConnectionHops:  counterpartyHops,
-		Version:         counterpartyProposedUpgrade.Fields.Version,
+		Version:         channel.Version,
 		UpgradeSequence: counterpartyUpgradeSequence,
 	}
 
