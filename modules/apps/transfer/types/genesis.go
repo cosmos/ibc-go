@@ -7,12 +7,11 @@ import (
 )
 
 // NewGenesisState creates a new ibc-transfer GenesisState instance.
-func NewGenesisState(portID string, denomTraces Traces, params Params, totalEscrowed sdk.Coins) *GenesisState {
+func NewGenesisState(portID string, denomTraces Traces, params Params) *GenesisState {
 	return &GenesisState{
-		PortId:        portID,
-		DenomTraces:   denomTraces,
-		Params:        params,
-		TotalEscrowed: totalEscrowed,
+		PortId:      portID,
+		DenomTraces: denomTraces,
+		Params:      params,
 	}
 }
 
