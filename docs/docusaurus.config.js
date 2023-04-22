@@ -143,6 +143,7 @@ const config = {
         darkTheme: darkCodeTheme,
       },
     }),
+  themes: ["@you54f/theme-github-codeblock"],
   plugins: [
     async function myPlugin(context, options) {
       return {
