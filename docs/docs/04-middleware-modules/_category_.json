@@ -1,8 +1,5 @@
 {
   "label": "IBC Middleware Modules",
   "position": 4,
-  "link": {
-    "type": "generated-index",
-    "description": "Learn about the various middleware modules available for IBC."
-  }
+  "link": null
 }

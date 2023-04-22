@@ -1,8 +1,5 @@
 {
   "label": "IBC Light Clients",
   "position": 3,
-  "link": {
-    "type": "generated-index",
-    "description": "Learn how to build IBC light client modules and interact with existing ones."
-  }
+  "link": null
 }

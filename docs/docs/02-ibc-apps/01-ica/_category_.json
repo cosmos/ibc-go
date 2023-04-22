@@ -1,8 +1,5 @@
 {
   "label": "Interchain Accounts",
   "position": 1,
-  "link": {
-    "type": "generated-index",
-    "description": "Learn about the Interchain Accounts and how to use them."
-  }
+  "link": null
 }

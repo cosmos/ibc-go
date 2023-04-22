@@ -1,8 +1,5 @@
 {
   "label": "Solomachine Client",
   "position": 3,
-  "link": {
-    "type": "generated-index",
-    "description": "Learn about the solomachine light client module."
-  }
+  "link": null
 }
