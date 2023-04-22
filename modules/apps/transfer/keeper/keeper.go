@@ -173,7 +173,7 @@ func (k Keeper) SetTotalEscrowForDenom(ctx sdk.Context, denom string, amount mat
 // GetAllTotalEscrowed returns the escrow information for all the denominations.
 func (k Keeper) GetAllTotalEscrowed(ctx sdk.Context) sdk.Coins {
 	var escrows sdk.Coins
-	k.IterateDenomEscrows(ctx, []byte(types.KeyTotalEscrowPrefix), func(denomEscrow sdk.Coin) bool {
+	k.IterateTokensInEscrow(ctx, []byte(types.KeyTotalEscrowPrefix), func(denomEscrow sdk.Coin) bool {
 		escrows = append(escrows, denomEscrow)
 		return false
 	})
@@ -181,10 +181,10 @@ func (k Keeper) GetAllTotalEscrowed(ctx sdk.Context) sdk.Coins {
 	return escrows
 }
 
-// IterateDenomEscrows iterates over the denomination escrows in the store
+// IterateTokensInEscrow iterates over the denomination escrows in the store
 // and performs a callback function. Denominations for which an invalid value
 // (i.e. not integer) is stored, will be skipped.
-func (k Keeper) IterateDenomEscrows(ctx sdk.Context, prefix []byte, cb func(denomEscrow sdk.Coin) bool) {
+func (k Keeper) IterateTokensInEscrow(ctx sdk.Context, prefix []byte, cb func(denomEscrow sdk.Coin) bool) {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, prefix)
 
@@ -192,12 +192,12 @@ func (k Keeper) IterateDenomEscrows(ctx sdk.Context, prefix []byte, cb func(deno
 	for ; iterator.Valid(); iterator.Next() {
 		keySplit := strings.Split(string(iterator.Key()), "/")
 		if len(keySplit) < 2 {
-			continue
+			continue // key doesn't conform to expected format
 		}
 
 		denom := strings.Join(keySplit[1:], "/")
 		if strings.TrimSpace(denom) == "" {
-			continue
+			continue // denom is empty
 		}
 
 		amount := sdk.IntProto{}

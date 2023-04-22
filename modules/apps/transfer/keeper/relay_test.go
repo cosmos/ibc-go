@@ -389,9 +389,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			if tc.recvIsSource {
 				denom = sdk.DefaultBondDenom
 			} else {
-				denom = types.ParseDenomTrace(
-					types.GetPrefixedDenom(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, sdk.DefaultBondDenom),
-				).IBCDenom()
+				denom = trace.IBCDenom()
 			}
 			totalEscrow = suite.chainB.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(suite.chainB.GetContext(), denom)
 			suite.Require().Equal(expEscrowAmount, totalEscrow)
