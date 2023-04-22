@@ -1,0 +1,59 @@
+name: Tests / E2E Upgrade
+on: 
+  workflow_dispatch:
+  
+  schedule:
+    - cron: '0 0 * * *'
+
+jobs:
+  upgrade-v5:
+    uses: cosmos/ibc-go/.github/workflows/e2e-test-workflow-call.yml@main
+    with:
+      chain-image: ghcr.io/cosmos/ibc-go-simd
+      chain-binary: simd
+      chain-a-tag: v4.3.0
+      chain-b-tag: v4.3.0
+      chain-upgrade-tag: v5.1.0
+      upgrade-plan-name: "normal upgrade"
+      test-entry-point:  "TestUpgradeTestSuite"
+      test: "TestIBCChainUpgrade"
+      upload-logs: true
+
+  upgrade-v6:
+    uses: cosmos/ibc-go/.github/workflows/e2e-test-workflow-call.yml@main
+    with:
+      chain-image: ghcr.io/cosmos/ibc-go-icad
+      chain-binary: icad
+      chain-a-tag: v0.3.5
+      chain-b-tag: v0.3.5
+      chain-upgrade-tag: v0.4.1
+      upgrade-plan-name: "ibc-go/v6"
+      test-entry-point:  "TestUpgradeTestSuite"
+      test: "TestV5ToV6ChainUpgrade"
+      upload-logs: true
+
+  upgrade-v7:
+    uses: cosmos/ibc-go/.github/workflows/e2e-test-workflow-call.yml@main
+    with:
+      chain-image: ghcr.io/cosmos/ibc-go-simd
+      chain-binary: simd
+      chain-a-tag: v6.1.0
+      chain-b-tag: v6.1.0
+      chain-upgrade-tag: v7.0.0
+      upgrade-plan-name: "v7"
+      test-entry-point:  "TestUpgradeTestSuite"
+      test: "TestV6ToV7ChainUpgrade"
+      upload-logs: true
+
+  upgrade-v7_1:
+    uses: cosmos/ibc-go/.github/workflows/e2e-test-workflow-call.yml@main
+    with:
+      chain-image: ghcr.io/cosmos/ibc-go-simd
+      chain-binary: simd
+      chain-a-tag: v7.0.0
+      chain-b-tag: v7.0.0
+      chain-upgrade-tag: pr-3164 # TODO: needs v7.1.0 when cut
+      upgrade-plan-name: "v7.1"
+      test-entry-point:  "TestUpgradeTestSuite"
+      test: "TestV7ToV7_1ChainUpgrade"
+      upload-logs: true
