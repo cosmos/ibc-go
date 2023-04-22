@@ -63,12 +63,14 @@ const config = {
           src: "img/ibc.svg",
         },
         items: [
+          /*
           {
             type: "docSidebar",
             sidebarId: "defaultSidebar",
             position: "left",
             label: "Documentation",
           },
+          */
           {
             type: "docsVersionDropdown",
             position: "right",
