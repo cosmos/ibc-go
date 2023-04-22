@@ -70,6 +70,20 @@ const config = {
             label: "Documentation",
           },
           {
+            type: "docsVersionDropdown",
+            position: "right",
+            dropdownActiveClassDisabled: true,
+            // versions not yet migrated to docusaurus
+            dropdownItemsAfter: [
+              // TODO: Update these version links to local builds.
+              {
+                href: "https://ibc.cosmos.network/v7.0.0/",
+                label: "pre v7.1",
+                target: "_self",
+              },
+            ],
+          },
+          {
             href: "https://github.com/cosmos/ibc-go",
             label: "GitHub",
             position: "right",
