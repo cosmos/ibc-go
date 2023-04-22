@@ -393,7 +393,7 @@ func (k Keeper) unescrowToken(ctx sdk.Context, escrowAddress, receiver sdk.AccAd
 		// counterparty module. The bug may occur in bank or any part of the code that allows
 		// the escrow address to be drained. A malicious counterparty module could drain the
 		// escrow address by allowing more tokens to be sent back then were escrowed.
-		return sdkerrors.Wrap(err, "unable to unescrow tokens, this may be caused by a malicious counterparty module or a bug: please open an issue on counterparty module")
+		return errorsmod.Wrap(err, "unable to unescrow tokens, this may be caused by a malicious counterparty module or a bug: please open an issue on counterparty module")
 	}
 
 	// track the total amount in escrow keyed by denomination to allow for efficient iteration
