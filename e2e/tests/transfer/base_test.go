@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"cosmossdk.io/math"
+	// "cosmossdk.io/math"
 	paramsproposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 	"github.com/strangelove-ventures/interchaintest/v7/ibc"
 	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
