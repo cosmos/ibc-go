@@ -41,6 +41,8 @@ const config = {
           sidebarPath: require.resolve("./sidebars.js"),
           // Routed the docs to the root path
           routeBasePath: "/",
+          // Exclude template markdown files from the docs
+          exclude: ["**/*.template.md"],
         },
         theme: {
           customCss: require.resolve("./src/css/custom.css"),
