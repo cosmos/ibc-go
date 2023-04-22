@@ -10,7 +10,6 @@ import "gogoproto/gogo.proto";
 
 // GenesisState defines the ibc-transfer genesis state
 message GenesisState {
-<<<<<<< HEAD
   string              port_id      = 1 [(gogoproto.moretags) = "yaml:\"port_id\""];
   repeated DenomTrace denom_traces = 2 [
     (gogoproto.castrepeated) = "Traces",
@@ -18,13 +17,8 @@ message GenesisState {
     (gogoproto.moretags)     = "yaml:\"denom_traces\""
   ];
   Params params = 3 [(gogoproto.nullable) = false];
-=======
-  string              port_id      = 1;
-  repeated DenomTrace denom_traces = 2 [(gogoproto.castrepeated) = "Traces", (gogoproto.nullable) = false];
-  Params              params       = 3 [(gogoproto.nullable) = false];
   // total_escrowed contains the total amount of tokens escrowed
   // by the transfer module
   repeated cosmos.base.v1beta1.Coin total_escrowed = 4
       [(gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins", (gogoproto.nullable) = false];
->>>>>>> fa9418f5 (feat: make a state entry to find total amount of native assets IBC'd out (#3019))
 }

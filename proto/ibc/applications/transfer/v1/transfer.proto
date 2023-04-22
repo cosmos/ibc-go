@@ -26,10 +26,5 @@ message Params {
   bool send_enabled = 1 [(gogoproto.moretags) = "yaml:\"send_enabled\""];
   // receive_enabled enables or disables all cross-chain token transfers to this
   // chain.
-<<<<<<< HEAD
   bool receive_enabled = 2 [(gogoproto.moretags) = "yaml:\"receive_enabled\""];
 }
-=======
-  bool receive_enabled = 2;
-}
->>>>>>> fa9418f5 (feat: make a state entry to find total amount of native assets IBC'd out (#3019))
