@@ -350,11 +350,7 @@ func (k Keeper) refundPacketToken(ctx sdk.Context, packet channeltypes.Packet, d
 	if types.SenderChainIsSource(packet.GetSourcePort(), packet.GetSourceChannel(), data.Denom) {
 		// unescrow tokens back to sender
 		escrowAddress := types.GetEscrowAddress(packet.GetSourcePort(), packet.GetSourceChannel())
-		if err := k.unescrowToken(ctx, escrowAddress, sender, token); err != nil {
-			return err
-		}
-
-		return nil
+		return k.unescrowToken(ctx, escrowAddress, sender, token)
 	}
 
 	// mint vouchers back to sender
