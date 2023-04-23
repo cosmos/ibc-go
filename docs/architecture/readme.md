@@ -1,3 +1,7 @@
+---
+sidebar_position: 1
+---
+
 # Architecture Decision Records (ADR)
 
 This is a location to record all high-level architecture decisions in the ibc-go project.
