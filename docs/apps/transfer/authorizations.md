@@ -1,3 +1,7 @@
+<!--
+order: 8
+-->
+
 # `TransferAuthorization`
 
 `TransferAuthorization` implements the `Authorization` interface for `ibc.applications.transfer.v1.MsgTransfer`. It allows a granter to grant a grantee the privilege to submit MsgTransfer on its behalf. Please see the [Cosmos SDK docs](https://docs.cosmos.network/v0.47/modules/authz) for more details on granting privileges via the `x/authz` module.
