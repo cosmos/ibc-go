@@ -1,11 +1,9 @@
 ---
-id: 05-02-sdk-to-v1
-title: SDK 0.43 to IBC-Go v1
-sidebar_label: SDK 0.43 to IBC-Go v1
+title: SDK v0.43 to IBC-Go v1
+sidebar_label: SDK v0.43 to IBC-Go v1
 sidebar_position: 2
-slug: /05/02
+slug: /migrations/sdk-to-v1
 ---
-
 # Migrating to ibc-go
 
 This file contains information on how to migrate from the IBC module contained in the SDK 0.41.x and 0.42.x lines to the IBC module in the ibc-go repository based on the 0.44 SDK version.
@@ -34,7 +32,7 @@ Executing these commands out of order will cause issues.
 Feel free to use your own method for modifying import names.
 
 NOTE: Updating to the `v0.44.0` SDK release and then running `go mod tidy` will cause a downgrade to `v0.42.0` in order to support the old IBC import paths.
-Update the import paths before running `go mod tidy`.
+Update the import paths before running `go mod tidy`.  
 
 ## Chain Upgrades
 
@@ -66,10 +64,10 @@ app.UpgradeKeeper.SetUpgradeHandler("my-upgrade-proposal",
     fromVM := map[string]uint64{
       ... // other modules
       "ibc":          1,
-      ...
-    }
+      ... 
+    }   
     return app.mm.RunMigrations(ctx, app.configurator, fromVM)
-  })
+  })      
 
 ```
 
@@ -91,7 +89,7 @@ import (
 // https://github.com/cosmos/ibc-go/blob/release/v1.0.x/docs/ibc/proto-docs.md#params-2
 newGenState, err = ibcv100.MigrateGenesis(newGenState, clientCtx, *genDoc, expectedTimePerBlock)
 if err != nil {
-  return err
+  return err 
 }
 ```
 
@@ -113,7 +111,7 @@ app.IBCKeeper = ibckeeper.NewKeeper(
 
 ### UpdateClientProposal
 
-The `UpdateClient` has been modified to take in two client-identifiers and one initial height. Please see the [documentation](../ibc/proposals.md) for more information.
+The `UpdateClient` has been modified to take in two client-identifiers and one initial height. Please see the [documentation](../01-ibc/06-proposals.md) for more information.
 
 ### UpgradeProposal
 
