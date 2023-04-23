@@ -5,11 +5,10 @@ sidebar_position: 2
 slug: /ibc/apps/ibcmodule
 ---
 
-
 # Implement `IBCModule` interface and callbacks
 
 :::note Synopsis
-Learn how to implement the `IBCModule` interface and all of the callbacks it requires. 
+Learn how to implement the `IBCModule` interface and all of the callbacks it requires.
 :::
 
 The Cosmos SDK expects all IBC modules to implement the [`IBCModule`
@@ -42,8 +41,8 @@ var (
 - [IBC Overview](../01-overview.md))
 - [IBC default integration](../02-integration.md)
 
-
 :::
+
 ## Channel handshake callbacks
 
 This section will describe the callbacks that are called during channel handshake execution. Among other things, it will claim channel capabilities passed on from core IBC. For a refresher on capabilities, check [the Overview section](../01-overview.md#capabilities).
@@ -244,17 +243,17 @@ channelCap := scopedKeeper.GetCapability(ctx, channelCapName)
 data := EncodePacketData(customPacketData)
 // Send packet to IBC, authenticating with channelCap
 sequence, err := IBCChannelKeeper.SendPacket(
-  ctx, 
-  channelCap, 
-  sourcePort, 
-  sourceChannel, 
-  timeoutHeight, 
-  timeoutTimestamp, 
+  ctx,
+  channelCap,
+  sourcePort,
+  sourceChannel,
+  timeoutHeight,
+  timeoutTimestamp,
   data,
 )
 ```
 
-::: warning
+:::warning
 In order to prevent modules from sending packets on channels they do not own, IBC expects
 modules to pass in the correct channel capability for the packet's source channel.
 :::
