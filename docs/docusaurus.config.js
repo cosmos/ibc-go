@@ -63,14 +63,19 @@ const config = {
           src: "img/ibc.svg",
         },
         items: [
-          /*
           {
             type: "docSidebar",
             sidebarId: "defaultSidebar",
             position: "left",
             label: "Documentation",
           },
-          */
+          // TODO: Make ADRs work
+          {
+            type: "docSidebar",
+            sidebarId: "defaultSidebar",
+            position: "left",
+            label: "Architecture Decision Records",
+          },
           {
             type: "docsVersionDropdown",
             position: "right",
