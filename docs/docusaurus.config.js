@@ -71,9 +71,10 @@ const config = {
           },
           // TODO: Make ADRs work
           {
-            type: "docSidebar",
-            sidebarId: "defaultSidebar",
+            type: "doc",
             position: "left",
+            docId: "readme",
+            docsPluginId: "adrs",
             label: "Architecture Decision Records",
           },
           {
@@ -152,6 +153,16 @@ const config = {
     }),
   themes: ["@you54f/theme-github-codeblock"],
   plugins: [
+    [
+      "@docusaurus/plugin-content-docs",
+      {
+        id: "adrs",
+        path: "architecture",
+        routeBasePath: "architecture",
+        sidebarPath: require.resolve("./sidebars.js"),
+        exclude: ["**/*.template.md"],
+      },
+    ],
     async function myPlugin(context, options) {
       return {
         name: "docusaurus-tailwindcss",
