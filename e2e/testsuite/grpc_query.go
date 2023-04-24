@@ -6,6 +6,8 @@ import (
 	"sort"
 	"time"
 
+	"cosmossdk.io/math"
+	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -22,6 +24,7 @@ import (
 
 	controllertypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
 	feetypes "github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
+	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
@@ -35,6 +38,7 @@ type GRPCClients struct {
 	ClientQueryClient     clienttypes.QueryClient
 	ConnectionQueryClient connectiontypes.QueryClient
 	ChannelQueryClient    channeltypes.QueryClient
+	TransferQueryClient   transfertypes.QueryClient
 	FeeQueryClient        feetypes.QueryClient
 	ICAQueryClient        controllertypes.QueryClient
 	InterTxQueryClient    intertxtypes.QueryClient
@@ -72,6 +76,7 @@ func (s *E2ETestSuite) InitGRPCClients(chain *cosmos.CosmosChain) {
 	s.grpcClients[chain.Config().ChainID] = GRPCClients{
 		ClientQueryClient:      clienttypes.NewQueryClient(grpcConn),
 		ChannelQueryClient:     channeltypes.NewQueryClient(grpcConn),
+		TransferQueryClient:    transfertypes.NewQueryClient(grpcConn),
 		FeeQueryClient:         feetypes.NewQueryClient(grpcConn),
 		ICAQueryClient:         controllertypes.NewQueryClient(grpcConn),
 		InterTxQueryClient:     intertxtypes.NewQueryClient(grpcConn),
@@ -163,6 +168,19 @@ func (s *E2ETestSuite) QueryPacketCommitment(ctx context.Context, chain ibc.Chai
 		return nil, err
 	}
 	return res.Commitment, nil
+}
+
+// QueryTotalEscrowForDenom queries the total amount of tokens in escrow for a denom
+func (s *E2ETestSuite) QueryTotalEscrowForDenom(ctx context.Context, chain ibc.Chain, denom string) (math.Int, error) {
+	queryClient := s.GetChainGRCPClients(chain).TransferQueryClient
+	res, err := queryClient.TotalEscrowForDenom(ctx, &transfertypes.QueryTotalEscrowForDenomRequest{
+		Denom: denom,
+	})
+	if err != nil {
+		return math.ZeroInt(), err
+	}
+
+	return res.Amount, nil
 }
 
 // QueryInterchainAccount queries the interchain account for the given owner and connectionID.
