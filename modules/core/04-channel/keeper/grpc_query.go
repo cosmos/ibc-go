@@ -51,7 +51,7 @@ func (k Keeper) Channels(c context.Context, req *types.QueryChannelsRequest) (*t
 
 	ctx := sdk.UnwrapSDKContext(c)
 
-	channels := []*types.IdentifiedChannel{}
+	var channels []*types.IdentifiedChannel
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte(host.KeyChannelEndPrefix))
 
 	pageRes, err := query.Paginate(store, req.Pagination, func(key, value []byte) error {
@@ -93,7 +93,7 @@ func (k Keeper) ConnectionChannels(c context.Context, req *types.QueryConnection
 
 	ctx := sdk.UnwrapSDKContext(c)
 
-	channels := []*types.IdentifiedChannel{}
+	var channels []*types.IdentifiedChannel
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte(host.KeyChannelEndPrefix))
 
 	pageRes, err := query.FilteredPaginate(store, req.Pagination, func(key, value []byte, accumulate bool) (bool, error) {
@@ -236,7 +236,7 @@ func (k Keeper) PacketCommitments(c context.Context, req *types.QueryPacketCommi
 
 	ctx := sdk.UnwrapSDKContext(c)
 
-	commitments := []*types.PacketState{}
+	var commitments []*types.PacketState
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte(host.PacketCommitmentPrefixPath(req.PortId, req.ChannelId)))
 
 	pageRes, err := query.Paginate(store, req.Pagination, func(key, value []byte) error {
@@ -322,7 +322,7 @@ func (k Keeper) PacketAcknowledgements(c context.Context, req *types.QueryPacket
 
 	ctx := sdk.UnwrapSDKContext(c)
 
-	acks := []*types.PacketState{}
+	var acks []*types.PacketState
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte(host.PacketAcknowledgementPrefixPath(req.PortId, req.ChannelId)))
 
 	// if a list of packet sequences is provided then query for each specific ack and return a list <= len(req.PacketCommitmentSequences)
@@ -484,7 +484,7 @@ func (k Keeper) UnreceivedAcks(c context.Context, req *types.QueryUnreceivedAcks
 
 	ctx := sdk.UnwrapSDKContext(c)
 
-	unreceivedSequences := []uint64{}
+	var unreceivedSequences []uint64
 
 	for i, seq := range req.PacketAckSequences {
 		if seq == 0 {

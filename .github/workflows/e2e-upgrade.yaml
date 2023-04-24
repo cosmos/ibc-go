@@ -55,5 +55,5 @@ jobs:
       chain-upgrade-tag: pr-3164 # TODO: needs v7.1.0 when cut
       upgrade-plan-name: "v7.1"
       test-entry-point:  "TestUpgradeTestSuite"
-      test: "TestV7ChainUpgradeAddLocalhost"
+      test: "TestV7ToV7_1ChainUpgrade"
       upload-logs: true
