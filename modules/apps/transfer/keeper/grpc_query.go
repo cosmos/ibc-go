@@ -50,7 +50,7 @@ func (k Keeper) DenomTraces(c context.Context, req *types.QueryDenomTracesReques
 
 	ctx := sdk.UnwrapSDKContext(c)
 
-	traces := types.Traces{}
+	var traces types.Traces
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.DenomTraceKey)
 
 	pageRes, err := query.Paginate(store, req.Pagination, func(_, value []byte) error {
@@ -119,5 +119,24 @@ func (k Keeper) EscrowAddress(c context.Context, req *types.QueryEscrowAddressRe
 
 	return &types.QueryEscrowAddressResponse{
 		EscrowAddress: addr.String(),
+	}, nil
+}
+
+// TotalEscrowForDenom implements the TotalEscrowForDenom gRPC method.
+func (k Keeper) TotalEscrowForDenom(c context.Context, req *types.QueryTotalEscrowForDenomRequest) (*types.QueryTotalEscrowForDenomResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "empty request")
+	}
+
+	ctx := sdk.UnwrapSDKContext(c)
+
+	if err := sdk.ValidateDenom(req.Denom); err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+
+	denomAmount := k.GetTotalEscrowForDenom(ctx, req.Denom)
+
+	return &types.QueryTotalEscrowForDenomResponse{
+		Amount: denomAmount,
 	}, nil
 }

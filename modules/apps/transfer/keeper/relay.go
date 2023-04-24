@@ -110,6 +110,11 @@ func (k Keeper) sendTransfer(
 		); err != nil {
 			return 0, err
 		}
+
+		// track the total amount in escrow keyed by denomination to allow for efficient iteration
+		currentTotalEscrow := k.GetTotalEscrowForDenom(ctx, token.GetDenom())
+		newTotalEscrow := currentTotalEscrow.Add(token.Amount)
+		k.SetTotalEscrowForDenom(ctx, token.GetDenom(), newTotalEscrow)
 	} else {
 		labels = append(labels, telemetry.NewLabel(coretypes.LabelSource, "false"))
 
@@ -197,7 +202,6 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 	// NOTE: We use SourcePort and SourceChannel here, because the counterparty
 	// chain would have prefixed with DestPort and DestChannel when originally
 	// receiving this coin as seen in the "sender chain is the source" condition.
-
 	if types.ReceiverChainIsSource(packet.GetSourcePort(), packet.GetSourceChannel(), data.Denom) {
 		// sender chain is not the source, unescrow tokens
 
@@ -211,7 +215,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 		// The denomination used to send the coins is either the native denom or the hash of the path
 		// if the denomination is not native.
 		denomTrace := types.ParseDenomTrace(unprefixedDenom)
-		if denomTrace.Path != "" {
+		if !denomTrace.IsNativeDenom() {
 			denom = denomTrace.IBCDenom()
 		}
 		token := sdk.NewCoin(denom, transferAmount)
@@ -229,6 +233,11 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 			// escrow address by allowing more tokens to be sent back then were escrowed.
 			return errorsmod.Wrap(err, "unable to unescrow tokens, this may be caused by a malicious counterparty module or a bug: please open an issue on counterparty module")
 		}
+
+		// track the total amount in escrow keyed by denomination to allow for efficient iteration
+		currentTotalEscrow := k.GetTotalEscrowForDenom(ctx, token.GetDenom())
+		newTotalEscrow := currentTotalEscrow.Sub(token.Amount)
+		k.SetTotalEscrowForDenom(ctx, token.GetDenom(), newTotalEscrow)
 
 		defer func() {
 			if transferAmount.IsInt64() {
@@ -365,6 +374,11 @@ func (k Keeper) refundPacketToken(ctx sdk.Context, packet channeltypes.Packet, d
 			// escrow address by allowing more tokens to be sent back then were escrowed.
 			return errorsmod.Wrap(err, "unable to unescrow tokens, this may be caused by a malicious counterparty module or a bug: please open an issue on counterparty module")
 		}
+
+		// track the total amount in escrow keyed by denomination to allow for efficient iteration
+		currentTotalEscrow := k.GetTotalEscrowForDenom(ctx, token.GetDenom())
+		newTotalEscrow := currentTotalEscrow.Sub(token.Amount)
+		k.SetTotalEscrowForDenom(ctx, token.GetDenom(), newTotalEscrow)
 
 		return nil
 	}
