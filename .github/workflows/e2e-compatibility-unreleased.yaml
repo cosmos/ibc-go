@@ -35,7 +35,8 @@ jobs:
       - name: Build image
         run: |
           docker_tag="$(echo ${{ matrix.release-branch }} | sed 's/\//-/')"
-          docker build . -t "${REGISTRY}/${ORG}/${IMAGE_NAME}:$docker_tag" --build-arg IBC_GO_VERSION=${{ inputs.ibc-go-version }}
+          # TODO: IBC_GO_VERSION does not yet do anything in the tests but is required.
+          docker build . -t "${REGISTRY}/${ORG}/${IMAGE_NAME}:$docker_tag" --build-arg IBC_GO_VERSION=${{ matrix.release-branch }}
           docker push "${REGISTRY}/${ORG}/${IMAGE_NAME}:$docker_tag"
       - name: Display image details
         run: |
