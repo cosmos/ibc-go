@@ -5,7 +5,6 @@ sidebar_position: 7
 slug: /ibc/relayer
 ---
 
-
 # Relayer
 
 :::note
@@ -15,14 +14,14 @@ slug: /ibc/relayer
 - [IBC Overview](01-overview.md)
 - [Events](https://github.com/cosmos/cosmos-sdk/blob/main/docs/docs/core/08-events.md)
 
-
 :::
+
 ## Events
 
 Events are emitted for every transaction processed by the base application to indicate the execution
 of some logic clients may want to be aware of. This is extremely useful when relaying IBC packets.
 Any message that uses IBC will emit events for the corresponding TAO logic executed as defined in
-the [IBC events document](./events.md).
+the [IBC events document](../../events/events.md).
 
 In the SDK, it can be assumed that for every message there is an event emitted with the type `message`,
 attribute key `action`, and an attribute value representing the type of message sent

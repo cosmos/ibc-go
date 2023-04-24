@@ -4,6 +4,7 @@ sidebar_label: SDK v0.43 to IBC-Go v1
 sidebar_position: 2
 slug: /migrations/sdk-to-v1
 ---
+
 # Migrating to ibc-go
 
 This file contains information on how to migrate from the IBC module contained in the SDK 0.41.x and 0.42.x lines to the IBC module in the ibc-go repository based on the 0.44 SDK version.
@@ -32,13 +33,13 @@ Executing these commands out of order will cause issues.
 Feel free to use your own method for modifying import names.
 
 NOTE: Updating to the `v0.44.0` SDK release and then running `go mod tidy` will cause a downgrade to `v0.42.0` in order to support the old IBC import paths.
-Update the import paths before running `go mod tidy`.  
+Update the import paths before running `go mod tidy`.
 
 ## Chain Upgrades
 
 Chains may choose to upgrade via an upgrade proposal or genesis upgrades. Both in-place store migrations and genesis migrations are supported.
 
-**WARNING**: Please read at least the quick guide for [IBC client upgrades](../ibc/upgrades/README.md) before upgrading your chain. It is highly recommended you do not change the chain-ID during an upgrade, otherwise you must follow the IBC client upgrade instructions.
+**WARNING**: Please read at least the quick guide for [IBC client upgrades](../01-ibc/05-upgrades/01-quick-guide.md) before upgrading your chain. It is highly recommended you do not change the chain-ID during an upgrade, otherwise you must follow the IBC client upgrade instructions.
 
 Both in-place store migrations and genesis migrations will:
 
@@ -64,10 +65,10 @@ app.UpgradeKeeper.SetUpgradeHandler("my-upgrade-proposal",
     fromVM := map[string]uint64{
       ... // other modules
       "ibc":          1,
-      ... 
-    }   
+      ...
+    }
     return app.mm.RunMigrations(ctx, app.configurator, fromVM)
-  })      
+  })
 
 ```
 
@@ -89,7 +90,7 @@ import (
 // https://github.com/cosmos/ibc-go/blob/release/v1.0.x/docs/ibc/proto-docs.md#params-2
 newGenState, err = ibcv100.MigrateGenesis(newGenState, clientCtx, *genDoc, expectedTimePerBlock)
 if err != nil {
-  return err 
+  return err
 }
 ```
 
