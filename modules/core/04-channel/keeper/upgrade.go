@@ -101,10 +101,8 @@ func (k Keeper) ChanUpgradeTry(
 
 	// verify that the timeout set in UpgradeInit has not passed on this chain
 	if hasPassed, err := counterpartyProposedUpgrade.Timeout.HasPassed(ctx); hasPassed {
-		errorReceipt := types.NewErrorReceipt(channel.UpgradeSequence, err)
-		// TODO: emit error receipt events
-		k.SetUpgradeErrorReceipt(ctx, portID, channelID, errorReceipt)
-		return types.Upgrade{}, types.Channel{}, errorsmod.Wrapf(types.ErrInvalidUpgrade, "upgrade timeout has passed, error receipt written for upgrade sequence: %d", channel.UpgradeSequence)
+		// abort here and let counterparty timeout the upgrade
+		return types.Upgrade{}, types.Channel{}, errorsmod.Wrapf(types.ErrInvalidUpgrade, "upgrade timeout has passed: ", err)
 	}
 
 	connectionEnd, err := k.GetConnection(ctx, channel.ConnectionHops[0])
@@ -129,10 +127,9 @@ func (k Keeper) ChanUpgradeTry(
 	}
 
 	expectedChannel := types.Channel{
-		State:        types.INITUPGRADE,
-		Counterparty: types.NewCounterparty(channel.Counterparty.PortId, channel.Counterparty.ChannelId),
-		Ordering:     channel.Ordering,
-		// q: are we supposed to use the counterparty connection hops here? if so how to grab?
+		State:           types.INITUPGRADE,
+		Counterparty:    types.NewCounterparty(channel.Counterparty.PortId, channel.Counterparty.ChannelId),
+		Ordering:        channel.Ordering,
 		ConnectionHops:  counterpartyHops,
 		Version:         channel.Version,
 		UpgradeSequence: counterpartyUpgradeSequence,
@@ -178,6 +175,11 @@ func (k Keeper) ChanUpgradeTry(
 	}
 
 	var proposedUpgrade types.Upgrade
+	proposedUpgradeFields := types.NewUpgradeFields(
+		counterpartyProposedUpgrade.Fields.Ordering,
+		proposedConnectionHops,
+		counterpartyProposedUpgrade.Fields.Version,
+	)
 
 	// non-crossing hellos case
 	if channel.State == types.OPEN {
@@ -190,7 +192,7 @@ func (k Keeper) ChanUpgradeTry(
 			ctx,
 			portID,
 			channelID,
-			types.NewUpgradeFields(counterpartyProposedUpgrade.Fields.Ordering, proposedConnectionHops, counterpartyProposedUpgrade.Fields.Version),
+			proposedUpgradeFields,
 			proposedUpgradeTimeout,
 		)
 		if err != nil {
@@ -205,7 +207,7 @@ func (k Keeper) ChanUpgradeTry(
 			return types.Upgrade{}, types.Channel{}, errorsmod.Wrap(types.ErrInvalidUpgrade, "failed to retrieve upgrade")
 		}
 
-		if !reflect.DeepEqual(currentUpgrade.Fields, types.NewUpgradeFields(counterpartyProposedUpgrade.Fields.Ordering, proposedConnectionHops, counterpartyProposedUpgrade.Fields.Version)) {
+		if !reflect.DeepEqual(currentUpgrade.Fields, proposedUpgradeFields) {
 			return types.Upgrade{}, types.Channel{}, errorsmod.Wrap(types.ErrInvalidUpgrade, "proposed upgrade fields have changed since UpgradeInit")
 		}
 
