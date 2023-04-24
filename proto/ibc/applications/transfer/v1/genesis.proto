@@ -19,6 +19,9 @@ message GenesisState {
   Params params = 3 [(gogoproto.nullable) = false];
   // total_escrowed contains the total amount of tokens escrowed
   // by the transfer module
-  repeated cosmos.base.v1beta1.Coin total_escrowed = 4
-      [(gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins", (gogoproto.nullable) = false];
+  repeated cosmos.base.v1beta1.Coin total_escrowed = 4 [
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins",
+    (gogoproto.nullable)     = false,
+    (gogoproto.moretags)     = "yaml:\"total_escrowed\""
+  ];
 }
