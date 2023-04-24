@@ -168,11 +168,16 @@ func (s *E2ETestSuite) QueryTotalEscrowForDenom(ctx context.Context, chain ibc.C
 	res, err := queryClient.TotalEscrowForDenom(ctx, &transfertypes.QueryTotalEscrowForDenomRequest{
 		Denom: denom,
 	})
-	if err != nil {
+
+	amount := sdk.IntProto{}
+	Codec().MustUnmarshal([]byte(res.Amount), &amount)
+
+
+	if err != nil || amount.Int.IsNil() {
 		return math.ZeroInt(), err
 	}
 
-	return res.Amount, nil
+	return math.NewInt(amount.Int.Int64()), nil
 }
 
 // QueryInterchainAccount queries the interchain account for the given owner and connectionID.

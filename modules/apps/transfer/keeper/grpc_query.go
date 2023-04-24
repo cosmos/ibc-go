@@ -134,9 +134,10 @@ func (k Keeper) TotalEscrowForDenom(c context.Context, req *types.QueryTotalEscr
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	denomAmount := k.GetTotalEscrowForDenom(ctx, req.Denom)
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(types.TotalEscrowForDenomKey(req.Denom))
 
 	return &types.QueryTotalEscrowForDenomResponse{
-		Amount: denomAmount,
+		Amount: string(bz),
 	}, nil
 }

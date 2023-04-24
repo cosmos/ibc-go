@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"cosmossdk.io/math"
 	// "cosmossdk.io/math"
 	paramsproposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 	"github.com/strangelove-ventures/interchaintest/v7/ibc"
@@ -90,11 +91,11 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized() {
 		expected := testvalues.StartingTokenAmount - testvalues.IBCTransferAmount
 		s.Require().Equal(expected, actualBalance)
 
-		// actualTotalEscrow, err := s.QueryTotalEscrowForDenom(ctx, chainA, chainADenom)
-		// s.Require().NoError(err)
+		actualTotalEscrow, err := s.QueryTotalEscrowForDenom(ctx, chainA, chainADenom)
+		s.Require().NoError(err)
 
-		// expectedTotalEscrow := math.NewInt(testvalues.IBCTransferAmount)
-		// s.Require().Equal(expectedTotalEscrow, actualTotalEscrow)
+		expectedTotalEscrow := math.NewInt(testvalues.IBCTransferAmount)
+		s.Require().Equal(expectedTotalEscrow, actualTotalEscrow)
 	})
 
 	t.Run("start relayer", func(t *testing.T) {
@@ -125,9 +126,9 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized() {
 
 		s.Require().Equal(int64(0), actualBalance)
 
-		// actualTotalEscrow, err := s.QueryTotalEscrowForDenom(ctx, chainB, chainBIBCToken.IBCDenom())
-		// s.Require().NoError(err)
-		// s.Require().Equal(math.ZeroInt(), actualTotalEscrow) // total escrow is zero because sending chain is not source for tokens
+		actualTotalEscrow, err := s.QueryTotalEscrowForDenom(ctx, chainB, chainBIBCToken.IBCDenom())
+		s.Require().NoError(err)
+		s.Require().Equal(math.ZeroInt(), actualTotalEscrow) // total escrow is zero because sending chain is not source for tokens
 	})
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA, chainB), "failed to wait for blocks")
@@ -142,11 +143,11 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized() {
 		s.Require().Equal(expected, actualBalance)
 	})
 
-	// t.Run("tokens are un-escrowed", func(t *testing.T) {
-	// 	actualTotalEscrow, err := s.QueryTotalEscrowForDenom(ctx, chainA, chainADenom)
-	// 	s.Require().NoError(err)
-	// 	s.Require().Equal(math.ZeroInt(), actualTotalEscrow) // total escrow is zero because tokens have come back
-	// })
+	t.Run("tokens are un-escrowed", func(t *testing.T) {
+		actualTotalEscrow, err := s.QueryTotalEscrowForDenom(ctx, chainA, chainADenom)
+		s.Require().NoError(err)
+		s.Require().Equal(math.ZeroInt(), actualTotalEscrow) // total escrow is zero because tokens have come back
+	})
 }
 
 // TestMsgTransfer_Fails_InvalidAddress attempts to send an IBC transfer to an invalid address and ensures

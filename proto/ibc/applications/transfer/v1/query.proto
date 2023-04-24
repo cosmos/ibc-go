@@ -117,9 +117,5 @@ message QueryTotalEscrowForDenomRequest {
 
 // QueryTotalEscrowForDenomResponse is the response type for TotalEscrowForDenom RPC method.
 message QueryTotalEscrowForDenomResponse {
-  string amount = 1 [
-    (cosmos_proto.scalar)  = "cosmos.Int",
-    (gogoproto.customtype) = "cosmossdk.io/math.Int",
-    (gogoproto.nullable)   = false
-  ];
+  string amount = 1 [(cosmos_proto.scalar) = "cosmos.Int", (gogoproto.nullable) = true];
 }
