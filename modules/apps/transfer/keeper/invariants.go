@@ -44,8 +44,10 @@ func TotalEscrowPerDenomInvariants(k *Keeper) sdk.Invariant {
 
 		for _, expectedEscrow := range totalEscrowedInState {
 			if found, actualEscrow := totalEscrowedInAccounts.Find(expectedEscrow.GetDenom()); found {
-				broken = expectedEscrow.Amount.GT(actualEscrow.Amount)
-				msg += fmt.Sprintf("\tdenom: %s, actual escrow (%s) is < expected escrow (%s)\n", expectedEscrow.GetDenom(), actualEscrow.Amount, expectedEscrow.Amount)
+				if expectedEscrow.Amount.GT(actualEscrow.Amount) {
+					broken = true
+					msg += fmt.Sprintf("\tdenom: %s, actual escrow (%s) is < expected escrow (%s)\n", expectedEscrow.GetDenom(), actualEscrow.Amount, expectedEscrow.Amount)
+				}
 			}
 		}
 
