@@ -609,3 +609,43 @@ func (suite *TypesTestSuite) TestMsgSubmitMisbehaviour_ValidateBasic() {
 		}
 	}
 }
+
+// TestMsgUpdateClientParams_ValidateBasic tests ValidateBasic for MsgUpdateClientParams
+func (suite *TypesTestSuite) TestMsgUpdateClientParams_ValidateBasic() {
+	authority := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetAuthority()
+	testCases := []struct {
+		name    string
+		msg     *types.MsgUpdateClientParams
+		expPass bool
+	}{
+		{
+			"success: valid authority and params",
+			types.NewMsgUpdateClientParams(authority, types.DefaultParams()),
+			true,
+		},
+		{
+			"success: valid authority empty params",
+			types.NewMsgUpdateClientParams(authority, types.Params{}),
+			true,
+		},
+		{
+			"failure: invalid authority address",
+			types.NewMsgUpdateClientParams("invalid", types.DefaultParams()),
+			false,
+		},
+		{
+			"failure: invalid allowed client",
+			types.NewMsgUpdateClientParams(authority, types.NewParams("")),
+			false,
+		},
+	}
+
+	for _, tc := range testCases {
+		err := tc.msg.ValidateBasic()
+		if tc.expPass {
+			suite.Require().NoError(err, "valid case %s failed", tc.name)
+		} else {
+			suite.Require().Error(err, "invalid case %s passed", tc.name)
+		}
+	}
+}

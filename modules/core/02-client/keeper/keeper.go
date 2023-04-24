@@ -27,26 +27,29 @@ import (
 // Keeper represents a type that grants read and write permissions to any client
 // state information
 type Keeper struct {
-	storeKey      storetypes.StoreKey
-	cdc           codec.BinaryCodec
-	paramSpace    paramtypes.Subspace
-	stakingKeeper types.StakingKeeper
-	upgradeKeeper types.UpgradeKeeper
+	storeKey       storetypes.StoreKey
+	cdc            codec.BinaryCodec
+	legacySubspace paramtypes.Subspace
+	stakingKeeper  types.StakingKeeper
+	upgradeKeeper  types.UpgradeKeeper
+
+	authority string
 }
 
 // NewKeeper creates a new NewKeeper instance
-func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey, paramSpace paramtypes.Subspace, sk types.StakingKeeper, uk types.UpgradeKeeper) Keeper {
+func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey, legacySubspace paramtypes.Subspace, sk types.StakingKeeper, uk types.UpgradeKeeper, authority string) Keeper {
 	// set KeyTable if it has not already been set
-	if !paramSpace.HasKeyTable() {
-		paramSpace = paramSpace.WithKeyTable(types.ParamKeyTable())
+	if !legacySubspace.HasKeyTable() {
+		legacySubspace = legacySubspace.WithKeyTable(types.ParamKeyTable())
 	}
 
 	return Keeper{
-		storeKey:      key,
-		cdc:           cdc,
-		paramSpace:    paramSpace,
-		stakingKeeper: sk,
-		upgradeKeeper: uk,
+		storeKey:       key,
+		cdc:            cdc,
+		legacySubspace: legacySubspace,
+		stakingKeeper:  sk,
+		upgradeKeeper:  uk,
+		authority:      authority,
 	}
 }
 
@@ -412,4 +415,9 @@ func (k Keeper) GetClientStatus(ctx sdk.Context, clientState exported.ClientStat
 		return exported.Unauthorized
 	}
 	return clientState.Status(ctx, k.ClientStore(ctx, clientID), k.cdc)
+}
+
+// GetAuthority returns the client module's authority.
+func (k Keeper) GetAuthority() string {
+	return k.authority
 }

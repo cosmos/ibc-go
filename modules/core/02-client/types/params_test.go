@@ -8,6 +8,24 @@ import (
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
+func TestIsAllowedClient(t *testing.T) {
+	testCases := []struct {
+		name       string
+		clientType string
+		params     Params
+		expPass    bool
+	}{
+		{"valid client", exported.Tendermint, DefaultParams(), true},
+		{"valid client with custom params", exported.Tendermint, NewParams(exported.Tendermint), true},
+		{"invalid blank client", " ", DefaultParams(), false},
+		{"invalid client with custom params", exported.Localhost, NewParams(exported.Tendermint), false},
+	}
+
+	for _, tc := range testCases {
+		require.Equal(t, tc.expPass, tc.params.IsAllowedClient(tc.clientType), tc.name)
+	}
+}
+
 func TestValidateParams(t *testing.T) {
 	testCases := []struct {
 		name    string
