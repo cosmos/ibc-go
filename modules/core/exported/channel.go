@@ -34,6 +34,10 @@ type PacketI interface {
 // Acknowledgement defines the interface used to return
 // acknowledgements in the OnRecvPacket callback.
 type Acknowledgement interface {
+	// Success tells ibc-go if the given Acknowledgement instance should be written to state or not.
+	// This is independent of application level success/error which is encoded in the acknowledgement
+	// bytes in a protocol specific way.
+	// See https://github.com/cosmos/ibc-go/blob/main/docs/ibc/apps.md for further explanations.
 	Success() bool
 	Acknowledgement() []byte
 }
