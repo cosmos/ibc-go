@@ -38,7 +38,7 @@ Upgrades can be initiated in two possible ways:
 The upgrade approval process can be represented in terms of the following parameters:
 
 - The set of port ID, channel ID pairs that specify the channels that can be upgraded. It can be possible to specifit a single channel or a set of channels satisfiying certain port ID, channel ID conditions. Examples: upgrading can be approved for __a)__ channels with port ID, channel ID combinations (`transfer`, `channel-0`) & (`transfer`, `channel-1`), __b)__ all channels for port ID `transfer`, __c)__ all channels with port ID starting with `icacontroller` (so that all ICA channels on a controller chain, regardless of the owner address appended to the port ID, can be upgraded).
-- The parameters that are accepted for the upgrade. Currently they are channel version, channel ordering and connection hops. These parameters should be specified per specific pairs of port ID, channel ID (e.g. for channel (`transfer`, `channel-0`)) or for all channels using a certain port ID (e.g. for all channels on port ID `transfer`). The reason is that it could lead to errors specifying the upgrade parameters for channels on two different ports (e.g. for channels on port ID `transfer` and channels with port ID starting with `icacontroller`). If an upgradable parameter is omitted, then we shall assume that the parameter must stay the same after the upgrade.
+- The parameters that are accepted for the upgrade. Currently they are channel version, channel ordering and connection hops. These parameters should be specified per specific pairs of port ID, channel ID (e.g. for channel (`transfer`, `channel-0`)) or for all channels using a certain port ID (e.g. for all channels on port ID `transfer`). The reason is that it could lead to errors specifying the upgrade parameters for channels on two different ports (e.g. for channels on port ID `transfer` and channels with port ID starting with `icacontroller` it would not make sense to upgrade to verions `ics20-2`, since this version only make sense for transfer channels, but not for interchain accounts channels). If an upgradable parameter is omitted, then we shall assume that the parameter must stay the same after the upgrade.
 - The timeout (either as block height or timestamp) until when upgrades can be initiated after approval. This can also be specified per specific pairs of port ID, channel ID (e.g. for channel (`transfer`, `channel-0`)) or for all channels using a certain port ID (e.g. for all channels on port ID `transfer`).
 
 Some concrete examples to illustrate the above:
@@ -66,7 +66,7 @@ A few sample use case flows are described below. For the sake of simplicity, the
 2. There exists a transfer channel between chain A and chain B, with channel ID `channel-0` on both ends.
 3. The channel is upgraded to use fee incentivization (i.e. stack fee middleware on top of the transfer application). Both chains' binary has wired up the fee middleware.
 
-Further exception flows can be explored if some of the assumptions above do not apply. For example: if chain B's binary has not wired up the fee middleware and `MsgChannelUpgradeTry` is submitted, the upgrade will be aborted and a cancellation message can be submitted to chain A to restore the channel to its previous state. Or if each chain approve a different channel version, then the upgrade will abort during the negotiation.
+Further exception flows can be explored if some of the assumptions above do not apply. For example: if chain B's binary has not wired up the fee middleware and `MsgChannelUpgradeTry` is submitted, the upgrade will be aborted and a cancellation message can be submitted to chain A to restore the channel to its previous state. Or if each chain approves a different channel version, then the upgrade will abort during the negotiation.
 
 ### Permissionless upgrade on chain A and B
 
@@ -167,7 +167,7 @@ Normal flow:
 Exception flows:
 
 - If two different relayers detect execution of `MsgChannelUpgradeInit` on both chain A and chain B and they submit `MsgChannelUpgradeTry` on the counterparty, then the handshake will finish when both chains execute `MsgChannelUpgradeAck`.
-- Proposal on either chain A or chain B passes after the counterparty upgrade timeout specified on `MsgChannelUpgradeInit` has passed. Then `MsgChannelUpgradeTry` will fail on the counterparty and the upgrade can be timed out on chain A and the state of the channel rolled back to `OPEN`. If the upgrade initiation timeout has not passed yet, then it would be possible for a relayer to submit again `MsgChannelUpgradeInit` with a new counterparty upgrade timeout.
+- Proposal on either chain A or chain B passes after the counterparty upgrade timeout specified on `MsgChannelUpgradeInit` has passed. Then `MsgChannelUpgradeTry` will fail on the counterparty and the upgrade can be timed out on the initiating chain and the state of the channel rolled back to `OPEN`. If the upgrade initiation timeout has not passed yet, then it would be possible for a relayer to submit again `MsgChannelUpgradeInit` with a new counterparty upgrade timeout.
 
 # Functional requirements
 
