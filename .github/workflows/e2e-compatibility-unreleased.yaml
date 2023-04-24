@@ -1,21 +1,47 @@
 name: Compatibility E2E (Unreleased)
-on:
-  workflow_dispatch:
-    inputs:
-      release-branch:
-        description: 'Select unreleased to run all release branches against each other'
-        required: true
-        type: choice
-        options:
-          - unreleased
+on: workflow_dispatch
 
 env:
   REGISTRY: ghcr.io
   ORG: cosmos
   IMAGE_NAME: ibc-go-simd
-  RELEASE_BRANCH: '${{ inputs.release-branch }}'
 
 jobs:
+  build-release-images:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        release-branch:
+          - release/v4.2.x
+          - release/v4.3.x
+          - release/v4.4.x
+          - release/v5.2.x
+          - release/v5.3.x
+          - release/v6.1.x
+          - release/v6.2.x
+          - release/v7.0.x
+          - release/v7.1.x
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: "${{ matrix.release-branch }}"
+          fetch-depth: 0
+      - name: Log in to the Container registry
+        uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build image
+        run: |
+          docker_tag="$(echo ${{ matrix.release-branch }} | sed 's/\//-/')"
+          docker build . -t "${REGISTRY}/${ORG}/${IMAGE_NAME}:$docker_tag" --build-arg IBC_GO_VERSION=${{ inputs.ibc-go-version }}
+          docker push "${REGISTRY}/${ORG}/${IMAGE_NAME}:$docker_tag"
+      - name: Display image details
+        run: |
+          docker_tag="$(echo ${{ matrix.release-branch }} | sed 's/\//-/')"
+          docker inspect "${REGISTRY}/${ORG}/${IMAGE_NAME}:$docker_tag"
+
   transfer:
     needs:
       - build-release-images
