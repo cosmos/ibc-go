@@ -384,8 +384,10 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			err = suite.chainB.GetSimApp().TransferKeeper.OnRecvPacket(suite.chainB.GetContext(), packet, data)
 
 			// check total amount in escrow of received token denom on receiving chain
-			var denom string
-			var totalEscrow math.Int
+			var (
+				denom       string
+				totalEscrow math.Int
+			)
 			if tc.recvIsSource {
 				denom = sdk.DefaultBondDenom
 			} else {
