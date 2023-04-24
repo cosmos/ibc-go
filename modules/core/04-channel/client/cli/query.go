@@ -456,41 +456,6 @@ func GetCmdQueryNextSequenceReceive() *cobra.Command {
 	return cmd
 }
 
-// GetCmdQueryUpgradeSequence defines the command to query the upgrade sequence
-func GetCmdQueryUpgradeSequence() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "upgrade-sequence [port-id] [channel-id]",
-		Short: "Query the upgrade sequence",
-		Long:  "Query the upgrade sequence for a given channel",
-		Example: fmt.Sprintf(
-			"%s query %s %s upgrade-sequence [port-id] [channel-id]", version.AppName, ibcexported.ModuleName, types.SubModuleName,
-		),
-		Args: cobra.ExactArgs(2),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx, err := client.GetClientQueryContext(cmd)
-			if err != nil {
-				return err
-			}
-			portID := args[0]
-			channelID := args[1]
-			prove, _ := cmd.Flags().GetBool(flags.FlagProve)
-
-			sequenceRes, err := utils.QueryUpgradeSequence(clientCtx, portID, channelID, prove)
-			if err != nil {
-				return err
-			}
-
-			clientCtx = clientCtx.WithHeight(int64(sequenceRes.ProofHeight.RevisionHeight))
-			return clientCtx.PrintProto(sequenceRes)
-		},
-	}
-
-	cmd.Flags().Bool(flags.FlagProve, true, "show proofs for the query results")
-	flags.AddQueryFlagsToCmd(cmd)
-
-	return cmd
-}
-
 // GetCmdQueryUpgradeError defines the command to query for the error receipt associated with an upgrade
 func GetCmdQueryUpgradeError() *cobra.Command {
 	cmd := &cobra.Command{

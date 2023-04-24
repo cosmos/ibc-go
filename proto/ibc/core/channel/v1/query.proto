@@ -100,12 +100,6 @@ service Query {
                                    "ports/{port_id}/next_sequence";
   }
 
-  // UpgradeSequence returns the upgrade sequence for a given channel.
-  rpc UpgradeSequence(QueryUpgradeSequenceRequest) returns (QueryUpgradeSequenceResponse) {
-    option (google.api.http).get = "/ibc/core/channel/v1/channels/{channel_id}/"
-                                   "ports/{port_id}/upgrade_sequence";
-  }
-
   // UpgradeError returns the error receipt if the upgrade handshake failed.
   rpc UpgradeError(QueryUpgradeErrorRequest) returns (QueryUpgradeErrorResponse) {
     option (google.api.http).get = "/ibc/core/channel/v1/channels/{channel_id}/"
@@ -392,19 +386,6 @@ message QueryNextSequenceReceiveResponse {
   bytes proof = 2;
   // height at which the proof was retrieved
   ibc.core.client.v1.Height proof_height = 3 [(gogoproto.nullable) = false];
-}
-
-// QueryUpgradeSequenceRequest is the request type for the QueryUpgradeSequence RPC method
-message QueryUpgradeSequenceRequest {
-  string port_id    = 1;
-  string channel_id = 2;
-}
-
-// QueryUpgradeSequenceResponse is the response type for the QueryUpgradeSequence RPC method
-message QueryUpgradeSequenceResponse {
-  uint64                    upgrade_sequence = 1;
-  bytes                     proof            = 2;
-  ibc.core.client.v1.Height proof_height     = 3 [(gogoproto.nullable) = false];
 }
 
 // QueryUpgradeErrorRequest is the request type for the Query/QueryUpgradeError RPC method

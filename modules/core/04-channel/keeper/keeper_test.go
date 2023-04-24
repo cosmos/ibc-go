@@ -7,7 +7,6 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
@@ -485,80 +484,6 @@ func (suite *KeeperTestSuite) TestSetUpgradeErrorReceipt() {
 	errorReceipt, found = suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetUpgradeErrorReceipt(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 	suite.Require().True(found)
 	suite.Require().Equal(expErrorReceipt, errorReceipt)
-}
-
-func (suite *KeeperTestSuite) TestRestoreChannelAccessors() {
-	path := ibctesting.NewPath(suite.chainA, suite.chainB)
-	suite.coordinator.SetupConnections(path)
-	suite.coordinator.CreateChannels(path)
-
-	suite.Run("set restore channel", func() {
-		restoreChannel, found := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetUpgradeRestoreChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-		suite.Require().False(found)
-		suite.Require().Empty(restoreChannel)
-
-		expChannel := types.NewChannel(types.OPEN, types.UNORDERED, types.NewCounterparty(ibcmock.PortID, ibctesting.FirstChannelID), []string{ibctesting.FirstConnectionID}, ibcmock.Version)
-		suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetUpgradeRestoreChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, expChannel)
-
-		restoreChannel, found = suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetUpgradeRestoreChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-		suite.Require().True(found)
-		suite.Require().Equal(expChannel, restoreChannel)
-	})
-
-	suite.Run("delete restore channel", func() {
-		suite.chainA.App.GetIBCKeeper().ChannelKeeper.DeleteUpgradeRestoreChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-		_, found := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetUpgradeRestoreChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-		suite.Require().False(found)
-	})
-}
-
-func (suite *KeeperTestSuite) TestUpgradeSequenceAccessors() {
-	path := ibctesting.NewPath(suite.chainA, suite.chainB)
-	suite.coordinator.SetupConnections(path)
-	suite.coordinator.CreateChannels(path)
-
-	expSequence := uint64(1)
-
-	suite.Run("set upgrade sequence", func() {
-		sequence, found := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetUpgradeSequence(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-		suite.Require().False(found)
-		suite.Require().Zero(sequence)
-		suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetUpgradeSequence(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, expSequence)
-	})
-
-	suite.Run("get upgrade sequence", func() {
-		sequence, found := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetUpgradeSequence(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-		suite.Require().True(found)
-		suite.Require().Equal(expSequence, sequence)
-	})
-}
-
-func (suite *KeeperTestSuite) TestUpgradeTimeoutAccessors() {
-	path := ibctesting.NewPath(suite.chainA, suite.chainB)
-	suite.coordinator.SetupConnections(path)
-	suite.coordinator.CreateChannels(path)
-
-	expUpgradeTimeout := types.UpgradeTimeout{Height: clienttypes.NewHeight(1, 10), Timestamp: uint64(suite.coordinator.CurrentTime.UnixNano())}
-
-	suite.Run("set upgrade timeout", func() {
-		upgradeTimeout, found := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetUpgradeTimeout(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-		suite.Require().False(found)
-		suite.Require().Empty(upgradeTimeout)
-		suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetUpgradeTimeout(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, expUpgradeTimeout)
-	})
-
-	suite.Run("get upgrade timeout", func() {
-		upgradeTimeout, found := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetUpgradeTimeout(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-		suite.Require().True(found)
-		suite.Require().Equal(expUpgradeTimeout, upgradeTimeout)
-	})
-
-	suite.Run("delete upgrade timeout", func() {
-		suite.chainA.App.GetIBCKeeper().ChannelKeeper.DeleteUpgradeTimeout(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-
-		_, found := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetUpgradeTimeout(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-		suite.Require().False(found)
-	})
 }
 
 func (suite *KeeperTestSuite) TestValidateProposedUpgradeFields() {
