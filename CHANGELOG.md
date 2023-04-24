@@ -36,9 +36,9 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## [Unreleased]
 
-## [Unreleased]
-
 ### Dependencies
+
+* [#3457](https://github.com/cosmos/ibc-go/pull/3457) Update to ics23 v0.10.0.
 
 ### API Breaking
 
