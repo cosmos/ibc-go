@@ -69,11 +69,10 @@ const config = {
             position: "left",
             label: "Documentation",
           },
-          // TODO: Make ADRs work
           {
             type: "doc",
             position: "left",
-            docId: "readme",
+            docId: "README",
             docsPluginId: "adrs",
             label: "Architecture Decision Records",
           },
@@ -81,9 +80,8 @@ const config = {
             type: "docsVersionDropdown",
             position: "right",
             dropdownActiveClassDisabled: true,
-            // versions not yet migrated to docusaurus
+            // TODO: versions not yet migrated to docusaurus
             dropdownItemsAfter: [
-              // TODO: Update these version links to local builds.
               {
                 href: "https://ibc.cosmos.network/v7.0.0/",
                 label: "pre v7.1",
