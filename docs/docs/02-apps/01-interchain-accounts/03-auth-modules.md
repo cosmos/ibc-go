@@ -9,7 +9,7 @@ slug: /apps/interchain-accounts/auth-modules
 # Building an authentication module
 
 :::note Synopsis
-Authentication modules enable application developers to perform custom logic when interacting with the Interchain Accounts controller sumbmodule's `MsgServer`. 
+Authentication modules enable application developers to perform custom logic when interacting with the Interchain Accounts controller sumbmodule's `MsgServer`.
 :::
 
 The controller submodule is used for account registration and packet sending. It executes only logic required of all controllers of interchain accounts. The type of authentication used to manage the interchain accounts remains unspecified. There may exist many different types of authentication which are desirable for different use cases. Thus the purpose of the authentication module is to wrap the controller submodule with custom authentication logic.

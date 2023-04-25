@@ -9,7 +9,7 @@ slug: /ibc/light-clients/setup
 # Setup
 
 :::note Synopsis
-Learn how to configure light client modules and create clients using core IBC and the `02-client` submodule. 
+Learn how to configure light client modules and create clients using core IBC and the `02-client` submodule.
 :::
 
 A last step to finish the development of the light client, is to implement the `AppModuleBasic` interface to allow it to be added to the chain's `app.go` alongside other light client types the chain enables.

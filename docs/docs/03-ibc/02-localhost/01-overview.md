@@ -11,7 +11,7 @@ slug: /ibc/light-clients/localhost/overview
 ## Overview
 
 :::note Synopsis
-Learn about the 09-localhost light client module. 
+Learn about the 09-localhost light client module.
 :::
 
 The 09-localhost light client module implements a localhost loopback client with the ability to send and receive IBC packets to and from the same state machine.

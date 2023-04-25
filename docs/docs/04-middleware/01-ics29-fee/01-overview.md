@@ -9,7 +9,7 @@ slug: /middleware/ics29-fee/overview
 # Overview
 
 :::note Synopsis
-Learn about what the Fee Middleware module is, and how to build custom modules that utilize the Fee Middleware functionality 
+Learn about what the Fee Middleware module is, and how to build custom modules that utilize the Fee Middleware functionality
 :::
 
 ## What is the Fee Middleware module?

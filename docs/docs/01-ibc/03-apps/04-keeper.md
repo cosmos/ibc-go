@@ -9,7 +9,7 @@ slug: /ibc/apps/keeper
 # Keeper
 
 :::note Synopsis
-Learn how to implement the IBC Module keeper. 
+Learn how to implement the IBC Module keeper.
 :::
 
 :::note
@@ -18,7 +18,6 @@ Learn how to implement the IBC Module keeper.
 
 - [IBC Overview](../01-overview.md))
 - [IBC default integration](../02-integration.md)
-
 
 :::
 In the previous sections, on channel handshake callbacks and port binding in `InitGenesis`, a reference was made to keeper methods that need to be implemented when creating a custom IBC module. Below is an overview of how to define an IBC module's keeper.

@@ -9,7 +9,7 @@ slug: /ibc/light-clients/genesis
 # Genesis metadata
 
 :::note Synopsis
-Learn how to implement the `ExportMetadata` interface 
+Learn how to implement the `ExportMetadata` interface
 :::
 
 ## Pre-requisite readings

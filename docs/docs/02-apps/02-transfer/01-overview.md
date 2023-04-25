@@ -9,7 +9,7 @@ slug: /apps/transfer/overview
 # Overview
 
 :::note Synopsis
-Learn about what the token Transfer module is 
+Learn about what the token Transfer module is
 :::
 
 ## What is the Transfer module?

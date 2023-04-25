@@ -9,7 +9,7 @@ slug: /middleware/ics29-fee/events
 # Events
 
 :::note Synopsis
-An overview of all events related to ICS-29 
+An overview of all events related to ICS-29
 :::
 
 ## `MsgPayPacketFee`, `MsgPayPacketFeeAsync`

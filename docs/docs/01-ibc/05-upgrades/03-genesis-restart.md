@@ -9,7 +9,7 @@ slug: /ibc/upgrades/genesis-restart
 # Genesis Restart Upgrades
 
 :::note Synopsis
-Learn how to upgrade your chain and counterparty clients using genesis restarts. 
+Learn how to upgrade your chain and counterparty clients using genesis restarts.
 :::
 
 **NOTE**: Regular genesis restarts are currently unsupported by relayers!

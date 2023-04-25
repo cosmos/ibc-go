@@ -9,7 +9,7 @@ slug: /ibc/upgrades/quick-guide
 # How to Upgrade IBC Chains and their Clients
 
 :::note Synopsis
-Learn how to upgrade your chain and counterparty clients. 
+Learn how to upgrade your chain and counterparty clients.
 :::
 
 The information in this doc for upgrading chains is relevant to SDK chains. However, the guide for counterparty clients is relevant to any Tendermint client that enables upgrades.

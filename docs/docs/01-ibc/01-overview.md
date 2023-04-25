@@ -9,7 +9,7 @@ slug: /ibc/overview
 # Overview
 
 :::note Synopsis
-Learn about IBC, its components, and IBC use cases. 
+Learn about IBC, its components, and IBC use cases.
 :::
 
 ## What is the Interblockchain Communication Protocol (IBC)?
@@ -295,4 +295,3 @@ The original sender module then executes application-specific acknowledgment log
 If you want to learn more about IBC, check the following specifications:
 
 - [IBC specification overview](https://github.com/cosmos/ibc/blob/master/README.md)
-

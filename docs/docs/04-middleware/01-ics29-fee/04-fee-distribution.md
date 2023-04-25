@@ -9,7 +9,7 @@ slug: /middleware/ics29-fee/fee-distribution
 # Fee distribution
 
 :::note Synopsis
-Learn about payee registration for the distribution of packet fees. The following document is intended for relayer operators. 
+Learn about payee registration for the distribution of packet fees. The following document is intended for relayer operators.
 :::
 
 ## Pre-requisite readings

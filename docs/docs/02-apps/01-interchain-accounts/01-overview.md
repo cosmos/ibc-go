@@ -9,7 +9,7 @@ slug: /apps/interchain-accounts/overview
 # Overview
 
 :::note Synopsis
-Learn about what the Interchain Accounts module is 
+Learn about what the Interchain Accounts module is
 :::
 
 ## What is the Interchain Accounts module?

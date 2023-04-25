@@ -9,7 +9,7 @@ slug: /ibc/middleware/overview
 # IBC middleware
 
 :::note Synopsis
-Learn how to write your own custom middleware to wrap an IBC application, and understand how to hook different middleware to IBC base applications to form different IBC application stacks 
+Learn how to write your own custom middleware to wrap an IBC application, and understand how to hook different middleware to IBC base applications to form different IBC application stacks
 :::.
 
 This documentation serves as a guide for middleware developers who want to write their own middleware and for chain developers who want to use IBC middleware on their chains.

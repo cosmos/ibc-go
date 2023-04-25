@@ -9,7 +9,7 @@ slug: /ibc/light-clients/overview
 # Overview
 
 :::note Synopsis
-Learn how to build IBC light client modules and fulfill the interfaces required to integrate with core IBC. 
+Learn how to build IBC light client modules and fulfill the interfaces required to integrate with core IBC.
 :::
 
 :::note

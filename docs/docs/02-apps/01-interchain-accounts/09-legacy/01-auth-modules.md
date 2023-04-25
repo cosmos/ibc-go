@@ -13,7 +13,7 @@ slug: /apps/interchain-accounts/legacy/auth-modules
 **This document is deprecated and will be removed in future releases**.
 
 :::note Synopsis
-Authentication modules play the role of the `Base Application` as described in [ICS-30 IBC Middleware](https://github.com/cosmos/ibc/tree/master/spec/app/ics-030-middleware), and enable application developers to perform custom logic when working with the Interchain Accounts controller API. 
+Authentication modules play the role of the `Base Application` as described in [ICS-30 IBC Middleware](https://github.com/cosmos/ibc/tree/master/spec/app/ics-030-middleware), and enable application developers to perform custom logic when working with the Interchain Accounts controller API.
 :::
 
 The controller submodule is used for account registration and packet sending. It executes only logic required of all controllers of interchain accounts. The type of authentication used to manage the interchain accounts remains unspecified. There may exist many different types of authentication which are desirable for different use cases. Thus the purpose of the authentication module is to wrap the controller submodule with custom authentication logic.

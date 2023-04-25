@@ -9,7 +9,7 @@ slug: /middleware/ics29-fee/msgs
 # Fee messages
 
 :::note Synopsis
-Learn about the different ways to pay for fees, how the fees are paid out and what happens when not enough escrowed fees are available for payout 
+Learn about the different ways to pay for fees, how the fees are paid out and what happens when not enough escrowed fees are available for payout
 :::
 
 ## Escrowing fees

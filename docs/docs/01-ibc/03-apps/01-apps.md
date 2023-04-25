@@ -9,7 +9,7 @@ slug: /ibc/apps/apps
 # IBC Applications
 
 :::note Synopsis
-Learn how to build custom IBC application modules that enable packets to be sent to and received from other IBC-enabled chains. 
+Learn how to build custom IBC application modules that enable packets to be sent to and received from other IBC-enabled chains.
 :::
 
 This document serves as a guide for developers who want to write their own Inter-blockchain Communication Protocol (IBC) applications for custom use cases.
@@ -38,8 +38,8 @@ module correctly corresponding to the listed steps.
 - [IBC Overview](../01-overview.md))
 - [IBC default integration](../02-integration.md)
 
-
 :::
+
 ## Working example
 
 For a real working example of an IBC application, you can look through the `ibc-transfer` module
@@ -55,4 +55,3 @@ packets](https://github.com/cosmos/ibc-go/blob/main/modules/apps/transfer/keeper
 
 [Implementing IBC
 callbacks](https://github.com/cosmos/ibc-go/blob/main/modules/apps/transfer/ibc_module.go)
-
