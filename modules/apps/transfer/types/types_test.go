@@ -5,12 +5,8 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
-<<<<<<< HEAD:modules/apps/transfer/types/ack_test.go
+	"github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	ibctesting "github.com/cosmos/ibc-go/v6/testing"
-=======
-	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
->>>>>>> 6c008ea2 (feat: Added authz support for ics20 (#3079)):modules/apps/transfer/types/types_test.go
 )
 
 type TypesTestSuite struct {
