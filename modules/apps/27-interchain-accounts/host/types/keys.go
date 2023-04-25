@@ -4,6 +4,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
+// ParamsKey is the key to use for the storing params.
+var ParamsKey = []byte{0x00}
+
 const (
 	// SubModuleName defines the interchain accounts host module name
 	SubModuleName = "icahost"

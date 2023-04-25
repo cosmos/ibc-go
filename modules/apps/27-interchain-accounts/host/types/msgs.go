@@ -23,13 +23,3 @@ func (msg MsgUpdateParams) GetSigners() []sdk.AccAddress {
 
 	return []sdk.AccAddress{accAddr}
 }
-
-// Route implements sdk.Msg
-func (msg MsgUpdateParams) Route() string {
-	return sdk.MsgTypeURL(&msg)
-}
-
-// Type implements sdk.Msg
-func (msg MsgUpdateParams) Type() string {
-	return sdk.MsgTypeURL(&msg)
-}

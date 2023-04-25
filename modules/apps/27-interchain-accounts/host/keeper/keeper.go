@@ -34,6 +34,10 @@ type Keeper struct {
 	scopedKeeper exported.ScopedKeeper
 
 	msgRouter icatypes.MessageRouter
+
+	// the address capable of executing a MsgUpdateParams message. Typically, this
+	// should be the x/gov module account.
+	authority string
 }
 
 // NewKeeper creates a new interchain accounts host Keeper instance
@@ -41,6 +45,7 @@ func NewKeeper(
 	cdc codec.BinaryCodec, key storetypes.StoreKey, paramSpace paramtypes.Subspace,
 	ics4Wrapper porttypes.ICS4Wrapper, channelKeeper icatypes.ChannelKeeper, portKeeper icatypes.PortKeeper,
 	accountKeeper icatypes.AccountKeeper, scopedKeeper exported.ScopedKeeper, msgRouter icatypes.MessageRouter,
+	authority string,
 ) Keeper {
 	// ensure ibc interchain accounts module account is set
 	if addr := accountKeeper.GetModuleAddress(icatypes.ModuleName); addr == nil {
@@ -62,6 +67,7 @@ func NewKeeper(
 		accountKeeper: accountKeeper,
 		scopedKeeper:  scopedKeeper,
 		msgRouter:     msgRouter,
+		authority:     authority,
 	}
 }
 
@@ -198,4 +204,9 @@ func (k Keeper) GetAllInterchainAccounts(ctx sdk.Context) []genesistypes.Registe
 func (k Keeper) SetInterchainAccountAddress(ctx sdk.Context, connectionID, portID, address string) {
 	store := ctx.KVStore(k.storeKey)
 	store.Set(icatypes.KeyOwnerAccount(portID, connectionID), []byte(address))
+}
+
+// GetAuthority returns the 27-interchain-accounts/host module's authority.
+func (k Keeper) GetAuthority() string {
+	return k.authority
 }
