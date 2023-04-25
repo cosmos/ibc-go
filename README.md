@@ -41,7 +41,7 @@ This IBC implementation in Golang is built as a Cosmos SDK module. To understand
 
 ## Roadmap
 
-For an overview of upcoming changes to ibc-go take a look at the [roadmap](./docs/roadmap/roadmap.md).
+For an overview of upcoming changes to ibc-go take a look at the [roadmap](./docs/docs/01-ibc/09-roadmap.md).
 
 This roadmap is also available as a [project board](https://github.com/orgs/cosmos/projects/7/views/25).
 
@@ -65,15 +65,15 @@ In the table below
 `app` refers to IBC application modules for custom use cases and
 `middleware` refers to modules that wrap an IBC application enabling custom logic to be executed.
 
-|Description|Repository|Type|
-|----------|----------|----|
-|An application that enables on chain querying of another IBC enabled chain utilizing `baseapp.Query`. Both chains must have implemented the query application and ICA (for queries requiring consensus).|[async-icq](https://github.com/strangelove-ventures/async-icq)|`app`|
-|An application that enables on chain querying of another IBC enabled chains state without the need for the chain being queried to implement the application.|[interchain-queries](https://github.com/ingenuity-build/interchain-queries)|`app`|
-|An application that enables on chain querying of another IBC enabled chains state without the need for the chain being queried to implement the application. Similar to the interchain-queries application in the row above but without callbacks.|[query](https://github.com/defund-labs/defund/tree/main/x/query)|`app`|
-|An application that enables cross chain NFT transfer.|[NFT Transfer (ICS 721)](https://github.com/bianjieai/nft-transfer)|`app`|
-|Middleware enabling a packet to be sent to a destination chain via an intermediate chain, e.g. going from Juno to Osmosis via the Hub.|[packet-forward-middleware](https://github.com/strangelove-ventures/packet-forward-middleware)|`middleware`|
-|Middleware enabling the recovery of tokens sent to unsupported addresses.|[recovery](https://github.com/evmos/evmos/tree/main/x/recovery)|`middleware`|
-|Middleware that limits the in or out flow of an asset in a certain time period to minimise the risks of cross chain token transfers. This is implemented as a middleware wrapping ICS20 with the rate limiting logic implemented by cosmwasm contracts|[ibc-rate-limit](https://github.com/osmosis-labs/osmosis/tree/main/x/ibc-rate-limit)|`middleware`|
+| Description                                                                                                                                                                                                                                            | Repository                                                                                     | Type         |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------- | ------------ |
+| An application that enables on chain querying of another IBC enabled chain utilizing `baseapp.Query`. Both chains must have implemented the query application and ICA (for queries requiring consensus).                                               | [async-icq](https://github.com/strangelove-ventures/async-icq)                                 | `app`        |
+| An application that enables on chain querying of another IBC enabled chains state without the need for the chain being queried to implement the application.                                                                                           | [interchain-queries](https://github.com/ingenuity-build/interchain-queries)                    | `app`        |
+| An application that enables on chain querying of another IBC enabled chains state without the need for the chain being queried to implement the application. Similar to the interchain-queries application in the row above but without callbacks.     | [query](https://github.com/defund-labs/defund/tree/main/x/query)                               | `app`        |
+| An application that enables cross chain NFT transfer.                                                                                                                                                                                                  | [NFT Transfer (ICS 721)](https://github.com/bianjieai/nft-transfer)                            | `app`        |
+| Middleware enabling a packet to be sent to a destination chain via an intermediate chain, e.g. going from Juno to Osmosis via the Hub.                                                                                                                 | [packet-forward-middleware](https://github.com/strangelove-ventures/packet-forward-middleware) | `middleware` |
+| Middleware enabling the recovery of tokens sent to unsupported addresses.                                                                                                                                                                              | [recovery](https://github.com/evmos/evmos/tree/main/x/recovery)                                | `middleware` |
+| Middleware that limits the in or out flow of an asset in a certain time period to minimise the risks of cross chain token transfers. This is implemented as a middleware wrapping ICS20 with the rate limiting logic implemented by cosmwasm contracts | [ibc-rate-limit](https://github.com/osmosis-labs/osmosis/tree/main/x/ibc-rate-limit)           | `middleware` |
 
 ## Support
 
@@ -116,33 +116,33 @@ The following audits have been performed on the `ibc-go` source code:
 
 1. **[Core IBC Implementation](https://github.com/cosmos/ibc-go/tree/main/modules/core)**
 
-    1.1 [ICS 02 Client](https://github.com/cosmos/ibc-go/tree/main/modules/core/02-client)
+   1.1 [ICS 02 Client](https://github.com/cosmos/ibc-go/tree/main/modules/core/02-client)
 
-    1.2 [ICS 03 Connection](https://github.com/cosmos/ibc-go/tree/main/modules/core/03-connection)
+   1.2 [ICS 03 Connection](https://github.com/cosmos/ibc-go/tree/main/modules/core/03-connection)
 
-    1.3 [ICS 04 Channel](https://github.com/cosmos/ibc-go/tree/main/modules/core/04-channel)
+   1.3 [ICS 04 Channel](https://github.com/cosmos/ibc-go/tree/main/modules/core/04-channel)
 
-    1.4 [ICS 05 Port](https://github.com/cosmos/ibc-go/tree/main/modules/core/05-port)
+   1.4 [ICS 05 Port](https://github.com/cosmos/ibc-go/tree/main/modules/core/05-port)
 
-    1.5 [ICS 23 Commitment](https://github.com/cosmos/ibc-go/tree/main/modules/core/23-commitment/types)
+   1.5 [ICS 23 Commitment](https://github.com/cosmos/ibc-go/tree/main/modules/core/23-commitment/types)
 
-    1.6 [ICS 24 Host](https://github.com/cosmos/ibc-go/tree/main/modules/core/24-host)
+   1.6 [ICS 24 Host](https://github.com/cosmos/ibc-go/tree/main/modules/core/24-host)
 
 2. **Applications**
 
-    2.1 [ICS 20 Fungible Token Transfers](https://github.com/cosmos/ibc-go/tree/main/modules/apps/transfer)
+   2.1 [ICS 20 Fungible Token Transfers](https://github.com/cosmos/ibc-go/tree/main/modules/apps/transfer)
 
-    2.2 [ICS 27 Interchain Accounts](https://github.com/cosmos/ibc-go/tree/main/modules/apps/27-interchain-accounts)
+   2.2 [ICS 27 Interchain Accounts](https://github.com/cosmos/ibc-go/tree/main/modules/apps/27-interchain-accounts)
 
 3. **Middleware**
 
-    3.1 [ICS 29 Fee Middleware](https://github.com/cosmos/ibc-go/tree/main/modules/apps/29-fee)
+   3.1 [ICS 29 Fee Middleware](https://github.com/cosmos/ibc-go/tree/main/modules/apps/29-fee)
 
 4. **Light Clients**
 
-    4.1 [ICS 07 Tendermint](https://github.com/cosmos/ibc-go/tree/main/modules/light-clients/07-tendermint)
+   4.1 [ICS 07 Tendermint](https://github.com/cosmos/ibc-go/tree/main/modules/light-clients/07-tendermint)
 
-    4.2 [ICS 06 Solo Machine](https://github.com/cosmos/ibc-go/tree/main/modules/light-clients/06-solomachine)
+   4.2 [ICS 06 Solo Machine](https://github.com/cosmos/ibc-go/tree/main/modules/light-clients/06-solomachine)
 
 5. **[E2E Integration Tests](https://github.com/cosmos/ibc-go/tree/main/e2e)**
 
