@@ -11,6 +11,7 @@ Proposed
 ## Context
 
 ibc-go has 3 main consumers:
+
 * IBC light clients
 * IBC applications
 * relayers
@@ -46,6 +47,7 @@ The [tendermint](https://github.com/cosmos/ibc-go/pull/2825) and [solo machine](
 
 Longer term solutions include using internal module communication as described in [ADR 033](https://github.com/cosmos/cosmos-sdk/blob/main/docs/architecture/adr-033-protobuf-inter-module-comm.md) on the SDK.
 The following functions should become callbacks invoked via intermodule communication:
+
 * `Status`
 * `GetTimestampAtHeight`
 * `VerifyMembership`
@@ -89,11 +91,13 @@ Once it is possible to route to SDK modules, a `ClientState` type could expose t
 ## Consequences
 
 ### Positive
+
 * use a single approach for interacting with callbacks
 * greater flexibilty and control for IBC light clients
 * does not require developing another routing system
 
 ### Negative
+
 * requires breaking changes
 * requires waiting for intermodule communication
 
