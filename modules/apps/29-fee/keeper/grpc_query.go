@@ -101,6 +101,10 @@ func (k Keeper) IncentivizedPacketsForChannel(goCtx context.Context, req *types.
 
 // TotalRecvFees implements the Query/TotalRecvFees gRPC method
 func (k Keeper) TotalRecvFees(goCtx context.Context, req *types.QueryTotalRecvFeesRequest) (*types.QueryTotalRecvFeesResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "empty request")
+	}
+
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	feesInEscrow, found := k.GetFeesInEscrow(ctx, req.PacketId)

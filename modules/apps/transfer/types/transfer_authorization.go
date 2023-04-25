@@ -10,8 +10,6 @@ import (
 	"math"
 )
 
-const gasCostPerIteration = uint64(10)
-
 var _ authz.Authorization = (*TransferAuthorization)(nil)
 
 // NewTransferAuthorization creates a new TransferAuthorization object.
@@ -126,6 +124,8 @@ func isAllowedAddress(ctx sdk.Context, receiver string, allowedAddrs []string) b
 	if len(allowedAddrs) == 0 {
 		return true
 	}
+
+	gasCostPerIteration := ctx.KVGasConfig().IterNextCostFlat
 
 	for _, addr := range allowedAddrs {
 		ctx.GasMeter().ConsumeGas(gasCostPerIteration, "transfer authorization")
