@@ -486,31 +486,6 @@ func (suite *KeeperTestSuite) TestSetUpgradeErrorReceipt() {
 	suite.Require().Equal(expErrorReceipt, errorReceipt)
 }
 
-func (suite *KeeperTestSuite) TestRestoreChannelAccessors() {
-	path := ibctesting.NewPath(suite.chainA, suite.chainB)
-	suite.coordinator.SetupConnections(path)
-	suite.coordinator.CreateChannels(path)
-
-	suite.Run("set restore channel", func() {
-		restoreChannel, found := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetUpgradeRestoreChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-		suite.Require().False(found)
-		suite.Require().Empty(restoreChannel)
-
-		expChannel := types.NewChannel(types.OPEN, types.UNORDERED, types.NewCounterparty(ibcmock.PortID, ibctesting.FirstChannelID), []string{ibctesting.FirstConnectionID}, ibcmock.Version)
-		suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetUpgradeRestoreChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, expChannel)
-
-		restoreChannel, found = suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetUpgradeRestoreChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-		suite.Require().True(found)
-		suite.Require().Equal(expChannel, restoreChannel)
-	})
-
-	suite.Run("delete restore channel", func() {
-		suite.chainA.App.GetIBCKeeper().ChannelKeeper.DeleteUpgradeRestoreChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-		_, found := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetUpgradeRestoreChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-		suite.Require().False(found)
-	})
-}
-
 func (suite *KeeperTestSuite) TestValidateProposedUpgradeFields() {
 	var (
 		proposedUpgrade *types.UpgradeFields

@@ -547,14 +547,6 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeTryValidateBasic() {
 			false,
 		},
 		{
-			"cannot submit a proposed upgrade and counterparty proposed upgrade with differing modifiable fields",
-			func() {
-				msg.ProposedUpgradeFields.Version = "different-version"
-				msg.CounterpartyProposedUpgrade.Fields.Version = "very-different-version"
-			},
-			false,
-		},
-		{
 			"cannot submit an empty channel proof",
 			func() {
 				msg.ProofChannel = emptyProof
@@ -565,13 +557,6 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeTryValidateBasic() {
 			"cannot submit an empty upgrade proof",
 			func() {
 				msg.ProofUpgrade = emptyProof
-			},
-			false,
-		},
-		{
-			"cannot submit a zero proof height",
-			func() {
-				msg.ProofHeight = clienttypes.ZeroHeight()
 			},
 			false,
 		},
@@ -587,12 +572,6 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeTryValidateBasic() {
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(tc.name, func() {
-			proposedUpgrade := types.NewUpgrade(
-				types.NewUpgradeFields(types.UNORDERED, []string{ibctesting.FirstChannelID}, mock.Version),
-				types.NewUpgradeTimeout(clienttypes.NewHeight(0, 10000), timeoutTimestamp),
-				1,
-			)
-
 			counterpartyProposedUpgrade := types.NewUpgrade(
 				types.NewUpgradeFields(types.UNORDERED, []string{ibctesting.FirstChannelID}, mock.Version),
 				types.NewUpgradeTimeout(clienttypes.NewHeight(0, 10000), timeoutTimestamp),
@@ -602,8 +581,8 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeTryValidateBasic() {
 			msg = types.NewMsgChannelUpgradeTry(
 				ibctesting.MockPort,
 				ibctesting.FirstChannelID,
-				proposedUpgrade.Fields,
-				proposedUpgrade.Timeout,
+				[]string{ibctesting.FirstChannelID},
+				types.NewUpgradeTimeout(clienttypes.NewHeight(0, 10000), timeoutTimestamp),
 				*counterpartyProposedUpgrade,
 				1,
 				suite.proof,

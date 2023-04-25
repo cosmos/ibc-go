@@ -594,7 +594,7 @@ func (endpoint *Endpoint) ChanUpgradeTry(timeoutHeight clienttypes.Height, timeo
 	msg := channeltypes.NewMsgChannelUpgradeTry(
 		endpoint.ChannelConfig.PortID,
 		endpoint.ChannelID,
-		channeltypes.NewUpgradeFields(endpoint.ChannelConfig.Order, []string{endpoint.ConnectionID}, endpoint.ChannelConfig.Version),
+		[]string{endpoint.ConnectionID},
 		channeltypes.NewUpgradeTimeout(timeoutHeight, timeoutTimestamp),
 		counterPartyProposedUpgrade,
 		counterpartyUpgradeSequence,

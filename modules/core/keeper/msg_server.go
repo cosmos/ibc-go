@@ -724,10 +724,10 @@ func (k Keeper) ChannelUpgradeInit(goCtx context.Context, msg *channeltypes.MsgC
 
 	proposedVersion, err := cbs.OnChanUpgradeInit(
 		ctx,
-		proposedUpgrade.Fields.Ordering,
-		proposedUpgrade.Fields.ConnectionHops,
 		msg.PortId,
 		msg.ChannelId,
+		proposedUpgrade.Fields.Ordering,
+		proposedUpgrade.Fields.ConnectionHops,
 		channel.UpgradeSequence,
 		proposedUpgrade.Fields.Version,
 		channel.Version,
@@ -752,22 +752,24 @@ func (k Keeper) ChannelUpgradeInit(goCtx context.Context, msg *channeltypes.MsgC
 // ChannelUpgradeTry defines a rpc handler method for MsgChannelUpgradeTry.
 func (k Keeper) ChannelUpgradeTry(goCtx context.Context, msg *channeltypes.MsgChannelUpgradeTry) (*channeltypes.MsgChannelUpgradeTryResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
+
 	module, _, err := k.ChannelKeeper.LookupModuleByChannel(ctx, msg.PortId, msg.ChannelId)
 	if err != nil {
 		ctx.Logger().Error("channel upgrade try failed", "port-id", msg.PortId, "error", errorsmod.Wrap(err, "could not retrieve module from port-id"))
 		return nil, errorsmod.Wrap(err, "could not retrieve module from port-id")
 	}
+
 	cbs, ok := k.Router.GetRoute(module)
 	if !ok {
 		ctx.Logger().Error("channel upgrade try failed", "port-id", msg.PortId, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module))
 		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
 	}
 
-	upgradeSequence, err := k.ChannelKeeper.ChanUpgradeTry(
+	proposedUpgrade, expectedCounterpartyChannel, err := k.ChannelKeeper.ChanUpgradeTry(
 		ctx,
 		msg.PortId,
 		msg.ChannelId,
-		msg.ProposedUpgradeFields,
+		msg.ProposedUpgradeConnectionHops,
 		msg.ProposedUpgradeTimeout,
 		msg.CounterpartyProposedUpgrade,
 		msg.CounterpartyUpgradeSequence,
@@ -775,57 +777,74 @@ func (k Keeper) ChannelUpgradeTry(goCtx context.Context, msg *channeltypes.MsgCh
 		msg.ProofUpgrade,
 		msg.ProofHeight,
 	)
-
-	if errorsmod.IsOf(err, channeltypes.ErrInvalidUpgrade) {
-		// TODO: commit error receipt to state and abort channel upgrade
-		ctx.Logger().Error("channel upgrade try failed", "error", errorsmod.Wrap(err, "channel handshake upgrade try failed"))
-		return &channeltypes.MsgChannelUpgradeTryResponse{
-			ChannelId:       msg.ChannelId,
-			Version:         msg.ProposedUpgradeFields.Version,
-			UpgradeSequence: upgradeSequence,
-			Success:         false,
-		}, nil
-	}
 	if err != nil {
 		ctx.Logger().Error("channel upgrade try failed", "error", errorsmod.Wrap(err, "channel handshake upgrade try failed"))
-		return nil, errorsmod.Wrap(err, "channel handshake upgrade try failed")
+		return &channeltypes.MsgChannelUpgradeTryResponse{
+			ChannelId: msg.ChannelId,
+			Version:   proposedUpgrade.Fields.Version,
+			Result:    channeltypes.FAILURE,
+		}, err
 	}
 
-	channel, found := k.ChannelKeeper.GetChannel(ctx, msg.PortId, msg.ChannelId)
-	if !found {
-		return nil, errorsmod.Wrapf(channeltypes.ErrChannelNotFound, "port ID (%s) channel ID (%s)", msg.PortId, msg.ChannelId)
-	}
-
-	proposedUpgradeVersion, err := cbs.OnChanUpgradeTry(
+	// call blockUpgrade handshake to move channel from INITUPGRADE to BLOCKUPGRADE
+	if err := k.ChannelKeeper.BlockUpgradeHandshake(
 		ctx,
-		msg.CounterpartyProposedUpgrade.Fields.Ordering,
-		msg.CounterpartyProposedUpgrade.Fields.ConnectionHops,
 		msg.PortId,
 		msg.ChannelId,
-		upgradeSequence,
-		channel.Counterparty,
-		channel.Version,
+		proposedUpgrade.Fields,
+		expectedCounterpartyChannel,
+		msg.CounterpartyProposedUpgrade,
+		msg.ProofChannel,
+		msg.ProofUpgrade,
+		msg.ProofHeight,
+	); err != nil {
+		ctx.Logger().Error("channel upgrade try failed", "error", errorsmod.Wrap(err, "channel handshake upgrade try failed"))
+		return &channeltypes.MsgChannelUpgradeTryResponse{
+			ChannelId: msg.ChannelId,
+			Version:   proposedUpgrade.Fields.Version,
+			Result:    channeltypes.FAILURE,
+		}, err
+	}
+
+	proposedVersion, err := cbs.OnChanUpgradeTry(
+		ctx,
+		msg.PortId,
+		msg.ChannelId,
+		msg.CounterpartyProposedUpgrade.Fields.Ordering,
+		msg.CounterpartyProposedUpgrade.Fields.ConnectionHops,
 		msg.CounterpartyProposedUpgrade.Fields.Version,
 	)
 	if err != nil {
 		ctx.Logger().Error("channel upgrade try callback failed", "port-id", msg.PortId, "channel-id", msg.ChannelId, "error", err.Error())
 		// TODO: commit error receipt to state and abort channel upgrade
 		return &channeltypes.MsgChannelUpgradeTryResponse{
-			ChannelId:       msg.ChannelId,
-			Version:         proposedUpgradeVersion,
-			UpgradeSequence: upgradeSequence,
-			Success:         false,
-		}, nil
+			ChannelId: msg.ChannelId,
+			Version:   proposedVersion,
+			Result:    channeltypes.FAILURE,
+		}, err
 	}
 
-	msg.ProposedUpgradeFields.Version = proposedUpgradeVersion
-	k.ChannelKeeper.WriteUpgradeTryChannel(ctx, msg.PortId, msg.ChannelId, channel, msg.CounterpartyProposedUpgrade)
+	// set version to return value of callback
+	proposedUpgrade.Fields.Version = proposedVersion
+
+	// grab channel her to get latest version after UpgradeTry
+	channel, found := k.ChannelKeeper.GetChannel(ctx, msg.PortId, msg.ChannelId)
+	if !found {
+		return nil, errorsmod.Wrapf(channeltypes.ErrChannelNotFound, "port ID (%s) channel ID (%s)", msg.PortId, msg.ChannelId)
+	}
+
+	k.ChannelKeeper.WriteUpgradeTryChannel(
+		ctx,
+		msg.PortId,
+		msg.ChannelId,
+		channel,
+		proposedUpgrade,
+	)
 
 	return &channeltypes.MsgChannelUpgradeTryResponse{
-		ChannelId:       msg.ChannelId,
-		Version:         proposedUpgradeVersion,
-		UpgradeSequence: upgradeSequence,
-		Success:         true,
+		ChannelId: msg.ChannelId,
+		Version:   proposedVersion,
+		Result:    channeltypes.SUCCESS,
 	}, nil
 }
 

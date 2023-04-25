@@ -2,7 +2,6 @@ package types
 
 import (
 	"encoding/base64"
-	"reflect"
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -536,7 +535,7 @@ var _ sdk.Msg = &MsgChannelUpgradeTry{}
 func NewMsgChannelUpgradeTry(
 	portID,
 	channelID string,
-	proposedUpgradeFields UpgradeFields,
+	proposedConnectionHops []string,
 	proposedUpgradeTimeout UpgradeTimeout,
 	counterpartyProposedUpgrade Upgrade,
 	counterpartyUpgradeSequence uint64,
@@ -546,16 +545,16 @@ func NewMsgChannelUpgradeTry(
 	signer string,
 ) *MsgChannelUpgradeTry {
 	return &MsgChannelUpgradeTry{
-		PortId:                      portID,
-		ChannelId:                   channelID,
-		ProposedUpgradeFields:       proposedUpgradeFields,
-		ProposedUpgradeTimeout:      proposedUpgradeTimeout,
-		CounterpartyProposedUpgrade: counterpartyProposedUpgrade,
-		CounterpartyUpgradeSequence: counterpartyUpgradeSequence,
-		ProofChannel:                proofChannel,
-		ProofUpgrade:                proofUpgrade,
-		ProofHeight:                 proofHeight,
-		Signer:                      signer,
+		PortId:                        portID,
+		ChannelId:                     channelID,
+		ProposedUpgradeConnectionHops: proposedConnectionHops,
+		ProposedUpgradeTimeout:        proposedUpgradeTimeout,
+		CounterpartyProposedUpgrade:   counterpartyProposedUpgrade,
+		CounterpartyUpgradeSequence:   counterpartyUpgradeSequence,
+		ProofChannel:                  proofChannel,
+		ProofUpgrade:                  proofUpgrade,
+		ProofHeight:                   proofHeight,
+		Signer:                        signer,
 	}
 }
 
@@ -564,29 +563,27 @@ func (msg MsgChannelUpgradeTry) ValidateBasic() error {
 	if err := host.PortIdentifierValidator(msg.PortId); err != nil {
 		return errorsmod.Wrap(err, "invalid port ID")
 	}
+
 	if !IsValidChannelID(msg.ChannelId) {
 		return ErrInvalidChannelIdentifier
 	}
+
 	if msg.CounterpartyUpgradeSequence == 0 {
 		return errorsmod.Wrap(ibcerrors.ErrInvalidSequence, "counterparty sequence cannot be 0")
 	}
+
 	if msg.ProposedUpgradeTimeout.Height.IsZero() && msg.ProposedUpgradeTimeout.Timestamp == 0 {
 		return errorsmod.Wrap(ErrInvalidUpgradeTimeout, "timeout height or timeout timestamp must be non-zero")
-	}
-
-	if !reflect.DeepEqual(msg.ProposedUpgradeFields, msg.CounterpartyProposedUpgrade.Fields) {
-		return errorsmod.Wrap(ErrInvalidUpgrade, "proposed upgrade fields are not equal on both sides of the upgrade")
 	}
 
 	if len(msg.ProofChannel) == 0 {
 		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty channel proof")
 	}
+
 	if len(msg.ProofUpgrade) == 0 {
 		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty upgrade proof")
 	}
-	if msg.ProofHeight.IsZero() {
-		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit a proof with zero height")
-	}
+
 	_, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)

@@ -500,33 +500,6 @@ func (k Keeper) SetUpgradeErrorReceipt(ctx sdk.Context, portID, channelID string
 	store.Set(host.ChannelUpgradeErrorKey(portID, channelID), bz)
 }
 
-// GetUpgradeRestoreChannel returns the upgrade restore channel for the provided port and channel identifiers.
-func (k Keeper) GetUpgradeRestoreChannel(ctx sdk.Context, portID, channelID string) (types.Channel, bool) {
-	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(host.ChannelRestoreKey(portID, channelID))
-	if bz == nil {
-		return types.Channel{}, false
-	}
-
-	var channel types.Channel
-	k.cdc.MustUnmarshal(bz, &channel)
-
-	return channel, true
-}
-
-// SetUpgradeRestoreChannel sets the provided channel in store using the port and channel identifiers.
-func (k Keeper) SetUpgradeRestoreChannel(ctx sdk.Context, portID, channelID string, channel types.Channel) {
-	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshal(&channel)
-	store.Set(host.ChannelRestoreKey(portID, channelID), bz)
-}
-
-// DeleteUpgradeRestoreChannel deletes the restore channel end in state for the provided port and channel identifiers.
-func (k Keeper) DeleteUpgradeRestoreChannel(ctx sdk.Context, portID, channelID string) {
-	store := ctx.KVStore(k.storeKey)
-	store.Delete(host.ChannelRestoreKey(portID, channelID))
-}
-
 // GetUpgrade returns the proposed upgrade for the provided port and channel identifiers.
 func (k Keeper) GetUpgrade(ctx sdk.Context, portID, channelID string) (types.Upgrade, bool) {
 	store := ctx.KVStore(k.storeKey)

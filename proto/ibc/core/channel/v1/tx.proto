@@ -71,6 +71,8 @@ enum ResponseResultType {
   RESPONSE_RESULT_TYPE_NOOP = 1 [(gogoproto.enumvalue_customname) = "NOOP"];
   // The message was executed successfully
   RESPONSE_RESULT_TYPE_SUCCESS = 2 [(gogoproto.enumvalue_customname) = "SUCCESS"];
+  // The message was executed unsuccessfully
+  RESPONSE_RESULT_TYPE_FAILED = 3 [(gogoproto.enumvalue_customname) = "FAILURE"];
 }
 
 // MsgChannelOpenInit defines an sdk.Msg to initialize a channel handshake. It
@@ -280,24 +282,23 @@ message MsgChannelUpgradeTry {
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
-  string                    port_id                       = 1;
-  string                    channel_id                    = 2;
-  UpgradeFields             proposed_upgrade_fields       = 3 [(gogoproto.nullable) = false];
-  UpgradeTimeout            proposed_upgrade_timeout      = 4 [(gogoproto.nullable) = false];
-  Upgrade                   counterparty_proposed_upgrade = 5 [(gogoproto.nullable) = false];
-  uint64                    counterparty_upgrade_sequence = 6;
-  bytes                     proof_channel                 = 7;
-  bytes                     proof_upgrade                 = 8;
-  ibc.core.client.v1.Height proof_height                  = 9 [(gogoproto.nullable) = false];
-  string                    signer                        = 10;
+  string                    port_id                          = 1;
+  string                    channel_id                       = 2;
+  repeated string           proposed_upgrade_connection_hops = 3;
+  UpgradeTimeout            proposed_upgrade_timeout         = 4 [(gogoproto.nullable) = false];
+  Upgrade                   counterparty_proposed_upgrade    = 5 [(gogoproto.nullable) = false];
+  uint64                    counterparty_upgrade_sequence    = 6;
+  bytes                     proof_channel                    = 7;
+  bytes                     proof_upgrade                    = 8;
+  ibc.core.client.v1.Height proof_height                     = 9 [(gogoproto.nullable) = false];
+  string                    signer                           = 10;
 }
 
 // MsgChannelUpgradeTryResponse defines the MsgChannelUpgradeTry response type
 message MsgChannelUpgradeTryResponse {
-  string channel_id       = 1;
-  string version          = 2;
-  uint64 upgrade_sequence = 3;
-  bool   success          = 4;
+  string             channel_id = 1;
+  string             version    = 2;
+  ResponseResultType result     = 3;
 }
 
 // MsgChannelUpgradeAck defines the request type for the ChannelUpgradeAck rpc
