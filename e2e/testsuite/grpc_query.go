@@ -169,15 +169,16 @@ func (s *E2ETestSuite) QueryTotalEscrowForDenom(ctx context.Context, chain ibc.C
 		Denom: denom,
 	})
 
-	amount := sdk.IntProto{}
-	Codec().MustUnmarshal([]byte(res.Amount), &amount)
-
-
-	if err != nil || amount.Int.IsNil() {
+	if err != nil {
 		return math.ZeroInt(), err
 	}
 
-	return math.NewInt(amount.Int.Int64()), nil
+	amount, ok := math.NewIntFromString(res.Amount)
+	if !ok {
+		return math.ZeroInt(), fmt.Errorf(`unable to convert string "%s" to int`, res.Amount)
+	}
+
+	return math.NewInt(amount.Int64()), nil
 }
 
 // QueryInterchainAccount queries the interchain account for the given owner and connectionID.

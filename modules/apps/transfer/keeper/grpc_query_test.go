@@ -266,7 +266,7 @@ func (suite *KeeperTestSuite) TestEscrowAddress() {
 func (suite *KeeperTestSuite) TestTotalEscrowForDenom() {
 	var (
 		req             *types.QueryTotalEscrowForDenomRequest
-		expEscrowAmount math.Int
+		expEscrowAmount string
 	)
 
 	testCases := []struct {
@@ -281,8 +281,9 @@ func (suite *KeeperTestSuite) TestTotalEscrowForDenom() {
 					Denom: sdk.DefaultBondDenom,
 				}
 
-				expEscrowAmount = math.NewInt(100)
-				suite.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(suite.chainA.GetContext(), sdk.DefaultBondDenom, expEscrowAmount)
+				expEscrowAmountInt := math.NewInt(100)
+				expEscrowAmount = expEscrowAmountInt.String()
+				suite.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(suite.chainA.GetContext(), sdk.DefaultBondDenom, expEscrowAmountInt)
 			},
 			true,
 		},
@@ -343,7 +344,7 @@ func (suite *KeeperTestSuite) TestTotalEscrowForDenom() {
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest() // reset
 
-			expEscrowAmount = math.ZeroInt()
+			expEscrowAmount = math.ZeroInt().String()
 			tc.malleate()
 			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
 
