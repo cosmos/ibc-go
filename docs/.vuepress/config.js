@@ -277,6 +277,11 @@ module.exports = {
                   directory: false,
                   path: "/apps/transfer/params.html",
                 },
+                {
+                  title: "Authorizations",
+                  directory: false,
+                  path: "/apps/transfer/authorizations.html",
+                },
               ],
             },
           ],
