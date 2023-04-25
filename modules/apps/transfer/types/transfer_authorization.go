@@ -4,10 +4,10 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/authz"
-
 	ibcerrors "github.com/cosmos/ibc-go/v7/internal/errors"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
+	"math"
 )
 
 const gasCostPerIteration = uint64(10)
@@ -34,29 +34,32 @@ func (a TransferAuthorization) Accept(ctx sdk.Context, msg sdk.Msg) (authz.Accep
 	}
 
 	var (
-		limitLeft  sdk.Coins
+		limitLeft  = sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(math.MaxInt64)))
 		isNegative bool
 	)
+
 	for index, allocation := range a.Allocations {
 		if allocation.SourceChannel == msgTransfer.SourceChannel && allocation.SourcePort == msgTransfer.SourcePort {
-			if allocation.SpendLimit != nil {
-				limitLeft, isNegative = allocation.SpendLimit.SafeSub(msgTransfer.Token)
-				if isNegative {
-					return authz.AcceptResponse{}, errorsmod.Wrapf(ibcerrors.ErrInsufficientFunds, "requested amount is more than spend limit")
-				}
-
-				if !isAllowedAddress(ctx, msgTransfer.Receiver, allocation.AllowList) {
-					return authz.AcceptResponse{}, errorsmod.Wrap(ibcerrors.ErrInvalidAddress, "not allowed address for transfer")
-				}
-
-				if limitLeft.IsZero() {
-					a.Allocations = append(a.Allocations[:index], a.Allocations[index+1:]...)
-					if len(a.Allocations) == 0 {
-						return authz.AcceptResponse{Accept: true, Delete: true}, nil
+			for _, coin := range allocation.SpendLimit {
+				if coin.Amount.Int64() != math.MaxInt64 {
+					limitLeft, isNegative = allocation.SpendLimit.SafeSub(msgTransfer.Token)
+					if isNegative {
+						return authz.AcceptResponse{}, errorsmod.Wrapf(ibcerrors.ErrInsufficientFunds, "requested amount is more than spend limit")
 					}
-					return authz.AcceptResponse{Accept: true, Delete: false, Updated: &TransferAuthorization{
-						Allocations: a.Allocations,
-					}}, nil
+
+					if !isAllowedAddress(ctx, msgTransfer.Receiver, allocation.AllowList) {
+						return authz.AcceptResponse{}, errorsmod.Wrap(ibcerrors.ErrInvalidAddress, "not allowed address for transfer")
+					}
+
+					if limitLeft.IsZero() {
+						a.Allocations = append(a.Allocations[:index], a.Allocations[index+1:]...)
+						if len(a.Allocations) == 0 {
+							return authz.AcceptResponse{Accept: true, Delete: true}, nil
+						}
+						return authz.AcceptResponse{Accept: true, Delete: false, Updated: &TransferAuthorization{
+							Allocations: a.Allocations,
+						}}, nil
+					}
 				}
 			}
 			a.Allocations[index] = Allocation{
@@ -89,10 +92,12 @@ func (a TransferAuthorization) ValidateBasic() error {
 
 		foundChannels[allocation.SourceChannel] = true
 
-		if allocation.SpendLimit != nil {
-			if err := allocation.SpendLimit.Validate(); err != nil {
-				return errorsmod.Wrapf(ibcerrors.ErrInvalidCoins, err.Error())
-			}
+		if allocation.SpendLimit == nil {
+			return errorsmod.Wrap(ibcerrors.ErrInvalidCoins, "spend limit cannot be nil")
+		}
+
+		if err := allocation.SpendLimit.Validate(); err != nil {
+			return errorsmod.Wrapf(ibcerrors.ErrInvalidCoins, err.Error())
 		}
 
 		if err := host.PortIdentifierValidator(allocation.SourcePort); err != nil {
