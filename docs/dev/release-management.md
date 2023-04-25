@@ -73,7 +73,7 @@ Additionally, for the first point release of a new major or minor release branch
   - Add the new release and the new `icad` tag.
   - Remove any tags that might not be recommended anymore.
 - Bump ibc-go version in [cosmos/interchain-accounts-demo repository](https://github.com/cosmos/interchain-accounts-demo) and create a tag.
-- Open a PR to `main` updating the docs site:
+- (TODO: docs - update needed before PR to main) Open a PR to `main` updating the docs site:
   - Add new release branch to [`docs/versions`](../versions) file.
   - Add `label` and `key` to `versions` array in [`config.js`](https://github.com/cosmos/ibc-go/blob/main/docs/.vuepress/config.js#L33).
 - After changes to docs site are deployed, check [ibc.cosmos.network](https://ibc.cosmos.network) is updated.
