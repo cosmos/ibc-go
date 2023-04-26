@@ -541,8 +541,8 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeTryValidateBasic() {
 		{
 			"timeout height is zero && timeout timestamp is zero",
 			func() {
-				msg.ProposedUpgradeTimeout.Height = clienttypes.ZeroHeight()
-				msg.ProposedUpgradeTimeout.Timestamp = 0
+				msg.UpgradeTimeout.Height = clienttypes.ZeroHeight()
+				msg.UpgradeTimeout.Timestamp = 0
 			},
 			false,
 		},

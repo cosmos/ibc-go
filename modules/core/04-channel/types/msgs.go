@@ -536,7 +536,7 @@ func NewMsgChannelUpgradeTry(
 	portID,
 	channelID string,
 	proposedConnectionHops []string,
-	proposedUpgradeTimeout UpgradeTimeout,
+	upgradeTimeout UpgradeTimeout,
 	counterpartyProposedUpgrade Upgrade,
 	counterpartyUpgradeSequence uint64,
 	proofChannel []byte,
@@ -548,7 +548,7 @@ func NewMsgChannelUpgradeTry(
 		PortId:                        portID,
 		ChannelId:                     channelID,
 		ProposedUpgradeConnectionHops: proposedConnectionHops,
-		ProposedUpgradeTimeout:        proposedUpgradeTimeout,
+		UpgradeTimeout:                upgradeTimeout,
 		CounterpartyProposedUpgrade:   counterpartyProposedUpgrade,
 		CounterpartyUpgradeSequence:   counterpartyUpgradeSequence,
 		ProofChannel:                  proofChannel,
@@ -563,21 +563,35 @@ func (msg MsgChannelUpgradeTry) ValidateBasic() error {
 	if err := host.PortIdentifierValidator(msg.PortId); err != nil {
 		return errorsmod.Wrap(err, "invalid port ID")
 	}
+
 	if !IsValidChannelID(msg.ChannelId) {
 		return ErrInvalidChannelIdentifier
 	}
+
+	if len(msg.ProposedUpgradeConnectionHops) == 0 {
+		return errorsmod.Wrap(ErrInvalidUpgrade, "proposed connection hops cannot be empty")
+	}
+
+	if msg.UpgradeTimeout.Height.IsZero() && msg.UpgradeTimeout.Timestamp == 0 {
+		return errorsmod.Wrap(ErrInvalidUpgradeTimeout, "timeout height or timeout timestamp must be non-zero")
+	}
+
+	if err := msg.CounterpartyProposedUpgrade.Fields.ValidateBasic(); err != nil {
+		return errorsmod.Wrap(err, "error validating counterparty upgrade fields")
+	}
+
 	if msg.CounterpartyUpgradeSequence == 0 {
 		return errorsmod.Wrap(ibcerrors.ErrInvalidSequence, "counterparty sequence cannot be 0")
 	}
-	if msg.ProposedUpgradeTimeout.Height.IsZero() && msg.ProposedUpgradeTimeout.Timestamp == 0 {
-		return errorsmod.Wrap(ErrInvalidUpgradeTimeout, "timeout height or timeout timestamp must be non-zero")
-	}
+
 	if len(msg.ProofChannel) == 0 {
 		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty channel proof")
 	}
+
 	if len(msg.ProofUpgrade) == 0 {
 		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty upgrade proof")
 	}
+
 	_, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
