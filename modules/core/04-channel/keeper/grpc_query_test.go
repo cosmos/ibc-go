@@ -9,6 +9,7 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	"github.com/cosmos/ibc-go/v7/testing/mock"
@@ -1586,6 +1587,15 @@ func (suite *KeeperTestSuite) TestQueryUpgrade() {
 					PortId:    "test-port-id",
 					ChannelId: "test-channel-id",
 				}
+			},
+			false,
+		},
+		{
+			"upgrade not found",
+			func() {
+				storeKey := suite.chainA.GetSimApp().GetKey(exported.StoreKey)
+				kvStore := suite.chainA.GetContext().KVStore(storeKey)
+				kvStore.Delete(host.ChannelUpgradeKey(req.PortId, req.ChannelId))
 			},
 			false,
 		},
