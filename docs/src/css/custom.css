@@ -69,6 +69,11 @@ html[data-theme="dark"] {
     0 2px 2px 0 rgba(45, 45, 45, 0.3) !important;
 }
 
+/* Custom colors for links embedded into markdown files in dark mode */
+html[data-theme="dark"] .markdown a {
+  color: #85c1e9; /* Choose the color you prefer */
+}
+
 html {
   @apply bg-docusaurusBgColor;
   /* Banner */
