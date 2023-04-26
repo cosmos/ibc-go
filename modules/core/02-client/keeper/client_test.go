@@ -42,7 +42,7 @@ func (suite *KeeperTestSuite) TestCreateClient() {
 				clientState = ibctm.NewClientState(testChainID, ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, testClientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath)
 				tmcs, ok := clientState.(*ibctm.ClientState)
 				suite.Require().True(ok)
-				tmcs.FrozenHeight = clienttypes.NewHeight(0, 1)
+				tmcs.FrozenHeight = ibctm.FrozenHeight
 				consensusState = suite.consensusState
 			},
 			false,
@@ -65,7 +65,7 @@ func (suite *KeeperTestSuite) TestCreateClient() {
 		},
 	}
 
-	for i, tc := range testCases {
+	for _, tc := range testCases {
 		tc := tc
 
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
@@ -74,12 +74,12 @@ func (suite *KeeperTestSuite) TestCreateClient() {
 
 			clientID, err := suite.keeper.CreateClient(suite.ctx, clientState, consensusState)
 			if tc.expPass {
-				suite.Require().NoError(err, "valid test case %d failed: %s", i, tc.msg)
-				suite.Require().NotNil(clientID, "valid test case %d failed: %s", i, tc.msg)
+				suite.Require().NoError(err)
+				suite.Require().NotNil(clientID)
 				suite.Require().True(suite.keeper.ClientStore(suite.ctx, clientID).Has(host.ClientStateKey()))
 			} else {
-				suite.Require().Error(err, "invalid test case %d passed: %s", i, tc.msg)
-				suite.Require().Equal("", clientID, "invalid test case %d passed: %s", i, tc.msg)
+				suite.Require().Error(err)
+				suite.Require().Equal("", clientID)
 				suite.Require().False(suite.keeper.ClientStore(suite.ctx, clientID).Has(host.ClientStateKey()))
 			}
 		})
