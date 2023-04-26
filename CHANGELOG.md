@@ -44,7 +44,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Improvements
 * (tests) [\#3138](https://github.com/cosmos/ibc-go/pull/3138) Support benchmarks and fuzz tests through `testing.TB`.
-* (ics20) [\#3454](https://github.com/cosmos/ibc-go/pull/3454) Represent authz unlimited spending limit as `nil` value.
+* (ics20) [\#3454](https://github.com/cosmos/ibc-go/pull/3454) Represent authz unlimited spending limit as `math.MaxInt64` value.
 
 ### Features
 
