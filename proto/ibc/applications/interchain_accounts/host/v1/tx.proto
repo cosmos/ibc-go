@@ -25,6 +25,4 @@ message MsgUpdateParams {
 }
 
 // MsgUpdateParamsResponse defines the response for Msg/UpdateParams
-message MsgUpdateParamsResponse {
-
-}
+message MsgUpdateParamsResponse {}

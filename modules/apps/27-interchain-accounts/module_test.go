@@ -51,9 +51,7 @@ func (suite *InterchainAccountsTestSuite) TestInitModule() {
 	suite.Require().Panics(func() {
 		app.ICAControllerKeeper.GetParams(ctx)
 	})
-	suite.Require().Panics(func() {
-		app.ICAHostKeeper.GetParams(ctx)
-	})
+	suite.Require().Equal(app.ICAHostKeeper.GetParams(ctx), hosttypes.Params{})
 
 	controllerParams := controllertypes.DefaultParams()
 	controllerParams.ControllerEnabled = true
@@ -79,17 +77,17 @@ func (suite *InterchainAccountsTestSuite) TestInitModule() {
 		},
 		{
 			"neither controller or host is set", func() {
-				appModule = ica.NewAppModule(nil, nil)
+				appModule = ica.NewAppModule(nil, nil, nil)
 			}, false, false,
 		},
 		{
 			"only controller is set", func() {
-				appModule = ica.NewAppModule(&app.ICAControllerKeeper, nil)
+				appModule = ica.NewAppModule(&app.ICAControllerKeeper, nil, nil)
 			}, true, false,
 		},
 		{
 			"only host is set", func() {
-				appModule = ica.NewAppModule(nil, &app.ICAHostKeeper)
+				appModule = ica.NewAppModule(nil, &app.ICAHostKeeper, nil)
 			}, false, true,
 		},
 	}
