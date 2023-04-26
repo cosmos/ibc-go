@@ -5,7 +5,6 @@ sidebar_position: 6
 slug: /ibc/proposals
 ---
 
-
 # Governance Proposals
 
 In uncommon situations, a highly valued client may become frozen due to uncontrollable
@@ -46,22 +45,22 @@ once the proposal passes.
 
 _note_ two of these parameters: `AllowUpdateAfterExpiry` and `AllowUpdateAfterMisbehavior` have been deprecated, and will both be set to `false` upon upgrades even if they were previously set to `true`. These parameters will no longer play a role in restricting a client upgrade. Please see ADR026 for more details.
 
-# How to recover an expired client with a governance proposal
+## How to recover an expired client with a governance proposal
 
 See also the relevant documentation: [ADR-026, IBC client recovery mechanisms](../../architecture/adr-026-ibc-client-recovery-mechanisms.md)
 
 > **Who is this information for?**
 > Although technically anyone can submit the governance proposal to recover an expired client, often it will be **relayer operators** (at least coordinating the submission).
 
-## Preconditions
+### Preconditions
 
 - The chain is updated with ibc-go >= v1.1.0.
 - There exists an active client (with a known client identifier) for the same counterparty chain as the expired client.
 - The governance deposit.
 
-## Steps
+### Steps
 
-### Step 1
+#### Step 1
 
 Check if the client is attached to the expected `chain-id`. For example, for an expired Tendermint client representing the Akash chain the client state looks like this on querying the client state:
 
@@ -78,7 +77,7 @@ Check if the client is attached to the expected `chain-id`. For example, for an 
 
 The client is attached to the expected Akash `chain-id`. Note that although the parameters (`allow_update_after_expiry` and `allow_update_after_misbehaviour`) exist to signal intent, these parameters have been deprecated and will not enforce any checks on the revival of client. See ADR-026 for more context on this deprecation.
 
-### Step 2
+#### Step 2
 
 If the chain has been updated to ibc-go >= v1.1.0, anyone can submit the governance proposal to recover the client by executing this via CLI.
 
@@ -126,7 +125,7 @@ The `<active-client-id>` represents a substitute client. It carries all the stat
 
 After this, all that remains is deciding who funds the governance deposit and ensuring the governance proposal passes. If it does, the client on trial will be updated to the latest state of the substitute.
 
-## Important considerations
+### Important considerations
 
 Please note that from v1.0.0 of ibc-go it will not be allowed for transactions to go to expired clients anymore, so please update to at least this version to prevent similar issues in the future.
 
