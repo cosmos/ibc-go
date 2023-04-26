@@ -102,3 +102,12 @@ func NewQueryUpgradeErrorResponse(errorReceipt ErrorReceipt, proof []byte, heigh
 		ProofHeight:  height,
 	}
 }
+
+// NewQueryUpgradeResponse creates a new QueryUpgradeResponse instance
+func NewQueryUpgradeResponse(upgrade Upgrade, proof []byte, height clienttypes.Height) *QueryUpgradeResponse {
+	return &QueryUpgradeResponse{
+		Upgrade:     upgrade,
+		Proof:       proof,
+		ProofHeight: height,
+	}
+}
