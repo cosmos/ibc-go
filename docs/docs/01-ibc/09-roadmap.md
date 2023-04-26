@@ -4,10 +4,6 @@ sidebar_label: Roadmap
 sidebar_position: 9
 slug: /roadmap/roadmap
 ---
----
-
-order: 1
----
 
 # Roadmap ibc-go
 
