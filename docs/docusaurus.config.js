@@ -54,8 +54,7 @@ const config = {
   themeConfig:
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
-      // TODO: Replace with your project's social card
-      image: "img/todo-social-card.jpg",
+      image: "img/ibc-go-image.png",
       navbar: {
         title: "IBC-Go",
         logo: {
