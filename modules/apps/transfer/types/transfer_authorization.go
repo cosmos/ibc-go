@@ -1,13 +1,14 @@
 package types
 
 import (
+	"math"
+
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/authz"
 	ibcerrors "github.com/cosmos/ibc-go/v7/internal/errors"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
-	"math"
 )
 
 var _ authz.Authorization = (*TransferAuthorization)(nil)
@@ -42,7 +43,7 @@ func (a TransferAuthorization) Accept(ctx sdk.Context, msg sdk.Msg) (authz.Accep
 				if coin.Amount.Int64() == math.MaxInt64 {
 					continue
 				}
-				
+
 				limitLeft, isNegative = allocation.SpendLimit.SafeSub(msgTransfer.Token)
 				if isNegative {
 					return authz.AcceptResponse{}, errorsmod.Wrapf(ibcerrors.ErrInsufficientFunds, "requested amount is more than spend limit")
@@ -62,18 +63,17 @@ func (a TransferAuthorization) Accept(ctx sdk.Context, msg sdk.Msg) (authz.Accep
 					}}, nil
 				}
 			}
-			}
-			a.Allocations[index] = Allocation{
-				SourcePort:    allocation.SourcePort,
-				SourceChannel: allocation.SourceChannel,
-				SpendLimit:    limitLeft,
-				AllowList:     allocation.AllowList,
-			}
-
-			return authz.AcceptResponse{Accept: true, Delete: false, Updated: &TransferAuthorization{
-				Allocations: a.Allocations,
-			}}, nil
 		}
+		a.Allocations[index] = Allocation{
+			SourcePort:    allocation.SourcePort,
+			SourceChannel: allocation.SourceChannel,
+			SpendLimit:    limitLeft,
+			AllowList:     allocation.AllowList,
+		}
+
+		return authz.AcceptResponse{Accept: true, Delete: false, Updated: &TransferAuthorization{
+			Allocations: a.Allocations,
+		}}, nil
 	}
 	return authz.AcceptResponse{}, errorsmod.Wrapf(ibcerrors.ErrNotFound, "requested port and channel allocation does not exist")
 }
