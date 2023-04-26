@@ -532,31 +532,17 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeTryValidateBasic() {
 			false,
 		},
 		{
-			"invalid counterparty channel state",
-			func() {
-				msg.CounterpartyChannel.State = types.TRYUPGRADE
-			},
-			false,
-		},
-		{
 			"counterparty sequence cannot be zero",
 			func() {
-				msg.CounterpartySequence = 0
-			},
-			false,
-		},
-		{
-			"invalid proposed upgrade channel state",
-			func() {
-				msg.ProposedUpgradeChannel.State = types.INITUPGRADE
+				msg.CounterpartyUpgradeSequence = 0
 			},
 			false,
 		},
 		{
 			"timeout height is zero && timeout timestamp is zero",
 			func() {
-				msg.TimeoutHeight = clienttypes.ZeroHeight()
-				msg.TimeoutTimestamp = 0
+				msg.ProposedUpgradeTimeout.Height = clienttypes.ZeroHeight()
+				msg.ProposedUpgradeTimeout.Timestamp = 0
 			},
 			false,
 		},
@@ -568,16 +554,9 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeTryValidateBasic() {
 			false,
 		},
 		{
-			"cannot submit an empty upgrade timeout proof",
+			"cannot submit an empty upgrade proof",
 			func() {
-				msg.ProofUpgradeTimeout = emptyProof
-			},
-			false,
-		},
-		{
-			"cannot submit an empty upgrade sequence proof",
-			func() {
-				msg.ProofUpgradeSequence = emptyProof
+				msg.ProofUpgrade = emptyProof
 			},
 			false,
 		},
@@ -593,15 +572,22 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeTryValidateBasic() {
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(tc.name, func() {
-			msg = types.NewMsgChannelUpgradeTry(
-				ibctesting.MockPort, ibctesting.FirstChannelID,
-				types.Channel{State: types.INITUPGRADE},
+			counterpartyProposedUpgrade := types.NewUpgrade(
+				types.NewUpgradeFields(types.UNORDERED, []string{ibctesting.FirstChannelID}, mock.Version),
+				types.NewUpgradeTimeout(clienttypes.NewHeight(0, 10000), timeoutTimestamp),
 				1,
-				types.Channel{State: types.TRYUPGRADE},
-				clienttypes.NewHeight(0, 10000),
-				0,
-				suite.proof, suite.proof, suite.proof,
-				height, addr,
+			)
+			msg = types.NewMsgChannelUpgradeTry(
+				ibctesting.MockPort,
+				ibctesting.FirstChannelID,
+				[]string{ibctesting.FirstChannelID},
+				types.NewUpgradeTimeout(clienttypes.NewHeight(0, 10000), timeoutTimestamp),
+				*counterpartyProposedUpgrade,
+				1,
+				suite.proof,
+				suite.proof,
+				height,
+				addr,
 			)
 
 			tc.malleate()
