@@ -776,7 +776,7 @@ func (k Keeper) ChannelUpgradeTry(goCtx context.Context, msg *channeltypes.MsgCh
 		msg.PortId,
 		msg.ChannelId,
 		msg.ProposedUpgradeConnectionHops,
-		msg.ProposedUpgradeTimeout,
+		msg.UpgradeTimeout,
 		msg.CounterpartyProposedUpgrade,
 		msg.CounterpartyUpgradeSequence,
 		msg.ProofChannel,
