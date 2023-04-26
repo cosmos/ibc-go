@@ -10,7 +10,7 @@ require (
 	cosmossdk.io/math v1.0.0
 	github.com/cometbft/cometbft v0.37.0
 	github.com/cometbft/cometbft-db v0.7.0
-	github.com/cosmos/cosmos-sdk v0.47.0
+	github.com/cosmos/cosmos-sdk v0.47.1
 	github.com/cosmos/gogoproto v1.4.8
 	github.com/cosmos/ibc-go/v7 v7.0.0
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0

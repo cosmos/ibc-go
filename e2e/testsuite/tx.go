@@ -31,15 +31,29 @@ import (
 func (s *E2ETestSuite) BroadcastMessages(ctx context.Context, chain *cosmos.CosmosChain, user ibc.Wallet, msgs ...sdk.Msg) (sdk.TxResponse, error) {
 	broadcaster := cosmos.NewBroadcaster(s.T(), chain)
 
+	var seq uint64
 	broadcaster.ConfigureClientContextOptions(func(clientContext client.Context) client.Context {
 		// use a codec with all the types our tests care about registered.
 		// BroadcastTx will deserialize the response and will not be able to otherwise.
+
+		// this is a temporary work around to pass the acc sequence correctly.
+		// TODO: create PR against interchain test to make this the default behaviour.
+		sdkAdd, err := sdk.AccAddressFromBech32(user.FormattedAddress())
+		if err != nil {
+			panic(err)
+		}
+
+		_, seq, err = clientContext.AccountRetriever.GetAccountNumberSequence(clientContext, sdkAdd)
+		if err != nil {
+			panic(err)
+		}
+
 		cdc := Codec()
 		return clientContext.WithCodec(cdc).WithTxConfig(authtx.NewTxConfig(cdc, []signingtypes.SignMode{signingtypes.SignMode_SIGN_MODE_DIRECT}))
 	})
 
 	broadcaster.ConfigureFactoryOptions(func(factory tx.Factory) tx.Factory {
-		return factory.WithGas(DefaultGasValue)
+		return factory.WithGas(DefaultGasValue).WithSequence(seq)
 	})
 
 	// Retry the operation a few times if the user signing the transaction is a relayer. (See issue #3264)
