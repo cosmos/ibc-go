@@ -222,12 +222,10 @@ Once a module A and module B are connected to each other, relayers can start rel
 
 Briefly, a successful packet flow works as follows:
 
-1. module A sends a packet through the IBC module
-2. the packet is received by module B
-3. if module B writes an acknowledgement of the packet then module A will process the
-   acknowledgement
-4. if the packet is not successfully received before the timeout, then module A processes the
-   packet's timeout.
+1. Module A sends a packet through the IBC module
+2. The packet is received by module B
+3. If module B writes an acknowledgement of the packet then module A will process the acknowledgement
+4. If the packet is not successfully received before the timeout, then module A processes the packet's timeout.
 
 ### Sending packets
 
