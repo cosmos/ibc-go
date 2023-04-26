@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"cosmossdk.io/math"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramsproposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 	"github.com/strangelove-ventures/interchaintest/v7/ibc"
 	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
@@ -93,7 +94,7 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized() {
 		actualTotalEscrow, err := s.QueryTotalEscrowForDenom(ctx, chainA, chainADenom)
 		s.Require().NoError(err)
 
-		expectedTotalEscrow := math.NewInt(testvalues.IBCTransferAmount)
+		expectedTotalEscrow := sdk.NewCoin(chainADenom, math.NewInt(testvalues.IBCTransferAmount))
 		s.Require().Equal(expectedTotalEscrow, actualTotalEscrow)
 	})
 
@@ -127,7 +128,7 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized() {
 
 		actualTotalEscrow, err := s.QueryTotalEscrowForDenom(ctx, chainB, chainBIBCToken.IBCDenom())
 		s.Require().NoError(err)
-		s.Require().Equal(math.ZeroInt(), actualTotalEscrow) // total escrow is zero because sending chain is not source for tokens
+		s.Require().Equal(sdk.NewCoin(chainBIBCToken.IBCDenom(), sdk.NewInt(0)), actualTotalEscrow) // total escrow is zero because sending chain is not source for tokens
 	})
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA, chainB), "failed to wait for blocks")
@@ -145,7 +146,7 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized() {
 	t.Run("tokens are un-escrowed", func(t *testing.T) {
 		actualTotalEscrow, err := s.QueryTotalEscrowForDenom(ctx, chainA, chainADenom)
 		s.Require().NoError(err)
-		s.Require().Equal(math.ZeroInt(), actualTotalEscrow) // total escrow is zero because tokens have come back
+		s.Require().Equal(sdk.NewCoin(chainADenom, sdk.NewInt(0)), actualTotalEscrow) // total escrow is zero because tokens have come back
 	})
 }
 

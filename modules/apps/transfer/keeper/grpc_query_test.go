@@ -266,7 +266,7 @@ func (suite *KeeperTestSuite) TestEscrowAddress() {
 func (suite *KeeperTestSuite) TestTotalEscrowForDenom() {
 	var (
 		req             *types.QueryTotalEscrowForDenomRequest
-		expEscrowAmount string
+		expEscrowAmount math.Int
 	)
 
 	testCases := []struct {
@@ -281,9 +281,8 @@ func (suite *KeeperTestSuite) TestTotalEscrowForDenom() {
 					Denom: sdk.DefaultBondDenom,
 				}
 
-				expEscrowAmountInt := math.NewInt(100)
-				expEscrowAmount = expEscrowAmountInt.String()
-				suite.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(suite.chainA.GetContext(), sdk.DefaultBondDenom, expEscrowAmountInt)
+				expEscrowAmount = math.NewInt(100)
+				suite.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(suite.chainA.GetContext(), sdk.NewCoin(sdk.DefaultBondDenom, expEscrowAmount))
 			},
 			true,
 		},
@@ -298,7 +297,7 @@ func (suite *KeeperTestSuite) TestTotalEscrowForDenom() {
 				suite.chainA.GetSimApp().TransferKeeper.SetDenomTrace(suite.chainA.GetContext(), denomTrace)
 				expEscrowAmount, ok := math.NewIntFromString("100000000000000000000")
 				suite.Require().True(ok)
-				suite.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(suite.chainA.GetContext(), sdk.DefaultBondDenom, expEscrowAmount)
+				suite.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(suite.chainA.GetContext(), sdk.NewCoin(sdk.DefaultBondDenom, expEscrowAmount))
 
 				req = &types.QueryTotalEscrowForDenomRequest{
 					Denom: denomTrace.IBCDenom(),
@@ -344,7 +343,7 @@ func (suite *KeeperTestSuite) TestTotalEscrowForDenom() {
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest() // reset
 
-			expEscrowAmount = math.ZeroInt().String()
+			expEscrowAmount = sdk.ZeroInt()
 			tc.malleate()
 			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
 
@@ -352,7 +351,7 @@ func (suite *KeeperTestSuite) TestTotalEscrowForDenom() {
 
 			if tc.expPass {
 				suite.Require().NoError(err)
-				suite.Require().Equal(expEscrowAmount, res.Amount)
+				suite.Require().Equal(expEscrowAmount, res.Amount.Amount)
 			} else {
 				suite.Require().Error(err)
 			}

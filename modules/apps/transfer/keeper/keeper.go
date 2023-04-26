@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"strings"
 
-	"cosmossdk.io/math"
 	tmbytes "github.com/cometbft/cometbft/libs/bytes"
 	"github.com/cometbft/cometbft/libs/log"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -12,6 +11,7 @@ import (
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
+
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 
 	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
@@ -146,28 +146,28 @@ func (k Keeper) IterateDenomTraces(ctx sdk.Context, cb func(denomTrace types.Den
 
 // GetTotalEscrowForDenom gets the total amount of source chain tokens that
 // are in escrow, keyed by the denomination.
-func (k Keeper) GetTotalEscrowForDenom(ctx sdk.Context, denom string) math.Int {
+func (k Keeper) GetTotalEscrowForDenom(ctx sdk.Context, denom string) sdk.Coin {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.TotalEscrowForDenomKey(denom))
 	if bz == nil {
-		return math.ZeroInt()
+		return sdk.NewCoin(denom, sdk.ZeroInt())
 	}
 
 	amount := sdk.IntProto{}
 	k.cdc.MustUnmarshal(bz, &amount)
 
-	return amount.Int
+	return sdk.NewCoin(denom, amount.Int)
 }
 
 // SetTotalEscrowForDenom stores the total amount of source chain tokens that are in escrow.
-func (k Keeper) SetTotalEscrowForDenom(ctx sdk.Context, denom string, amount math.Int) {
-	if amount.IsNegative() {
-		panic(fmt.Sprintf("amount cannot be negative: %s", amount))
+func (k Keeper) SetTotalEscrowForDenom(ctx sdk.Context, coin sdk.Coin) {
+	if coin.Amount.IsNegative() {
+		panic(fmt.Sprintf("amount cannot be negative: %s", coin.Amount))
 	}
 
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshal(&sdk.IntProto{Int: amount})
-	store.Set(types.TotalEscrowForDenomKey(denom), bz)
+	bz := k.cdc.MustMarshal(&sdk.IntProto{Int: coin.Amount})
+	store.Set(types.TotalEscrowForDenomKey(coin.Denom), bz)
 }
 
 // GetAllTotalEscrowed returns the escrow information for all the denominations.

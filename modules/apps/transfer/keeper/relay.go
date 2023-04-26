@@ -113,8 +113,8 @@ func (k Keeper) sendTransfer(
 
 		// track the total amount in escrow keyed by denomination to allow for efficient iteration
 		currentTotalEscrow := k.GetTotalEscrowForDenom(ctx, token.GetDenom())
-		newTotalEscrow := currentTotalEscrow.Add(token.Amount)
-		k.SetTotalEscrowForDenom(ctx, token.GetDenom(), newTotalEscrow)
+		newTotalEscrow := currentTotalEscrow.Add(token)
+		k.SetTotalEscrowForDenom(ctx, sdk.NewCoin(token.GetDenom(), newTotalEscrow.Amount))
 	} else {
 		labels = append(labels, telemetry.NewLabel(coretypes.LabelSource, "false"))
 
@@ -236,8 +236,8 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 
 		// track the total amount in escrow keyed by denomination to allow for efficient iteration
 		currentTotalEscrow := k.GetTotalEscrowForDenom(ctx, token.GetDenom())
-		newTotalEscrow := currentTotalEscrow.Sub(token.Amount)
-		k.SetTotalEscrowForDenom(ctx, token.GetDenom(), newTotalEscrow)
+		newTotalEscrow := currentTotalEscrow.Sub(token)
+		k.SetTotalEscrowForDenom(ctx, sdk.NewCoin(token.GetDenom(), newTotalEscrow.Amount))
 
 		defer func() {
 			if transferAmount.IsInt64() {
@@ -377,8 +377,8 @@ func (k Keeper) refundPacketToken(ctx sdk.Context, packet channeltypes.Packet, d
 
 		// track the total amount in escrow keyed by denomination to allow for efficient iteration
 		currentTotalEscrow := k.GetTotalEscrowForDenom(ctx, token.GetDenom())
-		newTotalEscrow := currentTotalEscrow.Sub(token.Amount)
-		k.SetTotalEscrowForDenom(ctx, token.GetDenom(), newTotalEscrow)
+		newTotalEscrow := currentTotalEscrow.Sub(token)
+		k.SetTotalEscrowForDenom(ctx, sdk.NewCoin(token.GetDenom(), newTotalEscrow.Amount))
 
 		return nil
 	}
