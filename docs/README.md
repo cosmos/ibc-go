@@ -105,7 +105,7 @@ slug: /migrations/v5-to-v6 # the url of the file
 
 ### File and Directory Naming Conventions
 
-Inside `./docs`:
+Inside `/docs/docs/`:
 
 - All files should be named in `kebab-case`.
 - All files should have a two digit prefix, indicating the order in which they should be read and displayed in their respective categories. For example, `01-overview.md` should be read before `02-integration.md`. If this order changes, the prefix should be updated. Note that the ordering is enforced by the frontmatter and not the file name.
@@ -114,6 +114,7 @@ Inside `./docs`:
 - All category directories should be named in `kebab-case`.
 - All category directories must have a `_category_.json` file.
 - All category directories should have a two digit prefix (except for the root `./docs` category), indicating the order in which they should be read and displayed in their respective categories. For example, `01-overview.md` should be read before `02-integration.md`. If this order changes, the prefix should be updated. Note that the ordering is enforced by the frontmatter and not the file name.
+- The images for each documentation should be kept in the same directory as the markdown file that uses them. This will likely require creating a new directory for each new category. The goal of this is to make versioning easier, discourage repeated use of the image, and make it easier to find images.
 
 ## Versioning
 
