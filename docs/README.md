@@ -6,7 +6,7 @@ Welcome to the IBC-Go documentation! This website is built using [Docusaurus 2](
 
 ## Translating
 
-TODO: UPDATE
+TODO: UPDATE or REMOVE
 
 ## Docs Build Workflow
 
@@ -110,6 +110,7 @@ Inside `./docs`:
 - All files should be named in `kebab-case`.
 - All files should have a two digit prefix, indicating the order in which they should be read and displayed in their respective categories. For example, `01-overview.md` should be read before `02-integration.md`. If this order changes, the prefix should be updated. Note that the ordering is enforced by the frontmatter and not the file name.
 - **All files that end in `.template.md` will be ignored by the build process.**
+- The prefix `00-` is reserved for root links of categories (if a category has a root link). For example, see [`00-intro.md`](./docs/00-intro.md).
 - All category directories should be named in `kebab-case`.
 - All category directories must have a `_category_.json` file.
 - All category directories should have a two digit prefix (except for the root `./docs` category), indicating the order in which they should be read and displayed in their respective categories. For example, `01-overview.md` should be read before `02-integration.md`. If this order changes, the prefix should be updated. Note that the ordering is enforced by the frontmatter and not the file name.
