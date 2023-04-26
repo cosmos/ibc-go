@@ -119,15 +119,13 @@ type UpgradableModule interface {
 		version, previousVersion string,
 	) (string, error)
 
-	// OnChanUpgradeTry TODO
-	OnChanUpgradeTry(
+	// OnUpgradeBlock
+	OnUpgradeBlock(
 		ctx sdk.Context,
+		portID, channelID string,
 		order channeltypes.Order,
 		connectionHops []string,
-		portID, channelID string,
-		sequence uint64,
-		counterparty channeltypes.Counterparty,
-		previousVersion, counterpartyVersion string,
+		counterpartyVersion string,
 	) (string, error)
 
 	// OnChanUpgradeAck TODO

@@ -5,6 +5,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 )
 
@@ -54,6 +55,34 @@ func (k Keeper) WriteUpgradeInitChannel(ctx sdk.Context, portID, channelID strin
 	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", types.OPEN.String(), "new-state", types.INITUPGRADE.String())
 
 	emitChannelUpgradeInitEvent(ctx, portID, channelID, currentChannel, upgrade)
+}
+
+// UpgradeBlock
+func (k Keeper) UpgradeBlock(
+	ctx sdk.Context,
+	portID,
+	channelID string,
+	proposedConnectionHops []string,
+	proposedUpgradeTimeout types.UpgradeTimeout,
+	counterpartyProposedUpgrade types.Upgrade,
+	counterpartyUpgradeSequence uint64,
+	proofCounterpartyChannel,
+	proofUpgrade []byte,
+	proofHeight clienttypes.Height,
+) (types.Upgrade, types.Channel, error) {
+	// TODO
+	return types.Upgrade{}, types.Channel{}, nil
+}
+
+// WriteUpgradeBlockChannel writes a channel which has successfully passed the UpgradeBlock step.
+// An event is emitted for the handshake step.
+func (k Keeper) WriteUpgradeBlockChannel(
+	ctx sdk.Context,
+	portID, channelID string,
+	proposedUpgrade types.Upgrade,
+) {
+	// TODO
+	// grab channel inside this function to get most current channel status
 }
 
 // constructProposedUpgrade returns the proposed upgrade from the provided arguments.
