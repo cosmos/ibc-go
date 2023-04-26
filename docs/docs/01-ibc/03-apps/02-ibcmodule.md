@@ -1,6 +1,6 @@
 ---
-title: Implement `IBCModule` interface and callbacks
-sidebar_label: Implement `IBCModule` interface and callbacks
+title: Implement IBCModule interface and callbacks
+sidebar_label: Implement IBCModule interface and callbacks
 sidebar_position: 2
 slug: /ibc/apps/ibcmodule
 ---
