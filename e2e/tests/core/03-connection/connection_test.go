@@ -8,9 +8,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/DimitrisJim/ictest/v7/ibc"
-	test "github.com/DimitrisJim/ictest/v7/testutil"
 	paramsproposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
+	"github.com/strangelove-ventures/interchaintest/v7/ibc"
+	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/ibc-go/e2e/testsuite"

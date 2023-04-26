@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"testing"
 
-	interchaintest "github.com/DimitrisJim/ictest/v7"
-	"github.com/DimitrisJim/ictest/v7/ibc"
-	"github.com/DimitrisJim/ictest/v7/relayer"
 	dockerclient "github.com/docker/docker/client"
+	interchaintest "github.com/strangelove-ventures/interchaintest/v7"
+	"github.com/strangelove-ventures/interchaintest/v7/ibc"
+	"github.com/strangelove-ventures/interchaintest/v7/relayer"
 	"go.uber.org/zap"
 )
 

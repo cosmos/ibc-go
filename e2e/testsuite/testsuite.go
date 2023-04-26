@@ -142,7 +142,7 @@ func (s *E2ETestSuite) SetupChainsRelayerAndChannel(ctx context.Context, channel
 // SetupSingleChain creates and returns a single CosmosChain for usage in e2e tests.
 // This is useful for testing single chain functionality when performing coordinated upgrades as well as testing localhost ibc client functionality.
 // TODO: Actually setup a single chain. Seeing panic: runtime error: index out of range [0] with length 0 when using a single chain.
-// issue: https://github.com/DimitrisJim/ictest/issues/401
+// issue: https://github.com/strangelove-ventures/interchaintest/issues/401
 func (s *E2ETestSuite) SetupSingleChain(ctx context.Context) *cosmos.CosmosChain {
 	chainA, chainB := s.GetChains()
 

@@ -9,9 +9,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/DimitrisJim/ictest/v7/ibc"
 	dockertypes "github.com/docker/docker/api/types"
 	dockerclient "github.com/docker/docker/client"
+	"github.com/strangelove-ventures/interchaintest/v7/ibc"
 
 	"github.com/cosmos/ibc-go/e2e/dockerutil"
 	"github.com/cosmos/ibc-go/e2e/testconfig"

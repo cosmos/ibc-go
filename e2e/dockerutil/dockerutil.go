@@ -22,7 +22,7 @@ func GetTestContainers(t *testing.T, ctx context.Context, dc *dockerclient.Clien
 	testContainers, err := dc.ContainerList(ctx, dockertypes.ContainerListOptions{
 		All: true,
 		Filters: filters.NewArgs(
-			// see: https://github.com/DimitrisJim/ictest/blob/0bdc194c2aa11aa32479f32b19e1c50304301981/internal/dockerutil/setup.go#L31-L36
+			// see: https://github.com/strangelove-ventures/interchaintest/blob/0bdc194c2aa11aa32479f32b19e1c50304301981/internal/dockerutil/setup.go#L31-L36
 			// for the label needed to identify test containers.
 			filters.Arg("label", testLabel+"="+t.Name()),
 		),
