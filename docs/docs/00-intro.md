@@ -3,7 +3,7 @@ slug: /
 sidebar_position: 0
 ---
 
-# IBC - Introduction
+# IBC-Go Documentation
 
 Welcome to the IBC-Go documentation!
 
