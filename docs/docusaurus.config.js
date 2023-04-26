@@ -146,6 +146,7 @@ const config = {
       prism: {
         theme: lightCodeTheme,
         darkTheme: darkCodeTheme,
+        additionalLanguages: ["protobuf", "go-module"],
       },
     }),
   themes: ["@you54f/theme-github-codeblock"],
