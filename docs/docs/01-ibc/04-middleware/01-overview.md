@@ -5,7 +5,6 @@ sidebar_position: 1
 slug: /ibc/middleware/overview
 ---
 
-
 # IBC middleware
 
 :::note Synopsis
@@ -19,11 +18,15 @@ After going through the overview they can consult respectively:
 - [documentation on developing custom middleware](02-develop.md)
 - [documentation on integrating middleware into a stack on a chain](03-integration.md)
 
+:::note
+
 ## Pre-requisite readings
 
 - [IBC Overview](../01-overview.md)
 - [IBC Integration](../02-integration.md)
 - [IBC Application Developer Guide](../03-apps/01-apps.md)
+
+:::
 
 ## Why middleware?
 

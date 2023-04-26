@@ -5,16 +5,19 @@ sidebar_position: 4
 slug: /middleware/ics29-fee/fee-distribution
 ---
 
-
 # Fee distribution
 
 :::note Synopsis
 Learn about payee registration for the distribution of packet fees. The following document is intended for relayer operators.
 :::
 
+:::note
+
 ## Pre-requisite readings
 
 - [Fee Middleware](01-overview.md)
+
+:::
 
 Packet fees are divided into 3 distinct amounts in order to compensate relayer operators for packet relaying on fee enabled IBC channels.
 

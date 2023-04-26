@@ -5,16 +5,19 @@ sidebar_position: 8
 slug: /ibc/light-clients/genesis
 ---
 
-
 # Genesis metadata
 
 :::note Synopsis
 Learn how to implement the `ExportMetadata` interface
 :::
 
+:::note
+
 ## Pre-requisite readings
 
 - [Cosmos SDK module genesis](https://docs.cosmos.network/v0.47/building-modules/genesis)
+
+:::
 
 `ClientState` instances are provided their own isolated and namespaced client store upon initialisation. `ClientState` implementations may choose to store any amount of arbitrary metadata in order to verify counterparty consensus state and perform light client updates correctly.
 

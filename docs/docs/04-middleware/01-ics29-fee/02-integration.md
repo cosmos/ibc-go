@@ -5,17 +5,20 @@ sidebar_position: 2
 slug: /middleware/ics29-fee/integration
 ---
 
-
 # Integration
 
 :::note Synopsis
 Learn how to configure the Fee Middleware module with IBC applications. The following document is intended for developers building on top of the Cosmos SDK and only applies for Cosmos SDK chains.
 :::
 
+:::note
+
 ## Pre-requisite Readings
 
-* [IBC middleware development](../../01-ibc/04-middleware/02-develop.md)
-* [IBC middleware integration](../../01-ibc/04-middleware/03-integration.md)
+- [IBC middleware development](../../01-ibc/04-middleware/02-develop.md)
+- [IBC middleware integration](../../01-ibc/04-middleware/03-integration.md)
+
+:::
 
 The Fee Middleware module, as the name suggests, plays the role of an IBC middleware and as such must be configured by chain developers to route and handle IBC messages correctly.
 For Cosmos SDK chains this setup is done via the `app/app.go` file, where modules are constructed and configured in order to bootstrap the blockchain application.
@@ -32,7 +35,7 @@ ModuleBasics = module.NewBasicManager(
   ...
 )
 
-... 
+...
 
 // Add module account permissions for the fee middleware module
 maccPerms = map[string][]string{
@@ -53,14 +56,14 @@ type App struct {
 
 ...
 
-// Create store keys 
+// Create store keys
 keys := sdk.NewKVStoreKeys(
   ...
   ibcfeetypes.StoreKey,
   ...
 )
 
-... 
+...
 
 app.IBCFeeKeeper = ibcfeekeeper.NewKeeper(
   appCodec, keys[ibcfeetypes.StoreKey],

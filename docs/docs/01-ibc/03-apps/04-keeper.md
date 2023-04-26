@@ -5,7 +5,6 @@ sidebar_position: 4
 slug: /ibc/apps/keeper
 ---
 
-
 # Keeper
 
 :::note Synopsis
@@ -16,7 +15,7 @@ Learn how to implement the IBC Module keeper.
 
 ## Pre-requisites Readings
 
-- [IBC Overview](../01-overview.md))
+- [IBC Overview](../01-overview.md)
 - [IBC default integration](../02-integration.md)
 
 :::

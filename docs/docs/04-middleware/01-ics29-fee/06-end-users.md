@@ -5,16 +5,19 @@ sidebar_position: 6
 slug: /middleware/ics29-fee/end-users
 ---
 
-
 # For end users
 
 :::note Synopsis
 Learn how to incentivize IBC packets using the ICS29 Fee Middleware module.
 :::
 
+:::note
+
 ## Pre-requisite readings
 
 - [Fee Middleware](01-overview.md)
+
+:::
 
 ## Summary
 

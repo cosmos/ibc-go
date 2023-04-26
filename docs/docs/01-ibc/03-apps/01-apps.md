@@ -5,7 +5,6 @@ sidebar_position: 1
 slug: /ibc/apps/apps
 ---
 
-
 # IBC Applications
 
 :::note Synopsis
@@ -35,7 +34,7 @@ module correctly corresponding to the listed steps.
 
 ## Pre-requisites Readings
 
-- [IBC Overview](../01-overview.md))
+- [IBC Overview](../01-overview.md)
 - [IBC default integration](../02-integration.md)
 
 :::

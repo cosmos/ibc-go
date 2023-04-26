@@ -5,14 +5,13 @@ sidebar_position: 6
 slug: /ibc/apps/routing
 ---
 
-
 # Routing
 
 :::note
 
 ## Pre-requisites Readings
 
-- [IBC Overview](../01-overview.md))
+- [IBC Overview](../01-overview.md)
 - [IBC default integration](../02-integration.md)
 
 :::
