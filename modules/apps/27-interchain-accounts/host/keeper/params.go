@@ -9,9 +9,18 @@ import (
 // IsHostEnabled retrieves the host enabled boolean from the paramstore.
 // True is returned if the host submodule is enabled.
 func (k Keeper) IsHostEnabled(ctx sdk.Context) bool {
-	var res bool
-	k.paramSpace.Get(ctx, types.KeyHostEnabled, &res)
-	return res
+	var params types.Params
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(types.ParamsKey)
+	if bz == nil {
+		return false
+	}
+
+	if err := k.cdc.Unmarshal(bz, &params); err != nil {
+		return false
+	}
+
+	return params.HostEnabled
 }
 
 // GetAllowMessages retrieves the host enabled msg types from the paramstore
