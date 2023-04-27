@@ -576,12 +576,12 @@ func (msg MsgChannelUpgradeTry) ValidateBasic() error {
 		return errorsmod.Wrap(ErrInvalidUpgradeTimeout, "timeout height or timeout timestamp must be non-zero")
 	}
 
-	if err := msg.CounterpartyProposedUpgrade.Fields.ValidateBasic(); err != nil {
-		return errorsmod.Wrap(err, "error validating counterparty upgrade fields")
+	if err := msg.CounterpartyProposedUpgrade.ValidateBasic(); err != nil {
+		return errorsmod.Wrap(err, "error validating counterparty upgrade")
 	}
 
 	if msg.CounterpartyUpgradeSequence == 0 {
-		return errorsmod.Wrap(ibcerrors.ErrInvalidSequence, "counterparty sequence cannot be 0")
+		return errorsmod.Wrap(ErrInvalidUpgradeSequence, "counterparty sequence cannot be 0")
 	}
 
 	if len(msg.ProofChannel) == 0 {
