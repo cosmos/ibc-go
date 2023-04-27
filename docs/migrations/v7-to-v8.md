@@ -14,7 +14,7 @@ There are four sections based on the four potential user groups of this document
 
 ## Chains
 
-- No relevant changes were made in this release.
+TODO: https://github.com/cosmos/ibc-go/pull/3505 (extra parameter added to transfer's `GenesisState`)
 
 ## IBC Apps
 
