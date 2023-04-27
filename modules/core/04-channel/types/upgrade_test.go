@@ -7,9 +7,7 @@ import (
 )
 
 func (suite *TypesTestSuite) TestUpgradeTimeout() {
-	var (
-		upgrade *types.Upgrade
-	)
+	var upgrade *types.Upgrade
 
 	testCases := []struct {
 		name     string
