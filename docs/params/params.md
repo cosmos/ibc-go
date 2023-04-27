@@ -1,3 +1,7 @@
+---
+slug: /params.md
+---
+
 # Parameters
 
 ## 02-Client
