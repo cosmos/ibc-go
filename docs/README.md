@@ -21,26 +21,7 @@ Docusaurus configuration file is located at `./docusaurus.config.js`. This file 
 
 ## Links
 
-**NOTE:** Strongly consider the existing links - both within this directory
-and to the website docs - when moving or deleting files.
-
-Relative links should be used nearly everywhere, having discovered and weighed the following:
-
-### Relative
-
-Where is the other file, relative to the current one?
-
-- works both on GitHub and for the VuePress build
-- confusing / annoying to have things like: `../../../../myfile.md`
-- requires more updates when files are re-shuffled
-
-### Absolute
-
-Where is the other file, given the root of the repo?
-
-- works on GitHub, doesn't work for the VuePress build
-- this is much nicer: `/docs/hereitis/myfile.md`
-- if you move that file around, the links inside it are preserved (but not to it, of course)
+TODO: UPDATE ([#3534](https://github.com/cosmos/ibc-go/issues/3534))
 
 ### Full
 
