@@ -167,6 +167,16 @@ const config = {
         exclude: ["**/*.template.md"],
       },
     ],
+    [
+      "@docusaurus/plugin-content-docs",
+      {
+        id: "events",
+        path: "events",
+        routeBasePath: "events",
+        sidebarPath: false,
+        exclude: ["**/*.template.md"],
+      },
+    ],
     async function myPlugin(context, options) {
       return {
         name: "docusaurus-tailwindcss",
