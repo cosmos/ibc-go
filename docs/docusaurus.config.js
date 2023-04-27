@@ -178,6 +178,16 @@ const config = {
       },
     ],
     [
+      "@docusaurus/plugin-content-docs",
+      {
+        id: "params",
+        path: "params",
+        routeBasePath: "params",
+        sidebarPath: false,
+        exclude: ["**/*.template.md"],
+      },
+    ],
+    [
       "@docusaurus/plugin-client-redirects",
       {
         // this is to fix ADR links in production
