@@ -13,7 +13,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeInit() {
 	var (
 		path        *ibctesting.Path
 		expSequence uint64
-		upgrade     *types.Upgrade
+		upgrade     types.Upgrade
 	)
 
 	testCases := []struct {

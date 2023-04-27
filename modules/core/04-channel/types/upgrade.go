@@ -12,8 +12,8 @@ import (
 )
 
 // NewUpgrade creates a new Upgrade instance.
-func NewUpgrade(upgradeFields UpgradeFields, timeout UpgradeTimeout, latestPacketSent uint64) *Upgrade {
-	return &Upgrade{
+func NewUpgrade(upgradeFields UpgradeFields, timeout UpgradeTimeout, latestPacketSent uint64) Upgrade {
+	return Upgrade{
 		Fields:             upgradeFields,
 		Timeout:            timeout,
 		LatestSequenceSend: latestPacketSent,
