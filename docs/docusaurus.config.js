@@ -177,6 +177,13 @@ const config = {
         exclude: ["**/*.template.md"],
       },
     ],
+    [
+      "@docusaurus/plugin-client-redirects",
+      {
+        fromExtensions: ["html", "htm", "md"], // /myPage.html -> /myPage
+        toExtensions: ["exe", "zip"], // /myAsset -> /myAsset.zip (if latter exists)
+      },
+    ],
     async function myPlugin(context, options) {
       return {
         name: "docusaurus-tailwindcss",
