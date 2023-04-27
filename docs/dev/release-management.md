@@ -74,7 +74,7 @@ Additionally, for the first point release of a new major or minor release branch
   - Remove any tags that might not be recommended anymore.
 - Bump ibc-go version in [cosmos/interchain-accounts-demo repository](https://github.com/cosmos/interchain-accounts-demo) and create a tag.
 - Open a PR to `main` updating the docs site:
-  - (TODO: docs - update needed here before PR to main)
+  - (TODO: [#3522](https://github.com/cosmos/ibc-go/issues/3522))
 - After changes to docs site are deployed, check [ibc.cosmos.network](https://ibc.cosmos.network) is updated.
 - Open issue in [SDK tutorials repo](https://github.com/cosmos/sdk-tutorials) to update tutorials to the released version of ibc-go.
 

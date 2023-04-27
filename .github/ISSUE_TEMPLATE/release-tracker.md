@@ -57,7 +57,7 @@ versions of ibc-go to guarantee that no regression is introduced -->
   - Add the new release.
   - Remove any tags that might not be recommended anymore.
 - [ ] Update the list of [supported release lines in README.md](https://github.com/cosmos/ibc-go#releases), if necessary.
-- [ ] (TODO: docs - update needed here before PR to main) Update docs site:
+- [ ] (TODO: [#3522](https://github.com/cosmos/ibc-go/issues/3522)) Update docs site:
   - [ ] Add new release branch to [`docs/versions`](https://github.com/cosmos/ibc-go/blob/main/docs/versions) file.
   - [ ] Add `label` and `key` to `versions` array in [`config.js`](https://github.com/cosmos/ibc-go/blob/main/docs/.vuepress/config.js#L62).
 - [ ] Bump ibc-go version in [cosmos/interchain-accounts-demo repository](https://github.com/cosmos/interchain-accounts-demo) and create a tag.

@@ -1,4 +1,4 @@
-TODO: UPDATE
+TODO: UPDATE ([#3534](https://github.com/cosmos/ibc-go/issues/3534))
 
 # Documentation guidelines
 

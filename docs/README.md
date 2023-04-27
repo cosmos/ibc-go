@@ -1,4 +1,4 @@
-TODO: UPDATE
+TODO: UPDATE ([#3534](https://github.com/cosmos/ibc-go/issues/3534))
 
 # IBC-Go Documentation
 
@@ -6,7 +6,7 @@ Welcome to the IBC-Go documentation! This website is built using [Docusaurus 2](
 
 ## Translating
 
-TODO: UPDATE or REMOVE
+TODO: UPDATE or REMOVE ([#3534](https://github.com/cosmos/ibc-go/issues/3534))
 
 ## Docs Build Workflow
 
@@ -73,7 +73,7 @@ This command generates static content into the `build` directory and can be serv
 
 ## Search
 
-TODO: update or remove
+TODO: update or remove ([#3534](https://github.com/cosmos/ibc-go/issues/3534))
 
 <!-- ## Consistency
 
@@ -118,4 +118,4 @@ Inside `/docs/docs/`:
 
 ## Versioning
 
-TODO: UPDATE
+TODO: UPDATE ([#3534](https://github.com/cosmos/ibc-go/issues/3534), [#3522](https://github.com/cosmos/ibc-go/issues/3522))
