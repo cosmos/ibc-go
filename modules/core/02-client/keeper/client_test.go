@@ -75,11 +75,11 @@ func (suite *KeeperTestSuite) TestCreateClient() {
 			clientID, err := suite.keeper.CreateClient(suite.ctx, clientState, consensusState)
 			if tc.expPass {
 				suite.Require().NoError(err)
-				suite.Require().NotNil(clientID)
+				suite.Require().NotEmpty(clientID)
 				suite.Require().True(suite.keeper.ClientStore(suite.ctx, clientID).Has(host.ClientStateKey()))
 			} else {
 				suite.Require().Error(err)
-				suite.Require().Equal("", clientID)
+				suite.Require().Empty(clientID)
 				suite.Require().False(suite.keeper.ClientStore(suite.ctx, clientID).Has(host.ClientStateKey()))
 			}
 		})
