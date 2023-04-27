@@ -25,13 +25,9 @@ func AllInvariants(k *Keeper) sdk.Invariant {
 // each denom is not smaller than the amount stored in the state entry.
 func TotalEscrowPerDenomInvariants(k *Keeper) sdk.Invariant {
 	return func(ctx sdk.Context) (string, bool) {
-		var (
-			msg                     string
-			broken                  bool
-			totalEscrowedInAccounts sdk.Coins
-		)
+		var actualTotalEscrowed sdk.Coins
 
-		totalEscrowedInState := k.GetAllTotalEscrowed(ctx)
+		expectedTotalEscrowed := k.GetAllTotalEscrowed(ctx)
 
 		portID := k.GetPort(ctx)
 		transferChannels := k.channelKeeper.GetAllChannelsWithPortPrefix(ctx, portID)
@@ -39,26 +35,17 @@ func TotalEscrowPerDenomInvariants(k *Keeper) sdk.Invariant {
 			escrowAddress := types.GetEscrowAddress(portID, channel.ChannelId)
 			escrowBalances := k.bankKeeper.GetAllBalances(ctx, escrowAddress)
 
-			totalEscrowedInAccounts = totalEscrowedInAccounts.Add(escrowBalances...)
+			actualTotalEscrowed = actualTotalEscrowed.Add(escrowBalances...)
 		}
 
-		for _, expectedEscrow := range totalEscrowedInState {
-			if found, actualEscrow := totalEscrowedInAccounts.Find(expectedEscrow.GetDenom()); found {
-				if expectedEscrow.Amount.GT(actualEscrow.Amount) {
-					broken = true
-					msg += fmt.Sprintf("\tdenom: %s, actual escrow (%s) is < expected escrow (%s)\n", expectedEscrow.GetDenom(), actualEscrow.Amount, expectedEscrow.Amount)
-				}
-			}
-		}
-
-		if broken {
-			// the total amount for each denom in escrow should be >= the amount stored in state for each denom
+		// the actual escrowed amount must be greater than or equal to the expected amount for all denominations
+		if !actualTotalEscrowed.IsAllGTE(expectedTotalEscrowed) {
 			return sdk.FormatInvariant(
 				types.ModuleName,
 				"total escrow per denom invariance",
-				fmt.Sprintf("found denom(s) with total escrow amount lower than expected:\n%s", msg)), broken
+				fmt.Sprintf("found denom(s) with total escrow amount lower than expected:\nactual total escrowed: %s\nexpected total escrowed: %s", actualTotalEscrowed, expectedTotalEscrowed)), true
 		}
 
-		return "", broken
+		return "", false
 	}
 }
