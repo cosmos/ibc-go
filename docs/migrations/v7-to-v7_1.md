@@ -43,7 +43,7 @@ func CreateV7LocalhostUpgradeHandler(
 }
 ```
 
-### transfer migration
+### Transfer migration
 
 An automatic migration handler (TODO: add link after backport to v7.1.x is merged) is configured in the transfer module to set the total amount in escrow for all denominations of coins that have been sent out. For each denomination a state entry is added with the total amount of coins in escrow regardless of the channel from which they were transferred.
 
