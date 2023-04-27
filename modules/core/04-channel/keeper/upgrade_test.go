@@ -130,3 +130,5 @@ func (suite *KeeperTestSuite) TestChanUpgradeInit() {
 		})
 	}
 }
+
+// TODO: add test for UpgradeTimeout.HasPassed() in this test suite

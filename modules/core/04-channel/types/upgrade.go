@@ -2,9 +2,11 @@ package types
 
 import (
 	"strings"
+	"time"
 
 	errorsmod "cosmossdk.io/errors"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/ibc-go/v7/internal/collections"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 )
@@ -68,4 +70,23 @@ func (uf UpgradeFields) ValidateBasic() error {
 // IsValid returns true if either the height or timestamp is non-zero
 func (ut UpgradeTimeout) IsValid() bool {
 	return !ut.Height.IsZero() || ut.Timestamp != 0
+}
+
+// HasPassed returns true if the upgrade has passed the timeout height or timestamp
+func (ut UpgradeTimeout) HasPassed(ctx sdk.Context) (bool, error) {
+	if !ut.IsValid() {
+		return true, errorsmod.Wrap(ErrInvalidUpgrade, "upgrade timeout cannot be empty")
+	}
+
+	selfHeight, timeoutHeight := clienttypes.GetSelfHeight(ctx), ut.Height
+	if selfHeight.GTE(timeoutHeight) && timeoutHeight.GT(clienttypes.ZeroHeight()) {
+		return true, errorsmod.Wrapf(ErrInvalidUpgrade, "block height >= upgrade timeout height (%s >= %s)", selfHeight, timeoutHeight)
+	}
+
+	selfTime, timeoutTimestamp := uint64(ctx.BlockTime().UnixNano()), ut.Timestamp
+	if selfTime >= timeoutTimestamp && timeoutTimestamp > 0 {
+		return true, errorsmod.Wrapf(ErrInvalidUpgrade, "block timestamp >= upgrade timeout timestamp (%s >= %s)", ctx.BlockTime(), time.Unix(0, int64(timeoutTimestamp)))
+	}
+
+	return false, nil
 }
