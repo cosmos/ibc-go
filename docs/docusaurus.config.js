@@ -58,7 +58,7 @@ const config = {
       navbar: {
         title: "IBC-Go",
         logo: {
-          alt: "Black Cosmos Icon",
+          alt: "Yellow Ibc Logo",
           src: "img/ibc.svg",
         },
         items: [
