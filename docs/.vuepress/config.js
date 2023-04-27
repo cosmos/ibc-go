@@ -343,6 +343,11 @@ module.exports = {
                   directory: false,
                   path: "/apps/transfer/authorizations.html",
                 },
+                {
+                  title: "Client",
+                  directory: false,
+                  path: "/apps/transfer/client.html",
+                },
               ],
             },
           ],
