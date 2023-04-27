@@ -577,6 +577,8 @@ func (s *IncentivizedTransferTestSuite) TestPayPacketFeeAsync_SingleSender_NoCou
 		s.StartRelayer(relayer)
 	})
 
+	s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA), "failed to wait for blocks")
+
 	t.Run("with no counterparty address", func(t *testing.T) {
 		t.Run("packets are relayed", func(t *testing.T) {
 			packets, err := s.QueryIncentivizedPacketsForChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)

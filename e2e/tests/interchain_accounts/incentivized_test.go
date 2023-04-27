@@ -354,6 +354,8 @@ func (s *IncentivizedInterchainAccountsTestSuite) TestMsgSendTx_FailedBankSend_I
 			s.StartRelayer(relayer)
 		})
 
+		s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA, chainB), "failed to wait for blocks")
+
 		t.Run("packets are relayed", func(t *testing.T) {
 			packets, err := s.QueryIncentivizedPacketsForChannel(ctx, chainA, channelOutput.PortID, channelOutput.ChannelID)
 			s.Require().NoError(err)
