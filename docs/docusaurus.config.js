@@ -180,8 +180,8 @@ const config = {
     [
       "@docusaurus/plugin-client-redirects",
       {
-        fromExtensions: ["html", "htm", "md"], // /myPage.html -> /myPage
-        toExtensions: ["exe", "zip"], // /myAsset -> /myAsset.zip (if latter exists)
+        // this is to fix ADR links in production
+        fromExtensions: ["md"], // /myPage.md -> /myPage
       },
     ],
     async function myPlugin(context, options) {
