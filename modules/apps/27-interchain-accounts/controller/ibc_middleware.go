@@ -230,8 +230,8 @@ func (im IBCMiddleware) OnChanUpgradeInit(ctx sdk.Context, order channeltypes.Or
 	return icatypes.Version, nil
 }
 
-// OnUpgradeBlock implements the IBCModule interface
-func (im IBCMiddleware) OnUpgradeBlock(ctx sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, counterpartyVersion string) (string, error) {
+// OnChanUpgradeTry implements the IBCModule interface
+func (im IBCMiddleware) OnChanUpgradeTry(ctx sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, counterpartyVersion string) (string, error) {
 	return "", errorsmod.Wrap(icatypes.ErrInvalidChannelFlow, "channel handshake must be initiated by controller chain")
 }
 

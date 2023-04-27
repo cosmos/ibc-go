@@ -325,9 +325,9 @@ func (im IBCMiddleware) OnChanUpgradeInit(ctx sdk.Context, order channeltypes.Or
 	return im.app.OnChanUpgradeInit(ctx, order, connectionHops, portID, channelID, sequence, version, previousVersion)
 }
 
-// OnUpgradeBlock implement s the IBCModule interface
-func (im IBCMiddleware) OnUpgradeBlock(ctx sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, counterpartyVersion string) (string, error) {
-	return im.app.OnUpgradeBlock(ctx, portID, channelID, order, connectionHops, counterpartyVersion)
+// OnChanUpgradeTry implement s the IBCModule interface
+func (im IBCMiddleware) OnChanUpgradeTry(ctx sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, counterpartyVersion string) (string, error) {
+	return im.app.OnChanUpgradeTry(ctx, portID, channelID, order, connectionHops, counterpartyVersion)
 }
 
 // OnChanUpgradeAck implements the IBCModule interface
