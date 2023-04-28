@@ -13,11 +13,6 @@ import (
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 )
 
-const (
-	// DefaultHostEnabled is the default value for the host param (set to true)
-	DefaultHostEnabled = true
-)
-
 var (
 	// KeyHostEnabled is the store key for HostEnabled Params
 	KeyHostEnabled = []byte("HostEnabled")

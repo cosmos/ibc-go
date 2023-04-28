@@ -5,6 +5,11 @@ import (
 	"strings"
 )
 
+const (
+	// DefaultHostEnabled is the default value for the host param (set to true)
+	DefaultHostEnabled = true
+)
+
 // NewParams creates a new parameter configuration for the host submodule
 func NewParams(enableHost bool, allowMsgs []string) Params {
 	return Params{
