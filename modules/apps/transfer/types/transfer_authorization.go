@@ -40,6 +40,7 @@ func (a TransferAuthorization) Accept(ctx sdk.Context, msg sdk.Msg) (authz.Accep
 	for index, allocation := range a.Allocations {
 		if allocation.SourceChannel == msgTransfer.SourceChannel && allocation.SourcePort == msgTransfer.SourcePort {
 			for _, coin := range allocation.SpendLimit {
+				// skip spending limit if the amount is set to max int64
 				if coin.Amount.Int64() == math.MaxInt64 {
 					continue
 				}
