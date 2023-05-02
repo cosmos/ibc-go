@@ -169,7 +169,7 @@ func (s *E2ETestSuite) QueryTotalEscrowForDenom(ctx context.Context, chain ibc.C
 	})
 
 	if err != nil {
-		return sdk.NewCoin(denom, sdk.NewInt(0)), err
+		return sdk.Coin{}, err
 	}
 
 	return res.Amount, nil
