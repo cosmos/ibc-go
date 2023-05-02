@@ -790,9 +790,9 @@ func (k Keeper) ChannelUpgradeTry(goCtx context.Context, msg *channeltypes.MsgCh
 		ctx,
 		msg.PortId,
 		msg.ChannelId,
-		msg.CounterpartyProposedUpgrade.Fields.Ordering,
-		msg.CounterpartyProposedUpgrade.Fields.ConnectionHops,
-		msg.CounterpartyProposedUpgrade.Fields.Version,
+		proposedUpgrade.Fields.Ordering,
+		proposedUpgrade.Fields.ConnectionHops,
+		proposedUpgrade.Fields.Version,
 	)
 	if err != nil {
 		ctx.Logger().Error("channel upgrade try callback failed", "port-id", msg.PortId, "channel-id", msg.ChannelId, "error", err.Error())
