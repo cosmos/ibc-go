@@ -11,7 +11,7 @@ mkdir "$backup_dir"
 cp -R "$directory_path"/* "$backup_dir"
 
 # Step 1: Replace the release version in JSON files
-echo "Enter the release version to replace (leave empty to skip):"
+echo "Enter the release version to replace (ie: v4.4.0, leave empty to skip):"
 read old_release_version
 
 if [ -n "$old_release_version" ]; then
@@ -29,21 +29,22 @@ if [ -n "$old_release_version" ]; then
   done
 fi
 
-# Step 2: Add a release version to the compatibility matrix
-echo "Enter the release version to add to the compatibility matrix:"
-read new_compatibility_version
-echo "Enter the latest release version:"
-read latest_release_version
+# read user input for new and most recent release version strings
+read -p "Enter the new release version that you would like to insert (ie: v4.5.0): " new_version
+read -p "Enter the most recent release version (ie: v4.4.0): " recent_version
 
-find "$directory_path" -name "*.json" -type f -print0 | while IFS= read -r -d '' file; do
-    # Use jq to filter JSON objects that contain arrays of strings
-    jq -c 'select(type == "object" and any(.[]; type == "array" and all(.[]; type == "string")))' "$file" | while read -r object; do
-        # Use jq to find the array containing the latest release version and add the new compatibility version to it
-        updated_object=$(echo "$object" | jq ".[] |= map(if . == \"$latest_release_version\" then . + [\"$new_compatibility_version\"] else . end)")
-        # Use jq to update the object in the JSON file
-        jq --argjson updated_object "$updated_object" '. |= $updated_object' "$file" > tmp.json && mv tmp.json "$file"
-        echo "Added ${new_compatibility_version} to the compatibility matrix in ${file}"
-    done
+# loop through all json files in directory and its subdirectories
+for file in $(find "$directory_path" -name "*.json"); do
+
+  # parse the json file and search for the recent_version string
+  json=$(cat $file)
+  if [[ $json == *"$recent_version"* ]]; then
+
+    # add new_version string to the json array containing recent_version string
+    updated_json=$(echo $json | jq ".[] |= if(index(\"$recent_version\")) then . + [\"$new_version\"] else . end")
+
+    # write the updated json to file
+    echo $updated_json > $file
+    echo "Updated $file with new release version."
+  fi
 done
-
-echo "Done."
