@@ -285,7 +285,7 @@ func (s *TransferTestSuite) TestSendEnabledParam() {
 
 	t.Run("ensure ics20 transfer fails", func(t *testing.T) {
 		transferTxResp := s.Transfer(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, testvalues.DefaultTransferAmount(chainADenom), chainAAddress, chainBAddress, s.GetTimeoutHeight(ctx, chainB), 0, "")
-		s.Require().Equal(transfertypes.ErrSendDisabled.ABCICode(), transferTxResp.Code)
+		s.AssertTxFailure(transferTxResp, transfertypes.ErrSendDisabled)
 	})
 }
 
@@ -435,7 +435,7 @@ func (s *TransferTestSuite) TestMsgTransfer_WithMemo() {
 			s.AssertTxSuccess(transferTxResp)
 		} else {
 			s.Require().Equal(uint32(2), transferTxResp.Code)
-			s.Require().Contains("errUnknownField", transferTxResp.RawLog)
+			s.Require().Contains(transferTxResp.RawLog, "errUnknownField")
 		}
 	})
 

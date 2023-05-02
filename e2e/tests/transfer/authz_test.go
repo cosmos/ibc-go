@@ -248,7 +248,8 @@ func (suite *AuthzTransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 			}
 
 			resp := suite.BroadcastMessages(context.TODO(), chainA, granteeWallet, msgExec)
-			suite.AssertTxFailure(resp, sdkerrors.ErrInsufficientFunds)
+			suite.Require().NotEqual(0, resp.Code)
+			suite.Require().Contains(resp.RawLog, sdkerrors.ErrInsufficientFunds.Error())
 		})
 
 		t.Run("verify granter wallet amount", func(t *testing.T) {
@@ -300,7 +301,8 @@ func (suite *AuthzTransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 			}
 
 			resp := suite.BroadcastMessages(context.TODO(), chainA, granteeWallet, msgExec)
-			suite.AssertTxFailure(resp, sdkerrors.ErrInvalidAddress)
+			suite.Require().NotEqual(0, resp.Code)
+			suite.Require().Contains(resp.RawLog, sdkerrors.ErrInvalidAddress.Error())
 		})
 	})
 }

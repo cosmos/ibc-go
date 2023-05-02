@@ -109,8 +109,8 @@ func containsMessage(s string, messages []string) bool {
 // AssertTxFailure verifies that an sdk.TxResponse has failed.
 func (s *E2ETestSuite) AssertTxFailure(resp sdk.TxResponse, expectedError *errorsmod.Error) {
 	errorMsg := fmt.Sprintf("%+v", resp)
-	s.Require().Equal(resp.Code, expectedError.ABCICode(), errorMsg)
-	s.Require().Equal(resp.Codespace, expectedError.Codespace(), errorMsg)
+	s.Require().Equal(expectedError.ABCICode(), resp.Code, errorMsg)
+	s.Require().Equal(expectedError.Codespace(), resp.Codespace, errorMsg)
 	s.Require().Contains(resp.RawLog, expectedError.Error(), errorMsg)
 }
 
