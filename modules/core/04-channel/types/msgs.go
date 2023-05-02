@@ -536,7 +536,7 @@ func NewMsgChannelUpgradeTry(
 	portID,
 	channelID string,
 	proposedConnectionHops []string,
-	proposedUpgradeTimeout UpgradeTimeout,
+	upgradeTimeout UpgradeTimeout,
 	counterpartyProposedUpgrade Upgrade,
 	counterpartyUpgradeSequence uint64,
 	proofChannel []byte,
@@ -548,7 +548,7 @@ func NewMsgChannelUpgradeTry(
 		PortId:                        portID,
 		ChannelId:                     channelID,
 		ProposedUpgradeConnectionHops: proposedConnectionHops,
-		ProposedUpgradeTimeout:        proposedUpgradeTimeout,
+		UpgradeTimeout:                upgradeTimeout,
 		CounterpartyProposedUpgrade:   counterpartyProposedUpgrade,
 		CounterpartyUpgradeSequence:   counterpartyUpgradeSequence,
 		ProofChannel:                  proofChannel,
@@ -568,12 +568,20 @@ func (msg MsgChannelUpgradeTry) ValidateBasic() error {
 		return ErrInvalidChannelIdentifier
 	}
 
-	if msg.CounterpartyUpgradeSequence == 0 {
-		return errorsmod.Wrap(ibcerrors.ErrInvalidSequence, "counterparty sequence cannot be 0")
+	if len(msg.ProposedUpgradeConnectionHops) == 0 {
+		return errorsmod.Wrap(ErrInvalidUpgrade, "proposed connection hops cannot be empty")
 	}
 
-	if msg.ProposedUpgradeTimeout.Height.IsZero() && msg.ProposedUpgradeTimeout.Timestamp == 0 {
+	if msg.UpgradeTimeout.Height.IsZero() && msg.UpgradeTimeout.Timestamp == 0 {
 		return errorsmod.Wrap(ErrInvalidUpgradeTimeout, "timeout height or timeout timestamp must be non-zero")
+	}
+
+	if err := msg.CounterpartyProposedUpgrade.ValidateBasic(); err != nil {
+		return errorsmod.Wrap(err, "error validating counterparty upgrade")
+	}
+
+	if msg.CounterpartyUpgradeSequence == 0 {
+		return errorsmod.Wrap(ErrInvalidUpgradeSequence, "counterparty sequence cannot be 0")
 	}
 
 	if len(msg.ProofChannel) == 0 {

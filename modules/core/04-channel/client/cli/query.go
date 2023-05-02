@@ -489,3 +489,37 @@ func GetCmdQueryUpgradeError() *cobra.Command {
 
 	return cmd
 }
+
+// GetCmdQueryUpgrade defines the command to query for the upgrade associated with a port and channel id
+func GetCmdQueryUpgrade() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "upgrade [port-id] [channel-id]",
+		Short: "Query the upgrade",
+		Long:  "Query the upgrade for a given channel",
+		Example: fmt.Sprintf(
+			"%s query %s %s upgrade [port-id] [channel-id]", version.AppName, ibcexported.ModuleName, types.SubModuleName,
+		),
+		Args: cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			portID := args[0]
+			channelID := args[1]
+			prove, _ := cmd.Flags().GetBool(flags.FlagProve)
+
+			upgrade, err := utils.QueryUpgrade(clientCtx, portID, channelID, prove)
+			if err != nil {
+				return err
+			}
+
+			clientCtx = clientCtx.WithHeight(int64(upgrade.ProofHeight.RevisionHeight))
+			return clientCtx.PrintProto(upgrade)
+		},
+	}
+	cmd.Flags().Bool(flags.FlagProve, false, "show proofs for the query results")
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}

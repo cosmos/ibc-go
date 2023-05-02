@@ -72,7 +72,7 @@ enum ResponseResultType {
   // The message was executed successfully
   RESPONSE_RESULT_TYPE_SUCCESS = 2 [(gogoproto.enumvalue_customname) = "SUCCESS"];
   // The message was executed unsuccessfully
-  RESPONSE_RESULT_TYPE_FAILED = 3 [(gogoproto.enumvalue_customname) = "FAILURE"];
+  RESPONSE_RESULT_TYPE_FAILURE = 3 [(gogoproto.enumvalue_customname) = "FAILURE"];
 }
 
 // MsgChannelOpenInit defines an sdk.Msg to initialize a channel handshake. It
@@ -285,7 +285,7 @@ message MsgChannelUpgradeTry {
   string                    port_id                          = 1;
   string                    channel_id                       = 2;
   repeated string           proposed_upgrade_connection_hops = 3;
-  UpgradeTimeout            proposed_upgrade_timeout         = 4 [(gogoproto.nullable) = false];
+  UpgradeTimeout            upgrade_timeout                  = 4 [(gogoproto.nullable) = false];
   Upgrade                   counterparty_proposed_upgrade    = 5 [(gogoproto.nullable) = false];
   uint64                    counterparty_upgrade_sequence    = 6;
   bytes                     proof_channel                    = 7;

@@ -30,7 +30,7 @@ func GetQueryCmd() *cobra.Command {
 		GetCmdQueryUnreceivedAcks(),
 		GetCmdQueryNextSequenceReceive(),
 		GetCmdQueryUpgradeError(),
-		// TODO: next sequence Send ?
+		GetCmdQueryUpgrade(),
 	)
 
 	return queryCmd

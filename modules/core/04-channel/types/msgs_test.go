@@ -539,10 +539,25 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeTryValidateBasic() {
 			false,
 		},
 		{
+			"invalid connection hops",
+			func() {
+				msg.ProposedUpgradeConnectionHops = []string{}
+			},
+			false,
+		},
+		{
+			"invalid counterparty upgrade",
+			func() {
+				msg.CounterpartyProposedUpgrade.Timeout.Height = clienttypes.ZeroHeight()
+				msg.CounterpartyProposedUpgrade.Timeout.Timestamp = 0
+			},
+			false,
+		},
+		{
 			"timeout height is zero && timeout timestamp is zero",
 			func() {
-				msg.ProposedUpgradeTimeout.Height = clienttypes.ZeroHeight()
-				msg.ProposedUpgradeTimeout.Timestamp = 0
+				msg.UpgradeTimeout.Height = clienttypes.ZeroHeight()
+				msg.UpgradeTimeout.Timestamp = 0
 			},
 			false,
 		},
@@ -577,7 +592,6 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeTryValidateBasic() {
 				types.NewUpgradeTimeout(clienttypes.NewHeight(0, 10000), timeoutTimestamp),
 				1,
 			)
-
 			msg = types.NewMsgChannelUpgradeTry(
 				ibctesting.MockPort,
 				ibctesting.FirstChannelID,

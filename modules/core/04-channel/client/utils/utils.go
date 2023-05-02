@@ -213,6 +213,25 @@ func QueryUpgradeError(
 	return queryClient.UpgradeError(context.Background(), req)
 }
 
+// QueryUpgrade returns the upgrade.
+// If prove is true, it performs an ABCI store query in order to retrieve the merkle proof. Otherwise,
+// it uses the gRPC query client.
+func QueryUpgrade(
+	clientCtx client.Context, portID, channelID string, prove bool,
+) (*types.QueryUpgradeResponse, error) {
+	if prove {
+		return queryUpgradeABCI(clientCtx, portID, channelID)
+	}
+
+	queryClient := types.NewQueryClient(clientCtx)
+	req := &types.QueryUpgradeRequest{
+		PortId:    portID,
+		ChannelId: channelID,
+	}
+
+	return queryClient.Upgrade(context.Background(), req)
+}
+
 // queryUpgradeErrorABCI queries the upgrade error from the store.
 func queryUpgradeErrorABCI(clientCtx client.Context, portID, channelID string) (*types.QueryUpgradeErrorResponse, error) {
 	key := host.ChannelUpgradeErrorKey(portID, channelID)
@@ -235,6 +254,30 @@ func queryUpgradeErrorABCI(clientCtx client.Context, portID, channelID string) (
 	}
 
 	return types.NewQueryUpgradeErrorResponse(receipt, proofBz, proofHeight), nil
+}
+
+// queryUpgradeABCI queries the upgrade from the store.
+func queryUpgradeABCI(clientCtx client.Context, portID, channelID string) (*types.QueryUpgradeResponse, error) {
+	key := host.ChannelUpgradeKey(portID, channelID)
+
+	value, proofBz, proofHeight, err := ibcclient.QueryTendermintProof(clientCtx, key)
+	if err != nil {
+		return nil, err
+	}
+
+	// check if upgrade exists
+	if len(value) == 0 {
+		return nil, errorsmod.Wrapf(types.ErrUpgradeErrorNotFound, "portID (%s), channelID (%s)", portID, channelID)
+	}
+
+	cdc := codec.NewProtoCodec(clientCtx.InterfaceRegistry)
+
+	var upgrade types.Upgrade
+	if err := cdc.Unmarshal(value, &upgrade); err != nil {
+		return nil, err
+	}
+
+	return types.NewQueryUpgradeResponse(upgrade, proofBz, proofHeight), nil
 }
 
 // QueryPacketCommitment returns a packet commitment.
