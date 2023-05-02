@@ -29,7 +29,7 @@ if [ -n "$old_release_version" ]; then
   done
 fi
 
-# read user input for new and most recent release version strings
+# Step 2: Add new release version to testing configuration files
 read -p "Enter the new release version that you would like to insert (ie: v4.5.0): " new_version
 read -p "Enter the most recent release version (ie: v4.4.0): " recent_version
 
