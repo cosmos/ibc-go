@@ -57,26 +57,26 @@ func (k Keeper) WriteUpgradeInitChannel(ctx sdk.Context, portID, channelID strin
 	emitChannelUpgradeInitEvent(ctx, portID, channelID, currentChannel, upgrade)
 }
 
-// UpgradeBlock
-func (k Keeper) UpgradeBlock(
+// upgradeTry
+func (k Keeper) ChanUpgradeTry(
 	ctx sdk.Context,
 	portID,
 	channelID string,
 	proposedConnectionHops []string,
-	proposedUpgradeTimeout types.UpgradeTimeout,
+	upgradeTimeout types.UpgradeTimeout,
 	counterpartyProposedUpgrade types.Upgrade,
 	counterpartyUpgradeSequence uint64,
 	proofCounterpartyChannel,
-	proofUpgrade []byte,
+	proofCounterpartyUpgrade []byte,
 	proofHeight clienttypes.Height,
-) (types.Upgrade, types.Channel, error) {
+) (types.Upgrade, error) {
 	// TODO
-	return types.Upgrade{}, types.Channel{}, nil
+	return types.Upgrade{}, nil
 }
 
-// WriteUpgradeBlockChannel writes a channel which has successfully passed the UpgradeBlock step.
+// WriteUpgradeTryChannel writes a channel which has successfully passed the UpgradeTry step.
 // An event is emitted for the handshake step.
-func (k Keeper) WriteUpgradeBlockChannel(
+func (k Keeper) WriteUpgradeTryChannel(
 	ctx sdk.Context,
 	portID, channelID string,
 	proposedUpgrade types.Upgrade,
