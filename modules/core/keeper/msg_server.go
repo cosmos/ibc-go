@@ -751,10 +751,6 @@ func (k Keeper) ChannelUpgradeInit(goCtx context.Context, msg *channeltypes.MsgC
 
 // ChannelUpgradeTry defines a rpc handler method for MsgChannelUpgradeTry.
 func (k Keeper) ChannelUpgradeTry(goCtx context.Context, msg *channeltypes.MsgChannelUpgradeTry) (*channeltypes.MsgChannelUpgradeTryResponse, error) {
-	// cbs.OnUpgradeBlock()
-
-	// k.ChannelKeeper.WriteUpgradeBlock()
-
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	module, _, err := k.ChannelKeeper.LookupModuleByChannel(ctx, msg.PortId, msg.ChannelId)
@@ -769,9 +765,8 @@ func (k Keeper) ChannelUpgradeTry(goCtx context.Context, msg *channeltypes.MsgCh
 		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
 	}
 
-	// k.ChannelKeeper.UpgradeBlockStep()
 	// TODO: this may be updated based on refactors to this step
-	proposedUpgrade, _, err := k.ChannelKeeper.UpgradeBlock(
+	proposedUpgrade, err := k.ChannelKeeper.ChanUpgradeTry(
 		ctx,
 		msg.PortId,
 		msg.ChannelId,
@@ -784,14 +779,14 @@ func (k Keeper) ChannelUpgradeTry(goCtx context.Context, msg *channeltypes.MsgCh
 		msg.ProofHeight,
 	)
 	if err != nil {
-		ctx.Logger().Error("channel upgrade try failed", "error", errorsmod.Wrap(err, "channel handshake upgrade try failed"))
+		ctx.Logger().Error("channel upgrade try failed", "error", err)
 
 		return &channeltypes.MsgChannelUpgradeTryResponse{
 			Result: channeltypes.FAILURE,
 		}, nil
 	}
 
-	proposedVersion, err := cbs.OnUpgradeBlock(
+	proposedVersion, err := cbs.OnChanUpgradeTry(
 		ctx,
 		msg.PortId,
 		msg.ChannelId,
@@ -810,8 +805,7 @@ func (k Keeper) ChannelUpgradeTry(goCtx context.Context, msg *channeltypes.MsgCh
 	// set version to return value of callback
 	proposedUpgrade.Fields.Version = proposedVersion
 
-	// k.ChannelKeeper.WriteUpgradeBlock()
-	k.ChannelKeeper.WriteUpgradeBlockChannel(
+	k.ChannelKeeper.WriteUpgradeTryChannel(
 		ctx,
 		msg.PortId,
 		msg.ChannelId,
