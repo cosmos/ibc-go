@@ -166,7 +166,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 		return errorsmod.Wrapf(err, "error validating ICS-20 transfer packet data")
 	}
 
-	if !k.GetReceiveEnabled(ctx) {
+	if !k.GetParams(ctx).ReceiveEnabled {
 		return types.ErrReceiveDisabled
 	}
 
