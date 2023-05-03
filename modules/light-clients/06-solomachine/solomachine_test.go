@@ -22,10 +22,7 @@ import (
 	"github.com/cosmos/ibc-go/v7/testing/mock"
 )
 
-var (
-	channelIDSolomachine = "channel-on-solomachine" // channelID generated on solo machine side
-	clientIDSolomachine  = "06-solomachine-0"
-)
+var channelIDSolomachine = "channel-on-solomachine" // channelID generated on solo machine side
 
 type SoloMachineTestSuite struct {
 	suite.Suite
@@ -123,7 +120,7 @@ func (suite *SoloMachineTestSuite) TestTimeout() {
 	// simulate solomachine time increment
 	suite.solomachine.Time++
 
-	suite.solomachine.UpdateClient(suite.chainA, clientIDSolomachine)
+	suite.solomachine.UpdateClient(suite.chainA, ibctesting.DefaultSolomachineClientID)
 
 	suite.solomachine.TimeoutPacket(suite.chainA, packet)
 
@@ -160,11 +157,11 @@ func TestUnpackInterfaces_Header(t *testing.T) {
 	cryptocodec.RegisterInterfaces(registry)
 
 	pk := secp256k1.GenPrivKey().PubKey()
-	any, err := codectypes.NewAnyWithValue(pk)
+	protoAny, err := codectypes.NewAnyWithValue(pk)
 	require.NoError(t, err)
 
 	header := solomachine.Header{
-		NewPublicKey: any,
+		NewPublicKey: protoAny,
 	}
 	bz, err := header.Marshal()
 	require.NoError(t, err)
@@ -184,11 +181,11 @@ func TestUnpackInterfaces_HeaderData(t *testing.T) {
 	cryptocodec.RegisterInterfaces(registry)
 
 	pk := secp256k1.GenPrivKey().PubKey()
-	any, err := codectypes.NewAnyWithValue(pk)
+	protoAny, err := codectypes.NewAnyWithValue(pk)
 	require.NoError(t, err)
 
 	hd := solomachine.HeaderData{
-		NewPubKey: any,
+		NewPubKey: protoAny,
 	}
 	bz, err := hd.Marshal()
 	require.NoError(t, err)

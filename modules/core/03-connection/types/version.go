@@ -3,8 +3,9 @@ package types
 import (
 	"strings"
 
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	errorsmod "cosmossdk.io/errors"
 
+	collections "github.com/cosmos/ibc-go/v7/internal/collections"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
@@ -26,7 +27,7 @@ var (
 	}
 )
 
-var _ exported.Version = &Version{}
+var _ exported.Version = (*Version)(nil)
 
 // NewVersion returns a new instance of Version.
 func NewVersion(identifier string, features []string) *Version {
@@ -50,14 +51,14 @@ func (version Version) GetFeatures() []string {
 // features. It unmarshals the version string into a Version object.
 func ValidateVersion(version *Version) error {
 	if version == nil {
-		return sdkerrors.Wrap(ErrInvalidVersion, "version cannot be nil")
+		return errorsmod.Wrap(ErrInvalidVersion, "version cannot be nil")
 	}
 	if strings.TrimSpace(version.Identifier) == "" {
-		return sdkerrors.Wrap(ErrInvalidVersion, "version identifier cannot be blank")
+		return errorsmod.Wrap(ErrInvalidVersion, "version identifier cannot be blank")
 	}
 	for i, feature := range version.Features {
 		if strings.TrimSpace(feature) == "" {
-			return sdkerrors.Wrapf(ErrInvalidVersion, "feature cannot be blank, index %d", i)
+			return errorsmod.Wrapf(ErrInvalidVersion, "feature cannot be blank, index %d", i)
 		}
 	}
 
@@ -70,22 +71,22 @@ func ValidateVersion(version *Version) error {
 // identifier.
 func (version Version) VerifyProposedVersion(proposedVersion exported.Version) error {
 	if proposedVersion.GetIdentifier() != version.GetIdentifier() {
-		return sdkerrors.Wrapf(
+		return errorsmod.Wrapf(
 			ErrVersionNegotiationFailed,
 			"proposed version identifier does not equal supported version identifier (%s != %s)", proposedVersion.GetIdentifier(), version.GetIdentifier(),
 		)
 	}
 
 	if len(proposedVersion.GetFeatures()) == 0 && !allowNilFeatureSet[proposedVersion.GetIdentifier()] {
-		return sdkerrors.Wrapf(
+		return errorsmod.Wrapf(
 			ErrVersionNegotiationFailed,
 			"nil feature sets are not supported for version identifier (%s)", proposedVersion.GetIdentifier(),
 		)
 	}
 
 	for _, proposedFeature := range proposedVersion.GetFeatures() {
-		if !contains(proposedFeature, version.GetFeatures()) {
-			return sdkerrors.Wrapf(
+		if !collections.Contains(proposedFeature, version.GetFeatures()) {
+			return errorsmod.Wrapf(
 				ErrVersionNegotiationFailed,
 				"proposed feature (%s) is not a supported feature set (%s)", proposedFeature, version.GetFeatures(),
 			)
@@ -166,7 +167,7 @@ func PickVersion(supportedVersions, counterpartyVersions []exported.Version) (*V
 		}
 	}
 
-	return nil, sdkerrors.Wrapf(
+	return nil, errorsmod.Wrapf(
 		ErrVersionNegotiationFailed,
 		"failed to find a matching counterparty version (%v) from the supported version list (%v)", counterpartyVersions, supportedVersions,
 	)
@@ -178,7 +179,7 @@ func PickVersion(supportedVersions, counterpartyVersions []exported.Version) (*V
 // set for the counterparty version.
 func GetFeatureSetIntersection(sourceFeatureSet, counterpartyFeatureSet []string) (featureSet []string) {
 	for _, feature := range sourceFeatureSet {
-		if contains(feature, counterpartyFeatureSet) {
+		if collections.Contains(feature, counterpartyFeatureSet) {
 			featureSet = append(featureSet, feature)
 		}
 	}
@@ -206,16 +207,4 @@ func ProtoVersionsToExported(versions []*Version) []exported.Version {
 	}
 
 	return exportedVersions
-}
-
-// contains returns true if the provided string element exists within the
-// string set.
-func contains(elem string, set []string) bool {
-	for _, element := range set {
-		if elem == element {
-			return true
-		}
-	}
-
-	return false
 }

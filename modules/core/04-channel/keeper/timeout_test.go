@@ -4,8 +4,8 @@ import (
 	"errors"
 	"fmt"
 
-	sdkerrors "cosmossdk.io/errors"
-	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
+	errorsmod "cosmossdk.io/errors"
+	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
@@ -24,7 +24,7 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 		packet      types.Packet
 		nextSeqRecv uint64
 		ordered     bool
-		expError    *sdkerrors.Error
+		expError    *errorsmod.Error
 	)
 
 	testCases := []testCase{

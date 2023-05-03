@@ -4,8 +4,8 @@ import (
 	"errors"
 	"fmt"
 
-	sdkerrors "cosmossdk.io/errors"
-	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
+	errorsmod "cosmossdk.io/errors"
+	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
@@ -261,7 +261,7 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 		path       *ibctesting.Path
 		packet     exported.PacketI
 		channelCap *capabilitytypes.Capability
-		expError   *sdkerrors.Error
+		expError   *errorsmod.Error
 	)
 
 	testCases := []testCase{
@@ -622,7 +622,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 		ack    = ibcmock.MockAcknowledgement
 
 		channelCap *capabilitytypes.Capability
-		expError   *sdkerrors.Error
+		expError   *errorsmod.Error
 	)
 
 	testCases := []testCase{

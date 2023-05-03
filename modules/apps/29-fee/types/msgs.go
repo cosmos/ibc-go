@@ -3,9 +3,10 @@ package types
 import (
 	"strings"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
+	ibcerrors "github.com/cosmos/ibc-go/v7/internal/errors"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 )
@@ -31,17 +32,17 @@ func (msg MsgRegisterPayee) ValidateBasic() error {
 	}
 
 	if msg.Relayer == msg.Payee {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "relayer address and payee must not be equal")
+		return errorsmod.Wrap(ibcerrors.ErrInvalidRequest, "relayer address and payee must not be equal")
 	}
 
 	_, err := sdk.AccAddressFromBech32(msg.Relayer)
 	if err != nil {
-		return sdkerrors.Wrap(err, "failed to create sdk.AccAddress from relayer address")
+		return errorsmod.Wrap(err, "failed to create sdk.AccAddress from relayer address")
 	}
 
 	_, err = sdk.AccAddressFromBech32(msg.Payee)
 	if err != nil {
-		return sdkerrors.Wrap(err, "failed to create sdk.AccAddress from payee address")
+		return errorsmod.Wrap(err, "failed to create sdk.AccAddress from payee address")
 	}
 
 	return nil
@@ -79,7 +80,7 @@ func (msg MsgRegisterCounterpartyPayee) ValidateBasic() error {
 
 	_, err := sdk.AccAddressFromBech32(msg.Relayer)
 	if err != nil {
-		return sdkerrors.Wrap(err, "failed to create sdk.AccAddress from relayer address")
+		return errorsmod.Wrap(err, "failed to create sdk.AccAddress from relayer address")
 	}
 
 	if strings.TrimSpace(msg.CounterpartyPayee) == "" {
@@ -124,7 +125,7 @@ func (msg MsgPayPacketFee) ValidateBasic() error {
 
 	// signer check
 	if _, err := sdk.AccAddressFromBech32(msg.Signer); err != nil {
-		return sdkerrors.Wrap(err, "failed to convert msg.Signer into sdk.AccAddress")
+		return errorsmod.Wrap(err, "failed to convert msg.Signer into sdk.AccAddress")
 	}
 
 	// enforce relayer is not set
@@ -132,11 +133,7 @@ func (msg MsgPayPacketFee) ValidateBasic() error {
 		return ErrRelayersNotEmpty
 	}
 
-	if err := msg.Fee.Validate(); err != nil {
-		return err
-	}
-
-	return nil
+	return msg.Fee.Validate()
 }
 
 // GetSigners implements sdk.Msg
@@ -172,11 +169,7 @@ func (msg MsgPayPacketFeeAsync) ValidateBasic() error {
 		return err
 	}
 
-	if err := msg.PacketFee.Validate(); err != nil {
-		return err
-	}
-
-	return nil
+	return msg.PacketFee.Validate()
 }
 
 // GetSigners implements sdk.Msg

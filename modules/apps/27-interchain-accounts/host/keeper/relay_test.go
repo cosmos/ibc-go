@@ -171,11 +171,11 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 					Description: "tokens for all!",
 				}
 
-				any, err := codectypes.NewAnyWithValue(testProposal)
+				protoAny, err := codectypes.NewAnyWithValue(testProposal)
 				suite.Require().NoError(err)
 
 				msg := &govtypes.MsgSubmitProposal{
-					Content:        any,
+					Content:        protoAny,
 					InitialDeposit: sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(5000))),
 					Proposer:       interchainAccountAddr,
 				}

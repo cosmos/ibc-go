@@ -59,14 +59,14 @@ func (suite *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 			},
 		}
 
-		authAny, err := codectypes.NewAnyWithValue(&transferAuth)
+		protoAny, err := codectypes.NewAnyWithValue(&transferAuth)
 		suite.Require().NoError(err)
 
 		msgGrant := &authz.MsgGrant{
 			Granter: granterAddress,
 			Grantee: granteeAddress,
 			Grant: authz.Grant{
-				Authorization: authAny,
+				Authorization: protoAny,
 				// no expiration
 				Expiration: nil,
 			},
@@ -105,12 +105,12 @@ func (suite *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 			TimeoutHeight: suite.GetTimeoutHeight(ctx, chainB),
 		}
 
-		transferAny, err := codectypes.NewAnyWithValue(&transferMsg)
+		protoAny, err := codectypes.NewAnyWithValue(&transferMsg)
 		suite.Require().NoError(err)
 
 		msgExec := &authz.MsgExec{
 			Grantee: granteeAddress,
-			Msgs:    []*codectypes.Any{transferAny},
+			Msgs:    []*codectypes.Any{protoAny},
 		}
 
 		resp, err := suite.BroadcastMessages(context.TODO(), chainA, granteeWallet, msgExec)
@@ -163,12 +163,12 @@ func (suite *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 			TimeoutHeight: suite.GetTimeoutHeight(ctx, chainB),
 		}
 
-		transferAny, err := codectypes.NewAnyWithValue(&transferMsg)
+		protoAny, err := codectypes.NewAnyWithValue(&transferMsg)
 		suite.Require().NoError(err)
 
 		msgExec := &authz.MsgExec{
 			Grantee: granteeAddress,
-			Msgs:    []*codectypes.Any{transferAny},
+			Msgs:    []*codectypes.Any{protoAny},
 		}
 
 		resp, err := suite.BroadcastMessages(context.TODO(), chainA, granteeWallet, msgExec)
@@ -214,14 +214,14 @@ func (suite *AuthzTransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 			},
 		}
 
-		authAny, err := codectypes.NewAnyWithValue(&transferAuth)
+		protoAny, err := codectypes.NewAnyWithValue(&transferAuth)
 		suite.Require().NoError(err)
 
 		msgGrant := &authz.MsgGrant{
 			Granter: granterAddress,
 			Grantee: granteeAddress,
 			Grant: authz.Grant{
-				Authorization: authAny,
+				Authorization: protoAny,
 				// no expiration
 				Expiration: nil,
 			},
@@ -245,12 +245,12 @@ func (suite *AuthzTransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 				TimeoutHeight: suite.GetTimeoutHeight(ctx, chainB),
 			}
 
-			transferAny, err := codectypes.NewAnyWithValue(&transferMsg)
+			protoAny, err := codectypes.NewAnyWithValue(&transferMsg)
 			suite.Require().NoError(err)
 
 			msgExec := &authz.MsgExec{
 				Grantee: granteeAddress,
-				Msgs:    []*codectypes.Any{transferAny},
+				Msgs:    []*codectypes.Any{protoAny},
 			}
 
 			resp, err := suite.BroadcastMessages(context.TODO(), chainA, granteeWallet, msgExec)
@@ -299,12 +299,12 @@ func (suite *AuthzTransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 				TimeoutHeight: suite.GetTimeoutHeight(ctx, chainB),
 			}
 
-			transferAny, err := codectypes.NewAnyWithValue(&transferMsg)
+			protoAny, err := codectypes.NewAnyWithValue(&transferMsg)
 			suite.Require().NoError(err)
 
 			msgExec := &authz.MsgExec{
 				Grantee: granteeAddress,
-				Msgs:    []*codectypes.Any{transferAny},
+				Msgs:    []*codectypes.Any{protoAny},
 			}
 
 			resp, err := suite.BroadcastMessages(context.TODO(), chainA, granteeWallet, msgExec)

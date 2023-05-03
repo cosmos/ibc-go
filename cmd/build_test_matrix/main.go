@@ -9,6 +9,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 )
 
@@ -21,6 +22,8 @@ const (
 	// testExclusionsEnv is a comma separated list of test function names that will not be included
 	// in the results of this script.
 	testExclusionsEnv = "TEST_EXCLUSIONS"
+	// testNameEnv if provided returns a single test entry so that only one test is actually run.
+	testNameEnv = "TEST_NAME"
 )
 
 // GithubActionTestMatrix represents
@@ -34,7 +37,7 @@ type TestSuitePair struct {
 }
 
 func main() {
-	githubActionMatrix, err := getGithubActionMatrixForTests(e2eTestDirectory, getTestFunctionToRun(), getExcludedTestFunctions())
+	githubActionMatrix, err := getGithubActionMatrixForTests(e2eTestDirectory, getTestToRun(), getTestEntrypointToRun(), getExcludedTestFunctions())
 	if err != nil {
 		fmt.Printf("error generating github action json: %s", err)
 		os.Exit(1)
@@ -48,14 +51,24 @@ func main() {
 	fmt.Println(string(ghBytes))
 }
 
-// getTestFunctionToRun returns the specified test function to run if present, otherwise
+// getTestEntrypointToRun returns the specified test function to run if present, otherwise
 // it returns an empty string which will result in running all test suites.
-func getTestFunctionToRun() string {
+func getTestEntrypointToRun() string {
 	testSuite, ok := os.LookupEnv(testEntryPointEnv)
 	if !ok {
 		return ""
 	}
 	return testSuite
+}
+
+// getTestToRun returns the specified test function to run if present.
+// If specified, only this test will be run.
+func getTestToRun() string {
+	testName, ok := os.LookupEnv(testNameEnv)
+	if !ok {
+		return ""
+	}
+	return testName
 }
 
 // getExcludedTestFunctions returns a list of test functions that we don't want to run.
@@ -79,7 +92,7 @@ func contains(s string, items []string) bool {
 // getGithubActionMatrixForTests returns a json string representing the contents that should go in the matrix
 // field in a github action workflow. This string can be used with `fromJSON(str)` to dynamically build
 // the workflow matrix to include all E2E tests under the e2eRootDirectory directory.
-func getGithubActionMatrixForTests(e2eRootDirectory, suite string, exlcudedItems []string) (GithubActionTestMatrix, error) {
+func getGithubActionMatrixForTests(e2eRootDirectory, testName string, suite string, excludedItems []string) (GithubActionTestMatrix, error) {
 	testSuiteMapping := map[string][]string{}
 	fset := token.NewFileSet()
 	err := filepath.Walk(e2eRootDirectory, func(path string, info fs.FileInfo, err error) error {
@@ -102,7 +115,11 @@ func getGithubActionMatrixForTests(e2eRootDirectory, suite string, exlcudedItems
 			return fmt.Errorf("failed extracting test suite name and test cases: %s", err)
 		}
 
-		if contains(suiteNameForFile, exlcudedItems) {
+		if testName != "" && contains(testName, testCases) {
+			testCases = []string{testName}
+		}
+
+		if contains(suiteNameForFile, excludedItems) {
 			return nil
 		}
 
@@ -127,6 +144,14 @@ func getGithubActionMatrixForTests(e2eRootDirectory, suite string, exlcudedItems
 				EntryPoint: testSuiteName,
 			})
 		}
+	}
+	// Sort the test cases by name so that the order is consistent.
+	sort.SliceStable(gh.Include, func(i, j int) bool {
+		return gh.Include[i].Test < gh.Include[j].Test
+	})
+
+	if testName != "" && len(gh.Include) != 1 {
+		return GithubActionTestMatrix{}, fmt.Errorf("expected exactly 1 test in the output matrix but got %d", len(gh.Include))
 	}
 
 	return gh, nil

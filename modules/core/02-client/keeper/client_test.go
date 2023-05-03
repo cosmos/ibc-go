@@ -13,22 +13,39 @@ import (
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	solomachine "github.com/cosmos/ibc-go/v7/modules/light-clients/06-solomachine"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
+	localhost "github.com/cosmos/ibc-go/v7/modules/light-clients/09-localhost"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
 func (suite *KeeperTestSuite) TestCreateClient() {
 	cases := []struct {
-		msg         string
-		clientState exported.ClientState
-		expPass     bool
+		msg            string
+		clientState    exported.ClientState
+		consensusState exported.ConsensusState
+		expPass        bool
 	}{
-		{"success", ibctm.NewClientState(testChainID, ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, testClientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath), true},
-		{"client type not supported", solomachine.NewClientState(0, &solomachine.ConsensusState{PublicKey: suite.solomachine.ConsensusState().PublicKey, Diversifier: suite.solomachine.Diversifier, Timestamp: suite.solomachine.Time}), false},
+		{
+			"success: 07-tendermint client type supported",
+			ibctm.NewClientState(testChainID, ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, testClientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath),
+			suite.consensusState,
+			true,
+		},
+		{
+			"success: 06-solomachine client type supported",
+			solomachine.NewClientState(0, &solomachine.ConsensusState{PublicKey: suite.solomachine.ConsensusState().PublicKey, Diversifier: suite.solomachine.Diversifier, Timestamp: suite.solomachine.Time}),
+			&solomachine.ConsensusState{PublicKey: suite.solomachine.ConsensusState().PublicKey, Diversifier: suite.solomachine.Diversifier, Timestamp: suite.solomachine.Time},
+			true,
+		},
+		{
+			"failure: 09-localhost client type not supported",
+			localhost.NewClientState(clienttypes.GetSelfHeight(suite.ctx)),
+			nil,
+			false,
+		},
 	}
 
 	for i, tc := range cases {
-
-		clientID, err := suite.keeper.CreateClient(suite.ctx, tc.clientState, suite.consensusState)
+		clientID, err := suite.keeper.CreateClient(suite.ctx, tc.clientState, tc.consensusState)
 		if tc.expPass {
 			suite.Require().NoError(err, "valid test case %d failed: %s", i, tc.msg)
 			suite.Require().NotNil(clientID, "valid test case %d failed: %s", i, tc.msg)

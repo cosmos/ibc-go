@@ -239,10 +239,10 @@ txMsgData := &sdk.TxMsgData{
 for i, msg := range msgs {
   // message validation
 
-  any, err := k.executeMsg(cacheCtx, msg)
+  protoAny, err := k.executeMsg(cacheCtx, msg)
   // return if err != nil
 
-  txMsgData.MsgResponses[i] = any
+  txMsgData.MsgResponses[i] = protoAny
 }
 
 // emit events

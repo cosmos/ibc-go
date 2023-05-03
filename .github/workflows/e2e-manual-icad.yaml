@@ -25,10 +25,10 @@ on:
         default: master
         options:
           - master
+          - v0.5.1
           - v0.4.3
           - v0.3.6
           - v0.2.6
-          - v0.1.7
       chain-b-tag:
         default: master
         description: 'The tag to use for chain B'
@@ -36,10 +36,10 @@ on:
         type: choice
         options:
           - master
+          - v0.5.1
           - v0.4.3
           - v0.3.6
           - v0.2.6
-          - v0.1.7
       relayer-type:
         default: rly
         description: 'The relayer to use'

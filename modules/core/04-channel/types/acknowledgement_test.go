@@ -3,11 +3,13 @@ package types_test
 import (
 	"fmt"
 
+	errorsmod "cosmossdk.io/errors"
+	abcitypes "github.com/cometbft/cometbft/abci/types"
+	tmprotostate "github.com/cometbft/cometbft/proto/tendermint/state"
+	tmstate "github.com/cometbft/cometbft/state"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	abcitypes "github.com/tendermint/tendermint/abci/types"
-	tmprotostate "github.com/tendermint/tendermint/proto/tendermint/state"
-	tmstate "github.com/tendermint/tendermint/state"
 
+	ibcerrors "github.com/cosmos/ibc-go/v7/internal/errors"
 	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 )
 
@@ -16,37 +18,42 @@ const (
 	gasWanted = uint64(100)
 )
 
-// tests acknowledgement.ValidateBasic and acknowledgement.GetBytes
+// tests acknowledgement.ValidateBasic and acknowledgement.Acknowledgement
 func (suite TypesTestSuite) TestAcknowledgement() { //nolint:govet // this is a test, we are okay with copying locks
 	testCases := []struct {
-		name       string
-		ack        types.Acknowledgement
-		expSuccess bool // indicate if this is a success or failed ack
-		expPass    bool
+		name         string
+		ack          types.Acknowledgement
+		expValidates bool
+		expBytes     []byte
+		expSuccess   bool // indicate if this is a success or failed ack
 	}{
 		{
 			"valid successful ack",
 			types.NewResultAcknowledgement([]byte("success")),
 			true,
+			[]byte(`{"result":"c3VjY2Vzcw=="}`),
 			true,
 		},
 		{
 			"valid failed ack",
 			types.NewErrorAcknowledgement(fmt.Errorf("error")),
-			false,
 			true,
+			[]byte(`{"error":"ABCI code: 1: error handling packet: see events for details"}`),
+			false,
 		},
 		{
 			"empty successful ack",
 			types.NewResultAcknowledgement([]byte{}),
-			true,
 			false,
+			nil,
+			true,
 		},
 		{
 			"empty failed ack",
 			types.NewErrorAcknowledgement(fmt.Errorf("  ")),
-			false,
 			true,
+			[]byte(`{"error":"ABCI code: 1: error handling packet: see events for details"}`),
+			false,
 		},
 		{
 			"nil response",
@@ -54,6 +61,7 @@ func (suite TypesTestSuite) TestAcknowledgement() { //nolint:govet // this is a 
 				Response: nil,
 			},
 			false,
+			nil,
 			false,
 		},
 	}
@@ -66,17 +74,18 @@ func (suite TypesTestSuite) TestAcknowledgement() { //nolint:govet // this is a 
 
 			err := tc.ack.ValidateBasic()
 
-			if tc.expPass {
+			if tc.expValidates {
 				suite.Require().NoError(err)
+
+				// expect all valid acks to be able to be marshaled
+				suite.NotPanics(func() {
+					bz := tc.ack.Acknowledgement()
+					suite.Require().NotNil(bz)
+					suite.Require().Equal(tc.expBytes, bz)
+				})
 			} else {
 				suite.Require().Error(err)
 			}
-
-			// expect all acks to be able to be marshaled
-			suite.NotPanics(func() {
-				bz := tc.ack.Acknowledgement()
-				suite.Require().NotNil(bz)
-			})
 
 			suite.Require().Equal(tc.expSuccess, tc.ack.Success())
 		})
@@ -91,11 +100,11 @@ func (suite TypesTestSuite) TestAcknowledgement() { //nolint:govet // this is a 
 // This test acts as an indicator that the ABCI error codes may no longer be deterministic.
 func (suite *TypesTestSuite) TestABCICodeDeterminism() {
 	// same ABCI error code used
-	err := sdkerrors.Wrap(sdkerrors.ErrOutOfGas, "error string 1")
-	errSameABCICode := sdkerrors.Wrap(sdkerrors.ErrOutOfGas, "error string 2")
+	err := errorsmod.Wrap(ibcerrors.ErrOutOfGas, "error string 1")
+	errSameABCICode := errorsmod.Wrap(ibcerrors.ErrOutOfGas, "error string 2")
 
 	// different ABCI error code used
-	errDifferentABCICode := sdkerrors.ErrNotFound
+	errDifferentABCICode := ibcerrors.ErrNotFound
 
 	deliverTx := sdkerrors.ResponseDeliverTxWithEvents(err, gasUsed, gasWanted, []abcitypes.Event{}, false)
 	responses := tmprotostate.ABCIResponses{
@@ -130,11 +139,11 @@ func (suite *TypesTestSuite) TestABCICodeDeterminism() {
 // ABCI error code are used in constructing the acknowledgement error string
 func (suite *TypesTestSuite) TestAcknowledgementError() {
 	// same ABCI error code used
-	err := sdkerrors.Wrap(sdkerrors.ErrOutOfGas, "error string 1")
-	errSameABCICode := sdkerrors.Wrap(sdkerrors.ErrOutOfGas, "error string 2")
+	err := errorsmod.Wrap(ibcerrors.ErrOutOfGas, "error string 1")
+	errSameABCICode := errorsmod.Wrap(ibcerrors.ErrOutOfGas, "error string 2")
 
 	// different ABCI error code used
-	errDifferentABCICode := sdkerrors.ErrNotFound
+	errDifferentABCICode := ibcerrors.ErrNotFound
 
 	ack := types.NewErrorAcknowledgement(err)
 	ackSameABCICode := types.NewErrorAcknowledgement(errSameABCICode)

@@ -22,7 +22,7 @@ Add the following to the function call to the upgrade handler in `app/app.go`, t
 ```go
 import (
   // ...
-  ibctmmigrations "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint/migrations"
+  ibctmmigrations "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint/migrations"
 )
 
 // ...
@@ -54,7 +54,7 @@ To register the tendermint client, modify the `app.go` file to include the tende
 ```diff
 import (
   // ...
-+ ibctm "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint"
++ ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 )
 
 // ...
@@ -76,7 +76,7 @@ To register the solo machine client, modify the `app.go` file to include the sol
 ```diff
 import (
   // ...
-+ solomachine "github.com/cosmos/ibc-go/v6/modules/light-clients/06-solomachine"
++ solomachine "github.com/cosmos/ibc-go/v7/modules/light-clients/06-solomachine"
 )
 
 // ...
@@ -169,11 +169,11 @@ if err := clientState.VerifyMembership(
 
 The `GetRoot` function has been removed from consensus state interface since it was not used by core IBC.
 
-### Client Keeper
+### Client keeper
 
 Keeper function `CheckMisbehaviourAndUpdateState` has been removed since function `UpdateClient` can now handle updating `ClientState` on `ClientMessage` type which can be any `Misbehaviour` implementations.  
 
-### SDK Message
+### SDK message
 
 `MsgSubmitMisbehaviour` is deprecated since `MsgUpdateClient` can now submit a `ClientMessage` type which can be any `Misbehaviour` implementations.
 
@@ -274,8 +274,8 @@ IBC module constants have been moved from the `host` package to the `exported` p
 ```diff
 import (
   // ...
-- host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
-+ ibcexported "github.com/cosmos/ibc-go/v6/modules/core/exported"
+- host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
++ ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
   // ...
 )
 
@@ -290,4 +290,62 @@ import (
 
 - host.RouterKey
 + ibcexported.RouterKey
+```
+
+## Upgrading to Cosmos SDK 0.47
+
+The following should be considered as complementary to [Cosmos SDK v0.47 UPGRADING.md](https://github.com/cosmos/cosmos-sdk/blob/v0.47.0-rc2/UPGRADING.md).
+
+### Protobuf 
+
+Protobuf code generation, linting and formatting have been updated to leverage the `ghcr.io/cosmos/proto-builder:0.11.5` docker container. IBC protobuf definitions are now packaged and published to [buf.build/cosmos/ibc](https://buf.build/cosmos/ibc) via CI workflows. The `third_party/proto` directory has been removed in favour of dependency management using [buf.build](https://docs.buf.build/introduction).
+
+### App modules
+
+Legacy APIs of the `AppModule` interface have been removed from ibc-go modules. For example, for 
+
+```diff
+- // Route implements the AppModule interface
+- func (am AppModule) Route() sdk.Route {
+-   return sdk.Route{}
+- }
+-
+- // QuerierRoute implements the AppModule interface
+- func (AppModule) QuerierRoute() string {
+-   return types.QuerierRoute
+- }
+-
+- // LegacyQuerierHandler implements the AppModule interface
+- func (am AppModule) LegacyQuerierHandler(*codec.LegacyAmino) sdk.Querier {
+-   return nil
+- }
+-
+- // ProposalContents doesn't return any content functions for governance proposals.
+- func (AppModule) ProposalContents(_ module.SimulationState) []simtypes.WeightedProposalContent {
+-   return nil
+- }
+```
+
+### Imports
+
+Imports for ics23 have been updated as the repository have been migrated from confio to cosmos.
+
+```diff
+import (
+  // ...
+- ics23 "github.com/confio/ics23/go"
++ ics23 "github.com/cosmos/ics23/go"
+  // ...
+)
+```
+
+Imports for gogoproto have been updated.
+
+```diff
+import (
+  // ...
+- "github.com/gogo/protobuf/proto"
++ "github.com/cosmos/gogoproto/proto"
+  // ...
+)
 ```

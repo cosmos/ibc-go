@@ -4,27 +4,11 @@ order: 1
 
 # Roadmap ibc-go
 
-_Lastest update: December 21st, 2022_
+_Lastest update: April 6th, 2023_
 
 This document endeavours to inform the wider IBC community about plans and priorities for work on ibc-go by the team at Interchain GmbH. It is intended to broadly inform all users of ibc-go, including developers and operators of IBC, relayer, chain and wallet applications.
 
 This roadmap should be read as a high-level guide, rather than a commitment to schedules and deliverables. The degree of specificity is inversely proportional to the timeline. We will update this document periodically to reflect the status and plans. For the latest expected release timelines, please check [here](https://github.com/cosmos/ibc-go/wiki/Release-timeline).
-
-## v7.0.0
-
-### 02-client refactor
-
-This refactor will make the development of light clients easier. The ibc-go implementation will finally align with the spec and light clients will be required to set their own client and consensus states. This will allow more flexibility for light clients to manage their own internal storage and do batch updates. See [ADR 006](../architecture/adr-006-02-client-refactor.md) for more information.
-
-Follow the progress with the [beta](https://github.com/cosmos/ibc-go/milestone/25) and [RC](https://github.com/cosmos/ibc-go/milestone/27) milestones or in the [project board](https://github.com/orgs/cosmos/projects/7/views/14).
-
-### Upgrade Cosmos SDK v0.47
-
-Follow the progress with the [milestone](https://github.com/cosmos/ibc-go/milestone/36).
-
-### Add `authz` support to 20-transfer
-
-Authz goes cross chain: users can grant permission for their tokens to be transferred to another chain on their behalf. See [this issue](https://github.com/cosmos/ibc-go/issues/2431) for more details.
 
 ## v7.1.0
 
@@ -34,9 +18,13 @@ Because it is so important to have an ibc-go release compatible with the latest 
 
 This feature will add support for applications on a chain to communicate with applications on the same chain using the existing standard interface to communicate with applications on remote chains. This is a powerful UX improvement, particularly for those users interested in interacting with multiple smart contracts on a single chain through one interface.
 
-For more details, see the design proposal and discussion [here](https://github.com/cosmos/ibc-go/discussions/2191).
+For more details, see the new [ICS 09 specification](https://github.com/cosmos/ibc/tree/main/spec/client/ics-009-loopback-cilent).
 
-A special shout out to Strangelove for their substantial contribution on this feature.
+A special shout out to Strangelove Ventures and Polymer Labs for their substantial contribution on this feature.
+
+## v7.2.0
+
+Follow the progress with the [milestone](https://github.com/cosmos/ibc-go/milestone/37).
 
 ### Support for Wasm light clients
 
@@ -46,17 +34,13 @@ This feature was developed by Composable and Strangelove but will be upstreamed 
 
 ## v8.0.0
 
+Follow the progress with the [milestone](https://github.com/cosmos/ibc-go/milestone/38).
+
 ### Channel upgradability
 
-Channel upgradability will allow chains to renegotiate an existing channel to take advantage of new features without having to create a new channel, thus preserving all existing packet state processed on the channel.
+Channel upgradability will allow chains to renegotiate an existing channel to take advantage of new features without having to create a new channel, thus preserving all existing packet state processed on the channel. This feature will enable, for example, the adoption on existing channels of features like [path unwinding](https://github.com/cosmos/ibc/discussions/824) or fee middlware.
 
 Follow the progress with the [alpha milestone](https://github.com/cosmos/ibc-go/milestone/29) or the [project board](https://github.com/orgs/cosmos/projects/7/views/17).
-
-### Path unwinding
-
-This feature will allow tokens with non-native denoms to be sent back automatically to their native chains before being sent to a final destination chain. This will allow tokens to reach a final destination with the least amount possible of hops from their native chain.
-
-For more details, see this [discussion](https://github.com/cosmos/ibc/discussions/824).
 
 ---
 
@@ -64,7 +48,7 @@ This roadmap is also available as a [project board](https://github.com/orgs/cosm
 
 For the latest expected release timelines, please check [here](https://github.com/cosmos/ibc-go/wiki/Release-timeline).
 
-For the latest information on the progress of the work or the decisions made that might influence the roadmap, please follow our [engineering updates](https://github.com/cosmos/ibc-go/wiki/Engineering-updates).
+For the latest information on the progress of the work or the decisions made that might influence the roadmap, please follow the [Annoucements](https://github.com/cosmos/ibc-go/discussions/categories/announcements) category in the Discussions tab of the repository.
 
 ---
 

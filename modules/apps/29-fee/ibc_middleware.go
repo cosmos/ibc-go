@@ -3,9 +3,9 @@ package fee
 import (
 	"strings"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
+	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 
 	"github.com/cosmos/ibc-go/v7/modules/apps/29-fee/keeper"
 	"github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
@@ -15,7 +15,7 @@ import (
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
-var _ porttypes.Middleware = &IBCMiddleware{}
+var _ porttypes.Middleware = (*IBCMiddleware)(nil)
 
 // IBCMiddleware implements the ICS26 callbacks for the fee middleware given the
 // fee keeper and the underlying application.
@@ -62,7 +62,7 @@ func (im IBCMiddleware) OnChanOpenInit(
 	}
 
 	if versionMetadata.FeeVersion != types.Version {
-		return "", sdkerrors.Wrapf(types.ErrInvalidVersion, "expected %s, got %s", types.Version, versionMetadata.FeeVersion)
+		return "", errorsmod.Wrapf(types.ErrInvalidVersion, "expected %s, got %s", types.Version, versionMetadata.FeeVersion)
 	}
 
 	appVersion, err := im.app.OnChanOpenInit(ctx, order, connectionHops, portID, channelID, chanCap, counterparty, versionMetadata.AppVersion)
@@ -104,7 +104,7 @@ func (im IBCMiddleware) OnChanOpenTry(
 	}
 
 	if versionMetadata.FeeVersion != types.Version {
-		return "", sdkerrors.Wrapf(types.ErrInvalidVersion, "expected %s, got %s", types.Version, versionMetadata.FeeVersion)
+		return "", errorsmod.Wrapf(types.ErrInvalidVersion, "expected %s, got %s", types.Version, versionMetadata.FeeVersion)
 	}
 
 	im.keeper.SetFeeEnabled(ctx, portID, channelID)
@@ -137,11 +137,11 @@ func (im IBCMiddleware) OnChanOpenAck(
 	if im.keeper.IsFeeEnabled(ctx, portID, channelID) {
 		var versionMetadata types.Metadata
 		if err := types.ModuleCdc.UnmarshalJSON([]byte(counterpartyVersion), &versionMetadata); err != nil {
-			return sdkerrors.Wrapf(err, "failed to unmarshal ICS29 counterparty version metadata: %s", counterpartyVersion)
+			return errorsmod.Wrapf(err, "failed to unmarshal ICS29 counterparty version metadata: %s", counterpartyVersion)
 		}
 
 		if versionMetadata.FeeVersion != types.Version {
-			return sdkerrors.Wrapf(types.ErrInvalidVersion, "expected counterparty fee version: %s, got: %s", types.Version, versionMetadata.FeeVersion)
+			return errorsmod.Wrapf(types.ErrInvalidVersion, "expected counterparty fee version: %s, got: %s", types.Version, versionMetadata.FeeVersion)
 		}
 
 		// call underlying app's OnChanOpenAck callback with the counterparty app version.
@@ -180,11 +180,7 @@ func (im IBCMiddleware) OnChanCloseInit(
 		return types.ErrFeeModuleLocked
 	}
 
-	if err := im.keeper.RefundFeesOnChannelClosure(ctx, portID, channelID); err != nil {
-		return err
-	}
-
-	return nil
+	return im.keeper.RefundFeesOnChannelClosure(ctx, portID, channelID)
 }
 
 // OnChanCloseConfirm implements the IBCMiddleware interface
@@ -205,11 +201,7 @@ func (im IBCMiddleware) OnChanCloseConfirm(
 		return types.ErrFeeModuleLocked
 	}
 
-	if err := im.keeper.RefundFeesOnChannelClosure(ctx, portID, channelID); err != nil {
-		return err
-	}
-
-	return nil
+	return im.keeper.RefundFeesOnChannelClosure(ctx, portID, channelID)
 }
 
 // OnRecvPacket implements the IBCMiddleware interface.
@@ -251,7 +243,7 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 
 	var ack types.IncentivizedAcknowledgement
 	if err := types.ModuleCdc.UnmarshalJSON(acknowledgement, &ack); err != nil {
-		return sdkerrors.Wrapf(err, "cannot unmarshal ICS-29 incentivized packet acknowledgement: %v", ack)
+		return errorsmod.Wrapf(err, "cannot unmarshal ICS-29 incentivized packet acknowledgement: %v", ack)
 	}
 
 	if im.keeper.IsLocked(ctx) {
@@ -275,15 +267,12 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 
 	payee, found := im.keeper.GetPayeeAddress(ctx, relayer.String(), packet.SourceChannel)
 	if !found {
-		im.keeper.DistributePacketFeesOnAcknowledgement(ctx, ack.ForwardRelayerAddress, relayer, feesInEscrow.PacketFees, packetID)
-
-		// call underlying callback
-		return im.app.OnAcknowledgementPacket(ctx, packet, ack.AppAcknowledgement, relayer)
+		payee = relayer.String()
 	}
 
 	payeeAddr, err := sdk.AccAddressFromBech32(payee)
 	if err != nil {
-		return sdkerrors.Wrapf(err, "failed to create sdk.Address from payee: %s", payee)
+		return errorsmod.Wrapf(err, "failed to create sdk.Address from payee: %s", payee)
 	}
 
 	im.keeper.DistributePacketFeesOnAcknowledgement(ctx, ack.ForwardRelayerAddress, payeeAddr, feesInEscrow.PacketFees, packetID)
@@ -317,15 +306,12 @@ func (im IBCMiddleware) OnTimeoutPacket(
 
 	payee, found := im.keeper.GetPayeeAddress(ctx, relayer.String(), packet.SourceChannel)
 	if !found {
-		im.keeper.DistributePacketFeesOnTimeout(ctx, relayer, feesInEscrow.PacketFees, packetID)
-
-		// call underlying callback
-		return im.app.OnTimeoutPacket(ctx, packet, relayer)
+		payee = relayer.String()
 	}
 
 	payeeAddr, err := sdk.AccAddressFromBech32(payee)
 	if err != nil {
-		return sdkerrors.Wrapf(err, "failed to create sdk.Address from payee: %s", payee)
+		return errorsmod.Wrapf(err, "failed to create sdk.Address from payee: %s", payee)
 	}
 
 	im.keeper.DistributePacketFeesOnTimeout(ctx, payeeAddr, feesInEscrow.PacketFees, packetID)
