@@ -174,7 +174,7 @@ func (k Keeper) SetTotalEscrowForDenom(ctx sdk.Context, denom string, amount mat
 func (k Keeper) GetAllTotalEscrowed(ctx sdk.Context) sdk.Coins {
 	var escrows sdk.Coins
 	k.IterateTokensInEscrow(ctx, []byte(types.KeyTotalEscrowPrefix), func(denomEscrow sdk.Coin) bool {
-		escrows = append(escrows, denomEscrow)
+		escrows.Add(denomEscrow)
 		return false
 	})
 
