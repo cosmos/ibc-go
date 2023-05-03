@@ -38,7 +38,7 @@ type Acknowledgement interface {
 	// During `OnRecvPacket` IBC application callback execution, all state changes are held in a cache store and committed if:
 	// - the acknowledgement.Success() returns true
 	// - a nil acknowledgement is returned (asynchronous acknowledgements)
-	// 
+	//
 	// Note 1: IBC application callback events are always persisted so long as `RecvPacket` succeeds without error.
 	//
 	// Note 2: This method is independent of application level success/error which is encoded in the acknowledgement bytes in a protocol specific way.
