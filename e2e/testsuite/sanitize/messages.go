@@ -20,7 +20,7 @@ var (
 )
 
 // Messages removes any fields that are not supported by the chain version.
-// any fields that have been added in later sdk releases are removed.
+// For example, any fields that have been added in later sdk releases.
 func Messages(tag string, msgs ...sdk.Msg) []sdk.Msg {
 	sanitizedMsgs := make([]sdk.Msg, len(msgs))
 	for i := range msgs {
