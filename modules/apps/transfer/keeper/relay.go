@@ -369,10 +369,9 @@ func (k Keeper) refundPacketToken(ctx sdk.Context, packet channeltypes.Packet, d
 // escrowToken will send the given token from the provided sender to the escrow address. It will also
 // update the total escrowed amount by adding the escrowed token to the current total escrow.
 func (k Keeper) escrowToken(ctx sdk.Context, sender, escrowAddress sdk.AccAddress, token sdk.Coin) error {
-	if err := k.bankKeeper.SendCoins(
-		ctx, sender, escrowAddress, sdk.NewCoins(token),
-	); err != nil {
-		return err // failure is expected for insufficient balances
+	if err := k.bankKeeper.SendCoins(ctx, sender, escrowAddress, sdk.NewCoins(token)); err != nil {
+		// failure is expected for insufficient balances
+		return err
 	}
 
 	// track the total amount in escrow keyed by denomination to allow for efficient iteration
