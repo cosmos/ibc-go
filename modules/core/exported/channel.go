@@ -41,7 +41,7 @@ type Acknowledgement interface {
 	//
 	// Note 2: This method is independent of application level success/error which is encoded in the acknowledgement bytes in a protocol specific way.
 	//
-	// See https://github.com/cosmos/ibc-go/blob/main/docs/ibc/apps.md for further explanations.
+	// See https://github.com/cosmos/ibc-go/blob/v7.0.0/docs/ibc/apps.md for further explanations.
 	Success() bool
 	Acknowledgement() []byte
 }
