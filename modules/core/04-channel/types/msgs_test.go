@@ -119,7 +119,6 @@ func (suite *TypesTestSuite) SetupTestCoordinator() {
 	suite.coordinator.CommitNBlocks(suite.chainB, 2)
 }
 
-
 func TestTypesTestSuite(t *testing.T) {
 	suite.Run(t, new(TypesTestSuite))
 }
