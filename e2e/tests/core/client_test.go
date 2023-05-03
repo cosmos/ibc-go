@@ -148,7 +148,7 @@ func (s *ClientTestSuite) TestClient_Update_Misbehaviour() {
 		trustedHeight   clienttypes.Height
 		latestHeight    clienttypes.Height
 		clientState     ibcexported.ClientState
-		block           *tmproto.Block
+		header          testsuite.Header
 		signers         []tmtypes.PrivValidator
 		validatorSet    []*tmtypes.Validator
 		maliciousHeader *ibctm.Header
@@ -195,8 +195,8 @@ func (s *ClientTestSuite) TestClient_Update_Misbehaviour() {
 	t.Run("create validator set", func(t *testing.T) {
 		var validators []*tmservice.Validator
 
-		t.Run("fetch block at latest client state height", func(t *testing.T) {
-			block, err = s.GetBlockByHeight(ctx, chainB, latestHeight.GetRevisionHeight())
+		t.Run("fetch block header at latest client state height", func(t *testing.T) {
+			header, err = s.GetBlockHeaderByHeight(ctx, chainB, latestHeight.GetRevisionHeight())
 			s.Require().NoError(err)
 		})
 
@@ -222,7 +222,7 @@ func (s *ClientTestSuite) TestClient_Update_Misbehaviour() {
 	t.Run("create malicious header", func(t *testing.T) {
 		valSet := tmtypes.NewValidatorSet(validatorSet)
 		maliciousHeader, err = createMaliciousTMHeader(chainB.Config().ChainID, int64(latestHeight.GetRevisionHeight()), trustedHeight,
-			block.Header.GetTime(), valSet, valSet, signers, &block.Header)
+			header.GetTime(), valSet, valSet, signers, header)
 		s.Require().NoError(err)
 	})
 
@@ -284,22 +284,14 @@ func (s *ClientTestSuite) extractChainPrivateKeys(ctx context.Context, chain *co
 }
 
 // createMaliciousTMHeader creates a header with the provided trusted height with an invalid app hash.
-func createMaliciousTMHeader(
-	chainID string,
-	blockHeight int64,
-	trustedHeight clienttypes.Height,
-	timestamp time.Time,
-	tmValSet, tmTrustedVals *tmtypes.ValidatorSet,
-	signers []tmtypes.PrivValidator,
-	oldHeader *tmproto.Header,
-) (*ibctm.Header, error) {
+func createMaliciousTMHeader(chainID string, blockHeight int64, trustedHeight clienttypes.Height, timestamp time.Time, tmValSet, tmTrustedVals *tmtypes.ValidatorSet, signers []tmtypes.PrivValidator, oldHeader testsuite.Header ) (*ibctm.Header, error) {
 	tmHeader := tmtypes.Header{
 		Version:            tmprotoversion.Consensus{Block: tmversion.BlockProtocol, App: 2},
 		ChainID:            chainID,
 		Height:             blockHeight,
 		Time:               timestamp,
 		LastBlockID:        ibctesting.MakeBlockID(make([]byte, tmhash.Size), 10_000, make([]byte, tmhash.Size)),
-		LastCommitHash:     oldHeader.LastCommitHash,
+		LastCommitHash:     oldHeader.GetLastCommitHash(),
 		ValidatorsHash:     tmValSet.Hash(),
 		NextValidatorsHash: tmValSet.Hash(),
 		DataHash:           tmhash.Sum([]byte(invalidHashValue)),
