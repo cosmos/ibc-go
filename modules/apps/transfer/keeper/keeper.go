@@ -147,7 +147,7 @@ func (k Keeper) IterateDenomTraces(ctx sdk.Context, cb func(denomTrace types.Den
 // GetTotalEscrowForDenom gets the total amount of source chain tokens that
 // are in escrow, keyed by the denomination.
 //
-// NOTE: if there is no value stored in state for the provided denom then a new Coin is returned for the denom with an intial value of zero.
+// NOTE: if there is no value stored in state for the provided denom then a new Coin is returned for the denom with an initial value of zero.
 // This accommodates callers to simply call `Add()` on the returned Coin as an empty Coin literal (e.g. sdk.Coin{}) will trigger a panic due to the absence of a denom.
 func (k Keeper) GetTotalEscrowForDenom(ctx sdk.Context, denom string) sdk.Coin {
 	store := ctx.KVStore(k.storeKey)
