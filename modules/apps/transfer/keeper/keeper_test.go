@@ -94,15 +94,15 @@ func (suite *KeeperTestSuite) TestSetGetTotalEscrowForDenom() {
 			tc.malleate()
 
 			if tc.expPass {
-				suite.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(ctx, denom, expAmount)
+				suite.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(ctx, sdk.NewCoin(denom, expAmount))
 				total := suite.chainA.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(ctx, denom)
-				suite.Require().Equal(expAmount, total)
+				suite.Require().Equal(expAmount, total.Amount)
 			} else {
-				suite.Require().PanicsWithValue("amount cannot be negative: -1", func() {
-					suite.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(ctx, denom, expAmount)
+				suite.Require().PanicsWithError("negative coin amount: -1", func() {
+					suite.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(ctx, sdk.NewCoin(denom, expAmount))
 				})
 				total := suite.chainA.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(ctx, denom)
-				suite.Require().Equal(math.ZeroInt(), total)
+				suite.Require().Equal(math.ZeroInt(), total.Amount)
 			}
 		})
 	}

@@ -396,6 +396,44 @@ func (k Keeper) refundPacketToken(ctx sdk.Context, packet channeltypes.Packet, d
 	return nil
 }
 
+<<<<<<< HEAD
+=======
+// escrowToken will send the given token from the provided sender to the escrow address. It will also
+// update the total escrowed amount by adding the escrowed token to the current total escrow.
+func (k Keeper) escrowToken(ctx sdk.Context, sender, escrowAddress sdk.AccAddress, token sdk.Coin) error {
+	if err := k.bankKeeper.SendCoins(ctx, sender, escrowAddress, sdk.NewCoins(token)); err != nil {
+		// failure is expected for insufficient balances
+		return err
+	}
+
+	// track the total amount in escrow keyed by denomination to allow for efficient iteration
+	currentTotalEscrow := k.GetTotalEscrowForDenom(ctx, token.GetDenom())
+	newTotalEscrow := currentTotalEscrow.Add(token)
+	k.SetTotalEscrowForDenom(ctx, newTotalEscrow)
+
+	return nil
+}
+
+// unescrowToken will send the given token from the escrow address to the provided receiver. It will also
+// update the total escrow by deducting the unescrowed token from the current total escrow.
+func (k Keeper) unescrowToken(ctx sdk.Context, escrowAddress, receiver sdk.AccAddress, token sdk.Coin) error {
+	if err := k.bankKeeper.SendCoins(ctx, escrowAddress, receiver, sdk.NewCoins(token)); err != nil {
+		// NOTE: this error is only expected to occur given an unexpected bug or a malicious
+		// counterparty module. The bug may occur in bank or any part of the code that allows
+		// the escrow address to be drained. A malicious counterparty module could drain the
+		// escrow address by allowing more tokens to be sent back then were escrowed.
+		return errorsmod.Wrap(err, "unable to unescrow tokens, this may be caused by a malicious counterparty module or a bug: please open an issue on counterparty module")
+	}
+
+	// track the total amount in escrow keyed by denomination to allow for efficient iteration
+	currentTotalEscrow := k.GetTotalEscrowForDenom(ctx, token.GetDenom())
+	newTotalEscrow := currentTotalEscrow.Sub(token)
+	k.SetTotalEscrowForDenom(ctx, newTotalEscrow)
+
+	return nil
+}
+
+>>>>>>> 1006426c (modify total escrow to take in sdk.Coin in function APIs/proto (#3517))
 // DenomPathFromHash returns the full denomination path prefix from an ibc denom with a hash
 // component.
 func (k Keeper) DenomPathFromHash(ctx sdk.Context, denom string) (string, error) {

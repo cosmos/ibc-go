@@ -134,9 +134,13 @@ func (q Keeper) TotalEscrowForDenom(c context.Context, req *types.QueryTotalEscr
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
+<<<<<<< HEAD
 	denomAmount := q.GetTotalEscrowForDenom(ctx, req.Denom)
+=======
+	amount := k.GetTotalEscrowForDenom(ctx, req.Denom)
+>>>>>>> 1006426c (modify total escrow to take in sdk.Coin in function APIs/proto (#3517))
 
 	return &types.QueryTotalEscrowForDenomResponse{
-		Amount: denomAmount,
+		Amount: amount,
 	}, nil
 }
