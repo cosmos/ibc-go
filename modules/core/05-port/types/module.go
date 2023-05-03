@@ -112,9 +112,9 @@ type UpgradableModule interface {
 	// OnChanUpgradeInit initializes the channel upgrade handshake.
 	OnChanUpgradeInit(
 		ctx sdk.Context,
+		portID, channelID string,
 		order channeltypes.Order,
 		connectionHops []string,
-		portID, channelID string,
 		sequence uint64,
 		version, previousVersion string,
 	) (string, error)
