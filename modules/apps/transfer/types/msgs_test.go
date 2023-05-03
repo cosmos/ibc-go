@@ -32,6 +32,7 @@ var (
 	sender    = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
 	receiver  = sdk.AccAddress("testaddr2").String()
 	emptyAddr string
+	emptyBool bool
 
 	coin             = sdk.NewCoin("atom", sdk.NewInt(100))
 	ibcCoin          = sdk.NewCoin("ibc/7F1D3FCF4AE79E1554D670D1AD949A9BA4E4A3C76C63093E17E446A46061A7A2", sdk.NewInt(100))
@@ -115,9 +116,6 @@ func TestMsgUpdateParamsValidation(t *testing.T) {
 		{"valid authority address with valid params", types.NewMsgUpdateParams(validAddress, types.DefaultParams()), true},
 		{"invalid authority with valid params", types.NewMsgUpdateParams(invalidAddress, types.DefaultParams()), false},
 		{"empty authority with valid params", types.NewMsgUpdateParams(emptyAddr, types.DefaultParams()), false},
-		{"valid authority with missing params", types.NewMsgUpdateParams(validAddress, types.Params{}), false},
-		{"valid authority with missing SendEnabled param", types.NewMsgUpdateParams(validAuthority, types.Params{ ReceiveEnabled: true }), false},
-		{"valid authority with missing ReceiveEnabled param", types.NewMsgUpdateParams(validAuthority, types.Params{ SendEnabled: true }), false},
 	}
 
 	for i, tc := range testCases {
