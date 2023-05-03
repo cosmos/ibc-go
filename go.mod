@@ -6,14 +6,14 @@ require (
 	cosmossdk.io/api v0.3.1
 	cosmossdk.io/errors v1.0.0-beta.7
 	cosmossdk.io/math v1.0.0
-	cosmossdk.io/simapp v0.0.0-20230224204036-a6adb0821462
+	cosmossdk.io/simapp v0.0.0-20230323161446-0af178d721ff
 	cosmossdk.io/tools/rosetta v0.2.1
 	github.com/armon/go-metrics v0.4.1
 	github.com/cometbft/cometbft v0.37.0
 	github.com/cometbft/cometbft-db v0.7.0
 	github.com/cosmos/cosmos-proto v1.0.0-beta.2
-	github.com/cosmos/cosmos-sdk v0.47.0
-	github.com/cosmos/gogoproto v1.4.7
+	github.com/cosmos/cosmos-sdk v0.47.1
+	github.com/cosmos/gogoproto v1.4.8
 	github.com/cosmos/ibc-go/modules/capability v1.0.0-rc1
 	github.com/cosmos/ics23/go v0.10.0
 	github.com/golang/protobuf v1.5.3
