@@ -24,6 +24,8 @@ const (
 	invalidChannel      = "(invalidchannel1)"
 	invalidShortChannel = "invalid"
 	invalidLongChannel  = "invalidlongchannelinvalidlongchannelinvalidlongchannelinvalidlongchannel"
+
+	invalidAddress = "invalid"
 )
 
 var (
@@ -38,6 +40,9 @@ var (
 	zeroCoin         = sdk.Coin{Denom: "atoms", Amount: sdk.NewInt(0)}
 
 	timeoutHeight = clienttypes.NewHeight(0, 10)
+
+	validAuthority = sdk.AccAddress("authority").String()
+	validAddress = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
 )
 
 // TestMsgTransferRoute tests Route for MsgTransfer
@@ -106,45 +111,12 @@ func TestMsgUpdateParamsValidation(t *testing.T) {
 		msg     *types.MsgUpdateParams
 		expPass  bool
 	}{
-		{
-			"invalid authority address",
-			&types.MsgUpdateParams{
-				Authority: "authority",
-				Params:    types.DefaultParams(),},
-			false,
-		},
-		{
-			"missing params",
-			&types.MsgUpdateParams{
-				Authority: sdk.AccAddress("authority").String(),
-				Params:    types.Params{},},
-			false,
-		},
-		{
-			"missing SendEnabled param",
-			&types.MsgUpdateParams{
-				Authority: sdk.AccAddress("authority").String(),
-				Params:    types.Params{
-					ReceiveEnabled: true,
-				},},
-			false,
-		},
-		{
-			"missing ReceiveEnabled param",
-			&types.MsgUpdateParams{
-				Authority: sdk.AccAddress("authority").String(),
-				Params:    types.Params{
-					SendEnabled: true,
-				},},
-			false,
-		},
-		{
-			"valid test case",
-			&types.MsgUpdateParams{
-				Authority: sdk.AccAddress("authority").String(),
-				Params:    types.DefaultParams(),},
-			true,
-		},
+		{"valid authority with valid params", types.NewMsgUpdateParams(validAuthority, types.DefaultParams()), true},
+		{"valid authority address with valid params", types.NewMsgUpdateParams(validAddress, types.DefaultParams()), true},
+		{"invalid authority with valid params", types.NewMsgUpdateParams(invalidAddress, types.DefaultParams()), false},
+		{"valid authority with missing params", types.NewMsgUpdateParams(validAddress, types.Params{}), false},
+		{"valid authority with missing SendEnabled param", types.NewMsgUpdateParams(validAuthority, types.Params{ ReceiveEnabled: true }), false},
+		{"valid authority with missing ReceiveEnabled param", types.NewMsgUpdateParams(validAuthority, types.Params{ SendEnabled: true }), false},
 	}
 
 	for i, tc := range testCases {
