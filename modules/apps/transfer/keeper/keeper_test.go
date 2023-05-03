@@ -217,30 +217,11 @@ func (suite *KeeperTestSuite) TestParams() {
 		input     types.Params
 		expPass bool
 	}{
-		{
-			name: "set missing params (⚠️ not validated in keeper)",
-			input: types.Params{},
-			expPass: true,
-		},
-		{
-			name: "set missing ReceiveEnabled param (⚠️ not validated in keeper)",
-			input: types.Params{
-				SendEnabled: true,
-			},
-			expPass: true,
-		},
-		{
-			name: "set missing SendEnabled param (⚠️ not validated in keeper)",
-			input: types.Params{
-				ReceiveEnabled: true,
-			},
-			expPass: true,
-		},
-		{
-			name: "set full valid params",
-			input: types.DefaultParams(),
-			expPass: true,
-		},
+		// it is not possible to set invalid booleans
+		{ name: "set params false-false", input: types.NewParams(false, false), expPass: true,},
+		{ name: "set params false-true", input: types.NewParams(false, true), expPass: true,},
+		{ name: "set params true-false", input: types.NewParams(true, false), expPass: true,},
+		{ name: "set params true-true", input: types.NewParams(true, true), expPass: true,},
 	}
 
 	for _, tc := range testCases {
@@ -251,7 +232,7 @@ func (suite *KeeperTestSuite) TestParams() {
 			ctx := suite.chainA.GetContext()
 			expected := suite.chainA.GetSimApp().TransferKeeper.GetParams(ctx)
 			err := suite.chainA.GetSimApp().TransferKeeper.SetParams(ctx, tc.input)
-			if !tc.expPass {
+			if tc.expPass {
 				expected = tc.input
 				suite.Require().NoError(err)
 			} else {
