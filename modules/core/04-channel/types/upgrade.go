@@ -81,7 +81,6 @@ func (ut UpgradeTimeout) HasPassed(ctx sdk.Context) (bool, string) {
 
 	selfHeight, timeoutHeight := clienttypes.GetSelfHeight(ctx), ut.Height
 	if selfHeight.GTE(timeoutHeight) && timeoutHeight.GT(clienttypes.ZeroHeight()) {
-
 		return true, fmt.Sprintf("block height >= upgrade timeout height (%s >= %s)", selfHeight, timeoutHeight)
 	}
 
