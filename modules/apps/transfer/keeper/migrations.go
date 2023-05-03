@@ -54,7 +54,7 @@ func (m Migrator) MigrateTraces(ctx sdk.Context) error {
 	return nil
 }
 
-// MigrateMetaData sets token metadata for all the IBC denom traces
+// MigrateMetadata sets token metadata for all the IBC denom traces
 func (m Migrator) MigrateMetadata(ctx sdk.Context) error {
 	m.keeper.IterateDenomTraces(ctx,
 		func(dt types.DenomTrace) (stop bool) {
