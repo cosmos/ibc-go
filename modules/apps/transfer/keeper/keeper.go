@@ -38,31 +38,37 @@ type Keeper struct {
 
 // NewKeeper creates a new IBC transfer Keeper instance
 func NewKeeper(
-	cdc codec.BinaryCodec, key storetypes.StoreKey, paramSpace paramtypes.Subspace,
-	ics4Wrapper porttypes.ICS4Wrapper, channelKeeper types.ChannelKeeper, portKeeper types.PortKeeper,
-	authKeeper types.AccountKeeper, bankKeeper types.BankKeeper, scopedKeeper exported.ScopedKeeper,
+	cdc codec.BinaryCodec,
+	key storetypes.StoreKey,
+	ics4Wrapper porttypes.ICS4Wrapper,
+	channelKeeper types.ChannelKeeper,
+	portKeeper types.PortKeeper,
+	authKeeper types.AccountKeeper,
+	bankKeeper types.BankKeeper,
+	scopedKeeper exported.ScopedKeeper,
+	authority string,
 ) Keeper {
 	// ensure ibc transfer module account is set
 	if addr := authKeeper.GetModuleAddress(types.ModuleName); addr == nil {
 		panic("the IBC transfer module account has not been set")
 	}
 
-	// set KeyTable if it has not already been set
-	if !paramSpace.HasKeyTable() {
-		paramSpace = paramSpace.WithKeyTable(types.ParamKeyTable())
-	}
-
 	return Keeper{
 		cdc:           cdc,
 		storeKey:      key,
-		paramSpace:    paramSpace,
 		ics4Wrapper:   ics4Wrapper,
 		channelKeeper: channelKeeper,
 		portKeeper:    portKeeper,
 		authKeeper:    authKeeper,
 		bankKeeper:    bankKeeper,
 		scopedKeeper:  scopedKeeper,
+		authority: 	   authority,
 	}
+}
+
+// GetAuthority returns the x/mint module's authority.
+func (k Keeper) GetAuthority() string {
+	return k.authority
 }
 
 // Logger returns a module-specific logger.
@@ -93,6 +99,27 @@ func (k Keeper) GetPort(ctx sdk.Context) string {
 func (k Keeper) SetPort(ctx sdk.Context, portID string) {
 	store := ctx.KVStore(k.storeKey)
 	store.Set(types.PortKey, []byte(portID))
+}
+
+// GetParams returns the current x/mint module parameters.
+func (k Keeper) GetParams(ctx sdk.Context) (p types.Params) {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(types.ParamsKey)
+	if bz == nil {
+		return p
+	}
+
+	k.cdc.MustUnmarshal(bz, &p)
+	return p
+}
+
+// SetParams sets the transfer module parameters.
+func (k Keeper) SetParams(ctx sdk.Context, params types.Params) error {
+	store := ctx.KVStore(k.storeKey)
+	bz := k.cdc.MustMarshal(&params)
+	store.Set(types.ParamsKey, bz)
+
+	return nil
 }
 
 // GetDenomTrace retreives the full identifiers trace and base denomination from the store.
