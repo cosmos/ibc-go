@@ -12,6 +12,14 @@ import (
 
 var _ types.MsgServer = (*Keeper)(nil)
 
+func (k Keeper) UpdateParams(goCtx context.Context, msg *types.MsgUpdateParams) (*types.MsgUpdateParamsResponse, error) {
+	// ctx := sdk.UnwrapSDKContext(goCtx)
+
+	// TODO: write custom logic here.
+
+	return &types.MsgUpdateParamsResponse{}, nil
+}
+
 // Transfer defines an rpc handler method for MsgTransfer.
 func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.MsgTransferResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
