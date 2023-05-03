@@ -724,10 +724,10 @@ func (k Keeper) ChannelUpgradeInit(goCtx context.Context, msg *channeltypes.MsgC
 
 	proposedVersion, err := cbs.OnChanUpgradeInit(
 		ctx,
-		proposedUpgrade.Fields.Ordering,
-		proposedUpgrade.Fields.ConnectionHops,
 		msg.PortId,
 		msg.ChannelId,
+		proposedUpgrade.Fields.Ordering,
+		proposedUpgrade.Fields.ConnectionHops,
 		channel.UpgradeSequence,
 		proposedUpgrade.Fields.Version,
 		channel.Version,
