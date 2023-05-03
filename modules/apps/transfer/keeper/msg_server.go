@@ -24,7 +24,7 @@ func (k Keeper) UpdateParams(goCtx context.Context, msg *types.MsgUpdateParams) 
 func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.MsgTransferResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	if !k.GetSendEnabled(ctx) {
+	if !k.GetParams(ctx).SendEnabled {
 		return nil, types.ErrSendDisabled
 	}
 
