@@ -67,7 +67,8 @@ func (s *ClientTestSuite) TestClientUpdateProposal_Succeeds() {
 		relayer            ibc.Relayer
 		subjectClientID    string
 		substituteClientID string
-		badTrustingPeriod  = time.Duration(time.Second)
+		// set the trusting period to a value which will still be valid upon client creation, but invalid before the first update
+		badTrustingPeriod = time.Duration(time.Second * 10)
 	)
 
 	t.Run("create substitute client with correct trusting period", func(t *testing.T) {
