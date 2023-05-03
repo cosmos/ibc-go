@@ -216,17 +216,8 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 		}
 
 		escrowAddress := types.GetEscrowAddress(packet.GetDestPort(), packet.GetDestChannel())
-<<<<<<< HEAD
-		if err := k.bankKeeper.SendCoins(ctx, escrowAddress, receiver, sdk.NewCoins(token)); err != nil {
-			// NOTE: this error is only expected to occur given an unexpected bug or a malicious
-			// counterparty module. The bug may occur in bank or any part of the code that allows
-			// the escrow address to be drained. A malicious counterparty module could drain the
-			// escrow address by allowing more tokens to be sent back then were escrowed.
-			return sdkerrors.Wrap(err, "unable to unescrow tokens, this may be caused by a malicious counterparty module or a bug: please open an issue on counterparty module")
-=======
 		if err := k.unescrowToken(ctx, escrowAddress, receiver, token); err != nil {
 			return err
->>>>>>> 9ebc2f81 (transfer (total escrow): add escrow / unescrow functions (#3507))
 		}
 
 		defer func() {
@@ -357,24 +348,7 @@ func (k Keeper) refundPacketToken(ctx sdk.Context, packet channeltypes.Packet, d
 	if types.SenderChainIsSource(packet.GetSourcePort(), packet.GetSourceChannel(), data.Denom) {
 		// unescrow tokens back to sender
 		escrowAddress := types.GetEscrowAddress(packet.GetSourcePort(), packet.GetSourceChannel())
-<<<<<<< HEAD
-		if err := k.bankKeeper.SendCoins(ctx, escrowAddress, sender, sdk.NewCoins(token)); err != nil {
-			// NOTE: this error is only expected to occur given an unexpected bug or a malicious
-			// counterparty module. The bug may occur in bank or any part of the code that allows
-			// the escrow address to be drained. A malicious counterparty module could drain the
-			// escrow address by allowing more tokens to be sent back then were escrowed.
-			return sdkerrors.Wrap(err, "unable to unescrow tokens, this may be caused by a malicious counterparty module or a bug: please open an issue on counterparty module")
-		}
-
-		// track the total amount in escrow keyed by denomination to allow for efficient iteration
-		currentTotalEscrow := k.GetTotalEscrowForDenom(ctx, token.GetDenom())
-		newTotalEscrow := currentTotalEscrow.Sub(token.Amount)
-		k.SetTotalEscrowForDenom(ctx, token.GetDenom(), newTotalEscrow)
-
-		return nil
-=======
 		return k.unescrowToken(ctx, escrowAddress, sender, token)
->>>>>>> 9ebc2f81 (transfer (total escrow): add escrow / unescrow functions (#3507))
 	}
 
 	// mint vouchers back to sender
@@ -415,7 +389,7 @@ func (k Keeper) unescrowToken(ctx sdk.Context, escrowAddress, receiver sdk.AccAd
 		// counterparty module. The bug may occur in bank or any part of the code that allows
 		// the escrow address to be drained. A malicious counterparty module could drain the
 		// escrow address by allowing more tokens to be sent back then were escrowed.
-		return errorsmod.Wrap(err, "unable to unescrow tokens, this may be caused by a malicious counterparty module or a bug: please open an issue on counterparty module")
+		return sdkerrors.Wrap(err, "unable to unescrow tokens, this may be caused by a malicious counterparty module or a bug: please open an issue on counterparty module")
 	}
 
 	// track the total amount in escrow keyed by denomination to allow for efficient iteration
