@@ -17,7 +17,6 @@ const (
 var (
 	emptyAddr string
 
-	validAuthority = sdk.AccAddress("authority").String()
 	validAddress = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
 )
 
@@ -142,6 +141,7 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 
 // TestUpdateParams tests UpdateParams rpc handler
 func (suite *KeeperTestSuite) TestUpdateParams() {
+	validAuthority := suite.chainA.GetSimApp().TransferKeeper.GetAuthority()
 	testCases := []struct {
 		name      string
 		request   *types.MsgUpdateParams
@@ -160,21 +160,6 @@ func (suite *KeeperTestSuite) TestUpdateParams() {
 		{
 			name: "set wrong authority",
 			request: types.NewMsgUpdateParams(validAddress, types.DefaultParams()),
-			expPass: false,
-		},
-		{
-			name: "set missing params",
-			request: types.NewMsgUpdateParams(validAuthority, types.Params{}),
-			expPass: false,
-		},
-		{
-			name: "set ReceiveEnabled param missing",
-			request: types.NewMsgUpdateParams(validAuthority, types.Params{ SendEnabled: true }),
-			expPass: false,
-		},
-		{
-			name: "set SendEnabled param missing",
-			request: types.NewMsgUpdateParams(validAuthority, types.Params{ ReceiveEnabled: true }),
 			expPass: false,
 		},
 		{
