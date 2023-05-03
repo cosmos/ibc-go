@@ -11,7 +11,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 
 	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
@@ -24,7 +23,6 @@ import (
 type Keeper struct {
 	storeKey   storetypes.StoreKey
 	cdc        codec.BinaryCodec
-	paramSpace paramtypes.Subspace
 
 	ics4Wrapper   porttypes.ICS4Wrapper
 	channelKeeper types.ChannelKeeper
@@ -32,6 +30,10 @@ type Keeper struct {
 	authKeeper    types.AccountKeeper
 	bankKeeper    types.BankKeeper
 	scopedKeeper  exported.ScopedKeeper
+
+	// the address capable of executing a MsgUpdateParams message. Typically, this
+	// should be the x/gov module account.
+	authority string
 }
 
 // NewKeeper creates a new IBC transfer Keeper instance
