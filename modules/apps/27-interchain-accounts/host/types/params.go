@@ -29,10 +29,10 @@ func (p Params) Validate() error {
 		return err
 	}
 
-	return validateAllowedlist(p.AllowMessages)
+	return validateAllowlist(p.AllowMessages)
 }
 
-func validateAllowedlist(allowMsgs []string) error {
+func validateAllowlist(allowMsgs []string) error {
 	for _, typeURL := range allowMsgs {
 		if strings.TrimSpace(typeURL) == "" {
 			return fmt.Errorf("parameter must not contain empty strings: %s", allowMsgs)

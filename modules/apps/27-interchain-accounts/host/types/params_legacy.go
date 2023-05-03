@@ -29,7 +29,7 @@ func ParamKeyTable() paramtypes.KeyTable {
 func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 	return paramtypes.ParamSetPairs{
 		paramtypes.NewParamSetPair(KeyHostEnabled, p.HostEnabled, validateEnabledType),
-		paramtypes.NewParamSetPair(KeyAllowMessages, p.AllowMessages, validateAllowlist),
+		paramtypes.NewParamSetPair(KeyAllowMessages, p.AllowMessages, validateAllowlistLegacy),
 	}
 }
 
@@ -42,7 +42,7 @@ func validateEnabledType(i interface{}) error {
 	return nil
 }
 
-func validateAllowlist(i interface{}) error {
+func validateAllowlistLegacy(i interface{}) error {
 	allowMsgs, ok := i.([]string)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)

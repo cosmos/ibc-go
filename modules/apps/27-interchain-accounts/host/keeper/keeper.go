@@ -196,7 +196,7 @@ func (k Keeper) SetInterchainAccountAddress(ctx sdk.Context, connectionID, portI
 	store.Set(icatypes.KeyOwnerAccount(portID, connectionID), []byte(address))
 }
 
-// GetAuthority returns the 27-interchain-accounts/host module's authority.
+// GetAuthority returns the 27-interchain-accounts host submodule's authority.
 func (k Keeper) GetAuthority() string {
 	return k.authority
 }
