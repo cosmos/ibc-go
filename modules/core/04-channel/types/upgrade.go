@@ -75,7 +75,7 @@ func (ut UpgradeTimeout) IsValid() bool {
 // HasPassed returns true if the upgrade has passed the timeout height or timestamp
 func (ut UpgradeTimeout) HasPassed(ctx sdk.Context) (bool, error) {
 	if !ut.IsValid() {
-		return true, errorsmod.Wrap(ErrInvalidUpgrade, "upgrade timeout cannot be empty")
+		return true, errorsmod.Wrap(ErrInvalidUpgradeTimeout, "upgrade timeout cannot be empty")
 	}
 
 	selfHeight, timeoutHeight := clienttypes.GetSelfHeight(ctx), ut.Height
