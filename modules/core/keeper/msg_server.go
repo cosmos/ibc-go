@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
 	metrics "github.com/armon/go-metrics"
@@ -10,6 +11,7 @@ import (
 
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
+	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
 	coretypes "github.com/cosmos/ibc-go/v7/modules/core/types"
@@ -786,6 +788,42 @@ func (k Keeper) ChannelUpgradeTry(goCtx context.Context, msg *channeltypes.MsgCh
 		}, nil
 	}
 
+	channel, found := k.ChannelKeeper.GetChannel(ctx, msg.PortId, msg.ChannelId)
+	if !found {
+		panic(fmt.Sprintf("channel not found for port ID (%s) channel ID (%s)", msg.PortId, msg.ChannelId))
+	}
+
+	// construct counterpartyChannel from existing information and provided counterpartyUpgradeSequence
+	counterpartyChannel := types.Channel{
+		State:           types.INITUPGRADE,
+		Counterparty:    types.NewCounterparty(channel.Counterparty.PortId, channel.Counterparty.ChannelId),
+		Ordering:        channel.Ordering,
+		ConnectionHops:  msg.CounterpartyProposedUpgrade.Fields.ConnectionHops,
+		Version:         channel.Version,
+		UpgradeSequence: msg.CounterpartyUpgradeSequence,
+	}
+
+	// TODO: call startFlushUpgrade handshake to move channel from INITUPGRADE to TRYUPGRADE and start flushing
+	// upgrade is blocked on this channelEnd from progressing until flush completes on both ends
+
+	startFlushUpgradeHandshake(
+		portIdentifier,
+		channelIdentifier,
+		upgradeFields,
+		counterpartyChannel,
+		counterpartyUpgrade,
+		TRYUPGRADE,
+		proofChannel,
+		proofUpgrade,
+		proofHeight,
+	)
+
+	// refresh currentChannel to get latest state
+	channel, found = k.ChannelKeeper.GetChannel(ctx, msg.PortId, msg.ChannelId)
+	if !found {
+		panic(fmt.Sprintf("channel not found for port ID (%s) channel ID (%s)", msg.PortId, msg.ChannelId))
+	}
+
 	proposedVersion, err := cbs.OnChanUpgradeTry(
 		ctx,
 		msg.PortId,
@@ -794,6 +832,7 @@ func (k Keeper) ChannelUpgradeTry(goCtx context.Context, msg *channeltypes.MsgCh
 		proposedUpgrade.Fields.ConnectionHops,
 		proposedUpgrade.Fields.Version,
 	)
+
 	if err != nil {
 		ctx.Logger().Error("channel upgrade try callback failed", "port-id", msg.PortId, "channel-id", msg.ChannelId, "error", err.Error())
 		// TODO: commit error receipt to state and abort channel upgrade
