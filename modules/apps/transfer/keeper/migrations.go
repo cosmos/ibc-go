@@ -53,6 +53,26 @@ func (m Migrator) MigrateTraces(ctx sdk.Context) error {
 	return nil
 }
 
+// MigrateTotalEscrowForDenom migrates the total amount of source chain tokens in escrow.
+func (m Migrator) MigrateTotalEscrowForDenom(ctx sdk.Context) error {
+	var totalEscrowed sdk.Coins
+	portID := m.keeper.GetPort(ctx)
+
+	transferChannels := m.keeper.channelKeeper.GetAllChannelsWithPortPrefix(ctx, portID)
+	for _, channel := range transferChannels {
+		escrowAddress := types.GetEscrowAddress(portID, channel.ChannelId)
+		escrowBalances := m.keeper.bankKeeper.GetAllBalances(ctx, escrowAddress)
+
+		totalEscrowed = totalEscrowed.Add(escrowBalances...)
+	}
+
+	for _, totalEscrow := range totalEscrowed {
+		m.keeper.SetTotalEscrowForDenom(ctx, totalEscrow.Denom, totalEscrow.Amount)
+	}
+
+	return nil
+}
+
 func equalTraces(dtA, dtB types.DenomTrace) bool {
 	return dtA.BaseDenom == dtB.BaseDenom && dtA.Path == dtB.Path
 }

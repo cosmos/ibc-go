@@ -1,6 +1,8 @@
 package types
 
 import (
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 )
 
@@ -16,9 +18,10 @@ func NewGenesisState(portID string, denomTraces Traces, params Params) *GenesisS
 // DefaultGenesisState returns a GenesisState with "transfer" as the default PortID.
 func DefaultGenesisState() *GenesisState {
 	return &GenesisState{
-		PortId:      PortID,
-		DenomTraces: Traces{},
-		Params:      DefaultParams(),
+		PortId:        PortID,
+		DenomTraces:   Traces{},
+		Params:        DefaultParams(),
+		TotalEscrowed: sdk.Coins{},
 	}
 }
 
@@ -31,5 +34,8 @@ func (gs GenesisState) Validate() error {
 	if err := gs.DenomTraces.Validate(); err != nil {
 		return err
 	}
-	return gs.Params.Validate()
+	if err := gs.Params.Validate(); err != nil {
+		return err
+	}
+	return gs.TotalEscrowed.Validate() // will fail if there are duplicates for any denom
 }
