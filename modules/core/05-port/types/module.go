@@ -119,7 +119,7 @@ type UpgradableModule interface {
 		version, previousVersion string,
 	) (string, error)
 
-	// OnChanUpgradeTry TODO
+	// OnChanUpgradeTry verifies the counterparty upgrade and sets the upgrade on TRY chain
 	OnChanUpgradeTry(
 		ctx sdk.Context,
 		portID, channelID string,

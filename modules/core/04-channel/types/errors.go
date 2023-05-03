@@ -46,4 +46,5 @@ var (
 	ErrInvalidUpgrade          = errorsmod.Register(SubModuleName, 30, "invalid upgrade")
 	ErrInvalidUpgradeSequence  = errorsmod.Register(SubModuleName, 31, "invalid upgrade sequence")
 	ErrUpgradeNotFound         = errorsmod.Register(SubModuleName, 32, "upgrade not found")
+	ErrInvalidConnectionHops   = errorsmod.Register(SubModuleName, 33, "invalid connection hops")
 )
