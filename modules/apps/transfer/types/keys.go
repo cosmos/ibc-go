@@ -38,6 +38,8 @@ var (
 	PortKey = []byte{0x01}
 	// DenomTraceKey defines the key to store the denomination trace info in store
 	DenomTraceKey = []byte{0x02}
+	// ParamsKey defines the key to store the params in store
+	ParamsKey = []byte{0x03}
 )
 
 // GetEscrowAddress returns the escrow address for the specified channel.
