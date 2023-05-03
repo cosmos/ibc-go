@@ -148,13 +148,12 @@ func (suite *TypesTestSuite) TestHasPassed() {
 
 			tc.malleate()
 
-			passed, err := upgrade.Timeout.HasPassed(suite.chainA.GetContext())
+			passed, info := upgrade.Timeout.HasPassed(suite.chainA.GetContext())
 
 			if tc.expPass {
-				suite.Require().NoError(err)
 				suite.Require().False(passed)
+				suite.Require().Equal("", info)
 			} else {
-				suite.Require().Error(err)
 				suite.Require().True(passed)
 			}
 		})

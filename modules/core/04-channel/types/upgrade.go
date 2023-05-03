@@ -1,6 +1,7 @@
 package types
 
 import (
+	"fmt"
 	"strings"
 	"time"
 
@@ -73,20 +74,21 @@ func (ut UpgradeTimeout) IsValid() bool {
 }
 
 // HasPassed returns true if the upgrade has passed the timeout height or timestamp
-func (ut UpgradeTimeout) HasPassed(ctx sdk.Context) (bool, error) {
+func (ut UpgradeTimeout) HasPassed(ctx sdk.Context) (bool, string) {
 	if !ut.IsValid() {
-		return true, errorsmod.Wrap(ErrInvalidUpgradeTimeout, "upgrade timeout cannot be empty")
+		return true, "upgrade timeout cannot be empty"
 	}
 
 	selfHeight, timeoutHeight := clienttypes.GetSelfHeight(ctx), ut.Height
 	if selfHeight.GTE(timeoutHeight) && timeoutHeight.GT(clienttypes.ZeroHeight()) {
-		return true, errorsmod.Wrapf(ErrInvalidUpgrade, "block height >= upgrade timeout height (%s >= %s)", selfHeight, timeoutHeight)
+
+		return true, fmt.Sprintf("block height >= upgrade timeout height (%s >= %s)", selfHeight, timeoutHeight)
 	}
 
 	selfTime, timeoutTimestamp := uint64(ctx.BlockTime().UnixNano()), ut.Timestamp
 	if selfTime >= timeoutTimestamp && timeoutTimestamp > 0 {
-		return true, errorsmod.Wrapf(ErrInvalidUpgrade, "block timestamp >= upgrade timeout timestamp (%s >= %s)", ctx.BlockTime(), time.Unix(0, int64(timeoutTimestamp)))
+		return true, fmt.Sprintf("block timestamp >= upgrade timeout timestamp (%s >= %s)", ctx.BlockTime(), time.Unix(0, int64(timeoutTimestamp)))
 	}
 
-	return false, nil
+	return false, ""
 }
