@@ -66,7 +66,7 @@ func NewKeeper(
 	}
 }
 
-// GetAuthority returns the x/mint module's authority.
+// GetAuthority returns the transfer module's authority.
 func (k Keeper) GetAuthority() string {
 	return k.authority
 }
