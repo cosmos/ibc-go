@@ -60,7 +60,7 @@ func (m Migrator) MigrateMetadata(ctx sdk.Context) error {
 		func(dt types.DenomTrace) (stop bool) {
 			// check if the metadata for the given denom trace already exists
 			if !m.keeper.bankKeeper.HasDenomMetaData(ctx, dt.IBCDenom()) {
-				m.keeper.SetDenomMetaData(ctx, dt)
+				m.keeper.SetDenomMetadata(ctx, dt)
 			}
 			return false
 		})

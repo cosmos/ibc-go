@@ -284,7 +284,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 	}
 
 	if !k.bankKeeper.HasDenomMetaData(ctx, voucherDenom) {
-		k.SetDenomMetaData(ctx, denomTrace)
+		k.SetDenomMetadata(ctx, denomTrace)
 	}
 
 	// send to receiver
@@ -315,9 +315,9 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 	return nil
 }
 
-func (k Keeper) SetDenomMetaData(ctx sdk.Context, denomTrace types.DenomTrace) {
+func (k Keeper) SetDenomMetadata(ctx sdk.Context, denomTrace types.DenomTrace) {
 	metadata := banktypes.Metadata{
-		Description: getMetaDataDescription(denomTrace),
+		Description: getMetadataDescription(denomTrace),
 		DenomUnits: []*banktypes.DenomUnit{
 			{
 				Denom:    denomTrace.BaseDenom,
@@ -328,22 +328,22 @@ func (k Keeper) SetDenomMetaData(ctx sdk.Context, denomTrace types.DenomTrace) {
 		// and the bank keeper will only have the IBCHash to get the denom metadata
 		Base:    denomTrace.IBCDenom(),
 		Display: denomTrace.GetFullDenomPath(),
-		Name:    getMetaDataName(denomTrace),
-		Symbol:  getMetaDataSymbol(denomTrace),
+		Name:    getMetadataName(denomTrace),
+		Symbol:  getMetadataSymbol(denomTrace),
 	}
 
 	k.bankKeeper.SetDenomMetaData(ctx, metadata)
 }
 
-func getMetaDataDescription(denomTrace types.DenomTrace) string {
+func getMetadataDescription(denomTrace types.DenomTrace) string {
 	return fmt.Sprintf("IBC Token from %s", denomTrace.GetFullDenomPath())
 }
 
-func getMetaDataName(denomTrace types.DenomTrace) string {
+func getMetadataName(denomTrace types.DenomTrace) string {
 	return fmt.Sprintf("%s IBC Token", denomTrace.GetFullDenomPath())
 }
 
-func getMetaDataSymbol(denomTrace types.DenomTrace) string {
+func getMetadataSymbol(denomTrace types.DenomTrace) string {
 	return strings.ToUpper(denomTrace.BaseDenom)
 }
 
