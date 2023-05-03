@@ -1,8 +1,6 @@
 package types_test
 
 import (
-	"fmt"
-
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
@@ -85,9 +83,9 @@ func (suite *TypesTestSuite) TestUpgradeTimeout() {
 
 func (suite *TypesTestSuite) TestHasPassed() {
 	var (
-		path                   *ibctesting.Path
-		upgrade                *types.Upgrade
-		proposedConnectionHops []string
+		path           *ibctesting.Path
+		upgradeTimeout types.UpgradeTimeout
+		passInfo       string
 	)
 
 	testCases := []struct {
@@ -96,35 +94,29 @@ func (suite *TypesTestSuite) TestHasPassed() {
 		expPass  bool
 	}{
 		{
-			"success: timeout has not passed",
+			"timeout has not passed",
 			func() {},
-			true,
+			false,
 		},
 		{
-			"fail: timeout height has passed",
+			"timeout height has passed",
 			func() {
-				upgrade.Timeout.Height = clienttypes.NewHeight(
+				upgradeTimeout.Height = clienttypes.NewHeight(
 					clienttypes.ParseChainID(path.EndpointA.Chain.GetContext().ChainID()),
 					uint64(suite.chainA.GetContext().BlockHeight())-1,
 				)
+				passInfo = "upgrade timeout has passed at block height 1-17, timeout height 1-16"
 			},
-			false,
+			true,
 		},
 		{
-			"fail: timeout timestamp has passed",
+			"timeout timestamp has passed",
 			func() {
-				upgrade.Timeout.Height = clienttypes.ZeroHeight()
-				upgrade.Timeout.Timestamp = uint64(suite.chainA.GetContext().BlockTime().UnixNano() - 1)
+				upgradeTimeout.Height = clienttypes.ZeroHeight()
+				upgradeTimeout.Timestamp = uint64(suite.chainA.GetContext().BlockTime().UnixNano() - 1)
+				passInfo = "upgrade timeout has passed at block timestamp 1577923350000000000, timeout timestamp 1577923349999999999"
 			},
-			false,
-		},
-		{
-			"fail: invalid upgrade timeout",
-			func() {
-				upgrade.Timeout.Height = clienttypes.ZeroHeight()
-				upgrade.Timeout.Timestamp = 0
-			},
-			false,
+			true,
 		},
 	}
 
@@ -136,25 +128,19 @@ func (suite *TypesTestSuite) TestHasPassed() {
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.Setup(path)
 
-			proposedConnectionHops = []string{path.EndpointB.ConnectionID}
-
-			upgrade = types.NewUpgrade(
-				types.NewUpgradeFields(
-					types.UNORDERED, proposedConnectionHops, fmt.Sprintf("%s-v2", mock.Version),
-				),
-				types.NewUpgradeTimeout(path.EndpointA.Chain.GetTimeoutHeight(), 0),
-				0,
-			)
+			upgradeTimeout = types.NewUpgradeTimeout(path.EndpointA.Chain.GetTimeoutHeight(), 0)
 
 			tc.malleate()
 
-			passed, info := upgrade.Timeout.HasPassed(suite.chainA.GetContext())
+			passed, info := upgradeTimeout.HasPassed(suite.chainA.GetContext())
 
 			if tc.expPass {
-				suite.Require().False(passed)
-				suite.Require().Equal("", info)
-			} else {
 				suite.Require().True(passed)
+				suite.Require().Equal(passInfo, info)
+
+			} else {
+				suite.Require().False(passed)
+				suite.Require().Equal("upgrade timeout has not passed", info)
 			}
 		})
 	}

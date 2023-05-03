@@ -114,9 +114,6 @@ func (suite *TypesTestSuite) SetupTestCoordinator() {
 	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2)
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
 	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
-	// commit some blocks so that QueryProof returns valid proof (cannot return valid query if height <= 1)
-	suite.coordinator.CommitNBlocks(suite.chainA, 2)
-	suite.coordinator.CommitNBlocks(suite.chainB, 2)
 }
 
 func TestTypesTestSuite(t *testing.T) {

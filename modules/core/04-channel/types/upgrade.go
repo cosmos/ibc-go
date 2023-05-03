@@ -3,7 +3,6 @@ package types
 import (
 	"fmt"
 	"strings"
-	"time"
 
 	errorsmod "cosmossdk.io/errors"
 
@@ -73,21 +72,30 @@ func (ut UpgradeTimeout) IsValid() bool {
 	return !ut.Height.IsZero() || ut.Timestamp != 0
 }
 
-// HasPassed returns true if the upgrade has passed the timeout height or timestamp
+// HasPassed returns true if the upgrade has passed the timeout height or timestamp.
+// A string is returned containing information about the timeout relative to the context's time and height.
 func (ut UpgradeTimeout) HasPassed(ctx sdk.Context) (bool, string) {
-	if !ut.IsValid() {
-		return true, "upgrade timeout cannot be empty"
-	}
+	var (
+		hasPassed bool
+		info      string
+	)
+
+	hasPassed = false
+	info = "upgrade timeout has not passed"
 
 	selfHeight, timeoutHeight := clienttypes.GetSelfHeight(ctx), ut.Height
-	if selfHeight.GTE(timeoutHeight) && timeoutHeight.GT(clienttypes.ZeroHeight()) {
-		return true, fmt.Sprintf("block height >= upgrade timeout height (%s >= %s)", selfHeight, timeoutHeight)
+	if !timeoutHeight.IsZero() {
+		if hasPassed = selfHeight.GTE(timeoutHeight); hasPassed {
+			info = fmt.Sprintf("upgrade timeout has passed at block height %s, timeout height %s", selfHeight, timeoutHeight)
+		}
 	}
 
 	selfTime, timeoutTimestamp := uint64(ctx.BlockTime().UnixNano()), ut.Timestamp
-	if selfTime >= timeoutTimestamp && timeoutTimestamp > 0 {
-		return true, fmt.Sprintf("block timestamp >= upgrade timeout timestamp (%s >= %s)", ctx.BlockTime(), time.Unix(0, int64(timeoutTimestamp)))
+	if timeoutTimestamp != 0 {
+		if hasPassed = selfTime >= timeoutTimestamp; hasPassed {
+			info = fmt.Sprintf("upgrade timeout has passed at block timestamp %d, timeout timestamp %d", selfTime, timeoutTimestamp)
+		}
 	}
 
-	return false, ""
+	return hasPassed, info
 }
