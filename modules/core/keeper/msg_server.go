@@ -767,7 +767,7 @@ func (k Keeper) ChannelUpgradeTry(goCtx context.Context, msg *channeltypes.MsgCh
 		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
 	}
 
-	// TODO: this may be updated based on refactors to this step
+	// ChanUpgradeTry will validate the proposed upgrade and handle the crossing hellos situation if necessary
 	proposedUpgrade, err := k.ChannelKeeper.ChanUpgradeTry(
 		ctx,
 		msg.PortId,
@@ -803,20 +803,24 @@ func (k Keeper) ChannelUpgradeTry(goCtx context.Context, msg *channeltypes.MsgCh
 		UpgradeSequence: msg.CounterpartyUpgradeSequence,
 	}
 
-	// TODO: call startFlushUpgrade handshake to move channel from INITUPGRADE to TRYUPGRADE and start flushing
+	// call startFlushUpgrade handshake to move channel from INITUPGRADE to TRYUPGRADE and start flushing
 	// upgrade is blocked on this channelEnd from progressing until flush completes on both ends
-
-	startFlushUpgradeHandshake(
-		portIdentifier,
-		channelIdentifier,
-		upgradeFields,
+	if err := k.ChannelKeeper.StartFlushUpgradeHandshake(
+		ctx,
+		msg.PortId,
+		msg.ChannelId,
+		proposedUpgrade.Fields,
 		counterpartyChannel,
-		counterpartyUpgrade,
-		TRYUPGRADE,
-		proofChannel,
-		proofUpgrade,
-		proofHeight,
-	)
+		msg.CounterpartyProposedUpgrade,
+		msg.ProofChannel,
+		msg.ProofUpgrade,
+		msg.ProofHeight,
+	); err != nil {
+		ctx.Logger().Error("channel upgrade flushing failed", "error", err)
+		return &channeltypes.MsgChannelUpgradeTryResponse{
+			Result: channeltypes.FAILURE,
+		}, nil
+	}
 
 	// refresh currentChannel to get latest state
 	channel, found = k.ChannelKeeper.GetChannel(ctx, msg.PortId, msg.ChannelId)
@@ -824,6 +828,7 @@ func (k Keeper) ChannelUpgradeTry(goCtx context.Context, msg *channeltypes.MsgCh
 		panic(fmt.Sprintf("channel not found for port ID (%s) channel ID (%s)", msg.PortId, msg.ChannelId))
 	}
 
+	// application callbacks
 	proposedVersion, err := cbs.OnChanUpgradeTry(
 		ctx,
 		msg.PortId,
@@ -843,7 +848,6 @@ func (k Keeper) ChannelUpgradeTry(goCtx context.Context, msg *channeltypes.MsgCh
 
 	// set version to return value of callback
 	proposedUpgrade.Fields.Version = proposedVersion
-
 	k.ChannelKeeper.WriteUpgradeTryChannel(
 		ctx,
 		msg.PortId,
