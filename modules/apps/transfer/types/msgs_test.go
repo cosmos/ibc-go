@@ -98,3 +98,71 @@ func TestMsgTransferGetSigners(t *testing.T) {
 
 	require.Equal(t, []sdk.AccAddress{addr}, res)
 }
+
+// TestMsgUpdateParamsValidation tests ValidateBasic for MsgUpdateParams
+func TestMsgUpdateParamsValidation(t *testing.T) {
+	testCases := []struct {
+		name     string
+		msg     *types.MsgUpdateParams
+		expPass  bool
+	}{
+		{
+			"invalid authority address",
+			&types.MsgUpdateParams{
+				Authority: "authority",
+				Params:    types.DefaultParams(),},
+			false,
+		},
+		{
+			"missing params",
+			&types.MsgUpdateParams{
+				Authority: sdk.AccAddress("authority").String(),
+				Params:    types.Params{},},
+			false,
+		},
+		{
+			"missing SendEnabled param",
+			&types.MsgUpdateParams{
+				Authority: sdk.AccAddress("authority").String(),
+				Params:    types.Params{
+					ReceiveEnabled: true,
+				},},
+			false,
+		},
+		{
+			"missing ReceiveEnabled param",
+			&types.MsgUpdateParams{
+				Authority: sdk.AccAddress("authority").String(),
+				Params:    types.Params{
+					SendEnabled: true,
+				},},
+			false,
+		},
+		{
+			"valid test case",
+			&types.MsgUpdateParams{
+				Authority: sdk.AccAddress("authority").String(),
+				Params:    types.DefaultParams(),},
+			true,
+		},
+	}
+
+	for i, tc := range testCases {
+		err := tc.msg.ValidateBasic()
+		if tc.expPass {
+			require.NoError(t, err, "valid test case %d failed: %s", i, tc.name)
+		} else {
+			require.Error(t, err, "invalid test case %d passed: %s", i, tc.name)
+		}
+	}
+}
+
+// TestMsgUpdateParamsGetSigners tests GetSigners for MsgUpdateParams
+func TestMsgUpdateParamsGetSigners(t *testing.T) {
+	authority := sdk.AccAddress("authority")
+	msg := types.MsgUpdateParams{
+		Authority: authority.String(),
+		Params:    types.DefaultParams(),
+	}
+	require.Equal(t, []sdk.AccAddress{authority}, msg.GetSigners())
+}
