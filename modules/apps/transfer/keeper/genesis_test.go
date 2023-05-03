@@ -41,7 +41,7 @@ func (suite *KeeperTestSuite) TestGenesis() {
 		amount, ok := math.NewIntFromString(pathAndEscrowMount.escrow)
 		suite.Require().True(ok)
 		escrows = append(sdk.NewCoins(sdk.NewCoin(denom, amount)), escrows...)
-		suite.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(suite.chainA.GetContext(), denom, amount)
+		suite.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(suite.chainA.GetContext(), sdk.NewCoin(denom, amount))
 	}
 
 	genesis := suite.chainA.GetSimApp().TransferKeeper.ExportGenesis(suite.chainA.GetContext())
