@@ -114,6 +114,7 @@ func TestMsgUpdateParamsValidation(t *testing.T) {
 		{"valid authority with valid params", types.NewMsgUpdateParams(validAuthority, types.DefaultParams()), true},
 		{"valid authority address with valid params", types.NewMsgUpdateParams(validAddress, types.DefaultParams()), true},
 		{"invalid authority with valid params", types.NewMsgUpdateParams(invalidAddress, types.DefaultParams()), false},
+		{"empty authority with valid params", types.NewMsgUpdateParams(emptyAddr, types.DefaultParams()), false},
 		{"valid authority with missing params", types.NewMsgUpdateParams(validAddress, types.Params{}), false},
 		{"valid authority with missing SendEnabled param", types.NewMsgUpdateParams(validAuthority, types.Params{ ReceiveEnabled: true }), false},
 		{"valid authority with missing ReceiveEnabled param", types.NewMsgUpdateParams(validAuthority, types.Params{ SendEnabled: true }), false},
