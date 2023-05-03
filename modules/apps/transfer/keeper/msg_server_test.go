@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"github.com/cometbft/cometbft/crypto/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
@@ -8,6 +9,19 @@ import (
 	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 )
 
+// define constants used for testing
+const (
+	invalidAddress = "invalid"
+)
+
+var (
+	emptyAddr string
+
+	validAuthority = sdk.AccAddress("authority").String()
+	validAddress = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
+)
+
+// TestMsgTransfer tests Transfer rpc handler
 func (suite *KeeperTestSuite) TestMsgTransfer() {
 	var msg *types.MsgTransfer
 
@@ -121,6 +135,64 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 				suite.Require().Error(err)
 				suite.Require().Nil(res)
 				suite.Require().Len(events, 0)
+			}
+		})
+	}
+}
+
+// TestUpdateParams tests UpdateParams rpc handler
+func (suite *KeeperTestSuite) TestUpdateParams() {
+	testCases := []struct {
+		name      string
+		request   *types.MsgUpdateParams
+		expPass bool
+	}{
+		{
+			name: "set invalid authority",
+			request: types.NewMsgUpdateParams(invalidAddress, types.DefaultParams()),
+			expPass: false,
+		},
+		{
+			name: "set empty authority",
+			request: types.NewMsgUpdateParams(emptyAddr, types.DefaultParams()),
+			expPass: false,
+		},
+		{
+			name: "set wrong authority",
+			request: types.NewMsgUpdateParams(validAddress, types.DefaultParams()),
+			expPass: false,
+		},
+		{
+			name: "set missing params",
+			request: types.NewMsgUpdateParams(validAuthority, types.Params{}),
+			expPass: false,
+		},
+		{
+			name: "set ReceiveEnabled param missing",
+			request: types.NewMsgUpdateParams(validAuthority, types.Params{ SendEnabled: true }),
+			expPass: false,
+		},
+		{
+			name: "set SendEnabled param missing",
+			request: types.NewMsgUpdateParams(validAuthority, types.Params{ ReceiveEnabled: true }),
+			expPass: false,
+		},
+		{
+			name: "set full valid params",
+			request: types.NewMsgUpdateParams(validAuthority, types.DefaultParams()),
+			expPass: true,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+			_, err := suite.chainA.GetSimApp().TransferKeeper.UpdateParams(suite.chainA.GetContext(), tc.request)
+			if tc.expPass {
+				suite.Require().NoError(err)
+			} else {
+				suite.Require().Error(err)
 			}
 		})
 	}
