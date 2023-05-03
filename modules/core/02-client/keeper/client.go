@@ -35,6 +35,10 @@ func (k Keeper) CreateClient(
 		return "", err
 	}
 
+	if status := k.GetClientStatus(ctx, clientState, clientID); status != exported.Active {
+		return "", errorsmod.Wrapf(types.ErrClientNotActive, "cannot create client (%s) with status %s", clientID, status)
+	}
+
 	k.Logger(ctx).Info("client created at height", "client-id", clientID, "height", clientState.GetLatestHeight().String())
 
 	defer telemetry.IncrCounterWithLabels(
