@@ -18,7 +18,7 @@ func (suite *KeeperTestSuite) TestMigratorMigrateParams() {
 		msg            string
 		malleate       func()
 		expectedParams transfertypes.Params
-	} {
+	}{
 		{
 			"success: false-false params",
 			func() {
