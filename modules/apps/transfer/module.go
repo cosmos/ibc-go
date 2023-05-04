@@ -93,7 +93,7 @@ type AppModule struct {
 // NewAppModule creates a new 20-transfer module
 func NewAppModule(k keeper.Keeper, ss exported.Subspace) AppModule {
 	return AppModule{
-		keeper: k,
+		keeper:         k,
 		legacySubspace: ss,
 	}
 }
