@@ -5,6 +5,7 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 
+	collections "github.com/cosmos/ibc-go/v7/internal/collections"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
@@ -26,7 +27,7 @@ var (
 	}
 )
 
-var _ exported.Version = &Version{}
+var _ exported.Version = (*Version)(nil)
 
 // NewVersion returns a new instance of Version.
 func NewVersion(identifier string, features []string) *Version {
@@ -84,7 +85,7 @@ func (version Version) VerifyProposedVersion(proposedVersion exported.Version) e
 	}
 
 	for _, proposedFeature := range proposedVersion.GetFeatures() {
-		if !contains(proposedFeature, version.GetFeatures()) {
+		if !collections.Contains(proposedFeature, version.GetFeatures()) {
 			return errorsmod.Wrapf(
 				ErrVersionNegotiationFailed,
 				"proposed feature (%s) is not a supported feature set (%s)", proposedFeature, version.GetFeatures(),
@@ -178,7 +179,7 @@ func PickVersion(supportedVersions, counterpartyVersions []exported.Version) (*V
 // set for the counterparty version.
 func GetFeatureSetIntersection(sourceFeatureSet, counterpartyFeatureSet []string) (featureSet []string) {
 	for _, feature := range sourceFeatureSet {
-		if contains(feature, counterpartyFeatureSet) {
+		if collections.Contains(feature, counterpartyFeatureSet) {
 			featureSet = append(featureSet, feature)
 		}
 	}
@@ -206,16 +207,4 @@ func ProtoVersionsToExported(versions []*Version) []exported.Version {
 	}
 
 	return exportedVersions
-}
-
-// contains returns true if the provided string element exists within the
-// string set.
-func contains(elem string, set []string) bool {
-	for _, element := range set {
-		if elem == element {
-			return true
-		}
-	}
-
-	return false
 }

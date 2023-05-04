@@ -12,7 +12,7 @@ import (
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
-var _ exported.ClientMessage = &Misbehaviour{}
+var _ exported.ClientMessage = (*Misbehaviour)(nil)
 
 // FrozenHeight is same for all misbehaviour
 var FrozenHeight = clienttypes.NewHeight(0, 1)

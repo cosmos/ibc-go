@@ -16,7 +16,7 @@ import (
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
-var _ porttypes.Middleware = &IBCMiddleware{}
+var _ porttypes.Middleware = (*IBCMiddleware)(nil)
 
 // IBCMiddleware implements the ICS26 callbacks for the fee middleware given the
 // fee keeper and the underlying application.

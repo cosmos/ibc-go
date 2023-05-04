@@ -26,9 +26,10 @@ import (
 )
 
 var (
-	_ module.BeginBlockAppModule = AppModule{}
-	_ module.AppModuleBasic      = AppModuleBasic{}
-	_ module.AppModuleSimulation = AppModule{}
+	_ module.BeginBlockAppModule = (*AppModule)(nil)
+	_ module.AppModuleBasic      = (*AppModuleBasic)(nil)
+	_ module.AppModuleSimulation = (*AppModule)(nil)
+	_ appmodule.AppModule        = (*AppModule)(nil)
 )
 
 // ----------------------------------------------------------------------------
@@ -99,8 +100,6 @@ func NewAppModule(cdc codec.Codec, keeper keeper.Keeper, sealKeeper bool) AppMod
 		sealKeeper:     sealKeeper,
 	}
 }
-
-var _ appmodule.AppModule = AppModule{}
 
 // IsOnePerModuleType implements the depinject.OnePerModuleType interface.
 func (am AppModule) IsOnePerModuleType() {}
