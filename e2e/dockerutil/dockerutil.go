@@ -90,7 +90,7 @@ func chainAbsoluteGenesisFilePaths(cfg ibc.ChainConfig) string {
 	return fmt.Sprintf("/var/cosmos-chain/%s/config/genesis.json", cfg.Name)
 }
 
-//getDockerContainerID get docker container id
+// getDockerContainerID get docker container id
 func getDockerContainerID(t *testing.T, ctx context.Context, cfg ibc.ChainConfig, dc *dockerclient.Client) (string, error) {
 	imageOfChain := cfg.Images[0].Repository
 	testContainers, err := GetTestContainers(t, ctx, dc)
