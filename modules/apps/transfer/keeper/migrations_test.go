@@ -12,6 +12,71 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
+// TestMigratorMigrateParams tests successful parameter migration from x/params to self store
+func (suite *KeeperTestSuite) TestMigratorMigrateParams() {
+	testCases := []struct {
+		msg            string
+		malleate       func()
+		expectedParams transfertypes.Params
+	} {
+		{
+			"success: false-false params",
+			func() {
+				suite.chainA.GetSimApp().TransferKeeper.SetParams(
+					suite.chainA.GetContext(),
+					transfertypes.NewParams(false, false),
+				)
+			},
+			transfertypes.NewParams(false, false),
+		},
+		{
+			"success: false-true params",
+			func() {
+				suite.chainA.GetSimApp().TransferKeeper.SetParams(
+					suite.chainA.GetContext(),
+					transfertypes.NewParams(false, true),
+				)
+			},
+			transfertypes.NewParams(false, true),
+		},
+		{
+			"success: true-false params",
+			func() {
+				suite.chainA.GetSimApp().TransferKeeper.SetParams(
+					suite.chainA.GetContext(),
+					transfertypes.NewParams(true, false),
+				)
+			},
+			transfertypes.NewParams(true, false),
+		},
+		{
+			"success: true-true params",
+			func() {
+				suite.chainA.GetSimApp().TransferKeeper.SetParams(
+					suite.chainA.GetContext(),
+					transfertypes.NewParams(true, true),
+				)
+			},
+			transfertypes.NewParams(true, true),
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(fmt.Sprintf("case %s", tc.msg), func() {
+			suite.SetupTest() // reset
+
+			tc.malleate() // explicitly set up params
+
+			migrator := transferkeeper.NewMigrator(suite.chainA.GetSimApp().TransferKeeper, suite.chainA.GetSimApp().GetSubspace(transfertypes.ModuleName))
+			err := migrator.MigrateParams(suite.chainA.GetContext())
+			suite.Require().NoError(err)
+
+			params := suite.chainA.GetSimApp().TransferKeeper.GetParams(suite.chainA.GetContext())
+			suite.Require().Equal(tc.expectedParams, params)
+		})
+	}
+}
+
 func (suite *KeeperTestSuite) TestMigratorMigrateTraces() {
 	testCases := []struct {
 		msg            string
