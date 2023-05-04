@@ -32,7 +32,6 @@ var (
 	sender    = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
 	receiver  = sdk.AccAddress("testaddr2").String()
 	emptyAddr string
-	emptyBool bool
 
 	coin             = sdk.NewCoin("atom", sdk.NewInt(100))
 	ibcCoin          = sdk.NewCoin("ibc/7F1D3FCF4AE79E1554D670D1AD949A9BA4E4A3C76C63093E17E446A46061A7A2", sdk.NewInt(100))
@@ -43,7 +42,7 @@ var (
 	timeoutHeight = clienttypes.NewHeight(0, 10)
 
 	validAuthority = sdk.AccAddress("authority").String()
-	validAddress = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
+	validAddress   = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
 )
 
 // TestMsgTransferRoute tests Route for MsgTransfer
@@ -108,9 +107,9 @@ func TestMsgTransferGetSigners(t *testing.T) {
 // TestMsgUpdateParamsValidation tests ValidateBasic for MsgUpdateParams
 func TestMsgUpdateParamsValidation(t *testing.T) {
 	testCases := []struct {
-		name     string
+		name    string
 		msg     *types.MsgUpdateParams
-		expPass  bool
+		expPass bool
 	}{
 		{"valid authority with valid params", types.NewMsgUpdateParams(validAuthority, types.DefaultParams()), true},
 		{"valid authority address with valid params", types.NewMsgUpdateParams(validAddress, types.DefaultParams()), true},
