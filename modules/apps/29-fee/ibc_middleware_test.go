@@ -1185,6 +1185,7 @@ func (suite *FeeTestSuite) TestWriteAcknowledgementAsyncFeeDisabled() {
 	feeModule := cbs.(fee.IBCMiddleware)
 
 	err = feeModule.WriteAcknowledgement(suite.chainB.GetContext(), chanCap, packet, ack)
+	suite.Require().NoError(err)
 
 	packetAck, _ := suite.chainB.GetSimApp().GetIBCKeeper().ChannelKeeper.GetPacketAcknowledgement(suite.chainB.GetContext(), packet.DestinationPort, packet.DestinationChannel, 1)
 	suite.Require().Equal(packetAck, channeltypes.CommitAcknowledgement(ack.Acknowledgement()))
