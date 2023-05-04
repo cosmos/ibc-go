@@ -565,7 +565,7 @@ func NewSimApp(
 
 		// IBC modules
 		ibc.NewAppModule(app.IBCKeeper),
-		transfer.NewAppModule(app.TransferKeeper),
+		transfer.NewAppModule(app.TransferKeeper, app.GetSubspace(ibctransfertypes.ModuleName)),
 		ibcfee.NewAppModule(app.IBCFeeKeeper),
 		ica.NewAppModule(&app.ICAControllerKeeper, &app.ICAHostKeeper),
 		mockModule,
@@ -635,7 +635,7 @@ func NewSimApp(
 		evidence.NewAppModule(app.EvidenceKeeper),
 		authzmodule.NewAppModule(appCodec, app.AuthzKeeper, app.AccountKeeper, app.BankKeeper, app.interfaceRegistry),
 		ibc.NewAppModule(app.IBCKeeper),
-		transfer.NewAppModule(app.TransferKeeper),
+		transfer.NewAppModule(app.TransferKeeper, app.GetSubspace(ibctransfertypes.ModuleName)),
 		ica.NewAppModule(&app.ICAControllerKeeper, &app.ICAHostKeeper),
 	)
 
