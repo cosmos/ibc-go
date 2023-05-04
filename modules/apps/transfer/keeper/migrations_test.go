@@ -22,40 +22,44 @@ func (suite *KeeperTestSuite) TestMigratorMigrateParams() {
 		{
 			"success: false-false params",
 			func() {
-				suite.chainA.GetSimApp().TransferKeeper.SetParams(
+				err := suite.chainA.GetSimApp().TransferKeeper.SetParams(
 					suite.chainA.GetContext(),
 					transfertypes.NewParams(false, false),
 				)
+				suite.Require().NoError(err)
 			},
 			transfertypes.NewParams(false, false),
 		},
 		{
 			"success: false-true params",
 			func() {
-				suite.chainA.GetSimApp().TransferKeeper.SetParams(
+				err := suite.chainA.GetSimApp().TransferKeeper.SetParams(
 					suite.chainA.GetContext(),
 					transfertypes.NewParams(false, true),
 				)
+				suite.Require().NoError(err)
 			},
 			transfertypes.NewParams(false, true),
 		},
 		{
 			"success: true-false params",
 			func() {
-				suite.chainA.GetSimApp().TransferKeeper.SetParams(
+				err := suite.chainA.GetSimApp().TransferKeeper.SetParams(
 					suite.chainA.GetContext(),
 					transfertypes.NewParams(true, false),
 				)
+				suite.Require().NoError(err)
 			},
 			transfertypes.NewParams(true, false),
 		},
 		{
 			"success: true-true params",
 			func() {
-				suite.chainA.GetSimApp().TransferKeeper.SetParams(
+				err := suite.chainA.GetSimApp().TransferKeeper.SetParams(
 					suite.chainA.GetContext(),
 					transfertypes.NewParams(true, true),
 				)
+				suite.Require().NoError(err)
 			},
 			transfertypes.NewParams(true, true),
 		},
