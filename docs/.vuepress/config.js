@@ -145,6 +145,10 @@ module.exports = {
         key: "v4.3.0",
       },
       {
+        label: "v4.4.0",
+        key: "v4.4.0",
+      },
+      {
         label: "v5.0.0",
         key: "v5.0.0",
       },
@@ -159,6 +163,10 @@ module.exports = {
       {
         label: "v6.1.0",
         key: "v6.1.0",
+      },
+      {
+        label: "v7.0.0",
+        key: "v7.0.0",
       },
     ],
     topbar: {
@@ -214,6 +222,11 @@ module.exports = {
               title: "Roadmap",
               directory: false,
               path: "/roadmap/roadmap.html",
+            },
+            {
+              title: "Troubleshooting",
+              directory: false,
+              path: "/ibc/troubleshooting.html",
             },
           ],
         },
@@ -394,6 +407,38 @@ module.exports = {
               ]
             },
             {
+              title: "Localhost",
+              directory: true,
+              path: "/ibc/light-clients/localhost",
+              children: [
+                {
+                  title: "Overview",
+                  directory: false,
+                  path: "/ibc/light-clients/localhost/overview.html",
+                },
+                {
+                  title: "Integration",
+                  directory: false,
+                  path: "/ibc/light-clients/localhost/integration.html",
+                },
+                {
+                  title: "ClientState",
+                  directory: false,
+                  path: "/ibc/light-clients/localhost/client-state.html",
+                },
+                {
+                  title: "Connection",
+                  directory: false,
+                  path: "/ibc/light-clients/localhost/connection.html",
+                },
+                {
+                  title: "State Verification",
+                  directory: false,
+                  path: "/ibc/light-clients/localhost/state-verification.html",
+                },
+              ],
+            },
+            {
               title: "Solomachine",
               directory: true,
               path: "/ibc/light-clients/solomachine",
@@ -507,6 +552,11 @@ module.exports = {
               title: "IBC-Go v6 to v7",
               directory: false,
               path: "/migrations/v6-to-v7.html",
+            },
+            {
+              title: "IBC-Go v7 to v7.1",
+              directory: false,
+              path: "/migrations/v7-to-v7_1.html",
             },
           ],
         },

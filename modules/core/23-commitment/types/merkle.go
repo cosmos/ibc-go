@@ -150,10 +150,7 @@ func (proof MerkleProof) VerifyMembership(specs []*ics23.ProofSpec, root exporte
 
 	// Since every proof in chain is a membership proof we can use verifyChainedMembershipProof from index 0
 	// to validate entire proof
-	if err := verifyChainedMembershipProof(root.GetHash(), specs, proof.Proofs, mpath, value, 0); err != nil {
-		return err
-	}
-	return nil
+	return verifyChainedMembershipProof(root.GetHash(), specs, proof.Proofs, mpath, value, 0)
 }
 
 // VerifyNonMembership verifies the absence of a merkle proof against the given root and path.

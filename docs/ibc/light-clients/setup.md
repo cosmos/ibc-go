@@ -12,7 +12,7 @@ Finally, a succinct rundown is given of the remaining steps to make the light cl
 
 ## Configuring a light client module
 
-An IBC light client module must implement the [`AppModuleBasic`](https://github.com/cosmos/cosmos-sdk/blob/main/types/module/module.go#L50) interface in order to register its concrete types against the core IBC interfaces defined in `modules/core/exported`. This is accomplished via the `RegisterInterfaces` method which provides the light client module with the opportunity to register codec types using the chain's `InterfaceRegistry`. Please refer to the [`07-tendermint` codec registration](https://github.com/cosmos/ibc-go/blob/02-client-refactor-beta1/modules/light-clients/07-tendermint/codec.go#L11).
+An IBC light client module must implement the [`AppModuleBasic`](https://github.com/cosmos/cosmos-sdk/blob/main/types/module/module.go#L50) interface in order to register its concrete types against the core IBC interfaces defined in `modules/core/exported`. This is accomplished via the `RegisterInterfaces` method which provides the light client module with the opportunity to register codec types using the chain's `InterfaceRegistry`. Please refer to the [`07-tendermint` codec registration](https://github.com/cosmos/ibc-go/blob/v7.0.0/modules/light-clients/07-tendermint/codec.go#L11).
 
 The `AppModuleBasic` interface may also be leveraged to install custom CLI handlers for light client module users. Light client modules can safely no-op for interface methods which it does not wish to implement.
 
@@ -77,7 +77,7 @@ See below for a list of IBC relayer implementations:
 - [informalsystems/hermes](https://github.com/informalsystems/hermes)
 - [confio/ts-relayer](https://github.com/confio/ts-relayer)
 
-Stateless checks are performed within the [`ValidateBasic`](https://github.com/cosmos/ibc-go/blob/02-client-refactor-beta1/modules/core/02-client/types/msgs.go#L48) method of `MsgCreateClient`.
+Stateless checks are performed within the [`ValidateBasic`](https://github.com/cosmos/ibc-go/blob/v7.0.0/modules/core/02-client/types/msgs.go#L48) method of `MsgCreateClient`.
 
 ```protobuf
 // MsgCreateClient defines a message to create an IBC client
@@ -95,11 +95,11 @@ message MsgCreateClient {
 }
 ```
 
-Leveraging protobuf `Any` encoding allows core IBC to [unpack](https://github.com/cosmos/ibc-go/blob/02-client-refactor-beta1/modules/core/keeper/msg_server.go#L28-L36) both the `ClientState` and `ConsensusState` into their respective interface types registered previously using the light client module's `RegisterInterfaces` method.
+Leveraging protobuf `Any` encoding allows core IBC to [unpack](https://github.com/cosmos/ibc-go/blob/v7.0.0/modules/core/keeper/msg_server.go#L28-L36) both the `ClientState` and `ConsensusState` into their respective interface types registered previously using the light client module's `RegisterInterfaces` method.
 
-Within the `02-client` submodule, the [`ClientState` is then initialized](https://github.com/cosmos/ibc-go/blob/02-client-refactor-beta1/modules/core/02-client/keeper/client.go#L30-L34) with its own isolated key-value store, namespaced using a unique client identifier.
+Within the `02-client` submodule, the [`ClientState` is then initialized](https://github.com/cosmos/ibc-go/blob/v7.0.0/modules/core/02-client/keeper/client.go#L30-L32) with its own isolated key-value store, namespaced using a unique client identifier.
 
-In order to successfully create an IBC client using a new client type, it [must be supported](https://github.com/cosmos/ibc-go/blob/02-client-refactor-beta1/modules/core/02-client/keeper/client.go#L18-L24). Light client support in IBC is gated by on-chain governance. The allow list may be updated by submitting a new governance proposal to update the `02-client` parameter `AllowedClients`.
+In order to successfully create an IBC client using a new client type, it [must be supported](https://github.com/cosmos/ibc-go/blob/v7.0.0/modules/core/02-client/keeper/client.go#L19-L25). Light client support in IBC is gated by on-chain governance. The allow list may be updated by submitting a new governance proposal to update the `02-client` parameter `AllowedClients`.
 
 <!-- 
 - TODO: update when params are managed by ibc-go 

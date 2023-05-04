@@ -93,7 +93,7 @@ import (
 
 ## Testing
 
-- Make use of table driven testing where possible and not-cumbersome. Read [this blog post](https://dave.cheney.net/2013/06/09/writing-table-driven-tests-in-go) for more information. See the [tests](https://github.com/cosmos/ibc-go/blob/f24f41ea8a61fe87f6becab94e84de08c8aa9381/modules/apps/transfer/keeper/msg_server_test.go#L11) for [`Transfer`](https://github.com/cosmos/ibc-go/blob/f24f41ea8a61fe87f6becab94e84de08c8aa9381/modules/apps/transfer/keeper/msg_server.go#L15) for an example.
+- Make use of table driven testing where possible and not-cumbersome. Read [this blog post](https://dave.cheney.net/2013/06/09/writing-table-driven-tests-in-go) for more information. See the [tests](https://github.com/cosmos/ibc-go/blob/v7.0.0/modules/apps/transfer/keeper/msg_server_test.go#L11) for [`Transfer`](https://github.com/cosmos/ibc-go/blob/v7.0.0/modules/apps/transfer/keeper/msg_server.go#L15) for an example.
 - Make use of Testify [assert](https://godoc.org/github.com/stretchr/testify/assert) and [require](https://godoc.org/github.com/stretchr/testify/require).
 - When using mocks, it is recommended to use Testify [mock](https://pkg.go.dev/github.com/stretchr/testify/mock) along with [Mockery](https://github.com/vektra/mockery) for autogeneration.
 

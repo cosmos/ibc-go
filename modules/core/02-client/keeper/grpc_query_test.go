@@ -5,9 +5,7 @@ import (
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	grpctypes "github.com/cosmos/cosmos-sdk/types/grpc"
 	"github.com/cosmos/cosmos-sdk/types/query"
-	"google.golang.org/grpc/metadata"
 
 	"github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
@@ -111,13 +109,17 @@ func (suite *KeeperTestSuite) TestQueryClientStates() {
 		{
 			"empty pagination",
 			func() {
+				localhost := types.NewIdentifiedClientState(exported.LocalhostClientID, suite.chainA.GetClientState(exported.LocalhostClientID))
+				expClientStates = types.IdentifiedClientStates{localhost}
 				req = &types.QueryClientStatesRequest{}
 			},
 			true,
 		},
 		{
-			"success, no results",
+			"success, only localhost",
 			func() {
+				localhost := types.NewIdentifiedClientState(exported.LocalhostClientID, suite.chainA.GetClientState(exported.LocalhostClientID))
+				expClientStates = types.IdentifiedClientStates{localhost}
 				req = &types.QueryClientStatesRequest{
 					Pagination: &query.PageRequest{
 						Limit:      3,
@@ -139,11 +141,12 @@ func (suite *KeeperTestSuite) TestQueryClientStates() {
 				clientStateA1 := path1.EndpointA.GetClientState()
 				clientStateA2 := path2.EndpointA.GetClientState()
 
+				localhost := types.NewIdentifiedClientState(exported.LocalhostClientID, suite.chainA.GetClientState(exported.LocalhostClientID))
 				idcs := types.NewIdentifiedClientState(path1.EndpointA.ClientID, clientStateA1)
 				idcs2 := types.NewIdentifiedClientState(path2.EndpointA.ClientID, clientStateA2)
 
 				// order is sorted by client id
-				expClientStates = types.IdentifiedClientStates{idcs, idcs2}.Sort()
+				expClientStates = types.IdentifiedClientStates{localhost, idcs, idcs2}.Sort()
 				req = &types.QueryClientStatesRequest{
 					Pagination: &query.PageRequest{
 						Limit:      20,
@@ -158,10 +161,10 @@ func (suite *KeeperTestSuite) TestQueryClientStates() {
 	for _, tc := range testCases {
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest() // reset
+
 			tc.malleate()
 
 			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
-
 			res, err := suite.chainA.QueryServer.ClientStates(ctx, req)
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -626,10 +629,7 @@ func (suite *KeeperTestSuite) TestQueryUpgradedConsensusStates() {
 
 			tc.malleate()
 
-			ctx := sdk.WrapSDKContext(suite.ctx)
-			ctx = metadata.AppendToOutgoingContext(ctx, grpctypes.GRPCBlockHeightHeader, fmt.Sprintf("%d", height))
-
-			res, err := suite.queryClient.UpgradedConsensusState(ctx, req)
+			res, err := suite.keeper.UpgradedConsensusState(suite.ctx, req)
 			if tc.expPass {
 				suite.Require().NoError(err)
 				suite.Require().True(expConsensusState.Equal(res.UpgradedConsensusState))

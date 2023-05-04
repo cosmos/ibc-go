@@ -33,6 +33,15 @@ func (k Keeper) ConnOpenInit(
 		versions = []exported.Version{version}
 	}
 
+	clientState, found := k.clientKeeper.GetClientState(ctx, clientID)
+	if !found {
+		return "", errorsmod.Wrapf(clienttypes.ErrClientNotFound, "clientID (%s)", clientID)
+	}
+
+	if status := k.clientKeeper.GetClientStatus(ctx, clientState, clientID); status != exported.Active {
+		return "", errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
+	}
+
 	connectionID := k.GenerateConnectionIdentifier(ctx)
 	if err := k.addConnectionToClient(ctx, clientID, connectionID); err != nil {
 		return "", err
@@ -42,11 +51,9 @@ func (k Keeper) ConnOpenInit(
 	connection := types.NewConnectionEnd(types.INIT, clientID, counterparty, types.ExportedVersionsToProto(versions), delayPeriod)
 	k.SetConnection(ctx, connectionID, connection)
 
-	k.Logger(ctx).Info("connection state updated", "connection-id", connectionID, "previous-state", "NONE", "new-state", "INIT")
+	k.Logger(ctx).Info("connection state updated", "connection-id", connectionID, "previous-state", types.UNINITIALIZED.String(), "new-state", types.INIT.String())
 
-	defer func() {
-		telemetry.IncrCounter(1, "ibc", "connection", "open-init")
-	}()
+	defer telemetry.IncrCounter(1, "ibc", "connection", "open-init")
 
 	emitConnectionOpenInitEvent(ctx, connectionID, clientID, counterparty)
 
@@ -75,6 +82,8 @@ func (k Keeper) ConnOpenTry(
 	// generate a new connection
 	connectionID := k.GenerateConnectionIdentifier(ctx)
 
+	// check that the consensus height the counterparty chain is using to store a representation
+	// of this chain's consensus state is at a height in the past
 	selfHeight := clienttypes.GetSelfHeight(ctx)
 	if consensusHeight.GTE(selfHeight) {
 		return "", errorsmod.Wrapf(
@@ -137,11 +146,9 @@ func (k Keeper) ConnOpenTry(
 	}
 
 	k.SetConnection(ctx, connectionID, connection)
-	k.Logger(ctx).Info("connection state updated", "connection-id", connectionID, "previous-state", "NONE", "new-state", "TRYOPEN")
+	k.Logger(ctx).Info("connection state updated", "connection-id", connectionID, "previous-state", types.UNINITIALIZED.String(), "new-state", types.TRYOPEN.String())
 
-	defer func() {
-		telemetry.IncrCounter(1, "ibc", "connection", "open-try")
-	}()
+	defer telemetry.IncrCounter(1, "ibc", "connection", "open-try")
 
 	emitConnectionOpenTryEvent(ctx, connectionID, clientID, counterparty)
 
@@ -164,7 +171,8 @@ func (k Keeper) ConnOpenAck(
 	proofHeight exported.Height, // height that relayer constructed proofTry
 	consensusHeight exported.Height, // latest height of chainA that chainB has stored on its chainA client
 ) error {
-	// Check that chainB client hasn't stored invalid height
+	// check that the consensus height the counterparty chain is using to store a representation
+	// of this chain's consensus state is at a height in the past
 	selfHeight := clienttypes.GetSelfHeight(ctx)
 	if consensusHeight.GTE(selfHeight) {
 		return errorsmod.Wrapf(
@@ -230,11 +238,9 @@ func (k Keeper) ConnOpenAck(
 		return err
 	}
 
-	k.Logger(ctx).Info("connection state updated", "connection-id", connectionID, "previous-state", "INIT", "new-state", "OPEN")
+	k.Logger(ctx).Info("connection state updated", "connection-id", connectionID, "previous-state", types.INIT.String(), "new-state", types.OPEN.String())
 
-	defer func() {
-		telemetry.IncrCounter(1, "ibc", "connection", "open-ack")
-	}()
+	defer telemetry.IncrCounter(1, "ibc", "connection", "open-ack")
 
 	// Update connection state to Open
 	connection.State = types.OPEN
@@ -286,11 +292,9 @@ func (k Keeper) ConnOpenConfirm(
 	// Update ChainB's connection to Open
 	connection.State = types.OPEN
 	k.SetConnection(ctx, connectionID, connection)
-	k.Logger(ctx).Info("connection state updated", "connection-id", connectionID, "previous-state", "TRYOPEN", "new-state", "OPEN")
+	k.Logger(ctx).Info("connection state updated", "connection-id", connectionID, "previous-state", types.TRYOPEN.String(), "new-state", types.OPEN.String())
 
-	defer func() {
-		telemetry.IncrCounter(1, "ibc", "connection", "open-confirm")
-	}()
+	defer telemetry.IncrCounter(1, "ibc", "connection", "open-confirm")
 
 	emitConnectionOpenConfirmEvent(ctx, connectionID, connection)
 

@@ -10,9 +10,7 @@ import (
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 )
 
-const gasCostPerIteration = uint64(10)
-
-var _ authz.Authorization = &TransferAuthorization{}
+var _ authz.Authorization = (*TransferAuthorization)(nil)
 
 // NewTransferAuthorization creates a new TransferAuthorization object.
 func NewTransferAuthorization(allocations ...Allocation) *TransferAuthorization {
@@ -34,36 +32,38 @@ func (a TransferAuthorization) Accept(ctx sdk.Context, msg sdk.Msg) (authz.Accep
 	}
 
 	for index, allocation := range a.Allocations {
-		if allocation.SourceChannel == msgTransfer.SourceChannel && allocation.SourcePort == msgTransfer.SourcePort {
-			limitLeft, isNegative := allocation.SpendLimit.SafeSub(msgTransfer.Token)
-			if isNegative {
-				return authz.AcceptResponse{}, errorsmod.Wrapf(ibcerrors.ErrInsufficientFunds, "requested amount is more than spend limit")
-			}
+		if !(allocation.SourceChannel == msgTransfer.SourceChannel && allocation.SourcePort == msgTransfer.SourcePort) {
+			continue
+		}
 
-			if !isAllowedAddress(ctx, msgTransfer.Receiver, allocation.AllowList) {
-				return authz.AcceptResponse{}, errorsmod.Wrap(ibcerrors.ErrInvalidAddress, "not allowed address for transfer")
-			}
+		limitLeft, isNegative := allocation.SpendLimit.SafeSub(msgTransfer.Token)
+		if isNegative {
+			return authz.AcceptResponse{}, errorsmod.Wrapf(ibcerrors.ErrInsufficientFunds, "requested amount is more than spend limit")
+		}
 
-			if limitLeft.IsZero() {
-				a.Allocations = append(a.Allocations[:index], a.Allocations[index+1:]...)
-				if len(a.Allocations) == 0 {
-					return authz.AcceptResponse{Accept: true, Delete: true}, nil
-				}
-				return authz.AcceptResponse{Accept: true, Delete: false, Updated: &TransferAuthorization{
-					Allocations: a.Allocations,
-				}}, nil
-			}
-			a.Allocations[index] = Allocation{
-				SourcePort:    allocation.SourcePort,
-				SourceChannel: allocation.SourceChannel,
-				SpendLimit:    limitLeft,
-				AllowList:     allocation.AllowList,
-			}
+		if !isAllowedAddress(ctx, msgTransfer.Receiver, allocation.AllowList) {
+			return authz.AcceptResponse{}, errorsmod.Wrap(ibcerrors.ErrInvalidAddress, "not allowed address for transfer")
+		}
 
+		if limitLeft.IsZero() {
+			a.Allocations = append(a.Allocations[:index], a.Allocations[index+1:]...)
+			if len(a.Allocations) == 0 {
+				return authz.AcceptResponse{Accept: true, Delete: true}, nil
+			}
 			return authz.AcceptResponse{Accept: true, Delete: false, Updated: &TransferAuthorization{
 				Allocations: a.Allocations,
 			}}, nil
 		}
+		a.Allocations[index] = Allocation{
+			SourcePort:    allocation.SourcePort,
+			SourceChannel: allocation.SourceChannel,
+			SpendLimit:    limitLeft,
+			AllowList:     allocation.AllowList,
+		}
+
+		return authz.AcceptResponse{Accept: true, Delete: false, Updated: &TransferAuthorization{
+			Allocations: a.Allocations,
+		}}, nil
 	}
 	return authz.AcceptResponse{}, errorsmod.Wrapf(ibcerrors.ErrNotFound, "requested port and channel allocation does not exist")
 }
@@ -117,6 +117,8 @@ func isAllowedAddress(ctx sdk.Context, receiver string, allowedAddrs []string) b
 	if len(allowedAddrs) == 0 {
 		return true
 	}
+
+	gasCostPerIteration := ctx.KVGasConfig().IterNextCostFlat
 
 	for _, addr := range allowedAddrs {
 		ctx.GasMeter().ConsumeGas(gasCostPerIteration, "transfer authorization")

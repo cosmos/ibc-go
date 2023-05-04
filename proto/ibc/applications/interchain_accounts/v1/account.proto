@@ -14,7 +14,6 @@ message InterchainAccount {
   option (gogoproto.goproto_stringer)        = false;
   option (cosmos_proto.implements_interface) = "ibc.applications.interchain_accounts.v1.InterchainAccountI";
 
-  cosmos.auth.v1beta1.BaseAccount base_account = 1
-      [(gogoproto.embed) = true, (gogoproto.moretags) = "yaml:\"base_account\""];
-  string account_owner = 2 [(gogoproto.moretags) = "yaml:\"account_owner\""];
+  cosmos.auth.v1beta1.BaseAccount base_account  = 1 [(gogoproto.embed) = true];
+  string                          account_owner = 2;
 }

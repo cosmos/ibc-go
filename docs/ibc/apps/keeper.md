@@ -48,8 +48,8 @@ func NewKeeper(
   }
 }
 
-// IsBound checks if the IBC app module is already bound to the desired port
-func (k Keeper) IsBound(ctx sdk.Context, portID string) bool {
+// hasCapability checks if the IBC app module owns the port capability for the desired port
+func (k Keeper) hasCapability(ctx sdk.Context, portID string) bool {
   _, ok := k.scopedKeeper.GetCapability(ctx, host.PortPath(portID))
   return ok
 }

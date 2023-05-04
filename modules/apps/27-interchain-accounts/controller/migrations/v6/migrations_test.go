@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
+	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	"github.com/stretchr/testify/suite"
 
 	v6 "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/migrations/v6"
@@ -54,11 +54,7 @@ func (suite *MigrationsTestSuite) SetupPath() error {
 		return err
 	}
 
-	if err := suite.path.EndpointB.ChanOpenConfirm(); err != nil {
-		return err
-	}
-
-	return nil
+	return suite.path.EndpointB.ChanOpenConfirm()
 }
 
 func (suite *MigrationsTestSuite) RegisterInterchainAccount(endpoint *ibctesting.Endpoint, owner string) error {
@@ -101,22 +97,22 @@ func (suite *MigrationsTestSuite) TestMigrateICS27ChannelCapability() {
 	// note: suite.SetupPath() now claims the chanel capability using icacontroller for "channel-0"
 	capName := host.ChannelCapabilityPath(suite.path.EndpointA.ChannelConfig.PortID, channeltypes.FormatChannelIdentifier(1))
 
-	cap, err := suite.chainA.GetSimApp().ScopedIBCKeeper.NewCapability(suite.chainA.GetContext(), capName)
+	capability, err := suite.chainA.GetSimApp().ScopedIBCKeeper.NewCapability(suite.chainA.GetContext(), capName)
 	suite.Require().NoError(err)
 
-	err = suite.chainA.GetSimApp().ScopedICAMockKeeper.ClaimCapability(suite.chainA.GetContext(), cap, capName)
+	err = suite.chainA.GetSimApp().ScopedICAMockKeeper.ClaimCapability(suite.chainA.GetContext(), capability, capName)
 	suite.Require().NoError(err)
 
 	// assert the capability is owned by the mock module
-	cap, found := suite.chainA.GetSimApp().ScopedICAMockKeeper.GetCapability(suite.chainA.GetContext(), capName)
-	suite.Require().NotNil(cap)
+	capability, found := suite.chainA.GetSimApp().ScopedICAMockKeeper.GetCapability(suite.chainA.GetContext(), capName)
+	suite.Require().NotNil(capability)
 	suite.Require().True(found)
 
-	isAuthenticated := suite.chainA.GetSimApp().ScopedICAMockKeeper.AuthenticateCapability(suite.chainA.GetContext(), cap, capName)
+	isAuthenticated := suite.chainA.GetSimApp().ScopedICAMockKeeper.AuthenticateCapability(suite.chainA.GetContext(), capability, capName)
 	suite.Require().True(isAuthenticated)
 
-	cap, found = suite.chainA.GetSimApp().ScopedICAControllerKeeper.GetCapability(suite.chainA.GetContext(), capName)
-	suite.Require().Nil(cap)
+	capability, found = suite.chainA.GetSimApp().ScopedICAControllerKeeper.GetCapability(suite.chainA.GetContext(), capName)
+	suite.Require().Nil(capability)
 	suite.Require().False(found)
 
 	suite.ResetMemStore() // empty the x/capability in-memory store
@@ -132,24 +128,24 @@ func (suite *MigrationsTestSuite) TestMigrateICS27ChannelCapability() {
 	suite.Require().NoError(err)
 
 	// assert the capability is now owned by the ICS27 controller submodule
-	cap, found = suite.chainA.GetSimApp().ScopedICAControllerKeeper.GetCapability(suite.chainA.GetContext(), capName)
-	suite.Require().NotNil(cap)
+	capability, found = suite.chainA.GetSimApp().ScopedICAControllerKeeper.GetCapability(suite.chainA.GetContext(), capName)
+	suite.Require().NotNil(capability)
 	suite.Require().True(found)
 
-	isAuthenticated = suite.chainA.GetSimApp().ScopedICAControllerKeeper.AuthenticateCapability(suite.chainA.GetContext(), cap, capName)
+	isAuthenticated = suite.chainA.GetSimApp().ScopedICAControllerKeeper.AuthenticateCapability(suite.chainA.GetContext(), capability, capName)
 	suite.Require().True(isAuthenticated)
 
-	cap, found = suite.chainA.GetSimApp().ScopedICAMockKeeper.GetCapability(suite.chainA.GetContext(), capName)
-	suite.Require().Nil(cap)
+	capability, found = suite.chainA.GetSimApp().ScopedICAMockKeeper.GetCapability(suite.chainA.GetContext(), capName)
+	suite.Require().Nil(capability)
 	suite.Require().False(found)
 
 	// ensure channel capability for "channel-0" is still owned by the controller
 	capName = host.ChannelCapabilityPath(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
-	cap, found = suite.chainA.GetSimApp().ScopedICAControllerKeeper.GetCapability(suite.chainA.GetContext(), capName)
-	suite.Require().NotNil(cap)
+	capability, found = suite.chainA.GetSimApp().ScopedICAControllerKeeper.GetCapability(suite.chainA.GetContext(), capName)
+	suite.Require().NotNil(capability)
 	suite.Require().True(found)
 
-	isAuthenticated = suite.chainA.GetSimApp().ScopedICAControllerKeeper.AuthenticateCapability(suite.chainA.GetContext(), cap, capName)
+	isAuthenticated = suite.chainA.GetSimApp().ScopedICAControllerKeeper.AuthenticateCapability(suite.chainA.GetContext(), capability, capName)
 	suite.Require().True(isAuthenticated)
 
 	suite.AssertMockCapabiltiesUnchanged()
@@ -159,29 +155,29 @@ func (suite *MigrationsTestSuite) TestMigrateICS27ChannelCapability() {
 // 1. A capability with a single owner
 // 2. A capability with two owners, neither of which is "ibc"
 func (suite *MigrationsTestSuite) CreateMockCapabilities() {
-	cap, err := suite.chainA.GetSimApp().ScopedIBCMockKeeper.NewCapability(suite.chainA.GetContext(), "mock_one")
+	capability, err := suite.chainA.GetSimApp().ScopedIBCMockKeeper.NewCapability(suite.chainA.GetContext(), "mock_one")
 	suite.Require().NoError(err)
-	suite.Require().NotNil(cap)
+	suite.Require().NotNil(capability)
 
-	cap, err = suite.chainA.GetSimApp().ScopedICAMockKeeper.NewCapability(suite.chainA.GetContext(), "mock_two")
+	capability, err = suite.chainA.GetSimApp().ScopedICAMockKeeper.NewCapability(suite.chainA.GetContext(), "mock_two")
 	suite.Require().NoError(err)
-	suite.Require().NotNil(cap)
+	suite.Require().NotNil(capability)
 
-	err = suite.chainA.GetSimApp().ScopedIBCMockKeeper.ClaimCapability(suite.chainA.GetContext(), cap, "mock_two")
+	err = suite.chainA.GetSimApp().ScopedIBCMockKeeper.ClaimCapability(suite.chainA.GetContext(), capability, "mock_two")
 	suite.Require().NoError(err)
 }
 
 // AssertMockCapabiltiesUnchanged authenticates the mock capabilities created at the start of the test to ensure they remain unchanged
 func (suite *MigrationsTestSuite) AssertMockCapabiltiesUnchanged() {
-	cap, found := suite.chainA.GetSimApp().ScopedIBCMockKeeper.GetCapability(suite.chainA.GetContext(), "mock_one")
+	capability, found := suite.chainA.GetSimApp().ScopedIBCMockKeeper.GetCapability(suite.chainA.GetContext(), "mock_one")
 	suite.Require().True(found)
-	suite.Require().NotNil(cap)
+	suite.Require().NotNil(capability)
 
-	cap, found = suite.chainA.GetSimApp().ScopedIBCMockKeeper.GetCapability(suite.chainA.GetContext(), "mock_two")
+	capability, found = suite.chainA.GetSimApp().ScopedIBCMockKeeper.GetCapability(suite.chainA.GetContext(), "mock_two")
 	suite.Require().True(found)
-	suite.Require().NotNil(cap)
+	suite.Require().NotNil(capability)
 
-	isAuthenticated := suite.chainA.GetSimApp().ScopedICAMockKeeper.AuthenticateCapability(suite.chainA.GetContext(), cap, "mock_two")
+	isAuthenticated := suite.chainA.GetSimApp().ScopedICAMockKeeper.AuthenticateCapability(suite.chainA.GetContext(), capability, "mock_two")
 	suite.Require().True(isAuthenticated)
 }
 

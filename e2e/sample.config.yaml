@@ -1,0 +1,40 @@
+# This file contains configuration for running e2e tests.
+# Many of these fields can be overridden with environment variables.
+# All fields that support this have the corresponding environment variable name in a comment beside the field.
+
+---
+chains:
+  # the entry at index 0 corresponds to CHAIN_A
+- chainId: chain-a
+  numValidators: 1
+  numFullNodes: 0
+  image: ghcr.io/cosmos/ibc-go-simd # override with CHAIN_IMAGE
+  tag: main # override with CHAIN_A_TAG
+  binary: simd # override with CHAIN_BINARY
+
+  # the entry at index 1 corresponds to CHAIN_B
+- chainId: chain-b
+  numValidators: 1
+  numFullNodes: 0
+  image: ghcr.io/cosmos/ibc-go-simd # override with CHAIN_IMAGE
+  tag: main # override with CHAIN_B_TAG
+  binary: simd # override with CHAIN_BINARY
+
+relayer:
+  type: rly # override with RELAYER_TYPE
+  image: damiannolan/rly
+  tag: latest # override with RELAYER_TAG
+
+cometbft:
+  logLevel: info
+
+debug:
+  # setting this value to true will force log collection even if the test passes.
+  dumpLogs: false
+
+# Required only for upgrade tests.
+# Chain A will be upgraded the specified tag.
+# The plan name must be registered as an upgrade handler in the given tag.
+upgrade:
+  planName: ""
+  tag: ""

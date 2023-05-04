@@ -21,14 +21,14 @@ message MsgRegisterInterchainAccount {
   option (gogoproto.goproto_getters) = false;
 
   string owner         = 1;
-  string connection_id = 2 [(gogoproto.moretags) = "yaml:\"connection_id\""];
+  string connection_id = 2;
   string version       = 3;
 }
 
 // MsgRegisterInterchainAccountResponse defines the response for Msg/RegisterAccount
 message MsgRegisterInterchainAccountResponse {
-  string channel_id = 1 [(gogoproto.moretags) = "yaml:\"channel_id\""];
-  string port_id    = 2 [(gogoproto.moretags) = "yaml:\"port_id\""];
+  string channel_id = 1;
+  string port_id    = 2;
 }
 
 // MsgSendTx defines the payload for Msg/SendTx
@@ -36,13 +36,12 @@ message MsgSendTx {
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
-  string owner         = 1;
-  string connection_id = 2 [(gogoproto.moretags) = "yaml:\"connection_id\""];
-  ibc.applications.interchain_accounts.v1.InterchainAccountPacketData packet_data = 3
-      [(gogoproto.moretags) = "yaml:\"packet_data\"", (gogoproto.nullable) = false];
+  string                                                              owner         = 1;
+  string                                                              connection_id = 2;
+  ibc.applications.interchain_accounts.v1.InterchainAccountPacketData packet_data   = 3 [(gogoproto.nullable) = false];
   // Relative timeout timestamp provided will be added to the current block time during transaction execution.
   // The timeout timestamp must be non-zero.
-  uint64 relative_timeout = 4 [(gogoproto.moretags) = "yaml:\"relative_timeout\""];
+  uint64 relative_timeout = 4;
 }
 
 // MsgSendTxResponse defines the response for MsgSendTx

@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"fmt"
 
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 
@@ -76,7 +77,7 @@ func (suite *KeeperTestSuite) TestQueryDenomTrace() {
 			tc.malleate()
 			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
 
-			res, err := suite.queryClient.DenomTrace(ctx, req)
+			res, err := suite.chainA.GetSimApp().TransferKeeper.DenomTrace(ctx, req)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -136,7 +137,7 @@ func (suite *KeeperTestSuite) TestQueryDenomTraces() {
 			tc.malleate()
 			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
 
-			res, err := suite.queryClient.DenomTraces(ctx, req)
+			res, err := suite.chainA.GetSimApp().TransferKeeper.DenomTraces(ctx, req)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -152,7 +153,7 @@ func (suite *KeeperTestSuite) TestQueryDenomTraces() {
 func (suite *KeeperTestSuite) TestQueryParams() {
 	ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
 	expParams := types.DefaultParams()
-	res, _ := suite.queryClient.Params(ctx, &types.QueryParamsRequest{})
+	res, _ := suite.chainA.GetSimApp().TransferKeeper.Params(ctx, &types.QueryParamsRequest{})
 	suite.Require().Equal(&expParams, res.Params)
 }
 
@@ -209,7 +210,7 @@ func (suite *KeeperTestSuite) TestQueryDenomHash() {
 			tc.malleate()
 			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
 
-			res, err := suite.queryClient.DenomHash(ctx, req)
+			res, err := suite.chainA.GetSimApp().TransferKeeper.DenomHash(ctx, req)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -249,12 +250,108 @@ func (suite *KeeperTestSuite) TestEscrowAddress() {
 			tc.malleate()
 			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
 
-			res, err := suite.queryClient.EscrowAddress(ctx, req)
+			res, err := suite.chainA.GetSimApp().TransferKeeper.EscrowAddress(ctx, req)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
 				expected := types.GetEscrowAddress(ibctesting.TransferPort, ibctesting.FirstChannelID).String()
 				suite.Require().Equal(expected, res.EscrowAddress)
+			} else {
+				suite.Require().Error(err)
+			}
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestTotalEscrowForDenom() {
+	var (
+		req             *types.QueryTotalEscrowForDenomRequest
+		expEscrowAmount math.Int
+	)
+
+	testCases := []struct {
+		msg      string
+		malleate func()
+		expPass  bool
+	}{
+		{
+			"valid native denom with escrow amount < 2^63",
+			func() {
+				req = &types.QueryTotalEscrowForDenomRequest{
+					Denom: sdk.DefaultBondDenom,
+				}
+
+				expEscrowAmount = math.NewInt(100)
+				suite.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(suite.chainA.GetContext(), sdk.NewCoin(sdk.DefaultBondDenom, expEscrowAmount))
+			},
+			true,
+		},
+		{
+			"valid ibc denom with escrow amount > 2^63",
+			func() {
+				denomTrace := types.DenomTrace{
+					Path:      "transfer/channel-0",
+					BaseDenom: sdk.DefaultBondDenom,
+				}
+
+				suite.chainA.GetSimApp().TransferKeeper.SetDenomTrace(suite.chainA.GetContext(), denomTrace)
+				expEscrowAmount, ok := math.NewIntFromString("100000000000000000000")
+				suite.Require().True(ok)
+				suite.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(suite.chainA.GetContext(), sdk.NewCoin(sdk.DefaultBondDenom, expEscrowAmount))
+
+				req = &types.QueryTotalEscrowForDenomRequest{
+					Denom: denomTrace.IBCDenom(),
+				}
+			},
+			true,
+		},
+		{
+			"valid ibc denom treated as native denom",
+			func() {
+				denomTrace := types.DenomTrace{
+					Path:      "transfer/channel-0",
+					BaseDenom: sdk.DefaultBondDenom,
+				}
+
+				req = &types.QueryTotalEscrowForDenomRequest{
+					Denom: denomTrace.IBCDenom(),
+				}
+			},
+			true, // denom trace is not found, thus the denom is considered a native token
+		},
+		{
+			"invalid ibc denom treated as valid native denom",
+			func() {
+				req = &types.QueryTotalEscrowForDenomRequest{
+					Denom: "ibc/123",
+				}
+			},
+			true, // the ibc denom does not contain a valid hash, thus the denom is considered a native token
+		},
+		{
+			"invalid denom",
+			func() {
+				req = &types.QueryTotalEscrowForDenomRequest{
+					Denom: "??𓃠🐾??",
+				}
+			},
+			false,
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
+			suite.SetupTest() // reset
+
+			expEscrowAmount = sdk.ZeroInt()
+			tc.malleate()
+			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
+
+			res, err := suite.chainA.GetSimApp().TransferKeeper.TotalEscrowForDenom(ctx, req)
+
+			if tc.expPass {
+				suite.Require().NoError(err)
+				suite.Require().Equal(expEscrowAmount, res.Amount.Amount)
 			} else {
 				suite.Require().Error(err)
 			}

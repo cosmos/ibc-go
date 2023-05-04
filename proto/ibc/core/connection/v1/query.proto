@@ -106,7 +106,7 @@ message QueryClientConnectionsResponse {
 // Query/ConnectionClientState RPC method
 message QueryConnectionClientStateRequest {
   // connection identifier
-  string connection_id = 1 [(gogoproto.moretags) = "yaml:\"connection_id\""];
+  string connection_id = 1;
 }
 
 // QueryConnectionClientStateResponse is the response type for the
@@ -124,7 +124,7 @@ message QueryConnectionClientStateResponse {
 // Query/ConnectionConsensusState RPC method
 message QueryConnectionConsensusStateRequest {
   // connection identifier
-  string connection_id   = 1 [(gogoproto.moretags) = "yaml:\"connection_id\""];
+  string connection_id   = 1;
   uint64 revision_number = 2;
   uint64 revision_height = 3;
 }

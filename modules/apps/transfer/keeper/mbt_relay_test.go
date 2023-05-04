@@ -114,8 +114,10 @@ func AddressFromTla(addr []string) string {
 
 func DenomFromTla(denom []string) string {
 	var i int
-	for i = 0; i+1 < len(denom) && len(denom[i]) == 0 && len(denom[i+1]) == 0; i += 2 {
-		// skip empty prefixes
+	for i = 0; i+1 < len(denom); i += 2 {
+		if !(len(denom[i]) == 0 && len(denom[i+1]) == 0) {
+			break
+		}
 	}
 	return strings.Join(denom[i:], "/")
 }

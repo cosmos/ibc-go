@@ -1,7 +1,6 @@
 package v7
 
 import (
-	"fmt"
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
@@ -40,11 +39,7 @@ func MigrateStore(ctx sdk.Context, storeKey storetypes.StoreKey, cdc codec.Binar
 		return err
 	}
 
-	if err := handleLocalhostMigration(ctx, store, cdc, clientKeeper); err != nil {
-		return err
-	}
-
-	return nil
+	return handleLocalhostMigration(ctx, store, cdc, clientKeeper)
 }
 
 // handleSolomachineMigration iterates over the solo machine clients and migrates client state from
@@ -63,13 +58,13 @@ func handleSolomachineMigration(ctx sdk.Context, store sdk.KVStore, cdc codec.Bi
 			return errorsmod.Wrapf(clienttypes.ErrClientNotFound, "clientID %s", clientID)
 		}
 
-		var any codectypes.Any
-		if err := cdc.Unmarshal(bz, &any); err != nil {
+		var protoAny codectypes.Any
+		if err := cdc.Unmarshal(bz, &protoAny); err != nil {
 			return errorsmod.Wrap(err, "failed to unmarshal client state bytes into solo machine client state")
 		}
 
 		var clientState ClientState
-		if err := cdc.Unmarshal(any.Value, &clientState); err != nil {
+		if err := cdc.Unmarshal(protoAny.Value, &clientState); err != nil {
 			return errorsmod.Wrap(err, "failed to unmarshal client state bytes into solo machine client state")
 		}
 
@@ -142,7 +137,7 @@ func handleLocalhostMigration(ctx sdk.Context, store sdk.KVStore, cdc codec.Bina
 // for tendermint clients is included as only one tendermint clientID is required for
 // v7 migrations.
 func collectClients(ctx sdk.Context, store sdk.KVStore, clientType string) (clients []string, err error) {
-	clientPrefix := []byte(fmt.Sprintf("%s/%s", host.KeyClientStorePrefix, clientType))
+	clientPrefix := host.PrefixedClientStoreKey([]byte(clientType))
 	iterator := sdk.KVStorePrefixIterator(store, clientPrefix)
 
 	defer sdk.LogDeferred(ctx.Logger(), func() error { return iterator.Close() })

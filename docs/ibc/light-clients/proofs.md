@@ -28,7 +28,7 @@ In some cases, there is a necessity to "mock" non-existence proofs if the counte
 
 The state verification functions for all IBC data types have been consolidated into two generic methods, `VerifyMembership` and `VerifyNonMembership`.
 
-From the [`ClientState` interface definition](https://github.com/cosmos/ibc-go/blob/e650be91614ced7be687c30eb42714787a3bbc59/modules/core/exported/client.go#L68-L91), we find:
+From the [`ClientState` interface definition](https://github.com/cosmos/ibc-go/blob/v7.0.0/modules/core/exported/client.go#L68-L91), we find:
 
 ```go
 VerifyMembership(
@@ -59,4 +59,4 @@ VerifyNonMembership(
 
 Both are expected to be provided with a standardised key path, `exported.Path`, as defined in [ICS-24 host requirements](https://github.com/cosmos/ibc/tree/main/spec/core/ics-024-host-requirements). Membership verification requires callers to provide the value marshalled as `[]byte`. Delay period values should be zero for non-packet processing verification. A zero proof height is now allowed by core IBC and may be passed into `VerifyMembership` and `VerifyNonMembership`. Light clients are responsible for returning an error if a zero proof height is invalid behaviour.
 
-Please refer to the [ICS-23 implementation](https://github.com/cosmos/ibc-go/blob/e093d85b533ab3572b32a7de60b88a0816bed4af/modules/core/23-commitment/types/merkle.go#L131-L205) for a concrete example.
+Please refer to the [ICS-23 implementation](https://github.com/cosmos/ibc-go/blob/v7.0.0/modules/core/23-commitment/types/merkle.go#L131-L205) for a concrete example.

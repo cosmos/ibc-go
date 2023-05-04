@@ -10,7 +10,7 @@ import (
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
-var _ exported.ConsensusState = &ConsensusState{}
+var _ exported.ConsensusState = (*ConsensusState)(nil)
 
 // ClientType returns Solo Machine type.
 func (ConsensusState) ClientType() string {

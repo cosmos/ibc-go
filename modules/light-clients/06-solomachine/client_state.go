@@ -243,5 +243,5 @@ func produceVerificationArgs(
 // sets the client state to the store
 func setClientState(store sdk.KVStore, cdc codec.BinaryCodec, clientState exported.ClientState) {
 	bz := clienttypes.MustMarshalClientState(cdc, clientState)
-	store.Set([]byte(host.KeyClientState), bz)
+	store.Set(host.ClientStateKey(), bz)
 }

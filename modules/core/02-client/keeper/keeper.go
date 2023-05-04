@@ -21,6 +21,7 @@ import (
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
+	localhost "github.com/cosmos/ibc-go/v7/modules/light-clients/09-localhost"
 )
 
 // Keeper represents a type that grants read and write permissions to any client
@@ -52,6 +53,17 @@ func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey, paramSpace paramt
 // Logger returns a module-specific logger.
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", "x/"+exported.ModuleName+"/"+types.SubModuleName)
+}
+
+// CreateLocalhostClient initialises the 09-localhost client state and sets it in state.
+func (k Keeper) CreateLocalhostClient(ctx sdk.Context) error {
+	var clientState localhost.ClientState
+	return clientState.Initialize(ctx, k.cdc, k.ClientStore(ctx, exported.LocalhostClientID), nil)
+}
+
+// UpdateLocalhostClient updates the 09-localhost client to the latest block height and chain ID.
+func (k Keeper) UpdateLocalhostClient(ctx sdk.Context, clientState exported.ClientState) []exported.Height {
+	return clientState.UpdateState(ctx, k.cdc, k.ClientStore(ctx, exported.LocalhostClientID), nil)
 }
 
 // GenerateClientIdentifier returns the next client identifier.
@@ -391,4 +403,13 @@ func (k Keeper) GetAllClients(ctx sdk.Context) []exported.ClientState {
 func (k Keeper) ClientStore(ctx sdk.Context, clientID string) sdk.KVStore {
 	clientPrefix := []byte(fmt.Sprintf("%s/%s/", host.KeyClientStorePrefix, clientID))
 	return prefix.NewStore(ctx.KVStore(k.storeKey), clientPrefix)
+}
+
+// GetClientStatus returns the status for a given clientState. If the client type is not in the allowed
+// clients param field, Unauthorized is returned, otherwise the client state status is returned.
+func (k Keeper) GetClientStatus(ctx sdk.Context, clientState exported.ClientState, clientID string) exported.Status {
+	if !k.GetParams(ctx).IsAllowedClient(clientState.ClientType()) {
+		return exported.Unauthorized
+	}
+	return clientState.Status(ctx, k.ClientStore(ctx, clientID), k.cdc)
 }

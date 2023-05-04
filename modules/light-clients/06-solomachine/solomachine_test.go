@@ -22,10 +22,7 @@ import (
 	"github.com/cosmos/ibc-go/v7/testing/mock"
 )
 
-var (
-	channelIDSolomachine = "channel-on-solomachine" // channelID generated on solo machine side
-	clientIDSolomachine  = "06-solomachine-0"
-)
+var channelIDSolomachine = "channel-on-solomachine" // channelID generated on solo machine side
 
 type SoloMachineTestSuite struct {
 	suite.Suite
@@ -123,7 +120,7 @@ func (suite *SoloMachineTestSuite) TestTimeout() {
 	// simulate solomachine time increment
 	suite.solomachine.Time++
 
-	suite.solomachine.UpdateClient(suite.chainA, clientIDSolomachine)
+	suite.solomachine.UpdateClient(suite.chainA, ibctesting.DefaultSolomachineClientID)
 
 	suite.solomachine.TimeoutPacket(suite.chainA, packet)
 
