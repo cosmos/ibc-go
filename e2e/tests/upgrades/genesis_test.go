@@ -100,6 +100,14 @@ func (s *GenesisTestSuite) TestIBCGenesis() {
 		s.AssertValidTxResponse(transferTxResp)
 	})
 
+	t.Run("tokens are escrowed", func(t *testing.T) {
+		actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
+		s.Require().NoError(err)
+
+		expected := testvalues.StartingTokenAmount - testvalues.IBCTransferAmount
+		s.Require().Equal(expected, actualBalance)
+	})
+
 	s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA, chainB), "failed to wait for blocks")
 }
 
@@ -116,14 +124,13 @@ func (s *GenesisTestSuite) HaltChainAndExportGenesis(ctx context.Context, chain 
 	s.Require().NoError(err, "error stopping node(s)")
 
 	state, err := chain.ExportState(ctx, int64(haltHeight))
-
 	s.Require().NoError(err)
+
 	err = tmjson.Unmarshal([]byte(state), &genesisState)
 	s.Require().NoError(err)
+
 	genesisJson, err := tmjson.MarshalIndent(genesisState, "", "  ")
 	s.Require().NoError(err)
-
-
 
 	err = dockerutil.SetGenesisContentsToContainer(s.T(), ctx, s.E2ETestSuite.DockerClient ,chain.Config(), bytes.NewReader(genesisJson), types.CopyToContainerOptions{
 		AllowOverwriteDirWithFile: true,
