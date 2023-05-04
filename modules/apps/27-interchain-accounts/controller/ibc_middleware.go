@@ -23,13 +23,15 @@ var _ porttypes.Middleware = &IBCMiddleware{}
 type IBCMiddleware struct {
 	app    porttypes.IBCModule
 	keeper keeper.Keeper
+	next   porttypes.ICS4Wrapper
 }
 
 // NewIBCMiddleware creates a new IBCMiddleware given the associated keeper and underlying application
-func NewIBCMiddleware(app porttypes.IBCModule, k keeper.Keeper) IBCMiddleware {
+func NewIBCMiddleware(app porttypes.IBCModule, k keeper.Keeper, next porttypes.ICS4Wrapper) IBCMiddleware {
 	return IBCMiddleware{
 		app:    app,
 		keeper: k,
+		next:   next,
 	}
 }
 
