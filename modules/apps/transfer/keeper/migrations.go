@@ -5,17 +5,33 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/exported"
 	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 )
 
 // Migrator is a struct for handling in-place store migrations.
 type Migrator struct {
 	keeper Keeper
+	legacySubspace exported.Subspace
 }
 
 // NewMigrator returns a new Migrator.
-func NewMigrator(keeper Keeper) Migrator {
-	return Migrator{keeper: keeper}
+func NewMigrator(keeper Keeper, ss exported.Subspace) Migrator {
+	return Migrator{
+		keeper: keeper,
+		legacySubspace: ss,
+	}
+}
+
+// MigrateParams migrates the transfer module's parameters from the x/params to self store.
+func (m Migrator) MigrateParams(ctx sdk.Context) error {
+	var params types.Params
+	m.legacySubspace.GetParamSet(ctx, &params)
+
+	if err := m.keeper.SetParams(ctx, params); err != nil {
+		return err
+	}
+	return nil
 }
 
 // MigrateTraces migrates the DenomTraces to the correct format, accounting for slashes in the BaseDenom.
