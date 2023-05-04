@@ -375,8 +375,8 @@ func (k Keeper) escrowToken(ctx sdk.Context, sender, escrowAddress sdk.AccAddres
 
 	// track the total amount in escrow keyed by denomination to allow for efficient iteration
 	currentTotalEscrow := k.GetTotalEscrowForDenom(ctx, token.GetDenom())
-	newTotalEscrow := currentTotalEscrow.Add(token.Amount)
-	k.SetTotalEscrowForDenom(ctx, token.GetDenom(), newTotalEscrow)
+	newTotalEscrow := currentTotalEscrow.Add(token)
+	k.SetTotalEscrowForDenom(ctx, newTotalEscrow)
 
 	return nil
 }
@@ -394,8 +394,8 @@ func (k Keeper) unescrowToken(ctx sdk.Context, escrowAddress, receiver sdk.AccAd
 
 	// track the total amount in escrow keyed by denomination to allow for efficient iteration
 	currentTotalEscrow := k.GetTotalEscrowForDenom(ctx, token.GetDenom())
-	newTotalEscrow := currentTotalEscrow.Sub(token.Amount)
-	k.SetTotalEscrowForDenom(ctx, token.GetDenom(), newTotalEscrow)
+	newTotalEscrow := currentTotalEscrow.Sub(token)
+	k.SetTotalEscrowForDenom(ctx, newTotalEscrow)
 
 	return nil
 }

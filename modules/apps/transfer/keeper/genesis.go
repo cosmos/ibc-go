@@ -32,7 +32,7 @@ func (k Keeper) InitGenesis(ctx sdk.Context, state types.GenesisState) {
 	// Every denom will have only one total escrow amount, since any
 	// duplicate entry will fail validation in Validate of GenesisState
 	for _, denomEscrow := range state.TotalEscrowed {
-		k.SetTotalEscrowForDenom(ctx, denomEscrow.Denom, denomEscrow.Amount)
+		k.SetTotalEscrowForDenom(ctx, denomEscrow)
 	}
 }
 
