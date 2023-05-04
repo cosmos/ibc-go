@@ -85,7 +85,7 @@ func SetGenesisContentsToContainer(t *testing.T, ctx context.Context, dc *docker
 	return nil
 }
 
-//chainAbsoluteGenesisFilePaths get absolute path of Genesis file of a chain
+// chainAbsoluteGenesisFilePaths get absolute path of Genesis file of a chain
 func chainAbsoluteGenesisFilePaths(cfg ibc.ChainConfig) string {
 	return fmt.Sprintf("/var/cosmos-chain/%s/config/genesis.json", cfg.Name)
 }
