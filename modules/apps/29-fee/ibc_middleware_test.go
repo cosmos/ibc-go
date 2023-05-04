@@ -1154,3 +1154,38 @@ func (suite *FeeTestSuite) TestWriteAcknowledgementAsync() {
 		})
 	}
 }
+
+func (suite *FeeTestSuite) TestWriteAcknowledgementAsyncFeeDisabled() {
+	// open incentivized channel
+	suite.coordinator.Setup(suite.path)
+	suite.chainB.GetSimApp().IBCFeeKeeper.DeleteFeeEnabled(suite.chainB.GetContext(), suite.path.EndpointB.ChannelConfig.PortID, "channel-0")
+
+	// build packet
+	timeoutTimestamp := ^uint64(0)
+	packet := channeltypes.NewPacket(
+		[]byte("packetData"),
+		1,
+		suite.path.EndpointA.ChannelConfig.PortID,
+		suite.path.EndpointA.ChannelID,
+		suite.path.EndpointB.ChannelConfig.PortID,
+		suite.path.EndpointB.ChannelID,
+		clienttypes.ZeroHeight(),
+		timeoutTimestamp,
+	)
+
+	ack := channeltypes.NewResultAcknowledgement([]byte("success"))
+	chanCap := suite.chainB.GetChannelCapability(suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID)
+
+	module, _, err := suite.chainB.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainB.GetContext(), ibctesting.MockFeePort)
+	suite.Require().NoError(err)
+
+	cbs, ok := suite.chainB.App.GetIBCKeeper().Router.GetRoute(module)
+	suite.Require().True(ok)
+
+	feeModule := cbs.(fee.IBCMiddleware)
+
+	err = feeModule.WriteAcknowledgement(suite.chainB.GetContext(), chanCap, packet, ack)
+
+	packetAck, _ := suite.chainB.GetSimApp().GetIBCKeeper().ChannelKeeper.GetPacketAcknowledgement(suite.chainB.GetContext(), packet.DestinationPort, packet.DestinationChannel, 1)
+	suite.Require().Equal(packetAck, channeltypes.CommitAcknowledgement(ack.Acknowledgement()))
+}
