@@ -12,7 +12,6 @@ import (
 	controllerkeeper "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/keeper"
 	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
 	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
-	fee "github.com/cosmos/ibc-go/v7/modules/apps/29-fee"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
@@ -237,7 +236,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenInit() {
 			suite.Require().True(ok)
 
 			if isNilApp {
-				cbs = controller.NewIBCMiddleware(nil, suite.chainA.GetSimApp().ICAControllerKeeper)
+				cbs = controller.NewIBCMiddleware(nil, suite.chainA.GetSimApp().ICAControllerKeeper, suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper)
 			}
 
 			version, err := cbs.OnChanOpenInit(suite.chainA.GetContext(), channel.Ordering, channel.GetConnectionHops(),
@@ -383,7 +382,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenAck() {
 			err = cbs.OnChanOpenAck(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelID, path.EndpointB.ChannelConfig.Version)
 
 			if isNilApp {
-				cbs = controller.NewIBCMiddleware(nil, suite.chainA.GetSimApp().ICAControllerKeeper)
+				cbs = controller.NewIBCMiddleware(nil, suite.chainA.GetSimApp().ICAControllerKeeper, suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper)
 			}
 
 			if tc.expPass {
@@ -506,7 +505,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanCloseConfirm() {
 			suite.Require().True(ok)
 
 			if isNilApp {
-				cbs = controller.NewIBCMiddleware(nil, suite.chainA.GetSimApp().ICAControllerKeeper)
+				cbs = controller.NewIBCMiddleware(nil, suite.chainA.GetSimApp().ICAControllerKeeper, suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper)
 			}
 
 			err = cbs.OnChanCloseConfirm(
@@ -648,7 +647,7 @@ func (suite *InterchainAccountsTestSuite) TestOnAcknowledgementPacket() {
 			suite.Require().True(ok)
 
 			if isNilApp {
-				cbs = controller.NewIBCMiddleware(nil, suite.chainA.GetSimApp().ICAControllerKeeper)
+				cbs = controller.NewIBCMiddleware(nil, suite.chainA.GetSimApp().ICAControllerKeeper, suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper)
 			}
 
 			err = cbs.OnAcknowledgementPacket(suite.chainA.GetContext(), packet, []byte("ack"), nil)
@@ -741,7 +740,7 @@ func (suite *InterchainAccountsTestSuite) TestOnTimeoutPacket() {
 			suite.Require().True(ok)
 
 			if isNilApp {
-				cbs = controller.NewIBCMiddleware(nil, suite.chainA.GetSimApp().ICAControllerKeeper)
+				cbs = controller.NewIBCMiddleware(nil, suite.chainA.GetSimApp().ICAControllerKeeper, suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper)
 			}
 
 			err = cbs.OnTimeoutPacket(suite.chainA.GetContext(), packet, nil)
@@ -835,7 +834,7 @@ func (suite *InterchainAccountsTestSuite) TestGetAppVersion() {
 	cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
 	suite.Require().True(ok)
 
-	controllerStack := cbs.(fee.IBCMiddleware)
+	controllerStack := cbs.(controller.IBCMiddleware)
 	appVersion, found := controllerStack.GetAppVersion(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 	suite.Require().True(found)
 	suite.Require().Equal(path.EndpointA.ChannelConfig.Version, appVersion)
