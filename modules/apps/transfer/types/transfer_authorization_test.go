@@ -134,6 +134,26 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 				suite.Require().Error(err)
 			},
 		},
+		{
+			"test multiple coins does not overspend",
+			func() {
+				transferAuthz.Allocations[0].SpendLimit = sdk.NewCoins(
+					sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100)),
+					sdk.NewCoin("test-denom", sdk.NewInt(100)),
+					sdk.NewCoin("test-denom2", sdk.NewInt(100)),
+				)
+				msgTransfer.Token = sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(50))
+			},
+			func(res authz.AcceptResponse, err error) {
+				suite.Require().NoError(err)
+
+				updatedTransferAuthz, ok := res.Updated.(*types.TransferAuthorization)
+				suite.Require().True(ok)
+
+				remainder := updatedTransferAuthz.Allocations[0].SpendLimit.AmountOf(sdk.DefaultBondDenom)
+				suite.Require().True(sdk.NewInt(50).Equal(remainder))
+			},
+		},
 	}
 
 	for _, tc := range testCases {
