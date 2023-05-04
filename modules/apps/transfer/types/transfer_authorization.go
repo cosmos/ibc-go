@@ -42,6 +42,10 @@ func (a TransferAuthorization) Accept(ctx sdk.Context, msg sdk.Msg) (authz.Accep
 			continue
 		}
 
+		if !isAllowedAddress(ctx, msgTransfer.Receiver, allocation.AllowList) {
+			return authz.AcceptResponse{}, errorsmod.Wrap(ibcerrors.ErrInvalidAddress, "not allowed address for transfer")
+		}
+
 		for _, coin := range allocation.SpendLimit {
 			// skip spending limit if the amount is set to max int64
 			if coin.Amount.Int64() == math.MaxInt64 {
@@ -52,11 +56,7 @@ func (a TransferAuthorization) Accept(ctx sdk.Context, msg sdk.Msg) (authz.Accep
 			if isNegative {
 				return authz.AcceptResponse{}, errorsmod.Wrapf(ibcerrors.ErrInsufficientFunds, "requested amount is more than spend limit")
 			}
-
-			if !isAllowedAddress(ctx, msgTransfer.Receiver, allocation.AllowList) {
-				return authz.AcceptResponse{}, errorsmod.Wrap(ibcerrors.ErrInvalidAddress, "not allowed address for transfer")
-			}
-
+			
 			if limitLeft.IsZero() {
 				a.Allocations = append(a.Allocations[:index], a.Allocations[index+1:]...)
 				if len(a.Allocations) == 0 {
@@ -67,7 +67,7 @@ func (a TransferAuthorization) Accept(ctx sdk.Context, msg sdk.Msg) (authz.Accep
 				}}, nil
 			}
 		}
-		
+
 		a.Allocations[index] = Allocation{
 			SourcePort:    allocation.SourcePort,
 			SourceChannel: allocation.SourceChannel,
