@@ -28,10 +28,7 @@ func (m Migrator) MigrateParams(ctx sdk.Context) error {
 	var params types.Params
 	m.legacySubspace.GetParamSet(ctx, &params)
 
-	if err := m.keeper.SetParams(ctx, params); err != nil {
-		return err
-	}
-	return nil
+	return m.keeper.SetParams(ctx, params)
 }
 
 // MigrateTraces migrates the DenomTraces to the correct format, accounting for slashes in the BaseDenom.
