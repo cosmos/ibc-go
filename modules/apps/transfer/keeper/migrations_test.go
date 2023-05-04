@@ -197,7 +197,7 @@ func (suite *KeeperTestSuite) TestMigrateTotalEscrowForDenom() {
 
 			// check that the migration set the expected amount for both native and IBC tokens
 			amount := suite.chainA.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(suite.chainA.GetContext(), denom)
-			suite.Require().Equal(tc.expectedEscrowAmt, amount)
+			suite.Require().Equal(tc.expectedEscrowAmt, amount.Amount)
 		})
 	}
 }
