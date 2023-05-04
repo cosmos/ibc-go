@@ -190,12 +190,7 @@ func (k Keeper) IterateTokensInEscrow(ctx sdk.Context, prefix []byte, cb func(de
 
 	defer sdk.LogDeferred(ctx.Logger(), func() error { return iterator.Close() })
 	for ; iterator.Valid(); iterator.Next() {
-		keySplit := strings.Split(string(iterator.Key()), "/")
-		if len(keySplit) < 2 {
-			continue // key doesn't conform to expected format
-		}
-
-		denom := strings.Join(keySplit[1:], "/")
+		denom := strings.TrimPrefix(string(iterator.Key()), fmt.Sprintf("%s/", types.KeyTotalEscrowPrefix))
 		if strings.TrimSpace(denom) == "" {
 			continue // denom is empty
 		}
