@@ -213,15 +213,15 @@ func (suite *KeeperTestSuite) TestGetAllDenomEscrows() {
 
 func (suite *KeeperTestSuite) TestParams() {
 	testCases := []struct {
-		name      string
-		input     types.Params
+		name    string
+		input   types.Params
 		expPass bool
 	}{
 		// it is not possible to set invalid booleans
-		{ name: "set params false-false", input: types.NewParams(false, false), expPass: true,},
-		{ name: "set params false-true", input: types.NewParams(false, true), expPass: true,},
-		{ name: "set params true-false", input: types.NewParams(true, false), expPass: true,},
-		{ name: "set params true-true", input: types.NewParams(true, true), expPass: true,},
+		{name: "set params false-false", input: types.NewParams(false, false), expPass: true},
+		{name: "set params false-true", input: types.NewParams(false, true), expPass: true},
+		{name: "set params true-false", input: types.NewParams(true, false), expPass: true},
+		{name: "set params true-true", input: types.NewParams(true, true), expPass: true},
 	}
 
 	for _, tc := range testCases {

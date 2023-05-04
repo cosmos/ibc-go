@@ -144,27 +144,27 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 func (suite *KeeperTestSuite) TestUpdateParams() {
 	validAuthority := suite.chainA.GetSimApp().TransferKeeper.GetAuthority()
 	testCases := []struct {
-		name      string
-		request   *types.MsgUpdateParams
+		name    string
+		request *types.MsgUpdateParams
 		expPass bool
 	}{
 		{
-			name: "set invalid authority",
+			name:    "set invalid authority",
 			request: types.NewMsgUpdateParams(invalidAddress, types.DefaultParams()),
 			expPass: false,
 		},
 		{
-			name: "set empty authority",
+			name:    "set empty authority",
 			request: types.NewMsgUpdateParams(emptyAddr, types.DefaultParams()),
 			expPass: false,
 		},
 		{
-			name: "set wrong authority",
+			name:    "set wrong authority",
 			request: types.NewMsgUpdateParams(validAddress, types.DefaultParams()),
 			expPass: false,
 		},
 		{
-			name: "set full valid params",
+			name:    "set full valid params",
 			request: types.NewMsgUpdateParams(validAuthority, types.DefaultParams()),
 			expPass: true,
 		},
