@@ -50,8 +50,8 @@ func (suite *KeeperTestSuite) TestMockMigrateParams() {
 			err := migrator.MigrateParams(suite.chainA.GetContext())
 			suite.Require().NoError(err)
 
-			// params := suite.chainA.GetSimApp().TransferKeeper.GetParams(suite.chainA.GetContext())
-			// suite.Require().Equal(tc.expectedParams, params)
+			params := suite.chainA.GetSimApp().TransferKeeper.GetParams(suite.chainA.GetContext())
+			suite.Require().Equal(tc.expectedParams, params)
 		})
 	}
 }
