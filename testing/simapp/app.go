@@ -485,9 +485,10 @@ func NewSimApp(
 
 	// initialize ICA module with mock module as the authentication module on the controller side
 	var icaControllerStack porttypes.IBCModule
-	icaControllerStack = ibcmock.NewIBCModule(&mockModule, ibcmock.NewIBCApp("", scopedICAMockKeeper))
-	app.ICAAuthModule = icaControllerStack.(ibcmock.IBCModule)
-	icaControllerStack = icacontroller.NewIBCMiddleware(icaControllerStack, app.ICAControllerKeeper, IBCFeeMiddleware)
+	ibcMockModule := ibcmock.NewIBCModule(&mockModule, ibcmock.NewIBCApp("", scopedICAMockKeeper))
+	app.ICAAuthModule = ibcMockModule
+	icaControllerMiddleware := icacontroller.NewIBCMiddleware(ibcMockModule, app.ICAControllerKeeper, app.IBCKeeper.ChannelKeeper)
+	icaControllerStack = ibcfee.NewIBCMiddleware(icaControllerMiddleware, app.IBCFeeKeeper, icaControllerMiddleware)
 	// RecvPacket, message that originates from core IBC and goes down to app, the flow is:
 	// channel.RecvPacket -> fee.OnRecvPacket -> icaHost.OnRecvPacket
 
