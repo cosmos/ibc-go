@@ -100,7 +100,7 @@ func (k Keeper) SetPort(ctx sdk.Context, portID string) {
 	store.Set(types.PortKey, []byte(portID))
 }
 
-// GetParams returns the current x/mint module parameters.
+// GetParams returns the current transfer module parameters.
 func (k Keeper) GetParams(ctx sdk.Context) (p types.Params) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.ParamsKey)
