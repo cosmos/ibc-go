@@ -7,94 +7,43 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktestutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
 
-	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/exported"
+	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	transferkeeper "github.com/cosmos/ibc-go/v7/modules/apps/transfer/keeper"
-	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
-type mockSubspace struct {
-	ps transfertypes.Params
-}
-
-func newMockSubspace(ps transfertypes.Params) mockSubspace {
-	return mockSubspace{ps: ps}
-}
-
-func (ms mockSubspace) GetParamSet(ctx sdk.Context, ps exported.ParamSet) {
-	*ps.(*types.Params) = ms.ps
-}
-
-// TestMigratorMigrateParams tests successful parameter migration from x/params to self store
-func (suite *KeeperTestSuite) TestMockMigrateParams() {
-	testCases := []struct {
-		msg            string
-		subspace       exported.Subspace
-		expectedParams transfertypes.Params
-	}{
-		{
-			"success: false-false params",
-			newMockSubspace(transfertypes.NewParams(false, false)),
-			transfertypes.NewParams(false, false),
-		},
-	}
-
-	for _, tc := range testCases {
-		suite.Run(fmt.Sprintf("case %s", tc.msg), func() {
-			suite.SetupTest() // reset
-
-			// tc.malleate() // explicitly set up params
-
-			migrator := transferkeeper.NewMigrator(suite.chainA.GetSimApp().TransferKeeper, tc.subspace)
-			err := migrator.MigrateParams(suite.chainA.GetContext())
-			suite.Require().NoError(err)
-
-			params := suite.chainA.GetSimApp().TransferKeeper.GetParams(suite.chainA.GetContext())
-			suite.Require().Equal(tc.expectedParams, params)
-		})
-	}
-}
-
 func (suite *KeeperTestSuite) TestMigratorMigrateParams() {
-	// get subspace
-	subspace := suite.chainA.GetSimApp().GetSubspace(transfertypes.ModuleName)
-	// set KeyTable
-	subspace = subspace.WithKeyTable(transfertypes.ParamKeyTable())
-	suite.Assert().True(subspace.HasKeyTable())
 	testCases := []struct {
 		msg            string
-		malleate       func()
+		malleate       func(subspace paramstypes.Subspace)
 		expectedParams transfertypes.Params
 	}{
-		// {
-		// 	"success: false-false params",
-		// 	newMockSubspace(transfertypes.NewParams(false, false)),
-		// 	transfertypes.NewParams(false, false),
-		// },
 		{
-			"success: false-true params",
-			func() {
-				params := transfertypes.NewParams(false, true)
+			"success: default params",
+			func(subspace paramstypes.Subspace) {
+				params := transfertypes.DefaultParams()
 				// set params
 				subspace.SetParamSet(suite.chainA.GetContext(), &params)
 			},
-			transfertypes.NewParams(false, true),
+			transfertypes.DefaultParams(),
 		},
 	}
 
 	for _, tc := range testCases {
 		suite.Run(fmt.Sprintf("case %s", tc.msg), func() {
 			suite.SetupTest() // reset
+			// get subspace
+			subspace := suite.chainA.GetSimApp().GetSubspace(transfertypes.ModuleName)
 
-			tc.malleate() // explicitly set up params
+			tc.malleate(subspace) // explicitly set params
 
 			migrator := transferkeeper.NewMigrator(suite.chainA.GetSimApp().TransferKeeper, subspace)
 			err := migrator.MigrateParams(suite.chainA.GetContext())
 			suite.Require().NoError(err)
 
-			// params := suite.chainA.GetSimApp().TransferKeeper.GetParams(suite.chainA.GetContext())
-			// suite.Require().Equal(tc.expectedParams, params)
+			params := suite.chainA.GetSimApp().TransferKeeper.GetParams(suite.chainA.GetContext())
+			suite.Require().Equal(tc.expectedParams, params)
 		})
 	}
 }
