@@ -24,7 +24,7 @@ func ParamKeyTable() paramtypes.KeyTable {
 // ParamSetPairs implements params.ParamSet
 func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 	return paramtypes.ParamSetPairs{
-		paramtypes.NewParamSetPair(KeySendEnabled, p.SendEnabled, validateEnabledType),
-		paramtypes.NewParamSetPair(KeyReceiveEnabled, p.ReceiveEnabled, validateEnabledType),
+		paramtypes.NewParamSetPair(KeySendEnabled, &p.SendEnabled, validateEnabledType),
+		paramtypes.NewParamSetPair(KeyReceiveEnabled, &p.ReceiveEnabled, validateEnabledType),
 	}
 }
