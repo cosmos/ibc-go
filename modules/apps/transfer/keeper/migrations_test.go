@@ -23,8 +23,7 @@ func (suite *KeeperTestSuite) TestMigratorMigrateParams() {
 			"success: default params",
 			func(subspace paramstypes.Subspace) {
 				params := transfertypes.DefaultParams()
-				// set params
-				subspace.SetParamSet(suite.chainA.GetContext(), &params)
+				subspace.SetParamSet(suite.chainA.GetContext(), &params) // set params
 			},
 			transfertypes.DefaultParams(),
 		},
