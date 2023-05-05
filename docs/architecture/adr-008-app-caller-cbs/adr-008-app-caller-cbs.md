@@ -18,14 +18,15 @@ This setup worked well for off-chain users interacting with IBC applications.
 We are now seeing the desire for secondary applications (e.g. smart contracts, modules) to call into IBC apps as part of their state machine logic and then do some actions on the basis of the packet result. Or to receive a packet from IBC and do some logic upon receipt.
 
 Example Usecases:
-- Send an ICS-20 packet, and if it is successful, then send an ICA-packet to swap tokens on LP and return funds to sender
-- Execute some logic upon receipt of token transfer to a smart contract address
+
+* Send an ICS-20 packet, and if it is successful, then send an ICA-packet to swap tokens on LP and return funds to sender
+* Execute some logic upon receipt of token transfer to a smart contract address
 
 This requires a second layer of callbacks. The IBC application already gets the result of the packet from core IBC, but currently there is no standardized way to pass this information on to an actor module/smart contract.
 
 ## Definitions
 
-- Actor: an actor is an on-chain module (this may be a hardcoded module in the chain binary or a smart contract) that wishes to execute custom logic whenever IBC receives a packet flow that it has either sent or received. It **must** be addressable by a string value.
+* Actor: an actor is an on-chain module (this may be a hardcoded module in the chain binary or a smart contract) that wishes to execute custom logic whenever IBC receives a packet flow that it has either sent or received. It **must** be addressable by a string value.
 
 ## Decision
 
@@ -113,7 +114,7 @@ IBC Apps or middleware can then call the IBCActor callbacks like so in their own
 ### Handshake Callbacks
 
 The `OnChanOpenInit` handshake callback will need to include an additional field so that the initiating actor can be tracked and called upon during handshake completion.
-The actor provided in the `OnChanOpenInit` callback will be the signer of the `MsgChanOpenInit` message. 
+The actor provided in the `OnChanOpenInit` callback will be the signer of the `MsgChanOpenInit` message.
 
 ```go
 func OnChanOpenInit(
@@ -188,7 +189,7 @@ func OnChanCloseConfirm(
 }
 ```
 
-NOTE: The handshake calls `OnChanOpenTry` and `OnChanOpenConfirm` are explicitly left out as it is still to be determined how the actor of the `OnChanOpenTry` step should be provided. Initially only the initiating side of the channel handshake may support setting a channel actor, future improvements should allow both sides of the channel handshake to set channel actors. 
+NOTE: The handshake calls `OnChanOpenTry` and `OnChanOpenConfirm` are explicitly left out as it is still to be determined how the actor of the `OnChanOpenTry` step should be provided. Initially only the initiating side of the channel handshake may support setting a channel actor, future improvements should allow both sides of the channel handshake to set channel actors.
 
 ### PacketCallbacks
 
@@ -402,20 +403,20 @@ Chains are expected to specify a `chainDefinedActorCallbackLimit` to ensure that
 
 ### Positive
 
-- IBC Actors can now programatically execute logic that involves sending a packet and then performing some additional logic once the packet lifecycle is complete
-- Middleware implementing ADR-8 can be generally used for any application
-- Leverages the same callback architecture used between core IBC and IBC applications
+* IBC Actors can now programatically execute logic that involves sending a packet and then performing some additional logic once the packet lifecycle is complete
+* Middleware implementing ADR-8 can be generally used for any application
+* Leverages the same callback architecture used between core IBC and IBC applications
 
 ### Negative
 
-- Callbacks may now have unbounded gas consumption since the actor may execute arbitrary logic. Chains implementing this feature should take care to place limitations on how much gas an actor callback can consume.
+* Callbacks may now have unbounded gas consumption since the actor may execute arbitrary logic. Chains implementing this feature should take care to place limitations on how much gas an actor callback can consume.
 
 ### Neutral
 
-- Application packets that want to support ADR-8 must additionally have their packet data implement the `CallbackPacketData` interface and register their implementation on the chain codec
+* Application packets that want to support ADR-8 must additionally have their packet data implement the `CallbackPacketData` interface and register their implementation on the chain codec
 
 ## References
 
-- [Original issue](https://github.com/cosmos/ibc-go/issues/1660)
-- [CallbackPacketData interface implementation](https://github.com/cosmos/ibc-go/pull/3287) 
-- [ICS 20, ICS 27 implementations of the CallbackPacketData interface](https://github.com/cosmos/ibc-go/pull/3287)
+* [Original issue](https://github.com/cosmos/ibc-go/issues/1660)
+* [CallbackPacketData interface implementation](https://github.com/cosmos/ibc-go/pull/3287)
+* [ICS 20, ICS 27 implementations of the CallbackPacketData interface](https://github.com/cosmos/ibc-go/pull/3287)

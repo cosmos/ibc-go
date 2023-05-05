@@ -74,8 +74,7 @@ Additionally, for the first point release of a new major or minor release branch
   - Remove any tags that might not be recommended anymore.
 - Bump ibc-go version in [cosmos/interchain-accounts-demo repository](https://github.com/cosmos/interchain-accounts-demo) and create a tag.
 - Open a PR to `main` updating the docs site:
-  - Add new release branch to [`docs/versions`](../versions) file.
-  - Add `label` and `key` to `versions` array in [`config.js`](https://github.com/cosmos/ibc-go/blob/main/docs/.vuepress/config.js#L33).
+  - (TODO: [#3522](https://github.com/cosmos/ibc-go/issues/3522))
 - After changes to docs site are deployed, check [ibc.cosmos.network](https://ibc.cosmos.network) is updated.
 - Open issue in [SDK tutorials repo](https://github.com/cosmos/sdk-tutorials) to update tutorials to the released version of ibc-go.
 
