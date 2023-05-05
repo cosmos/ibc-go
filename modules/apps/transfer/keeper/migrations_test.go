@@ -33,9 +33,8 @@ func (suite *KeeperTestSuite) TestMigratorMigrateParams() {
 	for _, tc := range testCases {
 		suite.Run(fmt.Sprintf("case %s", tc.msg), func() {
 			suite.SetupTest() // reset
-			// get subspace
-			subspace := suite.chainA.GetSimApp().GetSubspace(transfertypes.ModuleName)
-
+			
+			subspace := suite.chainA.GetSimApp().GetSubspace(transfertypes.ModuleName) // get subspace
 			tc.malleate(subspace) // explicitly set params
 
 			migrator := transferkeeper.NewMigrator(suite.chainA.GetSimApp().TransferKeeper, subspace)
