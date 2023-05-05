@@ -45,15 +45,22 @@ func (s *TransferTestSuite) QueryTransferSendEnabledParam(ctx context.Context, c
 
 // QueryTransferReceiveEnabledParam queries the on-chain receive enabled param for the transfer module
 func (s *TransferTestSuite) QueryTransferReceiveEnabledParam(ctx context.Context, chain ibc.Chain) bool {
-	queryClient := s.GetChainGRCPClients(chain).ParamsQueryClient
-	res, err := queryClient.Params(ctx, &paramsproposaltypes.QueryParamsRequest{
-		Subspace: transfertypes.StoreKey,
-		Key:      string(transfertypes.KeyReceiveEnabled),
-	})
-	s.Require().NoError(err)
-
-	enabled, err := strconv.ParseBool(res.Param.Value)
-	s.Require().NoError(err)
+	var enabled bool
+	queryClient := s.GetChainGRCPClients(chain).TransferQueryClient
+	res, err := queryClient.Params(ctx, &transfertypes.QueryParamsRequest{})
+	// x/params query implemented as fallback
+	if err != nil {
+		xparamsQueryClient := s.GetChainGRCPClients(chain).ParamsQueryClient
+		xparamsRes, err := xparamsQueryClient.Params(ctx, &paramsproposaltypes.QueryParamsRequest{
+			Subspace: transfertypes.StoreKey,
+			Key:      string(transfertypes.KeyReceiveEnabled),
+		})
+		s.Require().NoError(err)
+		enabled, err = strconv.ParseBool(xparamsRes.Param.Value)
+		s.Require().NoError(err)
+	} else {
+		enabled = res.Params.ReceiveEnabled
+	}
 
 	return enabled
 }
