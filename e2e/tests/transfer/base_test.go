@@ -7,7 +7,6 @@ import (
 
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	paramsproposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 	"github.com/strangelove-ventures/interchaintest/v7/ibc"
 	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
 	"github.com/stretchr/testify/suite"
@@ -16,7 +15,6 @@ import (
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
 func TestTransferTestSuite(t *testing.T) {
@@ -259,12 +257,8 @@ func (s *TransferTestSuite) TestSendEnabledParam() {
 	})
 
 	t.Run("change send enabled parameter to disabled", func(t *testing.T) {
-		changes := []paramsproposaltypes.ParamChange{
-			paramsproposaltypes.NewParamChange(transfertypes.StoreKey, string(transfertypes.KeySendEnabled), "false"),
-		}
-
-		proposal := paramsproposaltypes.NewParameterChangeProposal(ibctesting.Title, ibctesting.Description, changes)
-		s.ExecuteGovProposal(ctx, chainA, chainAWallet, proposal)
+		msg := transfertypes.NewMsgUpdateParams("", transfertypes.NewParams(false, true))
+		s.ExecuteGovProposalV1(ctx, msg, chainA, chainAWallet, 1)
 	})
 
 	t.Run("ensure transfer params are disabled", func(t *testing.T) {
@@ -340,12 +334,8 @@ func (s *TransferTestSuite) TestReceiveEnabledParam() {
 	})
 
 	t.Run("change receive enabled parameter to disabled ", func(t *testing.T) {
-		changes := []paramsproposaltypes.ParamChange{
-			paramsproposaltypes.NewParamChange(transfertypes.StoreKey, string(transfertypes.KeyReceiveEnabled), "false"),
-		}
-
-		proposal := paramsproposaltypes.NewParameterChangeProposal(ibctesting.Title, ibctesting.Description, changes)
-		s.ExecuteGovProposal(ctx, chainA, chainAWallet, proposal)
+		msg := transfertypes.NewMsgUpdateParams("", transfertypes.NewParams(false, false))
+		s.ExecuteGovProposalV1(ctx, msg, chainA, chainAWallet, 1)
 	})
 
 	t.Run("ensure transfer params are disabled", func(t *testing.T) {
