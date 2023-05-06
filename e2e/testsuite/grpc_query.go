@@ -4,9 +4,8 @@ import (
 	"context"
 	"fmt"
 	"sort"
+	"time"
 
-	"cosmossdk.io/math"
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -89,6 +88,13 @@ func (s *E2ETestSuite) InitGRPCClients(chain *cosmos.CosmosChain) {
 	}
 }
 
+// Header defines an interface which is implemented by both the sdk block header and the cometbft Block Header.
+// this interfaces allows us to use the same function to fetch the block header for both chains.
+type Header interface {
+	GetTime() time.Time
+	GetLastCommitHash() []byte
+}
+
 // QueryClientState queries the client state on the given chain for the provided clientID.
 func (s *E2ETestSuite) QueryClientState(ctx context.Context, chain ibc.Chain, clientID string) (ibcexported.ClientState, error) {
 	queryClient := s.GetChainGRCPClients(chain).ClientQueryClient
@@ -163,13 +169,14 @@ func (s *E2ETestSuite) QueryPacketCommitment(ctx context.Context, chain ibc.Chai
 }
 
 // QueryTotalEscrowForDenom queries the total amount of tokens in escrow for a denom
-func (s *E2ETestSuite) QueryTotalEscrowForDenom(ctx context.Context, chain ibc.Chain, denom string) (math.Int, error) {
+func (s *E2ETestSuite) QueryTotalEscrowForDenom(ctx context.Context, chain ibc.Chain, denom string) (sdk.Coin, error) {
 	queryClient := s.GetChainGRCPClients(chain).TransferQueryClient
 	res, err := queryClient.TotalEscrowForDenom(ctx, &transfertypes.QueryTotalEscrowForDenomRequest{
 		Denom: denom,
 	})
+
 	if err != nil {
-		return math.ZeroInt(), err
+		return sdk.Coin{}, err
 	}
 
 	return res.Amount, nil
@@ -258,9 +265,8 @@ func (s *E2ETestSuite) QueryProposalV1(ctx context.Context, chain ibc.Chain, pro
 	return *res.Proposal, nil
 }
 
-// GetBlockByHeight fetches the block at a given height. Note: we are explicitly using the res.Block type which has been
-// deprecated instead of res.SdkBlock to support backwards compatibility tests.
-func (s *E2ETestSuite) GetBlockByHeight(ctx context.Context, chain ibc.Chain, height uint64) (*tmproto.Block, error) {
+// GetBlockHeaderByHeight fetches the block header at a given height.
+func (s *E2ETestSuite) GetBlockHeaderByHeight(ctx context.Context, chain ibc.Chain, height uint64) (Header, error) {
 	tmService := s.GetChainGRCPClients(chain).ConsensusServiceClient
 	res, err := tmService.GetBlockByHeight(ctx, &tmservice.GetBlockByHeightRequest{
 		Height: int64(height),
@@ -269,7 +275,13 @@ func (s *E2ETestSuite) GetBlockByHeight(ctx context.Context, chain ibc.Chain, he
 		return nil, err
 	}
 
-	return res.Block, nil
+	// Clean up when v6 is not supported, see: https://github.com/cosmos/ibc-go/issues/3540
+	// versions newer than 0.47 SDK use the SdkBlock field while versions older
+	// than 0.47 SDK, which do not have the SdkBlock field, use the Block field.
+	if res.SdkBlock != nil {
+		return &res.SdkBlock.Header, nil
+	}
+	return &res.Block.Header, nil
 }
 
 // GetValidatorSetByHeight returns the validators of the given chain at the specified height. The returned validators
