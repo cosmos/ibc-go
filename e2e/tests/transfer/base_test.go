@@ -59,7 +59,7 @@ func (s *TransferTestSuite) isSelfManagingParams(ctx context.Context, chain ibc.
 	}
 
 	_, err = strconv.ParseBool(res.Param.Value)
-	return (err != nil) 
+	return (err != nil)
 }
 
 // TestMsgTransfer_Succeeds_Nonincentivized will test sending successful IBC transfers from chainA to chainB.
@@ -290,7 +290,7 @@ func (s *TransferTestSuite) TestSendEnabledParam() {
 			changes := []paramsproposaltypes.ParamChange{
 				paramsproposaltypes.NewParamChange(transfertypes.StoreKey, string(transfertypes.KeySendEnabled), "false"),
 			}
-	
+
 			proposal := paramsproposaltypes.NewParameterChangeProposal(ibctesting.Title, ibctesting.Description, changes)
 			s.ExecuteGovProposal(ctx, chainA, chainAWallet, proposal)
 		}
@@ -381,7 +381,7 @@ func (s *TransferTestSuite) TestReceiveEnabledParam() {
 			changes := []paramsproposaltypes.ParamChange{
 				paramsproposaltypes.NewParamChange(transfertypes.StoreKey, string(transfertypes.KeyReceiveEnabled), "false"),
 			}
-	
+
 			proposal := paramsproposaltypes.NewParameterChangeProposal(ibctesting.Title, ibctesting.Description, changes)
 			s.ExecuteGovProposal(ctx, chainA, chainAWallet, proposal)
 		}
