@@ -18,6 +18,7 @@ import (
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
 func TestTransferTestSuite(t *testing.T) {
@@ -267,6 +268,7 @@ func (s *TransferTestSuite) TestSendEnabledParam() {
 	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 	chainBAddress := chainBWallet.FormattedAddress()
 
+	isSelfManagingParams := s.isSelfManagingParams(ctx, chainA)
 	govModuleAddress, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
 	s.Require().NoError(err)
 	s.Require().NotNil(govModuleAddress)
@@ -285,8 +287,17 @@ func (s *TransferTestSuite) TestSendEnabledParam() {
 	})
 
 	t.Run("change send enabled parameter to disabled", func(t *testing.T) {
-		msg := transfertypes.NewMsgUpdateParams(govModuleAddress.String(), transfertypes.NewParams(false, true))
-		s.ExecuteGovProposalV1(ctx, msg, chainA, chainAWallet, 1)
+		if isSelfManagingParams {
+			msg := transfertypes.NewMsgUpdateParams(govModuleAddress.String(), transfertypes.NewParams(false, true))
+			s.ExecuteGovProposalV1(ctx, msg, chainA, chainAWallet, 1)
+		} else {
+			changes := []paramsproposaltypes.ParamChange{
+				paramsproposaltypes.NewParamChange(transfertypes.StoreKey, string(transfertypes.KeySendEnabled), "false"),
+			}
+	
+			proposal := paramsproposaltypes.NewParameterChangeProposal(ibctesting.Title, ibctesting.Description, changes)
+			s.ExecuteGovProposal(ctx, chainA, chainAWallet, proposal)
+		}
 	})
 
 	t.Run("ensure transfer params are disabled", func(t *testing.T) {
@@ -320,6 +331,7 @@ func (s *TransferTestSuite) TestReceiveEnabledParam() {
 		chainBAddress = chainBWallet.FormattedAddress()
 	)
 
+	isSelfManagingParams := s.isSelfManagingParams(ctx, chainA)
 	govModuleAddress, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
 	s.Require().NoError(err)
 	s.Require().NotNil(govModuleAddress)
@@ -366,8 +378,17 @@ func (s *TransferTestSuite) TestReceiveEnabledParam() {
 	})
 
 	t.Run("change receive enabled parameter to disabled ", func(t *testing.T) {
-		msg := transfertypes.NewMsgUpdateParams(govModuleAddress.String(), transfertypes.NewParams(false, false))
-		s.ExecuteGovProposalV1(ctx, msg, chainA, chainAWallet, 1)
+		if isSelfManagingParams {
+			msg := transfertypes.NewMsgUpdateParams(govModuleAddress.String(), transfertypes.NewParams(false, false))
+			s.ExecuteGovProposalV1(ctx, msg, chainA, chainAWallet, 1)
+		} else {
+			changes := []paramsproposaltypes.ParamChange{
+				paramsproposaltypes.NewParamChange(transfertypes.StoreKey, string(transfertypes.KeyReceiveEnabled), "false"),
+			}
+	
+			proposal := paramsproposaltypes.NewParameterChangeProposal(ibctesting.Title, ibctesting.Description, changes)
+			s.ExecuteGovProposal(ctx, chainA, chainAWallet, proposal)
+		}
 	})
 
 	t.Run("ensure transfer params are disabled", func(t *testing.T) {
