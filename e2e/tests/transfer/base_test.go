@@ -59,11 +59,7 @@ func (s *TransferTestSuite) isSelfManagingParams(ctx context.Context, chain ibc.
 	}
 
 	_, err = strconv.ParseBool(res.Param.Value)
-	if err != nil {
-		return true
-	} else {
-		return false
-	}
+	return (err != nil) 
 }
 
 // TestMsgTransfer_Succeeds_Nonincentivized will test sending successful IBC transfers from chainA to chainB.
