@@ -22,7 +22,7 @@ const config = {
   projectName: "ibc-go", // Usually your repo name.
 
   onBrokenLinks: "throw",
-  onBrokenMarkdownLinks: "warn",
+  onBrokenMarkdownLinks: "log",
 
   // Even if you don't use internalization, you can use this field to set useful
   // metadata like html lang. For example, if your site is Chinese, you may want
@@ -43,6 +43,27 @@ const config = {
           routeBasePath: "/",
           // Exclude template markdown files from the docs
           exclude: ["**/*.template.md"],
+          // Select the latest version
+          lastVersion: "v7.0.0",
+          // Assign banners to specific versions
+          versions: {
+            current: {
+              path: "main",
+              banner: "unreleased",
+            },
+            "v7.0.0": {
+              banner: "none",
+            },
+            "v6.1.0": {
+              banner: "none",
+            },
+            "v5.3.0": {
+              banner: "none",
+            },
+            "v4.4.0": {
+              banner: "none",
+            },
+          },
         },
         theme: {
           customCss: require.resolve("./src/css/custom.css"),
@@ -79,14 +100,6 @@ const config = {
             type: "docsVersionDropdown",
             position: "right",
             dropdownActiveClassDisabled: true,
-            // TODO: versions not yet migrated to docusaurus
-            dropdownItemsAfter: [
-              {
-                href: "https://ibc.cosmos.network/v7.0.0/",
-                label: "pre v7.1",
-                target: "_self",
-              },
-            ],
           },
           {
             href: "https://github.com/cosmos/ibc-go",
@@ -192,6 +205,13 @@ const config = {
       {
         // this is to fix ADR links in production
         fromExtensions: ["md"], // /myPage.md -> /myPage
+        // makes the default page next in production
+        redirects: [
+          {
+            from: ["/", "/master", "/next"],
+            to: "/main",
+          },
+        ],
       },
     ],
     async function myPlugin(context, options) {
