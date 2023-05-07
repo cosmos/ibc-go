@@ -5,20 +5,18 @@ sidebar_position: 3
 slug: /ibc/apps/bindports
 ---
 
-
 # Bind ports
 
 :::note Synopsis
-Learn what changes to make to bind modules to their ports on initialization. 
+Learn what changes to make to bind modules to their ports on initialization.
 :::
 
 :::note
 
-## Pre-requisites Readings
+## Pre-requisite readings
 
 - [IBC Overview](../01-overview.md))
 - [IBC default integration](../02-integration.md)
-
 
 :::
 Currently, ports must be bound on app initialization. In order to bind modules to their respective ports on initialization, the following needs to be implemented:

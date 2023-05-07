@@ -5,22 +5,21 @@ sidebar_position: 5
 slug: /ibc/apps/packets_acks
 ---
 
-
 # Define packets and acks
 
 :::note Synopsis
-Learn how to define custom packet and acknowledgement structs and how to encode and decode them. 
+Learn how to define custom packet and acknowledgement structs and how to encode and decode them.
 :::
 
 :::note
 
-## Pre-requisites Readings
+## Pre-requisite readings
 
 - [IBC Overview](../01-overview.md))
 - [IBC default integration](../02-integration.md)
 
-
 :::
+
 ## Custom packets
 
 Modules connected by a channel must agree on what application data they are sending over the
@@ -59,12 +58,12 @@ channelCap := scopedKeeper.GetCapability(ctx, channelCapName)
 data := EncodePacketData(customPacketData)
 // Send packet to IBC, authenticating with channelCap
 sequence, err := IBCChannelKeeper.SendPacket(
-    ctx, 
-    channelCap, 
-    sourcePort, 
-    sourceChannel, 
-    timeoutHeight, 
-    timeoutTimestamp, 
+    ctx,
+    channelCap,
+    sourcePort,
+    sourceChannel,
+    timeoutHeight,
+    timeoutTimestamp,
     data,
 )
 ```

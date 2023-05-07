@@ -13,7 +13,7 @@ Learn how to build IBC light client modules and fulfill the interfaces required 
 
 :::note
 
-## Pre-requisites Readings
+## Pre-requisite readings
 
 - [IBC Overview](../../01-ibc/01-overview.md)
 - [IBC Transport, Authentication, and Ordering Layer - Clients](https://tutorials.cosmos.network/academy/3-ibc/4-clients.html)

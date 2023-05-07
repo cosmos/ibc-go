@@ -5,18 +5,17 @@ sidebar_position: 7
 slug: /ibc/relayer
 ---
 
-
 # Relayer
 
 :::note
 
-## Pre-requisites Readings
+## Pre-requisite readings
 
 - [IBC Overview](01-overview.md)
 - [Events](https://github.com/cosmos/cosmos-sdk/blob/main/docs/docs/core/08-events.md)
 
-
 :::
+
 ## Events
 
 Events are emitted for every transaction processed by the base application to indicate the execution
@@ -25,20 +24,20 @@ Any message that uses IBC will emit events for the corresponding TAO logic execu
 the [IBC events document](./events.md).
 
 In the SDK, it can be assumed that for every message there is an event emitted with the type `message`,
-attribute key `action`, and an attribute value representing the type of message sent 
-(`channel_open_init` would be the attribute value for `MsgChannelOpenInit`). If a relayer queries 
+attribute key `action`, and an attribute value representing the type of message sent
+(`channel_open_init` would be the attribute value for `MsgChannelOpenInit`). If a relayer queries
 for transaction events, it can split message events using this event Type/Attribute Key pair.
 
 The Event Type `message` with the Attribute Key `module` may be emitted multiple times for a single
-message due to application callbacks. It can be assumed that any TAO logic executed will result in 
+message due to application callbacks. It can be assumed that any TAO logic executed will result in
 a module event emission with the attribute value `ibc_<submodulename>` (02-client emits `ibc_client`).
 
-### Subscribing with Tendermint 
+### Subscribing with Tendermint
 
 Calling the Tendermint RPC method `Subscribe` via [Tendermint's Websocket](https://docs.tendermint.com/main/rpc/) will return events using
 Tendermint's internal representation of them. Instead of receiving back a list of events as they
 were emitted, Tendermint will return the type `map[string][]string` which maps a string in the
-form `<event_type>.<attribute_key>` to `attribute_value`. This causes extraction of the event 
+form `<event_type>.<attribute_key>` to `attribute_value`. This causes extraction of the event
 ordering to be non-trivial, but still possible.
 
 A relayer should use the `message.action` key to extract the number of messages in the transaction

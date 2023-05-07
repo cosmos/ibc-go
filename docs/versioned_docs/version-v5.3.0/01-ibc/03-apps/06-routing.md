@@ -5,20 +5,18 @@ sidebar_position: 6
 slug: /ibc/apps/routing
 ---
 
-
 # Routing
 
 :::note
 
-## Pre-requisites Readings
+## Pre-requisite readings
 
 - [IBC Overview](../01-overview.md))
 - [IBC default integration](../02-integration.md)
 
-
 :::
 :::note Synopsis
-Learn how to hook a route to the IBC router for the custom IBC module. 
+Learn how to hook a route to the IBC router for the custom IBC module.
 :::
 
 As mentioned above, modules must implement the `IBCModule` interface (which contains both channel

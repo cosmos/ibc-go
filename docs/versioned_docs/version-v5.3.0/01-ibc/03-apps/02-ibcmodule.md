@@ -5,11 +5,10 @@ sidebar_position: 2
 slug: /ibc/apps/ibcmodule
 ---
 
-
 # Implement `IBCModule` interface and callbacks
 
 :::note Synopsis
-Learn how to implement the `IBCModule` interface and all of the callbacks it requires. 
+Learn how to implement the `IBCModule` interface and all of the callbacks it requires.
 :::
 
 The Cosmos SDK expects all IBC modules to implement the [`IBCModule`
@@ -37,13 +36,13 @@ var (
 
 :::note
 
-## Pre-requisites Readings
+## Pre-requisite readings
 
 - [IBC Overview](../01-overview.md))
 - [IBC default integration](../02-integration.md)
 
-
 :::
+
 ## Channel handshake callbacks
 
 This section will describe the callbacks that are called during channel handshake execution. Among other things, it will claim channel capabilities passed on from core IBC. For a refresher on capabilities, check [the Overview section](../01-overview.md#capabilities).

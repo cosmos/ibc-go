@@ -9,7 +9,7 @@ slug: /ibc/relayer
 
 :::note
 
-## Pre-requisites Readings
+## Pre-requisite readings
 
 - [IBC Overview](01-overview.md)
 - [Events](https://github.com/cosmos/cosmos-sdk/blob/main/docs/docs/core/08-events.md)
