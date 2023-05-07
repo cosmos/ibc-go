@@ -32,13 +32,13 @@ to send users to the GitHub.
 
 ### Installation
 
-```
+```bash
 npm install
 ```
 
 ### Local Development
 
-```
+```bash
 npm start
 ```
 
@@ -46,7 +46,7 @@ This command starts a local development server and opens up a browser window. Mo
 
 ### Build
 
-```
+```bash
 npm build
 ```
 
@@ -99,4 +99,64 @@ Inside `/docs/docs/`:
 
 ## Versioning
 
-TODO: UPDATE ([#3534](https://github.com/cosmos/ibc-go/issues/3534), [#3522](https://github.com/cosmos/ibc-go/issues/3522))
+Versioning only applies to documentation and not the ADRs found in the `./architecture/` directory.
+
+### Terminology
+
+- Current version: The version placed in the `.docs/` folder. This version is the one that is displayed on the website by default, referred to as next.
+- Latest version: This version is defined in `./docusaurus.config.js` file under the `lastVersion` key.
+
+### Overview
+
+A typical versioned doc site looks like below:
+
+```ignore
+website
+├── sidebars.json          # sidebar for the current docs version
+├── docs                   # docs directory for the current docs version
+│   ├── 01-foo
+│   │   └── 01-bar.md      # https://mysite.com/docs/next/01-foo/01-bar
+│   └── 00-intro.md        # https://mysite.com/docs/next/00-intro
+├── versions.json          # file to indicate what versions are available
+├── versioned_docs
+│   ├── version-v1.1.0
+│   │   ├── 01-foo
+│   │   │   └── 01-bar.md  # https://mysite.com/docs/01-foo/01-bar
+│   │   └── 00-intro.md
+│   └── version-v1.0.0
+│       ├── 01-foo
+│       │   └── 01-bar.md  # https://mysite.com/docs/v1.0.0/01-foo/01-bar
+│       └── 00-intro.md
+├── versioned_sidebars
+│   ├── version-v1.1.0-sidebars.json
+│   └── version-v1.0.0-sidebars.json
+├── docusaurus.config.js
+└── package.json
+```
+
+The `./versions.json` file is a list of version names, ordered from newest to oldest.
+
+### Tagging a new version
+
+It is possible to tag the current version of the docs as a new version. This will create the appropriate files in `./versioned_docs/` and `./versioned_sidebars/` directories, and modify the `./versions.json` file. To do this, run the following command:
+
+```bash
+npm run docusaurus docs:version v7.1.0
+```
+
+### Adding a new version
+
+To add a new version:
+
+1. Create a new directory in `./versioned_docs/` called `version-vX.Y.Z` where `X.Y.Z` is the version number. This directory should contain the markdown files for the new version.
+2. Create a new file in `./versioned_sidebars/` called `version-vX.Y.Z-sidebars.json`. This file should contain the sidebar for the new version.
+3. Add the version to the `./versions.json` file. The list should be ordered from newest to oldest.
+4. If needed, make any configuration changes in `./docusaurus.config.js`. For example, updating the `lastVersion` key in `./docusaurus.config.js` to the latest version.
+
+### Updating an existing version
+
+You can update multiple docs versions at the same time because each directory in `./versioned_docs/` represents specific routes when published. Make changes by editing the markdown files in the appropriate version directory.
+
+### Deleting a version
+
+When a version is no longer supported, you can delete it by removing it from `versions.json` and deleting the corresponding files in `./versioned_docs/` and `./versioned_sidebars/`.
