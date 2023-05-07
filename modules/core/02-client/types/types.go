@@ -77,3 +77,27 @@ func (m *MsgUpgradeClient) GetConsensusState() []byte {
 func (m *MsgUpgradeClient) SetConsensusState(state *codectypes.Any) {
 	m.ConsensusState = state
 }
+
+// ClientMessageMsg is an interface that defines methods for getting and setting the clientMessage of a message.
+type ClientMessageMsg interface {
+	// GetClientMessage returns the byte slice representation of the clientMessage included in the message.
+	// Returns nil if the clientMessage is not set.
+	GetClientMessage() []byte
+
+	// SetClientMessage sets the clientMessage in the message to the given value.
+	SetClientMessage(clientMessage *codectypes.Any)
+}
+
+// GetClientMessage returns the byte slice representation of the clientMessage included in the update client message.
+// Returns nil if the clientMessage is not set.
+func (m *MsgUpdateClient) GetClientMessage() []byte {
+	if m.ClientMessage == nil {
+		return nil
+	}
+	return m.ClientMessage.Value
+}
+
+// SetClientMessage sets the clientMessage in the update client message to the given value.
+func (m *MsgUpdateClient) SetClientMessage(clientMessage *codectypes.Any) {
+	m.ClientMessage = clientMessage
+}
