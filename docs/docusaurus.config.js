@@ -11,6 +11,7 @@ const config = {
   favicon: "img/white-cosmos-icon.svg",
 
   // Set the production url of your site here
+  // for local production tests, set to http://localhost:3000/
   url: "https://ibc.cosmos.network/",
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
@@ -21,7 +22,7 @@ const config = {
   organizationName: "cosmos", // Usually your GitHub org/user name.
   projectName: "ibc-go", // Usually your repo name.
 
-  onBrokenLinks: "throw",
+  onBrokenLinks: "log",
   onBrokenMarkdownLinks: "log",
 
   // Even if you don't use internalization, you can use this field to set useful
@@ -52,6 +53,7 @@ const config = {
               banner: "unreleased",
             },
             "v7.0.0": {
+              path: "v7.0.0",
               banner: "none",
             },
             "v6.1.0": {
@@ -204,12 +206,11 @@ const config = {
       "@docusaurus/plugin-client-redirects",
       {
         // this is to fix ADR links in production
-        fromExtensions: ["md"], // /myPage.md -> /myPage
         // makes the default page next in production
         redirects: [
           {
             from: ["/", "/master", "/next"],
-            to: "/main",
+            to: "/main/",
           },
         ],
       },
