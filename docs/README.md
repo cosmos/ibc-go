@@ -167,23 +167,23 @@ Versioning only applies to documentation and not the ADRs found in the `./archit
 A typical versioned doc site looks like below:
 
 ```ignore
-website
+docs/
 ├── sidebars.json          # sidebar for the current docs version
-├── docs                   # docs directory for the current docs version
-│   ├── 01-foo
+├── docs/                  # docs directory for the current docs version
+│   ├── 01-foo/
 │   │   └── 01-bar.md      # https://mysite.com/docs/next/01-foo/01-bar
 │   └── 00-intro.md        # https://mysite.com/docs/next/00-intro
 ├── versions.json          # file to indicate what versions are available
-├── versioned_docs
-│   ├── version-v1.1.0
-│   │   ├── 01-foo
+├── versioned_docs/
+│   ├── version-v1.1.0/
+│   │   ├── 01-foo/
 │   │   │   └── 01-bar.md  # https://mysite.com/docs/01-foo/01-bar
 │   │   └── 00-intro.md
-│   └── version-v1.0.0
-│       ├── 01-foo
+│   └── version-v1.0.0/
+│       ├── 01-foo/
 │       │   └── 01-bar.md  # https://mysite.com/docs/v1.0.0/01-foo/01-bar
 │       └── 00-intro.md
-├── versioned_sidebars
+├── versioned_sidebars/
 │   ├── version-v1.1.0-sidebars.json
 │   └── version-v1.0.0-sidebars.json
 ├── docusaurus.config.js
