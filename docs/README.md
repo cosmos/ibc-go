@@ -4,10 +4,6 @@ TODO: UPDATE ([#3534](https://github.com/cosmos/ibc-go/issues/3534))
 
 Welcome to the IBC-Go documentation! This website is built using [Docusaurus 2](https://docusaurus.io/), a modern static website generator.
 
-## Translating
-
-TODO: UPDATE or REMOVE ([#3534](https://github.com/cosmos/ibc-go/issues/3534))
-
 ## Docs Build Workflow
 
 The documentation for IBC-Go is hosted at <https://ibc.cosmos.network>.
@@ -21,12 +17,66 @@ Docusaurus configuration file is located at `./docusaurus.config.js`. This file 
 
 ## Links
 
-TODO: UPDATE ([#3534](https://github.com/cosmos/ibc-go/issues/3534))
+In docusaurus, there are three ways to link to other pages:
 
-### Full
+1. File Paths (relative or absolute)
+2. URLs (relative or absolute)
+3. Hyperlinks
 
-The full GitHub URL to a file or directory. Used occasionally when it makes sense
-to send users to the GitHub.
+In this section, we will discuss when to use each.
+
+### Multi-Documentation Linking
+
+Technically, there are four docs being maintained in this repo:
+
+1. Found in `docs/docs/` (this is the one displayed on the website in the "Documentation" tab)
+2. Found in `docs/architecture/` (this is the one displayed on the website in the "Architecture Decision Records" tab)
+3. Found in `docs/events/` (depreciated, this is not displayed on the website, but is hosted under `/events/` url)
+4. Found in `docs/params/` (depreciated, this is not displayed on the website, but is hosted under `/params/` url)
+
+When referencing a markdown file, you should use relative file paths if they are in the same docs directory from above. For example, if you are in `docs/docs/01-ibc` and want to link to `docs/docs/02-apps/02-transfer/01-overview.md`, you should use the relative link `../02-apps/02-transfer/01-overview.md`.
+
+If the file you are referencing is in a different docs directory, you should use a absolute URL. For example, if you are in `docs/docs/01-ibc` and want to link to `docs/architecture/adr-001-coin-source-tracing.md`, you should use the absolute URL (not absolute file path), in this case `/architecture/adr-001-coin-source-tracing`. You can find the absolute URL by looking at the slug in the frontmatter of the markdown file you want to link to. If the frontmatter slug is not set (such as in `docs/architecture/adr-001-coin-source-tracing.md`), you should use the url that docusaurus generates for it. You can find this by looking at the url of the page in the browser.
+
+Note that when referencing any file outside of the parent `docs/` directory, you should always use a hyperlink.
+
+### Code Blocks
+
+Code blocks in docusaurus are super-powered, read more about them [here](https://docusaurus.io/docs/markdown-features/code-blocks). Three most important features for us are:
+
+1. We can add a `title` to the code block, which will be displayed above the code block. (This should be used to display the file path of the code block.)
+2. We can add a `reference` tag to the code block, which will reference github to create the code block. **You should always use hyperlinks in reference codeblocks.** Here is what a typical code block should look like:
+
+````ignore
+```go reference title="modules/apps/transfer/keeper/keeper.go"
+https://github.com/cosmos/ibc-go/blob/v7.0.0/modules/apps/transfer/keeper/keeper.go#L19-L31
+```
+````
+
+3. We can highlight lines in the code block by adding `// highlight-next-line` before the line we want to highlight. We can use this to highlight diffs. Here is an example:
+
+````ignore
+```go
+import (
+  ...
+  // highlight-next-line
++ ibctm "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint"
+  ...
+)
+```
+````
+
+### Static Assets
+
+Static assets are the non-code files that are directly copied to the build output. They include **images**, stylesheets, favicons, fonts, etc.
+
+By default, you are suggested to put these assets in the `static/` directory. Every file you put into that directory will be copied into the root of the generated build folder with the directory hierarchy preserved. E.g. if you add a file named `sun.jpg` to the static folder, it will be copied to `build/sun.jpg`.
+
+These assets should be referenced using absolute URLs. For example, if you have an image in `static/img/cosmos-logo-bw.png`, you should reference it using `/img/cosmos-logo-bw.png`.
+
+### Raw Assets
+
+If you want to link a raw file, you should link to it using `@site` + its base path. For example, if you want to link to the raw markdown file `/architecture/adr.template.md`, you should use the absolute URL `@site/architecture/adr.template.md`.
 
 ## Building Locally
 
@@ -47,10 +97,18 @@ This command starts a local development server and opens up a browser window. Mo
 ### Build
 
 ```bash
-npm build
+npm run build
 ```
 
 This command generates static content into the `build` directory and can be served using any static contents hosting service.
+
+### Serve
+
+```bash
+npm run serve
+```
+
+This command starts a local production server and opens up a browser window.
 
 ## Search
 
