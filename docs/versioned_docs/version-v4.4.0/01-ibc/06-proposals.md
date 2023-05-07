@@ -46,7 +46,7 @@ once the proposal passes.
 
 # How to recover an expired client with a governance proposal
 
-See also the relevant documentation: [ADR-026, IBC client recovery mechanisms](../../architecture/adr-026-ibc-client-recovery-mechanisms.md)
+See also the relevant documentation: [ADR-026, IBC client recovery mechanisms](../../architecture/adr-026-ibc-client-recovery-mechanisms)
 
 ### Preconditions 
 - The chain is updated with ibc-go >= v1.1.0.

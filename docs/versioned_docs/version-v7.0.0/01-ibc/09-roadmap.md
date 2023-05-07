@@ -20,7 +20,7 @@ This roadmap should be read as a high-level guide, rather than a commitment to s
 
 ### 02-client refactor
 
-This refactor will make the development of light clients easier. The ibc-go implementation will finally align with the spec and light clients will be required to set their own client and consensus states. This will allow more flexibility for light clients to manage their own internal storage and do batch updates. See [ADR 006](../../architecture/adr-006-02-client-refactor.md) for more information.
+This refactor will make the development of light clients easier. The ibc-go implementation will finally align with the spec and light clients will be required to set their own client and consensus states. This will allow more flexibility for light clients to manage their own internal storage and do batch updates. See [ADR 006](../../architecture/adr-006-02-client-refactor) for more information.
 
 Follow the progress with the [beta](https://github.com/cosmos/ibc-go/milestone/25) and [RC](https://github.com/cosmos/ibc-go/milestone/27) milestones or in the [project board](https://github.com/orgs/cosmos/projects/7/views/14).
 

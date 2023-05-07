@@ -1,5 +1,5 @@
 {
   "label": "Using IBC-Go",
   "position": 1,
-  "link": null
+  "link": { "type": "doc", "id": "intro" }
 }

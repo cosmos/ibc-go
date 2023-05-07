@@ -1,5 +1,5 @@
 {
   "label": "Upgrades",
   "position": 5,
-  "link": null
+  "link": { "type": "doc", "id": "intro" }
 }

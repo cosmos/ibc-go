@@ -37,7 +37,7 @@ Update the import paths before running `go mod tidy`.
 
 Chains may choose to upgrade via an upgrade proposal or genesis upgrades. Both in-place store migrations and genesis migrations are supported. 
 
-**WARNING**: Please read at least the quick guide for [IBC client upgrades](../ibc/upgrades/README.md) before upgrading your chain. It is highly recommended you do not change the chain-ID during an upgrade, otherwise you must follow the IBC client upgrade instructions.
+**WARNING**: Please read at least the quick guide for [IBC client upgrades](../01-ibc/05-upgrades/00-intro.md) before upgrading your chain. It is highly recommended you do not change the chain-ID during an upgrade, otherwise you must follow the IBC client upgrade instructions.
 
 Both in-place store migrations and genesis migrations will:
 - migrate the solo machine client state from v1 to v2 protobuf definitions
