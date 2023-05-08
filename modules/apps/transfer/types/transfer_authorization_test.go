@@ -1,13 +1,12 @@
 package types_test
 
 import (
-	"math"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/authz"
 	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	"github.com/cosmos/ibc-go/v7/testing/mock"
+	"math"
 )
 
 func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
@@ -47,25 +46,6 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 				suite.Require().True(ok)
 
 				isEqual := updatedAuthz.Allocations[0].SpendLimit.IsEqual(sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(50))))
-				suite.Require().True(isEqual)
-			},
-		},
-		{
-			"success: with unlimited spending limit MaxInt64",
-			func() {
-				transferAuthz.Allocations[0].SpendLimit = sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(math.MaxInt64)))
-				msgTransfer.Token = sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(math.MaxInt64))
-			},
-			func(res authz.AcceptResponse, err error) {
-				suite.Require().NoError(err)
-
-				suite.Require().True(res.Accept)
-				suite.Require().False(res.Delete)
-
-				updatedAuthz, ok := res.Updated.(*types.TransferAuthorization)
-				suite.Require().True(ok)
-
-				isEqual := updatedAuthz.Allocations[0].SpendLimit.IsEqual(sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(math.MaxInt64))))
 				suite.Require().True(isEqual)
 			},
 		},
@@ -152,6 +132,22 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 
 				remainder := updatedTransferAuthz.Allocations[0].SpendLimit.AmountOf(sdk.DefaultBondDenom)
 				suite.Require().True(sdk.NewInt(50).Equal(remainder))
+			},
+		},
+		{
+			"pass: with max Uint256 allocation spend limit",
+			func() {
+				transferAuthz.Allocations[0].SpendLimit = sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewIntFromBigInt(types.MaxUint256)))
+			},
+			func(res authz.AcceptResponse, err error) {
+				suite.Require().NoError(err)
+
+				updatedTransferAuthz, ok := res.Updated.(*types.TransferAuthorization)
+				suite.Require().True(ok)
+
+				remainder := updatedTransferAuthz.Allocations[0].SpendLimit.AmountOf(sdk.DefaultBondDenom)
+				suite.Require().True(sdk.NewIntFromBigInt(types.MaxUint256).Equal(remainder))
+
 			},
 		},
 	}

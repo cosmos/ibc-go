@@ -1,7 +1,7 @@
 package types
 
 import (
-	"math"
+	"math/big"
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -12,6 +12,11 @@ import (
 )
 
 var _ authz.Authorization = (*TransferAuthorization)(nil)
+
+// MaxUint256 is the maximum value for a 256 bit unsigned integer used in EVM compatible chains.
+var (
+	MaxUint256 = new(big.Int).Sub(new(big.Int).Lsh(big.NewInt(1), 256), big.NewInt(1))
+)
 
 // NewTransferAuthorization creates a new TransferAuthorization object.
 func NewTransferAuthorization(allocations ...Allocation) *TransferAuthorization {
@@ -32,11 +37,6 @@ func (a TransferAuthorization) Accept(ctx sdk.Context, msg sdk.Msg) (authz.Accep
 		return authz.AcceptResponse{}, errorsmod.Wrap(ibcerrors.ErrInvalidType, "type mismatch")
 	}
 
-	var (
-		limitLeft  = sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(math.MaxInt64)))
-		isNegative bool
-	)
-
 	for index, allocation := range a.Allocations {
 		if !(allocation.SourceChannel == msgTransfer.SourceChannel && allocation.SourcePort == msgTransfer.SourcePort) {
 			continue
@@ -48,15 +48,15 @@ func (a TransferAuthorization) Accept(ctx sdk.Context, msg sdk.Msg) (authz.Accep
 
 		for _, coin := range allocation.SpendLimit {
 			// skip spending limit if the amount is set to max int64
-			if coin.Amount.Int64() == math.MaxInt64 {
+			if coin.Amount.Equal(sdk.NewIntFromBigInt(MaxUint256)) {
 				continue
 			}
 
-			limitLeft, isNegative = allocation.SpendLimit.SafeSub(msgTransfer.Token)
+			limitLeft, isNegative := allocation.SpendLimit.SafeSub(msgTransfer.Token)
 			if isNegative {
 				return authz.AcceptResponse{}, errorsmod.Wrapf(ibcerrors.ErrInsufficientFunds, "requested amount is more than spend limit")
 			}
-			
+
 			if limitLeft.IsZero() {
 				a.Allocations = append(a.Allocations[:index], a.Allocations[index+1:]...)
 				if len(a.Allocations) == 0 {
@@ -66,19 +66,20 @@ func (a TransferAuthorization) Accept(ctx sdk.Context, msg sdk.Msg) (authz.Accep
 					Allocations: a.Allocations,
 				}}, nil
 			}
-		}
 
-		a.Allocations[index] = Allocation{
-			SourcePort:    allocation.SourcePort,
-			SourceChannel: allocation.SourceChannel,
-			SpendLimit:    limitLeft,
-			AllowList:     allocation.AllowList,
+			a.Allocations[index] = Allocation{
+				SourcePort:    allocation.SourcePort,
+				SourceChannel: allocation.SourceChannel,
+				SpendLimit:    limitLeft,
+				AllowList:     allocation.AllowList,
+			}
 		}
 
 		return authz.AcceptResponse{Accept: true, Delete: false, Updated: &TransferAuthorization{
 			Allocations: a.Allocations,
 		}}, nil
 	}
+
 	return authz.AcceptResponse{}, errorsmod.Wrapf(ibcerrors.ErrNotFound, "requested port and channel allocation does not exist")
 }
 
