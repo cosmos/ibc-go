@@ -6,7 +6,6 @@ on:
   push:
     branches:
       - main
-      - "release/**"
     paths:
       - "docs/**"
       - .github/workflows/deploy-docs.yml
