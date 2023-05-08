@@ -73,8 +73,14 @@ Additionally, for the first point release of a new major or minor release branch
   - Add the new release and the new `icad` tag.
   - Remove any tags that might not be recommended anymore.
 - Bump ibc-go version in [cosmos/interchain-accounts-demo repository](https://github.com/cosmos/interchain-accounts-demo) and create a tag.
-- Open a PR to `main` updating the docs site:
-  - (TODO: [#3522](https://github.com/cosmos/ibc-go/issues/3522))
+- [ ] Update docs site:
+  - [ ] If the release is occurring on the main branch, on the latest version, then run `npm run docusaurus docs:version vX.Y.Z` in the `docs/` directory. (where `X.Y.Z` is the new version number)
+  - [ ] If the release is occurring on an older release branch, then make a PR to the main branch called `docs: new release vX.Y.Z` doing the following:
+    - [ ] Update the content of the docs found in `docs/versioned_docs/version-vx.y.z` if needed. (where `x.y.z` is the previous version number)
+    - [ ] Update the version number of the older release branch by changing the version number of the older release branch in:
+      - [ ] In `docs/versions.json`.
+      - [ ] Rename `docs/versioned_sidebars/version-vx.y.z-sidebars.json`
+      - [ ] Rename `docs/versioned_docs/version-vx.y.z`
 - After changes to docs site are deployed, check [ibc.cosmos.network](https://ibc.cosmos.network) is updated.
 - Open issue in [SDK tutorials repo](https://github.com/cosmos/sdk-tutorials) to update tutorials to the released version of ibc-go.
 
