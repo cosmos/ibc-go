@@ -147,10 +147,10 @@ Inside `/docs/docs/`:
 - All files should be named in `kebab-case`.
 - All files should have a two digit prefix, indicating the order in which they should be read and displayed in their respective categories. For example, `01-overview.md` should be read before `02-integration.md`. If this order changes, the prefix should be updated. Note that the ordering is enforced by the frontmatter and not the file name.
 - **All files that end in `.template.md` will be ignored by the build process.**
-- The prefix `00-` is reserved for root links of categories (if a category has a root link). For example, see [`00-intro.md`](./docs/00-intro.md).
+- The prefix `00-` is reserved for root links of categories (if a category has a root link this should be defined in `_category_.json`). For example, see [`docs/01-ibc/05-upgrades/00-intro.md`](./docs/01-ibc/05-upgrades/00-intro.md) and [`docs/01-ibc/05-upgrades/_category_.json`](./docs/01-ibc/05-upgrades/_category_.json).
 - All category directories should be named in `kebab-case`.
 - All category directories must have a `_category_.json` file.
-- All category directories should have a two digit prefix (except for the root `./docs` category), indicating the order in which they should be read and displayed in their respective categories. For example, `01-overview.md` should be read before `02-integration.md`. If this order changes, the prefix should be updated. Note that the ordering is enforced by the frontmatter and not the file name.
+- All category directories should have a two digit prefix (except for the root `./docs` category), indicating the order in which they should be read and displayed in their respective categories. For example, contents of `./docs/01-ibc/03-apps/` should be read before `./docs/01-ibc/07-relayer.md`. If this order changes, the prefix should be updated. Note that the ordering is enforced by the frontmatter of the markdown files and `_category_.json` files, not the file name.
 - The images for each documentation should be kept in the same directory as the markdown file that uses them. This will likely require creating a new directory for each new category. The goal of this is to make versioning easier, discourage repeated use of the image, and make it easier to find images.
 
 ## Versioning
