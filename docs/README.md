@@ -17,7 +17,6 @@ Welcome to the IBC-Go documentation! This website is built using [Docusaurus 2](
     - [Local Development](#local-development)
     - [Build](#build)
     - [Serve](#serve)
-  - [Search](#search)
     - [File and Directory Naming Conventions](#file-and-directory-naming-conventions)
   - [Updating the Documentation](#updating-the-documentation)
   - [Versioning](#versioning)
@@ -126,10 +125,6 @@ npm run serve
 ```
 
 This command starts a local production server and opens up a browser window.
-
-## Search
-
-TODO: update or remove ([#3534](https://github.com/cosmos/ibc-go/issues/3534))
 
 <!-- ## Consistency
 
