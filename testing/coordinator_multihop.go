@@ -45,12 +45,12 @@ func (coord *CoordinatorM) CreateChannels(path *PathM) {
 	err := path.EndpointA.ChanOpenInit()
 	require.NoError(coord.T, err)
 
-	err = path.EndpointZ.ChanOpenTry()
+	err = path.EndpointZ.ChanOpenTry(path.EndpointA.Chain.LastHeader.GetHeight())
 	require.NoError(coord.T, err)
 
-	err = path.EndpointA.ChanOpenAck()
+	err = path.EndpointA.ChanOpenAck(path.EndpointZ.Chain.LastHeader.GetHeight())
 	require.NoError(coord.T, err)
 
-	err = path.EndpointZ.ChanOpenConfirm()
+	err = path.EndpointZ.ChanOpenConfirm(path.EndpointA.Chain.LastHeader.GetHeight())
 	require.NoError(coord.T, err)
 }

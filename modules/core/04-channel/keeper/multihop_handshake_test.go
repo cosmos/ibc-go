@@ -197,7 +197,7 @@ func (suite *MultihopTestSuite) TestChanOpenTryMultihop() {
 			tc.malleate()     // call ChanOpenInit and setup port capabilities
 			suite.Z().UpdateAllClients()
 
-			proof := suite.A().QueryChannelProof()
+			proof := suite.A().QueryChannelProof(nil)
 			channelID, cap, err := suite.Z().Chain.App.GetIBCKeeper().ChannelKeeper.ChanOpenTry(
 				suite.Z().Chain.GetContext(), suite.Z().ChannelConfig.Order,
 				suite.Z().GetConnectionHops(),
@@ -236,8 +236,13 @@ func (suite *MultihopTestSuite) TestChanOpenAckMultihop() {
 	testCases := []testCase{
 		{"success", func() {
 			suite.SetupConnections()
+			fmt.Printf("Pre-ChanOpenInit on chain %s at height=%d\n", suite.A().Chain.ChainID, suite.A().Chain.LastHeader.Header.Height)
 			suite.Require().NoError(suite.A().ChanOpenInit())
-			suite.Require().NoError(suite.Z().ChanOpenTry())
+			initHeight := suite.A().Chain.LastHeader.GetHeight()
+			fmt.Printf("ChanOpenInit on chain %s at height=%d\n", suite.A().Chain.ChainID, initHeight.GetRevisionHeight())
+			suite.A().Chain.NextBlock() // TODO: why does adding an extra block here make the proof fail???
+			fmt.Printf("Using height=%d for ChanOpenTry\n", initHeight.GetRevisionHeight())
+			suite.Require().NoError(suite.Z().ChanOpenTry(initHeight))
 			channelCap = suite.A().Chain.GetChannelCapability(suite.A().ChannelConfig.PortID, suite.A().ChannelID)
 		}, true},
 	}
@@ -249,7 +254,7 @@ func (suite *MultihopTestSuite) TestChanOpenAckMultihop() {
 			tc.malleate()     // call ChanOpenInit and setup port capabilities
 			suite.A().UpdateAllClients()
 
-			proof := suite.Z().QueryChannelProof()
+			proof := suite.Z().QueryChannelProof(nil)
 
 			err := suite.A().Chain.App.GetIBCKeeper().ChannelKeeper.ChanOpenAck(
 				suite.A().Chain.GetContext(), suite.A().ChannelConfig.PortID, suite.A().ChannelID,
@@ -278,8 +283,8 @@ func (suite *MultihopTestSuite) TestChanOpenConfirmMultihop() {
 		{"success", func() {
 			suite.SetupConnections()
 			suite.Require().NoError(suite.A().ChanOpenInit())
-			suite.Require().NoError(suite.Z().ChanOpenTry())
-			suite.Require().NoError(suite.A().ChanOpenAck())
+			suite.Require().NoError(suite.Z().ChanOpenTry(suite.A().Chain.LastHeader.GetHeight()))
+			suite.Require().NoError(suite.A().ChanOpenAck(suite.Z().Chain.LastHeader.GetHeight()))
 			channelCap = suite.Z().Chain.GetChannelCapability(suite.Z().ChannelConfig.PortID, suite.Z().ChannelID)
 		}, true},
 	}
@@ -291,7 +296,7 @@ func (suite *MultihopTestSuite) TestChanOpenConfirmMultihop() {
 			tc.malleate()     // call ChanOpenInit and setup port capabilities
 			suite.Z().UpdateAllClients()
 
-			proof := suite.A().QueryChannelProof()
+			proof := suite.A().QueryChannelProof(nil)
 
 			err := suite.Z().Chain.App.GetIBCKeeper().ChannelKeeper.ChanOpenConfirm(
 				suite.Z().Chain.GetContext(), suite.Z().ChannelConfig.PortID, suite.Z().ChannelID,
@@ -371,7 +376,7 @@ func (suite *MultihopTestSuite) TestChanCloseConfirmMultihop() {
 			tc.malleate()
 			suite.Z().UpdateAllClients()
 
-			proof := suite.A().QueryChannelProof()
+			proof := suite.A().QueryChannelProof(nil)
 
 			err := suite.Z().Chain.App.GetIBCKeeper().ChannelKeeper.ChanCloseConfirm(
 				suite.Z().Chain.GetContext(), suite.Z().ChannelConfig.PortID, suite.Z().ChannelID,

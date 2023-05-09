@@ -26,22 +26,23 @@ type timeoutTestCase = struct {
 // verification must specify which proof to use using the ordered bool.
 func (suite *MultihopTestSuite) TestTimeoutPacket() {
 	var (
-		packet      *types.Packet
-		nextSeqRecv uint64
-		err         error
-		expError    *sdkerrors.Error
+		packet       *types.Packet
+		packetHeight exported.Height
+		nextSeqRecv  uint64
+		err          error
+		expError     *sdkerrors.Error
 	)
 
 	testCases := []timeoutTestCase{
 		{"success: ORDERED", true, func() {
 			timeoutHeight := clienttypes.GetSelfHeight(suite.Z().Chain.GetContext())
 			timeoutTimestamp := uint64(suite.Z().Chain.GetContext().BlockTime().UnixNano())
-			packet, err = suite.A().SendPacket(timeoutHeight, timeoutTimestamp, ibctesting.MockPacketData)
+			packet, packetHeight, err = suite.A().SendPacket(timeoutHeight, timeoutTimestamp, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
 		}, true},
 		{"success: UNORDERED", false, func() {
 			timeoutHeight := clienttypes.GetSelfHeight(suite.Z().Chain.GetContext())
-			packet, err = suite.A().SendPacket(timeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
+			packet, packetHeight, err = suite.A().SendPacket(timeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
 		}, true},
 	}
@@ -73,7 +74,7 @@ func (suite *MultihopTestSuite) TestTimeoutPacket() {
 					// proof of absence of packet receipt
 					key = host.PacketReceiptKey(packet.SourcePort, packet.SourceChannel, packet.Sequence)
 				}
-				proof = suite.Z().QueryMultihopProof(key)
+				proof = suite.Z().QueryMultihopProof(key, packetHeight)
 				proofHeight = suite.A().ProofHeight()
 			}
 
@@ -96,10 +97,11 @@ func (suite *MultihopTestSuite) TestTimeoutPacket() {
 // channel on chainB after the packet commitment has been created.
 func (suite *MultihopTestSuite) TestTimeoutOnClose() {
 	var (
-		packet      *types.Packet
-		chanCap     *capabilitytypes.Capability
-		nextSeqRecv uint64
-		err         error
+		packet       *types.Packet
+		packetHeight exported.Height
+		chanCap      *capabilitytypes.Capability
+		nextSeqRecv  uint64
+		err          error
 	)
 
 	testCases := []timeoutTestCase{
@@ -107,7 +109,7 @@ func (suite *MultihopTestSuite) TestTimeoutOnClose() {
 			timeoutHeight := clienttypes.GetSelfHeight(suite.Z().Chain.GetContext())
 			timeoutTimestamp := uint64(suite.Z().Chain.GetContext().BlockTime().UnixNano())
 
-			packet, err = suite.A().SendPacket(timeoutHeight, timeoutTimestamp, ibctesting.MockPacketData)
+			packet, packetHeight, err = suite.A().SendPacket(timeoutHeight, timeoutTimestamp, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
 			suite.Z().SetChannelClosed()
 			// need to update chainA's client representing chainB to prove missing ack
@@ -116,7 +118,7 @@ func (suite *MultihopTestSuite) TestTimeoutOnClose() {
 		}, true},
 		{"success: UNORDERED", false, func() {
 			timeoutHeight := clienttypes.GetSelfHeight(suite.Z().Chain.GetContext())
-			packet, err = suite.A().SendPacket(timeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
+			packet, packetHeight, err = suite.A().SendPacket(timeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
 			suite.Z().SetChannelClosed()
 			// need to update chainA's client representing chainB to prove missing ack
@@ -139,7 +141,7 @@ func (suite *MultihopTestSuite) TestTimeoutOnClose() {
 
 			tc.malleate()
 
-			proofClosed := suite.Z().QueryChannelProof()
+			proofClosed := suite.Z().QueryChannelProof(nil)
 			proofHeight := suite.A().GetClientState().GetLatestHeight()
 
 			if tc.orderedChannel {
@@ -149,7 +151,7 @@ func (suite *MultihopTestSuite) TestTimeoutOnClose() {
 				key = host.PacketReceiptKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 			}
 
-			proof := suite.Z().QueryMultihopProof(key)
+			proof := suite.Z().QueryMultihopProof(key, packetHeight)
 			err := suite.A().Chain.App.GetIBCKeeper().ChannelKeeper.TimeoutOnClose(suite.A().Chain.GetContext(), chanCap, packet, proof, proofClosed, proofHeight, nextSeqRecv)
 
 			if tc.expPass {

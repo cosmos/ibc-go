@@ -3,6 +3,7 @@ package tendermint
 import (
 	"bytes"
 	"encoding/binary"
+	fmt "fmt"
 	"strings"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -151,6 +152,7 @@ func ProcessedHeightKey(height exported.Height) []byte {
 // verification functions
 func SetProcessedHeight(clientStore sdk.KVStore, consHeight, processedHeight exported.Height) {
 	key := ProcessedHeightKey(consHeight)
+	fmt.Printf("Set processed height (%s) for client %s: %s\n", string(key), consHeight, processedHeight)
 	val := []byte(processedHeight.String())
 	clientStore.Set(key, val)
 }

@@ -5,6 +5,7 @@ import (
 
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	ibcmock "github.com/cosmos/ibc-go/v7/testing/mock"
 )
@@ -21,14 +22,15 @@ type channelTestCase = struct {
 // verification tests need to simulate sending a packet from chainA to chainB.
 func (suite *MultihopTestSuite) TestRecvPacket() {
 	var (
-		packet     *types.Packet
-		channelCap *capabilitytypes.Capability
-		err        error
+		packet       *types.Packet
+		packetHeight exported.Height
+		channelCap   *capabilitytypes.Capability
+		err          error
 	)
 
 	testCases := []channelTestCase{
 		{"success: ORDERED channel", true, func() {
-			packet, err = suite.A().
+			packet, packetHeight, err = suite.A().
 				SendPacket(defaultTimeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
 			channelCap = suite.Z().Chain.GetChannelCapability(
@@ -36,7 +38,7 @@ func (suite *MultihopTestSuite) TestRecvPacket() {
 			)
 		}, true},
 		{"success: UNORDERED channel", true, func() {
-			packet, err = suite.A().
+			packet, packetHeight, err = suite.A().
 				SendPacket(defaultTimeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
 			channelCap = suite.Z().Chain.GetChannelCapability(
@@ -59,7 +61,7 @@ func (suite *MultihopTestSuite) TestRecvPacket() {
 
 			tc.malleate()
 
-			proof := suite.A().QueryPacketProof(packet)
+			proof := suite.A().QueryPacketProof(packet, packetHeight)
 			err := suite.Z().Chain.App.GetIBCKeeper().ChannelKeeper.RecvPacket(
 				suite.Z().Chain.GetContext(),
 				channelCap,
@@ -114,25 +116,26 @@ func (suite *MultihopTestSuite) TestRecvPacket() {
 // TestAcknowledgePacketMultihop tests the call AcknowledgePacket on chainA.
 func (suite *MultihopTestSuite) TestAcknowledgePacket() {
 	var (
-		packet     *types.Packet
-		ack        = ibcmock.MockAcknowledgement
-		channelCap *capabilitytypes.Capability
-		err        error
+		packet       *types.Packet
+		packetHeight exported.Height
+		ack          = ibcmock.MockAcknowledgement
+		channelCap   *capabilitytypes.Capability
+		err          error
 	)
 
 	testCases := []channelTestCase{
 		{"success: ORDERED channel", true, func() {
-			packet, err = suite.A().
+			packet, packetHeight, err = suite.A().
 				SendPacket(defaultTimeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
-			suite.Require().NoError(suite.Z().RecvPacket(packet))
+			suite.Require().NoError(suite.Z().RecvPacket(packet, packetHeight))
 			channelCap = suite.A().Chain.GetChannelCapability(suite.A().ChannelConfig.PortID, suite.A().ChannelID)
 		}, true},
 		{"success: UNORDERED channel", false, func() {
-			packet, err = suite.A().
+			packet, packetHeight, err = suite.A().
 				SendPacket(defaultTimeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
-			suite.Require().NoError(suite.Z().RecvPacket(packet))
+			suite.Require().NoError(suite.Z().RecvPacket(packet, packetHeight))
 			channelCap = suite.A().Chain.GetChannelCapability(suite.A().ChannelConfig.PortID, suite.A().ChannelID)
 		}, true},
 	}
@@ -148,7 +151,7 @@ func (suite *MultihopTestSuite) TestAcknowledgePacket() {
 
 			tc.malleate()
 
-			proof := suite.Z().QueryPacketAcknowledgementProof(packet)
+			proof := suite.Z().QueryPacketAcknowledgementProof(packet, packetHeight)
 			err := suite.A().Chain.App.GetIBCKeeper().ChannelKeeper.AcknowledgePacket(
 				suite.A().Chain.GetContext(),
 				channelCap,

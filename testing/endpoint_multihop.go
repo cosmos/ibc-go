@@ -1,6 +1,8 @@
 package ibctesting
 
 import (
+	"fmt"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
@@ -30,7 +32,7 @@ type EndpointM struct {
 	mChanPath multihop.ChanPath
 }
 
-// NewEndpointM constructs a new EndpointM without the counterparty.
+// NewEndpointMFromLinkedPaths constructs a new EndpointM without the counterparty.
 // CONTRACT: the counterparty EndpointM must be set by the caller.
 func NewEndpointMFromLinkedPaths(path LinkedPaths) (A, Z EndpointM) {
 	A.paths = path
@@ -69,14 +71,15 @@ func (ep *EndpointM) ChanOpenInit() error {
 }
 
 // ChanOpenTry will construct and execute a MsgChannelOpenTry on the associated EndpointM.
-func (ep *EndpointM) ChanOpenTry() error {
+func (ep *EndpointM) ChanOpenTry(height exported.Height) error {
 	// propogate client state updates from A to Z
 	err := ep.UpdateAllClients()
 	if err != nil {
 		return err
 	}
 
-	proof := ep.Counterparty.QueryChannelProof()
+	fmt.Printf("querying proof on chain %s at height=%d\n", ep.Counterparty.Chain.ChainID, height)
+	proof := ep.Counterparty.QueryChannelProof(height.Increment())
 	unusedProofHeight := ep.GetClientState().GetLatestHeight().(clienttypes.Height)
 
 	msg := channeltypes.NewMsgChannelOpenTry(
@@ -103,14 +106,14 @@ func (ep *EndpointM) ChanOpenTry() error {
 }
 
 // ChanOpenAck will construct and execute a MsgChannelOpenAck on the associated EndpointM.
-func (ep *EndpointM) ChanOpenAck() error {
+func (ep *EndpointM) ChanOpenAck(height exported.Height) error {
 	// propogate client state updates from Z to A
 	err := ep.UpdateAllClients()
 	if err != nil {
 		return err
 	}
 
-	proof := ep.Counterparty.QueryChannelProof()
+	proof := ep.Counterparty.QueryChannelProof(height)
 	unusedProofHeight := ep.GetClientState().GetLatestHeight().(clienttypes.Height)
 
 	msg := channeltypes.NewMsgChannelOpenAck(
@@ -119,7 +122,7 @@ func (ep *EndpointM) ChanOpenAck() error {
 		proof, unusedProofHeight,
 		ep.Chain.SenderAccount.GetAddress().String(),
 	)
-	if _, err = ep.Chain.SendMsgs(msg); err != nil {
+	if _, err := ep.Chain.SendMsgs(msg); err != nil {
 		return err
 	}
 
@@ -129,14 +132,14 @@ func (ep *EndpointM) ChanOpenAck() error {
 }
 
 // ChanOpenConfirm will construct and execute a MsgChannelOpenConfirm on the associated EndpointM.
-func (ep *EndpointM) ChanOpenConfirm() error {
+func (ep *EndpointM) ChanOpenConfirm(height exported.Height) error {
 	// propogate client state updates from Z to A
 	err := ep.UpdateAllClients()
 	if err != nil {
 		return err
 	}
 
-	proof := ep.Counterparty.QueryChannelProof()
+	proof := ep.Counterparty.QueryChannelProof(height)
 	unusedProofHeight := ep.GetClientState().GetLatestHeight().(clienttypes.Height)
 
 	msg := channeltypes.NewMsgChannelOpenConfirm(
@@ -165,35 +168,35 @@ func (ep *EndpointM) SendPacket(
 	timeoutHeight clienttypes.Height,
 	timeoutTimestamp uint64,
 	data []byte,
-) (*channeltypes.Packet, error) {
-	portId, channelId := ep.ChannelConfig.PortID, ep.ChannelID
-	channelCap := ep.Chain.GetChannelCapability(portId, channelId)
+) (*channeltypes.Packet, exported.Height, error) {
+	portID, channelID := ep.ChannelConfig.PortID, ep.ChannelID
+	channelCap := ep.Chain.GetChannelCapability(portID, channelID)
 
 	seq, err := ep.Chain.App.GetIBCKeeper().ChannelKeeper.SendPacket(
 		ep.Chain.GetContext(),
 		channelCap,
-		portId, channelId,
+		portID, channelID,
 		timeoutHeight,
 		timeoutTimestamp,
 		data,
 	)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	ep.Chain.Coordinator.CommitBlock(ep.Chain)
 	require.NoError(ep.Chain.T, ep.Counterparty.UpdateAllClients())
 
-	packet := channeltypes.NewPacket(data, seq, portId, channelId,
+	packet := channeltypes.NewPacket(data, seq, portID, channelID,
 		ep.Counterparty.ChannelConfig.PortID, ep.Counterparty.ChannelID,
 		timeoutHeight, timeoutTimestamp,
 	)
-	return &packet, nil
+	return &packet, ep.Chain.LastHeader.GetHeight(), nil
 }
 
 // RecvPacket receives a packet on the associated EndpointM.
 // The counterparty and all intermediate chains' clients are updated.
-func (ep *EndpointM) RecvPacket(packet *channeltypes.Packet) error {
-	proof := ep.Counterparty.QueryPacketProof(packet)
+func (ep *EndpointM) RecvPacket(packet *channeltypes.Packet, proofHeight exported.Height) error {
+	proof := ep.Counterparty.QueryPacketProof(packet, proofHeight)
 
 	recvMsg := channeltypes.NewMsgRecvPacket(
 		*packet,
@@ -245,26 +248,36 @@ func (ep *EndpointM) CounterpartyChannel() channeltypes.Counterparty {
 }
 
 // QueryChannelProof queries the multihop channel proof on the endpoint chain.
-func (ep *EndpointM) QueryChannelProof() []byte {
+func (ep *EndpointM) QueryChannelProof(height exported.Height) []byte {
+	if height == nil {
+		height = ep.Chain.LastHeader.GetHeight()
+	}
 	channelKey := host.ChannelKey(ep.ChannelConfig.PortID, ep.ChannelID)
-	return ep.QueryMultihopProof(channelKey)
+	fmt.Printf("QueryChannelProof: height=%d, key=%v\n", height.GetRevisionHeight(), string(channelKey))
+	return ep.QueryMultihopProof(channelKey, height)
 }
 
 // QueryPacketProof queries the multihop packet proof on the endpoint chain.
-func (ep *EndpointM) QueryPacketProof(packet *channeltypes.Packet) []byte {
+func (ep *EndpointM) QueryPacketProof(packet *channeltypes.Packet, height exported.Height) []byte {
+	if height == nil {
+		height = ep.Chain.LastHeader.GetHeight()
+	}
 	packetKey := host.PacketCommitmentKey(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
-	return ep.QueryMultihopProof(packetKey)
+	return ep.QueryMultihopProof(packetKey, height)
 }
 
 // QueryPacketAcknowledgementProof queries the multihop packet acknowledgement proof on the endpoint chain.
-func (ep *EndpointM) QueryPacketAcknowledgementProof(packet *channeltypes.Packet) []byte {
+func (ep *EndpointM) QueryPacketAcknowledgementProof(packet *channeltypes.Packet, height exported.Height) []byte {
+	if height == nil {
+		height = ep.Chain.LastHeader.GetHeight()
+	}
 	packetKey := host.PacketAcknowledgementKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
-	return ep.QueryMultihopProof(packetKey)
+	return ep.QueryMultihopProof(packetKey, height)
 }
 
 // QueryMultihopProof queries the proof for a key/value on this endpoint, which is verified on the counterparty chain.
-func (ep *EndpointM) QueryMultihopProof(key []byte) []byte {
-	proof, err := ep.mChanPath.GenerateProof(key, nil, false)
+func (ep *EndpointM) QueryMultihopProof(key []byte, height exported.Height) []byte {
+	proof, err := ep.mChanPath.GenerateProof(key, nil, height, false)
 	require.NoError(
 		ep.Chain.T,
 		err,
@@ -347,7 +360,27 @@ func (mep multihopEndpoint) QueryProofAtHeight(key []byte, height int64) ([]byte
 	return proof, proofHeight, nil
 }
 
+// QueryStateAtHeight implements multihop.Endpoint
+func (mep multihopEndpoint) QueryStateAtHeight(key []byte, height int64) []byte {
+	return mep.testEndpoint.Chain.QueryStateAtHeight(key, height)
+}
+
+func (mep multihopEndpoint) QueryMinimumConsensusHeight(minHeight exported.Height, maxHeight exported.Height) (exported.Height, exported.Height, error) {
+	return mep.testEndpoint.Chain.QueryMinimumConsensusHeight(mep.testEndpoint.ClientID, minHeight, maxHeight)
+}
+
 // UpdateClient implements multihop.Endpoint
-func (mep multihopEndpoint) UpdateClient() error {
-	return mep.testEndpoint.UpdateClient()
+func (mep multihopEndpoint) UpdateClient() (err error) {
+	err = mep.testEndpoint.UpdateClient()
+	//mep.testEndpoint.Chain.Coordinator.CommitBlock(mep.testEndpoint.Chain)
+	return
+}
+
+// GetChainHeight returns the current chain height.
+func (mep multihopEndpoint) GetChainHeight() exported.Height {
+	return mep.testEndpoint.Chain.LastHeader.GetHeight()
+}
+
+func (mep multihopEndpoint) Debug() {
+	fmt.Printf("debugging chain %s\n", mep.testEndpoint.Chain.ChainID)
 }

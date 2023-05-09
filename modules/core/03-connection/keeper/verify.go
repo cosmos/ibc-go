@@ -462,6 +462,8 @@ func (k Keeper) VerifyMultihopMembership(
 			"consensus state not found for client id: %s", clientID)
 	}
 
+	fmt.Printf("verifying key=%s\n", key)
+
 	return mh.VerifyMultihopMembership(k.cdc, consensusState, connectionHops, &mProof, prefix, key, value)
 }
 

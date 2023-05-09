@@ -201,11 +201,58 @@ func (chain *TestChain) QueryProof(key []byte) ([]byte, clienttypes.Height) {
 	return chain.QueryProofAtHeight(key, chain.App.LastBlockHeight())
 }
 
+// QueryState performs an abci query with the given key and returns the response for the
+// state query.
+func (chain *TestChain) QueryState(key []byte) []byte {
+	return chain.QueryStateAtHeight(key, chain.App.LastBlockHeight())
+}
+
 // QueryProofAtHeight performs an abci query with the given key and returns the proto encoded merkle proof
 // for the query and the height at which the proof will succeed on a tendermint verifier. Only the IBC
 // store is supported
 func (chain *TestChain) QueryProofAtHeight(key []byte, height int64) ([]byte, clienttypes.Height) {
 	return chain.QueryProofForStore(exported.StoreKey, key, height)
+}
+
+// QueryStateAtHeight performs an abci query with the given key and returns the state
+// for the query at the specified height. Only the IBC store is supported.
+func (chain *TestChain) QueryStateAtHeight(key []byte, height int64) []byte {
+	return chain.QueryStateForStore(exported.StoreKey, key, height)
+}
+
+// QueryMinimumConsensusHeight returns the minimum height within the provided range at which the consensusState exists.
+func (chain *TestChain) QueryMinimumConsensusHeight(clientID string, minHeight exported.Height, maxHeight exported.Height) (exported.Height, exported.Height, error) {
+
+	req := clienttypes.QueryConsensusStatesRequest{
+		ClientId: clientID,
+	}
+
+	resp, err := chain.App.GetIBCKeeper().ClientKeeper.ConsensusStates(chain.GetContext(), &req)
+	if err != nil {
+		return nil, nil, err
+	}
+	fmt.Printf("minHeight: %s, maxHeight: %s chain height: %d\n", minHeight.String(), maxHeight.String(), chain.CurrentHeader.Height)
+
+	var consensusHeight clienttypes.Height
+	for _, cs := range resp.ConsensusStates {
+		fmt.Printf("consensus state height: %s\n", cs.GetHeight().String())
+		if cs.Height.GTE(minHeight) && cs.Height.LT(maxHeight) {
+			if consensusHeight.IsZero() || cs.Height.LT(consensusHeight) {
+				consensusHeight = cs.Height
+			}
+		}
+	}
+	fmt.Printf("MINIMUM consensus height: %s\n", consensusHeight.String())
+
+	key := host.FullClientKey(clientID, ibctm.ProcessedHeightKey(&consensusHeight))
+	bz := chain.QueryStateAtHeight(key, chain.LastHeader.Header.Height)
+	parseHeight, err := clienttypes.ParseHeight(string(bz))
+	if err != nil {
+		return nil, nil, err
+	}
+	proofHeight := parseHeight // .Increment() // processed height + 1
+	fmt.Printf("Minimum proof height is %s on chain %s for consensus height: %s\n", proofHeight.String(), chain.ChainID, consensusHeight.String())
+	return proofHeight, consensusHeight, nil
 }
 
 // QueryProofForStore performs an abci query with the given key and returns the proto encoded merkle proof
@@ -230,6 +277,18 @@ func (chain *TestChain) QueryProofForStore(storeKey string, key []byte, height i
 	// was created in the IAVL tree. Tendermint and subsequently the clients that rely on it
 	// have heights 1 above the IAVL tree. Thus we return proof height + 1
 	return proof, clienttypes.NewHeight(revision, uint64(res.Height)+1)
+}
+
+// QueryStateForStore performs an abci query with the given key and returns the response
+// for the queried state.
+func (chain *TestChain) QueryStateForStore(storeKey string, key []byte, height int64) []byte {
+	res := chain.App.Query(abci.RequestQuery{
+		Path:   fmt.Sprintf("store/%s/key", storeKey),
+		Height: height,
+		Data:   key,
+		Prove:  false,
+	})
+	return res.Value
 }
 
 // QueryUpgradeProof performs an abci query with the given key and returns the proto encoded merkle proof
