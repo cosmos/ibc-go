@@ -6,7 +6,6 @@ import (
 	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	"github.com/cosmos/ibc-go/v7/testing/mock"
-	"math"
 )
 
 func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
@@ -87,6 +86,22 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 			},
 		},
 		{
+			"success: with unlimted spend limit uint256 max",
+			func() {
+				transferAuthz.Allocations[0].SpendLimit = sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewIntFromBigInt(types.MaxUint256)))
+			},
+			func(res authz.AcceptResponse, err error) {
+				suite.Require().NoError(err)
+
+				updatedTransferAuthz, ok := res.Updated.(*types.TransferAuthorization)
+				suite.Require().True(ok)
+
+				remainder := updatedTransferAuthz.Allocations[0].SpendLimit.AmountOf(sdk.DefaultBondDenom)
+				suite.Require().True(sdk.NewIntFromBigInt(types.MaxUint256).Equal(remainder))
+
+			},
+		},
+		{
 			"no spend limit set for MsgTransfer port/channel",
 			func() {
 				msgTransfer.SourcePort = ibctesting.MockPort
@@ -132,22 +147,6 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 
 				remainder := updatedTransferAuthz.Allocations[0].SpendLimit.AmountOf(sdk.DefaultBondDenom)
 				suite.Require().True(sdk.NewInt(50).Equal(remainder))
-			},
-		},
-		{
-			"pass: with max Uint256 allocation spend limit",
-			func() {
-				transferAuthz.Allocations[0].SpendLimit = sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewIntFromBigInt(types.MaxUint256)))
-			},
-			func(res authz.AcceptResponse, err error) {
-				suite.Require().NoError(err)
-
-				updatedTransferAuthz, ok := res.Updated.(*types.TransferAuthorization)
-				suite.Require().True(ok)
-
-				remainder := updatedTransferAuthz.Allocations[0].SpendLimit.AmountOf(sdk.DefaultBondDenom)
-				suite.Require().True(sdk.NewIntFromBigInt(types.MaxUint256).Equal(remainder))
-
 			},
 		},
 	}
@@ -227,9 +226,9 @@ func (suite *TypesTestSuite) TestTransferAuthorizationValidateBasic() {
 			true,
 		},
 		{
-			"success: with max Int allocation spend limit",
+			"success: with unlimited spend limit uint256 max",
 			func() {
-				transferAuthz.Allocations[0].SpendLimit = sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(math.MaxInt64)))
+				transferAuthz.Allocations[0].SpendLimit = sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewIntFromBigInt(types.MaxUint256)))
 			},
 			true,
 		},

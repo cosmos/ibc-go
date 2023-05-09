@@ -13,10 +13,8 @@ import (
 
 var _ authz.Authorization = (*TransferAuthorization)(nil)
 
-// MaxUint256 is the maximum value for a 256 bit unsigned integer used in EVM compatible chains.
-var (
-	MaxUint256 = new(big.Int).Sub(new(big.Int).Lsh(big.NewInt(1), 256), big.NewInt(1))
-)
+// MaxUint256 is the maximum value for a 256 bit unsigned integer.
+var MaxUint256 = new(big.Int).Sub(new(big.Int).Lsh(big.NewInt(1), 256), big.NewInt(1))
 
 // NewTransferAuthorization creates a new TransferAuthorization object.
 func NewTransferAuthorization(allocations ...Allocation) *TransferAuthorization {
@@ -42,37 +40,33 @@ func (a TransferAuthorization) Accept(ctx sdk.Context, msg sdk.Msg) (authz.Accep
 			continue
 		}
 
+		if allocation.SpendLimit.AmountOf(msgTransfer.Token.Denom).Equal(sdk.NewIntFromBigInt(MaxUint256)) {
+			return authz.AcceptResponse{Accept: true, Delete: false, Updated: &a}, nil
+		}
+
+		limitLeft, isNegative := allocation.SpendLimit.SafeSub(msgTransfer.Token)
+		if isNegative {
+			return authz.AcceptResponse{}, errorsmod.Wrapf(ibcerrors.ErrInsufficientFunds, "requested amount is more than spend limit")
+		}
+
 		if !isAllowedAddress(ctx, msgTransfer.Receiver, allocation.AllowList) {
 			return authz.AcceptResponse{}, errorsmod.Wrap(ibcerrors.ErrInvalidAddress, "not allowed address for transfer")
 		}
 
-		for _, coin := range allocation.SpendLimit {
-			// skip spending limit if the amount is set to max int64
-			if coin.Amount.Equal(sdk.NewIntFromBigInt(MaxUint256)) {
-				continue
+		if limitLeft.IsZero() {
+			a.Allocations = append(a.Allocations[:index], a.Allocations[index+1:]...)
+			if len(a.Allocations) == 0 {
+				return authz.AcceptResponse{Accept: true, Delete: true}, nil
 			}
-
-			limitLeft, isNegative := allocation.SpendLimit.SafeSub(msgTransfer.Token)
-			if isNegative {
-				return authz.AcceptResponse{}, errorsmod.Wrapf(ibcerrors.ErrInsufficientFunds, "requested amount is more than spend limit")
-			}
-
-			if limitLeft.IsZero() {
-				a.Allocations = append(a.Allocations[:index], a.Allocations[index+1:]...)
-				if len(a.Allocations) == 0 {
-					return authz.AcceptResponse{Accept: true, Delete: true}, nil
-				}
-				return authz.AcceptResponse{Accept: true, Delete: false, Updated: &TransferAuthorization{
-					Allocations: a.Allocations,
-				}}, nil
-			}
-
-			a.Allocations[index] = Allocation{
-				SourcePort:    allocation.SourcePort,
-				SourceChannel: allocation.SourceChannel,
-				SpendLimit:    limitLeft,
-				AllowList:     allocation.AllowList,
-			}
+			return authz.AcceptResponse{Accept: true, Delete: false, Updated: &TransferAuthorization{
+				Allocations: a.Allocations,
+			}}, nil
+		}
+		a.Allocations[index] = Allocation{
+			SourcePort:    allocation.SourcePort,
+			SourceChannel: allocation.SourceChannel,
+			SpendLimit:    limitLeft,
+			AllowList:     allocation.AllowList,
 		}
 
 		return authz.AcceptResponse{Accept: true, Delete: false, Updated: &TransferAuthorization{
