@@ -41,7 +41,7 @@ func (a TransferAuthorization) Accept(ctx sdk.Context, msg sdk.Msg) (authz.Accep
 		}
 
 		if allocation.SpendLimit.AmountOf(msgTransfer.Token.Denom).Equal(sdk.NewIntFromBigInt(MaxUint256)) {
-			return authz.AcceptResponse{Accept: true, Delete: false, Updated: nil}, nil
+			return authz.AcceptResponse{Accept: true, Delete: false, Updated: &a}, nil
 		}
 
 		limitLeft, isNegative := allocation.SpendLimit.SafeSub(msgTransfer.Token)
