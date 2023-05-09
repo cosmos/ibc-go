@@ -79,7 +79,7 @@ func (ep *EndpointM) ChanOpenTry(height exported.Height) error {
 	}
 
 	fmt.Printf("querying proof on chain %s at height=%d\n", ep.Counterparty.Chain.ChainID, height)
-	proof := ep.Counterparty.QueryChannelProof(height.Increment())
+	proof := ep.Counterparty.QueryChannelProof(height)
 	unusedProofHeight := ep.GetClientState().GetLatestHeight().(clienttypes.Height)
 
 	msg := channeltypes.NewMsgChannelOpenTry(
