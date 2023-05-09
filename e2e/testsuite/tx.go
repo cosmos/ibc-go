@@ -18,7 +18,7 @@ import (
 	"github.com/strangelove-ventures/interchaintest/v7/ibc"
 	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
 
-	"github.com/cosmos/ibc-go/e2e/semverutil"
+	"github.com/cosmos/ibc-go/e2e/testsuite/sanitize"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	feetypes "github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
@@ -30,6 +30,9 @@ import (
 // Once the broadcast response is returned, we wait for a few blocks to be created on both chain A and chain B.
 func (s *E2ETestSuite) BroadcastMessages(ctx context.Context, chain *cosmos.CosmosChain, user ibc.Wallet, msgs ...sdk.Msg) (sdk.TxResponse, error) {
 	broadcaster := cosmos.NewBroadcaster(s.T(), chain)
+
+	// strip out any fields that may not be supported for the given chain version.
+	msgs = sanitize.Messages(chain.Nodes()[0].Image.Version, msgs...)
 
 	var seq uint64
 	broadcaster.ConfigureClientContextOptions(func(clientContext client.Context) client.Context {
@@ -110,7 +113,8 @@ func containsMessage(s string, messages []string) bool {
 // AssertValidTxResponse verifies that an sdk.TxResponse
 // has non-empty values.
 func (s *E2ETestSuite) AssertValidTxResponse(resp sdk.TxResponse) {
-	errorMsg := fmt.Sprintf("%+v", resp)
+	errorMsg := addDebuggingInformation(fmt.Sprintf("%+v", resp))
+
 	s.Require().NotEmpty(resp.TxHash, errorMsg)
 	s.Require().NotEqual(int64(0), resp.GasUsed, errorMsg)
 	s.Require().NotEqual(int64(0), resp.GasWanted, errorMsg)
@@ -118,9 +122,18 @@ func (s *E2ETestSuite) AssertValidTxResponse(resp sdk.TxResponse) {
 	s.Require().NotEmpty(resp.Data, errorMsg)
 }
 
-// govv1ProposalTitleAndSummary represents the releases that support the new title and summary fields.
-var govv1ProposalTitleAndSummary = semverutil.FeatureReleases{
-	MajorVersion: "v7",
+// addDebuggingInformation adds additional debugging information to the error message
+// based on common types of errors that can occur.
+func addDebuggingInformation(errorMsg string) string {
+	if strings.Contains(errorMsg, "errUnknownField") {
+		errorMsg += `
+
+This error is likely due to a new an unrecognized proto field being provided to a chain using an older version of the sdk.
+If this is a compatibility test, ensure that the fields are being sanitized in the sanitize.Messages function.
+
+`
+	}
+	return errorMsg
 }
 
 // ExecuteGovProposalV1 submits a governance proposal using the provided user and message and uses all validators
@@ -132,11 +145,6 @@ func (s *E2ETestSuite) ExecuteGovProposalV1(ctx context.Context, msg sdk.Msg, ch
 	msgs := []sdk.Msg{msg}
 	msgSubmitProposal, err := govtypesv1.NewMsgSubmitProposal(msgs, sdk.NewCoins(sdk.NewCoin(chain.Config().Denom, govtypesv1.DefaultMinDepositTokens)), sender.String(), "", fmt.Sprintf("e2e gov proposal: %d", proposalID), fmt.Sprintf("executing gov proposal %d", proposalID))
 	s.Require().NoError(err)
-
-	if !govv1ProposalTitleAndSummary.IsSupported(chain.Nodes()[0].Image.Version) {
-		msgSubmitProposal.Title = ""
-		msgSubmitProposal.Summary = ""
-	}
 
 	resp, err := s.BroadcastMessages(ctx, chain, user, msgSubmitProposal)
 	s.AssertValidTxResponse(resp)
