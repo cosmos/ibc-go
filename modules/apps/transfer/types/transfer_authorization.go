@@ -40,6 +40,10 @@ func (a TransferAuthorization) Accept(ctx sdk.Context, msg sdk.Msg) (authz.Accep
 			continue
 		}
 
+		if !isAllowedAddress(ctx, msgTransfer.Receiver, allocation.AllowList) {
+			return authz.AcceptResponse{}, errorsmod.Wrap(ibcerrors.ErrInvalidAddress, "not allowed address for transfer")
+		}
+
 		if allocation.SpendLimit.AmountOf(msgTransfer.Token.Denom).Equal(sdk.NewIntFromBigInt(MaxUint256)) {
 			return authz.AcceptResponse{Accept: true, Delete: false, Updated: &a}, nil
 		}
@@ -47,10 +51,6 @@ func (a TransferAuthorization) Accept(ctx sdk.Context, msg sdk.Msg) (authz.Accep
 		limitLeft, isNegative := allocation.SpendLimit.SafeSub(msgTransfer.Token)
 		if isNegative {
 			return authz.AcceptResponse{}, errorsmod.Wrapf(ibcerrors.ErrInsufficientFunds, "requested amount is more than spend limit")
-		}
-
-		if !isAllowedAddress(ctx, msgTransfer.Receiver, allocation.AllowList) {
-			return authz.AcceptResponse{}, errorsmod.Wrap(ibcerrors.ErrInvalidAddress, "not allowed address for transfer")
 		}
 
 		if limitLeft.IsZero() {
