@@ -98,7 +98,6 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 
 				remainder := updatedTransferAuthz.Allocations[0].SpendLimit.AmountOf(sdk.DefaultBondDenom)
 				suite.Require().True(sdk.NewIntFromBigInt(types.MaxUint256).Equal(remainder))
-
 			},
 		},
 		{
