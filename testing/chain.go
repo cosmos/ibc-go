@@ -26,6 +26,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
@@ -241,6 +242,7 @@ func (chain *TestChain) QueryMinimumConsensusHeight(clientID string, minHeight e
 		return nil, nil, false, err
 	}
 
+	// search consensusStates to find the one with the minimum height in [minHeight, maxHeight]
 	var consensusHeight clienttypes.Height
 	for _, cs := range resp.ConsensusStates {
 		if cs.Height.GTE(minHeight) && cs.Height.LT(maxHeight) {
@@ -250,8 +252,16 @@ func (chain *TestChain) QueryMinimumConsensusHeight(clientID string, minHeight e
 		}
 	}
 
-	// client update needed
+	// no consensusState found, client update needed
 	if consensusHeight.IsZero() {
+		if maxHeight.LT(chain.LastHeader.GetHeight()) {
+			// client update won't help here because the gap between updates
+			// is too large and the chain height has already passed the maxHeight
+			err := sdkerrors.Wrapf(channeltypes.ErrMultihopProofGeneration,
+				"not possible to prove this key within the specified height range [%s, %s]",
+				minHeight.String(), maxHeight.String())
+			return nil, nil, false, err
+		}
 		return nil, nil, true, nil
 	}
 
@@ -262,8 +272,8 @@ func (chain *TestChain) QueryMinimumConsensusHeight(clientID string, minHeight e
 		return nil, nil, false, err
 	}
 
-	fmt.Printf("Minimum proof height is %s on chain %s for consensus height: %s [minHeight=%s, maxHeight=%s]\n",
-		proofHeight.String(), chain.ChainID, consensusHeight.String(), minHeight.String(), maxHeight.String())
+	// fmt.Printf("Minimum proof height is %s on chain %s for consensus height: %s [minHeight=%s, maxHeight=%s]\n",
+	// 	proofHeight.String(), chain.ChainID, consensusHeight.String(), minHeight.String(), maxHeight.String())
 	return proofHeight, consensusHeight, false, nil
 }
 

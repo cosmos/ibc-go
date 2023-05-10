@@ -71,9 +71,9 @@ func (ep *EndpointM) ChanOpenInit() error {
 }
 
 // ChanOpenTry will construct and execute a MsgChannelOpenTry on the associated EndpointM.
-func (ep *EndpointM) ChanOpenTry(height exported.Height) error {
+func (ep *EndpointM) ChanOpenTry(proofHeight exported.Height) error {
 
-	proof := ep.Counterparty.QueryChannelProof(height)
+	proof := ep.Counterparty.QueryChannelProof(proofHeight)
 	unusedProofHeight := ep.GetClientState().GetLatestHeight().(clienttypes.Height)
 
 	msg := channeltypes.NewMsgChannelOpenTry(
@@ -232,12 +232,9 @@ func (ep *EndpointM) CounterpartyChannel() channeltypes.Counterparty {
 }
 
 // QueryChannelProof queries the multihop channel proof on the endpoint chain.
-func (ep *EndpointM) QueryChannelProof(height exported.Height) []byte {
-	if height == nil {
-		height = ep.Chain.LastHeader.GetHeight()
-	}
+func (ep *EndpointM) QueryChannelProof(proofHeight exported.Height) []byte {
 	channelKey := host.ChannelKey(ep.ChannelConfig.PortID, ep.ChannelID)
-	return ep.QueryMultihopProof(channelKey, height)
+	return ep.QueryMultihopProof(channelKey, proofHeight)
 }
 
 // QueryPacketProof queries the multihop packet proof on the endpoint chain.
@@ -259,8 +256,8 @@ func (ep *EndpointM) QueryPacketAcknowledgementProof(packet *channeltypes.Packet
 }
 
 // QueryMultihopProof queries the proof for a key/value on this endpoint, which is verified on the counterparty chain.
-func (ep *EndpointM) QueryMultihopProof(key []byte, height exported.Height) []byte {
-	proof, err := ep.mChanPath.GenerateProof(key, nil, height, false)
+func (ep *EndpointM) QueryMultihopProof(key []byte, proofHeight exported.Height) []byte {
+	proof, err := ep.mChanPath.GenerateProof(key, nil, proofHeight, false)
 	require.NoError(
 		ep.Chain.T,
 		err,
@@ -348,8 +345,14 @@ func (mep multihopEndpoint) QueryStateAtHeight(key []byte, height int64) []byte 
 	return mep.testEndpoint.Chain.QueryStateAtHeight(key, height)
 }
 
-func (mep multihopEndpoint) QueryMinimumConsensusHeight(minHeight exported.Height, maxHeight exported.Height) (exported.Height, exported.Height, bool, error) {
-	return mep.testEndpoint.Chain.QueryMinimumConsensusHeight(mep.testEndpoint.ClientID, minHeight, maxHeight)
+func (mep multihopEndpoint) QueryMinimumConsensusHeight(minHeight exported.Height, maxHeight exported.Height) (exported.Height, exported.Height, error) {
+	proofHeight, consensusHeight, doUpdateClient, err := mep.testEndpoint.Chain.QueryMinimumConsensusHeight(mep.testEndpoint.ClientID, minHeight, maxHeight)
+	if doUpdateClient {
+		// update client if no suitable consensus height found
+		mep.UpdateClient()
+		proofHeight, consensusHeight, _, err = mep.testEndpoint.Chain.QueryMinimumConsensusHeight(mep.testEndpoint.ClientID, minHeight, maxHeight)
+	}
+	return proofHeight, consensusHeight, err
 }
 
 // UpdateClient implements multihop.Endpoint
@@ -357,11 +360,6 @@ func (mep multihopEndpoint) UpdateClient() (err error) {
 	err = mep.testEndpoint.UpdateClient()
 	//mep.testEndpoint.Chain.Coordinator.CommitBlock(mep.testEndpoint.Chain)
 	return
-}
-
-// GetChainHeight returns the current chain height.
-func (mep multihopEndpoint) GetChainHeight() exported.Height {
-	return mep.testEndpoint.Chain.LastHeader.GetHeight()
 }
 
 func (mep multihopEndpoint) Debug() {
