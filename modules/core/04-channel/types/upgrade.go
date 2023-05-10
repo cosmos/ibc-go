@@ -6,7 +6,6 @@ import (
 	errorsmod "cosmossdk.io/errors"
 
 	"github.com/cosmos/ibc-go/v7/internal/collections"
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 )
 
 // NewUpgrade creates a new Upgrade instance.
@@ -24,14 +23,6 @@ func NewUpgradeFields(ordering Order, connectionHops []string, version string) U
 		Ordering:       ordering,
 		ConnectionHops: connectionHops,
 		Version:        version,
-	}
-}
-
-// NewUpgradeTimeout returns a new UpgradeTimeout instance.
-func NewUpgradeTimeout(height clienttypes.Height, timestamp uint64) Timeout {
-	return Timeout{
-		Height:    height,
-		Timestamp: timestamp,
 	}
 }
 

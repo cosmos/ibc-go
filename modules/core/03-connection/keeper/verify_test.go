@@ -889,7 +889,7 @@ func (suite *KeeperTestSuite) TestVerifyUpgrade() {
 
 			upgrade = channeltypes.NewUpgrade(
 				channeltypes.NewUpgradeFields(channeltypes.UNORDERED, []string{path.EndpointA.ConnectionID}, "v1.0.0"),
-				channeltypes.NewUpgradeTimeout(clienttypes.ZeroHeight(), 100000),
+				channeltypes.NewTimeout(clienttypes.ZeroHeight(), 100000),
 				0,
 			)
 

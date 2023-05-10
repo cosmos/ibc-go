@@ -488,7 +488,7 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeInitValidateBasic() {
 			msg = types.NewMsgChannelUpgradeInit(
 				ibctesting.MockPort, ibctesting.FirstChannelID,
 				types.NewUpgradeFields(types.UNORDERED, []string{ibctesting.FirstConnectionID}, mock.Version),
-				types.NewUpgradeTimeout(clienttypes.NewHeight(0, 10000), timeoutTimestamp),
+				types.NewTimeout(clienttypes.NewHeight(0, 10000), timeoutTimestamp),
 				addr,
 			)
 
@@ -589,14 +589,14 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeTryValidateBasic() {
 		suite.Run(tc.name, func() {
 			counterpartyProposedUpgrade := types.NewUpgrade(
 				types.NewUpgradeFields(types.UNORDERED, []string{ibctesting.FirstChannelID}, mock.Version),
-				types.NewUpgradeTimeout(clienttypes.NewHeight(0, 10000), timeoutTimestamp),
+				types.NewTimeout(clienttypes.NewHeight(0, 10000), timeoutTimestamp),
 				1,
 			)
 			msg = types.NewMsgChannelUpgradeTry(
 				ibctesting.MockPort,
 				ibctesting.FirstChannelID,
 				[]string{ibctesting.FirstChannelID},
-				types.NewUpgradeTimeout(clienttypes.NewHeight(0, 10000), timeoutTimestamp),
+				types.NewTimeout(clienttypes.NewHeight(0, 10000), timeoutTimestamp),
 				*counterpartyProposedUpgrade,
 				1,
 				suite.proof,

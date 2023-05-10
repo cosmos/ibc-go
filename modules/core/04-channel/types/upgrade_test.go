@@ -60,7 +60,7 @@ func (suite *TypesTestSuite) TestUpgradeTimeout() {
 					[]string{"connection-0"},
 					mock.Version,
 				),
-				types.NewUpgradeTimeout(
+				types.NewTimeout(
 					clienttypes.NewHeight(0, 100),
 					0,
 				),

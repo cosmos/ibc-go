@@ -1615,7 +1615,7 @@ func (suite *KeeperTestSuite) TestQueryUpgrade() {
 
 			expectedUpgrade = *types.NewUpgrade(
 				types.NewUpgradeFields(types.UNORDERED, []string{ibctesting.FirstConnectionID}, mock.Version),
-				types.NewUpgradeTimeout(clienttypes.ZeroHeight(), 1000000),
+				types.NewTimeout(clienttypes.ZeroHeight(), 1000000),
 				1,
 			)
 
