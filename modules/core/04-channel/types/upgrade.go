@@ -64,32 +64,3 @@ func (uf UpgradeFields) ValidateBasic() error {
 
 	return nil
 }
-
-// Timeout defines an exeuction deadline structure for 04-channel msg handlers.
-// This includes packet lifecycle handlers as well as handshake and upgrade protocol handlers.
-// A valid Timeout contains either one or both of a timestamp and block height (sequence).
-
-// AfterHeight returns true if Timeout height is greater than the provided height.
-func (t Timeout) AfterHeight(height clienttypes.Height) bool {
-	return t.Height.GT(height)
-}
-
-// AfterTimestamp returns true is Timeout timestamp is greater than the provided timestamp.
-func (t Timeout) AfterTimestamp(timestamp uint64) bool {
-	return t.Timestamp > timestamp
-}
-
-// IsValid validates the Timeout. It ensures that either height or timestamp is set.
-func (t Timeout) IsValid() bool {
-	return !t.ZeroHeight() || !t.ZeroTimestamp()
-}
-
-// ZeroHeight returns true if Timeout height is zero, otherwise false.
-func (t Timeout) ZeroHeight() bool {
-	return t.Height.IsZero()
-}
-
-// ZeroTimestamp returns true if Timeout timestamp is zero, otherwise false.
-func (t Timeout) ZeroTimestamp() bool {
-	return t.Timestamp == 0
-}
