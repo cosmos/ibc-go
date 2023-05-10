@@ -67,35 +67,35 @@ func (uf UpgradeFields) ValidateBasic() error {
 	return nil
 }
 
-// IsValid returns true if either the height or timestamp is non-zero
-func (ut UpgradeTimeout) IsValid() bool {
-	return !ut.Height.IsZero() || ut.Timestamp != 0
+// Timeout defines an exeuction deadline structure for 04-channel msg handlers. 
+// This includes packet lifecycle handlers as well as handshake and upgrade protocol handlers.
+// A valid Timeout contains either one or both of a timestamp and block height (sequence).
+type Timeout struct {
+    Height clienttypes.Height
+    Timestamp uint64
 }
 
-// HasPassed returns true if the upgrade has passed the timeout height or timestamp.
-// A string is returned containing information about the timeout relative to the context's time and height.
-func (ut UpgradeTimeout) HasPassed(ctx sdk.Context) (bool, string) {
-	var (
-		hasPassed bool
-		info      string
-	)
+// AfterHeight returns true if Timeout height is greater than the provided height.
+func (t Timeout) AfterHeight(height clienttypes.Height) bool {
+    return t.Height.GT(height)
+}
 
-	hasPassed = false
-	info = "upgrade timeout has not passed"
+// AfterTimestamp returns true is Timeout timestamp is greater than the provided timestamp.
+func (t Timeout) AfterTimestamp(timestamp uint64) bool {
+    return t.Timestamp > timestamp
+}
 
-	selfHeight, timeoutHeight := clienttypes.GetSelfHeight(ctx), ut.Height
-	if !timeoutHeight.IsZero() {
-		if hasPassed = selfHeight.GTE(timeoutHeight); hasPassed {
-			info = fmt.Sprintf("upgrade timeout has passed at block height %s, timeout height %s", selfHeight, timeoutHeight)
-		}
-	}
+// IsValid validates the Timeout. It ensures that either height or timestamp is set.
+func (t Timeout) IsValid() bool {
+    return !t.ZeroHeight() || !t.ZeroTimestamp()
+}
 
-	selfTime, timeoutTimestamp := uint64(ctx.BlockTime().UnixNano()), ut.Timestamp
-	if timeoutTimestamp != 0 {
-		if hasPassed = selfTime >= timeoutTimestamp; hasPassed {
-			info = fmt.Sprintf("upgrade timeout has passed at block timestamp %d, timeout timestamp %d", selfTime, timeoutTimestamp)
-		}
-	}
+// ZeroHeight returns true if Timeout height is zero, otherwise false.
+func (t Timeout) ZeroHeight() bool {
+    return t.Height.IsZero()
+}
 
-	return hasPassed, info
+// ZeroTimestamp returns true if Timeout timestamp is zero, otherwise false.
+func (t Timeout) ZeroTimestamp() bool {
+    return t.Timestamp == 0
 }
