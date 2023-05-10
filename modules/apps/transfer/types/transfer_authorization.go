@@ -43,7 +43,8 @@ func (a TransferAuthorization) Accept(ctx sdk.Context, msg sdk.Msg) (authz.Accep
 		if !isAllowedAddress(ctx, msgTransfer.Receiver, allocation.AllowList) {
 			return authz.AcceptResponse{}, errorsmod.Wrap(ibcerrors.ErrInvalidAddress, "not allowed address for transfer")
 		}
-
+		
+		// If the spend limit is set to the MaxUint256 sentinel value, do not subtract the amount from the spend limit.
 		if allocation.SpendLimit.AmountOf(msgTransfer.Token.Denom).Equal(sdk.NewIntFromBigInt(MaxUint256)) {
 			return authz.AcceptResponse{Accept: true, Delete: false, Updated: &a}, nil
 		}
