@@ -220,8 +220,17 @@ func (chain *TestChain) QueryStateAtHeight(key []byte, height int64) []byte {
 	return chain.QueryStateForStore(exported.StoreKey, key, height)
 }
 
-// QueryMinimumConsensusHeight returns the minimum height within the provided range at which the consensusState exists.
-func (chain *TestChain) QueryMinimumConsensusHeight(clientID string, minHeight exported.Height, maxHeight exported.Height) (exported.Height, exported.Height, error) {
+// QueryMinimumConsensusHeight returns the minimum height within the provided range at which the consensusState exists. The function
+// scans existing consensusStates and finds the minimum consensus state height, H, satisfying: minHeight <= H < maxHeight
+// The processed height is then queried for the given consensusState to determine when it was processed on the chain. This is the minimum
+// height which can be used to prove the minimum consensusState on this chain. The consensusState height is the minimum height which can
+// be used to prove a key/value on the counterparty chain.
+// Returns:
+//
+//	The first returned height is the processed height for a consensusState.
+//	The second returned height is the minimum consensusState height falling within the provided height range.
+//	The third returned parameter is a boolean indicating whether a client update is required.
+func (chain *TestChain) QueryMinimumConsensusHeight(clientID string, minHeight exported.Height, maxHeight exported.Height) (exported.Height, exported.Height, bool, error) {
 
 	req := clienttypes.QueryConsensusStatesRequest{
 		ClientId: clientID,
@@ -229,30 +238,33 @@ func (chain *TestChain) QueryMinimumConsensusHeight(clientID string, minHeight e
 
 	resp, err := chain.App.GetIBCKeeper().ClientKeeper.ConsensusStates(chain.GetContext(), &req)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, false, err
 	}
-	fmt.Printf("minHeight: %s, maxHeight: %s chain height: %d\n", minHeight.String(), maxHeight.String(), chain.CurrentHeader.Height)
 
 	var consensusHeight clienttypes.Height
 	for _, cs := range resp.ConsensusStates {
-		fmt.Printf("consensus state height: %s\n", cs.GetHeight().String())
 		if cs.Height.GTE(minHeight) && cs.Height.LT(maxHeight) {
 			if consensusHeight.IsZero() || cs.Height.LT(consensusHeight) {
 				consensusHeight = cs.Height
 			}
 		}
 	}
-	fmt.Printf("MINIMUM consensus height: %s\n", consensusHeight.String())
+
+	// client update needed
+	if consensusHeight.IsZero() {
+		return nil, nil, true, nil
+	}
 
 	key := host.FullClientKey(clientID, ibctm.ProcessedHeightKey(&consensusHeight))
 	bz := chain.QueryStateAtHeight(key, chain.LastHeader.Header.Height)
-	parseHeight, err := clienttypes.ParseHeight(string(bz))
+	proofHeight, err := clienttypes.ParseHeight(string(bz))
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, false, err
 	}
-	proofHeight := parseHeight // .Increment() // processed height + 1
-	fmt.Printf("Minimum proof height is %s on chain %s for consensus height: %s\n", proofHeight.String(), chain.ChainID, consensusHeight.String())
-	return proofHeight, consensusHeight, nil
+
+	fmt.Printf("Minimum proof height is %s on chain %s for consensus height: %s [minHeight=%s, maxHeight=%s]\n",
+		proofHeight.String(), chain.ChainID, consensusHeight.String(), minHeight.String(), maxHeight.String())
+	return proofHeight, consensusHeight, false, nil
 }
 
 // QueryProofForStore performs an abci query with the given key and returns the proto encoded merkle proof
@@ -457,7 +469,7 @@ func (chain *TestChain) ConstructUpdateTMClientHeader(counterparty *TestChain, c
 	return chain.ConstructUpdateTMClientHeaderWithTrustedHeight(counterparty, clientID, clienttypes.ZeroHeight())
 }
 
-// ConstructUpdateTMClientHeader will construct a valid 07-tendermint Header to update the
+// ConstructUpdateTMClientHeaderWithTrustedHeight will construct a valid 07-tendermint Header to update the
 // light client on the source chain.
 func (chain *TestChain) ConstructUpdateTMClientHeaderWithTrustedHeight(counterparty *TestChain, clientID string, trustedHeight clienttypes.Height) (*ibctm.Header, error) {
 	header := counterparty.LastHeader

@@ -72,13 +72,7 @@ func (ep *EndpointM) ChanOpenInit() error {
 
 // ChanOpenTry will construct and execute a MsgChannelOpenTry on the associated EndpointM.
 func (ep *EndpointM) ChanOpenTry(height exported.Height) error {
-	// propogate client state updates from A to Z
-	err := ep.UpdateAllClients()
-	if err != nil {
-		return err
-	}
 
-	fmt.Printf("querying proof on chain %s at height=%d\n", ep.Counterparty.Chain.ChainID, height)
 	proof := ep.Counterparty.QueryChannelProof(height)
 	unusedProofHeight := ep.GetClientState().GetLatestHeight().(clienttypes.Height)
 
@@ -107,11 +101,6 @@ func (ep *EndpointM) ChanOpenTry(height exported.Height) error {
 
 // ChanOpenAck will construct and execute a MsgChannelOpenAck on the associated EndpointM.
 func (ep *EndpointM) ChanOpenAck(height exported.Height) error {
-	// propogate client state updates from Z to A
-	err := ep.UpdateAllClients()
-	if err != nil {
-		return err
-	}
 
 	proof := ep.Counterparty.QueryChannelProof(height)
 	unusedProofHeight := ep.GetClientState().GetLatestHeight().(clienttypes.Height)
@@ -133,11 +122,6 @@ func (ep *EndpointM) ChanOpenAck(height exported.Height) error {
 
 // ChanOpenConfirm will construct and execute a MsgChannelOpenConfirm on the associated EndpointM.
 func (ep *EndpointM) ChanOpenConfirm(height exported.Height) error {
-	// propogate client state updates from Z to A
-	err := ep.UpdateAllClients()
-	if err != nil {
-		return err
-	}
 
 	proof := ep.Counterparty.QueryChannelProof(height)
 	unusedProofHeight := ep.GetClientState().GetLatestHeight().(clienttypes.Height)
@@ -147,7 +131,7 @@ func (ep *EndpointM) ChanOpenConfirm(height exported.Height) error {
 		proof, unusedProofHeight,
 		ep.Chain.SenderAccount.GetAddress().String(),
 	)
-	_, err = ep.Chain.SendMsgs(msg)
+	_, err := ep.Chain.SendMsgs(msg)
 	return err
 }
 
@@ -253,7 +237,6 @@ func (ep *EndpointM) QueryChannelProof(height exported.Height) []byte {
 		height = ep.Chain.LastHeader.GetHeight()
 	}
 	channelKey := host.ChannelKey(ep.ChannelConfig.PortID, ep.ChannelID)
-	fmt.Printf("QueryChannelProof: height=%d, key=%v\n", height.GetRevisionHeight(), string(channelKey))
 	return ep.QueryMultihopProof(channelKey, height)
 }
 
@@ -365,7 +348,7 @@ func (mep multihopEndpoint) QueryStateAtHeight(key []byte, height int64) []byte 
 	return mep.testEndpoint.Chain.QueryStateAtHeight(key, height)
 }
 
-func (mep multihopEndpoint) QueryMinimumConsensusHeight(minHeight exported.Height, maxHeight exported.Height) (exported.Height, exported.Height, error) {
+func (mep multihopEndpoint) QueryMinimumConsensusHeight(minHeight exported.Height, maxHeight exported.Height) (exported.Height, exported.Height, bool, error) {
 	return mep.testEndpoint.Chain.QueryMinimumConsensusHeight(mep.testEndpoint.ClientID, minHeight, maxHeight)
 }
 

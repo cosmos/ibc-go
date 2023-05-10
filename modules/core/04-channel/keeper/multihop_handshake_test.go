@@ -236,13 +236,8 @@ func (suite *MultihopTestSuite) TestChanOpenAckMultihop() {
 	testCases := []testCase{
 		{"success", func() {
 			suite.SetupConnections()
-			fmt.Printf("Pre-ChanOpenInit on chain %s at height=%d\n", suite.A().Chain.ChainID, suite.A().Chain.LastHeader.Header.Height)
 			suite.Require().NoError(suite.A().ChanOpenInit())
-			initHeight := suite.A().Chain.LastHeader.GetHeight()
-			fmt.Printf("ChanOpenInit on chain %s at height=%d\n", suite.A().Chain.ChainID, initHeight.GetRevisionHeight())
-			suite.A().Chain.NextBlock() // TODO: why does adding an extra block here make the proof fail???
-			fmt.Printf("Using height=%d for ChanOpenTry\n", initHeight.GetRevisionHeight())
-			suite.Require().NoError(suite.Z().ChanOpenTry(initHeight))
+			suite.Require().NoError(suite.Z().ChanOpenTry(suite.A().Chain.LastHeader.GetHeight()))
 			channelCap = suite.A().Chain.GetChannelCapability(suite.A().ChannelConfig.PortID, suite.A().ChannelID)
 		}, true},
 	}

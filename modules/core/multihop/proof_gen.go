@@ -27,7 +27,7 @@ type Endpoint interface {
 	// Returns the proof of the `key`` at `height` within the ibc module store.
 	QueryProofAtHeight(key []byte, height int64) ([]byte, clienttypes.Height, error)
 	QueryStateAtHeight(key []byte, height int64) []byte
-	QueryMinimumConsensusHeight(minHeight exported.Height, maxHeight exported.Height) (exported.Height, exported.Height, error)
+	QueryMinimumConsensusHeight(minHeight exported.Height, maxHeight exported.Height) (exported.Height, exported.Height, bool, error)
 	GetMerklePath(path string) (commitmenttypes.MerklePath, error)
 	// UpdateClient updates the clientState of counterparty chain's header
 	UpdateClient() error
@@ -86,8 +86,17 @@ func (p ChanPath) GenerateProof(key []byte, val []byte, proofHeight exported.Hei
 
 	// generate proof for key on source chain at the minimum consensus height known on the counterparty chain
 	maxHeight := clienttypes.NewHeight(proofHeight.GetRevisionNumber(), proofHeight.GetRevisionHeight()+10)
-	proofHeightAB, consensusHeightAB, err := p.source().Counterparty().QueryMinimumConsensusHeight(proofHeight, maxHeight)
-	fmt.Printf("querying keyProof at proof height=%s, consensusHeight=%s\n", proofHeightAB, consensusHeightAB)
+	_, consensusHeightAB, doUpdateClient, err := p.source().Counterparty().QueryMinimumConsensusHeight(proofHeight, maxHeight)
+	if err != nil {
+		return nil, err
+	}
+	if doUpdateClient {
+		p.source().Counterparty().UpdateClient()
+	}
+	_, consensusHeightAB, _, err = p.source().Counterparty().QueryMinimumConsensusHeight(proofHeight, maxHeight)
+	if err != nil {
+		return nil, err
+	}
 	result.KeyProof = queryProof(p.source(), key, val, consensusHeightAB, nil, doVerify)
 
 	proofGenFuncs := []proofGenFunc{
@@ -142,82 +151,32 @@ func (p ChanPath) GenerateIntermediateStateProofs(proofGenFuncs []proofGenFunc, 
 		// NOTE: chain {A,B,C} are relatively referenced to the current iteration, not to be confused with the chainID
 		// or endpointA/B.
 
-		fmt.Printf("ITERATION: %d\n", i)
 		chainB, chainC := p[i].EndpointB, p[i+1].EndpointB
 
-		// find minimum height we can prove the key/value on chainB
-		fmt.Printf("querying for consensus on chain %s in range [%s, %s]\n", chainB.ChainID(), proofHeight.String(), maxHeight.String())
-		proofHeightAB, consensusHeightAB, err := chainB.QueryMinimumConsensusHeight(proofHeight, maxHeight)
+		// find minimum height on chainB that can prove the key/value at a specific height on chainA
+		proofHeightAB, consensusHeightAB, doUpdateClient, err := chainB.QueryMinimumConsensusHeight(proofHeight, maxHeight)
+		panicIfErr(err, "failed to query minimum proof height")
+		if doUpdateClient {
+			chainB.UpdateClient()
+		}
+		proofHeightAB, consensusHeightAB, _, err = chainB.QueryMinimumConsensusHeight(proofHeight, maxHeight)
 		panicIfErr(err, "failed to query minimum proof height")
 
-		// heightB := int64(chainB.GetChainHeight().GetRevisionHeight()) // current height of chain B
-		// key := host.FullClientKey(chainB.ClientID(), tmclient.ProcessedHeightKey(proofHeight))
-
-		// fmt.Printf("querying for key %s on chain %s at height %d\n", string(key), chainB.ChainID(), heightB)
-		// bz := chainB.QueryStateAtHeight(
-		// 	key,
-		// 	heightB,
-		// )
-
-		// if len(bz) == 0 {
-		// 	fmt.Printf("UpdateClient chainB counterparty: %s", chainB.Counterparty().ChainID())
-		// 	chainB.UpdateClient()
-		// 	heightB = int64(chainB.GetChainHeight().GetRevisionHeight())
-		// 	fmt.Printf("querying for key %s on chain %s at height %d\n", string(key), chainB.ChainID(), heightB)
-		// 	bz = chainB.QueryStateAtHeight(
-		// 		key,
-		// 		heightB,
-		// 	)
-		// }
-
-		// if len(bz) == 0 {
-		// 	panic(fmt.Sprintf("failed to get processed height (%s) for chain %s at height %s ", string(key), chainB.ChainID(), proofHeight))
-		// }
-
-		// // height of chain B when it processed chain A's consensus state
-		// processedHeightAB, err := clienttypes.ParseHeight(string(bz))
-		// if err != nil {
-		// 	return nil, err
-		// }
-
-		// compute max allowed height
+		// find minimum height on chainC that can prove the consensusState at the proof height on chainB
+		// this is done only for verifying proofs inline
+		// max allowed height
 		var pruneHeight uint64 = 10
 		maxHeightBC := clienttypes.NewHeight(proofHeightAB.GetRevisionNumber(), proofHeightAB.GetRevisionHeight()+pruneHeight)
-		proofHeightBC, consensusHeightBC, err := chainC.QueryMinimumConsensusHeight(proofHeightAB, maxHeightBC)
-		panicIfErr(err, "failed to query minimum proof height on chainC")
-		// provableProcessedHeightAB := processedHeightAB.Increment()
+		proofHeightBC, consensusHeightBC, doUpdateClient, err := chainC.QueryMinimumConsensusHeight(proofHeightAB, maxHeightBC)
+		panicIfErr(err, "failed to query minimum proof height for verification")
+		if doUpdateClient {
+			chainC.UpdateClient()
+		}
+		proofHeightBC, consensusHeightBC, _, err = chainC.QueryMinimumConsensusHeight(proofHeightAB, maxHeightBC)
+		panicIfErr(err, "failed to query minimum proof height for verification")
 
-		// heightC := int64(chainC.GetChainHeight().GetRevisionHeight()) // current height of chain C
-		// key = host.FullClientKey(chainC.ClientID(), tmclient.ProcessedHeightKey(provableProcessedHeightAB))
-
-		// fmt.Printf("querying for key %s on chain %s at height %d\n", string(key), chainC.ChainID(), heightC)
-		// bz = chainC.QueryStateAtHeight(
-		// 	key,
-		// 	heightC,
-		// )
-
-		// if len(bz) == 0 {
-		// 	fmt.Printf("UpdateClient chainC: %s\n", chainC.ChainID())
-		// 	chainC.UpdateClient()
-		// 	heightC = int64(chainC.GetChainHeight().GetRevisionHeight())
-		// 	fmt.Printf("querying for key %s on chain %s at height %d\n", string(key), chainC.ChainID(), heightC)
-		// 	bz = chainC.QueryStateAtHeight(
-		// 		key,
-		// 		heightC,
-		// 	)
-		// }
-
-		// if len(bz) == 0 {
-		// 	panic(fmt.Sprintf("failed to get processed height (%s) for chain %s at height %d ", string(key), chainC.ChainID(), heightC))
-		// }
-
-		// processedHeightBC, err := clienttypes.ParseHeight(string(bz))
-		// if err != nil {
-		// 	return nil, err
-		// }
+		// query the consensusState on chainC to use for proof checking
 		key := host.FullConsensusStateKey(chainC.ClientID(), consensusHeightBC)
-
-		fmt.Printf("querying for consensus state key %s on chain %s at height %d\n", string(key), chainC.ChainID(), int64(proofHeightBC.GetRevisionHeight()))
 		bzConsStateBC := chainC.QueryStateAtHeight(key, int64(proofHeightBC.GetRevisionHeight()))
 		var consState exported.ConsensusState
 		err = chainC.Codec().UnmarshalInterface(bzConsStateBC, &consState)
@@ -227,18 +186,6 @@ func (p ChanPath) GenerateIntermediateStateProofs(proofGenFuncs []proofGenFunc, 
 			panic("failed to convert to a tendermint consensus state")
 		}
 		rootBC := consStateBC.GetRoot()
-		//heightAB := chainB.GetClientState().GetLatestHeight() // height of clientA on chainB
-		// heightBC := chainC.GetClientState().GetLatestHeight() // height of clientB on chainC
-		// consStateBC, err := chainC.GetConsensusState(heightBC)
-		// panicIfErr(err,
-		// 	"failed to get consensus state root of chain '%s' at height %s on chain '%s': %v",
-		// 	chainB.ChainID(), heightBC, chainC.ChainID(), err,
-		// )
-
-		// cs, ok := consStateBC.(*tmclient.ConsensusState)
-		// if !ok {
-		// 	panic(fmt.Sprintf("expected consensus state to be tendermint consensus state, got: %T", consStateBC))
-		// }
 
 		for j, proofGenFunc := range proofGenFuncs {
 			proof := proofGenFunc(chainB, proofHeightAB.Increment(), consensusHeightAB, rootBC)
@@ -261,22 +208,9 @@ func genConsensusStateProof(
 	consensusHeight exported.Height,
 	consStateBCRoot exported.Root,
 ) *channeltypes.MultihopProof {
-	//chainAID := chainB.Counterparty().ChainID()
-	fmt.Printf("genConsensusStateProof: processedHeight: %s consensusHeight: %s\n", processedHeight.String(), consensusHeight.String())
+
 	key := host.FullConsensusStateKey(chainB.ClientID(), consensusHeight)
 	bzConsStateAB := chainB.QueryStateAtHeight(key, int64(processedHeight.GetRevisionHeight()))
-	// consStateAB, err := chainB.GetConsensusState(consensusHeight) // consensus state of chainA on chainB@processedHeight
-	// panicIfErr(err, "chain [%s]'s consensus state on chain '%s' at height %s not found due to: %v",
-	// 	chainAID, chainB.ChainID(), processedHeight, err,
-	// )
-	// bzConsStateAB, err := chainB.Codec().MarshalInterface(consStateAB)
-	// panicIfErr(err, "fail to marshal consensus state of chain '%s' on chain '%s' at height %s due to: %v",
-	// 	chainAID, chainB.ChainID(), processedHeight, err,
-	// )
-	// var consState exported.ConsensusState
-	// err := chainB.Codec().UnmarshalInterface(bzConsStateAB, &consState)
-	// panicIfErr(err, "fail to unmarshal consensus state of chain '%s' on chain '%s' at height %s due to: %v", chainB.Counterparty().ChainID(), chainB.ChainID(), processedHeight, err)
-	// root := consState.(*tmclient.ConsensusState).GetRoot()
 
 	return queryProof(
 		chainB,
@@ -295,24 +229,8 @@ func genConnProof(
 	consensusHeight exported.Height,
 	consStateBCRoot exported.Root,
 ) *channeltypes.MultihopProof {
-	fmt.Printf("genConnProof: processedHeight: %s consensusHeight: %s\n", processedHeight.String(), consensusHeight.String())
 	key := host.ConnectionKey(chainB.ConnectionID())
 	bzConnAB := chainB.QueryStateAtHeight(key, int64(processedHeight.GetRevisionHeight()))
-
-	// key = host.FullConsensusStateKey(chainB.ClientID(), consensusHeight)
-	// bzConsStateAB := chainB.QueryStateAtHeight(key, int64(processedHeight.GetRevisionHeight()))
-	// var consState exported.ConsensusState
-	// err := chainB.Codec().UnmarshalInterface(bzConsStateAB, &consState)
-	// panicIfErr(err, "fail to unmarshal consensus state of chain '%s' on chain '%s' at height %s due to: %v", chainB.Counterparty().ChainID(), chainB.ChainID(), processedHeight, err)
-	// root := consState.(*tmclient.ConsensusState).GetRoot()
-	// connAB, err := chainB.GetConnection()
-	// panicIfErr(err, "fail to get connection '%s' on chain '%s' due to: %v",
-	// 	chainB.ConnectionID(), chainB.ChainID(), err,
-	// )
-	// bzConnAB, err := chainB.Codec().Marshal(connAB)
-	// panicIfErr(err, "fail to marshal connection '%s' on chain '%s' due to: %v",
-	// 	chainB.ConnectionID(), chainB.ChainID(), err,
-	// )
 	return queryProof(chainB, host.ConnectionKey(chainB.ConnectionID()), bzConnAB, processedHeight, consStateBCRoot, true)
 }
 
@@ -354,20 +272,6 @@ func queryProof(
 	)
 
 	if doVerify {
-
-		// if consStateABRoot == nil {
-		// 	fmt.Printf("consState is nil, fetching from chain '%s'\n", chainB.ChainID())
-		// 	consState, err := chainB.GetConsensusState(heightAB)
-		// 	panicIfErr(err, "fail to get chain [%s]'s consensus state at height %s on chain '%s' due to: %v",
-		// 		chainA.ChainID(), heightAB, chainB.ChainID(), err,
-		// 	)
-		// 	cs, ok := consState.(*tmclient.ConsensusState)
-		// 	if !ok {
-		// 		panic(fmt.Sprintf("expected consensus state to be tendermint consensus state, got: %T", consState))
-		// 	}
-
-		// 	consStateABRoot = cs.GetRoot()
-		// }
 
 		var proof commitmenttypes.MerkleProof
 		err = chainA.Codec().Unmarshal(bzProof, &proof)
