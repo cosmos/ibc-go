@@ -113,7 +113,6 @@ func (suite *MultihopTestSuite) TestTimeoutOnClose() {
 			suite.Require().NoError(err)
 			suite.Z().SetChannelClosed()
 			// need to update chainA's client representing chainB to prove missing ack
-			suite.A().UpdateAllClients()
 			chanCap = suite.A().Chain.GetChannelCapability(suite.A().ChannelConfig.PortID, suite.A().ChannelID)
 		}, true},
 		{"success: UNORDERED", false, func() {
@@ -122,7 +121,6 @@ func (suite *MultihopTestSuite) TestTimeoutOnClose() {
 			suite.Require().NoError(err)
 			suite.Z().SetChannelClosed()
 			// need to update chainA's client representing chainB to prove missing ack
-			suite.A().UpdateAllClients()
 			chanCap = suite.A().Chain.GetChannelCapability(suite.A().ChannelConfig.PortID, suite.A().ChannelID)
 		}, true},
 	}
@@ -141,7 +139,7 @@ func (suite *MultihopTestSuite) TestTimeoutOnClose() {
 
 			tc.malleate()
 
-			proofClosed := suite.Z().QueryChannelProof(nil)
+			proofClosed := suite.Z().QueryChannelProof(suite.Z().Chain.LastHeader.GetHeight())
 			proofHeight := suite.A().GetClientState().GetLatestHeight()
 
 			if tc.orderedChannel {

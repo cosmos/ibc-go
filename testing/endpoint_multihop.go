@@ -239,18 +239,12 @@ func (ep *EndpointM) QueryChannelProof(proofHeight exported.Height) []byte {
 
 // QueryPacketProof queries the multihop packet proof on the endpoint chain.
 func (ep *EndpointM) QueryPacketProof(packet *channeltypes.Packet, height exported.Height) []byte {
-	if height == nil {
-		height = ep.Chain.LastHeader.GetHeight()
-	}
 	packetKey := host.PacketCommitmentKey(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 	return ep.QueryMultihopProof(packetKey, height)
 }
 
 // QueryPacketAcknowledgementProof queries the multihop packet acknowledgement proof on the endpoint chain.
 func (ep *EndpointM) QueryPacketAcknowledgementProof(packet *channeltypes.Packet, height exported.Height) []byte {
-	if height == nil {
-		height = ep.Chain.LastHeader.GetHeight()
-	}
 	packetKey := host.PacketAcknowledgementKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 	return ep.QueryMultihopProof(packetKey, height)
 }
