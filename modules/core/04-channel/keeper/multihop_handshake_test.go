@@ -195,7 +195,6 @@ func (suite *MultihopTestSuite) TestChanOpenTryMultihop() {
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest() // reset
 			tc.malleate()     // call ChanOpenInit and setup port capabilities
-			suite.Z().UpdateAllClients()
 
 			proof := suite.A().QueryChannelProof(nil)
 			channelID, cap, err := suite.Z().Chain.App.GetIBCKeeper().ChannelKeeper.ChanOpenTry(
@@ -247,7 +246,6 @@ func (suite *MultihopTestSuite) TestChanOpenAckMultihop() {
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest() // reset
 			tc.malleate()     // call ChanOpenInit and setup port capabilities
-			suite.A().UpdateAllClients()
 
 			proof := suite.Z().QueryChannelProof(nil)
 
@@ -289,7 +287,6 @@ func (suite *MultihopTestSuite) TestChanOpenConfirmMultihop() {
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest() // reset
 			tc.malleate()     // call ChanOpenInit and setup port capabilities
-			suite.Z().UpdateAllClients()
 
 			proof := suite.A().QueryChannelProof(nil)
 
