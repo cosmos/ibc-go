@@ -84,7 +84,7 @@ func (suite *TypesTestSuite) TestUpgradeTimeout() {
 func (suite *TypesTestSuite) TestHasPassed() {
 	var (
 		path           *ibctesting.Path
-		upgradeTimeout types.UpgradeTimeout
+		upgradeTimeout types.Timeout
 		passInfo       string
 	)
 
