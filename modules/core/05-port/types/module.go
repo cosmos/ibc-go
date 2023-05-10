@@ -4,7 +4,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
@@ -159,8 +158,7 @@ type ICS4Wrapper interface {
 		chanCap *capabilitytypes.Capability,
 		sourcePort string,
 		sourceChannel string,
-		timeoutHeight clienttypes.Height,
-		timeoutTimestamp uint64,
+		timeout channeltypes.Timeout,
 		data []byte,
 	) (sequence uint64, err error)
 

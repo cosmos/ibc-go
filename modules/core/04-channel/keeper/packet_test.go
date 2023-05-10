@@ -238,8 +238,9 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 			// only check if nextSequenceSend exists in no error case since it is a tested error case above.
 			expectedSequence, ok := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetNextSequenceSend(suite.chainA.GetContext(), sourcePort, sourceChannel)
 
+			timeout := types.NewTimeout(timeoutHeight, timeoutTimestamp)
 			sequence, err := suite.chainA.App.GetIBCKeeper().ChannelKeeper.SendPacket(suite.chainA.GetContext(), channelCap,
-				sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, packetData)
+				sourcePort, sourceChannel, timeout, packetData)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
