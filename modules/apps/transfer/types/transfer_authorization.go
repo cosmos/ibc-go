@@ -4,6 +4,7 @@ import (
 	"math/big"
 
 	errorsmod "cosmossdk.io/errors"
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/authz"
 	ibcerrors "github.com/cosmos/ibc-go/v7/internal/errors"
@@ -13,8 +14,8 @@ import (
 
 var _ authz.Authorization = (*TransferAuthorization)(nil)
 
-// MaxUint256 is the maximum value for a 256 bit unsigned integer.
-var MaxUint256 = new(big.Int).Sub(new(big.Int).Lsh(big.NewInt(1), 256), big.NewInt(1))
+// maxUint256 is the maximum value for a 256 bit unsigned integer.
+var maxUint256 = new(big.Int).Sub(new(big.Int).Lsh(big.NewInt(1), 256), big.NewInt(1))
 
 // NewTransferAuthorization creates a new TransferAuthorization object.
 func NewTransferAuthorization(allocations ...Allocation) *TransferAuthorization {
@@ -41,11 +42,11 @@ func (a TransferAuthorization) Accept(ctx sdk.Context, msg sdk.Msg) (authz.Accep
 		}
 
 		if !isAllowedAddress(ctx, msgTransfer.Receiver, allocation.AllowList) {
-			return authz.AcceptResponse{}, errorsmod.Wrap(ibcerrors.ErrInvalidAddress, "not allowed address for transfer")
+			return authz.AcceptResponse{}, errorsmod.Wrap(ibcerrors.ErrInvalidAddress, "not allowed receiver address for transfer")
 		}
-		
+
 		// If the spend limit is set to the MaxUint256 sentinel value, do not subtract the amount from the spend limit.
-		if allocation.SpendLimit.AmountOf(msgTransfer.Token.Denom).Equal(sdk.NewIntFromBigInt(MaxUint256)) {
+		if allocation.SpendLimit.AmountOf(msgTransfer.Token.Denom).Equal(GetUnboundedSpendLimitSentinelValue()) {
 			return authz.AcceptResponse{Accept: true, Delete: false, Updated: &a}, nil
 		}
 
@@ -137,4 +138,13 @@ func isAllowedAddress(ctx sdk.Context, receiver string, allowedAddrs []string) b
 		}
 	}
 	return false
+}
+
+// GetUnboundedSpendLimitSentinelValue returns the sentinel value that can be used
+// as the amount for a denomination's spend limit for which spend limit updating
+// should be disabled. Please note that using this sentinel value means that a grantee
+// will be granted the privilege to do ICS20 token transfers for the total amount
+// of the denomination available at the granter's account.
+func GetUnboundedSpendLimitSentinelValue() sdkmath.Int {
+	return sdk.NewIntFromBigInt(maxUint256)
 }

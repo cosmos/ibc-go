@@ -43,8 +43,9 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### State Machine Breaking
 
 ### Improvements
+
 * (tests) [\#3138](https://github.com/cosmos/ibc-go/pull/3138) Support benchmarks and fuzz tests through `testing.TB`.
-* (ics20) [\#3454](https://github.com/cosmos/ibc-go/pull/3454) Support transfer authorization unlimited spending when the max `uint256` value is provided as limit.
+* (apps/transfer) [\#3454](https://github.com/cosmos/ibc-go/pull/3454) Support transfer authorization unlimited spending when the max `uint256` value is provided as limit.
 
 ### Features
 
