@@ -255,8 +255,7 @@ func (chain *TestChain) QueryMinimumConsensusHeight(clientID string, minHeight e
 	// no consensusState found, client update needed
 	if consensusHeight.IsZero() {
 		if maxHeight.LT(chain.LastHeader.GetHeight()) {
-			// client update won't help here because the gap between updates
-			// is too large and the chain height has already passed the maxHeight
+			// TODO: UpdateClient for minProofHeight
 			err := sdkerrors.Wrapf(channeltypes.ErrMultihopProofGeneration,
 				"not possible to prove this key within the specified height range [%s, %s]",
 				minHeight.String(), maxHeight.String())

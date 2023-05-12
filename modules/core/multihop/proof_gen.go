@@ -166,7 +166,7 @@ func (p ChanPath) GenerateIntermediateStateProofs(proofGenFuncs []proofGenFunc, 
 		panicIfErr(err, "fail to unmarshal consensus state of chain '%s' on chain '%s' at height %s due to: %v", chainC.Counterparty().ChainID(), chainC.ChainID(), proofHeightBC, err)
 		consStateBC, ok := consState.(*tmclient.ConsensusState)
 		if !ok {
-			panic("failed to convert to a tendermint consensus state")
+			panic(fmt.Sprintf("expected consensus state to be tendermint consensus state, got: %T", consStateBC))
 		}
 		rootBC := consStateBC.GetRoot()
 
@@ -175,6 +175,7 @@ func (p ChanPath) GenerateIntermediateStateProofs(proofGenFuncs []proofGenFunc, 
 			result[j] = append([]*channeltypes.MultihopProof{proof}, result[j]...)
 		}
 
+		// prepare for next iteration
 		proofHeight = proofHeightAB
 		maxHeight = maxHeightBC
 	}
