@@ -350,10 +350,8 @@ func (mep multihopEndpoint) QueryMinimumConsensusHeight(minHeight exported.Heigh
 }
 
 // UpdateClient implements multihop.Endpoint
-func (mep multihopEndpoint) UpdateClient() (err error) {
-	err = mep.testEndpoint.UpdateClient()
-	//mep.testEndpoint.Chain.Coordinator.CommitBlock(mep.testEndpoint.Chain)
-	return
+func (mep multihopEndpoint) UpdateClient() error {
+	return mep.testEndpoint.UpdateClient()
 }
 
 func (mep multihopEndpoint) Debug() {
