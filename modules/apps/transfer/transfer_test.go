@@ -70,10 +70,14 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 	err = pathAtoB.RelayPacket(packet)
 	suite.Require().NoError(err) // relay committed
 
+	// check that module account escrow address has locked the tokens
+	escrowAddress := types.GetEscrowAddress(packet.GetSourcePort(), packet.GetSourceChannel())
+	balance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), escrowAddress, sdk.DefaultBondDenom)
+	suite.Require().Equal(coinToSendToB, balance)
+
 	// check that voucher exists on chain B
 	voucherDenomTrace := types.ParseDenomTrace(types.GetPrefixedDenom(packet.GetDestPort(), packet.GetDestChannel(), sdk.DefaultBondDenom))
-	balance := suite.chainB.GetSimApp().BankKeeper.GetBalance(suite.chainB.GetContext(), suite.chainB.SenderAccount.GetAddress(), voucherDenomTrace.IBCDenom())
-
+	balance = suite.chainB.GetSimApp().BankKeeper.GetBalance(suite.chainB.GetContext(), suite.chainB.SenderAccount.GetAddress(), voucherDenomTrace.IBCDenom())
 	coinSentFromAToB := types.GetTransferCoin(pathAtoB.EndpointB.ChannelConfig.PortID, pathAtoB.EndpointB.ChannelID, sdk.DefaultBondDenom, amount)
 	suite.Require().Equal(coinSentFromAToB, balance)
 
@@ -98,10 +102,9 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 	// NOTE: fungible token is prefixed with the full trace in order to verify the packet commitment
 	fullDenomPath := types.GetPrefixedDenom(pathBtoC.EndpointB.ChannelConfig.PortID, pathBtoC.EndpointB.ChannelID, voucherDenomTrace.GetFullDenomPath())
 
+	// check that the balance is updated on chainC
 	coinSentFromBToC := sdk.NewCoin(types.ParseDenomTrace(fullDenomPath).IBCDenom(), amount)
 	balance = suite.chainC.GetSimApp().BankKeeper.GetBalance(suite.chainC.GetContext(), suite.chainC.SenderAccount.GetAddress(), coinSentFromBToC.Denom)
-
-	// check that the balance is updated on chainC
 	suite.Require().Equal(coinSentFromBToC, balance)
 
 	// check that balance on chain B is empty
@@ -128,7 +131,7 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 	suite.Require().Equal(coinSentFromAToB, balance)
 
 	// check that module account escrow address is empty
-	escrowAddress := types.GetEscrowAddress(packet.GetDestPort(), packet.GetDestChannel())
+	escrowAddress = types.GetEscrowAddress(packet.GetDestPort(), packet.GetDestChannel())
 	balance = suite.chainB.GetSimApp().BankKeeper.GetBalance(suite.chainB.GetContext(), escrowAddress, coinSentFromAToB.Denom)
 	suite.Require().Zero(balance.Amount.Int64())
 
