@@ -85,7 +85,6 @@ func (suite *KeeperTestSuite) TestGetAppVersion() {
 
 // TestGetAllChannelsWithPortPrefix verifies ports are filtered correctly using a port prefix.
 func (suite *KeeperTestSuite) TestGetAllChannelsWithPortPrefix() {
-
 	const (
 		secondChannelID        = "channel-1"
 		differentChannelPortID = "different-portid"

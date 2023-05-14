@@ -38,7 +38,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Dependencies
 
-* [\#3393](https://github.com/cosmos/ibc-go/pull/3393) Bump Cosmos SDK to v0.46.11 and replace Tendermint with CometBFT v0.34.37.
+* [\#3393](https://github.com/cosmos/ibc-go/pull/3393) Bump Cosmos SDK to v0.46.12 and replace Tendermint with CometBFT v0.34.37.
 
 ### API Breaking
 
@@ -47,6 +47,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Improvements
 
 ### Features
+
+* [\#3079](https://github.com/cosmos/ibc-go/pull/3079) Add authz support for ics20.
 
 ### Bug Fixes
 
