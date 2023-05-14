@@ -126,7 +126,7 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 	balance = suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), sdk.DefaultBondDenom)
 	suite.Require().Equal(originalBalance.SubAmount(amount).Amount.Int64(), balance.Amount.Int64())
 
-	// check that balance on chain B has the transfered amount
+	// check that balance on chain B has the transferred amount
 	balance = suite.chainB.GetSimApp().BankKeeper.GetBalance(suite.chainB.GetContext(), suite.chainB.SenderAccount.GetAddress(), coinSentFromAToB.Denom)
 	suite.Require().Equal(coinSentFromAToB, balance)
 
