@@ -67,7 +67,7 @@ func (m Migrator) MigrateTotalEscrowForDenom(ctx sdk.Context) error {
 	}
 
 	for _, totalEscrow := range totalEscrowed {
-		m.keeper.SetTotalEscrowForDenom(ctx, totalEscrow.Denom, totalEscrow.Amount)
+		m.keeper.SetTotalEscrowForDenom(ctx, totalEscrow)
 	}
 
 	return nil
