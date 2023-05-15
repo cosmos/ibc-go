@@ -3,46 +3,23 @@ package testsuite
 import (
 	"context"
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
-	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
-	"github.com/cosmos/cosmos-sdk/client/tx"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	signingtypes "github.com/cosmos/cosmos-sdk/types/tx/signing"
-	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	"github.com/cosmos/cosmos-sdk/x/authz"
-	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
-	govtypesv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
-	grouptypes "github.com/cosmos/cosmos-sdk/x/group"
-	paramsproposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
-	intertxtypes "github.com/cosmos/interchain-accounts/x/inter-tx/types"
 	dockerclient "github.com/docker/docker/client"
 	interchaintest "github.com/strangelove-ventures/interchaintest/v7"
 	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
 	"github.com/strangelove-ventures/interchaintest/v7/ibc"
 	"github.com/strangelove-ventures/interchaintest/v7/testreporter"
-	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/cosmos/ibc-go/e2e/relayer"
-	"github.com/cosmos/ibc-go/e2e/semverutil"
 	"github.com/cosmos/ibc-go/e2e/testconfig"
 	"github.com/cosmos/ibc-go/e2e/testsuite/diagnostics"
-	"github.com/cosmos/ibc-go/e2e/testvalues"
-	controllertypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
-	feetypes "github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 )
 
 const (
@@ -60,6 +37,7 @@ type E2ETestSuite struct {
 
 	grpcClients    map[string]GRPCClients
 	paths          map[string]path
+	relayers       relayer.RelayerMap
 	logger         *zap.Logger
 	DockerClient   *dockerclient.Client
 	network        string
@@ -67,28 +45,6 @@ type E2ETestSuite struct {
 
 	// pathNameIndex is the latest index to be used for generating paths
 	pathNameIndex int64
-}
-
-// GRPCClients holds a reference to any GRPC clients that are needed by the tests.
-// These should typically be used for query clients only. If we need to make changes, we should
-// use E2ETestSuite.BroadcastMessages to broadcast transactions instead.
-type GRPCClients struct {
-	ClientQueryClient     clienttypes.QueryClient
-	ConnectionQueryClient connectiontypes.QueryClient
-	ChannelQueryClient    channeltypes.QueryClient
-	FeeQueryClient        feetypes.QueryClient
-	ICAQueryClient        controllertypes.QueryClient
-	InterTxQueryClient    intertxtypes.QueryClient
-
-	// SDK query clients
-	GovQueryClient    govtypesv1beta1.QueryClient
-	GovQueryClientV1  govtypesv1.QueryClient
-	GroupsQueryClient grouptypes.QueryClient
-	ParamsQueryClient paramsproposaltypes.QueryClient
-	AuthQueryClient   authtypes.QueryClient
-	AuthZQueryClient  authz.QueryClient
-
-	ConsensusServiceClient tmservice.ServiceClient
 }
 
 // path is a pairing of two chains which will be used in a test.
@@ -116,6 +72,12 @@ func (s *E2ETestSuite) GetRelayerUsers(ctx context.Context, chainOpts ...testcon
 
 	chainARelayerUser := cosmos.NewWallet(ChainARelayerName, chainAAccountBytes, "", chainA.Config())
 	chainBRelayerUser := cosmos.NewWallet(ChainBRelayerName, chainBAccountBytes, "", chainB.Config())
+
+	if s.relayers == nil {
+		s.relayers = make(relayer.RelayerMap)
+	}
+	s.relayers.AddRelayer(s.T().Name(), chainARelayerUser)
+	s.relayers.AddRelayer(s.T().Name(), chainBRelayerUser)
 
 	return chainARelayerUser, chainBRelayerUser
 }
@@ -265,52 +227,6 @@ func (s *E2ETestSuite) GetChains(chainOpts ...testconfig.ChainOptionConfiguratio
 	return path.chainA, path.chainB
 }
 
-// BroadcastMessages broadcasts the provided messages to the given chain and signs them on behalf of the provided user.
-// Once the broadcast response is returned, we wait for a few blocks to be created on both chain A and chain B.
-func (s *E2ETestSuite) BroadcastMessages(ctx context.Context, chain *cosmos.CosmosChain, user ibc.Wallet, msgs ...sdk.Msg) (sdk.TxResponse, error) {
-	broadcaster := cosmos.NewBroadcaster(s.T(), chain)
-
-	broadcaster.ConfigureClientContextOptions(func(clientContext client.Context) client.Context {
-		// use a codec with all the types our tests care about registered.
-		// BroadcastTx will deserialize the response and will not be able to otherwise.
-		cdc := Codec()
-		return clientContext.WithCodec(cdc).WithTxConfig(authtx.NewTxConfig(cdc, []signingtypes.SignMode{signingtypes.SignMode_SIGN_MODE_DIRECT}))
-	})
-
-	broadcaster.ConfigureFactoryOptions(func(factory tx.Factory) tx.Factory {
-		return factory.WithGas(DefaultGasValue)
-	})
-
-	resp, err := cosmos.BroadcastTx(ctx, broadcaster, user, msgs...)
-	if err != nil {
-		return sdk.TxResponse{}, err
-	}
-
-	chainA, chainB := s.GetChains()
-	err = test.WaitForBlocks(ctx, 2, chainA, chainB)
-	return resp, err
-}
-
-// RegisterCounterPartyPayee broadcasts a MsgRegisterCounterpartyPayee message.
-func (s *E2ETestSuite) RegisterCounterPartyPayee(ctx context.Context, chain *cosmos.CosmosChain,
-	user ibc.Wallet, portID, channelID, relayerAddr, counterpartyPayeeAddr string,
-) (sdk.TxResponse, error) {
-	msg := feetypes.NewMsgRegisterCounterpartyPayee(portID, channelID, relayerAddr, counterpartyPayeeAddr)
-	return s.BroadcastMessages(ctx, chain, user, msg)
-}
-
-// PayPacketFeeAsync broadcasts a MsgPayPacketFeeAsync message.
-func (s *E2ETestSuite) PayPacketFeeAsync(
-	ctx context.Context,
-	chain *cosmos.CosmosChain,
-	user ibc.Wallet,
-	packetID channeltypes.PacketId,
-	packetFee feetypes.PacketFee,
-) (sdk.TxResponse, error) {
-	msg := feetypes.NewMsgPayPacketFeeAsync(packetID, packetFee)
-	return s.BroadcastMessages(ctx, chain, user, msg)
-}
-
 // GetRelayerWallets returns the relayer wallets associated with the chains.
 func (s *E2ETestSuite) GetRelayerWallets(relayer ibc.Relayer) (ibc.Wallet, ibc.Wallet, error) {
 	chainA, chainB := s.GetChains()
@@ -343,14 +259,6 @@ func (s *E2ETestSuite) RecoverRelayerWallets(ctx context.Context, relayer ibc.Re
 		return fmt.Errorf("could not recover relayer wallet on chain B: %s", err)
 	}
 	return nil
-}
-
-// Transfer broadcasts a MsgTransfer message.
-func (s *E2ETestSuite) Transfer(ctx context.Context, chain *cosmos.CosmosChain, user ibc.Wallet,
-	portID, channelID string, token sdk.Coin, sender, receiver string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64, memo string,
-) (sdk.TxResponse, error) {
-	msg := transfertypes.NewMsgTransfer(portID, channelID, token, sender, receiver, timeoutHeight, timeoutTimestamp, memo)
-	return s.BroadcastMessages(ctx, chain, user, msg)
 }
 
 // StartRelayer starts the given relayer.
@@ -397,52 +305,6 @@ func (s *E2ETestSuite) GetChainGRCPClients(chain ibc.Chain) GRPCClients {
 	cs, ok := s.grpcClients[chain.Config().ChainID]
 	s.Require().True(ok, "chain %s does not have GRPC clients", chain.Config().ChainID)
 	return cs
-}
-
-// InitGRPCClients establishes GRPC clients with the given chain.
-// The created GRPCClients can be retrieved with GetChainGRCPClients.
-func (s *E2ETestSuite) InitGRPCClients(chain *cosmos.CosmosChain) {
-	// Create a connection to the gRPC server.
-	grpcConn, err := grpc.Dial(
-		chain.GetHostGRPCAddress(),
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
-	)
-	s.Require().NoError(err)
-	s.T().Cleanup(func() {
-		if err := grpcConn.Close(); err != nil {
-			s.T().Logf("failed closing GRPC connection to chain %s: %s", chain.Config().ChainID, err)
-		}
-	})
-
-	if s.grpcClients == nil {
-		s.grpcClients = make(map[string]GRPCClients)
-	}
-
-	s.grpcClients[chain.Config().ChainID] = GRPCClients{
-		ClientQueryClient:      clienttypes.NewQueryClient(grpcConn),
-		ChannelQueryClient:     channeltypes.NewQueryClient(grpcConn),
-		FeeQueryClient:         feetypes.NewQueryClient(grpcConn),
-		ICAQueryClient:         controllertypes.NewQueryClient(grpcConn),
-		InterTxQueryClient:     intertxtypes.NewQueryClient(grpcConn),
-		GovQueryClient:         govtypesv1beta1.NewQueryClient(grpcConn),
-		GovQueryClientV1:       govtypesv1.NewQueryClient(grpcConn),
-		GroupsQueryClient:      grouptypes.NewQueryClient(grpcConn),
-		ParamsQueryClient:      paramsproposaltypes.NewQueryClient(grpcConn),
-		AuthQueryClient:        authtypes.NewQueryClient(grpcConn),
-		AuthZQueryClient:       authz.NewQueryClient(grpcConn),
-		ConsensusServiceClient: tmservice.NewServiceClient(grpcConn),
-	}
-}
-
-// AssertValidTxResponse verifies that an sdk.TxResponse
-// has non-empty values.
-func (s *E2ETestSuite) AssertValidTxResponse(resp sdk.TxResponse) {
-	errorMsg := fmt.Sprintf("%+v", resp)
-	s.Require().NotEmpty(resp.TxHash, errorMsg)
-	s.Require().NotEqual(int64(0), resp.GasUsed, errorMsg)
-	s.Require().NotEqual(int64(0), resp.GasWanted, errorMsg)
-	s.Require().NotEmpty(resp.Events, errorMsg)
-	s.Require().NotEmpty(resp.Data, errorMsg)
 }
 
 // AssertPacketRelayed asserts that the packet commitment does not exist on the sending chain.
@@ -501,114 +363,6 @@ func GetNativeChainBalance(ctx context.Context, chain ibc.Chain, user ibc.Wallet
 		return -1, err
 	}
 	return bal, nil
-}
-
-// ExecuteGovProposal submits the given governance proposal using the provided user and uses all validators to vote yes on the proposal.
-// It ensures the proposal successfully passes.
-func (s *E2ETestSuite) ExecuteGovProposal(ctx context.Context, chain *cosmos.CosmosChain, user ibc.Wallet, content govtypesv1beta1.Content) {
-	sender, err := sdk.AccAddressFromBech32(user.FormattedAddress())
-	s.Require().NoError(err)
-
-	msgSubmitProposal, err := govtypesv1beta1.NewMsgSubmitProposal(content, sdk.NewCoins(sdk.NewCoin(chain.Config().Denom, govtypesv1beta1.DefaultMinDepositTokens)), sender)
-	s.Require().NoError(err)
-
-	txResp, err := s.BroadcastMessages(ctx, chain, user, msgSubmitProposal)
-	s.Require().NoError(err)
-	s.AssertValidTxResponse(txResp)
-
-	// TODO: replace with parsed proposal ID from MsgSubmitProposalResponse
-	// https://github.com/cosmos/ibc-go/issues/2122
-
-	proposal, err := s.QueryProposal(ctx, chain, 1)
-	s.Require().NoError(err)
-	s.Require().Equal(govtypesv1beta1.StatusVotingPeriod, proposal.Status)
-
-	err = chain.VoteOnProposalAllValidators(ctx, "1", cosmos.ProposalVoteYes)
-	s.Require().NoError(err)
-
-	// ensure voting period has not passed before validators finished voting
-	proposal, err = s.QueryProposal(ctx, chain, 1)
-	s.Require().NoError(err)
-	s.Require().Equal(govtypesv1beta1.StatusVotingPeriod, proposal.Status)
-
-	time.Sleep(testvalues.VotingPeriod) // pass proposal
-
-	proposal, err = s.QueryProposal(ctx, chain, 1)
-	s.Require().NoError(err)
-	s.Require().Equal(govtypesv1beta1.StatusPassed, proposal.Status)
-}
-
-// govv1ProposalTitleAndSummary represents the releases that support the new title and summary fields.
-var govv1ProposalTitleAndSummary = semverutil.FeatureReleases{
-	MajorVersion: "v7",
-}
-
-// ExecuteGovProposalV1 submits a governance proposal using the provided user and message and uses all validators
-// to vote yes on the proposal. It ensures the proposal successfully passes.
-func (s *E2ETestSuite) ExecuteGovProposalV1(ctx context.Context, msg sdk.Msg, chain *cosmos.CosmosChain, user ibc.Wallet, proposalID uint64) {
-	sender, err := sdk.AccAddressFromBech32(user.FormattedAddress())
-	s.Require().NoError(err)
-
-	msgs := []sdk.Msg{msg}
-	msgSubmitProposal, err := govtypesv1.NewMsgSubmitProposal(msgs, sdk.NewCoins(sdk.NewCoin(chain.Config().Denom, govtypesv1.DefaultMinDepositTokens)), sender.String(), "", fmt.Sprintf("e2e gov proposal: %d", proposalID), fmt.Sprintf("executing gov proposal %d", proposalID))
-	s.Require().NoError(err)
-
-	if !govv1ProposalTitleAndSummary.IsSupported(chain.Nodes()[0].Image.Version) {
-		msgSubmitProposal.Title = ""
-		msgSubmitProposal.Summary = ""
-	}
-
-	resp, err := s.BroadcastMessages(ctx, chain, user, msgSubmitProposal)
-	s.AssertValidTxResponse(resp)
-	s.Require().NoError(err)
-
-	s.Require().NoError(chain.VoteOnProposalAllValidators(ctx, strconv.Itoa(int(proposalID)), cosmos.ProposalVoteYes))
-
-	time.Sleep(testvalues.VotingPeriod)
-
-	proposal, err := s.QueryProposalV1(ctx, chain, proposalID)
-	s.Require().NoError(err)
-	s.Require().Equal(govtypesv1.StatusPassed, proposal.Status)
-}
-
-// QueryModuleAccountAddress returns the sdk.AccAddress of a given module name.
-func (s *E2ETestSuite) QueryModuleAccountAddress(ctx context.Context, moduleName string, chain *cosmos.CosmosChain) (sdk.AccAddress, error) {
-	authClient := s.GetChainGRCPClients(chain).AuthQueryClient
-
-	resp, err := authClient.ModuleAccountByName(ctx, &authtypes.QueryModuleAccountByNameRequest{
-		Name: moduleName,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	cfg := EncodingConfig()
-
-	var account authtypes.AccountI
-	if err := cfg.InterfaceRegistry.UnpackAny(resp.Account, &account); err != nil {
-		return nil, err
-	}
-	moduleAccount, ok := account.(authtypes.ModuleAccountI)
-	if !ok {
-		return nil, fmt.Errorf("failed to cast account: %T as ModuleAccount", moduleAccount)
-	}
-
-	return moduleAccount.GetAddress(), nil
-}
-
-// QueryGranterGrants returns all GrantAuthorizations for the given granterAddress.
-func (s *E2ETestSuite) QueryGranterGrants(ctx context.Context, chain *cosmos.CosmosChain, granterAddress string) ([]*authz.GrantAuthorization, error) {
-	authzClient := s.GetChainGRCPClients(chain).AuthZQueryClient
-	queryRequest := &authz.QueryGranterGrantsRequest{
-		Granter: granterAddress,
-	}
-
-	grants, err := authzClient.GranterGrants(ctx, queryRequest)
-	if err != nil {
-		return nil, err
-	}
-
-	return grants.Grants, nil
 }
 
 // GetIBCToken returns the denomination of the full token denom sent to the receiving channel

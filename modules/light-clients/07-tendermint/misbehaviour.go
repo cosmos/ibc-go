@@ -12,7 +12,7 @@ import (
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
-var _ exported.ClientMessage = &Misbehaviour{}
+var _ exported.ClientMessage = (*Misbehaviour)(nil)
 
 // FrozenHeight is same for all misbehaviour
 var FrozenHeight = clienttypes.NewHeight(0, 1)
@@ -101,11 +101,8 @@ func (misbehaviour Misbehaviour) ValidateBasic() error {
 		misbehaviour.Header1.Commit, misbehaviour.Header1.ValidatorSet); err != nil {
 		return err
 	}
-	if err := validCommit(misbehaviour.Header2.Header.ChainID, *blockID2,
-		misbehaviour.Header2.Commit, misbehaviour.Header2.ValidatorSet); err != nil {
-		return err
-	}
-	return nil
+	return validCommit(misbehaviour.Header2.Header.ChainID, *blockID2,
+		misbehaviour.Header2.Commit, misbehaviour.Header2.ValidatorSet)
 }
 
 // validCommit checks if the given commit is a valid commit from the passed-in validatorset

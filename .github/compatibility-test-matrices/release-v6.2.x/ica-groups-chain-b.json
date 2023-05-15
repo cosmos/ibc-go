@@ -1,0 +1,11 @@
+{
+  "chain-a": ["release-v6.2.x", "v6.1.0"],
+  "chain-b": ["release-v6.2.x"],
+  "entrypoint": ["TestInterchainAccountsGroupsTestSuite"],
+  "test": [
+    "TestInterchainAccountsGroupsIntegration"
+  ],
+  "relayer-type": ["rly"],
+  "chain-binary": ["simd"],
+  "chain-image": ["ghcr.io/cosmos/ibc-go-simd"]
+}

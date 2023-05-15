@@ -19,9 +19,9 @@ const (
 )
 
 var (
-	_ govtypes.Content                   = &ClientUpdateProposal{}
-	_ govtypes.Content                   = &UpgradeProposal{}
-	_ codectypes.UnpackInterfacesMessage = &UpgradeProposal{}
+	_ govtypes.Content                   = (*ClientUpdateProposal)(nil)
+	_ govtypes.Content                   = (*UpgradeProposal)(nil)
+	_ codectypes.UnpackInterfacesMessage = (*UpgradeProposal)(nil)
 )
 
 func init() {

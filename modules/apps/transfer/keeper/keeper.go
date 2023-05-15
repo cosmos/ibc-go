@@ -1,14 +1,18 @@
 package keeper
 
 import (
+	"fmt"
+	"strings"
+
 	tmbytes "github.com/cometbft/cometbft/libs/bytes"
 	"github.com/cometbft/cometbft/libs/log"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
+
+	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 
 	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
@@ -64,8 +68,8 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", "x/"+exported.ModuleName+"-"+types.ModuleName)
 }
 
-// HasCapability checks if the transfer module owns the port capability for the desired port
-func (k Keeper) HasCapability(ctx sdk.Context, portID string) bool {
+// hasCapability checks if the transfer module owns the port capability for the desired port
+func (k Keeper) hasCapability(ctx sdk.Context, portID string) bool {
 	_, ok := k.scopedKeeper.GetCapability(ctx, host.PortPath(portID))
 	return ok
 }
@@ -73,8 +77,8 @@ func (k Keeper) HasCapability(ctx sdk.Context, portID string) bool {
 // BindPort defines a wrapper function for the ort Keeper's function in
 // order to expose it to module's InitGenesis function
 func (k Keeper) BindPort(ctx sdk.Context, portID string) error {
-	cap := k.portKeeper.BindPort(ctx, portID)
-	return k.ClaimCapability(ctx, cap, host.PortPath(portID))
+	capability := k.portKeeper.BindPort(ctx, portID)
+	return k.ClaimCapability(ctx, capability, host.PortPath(portID))
 }
 
 // GetPort returns the portID for the transfer module. Used in ExportGenesis
@@ -133,9 +137,79 @@ func (k Keeper) IterateDenomTraces(ctx sdk.Context, cb func(denomTrace types.Den
 
 	defer sdk.LogDeferred(ctx.Logger(), func() error { return iterator.Close() })
 	for ; iterator.Valid(); iterator.Next() {
-
 		denomTrace := k.MustUnmarshalDenomTrace(iterator.Value())
 		if cb(denomTrace) {
+			break
+		}
+	}
+}
+
+// GetTotalEscrowForDenom gets the total amount of source chain tokens that
+// are in escrow, keyed by the denomination.
+//
+// NOTE: if there is no value stored in state for the provided denom then a new Coin is returned for the denom with an initial value of zero.
+// This accommodates callers to simply call `Add()` on the returned Coin as an empty Coin literal (e.g. sdk.Coin{}) will trigger a panic due to the absence of a denom.
+func (k Keeper) GetTotalEscrowForDenom(ctx sdk.Context, denom string) sdk.Coin {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(types.TotalEscrowForDenomKey(denom))
+	if bz == nil {
+		return sdk.NewCoin(denom, sdk.ZeroInt())
+	}
+
+	amount := sdk.IntProto{}
+	k.cdc.MustUnmarshal(bz, &amount)
+
+	return sdk.NewCoin(denom, amount.Int)
+}
+
+// SetTotalEscrowForDenom stores the total amount of source chain tokens that are in escrow.
+func (k Keeper) SetTotalEscrowForDenom(ctx sdk.Context, coin sdk.Coin) {
+	if coin.Amount.IsNegative() {
+		panic(fmt.Sprintf("amount cannot be negative: %s", coin.Amount))
+	}
+
+	store := ctx.KVStore(k.storeKey)
+	bz := k.cdc.MustMarshal(&sdk.IntProto{Int: coin.Amount})
+	store.Set(types.TotalEscrowForDenomKey(coin.Denom), bz)
+}
+
+// GetAllTotalEscrowed returns the escrow information for all the denominations.
+func (k Keeper) GetAllTotalEscrowed(ctx sdk.Context) sdk.Coins {
+	var escrows sdk.Coins
+	k.IterateTokensInEscrow(ctx, []byte(types.KeyTotalEscrowPrefix), func(denomEscrow sdk.Coin) bool {
+		escrows = append(escrows, denomEscrow)
+		return false
+	})
+
+	return escrows
+}
+
+// IterateTokensInEscrow iterates over the denomination escrows in the store
+// and performs a callback function. Denominations for which an invalid value
+// (i.e. not integer) is stored, will be skipped.
+func (k Keeper) IterateTokensInEscrow(ctx sdk.Context, prefix []byte, cb func(denomEscrow sdk.Coin) bool) {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, prefix)
+
+	defer sdk.LogDeferred(ctx.Logger(), func() error { return iterator.Close() })
+	for ; iterator.Valid(); iterator.Next() {
+		keySplit := strings.Split(string(iterator.Key()), "/")
+		if len(keySplit) < 2 {
+			continue // key doesn't conform to expected format
+		}
+
+		denom := strings.Join(keySplit[1:], "/")
+		if strings.TrimSpace(denom) == "" {
+			continue // denom is empty
+		}
+
+		amount := sdk.IntProto{}
+		if err := k.cdc.Unmarshal(iterator.Value(), &amount); err != nil {
+			continue // total escrow amount cannot be unmarshalled to integer
+		}
+
+		denomEscrow := sdk.NewCoin(denom, amount.Int)
+		if cb(denomEscrow) {
 			break
 		}
 	}

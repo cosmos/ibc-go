@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
@@ -73,7 +74,7 @@ func (s *UpgradeTestSuite) UpgradeChain(ctx context.Context, chain *cosmos.Cosmo
 	err = chain.StopAllNodes(ctx)
 	s.Require().NoError(err, "error stopping node(s)")
 
-	chain.UpgradeVersion(ctx, s.DockerClient, upgradeVersion)
+	chain.UpgradeVersion(ctx, s.DockerClient, getChainImage(chain), upgradeVersion)
 
 	err = chain.StartAllNodes(ctx)
 	s.Require().NoError(err, "error starting upgraded node(s)")
@@ -605,32 +606,85 @@ func (s *UpgradeTestSuite) TestV6ToV7ChainUpgrade() {
 	})
 }
 
-func (s *UpgradeTestSuite) TestV7ChainUpgradeAddLocalhost() {
+func (s *UpgradeTestSuite) TestV7ToV7_1ChainUpgrade() {
 	t := s.T()
 	testCfg := testconfig.LoadConfig()
 
 	ctx := context.Background()
-	_, _ = s.SetupChainsRelayerAndChannel(ctx)
-	chain, _ := s.GetChains()
+	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx)
+	chainA, chainB := s.GetChains()
 
-	s.Require().NoError(test.WaitForBlocks(ctx, 5, chain), "failed to wait for blocks")
+	chainADenom := chainA.Config().Denom
+
+	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
+	chainAAddress := chainAWallet.FormattedAddress()
+
+	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
+	chainBAddress := chainBWallet.FormattedAddress()
+
+	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
+
+	t.Run("transfer native tokens from chainA to chainB", func(t *testing.T) {
+		transferTxResp, err := s.Transfer(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, testvalues.DefaultTransferAmount(chainADenom), chainAAddress, chainBAddress, s.GetTimeoutHeight(ctx, chainB), 0, "")
+		s.Require().NoError(err)
+		s.AssertValidTxResponse(transferTxResp)
+	})
+
+	t.Run("tokens are escrowed", func(t *testing.T) {
+		actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
+		s.Require().NoError(err)
+
+		expected := testvalues.StartingTokenAmount - testvalues.IBCTransferAmount
+		s.Require().Equal(expected, actualBalance)
+
+		// Escrow amount for native denom is not stored in state because pre-upgrade version did not support this feature
+		actualTotalEscrow, err := s.QueryTotalEscrowForDenom(ctx, chainA, chainADenom)
+		s.Require().NoError(err)
+		s.Require().Equal(math.ZeroInt(), actualTotalEscrow)
+	})
+
+	t.Run("start relayer", func(t *testing.T) {
+		s.StartRelayer(relayer)
+	})
+
+	chainBIBCToken := testsuite.GetIBCToken(chainADenom, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID)
+
+	t.Run("packet is relayed", func(t *testing.T) {
+		s.AssertPacketRelayed(ctx, chainA, channelA.PortID, channelA.ChannelID, 1)
+
+		actualBalance, err := chainB.GetBalance(ctx, chainBAddress, chainBIBCToken.IBCDenom())
+		s.Require().NoError(err)
+
+		expected := testvalues.IBCTransferAmount
+		s.Require().Equal(expected, actualBalance)
+	})
+
+	s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA), "failed to wait for blocks")
 
 	t.Run("upgrade chain", func(t *testing.T) {
 		govProposalWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
-		s.UpgradeChain(ctx, chain, govProposalWallet, testCfg.UpgradeConfig.PlanName, testCfg.ChainConfigs[0].Tag, testCfg.UpgradeConfig.Tag)
+		s.UpgradeChain(ctx, chainA, govProposalWallet, testCfg.UpgradeConfig.PlanName, testCfg.ChainConfigs[0].Tag, testCfg.UpgradeConfig.Tag)
 	})
 
 	t.Run("ensure the localhost client is active and sentinel connection is stored in state", func(t *testing.T) {
-		status, err := s.QueryClientStatus(ctx, chain, exported.LocalhostClientID)
+		status, err := s.QueryClientStatus(ctx, chainA, exported.LocalhostClientID)
 		s.Require().NoError(err)
 		s.Require().Equal(exported.Active.String(), status)
 
-		connectionEnd, err := s.QueryConnection(ctx, chain, exported.LocalhostConnectionID)
+		connectionEnd, err := s.QueryConnection(ctx, chainA, exported.LocalhostConnectionID)
 		s.Require().NoError(err)
 		s.Require().Equal(connectiontypes.OPEN, connectionEnd.State)
 		s.Require().Equal(exported.LocalhostClientID, connectionEnd.ClientId)
 		s.Require().Equal(exported.LocalhostClientID, connectionEnd.Counterparty.ClientId)
 		s.Require().Equal(exported.LocalhostConnectionID, connectionEnd.Counterparty.ConnectionId)
+	})
+
+	t.Run("ensure escrow amount for native denom is stored in state", func(t *testing.T) {
+		actualTotalEscrow, err := s.QueryTotalEscrowForDenom(ctx, chainA, chainADenom)
+		s.Require().NoError(err)
+
+		expectedTotalEscrow := math.NewInt(testvalues.IBCTransferAmount)
+		s.Require().Equal(expectedTotalEscrow, actualTotalEscrow) // migration has run and total escrow amount has been set
 	})
 }
 
@@ -665,4 +719,15 @@ func (s *UpgradeTestSuite) ClientState(ctx context.Context, chain ibc.Chain, cli
 	}
 
 	return res, nil
+}
+
+// getChainImage returns the image of a given chain.
+func getChainImage(chain *cosmos.CosmosChain) string {
+	tc := testconfig.LoadConfig()
+	for _, c := range tc.ChainConfigs {
+		if c.ChainID == chain.Config().ChainID {
+			return c.Image
+		}
+	}
+	panic("unable to find image for chain: " + chain.Config().ChainID)
 }

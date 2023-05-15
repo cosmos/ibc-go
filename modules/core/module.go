@@ -29,15 +29,13 @@ import (
 )
 
 var (
-	_ module.AppModule           = AppModule{}
-	_ module.AppModuleBasic      = AppModuleBasic{}
-	_ module.AppModuleSimulation = AppModule{}
+	_ module.AppModule           = (*AppModule)(nil)
+	_ module.AppModuleBasic      = (*AppModuleBasic)(nil)
+	_ module.AppModuleSimulation = (*AppModule)(nil)
 )
 
 // AppModuleBasic defines the basic application module used by the ibc module.
 type AppModuleBasic struct{}
-
-var _ module.AppModuleBasic = AppModuleBasic{}
 
 // Name returns the ibc module's name.
 func (AppModuleBasic) Name() string {
@@ -135,11 +133,7 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 			return err
 		}
 
-		if err := clientMigrator.Migrate3to4(ctx); err != nil {
-			return err
-		}
-
-		return nil
+		return clientMigrator.Migrate3to4(ctx)
 	}); err != nil {
 		panic(err)
 	}

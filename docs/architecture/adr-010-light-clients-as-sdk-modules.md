@@ -17,7 +17,7 @@ ibc-go has 3 main consumers:
 Relayers listen and respond to events emitted by ibc-go while IBC light clients and applications are invoked by core IBC. 
 Currently there exists two different approaches to callbacks being invoked by core IBC.
 
-IBC light clients currently are invoked by a `ClientState` and `ConsensusState` interface as defined by [core IBC](https://github.com/cosmos/ibc-go/blob/fb9dedd706e5835cdd607392320df79fcea7ca7f/modules/core/exported/client.go#L36).
+IBC light clients currently are invoked by a `ClientState` and `ConsensusState` interface as defined by [core IBC](https://github.com/cosmos/ibc-go/blob/v7.0.0/modules/core/exported/client.go#L36).
 The 02-client submodule will retrieve the `ClientState` or `ConsensusState` from the IBC store in order to perform callbacks to the light client. 
 This design requires all required information for the light client to function to be stored in the `ClientState` or `ConsensusState` or potentially under metadata keys for a specific client instance. 
 Additional information may be provided by core IBC via the defined interface arguments if that information is generic enough to be useful to all IBC light clients. 

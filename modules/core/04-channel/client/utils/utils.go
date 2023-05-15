@@ -194,6 +194,42 @@ func queryNextSequenceRecvABCI(clientCtx client.Context, portID, channelID strin
 	return types.NewQueryNextSequenceReceiveResponse(sequence, proofBz, proofHeight), nil
 }
 
+// QueryNextSequenceSend returns the next sequence send.
+// If prove is true, it performs an ABCI store query in order to retrieve the merkle proof. Otherwise,
+// it uses the gRPC query client.
+func QueryNextSequenceSend(
+	clientCtx client.Context, portID, channelID string, prove bool,
+) (*types.QueryNextSequenceSendResponse, error) {
+	if prove {
+		return queryNextSequenceSendABCI(clientCtx, portID, channelID)
+	}
+
+	queryClient := types.NewQueryClient(clientCtx)
+	req := &types.QueryNextSequenceSendRequest{
+		PortId:    portID,
+		ChannelId: channelID,
+	}
+	return queryClient.NextSequenceSend(context.Background(), req)
+}
+
+func queryNextSequenceSendABCI(clientCtx client.Context, portID, channelID string) (*types.QueryNextSequenceSendResponse, error) {
+	key := host.NextSequenceSendKey(portID, channelID)
+
+	value, proofBz, proofHeight, err := ibcclient.QueryTendermintProof(clientCtx, key)
+	if err != nil {
+		return nil, err
+	}
+
+	// check if next sequence send exists
+	if len(value) == 0 {
+		return nil, errorsmod.Wrapf(types.ErrChannelNotFound, "portID (%s), channelID (%s)", portID, channelID)
+	}
+
+	sequence := binary.BigEndian.Uint64(value)
+
+	return types.NewQueryNextSequenceSendResponse(sequence, proofBz, proofHeight), nil
+}
+
 // QueryPacketCommitment returns a packet commitment.
 // If prove is true, it performs an ABCI store query in order to retrieve the merkle proof. Otherwise,
 // it uses the gRPC query client.
