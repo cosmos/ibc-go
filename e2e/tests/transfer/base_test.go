@@ -470,6 +470,8 @@ func (s *TransferTestSuite) TestMsgTransfer_WithMemo() {
 		s.StartRelayer(relayer)
 	})
 
+	s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA, chainB), "failed to wait for blocks")
+
 	chainBIBCToken := testsuite.GetIBCToken(chainADenom, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID)
 
 	t.Run("packets relayed", func(t *testing.T) {
