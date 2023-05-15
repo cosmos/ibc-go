@@ -140,11 +140,11 @@ func isAllowedAddress(ctx sdk.Context, receiver string, allowedAddrs []string) b
 	return false
 }
 
-// GetUnboundedSpendLimitSentinelValue returns the sentinel value that can be used
+// UnboundedSpendLimit returns the sentinel value that can be used
 // as the amount for a denomination's spend limit for which spend limit updating
 // should be disabled. Please note that using this sentinel value means that a grantee
 // will be granted the privilege to do ICS20 token transfers for the total amount
 // of the denomination available at the granter's account.
-func GetUnboundedSpendLimitSentinelValue() sdkmath.Int {
+func UnboundedSpendLimit() sdkmath.Int {
 	return sdk.NewIntFromBigInt(maxUint256)
 }
