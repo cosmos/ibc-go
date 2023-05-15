@@ -150,7 +150,7 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	}
 
 	hostm := hostkeeper.NewMigrator(am.hostKeeper, am.legacyHostSubspace)
-	if err := cfg.RegisterMigration(types.ModuleName, 2, hostm.Migrate2to3); err != nil {
+	if err := cfg.RegisterMigration(types.ModuleName, 2, hostm.MigrateParams); err != nil {
 		panic(fmt.Sprintf("failed to migrate interchainaccounts host params from version 2 to 3: %v", err))
 	}
 }
