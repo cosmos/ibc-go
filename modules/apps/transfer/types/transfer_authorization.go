@@ -1,26 +1,17 @@
 package types
 
 import (
-<<<<<<< HEAD
-=======
 	"math/big"
 
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
->>>>>>> 7e6eb4c6 (imp: represent unlimited approvals with MaxUint256 value (#3454))
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/authz"
-<<<<<<< HEAD
 
-=======
-	ibcerrors "github.com/cosmos/ibc-go/v7/internal/errors"
->>>>>>> 7e6eb4c6 (imp: represent unlimited approvals with MaxUint256 value (#3454))
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 )
-
-const gasCostPerIteration = uint64(10)
 
 var _ authz.Authorization = &TransferAuthorization{}
 
@@ -47,18 +38,12 @@ func (a TransferAuthorization) Accept(ctx sdk.Context, msg sdk.Msg) (authz.Accep
 	}
 
 	for index, allocation := range a.Allocations {
-<<<<<<< HEAD
-		if allocation.SourceChannel == msgTransfer.SourceChannel && allocation.SourcePort == msgTransfer.SourcePort {
-			limitLeft, isNegative := allocation.SpendLimit.SafeSub(msgTransfer.Token)
-			if isNegative {
-				return authz.AcceptResponse{}, sdkerrors.Wrapf(sdkerrors.ErrInsufficientFunds, "requested amount is more than spend limit")
-=======
 		if !(allocation.SourceChannel == msgTransfer.SourceChannel && allocation.SourcePort == msgTransfer.SourcePort) {
 			continue
 		}
 
 		if !isAllowedAddress(ctx, msgTransfer.Receiver, allocation.AllowList) {
-			return authz.AcceptResponse{}, errorsmod.Wrap(ibcerrors.ErrInvalidAddress, "not allowed receiver address for transfer")
+			return authz.AcceptResponse{}, errorsmod.Wrap(sdkerrors.ErrInvalidAddress, "not allowed receiver address for transfer")
 		}
 
 		// If the spend limit is set to the MaxUint256 sentinel value, do not subtract the amount from the spend limit.
@@ -68,47 +53,31 @@ func (a TransferAuthorization) Accept(ctx sdk.Context, msg sdk.Msg) (authz.Accep
 
 		limitLeft, isNegative := allocation.SpendLimit.SafeSub(msgTransfer.Token)
 		if isNegative {
-			return authz.AcceptResponse{}, errorsmod.Wrapf(ibcerrors.ErrInsufficientFunds, "requested amount is more than spend limit")
+			return authz.AcceptResponse{}, errorsmod.Wrapf(sdkerrors.ErrInsufficientFunds, "requested amount is more than spend limit")
 		}
 
 		if limitLeft.IsZero() {
 			a.Allocations = append(a.Allocations[:index], a.Allocations[index+1:]...)
 			if len(a.Allocations) == 0 {
 				return authz.AcceptResponse{Accept: true, Delete: true}, nil
->>>>>>> 7e6eb4c6 (imp: represent unlimited approvals with MaxUint256 value (#3454))
 			}
-
-			if !isAllowedAddress(ctx, msgTransfer.Receiver, allocation.AllowList) {
-				return authz.AcceptResponse{}, sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "not allowed address for transfer")
-			}
-
-			if limitLeft.IsZero() {
-				a.Allocations = append(a.Allocations[:index], a.Allocations[index+1:]...)
-				if len(a.Allocations) == 0 {
-					return authz.AcceptResponse{Accept: true, Delete: true}, nil
-				}
-				return authz.AcceptResponse{Accept: true, Delete: false, Updated: &TransferAuthorization{
-					Allocations: a.Allocations,
-				}}, nil
-			}
-			a.Allocations[index] = Allocation{
-				SourcePort:    allocation.SourcePort,
-				SourceChannel: allocation.SourceChannel,
-				SpendLimit:    limitLeft,
-				AllowList:     allocation.AllowList,
-			}
-
 			return authz.AcceptResponse{Accept: true, Delete: false, Updated: &TransferAuthorization{
 				Allocations: a.Allocations,
 			}}, nil
 		}
-	}
-<<<<<<< HEAD
-	return authz.AcceptResponse{}, sdkerrors.Wrapf(sdkerrors.ErrNotFound, "requested port and channel allocation does not exist")
-=======
+		a.Allocations[index] = Allocation{
+			SourcePort:    allocation.SourcePort,
+			SourceChannel: allocation.SourceChannel,
+			SpendLimit:    limitLeft,
+			AllowList:     allocation.AllowList,
+		}
 
-	return authz.AcceptResponse{}, errorsmod.Wrapf(ibcerrors.ErrNotFound, "requested port and channel allocation does not exist")
->>>>>>> 7e6eb4c6 (imp: represent unlimited approvals with MaxUint256 value (#3454))
+		return authz.AcceptResponse{Accept: true, Delete: false, Updated: &TransferAuthorization{
+			Allocations: a.Allocations,
+		}}, nil
+	}
+
+	return authz.AcceptResponse{}, sdkerrors.Wrapf(sdkerrors.ErrNotFound, "requested port and channel allocation does not exist")
 }
 
 // ValidateBasic implements Authorization.ValidateBasic.
@@ -160,6 +129,8 @@ func isAllowedAddress(ctx sdk.Context, receiver string, allowedAddrs []string) b
 	if len(allowedAddrs) == 0 {
 		return true
 	}
+
+	gasCostPerIteration := ctx.KVGasConfig().IterNextCostFlat
 
 	for _, addr := range allowedAddrs {
 		ctx.GasMeter().ConsumeGas(gasCostPerIteration, "transfer authorization")
