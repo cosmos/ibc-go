@@ -46,12 +46,6 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Improvements
 
-<<<<<<< HEAD
-=======
-* (tests) [\#3138](https://github.com/cosmos/ibc-go/pull/3138) Support benchmarks and fuzz tests through `testing.TB`.
-* (apps/transfer) [\#3454](https://github.com/cosmos/ibc-go/pull/3454) Support transfer authorization unlimited spending when the max `uint256` value is provided as limit.
-
->>>>>>> 7e6eb4c6 (imp: represent unlimited approvals with MaxUint256 value (#3454))
 ### Features
 
 * [\#3079](https://github.com/cosmos/ibc-go/pull/3079) Add authz support for ics20.

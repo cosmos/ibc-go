@@ -3,16 +3,10 @@ package types_test
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/authz"
-<<<<<<< HEAD
 
 	"github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	ibctesting "github.com/cosmos/ibc-go/v6/testing"
 	"github.com/cosmos/ibc-go/v6/testing/mock"
-=======
-	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
-	"github.com/cosmos/ibc-go/v7/testing/mock"
->>>>>>> 7e6eb4c6 (imp: represent unlimited approvals with MaxUint256 value (#3454))
 )
 
 func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
