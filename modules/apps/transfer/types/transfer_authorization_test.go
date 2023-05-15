@@ -88,7 +88,7 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 		{
 			"success: with unlimited spend limit of max uint256",
 			func() {
-				transferAuthz.Allocations[0].SpendLimit = sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, types.GetUnboundedSpendLimitSentinelValue()))
+				transferAuthz.Allocations[0].SpendLimit = sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, types.UnboundedSpendLimit()))
 			},
 			func(res authz.AcceptResponse, err error) {
 				suite.Require().NoError(err)
@@ -97,7 +97,7 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 				suite.Require().True(ok)
 
 				remainder := updatedTransferAuthz.Allocations[0].SpendLimit.AmountOf(sdk.DefaultBondDenom)
-				suite.Require().True(types.GetUnboundedSpendLimitSentinelValue().Equal(remainder))
+				suite.Require().True(types.UnboundedSpendLimit().Equal(remainder))
 			},
 		},
 		{
@@ -234,7 +234,7 @@ func (suite *TypesTestSuite) TestTransferAuthorizationValidateBasic() {
 		{
 			"success: with unlimited spend limit of max uint256",
 			func() {
-				transferAuthz.Allocations[0].SpendLimit = sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, types.GetUnboundedSpendLimitSentinelValue()))
+				transferAuthz.Allocations[0].SpendLimit = sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, types.UnboundedSpendLimit()))
 			},
 			true,
 		},

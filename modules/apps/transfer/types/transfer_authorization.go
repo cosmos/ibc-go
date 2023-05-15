@@ -46,7 +46,7 @@ func (a TransferAuthorization) Accept(ctx sdk.Context, msg sdk.Msg) (authz.Accep
 		}
 
 		// If the spend limit is set to the MaxUint256 sentinel value, do not subtract the amount from the spend limit.
-		if allocation.SpendLimit.AmountOf(msgTransfer.Token.Denom).Equal(GetUnboundedSpendLimitSentinelValue()) {
+		if allocation.SpendLimit.AmountOf(msgTransfer.Token.Denom).Equal(UnboundedSpendLimit()) {
 			return authz.AcceptResponse{Accept: true, Delete: false, Updated: &a}, nil
 		}
 
