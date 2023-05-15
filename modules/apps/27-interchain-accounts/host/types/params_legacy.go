@@ -29,7 +29,7 @@ func ParamKeyTable() paramtypes.KeyTable {
 func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 	return paramtypes.ParamSetPairs{
 		paramtypes.NewParamSetPair(KeyHostEnabled, p.HostEnabled, validateEnabledType),
-		paramtypes.NewParamSetPair(KeyAllowMessages, p.AllowMessages, validateAllowlistLegacy),
+		paramtypes.NewParamSetPair(KeyAllowMessages, &p.AllowMessages, validateAllowlistLegacy),
 	}
 }
 
