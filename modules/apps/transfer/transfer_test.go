@@ -122,7 +122,7 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 	err = pathBtoC.RelayPacket(packet)
 	suite.Require().NoError(err) // relay committed
 
-	// check that balance on chain A is empty
+	// check that balance on chain A is updated
 	balance = suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), sdk.DefaultBondDenom)
 	suite.Require().Equal(originalBalance.SubAmount(amount).Amount.Int64(), balance.Amount.Int64())
 
