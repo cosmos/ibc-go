@@ -54,16 +54,11 @@ func SetConsensusState(clientStore sdk.KVStore, cdc codec.BinaryCodec, consensus
 // store. An error is returned if the consensus state does not exist.
 func GetConsensusState(store sdk.KVStore, cdc codec.BinaryCodec, height exported.Height) (*ConsensusState, error) {
 	bz := store.Get(host.ConsensusStateKey(height))
-<<<<<<< HEAD:modules/light-clients/07-tendermint/types/store.go
-	if bz == nil {
+	if len(bz) == 0 {
 		return nil, sdkerrors.Wrapf(
 			clienttypes.ErrConsensusStateNotFound,
 			"consensus state does not exist for height %s", height,
 		)
-=======
-	if len(bz) == 0 {
-		return nil, false
->>>>>>> b2fb1192 (chore: Add `HasConnection` and `HasChannel` methods. (#3082)):modules/light-clients/07-tendermint/store.go
 	}
 
 	consensusStateI, err := clienttypes.UnmarshalConsensusState(cdc, bz)
