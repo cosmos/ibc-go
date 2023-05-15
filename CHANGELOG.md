@@ -46,6 +46,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Improvements
 
+* (core) [\#3082](https://github.com/cosmos/ibc-go/pull/3082) Add `HasConnection` and `HasChannel` methods.
+
 ### Features
 
 * [\#3079](https://github.com/cosmos/ibc-go/pull/3079) Add authz support for ics20.

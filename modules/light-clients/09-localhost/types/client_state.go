@@ -121,7 +121,7 @@ func (cs ClientState) VerifyClientState(
 ) error {
 	path := host.KeyClientState
 	bz := store.Get([]byte(path))
-	if bz == nil {
+	if len(bz) == 0 {
 		return sdkerrors.Wrapf(clienttypes.ErrFailedClientStateVerification,
 			"not found for path: %s", path)
 	}
@@ -160,7 +160,7 @@ func (cs ClientState) VerifyConnectionState(
 ) error {
 	path := host.ConnectionKey(connectionID)
 	bz := store.Get(path)
-	if bz == nil {
+	if len(bz) == 0 {
 		return sdkerrors.Wrapf(clienttypes.ErrFailedConnectionStateVerification, "not found for path %s", path)
 	}
 
@@ -194,7 +194,7 @@ func (cs ClientState) VerifyChannelState(
 ) error {
 	path := host.ChannelKey(portID, channelID)
 	bz := store.Get(path)
-	if bz == nil {
+	if len(bz) == 0 {
 		return sdkerrors.Wrapf(clienttypes.ErrFailedChannelStateVerification, "not found for path %s", path)
 	}
 

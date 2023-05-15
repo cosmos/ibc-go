@@ -291,7 +291,7 @@ func (k Keeper) GetFeesInEscrow(ctx sdk.Context, packetID channeltypes.PacketId)
 	store := ctx.KVStore(k.storeKey)
 	key := types.KeyFeesInEscrow(packetID)
 	bz := store.Get(key)
-	if bz == nil {
+	if len(bz) == 0 {
 		return types.PacketFees{}, false
 	}
 

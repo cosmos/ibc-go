@@ -54,7 +54,7 @@ func SetConsensusState(clientStore sdk.KVStore, cdc codec.BinaryCodec, consensus
 // store. An error is returned if the consensus state does not exist.
 func GetConsensusState(store sdk.KVStore, cdc codec.BinaryCodec, height exported.Height) (*ConsensusState, error) {
 	bz := store.Get(host.ConsensusStateKey(height))
-	if bz == nil {
+	if len(bz) == 0 {
 		return nil, sdkerrors.Wrapf(
 			clienttypes.ErrConsensusStateNotFound,
 			"consensus state does not exist for height %s", height,
@@ -138,7 +138,7 @@ func SetProcessedTime(clientStore sdk.KVStore, height exported.Height, timeNs ui
 func GetProcessedTime(clientStore sdk.KVStore, height exported.Height) (uint64, bool) {
 	key := ProcessedTimeKey(height)
 	bz := clientStore.Get(key)
-	if bz == nil {
+	if len(bz) == 0 {
 		return 0, false
 	}
 	return sdk.BigEndianToUint64(bz), true
@@ -169,7 +169,7 @@ func SetProcessedHeight(clientStore sdk.KVStore, consHeight, processedHeight exp
 func GetProcessedHeight(clientStore sdk.KVStore, height exported.Height) (exported.Height, bool) {
 	key := ProcessedHeightKey(height)
 	bz := clientStore.Get(key)
-	if bz == nil {
+	if len(bz) == 0 {
 		return nil, false
 	}
 	processedHeight, err := clienttypes.ParseHeight(string(bz))
@@ -320,7 +320,7 @@ func PruneAllExpiredConsensusStates(
 // Helper function for GetNextConsensusState and GetPreviousConsensusState
 func getTmConsensusState(clientStore sdk.KVStore, cdc codec.BinaryCodec, key []byte) (*ConsensusState, bool) {
 	bz := clientStore.Get(key)
-	if bz == nil {
+	if len(bz) == 0 {
 		return nil, false
 	}
 
