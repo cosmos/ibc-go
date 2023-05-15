@@ -5,7 +5,6 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	ics23 "github.com/cosmos/ics23/go"
 
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
@@ -66,11 +65,6 @@ func (cs ClientState) Status(_ sdk.Context, _ sdk.KVStore, _ codec.BinaryCodec) 
 
 // Validate panics!
 func (cs ClientState) Validate() error {
-	panic("legacy solo machine is deprecated!")
-}
-
-// GetProofSpecs panics!
-func (cs ClientState) GetProofSpecs() []*ics23.ProofSpec {
 	panic("legacy solo machine is deprecated!")
 }
 
