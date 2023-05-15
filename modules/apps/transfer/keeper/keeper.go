@@ -152,7 +152,7 @@ func (k Keeper) IterateDenomTraces(ctx sdk.Context, cb func(denomTrace types.Den
 func (k Keeper) GetTotalEscrowForDenom(ctx sdk.Context, denom string) sdk.Coin {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.TotalEscrowForDenomKey(denom))
-	if bz == nil {
+	if len(bz) == 0 {
 		return sdk.NewCoin(denom, sdk.ZeroInt())
 	}
 
@@ -169,8 +169,14 @@ func (k Keeper) SetTotalEscrowForDenom(ctx sdk.Context, coin sdk.Coin) {
 	}
 
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshal(&sdk.IntProto{Int: coin.Amount})
-	store.Set(types.TotalEscrowForDenomKey(coin.Denom), bz)
+	key := types.TotalEscrowForDenomKey(coin.Denom)
+
+	if coin.Amount.IsZero() {
+		store.Delete(key)
+	} else {
+		bz := k.cdc.MustMarshal(&sdk.IntProto{Int: coin.Amount})
+		store.Set(types.TotalEscrowForDenomKey(coin.Denom), bz)
+	}
 }
 
 // GetAllTotalEscrowed returns the escrow information for all the denominations.

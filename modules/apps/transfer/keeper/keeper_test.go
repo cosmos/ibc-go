@@ -72,6 +72,13 @@ func (suite *KeeperTestSuite) TestSetGetTotalEscrowForDenom() {
 			true,
 		},
 		{
+			"success: escrow amount 0 is not stored",
+			func() {
+				expAmount = math.ZeroInt()
+			},
+			true,
+		},
+		{
 			"failure: setter panics with negative escrow amount",
 			func() {
 				expAmount = math.NewInt(-1)
@@ -94,6 +101,15 @@ func (suite *KeeperTestSuite) TestSetGetTotalEscrowForDenom() {
 				suite.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(ctx, sdk.NewCoin(denom, expAmount))
 				total := suite.chainA.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(ctx, denom)
 				suite.Require().Equal(expAmount, total.Amount)
+
+				storeKey := suite.chainA.GetSimApp().GetKey(types.ModuleName)
+				store := ctx.KVStore(storeKey)
+				key := types.TotalEscrowForDenomKey(denom)
+				if expAmount.IsZero() {
+					suite.Require().False(store.Has(key))
+				} else {
+					suite.Require().True(store.Has(key))
+				}
 			} else {
 				suite.Require().PanicsWithError("negative coin amount: -1", func() {
 					suite.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(ctx, sdk.NewCoin(denom, expAmount))
