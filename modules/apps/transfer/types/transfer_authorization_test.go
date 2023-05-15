@@ -87,6 +87,48 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 			},
 		},
 		{
+			"success: with unlimited spend limit of max uint256",
+			func() {
+				transferAuthz.Allocations[0].SpendLimit = sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, types.UnboundedSpendLimit()))
+			},
+			func(res authz.AcceptResponse, err error) {
+				suite.Require().NoError(err)
+
+				updatedTransferAuthz, ok := res.Updated.(*types.TransferAuthorization)
+				suite.Require().True(ok)
+
+				remainder := updatedTransferAuthz.Allocations[0].SpendLimit.AmountOf(sdk.DefaultBondDenom)
+				suite.Require().True(types.UnboundedSpendLimit().Equal(remainder))
+			},
+		},
+		{
+			"test multiple coins does not overspend",
+			func() {
+				transferAuthz.Allocations[0].SpendLimit = transferAuthz.Allocations[0].SpendLimit.Add(
+					sdk.NewCoins(
+						sdk.NewCoin("test-denom", sdk.NewInt(100)),
+						sdk.NewCoin("test-denom2", sdk.NewInt(100)),
+					)...,
+				)
+				msgTransfer.Token = sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(50))
+			},
+			func(res authz.AcceptResponse, err error) {
+				suite.Require().NoError(err)
+
+				updatedTransferAuthz, ok := res.Updated.(*types.TransferAuthorization)
+				suite.Require().True(ok)
+
+				remainder := updatedTransferAuthz.Allocations[0].SpendLimit.AmountOf(sdk.DefaultBondDenom)
+				suite.Require().True(sdk.NewInt(50).Equal(remainder))
+
+				remainder = updatedTransferAuthz.Allocations[0].SpendLimit.AmountOf("test-denom")
+				suite.Require().True(sdk.NewInt(100).Equal(remainder))
+
+				remainder = updatedTransferAuthz.Allocations[0].SpendLimit.AmountOf("test-denom2")
+				suite.Require().True(sdk.NewInt(100).Equal(remainder))
+			},
+		},
+		{
 			"no spend limit set for MsgTransfer port/channel",
 			func() {
 				msgTransfer.SourcePort = ibctesting.MockPort
@@ -187,6 +229,13 @@ func (suite *TypesTestSuite) TestTransferAuthorizationValidateBasic() {
 				}
 
 				transferAuthz.Allocations = append(transferAuthz.Allocations, allocation)
+			},
+			true,
+		},
+		{
+			"success: with unlimited spend limit of max uint256",
+			func() {
+				transferAuthz.Allocations[0].SpendLimit = sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, types.UnboundedSpendLimit()))
 			},
 			true,
 		},
