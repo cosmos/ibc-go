@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"fmt"
 
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktestutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
 
@@ -126,78 +127,59 @@ func (suite *KeeperTestSuite) TestMigratorMigrateTracesCorruptionDetection() {
 
 func (suite *KeeperTestSuite) TestMigrateTotalEscrowForDenom() {
 	var (
-		path             *ibctesting.Path
-		expectedEscrowed sdk.Coins
+		path  *ibctesting.Path
+		denom string
 	)
 
 	testCases := []struct {
-		msg      string
-		malleate func()
+		msg               string
+		malleate          func()
+		expectedEscrowAmt math.Int
 	}{
 		{
 			"success: one native denom escrowed in one channel",
 			func() {
-				denom := sdk.DefaultBondDenom
+				denom = sdk.DefaultBondDenom
 				escrowAddress := transfertypes.GetEscrowAddress(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-				coin := sdk.NewCoin(denom, sdk.NewInt(100))
+				coin := sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100))
 
 				// funds the escrow account to have balance
 				suite.Require().NoError(banktestutil.FundAccount(suite.chainA.GetSimApp().BankKeeper, suite.chainA.GetContext(), escrowAddress, sdk.NewCoins(coin)))
-
-				expectedEscrowed.Add(coin)
 			},
-		},
-		{
-			"success: two native denom escrowed in one channel",
-			func() {
-				denom1 := "samoleans"
-				denom2 := sdk.DefaultBondDenom
-
-				escrowAddress := transfertypes.GetEscrowAddress(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-				coin1 := sdk.NewCoin(denom1, sdk.NewInt(100))
-				coin2 := sdk.NewCoin(denom2, sdk.NewInt(200))
-
-				// funds the escrow accounts to have balance
-				suite.Require().NoError(banktestutil.FundAccount(suite.chainA.GetSimApp().BankKeeper, suite.chainA.GetContext(), escrowAddress, sdk.NewCoins(coin1)))
-				suite.Require().NoError(banktestutil.FundAccount(suite.chainA.GetSimApp().BankKeeper, suite.chainA.GetContext(), escrowAddress, sdk.NewCoins(coin2)))
-
-				expectedEscrowed.Add(coin1, coin2)
-			},
+			math.NewInt(100),
 		},
 		{
 			"success: one native denom escrowed in two channels",
 			func() {
-				denom := sdk.DefaultBondDenom
+				denom = sdk.DefaultBondDenom
 				extraPath := NewTransferPath(suite.chainA, suite.chainB)
 				suite.coordinator.Setup(extraPath)
 
 				escrowAddress1 := transfertypes.GetEscrowAddress(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 				escrowAddress2 := transfertypes.GetEscrowAddress(extraPath.EndpointA.ChannelConfig.PortID, extraPath.EndpointA.ChannelID)
-				coin1 := sdk.NewCoin(denom, sdk.NewInt(100))
-				coin2 := sdk.NewCoin(denom, sdk.NewInt(100))
+				coin1 := sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100))
+				coin2 := sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100))
 
 				// funds the escrow accounts to have balance
 				suite.Require().NoError(banktestutil.FundAccount(suite.chainA.GetSimApp().BankKeeper, suite.chainA.GetContext(), escrowAddress1, sdk.NewCoins(coin1)))
 				suite.Require().NoError(banktestutil.FundAccount(suite.chainA.GetSimApp().BankKeeper, suite.chainA.GetContext(), escrowAddress2, sdk.NewCoins(coin2)))
-
-				expectedEscrowed.Add(coin1, coin2)
 			},
+			math.NewInt(200),
 		},
 		{
 			"success: valid ibc denom escrowed in one channel",
 			func() {
 				escrowAddress := transfertypes.GetEscrowAddress(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 				trace := transfertypes.ParseDenomTrace(transfertypes.GetPrefixedDenom(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, sdk.DefaultBondDenom))
-				denom := trace.IBCDenom()
-				coin := sdk.NewCoin(denom, sdk.NewInt(100))
+				coin := sdk.NewCoin(trace.IBCDenom(), sdk.NewInt(100))
+				denom = trace.IBCDenom()
 
 				suite.chainA.GetSimApp().TransferKeeper.SetDenomTrace(suite.chainA.GetContext(), trace)
 
 				// funds the escrow account to have balance
 				suite.Require().NoError(banktestutil.FundAccount(suite.chainA.GetSimApp().BankKeeper, suite.chainA.GetContext(), escrowAddress, sdk.NewCoins(coin)))
-
-				expectedEscrowed.Add(coin)
 			},
+			sdk.NewInt(100),
 		},
 	}
 
@@ -214,10 +196,8 @@ func (suite *KeeperTestSuite) TestMigrateTotalEscrowForDenom() {
 			suite.Require().NoError(migrator.MigrateTotalEscrowForDenom(suite.chainA.GetContext()))
 
 			// check that the migration set the expected amount for both native and IBC tokens
-			for _, escrow := range expectedEscrowed {
-				amount := suite.chainA.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(suite.chainA.GetContext(), escrow.GetDenom())
-				suite.Require().Equal(escrow.Amount, amount)
-			}
+			amount := suite.chainA.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(suite.chainA.GetContext(), denom)
+			suite.Require().Equal(tc.expectedEscrowAmt, amount.Amount)
 		})
 	}
 }

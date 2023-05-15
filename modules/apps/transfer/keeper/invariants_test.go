@@ -24,7 +24,7 @@ func (suite *KeeperTestSuite) TestTotalEscrowPerDenomInvariant() {
 			func() {
 				// set amount for denom higher than actual value in escrow
 				amount := math.NewInt(200)
-				suite.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(suite.chainA.GetContext(), sdk.DefaultBondDenom, amount)
+				suite.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(suite.chainA.GetContext(), sdk.NewCoin(sdk.DefaultBondDenom, amount))
 			},
 			false,
 		},

@@ -169,12 +169,6 @@ func (cs ClientState) Validate() error {
 	return nil
 }
 
-// GetProofSpecs returns the format the client expects for proof verification
-// as a string array specifying the proof type for each position in chained proof
-func (cs ClientState) GetProofSpecs() []*ics23.ProofSpec {
-	return cs.ProofSpecs
-}
-
 // ZeroCustomFields returns a ClientState that is a copy of the current ClientState
 // with all client customizable fields zeroed out
 func (cs ClientState) ZeroCustomFields() exported.ClientState {

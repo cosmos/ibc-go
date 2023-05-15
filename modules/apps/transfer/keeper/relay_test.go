@@ -145,7 +145,7 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 
 			// check total amount in escrow of sent token denom on sending chain
 			amount := suite.chainA.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(suite.chainA.GetContext(), coin.GetDenom())
-			suite.Require().Equal(expEscrowAmount, amount)
+			suite.Require().Equal(expEscrowAmount, amount.Amount)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -233,7 +233,7 @@ func (suite *KeeperTestSuite) TestSendTransferSetsTotalEscrowAmountForSourceIBCT
 
 	// check total amount in escrow of sent token on sending chain
 	totalEscrow := suite.chainB.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(suite.chainB.GetContext(), coin.GetDenom())
-	suite.Require().Equal(math.NewInt(100), totalEscrow)
+	suite.Require().Equal(math.NewInt(100), totalEscrow.Amount)
 }
 
 // test receiving coin on chainB with coin that orignate on chainA and
@@ -386,7 +386,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			// check total amount in escrow of received token denom on receiving chain
 			var (
 				denom       string
-				totalEscrow math.Int
+				totalEscrow sdk.Coin
 			)
 			if tc.recvIsSource {
 				denom = sdk.DefaultBondDenom
@@ -394,7 +394,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				denom = trace.IBCDenom()
 			}
 			totalEscrow = suite.chainB.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(suite.chainB.GetContext(), denom)
-			suite.Require().Equal(expEscrowAmount, totalEscrow)
+			suite.Require().Equal(expEscrowAmount, totalEscrow.Amount)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -485,9 +485,9 @@ func (suite *KeeperTestSuite) TestOnRecvPacketSetsTotalEscrowAmountForSourceIBCT
 		),
 	)
 
-	suite.chainB.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(suite.chainB.GetContext(), coin.GetDenom(), coin.Amount)
+	suite.chainB.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(suite.chainB.GetContext(), coin)
 	totalEscrowChainB := suite.chainB.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(suite.chainB.GetContext(), coin.GetDenom())
-	suite.Require().Equal(math.NewInt(100), totalEscrowChainB)
+	suite.Require().Equal(math.NewInt(100), totalEscrowChainB.Amount)
 
 	// execute onRecvPacket, when chaninB receives the source token the escrow amount should decrease
 	err := suite.chainB.GetSimApp().TransferKeeper.OnRecvPacket(suite.chainB.GetContext(), packet, data)
@@ -495,7 +495,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacketSetsTotalEscrowAmountForSourceIBCT
 
 	// check total amount in escrow of sent token on reveiving chain
 	totalEscrowChainB = suite.chainB.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(suite.chainB.GetContext(), coin.GetDenom())
-	suite.Require().Equal(math.ZeroInt(), totalEscrowChainB)
+	suite.Require().Equal(math.ZeroInt(), totalEscrowChainB.Amount)
 }
 
 // TestOnAcknowledgementPacket tests that successful acknowledgement is a no-op
@@ -537,7 +537,7 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 				suite.Require().NoError(banktestutil.FundAccount(suite.chainA.GetSimApp().BankKeeper, suite.chainA.GetContext(), escrow, sdk.NewCoins(coin)))
 
 				// set escrow amount that would have been stored after successful execution of MsgTransfer
-				suite.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(suite.chainA.GetContext(), sdk.DefaultBondDenom, amount)
+				suite.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(suite.chainA.GetContext(), sdk.NewCoin(sdk.DefaultBondDenom, amount))
 			}, false, true,
 		},
 		{
@@ -547,7 +547,7 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 				trace = types.ParseDenomTrace(sdk.DefaultBondDenom)
 
 				// set escrow amount that would have been stored after successful execution of MsgTransfer
-				suite.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(suite.chainA.GetContext(), sdk.DefaultBondDenom, amount)
+				suite.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(suite.chainA.GetContext(), sdk.NewCoin(sdk.DefaultBondDenom, amount))
 				expEscrowAmount = math.NewInt(100)
 			}, false, false,
 		},
@@ -584,7 +584,7 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 
 			// check total amount in escrow of sent token denom on sending chain
 			totalEscrow := suite.chainA.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(suite.chainA.GetContext(), trace.IBCDenom())
-			suite.Require().Equal(expEscrowAmount, totalEscrow)
+			suite.Require().Equal(expEscrowAmount, totalEscrow.Amount)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -677,16 +677,16 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacketSetsTotalEscrowAmountFo
 		suite.chainA.GetTimeoutHeight(), 0,
 	)
 
-	suite.chainB.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(suite.chainB.GetContext(), coin.GetDenom(), coin.Amount)
+	suite.chainB.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(suite.chainB.GetContext(), coin)
 	totalEscrowChainB := suite.chainB.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(suite.chainB.GetContext(), coin.GetDenom())
-	suite.Require().Equal(math.NewInt(100), totalEscrowChainB)
+	suite.Require().Equal(math.NewInt(100), totalEscrowChainB.Amount)
 
 	err := suite.chainB.GetSimApp().TransferKeeper.OnAcknowledgementPacket(suite.chainB.GetContext(), packet, data, ack)
 	suite.Require().NoError(err)
 
 	// check total amount in escrow of sent token on sending chain
 	totalEscrowChainB = suite.chainB.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(suite.chainB.GetContext(), coin.GetDenom())
-	suite.Require().Equal(math.ZeroInt(), totalEscrowChainB)
+	suite.Require().Equal(math.ZeroInt(), totalEscrowChainB.Amount)
 }
 
 // TestOnTimeoutPacket test private refundPacket function since it is a simple
@@ -718,7 +718,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 				// funds the escrow account to have balance
 				suite.Require().NoError(banktestutil.FundAccount(suite.chainA.GetSimApp().BankKeeper, suite.chainA.GetContext(), escrow, sdk.NewCoins(coin)))
 				// set escrow amount that would have been stored after successful execution of MsgTransfer
-				suite.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(suite.chainA.GetContext(), coin.GetDenom(), coin.Amount)
+				suite.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(suite.chainA.GetContext(), coin)
 			}, true,
 		},
 		{
@@ -740,7 +740,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 				expEscrowAmount = amount
 
 				// set escrow amount that would have been stored after successful execution of MsgTransfer
-				suite.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(suite.chainA.GetContext(), trace.IBCDenom(), amount)
+				suite.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(suite.chainA.GetContext(), sdk.NewCoin(trace.IBCDenom(), amount))
 			}, false,
 		},
 		{
@@ -750,7 +750,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 				expEscrowAmount = amount
 
 				// set escrow amount that would have been stored after successful execution of MsgTransfer
-				suite.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(suite.chainA.GetContext(), trace.IBCDenom(), amount)
+				suite.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(suite.chainA.GetContext(), sdk.NewCoin(trace.IBCDenom(), amount))
 			}, false,
 		},
 		{
@@ -788,7 +788,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 
 			// check total amount in escrow of sent token denom on sending chain
 			totalEscrow := suite.chainA.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(suite.chainA.GetContext(), trace.IBCDenom())
-			suite.Require().Equal(expEscrowAmount, totalEscrow)
+			suite.Require().Equal(expEscrowAmount, totalEscrow.Amount)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -871,14 +871,14 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacketSetsTotalEscrowAmountForSourceI
 		suite.chainA.GetTimeoutHeight(), 0,
 	)
 
-	suite.chainB.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(suite.chainB.GetContext(), coin.GetDenom(), coin.Amount)
+	suite.chainB.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(suite.chainB.GetContext(), coin)
 	totalEscrowChainB := suite.chainB.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(suite.chainB.GetContext(), coin.GetDenom())
-	suite.Require().Equal(math.NewInt(100), totalEscrowChainB)
+	suite.Require().Equal(math.NewInt(100), totalEscrowChainB.Amount)
 
 	err := suite.chainB.GetSimApp().TransferKeeper.OnTimeoutPacket(suite.chainB.GetContext(), packet, data)
 	suite.Require().NoError(err)
 
 	// check total amount in escrow of sent token on sending chain
 	totalEscrowChainB = suite.chainB.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(suite.chainB.GetContext(), coin.GetDenom())
-	suite.Require().Equal(math.ZeroInt(), totalEscrowChainB)
+	suite.Require().Equal(math.ZeroInt(), totalEscrowChainB.Amount)
 }
