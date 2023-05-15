@@ -6,7 +6,7 @@ require (
 	cosmossdk.io/math v1.0.1
 	github.com/cometbft/cometbft v0.37.1
 	github.com/cosmos/cosmos-sdk v0.47.2
-	github.com/cosmos/gogoproto v1.4.8
+	github.com/cosmos/gogoproto v1.4.10
 	github.com/cosmos/ibc-go/v7 v7.0.0
 	github.com/cosmos/interchain-accounts v0.5.1
 	github.com/docker/docker v20.10.19+incompatible
