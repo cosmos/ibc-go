@@ -60,7 +60,7 @@ func (suite *KeeperTestSuite) TestSetGetTotalEscrowForDenom() {
 		expPass  bool
 	}{
 		{
-			"success: with 0 escrow amount",
+			"success: with non-zero escrow amount",
 			func() {},
 			true,
 		},
@@ -92,7 +92,7 @@ func (suite *KeeperTestSuite) TestSetGetTotalEscrowForDenom() {
 
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
-			expAmount = math.ZeroInt()
+			expAmount = math.NewInt(100)
 			ctx := suite.chainA.GetContext()
 
 			tc.malleate()
