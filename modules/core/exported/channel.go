@@ -32,9 +32,9 @@ type PacketI interface {
 }
 
 // Acknowledgement defines the interface used to return acknowledgements in the OnRecvPacket callback.
-// The Acknowledgement interface is used by core IBC to ensure partial state changes are not committed 
-// when packet receives have not properly succeeded (typically resulting in an error acknoweldgement being returned).
-// The interface also allows core IBC to obtain the acknowledgement bytes whose encoding is determined by each IBC application or middleware. 
+// The Acknowledgement interface is used by core IBC to ensure partial state changes are not committed
+// when packet receives have not properly succeeded (typically resulting in an error acknowledgement being returned).
+// The interface also allows core IBC to obtain the acknowledgement bytes whose encoding is determined by each IBC application or middleware.
 // Each custom acknowledgement type must implement this interface.
 type Acknowledgement interface {
 	// Success determines if the IBC application state should be persisted when handling `RecvPacket`.
