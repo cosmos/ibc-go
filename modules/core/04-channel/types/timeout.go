@@ -24,15 +24,15 @@ func (t Timeout) AfterTimestamp(timestamp uint64) bool {
 
 // IsValid validates the Timeout. It ensures that either height or timestamp is set.
 func (t Timeout) IsValid() bool {
-	return !t.ZeroHeight() || !t.ZeroTimestamp()
+	return !t.IsZeroHeight() || !t.IsZeroTimestamp()
 }
 
-// ZeroHeight returns true if Timeout height is zero, otherwise false.
-func (t Timeout) ZeroHeight() bool {
+// IsZeroHeight returns true if Timeout height is zero, otherwise false.
+func (t Timeout) IsZeroHeight() bool {
 	return t.Height.IsZero()
 }
 
 // ZeroTimestamp returns true if Timeout timestamp is zero, otherwise false.
-func (t Timeout) ZeroTimestamp() bool {
+func (t Timeout) IsZeroTimestamp() bool {
 	return t.Timestamp == 0
 }
