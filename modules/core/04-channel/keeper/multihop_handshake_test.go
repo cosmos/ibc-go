@@ -4,26 +4,40 @@ import (
 	"fmt"
 
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
+	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
 
 	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
+	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
 // TestChannOpenInit tests the OpenInit handshake call for multihop channels.
 func (suite *MultihopTestSuite) TestChanOpenInit() {
 
-	var portCap *capabilitytypes.Capability
+	var (
+		features             []string
+		portCap              *capabilitytypes.Capability
+		expErrorMsgSubstring string
+	)
 
 	testCases := []testCase{
 		{"success", func() {
 			suite.SetupConnections()
-
+			features = []string{"ORDER_ORDERED", "ORDER_UNORDERED"}
 			suite.A().Chain.CreatePortCapability(
 				suite.A().Chain.GetSimApp().ScopedIBCMockKeeper,
 				suite.A().ChannelConfig.PortID,
 			)
 			portCap = suite.A().Chain.GetPortCapability(suite.A().ChannelConfig.PortID)
 		}, true},
+		{"multi-hop channel already exists", func() {
+			suite.coord.SetupChannels(suite.chanPath)
+		}, false},
+		{"connection doesn't exist", func() {
+			// any non-empty values
+			suite.chanPath.EndpointA.ConnectionID = "connection-0"
+			suite.chanPath.EndpointZ.ConnectionID = "connection-0"
+		}, false},
 		{"capability is incorrect", func() {
 			suite.SetupConnections()
 
@@ -32,6 +46,53 @@ func (suite *MultihopTestSuite) TestChanOpenInit() {
 				suite.A().ChannelConfig.PortID,
 			)
 			portCap = capabilitytypes.NewCapability(42)
+		}, false},
+		{"connection version not negotiated", func() {
+			suite.coord.SetupConnections(suite.chanPath)
+
+			// modify connA versions
+			conn := suite.chanPath.EndpointA.GetConnection()
+
+			version := connectiontypes.NewVersion("2", []string{"ORDER_ORDERED", "ORDER_UNORDERED"})
+			conn.Versions = append(conn.Versions, version)
+
+			suite.A().Chain.App.GetIBCKeeper().ConnectionKeeper.SetConnection(
+				suite.A().Chain.GetContext(),
+				suite.chanPath.EndpointA.ConnectionID, conn,
+			)
+			// features = []string{"ORDER_ORDERED", "ORDER_UNORDERED"}
+			suite.A().Chain.CreatePortCapability(suite.A().Chain.GetSimApp().ScopedIBCMockKeeper, ibctesting.MockPort)
+			portCap = suite.A().Chain.GetPortCapability(ibctesting.MockPort)
+		}, false},
+		{"connection does not support ORDERED channels", func() {
+			suite.coord.SetupConnections(suite.chanPath)
+
+			// modify connA versions to only support UNORDERED channels
+			conn := suite.chanPath.EndpointA.GetConnection()
+
+			version := connectiontypes.NewVersion("1", []string{"ORDER_UNORDERED"})
+			conn.Versions = []*connectiontypes.Version{version}
+
+			suite.A().Chain.App.GetIBCKeeper().ConnectionKeeper.SetConnection(
+				suite.A().Chain.GetContext(),
+				suite.chanPath.EndpointA.ConnectionID, conn,
+			)
+			// NOTE: Opening UNORDERED channels is still expected to pass but ORDERED channels should fail
+			features = []string{"ORDER_UNORDERED"}
+			suite.A().Chain.CreatePortCapability(suite.A().Chain.GetSimApp().ScopedIBCMockKeeper, ibctesting.MockPort)
+			portCap = suite.A().Chain.GetPortCapability(ibctesting.MockPort)
+		}, true},
+		{"unauthorized client", func() {
+			expErrorMsgSubstring = "status is Unauthorized"
+			suite.coord.SetupConnections(suite.chanPath)
+
+			// remove client from allowed list
+			params := suite.A().Chain.App.GetIBCKeeper().ClientKeeper.GetParams(suite.A().Chain.GetContext())
+			params.AllowedClients = []string{}
+			suite.A().Chain.App.GetIBCKeeper().ClientKeeper.SetParams(suite.A().Chain.GetContext(), params)
+
+			suite.A().Chain.CreatePortCapability(suite.A().Chain.GetSimApp().ScopedIBCMockKeeper, ibctesting.MockPort)
+			portCap = suite.A().Chain.GetPortCapability(ibctesting.MockPort)
 		}, false},
 	}
 
@@ -43,6 +104,7 @@ func (suite *MultihopTestSuite) TestChanOpenInit() {
 				suite.SetupTest() // reset
 				suite.A().ChannelConfig.Order = order
 				suite.Z().ChannelConfig.Order = order
+				expErrorMsgSubstring = ""
 
 				tc.malleate()
 
@@ -58,7 +120,15 @@ func (suite *MultihopTestSuite) TestChanOpenInit() {
 					suite.A().ChannelConfig.Version,
 				)
 
-				if tc.expPass {
+				// check if order is supported by channel to determine expected behaviour
+				orderSupported := false
+				for _, f := range features {
+					if f == order.String() {
+						orderSupported = true
+					}
+				}
+
+				if tc.expPass && orderSupported {
 					suite.Require().NoError(err, "channel open init failed")
 					suite.Require().NotEmpty(channelID, "channel ID is empty")
 
@@ -70,6 +140,7 @@ func (suite *MultihopTestSuite) TestChanOpenInit() {
 						Equal(cap.String(), chanCap.String(), "channel capability is not equal to retrieved capability")
 				} else {
 					suite.Require().Error(err, "channel open init should fail but passed")
+					suite.Require().Contains(err.Error(), expErrorMsgSubstring)
 					suite.Require().Equal("", channelID, "channel ID is not empty")
 					suite.Require().Nil(cap, "channel capability is not nil")
 				}
