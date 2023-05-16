@@ -49,8 +49,14 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Features
 
 ### Bug Fixes
- 
-## [v7.0.0](https://github.com/cosmos/ibc-go/releases/tag/v6.1.0) - 2023-03-17 
+
+## [v5.3.0](https://github.com/cosmos/ibc-go/releases/tag/v5.3.0) - 2022-05-04
+
+### Dependencies
+
+* [\#3354](https://github.com/cosmos/ibc-go/pull/3354) Bump Cosmos SDK to v0.46.12 and replace Tendermint with CometBFT v0.34.27.
+
+## [v7.0.0](https://github.com/cosmos/ibc-go/releases/tag/v6.1.0) - 2023-03-17
 
 ### Dependencies
 
