@@ -174,7 +174,6 @@ func (s *E2ETestSuite) QueryTotalEscrowForDenom(ctx context.Context, chain ibc.C
 	res, err := queryClient.TotalEscrowForDenom(ctx, &transfertypes.QueryTotalEscrowForDenomRequest{
 		Denom: denom,
 	})
-
 	if err != nil {
 		return sdk.Coin{}, err
 	}
