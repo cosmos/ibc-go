@@ -424,14 +424,12 @@ func (endpoint *Endpoint) ChanCloseInit() error {
 // The packet sequence generated for the packet to be sent is returned. An error
 // is returned if one occurs.
 func (endpoint *Endpoint) SendPacket(
-	timeoutHeight clienttypes.Height,
-	timeoutTimestamp uint64,
+	timeout channeltypes.Timeout,
 	data []byte,
 ) (uint64, error) {
 	channelCap := endpoint.Chain.GetChannelCapability(endpoint.ChannelConfig.PortID, endpoint.ChannelID)
 
 	// no need to send message, acting as a module
-	timeout := channeltypes.NewTimeout(timeoutHeight, timeoutTimestamp)
 	sequence, err := endpoint.Chain.App.GetIBCKeeper().ChannelKeeper.SendPacket(endpoint.Chain.GetContext(), channelCap, endpoint.ChannelConfig.PortID, endpoint.ChannelID, timeout, data)
 	if err != nil {
 		return 0, err
@@ -565,12 +563,12 @@ func (endpoint *Endpoint) TimeoutOnClose(packet channeltypes.Packet) error {
 	return endpoint.Chain.sendMsgs(timeoutOnCloseMsg)
 }
 
-func (endpoint *Endpoint) ChanUpgradeInit(timeoutHeight clienttypes.Height, timeoutTimestamp uint64) error {
+func (endpoint *Endpoint) ChanUpgradeInit(timeout channeltypes.Timeout) error {
 	msg := channeltypes.NewMsgChannelUpgradeInit(
 		endpoint.ChannelConfig.PortID,
 		endpoint.ChannelID,
 		channeltypes.NewUpgradeFields(endpoint.ChannelConfig.Order, []string{endpoint.ConnectionID}, endpoint.ChannelConfig.Version),
-		channeltypes.NewTimeout(timeoutHeight, timeoutTimestamp),
+		channeltypes.NewTimeout(timeout.Height, timeout.Timestamp),
 		endpoint.Chain.SenderAccount.GetAddress().String(),
 	)
 

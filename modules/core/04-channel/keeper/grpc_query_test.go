@@ -1613,7 +1613,7 @@ func (suite *KeeperTestSuite) TestQueryUpgrade() {
 			path := ibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.Setup(path)
 
-			expectedUpgrade = *types.NewUpgrade(
+			expectedUpgrade = types.NewUpgrade(
 				types.NewUpgradeFields(types.UNORDERED, []string{ibctesting.FirstConnectionID}, mock.Version),
 				types.NewTimeout(clienttypes.ZeroHeight(), 1000000),
 				1,
