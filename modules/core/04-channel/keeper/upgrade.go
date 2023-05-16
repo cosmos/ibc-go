@@ -86,14 +86,14 @@ func (k Keeper) WriteUpgradeTryChannel(
 }
 
 // constructProposedUpgrade returns the proposed upgrade from the provided arguments.
-func (k Keeper) constructProposedUpgrade(ctx sdk.Context, portID, channelID string, fields types.UpgradeFields, timeout types.Timeout) (types.Upgrade, error) {
+func (k Keeper) constructProposedUpgrade(ctx sdk.Context, portID, channelID string, fields types.UpgradeFields, upgradeTimeout types.Timeout) (types.Upgrade, error) {
 	seq, found := k.GetNextSequenceSend(ctx, portID, channelID)
 	if !found {
 		return types.Upgrade{}, types.ErrSequenceSendNotFound
 	}
 	return types.Upgrade{
 		Fields:             fields,
-		Timeout:            timeout,
+		Timeout:            upgradeTimeout,
 		LatestSequenceSend: seq - 1,
 	}, nil
 }

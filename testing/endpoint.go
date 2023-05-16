@@ -564,12 +564,12 @@ func (endpoint *Endpoint) TimeoutOnClose(packet channeltypes.Packet) error {
 	return endpoint.Chain.sendMsgs(timeoutOnCloseMsg)
 }
 
-func (endpoint *Endpoint) ChanUpgradeInit(timeoutHeight clienttypes.Height, timeoutTimestamp uint64) error {
+func (endpoint *Endpoint) ChanUpgradeInit(timeout channeltypes.Timeout) error {
 	msg := channeltypes.NewMsgChannelUpgradeInit(
 		endpoint.ChannelConfig.PortID,
 		endpoint.ChannelID,
 		channeltypes.NewUpgradeFields(endpoint.ChannelConfig.Order, []string{endpoint.ConnectionID}, endpoint.ChannelConfig.Version),
-		channeltypes.NewTimeout(timeoutHeight, timeoutTimestamp),
+		channeltypes.NewTimeout(timeout.Height, timeout.Timestamp),
 		endpoint.Chain.SenderAccount.GetAddress().String(),
 	)
 
