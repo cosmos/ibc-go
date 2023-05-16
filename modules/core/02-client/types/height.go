@@ -10,6 +10,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
+<<<<<<< HEAD
+=======
+	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
+>>>>>>> 847e11dc (chore: make errors public (#3578))
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 

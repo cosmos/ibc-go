@@ -7,6 +7,7 @@ import (
 
 	"github.com/cosmos/ibc-go/v7/modules/core/02-client/keeper"
 	"github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
 )
 
 // NewClientProposalHandler defines the 02-client proposal handler

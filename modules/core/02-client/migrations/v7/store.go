@@ -12,6 +12,7 @@ import (
 
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
+	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	solomachine "github.com/cosmos/ibc-go/v7/modules/light-clients/06-solomachine"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"

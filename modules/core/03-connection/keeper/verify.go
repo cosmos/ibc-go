@@ -11,6 +11,7 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
+	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 

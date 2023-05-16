@@ -8,6 +8,10 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	proto "github.com/cosmos/gogoproto/proto"
 
+<<<<<<< HEAD
+=======
+	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
+>>>>>>> 847e11dc (chore: make errors public (#3578))
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
