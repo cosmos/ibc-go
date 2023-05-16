@@ -9,10 +9,6 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/authz"
 
-<<<<<<< HEAD
-=======
-	ibcerrors "github.com/cosmos/ibc-go/v7/internal/errors"
->>>>>>> f6e8f038 (chore: optimise transfer authz to consume less gas for unbounded spend limits (#3586))
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 )
