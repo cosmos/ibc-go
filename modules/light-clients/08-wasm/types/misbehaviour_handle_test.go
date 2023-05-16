@@ -12,33 +12,31 @@ import (
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	solomachine "github.com/cosmos/ibc-go/v7/modules/light-clients/06-solomachine"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
-	wasmtypes "github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm/types"
+	"github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	ibctestingmock "github.com/cosmos/ibc-go/v7/testing/mock"
 )
 
-func (suite *WasmTestSuite) TestVerifyMisbehaviourGrandpa() {
+func (suite *TypesTestSuite) TestVerifyMisbehaviourGrandpa() {
 	var (
+		ok          bool
 		clientMsg   exported.ClientMessage
 		clientState exported.ClientState
 	)
 
 	testCases := []struct {
-		name    string
-		setup   func()
-		expPass bool
+		name     string
+		malleate func()
+		expPass  bool
 	}{
 		{
 			"successful misbehaviour verification",
 			func() {
 				data, err := base64.StdEncoding.DecodeString(suite.testData["header"])
 				suite.Require().NoError(err)
-				clientMsg = &wasmtypes.Header{
-					Data: data,
-					Height: clienttypes.Height{
-						RevisionNumber: 2000,
-						RevisionHeight: 39,
-					},
+				clientMsg = &types.Header{
+					Data:   data,
+					Height: clienttypes.NewHeight(2000, 39),
 				}
 				// VerifyClientMessage must be run first
 				err = clientState.VerifyClientMessage(suite.ctx, suite.chainA.Codec, suite.store, clientMsg)
@@ -46,11 +44,11 @@ func (suite *WasmTestSuite) TestVerifyMisbehaviourGrandpa() {
 				clientState.UpdateState(suite.ctx, suite.chainA.Codec, suite.store, clientMsg)
 
 				// Reset client state to the previous for the test
-				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.ctx, "08-wasm-0", clientState)
+				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.ctx, grandpaClientID, clientState)
 
 				data, err = base64.StdEncoding.DecodeString(suite.testData["misbehaviour"])
 				suite.Require().NoError(err)
-				clientMsg = &wasmtypes.Misbehaviour{
+				clientMsg = &types.Misbehaviour{
 					Data: data,
 				}
 			},
@@ -61,7 +59,7 @@ func (suite *WasmTestSuite) TestVerifyMisbehaviourGrandpa() {
 			func() {
 				data, err := base64.StdEncoding.DecodeString(suite.testData["misbehaviour"])
 				suite.Require().NoError(err)
-				clientMsg = &wasmtypes.Misbehaviour{
+				clientMsg = &types.Misbehaviour{
 					Data: data,
 				}
 			},
@@ -77,11 +75,12 @@ func (suite *WasmTestSuite) TestVerifyMisbehaviourGrandpa() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		suite.Run(tc.name, func() {
-			suite.SetupWithChannel()
-			clientState = suite.clientState
-			tc.setup()
+			suite.SetupWasmGrandpaWithChannel()
+			clientState, ok = suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.ctx, grandpaClientID)
+			suite.Require().True(ok)
+
+			tc.malleate()
 
 			err := clientState.VerifyClientMessage(suite.ctx, suite.chainA.Codec, suite.store, clientMsg)
 
@@ -94,7 +93,7 @@ func (suite *WasmTestSuite) TestVerifyMisbehaviourGrandpa() {
 	}
 }
 
-func (suite *WasmTestSuite) TestVerifyMisbehaviourTendermint() {
+func (suite *TypesTestSuite) TestVerifyMisbehaviourTendermint() {
 	// Setup different validators and signers for testing different types of updates
 	altPrivVal := ibctestingmock.NewPV()
 	altPubKey, err := altPrivVal.GetPubKey()
@@ -135,7 +134,7 @@ func (suite *WasmTestSuite) TestVerifyMisbehaviourTendermint() {
 				}
 				wasmData, err := suite.chainB.Codec.MarshalInterface(tmMisbehaviour)
 				suite.Require().NoError(err)
-				misbehaviour = &wasmtypes.Misbehaviour{
+				misbehaviour = &types.Misbehaviour{
 					Data: wasmData,
 				}
 			},
@@ -154,7 +153,7 @@ func (suite *WasmTestSuite) TestVerifyMisbehaviourTendermint() {
 				}
 				wasmData, err := suite.chainB.Codec.MarshalInterface(tmMisbehaviour)
 				suite.Require().NoError(err)
-				misbehaviour = &wasmtypes.Misbehaviour{
+				misbehaviour = &types.Misbehaviour{
 					Data: wasmData,
 				}
 			},
@@ -173,7 +172,7 @@ func (suite *WasmTestSuite) TestVerifyMisbehaviourTendermint() {
 				}
 				wasmData, err := suite.chainB.Codec.MarshalInterface(tmMisbehaviour)
 				suite.Require().NoError(err)
-				misbehaviour = &wasmtypes.Misbehaviour{
+				misbehaviour = &types.Misbehaviour{
 					Data: wasmData,
 				}
 			},
@@ -192,7 +191,7 @@ func (suite *WasmTestSuite) TestVerifyMisbehaviourTendermint() {
 				}
 				wasmData, err := suite.chainB.Codec.MarshalInterface(tmMisbehaviour)
 				suite.Require().NoError(err)
-				misbehaviour = &wasmtypes.Misbehaviour{
+				misbehaviour = &types.Misbehaviour{
 					Data: wasmData,
 				}
 			}, true,
@@ -218,7 +217,7 @@ func (suite *WasmTestSuite) TestVerifyMisbehaviourTendermint() {
 				}
 				wasmData, err := suite.chainB.Codec.MarshalInterface(tmMisbehaviour)
 				suite.Require().NoError(err)
-				misbehaviour = &wasmtypes.Misbehaviour{
+				misbehaviour = &types.Misbehaviour{
 					Data: wasmData,
 				}
 			},
@@ -242,7 +241,7 @@ func (suite *WasmTestSuite) TestVerifyMisbehaviourTendermint() {
 				}
 				wasmData, err := suite.chainB.Codec.MarshalInterface(tmMisbehaviour)
 				suite.Require().NoError(err)
-				misbehaviour = &wasmtypes.Misbehaviour{
+				misbehaviour = &types.Misbehaviour{
 					Data: wasmData,
 				}
 
@@ -269,7 +268,7 @@ func (suite *WasmTestSuite) TestVerifyMisbehaviourTendermint() {
 				}
 				wasmData, err := suite.chainB.Codec.MarshalInterface(tmMisbehaviour)
 				suite.Require().NoError(err)
-				misbehaviour = &wasmtypes.Misbehaviour{
+				misbehaviour = &types.Misbehaviour{
 					Data: wasmData,
 				}
 			},
@@ -294,7 +293,7 @@ func (suite *WasmTestSuite) TestVerifyMisbehaviourTendermint() {
 				}
 				wasmData, err := suite.chainB.Codec.MarshalInterface(tmMisbehaviour)
 				suite.Require().NoError(err)
-				misbehaviour = &wasmtypes.Misbehaviour{
+				misbehaviour = &types.Misbehaviour{
 					Data: wasmData,
 				}
 			},
@@ -323,7 +322,7 @@ func (suite *WasmTestSuite) TestVerifyMisbehaviourTendermint() {
 				}
 				wasmData, err := suite.chainB.Codec.MarshalInterface(tmMisbehaviour)
 				suite.Require().NoError(err)
-				misbehaviour = &wasmtypes.Misbehaviour{
+				misbehaviour = &types.Misbehaviour{
 					Data: wasmData,
 				}
 			}, true,
@@ -346,7 +345,7 @@ func (suite *WasmTestSuite) TestVerifyMisbehaviourTendermint() {
 				}
 				wasmData, err := suite.chainB.Codec.MarshalInterface(tmMisbehaviour)
 				suite.Require().NoError(err)
-				misbehaviour = &wasmtypes.Misbehaviour{
+				misbehaviour = &types.Misbehaviour{
 					Data: wasmData,
 				}
 			}, false,
@@ -366,7 +365,7 @@ func (suite *WasmTestSuite) TestVerifyMisbehaviourTendermint() {
 				}
 				wasmData, err := suite.chainB.Codec.MarshalInterface(tmMisbehaviour)
 				suite.Require().NoError(err)
-				misbehaviour = &wasmtypes.Misbehaviour{
+				misbehaviour = &types.Misbehaviour{
 					Data: wasmData,
 				}
 			}, false,
@@ -384,7 +383,7 @@ func (suite *WasmTestSuite) TestVerifyMisbehaviourTendermint() {
 				}
 				wasmData, err := suite.chainB.Codec.MarshalInterface(tmMisbehaviour)
 				suite.Require().NoError(err)
-				misbehaviour = &wasmtypes.Misbehaviour{
+				misbehaviour = &types.Misbehaviour{
 					Data: wasmData,
 				}
 			}, false,
@@ -414,7 +413,7 @@ func (suite *WasmTestSuite) TestVerifyMisbehaviourTendermint() {
 				}
 				wasmData, err := suite.chainB.Codec.MarshalInterface(tmMisbehaviour)
 				suite.Require().NoError(err)
-				misbehaviour = &wasmtypes.Misbehaviour{
+				misbehaviour = &types.Misbehaviour{
 					Data: wasmData,
 				}
 			}, false,
@@ -437,7 +436,7 @@ func (suite *WasmTestSuite) TestVerifyMisbehaviourTendermint() {
 				}
 				wasmData, err := suite.chainB.Codec.MarshalInterface(tmMisbehaviour)
 				suite.Require().NoError(err)
-				misbehaviour = &wasmtypes.Misbehaviour{
+				misbehaviour = &types.Misbehaviour{
 					Data: wasmData,
 				}
 			}, false,
@@ -460,7 +459,7 @@ func (suite *WasmTestSuite) TestVerifyMisbehaviourTendermint() {
 				}
 				wasmData, err := suite.chainB.Codec.MarshalInterface(tmMisbehaviour)
 				suite.Require().NoError(err)
-				misbehaviour = &wasmtypes.Misbehaviour{
+				misbehaviour = &types.Misbehaviour{
 					Data: wasmData,
 				}
 			}, false,
@@ -483,7 +482,7 @@ func (suite *WasmTestSuite) TestVerifyMisbehaviourTendermint() {
 				}
 				wasmData, err := suite.chainB.Codec.MarshalInterface(tmMisbehaviour)
 				suite.Require().NoError(err)
-				misbehaviour = &wasmtypes.Misbehaviour{
+				misbehaviour = &types.Misbehaviour{
 					Data: wasmData,
 				}
 			}, false,
@@ -491,8 +490,6 @@ func (suite *WasmTestSuite) TestVerifyMisbehaviourTendermint() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(tc.name, func() {
 			suite.SetupWasmTendermint()
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
@@ -516,28 +513,26 @@ func (suite *WasmTestSuite) TestVerifyMisbehaviourTendermint() {
 	}
 }
 
-func (suite *WasmTestSuite) TestCheckForMisbehaviourGrandpa() {
+func (suite *TypesTestSuite) TestCheckForMisbehaviourGrandpa() {
 	var (
+		ok          bool
 		clientMsg   exported.ClientMessage
 		clientState exported.ClientState
 	)
 
 	testCases := []struct {
-		name    string
-		setup   func()
-		expPass bool
+		name     string
+		malleate func()
+		expPass  bool
 	}{
 		{
 			"valid update no misbehaviour",
 			func() {
 				data, err := base64.StdEncoding.DecodeString(suite.testData["header"])
 				suite.Require().NoError(err)
-				clientMsg = &wasmtypes.Header{
-					Data: data,
-					Height: clienttypes.Height{
-						RevisionNumber: 2000,
-						RevisionHeight: 39,
-					},
+				clientMsg = &types.Header{
+					Data:   data,
+					Height: clienttypes.NewHeight(2000, 39),
 				}
 
 				err = clientState.VerifyClientMessage(suite.ctx, suite.chainA.Codec, suite.store, clientMsg)
@@ -550,12 +545,9 @@ func (suite *WasmTestSuite) TestCheckForMisbehaviourGrandpa() {
 			func() {
 				data, err := base64.StdEncoding.DecodeString(suite.testData["header"])
 				suite.Require().NoError(err)
-				clientMsg = &wasmtypes.Header{
-					Data: data,
-					Height: clienttypes.Height{
-						RevisionNumber: 2000,
-						RevisionHeight: 39,
-					},
+				clientMsg = &types.Header{
+					Data:   data,
+					Height: clienttypes.NewHeight(2000, 39),
 				}
 				// VerifyClientMessage must be run first
 				err = clientState.VerifyClientMessage(suite.ctx, suite.chainA.Codec, suite.store, clientMsg)
@@ -563,11 +555,11 @@ func (suite *WasmTestSuite) TestCheckForMisbehaviourGrandpa() {
 				clientState.UpdateState(suite.ctx, suite.chainA.Codec, suite.store, clientMsg)
 
 				// Reset client state to the previous for the test
-				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.ctx, "08-wasm-0", clientState)
+				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.ctx, grandpaClientID, clientState)
 
 				data, err = base64.StdEncoding.DecodeString(suite.testData["misbehaviour"])
 				suite.Require().NoError(err)
-				clientMsg = &wasmtypes.Misbehaviour{
+				clientMsg = &types.Misbehaviour{
 					Data: data,
 				}
 
@@ -586,11 +578,13 @@ func (suite *WasmTestSuite) TestCheckForMisbehaviourGrandpa() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		suite.Run(tc.name, func() {
-			suite.SetupWithChannel()
-			clientState = suite.clientState
-			tc.setup()
+			suite.SetupWasmGrandpaWithChannel()
+			clientState, ok = suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.ctx, grandpaClientID)
+			suite.Require().True(ok)
+
+			tc.malleate()
+
 			foundMisbehaviour := clientState.CheckForMisbehaviour(suite.ctx, suite.chainA.Codec, suite.store, clientMsg)
 
 			if tc.expPass {
@@ -602,7 +596,7 @@ func (suite *WasmTestSuite) TestCheckForMisbehaviourGrandpa() {
 	}
 }
 
-func (suite *WasmTestSuite) TestCheckForMisbehaviourTendermint() {
+func (suite *TypesTestSuite) TestCheckForMisbehaviourTendermint() {
 	var (
 		path          *ibctesting.Path
 		clientMessage exported.ClientMessage
@@ -621,7 +615,7 @@ func (suite *WasmTestSuite) TestCheckForMisbehaviourTendermint() {
 		{
 			"consensus state already exists, already updated",
 			func() {
-				wasmHeader, ok := clientMessage.(*wasmtypes.Header)
+				wasmHeader, ok := clientMessage.(*types.Header)
 				suite.Require().True(ok)
 
 				var wasmData exported.ClientMessage
@@ -637,10 +631,10 @@ func (suite *WasmTestSuite) TestCheckForMisbehaviourTendermint() {
 					NextValidatorsHash: tmHeader.Header.NextValidatorsHash,
 				}
 
-				wasmDataCS, err := suite.chainA.Codec.MarshalInterface(tmConsensusState)
+				tmConsensusStateData, err := suite.chainA.Codec.MarshalInterface(tmConsensusState)
 				suite.Require().NoError(err)
-				wasmConsensusState := &wasmtypes.ConsensusState{
-					Data:      wasmDataCS,
+				wasmConsensusState := &types.ConsensusState{
+					Data:      tmConsensusStateData,
 					Timestamp: tmConsensusState.GetTimestamp(),
 				}
 
@@ -668,7 +662,7 @@ func (suite *WasmTestSuite) TestCheckForMisbehaviourTendermint() {
 				}
 				wasmData, err := suite.chainB.Codec.MarshalInterface(tmMisbehaviour)
 				suite.Require().NoError(err)
-				clientMessage = &wasmtypes.Misbehaviour{
+				clientMessage = &types.Misbehaviour{
 					Data: wasmData,
 				}
 			}, false,
@@ -689,7 +683,7 @@ func (suite *WasmTestSuite) TestCheckForMisbehaviourTendermint() {
 				}
 				wasmData, err := suite.chainB.Codec.MarshalInterface(tmMisbehaviour)
 				suite.Require().NoError(err)
-				clientMessage = &wasmtypes.Misbehaviour{
+				clientMessage = &types.Misbehaviour{
 					Data: wasmData,
 				}
 			}, false,
@@ -697,7 +691,7 @@ func (suite *WasmTestSuite) TestCheckForMisbehaviourTendermint() {
 		{
 			"consensus state already exists, app hash mismatch",
 			func() {
-				wasmHeader, ok := clientMessage.(*wasmtypes.Header)
+				wasmHeader, ok := clientMessage.(*types.Header)
 				suite.Require().True(ok)
 
 				var wasmData exported.ClientMessage
@@ -713,10 +707,10 @@ func (suite *WasmTestSuite) TestCheckForMisbehaviourTendermint() {
 					NextValidatorsHash: tmHeader.Header.NextValidatorsHash,
 				}
 
-				wasmDataCS, err := suite.chainA.Codec.MarshalInterface(tmConsensusState)
+				tmConsensusStateData, err := suite.chainA.Codec.MarshalInterface(tmConsensusState)
 				suite.Require().NoError(err)
-				wasmConsensusState := &wasmtypes.ConsensusState{
-					Data:      wasmDataCS,
+				wasmConsensusState := &types.ConsensusState{
+					Data:      tmConsensusStateData,
 					Timestamp: tmConsensusState.GetTimestamp(),
 				}
 
@@ -728,7 +722,7 @@ func (suite *WasmTestSuite) TestCheckForMisbehaviourTendermint() {
 		{
 			"previous consensus state exists and header time is before previous consensus state time",
 			func() {
-				wasmHeader, ok := clientMessage.(*wasmtypes.Header)
+				wasmHeader, ok := clientMessage.(*types.Header)
 				suite.Require().True(ok)
 
 				var wasmData exported.ClientMessage
@@ -749,7 +743,7 @@ func (suite *WasmTestSuite) TestCheckForMisbehaviourTendermint() {
 		{
 			"next consensus state exists and header time is after next consensus state time",
 			func() {
-				wasmHeader, ok := clientMessage.(*wasmtypes.Header)
+				wasmHeader, ok := clientMessage.(*types.Header)
 				suite.Require().True(ok)
 
 				var wasmData exported.ClientMessage
@@ -797,7 +791,7 @@ func (suite *WasmTestSuite) TestCheckForMisbehaviourTendermint() {
 
 				wasmData, err := suite.chainB.Codec.MarshalInterface(tmMisbehaviour)
 				suite.Require().NoError(err)
-				clientMessage = &wasmtypes.Misbehaviour{
+				clientMessage = &types.Misbehaviour{
 					Data: wasmData,
 				}
 			},
@@ -817,7 +811,7 @@ func (suite *WasmTestSuite) TestCheckForMisbehaviourTendermint() {
 
 				wasmData, err := suite.chainB.Codec.MarshalInterface(tmMisbehaviour)
 				suite.Require().NoError(err)
-				clientMessage = &wasmtypes.Misbehaviour{
+				clientMessage = &types.Misbehaviour{
 					Data: wasmData,
 				}
 			}, true,
@@ -825,7 +819,6 @@ func (suite *WasmTestSuite) TestCheckForMisbehaviourTendermint() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		suite.Run(tc.name, func() {
 			// reset suite to create fresh application state
 			suite.SetupWasmTendermint()

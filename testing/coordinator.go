@@ -45,6 +45,7 @@ func NewCoordinator(t *testing.T, n int) *Coordinator {
 	return coord
 }
 
+// SetCodeID sets the code ID of a wasm ligh client contract
 func (coord *Coordinator) SetCodeID(codeID []byte) {
 	coord.CodeID = codeID
 }

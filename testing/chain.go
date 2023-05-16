@@ -76,7 +76,7 @@ type TestChain struct {
 	SenderAccounts []SenderAccount
 
 	// Use wasm client if true
-	WasmClient bool
+	UseWasmClient bool
 }
 
 // NewTestChainWithValSet initializes a new TestChain instance with the given validator set
@@ -150,7 +150,7 @@ func NewTestChainWithValSet(tb testing.TB, coord *Coordinator, chainID string, v
 		SenderPrivKey:  senderAccs[0].SenderPrivKey,
 		SenderAccount:  senderAccs[0].SenderAccount,
 		SenderAccounts: senderAccs,
-		WasmClient:     false,
+		UseWasmClient:  false,
 	}
 
 	coord.CommitBlock(chain)
@@ -184,8 +184,9 @@ func NewTestChain(t *testing.T, coord *Coordinator, chainID string) *TestChain {
 	return NewTestChainWithValSet(t, coord, chainID, valSet, signersByAddress)
 }
 
+// SetWasm
 func (chain *TestChain) SetWasm(wasm bool) *TestChain {
-	chain.WasmClient = wasm
+	chain.UseWasmClient = wasm
 	return chain
 }
 

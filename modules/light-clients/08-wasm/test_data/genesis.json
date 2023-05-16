@@ -648,7 +648,7 @@
             "client_id": "08-wasm-0",
             "client_state": {
               "@type": "/ibc.lightclients.wasm.v1.ClientState",
-              "code_id": "qEhUhMKM7GGnyK17wPer4etkuFC9HpCVmi3ouKmMNbE=",
+              "code_id": "FrOrNYQLE9a8AWwO57QzGsyGD5Azg9Sd5pi1VLi+mMo=",
               "data": "CigvaWJjLmxpZ2h0Y2xpZW50cy5ncmFuZHBhLnYxLkNsaWVudFN0YXRlEusBCiDb1LgDSYdWIAxOBxlur/FVditMmWNzpKsAZKMEpAd0qhBZGAMoAjDQDzghQiQKIIjcNBfVBY7EtFA+DBLqGgqJviAP6YkiQj1DNAFPprDuEAFCJAog0XwteCPr8mD9E48tfifRFMAUXZaLX/UAYSXyQU+trmkQAUIkCiBDlmCzbGwDr6/KAnuRC0/s+ZgBg0xipeYAbyfZeN4jTxABQiQKIF5jm0PgBSxHRH2sh9b9K27FC91ND2FOQpnGZSSbvQnZEAFCJAogVoy0pXTG0Xj+s5wn38iz94nl9UI+GccWM8dIuazwhrUQAQ==",
               "latest_height": {
                 "revision_height": "33",

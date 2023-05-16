@@ -11,13 +11,14 @@ import (
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
-	wasmtypes "github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm/types"
+	"github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	ibctestingmock "github.com/cosmos/ibc-go/v7/testing/mock"
 )
 
-func (suite *WasmTestSuite) TestVerifyHeaderGrandpa() {
+func (suite *TypesTestSuite) TestVerifyHeaderGrandpa() {
 	var (
+		ok          bool
 		clientMsg   exported.ClientMessage
 		clientState exported.ClientState
 	)
@@ -33,18 +34,15 @@ func (suite *WasmTestSuite) TestVerifyHeaderGrandpa() {
 		},
 		{
 			"unsuccessful verify header: para id mismatch", func() {
-				cs, err := base64.StdEncoding.DecodeString(suite.testData["client_state_para_id_mismatch"])
+				clientStateData, err := base64.StdEncoding.DecodeString(suite.testData["client_state_para_id_mismatch"])
 				suite.Require().NoError(err)
 
-				clientState = &wasmtypes.ClientState{
-					Data:   cs,
-					CodeId: suite.codeID,
-					LatestHeight: clienttypes.Height{
-						RevisionNumber: 2000,
-						RevisionHeight: 36,
-					},
+				clientState = &types.ClientState{
+					Data:         clientStateData,
+					CodeId:       suite.codeID,
+					LatestHeight: clienttypes.NewHeight(2000, 39),
 				}
-				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.ctx, "08-wasm-0", clientState)
+				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.ctx, grandpaClientID, clientState)
 			},
 			false,
 		},
@@ -52,12 +50,9 @@ func (suite *WasmTestSuite) TestVerifyHeaderGrandpa() {
 			"unsuccessful verify header: head height < consensus height", func() {
 				data, err := base64.StdEncoding.DecodeString(suite.testData["header_old"])
 				suite.Require().NoError(err)
-				clientMsg = &wasmtypes.Header{
-					Data: data,
-					Height: clienttypes.Height{
-						RevisionNumber: 2000,
-						RevisionHeight: 29,
-					},
+				clientMsg = &types.Header{
+					Data:   data,
+					Height: clienttypes.NewHeight(2000, 39),
 				}
 			},
 			false,
@@ -65,19 +60,16 @@ func (suite *WasmTestSuite) TestVerifyHeaderGrandpa() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(tc.name, func() {
-			suite.SetupWithChannel()
-			clientState = suite.clientState
+			suite.SetupWasmGrandpaWithChannel()
+			clientState, ok = suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.ctx, grandpaClientID)
+			suite.Require().True(ok)
+
 			data, err := base64.StdEncoding.DecodeString(suite.testData["header"])
 			suite.Require().NoError(err)
-			clientMsg = &wasmtypes.Header{
-				Data: data,
-				Height: clienttypes.Height{
-					RevisionNumber: 2000,
-					RevisionHeight: 39,
-				},
+			clientMsg = &types.Header{
+				Data:   data,
+				Height: clienttypes.NewHeight(2000, 39),
 			}
 
 			tc.setup()
@@ -92,10 +84,10 @@ func (suite *WasmTestSuite) TestVerifyHeaderGrandpa() {
 	}
 }
 
-func (suite *WasmTestSuite) TestVerifyHeaderTendermint() {
+func (suite *TypesTestSuite) TestVerifyHeaderTendermint() {
 	var (
 		path   *ibctesting.Path
-		header *wasmtypes.Header
+		header *types.Header
 	)
 
 	// Setup different validators and signers for testing different types of updates
@@ -220,7 +212,7 @@ func (suite *WasmTestSuite) TestVerifyHeaderTendermint() {
 				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight) + 1)
 				suite.Require().True(found)
 
-				header = suite.chainB.CreateWasmClientHeader(chainIDRevision1, 3, trustedHeight, suite.chainB.CurrentHeader.Time, suite.chainB.Vals, suite.chainB.NextVals, trustedVals, suite.chainB.Signers)
+				header = suite.chainB.CreateWasmClientHeader("gaia-revision-1", 3, trustedHeight, suite.chainB.CurrentHeader.Time, suite.chainB.Vals, suite.chainB.NextVals, trustedVals, suite.chainB.Signers)
 			},
 			expPass: false,
 		},
@@ -277,7 +269,7 @@ func (suite *WasmTestSuite) TestVerifyHeaderTendermint() {
 				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight))
 				suite.Require().True(found)
 
-				header = suite.chainB.CreateWasmClientHeader(chainID, suite.chainB.CurrentHeader.Height+1, trustedHeight, suite.chainB.CurrentHeader.Time, suite.chainB.Vals, suite.chainB.NextVals, trustedVals, suite.chainB.Signers)
+				header = suite.chainB.CreateWasmClientHeader("gaia", suite.chainB.CurrentHeader.Height+1, trustedHeight, suite.chainB.CurrentHeader.Time, suite.chainB.Vals, suite.chainB.NextVals, trustedVals, suite.chainB.Signers)
 			},
 			expPass: false,
 		},
@@ -360,7 +352,6 @@ func (suite *WasmTestSuite) TestVerifyHeaderTendermint() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		suite.Run(tc.name, func() {
 			suite.SetupWasmTendermint()
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
@@ -390,7 +381,86 @@ func (suite *WasmTestSuite) TestVerifyHeaderTendermint() {
 	}
 }
 
-func (suite *WasmTestSuite) TestUpdateStateTendermint() {
+func (suite *TypesTestSuite) TestUpdateStateGrandpa() {
+	var (
+		ok          bool
+		clientMsg   exported.ClientMessage
+		clientState exported.ClientState
+	)
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expPass  bool
+	}{
+		{
+			"success with height later than latest height",
+			func() {
+				data, err := base64.StdEncoding.DecodeString(suite.testData["header"])
+				suite.Require().NoError(err)
+				clientMsg = &types.Header{
+					Data:   data,
+					Height: clienttypes.NewHeight(2000, 39),
+				}
+				// VerifyClientMessage must be run first
+				err = clientState.VerifyClientMessage(suite.ctx, suite.chainA.Codec, suite.store, clientMsg)
+				suite.Require().NoError(err)
+			},
+			true,
+		},
+		{
+			"success with not verifying client message",
+			func() {
+				data, err := base64.StdEncoding.DecodeString(suite.testData["header"])
+				suite.Require().NoError(err)
+				clientMsg = &types.Header{
+					Data:   data,
+					Height: clienttypes.NewHeight(2000, 39),
+				}
+			},
+			true,
+		},
+		{
+			"invalid ClientMessage type", func() {
+				data, err := base64.StdEncoding.DecodeString(suite.testData["misbehaviour"])
+				suite.Require().NoError(err)
+				clientMsg = &types.Misbehaviour{
+					Data: data,
+				}
+			},
+			false,
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			suite.SetupWasmGrandpaWithChannel()
+			clientState, ok = suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.ctx, grandpaClientID)
+			suite.Require().True(ok)
+
+			tc.malleate()
+
+			if tc.expPass {
+				consensusHeights := clientState.UpdateState(suite.ctx, suite.chainA.Codec, suite.store, clientMsg)
+
+				clientStateBz := suite.store.Get(host.ClientStateKey())
+				suite.Require().NotEmpty(clientStateBz)
+
+				newClientState := clienttypes.MustUnmarshalClientState(suite.chainA.Codec, clientStateBz)
+
+				suite.Require().Len(consensusHeights, 1)
+				suite.Require().Equal(clienttypes.NewHeight(2000, 39), consensusHeights[0])
+				suite.Require().Equal(consensusHeights[0], newClientState.(*types.ClientState).LatestHeight)
+			} else {
+				suite.Require().Panics(func() {
+					clientState.UpdateState(suite.ctx, suite.chainA.Codec, suite.store, clientMsg)
+				})
+			}
+		})
+	}
+}
+
+func (suite *TypesTestSuite) TestUpdateStateTendermint() {
 	var (
 		path               *ibctesting.Path
 		clientMessage      exported.ClientMessage
@@ -409,12 +479,12 @@ func (suite *WasmTestSuite) TestUpdateStateTendermint() {
 	}{
 		{
 			"success with height later than latest height", func() {
-				wasmHeader, ok := clientMessage.(*wasmtypes.Header)
+				wasmHeader, ok := clientMessage.(*types.Header)
 				suite.Require().True(ok)
 				suite.Require().True(path.EndpointA.GetClientState().GetLatestHeight().LT(wasmHeader.Height))
 			},
 			func() {
-				wasmHeader, ok := clientMessage.(*wasmtypes.Header)
+				wasmHeader, ok := clientMessage.(*types.Header)
 				suite.Require().True(ok)
 
 				clientState := path.EndpointA.GetClientState()
@@ -422,7 +492,6 @@ func (suite *WasmTestSuite) TestUpdateStateTendermint() {
 				suite.Require().True(clientState.GetLatestHeight().EQ(consensusHeights[0]))
 			}, true,
 		},
-
 		{
 			"success with height earlier than latest height", func() {
 				// commit a block so the pre-created ClientMessage
@@ -431,7 +500,7 @@ func (suite *WasmTestSuite) TestUpdateStateTendermint() {
 				err := path.EndpointA.UpdateClient()
 				suite.Require().NoError(err)
 
-				wasmHeader, ok := clientMessage.(*wasmtypes.Header)
+				wasmHeader, ok := clientMessage.(*types.Header)
 				suite.Require().True(ok)
 				suite.Require().True(path.EndpointA.GetClientState().GetLatestHeight().GT(wasmHeader.Height))
 
@@ -453,7 +522,7 @@ func (suite *WasmTestSuite) TestUpdateStateTendermint() {
 				clientMessage, err = path.EndpointA.Chain.ConstructUpdateWasmClientHeader(path.EndpointA.Counterparty.Chain, path.EndpointA.ClientID)
 				suite.Require().NoError(err)
 
-				wasmHeader, ok := clientMessage.(*wasmtypes.Header)
+				wasmHeader, ok := clientMessage.(*types.Header)
 				suite.Require().True(ok)
 				suite.Require().Equal(path.EndpointA.GetClientState().GetLatestHeight(), wasmHeader.Height)
 
@@ -465,7 +534,7 @@ func (suite *WasmTestSuite) TestUpdateStateTendermint() {
 				suite.Require().Equal(clientState, prevClientState)
 				suite.Require().True(clientState.GetLatestHeight().EQ(consensusHeights[0]))
 
-				wasmHeader, ok := clientMessage.(*wasmtypes.Header)
+				wasmHeader, ok := clientMessage.(*types.Header)
 				suite.Require().True(ok)
 				suite.Require().Equal(path.EndpointA.GetConsensusState(wasmHeader.Height), prevConsensusState)
 			}, true,
@@ -496,7 +565,7 @@ func (suite *WasmTestSuite) TestUpdateStateTendermint() {
 				suite.Require().NoError(err)
 			},
 			func() {
-				wasmHeader, ok := clientMessage.(*wasmtypes.Header)
+				wasmHeader, ok := clientMessage.(*types.Header)
 				suite.Require().True(ok)
 
 				clientState := path.EndpointA.GetClientState()
@@ -538,7 +607,7 @@ func (suite *WasmTestSuite) TestUpdateStateTendermint() {
 				suite.Require().NoError(err)
 			},
 			func() {
-				wasmHeader, ok := clientMessage.(*wasmtypes.Header)
+				wasmHeader, ok := clientMessage.(*types.Header)
 				suite.Require().True(ok)
 
 				clientState := path.EndpointA.GetClientState()
@@ -559,7 +628,6 @@ func (suite *WasmTestSuite) TestUpdateStateTendermint() {
 		},
 	}
 	for _, tc := range testCases {
-		tc := tc
 		suite.Run(tc.name, func() {
 			suite.SetupWasmTendermint() // reset
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
@@ -580,7 +648,7 @@ func (suite *WasmTestSuite) TestUpdateStateTendermint() {
 			if tc.expPass {
 				consensusHeights = clientState.UpdateState(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), clientStore, clientMessage)
 
-				header := clientMessage.(*wasmtypes.Header)
+				header := clientMessage.(*types.Header)
 				var eHeader exported.ClientMessage
 				err := suite.chainA.Codec.UnmarshalInterface(header.Data, &eHeader)
 				tmHeader := eHeader.(*ibctm.Header)
@@ -592,7 +660,7 @@ func (suite *WasmTestSuite) TestUpdateStateTendermint() {
 				}
 				wasmData, err := suite.chainA.Codec.MarshalInterface(expTmConsensusState)
 				suite.Require().NoError(err)
-				expWasmConsensusState := &wasmtypes.ConsensusState{
+				expWasmConsensusState := &types.ConsensusState{
 					Data:      wasmData,
 					Timestamp: expTmConsensusState.GetTimestamp(),
 				}
@@ -614,7 +682,7 @@ func (suite *WasmTestSuite) TestUpdateStateTendermint() {
 	}
 }
 
-func (suite *WasmTestSuite) TestPruneConsensusStateTendermint() {
+func (suite *TypesTestSuite) TestPruneConsensusStateTendermint() {
 	suite.SetupWasmTendermint()
 	// create path and setup clients
 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
@@ -699,94 +767,9 @@ func (suite *WasmTestSuite) TestPruneConsensusStateTendermint() {
 	suite.Require().Equal(expectedConsKey, consKey, "iteration key incorrectly pruned")
 }
 
-func (suite *WasmTestSuite) TestUpdateStateGrandpa() {
+func (suite *TypesTestSuite) TestUpdateStateOnMisbehaviourGrandpa() {
 	var (
-		clientMsg   exported.ClientMessage
-		clientState exported.ClientState
-	)
-
-	testCases := []struct {
-		name    string
-		setup   func()
-		expPass bool
-	}{
-		{
-			"success with height later than latest height",
-			func() {
-				data, err := base64.StdEncoding.DecodeString(suite.testData["header"])
-				suite.Require().NoError(err)
-				clientMsg = &wasmtypes.Header{
-					Data: data,
-					Height: clienttypes.Height{
-						RevisionNumber: 2000,
-						RevisionHeight: 39,
-					},
-				}
-				// VerifyClientMessage must be run first
-				err = clientState.VerifyClientMessage(suite.ctx, suite.chainA.Codec, suite.store, clientMsg)
-				suite.Require().NoError(err)
-			},
-			true,
-		},
-		{
-			"success with not verifying client message",
-			func() {
-				data, err := base64.StdEncoding.DecodeString(suite.testData["header"])
-				suite.Require().NoError(err)
-				clientMsg = &wasmtypes.Header{
-					Data: data,
-					Height: clienttypes.Height{
-						RevisionNumber: 2000,
-						RevisionHeight: 39,
-					},
-				}
-			},
-			true,
-		},
-		{
-			"invalid ClientMessage type", func() {
-				data, err := base64.StdEncoding.DecodeString(suite.testData["misbehaviour"])
-				suite.Require().NoError(err)
-				clientMsg = &wasmtypes.Misbehaviour{
-					Data: data,
-				}
-			},
-			false,
-		},
-	}
-
-	for _, tc := range testCases {
-		tc := tc
-		suite.Run(tc.name, func() {
-			suite.SetupWithChannel()
-			clientState = suite.clientState
-			tc.setup()
-
-			if tc.expPass {
-				consensusHeights := clientState.UpdateState(suite.ctx, suite.chainA.Codec, suite.store, clientMsg)
-
-				clientStateBz := suite.store.Get(host.ClientStateKey())
-				suite.Require().NotEmpty(clientStateBz)
-
-				newClientState := clienttypes.MustUnmarshalClientState(suite.chainA.Codec, clientStateBz)
-
-				suite.Require().Len(consensusHeights, 1)
-				suite.Require().Equal(clienttypes.Height{
-					RevisionNumber: 2000,
-					RevisionHeight: 39,
-				}, consensusHeights[0])
-				suite.Require().Equal(consensusHeights[0], newClientState.(*wasmtypes.ClientState).LatestHeight)
-			} else {
-				suite.Require().Panics(func() {
-					clientState.UpdateState(suite.ctx, suite.chainA.Codec, suite.store, clientMsg)
-				})
-			}
-		})
-	}
-}
-
-func (suite *WasmTestSuite) TestUpdateStateOnMisbehaviourGrandpa() {
-	var (
+		ok          bool
 		clientMsg   exported.ClientMessage
 		clientState exported.ClientState
 	)
@@ -801,19 +784,20 @@ func (suite *WasmTestSuite) TestUpdateStateOnMisbehaviourGrandpa() {
 			func() {
 				data, err := base64.StdEncoding.DecodeString(suite.testData["misbehaviour"])
 				suite.Require().NoError(err)
-				clientMsg = &wasmtypes.Misbehaviour{
+				clientMsg = &types.Misbehaviour{
 					Data: data,
 				}
-				clientState = suite.clientState
+
+				clientState, ok = suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.ctx, grandpaClientID)
+				suite.Require().True(ok)
 			},
 			true,
 		},
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		suite.Run(tc.name, func() {
-			suite.SetupWithChannel()
+			suite.SetupWasmGrandpaWithChannel()
 			tc.setup()
 
 			if tc.expPass {
@@ -835,7 +819,7 @@ func (suite *WasmTestSuite) TestUpdateStateOnMisbehaviourGrandpa() {
 	}
 }
 
-func (suite *WasmTestSuite) TestUpdateStateOnMisbehaviourTendermint() {
+func (suite *TypesTestSuite) TestUpdateStateOnMisbehaviourTendermint() {
 	var path *ibctesting.Path
 
 	testCases := []struct {
@@ -851,8 +835,6 @@ func (suite *WasmTestSuite) TestUpdateStateOnMisbehaviourTendermint() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(tc.name, func() {
 			// reset suite to create fresh application state
 			suite.SetupWasmTendermint()
@@ -874,7 +856,7 @@ func (suite *WasmTestSuite) TestUpdateStateOnMisbehaviourTendermint() {
 			}
 			wasmData, err := suite.chainB.Codec.MarshalInterface(tmMisbehaviour)
 			suite.Require().NoError(err)
-			clientMessage := &wasmtypes.Misbehaviour{
+			clientMessage := &types.Misbehaviour{
 				Data: wasmData,
 			}
 			clientState.UpdateStateOnMisbehaviour(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), clientStore, clientMessage)
@@ -884,7 +866,7 @@ func (suite *WasmTestSuite) TestUpdateStateOnMisbehaviourTendermint() {
 				suite.Require().NotEmpty(clientStateBz)
 
 				newClientState := clienttypes.MustUnmarshalClientState(suite.chainA.Codec, clientStateBz)
-				newWasmClientState := newClientState.(*wasmtypes.ClientState)
+				newWasmClientState := newClientState.(*types.ClientState)
 
 				var innerClientState exported.ClientState
 				err = suite.chainA.Codec.UnmarshalInterface(newWasmClientState.Data, &innerClientState)

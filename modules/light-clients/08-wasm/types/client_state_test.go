@@ -1,81 +1,160 @@
 package types_test
 
 import (
+	"crypto/sha256"
 	"encoding/base64"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
+	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	tmtypes "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
-	wasmtypes "github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm/types"
+	"github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	ibcmock "github.com/cosmos/ibc-go/v7/testing/mock"
 )
 
-func (suite *WasmTestSuite) TestStatusTendermint() {
+func (suite *TypesTestSuite) TestStatusGrandpa() {
 	var (
-		path        *ibctesting.Path
-		clientState *wasmtypes.ClientState
+		ok          bool
+		clientState exported.ClientState
 	)
+
 	testCases := []struct {
 		name      string
 		malleate  func()
 		expStatus exported.Status
 	}{
-		{"client is active", func() {}, exported.Active},
-		{"client is frozen", func() {
-			var eClientState exported.ClientState
-			err := suite.chainA.Codec.UnmarshalInterface(clientState.Data, &eClientState)
-			suite.Require().NoError(err)
+		{
+			"client is active",
+			func() {},
+			exported.Active,
+		},
+		{
+			"client is frozen",
+			func() {
+				clientStateData, err := base64.StdEncoding.DecodeString(suite.testData["client_state_frozen"])
+				suite.Require().NoError(err)
 
-			tmClientState := eClientState.(*tmtypes.ClientState)
-			tmClientState.FrozenHeight = clienttypes.NewHeight(0, 1)
+				clientState = types.NewClientState(clientStateData, suite.codeID, clienttypes.NewHeight(2000, 5))
 
-			wasmData, err := suite.chainA.Codec.MarshalInterface(tmClientState)
-			suite.Require().NoError(err)
+				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.ctx, grandpaClientID, clientState)
+			},
+			exported.Frozen,
+		},
+		{
+			"client status without consensus state",
+			func() {
+				clientStateData, err := base64.StdEncoding.DecodeString(suite.testData["client_state_no_consensus"])
+				suite.Require().NoError(err)
 
-			clientState.Data = wasmData
-			path.EndpointA.SetClientState(clientState)
-		}, exported.Frozen},
-		{"client status without consensus state", func() {
-			latestHeight := clientState.LatestHeight.Increment().(clienttypes.Height)
-			var eClientState exported.ClientState
-			err := suite.chainA.Codec.UnmarshalInterface(clientState.Data, &eClientState)
-			suite.Require().NoError(err)
+				clientState = types.NewClientState(clientStateData, suite.codeID, clienttypes.NewHeight(2000, 36 /* This doesn't matter, but the grandpa client state is set to this */))
 
-			tmClientState := eClientState.(*tmtypes.ClientState)
-			tmClientState.LatestHeight = latestHeight
-			wasmData, err := suite.chainA.Codec.MarshalInterface(tmClientState)
-			suite.Require().NoError(err)
+				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.ctx, grandpaClientID, clientState)
+			},
+			exported.Expired,
+		},
+		{
+			"client state for unexisting contract",
+			func() {
+				clientStateData, err := base64.StdEncoding.DecodeString(suite.testData["client_state_data"])
+				suite.Require().NoError(err)
 
-			clientState.Data = wasmData
-			clientState.LatestHeight = latestHeight
-			path.EndpointA.SetClientState(clientState)
-		}, exported.Expired},
-		{"client status is expired", func() {
-			var eClientState exported.ClientState
-			err := suite.chainA.Codec.UnmarshalInterface(clientState.Data, &eClientState)
-			suite.Require().NoError(err)
-
-			suite.coordinator.IncrementTimeBy(eClientState.(*tmtypes.ClientState).TrustingPeriod)
-		}, exported.Expired},
+				codeId := sha256.Sum256([]byte("bytes-of-light-client-wasm-contract-that-does-not-exist")) // code ID for a contract that does not exists in store
+				clientState = types.NewClientState(clientStateData, codeId[:], clienttypes.NewHeight(2000, 5))
+			},
+			exported.Unknown,
+		},
 	}
 
 	for _, tc := range testCases {
-		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupWasmGrandpaWithChannel()
+
+			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, grandpaClientID)
+			clientState, ok = suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.ctx, grandpaClientID)
+			suite.Require().True(ok)
+
+			tc.malleate()
+
+			status := clientState.Status(suite.ctx, clientStore, suite.chainA.App.AppCodec())
+			suite.Require().Equal(tc.expStatus, status)
+		})
+	}
+}
+
+func (suite *TypesTestSuite) TestStatusTendermint() {
+	var (
+		path          *ibctesting.Path
+		clientState   *types.ClientState
+		tmClientState *tmtypes.ClientState
+	)
+
+	testCases := []struct {
+		name      string
+		malleate  func()
+		expStatus exported.Status
+	}{
+		{
+			"client is active",
+			func() {},
+			exported.Active,
+		},
+		{
+			"client is frozen",
+			func() {
+				tmClientState.FrozenHeight = clienttypes.NewHeight(0, 1)
+
+				wasmData, err := suite.chainA.Codec.MarshalInterface(tmClientState)
+				suite.Require().NoError(err)
+
+				clientState.Data = wasmData
+				path.EndpointA.SetClientState(clientState)
+			},
+			exported.Frozen,
+		},
+		{
+			"client status without consensus state",
+			func() {
+				latestHeight := clientState.LatestHeight.Increment().(clienttypes.Height)
+				tmClientState.LatestHeight = latestHeight
+
+				wasmData, err := suite.chainA.Codec.MarshalInterface(tmClientState)
+				suite.Require().NoError(err)
+
+				clientState.Data = wasmData
+				clientState.LatestHeight = latestHeight
+				path.EndpointA.SetClientState(clientState)
+			},
+			exported.Expired,
+		},
+		{
+			"client status is expired",
+			func() {
+				suite.coordinator.IncrementTimeBy(tmClientState.TrustingPeriod)
+			},
+			exported.Expired,
+		},
+	}
+
+	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
 			suite.SetupWasmTendermint()
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupClients(path)
 
 			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
-			clientState = path.EndpointA.GetClientState().(*wasmtypes.ClientState)
+			clientState = path.EndpointA.GetClientState().(*types.ClientState)
+
+			var cs exported.ClientState
+			err := suite.chainA.Codec.UnmarshalInterface(clientState.Data, &cs)
+			suite.Require().NoError(err)
+			tmClientState = cs.(*tmtypes.ClientState)
 
 			tc.malleate()
 
@@ -85,108 +164,52 @@ func (suite *WasmTestSuite) TestStatusTendermint() {
 	}
 }
 
-func (suite *WasmTestSuite) TestStatusGrandpa() {
-	testCases := []struct {
-		name      string
-		malleate  func()
-		expStatus exported.Status
-	}{
-		{"client is active", func() {}, exported.Active},
-		{"client is frozen", func() {
-			cs, err := base64.StdEncoding.DecodeString(suite.testData["client_state_frozen"])
-			suite.Require().NoError(err)
-
-			frozenClientState := wasmtypes.ClientState{
-				Data:   cs,
-				CodeId: suite.codeID,
-				LatestHeight: clienttypes.Height{
-					RevisionNumber: 2000,
-					RevisionHeight: 5,
-				},
-			}
-
-			suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.ctx, "08-wasm-0", &frozenClientState)
-		}, exported.Frozen},
-		{"client status without consensus state", func() {
-			cs, err := base64.StdEncoding.DecodeString(suite.testData["client_state_no_consensus"])
-			suite.Require().NoError(err)
-
-			clientState := wasmtypes.ClientState{
-				Data:   cs,
-				CodeId: suite.codeID,
-				LatestHeight: clienttypes.Height{
-					RevisionNumber: 2000,
-					RevisionHeight: 36, // This doesn't matter, but the grandpa client state is set to this
-				},
-			}
-
-			suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.ctx, "08-wasm-0", &clientState)
-		}, exported.Expired},
-		// ics10-grandpa client state doesn't have a trusting period, so this might be removed
-		/*{"client status is expired", func() {
-			suite.coordinator.IncrementTimeBy(clientState.TrustingPeriod)
-		}, exported.Expired},*/
-		{"no client state", func() {
-			suite.SetupWithEmptyClient()
-		}, exported.Unknown},
-	}
-
-	for _, tc := range testCases {
-		tc := tc
-		suite.Run(tc.name, func() {
-			suite.SetupWithChannel()
-			tc.malleate()
-
-			status := suite.clientState.Status(suite.ctx, suite.store, suite.chainA.App.AppCodec())
-			suite.Require().Equal(tc.expStatus, status)
-		})
-	}
-}
-
-func (suite *WasmTestSuite) TestValidate() {
+func (suite *TypesTestSuite) TestValidate() {
 	testCases := []struct {
 		name        string
-		clientState *wasmtypes.ClientState
+		clientState *types.ClientState
 		expPass     bool
 	}{
 		{
 			name:        "valid client",
-			clientState: wasmtypes.NewClientState([]byte{0}, []byte{0}, clienttypes.Height{}),
+			clientState: types.NewClientState([]byte{0}, []byte{0}, clienttypes.ZeroHeight()),
 			expPass:     true,
 		},
 		{
 			name:        "nil data",
-			clientState: wasmtypes.NewClientState(nil, []byte{0}, clienttypes.Height{}),
+			clientState: types.NewClientState(nil, []byte{0}, clienttypes.ZeroHeight()),
 			expPass:     false,
 		},
 		{
 			name:        "empty data",
-			clientState: wasmtypes.NewClientState([]byte{}, []byte{0}, clienttypes.Height{}),
+			clientState: types.NewClientState([]byte{}, []byte{0}, clienttypes.ZeroHeight()),
 			expPass:     false,
 		},
 		{
 			name:        "nil code id",
-			clientState: wasmtypes.NewClientState([]byte{0}, nil, clienttypes.Height{}),
+			clientState: types.NewClientState([]byte{0}, nil, clienttypes.ZeroHeight()),
 			expPass:     false,
 		},
 		{
 			name:        "empty code id",
-			clientState: wasmtypes.NewClientState([]byte{0}, []byte{}, clienttypes.Height{}),
+			clientState: types.NewClientState([]byte{0}, []byte{}, clienttypes.ZeroHeight()),
 			expPass:     false,
 		},
 	}
 
 	for _, tc := range testCases {
-		err := tc.clientState.Validate()
-		if tc.expPass {
-			suite.Require().NoError(err, tc.name)
-		} else {
-			suite.Require().Error(err, tc.name)
-		}
+		suite.Run(tc.name, func() {
+			err := tc.clientState.Validate()
+			if tc.expPass {
+				suite.Require().NoError(err, tc.name)
+			} else {
+				suite.Require().Error(err, tc.name)
+			}
+		})
 	}
 }
 
-func (suite *WasmTestSuite) TestInitializeGrandpa() {
+func (suite *TypesTestSuite) TestInitializeGrandpa() {
 	testCases := []struct {
 		name           string
 		consensusState exported.ConsensusState
@@ -194,7 +217,7 @@ func (suite *WasmTestSuite) TestInitializeGrandpa() {
 	}{
 		{
 			name:           "valid consensus",
-			consensusState: &suite.consensusState,
+			consensusState: types.NewConsensusState([]byte("data"), uint64(1678304292)),
 			expPass:        true,
 		},
 		{
@@ -205,40 +228,36 @@ func (suite *WasmTestSuite) TestInitializeGrandpa() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(tc.name, func() {
-			suite.SetupWithEmptyClient() // reset
+			suite.SetupWasmGrandpa()
 
-			store := suite.store
-			err := suite.clientState.Initialize(suite.ctx, suite.chainA.Codec, store, tc.consensusState)
+			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, grandpaClientID)
+			clientState := types.NewClientState([]byte("data"), suite.codeID, clienttypes.NewHeight(2000, 4))
+			err := clientState.Initialize(suite.ctx, suite.chainA.Codec, clientStore, tc.consensusState)
 
 			if tc.expPass {
-				suite.Require().NoError(err, "valid case returned an error")
-				suite.Require().True(store.Has(host.ClientStateKey()))
-				suite.Require().True(store.Has(host.ConsensusStateKey(suite.clientState.GetLatestHeight())))
+				suite.Require().NoError(err)
+				suite.Require().True(clientStore.Has(host.ClientStateKey()))
+				suite.Require().True(clientStore.Has(host.ConsensusStateKey(clientState.GetLatestHeight())))
 			} else {
-				suite.Require().Error(err, "invalid case didn't return an error")
-				suite.Require().False(store.Has(host.ClientStateKey()))
-				suite.Require().False(store.Has(host.ConsensusStateKey(suite.clientState.GetLatestHeight())))
+				suite.Require().Error(err)
+				suite.Require().False(clientStore.Has(host.ClientStateKey()))
+				suite.Require().False(clientStore.Has(host.ConsensusStateKey(clientState.GetLatestHeight())))
 			}
 		})
 	}
 }
 
-func (suite *WasmTestSuite) TestInitializeTendermint() {
+func (suite *TypesTestSuite) TestInitializeTendermint() {
 	testCases := []struct {
 		name           string
 		consensusState exported.ConsensusState
 		expPass        bool
 	}{
 		{
-			name: "valid consensus",
-			consensusState: &wasmtypes.ConsensusState{
-				Data:      []byte{0},
-				Timestamp: 1,
-			},
-			expPass: true,
+			name:           "valid consensus",
+			consensusState: types.NewConsensusState([]byte{0}, 1),
+			expPass:        true,
 		},
 		{
 			name:           "invalid consensus: consensus state is solomachine consensus",
@@ -248,59 +267,62 @@ func (suite *WasmTestSuite) TestInitializeTendermint() {
 	}
 
 	for _, tc := range testCases {
-		suite.SetupWasmTendermint()
-		path := ibctesting.NewPath(suite.chainA, suite.chainB)
+		suite.Run(tc.name, func() {
+			suite.SetupWasmTendermint()
+			path := ibctesting.NewPath(suite.chainA, suite.chainB)
 
-		tmConfig, ok := path.EndpointB.ClientConfig.(*ibctesting.TendermintConfig)
-		suite.Require().True(ok)
+			tmConfig, ok := path.EndpointB.ClientConfig.(*ibctesting.TendermintConfig)
+			suite.Require().True(ok)
 
-		tmClientState := tmtypes.NewClientState(
-			path.EndpointB.Chain.ChainID,
-			tmConfig.TrustLevel, tmConfig.TrustingPeriod, tmConfig.UnbondingPeriod, tmConfig.MaxClockDrift,
-			suite.chainB.LastHeader.GetTrustedHeight(), commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath,
-		)
+			tmClientState := tmtypes.NewClientState(
+				path.EndpointB.Chain.ChainID,
+				tmConfig.TrustLevel, tmConfig.TrustingPeriod, tmConfig.UnbondingPeriod, tmConfig.MaxClockDrift,
+				suite.chainB.LastHeader.GetTrustedHeight(), commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath,
+			)
 
-		wasmData, err := suite.chainA.Codec.MarshalInterface(tmClientState)
-		suite.Require().NoError(err)
+			tmClientStateData, err := suite.chainA.Codec.MarshalInterface(tmClientState)
+			suite.Require().NoError(err)
 
-		wasmClientState := wasmtypes.NewClientState(wasmData, suite.codeID, tmClientState.LatestHeight)
+			wasmClientState := types.NewClientState(tmClientStateData, suite.codeID, tmClientState.LatestHeight)
 
-		store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
-		err = wasmClientState.Initialize(suite.chainA.GetContext(), suite.chainA.Codec, store, tc.consensusState)
+			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, path.EndpointA.ClientID)
+			err = wasmClientState.Initialize(suite.ctx, suite.chainA.Codec, clientStore, tc.consensusState)
 
-		if tc.expPass {
-			suite.Require().NoError(err, "valid case returned an error")
-			suite.Require().True(store.Has(host.ClientStateKey()))
-			suite.Require().True(store.Has(host.ConsensusStateKey(suite.chainB.LastHeader.GetTrustedHeight())))
-		} else {
-			suite.Require().Error(err, "invalid case didn't return an error")
-			suite.Require().False(store.Has(host.ClientStateKey()))
-			suite.Require().False(store.Has(host.ConsensusStateKey(suite.chainB.LastHeader.GetTrustedHeight())))
-		}
+			if tc.expPass {
+				suite.Require().NoError(err)
+				suite.Require().True(clientStore.Has(host.ClientStateKey()))
+				suite.Require().True(clientStore.Has(host.ConsensusStateKey(suite.chainB.LastHeader.GetTrustedHeight())))
+			} else {
+				suite.Require().Error(err)
+				suite.Require().False(clientStore.Has(host.ClientStateKey()))
+				suite.Require().False(clientStore.Has(host.ConsensusStateKey(suite.chainB.LastHeader.GetTrustedHeight())))
+			}
+		})
 	}
 }
 
-func (suite *WasmTestSuite) TestVerifyMembershipGrandpa() {
+func (suite *TypesTestSuite) TestVerifyMembershipGrandpa() {
+	const (
+		prefix       = "ibc/"
+		connectionID = "connection-0"
+		portID       = "transfer"
+		channelID    = "channel-0"
+	)
+
 	var (
-		clientState      exported.ClientState
 		err              error
-		height           exported.Height
-		path             exported.Path
+		proofHeight      exported.Height
 		proof            []byte
+		path             exported.Path
 		value            []byte
 		delayTimePeriod  uint64
 		delayBlockPeriod uint64
 	)
-	clientID := "07-tendermint-0"
-	connectionID := "connection-0"
-	channelID := "channel-0"
-	portID := "transfer"
-	pathPrefix := "ibc/"
 
 	testCases := []struct {
-		name    string
-		setup   func()
-		expPass bool
+		name     string
+		malleate func()
+		expPass  bool
 	}{
 		{
 			"successful ClientState verification",
@@ -311,27 +333,26 @@ func (suite *WasmTestSuite) TestVerifyMembershipGrandpa() {
 		{
 			"successful Connection verification",
 			func() {
-				clientState = suite.clientState
-
-				height = clienttypes.NewHeight(2000, 11)
+				proofHeight = clienttypes.NewHeight(2000, 11)
 				key := host.ConnectionPath(connectionID)
+				merklePrefix := commitmenttypes.NewMerklePrefix([]byte(prefix))
 				merklePath := commitmenttypes.NewMerklePath(key)
-				path = commitmenttypes.NewMerklePath(append([]string{pathPrefix}, merklePath.KeyPath...)...)
+				path, err = commitmenttypes.ApplyPrefix(merklePrefix, merklePath)
 				suite.Require().NoError(err)
 
 				proof, err = base64.StdEncoding.DecodeString(suite.testData["connection_proof_try"])
 				suite.Require().NoError(err)
 
-				value, err = suite.chainA.Codec.Marshal(&types.ConnectionEnd{
-					ClientId: clientID,
-					Counterparty: types.Counterparty{
-						ClientId:     "08-wasm-0",
+				value, err = suite.chainA.Codec.Marshal(&connectiontypes.ConnectionEnd{
+					ClientId: tmClientID,
+					Counterparty: connectiontypes.Counterparty{
+						ClientId:     grandpaClientID,
 						ConnectionId: connectionID,
 						Prefix:       suite.chainA.GetPrefix(),
 					},
 					DelayPeriod: 0,
-					State:       types.TRYOPEN,
-					Versions:    []*types.Version{types.DefaultIBCVersion},
+					State:       connectiontypes.TRYOPEN,
+					Versions:    []*connectiontypes.Version{connectiontypes.DefaultIBCVersion},
 				})
 				suite.Require().NoError(err)
 			},
@@ -340,12 +361,12 @@ func (suite *WasmTestSuite) TestVerifyMembershipGrandpa() {
 		{
 			"successful Channel verification",
 			func() {
-				clientState = suite.clientState
-
-				height = clienttypes.NewHeight(2000, 20)
+				proofHeight = clienttypes.NewHeight(2000, 20)
 				key := host.ChannelPath(portID, channelID)
+				merklePrefix := commitmenttypes.NewMerklePrefix([]byte(prefix))
 				merklePath := commitmenttypes.NewMerklePath(key)
-				path = commitmenttypes.NewMerklePath(append([]string{pathPrefix}, merklePath.KeyPath...)...)
+				path, err = commitmenttypes.ApplyPrefix(merklePrefix, merklePath)
+				suite.Require().NoError(err)
 
 				proof, err = base64.StdEncoding.DecodeString(suite.testData["channel_proof_try"])
 				suite.Require().NoError(err)
@@ -367,20 +388,20 @@ func (suite *WasmTestSuite) TestVerifyMembershipGrandpa() {
 		{
 			"successful PacketCommitment verification",
 			func() {
-				clientState = suite.clientState
-
 				data, err := base64.StdEncoding.DecodeString(suite.testData["packet_commitment_data"])
 				suite.Require().NoError(err)
 
-				height = clienttypes.NewHeight(2000, 32)
+				proofHeight = clienttypes.NewHeight(2000, 32)
 				packet := channeltypes.NewPacket(
 					data,
 					1, portID, channelID, portID, channelID, clienttypes.NewHeight(0, 3000),
 					0,
 				)
 				key := host.PacketCommitmentPath(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
+				merklePrefix := commitmenttypes.NewMerklePrefix([]byte(prefix))
 				merklePath := commitmenttypes.NewMerklePath(key)
-				path = commitmenttypes.NewMerklePath(append([]string{pathPrefix}, merklePath.KeyPath...)...)
+				path, err = commitmenttypes.ApplyPrefix(merklePrefix, merklePath)
+				suite.Require().NoError(err)
 
 				proof, err = base64.StdEncoding.DecodeString(suite.testData["packet_commitment_proof"])
 				suite.Require().NoError(err)
@@ -392,20 +413,20 @@ func (suite *WasmTestSuite) TestVerifyMembershipGrandpa() {
 		{
 			"successful Acknowledgement verification",
 			func() {
-				clientState = suite.clientState
-
 				data, err := base64.StdEncoding.DecodeString(suite.testData["ack_data"])
 				suite.Require().NoError(err)
 
-				height = clienttypes.NewHeight(2000, 29)
+				proofHeight = clienttypes.NewHeight(2000, 29)
 				packet := channeltypes.NewPacket(
 					data,
 					uint64(1), portID, channelID, portID, channelID, clienttypes.NewHeight(2000, 1022),
 					1678733040575532477,
 				)
 				key := host.PacketAcknowledgementKey(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
+				merklePrefix := commitmenttypes.NewMerklePrefix([]byte(prefix))
 				merklePath := commitmenttypes.NewMerklePath(string(key))
-				path = commitmenttypes.NewMerklePath(append([]string{pathPrefix}, merklePath.KeyPath...)...)
+				path, err = commitmenttypes.ApplyPrefix(merklePrefix, merklePath)
+				suite.Require().NoError(err)
 
 				proof, err = base64.StdEncoding.DecodeString(suite.testData["ack_proof"])
 				suite.Require().NoError(err)
@@ -442,7 +463,7 @@ func (suite *WasmTestSuite) TestVerifyMembershipGrandpa() {
 		},
 		{
 			"latest client height < height", func() {
-				height = height.Increment()
+				proofHeight = proofHeight.Increment()
 			}, false,
 		},
 		{
@@ -459,7 +480,7 @@ func (suite *WasmTestSuite) TestVerifyMembershipGrandpa() {
 		},
 		{
 			"consensus state not found", func() {
-				height = clienttypes.ZeroHeight()
+				proofHeight = clienttypes.ZeroHeight()
 			}, false,
 		},
 		{
@@ -471,17 +492,20 @@ func (suite *WasmTestSuite) TestVerifyMembershipGrandpa() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		suite.Run(tc.name, func() {
-			suite.SetupWithChannel() // reset
-			clientState = suite.clientState
+			suite.SetupWasmGrandpaWithChannel() // reset
+			clientState, ok := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.ctx, grandpaClientID)
+			suite.Require().True(ok)
 
 			delayTimePeriod = 0
 			delayBlockPeriod = 0
-			height = clienttypes.NewHeight(2000, 11)
-			key := host.FullClientStateKey(clientID)
+
+			proofHeight = clienttypes.NewHeight(2000, 11)
+			key := host.FullClientStateKey(tmClientID)
+			merklePrefix := commitmenttypes.NewMerklePrefix([]byte(prefix))
 			merklePath := commitmenttypes.NewMerklePath(string(key))
-			path = commitmenttypes.NewMerklePath(append([]string{pathPrefix}, merklePath.KeyPath...)...)
+			path, err = commitmenttypes.ApplyPrefix(merklePrefix, merklePath)
+			suite.Require().NoError(err)
 
 			proof, err = base64.StdEncoding.DecodeString(suite.testData["client_state_proof"])
 			suite.Require().NoError(err)
@@ -492,17 +516,11 @@ func (suite *WasmTestSuite) TestVerifyMembershipGrandpa() {
 					Numerator:   1,
 					Denominator: 3,
 				},
-				TrustingPeriod:  time.Second * 64000,
-				UnbondingPeriod: time.Second * 1814400,
-				MaxClockDrift:   time.Second * 15,
-				FrozenHeight: clienttypes.Height{
-					RevisionNumber: 0,
-					RevisionHeight: 0,
-				},
-				LatestHeight: clienttypes.Height{
-					RevisionNumber: 0,
-					RevisionHeight: 46,
-				},
+				TrustingPeriod:               time.Second * 64000,
+				UnbondingPeriod:              time.Second * 1814400,
+				MaxClockDrift:                time.Second * 15,
+				FrozenHeight:                 clienttypes.ZeroHeight(),
+				LatestHeight:                 clienttypes.NewHeight(0, 46),
 				ProofSpecs:                   commitmenttypes.GetSDKSpecs(),
 				UpgradePath:                  []string{"upgrade", "upgradedIBCState"},
 				AllowUpdateAfterExpiry:       false,
@@ -510,11 +528,13 @@ func (suite *WasmTestSuite) TestVerifyMembershipGrandpa() {
 			})
 			suite.Require().NoError(err)
 
-			tc.setup()
+			tc.malleate()
+
+			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, grandpaClientID)
 
 			err = clientState.VerifyMembership(
-				suite.ctx, suite.store, suite.chainA.Codec,
-				height, delayTimePeriod, delayBlockPeriod,
+				suite.ctx, clientStore, suite.chainA.Codec,
+				proofHeight, delayTimePeriod, delayBlockPeriod,
 				proof, path, value,
 			)
 
@@ -527,16 +547,16 @@ func (suite *WasmTestSuite) TestVerifyMembershipGrandpa() {
 	}
 }
 
-func (suite *WasmTestSuite) TestVerifyMembershipTendermint() {
+func (suite *TypesTestSuite) TestVerifyMembershipTendermint() {
 	var (
 		testingpath      *ibctesting.Path
-		delayTimePeriod  uint64
-		delayBlockPeriod uint64
 		err              error
 		proofHeight      exported.Height
 		proof            []byte
 		path             exported.Path
 		value            []byte
+		delayTimePeriod  uint64
+		delayBlockPeriod uint64
 	)
 
 	testCases := []struct {
@@ -560,7 +580,7 @@ func (suite *WasmTestSuite) TestVerifyMembershipTendermint() {
 
 				proof, proofHeight = suite.chainB.QueryProof(key)
 
-				consensusState := testingpath.EndpointB.GetConsensusState(testingpath.EndpointB.GetClientState().GetLatestHeight()).(*wasmtypes.ConsensusState)
+				consensusState := testingpath.EndpointB.GetConsensusState(testingpath.EndpointB.GetClientState().GetLatestHeight()).(*types.ConsensusState)
 				value, err = suite.chainB.Codec.MarshalInterface(consensusState)
 				suite.Require().NoError(err)
 			},
@@ -736,8 +756,6 @@ func (suite *WasmTestSuite) TestVerifyMembershipTendermint() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(tc.name, func() {
 			suite.SetupWasmTendermint() // reset
 			testingpath = ibctesting.NewPath(suite.chainA, suite.chainB)
@@ -757,13 +775,13 @@ func (suite *WasmTestSuite) TestVerifyMembershipTendermint() {
 
 			proof, proofHeight = suite.chainB.QueryProof(key)
 
-			clientState := testingpath.EndpointB.GetClientState().(*wasmtypes.ClientState)
+			clientState := testingpath.EndpointB.GetClientState().(*types.ClientState)
 			value, err = suite.chainB.Codec.MarshalInterface(clientState)
 			suite.Require().NoError(err)
 
 			tc.malleate() // make changes as necessary
 
-			clientState = testingpath.EndpointA.GetClientState().(*wasmtypes.ClientState)
+			clientState = testingpath.EndpointA.GetClientState().(*types.ClientState)
 
 			ctx := suite.chainA.GetContext()
 			store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(ctx, testingpath.EndpointA.ClientID)
@@ -782,7 +800,15 @@ func (suite *WasmTestSuite) TestVerifyMembershipTendermint() {
 	}
 }
 
-func (suite *WasmTestSuite) TestVerifyNonMembershipGrandpa() {
+func (suite *TypesTestSuite) TestVerifyNonMembershipGrandpa() {
+	const (
+		prefix              = "ibc/"
+		portID              = "transfer"
+		invalidClientID     = "09-tendermint-0"
+		invalidConnectionID = "connection-100"
+		invalidChannelID    = "channel-800"
+	)
+
 	var (
 		clientState      exported.ClientState
 		err              error
@@ -791,18 +817,13 @@ func (suite *WasmTestSuite) TestVerifyNonMembershipGrandpa() {
 		proof            []byte
 		delayTimePeriod  uint64
 		delayBlockPeriod uint64
+		ok               bool
 	)
-	clientID := "07-tendermint-0"
-	portID := "transfer"
-	invalidClientID := "09-tendermint-0"
-	invalidConnectionID := "connection-100"
-	invalidChannelID := "channel-800"
-	pathPrefix := "ibc/"
 
 	testCases := []struct {
-		name    string
-		setup   func()
-		expPass bool
+		name     string
+		malleate func()
+		expPass  bool
 	}{
 		{
 			"successful ClientState verification of non membership",
@@ -813,9 +834,11 @@ func (suite *WasmTestSuite) TestVerifyNonMembershipGrandpa() {
 		{
 			"successful ConsensusState verification of non membership", func() {
 				height = clienttypes.NewHeight(2000, 11)
-				key := host.FullConsensusStateKey(invalidClientID, suite.clientState.GetLatestHeight())
+				key := host.FullConsensusStateKey(invalidClientID, clientState.GetLatestHeight())
+				merklePrefix := commitmenttypes.NewMerklePrefix([]byte(prefix))
 				merklePath := commitmenttypes.NewMerklePath(string(key))
-				path = commitmenttypes.NewMerklePath(append([]string{pathPrefix}, merklePath.KeyPath...)...)
+				path, err = commitmenttypes.ApplyPrefix(merklePrefix, merklePath)
+				suite.Require().NoError(err)
 
 				proof, err = base64.StdEncoding.DecodeString(suite.testData["client_state_proof"])
 				suite.Require().NoError(err)
@@ -826,8 +849,10 @@ func (suite *WasmTestSuite) TestVerifyNonMembershipGrandpa() {
 			"successful Connection verification of non membership", func() {
 				height = clienttypes.NewHeight(2000, 11)
 				key := host.ConnectionKey(invalidConnectionID)
+				merklePrefix := commitmenttypes.NewMerklePrefix([]byte(prefix))
 				merklePath := commitmenttypes.NewMerklePath(string(key))
-				path = commitmenttypes.NewMerklePath(append([]string{pathPrefix}, merklePath.KeyPath...)...)
+				path, err = commitmenttypes.ApplyPrefix(merklePrefix, merklePath)
+				suite.Require().NoError(err)
 
 				proof, err = base64.StdEncoding.DecodeString(suite.testData["connection_proof_try"])
 				suite.Require().NoError(err)
@@ -838,8 +863,10 @@ func (suite *WasmTestSuite) TestVerifyNonMembershipGrandpa() {
 			"successful Channel verification of non membership", func() {
 				height = clienttypes.NewHeight(2000, 20)
 				key := host.ChannelKey(portID, invalidChannelID)
+				merklePrefix := commitmenttypes.NewMerklePrefix([]byte(prefix))
 				merklePath := commitmenttypes.NewMerklePath(string(key))
-				path = commitmenttypes.NewMerklePath(append([]string{pathPrefix}, merklePath.KeyPath...)...)
+				path, err = commitmenttypes.ApplyPrefix(merklePrefix, merklePath)
+				suite.Require().NoError(err)
 
 				proof, err = base64.StdEncoding.DecodeString(suite.testData["channel_proof_try"])
 				suite.Require().NoError(err)
@@ -850,8 +877,10 @@ func (suite *WasmTestSuite) TestVerifyNonMembershipGrandpa() {
 			"successful PacketCommitment verification of non membership", func() {
 				height = clienttypes.NewHeight(2000, 32)
 				key := host.PacketCommitmentKey(portID, invalidChannelID, 1)
+				merklePrefix := commitmenttypes.NewMerklePrefix([]byte(prefix))
 				merklePath := commitmenttypes.NewMerklePath(string(key))
-				path = commitmenttypes.NewMerklePath(append([]string{pathPrefix}, merklePath.KeyPath...)...)
+				path, err = commitmenttypes.ApplyPrefix(merklePrefix, merklePath)
+				suite.Require().NoError(err)
 
 				proof, err = base64.StdEncoding.DecodeString(suite.testData["packet_commitment_proof"])
 				suite.Require().NoError(err)
@@ -861,8 +890,10 @@ func (suite *WasmTestSuite) TestVerifyNonMembershipGrandpa() {
 			"successful Acknowledgement verification of non membership", func() {
 				height = clienttypes.NewHeight(2000, 29)
 				key := host.PacketAcknowledgementKey(portID, invalidChannelID, 1)
+				merklePrefix := commitmenttypes.NewMerklePrefix([]byte(prefix))
 				merklePath := commitmenttypes.NewMerklePath(string(key))
-				path = commitmenttypes.NewMerklePath(append([]string{pathPrefix}, merklePath.KeyPath...)...)
+				path, err = commitmenttypes.ApplyPrefix(merklePrefix, merklePath)
+				suite.Require().NoError(err)
 
 				proof, err = base64.StdEncoding.DecodeString(suite.testData["ack_proof"])
 				suite.Require().NoError(err)
@@ -919,9 +950,11 @@ func (suite *WasmTestSuite) TestVerifyNonMembershipGrandpa() {
 			"verify non membership fails as path exists", func() {
 				height = clienttypes.NewHeight(2000, 11)
 				// change the value being proved
-				key := host.FullClientStateKey(clientID)
+				key := host.FullClientStateKey(tmClientID)
+				merklePrefix := commitmenttypes.NewMerklePrefix([]byte(prefix))
 				merklePath := commitmenttypes.NewMerklePath(string(key))
-				path = commitmenttypes.NewMerklePath(append([]string{pathPrefix}, merklePath.KeyPath...)...)
+				path, err = commitmenttypes.ApplyPrefix(merklePrefix, merklePath)
+				suite.Require().NoError(err)
 
 				proof, err = base64.StdEncoding.DecodeString(suite.testData["client_state_proof"])
 				suite.Require().NoError(err)
@@ -930,20 +963,24 @@ func (suite *WasmTestSuite) TestVerifyNonMembershipGrandpa() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		suite.Run(tc.name, func() {
-			suite.SetupWithChannel() // reset
+			suite.SetupWasmGrandpaWithChannel() // reset
+			clientState, ok = suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.ctx, grandpaClientID)
+			suite.Require().True(ok)
 
-			clientState = suite.clientState
 			delayTimePeriod = 0
 			delayBlockPeriod = 0
 			height = clienttypes.NewHeight(2000, 11)
 			key := host.FullClientStateKey(invalidClientID)
+			merklePrefix := commitmenttypes.NewMerklePrefix([]byte(prefix))
 			merklePath := commitmenttypes.NewMerklePath(string(key))
-			path = commitmenttypes.NewMerklePath(append([]string{pathPrefix}, merklePath.KeyPath...)...)
+			path, err = commitmenttypes.ApplyPrefix(merklePrefix, merklePath)
+			suite.Require().NoError(err)
+
 			proof, err = base64.StdEncoding.DecodeString(suite.testData["client_state_proof"])
 			suite.Require().NoError(err)
-			tc.setup()
+
+			tc.malleate()
 
 			err = clientState.VerifyNonMembership(
 				suite.ctx, suite.store, suite.chainA.Codec,
@@ -960,19 +997,22 @@ func (suite *WasmTestSuite) TestVerifyNonMembershipGrandpa() {
 	}
 }
 
-func (suite *WasmTestSuite) TestVerifyNonMembershipTendermint() {
-	var (
-		testingpath         *ibctesting.Path
-		delayTimePeriod     uint64
-		delayBlockPeriod    uint64
-		err                 error
-		proofHeight         exported.Height
-		path                exported.Path
-		proof               []byte
-		invalidClientID     = "09-tendermint"
+func (suite *TypesTestSuite) TestVerifyNonMembershipTendermint() {
+	const (
+		invalidClientID     = "09-tendermint-0"
 		invalidConnectionID = "connection-100"
 		invalidChannelID    = "channel-800"
 		invalidPortID       = "invalid-port"
+	)
+
+	var (
+		testingpath      *ibctesting.Path
+		delayTimePeriod  uint64
+		delayBlockPeriod uint64
+		err              error
+		proofHeight      exported.Height
+		path             exported.Path
+		proof            []byte
 	)
 
 	testCases := []struct {
@@ -1131,8 +1171,6 @@ func (suite *WasmTestSuite) TestVerifyNonMembershipTendermint() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(tc.name, func() {
 			suite.SetupWasmTendermint() // reset
 			testingpath = ibctesting.NewPath(suite.chainA, suite.chainB)
@@ -1145,7 +1183,7 @@ func (suite *WasmTestSuite) TestVerifyNonMembershipTendermint() {
 
 			// create default proof, merklePath, and value which passes
 			// may be overwritten by malleate()
-			key := host.FullClientStateKey("invalid-client-id")
+			key := host.FullClientStateKey(invalidClientID)
 
 			merklePath := commitmenttypes.NewMerklePath(string(key))
 			path, err = commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
@@ -1155,7 +1193,7 @@ func (suite *WasmTestSuite) TestVerifyNonMembershipTendermint() {
 
 			tc.malleate() // make changes as necessary
 
-			clientState := testingpath.EndpointA.GetClientState().(*wasmtypes.ClientState)
+			clientState := testingpath.EndpointA.GetClientState().(*types.ClientState)
 
 			ctx := suite.chainA.GetContext()
 			store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(ctx, testingpath.EndpointA.ClientID)
