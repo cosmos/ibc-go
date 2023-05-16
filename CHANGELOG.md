@@ -42,8 +42,6 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### State Machine Breaking
 
-* (modules/apps/27-interchain-accounts/host) [\#3520](https://github.com/cosmos/ibc-go/pull/3520) Migrate `modules/apps/27-interchain-accounts/host` to self-managed parameters and deprecate it's usage of `x/params`.
-
 ### Improvements
 
 * (tests) [\#3138](https://github.com/cosmos/ibc-go/pull/3138) Support benchmarks and fuzz tests through `testing.TB`.
