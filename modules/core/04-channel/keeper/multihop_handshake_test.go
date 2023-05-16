@@ -110,7 +110,7 @@ func (suite *MultihopTestSuite) TestChanOpenInit() {
 
 				// counterparty := types.NewCounterparty(suite.A().ChannelConfig.PortID, ibctesting.FirstChannelID)
 				counterparty := types.NewCounterparty(suite.Z().ChannelConfig.PortID, "")
-				channelID, cap, err := suite.A().Chain.App.GetIBCKeeper().ChannelKeeper.ChanOpenInit(
+				channelID, capability, err := suite.A().Chain.App.GetIBCKeeper().ChannelKeeper.ChanOpenInit(
 					suite.A().Chain.GetContext(),
 					suite.A().ChannelConfig.Order,
 					[]string{suite.A().ConnectionID},
@@ -137,12 +137,12 @@ func (suite *MultihopTestSuite) TestChanOpenInit() {
 						GetCapability(suite.A().Chain.GetContext(), host.ChannelCapabilityPath(suite.A().ChannelConfig.PortID, channelID))
 					suite.Require().True(ok, "could not retrieve channel capability after successful ChanOpenInit")
 					suite.Require().
-						Equal(cap.String(), chanCap.String(), "channel capability is not equal to retrieved capability")
+						Equal(capability.String(), chanCap.String(), "channel capability is not equal to retrieved capability")
 				} else {
 					suite.Require().Error(err, "channel open init should fail but passed")
 					suite.Require().Contains(err.Error(), expErrorMsgSubstring)
 					suite.Require().Equal("", channelID, "channel ID is not empty")
-					suite.Require().Nil(cap, "channel capability is not nil")
+					suite.Require().Nil(capability, "channel capability is not nil")
 				}
 			}
 		})
