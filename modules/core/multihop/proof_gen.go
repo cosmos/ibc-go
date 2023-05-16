@@ -236,7 +236,11 @@ func queryProof(
 	doVerify bool,
 ) *channeltypes.MultihopProof {
 	if len(key) == 0 {
-		panic("key and value must be non-empty")
+		panic("key must be non-empty")
+	}
+
+	if heightAB == nil {
+		panic("height must be non-nil")
 	}
 
 	chainB := chainA.Counterparty()
