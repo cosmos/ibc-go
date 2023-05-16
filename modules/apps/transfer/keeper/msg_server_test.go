@@ -145,27 +145,27 @@ func (suite *KeeperTestSuite) TestUpdateParams() {
 	validAuthority := suite.chainA.GetSimApp().TransferKeeper.GetAuthority()
 	testCases := []struct {
 		name    string
-		request *types.MsgUpdateParams
+		msg *types.MsgUpdateParams
 		expPass bool
 	}{
 		{
 			name:    "success",
-			request: types.NewMsgUpdateParams(validAuthority, types.DefaultParams()),
+			msg: types.NewMsgUpdateParams(validAuthority, types.DefaultParams()),
 			expPass: true,
 		},
 		{
 			name:    "invalid authority address",
-			request: types.NewMsgUpdateParams(invalidAddress, types.DefaultParams()),
+			msg: types.NewMsgUpdateParams(invalidAddress, types.DefaultParams()),
 			expPass: false,
 		},
 		{
 			name:    "empty authority address",
-			request: types.NewMsgUpdateParams(emptyAddr, types.DefaultParams()),
+			msg: types.NewMsgUpdateParams(emptyAddr, types.DefaultParams()),
 			expPass: false,
 		},
 		{
 			name:    "unauthorized authority address",
-			request: types.NewMsgUpdateParams(validAddress, types.DefaultParams()),
+			msg: types.NewMsgUpdateParams(validAddress, types.DefaultParams()),
 			expPass: false,
 		},
 	}
@@ -174,7 +174,7 @@ func (suite *KeeperTestSuite) TestUpdateParams() {
 		tc := tc
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
-			_, err := suite.chainA.GetSimApp().TransferKeeper.UpdateParams(suite.chainA.GetContext(), tc.request)
+			_, err := suite.chainA.GetSimApp().TransferKeeper.UpdateParams(suite.chainA.GetContext(), tc.msg)
 			if tc.expPass {
 				suite.Require().NoError(err)
 			} else {
