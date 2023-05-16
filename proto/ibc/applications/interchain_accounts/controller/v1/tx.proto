@@ -13,6 +13,8 @@ service Msg {
   rpc RegisterInterchainAccount(MsgRegisterInterchainAccount) returns (MsgRegisterInterchainAccountResponse);
   // SendTx defines a rpc handler for MsgSendTx.
   rpc SendTx(MsgSendTx) returns (MsgSendTxResponse);
+  // UpdateParams defines a rpc handler for MsgUpdateParams.
+  rpc UpdateParams(MsgUpdateParams) returns (MsgUpdateParamsResponse);
 }
 
 // MsgRegisterInterchainAccount defines the payload for Msg/RegisterAccount
@@ -48,3 +50,16 @@ message MsgSendTx {
 message MsgSendTxResponse {
   uint64 sequence = 1;
 }
+// MsgUpdateParams defines the payload for Msg/UpdateParams
+message MsgUpdateParams {
+  // authority is the address that controls the module (defaults to x/gov unless overwritten).
+  string authority = 1;
+
+  // params defines the 27-interchain-accounts/host parameters to update.
+  //
+  // NOTE: All parameters must be supplied.
+  Params params = 2 [(gogoproto.nullable) = false];
+}
+
+// MsgUpdateParamsResponse defines the response for Msg/UpdateParams
+message MsgUpdateParamsResponse {}
