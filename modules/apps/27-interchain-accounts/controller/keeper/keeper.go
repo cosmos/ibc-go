@@ -10,7 +10,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 
 	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
@@ -24,10 +23,8 @@ import (
 
 // Keeper defines the IBC interchain accounts controller keeper
 type Keeper struct {
-	storeKey   storetypes.StoreKey
-	cdc        codec.BinaryCodec
-	paramSpace paramtypes.Subspace
-
+	storeKey      storetypes.StoreKey
+	cdc           codec.BinaryCodec
 	ics4Wrapper   porttypes.ICS4Wrapper
 	channelKeeper icatypes.ChannelKeeper
 	portKeeper    icatypes.PortKeeper
@@ -35,28 +32,25 @@ type Keeper struct {
 	scopedKeeper exported.ScopedKeeper
 
 	msgRouter icatypes.MessageRouter
+	authority string
 }
 
 // NewKeeper creates a new interchain accounts controller Keeper instance
 func NewKeeper(
-	cdc codec.BinaryCodec, key storetypes.StoreKey, paramSpace paramtypes.Subspace,
+	cdc codec.BinaryCodec, key storetypes.StoreKey,
 	ics4Wrapper porttypes.ICS4Wrapper, channelKeeper icatypes.ChannelKeeper, portKeeper icatypes.PortKeeper,
-	scopedKeeper exported.ScopedKeeper, msgRouter icatypes.MessageRouter,
+	scopedKeeper exported.ScopedKeeper, msgRouter icatypes.MessageRouter, authority string,
 ) Keeper {
-	// set KeyTable if it has not already been set
-	if !paramSpace.HasKeyTable() {
-		paramSpace = paramSpace.WithKeyTable(types.ParamKeyTable())
-	}
 
 	return Keeper{
 		storeKey:      key,
 		cdc:           cdc,
-		paramSpace:    paramSpace,
 		ics4Wrapper:   ics4Wrapper,
 		channelKeeper: channelKeeper,
 		portKeeper:    portKeeper,
 		scopedKeeper:  scopedKeeper,
 		msgRouter:     msgRouter,
+		authority:     authority,
 	}
 }
 
@@ -264,4 +258,34 @@ func (k Keeper) SetMiddlewareDisabled(ctx sdk.Context, portID, connectionID stri
 func (k Keeper) DeleteMiddlewareEnabled(ctx sdk.Context, portID, connectionID string) {
 	store := ctx.KVStore(k.storeKey)
 	store.Delete(icatypes.KeyIsMiddlewareEnabled(portID, connectionID))
+}
+
+// GetAuthority returns the transfer module's authority.
+func (k Keeper) GetAuthority() string {
+	return k.authority
+}
+
+// GetParams returns the current transfer module parameters.
+func (k Keeper) GetParams(ctx sdk.Context) (p types.Params) {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(types.ParamsKey)
+	if bz == nil {
+		return p
+	}
+
+	k.cdc.MustUnmarshal(bz, &p)
+	return p
+}
+
+// SetParams sets the transfer module parameters.
+func (k Keeper) SetParams(ctx sdk.Context, params types.Params) error {
+	if err := params.Validate(); err != nil {
+		return err
+	}
+
+	store := ctx.KVStore(k.storeKey)
+	bz := k.cdc.MustMarshal(&params)
+	store.Set(types.ParamsKey, bz)
+
+	return nil
 }
