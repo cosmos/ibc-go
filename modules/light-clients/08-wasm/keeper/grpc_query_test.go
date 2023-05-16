@@ -11,9 +11,7 @@ import (
 )
 
 func (suite *KeeperTestSuite) TestQueryCode() {
-	var (
-		req *types.QueryCodeRequest
-	)
+	var req *types.QueryCodeRequest
 
 	testCases := []struct {
 		name     string
