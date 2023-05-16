@@ -173,10 +173,11 @@ func (k Keeper) SetTotalEscrowForDenom(ctx sdk.Context, coin sdk.Coin) {
 
 	if coin.Amount.IsZero() {
 		store.Delete(key)
-	} else {
-		bz := k.cdc.MustMarshal(&sdk.IntProto{Int: coin.Amount})
-		store.Set(key, bz)
+		return
 	}
+	
+	bz := k.cdc.MustMarshal(&sdk.IntProto{Int: coin.Amount})
+	store.Set(key, bz)
 }
 
 // GetAllTotalEscrowed returns the escrow information for all the denominations.
