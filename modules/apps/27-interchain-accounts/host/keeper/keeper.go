@@ -204,13 +204,13 @@ func (k Keeper) GetAuthority() string {
 
 // GetParams returns the total set of the host submodule parameters.
 func (k Keeper) GetParams(ctx sdk.Context) types.Params {
-	var params types.Params
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.ParamsKey)
 	if bz == nil {
 		return types.Params{}
 	}
 
+	var params types.Params
 	k.cdc.MustUnmarshal(bz, &params)
 	return params
 }
