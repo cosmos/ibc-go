@@ -149,24 +149,24 @@ func (suite *KeeperTestSuite) TestUpdateParams() {
 		expPass bool
 	}{
 		{
-			name:    "set invalid authority",
+			name:    "success",
+			request: types.NewMsgUpdateParams(validAuthority, types.DefaultParams()),
+			expPass: true,
+		},
+		{
+			name:    "invalid authority address",
 			request: types.NewMsgUpdateParams(invalidAddress, types.DefaultParams()),
 			expPass: false,
 		},
 		{
-			name:    "set empty authority",
+			name:    "empty authority address",
 			request: types.NewMsgUpdateParams(emptyAddr, types.DefaultParams()),
 			expPass: false,
 		},
 		{
-			name:    "set wrong authority",
+			name:    "unauthorized authority address",
 			request: types.NewMsgUpdateParams(validAddress, types.DefaultParams()),
 			expPass: false,
-		},
-		{
-			name:    "set full valid params",
-			request: types.NewMsgUpdateParams(validAuthority, types.DefaultParams()),
-			expPass: true,
 		},
 	}
 
