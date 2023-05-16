@@ -175,7 +175,7 @@ func (k Keeper) SetTotalEscrowForDenom(ctx sdk.Context, coin sdk.Coin) {
 		store.Delete(key)
 	} else {
 		bz := k.cdc.MustMarshal(&sdk.IntProto{Int: coin.Amount})
-		store.Set(types.TotalEscrowForDenomKey(coin.Denom), bz)
+		store.Set(key, bz)
 	}
 }
 
