@@ -6,7 +6,12 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
+<<<<<<< HEAD
 	"github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
+=======
+	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
+>>>>>>> 847e11dc (chore: make errors public (#3578))
 )
 
 var _ types.MsgServer = Keeper{}

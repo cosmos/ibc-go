@@ -5,8 +5,14 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 
+<<<<<<< HEAD
 	ibcante "github.com/cosmos/ibc-go/v6/modules/core/ante"
 	"github.com/cosmos/ibc-go/v6/modules/core/keeper"
+=======
+	ibcante "github.com/cosmos/ibc-go/v7/modules/core/ante"
+	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
+	"github.com/cosmos/ibc-go/v7/modules/core/keeper"
+>>>>>>> 847e11dc (chore: make errors public (#3578))
 )
 
 // HandlerOptions extend the SDK's AnteHandler options by requiring the IBC keeper.

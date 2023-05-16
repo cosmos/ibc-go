@@ -8,7 +8,12 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	proto "github.com/gogo/protobuf/proto"
 
+<<<<<<< HEAD
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
+=======
+	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+>>>>>>> 847e11dc (chore: make errors public (#3578))
 )
 
 // RegisterInterfaces registers the client interfaces to protobuf Any.

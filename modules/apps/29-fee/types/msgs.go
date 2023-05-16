@@ -6,6 +6,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
+<<<<<<< HEAD
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
 )
@@ -14,6 +15,11 @@ import (
 const (
 	TypeMsgPayPacketFee      = "payPacketFee"
 	TypeMsgPayPacketFeeAsync = "payPacketFeeAsync"
+=======
+	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
+	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
+>>>>>>> 847e11dc (chore: make errors public (#3578))
 )
 
 // NewMsgRegisterPayee creates a new instance of MsgRegisterPayee

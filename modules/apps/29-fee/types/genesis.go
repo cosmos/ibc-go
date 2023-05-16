@@ -6,7 +6,12 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
+<<<<<<< HEAD
 	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
+=======
+	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
+	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
+>>>>>>> 847e11dc (chore: make errors public (#3578))
 )
 
 // NewGenesisState creates a 29-fee GenesisState instance.

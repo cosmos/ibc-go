@@ -10,7 +10,12 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
+<<<<<<< HEAD
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
+=======
+	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+>>>>>>> 847e11dc (chore: make errors public (#3578))
 )
 
 var _ exported.Height = (*Height)(nil)

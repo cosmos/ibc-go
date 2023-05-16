@@ -5,8 +5,14 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
+<<<<<<< HEAD
 	"github.com/cosmos/ibc-go/v6/modules/core/02-client/keeper"
 	"github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
+=======
+	"github.com/cosmos/ibc-go/v7/modules/core/02-client/keeper"
+	"github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
+>>>>>>> 847e11dc (chore: make errors public (#3578))
 )
 
 // NewClientProposalHandler defines the 02-client proposal handler
