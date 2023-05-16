@@ -28,8 +28,8 @@ type TransferTestSuite struct {
 	testsuite.E2ETestSuite
 }
 
-// selfParamFeatureReleases represents the releases the transfer module started managing its own params.
-var selfParamFeatureReleases = semverutil.FeatureReleases{
+// transferSelfParamFeatureReleases represents the releases the transfer module started managing its own params.
+var transferSelfParamFeatureReleases = semverutil.FeatureReleases{
 	MajorVersion: "v8",
 }
 
@@ -252,7 +252,7 @@ func (s *TransferTestSuite) TestSendEnabledParam() {
 	chainBAddress := chainBWallet.FormattedAddress()
 
 	chainAVersion := chainA.Config().Images[0].Version
-	isSelfManagingParams := selfParamFeatureReleases.IsSupported(chainAVersion)
+	isSelfManagingParams := transferSelfParamFeatureReleases.IsSupported(chainAVersion)
 
 	govModuleAddress, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
 	s.Require().NoError(err)
@@ -273,7 +273,6 @@ func (s *TransferTestSuite) TestSendEnabledParam() {
 
 	t.Run("change send enabled parameter to disabled", func(t *testing.T) {
 		if isSelfManagingParams {
-			println("chainAVersion: ", chainAVersion)
 			msg := transfertypes.NewMsgUpdateParams(govModuleAddress.String(), transfertypes.NewParams(false, true))
 			s.ExecuteGovProposalV1(ctx, msg, chainA, chainAWallet, 1)
 		} else {
@@ -318,7 +317,7 @@ func (s *TransferTestSuite) TestReceiveEnabledParam() {
 	)
 
 	chainAVersion := chainA.Config().Images[0].Version
-	isSelfManagingParams := selfParamFeatureReleases.IsSupported(chainAVersion)
+	isSelfManagingParams := transferSelfParamFeatureReleases.IsSupported(chainAVersion)
 
 	govModuleAddress, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
 	s.Require().NoError(err)
