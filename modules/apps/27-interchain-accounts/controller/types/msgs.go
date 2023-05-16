@@ -12,6 +12,7 @@ import (
 )
 
 var _ sdk.Msg = (*MsgRegisterInterchainAccount)(nil)
+var _ sdk.Msg = (*MsgUpdateParams)(nil)
 
 // NewMsgRegisterInterchainAccount creates a new instance of MsgRegisterInterchainAccount
 func NewMsgRegisterInterchainAccount(connectionID, owner, version string) *MsgRegisterInterchainAccount {
@@ -79,6 +80,26 @@ func (msg MsgSendTx) ValidateBasic() error {
 // GetSigners implements sdk.Msg
 func (msg MsgSendTx) GetSigners() []sdk.AccAddress {
 	accAddr, err := sdk.AccAddressFromBech32(msg.Owner)
+	if err != nil {
+		panic(err)
+	}
+
+	return []sdk.AccAddress{accAddr}
+}
+
+// ValidateBasic implements sdk.Msg
+func (msg MsgUpdateParams) ValidateBasic() error {
+	_, err := sdk.AccAddressFromBech32(msg.Authority)
+	if err != nil {
+		return err
+	}
+
+	return msg.Params.Validate()
+}
+
+// GetSigners implements sdk.Msg
+func (msg MsgUpdateParams) GetSigners() []sdk.AccAddress {
+	accAddr, err := sdk.AccAddressFromBech32(msg.Authority)
 	if err != nil {
 		panic(err)
 	}
