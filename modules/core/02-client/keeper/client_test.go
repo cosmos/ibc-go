@@ -9,7 +9,6 @@ import (
 
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
-	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	solomachine "github.com/cosmos/ibc-go/v7/modules/light-clients/06-solomachine"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
@@ -58,7 +57,7 @@ func (suite *KeeperTestSuite) TestCreateClient() {
 		{
 			"failure: 09-localhost client type not supported",
 			func() {
-				clientState = localhost.NewClientState(clienttypes.GetSelfHeight(suite.ctx))
+				clientState = localhost.NewClientState(clienttypes.GetSelfHeight(suite.chainA.GetContext()))
 				consensusState = nil
 			},
 			false,
@@ -72,15 +71,20 @@ func (suite *KeeperTestSuite) TestCreateClient() {
 			suite.SetupTest() // reset
 			tc.malleate()
 
-			clientID, err := suite.keeper.CreateClient(suite.ctx, clientState, consensusState)
+			clientID, err := suite.chainA.GetSimApp().IBCKeeper.ClientKeeper.CreateClient(suite.chainA.GetContext(), clientState, consensusState)
+
+			// assert correct behaviour based on expected error
+			clientState, found := suite.chainA.GetSimApp().IBCKeeper.ClientKeeper.GetClientState(suite.chainA.GetContext(), clientID)
 			if tc.expPass {
 				suite.Require().NoError(err)
 				suite.Require().NotEmpty(clientID)
-				suite.Require().True(suite.keeper.ClientStore(suite.ctx, clientID).Has(host.ClientStateKey()))
+				suite.Require().True(found)
+				suite.Require().NotEmpty(clientState)
 			} else {
 				suite.Require().Error(err)
 				suite.Require().Empty(clientID)
-				suite.Require().False(suite.keeper.ClientStore(suite.ctx, clientID).Has(host.ClientStateKey()))
+				suite.Require().False(found)
+				suite.Require().Empty(clientState)
 			}
 		})
 	}
@@ -213,7 +217,7 @@ func (suite *KeeperTestSuite) TestUpdateClientTendermint() {
 			}
 			suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientConsensusState(suite.chainA.GetContext(), clientID, incrementedClientHeight, intermediateConsState)
 			// set iteration key
-			clientStore := suite.keeper.ClientStore(suite.ctx, clientID)
+			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), clientID)
 			ibctm.SetIterationKey(clientStore, incrementedClientHeight)
 
 			clientState.LatestHeight = incrementedClientHeight
