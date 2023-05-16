@@ -2,7 +2,6 @@ package transfer
 
 import (
 	"context"
-	"strconv"
 	"testing"
 	"time"
 
@@ -29,6 +28,11 @@ type TransferTestSuite struct {
 	testsuite.E2ETestSuite
 }
 
+// selfParamFeatureReleases represents the releases the transfer module started managing its own params.
+var selfParamFeatureReleases = semverutil.FeatureReleases{
+	MajorVersion: "v8",
+}
+
 // QueryTransferSendEnabledParam queries the on-chain send enabled param for the transfer module
 func (s *TransferTestSuite) QueryTransferSendEnabledParam(ctx context.Context, chain ibc.Chain) bool {
 	queryClient := s.GetChainGRCPClients(chain).TransferQueryClient
@@ -43,23 +47,6 @@ func (s *TransferTestSuite) QueryTransferReceiveEnabledParam(ctx context.Context
 	res, err := queryClient.Params(ctx, &transfertypes.QueryParamsRequest{})
 	s.Require().NoError(err)
 	return res.Params.ReceiveEnabled
-}
-
-// isSelfManagingParams queries the params using the x/params module and returns false if the query is successful
-//
-// This function may not behave as expected if used during migration tests
-func (s *TransferTestSuite) isSelfManagingParams(ctx context.Context, chain ibc.Chain) bool {
-	queryClient := s.GetChainGRCPClients(chain).ParamsQueryClient
-	res, err := queryClient.Params(ctx, &paramsproposaltypes.QueryParamsRequest{
-		Subspace: transfertypes.StoreKey,
-		Key:      string(transfertypes.KeySendEnabled),
-	})
-	if err != nil {
-		return true
-	}
-
-	_, err = strconv.ParseBool(res.Param.Value)
-	return (err != nil)
 }
 
 // TestMsgTransfer_Succeeds_Nonincentivized will test sending successful IBC transfers from chainA to chainB.
@@ -264,7 +251,9 @@ func (s *TransferTestSuite) TestSendEnabledParam() {
 	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 	chainBAddress := chainBWallet.FormattedAddress()
 
-	isSelfManagingParams := s.isSelfManagingParams(ctx, chainA)
+	chainAVersion := chainA.Config().Images[0].Version
+	isSelfManagingParams := selfParamFeatureReleases.IsSupported(chainAVersion)
+
 	govModuleAddress, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
 	s.Require().NoError(err)
 	s.Require().NotNil(govModuleAddress)
@@ -284,6 +273,7 @@ func (s *TransferTestSuite) TestSendEnabledParam() {
 
 	t.Run("change send enabled parameter to disabled", func(t *testing.T) {
 		if isSelfManagingParams {
+			println("chainAVersion: ", chainAVersion)
 			msg := transfertypes.NewMsgUpdateParams(govModuleAddress.String(), transfertypes.NewParams(false, true))
 			s.ExecuteGovProposalV1(ctx, msg, chainA, chainAWallet, 1)
 		} else {
@@ -327,7 +317,9 @@ func (s *TransferTestSuite) TestReceiveEnabledParam() {
 		chainBAddress = chainBWallet.FormattedAddress()
 	)
 
-	isSelfManagingParams := s.isSelfManagingParams(ctx, chainA)
+	chainAVersion := chainA.Config().Images[0].Version
+	isSelfManagingParams := selfParamFeatureReleases.IsSupported(chainAVersion)
+
 	govModuleAddress, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
 	s.Require().NoError(err)
 	s.Require().NotNil(govModuleAddress)
