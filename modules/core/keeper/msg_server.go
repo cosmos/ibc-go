@@ -16,9 +16,9 @@ import (
 )
 
 var (
-	_ clienttypes.MsgServer     = Keeper{}
-	_ connectiontypes.MsgServer = Keeper{}
-	_ channeltypes.MsgServer    = Keeper{}
+	_ clienttypes.MsgServer     = (*Keeper)(nil)
+	_ connectiontypes.MsgServer = (*Keeper)(nil)
+	_ channeltypes.MsgServer    = (*Keeper)(nil)
 )
 
 // CreateClient defines a rpc handler method for MsgCreateClient.
@@ -131,6 +131,7 @@ func (k Keeper) ConnectionOpenTry(goCtx context.Context, msg *connectiontypes.Ms
 // ConnectionOpenAck defines a rpc handler method for MsgConnectionOpenAck.
 func (k Keeper) ConnectionOpenAck(goCtx context.Context, msg *connectiontypes.MsgConnectionOpenAck) (*connectiontypes.MsgConnectionOpenAckResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
+
 	targetClient, err := clienttypes.UnpackClientState(msg.ClientState)
 	if err != nil {
 		return nil, err
@@ -340,6 +341,7 @@ func (k Keeper) ChannelOpenConfirm(goCtx context.Context, msg *channeltypes.MsgC
 // ChannelCloseInit defines a rpc handler method for MsgChannelCloseInit.
 func (k Keeper) ChannelCloseInit(goCtx context.Context, msg *channeltypes.MsgChannelCloseInit) (*channeltypes.MsgChannelCloseInitResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
+
 	// Lookup module by channel capability
 	module, capability, err := k.ChannelKeeper.LookupModuleByChannel(ctx, msg.PortId, msg.ChannelId)
 	if err != nil {

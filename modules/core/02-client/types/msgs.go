@@ -11,15 +11,15 @@ import (
 )
 
 var (
-	_ sdk.Msg = &MsgCreateClient{}
-	_ sdk.Msg = &MsgUpdateClient{}
-	_ sdk.Msg = &MsgSubmitMisbehaviour{}
-	_ sdk.Msg = &MsgUpgradeClient{}
+	_ sdk.Msg = (*MsgCreateClient)(nil)
+	_ sdk.Msg = (*MsgUpdateClient)(nil)
+	_ sdk.Msg = (*MsgSubmitMisbehaviour)(nil)
+	_ sdk.Msg = (*MsgUpgradeClient)(nil)
 
-	_ codectypes.UnpackInterfacesMessage = MsgCreateClient{}
-	_ codectypes.UnpackInterfacesMessage = MsgUpdateClient{}
-	_ codectypes.UnpackInterfacesMessage = MsgSubmitMisbehaviour{}
-	_ codectypes.UnpackInterfacesMessage = MsgUpgradeClient{}
+	_ codectypes.UnpackInterfacesMessage = (*MsgCreateClient)(nil)
+	_ codectypes.UnpackInterfacesMessage = (*MsgUpdateClient)(nil)
+	_ codectypes.UnpackInterfacesMessage = (*MsgSubmitMisbehaviour)(nil)
+	_ codectypes.UnpackInterfacesMessage = (*MsgUpgradeClient)(nil)
 )
 
 // NewMsgCreateClient creates a new MsgCreateClient instance

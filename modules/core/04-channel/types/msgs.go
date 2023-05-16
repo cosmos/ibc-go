@@ -12,7 +12,17 @@ import (
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 )
 
-var _ sdk.Msg = &MsgChannelOpenInit{}
+var (
+	_ sdk.Msg = (*MsgChannelOpenInit)(nil)
+	_ sdk.Msg = (*MsgChannelOpenTry)(nil)
+	_ sdk.Msg = (*MsgChannelOpenAck)(nil)
+	_ sdk.Msg = (*MsgChannelOpenConfirm)(nil)
+	_ sdk.Msg = (*MsgChannelCloseInit)(nil)
+	_ sdk.Msg = (*MsgChannelCloseConfirm)(nil)
+	_ sdk.Msg = (*MsgRecvPacket)(nil)
+	_ sdk.Msg = (*MsgAcknowledgement)(nil)
+	_ sdk.Msg = (*MsgTimeout)(nil)
+)
 
 // NewMsgChannelOpenInit creates a new MsgChannelOpenInit. It sets the counterparty channel
 // identifier to be empty.
@@ -60,8 +70,6 @@ func (msg MsgChannelOpenInit) GetSigners() []sdk.AccAddress {
 	}
 	return []sdk.AccAddress{signer}
 }
-
-var _ sdk.Msg = &MsgChannelOpenTry{}
 
 // NewMsgChannelOpenTry creates a new MsgChannelOpenTry instance
 // The version string is deprecated and will be ignored by core IBC.
@@ -123,8 +131,6 @@ func (msg MsgChannelOpenTry) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{signer}
 }
 
-var _ sdk.Msg = &MsgChannelOpenAck{}
-
 // NewMsgChannelOpenAck creates a new MsgChannelOpenAck instance
 //
 //nolint:interfacer
@@ -173,8 +179,6 @@ func (msg MsgChannelOpenAck) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{signer}
 }
 
-var _ sdk.Msg = &MsgChannelOpenConfirm{}
-
 // NewMsgChannelOpenConfirm creates a new MsgChannelOpenConfirm instance
 //
 //nolint:interfacer
@@ -218,8 +222,6 @@ func (msg MsgChannelOpenConfirm) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{signer}
 }
 
-var _ sdk.Msg = &MsgChannelCloseInit{}
-
 // NewMsgChannelCloseInit creates a new MsgChannelCloseInit instance
 //
 //nolint:interfacer
@@ -256,8 +258,6 @@ func (msg MsgChannelCloseInit) GetSigners() []sdk.AccAddress {
 	}
 	return []sdk.AccAddress{signer}
 }
-
-var _ sdk.Msg = &MsgChannelCloseConfirm{}
 
 // NewMsgChannelCloseConfirm creates a new MsgChannelCloseConfirm instance
 //
@@ -302,8 +302,6 @@ func (msg MsgChannelCloseConfirm) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{signer}
 }
 
-var _ sdk.Msg = &MsgRecvPacket{}
-
 // NewMsgRecvPacket constructs new MsgRecvPacket
 //
 //nolint:interfacer
@@ -346,8 +344,6 @@ func (msg MsgRecvPacket) GetSigners() []sdk.AccAddress {
 	}
 	return []sdk.AccAddress{signer}
 }
-
-var _ sdk.Msg = &MsgTimeout{}
 
 // NewMsgTimeout constructs new MsgTimeout
 //
@@ -433,8 +429,6 @@ func (msg MsgTimeoutOnClose) GetSigners() []sdk.AccAddress {
 	}
 	return []sdk.AccAddress{signer}
 }
-
-var _ sdk.Msg = &MsgAcknowledgement{}
 
 // NewMsgAcknowledgement constructs a new MsgAcknowledgement
 //

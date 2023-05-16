@@ -11,7 +11,7 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 )
 
-var _ types.MsgServer = Keeper{}
+var _ types.MsgServer = (*Keeper)(nil)
 
 // RegisterPayee defines a rpc handler method for MsgRegisterPayee
 // RegisterPayee is called by the relayer on each channelEnd and allows them to set an optional

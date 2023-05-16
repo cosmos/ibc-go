@@ -26,7 +26,7 @@ var (
 	}
 )
 
-var _ exported.Version = &Version{}
+var _ exported.Version = (*Version)(nil)
 
 // NewVersion returns a new instance of Version.
 func NewVersion(identifier string, features []string) *Version {
