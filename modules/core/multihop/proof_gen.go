@@ -240,10 +240,6 @@ func queryProof(
 	}
 
 	chainB := chainA.Counterparty()
-	// set optional params if not passed in
-	if heightAB == nil {
-		heightAB = chainB.GetClientState().GetLatestHeight()
-	}
 
 	keyMerklePath, err := chainB.GetMerklePath(string(key))
 	panicIfErr(err, "fail to create merkle path on chain '%s' with path '%s' due to: %v",
