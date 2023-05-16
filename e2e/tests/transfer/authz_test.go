@@ -6,7 +6,6 @@ import (
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/authz"
 	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
 	"github.com/stretchr/testify/suite"
@@ -14,6 +13,7 @@ import (
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
 )
 
 func TestAuthzTransferTestSuite(t *testing.T) {
@@ -248,8 +248,7 @@ func (suite *AuthzTransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 			}
 
 			resp := suite.BroadcastMessages(context.TODO(), chainA, granteeWallet, msgExec)
-			suite.Require().NotEqual(0, resp.Code)
-			suite.Require().Contains(resp.RawLog, sdkerrors.ErrInsufficientFunds.Error())
+			suite.AssertTxFailure(resp, ibcerrors.ErrInsufficientFunds)
 		})
 
 		t.Run("verify granter wallet amount", func(t *testing.T) {
@@ -301,8 +300,7 @@ func (suite *AuthzTransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 			}
 
 			resp := suite.BroadcastMessages(context.TODO(), chainA, granteeWallet, msgExec)
-			suite.Require().NotEqual(0, resp.Code)
-			suite.Require().Contains(resp.RawLog, sdkerrors.ErrInvalidAddress.Error())
+			suite.AssertTxFailure(resp, ibcerrors.ErrInvalidAddress)
 		})
 	})
 }
