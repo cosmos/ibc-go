@@ -62,6 +62,7 @@ func (suite *TypesTestSuite) TestTimeoutPassed() {
 		})
 	}
 }
+
 func (suite *TypesTestSuite) TestTimeout() {
 	var timeout types.Timeout
 	var valid bool
