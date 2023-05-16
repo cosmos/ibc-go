@@ -137,7 +137,7 @@ func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, client
 	cs.pruneOldestConsensusState(ctx, cdc, clientStore)
 
 	// check for duplicate update
-	if consensusState, _ := GetConsensusState(clientStore, cdc, header.GetHeight()); consensusState != nil {
+	if _, found := GetConsensusState(clientStore, cdc, header.GetHeight()); found {
 		// perform no-op
 		return []exported.Height{header.GetHeight()}
 	}
