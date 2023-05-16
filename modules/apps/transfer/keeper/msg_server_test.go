@@ -1,23 +1,11 @@
 package keeper_test
 
 import (
-	"github.com/cometbft/cometbft/crypto/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 
 	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-)
-
-// define constants used for testing
-const (
-	invalidAddress = "invalid"
-)
-
-var (
-	emptyAddr string
-
-	validAddress = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
 )
 
 // TestMsgTransfer tests Transfer rpc handler
@@ -142,6 +130,7 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 
 // TestUpdateParams tests UpdateParams rpc handler
 func (suite *KeeperTestSuite) TestUpdateParams() {
+	var emptyAddr string
 	validAuthority := suite.chainA.GetSimApp().TransferKeeper.GetAuthority()
 	testCases := []struct {
 		name    string
@@ -155,7 +144,7 @@ func (suite *KeeperTestSuite) TestUpdateParams() {
 		},
 		{
 			name:    "invalid authority address",
-			msg:     types.NewMsgUpdateParams(invalidAddress, types.DefaultParams()),
+			msg:     types.NewMsgUpdateParams(ibctesting.InvalidID, types.DefaultParams()),
 			expPass: false,
 		},
 		{
@@ -165,7 +154,7 @@ func (suite *KeeperTestSuite) TestUpdateParams() {
 		},
 		{
 			name:    "unauthorized authority address",
-			msg:     types.NewMsgUpdateParams(validAddress, types.DefaultParams()),
+			msg:     types.NewMsgUpdateParams(ibctesting.TestAccAddress, types.DefaultParams()),
 			expPass: false,
 		},
 	}
