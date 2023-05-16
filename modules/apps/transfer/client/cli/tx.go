@@ -121,7 +121,7 @@ corresponding to the counterparty channel. Any timeout set to 0 is disabled.`),
 				}
 
 				// use local clock time as reference time if it is later than the
-				// consensus state timestamp of the counter party chain, otherwise
+				// consensus state timestamp of the counterparty chain, otherwise
 				// still use consensus state timestamp as reference.
 				// for localhost clients local clock time is always used.
 				if timeoutTimestamp != 0 {
