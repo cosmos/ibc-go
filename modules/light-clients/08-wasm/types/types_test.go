@@ -16,7 +16,6 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
-	"github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm/keeper"
 	"github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	"github.com/cosmos/ibc-go/v7/testing/simapp"
@@ -43,11 +42,10 @@ type TypesTestSuite struct {
 	chainA      *ibctesting.TestChain
 	chainB      *ibctesting.TestChain
 
-	ctx        sdk.Context
-	store      sdk.KVStore
-	codeID     []byte
-	testData   map[string]string
-	wasmKeeper keeper.Keeper
+	ctx      sdk.Context
+	store    sdk.KVStore
+	codeID   []byte
+	testData map[string]string
 }
 
 // SetupWasmTendermint sets up 2 chains and stores the tendermint/cometbft light client wasm contract on both.
@@ -101,12 +99,11 @@ func (suite *TypesTestSuite) SetupWasmGrandpa() {
 	suite.ctx = suite.chainA.GetContext().WithBlockGasMeter(sdk.NewInfiniteGasMeter())
 	suite.store = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, grandpaClientID)
 
-	suite.wasmKeeper = suite.chainA.App.GetWasmKeeper()
 	wasmContract, err := os.ReadFile("../test_data/ics10_grandpa_cw.wasm.gz")
 	suite.Require().NoError(err)
 
 	msg := types.NewMsgStoreCode(authtypes.NewModuleAddress(govtypes.ModuleName).String(), wasmContract)
-	response, err := suite.wasmKeeper.StoreCode(suite.ctx, msg)
+	response, err := suite.chainA.App.GetWasmKeeper().StoreCode(suite.ctx, msg)
 	suite.Require().NoError(err)
 	suite.Require().NotNil(response.CodeId)
 	suite.codeID = response.CodeId
@@ -146,32 +143,6 @@ func SetupTestingWithChannel() (ibctesting.TestingApp, map[string]json.RawMessag
 func (suite *TypesTestSuite) SetupWasmGrandpaWithChannel() {
 	ibctesting.DefaultTestingAppInit = SetupTestingWithChannel
 	suite.SetupWasmGrandpa()
-}
-
-func (suite *TypesTestSuite) SetupWithEmptyClient() {
-	ibctesting.DefaultTestingAppInit = ibctesting.SetupTestingApp
-	suite.SetupWasmGrandpa()
-
-	// clientStateData, err := base64.StdEncoding.DecodeString(suite.testData["client_state_data"])
-	// suite.Require().NoError(err)
-
-	// wasmClientState := wasmtypes.ClientState{
-	// 	Data:   clientStateData,
-	// 	CodeId: suite.codeID,
-	// 	LatestHeight: clienttypes.Height{
-	// 		RevisionNumber: 2000,
-	// 		RevisionHeight: 4,
-	// 	},
-	// }
-	// suite.clientState = &wasmClientState
-
-	// consensusStateData, err := base64.StdEncoding.DecodeString(suite.testData["consensus_state_data"])
-	// suite.Require().NoError(err)
-	// wasmConsensusState := wasmtypes.ConsensusState{
-	// 	Data:      consensusStateData,
-	// 	Timestamp: uint64(1678304292),
-	// }
-	// suite.consensusState = wasmConsensusState
 }
 
 func TestWasmTestSuite(t *testing.T) {
