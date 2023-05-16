@@ -67,7 +67,7 @@ func (k Keeper) SendPacket(
 
 	clientState, found := k.clientKeeper.GetClientState(ctx, connectionEnd.GetClientID())
 	if !found {
-		return 0, clienttypes.ErrClientNotFound
+		return 0, clienttypes.ErrConsensusStateNotFound
 	}
 
 	// prevent accidental sends with clients that cannot be updated

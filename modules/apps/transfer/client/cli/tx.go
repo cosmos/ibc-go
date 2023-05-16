@@ -14,6 +14,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	clientutils "github.com/cosmos/ibc-go/v7/modules/core/02-client/client/utils"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	channelutils "github.com/cosmos/ibc-go/v7/modules/core/04-channel/client/utils"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
@@ -84,7 +85,8 @@ corresponding to the counterparty channel. Any timeout set to 0 is disabled.`),
 			}
 
 			// if the timeouts are not absolute, retrieve latest block height and block timestamp
-			// for the consensus state connected to the destination port/channel
+			// for the consensus state connected to the destination port/channel.
+			// localhost clients must rely solely on local clock time in order to use relative timestamps.
 			if !absoluteTimeouts {
 				clientRes, err := channelutils.QueryChannelClientState(clientCtx, srcPort, srcChannel, false)
 				if err != nil {
@@ -103,7 +105,7 @@ corresponding to the counterparty channel. Any timeout set to 0 is disabled.`),
 
 				var consensusState exported.ConsensusState
 				if clientState.ClientType() != exported.Localhost {
-					consensusStateRes, err := channelutils.QueryChannelConsensusState(clientCtx, srcPort, srcChannel, clientHeight, false)
+					consensusStateRes, err := clientutils.QueryConsensusState(clientCtx, clientRes.IdentifiedClientState.ClientId, clientHeight, false, true)
 					if err != nil {
 						return err
 					}
