@@ -352,7 +352,7 @@ func (suite *MultihopTestSuite) TestChanCloseConfirmMultihop() {
 	testCases := []testCase{
 		{"success", func() {
 			suite.SetupChannels()
-			suite.Require().NoError(suite.A().SetChannelClosed())
+			suite.A().SetChannelClosed()
 			channelCap = suite.Z().Chain.GetChannelCapability(
 				suite.Z().ChannelConfig.PortID,
 				suite.Z().ChannelID,

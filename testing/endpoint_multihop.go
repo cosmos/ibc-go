@@ -198,7 +198,7 @@ func (ep *EndpointM) RecvPacket(packet *channeltypes.Packet, proofHeight exporte
 }
 
 // SetChannelClosed sets a channel state to CLOSED.
-func (ep *EndpointM) SetChannelClosed() error {
+func (ep *EndpointM) SetChannelClosed() {
 	channel := ep.GetChannel()
 
 	channel.State = channeltypes.CLOSED
@@ -210,8 +210,6 @@ func (ep *EndpointM) SetChannelClosed() error {
 	)
 
 	ep.Chain.Coordinator.CommitBlock(ep.Chain)
-
-	return ep.Counterparty.UpdateClient()
 }
 
 // UpdateAllClients updates all client states starting from the first single-hop path to the last.
