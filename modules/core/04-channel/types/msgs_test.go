@@ -597,7 +597,7 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeTryValidateBasic() {
 				ibctesting.FirstChannelID,
 				[]string{ibctesting.FirstChannelID},
 				types.NewUpgradeTimeout(clienttypes.NewHeight(0, 10000), timeoutTimestamp),
-				*counterpartyProposedUpgrade,
+				counterpartyProposedUpgrade,
 				1,
 				suite.proof,
 				suite.proof,
