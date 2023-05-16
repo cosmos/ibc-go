@@ -6,7 +6,7 @@ option go_package = "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-acco
 
 import "gogoproto/gogo.proto";
 import "ibc/applications/interchain_accounts/v1/packet.proto";
-
+import "ibc/applications/interchain_accounts/controller/v1/controller.proto";
 // Msg defines the 27-interchain-accounts/controller Msg service.
 service Msg {
   // RegisterInterchainAccount defines a rpc handler for MsgRegisterInterchainAccount.
