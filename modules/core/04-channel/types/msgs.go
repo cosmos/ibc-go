@@ -485,7 +485,7 @@ var _ sdk.Msg = &MsgChannelUpgradeInit{}
 func NewMsgChannelUpgradeInit(
 	portID, channelID string,
 	upgradeFields UpgradeFields,
-	upgradeTimeout UpgradeTimeout,
+	upgradeTimeout Timeout,
 	signer string,
 ) *MsgChannelUpgradeInit {
 	return &MsgChannelUpgradeInit{
@@ -536,7 +536,7 @@ func NewMsgChannelUpgradeTry(
 	portID,
 	channelID string,
 	proposedConnectionHops []string,
-	upgradeTimeout UpgradeTimeout,
+	upgradeTimeout Timeout,
 	counterpartyProposedUpgrade Upgrade,
 	counterpartyUpgradeSequence uint64,
 	proofChannel []byte,
