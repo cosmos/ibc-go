@@ -153,7 +153,8 @@ func (suite *FeeTestSuite) TestFeeInterchainAccounts() {
 
 	// ensure chainB is allowed to execute stakingtypes.MsgDelegate
 	params := icahosttypes.NewParams(true, []string{sdk.MsgTypeURL(msgDelegate)})
-	suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
+	err = suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
+	suite.Require().NoError(err)
 
 	// build the interchain accounts packet
 	packet := buildInterchainAccountsPacket(path, icaPacketData.GetBytes(), 1)
