@@ -5,6 +5,7 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	ibcerrors "github.com/cosmos/ibc-go/v7/internal/errors"
 
 	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
 	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
@@ -72,7 +73,8 @@ func (s msgServer) SendTx(goCtx context.Context, msg *types.MsgSendTx) (*types.M
 }
 func (k Keeper) UpdateParams(goCtx context.Context, msg *types.MsgUpdateParams) (*types.MsgUpdateParamsResponse, error) {
 	if k.authority != msg.Authority {
-		return nil, errorsmod.Wrapf(types. "invalid authority; expected %s, got %s", k.authority, msg.Authority)
+		return nil, errorsmod.Wrapf(ibcerrors.ErrInvalidAddress,
+			"invalid authority; expected %s, got %s", k.authority, msg.Authority)
 	}
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
