@@ -168,3 +168,13 @@ message Acknowledgement {
     string error  = 22;
   }
 }
+
+// Timeout defines an execution deadline structure for 04-channel handlers.
+// This includes packet lifecycle handlers as well as the upgrade handshake handlers.
+// A valid Timeout contains either one or both of a timestamp and block height (sequence).
+message Timeout {
+  // block height after which the packet or upgrade times out
+  ibc.core.client.v1.Height height = 1 [(gogoproto.nullable) = false];
+  // block timestamp (in nanoseconds) after which the packet or upgrade times out
+  uint64 timestamp = 2;
+}

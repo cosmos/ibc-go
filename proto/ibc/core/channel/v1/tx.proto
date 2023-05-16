@@ -263,11 +263,11 @@ message MsgChannelUpgradeInit {
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
-  string         port_id    = 1;
-  string         channel_id = 2;
-  UpgradeFields  fields     = 3 [(gogoproto.nullable) = false];
-  UpgradeTimeout timeout    = 4 [(gogoproto.nullable) = false];
-  string         signer     = 5;
+  string        port_id    = 1;
+  string        channel_id = 2;
+  UpgradeFields fields     = 3 [(gogoproto.nullable) = false];
+  Timeout       timeout    = 4 [(gogoproto.nullable) = false];
+  string        signer     = 5;
 }
 
 // MsgChannelUpgradeInitResponse defines the MsgChannelUpgradeInit response type
@@ -285,7 +285,7 @@ message MsgChannelUpgradeTry {
   string                    port_id                          = 1;
   string                    channel_id                       = 2;
   repeated string           proposed_upgrade_connection_hops = 3;
-  UpgradeTimeout            upgrade_timeout                  = 4 [(gogoproto.nullable) = false];
+  Timeout                   upgrade_timeout                  = 4 [(gogoproto.nullable) = false];
   Upgrade                   counterparty_proposed_upgrade    = 5 [(gogoproto.nullable) = false];
   uint64                    counterparty_upgrade_sequence    = 6;
   bytes                     proof_channel                    = 7;
