@@ -163,6 +163,8 @@ func (k Keeper) GetTotalEscrowForDenom(ctx sdk.Context, denom string) sdk.Coin {
 }
 
 // SetTotalEscrowForDenom stores the total amount of source chain tokens that are in escrow.
+// Amount is stored in state if and only if it is not equal to zero. The function will panic
+// if the amount is negative.
 func (k Keeper) SetTotalEscrowForDenom(ctx sdk.Context, coin sdk.Coin) {
 	if coin.Amount.IsNegative() {
 		panic(fmt.Sprintf("amount cannot be negative: %s", coin.Amount))
@@ -172,10 +174,10 @@ func (k Keeper) SetTotalEscrowForDenom(ctx sdk.Context, coin sdk.Coin) {
 	key := types.TotalEscrowForDenomKey(coin.Denom)
 
 	if coin.Amount.IsZero() {
-		store.Delete(key)
+		store.Delete(key) // delete the key since Cosmos SDK x/bank module will prune any non-zero balances
 		return
 	}
-	
+
 	bz := k.cdc.MustMarshal(&sdk.IntProto{Int: coin.Amount})
 	store.Set(key, bz)
 }
