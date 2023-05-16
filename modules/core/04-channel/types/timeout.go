@@ -32,7 +32,7 @@ func (t Timeout) IsZeroHeight() bool {
 	return t.Height.IsZero()
 }
 
-// ZeroTimestamp returns true if Timeout timestamp is zero, otherwise false.
+// IsZeroTimestamp returns true if Timeout timestamp is zero, otherwise false.
 func (t Timeout) IsZeroTimestamp() bool {
 	return t.Timestamp == 0
 }
