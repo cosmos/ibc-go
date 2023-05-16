@@ -65,8 +65,8 @@ func (suite *TypesTestSuite) TestStatusGrandpa() {
 				clientStateData, err := base64.StdEncoding.DecodeString(suite.testData["client_state_data"])
 				suite.Require().NoError(err)
 
-				codeId := sha256.Sum256([]byte("bytes-of-light-client-wasm-contract-that-does-not-exist")) // code ID for a contract that does not exists in store
-				clientState = types.NewClientState(clientStateData, codeId[:], clienttypes.NewHeight(2000, 5))
+				codeID := sha256.Sum256([]byte("bytes-of-light-client-wasm-contract-that-does-not-exist")) // code ID for a contract that does not exists in store
+				clientState = types.NewClientState(clientStateData, codeID[:], clienttypes.NewHeight(2000, 5))
 			},
 			exported.Unknown,
 		},
