@@ -499,13 +499,13 @@ func (*Acknowledgement) XXX_OneofWrappers() []interface{} {
 	}
 }
 
-// Timeout defines an exeuction deadline structure for 04-channel msg handlers.
-// This includes packet lifecycle handlers as well as handshake and upgrade protocol handlers.
+// Timeout defines an execution deadline structure for 04-channel handlers.
+// This includes packet lifecycle handlers as well as the upgrade handshake handlers.
 // A valid Timeout contains either one or both of a timestamp and block height (sequence).
 type Timeout struct {
-	// block height after which the upgrade times out
+	// block height after which the packet or upgrade times out
 	Height types.Height `protobuf:"bytes,1,opt,name=height,proto3" json:"height"`
-	// block timestamp (in nanoseconds) after which the upgrade times out
+	// block timestamp (in nanoseconds) after which the packet or upgrade times out
 	Timestamp uint64 `protobuf:"varint,2,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
 }
 
