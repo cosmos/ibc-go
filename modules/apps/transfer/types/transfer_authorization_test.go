@@ -94,11 +94,9 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 			func(res authz.AcceptResponse, err error) {
 				suite.Require().NoError(err)
 
-				updatedTransferAuthz, ok := res.Updated.(*types.TransferAuthorization)
-				suite.Require().True(ok)
-
-				remainder := updatedTransferAuthz.Allocations[0].SpendLimit.AmountOf(sdk.DefaultBondDenom)
-				suite.Require().True(types.UnboundedSpendLimit().Equal(remainder))
+				suite.Require().True(res.Accept)
+				suite.Require().False(res.Delete)
+				suite.Require().Nil(res.Updated)
 			},
 		},
 		{
