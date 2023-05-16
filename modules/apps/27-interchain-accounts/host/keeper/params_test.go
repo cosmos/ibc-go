@@ -10,7 +10,8 @@ func (suite *KeeperTestSuite) TestParams() {
 
 	expParams.HostEnabled = false
 	expParams.AllowMessages = []string{"/cosmos.staking.v1beta1.MsgDelegate"}
-	suite.chainA.GetSimApp().ICAHostKeeper.SetParams(suite.chainA.GetContext(), expParams)
+	err := suite.chainA.GetSimApp().ICAHostKeeper.SetParams(suite.chainA.GetContext(), expParams)
+	suite.Require().NoError(err)
 	params = suite.chainA.GetSimApp().ICAHostKeeper.GetParams(suite.chainA.GetContext())
 	suite.Require().Equal(expParams, params)
 }
