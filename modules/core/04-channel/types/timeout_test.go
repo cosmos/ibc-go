@@ -6,8 +6,10 @@ import (
 )
 
 func (suite *TypesTestSuite) TestTimeoutPassed() {
-	var timeout types.Timeout
-	var passed bool
+	var (
+		timeout types.Timeout
+		passed  bool
+	)
 
 	testCases := []struct {
 		name     string
@@ -42,6 +44,27 @@ func (suite *TypesTestSuite) TestTimeoutPassed() {
 			},
 			true,
 		},
+		{
+			"client timestamp equal to timeout timestamp",
+			func() {
+				passed = timeout.AfterTimestamp(50)
+			},
+			false,
+		},
+		{
+			"client block height equal to timeout block height",
+			func() {
+				passed = timeout.AfterHeight(clienttypes.NewHeight(0, 50))
+			},
+			false,
+		},
+		{
+			"client block height equal to timeout block height, with different revision height",
+			func() {
+				passed = timeout.AfterHeight(clienttypes.NewHeight(1, 50))
+			},
+			false,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -65,7 +88,6 @@ func (suite *TypesTestSuite) TestTimeoutPassed() {
 
 func (suite *TypesTestSuite) TestTimeout() {
 	var timeout types.Timeout
-	var valid bool
 
 	testCases := []struct {
 		name     string
@@ -97,7 +119,7 @@ func (suite *TypesTestSuite) TestTimeout() {
 
 			tc.malleate()
 
-			valid = timeout.IsValid()
+			valid := timeout.IsValid()
 
 			if tc.expPass {
 				suite.Require().True(valid)

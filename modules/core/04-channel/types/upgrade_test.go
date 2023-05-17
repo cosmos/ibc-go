@@ -6,7 +6,7 @@ import (
 	"github.com/cosmos/ibc-go/v7/testing/mock"
 )
 
-func (suite *TypesTestSuite) TestUpgradeTimeout() {
+func (suite *TypesTestSuite) TestUpgradeValidateBasic() {
 	var upgrade types.Upgrade
 
 	testCases := []struct {
