@@ -95,8 +95,16 @@ func (suite *TypesTestSuite) TestTimeout() {
 		expPass  bool
 	}{
 		{
-			"valid timeout",
+			"valid timeout: timestamp not set",
 			func() {},
+			true,
+		},
+		{
+			"valid timeout: height not set",
+			func() {
+				timeout.Height = clienttypes.ZeroHeight()
+				timeout.Timestamp = 50
+			},
 			true,
 		},
 		{
