@@ -205,7 +205,6 @@ const config = {
     [
       "@docusaurus/plugin-client-redirects",
       {
-        // this is to fix ADR links in production
         // makes the default page next in production
         redirects: [
           {
