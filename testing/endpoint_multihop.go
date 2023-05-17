@@ -330,12 +330,12 @@ func (mep multihopEndpoint) QueryStateAtHeight(key []byte, height int64) []byte 
 
 // QueryMinimumConsensusHeight returns the minimum height within the provided range at which the consensusState exists (processedHeight)
 // and the height of the corresponding consensus state (consensusHeight).
-func (mep multihopEndpoint) QueryMinimumConsensusHeight(minHeight exported.Height, maxHeight exported.Height) (exported.Height, exported.Height, error) {
-	proofHeight, consensusHeight, doUpdateClient, err := mep.testEndpoint.Chain.QueryMinimumConsensusHeight(mep.testEndpoint.ClientID, minHeight, maxHeight)
+func (mep multihopEndpoint) QueryMinimumProofHeight(minHeight exported.Height, maxHeight exported.Height) (exported.Height, exported.Height, error) {
+	proofHeight, consensusHeight, doUpdateClient, err := mep.testEndpoint.Chain.QueryMinimumProofHeight(mep.testEndpoint.ClientID, minHeight, maxHeight)
 	if doUpdateClient {
 		// update client if no suitable consensus height found
 		mep.testEndpoint.UpdateClient()
-		proofHeight, consensusHeight, _, err = mep.testEndpoint.Chain.QueryMinimumConsensusHeight(mep.testEndpoint.ClientID, minHeight, maxHeight)
+		proofHeight, consensusHeight, _, err = mep.testEndpoint.Chain.QueryMinimumProofHeight(mep.testEndpoint.ClientID, minHeight, maxHeight)
 	}
 	return proofHeight, consensusHeight, err
 }

@@ -221,7 +221,7 @@ func (chain *TestChain) QueryStateAtHeight(key []byte, height int64) []byte {
 	return chain.QueryStateForStore(exported.StoreKey, key, height)
 }
 
-// QueryMinimumConsensusHeight returns the minimum height within the provided range at which the consensusState exists. The function
+// QueryMinimumProofHeight returns the minimum height within the provided range at which the consensusState exists. The function
 // scans existing consensusStates and finds the minimum consensus state height, H, satisfying: minHeight <= H < maxHeight
 // The processed height is then queried for the given consensusState to determine when it was processed on the chain. This is the minimum
 // height which can be used to prove the minimum consensusState on this chain. The consensusState height is the minimum height which can
@@ -231,7 +231,7 @@ func (chain *TestChain) QueryStateAtHeight(key []byte, height int64) []byte {
 //	The first returned height is the processed height for a consensusState.
 //	The second returned height is the minimum consensusState height falling within the provided height range.
 //	The third returned parameter is a boolean indicating whether a client update is required.
-func (chain *TestChain) QueryMinimumConsensusHeight(clientID string, minHeight exported.Height, maxHeight exported.Height) (exported.Height, exported.Height, bool, error) {
+func (chain *TestChain) QueryMinimumProofHeight(clientID string, minHeight exported.Height, maxHeight exported.Height) (exported.Height, exported.Height, bool, error) {
 
 	if maxHeight == nil {
 		maxHeight = chain.LastHeader.GetHeight()
