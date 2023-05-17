@@ -5,7 +5,6 @@ import (
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
@@ -31,7 +30,7 @@ func (suite *KeeperTestSuite) TestHandleRecvPacket() {
 		packet  channeltypes.Packet
 		path    *ibctesting.Path
 		async   bool // indicate no ack written
-		timeout types.Timeout
+		timeout channeltypes.Timeout
 	)
 
 	testCases := []struct {
@@ -148,7 +147,7 @@ func (suite *KeeperTestSuite) TestHandleRecvPacket() {
 			suite.SetupTest() // reset
 			async = false     // reset
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
-			timeout = types.NewTimeout(timeoutHeight, 0)
+			timeout = channeltypes.NewTimeout(timeoutHeight, 0)
 
 			tc.malleate()
 
@@ -209,7 +208,7 @@ func (suite *KeeperTestSuite) TestHandleAcknowledgePacket() {
 	var (
 		packet  channeltypes.Packet
 		path    *ibctesting.Path
-		timeout types.Timeout
+		timeout channeltypes.Timeout
 	)
 
 	testCases := []struct {
@@ -312,7 +311,7 @@ func (suite *KeeperTestSuite) TestHandleAcknowledgePacket() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
-			timeout = types.NewTimeout(timeoutHeight, 0)
+			timeout = channeltypes.NewTimeout(timeoutHeight, 0)
 
 			tc.malleate()
 
@@ -369,7 +368,7 @@ func (suite *KeeperTestSuite) TestHandleTimeoutPacket() {
 
 			timeoutHeight := clienttypes.GetSelfHeight(suite.chainB.GetContext())
 			timeoutTimestamp := uint64(suite.chainB.GetContext().BlockTime().UnixNano())
-			timeout := types.NewTimeout(timeoutHeight, timeoutTimestamp)
+			timeout := channeltypes.NewTimeout(timeoutHeight, timeoutTimestamp)
 
 			// create packet commitment
 			sequence, err := path.EndpointA.SendPacket(timeout, ibctesting.MockPacketData)
@@ -387,7 +386,7 @@ func (suite *KeeperTestSuite) TestHandleTimeoutPacket() {
 
 			timeoutHeight := clienttypes.GetSelfHeight(suite.chainB.GetContext())
 			timeoutTimestamp := uint64(suite.chainB.GetContext().BlockTime().UnixNano())
-			timeout := types.NewTimeout(timeoutHeight, timeoutTimestamp)
+			timeout := channeltypes.NewTimeout(timeoutHeight, timeoutTimestamp)
 
 			// create packet commitment
 			sequence, err := path.EndpointA.SendPacket(timeout, ibctesting.MockPacketData)
@@ -407,7 +406,7 @@ func (suite *KeeperTestSuite) TestHandleTimeoutPacket() {
 			// attempts to timeout the last packet sent without timing out the first packet
 			// packet sequences begin at 1
 			timeoutHeight := clienttypes.GetSelfHeight(suite.chainB.GetContext())
-			timeout := types.NewTimeout(timeoutHeight, 0)
+			timeout := channeltypes.NewTimeout(timeoutHeight, 0)
 
 			for i := uint64(1); i < maxSequence; i++ {
 				// create packet commitment
@@ -429,7 +428,7 @@ func (suite *KeeperTestSuite) TestHandleTimeoutPacket() {
 			// attempts to timeout the last packet sent without timing out the first packet
 			// packet sequences begin at 1
 			timeoutHeight := clienttypes.GetSelfHeight(suite.chainB.GetContext())
-			timeout := types.NewTimeout(timeoutHeight, 0)
+			timeout := channeltypes.NewTimeout(timeoutHeight, 0)
 
 			for i := uint64(1); i < maxSequence; i++ {
 				// create packet commitment
@@ -518,7 +517,7 @@ func (suite *KeeperTestSuite) TestHandleTimeoutOnClosePacket() {
 			suite.coordinator.Setup(path)
 
 			// create packet commitment
-			timeout := types.NewTimeout(timeoutHeight, 0)
+			timeout := channeltypes.NewTimeout(timeoutHeight, 0)
 			sequence, err := path.EndpointA.SendPacket(timeout, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
 
@@ -537,7 +536,7 @@ func (suite *KeeperTestSuite) TestHandleTimeoutOnClosePacket() {
 			suite.coordinator.Setup(path)
 
 			// create packet commitment
-			timeout := types.NewTimeout(timeoutHeight, 0)
+			timeout := channeltypes.NewTimeout(timeoutHeight, 0)
 			sequence, err := path.EndpointA.SendPacket(timeout, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
 
@@ -558,7 +557,7 @@ func (suite *KeeperTestSuite) TestHandleTimeoutOnClosePacket() {
 
 			// attempts to timeout the last packet sent without timing out the first packet
 			// packet sequences begin at 1
-			timeout := types.NewTimeout(timeoutHeight, 0)
+			timeout := channeltypes.NewTimeout(timeoutHeight, 0)
 			for i := uint64(1); i < maxSequence; i++ {
 				// create packet commitment
 				sequence, err := path.EndpointA.SendPacket(timeout, ibctesting.MockPacketData)
@@ -582,7 +581,7 @@ func (suite *KeeperTestSuite) TestHandleTimeoutOnClosePacket() {
 
 			// attempts to timeout the last packet sent without timing out the first packet
 			// packet sequences begin at 1
-			timeout := types.NewTimeout(timeoutHeight, 0)
+			timeout := channeltypes.NewTimeout(timeoutHeight, 0)
 			for i := uint64(1); i < maxSequence; i++ {
 				// create packet commitment
 				sequence, err := path.EndpointA.SendPacket(timeout, ibctesting.MockPacketData)
@@ -620,7 +619,7 @@ func (suite *KeeperTestSuite) TestHandleTimeoutOnClosePacket() {
 			suite.coordinator.Setup(path)
 
 			// create packet commitment
-			timeout := types.NewTimeout(timeoutHeight, 0)
+			timeout := channeltypes.NewTimeout(timeoutHeight, 0)
 			sequence, err := path.EndpointA.SendPacket(timeout, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
 

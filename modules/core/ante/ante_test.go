@@ -8,7 +8,6 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v7/modules/core/ante"
@@ -47,7 +46,7 @@ func TestAnteTestSuite(t *testing.T) {
 
 // createRecvPacketMessage creates a RecvPacket message for a packet sent from chain A to chain B.
 func (suite *AnteTestSuite) createRecvPacketMessage(isRedundant bool) sdk.Msg {
-	timeout := types.NewTimeout(clienttypes.NewHeight(2, 0), 0)
+	timeout := channeltypes.NewTimeout(clienttypes.NewHeight(2, 0), 0)
 	sequence, err := suite.path.EndpointA.SendPacket(timeout, ibctesting.MockPacketData)
 	suite.Require().NoError(err)
 
@@ -72,7 +71,7 @@ func (suite *AnteTestSuite) createRecvPacketMessage(isRedundant bool) sdk.Msg {
 
 // createAcknowledgementMessage creates an Acknowledgement message for a packet sent from chain B to chain A.
 func (suite *AnteTestSuite) createAcknowledgementMessage(isRedundant bool) sdk.Msg {
-	timeout := types.NewTimeout(clienttypes.NewHeight(2, 0), 0)
+	timeout := channeltypes.NewTimeout(clienttypes.NewHeight(2, 0), 0)
 	sequence, err := suite.path.EndpointB.SendPacket(timeout, ibctesting.MockPacketData)
 	suite.Require().NoError(err)
 
@@ -98,7 +97,7 @@ func (suite *AnteTestSuite) createAcknowledgementMessage(isRedundant bool) sdk.M
 func (suite *AnteTestSuite) createTimeoutMessage(isRedundant bool) sdk.Msg {
 	height := suite.chainA.LastHeader.GetHeight()
 	timeoutHeight := clienttypes.NewHeight(height.GetRevisionNumber(), height.GetRevisionHeight()+1)
-	timeout := types.NewTimeout(timeoutHeight, 0)
+	timeout := channeltypes.NewTimeout(timeoutHeight, 0)
 
 	sequence, err := suite.path.EndpointB.SendPacket(timeout, ibctesting.MockPacketData)
 	suite.Require().NoError(err)
@@ -128,7 +127,7 @@ func (suite *AnteTestSuite) createTimeoutMessage(isRedundant bool) sdk.Msg {
 func (suite *AnteTestSuite) createTimeoutOnCloseMessage(isRedundant bool) sdk.Msg {
 	height := suite.chainA.LastHeader.GetHeight()
 	timeoutHeight := clienttypes.NewHeight(height.GetRevisionNumber(), height.GetRevisionHeight()+1)
-	timeout := types.NewTimeout(timeoutHeight, 0)
+	timeout := channeltypes.NewTimeout(timeoutHeight, 0)
 
 	sequence, err := suite.path.EndpointB.SendPacket(timeout, ibctesting.MockPacketData)
 	suite.Require().NoError(err)
