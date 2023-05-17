@@ -7,6 +7,20 @@
       "pattern": "^@site/"
     }
   ],
+  "replacementPatterns": [
+    {
+      "pattern": "^(?!http)(architecture|event)(?!.*\\.\\w+$)(?!.*#)(.*)",
+      "replacement": "$1.md"
+    },
+    {
+      "pattern": "^(?!.*http)(?!#)(?!.*\\.\\w+)([^#]*)(#.*|$)",
+      "replacement": "$1.md$2"
+    },
+    {
+      "pattern": "^(\\/)",
+      "replacement": "{{BASEURL}}/docs/"
+    }
+  ],
   "retryOn429": true,
   "retryCount": 3,
   "fallbackRetryDelay": "10s"
