@@ -292,7 +292,8 @@ func (suite *TendermintTestSuite) TestVerifyMembership() {
 		{
 			"successful PacketCommitment verification", func() {
 				// send from chainB to chainA since we are proving chainB sent a packet
-				sequence, err := testingpath.EndpointB.SendPacket(clienttypes.NewHeight(1, 100), 0, ibctesting.MockPacketData)
+				timeout := channeltypes.NewTimeout(clienttypes.NewHeight(1, 100), 0)
+				sequence, err := testingpath.EndpointB.SendPacket(timeout, ibctesting.MockPacketData)
 				suite.Require().NoError(err)
 
 				// make packet commitment proof
@@ -310,7 +311,8 @@ func (suite *TendermintTestSuite) TestVerifyMembership() {
 		{
 			"successful Acknowledgement verification", func() {
 				// send from chainA to chainB since we are proving chainB wrote an acknowledgement
-				sequence, err := testingpath.EndpointA.SendPacket(clienttypes.NewHeight(1, 100), 0, ibctesting.MockPacketData)
+				timeout := channeltypes.NewTimeout(clienttypes.NewHeight(1, 100), 0)
+				sequence, err := testingpath.EndpointA.SendPacket(timeout, ibctesting.MockPacketData)
 				suite.Require().NoError(err)
 
 				// write receipt and ack
@@ -334,7 +336,8 @@ func (suite *TendermintTestSuite) TestVerifyMembership() {
 				// send from chainA to chainB since we are proving chainB incremented the sequence recv
 
 				// send packet
-				sequence, err := testingpath.EndpointA.SendPacket(clienttypes.NewHeight(1, 100), 0, ibctesting.MockPacketData)
+				timeout := channeltypes.NewTimeout(clienttypes.NewHeight(1, 100), 0)
+				sequence, err := testingpath.EndpointA.SendPacket(timeout, ibctesting.MockPacketData)
 				suite.Require().NoError(err)
 
 				// next seq recv incremented

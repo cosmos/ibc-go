@@ -81,7 +81,7 @@ func (k Keeper) SendPacket(
 		return 0, errorsmod.Wrapf(clienttypes.ErrInvalidHeight, "invalid height type %T, expected %T", latestHeight, clienttypes.Height{})
 	}
 
-	if !timeout.ZeroHeight() && !timeout.AfterHeight(timeoutHeight) {
+	if !timeout.IsZeroHeight() && !timeout.AfterHeight(timeoutHeight) {
 		return 0, errorsmod.Wrapf(
 			types.ErrPacketTimeout,
 			"receiving chain block height >= packet timeout height (%s >= %s)", latestHeight, timeout.Height,

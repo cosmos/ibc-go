@@ -25,7 +25,6 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 		nextSeqRecv uint64
 		ordered     bool
 		expError    *errorsmod.Error
-		timeout     types.Timeout
 	)
 
 	testCases := []testCase{
@@ -34,9 +33,13 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 			path.SetChannelOrdered()
 			suite.coordinator.Setup(path)
 
+			timeoutHeight := clienttypes.GetSelfHeight(suite.chainB.GetContext())
+			timeoutTimestamp := uint64(suite.chainB.GetContext().BlockTime().UnixNano())
+			timeout := types.NewTimeout(timeoutHeight, timeoutTimestamp)
+
 			sequence, err := path.EndpointA.SendPacket(timeout, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
-			packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeout.Height, timeout.Timestamp)
+			packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, timeoutTimestamp)
 			// need to update chainA's client representing chainB to prove missing ack
 			err = path.EndpointA.UpdateClient()
 			suite.Require().NoError(err)
@@ -45,37 +48,43 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 			ordered = false
 			suite.coordinator.Setup(path)
 
+			timeoutHeight := clienttypes.GetSelfHeight(suite.chainB.GetContext())
+			timeout := types.NewTimeout(timeoutHeight, disabledTimeoutTimestamp)
+
 			sequence, err := path.EndpointA.SendPacket(timeout, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
-			packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeout.Height, disabledTimeoutTimestamp)
+			packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, disabledTimeoutTimestamp)
 			// need to update chainA's client representing chainB to prove missing ack
 			err = path.EndpointA.UpdateClient()
 			suite.Require().NoError(err)
-		},
-			true},
+		}, true},
 		{"packet already timed out: ORDERED", func() {
 			expError = types.ErrNoOpMsg
 			ordered = true
 			path.SetChannelOrdered()
 			suite.coordinator.Setup(path)
 
+			timeoutHeight := clienttypes.GetSelfHeight(suite.chainB.GetContext())
+			timeoutTimestamp := uint64(suite.chainB.GetContext().BlockTime().UnixNano())
+			timeout := types.NewTimeout(timeoutHeight, timeoutTimestamp)
+
 			sequence, err := path.EndpointA.SendPacket(timeout, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
 			// need to update chainA's client representing chainB to prove missing ack
 			err = path.EndpointA.UpdateClient()
 			suite.Require().NoError(err)
 
-			packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeout.Height, timeout.Timestamp)
+			packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, timeoutTimestamp)
 			err = path.EndpointA.TimeoutPacket(packet)
 			suite.Require().NoError(err)
-		},
-			false},
+		}, false},
 		{"packet already timed out: UNORDERED", func() {
 			expError = types.ErrNoOpMsg
 			ordered = false
 			suite.coordinator.Setup(path)
 
-			timeout = types.NewTimeout(timeout.Height, disabledTimeoutTimestamp)
+			timeoutHeight := clienttypes.GetSelfHeight(suite.chainB.GetContext())
+			timeout := types.NewTimeout(timeoutHeight, disabledTimeoutTimestamp)
 
 			sequence, err := path.EndpointA.SendPacket(timeout, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
@@ -83,24 +92,22 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 			err = path.EndpointA.UpdateClient()
 			suite.Require().NoError(err)
 
-			packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeout.Height, disabledTimeoutTimestamp)
+			packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, disabledTimeoutTimestamp)
 			err = path.EndpointA.TimeoutPacket(packet)
 			suite.Require().NoError(err)
-		},
-			false},
+		}, false},
 		{"channel not found", func() {
 			expError = types.ErrChannelNotFound
 			// use wrong channel naming
 			suite.coordinator.Setup(path)
 			packet = types.NewPacket(ibctesting.MockPacketData, 1, ibctesting.InvalidID, ibctesting.InvalidID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
-		},
-			false},
+		}, false},
 		{"channel not open", func() {
 			expError = types.ErrInvalidChannelState
 			suite.coordinator.Setup(path)
 
 			timeoutHeight := path.EndpointA.GetClientState().GetLatestHeight().Increment().(clienttypes.Height)
-			timeout = types.NewTimeout(timeoutHeight, disabledTimeoutTimestamp)
+			timeout := types.NewTimeout(timeoutHeight, disabledTimeoutTimestamp)
 
 			sequence, err := path.EndpointA.SendPacket(timeout, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
@@ -111,22 +118,19 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 
 			err = path.EndpointA.SetChannelState(types.CLOSED)
 			suite.Require().NoError(err)
-		},
-			false},
+		}, false},
 		{"packet destination port ≠ channel counterparty port", func() {
 			expError = types.ErrInvalidPacket
 			suite.coordinator.Setup(path)
 			// use wrong port for dest
 			packet = types.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, ibctesting.InvalidID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
-		},
-			false},
+		}, false},
 		{"packet destination channel ID ≠ channel counterparty channel ID", func() {
 			expError = types.ErrInvalidPacket
 			suite.coordinator.Setup(path)
 			// use wrong channel for dest
 			packet = types.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, ibctesting.InvalidID, defaultTimeoutHeight, disabledTimeoutTimestamp)
-		},
-			false},
+		}, false},
 		{"connection not found", func() {
 			expError = connectiontypes.ErrConnectionNotFound
 			// pass channel check
@@ -136,21 +140,18 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 				types.NewChannel(types.OPEN, types.ORDERED, types.NewCounterparty(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID), []string{connIDA}, path.EndpointA.ChannelConfig.Version),
 			)
 			packet = types.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
-		},
-			false},
+		}, false},
 		{"timeout", func() {
 			expError = types.ErrPacketTimeout
 			suite.coordinator.Setup(path)
 
-			timeout = types.NewTimeout(timeout.Height, disabledTimeoutTimestamp)
-
+			timeout := types.NewTimeout(defaultTimeoutHeight, disabledTimeoutTimestamp)
 			sequence, err := path.EndpointA.SendPacket(timeout, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
 			packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
 			err = path.EndpointA.UpdateClient()
 			suite.Require().NoError(err)
-		},
-			false},
+		}, false},
 		{"packet already received ", func() {
 			expError = types.ErrPacketReceived
 			ordered = true
@@ -158,10 +159,12 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 			suite.coordinator.Setup(path)
 
 			nextSeqRecv = 2
+			timeoutTimestamp := uint64(suite.chainB.GetContext().BlockTime().UnixNano())
+			timeout := types.NewTimeout(defaultTimeoutHeight, timeoutTimestamp)
 
 			sequence, err := path.EndpointA.SendPacket(timeout, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
-			packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeout.Height, timeout.Timestamp)
+			packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, timeoutTimestamp)
 			err = path.EndpointA.UpdateClient()
 			suite.Require().NoError(err)
 		}, false},
@@ -184,11 +187,12 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 			path.SetChannelOrdered()
 			suite.coordinator.Setup(path)
 
-			timeout = types.NewTimeout(timeout.Height, disabledTimeoutTimestamp)
+			timeoutHeight := clienttypes.GetSelfHeight(suite.chainB.GetContext())
+			timeout := types.NewTimeout(timeoutHeight, disabledTimeoutTimestamp)
 
 			sequence, err := path.EndpointA.SendPacket(timeout, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
-			packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeout.Height, disabledTimeoutTimestamp)
+			packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, disabledTimeoutTimestamp)
 			err = path.EndpointA.UpdateClient()
 			suite.Require().NoError(err)
 		}, false},
@@ -200,11 +204,12 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 
 			suite.coordinator.Setup(path)
 
-			timeout = types.NewTimeout(timeout.Height, disabledTimeoutTimestamp)
+			timeoutHeight := clienttypes.GetSelfHeight(suite.chainB.GetContext())
+			timeout := types.NewTimeout(timeoutHeight, disabledTimeoutTimestamp)
 
 			sequence, err := path.EndpointA.SendPacket(timeout, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
-			packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeout.Height, disabledTimeoutTimestamp)
+			packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, disabledTimeoutTimestamp)
 			err = path.EndpointA.UpdateClient()
 			suite.Require().NoError(err)
 		}, false},
@@ -222,10 +227,6 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 			expError = nil    // must be expliticly changed by failed cases
 			nextSeqRecv = 1   // must be explicitly changed
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
-
-			timeoutHeight := clienttypes.GetSelfHeight(suite.chainB.GetContext())
-			timeoutTimestamp := uint64(suite.chainB.GetContext().BlockTime().UnixNano())
-			timeout = types.NewTimeout(timeoutHeight, timeoutTimestamp)
 
 			tc.malleate()
 
@@ -262,7 +263,6 @@ func (suite *KeeperTestSuite) TestTimeoutExecuted() {
 		path    *ibctesting.Path
 		packet  types.Packet
 		chanCap *capabilitytypes.Capability
-		timeout types.Timeout
 	)
 
 	testCases := []testCase{
@@ -270,10 +270,14 @@ func (suite *KeeperTestSuite) TestTimeoutExecuted() {
 			path.SetChannelOrdered()
 			suite.coordinator.Setup(path)
 
+			timeoutHeight := clienttypes.GetSelfHeight(suite.chainB.GetContext())
+			timeoutTimestamp := uint64(suite.chainB.GetContext().BlockTime().UnixNano())
+			timeout := types.NewTimeout(timeoutHeight, timeoutTimestamp)
+
 			sequence, err := path.EndpointA.SendPacket(timeout, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
 
-			packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeout.Height, timeout.Timestamp)
+			packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, timeoutTimestamp)
 			chanCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 		}, true},
 		{"channel not found", func() {
@@ -285,10 +289,14 @@ func (suite *KeeperTestSuite) TestTimeoutExecuted() {
 			path.SetChannelOrdered()
 			suite.coordinator.Setup(path)
 
+			timeoutHeight := clienttypes.GetSelfHeight(suite.chainB.GetContext())
+			timeoutTimestamp := uint64(suite.chainB.GetContext().BlockTime().UnixNano())
+			timeout := types.NewTimeout(timeoutHeight, timeoutTimestamp)
+
 			sequence, err := path.EndpointA.SendPacket(timeout, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
 
-			packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeout.Height, timeout.Timestamp)
+			packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, timeoutTimestamp)
 			chanCap = capabilitytypes.NewCapability(100)
 		}, false},
 	}
@@ -298,10 +306,6 @@ func (suite *KeeperTestSuite) TestTimeoutExecuted() {
 		suite.Run(fmt.Sprintf("Case %s, %d/%d tests", tc.msg, i, len(testCases)), func() {
 			suite.SetupTest() // reset
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
-
-			timeoutHeight := clienttypes.GetSelfHeight(suite.chainB.GetContext())
-			timeoutTimestamp := uint64(suite.chainB.GetContext().BlockTime().UnixNano())
-			timeout = types.NewTimeout(timeoutHeight, timeoutTimestamp)
 
 			tc.malleate()
 
@@ -327,7 +331,6 @@ func (suite *KeeperTestSuite) TestTimeoutOnClose() {
 		chanCap     *capabilitytypes.Capability
 		nextSeqRecv uint64
 		ordered     bool
-		timeout     types.Timeout
 	)
 
 	testCases := []testCase{
@@ -336,6 +339,10 @@ func (suite *KeeperTestSuite) TestTimeoutOnClose() {
 			path.SetChannelOrdered()
 			suite.coordinator.Setup(path)
 
+			timeoutHeight := clienttypes.GetSelfHeight(suite.chainB.GetContext())
+			timeoutTimestamp := uint64(suite.chainB.GetContext().BlockTime().UnixNano())
+			timeout := types.NewTimeout(timeoutHeight, timeoutTimestamp)
+
 			sequence, err := path.EndpointA.SendPacket(timeout, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
 			err = path.EndpointB.SetChannelState(types.CLOSED)
@@ -344,14 +351,15 @@ func (suite *KeeperTestSuite) TestTimeoutOnClose() {
 			err = path.EndpointA.UpdateClient()
 			suite.Require().NoError(err)
 
-			packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeout.Height, timeout.Timestamp)
+			packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, timeoutTimestamp)
 			chanCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 		}, true},
 		{"success: UNORDERED", func() {
 			ordered = false
 			suite.coordinator.Setup(path)
 
-			timeout = types.NewTimeout(timeout.Height, disabledTimeoutTimestamp)
+			timeoutHeight := clienttypes.GetSelfHeight(suite.chainB.GetContext())
+			timeout := types.NewTimeout(timeoutHeight, disabledTimeoutTimestamp)
 
 			sequence, err := path.EndpointA.SendPacket(timeout, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
@@ -361,7 +369,7 @@ func (suite *KeeperTestSuite) TestTimeoutOnClose() {
 			err = path.EndpointA.UpdateClient()
 			suite.Require().NoError(err)
 
-			packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeout.Height, disabledTimeoutTimestamp)
+			packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, disabledTimeoutTimestamp)
 			chanCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 		}, true},
 		{"channel not found", func() {
@@ -407,6 +415,10 @@ func (suite *KeeperTestSuite) TestTimeoutOnClose() {
 			ordered = true
 			suite.coordinator.Setup(path)
 
+			timeoutHeight := clienttypes.GetSelfHeight(suite.chainB.GetContext())
+			timeoutTimestamp := uint64(suite.chainB.GetContext().BlockTime().UnixNano())
+			timeout := types.NewTimeout(timeoutHeight, timeoutTimestamp)
+
 			sequence, err := path.EndpointA.SendPacket(timeout, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
 			err = path.EndpointB.SetChannelState(types.CLOSED)
@@ -415,7 +427,7 @@ func (suite *KeeperTestSuite) TestTimeoutOnClose() {
 			err = path.EndpointA.UpdateClient()
 			suite.Require().NoError(err)
 
-			packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeout.Height, timeout.Timestamp)
+			packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, timeoutTimestamp)
 			chanCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 		}, false},
 		{"channel verification failed ORDERED", func() {
@@ -423,9 +435,13 @@ func (suite *KeeperTestSuite) TestTimeoutOnClose() {
 			path.SetChannelOrdered()
 			suite.coordinator.Setup(path)
 
+			timeoutHeight := clienttypes.GetSelfHeight(suite.chainB.GetContext())
+			timeoutTimestamp := uint64(suite.chainB.GetContext().BlockTime().UnixNano())
+			timeout := types.NewTimeout(timeoutHeight, timeoutTimestamp)
+
 			sequence, err := path.EndpointA.SendPacket(timeout, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
-			packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeout.Height, timeout.Timestamp)
+			packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, timeoutTimestamp)
 			chanCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 		}, false},
 		{"next seq receive verification failed ORDERED", func() {
@@ -433,6 +449,10 @@ func (suite *KeeperTestSuite) TestTimeoutOnClose() {
 			ordered = false
 			path.SetChannelOrdered()
 			suite.coordinator.Setup(path)
+
+			timeoutHeight := clienttypes.GetSelfHeight(suite.chainB.GetContext())
+			timeoutTimestamp := uint64(suite.chainB.GetContext().BlockTime().UnixNano())
+			timeout := types.NewTimeout(timeoutHeight, timeoutTimestamp)
 
 			sequence, err := path.EndpointA.SendPacket(timeout, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
@@ -449,7 +469,8 @@ func (suite *KeeperTestSuite) TestTimeoutOnClose() {
 			ordered = true
 			suite.coordinator.Setup(path)
 
-			timeout = types.NewTimeout(timeout.Height, disabledTimeoutTimestamp)
+			timeoutHeight := clienttypes.GetSelfHeight(suite.chainB.GetContext())
+			timeout := types.NewTimeout(timeoutHeight, disabledTimeoutTimestamp)
 
 			sequence, err := path.EndpointA.SendPacket(timeout, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
@@ -458,13 +479,17 @@ func (suite *KeeperTestSuite) TestTimeoutOnClose() {
 			err = path.EndpointA.UpdateClient()
 			suite.Require().NoError(err)
 
-			packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeout.Height, disabledTimeoutTimestamp)
+			packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, disabledTimeoutTimestamp)
 			chanCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 		}, false},
 		{"channel capability not found ORDERED", func() {
 			ordered = true
 			path.SetChannelOrdered()
 			suite.coordinator.Setup(path)
+
+			timeoutHeight := clienttypes.GetSelfHeight(suite.chainB.GetContext())
+			timeoutTimestamp := uint64(suite.chainB.GetContext().BlockTime().UnixNano())
+			timeout := types.NewTimeout(timeoutHeight, timeoutTimestamp)
 
 			sequence, err := path.EndpointA.SendPacket(timeout, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
@@ -487,10 +512,6 @@ func (suite *KeeperTestSuite) TestTimeoutOnClose() {
 			suite.SetupTest() // reset
 			nextSeqRecv = 1   // must be explicitly changed
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
-
-			timeoutHeight := clienttypes.GetSelfHeight(suite.chainB.GetContext())
-			timeoutTimestamp := uint64(suite.chainB.GetContext().BlockTime().UnixNano())
-			timeout = types.NewTimeout(timeoutHeight, timeoutTimestamp)
 
 			tc.malleate()
 
