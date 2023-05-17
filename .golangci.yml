@@ -36,6 +36,9 @@ issues:
     - text: "Use of weak random number generator"
       linters:
         - gosec
+    - text: "SA1019:"
+      linters:
+        - staticcheck
     - text: "ST1003:"
       linters:
         - stylecheck
