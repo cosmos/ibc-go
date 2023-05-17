@@ -402,7 +402,7 @@ func (q Keeper) UnreceivedPackets(c context.Context, req *types.QueryUnreceivedP
 	if !found {
 		return nil, status.Error(
 			codes.NotFound,
-			errorsmod.Wrapf(types.ErrChannelNotFound, "port-id: %s, channel-id %s", req.PortId, req.ChannelId).Error(),
+			sdkerrors.Wrapf(types.ErrChannelNotFound, "port-id: %s, channel-id %s", req.PortId, req.ChannelId).Error(),
 		)
 	}
 
@@ -425,7 +425,7 @@ func (q Keeper) UnreceivedPackets(c context.Context, req *types.QueryUnreceivedP
 		if !found {
 			return nil, status.Error(
 				codes.NotFound,
-				errorsmod.Wrapf(
+				sdkerrors.Wrapf(
 					types.ErrSequenceReceiveNotFound,
 					"destination port: %s, destination channel: %s", req.PortId, req.ChannelId,
 				).Error(),
@@ -446,7 +446,7 @@ func (q Keeper) UnreceivedPackets(c context.Context, req *types.QueryUnreceivedP
 	default:
 		return nil, status.Error(
 			codes.InvalidArgument,
-			errorsmod.Wrapf(types.ErrInvalidChannelOrdering, "channel order %s is not supported", channel.Ordering.String()).Error())
+			sdkerrors.Wrapf(types.ErrInvalidChannelOrdering, "channel order %s is not supported", channel.Ordering.String()).Error())
 	}
 
 	selfHeight := clienttypes.GetSelfHeight(ctx)
