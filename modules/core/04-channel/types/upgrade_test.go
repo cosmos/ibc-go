@@ -3,10 +3,11 @@ package types_test
 import (
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	"github.com/cosmos/ibc-go/v7/testing/mock"
 )
 
-func (suite *TypesTestSuite) TestUpgradeTimeout() {
+func (suite *TypesTestSuite) TestUpgradeValidateBasic() {
 	var upgrade types.Upgrade
 
 	testCases := []struct {
@@ -57,7 +58,7 @@ func (suite *TypesTestSuite) TestUpgradeTimeout() {
 			upgrade = types.NewUpgrade(
 				types.NewUpgradeFields(
 					types.ORDERED,
-					[]string{"connection-0"},
+					[]string{ibctesting.FirstConnectionID},
 					mock.Version,
 				),
 				types.NewTimeout(
