@@ -49,6 +49,8 @@ All notable changes to this project will be documented in this file.
 
 ### Bug Fixes
 
+* [\#3346](https://github.com/cosmos/ibc-go/pull/3346) Properly handle ordered channels in `UnreceivedPackets` query.
+
 ## [v4.3.0](https://github.com/cosmos/ibc-go/releases/tag/v4.3.0) - 2023-01-24
 
 ### Dependencies
