@@ -4,6 +4,12 @@
       "pattern": "(localhost)"
     }
   ],
+  "replacementPatterns": [
+    {
+      "pattern": "^@site/",
+      "replacement": "docs/"
+    }
+  ],
   "retryOn429": true,
   "retryCount": 3,
   "fallbackRetryDelay": "10s"
