@@ -86,7 +86,7 @@ func (suite *TypesTestSuite) TestTimeoutPassed() {
 	}
 }
 
-func (suite *TypesTestSuite) TestTimeout() {
+func (suite *TypesTestSuite) TestTimeoutIsValid() {
 	var timeout types.Timeout
 
 	testCases := []struct {
