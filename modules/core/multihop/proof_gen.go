@@ -27,12 +27,12 @@ type Endpoint interface {
 	// Returns the proof of the `key`` at `height` within the ibc module store.
 	QueryProofAtHeight(key []byte, height int64) ([]byte, clienttypes.Height, error)
 	QueryStateAtHeight(key []byte, height int64) []byte
+
+	// QueryMinimumConsensusHeight returns the minimum height within the provided range at which the consensusState exists (processedHeight)
+	// and the height of the corresponding consensus state (consensusHeight).
 	QueryMinimumConsensusHeight(minHeight exported.Height, maxHeight exported.Height) (exported.Height, exported.Height, error)
 	GetMerklePath(path string) (commitmenttypes.MerklePath, error)
-	// UpdateClient updates the clientState of counterparty chain's header
-	UpdateClient() error
 	Counterparty() Endpoint
-	Debug()
 }
 
 // Path contains two endpoints of chains that have a direct IBC connection, ie. a single-hop IBC path.
@@ -52,16 +52,6 @@ func NewChanPath(paths []*Path) ChanPath {
 	return ChanPath(paths)
 }
 
-// UpdateClient updates the clientState{AB, BC, .. YZ} so chainA's consensusState is propogated to chainZ.
-func (p ChanPath) UpdateClient() error {
-	for _, path := range p {
-		if err := path.EndpointB.UpdateClient(); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
 // GetConnectionHops returns the connection hops for the multihop channel.
 func (p ChanPath) GetConnectionHops() []string {
 	hops := make([]string, len(p))
@@ -73,7 +63,13 @@ func (p ChanPath) GetConnectionHops() []string {
 
 // GenerateProof generates a proof for the given key on the the source chain, which is to be verified on the dest
 // chain.
-func (p ChanPath) GenerateProof(key []byte, val []byte, proofHeight exported.Height, doVerify bool) (result *channeltypes.MsgMultihopProofs, err error) {
+func (p ChanPath) GenerateProof(
+	key []byte,
+	val []byte,
+	proofHeight exported.Height,
+	maxProofHeight exported.Height,
+	doVerify bool,
+) (result *channeltypes.MsgMultihopProofs, err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			result = nil
@@ -84,8 +80,7 @@ func (p ChanPath) GenerateProof(key []byte, val []byte, proofHeight exported.Hei
 	result = &channeltypes.MsgMultihopProofs{}
 
 	// generate proof for key on source chain at the minimum consensus height known on the counterparty chain
-	maxHeight := clienttypes.NewHeight(proofHeight.GetRevisionNumber(), proofHeight.GetRevisionHeight()+10)
-	_, consensusHeightAB, err := p.source().Counterparty().QueryMinimumConsensusHeight(proofHeight, maxHeight)
+	_, consensusHeightAB, err := p.source().Counterparty().QueryMinimumConsensusHeight(proofHeight, maxProofHeight)
 	if err != nil {
 		return nil, err
 	}
@@ -210,7 +205,7 @@ func genConsensusStateProof(
 func genConnProof(
 	chainB Endpoint,
 	processedHeight exported.Height,
-	consensusHeight exported.Height,
+	_ exported.Height,
 	consStateBCRoot exported.Root,
 ) *channeltypes.MultihopProof {
 	key := host.ConnectionKey(chainB.ConnectionID())

@@ -168,7 +168,6 @@ func (ep *EndpointM) SendPacket(
 		return nil, nil, err
 	}
 	ep.Chain.Coordinator.CommitBlock(ep.Chain)
-	require.NoError(ep.Chain.T, ep.Counterparty.UpdateAllClients())
 
 	packet := channeltypes.NewPacket(data, seq, portID, channelID,
 		ep.Counterparty.ChannelConfig.PortID, ep.Counterparty.ChannelID,
@@ -193,7 +192,6 @@ func (ep *EndpointM) RecvPacket(packet *channeltypes.Packet, proofHeight exporte
 		return err
 	}
 
-	require.NoError(ep.Chain.T, ep.Counterparty.UpdateAllClients())
 	return nil
 }
 
@@ -210,13 +208,6 @@ func (ep *EndpointM) SetChannelClosed() {
 	)
 
 	ep.Chain.Coordinator.CommitBlock(ep.Chain)
-}
-
-// UpdateAllClients updates all client states starting from the first single-hop path to the last.
-// ie. self's client state is propogated from the counterparty chain following the multihop channel path.
-// This should be called on the chain that's about to receive a Msg with a proof.
-func (ep *EndpointM) UpdateAllClients() error {
-	return ep.Counterparty.mChanPath.UpdateClient()
 }
 
 // GetConnectionHops returns the connection hops for the multihop channel.
@@ -249,7 +240,7 @@ func (ep *EndpointM) QueryPacketAcknowledgementProof(packet *channeltypes.Packet
 
 // QueryMultihopProof queries the proof for a key/value on this endpoint, which is verified on the counterparty chain.
 func (ep *EndpointM) QueryMultihopProof(key []byte, proofHeight exported.Height) []byte {
-	proof, err := ep.mChanPath.GenerateProof(key, nil, proofHeight, false)
+	proof, err := ep.mChanPath.GenerateProof(key, nil, proofHeight, nil, false)
 	require.NoError(
 		ep.Chain.T,
 		err,
@@ -337,19 +328,16 @@ func (mep multihopEndpoint) QueryStateAtHeight(key []byte, height int64) []byte 
 	return mep.testEndpoint.Chain.QueryStateAtHeight(key, height)
 }
 
+// QueryMinimumConsensusHeight returns the minimum height within the provided range at which the consensusState exists (processedHeight)
+// and the height of the corresponding consensus state (consensusHeight).
 func (mep multihopEndpoint) QueryMinimumConsensusHeight(minHeight exported.Height, maxHeight exported.Height) (exported.Height, exported.Height, error) {
 	proofHeight, consensusHeight, doUpdateClient, err := mep.testEndpoint.Chain.QueryMinimumConsensusHeight(mep.testEndpoint.ClientID, minHeight, maxHeight)
 	if doUpdateClient {
 		// update client if no suitable consensus height found
-		mep.UpdateClient()
+		mep.testEndpoint.UpdateClient()
 		proofHeight, consensusHeight, _, err = mep.testEndpoint.Chain.QueryMinimumConsensusHeight(mep.testEndpoint.ClientID, minHeight, maxHeight)
 	}
 	return proofHeight, consensusHeight, err
-}
-
-// UpdateClient implements multihop.Endpoint
-func (mep multihopEndpoint) UpdateClient() error {
-	return mep.testEndpoint.UpdateClient()
 }
 
 func (mep multihopEndpoint) Debug() {

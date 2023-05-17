@@ -233,6 +233,10 @@ func (chain *TestChain) QueryStateAtHeight(key []byte, height int64) []byte {
 //	The third returned parameter is a boolean indicating whether a client update is required.
 func (chain *TestChain) QueryMinimumConsensusHeight(clientID string, minHeight exported.Height, maxHeight exported.Height) (exported.Height, exported.Height, bool, error) {
 
+	if maxHeight == nil {
+		maxHeight = chain.LastHeader.GetHeight()
+	}
+
 	req := clienttypes.QueryConsensusStatesRequest{
 		ClientId: clientID,
 	}
