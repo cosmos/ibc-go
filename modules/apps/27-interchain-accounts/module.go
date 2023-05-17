@@ -18,6 +18,7 @@ import (
 	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/client/cli"
 	controllerkeeper "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/keeper"
 	controllertypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
+	exported "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/exported"
 	genesistypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/genesis/types"
 	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host"
 	hostkeeper "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/keeper"
@@ -97,21 +98,26 @@ type AppModule struct {
 	AppModuleBasic
 	controllerKeeper *controllerkeeper.Keeper
 	hostKeeper       *hostkeeper.Keeper
+	legacySubspace   exported.Subspace
 }
 
 // NewAppModule creates a new IBC interchain accounts module
-func NewAppModule(controllerKeeper *controllerkeeper.Keeper, hostKeeper *hostkeeper.Keeper) AppModule {
+func NewAppModule(controllerKeeper *controllerkeeper.Keeper, hostKeeper *hostkeeper.Keeper, hss exported.Subspace) AppModule {
 	return AppModule{
 		controllerKeeper: controllerKeeper,
 		hostKeeper:       hostKeeper,
+		legacySubspace:   hss,
 	}
 }
 
-// InitModule will initialize the interchain accounts moudule. It should only be
+// InitModule will initialize the interchain accounts module. It should only be
 // called once and as an alternative to InitGenesis.
 func (am AppModule) InitModule(ctx sdk.Context, controllerParams controllertypes.Params, hostParams hosttypes.Params) {
 	if am.controllerKeeper != nil {
 		am.controllerKeeper.SetParams(ctx, controllerParams)
+		if err := am.controllerKeeper.SetParams(ctx, controllerParams); err != nil {
+			panic(fmt.Sprintf("could not set ica host params at initialization: %v", err))
+		}
 	}
 
 	if am.hostKeeper != nil {
@@ -139,9 +145,13 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 		hosttypes.RegisterQueryServer(cfg.QueryServer(), am.hostKeeper)
 	}
 
-	m := controllerkeeper.NewMigrator(am.controllerKeeper)
+	m := controllerkeeper.NewMigrator(am.controllerKeeper, am.legacySubspace)
 	if err := cfg.RegisterMigration(types.ModuleName, 1, m.AssertChannelCapabilityMigrations); err != nil {
 		panic(fmt.Sprintf("failed to migrate interchainaccounts app from version 1 to 2: %v", err))
+	}
+
+	if err := cfg.RegisterMigration(types.ModuleName, 3, m.MigrateParams); err != nil {
+		panic(fmt.Sprintf("failed to migrate params from version 3 to 4: %v", err))
 	}
 }
 
@@ -183,7 +193,7 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 }
 
 // ConsensusVersion implements AppModule/ConsensusVersion.
-func (AppModule) ConsensusVersion() uint64 { return 2 }
+func (AppModule) ConsensusVersion() uint64 { return 4 }
 
 // BeginBlock implements the AppModule interface
 func (am AppModule) BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock) {

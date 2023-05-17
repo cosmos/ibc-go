@@ -238,3 +238,36 @@ func (suite *KeeperTestSuite) TestSetInterchainAccountAddress() {
 	suite.Require().True(found)
 	suite.Require().Equal(expectedAccAddr, retrievedAddr)
 }
+
+// func (suite *KeeperTestSuite) TestParams() {
+// 	testCases := []struct {
+// 		name    string
+// 		input   types.Params
+// 		expPass bool
+// 	}{
+// 		// it is not possible to set invalid booleans
+// 		{name: "set params false-false", input: types.NewParams(false), expPass: true},
+// 		{name: "set params false-true", input: types.NewParams(false), expPass: true},
+// 		{name: "set params true-false", input: types.NewParams(true), expPass: true},
+// 		{name: "set params true-true", input: types.NewParams(true), expPass: true},
+// 	}
+
+// 	for _, tc := range testCases {
+// 		tc := tc
+// 		suite.Run(tc.name, func() {
+// 			suite.SetupTest() // reset
+// 			ctx := suite.chainA.GetContext()
+// 			expected := suite.chainA.GetSimApp().ICAControllerKeeper.GetParams(ctx)
+// 			err := suite.chainA.GetSimApp().ICAControllerKeeper.SetParams(ctx, tc.input)
+// 			if tc.expPass {
+// 				expected = tc.input
+// 				suite.Require().NoError(err)
+// 			} else {
+// 				suite.Require().Error(err)
+// 			}
+
+// 			p := suite.chainA.GetSimApp().ICAControllerKeeper.GetParams(ctx)
+// 			suite.Require().Equal(expected, p)
+// 		})
+// 	}
+// }
