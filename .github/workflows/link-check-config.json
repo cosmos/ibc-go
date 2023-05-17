@@ -2,12 +2,9 @@
   "ignorePatterns": [
     {
       "pattern": "(localhost)"
-    }
-  ],
-  "replacementPatterns": [
+    },
     {
-      "pattern": "^@site/",
-      "replacement": "docs/"
+      "pattern": "^@site/"
     }
   ],
   "retryOn429": true,
