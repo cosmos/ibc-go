@@ -34,7 +34,7 @@ func (fr FeatureReleases) IsSupported(versionStr string) bool {
 		return true
 	}
 
-	if semverGTE(versionStr, fr.MajorVersion) {
+	if fr.MajorVersion != "" && semverGTE(versionStr, fr.MajorVersion) {
 		return true
 	}
 
