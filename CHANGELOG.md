@@ -48,6 +48,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Bug Fixes
 
+* [\#3346](https://github.com/cosmos/ibc-go/pull/3346) Properly handle ordered channels in `UnreceivedPackets` query.
+
 ## [v6.1.0](https://github.com/cosmos/ibc-go/releases/tag/v6.1.0) - 2022-12-20
 
 ### Dependencies
