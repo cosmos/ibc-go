@@ -33,7 +33,7 @@ type Endpoint interface {
 	QueryMinimumConsensusHeight(minHeight exported.Height, maxHeight exported.Height) (exported.Height, exported.Height, error)
 	// QueryMaximumProofHeight returns the maxmimum height which can be used to prove a key/val pair by search consecutive heights
 	// to find the first point at which the value changes for the given key.
-	QueryMaximumProofHeight(key []byte, minKeyHeight exported.Height, limitMaxKeyHeight exported.Height) exported.Height
+	QueryMaximumProofHeight(key []byte, minKeyHeight exported.Height, maxKeyHeightLimit exported.Height) exported.Height
 	GetMerklePath(path string) (commitmenttypes.MerklePath, error)
 	Counterparty() Endpoint
 }

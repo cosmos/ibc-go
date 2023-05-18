@@ -277,11 +277,11 @@ func (chain *TestChain) QueryMinimumConsensusHeight(clientID string, minHeight e
 func (chain *TestChain) QueryMaximumProofHeight(
 	key []byte,
 	minKeyHeight exported.Height,
-	limitMaxKeyHeight exported.Height,
+	maxKeyHeightLimit exported.Height,
 ) exported.Height {
 
-	if limitMaxKeyHeight == nil {
-		limitMaxKeyHeight = chain.LastHeader.GetHeight()
+	if maxKeyHeightLimit == nil {
+		maxKeyHeightLimit = chain.LastHeader.GetHeight()
 	}
 
 	// TODO: implement a query method to do this logic
@@ -289,7 +289,7 @@ func (chain *TestChain) QueryMaximumProofHeight(
 	height := minKeyHeight.Increment()
 	for {
 		value := chain.QueryStateForStore(exported.StoreKey, key, int64(height.GetRevisionHeight()))
-		if !bytes.Equal(value, initialValue) || height.EQ(limitMaxKeyHeight) {
+		if !bytes.Equal(value, initialValue) || height.EQ(maxKeyHeightLimit) {
 			break
 		}
 		height = height.Increment()
