@@ -2,22 +2,19 @@
   "ignorePatterns": [
     {
       "pattern": "(localhost)"
-    },
-    {
-      "pattern": "^@site/"
     }
   ],
   "replacementPatterns": [
     {
-      "pattern": "^(?!.*http)(?=.*(?:architecture|event))(?!.*#)(?!.*\\.\\w+$)(?!.*\\/$)(.*)",
-      "replacement": "$1.md"
-    },
-    {
-      "pattern": "^(?!.*http)(?=.*(?:architecture|event))(?!.*\\.\\w+)([^#]*)(#.*|$)",
-      "replacement": "$1.md$2"
+      "pattern": "(^\\/(architecture|event)[^#]*)(#.*|$)",
+      "replacement": "$1.md$3"
     },
     {
       "pattern": "^(\\/)",
+      "replacement": "{{BASEURL}}/docs/"
+    },
+    {
+      "pattern": "^@site/",
       "replacement": "{{BASEURL}}/docs/"
     }
   ],
