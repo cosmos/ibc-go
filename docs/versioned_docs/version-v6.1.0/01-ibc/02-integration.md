@@ -5,11 +5,10 @@ sidebar_position: 2
 slug: /ibc/integration
 ---
 
-
 # Integration
 
 :::note Synopsis
-Learn how to integrate IBC to your application and send data packets to other chains. 
+Learn how to integrate IBC to your application and send data packets to other chains.
 :::
 
 This document outlines the required steps to integrate and configure the [IBC
@@ -145,7 +144,7 @@ func NewApp(...args) *App {
 
 ### Module Managers
 
-In order to use IBC, we need to add the new modules to the module `Manager` and to the `SimulationManager` in case your application supports [simulations](https://github.com/cosmos/cosmos-sdk/blob/main/docs/docs/building-modules/13-simulator.md).
+In order to use IBC, we need to add the new modules to the module `Manager` and to the `SimulationManager` in case your application supports [simulations](https://github.com/cosmos/cosmos-sdk/blob/main/docs/docs/building-modules/14-simulator.md).
 
 ```go
 // app.go
@@ -221,4 +220,3 @@ func NewApp(...args) *App {
 That's it! You have now wired up the IBC module and are now able to send fungible tokens across
 different chains. If you want to have a broader view of the changes take a look into the SDK's
 [`SimApp`](https://github.com/cosmos/ibc-go/blob/main/testing/simapp/app.go).
-

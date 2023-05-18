@@ -40,7 +40,6 @@ CLOSED, INIT, TRYOPEN, OPEN or UNINITIALIZED.
 
 
 <a name="ibc/applications/interchain_accounts/controller/v1/controller.proto"></a>
-<p align="right"><a href="#top">Top</a></p>
 
 ## ibc/applications/interchain_accounts/controller/v1/controller.proto
 
@@ -55,7 +54,7 @@ The following parameters may be used to disable the controller submodule.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `controller_enabled` | [bool](#bool) |  | controller_enabled enables or disables the controller submodule. |
+| `controller_enabled` | bool        |  | controller_enabled enables or disables the controller submodule. |
 
 
 ## Scalar Value Types

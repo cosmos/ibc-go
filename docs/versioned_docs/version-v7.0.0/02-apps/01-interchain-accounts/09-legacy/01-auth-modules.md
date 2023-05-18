@@ -26,7 +26,7 @@ The authentication module must:
 - Track the associated interchain account address for an owner.
 - Send packets on behalf of an owner (after authentication).
 
-> Please note that since ibc-go v6 the channel capability is claimed by the controller submodule and therefore it is not required for authentication modules to claim the capability in the `OnChanOpenInit` callback. When the authentication module sends packets on the channel created for the associated interchain account it can pass a `nil` capability to the legacy function `SendTx` of the controller keeper (see [section `SendTx`](#sendtx) below for mode information). 
+> Please note that since ibc-go v6 the channel capability is claimed by the controller submodule and therefore it is not required for authentication modules to claim the capability in the `OnChanOpenInit` callback. When the authentication module sends packets on the channel created for the associated interchain account it can pass a `nil` capability to the legacy function `SendTx` of the controller keeper (see [section `SendTx`](./03-keeper-api.md#sendtx) below for mode information).
 
 ## `IBCModule` implementation
 
