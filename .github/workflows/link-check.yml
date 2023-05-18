@@ -8,7 +8,7 @@ jobs:
       - name: Generate file list ignoring versioned_docs
         id: gen
         run: |
-          FILES=$(find . -path './docs/versioned_docs' -prune -o -name '*.md' -print | tr '\n' ',')
+          FILES=$(find . -path './docs/versioned_docs' -prune -o -name '*.md' -print | tr '\n' ', ')
           echo "::set-output name=files::${FILES}"
       - name: Check links
         uses: gaurav-nelson/github-action-markdown-link-check@v1
