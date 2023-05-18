@@ -36,7 +36,7 @@ func (suite *KeeperTestSuite) TestMigratorMigrateParams() {
 			subspace := suite.chainA.GetSimApp().GetSubspace(transfertypes.ModuleName) // get subspace
 			tc.malleate(subspace)                                                      // explicitly set params
 
-			migrator := transferkeeper.NewMigrator(suite.chainA.GetSimApp().TransferKeeper, subspace)
+			migrator := transferkeeper.NewMigrator(suite.chainA.GetSimApp().TransferKeeper)
 			err := migrator.MigrateParams(suite.chainA.GetContext())
 			suite.Require().NoError(err)
 
@@ -135,7 +135,7 @@ func (suite *KeeperTestSuite) TestMigratorMigrateTraces() {
 
 			tc.malleate() // explicitly set up denom traces
 
-			migrator := transferkeeper.NewMigrator(suite.chainA.GetSimApp().TransferKeeper, suite.chainA.GetSimApp().GetSubspace(transfertypes.ModuleName))
+			migrator := transferkeeper.NewMigrator(suite.chainA.GetSimApp().TransferKeeper)
 			err := migrator.MigrateTraces(suite.chainA.GetContext())
 			suite.Require().NoError(err)
 
@@ -153,7 +153,7 @@ func (suite *KeeperTestSuite) TestMigratorMigrateTracesCorruptionDetection() {
 	}
 	suite.chainA.GetSimApp().TransferKeeper.SetDenomTrace(suite.chainA.GetContext(), corruptedDenomTrace)
 
-	migrator := transferkeeper.NewMigrator(suite.chainA.GetSimApp().TransferKeeper, suite.chainA.GetSimApp().GetSubspace(transfertypes.ModuleName))
+	migrator := transferkeeper.NewMigrator(suite.chainA.GetSimApp().TransferKeeper)
 	suite.Panics(func() {
 		migrator.MigrateTraces(suite.chainA.GetContext()) //nolint:errcheck // we shouldn't check the error here because we want to ensure that a panic occurs.
 	})
@@ -226,7 +226,7 @@ func (suite *KeeperTestSuite) TestMigrateTotalEscrowForDenom() {
 
 			tc.malleate() // explicitly fund escrow account
 
-			migrator := transferkeeper.NewMigrator(suite.chainA.GetSimApp().TransferKeeper, suite.chainA.GetSimApp().GetSubspace(transfertypes.ModuleName))
+			migrator := transferkeeper.NewMigrator(suite.chainA.GetSimApp().TransferKeeper)
 			suite.Require().NoError(migrator.MigrateTotalEscrowForDenom(suite.chainA.GetContext()))
 
 			// check that the migration set the expected amount for both native and IBC tokens
