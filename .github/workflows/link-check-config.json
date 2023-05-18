@@ -10,11 +10,7 @@
       "replacement": "$1.md$3"
     },
     {
-      "pattern": "^(\\/)",
-      "replacement": "{{BASEURL}}/docs/"
-    },
-    {
-      "pattern": "^@site/",
+      "pattern": "^(\\/|@site\\/)",
       "replacement": "{{BASEURL}}/docs/"
     }
   ],
