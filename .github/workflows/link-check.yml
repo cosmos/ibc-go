@@ -5,14 +5,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Generate file list ignoring versioned_docs
-        id: gen
-        run: |
-          FILES=$(find . -path './docs/versioned_docs' -prune -o -name '*.md' -print | tr '\n' ',')
-          echo "::set-output name=files::${FILES}"
-      - name: Check links
-        uses: gaurav-nelson/github-action-markdown-link-check@v1
+      - uses: gaurav-nelson/github-action-markdown-link-check@v1
         with:
           config-file: ".github/workflows/link-check-config.json"
-          file-path: ${{ steps.gen.outputs.files }}
-          use-verbose-mode: "yes"
