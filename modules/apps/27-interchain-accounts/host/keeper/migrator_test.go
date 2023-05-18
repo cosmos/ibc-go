@@ -3,7 +3,6 @@ package keeper_test
 import (
 	"fmt"
 
-	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	icahostkeeper "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/keeper"
 	icahosttypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/types"
 )
@@ -11,13 +10,14 @@ import (
 func (suite *KeeperTestSuite) TestMigratorMigrateParams() {
 	testCases := []struct {
 		msg            string
-		malleate       func(subspace paramstypes.Subspace)
+		malleate       func()
 		expectedParams icahosttypes.Params
 	}{
 		{
 			"success: default params",
-			func(subspace paramstypes.Subspace) {
+			func() {
 				params := icahosttypes.DefaultParams()
+				subspace := suite.chainA.GetSimApp().GetSubspace(icahosttypes.SubModuleName) // get subspace
 				subspace.SetParamSet(suite.chainA.GetContext(), &params) // set params
 			},
 			icahosttypes.DefaultParams(),
@@ -28,10 +28,9 @@ func (suite *KeeperTestSuite) TestMigratorMigrateParams() {
 		suite.Run(fmt.Sprintf("case %s", tc.msg), func() {
 			suite.SetupTest() // reset
 
-			subspace := suite.chainA.GetSimApp().GetSubspace(icahosttypes.SubModuleName) // get subspace
-			tc.malleate(subspace)                                                        // explicitly set params
+			tc.malleate()                                                        // explicitly set params
 
-			migrator := icahostkeeper.NewMigrator(&suite.chainA.GetSimApp().ICAHostKeeper, subspace)
+			migrator := icahostkeeper.NewMigrator(&suite.chainA.GetSimApp().ICAHostKeeper)
 			err := migrator.MigrateParams(suite.chainA.GetContext())
 			suite.Require().NoError(err)
 
