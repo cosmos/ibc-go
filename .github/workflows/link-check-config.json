@@ -9,7 +9,7 @@
   ],
   "replacementPatterns": [
     {
-      "pattern": "^(?!.*http)(?=.*(?:architecture|event))(?!.*#)(?!.*\\.\\w+$)(?!.*/$)(.*)",
+      "pattern": "^(?!.*http)(?=.*(?:architecture|event))(?!.*#)(?!.*\\.\\w+$)(?!.*\\/$)(.*)",
       "replacement": "$1.md"
     },
     {
