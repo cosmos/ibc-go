@@ -103,8 +103,8 @@ type AppModule struct {
 // NewAppModule creates a new IBC interchain accounts module
 func NewAppModule(controllerKeeper *controllerkeeper.Keeper, hostKeeper *hostkeeper.Keeper) AppModule {
 	return AppModule{
-		controllerKeeper:   controllerKeeper,
-		hostKeeper:         hostKeeper,
+		controllerKeeper: controllerKeeper,
+		hostKeeper:       hostKeeper,
 	}
 }
 

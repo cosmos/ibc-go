@@ -18,7 +18,7 @@ func (suite *KeeperTestSuite) TestMigratorMigrateParams() {
 			func() {
 				params := icahosttypes.DefaultParams()
 				subspace := suite.chainA.GetSimApp().GetSubspace(icahosttypes.SubModuleName) // get subspace
-				subspace.SetParamSet(suite.chainA.GetContext(), &params) // set params
+				subspace.SetParamSet(suite.chainA.GetContext(), &params)                     // set params
 			},
 			icahosttypes.DefaultParams(),
 		},
@@ -28,7 +28,7 @@ func (suite *KeeperTestSuite) TestMigratorMigrateParams() {
 		suite.Run(fmt.Sprintf("case %s", tc.msg), func() {
 			suite.SetupTest() // reset
 
-			tc.malleate()                                                        // explicitly set params
+			tc.malleate() // explicitly set params
 
 			migrator := icahostkeeper.NewMigrator(&suite.chainA.GetSimApp().ICAHostKeeper)
 			err := migrator.MigrateParams(suite.chainA.GetContext())
