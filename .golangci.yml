@@ -33,6 +33,12 @@ linters:
 
 issues:
   exclude-rules:
+    - text: "is unused for linter"
+      linters:
+        - nolintlint
+    - text: "SA1019:"
+      linters:
+        - staticcheck
     - text: "Use of weak random number generator"
       linters:
         - gosec
