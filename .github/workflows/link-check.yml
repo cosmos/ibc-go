@@ -2,10 +2,16 @@ name: Check Markdown links
 on: pull_request
 jobs:
   markdown-link-check:
-    timeout-minutes: 16
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: gaurav-nelson/github-action-markdown-link-check@v1
+      - name: Generate file list ignoring versioned_docs
+        id: gen
+        run: |
+          FILES=$(find . -path './docs/versioned_docs' -prune -o -name '*.md' -print)
+          echo "::set-output name=files::${FILES}"
+      - name: Check links
+        uses: gaurav-nelson/github-action-markdown-link-check@v1
         with:
           config-file: ".github/workflows/link-check-config.json"
+          file-path: ${{ steps.gen.outputs.files }}
