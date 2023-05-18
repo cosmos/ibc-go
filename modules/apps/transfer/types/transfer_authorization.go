@@ -3,7 +3,6 @@ package types
 import (
 	"math/big"
 
-	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -43,7 +42,7 @@ func (a TransferAuthorization) Accept(ctx sdk.Context, msg sdk.Msg) (authz.Accep
 		}
 
 		if !isAllowedAddress(ctx, msgTransfer.Receiver, allocation.AllowList) {
-			return authz.AcceptResponse{}, errorsmod.Wrap(sdkerrors.ErrInvalidAddress, "not allowed receiver address for transfer")
+			return authz.AcceptResponse{}, sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "not allowed receiver address for transfer")
 		}
 
 		// If the spend limit is set to the MaxUint256 sentinel value, do not subtract the amount from the spend limit.
@@ -53,7 +52,7 @@ func (a TransferAuthorization) Accept(ctx sdk.Context, msg sdk.Msg) (authz.Accep
 
 		limitLeft, isNegative := allocation.SpendLimit.SafeSub(msgTransfer.Token)
 		if isNegative {
-			return authz.AcceptResponse{}, errorsmod.Wrapf(sdkerrors.ErrInsufficientFunds, "requested amount is more than spend limit")
+			return authz.AcceptResponse{}, sdkerrors.Wrapf(sdkerrors.ErrInsufficientFunds, "requested amount is more than spend limit")
 		}
 
 		if limitLeft.IsZero() {
