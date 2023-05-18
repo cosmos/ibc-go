@@ -7,18 +7,13 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
       - uses: technote-space/get-diff-action@v6.1.2
-        with:
-          PATTERNS: |
-            **/**.md
-
       - id: filter
         uses: dorny/paths-filter@v2
         with:
           filters: |
             markdown:
-              - added: '*.md'
-              - modified: '*.md'
-
+              - added: '**/*.md'
+              - modified: '**/*.md'
       - name: Run markdown-link-check
         if: steps.filter.outputs.markdown == 'true'
         uses: gaurav-nelson/github-action-markdown-link-check@v1
