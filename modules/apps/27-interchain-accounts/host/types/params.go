@@ -25,10 +25,6 @@ func DefaultParams() Params {
 
 // Validate validates all host submodule parameters
 func (p Params) Validate() error {
-	if err := validateEnabledType(p.HostEnabled); err != nil {
-		return err
-	}
-
 	return validateAllowlist(p.AllowMessages)
 }
 
