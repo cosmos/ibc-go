@@ -3,7 +3,7 @@
 IBC-Go follows [semantic versioning](https://semver.org), but with the following deviations:
 
 - A state-machine breaking change will result in an increase of the minor version Y (x.Y.z | x > 0).
-- An API breaking change will result in an increase of the major number (X.y.z | x > 0). Please note that these changes **will be backwards compatible** (as opposed to canonical semantic versioning; read [Backwards compatibility](#backwards) for a detailed explanation).
+- An API breaking change will result in an increase of the major number (X.y.z | x > 0). Please note that these changes **will be backwards compatible** (as opposed to canonical semantic versioning; read [Backwards compatibility](#backwards-compatibility) for a detailed explanation).
 
 This is visually explained in the following decision tree:
 
