@@ -112,7 +112,7 @@ func (k Keeper) SetPort(ctx sdk.Context, portID string) {
 // GetParams returns the current transfer module parameters.
 func (k Keeper) GetParams(ctx sdk.Context) (p types.Params) {
 	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.ParamsKey)
+	bz := store.Get([]byte(types.ParamsKey))
 	if bz == nil {
 		return p
 	}
@@ -129,7 +129,7 @@ func (k Keeper) SetParams(ctx sdk.Context, params types.Params) error {
 
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshal(&params)
-	store.Set(types.ParamsKey, bz)
+	store.Set([]byte(types.ParamsKey), bz)
 
 	return nil
 }
