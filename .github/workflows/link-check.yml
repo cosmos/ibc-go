@@ -4,19 +4,8 @@ jobs:
   markdown-link-check:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-      - uses: technote-space/get-diff-action@v6.1.2
-      - id: filter
-        uses: dorny/paths-filter@v2
-        with:
-          filters: |
-            markdown:
-              - added: '**/*.md'
-              - modified: '**/*.md'
-      - name: Run markdown-link-check
-        if: steps.filter.outputs.markdown == 'true'
-        uses: gaurav-nelson/github-action-markdown-link-check@v1
+      - uses: actions/checkout@v3
+      - uses: gaurav-nelson/github-action-markdown-link-check@v1
         with:
           config-file: ".github/workflows/link-check-config.json"
-          folder-path: ${{ steps.get_diff.outputs.diff }}
+          check-modified-files-only: "yes"
