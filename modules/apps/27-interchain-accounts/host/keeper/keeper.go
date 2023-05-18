@@ -8,6 +8,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 
 	genesistypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/genesis/types"
@@ -23,6 +24,7 @@ import (
 type Keeper struct {
 	storeKey storetypes.StoreKey
 	cdc      codec.BinaryCodec
+	legacySubspace paramtypes.Subspace
 
 	ics4Wrapper   porttypes.ICS4Wrapper
 	channelKeeper icatypes.ChannelKeeper
@@ -40,18 +42,25 @@ type Keeper struct {
 
 // NewKeeper creates a new interchain accounts host Keeper instance
 func NewKeeper(
-	cdc codec.BinaryCodec, key storetypes.StoreKey, ics4Wrapper porttypes.ICS4Wrapper,
-	channelKeeper icatypes.ChannelKeeper, portKeeper icatypes.PortKeeper, accountKeeper icatypes.AccountKeeper,
-	scopedKeeper exported.ScopedKeeper, msgRouter icatypes.MessageRouter, authority string,
+	cdc codec.BinaryCodec, key storetypes.StoreKey, legacySubspace paramtypes.Subspace,
+	ics4Wrapper porttypes.ICS4Wrapper, channelKeeper icatypes.ChannelKeeper, portKeeper icatypes.PortKeeper,
+	accountKeeper icatypes.AccountKeeper, scopedKeeper exported.ScopedKeeper, msgRouter icatypes.MessageRouter,
+	authority string,
 ) Keeper {
 	// ensure ibc interchain accounts module account is set
 	if addr := accountKeeper.GetModuleAddress(icatypes.ModuleName); addr == nil {
 		panic("the Interchain Accounts module account has not been set")
 	}
 
+	// set KeyTable if it has not already been set
+	if !legacySubspace.HasKeyTable() {
+		legacySubspace = legacySubspace.WithKeyTable(types.ParamKeyTable())
+	}
+
 	return Keeper{
 		storeKey:      key,
 		cdc:           cdc,
+		legacySubspace:    legacySubspace,
 		ics4Wrapper:   ics4Wrapper,
 		channelKeeper: channelKeeper,
 		portKeeper:    portKeeper,

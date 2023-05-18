@@ -12,13 +12,13 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
+	"github.com/cosmos/cosmos-sdk/x/auth/exported"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 
 	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/client/cli"
 	controllerkeeper "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/keeper"
 	controllertypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
-	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/exported"
 	genesistypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/genesis/types"
 	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host"
 	hostkeeper "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/keeper"
@@ -99,9 +99,6 @@ type AppModule struct {
 	AppModuleBasic
 	controllerKeeper *controllerkeeper.Keeper
 	hostKeeper       *hostkeeper.Keeper
-
-	// legacyHostSubspace is used solely for migration of x/params managed parameters
-	legacyHostSubspace exported.Subspace
 }
 
 // NewAppModule creates a new IBC interchain accounts module
@@ -109,7 +106,6 @@ func NewAppModule(controllerKeeper *controllerkeeper.Keeper, hostKeeper *hostkee
 	return AppModule{
 		controllerKeeper:   controllerKeeper,
 		hostKeeper:         hostKeeper,
-		legacyHostSubspace: hss,
 	}
 }
 
@@ -152,7 +148,7 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 		panic(fmt.Sprintf("failed to migrate interchainaccounts app from version 1 to 2: %v", err))
 	}
 
-	hostm := hostkeeper.NewMigrator(am.hostKeeper, am.legacyHostSubspace)
+	hostm := hostkeeper.NewMigrator(am.hostKeeper)
 	if err := cfg.RegisterMigration(types.ModuleName, 2, hostm.MigrateParams); err != nil {
 		panic(fmt.Sprintf("failed to migrate interchainaccounts host params from version 2 to 3: %v", err))
 	}
