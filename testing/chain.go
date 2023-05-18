@@ -1,6 +1,7 @@
 package ibctesting
 
 import (
+	"bytes"
 	"fmt"
 	"testing"
 	"time"
@@ -26,7 +27,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
@@ -221,21 +221,18 @@ func (chain *TestChain) QueryStateAtHeight(key []byte, height int64) []byte {
 	return chain.QueryStateForStore(exported.StoreKey, key, height)
 }
 
-// QueryMinimumProofHeight returns the minimum height within the provided range at which the consensusState exists. The function
+// QueryMinimumConsensusHeight returns the minimum height within the provided range at which the consensusState exists. The function
 // scans existing consensusStates and finds the minimum consensus state height, H, satisfying: minHeight <= H < maxHeight
 // The processed height is then queried for the given consensusState to determine when it was processed on the chain. This is the minimum
 // height which can be used to prove the minimum consensusState on this chain. The consensusState height is the minimum height which can
 // be used to prove a key/value on the counterparty chain.
+//
 // Returns:
 //
 //	The first returned height is the processed height for a consensusState.
 //	The second returned height is the minimum consensusState height falling within the provided height range.
 //	The third returned parameter is a boolean indicating whether a client update is required.
-func (chain *TestChain) QueryMinimumProofHeight(clientID string, minHeight exported.Height, maxHeight exported.Height) (exported.Height, exported.Height, bool, error) {
-
-	if maxHeight == nil {
-		maxHeight = chain.LastHeader.GetHeight()
-	}
+func (chain *TestChain) QueryMinimumConsensusHeight(clientID string, minHeight exported.Height, maxHeight exported.Height) (exported.Height, exported.Height, bool, error) {
 
 	req := clienttypes.QueryConsensusStatesRequest{
 		ClientId: clientID,
@@ -249,22 +246,17 @@ func (chain *TestChain) QueryMinimumProofHeight(clientID string, minHeight expor
 	// search consensusStates to find the one with the minimum height in [minHeight, maxHeight]
 	var consensusHeight clienttypes.Height
 	for _, cs := range resp.ConsensusStates {
-		if cs.Height.GTE(minHeight) && cs.Height.LT(maxHeight) {
-			if consensusHeight.IsZero() || cs.Height.LT(consensusHeight) {
-				consensusHeight = cs.Height
+		if cs.Height.GTE(minHeight) {
+			if maxHeight == nil || (maxHeight != nil && cs.Height.LTE(maxHeight)) {
+				if consensusHeight.IsZero() || cs.Height.LT(consensusHeight) {
+					consensusHeight = cs.Height
+				}
 			}
 		}
 	}
 
 	// no consensusState found, client update needed
 	if consensusHeight.IsZero() {
-		if maxHeight.LT(chain.LastHeader.GetHeight()) {
-			// TODO: UpdateClient for minProofHeight
-			err := sdkerrors.Wrapf(channeltypes.ErrMultihopProofGeneration,
-				"not possible to prove this key within the specified height range [%s, %s]",
-				minHeight.String(), maxHeight.String())
-			return nil, nil, false, err
-		}
 		return nil, nil, true, nil
 	}
 
@@ -275,9 +267,35 @@ func (chain *TestChain) QueryMinimumProofHeight(clientID string, minHeight expor
 		return nil, nil, false, err
 	}
 
-	// fmt.Printf("Minimum proof height is %s on chain %s for consensus height: %s [minHeight=%s, maxHeight=%s]\n",
-	// 	proofHeight.String(), chain.ChainID, consensusHeight.String(), minHeight.String(), maxHeight.String())
+	// fmt.Printf("Minimum proof height is %v on chain %s for consensus height: %v [minHeight=%v, maxHeight=%v]\n",
+	// 	proofHeight, chain.ChainID, consensusHeight, minHeight, maxHeight)
 	return proofHeight, consensusHeight, false, nil
+}
+
+// QueryMaximumProofHeight returns the maxmimum height which can be used to prove a key/val pair by search consecutive heights
+// to find the first point at which the value changes for the given key.
+func (chain *TestChain) QueryMaximumProofHeight(
+	key []byte,
+	minKeyHeight exported.Height,
+	limitMaxKeyHeight exported.Height,
+) exported.Height {
+
+	if limitMaxKeyHeight == nil {
+		limitMaxKeyHeight = chain.LastHeader.GetHeight()
+	}
+
+	// TODO: implement a query method to do this logic
+	initialValue := chain.QueryStateForStore(exported.StoreKey, key, int64(minKeyHeight.GetRevisionHeight()))
+	height := minKeyHeight.Increment()
+	for {
+		value := chain.QueryStateForStore(exported.StoreKey, key, int64(height.GetRevisionHeight()))
+		if !bytes.Equal(value, initialValue) || height.EQ(limitMaxKeyHeight) {
+			break
+		}
+		height = height.Increment()
+	}
+
+	return height
 }
 
 // QueryProofForStore performs an abci query with the given key and returns the proto encoded merkle proof

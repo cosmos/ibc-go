@@ -28,9 +28,12 @@ type Endpoint interface {
 	QueryProofAtHeight(key []byte, height int64) ([]byte, clienttypes.Height, error)
 	QueryStateAtHeight(key []byte, height int64) []byte
 
-	// QueryMinimumProofHeight returns the minimum height within the provided range at which the consensusState exists (processedHeight)
+	// QueryMinimumConsensusHeight returns the minimum height within the provided range at which the consensusState exists (processedHeight)
 	// and the height of the corresponding consensus state (consensusHeight).
-	QueryMinimumProofHeight(minHeight exported.Height, maxHeight exported.Height) (exported.Height, exported.Height, error)
+	QueryMinimumConsensusHeight(minHeight exported.Height, maxHeight exported.Height) (exported.Height, exported.Height, error)
+	// QueryMaximumProofHeight returns the maxmimum height which can be used to prove a key/val pair by search consecutive heights
+	// to find the first point at which the value changes for the given key.
+	QueryMaximumProofHeight(key []byte, minKeyHeight exported.Height, limitMaxKeyHeight exported.Height) exported.Height
 	GetMerklePath(path string) (commitmenttypes.MerklePath, error)
 	Counterparty() Endpoint
 }
@@ -67,7 +70,6 @@ func (p ChanPath) GenerateProof(
 	key []byte,
 	val []byte,
 	proofHeight exported.Height,
-	maxProofHeight exported.Height,
 	doVerify bool,
 ) (result *channeltypes.MsgMultihopProofs, err error) {
 	defer func() {
@@ -80,7 +82,8 @@ func (p ChanPath) GenerateProof(
 	result = &channeltypes.MsgMultihopProofs{}
 
 	// generate proof for key on source chain at the minimum consensus height known on the counterparty chain
-	_, consensusHeightAB, err := p.source().Counterparty().QueryMinimumProofHeight(proofHeight, maxProofHeight)
+	maxProofHeight := p.source().Counterparty().QueryMaximumProofHeight(key, proofHeight, nil)
+	_, consensusHeightAB, err := p.source().Counterparty().QueryMinimumConsensusHeight(proofHeight, maxProofHeight)
 	if err != nil {
 		return nil, err
 	}
@@ -93,9 +96,7 @@ func (p ChanPath) GenerateProof(
 	}
 
 	// create a maximum height for the proof to be verified against
-	pruneHeight := clienttypes.NewHeight(proofHeight.GetRevisionNumber(), proofHeight.GetRevisionHeight()+10)
-
-	linkedPathProofs, err := p.GenerateIntermediateStateProofs(proofGenFuncs, proofHeight, pruneHeight)
+	linkedPathProofs, err := p.GenerateIntermediateStateProofs(proofGenFuncs, proofHeight)
 	if err != nil {
 		return nil, err
 	}
@@ -118,7 +119,10 @@ func (p ChanPath) source() Endpoint {
 }
 
 // GenerateIntermediateStateProofs generates lists of connection, consensus, and client state proofs from the source to dest chains.
-func (p ChanPath) GenerateIntermediateStateProofs(proofGenFuncs []proofGenFunc, proofHeight exported.Height, maxHeight exported.Height) (result [][]*channeltypes.MultihopProof, err error) {
+func (p ChanPath) GenerateIntermediateStateProofs(
+	proofGenFuncs []proofGenFunc,
+	proofHeight exported.Height,
+) (result [][]*channeltypes.MultihopProof, err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			result = nil
@@ -142,15 +146,12 @@ func (p ChanPath) GenerateIntermediateStateProofs(proofGenFuncs []proofGenFunc, 
 		chainB, chainC := p[i].EndpointB, p[i+1].EndpointB
 
 		// find minimum height on chainB that can prove the key/value at a specific height on chainA
-		proofHeightAB, consensusHeightAB, err := chainB.QueryMinimumProofHeight(proofHeight, maxHeight)
+		proofHeightAB, consensusHeightAB, err := chainB.QueryMinimumConsensusHeight(proofHeight, nil)
 		panicIfErr(err, "failed to query minimum proof height")
 
 		// find minimum height on chainC that can prove the consensusState at the proof height on chainB
 		// this is done only for verifying proofs inline
-		// max allowed height
-		var pruneHeight uint64 = 10
-		maxHeightBC := clienttypes.NewHeight(proofHeightAB.GetRevisionNumber(), proofHeightAB.GetRevisionHeight()+pruneHeight)
-		proofHeightBC, consensusHeightBC, err := chainC.QueryMinimumProofHeight(proofHeightAB, maxHeightBC)
+		proofHeightBC, consensusHeightBC, err := chainC.QueryMinimumConsensusHeight(proofHeightAB, nil)
 		panicIfErr(err, "failed to query minimum proof height for verification")
 
 		// query the consensusState on chainC to use for proof checking
@@ -172,7 +173,6 @@ func (p ChanPath) GenerateIntermediateStateProofs(proofGenFuncs []proofGenFunc, 
 
 		// prepare for next iteration
 		proofHeight = proofHeightAB
-		maxHeight = maxHeightBC
 	}
 
 	return result, nil

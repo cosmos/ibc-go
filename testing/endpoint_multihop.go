@@ -1,9 +1,8 @@
 package ibctesting
 
 import (
-	"fmt"
-
 	"github.com/cosmos/cosmos-sdk/codec"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
@@ -240,7 +239,7 @@ func (ep *EndpointM) QueryPacketAcknowledgementProof(packet *channeltypes.Packet
 
 // QueryMultihopProof queries the proof for a key/value on this endpoint, which is verified on the counterparty chain.
 func (ep *EndpointM) QueryMultihopProof(key []byte, proofHeight exported.Height) []byte {
-	proof, err := ep.mChanPath.GenerateProof(key, nil, proofHeight, nil, false)
+	proof, err := ep.mChanPath.GenerateProof(key, nil, proofHeight, false)
 	require.NoError(
 		ep.Chain.T,
 		err,
@@ -330,16 +329,24 @@ func (mep multihopEndpoint) QueryStateAtHeight(key []byte, height int64) []byte 
 
 // QueryMinimumConsensusHeight returns the minimum height within the provided range at which the consensusState exists (processedHeight)
 // and the height of the corresponding consensus state (consensusHeight).
-func (mep multihopEndpoint) QueryMinimumProofHeight(minHeight exported.Height, maxHeight exported.Height) (exported.Height, exported.Height, error) {
-	proofHeight, consensusHeight, doUpdateClient, err := mep.testEndpoint.Chain.QueryMinimumProofHeight(mep.testEndpoint.ClientID, minHeight, maxHeight)
+func (mep multihopEndpoint) QueryMinimumConsensusHeight(minHeight exported.Height, maxHeight exported.Height) (exported.Height, exported.Height, error) {
+	proofHeight, consensusHeight, doUpdateClient, err := mep.testEndpoint.Chain.QueryMinimumConsensusHeight(mep.testEndpoint.ClientID, minHeight, maxHeight)
 	if doUpdateClient {
 		// update client if no suitable consensus height found
-		mep.testEndpoint.UpdateClient()
-		proofHeight, consensusHeight, _, err = mep.testEndpoint.Chain.QueryMinimumProofHeight(mep.testEndpoint.ClientID, minHeight, maxHeight)
+		// TODO: UpdateClient with header at minHeight
+		if err := mep.testEndpoint.UpdateClient( /*minHeight*/ ); err != nil {
+			return nil, nil, err
+		}
+		proofHeight, consensusHeight, doUpdateClient, err = mep.testEndpoint.Chain.QueryMinimumConsensusHeight(mep.testEndpoint.ClientID, minHeight, maxHeight)
+		if doUpdateClient {
+			return nil, nil, sdkerrors.Wrap(channeltypes.ErrMultihopProofGeneration, "Failed to query minimum valid consensus state.")
+		}
 	}
 	return proofHeight, consensusHeight, err
 }
 
-func (mep multihopEndpoint) Debug() {
-	fmt.Printf("debugging chain %s\n", mep.testEndpoint.Chain.ChainID)
+// QueryMaximumProofHeight returns the maxmimum height which can be used to prove a key/val pair by search consecutive heights
+// to find the first point at which the value changes for the given key.
+func (mep multihopEndpoint) QueryMaximumProofHeight(key []byte, minKeyHeight exported.Height, limitMaxKeyHeight exported.Height) exported.Height {
+	return mep.testEndpoint.Chain.QueryMaximumProofHeight(key, minKeyHeight, limitMaxKeyHeight)
 }

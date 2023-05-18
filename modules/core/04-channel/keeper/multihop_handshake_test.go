@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
-	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
 
+	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
@@ -108,7 +108,6 @@ func (suite *MultihopTestSuite) TestChanOpenInit() {
 
 				tc.malleate()
 
-				// counterparty := types.NewCounterparty(suite.A().ChannelConfig.PortID, ibctesting.FirstChannelID)
 				counterparty := types.NewCounterparty(suite.Z().ChannelConfig.PortID, "")
 				channelID, capability, err := suite.A().Chain.App.GetIBCKeeper().ChannelKeeper.ChanOpenInit(
 					suite.A().Chain.GetContext(),
