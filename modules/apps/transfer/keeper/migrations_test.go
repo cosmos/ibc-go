@@ -7,7 +7,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktestutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
 
-	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	transferkeeper "github.com/cosmos/ibc-go/v7/modules/apps/transfer/keeper"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
@@ -16,13 +15,14 @@ import (
 func (suite *KeeperTestSuite) TestMigratorMigrateParams() {
 	testCases := []struct {
 		msg            string
-		malleate       func(subspace paramstypes.Subspace)
+		malleate       func()
 		expectedParams transfertypes.Params
 	}{
 		{
 			"success: default params",
-			func(subspace paramstypes.Subspace) {
+			func() {
 				params := transfertypes.DefaultParams()
+				subspace := suite.chainA.GetSimApp().GetSubspace(transfertypes.ModuleName)
 				subspace.SetParamSet(suite.chainA.GetContext(), &params) // set params
 			},
 			transfertypes.DefaultParams(),
@@ -33,8 +33,7 @@ func (suite *KeeperTestSuite) TestMigratorMigrateParams() {
 		suite.Run(fmt.Sprintf("case %s", tc.msg), func() {
 			suite.SetupTest() // reset
 
-			subspace := suite.chainA.GetSimApp().GetSubspace(transfertypes.ModuleName) // get subspace
-			tc.malleate(subspace)                                                      // explicitly set params
+			tc.malleate() // explicitly set params
 
 			migrator := transferkeeper.NewMigrator(suite.chainA.GetSimApp().TransferKeeper)
 			err := migrator.MigrateParams(suite.chainA.GetContext())
