@@ -5,7 +5,6 @@ sidebar_position: 1
 slug: /apps/transfer/overview
 ---
 
-
 # Overview
 
 :::note Synopsis
@@ -45,7 +44,7 @@ acting as the "source zone". When the token is sent back to the chain it previou
 prefix is removed. This is a backwards movement in the token's timeline and the sender chain is
 acting as the "sink zone".
 
-It is strongly recommended to read the full details of [ADR 001: Coin Source Tracing](../../../architecture/adr-001-coin-source-tracing) to understand the implications and context of the IBC token representations.
+It is strongly recommended to read the full details of [ADR 001: Coin Source Tracing](/architecture/adr-001-coin-source-tracing) to understand the implications and context of the IBC token representations.
 
 ## UX suggestions for clients
 
@@ -65,7 +64,7 @@ A general pseudo algorithm would look like the following:
 2. Query the channel with the `portID/channelID` pair, which corresponds to the first destination of the
    token.
 3. Query the client state using the identifiers pair. Note that this query will return a `"Not
-   Found"` response if the current chain is not connected to this channel.
+Found"` response if the current chain is not connected to this channel.
 4. Retrieve the client identifier or chain identifier from the client state (eg: on
    Tendermint clients) and store it locally.
 
@@ -95,7 +94,7 @@ Thus the proposed solution for clients that the IBC team recommends are the foll
   that the client must connect to nodes on each of the chains in order to perform the queries.
 - **Relayer as a Service (RaaS)**: A longer term solution is to use/create a relayer service that
   could map the denomination trace to the chain path timeline for each token (i.e `origin chain ->
-  chain #1 -> ... -> chain #(n-1) -> final chain`). These services could provide merkle proofs in
+chain #1 -> ... -> chain #(n-1) -> final chain`). These services could provide merkle proofs in
   order to allow clients to optionally verify the path timeline correctness for themselves by
   running light clients. If the proofs are not verified, they should be considered as trusted third
   parties services. Additionally, client would be advised in the future to use RaaS that support the
@@ -109,7 +108,7 @@ The only viable alternative for clients (at the time of writing) to tokens with 
 
 ## Locked funds
 
-In some [exceptional cases](../../../architecture/adr-026-ibc-client-recovery-mechanisms#exceptional-cases), a client state associated with a given channel cannot be updated. This causes that funds from fungible tokens in that channel will be permanently locked and thus can no longer be transferred.
+In some [exceptional cases](/architecture/adr-026-ibc-client-recovery-mechanisms#exceptional-cases), a client state associated with a given channel cannot be updated. This causes that funds from fungible tokens in that channel will be permanently locked and thus can no longer be transferred.
 
 To mitigate this, a client update governance proposal can be submitted to update the frozen client
 with a new valid header. Once the proposal passes the client state will be unfrozen and the funds
