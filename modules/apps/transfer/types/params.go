@@ -1,9 +1,5 @@
 package types
 
-import (
-	"fmt"
-)
-
 const (
 	// DefaultSendEnabled enabled
 	DefaultSendEnabled = true
@@ -26,18 +22,5 @@ func DefaultParams() Params {
 
 // Validate all ibc-transfer module parameters
 func (p Params) Validate() error {
-	if err := validateEnabledType(p.SendEnabled); err != nil {
-		return err
-	}
-
-	return validateEnabledType(p.ReceiveEnabled)
-}
-
-func validateEnabledType(i interface{}) error {
-	_, ok := i.(bool)
-	if !ok {
-		return fmt.Errorf("invalid parameter type: %T", i)
-	}
-
 	return nil
 }
