@@ -5,28 +5,25 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/exported"
 	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 )
 
 // Migrator is a struct for handling in-place store migrations.
 type Migrator struct {
 	keeper         Keeper
-	legacySubspace exported.Subspace
 }
 
 // NewMigrator returns a new Migrator.
-func NewMigrator(keeper Keeper, ss exported.Subspace) Migrator {
+func NewMigrator(keeper Keeper) Migrator {
 	return Migrator{
 		keeper:         keeper,
-		legacySubspace: ss,
 	}
 }
 
 // MigrateParams migrates the transfer module's parameters from the x/params to self store.
 func (m Migrator) MigrateParams(ctx sdk.Context) error {
 	var params types.Params
-	m.legacySubspace.GetParamSet(ctx, &params)
+	m.keeper.legacySubspace.GetParamSet(ctx, &params)
 
 	return m.keeper.SetParams(ctx, params)
 }
