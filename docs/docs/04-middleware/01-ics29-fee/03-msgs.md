@@ -5,7 +5,6 @@ sidebar_position: 3
 slug: /middleware/ics29-fee/msgs
 ---
 
-
 # Fee messages
 
 :::note Synopsis

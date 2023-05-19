@@ -5,11 +5,10 @@ sidebar_position: 3
 slug: /middleware/ics29-fee/msgs
 ---
 
-
 # Fee messages
 
 :::note Synopsis
-Learn about the different ways to pay for fees, how the fees are paid out and what happens when not enough escrowed fees are available for payout 
+Learn about the different ways to pay for fees, how the fees are paid out and what happens when not enough escrowed fees are available for payout
 :::
 
 ## Escrowing fees
@@ -45,9 +44,9 @@ The fee middleware module exposes two different ways to pay fees for relaying IB
    }
    ```
 
-The diagram below shows the `MultiMsgTx` with the `MsgTransfer` coming from a token transfer message, along with `MsgPayPacketFee`.
-
-![msgpaypacket.png](./images/msgpaypacket.png)
+  The diagram below shows the `MultiMsgTx` with the `MsgTransfer` coming from a token transfer message, along with `MsgPayPacketFee`.
+  
+  ![msgpaypacket.png](./images/msgpaypacket.png)
 
 2. `MsgPayPacketFeeAsync`, which enables the asynchronous escrowing of fees for a specified packet:
 

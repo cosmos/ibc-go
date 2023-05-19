@@ -45,9 +45,9 @@ The fee middleware module exposes two different ways to pay fees for relaying IB
    }
    ```
 
-The diagram below shows the `MultiMsgTx` with the `MsgTransfer` coming from a token transfer message, along with `MsgPayPacketFee`.
+  The diagram below shows the `MultiMsgTx` with the `MsgTransfer` coming from a token transfer message, along with `MsgPayPacketFee`.
 
-![msgpaypacket.png](./images/msgpaypacket.png)
+  ![msgpaypacket.png](./images/msgpaypacket.png)
 
 2. `MsgPayPacketFeeAsync`, which enables the asynchronous escrowing of fees for a specified packet:
 
