@@ -140,7 +140,7 @@ ibc.applications.interchain_accounts.controller.v1.Query/InterchainAccount
 
 Example:
 
-```
+```shell
 grpcurl -plaintext \
     -d '{"owner":"cosmos1..","connection_id":"connection-0"}' \
     localhost:9090 \
