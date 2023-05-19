@@ -30,7 +30,7 @@ The authentication module must:
 - Claim the channel capability in `OnChanOpenInit`
 - Send packets on behalf of an owner (after authentication)
 
-### IBCModule implementation
+## IBCModule implementation
 
 The following `IBCModule` callbacks must be implemented with appropriate custom logic:
 

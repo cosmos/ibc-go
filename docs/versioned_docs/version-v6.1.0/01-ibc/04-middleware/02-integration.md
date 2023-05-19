@@ -16,7 +16,7 @@ All middleware must be connected to the IBC router and wrap over an underlying b
 
 The order of middleware **matters**, function calls from IBC to the application travel from top-level middleware to the bottom middleware and then to the application. Function calls from the application to IBC goes through the bottom middleware in order to the top middleware and then to core IBC handlers. Thus the same set of middleware put in different orders may produce different effects.
 
-### Example integration
+## Example integration
 
 ```go
 // app.go

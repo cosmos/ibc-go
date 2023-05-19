@@ -14,7 +14,7 @@ Learn how to upgrade your chain and counterparty clients.
 
 The information in this doc for upgrading chains is relevant to SDK chains. However, the guide for counterparty clients is relevant to any Tendermint client that enables upgrades.
 
-### IBC Client Breaking Upgrades
+## IBC Client Breaking Upgrades
 
 IBC-connected chains must perform an IBC upgrade if their upgrade will break counterparty IBC clients. The current IBC protocol supports upgrading tendermint chains for a specific subset of IBC-client-breaking upgrades. Here is the exhaustive list of IBC client-breaking upgrades and whether the IBC protocol currently supports such upgrades.
 

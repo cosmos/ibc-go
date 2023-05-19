@@ -43,7 +43,7 @@ a substitute client *after* the subject has become frozen to avoid the substitut
 An active substitute client allows headers to be submitted during the voting period to prevent accidental expiry
 once the proposal passes.
 
-# How to recover an expired client with a governance proposal
+## How to recover an expired client with a governance proposal
 
 See also the relevant documentation: [ADR-026, IBC client recovery mechanisms](/architecture/adr-026-ibc-client-recovery-mechanisms)
 
@@ -59,7 +59,7 @@ See also the relevant documentation: [ADR-026, IBC client recovery mechanisms](/
 
 Check if the client is attached to the expected `chain-id`. For example, for an expired Tendermint client representing the Akash chain the client state looks like this on querying the client state:
 
-```
+```text
 {
   client_id: 07-tendermint-146
   client_state:
@@ -76,7 +76,7 @@ The client is attached to the expected Akash `chain-id`. Note that although the 
 
 If the chain has been updated to ibc-go >= v1.1.0, anyone can submit the governance proposal to recover the client by executing this via cli:
 
-```
+```bash
 <binary> tx gov submit-proposal update-client <expired-client-id> <active-client-id>
 ```
 

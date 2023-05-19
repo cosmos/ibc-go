@@ -17,11 +17,11 @@ The most obvious changes is import name changes. We need to change:
 
 On my GNU/Linux based machine I used the following commands, executed in order:
 
-```
+```bash
 grep -RiIl 'cosmos-sdk\/x\/ibc\/applications' | xargs sed -i 's/cosmos-sdk\/x\/ibc\/applications/ibc-go\/modules\/apps/g'
 ```
 
-```
+```bash
 grep -RiIl 'cosmos-sdk\/x\/ibc' | xargs sed -i 's/cosmos-sdk\/x\/ibc/ibc-go\/modules/g'
 ```
 
