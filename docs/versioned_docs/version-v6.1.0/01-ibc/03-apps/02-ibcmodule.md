@@ -38,7 +38,7 @@ var (
 
 ## Pre-requisite readings
 
-- [IBC Overview](../01-overview.md))
+- [IBC Overview](../01-overview.md)
 - [IBC default integration](../02-integration.md)
 
 :::

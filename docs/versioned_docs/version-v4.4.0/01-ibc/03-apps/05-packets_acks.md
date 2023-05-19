@@ -15,7 +15,7 @@ Learn how to define custom packet and acknowledgement structs and how to encode 
 
 ## Pre-requisite readings
 
-- [IBC Overview](../01-overview.md))
+- [IBC Overview](../01-overview.md)
 - [IBC default integration](../02-integration.md)
 
 :::

@@ -15,7 +15,7 @@ Learn what changes to make to bind modules to their ports on initialization.
 
 ## Pre-requisite readings
 
-- [IBC Overview](../01-overview.md))
+- [IBC Overview](../01-overview.md)
 - [IBC default integration](../02-integration.md)
 
 :::
