@@ -287,6 +287,9 @@ docs-lint:
 docs-lint-changed:
 	./scripts/linting/lint-changed-md-files.sh
 
+docs-link-check:
+	find . -name \*.md -print0 | xargs -0 -n1 markdown-link-check --config ./.github/workflows/link-check-config.json
+
 .PHONY: lint lint-fix lint-fix-changed docs-lint docs-lint-changed
 
 ###############################################################################
