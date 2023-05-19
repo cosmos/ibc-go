@@ -113,11 +113,6 @@ func (k Keeper) ChanOpenTry(
 	proofInit []byte,
 	proofHeight exported.Height,
 ) (string, *capabilitytypes.Capability, error) {
-	// connection hops only supports a single connection
-	if len(connectionHops) != 1 {
-		return "", nil, errorsmod.Wrapf(types.ErrTooManyConnectionHops, "expected 1, got %d", len(connectionHops))
-	}
-
 	// generate a new channel
 	channelID := k.GenerateChannelIdentifier(ctx)
 
