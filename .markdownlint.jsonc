@@ -4,7 +4,7 @@
   "MD004": {
     "style": "dash"
   },
-  "MD007": { "indent": 2 },
+  "MD007": { "indent": 4 },
   "MD009": false, // https://github.com/DavidAnson/markdownlint/blob/main/doc/Rules.md#md009---trailing-spaces
   "MD013": false, // https://github.com/DavidAnson/markdownlint/blob/main/doc/Rules.md#md013---line-length
   "MD024": false, // https://github.com/DavidAnson/markdownlint/blob/main/doc/Rules.md#md024---multiple-headings-with-the-same-content
