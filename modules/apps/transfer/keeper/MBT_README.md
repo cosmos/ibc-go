@@ -46,4 +46,4 @@ To wrap Apalache docker image into an executable you might create the following 
 docker run --rm -v $(pwd):/var/apalache apalache/mc $@
 ```
 
-In case of any questions please don't hesitate to contact Andrey Kuprianov (andrey@informal.systems).
+In case of any questions please don't hesitate to contact Andrey Kuprianov (<andrey@informal.systems>).

@@ -16,7 +16,7 @@ For contributors wishing to submit contributions to the codebase, please check o
 
 ## Step 1: Product check
 
-Reach out to the IBC product team through susannah@interchain.io to coordinate use-case walkthrough.
+Reach out to the IBC product team through <susannah@interchain.io> to coordinate use-case walkthrough.
 
 Answer these questions in a requirements doc:
 
