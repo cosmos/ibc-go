@@ -61,8 +61,10 @@ func (suite *MultihopTestSuite) TestRecvPacket() {
 
 			tc.malleate()
 
-			proof := suite.A().QueryPacketProof(packet, packetHeight)
-			err := suite.Z().Chain.App.GetIBCKeeper().ChannelKeeper.RecvPacket(
+			proof, err := suite.A().QueryPacketProof(packet, packetHeight)
+			suite.Require().NoError(err)
+
+			err = suite.Z().Chain.App.GetIBCKeeper().ChannelKeeper.RecvPacket(
 				suite.Z().Chain.GetContext(),
 				channelCap,
 				packet,
@@ -151,8 +153,10 @@ func (suite *MultihopTestSuite) TestAcknowledgePacket() {
 
 			tc.malleate()
 
-			proof := suite.Z().QueryPacketAcknowledgementProof(packet, packetHeight)
-			err := suite.A().Chain.App.GetIBCKeeper().ChannelKeeper.AcknowledgePacket(
+			proof, err := suite.Z().QueryPacketAcknowledgementProof(packet, packetHeight)
+			suite.Require().NoError(err)
+
+			err = suite.A().Chain.App.GetIBCKeeper().ChannelKeeper.AcknowledgePacket(
 				suite.A().Chain.GetContext(),
 				channelCap,
 				packet,

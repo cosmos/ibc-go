@@ -12,6 +12,17 @@ type CoordinatorM struct {
 	*Coordinator
 }
 
+// SetupClients is a helper function to create clients on both chains. It assumes the
+// caller does not anticipate any errors.
+func (coord *CoordinatorM) SetupClients(path *PathM) {
+	for _, path := range path.EndpointA.paths {
+		path := path
+		require.Empty(coord.T, path.EndpointA.ClientID)
+		require.Empty(coord.T, path.EndpointB.ClientID)
+		coord.Coordinator.SetupClients(path)
+	}
+}
+
 // SetupChannels constructs TM clients, connections, and a multihop channel for a given multihop channel path.
 // Fail test if any error occurs.
 func (coord *CoordinatorM) SetupChannels(path *PathM) {

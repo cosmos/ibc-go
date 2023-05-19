@@ -289,12 +289,11 @@ func (chain *TestChain) QueryMaximumProofHeight(
 	height := minKeyHeight.Increment()
 	for {
 		value := chain.QueryStateForStore(exported.StoreKey, key, int64(height.GetRevisionHeight()))
-		if !bytes.Equal(value, initialValue) || height.EQ(maxKeyHeightLimit) {
+		if !bytes.Equal(value, initialValue) || height.GTE(maxKeyHeightLimit) {
 			break
 		}
 		height = height.Increment()
 	}
-
 	return height
 }
 
