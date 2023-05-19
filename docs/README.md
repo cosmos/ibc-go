@@ -108,7 +108,7 @@ npm install
 npm start
 ```
 
-This command starts a local development server and opens up a browser window. Most changes are reflected live without having to restart the server.
+This command starts a local development server and opens up a browser window. Most changes are reflected live without having to restart the server. However, in the local development environment, some plugins like `@docusaurus/plugin-client-redirects`, will not work at all. This is why the landing page is an error page in the local development environment, and why you have to click on the correct docs version to see the documentation. This is not the case in the production environment. To view the production environment, you must [build](#build) and [serve](#serve) the website locally.
 
 ### Build
 
