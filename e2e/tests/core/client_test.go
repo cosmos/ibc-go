@@ -231,9 +231,8 @@ func (s *ClientTestSuite) TestClient_Update_Misbehaviour() {
 		msgUpdateClient, err := clienttypes.NewMsgUpdateClient(ibctesting.FirstClientID, maliciousHeader, rlyWallet.FormattedAddress())
 		s.Require().NoError(err)
 
-		txResp, err := s.BroadcastMessages(ctx, chainA, rlyWallet, msgUpdateClient)
-		s.Require().NoError(err)
-		s.AssertValidTxResponse(txResp)
+		txResp := s.BroadcastMessages(ctx, chainA, rlyWallet, msgUpdateClient)
+		s.AssertTxSuccess(txResp)
 	})
 
 	t.Run("ensure client status is frozen", func(t *testing.T) {
@@ -284,7 +283,7 @@ func (s *ClientTestSuite) extractChainPrivateKeys(ctx context.Context, chain *co
 }
 
 // createMaliciousTMHeader creates a header with the provided trusted height with an invalid app hash.
-func createMaliciousTMHeader(chainID string, blockHeight int64, trustedHeight clienttypes.Height, timestamp time.Time, tmValSet, tmTrustedVals *tmtypes.ValidatorSet, signers []tmtypes.PrivValidator, oldHeader testsuite.Header ) (*ibctm.Header, error) {
+func createMaliciousTMHeader(chainID string, blockHeight int64, trustedHeight clienttypes.Height, timestamp time.Time, tmValSet, tmTrustedVals *tmtypes.ValidatorSet, signers []tmtypes.PrivValidator, oldHeader testsuite.Header) (*ibctm.Header, error) {
 	tmHeader := tmtypes.Header{
 		Version:            tmprotoversion.Consensus{Block: tmversion.BlockProtocol, App: 2},
 		ChainID:            chainID,
