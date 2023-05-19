@@ -15,7 +15,7 @@ require (
 	github.com/cosmos/ibc-go/v7 v7.0.0
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
 	github.com/spf13/cobra v1.7.0
-	github.com/stretchr/testify v1.8.2
+	github.com/stretchr/testify v1.8.3
 	sigs.k8s.io/yaml v1.3.0
 )
 
