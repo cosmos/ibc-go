@@ -246,7 +246,7 @@ packet.Data = data
 IBCChannelKeeper.SendPacket(ctx, channelCap, packet)
 ```
 
-::: warning
+:::warning
 In order to prevent modules from sending packets on channels they do not own, IBC expects
 modules to pass in the correct channel capability for the packet's source channel.
 :::

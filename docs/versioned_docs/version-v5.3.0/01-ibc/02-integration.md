@@ -213,7 +213,7 @@ func NewApp(...args) *App {
   // .. continues
 ```
 
-::: warning
+:::warning
 **IMPORTANT**: The capability module **must** be declared first in `SetOrderInitGenesis`
 :::
 
