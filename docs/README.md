@@ -50,7 +50,7 @@ Technically, there are four docs being maintained in this repo:
 3. Found in `docs/events/` (depreciated, this is not displayed on the website, but is hosted under `/events/` url)
 4. Found in `docs/params/` (depreciated, this is not displayed on the website, but is hosted under `/params/` url)
 
-When referencing a markdown file, you should use relative file paths if they are in the same docs directory from above. For example, if you are in `docs/docs/01-ibc` and want to link to `docs/docs/02-apps/02-transfer/01-overview.md`, you should use the relative link `../02-apps/02-transfer/01-overview.md`.
+When referencing a markdown file, you should use relative file paths if they are in the same docs directory from above. For example, if you are in `docs/docs/01-ibc` and want to link to `docs/docs/02-apps/01-transfer/01-overview.md`, you should use the relative link `../02-apps/01-transfer/01-overview.md`.
 
 If the file you are referencing is in a different docs directory, you should use a absolute URL. For example, if you are in `docs/docs/01-ibc` and want to link to `docs/architecture/adr-001-coin-source-tracing.md`, you should use the absolute URL (not absolute file path), in this case `/architecture/adr-001-coin-source-tracing`. You can find the absolute URL by looking at the slug in the frontmatter of the markdown file you want to link to. If the frontmatter slug is not set (such as in `docs/architecture/adr-001-coin-source-tracing.md`), you should use the url that docusaurus generates for it. You can find this by looking at the url of the page in the browser.
 
