@@ -185,7 +185,7 @@ The IBC module also has
 
 :::tip
 Only register the ibc module to the `SetOrderBeginBlockers` if your application will use the
-localhost (_aka_ loopback) client.
+localhost (*aka* loopback) client.
 :::
 
 ```go

@@ -91,6 +91,6 @@ Following diagram takes a look at the packet flow for an incentivized token tran
 
 ## A locked fee middleware module
 
-The fee middleware module can become locked if the situation arises that the escrow account for the fees does not have sufficient funds to pay out the fees which have been escrowed for each packet. _This situation indicates a severe bug._ In this case, the fee module will be locked until manual intervention fixes the issue.
+The fee middleware module can become locked if the situation arises that the escrow account for the fees does not have sufficient funds to pay out the fees which have been escrowed for each packet. *This situation indicates a severe bug.* In this case, the fee module will be locked until manual intervention fixes the issue.
 
 > A locked fee module will simply skip fee logic and continue on to the underlying packet flow. A channel with a locked fee module will temporarily function as a fee disabled channel, and the locking of a fee module will not affect the continued flow of packets over the channel.

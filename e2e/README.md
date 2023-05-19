@@ -25,7 +25,7 @@
 ## Adding a new test
 
 All tests should go under the [e2e](https://github.com/cosmos/ibc-go/tree/main/e2e) directory. When adding a new test, either add a new test function
-to an existing test suite **_in the same file_**, or create a new test suite in a new file and add test functions there.
+to an existing test suite ***in the same file***, or create a new test suite in a new file and add test functions there.
 New test files should follow the convention of `module_name_test.go`.
 
 New test suites should be composed of `testsuite.E2ETestSuite`. This type has lots of useful helper functionality that will

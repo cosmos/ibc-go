@@ -39,11 +39,11 @@ proposal includes the client identifier for the subject and the client identifie
 client. Light client implementations may implement custom updating logic, but in most cases,
 the subject will be updated to the latest consensus state of the substitute client, if the proposal passes.
 The substitute client is used as a "stand in" while the subject is on trial. It is best practice to create
-a substitute client _after_ the subject has become frozen to avoid the substitute from also becoming frozen.
+a substitute client *after* the subject has become frozen to avoid the substitute from also becoming frozen.
 An active substitute client allows headers to be submitted during the voting period to prevent accidental expiry
 once the proposal passes.
 
-_note_ two of these parameters: `AllowUpdateAfterExpiry` and `AllowUpdateAfterMisbehavior` have been deprecated, and will both be set to `false` upon upgrades even if they were previously set to `true`. These parameters will no longer play a role in restricting a client upgrade. Please see ADR026 for more details.
+*note* two of these parameters: `AllowUpdateAfterExpiry` and `AllowUpdateAfterMisbehavior` have been deprecated, and will both be set to `false` upon upgrades even if they were previously set to `true`. These parameters will no longer play a role in restricting a client upgrade. Please see ADR026 for more details.
 
 # How to recover an expired client with a governance proposal
 

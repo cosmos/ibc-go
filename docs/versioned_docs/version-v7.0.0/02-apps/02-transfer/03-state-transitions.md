@@ -11,12 +11,12 @@ slug: /apps/transfer/state-transitions
 
 A successful fungible token send has two state transitions depending if the transfer is a movement forward or backwards in the token's timeline:
 
-1. Sender chain is the source chain, _i.e_ a transfer to any chain other than the one it was previously received from is a movement forwards in the token's timeline. This results in the following state transitions:
+1. Sender chain is the source chain, *i.e* a transfer to any chain other than the one it was previously received from is a movement forwards in the token's timeline. This results in the following state transitions:
 
    - The coins are transferred to an escrow address (i.e locked) on the sender chain.
    - The coins are transferred to the receiving chain through IBC TAO logic.
 
-2. Sender chain is the sink chain, _i.e_ the token is sent back to the chain it previously received from. This is a backwards movement in the token's timeline. This results in the following state transitions:
+2. Sender chain is the sink chain, *i.e* the token is sent back to the chain it previously received from. This is a backwards movement in the token's timeline. This results in the following state transitions:
 
    - The coins (vouchers) are burned on the sender chain.
    - The coins are transferred to the receiving chain through IBC TAO logic.

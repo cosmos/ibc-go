@@ -1,6 +1,6 @@
 # Business requirements
 
-> **TL;DR**: The lack of a default underlying app (previously called the _authentication module_), and the need to separate application and authentication concerns were recognised as primary reasons for the slow adoption of ICS 27 Interchain Accounts (ICA).
+> **TL;DR**: The lack of a default underlying app (previously called the *authentication module*), and the need to separate application and authentication concerns were recognised as primary reasons for the slow adoption of ICS 27 Interchain Accounts (ICA).
 
 ## Problem
 

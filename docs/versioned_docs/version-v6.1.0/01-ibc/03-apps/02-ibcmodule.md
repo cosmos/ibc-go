@@ -49,7 +49,7 @@ This section will describe the callbacks that are called during channel handshak
 
 Here are the channel handshake callbacks that modules are expected to implement:
 
-> Note that some of the code below is _pseudo code_, indicating what actions need to happen but leaving it up to the developer to implement a custom implementation. E.g. the `checkArguments` and `negotiateAppVersion` functions.
+> Note that some of the code below is *pseudo code*, indicating what actions need to happen but leaving it up to the developer to implement a custom implementation. E.g. the `checkArguments` and `negotiateAppVersion` functions.
 
 ```go
 // Called by IBC Handler on MsgOpenInit
@@ -234,7 +234,7 @@ Briefly, a successful packet flow works as follows:
 Modules **do not send packets through callbacks**, since the modules initiate the action of sending packets to the IBC module, as opposed to other parts of the packet flow where messages sent to the IBC
 module must trigger execution on the port-bound module through the use of callbacks. Thus, to send a packet a module simply needs to call `SendPacket` on the `IBCChannelKeeper`.
 
-> Note that some of the code below is _pseudo code_, indicating what actions need to happen but leaving it up to the developer to implement a custom implementation. E.g. the `EncodePacketData(customPacketData)` function.
+> Note that some of the code below is *pseudo code*, indicating what actions need to happen but leaving it up to the developer to implement a custom implementation. E.g. the `EncodePacketData(customPacketData)` function.
 
 ```go
 // retrieve the dynamic capability for this channel
@@ -278,7 +278,7 @@ NOTE: Applications which process asynchronous acknowledgements must handle rever
 when appropriate. Any state changes that occurred during the `OnRecvPacket` callback will be written
 for asynchronous acknowledgements.
 
-> Note that some of the code below is _pseudo code_, indicating what actions need to happen but leaving it up to the developer to implement a custom implementation. E.g. the `DecodePacketData(packet.Data)` function.
+> Note that some of the code below is *pseudo code*, indicating what actions need to happen but leaving it up to the developer to implement a custom implementation. E.g. the `DecodePacketData(packet.Data)` function.
 
 ```go
 func (im IBCModule) OnRecvPacket(
@@ -322,7 +322,7 @@ Since the modules are responsible for agreeing on an encoding/decoding standard 
 acknowledgements, IBC will pass in the acknowledgements as `[]byte` to this callback. The callback
 is responsible for decoding the acknowledgement and processing it.
 
-> Note that some of the code below is _pseudo code_, indicating what actions need to happen but leaving it up to the developer to implement a custom implementation. E.g. the `DecodeAcknowledgement(acknowledgments)` and `processAck(ack)` functions.
+> Note that some of the code below is *pseudo code*, indicating what actions need to happen but leaving it up to the developer to implement a custom implementation. E.g. the `DecodeAcknowledgement(acknowledgments)` and `processAck(ack)` functions.
 
 ```go
 func (im IBCModule) OnAcknowledgementPacket(

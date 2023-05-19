@@ -17,7 +17,7 @@ E.g. for the test `TestUnescrowTokens` run
 apalache-mc check --inv=TestUnescrowTokensInv relay_tests.tla
 ```
 
-In case there are no error in the TLA+ model or in the test assertions, this will produce a couple of so-called _counterexamples_.
+In case there are no error in the TLA+ model or in the test assertions, this will produce a couple of so-called *counterexamples*.
 This is a terminology from the model-checking community; for the testing purposes they can be considered simply as model executions.
 See the files `counterexample.tla` for human-readable representation, and `counterexample.json` for machine-readable one.
 

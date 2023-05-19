@@ -29,7 +29,7 @@ Perhaps more key for code readability than good commenting is having the right s
 - Use a space after the comment deliminter (ex. `// your comment`).
 - Many comments are not sentences. These should begin with a lower case letter and end without a period.
 - Conversely, sentences in comments should be sentenced-cased and end with a period.
-- Comments should explain _why_ something is being done rather than _what_ the code is doing. For example:
+- Comments should explain *why* something is being done rather than *what* the code is doing. For example:
 
  The comments in
 

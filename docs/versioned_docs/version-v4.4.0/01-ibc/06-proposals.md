@@ -39,7 +39,7 @@ proposal includes the client identifier for the subject and the client identifie
 client. Light client implementations may implement custom updating logic, but in most cases,
 the subject will be updated to the latest consensus state of the substitute client, if the proposal passes.
 The substitute client is used as a "stand in" while the subject is on trial. It is best practice to create
-a substitute client _after_ the subject has become frozen to avoid the substitute from also becoming frozen.
+a substitute client *after* the subject has become frozen to avoid the substitute from also becoming frozen.
 An active substitute client allows headers to be submitted during the voting period to prevent accidental expiry
 once the proposal passes.
 
