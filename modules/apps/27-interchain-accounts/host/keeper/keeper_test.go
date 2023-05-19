@@ -7,7 +7,6 @@ import (
 
 	genesistypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/genesis/types"
 	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/types"
-	icahosttypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/types"
 	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
@@ -222,18 +221,18 @@ func (suite *KeeperTestSuite) TestSetInterchainAccountAddress() {
 }
 
 func (suite *KeeperTestSuite) TestParams() {
-	expParams := icahosttypes.DefaultParams()
+	expParams := types.DefaultParams()
 
 	params := suite.chainA.GetSimApp().ICAHostKeeper.GetParams(suite.chainA.GetContext())
 	suite.Require().Equal(expParams, params)
 
 	testCases := []struct {
 		name    string
-		input   icahosttypes.Params
+		input   types.Params
 		expPass bool
 	}{
 		{name: "success: set default params", input: types.DefaultParams(), expPass: true},
-		{name: "success: non-default params", input: types.NewParams(!icahosttypes.DefaultHostEnabled, []string{"/cosmos.staking.v1beta1.MsgDelegate"}), expPass: true},
+		{name: "success: non-default params", input: types.NewParams(!types.DefaultHostEnabled, []string{"/cosmos.staking.v1beta1.MsgDelegate"}), expPass: true},
 		{name: "failure: set empty string", input: types.NewParams(true, []string{""}), expPass: false},
 		{name: "failure: set space string", input: types.NewParams(true, []string{" "}), expPass: false},
 	}
