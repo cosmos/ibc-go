@@ -183,7 +183,7 @@ connection handhake.
 The IBC module also has
 [`BeginBlock`](https://github.com/cosmos/ibc-go/blob/main/modules/core/02-client/abci.go) logic as well. This is optional as it is only required if your application uses the localhost client to connect two different modules from the same chain.
 
-::: tip
+:::tip
 Only register the ibc module to the `SetOrderBeginBlockers` if your application will use the
 localhost (_aka_ loopback) client.
 :::

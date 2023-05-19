@@ -5,11 +5,10 @@ sidebar_position: 2
 slug: /ibc/integration
 ---
 
-
 # Integration
 
 :::note Synopsis
-Learn how to integrate IBC to your application and send data packets to other chains. 
+Learn how to integrate IBC to your application and send data packets to other chains.
 :::
 
 This document outlines the required steps to integrate and configure the [IBC
@@ -184,7 +183,7 @@ connection handhake.
 The IBC module also has
 [`BeginBlock`](https://github.com/cosmos/ibc-go/blob/main/modules/core/02-client/abci.go) logic as well. This is optional as it is only required if your application uses the localhost client to connect two different modules from the same chain.
 
-::: tip
+:::tip
 Only register the ibc module to the `SetOrderBeginBlockers` if your application will use the
 localhost (_aka_ loopback) client.
 :::
@@ -221,4 +220,3 @@ func NewApp(...args) *App {
 That's it! You have now wired up the IBC module and are now able to send fungible tokens across
 different chains. If you want to have a broader view of the changes take a look into the SDK's
 [`SimApp`](https://github.com/cosmos/ibc-go/blob/main/testing/simapp/app.go).
-

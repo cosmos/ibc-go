@@ -102,7 +102,7 @@ chain #1 -> ... -> chain #(n-1) -> final chain`). These services could provide m
   public relayers (in [Golang](https://github.com/cosmos/relayer) and
   [Rust](https://github.com/informalsystems/ibc-rs)), provide this service to clients.
 
-::: tip
+:::tip
 The only viable alternative for clients (at the time of writing) to tokens with multiple connection hops, is to connect to all chains directly and perform relevant queries to each of them in the sequence.
 :::
 
