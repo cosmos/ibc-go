@@ -59,7 +59,7 @@ Please make sure to check out our [Pull request guidelines](./docs/dev/pull-requ
 - [Project structure](./docs/dev/project-structure.md)
 - [Develoment setup](./docs/dev/development-setup.md)
 - [Go style guide](./docs/dev/go-style-guide.md)
-- [Documentation guidelines](./docs/DOCS_GUIDELINES.md)
+- [Documentation guide](./docs/README.md)
 - [Writing tests](./testing/README.md)
 - [Pull request guidelines](./docs/dev/pull-requests.md)
 - [Release process](./docs/dev/release-management.md)
