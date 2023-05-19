@@ -5,11 +5,10 @@ sidebar_position: 1
 slug: /ibc/middleware/develop
 ---
 
-
 # IBC middleware
 
 :::note Synopsis
-Learn how to write your own custom middleware to wrap an IBC application, and understand how to hook different middleware to IBC base applications to form different IBC application stacks 
+Learn how to write your own custom middleware to wrap an IBC application, and understand how to hook different middleware to IBC base applications to form different IBC application stacks
 :::.
 
 This document serves as a guide for middleware developers who want to write their own middleware and for chain developers who want to use IBC middleware on their chains.
@@ -18,11 +17,15 @@ IBC applications are designed to be self-contained modules that implement their 
 
 Middleware allows developers to define the extensions as separate modules that can wrap over the base application. This middleware can thus perform its own custom logic, and pass data into the application so that it may run its logic without being aware of the middleware's existence. This allows both the application and the middleware to implement its own isolated logic while still being able to run as part of a single packet flow.
 
+:::note
+
 ## Pre-requisite readings
 
 - [IBC Overview](../01-overview.md)
 - [IBC Integration](../02-integration.md)
 - [IBC Application Developer Guide](../03-apps/01-apps.md)
+
+:::
 
 ## Definitions
 
