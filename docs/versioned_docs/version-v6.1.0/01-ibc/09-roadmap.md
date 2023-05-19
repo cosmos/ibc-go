@@ -4,9 +4,6 @@ sidebar_label: Roadmap
 sidebar_position: 9
 slug: /roadmap/roadmap
 ---
----
-order: 1
----
 
 # Roadmap ibc-go
 
@@ -46,7 +43,7 @@ For a detail view of each iteration's planned work, please check out our [projec
 
 #### **July**
 
-We will probably cut at least one more release candidate of v4.0.0 before the final release, which should happen around the end of the month. 
+We will probably cut at least one more release candidate of v4.0.0 before the final release, which should happen around the end of the month.
 
 For the Rho upgrade of the Cosmos Hub we will also release a new minor version of v3 with SDK 0.46.
 

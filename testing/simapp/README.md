@@ -1,7 +1,3 @@
----
-order: false
----
-
 # simapp
 
 simapp is an application built using the Cosmos SDK for testing and educational purposes.

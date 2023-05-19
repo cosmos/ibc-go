@@ -5,10 +5,6 @@ sidebar_position: 9
 slug: /roadmap/roadmap
 ---
 
----
-
-## order: 1
-
 # Roadmap ibc-go
 
 _Lastest update: December 21st, 2022_
