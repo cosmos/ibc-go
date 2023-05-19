@@ -2,7 +2,7 @@
 
 ## Changelog
 
-* 05/01/2022: initial draft
+- 05/01/2022: initial draft
 
 ## Status
 
@@ -15,9 +15,9 @@ It was subsequently migrated to its own repository, ibc-go.
 The first official release on ibc-go was v1.0.0.
 v1.0.0 was decided to be used instead of v0.1.0 primarily for the following reasons:
 
-* Maintaining compatibility with the IBC specification v1 requires stronger support/guarantees.
-* Using the major, minor, and patch numbers allows for easier communication of what breaking changes are included in a release.
-* The IBC module is being used by numerous high value projects which require stability.
+- Maintaining compatibility with the IBC specification v1 requires stronger support/guarantees.
+- Using the major, minor, and patch numbers allows for easier communication of what breaking changes are included in a release.
+- The IBC module is being used by numerous high value projects which require stability.
 
 ### Problems
 

@@ -114,7 +114,7 @@ In order to successfully create an IBC client using a new client type, it [must 
 See below for example:
 
 ```shell
-$ %s tx gov submit-proposal param-change <path/to/proposal.json> --from=<key_or_address>
+%s tx gov submit-proposal param-change <path/to/proposal.json> --from=<key_or_address>
 ```
 
 where `proposal.json` contains:

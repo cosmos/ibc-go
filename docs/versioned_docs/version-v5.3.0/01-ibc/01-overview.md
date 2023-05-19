@@ -57,9 +57,9 @@ any metadata associated with the consensus states. Consensus states are stored u
 
 The supported IBC clients are:
 
-* [Solo Machine light client](https://github.com/cosmos/ibc-go/blob/main/modules/light-clients/06-solomachine): Devices such as phones, browsers, or laptops.
-* [Tendermint light client](https://github.com/cosmos/ibc-go/blob/main/modules/light-clients/07-tendermint): The default for Cosmos SDK-based chains.
-* [Localhost (loopback) client](https://github.com/cosmos/ibc-go/blob/main/modules/light-clients/09-localhost): Useful for
+- [Solo Machine light client](https://github.com/cosmos/ibc-go/blob/main/modules/light-clients/06-solomachine): Devices such as phones, browsers, or laptops.
+- [Tendermint light client](https://github.com/cosmos/ibc-go/blob/main/modules/light-clients/07-tendermint): The default for Cosmos SDK-based chains.
+- [Localhost (loopback) client](https://github.com/cosmos/ibc-go/blob/main/modules/light-clients/09-localhost): Useful for
 testing, simulation, and relaying packets to modules on the same application.
 
 ### IBC Client Heights
@@ -227,7 +227,6 @@ on the executing chain closes if the channel exists, the channel is not already 
 the connection the channel exists upon is OPEN and the executing chain successfully verifies
 that the counterparty channel has been closed.
 
-
 ### [Packets](https://github.com/cosmos/ibc-go/blob/main/modules/core/04-channel)
 
 Modules communicate with each other by sending packets over IBC channels. All
@@ -295,5 +294,4 @@ The original sender module then executes application-specific acknowledgment log
 
 If you want to learn more about IBC, check the following specifications:
 
-* [IBC specification overview](https://github.com/cosmos/ibc/blob/master/README.md)
-
+- [IBC specification overview](https://github.com/cosmos/ibc/blob/master/README.md)

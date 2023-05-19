@@ -10,6 +10,7 @@ slug: /ibc/proto-docs
 <a name="ibc.core.channel.v1.Order"></a>
 
 ### Order
+
 Order defines if a channel is ORDERED or UNORDERED
 
 | Name | Number | Description |
@@ -18,11 +19,10 @@ Order defines if a channel is ORDERED or UNORDERED
 | ORDER_UNORDERED | 1 | packets can be delivered in any order, which may differ from the order in which they were sent. |
 | ORDER_ORDERED | 2 | packets are delivered exactly in the order which they were sent |
 
-
-
 <a name="ibc.core.channel.v1.State"></a>
 
 ### State
+
 State defines if a channel is in one of the following states:
 CLOSED, INIT, TRYOPEN, OPEN or UNINITIALIZED.
 
@@ -34,28 +34,20 @@ CLOSED, INIT, TRYOPEN, OPEN or UNINITIALIZED.
 | STATE_OPEN | 3 | A channel has completed the handshake. Open channels are ready to send and receive packets. |
 | STATE_CLOSED | 4 | A channel has been closed and can no longer be used to send or receive packets. |
 
-
- 
-
-
-
 <a name="ibc/applications/interchain_accounts/controller/v1/controller.proto"></a>
 
 ## ibc/applications/interchain_accounts/controller/v1/controller.proto
 
-
-
 <a name="ibc.applications.interchain_accounts.controller.v1.Params"></a>
 
 ### Params
+
 Params defines the set of on-chain interchain accounts parameters.
 The following parameters may be used to disable the controller submodule.
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `controller_enabled` | bool        |  | controller_enabled enables or disables the controller submodule. |
-
 
 ## Scalar Value Types
 
@@ -76,4 +68,3 @@ The following parameters may be used to disable the controller submodule.
 | <a name="bool" /> bool |  | bool | boolean | boolean | bool | bool | boolean | TrueClass/FalseClass |
 | <a name="string" /> string | A string must always contain UTF-8 encoded or 7-bit ASCII text. | string | String | str/unicode | string | string | string | String (UTF-8) |
 | <a name="bytes" /> bytes | May contain any arbitrary sequence of bytes. | string | ByteString | str | []byte | ByteString | string | String (ASCII-8BIT) |
-

@@ -71,15 +71,15 @@ func NewApp(...) *App {
 ## Contents
 
 - [`modules/capability`](#capability-module)
-  - [Overview](#overview)
-  - [Initialization](#initialization)
-  - [Contents](#contents)
-  - [Concepts](#concepts)
-    - [Capabilities](#capabilities)
-    - [Stores](#stores)
-  - [State](#state)
-    - [In persisted KV store](#in-persisted-kv-store)
-    - [In-memory KV store](#in-memory-kv-store)
+    - [Overview](#overview)
+    - [Initialization](#initialization)
+    - [Contents](#contents)
+    - [Concepts](#concepts)
+        - [Capabilities](#capabilities)
+        - [Stores](#stores)
+    - [State](#state)
+        - [In persisted KV store](#in-persisted-kv-store)
+        - [In-memory KV store](#in-memory-kv-store)
 
 ## Concepts
 

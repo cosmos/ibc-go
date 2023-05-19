@@ -14,8 +14,8 @@ Learn how to configure the Fee Middleware module with IBC applications. The foll
 
 ## Pre-requisite Readings
 
-* [IBC middleware development](../../01-ibc/04-middleware/01-develop.md)
-* [IBC middleware integration](../../01-ibc/04-middleware/02-integration.md)
+- [IBC middleware development](../../01-ibc/04-middleware/01-develop.md)
+- [IBC middleware integration](../../01-ibc/04-middleware/02-integration.md)
 
 The Fee Middleware module, as the name suggests, plays the role of an IBC middleware and as such must be configured by chain developers to route and handle IBC messages correctly.
 For Cosmos SDK chains this setup is done via the `app/app.go` file, where modules are constructed and configured in order to bootstrap the blockchain application.
@@ -110,7 +110,6 @@ As mentioned in [IBC middleware development](../../01-ibc/04-middleware/01-devel
 These layers form the complete set of application logic that enable developers to build composable and flexible IBC application stacks.
 For example, an application stack may be just a single base application like `transfer`, however, the same application stack composed with `29-fee` will nest the `transfer` base application
 by wrapping it with the Fee Middleware module.
-
 
 ### Transfer
 

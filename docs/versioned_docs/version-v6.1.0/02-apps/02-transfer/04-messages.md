@@ -29,8 +29,8 @@ This message is expected to fail if:
 - `SourcePort` is invalid (see [24-host naming requirements](https://github.com/cosmos/ibc/blob/master/spec/core/ics-024-host-requirements/README.md#paths-identifiers-separators).
 - `SourceChannel` is invalid (see [24-host naming requirements](https://github.com/cosmos/ibc/blob/master/spec/core/ics-024-host-requirements/README.md#paths-identifiers-separators)).
 - `Token` is invalid (denom is invalid or amount is negative)
-  - `Token.Amount` is not positive.
-  - `Token.Denom` is not a valid IBC denomination as per [ADR 001 - Coin Source Tracing](/architecture/adr-001-coin-source-tracing).
+    - `Token.Amount` is not positive.
+    - `Token.Denom` is not a valid IBC denomination as per [ADR 001 - Coin Source Tracing](/architecture/adr-001-coin-source-tracing).
 - `Sender` is empty.
 - `Receiver` is empty.
 - `TimeoutHeight` and `TimeoutTimestamp` are both zero.

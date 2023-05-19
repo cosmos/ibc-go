@@ -50,6 +50,3 @@ These steps are identical to the regular [IBC client breaking upgrade process](h
 While ibc-go supports genesis restarts which do not break IBC clients, relayers do not support this upgrade path. 
 Here is a tracking issue on [Hermes](https://github.com/informalsystems/ibc-rs/issues/1152).
 Please do not attempt a regular genesis restarts unless you have a tool to update counterparty clients correctly.
-
-
-

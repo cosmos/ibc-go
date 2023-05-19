@@ -18,7 +18,6 @@ Chains who wish to support ICS27 may elect to act as a host chain, a controller 
 
 Interchain Account authentication modules are the base application of a middleware stack. The controller submodule is the middleware in this stack.
 
-
 ### Example integration
 
 ```go

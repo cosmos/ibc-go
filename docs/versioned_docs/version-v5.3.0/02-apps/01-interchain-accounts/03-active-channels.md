@@ -26,4 +26,3 @@ handler := k.msgRouter.Handler(msg)
 Alternatively, any relayer operator may initiate a new channel handshake for this interchain account once the previously set `Active Channel` is in a `CLOSED` state. This is done by initiating the channel handshake on the controller chain using the same portID associated with the interchain account in question.  
 
 It is important to note that once a channel has been opened for a given Interchain Account, new channels can not be opened for this account until the currently set `Active Channel` is set to `CLOSED`. 
-

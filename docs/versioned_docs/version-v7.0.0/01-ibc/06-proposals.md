@@ -114,6 +114,7 @@ If the chain has been updated to ibc-go >= v1.1.0, anyone can submit the governa
   ```
 
 - Until SDK v0.45.x
+
   ```
   <binary> tx gov submit-proposal update-client <expired-client-id> <active-client-id>
   ```

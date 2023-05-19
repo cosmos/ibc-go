@@ -11,6 +11,7 @@ This file contains information on how to migrate from the IBC module contained i
 ## Import Changes
 
 The most obvious changes is import name changes. We need to change:
+
 - applications -> apps
 - cosmos-sdk/x/ibc -> ibc-go
 
@@ -40,6 +41,7 @@ Chains may choose to upgrade via an upgrade proposal or genesis upgrades. Both i
 **WARNING**: Please read at least the quick guide for [IBC client upgrades](../01-ibc/05-upgrades/00-intro.md) before upgrading your chain. It is highly recommended you do not change the chain-ID during an upgrade, otherwise you must follow the IBC client upgrade instructions.
 
 Both in-place store migrations and genesis migrations will:
+
 - migrate the solo machine client state from v1 to v2 protobuf definitions
 - prune all solo machine consensus states
 - prune all expired tendermint consensus states
@@ -51,6 +53,7 @@ Chains must set a new connection parameter during either in place store migratio
 The new chain binary will need to run migrations in the upgrade handler. The fromVM (previous module version) for the IBC module should be 1. This will allow migrations to be run for IBC updating the version from 1 to 2.
 
 Ex:
+
 ```go
 app.UpgradeKeeper.SetUpgradeHandler("my-upgrade-proposal",
         func(ctx sdk.Context, _ upgradetypes.Plan, _ module.VersionMap) (module.VersionMap, error) {
@@ -91,7 +94,6 @@ if err != nil {
 ```
 
 **NOTE:** The genesis chain-id, time and height MUST be updated before migrating IBC, otherwise the tendermint consensus state will not be pruned.
-
 
 ## IBC Keeper Changes
 
@@ -143,6 +145,7 @@ as shown in the diffs above.
 Please ensure both proposal type CLI commands are registered on the governance module by adding the following arguments to `gov.NewAppModuleBasic()`:
 
 Add the following import:
+
 ```diff
 +       ibcclientclient "github.com/cosmos/ibc-go/modules/core/02-client/client"
 ```
@@ -184,9 +187,9 @@ The `consensus_height` attribute has been removed in the Misbehaviour event emit
 
 ## Relevant SDK changes
 
-* (codec) [\#9226](https://github.com/cosmos/cosmos-sdk/pull/9226) Rename codec interfaces and methods, to follow a general Go interfaces:
-  * `codec.Marshaler` → `codec.Codec` (this defines objects which serialize other objects)
-  * `codec.BinaryMarshaler` → `codec.BinaryCodec`
-  * `codec.JSONMarshaler` → `codec.JSONCodec`
-  * Removed `BinaryBare` suffix from `BinaryCodec` methods (`MarshalBinaryBare`, `UnmarshalBinaryBare`, ...)
-  * Removed `Binary` infix from `BinaryCodec` methods (`MarshalBinaryLengthPrefixed`, `UnmarshalBinaryLengthPrefixed`, ...)
+- (codec) [\#9226](https://github.com/cosmos/cosmos-sdk/pull/9226) Rename codec interfaces and methods, to follow a general Go interfaces:
+    - `codec.Marshaler` → `codec.Codec` (this defines objects which serialize other objects)
+    - `codec.BinaryMarshaler` → `codec.BinaryCodec`
+    - `codec.JSONMarshaler` → `codec.JSONCodec`
+    - Removed `BinaryBare` suffix from `BinaryCodec` methods (`MarshalBinaryBare`, `UnmarshalBinaryBare`, ...)
+    - Removed `Binary` infix from `BinaryCodec` methods (`MarshalBinaryLengthPrefixed`, `UnmarshalBinaryLengthPrefixed`, ...)

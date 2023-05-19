@@ -24,6 +24,7 @@ To implement an authentication module, the `IBCModule` interface must be fulfill
 By implementing the controller module as middleware, any amount of authentication modules can be created and connected to the controller module without writing redundant code. 
 
 The authentication module must:
+
 - Authenticate interchain account owners
 - Track the associated interchain account address for an owner
 - Claim the channel capability in `OnChanOpenInit`
@@ -220,6 +221,7 @@ if err := keeper.icaControllerKeeper.RegisterInterchainAccount(ctx, controllerCo
 ## `SendTx`
 
 The authentication module can attempt to send a packet by calling `SendTx`:
+
 ```go
 
 // Authenticate owner
@@ -279,6 +281,7 @@ Auth modules are expected to know how to decode the acknowledgement.
 If the controller chain is connected to a host chain using the host module on ibc-go, it may interpret the acknowledgement bytes as follows:
 
 Begin by unmarshaling the acknowledgement into sdk.TxMsgData:
+
 ```go
 var ack channeltypes.Acknowledgement
 if err := channeltypes.SubModuleCdc.UnmarshalJSON(acknowledgement, &ack); err != nil {

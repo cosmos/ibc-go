@@ -68,7 +68,6 @@ See section [Definitions](https://github.com/cosmos/ibc/blob/main/spec/app/ics-0
 | --- | ----------- | ------------ | ------ | ------- |
 | 2.01 | An application shall have the ability to use an RPC endpoint to submit transactions to be executed on the host chain on the behalf of the interchain account. | [Acceptance test](https://github.com/cosmos/ibc-go/blob/v6.0.0/modules/apps/27-interchain-accounts/controller/keeper/msg_server_test.go#L31) | `Verified` | v6.0.0 |
 
-
 # Non-functional requirements
 
 ## 3 - Migration

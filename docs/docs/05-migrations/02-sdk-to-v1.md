@@ -188,8 +188,8 @@ The `consensus_height` attribute has been removed in the Misbehaviour event emit
 ## Relevant SDK changes
 
 - (codec) [\#9226](https://github.com/cosmos/cosmos-sdk/pull/9226) Rename codec interfaces and methods, to follow a general Go interfaces:
-  - `codec.Marshaler` → `codec.Codec` (this defines objects which serialize other objects)
-  - `codec.BinaryMarshaler` → `codec.BinaryCodec`
-  - `codec.JSONMarshaler` → `codec.JSONCodec`
-  - Removed `BinaryBare` suffix from `BinaryCodec` methods (`MarshalBinaryBare`, `UnmarshalBinaryBare`, ...)
-  - Removed `Binary` infix from `BinaryCodec` methods (`MarshalBinaryLengthPrefixed`, `UnmarshalBinaryLengthPrefixed`, ...)
+    - `codec.Marshaler` → `codec.Codec` (this defines objects which serialize other objects)
+    - `codec.BinaryMarshaler` → `codec.BinaryCodec`
+    - `codec.JSONMarshaler` → `codec.JSONCodec`
+    - Removed `BinaryBare` suffix from `BinaryCodec` methods (`MarshalBinaryBare`, `UnmarshalBinaryBare`, ...)
+    - Removed `Binary` infix from `BinaryCodec` methods (`MarshalBinaryLengthPrefixed`, `UnmarshalBinaryLengthPrefixed`, ...)

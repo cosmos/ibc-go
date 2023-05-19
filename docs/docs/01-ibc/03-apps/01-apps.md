@@ -19,9 +19,9 @@ The document goes into detail on the abstraction layer most relevant for applica
 **To have your module interact over IBC you must:**
 
 - implement the `IBCModule` interface, i.e.:
-  - channel (opening) handshake callbacks
-  - channel closing handshake callbacks
-  - packet callbacks
+    - channel (opening) handshake callbacks
+    - channel closing handshake callbacks
+    - packet callbacks
 - bind to a port(s)
 - add keeper methods
 - define your own packet data and acknowledgement structs as well as how to encode/decode them

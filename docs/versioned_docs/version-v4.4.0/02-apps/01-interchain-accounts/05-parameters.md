@@ -19,6 +19,7 @@ The Interchain Accounts module contains the following on-chain parameters, logic
 #### ControllerEnabled
 
 The `ControllerEnabled` parameter controls a chains ability to service ICS-27 controller specific logic. This includes the sending of Interchain Accounts packet data as well as the following ICS-26 callback handlers:
+
 - `OnChanOpenInit`
 - `OnChanOpenAck`
 - `OnChanCloseConfirm`
@@ -35,6 +36,7 @@ The `ControllerEnabled` parameter controls a chains ability to service ICS-27 co
 #### HostEnabled
 
 The `HostEnabled` parameter controls a chains ability to service ICS27 host specific logic. This includes the following ICS-26 callback handlers:
+
 - `OnChanOpenTry`
 - `OnChanOpenConfirm`
 - `OnChanCloseConfirm`
@@ -52,6 +54,7 @@ For example, a Cosmos SDK based chain that elects to provide hosted Interchain A
     "allow_messages": ["/cosmos.staking.v1beta1.MsgDelegate", "/cosmos.gov.v1beta1.MsgVote"]
 }
 ```
+
 There is also a special wildcard `"*"` message type which allows any type of message to be executed by the interchain account. This must be the only message in the `allow_messages` array.
 
 ```
