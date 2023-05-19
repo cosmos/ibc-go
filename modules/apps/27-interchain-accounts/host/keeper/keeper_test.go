@@ -6,6 +6,8 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	genesistypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/genesis/types"
+	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/types"
+	icahosttypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/types"
 	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
@@ -217,4 +219,40 @@ func (suite *KeeperTestSuite) TestSetInterchainAccountAddress() {
 	retrievedAddr, found := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), ibctesting.FirstConnectionID, expectedPortID)
 	suite.Require().True(found)
 	suite.Require().Equal(expectedAccAddr, retrievedAddr)
+}
+
+func (suite *KeeperTestSuite) TestParams() {
+	expParams := icahosttypes.DefaultParams()
+
+	params := suite.chainA.GetSimApp().ICAHostKeeper.GetParams(suite.chainA.GetContext())
+	suite.Require().Equal(expParams, params)
+
+	testCases := []struct {
+		name    string
+		input   icahosttypes.Params
+		expPass bool
+	}{
+		{name: "success: set default params", input: types.DefaultParams(), expPass: true},
+		{name: "success: non-default params", input: types.NewParams(!icahosttypes.DefaultHostEnabled, []string{"/cosmos.staking.v1beta1.MsgDelegate"}), expPass: true},
+		{name: "failure: set empty string", input: types.NewParams(true, []string{""}), expPass: false},
+		{name: "failure: set space string", input: types.NewParams(true, []string{" "}), expPass: false},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+
+		suite.Run(tc.name, func() {
+			suite.SetupTest() // reset
+			ctx := suite.chainA.GetContext()
+			err := suite.chainA.GetSimApp().ICAHostKeeper.SetParams(ctx, tc.input)
+			if tc.expPass {
+				suite.Require().NoError(err)
+				expected := tc.input
+				p := suite.chainA.GetSimApp().ICAHostKeeper.GetParams(ctx)
+				suite.Require().Equal(expected, p)
+			} else {
+				suite.Require().Error(err)
+			}
+		})
+	}
 }
