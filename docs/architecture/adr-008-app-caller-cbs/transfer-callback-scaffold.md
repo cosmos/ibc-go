@@ -6,7 +6,7 @@ The exact nature of the callbacks to the smart contract will depend on the envir
 
 Implementers may wish to support callbacks to more IBC applications by adding a switch statement to unmarshal the specific packet data types they wish to support and passing them into the smart contract callback functions.
 
-### Scaffold Middleware
+## Scaffold Middleware
 
 ```go
 package callbacks
