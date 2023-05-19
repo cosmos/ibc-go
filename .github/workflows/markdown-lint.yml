@@ -1,6 +1,4 @@
 name: Markdown Lint
-# Protobuf runs buf (https://buf.build/) push updated proto files to https://buf.build/cosmos/ibc
-# This workflow is only run when a .proto file has been changed
 on: pull_request
 jobs:
   lint:
@@ -12,7 +10,7 @@ jobs:
       - uses: tj-actions/changed-files@v35
         id: changed-files
         with:
-          files: "**.md"
+          files: "**/*.md"
           separator: ","
       - uses: DavidAnson/markdownlint-cli2-action@v10
         if: steps.changed-files.outputs.any_changed == 'true'
