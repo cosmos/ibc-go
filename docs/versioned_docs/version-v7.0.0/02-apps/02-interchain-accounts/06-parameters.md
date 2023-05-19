@@ -48,7 +48,7 @@ The `AllowMessages` parameter provides the ability for a chain to limit the type
 
 For example, a Cosmos SDK-based chain that elects to provide hosted Interchain Accounts with the ability of governance voting and staking delegations will define its parameters as follows:
 
-```
+```json
 "params": {
     "host_enabled": true,
     "allow_messages": ["/cosmos.staking.v1beta1.MsgDelegate", "/cosmos.gov.v1beta1.MsgVote"]
@@ -57,7 +57,7 @@ For example, a Cosmos SDK-based chain that elects to provide hosted Interchain A
 
 There is also a special wildcard `"*"` value which allows any type of message to be executed by the interchain account. This must be the only value in the `allow_messages` array.
 
-```
+```json
 "params": {
     "host_enabled": true,
     "allow_messages": ["*"]
