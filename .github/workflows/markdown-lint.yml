@@ -3,6 +3,7 @@ on:
   pull_request:
     paths:
       - "**.md"
+      - "!.github/**"
 jobs:
   lint:
     runs-on: ubuntu-latest
