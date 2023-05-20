@@ -122,12 +122,10 @@ func (k Keeper) GetParams(ctx sdk.Context) (p types.Params) {
 }
 
 // SetParams sets the transfer module parameters.
-func (k Keeper) SetParams(ctx sdk.Context, params types.Params) error {
+func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshal(&params)
 	store.Set([]byte(types.ParamsKey), bz)
-
-	return nil
 }
 
 // GetDenomTrace retreives the full identifiers trace and base denomination from the store.

@@ -27,9 +27,7 @@ func (k Keeper) InitGenesis(ctx sdk.Context, state types.GenesisState) {
 		}
 	}
 
-	if err := k.SetParams(ctx, state.Params); err != nil {
-		panic(fmt.Sprintf("could not set transfer params at genesis: %v", err))
-	}
+	k.SetParams(ctx, state.Params)
 
 	// Every denom will have only one total escrow amount, since any
 	// duplicate entry will fail validation in Validate of GenesisState

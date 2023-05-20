@@ -37,12 +37,11 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 		{
 			"send transfers disabled",
 			func() {
-				err := suite.chainA.GetSimApp().TransferKeeper.SetParams(suite.chainA.GetContext(),
+				suite.chainA.GetSimApp().TransferKeeper.SetParams(suite.chainA.GetContext(),
 					types.Params{
 						SendEnabled: false,
 					},
 				)
-				suite.Require().NoError(err)
 			},
 			false,
 		},

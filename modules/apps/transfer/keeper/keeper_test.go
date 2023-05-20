@@ -230,17 +230,16 @@ func (suite *KeeperTestSuite) TestParams() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 			ctx := suite.chainA.GetContext()
-			expected := suite.chainA.GetSimApp().TransferKeeper.GetParams(ctx)
-			err := suite.chainA.GetSimApp().TransferKeeper.SetParams(ctx, tc.input)
 			if tc.expPass {
-				expected = tc.input
-				suite.Require().NoError(err)
+				suite.chainA.GetSimApp().TransferKeeper.SetParams(ctx, tc.input)
+				expected := tc.input
+				p := suite.chainA.GetSimApp().TransferKeeper.GetParams(ctx)
+				suite.Require().Equal(expected, p)
 			} else {
-				suite.Require().Error(err)
+				suite.Require().Panics(func() {
+					suite.chainA.GetSimApp().TransferKeeper.SetParams(ctx, tc.input)
+				})
 			}
-
-			p := suite.chainA.GetSimApp().TransferKeeper.GetParams(ctx)
-			suite.Require().Equal(expected, p)
 		})
 	}
 }
