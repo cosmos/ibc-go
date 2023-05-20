@@ -80,7 +80,7 @@ func (suite *KeeperTestSuite) TestGenesisParams() {
 						AccountAddress: interchainAccAddr.String(),
 					},
 				},
-				Port: icatypes.HostPortID,
+				Port:   icatypes.HostPortID,
 				Params: tc.input,
 			}
 			if tc.expPass {
