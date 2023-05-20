@@ -51,7 +51,9 @@ func (suite *InterchainAccountsTestSuite) TestInitModule() {
 	suite.Require().Panics(func() {
 		app.ICAControllerKeeper.GetParams(ctx)
 	})
-	suite.Require().Equal(app.ICAHostKeeper.GetParams(ctx), hosttypes.Params{})
+	suite.Require().Panics(func() {
+		app.ICAHostKeeper.GetParams(ctx)
+	})
 
 	controllerParams := controllertypes.DefaultParams()
 	controllerParams.ControllerEnabled = true
