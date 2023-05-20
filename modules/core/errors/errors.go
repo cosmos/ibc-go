@@ -60,4 +60,7 @@ var (
 
 	// ErrNotFound defines an error when requested entity doesn't exist in the state.
 	ErrNotFound = errorsmod.Register(codespace, 16, "not found")
+
+	// ErrInvalidAuthority defines an error when the authority address is invalid.
+	ErrInvalidAuthority = errorsmod.Register(codespace, 17, "invalid authority")
 )
