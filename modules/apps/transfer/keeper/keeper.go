@@ -114,7 +114,7 @@ func (k Keeper) GetParams(ctx sdk.Context) (p types.Params) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get([]byte(types.ParamsKey))
 	if bz == nil {
-		return p
+		panic("ibc transfer params are not set in store")
 	}
 
 	k.cdc.MustUnmarshal(bz, &p)
