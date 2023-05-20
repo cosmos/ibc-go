@@ -17,7 +17,17 @@ func TestMsgUpdateParamsValidateBasic(t *testing.T) {
 		expPass  bool
 	}{
 		{
-			"invalid authority address",
+			"success: valid authority address",
+			func() {
+				msg = &types.MsgUpdateParams{
+					Authority: sdk.AccAddress("authority").String(),
+					Params:    types.DefaultParams(),
+				}
+			},
+			true,
+		},
+		{
+			"failure: invalid authority address",
 			func() {
 				msg = &types.MsgUpdateParams{
 					Authority: "authority",
@@ -26,7 +36,7 @@ func TestMsgUpdateParamsValidateBasic(t *testing.T) {
 			false,
 		},
 		{
-			"invalid allowed message",
+			"failure: invalid allowed message",
 			func() {
 				msg = &types.MsgUpdateParams{
 					Authority: sdk.AccAddress("authority").String(),
@@ -36,16 +46,6 @@ func TestMsgUpdateParamsValidateBasic(t *testing.T) {
 				}
 			},
 			false,
-		},
-		{
-			"valid test case",
-			func() {
-				msg = &types.MsgUpdateParams{
-					Authority: sdk.AccAddress("authority").String(),
-					Params:    types.DefaultParams(),
-				}
-			},
-			true,
 		},
 	}
 
