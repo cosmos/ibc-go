@@ -19,8 +19,3 @@ func NewParams(enableSend, enableReceive bool) Params {
 func DefaultParams() Params {
 	return NewParams(DefaultSendEnabled, DefaultReceiveEnabled)
 }
-
-// Validate all ibc-transfer module parameters
-func (p Params) Validate() error {
-	return nil
-}

@@ -30,7 +30,7 @@ func (msg MsgUpdateParams) ValidateBasic() error {
 		return err
 	}
 
-	return msg.Params.Validate()
+	return nil
 }
 
 // GetSigners implements sdk.Msg
