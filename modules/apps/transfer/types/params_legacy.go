@@ -2,6 +2,7 @@
 NOTE: Usage of x/params to manage parameters is deprecated in favor of x/gov
 controlled execution of MsgUpdateParams messages. These types remains solely
 for migration purposes and will be removed in a future release.
+[#3621](https://github.com/cosmos/ibc-go/issues/3621)
 */
 package types
 
