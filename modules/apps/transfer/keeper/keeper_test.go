@@ -5,14 +5,19 @@ import (
 	"testing"
 
 	"cosmossdk.io/math"
+	dbm "github.com/cometbft/cometbft-db"
+	"github.com/cometbft/cometbft/libs/log"
+	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
+	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	"github.com/cosmos/ibc-go/v7/testing/simapp"
 )
 
 type KeeperTestSuite struct {
@@ -242,4 +247,21 @@ func (suite *KeeperTestSuite) TestParams() {
 			}
 		})
 	}
+}
+
+func (suite *KeeperTestSuite) TestUnsetParams() {
+	// this state should not be possible outside of tests
+	chainID := "testchain"
+	header := tmproto.Header{
+		ChainID: chainID,
+		Height:  1,
+		Time:    suite.coordinator.CurrentTime.UTC(),
+	}
+
+	app := simapp.NewSimApp(log.NewNopLogger(), dbm.NewMemDB(), nil, true, map[int64]bool{}, simapp.DefaultNodeHome, 5, simapp.MakeTestEncodingConfig(), simtestutil.EmptyAppOptions{}, baseapp.SetChainID(chainID))
+	ctx := app.GetBaseApp().NewContext(true, header)
+
+	suite.Require().Panics(func() {
+		suite.chainA.GetSimApp().TransferKeeper.GetParams(ctx)
+	})
 }
