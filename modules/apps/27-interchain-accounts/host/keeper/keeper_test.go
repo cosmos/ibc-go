@@ -276,6 +276,6 @@ func (suite *KeeperTestSuite) TestUnsetParams() {
 	ctx := app.GetBaseApp().NewContext(true, header)
 
 	suite.Require().Panics(func() {
-		suite.chainA.GetSimApp().ICAHostKeeper.GetParams(ctx)
+		app.ICAHostKeeper.GetParams(ctx)
 	})
 }
