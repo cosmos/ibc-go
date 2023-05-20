@@ -233,6 +233,7 @@ func (suite *KeeperTestSuite) TestParams() {
 	}{
 		{name: "success: set default params", input: types.DefaultParams(), expPass: true},
 		{name: "success: non-default params", input: types.NewParams(!types.DefaultHostEnabled, []string{"/cosmos.staking.v1beta1.MsgDelegate"}), expPass: true},
+		{name: "success: set empty allowMsg", input: types.NewParams(true, nil), expPass: true},
 		{name: "failure: set empty string", input: types.NewParams(true, []string{""}), expPass: false},
 		{name: "failure: set space string", input: types.NewParams(true, []string{" "}), expPass: false},
 	}
