@@ -46,6 +46,66 @@ func (suite *KeeperTestSuite) TestInitGenesis() {
 	suite.Require().Equal(expParams, params)
 }
 
+func (suite *KeeperTestSuite) TestGenesisParams() {
+	testCases := []struct {
+		name    string
+		input   types.Params
+		expPass bool
+	}{
+		{name: "success: set default params", input: types.DefaultParams(), expPass: true},
+		{name: "success: non-default params", input: types.NewParams(!types.DefaultHostEnabled, []string{"/cosmos.staking.v1beta1.MsgDelegate"}), expPass: true},
+		{name: "success: set empty allowMsg", input: types.NewParams(true, nil), expPass: true},
+		{name: "failure: set empty string", input: types.NewParams(true, []string{""}), expPass: false},
+		{name: "failure: set space string", input: types.NewParams(true, []string{" "}), expPass: false},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+
+		suite.Run(tc.name, func() {
+			suite.SetupTest() // reset
+			interchainAccAddr := icatypes.GenerateAddress(suite.chainB.GetContext(), ibctesting.FirstConnectionID, TestPortID)
+			genesisState := genesistypes.HostGenesisState{
+				ActiveChannels: []genesistypes.ActiveChannel{
+					{
+						ConnectionId: ibctesting.FirstConnectionID,
+						PortId:       TestPortID,
+						ChannelId:    ibctesting.FirstChannelID,
+					},
+				},
+				InterchainAccounts: []genesistypes.RegisteredInterchainAccount{
+					{
+						ConnectionId:   ibctesting.FirstConnectionID,
+						PortId:         TestPortID,
+						AccountAddress: interchainAccAddr.String(),
+					},
+				},
+				Port: icatypes.HostPortID,
+				Params: tc.input,
+			}
+			if tc.expPass {
+				keeper.InitGenesis(suite.chainA.GetContext(), suite.chainA.GetSimApp().ICAHostKeeper, genesisState)
+
+				channelID, found := suite.chainA.GetSimApp().ICAHostKeeper.GetActiveChannelID(suite.chainA.GetContext(), ibctesting.FirstConnectionID, TestPortID)
+				suite.Require().True(found)
+				suite.Require().Equal(ibctesting.FirstChannelID, channelID)
+
+				accountAdrr, found := suite.chainA.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainA.GetContext(), ibctesting.FirstConnectionID, TestPortID)
+				suite.Require().True(found)
+				suite.Require().Equal(interchainAccAddr.String(), accountAdrr)
+
+				expParams := tc.input
+				params := suite.chainA.GetSimApp().ICAHostKeeper.GetParams(suite.chainA.GetContext())
+				suite.Require().Equal(expParams, params)
+			} else {
+				suite.Require().Panics(func() {
+					keeper.InitGenesis(suite.chainA.GetContext(), suite.chainA.GetSimApp().ICAHostKeeper, genesisState)
+				})
+			}
+		})
+	}
+}
+
 func (suite *KeeperTestSuite) TestExportGenesis() {
 	suite.SetupTest()
 
