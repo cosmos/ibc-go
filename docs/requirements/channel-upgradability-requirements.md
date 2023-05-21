@@ -155,7 +155,7 @@ Normal flow:
 4. Proposal passes on chain B and:
     a. it allows port ID `transfer`, channel ID `channel-0` to be upgraded;
     b. it executes `MsgChannelUpgradeInit` to upgrade channel version from `ics20-1` to `{"fee_version":"ics29-1","app_version":"ics20-1"}`.
-5. Relayer detects execution of `MsgChannelUpgradeInit` on chain A and submits `MsgChannelUpgradeTry` on chain B proposing to upgrade channel version to `{"fee_version":"ics29-1","app_version":"ics20-1"}`. Since chain B has already executed `MsgChannelUpgradeInit`, the we are in a crossing hello scenario.
+5. Relayer detects execution of `MsgChannelUpgradeInit` on chain A and submits `MsgChannelUpgradeTry` on chain B proposing to upgrade channel version to `{"fee_version":"ics29-1","app_version":"ics20-1"}`. Since chain B has already executed `MsgChannelUpgradeInit`, we are in a crossing hello scenario.
 6. Execution of `MsgChannelUpgradeTry` succeeds on chain B.
 7. Relayer detects execution of `MsgChannelUpgradeTry` and submits `MsgChannelUpgradeAck` on chain A.
 8. Execution of `MsgChannelUpgradeAck` succeeds on chain A.
