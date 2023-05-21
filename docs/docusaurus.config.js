@@ -57,12 +57,15 @@ const config = {
               banner: "none",
             },
             "v6.1.0": {
+              path: "v6.1.0",
               banner: "none",
             },
             "v5.3.0": {
+              path: "v5.3.0",
               banner: "none",
             },
             "v4.4.0": {
+              path: "v4.4.0",
               banner: "none",
             },
           },
@@ -208,10 +211,17 @@ const config = {
         // makes the default page next in production
         redirects: [
           {
-            from: ["/", "/master", "/next"],
+            from: ["/", "/master", "/next", "/docs"],
             to: "/main/",
           },
         ],
+      },
+    ],
+    [
+      require.resolve("@easyops-cn/docusaurus-search-local"),
+      {
+        indexBlog: false,
+        docsRouteBasePath: ["/", "architecture"],
       },
     ],
     async function myPlugin(context, options) {
