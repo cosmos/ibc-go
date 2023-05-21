@@ -222,6 +222,7 @@ const config = {
       {
         indexBlog: false,
         docsRouteBasePath: ["/", "architecture"],
+        highlightSearchTermsOnTargetPage: true,
       },
     ],
     async function myPlugin(context, options) {
