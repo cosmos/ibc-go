@@ -56,7 +56,7 @@ Assuming that we have two chains, and that both chains approve a compatible upgr
      In this scenario both chains approve a channel upgrade and a relayer can submit `MsgChannelUpgradeInit` on one side to start the handshake within the timeout period specified in the upgrade approval proposal. Upon successful execution of `MsgChannelUPgradeInit` a relayer can submit `MsgChannelUpgradeTry` on the counterparty.
 - Permissionless upgrade on chain A and permissioned upgrade on chain B.
 - Permissioned upgrade on chain A and permissionless upgrade on B.
-    In these 2 scenarios, both sides approve a channel upgrade, but one chain automatically initiates the upgrade process by executing `MsgChannelUpgradeInit` and the other side needs a relayer to submit either `MsgChannelUpgradeInit` or `MsgChannelUpgradeTry`. If `MsgChannelUpgradeInit` is executed on both chains, then we would have a crossing hello uld be that a crossing hello situation occurs if relayer(s) submit `MsgChannelUpgradeInit` on both chains.
+    In these 2 scenarios, both sides approve a channel upgrade, but one chain automatically initiates the upgrade process by executing `MsgChannelUpgradeInit` and the other side needs a relayer to submit either `MsgChannelUpgradeInit` or `MsgChannelUpgradeTry`. If `MsgChannelUpgradeInit` is executed on both chains, then we would have a crossing hello situation.
 - Permissioned upgrade on both chain A and B.
     The upgrade is approved and automatically initiated on both chains with the submission of `MsgChannelUpgradeInit`. This is a crossing hello scenario.
 
