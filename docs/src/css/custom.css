@@ -74,6 +74,11 @@ html[data-theme="dark"] .markdown a {
   color: #85c1e9; /* Choose the color you prefer */
 }
 
+/* Custom highlight color for @easyops-cn/docusaurus-search-local in dark mode */
+html[data-theme="dark"] {
+  --search-local-highlight-color: #d23669;
+}
+
 html {
   @apply bg-docusaurusBgColor;
   /* Banner */
