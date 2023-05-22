@@ -151,7 +151,7 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 
 	hostm := hostkeeper.NewMigrator(am.hostKeeper)
 	if err := cfg.RegisterMigration(types.ModuleName, 2, hostm.MigrateParams); err != nil {
-		panic(fmt.Sprintf("failed to migrate interchainaccounts host params from version 2 to 3: %v", err))
+		panic(fmt.Sprintf("failed to migrate interchainaccounts app from version 2 to 3: %v", err))
 	}
 }
 
@@ -193,7 +193,7 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 }
 
 // ConsensusVersion implements AppModule/ConsensusVersion.
-func (AppModule) ConsensusVersion() uint64 { return 2 }
+func (AppModule) ConsensusVersion() uint64 { return 3 }
 
 // BeginBlock implements the AppModule interface
 func (am AppModule) BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock) {
