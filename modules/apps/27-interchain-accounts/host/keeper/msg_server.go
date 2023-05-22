@@ -25,7 +25,7 @@ func NewMsgServerImpl(keeper *Keeper) types.MsgServer {
 // UpdateParams updates the host submodule's params.
 func (m msgServer) UpdateParams(goCtx context.Context, msg *types.MsgUpdateParams) (*types.MsgUpdateParamsResponse, error) {
 	if m.authority != msg.Authority {
-		return nil, errors.Wrapf(ibcerrors.ErrInvalidAuthority, "invalid authority; expected %s, got %s", m.authority, msg.Authority)
+		return nil, errors.Wrapf(ibcerrors.ErrInvalidAuthority, "expected %s, got %s", m.authority, msg.Authority)
 	}
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
