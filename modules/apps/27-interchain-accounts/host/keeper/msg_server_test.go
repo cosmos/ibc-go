@@ -14,20 +14,20 @@ func (suite *KeeperTestSuite) TestUpdateParams() {
 		expPass  bool
 	}{
 		{
-			"invalid authority address",
-			func(authority string) {
-				msg.Authority = "authority"
-				msg.Params = types.DefaultParams()
-			},
-			false,
-		},
-		{
 			"success",
 			func(authority string) {
 				msg.Authority = authority
 				msg.Params = types.DefaultParams()
 			},
 			true,
+		},
+		{
+			"invalid authority address",
+			func(authority string) {
+				msg.Authority = "authority"
+				msg.Params = types.DefaultParams()
+			},
+			false,
 		},
 	}
 
