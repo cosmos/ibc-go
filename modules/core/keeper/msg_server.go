@@ -812,6 +812,7 @@ func (k Keeper) ChannelUpgradeTry(goCtx context.Context, msg *channeltypes.MsgCh
 		proposedUpgrade.Fields,
 		counterpartyChannel,
 		msg.CounterpartyProposedUpgrade,
+		channeltypes.TRYUPGRADE,
 		msg.ProofChannel,
 		msg.ProofUpgrade,
 		msg.ProofHeight,

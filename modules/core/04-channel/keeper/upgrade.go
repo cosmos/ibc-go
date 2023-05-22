@@ -217,6 +217,7 @@ func (k Keeper) StartFlushUpgradeHandshake(
 	upgradeFields types.UpgradeFields,
 	counterpartyChannel types.Channel,
 	counterpartyUpgrade types.Upgrade,
+	channelState types.State,
 	proofChannel, proofUpgrade []byte,
 	proofHeight clienttypes.Height,
 ) error {
