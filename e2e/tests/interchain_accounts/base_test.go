@@ -47,9 +47,8 @@ func getICAVersion(chainAVersion, chainBVersion string) string {
 
 // RegisterInterchainAccount will attempt to register an interchain account on the counterparty chain.
 func (s *InterchainAccountsTestSuite) RegisterInterchainAccount(ctx context.Context, chain *cosmos.CosmosChain, user ibc.Wallet, msgRegisterAccount *controllertypes.MsgRegisterInterchainAccount) {
-	txResp, err := s.BroadcastMessages(ctx, chain, user, msgRegisterAccount)
-	s.Require().NoError(err)
-	s.AssertValidTxResponse(txResp)
+	txResp := s.BroadcastMessages(ctx, chain, user, msgRegisterAccount)
+	s.AssertTxSuccess(txResp)
 }
 
 func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer() {
@@ -72,9 +71,8 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer() {
 		version := getICAVersion(testconfig.GetChainATag(), testconfig.GetChainBTag())
 		msgRegisterAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, controllerAddress, version)
 
-		txResp, err := s.BroadcastMessages(ctx, chainA, controllerAccount, msgRegisterAccount)
-		s.Require().NoError(err)
-		s.AssertValidTxResponse(txResp)
+		txResp := s.BroadcastMessages(ctx, chainA, controllerAccount, msgRegisterAccount)
+		s.AssertTxSuccess(txResp)
 	})
 
 	t.Run("start relayer", func(t *testing.T) {
@@ -123,15 +121,14 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer() {
 
 			msgSendTx := controllertypes.NewMsgSendTx(controllerAccount.FormattedAddress(), ibctesting.FirstConnectionID, uint64(time.Hour.Nanoseconds()), packetData)
 
-			resp, err := s.BroadcastMessages(
+			resp := s.BroadcastMessages(
 				ctx,
 				chainA,
 				controllerAccount,
 				msgSendTx,
 			)
 
-			s.AssertValidTxResponse(resp)
-			s.Require().NoError(err)
+			s.AssertTxSuccess(resp)
 
 			s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB))
 		})
@@ -169,9 +166,8 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_FailedTransfer_InsufficientF
 		version := getICAVersion(testconfig.GetChainATag(), testconfig.GetChainBTag())
 		msgRegisterAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, controllerAddress, version)
 
-		txResp, err := s.BroadcastMessages(ctx, chainA, controllerAccount, msgRegisterAccount)
-		s.Require().NoError(err)
-		s.AssertValidTxResponse(txResp)
+		txResp := s.BroadcastMessages(ctx, chainA, controllerAccount, msgRegisterAccount)
+		s.AssertTxSuccess(txResp)
 	})
 
 	t.Run("start relayer", func(t *testing.T) {
@@ -216,15 +212,14 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_FailedTransfer_InsufficientF
 
 			msgSendTx := controllertypes.NewMsgSendTx(controllerAddress, ibctesting.FirstConnectionID, uint64(time.Hour.Nanoseconds()), packetData)
 
-			txResp, err := s.BroadcastMessages(
+			txResp := s.BroadcastMessages(
 				ctx,
 				chainA,
 				controllerAccount,
 				msgSendTx,
 			)
 
-			s.AssertValidTxResponse(txResp)
-			s.Require().NoError(err)
+			s.AssertTxSuccess(txResp)
 
 			s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB))
 		})
@@ -322,15 +317,14 @@ func (s *InterchainAccountsTestSuite) TestMsgSubmitTx_SuccessfulTransfer_AfterRe
 
 			msgSendTx := controllertypes.NewMsgSendTx(controllerAddress, ibctesting.FirstConnectionID, uint64(1), packetData)
 
-			resp, err := s.BroadcastMessages(
+			resp := s.BroadcastMessages(
 				ctx,
 				chainA,
 				controllerAccount,
 				msgSendTx,
 			)
 
-			s.AssertValidTxResponse(resp)
-			s.Require().NoError(err)
+			s.AssertTxSuccess(resp)
 
 			// this sleep is to allow the packet to timeout
 			time.Sleep(1 * time.Second)
@@ -397,15 +391,14 @@ func (s *InterchainAccountsTestSuite) TestMsgSubmitTx_SuccessfulTransfer_AfterRe
 
 		msgSendTx := controllertypes.NewMsgSendTx(controllerAddress, ibctesting.FirstConnectionID, uint64(5*time.Minute), packetData)
 
-		resp, err := s.BroadcastMessages(
+		resp := s.BroadcastMessages(
 			ctx,
 			chainA,
 			controllerAccount,
 			msgSendTx,
 		)
 
-		s.AssertValidTxResponse(resp)
-		s.Require().NoError(err)
+		s.AssertTxSuccess(resp)
 
 		// time for the packet to be relayed
 		s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA, chainB))
