@@ -231,11 +231,11 @@ func (suite *KeeperTestSuite) TestParams() {
 		input   types.Params
 		expPass bool
 	}{
-		{name: "success: set default params", input: types.DefaultParams(), expPass: true},
-		{name: "success: non-default params", input: types.NewParams(!types.DefaultHostEnabled, []string{"/cosmos.staking.v1beta1.MsgDelegate"}), expPass: true},
-		{name: "success: set empty allowMsg", input: types.NewParams(true, nil), expPass: true},
-		{name: "failure: set empty string", input: types.NewParams(true, []string{""}), expPass: false},
-		{name: "failure: set space string", input: types.NewParams(true, []string{" "}), expPass: false},
+		{"success: set default params", types.DefaultParams(), true},
+		{"success: non-default params", types.NewParams(!types.DefaultHostEnabled, []string{"/cosmos.staking.v1beta1.MsgDelegate"}), true},
+		{"success: set empty allowMsg", types.NewParams(true, nil), true},
+		{"failure: set empty string", types.NewParams(true, []string{""}), false},
+		{"failure: set space string", types.NewParams(true, []string{" "}), false},
 	}
 
 	for _, tc := range testCases {
