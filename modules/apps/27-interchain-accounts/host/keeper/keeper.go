@@ -225,13 +225,8 @@ func (k Keeper) GetParams(ctx sdk.Context) types.Params {
 }
 
 // SetParams sets the total set of the host submodule parameters.
-func (k Keeper) SetParams(ctx sdk.Context, params types.Params) error {
-	if err := params.Validate(); err != nil {
-		return err
-	}
-
+func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshal(&params)
 	store.Set([]byte(types.ParamsKey), bz)
-	return nil
 }

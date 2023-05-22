@@ -29,9 +29,10 @@ func (m msgServer) UpdateParams(goCtx context.Context, msg *types.MsgUpdateParam
 	}
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	if err := m.SetParams(ctx, msg.Params); err != nil {
+	if err := msg.Params.Validate(); err != nil {
 		return nil, err
 	}
+	m.SetParams(ctx, msg.Params)
 
 	return &types.MsgUpdateParamsResponse{}, nil
 }

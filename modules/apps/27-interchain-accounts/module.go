@@ -116,9 +116,10 @@ func (am AppModule) InitModule(ctx sdk.Context, controllerParams controllertypes
 	}
 
 	if am.hostKeeper != nil {
-		if err := am.hostKeeper.SetParams(ctx, hostParams); err != nil {
+		if err := hostParams.Validate(); err != nil {
 			panic(fmt.Sprintf("could not set ica host params at initialization: %v", err))
 		}
+		am.hostKeeper.SetParams(ctx, hostParams)
 
 		capability := am.hostKeeper.BindPort(ctx, types.HostPortID)
 		if err := am.hostKeeper.ClaimCapability(ctx, capability, ibchost.PortPath(types.HostPortID)); err != nil {

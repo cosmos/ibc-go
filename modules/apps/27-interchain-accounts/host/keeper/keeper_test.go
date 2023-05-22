@@ -244,7 +244,8 @@ func (suite *KeeperTestSuite) TestParams() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 			ctx := suite.chainA.GetContext()
-			err := suite.chainA.GetSimApp().ICAHostKeeper.SetParams(ctx, tc.input)
+			err := tc.input.Validate()
+			suite.chainA.GetSimApp().ICAHostKeeper.SetParams(ctx, tc.input)
 			if tc.expPass {
 				suite.Require().NoError(err)
 				expected := tc.input

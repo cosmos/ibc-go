@@ -67,8 +67,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				packetData = icaPacketData.GetBytes()
 
 				params := types.NewParams(true, []string{"*"})
-				err = suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
-				suite.Require().NoError(err)
+				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
 			},
 			true,
 		},
@@ -95,8 +94,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				packetData = icaPacketData.GetBytes()
 
 				params := types.NewParams(true, []string{sdk.MsgTypeURL(msg)})
-				err = suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
-				suite.Require().NoError(err)
+				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
 			},
 			true,
 		},
@@ -124,8 +122,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				packetData = icaPacketData.GetBytes()
 
 				params := types.NewParams(true, []string{sdk.MsgTypeURL(msg)})
-				err = suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
-				suite.Require().NoError(err)
+				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
 			},
 			true,
 		},
@@ -159,8 +156,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				packetData = icaPacketData.GetBytes()
 
 				params := types.NewParams(true, []string{sdk.MsgTypeURL(msgDelegate), sdk.MsgTypeURL(msgUndelegate)})
-				err = suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
-				suite.Require().NoError(err)
+				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
 			},
 			true,
 		},
@@ -195,8 +191,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				packetData = icaPacketData.GetBytes()
 
 				params := types.NewParams(true, []string{sdk.MsgTypeURL(msg)})
-				err = suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
-				suite.Require().NoError(err)
+				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
 			},
 			true,
 		},
@@ -238,8 +233,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				packetData = icaPacketData.GetBytes()
 
 				params := types.NewParams(true, []string{sdk.MsgTypeURL(msg)})
-				err = suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
-				suite.Require().NoError(err)
+				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
 			},
 			true,
 		},
@@ -265,8 +259,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				packetData = icaPacketData.GetBytes()
 
 				params := types.NewParams(true, []string{sdk.MsgTypeURL(msg)})
-				err = suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
-				suite.Require().NoError(err)
+				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
 			},
 			true,
 		},
@@ -292,8 +285,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				packetData = icaPacketData.GetBytes()
 
 				params := types.NewParams(true, []string{sdk.MsgTypeURL(msg)})
-				err = suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
-				suite.Require().NoError(err)
+				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
 			},
 			true,
 		},
@@ -332,8 +324,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				packetData = icaPacketData.GetBytes()
 
 				params := types.NewParams(true, []string{sdk.MsgTypeURL(msg)})
-				err = suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
-				suite.Require().NoError(err)
+				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
 			},
 			true,
 		},
@@ -353,8 +344,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				packetData = icaPacketData.GetBytes()
 
 				params := types.NewParams(true, []string{"/" + proto.MessageName(msg)})
-				err = suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
-				suite.Require().NoError(err)
+				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
 			},
 			false,
 		},
@@ -452,8 +442,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				packetData = icaPacketData.GetBytes()
 
 				params := types.NewParams(true, []string{sdk.MsgTypeURL(msg)})
-				err = suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
-				suite.Require().NoError(err)
+				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
 			},
 			false,
 		},

@@ -22,5 +22,10 @@ func (m Migrator) MigrateParams(ctx sdk.Context) error {
 	var params types.Params
 	m.keeper.legacySubspace.GetParamSet(ctx, &params)
 
-	return m.keeper.SetParams(ctx, params)
+	if err := params.Validate(); err != nil {
+		return err
+	}
+	m.keeper.SetParams(ctx, params)
+	
+	return nil
 }

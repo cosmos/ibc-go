@@ -151,8 +151,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenTry() {
 		},
 		{
 			"host submodule disabled", func() {
-				err := suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), types.NewParams(false, []string{}))
-				suite.Require().NoError(err)
+				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), types.NewParams(false, []string{}))
 			}, false,
 		},
 		{
@@ -274,8 +273,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenConfirm() {
 		},
 		{
 			"host submodule disabled", func() {
-				err := suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), types.NewParams(false, []string{}))
-				suite.Require().NoError(err)
+				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), types.NewParams(false, []string{}))
 			}, false,
 		},
 		{
@@ -401,8 +399,7 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 		},
 		{
 			"host submodule disabled", func() {
-				err := suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), types.NewParams(false, []string{}))
-				suite.Require().NoError(err)
+				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), types.NewParams(false, []string{}))
 			}, false,
 		},
 		{
@@ -467,8 +464,7 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 			expectedAck := channeltypes.NewResultAcknowledgement(expectedTxResponse)
 
 			params := types.NewParams(true, []string{sdk.MsgTypeURL(msg)})
-			err = suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
-			suite.Require().NoError(err)
+			suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
 
 			// malleate packetData for test cases
 			tc.malleate()
@@ -665,8 +661,7 @@ func (suite *InterchainAccountsTestSuite) TestControlAccountAfterChannelClose() 
 	}
 
 	params := types.NewParams(true, []string{sdk.MsgTypeURL(msg)})
-	err = suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
-	suite.Require().NoError(err)
+	suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
 
 	//nolint: staticcheck // SA1019: ibctesting.FirstConnectionID is deprecated: use path.EndpointA.ConnectionID instead. (staticcheck)
 	_, err = suite.chainA.GetSimApp().ICAControllerKeeper.SendTx(suite.chainA.GetContext(), nil, ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID, icaPacketData, ^uint64(0))
