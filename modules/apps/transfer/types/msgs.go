@@ -27,7 +27,7 @@ func NewMsgUpdateParams(authority string, params Params) *MsgUpdateParams {
 func (msg MsgUpdateParams) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Authority)
 	if err != nil {
-		return err
+		return errorsmod.Wrap(err, "invalid authority address")
 	}
 
 	return nil
