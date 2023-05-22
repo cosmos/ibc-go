@@ -233,9 +233,9 @@ func (suite *KeeperTestSuite) TestParams() {
 	}{
 		{"success: set default params", types.DefaultParams(), true},
 		{"success: non-default params", types.NewParams(!types.DefaultHostEnabled, []string{"/cosmos.staking.v1beta1.MsgDelegate"}), true},
-		{"success: set empty allowMsg", types.NewParams(true, nil), true},
-		{"failure: set empty string", types.NewParams(true, []string{""}), false},
-		{"failure: set space string", types.NewParams(true, []string{" "}), false},
+		{"success: set empty byte for allow messages", types.NewParams(true, nil), true},
+		{"failure: set empty string for allow messages", types.NewParams(true, []string{""}), false},
+		{"failure: set space string for allow messages", types.NewParams(true, []string{" "}), false},
 	}
 
 	for _, tc := range testCases {
