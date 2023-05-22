@@ -8,10 +8,11 @@ import "gogoproto/gogo.proto";
 import "google/protobuf/any.proto";
 import "cosmos/upgrade/v1beta1/upgrade.proto";
 import "cosmos_proto/cosmos.proto";
-
+import "ibc/msg/v1/msg.proto";
 // IdentifiedClientState defines a client state with an additional client
 // identifier field.
 message IdentifiedClientState {
+  option (ibc.msg.v1.signer) =  "identifiedclientstate";
   // client identifier
   string client_id = 1;
   // client state
