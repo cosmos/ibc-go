@@ -245,7 +245,7 @@ func (suite *KeeperTestSuite) TestParams() {
 }
 
 func (suite *KeeperTestSuite) TestUnsetParams() {
-	suite.SetupTest() // reset
+	suite.SetupTest()
 
 	ctx := suite.chainA.GetContext()
 	store := suite.chainA.GetContext().KVStore(suite.chainA.GetSimApp().GetKey(types.ModuleName))
