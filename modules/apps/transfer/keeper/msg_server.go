@@ -62,7 +62,7 @@ func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.
 
 func (k Keeper) UpdateParams(goCtx context.Context, msg *types.MsgUpdateParams) (*types.MsgUpdateParamsResponse, error) {
 	if k.authority != msg.Authority {
-		return nil, errorsmod.Wrapf(ibcerrors.ErrInvalidAuthority, "invalid authority; expected %s, got %s", k.authority, msg.Authority)
+		return nil, errorsmod.Wrapf(ibcerrors.ErrInvalidAuthority, "expected %s, got %s", k.authority, msg.Authority)
 	}
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
