@@ -3,11 +3,6 @@ package keeper_test
 import (
 	"testing"
 
-	dbm "github.com/cometbft/cometbft-db"
-	"github.com/cometbft/cometbft/libs/log"
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
-	"github.com/cosmos/cosmos-sdk/baseapp"
-	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	"github.com/stretchr/testify/suite"
 
 	genesistypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/genesis/types"
@@ -15,7 +10,6 @@ import (
 	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
-	"github.com/cosmos/ibc-go/v7/testing/simapp"
 )
 
 var (
@@ -264,18 +258,12 @@ func (suite *KeeperTestSuite) TestParams() {
 }
 
 func (suite *KeeperTestSuite) TestUnsetParams() {
-	// this state should not be possible outside of tests
-	chainID := "testchain"
-	header := tmproto.Header{
-		ChainID: chainID,
-		Height:  1,
-		Time:    suite.coordinator.CurrentTime.UTC(),
-	}
-
-	app := simapp.NewSimApp(log.NewNopLogger(), dbm.NewMemDB(), nil, true, map[int64]bool{}, simapp.DefaultNodeHome, 5, simapp.MakeTestEncodingConfig(), simtestutil.EmptyAppOptions{}, baseapp.SetChainID(chainID))
-	ctx := app.GetBaseApp().NewContext(true, header)
+	suite.SetupTest() // reset
+	ctx := suite.chainA.GetContext()
+	store := suite.chainA.GetContext().KVStore(suite.chainA.GetSimApp().GetKey(types.SubModuleName))
+	store.Delete([]byte(types.ParamsKey))
 
 	suite.Require().Panics(func() {
-		app.ICAHostKeeper.GetParams(ctx)
+		suite.chainA.GetSimApp().ICAHostKeeper.GetParams(ctx)
 	})
 }
