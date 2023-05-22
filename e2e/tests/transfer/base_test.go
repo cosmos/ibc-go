@@ -28,8 +28,8 @@ type TransferTestSuite struct {
 	testsuite.E2ETestSuite
 }
 
-// transferSelfParamFeatureReleases represents the releases the transfer module started managing its own params.
-var transferSelfParamFeatureReleases = semverutil.FeatureReleases{
+// transferSelfParamsFeatureReleases represents the releases the transfer module started managing its own params.
+var transferSelfParamsFeatureReleases = semverutil.FeatureReleases{
 	MajorVersion: "v8",
 }
 
@@ -249,7 +249,7 @@ func (s *TransferTestSuite) TestSendEnabledParam() {
 	chainBAddress := chainBWallet.FormattedAddress()
 
 	chainAVersion := chainA.Config().Images[0].Version
-	isSelfManagingParams := transferSelfParamFeatureReleases.IsSupported(chainAVersion)
+	isSelfManagingParams := transferSelfParamsFeatureReleases.IsSupported(chainAVersion)
 
 	govModuleAddress, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
 	s.Require().NoError(err)
@@ -312,7 +312,7 @@ func (s *TransferTestSuite) TestReceiveEnabledParam() {
 	)
 
 	chainAVersion := chainA.Config().Images[0].Version
-	isSelfManagingParams := transferSelfParamFeatureReleases.IsSupported(chainAVersion)
+	isSelfManagingParams := transferSelfParamsFeatureReleases.IsSupported(chainAVersion)
 
 	govModuleAddress, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
 	s.Require().NoError(err)
