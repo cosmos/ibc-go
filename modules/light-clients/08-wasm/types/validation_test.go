@@ -41,17 +41,6 @@ func TestValidateWasmCode(t *testing.T) {
 			},
 			false,
 		},
-		// {
-		// 	"fails with invalid wasm byte slice",
-		// 	func() {
-		// 		expLength := 10
-		// 		code = make([]byte, expLength)
-		// 		length, err := rand.Read(code)
-		// 		require.NoError(t, err, t.Name())
-		// 		require.Equal(t, expLength, length, t.Name())
-		// 	},
-		// 	false,
-		// },
 	}
 
 	for _, tc := range testCases {
