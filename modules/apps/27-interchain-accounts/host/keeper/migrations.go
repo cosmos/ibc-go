@@ -26,6 +26,6 @@ func (m Migrator) MigrateParams(ctx sdk.Context) error {
 		return err
 	}
 	m.keeper.SetParams(ctx, params)
-	
+
 	return nil
 }
