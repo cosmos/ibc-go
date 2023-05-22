@@ -215,7 +215,7 @@ func (k Keeper) GetAuthority() string {
 func (k Keeper) GetParams(ctx sdk.Context) types.Params {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get([]byte(types.ParamsKey))
-	if bz == nil {
+	if len(bz) == 0 {
 		panic("ica/host params have not been set")
 	}
 
