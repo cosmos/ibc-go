@@ -223,10 +223,10 @@ func (suite *KeeperTestSuite) TestParams() {
 		expPass bool
 	}{
 		// it is not possible to set invalid booleans
-		{name: "success: set params false-false", input: types.NewParams(false, false), expPass: true},
-		{name: "success: set params false-true", input: types.NewParams(false, true), expPass: true},
-		{name: "success: set params true-false", input: types.NewParams(true, false), expPass: true},
-		{name: "success: set params true-true", input: types.NewParams(true, true), expPass: true},
+		{"success: set params false-false", types.NewParams(false, false), true},
+		{"success: set params false-true", types.NewParams(false, true), true},
+		{"success: set params true-false", types.NewParams(true, false), true},
+		{"success: set params true-true", types.NewParams(true, true), true},
 	}
 
 	for _, tc := range testCases {
