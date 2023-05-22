@@ -142,7 +142,7 @@ func (suite *KeeperTestSuite) TestUpdateParams() {
 			true,
 		},
 		{
-			"invalid authority address",
+			"malformed authority address",
 			types.NewMsgUpdateParams(ibctesting.InvalidID, types.DefaultParams()),
 			false,
 		},
