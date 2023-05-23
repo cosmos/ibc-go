@@ -231,3 +231,38 @@ func (suite *MsgTestSuite) TestNewMsgConnectionOpenConfirm() {
 		}
 	}
 }
+
+// TestMsgUpdateConnectionParams_ValidateBasic tests ValidateBasic for MsgUpdateConnectionParams
+func (suite *MsgTestSuite) TestMsgUpdateConnectionParams_ValidateBasic() {
+	authority := suite.chainA.App.GetIBCKeeper().GetAuthority()
+	testCases := []struct {
+		name    string
+		msg     *types.MsgUpdateConnectionParams
+		expPass bool
+	}{
+		{
+			"success: valid authority and params",
+			types.NewMsgUpdateConnectionParams(authority, types.DefaultParams()),
+			true,
+		},
+		{
+			"failure: invalid authority address",
+			types.NewMsgUpdateConnectionParams("invalid", types.DefaultParams()),
+			false,
+		},
+		{
+			"failure: invalid time per block",
+			types.NewMsgUpdateConnectionParams(authority, types.NewParams(0)),
+			false,
+		},
+	}
+
+	for _, tc := range testCases {
+		err := tc.msg.ValidateBasic()
+		if tc.expPass {
+			suite.Require().NoError(err, "valid case %s failed", tc.name)
+		} else {
+			suite.Require().Error(err, "invalid case %s passed", tc.name)
+		}
+	}
+}

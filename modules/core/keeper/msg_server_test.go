@@ -5,6 +5,7 @@ import (
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
@@ -818,6 +819,57 @@ func (suite *KeeperTestSuite) TestUpdateClientParams() {
 			if tc.expPass {
 				suite.Require().NoError(err)
 				p := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetParams(suite.chainA.GetContext())
+				suite.Require().Equal(tc.msg.Params, p)
+			} else {
+				suite.Require().Error(err)
+			}
+		})
+	}
+}
+
+// TestUpdateConnectionParams tests the UpdateConnectionParams rpc handler
+func (suite *KeeperTestSuite) TestUpdateConnectionParams() {
+	validAuthority := suite.chainA.App.GetIBCKeeper().GetAuthority()
+	testCases := []struct {
+		name    string
+		msg     *connectiontypes.MsgUpdateConnectionParams
+		expPass bool
+	}{
+		{
+			"success: valid authority and default params",
+			connectiontypes.NewMsgUpdateConnectionParams(validAuthority, connectiontypes.DefaultParams()),
+			true,
+		},
+		{
+			"failure: malformed authority address",
+			connectiontypes.NewMsgUpdateConnectionParams(ibctesting.InvalidID, connectiontypes.DefaultParams()),
+			false,
+		},
+		{
+			"failure: empty authority address",
+			connectiontypes.NewMsgUpdateConnectionParams("", connectiontypes.DefaultParams()),
+			false,
+		},
+		{
+			"failure: whitespace authority address",
+			connectiontypes.NewMsgUpdateConnectionParams("    ", connectiontypes.DefaultParams()),
+			false,
+		},
+		{
+			"failure: unauthorized authority address",
+			connectiontypes.NewMsgUpdateConnectionParams(ibctesting.TestAccAddress, connectiontypes.DefaultParams()),
+			false,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+			_, err := keeper.Keeper.UpdateConnectionParams(*suite.chainA.App.GetIBCKeeper(), suite.chainA.GetContext(), tc.msg)
+			if tc.expPass {
+				suite.Require().NoError(err)
+				p := suite.chainA.App.GetIBCKeeper().ConnectionKeeper.GetParams(suite.chainA.GetContext())
 				suite.Require().Equal(tc.msg.Params, p)
 			} else {
 				suite.Require().Error(err)

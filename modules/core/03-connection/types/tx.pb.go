@@ -378,6 +378,100 @@ func (m *MsgConnectionOpenConfirmResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgConnectionOpenConfirmResponse proto.InternalMessageInfo
 
+// MsgUpdateConnectionParams defines the sdk.Msg type to update the connection parameters.
+type MsgUpdateConnectionParams struct {
+	// authority is the address of the governance account.
+	Authority string `protobuf:"bytes,1,opt,name=authority,proto3" json:"authority,omitempty"`
+	// params defines the connection parameters to update.
+	//
+	// NOTE: All parameters must be supplied.
+	Params Params `protobuf:"bytes,2,opt,name=params,proto3" json:"params"`
+}
+
+func (m *MsgUpdateConnectionParams) Reset()         { *m = MsgUpdateConnectionParams{} }
+func (m *MsgUpdateConnectionParams) String() string { return proto.CompactTextString(m) }
+func (*MsgUpdateConnectionParams) ProtoMessage()    {}
+func (*MsgUpdateConnectionParams) Descriptor() ([]byte, []int) {
+	return fileDescriptor_5d00fde5fc97399e, []int{8}
+}
+func (m *MsgUpdateConnectionParams) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgUpdateConnectionParams) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgUpdateConnectionParams.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgUpdateConnectionParams) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgUpdateConnectionParams.Merge(m, src)
+}
+func (m *MsgUpdateConnectionParams) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgUpdateConnectionParams) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgUpdateConnectionParams.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgUpdateConnectionParams proto.InternalMessageInfo
+
+func (m *MsgUpdateConnectionParams) GetAuthority() string {
+	if m != nil {
+		return m.Authority
+	}
+	return ""
+}
+
+func (m *MsgUpdateConnectionParams) GetParams() Params {
+	if m != nil {
+		return m.Params
+	}
+	return Params{}
+}
+
+// MsgUpdateConnectionParamsResponse defines the MsgUpdateConnectionParams response type.
+type MsgUpdateConnectionParamsResponse struct {
+}
+
+func (m *MsgUpdateConnectionParamsResponse) Reset()         { *m = MsgUpdateConnectionParamsResponse{} }
+func (m *MsgUpdateConnectionParamsResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgUpdateConnectionParamsResponse) ProtoMessage()    {}
+func (*MsgUpdateConnectionParamsResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_5d00fde5fc97399e, []int{9}
+}
+func (m *MsgUpdateConnectionParamsResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgUpdateConnectionParamsResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgUpdateConnectionParamsResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgUpdateConnectionParamsResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgUpdateConnectionParamsResponse.Merge(m, src)
+}
+func (m *MsgUpdateConnectionParamsResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgUpdateConnectionParamsResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgUpdateConnectionParamsResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgUpdateConnectionParamsResponse proto.InternalMessageInfo
+
 func init() {
 	proto.RegisterType((*MsgConnectionOpenInit)(nil), "ibc.core.connection.v1.MsgConnectionOpenInit")
 	proto.RegisterType((*MsgConnectionOpenInitResponse)(nil), "ibc.core.connection.v1.MsgConnectionOpenInitResponse")
@@ -387,6 +481,8 @@ func init() {
 	proto.RegisterType((*MsgConnectionOpenAckResponse)(nil), "ibc.core.connection.v1.MsgConnectionOpenAckResponse")
 	proto.RegisterType((*MsgConnectionOpenConfirm)(nil), "ibc.core.connection.v1.MsgConnectionOpenConfirm")
 	proto.RegisterType((*MsgConnectionOpenConfirmResponse)(nil), "ibc.core.connection.v1.MsgConnectionOpenConfirmResponse")
+	proto.RegisterType((*MsgUpdateConnectionParams)(nil), "ibc.core.connection.v1.MsgUpdateConnectionParams")
+	proto.RegisterType((*MsgUpdateConnectionParamsResponse)(nil), "ibc.core.connection.v1.MsgUpdateConnectionParamsResponse")
 }
 
 func init() { proto.RegisterFile("ibc/core/connection/v1/tx.proto", fileDescriptor_5d00fde5fc97399e) }
@@ -470,6 +566,9 @@ type MsgClient interface {
 	// ConnectionOpenConfirm defines a rpc handler method for
 	// MsgConnectionOpenConfirm.
 	ConnectionOpenConfirm(ctx context.Context, in *MsgConnectionOpenConfirm, opts ...grpc.CallOption) (*MsgConnectionOpenConfirmResponse, error)
+	// UpdateConnectionParams defines a rpc handler method for
+	// MsgUpdateConnectionParams.
+	UpdateConnectionParams(ctx context.Context, in *MsgUpdateConnectionParams, opts ...grpc.CallOption) (*MsgUpdateConnectionParamsResponse, error)
 }
 
 type msgClient struct {
@@ -516,6 +615,15 @@ func (c *msgClient) ConnectionOpenConfirm(ctx context.Context, in *MsgConnection
 	return out, nil
 }
 
+func (c *msgClient) UpdateConnectionParams(ctx context.Context, in *MsgUpdateConnectionParams, opts ...grpc.CallOption) (*MsgUpdateConnectionParamsResponse, error) {
+	out := new(MsgUpdateConnectionParamsResponse)
+	err := c.cc.Invoke(ctx, "/ibc.core.connection.v1.Msg/UpdateConnectionParams", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MsgServer is the server API for Msg service.
 type MsgServer interface {
 	// ConnectionOpenInit defines a rpc handler method for MsgConnectionOpenInit.
@@ -527,6 +635,9 @@ type MsgServer interface {
 	// ConnectionOpenConfirm defines a rpc handler method for
 	// MsgConnectionOpenConfirm.
 	ConnectionOpenConfirm(context.Context, *MsgConnectionOpenConfirm) (*MsgConnectionOpenConfirmResponse, error)
+	// UpdateConnectionParams defines a rpc handler method for
+	// MsgUpdateConnectionParams.
+	UpdateConnectionParams(context.Context, *MsgUpdateConnectionParams) (*MsgUpdateConnectionParamsResponse, error)
 }
 
 // UnimplementedMsgServer can be embedded to have forward compatible implementations.
@@ -544,6 +655,9 @@ func (*UnimplementedMsgServer) ConnectionOpenAck(ctx context.Context, req *MsgCo
 }
 func (*UnimplementedMsgServer) ConnectionOpenConfirm(ctx context.Context, req *MsgConnectionOpenConfirm) (*MsgConnectionOpenConfirmResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ConnectionOpenConfirm not implemented")
+}
+func (*UnimplementedMsgServer) UpdateConnectionParams(ctx context.Context, req *MsgUpdateConnectionParams) (*MsgUpdateConnectionParamsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateConnectionParams not implemented")
 }
 
 func RegisterMsgServer(s grpc1.Server, srv MsgServer) {
@@ -622,6 +736,24 @@ func _Msg_ConnectionOpenConfirm_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Msg_UpdateConnectionParams_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgUpdateConnectionParams)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).UpdateConnectionParams(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/ibc.core.connection.v1.Msg/UpdateConnectionParams",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).UpdateConnectionParams(ctx, req.(*MsgUpdateConnectionParams))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _Msg_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "ibc.core.connection.v1.Msg",
 	HandlerType: (*MsgServer)(nil),
@@ -641,6 +773,10 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ConnectionOpenConfirm",
 			Handler:    _Msg_ConnectionOpenConfirm_Handler,
+		},
+		{
+			MethodName: "UpdateConnectionParams",
+			Handler:    _Msg_UpdateConnectionParams_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -1106,6 +1242,69 @@ func (m *MsgConnectionOpenConfirmResponse) MarshalToSizedBuffer(dAtA []byte) (in
 	return len(dAtA) - i, nil
 }
 
+func (m *MsgUpdateConnectionParams) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgUpdateConnectionParams) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgUpdateConnectionParams) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	{
+		size, err := m.Params.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintTx(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x12
+	if len(m.Authority) > 0 {
+		i -= len(m.Authority)
+		copy(dAtA[i:], m.Authority)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Authority)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgUpdateConnectionParamsResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgUpdateConnectionParamsResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgUpdateConnectionParamsResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
 func encodeVarintTx(dAtA []byte, offset int, v uint64) int {
 	offset -= sovTx(v)
 	base := offset
@@ -1299,6 +1498,30 @@ func (m *MsgConnectionOpenConfirm) Size() (n int) {
 }
 
 func (m *MsgConnectionOpenConfirmResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
+func (m *MsgUpdateConnectionParams) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Authority)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = m.Params.Size()
+	n += 1 + l + sovTx(uint64(l))
+	return n
+}
+
+func (m *MsgUpdateConnectionParamsResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -2763,6 +2986,171 @@ func (m *MsgConnectionOpenConfirmResponse) Unmarshal(dAtA []byte) error {
 		}
 		if fieldNum <= 0 {
 			return fmt.Errorf("proto: MsgConnectionOpenConfirmResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgUpdateConnectionParams) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgUpdateConnectionParams: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgUpdateConnectionParams: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Authority", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Authority = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Params", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.Params.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgUpdateConnectionParamsResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgUpdateConnectionParamsResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgUpdateConnectionParamsResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:
