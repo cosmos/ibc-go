@@ -6,6 +6,7 @@ option go_package = "github.com/cosmos/ibc-go/v7/modules/core/02-client/types";
 
 import "gogoproto/gogo.proto";
 import "google/protobuf/any.proto";
+import "cosmos/msg/v1/msg.proto";
 
 // Msg defines the ibc/client Msg service.
 service Msg {
@@ -24,6 +25,8 @@ service Msg {
 
 // MsgCreateClient defines a message to create an IBC client
 message MsgCreateClient {
+  option (cosmos.msg.v1.signer)  =  "signer";
+
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
@@ -42,6 +45,8 @@ message MsgCreateClientResponse {}
 // MsgUpdateClient defines an sdk.Msg to update a IBC client state using
 // the given client message.
 message MsgUpdateClient {
+  option (cosmos.msg.v1.signer)  =  "signer";
+
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
@@ -59,6 +64,8 @@ message MsgUpdateClientResponse {}
 // MsgUpgradeClient defines an sdk.Msg to upgrade an IBC client to a new client
 // state
 message MsgUpgradeClient {
+  option (cosmos.msg.v1.signer)  =  "signer";
+
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
@@ -84,6 +91,8 @@ message MsgUpgradeClientResponse {}
 // light client misbehaviour.
 // Warning: DEPRECATED
 message MsgSubmitMisbehaviour {
+  option (cosmos.msg.v1.signer)  =  "signer";
+  
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 

@@ -7,6 +7,7 @@ option go_package = "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types";
 import "gogoproto/gogo.proto";
 import "cosmos/base/v1beta1/coin.proto";
 import "ibc/core/client/v1/client.proto";
+import "cosmos/msg/v1/msg.proto";
 
 // Msg defines the ibc/transfer Msg service.
 service Msg {
@@ -18,6 +19,9 @@ service Msg {
 // ICS20 enabled chains. See ICS Spec here:
 // https://github.com/cosmos/ibc/tree/master/spec/app/ics-020-fungible-token-transfer#data-structures
 message MsgTransfer {
+  option (cosmos.msg.v1.signer)  =  "sender";
+
+
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
