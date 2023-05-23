@@ -179,6 +179,33 @@ func (k Keeper) ChanUpgradeTry(
 		return types.Upgrade{}, errorsmod.Wrapf(types.ErrInvalidConnectionHops, "proposed connection hops (%s) does not match counterparty proposed connection hops (%s)", proposedConnectionHops, counterpartyHops)
 	}
 
+	// construct counterpartyChannel from existing information and provided counterpartyUpgradeSequence
+	counterpartyChannel := types.Channel{
+		State:           types.INITUPGRADE,
+		Counterparty:    types.NewCounterparty(channel.Counterparty.PortId, channel.Counterparty.ChannelId),
+		Ordering:        channel.Ordering,
+		ConnectionHops:  counterpartyProposedUpgrade.Fields.ConnectionHops,
+		Version:         channel.Version,
+		UpgradeSequence: counterpartyUpgradeSequence,
+	}
+
+	// call startFlushUpgrade handshake to move channel from INITUPGRADE to TRYUPGRADE and start flushing
+	// upgrade is blocked on this channelEnd from progressing until flush completes on both ends
+	if err := k.StartFlushUpgradeHandshake(
+		ctx,
+		portID,
+		channelID,
+		proposedUpgrade.Fields,
+		counterpartyChannel,
+		counterpartyProposedUpgrade,
+		types.TRYUPGRADE,
+		proofCounterpartyChannel,
+		proofUpgrade,
+		proofHeight,
+	); err != nil {
+		return types.Upgrade{}, errorsmod.Wrap(err, "failed to start flush upgrade handshake")
+	}
+
 	return proposedUpgrade, nil
 
 }
