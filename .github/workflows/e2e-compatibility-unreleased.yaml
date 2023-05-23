@@ -67,6 +67,30 @@ jobs:
       test-file-directory: "unreleased"
       test-suite: "client"
 
+  ica-gov:
+    needs:
+      - build-release-images
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file-directory: "unreleased"
+      test-suite: "ica-gov"
+
+  ica-groups:
+    needs:
+      - build-release-images
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file-directory: "unreleased"
+      test-suite: "ica-groups"
+
+  incentivized-ica:
+    needs:
+      - build-release-images
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file-directory: "unreleased"
+      test-suite: "incentivized-ica"
+
   incentivized-transfer:
     needs:
       - build-release-images
@@ -74,3 +98,27 @@ jobs:
     with:
       test-file-directory: "unreleased"
       test-suite: "incentivized-transfer"
+
+  localhost-ica:
+    needs:
+      - build-release-images
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file-directory: "unreleased"
+      test-suite: "localhost-ica"
+
+  localhost-transfer:
+    needs:
+      - build-release-images
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file-directory: "unreleased"
+      test-suite: "localhost-transfer"
+
+  transfer-authz:
+    needs:
+      - build-release-images
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file-directory: "unreleased"
+      test-suite: "transfer-authz"
