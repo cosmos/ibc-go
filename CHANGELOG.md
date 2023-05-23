@@ -45,12 +45,13 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Improvements
 
 * (tests) [\#3138](https://github.com/cosmos/ibc-go/pull/3138) Support benchmarks and fuzz tests through `testing.TB`.
+* (apps/transfer) [\#3454](https://github.com/cosmos/ibc-go/pull/3454) Support transfer authorization unlimited spending when the max `uint256` value is provided as limit.
 
 ### Features
 
 ### Bug Fixes
- 
-## [v7.0.0](https://github.com/cosmos/ibc-go/releases/tag/v6.1.0) - 2023-03-17 
+
+## [v7.0.0](https://github.com/cosmos/ibc-go/releases/tag/v6.1.0) - 2023-03-17
 
 ### Dependencies
 
@@ -218,6 +219,12 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (modules/core/keeper) [\#2403](https://github.com/cosmos/ibc-go/pull/2403) Added a function in keeper to cater for blank pointers.
 * (apps/transfer) [\#2679](https://github.com/cosmos/ibc-go/pull/2679) Check `x/bank` send enabled.
 * (modules/core/keeper) [\#2745](https://github.com/cosmos/ibc-go/pull/2745) Fix request wiring for `UpgradedConsensusState` in core query server.
+
+## [v5.3.0](https://github.com/cosmos/ibc-go/releases/tag/v5.3.0) - 2023-05-04
+
+### Dependencies
+
+* [\#3354](https://github.com/cosmos/ibc-go/pull/3354) Bump Cosmos SDK to v0.46.12 and replace Tendermint with CometBFT v0.34.27.
 
 ## [v5.2.0](https://github.com/cosmos/ibc-go/releases/tag/v5.2.0) - 2022-12-20
 
