@@ -2,10 +2,12 @@ name: Docker Build & Push Simapp (main)
 # Build & Push builds the simapp docker image on every push to main and
 # and pushes the image to https://ghcr.io/cosmos/ibc-go-simd
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
     paths:
+      - '.github/workflows/docker.yml'
       - '**.go'
 
 env:
@@ -39,4 +41,4 @@ jobs:
         push: true
         tags: ${{ steps.meta.outputs.tags }}
         build-args: |
-          IBC_GO_VERSION=${{ github.ref_name }}
+          IBC_GO_VERSION=main
