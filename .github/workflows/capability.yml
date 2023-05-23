@@ -1,7 +1,7 @@
 name: Capability Module
 on:
-  push:
-    pull_request:
+  pull_request:
+    paths:
       - '.github/workflows/capability.yml'
       - 'modules/capability/**'
       - 'proto/capability/**'
