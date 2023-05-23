@@ -35,8 +35,8 @@ func (suite *MultihopTestSuite) TestChanOpenInit() {
 		}, false},
 		{"connection doesn't exist", func() {
 			// any non-empty values
-			suite.chanPath.EndpointA.ConnectionID = "connection-0"
-			suite.chanPath.EndpointZ.ConnectionID = "connection-0"
+			suite.A().ConnectionID = "connection-0"
+			suite.Z().ConnectionID = "connection-0"
 		}, false},
 		{"capability is incorrect", func() {
 			suite.SetupConnections()
@@ -51,14 +51,14 @@ func (suite *MultihopTestSuite) TestChanOpenInit() {
 			suite.coord.SetupConnections(suite.chanPath)
 
 			// modify connA versions
-			conn := suite.chanPath.EndpointA.GetConnection()
+			conn := suite.A().GetConnection()
 
 			version := connectiontypes.NewVersion("2", []string{"ORDER_ORDERED", "ORDER_UNORDERED"})
 			conn.Versions = append(conn.Versions, version)
 
 			suite.A().Chain.App.GetIBCKeeper().ConnectionKeeper.SetConnection(
 				suite.A().Chain.GetContext(),
-				suite.chanPath.EndpointA.ConnectionID, conn,
+				suite.A().ConnectionID, conn,
 			)
 			// features = []string{"ORDER_ORDERED", "ORDER_UNORDERED"}
 			suite.A().Chain.CreatePortCapability(suite.A().Chain.GetSimApp().ScopedIBCMockKeeper, ibctesting.MockPort)
@@ -75,7 +75,7 @@ func (suite *MultihopTestSuite) TestChanOpenInit() {
 
 			suite.A().Chain.App.GetIBCKeeper().ConnectionKeeper.SetConnection(
 				suite.A().Chain.GetContext(),
-				suite.chanPath.EndpointA.ConnectionID, conn,
+				suite.A().ConnectionID, conn,
 			)
 			// NOTE: Opening UNORDERED channels is still expected to pass but ORDERED channels should fail
 			features = []string{"ORDER_UNORDERED"}
@@ -269,7 +269,7 @@ func (suite *MultihopTestSuite) TestChanOpenTryMultihop() {
 				return
 			}
 
-			channelID, cap, err := suite.Z().Chain.App.GetIBCKeeper().ChannelKeeper.ChanOpenTry(
+			channelID, capability, err := suite.Z().Chain.App.GetIBCKeeper().ChannelKeeper.ChanOpenTry(
 				suite.Z().Chain.GetContext(),
 				suite.Z().ChannelConfig.Order,
 				suite.Z().GetConnectionHops(),
@@ -283,14 +283,14 @@ func (suite *MultihopTestSuite) TestChanOpenTryMultihop() {
 
 			if tc.expPass {
 				suite.Require().NoError(err)
-				suite.Require().NotNil(cap)
+				suite.Require().NotNil(capability)
 
 				chanCap, ok := suite.Z().Chain.App.GetScopedIBCKeeper().GetCapability(
 					suite.Z().Chain.GetContext(),
 					host.ChannelCapabilityPath(suite.Z().ChannelConfig.PortID, channelID),
 				)
 				suite.Require().True(ok, "could not retrieve channel capapbility after successful ChanOpenTry")
-				suite.Require().Equal(chanCap.String(), cap.String(), "channel capability is not correct")
+				suite.Require().Equal(chanCap.String(), capability.String(), "channel capability is not correct")
 			} else {
 				suite.Require().Error(err)
 			}
@@ -622,9 +622,7 @@ func (suite *MultihopTestSuite) TestChanOpenConfirmMultihop() {
 // TestChanCloseInitMultihop tests the initial closing of a handshake on chainA by calling
 // ChanCloseInit.
 func (suite *MultihopTestSuite) TestChanCloseInitMultihop() {
-	var (
-		channelCap *capabilitytypes.Capability
-	)
+	var channelCap *capabilitytypes.Capability
 
 	testCases := []testCase{
 		{"success", func() {
@@ -660,9 +658,7 @@ func (suite *MultihopTestSuite) TestChanCloseInitMultihop() {
 // TestChanCloseConfirmMultihop tests the confirming closing channel ends by calling ChanCloseConfirm on chainZ.
 // ChanCloseInit is bypassed on chainA by setting the channel state in the ChannelKeeper.
 func (suite *MultihopTestSuite) TestChanCloseConfirmMultihop() {
-	var (
-		channelCap *capabilitytypes.Capability
-	)
+	var channelCap *capabilitytypes.Capability
 
 	testCases := []testCase{
 		{"success", func() {

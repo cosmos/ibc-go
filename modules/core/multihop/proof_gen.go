@@ -128,7 +128,9 @@ func (p ChanPath) GenerateIntermediateStateProofs(
 			break
 		}
 
-		// find minimum height on nextChain that can prove the key/value at a specific height on the current chain
+		// determine the minimum consensusState height on the next chain within the provided height range
+		// also returns the heigh at which this consensusState was processed on the nextChain which will
+		// be used to query a proof of the consensus state at the minimum possible height
 		processedHeight, consensusHeight, err = nextChain.QueryMinimumConsensusHeight(processedHeight, nil)
 		if err != nil {
 			return nil, err
@@ -140,21 +142,21 @@ func (p ChanPath) GenerateIntermediateStateProofs(
 
 type proofGenFunc func(Endpoint, exported.Height, exported.Height) *channeltypes.MultihopProof
 
-// Generate a proof for A's consensusState stored on B
+// Query a proof for the counterparty consensus state at the specified height on the given chain.
 func genConsensusStateProof(
-	chainB Endpoint,
-	processedHeight exported.Height,
+	chain Endpoint,
+	proofHeight exported.Height,
 	consensusHeight exported.Height,
 ) *channeltypes.MultihopProof {
 
-	key := host.FullConsensusStateKey(chainB.ClientID(), consensusHeight)
-	bzConsStateAB := chainB.QueryStateAtHeight(key, int64(processedHeight.GetRevisionHeight()))
+	key := host.FullConsensusStateKey(chain.ClientID(), consensusHeight)
+	bzConsStateAB := chain.QueryStateAtHeight(key, int64(proofHeight.GetRevisionHeight()))
 
 	consensusProof := queryProof(
-		chainB,
-		host.FullConsensusStateKey(chainB.ClientID(), consensusHeight),
+		chain,
+		host.FullConsensusStateKey(chain.ClientID(), consensusHeight),
 		bzConsStateAB,
-		processedHeight.Increment(), // need to match height used in QueryStateAtHeight
+		proofHeight.Increment(), // need to match height used in QueryStateAtHeight
 	)
 
 	// debug code
@@ -169,19 +171,19 @@ func genConsensusStateProof(
 	return consensusProof
 }
 
-// Generate a proof for the connEnd denoting A stored on B using B's consensusState root stored on C.
+// Query a proof for the connEnd on the given chain at the specified height.
 func genConnProof(
-	chainB Endpoint,
-	processedHeight exported.Height,
+	chain Endpoint,
+	proofHeight exported.Height,
 	_ exported.Height,
 ) *channeltypes.MultihopProof {
-	key := host.ConnectionKey(chainB.ConnectionID())
-	bzConnAB := chainB.QueryStateAtHeight(key, int64(processedHeight.GetRevisionHeight()))
+	key := host.ConnectionKey(chain.ConnectionID())
+	bzConnAB := chain.QueryStateAtHeight(key, int64(proofHeight.GetRevisionHeight()))
 	return queryProof(
-		chainB,
-		host.ConnectionKey(chainB.ConnectionID()),
+		chain,
+		host.ConnectionKey(chain.ConnectionID()),
 		bzConnAB,
-		processedHeight.Increment()) // need to match height used in QueryStateAtHeight
+		proofHeight.Increment()) // need to match height used in QueryStateAtHeight
 }
 
 // queryProof queries the key-value pair or absence proof stored on A and optionally ensures the proof
