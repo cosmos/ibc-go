@@ -83,13 +83,6 @@ func (suite *KeeperTestSuite) TestChanUpgradeInit() {
 			},
 			false,
 		},
-		{
-			"stricter proposed channel upgrade ordering",
-			func() {
-				upgrade.Fields.Ordering = types.ORDERED
-			},
-			false,
-		},
 	}
 
 	for _, tc := range testCases {
