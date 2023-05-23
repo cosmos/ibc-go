@@ -1,6 +1,8 @@
 package ibctesting
 
-import "github.com/stretchr/testify/require"
+import (
+	"github.com/stretchr/testify/require"
+)
 
 // CoordinatorM coordinates testing set up for multihop channels.
 //
