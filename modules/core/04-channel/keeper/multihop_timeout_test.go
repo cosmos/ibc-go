@@ -74,7 +74,6 @@ func (suite *MultihopTestSuite) TestTimeoutPacket() {
 					// proof of absence of packet receipt
 					key = host.PacketReceiptKey(packet.SourcePort, packet.SourceChannel, packet.Sequence)
 				}
-				var err error
 				proof, err = suite.Z().QueryMultihopProof(key, packetHeight)
 				suite.Require().NoError(err)
 
@@ -145,7 +144,7 @@ func (suite *MultihopTestSuite) TestTimeoutOnClose() {
 			proofClosed, err := suite.Z().QueryChannelProof(suite.Z().Chain.LastHeader.GetHeight())
 			suite.Require().NoError(err)
 
-			proofHeight := suite.A().GetClientState().GetLatestHeight()
+			proofHeight := suite.A().ProofHeight()
 
 			if tc.orderedChannel {
 				key = host.NextSequenceRecvKey(packet.GetDestPort(), packet.GetDestChannel())

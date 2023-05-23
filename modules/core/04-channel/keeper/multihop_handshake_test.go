@@ -184,14 +184,12 @@ func (suite *MultihopTestSuite) TestChanOpenTryMultihop() {
 			suite.Z().Chain.CreatePortCapability(suite.Z().Chain.GetSimApp().ScopedIBCMockKeeper, ibctesting.MockPort)
 			portCap = suite.Z().Chain.GetPortCapability(ibctesting.MockPort)
 
-			err := suite.chanPath.EndpointZ.ConnOpenInit()
-			suite.Require().NoError(err)
+			suite.Require().NoError(suite.chanPath.EndpointZ.ConnOpenInit())
 		}, false},
 		{"consensus state not found", func() {
 			suite.SetupConnections()
 			suite.chanPath.SetChannelOrdered()
-			err := suite.A().ChanOpenInit()
-			suite.Require().NoError(err)
+			suite.Require().NoError(suite.A().ChanOpenInit())
 
 			suite.Z().Chain.CreatePortCapability(suite.Z().Chain.GetSimApp().ScopedIBCMockKeeper, ibctesting.MockPort)
 			portCap = suite.Z().Chain.GetPortCapability(ibctesting.MockPort)
@@ -206,16 +204,14 @@ func (suite *MultihopTestSuite) TestChanOpenTryMultihop() {
 		{"port capability not found", func() {
 			suite.SetupConnections()
 			suite.chanPath.SetChannelOrdered()
-			err := suite.A().ChanOpenInit()
-			suite.Require().NoError(err)
+			suite.Require().NoError(suite.A().ChanOpenInit())
 
 			portCap = capabilitytypes.NewCapability(3)
 		}, false},
 		{"connection version not negotiated", func() {
 			suite.SetupConnections()
 			suite.chanPath.SetChannelOrdered()
-			err := suite.A().ChanOpenInit()
-			suite.Require().NoError(err)
+			suite.Require().NoError(suite.A().ChanOpenInit())
 
 			// modify A counterparty's versions
 			chain := suite.A().Endpoint.Counterparty
@@ -235,8 +231,7 @@ func (suite *MultihopTestSuite) TestChanOpenTryMultihop() {
 		{"connection does not support ORDERED channels", func() {
 			suite.SetupConnections()
 			suite.chanPath.SetChannelOrdered()
-			err := suite.A().ChanOpenInit()
-			suite.Require().NoError(err)
+			suite.Require().NoError(suite.A().ChanOpenInit())
 
 			// modify connA versions to only support UNORDERED channels
 			conn := suite.chanPath.EndpointA.GetConnection()
@@ -270,10 +265,8 @@ func (suite *MultihopTestSuite) TestChanOpenTryMultihop() {
 
 			if tc.expPass {
 				suite.Require().NoError(err)
-			} else {
-				if err != nil {
-					return
-				}
+			} else if err != nil {
+				return
 			}
 
 			channelID, cap, err := suite.Z().Chain.App.GetIBCKeeper().ChannelKeeper.ChanOpenTry(
@@ -285,7 +278,7 @@ func (suite *MultihopTestSuite) TestChanOpenTryMultihop() {
 				suite.Z().CounterpartyChannel(),
 				suite.A().ChannelConfig.Version,
 				proof,
-				malleateHeight(suite.Z().GetClientState().GetLatestHeight(), heightDiff),
+				malleateHeight(suite.Z().ProofHeight(), heightDiff),
 			)
 
 			if tc.expPass {
@@ -332,10 +325,8 @@ func (suite *MultihopTestSuite) TestChanOpenAckMultihop() {
 
 			if tc.expPass {
 				suite.Require().NoError(err)
-			} else {
-				if err != nil {
-					return
-				}
+			} else if err != nil {
+				return
 			}
 
 			err = suite.A().Chain.App.GetIBCKeeper().ChannelKeeper.ChanOpenAck(
@@ -346,7 +337,7 @@ func (suite *MultihopTestSuite) TestChanOpenAckMultihop() {
 				suite.Z().ChannelConfig.Version,
 				suite.Z().ChannelID,
 				proof,
-				suite.A().GetClientState().GetLatestHeight(),
+				suite.A().ProofHeight(),
 			)
 
 			if tc.expPass {
@@ -386,10 +377,8 @@ func (suite *MultihopTestSuite) TestChanOpenConfirmMultihop() {
 
 			if tc.expPass {
 				suite.Require().NoError(err)
-			} else {
-				if err != nil {
-					return
-				}
+			} else if err != nil {
+				return
 			}
 
 			err = suite.Z().Chain.App.GetIBCKeeper().ChannelKeeper.ChanOpenConfirm(
@@ -473,16 +462,14 @@ func (suite *MultihopTestSuite) TestChanCloseConfirmMultihop() {
 
 			if tc.expPass {
 				suite.Require().NoError(err)
-			} else {
-				if err != nil {
-					return
-				}
+			} else if err != nil {
+				return
 			}
 
 			err = suite.Z().Chain.App.GetIBCKeeper().ChannelKeeper.ChanCloseConfirm(
 				suite.Z().Chain.GetContext(), suite.Z().ChannelConfig.PortID, suite.Z().ChannelID,
 				channelCap,
-				proof, suite.Z().GetClientState().GetLatestHeight(),
+				proof, suite.Z().ProofHeight(),
 			)
 
 			if tc.expPass {
