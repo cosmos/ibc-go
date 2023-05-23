@@ -69,9 +69,8 @@ func (s *IncentivizedInterchainAccountsTestSuite) TestMsgSendTx_SuccessfulBankSe
 		version := getICAVersion(testconfig.GetChainATag(), testconfig.GetChainBTag())
 		msgRegisterAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, controllerAccount.FormattedAddress(), version)
 
-		txResp, err := s.BroadcastMessages(ctx, chainA, controllerAccount, msgRegisterAccount)
-		s.Require().NoError(err)
-		s.AssertValidTxResponse(txResp)
+		txResp := s.BroadcastMessages(ctx, chainA, controllerAccount, msgRegisterAccount)
+		s.AssertTxSuccess(txResp)
 	})
 
 	t.Run("start relayer", func(t *testing.T) {
@@ -110,9 +109,8 @@ func (s *IncentivizedInterchainAccountsTestSuite) TestMsgSendTx_SuccessfulBankSe
 		})
 
 		t.Run("register counterparty payee", func(t *testing.T) {
-			resp, err := s.RegisterCounterPartyPayee(ctx, chainB, chainBRelayerUser, channelOutput.Counterparty.PortID, channelOutput.Counterparty.ChannelID, chainBRelayerWallet.FormattedAddress(), chainARelayerWallet.FormattedAddress())
-			s.Require().NoError(err)
-			s.AssertValidTxResponse(resp)
+			resp := s.RegisterCounterPartyPayee(ctx, chainB, chainBRelayerUser, channelOutput.Counterparty.PortID, channelOutput.Counterparty.ChannelID, chainBRelayerWallet.FormattedAddress(), chainARelayerWallet.FormattedAddress())
+			s.AssertTxSuccess(resp)
 		})
 
 		t.Run("verify counterparty payee", func(t *testing.T) {
@@ -157,9 +155,8 @@ func (s *IncentivizedInterchainAccountsTestSuite) TestMsgSendTx_SuccessfulBankSe
 
 			msgSendTx := controllertypes.NewMsgSendTx(controllerAccount.FormattedAddress(), ibctesting.FirstConnectionID, uint64(time.Hour.Nanoseconds()), packetData)
 
-			resp, err := s.BroadcastMessages(ctx, chainA, controllerAccount, msgPayPacketFee, msgSendTx)
-			s.AssertValidTxResponse(resp)
-			s.Require().NoError(err)
+			resp := s.BroadcastMessages(ctx, chainA, controllerAccount, msgPayPacketFee, msgSendTx)
+			s.AssertTxSuccess(resp)
 
 			s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB))
 		})
@@ -255,9 +252,8 @@ func (s *IncentivizedInterchainAccountsTestSuite) TestMsgSendTx_FailedBankSend_I
 		version := getICAVersion(testconfig.GetChainATag(), testconfig.GetChainBTag())
 		msgRegisterAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, controllerAccount.FormattedAddress(), version)
 
-		txResp, err := s.BroadcastMessages(ctx, chainA, controllerAccount, msgRegisterAccount)
-		s.Require().NoError(err)
-		s.AssertValidTxResponse(txResp)
+		txResp := s.BroadcastMessages(ctx, chainA, controllerAccount, msgRegisterAccount)
+		s.AssertTxSuccess(txResp)
 	})
 
 	t.Run("start relayer", func(t *testing.T) {
@@ -286,9 +282,8 @@ func (s *IncentivizedInterchainAccountsTestSuite) TestMsgSendTx_FailedBankSend_I
 
 	t.Run("execute interchain account bank send through controller", func(t *testing.T) {
 		t.Run("register counterparty payee", func(t *testing.T) {
-			resp, err := s.RegisterCounterPartyPayee(ctx, chainB, chainBRelayerUser, channelOutput.Counterparty.PortID, channelOutput.Counterparty.ChannelID, chainBRelayerWallet.FormattedAddress(), chainARelayerWallet.FormattedAddress())
-			s.Require().NoError(err)
-			s.AssertValidTxResponse(resp)
+			resp := s.RegisterCounterPartyPayee(ctx, chainB, chainBRelayerUser, channelOutput.Counterparty.PortID, channelOutput.Counterparty.ChannelID, chainBRelayerWallet.FormattedAddress(), chainARelayerWallet.FormattedAddress())
+			s.AssertTxSuccess(resp)
 		})
 
 		t.Run("verify counterparty payee", func(t *testing.T) {
@@ -334,9 +329,8 @@ func (s *IncentivizedInterchainAccountsTestSuite) TestMsgSendTx_FailedBankSend_I
 
 			msgSendTx := controllertypes.NewMsgSendTx(controllerAccount.FormattedAddress(), ibctesting.FirstConnectionID, uint64(time.Hour.Nanoseconds()), packetData)
 
-			resp, err := s.BroadcastMessages(ctx, chainA, controllerAccount, msgPayPacketFee, msgSendTx)
-			s.AssertValidTxResponse(resp)
-			s.Require().NoError(err)
+			resp := s.BroadcastMessages(ctx, chainA, controllerAccount, msgPayPacketFee, msgSendTx)
+			s.AssertTxSuccess(resp)
 
 			s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB))
 		})

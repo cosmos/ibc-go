@@ -61,7 +61,17 @@ const (
 	// defaultConfigFileName is the default filename for the config file that can be used to configure
 	// e2e tests. See sample.config.yaml as an example for what this should look like.
 	defaultConfigFileName = ".ibc-go-e2e-config.yaml"
+
+	// icadBinary is the binary for interchain-accounts-demo repository.
+	icadBinary = "icad"
 )
+
+// icadNewGenesisCommandsFeatureReleases represents the releases of icad using the new genesis commands.
+var icadNewGenesisCommandsFeatureReleases = semverutil.FeatureReleases{
+	MinorVersions: []string{
+		"v0.5",
+	},
+}
 
 func getChainImage(binary string) string {
 	if binary == "" {
@@ -362,6 +372,8 @@ func newDefaultSimappConfig(cc ChainConfig, name, chainID, denom string, cometCf
 	tmTomlOverrides["log_level"] = cometCfg.LogLevel // change to debug in ~/.ibc-go-e2e-config.json to increase cometbft logging.
 	configFileOverrides["config/config.toml"] = tmTomlOverrides
 
+	useNewGenesisCommand := cc.Binary == icadBinary && icadNewGenesisCommandsFeatureReleases.IsSupported(cc.Tag)
+
 	return ibc.ChainConfig{
 		Type:    "cosmos",
 		Name:    name,
@@ -372,25 +384,30 @@ func newDefaultSimappConfig(cc ChainConfig, name, chainID, denom string, cometCf
 				Version:    cc.Tag,
 			},
 		},
-		Bin:                 cc.Binary,
-		Bech32Prefix:        "cosmos",
-		CoinType:            fmt.Sprint(sdk.GetConfig().GetCoinType()),
-		Denom:               denom,
-		GasPrices:           fmt.Sprintf("0.00%s", denom),
-		GasAdjustment:       1.3,
-		TrustingPeriod:      "508h",
-		NoHostMount:         false,
-		ModifyGenesis:       getGenesisModificationFunction(cc),
-		ConfigFileOverrides: configFileOverrides,
+		Bin:                    cc.Binary,
+		Bech32Prefix:           "cosmos",
+		CoinType:               fmt.Sprint(sdk.GetConfig().GetCoinType()),
+		Denom:                  denom,
+		GasPrices:              fmt.Sprintf("0.00%s", denom),
+		GasAdjustment:          1.3,
+		TrustingPeriod:         "508h",
+		NoHostMount:            false,
+		ModifyGenesis:          getGenesisModificationFunction(cc),
+		ConfigFileOverrides:    configFileOverrides,
+		UsingNewGenesisCommand: useNewGenesisCommand,
 	}
 }
 
 // getGenesisModificationFunction returns a genesis modification function that handles the GenesisState type
 // correctly depending on if the govv1beta1 gov module is used or if govv1 is being used.
 func getGenesisModificationFunction(cc ChainConfig) func(ibc.ChainConfig, []byte) ([]byte, error) {
+	binary := cc.Binary
 	version := cc.Tag
 
-	if govGenesisFeatureReleases.IsSupported(version) {
+	doesSimdSupportGovv1Genesis := binary == defaultBinary && govGenesisFeatureReleases.IsSupported(version)
+	doesIcadSupportGovv1Genesis := icadGovGenesisFeatureReleases.IsSupported(version)
+
+	if doesSimdSupportGovv1Genesis || doesIcadSupportGovv1Genesis {
 		return defaultGovv1ModifyGenesis()
 	}
 
@@ -401,6 +418,14 @@ func getGenesisModificationFunction(cc ChainConfig) func(ibc.ChainConfig, []byte
 // was upgraded from v1beta1 to v1.
 var govGenesisFeatureReleases = semverutil.FeatureReleases{
 	MajorVersion: "v7",
+}
+
+// icadGovGenesisFeatureReleases represents the releases of icad where the governance module genesis
+// was upgraded from v1beta1 to v1.
+var icadGovGenesisFeatureReleases = semverutil.FeatureReleases{
+	MinorVersions: []string{
+		"v0.5",
+	},
 }
 
 // defaultGovv1ModifyGenesis will only modify governance params to ensure the voting period and minimum deposit
