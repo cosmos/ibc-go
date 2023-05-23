@@ -13,8 +13,8 @@ import (
 )
 
 // NewUpgrade creates a new Upgrade instance.
-func NewUpgrade(upgradeFields UpgradeFields, timeout UpgradeTimeout, latestPacketSent uint64) *Upgrade {
-	return &Upgrade{
+func NewUpgrade(upgradeFields UpgradeFields, timeout Timeout, latestPacketSent uint64) Upgrade {
+	return Upgrade{
 		Fields:             upgradeFields,
 		Timeout:            timeout,
 		LatestSequenceSend: latestPacketSent,
@@ -31,8 +31,8 @@ func NewUpgradeFields(ordering Order, connectionHops []string, version string) U
 }
 
 // NewUpgradeTimeout returns a new UpgradeTimeout instance.
-func NewUpgradeTimeout(height clienttypes.Height, timestamp uint64) UpgradeTimeout {
-	return UpgradeTimeout{
+func NewUpgradeTimeout(height clienttypes.Height, timestamp uint64) Timeout {
+	return Timeout{
 		Height:    height,
 		Timestamp: timestamp,
 	}
@@ -69,12 +69,12 @@ func (uf UpgradeFields) ValidateBasic() error {
 }
 
 // IsValid returns true if either the height or timestamp is non-zero
-func (ut UpgradeTimeout) IsValid() bool {
+func (ut Timeout) IsValid() bool {
 	return !ut.Height.IsZero() || ut.Timestamp != 0
 }
 
 // HasPassed returns true if the upgrade has passed the timeout height or timestamp
-func (ut UpgradeTimeout) HasPassed(ctx sdk.Context) (bool, error) {
+func (ut Timeout) HasPassed(ctx sdk.Context) (bool, error) {
 	if !ut.IsValid() {
 		return true, errorsmod.Wrap(ErrInvalidUpgrade, "upgrade timeout cannot be empty")
 	}

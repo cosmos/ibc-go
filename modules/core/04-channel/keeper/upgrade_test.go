@@ -16,7 +16,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeInit() {
 	var (
 		path        *ibctesting.Path
 		expSequence uint64
-		upgrade     *types.Upgrade
+		upgrade     types.Upgrade
 	)
 
 	testCases := []struct {
@@ -308,8 +308,8 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry_CrossingHellos() {
 	var (
 		path                        *ibctesting.Path
 		expSequence                 uint64
-		upgrade                     *types.Upgrade
-		counterpartyUpgradeTimeout  types.UpgradeTimeout
+		upgrade                     types.Upgrade
+		counterpartyUpgradeTimeout  types.Timeout
 		counterpartyUpgrade         types.Upgrade
 		counterpartyUpgradeSequence uint64
 		err                         error
@@ -401,7 +401,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry_CrossingHellos() {
 			// we need to write the upgradeInit so that the correct channel state is returned for chain B
 			suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.WriteUpgradeInitChannel(
 				suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID,
-				path.EndpointB.GetChannel(), *upgrade,
+				path.EndpointB.GetChannel(), upgrade,
 			)
 
 			// commit a block to update chain B for correct proof querying

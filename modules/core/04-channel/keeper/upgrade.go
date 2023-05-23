@@ -20,7 +20,7 @@ func (k Keeper) ChanUpgradeInit(
 	portID string,
 	channelID string,
 	upgradeFields types.UpgradeFields,
-	upgradeTimeout types.UpgradeTimeout,
+	upgradeTimeout types.Timeout,
 ) (types.Upgrade, error) {
 	channel, found := k.GetChannel(ctx, portID, channelID)
 	if !found {
@@ -62,14 +62,14 @@ func (k Keeper) WriteUpgradeInitChannel(ctx sdk.Context, portID, channelID strin
 }
 
 // constructProposedUpgrade returns the proposed upgrade from the provided arguments.
-func (k Keeper) constructProposedUpgrade(ctx sdk.Context, portID, channelID string, fields types.UpgradeFields, timeout types.UpgradeTimeout) (types.Upgrade, error) {
+func (k Keeper) constructProposedUpgrade(ctx sdk.Context, portID, channelID string, fields types.UpgradeFields, upgradeTimeout types.Timeout) (types.Upgrade, error) {
 	seq, found := k.GetNextSequenceSend(ctx, portID, channelID)
 	if !found {
 		return types.Upgrade{}, types.ErrSequenceSendNotFound
 	}
 	return types.Upgrade{
 		Fields:             fields,
-		Timeout:            timeout,
+		Timeout:            upgradeTimeout,
 		LatestSequenceSend: seq - 1,
 	}, nil
 }
@@ -81,7 +81,7 @@ func (k Keeper) ChanUpgradeTry(
 	portID,
 	channelID string,
 	proposedConnectionHops []string,
-	proposedUpgradeTimeout types.UpgradeTimeout,
+	proposedUpgradeTimeout types.Timeout,
 	counterpartyProposedUpgrade types.Upgrade,
 	counterpartyUpgradeSequence uint64,
 	proofCounterpartyChannel,
