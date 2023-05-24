@@ -348,6 +348,15 @@ func (s *E2ETestSuite) GetRelayerExecReporter() *testreporter.RelayerExecReporte
 	return rep.RelayerExecReporter(s.T())
 }
 
+// TransferChannelOptions configures both of the chains to have non-incentivized transfer channels.
+func (s *E2ETestSuite) TransferChannelOptions() func(options *ibc.CreateChannelOptions) {
+	return func(opts *ibc.CreateChannelOptions) {
+		opts.Version = transfertypes.Version
+		opts.SourcePortName = transfertypes.PortID
+		opts.DestPortName = transfertypes.PortID
+	}
+}
+
 // GetTimeoutHeight returns a timeout height of 1000 blocks above the current block height.
 // This function should be used when the timeout is never expected to be reached
 func (s *E2ETestSuite) GetTimeoutHeight(ctx context.Context, chain *cosmos.CosmosChain) clienttypes.Height {

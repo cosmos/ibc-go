@@ -22,9 +22,9 @@ import (
 
 // Keeper defines the IBC interchain accounts host keeper
 type Keeper struct {
-	storeKey   storetypes.StoreKey
-	cdc        codec.BinaryCodec
-	paramSpace paramtypes.Subspace
+	storeKey       storetypes.StoreKey
+	cdc            codec.BinaryCodec
+	legacySubspace paramtypes.Subspace
 
 	ics4Wrapper   porttypes.ICS4Wrapper
 	channelKeeper icatypes.ChannelKeeper
@@ -34,13 +34,18 @@ type Keeper struct {
 	scopedKeeper exported.ScopedKeeper
 
 	msgRouter icatypes.MessageRouter
+
+	// the address capable of executing a MsgUpdateParams message. Typically, this
+	// should be the x/gov module account.
+	authority string
 }
 
 // NewKeeper creates a new interchain accounts host Keeper instance
 func NewKeeper(
-	cdc codec.BinaryCodec, key storetypes.StoreKey, paramSpace paramtypes.Subspace,
+	cdc codec.BinaryCodec, key storetypes.StoreKey, legacySubspace paramtypes.Subspace,
 	ics4Wrapper porttypes.ICS4Wrapper, channelKeeper icatypes.ChannelKeeper, portKeeper icatypes.PortKeeper,
 	accountKeeper icatypes.AccountKeeper, scopedKeeper exported.ScopedKeeper, msgRouter icatypes.MessageRouter,
+	authority string,
 ) Keeper {
 	// ensure ibc interchain accounts module account is set
 	if addr := accountKeeper.GetModuleAddress(icatypes.ModuleName); addr == nil {
@@ -48,20 +53,21 @@ func NewKeeper(
 	}
 
 	// set KeyTable if it has not already been set
-	if !paramSpace.HasKeyTable() {
-		paramSpace = paramSpace.WithKeyTable(types.ParamKeyTable())
+	if !legacySubspace.HasKeyTable() {
+		legacySubspace = legacySubspace.WithKeyTable(types.ParamKeyTable())
 	}
 
 	return Keeper{
-		storeKey:      key,
-		cdc:           cdc,
-		paramSpace:    paramSpace,
-		ics4Wrapper:   ics4Wrapper,
-		channelKeeper: channelKeeper,
-		portKeeper:    portKeeper,
-		accountKeeper: accountKeeper,
-		scopedKeeper:  scopedKeeper,
-		msgRouter:     msgRouter,
+		storeKey:       key,
+		cdc:            cdc,
+		legacySubspace: legacySubspace,
+		ics4Wrapper:    ics4Wrapper,
+		channelKeeper:  channelKeeper,
+		portKeeper:     portKeeper,
+		accountKeeper:  accountKeeper,
+		scopedKeeper:   scopedKeeper,
+		msgRouter:      msgRouter,
+		authority:      authority,
 	}
 }
 
@@ -198,4 +204,29 @@ func (k Keeper) GetAllInterchainAccounts(ctx sdk.Context) []genesistypes.Registe
 func (k Keeper) SetInterchainAccountAddress(ctx sdk.Context, connectionID, portID, address string) {
 	store := ctx.KVStore(k.storeKey)
 	store.Set(icatypes.KeyOwnerAccount(portID, connectionID), []byte(address))
+}
+
+// GetAuthority returns the 27-interchain-accounts host submodule's authority.
+func (k Keeper) GetAuthority() string {
+	return k.authority
+}
+
+// GetParams returns the total set of the host submodule parameters.
+func (k Keeper) GetParams(ctx sdk.Context) types.Params {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get([]byte(types.ParamsKey))
+	if bz == nil { // only panic on unset params and not on empty params
+		panic("ica/host params are not set in store")
+	}
+
+	var params types.Params
+	k.cdc.MustUnmarshal(bz, &params)
+	return params
+}
+
+// SetParams sets the total set of the host submodule parameters.
+func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
+	store := ctx.KVStore(k.storeKey)
+	bz := k.cdc.MustMarshal(&params)
+	store.Set([]byte(types.ParamsKey), bz)
 }
