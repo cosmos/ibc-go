@@ -24,7 +24,7 @@ message Allocation {
 // TransferAuthorization allows the grantee to spend up to spend_limit coins from
 // the granter's account for ibc transfer on a specific channel
 message TransferAuthorization {
-  option (cosmos_proto.implements_interface) = "cosmos.authz.v1beta1.Authorization";
+  option (cosmos_proto.implements_interface) = "Authorization";
 
   // port and channel amounts
   repeated Allocation allocations = 1 [(gogoproto.nullable) = false];
