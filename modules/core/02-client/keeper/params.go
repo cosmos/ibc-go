@@ -14,13 +14,13 @@ func (k Keeper) GetAllowedClients(ctx sdk.Context) []string {
 
 // GetParams returns the total set of ibc-client parameters.
 func (k Keeper) GetParams(ctx sdk.Context) types.Params {
+	var p types.Params
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get([]byte(types.ParamsKey))
 	if bz == nil {
-		panic("ibc client params are not set in store")
+		return p
 	}
 
-	var p types.Params
 	k.cdc.MustUnmarshal(bz, &p)
 	return p
 }

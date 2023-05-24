@@ -33,6 +33,8 @@ type Keeper struct {
 	stakingKeeper  types.StakingKeeper
 	upgradeKeeper  types.UpgradeKeeper
 
+	// the address capable of executing a MsgUpdateClientParams message. Typically, this
+	// should be the x/gov module account.
 	authority string
 }
 

@@ -15,10 +15,10 @@ func TestIsAllowedClient(t *testing.T) {
 		params     Params
 		expPass    bool
 	}{
-		{"valid client", exported.Tendermint, DefaultParams(), true},
-		{"valid client with custom params", exported.Tendermint, NewParams(exported.Tendermint), true},
-		{"invalid blank client", " ", DefaultParams(), false},
-		{"invalid client with custom params", exported.Localhost, NewParams(exported.Tendermint), false},
+		{"success: valid client", exported.Tendermint, DefaultParams(), true},
+		{"success: valid client with custom params", exported.Tendermint, NewParams(exported.Tendermint), true},
+		{"success: invalid blank client", " ", DefaultParams(), false},
+		{"success: invalid client with custom params", exported.Localhost, NewParams(exported.Tendermint), false},
 	}
 
 	for _, tc := range testCases {

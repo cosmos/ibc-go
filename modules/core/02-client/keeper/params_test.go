@@ -46,14 +46,12 @@ func (suite *KeeperTestSuite) TestParams() {
 	}
 }
 
-// TestUnsetParams tests that trying to get params that are not set panics.
+// TestUnsetParams tests that trying to get params that are not set returns empty params.
 func (suite *KeeperTestSuite) TestUnsetParams() {
 	suite.SetupTest()
 	ctx := suite.chainA.GetContext()
 	store := ctx.KVStore(suite.chainA.GetSimApp().GetKey(ibcexported.StoreKey))
 	store.Delete([]byte(types.ParamsKey))
 
-	suite.Require().Panics(func() {
-		suite.chainA.GetSimApp().IBCKeeper.ClientKeeper.GetParams(ctx)
-	})
+	suite.Require().Equal(suite.chainA.GetSimApp().IBCKeeper.ClientKeeper.GetParams(ctx), types.Params{})
 }
