@@ -535,10 +535,6 @@ func (k Keeper) ValidateUpgradeFields(ctx sdk.Context, proposedUpgrade types.Upg
 		return errorsmod.Wrap(types.ErrChannelExists, "existing channel end is identical to proposed upgrade channel end")
 	}
 
-	if !proposedUpgrade.Ordering.SubsetOf(currentFields.Ordering) {
-		return errorsmod.Wrap(types.ErrInvalidChannelOrdering, "channel ordering must be a subset of the new ordering")
-	}
-
 	connectionID := proposedUpgrade.ConnectionHops[0]
 	connection, err := k.GetConnection(ctx, connectionID)
 	if err != nil {
