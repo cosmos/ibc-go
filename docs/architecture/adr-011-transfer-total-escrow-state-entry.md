@@ -1,4 +1,4 @@
-# ADR 011: ICS-20 state entry for total amount of tokens in escrow
+# ADR 011: ICS-20 transfer state entry for total amount of tokens in escrow
 
 ## Changelog
 
@@ -10,7 +10,7 @@ Accepted and applied in v7.1 of ibc-go
 
 ## Context
 
-Every ICS-20 transfer channel has its own escrow bank account. This account is used to lock tokens that are transferred out of a chain that acts as source of the tokens (i.e. when the tokens being transferred are not returning to the originating chain). This design makes it easy to query the balance of the escrow accounts and find out the total amount of tokens in escrow in a particular channel. However, there are use cases where it would be useful to figure out the total amount of a given denomination that is in escrow across all the escrow accounts of the channels where those tokens have been transferred out.
+Every ICS-20 transfer channel has its own escrow bank account. This account is used to lock tokens that are transferred out of a chain that acts as source of the tokens (i.e. when the tokens being transferred are not returning to the originating chain). This design makes it easy to query the balance of the escrow accounts and find out the total amount of tokens in escrow in a particular channel. However, there are use cases where it would be useful to determine the total escrowed amount of a given denomination across all channels where those tokens have been transferred out.
 
 For example: assuming that the are three channels between Cosmos Hub to Osmosis and 10 ATOM have been transferred from the Cosmos Hub to Osmosis on each of those channels, then we would like to know that 30 ATOM have been transferred (i.e. are locked in the escrow accounts of each channel) without needing to iterate over each escrow account to add up the balances of each.
 
