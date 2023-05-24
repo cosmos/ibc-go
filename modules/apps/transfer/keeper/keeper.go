@@ -110,15 +110,16 @@ func (k Keeper) SetPort(ctx sdk.Context, portID string) {
 }
 
 // GetParams returns the current transfer module parameters.
-func (k Keeper) GetParams(ctx sdk.Context) (p types.Params) {
+func (k Keeper) GetParams(ctx sdk.Context) types.Params {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get([]byte(types.ParamsKey))
 	if bz == nil { // only panics on unset params and not on empty params
 		panic("ibc transfer params are not set in store")
 	}
 
-	k.cdc.MustUnmarshal(bz, &p)
-	return p
+	var params types.Params
+	k.cdc.MustUnmarshal(bz, &params)
+	return params
 }
 
 // SetParams sets the transfer module parameters.
