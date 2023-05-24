@@ -16,7 +16,7 @@ func (suite *MultihopTestSuite) TestChanOpenInit() {
 
 	var (
 		features             []string
-		portCap	             *capabilitytypes.Capability
+		portCap              *capabilitytypes.Capability
 		expErrorMsgSubstring string
 	)
 
@@ -318,23 +318,23 @@ func (suite *MultihopTestSuite) TestChanOpenAckMultihop() {
 		{"success with empty stored counterparty channel ID", func() {
 			suite.SetupConnections()
 			suite.chanPath.SetChannelOrdered()
- 
+
 			err := suite.A().ChanOpenInit()
 			suite.Require().NoError(err)
- 
+
 			proofHeight := suite.A().Chain.LastHeader.GetHeight()
 			err = suite.Z().ChanOpenTry(proofHeight)
 			suite.Require().NoError(err)
- 
+
 			// set the channel's counterparty channel identifier to empty string
 			channel := suite.A().GetChannel()
 			channel.Counterparty.ChannelId = ""
- 
+
 			// use a different channel identifier
 			counterpartyChannelID = suite.Z().ChannelID
- 
+
 			suite.A().Chain.App.GetIBCKeeper().ChannelKeeper.SetChannel(suite.A().Chain.GetContext(), suite.A().ChannelConfig.PortID, suite.A().ChannelID, channel)
- 
+
 			channelCap = suite.A().Chain.GetChannelCapability(suite.A().ChannelConfig.PortID, suite.A().ChannelID)
 		}, true},
 		{"channel doesn't exist", func() {}, false},
@@ -348,13 +348,13 @@ func (suite *MultihopTestSuite) TestChanOpenAckMultihop() {
 			suite.chanPath.SetChannelOrdered()
 			err := suite.A().ChanOpenInit()
 			suite.Require().NoError(err)
- 
+
 			proofHeight := suite.A().Chain.LastHeader.GetHeight()
 			err = suite.Z().ChanOpenTry(proofHeight)
 			suite.Require().NoError(err)
- 
+
 			channelCap = suite.A().Chain.GetChannelCapability(suite.A().ChannelConfig.PortID, suite.A().ChannelID)
- 
+
 			// set the channel's connection hops to wrong connection ID
 			channel := suite.A().GetChannel()
 			channel.ConnectionHops[0] = doesnotexist
@@ -362,73 +362,73 @@ func (suite *MultihopTestSuite) TestChanOpenAckMultihop() {
 		}, false},
 		{"connection is not OPEN", func() {
 			suite.coord.SetupClients(suite.chanPath)
- 
+
 			err := suite.A().ConnOpenInit()
 			suite.Require().NoError(err)
- 
+
 			// create channel in init
 			suite.chanPath.SetChannelOrdered()
- 
+
 			err = suite.A().ChanOpenInit()
 			suite.Require().NoError(err)
- 
+
 			suite.A().Chain.CreateChannelCapability(suite.A().Chain.GetSimApp().ScopedIBCMockKeeper, suite.A().ChannelConfig.PortID, suite.A().ChannelID)
 			channelCap = suite.A().Chain.GetChannelCapability(suite.A().ChannelConfig.PortID, suite.A().ChannelID)
 		}, false},
 		{"consensus state not found", func() {
 			suite.SetupConnections()
 			suite.chanPath.SetChannelOrdered()
- 
+
 			err := suite.A().ChanOpenInit()
 			suite.Require().NoError(err)
- 
+
 			proofHeight := suite.A().Chain.LastHeader.GetHeight()
 			err = suite.Z().ChanOpenTry(proofHeight)
 			suite.Require().NoError(err)
- 
+
 			channelCap = suite.A().Chain.GetChannelCapability(suite.A().ChannelConfig.PortID, suite.A().ChannelID)
- 
+
 			heightDiff = 3 // consensus state doesn't exist at this height
 		}, false},
 		{"invalid counterparty channel identifier", func() {
 			suite.SetupConnections()
 			suite.chanPath.SetChannelOrdered()
- 
+
 			err := suite.A().ChanOpenInit()
 			suite.Require().NoError(err)
- 
+
 			proofHeight := suite.A().Chain.LastHeader.GetHeight()
 			err = suite.Z().ChanOpenTry(proofHeight)
 			suite.Require().NoError(err)
- 
+
 			counterpartyChannelID = "otheridentifier"
- 
+
 			channelCap = suite.A().Chain.GetChannelCapability(suite.A().ChannelConfig.PortID, suite.A().ChannelID)
 		}, false},
 		{"channel verification failed", func() {
 			suite.SetupConnections()
 			suite.chanPath.SetChannelOrdered()
- 
+
 			err := suite.Z().ChanOpenInit()
 			suite.Require().NoError(err)
- 
+
 			proofHeight := suite.Z().Chain.LastHeader.GetHeight()
 			err = suite.A().ChanOpenTry(proofHeight)
 			suite.Require().NoError(err)
- 
+
 			channelCap = suite.A().Chain.GetChannelCapability(suite.A().ChannelConfig.PortID, suite.A().ChannelID)
 		}, false},
 		{"channel capability not found", func() {
 			suite.SetupConnections()
 			suite.chanPath.SetChannelOrdered()
- 
+
 			err := suite.A().ChanOpenInit()
 			suite.Require().NoError(err)
- 
+
 			proofHeight := suite.A().Chain.LastHeader.GetHeight()
 			err = suite.Z().ChanOpenTry(proofHeight)
 			suite.Require().NoError(err)
- 
+
 			channelCap = capabilitytypes.NewCapability(6)
 		}, false},
 	}
@@ -439,9 +439,9 @@ func (suite *MultihopTestSuite) TestChanOpenAckMultihop() {
 			suite.SetupTest()          // reset
 			counterpartyChannelID = "" // must be explicitly changed in malleate
 			heightDiff = 0             // must be explicitly changed
- 
+
 			tc.malleate() // call ChanOpenInit and setup port capabilities
- 
+
 			if counterpartyChannelID == "" {
 				counterpartyChannelID = ibctesting.FirstChannelID
 			}
@@ -480,6 +480,7 @@ func (suite *MultihopTestSuite) TestChanOpenAckMultihop() {
 func (suite *MultihopTestSuite) TestChanOpenConfirmMultihop() {
 	var (
 		channelCap *capabilitytypes.Capability
+		heightDiff uint64
 	)
 
 	testCases := []testCase{
@@ -490,12 +491,106 @@ func (suite *MultihopTestSuite) TestChanOpenConfirmMultihop() {
 			suite.Require().NoError(suite.A().ChanOpenAck(suite.Z().Chain.LastHeader.GetHeight()))
 			channelCap = suite.Z().Chain.GetChannelCapability(suite.Z().ChannelConfig.PortID, suite.Z().ChannelID)
 		}, true},
+		{"channel doesn't exist", func() {}, false},
+		{"channel state is not TRYOPEN", func() {
+			// create fully open channels on both cahins
+			suite.SetupChannels()
+			channelCap = suite.Z().Chain.GetChannelCapability(suite.Z().ChannelConfig.PortID, suite.Z().ChannelID)
+		}, false},
+		{"connection not found", func() {
+			suite.SetupConnections()
+			suite.chanPath.SetChannelOrdered()
+
+			err := suite.A().ChanOpenInit()
+			suite.Require().NoError(err)
+
+			proofHeight := suite.A().Chain.LastHeader.GetHeight()
+			err = suite.Z().ChanOpenTry(proofHeight)
+			suite.Require().NoError(err)
+
+			proofHeight = suite.Z().Chain.LastHeader.GetHeight()
+			err = suite.A().ChanOpenAck(proofHeight)
+			suite.Require().NoError(err)
+
+			channelCap = suite.Z().Chain.GetChannelCapability(suite.Z().ChannelConfig.PortID, suite.Z().ChannelID)
+
+			// set the channel's connection hops to wrong connection ID
+			channel := suite.Z().GetChannel()
+			channel.ConnectionHops[0] = doesnotexist
+			suite.Z().Chain.App.GetIBCKeeper().ChannelKeeper.SetChannel(suite.Z().Chain.GetContext(), suite.Z().ChannelConfig.PortID, suite.Z().ChannelID, channel)
+		}, false},
+		{"connection is not OPEN", func() {
+			suite.coord.SetupClients(suite.chanPath)
+
+			err := suite.Z().ConnOpenInit()
+			suite.Require().NoError(err)
+
+			// create channel in init
+			suite.chanPath.SetChannelOrdered()
+
+			err = suite.Z().ChanOpenInit()
+			suite.Require().NoError(err)
+
+			suite.Z().Chain.CreateChannelCapability(suite.Z().Chain.GetSimApp().ScopedIBCMockKeeper, suite.Z().ChannelConfig.PortID, suite.Z().ChannelID)
+			channelCap = suite.Z().Chain.GetChannelCapability(suite.Z().ChannelConfig.PortID, suite.Z().ChannelID)
+		}, false},
+		{"consensus state not found", func() {
+			suite.SetupConnections()
+			suite.chanPath.SetChannelOrdered()
+
+			err := suite.A().ChanOpenInit()
+			suite.Require().NoError(err)
+
+			proofHeight := suite.A().Chain.LastHeader.GetHeight()
+			err = suite.Z().ChanOpenTry(proofHeight)
+			suite.Require().NoError(err)
+
+			proofHeight = suite.Z().Chain.LastHeader.GetHeight()
+			err = suite.A().ChanOpenAck(proofHeight)
+			suite.Require().NoError(err)
+
+			channelCap = suite.Z().Chain.GetChannelCapability(suite.Z().ChannelConfig.PortID, suite.Z().ChannelID)
+
+			heightDiff = 3
+		}, false},
+		{"channel verification failed", func() {
+			// chainA is INIT, chainZ in TRYOPEN
+			suite.SetupConnections()
+			suite.chanPath.SetChannelOrdered()
+
+			err := suite.A().ChanOpenInit()
+			suite.Require().NoError(err)
+
+			proofHeight := suite.A().Chain.LastHeader.GetHeight()
+			err = suite.Z().ChanOpenTry(proofHeight)
+			suite.Require().NoError(err)
+
+			channelCap = suite.Z().Chain.GetChannelCapability(suite.Z().ChannelConfig.PortID, suite.Z().ChannelID)
+		}, false},
+		{"channel capability not found", func() {
+			suite.SetupConnections()
+			suite.chanPath.SetChannelOrdered()
+
+			err := suite.A().ChanOpenInit()
+			suite.Require().NoError(err)
+
+			proofHeight := suite.A().Chain.LastHeader.GetHeight()
+			err = suite.Z().ChanOpenTry(proofHeight)
+			suite.Require().NoError(err)
+
+			proofHeight = suite.Z().Chain.LastHeader.GetHeight()
+			err = suite.A().ChanOpenAck(proofHeight)
+			suite.Require().NoError(err)
+
+			channelCap = capabilitytypes.NewCapability(6)
+		}, false},
 	}
 
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest() // reset
+			heightDiff = 0    // must be explicitly changed
 			tc.malleate()     // call ChanOpenInit and setup port capabilities
 
 			proof, err := suite.A().QueryChannelProof(suite.A().Chain.LastHeader.GetHeight())
@@ -507,8 +602,12 @@ func (suite *MultihopTestSuite) TestChanOpenConfirmMultihop() {
 			}
 
 			err = suite.Z().Chain.App.GetIBCKeeper().ChannelKeeper.ChanOpenConfirm(
-				suite.Z().Chain.GetContext(), suite.Z().ChannelConfig.PortID, suite.Z().ChannelID,
-				channelCap, proof, suite.Z().GetClientState().GetLatestHeight(),
+				suite.Z().Chain.GetContext(),
+				suite.Z().ChannelConfig.PortID,
+				suite.Z().ChannelID,
+				channelCap,
+				proof,
+				malleateHeight(suite.Z().ProofHeight(), heightDiff),
 			)
 
 			if tc.expPass {
