@@ -10,6 +10,7 @@ import (
 
 	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
 // define constants used for testing
@@ -40,9 +41,6 @@ var (
 	zeroCoin         = sdk.Coin{Denom: "atoms", Amount: sdk.NewInt(0)}
 
 	timeoutHeight = clienttypes.NewHeight(0, 10)
-
-	validAuthority = sdk.AccAddress("authority").String()
-	validAddress   = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
 )
 
 // TestMsgTransferRoute tests Route for MsgTransfer
@@ -111,10 +109,9 @@ func TestMsgUpdateParamsValidation(t *testing.T) {
 		msg     *types.MsgUpdateParams
 		expPass bool
 	}{
-		{"valid authority with valid params", types.NewMsgUpdateParams(validAuthority, types.DefaultParams()), true},
-		{"valid authority address with valid params", types.NewMsgUpdateParams(validAddress, types.DefaultParams()), true},
-		{"invalid authority with valid params", types.NewMsgUpdateParams(invalidAddress, types.DefaultParams()), false},
-		{"empty authority with valid params", types.NewMsgUpdateParams(emptyAddr, types.DefaultParams()), false},
+		{"success: valid authority and valid params", types.NewMsgUpdateParams(ibctesting.TestAccAddress, types.DefaultParams()), true},
+		{"failure: invalid authority with valid params", types.NewMsgUpdateParams(invalidAddress, types.DefaultParams()), false},
+		{"failure: empty authority with valid params", types.NewMsgUpdateParams(emptyAddr, types.DefaultParams()), false},
 	}
 
 	for i, tc := range testCases {
