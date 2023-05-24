@@ -15,7 +15,6 @@ import (
 
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
-	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
 	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
@@ -51,7 +50,7 @@ func (s *ConnectionTestSuite) TestMaxExpectedTimePerBlockParam() {
 	t := s.T()
 	ctx := context.TODO()
 
-	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, transferChannelOptions())
+	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions())
 	chainA, chainB := s.GetChains()
 
 	chainBDenom := chainB.Config().Denom
@@ -119,13 +118,4 @@ func (s *ConnectionTestSuite) TestMaxExpectedTimePerBlockParam() {
 			s.StopRelayer(ctx, relayer)
 		})
 	})
-}
-
-// transferChannelOptions configures both of the chains to have non-incentivized transfer channels.
-func transferChannelOptions() func(options *ibc.CreateChannelOptions) {
-	return func(opts *ibc.CreateChannelOptions) {
-		opts.Version = transfertypes.Version
-		opts.SourcePortName = transfertypes.PortID
-		opts.DestPortName = transfertypes.PortID
-	}
 }
