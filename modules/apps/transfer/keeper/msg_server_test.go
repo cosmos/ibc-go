@@ -151,6 +151,11 @@ func (suite *KeeperTestSuite) TestUpdateParams() {
 			false,
 		},
 		{
+			"failure: whitespace authority address",
+			types.NewMsgUpdateParams("    ", types.DefaultParams()),
+			false,
+		},
+		{
 			"failure: unauthorized authority address",
 			types.NewMsgUpdateParams(ibctesting.TestAccAddress, types.DefaultParams()),
 			false,
