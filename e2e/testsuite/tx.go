@@ -97,9 +97,9 @@ func containsMessage(s string, messages []string) bool {
 
 // AssertTxFailure verifies that an sdk.TxResponse has failed.
 func (s *E2ETestSuite) AssertTxFailure(resp sdk.TxResponse, expectedError *errorsmod.Error) {
+	// In older versions, the codespace and abci codes were different. So in compatibility tests
+	// we can not make assertions on them.
 	errorMsg := fmt.Sprintf("%+v", resp)
-	s.Require().Equal(expectedError.ABCICode(), resp.Code, errorMsg)
-	s.Require().Equal(expectedError.Codespace(), resp.Codespace, errorMsg)
 	s.Require().Contains(resp.RawLog, expectedError.Error(), errorMsg)
 }
 
