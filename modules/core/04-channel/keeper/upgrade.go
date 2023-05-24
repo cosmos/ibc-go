@@ -63,14 +63,15 @@ func (k Keeper) WriteUpgradeInitChannel(ctx sdk.Context, portID, channelID strin
 
 // constructProposedUpgrade returns the proposed upgrade from the provided arguments.
 func (k Keeper) constructProposedUpgrade(ctx sdk.Context, portID, channelID string, fields types.UpgradeFields, upgradeTimeout types.Timeout) (types.Upgrade, error) {
-	seq, found := k.GetNextSequenceSend(ctx, portID, channelID)
+	nextSequenceSend, found := k.GetNextSequenceSend(ctx, portID, channelID)
 	if !found {
 		return types.Upgrade{}, types.ErrSequenceSendNotFound
 	}
+
 	return types.Upgrade{
 		Fields:             fields,
 		Timeout:            upgradeTimeout,
-		LatestSequenceSend: seq - 1,
+		LatestSequenceSend: nextSequenceSend - 1,
 	}, nil
 }
 
@@ -119,15 +120,21 @@ func (k Keeper) ChanUpgradeTry(
 
 	// check the connection associated with the passed in connection hops by the chain sending the TryUpgrade
 	// matches the connection associated with the counterparty proposed upgrade
+
+	connection, err := k.GetConnection(ctx, proposedConnectionHops[0])
+	if err != nil {
+		return types.Upgrade{}, err
+	}
+
 	counterpartyHops := counterpartyProposedUpgrade.Fields.ConnectionHops
-	if !reflect.DeepEqual(counterpartyHops, proposedConnectionHops) {
-		return types.Upgrade{}, errorsmod.Wrapf(types.ErrInvalidConnectionHops, "proposed connection hops (%s) does not match counterparty proposed connection hops (%s)", proposedConnectionHops, counterpartyHops)
+	if counterpartyHops[0] != connection.GetCounterparty().GetConnectionID() {
+		return types.Upgrade{}, errorsmod.Wrapf(connectiontypes.ErrInvalidConnection, "proposed connection hops (%s) does not match counterparty proposed connection hops (%s)", proposedConnectionHops, counterpartyHops)
 	}
 
 	// construct counterpartyChannel from existing information and provided counterpartyUpgradeSequence
 	counterpartyChannel := types.Channel{
 		State:           types.INITUPGRADE,
-		Counterparty:    types.NewCounterparty(channel.Counterparty.PortId, channel.Counterparty.ChannelId),
+		Counterparty:    types.NewCounterparty(portID, channelID),
 		Ordering:        channel.Ordering,
 		ConnectionHops:  counterpartyProposedUpgrade.Fields.ConnectionHops,
 		Version:         channel.Version,
