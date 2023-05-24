@@ -136,22 +136,22 @@ func (suite *KeeperTestSuite) TestUpdateParams() {
 		expPass bool
 	}{
 		{
-			"success",
+			"success: valid authority and default params",
 			types.NewMsgUpdateParams(validAuthority, types.DefaultParams()),
 			true,
 		},
 		{
-			"malformed authority address",
+			"failure: malformed authority address",
 			types.NewMsgUpdateParams(ibctesting.InvalidID, types.DefaultParams()),
 			false,
 		},
 		{
-			"empty authority address",
+			"failure: empty authority address",
 			types.NewMsgUpdateParams("", types.DefaultParams()),
 			false,
 		},
 		{
-			"unauthorized authority address",
+			"failure: unauthorized authority address",
 			types.NewMsgUpdateParams(ibctesting.TestAccAddress, types.DefaultParams()),
 			false,
 		},
