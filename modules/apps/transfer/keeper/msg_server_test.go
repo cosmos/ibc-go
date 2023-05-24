@@ -129,7 +129,6 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 
 // TestUpdateParams tests UpdateParams rpc handler
 func (suite *KeeperTestSuite) TestUpdateParams() {
-	var emptyAddr string
 	validAuthority := suite.chainA.GetSimApp().TransferKeeper.GetAuthority()
 	testCases := []struct {
 		name    string
@@ -148,7 +147,7 @@ func (suite *KeeperTestSuite) TestUpdateParams() {
 		},
 		{
 			"empty authority address",
-			types.NewMsgUpdateParams(emptyAddr, types.DefaultParams()),
+			types.NewMsgUpdateParams("", types.DefaultParams()),
 			false,
 		},
 		{
