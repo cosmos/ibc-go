@@ -35,19 +35,11 @@ var transferSelfParamsFeatureReleases = semverutil.FeatureReleases{
 }
 
 // QueryTransferSendEnabledParam queries the on-chain send enabled param for the transfer module
-func (s *TransferTestSuite) QueryTransferSendEnabledParam(ctx context.Context, chain ibc.Chain) bool {
+func (s *TransferTestSuite) QueryTransferParams(ctx context.Context, chain ibc.Chain) transfertypes.Params {
 	queryClient := s.GetChainGRCPClients(chain).TransferQueryClient
 	res, err := queryClient.Params(ctx, &transfertypes.QueryParamsRequest{})
 	s.Require().NoError(err)
-	return res.Params.SendEnabled
-}
-
-// QueryTransferReceiveEnabledParam queries the on-chain receive enabled param for the transfer module
-func (s *TransferTestSuite) QueryTransferReceiveEnabledParam(ctx context.Context, chain ibc.Chain) bool {
-	queryClient := s.GetChainGRCPClients(chain).TransferQueryClient
-	res, err := queryClient.Params(ctx, &transfertypes.QueryParamsRequest{})
-	s.Require().NoError(err)
-	return res.Params.ReceiveEnabled
+	return *res.Params
 }
 
 // TestMsgTransfer_Succeeds_Nonincentivized will test sending successful IBC transfers from chainA to chainB.
@@ -259,7 +251,7 @@ func (s *TransferTestSuite) TestSendEnabledParam() {
 	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
 
 	t.Run("ensure transfer sending is enabled", func(t *testing.T) {
-		enabled := s.QueryTransferSendEnabledParam(ctx, chainA)
+		enabled := s.QueryTransferParams(ctx, chainA).SendEnabled
 		s.Require().True(enabled)
 	})
 
@@ -283,7 +275,7 @@ func (s *TransferTestSuite) TestSendEnabledParam() {
 	})
 
 	t.Run("ensure transfer params are disabled", func(t *testing.T) {
-		enabled := s.QueryTransferSendEnabledParam(ctx, chainA)
+		enabled := s.QueryTransferParams(ctx, chainA).SendEnabled
 		s.Require().False(enabled)
 	})
 
@@ -322,7 +314,7 @@ func (s *TransferTestSuite) TestReceiveEnabledParam() {
 	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
 
 	t.Run("ensure transfer receive is enabled", func(t *testing.T) {
-		enabled := s.QueryTransferReceiveEnabledParam(ctx, chainA)
+		enabled := s.QueryTransferParams(ctx, chainA).ReceiveEnabled
 		s.Require().True(enabled)
 	})
 
@@ -374,7 +366,7 @@ func (s *TransferTestSuite) TestReceiveEnabledParam() {
 	})
 
 	t.Run("ensure transfer params are disabled", func(t *testing.T) {
-		enabled := s.QueryTransferReceiveEnabledParam(ctx, chainA)
+		enabled := s.QueryTransferParams(ctx, chainA).ReceiveEnabled
 		s.Require().False(enabled)
 	})
 
