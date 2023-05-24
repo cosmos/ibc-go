@@ -101,7 +101,6 @@ A gRPC query endpoint is added so that it is possible to retrieve the total amou
 rpc TotalEscrowForDenom(QueryTotalEscrowForDenomRequest) returns (QueryTotalEscrowForDenomResponse) {
   option (google.api.http).get = "/ibc/apps/transfer/v1/denoms/{denom=**}/total_escrow";
 }
-```
 
 // QueryTotalEscrowForDenomRequest is the request type for TotalEscrowForDenom RPC method.
 message QueryTotalEscrowForDenomRequest {
@@ -112,6 +111,7 @@ message QueryTotalEscrowForDenomRequest {
 message QueryTotalEscrowForDenomResponse {
   cosmos.base.v1beta1.Coin amount = 1 [(gogoproto.nullable) = false];
 }
+```
 
 And a CLI query is also available to retrieve the total amount via the command line:
 
