@@ -31,6 +31,8 @@ const (
 	DenomPrefix = "ibc"
 
 	KeyTotalEscrowPrefix = "totalEscrowForDenom"
+
+	ParamsKey = "params"
 )
 
 var (
