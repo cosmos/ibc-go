@@ -73,6 +73,7 @@ func (ut Timeout) IsValid() bool {
 	return !ut.Height.IsZero() || ut.Timestamp != 0
 }
 
+// TODO: Update after https://github.com/cosmos/ibc-go/issues/3483 has been resolved
 // HasPassed returns true if the upgrade has passed the timeout height or timestamp
 func (ut Timeout) HasPassed(ctx sdk.Context) (bool, error) {
 	if !ut.IsValid() {

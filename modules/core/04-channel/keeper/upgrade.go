@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"fmt"
 	"reflect"
 
 	errorsmod "cosmossdk.io/errors"
@@ -102,12 +103,12 @@ func (k Keeper) ChanUpgradeTry(
 	// verify that the timeout set in UpgradeInit has not passed on this chain
 	if hasPassed, err := counterpartyProposedUpgrade.Timeout.HasPassed(ctx); hasPassed {
 		// abort here and let counterparty timeout the upgrade
-		return types.Upgrade{}, errorsmod.Wrap(err, "upgrade timeout has passed: ")
+		return types.Upgrade{}, errorsmod.Wrap(err, "upgrade timeout has passed")
 	}
 
 	connectionEnd, err := k.GetConnection(ctx, channel.ConnectionHops[0])
 	if err != nil {
-		return types.Upgrade{}, errorsmod.Wrapf(connectiontypes.ErrConnectionNotFound, "failed to retrieve connection on %s. Error: %s", channel.ConnectionHops[0], err.Error())
+		return types.Upgrade{}, errorsmod.Wrap(err, "failed to retrieve connection using the channel connection hops")
 	}
 
 	// make sure connection is OPEN
@@ -118,30 +119,30 @@ func (k Keeper) ChanUpgradeTry(
 		)
 	}
 
-	// check the connection associated with the passed in connection hops by the chain sending the TryUpgrade
-	// matches the connection associated with the counterparty proposed upgrade
-
+	// assert that the proposed connection hops are compatible with the counterparty connection hops
+	// the proposed connections hops must have a counterparty which matches the counterparty connection hops
 	connection, err := k.GetConnection(ctx, proposedConnectionHops[0])
 	if err != nil {
 		return types.Upgrade{}, err
 	}
 
-	counterpartyHops := counterpartyProposedUpgrade.Fields.ConnectionHops
-	if counterpartyHops[0] != connection.GetCounterparty().GetConnectionID() {
-		return types.Upgrade{}, errorsmod.Wrapf(connectiontypes.ErrInvalidConnection, "proposed connection hops (%s) does not match counterparty proposed connection hops (%s)", proposedConnectionHops, counterpartyHops)
+	counterpartyProposedHops := counterpartyProposedUpgrade.Fields.ConnectionHops
+	if connection.GetCounterparty().GetConnectionID() != counterpartyProposedHops[0] {
+		return types.Upgrade{}, errorsmod.Wrapf(connectiontypes.ErrInvalidConnection, "proposed connection hops (%s) does not match counterparty proposed connection hops (%s)", proposedConnectionHops, counterpartyProposedHops)
 	}
 
 	// construct counterpartyChannel from existing information and provided counterpartyUpgradeSequence
+	currentCounterpartyHops := connection.GetCounterparty().GetConnectionID()
 	counterpartyChannel := types.Channel{
 		State:           types.INITUPGRADE,
 		Counterparty:    types.NewCounterparty(portID, channelID),
 		Ordering:        channel.Ordering,
-		ConnectionHops:  counterpartyProposedUpgrade.Fields.ConnectionHops,
+		ConnectionHops:  []string{currentCounterpartyHops},
 		Version:         channel.Version,
 		UpgradeSequence: counterpartyUpgradeSequence,
 	}
 
-	// crete upgrade fields from counterparty proposed upgrade and own verified connection hops
+	// create upgrade fields from counterparty proposed upgrade and own verified connection hops
 	upgradeFields := types.NewUpgradeFields(
 		counterpartyProposedUpgrade.Fields.Ordering,
 		proposedConnectionHops,
@@ -180,6 +181,9 @@ func (k Keeper) ChanUpgradeTry(
 		); err != nil {
 			return types.Upgrade{}, errorsmod.Wrap(err, "failed to start flush upgrade handshake")
 		}
+
+		// this is a new upgrade attempt, so increment the upgrade sequence
+		channel.UpgradeSequence++
 
 		// if counterpartyUpgradeSequence is greater than the current upgrade sequence,
 		// update the upgrade sequence
@@ -253,7 +257,7 @@ func (k Keeper) WriteUpgradeTryChannel(
 
 	currentChannel, found := k.GetChannel(ctx, portID, channelID)
 	if !found {
-		panic("channel not found")
+		panic(fmt.Sprintf("channel %s not found for portID %s", channelID, portID))
 	}
 
 	previousState := currentChannel.State
@@ -262,7 +266,6 @@ func (k Keeper) WriteUpgradeTryChannel(
 	k.SetChannel(ctx, portID, channelID, currentChannel)
 	k.SetUpgrade(ctx, portID, channelID, proposedUpgrade)
 
-	// TODO: previous state will not be OPEN in the case of crossing hellos. Determine this state correctly.
 	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", previousState, "new-state", types.TRYUPGRADE.String())
 	emitChannelUpgradeTryEvent(ctx, portID, channelID, currentChannel, proposedUpgrade)
 }
