@@ -1,0 +1,44 @@
+name: Docker Build & Push Simapp (main)
+# Build & Push builds the simapp docker image on every push to main and
+# and pushes the image to https://ghcr.io/cosmos/ibc-go-simd
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/docker.yml'
+      - '**.go'
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ibc-go-simd
+
+jobs:
+  docker-build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Log in to the Container registry
+      uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Extract metadata (tags, labels) for Docker
+      id: meta
+      uses: docker/metadata-action@c4ee3adeed93b1fa6a762f209fb01608c1a22f1e
+      with:
+        images: ${{ env.REGISTRY }}/cosmos/${{ env.IMAGE_NAME }}
+
+    - name: Build and push Docker image
+      uses: docker/build-push-action@3b5e8027fcad23fda98b2e3ac259d8d67585f671
+      with:
+        context: .
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        build-args: |
+          IBC_GO_VERSION=main
