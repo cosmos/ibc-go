@@ -48,7 +48,7 @@ const (
 	// The counterparty chain that accepts the upgrade should set the channel state from OPEN to UPGRADETRY.
 	TRYUPGRADE State = 6
 	// A channel has verified the counterparty chain is in UPGRADETRY.
-	// However, there are still in-flight packets on its end waiting to be flushed before it can move to OPEN.
+	// However, there are still in-flight packets on both ends waiting to be flushed before it can move to OPEN.
 	ACKUPGRADE State = 7
 )
 
