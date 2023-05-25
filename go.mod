@@ -3,11 +3,13 @@ go 1.19
 module github.com/cosmos/ibc-go/v4
 
 retract (
-	[v4.0.0, v4.1.0] // depends on SDK version without dragonberry fix
-	v4.1.1 // contains huckleberry vulnerability
-	v4.2.0 // contains huckleberry vulnerability
-	v4.3.0 // contains huckleberry vulnerability
 	v4.4.0 // contains huckleberry vulnerability
+	v4.3.0 // contains huckleberry vulnerability
+	v4.2.1 // contains state machine breaking change
+	v4.2.0 // contains huckleberry vulnerability
+	v4.1.2 // contains state machine breaking change
+	v4.1.1 // contains huckleberry vulnerability
+	[v4.0.0, v4.1.0] // depends on SDK version without dragonberry fix
 )
 
 require (
