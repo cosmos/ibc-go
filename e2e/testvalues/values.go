@@ -7,6 +7,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/strangelove-ventures/interchaintest/v7/ibc"
 
+	"github.com/cosmos/ibc-go/e2e/semverutil"
 	feetypes "github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
 )
 
@@ -42,4 +43,43 @@ func TendermintClientID(id int) string {
 
 func SolomachineClientID(id int) string {
 	return fmt.Sprintf("06-solomachine-%d", id)
+}
+
+// GovGenesisFeatureReleases represents the releases the governance module genesis
+// was upgraded from v1beta1 to v1.
+var GovGenesisFeatureReleases = semverutil.FeatureReleases{
+	MajorVersion: "v7",
+}
+
+// IcadGovGenesisFeatureReleases represents the releases of icad where the governance module genesis
+// was upgraded from v1beta1 to v1.
+var IcadGovGenesisFeatureReleases = semverutil.FeatureReleases{
+	MinorVersions: []string{
+		"v0.5",
+	},
+}
+
+// IcadNewGenesisCommandsFeatureReleases represents the releases of icad using the new genesis commands.
+var IcadNewGenesisCommandsFeatureReleases = semverutil.FeatureReleases{
+	MinorVersions: []string{
+		"v0.5",
+	},
+}
+
+// MemoFeatureReleases represents the releases the memo field was released in.
+var MemoFeatureReleases = semverutil.FeatureReleases{
+	MajorVersion: "v6",
+	MinorVersions: []string{
+		"v2.5",
+		"v3.4",
+		"v4.2",
+		"v5.1",
+	},
+}
+
+// TotalEscrowFeatureReleases represents the releases the total escrow state entry was released in.
+var TotalEscrowFeatureReleases = semverutil.FeatureReleases{
+	MinorVersions: []string{
+		"v7.1",
+	},
 }
