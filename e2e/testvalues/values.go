@@ -45,13 +45,13 @@ func SolomachineClientID(id int) string {
 	return fmt.Sprintf("06-solomachine-%d", id)
 }
 
-// govGenesisFeatureReleases represents the releases the governance module genesis
+// GovGenesisFeatureReleases represents the releases the governance module genesis
 // was upgraded from v1beta1 to v1.
 var GovGenesisFeatureReleases = semverutil.FeatureReleases{
 	MajorVersion: "v7",
 }
 
-// icadGovGenesisFeatureReleases represents the releases of icad where the governance module genesis
+// IcadGovGenesisFeatureReleases represents the releases of icad where the governance module genesis
 // was upgraded from v1beta1 to v1.
 var IcadGovGenesisFeatureReleases = semverutil.FeatureReleases{
 	MinorVersions: []string{

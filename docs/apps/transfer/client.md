@@ -18,7 +18,7 @@ simd query ibc-transfer --help
 
 #### `total-escrow`
 
-The `total-escrow` command allows users to query the total amount in escrow for a particular coin denomination regardless of the transfer channel from where the coins where sent out.
+The `total-escrow` command allows users to query the total amount in escrow for a particular coin denomination regardless of the transfer channel from where the coins were sent out.
 
 ```shell
 simd query ibc-transfer total-escrow [denom] [flags]
@@ -42,7 +42,7 @@ A user can query the `transfer` module using gRPC endpoints.
 
 ### `TotalEscrowForDenom`
 
-The `TotalEscrowForDenom` endpoint allows users to query the total amount in escrow for a particular coin denomination regardless of the transfer channel from where the coins where sent out.
+The `TotalEscrowForDenom` endpoint allows users to query the total amount in escrow for a particular coin denomination regardless of the transfer channel from where the coins were sent out.
 
 ```shell
 ibc.applications.transfer.v1.Query/TotalEscrowForDenom
