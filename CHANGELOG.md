@@ -34,21 +34,15 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Changelog
 
-## [Unreleased]
+## [v4.2.1](https://github.com/cosmos/ibc-go/releases/tag/v4.2.1) - 2023-05-25
 
 ### Dependencies
 
 * [\#2868](https://github.com/cosmos/ibc-go/pull/2868) Bump ICS 23 to v0.9.0. 
 
-### API Breaking
-
-### State Machine Breaking
-
 ### Improvements
 
 * (apps/29-fee) [\#2786](https://github.com/cosmos/ibc-go/pull/2786) Save gas by checking key existence with `KVStore`'s `Has` method.
-
-### Features
 
 ### Bug Fixes
 
