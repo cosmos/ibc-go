@@ -1,7 +1,8 @@
 name: Capability Module
+# This workflow runs when a PR is opened that targets code that is part of the capability module.
 on:
-  push:
-    pull_request:
+  pull_request:
+    paths:
       - '.github/workflows/capability.yml'
       - 'modules/capability/**'
       - 'proto/capability/**'
