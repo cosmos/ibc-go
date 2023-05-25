@@ -131,13 +131,13 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized() {
 		s.Require().Equal(expected, actualBalance)
 	})
 
-	t.Run("tokens are un-escrowed", func(t *testing.T) {
-		if testvalues.TotalEscrowFeatureReleases.IsSupported(chainAVersion) {
+	if testvalues.TotalEscrowFeatureReleases.IsSupported(chainAVersion) {
+		t.Run("tokens are un-escrowed", func(t *testing.T) {
 			actualTotalEscrow, err := s.QueryTotalEscrowForDenom(ctx, chainA, chainADenom)
 			s.Require().NoError(err)
 			s.Require().Equal(sdk.NewCoin(chainADenom, sdk.NewInt(0)), actualTotalEscrow) // total escrow is zero because tokens have come back
-		}
-	})
+		})
+	}
 }
 
 // TestMsgTransfer_Fails_InvalidAddress attempts to send an IBC transfer to an invalid address and ensures
