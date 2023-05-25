@@ -56,6 +56,7 @@ var (
 	EventTypeChannelCloseConfirm = "channel_close_confirm"
 	EventTypeChannelClosed       = "channel_close"
 	EventTypeChannelUpgradeInit  = "channel_upgrade_init"
+	EventTypeChannelUpgradeTry   = "channel_upgrade_try"
 	EventTypeChannelUpgradeAck   = "channel_upgrade_ack"
 
 	AttributeValueCategory = fmt.Sprintf("%s_%s", ibcexported.ModuleName, SubModuleName)

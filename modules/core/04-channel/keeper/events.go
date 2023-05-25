@@ -293,6 +293,29 @@ func emitChannelUpgradeInitEvent(ctx sdk.Context, portID string, channelID strin
 	})
 }
 
+// emitChannelUpgradeTryEvent emits a channel upgrade try event
+//
+//lint:ignore U1000 Ignore unused function temporarily for debugging
+func emitChannelUpgradeTryEvent(ctx sdk.Context, portID string, channelID string, currentChannel types.Channel, upgrade types.Upgrade) {
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeChannelUpgradeTry,
+			sdk.NewAttribute(types.AttributeKeyPortID, portID),
+			sdk.NewAttribute(types.AttributeKeyChannelID, channelID),
+			sdk.NewAttribute(types.AttributeCounterpartyPortID, currentChannel.Counterparty.PortId),
+			sdk.NewAttribute(types.AttributeCounterpartyChannelID, currentChannel.Counterparty.ChannelId),
+			sdk.NewAttribute(types.AttributeKeyConnectionID, upgrade.Fields.ConnectionHops[0]),
+			sdk.NewAttribute(types.AttributeVersion, upgrade.Fields.Version),
+			sdk.NewAttribute(types.AttributeKeyUpgradeOrdering, upgrade.Fields.Ordering.String()),
+			sdk.NewAttribute(types.AttributeKeyUpgradeSequence, fmt.Sprintf("%d", currentChannel.UpgradeSequence)),
+		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+		),
+	})
+}
+
 // emitChannelUpgradeAckEvent emits a channel upgrade ack event
 //
 //lint:ignore U1000 Ignore unused function temporarily for debugging
