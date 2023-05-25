@@ -7,7 +7,6 @@ import (
 	"strings"
 	"time"
 
-	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -96,7 +95,7 @@ func containsMessage(s string, messages []string) bool {
 }
 
 // AssertTxFailure verifies that an sdk.TxResponse has failed.
-func (s *E2ETestSuite) AssertTxFailure(resp sdk.TxResponse, expectedError *errorsmod.Error) {
+func (s *E2ETestSuite) AssertTxFailure(resp sdk.TxResponse, expectedError error) {
 	// In older versions, the codespace and abci codes were different. So in compatibility tests
 	// we can not make assertions on them.
 	errorMsg := fmt.Sprintf("%+v", resp)
