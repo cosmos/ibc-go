@@ -34,6 +34,12 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Changelog
 
+## [[Unreleased]]
+
+### Bug Fixes
+
+* [\#3660](https://github.com/cosmos/ibc-go/pull/3660) Revert state-machine breaking improvement from PR [#2786](https://github.com/cosmos/ibc-go/pull/2786).
+
 ## [v4.1.2](https://github.com/cosmos/ibc-go/releases/tag/v4.1.2) - 2023-05-25
 
 ### Dependencies
