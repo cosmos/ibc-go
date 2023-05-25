@@ -35,17 +35,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased]
-
-### Dependencies
-
-### API Breaking
-
-### State Machine Breaking
-
-### Improvements
-
-### Features
+## [v4.3.1](https://github.com/cosmos/ibc-go/releases/tag/v4.3.1) - 2023-05-25
 
 ### Bug Fixes
 
