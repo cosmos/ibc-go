@@ -11,7 +11,6 @@ import (
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
-
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 
 	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
@@ -22,9 +21,9 @@ import (
 
 // Keeper defines the IBC fungible transfer keeper
 type Keeper struct {
-	storeKey   storetypes.StoreKey
-	cdc        codec.BinaryCodec
-	paramSpace paramtypes.Subspace
+	storeKey       storetypes.StoreKey
+	cdc            codec.BinaryCodec
+	legacySubspace paramtypes.Subspace
 
 	ics4Wrapper   porttypes.ICS4Wrapper
 	channelKeeper types.ChannelKeeper
@@ -32,13 +31,24 @@ type Keeper struct {
 	authKeeper    types.AccountKeeper
 	bankKeeper    types.BankKeeper
 	scopedKeeper  exported.ScopedKeeper
+
+	// the address capable of executing a MsgUpdateParams message. Typically, this
+	// should be the x/gov module account.
+	authority string
 }
 
 // NewKeeper creates a new IBC transfer Keeper instance
 func NewKeeper(
-	cdc codec.BinaryCodec, key storetypes.StoreKey, paramSpace paramtypes.Subspace,
-	ics4Wrapper porttypes.ICS4Wrapper, channelKeeper types.ChannelKeeper, portKeeper types.PortKeeper,
-	authKeeper types.AccountKeeper, bankKeeper types.BankKeeper, scopedKeeper exported.ScopedKeeper,
+	cdc codec.BinaryCodec,
+	key storetypes.StoreKey,
+	legacySubspace paramtypes.Subspace,
+	ics4Wrapper porttypes.ICS4Wrapper,
+	channelKeeper types.ChannelKeeper,
+	portKeeper types.PortKeeper,
+	authKeeper types.AccountKeeper,
+	bankKeeper types.BankKeeper,
+	scopedKeeper exported.ScopedKeeper,
+	authority string,
 ) Keeper {
 	// ensure ibc transfer module account is set
 	if addr := authKeeper.GetModuleAddress(types.ModuleName); addr == nil {
@@ -46,21 +56,27 @@ func NewKeeper(
 	}
 
 	// set KeyTable if it has not already been set
-	if !paramSpace.HasKeyTable() {
-		paramSpace = paramSpace.WithKeyTable(types.ParamKeyTable())
+	if !legacySubspace.HasKeyTable() {
+		legacySubspace = legacySubspace.WithKeyTable(types.ParamKeyTable())
 	}
 
 	return Keeper{
-		cdc:           cdc,
-		storeKey:      key,
-		paramSpace:    paramSpace,
-		ics4Wrapper:   ics4Wrapper,
-		channelKeeper: channelKeeper,
-		portKeeper:    portKeeper,
-		authKeeper:    authKeeper,
-		bankKeeper:    bankKeeper,
-		scopedKeeper:  scopedKeeper,
+		cdc:            cdc,
+		storeKey:       key,
+		legacySubspace: legacySubspace,
+		ics4Wrapper:    ics4Wrapper,
+		channelKeeper:  channelKeeper,
+		portKeeper:     portKeeper,
+		authKeeper:     authKeeper,
+		bankKeeper:     bankKeeper,
+		scopedKeeper:   scopedKeeper,
+		authority:      authority,
 	}
+}
+
+// GetAuthority returns the transfer module's authority.
+func (k Keeper) GetAuthority() string {
+	return k.authority
 }
 
 // Logger returns a module-specific logger.
@@ -91,6 +107,26 @@ func (k Keeper) GetPort(ctx sdk.Context) string {
 func (k Keeper) SetPort(ctx sdk.Context, portID string) {
 	store := ctx.KVStore(k.storeKey)
 	store.Set(types.PortKey, []byte(portID))
+}
+
+// GetParams returns the current transfer module parameters.
+func (k Keeper) GetParams(ctx sdk.Context) types.Params {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get([]byte(types.ParamsKey))
+	if bz == nil { // only panics on unset params and not on empty params
+		panic("ibc transfer params are not set in store")
+	}
+
+	var params types.Params
+	k.cdc.MustUnmarshal(bz, &params)
+	return params
+}
+
+// SetParams sets the transfer module parameters.
+func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
+	store := ctx.KVStore(k.storeKey)
+	bz := k.cdc.MustMarshal(&params)
+	store.Set([]byte(types.ParamsKey), bz)
 }
 
 // GetDenomTrace retreives the full identifiers trace and base denomination from the store.

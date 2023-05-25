@@ -2,13 +2,14 @@ package transfer
 
 import (
 	"context"
-	"strconv"
 	"testing"
 	"time"
 
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	paramsproposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
+	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 
 	"github.com/strangelove-ventures/interchaintest/v7/ibc"
 	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
@@ -16,7 +17,6 @@ import (
 
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
-	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
@@ -28,34 +28,17 @@ type TransferTestSuite struct {
 	testsuite.E2ETestSuite
 }
 
-// QueryTransferSendEnabledParam queries the on-chain send enabled param for the transfer module
-func (s *TransferTestSuite) QueryTransferSendEnabledParam(ctx context.Context, chain ibc.Chain) bool {
-	queryClient := s.GetChainGRCPClients(chain).ParamsQueryClient
-	res, err := queryClient.Params(ctx, &paramsproposaltypes.QueryParamsRequest{
-		Subspace: transfertypes.StoreKey,
-		Key:      string(transfertypes.KeySendEnabled),
-	})
-	s.Require().NoError(err)
-
-	enabled, err := strconv.ParseBool(res.Param.Value)
-	s.Require().NoError(err)
-
-	return enabled
+// transferSelfParamsFeatureReleases represents the releases the transfer module started managing its own params.
+var transferSelfParamsFeatureReleases = semverutil.FeatureReleases{
+	MajorVersion: "v8",
 }
 
-// QueryTransferReceiveEnabledParam queries the on-chain receive enabled param for the transfer module
-func (s *TransferTestSuite) QueryTransferReceiveEnabledParam(ctx context.Context, chain ibc.Chain) bool {
-	queryClient := s.GetChainGRCPClients(chain).ParamsQueryClient
-	res, err := queryClient.Params(ctx, &paramsproposaltypes.QueryParamsRequest{
-		Subspace: transfertypes.StoreKey,
-		Key:      string(transfertypes.KeyReceiveEnabled),
-	})
+// QueryTransferSendEnabledParam queries the on-chain send enabled param for the transfer module
+func (s *TransferTestSuite) QueryTransferParams(ctx context.Context, chain ibc.Chain) transfertypes.Params {
+	queryClient := s.GetChainGRCPClients(chain).TransferQueryClient
+	res, err := queryClient.Params(ctx, &transfertypes.QueryParamsRequest{})
 	s.Require().NoError(err)
-
-	enabled, err := strconv.ParseBool(res.Param.Value)
-	s.Require().NoError(err)
-
-	return enabled
+	return *res.Params
 }
 
 // TestMsgTransfer_Succeeds_Nonincentivized will test sending successful IBC transfers from chainA to chainB.
@@ -65,7 +48,7 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized() {
 	t := s.T()
 	ctx := context.TODO()
 
-	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, transferChannelOptions())
+	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions())
 	chainA, chainB := s.GetChains()
 
 	chainADenom := chainA.Config().Denom
@@ -163,7 +146,7 @@ func (s *TransferTestSuite) TestMsgTransfer_Fails_InvalidAddress() {
 	t := s.T()
 	ctx := context.TODO()
 
-	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, transferChannelOptions())
+	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions())
 	chainA, chainB := s.GetChains()
 
 	chainADenom := chainA.Config().Denom
@@ -207,7 +190,7 @@ func (s *TransferTestSuite) TestMsgTransfer_Timeout_Nonincentivized() {
 	t := s.T()
 	ctx := context.TODO()
 
-	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, transferChannelOptions())
+	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions())
 	chainA, _ := s.GetChains()
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
@@ -255,7 +238,7 @@ func (s *TransferTestSuite) TestSendEnabledParam() {
 	t := s.T()
 	ctx := context.TODO()
 
-	_, channelA := s.SetupChainsRelayerAndChannel(ctx, transferChannelOptions())
+	_, channelA := s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions())
 	chainA, chainB := s.GetChains()
 
 	chainADenom := chainA.Config().Denom
@@ -266,10 +249,17 @@ func (s *TransferTestSuite) TestSendEnabledParam() {
 	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 	chainBAddress := chainBWallet.FormattedAddress()
 
+	chainAVersion := chainA.Config().Images[0].Version
+	isSelfManagingParams := transferSelfParamsFeatureReleases.IsSupported(chainAVersion)
+
+	govModuleAddress, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
+	s.Require().NoError(err)
+	s.Require().NotNil(govModuleAddress)
+
 	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
 
 	t.Run("ensure transfer sending is enabled", func(t *testing.T) {
-		enabled := s.QueryTransferSendEnabledParam(ctx, chainA)
+		enabled := s.QueryTransferParams(ctx, chainA).SendEnabled
 		s.Require().True(enabled)
 	})
 
@@ -279,16 +269,21 @@ func (s *TransferTestSuite) TestSendEnabledParam() {
 	})
 
 	t.Run("change send enabled parameter to disabled", func(t *testing.T) {
-		changes := []paramsproposaltypes.ParamChange{
-			paramsproposaltypes.NewParamChange(transfertypes.StoreKey, string(transfertypes.KeySendEnabled), "false"),
-		}
+		if isSelfManagingParams {
+			msg := transfertypes.NewMsgUpdateParams(govModuleAddress.String(), transfertypes.NewParams(false, true))
+			s.ExecuteGovProposalV1(ctx, msg, chainA, chainAWallet, 1)
+		} else {
+			changes := []paramsproposaltypes.ParamChange{
+				paramsproposaltypes.NewParamChange(transfertypes.StoreKey, string(transfertypes.KeySendEnabled), "false"),
+			}
 
-		proposal := paramsproposaltypes.NewParameterChangeProposal(ibctesting.Title, ibctesting.Description, changes)
-		s.ExecuteGovProposal(ctx, chainA, chainAWallet, proposal)
+			proposal := paramsproposaltypes.NewParameterChangeProposal(ibctesting.Title, ibctesting.Description, changes)
+			s.ExecuteGovProposal(ctx, chainA, chainAWallet, proposal)
+		}
 	})
 
 	t.Run("ensure transfer params are disabled", func(t *testing.T) {
-		enabled := s.QueryTransferSendEnabledParam(ctx, chainA)
+		enabled := s.QueryTransferParams(ctx, chainA).SendEnabled
 		s.Require().False(enabled)
 	})
 
@@ -303,7 +298,7 @@ func (s *TransferTestSuite) TestReceiveEnabledParam() {
 	t := s.T()
 	ctx := context.TODO()
 
-	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, transferChannelOptions())
+	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions())
 	chainA, chainB := s.GetChains()
 
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
@@ -317,10 +312,17 @@ func (s *TransferTestSuite) TestReceiveEnabledParam() {
 		chainBAddress = chainBWallet.FormattedAddress()
 	)
 
+	chainAVersion := chainA.Config().Images[0].Version
+	isSelfManagingParams := transferSelfParamsFeatureReleases.IsSupported(chainAVersion)
+
+	govModuleAddress, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
+	s.Require().NoError(err)
+	s.Require().NotNil(govModuleAddress)
+
 	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
 
 	t.Run("ensure transfer receive is enabled", func(t *testing.T) {
-		enabled := s.QueryTransferReceiveEnabledParam(ctx, chainA)
+		enabled := s.QueryTransferParams(ctx, chainA).ReceiveEnabled
 		s.Require().True(enabled)
 	})
 
@@ -358,16 +360,21 @@ func (s *TransferTestSuite) TestReceiveEnabledParam() {
 	})
 
 	t.Run("change receive enabled parameter to disabled ", func(t *testing.T) {
-		changes := []paramsproposaltypes.ParamChange{
-			paramsproposaltypes.NewParamChange(transfertypes.StoreKey, string(transfertypes.KeyReceiveEnabled), "false"),
-		}
+		if isSelfManagingParams {
+			msg := transfertypes.NewMsgUpdateParams(govModuleAddress.String(), transfertypes.NewParams(false, false))
+			s.ExecuteGovProposalV1(ctx, msg, chainA, chainAWallet, 1)
+		} else {
+			changes := []paramsproposaltypes.ParamChange{
+				paramsproposaltypes.NewParamChange(transfertypes.StoreKey, string(transfertypes.KeyReceiveEnabled), "false"),
+			}
 
-		proposal := paramsproposaltypes.NewParameterChangeProposal(ibctesting.Title, ibctesting.Description, changes)
-		s.ExecuteGovProposal(ctx, chainA, chainAWallet, proposal)
+			proposal := paramsproposaltypes.NewParameterChangeProposal(ibctesting.Title, ibctesting.Description, changes)
+			s.ExecuteGovProposal(ctx, chainA, chainAWallet, proposal)
+		}
 	})
 
 	t.Run("ensure transfer params are disabled", func(t *testing.T) {
-		enabled := s.QueryTransferReceiveEnabledParam(ctx, chainA)
+		enabled := s.QueryTransferParams(ctx, chainA).ReceiveEnabled
 		s.Require().False(enabled)
 	})
 
@@ -410,7 +417,7 @@ func (s *TransferTestSuite) TestMsgTransfer_WithMemo() {
 	t := s.T()
 	ctx := context.TODO()
 
-	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, transferChannelOptions())
+	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions())
 	chainA, chainB := s.GetChains()
 
 	chainADenom := chainA.Config().Denom
@@ -468,13 +475,4 @@ func (s *TransferTestSuite) TestMsgTransfer_WithMemo() {
 			s.Require().Equal(int64(0), actualBalance)
 		}
 	})
-}
-
-// transferChannelOptions configures both of the chains to have non-incentivized transfer channels.
-func transferChannelOptions() func(options *ibc.CreateChannelOptions) {
-	return func(opts *ibc.CreateChannelOptions) {
-		opts.Version = transfertypes.Version
-		opts.SourcePortName = transfertypes.PortID
-		opts.DestPortName = transfertypes.PortID
-	}
 }

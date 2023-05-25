@@ -91,7 +91,7 @@ func (k Keeper) authenticateTx(ctx sdk.Context, msgs []sdk.Msg, connectionID, po
 		return errorsmod.Wrapf(icatypes.ErrInterchainAccountNotFound, "failed to retrieve interchain account on port %s", portID)
 	}
 
-	allowMsgs := k.GetAllowMessages(ctx)
+	allowMsgs := k.GetParams(ctx).AllowMessages
 	for _, msg := range msgs {
 		if !types.ContainsMsgType(allowMsgs, msg) {
 			return errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "message type not allowed: %s", sdk.MsgTypeURL(msg))
