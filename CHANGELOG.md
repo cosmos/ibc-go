@@ -35,6 +35,12 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 All notable changes to this project will be documented in this file.
 
+## [[Unreleased]]
+
+### Bug Fixes
+
+* [\#3662](https://github.com/cosmos/ibc-go/pull/3662) Retract v4.1.2 and v4.2.1. 
+
 ## [v4.4.1](https://github.com/cosmos/ibc-go/releases/tag/v4.4.1) - 2023-05-25
 
 ### Bug Fixes
