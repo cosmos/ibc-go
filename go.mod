@@ -1,5 +1,7 @@
 go 1.19
 
+retract v7.0.0 // contains huckleberry vulnerability
+
 module github.com/cosmos/ibc-go/v7
 
 require (
