@@ -9,8 +9,11 @@ import (
 func (suite *KeeperTestSuite) TestDefaultSetParams() {
 	expParams := types.DefaultParams()
 
-	params := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetParams(suite.chainA.GetContext())
+	clientKeeper := suite.chainA.App.GetIBCKeeper().ClientKeeper
+	params := clientKeeper.GetParams(suite.chainA.GetContext())
+
 	suite.Require().Equal(expParams, params)
+	suite.Require().Equal(expParams.AllowedClients, clientKeeper.GetAllowedClients(suite.chainA.GetContext()))
 }
 
 // TestParams tests that Param setting and retrieval works properly
