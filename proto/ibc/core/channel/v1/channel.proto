@@ -74,6 +74,9 @@ enum State {
   // A channel has acknowledged the upgrade handshake step on the counterparty chain.
   // The counterparty chain that accepts the upgrade should set the channel state from OPEN to UPGRADETRY.
   STATE_TRYUPGRADE = 6 [(gogoproto.enumvalue_customname) = "TRYUPGRADE"];
+  // A channel has verified the counterparty chain is in UPGRADETRY.
+  // However, there are still in-flight packets on both ends waiting to be flushed before it can move to OPEN.
+  STATE_ACKUPGRADE = 7 [(gogoproto.enumvalue_customname) = "ACKUPGRADE"];
 }
 
 // Order defines if a channel is ORDERED or UNORDERED
