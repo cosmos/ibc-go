@@ -101,8 +101,8 @@ func (s *E2ETestSuite) AssertTxFailure(resp sdk.TxResponse, expectedError *error
 	// In older versions, the codespace and abci codes were different. So in compatibility tests
 	// we can not make assertions on them.
 	// TODO: bypass these checks only for compatibility tests.
-	//s.Require().Equal(expectedError.ABCICode(), resp.Code, errorMsg)
-	//s.Require().Equal(expectedError.Codespace(), resp.Codespace, errorMsg)
+	// s.Require().Equal(expectedError.ABCICode(), resp.Code, errorMsg)
+	// s.Require().Equal(expectedError.Codespace(), resp.Codespace, errorMsg)
 	s.Require().Contains(resp.RawLog, expectedError.Error(), errorMsg)
 }
 

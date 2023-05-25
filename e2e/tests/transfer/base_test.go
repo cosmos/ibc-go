@@ -28,11 +28,6 @@ type TransferTestSuite struct {
 	testsuite.E2ETestSuite
 }
 
-// transferSelfParamsFeatureReleases represents the releases the transfer module started managing its own params.
-var transferSelfParamsFeatureReleases = semverutil.FeatureReleases{
-	MajorVersion: "v8",
-}
-
 // QueryTransferSendEnabledParam queries the on-chain send enabled param for the transfer module
 func (s *TransferTestSuite) QueryTransferParams(ctx context.Context, chain ibc.Chain) transfertypes.Params {
 	queryClient := s.GetChainGRCPClients(chain).TransferQueryClient
@@ -250,7 +245,7 @@ func (s *TransferTestSuite) TestSendEnabledParam() {
 	chainBAddress := chainBWallet.FormattedAddress()
 
 	chainAVersion := chainA.Config().Images[0].Version
-	isSelfManagingParams := transferSelfParamsFeatureReleases.IsSupported(chainAVersion)
+	isSelfManagingParams := testvalues.TransferSelfParamsFeatureReleases.IsSupported(chainAVersion)
 
 	govModuleAddress, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
 	s.Require().NoError(err)
@@ -313,7 +308,7 @@ func (s *TransferTestSuite) TestReceiveEnabledParam() {
 	)
 
 	chainAVersion := chainA.Config().Images[0].Version
-	isSelfManagingParams := transferSelfParamsFeatureReleases.IsSupported(chainAVersion)
+	isSelfManagingParams := testvalues.TransferSelfParamsFeatureReleases.IsSupported(chainAVersion)
 
 	govModuleAddress, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
 	s.Require().NoError(err)
