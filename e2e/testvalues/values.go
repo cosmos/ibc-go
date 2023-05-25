@@ -66,6 +66,11 @@ var IcadNewGenesisCommandsFeatureReleases = semverutil.FeatureReleases{
 	},
 }
 
+// TransferSelfParamsFeatureReleases represents the releases the transfer module started managing its own params.
+var TransferSelfParamsFeatureReleases = semverutil.FeatureReleases{
+	MajorVersion: "v8",
+}
+
 // MemoFeatureReleases represents the releases the memo field was released in.
 var MemoFeatureReleases = semverutil.FeatureReleases{
 	MajorVersion: "v6",
