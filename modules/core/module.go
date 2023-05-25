@@ -138,7 +138,9 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 		panic(err)
 	}
 
-	if err := cfg.RegisterMigration(exported.ModuleName, 4, clientMigrator.MigrateParams); err != nil {
+	if err := cfg.RegisterMigration(exported.ModuleName, 4, func(ctx sdk.Context) error {
+		return clientMigrator.MigrateParams(ctx)
+	}); err != nil {
 		panic(err)
 	}
 }
