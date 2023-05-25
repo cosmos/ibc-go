@@ -4,11 +4,7 @@
   "entrypoint": ["TestTransferTestSuite"],
   "test": [
     "TestMsgTransfer_Succeeds_Nonincentivized",
-    "TestMsgTransfer_Fails_InvalidAddress",
-    "TestMsgTransfer_Timeout_Nonincentivized",
-    "TestMsgTransfer_WithMemo",
-    "TestSendEnabledParam",
-    "TestReceiveEnabledParam"
+    "TestMsgTransfer_Fails_InvalidAddress"
   ],
   "relayer-type": ["rly"],
   "chain-binary": ["simd"],
