@@ -40,10 +40,6 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 * [\#2868](https://github.com/cosmos/ibc-go/pull/2868) Bump ICS 23 to v0.9.0. 
 
-### Improvements
-
-### Features
-
 ### Bug Fixes
 
 * [\#3346](https://github.com/cosmos/ibc-go/pull/3346) Properly handle ordered channels in `UnreceivedPackets` query.
