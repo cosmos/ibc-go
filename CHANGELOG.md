@@ -51,7 +51,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Bug Fixes
 
-## [v7.0.1](https://github.com/cosmos/ibc-go/releases/tag/v7.1.1) - 2023-05-25 
+## [v7.0.1](https://github.com/cosmos/ibc-go/releases/tag/v7.0.1) - 2023-05-25 
 
 ### Bug Fixes
  
