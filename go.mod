@@ -2,7 +2,11 @@ go 1.19
 
 module github.com/cosmos/ibc-go/v5
 
-retract [v5.0.0, v5.1.0] // depends on SDK version < v0.46.7
+retract (
+	v5.3.0 // contains huckleberry vulnerability
+	v5.2.0 // contains huckleberry vulnerability
+	[v5.0.0, v5.1.1] // depends on SDK version < v0.46.7
+)
 
 require (
 	cosmossdk.io/math v1.0.0-beta.3
