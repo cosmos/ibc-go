@@ -34,11 +34,21 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Changelog
 
+[[Unreleased]]
+
+### Bug Fixes
+
+* [\#3661](https://github.com/cosmos/ibc-go/pull/3661) Revert state-machine breaking improvemnt from PR [#2786]([https://github.com/cosmos/ibc-go/pull/3661](https://github.com/cosmos/ibc-go/pull/2786)).
+
 ## [v4.2.1](https://github.com/cosmos/ibc-go/releases/tag/v4.2.1) - 2023-05-25
 
 ### Dependencies
 
 * [\#2868](https://github.com/cosmos/ibc-go/pull/2868) Bump ICS 23 to v0.9.0. 
+
+### Improvements
+
+* (apps/29-fee) [\#2786](https://github.com/cosmos/ibc-go/pull/2786) Save gas by checking key existence with `KVStore`'s `Has` method.
 
 ### Bug Fixes
 
