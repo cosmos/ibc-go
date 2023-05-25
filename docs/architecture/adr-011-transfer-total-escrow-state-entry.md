@@ -10,9 +10,9 @@ Accepted and applied in v7.1 of ibc-go
 
 ## Context
 
-Every ICS-20 transfer channel has its own escrow bank account. This account is used to lock tokens that are transferred out of a chain that acts as source of the tokens (i.e. when the tokens being transferred are not returning to the originating chain). This design makes it easy to query the balance of the escrow accounts and find out the total amount of tokens in escrow in a particular channel. However, there are use cases where it would be useful to determine the total escrowed amount of a given denomination across all channels where those tokens have been transferred out.
+Every ICS-20 transfer channel has its own escrow bank account. This account is used to lock tokens that are transferred out of a chain that acts as the source of the tokens (i.e. when the tokens being transferred have not returned to the originating chain). This design makes it easy to query the balance of the escrow accounts and find out the total amount of tokens in escrow in a particular channel. However, there are use cases where it would be useful to determine the total escrowed amount of a given denomination across all channels where those tokens have been transferred out.
 
-For example: assuming that the are three channels between Cosmos Hub to Osmosis and 10 ATOM have been transferred from the Cosmos Hub to Osmosis on each of those channels, then we would like to know that 30 ATOM have been transferred (i.e. are locked in the escrow accounts of each channel) without needing to iterate over each escrow account to add up the balances of each.
+For example: assuming that there are three channels between Cosmos Hub to Osmosis and 10 ATOM have been transferred from the Cosmos Hub to Osmosis on each of those channels, then we would like to know that 30 ATOM have been transferred (i.e. are locked in the escrow accounts of each channel) without needing to iterate over each escrow account to add up the balances of each.
 
 For a sample use case where this feature would be useful, please refer to Osmosis' rate limiting use case described in [#2664](https://github.com/cosmos/ibc-go/issues/2664).
 
@@ -34,7 +34,7 @@ if coin.Amount.IsNegative() {
 
 ### Delete state entry if amount is zero
 
-When setting the amount for a particular denomination, the value might be zero if all tokens that were trasferred out of the chain have come back. If this happens, then the state entry for this particular denomination will be deleted, since Cosmos SDK's `x/bank` module prunes any non-zero balances:
+When setting the amount for a particular denomination, the value might be zero if all tokens that were transferred out of the chain have been transferred back. If this happens, then the state entry for this particular denomination will be deleted, since Cosmos SDK's `x/bank` module prunes any non-zero balances:
 
 ```go
 if coin.Amount.IsZero() {
@@ -90,7 +90,7 @@ func (k Keeper) unescrowToken(ctx sdk.Context, escrowAddress, receiver sdk.AccAd
 }
 ```
 
-When tokens need to be escrowed in `sendTransfer`, then `escrowToken` is called; when tokens need to be unescrowed when executing the `OnRecvPacket`, `OnAcknowledgementPacket` or `OnTimeoutPacket` callbacks, then `unescrowToken` is called.
+When tokens need to be escrowed in `sendTransfer`, then `escrowToken` is called; when tokens need to be unescrowed on execution of the `OnRecvPacket`, `OnAcknowledgementPacket` or `OnTimeoutPacket` callbacks, then `unescrowToken` is called.
 
 ### gRPC query endpoint and CLI to retrieve amount
 
