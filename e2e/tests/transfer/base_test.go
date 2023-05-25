@@ -308,7 +308,7 @@ func (s *TransferTestSuite) TestReceiveEnabledParam() {
 	)
 
 	chainAVersion := chainA.Config().Images[0].Version
-	isSelfManagingParams := testvalues.transferSelfParamsFeatureReleases.IsSupported(chainAVersion)
+	isSelfManagingParams := testvalues.TransferSelfParamsFeatureReleases.IsSupported(chainAVersion)
 
 	govModuleAddress, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
 	s.Require().NoError(err)
