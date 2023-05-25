@@ -304,7 +304,7 @@ func emitChannelUpgradeTryEvent(ctx sdk.Context, portID string, channelID string
 			sdk.NewAttribute(types.AttributeCounterpartyChannelID, currentChannel.Counterparty.ChannelId),
 			sdk.NewAttribute(types.AttributeKeyConnectionID, upgrade.Fields.ConnectionHops[0]),
 			sdk.NewAttribute(types.AttributeVersion, upgrade.Fields.Version),
-			sdk.NewAttribute(types.AttributeKeyChannelOrdering, upgrade.Fields.Ordering.String()),
+			sdk.NewAttribute(types.AttributeKeyUpgradeOrdering, upgrade.Fields.Ordering.String()),
 			sdk.NewAttribute(types.AttributeKeyUpgradeSequence, fmt.Sprintf("%d", currentChannel.UpgradeSequence)),
 		),
 		sdk.NewEvent(
