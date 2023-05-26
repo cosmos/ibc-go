@@ -777,7 +777,7 @@ func (suite *KeeperTestSuite) TestUpgradeClient() {
 
 // TestUpdateClientParams tests the UpdateClientParams rpc handler
 func (suite *KeeperTestSuite) TestUpdateClientParams() {
-	validAuthority := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetAuthority()
+	validAuthority := suite.chainA.App.GetIBCKeeper().GetAuthority()
 	testCases := []struct {
 		name    string
 		msg     *clienttypes.MsgUpdateClientParams

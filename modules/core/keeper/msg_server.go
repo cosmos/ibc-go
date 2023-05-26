@@ -697,13 +697,12 @@ func (k Keeper) Acknowledgement(goCtx context.Context, msg *channeltypes.MsgAckn
 
 // UpdateClientParams defines a rpc handler method for MsgUpdateClientParams.
 func (k Keeper) UpdateClientParams(goCtx context.Context, msg *clienttypes.MsgUpdateClientParams) (*clienttypes.MsgUpdateClientParamsResponse, error) {
-	ck := k.ClientKeeper
-	if ck.GetAuthority() != msg.Authority {
-		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "expected %s, got %s", ck.GetAuthority(), msg.Authority)
+	if k.GetAuthority() != msg.Authority {
+		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "expected %s, got %s", k.GetAuthority(), msg.Authority)
 	}
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	ck.SetParams(ctx, msg.Params)
+	k.ClientKeeper.SetParams(ctx, msg.Params)
 
 	return &clienttypes.MsgUpdateClientParamsResponse{}, nil
 }

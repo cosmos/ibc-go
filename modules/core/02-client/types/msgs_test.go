@@ -612,7 +612,7 @@ func (suite *TypesTestSuite) TestMsgSubmitMisbehaviour_ValidateBasic() {
 
 // TestMsgUpdateClientParams_ValidateBasic tests ValidateBasic for MsgUpdateClientParams
 func (suite *TypesTestSuite) TestMsgUpdateClientParams_ValidateBasic() {
-	authority := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetAuthority()
+	authority := suite.chainA.App.GetIBCKeeper().GetAuthority()
 	testCases := []struct {
 		name    string
 		msg     *types.MsgUpdateClientParams

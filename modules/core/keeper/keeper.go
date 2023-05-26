@@ -6,8 +6,6 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
 
@@ -35,13 +33,17 @@ type Keeper struct {
 	ChannelKeeper    channelkeeper.Keeper
 	PortKeeper       portkeeper.Keeper
 	Router           *porttypes.Router
+
+	// the address capable of executing a MsgUpdateClientParams message. Typically, this
+	// should be the x/gov module account.
+	authority string
 }
 
 // NewKeeper creates a new ibc Keeper
 func NewKeeper(
 	cdc codec.BinaryCodec, key storetypes.StoreKey, paramSpace paramtypes.Subspace,
 	stakingKeeper clienttypes.StakingKeeper, upgradeKeeper clienttypes.UpgradeKeeper,
-	scopedKeeper capabilitykeeper.ScopedKeeper,
+	scopedKeeper capabilitykeeper.ScopedKeeper, authority string,
 ) *Keeper {
 	// register paramSpace at top level keeper
 	// set KeyTable if it has not already been set
@@ -63,9 +65,7 @@ func NewKeeper(
 		panic(fmt.Errorf("cannot initialize IBC keeper: empty scoped keeper"))
 	}
 
-	authority := authtypes.NewModuleAddress(govtypes.ModuleName).String()
-
-	clientKeeper := clientkeeper.NewKeeper(cdc, key, paramSpace, stakingKeeper, upgradeKeeper, authority)
+	clientKeeper := clientkeeper.NewKeeper(cdc, key, paramSpace, stakingKeeper, upgradeKeeper)
 	connectionKeeper := connectionkeeper.NewKeeper(cdc, key, paramSpace, clientKeeper)
 	portKeeper := portkeeper.NewKeeper(scopedKeeper)
 	channelKeeper := channelkeeper.NewKeeper(cdc, key, clientKeeper, connectionKeeper, portKeeper, scopedKeeper)
@@ -76,6 +76,7 @@ func NewKeeper(
 		ConnectionKeeper: connectionKeeper,
 		ChannelKeeper:    channelKeeper,
 		PortKeeper:       portKeeper,
+		authority:        authority,
 	}
 }
 
@@ -94,6 +95,11 @@ func (k *Keeper) SetRouter(rtr *porttypes.Router) {
 	k.PortKeeper.Router = rtr
 	k.Router = rtr
 	k.Router.Seal()
+}
+
+// GetAuthority returns the client module's authority.
+func (k Keeper) GetAuthority() string {
+	return k.authority
 }
 
 // isEmpty checks if the interface is an empty struct or a pointer pointing

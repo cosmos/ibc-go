@@ -32,14 +32,10 @@ type Keeper struct {
 	legacySubspace paramtypes.Subspace
 	stakingKeeper  types.StakingKeeper
 	upgradeKeeper  types.UpgradeKeeper
-
-	// the address capable of executing a MsgUpdateClientParams message. Typically, this
-	// should be the x/gov module account.
-	authority string
 }
 
 // NewKeeper creates a new NewKeeper instance
-func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey, legacySubspace paramtypes.Subspace, sk types.StakingKeeper, uk types.UpgradeKeeper, authority string) Keeper {
+func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey, legacySubspace paramtypes.Subspace, sk types.StakingKeeper, uk types.UpgradeKeeper) Keeper {
 	// set KeyTable if it has not already been set
 	if !legacySubspace.HasKeyTable() {
 		legacySubspace = legacySubspace.WithKeyTable(types.ParamKeyTable())
@@ -51,7 +47,6 @@ func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey, legacySubspace pa
 		legacySubspace: legacySubspace,
 		stakingKeeper:  sk,
 		upgradeKeeper:  uk,
-		authority:      authority,
 	}
 }
 
@@ -419,7 +414,22 @@ func (k Keeper) GetClientStatus(ctx sdk.Context, clientState exported.ClientStat
 	return clientState.Status(ctx, k.ClientStore(ctx, clientID), k.cdc)
 }
 
-// GetAuthority returns the client module's authority.
-func (k Keeper) GetAuthority() string {
-	return k.authority
+// GetParams returns the total set of ibc-client parameters.
+func (k Keeper) GetParams(ctx sdk.Context) types.Params {
+	var p types.Params
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get([]byte(types.ParamsKey))
+	if bz == nil {
+		return types.Params{}
+	}
+
+	k.cdc.MustUnmarshal(bz, &p)
+	return p
+}
+
+// SetParams sets the total set of ibc-client parameters.
+func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
+	store := ctx.KVStore(k.storeKey)
+	bz := k.cdc.MustMarshal(&params)
+	store.Set([]byte(types.ParamsKey), bz)
 }
