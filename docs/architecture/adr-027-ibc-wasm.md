@@ -154,7 +154,7 @@ func (cs ClientState) VerifyClientMessage(
   _, err := call[contractResult](ctx, clientStore, &cs, payload)
   return err
 }
-
+```
 
 ## Consequences
 
