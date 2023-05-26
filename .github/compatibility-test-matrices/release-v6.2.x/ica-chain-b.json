@@ -5,7 +5,7 @@
   "test": [
     "TestMsgSendTx_SuccessfulTransfer",
     "TestMsgSendTx_FailedTransfer_InsufficientFunds",
-    "TestMsgSubmitTx_SuccessfulTransfer_AfterReopeningICA"
+    "TestMsgSendTx_SuccessfulTransfer_AfterReopeningICA"
   ],
   "relayer-type": ["rly"],
   "chain-binary": ["simd"],

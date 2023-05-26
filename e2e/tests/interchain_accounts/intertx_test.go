@@ -9,6 +9,7 @@ import (
 	"github.com/strangelove-ventures/interchaintest/v7/ibc"
 	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
 	"github.com/stretchr/testify/suite"
+	"golang.org/x/mod/semver"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -18,6 +19,7 @@ import (
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 
+	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
@@ -27,6 +29,18 @@ func TestInterTxTestSuite(t *testing.T) {
 
 type InterTxTestSuite struct {
 	testsuite.E2ETestSuite
+}
+
+// getICAVersion returns the version which should be used in the MsgRegisterAccount broadcast from the
+// controller chain.
+func getICAVersion(chainAVersion, chainBVersion string) string {
+	chainBIsGreaterThanOrEqualToChainA := semver.Compare(chainAVersion, chainBVersion) <= 0
+	if chainBIsGreaterThanOrEqualToChainA {
+		// allow version to be specified by the controller chain
+		return ""
+	}
+	// explicitly set the version string because the host chain might not yet support incentivized channels.
+	return icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
 }
 
 // RegisterInterchainAccount will attempt to register an interchain account on the counterparty chain.
