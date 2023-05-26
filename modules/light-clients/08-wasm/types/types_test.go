@@ -48,9 +48,12 @@ type TypesTestSuite struct {
 	testData map[string]string
 }
 
+func (suite *TypesTestSuite) SetupTest() {
+	ibctesting.DefaultTestingAppInit = ibctesting.SetupTestingApp
+}
+
 // SetupWasmTendermint sets up 2 chains and stores the tendermint/cometbft light client wasm contract on both.
 func (suite *TypesTestSuite) SetupWasmTendermint() {
-	ibctesting.DefaultTestingAppInit = ibctesting.SetupTestingApp
 	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2)
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
 	suite.chainA.SetWasm(true)
