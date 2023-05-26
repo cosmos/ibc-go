@@ -2,8 +2,6 @@ package types
 
 const maxWasmSize = 3 * 1024 * 1024
 
-var wasmIdent = []byte("\x00\x61\x73\x6D")
-
 // ValidateWasmCode valides that the size of the wasm code is in the allowed range
 // and that the contents are of a wasm binary.
 func ValidateWasmCode(code []byte) error {
