@@ -70,31 +70,31 @@ submit this message (which is normally the address of te governance module).
 ```go
 // StoreCode defines a rpc handler method for MsgStoreCode
 func (k Keeper) StoreCode(goCtx context.Context, msg *types.MsgStoreCode) (*types.MsgStoreCodeResponse, error) {
-	ctx := sdk.UnwrapSDKContext(goCtx)
+  ctx := sdk.UnwrapSDKContext(goCtx)
 
-	if k.authority != msg.Signer {
-		return nil, sdkerrors.Wrapf(govtypes.ErrInvalidSigner, "invalid authority: expected %s, got %s", k.authority, msg.Signer)
-	}
+  if k.authority != msg.Signer {
+    return nil, sdkerrors.Wrapf(govtypes.ErrInvalidSigner, "invalid authority: expected %s, got %s", k.authority, msg.Signer)
+  }
 
-	codeID, err := k.storeWasmCode(ctx, msg.Code)
-	if err != nil {
-		return nil, sdkerrors.Wrap(err, "storing wasm code failed")
-	}
+  codeID, err := k.storeWasmCode(ctx, msg.Code)
+  if err != nil {
+    return nil, sdkerrors.Wrap(err, "storing wasm code failed")
+  }
 
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			clienttypes.EventTypeStoreWasmCode,
-			sdk.NewAttribute(clienttypes.AttributeKeyWasmCodeID, hex.EncodeToString(codeID)),
-		),
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, clienttypes.AttributeValueCategory),
-		),
-	})
+  ctx.EventManager().EmitEvents(sdk.Events{
+    sdk.NewEvent(
+      clienttypes.EventTypeStoreWasmCode,
+      sdk.NewAttribute(clienttypes.AttributeKeyWasmCodeID, hex.EncodeToString(codeID)),
+    ),
+    sdk.NewEvent(
+      sdk.EventTypeMessage,
+      sdk.NewAttribute(sdk.AttributeKeyModule, clienttypes.AttributeValueCategory),
+    ),
+  })
 
-	return &types.MsgStoreCodeResponse{
-		CodeId: codeID,
-	}, nil
+  return &types.MsgStoreCodeResponse{
+    CodeId: codeID,
+  }, nil
 }
 ```
 
@@ -113,16 +113,16 @@ and returns the slice of bytes returned by the smart contract. This data is dese
 
 ```go
 type (
-	verifyClientMessageInnerPayload struct {
-		ClientMessage clientMessage `json:"client_message"`
-	}
-	clientMessage struct {
-		Header       *Header       `json:"header,omitempty"`
-		Misbehaviour *Misbehaviour `json:"misbehaviour,omitempty"`
-	}
-	verifyClientMessagePayload struct {
-		VerifyClientMessage verifyClientMessageInnerPayload `json:"verify_client_message"`
-	}
+  verifyClientMessageInnerPayload struct {
+    ClientMessage clientMessage `json:"client_message"`
+  }
+  clientMessage struct {
+    Header       *Header       `json:"header,omitempty"`
+    Misbehaviour *Misbehaviour `json:"misbehaviour,omitempty"`
+  }
+  verifyClientMessagePayload struct {
+    VerifyClientMessage verifyClientMessageInnerPayload `json:"verify_client_message"`
+  }
 )
 
 // VerifyClientMessage must verify a ClientMessage. A ClientMessage could be a Header, Misbehaviour, or batch update.
@@ -135,24 +135,24 @@ func (cs ClientState) VerifyClientMessage(
   clientStore sdk.KVStore, 
   clientMsg exported.ClientMessage
 ) error {
-	clientMsgConcrete := clientMessage{
-		Header:       nil,
-		Misbehaviour: nil,
-	}
-	switch clientMsg := clientMsg.(type) {
-	case *Header:
-		clientMsgConcrete.Header = clientMsg
-	case *Misbehaviour:
-		clientMsgConcrete.Misbehaviour = clientMsg
-	}
-	inner := verifyClientMessageInnerPayload{
-		ClientMessage: clientMsgConcrete,
-	}
-	payload := verifyClientMessagePayload{
-		VerifyClientMessage: inner,
-	}
-	_, err := call[contractResult](ctx, clientStore, &cs, payload)
-	return err
+  clientMsgConcrete := clientMessage{
+    Header:       nil,
+    Misbehaviour: nil,
+  }
+  switch clientMsg := clientMsg.(type) {
+  case *Header:
+    clientMsgConcrete.Header = clientMsg
+  case *Misbehaviour:
+    clientMsgConcrete.Misbehaviour = clientMsg
+  }
+  inner := verifyClientMessageInnerPayload{
+    ClientMessage: clientMsgConcrete,
+  }
+  payload := verifyClientMessagePayload{
+    VerifyClientMessage: inner,
+  }
+  _, err := call[contractResult](ctx, clientStore, &cs, payload)
+  return err
 }
 
 
