@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"fmt"
-	"reflect"
 
 	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/telemetry"
@@ -143,43 +142,21 @@ func (k Keeper) ChanUpgradeTry(
 	// }
 
 	// create upgrade fields from counterparty proposed upgrade and own verified connection hops
-	upgradeFields := types.NewUpgradeFields(
-		counterpartyProposedUpgrade.Fields.Ordering,
-		proposedConnectionHops,
-		counterpartyProposedUpgrade.Fields.Version,
-	)
+	// upgradeFields := types.NewUpgradeFields(
+	// 	counterpartyProposedUpgrade.Fields.Ordering,
+	// 	proposedConnectionHops,
+	// 	counterpartyProposedUpgrade.Fields.Version,
+	// )
 
 	// TODO: if OPEN, then initialize handshake with upgradeFields
 	// this should validate the upgrade fields, set the upgrade path and set the final correct sequence.
 	var proposedUpgrade types.Upgrade
-	if channel.State == types.OPEN {
+	// if channel.State == types.OPEN {
 
-		// NOTE: this logic is currently just to get a testable proposedUpgrade value, and may change in the future
-		if err := k.ValidateUpgradeFields(ctx, upgradeFields, channel); err != nil {
-			return types.Upgrade{}, err
-		}
-
-		proposedUpgrade, err = k.constructProposedUpgrade(ctx, portID, channelID, upgradeFields, proposedUpgradeTimeout)
-		if err != nil {
-			return types.Upgrade{}, errorsmod.Wrap(err, "failed to construct proposed upgrade")
-		}
-
-		// TODO: otherwise, if the channel state is already in INITUPGRADE (crossing hellos case),
-		// assert that the upgrade fields are the same as the upgrade already in progress
-	} else if channel.State == types.INITUPGRADE {
-
-		// NOTE: this logic is currently just to get a testable flow, and may change in the future
-		currentUpgrade, found := k.GetUpgrade(ctx, portID, channelID)
-		if !found {
-			return types.Upgrade{}, errorsmod.Wrap(types.ErrInvalidUpgrade, "failed to retrieve upgrade")
-		}
-
-		if !reflect.DeepEqual(currentUpgrade.Fields, upgradeFields) {
-			return types.Upgrade{}, errorsmod.Wrap(types.ErrInvalidUpgrade, "proposed upgrade fields have changed since UpgradeInit")
-		}
-
-		proposedUpgrade = currentUpgrade
-	}
+	// TODO: otherwise, if the channel state is already in INITUPGRADE (crossing hellos case),
+	// assert that the upgrade fields are the same as the upgrade already in progress
+	// nolint:staticcheck
+	// } else if channel.State == types.INITUPGRADE {
 
 	// if the counterparty sequence is not equal to our own at this point, either the counterparty chain is out-of-sync or the message is out-of-sync
 	// we write an error receipt with our own sequence so that the counterparty can update their sequence as well.
@@ -190,6 +167,7 @@ func (k Keeper) ChanUpgradeTry(
 	// 	channel.UpgradeSequence++
 	// 	// TODO: emit error receipt events
 	// 	k.SetUpgradeErrorReceipt(ctx, portID, channelID, errorReceipt)
+	// }
 	// }
 
 	return proposedUpgrade, nil
