@@ -161,7 +161,7 @@ func (cs ClientState) VerifyClientMessage(
 ### Positive
 
 - Adding support for new light client or upgrading existing light client is way easier than before and only requires single transaction.
-- Improves maintainability of Cosmos SDK, since no change in codebase is required to support new client or upgrade it.
+- Improves maintainability of ibc-go, since no change in codebase is required to support new client or upgrade it.
 
 ### Negative
 
