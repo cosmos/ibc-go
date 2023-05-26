@@ -11,6 +11,7 @@ const (
 	AttributeKeyConnectionID       = "connection_id"
 	AttributeKeyPortID             = "port_id"
 	AttributeKeyChannelID          = "channel_id"
+	AttributeKeyChannelState       = "channel_state"
 	AttributeVersion               = "version"
 	AttributeCounterpartyPortID    = "counterparty_port_id"
 	AttributeCounterpartyChannelID = "counterparty_channel_id"
@@ -40,10 +41,12 @@ const (
 	AttributeKeyConnection       = "packet_connection"
 
 	// upgrade specific keys
-	AttributeKeyUpgradeSequence       = "upgrade_sequence"
-	AttributeKeyUpgradeVersion        = "upgrade_version"
-	AttributeKeyUpgradeConnectionHops = "upgrade_connection_hops"
-	AttributeKeyUpgradeOrdering       = "upgrade_ordering"
+	AttributeKeyUpgradeSequence           = "upgrade_sequence"
+	AttributeKeyUpgradeVersion            = "upgrade_version"
+	AttributeKeyUpgradeConnectionHops     = "upgrade_connection_hops"
+	AttributeKeyUpgradeOrdering           = "upgrade_ordering"
+	AttributeKeyUpgradeErrorReceipt       = "upgrade_error_receipt"
+	AttributeKeyUpgradeChannelFlushStatus = "channel_flush_status"
 )
 
 // IBC channel events vars
@@ -57,6 +60,8 @@ var (
 	EventTypeChannelClosed       = "channel_close"
 	EventTypeChannelUpgradeInit  = "channel_upgrade_init"
 	EventTypeChannelUpgradeTry   = "channel_upgrade_try"
+	EventTypeChannelUpgradeAck   = "channel_upgrade_ack"
+	EventTypeChannelUpgradeOpen  = "channel_upgrade_open"
 
 	AttributeValueCategory = fmt.Sprintf("%s_%s", ibcexported.ModuleName, SubModuleName)
 )
