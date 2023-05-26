@@ -44,6 +44,7 @@ const (
 	AttributeKeyUpgradeVersion        = "upgrade_version"
 	AttributeKeyUpgradeConnectionHops = "upgrade_connection_hops"
 	AttributeKeyUpgradeOrdering       = "upgrade_ordering"
+	AttributeKeyUpgradeErrorReceipt   = "upgrade_error_receipt"
 )
 
 // IBC channel events vars
