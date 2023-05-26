@@ -16,8 +16,8 @@ import (
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
 
-	"github.com/cosmos/ibc-go/v7/testing/simapp"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
+	"github.com/cosmos/ibc-go/v7/testing/simapp"
 )
 
 var testMbm = module.NewBasicManager(genutil.AppModuleBasic{})
