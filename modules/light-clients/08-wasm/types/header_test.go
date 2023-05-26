@@ -6,7 +6,7 @@ import (
 	"github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm/types"
 )
 
-func (suite *WasmTestSuite) TestHeaderValidateBasic() {
+func (suite *TypesTestSuite) TestHeaderValidateBasic() {
 	testCases := []struct {
 		name    string
 		header  *types.Header
@@ -16,7 +16,7 @@ func (suite *WasmTestSuite) TestHeaderValidateBasic() {
 			"valid header",
 			&types.Header{
 				Data:   []byte("data"),
-				Height: clienttypes.NewHeight(0, 0),
+				Height: clienttypes.ZeroHeight(),
 			},
 			true,
 		},
@@ -24,31 +24,32 @@ func (suite *WasmTestSuite) TestHeaderValidateBasic() {
 			"data is nil",
 			&types.Header{
 				Data:   nil,
-				Height: clienttypes.NewHeight(0, 0),
+				Height: clienttypes.ZeroHeight(),
 			},
 			false,
 		},
 		{
 			"data is empty",
 			&types.Header{
-				Data:   []byte(""),
-				Height: clienttypes.NewHeight(0, 0),
+				Data:   []byte{},
+				Height: clienttypes.ZeroHeight(),
 			},
 			false,
 		},
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-		header := tc.header
+		suite.Run(tc.name, func() {
+			header := tc.header
 
-		suite.Require().Equal(exported.Wasm, header.ClientType())
-		err := header.ValidateBasic()
+			suite.Require().Equal(exported.Wasm, header.ClientType())
+			err := header.ValidateBasic()
 
-		if tc.expPass {
-			suite.Require().NoError(err)
-		} else {
-			suite.Require().Error(err)
-		}
+			if tc.expPass {
+				suite.Require().NoError(err)
+			} else {
+				suite.Require().Error(err)
+			}
+		})
 	}
 }

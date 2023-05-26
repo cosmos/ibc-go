@@ -1,15 +1,24 @@
 package types_test
 
 import (
+	"encoding/base64"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
+	"github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
-func (suite *WasmTestSuite) TestExportGenesisGrandpa() {
-	suite.SetupWithEmptyClient()
-	gm := suite.clientState.ExportMetadata(suite.store)
+func (suite *TypesTestSuite) TestExportGenesisGrandpa() {
+	suite.SetupWasmGrandpa()
+
+	clientStateData, err := base64.StdEncoding.DecodeString(suite.testData["client_state_data"])
+	suite.Require().NoError(err)
+
+	clientState := types.NewClientState(clientStateData, suite.codeID, clienttypes.NewHeight(2000, 4))
+	gm := clientState.ExportMetadata(suite.store)
 	suite.Require().NotNil(gm, "client returned nil")
 	suite.Require().Len(gm, 0, "exported metadata has unexpected length")
 }
@@ -17,8 +26,9 @@ func (suite *WasmTestSuite) TestExportGenesisGrandpa() {
 // expected export ordering:
 // processed height and processed time per height
 // then all iteration keys
-func (suite *WasmTestSuite) TestExportMetadataTendermint() {
+func (suite *TypesTestSuite) TestExportMetadataTendermint() {
 	suite.SetupWasmTendermint()
+
 	// test intializing client and exporting metadata
 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
 	suite.coordinator.SetupClients(path)

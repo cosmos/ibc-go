@@ -11,22 +11,20 @@ import (
 	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
 	solomachine "github.com/cosmos/ibc-go/v7/modules/light-clients/06-solomachine"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
-	wasmtypes "github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm/types"
+	"github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
 // TestVerifyUpgrade currently only tests the interface into the contract.
 // Test code is used in the grandpa contract.
 // New client state, consensus state, and client metadata is expected to be set in the contract on success
-func (suite *WasmTestSuite) TestVerifyUpgradeGrandpa() {
+func (suite *TypesTestSuite) TestVerifyUpgradeGrandpa() {
 	var (
-		clientState            exported.ClientState
 		upgradedClient         exported.ClientState
 		upgradedConsState      exported.ConsensusState
 		proofUpgradedClient    []byte
 		proofUpgradedConsState []byte
 		err                    error
-		ok                     bool
 	)
 
 	testCases := []struct {
@@ -71,43 +69,44 @@ func (suite *WasmTestSuite) TestVerifyUpgradeGrandpa() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
+		suite.Run(tc.name, func() {
+			// reset suite
+			suite.SetupWasmGrandpaWithChannel()
+			clientState, ok := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.ctx, grandpaClientID)
+			suite.Require().True(ok)
+			upgradedClient = clientState
+			upgradedConsState, ok = suite.chainA.App.GetIBCKeeper().ClientKeeper.GetLatestClientConsensusState(suite.ctx, grandpaClientID)
+			suite.Require().True(ok)
+			proofUpgradedClient = []byte("upgraded client state proof")
+			proofUpgradedConsState = []byte("upgraded consensus state proof")
 
-		// reset suite
-		suite.SetupWithChannel()
-		clientState = suite.clientState
-		upgradedClient = suite.clientState
-		upgradedConsState, ok = suite.chainA.App.GetIBCKeeper().ClientKeeper.GetLatestClientConsensusState(suite.ctx, "08-wasm-0")
-		suite.Require().True(ok)
-		proofUpgradedClient = []byte("upgraded client state proof")
-		proofUpgradedConsState = []byte("upgraded consensus state proof")
+			tc.setup()
 
-		tc.setup()
+			err = clientState.VerifyUpgradeAndUpdateState(
+				suite.ctx,
+				suite.chainA.Codec,
+				suite.store,
+				upgradedClient,
+				upgradedConsState,
+				proofUpgradedClient,
+				proofUpgradedConsState,
+			)
 
-		err = clientState.VerifyUpgradeAndUpdateState(
-			suite.ctx,
-			suite.chainA.Codec,
-			suite.store,
-			upgradedClient,
-			upgradedConsState,
-			proofUpgradedClient,
-			proofUpgradedConsState,
-		)
-
-		if tc.expPass {
-			suite.Require().NoError(err, "verify upgrade failed on valid case: %s", tc.name)
-			clientStateBz := suite.store.Get(host.ClientStateKey())
-			suite.Require().NotEmpty(clientStateBz)
-			newClientState := clienttypes.MustUnmarshalClientState(suite.chainA.Codec, clientStateBz)
-			// Stubbed code will increment client state
-			suite.Require().Equal(clientState.GetLatestHeight().Increment(), newClientState.GetLatestHeight())
-		} else {
-			suite.Require().Error(err, "verify upgrade passed on invalid case: %s", tc.name)
-		}
+			if tc.expPass {
+				suite.Require().NoError(err)
+				clientStateBz := suite.store.Get(host.ClientStateKey())
+				suite.Require().NotEmpty(clientStateBz)
+				newClientState := clienttypes.MustUnmarshalClientState(suite.chainA.Codec, clientStateBz)
+				// Stubbed code will increment client state
+				suite.Require().Equal(clientState.GetLatestHeight().Increment(), newClientState.GetLatestHeight())
+			} else {
+				suite.Require().Error(err)
+			}
+		})
 	}
 }
 
-func (suite *WasmTestSuite) TestVerifyUpgradeTendermint() {
+func (suite *TypesTestSuite) TestVerifyUpgradeTendermint() {
 	var (
 		newChainID                                  string
 		upgradedClient                              exported.ClientState
@@ -157,7 +156,7 @@ func (suite *WasmTestSuite) TestVerifyUpgradeTendermint() {
 				tmUpgradedClientBz, err := clienttypes.MarshalClientState(suite.chainA.App.AppCodec(), tmUpgradedClient)
 				suite.Require().NoError(err)
 
-				upgradedClient = wasmtypes.NewClientState(tmUpgradedClientBz, suite.codeID, clienttypes.NewHeight(tmUpgradedClient.GetLatestHeight().GetRevisionNumber(), tmUpgradedClient.GetLatestHeight().GetRevisionHeight()))
+				upgradedClient = types.NewClientState(tmUpgradedClientBz, suite.codeID, clienttypes.NewHeight(tmUpgradedClient.GetLatestHeight().GetRevisionNumber(), tmUpgradedClient.GetLatestHeight().GetRevisionHeight()))
 				upgradedClientBz, err = clienttypes.MarshalClientState(suite.chainA.App.AppCodec(), upgradedClient)
 				suite.Require().NoError(err)
 
@@ -216,7 +215,7 @@ func (suite *WasmTestSuite) TestVerifyUpgradeTendermint() {
 				tmUpgradedClientBz, err := clienttypes.MarshalClientState(suite.chainA.App.AppCodec(), tmUpgradedClient)
 				suite.Require().NoError(err)
 
-				upgradedClient = wasmtypes.NewClientState(tmUpgradedClientBz, suite.codeID, clienttypes.NewHeight(tmUpgradedClient.GetLatestHeight().GetRevisionNumber(), tmUpgradedClient.GetLatestHeight().GetRevisionHeight()))
+				upgradedClient = types.NewClientState(tmUpgradedClientBz, suite.codeID, clienttypes.NewHeight(tmUpgradedClient.GetLatestHeight().GetRevisionNumber(), tmUpgradedClient.GetLatestHeight().GetRevisionHeight()))
 				upgradedClientBz, err = clienttypes.MarshalClientState(suite.chainA.App.AppCodec(), upgradedClient)
 				suite.Require().NoError(err)
 
@@ -258,7 +257,7 @@ func (suite *WasmTestSuite) TestVerifyUpgradeTendermint() {
 				tmUpgradedClientBz, err := clienttypes.MarshalClientState(suite.chainA.App.AppCodec(), tmUpgradedClient)
 				suite.Require().NoError(err)
 
-				upgradedClient = wasmtypes.NewClientState(tmUpgradedClientBz, suite.codeID, clienttypes.NewHeight(tmUpgradedClient.GetLatestHeight().GetRevisionNumber(), tmUpgradedClient.GetLatestHeight().GetRevisionHeight()))
+				upgradedClient = types.NewClientState(tmUpgradedClientBz, suite.codeID, clienttypes.NewHeight(tmUpgradedClient.GetLatestHeight().GetRevisionNumber(), tmUpgradedClient.GetLatestHeight().GetRevisionHeight()))
 
 				suite.coordinator.CommitBlock(suite.chainB)
 				err = path.EndpointA.UpdateClient()
@@ -286,7 +285,7 @@ func (suite *WasmTestSuite) TestVerifyUpgradeTendermint() {
 				tmUpgradedClientBz, err := clienttypes.MarshalClientState(suite.chainA.App.AppCodec(), tmUpgradedClient)
 				suite.Require().NoError(err)
 
-				upgradedClient = wasmtypes.NewClientState(tmUpgradedClientBz, suite.codeID, clienttypes.NewHeight(tmUpgradedClient.GetLatestHeight().GetRevisionNumber(), tmUpgradedClient.GetLatestHeight().GetRevisionHeight()))
+				upgradedClient = types.NewClientState(tmUpgradedClientBz, suite.codeID, clienttypes.NewHeight(tmUpgradedClient.GetLatestHeight().GetRevisionNumber(), tmUpgradedClient.GetLatestHeight().GetRevisionHeight()))
 
 				suite.coordinator.CommitBlock(suite.chainB)
 				err = path.EndpointA.UpdateClient()
@@ -319,7 +318,7 @@ func (suite *WasmTestSuite) TestVerifyUpgradeTendermint() {
 				tmUpgradedConsStateBz, err := clienttypes.MarshalConsensusState(suite.chainA.App.AppCodec(), tmUpgradedConsState)
 				suite.Require().NoError(err)
 
-				upgradedConsState = &wasmtypes.ConsensusState{
+				upgradedConsState = &types.ConsensusState{
 					Data:      tmUpgradedConsStateBz,
 					Timestamp: tmUpgradedConsState.GetTimestamp(),
 				}
@@ -423,7 +422,7 @@ func (suite *WasmTestSuite) TestVerifyUpgradeTendermint() {
 				proofUpgradedConsState, _ = suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedConsStateKey(int64(lastHeight.GetRevisionHeight())), cs.GetLatestHeight().GetRevisionHeight())
 
 				// SetClientState with empty upgrade path
-				wasmClient, _ := cs.(*wasmtypes.ClientState)
+				wasmClient, _ := cs.(*types.ClientState)
 				var wasmClientData exported.ClientState
 				err = suite.chainA.Codec.UnmarshalInterface(wasmClient.Data, &wasmClientData)
 				suite.Require().NoError(err)
@@ -540,7 +539,7 @@ func (suite *WasmTestSuite) TestVerifyUpgradeTendermint() {
 				tmUpgradedClientBz, err := clienttypes.MarshalClientState(suite.chainA.App.AppCodec(), tmUpgradedClient)
 				suite.Require().NoError(err)
 
-				upgradedClient = wasmtypes.NewClientState(tmUpgradedClientBz, suite.codeID, clienttypes.NewHeight(tmUpgradedClient.GetLatestHeight().GetRevisionNumber(), tmUpgradedClient.GetLatestHeight().GetRevisionHeight()))
+				upgradedClient = types.NewClientState(tmUpgradedClientBz, suite.codeID, clienttypes.NewHeight(tmUpgradedClient.GetLatestHeight().GetRevisionNumber(), tmUpgradedClient.GetLatestHeight().GetRevisionHeight()))
 				upgradedClientBz, err = clienttypes.MarshalClientState(suite.chainA.App.AppCodec(), upgradedClient)
 				suite.Require().NoError(err)
 
@@ -568,77 +567,77 @@ func (suite *WasmTestSuite) TestVerifyUpgradeTendermint() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
+		suite.Run(tc.name, func() {
+			// reset suite
+			suite.SetupWasmTendermint()
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 
-		// reset suite
-		suite.SetupWasmTendermint()
-		path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.SetupClients(path)
 
-		suite.coordinator.SetupClients(path)
+			clientState := path.EndpointA.GetClientState().(*types.ClientState)
+			var clientStateData exported.ClientState
+			err = suite.chainA.Codec.UnmarshalInterface(clientState.Data, &clientStateData)
+			suite.Require().NoError(err)
+			tmClientState := clientStateData.(*ibctm.ClientState)
 
-		clientState := path.EndpointA.GetClientState().(*wasmtypes.ClientState)
-		var clientStateData exported.ClientState
-		err = suite.chainA.Codec.UnmarshalInterface(clientState.Data, &clientStateData)
-		suite.Require().NoError(err)
-		tmClientState := clientStateData.(*ibctm.ClientState)
+			revisionNumber := clienttypes.ParseChainID(tmClientState.ChainId)
 
-		revisionNumber := clienttypes.ParseChainID(tmClientState.ChainId)
+			newChainID, err = clienttypes.SetRevisionNumber(tmClientState.ChainId, revisionNumber+1)
+			suite.Require().NoError(err)
 
-		newChainID, err = clienttypes.SetRevisionNumber(tmClientState.ChainId, revisionNumber+1)
-		suite.Require().NoError(err)
+			var tmUpgradedClient exported.ClientState
+			tmUpgradedClient = ibctm.NewClientState(newChainID, ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod+trustingPeriod, maxClockDrift, clienttypes.NewHeight(revisionNumber+1, clientState.GetLatestHeight().GetRevisionHeight()+1), commitmenttypes.GetSDKSpecs(), upgradePath)
+			tmUpgradedClient = tmUpgradedClient.ZeroCustomFields()
+			tmUpgradedClientBz, err := clienttypes.MarshalClientState(suite.chainA.App.AppCodec(), tmUpgradedClient)
+			suite.Require().NoError(err)
 
-		var tmUpgradedClient exported.ClientState
-		tmUpgradedClient = ibctm.NewClientState(newChainID, ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod+trustingPeriod, maxClockDrift, clienttypes.NewHeight(revisionNumber+1, clientState.GetLatestHeight().GetRevisionHeight()+1), commitmenttypes.GetSDKSpecs(), upgradePath)
-		tmUpgradedClient = tmUpgradedClient.ZeroCustomFields()
-		tmUpgradedClientBz, err := clienttypes.MarshalClientState(suite.chainA.App.AppCodec(), tmUpgradedClient)
-		suite.Require().NoError(err)
+			upgradedClient = types.NewClientState(tmUpgradedClientBz, clientState.CodeId, clienttypes.NewHeight(revisionNumber+1, clientState.GetLatestHeight().GetRevisionHeight()+1))
+			upgradedClientBz, err = clienttypes.MarshalClientState(suite.chainA.App.AppCodec(), upgradedClient)
+			suite.Require().NoError(err)
 
-		upgradedClient = wasmtypes.NewClientState(tmUpgradedClientBz, clientState.CodeId, clienttypes.NewHeight(revisionNumber+1, clientState.GetLatestHeight().GetRevisionHeight()+1))
-		upgradedClientBz, err = clienttypes.MarshalClientState(suite.chainA.App.AppCodec(), upgradedClient)
-		suite.Require().NoError(err)
+			var tmUpgradedConsState exported.ConsensusState //nolint:gosimple // ignore error for test
+			tmUpgradedConsState = &ibctm.ConsensusState{
+				Timestamp:          time.Now(),
+				Root:               commitmenttypes.NewMerkleRoot([]byte("root hash")),
+				NextValidatorsHash: []byte("01234567890123456789012345678901"),
+			}
+			tmUpgradedConsStateBz, err := clienttypes.MarshalConsensusState(suite.chainA.App.AppCodec(), tmUpgradedConsState)
+			suite.Require().NoError(err)
 
-		var tmUpgradedConsState exported.ConsensusState //nolint:gosimple // ignore error for test
-		tmUpgradedConsState = &ibctm.ConsensusState{
-			Timestamp:          time.Now(),
-			Root:               commitmenttypes.NewMerkleRoot([]byte("root hash")),
-			NextValidatorsHash: []byte("01234567890123456789012345678901"),
-		}
-		tmUpgradedConsStateBz, err := clienttypes.MarshalConsensusState(suite.chainA.App.AppCodec(), tmUpgradedConsState)
-		suite.Require().NoError(err)
+			upgradedConsState = &types.ConsensusState{
+				Data:      tmUpgradedConsStateBz,
+				Timestamp: tmUpgradedConsState.GetTimestamp(),
+			}
+			upgradedConsStateBz, err = clienttypes.MarshalConsensusState(suite.chainA.App.AppCodec(), upgradedConsState)
+			suite.Require().NoError(err)
 
-		upgradedConsState = &wasmtypes.ConsensusState{
-			Data:      tmUpgradedConsStateBz,
-			Timestamp: tmUpgradedConsState.GetTimestamp(),
-		}
-		upgradedConsStateBz, err = clienttypes.MarshalConsensusState(suite.chainA.App.AppCodec(), upgradedConsState)
-		suite.Require().NoError(err)
+			tc.setup()
 
-		tc.setup()
+			cs := suite.chainA.GetClientState(path.EndpointA.ClientID)
+			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
 
-		cs := suite.chainA.GetClientState(path.EndpointA.ClientID)
-		clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
+			err = cs.VerifyUpgradeAndUpdateState(
+				suite.chainA.GetContext(),
+				suite.chainA.Codec,
+				clientStore,
+				upgradedClient,
+				upgradedConsState,
+				proofUpgradedClient,
+				proofUpgradedConsState,
+			)
 
-		err = cs.VerifyUpgradeAndUpdateState(
-			suite.chainA.GetContext(),
-			suite.chainA.Codec,
-			clientStore,
-			upgradedClient,
-			upgradedConsState,
-			proofUpgradedClient,
-			proofUpgradedConsState,
-		)
+			if tc.expPass {
+				suite.Require().NoError(err, "verify upgrade failed on valid case: %s", tc.name)
 
-		if tc.expPass {
-			suite.Require().NoError(err, "verify upgrade failed on valid case: %s", tc.name)
+				clientState := suite.chainA.GetClientState(path.EndpointA.ClientID)
+				suite.Require().NotNil(clientState, "verify upgrade failed on valid case: %s", tc.name)
 
-			clientState := suite.chainA.GetClientState(path.EndpointA.ClientID)
-			suite.Require().NotNil(clientState, "verify upgrade failed on valid case: %s", tc.name)
-
-			consensusState, found := suite.chainA.GetConsensusState(path.EndpointA.ClientID, clientState.GetLatestHeight())
-			suite.Require().NotNil(consensusState, "verify upgrade failed on valid case: %s", tc.name)
-			suite.Require().True(found)
-		} else {
-			suite.Require().Error(err, "verify upgrade passed on invalid case: %s", tc.name)
-		}
+				consensusState, found := suite.chainA.GetConsensusState(path.EndpointA.ClientID, clientState.GetLatestHeight())
+				suite.Require().NotNil(consensusState, "verify upgrade failed on valid case: %s", tc.name)
+				suite.Require().True(found)
+			} else {
+				suite.Require().Error(err, "verify upgrade passed on invalid case: %s", tc.name)
+			}
+		})
 	}
 }

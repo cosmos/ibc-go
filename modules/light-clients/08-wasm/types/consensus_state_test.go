@@ -1,11 +1,13 @@
 package types_test
 
 import (
+	"time"
+
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	"github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm/types"
 )
 
-func (suite *WasmTestSuite) TestConsensusStateValidateBasic() {
+func (suite *TypesTestSuite) TestConsensusStateValidateBasic() {
 	testCases := []struct {
 		name           string
 		consensusState *types.ConsensusState
@@ -13,49 +15,37 @@ func (suite *WasmTestSuite) TestConsensusStateValidateBasic() {
 	}{
 		{
 			"success",
-			&types.ConsensusState{
-				Timestamp: uint64(suite.now.Unix()),
-				Data:      []byte("data"),
-			},
+			types.NewConsensusState([]byte("data"), uint64(time.Now().Unix())),
 			true,
 		},
 		{
 			"timestamp is zero",
-			&types.ConsensusState{
-				Timestamp: 0,
-				Data:      []byte("data"),
-			},
+			types.NewConsensusState([]byte("data"), 0),
 			false,
 		},
 		{
 			"data is nil",
-			&types.ConsensusState{
-				Timestamp: uint64(suite.now.Unix()),
-				Data:      nil,
-			},
+			types.NewConsensusState(nil, uint64(time.Now().Unix())),
 			false,
 		},
 		{
 			"data is empty",
-			&types.ConsensusState{
-				Timestamp: uint64(suite.now.Unix()),
-				Data:      []byte(""),
-			},
+			types.NewConsensusState([]byte{}, uint64(time.Now().Unix())),
 			false,
 		},
 	}
 
-	for i, tc := range testCases {
-		tc := tc
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			// check just to increase coverage
+			suite.Require().Equal(exported.Wasm, tc.consensusState.ClientType())
 
-		// check just to increase coverage
-		suite.Require().Equal(exported.Wasm, tc.consensusState.ClientType())
-
-		err := tc.consensusState.ValidateBasic()
-		if tc.expectPass {
-			suite.Require().NoError(err, "valid test case %d failed: %s", i, tc.name)
-		} else {
-			suite.Require().Error(err, "invalid test case %d passed: %s", i, tc.name)
-		}
+			err := tc.consensusState.ValidateBasic()
+			if tc.expectPass {
+				suite.Require().NoError(err)
+			} else {
+				suite.Require().Error(err)
+			}
+		})
 	}
 }

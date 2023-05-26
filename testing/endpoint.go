@@ -53,7 +53,7 @@ func NewEndpoint(
 func NewDefaultEndpoint(chain *TestChain) *Endpoint {
 	return &Endpoint{
 		Chain:            chain,
-		ClientConfig:     NewTendermintConfig(chain.WasmClient),
+		ClientConfig:     NewTendermintConfig(chain.UseWasmClient),
 		ConnectionConfig: NewConnectionConfig(),
 		ChannelConfig:    NewChannelConfig(),
 	}
@@ -112,24 +112,17 @@ func (endpoint *Endpoint) CreateClient() (err error) {
 			endpoint.Counterparty.Chain.ChainID, tmConfig.TrustLevel, tmConfig.TrustingPeriod, tmConfig.UnbondingPeriod, tmConfig.MaxClockDrift,
 			height, commitmenttypes.GetSDKSpecs(), UpgradePath)
 		tmConsensusState := endpoint.Counterparty.Chain.LastHeader.ConsensusState()
-		wasmData, err := endpoint.Chain.Codec.MarshalInterface(tmClientState)
+		wasmClientState, err := endpoint.Chain.Codec.MarshalInterface(tmClientState)
 		if err != nil {
 			return err
 		}
-		clientState = wasmtypes.NewClientState(
-			wasmData,
-			endpoint.Chain.Coordinator.CodeID,
-			height,
-		)
+		clientState = wasmtypes.NewClientState(wasmClientState, endpoint.Chain.Coordinator.CodeID, height)
 
-		wasmConsData, err := endpoint.Chain.Codec.MarshalInterface(tmConsensusState)
+		wasmConsensusState, err := endpoint.Chain.Codec.MarshalInterface(tmConsensusState)
 		if err != nil {
 			return err
 		}
-		consensusState = &wasmtypes.ConsensusState{
-			Data:      wasmConsData,
-			Timestamp: tmConsensusState.GetTimestamp(),
-		}
+		consensusState = wasmtypes.NewConsensusState(wasmConsensusState, tmConsensusState.GetTimestamp())
 	default:
 		err = fmt.Errorf("client type %s is not supported", endpoint.ClientConfig.GetClientType())
 	}

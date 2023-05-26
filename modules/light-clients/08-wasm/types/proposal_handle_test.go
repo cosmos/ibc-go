@@ -9,19 +9,18 @@ import (
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
-	wasmtypes "github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm/types"
+	"github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
 var frozenHeight = clienttypes.NewHeight(0, 1)
 
-// TestCheckSubstituteAndUpdateState only test the interface to the contract, not the full logic of the contract.
-func (suite *WasmTestSuite) TestCheckSubstituteAndUpdateStateGrandpa() {
+// TestCheckSubstituteAndUpdateState only tests the interface to the contract, not the full logic of the contract.
+func (suite *TypesTestSuite) TestCheckSubstituteAndUpdateStateGrandpa() {
 	var (
-		subjectClientState    exported.ClientState
-		subjectClientStore    sdk.KVStore
-		substituteClientState exported.ClientState
-		substituteClientStore sdk.KVStore
+		ok                                        bool
+		subjectClientState, substituteClientState exported.ClientState
+		subjectClientStore, substituteClientStore sdk.KVStore
 	)
 	testCases := []struct {
 		name    string
@@ -35,66 +34,63 @@ func (suite *WasmTestSuite) TestCheckSubstituteAndUpdateStateGrandpa() {
 		},
 	}
 	for _, tc := range testCases {
-		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupWasmGrandpaWithChannel()
+			subjectClientState, ok = suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.ctx, grandpaClientID)
+			suite.Require().True(ok)
+			subjectClientStore = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, grandpaClientID)
 
-		suite.SetupWithChannel()
-		subjectClientState = suite.clientState
-		subjectClientStore = suite.store
-
-		// Create a new client
-		clientStateData, err := base64.StdEncoding.DecodeString(suite.testData["client_state_data"])
-		suite.Require().NoError(err)
-
-		substituteClientState = &wasmtypes.ClientState{
-			Data:   clientStateData,
-			CodeId: suite.codeID,
-			LatestHeight: clienttypes.Height{
-				RevisionNumber: 2000,
-				RevisionHeight: 4,
-			},
-		}
-		consensusStateData, err := base64.StdEncoding.DecodeString(suite.testData["consensus_state_data"])
-		suite.Require().NoError(err)
-		substituteConsensusState := wasmtypes.ConsensusState{
-			Data:      consensusStateData,
-			Timestamp: uint64(1678732170022000000),
-		}
-
-		substituteClientStore = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, "08-wasm-1")
-		err = substituteClientState.Initialize(suite.ctx, suite.chainA.Codec, substituteClientStore, &substituteConsensusState)
-		suite.Require().NoError(err)
-
-		tc.setup()
-
-		err = subjectClientState.CheckSubstituteAndUpdateState(
-			suite.ctx,
-			suite.chainA.Codec,
-			subjectClientStore,
-			substituteClientStore,
-			substituteClientState,
-		)
-		if tc.expPass {
+			// Create a new client
+			clientStateData, err := base64.StdEncoding.DecodeString(suite.testData["client_state_data"])
 			suite.Require().NoError(err)
 
-			// Verify that the substitute client state is in the subject client store
-			clientStateBz := subjectClientStore.Get(host.ClientStateKey())
-			suite.Require().NotEmpty(clientStateBz)
-			newClientState := clienttypes.MustUnmarshalClientState(suite.chainA.Codec, clientStateBz)
-			suite.Require().Equal(substituteClientState.GetLatestHeight(), newClientState.GetLatestHeight())
+			substituteClientState = &types.ClientState{
+				Data:         clientStateData,
+				CodeId:       suite.codeID,
+				LatestHeight: clienttypes.NewHeight(2000, 4),
+			}
+			consensusStateData, err := base64.StdEncoding.DecodeString(suite.testData["consensus_state_data"])
+			suite.Require().NoError(err)
+			substituteConsensusState := types.ConsensusState{
+				Data:      consensusStateData,
+				Timestamp: uint64(1678732170022000000),
+			}
 
-			// Verify that the substitute consensus state is in the subject client store
-			// Contract will increment timestamp by 1, verifying it can read from the substitute store and write to the subject store
-			newConsensusState, ok := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientConsensusState(suite.ctx, "08-wasm-0", newClientState.GetLatestHeight())
-			suite.Require().True(ok)
-			suite.Require().Equal(substituteConsensusState.GetTimestamp()+1, newConsensusState.GetTimestamp())
+			substituteClientStore = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, "08-wasm-1")
+			err = substituteClientState.Initialize(suite.ctx, suite.chainA.Codec, substituteClientStore, &substituteConsensusState)
+			suite.Require().NoError(err)
 
-		} else {
-			suite.Require().Error(err)
-		}
+			tc.setup()
+
+			err = subjectClientState.CheckSubstituteAndUpdateState(
+				suite.ctx,
+				suite.chainA.Codec,
+				subjectClientStore,
+				substituteClientStore,
+				substituteClientState,
+			)
+			if tc.expPass {
+				suite.Require().NoError(err)
+
+				// Verify that the substitute client state is in the subject client store
+				clientStateBz := subjectClientStore.Get(host.ClientStateKey())
+				suite.Require().NotEmpty(clientStateBz)
+				newClientState := clienttypes.MustUnmarshalClientState(suite.chainA.Codec, clientStateBz)
+				suite.Require().Equal(substituteClientState.GetLatestHeight(), newClientState.GetLatestHeight())
+
+				// Verify that the substitute consensus state is in the subject client store
+				// Contract will increment timestamp by 1, verifying it can read from the substitute store and write to the subject store
+				newConsensusState, ok := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientConsensusState(suite.ctx, grandpaClientID, newClientState.GetLatestHeight())
+				suite.Require().True(ok)
+				suite.Require().Equal(substituteConsensusState.GetTimestamp()+1, newConsensusState.GetTimestamp())
+			} else {
+				suite.Require().Error(err)
+			}
+		})
 	}
 }
 
-func (suite *WasmTestSuite) TestCheckSubstituteUpdateStateBasicTendermint() {
+func (suite *TypesTestSuite) TestCheckSubstituteAndUpdateStateBasicTendermint() {
 	var (
 		substituteClientState exported.ClientState
 		substitutePath        *ibctesting.Path
@@ -111,7 +107,7 @@ func (suite *WasmTestSuite) TestCheckSubstituteUpdateStateBasicTendermint() {
 		{
 			"non-matching substitute", func() {
 				suite.coordinator.SetupClients(substitutePath)
-				substituteWasmClientState := suite.chainA.GetClientState(substitutePath.EndpointA.ClientID).(*wasmtypes.ClientState)
+				substituteWasmClientState := suite.chainA.GetClientState(substitutePath.EndpointA.ClientID).(*types.ClientState)
 
 				var clientStateData exported.ClientState
 				err := suite.chainA.Codec.UnmarshalInterface(substituteWasmClientState.Data, &clientStateData)
@@ -133,15 +129,13 @@ func (suite *WasmTestSuite) TestCheckSubstituteUpdateStateBasicTendermint() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(tc.name, func() {
 			suite.SetupWasmTendermint() // reset
 			subjectPath := ibctesting.NewPath(suite.chainA, suite.chainB)
 			substitutePath = ibctesting.NewPath(suite.chainA, suite.chainB)
 
 			suite.coordinator.SetupClients(subjectPath)
-			subjectClientState := suite.chainA.GetClientState(subjectPath.EndpointA.ClientID).(*wasmtypes.ClientState)
+			subjectClientState := suite.chainA.GetClientState(subjectPath.EndpointA.ClientID).(*types.ClientState)
 
 			var clientStateData exported.ClientState
 			err := suite.chainA.Codec.UnmarshalInterface(subjectClientState.Data, &clientStateData)
@@ -163,7 +157,7 @@ func (suite *WasmTestSuite) TestCheckSubstituteUpdateStateBasicTendermint() {
 	}
 }
 
-func (suite *WasmTestSuite) TestCheckSubstituteAndUpdateStateTendermint() {
+func (suite *TypesTestSuite) TestCheckSubstituteAndUpdateStateTendermint() {
 	testCases := []struct {
 		name         string
 		FreezeClient bool
@@ -182,15 +176,13 @@ func (suite *WasmTestSuite) TestCheckSubstituteAndUpdateStateTendermint() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(tc.name, func() {
 			suite.SetupWasmTendermint() // reset
 
 			// construct subject using test case parameters
 			subjectPath := ibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupClients(subjectPath)
-			subjectWasmClientState := suite.chainA.GetClientState(subjectPath.EndpointA.ClientID).(*wasmtypes.ClientState)
+			subjectWasmClientState := suite.chainA.GetClientState(subjectPath.EndpointA.ClientID).(*types.ClientState)
 
 			var subjectWasmClientStateData exported.ClientState
 			err := suite.chainA.Codec.UnmarshalInterface(subjectWasmClientState.Data, &subjectWasmClientStateData)
@@ -210,7 +202,7 @@ func (suite *WasmTestSuite) TestCheckSubstituteAndUpdateStateTendermint() {
 
 			substitutePath := ibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupClients(substitutePath)
-			substituteWasmClientState := suite.chainA.GetClientState(substitutePath.EndpointA.ClientID).(*wasmtypes.ClientState)
+			substituteWasmClientState := suite.chainA.GetClientState(substitutePath.EndpointA.ClientID).(*types.ClientState)
 
 			var substituteWasmClientStateData exported.ClientState
 			err = suite.chainA.Codec.UnmarshalInterface(substituteWasmClientState.Data, &substituteWasmClientStateData)
@@ -234,7 +226,7 @@ func (suite *WasmTestSuite) TestCheckSubstituteAndUpdateStateTendermint() {
 			}
 
 			// get updated substitute
-			substituteWasmClientState = suite.chainA.GetClientState(substitutePath.EndpointA.ClientID).(*wasmtypes.ClientState)
+			substituteWasmClientState = suite.chainA.GetClientState(substitutePath.EndpointA.ClientID).(*types.ClientState)
 			err = suite.chainA.Codec.UnmarshalInterface(substituteWasmClientState.Data, &substituteWasmClientStateData)
 			suite.Require().NoError(err)
 			substituteTmClientState = substituteWasmClientStateData.(*ibctm.ClientState)
@@ -263,7 +255,7 @@ func (suite *WasmTestSuite) TestCheckSubstituteAndUpdateStateTendermint() {
 			if tc.expPass {
 				suite.Require().NoError(err)
 
-				updatedWasmClient := subjectPath.EndpointA.GetClientState().(*wasmtypes.ClientState)
+				updatedWasmClient := subjectPath.EndpointA.GetClientState().(*types.ClientState)
 				var clientStateData exported.ClientState
 				err := suite.chainA.Codec.UnmarshalInterface(updatedWasmClient.Data, &clientStateData)
 				suite.Require().NoError(err)

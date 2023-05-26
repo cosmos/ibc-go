@@ -1,8 +1,6 @@
 package types_test
 
 import (
-	"encoding/base64"
-	"encoding/hex"
 	"encoding/json"
 	"os"
 	"testing"
@@ -17,24 +15,19 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
-	tmclient "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
-	"github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm/keeper"
-	wasmtypes "github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm/types"
+	"github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	"github.com/cosmos/ibc-go/v7/testing/simapp"
 	"github.com/stretchr/testify/suite"
 )
 
 const (
-	chainID                        = "gaia"
-	chainIDRevision0               = "gaia-revision-0"
-	chainIDRevision1               = "gaia-revision-1"
-	clientID                       = "gaiamainnet"
-	trustingPeriod   time.Duration = time.Hour * 24 * 7 * 2
-	ubdPeriod        time.Duration = time.Hour * 24 * 7 * 3
-	maxClockDrift    time.Duration = time.Second * 10
+	tmClientID                    = "07-tendermint-0"
+	grandpaClientID               = "08-wasm-0"
+	trustingPeriod  time.Duration = time.Hour * 24 * 7 * 2
+	ubdPeriod       time.Duration = time.Hour * 24 * 7 * 3
+	maxClockDrift   time.Duration = time.Second * 10
 )
 
 var (
@@ -43,23 +36,24 @@ var (
 	upgradePath     = []string{"upgrade", "upgradedIBCState"}
 )
 
-type WasmTestSuite struct {
+type TypesTestSuite struct {
 	suite.Suite
-	coordinator    *ibctesting.Coordinator
-	chainA         *ibctesting.TestChain
-	chainB         *ibctesting.TestChain
-	ctx            sdk.Context
-	now            time.Time
-	store          sdk.KVStore
-	clientState    exported.ClientState
-	consensusState wasmtypes.ConsensusState
-	codeID         []byte
-	testData       map[string]string
-	wasmKeeper     keeper.Keeper
+	coordinator *ibctesting.Coordinator
+	chainA      *ibctesting.TestChain
+	chainB      *ibctesting.TestChain
+
+	ctx      sdk.Context
+	store    sdk.KVStore
+	codeID   []byte
+	testData map[string]string
 }
 
-func (suite *WasmTestSuite) SetupWasmTendermint() {
+func (suite *TypesTestSuite) SetupTest() {
 	ibctesting.DefaultTestingAppInit = ibctesting.SetupTestingApp
+}
+
+// SetupWasmTendermint sets up 2 chains and stores the tendermint/cometbft light client wasm contract on both.
+func (suite *TypesTestSuite) SetupWasmTendermint() {
 	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2)
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
 	suite.chainA.SetWasm(true)
@@ -71,16 +65,13 @@ func (suite *WasmTestSuite) SetupWasmTendermint() {
 	suite.coordinator.CommitNBlocks(suite.chainB, 2)
 
 	suite.ctx = suite.chainA.GetContext().WithBlockGasMeter(sdk.NewInfiniteGasMeter())
-	suite.store = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, "08-wasm-0")
+	suite.store = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, grandpaClientID)
 
-	err := os.MkdirAll("tmp", 0o755)
-	suite.Require().NoError(err)
-	suite.wasmKeeper = suite.chainA.App.GetWasmKeeper()
-	wasmContract, err := os.ReadFile("test_data/ics07_tendermint_cw.wasm.gz")
+	wasmContract, err := os.ReadFile("../test_data/ics07_tendermint_cw.wasm.gz")
 	suite.Require().NoError(err)
 
-	msg := wasmtypes.NewMsgStoreCode(authtypes.NewModuleAddress(govtypes.ModuleName).String(), wasmContract)
-	response, err := suite.wasmKeeper.StoreCode(suite.chainA.GetContext(), msg)
+	msg := types.NewMsgStoreCode(authtypes.NewModuleAddress(govtypes.ModuleName).String(), wasmContract)
+	response, err := suite.chainA.App.GetWasmKeeper().StoreCode(suite.chainA.GetContext(), msg)
 	suite.Require().NoError(err)
 	suite.Require().NotNil(response.CodeId)
 	suite.codeID = response.CodeId
@@ -95,13 +86,39 @@ func (suite *WasmTestSuite) SetupWasmTendermint() {
 	suite.coordinator.CommitNBlocks(suite.chainB, 2)
 }
 
+// SetupWasmGrandpa sets up 1 chain and stores the grandpa light client wasm contract on chain.
+func (suite *TypesTestSuite) SetupWasmGrandpa() {
+	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 1)
+	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
+
+	// commit some blocks so that QueryProof returns valid proof (cannot return valid query if height <= 1)
+	suite.coordinator.CommitNBlocks(suite.chainA, 2)
+
+	testData, err := os.ReadFile("../test_data/data.json")
+	suite.Require().NoError(err)
+	err = json.Unmarshal(testData, &suite.testData)
+	suite.Require().NoError(err)
+
+	suite.ctx = suite.chainA.GetContext().WithBlockGasMeter(sdk.NewInfiniteGasMeter())
+	suite.store = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, grandpaClientID)
+
+	wasmContract, err := os.ReadFile("../test_data/ics10_grandpa_cw.wasm.gz")
+	suite.Require().NoError(err)
+
+	msg := types.NewMsgStoreCode(authtypes.NewModuleAddress(govtypes.ModuleName).String(), wasmContract)
+	response, err := suite.chainA.App.GetWasmKeeper().StoreCode(suite.ctx, msg)
+	suite.Require().NoError(err)
+	suite.Require().NotNil(response.CodeId)
+	suite.codeID = response.CodeId
+}
+
 func SetupTestingWithChannel() (ibctesting.TestingApp, map[string]json.RawMessage) {
 	db := dbm.NewMemDB()
 	encCdc := simapp.MakeTestEncodingConfig()
 	app := simapp.NewSimApp(log.NewNopLogger(), db, nil, true, map[int64]bool{}, simapp.DefaultNodeHome, 5, encCdc, simtestutil.EmptyAppOptions{})
 	genesisState := simapp.NewDefaultGenesisState(encCdc.Marshaler)
 
-	bytes, err := os.ReadFile("test_data/genesis.json")
+	bytes, err := os.ReadFile("../test_data/genesis.json")
 	if err != nil {
 		panic(err)
 	}
@@ -126,134 +143,13 @@ func SetupTestingWithChannel() (ibctesting.TestingApp, map[string]json.RawMessag
 	return app, genesisState
 }
 
-func (suite *WasmTestSuite) SetupWithChannel() {
+func (suite *TypesTestSuite) SetupWasmGrandpaWithChannel() {
 	ibctesting.DefaultTestingAppInit = SetupTestingWithChannel
-	suite.CommonSetupTest()
-	clientState, ok := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.ctx, "08-wasm-0")
-	if ok {
-		suite.clientState = clientState
-		// Update with current contract hash
-		suite.clientState.(*wasmtypes.ClientState).CodeId = suite.codeID
-		suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.ctx, "08-wasm-0", suite.clientState)
-	}
-}
-
-func (suite *WasmTestSuite) SetupWithEmptyClient() {
-	ibctesting.DefaultTestingAppInit = ibctesting.SetupTestingApp
-	suite.CommonSetupTest()
-
-	clientStateData, err := base64.StdEncoding.DecodeString(suite.testData["client_state_data"])
-	suite.Require().NoError(err)
-
-	wasmClientState := wasmtypes.ClientState{
-		Data:   clientStateData,
-		CodeId: suite.codeID,
-		LatestHeight: clienttypes.Height{
-			RevisionNumber: 2000,
-			RevisionHeight: 4,
-		},
-	}
-	suite.clientState = &wasmClientState
-
-	consensusStateData, err := base64.StdEncoding.DecodeString(suite.testData["consensus_state_data"])
-	suite.Require().NoError(err)
-	wasmConsensusState := wasmtypes.ConsensusState{
-		Data:      consensusStateData,
-		Timestamp: uint64(1678304292),
-	}
-	suite.consensusState = wasmConsensusState
-}
-
-func (suite *WasmTestSuite) CommonSetupTest() {
-	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 1)
-	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
-
-	// commit some blocks so that QueryProof returns valid proof (cannot return valid query if height <= 1)
-	suite.coordinator.CommitNBlocks(suite.chainA, 2)
-
-	testData, err := os.ReadFile("test_data/data.json")
-	suite.Require().NoError(err)
-	err = json.Unmarshal(testData, &suite.testData)
-	suite.Require().NoError(err)
-
-	suite.ctx = suite.chainA.GetContext().WithBlockGasMeter(sdk.NewInfiniteGasMeter())
-	suite.store = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, "08-wasm-0")
-
-	err = os.MkdirAll("tmp", 0o755)
-	suite.Require().NoError(err)
-	suite.wasmKeeper = suite.chainA.App.GetWasmKeeper()
-	wasmContract, err := os.ReadFile("test_data/ics10_grandpa_cw.wasm.gz")
-	suite.Require().NoError(err)
-
-	msg := wasmtypes.NewMsgStoreCode(authtypes.NewModuleAddress(govtypes.ModuleName).String(), wasmContract)
-	response, err := suite.wasmKeeper.StoreCode(suite.ctx, msg)
-	suite.Require().NoError(err)
-	suite.Require().NotNil(response.CodeId)
-	suite.codeID = response.CodeId
-}
-
-func (suite *WasmTestSuite) TestMsgStoreCodeWithErrors() {
-	suite.SetupWithEmptyClient()
-	signer := authtypes.NewModuleAddress(govtypes.ModuleName).String()
-	data, err := os.ReadFile("test_data/ics10_grandpa_cw.wasm.gz")
-	suite.Require().NoError(err)
-
-	// test wasmcode duplication
-	msg := wasmtypes.NewMsgStoreCode(signer, data)
-	_, err = suite.wasmKeeper.StoreCode(suite.ctx, msg)
-	suite.Require().Error(err)
-
-	// test invalid wasm code
-	msg = wasmtypes.NewMsgStoreCode(signer, []byte{})
-	_, err = suite.wasmKeeper.StoreCode(suite.ctx, msg)
-	suite.Require().Error(err)
-}
-
-func (suite *WasmTestSuite) TestQueryCode() {
-	// test invalid query request
-	_, err := suite.wasmKeeper.Code(suite.ctx, &wasmtypes.QueryCodeRequest{})
-	suite.Require().Error(err)
-
-	_, err = suite.wasmKeeper.Code(suite.ctx, &wasmtypes.QueryCodeRequest{CodeId: "test"})
-	suite.Require().Error(err)
-
-	// test valid query request
-	res, err := suite.wasmKeeper.Code(suite.ctx, &wasmtypes.QueryCodeRequest{CodeId: hex.EncodeToString(suite.codeID)})
-	suite.Require().NoError(err)
-	suite.Require().NotNil(res.Code)
-}
-
-func (suite *WasmTestSuite) TestQueryCodeIDs() {
-	// test valid query request
-	res, err := suite.wasmKeeper.CodeIds(suite.ctx, &wasmtypes.QueryCodeIdsRequest{})
-	suite.Require().NoError(err)
-	suite.Require().NotNil(res.CodeIds)
+	suite.SetupWasmGrandpa()
 }
 
 func TestWasmTestSuite(t *testing.T) {
-	suite.Run(t, new(WasmTestSuite))
-}
-
-func NewTendermintClientState(endpoint *ibctesting.Endpoint, height exported.Height) tmclient.ClientState {
-	tmConfig, ok := endpoint.ClientConfig.(*ibctesting.TendermintConfig)
-	if !ok {
-		panic("Panic casting ClientConfig to TendermindConfig")
-	}
-
-	clientHeight := height.(clienttypes.Height)
-
-	clientState := tmclient.NewClientState(
-		endpoint.Counterparty.ClientID,
-		tmConfig.TrustLevel,
-		tmConfig.TrustingPeriod,
-		tmConfig.UnbondingPeriod,
-		tmConfig.MaxClockDrift,
-		clientHeight,
-		commitmenttypes.GetSDKSpecs(),
-		ibctesting.UpgradePath,
-	)
-
-	return *clientState
+	suite.Run(t, new(TypesTestSuite))
 }
 
 func getAltSigners(altVal *tmtypes.Validator, altPrivVal tmtypes.PrivValidator) map[string]tmtypes.PrivValidator {
