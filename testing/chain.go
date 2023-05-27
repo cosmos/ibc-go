@@ -204,8 +204,8 @@ func (chain *TestChain) QueryProof(key []byte) ([]byte, clienttypes.Height) {
 
 // QueryState performs an abci query with the given key and returns the response for the
 // state query.
-func (chain *TestChain) QueryState(key []byte) []byte {
-	return chain.QueryStateAtHeight(key, chain.App.LastBlockHeight())
+func (chain *TestChain) QueryState(key []byte) ([]byte, []byte, error) {
+	return chain.QueryStateAtHeight(key, chain.App.LastBlockHeight(), false)
 }
 
 // QueryProofAtHeight performs an abci query with the given key and returns the proto encoded merkle proof
@@ -216,9 +216,9 @@ func (chain *TestChain) QueryProofAtHeight(key []byte, height int64) ([]byte, cl
 }
 
 // QueryStateAtHeight performs an abci query with the given key and returns the state
-// for the query at the specified height. Only the IBC store is supported.
-func (chain *TestChain) QueryStateAtHeight(key []byte, height int64) []byte {
-	return chain.QueryStateForStore(exported.StoreKey, key, height)
+// and proof for the query at the specified height. Only the IBC store is supported.
+func (chain *TestChain) QueryStateAtHeight(key []byte, height int64, doProof bool) ([]byte, []byte, error) {
+	return chain.QueryStateForStore(exported.StoreKey, key, height, doProof)
 }
 
 // QueryMinimumConsensusHeight returns the minimum height within the provided range at which the consensusState exists. The function
@@ -261,15 +261,18 @@ func (chain *TestChain) QueryMinimumConsensusHeight(clientID string, minConsensu
 	}
 
 	key := host.FullClientKey(clientID, ibctm.ProcessedHeightKey(&consensusHeight))
-	bz := chain.QueryStateAtHeight(key, chain.LastHeader.Header.Height)
+	bz, _, err := chain.QueryStateAtHeight(key, chain.LastHeader.Header.Height, false)
+	if err != nil {
+		return nil, nil, false, err
+	}
 	proofHeight, err := clienttypes.ParseHeight(string(bz))
 	if err != nil {
 		return nil, nil, false, err
 	}
 
 	// debug code
-	// fmt.Printf("Minimum proof height is %v on chain %s for consensus height: %v [minHeight=%v, maxHeight=%v]\n",
-	// 	proofHeight, chain.ChainID, consensusHeight, minConsensusHeight, maxConsensusHeight)
+	fmt.Printf("Minimum proof height is %v on chain %s for consensus height: %v [minHeight=%v, maxHeight=%v]\n",
+		proofHeight, chain.ChainID, consensusHeight, minConsensusHeight, maxConsensusHeight)
 	return proofHeight, consensusHeight, false, nil
 }
 
@@ -286,10 +289,10 @@ func (chain *TestChain) QueryMaximumProofHeight(
 	}
 
 	// TODO: implement a query method to optimize this logic?
-	initialValue := chain.QueryStateForStore(exported.StoreKey, key, int64(minKeyHeight.GetRevisionHeight()))
+	initialValue, _, _ := chain.QueryStateForStore(exported.StoreKey, key, int64(minKeyHeight.GetRevisionHeight()), false)
 	height := minKeyHeight.Increment()
 	for {
-		value := chain.QueryStateForStore(exported.StoreKey, key, int64(height.GetRevisionHeight()))
+		value, _, _ := chain.QueryStateForStore(exported.StoreKey, key, int64(height.GetRevisionHeight()), false)
 		if !bytes.Equal(value, initialValue) || height.GTE(maxKeyHeightLimit) {
 			break
 		}
@@ -324,15 +327,28 @@ func (chain *TestChain) QueryProofForStore(storeKey string, key []byte, height i
 
 // QueryStateForStore performs an abci query with the given key and returns the response
 // for the queried state.
-func (chain *TestChain) QueryStateForStore(storeKey string, key []byte, height int64) []byte {
+func (chain *TestChain) QueryStateForStore(storeKey string, key []byte, height int64, doProof bool) ([]byte, []byte, error) {
 	res := chain.App.Query(abci.RequestQuery{
 		Path:   fmt.Sprintf("store/%s/key", storeKey),
 		Height: height,
 		Data:   key,
-		Prove:  false,
+		Prove:  doProof,
 	})
 
-	return res.Value
+	var proof []byte
+	if doProof {
+		merkleProof, err := commitmenttypes.ConvertProofs(res.ProofOps)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		proof, err = chain.App.AppCodec().Marshal(&merkleProof)
+		if err != nil {
+			return nil, nil, err
+		}
+	}
+
+	return res.Value, proof, nil
 }
 
 // QueryUpgradeProof performs an abci query with the given key and returns the proto encoded merkle proof

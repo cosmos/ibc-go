@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/cosmos/cosmos-sdk/codec"
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
@@ -22,9 +21,8 @@ type Endpoint interface {
 	GetConsensusState(height exported.Height) (exported.ConsensusState, error)
 	ConnectionID() string
 	GetConnection() (*connectiontypes.ConnectionEnd, error)
-	// Returns the proof of the `key`` at `height` within the ibc module store.
-	QueryProofAtHeight(key []byte, height int64) ([]byte, clienttypes.Height, error)
-	QueryStateAtHeight(key []byte, height int64) []byte
+	// Returns the value of the `key`` at `height` within the ibc module store and optionally the proof
+	QueryStateAtHeight(key []byte, height int64, doProof bool) ([]byte, []byte, error)
 
 	// QueryMinimumConsensusHeight returns the minimum height within the provided range at which the consensusState exists (processedHeight)
 	// and the height of the corresponding consensus state (consensusHeight).
@@ -62,174 +60,155 @@ func (p ChanPath) GetConnectionHops() []string {
 	return hops
 }
 
-// GenerateProof generates a proof for the given key on the the source chain, which is to be verified on the dest chain.
-func (p ChanPath) GenerateProof(key []byte, proofHeight exported.Height) (multihopProof channeltypes.MsgMultihopProofs, err error) {
-
-	// generate proof for key on source chain at the minimum consensus height known on the counterparty chain
-	maxProofHeight := p.source().QueryMaximumProofHeight(key, proofHeight, nil)
-	processedHeight, consensusHeight, err := p.source().Counterparty().QueryMinimumConsensusHeight(proofHeight, maxProofHeight)
-	if err != nil {
-		return
-	}
-
-	// query the proof of the key/value on the source chain at a height provable on the next chain.
-	multihopProof.KeyProof = queryProof(p.source(), key, nil, consensusHeight)
-
-	proofGenFuncs := []proofGenFunc{
-		genConsensusStateProof,
-		genConnProof,
-	}
-
-	// create a maximum height for the proof to be verified against
-	linkedPathProofs, err := p.GenerateIntermediateStateProofs(proofGenFuncs, processedHeight, consensusHeight)
-	if err != nil {
-		return
-	}
-
-	multihopProof.ConsensusProofs = linkedPathProofs[0]
-	multihopProof.ConnectionProofs = linkedPathProofs[1]
-
-	return
-}
-
 // The source chain
 func (p ChanPath) source() Endpoint {
 	return p[0].EndpointA
 }
 
-// GenerateIntermediateStateProofs generates lists of connection, consensus, and client state proofs from the source to dest chains.
-func (p ChanPath) GenerateIntermediateStateProofs(
-	proofGenFuncs []proofGenFunc,
-	processedHeight exported.Height,
-	consensusHeight exported.Height,
-) (proofs [][]*channeltypes.MultihopProof, err error) {
+// QueryMultihopProof returns a multi-hop proof for the given key on the the source chain, which is to be verified on the dest chain.
+func (p ChanPath) QueryMultihopProof(key []byte, proofHeight exported.Height) (multihopProof channeltypes.MsgMultihopProofs, err error) {
 
-	// initialize a 2-d slice of proofs, where 1st dim is the proof gen funcs, and 2nd dim is the path iter count
-	proofs = make([][]*channeltypes.MultihopProof, len(proofGenFuncs))
-
-	// iterate over all but last single-hop path
-	iterCount := len(p) - 1
-	for i := 0; i < iterCount; i++ {
-		// 1. Query the prior chain consensus/connection state proofs on the i'th chain
-		// 2. Prepare the next proof round. the processed height indicates the minimum height
-		//    which can prove the desired consensusState at a specific height.
-		// 3. The processed height is used to query the minimum consensus height on the nextChain
-
-		chain, nextChain := p[i].EndpointB, p[i+1].EndpointB
-
-		// query proof of consensus/connection state on next chain
-		for j, proofGenFunc := range proofGenFuncs {
-			proof := proofGenFunc(chain, processedHeight, consensusHeight)
-			proofs[j] = append([]*channeltypes.MultihopProof{proof}, proofs[j]...)
-		}
-
-		// no need to query min consensus height on final chain
-		if i == len(p)-2 {
-			break
-		}
-
-		// determine the minimum consensusState height on the next chain within the provided height range
-		// also returns the heigh at which this consensusState was processed on the nextChain which will
-		// be used to query a proof of the consensus state at the minimum possible height
-		processedHeight, consensusHeight, err = nextChain.QueryMinimumConsensusHeight(processedHeight, nil)
-		if err != nil {
-			return nil, err
-		}
+	if len(p) < 2 {
+		err = fmt.Errorf("multihop proof query requires channel path length >= 2")
+		return
 	}
 
-	return proofs, nil
+	// query the maximum valid height for the key which is the first height at which its value changes
+	maxProofHeight := p.source().QueryMaximumProofHeight(key, proofHeight, nil)
+
+	// query the minimum height to prove the key on the source chain
+	proofHeight, consensusHeight, err := p.source().Counterparty().QueryMinimumConsensusHeight(proofHeight, maxProofHeight)
+	if err != nil {
+		return
+	}
+
+	// TODO: why does this need to decrement?
+	keyProofHeight, ok := consensusHeight.Decrement()
+	if !ok {
+		err = fmt.Errorf("failed to decrement height: %v\n", consensusHeight)
+		return
+	}
+
+	// query the proof of the key/value on the source chain at a height provable on the next chain.
+	if multihopProof.KeyProof, err = queryProof(p.source(), key, keyProofHeight, false); err != nil {
+		return
+	}
+
+	// query the consensus state proof on the counterparty chain
+	multihopProof.ConsensusProofs = make([]*channeltypes.MultihopProof, len(p)-1)
+	if multihopProof.ConsensusProofs[len(p)-2], err = queryConsensusStateProof(p.source().Counterparty(), proofHeight, consensusHeight); err != nil {
+		return
+	}
+
+	// query the connection proof on the counterparty chain
+	multihopProof.ConnectionProofs = make([]*channeltypes.MultihopProof, len(p)-1)
+	if multihopProof.ConnectionProofs[len(p)-2], err = queryConnectionProof(p.source().Counterparty(), proofHeight); err != nil {
+		return
+	}
+
+	// query proofs of consensus/connection states on intermediate chains
+	if err = p.queryIntermediateProofs(1, proofHeight, multihopProof.ConsensusProofs, multihopProof.ConnectionProofs); err != nil {
+		return
+	}
+
+	return
 }
 
-type proofGenFunc func(Endpoint, exported.Height, exported.Height) *channeltypes.MultihopProof
+// queryIntermediateProofs recursively queries intermediate chains in a multi-hop channel path for consensus state
+// and connection proofs. It stops at the second to last path since the consensus and connection state on the
+// final hop is already known on the destination.
+func (p ChanPath) queryIntermediateProofs(
+	pathIdx int,
+	proofHeight exported.Height,
+	consensusProofs []*channeltypes.MultihopProof,
+	connectionProofs []*channeltypes.MultihopProof,
+) (err error) {
 
-// Query a proof for the counterparty consensus state at the specified height on the given chain.
-func genConsensusStateProof(
+	chain := p[pathIdx].EndpointB
+
+	var consensusHeight exported.Height
+
+	// determine the minimum consensusState height on the next chain within the provided height range
+	// also returns the height at which this consensusState was processed on the nextChain which will
+	// be used to query a proof of the consensus state at the minimum possible height
+	if proofHeight, consensusHeight, err = chain.QueryMinimumConsensusHeight(proofHeight, nil); err != nil {
+		return
+	}
+
+	if consensusProofs[len(p)-pathIdx-2], err = queryConsensusStateProof(chain, proofHeight, consensusHeight); err != nil {
+		return
+	}
+
+	if connectionProofs[len(p)-pathIdx-2], err = queryConnectionProof(chain, proofHeight); err != nil {
+		return
+	}
+
+	// no need to query min consensus height on final chain
+	if pathIdx == len(p)-2 {
+		return
+	}
+
+	return p.queryIntermediateProofs(pathIdx+1, proofHeight, consensusProofs, connectionProofs)
+}
+
+// queryConsensusStateProof queries a chain for a proof at `proofHeight` for a consensus state at `consensusHeight`
+func queryConsensusStateProof(
 	chain Endpoint,
 	proofHeight exported.Height,
 	consensusHeight exported.Height,
-) *channeltypes.MultihopProof {
-
+) (*channeltypes.MultihopProof, error) {
 	key := host.FullConsensusStateKey(chain.ClientID(), consensusHeight)
-	bzConsStateAB := chain.QueryStateAtHeight(key, int64(proofHeight.GetRevisionHeight()))
-
-	consensusProof := queryProof(
-		chain,
-		host.FullConsensusStateKey(chain.ClientID(), consensusHeight),
-		bzConsStateAB,
-		proofHeight.Increment(), // need to match height used in QueryStateAtHeight
-	)
-
-	// debug code
-	// var proof commitmenttypes.MerkleProof
-	// if err := chainB.Codec().Unmarshal(consensusProof.Proof, &proof); err != nil {
-	// 	panicIfErr(err, "failed to unmarshal")
-	// }
-	// if proof.GetProofs()[0].GetExist() == nil {
-	// 	panic("queried non-existence proof!")
-	// }
-
-	return consensusProof
+	return queryProof(chain, key, proofHeight, true)
 }
 
-// Query a proof for the connEnd on the given chain at the specified height.
-func genConnProof(
+// queryConnectionProof queries a chain for a proof at `proofHeight` for a connection
+func queryConnectionProof(
 	chain Endpoint,
 	proofHeight exported.Height,
-	_ exported.Height,
-) *channeltypes.MultihopProof {
+) (*channeltypes.MultihopProof, error) {
 	key := host.ConnectionKey(chain.ConnectionID())
-	bzConnAB := chain.QueryStateAtHeight(key, int64(proofHeight.GetRevisionHeight()))
-	return queryProof(
-		chain,
-		host.ConnectionKey(chain.ConnectionID()),
-		bzConnAB,
-		proofHeight.Increment()) // need to match height used in QueryStateAtHeight
+	return queryProof(chain, key, proofHeight, true)
 }
 
-// queryProof queries the key-value pair or absence proof stored on A and optionally ensures the proof
-// can be verified by A's consensus state root stored on B at heightAB. where A--B is connected by a
-// single ibc connection.
+// queryProof queries a (non-)membership proof for the key on the specified chain and
+// returns the proof
 //
-// if doVerify is false, skip verification.
-// If value is nil, do non-membership verification.
-// If heightAB is nil, use the latest height of B's client state.
-// If consStateABRoot is nil, use the root of the consensus state of clientAB at heightAB.
-//
-// Panic if proof generation or verification fails.
+// if doValue, the queried value is added to the proof this is required for
+// intermediate consensus/connection multihop proofs
 func queryProof(
 	chain Endpoint,
-	key, value []byte,
+	key []byte,
 	height exported.Height,
-) *channeltypes.MultihopProof {
+	doValue bool,
+) (*channeltypes.MultihopProof, error) {
 	if len(key) == 0 {
-		panic("key must be non-empty")
+		return nil, fmt.Errorf("key must be non-empty")
 	}
 
 	if height == nil {
-		panic("height must be non-nil")
+		return nil, fmt.Errorf("height must be non-nil")
 	}
 
-	counterpartyChain := chain.Counterparty()
+	keyMerklePath, err := chain.GetMerklePath(string(key))
+	if err != nil {
+		return nil, fmt.Errorf("fail to create merkle path on chain '%s' with path '%s' due to: %v",
+			chain.ChainID(), key, err)
+	}
 
-	keyMerklePath, err := counterpartyChain.GetMerklePath(string(key))
-	panicIfErr(err, "fail to create merkle path on chain '%s' with path '%s' due to: %v",
-		counterpartyChain.ChainID(), key, err,
-	)
+	valueBytes, proof, err := chain.QueryStateAtHeight(key, int64(height.GetRevisionHeight()), true)
+	if err != nil {
+		return nil, fmt.Errorf("fail to generate proof on chain '%s' for key '%s' at height %d due to: %v",
+			chain.ChainID(), key, height, err,
+		)
+	}
 
-	bzProof, _, err := chain.QueryProofAtHeight(key, int64(height.GetRevisionHeight()))
-	panicIfErr(err, "fail to generate proof on chain '%s' for key '%s' at height %d due to: %v",
-		chain.ChainID(), key, height, err,
-	)
+	if !doValue {
+		valueBytes = nil
+	}
 
 	return &channeltypes.MultihopProof{
-		Proof:       bzProof,
-		Value:       value,
+		Proof:       proof,
+		Value:       valueBytes,
 		PrefixedKey: &keyMerklePath,
-	}
-}
-
-func panicIfErr(err error, format string, args ...interface{}) {
-	if err != nil {
-		panic(fmt.Sprintf(format, args...))
-	}
+	}, nil
 }

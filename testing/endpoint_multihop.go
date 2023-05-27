@@ -254,7 +254,7 @@ func (ep *EndpointM) QueryPacketAcknowledgementProof(packet *channeltypes.Packet
 
 // QueryMultihopProof queries the proof for a key/value on this endpoint, which is verified on the counterparty chain.
 func (ep *EndpointM) QueryMultihopProof(key []byte, proofHeight exported.Height) ([]byte, error) {
-	proof, err := ep.mChanPath.GenerateProof(key, proofHeight)
+	proof, err := ep.mChanPath.QueryMultihopProof(key, proofHeight)
 	if err != nil {
 		return nil, err
 	}
@@ -334,15 +334,9 @@ func (mep multihopEndpoint) GetMerklePath(path string) (commitmenttypes.MerklePa
 	)
 }
 
-// QueryProofAtHeight implements multihop.Endpoint
-func (mep multihopEndpoint) QueryProofAtHeight(key []byte, height int64) ([]byte, clienttypes.Height, error) {
-	proof, proofHeight := mep.testEndpoint.Chain.QueryProofAtHeight(key, height)
-	return proof, proofHeight, nil
-}
-
 // QueryStateAtHeight implements multihop.Endpoint
-func (mep multihopEndpoint) QueryStateAtHeight(key []byte, height int64) []byte {
-	return mep.testEndpoint.Chain.QueryStateAtHeight(key, height)
+func (mep multihopEndpoint) QueryStateAtHeight(key []byte, height int64, doProof bool) ([]byte, []byte, error) {
+	return mep.testEndpoint.Chain.QueryStateAtHeight(key, height, doProof)
 }
 
 // QueryMinimumConsensusHeight returns the minimum height within the provided range at which the consensusState exists (processedHeight)
