@@ -85,7 +85,7 @@ func (p ChanPath) QueryMultihopProof(key []byte, proofHeight exported.Height) (m
 	// TODO: why does this need to decrement?
 	keyProofHeight, ok := consensusHeight.Decrement()
 	if !ok {
-		err = fmt.Errorf("failed to decrement height: %v\n", consensusHeight)
+		err = fmt.Errorf("failed to decrement height: %v", consensusHeight)
 		return
 	}
 
