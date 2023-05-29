@@ -209,7 +209,7 @@ func (suite *KeeperTestSuite) TestUpdateParams() {
 	}{
 		{
 			"success: valid authority and default params",
-			types.NewMsgUpdateParams(validAuthority, types.DefaultParams()),
+			types.NewMsgUpdateParams(validAuthority, types.NewParams(!types.DefaultControllerEnabled)),
 			true,
 		},
 		{
@@ -241,6 +241,8 @@ func (suite *KeeperTestSuite) TestUpdateParams() {
 			_, err := suite.chainA.GetSimApp().ICAControllerKeeper.UpdateParams(suite.chainA.GetContext(), tc.msg)
 			if tc.expPass {
 				suite.Require().NoError(err)
+				p := suite.chainA.GetSimApp().ICAControllerKeeper.GetParams(suite.chainA.GetContext())
+				suite.Require().Equal(tc.msg.Params, p)
 			} else {
 				suite.Require().Error(err)
 			}
