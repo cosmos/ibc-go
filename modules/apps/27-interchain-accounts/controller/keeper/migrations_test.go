@@ -86,7 +86,7 @@ func (suite *KeeperTestSuite) TestMigratorMigrateParams() {
 			func() {
 				params := icacontrollertypes.DefaultParams()
 				subspace := suite.chainA.GetSimApp().GetSubspace(icacontrollertypes.SubModuleName) // get subspace
-				subspace.SetParamSet(suite.chainA.GetContext(), &params) // set params
+				subspace.SetParamSet(suite.chainA.GetContext(), &params)                           // set params
 			},
 			icacontrollertypes.DefaultParams(),
 		},
