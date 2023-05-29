@@ -269,3 +269,15 @@ func (suite *KeeperTestSuite) TestParams() {
 		})
 	}
 }
+
+func (suite *KeeperTestSuite) TestUnsetParams() {
+	suite.SetupTest()
+
+	ctx := suite.chainA.GetContext()
+	store := suite.chainA.GetContext().KVStore(suite.chainA.GetSimApp().GetKey(types.SubModuleName))
+	store.Delete([]byte(types.ParamsKey))
+
+	suite.Require().Panics(func() {
+		suite.chainA.GetSimApp().ICAControllerKeeper.GetParams(ctx)
+	})
+}
