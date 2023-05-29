@@ -5,7 +5,7 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	ibcerrors "github.com/cosmos/ibc-go/v7/internal/errors"
+	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
 
 	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
 	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
