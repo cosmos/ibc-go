@@ -6,6 +6,7 @@ const (
 
 	// StoreKey is the store key string for the interchain accounts controller module
 	StoreKey = SubModuleName
-)
 
-var ParamsKey = []byte{0x01}
+	// ParamsKey is the store key for the interchain accounts controller parameters
+	ParamsKey = "params"
+)
