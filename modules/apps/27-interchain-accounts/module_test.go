@@ -51,7 +51,6 @@ func (suite *InterchainAccountsTestSuite) TestInitModule() {
 	suite.Require().Panics(func() {
 		app.ICAControllerKeeper.GetParams(ctx)
 	})
-	suite.Require().Equal(app.ICAHostKeeper.GetParams(ctx), controllertypes.Params{})
 	suite.Require().Panics(func() {
 		app.ICAHostKeeper.GetParams(ctx)
 	})
