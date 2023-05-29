@@ -33,7 +33,7 @@ func (s *LocalhostTransferTestSuite) TestMsgTransfer_Localhost() {
 	t := s.T()
 	ctx := context.TODO()
 
-	_, _ = s.SetupChainsRelayerAndChannel(ctx, transferChannelOptions())
+	_, _ = s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions())
 	chainA, _ := s.GetChains()
 
 	chainADenom := chainA.Config().Denom
@@ -60,9 +60,8 @@ func (s *LocalhostTransferTestSuite) TestMsgTransfer_Localhost() {
 
 		s.Require().NoError(msgChanOpenInit.ValidateBasic())
 
-		txResp, err := s.BroadcastMessages(ctx, chainA, rlyWallet, msgChanOpenInit)
-		s.Require().NoError(err)
-		s.AssertValidTxResponse(txResp)
+		txResp := s.BroadcastMessages(ctx, chainA, rlyWallet, msgChanOpenInit)
+		s.AssertTxSuccess(txResp)
 
 		s.Require().NoError(testsuite.UnmarshalMsgResponses(txResp, &msgChanOpenInitRes))
 	})
@@ -75,9 +74,8 @@ func (s *LocalhostTransferTestSuite) TestMsgTransfer_Localhost() {
 			transfertypes.Version, localhost.SentinelProof, clienttypes.ZeroHeight(), rlyWallet.FormattedAddress(),
 		)
 
-		txResp, err := s.BroadcastMessages(ctx, chainA, rlyWallet, msgChanOpenTry)
-		s.Require().NoError(err)
-		s.AssertValidTxResponse(txResp)
+		txResp := s.BroadcastMessages(ctx, chainA, rlyWallet, msgChanOpenTry)
+		s.AssertTxSuccess(txResp)
 
 		s.Require().NoError(testsuite.UnmarshalMsgResponses(txResp, &msgChanOpenTryRes))
 	})
@@ -89,9 +87,8 @@ func (s *LocalhostTransferTestSuite) TestMsgTransfer_Localhost() {
 			localhost.SentinelProof, clienttypes.ZeroHeight(), rlyWallet.FormattedAddress(),
 		)
 
-		txResp, err := s.BroadcastMessages(ctx, chainA, rlyWallet, msgChanOpenAck)
-		s.Require().NoError(err)
-		s.AssertValidTxResponse(txResp)
+		txResp := s.BroadcastMessages(ctx, chainA, rlyWallet, msgChanOpenAck)
+		s.AssertTxSuccess(txResp)
 	})
 
 	t.Run("channel open confirm localhost", func(t *testing.T) {
@@ -100,9 +97,8 @@ func (s *LocalhostTransferTestSuite) TestMsgTransfer_Localhost() {
 			localhost.SentinelProof, clienttypes.ZeroHeight(), rlyWallet.FormattedAddress(),
 		)
 
-		txResp, err := s.BroadcastMessages(ctx, chainA, rlyWallet, msgChanOpenConfirm)
-		s.Require().NoError(err)
-		s.AssertValidTxResponse(txResp)
+		txResp := s.BroadcastMessages(ctx, chainA, rlyWallet, msgChanOpenConfirm)
+		s.AssertTxSuccess(txResp)
 	})
 
 	t.Run("query localhost transfer channel ends", func(t *testing.T) {
@@ -118,9 +114,9 @@ func (s *LocalhostTransferTestSuite) TestMsgTransfer_Localhost() {
 	})
 
 	t.Run("send packet localhost ibc transfer", func(t *testing.T) {
-		txResp, err := s.Transfer(ctx, chainA, userAWallet, transfertypes.PortID, msgChanOpenInitRes.GetChannelId(), testvalues.DefaultTransferAmount(chainADenom), userAWallet.FormattedAddress(), userBWallet.FormattedAddress(), clienttypes.NewHeight(1, 100), 0, "")
-		s.Require().NoError(err)
-		s.AssertValidTxResponse(txResp)
+		var err error
+		txResp := s.Transfer(ctx, chainA, userAWallet, transfertypes.PortID, msgChanOpenInitRes.GetChannelId(), testvalues.DefaultTransferAmount(chainADenom), userAWallet.FormattedAddress(), userBWallet.FormattedAddress(), clienttypes.NewHeight(1, 100), 0, "")
+		s.AssertTxSuccess(txResp)
 
 		events := testsuite.ABCIToSDKEvents(txResp.Events)
 		packet, err = ibctesting.ParsePacketFromEvents(events)
@@ -137,11 +133,11 @@ func (s *LocalhostTransferTestSuite) TestMsgTransfer_Localhost() {
 	})
 
 	t.Run("recv packet localhost ibc transfer", func(t *testing.T) {
+		var err error
 		msgRecvPacket := channeltypes.NewMsgRecvPacket(packet, localhost.SentinelProof, clienttypes.ZeroHeight(), rlyWallet.FormattedAddress())
 
-		txResp, err := s.BroadcastMessages(ctx, chainA, rlyWallet, msgRecvPacket)
-		s.Require().NoError(err)
-		s.AssertValidTxResponse(txResp)
+		txResp := s.BroadcastMessages(ctx, chainA, rlyWallet, msgRecvPacket)
+		s.AssertTxSuccess(txResp)
 
 		events := testsuite.ABCIToSDKEvents(txResp.Events)
 		ack, err = ibctesting.ParseAckFromEvents(events)
@@ -152,9 +148,8 @@ func (s *LocalhostTransferTestSuite) TestMsgTransfer_Localhost() {
 	t.Run("acknowledge packet localhost ibc transfer", func(t *testing.T) {
 		msgAcknowledgement := channeltypes.NewMsgAcknowledgement(packet, ack, localhost.SentinelProof, clienttypes.ZeroHeight(), rlyWallet.FormattedAddress())
 
-		txResp, err := s.BroadcastMessages(ctx, chainA, rlyWallet, msgAcknowledgement)
-		s.Require().NoError(err)
-		s.AssertValidTxResponse(txResp)
+		txResp := s.BroadcastMessages(ctx, chainA, rlyWallet, msgAcknowledgement)
+		s.AssertTxSuccess(txResp)
 	})
 
 	t.Run("verify tokens transferred", func(t *testing.T) {

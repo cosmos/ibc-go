@@ -7,6 +7,7 @@ on:
         required: true
         type: choice
         options:
+          - release/v4.1.x
           - release/v4.2.x
           - release/v4.3.x
           - release/v4.4.x
@@ -48,6 +49,7 @@ jobs:
     strategy:
       matrix:
         release-branch:
+          - release/v4.1.x
           - release/v4.2.x
           - release/v4.3.x
           - release/v4.4.x
@@ -182,6 +184,15 @@ jobs:
       test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
       test-suite: "ica-chain-a"
 
+  ica-chain-b:
+    needs:
+      - build-release-images
+      - determine-test-directory
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
+      test-suite: "ica-chain-b"
+
   incentivized-ica-chain-a:
     needs:
       - build-release-images
@@ -190,6 +201,15 @@ jobs:
     with:
       test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
       test-suite: "incentivized-ica-chain-a"
+
+  incentivized-ica-chain-b:
+    needs:
+      - build-release-images
+      - determine-test-directory
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
+      test-suite: "incentivized-ica-chain-b"
 
   ica-groups-chain-a:
     needs:
@@ -200,6 +220,15 @@ jobs:
       test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
       test-suite: "ica-groups-chain-a"
 
+  ica-groups-chain-b:
+    needs:
+      - build-release-images
+      - determine-test-directory
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
+      test-suite: "ica-groups-chain-b"
+
   ica-gov-chain-a:
     needs:
       - build-release-images
@@ -208,7 +237,16 @@ jobs:
     with:
       test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
       test-suite: "ica-gov-chain-a"
-  
+
+  ica-gov-chain-b:
+    needs:
+      - build-release-images
+      - determine-test-directory
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
+      test-suite: "ica-gov-chain-b"
+
   localhost-transfer-chain-a:
     needs:
       - build-release-images
