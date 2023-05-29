@@ -5,6 +5,7 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
+	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
 	genesistypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/genesis/types"
 	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
@@ -239,35 +240,32 @@ func (suite *KeeperTestSuite) TestSetInterchainAccountAddress() {
 	suite.Require().Equal(expectedAccAddr, retrievedAddr)
 }
 
-// func (suite *KeeperTestSuite) TestParams() {
-// 	testCases := []struct {
-// 		name    string
-// 		input   types.Params
-// 		expPass bool
-// 	}{
-// 		// it is not possible to set invalid booleans
-// 		{name: "set params false-false", input: types.NewParams(false), expPass: true},
-// 		{name: "set params false-true", input: types.NewParams(false), expPass: true},
-// 		{name: "set params true-false", input: types.NewParams(true), expPass: true},
-// 		{name: "set params true-true", input: types.NewParams(true), expPass: true},
-// 	}
+func (suite *KeeperTestSuite) TestParams() {
+	testCases := []struct {
+		name    string
+		input   types.Params
+		expPass bool
+	}{
+		// it is not possible to set invalid booleans
+		{"success: set params false", types.NewParams(false), true},
+		{"success: set params true", types.NewParams(false), true},
+	}
 
-// 	for _, tc := range testCases {
-// 		tc := tc
-// 		suite.Run(tc.name, func() {
-// 			suite.SetupTest() // reset
-// 			ctx := suite.chainA.GetContext()
-// 			expected := suite.chainA.GetSimApp().ICAControllerKeeper.GetParams(ctx)
-// 			err := suite.chainA.GetSimApp().ICAControllerKeeper.SetParams(ctx, tc.input)
-// 			if tc.expPass {
-// 				expected = tc.input
-// 				suite.Require().NoError(err)
-// 			} else {
-// 				suite.Require().Error(err)
-// 			}
-
-// 			p := suite.chainA.GetSimApp().ICAControllerKeeper.GetParams(ctx)
-// 			suite.Require().Equal(expected, p)
-// 		})
-// 	}
-// }
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupTest() // reset
+			ctx := suite.chainA.GetContext()
+			if tc.expPass {
+				suite.chainA.GetSimApp().ICAControllerKeeper.SetParams(ctx, tc.input)
+				expected := tc.input
+				p := suite.chainA.GetSimApp().ICAControllerKeeper.GetParams(ctx)
+				suite.Require().Equal(expected, p)
+			} else { // currently not possible to set invalid params
+				suite.Require().Panics(func() {
+					suite.chainA.GetSimApp().ICAControllerKeeper.SetParams(ctx, tc.input)
+				})
+			}
+		})
+	}
+}
