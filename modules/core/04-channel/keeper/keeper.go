@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"encoding/binary"
 	"reflect"
 	"strconv"
 	"strings"
@@ -512,6 +513,24 @@ func (k Keeper) GetUpgrade(ctx sdk.Context, portID, channelID string) (types.Upg
 	k.cdc.MustUnmarshal(bz, &upgrade)
 
 	return upgrade, true
+}
+
+// GetCounterpartyLastPacketSequence gets the counterparty last packet sequence send from the store.
+func (k Keeper) GetCounterpartyLastPacketSequence(ctx sdk.Context, portID, channelID string) (uint64, bool) {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(host.ChannelCounterpartyLastPacketSequenceKey(portID, channelID))
+	if bz == nil {
+		return 0, false
+	}
+
+	return binary.BigEndian.Uint64(bz), true
+}
+
+// SetCounterpartyLastPacketSequence sets the counterparty last packet sequence in the store.
+func (k Keeper) SetCounterpartyLastPacketSequence(ctx sdk.Context, portID, channelID string, sequence uint64) {
+	store := ctx.KVStore(k.storeKey)
+	bz := sdk.Uint64ToBigEndian(sequence)
+	store.Set(host.ChannelCounterpartyLastPacketSequenceKey(portID, channelID), bz)
 }
 
 // SetUpgrade sets the proposed upgrade using the provided port and channel identifiers.
