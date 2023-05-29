@@ -10,6 +10,7 @@ import (
 	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 )
 
+// ValidateUpgradeFields is a wrapper around validateUpgradeFields to allow the function to be directly called in tests.
 func (k Keeper) ValidateUpgradeFields(ctx sdk.Context, proposedUpgrade types.UpgradeFields, currentChannel types.Channel) error {
 	return k.validateUpgradeFields(ctx, proposedUpgrade, currentChannel)
 }
