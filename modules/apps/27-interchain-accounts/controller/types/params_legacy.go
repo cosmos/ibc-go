@@ -6,6 +6,8 @@ for migration purposes and will be removed in a future release.
 package types
 
 import (
+	"fmt"
+
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 )
 
@@ -24,6 +26,15 @@ func ParamKeyTable() paramtypes.KeyTable {
 // ParamSetPairs implements params.ParamSet
 func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 	return paramtypes.ParamSetPairs{
-		paramtypes.NewParamSetPair(KeySendEnabled, &p.ControllerEnabled, validateEnabledType),
+		paramtypes.NewParamSetPair(KeySendEnabled, &p.ControllerEnabled, validateEnabledTypeLegacy),
 	}
+}
+
+func validateEnabledTypeLegacy(i interface{}) error {
+	_, ok := i.(bool)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
+	return nil
 }

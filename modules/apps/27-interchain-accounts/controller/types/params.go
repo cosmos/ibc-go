@@ -1,9 +1,5 @@
 package types
 
-import (
-	"fmt"
-)
-
 const (
 	// DefaultControllerEnabled is the default value for the controller param (set to true)
 	DefaultControllerEnabled = true
@@ -24,16 +20,3 @@ func DefaultParams() Params {
 	return NewParams(DefaultControllerEnabled)
 }
 
-// Validate validates all controller submodule parameters
-func (p Params) Validate() error {
-	return validateEnabledType(p.ControllerEnabled)
-}
-
-func validateEnabledType(i interface{}) error {
-	_, ok := i.(bool)
-	if !ok {
-		return fmt.Errorf("invalid parameter type: %T", i)
-	}
-
-	return nil
-}
