@@ -7,7 +7,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
-	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/exported"
 	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 )
@@ -15,14 +14,12 @@ import (
 // Migrator is a struct for handling in-place store migrations.
 type Migrator struct {
 	keeper         *Keeper
-	legacySubspace exported.Subspace
 }
 
 // NewMigrator returns Migrator instance for the state migration.
-func NewMigrator(k *Keeper, ss exported.Subspace) Migrator {
+func NewMigrator(k *Keeper) Migrator {
 	return Migrator{
 		keeper:         k,
-		legacySubspace: ss,
 	}
 }
 

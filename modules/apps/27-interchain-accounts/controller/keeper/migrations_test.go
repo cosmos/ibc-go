@@ -3,7 +3,6 @@ package keeper_test
 import (
 	"fmt"
 
-	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	icacontrollerkeeper "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/keeper"
 	icacontrollertypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
 	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
@@ -79,13 +78,14 @@ func (suite *KeeperTestSuite) TestAssertChannelCapabilityMigrations() {
 func (suite *KeeperTestSuite) TestMigratorMigrateParams() {
 	testCases := []struct {
 		msg            string
-		malleate       func(subspace paramstypes.Subspace)
+		malleate       func()
 		expectedParams icacontrollertypes.Params
 	}{
 		{
 			"success: default params",
-			func(subspace paramstypes.Subspace) {
+			func() {
 				params := icacontrollertypes.DefaultParams()
+				subspace := suite.chainA.GetSimApp().GetSubspace(icacontrollertypes.SubModuleName) // get subspace
 				subspace.SetParamSet(suite.chainA.GetContext(), &params) // set params
 			},
 			icacontrollertypes.DefaultParams(),
@@ -96,8 +96,8 @@ func (suite *KeeperTestSuite) TestMigratorMigrateParams() {
 		suite.Run(fmt.Sprintf("case %s", tc.msg), func() {
 			suite.SetupTest() // reset
 
+			tc.malleate() // explicitly set params
 			subspace := suite.chainA.GetSimApp().GetSubspace(icacontrollertypes.SubModuleName) // get subspace
-			tc.malleate(subspace)                                                              // explicitly set params
 
 			migrator := icacontrollerkeeper.NewMigrator(&suite.chainA.GetSimApp().ICAControllerKeeper, subspace)
 			err := migrator.MigrateParams(suite.chainA.GetContext())
