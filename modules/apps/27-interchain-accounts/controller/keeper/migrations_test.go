@@ -55,7 +55,7 @@ func (suite *KeeperTestSuite) TestAssertChannelCapabilityMigrations() {
 
 			tc.malleate()
 
-			migrator := icacontrollerkeeper.NewMigrator(&suite.chainA.GetSimApp().ICAControllerKeeper, suite.chainA.GetSimApp().GetSubspace(icacontrollertypes.SubModuleName))
+			migrator := icacontrollerkeeper.NewMigrator(&suite.chainA.GetSimApp().ICAControllerKeeper)
 			err = migrator.AssertChannelCapabilityMigrations(suite.chainA.GetContext())
 
 			if tc.expPass {
@@ -97,9 +97,8 @@ func (suite *KeeperTestSuite) TestMigratorMigrateParams() {
 			suite.SetupTest() // reset
 
 			tc.malleate() // explicitly set params
-			subspace := suite.chainA.GetSimApp().GetSubspace(icacontrollertypes.SubModuleName) // get subspace
 
-			migrator := icacontrollerkeeper.NewMigrator(&suite.chainA.GetSimApp().ICAControllerKeeper, subspace)
+			migrator := icacontrollerkeeper.NewMigrator(&suite.chainA.GetSimApp().ICAControllerKeeper)
 			err := migrator.MigrateParams(suite.chainA.GetContext())
 			suite.Require().NoError(err)
 

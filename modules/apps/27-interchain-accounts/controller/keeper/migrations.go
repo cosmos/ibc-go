@@ -53,7 +53,7 @@ func (m Migrator) AssertChannelCapabilityMigrations(ctx sdk.Context) error {
 // MigrateParams migrates the host submodule's parameters from the x/params to self store.
 func (m Migrator) MigrateParams(ctx sdk.Context) error {
 	var params types.Params
-	m.legacySubspace.GetParamSet(ctx, &params)
+	m.keeper.legacySubspace.GetParamSet(ctx, &params)
 
 	m.keeper.SetParams(ctx, params)
 
