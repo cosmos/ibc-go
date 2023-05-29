@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package ibc.applications.interchain_accounts.host.v1;
+
+option go_package = "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/types";
+
+import "gogoproto/gogo.proto";
+import "ibc/applications/interchain_accounts/host/v1/host.proto";
+
+// Msg defines the 27-interchain-accounts/host Msg service.
+service Msg {
+  // UpdateParams defines a rpc handler for MsgUpdateParams.
+  rpc UpdateParams(MsgUpdateParams) returns (MsgUpdateParamsResponse);
+}
+
+// MsgUpdateParams defines the payload for Msg/UpdateParams
+message MsgUpdateParams {
+  // authority is the address that controls the module (defaults to x/gov unless overwritten).
+  string authority = 1;
+
+  // params defines the 27-interchain-accounts/host parameters to update.
+  //
+  // NOTE: All parameters must be supplied.
+  Params params = 2 [(gogoproto.nullable) = false];
+}
+
+// MsgUpdateParamsResponse defines the response for Msg/UpdateParams
+message MsgUpdateParamsResponse {}
