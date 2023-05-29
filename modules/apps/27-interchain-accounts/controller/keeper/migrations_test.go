@@ -76,6 +76,7 @@ func (suite *KeeperTestSuite) TestAssertChannelCapabilityMigrations() {
 		})
 	}
 }
+
 func (suite *KeeperTestSuite) TestMigratorMigrateParams() {
 	testCases := []struct {
 		msg            string

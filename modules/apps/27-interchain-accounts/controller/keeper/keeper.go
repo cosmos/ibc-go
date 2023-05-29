@@ -41,7 +41,6 @@ func NewKeeper(
 	ics4Wrapper porttypes.ICS4Wrapper, channelKeeper icatypes.ChannelKeeper, portKeeper icatypes.PortKeeper,
 	scopedKeeper exported.ScopedKeeper, msgRouter icatypes.MessageRouter, authority string,
 ) Keeper {
-
 	return Keeper{
 		storeKey:      key,
 		cdc:           cdc,
