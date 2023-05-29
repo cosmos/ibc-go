@@ -5,6 +5,9 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+
 	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
 	genesistypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/genesis/types"
 	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
@@ -280,4 +283,12 @@ func (suite *KeeperTestSuite) TestUnsetParams() {
 	suite.Require().Panics(func() {
 		suite.chainA.GetSimApp().ICAControllerKeeper.GetParams(ctx)
 	})
+}
+
+func (suite *KeeperTestSuite) TestGetAuthority() {
+	suite.SetupTest()
+
+	authority := suite.chainA.GetSimApp().ICAControllerKeeper.GetAuthority()
+	expectedAuth := authtypes.NewModuleAddress(govtypes.ModuleName).String()
+	suite.Require().Equal(expectedAuth, authority)
 }
