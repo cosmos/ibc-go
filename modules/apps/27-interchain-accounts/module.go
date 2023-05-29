@@ -115,9 +115,6 @@ func NewAppModule(controllerKeeper *controllerkeeper.Keeper, hostKeeper *hostkee
 func (am AppModule) InitModule(ctx sdk.Context, controllerParams controllertypes.Params, hostParams hosttypes.Params) {
 	if am.controllerKeeper != nil {
 		am.controllerKeeper.SetParams(ctx, controllerParams)
-		if err := am.controllerKeeper.SetParams(ctx, controllerParams); err != nil {
-			panic(fmt.Sprintf("could not set ica host params at initialization: %v", err))
-		}
 	}
 
 	if am.hostKeeper != nil {

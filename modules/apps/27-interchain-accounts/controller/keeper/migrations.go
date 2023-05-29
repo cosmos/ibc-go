@@ -59,5 +59,7 @@ func (m Migrator) MigrateParams(ctx sdk.Context) error {
 	var params types.Params
 	m.legacySubspace.GetParamSet(ctx, &params)
 
-	return m.keeper.SetParams(ctx, params)
+	m.keeper.SetParams(ctx, params)
+
+	return nil
 }

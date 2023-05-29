@@ -34,9 +34,7 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, state genesistypes.ControllerGe
 		keeper.SetInterchainAccountAddress(ctx, acc.ConnectionId, acc.PortId, acc.AccountAddress)
 	}
 
-	if err := keeper.SetParams(ctx, state.Params); err != nil {
-		panic(fmt.Sprintf("could not set ica host params at genesis: %v", err))
-	}
+	keeper.SetParams(ctx, state.Params);
 }
 
 // ExportGenesis returns the interchain accounts controller exported genesis

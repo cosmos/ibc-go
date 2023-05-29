@@ -11,12 +11,8 @@ import (
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 )
 
-var (
-	// KeySendEnabled is store's key for SendEnabled Params
-	KeySendEnabled = []byte("SendEnabled")
-	// KeyReceiveEnabled is store's key for ReceiveEnabled Params
-	KeyReceiveEnabled = []byte("ReceiveEnabled")
-)
+// KeyControllerEnabled is the store key for ControllerEnabled Params
+var KeyControllerEnabled = []byte("ControllerEnabled")
 
 // ParamKeyTable type declaration for parameters
 func ParamKeyTable() paramtypes.KeyTable {
@@ -26,7 +22,7 @@ func ParamKeyTable() paramtypes.KeyTable {
 // ParamSetPairs implements params.ParamSet
 func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 	return paramtypes.ParamSetPairs{
-		paramtypes.NewParamSetPair(KeySendEnabled, &p.ControllerEnabled, validateEnabledTypeLegacy),
+		paramtypes.NewParamSetPair(KeyControllerEnabled, &p.ControllerEnabled, validateEnabledTypeLegacy),
 	}
 }
 
