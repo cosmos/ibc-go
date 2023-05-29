@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
-	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/keeper"
 	icacontrollerkeeper "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/keeper"
 	icacontrollertypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
 	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
@@ -57,7 +56,7 @@ func (suite *KeeperTestSuite) TestAssertChannelCapabilityMigrations() {
 
 			tc.malleate()
 
-			migrator := keeper.NewMigrator(&suite.chainA.GetSimApp().ICAControllerKeeper, suite.chainA.GetSimApp().GetSubspace(icacontrollertypes.SubModuleName))
+			migrator := icacontrollerkeeper.NewMigrator(&suite.chainA.GetSimApp().ICAControllerKeeper, suite.chainA.GetSimApp().GetSubspace(icacontrollertypes.SubModuleName))
 			err = migrator.AssertChannelCapabilityMigrations(suite.chainA.GetContext())
 
 			if tc.expPass {
