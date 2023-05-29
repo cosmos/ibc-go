@@ -7,6 +7,7 @@ const (
 	KeyChannelPrefix         = "channels"
 	KeyChannelUpgradePrefix  = "channelUpgrades"
 	KeyChannelRestorePrefix  = "restore"
+	KeyUpgradePrefix         = "upgrades"
 	KeyUpgradeTimeoutPrefix  = "upgradeTimeout"
 	KeyUpgradeSequencePrefix = "upgradeSequence"
 	KeyUpgradeErrorPrefix    = "upgradeError"
@@ -73,7 +74,7 @@ func ChannelUpgradeSequenceKey(portID, channelID string) []byte {
 
 // ChannelUpgradePath defines the path which stores the information related to an upgrade attempt
 func ChannelUpgradePath(portID, channelID string) string {
-	return fmt.Sprintf("%s/%s", KeyChannelUpgradePrefix, channelPath(portID, channelID))
+	return fmt.Sprintf("%s/%s/%s", KeyChannelUpgradePrefix, KeyUpgradePrefix, channelPath(portID, channelID))
 }
 
 // ChannelUpgradeKey returns the store key for a particular channel upgrade attempt
