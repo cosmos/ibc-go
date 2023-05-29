@@ -265,26 +265,21 @@ func (k Keeper) GetAuthority() string {
 }
 
 // GetParams returns the current transfer module parameters.
-func (k Keeper) GetParams(ctx sdk.Context) (p types.Params) {
+func (k Keeper) GetParams(ctx sdk.Context) types.Params {
 	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.ParamsKey)
+	bz := store.Get([]byte(types.ParamsKey))
 	if bz == nil {
-		return p
+		panic("ica/controller params are not set in store")
 	}
 
-	k.cdc.MustUnmarshal(bz, &p)
-	return p
+	var params types.Params
+	k.cdc.MustUnmarshal(bz, &params)
+	return params
 }
 
 // SetParams sets the transfer module parameters.
-func (k Keeper) SetParams(ctx sdk.Context, params types.Params) error {
-	if err := params.Validate(); err != nil {
-		return err
-	}
-
+func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshal(&params)
-	store.Set(types.ParamsKey, bz)
-
-	return nil
+	store.Set([]byte(types.ParamsKey), bz)
 }
