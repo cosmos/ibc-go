@@ -82,8 +82,8 @@ func ChannelUpgradeKey(portID, channelID string) []byte {
 	return []byte(ChannelUpgradePath(portID, channelID))
 }
 
-// ChannelCounterpartyLastPacketSequencePathKey returns the store key for the last packet sequence sent on the counterparty channel.
-func ChannelCounterpartyLastPacketSequencePathKey(portID, channelID string) []byte {
+// ChannelCounterpartyLastPacketSequenceKey returns the store key for the last packet sequence sent on the counterparty channel.
+func ChannelCounterpartyLastPacketSequenceKey(portID, channelID string) []byte {
 	return []byte(ChannelCounterpartyLastPacketSequencePath(portID, channelID))
 }
 
