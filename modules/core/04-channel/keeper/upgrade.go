@@ -1,9 +1,8 @@
 package keeper
 
 import (
-	"reflect"
-
 	errorsmod "cosmossdk.io/errors"
+	"cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -165,35 +164,55 @@ func (k Keeper) startFlushUpgradeHandshake(
 		return err
 	}
 
-	if !reflect.DeepEqual(proposedUpgradeFields, counterpartyUpgrade.Fields) {
+	// ensure that the upgrade sequences match.
+	if counterpartyChannel.UpgradeSequence != channel.UpgradeSequence {
+		// error on the higher sequence so that both chains move to a fresh sequence.
+		channel.UpgradeSequence = math.Max(counterpartyChannel.UpgradeSequence, channel.UpgradeSequence)
+		k.SetChannel(ctx, portID, channelID, channel)
 		k.restoreChannel(portID, channelID)
+		// TODO: return error receipt here, not an error.
+		return errorsmod.Wrapf(types.ErrInvalidUpgradeSequence, "expected upgrade sequence (%d) to match counterparty upgrade sequence (%d)", channel.UpgradeSequence, counterpartyChannel.UpgradeSequence)
+	}
+
+	//if !reflect.DeepEqual(proposedUpgradeFields, counterpartyUpgrade.Fields) {
+	//	k.restoreChannel(portID, channelID)
+	//	// TODO: return error receipt
+	//}
+
+	// ensure upgrade fields ordering is the same.
+	if proposedUpgradeFields.Ordering != counterpartyUpgrade.Fields.Ordering {
+		k.restoreChannel(portID, channelID)
+		// TODO: return error receipt
 	}
 
 	// connectionHops can change in a channelUpgrade, however both sides must still be each other's counterparty.
 	proposedConnection, found := k.connectionKeeper.GetConnection(ctx, proposedUpgradeFields.ConnectionHops[0])
 	if !found {
 		k.restoreChannel(portID, channelID)
+		// TODO: return error receipt
 	}
 
 	if proposedConnection.GetState() != int32(connectiontypes.OPEN) {
 		k.restoreChannel(portID, channelID)
+		// TODO: return error receipt
 	}
 
 	if counterpartyUpgrade.Fields.ConnectionHops[0] != proposedConnection.Counterparty.ConnectionId {
 		k.restoreChannel(portID, channelID)
+		// TODO: return error receipt
 	}
 
 	// set the channel to the desired state
 	channel.State = desiredChannelState
-	// TODO: set flushstate
+	// TODO: channel.FlushState = FLUSHING
 
-	// if k.pendingInflightPackets(portID, channelID) == nil {
-	// if there are no packets in flight, then flush is complete
-	// TODO: set flushstate to FLUSHCOMPLETE
-	// }
+	if len(k.pendingInflightPackets(portID, channelID)) == 0 {
+		// if there are no packets in flight, then flush is complete
+		// TODO: channel.FlushState = FLUSHCOMPLETE
+	}
 
 	k.SetChannel(ctx, portID, channelID, channel)
-	// k.setChannelCounterpartyLastPacketSequenceSend
+	// TODO: k.SetChannelCounterpartyLastPacketSequenceSend(portID, channelID, counterpartyUpgrade.LatestSequenceSend)
 
 	return nil
 }
