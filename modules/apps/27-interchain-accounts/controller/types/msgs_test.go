@@ -194,3 +194,35 @@ func TestMsgSendTxGetSigners(t *testing.T) {
 	)
 	require.Equal(t, []sdk.AccAddress{expSigner}, msg.GetSigners())
 }
+
+// TestMsgUpdateParamsValidation tests ValidateBasic for MsgUpdateParams
+func TestMsgUpdateParamsValidation(t *testing.T) {
+	testCases := []struct {
+		name    string
+		msg     *types.MsgUpdateParams
+		expPass bool
+	}{
+		{"success: valid authority and valid params", types.NewMsgUpdateParams(ibctesting.TestAccAddress, types.DefaultParams()), true},
+		{"failure: invalid authority with valid params", types.NewMsgUpdateParams("invalidAddress", types.DefaultParams()), false},
+		{"failure: empty authority with valid params", types.NewMsgUpdateParams("", types.DefaultParams()), false},
+	}
+
+	for i, tc := range testCases {
+		err := tc.msg.ValidateBasic()
+		if tc.expPass {
+			require.NoError(t, err, "valid test case %d failed: %s", i, tc.name)
+		} else {
+			require.Error(t, err, "invalid test case %d passed: %s", i, tc.name)
+		}
+	}
+}
+
+// TestMsgUpdateParamsGetSigners tests GetSigners for MsgUpdateParams
+func TestMsgUpdateParamsGetSigners(t *testing.T) {
+	authority := sdk.AccAddress(ibctesting.TestAccAddress)
+	msg := types.MsgUpdateParams{
+		Authority: authority.String(),
+		Params:    types.DefaultParams(),
+	}
+	require.Equal(t, []sdk.AccAddress{authority}, msg.GetSigners())
+}
