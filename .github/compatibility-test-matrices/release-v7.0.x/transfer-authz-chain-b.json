@@ -1,5 +1,5 @@
 {
-  "chain-a": ["release-v7.0.x", "v7.0.0"],
+  "chain-a": ["release-v7.0.x", "v7.0.1"],
   "chain-b": ["release-v7.0.x"],
   "entrypoint": ["TestAuthzTransferTestSuite"],
   "test": [

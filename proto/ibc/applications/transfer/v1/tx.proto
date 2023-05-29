@@ -7,11 +7,15 @@ option go_package = "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types";
 import "gogoproto/gogo.proto";
 import "cosmos/base/v1beta1/coin.proto";
 import "ibc/core/client/v1/client.proto";
+import "ibc/applications/transfer/v1/transfer.proto";
 
 // Msg defines the ibc/transfer Msg service.
 service Msg {
   // Transfer defines a rpc handler method for MsgTransfer.
   rpc Transfer(MsgTransfer) returns (MsgTransferResponse);
+
+  // UpdateParams defines a rpc handler for MsgUpdateParams.
+  rpc UpdateParams(MsgUpdateParams) returns (MsgUpdateParamsResponse);
 }
 
 // MsgTransfer defines a msg to transfer fungible tokens (i.e Coins) between
@@ -46,3 +50,18 @@ message MsgTransferResponse {
   // sequence number of the transfer packet sent
   uint64 sequence = 1;
 }
+
+// MsgUpdateParams is the Msg/UpdateParams request type.
+message MsgUpdateParams {
+  // authority is the address that controls the module (defaults to x/gov unless overwritten).
+  string authority = 1;
+
+  // params defines the transfer parameters to update.
+  //
+  // NOTE: All parameters must be supplied.
+  Params params = 2 [(gogoproto.nullable) = false];
+}
+
+// MsgUpdateParamsResponse defines the response structure for executing a
+// MsgUpdateParams message.
+message MsgUpdateParamsResponse {}

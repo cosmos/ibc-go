@@ -8,12 +8,12 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 
-	ibcerrors "github.com/cosmos/ibc-go/v7/internal/errors"
 	clientutils "github.com/cosmos/ibc-go/v7/modules/core/02-client/client/utils"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 	ibcclient "github.com/cosmos/ibc-go/v7/modules/core/client"
+	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 

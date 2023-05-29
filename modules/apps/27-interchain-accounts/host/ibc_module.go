@@ -7,11 +7,11 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 
-	ibcerrors "github.com/cosmos/ibc-go/v7/internal/errors"
 	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/keeper"
 	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/types"
 	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
 	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
@@ -52,7 +52,7 @@ func (im IBCModule) OnChanOpenTry(
 	counterparty channeltypes.Counterparty,
 	counterpartyVersion string,
 ) (string, error) {
-	if !im.keeper.IsHostEnabled(ctx) {
+	if !im.keeper.GetParams(ctx).HostEnabled {
 		return "", types.ErrHostSubModuleDisabled
 	}
 
@@ -76,7 +76,7 @@ func (im IBCModule) OnChanOpenConfirm(
 	portID,
 	channelID string,
 ) error {
-	if !im.keeper.IsHostEnabled(ctx) {
+	if !im.keeper.GetParams(ctx).HostEnabled {
 		return types.ErrHostSubModuleDisabled
 	}
 
@@ -109,7 +109,7 @@ func (im IBCModule) OnRecvPacket(
 	_ sdk.AccAddress,
 ) ibcexported.Acknowledgement {
 	logger := im.keeper.Logger(ctx)
-	if !im.keeper.IsHostEnabled(ctx) {
+	if !im.keeper.GetParams(ctx).HostEnabled {
 		logger.Info("host submodule is disabled")
 		return channeltypes.NewErrorAcknowledgement(types.ErrHostSubModuleDisabled)
 	}
