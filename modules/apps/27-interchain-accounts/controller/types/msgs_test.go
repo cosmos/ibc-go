@@ -221,7 +221,7 @@ func TestMsgUpdateParamsValidation(t *testing.T) {
 func TestMsgUpdateParamsGetSigners(t *testing.T) {
 	testCases := []struct {
 		name    string
-		address sdk.AccAddress    
+		address sdk.AccAddress
 		expPass bool
 	}{
 		{"success: valid address", sdk.AccAddress(ibctesting.TestAccAddress), true},
