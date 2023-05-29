@@ -16,4 +16,3 @@ func NewParams(enableController bool) Params {
 func DefaultParams() Params {
 	return NewParams(DefaultControllerEnabled)
 }
-
