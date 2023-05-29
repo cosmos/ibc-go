@@ -55,7 +55,7 @@ message MsgUpdateParams {
   // authority is the address that controls the module (defaults to x/gov unless overwritten).
   string authority = 1;
 
-  // params defines the 27-interchain-accounts/host parameters to update.
+  // params defines the 27-interchain-accounts/controller parameters to update.
   //
   // NOTE: All parameters must be supplied.
   Params params = 2 [(gogoproto.nullable) = false];
