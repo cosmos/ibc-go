@@ -270,12 +270,12 @@ func (k Keeper) DeleteMiddlewareEnabled(ctx sdk.Context, portID, connectionID st
 	store.Delete(icatypes.KeyIsMiddlewareEnabled(portID, connectionID))
 }
 
-// GetAuthority returns the transfer module's authority.
+// GetAuthority returns the ica/controller submodule's authority.
 func (k Keeper) GetAuthority() string {
 	return k.authority
 }
 
-// GetParams returns the current transfer module parameters.
+// GetParams returns the current ica/controller submodule parameters.
 func (k Keeper) GetParams(ctx sdk.Context) types.Params {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get([]byte(types.ParamsKey))
@@ -288,7 +288,7 @@ func (k Keeper) GetParams(ctx sdk.Context) types.Params {
 	return params
 }
 
-// SetParams sets the transfer module parameters.
+// SetParams sets the ica/controller submodule parameters.
 func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshal(&params)
