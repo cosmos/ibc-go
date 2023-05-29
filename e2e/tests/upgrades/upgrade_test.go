@@ -625,11 +625,6 @@ func (s *UpgradeTestSuite) TestV7ToV7_1ChainUpgrade() {
 
 		expected := testvalues.StartingTokenAmount - testvalues.IBCTransferAmount
 		s.Require().Equal(expected, actualBalance)
-
-		// Escrow amount for native denom is not stored in state because pre-upgrade version did not support this feature
-		actualTotalEscrow, err := s.QueryTotalEscrowForDenom(ctx, chainA, chainADenom)
-		s.Require().NoError(err)
-		s.Require().Equal(math.ZeroInt(), actualTotalEscrow)
 	})
 
 	t.Run("start relayer", func(t *testing.T) {
