@@ -32,5 +32,5 @@ message ErrorReceipt {
   // the channel upgrade sequence
   uint64 sequence = 1;
   // the error message detailing the cause of failure
-  string error = 2;
+  string message = 2;
 }

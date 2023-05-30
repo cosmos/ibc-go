@@ -685,7 +685,7 @@ func (suite *KeeperTestSuite) TestVerifyNextSequenceRecv() {
 func (suite *KeeperTestSuite) TestVerifyUpgradeErrorReceipt() {
 	var (
 		path         *ibctesting.Path
-		errorReceipt channeltypes.ErrorReceipt
+		errorReceipt *channeltypes.ErrorReceipt
 	)
 
 	cases := []struct {
@@ -727,7 +727,7 @@ func (suite *KeeperTestSuite) TestVerifyUpgradeErrorReceipt() {
 		{
 			name: "verification fails when message differs",
 			malleate: func() {
-				errorReceipt.Error = "new error"
+				errorReceipt.Message = "new error"
 			},
 			expPass: false,
 		},
@@ -743,7 +743,7 @@ func (suite *KeeperTestSuite) TestVerifyUpgradeErrorReceipt() {
 			suite.coordinator.Setup(path)
 
 			errorReceipt = channeltypes.NewErrorReceipt(1, channeltypes.ErrInvalidChannel)
-			suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.SetUpgradeErrorReceipt(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, errorReceipt)
+			suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.SetUpgradeErrorReceipt(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, *errorReceipt)
 
 			suite.chainA.Coordinator.CommitBlock(suite.chainA)
 			suite.Require().NoError(path.EndpointB.UpdateClient())
@@ -753,7 +753,7 @@ func (suite *KeeperTestSuite) TestVerifyUpgradeErrorReceipt() {
 			upgradeErrorReceiptKey := host.ChannelUpgradeErrorKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 			proof, proofHeight := suite.chainA.QueryProof(upgradeErrorReceiptKey)
 
-			err := suite.chainB.GetSimApp().IBCKeeper.ConnectionKeeper.VerifyChannelUpgradeError(suite.chainB.GetContext(), path.EndpointB.GetConnection(), proofHeight, proof, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, errorReceipt)
+			err := suite.chainB.GetSimApp().IBCKeeper.ConnectionKeeper.VerifyChannelUpgradeError(suite.chainB.GetContext(), path.EndpointB.GetConnection(), proofHeight, proof, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, *errorReceipt)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -799,7 +799,7 @@ func (suite *KeeperTestSuite) TestVerifyUpgradeErrorReceiptAbsence() {
 			name: "verification fails when the key exists",
 			malleate: func() {
 				errorReceipt := channeltypes.NewErrorReceipt(1, channeltypes.ErrInvalidChannel)
-				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.SetUpgradeErrorReceipt(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, errorReceipt)
+				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.SetUpgradeErrorReceipt(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, *errorReceipt)
 				suite.chainA.Coordinator.CommitBlock(suite.chainA)
 				suite.Require().NoError(path.EndpointB.UpdateClient())
 			},
