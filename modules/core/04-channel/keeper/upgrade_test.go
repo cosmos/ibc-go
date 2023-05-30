@@ -113,7 +113,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeInit() {
 			)
 
 			if tc.expPass {
-				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.WriteUpgradeInitChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointA.GetChannel(), proposedUpgrade)
+				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.WriteUpgradeInitChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, proposedUpgrade)
 				channel := path.EndpointA.GetChannel()
 
 				suite.Require().NoError(err)
