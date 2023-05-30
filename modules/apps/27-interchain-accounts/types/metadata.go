@@ -10,6 +10,8 @@ import (
 const (
 	// EncodingProtobuf defines the protocol buffers proto3 encoding format
 	EncodingProtobuf = "proto3"
+	// EncodingJSON defines the JSON encoding format
+	EncodingJSON = "json"
 
 	// TxTypeSDKMultiMsg defines the multi message transaction type supported by the Cosmos SDK
 	TxTypeSDKMultiMsg = "sdk_multi_msg"
@@ -141,7 +143,7 @@ func isSupportedEncoding(encoding string) bool {
 
 // getSupportedEncoding returns a string slice of supported encoding formats
 func getSupportedEncoding() []string {
-	return []string{EncodingProtobuf}
+	return []string{EncodingProtobuf, EncodingJSON}
 }
 
 // isSupportedTxType returns true if the provided transaction type is supported, otherwise false
