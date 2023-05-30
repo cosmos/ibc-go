@@ -57,12 +57,11 @@ func SerializeCosmosTx(cdc codec.BinaryCodec, msgs []proto.Message) (bz []byte, 
 	return bz, nil
 }
 
-// DeserializeCosmosTx unmarshals and unpacks a slice of transaction bytes
-// into a slice of sdk.Msg's.
+// DeserializeCosmosTx unmarshals and unpacks a slice of transaction bytes into a slice of sdk.Msg's.
 func DeserializeCosmosTx(cdc codec.BinaryCodec, data []byte, encoding string) ([]sdk.Msg, error) {
 	// ProtoCodec must be supported
 	if _, ok := cdc.(*codec.ProtoCodec); !ok {
-		return nil, errorsmod.Wrap(ErrInvalidCodec, "ProtoCodec is supported for receiving messages on the host chain")
+		return nil, errorsmod.Wrap(ErrInvalidCodec, "ProtoCodec must be supported for receiving messages on the host chain")
 	}
 
 	var cosmosTx CosmosTx
