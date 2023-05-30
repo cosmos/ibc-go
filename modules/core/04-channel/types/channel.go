@@ -25,6 +25,8 @@ func NewChannel(
 		Version:        version,
 		// UpgradeSequence is intentionally left empty as a new channel has not performed an upgrade.
 		UpgradeSequence: 0,
+		// FlushStatus is NOTINFLUSH as a new channel will not be in the upgrade process.
+		FlushStatus: NOTINFLUSH,
 	}
 }
 
