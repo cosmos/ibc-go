@@ -7,7 +7,7 @@ const (
 	KeyChannelPrefix                  = "channels"
 	KeyChannelUpgradePrefix           = "channelUpgrades"
 	KeyChannelRestorePrefix           = "restore"
-  KeyUpgradePrefix                  = "upgrades"
+	KeyUpgradePrefix                  = "upgrades"
 	KeyUpgradeTimeoutPrefix           = "upgradeTimeout"
 	KeyUpgradeSequencePrefix          = "upgradeSequence"
 	KeyUpgradeErrorPrefix             = "upgradeError"
