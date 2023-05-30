@@ -51,7 +51,7 @@ func (m Migrator) AssertChannelCapabilityMigrations(ctx sdk.Context) error {
 	return nil
 }
 
-// MigrateParams migrates the host submodule's parameters from the x/params to self store.
+// MigrateParams migrates the controller submodule's parameters from the x/params to self store.
 func (m Migrator) MigrateParams(ctx sdk.Context) error {
 	var params types.Params
 	m.keeper.legacySubspace.GetParamSet(ctx, &params)
