@@ -22,9 +22,19 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet) ([]byt
 		return nil, errorsmod.Wrapf(icatypes.ErrUnknownDataType, "cannot unmarshal ICS-27 interchain account packet data")
 	}
 
+	appVersion, found := k.GetAppVersion(ctx, packet.DestinationPort, packet.DestinationChannel)
+	if !found {
+		return nil, errorsmod.Wrapf(ibcerrors.ErrNotFound, "app version not found for port %s and channel %s", packet.DestinationPort, packet.DestinationChannel)
+	}
+	var metadata icatypes.Metadata
+	if err := icatypes.ModuleCdc.UnmarshalJSON([]byte(appVersion), &metadata); err != nil {
+		// UnmarshalJSON errors are indeterminate and therefore are not wrapped and included in failed acks
+		return nil, errorsmod.Wrapf(icatypes.ErrUnknownDataType, "cannot unmarshal ICS-27 interchain accounts metadata")
+	}
+
 	switch data.Type {
 	case icatypes.EXECUTE_TX:
-		msgs, err := icatypes.DeserializeCosmosTx(k.cdc, data.Data)
+		msgs, err := icatypes.DeserializeCosmosTx(k.cdc, data.Data, metadata.Encoding)
 		if err != nil {
 			return nil, errorsmod.Wrapf(err, "failed to deserialize interchain account transaction")
 		}
