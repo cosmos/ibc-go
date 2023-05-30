@@ -25,7 +25,7 @@ type Endpoint interface {
 	QueryStateAtHeight(key []byte, height int64, doProof bool) ([]byte, []byte, error)
 
 	// QueryMinimumConsensusHeight returns the minimum height within the provided range at which the consensusState exists (processedHeight)
-	// and the height of the corresponding consensus state (consensusHeight).
+	// and the corresponding consensus state height (consensusHeight).
 	QueryMinimumConsensusHeight(minConsensusHeight exported.Height, maxConsensusHeight exported.Height) (exported.Height, exported.Height, error)
 	// QueryMaximumProofHeight returns the maxmimum height which can be used to prove a key/val pair by search consecutive heights
 	// to find the first point at which the value changes for the given key.
