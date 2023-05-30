@@ -37,7 +37,7 @@ func (mockSdkMsg) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{}
 }
 
-func (suite *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
+func (suite *TypesTestSuite) TestProtoSerializeAndDeserializeCosmosTx() {
 	testCases := []struct {
 		name    string
 		msgs    []proto.Message
@@ -110,7 +110,7 @@ func (suite *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
 			bz, err := types.SerializeCosmosTx(simapp.MakeTestEncodingConfig().Marshaler, tc.msgs)
 			suite.Require().NoError(err, tc.name)
 
-			msgs, err := types.DeserializeCosmosTx(simapp.MakeTestEncodingConfig().Marshaler, bz)
+			msgs, err := types.DeserializeCosmosTx(simapp.MakeTestEncodingConfig().Marshaler, bz, types.EncodingProtobuf)
 			if tc.expPass {
 				suite.Require().NoError(err, tc.name)
 			} else {
@@ -129,11 +129,11 @@ func (suite *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
 	suite.Require().NotEmpty(bz)
 
 	// test deserializing unknown bytes
-	_, err = types.DeserializeCosmosTx(simapp.MakeTestEncodingConfig().Marshaler, bz)
+	_, err = types.DeserializeCosmosTx(simapp.MakeTestEncodingConfig().Marshaler, bz, types.EncodingProtobuf)
 	suite.Require().Error(err) // unregistered type
 
 	// test deserializing unknown bytes
-	msgs, err := types.DeserializeCosmosTx(simapp.MakeTestEncodingConfig().Marshaler, []byte("invalid"))
+	msgs, err := types.DeserializeCosmosTx(simapp.MakeTestEncodingConfig().Marshaler, []byte("invalid"), types.EncodingProtobuf)
 	suite.Require().Error(err)
 	suite.Require().Empty(msgs)
 }
@@ -141,7 +141,7 @@ func (suite *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
 // unregistered bytes causes amino to panic.
 // test that DeserializeCosmosTx gracefully returns an error on
 // unsupported amino codec.
-func (suite *TypesTestSuite) TestDeserializeAndSerializeCosmosTxWithAmino() {
+func (suite *TypesTestSuite) TestProtoDeserializeAndSerializeCosmosTxWithAmino() {
 	cdc := codec.NewLegacyAmino()
 	marshaler := codec.NewAminoCodec(cdc)
 
@@ -149,7 +149,7 @@ func (suite *TypesTestSuite) TestDeserializeAndSerializeCosmosTxWithAmino() {
 	suite.Require().Error(err)
 	suite.Require().Empty(msgs)
 
-	bz, err := types.DeserializeCosmosTx(marshaler, []byte{0x10, 0})
+	bz, err := types.DeserializeCosmosTx(marshaler, []byte{0x10, 0}, types.EncodingProtobuf)
 	suite.Require().Error(err)
 	suite.Require().Empty(bz)
 }
