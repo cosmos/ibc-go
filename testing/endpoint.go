@@ -573,15 +573,7 @@ func (endpoint *Endpoint) ChanUpgradeInit(timeout channeltypes.Timeout) error {
 		endpoint.Chain.SenderAccount.GetAddress().String(),
 	)
 
-	if err := endpoint.Chain.sendMsgs(msg); err != nil {
-		return err
-	}
-
-	// update version to selected app version
-	// NOTE: this update must be performed after SendMsgs()
-	endpoint.ChannelConfig.Version = endpoint.GetChannel().Version
-
-	return nil
+	return endpoint.Chain.sendMsgs(msg)
 }
 
 // ChanUpgradeTry sends a MsgChannelUpgradeTry on the associated endpoint.
