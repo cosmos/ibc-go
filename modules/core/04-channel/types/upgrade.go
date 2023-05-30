@@ -1,12 +1,19 @@
 package types
 
 import (
+	"fmt"
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
 
 	"github.com/cosmos/ibc-go/v7/internal/collections"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+)
+
+const (
+	// restoreErrorString defines a string constant included in error receipts.
+	// NOTE: Changing this const is state machine breaking as it is written into state.
+	restoreErrorString = "restored channel to pre-upgrade state"
 )
 
 // NewUpgrade creates a new Upgrade instance.
@@ -68,4 +75,21 @@ func (uf UpgradeFields) ValidateBasic() error {
 // IsValid returns true if either the height or timestamp is non-zero
 func (ut Timeout) IsValid() bool {
 	return !ut.Height.IsZero() || ut.Timestamp != 0
+}
+
+
+// NewErrorReceipt returns an error receipt with the code from the provided error type stripped
+// out to ensure changes of the error message don't cause state machine breaking changes.
+func NewErrorReceipt(upgradeSequence uint64, err error) *ErrorReceipt {
+	_, code, _ := errorsmod.ABCIInfo(err, false) // discard non-determinstic codespace and log values
+	return &ErrorReceipt{
+		Sequence: upgradeSequence,
+		Message:  fmt.Sprintf("ABCI code: %d: %s", code, restoreErrorString),
+	}
+}
+
+var _ error = &ErrorReceipt{}
+
+func (e *ErrorReceipt) Error() string {
+	return e.Message
 }
