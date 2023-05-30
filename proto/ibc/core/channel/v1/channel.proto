@@ -89,7 +89,7 @@ enum FlushStatus {
   FLUSH_STATUS_NOTINFLUSH_UNSPECIFIED = 0 [(gogoproto.enumvalue_customname) = "NOTINFLUSH"];
   // The channel end is flushing in-flight packets
   FLUSH_STATUS_FLUSHING = 1 [(gogoproto.enumvalue_customname) = "FLUSHING"];
-  // There are no in-flight packets left and the channelEnd is ready to move to OPEN
+  // There are no in-flight packets left and the channel end is ready to move to OPEN
   FLUSH_STATUS_FLUSHCOMPLETE = 2 [(gogoproto.enumvalue_customname) = "FLUSHCOMPLETE"];
 }
 
