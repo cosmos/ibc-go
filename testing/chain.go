@@ -271,8 +271,8 @@ func (chain *TestChain) QueryMinimumConsensusHeight(clientID string, minConsensu
 	}
 
 	// debug code
-	fmt.Printf("Minimum proof height is %v on chain %s for consensus height: %v [minHeight=%v, maxHeight=%v]\n",
-		proofHeight, chain.ChainID, consensusHeight, minConsensusHeight, maxConsensusHeight)
+	// fmt.Printf("Minimum proof height is %v on chain %s for consensus height: %v [minHeight=%v, maxHeight=%v]\n",
+	// 	proofHeight, chain.ChainID, consensusHeight, minConsensusHeight, maxConsensusHeight)
 	return proofHeight, consensusHeight, false, nil
 }
 
