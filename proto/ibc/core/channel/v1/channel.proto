@@ -79,6 +79,18 @@ enum State {
   STATE_ACKUPGRADE = 7 [(gogoproto.enumvalue_customname) = "ACKUPGRADE"];
 }
 
+// FlushStatus defines the status of a channel end pertaining to in-flight packets.
+enum FlushStatus {
+  option (gogoproto.goproto_enum_prefix) = false;
+
+  // Default status, the channel is not in an upgrade handshake
+  FLUSH_STATUS_NOTINFLUSH_UNSPECIFIED = 0 [(gogoproto.enumvalue_customname) = "NOTINFLUSH"];
+  // The channel end is flushing in-flight packets
+  FLUSH_STATUS_FLUSHING = 1 [(gogoproto.enumvalue_customname) = "FLUSHING"];
+  // There are no in-flight packets left and the channelEnd is ready to move to OPEN
+  FLUSH_STATUS_FLUSHCOMPLETE = 2 [(gogoproto.enumvalue_customname) = "FLUSHCOMPLETE"];
+}
+
 // Order defines if a channel is ORDERED or UNORDERED
 enum Order {
   option (gogoproto.goproto_enum_prefix) = false;
