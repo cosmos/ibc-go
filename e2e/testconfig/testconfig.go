@@ -323,13 +323,6 @@ func GetChainBTag() string {
 	return GetChainATag()
 }
 
-// IsCompatibilityTest returns true if the test is running against two different
-// chain versions, false is returned if the test is running against the same
-// chain version.
-func IsCompatibilityTest() bool {
-	return GetChainATag() != GetChainBTag()
-}
-
 // IsCI returns true if the tests are running in CI, false is returned
 // if the tests are running locally.
 // Note: github actions passes a CI env value of true by default to all runners.

@@ -101,7 +101,7 @@ func (s *E2ETestSuite) AssertTxFailure(resp sdk.TxResponse, expectedError *error
 	errorMsg := fmt.Sprintf("%+v", resp)
 	// In older versions, the codespace and abci codes were different. So in compatibility tests
 	// we can not make assertions on them.
-	if !testconfig.IsCompatibilityTest() {
+	if testconfig.GetChainATag() == testconfig.GetChainBTag() {
 		s.Require().Equal(expectedError.ABCICode(), resp.Code, errorMsg)
 		s.Require().Equal(expectedError.Codespace(), resp.Codespace, errorMsg)
 	}
