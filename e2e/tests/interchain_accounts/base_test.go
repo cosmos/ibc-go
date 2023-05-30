@@ -10,13 +10,11 @@ import (
 	"github.com/strangelove-ventures/interchaintest/v7/ibc"
 	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
 	"github.com/stretchr/testify/suite"
-	"golang.org/x/mod/semver"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/gogoproto/proto"
 
-	"github.com/cosmos/ibc-go/e2e/testconfig"
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	controllertypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
@@ -31,18 +29,6 @@ func TestInterchainAccountsTestSuite(t *testing.T) {
 
 type InterchainAccountsTestSuite struct {
 	testsuite.E2ETestSuite
-}
-
-// getICAVersion returns the version which should be used in the MsgRegisterAccount broadcast from the
-// controller chain.
-func getICAVersion(chainAVersion, chainBVersion string) string {
-	chainBIsGreaterThanOrEqualToChainA := semver.Compare(chainAVersion, chainBVersion) <= 0
-	if chainBIsGreaterThanOrEqualToChainA {
-		// allow version to be specified by the controller chain
-		return ""
-	}
-	// explicitly set the version string because the host chain might not yet support incentivized channels.
-	return icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
 }
 
 // RegisterInterchainAccount will attempt to register an interchain account on the counterparty chain.
@@ -68,7 +54,8 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer() {
 	var hostAccount string
 
 	t.Run("broadcast MsgRegisterInterchainAccount", func(t *testing.T) {
-		version := getICAVersion(testconfig.GetChainATag(), testconfig.GetChainBTag())
+		// explicitly set the version string because we don't want to use incentivized channels.
+		version := icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
 		msgRegisterAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, controllerAddress, version)
 
 		txResp := s.BroadcastMessages(ctx, chainA, controllerAccount, msgRegisterAccount)
@@ -166,7 +153,8 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_FailedTransfer_InsufficientF
 	var hostAccount string
 
 	t.Run("broadcast MsgRegisterInterchainAccount", func(t *testing.T) {
-		version := getICAVersion(testconfig.GetChainATag(), testconfig.GetChainBTag())
+		// explicitly set the version string because we don't want to use incentivized channels.
+		version := icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
 		msgRegisterAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, controllerAddress, version)
 
 		txResp := s.BroadcastMessages(ctx, chainA, controllerAccount, msgRegisterAccount)
@@ -240,7 +228,7 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_FailedTransfer_InsufficientF
 	})
 }
 
-func (s *InterchainAccountsTestSuite) TestMsgSubmitTx_SuccessfulTransfer_AfterReopeningICA() {
+func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer_AfterReopeningICA() {
 	t := s.T()
 	ctx := context.TODO()
 
@@ -265,7 +253,8 @@ func (s *InterchainAccountsTestSuite) TestMsgSubmitTx_SuccessfulTransfer_AfterRe
 
 	t.Run("register interchain account", func(t *testing.T) {
 		var err error
-		version := getICAVersion(testconfig.GetChainATag(), testconfig.GetChainBTag())
+		// explicitly set the version string because we don't want to use incentivized channels.
+		version := icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
 		msgRegisterInterchainAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, controllerAddress, version)
 		s.RegisterInterchainAccount(ctx, chainA, controllerAccount, msgRegisterInterchainAccount)
 		portID, err = icatypes.NewControllerPortID(controllerAddress)
@@ -365,7 +354,8 @@ func (s *InterchainAccountsTestSuite) TestMsgSubmitTx_SuccessfulTransfer_AfterRe
 	// re-register interchain account to reopen the channel now that it has been closed due to timeout
 	// on an ordered channel
 	t.Run("register interchain account", func(t *testing.T) {
-		version := getICAVersion(testconfig.GetChainATag(), testconfig.GetChainBTag())
+		// explicitly set the version string because we don't want to use incentivized channels.
+		version := icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
 		msgRegisterInterchainAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, controllerAddress, version)
 		s.RegisterInterchainAccount(ctx, chainA, controllerAccount, msgRegisterInterchainAccount)
 

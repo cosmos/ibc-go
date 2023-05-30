@@ -12,6 +12,7 @@ import (
 	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
+	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
 	coretypes "github.com/cosmos/ibc-go/v7/modules/core/types"
 )
 
@@ -692,4 +693,16 @@ func (k Keeper) Acknowledgement(goCtx context.Context, msg *channeltypes.MsgAckn
 	ctx.Logger().Info("acknowledgement succeeded", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel, "result", channeltypes.SUCCESS.String())
 
 	return &channeltypes.MsgAcknowledgementResponse{Result: channeltypes.SUCCESS}, nil
+}
+
+// UpdateClientParams defines a rpc handler method for MsgUpdateClientParams.
+func (k Keeper) UpdateClientParams(goCtx context.Context, msg *clienttypes.MsgUpdateClientParams) (*clienttypes.MsgUpdateClientParamsResponse, error) {
+	if k.GetAuthority() != msg.Authority {
+		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "expected %s, got %s", k.GetAuthority(), msg.Authority)
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	k.ClientKeeper.SetParams(ctx, msg.Params)
+
+	return &clienttypes.MsgUpdateClientParamsResponse{}, nil
 }
