@@ -34,7 +34,7 @@ type InterTxTestSuite struct {
 // getICAVersion returns the version which should be used in the MsgRegisterAccount broadcast from the
 // controller chain.
 func getICAVersion(chainAVersion, chainBVersion string) string {
-	chainBIsGreaterThanOrEqualToChainA := semver.Compare(chainAVersion, chainBVersion) <= 0
+	chainBIsGreaterThanOrEqualToChainA := semverutil.GTE(chainBVersion, chainAVersion)
 	if chainBIsGreaterThanOrEqualToChainA {
 		// allow version to be specified by the controller chain
 		return ""
