@@ -1460,7 +1460,7 @@ func (suite *KeeperTestSuite) TestQueryNextSequenceReceive() {
 func (suite *KeeperTestSuite) TestQueryUpgradeError() {
 	var (
 		req        *types.QueryUpgradeErrorRequest
-		upgradeErr *types.ErrorReceipt
+		upgradeErr types.ErrorReceipt
 	)
 
 	testCases := []struct {
@@ -1511,7 +1511,7 @@ func (suite *KeeperTestSuite) TestQueryUpgradeError() {
 				path := ibctesting.NewPath(suite.chainA, suite.chainB)
 				suite.coordinator.Setup(path)
 				upgradeErr = types.NewErrorReceipt(uint64(1), fmt.Errorf("test error"))
-				suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetUpgradeErrorReceipt(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, *upgradeErr)
+				suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetUpgradeErrorReceipt(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, upgradeErr)
 
 				req = &types.QueryUpgradeErrorRequest{
 					PortId:    path.EndpointA.ChannelConfig.PortID,
@@ -1534,7 +1534,7 @@ func (suite *KeeperTestSuite) TestQueryUpgradeError() {
 			if tc.expPass {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
-				suite.Require().Equal(*upgradeErr, res.ErrorReceipt)
+				suite.Require().Equal(upgradeErr, res.ErrorReceipt)
 			} else {
 				suite.Require().Error(err)
 			}

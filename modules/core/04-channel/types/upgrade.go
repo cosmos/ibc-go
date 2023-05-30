@@ -77,12 +77,41 @@ func (ut Timeout) IsValid() bool {
 	return !ut.Height.IsZero() || ut.Timestamp != 0
 }
 
+// UpgradeError defines an error that occurs during an upgrade.
+type UpgradeError struct {
+	// underlyingError is the underlying error that caused the upgrade to fail.
+	// this error should not be written to state.
+	underlyingError error
+	// upgradeSequence is the sequence number of the upgrade that failed.
+	upgradeSequence uint64
+}
+
+func (u *UpgradeError) Error() string {
+	return u.underlyingError.Error()
+}
+
+// GetErrorReceipt returns an error receipt with the code from the underlying error type stripped.
+func (u *UpgradeError) GetErrorReceipt() ErrorReceipt {
+	_, code, _ := errorsmod.ABCIInfo(u.underlyingError, false) // discard non-determinstic codespace and log values
+	return ErrorReceipt{
+		Sequence: u.upgradeSequence,
+		Message:  fmt.Sprintf("ABCI code: %d: %s", code, restoreErrorString),
+	}
+}
+
+// NewUpgradeError returns a new UpgradeError instance.
+func NewUpgradeError(upgradeSequence uint64, err error) UpgradeError {
+	return UpgradeError{
+		underlyingError: err,
+		upgradeSequence: upgradeSequence,
+	}
+}
 
 // NewErrorReceipt returns an error receipt with the code from the provided error type stripped
 // out to ensure changes of the error message don't cause state machine breaking changes.
-func NewErrorReceipt(upgradeSequence uint64, err error) *ErrorReceipt {
+func NewErrorReceipt(upgradeSequence uint64, err error) ErrorReceipt {
 	_, code, _ := errorsmod.ABCIInfo(err, false) // discard non-determinstic codespace and log values
-	return &ErrorReceipt{
+	return ErrorReceipt{
 		Sequence: upgradeSequence,
 		Message:  fmt.Sprintf("ABCI code: %d: %s", code, restoreErrorString),
 	}
