@@ -1,9 +1,9 @@
 {
   "chain-a": ["main"],
-  "chain-b": ["main", "v7.0.1", "v6.1.1"],
-  "entrypoint": ["TestInterchainAccountsGovTestSuite"],
+  "chain-b": ["main"],
+  "entrypoint": ["LocalhostTransferTestSuite"],
   "test": [
-    "TestInterchainAccountsGovIntegration"
+    "TestMsgTransfer_Localhost"
   ],
   "relayer-type": ["rly"],
   "chain-binary": ["simd"],

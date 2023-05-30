@@ -1,6 +1,6 @@
 {
-  "chain-a": ["main"],
-  "chain-b": ["main", "v7.0.1", "v6.1.1"],
+  "chain-a": ["main", "v7.0.1", "v6.1.1"],
+  "chain-b": ["main"],
   "entrypoint": ["TestInterchainAccountsGroupsTestSuite"],
   "test": [
     "TestInterchainAccountsGroupsIntegration"

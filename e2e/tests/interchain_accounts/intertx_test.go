@@ -18,6 +18,8 @@ import (
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 
+	"github.com/cosmos/ibc-go/e2e/semverutil"
+	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
@@ -27,6 +29,18 @@ func TestInterTxTestSuite(t *testing.T) {
 
 type InterTxTestSuite struct {
 	testsuite.E2ETestSuite
+}
+
+// getICAVersion returns the version which should be used in the MsgRegisterAccount broadcast from the
+// controller chain.
+func getICAVersion(chainAVersion, chainBVersion string) string {
+	chainBIsGreaterThanOrEqualToChainA := semverutil.GTE(chainBVersion, chainAVersion)
+	if chainBIsGreaterThanOrEqualToChainA {
+		// allow version to be specified by the controller chain
+		return ""
+	}
+	// explicitly set the version string because the host chain might not yet support incentivized channels.
+	return icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
 }
 
 // RegisterInterchainAccount will attempt to register an interchain account on the counterparty chain.
