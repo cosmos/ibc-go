@@ -817,6 +817,8 @@ func (suite *KeeperTestSuite) TestUpdateClientParams() {
 			_, err := keeper.Keeper.UpdateClientParams(*suite.chainA.App.GetIBCKeeper(), suite.chainA.GetContext(), tc.msg)
 			if tc.expPass {
 				suite.Require().NoError(err)
+				p := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetParams(suite.chainA.GetContext())
+				suite.Require().Equal(tc.msg.Params, p)
 			} else {
 				suite.Require().Error(err)
 			}
