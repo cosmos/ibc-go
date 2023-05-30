@@ -92,8 +92,7 @@ func DeserializeCosmosTx(cdc codec.BinaryCodec, data []byte, encoding string) ([
 		interfaceRegistry := cdc.(*codec.ProtoCodec).InterfaceRegistry()
 		// this cosmosTx is not the same as the one in the protobuf case
 		// its Any needs to be unpacked using json instead of protobuf
-		err := json.Unmarshal(data, &cosmosTx)
-		if err != nil {
+		if err := json.Unmarshal(data, &cosmosTx); err != nil {
 			// TODO: not sure if this err is indeterminate
 			return nil, err
 		}
@@ -105,8 +104,7 @@ func DeserializeCosmosTx(cdc codec.BinaryCodec, data []byte, encoding string) ([
 			if err != nil {
 				return nil, err
 			}
-			err = jsonpb.Unmarshal(bytes.NewReader(jsonAny.Value), message)
-			if err != nil {
+			if err = jsonpb.Unmarshal(bytes.NewReader(jsonAny.Value), message); err != nil {
 				// TODO: not sure if this err is indeterminate
 				return nil, err
 			}
