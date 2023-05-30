@@ -81,15 +81,29 @@ func (k Keeper) ChanUpgradeTry(
 	return types.Upgrade{}, nil
 }
 
-// WriteUpgradeTryChannel writes a channel which has successfully passed the UpgradeTry step.
+// WriteUpgradeTryChannel writes a channel which has successfully passed the UpgradeTry handshake step.
 // An event is emitted for the handshake step.
 func (k Keeper) WriteUpgradeTryChannel(
 	ctx sdk.Context,
 	portID, channelID string,
 	proposedUpgrade types.Upgrade,
 ) {
-	// TODO
-	// grab channel inside this function to get most current channel status
+	defer telemetry.IncrCounter(1, "ibc", "channel", "upgrade-try")
+
+	currentChannel, found := k.GetChannel(ctx, portID, channelID)
+	if !found {
+		panic(fmt.Sprintf("could not find existing channel when updating channel state in successful ChanUpgradeTry step, channelID: %s, portID: %s", channelID, portID))
+	}
+
+	previousState := currentChannel.State
+	currentChannel.State = types.TRYUPGRADE
+	//TODO: set flushstatus when enum is available
+
+	k.SetChannel(ctx, portID, channelID, currentChannel)
+	k.SetUpgrade(ctx, portID, channelID, proposedUpgrade)
+
+	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", previousState, "new-state", types.TRYUPGRADE.String())
+	emitChannelUpgradeTryEvent(ctx, portID, channelID, currentChannel, proposedUpgrade)
 }
 
 // constructProposedUpgrade returns the proposed upgrade from the provided arguments.
