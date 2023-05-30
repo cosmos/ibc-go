@@ -7,7 +7,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
-	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
+	controllertypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
 	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 )
@@ -40,8 +40,8 @@ func (m Migrator) AssertChannelCapabilityMigrations(ctx sdk.Context) error {
 
 			isAuthenticated := m.keeper.scopedKeeper.AuthenticateCapability(ctx, capability, name)
 			if !isAuthenticated {
-				logger.Error(fmt.Sprintf("expected capability owner: %s", types.SubModuleName))
-				return errorsmod.Wrapf(capabilitytypes.ErrCapabilityNotOwned, "expected capability owner: %s", types.SubModuleName)
+				logger.Error(fmt.Sprintf("expected capability owner: %s", controllertypes.SubModuleName))
+				return errorsmod.Wrapf(capabilitytypes.ErrCapabilityNotOwned, "expected capability owner: %s", controllertypes.SubModuleName)
 			}
 
 			m.keeper.SetMiddlewareEnabled(ctx, ch.PortId, ch.ConnectionHops[0])
@@ -53,7 +53,7 @@ func (m Migrator) AssertChannelCapabilityMigrations(ctx sdk.Context) error {
 
 // MigrateParams migrates the controller submodule's parameters from the x/params to self store.
 func (m Migrator) MigrateParams(ctx sdk.Context) error {
-	var params types.Params
+	var params controllertypes.Params
 	m.keeper.legacySubspace.GetParamSet(ctx, &params)
 
 	m.keeper.SetParams(ctx, params)
