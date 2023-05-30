@@ -95,7 +95,7 @@ func (k *Keeper) SetRouter(rtr *porttypes.Router) {
 	k.Router.Seal()
 }
 
-// GetAuthority returns the client module's authority.
+// GetAuthority returns the client submodule's authority.
 func (k Keeper) GetAuthority() string {
 	return k.authority
 }
