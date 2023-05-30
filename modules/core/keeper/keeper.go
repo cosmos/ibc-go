@@ -33,13 +33,15 @@ type Keeper struct {
 	ChannelKeeper    channelkeeper.Keeper
 	PortKeeper       portkeeper.Keeper
 	Router           *porttypes.Router
+
+	authority string
 }
 
 // NewKeeper creates a new ibc Keeper
 func NewKeeper(
 	cdc codec.BinaryCodec, key storetypes.StoreKey, paramSpace paramtypes.Subspace,
 	stakingKeeper clienttypes.StakingKeeper, upgradeKeeper clienttypes.UpgradeKeeper,
-	scopedKeeper capabilitykeeper.ScopedKeeper,
+	scopedKeeper capabilitykeeper.ScopedKeeper, authority string,
 ) *Keeper {
 	// register paramSpace at top level keeper
 	// set KeyTable if it has not already been set
@@ -72,6 +74,7 @@ func NewKeeper(
 		ConnectionKeeper: connectionKeeper,
 		ChannelKeeper:    channelKeeper,
 		PortKeeper:       portKeeper,
+		authority:        authority,
 	}
 }
 
@@ -90,6 +93,11 @@ func (k *Keeper) SetRouter(rtr *porttypes.Router) {
 	k.PortKeeper.Router = rtr
 	k.Router = rtr
 	k.Router.Seal()
+}
+
+// GetAuthority returns the client submodule's authority.
+func (k Keeper) GetAuthority() string {
+	return k.authority
 }
 
 // isEmpty checks if the interface is an empty struct or a pointer pointing
