@@ -61,20 +61,6 @@ func (k Keeper) WriteUpgradeInitChannel(ctx sdk.Context, portID, channelID strin
 	emitChannelUpgradeInitEvent(ctx, portID, channelID, currentChannel, upgrade)
 }
 
-// constructProposedUpgrade returns the proposed upgrade from the provided arguments.
-func (k Keeper) constructProposedUpgrade(ctx sdk.Context, portID, channelID string, fields types.UpgradeFields, upgradeTimeout types.Timeout) (types.Upgrade, error) {
-	nextSequenceSend, found := k.GetNextSequenceSend(ctx, portID, channelID)
-	if !found {
-		return types.Upgrade{}, types.ErrSequenceSendNotFound
-	}
-
-	return types.Upgrade{
-		Fields:             fields,
-		Timeout:            upgradeTimeout,
-		LatestSequenceSend: nextSequenceSend - 1,
-	}, nil
-}
-
 // ChanUpgradeTry is called by a module to accept the first step of a channel upgrade handshake initiated by
 // a module on another chain. If this function is successful, the proposed upgrade will be returned. If the upgrade fails, the upgrade sequence will still be incremented but an error will be returned.
 func (k Keeper) ChanUpgradeTry(
@@ -120,14 +106,20 @@ func (k Keeper) ChanUpgradeTry(
 
 	// assert that the proposed connection hops are compatible with the counterparty connection hops
 	// the proposed connections hops must have a counterparty which matches the counterparty connection hops
-	connection, err := k.GetConnection(ctx, proposedConnectionHops[0])
+	proposedConnection, err := k.GetConnection(ctx, proposedConnectionHops[0])
 	if err != nil {
 		return types.Upgrade{}, err
 	}
 
 	counterpartyProposedHops := counterpartyProposedUpgrade.Fields.ConnectionHops
-	if connection.GetCounterparty().GetConnectionID() != counterpartyProposedHops[0] {
-		return types.Upgrade{}, errorsmod.Wrapf(connectiontypes.ErrInvalidConnection, "proposed connection hops (%s) does not match counterparty proposed connection hops (%s)", proposedConnectionHops, counterpartyProposedHops)
+	if proposedConnection.GetCounterparty().GetConnectionID() != counterpartyProposedHops[0] {
+		return types.Upgrade{}, errorsmod.Wrapf(
+			connectiontypes.ErrInvalidConnection,
+			"proposed connection hops (%s) does not have counterparty proposed connection hops as counterparty, expected %s, got %s",
+			proposedConnectionHops,
+			counterpartyProposedHops,
+			proposedConnection.GetCounterparty().GetConnectionID(),
+		)
 	}
 
 	// construct counterpartyChannel from existing information and provided counterpartyUpgradeSequence
@@ -184,7 +176,7 @@ func (k Keeper) WriteUpgradeTryChannel(
 
 	currentChannel, found := k.GetChannel(ctx, portID, channelID)
 	if !found {
-		panic(fmt.Sprintf("channel %s not found for portID %s", channelID, portID))
+		panic(fmt.Sprintf("could not find existing channel when updating channel state in successful ChanUpgradeTry step, channelID: %s, portID: %s", channelID, portID))
 	}
 
 	previousState := currentChannel.State
@@ -216,4 +208,18 @@ func (k Keeper) StartFlushUpgradeHandshake(
 ) error {
 	// TODO
 	return nil
+}
+
+// constructProposedUpgrade returns the proposed upgrade from the provided arguments.
+func (k Keeper) constructProposedUpgrade(ctx sdk.Context, portID, channelID string, fields types.UpgradeFields, upgradeTimeout types.Timeout) (types.Upgrade, error) {
+	nextSequenceSend, found := k.GetNextSequenceSend(ctx, portID, channelID)
+	if !found {
+		return types.Upgrade{}, types.ErrSequenceSendNotFound
+	}
+
+	return types.Upgrade{
+		Fields:             fields,
+		Timeout:            upgradeTimeout,
+		LatestSequenceSend: nextSequenceSend - 1,
+	}, nil
 }
