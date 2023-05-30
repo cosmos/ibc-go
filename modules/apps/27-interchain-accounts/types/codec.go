@@ -87,6 +87,8 @@ func DeserializeCosmosTx(cdc codec.BinaryCodec, data []byte, encoding string) ([
 			msgs[i] = msg
 		}
 	case EncodingJSON:
+		// This case does not rely on cdc to unpack the Any.
+		// cdc is only used to access the interface registry.
 		interfaceRegistry := cdc.(*codec.ProtoCodec).InterfaceRegistry()
 		// this cosmosTx is not the same as the one in the protobuf case
 		// its Any needs to be unpacked using json instead of protobuf
