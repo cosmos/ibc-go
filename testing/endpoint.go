@@ -603,7 +603,7 @@ func (endpoint *Endpoint) ChanUpgradeTry(timeout channeltypes.Timeout) error {
 	msg := channeltypes.NewMsgChannelUpgradeTry(
 		endpoint.ChannelConfig.PortID,
 		endpoint.ChannelID,
-		[]string{endpoint.Counterparty.ConnectionID},
+		[]string{endpoint.ConnectionID},
 		timeout,
 		counterpartyUpgrade,
 		endpoint.Counterparty.GetChannel().UpgradeSequence,
@@ -613,12 +613,7 @@ func (endpoint *Endpoint) ChanUpgradeTry(timeout channeltypes.Timeout) error {
 		endpoint.Chain.SenderAccount.GetAddress().String(),
 	)
 
-	if err := endpoint.Chain.sendMsgs(msg); err != nil {
-		return err
-	}
-
-
-	return nil
+	return endpoint.Chain.sendMsgs(msg)
 }
 
 // SetChannelState sets a channel state
