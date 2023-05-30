@@ -1,12 +1,16 @@
 package types
 
 import (
+	"bytes"
+	"encoding/json"
+
 	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/gogoproto/proto"
+	"github.com/gogo/protobuf/jsonpb"
 )
 
 // ModuleCdc references the global interchain accounts module codec. Note, the codec
@@ -56,28 +60,55 @@ func SerializeCosmosTx(cdc codec.BinaryCodec, msgs []proto.Message) (bz []byte, 
 // DeserializeCosmosTx unmarshals and unpacks a slice of transaction bytes
 // into a slice of sdk.Msg's. Only the ProtoCodec is supported for message
 // deserialization.
-func DeserializeCosmosTx(cdc codec.BinaryCodec, data []byte) ([]sdk.Msg, error) {
+func DeserializeCosmosTx(cdc codec.BinaryCodec, data []byte, encoding string) ([]sdk.Msg, error) {
 	// only ProtoCodec is supported
 	if _, ok := cdc.(*codec.ProtoCodec); !ok {
 		return nil, errorsmod.Wrap(ErrInvalidCodec, "only ProtoCodec is supported for receiving messages on the host chain")
 	}
 
 	var cosmosTx CosmosTx
-	if err := cdc.Unmarshal(data, &cosmosTx); err != nil {
-		return nil, err
-	}
+	var msgs []sdk.Msg
 
-	msgs := make([]sdk.Msg, len(cosmosTx.Messages))
+	switch encoding {
+	case EncodingProtobuf:
+		if err := cdc.Unmarshal(data, &cosmosTx); err != nil {
+			return nil, err
+		}
 
-	for i, protoAny := range cosmosTx.Messages {
-		var msg sdk.Msg
+		msgs = make([]sdk.Msg, len(cosmosTx.Messages))
 
-		err := cdc.UnpackAny(protoAny, &msg)
+		for i, protoAny := range cosmosTx.Messages {
+			var msg sdk.Msg
+
+			err := cdc.UnpackAny(protoAny, &msg)
+			if err != nil {
+				return nil, err
+			}
+
+			msgs[i] = msg
+		}
+	case EncodingJSON:
+		interfaceRegistry := cdc.(*codec.ProtoCodec).InterfaceRegistry()
+		// this cosmosTx is not the same as the one in the protobuf case
+		// its Any needs to be unpacked using json instead of protobuf
+		err := json.Unmarshal(data, &cosmosTx)
 		if err != nil {
 			return nil, err
 		}
 
-		msgs[i] = msg
+		msgs = make([]sdk.Msg, len(cosmosTx.Messages))
+
+		for i, jsonAny := range cosmosTx.Messages {
+			message, err := interfaceRegistry.Resolve(jsonAny.TypeUrl)
+			if err != nil {
+				return nil, err
+			}
+			jsonpb.Unmarshal(bytes.NewReader(jsonAny.Value), message)
+
+			msgs[i] = message.(sdk.Msg)
+		}
+	default:
+		return nil, errorsmod.Wrapf(ErrUnsupportedEncoding, "encoding type %s is not supported", encoding)
 	}
 
 	return msgs, nil
