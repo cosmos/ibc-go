@@ -246,7 +246,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 			// we need to write the upgradeInit so that the correct channel state is returned for chain A
 			suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.WriteUpgradeInitChannel(
 				suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID,
-				path.EndpointA.GetChannel(), counterpartyUpgrade,
+				counterpartyUpgrade,
 			)
 
 			// commit a block to update chain A for correct proof querying
@@ -373,7 +373,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry_CrossingHellos() {
 			// we need to write the upgradeInit so that the correct channel state is returned for chain A
 			suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.WriteUpgradeInitChannel(
 				suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID,
-				path.EndpointA.GetChannel(), counterpartyUpgrade,
+				counterpartyUpgrade,
 			)
 
 			// commit a block to update chain A for correct proof querying
@@ -394,7 +394,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry_CrossingHellos() {
 			// we need to write the upgradeInit so that the correct channel state is returned for chain B
 			suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.WriteUpgradeInitChannel(
 				suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID,
-				path.EndpointB.GetChannel(), upgrade,
+				upgrade,
 			)
 
 			// commit a block to update chain B for correct proof querying
