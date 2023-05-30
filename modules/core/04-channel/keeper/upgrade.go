@@ -87,6 +87,7 @@ func (k Keeper) WriteUpgradeTryChannel(
 	ctx sdk.Context,
 	portID, channelID string,
 	proposedUpgrade types.Upgrade,
+	flushStatus types.FlushStatus,
 ) {
 	defer telemetry.IncrCounter(1, "ibc", "channel", "upgrade-try")
 
@@ -97,7 +98,7 @@ func (k Keeper) WriteUpgradeTryChannel(
 
 	previousState := currentChannel.State
 	currentChannel.State = types.TRYUPGRADE
-	//TODO: set flushstatus when enum is available
+	currentChannel.FlushStatus = flushStatus
 
 	k.SetChannel(ctx, portID, channelID, currentChannel)
 	k.SetUpgrade(ctx, portID, channelID, proposedUpgrade)

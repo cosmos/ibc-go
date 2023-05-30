@@ -308,6 +308,7 @@ func emitChannelUpgradeTryEvent(ctx sdk.Context, portID string, channelID string
 			sdk.NewAttribute(types.AttributeKeyUpgradeVersion, upgrade.Fields.Version),
 			sdk.NewAttribute(types.AttributeKeyUpgradeOrdering, upgrade.Fields.Ordering.String()),
 			sdk.NewAttribute(types.AttributeKeyUpgradeSequence, fmt.Sprintf("%d", currentChannel.UpgradeSequence)),
+			sdk.NewAttribute(types.AttributeKeyUpgradeChannelFlushStatus, currentChannel.FlushStatus.String()),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
