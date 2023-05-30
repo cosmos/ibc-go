@@ -29,7 +29,7 @@ service Msg {
 // MsgConnectionOpenInit defines the msg sent by an account on Chain A to
 // initialize a connection with Chain B.
 message MsgConnectionOpenInit {
-  option (cosmos.msg.v1.signer)  =  "signer";
+  option (cosmos.msg.v1.signer) = "signer";
 
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
@@ -48,7 +48,7 @@ message MsgConnectionOpenInitResponse {}
 // MsgConnectionOpenTry defines a msg sent by a Relayer to try to open a
 // connection on Chain B.
 message MsgConnectionOpenTry {
-  option (cosmos.msg.v1.signer)  =  "signer";
+  option (cosmos.msg.v1.signer) = "signer";
 
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
@@ -80,7 +80,7 @@ message MsgConnectionOpenTryResponse {}
 // MsgConnectionOpenAck defines a msg sent by a Relayer to Chain A to
 // acknowledge the change of connection state to TRYOPEN on Chain B.
 message MsgConnectionOpenAck {
-  option (cosmos.msg.v1.signer)  =  "signer";
+  option (cosmos.msg.v1.signer) = "signer";
 
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
@@ -109,8 +109,8 @@ message MsgConnectionOpenAckResponse {}
 // MsgConnectionOpenConfirm defines a msg sent by a Relayer to Chain B to
 // acknowledge the change of connection state to OPEN on Chain A.
 message MsgConnectionOpenConfirm {
-  option (cosmos.msg.v1.signer)  =  "signer";
-  
+  option (cosmos.msg.v1.signer) = "signer";
+
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 

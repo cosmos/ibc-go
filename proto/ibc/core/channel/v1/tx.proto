@@ -57,7 +57,7 @@ enum ResponseResultType {
 // MsgChannelOpenInit defines an sdk.Msg to initialize a channel handshake. It
 // is called by a relayer on Chain A.
 message MsgChannelOpenInit {
-  option (cosmos.msg.v1.signer)  =  "signer";
+  option (cosmos.msg.v1.signer) = "signer";
 
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
@@ -77,7 +77,7 @@ message MsgChannelOpenInitResponse {
 // on Chain B. The version field within the Channel field has been deprecated. Its
 // value will be ignored by core IBC.
 message MsgChannelOpenTry {
-  option (cosmos.msg.v1.signer)  =  "signer";
+  option (cosmos.msg.v1.signer) = "signer";
 
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
@@ -102,7 +102,7 @@ message MsgChannelOpenTryResponse {
 // MsgChannelOpenAck defines a msg sent by a Relayer to Chain A to acknowledge
 // the change of channel state to TRYOPEN on Chain B.
 message MsgChannelOpenAck {
-  option (cosmos.msg.v1.signer)  =  "signer";
+  option (cosmos.msg.v1.signer) = "signer";
 
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
@@ -122,7 +122,7 @@ message MsgChannelOpenAckResponse {}
 // MsgChannelOpenConfirm defines a msg sent by a Relayer to Chain B to
 // acknowledge the change of channel state to OPEN on Chain A.
 message MsgChannelOpenConfirm {
-  option (cosmos.msg.v1.signer)  =  "signer";
+  option (cosmos.msg.v1.signer) = "signer";
 
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
@@ -141,7 +141,7 @@ message MsgChannelOpenConfirmResponse {}
 // MsgChannelCloseInit defines a msg sent by a Relayer to Chain A
 // to close a channel with Chain B.
 message MsgChannelCloseInit {
-  option (cosmos.msg.v1.signer)  =  "signer";
+  option (cosmos.msg.v1.signer) = "signer";
 
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
@@ -157,7 +157,7 @@ message MsgChannelCloseInitResponse {}
 // MsgChannelCloseConfirm defines a msg sent by a Relayer to Chain B
 // to acknowledge the change of channel state to CLOSED on Chain A.
 message MsgChannelCloseConfirm {
-  option (cosmos.msg.v1.signer)  =  "signer";
+  option (cosmos.msg.v1.signer) = "signer";
 
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
@@ -175,7 +175,7 @@ message MsgChannelCloseConfirmResponse {}
 
 // MsgRecvPacket receives incoming IBC packet
 message MsgRecvPacket {
-  option (cosmos.msg.v1.signer)  =  "signer";
+  option (cosmos.msg.v1.signer) = "signer";
 
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
@@ -195,7 +195,7 @@ message MsgRecvPacketResponse {
 
 // MsgTimeout receives timed-out packet
 message MsgTimeout {
-  option (cosmos.msg.v1.signer)  =  "signer";
+  option (cosmos.msg.v1.signer) = "signer";
 
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
@@ -216,7 +216,7 @@ message MsgTimeoutResponse {
 
 // MsgTimeoutOnClose timed-out packet upon counterparty channel closure.
 message MsgTimeoutOnClose {
-  option (cosmos.msg.v1.signer)  =  "signer";
+  option (cosmos.msg.v1.signer) = "signer";
 
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
@@ -238,7 +238,7 @@ message MsgTimeoutOnCloseResponse {
 
 // MsgAcknowledgement receives incoming IBC acknowledgement
 message MsgAcknowledgement {
-  option (cosmos.msg.v1.signer)  =  "signer";
+  option (cosmos.msg.v1.signer) = "signer";
 
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
