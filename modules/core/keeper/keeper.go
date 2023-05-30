@@ -34,8 +34,6 @@ type Keeper struct {
 	PortKeeper       portkeeper.Keeper
 	Router           *porttypes.Router
 
-	// the address capable of executing a MsgUpdateClientParams message. Typically, this
-	// should be the x/gov module account.
 	authority string
 }
 
