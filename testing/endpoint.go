@@ -617,8 +617,6 @@ func (endpoint *Endpoint) ChanUpgradeTry(timeout channeltypes.Timeout) error {
 		return err
 	}
 
-	// update version to selected app version
-	endpoint.ChannelConfig.Version = endpoint.GetChannel().Version
 
 	return nil
 }
