@@ -251,7 +251,7 @@ func (suite *KeeperTestSuite) TestParams() {
 	}{
 		// it is not possible to set invalid booleans
 		{"success: set params false", types.NewParams(false), true},
-		{"success: set params true", types.NewParams(false), true},
+		{"success: set params true", types.NewParams(true), true},
 	}
 
 	for _, tc := range testCases {
