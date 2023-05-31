@@ -74,9 +74,8 @@ func (s *ConnectionTestSuite) TestMaxExpectedTimePerBlockParam() {
 	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
 
 	t.Run("ensure delay is set to the default of 30 seconds", func(t *testing.T) {
-		expectedDelay := uint64(30 * time.Second)
 		delay := s.QueryMaxExpectedTimePerBlockParam(ctx, chainA)
-		s.Require().Equal(expectedDelay, delay)
+		s.Require().Equal(uint64(connectiontypes.DefaultTimePerBlock), delay)
 	})
 
 	t.Run("change the delay to 60 seconds", func(t *testing.T) {
