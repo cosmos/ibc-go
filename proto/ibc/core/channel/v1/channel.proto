@@ -81,7 +81,7 @@ enum State {
   STATE_ACKUPGRADE = 7 [(gogoproto.enumvalue_customname) = "ACKUPGRADE"];
 }
 
-// FlushStatus defines the status of a channel end pertaining to in-flight packets.
+// FlushStatus defines the status of a channel end pertaining to in-flight packets during an upgrade handshake.
 enum FlushStatus {
   option (gogoproto.goproto_enum_prefix) = false;
 
