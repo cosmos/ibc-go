@@ -129,7 +129,7 @@ func convertBytesIntoProtoMessages(cdc *codec.ProtoCodec, msgBytes []byte) ([]pr
 
 // generateIcaPacketDataFromProtoMessages generates ica packet data as bytes from a given set of proto encoded sdk messages and a memo.
 func generateIcaPacketDataFromProtoMessages(cdc *codec.ProtoCodec, sdkMessages []proto.Message, memo string) ([]byte, error) {
-	icaPacketDataBytes, err := icatypes.SerializeCosmosTx(cdc, sdkMessages)
+	icaPacketDataBytes, err := icatypes.SerializeCosmosTx(cdc, sdkMessages, icatypes.EncodingProtobuf)
 	if err != nil {
 		return nil, err
 	}
