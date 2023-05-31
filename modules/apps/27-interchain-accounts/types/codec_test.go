@@ -107,7 +107,7 @@ func (suite *TypesTestSuite) TestProtoSerializeAndDeserializeCosmosTx() {
 		tc := tc
 
 		suite.Run(tc.name, func() {
-			bz, err := types.SerializeCosmosTx(simapp.MakeTestEncodingConfig().Marshaler, tc.msgs)
+			bz, err := types.SerializeCosmosTx(simapp.MakeTestEncodingConfig().Marshaler, tc.msgs, types.EncodingProtobuf)
 			suite.Require().NoError(err, tc.name)
 
 			msgs, err := types.DeserializeCosmosTx(simapp.MakeTestEncodingConfig().Marshaler, bz, types.EncodingProtobuf)
@@ -124,7 +124,7 @@ func (suite *TypesTestSuite) TestProtoSerializeAndDeserializeCosmosTx() {
 	}
 
 	// test serializing non sdk.Msg type
-	bz, err := types.SerializeCosmosTx(simapp.MakeTestEncodingConfig().Marshaler, []proto.Message{&banktypes.MsgSendResponse{}})
+	bz, err := types.SerializeCosmosTx(simapp.MakeTestEncodingConfig().Marshaler, []proto.Message{&banktypes.MsgSendResponse{}}, types.EncodingProtobuf)
 	suite.Require().NoError(err)
 	suite.Require().NotEmpty(bz)
 
@@ -145,7 +145,7 @@ func (suite *TypesTestSuite) TestProtoDeserializeAndSerializeCosmosTxWithAmino()
 	cdc := codec.NewLegacyAmino()
 	marshaler := codec.NewAminoCodec(cdc)
 
-	msgs, err := types.SerializeCosmosTx(marshaler, []proto.Message{&banktypes.MsgSend{}})
+	msgs, err := types.SerializeCosmosTx(marshaler, []proto.Message{&banktypes.MsgSend{}}, types.EncodingProtobuf)
 	suite.Require().Error(err)
 	suite.Require().Empty(msgs)
 
