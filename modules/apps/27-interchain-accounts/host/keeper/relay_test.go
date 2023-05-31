@@ -18,7 +18,6 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
-// TODO: add json tests
 func (suite *KeeperTestSuite) TestOnRecvPacket() {
 	var (
 		path       *ibctesting.Path
