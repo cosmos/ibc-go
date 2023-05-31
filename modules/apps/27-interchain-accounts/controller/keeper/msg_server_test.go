@@ -168,7 +168,7 @@ func (suite *KeeperTestSuite) TestSubmitTx() {
 				Amount:      sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100))),
 			}
 
-			data, err := icatypes.SerializeCosmosTx(suite.chainA.Codec, []proto.Message{icaMsg})
+			data, err := icatypes.SerializeCosmosTx(suite.chainA.Codec, []proto.Message{icaMsg}, icatypes.EncodingProtobuf)
 			suite.Require().NoError(err)
 
 			packetData := icatypes.InterchainAccountPacketData{
