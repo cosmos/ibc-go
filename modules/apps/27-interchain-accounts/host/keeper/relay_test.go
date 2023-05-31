@@ -18,6 +18,7 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
+// TODO: add json tests
 func (suite *KeeperTestSuite) TestOnRecvPacket() {
 	var (
 		path       *ibctesting.Path
@@ -56,7 +57,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 					Option:     govtypes.OptionYes,
 				}
 
-				data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []proto.Message{msg})
+				data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []proto.Message{msg}, icatypes.EncodingProtobuf)
 				suite.Require().NoError(err)
 
 				icaPacketData := icatypes.InterchainAccountPacketData{
@@ -83,7 +84,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 					Amount:      sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100))),
 				}
 
-				data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []proto.Message{msg})
+				data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []proto.Message{msg}, icatypes.EncodingProtobuf)
 				suite.Require().NoError(err)
 
 				icaPacketData := icatypes.InterchainAccountPacketData{
@@ -111,7 +112,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 					Amount:           sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(5000)),
 				}
 
-				data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []proto.Message{msg})
+				data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []proto.Message{msg}, icatypes.EncodingProtobuf)
 				suite.Require().NoError(err)
 
 				icaPacketData := icatypes.InterchainAccountPacketData{
@@ -145,7 +146,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 					Amount:           sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(5000)),
 				}
 
-				data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []proto.Message{msgDelegate, msgUndelegate})
+				data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []proto.Message{msgDelegate, msgUndelegate}, icatypes.EncodingProtobuf)
 				suite.Require().NoError(err)
 
 				icaPacketData := icatypes.InterchainAccountPacketData{
@@ -180,7 +181,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 					Proposer:       interchainAccountAddr,
 				}
 
-				data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []proto.Message{msg})
+				data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []proto.Message{msg}, icatypes.EncodingProtobuf)
 				suite.Require().NoError(err)
 
 				icaPacketData := icatypes.InterchainAccountPacketData{
@@ -222,7 +223,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 					Option:     govtypes.OptionYes,
 				}
 
-				data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []proto.Message{msg})
+				data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []proto.Message{msg}, icatypes.EncodingProtobuf)
 				suite.Require().NoError(err)
 
 				icaPacketData := icatypes.InterchainAccountPacketData{
@@ -248,7 +249,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 					Depositor: interchainAccountAddr,
 				}
 
-				data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []proto.Message{msg})
+				data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []proto.Message{msg}, icatypes.EncodingProtobuf)
 				suite.Require().NoError(err)
 
 				icaPacketData := icatypes.InterchainAccountPacketData{
@@ -274,7 +275,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 					WithdrawAddress:  suite.chainB.SenderAccount.GetAddress().String(),
 				}
 
-				data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []proto.Message{msg})
+				data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []proto.Message{msg}, icatypes.EncodingProtobuf)
 				suite.Require().NoError(err)
 
 				icaPacketData := icatypes.InterchainAccountPacketData{
@@ -313,7 +314,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 					TimeoutTimestamp: uint64(0),
 				}
 
-				data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []proto.Message{msg})
+				data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []proto.Message{msg}, icatypes.EncodingProtobuf)
 				suite.Require().NoError(err)
 
 				icaPacketData := icatypes.InterchainAccountPacketData{
@@ -333,7 +334,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			func() {
 				msg := &banktypes.MsgSendResponse{}
 
-				data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []proto.Message{msg})
+				data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []proto.Message{msg}, icatypes.EncodingProtobuf)
 				suite.Require().NoError(err)
 
 				icaPacketData := icatypes.InterchainAccountPacketData{
@@ -372,7 +373,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 		{
 			"invalid packet type - UNSPECIFIED",
 			func() {
-				data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []proto.Message{&banktypes.MsgSend{}})
+				data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []proto.Message{&banktypes.MsgSend{}}, icatypes.EncodingProtobuf)
 				suite.Require().NoError(err)
 
 				icaPacketData := icatypes.InterchainAccountPacketData{
@@ -389,7 +390,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			func() {
 				path.EndpointA.ChannelConfig.PortID = "invalid-port-id"
 
-				data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []proto.Message{&banktypes.MsgSend{}})
+				data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []proto.Message{&banktypes.MsgSend{}}, icatypes.EncodingProtobuf)
 				suite.Require().NoError(err)
 
 				icaPacketData := icatypes.InterchainAccountPacketData{
@@ -410,7 +411,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 					Amount:      sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100))),
 				}
 
-				data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []proto.Message{msg})
+				data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []proto.Message{msg}, icatypes.EncodingProtobuf)
 				suite.Require().NoError(err)
 
 				icaPacketData := icatypes.InterchainAccountPacketData{
@@ -431,7 +432,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 					Amount:      sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100))),
 				}
 
-				data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []proto.Message{msg})
+				data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []proto.Message{msg}, icatypes.EncodingProtobuf)
 				suite.Require().NoError(err)
 
 				icaPacketData := icatypes.InterchainAccountPacketData{
