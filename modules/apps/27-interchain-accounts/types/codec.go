@@ -30,7 +30,7 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 // SerializeCosmosTx serializes a slice of sdk.Msg's using the CosmosTx type. The sdk.Msg's are
 // packed into Any's and inserted into the Messages field of a CosmosTx. The proto marshaled CosmosTx
 // bytes are returned. Only the ProtoCodec is supported for serializing messages.
-func SerializeCosmosTx(cdc codec.BinaryCodec, msgs []proto.Message) (bz []byte, err error) {
+func SerializeCosmosTx(cdc codec.BinaryCodec, msgs []proto.Message, encoding string) ([]byte, error) {
 	// only ProtoCodec is supported
 	if _, ok := cdc.(*codec.ProtoCodec); !ok {
 		return nil, errorsmod.Wrap(ErrInvalidCodec, "only ProtoCodec is supported for receiving messages on the host chain")
@@ -38,20 +38,48 @@ func SerializeCosmosTx(cdc codec.BinaryCodec, msgs []proto.Message) (bz []byte, 
 
 	msgAnys := make([]*codectypes.Any, len(msgs))
 
-	for i, msg := range msgs {
-		msgAnys[i], err = codectypes.NewAnyWithValue(msg)
+	var bz []byte
+	var err error
+
+	switch encoding {
+	case EncodingProtobuf:
+		for i, msg := range msgs {
+			msgAnys[i], err = codectypes.NewAnyWithValue(msg)
+			if err != nil {
+				return nil, err
+			}
+		}
+	
+		cosmosTx := &CosmosTx{
+			Messages: msgAnys,
+		}
+	
+		bz, err = cdc.Marshal(cosmosTx)
 		if err != nil {
 			return nil, err
 		}
-	}
+	case EncodingJSON:
+		for i, msg := range msgs {
+			jsonValue, err := cdc.(*codec.ProtoCodec).MarshalInterfaceJSON(msg)
+			if err != nil {
+				return nil, err
+			}
+			msgAnys[i] = &codectypes.Any{
+				TypeUrl:     "/" + proto.MessageName(msg),
+				Value:       jsonValue,
+			}
 
-	cosmosTx := &CosmosTx{
-		Messages: msgAnys,
-	}
+			cosmosTx := &CosmosTx{
+				Messages: msgAnys,
+			}
 
-	bz, err = cdc.Marshal(cosmosTx)
-	if err != nil {
-		return nil, err
+			bz, err = json.Marshal(cosmosTx)
+			if err != nil {
+				return nil, err
+			}
+		}
+	default:
+		return nil, errorsmod.Wrapf(ErrUnsupportedEncoding, "encoding type %s is not supported", encoding)
 	}
 
 	return bz, nil
