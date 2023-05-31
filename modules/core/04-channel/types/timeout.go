@@ -11,6 +11,6 @@ func NewTimeout(height clienttypes.Height, timestamp uint64) Timeout {
 }
 
 // IsValid returns true if either the height or timestamp is non-zero
-func (ut Timeout) IsValid() bool {
-	return !ut.Height.IsZero() || ut.Timestamp != 0
+func (t Timeout) IsValid() bool {
+	return !t.Height.IsZero() || t.Timestamp != 0
 }
