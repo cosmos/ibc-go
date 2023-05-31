@@ -90,7 +90,7 @@ const (
 	NOTINFLUSH FlushStatus = 0
 	// The channel end is flushing in-flight packets
 	FLUSHING FlushStatus = 1
-	// There are no in-flight packets left and the channelEnd is ready to move to OPEN
+	// There are no in-flight packets left and the channel end is ready to move to OPEN
 	FLUSHCOMPLETE FlushStatus = 2
 )
 

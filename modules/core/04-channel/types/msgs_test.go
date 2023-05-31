@@ -652,16 +652,9 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeAckValidateBasic() {
 			false,
 		},
 		{
-			"cannot submit an empty upgrade sequence proof",
+			"cannot submit an empty upgrade proof",
 			func() {
-				msg.ProofUpgradeSequence = emptyProof
-			},
-			false,
-		},
-		{
-			"invalid counterparty channel state",
-			func() {
-				msg.CounterpartyChannel.State = types.INITUPGRADE
+				msg.ProofUpgrade = emptyProof
 			},
 			false,
 		},
@@ -677,9 +670,10 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeAckValidateBasic() {
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(tc.name, func() {
+			upgrade := types.NewUpgrade(types.NewUpgradeFields(types.ORDERED, []string{ibctesting.FirstConnectionID}, mock.Version), types.NewUpgradeTimeout(clienttypes.NewHeight(1, 100), 0), 0)
 			msg = types.NewMsgChannelUpgradeAck(
 				ibctesting.MockPort, ibctesting.FirstChannelID,
-				types.Channel{State: types.TRYUPGRADE},
+				types.FLUSHING, upgrade,
 				suite.proof, suite.proof,
 				height, addr,
 			)
