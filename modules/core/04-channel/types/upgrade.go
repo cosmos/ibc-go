@@ -7,7 +7,6 @@ import (
 	errorsmod "cosmossdk.io/errors"
 
 	"github.com/cosmos/ibc-go/v7/internal/collections"
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 )
 
 const (
@@ -31,14 +30,6 @@ func NewUpgradeFields(ordering Order, connectionHops []string, version string) U
 		Ordering:       ordering,
 		ConnectionHops: connectionHops,
 		Version:        version,
-	}
-}
-
-// NewUpgradeTimeout returns a new UpgradeTimeout instance.
-func NewUpgradeTimeout(height clienttypes.Height, timestamp uint64) Timeout {
-	return Timeout{
-		Height:    height,
-		Timestamp: timestamp,
 	}
 }
 
@@ -70,11 +61,6 @@ func (uf UpgradeFields) ValidateBasic() error {
 	}
 
 	return nil
-}
-
-// IsValid returns true if either the height or timestamp is non-zero
-func (ut Timeout) IsValid() bool {
-	return !ut.Height.IsZero() || ut.Timestamp != 0
 }
 
 // NewErrorReceipt returns an error receipt with the code from the provided error type stripped
