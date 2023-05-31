@@ -33,7 +33,7 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 		&MsgConnectionOpenTry{},
 		&MsgConnectionOpenAck{},
 		&MsgConnectionOpenConfirm{},
-		&MsgUpdateConnectionParams{},
+		&MsgUpdateParams{},
 	)
 
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)

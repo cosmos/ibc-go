@@ -17,7 +17,7 @@ var (
 	_ sdk.Msg = (*MsgConnectionOpenConfirm)(nil)
 	_ sdk.Msg = (*MsgConnectionOpenAck)(nil)
 	_ sdk.Msg = (*MsgConnectionOpenTry)(nil)
-	_ sdk.Msg = (*MsgUpdateConnectionParams)(nil)
+	_ sdk.Msg = (*MsgUpdateParams)(nil)
 
 	_ codectypes.UnpackInterfacesMessage = (*MsgConnectionOpenTry)(nil)
 	_ codectypes.UnpackInterfacesMessage = (*MsgConnectionOpenAck)(nil)
@@ -291,16 +291,16 @@ func (msg MsgConnectionOpenConfirm) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{accAddr}
 }
 
-// NewMsgUpdateConnectionParams creates a new MsgUpdateConnectionParams instance
-func NewMsgUpdateConnectionParams(authority string, params Params) *MsgUpdateConnectionParams {
-	return &MsgUpdateConnectionParams{
+// NewMsgUpdateParams creates a new MsgUpdateParams instance
+func NewMsgUpdateParams(authority string, params Params) *MsgUpdateParams {
+	return &MsgUpdateParams{
 		Authority: authority,
 		Params:    params,
 	}
 }
 
-// GetSigners returns the expected signers for a MsgUpdateConnectionParams message.
-func (msg *MsgUpdateConnectionParams) GetSigners() []sdk.AccAddress {
+// GetSigners returns the expected signers for a MsgUpdateParams message.
+func (msg *MsgUpdateParams) GetSigners() []sdk.AccAddress {
 	accAddr, err := sdk.AccAddressFromBech32(msg.Authority)
 	if err != nil {
 		panic(err)
@@ -308,8 +308,8 @@ func (msg *MsgUpdateConnectionParams) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{accAddr}
 }
 
-// ValidateBasic performs basic checks on a MsgUpdateConnectionParams.
-func (msg *MsgUpdateConnectionParams) ValidateBasic() error {
+// ValidateBasic performs basic checks on a MsgUpdateParams.
+func (msg *MsgUpdateParams) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(msg.Authority); err != nil {
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
 	}

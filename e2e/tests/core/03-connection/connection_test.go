@@ -69,7 +69,7 @@ func (s *ConnectionTestSuite) TestMaxExpectedTimePerBlockParam() {
 			s.Require().NoError(err)
 			s.Require().NotNil(authority)
 
-			msg := connectiontypes.NewMsgUpdateConnectionParams(authority.String(), connectiontypes.NewParams(delay))
+			msg := connectiontypes.NewMsgUpdateParams(authority.String(), connectiontypes.NewParams(delay))
 			s.ExecuteGovProposalV1(ctx, msg, chainA, chainAWallet, 1)
 		} else {
 			changes := []paramsproposaltypes.ParamChange{

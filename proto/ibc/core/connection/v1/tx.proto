@@ -29,8 +29,8 @@ service Msg {
   rpc ConnectionOpenConfirm(MsgConnectionOpenConfirm) returns (MsgConnectionOpenConfirmResponse);
 
   // UpdateConnectionParams defines a rpc handler method for
-  // MsgUpdateConnectionParams.
-  rpc UpdateConnectionParams(MsgUpdateConnectionParams) returns (MsgUpdateConnectionParamsResponse);
+  // MsgUpdateParams.
+  rpc UpdateConnectionParams(MsgUpdateParams) returns (MsgUpdateParamsResponse);
 }
 
 // MsgConnectionOpenInit defines the msg sent by an account on Chain A to
@@ -132,8 +132,8 @@ message MsgConnectionOpenConfirm {
 // response type.
 message MsgConnectionOpenConfirmResponse {}
 
-// MsgUpdateConnectionParams defines the sdk.Msg type to update the connection parameters.
-message MsgUpdateConnectionParams {
+// MsgUpdateParams defines the sdk.Msg type to update the connection parameters.
+message MsgUpdateParams {
   option (cosmos.msg.v1.signer) = "authority";
 
   // authority is the address of the governance account.
@@ -145,5 +145,5 @@ message MsgUpdateConnectionParams {
   Params params = 2 [(gogoproto.nullable) = false];
 }
 
-// MsgUpdateConnectionParamsResponse defines the MsgUpdateConnectionParams response type.
-message MsgUpdateConnectionParamsResponse {}
+// MsgUpdateParamsResponse defines the MsgUpdateParams response type.
+message MsgUpdateParamsResponse {}

@@ -224,5 +224,7 @@ func (suite *KeeperTestSuite) TestUnsetParams() {
 	store := ctx.KVStore(suite.chainA.GetSimApp().GetKey(exported.StoreKey))
 	store.Delete([]byte(types.ParamsKey))
 
-	suite.Require().Equal(suite.chainA.GetSimApp().IBCKeeper.ConnectionKeeper.GetParams(ctx), types.Params{})
+	suite.Require().Panics(func() {
+		suite.chainA.GetSimApp().IBCKeeper.ConnectionKeeper.GetParams(ctx)
+	})
 }

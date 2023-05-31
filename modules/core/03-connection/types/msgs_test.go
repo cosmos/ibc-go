@@ -232,27 +232,27 @@ func (suite *MsgTestSuite) TestNewMsgConnectionOpenConfirm() {
 	}
 }
 
-// TestMsgUpdateConnectionParams_ValidateBasic tests ValidateBasic for MsgUpdateConnectionParams
-func (suite *MsgTestSuite) TestMsgUpdateConnectionParams_ValidateBasic() {
+// TestMsgUpdateParams_ValidateBasic tests ValidateBasic for MsgUpdateParams
+func (suite *MsgTestSuite) TestMsgUpdateParams_ValidateBasic() {
 	authority := suite.chainA.App.GetIBCKeeper().GetAuthority()
 	testCases := []struct {
 		name    string
-		msg     *types.MsgUpdateConnectionParams
+		msg     *types.MsgUpdateParams
 		expPass bool
 	}{
 		{
 			"success: valid authority and params",
-			types.NewMsgUpdateConnectionParams(authority, types.DefaultParams()),
+			types.NewMsgUpdateParams(authority, types.DefaultParams()),
 			true,
 		},
 		{
 			"failure: invalid authority address",
-			types.NewMsgUpdateConnectionParams("invalid", types.DefaultParams()),
+			types.NewMsgUpdateParams("invalid", types.DefaultParams()),
 			false,
 		},
 		{
 			"failure: invalid time per block",
-			types.NewMsgUpdateConnectionParams(authority, types.NewParams(0)),
+			types.NewMsgUpdateParams(authority, types.NewParams(0)),
 			false,
 		},
 	}
