@@ -203,6 +203,20 @@ func (ep *EndpointM) RecvPacket(packet *channeltypes.Packet, initProofHeight exp
 	return nil
 }
 
+// AcknowledgePacket sends a MsgAcknowledgement to the channel associated with the endpoint.
+func (endpoint *EndpointM) AcknowledgePacket(packet channeltypes.Packet, initProofHeight exported.Height, ack []byte) error {
+	// get proof of acknowledgement on counterparty
+	//packetKey := host.PacketAcknowledgementKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
+	proof, proofHeight, err := endpoint.Counterparty.QueryPacketAcknowledgementProof(&packet, initProofHeight)
+	if err != nil {
+		return err
+	}
+
+	ackMsg := channeltypes.NewMsgAcknowledgement(packet, ack, proof, proofHeight, endpoint.Chain.SenderAccount.GetAddress().String())
+
+	return endpoint.Chain.sendMsgs(ackMsg)
+}
+
 // SetChannelClosed sets a channel state to CLOSED.
 func (ep *EndpointM) SetChannelClosed() {
 	channel := ep.GetChannel()
