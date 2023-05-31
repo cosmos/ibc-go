@@ -40,10 +40,6 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 * [\#3393](https://github.com/cosmos/ibc-go/pull/3393) Bump Cosmos SDK to v0.46.12 and replace Tendermint with CometBFT v0.34.37.
 
-### API Breaking
-
-### State Machine Breaking
-
 ### Improvements
 
 * (core) [\#3082](https://github.com/cosmos/ibc-go/pull/3082) Add `HasConnection` and `HasChannel` methods.
