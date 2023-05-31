@@ -165,12 +165,15 @@ func (k Keeper) startFlushUpgradeHandshake(
 	// the current upgrade handshake must only continue if both channels are using the same upgrade sequence,
 	// otherwise an error receipt must be written so that the upgrade handshake may be attempted again with synchronized sequences
 	if counterpartyChannel.UpgradeSequence != channel.UpgradeSequence {
+		// save the previous upgrade sequence for the error message
+		prevUpgradeSequence := channel.UpgradeSequence
+
 		// error on the higher sequence so that both chains synchronize on a fresh sequence
 		channel.UpgradeSequence = math.Max(counterpartyChannel.UpgradeSequence, channel.UpgradeSequence)
 		k.SetChannel(ctx, portID, channelID, channel)
 
 		return types.NewUpgradeError(channel.UpgradeSequence, errorsmod.Wrapf(
-			types.ErrIncompatibleCounterpartyUpgrade, "expected upgrade sequence (%d) to match counterparty upgrade sequence (%d)", channel.UpgradeSequence, counterpartyChannel.UpgradeSequence),
+			types.ErrIncompatibleCounterpartyUpgrade, "expected upgrade sequence (%d) to match counterparty upgrade sequence (%d)", prevUpgradeSequence, counterpartyChannel.UpgradeSequence),
 		)
 	}
 
@@ -185,7 +188,7 @@ func (k Keeper) startFlushUpgradeHandshake(
 	if err != nil {
 		// NOTE: this error is expected to be unreachable as the proposed upgrade connectionID should have been
 		// validated in the upgrade INIT and TRY handlers
-		return types.NewUpgradeError(channel.UpgradeSequence, errorsmod.Wrapf(
+		return types.NewUpgradeError(channel.UpgradeSequence, errorsmod.Wrap(
 			err, "expected proposed connection to be found"),
 		)
 	}
@@ -194,7 +197,7 @@ func (k Keeper) startFlushUpgradeHandshake(
 		// NOTE: this error is expected to be unreachable as the proposed upgrade connectionID should have been
 		// validated in the upgrade INIT and TRY handlers
 		return types.NewUpgradeError(channel.UpgradeSequence, errorsmod.Wrapf(
-			err, "expected proposed connection to be OPEN (got %s)", connectiontypes.State(proposedConnection.GetState()).String()),
+			connectiontypes.ErrInvalidConnectionState, "expected proposed connection to be OPEN (got %s)", connectiontypes.State(proposedConnection.GetState()).String()),
 		)
 	}
 

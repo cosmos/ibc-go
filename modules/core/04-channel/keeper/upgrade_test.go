@@ -1,7 +1,6 @@
 package keeper_test
 
 import (
-	"errors"
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
@@ -144,7 +143,7 @@ func (suite *KeeperTestSuite) TestStartFlushUpgradeHandshake() {
 		malleate func()
 		// TODO: currently the code asserts based on an expected sdk error
 		// Allow support for asserting either the sdk error type or that the error is an upgrade error
-		expError *errorsmod.Error
+		expError error
 	}{
 		{
 			"success",
@@ -182,14 +181,14 @@ func (suite *KeeperTestSuite) TestStartFlushUpgradeHandshake() {
 			func() {
 				counterpartyChannel.State = types.CLOSED
 			},
-			commitmentypes.ErrInvalidProof,
+			commitmenttypes.ErrInvalidProof,
 		},
 		{
 			"failed verification for counterparty upgrade due to incorrectly constructed counterparty upgrade",
 			func() {
 				counterpartyUpgrade.LatestSequenceSend = 100
 			},
-			commitmentypes.ErrInvalidProof,
+			commitmenttypes.ErrInvalidProof,
 		},
 		{
 			"upgrade sequence mismatch, endpointB channel upgrade sequence is ahead",
@@ -224,7 +223,7 @@ func (suite *KeeperTestSuite) TestStartFlushUpgradeHandshake() {
 
 				// set proposed connection in state
 				proposedConnectionID := "connection-100"
-				suite.chainA.GetSimApp().GetIBCKeeper().ConnectionKeeper.SetConnection(suite.chainB.GetContext(), proposedConnectionID, connectionEnd)
+				suite.chainB.GetSimApp().GetIBCKeeper().ConnectionKeeper.SetConnection(suite.chainB.GetContext(), proposedConnectionID, connectionEnd)
 				upgrade.Fields.ConnectionHops[0] = proposedConnectionID
 			},
 			connectiontypes.ErrInvalidConnectionState,
@@ -234,12 +233,12 @@ func (suite *KeeperTestSuite) TestStartFlushUpgradeHandshake() {
 			func() {
 				// reuse existing connection to create a new connection in a non OPEN state
 				connectionEnd := path.EndpointB.GetConnection()
-				connectionEnd.State = connectiontypes.UNINITIALIZED
-				// do not update the connection's counterparty to match the connection hops set in the counterparty proposed upgrade
+				// ensure counterparty connectionID does not match connectionID set in counterparty proposed upgrade
+				connectionEnd.Counterparty.ConnectionId = "connection-50"
 
 				// set proposed connection in state
 				proposedConnectionID := "connection-100"
-				suite.chainA.GetSimApp().GetIBCKeeper().ConnectionKeeper.SetConnection(suite.chainB.GetContext(), proposedConnectionID, connectionEnd)
+				suite.chainB.GetSimApp().GetIBCKeeper().ConnectionKeeper.SetConnection(suite.chainB.GetContext(), proposedConnectionID, connectionEnd)
 				upgrade.Fields.ConnectionHops[0] = proposedConnectionID
 			},
 			types.ErrIncompatibleCounterpartyUpgrade,
@@ -254,7 +253,13 @@ func (suite *KeeperTestSuite) TestStartFlushUpgradeHandshake() {
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.Setup(path)
 
-			path.EndpointA.ChanUpgradeInit(types.NewUpgradeTimeout(path.EndpointB.Chain.GetTimeoutHeight(), 0))
+			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = fmt.Sprintf("%s-v2", mock.Version)
+			err := path.EndpointA.ChanUpgradeInit()
+			suite.Require().NoError(err)
+
+			// ensure proof verification succeeds
+			err = path.EndpointB.UpdateClient()
+			suite.Require().NoError(err)
 
 			// same construction used by endpoint.ChanUpgradeTry
 			channelKey := host.ChannelKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
@@ -268,6 +273,11 @@ func (suite *KeeperTestSuite) TestStartFlushUpgradeHandshake() {
 			counterpartyUpgrade, found = path.EndpointA.Chain.App.GetIBCKeeper().ChannelKeeper.GetUpgrade(path.EndpointA.Chain.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 			suite.Require().True(found)
 
+			// ensure that the channel has a valid upgrade sequence
+			channel := path.EndpointB.GetChannel()
+			channel.UpgradeSequence = 1
+			path.EndpointB.SetChannel(channel)
+
 			upgrade = types.NewUpgrade(
 				types.NewUpgradeFields(
 					types.UNORDERED, []string{path.EndpointB.ConnectionID}, fmt.Sprintf("%s-v2", mock.Version),
@@ -278,12 +288,18 @@ func (suite *KeeperTestSuite) TestStartFlushUpgradeHandshake() {
 
 			tc.malleate()
 
-			err := suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.StartFlushUpgradeHandshake(
+			err = suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.StartFlushUpgradeHandshake(
 				suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, upgrade.Fields,
 				counterpartyChannel, counterpartyUpgrade, proofChannel, proofUpgrade, proofHeight,
 			)
 
-			suite.Require().True(errors.Is(err, tc.expError))
+			if tc.expError != nil {
+				suite.Require().Error(err)
+
+				suite.Require().True(errorsmod.IsOf(err, tc.expError), err)
+			} else {
+				suite.Require().NoError(err)
+			}
 		})
 	}
 }
