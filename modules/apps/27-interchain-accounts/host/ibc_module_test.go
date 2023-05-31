@@ -443,7 +443,7 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 				ToAddress:   suite.chainB.SenderAccount.GetAddress().String(),
 				Amount:      amount,
 			}
-			data, err := icatypes.SerializeCosmosTx(suite.chainA.Codec, []proto.Message{msg})
+			data, err := icatypes.SerializeCosmosTx(suite.chainA.Codec, []proto.Message{msg}, icatypes.EncodingProtobuf)
 			suite.Require().NoError(err)
 
 			icaPacketData := icatypes.InterchainAccountPacketData{
@@ -652,7 +652,7 @@ func (suite *InterchainAccountsTestSuite) TestControlAccountAfterChannelClose() 
 		Amount:      tokenAmt,
 	}
 
-	data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []proto.Message{msg})
+	data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []proto.Message{msg}, icatypes.EncodingProtobuf)
 	suite.Require().NoError(err)
 
 	icaPacketData := icatypes.InterchainAccountPacketData{
