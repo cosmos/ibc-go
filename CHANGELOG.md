@@ -34,7 +34,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Changelog
 
-## [Unreleased]
+## [v6.2.0](https://github.com/cosmos/ibc-go/releases/tag/v6.2.0) - 2023-05-31
 
 ### Dependencies
 
@@ -47,6 +47,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Improvements
 
 * (core) [\#3082](https://github.com/cosmos/ibc-go/pull/3082) Add `HasConnection` and `HasChannel` methods.
+* (apps/transfer) [\#3454](https://github.com/cosmos/ibc-go/pull/3454) Support transfer authorization unlimited spending when the max `uint256` value is provided as limit.
 
 ### Features
 
