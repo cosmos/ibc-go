@@ -37,7 +37,7 @@ func (suite *TypesTestSuite) TestUpgradeValidateBasic() {
 		{
 			"empty version",
 			func() {
-				upgrade.Fields.Version = ""
+				upgrade.Fields.Version = "  "
 			},
 			false,
 		},
