@@ -74,10 +74,8 @@ func (suite *MultihopTestSuite) TestTimeoutPacket() {
 					// proof of absence of packet receipt
 					key = host.PacketReceiptKey(packet.SourcePort, packet.SourceChannel, packet.Sequence)
 				}
-				proof, err = suite.Z().QueryMultihopProof(key, packetHeight)
+				proof, proofHeight, err = suite.Z().QueryMultihopProof(key, packetHeight)
 				suite.Require().NoError(err)
-
-				proofHeight = suite.A().ProofHeight()
 			}
 
 			err := suite.A().Chain.App.GetIBCKeeper().ChannelKeeper.TimeoutPacket(suite.A().Chain.GetContext(), packet, proof, proofHeight, nextSeqRecv)
@@ -141,10 +139,8 @@ func (suite *MultihopTestSuite) TestTimeoutOnClose() {
 
 			tc.malleate()
 
-			proofClosed, err := suite.Z().QueryChannelProof(suite.Z().Chain.LastHeader.GetHeight())
+			proofClosed, _, err := suite.Z().QueryChannelProof(suite.Z().Chain.LastHeader.GetHeight())
 			suite.Require().NoError(err)
-
-			proofHeight := suite.A().ProofHeight()
 
 			if tc.orderedChannel {
 				key = host.NextSequenceRecvKey(packet.GetDestPort(), packet.GetDestChannel())
@@ -153,7 +149,7 @@ func (suite *MultihopTestSuite) TestTimeoutOnClose() {
 				key = host.PacketReceiptKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 			}
 
-			proof, err := suite.Z().QueryMultihopProof(key, packetHeight)
+			proof, proofHeight, err := suite.Z().QueryMultihopProof(key, packetHeight)
 			suite.Require().NoError(err)
 
 			err = suite.A().Chain.App.GetIBCKeeper().ChannelKeeper.TimeoutOnClose(suite.A().Chain.GetContext(), chanCap, packet, proof, proofClosed, proofHeight, nextSeqRecv)

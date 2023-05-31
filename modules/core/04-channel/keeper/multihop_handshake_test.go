@@ -261,13 +261,15 @@ func (suite *MultihopTestSuite) TestChanOpenTryMultihop() {
 				suite.Require().NoError(err)
 			}
 
-			proof, err := suite.A().QueryChannelProof(suite.A().Chain.LastHeader.GetHeight())
+			proof, proofHeight, err := suite.A().QueryChannelProof(suite.A().Chain.LastHeader.GetHeight())
 
 			if tc.expPass {
 				suite.Require().NoError(err)
 			} else if err != nil {
 				return
 			}
+
+			fmt.Printf("proofHeight=%v client proofHeight=%v\n", proofHeight, suite.Z().ProofHeight())
 
 			channelID, capability, err := suite.Z().Chain.App.GetIBCKeeper().ChannelKeeper.ChanOpenTry(
 				suite.Z().Chain.GetContext(),
@@ -278,7 +280,7 @@ func (suite *MultihopTestSuite) TestChanOpenTryMultihop() {
 				suite.Z().CounterpartyChannel(),
 				suite.A().ChannelConfig.Version,
 				proof,
-				malleateHeight(suite.Z().ProofHeight(), heightDiff),
+				malleateHeight(proofHeight, heightDiff),
 			)
 
 			if tc.expPass {
@@ -446,7 +448,7 @@ func (suite *MultihopTestSuite) TestChanOpenAckMultihop() {
 				counterpartyChannelID = ibctesting.FirstChannelID
 			}
 
-			proof, err := suite.Z().QueryChannelProof(suite.Z().Chain.LastHeader.GetHeight())
+			proof, proofHeight, err := suite.Z().QueryChannelProof(suite.Z().Chain.LastHeader.GetHeight())
 
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -462,7 +464,7 @@ func (suite *MultihopTestSuite) TestChanOpenAckMultihop() {
 				suite.Z().ChannelConfig.Version,
 				counterpartyChannelID,
 				proof,
-				malleateHeight(suite.A().ProofHeight(), heightDiff),
+				malleateHeight(proofHeight, heightDiff),
 			)
 
 			if tc.expPass {
@@ -593,7 +595,7 @@ func (suite *MultihopTestSuite) TestChanOpenConfirmMultihop() {
 			heightDiff = 0    // must be explicitly changed
 			tc.malleate()     // call ChanOpenInit and setup port capabilities
 
-			proof, err := suite.A().QueryChannelProof(suite.A().Chain.LastHeader.GetHeight())
+			proof, proofHeight, err := suite.A().QueryChannelProof(suite.A().Chain.LastHeader.GetHeight())
 
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -607,7 +609,7 @@ func (suite *MultihopTestSuite) TestChanOpenConfirmMultihop() {
 				suite.Z().ChannelID,
 				channelCap,
 				proof,
-				malleateHeight(suite.Z().ProofHeight(), heightDiff),
+				malleateHeight(proofHeight, heightDiff),
 			)
 
 			if tc.expPass {
@@ -678,7 +680,7 @@ func (suite *MultihopTestSuite) TestChanCloseConfirmMultihop() {
 
 			tc.malleate()
 
-			proof, err := suite.A().QueryChannelProof(suite.A().Chain.LastHeader.GetHeight())
+			proof, proofHeight, err := suite.A().QueryChannelProof(suite.A().Chain.LastHeader.GetHeight())
 
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -687,9 +689,11 @@ func (suite *MultihopTestSuite) TestChanCloseConfirmMultihop() {
 			}
 
 			err = suite.Z().Chain.App.GetIBCKeeper().ChannelKeeper.ChanCloseConfirm(
-				suite.Z().Chain.GetContext(), suite.Z().ChannelConfig.PortID, suite.Z().ChannelID,
+				suite.Z().Chain.GetContext(),
+				suite.Z().ChannelConfig.PortID,
+				suite.Z().ChannelID,
 				channelCap,
-				proof, suite.Z().ProofHeight(),
+				proof, proofHeight,
 			)
 
 			if tc.expPass {
