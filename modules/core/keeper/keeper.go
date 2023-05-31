@@ -95,6 +95,11 @@ func (k *Keeper) SetRouter(rtr *porttypes.Router) {
 	k.Router.Seal()
 }
 
+// GetAuthority returns the ibc module's authority.
+func (k Keeper) GetAuthority() string {
+	return k.authority
+}
+
 // isEmpty checks if the interface is an empty struct or a pointer pointing
 // to an empty struct
 func isEmpty(keeper interface{}) bool {
@@ -109,9 +114,4 @@ func isEmpty(keeper interface{}) bool {
 		}
 	}
 	return false
-}
-
-// GetAuthority returns the ibc module's authority.
-func (k Keeper) GetAuthority() string {
-	return k.authority
 }

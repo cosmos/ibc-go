@@ -3,6 +3,8 @@ package connection
 import (
 	"context"
 	"fmt"
+	"strconv"
+	"strings"
 	"testing"
 	"time"
 
@@ -29,11 +31,26 @@ type ConnectionTestSuite struct {
 
 // QueryMaxExpectedTimePerBlockParam queries the on-chain max expected time per block param for 03-connection
 func (s *ConnectionTestSuite) QueryMaxExpectedTimePerBlockParam(ctx context.Context, chain ibc.Chain) uint64 {
-	queryClient := s.GetChainGRCPClients(chain).ConnectionQueryClient
-	res, err := queryClient.ConnectionParams(ctx, &connectiontypes.QueryConnectionParamsRequest{})
+	if testvalues.SelfParamsFeatureReleases.IsSupported(chain.Config().Images[0].Version) {
+		queryClient := s.GetChainGRCPClients(chain).ConnectionQueryClient
+		res, err := queryClient.ConnectionParams(ctx, &connectiontypes.QueryConnectionParamsRequest{})
+		s.Require().NoError(err)
+
+		return res.Params.MaxExpectedTimePerBlock
+	}
+	queryClient := s.GetChainGRCPClients(chain).ParamsQueryClient
+	res, err := queryClient.Params(ctx, &paramsproposaltypes.QueryParamsRequest{
+		Subspace: ibcexported.ModuleName,
+		Key:      string(connectiontypes.KeyMaxExpectedTimePerBlock),
+	})
 	s.Require().NoError(err)
 
-	return res.Params.MaxExpectedTimePerBlock
+	// removing additional strings that are used for amino
+	delay := strings.ReplaceAll(res.Param.Value, "\"", "")
+	time, err := strconv.ParseUint(delay, 10, 64)
+	s.Require().NoError(err)
+
+	return time
 }
 
 // TestMaxExpectedTimePerBlockParam tests changing the MaxExpectedTimePerBlock param using a governance proposal
