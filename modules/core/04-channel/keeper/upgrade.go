@@ -135,12 +135,8 @@ func (k Keeper) startFlushUpgradeHandshake(
 		return errorsmod.Wrap(err, "failed to retrieve connection using the channel connection hops")
 	}
 
-	// make sure connection is OPEN
 	if connection.GetState() != int32(connectiontypes.OPEN) {
-		return errorsmod.Wrapf(
-			connectiontypes.ErrInvalidConnectionState,
-			"connection state is not OPEN (got %s)", connectiontypes.State(connection.GetState()).String(),
-		)
+		return errorsmod.Wrapf(connectiontypes.ErrInvalidConnectionState, "connection state is not OPEN (got %s)", connectiontypes.State(connection.GetState()).String())
 	}
 
 	// verify the counterparty channel state containing the upgrade sequence
@@ -179,14 +175,13 @@ func (k Keeper) startFlushUpgradeHandshake(
 		)
 	}
 
-	// ensure upgrade fields ordering is the same.
+	// assert that both sides propose the same channel ordering
 	if proposedUpgradeFields.Ordering != counterpartyUpgrade.Fields.Ordering {
 		return types.NewUpgradeError(channel.UpgradeSequence, errorsmod.Wrapf(
 			types.ErrIncompatibleCounterpartyUpgrade, "expected upgrade ordering (%s) to match counterparty upgrade ordering (%d)", proposedUpgradeFields.Ordering, counterpartyUpgrade.Fields.Ordering),
 		)
 	}
 
-	// connectionHops can change in a channelUpgrade, however both sides must still be each other's counterparty.
 	proposedConnection, err := k.GetConnection(ctx, proposedUpgradeFields.ConnectionHops[0])
 	if err != nil {
 		// NOTE: this error is expected to be unreachable as the proposed upgrade connectionID should have been
@@ -204,7 +199,7 @@ func (k Keeper) startFlushUpgradeHandshake(
 		)
 	}
 
-	// assert that the proposed connectionID's for both channels are still counterparties
+	// connectionHops can change in a channelUpgrade, however both sides must still be each other's counterparty.
 	if counterpartyUpgrade.Fields.ConnectionHops[0] != proposedConnection.GetCounterparty().GetConnectionID() {
 		return types.NewUpgradeError(channel.UpgradeSequence, errorsmod.Wrapf(
 			types.ErrIncompatibleCounterpartyUpgrade, "counterparty upgrade connection end is not a counterparty of self proposed connection end (%s != %s)", counterpartyUpgrade.Fields.ConnectionHops[0], proposedConnection.GetCounterparty().GetConnectionID()),
