@@ -10,6 +10,7 @@ import (
 
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
+	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
 	coretypes "github.com/cosmos/ibc-go/v7/modules/core/types"
@@ -821,6 +822,36 @@ func (k Keeper) ChannelUpgradeTry(goCtx context.Context, msg *channeltypes.MsgCh
 
 // ChannelUpgradeAck defines a rpc handler method for MsgChannelUpgradeAck.
 func (k Keeper) ChannelUpgradeAck(goCtx context.Context, msg *channeltypes.MsgChannelUpgradeAck) (*channeltypes.MsgChannelUpgradeAckResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	module, _, err := k.ChannelKeeper.LookupModuleByChannel(ctx, msg.PortId, msg.ChannelId)
+	if err != nil {
+		ctx.Logger().Error("channel upgrade ack failed", "port-id", msg.PortId, "error", errorsmod.Wrap(err, "could not retrieve module from port-id"))
+		return nil, errorsmod.Wrap(err, "could not retrieve module from port-id")
+	}
+
+	cbs, ok := k.Router.GetRoute(module)
+	if !ok {
+		ctx.Logger().Error("channel upgrade ack failed", "port-id", msg.PortId, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module))
+		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
+	}
+
+	// TODO: update msg args
+	err = k.ChannelKeeper.ChanUpgradeAck(ctx, msg.PortId, msg.ChannelId, channeltypes.NONE, msg.CounterpartyUpgrade, msg.ProofChannel, msg.ProofUpgradeSequence, msg.ProofHeight)
+	if err != nil {
+		ctx.Logger().Error("channel upgrade ack failed", "error", errorsmod.Wrap(err, "channel handshake upgrade ack failed"))
+		return nil, errorsmod.Wrap(err, "channel handshake upgrade ack failed")
+	}
+
+	// TODO: update callback args?? remove counterparty channel ID??
+	err = cbs.OnChanUpgradeAck(ctx, msg.PortId, msg.ChannelId, msg.CounterpartyChannel.Version, msg.CounterpartyChannel.Version)
+	if err != nil {
+		ctx.Logger().Error("channel upgrade ack callback failed", "port-id", msg.PortId, "channel-id", msg.ChannelId, "error", err.Error())
+
+		// restoreChannel(portID, channelID)
+		return &types.MsgChannelUpgradeAckResponse{}, nil
+	}
+
 	return nil, nil
 }
 
