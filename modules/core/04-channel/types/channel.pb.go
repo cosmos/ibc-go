@@ -82,7 +82,7 @@ func (State) EnumDescriptor() ([]byte, []int) {
 	return fileDescriptor_c3a07336710636a0, []int{0}
 }
 
-// FlushStatus defines the status of a channel end pertaining to in-flight packets.
+// FlushStatus defines the status of a channel end pertaining to in-flight packets during an upgrade handshake.
 type FlushStatus int32
 
 const (
