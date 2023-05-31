@@ -5,6 +5,7 @@ package ibc.core.channel.v1;
 option go_package = "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types";
 
 import "gogoproto/gogo.proto";
+import "cosmos/msg/v1/msg.proto";
 import "ibc/core/client/v1/client.proto";
 import "ibc/core/channel/v1/channel.proto";
 import "ibc/core/channel/v1/upgrade.proto";
@@ -260,6 +261,8 @@ message MsgAcknowledgementResponse {
 
 // MsgChannelUpgradeInit defines the request type for the ChannelUpgradeInit rpc
 message MsgChannelUpgradeInit {
+  option (cosmos.msg.v1.signer) = "signer";
+
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
@@ -279,6 +282,8 @@ message MsgChannelUpgradeInitResponse {
 
 // MsgChannelUpgradeTry defines the request type for the ChannelUpgradeTry rpc
 message MsgChannelUpgradeTry {
+  option (cosmos.msg.v1.signer) = "signer";
+
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
@@ -303,6 +308,8 @@ message MsgChannelUpgradeTryResponse {
 
 // MsgChannelUpgradeAck defines the request type for the ChannelUpgradeAck rpc
 message MsgChannelUpgradeAck {
+  option (cosmos.msg.v1.signer) = "signer";
+
   option (gogoproto.equal)                         = false;
   option (gogoproto.goproto_getters)               = false;
   string                    port_id                = 1;
@@ -319,6 +326,8 @@ message MsgChannelUpgradeAckResponse {}
 
 // MsgChannelUpgradeConfirm defines the request type for the ChannelUpgradeConfirm rpc
 message MsgChannelUpgradeConfirm {
+  option (cosmos.msg.v1.signer) = "signer";
+
   option (gogoproto.equal)                         = false;
   option (gogoproto.goproto_getters)               = false;
   string                    port_id                = 1;
@@ -336,6 +345,8 @@ message MsgChannelUpgradeConfirmResponse {}
 
 // MsgChannelUpgradeTimeout defines the request type for the ChannelUpgradeTimeout rpc
 message MsgChannelUpgradeTimeout {
+  option (cosmos.msg.v1.signer) = "signer";
+
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
@@ -354,6 +365,8 @@ message MsgChannelUpgradeTimeoutResponse {}
 
 // MsgChannelUpgradeCancel defines the request type for the ChannelUpgradeCancel rpc
 message MsgChannelUpgradeCancel {
+  option (cosmos.msg.v1.signer) = "signer";
+
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 

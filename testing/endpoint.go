@@ -573,16 +573,39 @@ func (endpoint *Endpoint) ChanUpgradeInit(timeout channeltypes.Timeout) error {
 		endpoint.Chain.SenderAccount.GetAddress().String(),
 	)
 
-	if err := endpoint.Chain.sendMsgs(msg); err != nil {
-		return err
-	}
+	return endpoint.Chain.sendMsgs(msg)
+}
 
-	// update version to selected app version
-	// NOTE: this update must be performed after SendMsgs()
-	endpoint.ChannelConfig.Version = endpoint.GetChannel().Version
+// ChanUpgradeTry sends a MsgChannelUpgradeTry on the associated endpoint.
+func (endpoint *Endpoint) ChanUpgradeTry(timeout channeltypes.Timeout) error {
+	err := endpoint.UpdateClient()
+	require.NoError(endpoint.Chain.TB, err)
 
-	endpoint.Chain.Coordinator.CommitBlock(endpoint.Chain)
-	return endpoint.Counterparty.UpdateClient()
+	counterpartyChannelID := endpoint.Counterparty.ChannelID
+	counterpartyPortID := endpoint.Counterparty.ChannelConfig.PortID
+
+	channelKey := host.ChannelKey(counterpartyPortID, counterpartyChannelID)
+	proofChannel, height := endpoint.Counterparty.Chain.QueryProof(channelKey)
+	upgradeKey := host.ChannelUpgradeKey(counterpartyPortID, counterpartyChannelID)
+	proofUpgrade, _ := endpoint.Counterparty.Chain.QueryProof(upgradeKey)
+
+	counterpartyUpgrade, found := endpoint.Counterparty.Chain.App.GetIBCKeeper().ChannelKeeper.GetUpgrade(endpoint.Counterparty.Chain.GetContext(), counterpartyPortID, counterpartyChannelID)
+	require.True(endpoint.Chain.TB, found)
+
+	msg := channeltypes.NewMsgChannelUpgradeTry(
+		endpoint.ChannelConfig.PortID,
+		endpoint.ChannelID,
+		[]string{endpoint.ConnectionID},
+		timeout,
+		counterpartyUpgrade,
+		endpoint.Counterparty.GetChannel().UpgradeSequence,
+		proofChannel,
+		proofUpgrade,
+		height,
+		endpoint.Chain.SenderAccount.GetAddress().String(),
+	)
+
+	return endpoint.Chain.sendMsgs(msg)
 }
 
 // SetChannelState sets a channel state
