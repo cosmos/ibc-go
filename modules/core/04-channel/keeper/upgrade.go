@@ -108,12 +108,10 @@ func (k Keeper) constructProposedUpgrade(ctx sdk.Context, portID, channelID stri
 	}, nil
 }
 
-// startFlushUpgradeSequence will verify that the channel is in a valid precondition for calling the startFlushUpgradeHandshake
-// and that the desiredChannelState is valid
-// it will verify the proofs of the counterparty channel and upgrade
-// it will verify that the upgrades on both ends are mutually compatible
-// it will set the channel to desiredChannel state and move to flushing mode
-// if flush is already complete, it will automatically set flushStatus to FLUSHCOMPLETE
+// startFlushUpgradeHandshake will verify the counterparty proposed upgrade and the current channel state.
+// Once the counterparty information has been verified, it will be validated against the self proposed upgrade.
+// If any of the proposed upgrade fields are incompatible, an upgrade error will be returned resulting in an
+// aborted upgrade.
 //
 //lint:ignore U1000 Ignore unused function temporarily for debugging
 func (k Keeper) startFlushUpgradeHandshake(
@@ -123,17 +121,10 @@ func (k Keeper) startFlushUpgradeHandshake(
 	proposedUpgradeFields types.UpgradeFields,
 	counterpartyChannel types.Channel,
 	counterpartyUpgrade types.Upgrade,
-	desiredChannelState types.State,
-	// TODO: add flush state here when enum is present
 	proofCounterpartyChannel,
 	proofUpgrade []byte,
 	proofHeight clienttypes.Height,
 ) error {
-
-	if !collections.Contains(desiredChannelState, []types.State{types.TRYUPGRADE, types.ACKUPGRADE}) {
-		return errorsmod.Wrapf(types.ErrInvalidChannelState, "expected one of [%s, %s], got %s", types.TRYUPGRADE, types.ACKUPGRADE, desiredChannelState)
-	}
-
 	channel, found := k.GetChannel(ctx, portID, channelID)
 	if !found {
 		return errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
@@ -156,84 +147,69 @@ func (k Keeper) startFlushUpgradeHandshake(
 	if err := k.connectionKeeper.VerifyChannelState(
 		ctx,
 		connection,
-		proofHeight,
-		proofCounterpartyChannel,
+		proofHeight, proofCounterpartyChannel,
 		channel.Counterparty.PortId,
 		channel.Counterparty.ChannelId,
 		counterpartyChannel,
 	); err != nil {
-		return err
+		return errorsmod.Wrap(err, "failed to verify counterparty channel state")
 	}
 
 	// verifies the proof that a particular proposed upgrade has been stored in the upgrade path of the counterparty
-	if err := k.connectionKeeper.VerifyChannelUpgrade(ctx, connection, proofHeight, proofUpgrade, channel.Counterparty.PortId,
-		channel.Counterparty.ChannelId, counterpartyUpgrade); err != nil {
-		return err
+	if err := k.connectionKeeper.VerifyChannelUpgrade(
+		ctx,
+		connection,
+		proofHeight, proofUpgrade,
+		channel.Counterparty.PortId,
+		channel.Counterparty.ChannelId,
+		counterpartyUpgrade,
+	); err != nil {
+		return errorsmod.Wrap(err, "failed to verify counterparty upgrade")
 	}
 
-	// ensure that the upgrade sequences match.
+	// the current upgrade handshake must only continue if both channels are using the same upgrade sequence,
+	// otherwise an error receipt must be written so that the upgrade handshake may be attempted again with synchronized sequences
 	if counterpartyChannel.UpgradeSequence != channel.UpgradeSequence {
-		// error on the higher sequence so that both chains move to a fresh sequence.
+		// error on the higher sequence so that both chains synchronize on a fresh sequence
 		channel.UpgradeSequence = math.Max(counterpartyChannel.UpgradeSequence, channel.UpgradeSequence)
 		k.SetChannel(ctx, portID, channelID, channel)
-		k.restoreChannel(portID, channelID)
-		// TODO: return error receipt here, not an error.
-		return errorsmod.Wrapf(types.ErrInvalidUpgradeSequence, "expected upgrade sequence (%d) to match counterparty upgrade sequence (%d)", channel.UpgradeSequence, counterpartyChannel.UpgradeSequence)
-	}
 
-	//if !reflect.DeepEqual(proposedUpgradeFields, counterpartyUpgrade.Fields) {
-	//	k.restoreChannel(portID, channelID)
-	//	// TODO: return error receipt
-	//}
+		return types.NewUpgradeError(channel.UpgradeSequence, errorsmod.Wrapf(
+			types.ErrIncompatibleCounterpartyUpgrade, "expected upgrade sequence (%d) to match counterparty upgrade sequence (%d)", channel.UpgradeSequence, counterpartyChannel.UpgradeSequence),
+		)
+	}
 
 	// ensure upgrade fields ordering is the same.
 	if proposedUpgradeFields.Ordering != counterpartyUpgrade.Fields.Ordering {
-		k.restoreChannel(portID, channelID)
-		// TODO: return error receipt
+		return types.NewUpgradeError(channel.UpgradeSequence, errorsmod.Wrapf(
+			types.ErrIncompatibleCounterpartyUpgrade, "expected upgrade ordering (%s) to match counterparty upgrade ordering (%d)", proposedUpgradeFields.Ordering, counterpartyUpgrade.Fields.Ordering),
+		)
 	}
 
 	// connectionHops can change in a channelUpgrade, however both sides must still be each other's counterparty.
-	proposedConnection, found := k.connectionKeeper.GetConnection(ctx, proposedUpgradeFields.ConnectionHops[0])
-	if !found {
-		k.restoreChannel(portID, channelID)
-		// TODO: return error receipt
+	proposedConnection, err := k.GetConnection(ctx, proposedUpgradeFields.ConnectionHops[0])
+	if err != nil {
+		// NOTE: this error is expected to be unreachable as the proposed upgrade connectionID should have been
+		// validated in the upgrade INIT and TRY handlers
+		return types.NewUpgradeError(channel.UpgradeSequence, errorsmod.Wrapf(
+			err, "expected proposed connection to be found"),
+		)
 	}
 
 	if proposedConnection.GetState() != int32(connectiontypes.OPEN) {
-		k.restoreChannel(portID, channelID)
-		// TODO: return error receipt
+		// NOTE: this error is expected to be unreachable as the proposed upgrade connectionID should have been
+		// validated in the upgrade INIT and TRY handlers
+		return types.NewUpgradeError(channel.UpgradeSequence, errorsmod.Wrapf(
+			err, "expected proposed connection to be OPEN (got %s)", connectiontypes.State(proposedConnection.GetState()).String()),
+		)
 	}
 
-	if counterpartyUpgrade.Fields.ConnectionHops[0] != proposedConnection.Counterparty.ConnectionId {
-		k.restoreChannel(portID, channelID)
-		// TODO: return error receipt
+	// assert that the proposed connectionID's for both channels are still counterparties
+	if counterpartyUpgrade.Fields.ConnectionHops[0] != proposedConnection.GetCounterparty().GetConnectionID() {
+		return types.NewUpgradeError(channel.UpgradeSequence, errorsmod.Wrapf(
+			types.ErrIncompatibleCounterpartyUpgrade, "counterparty upgrade connection end is not a counterparty of self proposed connection end (%s != %s)", counterpartyUpgrade.Fields.ConnectionHops[0], proposedConnection.GetCounterparty().GetConnectionID()),
+		)
 	}
-
-	// set the channel to the desired state
-	channel.State = desiredChannelState
-	// TODO: channel.FlushState = FLUSHING
-
-	if len(k.pendingInflightPackets(portID, channelID)) == 0 {
-		// if there are no packets in flight, then flush is complete
-		// TODO: channel.FlushState = FLUSHCOMPLETE
-	}
-
-	k.SetChannel(ctx, portID, channelID, channel)
-	// TODO: k.SetChannelCounterpartyLastPacketSequenceSend(portID, channelID, counterpartyUpgrade.LatestSequenceSend)
 
 	return nil
-}
-
-// restoreChannel will write an error receipt, set the channel back to its original state and
-// delete upgrade information when the executing channel needs to abort the upgrade handshake and return to the original parameters.
-func (k Keeper) restoreChannel(portID, channelID string) {
-	// TODO
-}
-
-// pendingInflightPackets returns the packet sequences sent on this end that have not had their lifecycle completed
-//
-//lint:ignore U1000 Ignore unused function temporarily for debugging
-func (k Keeper) pendingInflightPackets(portID, channelID string) []uint64 {
-	// TODO
-	return []uint64{}
 }
