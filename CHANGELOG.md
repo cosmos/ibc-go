@@ -38,7 +38,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Dependencies
 
-* [#3457](https://github.com/cosmos/ibc-go/pull/3457) Update to ics23 v0.10.0.
+* [\#3542](https://github.com/cosmos/ibc-go/pull/3542) Update Cosmos SDK to v0.47.2 and CometBFT to v0.37.1.
+* [\#3457](https://github.com/cosmos/ibc-go/pull/3457) Update to ics23 v0.10.0.
 
 ### API Breaking
 
@@ -50,9 +51,13 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Features
 
+* (light-clients/09-localhost) [\#3229](https://github.com/cosmos/ibc-go/pull/3229) Implementation of v2 of localhost loopback client.
+* (apps/transfer) [\#3454](https://github.com/cosmos/ibc-go/pull/3019) Add state entry to keep track of total amount of tokens in escrow.
+
 ### Bug Fixes
 
-* [\#3346](https://github.com/cosmos/ibc-go/pull/3346) Properly handle ordered channels in `UnreceivedPackets` query.
+* (core/04-channel) [\#3346](https://github.com/cosmos/ibc-go/pull/3346) Properly handle ordered channels in `UnreceivedPackets` query.
+* (core/04-channel) [\#3593](https://github.com/cosmos/ibc-go/pull/3593) `SendPacket` now correctly returns `ErrClientNotFound` in favour of `ErrConsensusStateNotFound`.
 
 ## [v7.0.0](https://github.com/cosmos/ibc-go/releases/tag/v6.1.0) - 2023-03-17 
 
