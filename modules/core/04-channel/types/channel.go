@@ -1,8 +1,6 @@
 package types
 
 import (
-	"fmt"
-
 	errorsmod "cosmossdk.io/errors"
 
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
@@ -12,12 +10,6 @@ import (
 var (
 	_ exported.ChannelI             = (*Channel)(nil)
 	_ exported.CounterpartyChannelI = (*Counterparty)(nil)
-)
-
-const (
-	// restoreErrorString defines a string constant included in error receipts.
-	// NOTE: Changing this const is state machine breaking as it is written into state.
-	restoreErrorString = "restored channel to pre-upgrade state"
 )
 
 // NewChannel creates a new Channel instance
@@ -33,6 +25,8 @@ func NewChannel(
 		Version:        version,
 		// UpgradeSequence is intentionally left empty as a new channel has not performed an upgrade.
 		UpgradeSequence: 0,
+		// FlushStatus is NOTINFLUSH as a new channel will not be in the upgrade process.
+		FlushStatus: NOTINFLUSH,
 	}
 }
 
@@ -135,14 +129,4 @@ func (ic IdentifiedChannel) ValidateBasic() error {
 	}
 	channel := NewChannel(ic.State, ic.Ordering, ic.Counterparty, ic.ConnectionHops, ic.Version)
 	return channel.ValidateBasic()
-}
-
-// NewErrorReceipt returns an error receipt with the code from the provided error type stripped
-// out to ensure changes of the error message don't cause state machine breaking changes.
-func NewErrorReceipt(upgradeSequence uint64, err error) ErrorReceipt {
-	_, code, _ := errorsmod.ABCIInfo(err, false) // discard non-determinstic codespace and log values
-	return ErrorReceipt{
-		Sequence: upgradeSequence,
-		Error:    fmt.Sprintf("ABCI code: %d: %s", code, restoreErrorString),
-	}
 }

@@ -564,25 +564,53 @@ func (endpoint *Endpoint) TimeoutOnClose(packet channeltypes.Packet) error {
 	return endpoint.Chain.sendMsgs(timeoutOnCloseMsg)
 }
 
-func (endpoint *Endpoint) ChanUpgradeInit(timeout channeltypes.Timeout) error {
+// ChanUpgradeInit sends a MsgChannelUpgradeInit on the associated endpoint.
+// A default upgrade proposal is used with overrides from the ProposedUpgrade
+// in the channel config.
+func (endpoint *Endpoint) ChanUpgradeInit() error {
+	upgrade := endpoint.GetProposedUpgrade()
+
 	msg := channeltypes.NewMsgChannelUpgradeInit(
 		endpoint.ChannelConfig.PortID,
 		endpoint.ChannelID,
-		channeltypes.NewUpgradeFields(endpoint.ChannelConfig.Order, []string{endpoint.ConnectionID}, endpoint.ChannelConfig.Version),
-		channeltypes.NewUpgradeTimeout(timeout.Height, timeout.Timestamp),
+		upgrade.Fields,
+		upgrade.Timeout,
 		endpoint.Chain.SenderAccount.GetAddress().String(),
 	)
 
-	if err := endpoint.Chain.sendMsgs(msg); err != nil {
-		return err
-	}
+	return endpoint.Chain.sendMsgs(msg)
+}
 
-	// update version to selected app version
-	// NOTE: this update must be performed after SendMsgs()
-	endpoint.ChannelConfig.Version = endpoint.GetChannel().Version
+// ChanUpgradeTry sends a MsgChannelUpgradeTry on the associated endpoint.
+func (endpoint *Endpoint) ChanUpgradeTry(timeout channeltypes.Timeout) error {
+	err := endpoint.UpdateClient()
+	require.NoError(endpoint.Chain.TB, err)
 
-	endpoint.Chain.Coordinator.CommitBlock(endpoint.Chain)
-	return endpoint.Counterparty.UpdateClient()
+	counterpartyChannelID := endpoint.Counterparty.ChannelID
+	counterpartyPortID := endpoint.Counterparty.ChannelConfig.PortID
+
+	channelKey := host.ChannelKey(counterpartyPortID, counterpartyChannelID)
+	proofChannel, height := endpoint.Counterparty.Chain.QueryProof(channelKey)
+	upgradeKey := host.ChannelUpgradeKey(counterpartyPortID, counterpartyChannelID)
+	proofUpgrade, _ := endpoint.Counterparty.Chain.QueryProof(upgradeKey)
+
+	counterpartyUpgrade, found := endpoint.Counterparty.Chain.App.GetIBCKeeper().ChannelKeeper.GetUpgrade(endpoint.Counterparty.Chain.GetContext(), counterpartyPortID, counterpartyChannelID)
+	require.True(endpoint.Chain.TB, found)
+
+	msg := channeltypes.NewMsgChannelUpgradeTry(
+		endpoint.ChannelConfig.PortID,
+		endpoint.ChannelID,
+		[]string{endpoint.ConnectionID},
+		timeout,
+		counterpartyUpgrade,
+		endpoint.Counterparty.GetChannel().UpgradeSequence,
+		proofChannel,
+		proofUpgrade,
+		height,
+		endpoint.Chain.SenderAccount.GetAddress().String(),
+	)
+
+	return endpoint.Chain.sendMsgs(msg)
 }
 
 // SetChannelState sets a channel state
@@ -660,4 +688,41 @@ func (endpoint *Endpoint) QueryClientStateProof() (exported.ClientState, []byte)
 	proofClient, _ := endpoint.QueryProof(clientKey)
 
 	return clientState, proofClient
+}
+
+// GetProposedUpgrade returns a valid upgrade which can be used for UpgradeInit and UpgradeTry.
+// By default, the endpoint's existing channel fields will be used for the upgrade fields and
+// a sane default timeout will be used by querying the counterparty's latest height.
+// If any non-empty values are specified in the ChannelConfig's ProposedUpgrade,
+// those values will be used in the returned upgrade.
+func (endpoint *Endpoint) GetProposedUpgrade() channeltypes.Upgrade {
+	// create a default upgrade
+	upgrade := channeltypes.Upgrade{
+		Fields: channeltypes.UpgradeFields{
+			Ordering:       endpoint.ChannelConfig.Order,
+			ConnectionHops: []string{endpoint.ConnectionID},
+			Version:        endpoint.ChannelConfig.Version,
+		},
+		Timeout:            channeltypes.NewUpgradeTimeout(endpoint.Counterparty.Chain.GetTimeoutHeight(), 0),
+		LatestSequenceSend: 0,
+	}
+
+	override := endpoint.ChannelConfig.ProposedUpgrade
+	if override.Timeout.IsValid() {
+		upgrade.Timeout = override.Timeout
+	}
+
+	if override.Fields.Ordering != channeltypes.NONE {
+		upgrade.Fields.Ordering = override.Fields.Ordering
+	}
+
+	if override.Fields.Version != "" {
+		upgrade.Fields.Version = override.Fields.Version
+	}
+
+	if len(override.Fields.ConnectionHops) != 0 {
+		upgrade.Fields.ConnectionHops = override.Fields.ConnectionHops
+	}
+
+	return upgrade
 }
