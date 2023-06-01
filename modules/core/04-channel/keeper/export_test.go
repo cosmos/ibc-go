@@ -1,5 +1,9 @@
 package keeper
 
+/*
+	This file is to allow for unexported functions to be accessible to the testing package.
+*/
+
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -7,7 +11,7 @@ import (
 	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 )
 
-// StartFlushUpgradeHandshake is an exported version of startFlushUpgradeHandshake to be used for unit testing
+// StartFlushUpgradeHandshake is a wrapper around startFlushUpgradeHandshake to allow the function to be directly called in tests.
 func (k Keeper) StartFlushUpgradeHandshake(
 	ctx sdk.Context,
 	portID,
@@ -20,4 +24,9 @@ func (k Keeper) StartFlushUpgradeHandshake(
 	proofHeight clienttypes.Height,
 ) error {
 	return k.startFlushUpgradeHandshake(ctx, portID, channelID, proposedUpgradeFields, counterpartyChannel, counterpartyUpgrade, proofCounterpartyChannel, proofCounterpartyUpgrade, proofHeight)
+}
+
+// ValidateUpgradeFields is a wrapper around validateUpgradeFields to allow the function to be directly called in tests.
+func (k Keeper) ValidateUpgradeFields(ctx sdk.Context, proposedUpgrade types.UpgradeFields, currentChannel types.Channel) error {
+	return k.validateUpgradeFields(ctx, proposedUpgrade, currentChannel)
 }
