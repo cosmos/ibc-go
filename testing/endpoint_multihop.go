@@ -33,19 +33,19 @@ type EndpointM struct {
 
 // NewEndpointMFromLinkedPaths constructs a new EndpointM without the counterparty.
 // CONTRACT: the counterparty EndpointM must be set by the caller.
-func NewEndpointMFromLinkedPaths(path LinkedPaths) (A, Z EndpointM) {
-	A.paths = path
-	A.Endpoint = A.paths.A()
-	A.Counterparty = &Z
+func NewEndpointMFromLinkedPaths(path LinkedPaths) (a, z EndpointM) {
+	a.paths = path
+	a.Endpoint = a.paths.A()
+	a.Counterparty = &z
 
-	Z.paths = path.Reverse()
-	Z.Endpoint = Z.paths.A()
-	Z.Counterparty = &A
+	z.paths = path.Reverse()
+	z.Endpoint = z.paths.A()
+	z.Counterparty = &a
 
 	// create multihop channel paths
-	A.mChanPath = A.paths.ToMultihopChanPath()
-	Z.mChanPath = Z.paths.ToMultihopChanPath()
-	return A, Z
+	a.mChanPath = a.paths.ToMultihopChanPath()
+	z.mChanPath = z.paths.ToMultihopChanPath()
+	return
 }
 
 // ChanOpenInit will construct and execute a MsgChannelOpenInit on the associated EndpointM.

@@ -112,7 +112,11 @@ func VerifyMultihopNonMembership(
 }
 
 // verifyConnectionStates verifies that the provided connections match the connectionHops field of the channel and are in OPEN state
-func verifyConnectionStates(cdc codec.BinaryCodec, connectionProofData []*channeltypes.MultihopProof, connectionHops []string) error {
+func verifyConnectionStates(
+	cdc codec.BinaryCodec,
+	connectionProofData []*channeltypes.MultihopProof,
+	connectionHops []string,
+) error {
 	if len(connectionProofData) != len(connectionHops)-1 {
 		return sdkerrors.Wrapf(connectiontypes.ErrInvalidLengthConnection,
 			"connectionHops length (%d) must match the connectionProofData length (%d)",
@@ -171,14 +175,20 @@ func verifyIntermediateStateProofs(
 		// verify consensus state client id matches previous connection counterparty client id
 		if len(expectedClientID) > 0 {
 			if len(consensusProof.PrefixedKey.KeyPath) < 2 {
-				return fmt.Errorf("invalid consensus proof key path length: %d", len(consensusProof.PrefixedKey.KeyPath))
+				return fmt.Errorf(
+					"invalid consensus proof key path length: %d",
+					len(consensusProof.PrefixedKey.KeyPath),
+				)
 			}
 			parts := strings.Split(consensusProof.PrefixedKey.KeyPath[1], "/")
 			if len(parts) < 2 {
 				return fmt.Errorf("invalid consensus proof key path: %s", consensusProof.PrefixedKey.KeyPath[1])
 			}
 			if parts[1] != expectedClientID {
-				return fmt.Errorf("consensus state client id (%s) does not match expected client id (%s)", parts[1], expectedClientID)
+				return fmt.Errorf("consensus state client id (%s) does not match expected client id (%s)",
+					parts[1],
+					expectedClientID,
+				)
 			}
 		}
 
