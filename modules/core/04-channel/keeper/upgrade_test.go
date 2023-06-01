@@ -203,4 +203,3 @@ func (suite *KeeperTestSuite) TestValidateProposedUpgradeFields() {
 		})
 	}
 }
-
