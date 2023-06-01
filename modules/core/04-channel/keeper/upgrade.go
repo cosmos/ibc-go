@@ -176,6 +176,7 @@ func (k Keeper) WriteUpgradeTryChannel(
 	ctx sdk.Context,
 	portID, channelID string,
 	proposedUpgrade types.Upgrade,
+	flushStatus types.FlushStatus,
 ) {
 	defer telemetry.IncrCounter(1, "ibc", "channel", "upgrade-try")
 
@@ -185,34 +186,14 @@ func (k Keeper) WriteUpgradeTryChannel(
 	}
 
 	previousState := currentChannel.State
-
 	currentChannel.State = types.TRYUPGRADE
+	currentChannel.FlushStatus = flushStatus
+
 	k.SetChannel(ctx, portID, channelID, currentChannel)
 	k.SetUpgrade(ctx, portID, channelID, proposedUpgrade)
 
 	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", previousState, "new-state", types.TRYUPGRADE.String())
 	emitChannelUpgradeTryEvent(ctx, portID, channelID, currentChannel, proposedUpgrade)
-}
-
-// TODO: add counterparty flushing status to StartFlushUpgradeHandshake API when the enum has been added
-
-// StartFlushUpgradeHandshake updates channel state from INITUPGRADE to TRYUPGRADE
-// packet flushing logic should be performed here, as well as proof verification for the upgrade sequence
-// and the counterparty channel state
-// upgrade is blocked on this channelEnd from progressing until flush completes on both ends
-func (k Keeper) StartFlushUpgradeHandshake(
-	ctx sdk.Context,
-	portID, channelID string,
-	upgradeFields types.UpgradeFields,
-	counterpartyChannel types.Channel,
-	counterpartyUpgrade types.Upgrade,
-	counterpartyUpgradeSequence uint64,
-	channelState types.State,
-	proofChannel, proofUpgrade []byte,
-	proofHeight clienttypes.Height,
-) error {
-	// TODO
-	return nil
 }
 
 // constructProposedUpgrade returns the proposed upgrade from the provided arguments.
