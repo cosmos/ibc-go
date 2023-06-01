@@ -57,11 +57,11 @@ func SerializeCosmosTx(cdc codec.BinaryCodec, msgs []proto.Message, encoding str
 				return nil, err
 			}
 		}
-	
+
 		cosmosTx := &CosmosTx{
 			Messages: msgAnys,
 		}
-	
+
 		bz, err = cdc.Marshal(cosmosTx)
 		if err != nil {
 			return nil, err
@@ -74,8 +74,8 @@ func SerializeCosmosTx(cdc codec.BinaryCodec, msgs []proto.Message, encoding str
 				return nil, err
 			}
 			msgAnys[i] = &JSONAny{
-				TypeURL:     "/" + proto.MessageName(msg),
-				Value:       jsonValue,
+				TypeURL: "/" + proto.MessageName(msg),
+				Value:   jsonValue,
 			}
 
 			cosmosTx := JSONCosmosTx{
