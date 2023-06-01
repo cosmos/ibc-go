@@ -43,7 +43,6 @@ func (suite *TypesTestSuite) TestCosmwasmDeserializeCosmosTx() {
 	testCases := []struct {
 		name    string
 		malleate func()
-		// msgs    []proto.Message
 		expPass bool
 	}{
 		{
