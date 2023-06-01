@@ -94,7 +94,6 @@ func (u UpgradeError) Error() string {
 	return u.err.Error()
 }
 
-
 // Is returns true if the underlying error is of the given err type.
 func (u UpgradeError) Is(err error) bool {
 	return errors.Is(u.err, err)
