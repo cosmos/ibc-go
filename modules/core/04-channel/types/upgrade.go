@@ -80,6 +80,14 @@ type UpgradeError struct {
 	sequence uint64
 }
 
+// NewUpgradeError returns a new UpgradeError instance.
+func NewUpgradeError(upgradeSequence uint64, err error) UpgradeError {
+	return UpgradeError{
+		err:      err,
+		sequence: upgradeSequence,
+	}
+}
+
 func (u UpgradeError) Error() string {
 	return u.err.Error()
 }
@@ -94,13 +102,5 @@ func (u UpgradeError) GetErrorReceipt() ErrorReceipt {
 	return ErrorReceipt{
 		Sequence: u.sequence,
 		Message:  fmt.Sprintf("ABCI code: %d: %s", code, restoreErrorString),
-	}
-}
-
-// NewUpgradeError returns a new UpgradeError instance.
-func NewUpgradeError(upgradeSequence uint64, err error) UpgradeError {
-	return UpgradeError{
-		err:      err,
-		sequence: upgradeSequence,
 	}
 }
