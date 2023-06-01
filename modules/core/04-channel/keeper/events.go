@@ -294,8 +294,6 @@ func emitChannelUpgradeInitEvent(ctx sdk.Context, portID string, channelID strin
 }
 
 // emitChannelUpgradeTryEvent emits a channel upgrade try event
-//
-//lint:ignore U1000 Ignore unused function temporarily for debugging
 func emitChannelUpgradeTryEvent(ctx sdk.Context, portID string, channelID string, currentChannel types.Channel, upgrade types.Upgrade) {
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
@@ -308,6 +306,7 @@ func emitChannelUpgradeTryEvent(ctx sdk.Context, portID string, channelID string
 			sdk.NewAttribute(types.AttributeKeyUpgradeVersion, upgrade.Fields.Version),
 			sdk.NewAttribute(types.AttributeKeyUpgradeOrdering, upgrade.Fields.Ordering.String()),
 			sdk.NewAttribute(types.AttributeKeyUpgradeSequence, fmt.Sprintf("%d", currentChannel.UpgradeSequence)),
+			sdk.NewAttribute(types.AttributeKeyUpgradeChannelFlushStatus, currentChannel.FlushStatus.String()),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
