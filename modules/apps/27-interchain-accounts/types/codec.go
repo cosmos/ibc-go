@@ -1,7 +1,6 @@
 package types
 
 import (
-	"bytes"
 	"encoding/json"
 
 	errorsmod "cosmossdk.io/errors"
@@ -10,7 +9,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/gogoproto/proto"
-	"github.com/gogo/protobuf/jsonpb"
 )
 
 // ModuleCdc references the global interchain accounts module codec. Note, the codec
@@ -42,9 +40,9 @@ type JsonCosmosTx struct {
 // packed into Any's and inserted into the Messages field of a CosmosTx. The proto marshaled CosmosTx
 // bytes are returned. Only the ProtoCodec is supported for serializing messages.
 func SerializeCosmosTx(cdc codec.BinaryCodec, msgs []proto.Message, encoding string) ([]byte, error) {
-	// only ProtoCodec is supported
+	// ProtoCodec must be supported
 	if _, ok := cdc.(*codec.ProtoCodec); !ok {
-		return nil, errorsmod.Wrap(ErrInvalidCodec, "only ProtoCodec is supported for receiving messages on the host chain")
+		return nil, errorsmod.Wrap(ErrInvalidCodec, "ProtoCodec must be supported for receiving messages on the host chain")
 	}
 
 	var bz []byte
@@ -126,26 +124,19 @@ func DeserializeCosmosTx(cdc codec.BinaryCodec, data []byte, encoding string) ([
 		}
 	case EncodingJSON:
 		var cosmosTx JsonCosmosTx
-		// This case does not rely on cdc to unpack the Any.
-		// cdc is only used to access the interface registry.
-		interfaceRegistry := cdc.(*codec.ProtoCodec).InterfaceRegistry()
-		// this cosmosTx is not the same as the one in the protobuf case
-		// its Any needs to be unpacked using json instead of protobuf
 		if err := json.Unmarshal(data, &cosmosTx); err != nil {
-			// TODO: not sure if this err is indeterminate
-			return nil, err
+			return nil, errorsmod.Wrapf(ErrUnknownDataType, "cannot unmarshal cosmosTx with json")
 		}
 
 		msgs = make([]sdk.Msg, len(cosmosTx.Messages))
 
 		for i, jsonAny := range cosmosTx.Messages {
-			message, err := interfaceRegistry.Resolve(jsonAny.TypeUrl)
+			message, err := cdc.(*codec.ProtoCodec).InterfaceRegistry().Resolve(jsonAny.TypeUrl)
 			if err != nil {
 				return nil, err
 			}
-			if err = jsonpb.Unmarshal(bytes.NewReader(jsonAny.Value), message); err != nil {
-				// TODO: not sure if this err is indeterminate
-				return nil, err
+			if err = cdc.(*codec.ProtoCodec).UnmarshalJSON(jsonAny.Value, message); err != nil {
+				return nil, errorsmod.Wrapf(ErrUnknownDataType, "cannot unmarshal the %d-th json message: %s", i, string(jsonAny.Value))
 			}
 
 			msg, ok := message.(sdk.Msg)
