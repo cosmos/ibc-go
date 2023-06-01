@@ -11,6 +11,7 @@ import "cosmos/msg/v1/msg.proto";
 // Msg defines the ibc/channel Msg service.
 service Msg {
   option (cosmos.msg.v1.service) = true;
+
   // ChannelOpenInit defines a rpc handler method for MsgChannelOpenInit.
   rpc ChannelOpenInit(MsgChannelOpenInit) returns (MsgChannelOpenInitResponse);
 

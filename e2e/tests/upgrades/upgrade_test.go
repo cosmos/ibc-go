@@ -17,8 +17,8 @@ import (
 	"github.com/strangelove-ventures/interchaintest/v7/ibc"
 	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
 	"github.com/stretchr/testify/suite"
-	"golang.org/x/mod/semver"
 
+	"github.com/cosmos/ibc-go/e2e/semverutil"
 	"github.com/cosmos/ibc-go/e2e/testconfig"
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
@@ -272,7 +272,8 @@ func (s *UpgradeTestSuite) TestV5ToV6ChainUpgrade() {
 	var hostAccount string
 
 	t.Run("register interchain account", func(t *testing.T) {
-		version := getICAVersion(testconfig.GetChainATag(), testconfig.GetChainBTag())
+		// explicitly set the version string because intertx with ibfc-go v5 does not support incentivized channels.
+		version := icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
 		msgRegisterAccount := intertxtypes.NewMsgRegisterAccount(controllerAccount.FormattedAddress(), ibctesting.FirstConnectionID, version)
 		s.RegisterInterchainAccount(ctx, chainA, controllerAccount, msgRegisterAccount)
 	})
@@ -625,11 +626,6 @@ func (s *UpgradeTestSuite) TestV7ToV7_1ChainUpgrade() {
 
 		expected := testvalues.StartingTokenAmount - testvalues.IBCTransferAmount
 		s.Require().Equal(expected, actualBalance)
-
-		// Escrow amount for native denom is not stored in state because pre-upgrade version did not support this feature
-		actualTotalEscrow, err := s.QueryTotalEscrowForDenom(ctx, chainA, chainADenom)
-		s.Require().NoError(err)
-		s.Require().Equal(math.ZeroInt(), actualTotalEscrow)
 	})
 
 	t.Run("start relayer", func(t *testing.T) {
@@ -686,7 +682,7 @@ func (s *UpgradeTestSuite) RegisterInterchainAccount(ctx context.Context, chain 
 // getICAVersion returns the version which should be used in the MsgRegisterAccount broadcast from the
 // controller chain.
 func getICAVersion(chainAVersion, chainBVersion string) string {
-	chainBIsGreaterThanOrEqualToChainA := semver.Compare(chainAVersion, chainBVersion) <= 0
+	chainBIsGreaterThanOrEqualToChainA := semverutil.GTE(chainBVersion, chainAVersion)
 	if chainBIsGreaterThanOrEqualToChainA {
 		// allow version to be specified by the controller chain
 		return ""

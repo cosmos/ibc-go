@@ -11,7 +11,6 @@ import (
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
-
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 
 	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
@@ -22,9 +21,9 @@ import (
 
 // Keeper defines the IBC fungible transfer keeper
 type Keeper struct {
-	storeKey   storetypes.StoreKey
-	cdc        codec.BinaryCodec
-	paramSpace paramtypes.Subspace
+	storeKey       storetypes.StoreKey
+	cdc            codec.BinaryCodec
+	legacySubspace paramtypes.Subspace
 
 	ics4Wrapper   porttypes.ICS4Wrapper
 	channelKeeper types.ChannelKeeper
@@ -32,13 +31,24 @@ type Keeper struct {
 	authKeeper    types.AccountKeeper
 	bankKeeper    types.BankKeeper
 	scopedKeeper  exported.ScopedKeeper
+
+	// the address capable of executing a MsgUpdateParams message. Typically, this
+	// should be the x/gov module account.
+	authority string
 }
 
 // NewKeeper creates a new IBC transfer Keeper instance
 func NewKeeper(
-	cdc codec.BinaryCodec, key storetypes.StoreKey, paramSpace paramtypes.Subspace,
-	ics4Wrapper porttypes.ICS4Wrapper, channelKeeper types.ChannelKeeper, portKeeper types.PortKeeper,
-	authKeeper types.AccountKeeper, bankKeeper types.BankKeeper, scopedKeeper exported.ScopedKeeper,
+	cdc codec.BinaryCodec,
+	key storetypes.StoreKey,
+	legacySubspace paramtypes.Subspace,
+	ics4Wrapper porttypes.ICS4Wrapper,
+	channelKeeper types.ChannelKeeper,
+	portKeeper types.PortKeeper,
+	authKeeper types.AccountKeeper,
+	bankKeeper types.BankKeeper,
+	scopedKeeper exported.ScopedKeeper,
+	authority string,
 ) Keeper {
 	// ensure ibc transfer module account is set
 	if addr := authKeeper.GetModuleAddress(types.ModuleName); addr == nil {
@@ -46,21 +56,27 @@ func NewKeeper(
 	}
 
 	// set KeyTable if it has not already been set
-	if !paramSpace.HasKeyTable() {
-		paramSpace = paramSpace.WithKeyTable(types.ParamKeyTable())
+	if !legacySubspace.HasKeyTable() {
+		legacySubspace = legacySubspace.WithKeyTable(types.ParamKeyTable())
 	}
 
 	return Keeper{
-		cdc:           cdc,
-		storeKey:      key,
-		paramSpace:    paramSpace,
-		ics4Wrapper:   ics4Wrapper,
-		channelKeeper: channelKeeper,
-		portKeeper:    portKeeper,
-		authKeeper:    authKeeper,
-		bankKeeper:    bankKeeper,
-		scopedKeeper:  scopedKeeper,
+		cdc:            cdc,
+		storeKey:       key,
+		legacySubspace: legacySubspace,
+		ics4Wrapper:    ics4Wrapper,
+		channelKeeper:  channelKeeper,
+		portKeeper:     portKeeper,
+		authKeeper:     authKeeper,
+		bankKeeper:     bankKeeper,
+		scopedKeeper:   scopedKeeper,
+		authority:      authority,
 	}
+}
+
+// GetAuthority returns the transfer module's authority.
+func (k Keeper) GetAuthority() string {
+	return k.authority
 }
 
 // Logger returns a module-specific logger.
@@ -91,6 +107,26 @@ func (k Keeper) GetPort(ctx sdk.Context) string {
 func (k Keeper) SetPort(ctx sdk.Context, portID string) {
 	store := ctx.KVStore(k.storeKey)
 	store.Set(types.PortKey, []byte(portID))
+}
+
+// GetParams returns the current transfer module parameters.
+func (k Keeper) GetParams(ctx sdk.Context) types.Params {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get([]byte(types.ParamsKey))
+	if bz == nil { // only panics on unset params and not on empty params
+		panic("ibc transfer params are not set in store")
+	}
+
+	var params types.Params
+	k.cdc.MustUnmarshal(bz, &params)
+	return params
+}
+
+// SetParams sets the transfer module parameters.
+func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
+	store := ctx.KVStore(k.storeKey)
+	bz := k.cdc.MustMarshal(&params)
+	store.Set([]byte(types.ParamsKey), bz)
 }
 
 // GetDenomTrace retreives the full identifiers trace and base denomination from the store.
@@ -152,7 +188,7 @@ func (k Keeper) IterateDenomTraces(ctx sdk.Context, cb func(denomTrace types.Den
 func (k Keeper) GetTotalEscrowForDenom(ctx sdk.Context, denom string) sdk.Coin {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.TotalEscrowForDenomKey(denom))
-	if bz == nil {
+	if len(bz) == 0 {
 		return sdk.NewCoin(denom, sdk.ZeroInt())
 	}
 
@@ -163,21 +199,30 @@ func (k Keeper) GetTotalEscrowForDenom(ctx sdk.Context, denom string) sdk.Coin {
 }
 
 // SetTotalEscrowForDenom stores the total amount of source chain tokens that are in escrow.
+// Amount is stored in state if and only if it is not equal to zero. The function will panic
+// if the amount is negative.
 func (k Keeper) SetTotalEscrowForDenom(ctx sdk.Context, coin sdk.Coin) {
 	if coin.Amount.IsNegative() {
 		panic(fmt.Sprintf("amount cannot be negative: %s", coin.Amount))
 	}
 
 	store := ctx.KVStore(k.storeKey)
+	key := types.TotalEscrowForDenomKey(coin.Denom)
+
+	if coin.Amount.IsZero() {
+		store.Delete(key) // delete the key since Cosmos SDK x/bank module will prune any non-zero balances
+		return
+	}
+
 	bz := k.cdc.MustMarshal(&sdk.IntProto{Int: coin.Amount})
-	store.Set(types.TotalEscrowForDenomKey(coin.Denom), bz)
+	store.Set(key, bz)
 }
 
 // GetAllTotalEscrowed returns the escrow information for all the denominations.
 func (k Keeper) GetAllTotalEscrowed(ctx sdk.Context) sdk.Coins {
 	var escrows sdk.Coins
 	k.IterateTokensInEscrow(ctx, []byte(types.KeyTotalEscrowPrefix), func(denomEscrow sdk.Coin) bool {
-		escrows = append(escrows, denomEscrow)
+		escrows = escrows.Add(denomEscrow)
 		return false
 	})
 
@@ -193,12 +238,7 @@ func (k Keeper) IterateTokensInEscrow(ctx sdk.Context, prefix []byte, cb func(de
 
 	defer sdk.LogDeferred(ctx.Logger(), func() error { return iterator.Close() })
 	for ; iterator.Valid(); iterator.Next() {
-		keySplit := strings.Split(string(iterator.Key()), "/")
-		if len(keySplit) < 2 {
-			continue // key doesn't conform to expected format
-		}
-
-		denom := strings.Join(keySplit[1:], "/")
+		denom := strings.TrimPrefix(string(iterator.Key()), fmt.Sprintf("%s/", types.KeyTotalEscrowPrefix))
 		if strings.TrimSpace(denom) == "" {
 			continue // denom is empty
 		}
