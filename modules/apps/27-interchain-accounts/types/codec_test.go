@@ -138,6 +138,111 @@ func (suite *TypesTestSuite) TestProtoSerializeAndDeserializeCosmosTx() {
 	suite.Require().Empty(msgs)
 }
 
+func (suite *TypesTestSuite) TestJsonSerializeAndDeserializeCosmosTx() {
+	testCases := []struct {
+		name    string
+		msgs    []proto.Message
+		expPass bool
+	}{
+		{
+			"single msg",
+			[]proto.Message{
+				&banktypes.MsgSend{
+					FromAddress: TestOwnerAddress,
+					ToAddress:   TestOwnerAddress,
+					Amount:      sdk.NewCoins(sdk.NewCoin("bananas", sdk.NewInt(100))),
+				},
+			},
+			true,
+		},
+		{
+			"multiple msgs, same types",
+			[]proto.Message{
+				&banktypes.MsgSend{
+					FromAddress: TestOwnerAddress,
+					ToAddress:   TestOwnerAddress,
+					Amount:      sdk.NewCoins(sdk.NewCoin("bananas", sdk.NewInt(100))),
+				},
+				&banktypes.MsgSend{
+					FromAddress: TestOwnerAddress,
+					ToAddress:   TestOwnerAddress,
+					Amount:      sdk.NewCoins(sdk.NewCoin("bananas", sdk.NewInt(200))),
+				},
+			},
+			true,
+		},
+		{
+			"multiple msgs, different types",
+			[]proto.Message{
+				&banktypes.MsgSend{
+					FromAddress: TestOwnerAddress,
+					ToAddress:   TestOwnerAddress,
+					Amount:      sdk.NewCoins(sdk.NewCoin("bananas", sdk.NewInt(100))),
+				},
+				&govtypes.MsgSubmitProposal{
+					InitialDeposit: sdk.NewCoins(sdk.NewCoin("bananas", sdk.NewInt(100))),
+					Proposer:       TestOwnerAddress,
+				},
+			},
+			true,
+		},
+		{
+			"unregistered msg type",
+			[]proto.Message{
+				&mockSdkMsg{},
+			},
+			false,
+		},
+		{
+			"multiple unregistered msg types",
+			[]proto.Message{
+				&mockSdkMsg{},
+				&mockSdkMsg{},
+				&mockSdkMsg{},
+			},
+			false,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+
+		suite.Run(tc.name, func() {
+			if tc.expPass {
+				bz, err := types.SerializeCosmosTx(simapp.MakeTestEncodingConfig().Marshaler, tc.msgs, types.EncodingJSON)
+				suite.Require().NoError(err, tc.name)
+
+				msgs, err := types.DeserializeCosmosTx(simapp.MakeTestEncodingConfig().Marshaler, bz, types.EncodingJSON)
+				suite.Require().NoError(err, tc.name)
+
+				for i, msg := range msgs {
+					suite.Require().Equal(tc.msgs[i], msg)
+				}
+			} else {
+				bz, err := types.SerializeCosmosTx(simapp.MakeTestEncodingConfig().Marshaler, tc.msgs, types.EncodingJSON)
+				suite.Require().Error(err, tc.name)
+
+				_, err = types.DeserializeCosmosTx(simapp.MakeTestEncodingConfig().Marshaler, bz, types.EncodingJSON)
+				suite.Require().Error(err, tc.name)
+			}
+		})
+	}
+
+	// test serializing non sdk.Msg type
+	bz, err := types.SerializeCosmosTx(simapp.MakeTestEncodingConfig().Marshaler, []proto.Message{&banktypes.MsgSendResponse{}}, types.EncodingProtobuf)
+	suite.Require().NoError(err)
+	suite.Require().NotEmpty(bz)
+
+	// test deserializing unknown bytes
+	_, err = types.DeserializeCosmosTx(simapp.MakeTestEncodingConfig().Marshaler, bz, types.EncodingProtobuf)
+	suite.Require().Error(err) // unregistered type
+
+	// test deserializing unknown bytes
+	msgs, err := types.DeserializeCosmosTx(simapp.MakeTestEncodingConfig().Marshaler, []byte("invalid"), types.EncodingProtobuf)
+	suite.Require().Error(err)
+	suite.Require().Empty(msgs)
+}
+
 // unregistered bytes causes amino to panic.
 // test that DeserializeCosmosTx gracefully returns an error on
 // unsupported amino codec.

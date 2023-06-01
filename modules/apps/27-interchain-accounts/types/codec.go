@@ -36,13 +36,12 @@ func SerializeCosmosTx(cdc codec.BinaryCodec, msgs []proto.Message, encoding str
 		return nil, errorsmod.Wrap(ErrInvalidCodec, "only ProtoCodec is supported for receiving messages on the host chain")
 	}
 
-	msgAnys := make([]*codectypes.Any, len(msgs))
-
 	var bz []byte
 	var err error
 
 	switch encoding {
 	case EncodingProtobuf:
+		msgAnys := make([]*codectypes.Any, len(msgs))
 		for i, msg := range msgs {
 			msgAnys[i], err = codectypes.NewAnyWithValue(msg)
 			if err != nil {
@@ -59,17 +58,25 @@ func SerializeCosmosTx(cdc codec.BinaryCodec, msgs []proto.Message, encoding str
 			return nil, err
 		}
 	case EncodingJSON:
+		type JsonAny struct {
+			TypeUrl string `json:"type_url,omitempty"`
+			Value   []byte `json:"value,omitempty"`
+		}
+		type JsonCosmosTx struct {
+			Messages []*JsonAny `json:"messages,omitempty"`
+		}
+		msgAnys := make([]*JsonAny, len(msgs))
 		for i, msg := range msgs {
-			jsonValue, err := cdc.(*codec.ProtoCodec).MarshalInterfaceJSON(msg)
+			jsonValue, err := cdc.(*codec.ProtoCodec).MarshalJSON(msg)
 			if err != nil {
 				return nil, err
 			}
-			msgAnys[i] = &codectypes.Any{
+			msgAnys[i] = &JsonAny{
 				TypeUrl:     "/" + proto.MessageName(msg),
 				Value:       jsonValue,
 			}
 
-			cosmosTx := &CosmosTx{
+			cosmosTx := JsonCosmosTx{
 				Messages: msgAnys,
 			}
 
