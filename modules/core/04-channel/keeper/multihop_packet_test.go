@@ -357,6 +357,7 @@ func (suite *MultihopTestSuite) TestAcknowledgePacket() {
 	var (
 		packet       *types.Packet
 		packetHeight exported.Height
+		ackHeight    exported.Height
 		ack          = ibcmock.MockAcknowledgement
 		channelCap   *capabilitytypes.Capability
 		expError     *sdkerrors.Error
@@ -371,6 +372,7 @@ func (suite *MultihopTestSuite) TestAcknowledgePacket() {
 				SendPacket(defaultTimeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
 			suite.Require().NoError(suite.Z().RecvPacket(packet, packetHeight))
+			ackHeight = suite.Z().Chain.LastHeader.GetHeight()
 			channelCap = suite.A().Chain.GetChannelCapability(suite.A().ChannelConfig.PortID, suite.A().ChannelID)
 		}, true},
 		{"success: UNORDERED channel", false, func() {
@@ -379,6 +381,7 @@ func (suite *MultihopTestSuite) TestAcknowledgePacket() {
 				SendPacket(defaultTimeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
 			suite.Require().NoError(suite.Z().RecvPacket(packet, packetHeight))
+			ackHeight = suite.Z().Chain.LastHeader.GetHeight()
 			channelCap = suite.A().Chain.GetChannelCapability(suite.A().ChannelConfig.PortID, suite.A().ChannelID)
 		}, true},
 		{"packet already acknowledged ordered channel (no-op)", true, func() {
@@ -395,6 +398,8 @@ func (suite *MultihopTestSuite) TestAcknowledgePacket() {
 			// create packet receipt and acknowledgement
 			err = suite.Z().RecvPacket(packet, packetHeight)
 			suite.Require().NoError(err)
+
+			ackHeight = suite.Z().Chain.LastHeader.GetHeight()
 
 			channelCap = suite.A().Chain.GetChannelCapability(
 				suite.A().ChannelConfig.PortID, suite.A().ChannelID,
@@ -417,6 +422,8 @@ func (suite *MultihopTestSuite) TestAcknowledgePacket() {
 			err = suite.Z().RecvPacket(packet, packetHeight)
 			suite.Require().NoError(err)
 
+			ackHeight = suite.Z().Chain.LastHeader.GetHeight()
+
 			channelCap = suite.A().Chain.GetChannelCapability(
 				suite.A().ChannelConfig.PortID, suite.A().ChannelID,
 			)
@@ -430,7 +437,7 @@ func (suite *MultihopTestSuite) TestAcknowledgePacket() {
 			// use wrong channel naming
 			suite.SetupChannels()
 			*packet = types.NewPacket(ibctesting.MockPacketData, 1, ibctesting.InvalidID, ibctesting.InvalidID, suite.Z().ChannelConfig.PortID, suite.Z().ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
-			packetHeight = suite.A().Chain.LastHeader.GetHeight()
+			ackHeight = suite.Z().Chain.LastHeader.GetHeight()
 		}, false},
 		{"channel not open", false, func() {
 			expError = types.ErrInvalidChannelState
@@ -438,7 +445,7 @@ func (suite *MultihopTestSuite) TestAcknowledgePacket() {
 			suite.SetupChannels()
 
 			*packet = types.NewPacket(ibctesting.MockPacketData, 1, suite.A().ChannelConfig.PortID, suite.A().ChannelID, suite.Z().ChannelConfig.PortID, suite.Z().ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
-			packetHeight = suite.A().Chain.LastHeader.GetHeight()
+			ackHeight = suite.Z().Chain.LastHeader.GetHeight()
 
 			err := suite.A().SetChannelState(types.CLOSED)
 			suite.Require().NoError(err)
@@ -461,6 +468,8 @@ func (suite *MultihopTestSuite) TestAcknowledgePacket() {
 			err = suite.Z().RecvPacket(packet, packetHeight)
 			suite.Require().NoError(err)
 
+			ackHeight = suite.Z().Chain.LastHeader.GetHeight()
+
 			channelCap = suite.A().Chain.GetChannelCapability(
 				suite.A().ChannelConfig.PortID, suite.A().ChannelID,
 			)
@@ -473,7 +482,7 @@ func (suite *MultihopTestSuite) TestAcknowledgePacket() {
 
 			// use wrong port for dest
 			*packet = types.NewPacket(ibctesting.MockPacketData, 1, suite.A().ChannelConfig.PortID, suite.A().ChannelID, ibctesting.InvalidID, suite.Z().ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
-			packetHeight = suite.A().Chain.LastHeader.GetHeight()
+			ackHeight = suite.Z().Chain.LastHeader.GetHeight()
 
 			channelCap = suite.A().Chain.GetChannelCapability(
 				suite.A().ChannelConfig.PortID, suite.A().ChannelID,
@@ -485,7 +494,7 @@ func (suite *MultihopTestSuite) TestAcknowledgePacket() {
 
 			// use wrong channel for dest
 			*packet = types.NewPacket(ibctesting.MockPacketData, 1, suite.A().ChannelConfig.PortID, suite.A().ChannelID, suite.Z().ChannelConfig.PortID, ibctesting.InvalidID, defaultTimeoutHeight, disabledTimeoutTimestamp)
-			packetHeight = suite.A().Chain.LastHeader.GetHeight()
+			ackHeight = suite.Z().Chain.LastHeader.GetHeight()
 
 			channelCap = suite.A().Chain.GetChannelCapability(
 				suite.A().ChannelConfig.PortID, suite.A().ChannelID,
@@ -500,7 +509,7 @@ func (suite *MultihopTestSuite) TestAcknowledgePacket() {
 			suite.A().Chain.App.GetIBCKeeper().ChannelKeeper.SetChannel(suite.A().Chain.GetContext(), suite.A().ChannelConfig.PortID, suite.A().ChannelID, channel)
 
 			*packet = types.NewPacket(ibctesting.MockPacketData, 1, suite.A().ChannelConfig.PortID, suite.A().ChannelID, suite.Z().ChannelConfig.PortID, suite.Z().ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
-			packetHeight = suite.A().Chain.LastHeader.GetHeight()
+			ackHeight = suite.Z().Chain.LastHeader.GetHeight()
 
 			suite.A().Chain.CreateChannelCapability(suite.A().Chain.GetSimApp().ScopedIBCMockKeeper, suite.A().ChannelConfig.PortID, suite.A().ChannelID)
 			channelCap = suite.A().Chain.GetChannelCapability(suite.A().ChannelConfig.PortID, suite.A().ChannelID)
@@ -517,7 +526,7 @@ func (suite *MultihopTestSuite) TestAcknowledgePacket() {
 			suite.A().Chain.App.GetIBCKeeper().ChannelKeeper.SetChannel(suite.A().Chain.GetContext(), suite.A().ChannelConfig.PortID, suite.A().ChannelID, channel)
 
 			*packet = types.NewPacket(ibctesting.MockPacketData, 1, suite.A().ChannelConfig.PortID, suite.A().ChannelID, suite.Z().ChannelConfig.PortID, suite.Z().ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
-			packetHeight = suite.A().Chain.LastHeader.GetHeight()
+			ackHeight = suite.Z().Chain.LastHeader.GetHeight()
 
 			suite.A().Chain.CreateChannelCapability(suite.A().Chain.GetSimApp().ScopedIBCMockKeeper, suite.A().ChannelConfig.PortID, suite.A().ChannelID)
 			channelCap = suite.A().Chain.GetChannelCapability(suite.A().ChannelConfig.PortID, suite.A().ChannelID)
@@ -530,7 +539,7 @@ func (suite *MultihopTestSuite) TestAcknowledgePacket() {
 
 			// use wrong channel for dest
 			*packet = types.NewPacket(ibctesting.MockPacketData, 1, suite.A().ChannelConfig.PortID, suite.A().ChannelID, suite.Z().ChannelConfig.PortID, suite.Z().ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
-			packetHeight = suite.A().Chain.LastHeader.GetHeight()
+			ackHeight = suite.Z().Chain.LastHeader.GetHeight()
 
 			channelCap = suite.A().Chain.GetChannelCapability(
 				suite.A().ChannelConfig.PortID, suite.A().ChannelID,
@@ -546,6 +555,8 @@ func (suite *MultihopTestSuite) TestAcknowledgePacket() {
 			packet, packetHeight, err = suite.A().
 				SendPacket(defaultTimeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
+
+			ackHeight = suite.Z().Chain.LastHeader.GetHeight()
 
 			channelCap = suite.A().Chain.GetChannelCapability(
 				suite.A().ChannelConfig.PortID, suite.A().ChannelID,
@@ -565,6 +576,8 @@ func (suite *MultihopTestSuite) TestAcknowledgePacket() {
 			// create packet receipt and acknowledgement
 			err = suite.Z().RecvPacket(packet, packetHeight)
 			suite.Require().NoError(err)
+
+			ackHeight = suite.Z().Chain.LastHeader.GetHeight()
 
 			channelCap = suite.A().Chain.GetChannelCapability(
 				suite.A().ChannelConfig.PortID, suite.A().ChannelID,
@@ -595,7 +608,7 @@ func (suite *MultihopTestSuite) TestAcknowledgePacket() {
 			channelCap = suite.A().Chain.GetChannelCapability(suite.A().ChannelConfig.PortID, suite.A().ChannelID)
 
 			suite.coord.CommitBlock(suite.A().Chain, suite.Z().Chain)
-			packetHeight = suite.Z().Chain.LastHeader.GetHeight()
+			ackHeight = suite.Z().Chain.LastHeader.GetHeight()
 
 			err = suite.A().UpdateClient()
 			suite.Require().NoError(err)
@@ -617,6 +630,8 @@ func (suite *MultihopTestSuite) TestAcknowledgePacket() {
 			err = suite.Z().RecvPacket(packet, packetHeight)
 			suite.Require().NoError(err)
 
+			ackHeight = suite.Z().Chain.LastHeader.GetHeight()
+
 			suite.A().Chain.App.GetIBCKeeper().ChannelKeeper.SetNextSequenceAck(suite.A().Chain.GetContext(), suite.A().ChannelConfig.PortID, suite.A().ChannelID, 10)
 			channelCap = suite.A().Chain.GetChannelCapability(
 				suite.A().ChannelConfig.PortID, suite.A().ChannelID,
@@ -634,7 +649,7 @@ func (suite *MultihopTestSuite) TestAcknowledgePacket() {
 
 			tc.malleate()
 
-			proof, proofHeight, err := suite.Z().QueryPacketAcknowledgementProof(packet, packetHeight)
+			proof, proofHeight, err := suite.Z().QueryPacketAcknowledgementProof(packet, ackHeight)
 			suite.Require().NoError(err)
 
 			err = suite.A().Chain.App.GetIBCKeeper().ChannelKeeper.AcknowledgePacket(
