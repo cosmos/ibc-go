@@ -114,6 +114,7 @@ message QueryEscrowAddressResponse {
 message QueryTotalEscrowForDenomRequest {
   string denom = 1;
 }
+
 // QueryTotalEscrowForDenomResponse is the response type for TotalEscrowForDenom RPC method.
 message QueryTotalEscrowForDenomResponse {
   cosmos.base.v1beta1.Coin amount = 1 [(gogoproto.nullable) = false];
