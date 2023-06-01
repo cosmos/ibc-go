@@ -19,11 +19,7 @@ There are four sections based on the four potential user groups of this document
 In the previous release of ibc-go, the localhost `v1` light client module was deprecated and removed. The ibc-go `v7.1.0` release introduces `v2` of the 09-localhost light client module.
 
 <!-- TODO: Update the links to use release version instead of feat branch -->
-<<<<<<< HEAD
-An [automatic migration handler](https://github.com/cosmos/ibc-go/blob/09-localhost/modules/core/module.go#L133-L145) is configured in the core IBC module to set the localhost `ClientState` and sentintel `ConnectionEnd` in state.
-=======
 An [automatic migration handler](https://github.com/cosmos/ibc-go/blob/release/v7.1.x/modules/core/module.go#L127-L145) is configured in the core IBC module to set the localhost `ClientState` and sentinel `ConnectionEnd` in state.
->>>>>>> 6f628d9f (imp: transfer total escrow follow ups (#3558))
 
 In order to use the 09-localhost client chains must update the `AllowedClients` parameter in the 02-client submodule of core IBC. This can be configured directly in the application upgrade handler or alternatively updated via the legacy governance parameter change proposal.
 We __strongly__ recommend chains to perform this action so that intra-ledger communication can be carried out using the familiar IBC interfaces.
