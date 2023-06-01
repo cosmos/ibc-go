@@ -46,7 +46,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeInit() {
 					types.NewUpgradeFields(
 						channel.Ordering, channel.ConnectionHops, channel.Version,
 					),
-					types.NewUpgradeTimeout(path.EndpointB.Chain.GetTimeoutHeight(), 0),
+					types.NewTimeout(path.EndpointB.Chain.GetTimeoutHeight(), 0),
 					0,
 				)
 			},
@@ -101,7 +101,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeInit() {
 				types.NewUpgradeFields(
 					types.UNORDERED, []string{path.EndpointA.ConnectionID}, fmt.Sprintf("%s-v2", mock.Version),
 				),
-				types.NewUpgradeTimeout(path.EndpointB.Chain.GetTimeoutHeight(), 0),
+				types.NewTimeout(path.EndpointB.Chain.GetTimeoutHeight(), 0),
 				0,
 			)
 
@@ -203,4 +203,3 @@ func (suite *KeeperTestSuite) TestValidateProposedUpgradeFields() {
 		})
 	}
 }
-

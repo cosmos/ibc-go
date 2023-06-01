@@ -703,7 +703,7 @@ func (endpoint *Endpoint) GetProposedUpgrade() channeltypes.Upgrade {
 			ConnectionHops: []string{endpoint.ConnectionID},
 			Version:        endpoint.ChannelConfig.Version,
 		},
-		Timeout:            channeltypes.NewUpgradeTimeout(endpoint.Counterparty.Chain.GetTimeoutHeight(), 0),
+		Timeout:            channeltypes.NewTimeout(endpoint.Counterparty.Chain.GetTimeoutHeight(), 0),
 		LatestSequenceSend: 0,
 	}
 
