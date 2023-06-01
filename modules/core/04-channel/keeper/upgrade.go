@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
-	"cosmossdk.io/math"
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -169,7 +169,7 @@ func (k Keeper) startFlushUpgradeHandshake(
 		prevUpgradeSequence := channel.UpgradeSequence
 
 		// error on the higher sequence so that both chains synchronize on a fresh sequence
-		channel.UpgradeSequence = math.Max(counterpartyChannel.UpgradeSequence, channel.UpgradeSequence)
+		channel.UpgradeSequence = sdkmath.Max(counterpartyChannel.UpgradeSequence, channel.UpgradeSequence)
 		k.SetChannel(ctx, portID, channelID, channel)
 
 		return types.NewUpgradeError(channel.UpgradeSequence, errorsmod.Wrapf(

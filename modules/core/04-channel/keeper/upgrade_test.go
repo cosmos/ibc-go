@@ -253,7 +253,8 @@ func (suite *KeeperTestSuite) TestStartFlushUpgradeHandshake() {
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.Setup(path)
 
-			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = fmt.Sprintf("%s-v2", mock.Version)
+			upgradeVersion := fmt.Sprintf("%s-v2", mock.Version)
+			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = upgradeVersion
 			err := path.EndpointA.ChanUpgradeInit()
 			suite.Require().NoError(err)
 
@@ -278,13 +279,15 @@ func (suite *KeeperTestSuite) TestStartFlushUpgradeHandshake() {
 			channel.UpgradeSequence = 1
 			path.EndpointB.SetChannel(channel)
 
-			upgrade = types.NewUpgrade(
-				types.NewUpgradeFields(
-					types.UNORDERED, []string{path.EndpointB.ConnectionID}, fmt.Sprintf("%s-v2", mock.Version),
-				),
-				types.NewUpgradeTimeout(path.EndpointA.Chain.GetTimeoutHeight(), 0),
-				1,
-			)
+			upgrade = types.Upgrade{
+				Fields: types.UpgradeFields{
+					Ordering:       types.UNORDERED,
+					ConnectionHops: []string{path.EndpointB.ConnectionID},
+					Version:        upgradeVersion,
+				},
+				Timeout:            types.NewUpgradeTimeout(path.EndpointA.Chain.GetTimeoutHeight(), 0),
+				LatestSequenceSend: 1,
+			}
 
 			tc.malleate()
 
