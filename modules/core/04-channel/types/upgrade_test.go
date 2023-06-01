@@ -8,7 +8,7 @@ import (
 
 func (suite *TypesTestSuite) TestUpgradeErrorIsOf() {
 	var (
-		upgradeError channeltypes.UpgradeError
+		upgradeError *channeltypes.UpgradeError
 		intputErr    error
 	)
 
@@ -25,7 +25,7 @@ func (suite *TypesTestSuite) TestUpgradeErrorIsOf() {
 		{
 			msg: "not equal to nil error",
 			malleate: func() {
-				upgradeError = channeltypes.UpgradeError{}
+				upgradeError = &channeltypes.UpgradeError{}
 			},
 			expPass: false,
 		},
@@ -38,17 +38,9 @@ func (suite *TypesTestSuite) TestUpgradeErrorIsOf() {
 			expPass: true,
 		},
 		{
-			msg: "nil underlying error and target",
-			malleate: func() {
-				upgradeError = channeltypes.UpgradeError{}
-				intputErr = channeltypes.UpgradeError{}
-			},
-			expPass: true,
-		},
-		{
 			msg: "empty upgrade and non nil target",
 			malleate: func() {
-				upgradeError = channeltypes.UpgradeError{}
+				upgradeError = &channeltypes.UpgradeError{}
 			},
 			expPass: false,
 		},

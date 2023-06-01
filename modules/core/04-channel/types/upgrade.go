@@ -81,31 +81,34 @@ type UpgradeError struct {
 	sequence uint64
 }
 
+var _ error = &UpgradeError{}
+
 // NewUpgradeError returns a new UpgradeError instance.
-func NewUpgradeError(upgradeSequence uint64, err error) UpgradeError {
-	return UpgradeError{
+func NewUpgradeError(upgradeSequence uint64, err error) *UpgradeError {
+	return &UpgradeError{
 		err:      err,
 		sequence: upgradeSequence,
 	}
 }
 
 // Error implements the error interface, returning the underlying error which caused the upgrade to fail.
-func (u UpgradeError) Error() string {
+func (u *UpgradeError) Error() string {
 	return u.err.Error()
 }
 
 // Is returns true if the underlying error is of the given err type.
-func (u UpgradeError) Is(err error) bool {
+func (u *UpgradeError) Is(err error) bool {
 	return errors.Is(u.err, err)
 }
 
 // Unwrap returns the base error that caused the upgrade to fail.
-func (u UpgradeError) Unwrap() error {
+func (u *UpgradeError) Unwrap() error {
+	var baseError = u.err
 	for {
-		if err := errors.Unwrap(u.err); err != nil {
-			u.err = err
+		if err := errors.Unwrap(baseError); err != nil {
+			baseError = err
 		} else {
-			return u.err
+			return baseError
 		}
 	}
 }
