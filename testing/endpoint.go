@@ -690,10 +690,10 @@ func (endpoint *Endpoint) QueryClientStateProof() (exported.ClientState, []byte)
 	return clientState, proofClient
 }
 
-// GetProposedUpgrade returns a valid upgrade which can be used for UpgradeInit and UpgradeTry
-// By default, the endpoints existing channel fields will be used for the upgrade fields and
+// GetProposedUpgrade returns a valid upgrade which can be used for UpgradeInit and UpgradeTry.
+// By default, the endpoint's existing channel fields will be used for the upgrade fields and
 // a sane default timeout will be used by querying the counterparty's latest height.
-// If any non-empty values are used for the ProposedUpgrade in the ChannelConfig,
+// If any non-empty values are specified in the ChannelConfig's ProposedUpgrade,
 // those values will be used in the returned upgrade.
 func (endpoint *Endpoint) GetProposedUpgrade() channeltypes.Upgrade {
 	// create a default upgrade
