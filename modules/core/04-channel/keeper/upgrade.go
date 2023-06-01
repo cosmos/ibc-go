@@ -180,20 +180,20 @@ func (k Keeper) WriteUpgradeTryChannel(
 ) {
 	defer telemetry.IncrCounter(1, "ibc", "channel", "upgrade-try")
 
-	currentChannel, found := k.GetChannel(ctx, portID, channelID)
+	channel, found := k.GetChannel(ctx, portID, channelID)
 	if !found {
 		panic(fmt.Sprintf("could not find existing channel when updating channel state in successful ChanUpgradeTry step, channelID: %s, portID: %s", channelID, portID))
 	}
 
-	previousState := currentChannel.State
-	currentChannel.State = types.TRYUPGRADE
-	currentChannel.FlushStatus = flushStatus
+	previousState := channel.State
+	channel.State = types.TRYUPGRADE
+	channel.FlushStatus = flushStatus
 
-	k.SetChannel(ctx, portID, channelID, currentChannel)
+	k.SetChannel(ctx, portID, channelID, channel)
 	k.SetUpgrade(ctx, portID, channelID, proposedUpgrade)
 
 	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", previousState, "new-state", types.TRYUPGRADE.String())
-	emitChannelUpgradeTryEvent(ctx, portID, channelID, currentChannel, proposedUpgrade)
+	emitChannelUpgradeTryEvent(ctx, portID, channelID, channel, proposedUpgrade)
 }
 
 // constructProposedUpgrade returns the proposed upgrade from the provided arguments.
