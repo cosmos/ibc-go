@@ -84,8 +84,6 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized() {
 		s.StartRelayer(relayer)
 	})
 
-	s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA, chainB), "failed to wait for blocks")
-
 	chainBIBCToken := testsuite.GetIBCToken(chainADenom, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID)
 
 	t.Run("packets are relayed", func(t *testing.T) {
@@ -169,8 +167,6 @@ func (s *TransferTestSuite) TestMsgTransfer_Fails_InvalidAddress() {
 	t.Run("start relayer", func(t *testing.T) {
 		s.StartRelayer(relayer)
 	})
-
-	s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA, chainB), "failed to wait for blocks")
 
 	t.Run("packets are relayed", func(t *testing.T) {
 		s.AssertPacketRelayed(ctx, chainA, channelA.PortID, channelA.ChannelID, 1)
@@ -395,8 +391,6 @@ func (s *TransferTestSuite) TestReceiveEnabledParam() {
 			s.StartRelayer(relayer)
 		})
 
-		s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA, chainB), "failed to wait for blocks")
-
 		t.Run("tokens are unescrowed in failed acknowledgement", func(t *testing.T) {
 			actualBalance, err := s.GetChainBNativeBalance(ctx, chainBWallet)
 			s.Require().NoError(err)
@@ -461,8 +455,6 @@ func (s *TransferTestSuite) TestMsgTransfer_WithMemo() {
 	t.Run("start relayer", func(t *testing.T) {
 		s.StartRelayer(relayer)
 	})
-
-	s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA, chainB), "failed to wait for blocks")
 
 	chainBIBCToken := testsuite.GetIBCToken(chainADenom, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID)
 

@@ -134,8 +134,6 @@ func (s *InterchainAccountsGroupsTestSuite) TestInterchainAccountsGroupsIntegrat
 		s.StartRelayer(relayer)
 	})
 
-	s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA, chainB), "failed to wait for blocks")
-
 	t.Run("verify interchain account registration success", func(t *testing.T) {
 		interchainAccAddr, err = s.QueryInterchainAccount(ctx, chainA, groupPolicyAddr, ibctesting.FirstConnectionID)
 		s.Require().NotEmpty(interchainAccAddr)
