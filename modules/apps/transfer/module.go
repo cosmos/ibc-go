@@ -94,8 +94,8 @@ func NewAppModule(k keeper.Keeper) AppModule {
 }
 
 // RegisterInvariants implements the AppModule interface
-func (AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
-	// TODO
+func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
+	keeper.RegisterInvariants(ir, &am.keeper)
 }
 
 // RegisterServices registers module services.

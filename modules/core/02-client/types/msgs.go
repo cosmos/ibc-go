@@ -15,7 +15,7 @@ var (
 	_ sdk.Msg = (*MsgUpdateClient)(nil)
 	_ sdk.Msg = (*MsgSubmitMisbehaviour)(nil)
 	_ sdk.Msg = (*MsgUpgradeClient)(nil)
-	_ sdk.Msg = (*MsgUpdateClientParams)(nil)
+	_ sdk.Msg = (*MsgUpdateParams)(nil)
 
 	_ codectypes.UnpackInterfacesMessage = (*MsgCreateClient)(nil)
 	_ codectypes.UnpackInterfacesMessage = (*MsgUpdateClient)(nil)
@@ -266,16 +266,16 @@ func (msg MsgSubmitMisbehaviour) UnpackInterfaces(unpacker codectypes.AnyUnpacke
 	return unpacker.UnpackAny(msg.Misbehaviour, &misbehaviour)
 }
 
-// NewMsgUpdateClientParams creates a new instance of MsgUpdateClientParams.
-func NewMsgUpdateClientParams(authority string, params Params) *MsgUpdateClientParams {
-	return &MsgUpdateClientParams{
+// NewMsgUpdateParams creates a new instance of MsgUpdateParams.
+func NewMsgUpdateParams(authority string, params Params) *MsgUpdateParams {
+	return &MsgUpdateParams{
 		Authority: authority,
 		Params:    params,
 	}
 }
 
-// GetSigners returns the expected signers for a MsgUpdateClientParams message.
-func (msg *MsgUpdateClientParams) GetSigners() []sdk.AccAddress {
+// GetSigners returns the expected signers for a MsgUpdateParams message.
+func (msg *MsgUpdateParams) GetSigners() []sdk.AccAddress {
 	accAddr, err := sdk.AccAddressFromBech32(msg.Authority)
 	if err != nil {
 		panic(err)
@@ -283,8 +283,8 @@ func (msg *MsgUpdateClientParams) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{accAddr}
 }
 
-// ValidateBasic performs basic checks on a MsgUpdateClientParams.
-func (msg *MsgUpdateClientParams) ValidateBasic() error {
+// ValidateBasic performs basic checks on a MsgUpdateParams.
+func (msg *MsgUpdateParams) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(msg.Authority); err != nil {
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
 	}
