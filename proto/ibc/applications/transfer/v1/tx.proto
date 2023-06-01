@@ -25,6 +25,8 @@ service Msg {
 // ICS20 enabled chains. See ICS Spec here:
 // https://github.com/cosmos/ibc/tree/master/spec/app/ics-020-fungible-token-transfer#data-structures
 message MsgTransfer {
+  option (cosmos.msg.v1.signer) = "sender";
+
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
@@ -56,6 +58,8 @@ message MsgTransferResponse {
 
 // MsgUpdateParams is the Msg/UpdateParams request type.
 message MsgUpdateParams {
+  option (cosmos.msg.v1.signer) = "authority";
+
   // authority is the address that controls the module (defaults to x/gov unless overwritten).
   string authority = 1;
 

@@ -20,6 +20,8 @@ service Msg {
 
 // MsgRegisterInterchainAccount defines the payload for Msg/RegisterAccount
 message MsgRegisterInterchainAccount {
+  option (cosmos.msg.v1.signer) = "owner";
+
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
@@ -36,6 +38,8 @@ message MsgRegisterInterchainAccountResponse {
 
 // MsgSendTx defines the payload for Msg/SendTx
 message MsgSendTx {
+  option (cosmos.msg.v1.signer) = "owner";
+
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 

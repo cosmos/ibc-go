@@ -8,6 +8,7 @@ import "gogoproto/gogo.proto";
 import "ibc/applications/fee/v1/fee.proto";
 import "ibc/core/channel/v1/channel.proto";
 import "cosmos/msg/v1/msg.proto";
+
 // Msg defines the ICS29 Msg service.
 service Msg {
   option (cosmos.msg.v1.service) = true;
@@ -41,6 +42,8 @@ service Msg {
 
 // MsgRegisterPayee defines the request type for the RegisterPayee rpc
 message MsgRegisterPayee {
+  option (cosmos.msg.v1.signer) = "relayer";
+
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
@@ -59,6 +62,8 @@ message MsgRegisterPayeeResponse {}
 
 // MsgRegisterCounterpartyPayee defines the request type for the RegisterCounterpartyPayee rpc
 message MsgRegisterCounterpartyPayee {
+  option (cosmos.msg.v1.signer) = "relayer";
+
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
@@ -79,6 +84,8 @@ message MsgRegisterCounterpartyPayeeResponse {}
 // This Msg can be used to pay for a packet at the next sequence send & should be combined with the Msg that will be
 // paid for
 message MsgPayPacketFee {
+  option (cosmos.msg.v1.signer) = "signer";
+
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
@@ -100,6 +107,7 @@ message MsgPayPacketFeeResponse {}
 // MsgPayPacketFeeAsync defines the request type for the PayPacketFeeAsync rpc
 // This Msg can be used to pay for a packet at a specified sequence (instead of the next sequence send)
 message MsgPayPacketFeeAsync {
+  option (cosmos.msg.v1.signer)      = "packet_fee.refundaddress";
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
