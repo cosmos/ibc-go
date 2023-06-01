@@ -23,8 +23,8 @@ service Msg {
   // SubmitMisbehaviour defines a rpc handler method for MsgSubmitMisbehaviour.
   rpc SubmitMisbehaviour(MsgSubmitMisbehaviour) returns (MsgSubmitMisbehaviourResponse);
 
-  // UpdateClientParams defines a rpc handler method for MsgUpdateClientParams.
-  rpc UpdateClientParams(MsgUpdateClientParams) returns (MsgUpdateClientParamsResponse);
+  // UpdateClientParams defines a rpc handler method for MsgUpdateParams.
+  rpc UpdateClientParams(MsgUpdateParams) returns (MsgUpdateParamsResponse);
 }
 
 // MsgCreateClient defines a message to create an IBC client
@@ -104,8 +104,8 @@ message MsgSubmitMisbehaviour {
 // type.
 message MsgSubmitMisbehaviourResponse {}
 
-// MsgUpdateClientParams defines the sdk.Msg type to update the client parameters.
-message MsgUpdateClientParams {
+// MsgUpdateParams defines the sdk.Msg type to update the client parameters.
+message MsgUpdateParams {
   option (cosmos.msg.v1.signer) = "authority";
 
   // authority is the address of the governance account.
@@ -117,5 +117,5 @@ message MsgUpdateClientParams {
   Params params = 2 [(gogoproto.nullable) = false];
 }
 
-// MsgUpdateClientParamsResponse defines the MsgUpdateClientParams response type.
-message MsgUpdateClientParamsResponse {}
+// MsgUpdateParamsResponse defines the MsgUpdateParams response type.
+message MsgUpdateParamsResponse {}

@@ -780,32 +780,32 @@ func (suite *KeeperTestSuite) TestUpdateClientParams() {
 	validAuthority := suite.chainA.App.GetIBCKeeper().GetAuthority()
 	testCases := []struct {
 		name    string
-		msg     *clienttypes.MsgUpdateClientParams
+		msg     *clienttypes.MsgUpdateParams
 		expPass bool
 	}{
 		{
 			"success: valid authority and default params",
-			clienttypes.NewMsgUpdateClientParams(validAuthority, clienttypes.DefaultParams()),
+			clienttypes.NewMsgUpdateParams(validAuthority, clienttypes.DefaultParams()),
 			true,
 		},
 		{
 			"failure: malformed authority address",
-			clienttypes.NewMsgUpdateClientParams(ibctesting.InvalidID, clienttypes.DefaultParams()),
+			clienttypes.NewMsgUpdateParams(ibctesting.InvalidID, clienttypes.DefaultParams()),
 			false,
 		},
 		{
 			"failure: empty authority address",
-			clienttypes.NewMsgUpdateClientParams("", clienttypes.DefaultParams()),
+			clienttypes.NewMsgUpdateParams("", clienttypes.DefaultParams()),
 			false,
 		},
 		{
 			"failure: whitespace authority address",
-			clienttypes.NewMsgUpdateClientParams("    ", clienttypes.DefaultParams()),
+			clienttypes.NewMsgUpdateParams("    ", clienttypes.DefaultParams()),
 			false,
 		},
 		{
 			"failure: unauthorized authority address",
-			clienttypes.NewMsgUpdateClientParams(ibctesting.TestAccAddress, clienttypes.DefaultParams()),
+			clienttypes.NewMsgUpdateParams(ibctesting.TestAccAddress, clienttypes.DefaultParams()),
 			false,
 		},
 	}
