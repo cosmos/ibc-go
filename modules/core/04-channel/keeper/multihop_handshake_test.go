@@ -269,8 +269,6 @@ func (suite *MultihopTestSuite) TestChanOpenTryMultihop() {
 				return
 			}
 
-			fmt.Printf("proofHeight=%v client proofHeight=%v\n", proofHeight, suite.Z().ProofHeight())
-
 			channelID, capability, err := suite.Z().Chain.App.GetIBCKeeper().ChannelKeeper.ChanOpenTry(
 				suite.Z().Chain.GetContext(),
 				suite.Z().ChannelConfig.Order,

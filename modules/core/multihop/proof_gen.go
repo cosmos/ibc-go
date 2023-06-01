@@ -41,20 +41,34 @@ type Path struct {
 }
 
 // ChanPath represents a multihop channel path that spans 2 or more single-hop `Path`s.
-type ChanPath []*Path
+type ChanPath struct {
+	Paths []*Path
+}
 
 // NewChanPath creates a new multi-hop ChanPath from a list of single-hop Paths.
 func NewChanPath(paths []*Path) ChanPath {
 	if len(paths) < 2 {
 		panic(fmt.Sprintf("multihop channel path expects at least 2 single-hop paths, but got %d", len(paths)))
 	}
-	return ChanPath(paths)
+	return ChanPath{
+		Paths: paths,
+	}
+}
+
+// Counterparty returns the ChanPath as seen in the reverse direction.
+func (p ChanPath) Counterparty() ChanPath {
+	paths := make([]*Path, len(p.Paths))
+	for i, hop := range p.Paths {
+		reversedSinglePath := Path{EndpointA: hop.EndpointB, EndpointB: hop.EndpointA}
+		paths[len(p.Paths)-i-1] = &reversedSinglePath
+	}
+	return NewChanPath(paths)
 }
 
 // GetConnectionHops returns the connection hops for the multihop channel.
 func (p ChanPath) GetConnectionHops() []string {
-	hops := make([]string, len(p))
-	for i, path := range p {
+	hops := make([]string, len(p.Paths))
+	for i, path := range p.Paths {
 		hops[i] = path.EndpointA.ConnectionID()
 	}
 	return hops
@@ -62,7 +76,7 @@ func (p ChanPath) GetConnectionHops() []string {
 
 // The source chain
 func (p ChanPath) source() Endpoint {
-	return p[0].EndpointA
+	return p.Paths[0].EndpointA
 }
 
 // QueryMultihopProof returns a multi-hop proof for the given key on the the source chain along with the proofHeight, which is to be verified on the dest chain.
@@ -70,7 +84,9 @@ func (p ChanPath) source() Endpoint {
 // the multi-hop proof verification.
 func (p ChanPath) QueryMultihopProof(key []byte, minProofHeight exported.Height) (multihopProof channeltypes.MsgMultihopProofs, proofHeight exported.Height, err error) {
 
-	if len(p) < 2 {
+	N := len(p.Paths) - 1
+
+	if N < 1 {
 		err = fmt.Errorf("multihop proof query requires channel path length >= 2")
 		return
 	}
@@ -97,14 +113,14 @@ func (p ChanPath) QueryMultihopProof(key []byte, minProofHeight exported.Height)
 	}
 
 	// query the consensus state proof on the counterparty chain
-	multihopProof.ConsensusProofs = make([]*channeltypes.MultihopProof, len(p)-1)
-	if multihopProof.ConsensusProofs[len(p)-2], err = queryConsensusStateProof(p.source().Counterparty(), proofHeight, consensusHeight); err != nil {
+	multihopProof.ConsensusProofs = make([]*channeltypes.MultihopProof, N)
+	if multihopProof.ConsensusProofs[N-1], err = queryConsensusStateProof(p.source().Counterparty(), proofHeight, consensusHeight); err != nil {
 		return
 	}
 
 	// query the connection proof on the counterparty chain
-	multihopProof.ConnectionProofs = make([]*channeltypes.MultihopProof, len(p)-1)
-	if multihopProof.ConnectionProofs[len(p)-2], err = queryConnectionProof(p.source().Counterparty(), proofHeight); err != nil {
+	multihopProof.ConnectionProofs = make([]*channeltypes.MultihopProof, N)
+	if multihopProof.ConnectionProofs[N-1], err = queryConnectionProof(p.source().Counterparty(), proofHeight); err != nil {
 		return
 	}
 
@@ -126,8 +142,9 @@ func (p ChanPath) queryIntermediateProofs(
 	connectionProofs []*channeltypes.MultihopProof,
 ) (proofHeight exported.Height, err error) {
 
-	chain := p[pathIdx].EndpointB
+	chain := p.Paths[pathIdx].EndpointB
 
+	N := len(p.Paths) - 2
 	var consensusHeight exported.Height
 
 	// determine the minimum consensusState height on the next chain within the provided height range
@@ -137,16 +154,16 @@ func (p ChanPath) queryIntermediateProofs(
 		return
 	}
 
-	if consensusProofs[len(p)-pathIdx-2], err = queryConsensusStateProof(chain, proofHeight, consensusHeight); err != nil {
+	if consensusProofs[N-pathIdx], err = queryConsensusStateProof(chain, proofHeight, consensusHeight); err != nil {
 		return
 	}
 
-	if connectionProofs[len(p)-pathIdx-2], err = queryConnectionProof(chain, proofHeight); err != nil {
+	if connectionProofs[N-pathIdx], err = queryConnectionProof(chain, proofHeight); err != nil {
 		return
 	}
 
 	// no need to query min consensus height on final chain
-	if pathIdx == len(p)-2 {
+	if pathIdx == N {
 		return
 	}
 
