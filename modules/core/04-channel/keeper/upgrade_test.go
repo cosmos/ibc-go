@@ -202,4 +202,3 @@ func (suite *KeeperTestSuite) TestValidateProposedUpgradeFields() {
 	}
 }
 
-// TODO: add test for UpgradeTimeout.HasPassed() in this test suite
