@@ -52,7 +52,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Features
 
 * (light-clients/09-localhost) [\#3229](https://github.com/cosmos/ibc-go/pull/3229) Implementation of v2 of localhost loopback client.
-* (apps/transfer) [\#3454](https://github.com/cosmos/ibc-go/pull/3019) Add state entry to keep track of total amount of tokens in escrow.
+* (apps/transfer) [\#3019](https://github.com/cosmos/ibc-go/pull/3019) Add state entry to keep track of total amount of tokens in escrow.
 
 ### Bug Fixes
 
