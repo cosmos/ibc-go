@@ -62,6 +62,19 @@ TODO: https://github.com/cosmos/ibc-go/pull/3505 (extra parameter added to trans
 	)
 ```
 
+- You should pass the `authority` to the IBC keeper. ([#3640](https://github.com/cosmos/ibc-go/pull/3640)) See [diff](https://github.com/cosmos/ibc-go/pull/3640/files#diff-d18972debee5e64f16e40807b2ae112ddbe609504a93ea5e1c80a5d489c3a08a).
+
+```diff
+// app.go
+
+	// IBC Keepers
+
+	app.IBCKeeper = ibckeeper.NewKeeper(
+-       appCodec, keys[ibcexported.StoreKey], app.GetSubspace(ibcexported.ModuleName), app.StakingKeeper, app.UpgradeKeeper, scopedIBCKeeper,
++		appCodec, keys[ibcexported.StoreKey], app.GetSubspace(ibcexported.ModuleName), app.StakingKeeper, app.UpgradeKeeper, scopedIBCKeeper, authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+	)
+```
+
 ## IBC Apps
 
 TODO: https://github.com/cosmos/ibc-go/pull/3303
