@@ -25,15 +25,15 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	registry.RegisterImplementations((*authtypes.GenesisAccount)(nil), &InterchainAccount{})
 }
 
-// JsonAny is used to serialize and deserialize messages in the Any type for json encoding.
-type JsonAny struct {
-	TypeUrl string `json:"type_url,omitempty"`
+// JSONAny is used to serialize and deserialize messages in the Any type for json encoding.
+type JSONAny struct {
+	TypeURL string `json:"type_url,omitempty"`
 	Value   []byte `json:"value,omitempty"`
 }
 
-// JsonCosmosTx is used to serialize and deserialize messages in the CosmosTx type for json encoding.
-type JsonCosmosTx struct {
-	Messages []*JsonAny `json:"messages,omitempty"`
+// JSONCosmosTx is used to serialize and deserialize messages in the CosmosTx type for json encoding.
+type JSONCosmosTx struct {
+	Messages []*JSONAny `json:"messages,omitempty"`
 }
 
 // SerializeCosmosTx serializes a slice of sdk.Msg's using the CosmosTx type. The sdk.Msg's are
@@ -67,18 +67,18 @@ func SerializeCosmosTx(cdc codec.BinaryCodec, msgs []proto.Message, encoding str
 			return nil, err
 		}
 	case EncodingJSON:
-		msgAnys := make([]*JsonAny, len(msgs))
+		msgAnys := make([]*JSONAny, len(msgs))
 		for i, msg := range msgs {
 			jsonValue, err := cdc.(*codec.ProtoCodec).MarshalJSON(msg)
 			if err != nil {
 				return nil, err
 			}
-			msgAnys[i] = &JsonAny{
-				TypeUrl:     "/" + proto.MessageName(msg),
+			msgAnys[i] = &JSONAny{
+				TypeURL:     "/" + proto.MessageName(msg),
 				Value:       jsonValue,
 			}
 
-			cosmosTx := JsonCosmosTx{
+			cosmosTx := JSONCosmosTx{
 				Messages: msgAnys,
 			}
 
@@ -123,7 +123,7 @@ func DeserializeCosmosTx(cdc codec.BinaryCodec, data []byte, encoding string) ([
 			msgs[i] = msg
 		}
 	case EncodingJSON:
-		var cosmosTx JsonCosmosTx
+		var cosmosTx JSONCosmosTx
 		if err := json.Unmarshal(data, &cosmosTx); err != nil {
 			return nil, errorsmod.Wrapf(ErrUnknownDataType, "cannot unmarshal cosmosTx with json")
 		}
@@ -131,7 +131,7 @@ func DeserializeCosmosTx(cdc codec.BinaryCodec, data []byte, encoding string) ([
 		msgs = make([]sdk.Msg, len(cosmosTx.Messages))
 
 		for i, jsonAny := range cosmosTx.Messages {
-			message, err := cdc.(*codec.ProtoCodec).InterfaceRegistry().Resolve(jsonAny.TypeUrl)
+			message, err := cdc.(*codec.ProtoCodec).InterfaceRegistry().Resolve(jsonAny.TypeURL)
 			if err != nil {
 				return nil, err
 			}
