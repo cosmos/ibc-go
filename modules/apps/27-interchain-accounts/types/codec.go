@@ -148,7 +148,11 @@ func DeserializeCosmosTx(cdc codec.BinaryCodec, data []byte, encoding string) ([
 				return nil, err
 			}
 
-			msgs[i] = message.(sdk.Msg)
+			msg, ok := message.(sdk.Msg)
+			if !ok {
+				return nil, errorsmod.Wrapf(ErrUnsupported, "message %T does not implement sdk.Msg", message)
+			}
+			msgs[i] = msg
 		}
 	default:
 		return nil, errorsmod.Wrapf(ErrUnsupportedEncoding, "encoding type %s is not supported", encoding)

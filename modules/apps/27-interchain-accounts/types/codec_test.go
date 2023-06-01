@@ -208,37 +208,32 @@ func (suite *TypesTestSuite) TestJsonSerializeAndDeserializeCosmosTx() {
 		tc := tc
 
 		suite.Run(tc.name, func() {
+			bz, errSerialize := types.SerializeCosmosTx(simapp.MakeTestEncodingConfig().Marshaler, tc.msgs, types.EncodingJSON)
+			msgs, errDeserialize := types.DeserializeCosmosTx(simapp.MakeTestEncodingConfig().Marshaler, bz, types.EncodingJSON)
 			if tc.expPass {
-				bz, err := types.SerializeCosmosTx(simapp.MakeTestEncodingConfig().Marshaler, tc.msgs, types.EncodingJSON)
-				suite.Require().NoError(err, tc.name)
-
-				msgs, err := types.DeserializeCosmosTx(simapp.MakeTestEncodingConfig().Marshaler, bz, types.EncodingJSON)
-				suite.Require().NoError(err, tc.name)
-
+				suite.Require().NoError(errSerialize, tc.name)
+				suite.Require().NoError(errDeserialize, tc.name)
 				for i, msg := range msgs {
 					suite.Require().Equal(tc.msgs[i], msg)
 				}
 			} else {
-				bz, err := types.SerializeCosmosTx(simapp.MakeTestEncodingConfig().Marshaler, tc.msgs, types.EncodingJSON)
-				suite.Require().Error(err, tc.name)
-
-				_, err = types.DeserializeCosmosTx(simapp.MakeTestEncodingConfig().Marshaler, bz, types.EncodingJSON)
-				suite.Require().Error(err, tc.name)
+				suite.Require().Error(errSerialize, tc.name)
+				suite.Require().Error(errDeserialize, tc.name)
 			}
 		})
 	}
 
 	// test serializing non sdk.Msg type
-	bz, err := types.SerializeCosmosTx(simapp.MakeTestEncodingConfig().Marshaler, []proto.Message{&banktypes.MsgSendResponse{}}, types.EncodingProtobuf)
+	bz, err := types.SerializeCosmosTx(simapp.MakeTestEncodingConfig().Marshaler, []proto.Message{&banktypes.MsgSendResponse{}}, types.EncodingJSON)
 	suite.Require().NoError(err)
 	suite.Require().NotEmpty(bz)
 
 	// test deserializing unknown bytes
-	_, err = types.DeserializeCosmosTx(simapp.MakeTestEncodingConfig().Marshaler, bz, types.EncodingProtobuf)
+	_, err = types.DeserializeCosmosTx(simapp.MakeTestEncodingConfig().Marshaler, bz, types.EncodingJSON)
 	suite.Require().Error(err) // unregistered type
 
 	// test deserializing unknown bytes
-	msgs, err := types.DeserializeCosmosTx(simapp.MakeTestEncodingConfig().Marshaler, []byte("invalid"), types.EncodingProtobuf)
+	msgs, err := types.DeserializeCosmosTx(simapp.MakeTestEncodingConfig().Marshaler, []byte("invalid"), types.EncodingJSON)
 	suite.Require().Error(err)
 	suite.Require().Empty(msgs)
 }
