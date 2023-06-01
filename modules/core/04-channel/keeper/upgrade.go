@@ -118,6 +118,15 @@ func (k Keeper) validateUpgradeFields(ctx sdk.Context, proposedUpgrade types.Upg
 	return nil
 }
 
+// extractUpgradeFields returns the upgrade fields from the provided channel.
+func extractUpgradeFields(channel types.Channel) types.UpgradeFields {
+	return types.UpgradeFields{
+		Ordering:       channel.Ordering,
+		ConnectionHops: channel.ConnectionHops,
+		Version:        channel.Version,
+	}
+}
+
 // constructProposedUpgrade returns the proposed upgrade from the provided arguments.
 func (k Keeper) constructProposedUpgrade(ctx sdk.Context, portID, channelID string, fields types.UpgradeFields, upgradeTimeout types.Timeout) (types.Upgrade, error) {
 	seq, found := k.GetNextSequenceSend(ctx, portID, channelID)
