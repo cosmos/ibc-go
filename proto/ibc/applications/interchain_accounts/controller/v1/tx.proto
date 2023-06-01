@@ -6,7 +6,7 @@ option go_package = "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-acco
 
 import "gogoproto/gogo.proto";
 import "ibc/applications/interchain_accounts/v1/packet.proto";
-
+import "cosmos/msg/v1/msg.proto";
 // Msg defines the 27-interchain-accounts/controller Msg service.
 service Msg {
   // RegisterInterchainAccount defines a rpc handler for MsgRegisterInterchainAccount.
@@ -17,6 +17,8 @@ service Msg {
 
 // MsgRegisterInterchainAccount defines the payload for Msg/RegisterAccount
 message MsgRegisterInterchainAccount {
+  option (cosmos.msg.v1.signer) = "owner";
+
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
@@ -33,6 +35,8 @@ message MsgRegisterInterchainAccountResponse {
 
 // MsgSendTx defines the payload for Msg/SendTx
 message MsgSendTx {
+  option (cosmos.msg.v1.signer) = "owner";
+
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
