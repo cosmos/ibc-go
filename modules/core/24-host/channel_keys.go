@@ -6,10 +6,7 @@ const (
 	KeyChannelEndPrefix               = "channelEnds"
 	KeyChannelPrefix                  = "channels"
 	KeyChannelUpgradePrefix           = "channelUpgrades"
-	KeyChannelRestorePrefix           = "restore"
 	KeyUpgradePrefix                  = "upgrades"
-	KeyUpgradeTimeoutPrefix           = "upgradeTimeout"
-	KeyUpgradeSequencePrefix          = "upgradeSequence"
 	KeyUpgradeErrorPrefix             = "upgradeError"
 	KeyCounterpartyLastPacketSequence = "counterpartyLastPacketSequence"
 )
@@ -41,16 +38,6 @@ func ChannelUpgradeErrorPath(portID, channelID string) string {
 // ChannelUpgradeErrorKey returns the store key for a particular channelEnd used to stor the ErrorReceipt in the case that a chain does not accept the proposed upgrade
 func ChannelUpgradeErrorKey(portID, channelID string) []byte {
 	return []byte(ChannelUpgradeErrorPath(portID, channelID))
-}
-
-// ChannelRestorePath defines the path under which channel ends are stored for restoration in the event of upgrade handshake failure
-func ChannelRestorePath(portID, channelID string) string {
-	return fmt.Sprintf("%s/%s/%s", KeyChannelUpgradePrefix, KeyChannelRestorePrefix, channelPath(portID, channelID))
-}
-
-// ChannelRestoreKey returns the store key for a particular channel end used for restoration in the event of upgrade handshake failure
-func ChannelRestoreKey(portID, channelID string) []byte {
-	return []byte(ChannelRestorePath(portID, channelID))
 }
 
 // ChannelUpgradePath defines the path which stores the information related to an upgrade attempt
