@@ -5,13 +5,15 @@ package ibc.core.connection.v1;
 option go_package = "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types";
 
 import "gogoproto/gogo.proto";
+import "cosmos/msg/v1/msg.proto";
 import "google/protobuf/any.proto";
 import "ibc/core/client/v1/client.proto";
 import "ibc/core/connection/v1/connection.proto";
-import "cosmos/msg/v1/msg.proto";
 
 // Msg defines the ibc/connection Msg service.
 service Msg {
+  option (cosmos.msg.v1.service) = true;
+
   // ConnectionOpenInit defines a rpc handler method for MsgConnectionOpenInit.
   rpc ConnectionOpenInit(MsgConnectionOpenInit) returns (MsgConnectionOpenInitResponse);
 
