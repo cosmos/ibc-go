@@ -564,12 +564,17 @@ func (endpoint *Endpoint) TimeoutOnClose(packet channeltypes.Packet) error {
 	return endpoint.Chain.sendMsgs(timeoutOnCloseMsg)
 }
 
-func (endpoint *Endpoint) ChanUpgradeInit(timeout channeltypes.Timeout) error {
+// ChanUpgradeInit sends a MsgChannelUpgradeInit on the associated endpoint.
+// A default upgrade proposal is used with overrides from the ProposedUpgrade
+// in the channel config.
+func (endpoint *Endpoint) ChanUpgradeInit() error {
+	upgrade := endpoint.GetProposedUpgrade()
+
 	msg := channeltypes.NewMsgChannelUpgradeInit(
 		endpoint.ChannelConfig.PortID,
 		endpoint.ChannelID,
-		channeltypes.NewUpgradeFields(endpoint.ChannelConfig.Order, []string{endpoint.ConnectionID}, endpoint.ChannelConfig.Version),
-		channeltypes.NewUpgradeTimeout(timeout.Height, timeout.Timestamp),
+		upgrade.Fields,
+		upgrade.Timeout,
 		endpoint.Chain.SenderAccount.GetAddress().String(),
 	)
 
@@ -683,4 +688,41 @@ func (endpoint *Endpoint) QueryClientStateProof() (exported.ClientState, []byte)
 	proofClient, _ := endpoint.QueryProof(clientKey)
 
 	return clientState, proofClient
+}
+
+// GetProposedUpgrade returns a valid upgrade which can be used for UpgradeInit and UpgradeTry
+// By default, the endpoints existing channel fields will be used for the upgrade fields and
+// a sane default timeout will be used by querying the counterparty's latest height.
+// If any non-empty values are used for the ProposedUpgrade in the ChannelConfig,
+// those values will be used in the returned upgrade.
+func (endpoint *Endpoint) GetProposedUpgrade() channeltypes.Upgrade {
+	// create a default upgrade
+	upgrade := channeltypes.Upgrade{
+		Fields: channeltypes.UpgradeFields{
+			Ordering:       endpoint.ChannelConfig.Order,
+			ConnectionHops: []string{endpoint.ConnectionID},
+			Version:        endpoint.ChannelConfig.Version,
+		},
+		Timeout:            channeltypes.NewUpgradeTimeout(endpoint.Counterparty.Chain.GetTimeoutHeight(), 0),
+		LatestSequenceSend: 0,
+	}
+
+	override := endpoint.ChannelConfig.ProposedUpgrade
+	if override.Timeout.IsValid() {
+		upgrade.Timeout = override.Timeout
+	}
+
+	if override.Fields.Ordering != channeltypes.NONE {
+		upgrade.Fields.Ordering = override.Fields.Ordering
+	}
+
+	if override.Fields.Version != "" {
+		upgrade.Fields.Version = override.Fields.Version
+	}
+
+	if len(override.Fields.ConnectionHops) != 0 {
+		upgrade.Fields.ConnectionHops = override.Fields.ConnectionHops
+	}
+
+	return upgrade
 }
