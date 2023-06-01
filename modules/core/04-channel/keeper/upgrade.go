@@ -107,6 +107,50 @@ func (k Keeper) WriteUpgradeTryChannel(
 	emitChannelUpgradeTryEvent(ctx, portID, channelID, channel, proposedUpgrade)
 }
 
+// abortHandshake will restore the channel state and flush status to their pre-upgrade state so that upgrade is aborted.
+// any unnecessary state is deleted. An error receipt is written, and the OnChanUpgradeRestore callback is called.
+func (k Keeper) abortHandshake(ctx sdk.Context, portID, channelID string, upgradeError types.UpgradeError) error {
+	if err := k.restoreChannel(ctx, portID, channelID); err != nil {
+		return err
+	}
+
+	if err := k.writeErrorReceipt(ctx, portID, channelID, upgradeError); err != nil {
+		return err
+	}
+
+
+	// TODO: callback execution
+	// cbs.OnChanUpgradeRestore()
+
+	return nil
+}
+
+// restoreChannel will restore the channel state and flush status to their pre-upgrade state so that upgrade is aborted
+// it write an error receipt to state so counterparty can restore as well.
+func (k Keeper) restoreChannel(ctx sdk.Context, portID, channelID string) error {
+	channel, found := k.GetChannel(ctx, portID, channelID)
+	if !found {
+		return errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
+	}
+
+	channel.State = types.OPEN
+	channel.FlushStatus = types.NOTINFLUSH
+
+	k.SetChannel(ctx, portID, channelID, channel)
+
+	// delete state associated with upgrade which is no longer required.
+	k.deleteUpgrade(ctx, portID, channelID)
+	k.deleteCounterpartyLastPacketSequence(ctx, portID, channelID)
+
+	return nil
+}
+
+func (k Keeper) writeErrorReceipt(ctx sdk.Context, portID, channelID string, upgradeError types.UpgradeError) error {
+	k.SetUpgradeErrorReceipt(ctx, portID, channelID, upgradeError.GetErrorReceipt())
+	// TODO: emit events
+	return nil
+}
+
 // constructProposedUpgrade returns the proposed upgrade from the provided arguments.
 func (k Keeper) constructProposedUpgrade(ctx sdk.Context, portID, channelID string, fields types.UpgradeFields, upgradeTimeout types.Timeout) (types.Upgrade, error) {
 	seq, found := k.GetNextSequenceSend(ctx, portID, channelID)
