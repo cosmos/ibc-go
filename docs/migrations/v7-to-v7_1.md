@@ -45,7 +45,7 @@ func CreateV7LocalhostUpgradeHandler(
 
 ### Transfer migration
 
-An automatic migration handler (TODO: add link after backport to v7.1.x is merged) is configured in the transfer module to set the total amount in escrow for all denominations of coins that have been sent out. For each denomination a state entry is added with the total amount of coins in escrow regardless of the channel from which they were transferred.
+An [automatic migration handler](https://github.com/cosmos/ibc-go/blob/release/v7.1.x/modules/apps/transfer/module.go#L111-L113) is configured in the transfer module to set the total amount in escrow for all denominations of coins that have been sent out. For each denomination a state entry is added with the total amount of coins in escrow regardless of the channel from which they were transferred.
 
 ## IBC Apps
 
