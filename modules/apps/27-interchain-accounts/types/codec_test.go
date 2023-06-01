@@ -41,9 +41,9 @@ func (suite *TypesTestSuite) TestCosmwasmDeserializeCosmosTx() {
 	var cwBytes []byte
 	var protoMessages []proto.Message
 	testCases := []struct {
-		name    string
+		name     string
 		malleate func()
-		expPass bool
+		expPass  bool
 	}{
 		{
 			"success: single msg from cosmwasm",
@@ -114,7 +114,7 @@ func (suite *TypesTestSuite) TestCosmwasmDeserializeCosmosTx() {
 					&mockSdkMsg{},
 					&mockSdkMsg{},
 					&mockSdkMsg{},
-				} 
+				}
 			},
 			false,
 		},
