@@ -27,6 +27,17 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	registry.RegisterImplementations((*authtypes.GenesisAccount)(nil), &InterchainAccount{})
 }
 
+// JsonAny is used to serialize and deserialize messages in the Any type for json encoding.
+type JsonAny struct {
+	TypeUrl string `json:"type_url,omitempty"`
+	Value   []byte `json:"value,omitempty"`
+}
+
+// JsonCosmosTx is used to serialize and deserialize messages in the CosmosTx type for json encoding.
+type JsonCosmosTx struct {
+	Messages []*JsonAny `json:"messages,omitempty"`
+}
+
 // SerializeCosmosTx serializes a slice of sdk.Msg's using the CosmosTx type. The sdk.Msg's are
 // packed into Any's and inserted into the Messages field of a CosmosTx. The proto marshaled CosmosTx
 // bytes are returned. Only the ProtoCodec is supported for serializing messages.
@@ -58,13 +69,6 @@ func SerializeCosmosTx(cdc codec.BinaryCodec, msgs []proto.Message, encoding str
 			return nil, err
 		}
 	case EncodingJSON:
-		type JsonAny struct {
-			TypeUrl string `json:"type_url,omitempty"`
-			Value   []byte `json:"value,omitempty"`
-		}
-		type JsonCosmosTx struct {
-			Messages []*JsonAny `json:"messages,omitempty"`
-		}
 		msgAnys := make([]*JsonAny, len(msgs))
 		for i, msg := range msgs {
 			jsonValue, err := cdc.(*codec.ProtoCodec).MarshalJSON(msg)
@@ -99,11 +103,11 @@ func DeserializeCosmosTx(cdc codec.BinaryCodec, data []byte, encoding string) ([
 		return nil, errorsmod.Wrap(ErrInvalidCodec, "ProtoCodec must be supported for receiving messages on the host chain")
 	}
 
-	var cosmosTx CosmosTx
 	var msgs []sdk.Msg
 
 	switch encoding {
 	case EncodingProtobuf:
+		var cosmosTx CosmosTx
 		if err := cdc.Unmarshal(data, &cosmosTx); err != nil {
 			return nil, err
 		}
@@ -121,6 +125,7 @@ func DeserializeCosmosTx(cdc codec.BinaryCodec, data []byte, encoding string) ([
 			msgs[i] = msg
 		}
 	case EncodingJSON:
+		var cosmosTx JsonCosmosTx
 		// This case does not rely on cdc to unpack the Any.
 		// cdc is only used to access the interface registry.
 		interfaceRegistry := cdc.(*codec.ProtoCodec).InterfaceRegistry()
