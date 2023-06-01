@@ -151,7 +151,7 @@ func (k Keeper) IterateDenomTraces(ctx sdk.Context, cb func(denomTrace types.Den
 func (k Keeper) GetTotalEscrowForDenom(ctx sdk.Context, denom string) sdk.Coin {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.TotalEscrowForDenomKey(denom))
-	if bz == nil {
+	if len(bz) == 0 {
 		return sdk.NewCoin(denom, sdk.ZeroInt())
 	}
 
@@ -162,21 +162,30 @@ func (k Keeper) GetTotalEscrowForDenom(ctx sdk.Context, denom string) sdk.Coin {
 }
 
 // SetTotalEscrowForDenom stores the total amount of source chain tokens that are in escrow.
+// Amount is stored in state if and only if it is not equal to zero. The function will panic
+// if the amount is negative.
 func (k Keeper) SetTotalEscrowForDenom(ctx sdk.Context, coin sdk.Coin) {
 	if coin.Amount.IsNegative() {
 		panic(fmt.Sprintf("amount cannot be negative: %s", coin.Amount))
 	}
 
 	store := ctx.KVStore(k.storeKey)
+	key := types.TotalEscrowForDenomKey(coin.Denom)
+
+	if coin.Amount.IsZero() {
+		store.Delete(key) // delete the key since Cosmos SDK x/bank module will prune any non-zero balances
+		return
+	}
+
 	bz := k.cdc.MustMarshal(&sdk.IntProto{Int: coin.Amount})
-	store.Set(types.TotalEscrowForDenomKey(coin.Denom), bz)
+	store.Set(key, bz)
 }
 
 // GetAllTotalEscrowed returns the escrow information for all the denominations.
 func (k Keeper) GetAllTotalEscrowed(ctx sdk.Context) sdk.Coins {
 	var escrows sdk.Coins
 	k.IterateTokensInEscrow(ctx, []byte(types.KeyTotalEscrowPrefix), func(denomEscrow sdk.Coin) bool {
-		escrows = append(escrows, denomEscrow)
+		escrows = escrows.Add(denomEscrow)
 		return false
 	})
 
@@ -192,12 +201,7 @@ func (k Keeper) IterateTokensInEscrow(ctx sdk.Context, prefix []byte, cb func(de
 
 	defer sdk.LogDeferred(ctx.Logger(), func() error { return iterator.Close() })
 	for ; iterator.Valid(); iterator.Next() {
-		keySplit := strings.Split(string(iterator.Key()), "/")
-		if len(keySplit) < 2 {
-			continue // key doesn't conform to expected format
-		}
-
-		denom := strings.Join(keySplit[1:], "/")
+		denom := strings.TrimPrefix(string(iterator.Key()), fmt.Sprintf("%s/", types.KeyTotalEscrowPrefix))
 		if strings.TrimSpace(denom) == "" {
 			continue // denom is empty
 		}

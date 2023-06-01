@@ -63,7 +63,7 @@ func (suite *KeeperTestSuite) TestSetGetTotalEscrowForDenom() {
 		expPass  bool
 	}{
 		{
-			"success: with 0 escrow amount",
+			"success: with non-zero escrow amount",
 			func() {},
 			true,
 		},
@@ -71,6 +71,13 @@ func (suite *KeeperTestSuite) TestSetGetTotalEscrowForDenom() {
 			"success: with escrow amount > 2^63",
 			func() {
 				expAmount, _ = math.NewIntFromString("100000000000000000000")
+			},
+			true,
+		},
+		{
+			"success: escrow amount 0 is not stored",
+			func() {
+				expAmount = math.ZeroInt()
 			},
 			true,
 		},
@@ -88,7 +95,7 @@ func (suite *KeeperTestSuite) TestSetGetTotalEscrowForDenom() {
 
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
-			expAmount = math.ZeroInt()
+			expAmount = math.NewInt(100)
 			ctx := suite.chainA.GetContext()
 
 			tc.malleate()
@@ -97,6 +104,15 @@ func (suite *KeeperTestSuite) TestSetGetTotalEscrowForDenom() {
 				suite.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(ctx, sdk.NewCoin(denom, expAmount))
 				total := suite.chainA.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(ctx, denom)
 				suite.Require().Equal(expAmount, total.Amount)
+
+				storeKey := suite.chainA.GetSimApp().GetKey(types.ModuleName)
+				store := ctx.KVStore(storeKey)
+				key := types.TotalEscrowForDenomKey(denom)
+				if expAmount.IsZero() {
+					suite.Require().False(store.Has(key))
+				} else {
+					suite.Require().True(store.Has(key))
+				}
 			} else {
 				suite.Require().PanicsWithError("negative coin amount: -1", func() {
 					suite.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(ctx, sdk.NewCoin(denom, expAmount))
