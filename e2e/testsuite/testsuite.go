@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"strings"
-	"time"
 
 	dockerclient "github.com/docker/docker/client"
 	interchaintest "github.com/strangelove-ventures/interchaintest/v7"
@@ -129,8 +128,7 @@ func (s *E2ETestSuite) SetupChainsRelayerAndChannel(ctx context.Context, channel
 			}
 		})
 		// wait for relayer to start.
-		time.Sleep(time.Second * 10)
-		s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA, chainB), "failed to wait for blocks")
+		s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB), "failed to wait for blocks")
 	}
 
 	s.InitGRPCClients(chainA)
