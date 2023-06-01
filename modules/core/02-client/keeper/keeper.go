@@ -418,8 +418,8 @@ func (k Keeper) GetClientStatus(ctx sdk.Context, clientState exported.ClientStat
 func (k Keeper) GetParams(ctx sdk.Context) types.Params {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get([]byte(types.ParamsKey))
-	if len(bz) == 0 {
-		return types.Params{}
+	if bz == nil { // only panic on unset params and not on empty params
+		panic("client params are not set in store")
 	}
 
 	var params types.Params
