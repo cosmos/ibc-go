@@ -88,6 +88,7 @@ func NewUpgradeError(upgradeSequence uint64, err error) UpgradeError {
 	}
 }
 
+// Error implements the error interface, returning the underlying error which caused the upgrade to fail.
 func (u UpgradeError) Error() string {
 	return u.err.Error()
 }

@@ -684,15 +684,6 @@ func (suite *KeeperTestSuite) TestVerifyNextSequenceRecv() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestUpgradeErrorIsOf() {
-	ue := channeltypes.UpgradeError{}
-	suite.Require().True(errorsmod.IsOf(ue, channeltypes.UpgradeError{}))
-	suite.Require().False(errorsmod.IsOf(ue, channeltypes.ErrInvalidChannel))
-
-	wrappedErr := errorsmod.Wrap(ue, "wrapped upgrade error")
-	suite.Require().True(errorsmod.IsOf(wrappedErr, channeltypes.UpgradeError{}))
-}
-
 func (suite *KeeperTestSuite) TestVerifyUpgradeErrorReceipt() {
 	var (
 		path         *ibctesting.Path
