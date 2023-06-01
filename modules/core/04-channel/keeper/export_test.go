@@ -16,8 +16,8 @@ func (k Keeper) StartFlushUpgradeHandshake(
 	counterpartyChannel types.Channel,
 	counterpartyUpgrade types.Upgrade,
 	proofCounterpartyChannel,
-	proofUpgrade []byte,
+	proofCounterpartyUpgrade []byte,
 	proofHeight clienttypes.Height,
 ) error {
-	return k.startFlushUpgradeHandshake(ctx, portID, channelID, proposedUpgradeFields, counterpartyChannel, counterpartyUpgrade, proofCounterpartyChannel, proofUpgrade, proofHeight)
+	return k.startFlushUpgradeHandshake(ctx, portID, channelID, proposedUpgradeFields, counterpartyChannel, counterpartyUpgrade, proofCounterpartyChannel, proofCounterpartyUpgrade, proofHeight)
 }

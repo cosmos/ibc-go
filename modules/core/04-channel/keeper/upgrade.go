@@ -121,7 +121,7 @@ func (k Keeper) startFlushUpgradeHandshake(
 	counterpartyChannel types.Channel,
 	counterpartyUpgrade types.Upgrade,
 	proofCounterpartyChannel,
-	proofUpgrade []byte,
+	proofCounterpartyUpgrade []byte,
 	proofHeight clienttypes.Height,
 ) error {
 	channel, found := k.GetChannel(ctx, portID, channelID)
@@ -154,7 +154,7 @@ func (k Keeper) startFlushUpgradeHandshake(
 	if err := k.connectionKeeper.VerifyChannelUpgrade(
 		ctx,
 		connection,
-		proofHeight, proofUpgrade,
+		proofHeight, proofCounterpartyUpgrade,
 		channel.Counterparty.PortId,
 		channel.Counterparty.ChannelId,
 		counterpartyUpgrade,
