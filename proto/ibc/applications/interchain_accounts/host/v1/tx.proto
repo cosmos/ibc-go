@@ -5,6 +5,7 @@ package ibc.applications.interchain_accounts.host.v1;
 option go_package = "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/types";
 
 import "gogoproto/gogo.proto";
+import "cosmos/msg/v1/msg.proto";
 import "ibc/applications/interchain_accounts/host/v1/host.proto";
 
 // Msg defines the 27-interchain-accounts/host Msg service.
@@ -15,6 +16,8 @@ service Msg {
 
 // MsgUpdateParams defines the payload for Msg/UpdateParams
 message MsgUpdateParams {
+  option (cosmos.msg.v1.signer) = "authority";
+
   // authority is the address that controls the module (defaults to x/gov unless overwritten).
   string authority = 1;
 

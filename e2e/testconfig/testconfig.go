@@ -396,10 +396,10 @@ func getGenesisModificationFunction(cc ChainConfig) func(ibc.ChainConfig, []byte
 	binary := cc.Binary
 	version := cc.Tag
 
-	doesSimdSupportGovv1Genesis := binary == defaultBinary && testvalues.GovGenesisFeatureReleases.IsSupported(version)
-	doesIcadSupportGovv1Genesis := testvalues.IcadGovGenesisFeatureReleases.IsSupported(version)
+	simdSupportsGovV1Genesis := binary == defaultBinary && testvalues.GovGenesisFeatureReleases.IsSupported(version)
+	icadSupportsGovV1Genesis := testvalues.IcadGovGenesisFeatureReleases.IsSupported(version)
 
-	if doesSimdSupportGovv1Genesis || doesIcadSupportGovv1Genesis {
+	if simdSupportsGovV1Genesis || icadSupportsGovV1Genesis {
 		return defaultGovv1ModifyGenesis()
 	}
 
