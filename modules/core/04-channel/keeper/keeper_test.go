@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"fmt"
 	"reflect"
 	"testing"
 
@@ -478,7 +479,7 @@ func (suite *KeeperTestSuite) TestSetUpgradeErrorReceipt() {
 	suite.Require().False(found)
 	suite.Require().Empty(errorReceipt)
 
-	expErrorReceipt := types.ErrorReceipt{Sequence: 1, Error: "testing"}
+	expErrorReceipt := types.NewUpgradeError(1, fmt.Errorf("testing")).GetErrorReceipt()
 	suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetUpgradeErrorReceipt(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, expErrorReceipt)
 
 	errorReceipt, found = suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetUpgradeErrorReceipt(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
