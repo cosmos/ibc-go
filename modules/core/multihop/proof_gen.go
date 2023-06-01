@@ -74,8 +74,8 @@ func (p ChanPath) GetConnectionHops() []string {
 	return hops
 }
 
-// The source chain
-func (p ChanPath) source() Endpoint {
+// Source returns the Source chain for the chan path
+func (p ChanPath) Source() Endpoint {
 	return p.Paths[0].EndpointA
 }
 
@@ -92,10 +92,10 @@ func (p ChanPath) QueryMultihopProof(key []byte, minProofHeight exported.Height)
 	}
 
 	// query the maximum valid height for the key which is the first height at which its value changes
-	maxProofHeight := p.source().QueryMaximumProofHeight(key, minProofHeight, nil)
+	maxProofHeight := p.Source().QueryMaximumProofHeight(key, minProofHeight, nil)
 
 	// query the minimum height to prove the key on the source chain
-	proofHeight, consensusHeight, err := p.source().Counterparty().QueryMinimumConsensusHeight(minProofHeight, maxProofHeight)
+	proofHeight, consensusHeight, err := p.Source().Counterparty().QueryMinimumConsensusHeight(minProofHeight, maxProofHeight)
 	if err != nil {
 		return
 	}
@@ -108,19 +108,19 @@ func (p ChanPath) QueryMultihopProof(key []byte, minProofHeight exported.Height)
 	}
 
 	// query the proof of the key/value on the source chain at a height provable on the next chain.
-	if multihopProof.KeyProof, err = queryProof(p.source(), key, keyProofHeight, false); err != nil {
+	if multihopProof.KeyProof, err = queryProof(p.Source(), key, keyProofHeight, false); err != nil {
 		return
 	}
 
 	// query the consensus state proof on the counterparty chain
 	multihopProof.ConsensusProofs = make([]*channeltypes.MultihopProof, N)
-	if multihopProof.ConsensusProofs[N-1], err = queryConsensusStateProof(p.source().Counterparty(), proofHeight, consensusHeight); err != nil {
+	if multihopProof.ConsensusProofs[N-1], err = queryConsensusStateProof(p.Source().Counterparty(), proofHeight, consensusHeight); err != nil {
 		return
 	}
 
 	// query the connection proof on the counterparty chain
 	multihopProof.ConnectionProofs = make([]*channeltypes.MultihopProof, N)
-	if multihopProof.ConnectionProofs[N-1], err = queryConnectionProof(p.source().Counterparty(), proofHeight); err != nil {
+	if multihopProof.ConnectionProofs[N-1], err = queryConnectionProof(p.Source().Counterparty(), proofHeight); err != nil {
 		return
 	}
 
