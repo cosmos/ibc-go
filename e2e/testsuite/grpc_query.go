@@ -73,6 +73,7 @@ func (s *E2ETestSuite) InitGRPCClients(chain *cosmos.CosmosChain) {
 
 	s.grpcClients[chain.Config().ChainID] = GRPCClients{
 		ClientQueryClient:      clienttypes.NewQueryClient(grpcConn),
+		ConnectionQueryClient:  connectiontypes.NewQueryClient(grpcConn),
 		ChannelQueryClient:     channeltypes.NewQueryClient(grpcConn),
 		TransferQueryClient:    transfertypes.NewQueryClient(grpcConn),
 		FeeQueryClient:         feetypes.NewQueryClient(grpcConn),
