@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	errorsmod "cosmossdk.io/errors"
+
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
@@ -682,10 +684,19 @@ func (suite *KeeperTestSuite) TestVerifyNextSequenceRecv() {
 	}
 }
 
+func (suite *KeeperTestSuite) TestUpgradeErrorIsOf() {
+	ue := channeltypes.UpgradeError{}
+	suite.Require().True(errorsmod.IsOf(ue, channeltypes.UpgradeError{}))
+	suite.Require().False(errorsmod.IsOf(ue, channeltypes.ErrInvalidChannel))
+
+	wrappedErr := errorsmod.Wrap(ue, "wrapped upgrade error")
+	suite.Require().True(errorsmod.IsOf(wrappedErr, channeltypes.UpgradeError{}))
+}
+
 func (suite *KeeperTestSuite) TestVerifyUpgradeErrorReceipt() {
 	var (
 		path         *ibctesting.Path
-		errorReceipt channeltypes.ErrorReceipt
+		upgradeError channeltypes.UpgradeError
 	)
 
 	cases := []struct {
@@ -727,7 +738,8 @@ func (suite *KeeperTestSuite) TestVerifyUpgradeErrorReceipt() {
 		{
 			name: "verification fails when message differs",
 			malleate: func() {
-				errorReceipt.Message = "new error"
+				originalSequence := upgradeError.GetErrorReceipt().Sequence
+				upgradeError = channeltypes.NewUpgradeError(originalSequence, fmt.Errorf("new error"))
 			},
 			expPass: false,
 		},
@@ -742,8 +754,8 @@ func (suite *KeeperTestSuite) TestVerifyUpgradeErrorReceipt() {
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.Setup(path)
 
-			errorReceipt = channeltypes.NewErrorReceipt(1, channeltypes.ErrInvalidChannel)
-			suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.SetUpgradeErrorReceipt(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, errorReceipt)
+			upgradeError = channeltypes.NewUpgradeError(1, channeltypes.ErrInvalidChannel)
+			suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.SetUpgradeErrorReceipt(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, upgradeError.GetErrorReceipt())
 
 			suite.chainA.Coordinator.CommitBlock(suite.chainA)
 			suite.Require().NoError(path.EndpointB.UpdateClient())
@@ -753,7 +765,7 @@ func (suite *KeeperTestSuite) TestVerifyUpgradeErrorReceipt() {
 			upgradeErrorReceiptKey := host.ChannelUpgradeErrorKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 			proof, proofHeight := suite.chainA.QueryProof(upgradeErrorReceiptKey)
 
-			err := suite.chainB.GetSimApp().IBCKeeper.ConnectionKeeper.VerifyChannelUpgradeError(suite.chainB.GetContext(), path.EndpointB.GetConnection(), proofHeight, proof, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, errorReceipt)
+			err := suite.chainB.GetSimApp().IBCKeeper.ConnectionKeeper.VerifyChannelUpgradeError(suite.chainB.GetContext(), path.EndpointB.GetConnection(), proofHeight, proof, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, upgradeError.GetErrorReceipt())
 
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -798,7 +810,7 @@ func (suite *KeeperTestSuite) TestVerifyUpgradeErrorReceiptAbsence() {
 		{
 			name: "verification fails when the key exists",
 			malleate: func() {
-				errorReceipt := channeltypes.NewErrorReceipt(1, channeltypes.ErrInvalidChannel)
+				errorReceipt := channeltypes.NewUpgradeError(1, channeltypes.ErrInvalidChannel).GetErrorReceipt()
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.SetUpgradeErrorReceipt(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, errorReceipt)
 				suite.chainA.Coordinator.CommitBlock(suite.chainA)
 				suite.Require().NoError(path.EndpointB.UpdateClient())

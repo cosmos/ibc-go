@@ -10,12 +10,6 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 )
 
-const (
-	// restoreErrorString defines a string constant included in error receipts.
-	// NOTE: Changing this const is state machine breaking as it is written into state.
-	restoreErrorString = "restored channel to pre-upgrade state"
-)
-
 // NewUpgrade creates a new Upgrade instance.
 func NewUpgrade(upgradeFields UpgradeFields, timeout Timeout, latestPacketSent uint64) Upgrade {
 	return Upgrade{
@@ -79,22 +73,26 @@ func (ut Timeout) IsValid() bool {
 
 // UpgradeError defines an error that occurs during an upgrade.
 type UpgradeError struct {
-	// underlyingError is the underlying error that caused the upgrade to fail.
+	// err is the underlying error that caused the upgrade to fail.
 	// this error should not be written to state.
-	underlyingError error
-	// upgradeSequence is the sequence number of the upgrade that failed.
-	upgradeSequence uint64
+	err error
+	// sequence is the upgrade sequence number of the upgrade that failed.
+	sequence uint64
 }
 
-func (u *UpgradeError) Error() string {
-	return u.underlyingError.Error()
+func (u UpgradeError) Error() string {
+	return u.err.Error()
 }
 
 // GetErrorReceipt returns an error receipt with the code from the underlying error type stripped.
-func (u *UpgradeError) GetErrorReceipt() ErrorReceipt {
-	_, code, _ := errorsmod.ABCIInfo(u.underlyingError, false) // discard non-determinstic codespace and log values
+func (u UpgradeError) GetErrorReceipt() ErrorReceipt {
+	// restoreErrorString defines a string constant included in error receipts.
+	// NOTE: Changing this const is state machine breaking as it is written into state.
+	const restoreErrorString = "restored channel to pre-upgrade state"
+
+	_, code, _ := errorsmod.ABCIInfo(u.err, false) // discard non-determinstic codespace and log values
 	return ErrorReceipt{
-		Sequence: u.upgradeSequence,
+		Sequence: u.sequence,
 		Message:  fmt.Sprintf("ABCI code: %d: %s", code, restoreErrorString),
 	}
 }
@@ -102,23 +100,7 @@ func (u *UpgradeError) GetErrorReceipt() ErrorReceipt {
 // NewUpgradeError returns a new UpgradeError instance.
 func NewUpgradeError(upgradeSequence uint64, err error) UpgradeError {
 	return UpgradeError{
-		underlyingError: err,
-		upgradeSequence: upgradeSequence,
+		err:      err,
+		sequence: upgradeSequence,
 	}
-}
-
-// NewErrorReceipt returns an error receipt with the code from the provided error type stripped
-// out to ensure changes of the error message don't cause state machine breaking changes.
-func NewErrorReceipt(upgradeSequence uint64, err error) ErrorReceipt {
-	_, code, _ := errorsmod.ABCIInfo(err, false) // discard non-determinstic codespace and log values
-	return ErrorReceipt{
-		Sequence: upgradeSequence,
-		Message:  fmt.Sprintf("ABCI code: %d: %s", code, restoreErrorString),
-	}
-}
-
-var _ error = &ErrorReceipt{}
-
-func (e *ErrorReceipt) Error() string {
-	return e.Message
 }
