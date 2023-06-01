@@ -113,7 +113,7 @@ func (k Keeper) ChanUpgradeTry(
 	// the proposed connections hops must have a counterparty which matches the counterparty connection hops
 	proposedConnection, err := k.GetConnection(ctx, proposedConnectionHops[0])
 	if err != nil {
-		return types.Upgrade{}, err
+		return types.Upgrade{}, errorsmod.Wrap(err, "failed to retrieve connection using the proposed connection hops")
 	}
 
 	counterpartyProposedHops := counterpartyProposedUpgrade.Fields.ConnectionHops
