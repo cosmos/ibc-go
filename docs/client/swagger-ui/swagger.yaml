@@ -8909,7 +8909,7 @@ paths:
                         The counterparty chain that accepts the upgrade should
                         set the channel state from OPEN to UPGRADETRY.
                          - STATE_ACKUPGRADE: A channel has verified the counterparty chain is in UPGRADETRY.
-                        However, there are still in-flight packets on its end
+                        However, there are still in-flight packets on both ends
                         waiting to be flushed before it can move to OPEN.
                     ordering:
                       title: whether the channel is ordered or unordered
@@ -9322,7 +9322,7 @@ paths:
                       The counterparty chain that accepts the upgrade should set
                       the channel state from OPEN to UPGRADETRY.
                        - STATE_ACKUPGRADE: A channel has verified the counterparty chain is in UPGRADETRY.
-                      However, there are still in-flight packets on its end
+                      However, there are still in-flight packets on both ends
                       waiting to be flushed before it can move to OPEN.
                   ordering:
                     title: whether the channel is ordered or unordered
@@ -13490,7 +13490,7 @@ paths:
                         The counterparty chain that accepts the upgrade should
                         set the channel state from OPEN to UPGRADETRY.
                          - STATE_ACKUPGRADE: A channel has verified the counterparty chain is in UPGRADETRY.
-                        However, there are still in-flight packets on its end
+                        However, there are still in-flight packets on both ends
                         waiting to be flushed before it can move to OPEN.
                     ordering:
                       title: whether the channel is ordered or unordered
@@ -18032,7 +18032,7 @@ definitions:
           The counterparty chain that accepts the upgrade should set the channel
           state from OPEN to UPGRADETRY.
            - STATE_ACKUPGRADE: A channel has verified the counterparty chain is in UPGRADETRY.
-          However, there are still in-flight packets on its end waiting to be
+          However, there are still in-flight packets on both ends waiting to be
           flushed before it can move to OPEN.
       ordering:
         title: whether the channel is ordered or unordered
@@ -18146,7 +18146,7 @@ definitions:
           The counterparty chain that accepts the upgrade should set the channel
           state from OPEN to UPGRADETRY.
            - STATE_ACKUPGRADE: A channel has verified the counterparty chain is in UPGRADETRY.
-          However, there are still in-flight packets on its end waiting to be
+          However, there are still in-flight packets on both ends waiting to be
           flushed before it can move to OPEN.
       ordering:
         title: whether the channel is ordered or unordered
@@ -18686,7 +18686,7 @@ definitions:
               The counterparty chain that accepts the upgrade should set the
               channel state from OPEN to UPGRADETRY.
                - STATE_ACKUPGRADE: A channel has verified the counterparty chain is in UPGRADETRY.
-              However, there are still in-flight packets on its end waiting to
+              However, there are still in-flight packets on both ends waiting to
               be flushed before it can move to OPEN.
           ordering:
             title: whether the channel is ordered or unordered
@@ -18820,8 +18820,8 @@ definitions:
                 The counterparty chain that accepts the upgrade should set the
                 channel state from OPEN to UPGRADETRY.
                  - STATE_ACKUPGRADE: A channel has verified the counterparty chain is in UPGRADETRY.
-                However, there are still in-flight packets on its end waiting to
-                be flushed before it can move to OPEN.
+                However, there are still in-flight packets on both ends waiting
+                to be flushed before it can move to OPEN.
             ordering:
               title: whether the channel is ordered or unordered
               type: string
@@ -18970,8 +18970,8 @@ definitions:
                 The counterparty chain that accepts the upgrade should set the
                 channel state from OPEN to UPGRADETRY.
                  - STATE_ACKUPGRADE: A channel has verified the counterparty chain is in UPGRADETRY.
-                However, there are still in-flight packets on its end waiting to
-                be flushed before it can move to OPEN.
+                However, there are still in-flight packets on both ends waiting
+                to be flushed before it can move to OPEN.
             ordering:
               title: whether the channel is ordered or unordered
               type: string
@@ -19727,7 +19727,7 @@ definitions:
       The counterparty chain that accepts the upgrade should set the channel
       state from OPEN to UPGRADETRY.
        - STATE_ACKUPGRADE: A channel has verified the counterparty chain is in UPGRADETRY.
-      However, there are still in-flight packets on its end waiting to be
+      However, there are still in-flight packets on both ends waiting to be
       flushed before it can move to OPEN.
   ibc.core.channel.v1.Timeout:
     type: object
