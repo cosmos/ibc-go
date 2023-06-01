@@ -137,6 +137,10 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	}); err != nil {
 		panic(err)
 	}
+
+	if err := cfg.RegisterMigration(exported.ModuleName, 4, clientMigrator.MigrateParams); err != nil {
+		panic(err)
+	}
 }
 
 // InitGenesis performs genesis initialization for the ibc module. It returns
@@ -158,7 +162,7 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 }
 
 // ConsensusVersion implements AppModule/ConsensusVersion.
-func (AppModule) ConsensusVersion() uint64 { return 4 }
+func (AppModule) ConsensusVersion() uint64 { return 5 }
 
 // BeginBlock returns the begin blocker for the ibc module.
 func (am AppModule) BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock) {

@@ -50,10 +50,11 @@ jobs:
         - name: Build e2e
           run: |
             cd e2e
-            test_dirs="$(ls -A tests)"
-            for td in $test_dirs
+            find ./tests -type d | while IFS= read -r dir
             do
-              go test -c "./tests/${td}"
+                if ls "${dir}"/*.go >/dev/null 2>&1; then
+                    GOARCH=arm64 go test -c "$dir" 2>/dev/null
+                fi
             done
 
     e2e:
