@@ -7,10 +7,21 @@ import (
 )
 
 func (suite *TypesTestSuite) TestUpgradeErrorIsOf() {
-	ue := channeltypes.UpgradeError{}
-	suite.Require().True(errorsmod.IsOf(ue, channeltypes.UpgradeError{}))
-	suite.Require().False(errorsmod.IsOf(ue, channeltypes.ErrInvalidChannel))
+	ue := channeltypes.NewUpgradeError(1, channeltypes.ErrInvalidChannel)
+	suite.Require().True(errorsmod.IsOf(ue, channeltypes.ErrInvalidChannel))
+	suite.Require().False(errorsmod.IsOf(ue, channeltypes.UpgradeError{}))
 
 	wrappedErr := errorsmod.Wrap(ue, "wrapped upgrade error")
-	suite.Require().True(errorsmod.IsOf(wrappedErr, channeltypes.UpgradeError{}))
+	suite.Require().True(errorsmod.IsOf(wrappedErr, channeltypes.ErrInvalidChannel))
+}
+
+func (suite *TypesTestSuite) TestGetErrorReceipt() {
+	ue := channeltypes.NewUpgradeError(1, channeltypes.ErrInvalidChannel)
+
+	wrappedErr := errorsmod.Wrap(ue, "wrapped upgrade error")
+	suite.Require().True(errorsmod.IsOf(wrappedErr, channeltypes.ErrInvalidChannel))
+
+	ue2 := channeltypes.NewUpgradeError(1, wrappedErr)
+
+	suite.Require().Equal(ue2.GetErrorReceipt().Message, ue.GetErrorReceipt().Message)
 }

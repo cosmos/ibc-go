@@ -1,6 +1,7 @@
 package types
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -93,13 +94,31 @@ func (u UpgradeError) Error() string {
 	return u.err.Error()
 }
 
+
+// Is returns true if the underlying error is of the given err type.
+func (u UpgradeError) Is(err error) bool {
+	return errors.Is(u.err, err)
+}
+
+// Unwrap returns the base error that caused the upgrade to fail.
+func (u UpgradeError) Unwrap() error {
+	for {
+		if err := errors.Unwrap(u.err); err != nil {
+			u.err = err
+		} else {
+			return u.err
+		}
+	}
+}
+
 // GetErrorReceipt returns an error receipt with the code from the underlying error type stripped.
 func (u UpgradeError) GetErrorReceipt() ErrorReceipt {
 	// restoreErrorString defines a string constant included in error receipts.
 	// NOTE: Changing this const is state machine breaking as it is written into state.
 	const restoreErrorString = "restored channel to pre-upgrade state"
 
-	_, code, _ := errorsmod.ABCIInfo(u.err, false) // discard non-determinstic codespace and log values
+	baseError := u.Unwrap()
+	_, code, _ := errorsmod.ABCIInfo(baseError, false) // discard non-determinstic codespace and log values
 	return ErrorReceipt{
 		Sequence: u.sequence,
 		Message:  fmt.Sprintf("ABCI code: %d: %s", code, restoreErrorString),
