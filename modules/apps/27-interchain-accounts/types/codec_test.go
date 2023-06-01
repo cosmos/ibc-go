@@ -37,6 +37,102 @@ func (mockSdkMsg) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{}
 }
 
+func (suite *TypesTestSuite) TestCosmwasmDeserializeCosmosTx() {
+	var cwBytes []byte
+	var protoMessages []proto.Message
+	testCases := []struct {
+		name    string
+		malleate func()
+		// msgs    []proto.Message
+		expPass bool
+	}{
+		{
+			"single msg",
+			func() {
+				// These bytes are serialized in cosmwasm
+				cwBytes = []byte{123, 34, 109, 101, 115, 115, 97, 103, 101, 115, 34, 58, 91, 123, 34, 116, 121, 112, 101, 95, 117, 114, 108, 34, 58, 34, 47, 99, 111, 115, 109, 111, 115, 46, 98, 97, 110, 107, 46, 118, 49, 98, 101, 116, 97, 49, 46, 77, 115, 103, 83, 101, 110, 100, 34, 44, 34, 118, 97, 108, 117, 101, 34, 58, 91, 49, 50, 51, 44, 51, 52, 44, 49, 48, 50, 44, 49, 49, 52, 44, 49, 49, 49, 44, 49, 48, 57, 44, 57, 53, 44, 57, 55, 44, 49, 48, 48, 44, 49, 48, 48, 44, 49, 49, 52, 44, 49, 48, 49, 44, 49, 49, 53, 44, 49, 49, 53, 44, 51, 52, 44, 53, 56, 44, 51, 52, 44, 57, 57, 44, 49, 49, 49, 44, 49, 49, 53, 44, 49, 48, 57, 44, 49, 49, 49, 44, 49, 49, 53, 44, 52, 57, 44, 53, 53, 44, 49, 48, 48, 44, 49, 49, 54, 44, 49, 48, 56, 44, 52, 56, 44, 49, 48, 57, 44, 49, 48, 54, 44, 49, 49, 54, 44, 53, 49, 44, 49, 49, 54, 44, 53, 53, 44, 53, 53, 44, 49, 48, 55, 44, 49, 49, 50, 44, 49, 49, 55, 44, 49, 48, 52, 44, 49, 48, 51, 44, 53, 48, 44, 49, 48, 49, 44, 49, 48, 48, 44, 49, 49, 51, 44, 49, 50, 50, 44, 49, 48, 54, 44, 49, 49, 50, 44, 49, 49, 53, 44, 49, 50, 50, 44, 49, 49, 55, 44, 49, 48, 56, 44, 49, 49, 57, 44, 49, 48, 52, 44, 49, 48, 51, 44, 49, 50, 50, 44, 49, 49, 55, 44, 49, 48, 54, 44, 53, 55, 44, 49, 48, 56, 44, 49, 48, 54, 44, 49, 49, 53, 44, 51, 52, 44, 52, 52, 44, 51, 52, 44, 49, 49, 54, 44, 49, 49, 49, 44, 57, 53, 44, 57, 55, 44, 49, 48, 48, 44, 49, 48, 48, 44, 49, 49, 52, 44, 49, 48, 49, 44, 49, 49, 53, 44, 49, 49, 53, 44, 51, 52, 44, 53, 56, 44, 51, 52, 44, 57, 57, 44, 49, 49, 49, 44, 49, 49, 53, 44, 49, 48, 57, 44, 49, 49, 49, 44, 49, 49, 53, 44, 52, 57, 44, 53, 53, 44, 49, 48, 48, 44, 49, 49, 54, 44, 49, 48, 56, 44, 52, 56, 44, 49, 48, 57, 44, 49, 48, 54, 44, 49, 49, 54, 44, 53, 49, 44, 49, 49, 54, 44, 53, 53, 44, 53, 53, 44, 49, 48, 55, 44, 49, 49, 50, 44, 49, 49, 55, 44, 49, 48, 52, 44, 49, 48, 51, 44, 53, 48, 44, 49, 48, 49, 44, 49, 48, 48, 44, 49, 49, 51, 44, 49, 50, 50, 44, 49, 48, 54, 44, 49, 49, 50, 44, 49, 49, 53, 44, 49, 50, 50, 44, 49, 49, 55, 44, 49, 48, 56, 44, 49, 49, 57, 44, 49, 48, 52, 44, 49, 48, 51, 44, 49, 50, 50, 44, 49, 49, 55, 44, 49, 48, 54, 44, 53, 55, 44, 49, 48, 56, 44, 49, 48, 54, 44, 49, 49, 53, 44, 51, 52, 44, 52, 52, 44, 51, 52, 44, 57, 55, 44, 49, 48, 57, 44, 49, 49, 49, 44, 49, 49, 55, 44, 49, 49, 48, 44, 49, 49, 54, 44, 51, 52, 44, 53, 56, 44, 57, 49, 44, 49, 50, 51, 44, 51, 52, 44, 49, 48, 48, 44, 49, 48, 49, 44, 49, 49, 48, 44, 49, 49, 49, 44, 49, 48, 57, 44, 51, 52, 44, 53, 56, 44, 51, 52, 44, 57, 56, 44, 57, 55, 44, 49, 49, 48, 44, 57, 55, 44, 49, 49, 48, 44, 57, 55, 44, 49, 49, 53, 44, 51, 52, 44, 52, 52, 44, 51, 52, 44, 57, 55, 44, 49, 48, 57, 44, 49, 49, 49, 44, 49, 49, 55, 44, 49, 49, 48, 44, 49, 49, 54, 44, 51, 52, 44, 53, 56, 44, 51, 52, 44, 52, 57, 44, 52, 56, 44, 52, 56, 44, 51, 52, 44, 49, 50, 53, 44, 57, 51, 44, 49, 50, 53, 93, 125, 93, 125}
+				protoMessages = []proto.Message{
+					&banktypes.MsgSend{
+						FromAddress: TestOwnerAddress,
+						ToAddress:   TestOwnerAddress,
+						Amount:      sdk.NewCoins(sdk.NewCoin("bananas", sdk.NewInt(100))),
+					},
+				}
+			},
+			true,
+		},
+		// {
+		// 	"multiple msgs, same types",
+		// 	nil,
+		// 	[]proto.Message{
+		// 		&banktypes.MsgSend{
+		// 			FromAddress: TestOwnerAddress,
+		// 			ToAddress:   TestOwnerAddress,
+		// 			Amount:      sdk.NewCoins(sdk.NewCoin("bananas", sdk.NewInt(100))),
+		// 		},
+		// 		&banktypes.MsgSend{
+		// 			FromAddress: TestOwnerAddress,
+		// 			ToAddress:   TestOwnerAddress,
+		// 			Amount:      sdk.NewCoins(sdk.NewCoin("bananas", sdk.NewInt(200))),
+		// 		},
+		// 	},
+		// 	true,
+		// },
+		// {
+		// 	"multiple msgs, different types",
+		// 	nil,
+		// 	[]proto.Message{
+		// 		&banktypes.MsgSend{
+		// 			FromAddress: TestOwnerAddress,
+		// 			ToAddress:   TestOwnerAddress,
+		// 			Amount:      sdk.NewCoins(sdk.NewCoin("bananas", sdk.NewInt(100))),
+		// 		},
+		// 		&govtypes.MsgSubmitProposal{
+		// 			InitialDeposit: sdk.NewCoins(sdk.NewCoin("bananas", sdk.NewInt(100))),
+		// 			Proposer:       TestOwnerAddress,
+		// 		},
+		// 	},
+		// 	true,
+		// },
+		// {
+		// 	"unregistered msg type",
+		// 	nil,
+		// 	[]proto.Message{
+		// 		&mockSdkMsg{},
+		// 	},
+		// 	false,
+		// },
+		// {
+		// 	"multiple unregistered msg types",
+		// 	nil,
+		// 	[]proto.Message{
+		// 		&mockSdkMsg{},
+		// 		&mockSdkMsg{},
+		// 		&mockSdkMsg{},
+		// 	},
+		// 	false,
+		// },
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+
+		suite.Run(tc.name, func() {
+			tc.malleate()
+			// println("cwBytes: ", string(cwBytes))
+			msgs, errDeserialize := types.DeserializeCosmosTx(simapp.MakeTestEncodingConfig().Marshaler, cwBytes, types.EncodingJSON)
+			if tc.expPass {
+				suite.Require().NoError(errDeserialize, tc.name)
+				for i, msg := range msgs {
+					suite.Require().Equal(protoMessages[i], msg)
+				}
+			} else {
+				suite.Require().Error(errDeserialize, tc.name)
+			}
+		})
+	}
+}
+
 func (suite *TypesTestSuite) TestProtoSerializeAndDeserializeCosmosTx() {
 	testCases := []struct {
 		name    string
