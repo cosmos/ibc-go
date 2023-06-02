@@ -67,7 +67,7 @@ var IcadNewGenesisCommandsFeatureReleases = semverutil.FeatureReleases{
 }
 
 // TransferSelfParamsFeatureReleases represents the releases the transfer module started managing its own params.
-var TransferSelfParamsFeatureReleases = semverutil.FeatureReleases{
+var SelfParamsFeatureReleases = semverutil.FeatureReleases{
 	MajorVersion: "v8",
 }
 
