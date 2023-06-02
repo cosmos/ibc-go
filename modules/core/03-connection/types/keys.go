@@ -28,6 +28,9 @@ const (
 
 	// ConnectionPrefix is the prefix used when creating a connection identifier
 	ConnectionPrefix = "connection-"
+
+	// ParamsKey is the store key for the IBC connection parameters
+	ParamsKey = "connectionParams"
 )
 
 // FormatConnectionIdentifier returns the connection identifier with the sequence appended.
