@@ -60,6 +60,8 @@ message MsgSendTxResponse {
 }
 // MsgUpdateParams defines the payload for Msg/UpdateParams
 message MsgUpdateParams {
+  option (cosmos.msg.v1.signer) = "authority";
+
   // authority is the address that controls the module (defaults to x/gov unless overwritten).
   string authority = 1;
 
