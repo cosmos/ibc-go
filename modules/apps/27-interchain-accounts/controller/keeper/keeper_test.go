@@ -243,7 +243,7 @@ func (suite *KeeperTestSuite) TestSetInterchainAccountAddress() {
 	suite.Require().Equal(expectedAccAddr, retrievedAddr)
 }
 
-func (suite *KeeperTestSuite) TestParams() {
+func (suite *KeeperTestSuite) TestSetAndGetParams() {
 	testCases := []struct {
 		name    string
 		input   types.Params
