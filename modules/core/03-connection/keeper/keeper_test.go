@@ -186,7 +186,7 @@ func (suite *KeeperTestSuite) TestDefaultSetParams() {
 }
 
 // TestParams tests that param setting and retrieval works properly
-func (suite *KeeperTestSuite) TestParams() {
+func (suite *KeeperTestSuite) TestSetAndGetParams() {
 	testCases := []struct {
 		name    string
 		input   types.Params
