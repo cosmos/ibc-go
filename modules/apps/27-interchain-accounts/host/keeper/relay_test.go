@@ -419,50 +419,50 @@ func (suite *KeeperTestSuite) TestCosmwasmOnRecvPacket() {
 		// },
 	}
 
-		for _, tc := range testCases {
-			tc := tc
+	for _, tc := range testCases {
+		tc := tc
 
-			suite.Run(tc.msg, func() {
-				suite.SetupTest() // reset
+		suite.Run(tc.msg, func() {
+			suite.SetupTest() // reset
 
-				path = NewICAPath(suite.chainA, suite.chainB, icatypes.EncodingJSON)
-				suite.coordinator.SetupConnections(path)
+			path = NewICAPath(suite.chainA, suite.chainB, icatypes.EncodingJSON)
+			suite.coordinator.SetupConnections(path)
 
-				err := SetupICAPath(path, TestOwnerAddress, icatypes.EncodingJSON)
+			err := SetupICAPath(path, TestOwnerAddress, icatypes.EncodingJSON)
+			suite.Require().NoError(err)
+
+			portID, err := icatypes.NewControllerPortID(TestOwnerAddress)
+			suite.Require().NoError(err)
+
+			// Set the address of the interchain account stored in state during handshake step for cosmwasm testing
+			suite.setICAWallet(suite.chainB.GetContext(), portID, cwWalletOne)
+
+			suite.fundICAWallet(suite.chainB.GetContext(), path.EndpointA.ChannelConfig.PortID, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(10000))))
+
+			tc.malleate(icatypes.EncodingJSON) // malleate mutates test data
+
+			packet := channeltypes.NewPacket(
+				packetData,
+				suite.chainA.SenderAccount.GetSequence(),
+				path.EndpointA.ChannelConfig.PortID,
+				path.EndpointA.ChannelID,
+				path.EndpointB.ChannelConfig.PortID,
+				path.EndpointB.ChannelID,
+				clienttypes.NewHeight(1, 100),
+				0,
+			)
+
+			txResponse, err := suite.chainB.GetSimApp().ICAHostKeeper.OnRecvPacket(suite.chainB.GetContext(), packet)
+
+			if tc.expPass {
 				suite.Require().NoError(err)
-
-				portID, err := icatypes.NewControllerPortID(TestOwnerAddress)
-				suite.Require().NoError(err)
-
-				// Set the address of the interchain account stored in state during handshake step for cosmwasm testing
-				suite.setICAWallet( suite.chainB.GetContext(), portID, cwWalletOne)
-
-				suite.fundICAWallet(suite.chainB.GetContext(), path.EndpointA.ChannelConfig.PortID, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(10000))))
-
-				tc.malleate(icatypes.EncodingJSON) // malleate mutates test data
-
-				packet := channeltypes.NewPacket(
-					packetData,
-					suite.chainA.SenderAccount.GetSequence(),
-					path.EndpointA.ChannelConfig.PortID,
-					path.EndpointA.ChannelID,
-					path.EndpointB.ChannelConfig.PortID,
-					path.EndpointB.ChannelID,
-					clienttypes.NewHeight(1, 100),
-					0,
-				)
-
-				txResponse, err := suite.chainB.GetSimApp().ICAHostKeeper.OnRecvPacket(suite.chainB.GetContext(), packet)
-
-				if tc.expPass {
-					suite.Require().NoError(err)
-					suite.Require().NotNil(txResponse)
-				} else {
-					suite.Require().Error(err)
-					suite.Require().Nil(txResponse)
-				}
-			})
-		}
+				suite.Require().NotNil(txResponse)
+			} else {
+				suite.Require().Error(err)
+				suite.Require().Nil(txResponse)
+			}
+		})
+	}
 }
 
 func (suite *KeeperTestSuite) TestOnRecvPacket() {
