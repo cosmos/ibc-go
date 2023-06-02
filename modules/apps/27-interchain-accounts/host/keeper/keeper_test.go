@@ -114,7 +114,7 @@ func RegisterInterchainAccount(endpoint *ibctesting.Endpoint, owner string, enco
 	default:
 		return icatypes.ErrUnsupportedEncoding
 	}
-	
+
 	if err := endpoint.Chain.GetSimApp().ICAControllerKeeper.RegisterInterchainAccount(endpoint.Chain.GetContext(), endpoint.ConnectionID, owner, version); err != nil {
 		return err
 	}
