@@ -2,6 +2,7 @@ package types
 
 import (
 	"encoding/json"
+	"reflect"
 
 	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -135,6 +136,20 @@ func DeserializeCosmosTx(cdc codec.BinaryCodec, data []byte, encoding string) ([
 			if err != nil {
 				return nil, err
 			}
+			// Check if message has Any fields
+			val := reflect.ValueOf(&message).Elem()
+			for i := 0; i < val.NumField(); i++ {
+				field := val.Field(i)
+				fieldType := field.Type()
+		
+				if fieldType == reflect.TypeOf(codectypes.Any{}) {
+					newValue := processAnyField()
+		
+					// Set back the new value
+					field.Set(reflect.ValueOf(newValue))
+				}
+			}
+			
 			if err = cdc.(*codec.ProtoCodec).UnmarshalJSON(jsonAny.Value, message); err != nil {
 				return nil, errorsmod.Wrapf(ErrUnknownDataType, "cannot unmarshal the %d-th json message: %s", i, string(jsonAny.Value))
 			}
