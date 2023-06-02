@@ -1,8 +1,6 @@
 package connection
 
 import (
-	"fmt"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/v7/modules/core/03-connection/keeper"
@@ -20,9 +18,6 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, gs types.GenesisState) {
 		k.SetClientConnectionPaths(ctx, connPaths.ClientId, connPaths.Paths)
 	}
 	k.SetNextConnectionSequence(ctx, gs.NextConnectionSequence)
-	if err := gs.Params.Validate(); err != nil {
-		panic(fmt.Sprintf("invalid ibc connection genesis state parameters: %v", err))
-	}
 	k.SetParams(ctx, gs.Params)
 
 	k.CreateSentinelLocalhostConnection(ctx)
