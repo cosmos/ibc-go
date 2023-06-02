@@ -245,7 +245,7 @@ func (s *TransferTestSuite) TestSendEnabledParam() {
 	chainBAddress := chainBWallet.FormattedAddress()
 
 	chainAVersion := chainA.Config().Images[0].Version
-	isSelfManagingParams := testvalues.TransferSelfParamsFeatureReleases.IsSupported(chainAVersion)
+	isSelfManagingParams := testvalues.SelfParamsFeatureReleases.IsSupported(chainAVersion)
 
 	govModuleAddress, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
 	s.Require().NoError(err)
@@ -308,7 +308,7 @@ func (s *TransferTestSuite) TestReceiveEnabledParam() {
 	)
 
 	chainAVersion := chainA.Config().Images[0].Version
-	isSelfManagingParams := testvalues.TransferSelfParamsFeatureReleases.IsSupported(chainAVersion)
+	isSelfManagingParams := testvalues.SelfParamsFeatureReleases.IsSupported(chainAVersion)
 
 	govModuleAddress, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
 	s.Require().NoError(err)

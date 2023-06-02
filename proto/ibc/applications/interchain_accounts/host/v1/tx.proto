@@ -10,6 +10,8 @@ import "ibc/applications/interchain_accounts/host/v1/host.proto";
 
 // Msg defines the 27-interchain-accounts/host Msg service.
 service Msg {
+  option (cosmos.msg.v1.service) = true;
+
   // UpdateParams defines a rpc handler for MsgUpdateParams.
   rpc UpdateParams(MsgUpdateParams) returns (MsgUpdateParamsResponse);
 }
