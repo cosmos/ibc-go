@@ -5,12 +5,15 @@ package ibc.applications.transfer.v1;
 option go_package = "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types";
 
 import "gogoproto/gogo.proto";
+import "cosmos/msg/v1/msg.proto";
 import "cosmos/base/v1beta1/coin.proto";
 import "ibc/core/client/v1/client.proto";
 import "ibc/applications/transfer/v1/transfer.proto";
 
 // Msg defines the ibc/transfer Msg service.
 service Msg {
+  option (cosmos.msg.v1.service) = true;
+
   // Transfer defines a rpc handler method for MsgTransfer.
   rpc Transfer(MsgTransfer) returns (MsgTransferResponse);
 
@@ -22,6 +25,8 @@ service Msg {
 // ICS20 enabled chains. See ICS Spec here:
 // https://github.com/cosmos/ibc/tree/master/spec/app/ics-020-fungible-token-transfer#data-structures
 message MsgTransfer {
+  option (cosmos.msg.v1.signer) = "sender";
+
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
@@ -53,6 +58,8 @@ message MsgTransferResponse {
 
 // MsgUpdateParams is the Msg/UpdateParams request type.
 message MsgUpdateParams {
+  option (cosmos.msg.v1.signer) = "authority";
+
   // authority is the address that controls the module (defaults to x/gov unless overwritten).
   string authority = 1;
 
