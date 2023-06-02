@@ -18,7 +18,7 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
-func (suite *KeeperTestSuite) TestOnRecvPacket() {
+func (suite *KeeperTestSuite) TestProtoOnRecvPacket() {
 	var (
 		path       *ibctesting.Path
 		packetData []byte
@@ -454,10 +454,10 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 		suite.Run(tc.msg, func() {
 			suite.SetupTest() // reset
 
-			path = NewICAPath(suite.chainA, suite.chainB)
+			path = NewICAPath(suite.chainA, suite.chainB, icatypes.EncodingProtobuf)
 			suite.coordinator.SetupConnections(path)
 
-			err := SetupICAPath(path, TestOwnerAddress)
+			err := SetupICAPath(path, TestOwnerAddress, icatypes.EncodingProtobuf)
 			suite.Require().NoError(err)
 
 			portID, err := icatypes.NewControllerPortID(TestOwnerAddress)

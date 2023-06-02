@@ -30,7 +30,7 @@ func (suite *KeeperTestSuite) openAndCloseChannel(path *ibctesting.Path) {
 	suite.Require().NoError(err)
 
 	path.EndpointA.ChannelID = ""
-	err = RegisterInterchainAccount(path.EndpointA, TestOwnerAddress)
+	err = RegisterInterchainAccount(path.EndpointA, TestOwnerAddress, icatypes.EncodingProtobuf)
 	suite.Require().NoError(err)
 
 	// bump channel sequence as these test mock core IBC behaviour on ChanOpenTry
@@ -274,10 +274,10 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 
-			path = NewICAPath(suite.chainA, suite.chainB)
+			path = NewICAPath(suite.chainA, suite.chainB, icatypes.EncodingProtobuf)
 			suite.coordinator.SetupConnections(path)
 
-			err := RegisterInterchainAccount(path.EndpointA, TestOwnerAddress)
+			err := RegisterInterchainAccount(path.EndpointA, TestOwnerAddress, icatypes.EncodingProtobuf)
 			suite.Require().NoError(err)
 
 			// set the channel id on host
@@ -354,10 +354,10 @@ func (suite *KeeperTestSuite) TestOnChanOpenConfirm() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 
-			path = NewICAPath(suite.chainA, suite.chainB)
+			path = NewICAPath(suite.chainA, suite.chainB, icatypes.EncodingProtobuf)
 			suite.coordinator.SetupConnections(path)
 
-			err := RegisterInterchainAccount(path.EndpointA, TestOwnerAddress)
+			err := RegisterInterchainAccount(path.EndpointA, TestOwnerAddress, icatypes.EncodingProtobuf)
 			suite.Require().NoError(err)
 
 			err = path.EndpointB.ChanOpenTry()
@@ -397,10 +397,10 @@ func (suite *KeeperTestSuite) TestOnChanCloseConfirm() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 
-			path = NewICAPath(suite.chainA, suite.chainB)
+			path = NewICAPath(suite.chainA, suite.chainB, icatypes.EncodingProtobuf)
 			suite.coordinator.SetupConnections(path)
 
-			err := SetupICAPath(path, TestOwnerAddress)
+			err := SetupICAPath(path, TestOwnerAddress, icatypes.EncodingProtobuf)
 			suite.Require().NoError(err)
 
 			tc.malleate() // malleate mutates test data
