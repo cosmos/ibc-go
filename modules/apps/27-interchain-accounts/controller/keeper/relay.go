@@ -44,7 +44,7 @@ func (k Keeper) sendTx(ctx sdk.Context, connectionID, portID string, icaPacketDa
 		return 0, errorsmod.Wrap(err, "invalid interchain account packet data")
 	}
 
-	sequence, err := k.ics4Wrapper.SendPacket(ctx, chanCap, portID, activeChannelID, clienttypes.ZeroHeight(), timeoutTimestamp, icaPacketData.GetBytes())
+	sequence, err := k.ics4Wrapper.SendPacket(ctx, chanCap, portID, activeChannelID, channeltypes.Timeout{Height: clienttypes.ZeroHeight(), Timestamp: timeoutTimestamp}, icaPacketData.GetBytes())
 	if err != nil {
 		return 0, err
 	}

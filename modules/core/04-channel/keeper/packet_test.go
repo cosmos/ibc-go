@@ -239,7 +239,7 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 			expectedSequence, ok := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetNextSequenceSend(suite.chainA.GetContext(), sourcePort, sourceChannel)
 
 			sequence, err := suite.chainA.App.GetIBCKeeper().ChannelKeeper.SendPacket(suite.chainA.GetContext(), channelCap,
-				sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, packetData)
+				sourcePort, sourceChannel, types.Timeout{Height: timeoutHeight, Timestamp: timeoutTimestamp}, packetData)
 
 			if tc.expPass {
 				suite.Require().NoError(err)

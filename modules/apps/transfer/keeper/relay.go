@@ -131,7 +131,7 @@ func (k Keeper) sendTransfer(
 		fullDenomPath, token.Amount.String(), sender.String(), receiver, memo,
 	)
 
-	sequence, err := k.ics4Wrapper.SendPacket(ctx, channelCap, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, packetData.GetBytes())
+	sequence, err := k.ics4Wrapper.SendPacket(ctx, channelCap, sourcePort, sourceChannel, channeltypes.Timeout{Height: timeoutHeight, Timestamp: timeoutTimestamp}, packetData.GetBytes())
 	if err != nil {
 		return 0, err
 	}

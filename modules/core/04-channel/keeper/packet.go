@@ -24,8 +24,7 @@ func (k Keeper) SendPacket(
 	channelCap *capabilitytypes.Capability,
 	sourcePort string,
 	sourceChannel string,
-	timeoutHeight clienttypes.Height,
-	timeoutTimestamp uint64,
+	timeout types.Timeout,
 	data []byte,
 ) (uint64, error) {
 	channel, found := k.GetChannel(ctx, sourcePort, sourceChannel)
@@ -54,7 +53,7 @@ func (k Keeper) SendPacket(
 
 	// construct packet from given fields and channel state
 	packet := types.NewPacket(data, sequence, sourcePort, sourceChannel,
-		channel.Counterparty.PortId, channel.Counterparty.ChannelId, timeoutHeight, timeoutTimestamp)
+		channel.Counterparty.PortId, channel.Counterparty.ChannelId, timeout.Height, timeout.Timestamp)
 
 	if err := packet.ValidateBasic(); err != nil {
 		return 0, errorsmod.Wrap(err, "constructed packet failed basic validation")
@@ -77,10 +76,10 @@ func (k Keeper) SendPacket(
 
 	// check if packet is timed out on the receiving chain
 	latestHeight := clientState.GetLatestHeight()
-	if !timeoutHeight.IsZero() && latestHeight.GTE(timeoutHeight) {
+	if !timeout.Height.IsZero() && latestHeight.GTE(timeout.Height) {
 		return 0, errorsmod.Wrapf(
 			types.ErrPacketTimeout,
-			"receiving chain block height >= packet timeout height (%s >= %s)", latestHeight, timeoutHeight,
+			"receiving chain block height >= packet timeout height (%s >= %s)", latestHeight, timeout.Height,
 		)
 	}
 
@@ -101,7 +100,7 @@ func (k Keeper) SendPacket(
 	k.SetNextSequenceSend(ctx, sourcePort, sourceChannel, sequence+1)
 	k.SetPacketCommitment(ctx, sourcePort, sourceChannel, packet.GetSequence(), commitment)
 
-	emitSendPacketEvent(ctx, packet, channel, timeoutHeight)
+	emitSendPacketEvent(ctx, packet, channel, timeout.Height)
 
 	k.Logger(ctx).Info(
 		"packet sent",
