@@ -166,5 +166,5 @@ func (cs ClientState) VerifyClientMessage(
 
 ### Negative
 
-- Light clients need to be written in subset of Rust which could compile in Wasm.
+- Light clients written in Rust need to be written in sa ubset of Rust which could compile in Wasm.
 - Introspecting light client code is difficult as only compiled bytecode exists in the blockchain.
