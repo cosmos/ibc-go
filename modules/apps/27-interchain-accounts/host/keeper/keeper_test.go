@@ -27,6 +27,15 @@ var (
 		Encoding:               icatypes.EncodingProtobuf,
 		TxType:                 icatypes.TxTypeSDKMultiMsg,
 	}))
+
+	// TestJSONVersion defines a reusable interchainaccounts version string that uses JSON encoding for testing purposes
+	TestJSONVersion = string(icatypes.ModuleCdc.MustMarshalJSON(&icatypes.Metadata{
+		Version:                icatypes.Version,
+		ControllerConnectionId: ibctesting.FirstConnectionID,
+		HostConnectionId:       ibctesting.FirstConnectionID,
+		Encoding:               icatypes.EncodingJSON,
+		TxType:                 icatypes.TxTypeSDKMultiMsg,
+	}))
 )
 
 type KeeperTestSuite struct {
