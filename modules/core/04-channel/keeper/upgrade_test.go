@@ -14,6 +14,8 @@ import (
 	"github.com/cosmos/ibc-go/v7/testing/mock"
 )
 
+var invalidConnection = "invalid-connection"
+
 func (suite *KeeperTestSuite) TestChanUpgradeInit() {
 	var (
 		path        *ibctesting.Path
@@ -163,7 +165,7 @@ func (suite *KeeperTestSuite) TestStartFlushUpgradeHandshake() {
 			"connection not found",
 			func() {
 				channel := path.EndpointB.GetChannel()
-				channel.ConnectionHops[0] = "invalid-connection"
+				channel.ConnectionHops[0] = invalidConnection
 				path.EndpointB.SetChannel(channel)
 			},
 			connectiontypes.ErrConnectionNotFound,
@@ -210,7 +212,7 @@ func (suite *KeeperTestSuite) TestStartFlushUpgradeHandshake() {
 		{
 			"proposed connection is not found",
 			func() {
-				upgrade.Fields.ConnectionHops[0] = "invalid-connection"
+				upgrade.Fields.ConnectionHops[0] = invalidConnection
 			},
 			connectiontypes.ErrConnectionNotFound,
 		},
@@ -286,7 +288,7 @@ func (suite *KeeperTestSuite) TestStartFlushUpgradeHandshake() {
 					ConnectionHops: []string{path.EndpointB.ConnectionID},
 					Version:        upgradeVersion,
 				},
-				Timeout:            types.NewUpgradeTimeout(path.EndpointA.Chain.GetTimeoutHeight(), 0),
+				Timeout:            types.NewTimeout(path.EndpointA.Chain.GetTimeoutHeight(), 0),
 				LatestSequenceSend: 1,
 			}
 
