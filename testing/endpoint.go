@@ -566,7 +566,7 @@ func (endpoint *Endpoint) TimeoutOnClose(packet channeltypes.Packet) error {
 
 // QueryChannelUpgradeProof returns all the proofs necessary to execute UpgradeTry/UpgradeAck/UpgradeOpen.
 // It returns the proof for the channel on the counterparty chain, the proof for the upgrade attempt on the
-// counterparty chain, and the height at which the proof will succeed.
+// counterparty chain, and the height at which the proof was queried.
 func (endpoint *Endpoint) QueryChannelUpgradeProof() ([]byte, []byte, clienttypes.Height) {
 	counterpartyChannelID := endpoint.Counterparty.ChannelID
 	counterpartyPortID := endpoint.Counterparty.ChannelConfig.PortID
