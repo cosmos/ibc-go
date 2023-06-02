@@ -32,7 +32,7 @@ to the time consuming process required to upgrade a light client, a chain with l
 disconnected for quite some time after upgrading its consensus, which can be very expensive in terms of time and effort.
 
 We are proposing simplifying this workflow by integrating a Wasm light client module that makes adding support for
-new light clients a simple gtovernance-gated transaction. The light client bytecode, written in Wasm-compilable Rust, 
+new light clients a simple governance-gated transaction. The light client bytecode, written in Wasm-compilable Rust, 
 runs inside a Wasm VM. The Wasm light client submodule exposes a proxy light client interface that routes incoming 
 messages to the appropriate handler function, inside the Wasm VM for execution.
 
@@ -65,7 +65,7 @@ message MsgStoreCode {
 ```
 
 The RPC handler processing `MsgStoreCode` will make sure that the signer of the message matches the address of authority allowed to 
-submit this message (which is normally the address of te governance module).
+submit this message (which is normally the address of the governance module).
 
 ```go
 // StoreCode defines a rpc handler method for MsgStoreCode
@@ -160,10 +160,11 @@ func (cs ClientState) VerifyClientMessage(
 
 ### Positive
 
-- Adding support for new light client or upgrading existing light client is way easier than before and only requires single transaction.
+- Adding support for new light client or upgrading existing light client is way easier than before and only requires single transaction instead of a hard-fork.
 - Improves maintainability of ibc-go, since no change in codebase is required to support new client or upgrade it.
+- The existence of support for Rust dependencies in light clients which may not exist in Go.
 
 ### Negative
 
-- Light clients need to be written in subset of rust which could compile in Wasm.
+- Light clients need to be written in subset of Rust which could compile in Wasm.
 - Introspecting light client code is difficult as only compiled bytecode exists in the blockchain.
