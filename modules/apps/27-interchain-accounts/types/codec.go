@@ -3,6 +3,7 @@ package types
 import (
 	"encoding/json"
 	"reflect"
+	"strings"
 
 	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -132,25 +133,45 @@ func DeserializeCosmosTx(cdc codec.BinaryCodec, data []byte, encoding string) ([
 		msgs = make([]sdk.Msg, len(cosmosTx.Messages))
 
 		for i, jsonAny := range cosmosTx.Messages {
+			var jsonMap map[string]interface{}
+			if err := json.Unmarshal(jsonAny.Value, &jsonMap); err != nil {
+				return nil, errorsmod.Wrapf(ErrUnknownDataType, "cannot unmarshal value to json")
+			}
 			message, err := cdc.(*codec.ProtoCodec).InterfaceRegistry().Resolve(jsonAny.TypeURL)
 			if err != nil {
-				return nil, err
+				return nil, errorsmod.Wrapf(err, "cannot resolve this typeURL to a proto.Message: %s", jsonAny.TypeURL)
 			}
 			// Check if message has Any fields
-			val := reflect.ValueOf(&message).Elem()
+			val := reflect.ValueOf(message).Elem()
 			for i := 0; i < val.NumField(); i++ {
 				field := val.Field(i)
 				fieldType := field.Type()
+				fieldJSONName := val.Type().Field(i).Tag.Get("json")
+				// Remove ,omitempty if it's present
+				fieldJSONName = strings.Split(fieldJSONName, ",")[0]
 		
-				if fieldType == reflect.TypeOf(codectypes.Any{}) {
-					newValue := processAnyField()
+				if fieldType == reflect.TypeOf((*codectypes.Any)(nil)) {
+					// TODO: Make sure none of these panic.
+					subJsonAnyMap := jsonMap[fieldJSONName].(map[string]interface{})
+					newValue, err := processAnyField(cdc, subJsonAnyMap)
+					if err != nil {
+						return nil, err
+					}
 		
 					// Set back the new value
 					field.Set(reflect.ValueOf(newValue))
+					// Remove this field from jsonMap
+					delete(jsonMap, fieldJSONName)
 				}
 			}
+
+			// Marshal the map back to a byte slice
+			modifiedJsonAnyValue, err := json.Marshal(jsonMap)
+			if err != nil {
+				return nil, errorsmod.Wrapf(err, "cannot marshal modified json map back to bytes")
+			}
 			
-			if err = cdc.(*codec.ProtoCodec).UnmarshalJSON(jsonAny.Value, message); err != nil {
+			if err = cdc.(*codec.ProtoCodec).UnmarshalJSON(modifiedJsonAnyValue, message); err != nil {
 				return nil, errorsmod.Wrapf(ErrUnknownDataType, "cannot unmarshal the %d-th json message: %s", i, string(jsonAny.Value))
 			}
 
@@ -165,4 +186,65 @@ func DeserializeCosmosTx(cdc codec.BinaryCodec, data []byte, encoding string) ([
 	}
 
 	return msgs, nil
+}
+
+func processAnyField(cdc codec.BinaryCodec, jsonAnyMap map[string]interface{}) (*codectypes.Any, error) {
+	// get the type_url field
+	typeURL := jsonAnyMap["type_url"].(string)
+	// get uninitialized proto.Message
+	message, err := cdc.(*codec.ProtoCodec).InterfaceRegistry().Resolve(typeURL)
+	if err != nil {
+		return nil, errorsmod.Wrapf(err, "cannot resolve this typeURL to a proto.Message: %s", typeURL)
+	}
+
+	// get the value field
+	valueInterfaceSlice, ok := jsonAnyMap["value"].([]interface{})
+	if !ok {
+	    return nil, errorsmod.Wrapf(ErrUnknownDataType, "cannot assert value to []interface{}")
+	}
+	valueByteSlice := make([]byte, len(valueInterfaceSlice))
+	for i, v := range valueInterfaceSlice {
+	    valueByte := byte(v.(float64))
+	    valueByteSlice[i] = valueByte
+	}
+	var jsonMap map[string]interface{}
+	if err := json.Unmarshal(valueByteSlice, &jsonMap); err != nil {
+		return nil, errorsmod.Wrapf(ErrUnknownDataType, "cannot unmarshal value to json")
+	}
+
+	// Check if message has Any fields
+	val := reflect.ValueOf(message).Elem()
+	for i := 0; i < val.NumField(); i++ {
+		field := val.Field(i)
+		fieldType := field.Type()
+		fieldJSONName := val.Type().Field(i).Tag.Get("json")
+		// Remove ,omitempty if it's present
+		fieldJSONName = strings.Split(fieldJSONName, ",")[0]
+
+		if fieldType == reflect.TypeOf((*codectypes.Any)(nil)) {
+			// TODO: Make sure none of these panic.
+			subJsonAnyMap := jsonMap[fieldJSONName].(map[string]interface{})
+			protoAny, err := processAnyField(cdc, subJsonAnyMap)
+			if err != nil {
+				return nil, err
+			}
+
+			// Set back the new value
+			field.Set(reflect.ValueOf(protoAny))
+			// Remove this field from jsonAnyMap
+			delete(jsonMap, fieldJSONName)
+		}
+	}
+
+	// Marshal the map back to a byte slice
+	modifiedJsonAnyValue, err := json.Marshal(jsonMap)
+	if err != nil {
+		return nil, errorsmod.Wrapf(err, "cannot marshal modified json map back to bytes")
+	}
+	
+	if err = cdc.(*codec.ProtoCodec).UnmarshalJSON(modifiedJsonAnyValue, message); err != nil {
+		return nil, errorsmod.Wrapf(ErrUnknownDataType, "cannot unmarshal the json message")
+	}
+
+	return codectypes.NewAnyWithValue(message)
 }
