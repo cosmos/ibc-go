@@ -13,6 +13,39 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
+func (suite *KeeperTestSuite) TestMigratorMigrateParams() {
+	testCases := []struct {
+		msg            string
+		malleate       func()
+		expectedParams transfertypes.Params
+	}{
+		{
+			"success: default params",
+			func() {
+				params := transfertypes.DefaultParams()
+				subspace := suite.chainA.GetSimApp().GetSubspace(transfertypes.ModuleName)
+				subspace.SetParamSet(suite.chainA.GetContext(), &params) // set params
+			},
+			transfertypes.DefaultParams(),
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(fmt.Sprintf("case %s", tc.msg), func() {
+			suite.SetupTest() // reset
+
+			tc.malleate() // explicitly set params
+
+			migrator := transferkeeper.NewMigrator(suite.chainA.GetSimApp().TransferKeeper)
+			err := migrator.MigrateParams(suite.chainA.GetContext())
+			suite.Require().NoError(err)
+
+			params := suite.chainA.GetSimApp().TransferKeeper.GetParams(suite.chainA.GetContext())
+			suite.Require().Equal(tc.expectedParams, params)
+		})
+	}
+}
+
 func (suite *KeeperTestSuite) TestMigratorMigrateTraces() {
 	testCases := []struct {
 		msg            string
@@ -126,67 +159,6 @@ func (suite *KeeperTestSuite) TestMigratorMigrateTracesCorruptionDetection() {
 	})
 }
 
-func (suite *KeeperTestSuite) TestMigratorMigrateMetadata() {
-	DenomTraces := []transfertypes.DenomTrace{
-		{
-			BaseDenom: "foo",
-			Path:      "transfer/channel-0",
-		},
-		{
-			BaseDenom: "ubar",
-			Path:      "transfer/channel-1/transfer/channel-2",
-		},
-	}
-
-	expectedMetaData := []banktypes.Metadata{
-		{
-			Description: "IBC Token from transfer/channel-0/foo",
-			DenomUnits: []*banktypes.DenomUnit{
-				{
-					Denom:    "foo",
-					Exponent: 0,
-				},
-			},
-			Base:    DenomTraces[0].IBCDenom(), // ibc/EB7094899ACFB7A6F2A67DB084DEE2E9A83DEFAA5DEF92D9A9814FFD9FF673FA
-			Display: "transfer/channel-0/foo",
-			Name:    "transfer/channel-0/foo IBC Token",
-			Symbol:  "FOO",
-		},
-		{
-			Description: "IBC Token from transfer/channel-1/transfer/channel-2/ubar",
-			DenomUnits: []*banktypes.DenomUnit{
-				{
-					Denom:    "ubar",
-					Exponent: 0,
-				},
-			},
-			Base:    DenomTraces[1].IBCDenom(), // ibc/8243B3EAA19BAB1DB3B0020B81C0C5A953E7B22C042CEE44E639A11A238BA57C
-			Display: "transfer/channel-1/transfer/channel-2/ubar",
-			Name:    "transfer/channel-1/transfer/channel-2/ubar IBC Token",
-			Symbol:  "UBAR",
-		},
-	}
-
-	ctx := suite.chainA.GetContext()
-
-	// set denom traces
-	for _, dt := range DenomTraces {
-		suite.chainA.GetSimApp().TransferKeeper.SetDenomTrace(ctx, dt)
-	}
-
-	// run migration
-	migrator := transferkeeper.NewMigrator(suite.chainA.GetSimApp().TransferKeeper)
-	err := migrator.MigrateMetadata(suite.chainA.GetContext())
-	suite.Require().NoError(err)
-
-	bk := suite.chainA.GetSimApp().BankKeeper
-	for _, exp := range expectedMetaData {
-		got, ok := bk.GetDenomMetaData(ctx, exp.Base)
-		suite.Require().True(ok)
-		suite.Require().Equal(exp, got)
-	}
-}
-
 func (suite *KeeperTestSuite) TestMigrateTotalEscrowForDenom() {
 	var (
 		path  *ibctesting.Path
@@ -259,7 +231,84 @@ func (suite *KeeperTestSuite) TestMigrateTotalEscrowForDenom() {
 
 			// check that the migration set the expected amount for both native and IBC tokens
 			amount := suite.chainA.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(suite.chainA.GetContext(), denom)
-			suite.Require().Equal(tc.expectedEscrowAmt, amount)
+			suite.Require().Equal(tc.expectedEscrowAmt, amount.Amount)
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestMigratorMigrateMetadata() {
+	var (
+		denomTrace       transfertypes.DenomTrace
+		expectedMetadata math.Int
+	)
+
+	testCases := []struct {
+		msg      string
+		malleate func()
+	}{
+		{
+			"success with denom trace with one hop",
+			func() {
+				denomTrace = transfertypes.DenomTrace{
+					BaseDenom: "foo",
+					Path:      "transfer/channel-0",
+				}
+
+				expectedMetaData = banktypes.Metadata{
+					Description: "IBC token from transfer/channel-0/foo",
+					DenomUnits: []*banktypes.DenomUnit{
+						{
+							Denom:    "foo",
+							Exponent: 0,
+						},
+					},
+					Base:    DenomTraces[0].IBCDenom(), // ibc/EB7094899ACFB7A6F2A67DB084DEE2E9A83DEFAA5DEF92D9A9814FFD9FF673FA
+					Display: "transfer/channel-0/foo",
+					Name:    "transfer/channel-0/foo IBC token",
+					Symbol:  "FOO",
+				}
+			},
+		},
+		{
+			"success with denom trace with two hops",
+			func() {
+				denomTrace = transfertypes.DenomTrace{
+					BaseDenom: "ubar",
+					Path:      "transfer/channel-1/transfer/channel-2",
+				}
+
+				expectedMetaData = banktypes.Metadata{
+					Description: "IBC token from transfer/channel-1/transfer/channel-2/ubar",
+					DenomUnits: []*banktypes.DenomUnit{
+						{
+							Denom:    "ubar",
+							Exponent: 0,
+						},
+					},
+					Base:    DenomTraces[1].IBCDenom(), // ibc/8243B3EAA19BAB1DB3B0020B81C0C5A953E7B22C042CEE44E639A11A238BA57C
+					Display: "transfer/channel-1/transfer/channel-2/ubar",
+					Name:    "transfer/channel-1/transfer/channel-2/ubar IBC token",
+					Symbol:  "UBAR",
+				}
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
+			suite.SetupTest() // reset
+
+			ctx := suite.chainA.GetContext()
+			suite.chainA.GetSimApp().TransferKeeper.SetDenomTrace(ctx, denomTrace)
+
+			// run migration
+			migrator := transferkeeper.NewMigrator(suite.chainA.GetSimApp().TransferKeeper)
+			err := migrator.MigrateDenomMetadata(suite.chainA.GetContext())
+			suite.Require().NoError(err)
+
+			denomMetadata, ok := suite.chainA.GetSimApp().BankKeeper.GetDenomMetaData(ctx, expectedMetaData.Base)
+			suite.Require().True(ok)
+			suite.Require().Equal(expectedMetaData, denomMetadata)
 		})
 	}
 }

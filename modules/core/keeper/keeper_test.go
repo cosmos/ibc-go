@@ -70,6 +70,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 				stakingKeeper,
 				upgradeKeeper,
 				scopedKeeper,
+				suite.chainA.App.GetIBCKeeper().GetAuthority(),
 			)
 		}
 	)

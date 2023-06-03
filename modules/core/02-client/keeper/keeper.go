@@ -15,10 +15,10 @@ import (
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
-	ibcerrors "github.com/cosmos/ibc-go/v7/internal/errors"
 	"github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
+	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 	localhost "github.com/cosmos/ibc-go/v7/modules/light-clients/09-localhost"
@@ -27,26 +27,26 @@ import (
 // Keeper represents a type that grants read and write permissions to any client
 // state information
 type Keeper struct {
-	storeKey      storetypes.StoreKey
-	cdc           codec.BinaryCodec
-	paramSpace    paramtypes.Subspace
-	stakingKeeper types.StakingKeeper
-	upgradeKeeper types.UpgradeKeeper
+	storeKey       storetypes.StoreKey
+	cdc            codec.BinaryCodec
+	legacySubspace paramtypes.Subspace
+	stakingKeeper  types.StakingKeeper
+	upgradeKeeper  types.UpgradeKeeper
 }
 
 // NewKeeper creates a new NewKeeper instance
-func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey, paramSpace paramtypes.Subspace, sk types.StakingKeeper, uk types.UpgradeKeeper) Keeper {
+func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey, legacySubspace paramtypes.Subspace, sk types.StakingKeeper, uk types.UpgradeKeeper) Keeper {
 	// set KeyTable if it has not already been set
-	if !paramSpace.HasKeyTable() {
-		paramSpace = paramSpace.WithKeyTable(types.ParamKeyTable())
+	if !legacySubspace.HasKeyTable() {
+		legacySubspace = legacySubspace.WithKeyTable(types.ParamKeyTable())
 	}
 
 	return Keeper{
-		storeKey:      key,
-		cdc:           cdc,
-		paramSpace:    paramSpace,
-		stakingKeeper: sk,
-		upgradeKeeper: uk,
+		storeKey:       key,
+		cdc:            cdc,
+		legacySubspace: legacySubspace,
+		stakingKeeper:  sk,
+		upgradeKeeper:  uk,
 	}
 }
 
@@ -412,4 +412,24 @@ func (k Keeper) GetClientStatus(ctx sdk.Context, clientState exported.ClientStat
 		return exported.Unauthorized
 	}
 	return clientState.Status(ctx, k.ClientStore(ctx, clientID), k.cdc)
+}
+
+// GetParams returns the total set of ibc-client parameters.
+func (k Keeper) GetParams(ctx sdk.Context) types.Params {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get([]byte(types.ParamsKey))
+	if bz == nil { // only panic on unset params and not on empty params
+		panic("client params are not set in store")
+	}
+
+	var params types.Params
+	k.cdc.MustUnmarshal(bz, &params)
+	return params
+}
+
+// SetParams sets the total set of ibc-client parameters.
+func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
+	store := ctx.KVStore(k.storeKey)
+	bz := k.cdc.MustMarshal(&params)
+	store.Set([]byte(types.ParamsKey), bz)
 }

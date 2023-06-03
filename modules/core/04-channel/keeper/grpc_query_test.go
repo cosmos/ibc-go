@@ -1150,9 +1150,12 @@ func (suite *KeeperTestSuite) TestQueryUnreceivedPackets() {
 		{
 			"invalid seq",
 			func() {
+				path := ibctesting.NewPath(suite.chainA, suite.chainB)
+				suite.coordinator.Setup(path)
+
 				req = &types.QueryUnreceivedPacketsRequest{
-					PortId:                    "test-port-id",
-					ChannelId:                 "test-channel-id",
+					PortId:                    path.EndpointA.ChannelConfig.PortID,
+					ChannelId:                 path.EndpointA.ChannelID,
 					PacketCommitmentSequences: []uint64{0},
 				}
 			},
@@ -1376,9 +1379,12 @@ func (suite *KeeperTestSuite) TestQueryUnreceivedAcks() {
 		{
 			"invalid seq",
 			func() {
+				path := ibctesting.NewPath(suite.chainA, suite.chainB)
+				suite.coordinator.Setup(path)
+
 				req = &types.QueryUnreceivedAcksRequest{
-					PortId:             "test-port-id",
-					ChannelId:          "test-channel-id",
+					PortId:             path.EndpointA.ChannelConfig.PortID,
+					ChannelId:          path.EndpointA.ChannelID,
 					PacketAckSequences: []uint64{0},
 				}
 			},

@@ -8,13 +8,13 @@ import (
 	metrics "github.com/armon/go-metrics"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	ibcerrors "github.com/cosmos/ibc-go/v7/internal/errors"
+
 	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
+	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
 	coretypes "github.com/cosmos/ibc-go/v7/modules/core/types"
 )
 
@@ -167,7 +167,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 		return errorsmod.Wrapf(err, "error validating ICS-20 transfer packet data")
 	}
 
-	if !k.GetReceiveEnabled(ctx) {
+	if !k.GetParams(ctx).ReceiveEnabled {
 		return types.ErrReceiveDisabled
 	}
 
@@ -301,12 +301,12 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 			append(
 				labels, telemetry.NewLabel(coretypes.LabelSource, "false"),
 			),
-		)
 	}()
 
 	return nil
 }
 
+// SetDenomMetadata sets an IBC token denomination metadata
 func (k Keeper) SetDenomMetadata(ctx sdk.Context, denomTrace types.DenomTrace) {
 	metadata := banktypes.Metadata{
 		Description: getMetadataDescription(denomTrace),
@@ -316,8 +316,9 @@ func (k Keeper) SetDenomMetadata(ctx sdk.Context, denomTrace types.DenomTrace) {
 				Exponent: 0,
 			},
 		},
-		// Setting base as IBChash Denom as SetDenomMetaData uses Base as storeKey
-		// and the bank keeper will only have the IBCHash to get the denom metadata
+		// Setting base as IBC hash denom since bank keepers's SetDenomMetaData uses 
+		// Base as storeKey and the bank keeper will only have the IBC hash to get 
+		// the denom metadata
 		Base:    denomTrace.IBCDenom(),
 		Display: denomTrace.GetFullDenomPath(),
 		Name:    getMetadataName(denomTrace),
@@ -328,11 +329,11 @@ func (k Keeper) SetDenomMetadata(ctx sdk.Context, denomTrace types.DenomTrace) {
 }
 
 func getMetadataDescription(denomTrace types.DenomTrace) string {
-	return fmt.Sprintf("IBC Token from %s", denomTrace.GetFullDenomPath())
+	return fmt.Sprintf("IBC token from %s", denomTrace.GetFullDenomPath())
 }
 
 func getMetadataName(denomTrace types.DenomTrace) string {
-	return fmt.Sprintf("%s IBC Token", denomTrace.GetFullDenomPath())
+	return fmt.Sprintf("%s IBC token", denomTrace.GetFullDenomPath())
 }
 
 func getMetadataSymbol(denomTrace types.DenomTrace) string {
@@ -413,8 +414,8 @@ func (k Keeper) escrowToken(ctx sdk.Context, sender, escrowAddress sdk.AccAddres
 
 	// track the total amount in escrow keyed by denomination to allow for efficient iteration
 	currentTotalEscrow := k.GetTotalEscrowForDenom(ctx, token.GetDenom())
-	newTotalEscrow := currentTotalEscrow.Add(token.Amount)
-	k.SetTotalEscrowForDenom(ctx, token.GetDenom(), newTotalEscrow)
+	newTotalEscrow := currentTotalEscrow.Add(token)
+	k.SetTotalEscrowForDenom(ctx, newTotalEscrow)
 
 	return nil
 }
@@ -432,8 +433,8 @@ func (k Keeper) unescrowToken(ctx sdk.Context, escrowAddress, receiver sdk.AccAd
 
 	// track the total amount in escrow keyed by denomination to allow for efficient iteration
 	currentTotalEscrow := k.GetTotalEscrowForDenom(ctx, token.GetDenom())
-	newTotalEscrow := currentTotalEscrow.Sub(token.Amount)
-	k.SetTotalEscrowForDenom(ctx, token.GetDenom(), newTotalEscrow)
+	newTotalEscrow := currentTotalEscrow.Sub(token)
+	k.SetTotalEscrowForDenom(ctx, newTotalEscrow)
 
 	return nil
 }

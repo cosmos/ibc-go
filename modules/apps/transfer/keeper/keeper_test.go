@@ -60,7 +60,7 @@ func (suite *KeeperTestSuite) TestSetGetTotalEscrowForDenom() {
 		expPass  bool
 	}{
 		{
-			"success: with 0 escrow amount",
+			"success: with non-zero escrow amount",
 			func() {},
 			true,
 		},
@@ -68,6 +68,13 @@ func (suite *KeeperTestSuite) TestSetGetTotalEscrowForDenom() {
 			"success: with escrow amount > 2^63",
 			func() {
 				expAmount, _ = math.NewIntFromString("100000000000000000000")
+			},
+			true,
+		},
+		{
+			"success: escrow amount 0 is not stored",
+			func() {
+				expAmount = math.ZeroInt()
 			},
 			true,
 		},
@@ -85,21 +92,30 @@ func (suite *KeeperTestSuite) TestSetGetTotalEscrowForDenom() {
 
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
-			expAmount = math.ZeroInt()
+			expAmount = math.NewInt(100)
 			ctx := suite.chainA.GetContext()
 
 			tc.malleate()
 
 			if tc.expPass {
-				suite.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(ctx, denom, expAmount)
+				suite.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(ctx, sdk.NewCoin(denom, expAmount))
 				total := suite.chainA.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(ctx, denom)
-				suite.Require().Equal(expAmount, total)
+				suite.Require().Equal(expAmount, total.Amount)
+
+				storeKey := suite.chainA.GetSimApp().GetKey(types.ModuleName)
+				store := ctx.KVStore(storeKey)
+				key := types.TotalEscrowForDenomKey(denom)
+				if expAmount.IsZero() {
+					suite.Require().False(store.Has(key))
+				} else {
+					suite.Require().True(store.Has(key))
+				}
 			} else {
-				suite.Require().PanicsWithValue("amount cannot be negative: -1", func() {
-					suite.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(ctx, denom, expAmount)
+				suite.Require().PanicsWithError("negative coin amount: -1", func() {
+					suite.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(ctx, sdk.NewCoin(denom, expAmount))
 				})
 				total := suite.chainA.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(ctx, denom)
-				suite.Require().Equal(math.ZeroInt(), total)
+				suite.Require().Equal(math.ZeroInt(), total.Amount)
 			}
 		})
 	}
@@ -209,4 +225,49 @@ func (suite *KeeperTestSuite) TestGetAllDenomEscrows() {
 			}
 		})
 	}
+}
+
+func (suite *KeeperTestSuite) TestParams() {
+	testCases := []struct {
+		name    string
+		input   types.Params
+		expPass bool
+	}{
+		// it is not possible to set invalid booleans
+		{"success: set params false-false", types.NewParams(false, false), true},
+		{"success: set params false-true", types.NewParams(false, true), true},
+		{"success: set params true-false", types.NewParams(true, false), true},
+		{"success: set params true-true", types.NewParams(true, true), true},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+
+		suite.Run(tc.name, func() {
+			suite.SetupTest() // reset
+			ctx := suite.chainA.GetContext()
+			if tc.expPass {
+				suite.chainA.GetSimApp().TransferKeeper.SetParams(ctx, tc.input)
+				expected := tc.input
+				p := suite.chainA.GetSimApp().TransferKeeper.GetParams(ctx)
+				suite.Require().Equal(expected, p)
+			} else {
+				suite.Require().Panics(func() {
+					suite.chainA.GetSimApp().TransferKeeper.SetParams(ctx, tc.input)
+				})
+			}
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestUnsetParams() {
+	suite.SetupTest()
+
+	ctx := suite.chainA.GetContext()
+	store := suite.chainA.GetContext().KVStore(suite.chainA.GetSimApp().GetKey(types.ModuleName))
+	store.Delete([]byte(types.ParamsKey))
+
+	suite.Require().Panics(func() {
+		suite.chainA.GetSimApp().TransferKeeper.GetParams(ctx)
+	})
 }

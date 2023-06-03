@@ -15,7 +15,18 @@ type Migrator struct {
 
 // NewMigrator returns a new Migrator.
 func NewMigrator(keeper Keeper) Migrator {
-	return Migrator{keeper: keeper}
+	return Migrator{
+		keeper: keeper,
+	}
+}
+
+// MigrateParams migrates the transfer module's parameters from the x/params to self store.
+func (m Migrator) MigrateParams(ctx sdk.Context) error {
+	var params types.Params
+	m.keeper.legacySubspace.GetParamSet(ctx, &params)
+
+	m.keeper.SetParams(ctx, params)
+	return nil
 }
 
 // MigrateTraces migrates the DenomTraces to the correct format, accounting for slashes in the BaseDenom.
@@ -54,8 +65,8 @@ func (m Migrator) MigrateTraces(ctx sdk.Context) error {
 	return nil
 }
 
-// MigrateMetadata sets token metadata for all the IBC denom traces
-func (m Migrator) MigrateMetadata(ctx sdk.Context) error {
+// MigrateMigrateDenomMetadataMetadata sets token metadata for all the IBC denom traces
+func (m Migrator) MigrateDenomMetadata(ctx sdk.Context) error {
 	m.keeper.IterateDenomTraces(ctx,
 		func(dt types.DenomTrace) (stop bool) {
 			// check if the metadata for the given denom trace already exists
@@ -82,7 +93,7 @@ func (m Migrator) MigrateTotalEscrowForDenom(ctx sdk.Context) error {
 	}
 
 	for _, totalEscrow := range totalEscrowed {
-		m.keeper.SetTotalEscrowForDenom(ctx, totalEscrow.Denom, totalEscrow.Amount)
+		m.keeper.SetTotalEscrowForDenom(ctx, totalEscrow)
 	}
 
 	return nil

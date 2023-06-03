@@ -450,3 +450,59 @@ func (suite KeeperTestSuite) TestIterateClientStates() { //nolint:govet // this 
 		})
 	}
 }
+
+// TestDefaultSetParams tests the default params set are what is expected
+func (suite *KeeperTestSuite) TestDefaultSetParams() {
+	expParams := types.DefaultParams()
+
+	clientKeeper := suite.chainA.App.GetIBCKeeper().ClientKeeper
+	params := clientKeeper.GetParams(suite.chainA.GetContext())
+
+	suite.Require().Equal(expParams, params)
+	suite.Require().Equal(expParams.AllowedClients, clientKeeper.GetParams(suite.chainA.GetContext()).AllowedClients)
+}
+
+// TestParams tests that Param setting and retrieval works properly
+func (suite *KeeperTestSuite) TestParams() {
+	testCases := []struct {
+		name    string
+		input   types.Params
+		expPass bool
+	}{
+		{"success: set default params", types.DefaultParams(), true},
+		{"success: empty allowedClients", types.NewParams(), true},
+		{"success: subset of allowedClients", types.NewParams(exported.Tendermint, exported.Localhost), true},
+		{"failure: contains a single empty string value as allowedClient", types.NewParams(exported.Localhost, ""), false},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+
+		suite.Run(tc.name, func() {
+			suite.SetupTest() // reset
+			ctx := suite.chainA.GetContext()
+			err := tc.input.Validate()
+			suite.chainA.GetSimApp().IBCKeeper.ClientKeeper.SetParams(ctx, tc.input)
+			if tc.expPass {
+				suite.Require().NoError(err)
+				expected := tc.input
+				p := suite.chainA.GetSimApp().IBCKeeper.ClientKeeper.GetParams(ctx)
+				suite.Require().Equal(expected, p)
+			} else {
+				suite.Require().Error(err)
+			}
+		})
+	}
+}
+
+// TestUnsetParams tests that trying to get params that are not set panics.
+func (suite *KeeperTestSuite) TestUnsetParams() {
+	suite.SetupTest()
+	ctx := suite.chainA.GetContext()
+	store := ctx.KVStore(suite.chainA.GetSimApp().GetKey(exported.StoreKey))
+	store.Delete([]byte(types.ParamsKey))
+
+	suite.Require().Panics(func() {
+		suite.chainA.GetSimApp().IBCKeeper.ClientKeeper.GetParams(ctx)
+	})
+}

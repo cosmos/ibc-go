@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -18,7 +19,8 @@ import (
 	"github.com/strangelove-ventures/interchaintest/v7/ibc"
 	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
 
-	"github.com/cosmos/ibc-go/e2e/semverutil"
+	"github.com/cosmos/ibc-go/e2e/testconfig"
+	"github.com/cosmos/ibc-go/e2e/testsuite/sanitize"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	feetypes "github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
@@ -28,32 +30,21 @@ import (
 
 // BroadcastMessages broadcasts the provided messages to the given chain and signs them on behalf of the provided user.
 // Once the broadcast response is returned, we wait for a few blocks to be created on both chain A and chain B.
-func (s *E2ETestSuite) BroadcastMessages(ctx context.Context, chain *cosmos.CosmosChain, user ibc.Wallet, msgs ...sdk.Msg) (sdk.TxResponse, error) {
+func (s *E2ETestSuite) BroadcastMessages(ctx context.Context, chain *cosmos.CosmosChain, user ibc.Wallet, msgs ...sdk.Msg) sdk.TxResponse {
 	broadcaster := cosmos.NewBroadcaster(s.T(), chain)
 
-	var seq uint64
+	// strip out any fields that may not be supported for the given chain version.
+	msgs = sanitize.Messages(chain.Nodes()[0].Image.Version, msgs...)
+
 	broadcaster.ConfigureClientContextOptions(func(clientContext client.Context) client.Context {
 		// use a codec with all the types our tests care about registered.
 		// BroadcastTx will deserialize the response and will not be able to otherwise.
-
-		// this is a temporary work around to pass the acc sequence correctly.
-		// TODO: create PR against interchain test to make this the default behaviour.
-		sdkAdd, err := sdk.AccAddressFromBech32(user.FormattedAddress())
-		if err != nil {
-			panic(err)
-		}
-
-		_, seq, err = clientContext.AccountRetriever.GetAccountNumberSequence(clientContext, sdkAdd)
-		if err != nil {
-			panic(err)
-		}
-
 		cdc := Codec()
 		return clientContext.WithCodec(cdc).WithTxConfig(authtx.NewTxConfig(cdc, []signingtypes.SignMode{signingtypes.SignMode_SIGN_MODE_DIRECT}))
 	})
 
 	broadcaster.ConfigureFactoryOptions(func(factory tx.Factory) tx.Factory {
-		return factory.WithGas(DefaultGasValue).WithSequence(seq)
+		return factory.WithGas(DefaultGasValue)
 	})
 
 	// Retry the operation a few times if the user signing the transaction is a relayer. (See issue #3264)
@@ -68,13 +59,11 @@ func (s *E2ETestSuite) BroadcastMessages(ctx context.Context, chain *cosmos.Cosm
 	} else {
 		resp, err = broadcastFunc()
 	}
-	if err != nil {
-		return sdk.TxResponse{}, err
-	}
+	s.Require().NoError(err)
 
 	chainA, chainB := s.GetChains()
-	err = test.WaitForBlocks(ctx, 2, chainA, chainB)
-	return resp, err
+	s.Require().NoError(test.WaitForBlocks(ctx, 2, chainA, chainB))
+	return resp
 }
 
 // retryNtimes retries the provided function up to the provided number of attempts.
@@ -107,10 +96,22 @@ func containsMessage(s string, messages []string) bool {
 	return false
 }
 
-// AssertValidTxResponse verifies that an sdk.TxResponse
-// has non-empty values.
-func (s *E2ETestSuite) AssertValidTxResponse(resp sdk.TxResponse) {
+// AssertTxFailure verifies that an sdk.TxResponse has failed.
+func (s *E2ETestSuite) AssertTxFailure(resp sdk.TxResponse, expectedError *errorsmod.Error) {
 	errorMsg := fmt.Sprintf("%+v", resp)
+	// In older versions, the codespace and abci codes were different. So in compatibility tests
+	// we can not make assertions on them.
+	if testconfig.GetChainATag() == testconfig.GetChainBTag() {
+		s.Require().Equal(expectedError.ABCICode(), resp.Code, errorMsg)
+		s.Require().Equal(expectedError.Codespace(), resp.Codespace, errorMsg)
+	}
+	s.Require().Contains(resp.RawLog, expectedError.Error(), errorMsg)
+}
+
+// AssertTxSuccess verifies that an sdk.TxResponse has succeeded.
+func (s *E2ETestSuite) AssertTxSuccess(resp sdk.TxResponse) {
+	errorMsg := addDebuggingInformation(fmt.Sprintf("%+v", resp))
+	s.Require().Equal(resp.Code, uint32(0), errorMsg)
 	s.Require().NotEmpty(resp.TxHash, errorMsg)
 	s.Require().NotEqual(int64(0), resp.GasUsed, errorMsg)
 	s.Require().NotEqual(int64(0), resp.GasWanted, errorMsg)
@@ -118,9 +119,18 @@ func (s *E2ETestSuite) AssertValidTxResponse(resp sdk.TxResponse) {
 	s.Require().NotEmpty(resp.Data, errorMsg)
 }
 
-// govv1ProposalTitleAndSummary represents the releases that support the new title and summary fields.
-var govv1ProposalTitleAndSummary = semverutil.FeatureReleases{
-	MajorVersion: "v7",
+// addDebuggingInformation adds additional debugging information to the error message
+// based on common types of errors that can occur.
+func addDebuggingInformation(errorMsg string) string {
+	if strings.Contains(errorMsg, "errUnknownField") {
+		errorMsg += `
+
+This error is likely due to a new an unrecognized proto field being provided to a chain using an older version of the sdk.
+If this is a compatibility test, ensure that the fields are being sanitized in the sanitize.Messages function.
+
+`
+	}
+	return errorMsg
 }
 
 // ExecuteGovProposalV1 submits a governance proposal using the provided user and message and uses all validators
@@ -133,14 +143,8 @@ func (s *E2ETestSuite) ExecuteGovProposalV1(ctx context.Context, msg sdk.Msg, ch
 	msgSubmitProposal, err := govtypesv1.NewMsgSubmitProposal(msgs, sdk.NewCoins(sdk.NewCoin(chain.Config().Denom, govtypesv1.DefaultMinDepositTokens)), sender.String(), "", fmt.Sprintf("e2e gov proposal: %d", proposalID), fmt.Sprintf("executing gov proposal %d", proposalID))
 	s.Require().NoError(err)
 
-	if !govv1ProposalTitleAndSummary.IsSupported(chain.Nodes()[0].Image.Version) {
-		msgSubmitProposal.Title = ""
-		msgSubmitProposal.Summary = ""
-	}
-
-	resp, err := s.BroadcastMessages(ctx, chain, user, msgSubmitProposal)
-	s.AssertValidTxResponse(resp)
-	s.Require().NoError(err)
+	resp := s.BroadcastMessages(ctx, chain, user, msgSubmitProposal)
+	s.AssertTxSuccess(resp)
 
 	s.Require().NoError(chain.VoteOnProposalAllValidators(ctx, strconv.Itoa(int(proposalID)), cosmos.ProposalVoteYes))
 
@@ -160,9 +164,8 @@ func (s *E2ETestSuite) ExecuteGovProposal(ctx context.Context, chain *cosmos.Cos
 	msgSubmitProposal, err := govtypesv1beta1.NewMsgSubmitProposal(content, sdk.NewCoins(sdk.NewCoin(chain.Config().Denom, govtypesv1beta1.DefaultMinDepositTokens)), sender)
 	s.Require().NoError(err)
 
-	txResp, err := s.BroadcastMessages(ctx, chain, user, msgSubmitProposal)
-	s.Require().NoError(err)
-	s.AssertValidTxResponse(txResp)
+	txResp := s.BroadcastMessages(ctx, chain, user, msgSubmitProposal)
+	s.AssertTxSuccess(txResp)
 
 	// TODO: replace with parsed proposal ID from MsgSubmitProposalResponse
 	// https://github.com/cosmos/ibc-go/issues/2122
@@ -189,7 +192,7 @@ func (s *E2ETestSuite) ExecuteGovProposal(ctx context.Context, chain *cosmos.Cos
 // Transfer broadcasts a MsgTransfer message.
 func (s *E2ETestSuite) Transfer(ctx context.Context, chain *cosmos.CosmosChain, user ibc.Wallet,
 	portID, channelID string, token sdk.Coin, sender, receiver string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64, memo string,
-) (sdk.TxResponse, error) {
+) sdk.TxResponse {
 	msg := transfertypes.NewMsgTransfer(portID, channelID, token, sender, receiver, timeoutHeight, timeoutTimestamp, memo)
 	return s.BroadcastMessages(ctx, chain, user, msg)
 }
@@ -197,7 +200,7 @@ func (s *E2ETestSuite) Transfer(ctx context.Context, chain *cosmos.CosmosChain, 
 // RegisterCounterPartyPayee broadcasts a MsgRegisterCounterpartyPayee message.
 func (s *E2ETestSuite) RegisterCounterPartyPayee(ctx context.Context, chain *cosmos.CosmosChain,
 	user ibc.Wallet, portID, channelID, relayerAddr, counterpartyPayeeAddr string,
-) (sdk.TxResponse, error) {
+) sdk.TxResponse {
 	msg := feetypes.NewMsgRegisterCounterpartyPayee(portID, channelID, relayerAddr, counterpartyPayeeAddr)
 	return s.BroadcastMessages(ctx, chain, user, msg)
 }
@@ -209,7 +212,7 @@ func (s *E2ETestSuite) PayPacketFeeAsync(
 	user ibc.Wallet,
 	packetID channeltypes.PacketId,
 	packetFee feetypes.PacketFee,
-) (sdk.TxResponse, error) {
+) sdk.TxResponse {
 	msg := feetypes.NewMsgPayPacketFeeAsync(packetID, packetFee)
 	return s.BroadcastMessages(ctx, chain, user, msg)
 }
