@@ -183,19 +183,19 @@ func processJsonAny(cdc codec.BinaryCodec, jsonAny *JSONAny) (*codectypes.Any, p
 			subJsonAnyTypeURL := subJsonAnyMap["type_url"].(string)
 			valueInterfaceSlice, ok := subJsonAnyMap["value"].([]interface{})
 			if !ok {
-			    return nil, nil, errorsmod.Wrapf(ErrUnknownDataType, "cannot assert value to []interface{}")
+				return nil, nil, errorsmod.Wrapf(ErrUnknownDataType, "cannot assert value to []interface{}")
 			}
 
 			valueByteSlice := make([]byte, len(valueInterfaceSlice))
 			for i, v := range valueInterfaceSlice {
-			    valueByte := byte(v.(float64))
-			    valueByteSlice[i] = valueByte
+				valueByte := byte(v.(float64))
+				valueByteSlice[i] = valueByte
 			}
 			subJsonAny := &JSONAny{
 				TypeURL: subJsonAnyTypeURL,
 				Value:   valueByteSlice,
 			}
-			
+
 			protoAny, _, err := processJsonAny(cdc, subJsonAny)
 			if err != nil {
 				return nil, nil, err
@@ -213,7 +213,7 @@ func processJsonAny(cdc codec.BinaryCodec, jsonAny *JSONAny) (*codectypes.Any, p
 	if err != nil {
 		return nil, nil, errorsmod.Wrapf(err, "cannot marshal modified json map back to bytes")
 	}
-	
+
 	if err = cdc.(*codec.ProtoCodec).UnmarshalJSON(modifiedJsonAnyValue, message); err != nil {
 		return nil, nil, errorsmod.Wrapf(ErrUnknownDataType, "cannot unmarshal the json message")
 	}
