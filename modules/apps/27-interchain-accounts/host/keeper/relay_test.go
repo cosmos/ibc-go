@@ -628,11 +628,11 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 					content, err = codectypes.NewAnyWithValue(testProposal)
 					suite.Require().NoError(err)
 				case icatypes.EncodingJSON:
-					typeUrl := "/cosmos.gov.v1beta1.TextProposal"
+					typeURL := "/cosmos.gov.v1beta1.TextProposal"
 					value, err := json.Marshal(testProposal)
 					suite.Require().NoError(err)
 					content = &codectypes.Any{
-						TypeUrl: typeUrl,
+						TypeUrl: typeURL,
 						Value:   value,
 					}
 				default:

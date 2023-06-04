@@ -133,7 +133,7 @@ func DeserializeCosmosTx(cdc codec.BinaryCodec, data []byte, encoding string) ([
 		msgs = make([]sdk.Msg, len(cosmosTx.Messages))
 
 		for i, jsonAny := range cosmosTx.Messages {
-			_, message, err := extractJsonAny(cdc, jsonAny)
+			_, message, err := extractJSONAny(cdc, jsonAny)
 			if err != nil {
 				return nil, errorsmod.Wrapf(ErrUnknownDataType, "cannot unmarshal the %d-th json message: %s", i, string(jsonAny.Value))
 			}
@@ -151,8 +151,8 @@ func DeserializeCosmosTx(cdc codec.BinaryCodec, data []byte, encoding string) ([
 	return msgs, nil
 }
 
-// extractJsonAny converts JSONAny to (proto)Any and extracts the proto.Message (recursively).
-func extractJsonAny(cdc codec.BinaryCodec, jsonAny *JSONAny) (*codectypes.Any, proto.Message, error) {
+// extractJSONAny converts JSONAny to (proto)Any and extracts the proto.Message (recursively).
+func extractJSONAny(cdc codec.BinaryCodec, jsonAny *JSONAny) (*codectypes.Any, proto.Message, error) {
 	// get the type_url field
 	typeURL := jsonAny.TypeURL
 	// get uninitialized proto.Message
@@ -178,22 +178,22 @@ func extractJsonAny(cdc codec.BinaryCodec, jsonAny *JSONAny) (*codectypes.Any, p
 
 		if fieldType == reflect.TypeOf((*codectypes.Any)(nil)) {
 			// get the any field
-			subJsonAnyMap, ok := jsonMap[fieldJSONName].(map[string]interface{})
+			subJSONAnyMap, ok := jsonMap[fieldJSONName].(map[string]interface{})
 			if !ok {
 				return nil, nil, errorsmod.Wrapf(ErrUnknownDataType, "cannot assert the any field to map[string]interface{}")
 			}
 
 			// Create the JSONAny
-			jsonBytes, err := json.Marshal(subJsonAnyMap)
+			jsonBytes, err := json.Marshal(subJSONAnyMap)
 			if err != nil {
 				return nil, nil, errorsmod.Wrapf(ErrUnknownDataType, "cannot marshal the any field to bytes")
 			}
-			subJsonAny := &JSONAny{}
-			if err = json.Unmarshal(jsonBytes, subJsonAny); err != nil {
+			subJSONAny := &JSONAny{}
+			if err = json.Unmarshal(jsonBytes, subJSONAny); err != nil {
 				return nil, nil, errorsmod.Wrapf(ErrUnknownDataType, "cannot unmarshal the any field with json")
 			}
 
-			protoAny, _, err := extractJsonAny(cdc, subJsonAny)
+			protoAny, _, err := extractJSONAny(cdc, subJSONAny)
 			if err != nil {
 				return nil, nil, err
 			}
@@ -206,13 +206,13 @@ func extractJsonAny(cdc codec.BinaryCodec, jsonAny *JSONAny) (*codectypes.Any, p
 	}
 
 	// Marshal the map back to a byte slice
-	modifiedJsonAnyValue, err := json.Marshal(jsonMap)
+	modifiedJSONAnyValue, err := json.Marshal(jsonMap)
 	if err != nil {
-		return nil, nil, errorsmod.Wrapf(err, "cannot marshal modified json map back to bytes")
+		return nil, nil, errorsmod.Wrapf(err, "cannot marshal modified json back to bytes")
 	}
 
-	if err = cdc.(*codec.ProtoCodec).UnmarshalJSON(modifiedJsonAnyValue, message); err != nil {
-		return nil, nil, errorsmod.Wrapf(ErrUnknownDataType, "cannot unmarshal the json message")
+	if err = cdc.(*codec.ProtoCodec).UnmarshalJSON(modifiedJSONAnyValue, message); err != nil {
+		return nil, nil, errorsmod.Wrapf(ErrUnknownDataType, "cannot unmarshal modified json to message")
 	}
 
 	result, err := codectypes.NewAnyWithValue(message)
