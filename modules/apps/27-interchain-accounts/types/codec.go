@@ -133,7 +133,7 @@ func DeserializeCosmosTx(cdc codec.BinaryCodec, data []byte, encoding string) ([
 		msgs = make([]sdk.Msg, len(cosmosTx.Messages))
 
 		for i, jsonAny := range cosmosTx.Messages {
-			_, message, err := processJsonAny(cdc, jsonAny)
+			_, message, err := extractJsonAny(cdc, jsonAny)
 			if err != nil {
 				return nil, errorsmod.Wrapf(ErrUnknownDataType, "cannot unmarshal the %d-th json message: %s", i, string(jsonAny.Value))
 			}
@@ -151,7 +151,8 @@ func DeserializeCosmosTx(cdc codec.BinaryCodec, data []byte, encoding string) ([
 	return msgs, nil
 }
 
-func processJsonAny(cdc codec.BinaryCodec, jsonAny *JSONAny) (*codectypes.Any, proto.Message, error) {
+// extractJsonAny converts JSONAny to (proto)Any and extracts the proto.Message (recursively).
+func extractJsonAny(cdc codec.BinaryCodec, jsonAny *JSONAny) (*codectypes.Any, proto.Message, error) {
 	// get the type_url field
 	typeURL := jsonAny.TypeURL
 	// get uninitialized proto.Message
@@ -159,8 +160,6 @@ func processJsonAny(cdc codec.BinaryCodec, jsonAny *JSONAny) (*codectypes.Any, p
 	if err != nil {
 		return nil, nil, errorsmod.Wrapf(err, "cannot resolve this typeURL to a proto.Message: %s", typeURL)
 	}
-
-	// get the value field
 
 	value := jsonAny.Value
 	var jsonMap map[string]interface{}
@@ -178,25 +177,42 @@ func processJsonAny(cdc codec.BinaryCodec, jsonAny *JSONAny) (*codectypes.Any, p
 		fieldJSONName = strings.Split(fieldJSONName, ",")[0]
 
 		if fieldType == reflect.TypeOf((*codectypes.Any)(nil)) {
-			// TODO: Make sure none of these panic.
-			subJsonAnyMap := jsonMap[fieldJSONName].(map[string]interface{})
-			subJsonAnyTypeURL := subJsonAnyMap["type_url"].(string)
-			valueInterfaceSlice, ok := subJsonAnyMap["value"].([]interface{})
+			// get the any field
+			subJsonAnyMap, ok := jsonMap[fieldJSONName].(map[string]interface{})
 			if !ok {
-				return nil, nil, errorsmod.Wrapf(ErrUnknownDataType, "cannot assert value to []interface{}")
+				return nil, nil, errorsmod.Wrapf(ErrUnknownDataType, "cannot assert any to map[string]interface{}")
+			}
+			// get the type_url field
+			subJsonAnyTypeURL, ok := subJsonAnyMap["type_url"].(string)
+			if !ok {
+				return nil, nil, errorsmod.Wrapf(ErrUnknownDataType, "cannot assert 'type_url' to string")
 			}
 
+			// get the value field
+			valueInterfaceSlice, ok := subJsonAnyMap["value"].([]interface{})
+			if !ok {
+				return nil, nil, errorsmod.Wrapf(ErrUnknownDataType, "cannot assert 'value' to []interface{}")
+			}
 			valueByteSlice := make([]byte, len(valueInterfaceSlice))
 			for i, v := range valueInterfaceSlice {
-				valueByte := byte(v.(float64))
+				floatVal, ok := v.(float64)
+				if !ok {
+				    return nil, nil, errorsmod.Wrapf(ErrUnknownDataType, "value is not a float64")
+				}
+				if floatVal < 0 || floatVal > 255 {
+				    return nil, nil, errorsmod.Wrapf(ErrUnknownDataType, "value %v is out of range for a byte", floatVal)
+				}
+				valueByte := byte(floatVal)
 				valueByteSlice[i] = valueByte
 			}
+
+			// Create the JSONAny
 			subJsonAny := &JSONAny{
 				TypeURL: subJsonAnyTypeURL,
 				Value:   valueByteSlice,
 			}
 
-			protoAny, _, err := processJsonAny(cdc, subJsonAny)
+			protoAny, _, err := extractJsonAny(cdc, subJsonAny)
 			if err != nil {
 				return nil, nil, err
 			}

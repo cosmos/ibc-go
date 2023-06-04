@@ -1,6 +1,8 @@
 package keeper_test
 
 import (
+	"encoding/json"
+
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -619,11 +621,26 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 					Description: "tokens for all!",
 				}
 
-				protoAny, err := codectypes.NewAnyWithValue(testProposal)
-				suite.Require().NoError(err)
+				var err error
+				var content *codectypes.Any
+				switch encoding {
+				case icatypes.EncodingProtobuf:
+					content, err = codectypes.NewAnyWithValue(testProposal)
+					suite.Require().NoError(err)
+				case icatypes.EncodingJSON:
+					typeUrl := "/cosmos.gov.v1beta1.TextProposal"
+					value, err := json.Marshal(testProposal)
+					suite.Require().NoError(err)
+					content = &codectypes.Any{
+						TypeUrl: typeUrl,
+						Value:   value,
+					}
+				default:
+					suite.Require().FailNow("invalid encoding")
+				}
 
 				msg := &govtypes.MsgSubmitProposal{
-					Content:        protoAny,
+					Content:        content,
 					InitialDeposit: sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(5000))),
 					Proposer:       interchainAccountAddr,
 				}
