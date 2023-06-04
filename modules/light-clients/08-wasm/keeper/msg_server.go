@@ -15,12 +15,11 @@ var _ types.MsgServer = (*Keeper)(nil)
 
 // StoreCode defines a rpc handler method for MsgStoreCode
 func (k Keeper) StoreCode(goCtx context.Context, msg *types.MsgStoreCode) (*types.MsgStoreCodeResponse, error) {
-	ctx := sdk.UnwrapSDKContext(goCtx)
-
-	if k.authority != msg.Signer {
-		return nil, sdkerrors.Wrapf(govtypes.ErrInvalidSigner, "invalid authority: expected %s, got %s", k.authority, msg.Signer)
+	if k.GetAuthority() != msg.Signer {
+		return nil, sdkerrors.Wrapf(govtypes.ErrInvalidSigner, "invalid authority: expected %s, got %s", k.GetAuthority(), msg.Signer)
 	}
 
+	ctx := sdk.UnwrapSDKContext(goCtx)
 	codeID, err := k.storeWasmCode(ctx, msg.Code)
 	if err != nil {
 		return nil, sdkerrors.Wrap(err, "storing wasm code failed")

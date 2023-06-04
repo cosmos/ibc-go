@@ -43,26 +43,8 @@ func initContract(codeID []byte, ctx sdk.Context, clientStore sdk.KVStore) (*was
 	sdkGasMeter := ctx.GasMeter()
 	multipliedGasMeter := NewMultipliedGasMeter(sdkGasMeter, VMGasRegister)
 	gasLimit := VMGasRegister.runtimeGasForContract(ctx)
-	chainID := ctx.BlockHeader().ChainID
-	height := ctx.BlockHeader().Height
-	// safety checks before casting below
-	if height < 0 {
-		panic("Block height must never be negative")
-	}
-	nsec := ctx.BlockTime().UnixNano()
-	if nsec < 0 {
-		panic("Block (unix) time must never be negative ")
-	}
-	env := wasmvmtypes.Env{
-		Block: wasmvmtypes.BlockInfo{
-			Height:  uint64(height),
-			Time:    uint64(nsec),
-			ChainID: chainID,
-		},
-		Contract: wasmvmtypes.ContractInfo{
-			Address: "",
-		},
-	}
+
+	env := getEnv(ctx)
 
 	msgInfo := wasmvmtypes.MessageInfo{
 		Sender: "",
@@ -76,31 +58,13 @@ func initContract(codeID []byte, ctx sdk.Context, clientStore sdk.KVStore) (*was
 	return response, err
 }
 
-// Calls vm.Execute with internally constructed Gas meter and environment.
+// callContract calls vm.Execute with internally constructed gas meter and environment.
 func callContract(codeID []byte, ctx sdk.Context, clientStore sdk.KVStore, msg []byte) (*wasmvmtypes.Response, error) {
 	sdkGasMeter := ctx.GasMeter()
 	multipliedGasMeter := NewMultipliedGasMeter(sdkGasMeter, VMGasRegister)
 	gasLimit := VMGasRegister.runtimeGasForContract(ctx)
-	chainID := ctx.BlockHeader().ChainID
-	height := ctx.BlockHeader().Height
-	// safety checks before casting below
-	if height < 0 {
-		panic("Block height must never be negative")
-	}
-	nsec := ctx.BlockTime().UnixNano()
-	if nsec < 0 {
-		panic("Block (unix) time must never be negative ")
-	}
-	env := wasmvmtypes.Env{
-		Block: wasmvmtypes.BlockInfo{
-			Height:  uint64(height),
-			Time:    uint64(nsec),
-			ChainID: chainID,
-		},
-		Contract: wasmvmtypes.ContractInfo{
-			Address: "",
-		},
-	}
+
+	env := getEnv(ctx)
 
 	msgInfo := wasmvmtypes.MessageInfo{
 		Sender: "",
@@ -117,8 +81,20 @@ func queryContractWithStore(ctx sdk.Context, clientStore sdk.KVStore, codeID cos
 	sdkGasMeter := ctx.GasMeter()
 	multipliedGasMeter := NewMultipliedGasMeter(sdkGasMeter, VMGasRegister)
 	gasLimit := VMGasRegister.runtimeGasForContract(ctx)
+
+	env := getEnv(ctx)
+
+	ctx.GasMeter().ConsumeGas(VMGasRegister.InstantiateContractCosts(len(msg)), "Loading CosmWasm module: query")
+	resp, gasUsed, err := WasmVM.Query(codeID, env, msg, newStoreAdapter(clientStore), cosmwasm.GoAPI{}, nil, multipliedGasMeter, gasLimit, costJSONDeserialization)
+	VMGasRegister.consumeRuntimeGas(ctx, gasUsed)
+	return resp, err
+}
+
+// getEnv return the state of the blockchain environment the contract is running on
+func getEnv(ctx sdk.Context) wasmvmtypes.Env {
 	chainID := ctx.BlockHeader().ChainID
 	height := ctx.BlockHeader().Height
+
 	// safety checks before casting below
 	if height < 0 {
 		panic("Block height must never be negative")
@@ -127,6 +103,7 @@ func queryContractWithStore(ctx sdk.Context, clientStore sdk.KVStore, codeID cos
 	if nsec < 0 {
 		panic("Block (unix) time must never be negative ")
 	}
+
 	env := wasmvmtypes.Env{
 		Block: wasmvmtypes.BlockInfo{
 			Height:  uint64(height),
@@ -137,8 +114,6 @@ func queryContractWithStore(ctx sdk.Context, clientStore sdk.KVStore, codeID cos
 			Address: "",
 		},
 	}
-	ctx.GasMeter().ConsumeGas(VMGasRegister.InstantiateContractCosts(len(msg)), "Loading CosmWasm module: query")
-	resp, gasUsed, err := WasmVM.Query(codeID, env, msg, newStoreAdapter(clientStore), cosmwasm.GoAPI{}, nil, multipliedGasMeter, gasLimit, costJSONDeserialization)
-	VMGasRegister.consumeRuntimeGas(ctx, gasUsed)
-	return resp, err
+
+	return env
 }

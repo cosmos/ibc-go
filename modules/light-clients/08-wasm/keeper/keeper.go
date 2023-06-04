@@ -11,12 +11,11 @@ import (
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	"github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm/types"
 )
 
+// Keeper defines the 08-wasm keeper
 type Keeper struct {
 	// implements gRPC QueryServer interface
 	types.QueryServer
@@ -27,9 +26,10 @@ type Keeper struct {
 	authority string
 }
 
+// NewKeeper creates a new NewKeeper instance
 func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey) Keeper {
 	// Wasm VM
-	wasmDataDir := "ibc_08-wasm_client_data"
+	const wasmDataDir = "ibc_08-wasm_client_data"
 	wasmSupportedFeatures := strings.Join([]string{"storage", "iterator"}, ",")
 	wasmMemoryLimitMb := uint32(math.Pow(2, 12))
 	wasmPrintDebug := true
@@ -42,7 +42,7 @@ func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey) Keeper {
 	types.WasmVM = vm
 
 	// governance authority
-	authority := authtypes.NewModuleAddress(govtypes.ModuleName)
+	authority, _ := sdk.AccAddressFromBech32("cosmos1jq8sj3verv4n8sltw2vgna9cn4s8wcdr0u5dpa") // authtypes.NewModuleAddress(govtypes.ModuleName)
 
 	return Keeper{
 		cdc:       cdc,
@@ -50,6 +50,11 @@ func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey) Keeper {
 		wasmVM:    vm,
 		authority: authority.String(),
 	}
+}
+
+// GetAuthority returns the ibc module's authority.
+func (k Keeper) GetAuthority() string {
+	return k.authority
 }
 
 func generateWasmCodeHash(code []byte) []byte {
@@ -107,12 +112,14 @@ func (k Keeper) importWasmCode(ctx sdk.Context, codeIDKey, wasmCode []byte) erro
 		}
 	}
 
-	codeID, err := k.wasmVM.Create(wasmCode)
+	generatedCodeID, err := k.wasmVM.Create(wasmCode)
 	if err != nil {
 		return sdkerrors.Wrap(types.ErrCreateContractFailed, err.Error())
 	}
-	if !bytes.Equal(codeIDKey, types.CodeIDKey(codeID)) {
-		return sdkerrors.Wrap(types.ErrInvalid, "code hashes not same")
+	generatedCodeIDKey := types.CodeIDKey(generatedCodeID)
+
+	if !bytes.Equal(codeIDKey, generatedCodeIDKey) {
+		return sdkerrors.Wrapf(types.ErrInvalid, "invalid code ID: expected %s, got %s", string(generatedCodeIDKey), string(codeIDKey))
 	}
 
 	store.Set(codeIDKey, wasmCode)

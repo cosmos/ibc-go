@@ -3,14 +3,20 @@ package ibc.lightclients.wasm.v1;
 
 option go_package = "github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm/types";
 
+import "cosmos/msg/v1/msg.proto";
+
 // Msg defines the ibc/08-wasm Msg service.
 service Msg {
+  option (cosmos.msg.v1.service) = true;
+
   // StoreCode defines a rpc handler method for MsgStoreCode.
   rpc StoreCode(MsgStoreCode) returns (MsgStoreCodeResponse);
 }
 
 // MsgStoreCode defines the request type for the StoreCode rpc.
 message MsgStoreCode {
+  option (cosmos.msg.v1.signer) = "signer";
+
   string signer = 1;
   bytes  code   = 2;
 }
