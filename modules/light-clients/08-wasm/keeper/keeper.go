@@ -44,7 +44,7 @@ func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey) Keeper {
 	types.WasmVM = vm
 
 	// governance authority
-	authority, _ := authtypes.NewModuleAddress(govtypes.ModuleName)
+	authority := authtypes.NewModuleAddress(govtypes.ModuleName)
 
 	return Keeper{
 		cdc:       cdc,
