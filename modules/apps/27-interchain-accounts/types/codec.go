@@ -180,36 +180,17 @@ func extractJsonAny(cdc codec.BinaryCodec, jsonAny *JSONAny) (*codectypes.Any, p
 			// get the any field
 			subJsonAnyMap, ok := jsonMap[fieldJSONName].(map[string]interface{})
 			if !ok {
-				return nil, nil, errorsmod.Wrapf(ErrUnknownDataType, "cannot assert any to map[string]interface{}")
-			}
-			// get the type_url field
-			subJsonAnyTypeURL, ok := subJsonAnyMap["type_url"].(string)
-			if !ok {
-				return nil, nil, errorsmod.Wrapf(ErrUnknownDataType, "cannot assert 'type_url' to string")
-			}
-
-			// get the value field
-			valueInterfaceSlice, ok := subJsonAnyMap["value"].([]interface{})
-			if !ok {
-				return nil, nil, errorsmod.Wrapf(ErrUnknownDataType, "cannot assert 'value' to []interface{}")
-			}
-			valueByteSlice := make([]byte, len(valueInterfaceSlice))
-			for i, v := range valueInterfaceSlice {
-				floatVal, ok := v.(float64)
-				if !ok {
-				    return nil, nil, errorsmod.Wrapf(ErrUnknownDataType, "value is not a float64")
-				}
-				if floatVal < 0 || floatVal > 255 {
-				    return nil, nil, errorsmod.Wrapf(ErrUnknownDataType, "value %v is out of range for a byte", floatVal)
-				}
-				valueByte := byte(floatVal)
-				valueByteSlice[i] = valueByte
+				return nil, nil, errorsmod.Wrapf(ErrUnknownDataType, "cannot assert the any field to map[string]interface{}")
 			}
 
 			// Create the JSONAny
-			subJsonAny := &JSONAny{
-				TypeURL: subJsonAnyTypeURL,
-				Value:   valueByteSlice,
+			jsonBytes, err := json.Marshal(subJsonAnyMap)
+			if err != nil {
+				return nil, nil, errorsmod.Wrapf(ErrUnknownDataType, "cannot marshal the any field to bytes")
+			}
+			subJsonAny := &JSONAny{}
+			if err = json.Unmarshal(jsonBytes, subJsonAny); err != nil {
+				return nil, nil, errorsmod.Wrapf(ErrUnknownDataType, "cannot unmarshal the any field with json")
 			}
 
 			protoAny, _, err := extractJsonAny(cdc, subJsonAny)
