@@ -11,6 +11,8 @@ import (
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	"github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm/types"
 )
@@ -42,7 +44,7 @@ func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey) Keeper {
 	types.WasmVM = vm
 
 	// governance authority
-	authority, _ := sdk.AccAddressFromBech32("cosmos1jq8sj3verv4n8sltw2vgna9cn4s8wcdr0u5dpa") // authtypes.NewModuleAddress(govtypes.ModuleName)
+	authority, _ := authtypes.NewModuleAddress(govtypes.ModuleName)
 
 	return Keeper{
 		cdc:       cdc,
