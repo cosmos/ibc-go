@@ -8,6 +8,7 @@ import (
 	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	"github.com/cosmos/ibc-go/v7/testing/mock"
 )
@@ -47,7 +48,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeInit() {
 					types.NewUpgradeFields(
 						channel.Ordering, channel.ConnectionHops, channel.Version,
 					),
-					types.NewUpgradeTimeout(path.EndpointB.Chain.GetTimeoutHeight(), 0),
+					types.NewTimeout(path.EndpointB.Chain.GetTimeoutHeight(), 0),
 					0,
 				)
 			},
@@ -102,7 +103,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeInit() {
 				types.NewUpgradeFields(
 					types.UNORDERED, []string{path.EndpointA.ConnectionID}, fmt.Sprintf("%s-v2", mock.Version),
 				),
-				types.NewUpgradeTimeout(path.EndpointB.Chain.GetTimeoutHeight(), 0),
+				types.NewTimeout(path.EndpointB.Chain.GetTimeoutHeight(), 0),
 				0,
 			)
 
@@ -182,7 +183,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 		{
 			"timeout has passed",
 			func() {
-				counterpartyUpgrade.Timeout = types.NewUpgradeTimeout(clienttypes.NewHeight(0, 1), 0)
+				counterpartyUpgrade.Timeout = types.NewTimeout(clienttypes.NewHeight(0, 1), 0)
 			},
 			false,
 		},
@@ -233,7 +234,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 				fmt.Sprintf("%s-v2", mock.Version),
 			)
 
-			counterpartyUpgradeTimeout := types.NewUpgradeTimeout(path.EndpointB.Chain.GetTimeoutHeight(), 0)
+			counterpartyUpgradeTimeout := types.NewTimeout(path.EndpointB.Chain.GetTimeoutHeight(), 0)
 			proposedConnectionHops = []string{path.EndpointB.ConnectionID}
 
 			var err error
@@ -266,7 +267,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 			tc.malleate()
 
 			_, err = suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.ChanUpgradeTry(
-				suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, proposedConnectionHops, types.NewUpgradeTimeout(path.EndpointA.Chain.GetTimeoutHeight(), 0),
+				suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, proposedConnectionHops, types.NewTimeout(path.EndpointA.Chain.GetTimeoutHeight(), 0),
 				counterpartyUpgrade, counterpartyUpgradeSequence, proofCounterpartyChannel, proofUpgrade, proofHeight)
 
 			errorReceipt, found := suite.chainB.App.GetIBCKeeper().ChannelKeeper.GetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
@@ -354,13 +355,13 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry_CrossingHellos() {
 
 			proposedConnectionHops := []string{path.EndpointB.ConnectionID}
 
-			counterpartyUpgradeTimeout = types.NewUpgradeTimeout(path.EndpointB.Chain.GetTimeoutHeight(), 0)
+			counterpartyUpgradeTimeout = types.NewTimeout(path.EndpointB.Chain.GetTimeoutHeight(), 0)
 
 			upgrade = types.NewUpgrade(
 				types.NewUpgradeFields(
 					types.UNORDERED, proposedConnectionHops, fmt.Sprintf("%s-v2", mock.Version),
 				),
-				types.NewUpgradeTimeout(path.EndpointA.Chain.GetTimeoutHeight(), 0),
+				types.NewTimeout(path.EndpointA.Chain.GetTimeoutHeight(), 0),
 				0,
 			)
 
@@ -435,6 +436,84 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry_CrossingHellos() {
 				suite.Require().Equal(expSequence, path.EndpointB.GetChannel().UpgradeSequence)
 				// suite.Require().Equal(mock.Version, path.EndpointB.GetChannel().Version)
 				// suite.Require().Equal(path.EndpointB.GetChannel().State, types.TRYUPGRADE)
+			} else {
+				suite.Require().Error(err)
+			}
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestValidateProposedUpgradeFields() {
+	var (
+		proposedUpgrade *types.UpgradeFields
+		path            *ibctesting.Path
+	)
+
+	tests := []struct {
+		name     string
+		malleate func()
+		expPass  bool
+	}{
+		{
+			name: "change channel version",
+			malleate: func() {
+				proposedUpgrade.Version = "1.0.0"
+			},
+			expPass: true,
+		},
+		{
+			name: "change connection hops",
+			malleate: func() {
+				path := ibctesting.NewPath(suite.chainA, suite.chainB)
+				suite.coordinator.Setup(path)
+				proposedUpgrade.ConnectionHops = []string{path.EndpointA.ConnectionID}
+			},
+			expPass: true,
+		},
+		{
+			name:     "fails with unmodified fields",
+			malleate: func() {},
+			expPass:  false,
+		},
+		{
+			name: "fails when connection is not set",
+			malleate: func() {
+				storeKey := suite.chainA.GetSimApp().GetKey(exported.StoreKey)
+				kvStore := suite.chainA.GetContext().KVStore(storeKey)
+				kvStore.Delete(host.ConnectionKey(ibctesting.FirstConnectionID))
+			},
+			expPass: false,
+		},
+		{
+			name: "fails when connection is not open",
+			malleate: func() {
+				connection := path.EndpointA.GetConnection()
+				connection.State = connectiontypes.UNINITIALIZED
+				path.EndpointA.SetConnection(connection)
+			},
+			expPass: false,
+		},
+	}
+
+	for _, tc := range tests {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.Setup(path)
+
+			existingChannel := path.EndpointA.GetChannel()
+			proposedUpgrade = &types.UpgradeFields{
+				Ordering:       existingChannel.Ordering,
+				ConnectionHops: existingChannel.ConnectionHops,
+				Version:        existingChannel.Version,
+			}
+
+			tc.malleate()
+
+			err := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.ValidateUpgradeFields(suite.chainA.GetContext(), *proposedUpgrade, existingChannel)
+			if tc.expPass {
+				suite.Require().NoError(err)
 			} else {
 				suite.Require().Error(err)
 			}

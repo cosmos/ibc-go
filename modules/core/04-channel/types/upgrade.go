@@ -1,22 +1,13 @@
 package types
 
 import (
+	"errors"
 	"fmt"
 	"strings"
-	"time"
 
 	errorsmod "cosmossdk.io/errors"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	"github.com/cosmos/ibc-go/v7/internal/collections"
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-)
-
-const (
-	// restoreErrorString defines a string constant included in error receipts.
-	// NOTE: Changing this const is state machine breaking as it is written into state.
-	restoreErrorString = "restored channel to pre-upgrade state"
 )
 
 // NewUpgrade creates a new Upgrade instance.
@@ -34,14 +25,6 @@ func NewUpgradeFields(ordering Order, connectionHops []string, version string) U
 		Ordering:       ordering,
 		ConnectionHops: connectionHops,
 		Version:        version,
-	}
-}
-
-// NewUpgradeTimeout returns a new UpgradeTimeout instance.
-func NewUpgradeTimeout(height clienttypes.Height, timestamp uint64) Timeout {
-	return Timeout{
-		Height:    height,
-		Timestamp: timestamp,
 	}
 }
 
@@ -75,37 +58,54 @@ func (uf UpgradeFields) ValidateBasic() error {
 	return nil
 }
 
-// IsValid returns true if either the height or timestamp is non-zero
-func (ut Timeout) IsValid() bool {
-	return !ut.Height.IsZero() || ut.Timestamp != 0
+// UpgradeError defines an error that occurs during an upgrade.
+type UpgradeError struct {
+	// err is the underlying error that caused the upgrade to fail.
+	// this error should not be written to state.
+	err error
+	// sequence is the upgrade sequence number of the upgrade that failed.
+	sequence uint64
 }
 
-// TODO: Update after https://github.com/cosmos/ibc-go/issues/3483 has been resolved
-// HasPassed returns true if the upgrade has passed the timeout height or timestamp
-func (ut Timeout) HasPassed(ctx sdk.Context) (bool, error) {
-	if !ut.IsValid() {
-		return true, errorsmod.Wrap(ErrInvalidUpgrade, "upgrade timeout cannot be empty")
+// NewUpgradeError returns a new UpgradeError instance.
+func NewUpgradeError(upgradeSequence uint64, err error) UpgradeError {
+	return UpgradeError{
+		err:      err,
+		sequence: upgradeSequence,
 	}
-
-	selfHeight, timeoutHeight := clienttypes.GetSelfHeight(ctx), ut.Height
-	if selfHeight.GTE(timeoutHeight) && timeoutHeight.GT(clienttypes.ZeroHeight()) {
-		return true, errorsmod.Wrapf(ErrInvalidUpgrade, "block height >= upgrade timeout height (%s >= %s)", selfHeight, timeoutHeight)
-	}
-
-	selfTime, timeoutTimestamp := uint64(ctx.BlockTime().UnixNano()), ut.Timestamp
-	if selfTime >= timeoutTimestamp && timeoutTimestamp > 0 {
-		return true, errorsmod.Wrapf(ErrInvalidUpgrade, "block timestamp >= upgrade timeout timestamp (%s >= %s)", ctx.BlockTime(), time.Unix(0, int64(timeoutTimestamp)))
-	}
-
-	return false, nil
 }
 
-// NewErrorReceipt returns an error receipt with the code from the provided error type stripped
-// out to ensure changes of the error message don't cause state machine breaking changes.
-func NewErrorReceipt(upgradeSequence uint64, err error) ErrorReceipt {
-	_, code, _ := errorsmod.ABCIInfo(err, false) // discard non-determinstic codespace and log values
+// Error implements the error interface, returning the underlying error which caused the upgrade to fail.
+func (u UpgradeError) Error() string {
+	return u.err.Error()
+}
+
+// Is returns true if the underlying error is of the given err type.
+func (u UpgradeError) Is(err error) bool {
+	return errors.Is(u.err, err)
+}
+
+// Unwrap returns the base error that caused the upgrade to fail.
+func (u UpgradeError) Unwrap() error {
+	for {
+		if err := errors.Unwrap(u.err); err != nil {
+			u.err = err
+		} else {
+			return u.err
+		}
+	}
+}
+
+// GetErrorReceipt returns an error receipt with the code from the underlying error type stripped.
+func (u UpgradeError) GetErrorReceipt() ErrorReceipt {
+	// restoreErrorString defines a string constant included in error receipts.
+	// NOTE: Changing this const is state machine breaking as it is written into state.
+	const restoreErrorString = "restored channel to pre-upgrade state"
+
+	baseError := u.Unwrap()
+	_, code, _ := errorsmod.ABCIInfo(baseError, false) // discard non-determinstic codespace and log values
 	return ErrorReceipt{
-		Sequence: upgradeSequence,
-		Error:    fmt.Sprintf("ABCI code: %d: %s", code, restoreErrorString),
+		Sequence: u.sequence,
+		Message:  fmt.Sprintf("ABCI code: %d: %s", code, restoreErrorString),
 	}
 }
