@@ -208,17 +208,17 @@ func fromJSONAny(cdc codec.BinaryCodec, jsonAny *JSONAny) (*codectypes.Any, prot
 			delete(jsonMap, fieldJSONName)
 		} else if fieldType.Kind() == reflect.Slice && fieldType.Elem() == reflect.TypeOf((*codectypes.Any)(nil)) {
 			sliceSubJSONAnyMap, ok := jsonMap[fieldJSONName].([]interface{})
-      if !ok {
-          return nil, nil, errorsmod.Wrapf(ErrUnknownDataType, "cannot assert the slice of any field to []interface{}")
-      }
+			if !ok {
+				return nil, nil, errorsmod.Wrapf(ErrUnknownDataType, "cannot assert the slice of any field to []interface{}")
+			}
 
 			protoAnys := make([]*codectypes.Any, len(sliceSubJSONAnyMap))
 
 			for i, subJSONAnyInterface := range sliceSubJSONAnyMap {
 				subJSONAnyMap, ok := subJSONAnyInterface.(map[string]interface{})
-        if !ok {
-            return nil, nil, errorsmod.Wrapf(ErrUnknownDataType, "cannot assert the any field to map[string]interface{}")
-        }
+				if !ok {
+					return nil, nil, errorsmod.Wrapf(ErrUnknownDataType, "cannot assert the any field to map[string]interface{}")
+				}
 
 				// Create the JSONAny
 				jsonBytes, err := json.Marshal(subJSONAnyMap)
