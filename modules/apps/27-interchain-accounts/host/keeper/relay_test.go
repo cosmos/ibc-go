@@ -634,15 +634,10 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 					data, err = icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []proto.Message{msg}, encoding)
 					suite.Require().NoError(err)
 				case icatypes.EncodingJSON:
-					protoAny, err := codectypes.NewAnyWithValue(msg)
-					suite.Require().NoError(err)
-					// this also doesn't work
-					_, data, err = ibctesting.ToJSONAny(suite.chainA.GetSimApp().AppCodec(), protoAny)
-					suite.Require().NoError(err)
-					suite.Require().NotNil(data)
-					// THIS IS NOT HOW SERIALIZE SHOULD BE USED
-					// data, err = icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []proto.Message{msg}, encoding)
+					// protoAny, err := codectypes.NewAnyWithValue(msg)
 					// suite.Require().NoError(err)
+					data, err = icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []proto.Message{msg}, encoding)
+					suite.Require().NoError(err)
 				default:
 					suite.Require().FailNow("invalid encoding")
 				}

@@ -71,23 +71,24 @@ func SerializeCosmosTx(cdc codec.BinaryCodec, msgs []proto.Message, encoding str
 	case EncodingJSON:
 		msgAnys := make([]*JSONAny, len(msgs))
 		for i, msg := range msgs {
-			jsonValue, err := cdc.(*codec.ProtoCodec).MarshalJSON(msg)
+			protoAny, err := codectypes.NewAnyWithValue(msg)
 			if err != nil {
 				return nil, err
 			}
-			msgAnys[i] = &JSONAny{
-				TypeURL: "/" + proto.MessageName(msg),
-				Value:   jsonValue,
-			}
-
-			cosmosTx := JSONCosmosTx{
-				Messages: msgAnys,
-			}
-
-			bz, err = json.Marshal(cosmosTx)
+			jsonAny, _, err := toJSONAny(cdc, protoAny)
 			if err != nil {
 				return nil, err
 			}
+			msgAnys[i] = jsonAny
+		}
+
+		cosmosTx := &JSONCosmosTx{
+			Messages: msgAnys,
+		}
+
+		bz, err = json.Marshal(cosmosTx)
+		if err != nil {
+			return nil, errorsmod.Wrapf(ErrUnknownDataType, "cannot marshal cosmosTx with json")
 		}
 	default:
 		return nil, errorsmod.Wrapf(ErrUnsupportedEncoding, "encoding type %s is not supported", encoding)
@@ -133,14 +134,14 @@ func DeserializeCosmosTx(cdc codec.BinaryCodec, data []byte, encoding string) ([
 		msgs = make([]sdk.Msg, len(cosmosTx.Messages))
 
 		for i, jsonAny := range cosmosTx.Messages {
-			_, message, err := extractJSONAny(cdc, jsonAny)
+			_, message, err := fromJSONAny(cdc, jsonAny)
 			if err != nil {
 				return nil, errorsmod.Wrapf(ErrUnknownDataType, "cannot unmarshal the %d-th json message: %s", i, string(jsonAny.Value))
 			}
 
 			msg, ok := message.(sdk.Msg)
 			if !ok {
-				return nil, errorsmod.Wrapf(ErrUnsupported, "message %T does not implement sdk.Msg", message)
+				return nil, errorsmod.Wrapf(ErrUnknownDataType, "message %T does not implement sdk.Msg", message)
 			}
 			msgs[i] = msg
 		}
@@ -151,8 +152,8 @@ func DeserializeCosmosTx(cdc codec.BinaryCodec, data []byte, encoding string) ([
 	return msgs, nil
 }
 
-// extractJSONAny converts JSONAny to (proto)Any and extracts the proto.Message (recursively).
-func extractJSONAny(cdc codec.BinaryCodec, jsonAny *JSONAny) (*codectypes.Any, proto.Message, error) {
+// fromJSONAny converts JSONAny to (proto)Any and extracts the proto.Message (recursively).
+func fromJSONAny(cdc codec.BinaryCodec, jsonAny *JSONAny) (*codectypes.Any, proto.Message, error) {
 	// get the type_url field
 	typeURL := jsonAny.TypeURL
 	// get uninitialized proto.Message
@@ -196,7 +197,7 @@ func extractJSONAny(cdc codec.BinaryCodec, jsonAny *JSONAny) (*codectypes.Any, p
 				return nil, nil, errorsmod.Wrapf(ErrUnknownDataType, "cannot unmarshal the any field with json")
 			}
 
-			protoAny, _, err := extractJSONAny(cdc, subJSONAny)
+			protoAny, _, err := fromJSONAny(cdc, subJSONAny)
 			if err != nil {
 				return nil, nil, err
 			}
@@ -229,7 +230,7 @@ func extractJSONAny(cdc codec.BinaryCodec, jsonAny *JSONAny) (*codectypes.Any, p
 					return nil, nil, errorsmod.Wrapf(ErrUnknownDataType, "cannot unmarshal the any field with json")
 				}
 
-				protoAny, _, err := extractJSONAny(cdc, subJSONAny)
+				protoAny, _, err := fromJSONAny(cdc, subJSONAny)
 				if err != nil {
 					return nil, nil, err
 				}
@@ -258,4 +259,78 @@ func extractJSONAny(cdc codec.BinaryCodec, jsonAny *JSONAny) (*codectypes.Any, p
 	}
 
 	return result, message, nil
+}
+
+// toJSONAny converts (proto)Any to JSONAny and extracts the json bytes (recursively).
+func toJSONAny(cdc codec.BinaryCodec, protoAny *codectypes.Any) (*JSONAny, []byte, error) {
+	var message proto.Message
+
+	cdc.UnpackAny(protoAny, &message)
+
+	messageMap := make(map[string]interface{})
+
+	val := reflect.ValueOf(message).Elem()
+	for i := 0; i < val.NumField(); i++ {
+		field := val.Field(i)
+		fieldType := field.Type()
+		fieldJSONName, ok := val.Type().Field(i).Tag.Lookup("json")
+		if !ok {
+			return nil, nil, errorsmod.Wrapf(ErrUnknownDataType, "cannot get the json tag of the field")
+		}
+		// Remove ,omitempty if it's present
+		fieldJSONName = strings.Split(fieldJSONName, ",")[0]
+
+		if fieldType == reflect.TypeOf((*codectypes.Any)(nil)) {
+
+			subProtoAny, ok := field.Interface().(*codectypes.Any)
+			if !ok {
+				return nil, nil, errorsmod.Wrapf(ErrUnknownDataType, "cannot assert the any field to *codectypes.Any")
+			}
+
+			subJSONAny, _, err := toJSONAny(cdc, subProtoAny)
+			if err != nil {
+				return nil, nil, err
+			}
+
+			messageMap[fieldJSONName] = subJSONAny
+		} else if fieldType.Kind() == reflect.Slice && fieldType.Elem() == reflect.TypeOf((*codectypes.Any)(nil)) {
+			subProtoAnys, ok := field.Interface().([]*codectypes.Any)
+			if !ok {
+				return nil, nil, errorsmod.Wrapf(ErrUnknownDataType, "cannot assert the slice of any field to []*codectypes.Any")
+			}
+
+			subJSONAnys := make([]*JSONAny, len(subProtoAnys))
+
+			for i, subProtoAny := range subProtoAnys {
+				subJSONAny, _, err := toJSONAny(cdc, subProtoAny)
+				if err != nil {
+					return nil, nil, err
+				}
+
+				subJSONAnys[i] = subJSONAny
+			}
+
+			messageMap[fieldJSONName] = subJSONAnys
+		} else {
+			messageMap[fieldJSONName] = field.Interface()
+		}
+	}
+
+	// Marshal the map back to a byte slice. This function marshalls recursively.
+	JSONAnyValue, err := json.Marshal(messageMap)
+	if err != nil {
+		return nil, nil, errorsmod.Wrapf(ErrUnknownDataType, "cannot marshal modified message to bytes")
+	}
+
+	result := &JSONAny{
+		TypeURL: protoAny.TypeUrl,
+		Value:   JSONAnyValue,
+	}
+
+	bytes, err := json.Marshal(result)
+	if err != nil {
+		return nil, nil, errorsmod.Wrapf(err, "cannot marshal modified json back to bytes")
+	}
+
+	return result, bytes, nil
 }
