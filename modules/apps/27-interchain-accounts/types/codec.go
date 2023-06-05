@@ -265,7 +265,10 @@ func fromJSONAny(cdc codec.BinaryCodec, jsonAny *JSONAny) (*codectypes.Any, prot
 func toJSONAny(cdc codec.BinaryCodec, protoAny *codectypes.Any) (*JSONAny, []byte, error) {
 	var message proto.Message
 
-	cdc.UnpackAny(protoAny, &message)
+	err := cdc.UnpackAny(protoAny, &message)
+	if err != nil {
+		return nil, nil, err
+	}
 
 	messageMap := make(map[string]interface{})
 
@@ -280,8 +283,8 @@ func toJSONAny(cdc codec.BinaryCodec, protoAny *codectypes.Any) (*JSONAny, []byt
 		// Remove ,omitempty if it's present
 		fieldJSONName = strings.Split(fieldJSONName, ",")[0]
 
-		if fieldType == reflect.TypeOf((*codectypes.Any)(nil)) {
-
+		switch {
+		case fieldType == reflect.TypeOf((*codectypes.Any)(nil)):
 			subProtoAny, ok := field.Interface().(*codectypes.Any)
 			if !ok {
 				return nil, nil, errorsmod.Wrapf(ErrUnknownDataType, "cannot assert the any field to *codectypes.Any")
@@ -293,7 +296,7 @@ func toJSONAny(cdc codec.BinaryCodec, protoAny *codectypes.Any) (*JSONAny, []byt
 			}
 
 			messageMap[fieldJSONName] = subJSONAny
-		} else if fieldType.Kind() == reflect.Slice && fieldType.Elem() == reflect.TypeOf((*codectypes.Any)(nil)) {
+		case fieldType.Kind() == reflect.Slice && fieldType.Elem() == reflect.TypeOf((*codectypes.Any)(nil)):
 			subProtoAnys, ok := field.Interface().([]*codectypes.Any)
 			if !ok {
 				return nil, nil, errorsmod.Wrapf(ErrUnknownDataType, "cannot assert the slice of any field to []*codectypes.Any")
@@ -311,7 +314,7 @@ func toJSONAny(cdc codec.BinaryCodec, protoAny *codectypes.Any) (*JSONAny, []byt
 			}
 
 			messageMap[fieldJSONName] = subJSONAnys
-		} else {
+		default:
 			messageMap[fieldJSONName] = field.Interface()
 		}
 	}
