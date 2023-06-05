@@ -24,7 +24,7 @@ func (suite *KeeperTestSuite) TestInitGenesis() {
 		{
 			"success",
 			func() {
-				codeID := "859adacaaaa5d899be68ce2dcba9834e7aa5f758e91a1270ea4b8bb509581852"
+				codeID := "c64f75091a6195b036f472cd8c9f19a56780b9eac3c3de7ced0ec2e29e985b64"
 				codeIDBytes, err := hex.DecodeString(codeID)
 				suite.Require().NoError(err)
 				contractCode, err := os.ReadFile("../test_data/ics07_tendermint_cw.wasm.gz")
