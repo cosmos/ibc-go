@@ -154,7 +154,7 @@ func (k Keeper) ChanUpgradeAck(
 	ctx sdk.Context,
 	portID,
 	channelID string,
-	counterpartyFlushStatus types.Order,
+	counterpartyFlushStatus types.FlushStatus,
 	counterpartyUpgrade types.Upgrade,
 	proofChannel,
 	proofUpgrade []byte,
@@ -169,10 +169,8 @@ func (k Keeper) ChanUpgradeAck(
 		return errorsmod.Wrapf(types.ErrInvalidChannelState, "expected one of [%s, %s], got %s", types.INITUPGRADE, types.TRYUPGRADE, channel.State)
 	}
 
-	// TODO: rebase with FlushStatus and update args and error return
-	// abortTransactionUnless(counterpartyFlushStatus == FLUSHING || counterpartyFlushStatus == FLUSHCOMPLETE)
-	if !collections.Contains(counterpartyFlushStatus, []types.Order{types.UNORDERED, types.ORDERED}) {
-		return errorsmod.Wrapf(types.ErrInvalidChannelState, "expected one of [%s, %s], got %s", types.INITUPGRADE, types.TRYUPGRADE, channel.State)
+	if !collections.Contains(counterpartyFlushStatus, []types.FlushStatus{types.FLUSHING, types.FLUSHCOMPLETE}) {
+		return errorsmod.Wrapf(types.ErrInvalidChannelState, "expected one of [%s, %s], got %s", types.FLUSHING, types.FLUSHCOMPLETE, counterpartyFlushStatus)
 	}
 
 	connectionEnd, err := k.GetConnection(ctx, channel.ConnectionHops[0])
@@ -188,7 +186,7 @@ func (k Keeper) ChanUpgradeAck(
 		Counterparty:    types.NewCounterparty(portID, channelID),
 		Version:         channel.Version,
 		UpgradeSequence: channel.UpgradeSequence,
-		// FlushStatus: counterpartyFlushStatus,
+		FlushStatus:     counterpartyFlushStatus,
 	}
 
 	upgrade, found := k.GetUpgrade(ctx, portID, channelID)
