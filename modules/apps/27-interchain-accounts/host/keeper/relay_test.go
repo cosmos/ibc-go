@@ -25,14 +25,13 @@ func (suite *KeeperTestSuite) TestCosmwasmOnRecvPacket() {
 		packetData []byte
 	)
 	cwWalletOne := "cosmos15ulrf36d4wdtrtqzkgaan9ylwuhs7k7qz753uk"
-	// cwWalletTwo = "cosmos1uu38gkyed0dte5f9xk20p8wcppulsjt90s7f8h"
+	cwWalletTwo := "cosmos1uu38gkyed0dte5f9xk20p8wcppulsjt90s7f8h"
 
 	testCases := []struct {
 		msg      string
 		malleate func(encoding string)
 		expPass  bool
 	}{
-		/*
 			{
 				"interchain account successfully executes an arbitrary message type using the * (allow all message types) param",
 				func(encoding string) {
@@ -130,7 +129,6 @@ func (suite *KeeperTestSuite) TestCosmwasmOnRecvPacket() {
 			// 	},
 			// 	true,
 			// },
-		*/
 		{
 			"interchain account successfully executes govtypes.MsgSubmitProposal",
 			func(encoding string) {
