@@ -92,6 +92,7 @@ func (k Keeper) ChanUpgradeTry(
 	}
 
 	// verify that the timeout set in UpgradeInit has not passed on this chain
+	
 	if hasPassed, err := counterpartyProposedUpgrade.Timeout.HasPassed(ctx); hasPassed {
 		// abort here and let counterparty timeout the upgrade
 		return types.Upgrade{}, errorsmod.Wrap(err, "upgrade timeout has passed")

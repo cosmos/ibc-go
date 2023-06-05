@@ -290,7 +290,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 				// suite.Require().Equal(path.EndpointB.GetChannel().State, types.TRYUPGRADE)
 			} else {
 				if found {
-					err = errors.New(errorReceipt.Error)
+					err = errors.New(errorReceipt.GetMessage())
 				}
 				suite.Require().Error(err)
 			}
