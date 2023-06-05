@@ -301,6 +301,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 			append(
 				labels, telemetry.NewLabel(coretypes.LabelSource, "false"),
 			),
+		)
 	}()
 
 	return nil
@@ -316,8 +317,8 @@ func (k Keeper) SetDenomMetadata(ctx sdk.Context, denomTrace types.DenomTrace) {
 				Exponent: 0,
 			},
 		},
-		// Setting base as IBC hash denom since bank keepers's SetDenomMetaData uses 
-		// Base as storeKey and the bank keeper will only have the IBC hash to get 
+		// Setting base as IBC hash denom since bank keepers's SetDenomMetaData uses
+		// Base as storeKey and the bank keeper will only have the IBC hash to get
 		// the denom metadata
 		Base:    denomTrace.IBCDenom(),
 		Display: denomTrace.GetFullDenomPath(),
