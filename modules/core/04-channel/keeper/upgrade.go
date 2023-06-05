@@ -78,7 +78,7 @@ func (k Keeper) ChanUpgradeTry(
 	counterpartyProposedUpgrade types.Upgrade,
 	counterpartyUpgradeSequence uint64,
 	proofCounterpartyChannel,
-	proofUpgrade []byte,
+	proofCounterpartyUpgrade []byte,
 	proofHeight clienttypes.Height,
 ) (types.Upgrade, error) {
 	channel, found := k.GetChannel(ctx, portID, channelID)
@@ -89,13 +89,6 @@ func (k Keeper) ChanUpgradeTry(
 	// the channel state must be in OPEN or INITUPGRADE if we are in a crossing hellos situation
 	if !collections.Contains(channel.State, []types.State{types.OPEN, types.INITUPGRADE}) {
 		return types.Upgrade{}, errorsmod.Wrapf(types.ErrInvalidChannelState, "expected one of [%s, %s], got %s", types.OPEN, types.INITUPGRADE, channel.State)
-	}
-
-	// verify that the timeout set in UpgradeInit has not passed on this chain
-	
-	if hasPassed, err := counterpartyProposedUpgrade.Timeout.HasPassed(ctx); hasPassed {
-		// abort here and let counterparty timeout the upgrade
-		return types.Upgrade{}, errorsmod.Wrap(err, "upgrade timeout has passed")
 	}
 
 	connectionEnd, err := k.GetConnection(ctx, channel.ConnectionHops[0])
@@ -111,64 +104,31 @@ func (k Keeper) ChanUpgradeTry(
 		)
 	}
 
+	// check if packet is timed out on the receiving chain
+	if hasPassed, err := counterpartyProposedUpgrade.Timeout.HasPassed(ctx); hasPassed {
+		// abort here and let counterparty timeout the upgrade
+		return types.Upgrade{}, errorsmod.Wrap(err, "upgrade timeout has passed")
+	}
+
 	// assert that the proposed connection hops are compatible with the counterparty connection hops
 	// the proposed connections hops must have a counterparty which matches the counterparty connection hops
-	proposedConnection, err := k.GetConnection(ctx, proposedConnectionHops[0])
-	if err != nil {
-		return types.Upgrade{}, errorsmod.Wrap(err, "failed to retrieve connection using the proposed connection hops")
-	}
-
-	counterpartyProposedHops := counterpartyProposedUpgrade.Fields.ConnectionHops
-	if proposedConnection.GetCounterparty().GetConnectionID() != counterpartyProposedHops[0] {
-		return types.Upgrade{}, errorsmod.Wrapf(
-			connectiontypes.ErrInvalidConnection,
-			"proposed connection hops (%s) does not have counterparty proposed connection hops as counterparty, expected %s, got %s",
-			proposedConnectionHops,
-			counterpartyProposedHops,
-			proposedConnection.GetCounterparty().GetConnectionID(),
-		)
-	}
 
 	// construct counterpartyChannel from existing information and provided counterpartyUpgradeSequence
-	// currentCounterpartyHops := connection.GetCounterparty().GetConnectionID()
-	// counterpartyChannel := types.Channel{
-	// 	State:           types.INITUPGRADE,
-	// 	Counterparty:    types.NewCounterparty(portID, channelID),
-	// 	Ordering:        channel.Ordering,
-	// 	ConnectionHops:  []string{currentCounterpartyHops},
-	// 	Version:         channel.Version,
-	// 	UpgradeSequence: counterpartyUpgradeSequence,
-	// }
 
 	// create upgrade fields from counterparty proposed upgrade and own verified connection hops
-	// upgradeFields := types.NewUpgradeFields(
-	// 	counterpartyProposedUpgrade.Fields.Ordering,
-	// 	proposedConnectionHops,
-	// 	counterpartyProposedUpgrade.Fields.Version,
-	// )
 
-	// TODO: if OPEN, then initialize handshake with upgradeFields
+	// if OPEN, then initialize handshake with upgradeFields
 	// this should validate the upgrade fields, set the upgrade path and set the final correct sequence.
-	var proposedUpgrade types.Upgrade
-	// if channel.State == types.OPEN {
 
-	// TODO: otherwise, if the channel state is already in INITUPGRADE (crossing hellos case),
+	// otherwise, if the channel state is already in INITUPGRADE (crossing hellos case),
 	// assert that the upgrade fields are the same as the upgrade already in progress
-	// nolint:staticcheck
+
 	// } else if channel.State == types.INITUPGRADE {
 
 	// if the counterparty sequence is not equal to our own at this point, either the counterparty chain is out-of-sync or the message is out-of-sync
 	// we write an error receipt with our own sequence so that the counterparty can update their sequence as well.
 	// We must then increment our sequence so both sides start the next upgrade with a fresh sequence.
-
-	// if counterpartyUpgradeSequence != channel.UpgradeSequence {
-	// 	errorReceipt := types.NewErrorReceipt(channel.UpgradeSequence, errorsmod.Wrapf(types.ErrInvalidUpgrade, "counterparty chain upgrade sequence <= upgrade sequence (%d <= %d)", counterpartyUpgradeSequence, channel.UpgradeSequence))
-	// 	channel.UpgradeSequence++
-	// 	// TODO: emit error receipt events
-	// 	k.SetUpgradeErrorReceipt(ctx, portID, channelID, errorReceipt)
-	// }
-	// }
-
+	var proposedUpgrade types.Upgrade
 	return proposedUpgrade, nil
 }
 
