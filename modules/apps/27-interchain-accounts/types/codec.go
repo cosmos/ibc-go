@@ -202,13 +202,47 @@ func extractJSONAny(cdc codec.BinaryCodec, jsonAny *JSONAny) (*codectypes.Any, p
 			field.Set(reflect.ValueOf(protoAny))
 			// Remove this field from jsonAnyMap
 			delete(jsonMap, fieldJSONName)
+		} else if fieldType.Kind() == reflect.Slice && fieldType.Elem() == reflect.TypeOf((*codectypes.Any)(nil)) {
+			sliceSubJSONAnyMap, ok := jsonMap[fieldJSONName].([]interface{})
+      if !ok {
+          return nil, nil, errorsmod.Wrapf(ErrUnknownDataType, "cannot assert the slice of any field to []interface{}")
+      }
+
+			protoAnys := make([]*codectypes.Any, len(sliceSubJSONAnyMap))
+
+			for i, subJSONAnyInterface := range sliceSubJSONAnyMap {
+				subJSONAnyMap, ok := subJSONAnyInterface.(map[string]interface{})
+        if !ok {
+            return nil, nil, errorsmod.Wrapf(ErrUnknownDataType, "cannot assert the any field to map[string]interface{}")
+        }
+
+				// Create the JSONAny
+				jsonBytes, err := json.Marshal(subJSONAnyMap)
+				if err != nil {
+					return nil, nil, errorsmod.Wrapf(ErrUnknownDataType, "cannot marshal the any field to bytes")
+				}
+				subJSONAny := &JSONAny{}
+				if err = json.Unmarshal(jsonBytes, subJSONAny); err != nil {
+					return nil, nil, errorsmod.Wrapf(ErrUnknownDataType, "cannot unmarshal the any field with json")
+				}
+
+				protoAny, _, err := extractJSONAny(cdc, subJSONAny)
+				if err != nil {
+					return nil, nil, err
+				}
+
+				protoAnys[i] = protoAny
+			}
+
+			field.Set(reflect.ValueOf(protoAnys))
+			delete(jsonMap, fieldJSONName)
 		}
 	}
 
 	// Marshal the map back to a byte slice
 	modifiedJSONAnyValue, err := json.Marshal(jsonMap)
 	if err != nil {
-		return nil, nil, errorsmod.Wrapf(err, "cannot marshal modified json back to bytes")
+		return nil, nil, errorsmod.Wrapf(ErrUnknownDataType, "cannot marshal modified json back to bytes")
 	}
 
 	if err = cdc.(*codec.ProtoCodec).UnmarshalJSON(modifiedJSONAnyValue, message); err != nil {

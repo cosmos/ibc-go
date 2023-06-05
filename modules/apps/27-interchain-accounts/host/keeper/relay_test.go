@@ -1,8 +1,6 @@
 package keeper_test
 
 import (
-	"encoding/json"
-
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -621,23 +619,8 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 					Description: "tokens for all!",
 				}
 
-				var err error
-				var content *codectypes.Any
-				switch encoding {
-				case icatypes.EncodingProtobuf:
-					content, err = codectypes.NewAnyWithValue(testProposal)
-					suite.Require().NoError(err)
-				case icatypes.EncodingJSON:
-					typeURL := "/cosmos.gov.v1beta1.TextProposal"
-					value, err := json.Marshal(testProposal)
-					suite.Require().NoError(err)
-					content = &codectypes.Any{
-						TypeUrl: typeURL,
-						Value:   value,
-					}
-				default:
-					suite.Require().FailNow("invalid encoding")
-				}
+				content, err := codectypes.NewAnyWithValue(testProposal)
+				suite.Require().NoError(err)
 
 				msg := &govtypes.MsgSubmitProposal{
 					Content:        content,
@@ -645,8 +628,24 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 					Proposer:       interchainAccountAddr,
 				}
 
-				data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []proto.Message{msg}, encoding)
-				suite.Require().NoError(err)
+				var data []byte
+				switch encoding {
+				case icatypes.EncodingProtobuf:
+					data, err = icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []proto.Message{msg}, encoding)
+					suite.Require().NoError(err)
+				case icatypes.EncodingJSON:
+					protoAny, err := codectypes.NewAnyWithValue(msg)
+					suite.Require().NoError(err)
+					// this also doesn't work
+					_, data, err = ibctesting.ToJSONAny(suite.chainA.GetSimApp().AppCodec(), protoAny)
+					suite.Require().NoError(err)
+					suite.Require().NotNil(data)
+					// THIS IS NOT HOW SERIALIZE SHOULD BE USED
+					// data, err = icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []proto.Message{msg}, encoding)
+					// suite.Require().NoError(err)
+				default:
+					suite.Require().FailNow("invalid encoding")
+				}
 
 				icaPacketData := icatypes.InterchainAccountPacketData{
 					Type: icatypes.EXECUTE_TX,
