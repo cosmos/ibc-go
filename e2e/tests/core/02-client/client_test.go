@@ -272,7 +272,7 @@ func (s *ClientTestSuite) TestAllowedClientsParam() {
 	})
 
 	allowedClient := ibcexported.Solomachine
-	t.Run("change the allowed client to only allow localhost clients", func(t *testing.T) {
+	t.Run("change the allowed client to only allow solomachine clients", func(t *testing.T) {
 		if testvalues.SelfParamsFeatureReleases.IsSupported(chainAVersion) {
 			authority, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
 			s.Require().NoError(err)
