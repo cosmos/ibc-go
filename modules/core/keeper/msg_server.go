@@ -772,14 +772,14 @@ func (k Keeper) ChannelUpgradeAck(goCtx context.Context, msg *channeltypes.MsgCh
 	}
 
 	// TODO: update msg args
-	err = k.ChannelKeeper.ChanUpgradeAck(ctx, msg.PortId, msg.ChannelId, channeltypes.NONE, msg.CounterpartyUpgrade, msg.ProofChannel, msg.ProofUpgradeSequence, msg.ProofHeight)
+	err = k.ChannelKeeper.ChanUpgradeAck(ctx, msg.PortId, msg.ChannelId, channeltypes.NONE, msg.CounterpartyUpgrade, msg.ProofChannel, msg.ProofUpgrade, msg.ProofHeight)
 	if err != nil {
 		ctx.Logger().Error("channel upgrade ack failed", "error", errorsmod.Wrap(err, "channel handshake upgrade ack failed"))
 		return nil, errorsmod.Wrap(err, "channel handshake upgrade ack failed")
 	}
 
-	// TODO: update callback args?? remove counterparty channel ID??
-	err = cbs.OnChanUpgradeAck(ctx, msg.PortId, msg.ChannelId, msg.CounterpartyChannel.Version, msg.CounterpartyChannel.Version)
+	// TODO: update callback args?? remove counterparty channel ID and version??
+	err = cbs.OnChanUpgradeAck(ctx, msg.PortId, msg.ChannelId, "", "")
 	if err != nil {
 		ctx.Logger().Error("channel upgrade ack callback failed", "port-id", msg.PortId, "channel-id", msg.ChannelId, "error", err.Error())
 
