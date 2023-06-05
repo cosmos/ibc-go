@@ -96,7 +96,8 @@ func (u UpgradeError) Unwrap() error {
 	}
 }
 
-// Cause imlements the sdk error interface, returning the underlying error which caused the upgrade to fail.
+// Cause implements the sdk error interface which uses this function to unwrap the error in various functions such as `wrappedError.Is()`.
+// Cause returns the underlying error which caused the upgrade to fail.
 func (u UpgradeError) Cause() error {
 	return u.err
 }
