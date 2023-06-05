@@ -168,6 +168,25 @@ func fromJSONAny(cdc codec.BinaryCodec, jsonAny *JSONAny) (*codectypes.Any, prot
 		return nil, nil, errorsmod.Wrapf(ErrUnknownDataType, "cannot unmarshal value to json")
 	}
 
+	jsonAnyMapHandler := func(subJSONAnyMap map[string]interface{}) (*codectypes.Any, error) {
+		// Create the JSONAny
+		jsonBytes, err := json.Marshal(subJSONAnyMap)
+		if err != nil {
+			return nil, errorsmod.Wrapf(ErrUnknownDataType, "cannot marshal the any field to bytes")
+		}
+		subJSONAny := &JSONAny{}
+		if err = json.Unmarshal(jsonBytes, subJSONAny); err != nil {
+			return nil, errorsmod.Wrapf(ErrUnknownDataType, "cannot unmarshal the any field with json")
+		}
+
+		protoAny, _, err := fromJSONAny(cdc, subJSONAny)
+		if err != nil {
+			return nil, err
+		}
+
+		return protoAny, nil
+	}
+
 	// Check if message has Any fields
 	val := reflect.ValueOf(message).Elem()
 	for i := 0; i < val.NumField(); i++ {
@@ -187,17 +206,7 @@ func fromJSONAny(cdc codec.BinaryCodec, jsonAny *JSONAny) (*codectypes.Any, prot
 				return nil, nil, errorsmod.Wrapf(ErrUnknownDataType, "cannot assert the any field to map[string]interface{}")
 			}
 
-			// Create the JSONAny
-			jsonBytes, err := json.Marshal(subJSONAnyMap)
-			if err != nil {
-				return nil, nil, errorsmod.Wrapf(ErrUnknownDataType, "cannot marshal the any field to bytes")
-			}
-			subJSONAny := &JSONAny{}
-			if err = json.Unmarshal(jsonBytes, subJSONAny); err != nil {
-				return nil, nil, errorsmod.Wrapf(ErrUnknownDataType, "cannot unmarshal the any field with json")
-			}
-
-			protoAny, _, err := fromJSONAny(cdc, subJSONAny)
+			protoAny, err := jsonAnyMapHandler(subJSONAnyMap)
 			if err != nil {
 				return nil, nil, err
 			}
@@ -213,31 +222,18 @@ func fromJSONAny(cdc codec.BinaryCodec, jsonAny *JSONAny) (*codectypes.Any, prot
 			}
 
 			protoAnys := make([]*codectypes.Any, len(sliceSubJSONAnyMap))
-
 			for i, subJSONAnyInterface := range sliceSubJSONAnyMap {
 				subJSONAnyMap, ok := subJSONAnyInterface.(map[string]interface{})
 				if !ok {
 					return nil, nil, errorsmod.Wrapf(ErrUnknownDataType, "cannot assert the any field to map[string]interface{}")
 				}
 
-				// Create the JSONAny
-				jsonBytes, err := json.Marshal(subJSONAnyMap)
-				if err != nil {
-					return nil, nil, errorsmod.Wrapf(ErrUnknownDataType, "cannot marshal the any field to bytes")
-				}
-				subJSONAny := &JSONAny{}
-				if err = json.Unmarshal(jsonBytes, subJSONAny); err != nil {
-					return nil, nil, errorsmod.Wrapf(ErrUnknownDataType, "cannot unmarshal the any field with json")
-				}
-
-				protoAny, _, err := fromJSONAny(cdc, subJSONAny)
+				protoAny, err := jsonAnyMapHandler(subJSONAnyMap)
 				if err != nil {
 					return nil, nil, err
 				}
-
 				protoAnys[i] = protoAny
 			}
-
 			field.Set(reflect.ValueOf(protoAnys))
 			delete(jsonMap, fieldJSONName)
 		}
@@ -294,7 +290,6 @@ func toJSONAny(cdc codec.BinaryCodec, protoAny *codectypes.Any) (*JSONAny, []byt
 			if err != nil {
 				return nil, nil, err
 			}
-
 			messageMap[fieldJSONName] = subJSONAny
 		case fieldType.Kind() == reflect.Slice && fieldType.Elem() == reflect.TypeOf((*codectypes.Any)(nil)):
 			subProtoAnys, ok := field.Interface().([]*codectypes.Any)
@@ -303,7 +298,6 @@ func toJSONAny(cdc codec.BinaryCodec, protoAny *codectypes.Any) (*JSONAny, []byt
 			}
 
 			subJSONAnys := make([]*JSONAny, len(subProtoAnys))
-
 			for i, subProtoAny := range subProtoAnys {
 				subJSONAny, _, err := toJSONAny(cdc, subProtoAny)
 				if err != nil {
@@ -312,7 +306,6 @@ func toJSONAny(cdc codec.BinaryCodec, protoAny *codectypes.Any) (*JSONAny, []byt
 
 				subJSONAnys[i] = subJSONAny
 			}
-
 			messageMap[fieldJSONName] = subJSONAnys
 		default:
 			messageMap[fieldJSONName] = field.Interface()
