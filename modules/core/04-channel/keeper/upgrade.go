@@ -183,7 +183,7 @@ func (k Keeper) startFlushUpgradeHandshake(
 	// assert that both sides propose the same channel ordering
 	if proposedUpgradeFields.Ordering != counterpartyUpgrade.Fields.Ordering {
 		return types.NewUpgradeError(channel.UpgradeSequence, errorsmod.Wrapf(
-			types.ErrIncompatibleCounterpartyUpgrade, "expected upgrade ordering (%s) to match counterparty upgrade ordering (%d)", proposedUpgradeFields.Ordering, counterpartyUpgrade.Fields.Ordering),
+			types.ErrIncompatibleCounterpartyUpgrade, "expected upgrade ordering (%s) to match counterparty upgrade ordering (%s)", proposedUpgradeFields.Ordering, counterpartyUpgrade.Fields.Ordering),
 		)
 	}
 
