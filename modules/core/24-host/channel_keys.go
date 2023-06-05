@@ -9,6 +9,7 @@ const (
 	KeyUpgradePrefix                  = "upgrades"
 	KeyUpgradeErrorPrefix             = "upgradeError"
 	KeyCounterpartyLastPacketSequence = "counterpartyLastPacketSequence"
+	KeyChannelCapabilityPrefix        = "capabilities"
 )
 
 // ICS04
