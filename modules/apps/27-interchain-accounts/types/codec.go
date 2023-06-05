@@ -172,7 +172,10 @@ func extractJSONAny(cdc codec.BinaryCodec, jsonAny *JSONAny) (*codectypes.Any, p
 	for i := 0; i < val.NumField(); i++ {
 		field := val.Field(i)
 		fieldType := field.Type()
-		fieldJSONName := val.Type().Field(i).Tag.Get("json")
+		fieldJSONName, ok := val.Type().Field(i).Tag.Lookup("json")
+		if !ok {
+			return nil, nil, errorsmod.Wrapf(ErrUnknownDataType, "cannot get the json tag of the field")
+		}
 		// Remove ,omitempty if it's present
 		fieldJSONName = strings.Split(fieldJSONName, ",")[0]
 
