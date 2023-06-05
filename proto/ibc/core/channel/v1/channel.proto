@@ -27,6 +27,8 @@ message Channel {
   // upgrade sequence indicates the latest upgrade attempt performed by this channel
   // the value of 0 indicates the channel has never been upgraded
   uint64 upgrade_sequence = 6;
+  // flush status indicates the current status of inflight packet flushing on the channel end
+  FlushStatus flush_status = 7;
 }
 
 // IdentifiedChannel defines a channel with additional port and channel
@@ -77,6 +79,18 @@ enum State {
   // A channel has verified the counterparty chain is in UPGRADETRY.
   // However, there are still in-flight packets on both ends waiting to be flushed before it can move to OPEN.
   STATE_ACKUPGRADE = 7 [(gogoproto.enumvalue_customname) = "ACKUPGRADE"];
+}
+
+// FlushStatus defines the status of a channel end pertaining to in-flight packets during an upgrade handshake.
+enum FlushStatus {
+  option (gogoproto.goproto_enum_prefix) = false;
+
+  // Default status, the channel is not in an upgrade handshake
+  FLUSH_STATUS_NOTINFLUSH_UNSPECIFIED = 0 [(gogoproto.enumvalue_customname) = "NOTINFLUSH"];
+  // The channel end is flushing in-flight packets
+  FLUSH_STATUS_FLUSHING = 1 [(gogoproto.enumvalue_customname) = "FLUSHING"];
+  // There are no in-flight packets left and the channel end is ready to move to OPEN
+  FLUSH_STATUS_FLUSHCOMPLETE = 2 [(gogoproto.enumvalue_customname) = "FLUSHCOMPLETE"];
 }
 
 // Order defines if a channel is ORDERED or UNORDERED
