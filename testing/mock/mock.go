@@ -36,6 +36,7 @@ var (
 	MockRecvCanaryCapabilityName    = "mock receive canary capability name"
 	MockAckCanaryCapabilityName     = "mock acknowledgement canary capability name"
 	MockTimeoutCanaryCapabilityName = "mock timeout canary capability name"
+	UpgradeVersion                  = fmt.Sprintf("%s-v2", Version)
 )
 
 var _ porttypes.IBCModule = IBCModule{}
