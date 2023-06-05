@@ -239,7 +239,7 @@ func (suite *KeeperTestSuite) TestMigrateTotalEscrowForDenom() {
 func (suite *KeeperTestSuite) TestMigratorMigrateMetadata() {
 	var (
 		denomTrace       transfertypes.DenomTrace
-		expectedMetadata math.Int
+		expectedMetadata banktypes.Metadata
 	)
 
 	testCases := []struct {
@@ -254,7 +254,7 @@ func (suite *KeeperTestSuite) TestMigratorMigrateMetadata() {
 					Path:      "transfer/channel-0",
 				}
 
-				expectedMetaData = banktypes.Metadata{
+				expectedMetadata = banktypes.Metadata{
 					Description: "IBC token from transfer/channel-0/foo",
 					DenomUnits: []*banktypes.DenomUnit{
 						{
@@ -262,7 +262,7 @@ func (suite *KeeperTestSuite) TestMigratorMigrateMetadata() {
 							Exponent: 0,
 						},
 					},
-					Base:    DenomTraces[0].IBCDenom(), // ibc/EB7094899ACFB7A6F2A67DB084DEE2E9A83DEFAA5DEF92D9A9814FFD9FF673FA
+					Base:    denomTrace.IBCDenom(), // ibc/EB7094899ACFB7A6F2A67DB084DEE2E9A83DEFAA5DEF92D9A9814FFD9FF673FA
 					Display: "transfer/channel-0/foo",
 					Name:    "transfer/channel-0/foo IBC token",
 					Symbol:  "FOO",
@@ -277,7 +277,7 @@ func (suite *KeeperTestSuite) TestMigratorMigrateMetadata() {
 					Path:      "transfer/channel-1/transfer/channel-2",
 				}
 
-				expectedMetaData = banktypes.Metadata{
+				expectedMetadata = banktypes.Metadata{
 					Description: "IBC token from transfer/channel-1/transfer/channel-2/ubar",
 					DenomUnits: []*banktypes.DenomUnit{
 						{
@@ -285,7 +285,7 @@ func (suite *KeeperTestSuite) TestMigratorMigrateMetadata() {
 							Exponent: 0,
 						},
 					},
-					Base:    DenomTraces[1].IBCDenom(), // ibc/8243B3EAA19BAB1DB3B0020B81C0C5A953E7B22C042CEE44E639A11A238BA57C
+					Base:    denomTrace.IBCDenom(), // ibc/8243B3EAA19BAB1DB3B0020B81C0C5A953E7B22C042CEE44E639A11A238BA57C
 					Display: "transfer/channel-1/transfer/channel-2/ubar",
 					Name:    "transfer/channel-1/transfer/channel-2/ubar IBC token",
 					Symbol:  "UBAR",
@@ -297,8 +297,10 @@ func (suite *KeeperTestSuite) TestMigratorMigrateMetadata() {
 	for _, tc := range testCases {
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest() // reset
-
 			ctx := suite.chainA.GetContext()
+
+			tc.malleate()
+
 			suite.chainA.GetSimApp().TransferKeeper.SetDenomTrace(ctx, denomTrace)
 
 			// run migration
@@ -306,9 +308,9 @@ func (suite *KeeperTestSuite) TestMigratorMigrateMetadata() {
 			err := migrator.MigrateDenomMetadata(suite.chainA.GetContext())
 			suite.Require().NoError(err)
 
-			denomMetadata, ok := suite.chainA.GetSimApp().BankKeeper.GetDenomMetaData(ctx, expectedMetaData.Base)
+			denomMetadata, ok := suite.chainA.GetSimApp().BankKeeper.GetDenomMetaData(ctx, expectedMetadata.Base)
 			suite.Require().True(ok)
-			suite.Require().Equal(expectedMetaData, denomMetadata)
+			suite.Require().Equal(expectedMetadata, denomMetadata)
 		})
 	}
 }
