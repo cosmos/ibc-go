@@ -78,7 +78,7 @@ func (suite *TypesTestSuite) TestUpgradeValidateBasic() {
 func (suite *TypesTestSuite) TestUpgradeErrorIsOf() {
 	var (
 		upgradeError types.UpgradeError
-		intputErr    error
+		inputErr     error
 	)
 
 	testCases := []struct {
@@ -90,6 +90,21 @@ func (suite *TypesTestSuite) TestUpgradeErrorIsOf() {
 			msg:      "standard sdk error",
 			malleate: func() {},
 			expPass:  true,
+		},
+		{
+			msg: "input is upgrade error",
+			malleate: func() {
+				inputErr = types.NewUpgradeError(1, types.ErrInvalidChannel)
+			},
+			expPass: true,
+		},
+		{
+			msg: "input has wrapped upgrade error",
+			malleate: func() {
+				wrappedErr := errorsmod.Wrap(types.ErrInvalidChannel, "wrapped upgrade error")
+				inputErr = types.NewUpgradeError(1, wrappedErr)
+			},
+			expPass: true,
 		},
 		{
 			msg: "not equal to nil error",
@@ -110,7 +125,7 @@ func (suite *TypesTestSuite) TestUpgradeErrorIsOf() {
 			msg: "nil underlying error and target",
 			malleate: func() {
 				upgradeError = types.UpgradeError{}
-				intputErr = types.UpgradeError{}
+				inputErr = types.UpgradeError{}
 			},
 			expPass: true,
 		},
@@ -127,11 +142,11 @@ func (suite *TypesTestSuite) TestUpgradeErrorIsOf() {
 		tc := tc
 		suite.Run(tc.msg, func() {
 			upgradeError = types.NewUpgradeError(1, types.ErrInvalidChannel)
-			intputErr = types.ErrInvalidChannel
+			inputErr = types.ErrInvalidChannel
 
 			tc.malleate()
 
-			res := errorsmod.IsOf(upgradeError, intputErr)
+			res := errorsmod.IsOf(upgradeError, inputErr)
 			suite.Require().Equal(tc.expPass, res)
 		})
 	}

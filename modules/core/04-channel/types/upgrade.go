@@ -96,14 +96,19 @@ func (u UpgradeError) Unwrap() error {
 	}
 }
 
+// Cause implements the sdk error interface which uses this function to unwrap the error in various functions such as `wrappedError.Is()`.
+// Cause returns the underlying error which caused the upgrade to fail.
+func (u UpgradeError) Cause() error {
+	return u.err
+}
+
 // GetErrorReceipt returns an error receipt with the code from the underlying error type stripped.
 func (u UpgradeError) GetErrorReceipt() ErrorReceipt {
 	// restoreErrorString defines a string constant included in error receipts.
 	// NOTE: Changing this const is state machine breaking as it is written into state.
 	const restoreErrorString = "restored channel to pre-upgrade state"
 
-	baseError := u.Unwrap()
-	_, code, _ := errorsmod.ABCIInfo(baseError, false) // discard non-determinstic codespace and log values
+	_, code, _ := errorsmod.ABCIInfo(u, false) // discard non-determinstic codespace and log values
 	return ErrorReceipt{
 		Sequence: u.sequence,
 		Message:  fmt.Sprintf("ABCI code: %d: %s", code, restoreErrorString),
