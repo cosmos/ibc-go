@@ -16,6 +16,11 @@ type (
 	}
 )
 
+// NewGenesisState creates an 08-wasm GenesisState instance.
+func NewGenesisState(contracts []GenesisContract) *GenesisState {
+	return &GenesisState{Contracts: contracts}
+}
+
 // ExportMetadata exports all the consensus metadata in the client store so they
 // can be included in clients genesis and imported by a ClientKeeper
 func (cs ClientState) ExportMetadata(store sdk.KVStore) []exported.GenesisMetadata {
