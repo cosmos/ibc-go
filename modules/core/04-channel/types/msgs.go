@@ -572,7 +572,7 @@ func (msg MsgChannelUpgradeTry) ValidateBasic() error {
 		return errorsmod.Wrap(ErrInvalidUpgrade, "proposed connection hops cannot be empty")
 	}
 
-	if msg.UpgradeTimeout.Height.IsZero() && msg.UpgradeTimeout.Timestamp == 0 {
+	if !msg.UpgradeTimeout.IsValid() {
 		return errorsmod.Wrap(ErrInvalidUpgradeTimeout, "timeout height or timeout timestamp must be non-zero")
 	}
 
