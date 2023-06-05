@@ -573,7 +573,7 @@ func (msg MsgChannelUpgradeTry) ValidateBasic() error {
 	}
 
 	if !msg.UpgradeTimeout.IsValid() {
-		return errorsmod.Wrap(ErrInvalidUpgradeTimeout, "timeout height or timeout timestamp must be non-zero")
+		return errorsmod.Wrap(ErrInvalidTimeout, "timeout height or timeout timestamp must be non-zero")
 	}
 
 	if err := msg.CounterpartyProposedUpgrade.ValidateBasic(); err != nil {
