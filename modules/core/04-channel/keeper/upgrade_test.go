@@ -263,12 +263,7 @@ func (suite *KeeperTestSuite) TestStartFlushUpgradeHandshake() {
 			err = path.EndpointB.UpdateClient()
 			suite.Require().NoError(err)
 
-			// same construction used by endpoint.ChanUpgradeTry
-			channelKey := host.ChannelKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-			proofChannel, proofHeight := path.EndpointA.Chain.QueryProof(channelKey)
-			upgradeKey := host.ChannelUpgradeKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-			proofUpgrade, _ := path.EndpointA.Chain.QueryProof(upgradeKey)
-
+			proofChannel, proofUpgrade, proofHeight := path.EndpointB.QueryChannelUpgradeProof()
 			counterpartyChannel = path.EndpointA.GetChannel()
 
 			var found bool
