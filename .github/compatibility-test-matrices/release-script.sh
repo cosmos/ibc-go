@@ -1,4 +1,6 @@
-#!/bin/bash
+#!/usr/bin/env bash
+
+set -euo pipefail
 
 # Get the directory path where JSON files are located
 directory_path=$(dirname "$0")
@@ -40,11 +42,11 @@ for file in $(find "$directory_path" -name "*.json"); do
   json=$(cat $file)
   if [[ $json == *"$recent_version"* ]]; then
 
-    # add new_version string to the json array containing recent_version string
-    updated_json=$(echo $json | jq ".[] |= if(index(\"$recent_version\")) then . + [\"$new_version\"] else . end")
+    # add new_version string to the json array containing recent_version string, retain ordering.
+    updated_json=$(echo $json | jq ".[] |= if(index(\"$recent_version\")) then (. + [\"$new_version\"] | sort | reverse) else . end")
 
     # write the updated json to file
-    echo $updated_json > $file
+    echo $updated_json | jq '.' > $file
     echo "Updated $file with new release version."
   fi
 done
