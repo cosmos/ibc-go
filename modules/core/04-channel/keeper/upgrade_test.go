@@ -142,8 +142,6 @@ func (suite *KeeperTestSuite) TestStartFlushUpgradeHandshake() {
 	testCases := []struct {
 		name     string
 		malleate func()
-		// TODO: currently the code asserts based on an expected sdk error
-		// Allow support for asserting either the sdk error type or that the error is an upgrade error
 		expError error
 	}{
 		{
@@ -198,21 +196,21 @@ func (suite *KeeperTestSuite) TestStartFlushUpgradeHandshake() {
 				channel.UpgradeSequence++
 				path.EndpointB.SetChannel(channel)
 			},
-			types.ErrIncompatibleCounterpartyUpgrade,
+			types.NewUpgradeError(2, types.ErrIncompatibleCounterpartyUpgrade), // max sequence will be returned
 		},
 		{
 			"upgrade ordering is not the same on both sides",
 			func() {
 				upgrade.Fields.Ordering = types.ORDERED
 			},
-			types.ErrIncompatibleCounterpartyUpgrade,
+			types.NewUpgradeError(1, types.ErrIncompatibleCounterpartyUpgrade),
 		},
 		{
 			"proposed connection is not found",
 			func() {
 				upgrade.Fields.ConnectionHops[0] = ibctesting.InvalidID
 			},
-			connectiontypes.ErrConnectionNotFound,
+			types.NewUpgradeError(1, connectiontypes.ErrConnectionNotFound),
 		},
 		{
 			"proposed connection is not in OPEN state",
@@ -227,7 +225,7 @@ func (suite *KeeperTestSuite) TestStartFlushUpgradeHandshake() {
 				suite.chainB.GetSimApp().GetIBCKeeper().ConnectionKeeper.SetConnection(suite.chainB.GetContext(), proposedConnectionID, connectionEnd)
 				upgrade.Fields.ConnectionHops[0] = proposedConnectionID
 			},
-			connectiontypes.ErrInvalidConnectionState,
+			types.NewUpgradeError(1, connectiontypes.ErrInvalidConnectionState),
 		},
 		{
 			"proposed connection ends are not each other's counterparty",
@@ -242,7 +240,7 @@ func (suite *KeeperTestSuite) TestStartFlushUpgradeHandshake() {
 				suite.chainB.GetSimApp().GetIBCKeeper().ConnectionKeeper.SetConnection(suite.chainB.GetContext(), proposedConnectionID, connectionEnd)
 				upgrade.Fields.ConnectionHops[0] = proposedConnectionID
 			},
-			types.ErrIncompatibleCounterpartyUpgrade,
+			types.NewUpgradeError(1, types.ErrIncompatibleCounterpartyUpgrade),
 		},
 	}
 
@@ -294,6 +292,12 @@ func (suite *KeeperTestSuite) TestStartFlushUpgradeHandshake() {
 
 			if tc.expError != nil {
 				suite.Require().Error(err)
+
+				if expUpgradeError, ok := tc.expError.(types.UpgradeError); ok {
+					upgradeError, ok := err.(types.UpgradeError)
+					suite.Require().True(ok)
+					suite.Require().Equal(expUpgradeError.GetErrorReceipt(), upgradeError.GetErrorReceipt())
+				}
 
 				suite.Require().True(errorsmod.IsOf(err, tc.expError), err)
 			} else {
