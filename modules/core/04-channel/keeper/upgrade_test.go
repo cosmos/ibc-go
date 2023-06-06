@@ -129,6 +129,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeInit() {
 	}
 }
 
+// TestStartFlushUpgradeHandshake tests the startFlushUpgradeHandshake.
 // UpgradeInit will be run on chainA and startFlushUpgradeHandshake
 // will be called on chainB
 func (suite *KeeperTestSuite) TestStartFlushUpgradeHandshake() {
@@ -292,14 +293,7 @@ func (suite *KeeperTestSuite) TestStartFlushUpgradeHandshake() {
 
 			if tc.expError != nil {
 				suite.Require().Error(err)
-
-				if expUpgradeError, ok := tc.expError.(types.UpgradeError); ok {
-					upgradeError, ok := err.(types.UpgradeError)
-					suite.Require().True(ok)
-					suite.Require().Equal(expUpgradeError.GetErrorReceipt(), upgradeError.GetErrorReceipt())
-				}
-
-				suite.Require().True(errorsmod.IsOf(err, tc.expError), err)
+				suite.assertUpgradeError(err, tc.expError)
 			} else {
 				suite.Require().NoError(err)
 			}
@@ -312,7 +306,6 @@ func (suite *KeeperTestSuite) TestValidateProposedUpgradeFields() {
 		proposedUpgrade *types.UpgradeFields
 		path            *ibctesting.Path
 	)
-
 	tests := []struct {
 		name     string
 		malleate func()
@@ -383,4 +376,16 @@ func (suite *KeeperTestSuite) TestValidateProposedUpgradeFields() {
 			}
 		})
 	}
+}
+
+func (suite *KeeperTestSuite) assertUpgradeError(actualError, expError error) {
+	suite.Require().Error(actualError)
+
+	if expUpgradeError, ok := expError.(*types.UpgradeError); ok {
+		upgradeError, ok := actualError.(*types.UpgradeError)
+		suite.Require().True(ok)
+		suite.Require().Equal(expUpgradeError.GetErrorReceipt(), upgradeError.GetErrorReceipt())
+	}
+
+	suite.Require().True(errorsmod.IsOf(actualError, expError), actualError)
 }
