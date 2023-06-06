@@ -627,8 +627,6 @@ func (endpoint *Endpoint) ChanUpgradeTry() error {
 		endpoint.Chain.SenderAccount.GetAddress().String(),
 	)
 
-	fmt.Printf("MSSGGg", msg)
-
 	return endpoint.Chain.sendMsgs(msg)
 }
 

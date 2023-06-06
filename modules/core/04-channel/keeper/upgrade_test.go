@@ -7,7 +7,7 @@ import (
 	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	ibctesting "github.com/cosmos/ibc-go/v7/testing"	
 	"github.com/cosmos/ibc-go/v7/testing/mock"
 )
 
@@ -233,16 +233,14 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 
 			// commit a block to update chain A for correct proof querying
 			path.EndpointA.Chain.Coordinator.CommitBlock(path.EndpointA.Chain)
-			// update chainB's client of chain A to account for ChanUpgradeInit
-			suite.Require().NoError(path.EndpointB.UpdateClient())
 
 			// counterpartyUpgradeSequence = path.EndpointA.GetChannel().UpgradeSequence
 			// expSequence = 1
 
 			tc.malleate()
 
-			err = path.EndpointB.ChanUpgradeTry(types.NewTimeout(path.EndpointA.Chain.GetTimeoutHeight(), 0))
-			suite.Require().NoError(err)
+			err = path.EndpointB.ChanUpgradeTry()
+			// suite.Require().NoError(err)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
