@@ -609,6 +609,10 @@ func (endpoint *Endpoint) ChanUpgradeTry(timeout channeltypes.Timeout) error {
 	counterpartyUpgrade, found := endpoint.Counterparty.Chain.App.GetIBCKeeper().ChannelKeeper.GetUpgrade(endpoint.Counterparty.Chain.GetContext(), endpoint.Counterparty.ChannelConfig.PortID, endpoint.Counterparty.ChannelID)
 	require.True(endpoint.Chain.TB, found)
 
+	if !found {
+		return fmt.Errorf("could not find upgrade for channel %s", endpoint.ChannelID)
+	}
+
 	msg := channeltypes.NewMsgChannelUpgradeTry(
 		endpoint.ChannelConfig.PortID,
 		endpoint.ChannelID,
@@ -621,6 +625,8 @@ func (endpoint *Endpoint) ChanUpgradeTry(timeout channeltypes.Timeout) error {
 		height,
 		endpoint.Chain.SenderAccount.GetAddress().String(),
 	)
+
+	fmt.Printf("MSSGGg", msg)
 
 	return endpoint.Chain.sendMsgs(msg)
 }
