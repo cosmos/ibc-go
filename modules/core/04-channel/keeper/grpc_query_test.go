@@ -1460,7 +1460,7 @@ func (suite *KeeperTestSuite) TestQueryNextSequenceReceive() {
 func (suite *KeeperTestSuite) TestQueryUpgradeError() {
 	var (
 		req        *types.QueryUpgradeErrorRequest
-		upgradeErr types.UpgradeError
+		upgradeErr *types.UpgradeError
 	)
 
 	testCases := []struct {

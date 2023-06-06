@@ -67,43 +67,46 @@ type UpgradeError struct {
 	sequence uint64
 }
 
+var _ error = &UpgradeError{}
+
 // NewUpgradeError returns a new UpgradeError instance.
-func NewUpgradeError(upgradeSequence uint64, err error) UpgradeError {
-	return UpgradeError{
+func NewUpgradeError(upgradeSequence uint64, err error) *UpgradeError {
+	return &UpgradeError{
 		err:      err,
 		sequence: upgradeSequence,
 	}
 }
 
 // Error implements the error interface, returning the underlying error which caused the upgrade to fail.
-func (u UpgradeError) Error() string {
+func (u *UpgradeError) Error() string {
 	return u.err.Error()
 }
 
 // Is returns true if the underlying error is of the given err type.
-func (u UpgradeError) Is(err error) bool {
+func (u *UpgradeError) Is(err error) bool {
 	return errors.Is(u.err, err)
 }
 
 // Unwrap returns the base error that caused the upgrade to fail.
-func (u UpgradeError) Unwrap() error {
+func (u *UpgradeError) Unwrap() error {
+	baseError := u.err
 	for {
-		if err := errors.Unwrap(u.err); err != nil {
-			u.err = err
+		if err := errors.Unwrap(baseError); err != nil {
+			baseError = err
 		} else {
-			return u.err
+			return baseError
 		}
 	}
 }
 
 // Cause implements the sdk error interface which uses this function to unwrap the error in various functions such as `wrappedError.Is()`.
 // Cause returns the underlying error which caused the upgrade to fail.
-func (u UpgradeError) Cause() error {
+func (u *UpgradeError) Cause() error {
 	return u.err
 }
 
 // GetErrorReceipt returns an error receipt with the code from the underlying error type stripped.
-func (u UpgradeError) GetErrorReceipt() ErrorReceipt {
+func (u *UpgradeError) GetErrorReceipt() ErrorReceipt {
 	// restoreErrorString defines a string constant included in error receipts.
 	// NOTE: Changing this const is state machine breaking as it is written into state.
 	const restoreErrorString = "restored channel to pre-upgrade state"

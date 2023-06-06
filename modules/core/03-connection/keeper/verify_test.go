@@ -685,7 +685,7 @@ func (suite *KeeperTestSuite) TestVerifyNextSequenceRecv() {
 func (suite *KeeperTestSuite) TestVerifyUpgradeErrorReceipt() {
 	var (
 		path         *ibctesting.Path
-		upgradeError channeltypes.UpgradeError
+		upgradeError *channeltypes.UpgradeError
 	)
 
 	cases := []struct {
