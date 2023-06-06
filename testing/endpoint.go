@@ -600,10 +600,11 @@ func (endpoint *Endpoint) ChanUpgradeInit() error {
 }
 
 // ChanUpgradeTry sends a MsgChannelUpgradeTry on the associated endpoint.
-func (endpoint *Endpoint) ChanUpgradeTry(timeout channeltypes.Timeout) error {
+func (endpoint *Endpoint) ChanUpgradeTry() error {
 	err := endpoint.UpdateClient()
 	require.NoError(endpoint.Chain.TB, err)
 
+	upgrade := endpoint.GetProposedUpgrade()
 	proofChannel, proofUpgrade, height := endpoint.QueryChannelUpgradeProof()
 
 	counterpartyUpgrade, found := endpoint.Counterparty.Chain.App.GetIBCKeeper().ChannelKeeper.GetUpgrade(endpoint.Counterparty.Chain.GetContext(), endpoint.Counterparty.ChannelConfig.PortID, endpoint.Counterparty.ChannelID)
@@ -616,8 +617,8 @@ func (endpoint *Endpoint) ChanUpgradeTry(timeout channeltypes.Timeout) error {
 	msg := channeltypes.NewMsgChannelUpgradeTry(
 		endpoint.ChannelConfig.PortID,
 		endpoint.ChannelID,
-		[]string{endpoint.ConnectionID},
-		timeout,
+		upgrade.Fields.ConnectionHops,
+		upgrade.Timeout,
 		counterpartyUpgrade,
 		endpoint.Counterparty.GetChannel().UpgradeSequence,
 		proofChannel,
