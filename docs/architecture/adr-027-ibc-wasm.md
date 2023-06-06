@@ -156,6 +156,15 @@ func (cs ClientState) VerifyClientMessage(
 }
 ```
 
+### Global Wasm VM variable
+
+The 08-wasm keeper structure keeps a reference to the Wasm VM instantiated in the keeper constructor function. The keeper uses 
+the Wasm VM to store the bytecode of light client contracts. However, the Wasm VM is also needed in the 08-wasm implementations of
+some of the `ClientState` interface functions to initialise a contract, execute calls on the contract and query the contract. Since
+the `ClientState` functions do not have access to the 08-wasm keeper, then it has been decided to keep a global pointer variable that
+points to the same instance as the one in the 08-wasm keeper. This global pointer variable is then used in the implementations of
+the `ClientState` functions. 
+
 ## Consequences
 
 ### Positive
