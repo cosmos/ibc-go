@@ -511,8 +511,7 @@ func (suite *KeeperTestSuite) TestCosmwasmOnRecvPacket() {
 		path       *ibctesting.Path
 		packetData []byte
 	)
-	cwWalletOne := "cosmos15ulrf36d4wdtrtqzkgaan9ylwuhs7k7qz753uk"
-	// cwWalletTwo := "cosmos1uu38gkyed0dte5f9xk20p8wcppulsjt90s7f8h"
+	interchainAccountAddr := "cosmos15ulrf36d4wdtrtqzkgaan9ylwuhs7k7qz753uk"
 
 	testCases := []struct {
 		msg      string
@@ -528,10 +527,10 @@ func (suite *KeeperTestSuite) TestCosmwasmOnRecvPacket() {
 					Description: "tokens for all!",
 				}
 
-				proposalMsg, err := govv1.NewLegacyContent(testProposal, cwWalletOne)
+				proposalMsg, err := govv1.NewLegacyContent(testProposal, interchainAccountAddr)
 				suite.Require().NoError(err)
 
-				proposal, err := govv1.NewProposal([]sdk.Msg{proposalMsg}, govtypes.DefaultStartingProposalID, suite.chainA.GetContext().BlockTime(), suite.chainA.GetContext().BlockTime(), "test proposal", "title", "Description", sdk.AccAddress(cwWalletOne))
+				proposal, err := govv1.NewProposal([]sdk.Msg{proposalMsg}, govtypes.DefaultStartingProposalID, suite.chainA.GetContext().BlockTime(), suite.chainA.GetContext().BlockTime(), "test proposal", "title", "Description", sdk.AccAddress(interchainAccountAddr))
 				suite.Require().NoError(err)
 
 				suite.chainB.GetSimApp().GovKeeper.SetProposal(suite.chainB.GetContext(), proposal)
@@ -567,9 +566,6 @@ func (suite *KeeperTestSuite) TestCosmwasmOnRecvPacket() {
 		{
 			"interchain account successfully executes govtypes.MsgVote from cosmwasm",
 			func(encoding string) {
-				interchainAccountAddr, found := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID)
-				suite.Require().True(found)
-
 				// Populate the gov keeper in advance with an active proposal
 				testProposal := &govtypes.TextProposal{
 					Title:       "IBC Gov Proposal",
@@ -667,7 +663,7 @@ func (suite *KeeperTestSuite) TestCosmwasmOnRecvPacket() {
 			suite.Require().NoError(err)
 
 			// Set the address of the interchain account stored in state during handshake step for cosmwasm testing
-			suite.setICAWallet(suite.chainB.GetContext(), portID, cwWalletOne)
+			suite.setICAWallet(suite.chainB.GetContext(), portID, interchainAccountAddr)
 
 			suite.fundICAWallet(suite.chainB.GetContext(), path.EndpointA.ChannelConfig.PortID, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100000000))))
 
