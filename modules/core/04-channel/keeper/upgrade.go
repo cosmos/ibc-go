@@ -257,14 +257,15 @@ func (k Keeper) startFlushUpgradeHandshake(
 	return nil
 }
 
-// WriteUpgradeOpenChannel writes the agreed upon upgrade fields to the channel fields. This can be called in one of two cases:
-// - In the UpgradeAck step of the handshake both sides have already flushed any in-flight packets.
+// WriteUpgradeOpenChannel writes the agreed upon upgrade fields to the channel, sets the channel flush status to `NOTINFLUSH` and sets the channel state back to `OPEN`. This can be called in one of two cases:
+// - In the UpgradeAck step of the handshake if both sides have already flushed all in-flight packets.
 // - In the UpgradeOpen step of the handshake.
 func (k Keeper) WriteUpgradeOpenChannel(ctx sdk.Context, portID, channelID string) {
 	channel, found := k.GetChannel(ctx, portID, channelID)
 	if !found {
 		panic(fmt.Sprintf("could not find existing channel when updating channel state, channelID: %s, portID: %s", channelID, portID))
 	}
+
 	upgrade, found := k.GetUpgrade(ctx, portID, channelID)
 	if !found {
 		panic(fmt.Sprintf("could not find upgrade when updating channel state, channelID: %s, portID: %s", channelID, portID))
