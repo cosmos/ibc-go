@@ -1,6 +1,8 @@
 package types_test
 
 import (
+	"errors"
+
 	errorsmod "cosmossdk.io/errors"
 
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
@@ -77,7 +79,7 @@ func (suite *TypesTestSuite) TestUpgradeValidateBasic() {
 
 func (suite *TypesTestSuite) TestUpgradeErrorIsOf() {
 	var (
-		upgradeError types.UpgradeError
+		upgradeError *types.UpgradeError
 		inputErr     error
 	)
 
@@ -109,7 +111,7 @@ func (suite *TypesTestSuite) TestUpgradeErrorIsOf() {
 		{
 			msg: "not equal to nil error",
 			malleate: func() {
-				upgradeError = types.UpgradeError{}
+				upgradeError = &types.UpgradeError{}
 			},
 			expPass: false,
 		},
@@ -122,17 +124,9 @@ func (suite *TypesTestSuite) TestUpgradeErrorIsOf() {
 			expPass: true,
 		},
 		{
-			msg: "nil underlying error and target",
-			malleate: func() {
-				upgradeError = types.UpgradeError{}
-				inputErr = types.UpgradeError{}
-			},
-			expPass: true,
-		},
-		{
 			msg: "empty upgrade and non nil target",
 			malleate: func() {
-				upgradeError = types.UpgradeError{}
+				upgradeError = &types.UpgradeError{}
 			},
 			expPass: false,
 		},
@@ -162,4 +156,18 @@ func (suite *TypesTestSuite) TestGetErrorReceipt() {
 	upgradeError2 := types.NewUpgradeError(1, wrappedErr)
 
 	suite.Require().Equal(upgradeError2.GetErrorReceipt().Message, upgradeError.GetErrorReceipt().Message)
+}
+
+// TestUpgradeErrorUnwrap tests that the underlying error is not modified when Unwrap is called.
+func (suite *TypesTestSuite) TestUpgradeErrorUnwrap() {
+	baseUnderlyingError := errorsmod.Wrap(types.ErrInvalidChannel, "base error")
+	wrappedErr := errorsmod.Wrap(baseUnderlyingError, "wrapped error")
+	upgradeError := types.NewUpgradeError(1, wrappedErr)
+
+	originalUpgradeError := upgradeError.Error()
+	unWrapped := errors.Unwrap(upgradeError)
+	postUnwrapUpgradeError := upgradeError.Error()
+
+	suite.Require().Equal(types.ErrInvalidChannel, unWrapped, "unwrapped error was not equal to base underlying error")
+	suite.Require().Equal(originalUpgradeError, postUnwrapUpgradeError, "original error was modified when unwrapped")
 }
