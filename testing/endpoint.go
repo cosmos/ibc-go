@@ -654,6 +654,34 @@ func (endpoint *Endpoint) ChanUpgradeAck() error {
 	return endpoint.Chain.sendMsgs(msg)
 }
 
+// ChanUpgradeTimeout sends a MsgChannelUpgradeTimeout to the associated endpoint.
+func (endpoint *Endpoint) ChanUpgradeTimeout() error {
+	err := endpoint.UpdateClient()
+	require.NoError(endpoint.Chain.TB, err)
+
+	channelKey := host.ChannelKey(endpoint.Counterparty.ChannelConfig.PortID, endpoint.Counterparty.ChannelID)
+	proofChannel, height := endpoint.Counterparty.Chain.QueryProof(channelKey)
+
+	errorReceiptKey := host.ChannelUpgradeErrorKey(endpoint.Counterparty.ChannelConfig.PortID, endpoint.Counterparty.ChannelID)
+	proofErrorReceipt, _ := endpoint.Counterparty.Chain.QueryProof(errorReceiptKey)
+
+	errorReceipt, found := endpoint.Counterparty.Chain.App.GetIBCKeeper().ChannelKeeper.GetUpgradeErrorReceipt(endpoint.Counterparty.Chain.GetContext(), endpoint.Counterparty.ChannelConfig.PortID, endpoint.Counterparty.ChannelID)
+	require.True(endpoint.Chain.TB, found)
+
+	msg := channeltypes.NewMsgChannelUpgradeTimeout(
+		endpoint.ChannelConfig.PortID,
+		endpoint.ChannelID,
+		endpoint.Counterparty.GetChannel(),
+		errorReceipt,
+		proofChannel,
+		proofErrorReceipt,
+		height,
+		endpoint.Chain.SenderAccount.GetAddress().String(),
+	)
+
+	return endpoint.Chain.sendMsgs(msg)
+}
+
 // SetChannelState sets a channel state
 func (endpoint *Endpoint) SetChannelState(state channeltypes.State) error {
 	channel := endpoint.GetChannel()
