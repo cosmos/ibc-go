@@ -582,15 +582,6 @@ func (k Keeper) ValidateUpgradeFields(ctx sdk.Context, proposedUpgrade types.Upg
 	return nil
 }
 
-// extractUpgradeFields returns the upgrade fields from the provided channel.
-func extractUpgradeFields(channel types.Channel) types.UpgradeFields {
-	return types.UpgradeFields{
-		Ordering:       channel.Ordering,
-		ConnectionHops: channel.ConnectionHops,
-		Version:        channel.Version,
-	}
-}
-
 // common functionality for IteratePacketCommitment and IteratePacketAcknowledgement
 func (k Keeper) iterateHashes(ctx sdk.Context, iterator db.Iterator, cb func(portID, channelID string, sequence uint64, hash []byte) bool) {
 	defer sdk.LogDeferred(ctx.Logger(), func() error { return iterator.Close() })

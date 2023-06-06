@@ -572,8 +572,8 @@ func (msg MsgChannelUpgradeTry) ValidateBasic() error {
 		return errorsmod.Wrap(ErrInvalidUpgrade, "proposed connection hops cannot be empty")
 	}
 
-	if msg.UpgradeTimeout.Height.IsZero() && msg.UpgradeTimeout.Timestamp == 0 {
-		return errorsmod.Wrap(ErrInvalidUpgradeTimeout, "timeout height or timeout timestamp must be non-zero")
+	if !msg.UpgradeTimeout.IsValid() {
+		return errorsmod.Wrap(ErrInvalidTimeout, "upgrade timeout height or timeout timestamp must be non-zero")
 	}
 
 	if err := msg.CounterpartyProposedUpgrade.ValidateBasic(); err != nil {
@@ -614,15 +614,16 @@ var _ sdk.Msg = &MsgChannelUpgradeAck{}
 
 // NewMsgChannelUpgradeAck constructs a new MsgChannelUpgradeAck
 // nolint:interfacer
-func NewMsgChannelUpgradeAck(portID, channelID string, counterpartyChannel Channel, proofChannel, proofUpgradeSequence []byte, proofHeight clienttypes.Height, signer string) *MsgChannelUpgradeAck {
+func NewMsgChannelUpgradeAck(portID, channelID string, counterpartyFlushStatus FlushStatus, counterpartyUpgrade Upgrade, proofChannel, proofUpgrade []byte, proofHeight clienttypes.Height, signer string) *MsgChannelUpgradeAck {
 	return &MsgChannelUpgradeAck{
-		PortId:               portID,
-		ChannelId:            channelID,
-		CounterpartyChannel:  counterpartyChannel,
-		ProofChannel:         proofChannel,
-		ProofUpgradeSequence: proofUpgradeSequence,
-		ProofHeight:          proofHeight,
-		Signer:               signer,
+		PortId:                  portID,
+		ChannelId:               channelID,
+		CounterpartyFlushStatus: counterpartyFlushStatus,
+		CounterpartyUpgrade:     counterpartyUpgrade,
+		ProofChannel:            proofChannel,
+		ProofUpgrade:            proofUpgrade,
+		ProofHeight:             proofHeight,
+		Signer:                  signer,
 	}
 }
 
@@ -637,17 +638,14 @@ func (msg MsgChannelUpgradeAck) ValidateBasic() error {
 	if len(msg.ProofChannel) == 0 {
 		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty channel proof")
 	}
-	if len(msg.ProofUpgradeSequence) == 0 {
+	if len(msg.ProofUpgrade) == 0 {
 		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty upgrade sequence proof")
-	}
-	if msg.CounterpartyChannel.State != TRYUPGRADE {
-		return errorsmod.Wrapf(ErrInvalidChannelState, "expected: %s, got: %s", "TRYUPGRADE", msg.CounterpartyChannel.State)
 	}
 	if _, err := sdk.AccAddressFromBech32(msg.Signer); err != nil {
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
 	}
 
-	return nil
+	return msg.CounterpartyUpgrade.ValidateBasic()
 }
 
 // GetSigners implements sdk.Msg

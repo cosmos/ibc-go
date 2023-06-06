@@ -564,6 +564,24 @@ func (endpoint *Endpoint) TimeoutOnClose(packet channeltypes.Packet) error {
 	return endpoint.Chain.sendMsgs(timeoutOnCloseMsg)
 }
 
+// QueryChannelUpgradeProof returns all the proofs necessary to execute UpgradeTry/UpgradeAck/UpgradeOpen.
+// It returns the proof for the channel on the counterparty chain, the proof for the upgrade attempt on the
+// counterparty chain, and the height at which the proof was queried.
+func (endpoint *Endpoint) QueryChannelUpgradeProof() ([]byte, []byte, clienttypes.Height) {
+	counterpartyChannelID := endpoint.Counterparty.ChannelID
+	counterpartyPortID := endpoint.Counterparty.ChannelConfig.PortID
+
+	// query proof for the channel on the counterparty
+	channelKey := host.ChannelKey(counterpartyPortID, counterpartyChannelID)
+	proofChannel, height := endpoint.Counterparty.Chain.QueryProof(channelKey)
+
+	// query proof for the upgrade attempt on the counterparty
+	upgradeKey := host.ChannelUpgradeKey(counterpartyPortID, counterpartyChannelID)
+	proofUpgrade, _ := endpoint.Counterparty.Chain.QueryProof(upgradeKey)
+
+	return proofChannel, proofUpgrade, height
+}
+
 // ChanUpgradeInit sends a MsgChannelUpgradeInit on the associated endpoint.
 // A default upgrade proposal is used with overrides from the ProposedUpgrade
 // in the channel config.
@@ -582,28 +600,47 @@ func (endpoint *Endpoint) ChanUpgradeInit() error {
 }
 
 // ChanUpgradeTry sends a MsgChannelUpgradeTry on the associated endpoint.
-func (endpoint *Endpoint) ChanUpgradeTry(timeout channeltypes.Timeout) error {
+func (endpoint *Endpoint) ChanUpgradeTry() error {
 	err := endpoint.UpdateClient()
 	require.NoError(endpoint.Chain.TB, err)
 
-	counterpartyChannelID := endpoint.Counterparty.ChannelID
-	counterpartyPortID := endpoint.Counterparty.ChannelConfig.PortID
+	upgrade := endpoint.GetProposedUpgrade()
+	proofChannel, proofUpgrade, height := endpoint.QueryChannelUpgradeProof()
 
-	channelKey := host.ChannelKey(counterpartyPortID, counterpartyChannelID)
-	proofChannel, height := endpoint.Counterparty.Chain.QueryProof(channelKey)
-	upgradeKey := host.ChannelUpgradeKey(counterpartyPortID, counterpartyChannelID)
-	proofUpgrade, _ := endpoint.Counterparty.Chain.QueryProof(upgradeKey)
-
-	counterpartyUpgrade, found := endpoint.Counterparty.Chain.App.GetIBCKeeper().ChannelKeeper.GetUpgrade(endpoint.Counterparty.Chain.GetContext(), counterpartyPortID, counterpartyChannelID)
+	counterpartyUpgrade, found := endpoint.Counterparty.Chain.App.GetIBCKeeper().ChannelKeeper.GetUpgrade(endpoint.Counterparty.Chain.GetContext(), endpoint.Counterparty.ChannelConfig.PortID, endpoint.Counterparty.ChannelID)
 	require.True(endpoint.Chain.TB, found)
 
 	msg := channeltypes.NewMsgChannelUpgradeTry(
 		endpoint.ChannelConfig.PortID,
 		endpoint.ChannelID,
-		[]string{endpoint.ConnectionID},
-		timeout,
+		upgrade.Fields.ConnectionHops,
+		upgrade.Timeout,
 		counterpartyUpgrade,
 		endpoint.Counterparty.GetChannel().UpgradeSequence,
+		proofChannel,
+		proofUpgrade,
+		height,
+		endpoint.Chain.SenderAccount.GetAddress().String(),
+	)
+
+	return endpoint.Chain.sendMsgs(msg)
+}
+
+// ChanUpgradeAck sends a MsgChannelUpgradeAck to the associated endpoint.
+func (endpoint *Endpoint) ChanUpgradeAck() error {
+	err := endpoint.UpdateClient()
+	require.NoError(endpoint.Chain.TB, err)
+
+	proofChannel, proofUpgrade, height := endpoint.QueryChannelUpgradeProof()
+
+	counterpartyUpgrade, found := endpoint.Counterparty.Chain.App.GetIBCKeeper().ChannelKeeper.GetUpgrade(endpoint.Counterparty.Chain.GetContext(), endpoint.Counterparty.ChannelConfig.PortID, endpoint.Counterparty.ChannelID)
+	require.True(endpoint.Chain.TB, found)
+
+	msg := channeltypes.NewMsgChannelUpgradeAck(
+		endpoint.ChannelConfig.PortID,
+		endpoint.ChannelID,
+		endpoint.Counterparty.GetChannel().FlushStatus,
+		counterpartyUpgrade,
 		proofChannel,
 		proofUpgrade,
 		height,
@@ -703,7 +740,7 @@ func (endpoint *Endpoint) GetProposedUpgrade() channeltypes.Upgrade {
 			ConnectionHops: []string{endpoint.ConnectionID},
 			Version:        endpoint.ChannelConfig.Version,
 		},
-		Timeout:            channeltypes.NewUpgradeTimeout(endpoint.Counterparty.Chain.GetTimeoutHeight(), 0),
+		Timeout:            channeltypes.NewTimeout(endpoint.Counterparty.Chain.GetTimeoutHeight(), 0),
 		LatestSequenceSend: 0,
 	}
 

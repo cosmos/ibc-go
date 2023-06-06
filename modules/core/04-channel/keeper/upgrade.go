@@ -2,12 +2,14 @@ package keeper
 
 import (
 	"fmt"
+	"reflect"
 
 	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 )
 
@@ -29,7 +31,7 @@ func (k Keeper) ChanUpgradeInit(
 		return types.Upgrade{}, errorsmod.Wrapf(types.ErrInvalidChannelState, "expected %s, got %s", types.OPEN, channel.State)
 	}
 
-	if err := k.ValidateUpgradeFields(ctx, upgradeFields, channel); err != nil {
+	if err := k.validateUpgradeFields(ctx, upgradeFields, channel); err != nil {
 		return types.Upgrade{}, err
 	}
 
@@ -145,10 +147,50 @@ func (k Keeper) restoreChannel(ctx sdk.Context, portID, channelID string) error 
 	return nil
 }
 
+// writeErrorReceipt will write an error receipt from the provided UpgradeError.
 func (k Keeper) writeErrorReceipt(ctx sdk.Context, portID, channelID string, upgradeError types.UpgradeError) error {
 	k.SetUpgradeErrorReceipt(ctx, portID, channelID, upgradeError.GetErrorReceipt())
 	// TODO: emit events
 	return nil
+}
+
+// validateUpgradeFields validates the proposed upgrade fields against the existing channel.
+// It returns an error if the following constraints are not met:
+// - there exists at least one valid proposed change to the existing channel fields
+// - the proposed order is a subset of the existing order
+// - the proposed connection hops do not exist
+// - the proposed version is non-empty (checked in UpgradeFields.ValidateBasic())
+// - the proposed connection hops are not open
+func (k Keeper) validateUpgradeFields(ctx sdk.Context, proposedUpgrade types.UpgradeFields, currentChannel types.Channel) error {
+	currentFields := extractUpgradeFields(currentChannel)
+
+	if reflect.DeepEqual(proposedUpgrade, currentFields) {
+		return errorsmod.Wrap(types.ErrChannelExists, "existing channel end is identical to proposed upgrade channel end")
+	}
+
+	connectionID := proposedUpgrade.ConnectionHops[0]
+	connection, err := k.GetConnection(ctx, connectionID)
+	if err != nil {
+		return errorsmod.Wrapf(connectiontypes.ErrConnectionNotFound, "failed to retrieve connection: %s", connectionID)
+	}
+
+	if connection.GetState() != int32(connectiontypes.OPEN) {
+		return errorsmod.Wrapf(
+			connectiontypes.ErrInvalidConnectionState,
+			"connection state is not OPEN (got %s)", connectiontypes.State(connection.GetState()).String(),
+		)
+	}
+
+	return nil
+}
+
+// extractUpgradeFields returns the upgrade fields from the provided channel.
+func extractUpgradeFields(channel types.Channel) types.UpgradeFields {
+	return types.UpgradeFields{
+		Ordering:       channel.Ordering,
+		ConnectionHops: channel.ConnectionHops,
+		Version:        channel.Version,
+	}
 }
 
 // constructProposedUpgrade returns the proposed upgrade from the provided arguments.

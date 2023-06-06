@@ -31,7 +31,7 @@ func (s *ChannelUpgradeTestSuite) TestChannelUpgrade() {
 	rlyWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 
 	t.Run("channel upgrade init", func(t *testing.T) {
-		upgradeTimeout := channeltypes.NewUpgradeTimeout(clienttypes.NewHeight(0, 10000), 0)
+		upgradeTimeout := channeltypes.NewTimeout(clienttypes.NewHeight(0, 10000), 0)
 		upgradeFields := channeltypes.NewUpgradeFields(channeltypes.UNORDERED, channelA.ConnectionHops, `{"fee_version":"ics29-1","app_version":"ics20-1"}`)
 		msgChanUpgradeInit := channeltypes.NewMsgChannelUpgradeInit(
 			channelA.PortID, channelA.ChannelID, upgradeFields, upgradeTimeout, rlyWallet.FormattedAddress(),

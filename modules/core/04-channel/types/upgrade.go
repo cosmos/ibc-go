@@ -8,7 +8,6 @@ import (
 	errorsmod "cosmossdk.io/errors"
 
 	"github.com/cosmos/ibc-go/v7/internal/collections"
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 )
 
 // NewUpgrade creates a new Upgrade instance.
@@ -26,14 +25,6 @@ func NewUpgradeFields(ordering Order, connectionHops []string, version string) U
 		Ordering:       ordering,
 		ConnectionHops: connectionHops,
 		Version:        version,
-	}
-}
-
-// NewUpgradeTimeout returns a new UpgradeTimeout instance.
-func NewUpgradeTimeout(height clienttypes.Height, timestamp uint64) Timeout {
-	return Timeout{
-		Height:    height,
-		Timestamp: timestamp,
 	}
 }
 
@@ -67,11 +58,6 @@ func (uf UpgradeFields) ValidateBasic() error {
 	return nil
 }
 
-// IsValid returns true if either the height or timestamp is non-zero
-func (ut Timeout) IsValid() bool {
-	return !ut.Height.IsZero() || ut.Timestamp != 0
-}
-
 // UpgradeError defines an error that occurs during an upgrade.
 type UpgradeError struct {
 	// err is the underlying error that caused the upgrade to fail.
@@ -81,43 +67,51 @@ type UpgradeError struct {
 	sequence uint64
 }
 
+var _ error = &UpgradeError{}
+
 // NewUpgradeError returns a new UpgradeError instance.
-func NewUpgradeError(upgradeSequence uint64, err error) UpgradeError {
-	return UpgradeError{
+func NewUpgradeError(upgradeSequence uint64, err error) *UpgradeError {
+	return &UpgradeError{
 		err:      err,
 		sequence: upgradeSequence,
 	}
 }
 
 // Error implements the error interface, returning the underlying error which caused the upgrade to fail.
-func (u UpgradeError) Error() string {
+func (u *UpgradeError) Error() string {
 	return u.err.Error()
 }
 
 // Is returns true if the underlying error is of the given err type.
-func (u UpgradeError) Is(err error) bool {
+func (u *UpgradeError) Is(err error) bool {
 	return errors.Is(u.err, err)
 }
 
 // Unwrap returns the base error that caused the upgrade to fail.
-func (u UpgradeError) Unwrap() error {
+func (u *UpgradeError) Unwrap() error {
+	baseError := u.err
 	for {
-		if err := errors.Unwrap(u.err); err != nil {
-			u.err = err
+		if err := errors.Unwrap(baseError); err != nil {
+			baseError = err
 		} else {
-			return u.err
+			return baseError
 		}
 	}
 }
 
+// Cause implements the sdk error interface which uses this function to unwrap the error in various functions such as `wrappedError.Is()`.
+// Cause returns the underlying error which caused the upgrade to fail.
+func (u *UpgradeError) Cause() error {
+	return u.err
+}
+
 // GetErrorReceipt returns an error receipt with the code from the underlying error type stripped.
-func (u UpgradeError) GetErrorReceipt() ErrorReceipt {
+func (u *UpgradeError) GetErrorReceipt() ErrorReceipt {
 	// restoreErrorString defines a string constant included in error receipts.
 	// NOTE: Changing this const is state machine breaking as it is written into state.
 	const restoreErrorString = "restored channel to pre-upgrade state"
 
-	baseError := u.Unwrap()
-	_, code, _ := errorsmod.ABCIInfo(baseError, false) // discard non-determinstic codespace and log values
+	_, code, _ := errorsmod.ABCIInfo(u, false) // discard non-determinstic codespace and log values
 	return ErrorReceipt{
 		Sequence: u.sequence,
 		Message:  fmt.Sprintf("ABCI code: %d: %s", code, restoreErrorString),
