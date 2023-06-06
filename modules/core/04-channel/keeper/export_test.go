@@ -14,3 +14,8 @@ import (
 func (k Keeper) ValidateUpgradeFields(ctx sdk.Context, proposedUpgrade types.UpgradeFields, currentChannel types.Channel) error {
 	return k.validateUpgradeFields(ctx, proposedUpgrade, currentChannel)
 }
+
+// ValidateUpgradeFields is a wrapper around validateUpgradeFields to allow the function to be directly called in tests.
+func (k Keeper) AbortHandshake(ctx sdk.Context, portID, channelID string, upgradeError *types.UpgradeError) error {
+	return k.abortHandshake(ctx, portID, channelID, upgradeError)
+}

@@ -203,3 +203,52 @@ func (suite *KeeperTestSuite) TestValidateProposedUpgradeFields() {
 		})
 	}
 }
+
+func (suite *KeeperTestSuite) TestAbortHandshake() {
+	var (
+		path         *ibctesting.Path
+		upgradeError *types.UpgradeError
+	)
+
+	tests := []struct {
+		name     string
+		malleate func()
+		expPass  bool
+	}{
+		{
+			name:     "success",
+			malleate: func() {},
+			expPass:  true,
+		},
+	}
+
+	for _, tc := range tests {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.Setup(path)
+
+			channelKeeper := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper
+
+			path.EndpointA.ChannelConfig.Version = mock.Version + "-v2"
+
+			suite.Require().NoError(path.EndpointA.ChanUpgradeInit())
+
+			path.EndpointA.Chain.Coordinator.CommitBlock(path.EndpointA.Chain)
+
+			suite.Require().NoError(path.EndpointA.UpdateClient())
+			suite.Require().NoError(path.EndpointB.UpdateClient())
+
+			tc.malleate()
+
+			err := channelKeeper.AbortHandshake(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, upgradeError)
+
+			if tc.expPass {
+				suite.Require().NoError(err)
+			} else {
+				suite.Require().Error(err)
+			}
+		})
+	}
+}

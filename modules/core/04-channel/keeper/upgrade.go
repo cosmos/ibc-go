@@ -112,17 +112,20 @@ func (k Keeper) WriteUpgradeTryChannel(
 // abortHandshake will restore the channel state and flush status to their pre-upgrade state so that upgrade is aborted.
 // any unnecessary state is deleted. An error receipt is written, and the OnChanUpgradeRestore callback is called.
 func (k Keeper) abortHandshake(ctx sdk.Context, portID, channelID string, upgradeError *types.UpgradeError) error {
-	if err := k.restoreChannel(ctx, portID, channelID); err != nil {
-		return err
-	}
-
 	upgrade, found := k.GetUpgrade(ctx, portID, channelID)
 	if !found {
 		return errorsmod.Wrapf(types.ErrUpgradeNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
 	}
 
-	if err := k.writeErrorReceipt(ctx, portID, channelID, upgrade, upgradeError); err != nil {
+	if err := k.restoreChannel(ctx, portID, channelID); err != nil {
 		return err
+	}
+
+	// TODO: could we want to abort but have upgrade error be non-nil?
+	if upgradeError != nil {
+		if err := k.writeErrorReceipt(ctx, portID, channelID, upgrade, upgradeError); err != nil {
+			return err
+		}
 	}
 
 	// TODO: callback execution
