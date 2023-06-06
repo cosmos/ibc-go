@@ -4,13 +4,13 @@ import (
 	errorsmod "cosmossdk.io/errors"
 
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	"github.com/cosmos/ibc-go/v7/testing/mock"
 )
 
 func (suite *TypesTestSuite) TestUpgradeValidateBasic() {
-	var upgrade channeltypes.Upgrade
+	var upgrade types.Upgrade
 
 	testCases := []struct {
 		name     string
@@ -25,7 +25,7 @@ func (suite *TypesTestSuite) TestUpgradeValidateBasic() {
 		{
 			"invalid ordering",
 			func() {
-				upgrade.Fields.Ordering = channeltypes.NONE
+				upgrade.Fields.Ordering = types.NONE
 			},
 			false,
 		},
@@ -56,9 +56,9 @@ func (suite *TypesTestSuite) TestUpgradeValidateBasic() {
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(tc.name, func() {
-			upgrade = channeltypes.NewUpgrade(
-				channeltypes.NewUpgradeFields(channeltypes.ORDERED, []string{ibctesting.FirstConnectionID}, mock.Version),
-				channeltypes.NewTimeout(clienttypes.NewHeight(0, 100), 0),
+			upgrade = types.NewUpgrade(
+				types.NewUpgradeFields(types.ORDERED, []string{ibctesting.FirstConnectionID}, mock.Version),
+				types.NewTimeout(clienttypes.NewHeight(0, 100), 0),
 				0,
 			)
 
@@ -77,8 +77,8 @@ func (suite *TypesTestSuite) TestUpgradeValidateBasic() {
 
 func (suite *TypesTestSuite) TestUpgradeErrorIsOf() {
 	var (
-		upgradeError *channeltypes.UpgradeError
-		intputErr    error
+		upgradeError *types.UpgradeError
+		inputErr     error
 	)
 
 	testCases := []struct {
@@ -92,9 +92,24 @@ func (suite *TypesTestSuite) TestUpgradeErrorIsOf() {
 			expPass:  true,
 		},
 		{
+			msg: "input is upgrade error",
+			malleate: func() {
+				inputErr = types.NewUpgradeError(1, types.ErrInvalidChannel)
+			},
+			expPass: true,
+		},
+		{
+			msg: "input has wrapped upgrade error",
+			malleate: func() {
+				wrappedErr := errorsmod.Wrap(types.ErrInvalidChannel, "wrapped upgrade error")
+				inputErr = types.NewUpgradeError(1, wrappedErr)
+			},
+			expPass: true,
+		},
+		{
 			msg: "not equal to nil error",
 			malleate: func() {
-				upgradeError = &channeltypes.UpgradeError{}
+				upgradeError = &types.UpgradeError{}
 			},
 			expPass: false,
 		},
@@ -102,14 +117,14 @@ func (suite *TypesTestSuite) TestUpgradeErrorIsOf() {
 			msg: "wrapped upgrade error",
 			malleate: func() {
 				wrappedErr := errorsmod.Wrap(upgradeError, "wrapped upgrade error")
-				upgradeError = channeltypes.NewUpgradeError(1, wrappedErr)
+				upgradeError = types.NewUpgradeError(1, wrappedErr)
 			},
 			expPass: true,
 		},
 		{
 			msg: "empty upgrade and non nil target",
 			malleate: func() {
-				upgradeError = &channeltypes.UpgradeError{}
+				upgradeError = &types.UpgradeError{}
 			},
 			expPass: false,
 		},
@@ -118,12 +133,12 @@ func (suite *TypesTestSuite) TestUpgradeErrorIsOf() {
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(tc.msg, func() {
-			upgradeError = channeltypes.NewUpgradeError(1, channeltypes.ErrInvalidChannel)
-			intputErr = channeltypes.ErrInvalidChannel
+			upgradeError = types.NewUpgradeError(1, types.ErrInvalidChannel)
+			inputErr = types.ErrInvalidChannel
 
 			tc.malleate()
 
-			res := errorsmod.IsOf(upgradeError, intputErr)
+			res := errorsmod.IsOf(upgradeError, inputErr)
 			suite.Require().Equal(tc.expPass, res)
 		})
 	}
@@ -131,12 +146,12 @@ func (suite *TypesTestSuite) TestUpgradeErrorIsOf() {
 
 // TestGetErrorReceipt tests that the error receipt message is the same for both wrapped and unwrapped errors.
 func (suite *TypesTestSuite) TestGetErrorReceipt() {
-	upgradeError := channeltypes.NewUpgradeError(1, channeltypes.ErrInvalidChannel)
+	upgradeError := types.NewUpgradeError(1, types.ErrInvalidChannel)
 
 	wrappedErr := errorsmod.Wrap(upgradeError, "wrapped upgrade error")
-	suite.Require().True(errorsmod.IsOf(wrappedErr, channeltypes.ErrInvalidChannel))
+	suite.Require().True(errorsmod.IsOf(wrappedErr, types.ErrInvalidChannel))
 
-	upgradeError2 := channeltypes.NewUpgradeError(1, wrappedErr)
+	upgradeError2 := types.NewUpgradeError(1, wrappedErr)
 
 	suite.Require().Equal(upgradeError2.GetErrorReceipt().Message, upgradeError.GetErrorReceipt().Message)
 }
