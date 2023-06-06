@@ -243,11 +243,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 			suite.Require().NoError(path.EndpointA.UpdateClient())
 			suite.Require().NoError(path.EndpointB.UpdateClient())
 
-			channelKey := host.ChannelKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-			proofCounterpartyChannel, proofHeight := suite.chainA.QueryProof(channelKey)
-
-			upgradeKey := host.ChannelUpgradeKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-			proofUpgrade, _ := suite.chainA.QueryProof(upgradeKey)
+			proofCounterpartyChannel, proofCounterpartyUpgrade, proofHeight := path.EndpointB.QueryChannelUpgradeProof()
 
 			_, err = suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.ChanUpgradeTry(
 				suite.chainB.GetContext(),
@@ -258,7 +254,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 				counterpartyUpgrade,
 				path.EndpointA.GetChannel().UpgradeSequence,
 				proofCounterpartyChannel,
-				proofUpgrade,
+				proofCounterpartyUpgrade,
 				proofHeight)
 
 			if tc.expPass {
@@ -352,15 +348,11 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry_CrossingHellos() {
 			suite.Require().NoError(path.EndpointA.UpdateClient())
 			suite.Require().NoError(path.EndpointB.UpdateClient())
 
-			channelKey := host.ChannelKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-			proofCounterpartyChannel, proofHeight := suite.chainA.QueryProof(channelKey)
-
-			upgradeKey := host.ChannelUpgradeKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-			proofUpgrade, _ := suite.chainA.QueryProof(upgradeKey)
+			proofCounterpartyChannel, proofCounterpartyUpgrade, proofHeight := path.EndpointB.QueryChannelUpgradeProof()
 
 			_, err = suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.ChanUpgradeTry(
 				suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, proposedConnectionHops, upgrade.Timeout,
-				counterpartyUpgrade, counterpartyUpgradeSequence, proofCounterpartyChannel, proofUpgrade, proofHeight)
+				counterpartyUpgrade, counterpartyUpgradeSequence, proofCounterpartyChannel, proofCounterpartyUpgrade, proofHeight)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
