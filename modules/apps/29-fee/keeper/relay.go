@@ -21,7 +21,7 @@ func (k Keeper) SendPacket(
 	timeout channeltypes.Timeout,
 	data []byte,
 ) (uint64, error) {
-	return k.ics4Wrapper.SendPacket(ctx, chanCap, sourcePort, sourceChannel, channeltypes.Timeout{Height: timeout.Height, Timestamp: timeout.Timestamp}, data)
+	return k.ics4Wrapper.SendPacket(ctx, chanCap, sourcePort, sourceChannel, timeout, data)
 }
 
 // WriteAcknowledgement wraps IBC ChannelKeeper's WriteAcknowledgement function
