@@ -659,7 +659,7 @@ func (endpoint *Endpoint) ChanUpgradeTimeout() error {
 	proofChannel, height := endpoint.Counterparty.Chain.QueryProof(channelKey)
 
 	errorReceiptKey := host.ChannelUpgradeErrorKey(endpoint.Counterparty.ChannelConfig.PortID, endpoint.Counterparty.ChannelID)
-	proofErrorReceipt, height := endpoint.Counterparty.Chain.QueryProof(errorReceiptKey)
+	proofErrorReceipt, _ := endpoint.Counterparty.Chain.QueryProof(errorReceiptKey)
 
 	errorReceipt, found := endpoint.Counterparty.Chain.App.GetIBCKeeper().ChannelKeeper.GetUpgradeErrorReceipt(endpoint.Counterparty.Chain.GetContext(), endpoint.Counterparty.ChannelConfig.PortID, endpoint.Counterparty.ChannelID)
 	require.True(endpoint.Chain.TB, found)
