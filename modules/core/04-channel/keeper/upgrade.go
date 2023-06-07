@@ -233,7 +233,6 @@ func (k Keeper) startFlushUpgradeHandshake(
 			types.ErrIncompatibleCounterpartyUpgrade, "counterparty upgrade connection end is not a counterparty of self proposed connection end (%s != %s)", counterpartyUpgrade.Fields.ConnectionHops[0], proposedConnection.GetCounterparty().GetConnectionID()),
 		)
 	}
-
 	return nil
 }
 
@@ -289,6 +288,32 @@ func (k Keeper) constructProposedUpgrade(ctx sdk.Context, portID, channelID stri
 	}, nil
 }
 
+// abortHandshake will restore the channel state and flush status to their pre-upgrade state so that upgrade is aborted.
+// any unnecessary state is deleted. An error receipt is written, and the OnChanUpgradeRestore callback is called.
+func (k Keeper) abortHandshake(ctx sdk.Context, portID, channelID string, upgradeError *types.UpgradeError) error {
+	if upgradeError == nil {
+		return errorsmod.Wrap(types.ErrInvalidUpgradeError, "cannot abort upgrade handshake with nil error")
+	}
+
+	upgrade, found := k.GetUpgrade(ctx, portID, channelID)
+	if !found {
+		return errorsmod.Wrapf(types.ErrUpgradeNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
+	}
+
+	if err := k.restoreChannel(ctx, portID, channelID); err != nil {
+		return err
+	}
+
+	if err := k.writeErrorReceipt(ctx, portID, channelID, upgrade, upgradeError); err != nil {
+		return err
+	}
+
+	// TODO: callback execution
+	// cbs.OnChanUpgradeRestore()
+
+	return nil
+}
+
 // restoreChannel will restore the channel state and flush status to their pre-upgrade state so that upgrade is aborted
 // it write an error receipt to state so counterparty can restore as well.
 func (k Keeper) restoreChannel(ctx sdk.Context, portID, channelID string) error {
@@ -306,5 +331,17 @@ func (k Keeper) restoreChannel(ctx sdk.Context, portID, channelID string) error 
 	k.deleteUpgrade(ctx, portID, channelID)
 	k.deleteCounterpartyLastPacketSequence(ctx, portID, channelID)
 
+	return nil
+}
+
+// writeErrorReceipt will write an error receipt from the provided UpgradeError.
+func (k Keeper) writeErrorReceipt(ctx sdk.Context, portID, channelID string, upgrade types.Upgrade, upgradeError *types.UpgradeError) error {
+	channel, found := k.GetChannel(ctx, portID, channelID)
+	if !found {
+		return errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
+	}
+
+	k.SetUpgradeErrorReceipt(ctx, portID, channelID, upgradeError.GetErrorReceipt())
+	emitErrorReceiptEvent(ctx, portID, channelID, channel, upgrade, upgradeError)
 	return nil
 }
