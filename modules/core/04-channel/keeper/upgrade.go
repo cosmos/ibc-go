@@ -75,7 +75,7 @@ func (k Keeper) ChanUpgradeTry(
 	portID,
 	channelID string,
 	proposedConnectionHops []string,
-	proposedUpgradeTimeout types.Timeout,
+	upgradeTimeout types.Timeout,
 	counterpartyUpgrade types.Upgrade,
 	counterpartyUpgradeSequence uint64,
 	proofCounterpartyChannel,
@@ -97,23 +97,18 @@ func (k Keeper) ChanUpgradeTry(
 		return types.Upgrade{}, errorsmod.Wrap(err, "failed to retrieve connection using the channel connection hops")
 	}
 
-	// make sure connection is OPEN
 	if connection.GetState() != int32(connectiontypes.OPEN) {
 		return types.Upgrade{}, errorsmod.Wrapf(
-			connectiontypes.ErrInvalidConnectionState,
-			"connection state is not OPEN (got %s)", connectiontypes.State(connection.GetState()).String(),
+			connectiontypes.ErrInvalidConnectionState, "connection state is not OPEN (got %s)", connectiontypes.State(connection.GetState()).String(),
 		)
 	}
 
-	// check if packet is timed out on the receiving chain
 	if hasPassed, err := counterpartyUpgrade.Timeout.HasPassed(ctx); hasPassed {
 		// abort here and let counterparty timeout the upgrade
 		return types.Upgrade{}, errorsmod.Wrap(err, "upgrade timeout has passed")
 	}
 
-	// assert that the proposed connection hops are compatible with the counterparty connection hops
-	// the proposed connections hops must have a counterparty which matches the counterparty connection hops
-
+	// construct counterpartyChannel from existing information and provided counterpartyUpgradeSequence
 	// create upgrade fields from counterparty proposed upgrade and own verified connection hops
 	proposedUpgradeFields := types.UpgradeFields{
 		Ordering:       counterpartyUpgrade.Fields.Ordering,
@@ -126,7 +121,6 @@ func (k Keeper) ChanUpgradeTry(
 	switch channel.State {
 	case types.OPEN:
 		// initialize handshake with upgradeFields
-		// TODO: missing timeout in upgradeTry provided fields
 		upgrade, err = k.ChanUpgradeInit(ctx, portID, channelID, proposedUpgradeFields, upgradeTimeout)
 		if err != nil {
 			return types.Upgrade{}, errorsmod.Wrap(err, "failed to initialize upgrade")

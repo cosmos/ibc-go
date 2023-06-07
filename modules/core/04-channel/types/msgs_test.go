@@ -695,8 +695,8 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeAckValidateBasic() {
 	}
 }
 
-func (suite *TypesTestSuite) TestMsgChannelUpgradeConfirmValidateBasic() {
-	var msg *types.MsgChannelUpgradeConfirm
+func (suite *TypesTestSuite) TestMsgChannelUpgradeOpenValidateBasic() {
+	var msg *types.MsgChannelUpgradeOpen
 
 	testCases := []struct {
 		name     string
@@ -706,6 +706,20 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeConfirmValidateBasic() {
 		{
 			"success",
 			func() {},
+			true,
+		},
+		{
+			"success: counterparty state set to TRYUPGRADE",
+			func() {
+				msg.CounterpartyChannelState = types.TRYUPGRADE
+			},
+			true,
+		},
+		{
+			"success: counterparty state set to ACKUPGRADE",
+			func() {
+				msg.CounterpartyChannelState = types.ACKUPGRADE
+			},
 			true,
 		},
 		{
@@ -725,7 +739,7 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeConfirmValidateBasic() {
 		{
 			"invalid counterparty channel state",
 			func() {
-				msg.CounterpartyChannel.State = types.TRYUPGRADE
+				msg.CounterpartyChannelState = types.CLOSED
 			},
 			false,
 		},
@@ -733,20 +747,6 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeConfirmValidateBasic() {
 			"cannot submit an empty channel proof",
 			func() {
 				msg.ProofChannel = emptyProof
-			},
-			false,
-		},
-		{
-			"cannot submit an empty upgrade error proof",
-			func() {
-				msg.ProofUpgradeError = emptyProof
-			},
-			false,
-		},
-		{
-			"cannot submit an empty upgrade sequence proof",
-			func() {
-				msg.ProofUpgradeSequence = emptyProof
 			},
 			false,
 		},
@@ -762,10 +762,9 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeConfirmValidateBasic() {
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(tc.name, func() {
-			msg = types.NewMsgChannelUpgradeConfirm(
+			msg = types.NewMsgChannelUpgradeOpen(
 				ibctesting.MockPort, ibctesting.FirstChannelID,
-				types.Channel{State: types.OPEN}, suite.proof,
-				suite.proof, suite.proof,
+				types.OPEN, suite.proof,
 				height, addr,
 			)
 
