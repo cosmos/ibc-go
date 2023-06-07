@@ -97,22 +97,16 @@ func (k Keeper) ChanUpgradeTry(
 		return types.Upgrade{}, errorsmod.Wrap(err, "failed to retrieve connection using the channel connection hops")
 	}
 
-	// make sure connection is OPEN
 	if connectionEnd.GetState() != int32(connectiontypes.OPEN) {
 		return types.Upgrade{}, errorsmod.Wrapf(
-			connectiontypes.ErrInvalidConnectionState,
-			"connection state is not OPEN (got %s)", connectiontypes.State(connectionEnd.GetState()).String(),
+			connectiontypes.ErrInvalidConnectionState, "connection state is not OPEN (got %s)", connectiontypes.State(connectionEnd.GetState()).String(),
 		)
 	}
 
-	// check if packet is timed out on the receiving chain
 	if hasPassed, err := counterpartyProposedUpgrade.Timeout.HasPassed(ctx); hasPassed {
 		// abort here and let counterparty timeout the upgrade
 		return types.Upgrade{}, errorsmod.Wrap(err, "upgrade timeout has passed")
 	}
-
-	// assert that the proposed connection hops are compatible with the counterparty connection hops
-	// the proposed connections hops must have a counterparty which matches the counterparty connection hops
 
 	// construct counterpartyChannel from existing information and provided counterpartyUpgradeSequence
 
@@ -278,8 +272,8 @@ func (k Keeper) validateUpgradeFields(ctx sdk.Context, proposedUpgrade types.Upg
 	}
 
 	connectionID := proposedUpgrade.ConnectionHops[0]
-	connection, err := k.GetConnection(ctx, connectionID)
-	if err != nil {
+	connection, found := k.connectionKeeper.GetConnection(ctx, connectionID)
+	if !found {
 		return errorsmod.Wrapf(connectiontypes.ErrConnectionNotFound, "failed to retrieve connection: %s", connectionID)
 	}
 
@@ -287,6 +281,23 @@ func (k Keeper) validateUpgradeFields(ctx sdk.Context, proposedUpgrade types.Upg
 		return errorsmod.Wrapf(
 			connectiontypes.ErrInvalidConnectionState,
 			"connection state is not OPEN (got %s)", connectiontypes.State(connection.GetState()).String(),
+		)
+	}
+
+	getVersions := connection.GetVersions()
+	if len(getVersions) != 1 {
+		return errorsmod.Wrapf(
+			connectiontypes.ErrInvalidVersion,
+			"single version must be negotiated on connection before opening channel, got: %v",
+			getVersions,
+		)
+	}
+
+	if !connectiontypes.VerifySupportedFeature(getVersions[0], proposedUpgrade.Ordering.String()) {
+		return errorsmod.Wrapf(
+			connectiontypes.ErrInvalidVersion,
+			"connection version %s does not support channel ordering: %s",
+			getVersions[0], proposedUpgrade.Ordering.String(),
 		)
 	}
 
