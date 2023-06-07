@@ -47,4 +47,5 @@ var (
 	ErrIncompatibleCounterpartyUpgrade = errorsmod.Register(SubModuleName, 31, "incompatible counterparty upgrade")
 	ErrInvalidUpgradeError             = errorsmod.Register(SubModuleName, 32, "invalid upgrade error")
 	ErrUpgradeRestoreFailed            = errorsmod.Register(SubModuleName, 33, "restore failed")
+	ErrInvalidUpgradeErrorReceipt      = errorsmod.Register(SubModuleName, 34, "invalid error receipt")
 )

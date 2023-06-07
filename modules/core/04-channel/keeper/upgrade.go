@@ -159,6 +159,50 @@ func (k Keeper) WriteUpgradeTryChannel(
 	emitChannelUpgradeTryEvent(ctx, portID, channelID, channel, proposedUpgrade)
 }
 
+// ChanUpgradeCancel is called by a module to cancel a channel upgrade that is in progress.
+func (k Keeper) ChanUpgradeCancel(ctx sdk.Context, portID, channelID string, errorReceipt types.ErrorReceipt, errorReceiptProof []byte, proofHeight clienttypes.Height) error {
+	channel, found := k.GetChannel(ctx, portID, channelID)
+	if !found {
+		return errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
+	}
+
+	// the channel state must be in INITUPGRADE or TRYUPGRADE
+	if !collections.Contains(channel.State, []types.State{types.INITUPGRADE, types.TRYUPGRADE}) {
+		return errorsmod.Wrapf(types.ErrInvalidChannelState, "expected one of [%s, %s], got %s", types.INITUPGRADE, types.TRYUPGRADE, channel.State)
+	}
+
+	// get underlying connection for proof verification
+	connection, err := k.GetConnection(ctx, channel.ConnectionHops[0])
+	if err != nil {
+		return errorsmod.Wrap(err, "failed to retrieve connection using the channel connection hops")
+	}
+
+	if err := k.connectionKeeper.VerifyChannelUpgradeError(ctx, connection, proofHeight, errorReceiptProof, portID, channelID, errorReceipt); err != nil {
+		return errorsmod.Wrap(err, "failed to verify counterparty error receipt")
+	}
+
+	if isEmptyReceipt(errorReceipt) {
+		return errorsmod.Wrap(types.ErrInvalidUpgradeErrorReceipt, "empty error receipt")
+	}
+
+	// If counterparty sequence is less than the current sequence, abort transaction since this error receipt is from a previous upgrade
+	// Otherwise, set the sequence to counterparty's error sequence+1 so that both sides start with a fresh sequence
+	currentSequence := channel.UpgradeSequence
+	if errorReceipt.Sequence >= currentSequence {
+		return errorsmod.Wrap(types.ErrInvalidUpgradeSequence, "error sequence must be less than current sequence")
+	}
+
+	channel.UpgradeSequence = errorReceipt.Sequence + 1
+	k.SetChannel(ctx, portID, channelID, channel)
+
+	return nil
+}
+
+// isEmptyReceipt returns true if the receipt is empty.
+func isEmptyReceipt(receipt types.ErrorReceipt) bool {
+	return receipt == types.ErrorReceipt{}
+}
+
 // WriteUpgradeCancelChannel writes a channel which has canceled the upgrade process. Auxiliary upgrade state is
 // also deleted.
 func (k Keeper) WriteUpgradeCancelChannel(ctx sdk.Context, portID, channelID string) error {
