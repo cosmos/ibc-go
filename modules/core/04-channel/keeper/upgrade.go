@@ -120,7 +120,7 @@ func (k Keeper) ChanUpgradeTry(
 
 	switch channel.State {
 	case types.OPEN:
-		// initialize handshake with upgradeFields
+		// initialize handshake with upgrade fields
 		upgrade, err = k.ChanUpgradeInit(ctx, portID, channelID, proposedUpgradeFields, upgradeTimeout)
 		if err != nil {
 			return types.Upgrade{}, errorsmod.Wrap(err, "failed to initialize upgrade")
