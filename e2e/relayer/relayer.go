@@ -15,8 +15,10 @@ const (
 	Rly    = "rly"
 	Hermes = "hermes"
 
-	cosmosRelayerRepository = "damiannolan/rly" //"ghcr.io/cosmos/relayer"
-	cosmosRelayerUser       = "100:1000"        // docker run -it --rm --entrypoint echo ghcr.io/cosmos/relayer "$(id -u):$(id -g)"
+	hermesRelayerRepository = "ghcr.io/informalsystems/hermes"
+	hermesRelayerUser       = "1000:1000"
+	rlyRelayerRepository    = "damiannolan/rly" //"ghcr.io/cosmos/relayer"
+	rlyRelayerUser          = "100:1000"        // docker run -it --rm --entrypoint echo ghcr.io/cosmos/relayer "$(id -u):$(id -g)"
 )
 
 // Config holds configuration values for the relayer used in the tests.
@@ -35,7 +37,7 @@ func New(t *testing.T, cfg Config, logger *zap.Logger, dockerClient *dockerclien
 	case Rly:
 		return newCosmosRelayer(t, cfg.Tag, logger, dockerClient, network)
 	case Hermes:
-		return newHermesRelayer()
+		return newHermesRelayer(t, cfg.Tag, logger, dockerClient, network)
 	default:
 		panic(fmt.Sprintf("unknown relayer specified: %s", cfg.Type))
 	}
@@ -44,7 +46,7 @@ func New(t *testing.T, cfg Config, logger *zap.Logger, dockerClient *dockerclien
 // newCosmosRelayer returns an instance of the go relayer.
 // Options are used to allow for relayer version selection and specifying the default processing option.
 func newCosmosRelayer(t *testing.T, tag string, logger *zap.Logger, dockerClient *dockerclient.Client, network string) ibc.Relayer {
-	customImageOption := relayer.CustomDockerImage(cosmosRelayerRepository, tag, cosmosRelayerUser)
+	customImageOption := relayer.CustomDockerImage(rlyRelayerRepository, tag, rlyRelayerUser)
 	relayerProcessingOption := relayer.StartupFlags("-p", "events") // relayer processes via events
 
 	relayerFactory := interchaintest.NewBuiltinRelayerFactory(ibc.CosmosRly, logger, customImageOption, relayerProcessingOption)
@@ -55,8 +57,13 @@ func newCosmosRelayer(t *testing.T, tag string, logger *zap.Logger, dockerClient
 }
 
 // newHermesRelayer returns an instance of the hermes relayer.
-func newHermesRelayer() ibc.Relayer {
-	panic("hermes relayer not yet implemented for interchaintest")
+func newHermesRelayer(t *testing.T, tag string, logger *zap.Logger, dockerClient *dockerclient.Client, network string) ibc.Relayer {
+	customImageOption := relayer.CustomDockerImage(hermesRelayerRepository, tag, hermesRelayerUser)
+	relayerFactory := interchaintest.NewBuiltinRelayerFactory(ibc.Hermes, logger, customImageOption)
+
+	return relayerFactory.Build(
+		t, dockerClient, network,
+	)
 }
 
 // RelayerMap is a mapping from test names to a relayer set for that test.
