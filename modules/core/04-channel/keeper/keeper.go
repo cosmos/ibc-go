@@ -539,6 +539,18 @@ func (k Keeper) SetUpgrade(ctx sdk.Context, portID, channelID string, upgrade ty
 	store.Set(host.ChannelUpgradeKey(portID, channelID), bz)
 }
 
+// deleteCounterpartyLastPacketSequence deletes the counterparty last packet sequence from the store.
+func (k Keeper) deleteCounterpartyLastPacketSequence(ctx sdk.Context, portID, channelID string) {
+	store := ctx.KVStore(k.storeKey)
+	store.Delete(host.ChannelCounterpartyLastPacketSequenceKey(portID, channelID))
+}
+
+// deleteUpgrade deletes the upgrade for the provided port and channel identifiers.
+func (k Keeper) deleteUpgrade(ctx sdk.Context, portID, channelID string) {
+	store := ctx.KVStore(k.storeKey)
+	store.Delete(host.ChannelUpgradeKey(portID, channelID))
+}
+
 // common functionality for IteratePacketCommitment and IteratePacketAcknowledgement
 func (k Keeper) iterateHashes(ctx sdk.Context, iterator db.Iterator, cb func(portID, channelID string, sequence uint64, hash []byte) bool) {
 	defer sdk.LogDeferred(ctx.Logger(), func() error { return iterator.Close() })
