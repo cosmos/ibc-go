@@ -126,6 +126,8 @@ func (k Keeper) ChanUpgradeTry(
 			return types.Upgrade{}, errorsmod.Wrap(err, "failed to initialize upgrade")
 		}
 
+		// TODO: add fast forward feature
+
 		// NOTE: OnChanUpgradeInit will not be executed
 
 		k.WriteUpgradeInitChannel(ctx, portID, channelID, upgrade)
