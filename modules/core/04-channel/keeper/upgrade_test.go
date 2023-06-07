@@ -255,11 +255,6 @@ func (suite *KeeperTestSuite) TestAbortHandshake() {
 
 			suite.Require().NoError(path.EndpointA.ChanUpgradeInit())
 
-			path.EndpointA.Chain.Coordinator.CommitBlock(path.EndpointA.Chain)
-
-			suite.Require().NoError(path.EndpointA.UpdateClient())
-			suite.Require().NoError(path.EndpointB.UpdateClient())
-
 			upgradeError := types.NewUpgradeError(1, types.ErrInvalidChannel)
 
 			tc.malleate()
