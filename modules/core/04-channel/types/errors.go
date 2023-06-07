@@ -45,4 +45,5 @@ var (
 	ErrInvalidUpgradeSequence          = errorsmod.Register(SubModuleName, 29, "invalid upgrade sequence")
 	ErrUpgradeNotFound                 = errorsmod.Register(SubModuleName, 30, "upgrade not found")
 	ErrIncompatibleCounterpartyUpgrade = errorsmod.Register(SubModuleName, 31, "incompatible counterparty upgrade")
+	ErrUpgradeRestoreFailed            = errorsmod.Register(SubModuleName, 32, "restore failed")
 )

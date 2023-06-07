@@ -110,6 +110,29 @@ func (k Keeper) WriteUpgradeTryChannel(
 	emitChannelUpgradeTryEvent(ctx, portID, channelID, channel, proposedUpgrade)
 }
 
+// WriteUpgradeCancelChannel writes a channel which has canceled the upgrade process. Auxiliary upgrade state is
+// also deleted.
+func (k Keeper) WriteUpgradeCancelChannel(ctx sdk.Context, portID, channelID string) error {
+	defer telemetry.IncrCounter(1, "ibc", "channel", "upgrade-cancel")
+
+	channel, found := k.GetChannel(ctx, portID, channelID)
+	if !found {
+		panic(fmt.Sprintf("could not find existing channel when cancelling channel upgrade, channelID: %s, portID: %s", channelID, portID))
+	}
+
+	upgrade, found := k.GetUpgrade(ctx, portID, channelID)
+	if !found {
+		panic(fmt.Sprintf("could not find existing upgrade when cancelling channel upgrade, channelID: %s, portID: %s", channelID, portID))
+	}
+
+	if err := k.restoreChannel(ctx, portID, channelID); err != nil {
+		return errorsmod.Wrap(types.ErrUpgradeRestoreFailed, fmt.Sprintf("failed to restore channel, channelID: %s, portID: %s", channelID, portID))
+	}
+
+	emitUpgradedCancelledEvent(ctx, portID, channelID, channel, upgrade)
+	return nil
+}
+
 // startFlushUpgradeHandshake will verify the counterparty proposed upgrade and the current channel state.
 // Once the counterparty information has been verified, it will be validated against the self proposed upgrade.
 // If any of the proposed upgrade fields are incompatible, an upgrade error will be returned resulting in an
@@ -264,4 +287,24 @@ func (k Keeper) constructProposedUpgrade(ctx sdk.Context, portID, channelID stri
 		Timeout:            upgradeTimeout,
 		LatestSequenceSend: seq - 1,
 	}, nil
+}
+
+// restoreChannel will restore the channel state and flush status to their pre-upgrade state so that upgrade is aborted
+// it write an error receipt to state so counterparty can restore as well.
+func (k Keeper) restoreChannel(ctx sdk.Context, portID, channelID string) error {
+	channel, found := k.GetChannel(ctx, portID, channelID)
+	if !found {
+		return errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
+	}
+
+	channel.State = types.OPEN
+	channel.FlushStatus = types.NOTINFLUSH
+
+	k.SetChannel(ctx, portID, channelID, channel)
+
+	// delete state associated with upgrade which is no longer required.
+	k.deleteUpgrade(ctx, portID, channelID)
+	k.deleteCounterpartyLastPacketSequence(ctx, portID, channelID)
+
+	return nil
 }

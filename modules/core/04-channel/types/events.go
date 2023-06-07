@@ -62,6 +62,7 @@ var (
 	EventTypeChannelUpgradeTry   = "channel_upgrade_try"
 	EventTypeChannelUpgradeAck   = "channel_upgrade_ack"
 	EventTypeChannelUpgradeOpen  = "channel_upgrade_open"
+	EventTypeChannelUpgradeCancelled  = "channel_upgrade_cancelled"
 
 	AttributeValueCategory = fmt.Sprintf("%s_%s", ibcexported.ModuleName, SubModuleName)
 )

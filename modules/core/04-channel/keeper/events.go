@@ -388,3 +388,24 @@ func emitErrorReceiptEvent(ctx sdk.Context, portID string, channelID string, cur
 		),
 	})
 }
+
+// emitUpgradedCancelledEvent emits an upgraded cancelled event.
+func emitUpgradedCancelledEvent(ctx sdk.Context, portID string, channelID string, currentChannel types.Channel, upgrade types.Upgrade) {
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeChannelUpgradeCancelled,
+			sdk.NewAttribute(types.AttributeKeyPortID, portID),
+			sdk.NewAttribute(types.AttributeKeyChannelID, channelID),
+			sdk.NewAttribute(types.AttributeCounterpartyPortID, currentChannel.Counterparty.PortId),
+			sdk.NewAttribute(types.AttributeCounterpartyChannelID, currentChannel.Counterparty.ChannelId),
+			sdk.NewAttribute(types.AttributeKeyUpgradeConnectionHops, upgrade.Fields.ConnectionHops[0]),
+			sdk.NewAttribute(types.AttributeKeyUpgradeVersion, upgrade.Fields.Version),
+			sdk.NewAttribute(types.AttributeKeyUpgradeOrdering, upgrade.Fields.Ordering.String()),
+			sdk.NewAttribute(types.AttributeKeyUpgradeSequence, fmt.Sprintf("%d", currentChannel.UpgradeSequence)),
+		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+		),
+	})
+}
