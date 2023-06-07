@@ -125,7 +125,7 @@ func (suite *TypesTestSuite) TestCosmwasmDeserializeCosmosTx() {
 		{
 			"failure: empty bytes",
 			func() {
-			cwBytes = []byte{}
+				cwBytes = []byte{}
 			},
 			false,
 		},
