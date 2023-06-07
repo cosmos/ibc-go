@@ -203,6 +203,10 @@ func (k Keeper) WriteUpgradeTryChannel(
 	emitChannelUpgradeTryEvent(ctx, portID, channelID, channel, proposedUpgrade)
 }
 
+func (k Keeper) AbortUpgrade(ctx sdk.Context, portID, channelID string, err error) error {
+	return nil
+}
+
 // startFlushUpgradeHandshake will verify the counterparty proposed upgrade and the current channel state.
 // Once the counterparty information has been verified, it will be validated against the self proposed upgrade.
 // If any of the proposed upgrade fields are incompatible, an upgrade error will be returned resulting in an

@@ -751,7 +751,62 @@ func (k Keeper) ChannelUpgradeInit(goCtx context.Context, msg *channeltypes.MsgC
 
 // ChannelUpgradeTry defines a rpc handler method for MsgChannelUpgradeTry.
 func (k Keeper) ChannelUpgradeTry(goCtx context.Context, msg *channeltypes.MsgChannelUpgradeTry) (*channeltypes.MsgChannelUpgradeTryResponse, error) {
-	return nil, nil
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	module, _, err := k.ChannelKeeper.LookupModuleByChannel(ctx, msg.PortId, msg.ChannelId)
+	if err != nil {
+		ctx.Logger().Error("channel upgrade init failed", "port-id", msg.PortId, "error", errorsmod.Wrap(err, "could not retrieve module from port-id"))
+		return nil, errorsmod.Wrap(err, "could not retrieve module from port-id")
+	}
+
+	cbs, ok := k.Router.GetRoute(module)
+	if !ok {
+		ctx.Logger().Error("channel upgrade init failed", "port-id", msg.PortId, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module))
+		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
+	}
+
+	upgrade, err := k.ChannelKeeper.ChanUpgradeTry(ctx, msg.PortId, msg.ChannelId, msg.ProposedUpgradeConnectionHops, msg.UpgradeTimeout, msg.CounterpartyProposedUpgrade, msg.CounterpartyUpgradeSequence, msg.ProofChannel, msg.ProofUpgrade, msg.ProofHeight)
+	if err != nil {
+		if upgradeErr, ok := err.(*channeltypes.UpgradeError); ok {
+			if err := k.ChannelKeeper.AbortUpgrade(ctx, msg.PortId, msg.ChannelId, upgradeErr); err != nil {
+				return nil, err
+			}
+
+			// NOTE: a failure Result is indicated to the client and an error receipt is written to state
+			return &channeltypes.MsgChannelUpgradeTryResponse{
+				Result: channeltypes.FAILURE,
+			}, nil
+		}
+
+		// TODO: add meaningful comment about type of error and rejecting full tx + revert state
+		return nil, err
+	}
+
+	cacheCtx, writeFn := ctx.CacheContext()
+	version, err := cbs.OnChanUpgradeTry(cacheCtx, msg.PortId, msg.ChannelId, upgrade.Fields.Ordering, upgrade.Fields.ConnectionHops, upgrade.Fields.Version)
+	if err != nil {
+		if err := k.ChannelKeeper.AbortUpgrade(ctx, msg.PortId, msg.ChannelId, err); err != nil {
+			return nil, err
+		}
+
+		return &channeltypes.MsgChannelUpgradeTryResponse{
+			Result: channeltypes.FAILURE,
+		}, nil
+	}
+
+	writeFn()
+
+	upgrade.Fields.Version = version
+
+	// TODO: determine where flushStatus is computed, pendingInflightPackets could be checked within WriteUpgradeTryChannel(?)
+	// the spec currently defines this in startFlushUpgradeHandshake(), if done here it would need to be returned and propagated to this call
+	k.ChannelKeeper.WriteUpgradeTryChannel(ctx, msg.PortId, msg.ChannelId, upgrade, channeltypes.FLUSHING)
+
+	return &channeltypes.MsgChannelUpgradeTryResponse{
+		ChannelId: msg.ChannelId,
+		Version:   "", // todo: return upgrade and upgrade sequence similarly to INIT
+		Result:    channeltypes.SUCCESS,
+	}, nil
 }
 
 // ChannelUpgradeAck defines a rpc handler method for MsgChannelUpgradeAck.
