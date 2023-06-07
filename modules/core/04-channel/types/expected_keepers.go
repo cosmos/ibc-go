@@ -5,7 +5,6 @@ import (
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
 	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
@@ -88,7 +87,7 @@ type ConnectionKeeper interface {
 		proof []byte,
 		portID,
 		channelID string,
-		errorReceipt channeltypes.ErrorReceipt,
+		errorReceipt ErrorReceipt,
 	) error
 }
 

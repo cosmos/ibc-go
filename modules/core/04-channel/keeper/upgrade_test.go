@@ -732,3 +732,54 @@ func (suite *KeeperTestSuite) TestAbortHandshake() {
 		})
 	}
 }
+
+func (suite *KeeperTestSuite) TestChanUpgradeCancel() {
+	var (
+		path *ibctesting.Path
+	)
+	tests := []struct {
+		name     string
+		malleate func()
+		expPass  bool
+	}{
+		{
+			name:     "success",
+			malleate: func() {},
+			expPass:  true,
+		},
+	}
+
+	for _, tc := range tests {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.Setup(path)
+
+			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
+			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
+
+			err := path.EndpointA.ChanUpgradeInit()
+			suite.Require().NoError(err)
+
+			suite.Require().NoError(path.EndpointB.UpdateClient())
+
+			err = path.EndpointB.ChanUpgradeTry()
+			suite.Require().NoError(err)
+
+			suite.Require().NoError(path.EndpointA.UpdateClient())
+
+			channelAKeeper := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper
+
+			// TODO: populate these correctly
+			errorReceipt := types.ErrorReceipt{}
+			errReceiptProof := []byte{}
+			proofHeight := clienttypes.Height{}
+
+			err = channelAKeeper.ChanUpgradeCancel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, errorReceipt, errReceiptProof, proofHeight)
+			suite.Require().NoError(err)
+
+		})
+	}
+}
