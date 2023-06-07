@@ -3,7 +3,7 @@ package keeper_test
 import (
 	"fmt"
 
-	"cosmossdk.io/math"
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
@@ -38,7 +38,7 @@ func (suite *KeeperTestSuite) TestGenesis() {
 		suite.chainA.GetSimApp().TransferKeeper.SetDenomTrace(suite.chainA.GetContext(), denomTrace)
 
 		denom := denomTrace.IBCDenom()
-		amount, ok := math.NewIntFromString(pathAndEscrowAmount.escrow)
+		amount, ok := sdkmath.NewIntFromString(pathAndEscrowAmount.escrow)
 		suite.Require().True(ok)
 		escrows = append(sdk.NewCoins(sdk.NewCoin(denom, amount)), escrows...)
 		suite.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(suite.chainA.GetContext(), sdk.NewCoin(denom, amount))
