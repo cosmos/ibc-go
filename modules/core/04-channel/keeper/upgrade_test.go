@@ -394,9 +394,7 @@ func (suite *KeeperTestSuite) assertUpgradeError(actualError, expError error) {
 // is restored the previous state and that an error receipt is written, and upgrade state which
 // is no longer required is deleted.
 func (suite *KeeperTestSuite) TestAbortHandshake() {
-	var (
-		path *ibctesting.Path
-	)
+	var path *ibctesting.Path
 
 	tests := []struct {
 		name           string
