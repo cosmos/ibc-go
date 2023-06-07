@@ -493,7 +493,7 @@ func (suite *KeeperTestSuite) TestStartFlushUpgradeHandshake() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestValidateProposedUpgradeFields() {
+func (suite *KeeperTestSuite) TestValidateUpgradeFields() {
 	var (
 		proposedUpgrade *types.UpgradeFields
 		path            *ibctesting.Path
@@ -506,7 +506,7 @@ func (suite *KeeperTestSuite) TestValidateProposedUpgradeFields() {
 		{
 			name: "change channel version",
 			malleate: func() {
-				proposedUpgrade.Version = "1.0.0"
+				proposedUpgrade.Version = mock.UpgradeVersion
 			},
 			expPass: true,
 		},
@@ -538,6 +538,32 @@ func (suite *KeeperTestSuite) TestValidateProposedUpgradeFields() {
 			malleate: func() {
 				connection := path.EndpointA.GetConnection()
 				connection.State = connectiontypes.UNINITIALIZED
+				path.EndpointA.SetConnection(connection)
+			},
+			expPass: false,
+		},
+		{
+			name: "fails when connection versions do not exist",
+			malleate: func() {
+				// update channel version first so that existing channel end is not identical to proposed upgrade
+				proposedUpgrade.Version = mock.UpgradeVersion
+
+				connection := path.EndpointA.GetConnection()
+				connection.Versions = []*connectiontypes.Version{}
+				path.EndpointA.SetConnection(connection)
+			},
+			expPass: false,
+		},
+		{
+			name: "fails when connection version does not support the new ordering",
+			malleate: func() {
+				// update channel version first so that existing channel end is not identical to proposed upgrade
+				proposedUpgrade.Version = mock.UpgradeVersion
+
+				connection := path.EndpointA.GetConnection()
+				connection.Versions = []*connectiontypes.Version{
+					connectiontypes.NewVersion("1", []string{"ORDER_ORDERED"}),
+				}
 				path.EndpointA.SetConnection(connection)
 			},
 			expPass: false,
