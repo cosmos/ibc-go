@@ -9,6 +9,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/cosmos/ibc-go/v7/internal/collections"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
@@ -67,21 +68,69 @@ func (k Keeper) WriteUpgradeInitChannel(ctx sdk.Context, portID, channelID strin
 	emitChannelUpgradeInitEvent(ctx, portID, channelID, currentChannel, upgrade)
 }
 
-// upgradeTry
+// ChanUpgradeTry is called by a module to accept the first step of a channel upgrade handshake initiated by
+// a module on another chain. If this function is successful, the proposed upgrade will be returned. If the upgrade fails, the upgrade sequence will still be incremented but an error will be returned.
 func (k Keeper) ChanUpgradeTry(
 	ctx sdk.Context,
 	portID,
 	channelID string,
 	proposedConnectionHops []string,
-	upgradeTimeout types.Timeout,
+	proposedUpgradeTimeout types.Timeout,
 	counterpartyProposedUpgrade types.Upgrade,
 	counterpartyUpgradeSequence uint64,
 	proofCounterpartyChannel,
 	proofCounterpartyUpgrade []byte,
 	proofHeight clienttypes.Height,
 ) (types.Upgrade, error) {
-	// TODO
-	return types.Upgrade{}, nil
+	channel, found := k.GetChannel(ctx, portID, channelID)
+	if !found {
+		return types.Upgrade{}, errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
+	}
+
+	// the channel state must be in OPEN or INITUPGRADE if we are in a crossing hellos situation
+	if !collections.Contains(channel.State, []types.State{types.OPEN, types.INITUPGRADE}) {
+		return types.Upgrade{}, errorsmod.Wrapf(types.ErrInvalidChannelState, "expected one of [%s, %s], got %s", types.OPEN, types.INITUPGRADE, channel.State)
+	}
+
+	connectionEnd, err := k.GetConnection(ctx, channel.ConnectionHops[0])
+	if err != nil {
+		return types.Upgrade{}, errorsmod.Wrap(err, "failed to retrieve connection using the channel connection hops")
+	}
+
+	// make sure connection is OPEN
+	if connectionEnd.GetState() != int32(connectiontypes.OPEN) {
+		return types.Upgrade{}, errorsmod.Wrapf(
+			connectiontypes.ErrInvalidConnectionState,
+			"connection state is not OPEN (got %s)", connectiontypes.State(connectionEnd.GetState()).String(),
+		)
+	}
+
+	// check if packet is timed out on the receiving chain
+	if hasPassed, err := counterpartyProposedUpgrade.Timeout.HasPassed(ctx); hasPassed {
+		// abort here and let counterparty timeout the upgrade
+		return types.Upgrade{}, errorsmod.Wrap(err, "upgrade timeout has passed")
+	}
+
+	// assert that the proposed connection hops are compatible with the counterparty connection hops
+	// the proposed connections hops must have a counterparty which matches the counterparty connection hops
+
+	// construct counterpartyChannel from existing information and provided counterpartyUpgradeSequence
+
+	// create upgrade fields from counterparty proposed upgrade and own verified connection hops
+
+	// if OPEN, then initialize handshake with upgradeFields
+	// this should validate the upgrade fields, set the upgrade path and set the final correct sequence.
+
+	// otherwise, if the channel state is already in INITUPGRADE (crossing hellos case),
+	// assert that the upgrade fields are the same as the upgrade already in progress
+
+	// } else if channel.State == types.INITUPGRADE {
+
+	// if the counterparty sequence is not equal to our own at this point, either the counterparty chain is out-of-sync or the message is out-of-sync
+	// we write an error receipt with our own sequence so that the counterparty can update their sequence as well.
+	// We must then increment our sequence so both sides start the next upgrade with a fresh sequence.
+	var proposedUpgrade types.Upgrade
+	return proposedUpgrade, nil
 }
 
 // WriteUpgradeTryChannel writes a channel which has successfully passed the UpgradeTry handshake step.
@@ -272,13 +321,14 @@ func extractUpgradeFields(channel types.Channel) types.UpgradeFields {
 
 // constructProposedUpgrade returns the proposed upgrade from the provided arguments.
 func (k Keeper) constructProposedUpgrade(ctx sdk.Context, portID, channelID string, fields types.UpgradeFields, upgradeTimeout types.Timeout) (types.Upgrade, error) {
-	seq, found := k.GetNextSequenceSend(ctx, portID, channelID)
+	nextSequenceSend, found := k.GetNextSequenceSend(ctx, portID, channelID)
 	if !found {
 		return types.Upgrade{}, types.ErrSequenceSendNotFound
 	}
+
 	return types.Upgrade{
 		Fields:             fields,
 		Timeout:            upgradeTimeout,
-		LatestSequenceSend: seq - 1,
+		LatestSequenceSend: nextSequenceSend - 1,
 	}, nil
 }

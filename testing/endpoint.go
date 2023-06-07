@@ -610,6 +610,10 @@ func (endpoint *Endpoint) ChanUpgradeTry() error {
 	counterpartyUpgrade, found := endpoint.Counterparty.Chain.App.GetIBCKeeper().ChannelKeeper.GetUpgrade(endpoint.Counterparty.Chain.GetContext(), endpoint.Counterparty.ChannelConfig.PortID, endpoint.Counterparty.ChannelID)
 	require.True(endpoint.Chain.TB, found)
 
+	if !found {
+		return fmt.Errorf("could not find upgrade for channel %s", endpoint.ChannelID)
+	}
+
 	msg := channeltypes.NewMsgChannelUpgradeTry(
 		endpoint.ChannelConfig.PortID,
 		endpoint.ChannelID,
@@ -670,6 +674,29 @@ func (endpoint *Endpoint) ChanUpgradeTimeout() error {
 		endpoint.Counterparty.GetChannel(),
 		errorReceipt,
 		proofChannel,
+		proofErrorReceipt,
+		height,
+		endpoint.Chain.SenderAccount.GetAddress().String(),
+	)
+
+	return endpoint.Chain.sendMsgs(msg)
+}
+
+// ChanUpgradeCancel sends a MsgChannelUpgradeCancel to the associated endpoint.
+func (endpoint *Endpoint) ChanUpgradeCancel() error {
+	err := endpoint.UpdateClient()
+	require.NoError(endpoint.Chain.TB, err)
+
+	errorReceiptKey := host.ChannelUpgradeErrorKey(endpoint.Counterparty.ChannelConfig.PortID, endpoint.Counterparty.ChannelID)
+	proofErrorReceipt, height := endpoint.Counterparty.Chain.QueryProof(errorReceiptKey)
+
+	errorReceipt, found := endpoint.Counterparty.Chain.App.GetIBCKeeper().ChannelKeeper.GetUpgradeErrorReceipt(endpoint.Counterparty.Chain.GetContext(), endpoint.Counterparty.ChannelConfig.PortID, endpoint.Counterparty.ChannelID)
+	require.True(endpoint.Chain.TB, found)
+
+	msg := channeltypes.NewMsgChannelUpgradeCancel(
+		endpoint.ChannelConfig.PortID,
+		endpoint.ChannelID,
+		errorReceipt,
 		proofErrorReceipt,
 		height,
 		endpoint.Chain.SenderAccount.GetAddress().String(),
