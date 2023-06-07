@@ -88,3 +88,8 @@ var TotalEscrowFeatureReleases = semverutil.FeatureReleases{
 		"v7.1",
 	},
 }
+
+// IbcErrorsFeatureReleases represents the releases the IBC module level errors was released in.
+var IbcErrorsFeatureReleases = semverutil.FeatureReleases{
+	MajorVersion: "v8.0",
+}
