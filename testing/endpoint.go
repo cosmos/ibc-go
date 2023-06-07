@@ -654,6 +654,25 @@ func (endpoint *Endpoint) ChanUpgradeAck() error {
 	return endpoint.Chain.sendMsgs(msg)
 }
 
+// ChanUpgradeOpen sends a MsgChannelUpgradeOpen to the associated endpoint.
+func (endpoint *Endpoint) ChanUpgradeOpen() error {
+	err := endpoint.UpdateClient()
+	require.NoError(endpoint.Chain.TB, err)
+
+	proofChannel, _, height := endpoint.QueryChannelUpgradeProof()
+
+	msg := channeltypes.NewMsgChannelUpgradeOpen(
+		endpoint.ChannelConfig.PortID,
+		endpoint.ChannelID,
+		endpoint.Counterparty.GetChannel().State,
+		proofChannel,
+		height,
+		endpoint.Chain.SenderAccount.GetAddress().String(),
+	)
+
+	return endpoint.Chain.sendMsgs(msg)
+}
+
 // ChanUpgradeTimeout sends a MsgChannelUpgradeTimeout to the associated endpoint.
 func (endpoint *Endpoint) ChanUpgradeTimeout() error {
 	err := endpoint.UpdateClient()
