@@ -320,8 +320,8 @@ func (k Keeper) validateUpgradeFields(ctx sdk.Context, proposedUpgrade types.Upg
 	}
 
 	connectionID := proposedUpgrade.ConnectionHops[0]
-	connection, err := k.GetConnection(ctx, connectionID)
-	if err != nil {
+	connection, found := k.connectionKeeper.GetConnection(ctx, connectionID)
+	if !found {
 		return errorsmod.Wrapf(connectiontypes.ErrConnectionNotFound, "failed to retrieve connection: %s", connectionID)
 	}
 
@@ -329,6 +329,23 @@ func (k Keeper) validateUpgradeFields(ctx sdk.Context, proposedUpgrade types.Upg
 		return errorsmod.Wrapf(
 			connectiontypes.ErrInvalidConnectionState,
 			"connection state is not OPEN (got %s)", connectiontypes.State(connection.GetState()).String(),
+		)
+	}
+
+	getVersions := connection.GetVersions()
+	if len(getVersions) != 1 {
+		return errorsmod.Wrapf(
+			connectiontypes.ErrInvalidVersion,
+			"single version must be negotiated on connection before opening channel, got: %v",
+			getVersions,
+		)
+	}
+
+	if !connectiontypes.VerifySupportedFeature(getVersions[0], proposedUpgrade.Ordering.String()) {
+		return errorsmod.Wrapf(
+			connectiontypes.ErrInvalidVersion,
+			"connection version %s does not support channel ordering: %s",
+			getVersions[0], proposedUpgrade.Ordering.String(),
 		)
 	}
 
