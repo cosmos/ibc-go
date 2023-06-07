@@ -146,9 +146,9 @@ func (suite *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
 	testedEncodings := []string{types.EncodingProtobuf, types.EncodingJSON}
 	var msgs []proto.Message
 	testCases := []struct {
-		name    string
+		name     string
 		malleate func()
-		expPass bool
+		expPass  bool
 	}{
 		{
 			"success: single msg",
@@ -255,12 +255,12 @@ func (suite *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
 				messages := []*codectypes.Any{sendAny, legacyPropAny, delegateAny}
 
 				propMsg := &govtypesv1.MsgSubmitProposal{
-					Messages: messages,
+					Messages:       messages,
 					InitialDeposit: sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(5000))),
 					Proposer:       TestOwnerAddress,
-					Metadata: "",
-					Title: "New IBC Gov Proposal",
-					Summary: "more tokens for all!",
+					Metadata:       "",
+					Title:          "New IBC Gov Proposal",
+					Summary:        "more tokens for all!",
 				}
 
 				msgs = []proto.Message{propMsg}
