@@ -2,8 +2,11 @@ package types_test
 
 import (
 	"github.com/cosmos/cosmos-sdk/codec"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/cosmos/gogoproto/proto"
 
@@ -141,67 +144,146 @@ func (suite *TypesTestSuite) TestCosmwasmDeserializeCosmosTx() {
 
 func (suite *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
 	testedEncodings := []string{types.EncodingProtobuf, types.EncodingJSON}
+	var msgs []proto.Message
 	testCases := []struct {
 		name    string
-		msgs    []proto.Message
+		malleate func()
 		expPass bool
 	}{
 		{
 			"success: single msg",
-			[]proto.Message{
-				&banktypes.MsgSend{
-					FromAddress: TestOwnerAddress,
-					ToAddress:   TestOwnerAddress,
-					Amount:      sdk.NewCoins(sdk.NewCoin("bananas", sdk.NewInt(100))),
-				},
+			func() {
+				msgs = []proto.Message{
+					&banktypes.MsgSend{
+						FromAddress: TestOwnerAddress,
+						ToAddress:   TestOwnerAddress,
+						Amount:      sdk.NewCoins(sdk.NewCoin("bananas", sdk.NewInt(100))),
+					},
+				}
 			},
 			true,
 		},
 		{
 			"success: multiple msgs, same types",
-			[]proto.Message{
-				&banktypes.MsgSend{
-					FromAddress: TestOwnerAddress,
-					ToAddress:   TestOwnerAddress,
-					Amount:      sdk.NewCoins(sdk.NewCoin("bananas", sdk.NewInt(100))),
-				},
-				&banktypes.MsgSend{
-					FromAddress: TestOwnerAddress,
-					ToAddress:   TestOwnerAddress,
-					Amount:      sdk.NewCoins(sdk.NewCoin("bananas", sdk.NewInt(200))),
-				},
+			func() {
+				msgs = []proto.Message{
+					&banktypes.MsgSend{
+						FromAddress: TestOwnerAddress,
+						ToAddress:   TestOwnerAddress,
+						Amount:      sdk.NewCoins(sdk.NewCoin("bananas", sdk.NewInt(100))),
+					},
+					&banktypes.MsgSend{
+						FromAddress: TestOwnerAddress,
+						ToAddress:   TestOwnerAddress,
+						Amount:      sdk.NewCoins(sdk.NewCoin("bananas", sdk.NewInt(200))),
+					},
+				}
 			},
 			true,
 		},
 		{
 			"success: multiple msgs, different types",
-			[]proto.Message{
-				&banktypes.MsgSend{
+			func() {
+				msgs = []proto.Message{
+					&banktypes.MsgSend{
+						FromAddress: TestOwnerAddress,
+						ToAddress:   TestOwnerAddress,
+						Amount:      sdk.NewCoins(sdk.NewCoin("bananas", sdk.NewInt(100))),
+					},
+					&stakingtypes.MsgDelegate{
+						DelegatorAddress: TestOwnerAddress,
+						ValidatorAddress: TestOwnerAddress,
+						Amount:           sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(5000)),
+					},
+				}
+			},
+			true,
+		},
+		{
+			"success: msg with nested any",
+			func() {
+				testProposal := &govtypes.TextProposal{
+					Title:       "IBC Gov Proposal",
+					Description: "tokens for all!",
+				}
+				content, err := codectypes.NewAnyWithValue(testProposal)
+				suite.Require().NoError(err)
+
+				msgs = []proto.Message{
+					&govtypes.MsgSubmitProposal{
+						Content:        content,
+						InitialDeposit: sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(5000))),
+						Proposer:       TestOwnerAddress,
+					},
+				}
+			},
+			true,
+		},
+		{
+			"success: msg with nested array of any",
+			func() {
+				sendMsg := &banktypes.MsgSend{
 					FromAddress: TestOwnerAddress,
 					ToAddress:   TestOwnerAddress,
 					Amount:      sdk.NewCoins(sdk.NewCoin("bananas", sdk.NewInt(100))),
-				},
-				&stakingtypes.MsgDelegate{
+				}
+				sendAny, err := codectypes.NewAnyWithValue(sendMsg)
+				suite.Require().NoError(err)
+
+				testProposal := &govtypes.TextProposal{
+					Title:       "IBC Gov Proposal",
+					Description: "tokens for all!",
+				}
+				content, err := codectypes.NewAnyWithValue(testProposal)
+				suite.Require().NoError(err)
+				legacyPropMsg := &govtypes.MsgSubmitProposal{
+					Content:        content,
+					InitialDeposit: sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(5000))),
+					Proposer:       TestOwnerAddress,
+				}
+				legacyPropAny, err := codectypes.NewAnyWithValue(legacyPropMsg)
+				suite.Require().NoError(err)
+
+				delegateMsg := &stakingtypes.MsgDelegate{
 					DelegatorAddress: TestOwnerAddress,
 					ValidatorAddress: TestOwnerAddress,
 					Amount:           sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(5000)),
-				},
+				}
+				delegateAny, err := codectypes.NewAnyWithValue(delegateMsg)
+				suite.Require().NoError(err)
+
+				messages := []*codectypes.Any{sendAny, legacyPropAny, delegateAny}
+
+				propMsg := &govtypesv1.MsgSubmitProposal{
+					Messages: messages,
+					InitialDeposit: sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(5000))),
+					Proposer:       TestOwnerAddress,
+					Metadata: "",
+					Title: "New IBC Gov Proposal",
+					Summary: "more tokens for all!",
+				}
+
+				msgs = []proto.Message{propMsg}
 			},
 			true,
 		},
 		{
 			"failure: unregistered msg type",
-			[]proto.Message{
-				&mockSdkMsg{},
+			func() {
+				msgs = []proto.Message{
+					&mockSdkMsg{},
+				}
 			},
 			false,
 		},
 		{
 			"failure: multiple unregistered msg types",
-			[]proto.Message{
-				&mockSdkMsg{},
-				&mockSdkMsg{},
-				&mockSdkMsg{},
+			func() {
+				msgs = []proto.Message{
+					&mockSdkMsg{},
+					&mockSdkMsg{},
+					&mockSdkMsg{},
+				}
 			},
 			false,
 		},
@@ -212,7 +294,9 @@ func (suite *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
 			tc := tc
 
 			suite.Run(tc.name, func() {
-				bz, err := types.SerializeCosmosTx(simapp.MakeTestEncodingConfig().Marshaler, tc.msgs, encoding)
+				tc.malleate()
+
+				bz, err := types.SerializeCosmosTx(simapp.MakeTestEncodingConfig().Marshaler, msgs, encoding)
 				suite.Require().NoError(err, tc.name)
 
 				msgs, err := types.DeserializeCosmosTx(simapp.MakeTestEncodingConfig().Marshaler, bz, encoding)
@@ -223,7 +307,7 @@ func (suite *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
 				}
 
 				for i, msg := range msgs {
-					suite.Require().Equal(tc.msgs[i], msg)
+					suite.Require().Equal(msgs[i], msg)
 				}
 			})
 		}
