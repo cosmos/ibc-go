@@ -133,12 +133,11 @@ type UpgradableModule interface {
 		ctx sdk.Context,
 		portID,
 		channelID,
-		counterpartyChannelID,
 		counterpartyVersion string,
 	) error
 
-	// OnChanUpgradeConfirm TODO
-	OnChanUpgradeConfirm(
+	// OnChanUpgradeOpen TODO
+	OnChanUpgradeOpen(
 		ctx sdk.Context,
 		portID,
 		channelID string,
