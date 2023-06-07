@@ -709,6 +709,20 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeOpenValidateBasic() {
 			true,
 		},
 		{
+			"success: counterparty state set to TRYUPGRADE",
+			func() {
+				msg.CounterpartyChannelState = types.TRYUPGRADE
+			},
+			true,
+		},
+		{
+			"success: counterparty state set to ACKUPGRADE",
+			func() {
+				msg.CounterpartyChannelState = types.ACKUPGRADE
+			},
+			true,
+		},
+		{
 			"invalid port identifier",
 			func() {
 				msg.PortId = invalidPort
@@ -725,7 +739,7 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeOpenValidateBasic() {
 		{
 			"invalid counterparty channel state",
 			func() {
-				msg.CounterpartyChannelState = types.TRYUPGRADE
+				msg.CounterpartyChannelState = types.CLOSED
 			},
 			false,
 		},

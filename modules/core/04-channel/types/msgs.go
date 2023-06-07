@@ -6,6 +6,7 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/cosmos/ibc-go/v7/internal/collections"
 	ibcerrors "github.com/cosmos/ibc-go/v7/internal/errors"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
@@ -694,8 +695,8 @@ func (msg MsgChannelUpgradeOpen) ValidateBasic() error {
 		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty channel proof")
 	}
 
-	if msg.CounterpartyChannelState != OPEN {
-		return errorsmod.Wrapf(ErrInvalidChannelState, "expected: %s, got: %s", OPEN, msg.CounterpartyChannelState)
+	if !collections.Contains(msg.CounterpartyChannelState, []State{TRYUPGRADE, ACKUPGRADE, OPEN}) {
+		return errorsmod.Wrapf(ErrInvalidChannelState, "expected channel state to be one of: %s, %s or %s, got: %s", TRYUPGRADE, ACKUPGRADE, OPEN, msg.CounterpartyChannelState)
 	}
 
 	_, err := sdk.AccAddressFromBech32(msg.Signer)
