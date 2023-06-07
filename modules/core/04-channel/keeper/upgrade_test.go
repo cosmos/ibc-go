@@ -217,6 +217,10 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 		{
 			"current upgrade not found even though channel is in INITUPGRADE",
 			func() {
+				// crossing hellos
+				err := path.EndpointB.ChanUpgradeInit()
+				suite.Require().NoError(err)
+
 				suite.chainB.DeleteKey(host.ChannelUpgradeKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID))
 			},
 			false,
@@ -224,6 +228,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 		{
 			"proposed upgrade fields must be equal to existing upgrade fields in crossing hellos",
 			func() {
+				// crossing hellos
 				err := path.EndpointB.ChanUpgradeInit()
 				suite.Require().NoError(err)
 
@@ -256,7 +261,9 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 		{
 			"startFlushUpgradeHandshake fails due to mismatch in upgrade sequences",
 			func() {
-
+				channel := path.EndpointB.GetChannel()
+				channel.UpgradeSequence = 5
+				path.EndpointB.SetChannel(channel)
 			},
 			false,
 		},
