@@ -160,16 +160,6 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 		// 	true,
 		// },
 		// {
-		// 	"error receipt set with smaller counterparty upgrade sequence",
-		// 	func() {
-		// 		counterpartyUpgradeSequence = 2
-
-		// 		channel := path.EndpointB.GetChannel()
-		// 		channel.UpgradeSequence = 4
-		// 		path.EndpointB.SetChannel(channel)
-		// 	},
-		// 	false,
-		// },
 		{
 			"channel not found",
 			func() {
