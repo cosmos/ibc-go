@@ -133,7 +133,6 @@ type UpgradableModule interface {
 		ctx sdk.Context,
 		portID,
 		channelID,
-		counterpartyChannelID,
 		counterpartyVersion string,
 	) error
 
