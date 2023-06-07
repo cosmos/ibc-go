@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"cosmossdk.io/math"
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	paramsproposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
@@ -75,7 +75,7 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized() {
 			actualTotalEscrow, err := s.QueryTotalEscrowForDenom(ctx, chainA, chainADenom)
 			s.Require().NoError(err)
 
-			expectedTotalEscrow := sdk.NewCoin(chainADenom, math.NewInt(testvalues.IBCTransferAmount))
+			expectedTotalEscrow := sdk.NewCoin(chainADenom, sdkmath.NewInt(testvalues.IBCTransferAmount))
 			s.Require().Equal(expectedTotalEscrow, actualTotalEscrow)
 		}
 	})
