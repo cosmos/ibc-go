@@ -76,7 +76,7 @@ func (k Keeper) ChanUpgradeTry(
 	channelID string,
 	proposedConnectionHops []string,
 	proposedUpgradeTimeout types.Timeout,
-	counterpartyProposedUpgrade types.Upgrade,
+	counterpartyUpgrade types.Upgrade,
 	counterpartyUpgradeSequence uint64,
 	proofCounterpartyChannel,
 	proofCounterpartyUpgrade []byte,
@@ -92,21 +92,21 @@ func (k Keeper) ChanUpgradeTry(
 		return types.Upgrade{}, errorsmod.Wrapf(types.ErrInvalidChannelState, "expected one of [%s, %s], got %s", types.OPEN, types.INITUPGRADE, channel.State)
 	}
 
-	connectionEnd, err := k.GetConnection(ctx, channel.ConnectionHops[0])
+	connection, err := k.GetConnection(ctx, channel.ConnectionHops[0])
 	if err != nil {
 		return types.Upgrade{}, errorsmod.Wrap(err, "failed to retrieve connection using the channel connection hops")
 	}
 
 	// make sure connection is OPEN
-	if connectionEnd.GetState() != int32(connectiontypes.OPEN) {
+	if connection.GetState() != int32(connectiontypes.OPEN) {
 		return types.Upgrade{}, errorsmod.Wrapf(
 			connectiontypes.ErrInvalidConnectionState,
-			"connection state is not OPEN (got %s)", connectiontypes.State(connectionEnd.GetState()).String(),
+			"connection state is not OPEN (got %s)", connectiontypes.State(connection.GetState()).String(),
 		)
 	}
 
 	// check if packet is timed out on the receiving chain
-	if hasPassed, err := counterpartyProposedUpgrade.Timeout.HasPassed(ctx); hasPassed {
+	if hasPassed, err := counterpartyUpgrade.Timeout.HasPassed(ctx); hasPassed {
 		// abort here and let counterparty timeout the upgrade
 		return types.Upgrade{}, errorsmod.Wrap(err, "upgrade timeout has passed")
 	}
@@ -114,23 +114,71 @@ func (k Keeper) ChanUpgradeTry(
 	// assert that the proposed connection hops are compatible with the counterparty connection hops
 	// the proposed connections hops must have a counterparty which matches the counterparty connection hops
 
-	// construct counterpartyChannel from existing information and provided counterpartyUpgradeSequence
-
 	// create upgrade fields from counterparty proposed upgrade and own verified connection hops
+	proposedUpgradeFields := types.UpgradeFields{
+		Ordering:       counterpartyUpgrade.Fields.Ordering,
+		ConnectionHops: proposedConnectionHops,
+		Version:        counterpartyUpgrade.Fields.Version,
+	}
 
-	// if OPEN, then initialize handshake with upgradeFields
-	// this should validate the upgrade fields, set the upgrade path and set the final correct sequence.
+	var upgrade types.Upgrade
 
-	// otherwise, if the channel state is already in INITUPGRADE (crossing hellos case),
-	// assert that the upgrade fields are the same as the upgrade already in progress
+	switch channel.State {
+	case types.OPEN:
+		// initialize handshake with upgradeFields
+		// TODO: missing timeout in upgradeTry provided fields
+		upgrade, err = k.ChanUpgradeInit(ctx, portID, channelID, proposedUpgradeFields, upgradeTimeout)
+		if err != nil {
+			return types.Upgrade{}, errorsmod.Wrap(err, "failed to initialize upgrade")
+		}
 
-	// } else if channel.State == types.INITUPGRADE {
+		// NOTE: OnChanUpgradeInit will not be executed
 
-	// if the counterparty sequence is not equal to our own at this point, either the counterparty chain is out-of-sync or the message is out-of-sync
-	// we write an error receipt with our own sequence so that the counterparty can update their sequence as well.
-	// We must then increment our sequence so both sides start the next upgrade with a fresh sequence.
-	var proposedUpgrade types.Upgrade
-	return proposedUpgrade, nil
+		k.WriteUpgradeInitChannel(ctx, portID, channelID, upgrade)
+
+	case types.INITUPGRADE:
+		// crossing hello's
+		// assert that the upgrade fields are the same as the upgrade already in progress
+		upgrade, found = k.GetUpgrade(ctx, portID, channelID)
+		if !found {
+			return types.Upgrade{}, errorsmod.Wrapf(types.ErrUpgradeNotFound, "current upgrade not found despite channel state being in %s", types.INITUPGRADE)
+		}
+
+		if !reflect.DeepEqual(upgrade.Fields, proposedUpgradeFields) {
+			return types.Upgrade{}, errorsmod.Wrapf(
+				types.ErrInvalidUpgrade, "upgrade fields are not equal to current upgrade fields in crossing hello's case, expected %s", upgrade.Fields)
+		}
+
+	default:
+		panic(fmt.Sprintf("channel state should be asserted to be in OPEN or INITUPGRADE before reaching this check; state is %s", channel.State))
+	}
+
+	// construct expected counterparty channel from information in state
+	// only the counterpartyUpgradeSequence is provided by the relayer
+	counterpartyConnectionHops := []string{connection.GetCounterparty().GetConnectionID()}
+	counterpartyChannel := types.Channel{
+		State:           types.INITUPGRADE,
+		Ordering:        channel.Ordering,
+		Counterparty:    types.NewCounterparty(portID, channelID),
+		ConnectionHops:  counterpartyConnectionHops,
+		Version:         channel.Version,
+		UpgradeSequence: counterpartyUpgradeSequence, // provided by the relayer
+		FlushStatus:     types.NOTINFLUSH,
+	}
+
+	if err := k.startFlushUpgradeHandshake(
+		ctx,
+		portID, channelID,
+		proposedUpgradeFields,
+		counterpartyChannel,
+		counterpartyUpgrade,
+		proofCounterpartyChannel, proofCounterpartyUpgrade,
+		proofHeight,
+	); err != nil {
+		return types.Upgrade{}, err
+	}
+
+	return upgrade, nil
 }
 
 // WriteUpgradeTryChannel writes a channel which has successfully passed the UpgradeTry handshake step.
