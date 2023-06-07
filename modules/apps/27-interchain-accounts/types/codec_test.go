@@ -122,6 +122,13 @@ func (suite *TypesTestSuite) TestCosmwasmDeserializeCosmosTx() {
 			},
 			false,
 		},
+		{
+			"failure: empty bytes",
+			func() {
+			cwBytes = []byte{}
+			},
+			false,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -268,6 +275,13 @@ func (suite *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
 			true,
 		},
 		{
+			"success: empty messages",
+			func() {
+				msgs = []proto.Message{}
+			},
+			true,
+		},
+		{
 			"failure: unregistered msg type",
 			func() {
 				msgs = []proto.Message{
@@ -284,6 +298,45 @@ func (suite *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
 					&mockSdkMsg{},
 					&mockSdkMsg{},
 				}
+			},
+			false,
+		},
+		{
+			"failure: nested unregistered msg",
+			func() {
+				mockMsg := &mockSdkMsg{}
+				mockAny, err := codectypes.NewAnyWithValue(mockMsg)
+				suite.Require().NoError(err)
+
+				msgs = []proto.Message{
+					&govtypes.MsgSubmitProposal{
+						Content:        mockAny,
+						InitialDeposit: sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(5000))),
+						Proposer:       TestOwnerAddress,
+					},
+				}
+			},
+			false,
+		},
+		{
+			"failure: nested array of unregistered msg",
+			func() {
+				mockMsg := &mockSdkMsg{}
+				mockAny, err := codectypes.NewAnyWithValue(mockMsg)
+				suite.Require().NoError(err)
+
+				messages := []*codectypes.Any{mockAny, mockAny, mockAny}
+
+				propMsg := &govtypesv1.MsgSubmitProposal{
+					Messages:       messages,
+					InitialDeposit: sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(5000))),
+					Proposer:       TestOwnerAddress,
+					Metadata:       "",
+					Title:          "New IBC Gov Proposal",
+					Summary:        "more tokens for all!",
+				}
+
+				msgs = []proto.Message{propMsg}
 			},
 			false,
 		},
@@ -342,4 +395,30 @@ func (suite *TypesTestSuite) TestProtoDeserializeAndSerializeCosmosTxWithAmino()
 	bz, err := types.DeserializeCosmosTx(marshaler, []byte{0x10, 0}, types.EncodingProtobuf)
 	suite.Require().Error(err)
 	suite.Require().Empty(bz)
+}
+
+func (suite *TypesTestSuite) TestUnsupportedEncodingType() {
+	// Test serialize
+	msgs := []proto.Message{
+		&banktypes.MsgSend{
+			FromAddress: TestOwnerAddress,
+			ToAddress:   TestOwnerAddress,
+			Amount:      sdk.NewCoins(sdk.NewCoin("bananas", sdk.NewInt(100))),
+		},
+	}
+	_, err := types.SerializeCosmosTx(simapp.MakeTestEncodingConfig().Marshaler, msgs, "unsupported")
+	suite.Require().Error(err)
+
+	// Test deserialize
+	msgs = []proto.Message{
+		&banktypes.MsgSend{
+			FromAddress: TestOwnerAddress,
+			ToAddress:   TestOwnerAddress,
+			Amount:      sdk.NewCoins(sdk.NewCoin("bananas", sdk.NewInt(100))),
+		},
+	}
+	data, err := types.SerializeCosmosTx(simapp.MakeTestEncodingConfig().Marshaler, msgs, types.EncodingProtobuf)
+	suite.Require().NoError(err)
+	_, err = types.DeserializeCosmosTx(simapp.MakeTestEncodingConfig().Marshaler, data, "unsupported")
+	suite.Require().Error(err)
 }
