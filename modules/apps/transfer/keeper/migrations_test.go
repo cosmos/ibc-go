@@ -3,7 +3,7 @@ package keeper_test
 import (
 	"fmt"
 
-	"cosmossdk.io/math"
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktestutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
 
@@ -167,7 +167,7 @@ func (suite *KeeperTestSuite) TestMigrateTotalEscrowForDenom() {
 	testCases := []struct {
 		msg               string
 		malleate          func()
-		expectedEscrowAmt math.Int
+		expectedEscrowAmt sdkmath.Int
 	}{
 		{
 			"success: one native denom escrowed in one channel",
@@ -179,7 +179,7 @@ func (suite *KeeperTestSuite) TestMigrateTotalEscrowForDenom() {
 				// funds the escrow account to have balance
 				suite.Require().NoError(banktestutil.FundAccount(suite.chainA.GetSimApp().BankKeeper, suite.chainA.GetContext(), escrowAddress, sdk.NewCoins(coin)))
 			},
-			math.NewInt(100),
+			sdkmath.NewInt(100),
 		},
 		{
 			"success: one native denom escrowed in two channels",
@@ -197,7 +197,7 @@ func (suite *KeeperTestSuite) TestMigrateTotalEscrowForDenom() {
 				suite.Require().NoError(banktestutil.FundAccount(suite.chainA.GetSimApp().BankKeeper, suite.chainA.GetContext(), escrowAddress1, sdk.NewCoins(coin1)))
 				suite.Require().NoError(banktestutil.FundAccount(suite.chainA.GetSimApp().BankKeeper, suite.chainA.GetContext(), escrowAddress2, sdk.NewCoins(coin2)))
 			},
-			math.NewInt(200),
+			sdkmath.NewInt(200),
 		},
 		{
 			"success: valid ibc denom escrowed in one channel",
