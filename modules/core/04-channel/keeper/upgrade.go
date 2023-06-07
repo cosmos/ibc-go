@@ -111,9 +111,6 @@ func (k Keeper) ChanUpgradeTry(
 		return types.Upgrade{}, errorsmod.Wrap(err, "upgrade timeout has passed")
 	}
 
-	// assert that the proposed connection hops are compatible with the counterparty connection hops
-	// the proposed connections hops must have a counterparty which matches the counterparty connection hops
-
 	// construct counterpartyChannel from existing information and provided counterpartyUpgradeSequence
 
 	// create upgrade fields from counterparty proposed upgrade and own verified connection hops
