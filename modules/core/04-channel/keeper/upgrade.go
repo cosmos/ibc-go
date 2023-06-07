@@ -292,7 +292,7 @@ func (k Keeper) abortHandshake(ctx sdk.Context, portID, channelID string, upgrad
 }
 
 // restoreChannel will restore the channel state and flush status to their pre-upgrade state so that upgrade is aborted
-// it write an error receipt to state so counterparty can restore as well.
+// It will write an error receipt to state so that the counterparty can restore as well.
 func (k Keeper) restoreChannel(ctx sdk.Context, portID, channelID string) error {
 	channel, found := k.GetChannel(ctx, portID, channelID)
 	if !found {

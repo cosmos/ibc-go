@@ -400,40 +400,35 @@ func (suite *KeeperTestSuite) TestAbortHandshake() {
 	)
 
 	tests := []struct {
-		name           string
-		malleate       func()
-		expPass        bool
-		channelPresent bool
+		name     string
+		malleate func()
+		expPass  bool
 	}{
 		{
-			name:           "success",
-			malleate:       func() {},
-			expPass:        true,
-			channelPresent: true,
+			name:     "success",
+			malleate: func() {},
+			expPass:  true,
 		},
 		{
 			name: "upgrade does not exist",
 			malleate: func() {
 				suite.chainA.DeleteKey(host.ChannelUpgradeKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
 			},
-			expPass:        false,
-			channelPresent: true,
+			expPass: false,
 		},
 		{
 			name: "channel does not exist",
 			malleate: func() {
 				suite.chainA.DeleteKey(host.ChannelKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
 			},
-			expPass:        false,
-			channelPresent: false,
+			expPass: false,
 		},
 		{
 			name: "fails with nil upgrade error",
 			malleate: func() {
 				upgradeError = nil
 			},
-			expPass:        false,
-			channelPresent: true,
+			expPass: false,
 		},
 	}
 
@@ -446,9 +441,12 @@ func (suite *KeeperTestSuite) TestAbortHandshake() {
 
 			channelKeeper := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper
 
-			path.EndpointA.ChannelConfig.Version = mock.Version + "-v2"
-
+			path.EndpointA.ChannelConfig.Version = mock.UpgradeVersion
 			suite.Require().NoError(path.EndpointA.ChanUpgradeInit())
+
+			// fetch the upgrade before abort for assertions later on.
+			actualUpgrade, ok := channelKeeper.GetUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+			suite.Require().True(ok, "upgrade should be found")
 
 			upgradeError = types.NewUpgradeError(1, types.ErrInvalidChannel)
 
@@ -468,10 +466,8 @@ func (suite *KeeperTestSuite) TestAbortHandshake() {
 				suite.Require().False(found, "upgrade info should be deleted")
 
 				errorReceipt, found := channelKeeper.GetUpgradeErrorReceipt(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-				if upgradeError != nil {
-					suite.Require().True(found, "error receipt should be found")
-					suite.Require().Equal(upgradeError.GetErrorReceipt(), errorReceipt, "error receipt does not match expected error receipt")
-				}
+				suite.Require().True(found, "error receipt should be found")
+				suite.Require().Equal(upgradeError.GetErrorReceipt(), errorReceipt, "error receipt does not match expected error receipt")
 
 				_, found = channelKeeper.GetCounterpartyLastPacketSequence(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 				suite.Require().False(found, "counterparty last packet sequence should not be found")
@@ -479,13 +475,17 @@ func (suite *KeeperTestSuite) TestAbortHandshake() {
 			} else {
 				suite.Require().Error(err)
 				channel, found := channelKeeper.GetChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-				if tc.channelPresent {
-					suite.Require().True(found, "channel should be found")
+				if found { // test cases uses a channel that exists
 					suite.Require().Equal(types.INITUPGRADE, channel.State, "channel state should not be restored to %s", types.INITUPGRADE.String())
 				}
 
 				_, found = channelKeeper.GetUpgradeErrorReceipt(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 				suite.Require().False(found, "error receipt should not be found")
+
+				upgrade, found := channelKeeper.GetUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				if found { // this should be all test cases except for when the upgrade is explicitly deleted.
+					suite.Require().Equal(actualUpgrade, upgrade, "upgrade info should not be deleted")
+				}
 
 				// TODO: assertion that GetCounterpartyLastPacketSequence is present and correct
 			}
