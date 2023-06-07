@@ -147,7 +147,7 @@ func (suite *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
 		expPass bool
 	}{
 		{
-			"success: single msg, proto encoded",
+			"success: single msg",
 			[]proto.Message{
 				&banktypes.MsgSend{
 					FromAddress: TestOwnerAddress,
@@ -158,7 +158,7 @@ func (suite *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
 			true,
 		},
 		{
-			"success: multiple msgs, same types, proto encoded",
+			"success: multiple msgs, same types",
 			[]proto.Message{
 				&banktypes.MsgSend{
 					FromAddress: TestOwnerAddress,
@@ -174,7 +174,7 @@ func (suite *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
 			true,
 		},
 		{
-			"success: multiple msgs, different types, proto encoded",
+			"success: multiple msgs, different types",
 			[]proto.Message{
 				&banktypes.MsgSend{
 					FromAddress: TestOwnerAddress,
@@ -190,14 +190,14 @@ func (suite *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
 			true,
 		},
 		{
-			"failure: unregistered msg type, proto encoded",
+			"failure: unregistered msg type",
 			[]proto.Message{
 				&mockSdkMsg{},
 			},
 			false,
 		},
 		{
-			"failure: multiple unregistered msg types, proto encoded",
+			"failure: multiple unregistered msg types",
 			[]proto.Message{
 				&mockSdkMsg{},
 				&mockSdkMsg{},
