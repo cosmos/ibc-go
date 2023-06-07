@@ -394,7 +394,10 @@ func (suite *KeeperTestSuite) assertUpgradeError(actualError, expError error) {
 // is restored the previous state and that an error receipt is written, and upgrade state which
 // is no longer required is deleted.
 func (suite *KeeperTestSuite) TestAbortHandshake() {
-	var path *ibctesting.Path
+	var (
+		path         *ibctesting.Path
+		upgradeError *types.UpgradeError
+	)
 
 	tests := []struct {
 		name           string
@@ -424,6 +427,14 @@ func (suite *KeeperTestSuite) TestAbortHandshake() {
 			expPass:        false,
 			channelPresent: false,
 		},
+		{
+			name: "fails with nil upgrade error",
+			malleate: func() {
+				upgradeError = nil
+			},
+			expPass:        false,
+			channelPresent: true,
+		},
 	}
 
 	for _, tc := range tests {
@@ -439,7 +450,7 @@ func (suite *KeeperTestSuite) TestAbortHandshake() {
 
 			suite.Require().NoError(path.EndpointA.ChanUpgradeInit())
 
-			upgradeError := types.NewUpgradeError(1, types.ErrInvalidChannel)
+			upgradeError = types.NewUpgradeError(1, types.ErrInvalidChannel)
 
 			tc.malleate()
 
@@ -451,31 +462,30 @@ func (suite *KeeperTestSuite) TestAbortHandshake() {
 				channel, found := channelKeeper.GetChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 				suite.Require().True(found, "channel should be found")
 
-				suite.Require().Equal(types.OPEN, channel.State, "channel state should be OPEN")
-				suite.Require().Equal(types.NOTINFLUSH, channel.FlushStatus, "channel flush status should be NOTINFLUSH")
-
+				suite.Require().Equal(types.OPEN, channel.State, "channel state should be %s", types.OPEN.String())
+				suite.Require().Equal(types.NOTINFLUSH, channel.FlushStatus, "channel flush status should be %s", types.NOTINFLUSH.String())
 				_, found = channelKeeper.GetUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 				suite.Require().False(found, "upgrade info should be deleted")
 
 				errorReceipt, found := channelKeeper.GetUpgradeErrorReceipt(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 				if upgradeError != nil {
 					suite.Require().True(found, "error receipt should be found")
-					suite.Require().Equal(upgradeError.GetErrorReceipt(), errorReceipt, "error receipt should be stored")
+					suite.Require().Equal(upgradeError.GetErrorReceipt(), errorReceipt, "error receipt does not match expected error receipt")
 				}
 
 				_, found = channelKeeper.GetCounterpartyLastPacketSequence(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-				suite.Require().False(found, "counterparty last packet sequence should be found")
+				suite.Require().False(found, "counterparty last packet sequence should not be found")
 
 			} else {
 				suite.Require().Error(err)
 				channel, found := channelKeeper.GetChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 				if tc.channelPresent {
 					suite.Require().True(found, "channel should be found")
-					suite.Require().Equal(types.INITUPGRADE, channel.State, "channel state should not be restored to OPEN")
+					suite.Require().Equal(types.INITUPGRADE, channel.State, "channel state should not be restored to %s", types.INITUPGRADE.String())
 				}
 
 				_, found = channelKeeper.GetUpgradeErrorReceipt(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-				suite.Require().False(found, "error receipt should not be written")
+				suite.Require().False(found, "error receipt should not be found")
 
 				// TODO: assertion that GetCounterpartyLastPacketSequence is present and correct
 			}
