@@ -659,7 +659,8 @@ func (endpoint *Endpoint) ChanUpgradeOpen() error {
 	err := endpoint.UpdateClient()
 	require.NoError(endpoint.Chain.TB, err)
 
-	proofChannel, _, height := endpoint.QueryChannelUpgradeProof()
+	channelKey := host.ChannelKey(endpoint.Counterparty.ChannelConfig.PortID, endpoint.Counterparty.ChannelID)
+	proofChannel, height := endpoint.Counterparty.QueryProof(channelKey)
 
 	msg := channeltypes.NewMsgChannelUpgradeOpen(
 		endpoint.ChannelConfig.PortID,
