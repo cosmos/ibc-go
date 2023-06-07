@@ -14,6 +14,8 @@ import (
 	"github.com/cosmos/ibc-go/v7/testing/mock"
 )
 
+var mockUpgradeVersion = "1.0.0"
+
 func (suite *KeeperTestSuite) TestChanUpgradeInit() {
 	var (
 		path        *ibctesting.Path
@@ -314,7 +316,7 @@ func (suite *KeeperTestSuite) TestValidateUpgradeFields() {
 		{
 			name: "change channel version",
 			malleate: func() {
-				proposedUpgrade.Version = "1.0.0"
+				proposedUpgrade.Version = mockUpgradeVersion
 			},
 			expPass: true,
 		},
@@ -354,7 +356,7 @@ func (suite *KeeperTestSuite) TestValidateUpgradeFields() {
 			name: "fails when connection versions do not exist",
 			malleate: func() {
 				// update channel version first so that existing channel end is not identical to proposed upgrade
-				proposedUpgrade.Version = "1.0.0"
+				proposedUpgrade.Version = mockUpgradeVersion
 
 				connection := path.EndpointA.GetConnection()
 				connection.Versions = []*connectiontypes.Version{}
@@ -366,7 +368,7 @@ func (suite *KeeperTestSuite) TestValidateUpgradeFields() {
 			name: "fails when connection version does not support the new ordering",
 			malleate: func() {
 				// update channel version first so that existing channel end is not identical to proposed upgrade
-				proposedUpgrade.Version = "1.0.0"
+				proposedUpgrade.Version = mockUpgradeVersion
 
 				connection := path.EndpointA.GetConnection()
 				connection.Versions = []*connectiontypes.Version{
