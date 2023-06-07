@@ -658,34 +658,30 @@ func (msg MsgChannelUpgradeAck) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{signer}
 }
 
-var _ sdk.Msg = &MsgChannelUpgradeConfirm{}
+var _ sdk.Msg = &MsgChannelUpgradeOpen{}
 
-// NewMsgChannelUpgradeConfirm constructs a new MsgChannelUpgradeConfirm
+// NewMsgChannelUpgradeOpen constructs a new MsgChannelUpgradeOpen
 // nolint:interfacer
-func NewMsgChannelUpgradeConfirm(
+func NewMsgChannelUpgradeOpen(
 	portID,
 	channelID string,
-	counterpartyChannel Channel,
-	proofChannel,
-	proofUpgradeError,
-	proofUpgradeSequence []byte,
+	counterpartyChannelState State,
+	proofChannel []byte,
 	proofHeight clienttypes.Height,
 	signer string,
-) *MsgChannelUpgradeConfirm {
-	return &MsgChannelUpgradeConfirm{
-		PortId:               portID,
-		ChannelId:            channelID,
-		CounterpartyChannel:  counterpartyChannel,
-		ProofChannel:         proofChannel,
-		ProofUpgradeError:    proofUpgradeError,
-		ProofUpgradeSequence: proofUpgradeSequence,
-		ProofHeight:          proofHeight,
-		Signer:               signer,
+) *MsgChannelUpgradeOpen {
+	return &MsgChannelUpgradeOpen{
+		PortId:                   portID,
+		ChannelId:                channelID,
+		CounterpartyChannelState: counterpartyChannelState,
+		ProofChannel:             proofChannel,
+		ProofHeight:              proofHeight,
+		Signer:                   signer,
 	}
 }
 
 // ValidateBasic implements sdk.Msg
-func (msg MsgChannelUpgradeConfirm) ValidateBasic() error {
+func (msg MsgChannelUpgradeOpen) ValidateBasic() error {
 	if err := host.PortIdentifierValidator(msg.PortId); err != nil {
 		return errorsmod.Wrap(err, "invalid port ID")
 	}
@@ -698,16 +694,8 @@ func (msg MsgChannelUpgradeConfirm) ValidateBasic() error {
 		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty channel proof")
 	}
 
-	if len(msg.ProofUpgradeError) == 0 {
-		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty upgrade error proof")
-	}
-
-	if len(msg.ProofUpgradeSequence) == 0 {
-		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty upgrade sequence proof")
-	}
-
-	if msg.CounterpartyChannel.State != OPEN {
-		return errorsmod.Wrapf(ErrInvalidChannelState, "expected: %s, got: %s", OPEN, msg.CounterpartyChannel.State)
+	if msg.CounterpartyChannelState != OPEN {
+		return errorsmod.Wrapf(ErrInvalidChannelState, "expected: %s, got: %s", OPEN, msg.CounterpartyChannelState)
 	}
 
 	_, err := sdk.AccAddressFromBech32(msg.Signer)
@@ -719,7 +707,7 @@ func (msg MsgChannelUpgradeConfirm) ValidateBasic() error {
 }
 
 // GetSigners implements sdk.Msg
-func (msg MsgChannelUpgradeConfirm) GetSigners() []sdk.AccAddress {
+func (msg MsgChannelUpgradeOpen) GetSigners() []sdk.AccAddress {
 	signer, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
 		panic(err)
