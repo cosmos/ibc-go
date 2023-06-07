@@ -8,6 +8,7 @@ import "gogoproto/gogo.proto";
 import "ibc/core/client/v1/client.proto";
 import "ibc/core/channel/v1/channel.proto";
 import "cosmos/msg/v1/msg.proto";
+
 // Msg defines the ibc/channel Msg service.
 service Msg {
   option (cosmos.msg.v1.service) = true;
