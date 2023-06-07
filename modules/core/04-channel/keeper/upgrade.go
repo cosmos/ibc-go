@@ -257,7 +257,8 @@ func (k Keeper) startFlushUpgradeHandshake(
 	return nil
 }
 
-// WriteUpgradeAckChannel writes a channel which has successfully passed the UpgradeAck handshake step.
+// WriteUpgradeAckChannel writes a channel which has successfully passed the UpgradeAck handshake step as well as
+// setting the upgrade for that channel.
 // An event is emitted for the handshake step.
 func (k Keeper) WriteUpgradeAckChannel(
 	ctx sdk.Context,
