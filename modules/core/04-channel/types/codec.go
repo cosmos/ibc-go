@@ -42,7 +42,7 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 		&MsgChannelUpgradeInit{},
 		&MsgChannelUpgradeTry{},
 		&MsgChannelUpgradeAck{},
-		&MsgChannelUpgradeConfirm{},
+		&MsgChannelUpgradeOpen{},
 		&MsgChannelUpgradeTimeout{},
 		&MsgChannelUpgradeCancel{},
 	)
