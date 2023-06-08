@@ -363,6 +363,7 @@ func newDefaultSimappConfig(cc ChainConfig, name, chainID, denom string, cometCf
 
 	tmTomlOverrides["log_level"] = cometCfg.LogLevel // change to debug in ~/.ibc-go-e2e-config.json to increase cometbft logging.
 	configFileOverrides["config/config.toml"] = tmTomlOverrides
+
 	useNewGenesisCommand := cc.Binary == icadBinary && testvalues.IcadNewGenesisCommandsFeatureReleases.IsSupported(cc.Tag)
 
 	return ibc.ChainConfig{
