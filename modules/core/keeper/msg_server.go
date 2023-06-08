@@ -772,38 +772,32 @@ func (k Keeper) ChannelUpgradeTry(goCtx context.Context, msg *channeltypes.MsgCh
 				return nil, err
 			}
 
-			// NOTE: a failure Result is indicated to the client and an error receipt is written to state
-			return &channeltypes.MsgChannelUpgradeTryResponse{
-				Result: channeltypes.FAILURE,
-			}, nil
+			// NOTE: a FAILURE result is returned to the client and an error receipt is written to state.
+			return &channeltypes.MsgChannelUpgradeTryResponse{Result: channeltypes.FAILURE}, nil
 		}
 
-		// TODO: add meaningful comment about type of error and rejecting full tx + revert state
+		// NOTE: an error is returned to baseapp and transaction state is not committed.
 		return nil, err
 	}
 
 	cacheCtx, writeFn := ctx.CacheContext()
-	version, err := cbs.OnChanUpgradeTry(cacheCtx, msg.PortId, msg.ChannelId, upgrade.Fields.Ordering, upgrade.Fields.ConnectionHops, upgrade.Fields.Version)
+	upgradeVersion, err := cbs.OnChanUpgradeTry(cacheCtx, msg.PortId, msg.ChannelId, upgrade.Fields.Ordering, upgrade.Fields.ConnectionHops, upgrade.Fields.Version)
 	if err != nil {
 		if err := k.ChannelKeeper.AbortUpgrade(ctx, msg.PortId, msg.ChannelId, err); err != nil {
 			return nil, err
 		}
 
-		return &channeltypes.MsgChannelUpgradeTryResponse{
-			Result: channeltypes.FAILURE,
-		}, nil
+		return &channeltypes.MsgChannelUpgradeTryResponse{Result: channeltypes.FAILURE}, nil
 	}
 
-	upgrade.Fields.Version = version
 	writeFn()
 
-	k.ChannelKeeper.WriteUpgradeTryChannel(ctx, msg.PortId, msg.ChannelId, upgrade)
+	k.ChannelKeeper.WriteUpgradeTryChannel(ctx, msg.PortId, msg.ChannelId, upgrade, upgradeVersion)
 
-	// TODO: add upgrade sequence to response
 	return &channeltypes.MsgChannelUpgradeTryResponse{
+		Result:    channeltypes.SUCCESS,
 		ChannelId: msg.ChannelId,
 		Upgrade:   upgrade,
-		Result:    channeltypes.SUCCESS,
 	}, nil
 }
 

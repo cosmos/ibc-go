@@ -180,11 +180,7 @@ func (k Keeper) ChanUpgradeTry(
 
 // WriteUpgradeTryChannel writes a channel which has successfully passed the UpgradeTry handshake step.
 // An event is emitted for the handshake step.
-func (k Keeper) WriteUpgradeTryChannel(
-	ctx sdk.Context,
-	portID, channelID string,
-	proposedUpgrade types.Upgrade,
-) {
+func (k Keeper) WriteUpgradeTryChannel(ctx sdk.Context, portID, channelID string, upgrade types.Upgrade, upgradeVersion string) {
 	defer telemetry.IncrCounter(1, "ibc", "channel", "upgrade-try")
 
 	channel, found := k.GetChannel(ctx, portID, channelID)
@@ -197,11 +193,13 @@ func (k Keeper) WriteUpgradeTryChannel(
 	// TODO: determine flush status
 	// channel.FlushStatus = flushStatus
 
+	upgrade.Fields.Version = upgradeVersion
+
 	k.SetChannel(ctx, portID, channelID, channel)
-	k.SetUpgrade(ctx, portID, channelID, proposedUpgrade)
+	k.SetUpgrade(ctx, portID, channelID, upgrade)
 
 	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", previousState, "new-state", types.TRYUPGRADE.String())
-	emitChannelUpgradeTryEvent(ctx, portID, channelID, channel, proposedUpgrade)
+	emitChannelUpgradeTryEvent(ctx, portID, channelID, channel, upgrade)
 }
 
 func (k Keeper) AbortUpgrade(ctx sdk.Context, portID, channelID string, err error) error {
