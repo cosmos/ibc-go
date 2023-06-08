@@ -127,6 +127,7 @@ func (k Keeper) ChanUpgradeTry(
 		}
 
 		// TODO: add fast forward feature
+		// https://github.com/cosmos/ibc-go/issues/3794
 
 		// NOTE: OnChanUpgradeInit will not be executed by the application
 
