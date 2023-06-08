@@ -251,7 +251,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 				connection.Counterparty.ConnectionId = "connection-50"
 
 				// set proposed connection in state
-				proposedConnectionID := "connection-100"
+				proposedConnectionID := "connection-100" //nolint:goconst
 				suite.chainB.GetSimApp().GetIBCKeeper().ConnectionKeeper.SetConnection(suite.chainB.GetContext(), proposedConnectionID, connection)
 				proposedUpgrade.Fields.ConnectionHops[0] = proposedConnectionID
 			},
