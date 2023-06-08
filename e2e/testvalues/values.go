@@ -66,6 +66,11 @@ var IcadNewGenesisCommandsFeatureReleases = semverutil.FeatureReleases{
 	},
 }
 
+// SimdNewGenesisCommandsFeatureReleases represents the releases the simd binary started using the new genesis command.
+var SimdNewGenesisCommandsFeatureReleases = semverutil.FeatureReleases{
+	MajorVersion: "v8",
+}
+
 // TransferSelfParamsFeatureReleases represents the releases the transfer module started managing its own params.
 var SelfParamsFeatureReleases = semverutil.FeatureReleases{
 	MajorVersion: "v8",
