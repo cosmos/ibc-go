@@ -1,8 +1,6 @@
 package types
 
 import (
-	"encoding/json"
-
 	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -37,50 +35,27 @@ func SerializeCosmosTx(cdc codec.BinaryCodec, msgs []proto.Message, encoding str
 	var bz []byte
 	var err error
 
+	msgAnys := make([]*codectypes.Any, len(msgs))
+
+	for i, msg := range msgs {
+		msgAnys[i], err = codectypes.NewAnyWithValue(msg)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	cosmosTx := &CosmosTx{
+		Messages: msgAnys,
+	}
+
 	switch encoding {
 	case EncodingProtobuf:
-		msgAnys := make([]*codectypes.Any, len(msgs))
-		for i, msg := range msgs {
-			msgAnys[i], err = codectypes.NewAnyWithValue(msg)
-			if err != nil {
-				return nil, err
-			}
-		}
-
-		cosmosTx := &CosmosTx{
-			Messages: msgAnys,
-		}
-
 		bz, err = cdc.Marshal(cosmosTx)
 		if err != nil {
 			return nil, err
 		}
 	case EncodingJSON:
-		msgAnys := make([]*JSONAny, len(msgs))
-		for i, msg := range msgs {
-			protoAny, err := codectypes.NewAnyWithValue(msg)
-			if err != nil {
-				return nil, err
-			}
-
-			jsonAny, _, err := toJSONAny(cdc, protoAny)
-			if err != nil {
-				return nil, err
-			}
-
-			jsonBytes, err := json.Marshal(jsonAny)
-			if err != nil {
-				return nil, errorsmod.Wrapf(ErrUnknownDataType, "cannot marshal jsonAny with json")
-			}
-
-			msgAnys[i] = (*json.RawMessage)(&jsonBytes)
-		}
-
-		cosmosTx := &JSONCosmosTx{
-			Messages: msgAnys,
-		}
-
-		bz, err = json.Marshal(cosmosTx)
+		bz, err = cdc.(*codec.ProtoCodec).MarshalJSON(cosmosTx)
 		if err != nil {
 			return nil, errorsmod.Wrapf(ErrUnknownDataType, "cannot marshal cosmosTx with json")
 		}
@@ -98,49 +73,30 @@ func DeserializeCosmosTx(cdc codec.BinaryCodec, data []byte, encoding string) ([
 		return nil, errorsmod.Wrap(ErrInvalidCodec, "ProtoCodec must be supported for receiving messages on the host chain")
 	}
 
-	var msgs []sdk.Msg
+	var cosmosTx CosmosTx
 
 	switch encoding {
 	case EncodingProtobuf:
-		var cosmosTx CosmosTx
 		if err := cdc.Unmarshal(data, &cosmosTx); err != nil {
 			return nil, err
 		}
-
-		msgs = make([]sdk.Msg, len(cosmosTx.Messages))
-
-		for i, protoAny := range cosmosTx.Messages {
-			var msg sdk.Msg
-
-			err := cdc.UnpackAny(protoAny, &msg)
-			if err != nil {
-				return nil, err
-			}
-
-			msgs[i] = msg
-		}
 	case EncodingJSON:
-		var cosmosTx JSONCosmosTx
-		if err := json.Unmarshal(data, &cosmosTx); err != nil {
+		if err := cdc.(*codec.ProtoCodec).UnmarshalJSON(data, &cosmosTx); err != nil {
 			return nil, errorsmod.Wrapf(ErrUnknownDataType, "cannot unmarshal cosmosTx with json")
-		}
-
-		msgs = make([]sdk.Msg, len(cosmosTx.Messages))
-
-		for i, jsonAny := range cosmosTx.Messages {
-			_, message, err := fromJSONAny(cdc, jsonAny)
-			if err != nil {
-				return nil, errorsmod.Wrapf(ErrUnknownDataType, "cannot unmarshal the %d-th json message: %s", i, string(jsonAny.Value))
-			}
-
-			msg, ok := message.(sdk.Msg)
-			if !ok {
-				return nil, errorsmod.Wrapf(ErrUnknownDataType, "message %T does not implement sdk.Msg", message)
-			}
-			msgs[i] = msg
 		}
 	default:
 		return nil, errorsmod.Wrapf(ErrUnsupportedEncoding, "encoding type %s is not supported", encoding)
+	}
+
+	msgs := make([]sdk.Msg, len(cosmosTx.Messages))
+
+	for i, protoAny := range cosmosTx.Messages {
+		var msg sdk.Msg
+		err := cdc.UnpackAny(protoAny, &msg)
+		if err != nil {
+			return nil, err
+		}
+		msgs[i] = msg
 	}
 
 	return msgs, nil
