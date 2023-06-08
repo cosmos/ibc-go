@@ -67,7 +67,7 @@ var IcadNewGenesisCommandsFeatureReleases = semverutil.FeatureReleases{
 }
 
 // TransferSelfParamsFeatureReleases represents the releases the transfer module started managing its own params.
-var TransferSelfParamsFeatureReleases = semverutil.FeatureReleases{
+var SelfParamsFeatureReleases = semverutil.FeatureReleases{
 	MajorVersion: "v8",
 }
 
@@ -87,4 +87,9 @@ var TotalEscrowFeatureReleases = semverutil.FeatureReleases{
 	MinorVersions: []string{
 		"v7.1",
 	},
+}
+
+// IbcErrorsFeatureReleases represents the releases the IBC module level errors was released in.
+var IbcErrorsFeatureReleases = semverutil.FeatureReleases{
+	MajorVersion: "v8.0",
 }
