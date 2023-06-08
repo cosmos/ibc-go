@@ -573,11 +573,11 @@ func (endpoint *Endpoint) QueryChannelUpgradeProof() ([]byte, []byte, clienttype
 
 	// query proof for the channel on the counterparty
 	channelKey := host.ChannelKey(counterpartyPortID, counterpartyChannelID)
-	proofChannel, height := endpoint.Counterparty.Chain.QueryProof(channelKey)
+	proofChannel, height := endpoint.Counterparty.QueryProof(channelKey)
 
 	// query proof for the upgrade attempt on the counterparty
 	upgradeKey := host.ChannelUpgradeKey(counterpartyPortID, counterpartyChannelID)
-	proofUpgrade, _ := endpoint.Counterparty.Chain.QueryProof(upgradeKey)
+	proofUpgrade, _ := endpoint.Counterparty.QueryProof(upgradeKey)
 
 	return proofChannel, proofUpgrade, height
 }
