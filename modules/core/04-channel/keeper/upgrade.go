@@ -128,12 +128,12 @@ func (k Keeper) ChanUpgradeTry(
 
 		// TODO: add fast forward feature
 
-		// NOTE: OnChanUpgradeInit will not be executed
+		// NOTE: OnChanUpgradeInit will not be executed by the application
 
 		k.WriteUpgradeInitChannel(ctx, portID, channelID, upgrade)
 
 	case types.INITUPGRADE:
-		// crossing hello's
+		// crossing hellos
 		// assert that the upgrade fields are the same as the upgrade already in progress
 		upgrade, found = k.GetUpgrade(ctx, portID, channelID)
 		if !found {
@@ -142,7 +142,7 @@ func (k Keeper) ChanUpgradeTry(
 
 		if !reflect.DeepEqual(upgrade.Fields, proposedUpgradeFields) {
 			return types.Upgrade{}, errorsmod.Wrapf(
-				types.ErrInvalidUpgrade, "upgrade fields are not equal to current upgrade fields in crossing hello's case, expected %s", upgrade.Fields)
+				types.ErrInvalidUpgrade, "upgrade fields are not equal to current upgrade fields in crossing hellos case, expected %s", upgrade.Fields)
 		}
 
 	default:
