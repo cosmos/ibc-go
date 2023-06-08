@@ -6,6 +6,7 @@ import (
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/authz"
 	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
 	"github.com/stretchr/testify/suite"
@@ -180,6 +181,7 @@ func (suite *AuthzTransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 	relayer, channelA := suite.SetupChainsRelayerAndChannel(ctx, suite.TransferChannelOptions())
 	chainA, chainB := suite.GetChains()
 
+	chainAVersion := chainA.Config().Images[0].Version
 	chainADenom := chainA.Config().Denom
 
 	granterWallet := suite.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
@@ -248,7 +250,11 @@ func (suite *AuthzTransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 			}
 
 			resp := suite.BroadcastMessages(context.TODO(), chainA, granteeWallet, msgExec)
-			suite.AssertTxFailure(resp, ibcerrors.ErrInsufficientFunds)
+			if testvalues.IbcErrorsFeatureReleases.IsSupported(chainAVersion) {
+				suite.AssertTxFailure(resp, ibcerrors.ErrInsufficientFunds)
+			} else {
+				suite.AssertTxFailure(resp, sdkerrors.ErrInsufficientFunds)
+			}
 		})
 
 		t.Run("verify granter wallet amount", func(t *testing.T) {
@@ -300,7 +306,11 @@ func (suite *AuthzTransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 			}
 
 			resp := suite.BroadcastMessages(context.TODO(), chainA, granteeWallet, msgExec)
-			suite.AssertTxFailure(resp, ibcerrors.ErrInvalidAddress)
+			if testvalues.IbcErrorsFeatureReleases.IsSupported(chainAVersion) {
+				suite.AssertTxFailure(resp, ibcerrors.ErrInvalidAddress)
+			} else {
+				suite.AssertTxFailure(resp, sdkerrors.ErrInvalidAddress)
+			}
 		})
 	})
 }
