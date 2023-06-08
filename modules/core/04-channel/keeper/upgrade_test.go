@@ -272,6 +272,8 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 		tc := tc
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
+			expPass := tc.expError == nil
+
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.Setup(path)
 
@@ -306,10 +308,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 				proofHeight,
 			)
 
-			if tc.expError != nil {
-				suite.assertUpgradeError(err, tc.expError)
-				suite.Require().Empty(upgrade)
-			} else {
+			if expPass {
 				suite.Require().NoError(err)
 				suite.Require().NotEmpty(upgrade)
 				suite.Require().Equal(proposedUpgrade.Fields, upgrade.Fields)
@@ -318,6 +317,9 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 				latestSequenceSend, found := path.EndpointB.Chain.GetSimApp().IBCKeeper.ChannelKeeper.GetNextSequenceSend(path.EndpointB.Chain.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 				suite.Require().True(found)
 				suite.Require().Equal(latestSequenceSend-1, upgrade.LatestSequenceSend)
+			} else {
+				suite.assertUpgradeError(err, tc.expError)
+				suite.Require().Empty(upgrade)
 			}
 		})
 	}
