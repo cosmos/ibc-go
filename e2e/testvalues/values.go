@@ -59,6 +59,12 @@ var IcadGovGenesisFeatureReleases = semverutil.FeatureReleases{
 	},
 }
 
+// IcadNewGenesisCommandsFeatureReleases represents the releases of icad using the new genesis commands.
+var IcadNewGenesisCommandsFeatureReleases = semverutil.FeatureReleases{
+	MinorVersions: []string{
+		"v0.5",
+	},
+	
 // TransferSelfParamsFeatureReleases represents the releases the transfer module started managing its own params.
 var TransferSelfParamsFeatureReleases = semverutil.FeatureReleases{
 	MajorVersion: "v8",
