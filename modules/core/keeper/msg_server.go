@@ -794,17 +794,15 @@ func (k Keeper) ChannelUpgradeTry(goCtx context.Context, msg *channeltypes.MsgCh
 		}, nil
 	}
 
+	upgrade.Fields.Version = version
 	writeFn()
 
-	upgrade.Fields.Version = version
+	k.ChannelKeeper.WriteUpgradeTryChannel(ctx, msg.PortId, msg.ChannelId, upgrade)
 
-	// TODO: determine where flushStatus is computed, pendingInflightPackets could be checked within WriteUpgradeTryChannel(?)
-	// the spec currently defines this in startFlushUpgradeHandshake(), if done here it would need to be returned and propagated to this call
-	k.ChannelKeeper.WriteUpgradeTryChannel(ctx, msg.PortId, msg.ChannelId, upgrade, channeltypes.FLUSHING)
-
+	// TODO: add upgrade sequence to response
 	return &channeltypes.MsgChannelUpgradeTryResponse{
 		ChannelId: msg.ChannelId,
-		Version:   "", // todo: return upgrade and upgrade sequence aligning with return args of INIT
+		Upgrade:   upgrade,
 		Result:    channeltypes.SUCCESS,
 	}, nil
 }
