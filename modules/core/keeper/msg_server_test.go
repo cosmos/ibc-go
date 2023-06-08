@@ -5,6 +5,7 @@ import (
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
@@ -772,5 +773,107 @@ func (suite *KeeperTestSuite) TestUpgradeClient() {
 		} else {
 			suite.Require().Error(err, "upgrade handler passed on invalid case: %s", tc.name)
 		}
+	}
+}
+
+// TestUpdateClientParams tests the UpdateClientParams rpc handler
+func (suite *KeeperTestSuite) TestUpdateClientParams() {
+	validAuthority := suite.chainA.App.GetIBCKeeper().GetAuthority()
+	testCases := []struct {
+		name    string
+		msg     *clienttypes.MsgUpdateParams
+		expPass bool
+	}{
+		{
+			"success: valid authority and default params",
+			clienttypes.NewMsgUpdateParams(validAuthority, clienttypes.DefaultParams()),
+			true,
+		},
+		{
+			"failure: malformed authority address",
+			clienttypes.NewMsgUpdateParams(ibctesting.InvalidID, clienttypes.DefaultParams()),
+			false,
+		},
+		{
+			"failure: empty authority address",
+			clienttypes.NewMsgUpdateParams("", clienttypes.DefaultParams()),
+			false,
+		},
+		{
+			"failure: whitespace authority address",
+			clienttypes.NewMsgUpdateParams("    ", clienttypes.DefaultParams()),
+			false,
+		},
+		{
+			"failure: unauthorized authority address",
+			clienttypes.NewMsgUpdateParams(ibctesting.TestAccAddress, clienttypes.DefaultParams()),
+			false,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+			_, err := keeper.Keeper.UpdateClientParams(*suite.chainA.App.GetIBCKeeper(), suite.chainA.GetContext(), tc.msg)
+			if tc.expPass {
+				suite.Require().NoError(err)
+				p := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetParams(suite.chainA.GetContext())
+				suite.Require().Equal(tc.msg.Params, p)
+			} else {
+				suite.Require().Error(err)
+			}
+		})
+	}
+}
+
+// TestUpdateConnectionParams tests the UpdateConnectionParams rpc handler
+func (suite *KeeperTestSuite) TestUpdateConnectionParams() {
+	validAuthority := suite.chainA.App.GetIBCKeeper().GetAuthority()
+	testCases := []struct {
+		name    string
+		msg     *connectiontypes.MsgUpdateParams
+		expPass bool
+	}{
+		{
+			"success: valid authority and default params",
+			connectiontypes.NewMsgUpdateParams(validAuthority, connectiontypes.DefaultParams()),
+			true,
+		},
+		{
+			"failure: malformed authority address",
+			connectiontypes.NewMsgUpdateParams(ibctesting.InvalidID, connectiontypes.DefaultParams()),
+			false,
+		},
+		{
+			"failure: empty authority address",
+			connectiontypes.NewMsgUpdateParams("", connectiontypes.DefaultParams()),
+			false,
+		},
+		{
+			"failure: whitespace authority address",
+			connectiontypes.NewMsgUpdateParams("    ", connectiontypes.DefaultParams()),
+			false,
+		},
+		{
+			"failure: unauthorized authority address",
+			connectiontypes.NewMsgUpdateParams(ibctesting.TestAccAddress, connectiontypes.DefaultParams()),
+			false,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+			_, err := keeper.Keeper.UpdateConnectionParams(*suite.chainA.App.GetIBCKeeper(), suite.chainA.GetContext(), tc.msg)
+			if tc.expPass {
+				suite.Require().NoError(err)
+				p := suite.chainA.App.GetIBCKeeper().ConnectionKeeper.GetParams(suite.chainA.GetContext())
+				suite.Require().Equal(tc.msg.Params, p)
+			} else {
+				suite.Require().Error(err)
+			}
+		})
 	}
 }

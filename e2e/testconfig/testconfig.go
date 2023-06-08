@@ -51,6 +51,8 @@ const (
 	// defaultRlyTag is the tag that will be used if no relayer tag is specified.
 	// all images are here https://github.com/cosmos/relayer/pkgs/container/relayer/versions
 	defaultRlyTag = "latest" // "andrew-tendermint_v0.37" // "v2.2.0"
+	// defaultHermesTag is the tag that will be used if no relayer tag is specified for hermes.
+	defaultHermesTag = "v1.4.0"
 	// defaultChainTag is the tag that will be used for the chains if none is specified.
 	defaultChainTag = "main"
 	// defaultRelayerType is the default relayer that will be used if none is specified.
@@ -286,7 +288,7 @@ func getRelayerConfigFromEnv() relayer.Config {
 			rlyTag = defaultRlyTag
 		}
 		if relayerType == relayer.Hermes {
-			// TODO: set default hermes version
+			rlyTag = defaultHermesTag
 		}
 	}
 	return relayer.Config{
@@ -393,10 +395,10 @@ func getGenesisModificationFunction(cc ChainConfig) func(ibc.ChainConfig, []byte
 	binary := cc.Binary
 	version := cc.Tag
 
-	doesSimdSupportGovv1Genesis := binary == defaultBinary && testvalues.GovGenesisFeatureReleases.IsSupported(version)
-	doesIcadSupportGovv1Genesis := testvalues.IcadGovGenesisFeatureReleases.IsSupported(version)
+	simdSupportsGovV1Genesis := binary == defaultBinary && testvalues.GovGenesisFeatureReleases.IsSupported(version)
+	icadSupportsGovV1Genesis := testvalues.IcadGovGenesisFeatureReleases.IsSupported(version)
 
-	if doesSimdSupportGovv1Genesis || doesIcadSupportGovv1Genesis {
+	if simdSupportsGovV1Genesis || icadSupportsGovV1Genesis {
 		return defaultGovv1ModifyGenesis()
 	}
 
