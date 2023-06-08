@@ -301,9 +301,10 @@ message MsgChannelUpgradeTry {
 
 // MsgChannelUpgradeTryResponse defines the MsgChannelUpgradeTry response type
 message MsgChannelUpgradeTryResponse {
-  string             channel_id = 1;
-  string             version    = 2;
-  ResponseResultType result     = 3;
+  string             channel_id       = 1;
+  Upgrade            upgrade          = 2 [(gogoproto.nullable) = false];
+  uint64             upgrade_sequence = 3;
+  ResponseResultType result           = 4;
 }
 
 // MsgChannelUpgradeAck defines the request type for the ChannelUpgradeAck rpc
