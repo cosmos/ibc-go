@@ -153,6 +153,37 @@ func (k Keeper) WriteUpgradeTryChannel(
 	emitChannelUpgradeTryEvent(ctx, portID, channelID, channel, proposedUpgrade)
 }
 
+// WriteUpgradeAckChannel writes a channel which has successfully passed the UpgradeAck handshake step as well as
+// setting the upgrade for that channel.
+// An event is emitted for the handshake step.
+func (k Keeper) WriteUpgradeAckChannel(
+	ctx sdk.Context,
+	portID, channelID string,
+	proposedUpgrade types.Upgrade,
+) {
+	defer telemetry.IncrCounter(1, "ibc", "channel", "upgrade-ack")
+
+	channel, found := k.GetChannel(ctx, portID, channelID)
+	if !found {
+		panic(fmt.Sprintf("could not find existing channel when updating channel state in successful ChanUpgradeAck step, channelID: %s, portID: %s", channelID, portID))
+	}
+
+	previousState := channel.State
+	channel.State = types.ACKUPGRADE
+
+	if k.GetAllPacketCommitmentsAtChannel(ctx, portID, channelID) != nil {
+		channel.FlushStatus = types.FLUSHING
+	} else {
+		channel.FlushStatus = types.FLUSHCOMPLETE
+	}
+
+	k.SetChannel(ctx, portID, channelID, channel)
+	k.SetUpgrade(ctx, portID, channelID, proposedUpgrade)
+
+	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", previousState, "new-state", types.ACKUPGRADE.String())
+	emitChannelUpgradeAckEvent(ctx, portID, channelID, channel, proposedUpgrade)
+}
+
 // startFlushUpgradeHandshake will verify the counterparty proposed upgrade and the current channel state.
 // Once the counterparty information has been verified, it will be validated against the self proposed upgrade.
 // If any of the proposed upgrade fields are incompatible, an upgrade error will be returned resulting in an
@@ -255,33 +286,6 @@ func (k Keeper) startFlushUpgradeHandshake(
 	}
 
 	return nil
-}
-
-// WriteUpgradeAckChannel writes a channel which has successfully passed the UpgradeAck handshake step as well as
-// setting the upgrade for that channel.
-// An event is emitted for the handshake step.
-func (k Keeper) WriteUpgradeAckChannel(
-	ctx sdk.Context,
-	portID, channelID string,
-	proposedUpgrade types.Upgrade,
-	flushStatus types.FlushStatus,
-) {
-	defer telemetry.IncrCounter(1, "ibc", "channel", "upgrade-ack")
-
-	channel, found := k.GetChannel(ctx, portID, channelID)
-	if !found {
-		panic(fmt.Sprintf("could not find existing channel when updating channel state in successful ChanUpgradeAck step, channelID: %s, portID: %s", channelID, portID))
-	}
-
-	previousState := channel.State
-	channel.State = types.ACKUPGRADE
-	channel.FlushStatus = flushStatus
-
-	k.SetChannel(ctx, portID, channelID, channel)
-	k.SetUpgrade(ctx, portID, channelID, proposedUpgrade)
-
-	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", previousState, "new-state", types.ACKUPGRADE.String())
-	emitChannelUpgradeAckEvent(ctx, portID, channelID, channel, proposedUpgrade)
 }
 
 // validateUpgradeFields validates the proposed upgrade fields against the existing channel.
