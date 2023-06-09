@@ -34,16 +34,12 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Changelog
 
-## [Unreleased]
+## [v7.1.0](https://github.com/cosmos/ibc-go/releases/tag/v7.1.0) - 2023-06-09 
 
 ### Dependencies
 
 * [\#3542](https://github.com/cosmos/ibc-go/pull/3542) Update Cosmos SDK to v0.47.2 and CometBFT to v0.37.1.
 * [\#3457](https://github.com/cosmos/ibc-go/pull/3457) Update to ics23 v0.10.0.
-
-### API Breaking
-
-### State Machine Breaking
 
 ### Improvements
 
