@@ -208,8 +208,6 @@ func (k Keeper) WriteUpgradeTryChannel(
 // Once the counterparty information has been verified, it will be validated against the self proposed upgrade.
 // If any of the proposed upgrade fields are incompatible, an upgrade error will be returned resulting in an
 // aborted upgrade.
-//
-//lint:ignore U1000 Ignore unused function temporarily for debugging
 func (k Keeper) startFlushUpgradeHandshake(
 	ctx sdk.Context,
 	portID,
