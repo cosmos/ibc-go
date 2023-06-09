@@ -5,21 +5,22 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	ibcerrors "github.com/cosmos/ibc-go/v7/internal/errors"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
+	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
 var (
-	_ sdk.Msg = &MsgConnectionOpenInit{}
-	_ sdk.Msg = &MsgConnectionOpenConfirm{}
-	_ sdk.Msg = &MsgConnectionOpenAck{}
-	_ sdk.Msg = &MsgConnectionOpenTry{}
+	_ sdk.Msg = (*MsgConnectionOpenInit)(nil)
+	_ sdk.Msg = (*MsgConnectionOpenConfirm)(nil)
+	_ sdk.Msg = (*MsgConnectionOpenAck)(nil)
+	_ sdk.Msg = (*MsgConnectionOpenTry)(nil)
+	_ sdk.Msg = (*MsgUpdateParams)(nil)
 
-	_ codectypes.UnpackInterfacesMessage = MsgConnectionOpenTry{}
-	_ codectypes.UnpackInterfacesMessage = MsgConnectionOpenAck{}
+	_ codectypes.UnpackInterfacesMessage = (*MsgConnectionOpenTry)(nil)
+	_ codectypes.UnpackInterfacesMessage = (*MsgConnectionOpenAck)(nil)
 )
 
 // NewMsgConnectionOpenInit creates a new MsgConnectionOpenInit instance. It sets the
@@ -288,4 +289,29 @@ func (msg MsgConnectionOpenConfirm) GetSigners() []sdk.AccAddress {
 		panic(err)
 	}
 	return []sdk.AccAddress{accAddr}
+}
+
+// NewMsgUpdateParams creates a new MsgUpdateParams instance
+func NewMsgUpdateParams(authority string, params Params) *MsgUpdateParams {
+	return &MsgUpdateParams{
+		Authority: authority,
+		Params:    params,
+	}
+}
+
+// GetSigners returns the expected signers for a MsgUpdateParams message.
+func (msg *MsgUpdateParams) GetSigners() []sdk.AccAddress {
+	accAddr, err := sdk.AccAddressFromBech32(msg.Authority)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{accAddr}
+}
+
+// ValidateBasic performs basic checks on a MsgUpdateParams.
+func (msg *MsgUpdateParams) ValidateBasic() error {
+	if _, err := sdk.AccAddressFromBech32(msg.Authority); err != nil {
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
+	}
+	return msg.Params.Validate()
 }

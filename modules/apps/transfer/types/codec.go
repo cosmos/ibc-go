@@ -21,7 +21,7 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 // RegisterInterfaces register the ibc transfer module interfaces to protobuf
 // Any.
 func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
-	registry.RegisterImplementations((*sdk.Msg)(nil), &MsgTransfer{})
+	registry.RegisterImplementations((*sdk.Msg)(nil), &MsgTransfer{}, &MsgUpdateParams{})
 
 	registry.RegisterImplementations(
 		(*authz.Authorization)(nil),

@@ -19,17 +19,21 @@ import (
 	controllerkeeper "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/keeper"
 	controllertypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
 	genesistypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/genesis/types"
+	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host"
 	hostkeeper "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/keeper"
 	hosttypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/types"
 	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/simulation"
 	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
+	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
 	ibchost "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 )
 
 var (
-	_ module.AppModule           = AppModule{}
-	_ module.AppModuleBasic      = AppModuleBasic{}
-	_ module.AppModuleSimulation = AppModule{}
+	_ module.AppModule           = (*AppModule)(nil)
+	_ module.AppModuleBasic      = (*AppModuleBasic)(nil)
+	_ module.AppModuleSimulation = (*AppModule)(nil)
+
+	_ porttypes.IBCModule = (*host.IBCModule)(nil)
 )
 
 // AppModuleBasic is the IBC interchain accounts AppModuleBasic
@@ -46,6 +50,7 @@ func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {}
 // RegisterInterfaces registers module concrete types into protobuf Any
 func (AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	controllertypes.RegisterInterfaces(registry)
+	hosttypes.RegisterInterfaces(registry)
 	types.RegisterInterfaces(registry)
 }
 
@@ -103,7 +108,7 @@ func NewAppModule(controllerKeeper *controllerkeeper.Keeper, hostKeeper *hostkee
 	}
 }
 
-// InitModule will initialize the interchain accounts moudule. It should only be
+// InitModule will initialize the interchain accounts module. It should only be
 // called once and as an alternative to InitGenesis.
 func (am AppModule) InitModule(ctx sdk.Context, controllerParams controllertypes.Params, hostParams hosttypes.Params) {
 	if am.controllerKeeper != nil {
@@ -111,6 +116,9 @@ func (am AppModule) InitModule(ctx sdk.Context, controllerParams controllertypes
 	}
 
 	if am.hostKeeper != nil {
+		if err := hostParams.Validate(); err != nil {
+			panic(fmt.Sprintf("could not set ica host params at initialization: %v", err))
+		}
 		am.hostKeeper.SetParams(ctx, hostParams)
 
 		capability := am.hostKeeper.BindPort(ctx, types.HostPortID)
@@ -132,12 +140,18 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	}
 
 	if am.hostKeeper != nil {
+		hosttypes.RegisterMsgServer(cfg.MsgServer(), hostkeeper.NewMsgServerImpl(am.hostKeeper))
 		hosttypes.RegisterQueryServer(cfg.QueryServer(), am.hostKeeper)
 	}
 
 	m := controllerkeeper.NewMigrator(am.controllerKeeper)
 	if err := cfg.RegisterMigration(types.ModuleName, 1, m.AssertChannelCapabilityMigrations); err != nil {
 		panic(fmt.Sprintf("failed to migrate interchainaccounts app from version 1 to 2: %v", err))
+	}
+
+	hostm := hostkeeper.NewMigrator(am.hostKeeper)
+	if err := cfg.RegisterMigration(types.ModuleName, 2, hostm.MigrateParams); err != nil {
+		panic(fmt.Sprintf("failed to migrate interchainaccounts app from version 2 to 3: %v", err))
 	}
 }
 
@@ -179,7 +193,7 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 }
 
 // ConsensusVersion implements AppModule/ConsensusVersion.
-func (AppModule) ConsensusVersion() uint64 { return 2 }
+func (AppModule) ConsensusVersion() uint64 { return 3 }
 
 // BeginBlock implements the AppModule interface
 func (am AppModule) BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock) {

@@ -15,8 +15,8 @@ import (
 )
 
 var (
-	_ codectypes.UnpackInterfacesMessage = IdentifiedClientState{}
-	_ codectypes.UnpackInterfacesMessage = ConsensusStateWithHeight{}
+	_ codectypes.UnpackInterfacesMessage = (*IdentifiedClientState)(nil)
+	_ codectypes.UnpackInterfacesMessage = (*ConsensusStateWithHeight)(nil)
 )
 
 // NewIdentifiedClientState creates a new IdentifiedClientState instance
@@ -42,7 +42,7 @@ func (ics IdentifiedClientState) UnpackInterfaces(unpacker codectypes.AnyUnpacke
 	return unpacker.UnpackAny(ics.ClientState, new(exported.ClientState))
 }
 
-var _ sort.Interface = IdentifiedClientStates{}
+var _ sort.Interface = (*IdentifiedClientStates)(nil)
 
 // IdentifiedClientStates defines a slice of ClientConsensusStates that supports the sort interface
 type IdentifiedClientStates []IdentifiedClientState

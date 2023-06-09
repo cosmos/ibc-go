@@ -14,15 +14,17 @@ There are four sections based on the four potential user groups of this document
 
 ## Chains
 
+### 09-localhost migration
+
 In the previous release of ibc-go, the localhost `v1` light client module was deprecated and removed. The ibc-go `v7.1.0` release introduces `v2` of the 09-localhost light client module.
 
 <!-- TODO: Update the links to use release version instead of feat branch -->
-An [automatic migration handler](https://github.com/cosmos/ibc-go/blob/09-localhost/modules/core/module.go#L133-L145) is configured in the core IBC module to set the localhost `ClientState` and sentinel `ConnectionEnd` in state.
+An [automatic migration handler](https://github.com/cosmos/ibc-go/blob/release/v7.1.x/modules/core/module.go#L127-L145) is configured in the core IBC module to set the localhost `ClientState` and sentinel `ConnectionEnd` in state.
 
 In order to use the 09-localhost client chains must update the `AllowedClients` parameter in the 02-client submodule of core IBC. This can be configured directly in the application upgrade handler or alternatively updated via the legacy governance parameter change proposal.
 We __strongly__ recommend chains to perform this action so that intra-ledger communication can be carried out using the familiar IBC interfaces.
 
-See the upgrade handler code sample provided below or [follow this link](https://github.com/cosmos/ibc-go/blob/09-localhost/testing/simapp/upgrades/upgrades.go#L85) for the upgrade handler used by the ibc-go simapp.
+See the upgrade handler code sample provided below or [follow this link](https://github.com/cosmos/ibc-go/blob/release/v7.1.x/testing/simapp/upgrades/upgrades.go#L85) for the upgrade handler used by the ibc-go simapp.
 
 ```go
 func CreateV7LocalhostUpgradeHandler(
@@ -41,7 +43,9 @@ func CreateV7LocalhostUpgradeHandler(
 }
 ```
 
-[For more information please refer to the 09-localhost light client module documentation](../ibc/light-clients/localhost/overview.md).
+### Transfer migration
+
+An automatic migration handler (TODO: add link after backport to v7.1.x is merged) is configured in the transfer module to set the total amount in escrow for all denominations of coins that have been sent out. For each denomination a state entry is added with the total amount of coins in escrow regardless of the channel from which they were transferred.
 
 ## IBC Apps
 

@@ -27,7 +27,7 @@ on:
         type: string
         default: main
       chain-b-tag:
-        default: v4.0.0
+        default: main
         description: "The tag to use for chain B"
         required: true
         type: string
@@ -41,6 +41,7 @@ on:
         description: "The image tag that the chain will be upgraded to"
         required: false
         type: string
+      # upgrade-plan-name is only required during upgrade tests, and is otherwise ignored.
       upgrade-plan-name:
         default: ""
         description: "The upgrade plan name"
@@ -72,6 +73,7 @@ env:
   IMAGE_NAME: ibc-go-simd
 
 jobs:
+  # test-details exists to provide an easy way to see the inputs for the e2e test.
   test-details:
     runs-on: ubuntu-latest
     steps:
@@ -98,7 +100,7 @@ jobs:
         if: ${{ inputs.build-and-push-docker-image }}
       - name: Log in to the Container registry
         if: ${{ inputs.build-and-push-docker-image }}
-        uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a
+        uses: docker/login-action@465a07811f14bebb1938fbed4728c6a1ff8901fc
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
@@ -107,7 +109,7 @@ jobs:
       - name: Extract metadata (tags, labels) for Docker
         if: ${{ inputs.build-and-push-docker-image }}
         id: meta
-        uses: docker/metadata-action@507c2f2dc502c992ad446e3d7a5dfbe311567a96
+        uses: docker/metadata-action@2c0bd771b40637d97bf205cbccdd294a32112176
         with:
           images: ${{ env.REGISTRY }}/cosmos/${{ env.IMAGE_NAME }}
 
@@ -121,7 +123,11 @@ jobs:
           build-args: |
             IBC_GO_VERSION=${{ github.ref_name }}
 
-  # dynamically build a matrix of test/test suite pairs to run
+  # dynamically build a matrix of test/test suite pairs to run.
+  # this job runs a go tool located at cmd/build_test_matrix/main.go.
+  # it walks the e2e/test directory in order to locate all test suite / test name
+  # pairs. The output of this job can be fed in as input to a workflow matrix and
+  # will expand to jobs which will run all tests present.
   build-test-matrix:
     runs-on: ubuntu-latest
     outputs:
@@ -140,6 +146,9 @@ jobs:
           TEST_EXCLUSIONS: "${{ inputs.test-exclusions }}"
           TEST_NAME: "${{ inputs.test }}"
 
+  # e2e-tests runs the actual go test command to trigger the test.
+  # the tests themselves are configured via environment variables to specify
+  # things like chain and relayer images and tags.
   e2e-tests:
     runs-on: ubuntu-latest
     needs:

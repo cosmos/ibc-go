@@ -9,8 +9,8 @@ import (
 	tmstate "github.com/cometbft/cometbft/state"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	ibcerrors "github.com/cosmos/ibc-go/v7/internal/errors"
 	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
 )
 
 const (
@@ -18,37 +18,42 @@ const (
 	gasWanted = uint64(100)
 )
 
-// tests acknowledgement.ValidateBasic and acknowledgement.GetBytes
+// tests acknowledgement.ValidateBasic and acknowledgement.Acknowledgement
 func (suite TypesTestSuite) TestAcknowledgement() { //nolint:govet // this is a test, we are okay with copying locks
 	testCases := []struct {
-		name       string
-		ack        types.Acknowledgement
-		expSuccess bool // indicate if this is a success or failed ack
-		expPass    bool
+		name         string
+		ack          types.Acknowledgement
+		expValidates bool
+		expBytes     []byte
+		expSuccess   bool // indicate if this is a success or failed ack
 	}{
 		{
 			"valid successful ack",
 			types.NewResultAcknowledgement([]byte("success")),
 			true,
+			[]byte(`{"result":"c3VjY2Vzcw=="}`),
 			true,
 		},
 		{
 			"valid failed ack",
 			types.NewErrorAcknowledgement(fmt.Errorf("error")),
-			false,
 			true,
+			[]byte(`{"error":"ABCI code: 1: error handling packet: see events for details"}`),
+			false,
 		},
 		{
 			"empty successful ack",
 			types.NewResultAcknowledgement([]byte{}),
-			true,
 			false,
+			nil,
+			true,
 		},
 		{
 			"empty failed ack",
 			types.NewErrorAcknowledgement(fmt.Errorf("  ")),
-			false,
 			true,
+			[]byte(`{"error":"ABCI code: 1: error handling packet: see events for details"}`),
+			false,
 		},
 		{
 			"nil response",
@@ -56,6 +61,7 @@ func (suite TypesTestSuite) TestAcknowledgement() { //nolint:govet // this is a 
 				Response: nil,
 			},
 			false,
+			nil,
 			false,
 		},
 	}
@@ -68,17 +74,18 @@ func (suite TypesTestSuite) TestAcknowledgement() { //nolint:govet // this is a 
 
 			err := tc.ack.ValidateBasic()
 
-			if tc.expPass {
+			if tc.expValidates {
 				suite.Require().NoError(err)
+
+				// expect all valid acks to be able to be marshaled
+				suite.NotPanics(func() {
+					bz := tc.ack.Acknowledgement()
+					suite.Require().NotNil(bz)
+					suite.Require().Equal(tc.expBytes, bz)
+				})
 			} else {
 				suite.Require().Error(err)
 			}
-
-			// expect all acks to be able to be marshaled
-			suite.NotPanics(func() {
-				bz := tc.ack.Acknowledgement()
-				suite.Require().NotNil(bz)
-			})
 
 			suite.Require().Equal(tc.expSuccess, tc.ack.Success())
 		})
