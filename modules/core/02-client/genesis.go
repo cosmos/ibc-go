@@ -13,6 +13,9 @@ import (
 // InitGenesis initializes the ibc client submodule's state from a provided genesis
 // state.
 func InitGenesis(ctx sdk.Context, k keeper.Keeper, gs types.GenesisState) {
+	if err := gs.Params.Validate(); err != nil {
+		panic(fmt.Sprintf("invalid ibc client genesis state parameters: %v", err))
+	}
 	k.SetParams(ctx, gs.Params)
 
 	// Set all client metadata first. This will allow client keeper to overwrite client and consensus state keys

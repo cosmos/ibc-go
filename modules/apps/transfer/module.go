@@ -94,8 +94,8 @@ func NewAppModule(k keeper.Keeper) AppModule {
 }
 
 // RegisterInvariants implements the AppModule interface
-func (AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
-	// TODO
+func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
+	keeper.RegisterInvariants(ir, &am.keeper)
 }
 
 // RegisterServices registers module services.
@@ -109,7 +109,7 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	}
 
 	if err := cfg.RegisterMigration(types.ModuleName, 2, m.MigrateTotalEscrowForDenom); err != nil {
-		panic(fmt.Sprintf("failed to migrate total escrow amount from version 2 to 3: %v", err))
+		panic(fmt.Sprintf("failed to migrate transfer app from version 2 to 3: %v", err))
 	}
 
 	if err := cfg.RegisterMigration(types.ModuleName, 3, m.MigrateParams); err != nil {

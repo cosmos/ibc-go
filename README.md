@@ -59,21 +59,7 @@ Please refer to our [versioning guide](https://github.com/cosmos/ibc-go/blob/mai
 
 ## Ecosystem
 
-Discover the applications, middleware and light clients developed by other awesome teams in the ecosystem:
-
-In the table below
-`app` refers to IBC application modules for custom use cases and
-`middleware` refers to modules that wrap an IBC application enabling custom logic to be executed.
-
-| Description                                                                                                                                                                                                                                            | Repository                                                                                     | Type         |
-| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------- | ------------ |
-| An application that enables on chain querying of another IBC enabled chain utilizing `baseapp.Query`. Both chains must have implemented the query application and ICA (for queries requiring consensus).                                               | [async-icq](https://github.com/strangelove-ventures/async-icq)                                 | `app`        |
-| An application that enables on chain querying of another IBC enabled chains state without the need for the chain being queried to implement the application.                                                                                           | [interchain-queries](https://github.com/ingenuity-build/interchain-queries)                    | `app`        |
-| An application that enables on chain querying of another IBC enabled chains state without the need for the chain being queried to implement the application. Similar to the interchain-queries application in the row above but without callbacks.     | [query](https://github.com/defund-labs/defund/tree/main/x/query)                               | `app`        |
-| An application that enables cross chain NFT transfer.                                                                                                                                                                                                  | [NFT Transfer (ICS 721)](https://github.com/bianjieai/nft-transfer)                            | `app`        |
-| Middleware enabling a packet to be sent to a destination chain via an intermediate chain, e.g. going from Juno to Osmosis via the Hub.                                                                                                                 | [packet-forward-middleware](https://github.com/strangelove-ventures/packet-forward-middleware) | `middleware` |
-| Middleware enabling the recovery of tokens sent to unsupported addresses.                                                                                                                                                                              | [recovery](https://github.com/evmos/evmos/tree/main/x/recovery)                                | `middleware` |
-| Middleware that limits the in or out flow of an asset in a certain time period to minimise the risks of cross chain token transfers. This is implemented as a middleware wrapping ICS20 with the rate limiting logic implemented by cosmwasm contracts | [ibc-rate-limit](https://github.com/osmosis-labs/osmosis/tree/main/x/ibc-rate-limit)           | `middleware` |
+Discover more applications and middleware in the [cosmos/ibc-apps repository](https://github.com/cosmos/ibc-apps#-bonus-content).
 
 ## Support
 
@@ -98,13 +84,9 @@ If you are interested in working on an issue, please comment on it; then we will
 
 If you have any general questions or feedback, please reach out to us in the [IBC Gang Discord server](https://discord.com/channels/955868717269516318/955883113484013578).
 
-## Request for maintainership
-
-We have a document that describes the process for [submitting a feature for maintainership](./MAINTAINERSHIP.md) in the ibc-go codebase.
-
 ## Security
 
-To report a security vulnerability, see our [bug bounty program](https://hackerone.com/cosmos).
+To report a security vulnerability, see our [Coordinated Vulnerability Disclosure Policy](./SECURITY.md).
 
 ## Audits
 
@@ -143,6 +125,8 @@ The following audits have been performed on the `ibc-go` source code:
    4.1 [ICS 07 Tendermint](https://github.com/cosmos/ibc-go/tree/main/modules/light-clients/07-tendermint)
 
    4.2 [ICS 06 Solo Machine](https://github.com/cosmos/ibc-go/tree/main/modules/light-clients/06-solomachine)
+
+    4.3 [ICS 09 Localhost](https://github.com/cosmos/ibc-go/tree/main/modules/light-clients/09-localhost)
 
 5. **[E2E Integration Tests](https://github.com/cosmos/ibc-go/tree/main/e2e)**
 

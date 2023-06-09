@@ -12,7 +12,7 @@ import (
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
-	"cosmossdk.io/math"
+	sdkmath "cosmossdk.io/math"
 	"github.com/cometbft/cometbft/crypto"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -88,7 +88,7 @@ type Balance struct {
 	ID      string
 	Address string
 	Denom   string
-	Amount  math.Int
+	Amount  sdkmath.Int
 }
 
 func AddressFromString(address string) string {
@@ -168,12 +168,12 @@ func OnRecvPacketTestCaseFromTla(tc TlaOnRecvPacketTestCase) OnRecvPacketTestCas
 var addressMap = make(map[string]string)
 
 type Bank struct {
-	balances map[OwnedCoin]math.Int
+	balances map[OwnedCoin]sdkmath.Int
 }
 
 // Make an empty bank
 func MakeBank() Bank {
-	return Bank{balances: make(map[OwnedCoin]math.Int)}
+	return Bank{balances: make(map[OwnedCoin]sdkmath.Int)}
 }
 
 // Subtract other bank from this bank
@@ -196,7 +196,7 @@ func (bank *Bank) Sub(other *Bank) Bank {
 }
 
 // Set specific bank balance
-func (bank *Bank) SetBalance(address string, denom string, amount math.Int) {
+func (bank *Bank) SetBalance(address string, denom string, amount sdkmath.Int) {
 	bank.balances[OwnedCoin{address, denom}] = amount
 }
 
