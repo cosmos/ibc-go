@@ -60,7 +60,7 @@ func (suite *MsgTestSuite) SetupTest() {
 	iavlStore.Set([]byte("KEY"), []byte("VALUE"))
 	_ = store.Commit()
 
-	res := store.Query(abci.RequestQuery{
+	res, err := store.Query(abci.RequestQuery{
 		Path:  fmt.Sprintf("/%s/key", storeKey.Name()), // required path to get key/value+proof
 		Data:  []byte("KEY"),
 		Prove: true,
