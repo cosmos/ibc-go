@@ -106,8 +106,9 @@ func (suite *KeeperTestSuite) TestMigratorMigrateTraces() {
 					})
 			},
 			transfertypes.Traces{
-				{
+				{[]DenomTrace:{
 					BaseDenom: "uatom", Path: "transfer/channel-0/transfer/channel-1",
+				
 				},
 			},
 		},

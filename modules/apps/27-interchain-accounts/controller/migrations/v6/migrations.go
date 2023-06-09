@@ -23,7 +23,7 @@ func MigrateICS27ChannelCapability(
 ) error {
 	// construct a prefix store using the x/capability index prefix: index->capability owners
 	prefixStore := prefix.NewStore(ctx.KVStore(capabilityStoreKey), capabilitytypes.KeyPrefixIndexCapability)
-	iterator := sdk.KVStorePrefixIterator(prefixStore, nil)
+	iterator := storetypes.KVStorePrefixIterator(prefixStore, nil)
 	defer sdk.LogDeferred(ctx.Logger(), func() error { return iterator.Close() })
 
 	for ; iterator.Valid(); iterator.Next() {
