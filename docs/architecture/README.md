@@ -29,19 +29,6 @@ To suggest an ADR, please make use of the [ADR template](./adr.template.md) prov
 
 ## Table of Contents
 
-<<<<<<< HEAD
-| ADR \#                                                    | Description                                     | Status                |
-| --------------------------------------------------------- | ----------------------------------------------- | --------------------- |
-| [001](./adr-001-coin-source-tracing.md)                   | ICS-20 coin denomination format                 | Accepted, Implemented |
-| [002](./adr-002-go-module-versioning.md)                  | Go module versioning                            | Accepted              |
-| [003](./adr-003-ics27-acknowledgement.md)                 | ICS27 acknowledgement format                    | Accepted              |
-| [004](./adr-004-ics29-lock-fee-module.md)                 | ICS29 module locking upon escrow out of balance | Accepted              |
-| [008](./adr-008-app-caller-cbs/adr-008-app-caller-cbs.md) | Callback to IBC ACtors                          | Accepted              |
-| [015](./adr-015-ibc-packet-receiver.md)                   | IBC Packet Routing                              | Accepted              |
-| [025](./adr-025-ibc-passive-channels.md)                  | IBC passive channels                            | Deprecated            |
-| [026](./adr-026-ibc-client-recovery-mechanisms.md)        | IBC client recovery mechansisms                 | Accepted              |
-| [027](./adr-027-ibc-wasm.md)                              | Wasm based light clients                        | Accepted              |
-=======
 | ADR \# | Description | Status |
 | ------ | ----------- | ------ |
 | [001](./adr-001-coin-source-tracing.md) | ICS-20 coin denomination format | Accepted, Implemented |
@@ -59,4 +46,3 @@ To suggest an ADR, please make use of the [ADR template](./adr.template.md) prov
 | [025](./adr-025-ibc-passive-channels.md) | IBC passive channels | Deprecated |
 | [026](./adr-026-ibc-client-recovery-mechanisms.md) | IBC client recovery mechansisms | Accepted |
 | [027](./adr-027-ibc-wasm.md) | Wasm based light clients | Accepted |
->>>>>>> origin
