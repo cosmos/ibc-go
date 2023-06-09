@@ -284,9 +284,6 @@ format:
 docs-lint:
 	markdownlint . --fix
 
-docs-lint-changed:
-	./scripts/linting/lint-changed-md-files.sh
-
 .PHONY: lint lint-fix lint-fix-changed docs-lint docs-lint-changed
 
 ###############################################################################
