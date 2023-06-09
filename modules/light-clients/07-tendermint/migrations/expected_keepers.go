@@ -1,6 +1,7 @@
 package migrations
 
 import (
+	storetypes "cosmossdk.io/store/types"
 	"github.com/cometbft/cometbft/libs/log"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 

@@ -217,6 +217,6 @@ func (am AppModule) WeightedOperations(_ module.SimulationState) []simtypes.Weig
 }
 
 // RegisterStoreDecoder registers a decoder for interchain accounts module's types
-func (am AppModule) RegisterStoreDecoder(sdr sims.StoreDecoderRegistry) {
+func (am AppModule) RegisterStoreDecoder(sdr simtypes.StoreDecoderRegistry) {
 	sdr[types.StoreKey] = simulation.NewDecodeStore()
 }
