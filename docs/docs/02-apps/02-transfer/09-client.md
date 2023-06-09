@@ -1,6 +1,9 @@
-<!--
-order: 9
--->
+---
+title: Client
+sidebar_label: Client
+sidebar_position: 9
+slug: /apps/transfer/client
+---
 
 # Client
 
