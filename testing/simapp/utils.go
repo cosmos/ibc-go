@@ -3,8 +3,8 @@ package simapp
 import (
 	"os"
 
-	dbm "github.com/cometbft/cometbft-db"
 	"github.com/cometbft/cometbft/libs/log"
+	dbm "github.com/cosmos/cosmos-db"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 )
 
