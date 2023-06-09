@@ -65,7 +65,7 @@ TODO: https://github.com/cosmos/ibc-go/pull/3303
 
 ## Relayers
 
-- No relevant changes were made in this release.
+`channeltypes.EventTypeTimeoutPacketOnClose` (where `channeltypes` is an import alias for `"github.com/cosmos/ibc-go/v8/modules/core/04-channel"`) has been removed, since core IBC does not emit any event with this key.
 
 ## IBC Light Clients
 
