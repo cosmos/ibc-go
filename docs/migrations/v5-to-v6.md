@@ -35,11 +35,11 @@ package v6
 
 import (
   "github.com/cosmos/cosmos-sdk/codec"
-  storetypes "github.com/cosmos/cosmos-sdk/store/types"
+  storetypes "cosmossdk.io/store/types"
   sdk "github.com/cosmos/cosmos-sdk/types"
   "github.com/cosmos/cosmos-sdk/types/module"
   capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
-  upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+  upgradetypes "cosmossdk.io/x/upgrade/types"
 
   v6 "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/controller/migrations/v6"
 )

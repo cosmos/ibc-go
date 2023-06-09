@@ -15,12 +15,12 @@ import (
 	tmprotoversion "github.com/cometbft/cometbft/proto/tendermint/version"
 	tmtypes "github.com/cometbft/cometbft/types"
 	tmversion "github.com/cometbft/cometbft/version"
-	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
 	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
 	"github.com/strangelove-ventures/interchaintest/v7/ibc"
 	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
 	"github.com/stretchr/testify/suite"
 
+	"github.com/cosmos/cosmos-sdk/client/grpc/ccmtservice"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -204,7 +204,7 @@ func (s *ClientTestSuite) TestClient_Update_Misbehaviour() {
 	})
 
 	t.Run("create validator set", func(t *testing.T) {
-		var validators []*tmservice.Validator
+		var validators []*ccmtservice.Validator
 
 		t.Run("fetch block header at latest client state height", func(t *testing.T) {
 			header, err = s.GetBlockHeaderByHeight(ctx, chainB, latestHeight.GetRevisionHeight())
