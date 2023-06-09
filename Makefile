@@ -282,7 +282,13 @@ format:
 .PHONY: format
 
 docs-lint:
-	markdownlint . --fix
+	markdownlint-cli2 "**.md"
+
+docs-lint-fix:
+	markdownlint-cli2-fix "**.md"
+
+docs-link-check:
+	find . -name \*.md -print0 | xargs -0 -n1 markdown-link-check --config ./.github/workflows/link-check-config.json
 
 .PHONY: lint lint-fix lint-fix-changed docs-lint docs-lint-changed
 
