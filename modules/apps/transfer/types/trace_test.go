@@ -99,7 +99,7 @@ func TestTraces_Validate(t *testing.T) {
 		{
 			"valid multiple trace info",
 			types.Traces{
-				{BaseDenom: "uatom", Path: "transfer/channel-1/transfer/channel-2"},
+				[]DenomTrace: {{BaseDenom: "uatom", Path: "transfer/channel-1/transfer/channel-2"},
 				{BaseDenom: "uatom", Path: "transfer/channel-1/transfer/channel-2"},
 			},
 			true,
