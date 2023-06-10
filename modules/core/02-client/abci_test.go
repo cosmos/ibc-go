@@ -71,8 +71,8 @@ func (suite *ClientTestSuite) TestBeginBlockerConsensusState() {
 	suite.chainA.App.BeginBlock(req)
 
 	// plan Height is at ctx.BlockHeight+1
-	consState, found := suite.chainA.GetSimApp().UpgradeKeeper.GetUpgradedConsensusState(newCtx, plan.Height)
-	suite.Require().True(found)
+	consState, err := suite.chainA.GetSimApp().UpgradeKeeper.GetUpgradedConsensusState(newCtx, plan.Height)
+	suite.Require().NoError(err)
 	bz, err = types.MarshalConsensusState(suite.chainA.App.AppCodec(), &ibctm.ConsensusState{Timestamp: newCtx.BlockTime(), NextValidatorsHash: nextValsHash})
 	suite.Require().NoError(err)
 	suite.Require().Equal(bz, consState)

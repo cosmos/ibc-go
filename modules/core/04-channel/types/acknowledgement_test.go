@@ -106,30 +106,30 @@ func (suite *TypesTestSuite) TestABCICodeDeterminism() {
 	// different ABCI error code used
 	errDifferentABCICode := ibcerrors.ErrNotFound
 
-	deliverTx := sdkerrors.ResponseDeliverTxWithEvents(err, gasUsed, gasWanted, []abcitypes.Event{}, false)
+	deliverTx := sdkerrors.ResponseCheckTxWithEvents(err, gasUsed, gasWanted, []abcitypes.Event{}, false)
 	responses := tmprotostate.ABCIResponses{
-		DeliverTxs: []*abcitypes.ResponseDeliverTx{
+		DeliverTxs: []*abcitypes.ResponseCheckTx{
 			&deliverTx,
 		},
 	}
 
-	deliverTxSameABCICode := sdkerrors.ResponseDeliverTxWithEvents(errSameABCICode, gasUsed, gasWanted, []abcitypes.Event{}, false)
+	deliverTxSameABCICode := sdkerrors.ResponseCheckTxWithEvents(errSameABCICode, gasUsed, gasWanted, []abcitypes.Event{}, false)
 	responsesSameABCICode := tmprotostate.ABCIResponses{
-		DeliverTxs: []*abcitypes.ResponseDeliverTx{
+		DeliverTxs: []*abcitypes.ResponseCheckTx{
 			&deliverTxSameABCICode,
 		},
 	}
 
-	deliverTxDifferentABCICode := sdkerrors.ResponseDeliverTxWithEvents(errDifferentABCICode, gasUsed, gasWanted, []abcitypes.Event{}, false)
-	responsesDifferentABCICode := tmprotostate.ABCIResponses{
-		DeliverTxs: []*abcitypes.ResponseDeliverTx{
+	deliverTxDifferentABCICode := sdkerrors.ResponseCheckTxWithEvents(errDifferentABCICode, gasUsed, gasWanted, []abcitypes.Event{}, false)
+	responsesDifferentABCICode := tmprotostate.ABCIResponsesInfo{
+		DeliverTxs: []*abcitypes.ResponseCheckTx{
 			&deliverTxDifferentABCICode,
 		},
 	}
 
-	hash := tmstate.ABCIResponsesResultsHash(&responses)
-	hashSameABCICode := tmstate.ABCIResponsesResultsHash(&responsesSameABCICode)
-	hashDifferentABCICode := tmstate.ABCIResponsesResultsHash(&responsesDifferentABCICode)
+	hash := tmstate.TxResultsHash(&responses)
+	hashSameABCICode := tmstate.TxResultsHash(&responsesSameABCICode)
+	hashDifferentABCICode := tmstate.TxResultsHash(&responsesDifferentABCICode)
 
 	suite.Require().Equal(hash, hashSameABCICode)
 	suite.Require().NotEqual(hash, hashDifferentABCICode)

@@ -19,6 +19,7 @@ func (suite *MerkleTestSuite) TestVerifyMembership() {
 		Data:  []byte("MYKEY"),
 		Prove: true,
 	})
+	require.NoError(suite.T(), err)
 	require.NotNil(suite.T(), res.ProofOps)
 
 	proof, err := types.ConvertProofs(res.ProofOps)
@@ -84,6 +85,7 @@ func (suite *MerkleTestSuite) TestVerifyNonMembership() {
 		Data:  []byte("MYABSENTKEY"),
 		Prove: true,
 	})
+	require.NoError(suite.T(), err)
 	require.NotNil(suite.T(), res.ProofOps)
 
 	proof, err := types.ConvertProofs(res.ProofOps)
