@@ -24,7 +24,6 @@ func RandomizedGenState(simState *module.SimulationState) {
 	var controllerEnabled bool
 	simState.AppParams.GetOrGenerate(
 		simState.Cdc, string(controllertypes.KeyControllerEnabled), &controllerEnabled, simState.Rand,
-		func(r *rand.Rand) { controllerEnabled = RandomEnabled(r) },
 	)
 
 	controllerParams := controllertypes.Params{
