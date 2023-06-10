@@ -303,8 +303,6 @@ func (chain *TestChain) NextBlock() {
 		NextValidatorsHash: chain.NextVals.Hash(),
 		ProposerAddress:    chain.CurrentHeader.ProposerAddress,
 	}
-
-	chain.App.BeginBlock(abci.RequestBeginBlock{Header: chain.CurrentHeader})
 }
 
 // sendMsgs delivers a transaction through the application without returning the result.

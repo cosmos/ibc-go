@@ -10,7 +10,6 @@ import (
 	sdkmath "cosmossdk.io/math"
 	storetypes "cosmossdk.io/store/types"
 	abci "github.com/cometbft/cometbft/abci/types"
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	tmtypes "github.com/cometbft/cometbft/types"
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/baseapp"
@@ -135,17 +134,6 @@ func SetupWithGenesisValSet(tb testing.TB, valSet *tmtypes.ValidatorSet, genAccs
 
 	// commit genesis changes
 	app.Commit()
-	app.BeginBlock(
-		abci.RequestBeginBlock{
-			Header: tmproto.Header{
-				ChainID:            chainID,
-				Height:             app.LastBlockHeight() + 1,
-				AppHash:            app.LastCommitID().Hash,
-				ValidatorsHash:     valSet.Hash(),
-				NextValidatorsHash: valSet.Hash(),
-			},
-		},
-	)
 
 	return app
 }
