@@ -18,10 +18,10 @@ func SetupSimulation(dirPrefix, dbName string) (simtypes.Config, dbm.DB, string,
 
 	config := NewConfigFromFlags()
 	config.ChainID = "simulation-app"
-
+	var t log.TestingT
 	var logger log.Logger
 	if FlagVerboseValue {
-		logger = log.TestingLogger()
+		logger = log.NewTestLoggerInfo(t) // TODO:CHECKME // this is caused by changes to logging
 	} else {
 		logger = log.NewNopLogger()
 	}
