@@ -24,7 +24,7 @@ import (
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 	abci "github.com/cometbft/cometbft/abci/types"
 	tmos "github.com/cometbft/cometbft/libs/os"
-	cmtservice "github.com/cometbft/cometbft/rpc/lib/server"
+	cmtservice "github.com/cometbft/cometbft/rpc/jsonrpc/server"
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
