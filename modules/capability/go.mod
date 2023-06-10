@@ -5,6 +5,7 @@ go 1.20
 require (
 	cosmossdk.io/core v0.8.0
 	cosmossdk.io/errors v1.0.0-beta.7.0.20230524212735-6cabb6aa5741
+	cosmossdk.io/log v1.1.0
 	cosmossdk.io/math v1.0.1
 	cosmossdk.io/store v0.1.0-alpha.1.0.20230606190835-3e18f4088b2c
 	github.com/cometbft/cometbft v0.38.0-rc1
@@ -27,7 +28,6 @@ require (
 	cosmossdk.io/api v0.4.2 // indirect
 	cosmossdk.io/collections v0.2.0 // indirect
 	cosmossdk.io/depinject v1.0.0-alpha.3 // indirect
-	cosmossdk.io/log v1.1.0 // indirect
 	cosmossdk.io/x/evidence v0.0.0-20230609160955-4ad71e570d16 // indirect
 	cosmossdk.io/x/feegrant v0.0.0-20230609160955-4ad71e570d16 // indirect
 	cosmossdk.io/x/tx v0.8.0 // indirect
