@@ -364,7 +364,14 @@ func newDefaultSimappConfig(cc ChainConfig, name, chainID, denom string, cometCf
 	tmTomlOverrides["log_level"] = cometCfg.LogLevel // change to debug in ~/.ibc-go-e2e-config.json to increase cometbft logging.
 	configFileOverrides["config/config.toml"] = tmTomlOverrides
 
-	useNewGenesisCommand := cc.Binary == icadBinary && testvalues.IcadNewGenesisCommandsFeatureReleases.IsSupported(cc.Tag)
+	var useNewGenesisCommand bool
+	if cc.Binary == defaultBinary && testvalues.SimdNewGenesisCommandsFeatureReleases.IsSupported(cc.Tag) {
+		useNewGenesisCommand = true
+	}
+
+	if cc.Binary == icadBinary && testvalues.IcadNewGenesisCommandsFeatureReleases.IsSupported(cc.Tag) {
+		useNewGenesisCommand = true
+	}
 
 	return ibc.ChainConfig{
 		Type:    "cosmos",
