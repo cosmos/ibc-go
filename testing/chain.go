@@ -92,6 +92,7 @@ type TestChain struct {
 // CONTRACT: Validator array must be provided in the order expected by Tendermint.
 // i.e. sorted first by power and then lexicographically by address.
 func NewTestChainWithValSet(tb testing.TB, coord *Coordinator, chainID string, valSet *tmtypes.ValidatorSet, signers map[string]tmtypes.PrivValidator) *TestChain {
+	tb.Helper()
 	genAccs := []authtypes.GenesisAccount{}
 	genBals := []banktypes.Balance{}
 	senderAccs := []SenderAccount{}
@@ -157,6 +158,7 @@ func NewTestChainWithValSet(tb testing.TB, coord *Coordinator, chainID string, v
 // NewTestChain initializes a new test chain with a default of 4 validators
 // Use this function if the tests do not need custom control over the validator set
 func NewTestChain(t *testing.T, coord *Coordinator, chainID string) *TestChain {
+	t.Helper()
 	// generate validators private/public key
 	var (
 		validatorsPerChain = 4
