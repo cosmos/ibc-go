@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"testing"
 
+	log "cosmossdk.io/log"
 	"cosmossdk.io/store/iavl"
 	"cosmossdk.io/store/rootmulti"
 	storetypes "cosmossdk.io/store/types"
 	abci "github.com/cometbft/cometbft/abci/types"
-	log "github.com/cometbft/cometbft/libs/log"
 	dbm "github.com/cosmos/cosmos-db"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
@@ -75,7 +75,7 @@ type TypesTestSuite struct {
 func (suite *TypesTestSuite) SetupTest() {
 	app := simapp.Setup(false)
 	db := dbm.NewMemDB()
-	dblog := log.TestingLogger()
+	dblog := log.NewTestLogger(suite.T())
 	store := rootmulti.NewStore(db, dblog)
 	storeKey := storetypes.NewKVStoreKey("iavlStoreKey")
 
@@ -87,11 +87,14 @@ func (suite *TypesTestSuite) SetupTest() {
 	iavlStore.Set([]byte("KEY"), []byte("VALUE"))
 	_ = store.Commit()
 
-	res, err := store.Query(abci.RequestQuery{
-		Path:  fmt.Sprintf("/%s/key", storeKey.Name()), // required path to get key/value+proof
-		Data:  []byte("KEY"),
-		Prove: true,
-	})
+	query := abci.RequestQuery{abci.RequestQuery{
+		Data:   []byte("KEY"),
+		Path:   fmt.Sprintf("/%s/key", storeKey.Name()), // required path to get key/value+proof
+		Height: 1,
+		Prove:  true,
+	}
+
+	res, err := store.Query(&query)
 
 	merkleProof, err := commitmenttypes.ConvertProofs(res.ProofOps)
 	suite.Require().NoError(err)
