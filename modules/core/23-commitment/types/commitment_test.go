@@ -3,10 +3,10 @@ package types_test
 import (
 	"testing"
 
+	"cosmossdk.io/log"
 	"cosmossdk.io/store/iavl"
 	"cosmossdk.io/store/rootmulti"
 	storetypes "cosmossdk.io/store/types"
-	"github.com/cometbft/cometbft/libs/log"
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/stretchr/testify/suite"
 )
@@ -21,7 +21,7 @@ type MerkleTestSuite struct {
 
 func (suite *MerkleTestSuite) SetupTest() {
 	db := dbm.NewMemDB()
-	dblog := log.TestingLogger()
+	dblog := log.NewTestLogger(suite.T())
 	suite.store = rootmulti.NewStore(db, dblog)
 
 	suite.storeKey = storetypes.NewKVStoreKey("iavlStoreKey")

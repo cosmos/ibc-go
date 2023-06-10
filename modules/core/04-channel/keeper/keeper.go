@@ -4,8 +4,8 @@ import (
 	"strconv"
 	"strings"
 
+	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
-	"github.com/cometbft/cometbft/libs/log"
 	db "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
