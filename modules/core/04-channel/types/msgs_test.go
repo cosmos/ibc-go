@@ -6,6 +6,7 @@ import (
 
 	log "cosmossdk.io/log"
 	"cosmossdk.io/store/iavl"
+	"cosmossdk.io/store/metrics"
 	"cosmossdk.io/store/rootmulti"
 	storetypes "cosmossdk.io/store/types"
 	abci "github.com/cometbft/cometbft/abci/types"
@@ -76,7 +77,7 @@ func (suite *TypesTestSuite) SetupTest() {
 	app := simapp.Setup(false)
 	db := dbm.NewMemDB()
 	dblog := log.NewTestLogger(suite.T())
-	store := rootmulti.NewStore(db, dblog)
+	store := rootmulti.NewStore(db, log.NewNopLogger(), metrics.NewNoOpMetrics())
 	storeKey := storetypes.NewKVStoreKey("iavlStoreKey")
 
 	store.MountStoreWithDB(storeKey, storetypes.StoreTypeIAVL, nil)
@@ -87,7 +88,7 @@ func (suite *TypesTestSuite) SetupTest() {
 	iavlStore.Set([]byte("KEY"), []byte("VALUE"))
 	_ = store.Commit()
 
-	query := abci.RequestQuery{abci.RequestQuery{
+	query := abci.RequestQuery{&storetypes.RequestQuery{
 		Data:   []byte("KEY"),
 		Path:   fmt.Sprintf("/%s/key", storeKey.Name()), // required path to get key/value+proof
 		Height: 1,

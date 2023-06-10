@@ -2,6 +2,6 @@ go 1.19
 
 use (
 	./
-	//	./e2e
 	./modules/capability
+//	./e2e // after upgrading ibc-go we can upgrade interchaintest
 )
