@@ -7,9 +7,9 @@ import (
 
 	log "cosmossdk.io/log"
 	"cosmossdk.io/store/iavl"
+	"cosmossdk.io/store/metrics"
 	"cosmossdk.io/store/rootmulti"
 	storetypes "cosmossdk.io/store/types"
-	abci "github.com/cometbft/cometbft/abci/types"
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/stretchr/testify/suite"
 
@@ -48,8 +48,7 @@ func (suite *MsgTestSuite) SetupTest() {
 
 	app := simapp.Setup(false)
 	db := dbm.NewMemDB()
-	dblog := log.NewTestLogger(suite.T())
-	store := rootmulti.NewStore(db, dblog)
+	store := rootmulti.NewStore(db, log.NewNopLogger(), metrics.NewNoOpMetrics())
 	storeKey := storetypes.NewKVStoreKey("iavlStoreKey")
 
 	store.MountStoreWithDB(storeKey, storetypes.StoreTypeIAVL, nil)
@@ -60,9 +59,9 @@ func (suite *MsgTestSuite) SetupTest() {
 	iavlStore.Set([]byte("KEY"), []byte("VALUE"))
 	_ = store.Commit()
 
-	res, err := store.Query(abci.RequestQuery{
-		Path:  fmt.Sprintf("/%s/key", storeKey.Name()), // required path to get key/value+proof
+	res, err := store.Query(&storetypes.RequestQuery{
 		Data:  []byte("KEY"),
+		Path:  fmt.Sprintf("/%s/key", storeKey.Name()), // required path to get key/value+proof
 		Prove: true,
 	})
 
