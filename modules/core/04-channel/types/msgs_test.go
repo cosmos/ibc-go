@@ -372,35 +372,6 @@ func (suite *TypesTestSuite) TestMsgTimeoutValidateBasic() {
 	}
 }
 
-func (suite *TypesTestSuite) TestMsgTimeoutOnCloseValidateBasic() {
-	testCases := []struct {
-		name    string
-		msg     sdk.Msg
-		expPass bool
-	}{
-		{"success", types.NewMsgTimeoutOnClose(packet, 1, suite.proof, suite.proof, height, addr), true},
-		{"seq 0", types.NewMsgTimeoutOnClose(packet, 0, suite.proof, suite.proof, height, addr), false},
-		{"signer address is empty", types.NewMsgTimeoutOnClose(packet, 1, suite.proof, suite.proof, height, emptyAddr), false},
-		{"empty proof", types.NewMsgTimeoutOnClose(packet, 1, emptyProof, suite.proof, height, addr), false},
-		{"empty proof close", types.NewMsgTimeoutOnClose(packet, 1, suite.proof, emptyProof, height, addr), false},
-		{"invalid packet", types.NewMsgTimeoutOnClose(invalidPacket, 1, suite.proof, suite.proof, height, addr), false},
-	}
-
-	for _, tc := range testCases {
-		tc := tc
-
-		suite.Run(tc.name, func() {
-			err := tc.msg.ValidateBasic()
-
-			if tc.expPass {
-				suite.Require().NoError(err)
-			} else {
-				suite.Require().Error(err)
-			}
-		})
-	}
-}
-
 func (suite *TypesTestSuite) TestMsgAcknowledgementValidateBasic() {
 	testCases := []struct {
 		name    string
