@@ -139,6 +139,7 @@ type FeeMiddlewareTestSuite struct {}
 }
 
 func assertGithubActionTestMatricesEqual(t *testing.T, expected, actual GithubActionTestMatrix) {
+	t.Helper()
 	// sort by both suite and test as the order of the end result does not matter as
 	// all tests will be run.
 	sort.SliceStable(expected.Include, func(i, j int) bool {
@@ -183,6 +184,7 @@ func helper() {}
 }
 
 func createFileWithTestSuiteAndTests(t *testing.T, suiteName, fn1Name, fn2Name, dir, filename string) {
+	t.Helper()
 	goFileContents := goTestFileContents(suiteName, fn1Name, fn2Name)
 	err := os.WriteFile(path.Join(dir, filename), []byte(goFileContents), os.FileMode(0o777))
 	assert.NoError(t, err)

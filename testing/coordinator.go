@@ -29,6 +29,7 @@ type Coordinator struct {
 
 // NewCoordinator initializes Coordinator with N TestChain's
 func NewCoordinator(t *testing.T, n int) *Coordinator {
+	t.Helper()
 	chains := make(map[string]*TestChain)
 	coord := &Coordinator{
 		T:           t,
