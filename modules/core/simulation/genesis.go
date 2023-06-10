@@ -35,17 +35,17 @@ func RandomizedGenState(simState *module.SimulationState) {
 	)
 
 	simState.AppParams.GetOrGenerate(
-		simState.Cdc, clientGenesis, &clientGenesisState, simState.Rand,
+		clientGenesis, &clientGenesisState, simState.Rand,
 		func(r *rand.Rand) { clientGenesisState = clientsims.GenClientGenesis(r, simState.Accounts) },
 	)
 
 	simState.AppParams.GetOrGenerate(
-		simState.Cdc, connectionGenesis, &connectionGenesisState, simState.Rand,
+		connectionGenesis, &connectionGenesisState, simState.Rand,
 		func(r *rand.Rand) { connectionGenesisState = connectionsims.GenConnectionGenesis(r, simState.Accounts) },
 	)
 
 	simState.AppParams.GetOrGenerate(
-		simState.Cdc, channelGenesis, &channelGenesisState, simState.Rand,
+		channelGenesis, &channelGenesisState, simState.Rand,
 		func(r *rand.Rand) { channelGenesisState = channelsims.GenChannelGenesis(r, simState.Accounts) },
 	)
 

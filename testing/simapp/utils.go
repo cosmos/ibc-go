@@ -21,7 +21,7 @@ func SetupSimulation(dirPrefix, dbName string) (simtypes.Config, dbm.DB, string,
 
 	var logger log.Logger
 	if FlagVerboseValue {
-		logger = log.NewTestLoggerInfo()
+		logger = log.NewNopLogger() // TODO:FIXME // this is caused by changes to logging
 	} else {
 		logger = log.NewNopLogger()
 	}
