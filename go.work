@@ -3,5 +3,5 @@ go 1.20
 use (
 	./
 	./modules/capability
-//	./e2e
+	./e2e
 )
