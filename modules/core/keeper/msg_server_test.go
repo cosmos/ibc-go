@@ -1,6 +1,8 @@
 package keeper_test
 
 import (
+	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
@@ -793,8 +795,11 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTry() {
 			func(res *channeltypes.MsgChannelUpgradeTryResponse, err error) {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
-
 				suite.Require().Equal(channeltypes.SUCCESS, res.Result)
+
+				channel := path.EndpointB.GetChannel()
+				suite.Require().Equal(channeltypes.TRYUPGRADE, channel.State)
+				suite.Require().Equal(uint64(1), channel.UpgradeSequence)
 			},
 		},
 		{
@@ -811,16 +816,19 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTry() {
 			},
 		},
 		{
-			"upgrade timeout has elapsed",
+			"elapsed upgrade timeout returns error",
 			func() {
 				msg.UpgradeTimeout = channeltypes.NewTimeout(clienttypes.NewHeight(1, 10), 0)
 				suite.coordinator.CommitNBlocks(suite.chainB, 100)
 			},
 			func(res *channeltypes.MsgChannelUpgradeTryResponse, err error) {
-				suite.Require().Nil(res)
-
 				suite.Require().Error(err)
+				suite.Require().Nil(res)
 				suite.Require().ErrorIs(err, channeltypes.ErrInvalidUpgrade)
+
+				errorReceipt, found := suite.chainB.GetSimApp().GetIBCKeeper().ChannelKeeper.GetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+				suite.Require().Empty(errorReceipt)
+				suite.Require().False(found)
 			},
 		},
 		{
@@ -845,10 +853,21 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTry() {
 		{
 			"application callback error writes upgrade error receipt",
 			func() {
-				// TODO: override app callback
+				suite.chainB.GetSimApp().IBCMockModule.IBCApp.OnChanUpgradeTry = func(
+					ctx sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, counterpartyVersion string,
+				) (string, error) {
+					return "", fmt.Errorf("mock app callback failed")
+				}
 			},
 			func(res *channeltypes.MsgChannelUpgradeTryResponse, err error) {
+				suite.Require().NoError(err)
 
+				suite.Require().NotNil(res)
+				suite.Require().Equal(channeltypes.FAILURE, res.Result)
+
+				// TODO: assert error receipt exists for the upgrade sequence when RestoreChannel / AbortUpgrade is called
+				// errorReceipt, found := suite.chainB.GetSimApp().GetIBCKeeper().ChannelKeeper.GetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+				// suite.Require().True(found)
 			},
 		},
 	}
