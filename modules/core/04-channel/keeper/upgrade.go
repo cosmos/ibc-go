@@ -308,7 +308,7 @@ func (k Keeper) startFlushUpgradeHandshake(
 	return nil
 }
 
-// WriteUpgradeOpenChannel writes the agreed upon upgrade fields to the channel, sets the channel flush status to `NOTINFLUSH` and sets the channel state back to `OPEN`. This can be called in one of two cases:
+// WriteUpgradeOpenChannel writes the agreed upon upgrade fields to the channel, sets the channel flush status to NOTINFLUSH and sets the channel state back to OPEN. This can be called in one of two cases:
 // - In the UpgradeAck step of the handshake if both sides have already flushed all in-flight packets.
 // - In the UpgradeOpen step of the handshake.
 func (k Keeper) writeUpgradeOpenChannel(ctx sdk.Context, portID, channelID string) {
