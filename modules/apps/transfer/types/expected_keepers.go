@@ -4,7 +4,6 @@ import (
 	context "context"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 
 	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
@@ -15,7 +14,7 @@ import (
 // AccountKeeper defines the contract required for account APIs.
 type AccountKeeper interface {
 	GetModuleAddress(name string) sdk.AccAddress
-	GetModuleAccount(ctx context.Context, name string) types.ModuleAccountI
+	GetModuleAccount(ctx context.Context, name string) sdk.ModuleAccountI
 }
 
 // BankKeeper defines the expected bank keeper
