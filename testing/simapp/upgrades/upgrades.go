@@ -1,23 +1,5 @@
 package upgrades
 
-import (
-	storetypes "cosmossdk.io/store/types"
-	upgradetypes "cosmossdk.io/x/upgrade/types"
-	"github.com/cosmos/cosmos-sdk/baseapp"
-	"github.com/cosmos/cosmos-sdk/codec"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/module"
-	consensusparamskeeper "github.com/cosmos/cosmos-sdk/x/consensus/keeper"
-	paramskeeper "github.com/cosmos/cosmos-sdk/x/params/keeper"
-	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
-	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
-
-	v6 "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/migrations/v6"
-	clientkeeper "github.com/cosmos/ibc-go/v7/modules/core/02-client/keeper"
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
-	ibctmmigrations "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint/migrations"
-)
-
 const (
 	// V5 defines the upgrade name for the ibc-go/v5 upgrade handler.
 	V5 = "normal upgrade" // NOTE: keeping as "normal upgrade" as existing tags depend on this name
@@ -29,6 +11,7 @@ const (
 	V7_1 = "v7.1"
 )
 
+/*
 // CreateDefaultUpgradeHandler creates an upgrade handler which can be used for regular upgrade tests
 // that do not require special logic
 func CreateDefaultUpgradeHandler(
@@ -96,3 +79,4 @@ func CreateV7LocalhostUpgradeHandler(
 		return mm.RunMigrations(ctx, configurator, vm)
 	}
 }
+*/

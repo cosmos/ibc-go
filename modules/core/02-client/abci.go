@@ -10,8 +10,8 @@ import (
 
 // BeginBlocker is used to perform IBC client upgrades
 func BeginBlocker(ctx sdk.Context, k keeper.Keeper) {
-	plan, found := k.GetUpgradePlan(ctx)
-	if found {
+	plan, err := k.GetUpgradePlan(ctx)
+	if err == nil {
 		// Once we are at the last block this chain will commit, set the upgraded consensus state
 		// so that IBC clients can use the last NextValidatorsHash as a trusted kernel for verifying
 		// headers on the next version of the chain.

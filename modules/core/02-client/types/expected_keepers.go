@@ -1,6 +1,7 @@
 package types
 
 import (
+	context "context"
 	"time"
 
 	upgradetypes "cosmossdk.io/x/upgrade/types"
@@ -16,11 +17,11 @@ type StakingKeeper interface {
 
 // UpgradeKeeper expected upgrade keeper
 type UpgradeKeeper interface {
-	ClearIBCState(ctx sdk.Context, lastHeight int64)
-	GetUpgradePlan(ctx sdk.Context) (plan upgradetypes.Plan, havePlan bool)
-	GetUpgradedClient(ctx sdk.Context, height int64) ([]byte, bool)
-	SetUpgradedClient(ctx sdk.Context, planHeight int64, bz []byte) error
-	GetUpgradedConsensusState(ctx sdk.Context, lastHeight int64) ([]byte, bool)
-	SetUpgradedConsensusState(ctx sdk.Context, planHeight int64, bz []byte) error
-	ScheduleUpgrade(ctx sdk.Context, plan upgradetypes.Plan) error
+	ClearIBCState(ctx context.Context, lastHeight int64) error
+	GetUpgradePlan(ctx context.Context) (plan upgradetypes.Plan, err error)
+	GetUpgradedClient(ctx context.Context, height int64) ([]byte, error)
+	SetUpgradedClient(ctx context.Context, planHeight int64, bz []byte) error
+	GetUpgradedConsensusState(ctx context.Context, lastHeight int64) ([]byte, error)
+	SetUpgradedConsensusState(ctx context.Context, planHeight int64, bz []byte) error
+	ScheduleUpgrade(ctx context.Context, plan upgradetypes.Plan) error
 }

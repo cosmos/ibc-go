@@ -939,6 +939,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	return paramsKeeper
 }
 
+/*
 // setupUpgradeHandlers sets all necessary upgrade handlers for testing purposes
 func (app *SimApp) setupUpgradeHandlers() {
 	app.UpgradeKeeper.SetUpgradeHandler(
@@ -978,6 +979,7 @@ func (app *SimApp) setupUpgradeHandlers() {
 		upgrades.CreateV7LocalhostUpgradeHandler(app.ModuleManager, app.configurator, app.IBCKeeper.ClientKeeper),
 	)
 }
+*/
 
 // setupUpgradeStoreLoaders sets all necessary store loaders required by upgrades.
 func (app *SimApp) setupUpgradeStoreLoaders() {

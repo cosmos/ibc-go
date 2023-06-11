@@ -16,7 +16,7 @@ func GetQueryCmd() *cobra.Command {
 
 	queryCmd.AddCommand(
 		GetCmdParams(),
-		GetCmdPacketEvents(),
+	//	GetCmdPacketEvents(),
 	)
 
 	return queryCmd
