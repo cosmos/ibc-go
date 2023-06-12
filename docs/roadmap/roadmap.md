@@ -10,18 +10,6 @@ This document endeavours to inform the wider IBC community about plans and prior
 
 This roadmap should be read as a high-level guide, rather than a commitment to schedules and deliverables. The degree of specificity is inversely proportional to the timeline. We will update this document periodically to reflect the status and plans. For the latest expected release timelines, please check [here](https://github.com/cosmos/ibc-go/wiki/Release-timeline).
 
-## v7.1.0
-
-Because it is so important to have an ibc-go release compatible with the latest Cosmos SDK release, a couple of features will take a little longer and be released in [v7.1.0](https://github.com/cosmos/ibc-go/milestone/37).
-
-### Localhost connection
-
-This feature will add support for applications on a chain to communicate with applications on the same chain using the existing standard interface to communicate with applications on remote chains. This is a powerful UX improvement, particularly for those users interested in interacting with multiple smart contracts on a single chain through one interface.
-
-For more details, see the new [ICS 09 specification](https://github.com/cosmos/ibc/tree/main/spec/client/ics-009-loopback-cilent).
-
-A special shout out to Strangelove Ventures and Polymer Labs for their substantial contribution on this feature.
-
 ## v7.2.0
 
 Follow the progress with the [milestone](https://github.com/cosmos/ibc-go/milestone/37).
