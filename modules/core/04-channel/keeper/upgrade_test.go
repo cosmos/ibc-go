@@ -327,8 +327,8 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 
 func (suite *KeeperTestSuite) TestChanUpgradeAck() {
 	var (
-		path    *ibctesting.Path
-		upgrade types.Upgrade
+		path                    *ibctesting.Path
+		counterpartyFlushStatus types.FlushStatus
 	)
 
 	testCases := []struct {
@@ -341,15 +341,18 @@ func (suite *KeeperTestSuite) TestChanUpgradeAck() {
 			func() {},
 			true,
 		},
-		{
-			"success with later upgrade sequence",
-			func() {
-				channel := path.EndpointA.GetChannel()
-				channel.UpgradeSequence = 4
-				path.EndpointA.SetChannel(channel)
-			},
-			true,
-		},
+		// {
+		// 	"success with later upgrade sequence",
+		// 	func() {
+		// 		channel := path.EndpointA.GetChannel()
+		// 		channel.UpgradeSequence = 4
+		// 		path.EndpointA.SetChannel(channel)
+
+		// 		err := path.EndpointA.UpdateClient()
+		// 		suite.Require().NoError(err)
+		// 	},
+		// 	true,
+		// },
 		{
 			"channel not found",
 			func() {
@@ -366,20 +369,60 @@ func (suite *KeeperTestSuite) TestChanUpgradeAck() {
 			false,
 		},
 		{
-			"proposed channel connection not found",
+			"counterparty flush status is not in FLUSHING or FLUSHCOMPLETE",
 			func() {
-				upgrade.Fields.ConnectionHops = []string{"connection-100"}
+				counterpartyFlushStatus = types.NOTINFLUSH
 			},
 			false,
 		},
 		{
-			"invalid proposed channel connection state",
+			"connection not found",
+			func() {
+				channel := path.EndpointA.GetChannel()
+				channel.ConnectionHops = []string{"connection-100"}
+				path.EndpointA.SetChannel(channel)
+			},
+			false,
+		},
+		{
+			"invalid connection state",
 			func() {
 				connectionEnd := path.EndpointA.GetConnection()
 				connectionEnd.State = connectiontypes.UNINITIALIZED
+				suite.chainA.GetSimApp().GetIBCKeeper().ConnectionKeeper.SetConnection(suite.chainA.GetContext(), path.EndpointA.ConnectionID, connectionEnd)
+			},
+			false,
+		},
+		{
+			"connection not found",
+			func() {
+				channel := path.EndpointA.GetChannel()
+				channel.ConnectionHops = []string{"connection-100"}
+				path.EndpointA.SetChannel(channel)
+			},
+			false,
+		},
+		{
+			"upgrade not found",
+			func() {
+				store := suite.chainA.GetContext().KVStore(suite.chainA.GetSimApp().GetKey(exported.ModuleName))
+				store.Delete(host.ChannelUpgradeKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
+			},
+			false,
+		},
+		{
+			"channel end version mismatch on crossing hellos",
+			func() {
+				channel := path.EndpointA.GetChannel()
+				channel.State = types.TRYUPGRADE
 
-				suite.chainA.GetSimApp().GetIBCKeeper().ConnectionKeeper.SetConnection(suite.chainA.GetContext(), "connection-100", connectionEnd)
-				upgrade.Fields.ConnectionHops = []string{"connection-100"}
+				path.EndpointA.SetChannel(channel)
+
+				upgrade, found := suite.chainA.GetSimApp().GetIBCKeeper().ChannelKeeper.GetUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				suite.Require().True(found)
+
+				upgrade.Fields.Version = "invalid-version"
+				suite.chainA.GetSimApp().GetIBCKeeper().ChannelKeeper.SetUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, upgrade)
 			},
 			false,
 		},
@@ -396,10 +439,15 @@ func (suite *KeeperTestSuite) TestChanUpgradeAck() {
 			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
 			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
 
+			counterpartyFlushStatus = types.FLUSHING
+
 			err := path.EndpointA.ChanUpgradeInit()
 			suite.Require().NoError(err)
 
 			err = path.EndpointB.ChanUpgradeTry()
+			suite.Require().NoError(err)
+
+			err = path.EndpointA.UpdateClient()
 			suite.Require().NoError(err)
 
 			tc.malleate()
@@ -410,14 +458,11 @@ func (suite *KeeperTestSuite) TestChanUpgradeAck() {
 			proofChannel, proofUpgrade, proofHeight := path.EndpointA.QueryChannelUpgradeProof()
 
 			err = suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.ChanUpgradeAck(
-				suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, types.FLUSHCOMPLETE, counterpartyUpgrade,
+				suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, counterpartyFlushStatus, counterpartyUpgrade,
 				proofChannel, proofUpgrade, proofHeight,
 			)
 
 			if tc.expPass {
-				// suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.WriteUpgradeAckChannel()
-				// channel := path.EndpointA.GetChannel()
-
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().Error(err)

@@ -191,7 +191,7 @@ func (k Keeper) WriteUpgradeTryChannel(ctx sdk.Context, portID, channelID string
 	previousState := channel.State
 	channel.State = types.TRYUPGRADE
 	// TODO: determine flush status
-	// channel.FlushStatus = flushStatus
+	channel.FlushStatus = types.FLUSHING
 
 	upgrade.Fields.Version = upgradeVersion
 
@@ -237,11 +237,11 @@ func (k Keeper) ChanUpgradeAck(
 		return errorsmod.Wrapf(err, "failed to retrieve connection: %s", channel.ConnectionHops[0])
 	}
 
-	counterpartyHops := connectionEnd.GetCounterparty().GetConnectionID()
+	counterpartyHops := []string{connectionEnd.GetCounterparty().GetConnectionID()}
 	counterpartyChannel := types.Channel{
 		State:           types.TRYUPGRADE,
 		Ordering:        channel.Ordering,
-		ConnectionHops:  []string{counterpartyHops},
+		ConnectionHops:  counterpartyHops,
 		Counterparty:    types.NewCounterparty(portID, channelID),
 		Version:         channel.Version,
 		UpgradeSequence: channel.UpgradeSequence,
@@ -256,8 +256,7 @@ func (k Keeper) ChanUpgradeAck(
 	// in the crossing hellos case, the versions returned by both on TRY must be the same
 	if channel.State == types.TRYUPGRADE {
 		if upgrade.Fields.Version != counterpartyUpgrade.Fields.Version {
-			// restoreChannel(portID, channelID)
-			return errorsmod.Wrap(types.ErrInvalidUpgrade, "todo: return types.UpgradeError(channel.UpgradeSequence, err)")
+			return types.NewUpgradeError(channel.UpgradeSequence, errorsmod.Wrap(types.ErrIncompatibleCounterpartyUpgrade, "both channel ends must agree on the same version"))
 		}
 	}
 
