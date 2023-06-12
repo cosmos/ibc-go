@@ -230,23 +230,24 @@ func (k Keeper) ChanUpgradeTimeout(
 		return errorsmod.Wrapf(types.ErrUpgradeNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
 	}
 
-	connection, err := k.GetConnection(ctx, channel.ConnectionHops[0])
-	if err != nil {
-		return errorsmod.Wrap(err, "failed to retrieve connection using the channel connection hops")
+	connection, found := k.connectionKeeper.GetConnection(ctx, channel.ConnectionHops[0])
+	if !found {
+		return errorsmod.Wrap(
+			connectiontypes.ErrConnectionNotFound,
+			channel.ConnectionHops[0],
+		)
 	}
 
 	// proof must be from a height after timeout has elapsed. Either timeoutHeight or timeoutTimestamp must be defined.
 	// if timeoutHeight is defined and proof is from before timeout height, abort transaction
-	if !upgrade.Timeout.IsValid() {
-		return errorsmod.Wrapf(types.ErrInvalidUpgrade, "upgrade timeout is not valid: %s", upgrade.Timeout)
+	proofTimestamp, err := k.connectionKeeper.GetTimestampAtHeight(ctx, connection, proofHeight)
+	if err != nil {
+		return err
 	}
 
-	if proofHeight == clienttypes.ZeroHeight() {
-		return errorsmod.Wrapf(InvalidProof, "proof height must be provided")
-	}
-
-	if upgrade.Timeout.Height != clienttypes.ZeroHeight() && proofHeight.LTE(upgrade.Timeout.Height) {
-		return errorsmod.Wrapf(InvalidProof, "proof height must be greater than upgrade timeout height (%s)", upgrade.Timeout.Height)
+	if (upgrade.Timeout.Height.IsZero() || proofHeight.LT(upgrade.Timeout.Height)) &&
+		(upgrade.Timeout.Timestamp == 0 || proofTimestamp < upgrade.Timeout.Timestamp) {
+		return errorsmod.Wrap(types.ErrInvalidUpgradeTimeout, "timeout has not yet passed on counterparty chain")
 	}
 
 	// verify the counterparty channel state
@@ -261,42 +262,43 @@ func (k Keeper) ChanUpgradeTimeout(
 		return errorsmod.Wrap(err, "failed to verify counterparty channel state")
 	}
 
-    // counterparty channel must be proved to still be in OPEN state or INITUPGRADE state (crossing hellos)
+	// counterparty channel must be proved to still be in OPEN state or INITUPGRADE state (crossing hellos)
 	if !collections.Contains(counterpartyChannel.State, []types.State{types.OPEN, types.INITUPGRADE}) {
 		return errorsmod.Wrapf(types.ErrInvalidChannelState, "expected one of [%s, %s], got %s", types.OPEN, types.INITUPGRADE, counterpartyChannel.State)
 	}
 
-	if prevErrorReceipt != nil {
+	// Error receipt passed in is either nil or it is a stale error receipt from a previous upgrade
+	if (prevErrorReceipt == types.ErrorReceipt{}) {
 		err := k.connectionKeeper.VerifyChannelUpgradeErrorAbsence(
 			ctx,
-			connection,
-			proofHeight, proofErrorReceipt,
 			channel.Counterparty.PortId, channel.Counterparty.ChannelId,
+			connection,
+			proofErrorReceipt,
+			proofHeight,
 		)
 		if err != nil {
 			return errorsmod.Wrap(err, "failed to verify counterparty channel upgrade error absence")
 		}
 	} else {
+		// timeout for this sequence can only succeed if the error receipt written into the error path on the counterparty
+        // was for a previous sequence by the timeout deadline.
+		upgradeSequence := channel.UpgradeSequence
+		if upgradeSequence < prevErrorReceipt.Sequence {
+			return errorsmod.Wrapf(types.ErrInvalidUpgrade, "previous error receipt sequence is greater than current upgrade sequence: %d > %d", prevErrorReceipt.Sequence, upgradeSequence)
+		}
+		
 		err := k.connectionKeeper.VerifyChannelUpgradeError(
 			ctx,
-			connection,
-			proofHeight, proofErrorReceipt,
 			channel.Counterparty.PortId, channel.Counterparty.ChannelId,
+			connection,
+			prevErrorReceipt,
+			proofErrorReceipt,
+			proofHeight,
 		)
+		if err != nil {
+			return errorsmod.Wrap(err, "failed to verify counterparty channel upgrade error receipt")
+		}
 	}
-
-	// verify counterparty channel state
-	// verify erreor receipt ansences or nil
-
-	if !upgrade.Timeout.IsValid() {
-		return errorsmod.Wrapf(types.ErrInvalidUpgrade, "upgrade timeout is not valid: %s", upgrade.Timeout)
-	}
-
-	// proof must be from a height after timeout has elapsed. Either timeoutHeight or timeoutTimestamp must be defined.
-	// if timeoutHeight is defined and proof is from before timeout height
-	// then abort transaction
-
-	// Error receipt passed in is either nil or it is a stale error receipt from a previous upgrade
 
 	return nil
 }
