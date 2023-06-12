@@ -281,11 +281,11 @@ func (k Keeper) startFlushUpgradeHandshake(
 	// verifies the proof that a particular proposed upgrade has been stored in the upgrade path of the counterparty
 	if err := k.connectionKeeper.VerifyChannelUpgrade(
 		ctx,
-		connection,
-		proofHeight, proofCounterpartyUpgrade,
 		channel.Counterparty.PortId,
 		channel.Counterparty.ChannelId,
+		connection,
 		counterpartyUpgrade,
+		proofCounterpartyUpgrade, proofHeight,
 	); err != nil {
 		return errorsmod.Wrap(err, "failed to verify counterparty upgrade")
 	}
