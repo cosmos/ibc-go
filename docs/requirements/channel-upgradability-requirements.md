@@ -149,7 +149,10 @@ Exception flows:
 | -- | ----------- | ------------ | ------ | 
 | 1.01 | The parameters for the permitted type of upgrade can be configured on completion of a successful governance proposal or using the `x/group` module  | ------------ | Drafted | 
 | 1.02 | A type of upgrade can be permitted for all channels with a specific `portID` or for a subset of channels using this `portID` | ------------ | Drafted |
-| 1.03 | A chain may choose to permit all channel upgrades from counterparties by default | ------------ | Drafted |  
+| 1.03 | A chain may choose to permit all channel upgrades of a specific type from counterparties by default | ------------ | Drafted |
+| 1.04 | A chain can specify the channel version,  channel ordering and connection hops to be modified in an upgrade | ------------ | Drafted |    
+| 1.05 | A chain can specify the timeout period, as a block height or timestamp, for a specific upgrade to be executed by | ------------ | Drafted |
+| 1.06 | A chain may choose to not specify a timeout period for a specific upgrade to be executed by | ------------ | Drafted |  
 
 ### 2 - Initiation
 
@@ -158,7 +161,8 @@ Exception flows:
 | 2.01 | A channel upgrade can only be initiated before the specified timeout period for that type of upgrade | ------------ | Drafted |
 | 2.02 | A chain can configure a channel upgrade to be initiated automatically after a successful governance proposal | ------------ | Drafted |
 | 2.03 | After permission is granted for a specific type of upgrade, any relayer can initiate the upgrade | ------------ |Drafted | 
-| 2.04 | A channel upgrade can only be initiated when both `ChannelEnd`s are in the `OPEN` state | ------------ | Drafted | 
+| 2.04 | A channel upgrade will typically be initiated when both `ChannelEnd`s are in the `OPEN` state | ------------ | Drafted | 
+| 2.05 | A channel upgrade can be initiated when the counterparty `ChannelEnd` is already in the `INITUPGRADE` state, in the case of a crossing hello | ------------ | Drafted | 
 
 
 ### 3 - Upgrade Handshake
