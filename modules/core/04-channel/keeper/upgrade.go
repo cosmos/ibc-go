@@ -160,7 +160,7 @@ func (k Keeper) WriteUpgradeCancelChannel(ctx sdk.Context, portID, channelID str
 
 	channel, found := k.GetChannel(ctx, portID, channelID)
 	if !found {
-		panic(fmt.Sprintf("could not find existing channel when cancelling channel upgrade, channelID: %s, portID: %s", channelID, portID))
+		panic(fmt.Sprintf("could not find existing channel, channelID: %s, portID: %s", channelID, portID))
 	}
 
 	upgrade, found := k.GetUpgrade(ctx, portID, channelID)
@@ -172,7 +172,7 @@ func (k Keeper) WriteUpgradeCancelChannel(ctx sdk.Context, portID, channelID str
 		return errorsmod.Wrap(types.ErrUpgradeRestoreFailed, fmt.Sprintf("failed to restore channel, channelID: %s, portID: %s", channelID, portID))
 	}
 
-	emitUpgradedCancelledEvent(ctx, portID, channelID, channel, upgrade)
+	emitChannelUpgradeCancelEvent(ctx, portID, channelID, channel, upgrade)
 	return nil
 }
 
