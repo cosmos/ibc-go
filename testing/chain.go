@@ -74,6 +74,10 @@ type TestChain struct {
 	SenderAccount authtypes.AccountI
 
 	SenderAccounts []SenderAccount
+
+	// Short-term solution to override the logic of the standard SendMsgs function.
+	// See issue https://github.com/cosmos/ibc-go/issues/3123 for more information.
+	SendMsgsOverride func(msgs ...sdk.Msg) (*sdk.Result, error)
 }
 
 // NewTestChainWithValSet initializes a new TestChain instance with the given validator set
@@ -314,6 +318,10 @@ func (chain *TestChain) sendMsgs(msgs ...sdk.Msg) error {
 // number and updates the TestChain's headers. It returns the result and error if one
 // occurred.
 func (chain *TestChain) SendMsgs(msgs ...sdk.Msg) (*sdk.Result, error) {
+	if chain.SendMsgsOverride != nil {
+		return chain.SendMsgsOverride(msgs...)
+	}
+
 	// ensure the chain has the latest time
 	chain.Coordinator.UpdateTimeForChain(chain)
 
