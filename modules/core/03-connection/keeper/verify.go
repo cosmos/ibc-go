@@ -367,12 +367,12 @@ func (k Keeper) VerifyNextSequenceRecv(
 // VerifyChannelUpgradeError verifies a proof of the provided upgrade error receipt.
 func (k Keeper) VerifyChannelUpgradeError(
 	ctx sdk.Context,
-	connection exported.ConnectionI,
-	height exported.Height,
-	proof []byte,
 	portID,
 	channelID string,
+	connection exported.ConnectionI,
 	errorReceipt channeltypes.ErrorReceipt,
+	proofErrorReceipt []byte,
+	proofHeight exported.Height,
 ) error {
 	clientID := connection.GetClientID()
 	clientState, clientStore, err := k.getClientStateAndVerificationStore(ctx, clientID)
@@ -396,9 +396,9 @@ func (k Keeper) VerifyChannelUpgradeError(
 	}
 
 	if err := clientState.VerifyMembership(
-		ctx, clientStore, k.cdc, height,
+		ctx, clientStore, k.cdc, proofHeight,
 		0, 0, // skip delay period checks for non-packet processing verification
-		proof, merklePath, bz,
+		proofErrorReceipt, merklePath, bz,
 	); err != nil {
 		return errorsmod.Wrapf(err, "failed upgrade error receipt verification for client (%s)", clientID)
 	}
@@ -410,11 +410,11 @@ func (k Keeper) VerifyChannelUpgradeError(
 // channel upgrade error.
 func (k Keeper) VerifyChannelUpgradeErrorAbsence(
 	ctx sdk.Context,
-	connection exported.ConnectionI,
-	height exported.Height,
-	proof []byte,
 	portID,
 	channelID string,
+	connection exported.ConnectionI,
+	proofErrorReceiptAbsence []byte,
+	proofHeight exported.Height,
 ) error {
 	clientID := connection.GetClientID()
 	clientState, clientStore, err := k.getClientStateAndVerificationStore(ctx, clientID)
@@ -433,9 +433,9 @@ func (k Keeper) VerifyChannelUpgradeErrorAbsence(
 	}
 
 	if err := clientState.VerifyNonMembership(
-		ctx, clientStore, k.cdc, height,
+		ctx, clientStore, k.cdc, proofHeight,
 		0, 0,
-		proof, merklePath,
+		proofErrorReceiptAbsence, merklePath,
 	); err != nil {
 		return errorsmod.Wrapf(err, "failed upgrade error receipt absence verification for client (%s)", clientID)
 	}
@@ -446,12 +446,12 @@ func (k Keeper) VerifyChannelUpgradeErrorAbsence(
 // VerifyChannelUpgrade verifies the proof that a particular proposed upgrade has been stored in the upgrade path.
 func (k Keeper) VerifyChannelUpgrade(
 	ctx sdk.Context,
-	connection exported.ConnectionI,
-	height exported.Height,
-	proof []byte,
 	portID,
 	channelID string,
+	connection exported.ConnectionI,
 	upgrade channeltypes.Upgrade,
+	proofUpgrade []byte,
+	proofHeight exported.Height,
 ) error {
 	clientID := connection.GetClientID()
 	clientState, clientStore, err := k.getClientStateAndVerificationStore(ctx, clientID)
@@ -475,9 +475,9 @@ func (k Keeper) VerifyChannelUpgrade(
 	}
 
 	if err := clientState.VerifyMembership(
-		ctx, clientStore, k.cdc, height,
+		ctx, clientStore, k.cdc, proofHeight,
 		0, 0, // skip delay period checks for non-packet processing verification
-		proof, merklePath, bz,
+		proofUpgrade, merklePath, bz,
 	); err != nil {
 		return errorsmod.Wrapf(err, "failed upgrade verification for client (%s) on channel (%s)", clientID, channelID)
 	}
