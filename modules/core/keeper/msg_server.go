@@ -773,6 +773,7 @@ func (k Keeper) ChannelUpgradeTry(goCtx context.Context, msg *channeltypes.MsgCh
 			}
 
 			// NOTE: a FAILURE result is returned to the client and an error receipt is written to state.
+			// This signals to the relayer to begin the cancel upgrade handshake subprotocol.
 			return &channeltypes.MsgChannelUpgradeTryResponse{Result: channeltypes.FAILURE}, nil
 		}
 
