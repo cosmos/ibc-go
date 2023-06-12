@@ -30,8 +30,3 @@ func (k Keeper) StartFlushUpgradeHandshake(
 func (k Keeper) ValidateUpgradeFields(ctx sdk.Context, proposedUpgrade types.UpgradeFields, currentChannel types.Channel) error {
 	return k.validateUpgradeFields(ctx, proposedUpgrade, currentChannel)
 }
-
-// AbortUpgrade is a wrapper around abortUpgrade to allow the function to be directly called in tests.
-func (k Keeper) AbortUpgrade(ctx sdk.Context, portID, channelID string, err error) error {
-	return k.abortUpgrade(ctx, portID, channelID, err)
-}
