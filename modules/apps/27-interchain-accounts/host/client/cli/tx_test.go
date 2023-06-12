@@ -140,8 +140,7 @@ func TestGeneratePacketData(t *testing.T) {
 	}
 }
 
-func assertMsgBankSend(t *testing.T, msg sdk.Msg) {
-	t.Helper()
+func assertMsgBankSend(t *testing.T, msg sdk.Msg) { //nolint:thelper
 	bankSendMsg, ok := msg.(*banktypes.MsgSend)
 	require.True(t, ok)
 	require.Equal(t, "cosmos15ccshhmp0gsx29qpqq6g4zmltnnvgmyu9ueuadh9y2nc5zj0szls5gtddz", bankSendMsg.FromAddress)
