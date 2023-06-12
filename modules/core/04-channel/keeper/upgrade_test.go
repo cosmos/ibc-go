@@ -5,6 +5,7 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 
+	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
@@ -124,6 +125,201 @@ func (suite *KeeperTestSuite) TestChanUpgradeInit() {
 				suite.Require().Equal(types.INITUPGRADE, channel.State)
 			} else {
 				suite.Require().Error(err)
+			}
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestChanUpgradeTry() {
+	var (
+		path                *ibctesting.Path
+		proposedUpgrade     types.Upgrade
+		counterpartyUpgrade types.Upgrade
+	)
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expError error
+	}{
+		{
+			"success",
+			func() {},
+			nil,
+		},
+		{
+			"success: crossing hellos",
+			func() {
+				err := path.EndpointB.ChanUpgradeInit()
+				suite.Require().NoError(err)
+			},
+			nil,
+		},
+		// {
+		// 	"success: upgrade sequence is fast forwarded to counterparty upgrade sequence",
+		// 	func() {
+		// 		channel := path.EndpointA.GetChannel()
+		// 		channel.UpgradeSequence = 5
+		// 		path.EndpointA.SetChannel(channel)
+
+		// 		expSequence = 5
+		// 	},
+		// 	true,
+		// },
+		// {
+		{
+			"channel not found",
+			func() {
+				path.EndpointB.ChannelID = ibctesting.InvalidID
+			},
+			types.ErrChannelNotFound,
+		},
+		{
+			"channel state is not in OPEN or INITUPGRADE state",
+			func() {
+				suite.Require().NoError(path.EndpointB.SetChannelState(types.CLOSED))
+			},
+			types.ErrInvalidChannelState,
+		},
+		{
+			"connection not found",
+			func() {
+				channel := path.EndpointB.GetChannel()
+				channel.ConnectionHops = []string{"connection-100"}
+				path.EndpointB.SetChannel(channel)
+			},
+			connectiontypes.ErrConnectionNotFound,
+		},
+		{
+			"invalid connection state",
+			func() {
+				connectionEnd := path.EndpointB.GetConnection()
+				connectionEnd.State = connectiontypes.UNINITIALIZED
+				suite.chainB.GetSimApp().GetIBCKeeper().ConnectionKeeper.SetConnection(suite.chainB.GetContext(), path.EndpointB.ConnectionID, connectionEnd)
+			},
+			connectiontypes.ErrInvalidConnectionState,
+		},
+		{
+			"timeout has passed",
+			func() {
+				counterpartyUpgrade.Timeout = types.NewTimeout(clienttypes.NewHeight(0, 1), 0)
+			},
+			types.ErrInvalidUpgrade,
+		},
+		{
+			"initializing handshake fails, proposed connection hops do not exist",
+			func() {
+				proposedUpgrade.Fields.ConnectionHops = []string{ibctesting.InvalidID}
+			},
+			connectiontypes.ErrConnectionNotFound,
+		},
+		{
+			"current upgrade not found even though channel is in INITUPGRADE",
+			func() {
+				// crossing hellos
+				err := path.EndpointB.ChanUpgradeInit()
+				suite.Require().NoError(err)
+
+				suite.chainB.DeleteKey(host.ChannelUpgradeKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID))
+			},
+			types.ErrUpgradeNotFound,
+		},
+		{
+			"proposed upgrade fields must be equal to existing upgrade fields in crossing hellos",
+			func() {
+				// crossing hellos
+				err := path.EndpointB.ChanUpgradeInit()
+				suite.Require().NoError(err)
+
+				proposedUpgrade.Fields.ConnectionHops = []string{ibctesting.InvalidID}
+			},
+			types.ErrInvalidUpgrade,
+		},
+		{
+			"startFlushUpgradeHandshake fails due to proof verification failure, counterparty upgrade connection hops are tampered with",
+			func() {
+				counterpartyUpgrade.Fields.ConnectionHops = []string{ibctesting.InvalidID}
+			},
+			commitmenttypes.ErrInvalidProof,
+		},
+		{
+			"startFlushUpgradeHandshake fails due to incompatible upgrades, chainB proposes a new connection hop that does not match counterparty",
+			func() {
+				// reuse existing connection to create a new connection in a non OPEN state
+				connection := path.EndpointB.GetConnection()
+				// ensure counterparty connectionID does not match connectionID set in counterparty proposed upgrade
+				connection.Counterparty.ConnectionId = "connection-50"
+
+				// set proposed connection in state
+				proposedConnectionID := "connection-100" //nolint:goconst
+				suite.chainB.GetSimApp().GetIBCKeeper().ConnectionKeeper.SetConnection(suite.chainB.GetContext(), proposedConnectionID, connection)
+				proposedUpgrade.Fields.ConnectionHops[0] = proposedConnectionID
+			},
+			types.NewUpgradeError(1, types.ErrIncompatibleCounterpartyUpgrade),
+		},
+		{
+			"startFlushUpgradeHandshake fails due to mismatch in upgrade sequences",
+			func() {
+				channel := path.EndpointB.GetChannel()
+				channel.UpgradeSequence = 5
+				path.EndpointB.SetChannel(channel)
+			},
+			types.NewUpgradeError(6, types.ErrIncompatibleCounterpartyUpgrade), // max sequence + 1 will be returned
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+			expPass := tc.expError == nil
+
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.Setup(path)
+
+			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
+			err := path.EndpointA.ChanUpgradeInit()
+			suite.Require().NoError(err)
+
+			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
+			proposedUpgrade = path.EndpointB.GetProposedUpgrade()
+
+			var found bool
+			counterpartyUpgrade, found = path.EndpointA.Chain.GetSimApp().IBCKeeper.ChannelKeeper.GetUpgrade(path.EndpointA.Chain.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+			suite.Require().True(found)
+
+			tc.malleate()
+
+			// ensure clients are up to date to receive valid proofs
+			suite.Require().NoError(path.EndpointB.UpdateClient())
+
+			proofCounterpartyChannel, proofCounterpartyUpgrade, proofHeight := path.EndpointB.QueryChannelUpgradeProof()
+
+			upgrade, err := suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.ChanUpgradeTry(
+				suite.chainB.GetContext(),
+				path.EndpointB.ChannelConfig.PortID,
+				path.EndpointB.ChannelID,
+				proposedUpgrade.Fields.ConnectionHops,
+				proposedUpgrade.Timeout,
+				counterpartyUpgrade,
+				path.EndpointA.GetChannel().UpgradeSequence,
+				proofCounterpartyChannel,
+				proofCounterpartyUpgrade,
+				proofHeight,
+			)
+
+			if expPass {
+				suite.Require().NoError(err)
+				suite.Require().NotEmpty(upgrade)
+				suite.Require().Equal(proposedUpgrade.Fields, upgrade.Fields)
+				suite.Require().Equal(proposedUpgrade.Timeout, upgrade.Timeout)
+
+				latestSequenceSend, found := path.EndpointB.Chain.GetSimApp().IBCKeeper.ChannelKeeper.GetNextSequenceSend(path.EndpointB.Chain.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+				suite.Require().True(found)
+				suite.Require().Equal(latestSequenceSend-1, upgrade.LatestSequenceSend)
+			} else {
+				suite.assertUpgradeError(err, tc.expError)
+				suite.Require().Empty(upgrade)
 			}
 		})
 	}
@@ -354,8 +550,7 @@ func (suite *KeeperTestSuite) TestStartFlushUpgradeHandshake() {
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.Setup(path)
 
-			upgradeVersion := fmt.Sprintf("%s-v2", mock.Version)
-			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = upgradeVersion
+			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
 			err := path.EndpointA.ChanUpgradeInit()
 			suite.Require().NoError(err)
 
@@ -375,15 +570,8 @@ func (suite *KeeperTestSuite) TestStartFlushUpgradeHandshake() {
 			channel.UpgradeSequence = 1
 			path.EndpointB.SetChannel(channel)
 
-			upgrade = types.Upgrade{
-				Fields: types.UpgradeFields{
-					Ordering:       types.UNORDERED,
-					ConnectionHops: []string{path.EndpointB.ConnectionID},
-					Version:        upgradeVersion,
-				},
-				Timeout:            types.NewTimeout(path.EndpointA.Chain.GetTimeoutHeight(), 0),
-				LatestSequenceSend: 1,
-			}
+			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
+			upgrade = path.EndpointB.GetProposedUpgrade()
 
 			tc.malleate()
 
@@ -393,7 +581,6 @@ func (suite *KeeperTestSuite) TestStartFlushUpgradeHandshake() {
 			)
 
 			if tc.expError != nil {
-				suite.Require().Error(err)
 				suite.assertUpgradeError(err, tc.expError)
 			} else {
 				suite.Require().NoError(err)
@@ -402,7 +589,7 @@ func (suite *KeeperTestSuite) TestStartFlushUpgradeHandshake() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestValidateProposedUpgradeFields() {
+func (suite *KeeperTestSuite) TestValidateUpgradeFields() {
 	var (
 		proposedUpgrade *types.UpgradeFields
 		path            *ibctesting.Path
@@ -415,7 +602,7 @@ func (suite *KeeperTestSuite) TestValidateProposedUpgradeFields() {
 		{
 			name: "change channel version",
 			malleate: func() {
-				proposedUpgrade.Version = "1.0.0"
+				proposedUpgrade.Version = mock.UpgradeVersion
 			},
 			expPass: true,
 		},
@@ -447,6 +634,32 @@ func (suite *KeeperTestSuite) TestValidateProposedUpgradeFields() {
 			malleate: func() {
 				connection := path.EndpointA.GetConnection()
 				connection.State = connectiontypes.UNINITIALIZED
+				path.EndpointA.SetConnection(connection)
+			},
+			expPass: false,
+		},
+		{
+			name: "fails when connection versions do not exist",
+			malleate: func() {
+				// update channel version first so that existing channel end is not identical to proposed upgrade
+				proposedUpgrade.Version = mock.UpgradeVersion
+
+				connection := path.EndpointA.GetConnection()
+				connection.Versions = []*connectiontypes.Version{}
+				path.EndpointA.SetConnection(connection)
+			},
+			expPass: false,
+		},
+		{
+			name: "fails when connection version does not support the new ordering",
+			malleate: func() {
+				// update channel version first so that existing channel end is not identical to proposed upgrade
+				proposedUpgrade.Version = mock.UpgradeVersion
+
+				connection := path.EndpointA.GetConnection()
+				connection.Versions = []*connectiontypes.Version{
+					connectiontypes.NewVersion("1", []string{"ORDER_ORDERED"}),
+				}
 				path.EndpointA.SetConnection(connection)
 			},
 			expPass: false,

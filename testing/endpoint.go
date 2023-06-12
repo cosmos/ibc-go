@@ -573,11 +573,11 @@ func (endpoint *Endpoint) QueryChannelUpgradeProof() ([]byte, []byte, clienttype
 
 	// query proof for the channel on the counterparty
 	channelKey := host.ChannelKey(counterpartyPortID, counterpartyChannelID)
-	proofChannel, height := endpoint.Counterparty.Chain.QueryProof(channelKey)
+	proofChannel, height := endpoint.Counterparty.QueryProof(channelKey)
 
 	// query proof for the upgrade attempt on the counterparty
 	upgradeKey := host.ChannelUpgradeKey(counterpartyPortID, counterpartyChannelID)
-	proofUpgrade, _ := endpoint.Counterparty.Chain.QueryProof(upgradeKey)
+	proofUpgrade, _ := endpoint.Counterparty.QueryProof(upgradeKey)
 
 	return proofChannel, proofUpgrade, height
 }
@@ -609,6 +609,10 @@ func (endpoint *Endpoint) ChanUpgradeTry() error {
 
 	counterpartyUpgrade, found := endpoint.Counterparty.Chain.App.GetIBCKeeper().ChannelKeeper.GetUpgrade(endpoint.Counterparty.Chain.GetContext(), endpoint.Counterparty.ChannelConfig.PortID, endpoint.Counterparty.ChannelID)
 	require.True(endpoint.Chain.TB, found)
+
+	if !found {
+		return fmt.Errorf("could not find upgrade for channel %s", endpoint.ChannelID)
+	}
 
 	msg := channeltypes.NewMsgChannelUpgradeTry(
 		endpoint.ChannelConfig.PortID,
@@ -643,6 +647,26 @@ func (endpoint *Endpoint) ChanUpgradeAck() error {
 		counterpartyUpgrade,
 		proofChannel,
 		proofUpgrade,
+		height,
+		endpoint.Chain.SenderAccount.GetAddress().String(),
+	)
+
+	return endpoint.Chain.sendMsgs(msg)
+}
+
+// ChanUpgradeOpen sends a MsgChannelUpgradeOpen to the associated endpoint.
+func (endpoint *Endpoint) ChanUpgradeOpen() error {
+	err := endpoint.UpdateClient()
+	require.NoError(endpoint.Chain.TB, err)
+
+	channelKey := host.ChannelKey(endpoint.Counterparty.ChannelConfig.PortID, endpoint.Counterparty.ChannelID)
+	proofChannel, height := endpoint.Counterparty.QueryProof(channelKey)
+
+	msg := channeltypes.NewMsgChannelUpgradeOpen(
+		endpoint.ChannelConfig.PortID,
+		endpoint.ChannelID,
+		endpoint.Counterparty.GetChannel().State,
+		proofChannel,
 		height,
 		endpoint.Chain.SenderAccount.GetAddress().String(),
 	)
