@@ -1,6 +1,6 @@
 {
-  "chain-a": ["release-v7.1.x", "v7.1.0"],
-  "chain-b": ["release-v7.1.x"],
+  "chain-a": ["release-v7.1.x"],
+  "chain-b": ["release-v7.1.x", "v7.1.0"],
   "entrypoint": ["LocalhostTransferTestSuite"],
   "test": [
     "TestMsgTransfer_Localhost"
