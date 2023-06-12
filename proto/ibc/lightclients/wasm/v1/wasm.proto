@@ -12,8 +12,7 @@ message ClientState {
   option (gogoproto.goproto_getters)      = false;
   bytes                     data          = 1;
   bytes                     code_id       = 2;
-  ibc.core.client.v1.Height latest_height = 3
-      [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"latest_height\""];
+  ibc.core.client.v1.Height latest_height = 3 [(gogoproto.nullable) = false];
 }
 
 // Wasm light client's ConsensusState
@@ -31,7 +30,7 @@ message Header {
   option (gogoproto.goproto_getters) = false;
 
   bytes                     data   = 1;
-  ibc.core.client.v1.Height height = 2 [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"height\""];
+  ibc.core.client.v1.Height height = 2 [(gogoproto.nullable) = false];
 }
 
 // Wasm light client Misbehaviour

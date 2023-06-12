@@ -42,8 +42,12 @@ func (cs ClientState) Validate() error {
 		return sdkerrors.Wrap(ErrInvalidData, "data cannot be empty")
 	}
 
-	if len(cs.CodeId) == 0 {
+	lenCodeID := len(cs.CodeId)
+	if lenCodeID == 0 {
 		return sdkerrors.Wrap(ErrInvalidCodeID, "code ID cannot be empty")
+	}
+	if lenCodeID > 32 {
+		return sdkerrors.Wrapf(ErrInvalidCodeID, "expected 32, go %d", lenCodeID)
 	}
 
 	return nil
@@ -66,21 +70,20 @@ type (
 // A frozen client will become expired, so the Frozen status
 // has higher precedence.
 func (cs ClientState) Status(ctx sdk.Context, clientStore sdk.KVStore, _ codec.BinaryCodec) exported.Status {
-	status := exported.Unknown
 	payload := statusPayload{Status: statusInnerPayload{}}
 
 	encodedData, err := json.Marshal(payload)
 	if err != nil {
-		return status
+		return exported.Unknown
 	}
 
 	response, err := queryContractWithStore(ctx, clientStore, cs.CodeId, encodedData)
 	if err != nil {
-		return status
+		return exported.Unknown
 	}
 	var output queryResponse
 	if err := json.Unmarshal(response, &output); err != nil {
-		return status
+		return exported.Unknown
 	}
 
 	return output.Status
@@ -120,7 +123,7 @@ func (cs ClientState) Initialize(ctx sdk.Context, marshaler codec.BinaryCodec, c
 
 	_, err := initContract(cs.CodeId, ctx, clientStore)
 	if err != nil {
-		return sdkerrors.Wrapf(ErrInitContractFailed, "err: %s", err)
+		return sdkerrors.Wrapf(err, "failed to initialize contract")
 	}
 	return nil
 }
@@ -245,14 +248,14 @@ func call[T ContractResult](ctx sdk.Context, clientStore sdk.KVStore, cs *Client
 	var output T
 	encodedData, err := json.Marshal(payload)
 	if err != nil {
-		return output, sdkerrors.Wrapf(ErrMarshalPayloadFailed, "err: %s", err)
+		return output, sdkerrors.Wrapf(err, "failed to marshal wasm contract payload")
 	}
 	out, err := callContract(cs.CodeId, ctx, clientStore, encodedData)
 	if err != nil {
-		return output, sdkerrors.Wrapf(ErrCallContractFailed, "err: %s", err)
+		return output, sdkerrors.Wrapf(err, "call to wasm contract failed")
 	}
 	if err := json.Unmarshal(out.Data, &output); err != nil {
-		return output, sdkerrors.Wrapf(ErrUnmarshalPayloadFailed, "err: %s", err)
+		return output, sdkerrors.Wrapf(err, "failed unmarshal wasm contract payload")
 	}
 	if !output.Validate() {
 		return output, sdkerrors.Wrapf(errors.New(output.Error()), "error occurred while calling contract with code ID %s", hex.EncodeToString(cs.CodeId))
