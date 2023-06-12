@@ -329,6 +329,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeAck() {
 	var (
 		path                    *ibctesting.Path
 		counterpartyFlushStatus types.FlushStatus
+		counterpartyUpgrade     types.Upgrade
 	)
 
 	testCases := []struct {
@@ -341,18 +342,24 @@ func (suite *KeeperTestSuite) TestChanUpgradeAck() {
 			func() {},
 			true,
 		},
-		// {
-		// 	"success with later upgrade sequence",
-		// 	func() {
-		// 		channel := path.EndpointA.GetChannel()
-		// 		channel.UpgradeSequence = 4
-		// 		path.EndpointA.SetChannel(channel)
+		{
+			"success with later upgrade sequence",
+			func() {
+				channel := path.EndpointA.GetChannel()
+				channel.UpgradeSequence = 10
+				path.EndpointA.SetChannel(channel)
 
-		// 		err := path.EndpointA.UpdateClient()
-		// 		suite.Require().NoError(err)
-		// 	},
-		// 	true,
-		// },
+				channel = path.EndpointB.GetChannel()
+				channel.UpgradeSequence = 10
+				path.EndpointB.SetChannel(channel)
+
+				suite.coordinator.CommitBlock(suite.chainA, suite.chainB)
+
+				err := path.EndpointA.UpdateClient()
+				suite.Require().NoError(err)
+			},
+			true,
+		},
 		{
 			"channel not found",
 			func() {
@@ -426,6 +433,22 @@ func (suite *KeeperTestSuite) TestChanUpgradeAck() {
 			},
 			false,
 		},
+		{
+			"startFlushUpgradeHandshake fails due to proof verification failure, counterparty upgrade connection hops are tampered with",
+			func() {
+				counterpartyUpgrade.Fields.ConnectionHops = []string{ibctesting.InvalidID}
+			},
+			false,
+		},
+		{
+			"startFlushUpgradeHandshake fails due to mismatch in upgrade sequences",
+			func() {
+				channel := path.EndpointA.GetChannel()
+				channel.UpgradeSequence = 5
+				path.EndpointA.SetChannel(channel)
+			},
+			false,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -447,13 +470,15 @@ func (suite *KeeperTestSuite) TestChanUpgradeAck() {
 			err = path.EndpointB.ChanUpgradeTry()
 			suite.Require().NoError(err)
 
+			// ensure client is up to date to receive valid proofs
 			err = path.EndpointA.UpdateClient()
 			suite.Require().NoError(err)
 
-			tc.malleate()
-
-			counterpartyUpgrade, found := suite.chainB.GetSimApp().GetIBCKeeper().ChannelKeeper.GetUpgrade(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+			var found bool
+			counterpartyUpgrade, found = suite.chainB.GetSimApp().GetIBCKeeper().ChannelKeeper.GetUpgrade(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 			suite.Require().True(found)
+
+			tc.malleate()
 
 			proofChannel, proofUpgrade, proofHeight := path.EndpointA.QueryChannelUpgradeProof()
 

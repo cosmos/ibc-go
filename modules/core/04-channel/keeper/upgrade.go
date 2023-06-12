@@ -232,12 +232,12 @@ func (k Keeper) ChanUpgradeAck(
 		return errorsmod.Wrapf(types.ErrInvalidChannelState, "expected one of [%s, %s], got %s", types.FLUSHING, types.FLUSHCOMPLETE, counterpartyFlushStatus)
 	}
 
-	connectionEnd, err := k.GetConnection(ctx, channel.ConnectionHops[0])
+	connection, err := k.GetConnection(ctx, channel.ConnectionHops[0])
 	if err != nil {
 		return errorsmod.Wrapf(err, "failed to retrieve connection: %s", channel.ConnectionHops[0])
 	}
 
-	counterpartyHops := []string{connectionEnd.GetCounterparty().GetConnectionID()}
+	counterpartyHops := []string{connection.GetCounterparty().GetConnectionID()}
 	counterpartyChannel := types.Channel{
 		State:           types.TRYUPGRADE,
 		Ordering:        channel.Ordering,
