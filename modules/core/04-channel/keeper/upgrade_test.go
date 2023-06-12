@@ -614,7 +614,7 @@ func (suite *KeeperTestSuite) assertUpgradeError(actualError, expError error) {
 func (suite *KeeperTestSuite) TestAbortHandshake() {
 	var (
 		path         *ibctesting.Path
-		upgradeError *types.UpgradeError
+		upgradeError error
 	)
 
 	tests := []struct {
@@ -626,6 +626,15 @@ func (suite *KeeperTestSuite) TestAbortHandshake() {
 			name:     "success",
 			malleate: func() {},
 			expPass:  true,
+		},
+		{
+			name: "regular error",
+			malleate: func() {
+				// in app callbacks error receipts should still be written if a regular error is returned.
+				// i.e. not an instance of `types.UpgradeError`
+				upgradeError = types.ErrInvalidUpgrade
+			},
+			expPass: true,
 		},
 		{
 			name: "upgrade does not exist",
@@ -670,7 +679,7 @@ func (suite *KeeperTestSuite) TestAbortHandshake() {
 
 			tc.malleate()
 
-			err := channelKeeper.AbortHandshake(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, upgradeError)
+			err := channelKeeper.AbortUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, upgradeError)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -685,7 +694,10 @@ func (suite *KeeperTestSuite) TestAbortHandshake() {
 
 				errorReceipt, found := channelKeeper.GetUpgradeErrorReceipt(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 				suite.Require().True(found, "error receipt should be found")
-				suite.Require().Equal(upgradeError.GetErrorReceipt(), errorReceipt, "error receipt does not match expected error receipt")
+
+				if ue, ok := upgradeError.(*types.UpgradeError); ok {
+					suite.Require().Equal(ue.GetErrorReceipt(), errorReceipt, "error receipt does not match expected error receipt")
+				}
 
 				_, found = channelKeeper.GetCounterpartyLastPacketSequence(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 				suite.Require().False(found, "counterparty last packet sequence should not be found")
