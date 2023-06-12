@@ -31,7 +31,7 @@ func (k Keeper) ValidateUpgradeFields(ctx sdk.Context, proposedUpgrade types.Upg
 	return k.validateUpgradeFields(ctx, proposedUpgrade, currentChannel)
 }
 
-// AbortHandshake is a wrapper around abortHandshake to allow the function to be directly called in tests.
-func (k Keeper) AbortHandshake(ctx sdk.Context, portID, channelID string, upgradeError *types.UpgradeError) error {
-	return k.abortHandshake(ctx, portID, channelID, upgradeError)
+// AbortUpgrade is a wrapper around abortUpgrade to allow the function to be directly called in tests.
+func (k Keeper) AbortUpgrade(ctx sdk.Context, portID, channelID string, err error) error {
+	return k.abortUpgrade(ctx, portID, channelID, err)
 }

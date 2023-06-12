@@ -32,16 +32,16 @@ func (suite *KeeperTestSuite) TestChanUpgradeInit() {
 			func() {},
 			true,
 		},
-		// {
-		// 	"success with later upgrade sequence",
-		// 	func() {
-		// 		channel := path.EndpointA.GetChannel()
-		// 		channel.UpgradeSequence = 4
-		// 		path.EndpointA.SetChannel(channel)
-		// 		expSequence = 5
-		// 	},
-		// 	true,
-		// },
+		{
+			"success with later upgrade sequence",
+			func() {
+				channel := path.EndpointA.GetChannel()
+				channel.UpgradeSequence = 4
+				path.EndpointA.SetChannel(channel)
+				expSequence = 5
+			},
+			true,
+		},
 		{
 			"identical upgrade channel end",
 			func() {
@@ -160,16 +160,6 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 		// 	true,
 		// },
 		// {
-		// 	"error receipt set with smaller counterparty upgrade sequence",
-		// 	func() {
-		// 		counterpartyUpgradeSequence = 2
-
-		// 		channel := path.EndpointB.GetChannel()
-		// 		channel.UpgradeSequence = 4
-		// 		path.EndpointB.SetChannel(channel)
-		// 	},
-		// 	false,
-		// },
 		{
 			"channel not found",
 			func() {
@@ -196,7 +186,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 			func() {
 				connectionEnd := path.EndpointB.GetConnection()
 				connectionEnd.State = connectiontypes.UNINITIALIZED
-				suite.chainB.GetSimApp().GetIBCKeeper().ConnectionKeeper.SetConnection(suite.chainB.GetContext(), proposedConnectionHops[0], connectionEnd)
+				suite.chainB.GetSimApp().GetIBCKeeper().ConnectionKeeper.SetConnection(suite.chainB.GetContext(), path.EndpointB.ConnectionID, connectionEnd)
 			},
 			false,
 		},
@@ -224,26 +214,15 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 			err := path.EndpointA.ChanUpgradeInit()
 			suite.Require().NoError(err)
 
-			// commit a block to update chain A for correct proof querying
-			path.EndpointA.Chain.Coordinator.CommitBlock(path.EndpointA.Chain)
-			// update chainB's client of chain A to account for ChanUpgradeInit
-			suite.Require().NoError(path.EndpointB.UpdateClient())
+			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
+			upgrade := path.EndpointB.GetProposedUpgrade()
 
-			proposedConnectionHops = []string{path.EndpointB.ConnectionID}
-			upgrade := types.NewUpgrade(
-				types.NewUpgradeFields(
-					types.UNORDERED, proposedConnectionHops, fmt.Sprintf("%s-v2", mock.Version),
-				),
-				types.NewTimeout(path.EndpointA.Chain.GetTimeoutHeight(), 0),
-				0,
-			)
 			counterpartyUpgrade = path.EndpointA.GetProposedUpgrade()
 			// expSequence = 1
 
 			tc.malleate()
 
-			// we need to update the clients again because malleation has changed the channel state
-			suite.Require().NoError(path.EndpointA.UpdateClient())
+			// ensure clients are up to date to receive valid proofs
 			suite.Require().NoError(path.EndpointB.UpdateClient())
 
 			proofCounterpartyChannel, proofCounterpartyUpgrade, proofHeight := path.EndpointB.QueryChannelUpgradeProof()
@@ -258,13 +237,12 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 				path.EndpointA.GetChannel().UpgradeSequence,
 				proofCounterpartyChannel,
 				proofCounterpartyUpgrade,
-				proofHeight)
+				proofHeight,
+			)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
 				// suite.Require().Equal(expSequence, path.EndpointB.GetChannel().UpgradeSequence)
-				// suite.Require().Equal(mock.Version, path.EndpointB.GetChannel().Version)
-				// suite.Require().Equal(path.EndpointB.GetChannel().State, types.TRYUPGRADE)
 			} else {
 				suite.Require().Error(err)
 			}
@@ -317,51 +295,33 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry_CrossingHellos() {
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.Setup(path)
 
-			// chainA UpgradeInit
-			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = fmt.Sprintf("%s-v2", mock.Version)
+			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
 			err := path.EndpointA.ChanUpgradeInit()
 			suite.Require().NoError(err)
 
-			// commit a block to update chain A for correct proof querying
-			path.EndpointA.Chain.Coordinator.CommitBlock(path.EndpointA.Chain)
-			// update chainB's client of chain A to account for ChanUpgradeInit
-			suite.Require().NoError(path.EndpointB.UpdateClient())
-
-			// we also UpgradeInit to simulate crossing hellos situation
-			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = fmt.Sprintf("%s-v2", mock.Version)
+			// UpgradeInit on endpointB to simulate crossing hellos situation
+			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
 			err = path.EndpointB.ChanUpgradeInit()
 			suite.Require().NoError(err)
 
-			// update chainA's client of chain B to account for ChanUpgradeInit
-			suite.Require().NoError(path.EndpointA.UpdateClient())
-
 			counterpartyUpgrade = path.EndpointA.GetProposedUpgrade()
-			proposedConnectionHops := []string{path.EndpointB.ConnectionID}
-			upgrade = types.NewUpgrade(
-				types.NewUpgradeFields(
-					types.UNORDERED, proposedConnectionHops, fmt.Sprintf("%s-v2", mock.Version),
-				),
-				types.NewTimeout(path.EndpointA.Chain.GetTimeoutHeight(), 0),
-				0,
-			)
+			upgrade = path.EndpointB.GetProposedUpgrade()
 
 			tc.malleate()
 
-			// we need to update the clients again because malleation has changed the channel state
-			suite.Require().NoError(path.EndpointA.UpdateClient())
+			// ensure clients are up to date to receive valid proofs
 			suite.Require().NoError(path.EndpointB.UpdateClient())
 
 			proofCounterpartyChannel, proofCounterpartyUpgrade, proofHeight := path.EndpointB.QueryChannelUpgradeProof()
 
 			_, err = suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.ChanUpgradeTry(
-				suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, proposedConnectionHops, upgrade.Timeout,
-				counterpartyUpgrade, counterpartyUpgradeSequence, proofCounterpartyChannel, proofCounterpartyUpgrade, proofHeight)
+				suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, upgrade.Fields.ConnectionHops, upgrade.Timeout,
+				counterpartyUpgrade, counterpartyUpgradeSequence, proofCounterpartyChannel, proofCounterpartyUpgrade, proofHeight,
+			)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
 				// suite.Require().Equal(expSequence, path.EndpointB.GetChannel().UpgradeSequence)
-				// suite.Require().Equal(mock.Version, path.EndpointB.GetChannel().Version)
-				// suite.Require().Equal(path.EndpointB.GetChannel().State, types.TRYUPGRADE)
 			} else {
 				suite.Require().Error(err)
 			}
@@ -493,8 +453,7 @@ func (suite *KeeperTestSuite) TestStartFlushUpgradeHandshake() {
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.Setup(path)
 
-			upgradeVersion := fmt.Sprintf("%s-v2", mock.Version)
-			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = upgradeVersion
+			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
 			err := path.EndpointA.ChanUpgradeInit()
 			suite.Require().NoError(err)
 
@@ -514,15 +473,8 @@ func (suite *KeeperTestSuite) TestStartFlushUpgradeHandshake() {
 			channel.UpgradeSequence = 1
 			path.EndpointB.SetChannel(channel)
 
-			upgrade = types.Upgrade{
-				Fields: types.UpgradeFields{
-					Ordering:       types.UNORDERED,
-					ConnectionHops: []string{path.EndpointB.ConnectionID},
-					Version:        upgradeVersion,
-				},
-				Timeout:            types.NewTimeout(path.EndpointA.Chain.GetTimeoutHeight(), 0),
-				LatestSequenceSend: 1,
-			}
+			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
+			upgrade = path.EndpointB.GetProposedUpgrade()
 
 			tc.malleate()
 
@@ -541,7 +493,7 @@ func (suite *KeeperTestSuite) TestStartFlushUpgradeHandshake() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestValidateProposedUpgradeFields() {
+func (suite *KeeperTestSuite) TestValidateUpgradeFields() {
 	var (
 		proposedUpgrade *types.UpgradeFields
 		path            *ibctesting.Path
@@ -554,7 +506,7 @@ func (suite *KeeperTestSuite) TestValidateProposedUpgradeFields() {
 		{
 			name: "change channel version",
 			malleate: func() {
-				proposedUpgrade.Version = "1.0.0"
+				proposedUpgrade.Version = mock.UpgradeVersion
 			},
 			expPass: true,
 		},
@@ -586,6 +538,32 @@ func (suite *KeeperTestSuite) TestValidateProposedUpgradeFields() {
 			malleate: func() {
 				connection := path.EndpointA.GetConnection()
 				connection.State = connectiontypes.UNINITIALIZED
+				path.EndpointA.SetConnection(connection)
+			},
+			expPass: false,
+		},
+		{
+			name: "fails when connection versions do not exist",
+			malleate: func() {
+				// update channel version first so that existing channel end is not identical to proposed upgrade
+				proposedUpgrade.Version = mock.UpgradeVersion
+
+				connection := path.EndpointA.GetConnection()
+				connection.Versions = []*connectiontypes.Version{}
+				path.EndpointA.SetConnection(connection)
+			},
+			expPass: false,
+		},
+		{
+			name: "fails when connection version does not support the new ordering",
+			malleate: func() {
+				// update channel version first so that existing channel end is not identical to proposed upgrade
+				proposedUpgrade.Version = mock.UpgradeVersion
+
+				connection := path.EndpointA.GetConnection()
+				connection.Versions = []*connectiontypes.Version{
+					connectiontypes.NewVersion("1", []string{"ORDER_ORDERED"}),
+				}
 				path.EndpointA.SetConnection(connection)
 			},
 			expPass: false,
@@ -636,44 +614,48 @@ func (suite *KeeperTestSuite) assertUpgradeError(actualError, expError error) {
 func (suite *KeeperTestSuite) TestAbortHandshake() {
 	var (
 		path         *ibctesting.Path
-		upgradeError *types.UpgradeError
+		upgradeError error
 	)
 
 	tests := []struct {
-		name           string
-		malleate       func()
-		expPass        bool
-		channelPresent bool
+		name     string
+		malleate func()
+		expPass  bool
 	}{
 		{
-			name:           "success",
-			malleate:       func() {},
-			expPass:        true,
-			channelPresent: true,
+			name:     "success",
+			malleate: func() {},
+			expPass:  true,
+		},
+		{
+			name: "regular error",
+			malleate: func() {
+				// in app callbacks error receipts should still be written if a regular error is returned.
+				// i.e. not an instance of `types.UpgradeError`
+				upgradeError = types.ErrInvalidUpgrade
+			},
+			expPass: true,
 		},
 		{
 			name: "upgrade does not exist",
 			malleate: func() {
 				suite.chainA.DeleteKey(host.ChannelUpgradeKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
 			},
-			expPass:        false,
-			channelPresent: true,
+			expPass: false,
 		},
 		{
 			name: "channel does not exist",
 			malleate: func() {
 				suite.chainA.DeleteKey(host.ChannelKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
 			},
-			expPass:        false,
-			channelPresent: false,
+			expPass: false,
 		},
 		{
 			name: "fails with nil upgrade error",
 			malleate: func() {
 				upgradeError = nil
 			},
-			expPass:        false,
-			channelPresent: true,
+			expPass: false,
 		},
 	}
 
@@ -686,15 +668,18 @@ func (suite *KeeperTestSuite) TestAbortHandshake() {
 
 			channelKeeper := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper
 
-			path.EndpointA.ChannelConfig.Version = mock.Version + "-v2"
-
+			path.EndpointA.ChannelConfig.Version = mock.UpgradeVersion
 			suite.Require().NoError(path.EndpointA.ChanUpgradeInit())
+
+			// fetch the upgrade before abort for assertions later on.
+			actualUpgrade, ok := channelKeeper.GetUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+			suite.Require().True(ok, "upgrade should be found")
 
 			upgradeError = types.NewUpgradeError(1, types.ErrInvalidChannel)
 
 			tc.malleate()
 
-			err := channelKeeper.AbortHandshake(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, upgradeError)
+			err := channelKeeper.AbortUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, upgradeError)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -708,9 +693,10 @@ func (suite *KeeperTestSuite) TestAbortHandshake() {
 				suite.Require().False(found, "upgrade info should be deleted")
 
 				errorReceipt, found := channelKeeper.GetUpgradeErrorReceipt(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-				if upgradeError != nil {
-					suite.Require().True(found, "error receipt should be found")
-					suite.Require().Equal(upgradeError.GetErrorReceipt(), errorReceipt, "error receipt does not match expected error receipt")
+				suite.Require().True(found, "error receipt should be found")
+
+				if ue, ok := upgradeError.(*types.UpgradeError); ok {
+					suite.Require().Equal(ue.GetErrorReceipt(), errorReceipt, "error receipt does not match expected error receipt")
 				}
 
 				_, found = channelKeeper.GetCounterpartyLastPacketSequence(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
@@ -719,13 +705,17 @@ func (suite *KeeperTestSuite) TestAbortHandshake() {
 			} else {
 				suite.Require().Error(err)
 				channel, found := channelKeeper.GetChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-				if tc.channelPresent {
-					suite.Require().True(found, "channel should be found")
+				if found { // test cases uses a channel that exists
 					suite.Require().Equal(types.INITUPGRADE, channel.State, "channel state should not be restored to %s", types.INITUPGRADE.String())
 				}
 
 				_, found = channelKeeper.GetUpgradeErrorReceipt(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 				suite.Require().False(found, "error receipt should not be found")
+
+				upgrade, found := channelKeeper.GetUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				if found { // this should be all test cases except for when the upgrade is explicitly deleted.
+					suite.Require().Equal(actualUpgrade, upgrade, "upgrade info should not be deleted")
+				}
 
 				// TODO: assertion that GetCounterpartyLastPacketSequence is present and correct
 			}

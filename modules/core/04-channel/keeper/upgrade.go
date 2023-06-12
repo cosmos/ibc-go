@@ -97,22 +97,16 @@ func (k Keeper) ChanUpgradeTry(
 		return types.Upgrade{}, errorsmod.Wrap(err, "failed to retrieve connection using the channel connection hops")
 	}
 
-	// make sure connection is OPEN
 	if connectionEnd.GetState() != int32(connectiontypes.OPEN) {
 		return types.Upgrade{}, errorsmod.Wrapf(
-			connectiontypes.ErrInvalidConnectionState,
-			"connection state is not OPEN (got %s)", connectiontypes.State(connectionEnd.GetState()).String(),
+			connectiontypes.ErrInvalidConnectionState, "connection state is not OPEN (got %s)", connectiontypes.State(connectionEnd.GetState()).String(),
 		)
 	}
 
-	// check if packet is timed out on the receiving chain
 	if hasPassed, err := counterpartyProposedUpgrade.Timeout.HasPassed(ctx); hasPassed {
 		// abort here and let counterparty timeout the upgrade
 		return types.Upgrade{}, errorsmod.Wrap(err, "upgrade timeout has passed")
 	}
-
-	// assert that the proposed connection hops are compatible with the counterparty connection hops
-	// the proposed connections hops must have a counterparty which matches the counterparty connection hops
 
 	// construct counterpartyChannel from existing information and provided counterpartyUpgradeSequence
 
@@ -300,8 +294,8 @@ func (k Keeper) validateUpgradeFields(ctx sdk.Context, proposedUpgrade types.Upg
 	}
 
 	connectionID := proposedUpgrade.ConnectionHops[0]
-	connection, err := k.GetConnection(ctx, connectionID)
-	if err != nil {
+	connection, found := k.connectionKeeper.GetConnection(ctx, connectionID)
+	if !found {
 		return errorsmod.Wrapf(connectiontypes.ErrConnectionNotFound, "failed to retrieve connection: %s", connectionID)
 	}
 
@@ -309,6 +303,23 @@ func (k Keeper) validateUpgradeFields(ctx sdk.Context, proposedUpgrade types.Upg
 		return errorsmod.Wrapf(
 			connectiontypes.ErrInvalidConnectionState,
 			"connection state is not OPEN (got %s)", connectiontypes.State(connection.GetState()).String(),
+		)
+	}
+
+	getVersions := connection.GetVersions()
+	if len(getVersions) != 1 {
+		return errorsmod.Wrapf(
+			connectiontypes.ErrInvalidVersion,
+			"single version must be negotiated on connection before opening channel, got: %v",
+			getVersions,
+		)
+	}
+
+	if !connectiontypes.VerifySupportedFeature(getVersions[0], proposedUpgrade.Ordering.String()) {
+		return errorsmod.Wrapf(
+			connectiontypes.ErrInvalidVersion,
+			"connection version %s does not support channel ordering: %s",
+			getVersions[0], proposedUpgrade.Ordering.String(),
 		)
 	}
 
@@ -338,10 +349,10 @@ func (k Keeper) constructProposedUpgrade(ctx sdk.Context, portID, channelID stri
 	}, nil
 }
 
-// abortHandshake will restore the channel state and flush status to their pre-upgrade state so that upgrade is aborted.
+// abortUpgrade will restore the channel state and flush status to their pre-upgrade state so that upgrade is aborted.
 // any unnecessary state is deleted. An error receipt is written, and the OnChanUpgradeRestore callback is called.
-func (k Keeper) abortHandshake(ctx sdk.Context, portID, channelID string, upgradeError *types.UpgradeError) error {
-	if upgradeError == nil {
+func (k Keeper) abortUpgrade(ctx sdk.Context, portID, channelID string, err error) error {
+	if err == nil {
 		return errorsmod.Wrap(types.ErrInvalidUpgradeError, "cannot abort upgrade handshake with nil error")
 	}
 
@@ -352,6 +363,18 @@ func (k Keeper) abortHandshake(ctx sdk.Context, portID, channelID string, upgrad
 
 	if err := k.restoreChannel(ctx, portID, channelID); err != nil {
 		return err
+	}
+
+	// in the case of application callbacks, the error may not be an upgrade error.
+	// in this case we need to construct one in order to write the error receipt.
+	upgradeError, ok := err.(*types.UpgradeError)
+	if !ok {
+		channel, found := k.GetChannel(ctx, portID, channelID)
+		if !found {
+			return errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
+		}
+
+		upgradeError = types.NewUpgradeError(channel.UpgradeSequence, err)
 	}
 
 	if err := k.writeErrorReceipt(ctx, portID, channelID, upgrade, upgradeError); err != nil {
@@ -365,7 +388,7 @@ func (k Keeper) abortHandshake(ctx sdk.Context, portID, channelID string, upgrad
 }
 
 // restoreChannel will restore the channel state and flush status to their pre-upgrade state so that upgrade is aborted
-// it write an error receipt to state so counterparty can restore as well.
+// It will write an error receipt to state so that the counterparty can restore as well.
 func (k Keeper) restoreChannel(ctx sdk.Context, portID, channelID string) error {
 	channel, found := k.GetChannel(ctx, portID, channelID)
 	if !found {

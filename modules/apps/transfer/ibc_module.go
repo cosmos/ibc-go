@@ -312,12 +312,12 @@ func (im IBCModule) OnChanUpgradeTry(ctx sdk.Context, portID, channelID string, 
 }
 
 // OnChanUpgradeAck implements the IBCModule interface
-func (im IBCModule) OnChanUpgradeAck(ctx sdk.Context, portID, channelID, counterpartyChannelID, counterpartyVersion string) error {
+func (im IBCModule) OnChanUpgradeAck(ctx sdk.Context, portID, channelID, counterpartyVersion string) error {
 	return nil
 }
 
-// OnChanUpgradeConfirm implements the IBCModule interface
-func (im IBCModule) OnChanUpgradeConfirm(ctx sdk.Context, portID, channelID string) error {
+// OnChanUpgradeOpen implements the IBCModule interface
+func (im IBCModule) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID string) error {
 	return nil
 }
 
