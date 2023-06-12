@@ -52,7 +52,7 @@ jobs:
       chain-binary: simd
       chain-a-tag: v7.0.0
       chain-b-tag: v7.0.0
-      chain-upgrade-tag: v7.1.0-rc0
+      chain-upgrade-tag: v7.1.0
       upgrade-plan-name: "v7.1"
       test-entry-point:  "TestUpgradeTestSuite"
       test: "TestV7ToV7_1ChainUpgrade"
