@@ -1,11 +1,27 @@
 {
-  "chain-a": ["release-v6.1.x"],
-  "chain-b": ["release-v6.1.x", "v7.1.0", "v7.0.1", "v6.2.0", "v6.1.1"],
-  "entrypoint": ["TestInterchainAccountsGovTestSuite"],
+  "chain-a": [
+    "release-v6.1.x"
+  ],
+  "chain-b": [
+    "release-v6.1.x",
+    "v7.1.0",
+    "v7.0.1",
+    "v6.2.0",
+    "v6.1.1"
+  ],
+  "entrypoint": [
+    "TestInterchainAccountsGovTestSuite"
+  ],
   "test": [
     "TestInterchainAccountsGovIntegration"
   ],
-  "relayer-type": ["rly"],
-  "chain-binary": ["simd"],
-  "chain-image": ["ghcr.io/cosmos/ibc-go-simd"]
+  "relayer-type": [
+    "rly"
+  ],
+  "chain-binary": [
+    "simd"
+  ],
+  "chain-image": [
+    "ghcr.io/cosmos/ibc-go-simd"
+  ]
 }
