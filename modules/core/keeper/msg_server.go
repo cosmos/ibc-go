@@ -793,12 +793,13 @@ func (k Keeper) ChannelUpgradeTry(goCtx context.Context, msg *channeltypes.MsgCh
 
 	writeFn()
 
-	k.ChannelKeeper.WriteUpgradeTryChannel(ctx, msg.PortId, msg.ChannelId, upgrade, upgradeVersion)
+	channel, upgrade := k.ChannelKeeper.WriteUpgradeTryChannel(ctx, msg.PortId, msg.ChannelId, upgrade, upgradeVersion)
 
 	return &channeltypes.MsgChannelUpgradeTryResponse{
-		Result:    channeltypes.SUCCESS,
-		ChannelId: msg.ChannelId,
-		Upgrade:   upgrade,
+		Result:          channeltypes.SUCCESS,
+		ChannelId:       msg.ChannelId,
+		Upgrade:         upgrade,
+		UpgradeSequence: channel.UpgradeSequence,
 	}, nil
 }
 
