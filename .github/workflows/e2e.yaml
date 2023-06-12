@@ -10,9 +10,9 @@ on:
       # trigger workflow if PR is marked ready for review.
       - ready_for_review
     paths-ignore:
-      - "docs/**"
-      - "**.md"
-      - "LICENSE"
+      - 'docs/**'
+      - '**.md'
+      - 'LICENSE'
 
 jobs:
   # determine-image-tag will either output the PR number e.g. pr-1234 or the string main.
@@ -26,7 +26,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v4
         with:
-          go-version: "1.20"
+          go-version: '1.20'
       - id: get-tag
         run: |
           if [ -z "${{ github.event.pull_request.number }}" ]
@@ -46,7 +46,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v4
         with:
-          go-version: "1.20"
+          go-version: '1.20'
       - name: Build e2e
         run: |
           cd e2e
@@ -75,8 +75,8 @@ jobs:
       upload-logs: true
       chain-image: ghcr.io/cosmos/ibc-go-simd
       # with regular tests, both images are the same.
-      chain-a-tag: "${{ needs.determine-image-tag.outputs.simd-tag }}"
-      chain-b-tag: "${{ needs.determine-image-tag.outputs.simd-tag }}"
-      chain-binary: "simd"
+      chain-a-tag: '${{ needs.determine-image-tag.outputs.simd-tag }}'
+      chain-b-tag: '${{ needs.determine-image-tag.outputs.simd-tag }}'
+      chain-binary: 'simd'
       # on regular PRs we won't run interchain account or upgrade tests.
-      test-exclusions: "TestInterTxTestSuite,TestIncentivizedInterTxTestSuite,TestUpgradeTestSuite"
+      test-exclusions: 'TestInterTxTestSuite,TestIncentivizedInterTxTestSuite,TestUpgradeTestSuite'
