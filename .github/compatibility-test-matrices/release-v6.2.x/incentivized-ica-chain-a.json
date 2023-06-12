@@ -1,6 +1,6 @@
 {
   "chain-a": ["release-v6.2.x"],
-  "chain-b": ["release-v6.2.x", "v7.0.1", "v6.2.0", "v6.1.1"],
+  "chain-b": ["release-v6.2.x", "v7.1.0", "v7.0.1", "v6.2.0", "v6.1.1"],
   "entrypoint": ["TestIncentivizedInterchainAccountsTestSuite"],
   "test": [
     "TestMsgSendTx_SuccessfulBankSend_Incentivized",
