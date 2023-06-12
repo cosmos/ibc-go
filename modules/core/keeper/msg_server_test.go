@@ -856,6 +856,9 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTry() {
 				suite.chainB.GetSimApp().IBCMockModule.IBCApp.OnChanUpgradeTry = func(
 					ctx sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, counterpartyVersion string,
 				) (string, error) {
+					// set arbitrary value in store to mock application state changes
+					store := ctx.KVStore(suite.chainB.GetSimApp().GetKey(exported.ModuleName))
+					store.Set([]byte("foo"), []byte("bar"))
 					return "", fmt.Errorf("mock app callback failed")
 				}
 			},
@@ -868,6 +871,10 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTry() {
 				// TODO: assert error receipt exists for the upgrade sequence when RestoreChannel / AbortUpgrade is called
 				// errorReceipt, found := suite.chainB.GetSimApp().GetIBCKeeper().ChannelKeeper.GetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 				// suite.Require().True(found)
+
+				// assert application state changes are not committed
+				store := suite.chainB.GetContext().KVStore(suite.chainB.GetSimApp().GetKey(exported.ModuleName))
+				suite.Require().False(store.Has([]byte("foo")))
 			},
 		},
 	}
@@ -900,7 +907,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTry() {
 				PortId:                        path.EndpointB.ChannelConfig.PortID,
 				ChannelId:                     path.EndpointB.ChannelID,
 				ProposedUpgradeConnectionHops: []string{ibctesting.FirstConnectionID},
-				UpgradeTimeout:                channeltypes.NewTimeout(clienttypes.NewHeight(1, 100), 0),
+				UpgradeTimeout:                channeltypes.NewTimeout(path.EndpointA.Chain.GetTimeoutHeight(), 0),
 				CounterpartyUpgradeSequence:   counterpartySequence,
 				CounterpartyProposedUpgrade:   counterpartyUpgrade,
 				ProofChannel:                  proofChannel,
