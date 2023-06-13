@@ -849,7 +849,7 @@ func (k Keeper) ChannelUpgradeAck(goCtx context.Context, msg *channeltypes.MsgCh
 
 	writeFn()
 
-	// k.ChannelKeeper.WriteUpgradeAckChannel()
+	k.ChannelKeeper.WriteUpgradeAckChannel(ctx, msg.PortId, msg.ChannelId, msg.CounterpartyUpgrade.Fields.Version)
 
 	return &channeltypes.MsgChannelUpgradeAckResponse{}, nil
 }
