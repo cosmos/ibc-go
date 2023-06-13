@@ -1,12 +1,25 @@
 {
-  "chain-a": ["main"],
-  "chain-b": ["main", "v7.1.0"],
-  "entrypoint": ["LocalhostInterchainAccountsTestSuite"],
+  "chain-a": [
+    "main"
+  ],
+  "chain-b": [
+    "main",
+    "v7.1.0"
+  ],
+  "entrypoint": [
+    "LocalhostInterchainAccountsTestSuite"
+  ],
   "test": [
     "TestInterchainAccounts_Localhost",
     "TestInterchainAccounts_ReopenChannel_Localhost"
   ],
-  "relayer-type": ["rly"],
-  "chain-binary": ["simd"],
-  "chain-image": ["ghcr.io/cosmos/ibc-go-simd"]
+  "relayer-type": [
+    "rly"
+  ],
+  "chain-binary": [
+    "simd"
+  ],
+  "chain-image": [
+    "ghcr.io/cosmos/ibc-go-simd"
+  ]
 }
