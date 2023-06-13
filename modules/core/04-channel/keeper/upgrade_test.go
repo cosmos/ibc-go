@@ -414,14 +414,12 @@ func (suite *KeeperTestSuite) TestChanUpgradeTimeout() {
 				proofCounterpartyChannel, _, proofHeight = path.EndpointA.QueryChannelUpgradeProof()
 				upgradeErrorReceiptKey := host.ChannelUpgradeErrorKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 				proofErrorReceipt, _ = suite.chainB.QueryProof(upgradeErrorReceiptKey)
-
 			},
 			types.ErrInvalidUpgradeTimeout,
 		},
 		{
 			"counterparty channel state is not OPEN or INITUPGRADE (crossing hellos)",
 			func() {
-
 				channel := path.EndpointB.GetChannel()
 				channel.State = types.TRYUPGRADE
 				path.EndpointB.SetChannel(channel)

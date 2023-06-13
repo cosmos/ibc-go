@@ -351,7 +351,6 @@ func (k Keeper) abortHandshake(ctx sdk.Context, portID, channelID string, upgrad
 	if err := k.writeErrorReceipt(ctx, portID, channelID, upgrade, upgradeError); err != nil {
 		return err
 	}
-
 	return nil
 }
 
