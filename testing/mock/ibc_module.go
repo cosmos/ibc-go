@@ -164,26 +164,46 @@ func (im IBCModule) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet,
 
 // OnChanUpgradeInit implements the IBCModule interface
 func (im IBCModule) OnChanUpgradeInit(ctx sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, sequence uint64, version, previousVersion string) (string, error) {
+	if im.IBCApp.OnChanUpgradeInit != nil {
+		return im.IBCApp.OnChanUpgradeInit(ctx, portID, channelID, order, connectionHops, sequence, version, previousVersion)
+	}
+
 	return version, nil
 }
 
 // OnChanUpgradeTry implements the IBCModule interface
 func (im IBCModule) OnChanUpgradeTry(ctx sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, counterpartyVersion string) (string, error) {
+	if im.IBCApp.OnChanUpgradeTry != nil {
+		return im.IBCApp.OnChanUpgradeTry(ctx, portID, channelID, order, connectionHops, counterpartyVersion)
+	}
+
 	return counterpartyVersion, nil
 }
 
 // OnChanUpgradeAck implements the IBCModule interface
 func (im IBCModule) OnChanUpgradeAck(ctx sdk.Context, portID, channelID, counterpartyVersion string) error {
+	if im.IBCApp.OnChanUpgradeAck != nil {
+		return im.IBCApp.OnChanUpgradeAck(ctx, portID, channelID, counterpartyVersion)
+	}
+
 	return nil
 }
 
 // OnChanUpgradeOpen implements the IBCModule interface
 func (im IBCModule) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID string) error {
+	if im.IBCApp.OnChanUpgradeOpen != nil {
+		return im.IBCApp.OnChanUpgradeOpen(ctx, portID, channelID)
+	}
+
 	return nil
 }
 
 // OnChanUpgradeRestore implements the IBCModule interface
 func (im IBCModule) OnChanUpgradeRestore(ctx sdk.Context, portID, channelID string) error {
+	if im.IBCApp.OnChanUpgradeRestore != nil {
+		return im.IBCApp.OnChanUpgradeRestore(ctx, portID, channelID)
+	}
+
 	return nil
 }
 
