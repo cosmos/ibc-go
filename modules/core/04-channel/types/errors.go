@@ -48,5 +48,5 @@ var (
 	ErrInvalidUpgradeError             = errorsmod.Register(SubModuleName, 32, "invalid upgrade error")
 	ErrUpgradeRestoreFailed            = errorsmod.Register(SubModuleName, 33, "restore failed")
 	ErrUpgradeTimeout                  = errorsmod.Register(SubModuleName, 34, "upgrade timed-out")
-	ErrInvalidUpgradeTimeout           = errorsmod.Register(SubModuleName, 35, "invalid upgrade timeout")
+	ErrInvalidUpgradeTimeout           = errorsmod.Register(SubModuleName, 35, "upgrade timeout is invalid")
 )
