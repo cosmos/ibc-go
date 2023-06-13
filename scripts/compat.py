@@ -1,16 +1,46 @@
 #!/usr/bin/python3
+"""
+The following script takes care of adding new/removing versions or 
+replacing a version in the compatibility-test-matrices JSON files.
+
+To use this script, you'll need to have Python 3.9+ installed.
+
+Invocation:
+
+By default, the script assumes that adding a new version is the desired operation.
+Furthermore, it assumes that the compatibility-test-matrices directory is located
+in the .github directory and the script is invoked from the root of the repository.
+
+If any of the above is not true, you can use the '--type' and '--directory' flags
+to specify the operation and the directory respectively.
+
+Typically, an invocation would look like:
+
+    scripts/compat.py --recent_version v4.3.0 --new_version v4.4.0
+
+The three operations currently added are:
+
+ - ADD: Add a new version to the JSON files. Requires both '--recent_version' and
+        '--new_version' options to be set.
+ - REPLACE: Replace an existing version with a new one. Requires both '--recent_version'
+            and '--new_version' options to be set.
+ - REMOVE: Remove an existing version from the JSON files. Requires only the
+           '--recent_version' options to be set.
+
+For more information, use the '--help' flag to see the available options.    
+"""
 import argparse
 import os
 import json
 import enum
 from collections import defaultdict
-from typing import Tuple, Generator, Optional, Dict, Any
+from typing import Tuple, Generator, Optional, Dict, List, Any
 
 # Directory to operate in
 DIRECTORY: str = ".github/compatibility-test-matrices"
 # JSON keys to search in.
 KEYS: Tuple[str, str] = ("chain-a", "chain-b")
-# Toggle if required. Indent = 4 matches jq.
+# Toggle if required. Indent = 2 matches our current formatting.
 DUMP_ARGS: Dict[Any, Any] = {
     "indent": 2,
     "sort_keys": False,
@@ -18,7 +48,7 @@ DUMP_ARGS: Dict[Any, Any] = {
 }
 # Suggestions for recent and new versions.
 SUGGESTION: str = "for example, v4.3.0 or 4.3.0"
-# Supported Operations
+# Supported Operations.
 Operation = enum.Enum("Operation", ["ADD", "REMOVE", "REPLACE"])
 
 
@@ -115,9 +145,12 @@ def parse_args() -> argparse.Namespace:
     require_version(args)
     return args
 
-def print_logs(logs: Dict[str, list], verbose: bool):
-    """Print the logs."""
-    updated, skipped = logs["updated"], logs["skipped"] 
+
+def print_logs(logs: Dict[str, List[str]], verbose: bool):
+    """Print the logs. Verbosity controls if each individual
+    file is printed or not.
+    """
+    updated, skipped = logs["updated"], logs["skipped"]
     if updated:
         if verbose:
             print("Updated files:", *updated, sep="\n - ")
@@ -131,7 +164,11 @@ def print_logs(logs: Dict[str, list], verbose: bool):
 
 
 def main(args: argparse.Namespace):
+    """ Main driver function."""
+    # Hold logs for 'updated' and 'skipped' files.
     logs = defaultdict(list)
+
+    # Go through each file and operate on it, if applicable.
     for file_ in find_json_files(args.directory):
         with open(file_, "r+") as fp:
             json_file = json.load(fp)
@@ -144,7 +181,10 @@ def main(args: argparse.Namespace):
             fp.seek(0)
             json.dump(json_file, fp, **DUMP_ARGS)
             logs["updated"].append(f"Updated '{file_}'")
+
+    # Print logs collected.
     print_logs(logs, args.verbose)
+
 
 if __name__ == "__main__":
     args = parse_args()
