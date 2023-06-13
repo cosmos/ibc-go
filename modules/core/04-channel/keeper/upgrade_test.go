@@ -487,16 +487,8 @@ func (suite *KeeperTestSuite) TestChanUpgradeTimeout() {
 
 			if expPass {
 				suite.Require().NoError(err)
-				// suite.Require().NotEmpty(upgrade)
-				// suite.Require().Equal(proposedUpgrade.Fields, upgrade.Fields)
-				// suite.Require().Equal(proposedUpgrade.Timeout, upgrade.Timeout)
-
-				// latestSequenceSend, found := path.EndpointB.Chain.GetSimApp().IBCKeeper.ChannelKeeper.GetNextSequenceSend(path.EndpointB.Chain.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
-				// suite.Require().True(found)
-				// suite.Require().Equal(latestSequenceSend-1, upgrade.LatestSequenceSend)
 			} else {
 				suite.assertUpgradeError(err, tc.expError)
-				// suite.Require().Empty(upgrade)
 			}
 		})
 	}

@@ -365,28 +365,6 @@ func emitChannelUpgradeOpenEvent(ctx sdk.Context, portID string, channelID strin
 	})
 }
 
-// emitChannelUpgradeTimeoutEvent emits an upgrade timeout event.
-func emitChannelUpgradeTimeoutEvent(ctx sdk.Context, portID string, channelID string, currentChannel types.Channel, upgrade types.Upgrade) {
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			types.EventTypeChannelUpgradeTimeout,
-			sdk.NewAttribute(types.AttributeKeyPortID, portID),
-			sdk.NewAttribute(types.AttributeKeyChannelID, channelID),
-			sdk.NewAttribute(types.AttributeCounterpartyPortID, currentChannel.Counterparty.PortId),
-			sdk.NewAttribute(types.AttributeCounterpartyChannelID, currentChannel.Counterparty.ChannelId),
-			sdk.NewAttribute(types.AttributeKeyUpgradeConnectionHops, upgrade.Fields.ConnectionHops[0]),
-			sdk.NewAttribute(types.AttributeKeyUpgradeVersion, upgrade.Fields.Version),
-			sdk.NewAttribute(types.AttributeKeyUpgradeOrdering, upgrade.Fields.Ordering.String()),
-			sdk.NewAttribute(types.AttributeKeyUpgradeTimeout, upgrade.Timeout.String()),
-			sdk.NewAttribute(types.AttributeKeyUpgradeSequence, fmt.Sprintf("%d", currentChannel.UpgradeSequence)),
-		),
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-		),
-	})
-}
-
 // emitErrorReceiptEvent emits an error receipt event
 //
 //lint:ignore U1000 Ignore unused function temporarily for debugging
