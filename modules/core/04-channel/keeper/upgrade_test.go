@@ -487,6 +487,105 @@ func (suite *KeeperTestSuite) TestChanUpgradeAck() {
 	}
 }
 
+func (suite *KeeperTestSuite) TestChanUpgradeOpen() {
+	var path *ibctesting.Path
+	testCases := []struct {
+		name     string
+		malleate func()
+		expError error
+	}{
+		{
+			"success, counterparty in TRYUPGRADE",
+			func() {},
+			nil,
+		},
+		// TODO: Rest of combinations for counterparty state.
+		{
+			"channel not found",
+			func() {
+				path.EndpointA.ChannelID = ibctesting.InvalidID
+				path.EndpointA.ChannelConfig.PortID = ibctesting.InvalidID
+			},
+			types.ErrChannelNotFound,
+		},
+		{
+			"in-flight packets still exist",
+			func() {
+				// TODO:
+			},
+			types.ErrPendingInflightPackets,
+		},
+		{
+			"flush status is not FLUSHCOMPLETE",
+			func() {
+				channel := path.EndpointB.GetChannel()
+				channel.FlushStatus = types.FLUSHING
+				path.EndpointB.SetChannel(channel)
+			},
+			types.ErrInvalidFlushStatus,
+		},
+		{
+			"connection not found",
+			func() {
+				channel := path.EndpointA.GetChannel()
+				channel.ConnectionHops = []string{"connection-100"}
+				path.EndpointA.SetChannel(channel)
+			},
+			connectiontypes.ErrConnectionNotFound,
+		},
+		{
+			"invalid connection state",
+			func() {
+				connectionEnd := path.EndpointA.GetConnection()
+				connectionEnd.State = connectiontypes.UNINITIALIZED
+				path.EndpointA.SetConnection(connectionEnd)
+			},
+			connectiontypes.ErrInvalidConnectionState,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			expPass := tc.expError == nil
+			suite.SetupTest()
+
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.Setup(path)
+
+			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
+			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
+
+			err := path.EndpointA.ChanUpgradeInit()
+			suite.Require().NoError(err)
+
+			err = path.EndpointB.ChanUpgradeTry()
+			suite.Require().NoError(err)
+
+			// Pending implementation of ack on msg_server to move channel state for A.
+			// Currently fails on validation.
+			err = path.EndpointA.ChanUpgradeAck()
+			suite.Require().NoError(err)
+
+			tc.malleate()
+
+			// ensure clients are up to date to receive valid proofs
+			suite.Require().NoError(path.EndpointA.UpdateClient())
+			proofCounterpartyChannel, _, proofHeight := path.EndpointB.QueryChannelUpgradeProof()
+
+			err = suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.ChanUpgradeOpen(
+				suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID,
+				path.EndpointB.GetChannel().State, proofCounterpartyChannel, proofHeight,
+			)
+			if expPass {
+				suite.Require().NoError(err)
+			} else {
+				suite.Require().ErrorIs(err, tc.expError)
+			}
+		})
+	}
+}
+
 func (suite *KeeperTestSuite) TestChanUpgradeTimeout() {
 	var (
 		path                     *ibctesting.Path
