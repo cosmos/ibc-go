@@ -46,8 +46,8 @@ func (cs ClientState) Validate() error {
 	if lenCodeID == 0 {
 		return sdkerrors.Wrap(ErrInvalidCodeID, "code ID cannot be empty")
 	}
-	if lenCodeID > 32 {
-		return sdkerrors.Wrapf(ErrInvalidCodeID, "expected 32, go %d", lenCodeID)
+	if lenCodeID > 32 { // sha256 output is 256 bits long
+		return sdkerrors.Wrapf(ErrInvalidCodeID, "expected 32, got %d", lenCodeID)
 	}
 
 	return nil
