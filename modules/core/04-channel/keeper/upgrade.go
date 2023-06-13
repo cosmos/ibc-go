@@ -209,6 +209,7 @@ func (k Keeper) AbortUpgrade(ctx sdk.Context, portID, channelID string, err erro
 }
 
 // ChanUpgradeAck is called by a module to accept the ACKUPGRADE handshake step of the channel upgrade protocol.
+// This method should only be called by the IBC core msg server.
 func (k Keeper) ChanUpgradeAck(
 	ctx sdk.Context,
 	portID,
@@ -234,7 +235,7 @@ func (k Keeper) ChanUpgradeAck(
 
 	connection, err := k.GetConnection(ctx, channel.ConnectionHops[0])
 	if err != nil {
-		return errorsmod.Wrapf(err, "failed to retrieve connection: %s", channel.ConnectionHops[0])
+		return errorsmod.Wrap(err, "failed to retrieve connection using the channel connection hops")
 	}
 
 	counterpartyHops := []string{connection.GetCounterparty().GetConnectionID()}
@@ -245,7 +246,7 @@ func (k Keeper) ChanUpgradeAck(
 		Counterparty:    types.NewCounterparty(portID, channelID),
 		Version:         channel.Version,
 		UpgradeSequence: channel.UpgradeSequence,
-		FlushStatus:     counterpartyFlushStatus,
+		FlushStatus:     counterpartyFlushStatus, // provided by the relayer
 	}
 
 	upgrade, found := k.GetUpgrade(ctx, portID, channelID)
@@ -253,16 +254,16 @@ func (k Keeper) ChanUpgradeAck(
 		return errorsmod.Wrapf(types.ErrUpgradeNotFound, "failed to retrieve channel upgrade: port ID (%s) channel ID (%s)", portID, channelID)
 	}
 
+	if err := k.startFlushUpgradeHandshake(ctx, portID, channelID, upgrade.Fields, counterpartyChannel, counterpartyUpgrade,
+		proofChannel, proofUpgrade, proofHeight); err != nil {
+		return err
+	}
+
 	// in the crossing hellos case, the versions returned by both on TRY must be the same
 	if channel.State == types.TRYUPGRADE {
 		if upgrade.Fields.Version != counterpartyUpgrade.Fields.Version {
 			return types.NewUpgradeError(channel.UpgradeSequence, errorsmod.Wrap(types.ErrIncompatibleCounterpartyUpgrade, "both channel ends must agree on the same version"))
 		}
-	}
-
-	if err := k.startFlushUpgradeHandshake(ctx, portID, channelID, upgrade.Fields, counterpartyChannel, counterpartyUpgrade,
-		proofChannel, proofUpgrade, proofHeight); err != nil {
-		return err
 	}
 
 	return nil

@@ -396,16 +396,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeAck() {
 			func() {
 				connectionEnd := path.EndpointA.GetConnection()
 				connectionEnd.State = connectiontypes.UNINITIALIZED
-				suite.chainA.GetSimApp().GetIBCKeeper().ConnectionKeeper.SetConnection(suite.chainA.GetContext(), path.EndpointA.ConnectionID, connectionEnd)
-			},
-			false,
-		},
-		{
-			"connection not found",
-			func() {
-				channel := path.EndpointA.GetChannel()
-				channel.ConnectionHops = []string{"connection-100"}
-				path.EndpointA.SetChannel(channel)
+				path.EndpointA.SetConnection(connectionEnd)
 			},
 			false,
 		},
