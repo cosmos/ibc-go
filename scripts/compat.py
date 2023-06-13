@@ -5,11 +5,13 @@ import json
 import enum
 from typing import Tuple, Generator, Optional, Dict, Any
 
+# Directory to operate in
+DIRECTORY: str = ".github/compatibility-test-matrices"
 # JSON keys to search in.
 KEYS: Tuple[str, str] = ("chain-a", "chain-b")
 # Toggle if required. Indent = 4 matches jq.
 DUMP_ARGS: Dict[Any, Any] = {
-    "indent": 4,
+    "indent": 2,
     "sort_keys": False,
     "ensure_ascii": False,
 }
@@ -36,6 +38,13 @@ def has_release_version(json_file, keys: Tuple[str, str], version: str) -> bool:
     return any(version in row for row in rows)
 
 
+def sorter(key):
+    """ Since 'main' < 'vX.X.X' and we want to have 'main' as the first entry
+    in the list, we return a version that is considerably large. If ibc-go
+    reaches this version I'll wear my dunce hat and go sit in the corner.
+    """
+    return 'v99999.9.9' if key == "main" else key
+
 def update_version(json_file, keys: Tuple[str, str], args: argparse.Namespace):
     """Update the versions as required in the json file."""
     recent, new, op = args.recent, args.new, args.type
@@ -44,7 +53,7 @@ def update_version(json_file, keys: Tuple[str, str], args: argparse.Namespace):
             continue
         if op == Operation.ADD:
             row.append(new)
-            row.sort(reverse=True)
+            row.sort(key=sorter, reverse=True)
         else:
             index = row.index(recent)
             if op == Operation.REPLACE:
@@ -78,7 +87,9 @@ def parse_args() -> argparse.Namespace:
         help="Type of version update: add a version, replace one or remove one.",
     )
     parser.add_argument(
-        "--directory", default=".", help="Directory path where JSON files are located"
+        "--directory",
+        default=DIRECTORY,
+        help="Directory path where JSON files are located",
     )
     parser.add_argument(
         "--recent_version",
