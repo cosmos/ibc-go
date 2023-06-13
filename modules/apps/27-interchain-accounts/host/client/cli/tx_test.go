@@ -149,8 +149,7 @@ func assertMsgBankSend(t *testing.T, msg sdk.Msg) { //nolint:thelper
 	require.Equal(t, uint64(1000), bankSendMsg.Amount[0].Amount.Uint64())
 }
 
-func assertMsgDelegate(t *testing.T, msg sdk.Msg) {
-	t.Helper()
+func assertMsgDelegate(t *testing.T, msg sdk.Msg) { //nolint:thelper
 	msgDelegate, ok := msg.(*stakingtypes.MsgDelegate)
 	require.True(t, ok)
 	require.Equal(t, "cosmos15ccshhmp0gsx29qpqq6g4zmltnnvgmyu9ueuadh9y2nc5zj0szls5gtddz", msgDelegate.DelegatorAddress)
