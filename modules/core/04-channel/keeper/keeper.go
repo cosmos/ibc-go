@@ -570,3 +570,14 @@ func (k Keeper) iterateHashes(ctx sdk.Context, iterator db.Iterator, cb func(por
 		}
 	}
 }
+
+// hasInflightPackets returns true if there are packet commitments stored at the specified channel and
+// false otherwise.
+//
+//lint:ignore U1000 Ignore unused function temporarily for debugging
+func (k Keeper) hasInflightPackets(ctx sdk.Context, portID, channelID string) bool {
+	iterator := sdk.KVStorePrefixIterator(ctx.KVStore(k.storeKey), []byte(host.PacketCommitmentPrefixPath(portID, channelID)))
+	defer sdk.LogDeferred(ctx.Logger(), func() error { return iterator.Close() })
+
+	return iterator.Valid()
+}
