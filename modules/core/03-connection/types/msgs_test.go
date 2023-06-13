@@ -11,6 +11,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/store/iavl"
 	"github.com/cosmos/cosmos-sdk/store/rootmulti"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
@@ -232,8 +234,8 @@ func (suite *MsgTestSuite) TestNewMsgConnectionOpenConfirm() {
 	}
 }
 
-// TestMsgUpdateParams_ValidateBasic tests ValidateBasic for MsgUpdateParams
-func (suite *MsgTestSuite) TestMsgUpdateParams_ValidateBasic() {
+// TestMsgUpdateParamsValidateBasic tests ValidateBasic for MsgUpdateParams
+func (suite *MsgTestSuite) TestMsgUpdateParamsValidateBasic() {
 	authority := suite.chainA.App.GetIBCKeeper().GetAuthority()
 	testCases := []struct {
 		name    string
@@ -265,4 +267,14 @@ func (suite *MsgTestSuite) TestMsgUpdateParams_ValidateBasic() {
 			suite.Require().Error(err, "invalid case %s passed", tc.name)
 		}
 	}
+}
+
+// TestMsgUpdateParamsGetSigners tests GetSigners for MsgUpdateParams
+func TestMsgUpdateParamsGetSigners(t *testing.T) {
+	authority := sdk.AccAddress("authority")
+	msg := types.MsgUpdateParams{
+		Authority: authority.String(),
+		Params:    types.DefaultParams(),
+	}
+	require.Equal(t, []sdk.AccAddress{authority}, msg.GetSigners())
 }

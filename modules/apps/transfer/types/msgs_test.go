@@ -102,8 +102,8 @@ func TestMsgTransferGetSigners(t *testing.T) {
 	require.Equal(t, []sdk.AccAddress{addr}, res)
 }
 
-// TestMsgUpdateParamsValidation tests ValidateBasic for MsgUpdateParams
-func TestMsgUpdateParamsValidation(t *testing.T) {
+// TestMsgUpdateParamsValidateBasic tests ValidateBasic for MsgUpdateParams
+func TestMsgUpdateParamsValidateBasic(t *testing.T) {
 	testCases := []struct {
 		name    string
 		msg     *types.MsgUpdateParams

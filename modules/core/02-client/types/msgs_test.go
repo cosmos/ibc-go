@@ -4,7 +4,9 @@ import (
 	"testing"
 	"time"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/golang/protobuf/proto" //nolint:staticcheck
+	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
@@ -610,8 +612,8 @@ func (suite *TypesTestSuite) TestMsgSubmitMisbehaviour_ValidateBasic() {
 	}
 }
 
-// TestMsgUpdateParams_ValidateBasic tests ValidateBasic for MsgUpdateParams
-func (suite *TypesTestSuite) TestMsgUpdateParams_ValidateBasic() {
+// TestMsgUpdateParamsValidateBasic tests ValidateBasic for MsgUpdateParams
+func (suite *TypesTestSuite) TestMsgUpdateParamsValidateBasic() {
 	authority := suite.chainA.App.GetIBCKeeper().GetAuthority()
 	testCases := []struct {
 		name    string
@@ -648,4 +650,14 @@ func (suite *TypesTestSuite) TestMsgUpdateParams_ValidateBasic() {
 			suite.Require().Error(err, "invalid case %s passed", tc.name)
 		}
 	}
+}
+
+// TestMsgUpdateParamsGetSigners tests GetSigners for MsgUpdateParams
+func TestMsgUpdateParamsGetSigners(t *testing.T) {
+	authority := sdk.AccAddress("authority")
+	msg := types.MsgUpdateParams{
+		Authority: authority.String(),
+		Params:    types.DefaultParams(),
+	}
+	require.Equal(t, []sdk.AccAddress{authority}, msg.GetSigners())
 }
