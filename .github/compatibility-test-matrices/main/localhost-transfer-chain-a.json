@@ -1,5 +1,5 @@
 {
-  "chain-a": ["main"],
+  "chain-a": ["main", "v7.1.0"],
   "chain-b": ["main"],
   "entrypoint": ["LocalhostTransferTestSuite"],
   "test": [
