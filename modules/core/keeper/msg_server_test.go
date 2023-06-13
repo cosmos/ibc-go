@@ -1,7 +1,10 @@
 package keeper_test
 
 import (
+	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
@@ -772,5 +775,152 @@ func (suite *KeeperTestSuite) TestUpgradeClient() {
 		} else {
 			suite.Require().Error(err, "upgrade handler passed on invalid case: %s", tc.name)
 		}
+	}
+}
+
+func (suite *KeeperTestSuite) TestChannelUpgradeTry() {
+	var (
+		path *ibctesting.Path
+		msg  *channeltypes.MsgChannelUpgradeTry
+	)
+
+	cases := []struct {
+		name      string
+		malleate  func()
+		expResult func(res *channeltypes.MsgChannelUpgradeTryResponse, err error)
+	}{
+		{
+			"success",
+			func() {},
+			func(res *channeltypes.MsgChannelUpgradeTryResponse, err error) {
+				suite.Require().NoError(err)
+				suite.Require().NotNil(res)
+				suite.Require().Equal(channeltypes.SUCCESS, res.Result)
+
+				channel := path.EndpointB.GetChannel()
+				suite.Require().Equal(channeltypes.TRYUPGRADE, channel.State)
+				suite.Require().Equal(uint64(1), channel.UpgradeSequence)
+			},
+		},
+		{
+			"module capability not found",
+			func() {
+				msg.PortId = "invalid-port"
+				msg.ChannelId = "invalid-channel"
+			},
+			func(res *channeltypes.MsgChannelUpgradeTryResponse, err error) {
+				suite.Require().Error(err)
+				suite.Require().Nil(res)
+
+				suite.Require().ErrorIs(err, capabilitytypes.ErrCapabilityNotFound)
+			},
+		},
+		{
+			"elapsed upgrade timeout returns error",
+			func() {
+				msg.UpgradeTimeout = channeltypes.NewTimeout(clienttypes.NewHeight(1, 10), 0)
+				suite.coordinator.CommitNBlocks(suite.chainB, 100)
+			},
+			func(res *channeltypes.MsgChannelUpgradeTryResponse, err error) {
+				suite.Require().Error(err)
+				suite.Require().Nil(res)
+				suite.Require().ErrorIs(err, channeltypes.ErrInvalidUpgrade)
+
+				errorReceipt, found := suite.chainB.GetSimApp().GetIBCKeeper().ChannelKeeper.GetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+				suite.Require().Empty(errorReceipt)
+				suite.Require().False(found)
+			},
+		},
+		{
+			"unsynchronized upgrade sequence writes upgrade error receipt",
+			func() {
+				channel := path.EndpointB.GetChannel()
+				channel.UpgradeSequence = 100
+
+				path.EndpointB.SetChannel(channel)
+			},
+			func(res *channeltypes.MsgChannelUpgradeTryResponse, err error) {
+				suite.Require().NoError(err)
+
+				suite.Require().NotNil(res)
+				suite.Require().Equal(channeltypes.FAILURE, res.Result)
+
+				// TODO: assert error receipt exists for the upgrade sequence when RestoreChannel / AbortUpgrade is called
+				// errorReceipt, found := suite.chainB.GetSimApp().GetIBCKeeper().ChannelKeeper.GetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+				// suite.Require().True(found)
+			},
+		},
+		{
+			"application callback error writes upgrade error receipt",
+			func() {
+				suite.chainB.GetSimApp().IBCMockModule.IBCApp.OnChanUpgradeTry = func(
+					ctx sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, counterpartyVersion string,
+				) (string, error) {
+					// set arbitrary value in store to mock application state changes
+					store := ctx.KVStore(suite.chainB.GetSimApp().GetKey(exported.ModuleName))
+					store.Set([]byte("foo"), []byte("bar"))
+					return "", fmt.Errorf("mock app callback failed")
+				}
+			},
+			func(res *channeltypes.MsgChannelUpgradeTryResponse, err error) {
+				suite.Require().NoError(err)
+
+				suite.Require().NotNil(res)
+				suite.Require().Equal(channeltypes.FAILURE, res.Result)
+
+				// TODO: assert error receipt exists for the upgrade sequence when RestoreChannel / AbortUpgrade is called
+				// errorReceipt, found := suite.chainB.GetSimApp().GetIBCKeeper().ChannelKeeper.GetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+				// suite.Require().True(found)
+
+				// assert application state changes are not committed
+				store := suite.chainB.GetContext().KVStore(suite.chainB.GetSimApp().GetKey(exported.ModuleName))
+				suite.Require().False(store.Has([]byte("foo")))
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.Setup(path)
+
+			// configure the channel upgrade version on testing endpoints
+			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = ibcmock.UpgradeVersion
+			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = ibcmock.UpgradeVersion
+
+			err := path.EndpointA.ChanUpgradeInit()
+			suite.Require().NoError(err)
+
+			err = path.EndpointB.UpdateClient()
+			suite.Require().NoError(err)
+
+			counterpartySequence := path.EndpointA.GetChannel().UpgradeSequence
+			counterpartyUpgrade, found := suite.chainA.GetSimApp().GetIBCKeeper().ChannelKeeper.GetUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+			suite.Require().True(found)
+
+			proofChannel, proofUpgrade, proofHeight := path.EndpointB.QueryChannelUpgradeProof()
+
+			msg = &channeltypes.MsgChannelUpgradeTry{
+				PortId:                        path.EndpointB.ChannelConfig.PortID,
+				ChannelId:                     path.EndpointB.ChannelID,
+				ProposedUpgradeConnectionHops: []string{ibctesting.FirstConnectionID},
+				UpgradeTimeout:                channeltypes.NewTimeout(path.EndpointA.Chain.GetTimeoutHeight(), 0),
+				CounterpartyUpgradeSequence:   counterpartySequence,
+				CounterpartyProposedUpgrade:   counterpartyUpgrade,
+				ProofChannel:                  proofChannel,
+				ProofUpgrade:                  proofUpgrade,
+				ProofHeight:                   proofHeight,
+				Signer:                        suite.chainB.SenderAccount.GetAddress().String(),
+			}
+
+			tc.malleate()
+
+			res, err := suite.chainB.GetSimApp().GetIBCKeeper().ChannelUpgradeTry(suite.chainB.GetContext(), msg)
+
+			tc.expResult(res, err)
+		})
 	}
 }
