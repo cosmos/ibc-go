@@ -60,3 +60,7 @@ linters-settings:
     allow-leading-space: true
     require-explanation: false
     require-specific: false
+  revive:
+    rules:
+      - name: if-return
+        disabled: true

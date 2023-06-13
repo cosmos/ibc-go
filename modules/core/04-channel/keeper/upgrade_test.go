@@ -363,8 +363,8 @@ func (suite *KeeperTestSuite) TestChanUpgradeAck() {
 		{
 			"channel not found",
 			func() {
-				path.EndpointA.ChannelID = "invalid-channel"
-				path.EndpointA.ChannelConfig.PortID = "invalid-port"
+				path.EndpointA.ChannelID = ibctesting.InvalidID
+				path.EndpointA.ChannelConfig.PortID = ibctesting.InvalidID
 			},
 			false,
 		},
