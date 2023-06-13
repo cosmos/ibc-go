@@ -13,7 +13,7 @@ jobs:
     steps:
       - uses: rokroskar/workflow-run-cleanup-action@master
         env:
-          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+          GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
     if: "!startsWith(github.ref, 'refs/tags/') && github.ref != 'refs/heads/main'"
 
   install-tparse:
@@ -21,7 +21,7 @@ jobs:
     steps:
       - uses: actions/setup-go@v4
         with:
-          go-version: 1.19
+          go-version: '1.20'
       - name: Display go version
         run: go version
       - name: install tparse
@@ -36,12 +36,12 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        go-arch: ["amd64", "arm", "arm64"]
+        go-arch: ['amd64', 'arm', 'arm64']
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v4
         with:
-          go-version: 1.19
+          go-version: '1.20'
       - uses: technote-space/get-diff-action@v6.1.2
         id: git_diff
         with:
@@ -72,19 +72,19 @@ jobs:
       # cache multiple
       - uses: actions/upload-artifact@v3
         with:
-          name: "${{ github.sha }}-00"
+          name: '${{ github.sha }}-00'
           path: ./pkgs.txt.part.00
       - uses: actions/upload-artifact@v3
         with:
-          name: "${{ github.sha }}-01"
+          name: '${{ github.sha }}-01'
           path: ./pkgs.txt.part.01
       - uses: actions/upload-artifact@v3
         with:
-          name: "${{ github.sha }}-02"
+          name: '${{ github.sha }}-02'
           path: ./pkgs.txt.part.02
       - uses: actions/upload-artifact@v3
         with:
-          name: "${{ github.sha }}-03"
+          name: '${{ github.sha }}-03'
           path: ./pkgs.txt.part.03
 
   tests:
@@ -93,12 +93,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        part: ["00", "01", "02", "03"]
+        part: ['00', '01', '02', '03']
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v4
         with:
-          go-version: 1.19
+          go-version: '1.20'
       - uses: technote-space/get-diff-action@v6.1.2
         with:
           PATTERNS: |
@@ -107,7 +107,7 @@ jobs:
             go.sum
       - uses: actions/download-artifact@v3
         with:
-          name: "${{ github.sha }}-${{ matrix.part }}"
+          name: '${{ github.sha }}-${{ matrix.part }}'
         if: env.GIT_DIFF
       - name: test & coverage report creation
         run: |
@@ -115,7 +115,7 @@ jobs:
         if: env.GIT_DIFF
       - uses: actions/upload-artifact@v3
         with:
-          name: "${{ github.sha }}-${{ matrix.part }}-coverage"
+          name: '${{ github.sha }}-${{ matrix.part }}-coverage'
           path: ./${{ matrix.part }}profile.out
 
   upload-coverage-report:
@@ -131,19 +131,19 @@ jobs:
             go.sum
       - uses: actions/download-artifact@v3
         with:
-          name: "${{ github.sha }}-00-coverage"
+          name: '${{ github.sha }}-00-coverage'
         if: env.GIT_DIFF
       - uses: actions/download-artifact@v3
         with:
-          name: "${{ github.sha }}-01-coverage"
+          name: '${{ github.sha }}-01-coverage'
         if: env.GIT_DIFF
       - uses: actions/download-artifact@v3
         with:
-          name: "${{ github.sha }}-02-coverage"
+          name: '${{ github.sha }}-02-coverage'
         if: env.GIT_DIFF
       - uses: actions/download-artifact@v3
         with:
-          name: "${{ github.sha }}-03-coverage"
+          name: '${{ github.sha }}-03-coverage'
         if: env.GIT_DIFF
       - run: |
           cat ./*profile.out | grep -v "mode: atomic" >> coverage.txt
