@@ -425,11 +425,10 @@ func (suite *KeeperTestSuite) TestChanUpgradeAck() {
 
 				path.EndpointA.SetChannel(channel)
 
-				upgrade, found := suite.chainA.GetSimApp().GetIBCKeeper().ChannelKeeper.GetUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-				suite.Require().True(found)
-
+				upgrade := path.EndpointA.GetChannelUpgrade()
 				upgrade.Fields.Version = "invalid-version"
-				suite.chainA.GetSimApp().GetIBCKeeper().ChannelKeeper.SetUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, upgrade)
+
+				path.EndpointA.SetChannelUpgrade(upgrade)
 			},
 			false,
 		},
@@ -474,9 +473,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeAck() {
 			err = path.EndpointA.UpdateClient()
 			suite.Require().NoError(err)
 
-			var found bool
-			counterpartyUpgrade, found = suite.chainB.GetSimApp().GetIBCKeeper().ChannelKeeper.GetUpgrade(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
-			suite.Require().True(found)
+			counterpartyUpgrade = path.EndpointB.GetChannelUpgrade()
 
 			tc.malleate()
 
