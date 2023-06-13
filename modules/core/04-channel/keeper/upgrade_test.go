@@ -332,7 +332,6 @@ func (suite *KeeperTestSuite) TestChanUpgradeTimeout() {
 		proofHeight              exported.Height
 		proofCounterpartyChannel []byte
 		proofErrorReceipt        []byte
-		// counterpartyUpgrade types.Upgrade
 	)
 
 	testCases := []struct {
