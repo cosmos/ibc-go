@@ -805,7 +805,53 @@ func (k Keeper) ChannelUpgradeTry(goCtx context.Context, msg *channeltypes.MsgCh
 
 // ChannelUpgradeAck defines a rpc handler method for MsgChannelUpgradeAck.
 func (k Keeper) ChannelUpgradeAck(goCtx context.Context, msg *channeltypes.MsgChannelUpgradeAck) (*channeltypes.MsgChannelUpgradeAckResponse, error) {
-	return nil, nil
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	module, _, err := k.ChannelKeeper.LookupModuleByChannel(ctx, msg.PortId, msg.ChannelId)
+	if err != nil {
+		ctx.Logger().Error("channel upgrade ack failed", "port-id", msg.PortId, "error", errorsmod.Wrap(err, "could not retrieve module from port-id"))
+		return nil, errorsmod.Wrap(err, "could not retrieve module from port-id")
+	}
+
+	cbs, ok := k.Router.GetRoute(module)
+	if !ok {
+		ctx.Logger().Error("channel upgrade ack failed", "port-id", msg.PortId, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module))
+		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
+	}
+
+	err = k.ChannelKeeper.ChanUpgradeAck(ctx, msg.PortId, msg.ChannelId, msg.CounterpartyFlushStatus, msg.CounterpartyUpgrade, msg.ProofChannel, msg.ProofUpgrade, msg.ProofHeight)
+	if err != nil {
+		ctx.Logger().Error("channel upgrade ack failed", "error", errorsmod.Wrap(err, "channel handshake upgrade ack failed"))
+		if upgradeErr, ok := err.(*channeltypes.UpgradeError); ok {
+			if err := k.ChannelKeeper.AbortUpgrade(ctx, msg.PortId, msg.ChannelId, upgradeErr); err != nil {
+				return nil, err
+			}
+
+			// NOTE: a FAILURE result is returned to the client and an error receipt is written to state.
+			// This signals to the relayer to begin the cancel upgrade handshake subprotocol.
+			return &channeltypes.MsgChannelUpgradeAckResponse{ /*Result: channeltypes.FAILURE*/ }, nil
+		}
+
+		// NOTE: an error is returned to baseapp and transaction state is not committed.
+		return nil, err
+	}
+
+	cacheCtx, writeFn := ctx.CacheContext()
+	err = cbs.OnChanUpgradeAck(cacheCtx, msg.PortId, msg.ChannelId, msg.CounterpartyUpgrade.Fields.Version)
+	if err != nil {
+		ctx.Logger().Error("channel upgrade ack callback failed", "port-id", msg.PortId, "channel-id", msg.ChannelId, "error", err.Error())
+		if err := k.ChannelKeeper.AbortUpgrade(ctx, msg.PortId, msg.ChannelId, err); err != nil {
+			return nil, err
+		}
+
+		return &channeltypes.MsgChannelUpgradeAckResponse{ /*Result: channeltypes.FAILURE*/ }, nil
+	}
+
+	writeFn()
+
+	// k.ChannelKeeper.WriteUpgradeAckChannel()
+
+	return &channeltypes.MsgChannelUpgradeAckResponse{}, nil
 }
 
 // ChannelUpgradeOpen defines a rpc handler method for MsgChannelUpgradeOpen.
