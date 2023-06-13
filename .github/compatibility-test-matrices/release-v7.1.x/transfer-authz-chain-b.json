@@ -1,12 +1,27 @@
 {
-  "chain-a": ["release-v7.1.x", "v7.1.0", "v7.0.1", "v6.2.0"],
-  "chain-b": ["release-v7.1.x"],
-  "entrypoint": ["TestAuthzTransferTestSuite"],
+  "chain-a": [
+    "release-v7.1.x",
+    "v7.1.0",
+    "v7.0.1",
+    "v6.2.0"
+  ],
+  "chain-b": [
+    "release-v7.1.x"
+  ],
+  "entrypoint": [
+    "TestAuthzTransferTestSuite"
+  ],
   "test": [
     "TestAuthz_MsgTransfer_Succeeds",
     "TestAuthz_InvalidTransferAuthorizations"
   ],
-  "relayer-type": ["rly"],
-  "chain-binary": ["simd"],
-  "chain-image": ["ghcr.io/cosmos/ibc-go-simd"]
+  "relayer-type": [
+    "rly"
+  ],
+  "chain-binary": [
+    "simd"
+  ],
+  "chain-image": [
+    "ghcr.io/cosmos/ibc-go-simd"
+  ]
 }
