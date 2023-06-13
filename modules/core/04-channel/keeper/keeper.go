@@ -532,6 +532,12 @@ func (k Keeper) SetCounterpartyLastPacketSequence(ctx sdk.Context, portID, chann
 	store.Set(host.ChannelCounterpartyLastPacketSequenceKey(portID, channelID), bz)
 }
 
+// deleteCounterpartyLastPacketSequence deletes the counterparty last packet sequence from the store.
+func (k Keeper) deleteCounterpartyLastPacketSequence(ctx sdk.Context, portID, channelID string) {
+	store := ctx.KVStore(k.storeKey)
+	store.Delete(host.ChannelCounterpartyLastPacketSequenceKey(portID, channelID))
+}
+
 // SetUpgrade sets the proposed upgrade using the provided port and channel identifiers.
 func (k Keeper) SetUpgrade(ctx sdk.Context, portID, channelID string, upgrade types.Upgrade) {
 	store := ctx.KVStore(k.storeKey)
@@ -539,17 +545,7 @@ func (k Keeper) SetUpgrade(ctx sdk.Context, portID, channelID string, upgrade ty
 	store.Set(host.ChannelUpgradeKey(portID, channelID), bz)
 }
 
-// deleteCounterpartyLastPacketSequence deletes the counterparty last packet sequence from the store.
-//
-//lint:ignore U1000 Ignore unused function temporarily for debugging
-func (k Keeper) deleteCounterpartyLastPacketSequence(ctx sdk.Context, portID, channelID string) {
-	store := ctx.KVStore(k.storeKey)
-	store.Delete(host.ChannelCounterpartyLastPacketSequenceKey(portID, channelID))
-}
-
 // deleteUpgrade deletes the upgrade for the provided port and channel identifiers.
-//
-//lint:ignore U1000 Ignore unused function temporarily for debugging
 func (k Keeper) deleteUpgrade(ctx sdk.Context, portID, channelID string) {
 	store := ctx.KVStore(k.storeKey)
 	store.Delete(host.ChannelUpgradeKey(portID, channelID))

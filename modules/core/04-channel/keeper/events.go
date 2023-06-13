@@ -317,8 +317,6 @@ func emitChannelUpgradeTryEvent(ctx sdk.Context, portID string, channelID string
 }
 
 // emitChannelUpgradeAckEvent emits a channel upgrade ack event
-//
-//lint:ignore U1000 Ignore unused function temporarily for debugging
 func emitChannelUpgradeAckEvent(ctx sdk.Context, portID string, channelID string, currentChannel types.Channel, upgrade types.Upgrade) {
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
@@ -366,8 +364,6 @@ func emitChannelUpgradeOpenEvent(ctx sdk.Context, portID string, channelID strin
 }
 
 // emitErrorReceiptEvent emits an error receipt event
-//
-//lint:ignore U1000 Ignore unused function temporarily for debugging
 func emitErrorReceiptEvent(ctx sdk.Context, portID string, channelID string, currentChannel types.Channel, upgrade types.Upgrade, err error) {
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
