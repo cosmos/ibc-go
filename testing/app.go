@@ -64,6 +64,8 @@ func SetupTestingApp() (TestingApp, map[string]json.RawMessage) {
 func SetupWithGenesisValSet(tb testing.TB, valSet *tmtypes.ValidatorSet, genAccs []authtypes.GenesisAccount, chainID string, powerReduction sdkmath.Int, balances ...banktypes.Balance) TestingApp {
 	tb.Helper()
 	app, genesisState := DefaultTestingAppInit()
+	sdkCtx := app.GetBaseApp().NewContext(false)
+	ctx := sdk.WrapSDKContext(sdkCtx)
 
 	// ensure baseapp has a chain-id set before running InitChain
 	baseapp.SetChainID(chainID)(app.GetBaseApp())
@@ -125,7 +127,8 @@ func SetupWithGenesisValSet(tb testing.TB, valSet *tmtypes.ValidatorSet, genAccs
 
 	// init chain will set the validator set and initialize the genesis accounts
 	app.InitChain(
-		abci.RequestInitChain{
+		ctx,
+		&abci.RequestInitChain{
 			ChainId:       chainID,
 			Validators:    []abci.ValidatorUpdate{},
 			AppStateBytes: stateBytes,
@@ -133,7 +136,7 @@ func SetupWithGenesisValSet(tb testing.TB, valSet *tmtypes.ValidatorSet, genAccs
 	)
 
 	// commit genesis changes
-	app.Commit()
+	app.Commit(ctx, &abci.RequestCommit{})
 
 	return app
 }

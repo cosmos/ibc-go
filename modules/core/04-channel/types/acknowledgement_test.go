@@ -106,30 +106,32 @@ func (suite *TypesTestSuite) TestABCICodeDeterminism() {
 	// different ABCI error code used
 	errDifferentABCICode := ibcerrors.ErrNotFound
 
-	deliverTx := sdkerrors.ResponseCheckTxWithEvents(err, gasUsed, gasWanted, []abcitypes.Event{}, false)
-	responses := tmprotostate.ABCIResponses{
-		DeliverTxs: []*abcitypes.ResponseCheckTx{
-			&deliverTx,
+	deliverTx := sdkerrors.ResponseExecTxResultWithEvents(err, gasUsed, gasWanted, []abcitypes.Event{}, false)
+	responses := tmprotostate.LegacyABCIResponses{
+		DeliverTxs: []*abcitypes.ExecTxResult{
+			deliverTx,
 		},
 	}
 
-	deliverTxSameABCICode := sdkerrors.ResponseCheckTxWithEvents(errSameABCICode, gasUsed, gasWanted, []abcitypes.Event{}, false)
-	responsesSameABCICode := tmprotostate.ABCIResponses{
-		DeliverTxs: []*abcitypes.ResponseCheckTx{
-			&deliverTxSameABCICode,
+	deliverTxSameABCICode := sdkerrors.ResponseExecTxResultWithEvents(errSameABCICode, gasUsed, gasWanted, []abcitypes.Event{}, false)
+	responsesSameABCICode := tmprotostate.LegacyABCIResponses{
+		DeliverTxs: []*abcitypes.ExecTxResult{
+			deliverTxSameABCICode,
 		},
 	}
 
-	deliverTxDifferentABCICode := sdkerrors.ResponseCheckTxWithEvents(errDifferentABCICode, gasUsed, gasWanted, []abcitypes.Event{}, false)
+	deliverTxDifferentABCICode := sdkerrors.ResponseExecTxResultWithEvents(errDifferentABCICode, gasUsed, gasWanted, []abcitypes.Event{}, false)
 	responsesDifferentABCICode := tmprotostate.ABCIResponsesInfo{
-		DeliverTxs: []*abcitypes.ResponseCheckTx{
-			&deliverTxDifferentABCICode,
+		LegacyAbciResponses: &tmprotostate.LegacyABCIResponses{
+			DeliverTxs: []*abcitypes.ExecTxResult{
+				deliverTxDifferentABCICode,
+			},
 		},
 	}
 
-	hash := tmstate.TxResultsHash(&responses)
-	hashSameABCICode := tmstate.TxResultsHash(&responsesSameABCICode)
-	hashDifferentABCICode := tmstate.TxResultsHash(&responsesDifferentABCICode)
+	hash := tmstate.TxResultsHash(responses.DeliverTxs)
+	hashSameABCICode := tmstate.TxResultsHash(responsesSameABCICode.DeliverTxs)
+	hashDifferentABCICode := tmstate.TxResultsHash(responsesDifferentABCICode.LegacyAbciResponses.DeliverTxs)
 
 	suite.Require().Equal(hash, hashSameABCICode)
 	suite.Require().NotEqual(hash, hashDifferentABCICode)

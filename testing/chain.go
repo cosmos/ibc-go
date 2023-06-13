@@ -218,12 +218,14 @@ func (chain *TestChain) QueryProofAtHeight(key []byte, height int64) ([]byte, cl
 // QueryProofForStore performs an abci query with the given key and returns the proto encoded merkle proof
 // for the query and the height at which the proof will succeed on a tendermint verifier.
 func (chain *TestChain) QueryProofForStore(storeKey string, key []byte, height int64) ([]byte, clienttypes.Height) {
-	res, err := chain.App.Query(abci.RequestQuery{
-		Path:   fmt.Sprintf("store/%s/key", storeKey),
-		Height: height - 1,
-		Data:   key,
-		Prove:  true,
-	})
+	res, err := chain.App.Query(
+		chain.GetContext().Context(),
+		&abci.RequestQuery{
+			Path:   fmt.Sprintf("store/%s/key", storeKey),
+			Height: height - 1,
+			Data:   key,
+			Prove:  true,
+		})
 
 	merkleProof, err := commitmenttypes.ConvertProofs(res.ProofOps)
 	require.NoError(chain.TB, err)
@@ -242,12 +244,14 @@ func (chain *TestChain) QueryProofForStore(storeKey string, key []byte, height i
 // QueryUpgradeProof performs an abci query with the given key and returns the proto encoded merkle proof
 // for the query and the height at which the proof will succeed on a tendermint verifier.
 func (chain *TestChain) QueryUpgradeProof(key []byte, height uint64) ([]byte, clienttypes.Height) {
-	res, err := chain.App.Query(abci.RequestQuery{
-		Path:   "store/upgrade/key",
-		Height: int64(height - 1),
-		Data:   key,
-		Prove:  true,
-	})
+	res, err := chain.App.Query(
+		chain.GetContext().Context(),
+		&abci.RequestQuery{
+			Path:   "store/upgrade/key",
+			Height: int64(height - 1),
+			Data:   key,
+			Prove:  true,
+		})
 
 	merkleProof, err := commitmenttypes.ConvertProofs(res.ProofOps)
 	require.NoError(chain.TB, err)
@@ -498,12 +502,12 @@ func (chain *TestChain) CreateTMClientHeader(chainID string, blockHeight int64, 
 		signerArr = append(signerArr, signers[v.Address.String()])
 	}
 
-	commit, err := test.MakeCommit(blockID, blockHeight, 1, voteSet, signerArr, timestamp)
+	extCommit, err := tmtypes.MakeExtCommit(blockID, blockHeight, 1, voteSet, signerArr, timestamp, false)
 	require.NoError(chain.TB, err)
 
 	signedHeader := &tmproto.SignedHeader{
 		Header: tmHeader.ToProto(),
-		Commit: commit.ToProto(),
+		Commit: extCommit.ToCommit().ToProto(),
 	}
 
 	if tmValSet != nil { //nolint:staticcheck
