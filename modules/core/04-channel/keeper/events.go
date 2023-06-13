@@ -386,8 +386,6 @@ func emitChannelUpgradeTimeoutEvent(ctx sdk.Context, portID string, channelID st
 }
 
 // emitErrorReceiptEvent emits an error receipt event
-//
-//lint:ignore U1000 Ignore unused function temporarily for debugging
 func emitErrorReceiptEvent(ctx sdk.Context, portID string, channelID string, currentChannel types.Channel, upgrade types.Upgrade, err error) {
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
