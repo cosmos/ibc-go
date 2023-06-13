@@ -221,12 +221,7 @@ func (k Keeper) WriteUpgradeAckChannel(
 
 	previousState := channel.State
 	channel.State = types.ACKUPGRADE
-
-	if k.GetAllPacketCommitmentsAtChannel(ctx, portID, channelID) != nil {
-		channel.FlushStatus = types.FLUSHING
-	} else {
-		channel.FlushStatus = types.FLUSHCOMPLETE
-	}
+	channel.FlushStatus = types.FLUSHING
 
 	k.SetChannel(ctx, portID, channelID, channel)
 	k.SetUpgrade(ctx, portID, channelID, proposedUpgrade)
