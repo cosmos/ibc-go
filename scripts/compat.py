@@ -3,6 +3,7 @@ import argparse
 import os
 import json
 import enum
+from collections import defaultdict
 from typing import Tuple, Generator, Optional, Dict, Any
 
 # Directory to operate in
@@ -32,20 +33,21 @@ def find_json_files(
                 yield os.path.join(root, file_)
 
 
-def has_release_version(json_file, keys: Tuple[str, str], version: str) -> bool:
+def has_release_version(json_file: Any, keys: Tuple[str, str], version: str) -> bool:
     """Check if the json file has the version in question."""
     rows = (json_file[key] for key in keys)
     return any(version in row for row in rows)
 
 
-def sorter(key):
-    """ Since 'main' < 'vX.X.X' and we want to have 'main' as the first entry
+def sorter(key: str) -> str:
+    """Since 'main' < 'vX.X.X' and we want to have 'main' as the first entry
     in the list, we return a version that is considerably large. If ibc-go
     reaches this version I'll wear my dunce hat and go sit in the corner.
     """
-    return 'v99999.9.9' if key == "main" else key
+    return "v99999.9.9" if key == "main" else key
 
-def update_version(json_file, keys: Tuple[str, str], args: argparse.Namespace):
+
+def update_version(json_file: Any, keys: Tuple[str, str], args: argparse.Namespace):
     """Update the versions as required in the json file."""
     recent, new, op = args.recent, args.new, args.type
     for row in (json_file[key] for key in keys):
@@ -113,19 +115,36 @@ def parse_args() -> argparse.Namespace:
     require_version(args)
     return args
 
+def print_logs(logs: Dict[str, list], verbose: bool):
+    """Print the logs."""
+    updated, skipped = logs["updated"], logs["skipped"] 
+    if updated:
+        if verbose:
+            print("Updated files:", *updated, sep="\n - ")
+    else:
+        print("No files were updated.")
+    if skipped:
+        if verbose:
+            print("The following files were skipped:", *skipped, sep="\n - ")
+    else:
+        print("No files skipped.")
+
 
 def main(args: argparse.Namespace):
+    logs = defaultdict(list)
     for file_ in find_json_files(args.directory):
         with open(file_, "r+") as fp:
             json_file = json.load(fp)
             if not has_release_version(json_file, KEYS, args.recent):
+                logs["skipped"].append(
+                    f"Version '{args.recent}' not found in '{file_}'"
+                )
                 continue
             update_version(json_file, KEYS, args)
             fp.seek(0)
             json.dump(json_file, fp, **DUMP_ARGS)
-            if args.verbose:
-                print(f"Updated '{file_}'.")
-
+            logs["updated"].append(f"Updated '{file_}'")
+    print_logs(logs, args.verbose)
 
 if __name__ == "__main__":
     args = parse_args()
