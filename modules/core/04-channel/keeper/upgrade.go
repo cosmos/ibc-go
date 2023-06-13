@@ -229,7 +229,7 @@ func (k Keeper) ChanUpgradeAck(
 	}
 
 	if !collections.Contains(counterpartyFlushStatus, []types.FlushStatus{types.FLUSHING, types.FLUSHCOMPLETE}) {
-		return errorsmod.Wrapf(types.ErrInvalidChannelState, "expected one of [%s, %s], got %s", types.FLUSHING, types.FLUSHCOMPLETE, counterpartyFlushStatus)
+		return errorsmod.Wrapf(types.ErrInvalidFlushStatus, "expected one of [%s, %s], got %s", types.FLUSHING, types.FLUSHCOMPLETE, counterpartyFlushStatus)
 	}
 
 	connection, err := k.GetConnection(ctx, channel.ConnectionHops[0])
@@ -272,8 +272,6 @@ func (k Keeper) ChanUpgradeAck(
 // Once the counterparty information has been verified, it will be validated against the self proposed upgrade.
 // If any of the proposed upgrade fields are incompatible, an upgrade error will be returned resulting in an
 // aborted upgrade.
-//
-//lint:ignore U1000 Ignore unused function temporarily for debugging
 func (k Keeper) startFlushUpgradeHandshake(
 	ctx sdk.Context,
 	portID,
