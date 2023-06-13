@@ -392,6 +392,38 @@ func (k Keeper) startFlushUpgradeHandshake(
 	return nil
 }
 
+// WriteUpgradeOpenChannel writes the agreed upon upgrade fields to the channel, sets the channel flush status to NOTINFLUSH and sets the channel state back to OPEN. This can be called in one of two cases:
+// - In the UpgradeAck step of the handshake if both sides have already flushed all in-flight packets.
+// - In the UpgradeOpen step of the handshake.
+func (k Keeper) writeUpgradeOpenChannel(ctx sdk.Context, portID, channelID string) {
+	channel, found := k.GetChannel(ctx, portID, channelID)
+	if !found {
+		panic(fmt.Sprintf("could not find existing channel when updating channel state, channelID: %s, portID: %s", channelID, portID))
+	}
+
+	upgrade, found := k.GetUpgrade(ctx, portID, channelID)
+	if !found {
+		panic(fmt.Sprintf("could not find upgrade when updating channel state, channelID: %s, portID: %s", channelID, portID))
+	}
+
+	// Switch channel fields to upgrade fields and set channel state to OPEN
+	previousState := channel.State
+	channel.Ordering = upgrade.Fields.Ordering
+	channel.Version = upgrade.Fields.Version
+	channel.ConnectionHops = upgrade.Fields.ConnectionHops
+	channel.State = types.OPEN
+	channel.FlushStatus = types.NOTINFLUSH
+
+	k.SetChannel(ctx, portID, channelID, channel)
+
+	// Delete auxiliary state.
+	k.deleteUpgrade(ctx, portID, channelID)
+	k.deleteCounterpartyLastPacketSequence(ctx, portID, channelID)
+
+	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", previousState.String(), "new-state", types.OPEN.String())
+	emitChannelUpgradeOpenEvent(ctx, portID, channelID, channel)
+}
+
 // validateUpgradeFields validates the proposed upgrade fields against the existing channel.
 // It returns an error if the following constraints are not met:
 // - there exists at least one valid proposed change to the existing channel fields
