@@ -1,4 +1,4 @@
-module github.com/cosmos/ibc-go/modules/capability
+module github.com/cosmos/ibc-go/modules/capability/v7
 
 go 1.20
 
@@ -185,7 +185,5 @@ require (
 	nhooyr.io/websocket v1.8.6 // indirect
 	pgregory.net/rapid v0.6.2 // indirect
 )
-
-replace github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
 
 replace github.com/cosmos/ibc-go/v7 => ../../

@@ -8,7 +8,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
+	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/v7/keeper"
 	"github.com/stretchr/testify/suite"
 
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"

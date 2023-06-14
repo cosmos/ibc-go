@@ -9,7 +9,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
+	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/v7/types"
 
 	genesistypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/genesis/types"
 	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/types"
