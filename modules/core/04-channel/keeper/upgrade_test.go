@@ -476,7 +476,8 @@ func (suite *KeeperTestSuite) TestChanUpgradeAck() {
 				proofChannel, proofUpgrade, proofHeight,
 			)
 
-			if expPass := tc.expError == nil; expPass {
+			expPass := tc.expError == nil
+			if expPass {
 				suite.Require().NoError(err)
 			} else {
 				suite.assertUpgradeError(err, tc.expError)
