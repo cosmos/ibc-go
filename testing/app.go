@@ -17,6 +17,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
+	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -33,7 +34,7 @@ import (
 var DefaultTestingAppInit = SetupTestingApp
 
 type TestingApp interface {
-	abci.Application
+	servertypes.Application
 
 	// ibc-go additions
 	GetBaseApp() *baseapp.BaseApp
@@ -64,8 +65,6 @@ func SetupTestingApp() (TestingApp, map[string]json.RawMessage) {
 func SetupWithGenesisValSet(tb testing.TB, valSet *tmtypes.ValidatorSet, genAccs []authtypes.GenesisAccount, chainID string, powerReduction sdkmath.Int, balances ...banktypes.Balance) TestingApp {
 	tb.Helper()
 	app, genesisState := DefaultTestingAppInit()
-	sdkCtx := app.GetBaseApp().NewContext(false)
-	ctx := sdk.WrapSDKContext(sdkCtx)
 
 	// ensure baseapp has a chain-id set before running InitChain
 	baseapp.SetChainID(chainID)(app.GetBaseApp())
@@ -127,7 +126,6 @@ func SetupWithGenesisValSet(tb testing.TB, valSet *tmtypes.ValidatorSet, genAccs
 
 	// init chain will set the validator set and initialize the genesis accounts
 	app.InitChain(
-		ctx,
 		&abci.RequestInitChain{
 			ChainId:       chainID,
 			Validators:    []abci.ValidatorUpdate{},
@@ -136,7 +134,7 @@ func SetupWithGenesisValSet(tb testing.TB, valSet *tmtypes.ValidatorSet, genAccs
 	)
 
 	// commit genesis changes
-	app.Commit(ctx, &abci.RequestCommit{})
+	app.Commit()
 
 	return app
 }
