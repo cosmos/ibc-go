@@ -25,7 +25,7 @@ import (
 // Keeper defines the IBC interchain accounts controller keeper
 type Keeper struct {
 	storeKey   storetypes.StoreKey
-	cdc        codec.Codec
+	cdc        codec.BinaryCodec
 	paramSpace paramtypes.Subspace
 
 	ics4Wrapper   porttypes.ICS4Wrapper
