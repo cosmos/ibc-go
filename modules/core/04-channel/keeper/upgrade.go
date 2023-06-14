@@ -192,7 +192,7 @@ func (k Keeper) WriteUpgradeTryChannel(ctx sdk.Context, portID, channelID string
 	previousState := channel.State
 	channel.State = types.TRYUPGRADE
 	// TODO: determine flush status
-	// channel.FlushStatus = flushStatus
+	channel.FlushStatus = types.FLUSHING
 
 	upgrade.Fields.Version = upgradeVersion
 
@@ -329,12 +329,73 @@ func (k Keeper) WriteUpgradeAckChannel(
 	emitChannelUpgradeAckEvent(ctx, portID, channelID, channel, proposedUpgrade)
 }
 
+// ChanUpgradeAck is called by a module to accept the ACKUPGRADE handshake step of the channel upgrade protocol.
+// This method should only be called by the IBC core msg server.
+// This method will verify that the counterparty has entered TRYUPGRADE
+// and that its own upgrade is compatible with the selected counterparty version.
+func (k Keeper) ChanUpgradeAck(
+	ctx sdk.Context,
+	portID,
+	channelID string,
+	counterpartyFlushStatus types.FlushStatus,
+	counterpartyUpgrade types.Upgrade,
+	proofChannel,
+	proofUpgrade []byte,
+	proofHeight clienttypes.Height,
+) error {
+	channel, found := k.GetChannel(ctx, portID, channelID)
+	if !found {
+		return errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
+	}
+
+	if !collections.Contains(channel.State, []types.State{types.INITUPGRADE, types.TRYUPGRADE}) {
+		return errorsmod.Wrapf(types.ErrInvalidChannelState, "expected one of [%s, %s], got %s", types.INITUPGRADE, types.TRYUPGRADE, channel.State)
+	}
+
+	if !collections.Contains(counterpartyFlushStatus, []types.FlushStatus{types.FLUSHING, types.FLUSHCOMPLETE}) {
+		return errorsmod.Wrapf(types.ErrInvalidFlushStatus, "expected one of [%s, %s], got %s", types.FLUSHING, types.FLUSHCOMPLETE, counterpartyFlushStatus)
+	}
+
+	connection, err := k.GetConnection(ctx, channel.ConnectionHops[0])
+	if err != nil {
+		return errorsmod.Wrap(err, "failed to retrieve connection using the channel connection hops")
+	}
+
+	counterpartyHops := []string{connection.GetCounterparty().GetConnectionID()}
+	counterpartyChannel := types.Channel{
+		State:           types.TRYUPGRADE,
+		Ordering:        channel.Ordering,
+		ConnectionHops:  counterpartyHops,
+		Counterparty:    types.NewCounterparty(portID, channelID),
+		Version:         channel.Version,
+		UpgradeSequence: channel.UpgradeSequence,
+		FlushStatus:     counterpartyFlushStatus, // provided by the relayer
+	}
+
+	upgrade, found := k.GetUpgrade(ctx, portID, channelID)
+	if !found {
+		return errorsmod.Wrapf(types.ErrUpgradeNotFound, "failed to retrieve channel upgrade: port ID (%s) channel ID (%s)", portID, channelID)
+	}
+
+	if err := k.startFlushUpgradeHandshake(ctx, portID, channelID, upgrade.Fields, counterpartyChannel, counterpartyUpgrade,
+		proofChannel, proofUpgrade, proofHeight); err != nil {
+		return err
+	}
+
+	// in the crossing hellos case, the versions returned by both on TRY must be the same
+	if channel.State == types.TRYUPGRADE {
+		if upgrade.Fields.Version != counterpartyUpgrade.Fields.Version {
+			return types.NewUpgradeError(channel.UpgradeSequence, errorsmod.Wrap(types.ErrIncompatibleCounterpartyUpgrade, "both channel ends must agree on the same version"))
+		}
+	}
+
+	return nil
+}
+
 // startFlushUpgradeHandshake will verify the counterparty proposed upgrade and the current channel state.
 // Once the counterparty information has been verified, it will be validated against the self proposed upgrade.
 // If any of the proposed upgrade fields are incompatible, an upgrade error will be returned resulting in an
 // aborted upgrade.
-//
-//lint:ignore U1000 Ignore unused function temporarily for debugging
 func (k Keeper) startFlushUpgradeHandshake(
 	ctx sdk.Context,
 	portID,
