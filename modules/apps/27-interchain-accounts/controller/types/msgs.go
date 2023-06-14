@@ -90,8 +90,6 @@ func (msg MsgSendTx) GetSigners() []sdk.AccAddress {
 }
 
 // NewMsgUpdateParams creates a new MsgUpdateParams instance
-//
-//nolint:interfacer
 func NewMsgUpdateParams(authority string, params Params) *MsgUpdateParams {
 	return &MsgUpdateParams{
 		Authority: authority,
