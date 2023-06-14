@@ -31,13 +31,7 @@ func (k Keeper) ValidateUpgradeFields(ctx sdk.Context, proposedUpgrade types.Upg
 	return k.validateUpgradeFields(ctx, proposedUpgrade, currentChannel)
 }
 
-<<<<<<< HEAD
-// AbortUpgrade is a wrapper around abortUpgrade to allow the function to be directly called in tests.
-func (k Keeper) AbortUpgrade(ctx sdk.Context, portID, channelID string, err error) error {
-	return k.abortUpgrade(ctx, portID, channelID, err)
-=======
 // WriteUpgradeOpenChannel is a wrapper around writeUpgradeOpenChannel to allow the function to be directly called in tests.
 func (k Keeper) WriteUpgradeOpenChannel(ctx sdk.Context, portID, channelID string) {
 	k.writeUpgradeOpenChannel(ctx, portID, channelID)
->>>>>>> 04-channel-upgrades
 }
