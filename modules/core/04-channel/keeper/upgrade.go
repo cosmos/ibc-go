@@ -301,6 +301,26 @@ func (k Keeper) WriteUpgradeAckChannel(
 	emitChannelUpgradeAckEvent(ctx, portID, channelID, channel, upgrade)
 }
 
+// WriteUpgradeCancelChannel writes a channel which has canceled the upgrade process.Auxiliary upgrade state is
+// also deleted.
+func (k Keeper) WriteUpgradeCancelChannel(ctx sdk.Context, portID, channelID string) {
+	defer telemetry.IncrCounter(1, "ibc", "channel", "upgrade-cancel")
+
+	upgrade, found := k.GetUpgrade(ctx, portID, channelID)
+	if !found {
+		panic(fmt.Sprintf("could not find upgrade when updating channel state, channelID: %s, portID: %s", channelID, portID))
+	}
+
+	channel, found := k.GetChannel(ctx, portID, channelID)
+	if !found {
+		panic(fmt.Sprintf("could not find existing channel when updating channel state, channelID: %s, portID: %s", channelID, portID))
+	}
+
+	k.restoreChannel(ctx, portID, channelID, channel)
+
+	emitChannelUpgradeCancelEvent(ctx, portID, channelID, channel, upgrade)
+}
+
 // startFlushUpgradeHandshake will verify the counterparty proposed upgrade and the current channel state.
 // Once the counterparty information has been verified, it will be validated against the self proposed upgrade.
 // If any of the proposed upgrade fields are incompatible, an upgrade error will be returned resulting in an
