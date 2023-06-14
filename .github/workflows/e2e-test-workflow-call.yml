@@ -2,68 +2,68 @@ on:
   workflow_call:
     inputs:
       test-entry-point:
-        description: "Test entry point"
+        description: 'Test entry point'
         required: false
         type: string
-        default: "" # empty string means run all tests
+        default: '' # empty string means run all tests
       test:
-        description: "test name to run as standalone"
+        description: 'test name to run as standalone'
         required: false
         type: string
-        default: ""
+        default: ''
       test-exclusions:
-        description: "Comma separated list of tests to skip"
+        description: 'Comma separated list of tests to skip'
         required: false
         type: string
-        default: "" # empty string means don't skip any test.
+        default: '' # empty string means don't skip any test.
       chain-image:
-        description: "The image to use for chains"
+        description: 'The image to use for chains'
         required: true
         type: string
-        default: "ghcr.io/cosmos/ibc-go-simd"
+        default: 'ghcr.io/cosmos/ibc-go-simd'
       chain-a-tag:
-        description: "The tag to use for chain A"
+        description: 'The tag to use for chain A'
         required: true
         type: string
         default: main
       chain-b-tag:
         default: main
-        description: "The tag to use for chain B"
+        description: 'The tag to use for chain B'
         required: true
         type: string
       chain-binary:
-        default: "simd"
-        description: "The chain binary"
+        default: 'simd'
+        description: 'The chain binary'
         required: false
         type: string
       chain-upgrade-tag:
-        default: ""
-        description: "The image tag that the chain will be upgraded to"
+        default: ''
+        description: 'The image tag that the chain will be upgraded to'
         required: false
         type: string
       # upgrade-plan-name is only required during upgrade tests, and is otherwise ignored.
       upgrade-plan-name:
-        default: ""
-        description: "The upgrade plan name"
+        default: ''
+        description: 'The upgrade plan name'
         required: false
         type: string
       relayer-type:
-        description: "The type of relayer to use"
+        description: 'The type of relayer to use'
         required: false
-        default: "rly"
+        default: 'rly'
         type: string
       relayer-tag:
-        description: "The tag to use for the relayer"
+        description: 'The tag to use for the relayer'
         required: false
-        default: "" # the tests themselves will choose a sensible default when unset.
+        default: '' # the tests themselves will choose a sensible default when unset.
         type: string
       build-and-push-docker-image:
-        description: "Flag to specify if the docker image should be built and pushed beforehand"
+        description: 'Flag to specify if the docker image should be built and pushed beforehand'
         required: false
         type: boolean
         default: false
       upload-logs:
-        description: "Specify flag to indicate that logs should be uploaded on failure"
+        description: 'Specify flag to indicate that logs should be uploaded on failure'
         required: false
         type: boolean
         default: false
@@ -109,13 +109,13 @@ jobs:
       - name: Extract metadata (tags, labels) for Docker
         if: ${{ inputs.build-and-push-docker-image }}
         id: meta
-        uses: docker/metadata-action@2c0bd771b40637d97bf205cbccdd294a32112176
+        uses: docker/metadata-action@818d4b7b91585d195f67373fd9cb0332e31a7175
         with:
           images: ${{ env.REGISTRY }}/cosmos/${{ env.IMAGE_NAME }}
 
       - name: Build and push Docker image
         if: ${{ inputs.build-and-push-docker-image }}
-        uses: docker/build-push-action@44ea916f6c540f9302d50c2b1e5a8dc071f15cdf
+        uses: docker/build-push-action@2eb1c1961a95fc15694676618e422e8ba1d63825
         with:
           context: .
           push: true
@@ -138,13 +138,13 @@ jobs:
           repository: cosmos/ibc-go
       - uses: actions/setup-go@v4
         with:
-          go-version: 1.19
+          go-version: '1.20'
       - id: set-matrix
         run: echo "matrix=$(go run cmd/build_test_matrix/main.go)" >> $GITHUB_OUTPUT
         env:
-          TEST_ENTRYPOINT: "${{ inputs.test-entry-point }}"
-          TEST_EXCLUSIONS: "${{ inputs.test-exclusions }}"
-          TEST_NAME: "${{ inputs.test }}"
+          TEST_ENTRYPOINT: '${{ inputs.test-entry-point }}'
+          TEST_EXCLUSIONS: '${{ inputs.test-exclusions }}'
+          TEST_NAME: '${{ inputs.test }}'
 
   # e2e-tests runs the actual go test command to trigger the test.
   # the tests themselves are configured via environment variables to specify
@@ -155,14 +155,14 @@ jobs:
       - build-test-matrix
       - docker-build
     env:
-      CHAIN_IMAGE: "${{ inputs.chain-image }}"
-      CHAIN_A_TAG: "${{ inputs.chain-a-tag }}"
-      CHAIN_B_TAG: "${{ inputs.chain-b-tag }}"
-      RELAYER_TAG: "${{ inputs.relayer-tag }}"
-      RELAYER_TYPE: "${{ inputs.relayer-type }}"
-      CHAIN_BINARY: "${{ inputs.chain-binary }}"
-      CHAIN_UPGRADE_TAG: "${{ inputs.chain-upgrade-tag }}"
-      CHAIN_UPGRADE_PLAN: "${{ inputs.upgrade-plan-name }}"
+      CHAIN_IMAGE: '${{ inputs.chain-image }}'
+      CHAIN_A_TAG: '${{ inputs.chain-a-tag }}'
+      CHAIN_B_TAG: '${{ inputs.chain-b-tag }}'
+      RELAYER_TAG: '${{ inputs.relayer-tag }}'
+      RELAYER_TYPE: '${{ inputs.relayer-type }}'
+      CHAIN_BINARY: '${{ inputs.chain-binary }}'
+      CHAIN_UPGRADE_TAG: '${{ inputs.chain-upgrade-tag }}'
+      CHAIN_UPGRADE_PLAN: '${{ inputs.upgrade-plan-name }}'
     strategy:
       fail-fast: false
       matrix: ${{ fromJSON(needs.build-test-matrix.outputs.matrix) }}
@@ -172,7 +172,7 @@ jobs:
           repository: cosmos/ibc-go
       - uses: actions/setup-go@v4
         with:
-          go-version: 1.19
+          go-version: '1.20'
       - name: Run e2e Test
         id: e2e_test
         run: |
@@ -183,6 +183,6 @@ jobs:
         if: ${{ failure() && inputs.upload-logs }}
         continue-on-error: true
         with:
-          name: "${{ matrix.entrypoint }}-${{ matrix.test }}"
+          name: '${{ matrix.entrypoint }}-${{ matrix.test }}'
           path: e2e/diagnostics
           retention-days: 5
