@@ -230,7 +230,6 @@ func (k Keeper) WriteUpgradeAckChannel(
 	emitChannelUpgradeAckEvent(ctx, portID, channelID, channel, proposedUpgrade)
 }
 
-
 // WriteUpgradeCancelChannel writes a channel which has canceled the upgrade process.Auxiliary upgrade state is
 // also deleted.
 func (k Keeper) WriteUpgradeCancelChannel(ctx sdk.Context, portID, channelID string) {
