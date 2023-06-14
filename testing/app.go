@@ -10,7 +10,6 @@ import (
 	sdkmath "cosmossdk.io/math"
 	storetypes "cosmossdk.io/store/types"
 	abci "github.com/cometbft/cometbft/abci/types"
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	tmtypes "github.com/cometbft/cometbft/types"
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/baseapp"
@@ -18,6 +17,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
+	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -34,7 +34,7 @@ import (
 var DefaultTestingAppInit = SetupTestingApp
 
 type TestingApp interface {
-	abci.Application
+	servertypes.Application
 
 	// ibc-go additions
 	GetBaseApp() *baseapp.BaseApp
@@ -126,7 +126,7 @@ func SetupWithGenesisValSet(tb testing.TB, valSet *tmtypes.ValidatorSet, genAccs
 
 	// init chain will set the validator set and initialize the genesis accounts
 	app.InitChain(
-		abci.RequestInitChain{
+		&abci.RequestInitChain{
 			ChainId:       chainID,
 			Validators:    []abci.ValidatorUpdate{},
 			AppStateBytes: stateBytes,
@@ -135,17 +135,6 @@ func SetupWithGenesisValSet(tb testing.TB, valSet *tmtypes.ValidatorSet, genAccs
 
 	// commit genesis changes
 	app.Commit()
-	app.BeginBlock(
-		abci.RequestBeginBlock{
-			Header: tmproto.Header{
-				ChainID:            chainID,
-				Height:             app.LastBlockHeight() + 1,
-				AppHash:            app.LastCommitID().Hash,
-				ValidatorsHash:     valSet.Hash(),
-				NextValidatorsHash: valSet.Hash(),
-			},
-		},
-	)
 
 	return app
 }
