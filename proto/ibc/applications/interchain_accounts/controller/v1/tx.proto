@@ -6,6 +6,7 @@ option go_package = "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-acco
 
 import "gogoproto/gogo.proto";
 import "ibc/applications/interchain_accounts/v1/packet.proto";
+import "ibc/applications/interchain_accounts/controller/v1/controller.proto";
 import "cosmos/msg/v1/msg.proto";
 
 // Msg defines the 27-interchain-accounts/controller Msg service.
@@ -16,6 +17,8 @@ service Msg {
   rpc RegisterInterchainAccount(MsgRegisterInterchainAccount) returns (MsgRegisterInterchainAccountResponse);
   // SendTx defines a rpc handler for MsgSendTx.
   rpc SendTx(MsgSendTx) returns (MsgSendTxResponse);
+  // UpdateParams defines a rpc handler for MsgUpdateParams.
+  rpc UpdateParams(MsgUpdateParams) returns (MsgUpdateParamsResponse);
 }
 
 // MsgRegisterInterchainAccount defines the payload for Msg/RegisterAccount
@@ -55,3 +58,18 @@ message MsgSendTx {
 message MsgSendTxResponse {
   uint64 sequence = 1;
 }
+// MsgUpdateParams defines the payload for Msg/UpdateParams
+message MsgUpdateParams {
+  option (cosmos.msg.v1.signer) = "authority";
+
+  // authority is the address that controls the module (defaults to x/gov unless overwritten).
+  string authority = 1;
+
+  // params defines the 27-interchain-accounts/controller parameters to update.
+  //
+  // NOTE: All parameters must be supplied.
+  Params params = 2 [(gogoproto.nullable) = false];
+}
+
+// MsgUpdateParamsResponse defines the response for Msg/UpdateParams
+message MsgUpdateParamsResponse {}
