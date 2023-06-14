@@ -256,16 +256,16 @@ func (suite *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
 
 				if tc.expPass {
 					for i, msg := range msgs {
-						// We're using proto.CompactTextString() for comparison instead of suite.Require().Equal() or proto.Equal() 
-        		// for two main reasons:
-        		// 
-        		// 1. When deserializing from JSON, the `Any` type has private fields and cached values 
-        		//    that do not match the original message, causing equality checks to fail.
-        		//
-        		// 2. proto.Equal() does not have built-in support for comparing sdk's math.Int types. 
-        		//
-        		// Using proto.CompactTextString() mitigates these issues by focusing on serialized string representation,
-        		// rather than internal details of the types.
+						// We're using proto.CompactTextString() for comparison instead of suite.Require().Equal() or proto.Equal()
+						// for two main reasons:
+						//
+						// 1. When deserializing from JSON, the `Any` type has private fields and cached values
+						//    that do not match the original message, causing equality checks to fail.
+						//
+						// 2. proto.Equal() does not have built-in support for comparing sdk's math.Int types.
+						//
+						// Using proto.CompactTextString() mitigates these issues by focusing on serialized string representation,
+						// rather than internal details of the types.
 						suite.Require().Equal(proto.CompactTextString(msg), proto.CompactTextString(deserializedMsgs[i]))
 					}
 				}
