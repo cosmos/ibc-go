@@ -45,5 +45,6 @@ var (
 	ErrInvalidUpgradeSequence          = errorsmod.Register(SubModuleName, 29, "invalid upgrade sequence")
 	ErrUpgradeNotFound                 = errorsmod.Register(SubModuleName, 30, "upgrade not found")
 	ErrIncompatibleCounterpartyUpgrade = errorsmod.Register(SubModuleName, 31, "incompatible counterparty upgrade")
-	ErrInvalidFlushStatus              = errorsmod.Register(SubModuleName, 32, "invalid flush status")
+	ErrInvalidUpgradeError             = errorsmod.Register(SubModuleName, 32, "invalid upgrade error")
+	ErrInvalidFlushStatus              = errorsmod.Register(SubModuleName, 33, "invalid flush status")
 )

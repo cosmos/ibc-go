@@ -835,7 +835,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTry() {
 			"unsynchronized upgrade sequence writes upgrade error receipt",
 			func() {
 				channel := path.EndpointB.GetChannel()
-				channel.UpgradeSequence = 100
+				channel.UpgradeSequence = 99
 
 				path.EndpointB.SetChannel(channel)
 			},
@@ -845,9 +845,9 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTry() {
 				suite.Require().NotNil(res)
 				suite.Require().Equal(channeltypes.FAILURE, res.Result)
 
-				// TODO: assert error receipt exists for the upgrade sequence when RestoreChannel / AbortUpgrade is called
-				// errorReceipt, found := suite.chainB.GetSimApp().GetIBCKeeper().ChannelKeeper.GetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
-				// suite.Require().True(found)
+				errorReceipt, found := suite.chainB.GetSimApp().GetIBCKeeper().ChannelKeeper.GetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+				suite.Require().True(found)
+				suite.Require().Equal(uint64(100), errorReceipt.Sequence)
 			},
 		},
 		{
@@ -868,9 +868,9 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTry() {
 				suite.Require().NotNil(res)
 				suite.Require().Equal(channeltypes.FAILURE, res.Result)
 
-				// TODO: assert error receipt exists for the upgrade sequence when RestoreChannel / AbortUpgrade is called
-				// errorReceipt, found := suite.chainB.GetSimApp().GetIBCKeeper().ChannelKeeper.GetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
-				// suite.Require().True(found)
+				errorReceipt, found := suite.chainB.GetSimApp().GetIBCKeeper().ChannelKeeper.GetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+				suite.Require().True(found)
+				suite.Require().Equal(uint64(1), errorReceipt.Sequence)
 
 				// assert application state changes are not committed
 				store := suite.chainB.GetContext().KVStore(suite.chainB.GetSimApp().GetKey(exported.ModuleName))
