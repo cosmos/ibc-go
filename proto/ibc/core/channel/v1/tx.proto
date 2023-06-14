@@ -361,7 +361,10 @@ message MsgChannelUpgradeTimeout {
 }
 
 // MsgChannelUpgradeTimeoutRepsonse defines the MsgChannelUpgradeTimeout response type
-message MsgChannelUpgradeTimeoutResponse {}
+message MsgChannelUpgradeTimeoutResponse {
+  string             channel_id = 1;
+  ResponseResultType result     = 3;
+}
 
 // MsgChannelUpgradeCancel defines the request type for the ChannelUpgradeCancel rpc
 message MsgChannelUpgradeCancel {

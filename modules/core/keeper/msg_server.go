@@ -815,7 +815,38 @@ func (k Keeper) ChannelUpgradeOpen(goCtx context.Context, msg *channeltypes.MsgC
 
 // ChannelUpgradeTimeout defines a rpc handler method for MsgChannelUpgradeTimeout.
 func (k Keeper) ChannelUpgradeTimeout(goCtx context.Context, msg *channeltypes.MsgChannelUpgradeTimeout) (*channeltypes.MsgChannelUpgradeTimeoutResponse, error) {
-	return nil, nil
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	module, _, err := k.ChannelKeeper.LookupModuleByChannel(ctx, msg.PortId, msg.ChannelId)
+	if err != nil {
+		ctx.Logger().Error("channel upgrade timeout failed", "port-id", msg.PortId, "error", errorsmod.Wrap(err, "could not retrieve module from port-id"))
+		return nil, errorsmod.Wrap(err, "could not retrieve module from port-id")
+	}
+
+	cbs, ok := k.Router.GetRoute(module)
+	if !ok {
+		ctx.Logger().Error("channel upgrade timeout failed", "port-id", msg.PortId, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module))
+		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
+	}
+
+	err = k.ChannelKeeper.ChanUpgradeTimeout(ctx, msg.PortId, msg.ChannelId, msg.CounterpartyChannel, msg.PreviousErrorReceipt, msg.ProofChannel, msg.ProofErrorReceipt, msg.ProofHeight)
+	if err != nil {
+		return nil, err
+	}
+
+	cacheCtx, writeFn := ctx.CacheContext()
+	err = cbs.OnChanUpgradeTimeout(cacheCtx, msg.PortId, msg.ChannelId, msg.CounterpartyChannel, msg.PreviousErrorReceipt, msg.ProofChannel, msg.ProofErrorReceipt, msg.ProofHeight)
+	if err != nil {
+		return &channeltypes.MsgChannelUpgradeTimeoutResponse{Result: channeltypes.FAILURE}, nil
+	}
+
+	writeFn()
+
+	err = k.ChannelKeeper.ChanUpgradeTimeout(ctx, msg.PortId, msg.ChannelId, msg.CounterpartyChannel, msg.PreviousErrorReceipt, msg.ProofChannel, msg.ProofErrorReceipt, msg.ProofHeight)
+	if err != nil {
+		return nil, err
+	}
+
+	return &channeltypes.MsgChannelUpgradeTimeoutResponse{ChannelId: msg.ChannelId, Result: channeltypes.SUCCESS}, nil
 }
 
 // ChannelUpgradeCancel defines a rpc handler method for MsgChannelUpgradeCancel.

@@ -15,6 +15,7 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
@@ -323,5 +324,17 @@ func (im IBCModule) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID string)
 
 // OnChanUpgradeRestore implements the IBCModule interface
 func (im IBCModule) OnChanUpgradeRestore(ctx sdk.Context, portID, channelID string) error {
+	return nil
+}
+
+// OnChanUpgradeTimeout implements the IBCModule interface
+func (im IBCModule) OnChanUpgradeTimeout(
+	ctx sdk.Context,
+	portID, channelID string,
+	counterpartyChannel channeltypes.Channel,
+	prevErrorReceipt channeltypes.ErrorReceipt,
+	proofCounterpartyChannel,
+	proofErrorReceipt []byte,
+	proofHeight exported.Height) error {
 	return nil
 }

@@ -5,6 +5,7 @@ import (
 	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
+	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
@@ -120,6 +121,15 @@ type IBCApp struct {
 		ctx sdk.Context,
 		portID,
 		channelID string,
+	) error
+	OnChanUpgradeTimeout func(
+		ctx sdk.Context,
+		portID, channelID string,
+		counterpartyChannel types.Channel,
+		prevErrorReceipt types.ErrorReceipt,
+		proofCounterpartyChannel,
+		proofErrorReceipt []byte,
+		proofHeight exported.Height,
 	) error
 }
 

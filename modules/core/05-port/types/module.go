@@ -5,6 +5,7 @@ import (
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
@@ -148,6 +149,17 @@ type UpgradableModule interface {
 		ctx sdk.Context,
 		portID,
 		channelID string,
+	) error
+
+	// OnChanUpgradeTimeout times out an outstanding upgrade when the counterparty chain has not responded.
+	OnChanUpgradeTimeout(
+		ctx sdk.Context,
+		portID, channelID string,
+		counterpartyChannel types.Channel,
+		prevErrorReceipt types.ErrorReceipt,
+		proofCounterpartyChannel,
+		proofErrorReceipt []byte,
+		proofHeight exported.Height,
 	) error
 }
 

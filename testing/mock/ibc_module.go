@@ -9,6 +9,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
+	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
@@ -202,6 +203,22 @@ func (im IBCModule) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID string)
 func (im IBCModule) OnChanUpgradeRestore(ctx sdk.Context, portID, channelID string) error {
 	if im.IBCApp.OnChanUpgradeRestore != nil {
 		return im.IBCApp.OnChanUpgradeRestore(ctx, portID, channelID)
+	}
+
+	return nil
+}
+
+// OnChanUpgradeTimeout implements the IBCModule interface
+func (im IBCModule) OnChanUpgradeTimeout(
+	ctx sdk.Context,
+	portID, channelID string,
+	counterpartyChannel types.Channel,
+	prevErrorReceipt types.ErrorReceipt,
+	proofCounterpartyChannel,
+	proofErrorReceipt []byte,
+	proofHeight exported.Height) error {
+	if im.IBCApp.OnChanUpgradeTimeout != nil {
+		return im.IBCApp.OnChanUpgradeTimeout(ctx, portID, channelID, counterpartyChannel, prevErrorReceipt, proofCounterpartyChannel, proofErrorReceipt, proofHeight)
 	}
 
 	return nil
