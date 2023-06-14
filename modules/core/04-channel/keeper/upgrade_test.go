@@ -880,17 +880,65 @@ func (suite *KeeperTestSuite) TestAbortHandshake() {
 
 func (suite *KeeperTestSuite) TestChanUpgradeCancel() {
 	var (
-		path *ibctesting.Path
+		path              *ibctesting.Path
+		errorReceipt      types.ErrorReceipt
+		errorReceiptProof []byte
+		proofHeight       clienttypes.Height
 	)
 	tests := []struct {
 		name     string
 		malleate func()
-		expPass  bool
+		expError error
 	}{
 		{
 			name:     "success",
 			malleate: func() {},
-			expPass:  true,
+			expError: nil,
+		},
+		{
+			name: "invalid channel state",
+			malleate: func() {
+				channel := path.EndpointA.GetChannel()
+				channel.State = types.INIT
+				path.EndpointA.SetChannel(channel)
+			},
+			expError: types.ErrInvalidChannelState,
+		},
+		{
+			name: "channel not found",
+			malleate: func() {
+				path.EndpointA.Chain.DeleteKey(host.ChannelKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
+			},
+			expError: types.ErrChannelNotFound,
+		},
+		{
+			name: "connection not found",
+			malleate: func() {
+				channel := path.EndpointA.GetChannel()
+				channel.ConnectionHops = []string{"connection-100"}
+				path.EndpointA.SetChannel(channel)
+			},
+			expError: connectiontypes.ErrConnectionNotFound,
+		},
+		{
+			name: "counter party upgrade sequence less than current sequence",
+			malleate: func() {
+				var ok bool
+				errorReceipt, ok = suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.GetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+				suite.Require().True(ok)
+
+				// the channel sequence will be 1
+				errorReceipt.Sequence = 0
+
+				suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.SetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, errorReceipt)
+
+				suite.coordinator.CommitBlock(suite.chainB)
+				suite.Require().NoError(path.EndpointA.UpdateClient())
+
+				upgradeErrorReceiptKey := host.ChannelUpgradeErrorKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+				errorReceiptProof, proofHeight = suite.chainB.QueryProof(upgradeErrorReceiptKey)
+			},
+			expError: types.ErrInvalidUpgradeSequence,
 		},
 	}
 
@@ -922,16 +970,25 @@ func (suite *KeeperTestSuite) TestChanUpgradeCancel() {
 
 			suite.Require().NoError(path.EndpointA.UpdateClient())
 
-			channelAKeeper := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper
-
 			upgradeErrorReceiptKey := host.ChannelUpgradeErrorKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
-			errorReceiptProof, proofHeight := suite.chainB.QueryProof(upgradeErrorReceiptKey)
+			errorReceiptProof, proofHeight = suite.chainB.QueryProof(upgradeErrorReceiptKey)
 
-			errorReceipt, ok := suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.GetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+			var ok bool
+			errorReceipt, ok = suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.GetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 			suite.Require().True(ok)
 
-			err = channelAKeeper.ChanUpgradeCancel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, errorReceipt, errorReceiptProof, proofHeight)
-			suite.Require().NoError(err)
+			tc.malleate()
+
+			err = suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.ChanUpgradeCancel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, errorReceipt, errorReceiptProof, proofHeight)
+
+			expPass := tc.expError == nil
+			if expPass {
+				suite.Require().NoError(err)
+				channel := path.EndpointA.GetChannel()
+				suite.Require().Equal(errorReceipt.Sequence+1, channel.UpgradeSequence, "upgrade sequence should be incremented")
+			} else {
+				suite.Require().ErrorIs(tc.expError, err)
+			}
 		})
 	}
 }

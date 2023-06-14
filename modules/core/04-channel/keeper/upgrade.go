@@ -252,12 +252,8 @@ func (k Keeper) ChanUpgradeCancel(ctx sdk.Context, portID, channelID string, err
 		return errorsmod.Wrap(err, "failed to verify counterparty error receipt")
 	}
 
-	if isEmptyReceipt(errorReceipt) {
-		return errorsmod.Wrap(types.ErrInvalidUpgradeErrorReceipt, "empty error receipt")
-	}
-
-	// If counterparty sequence is less than the current sequence, abort transaction since this error receipt is from a previous upgrade
-	// Otherwise, set the sequence to counterparty's error sequence+1 so that both sides start with a fresh sequence
+	// If counterparty sequence is less than the current sequence, abort the transaction since this error receipt is from a previous upgrade.
+	// Otherwise, increment the counterparty's error sequence by 1 so that both sides start with a fresh sequence.
 	currentSequence := channel.UpgradeSequence
 	counterpartySequence := errorReceipt.Sequence
 	if counterpartySequence < currentSequence {
@@ -268,11 +264,6 @@ func (k Keeper) ChanUpgradeCancel(ctx sdk.Context, portID, channelID string, err
 	k.SetChannel(ctx, portID, channelID, channel)
 
 	return nil
-}
-
-// isEmptyReceipt returns true if the receipt is empty.
-func isEmptyReceipt(receipt types.ErrorReceipt) bool {
-	return receipt == types.ErrorReceipt{}
 }
 
 // WriteUpgradeCancelChannel writes a channel which has canceled the upgrade process.Auxiliary upgrade state is
@@ -290,8 +281,11 @@ func (k Keeper) WriteUpgradeCancelChannel(ctx sdk.Context, portID, channelID str
 		panic(fmt.Sprintf("could not find existing channel when updating channel state, channelID: %s, portID: %s", channelID, portID))
 	}
 
+	previousState := channel.State
+
 	k.restoreChannel(ctx, portID, channelID, channel)
 
+	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", previousState, "new-state", types.OPEN.String())
 	emitChannelUpgradeCancelEvent(ctx, portID, channelID, channel, upgrade)
 }
 
