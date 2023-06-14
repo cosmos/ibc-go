@@ -12,9 +12,9 @@ import (
 
 	"github.com/cosmos/ibc-go/v7/testing/simapp"
 
-	"github.com/cosmos/ibc-go/modules/capability"
-	"github.com/cosmos/ibc-go/modules/capability/keeper"
-	"github.com/cosmos/ibc-go/modules/capability/types"
+	"github.com/cosmos/ibc-go/modules/capability/v7"
+	"github.com/cosmos/ibc-go/modules/capability/v7/keeper"
+	"github.com/cosmos/ibc-go/modules/capability/v7/types"
 )
 
 const memStoreKey = "memory:mock"

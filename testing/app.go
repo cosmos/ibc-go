@@ -22,7 +22,7 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
+	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/v7/keeper"
 	"github.com/stretchr/testify/require"
 
 	"github.com/cosmos/ibc-go/v7/modules/core/keeper"

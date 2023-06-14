@@ -22,8 +22,8 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/cosmos-sdk/x/staking/testutil"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
+	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/v7/keeper"
+	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/v7/types"
 	"github.com/stretchr/testify/require"
 
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"

@@ -12,8 +12,8 @@ import (
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/stretchr/testify/require"
 
-	"github.com/cosmos/ibc-go/modules/capability/simulation"
-	"github.com/cosmos/ibc-go/modules/capability/types"
+	"github.com/cosmos/ibc-go/modules/capability/v7/simulation"
+	"github.com/cosmos/ibc-go/modules/capability/v7/types"
 )
 
 // TestRandomizedGenState tests the normal scenario of applying RandomizedGenState.

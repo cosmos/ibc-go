@@ -9,8 +9,8 @@ import (
 	"github.com/cosmos/ibc-go/v7/testing/simapp"
 	"github.com/stretchr/testify/require"
 
-	"github.com/cosmos/ibc-go/modules/capability/simulation"
-	"github.com/cosmos/ibc-go/modules/capability/types"
+	"github.com/cosmos/ibc-go/modules/capability/v7/simulation"
+	"github.com/cosmos/ibc-go/modules/capability/v7/types"
 )
 
 func TestDecodeStore(t *testing.T) {
