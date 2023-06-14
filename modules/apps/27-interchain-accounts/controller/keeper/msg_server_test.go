@@ -198,3 +198,54 @@ func (suite *KeeperTestSuite) TestSubmitTx() {
 		})
 	}
 }
+
+// TestUpdateParams tests UpdateParams rpc handler
+func (suite *KeeperTestSuite) TestUpdateParams() {
+	validAuthority := suite.chainA.GetSimApp().TransferKeeper.GetAuthority()
+	testCases := []struct {
+		name    string
+		msg     *types.MsgUpdateParams
+		expPass bool
+	}{
+		{
+			"success: valid authority and default params",
+			types.NewMsgUpdateParams(validAuthority, types.NewParams(!types.DefaultControllerEnabled)),
+			true,
+		},
+		{
+			"failure: malformed authority address",
+			types.NewMsgUpdateParams(ibctesting.InvalidID, types.DefaultParams()),
+			false,
+		},
+		{
+			"failure: empty authority address",
+			types.NewMsgUpdateParams("", types.DefaultParams()),
+			false,
+		},
+		{
+			"failure: whitespace authority address",
+			types.NewMsgUpdateParams("    ", types.DefaultParams()),
+			false,
+		},
+		{
+			"failure: unauthorized authority address",
+			types.NewMsgUpdateParams(ibctesting.TestAccAddress, types.DefaultParams()),
+			false,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+			_, err := suite.chainA.GetSimApp().ICAControllerKeeper.UpdateParams(suite.chainA.GetContext(), tc.msg)
+			if tc.expPass {
+				suite.Require().NoError(err)
+				p := suite.chainA.GetSimApp().ICAControllerKeeper.GetParams(suite.chainA.GetContext())
+				suite.Require().Equal(tc.msg.Params, p)
+			} else {
+				suite.Require().Error(err)
+			}
+		})
+	}
+}

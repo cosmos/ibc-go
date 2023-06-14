@@ -1,5 +1,14 @@
+# The Tests / E2E workflow is used to run end-to-end tests on pull requests originating
+# from the ibc-go repository. The workflow is triggered on a PR opening, when new commits
+# are pushed to the PR, or when the PR is marked ready for review.
+#
+# A scheduled job is also set up to run every night. This job is used to run e2e tests
+# using the hermes relayer.
 name: Tests / E2E
 on:
+  # This schedule is used solely for hermes and is set to run every night.
+  schedule:
+    - cron: "0 0 * * *"
   workflow_dispatch:
   pull_request:
     types:
@@ -10,73 +19,85 @@ on:
       # trigger workflow if PR is marked ready for review.
       - ready_for_review
     paths-ignore:
-      - "docs/**"
-      - "**.md"
-      - "LICENSE"
+      - 'docs/**'
+      - '**.md'
+      - 'LICENSE'
 
 jobs:
-    # determine-image-tag will either output the PR number e.g. pr-1234 or the string main.
-    # this will be used to tag the images that are built during the workflow.
-    determine-image-tag:
-      if: ${{ !github.event.pull_request.draft && !github.event.pull_request.head.repo.fork && github.actor != 'dependabot[bot]' }}
-      runs-on: ubuntu-latest
-      outputs:
-        simd-tag: ${{ steps.get-tag.outputs.simd-tag }}
-      steps:
-        - uses: actions/checkout@v3
-        - uses: actions/setup-go@v4
-          with:
-            go-version: 1.18
-        - id: get-tag
-          run: |
-            if [ -z "${{ github.event.pull_request.number }}" ]
-            then
-              echo "simd-tag=main" >> $GITHUB_OUTPUT
-            else
-              tag="pr-${{ github.event.pull_request.number }}"
-              echo "Using tag $tag"
-              echo "simd-tag=$tag" >> $GITHUB_OUTPUT
-            fi
+  # determine-image-tag will either output the PR number e.g. pr-1234 or the string main.
+  # this will be used to tag the images that are built during the workflow.
+  determine-image-tag:
+    if: ${{ !github.event.pull_request.draft && !github.event.pull_request.head.repo.fork && github.actor != 'dependabot[bot]' }}
+    runs-on: ubuntu-latest
+    outputs:
+      simd-tag: ${{ steps.get-tag.outputs.simd-tag }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v4
+        with:
+          go-version: '1.20'
+      - id: get-tag
+        run: |
+          if [ -z "${{ github.event.pull_request.number }}" ]
+          then
+            echo "simd-tag=main" >> $GITHUB_OUTPUT
+          else
+            tag="pr-${{ github.event.pull_request.number }}"
+            echo "Using tag $tag"
+            echo "simd-tag=$tag" >> $GITHUB_OUTPUT
+          fi
+      # get-relayer will return either hermes or rly depending on whether the workflow was triggered
+      # by a scheduled run or not.
+      - id: get-relayer
+        run: |
+          if [ "${{ github.event_name }}" == "schedule" ]
+          then
+            echo "relayer=hermes" >> $GITHUB_OUTPUT
+          else
+            echo "relayer=rly" >> $GITHUB_OUTPUT
+          fi
+  # build-e2e ensures that all test code compiles.
+  build-e2e:
+    if: ${{ !github.event.pull_request.draft && !github.event.pull_request.head.repo.fork && github.actor != 'dependabot[bot]' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v4
+        with:
+          go-version: '1.20'
+      - name: Build e2e
+        run: |
+          cd e2e
+          find ./tests -type d | while IFS= read -r dir
+          do
+              if ls "${dir}"/*.go >/dev/null 2>&1; then
+                  GOARCH=arm64 go test -c "$dir" 2>/dev/null
+              fi
+          done
 
-    # build-e2e ensures that all test code compiles.
-    build-e2e:
-      if: ${{ !github.event.pull_request.draft && !github.event.pull_request.head.repo.fork && github.actor != 'dependabot[bot]' }}
-      runs-on: ubuntu-latest
-      steps:
-        - uses: actions/checkout@v3
-        - uses: actions/setup-go@v4
-          with:
-            go-version: 1.19
-        - name: Build e2e
-          run: |
-            cd e2e
-            find ./tests -type d | while IFS= read -r dir
-            do
-                if ls "${dir}"/*.go >/dev/null 2>&1; then
-                    GOARCH=arm64 go test -c "$dir" 2>/dev/null
-                fi
-            done
-
-    e2e:
-      # we will be running this job if the PR has not yet been marked for review, and we push additional changes.
-      # we skip the job in this case.
-      if: ${{ !github.event.pull_request.draft && !github.event.pull_request.head.repo.fork && github.actor != 'dependabot[bot]' }}
-      needs:
-        - determine-image-tag # we are required to have a docker tag before we can build any images.
-        - build-e2e # don't attempt any tests unless the e2e code compiles successfully.
-      uses: ./.github/workflows/e2e-test-workflow-call.yml
-      # unless we explicitly tell the workflow to inherit secrets, required secrets such as GITHUB_TOKEN will not be
-      # provided to the workflow. This would cause privileged operations to fail.
-      secrets: inherit
-      with:
-        # with each test, we build an image from the current code.
-        build-and-push-docker-image: true
-        # if the test fails, we upload logs so that we can download them from the UI.
-        upload-logs: true
-        chain-image: ghcr.io/cosmos/ibc-go-simd
-        # with regular tests, both images are the same.
-        chain-a-tag: "${{ needs.determine-image-tag.outputs.simd-tag }}"
-        chain-b-tag: "${{ needs.determine-image-tag.outputs.simd-tag }}"
-        chain-binary: "simd"
-        # on regular PRs we won't run interchain account or upgrade tests.
-        test-exclusions: "TestInterTxTestSuite,TestIncentivizedInterTxTestSuite,TestUpgradeTestSuite"
+  # e2e generates the e2e tests for the non-forked PRs. It does so by using the
+  # e2e-test-workflow-call.yml each test runs the jobs defined in that file.
+  e2e:
+    # we will be running this job if the PR has not yet been marked for review, and we push additional changes.
+    # we skip the job in this case.
+    if: ${{ !github.event.pull_request.draft && !github.event.pull_request.head.repo.fork && github.actor != 'dependabot[bot]' }}
+    needs:
+      - determine-image-tag # we are required to have a docker tag before we can build any images.
+      - build-e2e # don't attempt any tests unless the e2e code compiles successfully.
+    uses: ./.github/workflows/e2e-test-workflow-call.yml
+    # unless we explicitly tell the workflow to inherit secrets, required secrets such as GITHUB_TOKEN will not be
+    # provided to the workflow. This would cause privileged operations to fail.
+    secrets: inherit
+    with:
+      # with each test, we build an image from the current code.
+      build-and-push-docker-image: true
+      # if the test fails, we upload logs so that we can download them from the UI.
+      upload-logs: true
+      chain-image: ghcr.io/cosmos/ibc-go-simd
+      # with regular tests, both images are the same.
+      chain-a-tag: '${{ needs.determine-image-tag.outputs.simd-tag }}'
+      chain-b-tag: '${{ needs.determine-image-tag.outputs.simd-tag }}'
+      chain-binary: 'simd'
+      # on regular PRs we won't run interchain account or upgrade tests.
+      test-exclusions: 'TestInterTxTestSuite,TestIncentivizedInterTxTestSuite,TestUpgradeTestSuite'
+      relayer-tag: "${{ needs.determine-image-tag.outputs.relayer }}"

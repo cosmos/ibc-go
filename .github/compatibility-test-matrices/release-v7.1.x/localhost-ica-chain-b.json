@@ -1,10 +1,10 @@
 {
   "chain-a": [
-    "release-v7.1.x",
-    "v7.1.0"
+    "release-v7.1.x"
   ],
   "chain-b": [
-    "release-v7.1.x"
+    "release-v7.1.x",
+    "v7.1.0"
   ],
   "entrypoint": [
     "LocalhostInterchainAccountsTestSuite"
