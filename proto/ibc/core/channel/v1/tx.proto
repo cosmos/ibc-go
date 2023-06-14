@@ -324,7 +324,9 @@ message MsgChannelUpgradeAck {
 }
 
 // MsgChannelUpgradeAckResponse defines MsgChannelUpgradeAck response type
-message MsgChannelUpgradeAckResponse {}
+message MsgChannelUpgradeAckResponse {
+  ResponseResultType result = 1;
+}
 
 // MsgChannelUpgradeOpen defines the request type for the ChannelUpgradeOpen rpc
 message MsgChannelUpgradeOpen {
