@@ -6,7 +6,7 @@ on:
         required: true
         type: string
       test-suite:
-        description: "Test suite to run"
+        description: 'Test suite to run'
         required: true
         type: string
 
@@ -19,7 +19,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: andstor/file-existence-action@v2
         with:
-          files: ".github/compatibility-test-matrices/${{ inputs.test-file-directory }}/${{ inputs.test-suite }}.json"
+          files: '.github/compatibility-test-matrices/${{ inputs.test-file-directory }}/${{ inputs.test-suite }}.json'
       - run: |
           # use jq -c to compact the full json contents into a single line. This is required when using the json body
           # to create the matrix in the following job.
@@ -43,7 +43,7 @@ jobs:
           repository: cosmos/ibc-go
       - uses: actions/setup-go@v4
         with:
-          go-version: 1.19
+          go-version: '1.20'
       - name: Run e2e Test
         run: |
           cd e2e
@@ -53,17 +53,17 @@ jobs:
           # Note: this is significant as the standard behaviour when running e2es on PRs
           # is that there is a set of env vars that are the same for each run. e.g. the same docker image is used
           # for every test. With compatibility tests, each test may be running different combinations of images.
-          CHAIN_IMAGE: "${{ matrix.chain-image }}"
-          CHAIN_A_TAG: "${{ matrix.chain-a }}"
-          CHAIN_B_TAG: "${{ matrix.chain-b }}"
-          CHAIN_BINARY: "${{ matrix.chain-binary }}"
-          RELAYER_TYPE: "${{ matrix.relayer-type }}"
+          CHAIN_IMAGE: '${{ matrix.chain-image }}'
+          CHAIN_A_TAG: '${{ matrix.chain-a }}'
+          CHAIN_B_TAG: '${{ matrix.chain-b }}'
+          CHAIN_BINARY: '${{ matrix.chain-binary }}'
+          RELAYER_TYPE: '${{ matrix.relayer-type }}'
       - name: Upload Diagnostics
         uses: actions/upload-artifact@v3
         # we only want to upload logs on test failures.
         if: ${{ failure() }}
         continue-on-error: true
         with:
-          name: "${{ matrix.entrypoint }}-${{ matrix.test }}"
+          name: '${{ matrix.entrypoint }}-${{ matrix.test }}'
           path: e2e/diagnostics
           retention-days: 5
