@@ -790,6 +790,20 @@ func (endpoint *Endpoint) SetChannel(channel channeltypes.Channel) {
 	endpoint.Chain.App.GetIBCKeeper().ChannelKeeper.SetChannel(endpoint.Chain.GetContext(), endpoint.ChannelConfig.PortID, endpoint.ChannelID, channel)
 }
 
+// GetChannelUpgrade retrieves an IBC Channel Upgrade for the endpoint. The upgrade
+// is expected to exist otherwise testing will fail.
+func (endpoint *Endpoint) GetChannelUpgrade() channeltypes.Upgrade {
+	upgrade, found := endpoint.Chain.App.GetIBCKeeper().ChannelKeeper.GetUpgrade(endpoint.Chain.GetContext(), endpoint.ChannelConfig.PortID, endpoint.ChannelID)
+	require.True(endpoint.Chain.TB, found)
+
+	return upgrade
+}
+
+// SetChannelUpgrade sets the channel upgrade for this endpoint.
+func (endpoint *Endpoint) SetChannelUpgrade(upgrade channeltypes.Upgrade) {
+	endpoint.Chain.App.GetIBCKeeper().ChannelKeeper.SetUpgrade(endpoint.Chain.GetContext(), endpoint.ChannelConfig.PortID, endpoint.ChannelID, upgrade)
+}
+
 // QueryClientStateProof performs and abci query for a client stat associated
 // with this endpoint and returns the ClientState along with the proof.
 func (endpoint *Endpoint) QueryClientStateProof() (exported.ClientState, []byte) {
