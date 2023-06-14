@@ -317,8 +317,6 @@ func emitChannelUpgradeTryEvent(ctx sdk.Context, portID string, channelID string
 }
 
 // emitChannelUpgradeAckEvent emits a channel upgrade ack event
-//
-//lint:ignore U1000 Ignore unused function temporarily for debugging
 func emitChannelUpgradeAckEvent(ctx sdk.Context, portID string, channelID string, currentChannel types.Channel, upgrade types.Upgrade) {
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
@@ -341,8 +339,6 @@ func emitChannelUpgradeAckEvent(ctx sdk.Context, portID string, channelID string
 }
 
 // emitChannelUpgradeOpenEvent emits a channel upgrade open event
-//
-//lint:ignore U1000 Ignore unused function temporarily for debugging
 func emitChannelUpgradeOpenEvent(ctx sdk.Context, portID string, channelID string, currentChannel types.Channel) {
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
@@ -387,11 +383,11 @@ func emitErrorReceiptEvent(ctx sdk.Context, portID string, channelID string, cur
 	})
 }
 
-// emitUpgradedCancelledEvent emits an upgraded cancelled event.
-func emitUpgradedCancelledEvent(ctx sdk.Context, portID string, channelID string, currentChannel types.Channel, upgrade types.Upgrade) {
+// emitChannelUpgradeCancelEvent emits an upgraded cancelled event.
+func emitChannelUpgradeCancelEvent(ctx sdk.Context, portID string, channelID string, currentChannel types.Channel, upgrade types.Upgrade) {
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
-			types.EventTypeChannelUpgradeCancelled,
+			types.EventTypeChannelUpgradeCancel,
 			sdk.NewAttribute(types.AttributeKeyPortID, portID),
 			sdk.NewAttribute(types.AttributeKeyChannelID, channelID),
 			sdk.NewAttribute(types.AttributeCounterpartyPortID, currentChannel.Counterparty.PortId),

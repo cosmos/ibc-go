@@ -52,8 +52,8 @@ service Msg {
   // ChannelUpgradeAck defines a rpc handler method for MsgChannelUpgradeAck.
   rpc ChannelUpgradeAck(MsgChannelUpgradeAck) returns (MsgChannelUpgradeAckResponse);
 
-  // ChannelUpgradeConfirm defines a rpc handler method for MsgChannelUpgradeConfirm.
-  rpc ChannelUpgradeConfirm(MsgChannelUpgradeConfirm) returns (MsgChannelUpgradeConfirmResponse);
+  // ChannelUpgradeOpen defines a rpc handler method for MsgChannelUpgradeOpen.
+  rpc ChannelUpgradeOpen(MsgChannelUpgradeOpen) returns (MsgChannelUpgradeOpenResponse);
 
   // ChannelUpgradeTimeout defines a rpc handler method for MsgChannelUpgradeTimeout.
   rpc ChannelUpgradeTimeout(MsgChannelUpgradeTimeout) returns (MsgChannelUpgradeTimeoutResponse);
@@ -301,9 +301,10 @@ message MsgChannelUpgradeTry {
 
 // MsgChannelUpgradeTryResponse defines the MsgChannelUpgradeTry response type
 message MsgChannelUpgradeTryResponse {
-  string             channel_id = 1;
-  string             version    = 2;
-  ResponseResultType result     = 3;
+  string             channel_id       = 1;
+  Upgrade            upgrade          = 2 [(gogoproto.nullable) = false];
+  uint64             upgrade_sequence = 3;
+  ResponseResultType result           = 4;
 }
 
 // MsgChannelUpgradeAck defines the request type for the ChannelUpgradeAck rpc
@@ -325,24 +326,22 @@ message MsgChannelUpgradeAck {
 // MsgChannelUpgradeAckResponse defines MsgChannelUpgradeAck response type
 message MsgChannelUpgradeAckResponse {}
 
-// MsgChannelUpgradeConfirm defines the request type for the ChannelUpgradeConfirm rpc
-message MsgChannelUpgradeConfirm {
+// MsgChannelUpgradeOpen defines the request type for the ChannelUpgradeOpen rpc
+message MsgChannelUpgradeOpen {
   option (cosmos.msg.v1.signer) = "signer";
 
-  option (gogoproto.equal)                         = false;
-  option (gogoproto.goproto_getters)               = false;
-  string                    port_id                = 1;
-  string                    channel_id             = 2;
-  Channel                   counterparty_channel   = 3 [(gogoproto.nullable) = false];
-  bytes                     proof_channel          = 4;
-  bytes                     proof_upgrade_error    = 5;
-  bytes                     proof_upgrade_sequence = 6;
-  ibc.core.client.v1.Height proof_height           = 7 [(gogoproto.nullable) = false];
-  string                    signer                 = 8;
+  option (gogoproto.equal)                             = false;
+  option (gogoproto.goproto_getters)                   = false;
+  string                    port_id                    = 1;
+  string                    channel_id                 = 2;
+  State                     counterparty_channel_state = 3;
+  bytes                     proof_channel              = 4;
+  ibc.core.client.v1.Height proof_height               = 5 [(gogoproto.nullable) = false];
+  string                    signer                     = 6;
 }
 
-// MsgChannelUpgradeConfirmResponse defines the MsgChannelUpgradeConfirm response type
-message MsgChannelUpgradeConfirmResponse {}
+// MsgChannelUpgradeOpenResponse defines the MsgChannelUpgradeOpen response type
+message MsgChannelUpgradeOpenResponse {}
 
 // MsgChannelUpgradeTimeout defines the request type for the ChannelUpgradeTimeout rpc
 message MsgChannelUpgradeTimeout {
