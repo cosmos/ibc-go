@@ -545,7 +545,6 @@ func (k Keeper) SetUpgrade(ctx sdk.Context, portID, channelID string, upgrade ty
 	store.Set(host.ChannelUpgradeKey(portID, channelID), bz)
 }
 
-
 // deleteUpgrade deletes the upgrade for the provided port and channel identifiers.
 func (k Keeper) deleteUpgrade(ctx sdk.Context, portID, channelID string) {
 	store := ctx.KVStore(k.storeKey)
