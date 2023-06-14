@@ -8,6 +8,7 @@ import (
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
@@ -962,41 +963,40 @@ func (suite *KeeperTestSuite) TestChannelUpgradeAck() {
 				suite.Require().ErrorIs(err, capabilitytypes.ErrCapabilityNotFound)
 			},
 		},
-		// {
-		// 	"elapsed upgrade timeout returns error",
-		// 	func() {
-		// 		msg.UpgradeTimeout = channeltypes.NewTimeout(clienttypes.NewHeight(1, 10), 0)
-		// 		suite.coordinator.CommitNBlocks(suite.chainB, 100)
-		// 	},
-		// 	func(res *channeltypes.MsgChannelUpgradeAckResponse, err error) {
-		// 		suite.Require().Error(err)
-		// 		suite.Require().Nil(res)
-		// 		suite.Require().ErrorIs(err, channeltypes.ErrInvalidUpgrade)
+		{
+			"invalid counterparty flush status returns error, tx is rejected",
+			func() {
+				msg.CounterpartyFlushStatus = types.NOTINFLUSH
+			},
+			func(res *channeltypes.MsgChannelUpgradeAckResponse, err error) {
+				suite.Require().Error(err)
+				suite.Require().Nil(res)
+				suite.Require().ErrorIs(err, channeltypes.ErrInvalidFlushStatus)
 
-		// 		errorReceipt, found := suite.chainB.GetSimApp().GetIBCKeeper().ChannelKeeper.GetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
-		// 		suite.Require().Empty(errorReceipt)
-		// 		suite.Require().False(found)
-		// 	},
-		// },
-		// {
-		// 	"unsynchronized upgrade sequence writes upgrade error receipt",
-		// 	func() {
-		// 		channel := path.EndpointB.GetChannel()
-		// 		channel.UpgradeSequence = 99
+				errorReceipt, found := suite.chainA.GetSimApp().GetIBCKeeper().ChannelKeeper.GetUpgradeErrorReceipt(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				suite.Require().Empty(errorReceipt)
+				suite.Require().False(found)
+			},
+		},
+		{
+			"counterparty upgrade ordering is incompatible, writes upgrade error receipt",
+			func() {
+				upgrade := path.EndpointA.GetChannelUpgrade()
+				upgrade.Fields.Ordering = types.NONE
 
-		// 		path.EndpointB.SetChannel(channel)
-		// 	},
-		// 	func(res *channeltypes.MsgChannelUpgradeAckResponse, err error) {
-		// 		suite.Require().NoError(err)
+				path.EndpointA.SetChannelUpgrade(upgrade)
+			},
+			func(res *channeltypes.MsgChannelUpgradeAckResponse, err error) {
+				suite.Require().NoError(err)
 
-		// 		suite.Require().NotNil(res)
-		// 		suite.Require().Equal(channeltypes.FAILURE, res.Result)
+				suite.Require().NotNil(res)
+				suite.Require().Equal(channeltypes.FAILURE, res.Result)
 
-		// 		errorReceipt, found := suite.chainB.GetSimApp().GetIBCKeeper().ChannelKeeper.GetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
-		// 		suite.Require().True(found)
-		// 		suite.Require().Equal(uint64(100), errorReceipt.Sequence)
-		// 	},
-		// },
+				errorReceipt, found := suite.chainA.GetSimApp().GetIBCKeeper().ChannelKeeper.GetUpgradeErrorReceipt(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				suite.Require().True(found)
+				suite.Require().Equal(uint64(1), errorReceipt.Sequence)
+			},
+		},
 		{
 			"application callback error writes upgrade error receipt",
 			func() {
