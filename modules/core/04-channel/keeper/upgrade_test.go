@@ -335,12 +335,12 @@ func (suite *KeeperTestSuite) TestChanUpgradeAck() {
 	testCases := []struct {
 		name     string
 		malleate func()
-		expPass  bool
+		expError error
 	}{
 		{
 			"success",
 			func() {},
-			true,
+			nil,
 		},
 		{
 			"success with later upgrade sequence",
@@ -358,7 +358,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeAck() {
 				err := path.EndpointA.UpdateClient()
 				suite.Require().NoError(err)
 			},
-			true,
+			nil,
 		},
 		{
 			"channel not found",
@@ -366,21 +366,21 @@ func (suite *KeeperTestSuite) TestChanUpgradeAck() {
 				path.EndpointA.ChannelID = ibctesting.InvalidID
 				path.EndpointA.ChannelConfig.PortID = ibctesting.InvalidID
 			},
-			false,
+			types.ErrChannelNotFound,
 		},
 		{
 			"channel state is not in INITUPGRADE or TRYUPGRADE state",
 			func() {
 				suite.Require().NoError(path.EndpointA.SetChannelState(types.CLOSED))
 			},
-			false,
+			types.ErrInvalidChannelState,
 		},
 		{
 			"counterparty flush status is not in FLUSHING or FLUSHCOMPLETE",
 			func() {
 				counterpartyFlushStatus = types.NOTINFLUSH
 			},
-			false,
+			types.ErrInvalidFlushStatus,
 		},
 		{
 			"connection not found",
@@ -389,7 +389,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeAck() {
 				channel.ConnectionHops = []string{"connection-100"}
 				path.EndpointA.SetChannel(channel)
 			},
-			false,
+			connectiontypes.ErrConnectionNotFound,
 		},
 		{
 			"invalid connection state",
@@ -398,7 +398,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeAck() {
 				connectionEnd.State = connectiontypes.UNINITIALIZED
 				path.EndpointA.SetConnection(connectionEnd)
 			},
-			false,
+			connectiontypes.ErrInvalidConnectionState,
 		},
 		{
 			"upgrade not found",
@@ -406,7 +406,24 @@ func (suite *KeeperTestSuite) TestChanUpgradeAck() {
 				store := suite.chainA.GetContext().KVStore(suite.chainA.GetSimApp().GetKey(exported.ModuleName))
 				store.Delete(host.ChannelUpgradeKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
 			},
-			false,
+			types.ErrUpgradeNotFound,
+		},
+		{
+			"startFlushUpgradeHandshake fails due to proof verification failure, counterparty upgrade connection hops are tampered with",
+			func() {
+				counterpartyUpgrade.Fields.ConnectionHops = []string{ibctesting.InvalidID}
+			},
+			commitmenttypes.ErrInvalidProof,
+		},
+		{
+			"startFlushUpgradeHandshake fails due to mismatch in upgrade ordering",
+			func() {
+				upgrade := path.EndpointA.GetChannelUpgrade()
+				upgrade.Fields.Ordering = types.NONE
+
+				path.EndpointA.SetChannelUpgrade(upgrade)
+			},
+			types.NewUpgradeError(1, types.ErrIncompatibleCounterpartyUpgrade),
 		},
 		{
 			"channel end version mismatch on crossing hellos",
@@ -421,23 +438,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeAck() {
 
 				path.EndpointA.SetChannelUpgrade(upgrade)
 			},
-			false,
-		},
-		{
-			"startFlushUpgradeHandshake fails due to proof verification failure, counterparty upgrade connection hops are tampered with",
-			func() {
-				counterpartyUpgrade.Fields.ConnectionHops = []string{ibctesting.InvalidID}
-			},
-			false,
-		},
-		{
-			"startFlushUpgradeHandshake fails due to mismatch in upgrade sequences",
-			func() {
-				channel := path.EndpointA.GetChannel()
-				channel.UpgradeSequence = 5
-				path.EndpointA.SetChannel(channel)
-			},
-			false,
+			types.NewUpgradeError(1, types.ErrIncompatibleCounterpartyUpgrade),
 		},
 	}
 
@@ -475,10 +476,10 @@ func (suite *KeeperTestSuite) TestChanUpgradeAck() {
 				proofChannel, proofUpgrade, proofHeight,
 			)
 
-			if tc.expPass {
+			if expPass := tc.expError == nil; expPass {
 				suite.Require().NoError(err)
 			} else {
-				suite.Require().Error(err)
+				suite.assertUpgradeError(err, tc.expError)
 			}
 		})
 	}
