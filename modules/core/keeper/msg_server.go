@@ -844,7 +844,9 @@ func (k Keeper) ChannelUpgradeCancel(goCtx context.Context, msg *channeltypes.Ms
 		return nil, err
 	}
 
-	ctx.Logger().Info("channel upgrade cancel succeeded", "port-id", msg.PortId, "error", err.Error())
+	k.ChannelKeeper.WriteUpgradeCancelChannel(ctx, msg.PortId, msg.ChannelId)
+
+	ctx.Logger().Info("channel upgrade cancel succeeded", "port-id", msg.PortId, "channel-id", msg.ChannelId)
 
 	return &channeltypes.MsgChannelUpgradeCancelResponse{}, nil
 }
