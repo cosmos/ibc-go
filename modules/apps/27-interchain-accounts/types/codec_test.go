@@ -258,8 +258,8 @@ func (suite *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
 					for i, msg := range msgs {
 						// Here I went with this because when unmarshaled with json, the anys have private fields
 						// and cached values that are not equal to the original message.
-						// I couldn't get suite.Require().EqualExportedValues() didn't work.
-						// proto.Equal() doesn't work because it doesn't know how to compare math.Int.
+						// I couldn't get suite.Require().EqualExportedValues() to work.
+						// proto.Equal() doesn't work because it doesn't know how to compare sdk's math.Int.
 						suite.Require().Equal(proto.CompactTextString(msg), proto.CompactTextString(deserializedMsgs[i]))
 					}
 				}
