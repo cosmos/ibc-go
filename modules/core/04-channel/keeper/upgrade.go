@@ -354,9 +354,15 @@ func (k Keeper) ChanUpgradeTimeout(
 		return err
 	}
 
-	if (upgrade.Timeout.Height.IsZero() || proofHeight.LT(upgrade.Timeout.Height)) &&
-		(upgrade.Timeout.Timestamp == 0 || proofTimestamp < upgrade.Timeout.Timestamp) {
+	timeout := upgrade.Timeout
+	if (timeout.Height.IsZero() || proofHeight.LT(timeout.Height)) &&
+		(timeout.Timestamp == 0 || proofTimestamp < timeout.Timestamp) {
 		return errorsmod.Wrap(types.ErrInvalidUpgradeTimeout, "timeout has not yet passed on counterparty chain")
+	}
+
+	// counterparty channel must be proved to still be in OPEN state or INITUPGRADE state (crossing hellos)
+	if !collections.Contains(counterpartyChannel.State, []types.State{types.OPEN, types.INITUPGRADE}) {
+		return errorsmod.Wrapf(types.ErrInvalidChannelState, "expected one of [%s, %s], got %s", types.OPEN, types.INITUPGRADE, counterpartyChannel.State)
 	}
 
 	// verify the counterparty channel state
@@ -369,11 +375,6 @@ func (k Keeper) ChanUpgradeTimeout(
 		counterpartyChannel,
 	); err != nil {
 		return errorsmod.Wrap(err, "failed to verify counterparty channel state")
-	}
-
-	// counterparty channel must be proved to still be in OPEN state or INITUPGRADE state (crossing hellos)
-	if !collections.Contains(counterpartyChannel.State, []types.State{types.OPEN, types.INITUPGRADE}) {
-		return errorsmod.Wrapf(types.ErrInvalidChannelState, "expected one of [%s, %s], got %s", types.OPEN, types.INITUPGRADE, counterpartyChannel.State)
 	}
 
 	// Error receipt passed in is either nil or it is a stale error receipt from a previous upgrade

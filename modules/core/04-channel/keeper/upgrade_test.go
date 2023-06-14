@@ -499,8 +499,24 @@ func (suite *KeeperTestSuite) TestChanUpgradeTimeout() {
 		expError error
 	}{
 		{
-			"success",
+			"success: proof height has passed",
 			func() {
+			},
+			nil,
+		},
+		{
+			"success: proof timestamp has passed",
+			func() {
+				upgrade := path.EndpointA.GetProposedUpgrade()
+				upgrade.Timeout.Height = clienttypes.NewHeight(1, uint64(path.EndpointA.Chain.GetContext().BlockHeight()+100))
+				upgrade.Timeout.Timestamp = 5
+				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.SetUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, upgrade)
+
+				suite.Require().NoError(path.EndpointA.UpdateClient())
+
+				proofCounterpartyChannel, _, proofHeight = path.EndpointA.QueryChannelUpgradeProof()
+				upgradeErrorReceiptKey := host.ChannelUpgradeErrorKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+				proofErrorReceipt, _ = suite.chainB.QueryProof(upgradeErrorReceiptKey)
 			},
 			nil,
 		},
