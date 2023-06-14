@@ -16,7 +16,7 @@ to specify the operation and the directory respectively.
 
 Typically, an invocation would look like:
 
-    scripts/compat.py --recent_version v4.3.0 --new_version v4.4.0
+    scripts/update_compatibility_tests.py --recent_version v4.3.0 --new_version v4.4.0
 
 The three operations currently added are:
 
