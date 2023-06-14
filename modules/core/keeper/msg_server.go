@@ -841,10 +841,10 @@ func (k Keeper) ChannelUpgradeTimeout(goCtx context.Context, msg *channeltypes.M
 
 	writeFn()
 
-	err = k.ChannelKeeper.ChanUpgradeTimeout(ctx, msg.PortId, msg.ChannelId, msg.CounterpartyChannel, msg.PreviousErrorReceipt, msg.ProofChannel, msg.ProofErrorReceipt, msg.ProofHeight)
-	if err != nil {
-		return nil, err
-	}
+	// err = k.ChannelKeeper.WriteUpgradeTimeout
+	// if err != nil {
+	// 	return nil, err
+	// }
 
 	return &channeltypes.MsgChannelUpgradeTimeoutResponse{ChannelId: msg.ChannelId, Result: channeltypes.SUCCESS}, nil
 }
