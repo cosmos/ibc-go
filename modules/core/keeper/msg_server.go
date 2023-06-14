@@ -829,7 +829,7 @@ func (k Keeper) ChannelUpgradeAck(goCtx context.Context, msg *channeltypes.MsgCh
 
 			// NOTE: a FAILURE result is returned to the client and an error receipt is written to state.
 			// This signals to the relayer to begin the cancel upgrade handshake subprotocol.
-			return &channeltypes.MsgChannelUpgradeAckResponse{ /*Result: channeltypes.FAILURE*/ }, nil
+			return &channeltypes.MsgChannelUpgradeAckResponse{Result: channeltypes.FAILURE}, nil
 		}
 
 		// NOTE: an error is returned to baseapp and transaction state is not committed.
@@ -844,14 +844,14 @@ func (k Keeper) ChannelUpgradeAck(goCtx context.Context, msg *channeltypes.MsgCh
 			return nil, err
 		}
 
-		return &channeltypes.MsgChannelUpgradeAckResponse{ /*Result: channeltypes.FAILURE*/ }, nil
+		return &channeltypes.MsgChannelUpgradeAckResponse{Result: channeltypes.FAILURE}, nil
 	}
 
 	writeFn()
 
 	k.ChannelKeeper.WriteUpgradeAckChannel(ctx, msg.PortId, msg.ChannelId, msg.CounterpartyUpgrade.Fields.Version)
 
-	return &channeltypes.MsgChannelUpgradeAckResponse{}, nil
+	return &channeltypes.MsgChannelUpgradeAckResponse{Result: channeltypes.SUCCESS}, nil
 }
 
 // ChannelUpgradeOpen defines a rpc handler method for MsgChannelUpgradeOpen.
