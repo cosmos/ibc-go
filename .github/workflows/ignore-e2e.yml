@@ -1,4 +1,4 @@
-# This workflow is added in order for the required e2e/build job to run successfully even
+# This workflow is added in order for the required e2e job to run successfully even
 # when the PR targets non-code files (e.g. docs, LICENSE, etc). This is done because of the
 # way Github required checks work, reference:
 #

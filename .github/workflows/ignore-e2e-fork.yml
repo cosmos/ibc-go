@@ -1,4 +1,4 @@
-# This workflow is added in order for the required e2e/build job to run successfully even
+# This workflow is added in order for the required e2e-fork job to run successfully even
 # when the PR targets non-code files (e.g. docs, LICENSE, etc). This is done because of the
 # way Github required checks work, reference:
 #
@@ -15,7 +15,7 @@ on:
       - "LICENSE"
 
 jobs:
-    e2e:
+    e2e-fork:
         runs-on: ubuntu-latest
         steps:
             - run: echo "E2E-fork tests skipped for docs."
