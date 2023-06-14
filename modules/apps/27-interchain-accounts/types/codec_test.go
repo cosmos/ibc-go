@@ -247,15 +247,21 @@ func (suite *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
 					suite.Require().NoError(err, tc.name)
 				}
 
-				msgs, err := types.DeserializeCosmosTx(simapp.MakeTestEncodingConfig().Marshaler, bz, encoding)
+				deserializedMsgs, err := types.DeserializeCosmosTx(simapp.MakeTestEncodingConfig().Marshaler, bz, encoding)
 				if tc.expPass {
 					suite.Require().NoError(err, tc.name)
 				} else {
 					suite.Require().Error(err, tc.name)
 				}
 
-				for i, msg := range msgs {
-					suite.Require().Equal(msgs[i], msg)
+				if tc.expPass {
+					for i, msg := range msgs {
+						// Here I went with this because when unmarshaled with json, the anys have private fields
+						// and cached values that are not equal to the original message.
+						// I couldn't get suite.Require().EqualExportedValues() didn't work.
+						// proto.Equal() doesn't work because it doesn't know how to compare math.Int.
+						suite.Require().Equal(proto.CompactTextString(msg), proto.CompactTextString(deserializedMsgs[i]))
+					}
 				}
 			})
 		}
