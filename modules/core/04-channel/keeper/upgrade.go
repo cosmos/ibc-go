@@ -259,7 +259,8 @@ func (k Keeper) ChanUpgradeCancel(ctx sdk.Context, portID, channelID string, err
 	// If counterparty sequence is less than the current sequence, abort transaction since this error receipt is from a previous upgrade
 	// Otherwise, set the sequence to counterparty's error sequence+1 so that both sides start with a fresh sequence
 	currentSequence := channel.UpgradeSequence
-	if errorReceipt.Sequence >= currentSequence {
+	counterpartySequence := errorReceipt.Sequence
+	if counterpartySequence < currentSequence {
 		return errorsmod.Wrap(types.ErrInvalidUpgradeSequence, "error sequence must be less than current sequence")
 	}
 

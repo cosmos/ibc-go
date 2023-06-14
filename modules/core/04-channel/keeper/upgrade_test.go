@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
@@ -909,6 +910,13 @@ func (suite *KeeperTestSuite) TestChanUpgradeCancel() {
 
 			suite.Require().NoError(path.EndpointB.UpdateClient())
 
+			// cause the upgrade to fail on chain b so an error receipt is written.
+			suite.chainB.GetSimApp().IBCMockModule.IBCApp.OnChanUpgradeTry = func(
+				ctx sdk.Context, portID, channelID string, order types.Order, connectionHops []string, counterpartyVersion string,
+			) (string, error) {
+				return "", fmt.Errorf("mock app callback failed")
+			}
+
 			err = path.EndpointB.ChanUpgradeTry()
 			suite.Require().NoError(err)
 
@@ -916,14 +924,14 @@ func (suite *KeeperTestSuite) TestChanUpgradeCancel() {
 
 			channelAKeeper := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper
 
-			// TODO: populate these correctly
-			errorReceipt := types.ErrorReceipt{}
-			errReceiptProof := []byte{}
-			proofHeight := clienttypes.Height{}
+			upgradeErrorReceiptKey := host.ChannelUpgradeErrorKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+			errorReceiptProof, proofHeight := suite.chainB.QueryProof(upgradeErrorReceiptKey)
 
-			err = channelAKeeper.ChanUpgradeCancel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, errorReceipt, errReceiptProof, proofHeight)
+			errorReceipt, ok := suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.GetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+			suite.Require().True(ok)
+
+			err = channelAKeeper.ChanUpgradeCancel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, errorReceipt, errorReceiptProof, proofHeight)
 			suite.Require().NoError(err)
-
 		})
 	}
 }
