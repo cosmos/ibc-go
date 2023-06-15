@@ -570,6 +570,15 @@ func (suite *KeeperTestSuite) TestChanUpgradeTimeout() {
 			connectiontypes.ErrConnectionNotFound,
 		},
 		{
+			"connection not OPEN",
+			func() {
+				connection := path.EndpointA.GetConnection()
+				connection.State = connectiontypes.UNINITIALIZED
+				path.EndpointA.SetConnection(connection)
+			},
+			connectiontypes.ErrInvalidConnectionState,
+		},
+		{
 			"unable to retrieve timestamp at proof height",
 			func() {
 				proofHeight = clienttypes.NewHeight(0, uint64(path.EndpointA.Chain.GetContext().BlockHeight()+100))
