@@ -571,7 +571,7 @@ func (k Keeper) iterateHashes(ctx sdk.Context, iterator db.Iterator, cb func(por
 	}
 }
 
-// hasInflightPackets returns true if there are packet commitments stored at the specified 
+// hasInflightPackets returns true if there are packet commitments stored at the specified
 // port and channel, and false otherwise.
 //
 //lint:ignore U1000 Ignore unused function temporarily for debugging
