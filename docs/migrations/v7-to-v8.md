@@ -80,7 +80,7 @@ TODO: https://github.com/cosmos/ibc-go/pull/3303
 
 ## Relayers
 
-- Getter functions in `MsgChannelOpenInitResponse`, `MsgChannelOpenTryResponse` and `MsgTransferResponse` have been removed. The fields can be accessed directly.
+- Getter functions in `MsgChannelOpenInitResponse`, `MsgChannelOpenTryResponse`, `MsgTransferResponse`, `MsgRegisterInterchainAccountResponse` and `MsgSendTxResponse` have been removed. The fields can be accessed directly.
 
 ## IBC Light Clients
 

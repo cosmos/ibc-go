@@ -59,8 +59,12 @@ message MsgSendTx {
 
 // MsgSendTxResponse defines the response for MsgSendTx
 message MsgSendTxResponse {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
   uint64 sequence = 1;
 }
+
 // MsgUpdateParams defines the payload for Msg/UpdateParams
 message MsgUpdateParams {
   option (cosmos.msg.v1.signer) = "authority";
