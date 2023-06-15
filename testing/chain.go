@@ -286,7 +286,7 @@ func (chain *TestChain) QueryConsensusStateProof(clientID string) ([]byte, clien
 // returned on block `n` to the validators of block `n+2`.
 // It calls BeginBlock with the new block created before returning.
 func (chain *TestChain) NextBlock() {
-	res, err := chain.App.FinalizeBlock(&abci.RequestFinalizeBlock{Height: chain.CurrentHeader.Height})
+	res, err := chain.App.FinalizeBlock(&abci.RequestFinalizeBlock{Height: chain.App.LastBlockHeight() + 1})
 	_, err = chain.App.Commit()
 	require.NoError(chain.TB, err)
 
