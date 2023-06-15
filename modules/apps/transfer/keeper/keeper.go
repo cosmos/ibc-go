@@ -114,8 +114,8 @@ func (k Keeper) SetPort(ctx sdk.Context, portID string) {
 func (k Keeper) GetParams(ctx sdk.Context) types.Params {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get([]byte(types.ParamsKey))
-	if bz == nil { // only panics on unset params and not on empty params
-		panic("ibc transfer params are not set in store")
+	if bz == nil { // only panic on unset params and not on empty params
+		panic("transfer params are not set in store")
 	}
 
 	var params types.Params
