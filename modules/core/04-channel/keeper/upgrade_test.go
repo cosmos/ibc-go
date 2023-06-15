@@ -500,15 +500,14 @@ func (suite *KeeperTestSuite) TestChanUpgradeTimeout() {
 	}{
 		{
 			"success: proof height has passed",
-			func() {
-			},
+			func() {},
 			nil,
 		},
 		{
 			"success: proof timestamp has passed",
 			func() {
 				upgrade := path.EndpointA.GetProposedUpgrade()
-				upgrade.Timeout.Height = clienttypes.NewHeight(1, uint64(path.EndpointA.Chain.GetContext().BlockHeight()+100))
+				upgrade.Timeout.Height = defaultTimeoutHeight
 				upgrade.Timeout.Timestamp = 5
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.SetUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, upgrade)
 
@@ -570,13 +569,13 @@ func (suite *KeeperTestSuite) TestChanUpgradeTimeout() {
 			connectiontypes.ErrConnectionNotFound,
 		},
 		{
-			"connection not OPEN",
+			"connection not found",
 			func() {
-				connection := path.EndpointA.GetConnection()
-				connection.State = connectiontypes.UNINITIALIZED
-				path.EndpointA.SetConnection(connection)
+				channel := path.EndpointA.GetChannel()
+				channel.ConnectionHops[0] = ibctesting.InvalidID
+				path.EndpointA.SetChannel(channel)
 			},
-			connectiontypes.ErrInvalidConnectionState,
+			connectiontypes.ErrConnectionNotFound,
 		},
 		{
 			"unable to retrieve timestamp at proof height",
@@ -642,8 +641,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeTimeout() {
 
 			// set timeout height to 1 to ensure timeout
 			path.EndpointA.ChannelConfig.ProposedUpgrade.Timeout.Height = clienttypes.NewHeight(1, 1)
-			err := path.EndpointA.ChanUpgradeInit()
-			suite.Require().NoError(err)
+			suite.Require().NoError(path.EndpointA.ChanUpgradeInit())
 
 			errReceipt = types.ErrorReceipt{}
 
@@ -657,7 +655,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeTimeout() {
 
 			tc.malleate()
 
-			err = suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.ChanUpgradeTimeout(
+			err := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.ChanUpgradeTimeout(
 				suite.chainA.GetContext(),
 				path.EndpointA.ChannelConfig.PortID,
 				path.EndpointA.ChannelID,
