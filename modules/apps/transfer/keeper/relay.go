@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
+	sdkmath "cosmossdk.io/math"
 	metrics "github.com/armon/go-metrics"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -177,7 +178,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 	}
 
 	// parse the transfer amount
-	transferAmount, ok := sdk.NewIntFromString(data.Amount)
+	transferAmount, ok := sdkmath.NewIntFromString(data.Amount)
 	if !ok {
 		return errorsmod.Wrapf(types.ErrInvalidAmount, "unable to parse transfer amount: %s", data.Amount)
 	}
@@ -334,7 +335,7 @@ func (k Keeper) refundPacketToken(ctx sdk.Context, packet channeltypes.Packet, d
 	trace := types.ParseDenomTrace(data.Denom)
 
 	// parse the transfer amount
-	transferAmount, ok := sdk.NewIntFromString(data.Amount)
+	transferAmount, ok := sdkmath.NewIntFromString(data.Amount)
 	if !ok {
 		return errorsmod.Wrapf(types.ErrInvalidAmount, "unable to parse transfer amount (%s) into math.Int", data.Amount)
 	}
