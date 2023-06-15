@@ -29,6 +29,9 @@ func (app *SimApp) ExportAppStateAndValidators(
 	}
 
 	genState, err := app.ModuleManager.ExportGenesis(ctx, app.appCodec)
+	if err != nil {
+		return servertypes.ExportedApp{}, err
+	}
 	appState, err := json.MarshalIndent(genState, "", "  ")
 	if err != nil {
 		return servertypes.ExportedApp{}, err
@@ -104,9 +107,18 @@ func (app *SimApp) prepForZeroHeightGenesis(ctx sdk.Context, jailAllowedAddrs []
 	app.StakingKeeper.IterateValidators(ctx, func(_ int64, val stakingtypes.ValidatorI) (stop bool) {
 		// donate any unwithdrawn outstanding reward fraction tokens to the community pool
 		scraps, err := app.DistrKeeper.GetValidatorOutstandingRewardsCoins(ctx, val.GetOperator())
+		if err != nil {
+			return err != nil
+		}
 		feePool, err := app.DistrKeeper.FeePool.Get(ctx)
+		if err != nil {
+			return err != nil
+		}
 		feePool.CommunityPool = feePool.CommunityPool.Add(scraps...)
-		app.DistrKeeper.FeePool.Set(ctx, feePool)
+		err = app.DistrKeeper.FeePool.Set(ctx, feePool)
+		if err != nil {
+			return err != nil
+		}
 
 		err = app.DistrKeeper.Hooks().AfterValidatorCreated(ctx, val.GetOperator())
 		return err != nil
@@ -187,12 +199,15 @@ func (app *SimApp) prepForZeroHeightGenesis(ctx sdk.Context, jailAllowedAddrs []
 	/* Handle slashing state. */
 
 	// reset start height on signing infos
-	app.SlashingKeeper.IterateValidatorSigningInfos(
+	err = app.SlashingKeeper.IterateValidatorSigningInfos(
 		ctx,
 		func(addr sdk.ConsAddress, info slashingtypes.ValidatorSigningInfo) (stop bool) {
 			info.StartHeight = 0
-			app.SlashingKeeper.SetValidatorSigningInfo(ctx, addr, info)
-			return false
+			err = app.SlashingKeeper.SetValidatorSigningInfo(ctx, addr, info)
+			return err != nil
 		},
 	)
+	if err != nil {
+		log.Fatal(err)
+	}
 }

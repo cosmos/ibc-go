@@ -3,7 +3,6 @@ package keeper_test
 import (
 	"fmt"
 
-	"cosmossdk.io/math"
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktestutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
@@ -758,7 +757,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 			"mint failed",
 			func() {
 				trace = types.ParseDenomTrace(types.GetPrefixedDenom(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, sdk.DefaultBondDenom))
-				amount = math.OneInt()
+				amount = sdkmath.OneInt()
 				sender = "invalid address"
 			}, false,
 		},

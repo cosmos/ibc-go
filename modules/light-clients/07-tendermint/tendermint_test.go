@@ -96,18 +96,6 @@ func getAltSigners(altVal *tmtypes.Validator, altPrivVal tmtypes.PrivValidator) 
 	return map[string]tmtypes.PrivValidator{altVal.Address.String(): altPrivVal}
 }
 
-func getBothSigners(suite *TendermintTestSuite, altVal *tmtypes.Validator, altPrivVal tmtypes.PrivValidator) (*tmtypes.ValidatorSet, map[string]tmtypes.PrivValidator) {
-	// Create bothValSet with both suite validator and altVal. Would be valid update
-	bothValSet := tmtypes.NewValidatorSet(append(suite.valSet.Validators, altVal))
-	// Create signer array and ensure it is in same order as bothValSet
-	_, suiteVal := suite.valSet.GetByIndex(0)
-	bothSigners := map[string]tmtypes.PrivValidator{
-		suiteVal.Address.String(): suite.privVal,
-		altVal.Address.String():   altPrivVal,
-	}
-	return bothValSet, bothSigners
-}
-
 func TestTendermintTestSuite(t *testing.T) {
 	suite.Run(t, new(TendermintTestSuite))
 }

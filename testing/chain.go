@@ -226,6 +226,7 @@ func (chain *TestChain) QueryProofForStore(storeKey string, key []byte, height i
 			Data:   key,
 			Prove:  true,
 		})
+	require.NoError(chain.TB, err)
 
 	merkleProof, err := commitmenttypes.ConvertProofs(res.ProofOps)
 	require.NoError(chain.TB, err)
@@ -252,6 +253,7 @@ func (chain *TestChain) QueryUpgradeProof(key []byte, height uint64) ([]byte, cl
 			Data:   key,
 			Prove:  true,
 		})
+	require.NoError(chain.TB, err)
 
 	merkleProof, err := commitmenttypes.ConvertProofs(res.ProofOps)
 	require.NoError(chain.TB, err)
@@ -287,6 +289,7 @@ func (chain *TestChain) QueryConsensusStateProof(clientID string) ([]byte, clien
 // It calls BeginBlock with the new block created before returning.
 func (chain *TestChain) NextBlock() {
 	res, err := chain.App.FinalizeBlock(&abci.RequestFinalizeBlock{Height: chain.CurrentHeader.Height})
+	require.NoError(chain.TB, err)
 	_, err = chain.App.Commit()
 	require.NoError(chain.TB, err)
 

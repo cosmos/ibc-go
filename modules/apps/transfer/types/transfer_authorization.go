@@ -5,7 +5,6 @@ import (
 	"math/big"
 
 	errorsmod "cosmossdk.io/errors"
-	"cosmossdk.io/math"
 	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/gogoproto/proto"
 
@@ -153,5 +152,5 @@ func isAllowedAddress(ctx sdk.Context, receiver string, allowedAddrs []string) b
 // will be granted the privilege to do ICS20 token transfers for the total amount
 // of the denomination available at the granter's account.
 func UnboundedSpendLimit() sdkmath.Int {
-	return math.NewIntFromBigInt(maxUint256)
+	return sdkmath.NewIntFromBigInt(maxUint256)
 }
