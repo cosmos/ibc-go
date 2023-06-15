@@ -90,16 +90,22 @@ func SetupWithGenesisValSet(valSet *tmtypes.ValidatorSet, genAccs []authtypes.Ge
 	stateBytes, _ := json.MarshalIndent(genesisState, "", " ")
 
 	// init chain will set the validator set and initialize the genesis accounts
-	app.InitChain(
+	_, err := app.InitChain(
 		&abci.RequestInitChain{
 			Validators:      []abci.ValidatorUpdate{},
 			ConsensusParams: DefaultConsensusParams,
 			AppStateBytes:   stateBytes,
 		},
 	)
+	if err != nil {
+		panic(err)
+	}
 
 	// commit genesis changes
-	app.Commit()
+	_, err = app.Commit()
+	if err != nil {
+		panic(err)
+	}
 
 	return app
 }
@@ -185,15 +191,21 @@ func SetupWithGenesisAccounts(genAccs []authtypes.GenesisAccount, balances ...ba
 		panic(err)
 	}
 
-	app.InitChain(
+	_, err = app.InitChain(
 		&abci.RequestInitChain{
 			Validators:      []abci.ValidatorUpdate{},
 			ConsensusParams: DefaultConsensusParams,
 			AppStateBytes:   stateBytes,
 		},
 	)
+	if err != nil {
+		panic(err)
+	}
 
-	app.Commit()
+	_, err = app.Commit()
+	if err != nil {
+		panic(err)
+	}
 
 	return app
 }
