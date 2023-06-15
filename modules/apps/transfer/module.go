@@ -105,15 +105,15 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 
 	m := keeper.NewMigrator(am.keeper)
 	if err := cfg.RegisterMigration(types.ModuleName, 1, m.MigrateTraces); err != nil {
-		panic(fmt.Sprintf("failed to migrate transfer app from version 1 to 2: %v", err))
+		panic(fmt.Sprintf("failed to migrate transfer app from version 1 to 2 (denom trace format migration): %v", err))
 	}
 
 	if err := cfg.RegisterMigration(types.ModuleName, 2, m.MigrateTotalEscrowForDenom); err != nil {
-		panic(fmt.Sprintf("failed to migrate transfer app from version 2 to 3: %v", err))
+		panic(fmt.Sprintf("failed to migrate transfer app from version 2 to 3 (total escrow entry migration): %v", err))
 	}
 
 	if err := cfg.RegisterMigration(types.ModuleName, 3, m.MigrateParams); err != nil {
-		panic(fmt.Sprintf("failed to migrate params from version 3 to 4: %v", err))
+		panic(fmt.Sprintf("failed to migrate transfer app version 3 to 4 (self-managed params migration): %v", err))
 	}
 }
 
