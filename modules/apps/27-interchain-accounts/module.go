@@ -146,7 +146,8 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 
 	controllerMigrator := controllerkeeper.NewMigrator(am.controllerKeeper)
 	if err := cfg.RegisterMigration(types.ModuleName, 1, controllerMigrator.AssertChannelCapabilityMigrations); err != nil {
-		panic(fmt.Sprintf("failed to migrate interchainaccounts app from version 1 to 2: %v", err))
+		panic(fmt.Sprintf("failed to migrate interchainaccounts app from version 1 to 2 (channel capabilities owned by controller submodule check): %v", err))
+
 	}
 
 	hostMigrator := hostkeeper.NewMigrator(am.hostKeeper)
@@ -156,7 +157,7 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 		}
 		return controllerMigrator.MigrateParams(ctx)
 	}); err != nil {
-		panic(fmt.Sprintf("failed to migrate interchainaccounts app from version 2 to 3: %v", err))
+		panic(fmt.Sprintf("failed to migrate interchainaccounts app from version 2 to 3 (self-managed params migration): %v", err))
 	}
 }
 

@@ -654,10 +654,26 @@ func (suite *TypesTestSuite) TestMsgUpdateParamsValidateBasic() {
 
 // TestMsgUpdateParamsGetSigners tests GetSigners for MsgUpdateParams
 func TestMsgUpdateParamsGetSigners(t *testing.T) {
-	authority := sdk.AccAddress("authority")
-	msg := types.MsgUpdateParams{
-		Authority: authority.String(),
-		Params:    types.DefaultParams(),
+	testCases := []struct {
+		name    string
+		address sdk.AccAddress
+		expPass bool
+	}{
+		{"success: valid address", sdk.AccAddress(ibctesting.TestAccAddress), true},
+		{"failure: nil address", nil, false},
 	}
-	require.Equal(t, []sdk.AccAddress{authority}, msg.GetSigners())
+
+	for _, tc := range testCases {
+		msg := types.MsgUpdateParams{
+			Authority: tc.address.String(),
+			Params:    types.DefaultParams(),
+		}
+		if tc.expPass {
+			require.Equal(t, []sdk.AccAddress{tc.address}, msg.GetSigners())
+		} else {
+			require.Panics(t, func() {
+				msg.GetSigners()
+			})
+		}
+	}
 }

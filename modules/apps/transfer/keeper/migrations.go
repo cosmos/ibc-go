@@ -26,6 +26,9 @@ func (m Migrator) MigrateParams(ctx sdk.Context) error {
 	m.keeper.legacySubspace.GetParamSet(ctx, &params)
 
 	m.keeper.SetParams(ctx, params)
+
+	logger := m.keeper.Logger(ctx)
+	logger.Info("successfully migrated transfer app self-manage params")
 	return nil
 }
 
