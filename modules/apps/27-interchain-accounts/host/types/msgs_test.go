@@ -4,8 +4,10 @@ import (
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/types"
 	"github.com/stretchr/testify/require"
+
+	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/types"
+	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
 func TestMsgUpdateParamsValidateBasic(t *testing.T) {
@@ -20,7 +22,7 @@ func TestMsgUpdateParamsValidateBasic(t *testing.T) {
 			"success: valid authority address",
 			func() {
 				msg = &types.MsgUpdateParams{
-					Authority: sdk.AccAddress("authority").String(),
+					Authority: ibctesting.TestAccAddress,
 					Params:    types.DefaultParams(),
 				}
 			},
@@ -39,7 +41,7 @@ func TestMsgUpdateParamsValidateBasic(t *testing.T) {
 			"failure: invalid allowed message",
 			func() {
 				msg = &types.MsgUpdateParams{
-					Authority: sdk.AccAddress("authority").String(),
+					Authority: ibctesting.TestAccAddress,
 					Params: types.Params{
 						AllowMessages: []string{""},
 					},
@@ -64,10 +66,26 @@ func TestMsgUpdateParamsValidateBasic(t *testing.T) {
 }
 
 func TestMsgUpdateParamsGetSigners(t *testing.T) {
-	authority := sdk.AccAddress("authority")
-	msg := types.MsgUpdateParams{
-		Authority: authority.String(),
-		Params:    types.DefaultParams(),
+	testCases := []struct {
+		name    string
+		address sdk.AccAddress
+		expPass bool
+	}{
+		{"success: valid address", sdk.AccAddress(ibctesting.TestAccAddress), true},
+		{"failure: nil address", nil, false},
 	}
-	require.Equal(t, []sdk.AccAddress{authority}, msg.GetSigners())
+
+	for _, tc := range testCases {
+		msg := types.MsgUpdateParams{
+			Authority: tc.address.String(),
+			Params:    types.DefaultParams(),
+		}
+		if tc.expPass {
+			require.Equal(t, []sdk.AccAddress{tc.address}, msg.GetSigners())
+		} else {
+			require.Panics(t, func() {
+				msg.GetSigners()
+			})
+		}
+	}
 }

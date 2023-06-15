@@ -102,8 +102,8 @@ func TestMsgTransferGetSigners(t *testing.T) {
 	require.Equal(t, []sdk.AccAddress{addr}, res)
 }
 
-// TestMsgUpdateParamsValidation tests ValidateBasic for MsgUpdateParams
-func TestMsgUpdateParamsValidation(t *testing.T) {
+// TestMsgUpdateParamsValidateBasic tests ValidateBasic for MsgUpdateParams
+func TestMsgUpdateParamsValidateBasic(t *testing.T) {
 	testCases := []struct {
 		name    string
 		msg     *types.MsgUpdateParams
@@ -126,10 +126,26 @@ func TestMsgUpdateParamsValidation(t *testing.T) {
 
 // TestMsgUpdateParamsGetSigners tests GetSigners for MsgUpdateParams
 func TestMsgUpdateParamsGetSigners(t *testing.T) {
-	authority := sdk.AccAddress("authority")
-	msg := types.MsgUpdateParams{
-		Authority: authority.String(),
-		Params:    types.DefaultParams(),
+	testCases := []struct {
+		name    string
+		address sdk.AccAddress
+		expPass bool
+	}{
+		{"success: valid address", sdk.AccAddress(ibctesting.TestAccAddress), true},
+		{"failure: nil address", nil, false},
 	}
-	require.Equal(t, []sdk.AccAddress{authority}, msg.GetSigners())
+
+	for _, tc := range testCases {
+		msg := types.MsgUpdateParams{
+			Authority: tc.address.String(),
+			Params:    types.DefaultParams(),
+		}
+		if tc.expPass {
+			require.Equal(t, []sdk.AccAddress{tc.address}, msg.GetSigners())
+		} else {
+			require.Panics(t, func() {
+				msg.GetSigners()
+			})
+		}
+	}
 }
