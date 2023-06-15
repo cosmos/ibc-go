@@ -92,6 +92,7 @@ func (suite *TypesTestSuite) SetupTest() {
 		Height: 1,
 		Prove:  true,
 	})
+	suite.Require().NoError(err)
 
 	merkleProof, err := commitmenttypes.ConvertProofs(res.ProofOps)
 	suite.Require().NoError(err)
