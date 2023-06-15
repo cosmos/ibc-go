@@ -37,6 +37,6 @@ func (k Keeper) WriteUpgradeOpenChannel(ctx sdk.Context, portID, channelID strin
 }
 
 // WriteUpgradeTimeoutChannel is a wrapper around writeUpgradeTimeoutChannel to allow the function to be directly called in tests.
-func (k Keeper) WriteUpgradeTimeoutChannel(ctx sdk.Context, portID, channelID string) {
-	k.writeUpgradeTimeoutChannel(ctx, portID, channelID)
+func (k Keeper) WriteUpgradeTimeoutChannel(ctx sdk.Context, portID, channelID string) error {
+	return k.writeUpgradeTimeoutChannel(ctx, portID, channelID)
 }
