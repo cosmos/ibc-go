@@ -6,7 +6,6 @@ run:
 linters:
   disable-all: true
   enable:
-    - depguard
     - dogsled
     - exportloopref
     - errcheck
@@ -20,6 +19,7 @@ linters:
     - misspell
     - nakedret
     - staticcheck
+    - thelper
     - stylecheck
     - revive
     - typecheck
