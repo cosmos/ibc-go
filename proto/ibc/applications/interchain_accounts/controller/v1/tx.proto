@@ -27,6 +27,9 @@ message MsgRegisterInterchainAccount {
 
 // MsgRegisterInterchainAccountResponse defines the response for Msg/RegisterAccount
 message MsgRegisterInterchainAccountResponse {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
   string channel_id = 1;
   string port_id    = 2;
 }
@@ -46,5 +49,8 @@ message MsgSendTx {
 
 // MsgSendTxResponse defines the response for MsgSendTx
 message MsgSendTxResponse {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
   uint64 sequence = 1;
 }

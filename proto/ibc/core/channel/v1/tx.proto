@@ -89,6 +89,9 @@ message MsgChannelOpenInit {
 
 // MsgChannelOpenInitResponse defines the Msg/ChannelOpenInit response type.
 message MsgChannelOpenInitResponse {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
   string channel_id = 1;
   string version    = 2;
 }
@@ -113,6 +116,9 @@ message MsgChannelOpenTry {
 
 // MsgChannelOpenTryResponse defines the Msg/ChannelOpenTry response type.
 message MsgChannelOpenTryResponse {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
   string version    = 1;
   string channel_id = 2;
 }
@@ -196,6 +202,7 @@ message MsgRecvPacket {
 
 // MsgRecvPacketResponse defines the Msg/RecvPacket response type.
 message MsgRecvPacketResponse {
+  option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
   ResponseResultType result = 1;
@@ -215,6 +222,7 @@ message MsgTimeout {
 
 // MsgTimeoutResponse defines the Msg/Timeout response type.
 message MsgTimeoutResponse {
+  option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
   ResponseResultType result = 1;
@@ -235,6 +243,7 @@ message MsgTimeoutOnClose {
 
 // MsgTimeoutOnCloseResponse defines the Msg/TimeoutOnClose response type.
 message MsgTimeoutOnCloseResponse {
+  option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
   ResponseResultType result = 1;
@@ -254,6 +263,7 @@ message MsgAcknowledgement {
 
 // MsgAcknowledgementResponse defines the Msg/Acknowledgement response type.
 message MsgAcknowledgementResponse {
+  option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
   ResponseResultType result = 1;
@@ -275,6 +285,9 @@ message MsgChannelUpgradeInit {
 
 // MsgChannelUpgradeInitResponse defines the MsgChannelUpgradeInit response type
 message MsgChannelUpgradeInitResponse {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
   string  channel_id       = 1;
   Upgrade upgrade          = 2 [(gogoproto.nullable) = false];
   uint64  upgrade_sequence = 3;
@@ -301,6 +314,9 @@ message MsgChannelUpgradeTry {
 
 // MsgChannelUpgradeTryResponse defines the MsgChannelUpgradeTry response type
 message MsgChannelUpgradeTryResponse {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
   string             channel_id       = 1;
   Upgrade            upgrade          = 2 [(gogoproto.nullable) = false];
   uint64             upgrade_sequence = 3;

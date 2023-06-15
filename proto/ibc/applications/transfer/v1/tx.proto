@@ -43,6 +43,9 @@ message MsgTransfer {
 
 // MsgTransferResponse defines the Msg/Transfer response type.
 message MsgTransferResponse {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
   // sequence number of the transfer packet sent
   uint64 sequence = 1;
 }
