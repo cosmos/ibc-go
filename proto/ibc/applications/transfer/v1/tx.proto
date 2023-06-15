@@ -52,6 +52,9 @@ message MsgTransfer {
 
 // MsgTransferResponse defines the Msg/Transfer response type.
 message MsgTransferResponse {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
   // sequence number of the transfer packet sent
   uint64 sequence = 1;
 }
@@ -59,6 +62,9 @@ message MsgTransferResponse {
 // MsgUpdateParams is the Msg/UpdateParams request type.
 message MsgUpdateParams {
   option (cosmos.msg.v1.signer) = "authority";
+
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
 
   // authority is the address that controls the module (defaults to x/gov unless overwritten).
   string authority = 1;

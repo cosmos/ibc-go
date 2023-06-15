@@ -35,6 +35,9 @@ message MsgRegisterInterchainAccount {
 
 // MsgRegisterInterchainAccountResponse defines the response for Msg/RegisterAccount
 message MsgRegisterInterchainAccountResponse {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
   string channel_id = 1;
   string port_id    = 2;
 }
@@ -61,6 +64,9 @@ message MsgSendTxResponse {
 // MsgUpdateParams defines the payload for Msg/UpdateParams
 message MsgUpdateParams {
   option (cosmos.msg.v1.signer) = "authority";
+
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
 
   // authority is the address that controls the module (defaults to x/gov unless overwritten).
   string authority = 1;

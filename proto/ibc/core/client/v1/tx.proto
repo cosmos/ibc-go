@@ -118,6 +118,9 @@ message MsgSubmitMisbehaviourResponse {}
 message MsgUpdateParams {
   option (cosmos.msg.v1.signer) = "authority";
 
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
   // authority is the address of the governance account.
   string authority = 1;
 
