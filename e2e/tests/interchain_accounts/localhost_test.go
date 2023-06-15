@@ -86,7 +86,7 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_Localhost(
 	t.Run("channel open ack localhost", func(t *testing.T) {
 		msgChanOpenAck := channeltypes.NewMsgChannelOpenAck(
 			controllerPortID, msgChanOpenInitRes.ChannelId,
-			msgChanOpenTryRes.ChannelId, msgChanOpenTryRes.GetVersion(),
+			msgChanOpenTryRes.ChannelId, msgChanOpenTryRes.Version,
 			localhost.SentinelProof, clienttypes.ZeroHeight(), rlyWallet.FormattedAddress(),
 		)
 
@@ -250,7 +250,7 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_ReopenChan
 	t.Run("channel open ack localhost", func(t *testing.T) {
 		msgChanOpenAck := channeltypes.NewMsgChannelOpenAck(
 			controllerPortID, msgChanOpenInitRes.ChannelId,
-			msgChanOpenTryRes.ChannelId, msgChanOpenTryRes.GetVersion(),
+			msgChanOpenTryRes.ChannelId, msgChanOpenTryRes.Version,
 			localhost.SentinelProof, clienttypes.ZeroHeight(), rlyWallet.FormattedAddress(),
 		)
 
@@ -387,7 +387,7 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_ReopenChan
 	t.Run("channel open ack localhost", func(t *testing.T) {
 		msgChanOpenAck := channeltypes.NewMsgChannelOpenAck(
 			controllerPortID, msgChanOpenInitRes.ChannelId,
-			msgChanOpenTryRes.ChannelId, msgChanOpenTryRes.GetVersion(),
+			msgChanOpenTryRes.ChannelId, msgChanOpenTryRes.Version,
 			localhost.SentinelProof, clienttypes.ZeroHeight(), rlyWallet.FormattedAddress(),
 		)
 
