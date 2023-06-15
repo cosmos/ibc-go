@@ -757,7 +757,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 			"mint failed",
 			func() {
 				trace = types.ParseDenomTrace(types.GetPrefixedDenom(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, sdk.DefaultBondDenom))
-				amount = sdk.OneInt()
+				amount = sdkmath.OneInt()
 				sender = "invalid address"
 			}, false,
 		},

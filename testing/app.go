@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"cosmossdk.io/log"
-	"cosmossdk.io/math"
 	sdkmath "cosmossdk.io/math"
 	storetypes "cosmossdk.io/store/types"
 	abci "github.com/cometbft/cometbft/abci/types"
@@ -89,16 +88,16 @@ func SetupWithGenesisValSet(tb testing.TB, valSet *tmtypes.ValidatorSet, genAccs
 			Jailed:            false,
 			Status:            stakingtypes.Bonded,
 			Tokens:            bondAmt,
-			DelegatorShares:   math.LegacyOneDec(),
+			DelegatorShares:   sdkmath.LegacyOneDec(),
 			Description:       stakingtypes.Description{},
 			UnbondingHeight:   int64(0),
 			UnbondingTime:     time.Unix(0, 0).UTC(),
-			Commission:        stakingtypes.NewCommission(math.LegacyZeroDec(), math.LegacyZeroDec(), math.LegacyZeroDec()),
+			Commission:        stakingtypes.NewCommission(sdkmath.LegacyZeroDec(), sdkmath.LegacyZeroDec(), sdkmath.LegacyZeroDec()),
 			MinSelfDelegation: sdk.ZeroInt(),
 		}
 
 		validators = append(validators, validator)
-		delegations = append(delegations, stakingtypes.NewDelegation(genAccs[0].GetAddress(), val.Address.Bytes(), math.LegacyOneDec()))
+		delegations = append(delegations, stakingtypes.NewDelegation(genAccs[0].GetAddress(), val.Address.Bytes(), sdkmath.LegacyOneDec()))
 	}
 
 	// set validators and delegations
@@ -125,16 +124,18 @@ func SetupWithGenesisValSet(tb testing.TB, valSet *tmtypes.ValidatorSet, genAccs
 	require.NoError(tb, err)
 
 	// init chain will set the validator set and initialize the genesis accounts
-	app.InitChain(
+	_, err = app.InitChain(
 		&abci.RequestInitChain{
 			ChainId:       chainID,
 			Validators:    []abci.ValidatorUpdate{},
 			AppStateBytes: stateBytes,
 		},
 	)
+	require.NoError(tb, err)
 
 	// commit genesis changes
-	app.Commit()
+	_, err = app.Commit()
+	require.NoError(tb, err)
 
 	return app
 }

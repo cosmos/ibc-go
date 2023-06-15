@@ -93,9 +93,11 @@ func (suite *TypesTestSuite) SetupTest() {
 		Path:   fmt.Sprintf("/%s/key", storeKey.Name()), // required path to get key/value+proof
 		Height: 1,
 		Prove:  true,
-	}}
+	}}}
 
+	
 	res, err := store.Query(&query)
+	suite.Require().NoError(err)
 
 	merkleProof, err := commitmenttypes.ConvertProofs(res.ProofOps)
 	suite.Require().NoError(err)

@@ -12,7 +12,6 @@ import (
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
-	"cosmossdk.io/math"
 	sdkmath "cosmossdk.io/math"
 	"github.com/cometbft/cometbft/crypto"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -339,7 +338,7 @@ func (suite *KeeperTestSuite) TestModelBasedRelay() {
 					denom := denomTrace.IBCDenom()
 					err = sdk.ValidateDenom(denom)
 					if err == nil {
-						amount, ok := math.NewIntFromString(tc.packet.Data.Amount)
+						amount, ok := sdkmath.NewIntFromString(tc.packet.Data.Amount)
 						if !ok {
 							panic("MBT failed to parse amount from string")
 						}

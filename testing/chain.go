@@ -218,12 +218,15 @@ func (chain *TestChain) QueryProofAtHeight(key []byte, height int64) ([]byte, cl
 // QueryProofForStore performs an abci query with the given key and returns the proto encoded merkle proof
 // for the query and the height at which the proof will succeed on a tendermint verifier.
 func (chain *TestChain) QueryProofForStore(storeKey string, key []byte, height int64) ([]byte, clienttypes.Height) {
-	res, err := chain.App.Query(abci.RequestQuery{
-		Path:   fmt.Sprintf("store/%s/key", storeKey),
-		Height: height - 1,
-		Data:   key,
-		Prove:  true,
-	})
+	res, err := chain.App.Query(
+		chain.GetContext().Context(),
+		&abci.RequestQuery{
+			Path:   fmt.Sprintf("store/%s/key", storeKey),
+			Height: height - 1,
+			Data:   key,
+			Prove:  true,
+		})
+	require.NoError(chain.TB, err)
 
 	merkleProof, err := commitmenttypes.ConvertProofs(res.ProofOps)
 	require.NoError(chain.TB, err)
@@ -242,12 +245,15 @@ func (chain *TestChain) QueryProofForStore(storeKey string, key []byte, height i
 // QueryUpgradeProof performs an abci query with the given key and returns the proto encoded merkle proof
 // for the query and the height at which the proof will succeed on a tendermint verifier.
 func (chain *TestChain) QueryUpgradeProof(key []byte, height uint64) ([]byte, clienttypes.Height) {
-	res, err := chain.App.Query(abci.RequestQuery{
-		Path:   "store/upgrade/key",
-		Height: int64(height - 1),
-		Data:   key,
-		Prove:  true,
-	})
+	res, err := chain.App.Query(
+		chain.GetContext().Context(),
+		&abci.RequestQuery{
+			Path:   "store/upgrade/key",
+			Height: int64(height - 1),
+			Data:   key,
+			Prove:  true,
+		})
+	require.NoError(chain.TB, err)
 
 	merkleProof, err := commitmenttypes.ConvertProofs(res.ProofOps)
 	require.NoError(chain.TB, err)
@@ -282,7 +288,8 @@ func (chain *TestChain) QueryConsensusStateProof(clientID string) ([]byte, clien
 // returned on block `n` to the validators of block `n+2`.
 // It calls BeginBlock with the new block created before returning.
 func (chain *TestChain) NextBlock() {
-	res, err := chain.App.FinalizeBlock(&abci.RequestFinalizeBlock{Height: chain.App.LastBlockHeight() + 1})
+	res, err := chain.App.FinalizeBlock(&abci.RequestFinalizeBlock{Height: chain.CurrentHeader.Height})
+	require.NoError(chain.TB, err)
 	_, err = chain.App.Commit()
 	require.NoError(chain.TB, err)
 
@@ -307,8 +314,6 @@ func (chain *TestChain) NextBlock() {
 		NextValidatorsHash: chain.NextVals.Hash(),
 		ProposerAddress:    chain.CurrentHeader.ProposerAddress,
 	}
-
-	chain.App.BeginBlock(abci.RequestBeginBlock{Header: chain.CurrentHeader})
 }
 
 // sendMsgs delivers a transaction through the application without returning the result.
@@ -381,7 +386,7 @@ func (chain *TestChain) GetValsAtHeight(height int64) (*tmtypes.ValidatorSet, bo
 
 	valSet := stakingtypes.Validators(histInfo.Valset)
 
-	tmValidators, err := testutil.ToTmValidators(valSet, sdk.DefaultPowerReduction)
+	tmValidators, err := testutil.ToCmtValidators(valSet, sdk.DefaultPowerReduction)
 	if err != nil {
 		panic(err)
 	}

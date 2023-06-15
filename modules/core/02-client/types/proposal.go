@@ -138,7 +138,7 @@ func (up UpgradeProposal) String() string {
   Title: %s
   Description: %s
   %s
-  Upgraded IBC Client: %s`, up.Title, up.Description, up.Plan, upgradedClientStr)
+  Upgraded IBC Client: %s`, up.Title, up.Description, up.Plan.String(), upgradedClientStr)
 }
 
 // UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
