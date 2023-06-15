@@ -5,8 +5,8 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 
+	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	controllertypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
 	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
@@ -17,9 +17,11 @@ type Migrator struct {
 	keeper *Keeper
 }
 
-// NewMigrator returns a new Migrator.
-func NewMigrator(keeper *Keeper) Migrator {
-	return Migrator{keeper: keeper}
+// NewMigrator returns Migrator instance for the state migration.
+func NewMigrator(k *Keeper) Migrator {
+	return Migrator{
+		keeper: k,
+	}
 }
 
 // AssertChannelCapabilityMigrations checks that all channel capabilities generated using the interchain accounts controller port prefix
@@ -45,6 +47,17 @@ func (m Migrator) AssertChannelCapabilityMigrations(ctx sdk.Context) error {
 			m.keeper.SetMiddlewareEnabled(ctx, ch.PortId, ch.ConnectionHops[0])
 			logger.Info("successfully migrated channel capability", "name", name)
 		}
+	}
+	return nil
+}
+
+// MigrateParams migrates the controller submodule's parameters from the x/params to self store.
+func (m Migrator) MigrateParams(ctx sdk.Context) error {
+	if m.keeper != nil {
+		var params controllertypes.Params
+		m.keeper.legacySubspace.GetParamSet(ctx, &params)
+
+		m.keeper.SetParams(ctx, params)
 	}
 	return nil
 }

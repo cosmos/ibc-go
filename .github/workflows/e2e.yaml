@@ -75,6 +75,8 @@ jobs:
               fi
           done
 
+  # e2e generates the e2e tests for the non-forked PRs. It does so by using the
+  # e2e-test-workflow-call.yml each test runs the jobs defined in that file.
   e2e:
     # we will be running this job if the PR has not yet been marked for review, and we push additional changes.
     # we skip the job in this case.
