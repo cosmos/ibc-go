@@ -1,4 +1,4 @@
-module github.com/cosmos/ibc-go/modules/capability/v7
+module github.com/cosmos/ibc-go/modules/capability
 
 go 1.20
 
