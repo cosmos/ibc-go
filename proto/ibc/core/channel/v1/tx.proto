@@ -361,11 +361,7 @@ message MsgChannelUpgradeTimeout {
 }
 
 // MsgChannelUpgradeTimeoutRepsonse defines the MsgChannelUpgradeTimeout response type
-message MsgChannelUpgradeTimeoutResponse {
-  option (gogoproto.goproto_getters) = false;
-
-  ResponseResultType result = 1;
-}
+message MsgChannelUpgradeTimeoutResponse {}
 
 // MsgChannelUpgradeCancel defines the request type for the ChannelUpgradeCancel rpc
 message MsgChannelUpgradeCancel {
