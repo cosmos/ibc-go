@@ -1,6 +1,7 @@
 package types_test
 
 import (
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -49,7 +50,7 @@ func (suite *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
 				&banktypes.MsgSend{
 					FromAddress: TestOwnerAddress,
 					ToAddress:   TestOwnerAddress,
-					Amount:      sdk.NewCoins(sdk.NewCoin("bananas", sdk.NewInt(100))),
+					Amount:      sdk.NewCoins(sdk.NewCoin("bananas", sdkmath.NewInt(100))),
 				},
 			},
 			true,
@@ -60,12 +61,12 @@ func (suite *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
 				&banktypes.MsgSend{
 					FromAddress: TestOwnerAddress,
 					ToAddress:   TestOwnerAddress,
-					Amount:      sdk.NewCoins(sdk.NewCoin("bananas", sdk.NewInt(100))),
+					Amount:      sdk.NewCoins(sdk.NewCoin("bananas", sdkmath.NewInt(100))),
 				},
 				&banktypes.MsgSend{
 					FromAddress: TestOwnerAddress,
 					ToAddress:   TestOwnerAddress,
-					Amount:      sdk.NewCoins(sdk.NewCoin("bananas", sdk.NewInt(200))),
+					Amount:      sdk.NewCoins(sdk.NewCoin("bananas", sdkmath.NewInt(200))),
 				},
 			},
 			true,
@@ -76,10 +77,10 @@ func (suite *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
 				&banktypes.MsgSend{
 					FromAddress: TestOwnerAddress,
 					ToAddress:   TestOwnerAddress,
-					Amount:      sdk.NewCoins(sdk.NewCoin("bananas", sdk.NewInt(100))),
+					Amount:      sdk.NewCoins(sdk.NewCoin("bananas", sdkmath.NewInt(100))),
 				},
 				&govtypes.MsgSubmitProposal{
-					InitialDeposit: sdk.NewCoins(sdk.NewCoin("bananas", sdk.NewInt(100))),
+					InitialDeposit: sdk.NewCoins(sdk.NewCoin("bananas", sdkmath.NewInt(100))),
 					Proposer:       TestOwnerAddress,
 				},
 			},
