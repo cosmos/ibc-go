@@ -34,9 +34,7 @@ func (suite *CapabilityTestSuite) TestGenesis() {
 
 	// create new app that does not share persistent or in-memory state
 	// and initialize app from exported genesis state above.
-	db := dbm.NewMemDB()
-	encCdc := simapp.MakeTestEncodingConfig()
-	newApp := simapp.NewSimApp(log.NewNopLogger(), db, nil, true, map[int64]bool{}, simapp.DefaultNodeHome, 5, encCdc, simtestutil.EmptyAppOptions{})
+	newApp := simapp.NewSimApp(log.NewNopLogger(), dbm.NewMemDB(), nil, true, simtestutil.EmptyAppOptions{})
 
 	newKeeper := keeper.NewKeeper(suite.cdc, newApp.GetKey(types.StoreKey), newApp.GetMemKey(types.MemStoreKey))
 	newSk1 := newKeeper.ScopeToModule(banktypes.ModuleName)
