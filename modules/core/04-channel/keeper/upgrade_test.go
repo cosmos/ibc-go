@@ -985,7 +985,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeCancel() {
 				channel := path.EndpointA.GetChannel()
 				suite.Require().Equal(errorReceipt.Sequence+1, channel.UpgradeSequence, "upgrade sequence should be incremented")
 			} else {
-				suite.Require().ErrorIs(tc.expError, err)
+				suite.Require().ErrorIs(err, tc.expError)
 			}
 		})
 	}
