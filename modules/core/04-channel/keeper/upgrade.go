@@ -248,12 +248,19 @@ func (k Keeper) ChanUpgradeCancel(ctx sdk.Context, portID, channelID string, err
 		return errorsmod.Wrap(err, "failed to retrieve connection using the channel connection hops")
 	}
 
+	if connection.GetState() != int32(connectiontypes.OPEN) {
+		return errorsmod.Wrapf(
+			connectiontypes.ErrInvalidConnectionState,
+			"connection state is not OPEN (got %s)", connectiontypes.State(connection.GetState()).String(),
+		)
+	}
+
 	if err := k.connectionKeeper.VerifyChannelUpgradeError(ctx, portID, channelID, connection, errorReceipt, errorReceiptProof, proofHeight); err != nil {
 		return errorsmod.Wrap(err, "failed to verify counterparty error receipt")
 	}
 
 	// If counterparty sequence is less than the current sequence, abort the transaction since this error receipt is from a previous upgrade.
-	// Otherwise, increment the counterparty's error sequence by 1 so that both sides start with a fresh sequence.
+	// Otherwise, set our upgrade sequence to the counterparty's error sequence + 1 so that both sides start with a fresh sequence.
 	currentSequence := channel.UpgradeSequence
 	counterpartySequence := errorReceipt.Sequence
 	if counterpartySequence < currentSequence {
