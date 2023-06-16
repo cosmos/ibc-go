@@ -25,6 +25,7 @@ jobs:
       test: "TestIBCChainUpgrade"
       upload-logs: true
       relayer-type: hermes
+      slack-notify: true
 
   upgrade-v7-hermes:
     uses: ./.github/workflows/e2e-test-workflow-call.yml
@@ -39,6 +40,7 @@ jobs:
       test: "TestV6ToV7ChainUpgrade"
       upload-logs: true
       relayer-type: hermes
+      slack-notify: true
 
   upgrade-v7_1-hermes:
     uses: ./.github/workflows/e2e-test-workflow-call.yml
@@ -53,6 +55,7 @@ jobs:
       test: "TestV7ToV7_1ChainUpgrade"
       upload-logs: true
       relayer-type: hermes
+      slack-notify: true
 
   upgrade-v8-hermes:
     uses: ./.github/workflows/e2e-test-workflow-call.yml
@@ -67,6 +70,7 @@ jobs:
       test: "TestV7ToV8ChainUpgrade"
       upload-logs: true
       relayer-type: hermes
+      slack-notify: true
 
   upgrade-v5-rly:
     uses: ./.github/workflows/e2e-test-workflow-call.yml
@@ -83,6 +87,7 @@ jobs:
       relayer-type: rly
       relayer-image: ghcr.io/cosmos/relayer
       relayer-tag: latest
+      slack-notify: true
 
   upgrade-v7-rly:
     uses: ./.github/workflows/e2e-test-workflow-call.yml
@@ -99,6 +104,7 @@ jobs:
       relayer-type: rly
       relayer-image: ghcr.io/cosmos/relayer
       relayer-tag: latest
+      slack-notify: true
 
   upgrade-v7_1-rly:
     uses: ./.github/workflows/e2e-test-workflow-call.yml
@@ -115,6 +121,7 @@ jobs:
       relayer-type: rly
       relayer-image: ghcr.io/cosmos/relayer
       relayer-tag: latest
+      slack-notify: true
 
   upgrade-v8-rly:
     uses: ./.github/workflows/e2e-test-workflow-call.yml
@@ -131,3 +138,4 @@ jobs:
       relayer-type: rly
       relayer-image: ghcr.io/cosmos/relayer
       relayer-tag: latest
+      slack-notify: true
