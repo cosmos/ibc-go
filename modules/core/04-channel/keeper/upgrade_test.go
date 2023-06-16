@@ -921,7 +921,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeCancel() {
 			expError: connectiontypes.ErrConnectionNotFound,
 		},
 		{
-			name: "counter party upgrade sequence less than current sequence",
+			name: "counter partyupgrade sequence less than current sequence",
 			malleate: func() {
 				var ok bool
 				errorReceipt, ok = suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.GetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
@@ -953,8 +953,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeCancel() {
 			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
 			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
 
-			err := path.EndpointA.ChanUpgradeInit()
-			suite.Require().NoError(err)
+			suite.Require().NoError(path.EndpointA.ChanUpgradeInit())
 
 			suite.Require().NoError(path.EndpointB.UpdateClient())
 
@@ -965,8 +964,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeCancel() {
 				return "", fmt.Errorf("mock app callback failed")
 			}
 
-			err = path.EndpointB.ChanUpgradeTry()
-			suite.Require().NoError(err)
+			suite.Require().NoError(path.EndpointB.ChanUpgradeTry())
 
 			suite.Require().NoError(path.EndpointA.UpdateClient())
 
@@ -979,7 +977,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeCancel() {
 
 			tc.malleate()
 
-			err = suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.ChanUpgradeCancel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, errorReceipt, errorReceiptProof, proofHeight)
+			err := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.ChanUpgradeCancel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, errorReceipt, errorReceiptProof, proofHeight)
 
 			expPass := tc.expError == nil
 			if expPass {
