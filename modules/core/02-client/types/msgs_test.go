@@ -4,7 +4,9 @@ import (
 	"testing"
 	"time"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/golang/protobuf/proto" //nolint:staticcheck
+	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
@@ -610,8 +612,8 @@ func (suite *TypesTestSuite) TestMsgSubmitMisbehaviour_ValidateBasic() {
 	}
 }
 
-// TestMsgUpdateParams_ValidateBasic tests ValidateBasic for MsgUpdateParams
-func (suite *TypesTestSuite) TestMsgUpdateParams_ValidateBasic() {
+// TestMsgUpdateParamsValidateBasic tests ValidateBasic for MsgUpdateParams
+func (suite *TypesTestSuite) TestMsgUpdateParamsValidateBasic() {
 	authority := suite.chainA.App.GetIBCKeeper().GetAuthority()
 	testCases := []struct {
 		name    string
@@ -646,6 +648,32 @@ func (suite *TypesTestSuite) TestMsgUpdateParams_ValidateBasic() {
 			suite.Require().NoError(err, "valid case %s failed", tc.name)
 		} else {
 			suite.Require().Error(err, "invalid case %s passed", tc.name)
+		}
+	}
+}
+
+// TestMsgUpdateParamsGetSigners tests GetSigners for MsgUpdateParams
+func TestMsgUpdateParamsGetSigners(t *testing.T) {
+	testCases := []struct {
+		name    string
+		address sdk.AccAddress
+		expPass bool
+	}{
+		{"success: valid address", sdk.AccAddress(ibctesting.TestAccAddress), true},
+		{"failure: nil address", nil, false},
+	}
+
+	for _, tc := range testCases {
+		msg := types.MsgUpdateParams{
+			Authority: tc.address.String(),
+			Params:    types.DefaultParams(),
+		}
+		if tc.expPass {
+			require.Equal(t, []sdk.AccAddress{tc.address}, msg.GetSigners())
+		} else {
+			require.Panics(t, func() {
+				msg.GetSigners()
+			})
 		}
 	}
 }
