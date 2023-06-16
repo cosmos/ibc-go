@@ -9,7 +9,6 @@ import (
 
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
@@ -952,23 +951,41 @@ func (suite *KeeperTestSuite) TestChannelUpgradeCancel() {
 		{
 			name: "invalid error receipt sequence",
 			malleate: func() {
-				msg.ErrorReceipt.Sequence = 0
+				const invalidSequence = 0
+
+				errorReceipt, ok := suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.GetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+				suite.Require().True(ok)
+
+				errorReceipt.Sequence = invalidSequence
+
+				// overwrite the error receipt with an invalid sequence.
+				suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.SetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, errorReceipt)
+
+				// ensure that the error receipt is committed to state.
+				suite.coordinator.CommitBlock(suite.chainB)
+				suite.Require().NoError(path.EndpointA.UpdateClient())
+
+				// retrieve the error receipt proof and proof height.
+				upgradeErrorReceiptKey := host.ChannelUpgradeErrorKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+				errorReceiptProof, proofHeight := suite.chainB.QueryProof(upgradeErrorReceiptKey)
+
+				// provide a valid proof of the error receipt with an invalid sequence.
+				msg.ErrorReceipt.Sequence = invalidSequence
+				msg.ProofErrorReceipt = errorReceiptProof
+				msg.ProofHeight = proofHeight
 			},
 			expErr: channeltypes.ErrInvalidUpgradeSequence,
 		},
 		{
-			name: "invalid channel id",
+			name: "application callback fails",
 			malleate: func() {
-				msg.ChannelId = ibctesting.InvalidID
+				suite.chainA.GetSimApp().IBCMockModule.IBCApp.OnChanUpgradeRestore = func(ctx sdk.Context, portID, channelID string) error {
+					// return an error type that is not returned in the regular flow.
+					return upgradetypes.ErrIntOverflowUpgrade
+				}
 			},
-			expErr: channeltypes.ErrInvalidChannel,
-		},
-		{
-			name: "invalid port id",
-			malleate: func() {
-				msg.PortId = ibctesting.InvalidID
-			},
-			expErr: porttypes.ErrInvalidPort,
+			// error should be what the application callback returned.
+			expErr: upgradetypes.ErrIntOverflowUpgrade,
 		},
 	}
 
@@ -1031,8 +1048,8 @@ func (suite *KeeperTestSuite) TestChannelUpgradeCancel() {
 				suite.Require().Equalf(channeltypes.NOTINFLUSH, channel.FlushStatus, "channel flush status should be %s", channeltypes.NOTINFLUSH.String())
 				suite.Require().Equal(errorReceipt.Sequence+1, channel.UpgradeSequence, "channel upgrade sequence should be incremented")
 			} else {
-				suite.Require().Error(err)
 				suite.Require().Nil(res)
+				suite.Require().ErrorIs(err, tc.expErr)
 			}
 		})
 	}

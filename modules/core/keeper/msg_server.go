@@ -836,12 +836,12 @@ func (k Keeper) ChannelUpgradeCancel(goCtx context.Context, msg *channeltypes.Ms
 
 	if err := k.ChannelKeeper.ChanUpgradeCancel(ctx, msg.PortId, msg.ChannelId, msg.ErrorReceipt, msg.ProofErrorReceipt, msg.ProofHeight); err != nil {
 		ctx.Logger().Error("channel upgrade cancel failed", "port-id", msg.PortId, "error", err.Error())
-		return nil, err
+		return nil, errorsmod.Wrap(err, "channel upgrade cancel failed")
 	}
 
 	if err := cbs.OnChanUpgradeRestore(ctx, msg.PortId, msg.ChannelId); err != nil {
-		ctx.Logger().Error("channel upgrade cancel failed", "port-id", msg.PortId, "error", err.Error())
-		return nil, err
+		ctx.Logger().Error("channel upgrade cancel failed", "port-id", msg.PortId, "channel-id", msg.ChannelId, "error", errorsmod.Wrap(err, "channel upgrade restore callback failed"))
+		return nil, errorsmod.Wrapf(err, "channel upgrade restore callback failed for port ID: %s, channel ID: %s", msg.PortId, msg.ChannelId)
 	}
 
 	k.ChannelKeeper.WriteUpgradeCancelChannel(ctx, msg.PortId, msg.ChannelId)
