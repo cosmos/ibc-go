@@ -14,7 +14,6 @@ import (
 // HandlerOptions are the options required for constructing a default SDK AnteHandler.
 type HandlerOptions struct {
 	ante.HandlerOptions
-
 	CircuitKeeper circuitante.CircuitBreaker
 	IBCKeeper     *keeper.Keeper
 }

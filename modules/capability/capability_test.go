@@ -34,7 +34,7 @@ func (suite *CapabilityTestSuite) SetupTest() {
 	cdc := app.AppCodec()
 
 	// create new keeper so we can define custom scoping before init and seal
-	keeper := keeper.NewKeeper(cdc, app.GetKey(types.StoreKey), app.GetMemKey(types.MemStoreKey))
+	keeper := keeper.NewKeeper(cdc, app.GetKey(types.StoreKey), app.GetKey(types.MemStoreKey))
 
 	suite.app = app
 	suite.ctx = app.BaseApp.NewContext(checkTx)
@@ -53,7 +53,7 @@ func (suite *CapabilityTestSuite) TestInitializeMemStore() {
 	suite.Require().NotNil(cap1)
 
 	// mock statesync by creating new keeper that shares persistent state but loses in-memory map
-	newKeeper := keeper.NewKeeper(suite.cdc, suite.app.GetKey(types.StoreKey), suite.app.GetMemKey(memStoreKey))
+	newKeeper := keeper.NewKeeper(suite.cdc, suite.app.GetKey(types.StoreKey), suite.app.GetKey(memStoreKey))
 	newSk1 := newKeeper.ScopeToModule(banktypes.ModuleName)
 
 	// Mock App startup
