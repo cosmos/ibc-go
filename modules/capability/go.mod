@@ -34,6 +34,7 @@ require (
 	cosmossdk.io/x/circuit v0.0.0-20230615173548-5385116abac4 // indirect
 	cosmossdk.io/x/evidence v0.0.0-20230609160955-4ad71e570d16 // indirect
 	cosmossdk.io/x/feegrant v0.0.0-20230609160955-4ad71e570d16 // indirect
+	cosmossdk.io/x/nft v0.0.0-20230616095831-277d5fd37107 // indirect
 	cosmossdk.io/x/tx v0.8.0 // indirect
 	cosmossdk.io/x/upgrade v0.0.0-20230609160955-4ad71e570d16 // indirect
 	filippo.io/edwards25519 v1.0.0 // indirect
@@ -140,11 +141,10 @@ require (
 	github.com/petermattis/goid v0.0.0-20230518223814-80aa455d8761 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
-	github.com/prometheus/client_golang v1.15.1 // indirect
+	github.com/prometheus/client_golang v1.16.0 // indirect
 	github.com/prometheus/client_model v0.4.0 // indirect
 	github.com/prometheus/common v0.44.0 // indirect
 	github.com/prometheus/procfs v0.10.1 // indirect
-	github.com/rakyll/statik v0.1.7 // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 // indirect
 	github.com/rogpeppe/go-internal v1.10.0 // indirect
 	github.com/rs/cors v1.8.3 // indirect

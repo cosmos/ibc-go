@@ -24,7 +24,7 @@ func makeCodec(bm module.BasicManager) *codec.LegacyAmino {
 }
 
 func TestGetSimulationLog(t *testing.T) {
-	cdc := makeCodec(ModuleBasics)
+	cdc := makeCodec(ModuleBasicManager.GetB)
 
 	decoders := make(simulation.StoreDecoderRegistry)
 	decoders[authtypes.StoreKey] = func(kvAs, kvBs kv.Pair) string { return "10" }

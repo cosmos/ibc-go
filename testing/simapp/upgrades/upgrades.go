@@ -1,5 +1,6 @@
 package upgrades
 
+/*
 const (
 	// V5 defines the upgrade name for the ibc-go/v5 upgrade handler.
 	V5 = "normal upgrade" // NOTE: keeping as "normal upgrade" as existing tags depend on this name
@@ -11,7 +12,6 @@ const (
 	V7_1 = "v7.1"
 )
 
-/*
 // CreateDefaultUpgradeHandler creates an upgrade handler which can be used for regular upgrade tests
 // that do not require special logic
 func CreateDefaultUpgradeHandler(
@@ -33,7 +33,7 @@ func CreateV6UpgradeHandler(
 	capabilityKeeper *capabilitykeeper.Keeper,
 	moduleName string,
 ) upgradetypes.UpgradeHandler {
-	return func(ctx sdk.Context, _ upgradetypes.Plan, vm module.VersionMap) (module.VersionMap, error) {
+	func(ctx sdk.Context, _ upgradetypes.Plan, vm module.VersionMap) (module.VersionMap, error) {
 		if err := v6.MigrateICS27ChannelCapability(ctx, cdc, capabilityStoreKey, capabilityKeeper, moduleName); err != nil {
 			return nil, err
 		}
@@ -79,4 +79,5 @@ func CreateV7LocalhostUpgradeHandler(
 		return mm.RunMigrations(ctx, configurator, vm)
 	}
 }
+
 */
