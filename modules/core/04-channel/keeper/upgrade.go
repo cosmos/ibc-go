@@ -13,6 +13,7 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
 // ChanUpgradeInit is called by a module to initiate a channel upgrade handshake with
@@ -356,6 +357,20 @@ func (k Keeper) ChanUpgradeAck(
 		}
 	}
 
+	return nil
+}
+
+// ChanUpgradeTimeout times out an outstanding upgrade.
+// This should be used by the initialising chain when the counterparty chain has not responded to an upgrade proposal within the specified timeout period.
+func (k Keeper) ChanUpgradeTimeout(
+	ctx sdk.Context,
+	portID, channelID string,
+	counterpartyChannel types.Channel,
+	prevErrorReceipt types.ErrorReceipt,
+	proofCounterpartyChannel,
+	proofErrorReceipt []byte,
+	proofHeight exported.Height,
+) error {
 	return nil
 }
 
