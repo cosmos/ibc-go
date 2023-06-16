@@ -333,7 +333,7 @@ func (k Keeper) writeUpgradeTimeoutChannel(
 	}
 
 	if err := k.AbortUpgrade(ctx, portID, channelID, types.NewUpgradeError(channel.UpgradeSequence, types.ErrUpgradeTimeout)); err != nil {
-		return errorsmod.Wrap(types.ErrUpgradeRestoreFailed, fmt.Sprintf("failed to restore channel, channelID: %s, portID: %s", channelID, portID))
+		return errorsmod.Wrapf(types.ErrUpgradeRestoreFailed, "err: %v", err)
 	}
 
 	k.Logger(ctx).Info("channel state restored", "port-id", portID, "channel-id", channelID)
