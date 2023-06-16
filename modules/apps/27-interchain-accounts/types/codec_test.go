@@ -1,7 +1,10 @@
 package types_test
 
 import (
+	"cosmossdk.io/log"
+	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/codec"
+	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
@@ -9,6 +12,7 @@ import (
 
 	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
 	"github.com/cosmos/ibc-go/v7/testing/simapp"
+	"github.com/cosmos/ibc-go/v7/testing/simapp/params"
 )
 
 // mockSdkMsg defines a mock struct, used for testing codec error scenarios
@@ -107,10 +111,18 @@ func (suite *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
 		tc := tc
 
 		suite.Run(tc.name, func() {
-			bz, err := types.SerializeCosmosTx(simapp.MakeTestEncodingConfig().Marshaler, tc.msgs)
+			tempApp := simapp.NewSimApp(log.NewNopLogger(), dbm.NewMemDB(), nil, true, simtestutil.NewAppOptionsWithFlagHome(suite.chainA.TempDir()))
+			encodingConfig := params.EncodingConfig{
+				InterfaceRegistry: tempApp.InterfaceRegistry(),
+				Codec:             tempApp.AppCodec(),
+				TxConfig:          tempApp.TxConfig(),
+				Amino:             tempApp.LegacyAmino(),
+			}
+
+			bz, err := types.SerializeCosmosTx(encodingConfig.Codec, tc.msgs)
 			suite.Require().NoError(err, tc.name)
 
-			msgs, err := types.DeserializeCosmosTx(simapp.MakeTestEncodingConfig().Marshaler, bz)
+			msgs, err := types.DeserializeCosmosTx(encodingConfig.Codec, bz)
 			if tc.expPass {
 				suite.Require().NoError(err, tc.name)
 			} else {
