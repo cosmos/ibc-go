@@ -5,6 +5,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 
+	circuitante "cosmossdk.io/x/circuit/ante"
 	ibcante "github.com/cosmos/ibc-go/v7/modules/core/ante"
 	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
 	"github.com/cosmos/ibc-go/v7/modules/core/keeper"
@@ -14,7 +15,8 @@ import (
 type HandlerOptions struct {
 	ante.HandlerOptions
 
-	IBCKeeper *keeper.Keeper
+	CircuitKeeper circuitante.CircuitBreaker
+	IBCKeeper     *keeper.Keeper
 }
 
 // NewAnteHandler creates a new ante handler
