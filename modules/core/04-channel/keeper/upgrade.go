@@ -359,6 +359,35 @@ func (k Keeper) ChanUpgradeAck(
 	return nil
 }
 
+// writeUpgradeTimeoutChannel restores the channel state of an initialising chain in the event that the counterparty chain has passed the timeout set in ChanUpgradeInit to the state before the upgrade was proposed.
+// Auxiliary upgrade state is also deleted.
+// An event is emitted for the handshake step.
+func (k Keeper) writeUpgradeTimeoutChannel(
+	ctx sdk.Context,
+	portID, channelID string,
+) error {
+	defer telemetry.IncrCounter(1, "ibc", "channel", "upgrade-timeout")
+
+	channel, found := k.GetChannel(ctx, portID, channelID)
+	if !found {
+		panic(fmt.Sprintf("could not find existing channel when updating channel state in successful ChanUpgradeTimeout step, channelID: %s, portID: %s", channelID, portID))
+	}
+
+	upgrade, found := k.GetUpgrade(ctx, portID, channelID)
+	if !found {
+		panic(fmt.Sprintf("could not find existing upgrade when cancelling channel upgrade, channelID: %s, portID: %s", channelID, portID))
+	}
+
+	if err := k.AbortUpgrade(ctx, portID, channelID, types.NewUpgradeError(channel.UpgradeSequence, types.ErrUpgradeTimeout)); err != nil {
+		return errorsmod.Wrapf(types.ErrUpgradeRestoreFailed, "err: %v", err)
+	}
+
+	k.Logger(ctx).Info("channel state restored", "port-id", portID, "channel-id", channelID)
+	emitChannelUpgradeTimeoutEvent(ctx, portID, channelID, channel, upgrade)
+
+	return nil
+}
+
 // startFlushUpgradeHandshake will verify the counterparty proposed upgrade and the current channel state.
 // Once the counterparty information has been verified, it will be validated against the self proposed upgrade.
 // If any of the proposed upgrade fields are incompatible, an upgrade error will be returned resulting in an
