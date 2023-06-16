@@ -135,17 +135,25 @@ func (suite *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
 		})
 	}
 
+	tempApp := simapp.NewSimApp(log.NewNopLogger(), dbm.NewMemDB(), nil, true, simtestutil.NewAppOptionsWithFlagHome(suite.chainA.TempDir()))
+	encodingConfig := params.EncodingConfig{
+		InterfaceRegistry: tempApp.InterfaceRegistry(),
+		Codec:             tempApp.AppCodec(),
+		TxConfig:          tempApp.TxConfig(),
+		Amino:             tempApp.LegacyAmino(),
+	}
+
 	// test serializing non sdk.Msg type
-	bz, err := types.SerializeCosmosTx(simapp.MakeTestEncodingConfig().Marshaler, []proto.Message{&banktypes.MsgSendResponse{}})
+	bz, err := types.SerializeCosmosTx(encodingConfig.Codec, []proto.Message{&banktypes.MsgSendResponse{}})
 	suite.Require().NoError(err)
 	suite.Require().NotEmpty(bz)
 
 	// test deserializing unknown bytes
-	_, err = types.DeserializeCosmosTx(simapp.MakeTestEncodingConfig().Marshaler, bz)
+	_, err = types.DeserializeCosmosTx(encodingConfig.Codec, bz)
 	suite.Require().Error(err) // unregistered type
 
 	// test deserializing unknown bytes
-	msgs, err := types.DeserializeCosmosTx(simapp.MakeTestEncodingConfig().Marshaler, []byte("invalid"))
+	msgs, err := types.DeserializeCosmosTx(encodingConfig.Codec, []byte("invalid"))
 	suite.Require().Error(err)
 	suite.Require().Empty(msgs)
 }

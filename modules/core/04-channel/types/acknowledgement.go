@@ -1,12 +1,12 @@
 package types
 
 import (
+	"encoding/json"
 	"fmt"
 	"reflect"
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 const (
@@ -69,5 +69,19 @@ func (ack Acknowledgement) Success() bool {
 // Acknowledgement implements the Acknowledgement interface. It returns the
 // acknowledgement serialised using JSON.
 func (ack Acknowledgement) Acknowledgement() []byte {
-	return sdk.MustSortJSON(SubModuleCdc.MustMarshalJSON(&ack))
+	return mustSortJSON(SubModuleCdc.MustMarshalJSON(&ack))
+}
+
+// Deprecated: please delete this code eventually.
+func mustSortJSON(bz []byte) []byte {
+	var c any
+	err := json.Unmarshal(bz, &c)
+	if err != nil {
+		panic(err)
+	}
+	js, err := json.Marshal(c)
+	if err != nil {
+		panic(err)
+	}
+	return js
 }

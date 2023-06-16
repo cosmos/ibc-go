@@ -1,6 +1,7 @@
 package types
 
 import (
+	"encoding/json"
 	"time"
 
 	errorsmod "cosmossdk.io/errors"
@@ -44,12 +45,26 @@ func (iapd InterchainAccountPacketData) ValidateBasic() error {
 
 // GetBytes returns the JSON marshalled interchain account packet data.
 func (iapd InterchainAccountPacketData) GetBytes() []byte {
-	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(&iapd))
+	return mustSortJSON(ModuleCdc.MustMarshalJSON(&iapd))
 }
 
 // GetBytes returns the JSON marshalled interchain account CosmosTx.
 func (ct CosmosTx) GetBytes() []byte {
-	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(&ct))
+	return mustSortJSON(ModuleCdc.MustMarshalJSON(&ct))
+}
+
+// Deprecated: please delete this code eventually.
+func mustSortJSON(bz []byte) []byte {
+	var c any
+	err := json.Unmarshal(bz, &c)
+	if err != nil {
+		panic(err)
+	}
+	js, err := json.Marshal(c)
+	if err != nil {
+		panic(err)
+	}
+	return js
 }
 
 // UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
