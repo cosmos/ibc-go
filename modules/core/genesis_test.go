@@ -305,7 +305,7 @@ func (suite *IBCTestSuite) TestInitGenesis() {
 	}
 
 	for _, tc := range testCases {
-		app := simapp.Setup(false)
+		app := simapp.Setup(suite.T(), false)
 
 		suite.NotPanics(func() {
 			ibc.InitGenesis(app.BaseApp.NewContext(false), *app.IBCKeeper, tc.genState)
