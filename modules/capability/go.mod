@@ -26,8 +26,10 @@ require (
 	cloud.google.com/go/iam v0.13.0 // indirect
 	cloud.google.com/go/storage v1.30.0 // indirect
 	cosmossdk.io/api v0.4.2 // indirect
+	cosmossdk.io/client/v2 v2.0.0-20230615173548-5385116abac4 // indirect
 	cosmossdk.io/collections v0.2.0 // indirect
 	cosmossdk.io/depinject v1.0.0-alpha.3 // indirect
+	cosmossdk.io/x/circuit v0.0.0-20230615173548-5385116abac4 // indirect
 	cosmossdk.io/x/evidence v0.0.0-20230609160955-4ad71e570d16 // indirect
 	cosmossdk.io/x/feegrant v0.0.0-20230609160955-4ad71e570d16 // indirect
 	cosmossdk.io/x/tx v0.8.0 // indirect
@@ -48,10 +50,10 @@ require (
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/chzyer/readline v1.5.1 // indirect
 	github.com/cockroachdb/apd/v2 v2.0.2 // indirect
-	github.com/cockroachdb/errors v1.9.1 // indirect
+	github.com/cockroachdb/errors v1.10.0 // indirect
 	github.com/cockroachdb/logtags v0.0.0-20230118201751-21c54148d20b // indirect
-	github.com/cockroachdb/pebble v0.0.0-20230606152911-c4be581b807f // indirect
-	github.com/cockroachdb/redact v1.1.4 // indirect
+	github.com/cockroachdb/pebble v0.0.0-20230606202032-d96868fd481e // indirect
+	github.com/cockroachdb/redact v1.1.5 // indirect
 	github.com/cometbft/cometbft-db v0.8.0 // indirect
 	github.com/cosmos/btcutil v1.0.5 // indirect
 	github.com/cosmos/cosmos-proto v1.0.0-beta.3 // indirect
@@ -160,14 +162,14 @@ require (
 	github.com/zondax/ledger-go v0.14.1 // indirect
 	go.etcd.io/bbolt v1.3.7 // indirect
 	go.opencensus.io v0.24.0 // indirect
-	golang.org/x/crypto v0.9.0 // indirect
+	golang.org/x/crypto v0.10.0 // indirect
 	golang.org/x/exp v0.0.0-20230522175609-2e198f4a06a1 // indirect
 	golang.org/x/net v0.10.0 // indirect
 	golang.org/x/oauth2 v0.8.0 // indirect
-	golang.org/x/sync v0.2.0 // indirect
-	golang.org/x/sys v0.8.0 // indirect
-	golang.org/x/term v0.8.0 // indirect
-	golang.org/x/text v0.9.0 // indirect
+	golang.org/x/sync v0.3.0 // indirect
+	golang.org/x/sys v0.9.0 // indirect
+	golang.org/x/term v0.9.0 // indirect
+	golang.org/x/text v0.10.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 	google.golang.org/api v0.122.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
@@ -181,7 +183,7 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	gotest.tools/v3 v3.4.0 // indirect
 	nhooyr.io/websocket v1.8.6 // indirect
-	pgregory.net/rapid v0.6.2 // indirect
+	pgregory.net/rapid v1.0.0 // indirect
 )
 
 replace github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
