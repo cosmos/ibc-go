@@ -488,7 +488,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeAck() {
 func (suite *KeeperTestSuite) TestChanUpgradeTimeout() {
 	var (
 		path                     *ibctesting.Path
-		errReceipt               types.ErrorReceipt
+		errReceipt               *types.ErrorReceipt
 		proofHeight              exported.Height
 		proofCounterpartyChannel []byte
 		proofErrorReceipt        []byte
@@ -523,12 +523,12 @@ func (suite *KeeperTestSuite) TestChanUpgradeTimeout() {
 		{
 			"success: non-nil error receipt",
 			func() {
-				errReceipt = types.ErrorReceipt{
+				errReceipt = &types.ErrorReceipt{
 					Sequence: 1,
 					Message:  types.ErrInvalidUpgrade.Error(),
 				}
 
-				suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.SetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, errReceipt)
+				suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.SetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, *errReceipt)
 
 				suite.Require().NoError(path.EndpointB.UpdateClient())
 				suite.Require().NoError(path.EndpointA.UpdateClient())
@@ -570,18 +570,18 @@ func (suite *KeeperTestSuite) TestChanUpgradeTimeout() {
 			connectiontypes.ErrConnectionNotFound,
 		},
 		{
-			"connection not found",
+			"connection not open",
 			func() {
-				channel := path.EndpointA.GetChannel()
-				channel.ConnectionHops[0] = ibctesting.InvalidID
-				path.EndpointA.SetChannel(channel)
+				connectionEnd := path.EndpointA.GetConnection()
+				connectionEnd.State = connectiontypes.UNINITIALIZED
+				path.EndpointA.SetConnection(connectionEnd)
 			},
-			connectiontypes.ErrConnectionNotFound,
+			connectiontypes.ErrInvalidConnectionState,
 		},
 		{
 			"unable to retrieve timestamp at proof height",
 			func() {
-				proofHeight = clienttypes.NewHeight(0, uint64(path.EndpointA.Chain.GetContext().BlockHeight()+100))
+				proofHeight = suite.chainA.GetTimeoutHeight()
 			},
 			clienttypes.ErrConsensusStateNotFound,
 		},
@@ -589,7 +589,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeTimeout() {
 			"timeout has not passed",
 			func() {
 				upgrade := path.EndpointA.GetProposedUpgrade()
-				upgrade.Timeout.Height = clienttypes.NewHeight(1, uint64(path.EndpointA.Chain.GetContext().BlockHeight()+100))
+				upgrade.Timeout.Height = suite.chainA.GetTimeoutHeight()
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.SetUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, upgrade)
 
 				suite.Require().NoError(path.EndpointA.UpdateClient())
@@ -619,7 +619,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeTimeout() {
 		{
 			"non-nil error receipt: error receipt seq greater than current upgrade seq",
 			func() {
-				errReceipt = types.ErrorReceipt{
+				errReceipt = &types.ErrorReceipt{
 					Sequence: 3,
 					Message:  types.ErrInvalidUpgrade.Error(),
 				}
@@ -640,11 +640,11 @@ func (suite *KeeperTestSuite) TestChanUpgradeTimeout() {
 			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
 			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
 
+			errReceipt = nil
+
 			// set timeout height to 1 to ensure timeout
 			path.EndpointA.ChannelConfig.ProposedUpgrade.Timeout.Height = clienttypes.NewHeight(1, 1)
 			suite.Require().NoError(path.EndpointA.ChanUpgradeInit())
-
-			errReceipt = types.ErrorReceipt{}
 
 			// ensure clients are up to date to receive valid proofs
 			suite.Require().NoError(path.EndpointB.UpdateClient())
@@ -1156,7 +1156,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeCancel() {
 			}
 
 			suite.Require().NoError(path.EndpointB.ChanUpgradeTry())
-
+			
 			suite.Require().NoError(path.EndpointA.UpdateClient())
 
 			upgradeErrorReceiptKey := host.ChannelUpgradeErrorKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)

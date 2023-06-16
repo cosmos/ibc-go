@@ -366,7 +366,7 @@ func (k Keeper) ChanUpgradeTimeout(
 	ctx sdk.Context,
 	portID, channelID string,
 	counterpartyChannel types.Channel,
-	prevErrorReceipt types.ErrorReceipt,
+	prevErrorReceipt *types.ErrorReceipt,
 	proofCounterpartyChannel,
 	proofErrorReceipt []byte,
 	proofHeight exported.Height,
@@ -408,8 +408,9 @@ func (k Keeper) ChanUpgradeTimeout(
 	}
 
 	timeout := upgrade.Timeout
-	if (timeout.Height.IsZero() || proofHeight.LT(timeout.Height)) &&
-		(timeout.Timestamp == 0 || proofTimestamp < timeout.Timestamp) {
+	proofHeightIsInvalid := timeout.Height.IsZero() || proofHeight.LT(timeout.Height)
+	proofTimestampIsInvalid := timeout.Timestamp == 0 || proofTimestamp < timeout.Timestamp
+	if proofHeightIsInvalid && proofTimestampIsInvalid {
 		return errorsmod.Wrap(types.ErrInvalidUpgradeTimeout, "timeout has not yet passed on counterparty chain")
 	}
 
@@ -431,36 +432,35 @@ func (k Keeper) ChanUpgradeTimeout(
 	}
 
 	// Error receipt passed in is either nil or it is a stale error receipt from a previous upgrade
-	if (prevErrorReceipt == types.ErrorReceipt{}) {
-		err := k.connectionKeeper.VerifyChannelUpgradeErrorAbsence(
+	if prevErrorReceipt == nil {
+		if err := k.connectionKeeper.VerifyChannelUpgradeErrorAbsence(
 			ctx,
 			channel.Counterparty.PortId, channel.Counterparty.ChannelId,
 			connection,
 			proofErrorReceipt,
 			proofHeight,
-		)
-		if err != nil {
+		); err != nil {
 			return errorsmod.Wrap(err, "failed to verify absence of counterparty channel upgrade error receipt")
 		}
-	} else {
-		// timeout for this sequence can only succeed if the error receipt written into the error path on the counterparty
-		// was for a previous sequence by the timeout deadline.
-		upgradeSequence := channel.UpgradeSequence
-		if upgradeSequence < prevErrorReceipt.Sequence {
-			return errorsmod.Wrapf(types.ErrInvalidUpgradeSequence, "previous counterparty error receipt sequence is greater than our current upgrade sequence: %d > %d", prevErrorReceipt.Sequence, upgradeSequence)
-		}
 
-		err := k.connectionKeeper.VerifyChannelUpgradeError(
-			ctx,
-			channel.Counterparty.PortId, channel.Counterparty.ChannelId,
-			connection,
-			prevErrorReceipt,
-			proofErrorReceipt,
-			proofHeight,
-		)
-		if err != nil {
-			return errorsmod.Wrap(err, "failed to verify counterparty channel upgrade error receipt")
-		}
+		return nil
+	}
+	// timeout for this sequence can only succeed if the error receipt written into the error path on the counterparty
+	// was for a previous sequence by the timeout deadline.
+	upgradeSequence := channel.UpgradeSequence
+	if upgradeSequence < prevErrorReceipt.Sequence {
+		return errorsmod.Wrapf(types.ErrInvalidUpgradeSequence, "previous counterparty error receipt sequence is greater than our current upgrade sequence: %d > %d", prevErrorReceipt.Sequence, upgradeSequence)
+	}
+
+	if err := k.connectionKeeper.VerifyChannelUpgradeError(
+		ctx,
+		channel.Counterparty.PortId, channel.Counterparty.ChannelId,
+		connection,
+		*prevErrorReceipt,
+		proofErrorReceipt,
+		proofHeight,
+	); err != nil {
+		return errorsmod.Wrap(err, "failed to verify counterparty channel upgrade error receipt")
 	}
 
 	return nil
