@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	kmultisig "github.com/cosmos/cosmos-sdk/crypto/keys/multisig"
@@ -369,7 +370,7 @@ func (solo *Solomachine) SendTransfer(chain *TestChain, portID, channelID string
 	msgTransfer := transfertypes.MsgTransfer{
 		SourcePort:       portID,
 		SourceChannel:    channelID,
-		Token:            sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100)),
+		Token:            sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100)),
 		Sender:           chain.SenderAccount.GetAddress().String(),
 		Receiver:         chain.SenderAccount.GetAddress().String(),
 		TimeoutHeight:    clienttypes.ZeroHeight(),

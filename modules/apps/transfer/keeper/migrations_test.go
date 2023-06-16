@@ -174,7 +174,7 @@ func (suite *KeeperTestSuite) TestMigrateTotalEscrowForDenom() {
 			func() {
 				denom = sdk.DefaultBondDenom
 				escrowAddress := transfertypes.GetEscrowAddress(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-				coin := sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100))
+				coin := sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100))
 
 				// funds the escrow account to have balance
 				suite.Require().NoError(banktestutil.FundAccount(suite.chainA.GetSimApp().BankKeeper, suite.chainA.GetContext(), escrowAddress, sdk.NewCoins(coin)))
@@ -190,8 +190,8 @@ func (suite *KeeperTestSuite) TestMigrateTotalEscrowForDenom() {
 
 				escrowAddress1 := transfertypes.GetEscrowAddress(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 				escrowAddress2 := transfertypes.GetEscrowAddress(extraPath.EndpointA.ChannelConfig.PortID, extraPath.EndpointA.ChannelID)
-				coin1 := sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100))
-				coin2 := sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100))
+				coin1 := sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100))
+				coin2 := sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100))
 
 				// funds the escrow accounts to have balance
 				suite.Require().NoError(banktestutil.FundAccount(suite.chainA.GetSimApp().BankKeeper, suite.chainA.GetContext(), escrowAddress1, sdk.NewCoins(coin1)))
@@ -204,7 +204,7 @@ func (suite *KeeperTestSuite) TestMigrateTotalEscrowForDenom() {
 			func() {
 				escrowAddress := transfertypes.GetEscrowAddress(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 				trace := transfertypes.ParseDenomTrace(transfertypes.GetPrefixedDenom(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, sdk.DefaultBondDenom))
-				coin := sdk.NewCoin(trace.IBCDenom(), sdk.NewInt(100))
+				coin := sdk.NewCoin(trace.IBCDenom(), sdkmath.NewInt(100))
 				denom = trace.IBCDenom()
 
 				suite.chainA.GetSimApp().TransferKeeper.SetDenomTrace(suite.chainA.GetContext(), trace)
@@ -212,7 +212,7 @@ func (suite *KeeperTestSuite) TestMigrateTotalEscrowForDenom() {
 				// funds the escrow account to have balance
 				suite.Require().NoError(banktestutil.FundAccount(suite.chainA.GetSimApp().BankKeeper, suite.chainA.GetContext(), escrowAddress, sdk.NewCoins(coin)))
 			},
-			sdk.NewInt(100),
+			sdkmath.NewInt(100),
 		},
 	}
 
