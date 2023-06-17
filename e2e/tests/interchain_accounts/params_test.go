@@ -8,6 +8,7 @@ import (
 	paramsproposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 
 	controllertypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
+	hosttypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/types"
 	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 
@@ -29,6 +30,15 @@ type InterchainAccountsParamsTestSuite struct {
 func (s *InterchainAccountsParamsTestSuite) QueryControllerParams(ctx context.Context, chain ibc.Chain) controllertypes.Params {
 	queryClient := s.GetChainGRCPClients(chain).ICAControllerQueryClient
 	res, err := queryClient.Params(ctx, &controllertypes.QueryParamsRequest{})
+	s.Require().NoError(err)
+
+	return *res.Params
+}
+
+// QueryHostParams queries the host chain for the params
+func (s *InterchainAccountsParamsTestSuite) QueryHostParams(ctx context.Context, chain ibc.Chain) hosttypes.Params {
+	queryClient := s.GetChainGRCPClients(chain).ICAHostQueryClient
+	res, err := queryClient.Params(ctx, &hosttypes.QueryParamsRequest{})
 	s.Require().NoError(err)
 
 	return *res.Params
@@ -88,5 +98,53 @@ func (s *InterchainAccountsParamsTestSuite) TestControllerParams() {
 
 		txResp := s.BroadcastMessages(ctx, chainA, controllerAccount, msgRegisterAccount)
 		s.AssertTxFailure(txResp, controllertypes.ErrControllerSubModuleDisabled)
+	})
+}
+
+func (s *InterchainAccountsParamsTestSuite) TestHostParams() {
+	t := s.T()
+	ctx := context.TODO()
+
+	// setup relayers and connection-0 between two chains
+	// channel-0 is a transfer channel but it will not be used in this test case
+	_, _ = s.SetupChainsRelayerAndChannel(ctx)
+	_, chainB := s.GetChains()
+	chainBVersion := chainB.Config().Images[0].Version
+
+	// setup 2 accounts: controller account on chain A, a second chain B account.
+	// host account will be created when the ICA is registered
+	chainBUser := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
+
+	// Assert that default value for enabled is true.
+	t.Run("validate default values for params", func(t *testing.T) {
+		params := s.QueryHostParams(ctx, chainB)
+		s.Require().True(params.HostEnabled)
+		s.Require().Equal([]string{hosttypes.AllowAllHostMsgs}, params.AllowMessages)
+	})
+
+	t.Run("disable host", func(t *testing.T) {
+		if testvalues.SelfParamsFeatureReleases.IsSupported(chainBVersion) {
+			authority, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainB)
+			s.Require().NoError(err)
+			s.Require().NotNil(authority)
+
+			msg := hosttypes.MsgUpdateParams{
+				Authority: authority.String(),
+				Params:    hosttypes.NewParams(false, []string{hosttypes.AllowAllHostMsgs}),
+			}
+			s.ExecuteGovProposalV1(ctx, &msg, chainB, chainBUser, 1)
+		} else {
+			changes := []paramsproposaltypes.ParamChange{
+				paramsproposaltypes.NewParamChange(hosttypes.StoreKey, string(hosttypes.KeyHostEnabled), "false"),
+			}
+
+			proposal := paramsproposaltypes.NewParameterChangeProposal(ibctesting.Title, ibctesting.Description, changes)
+			s.ExecuteGovProposal(ctx, chainB, chainBUser, proposal)
+		}
+	})
+
+	t.Run("validate the param was successfully changed", func(t *testing.T) {
+		params := s.QueryHostParams(ctx, chainB)
+		s.Require().False(params.HostEnabled)
 	})
 }
