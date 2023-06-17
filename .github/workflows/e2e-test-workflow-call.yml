@@ -16,6 +16,11 @@ on:
         required: false
         type: string
         default: '' # empty string means don't skip any test.
+      skip-tests:
+        description: 'Flag to specify if tests should be skipped'
+        required: false
+        type: boolean
+        default: false
       chain-image:
         description: 'The image to use for chains'
         required: true
@@ -94,6 +99,7 @@ jobs:
   # is skipped. But will run if every individual task is skipped. There is no current way of conditionally needing
   # a job.
   docker-build:
+    if: ${{ !inputs.skip-tests }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -129,6 +135,7 @@ jobs:
   # pairs. The output of this job can be fed in as input to a workflow matrix and
   # will expand to jobs which will run all tests present.
   build-test-matrix:
+    if: ${{ !inputs.skip-tests }}
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
@@ -175,14 +182,32 @@ jobs:
           go-version: '1.20'
       - name: Run e2e Test
         id: e2e_test
+        if: ${{ !inputs.skip-tests }}
         run: |
           cd e2e
           make e2e-test test=${{ matrix.test }}
       - name: Upload Diagnostics
         uses: actions/upload-artifact@v3
-        if: ${{ failure() && inputs.upload-logs }}
+        if: ${{ failure() && inputs.upload-logs && !inputs.skip-tests }}
         continue-on-error: true
         with:
           name: '${{ matrix.entrypoint }}-${{ matrix.test }}'
           path: e2e/diagnostics
           retention-days: 5
+
+  # e2e-success is a dummy job that is used to tally the results of the e2e-tests job. The name of this job
+  # can be used in the branch protection rules, as a single target, to make sure all tests pass before merging.
+  # If the tests are to be skipped, e2e-success will be skipped as well.
+  e2e-success:
+    if: ${{ !inputs.skip-tests }}
+    needs: e2e-tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check e2e-tests results
+        if: >-
+          ${{
+              contains(needs.*.result, 'failure')
+            || contains(needs.*.result, 'cancelled')
+            || contains(needs.*.result, 'skipped')
+          }}
+        run: exit 1

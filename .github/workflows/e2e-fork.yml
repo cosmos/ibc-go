@@ -51,3 +51,19 @@ jobs:
         run: |
           cd e2e
           make e2e-test test=${{ matrix.test }}
+
+  # e2e-fork-success is a dummy job that is used to tally the results of the e2e-fork job. The name of this job
+  # can be used in the branch protection rules, as a single target, to make sure all tests pass before merging.
+  # If e2e-fork is skipped, e2e-fork-success will be skipped as well.
+  e2e-fork-success:
+    needs: e2e-fork
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check e2e-fork results
+        if: >-
+          ${{
+              contains(needs.*.result, 'failure')
+            || contains(needs.*.result, 'cancelled')
+            || contains(needs.*.result, 'skipped')
+          }}
+        run: exit 1
