@@ -1156,7 +1156,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeCancel() {
 			}
 
 			suite.Require().NoError(path.EndpointB.ChanUpgradeTry())
-			
+
 			suite.Require().NoError(path.EndpointA.UpdateClient())
 
 			upgradeErrorReceiptKey := host.ChannelUpgradeErrorKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
