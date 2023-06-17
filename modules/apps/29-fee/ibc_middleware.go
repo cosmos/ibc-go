@@ -345,6 +345,19 @@ func (im IBCMiddleware) OnChanUpgradeRestore(ctx sdk.Context, portID, channelID 
 	return im.app.OnChanUpgradeRestore(ctx, portID, channelID)
 }
 
+// OnChanUpgradeTimeout implements the IBCModule interface
+func (im IBCMiddleware) OnChanUpgradeTimeout(
+	ctx sdk.Context,
+	portID, channelID string,
+	counterpartyChannel channeltypes.Channel,
+	prevErrorReceipt channeltypes.ErrorReceipt,
+	proofCounterpartyChannel,
+	proofErrorReceipt []byte,
+	proofHeight exported.Height,
+) error {
+	return im.app.OnChanUpgradeTimeout(ctx, portID, channelID, counterpartyChannel, prevErrorReceipt, proofCounterpartyChannel, proofErrorReceipt, proofHeight)
+}
+
 // SendPacket implements the ICS4 Wrapper interface
 func (im IBCMiddleware) SendPacket(
 	ctx sdk.Context,
