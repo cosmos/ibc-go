@@ -51,28 +51,32 @@ func (suite *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
 	}{
 		{
 			"single msg",
-			[]proto.Message{
-				&banktypes.MsgSend{
-					FromAddress: TestOwnerAddress,
-					ToAddress:   TestOwnerAddress,
-					Amount:      sdk.NewCoins(sdk.NewCoin("bananas", sdkmath.NewInt(100))),
-				},
+			func() {
+				msgs = []proto.Message{
+					&banktypes.MsgSend{
+						FromAddress: TestOwnerAddress,
+						ToAddress:   TestOwnerAddress,
+						Amount:      sdk.NewCoins(sdk.NewCoin("bananas", sdkmath.NewInt(100))),
+					},
+				}
 			},
 			true,
 		},
 		{
 			"multiple msgs, same types",
-			[]proto.Message{
-				&banktypes.MsgSend{
-					FromAddress: TestOwnerAddress,
-					ToAddress:   TestOwnerAddress,
-					Amount:      sdk.NewCoins(sdk.NewCoin("bananas", sdkmath.NewInt(100))),
-				},
-				&banktypes.MsgSend{
-					FromAddress: TestOwnerAddress,
-					ToAddress:   TestOwnerAddress,
-					Amount:      sdk.NewCoins(sdk.NewCoin("bananas", sdkmath.NewInt(200))),
-				},
+			func() {
+				msgs = []proto.Message{
+					&banktypes.MsgSend{
+						FromAddress: TestOwnerAddress,
+						ToAddress:   TestOwnerAddress,
+						Amount:      sdk.NewCoins(sdk.NewCoin("bananas", sdkmath.NewInt(100))),
+					},
+					&banktypes.MsgSend{
+						FromAddress: TestOwnerAddress,
+						ToAddress:   TestOwnerAddress,
+						Amount:      sdk.NewCoins(sdk.NewCoin("bananas", sdkmath.NewInt(200))),
+					},
+				}
 			},
 			true,
 		},
@@ -83,12 +87,12 @@ func (suite *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
 					&banktypes.MsgSend{
 						FromAddress: TestOwnerAddress,
 						ToAddress:   TestOwnerAddress,
-						Amount:      sdk.NewCoins(sdk.NewCoin("bananas", sdk.NewInt(100))),
+						Amount:      sdk.NewCoins(sdk.NewCoin("bananas", sdkmath.NewInt(100))),
 					},
 					&stakingtypes.MsgDelegate{
 						DelegatorAddress: TestOwnerAddress,
 						ValidatorAddress: TestOwnerAddress,
-						Amount:           sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(5000)),
+						Amount:           sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(5000)),
 					},
 				}
 			},
@@ -107,7 +111,7 @@ func (suite *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
 				msgs = []proto.Message{
 					&govtypes.MsgSubmitProposal{
 						Content:        content,
-						InitialDeposit: sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(5000))),
+						InitialDeposit: sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(5000))),
 						Proposer:       TestOwnerAddress,
 					},
 				}
@@ -120,7 +124,7 @@ func (suite *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
 				sendMsg := &banktypes.MsgSend{
 					FromAddress: TestOwnerAddress,
 					ToAddress:   TestOwnerAddress,
-					Amount:      sdk.NewCoins(sdk.NewCoin("bananas", sdk.NewInt(100))),
+					Amount:      sdk.NewCoins(sdk.NewCoin("bananas", sdkmath.NewInt(100))),
 				}
 				sendAny, err := codectypes.NewAnyWithValue(sendMsg)
 				suite.Require().NoError(err)
@@ -133,7 +137,7 @@ func (suite *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
 				suite.Require().NoError(err)
 				legacyPropMsg := &govtypes.MsgSubmitProposal{
 					Content:        content,
-					InitialDeposit: sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(5000))),
+					InitialDeposit: sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(5000))),
 					Proposer:       TestOwnerAddress,
 				}
 				legacyPropAny, err := codectypes.NewAnyWithValue(legacyPropMsg)
@@ -142,7 +146,7 @@ func (suite *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
 				delegateMsg := &stakingtypes.MsgDelegate{
 					DelegatorAddress: TestOwnerAddress,
 					ValidatorAddress: TestOwnerAddress,
-					Amount:           sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(5000)),
+					Amount:           sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(5000)),
 				}
 				delegateAny, err := codectypes.NewAnyWithValue(delegateMsg)
 				suite.Require().NoError(err)
