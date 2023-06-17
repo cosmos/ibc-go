@@ -212,11 +212,12 @@ func (im IBCModule) OnChanUpgradeRestore(ctx sdk.Context, portID, channelID stri
 func (im IBCModule) OnChanUpgradeTimeout(
 	ctx sdk.Context,
 	portID, channelID string,
-	counterpartyChannel types.Channel,
-	prevErrorReceipt types.ErrorReceipt,
+	counterpartyChannel channeltypes.Channel,
+	prevErrorReceipt channeltypes.ErrorReceipt,
 	proofCounterpartyChannel,
 	proofErrorReceipt []byte,
-	proofHeight exported.Height) error {
+	proofHeight exported.Height,
+) error {
 	if im.IBCApp.OnChanUpgradeTimeout != nil {
 		return im.IBCApp.OnChanUpgradeTimeout(ctx, portID, channelID, counterpartyChannel, prevErrorReceipt, proofCounterpartyChannel, proofErrorReceipt, proofHeight)
 	}

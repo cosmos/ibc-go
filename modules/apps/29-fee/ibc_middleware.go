@@ -353,7 +353,8 @@ func (im IBCMiddleware) OnChanUpgradeTimeout(
 	prevErrorReceipt channeltypes.ErrorReceipt,
 	proofCounterpartyChannel,
 	proofErrorReceipt []byte,
-	proofHeight exported.Height) error {
+	proofHeight exported.Height,
+) error {
 	return im.app.OnChanUpgradeTimeout(ctx, portID, channelID, counterpartyChannel, prevErrorReceipt, proofCounterpartyChannel, proofErrorReceipt, proofHeight)
 }
 

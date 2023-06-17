@@ -155,8 +155,8 @@ type UpgradableModule interface {
 	OnChanUpgradeTimeout(
 		ctx sdk.Context,
 		portID, channelID string,
-		counterpartyChannel types.Channel,
-		prevErrorReceipt types.ErrorReceipt,
+		counterpartyChannel channeltypes.Channel,
+		prevErrorReceipt channeltypes.ErrorReceipt,
 		proofCounterpartyChannel,
 		proofErrorReceipt []byte,
 		proofHeight exported.Height,

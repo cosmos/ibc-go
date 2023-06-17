@@ -183,6 +183,7 @@ func (im IBCModule) OnChanUpgradeTimeout(
 	prevErrorReceipt channeltypes.ErrorReceipt,
 	proofCounterpartyChannel,
 	proofErrorReceipt []byte,
-	proofHeight exported.Height) error {
+	proofHeight ibcexported.Height,
+) error {
 	return nil
 }
