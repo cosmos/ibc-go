@@ -458,20 +458,6 @@ func (k Keeper) ChanUpgradeAck(
 	return nil
 }
 
-// ChanUpgradeTimeout times out an outstanding upgrade.
-// This should be used by the initialising chain when the counterparty chain has not responded to an upgrade proposal within the specified timeout period.
-func (k Keeper) ChanUpgradeTimeout(
-	ctx sdk.Context,
-	portID, channelID string,
-	counterpartyChannel types.Channel,
-	prevErrorReceipt types.ErrorReceipt,
-	proofCounterpartyChannel,
-	proofErrorReceipt []byte,
-	proofHeight exported.Height,
-) error {
-	return nil
-}
-
 // writeUpgradeTimeoutChannel restores the channel state of an initialising chain in the event that the counterparty chain has passed the timeout set in ChanUpgradeInit to the state before the upgrade was proposed.
 // Auxiliary upgrade state is also deleted.
 // An event is emitted for the handshake step.
