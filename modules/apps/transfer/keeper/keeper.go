@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	sdkmath "cosmossdk.io/math"
 	tmbytes "github.com/cometbft/cometbft/libs/bytes"
 	"github.com/cometbft/cometbft/libs/log"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -113,8 +114,8 @@ func (k Keeper) SetPort(ctx sdk.Context, portID string) {
 func (k Keeper) GetParams(ctx sdk.Context) types.Params {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get([]byte(types.ParamsKey))
-	if bz == nil { // only panics on unset params and not on empty params
-		panic("ibc transfer params are not set in store")
+	if bz == nil { // only panic on unset params and not on empty params
+		panic("transfer params are not set in store")
 	}
 
 	var params types.Params
@@ -189,7 +190,7 @@ func (k Keeper) GetTotalEscrowForDenom(ctx sdk.Context, denom string) sdk.Coin {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.TotalEscrowForDenomKey(denom))
 	if len(bz) == 0 {
-		return sdk.NewCoin(denom, sdk.ZeroInt())
+		return sdk.NewCoin(denom, sdkmath.ZeroInt())
 	}
 
 	amount := sdk.IntProto{}

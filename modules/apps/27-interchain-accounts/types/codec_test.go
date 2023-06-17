@@ -1,6 +1,7 @@
 package types_test
 
 import (
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -49,33 +50,29 @@ func (suite *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
 		expPass  bool
 	}{
 		{
-			"success: single msg",
-			func() {
-				msgs = []proto.Message{
-					&banktypes.MsgSend{
-						FromAddress: TestOwnerAddress,
-						ToAddress:   TestOwnerAddress,
-						Amount:      sdk.NewCoins(sdk.NewCoin("bananas", sdk.NewInt(100))),
-					},
-				}
+			"single msg",
+			[]proto.Message{
+				&banktypes.MsgSend{
+					FromAddress: TestOwnerAddress,
+					ToAddress:   TestOwnerAddress,
+					Amount:      sdk.NewCoins(sdk.NewCoin("bananas", sdkmath.NewInt(100))),
+				},
 			},
 			true,
 		},
 		{
-			"success: multiple msgs, same types",
-			func() {
-				msgs = []proto.Message{
-					&banktypes.MsgSend{
-						FromAddress: TestOwnerAddress,
-						ToAddress:   TestOwnerAddress,
-						Amount:      sdk.NewCoins(sdk.NewCoin("bananas", sdk.NewInt(100))),
-					},
-					&banktypes.MsgSend{
-						FromAddress: TestOwnerAddress,
-						ToAddress:   TestOwnerAddress,
-						Amount:      sdk.NewCoins(sdk.NewCoin("bananas", sdk.NewInt(200))),
-					},
-				}
+			"multiple msgs, same types",
+			[]proto.Message{
+				&banktypes.MsgSend{
+					FromAddress: TestOwnerAddress,
+					ToAddress:   TestOwnerAddress,
+					Amount:      sdk.NewCoins(sdk.NewCoin("bananas", sdkmath.NewInt(100))),
+				},
+				&banktypes.MsgSend{
+					FromAddress: TestOwnerAddress,
+					ToAddress:   TestOwnerAddress,
+					Amount:      sdk.NewCoins(sdk.NewCoin("bananas", sdkmath.NewInt(200))),
+				},
 			},
 			true,
 		},

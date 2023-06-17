@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/gogoproto/proto"
@@ -165,7 +166,7 @@ func (suite *KeeperTestSuite) TestSubmitTx() {
 			icaMsg := &banktypes.MsgSend{
 				FromAddress: interchainAccountAddr,
 				ToAddress:   suite.chainB.SenderAccount.GetAddress().String(),
-				Amount:      sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100))),
+				Amount:      sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100))),
 			}
 
 			data, err := icatypes.SerializeCosmosTx(suite.chainA.Codec, []proto.Message{icaMsg}, icatypes.EncodingProtobuf)
