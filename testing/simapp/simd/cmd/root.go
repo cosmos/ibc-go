@@ -1,11 +1,13 @@
 package cmd
 
 import (
-	rosettaCmd "cosmossdk.io/tools/rosetta/cmd"
 	"errors"
-	"github.com/spf13/viper"
 	"io"
 	"os"
+
+	rosettaCmd "cosmossdk.io/tools/rosetta/cmd"
+
+	"github.com/spf13/viper"
 
 	dbm "github.com/cometbft/cometbft-db"
 	tmcfg "github.com/cometbft/cometbft/config"
@@ -256,7 +258,6 @@ func newApp(
 	traceStore io.Writer,
 	appOpts servertypes.AppOptions,
 ) servertypes.Application {
-
 	baseappOptions := server.DefaultBaseappOptions(appOpts)
 
 	return simapp.NewSimApp(

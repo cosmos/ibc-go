@@ -3,15 +3,16 @@ package simapp
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/cosmos/cosmos-sdk/server"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
-	simcli "github.com/cosmos/cosmos-sdk/x/simulation/client/cli"
 	"math/rand"
 	"os"
 	"runtime/debug"
 	"strings"
 	"testing"
+
+	"github.com/cosmos/cosmos-sdk/client/flags"
+	"github.com/cosmos/cosmos-sdk/server"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
+	simcli "github.com/cosmos/cosmos-sdk/x/simulation/client/cli"
 
 	dbm "github.com/cometbft/cometbft-db"
 	abci "github.com/cometbft/cometbft/abci/types"
