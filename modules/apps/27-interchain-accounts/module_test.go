@@ -35,8 +35,8 @@ func (suite *InterchainAccountsTestSuite) SetupTest() {
 func (suite *InterchainAccountsTestSuite) TestInitModule() {
 	// setup and basic testing
 	chainID := "testchain"
-	app := simapp.NewSimApp(log.NewNopLogger(), dbm.NewMemDB(), nil, true, map[int64]bool{}, simapp.DefaultNodeHome, 5, simapp.MakeTestEncodingConfig(), simtestutil.EmptyAppOptions{}, baseapp.SetChainID(chainID))
-	appModule, ok := app.GetModuleManager().Modules[types.ModuleName].(ica.AppModule)
+	app := simapp.NewSimApp(log.NewNopLogger(), dbm.NewMemDB(), nil, true, simtestutil.EmptyAppOptions{}, baseapp.SetChainID(chainID))
+	appModule, ok := app.ModuleManager.Modules[types.ModuleName].(ica.AppModule)
 	suite.Require().True(ok)
 
 	header := tmproto.Header{
@@ -73,7 +73,7 @@ func (suite *InterchainAccountsTestSuite) TestInitModule() {
 		{
 			"both controller and host set", func() {
 				var ok bool
-				appModule, ok = app.GetModuleManager().Modules[types.ModuleName].(ica.AppModule)
+				appModule, ok = app.ModuleManager.Modules[types.ModuleName].(ica.AppModule)
 				suite.Require().True(ok)
 			}, true, true,
 		},
@@ -102,7 +102,7 @@ func (suite *InterchainAccountsTestSuite) TestInitModule() {
 
 			// reset app state
 			chainID := "testchain"
-			app = simapp.NewSimApp(log.NewNopLogger(), dbm.NewMemDB(), nil, true, map[int64]bool{}, simapp.DefaultNodeHome, 5, simapp.MakeTestEncodingConfig(), simtestutil.EmptyAppOptions{}, baseapp.SetChainID(chainID))
+			app = simapp.NewSimApp(log.NewNopLogger(), dbm.NewMemDB(), nil, true, simtestutil.EmptyAppOptions{}, baseapp.SetChainID(chainID))
 			header := tmproto.Header{
 				ChainID: chainID,
 				Height:  1,
