@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/cosmos/cosmos-sdk/types/kv"
-
 	clientsim "github.com/cosmos/ibc-go/v7/modules/core/02-client/simulation"
 	connectionsim "github.com/cosmos/ibc-go/v7/modules/core/03-connection/simulation"
 	channelsim "github.com/cosmos/ibc-go/v7/modules/core/04-channel/simulation"

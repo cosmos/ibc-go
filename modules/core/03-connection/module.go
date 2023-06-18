@@ -2,10 +2,9 @@ package connection
 
 import (
 	"github.com/cosmos/gogoproto/grpc"
-	"github.com/spf13/cobra"
-
 	"github.com/cosmos/ibc-go/v7/modules/core/03-connection/client/cli"
 	"github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
+	"github.com/spf13/cobra"
 )
 
 // Name returns the IBC connection ICS name.

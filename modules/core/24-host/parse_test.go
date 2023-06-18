@@ -5,11 +5,10 @@ import (
 	"math"
 	"testing"
 
-	"github.com/stretchr/testify/require"
-
 	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	"github.com/stretchr/testify/require"
 )
 
 func TestParseIdentifier(t *testing.T) {

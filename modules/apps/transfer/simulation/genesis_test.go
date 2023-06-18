@@ -11,10 +11,9 @@ import (
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
-	"github.com/stretchr/testify/require"
-
 	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/simulation"
 	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	"github.com/stretchr/testify/require"
 )
 
 // TestRandomizedGenState tests the normal scenario of applying RandomizedGenState.

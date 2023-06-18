@@ -4,7 +4,6 @@ import (
 	"math/rand"
 
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
-
 	"github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 )
 

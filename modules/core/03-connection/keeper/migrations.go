@@ -2,7 +2,6 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	connectionv7 "github.com/cosmos/ibc-go/v7/modules/core/03-connection/migrations/v7"
 	"github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
 )

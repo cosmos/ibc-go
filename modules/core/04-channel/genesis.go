@@ -2,7 +2,6 @@ package channel
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/keeper"
 	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 )

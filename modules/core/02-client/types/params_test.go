@@ -3,9 +3,8 @@ package types
 import (
 	"testing"
 
-	"github.com/stretchr/testify/require"
-
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	"github.com/stretchr/testify/require"
 )
 
 func TestIsAllowedClient(t *testing.T) {

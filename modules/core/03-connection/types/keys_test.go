@@ -4,9 +4,8 @@ import (
 	"math"
 	"testing"
 
-	"github.com/stretchr/testify/require"
-
 	"github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
+	"github.com/stretchr/testify/require"
 )
 
 // tests ParseConnectionSequence and IsValidConnectionID

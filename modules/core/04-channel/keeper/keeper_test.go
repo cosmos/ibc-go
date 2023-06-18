@@ -4,12 +4,11 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/stretchr/testify/suite"
-
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	ibcmock "github.com/cosmos/ibc-go/v7/testing/mock"
+	"github.com/stretchr/testify/suite"
 )
 
 // KeeperTestSuite is a testing suite to test keeper functions.

@@ -2,7 +2,6 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	clientkeeper "github.com/cosmos/ibc-go/v7/modules/core/02-client/keeper"
 )
 
