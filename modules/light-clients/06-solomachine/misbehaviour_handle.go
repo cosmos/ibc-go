@@ -1,9 +1,9 @@
 package solomachine
 
 import (
-	"github.com/cosmos/cosmos-sdk/codec"
-
 	errorsmod "cosmossdk.io/errors"
+
+	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
@@ -19,7 +19,7 @@ func (cs ClientState) CheckForMisbehaviour(_ sdk.Context, _ codec.BinaryCodec, _
 	return false
 }
 
-func (cs ClientState) verifyMisbehaviour(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, misbehaviour *Misbehaviour) error {
+func (cs ClientState) verifyMisbehaviour(cdc codec.BinaryCodec, clientStore sdk.KVStore, misbehaviour *Misbehaviour) error {
 	// NOTE: a check that the misbehaviour message data are not equal is done by
 	// misbehaviour.ValidateBasic which is called by the 02-client keeper.
 	// verify first signature

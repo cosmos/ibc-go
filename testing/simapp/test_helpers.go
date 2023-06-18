@@ -6,12 +6,16 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/require"
+
 	sdkmath "cosmossdk.io/math"
+
 	dbm "github.com/cometbft/cometbft-db"
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cometbft/cometbft/libs/log"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	tmtypes "github.com/cometbft/cometbft/types"
+
 	bam "github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -23,7 +27,6 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	"github.com/stretchr/testify/require"
 
 	"github.com/cosmos/ibc-go/v7/testing/mock"
 )
@@ -87,7 +90,10 @@ func SetupWithGenesisValSet(valSet *tmtypes.ValidatorSet, genAccs []authtypes.Ge
 	app, genesisState := setup(true, 5)
 	genesisState = genesisStateWithValSet(app, genesisState, valSet, genAccs, balances...)
 
-	stateBytes, _ := json.MarshalIndent(genesisState, "", " ")
+	stateBytes, err := json.MarshalIndent(genesisState, "", " ")
+	if err != nil {
+		panic(err)
+	}
 
 	// init chain will set the validator set and initialize the genesis accounts
 	app.InitChain(

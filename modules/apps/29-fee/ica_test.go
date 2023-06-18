@@ -1,11 +1,13 @@
 package fee_test
 
 import (
+	"github.com/cosmos/gogoproto/proto"
+
 	sdkmath "cosmossdk.io/math"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	"github.com/cosmos/gogoproto/proto"
 
 	icahosttypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/types"
 	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
@@ -157,7 +159,7 @@ func (suite *FeeTestSuite) TestFeeInterchainAccounts() {
 	suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
 
 	// build the interchain accounts packet
-	packet := buildInterchainAccountsPacket(path, icaPacketData.GetBytes(), 1)
+	packet := buildInterchainAccountsPacket(path, icaPacketData.GetBytes())
 
 	// write packet commitment to state on chainA and commit state
 	commitment := channeltypes.CommitPacket(suite.chainA.GetSimApp().AppCodec(), packet)
@@ -179,7 +181,7 @@ func (suite *FeeTestSuite) TestFeeInterchainAccounts() {
 	suite.Require().Equal(preEscrowBalance.SubAmount(defaultRecvFee.AmountOf(sdk.DefaultBondDenom)), postDistBalance)
 }
 
-func buildInterchainAccountsPacket(path *ibctesting.Path, data []byte, seq uint64) channeltypes.Packet {
+func buildInterchainAccountsPacket(path *ibctesting.Path, data []byte) channeltypes.Packet {
 	packet := channeltypes.NewPacket(
 		data,
 		1,

@@ -5,8 +5,10 @@ import (
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
+
 	"github.com/cometbft/cometbft/light"
 	tmtypes "github.com/cometbft/cometbft/types"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 

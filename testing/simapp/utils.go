@@ -5,6 +5,7 @@ import (
 
 	dbm "github.com/cometbft/cometbft-db"
 	"github.com/cometbft/cometbft/libs/log"
+
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 )
 

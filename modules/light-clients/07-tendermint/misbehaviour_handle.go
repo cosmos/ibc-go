@@ -6,7 +6,9 @@ import (
 	"time"
 
 	errorsmod "cosmossdk.io/errors"
+
 	tmtypes "github.com/cometbft/cometbft/types"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 

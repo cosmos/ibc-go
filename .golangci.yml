@@ -2,54 +2,68 @@ run:
   tests: true
   #   # timeout for analysis, e.g. 30s, 5m, default is 1m
   timeout: 5m
+  allow-parallel-runners: true
 
 linters:
   disable-all: true
   enable:
+    - asciicheck
+    - bodyclose
     - dogsled
     - exportloopref
     - errcheck
+    - errchkjson
+    - gci
     - goconst
     - gocritic
     - gofumpt
     - gosec
     - gosimple
     - govet
+    - gosmopolitan
     - ineffassign
     - misspell
     - nakedret
     - staticcheck
+    - tenv
     - thelper
+    - typecheck
     - stylecheck
     - revive
     - typecheck
     - unconvert
     - unused
     - misspell
+    - zerologlint
 
 issues:
   exclude-rules:
-    - text: "unused-parameter"
-      linters:
-        - revive
-    - text: "SA1019:"
-      linters:
-        - staticcheck
-    - text: "Use of weak random number generator"
+    - text: 'Use of weak random number generator'
       linters:
         - gosec
-    - text: "ST1003:"
+    - text: 'ST1003:'
       linters:
         - stylecheck
     # FIXME: Disabled until golangci-lint updates stylecheck with this fix:
     # https://github.com/dominikh/go-tools/issues/389
-    - text: "ST1016:"
+    - text: 'ST1016:'
       linters:
         - stylecheck
   max-issues-per-linter: 10000
   max-same-issues: 10000
 
 linters-settings:
+  gci:
+    # DEPRECATED: use `sections` and `prefix(github.com/org/project)` instead.
+    sections:
+      - standard # Standard section: captures all standard packages.
+      - default # Default section: contains all imports that could not be matched to another section type.
+      - blank # blank imports
+      - dot # dot imports
+      - prefix(cosmossdk.io) # Custom section: groups all imports with the specified Prefix.
+      - prefix(github.com/cosmos/cosmos-sdk) # Custom section: groups all imports with the specified Prefix.
+      - prefix(github.com/cometbft/cometbft) # Custom section: groups all imports with the specified Prefix.
+      - prefix(github.com/cosmos/ibc-go) # Custom section: groups all imports with the specified Prefix.
   dogsled:
     max-blank-identifiers: 3
   maligned:

@@ -3,8 +3,9 @@ package collections_test
 import (
 	"testing"
 
-	"github.com/cosmos/ibc-go/v7/internal/collections"
 	"github.com/stretchr/testify/require"
+
+	"github.com/cosmos/ibc-go/v7/internal/collections"
 )
 
 func TestContainsString(t *testing.T) {
