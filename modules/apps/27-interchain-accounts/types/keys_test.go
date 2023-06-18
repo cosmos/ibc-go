@@ -7,17 +7,17 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
-func (suite *TypesTestSuite) TestKeyActiveChannel() {
+func (s *TypesTestSuite) TestKeyActiveChannel() {
 	key := types.KeyActiveChannel("port-id", "connection-id")
-	suite.Require().Equal("activeChannel/port-id/connection-id", string(key))
+	s.Require().Equal("activeChannel/port-id/connection-id", string(key))
 }
 
-func (suite *TypesTestSuite) TestKeyOwnerAccount() {
+func (s *TypesTestSuite) TestKeyOwnerAccount() {
 	key := types.KeyOwnerAccount("port-id", "connection-id")
-	suite.Require().Equal("owner/port-id/connection-id", string(key))
+	s.Require().Equal("owner/port-id/connection-id", string(key))
 }
 
-func (suite *TypesTestSuite) TestKeyIsMiddlewareEnabled() {
+func (s *TypesTestSuite) TestKeyIsMiddlewareEnabled() {
 	key := types.KeyIsMiddlewareEnabled(ibctesting.MockPort, ibctesting.FirstChannelID)
-	suite.Require().Equal(fmt.Sprintf("%s/%s/%s", types.IsMiddlewareEnabledPrefix, ibctesting.MockPort, ibctesting.FirstChannelID), string(key))
+	s.Require().Equal(fmt.Sprintf("%s/%s/%s", types.IsMiddlewareEnabledPrefix, ibctesting.MockPort, ibctesting.FirstChannelID), string(key))
 }

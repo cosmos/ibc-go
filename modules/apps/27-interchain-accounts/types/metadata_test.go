@@ -6,7 +6,7 @@ import (
 )
 
 // use TestVersion as metadata being compared against
-func (suite *TypesTestSuite) TestIsPreviousMetadataEqual() {
+func (s *TypesTestSuite) TestIsPreviousMetadataEqual() {
 	var (
 		metadata        types.Metadata
 		previousVersion string
@@ -21,7 +21,7 @@ func (suite *TypesTestSuite) TestIsPreviousMetadataEqual() {
 			"success",
 			func() {
 				versionBytes, err := types.ModuleCdc.MarshalJSON(&metadata)
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 				previousVersion = string(versionBytes)
 			},
 			true,
@@ -32,7 +32,7 @@ func (suite *TypesTestSuite) TestIsPreviousMetadataEqual() {
 				metadata.Address = ""
 
 				versionBytes, err := types.ModuleCdc.MarshalJSON(&metadata)
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 				previousVersion = string(versionBytes)
 			},
 			true,
@@ -50,7 +50,7 @@ func (suite *TypesTestSuite) TestIsPreviousMetadataEqual() {
 				metadata.Encoding = "invalid-encoding-format"
 
 				versionBytes, err := types.ModuleCdc.MarshalJSON(&metadata)
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 				previousVersion = string(versionBytes)
 			},
 			false,
@@ -61,7 +61,7 @@ func (suite *TypesTestSuite) TestIsPreviousMetadataEqual() {
 				metadata.TxType = "invalid-tx-type"
 
 				versionBytes, err := types.ModuleCdc.MarshalJSON(&metadata)
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 				previousVersion = string(versionBytes)
 			},
 			false,
@@ -72,7 +72,7 @@ func (suite *TypesTestSuite) TestIsPreviousMetadataEqual() {
 				metadata.ControllerConnectionId = "connection-10"
 
 				versionBytes, err := types.ModuleCdc.MarshalJSON(&metadata)
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 				previousVersion = string(versionBytes)
 			},
 			false,
@@ -83,7 +83,7 @@ func (suite *TypesTestSuite) TestIsPreviousMetadataEqual() {
 				metadata.HostConnectionId = "connection-10"
 
 				versionBytes, err := types.ModuleCdc.MarshalJSON(&metadata)
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 				previousVersion = string(versionBytes)
 			},
 			false,
@@ -94,7 +94,7 @@ func (suite *TypesTestSuite) TestIsPreviousMetadataEqual() {
 				metadata.Version = "invalid version"
 
 				versionBytes, err := types.ModuleCdc.MarshalJSON(&metadata)
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 				previousVersion = string(versionBytes)
 			},
 			false,
@@ -103,11 +103,11 @@ func (suite *TypesTestSuite) TestIsPreviousMetadataEqual() {
 
 	for _, tc := range testCases {
 		tc := tc
-		suite.Run(tc.name, func() {
-			suite.SetupTest() // reset
+		s.Run(tc.name, func() {
+			s.SetupTest() // reset
 
-			path := ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupConnections(path)
+			path := ibctesting.NewPath(s.chainA, s.chainB)
+			s.coordinator.SetupConnections(path)
 
 			expectedMetadata := types.NewMetadata(types.Version, ibctesting.FirstConnectionID, ibctesting.FirstConnectionID, TestOwnerAddress, types.EncodingProtobuf, types.TxTypeSDKMultiMsg)
 			metadata = expectedMetadata // default success case
@@ -117,15 +117,15 @@ func (suite *TypesTestSuite) TestIsPreviousMetadataEqual() {
 			equal := types.IsPreviousMetadataEqual(previousVersion, expectedMetadata)
 
 			if tc.expEqual {
-				suite.Require().True(equal)
+				s.Require().True(equal)
 			} else {
-				suite.Require().False(equal)
+				s.Require().False(equal)
 			}
 		})
 	}
 }
 
-func (suite *TypesTestSuite) TestValidateControllerMetadata() {
+func (s *TypesTestSuite) TestValidateControllerMetadata() {
 	var metadata types.Metadata
 
 	testCases := []struct {
@@ -240,33 +240,33 @@ func (suite *TypesTestSuite) TestValidateControllerMetadata() {
 
 	for _, tc := range testCases {
 		tc := tc
-		suite.Run(tc.name, func() {
-			suite.SetupTest() // reset
+		s.Run(tc.name, func() {
+			s.SetupTest() // reset
 
-			path := ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupConnections(path)
+			path := ibctesting.NewPath(s.chainA, s.chainB)
+			s.coordinator.SetupConnections(path)
 
 			metadata = types.NewMetadata(types.Version, ibctesting.FirstConnectionID, ibctesting.FirstConnectionID, TestOwnerAddress, types.EncodingProtobuf, types.TxTypeSDKMultiMsg)
 
 			tc.malleate() // malleate mutates test data
 
 			err := types.ValidateControllerMetadata(
-				suite.chainA.GetContext(),
-				suite.chainA.App.GetIBCKeeper().ChannelKeeper,
+				s.chainA.GetContext(),
+				s.chainA.App.GetIBCKeeper().ChannelKeeper,
 				[]string{ibctesting.FirstConnectionID},
 				metadata,
 			)
 
 			if tc.expPass {
-				suite.Require().NoError(err, tc.name)
+				s.Require().NoError(err, tc.name)
 			} else {
-				suite.Require().Error(err, tc.name)
+				s.Require().Error(err, tc.name)
 			}
 		})
 	}
 }
 
-func (suite *TypesTestSuite) TestValidateHostMetadata() {
+func (s *TypesTestSuite) TestValidateHostMetadata() {
 	var metadata types.Metadata
 
 	testCases := []struct {
@@ -381,27 +381,27 @@ func (suite *TypesTestSuite) TestValidateHostMetadata() {
 
 	for _, tc := range testCases {
 		tc := tc
-		suite.Run(tc.name, func() {
-			suite.SetupTest() // reset
+		s.Run(tc.name, func() {
+			s.SetupTest() // reset
 
-			path := ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupConnections(path)
+			path := ibctesting.NewPath(s.chainA, s.chainB)
+			s.coordinator.SetupConnections(path)
 
 			metadata = types.NewMetadata(types.Version, ibctesting.FirstConnectionID, ibctesting.FirstConnectionID, TestOwnerAddress, types.EncodingProtobuf, types.TxTypeSDKMultiMsg)
 
 			tc.malleate() // malleate mutates test data
 
 			err := types.ValidateHostMetadata(
-				suite.chainA.GetContext(),
-				suite.chainA.App.GetIBCKeeper().ChannelKeeper,
+				s.chainA.GetContext(),
+				s.chainA.App.GetIBCKeeper().ChannelKeeper,
 				[]string{ibctesting.FirstConnectionID},
 				metadata,
 			)
 
 			if tc.expPass {
-				suite.Require().NoError(err, tc.name)
+				s.Require().NoError(err, tc.name)
 			} else {
-				suite.Require().Error(err, tc.name)
+				s.Require().Error(err, tc.name)
 			}
 		})
 	}

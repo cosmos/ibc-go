@@ -16,7 +16,7 @@ type caseAny struct {
 	expPass bool
 }
 
-func (suite *TypesTestSuite) TestPackClientState() {
+func (s *TypesTestSuite) TestPackClientState() {
 	testCases := []struct {
 		name        string
 		clientState exported.ClientState
@@ -24,12 +24,12 @@ func (suite *TypesTestSuite) TestPackClientState() {
 	}{
 		{
 			"solo machine client",
-			ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "solomachine", "", 2).ClientState(),
+			ibctesting.NewSolomachine(s.T(), s.chainA.Codec, "solomachine", "", 2).ClientState(),
 			true,
 		},
 		{
 			"tendermint client",
-			ibctm.NewClientState(suite.chainA.ChainID, ibctesting.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod, ibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath),
+			ibctm.NewClientState(s.chainA.ChainID, ibctesting.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod, ibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath),
 			true,
 		},
 		{
@@ -44,9 +44,9 @@ func (suite *TypesTestSuite) TestPackClientState() {
 	for _, tc := range testCases {
 		protoAny, err := types.PackClientState(tc.clientState)
 		if tc.expPass {
-			suite.Require().NoError(err, tc.name)
+			s.Require().NoError(err, tc.name)
 		} else {
-			suite.Require().Error(err, tc.name)
+			s.Require().Error(err, tc.name)
 		}
 
 		testCasesAny = append(testCasesAny, caseAny{tc.name, protoAny, tc.expPass})
@@ -55,15 +55,15 @@ func (suite *TypesTestSuite) TestPackClientState() {
 	for i, tc := range testCasesAny {
 		cs, err := types.UnpackClientState(tc.any)
 		if tc.expPass {
-			suite.Require().NoError(err, tc.name)
-			suite.Require().Equal(testCases[i].clientState, cs, tc.name)
+			s.Require().NoError(err, tc.name)
+			s.Require().Equal(testCases[i].clientState, cs, tc.name)
 		} else {
-			suite.Require().Error(err, tc.name)
+			s.Require().Error(err, tc.name)
 		}
 	}
 }
 
-func (suite *TypesTestSuite) TestPackConsensusState() {
+func (s *TypesTestSuite) TestPackConsensusState() {
 	testCases := []struct {
 		name           string
 		consensusState exported.ConsensusState
@@ -71,12 +71,12 @@ func (suite *TypesTestSuite) TestPackConsensusState() {
 	}{
 		{
 			"solo machine consensus",
-			ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "solomachine", "", 2).ConsensusState(),
+			ibctesting.NewSolomachine(s.T(), s.chainA.Codec, "solomachine", "", 2).ConsensusState(),
 			true,
 		},
 		{
 			"tendermint consensus",
-			suite.chainA.LastHeader.ConsensusState(),
+			s.chainA.LastHeader.ConsensusState(),
 			true,
 		},
 		{
@@ -91,9 +91,9 @@ func (suite *TypesTestSuite) TestPackConsensusState() {
 	for _, tc := range testCases {
 		protoAny, err := types.PackConsensusState(tc.consensusState)
 		if tc.expPass {
-			suite.Require().NoError(err, tc.name)
+			s.Require().NoError(err, tc.name)
 		} else {
-			suite.Require().Error(err, tc.name)
+			s.Require().Error(err, tc.name)
 		}
 		testCasesAny = append(testCasesAny, caseAny{tc.name, protoAny, tc.expPass})
 	}
@@ -101,15 +101,15 @@ func (suite *TypesTestSuite) TestPackConsensusState() {
 	for i, tc := range testCasesAny {
 		cs, err := types.UnpackConsensusState(tc.any)
 		if tc.expPass {
-			suite.Require().NoError(err, tc.name)
-			suite.Require().Equal(testCases[i].consensusState, cs, tc.name)
+			s.Require().NoError(err, tc.name)
+			s.Require().Equal(testCases[i].consensusState, cs, tc.name)
 		} else {
-			suite.Require().Error(err, tc.name)
+			s.Require().Error(err, tc.name)
 		}
 	}
 }
 
-func (suite *TypesTestSuite) TestPackClientMessage() {
+func (s *TypesTestSuite) TestPackClientMessage() {
 	testCases := []struct {
 		name          string
 		clientMessage exported.ClientMessage
@@ -117,12 +117,12 @@ func (suite *TypesTestSuite) TestPackClientMessage() {
 	}{
 		{
 			"solo machine header",
-			ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "solomachine", "", 2).CreateHeader("solomachine"),
+			ibctesting.NewSolomachine(s.T(), s.chainA.Codec, "solomachine", "", 2).CreateHeader("solomachine"),
 			true,
 		},
 		{
 			"tendermint header",
-			suite.chainA.LastHeader,
+			s.chainA.LastHeader,
 			true,
 		},
 		{
@@ -137,9 +137,9 @@ func (suite *TypesTestSuite) TestPackClientMessage() {
 	for _, tc := range testCases {
 		protoAny, err := types.PackClientMessage(tc.clientMessage)
 		if tc.expPass {
-			suite.Require().NoError(err, tc.name)
+			s.Require().NoError(err, tc.name)
 		} else {
-			suite.Require().Error(err, tc.name)
+			s.Require().Error(err, tc.name)
 		}
 
 		testCasesAny = append(testCasesAny, caseAny{tc.name, protoAny, tc.expPass})
@@ -148,10 +148,10 @@ func (suite *TypesTestSuite) TestPackClientMessage() {
 	for i, tc := range testCasesAny {
 		cs, err := types.UnpackClientMessage(tc.any)
 		if tc.expPass {
-			suite.Require().NoError(err, tc.name)
-			suite.Require().Equal(testCases[i].clientMessage, cs, tc.name)
+			s.Require().NoError(err, tc.name)
+			s.Require().Equal(testCases[i].clientMessage, cs, tc.name)
 		} else {
-			suite.Require().Error(err, tc.name)
+			s.Require().Error(err, tc.name)
 		}
 	}
 }

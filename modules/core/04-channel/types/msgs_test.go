@@ -72,7 +72,7 @@ type TypesTestSuite struct {
 	proof []byte
 }
 
-func (suite *TypesTestSuite) SetupTest() {
+func (s *TypesTestSuite) SetupTest() {
 	app := simapp.Setup(false)
 	db := dbm.NewMemDB()
 	dblog := log.TestingLogger()
@@ -81,7 +81,7 @@ func (suite *TypesTestSuite) SetupTest() {
 
 	store.MountStoreWithDB(storeKey, storetypes.StoreTypeIAVL, nil)
 	err := store.LoadVersion(0)
-	suite.Require().NoError(err)
+	s.Require().NoError(err)
 	iavlStore := store.GetCommitStore(storeKey).(*iavl.Store)
 
 	iavlStore.Set([]byte("KEY"), []byte("VALUE"))
@@ -94,18 +94,18 @@ func (suite *TypesTestSuite) SetupTest() {
 	})
 
 	merkleProof, err := commitmenttypes.ConvertProofs(res.ProofOps)
-	suite.Require().NoError(err)
+	s.Require().NoError(err)
 	proof, err := app.AppCodec().Marshal(&merkleProof)
-	suite.Require().NoError(err)
+	s.Require().NoError(err)
 
-	suite.proof = proof
+	s.proof = proof
 }
 
 func TestTypesTestSuite(t *testing.T) {
 	suite.Run(t, new(TypesTestSuite))
 }
 
-func (suite *TypesTestSuite) TestMsgChannelOpenInitValidateBasic() {
+func (s *TypesTestSuite) TestMsgChannelOpenInitValidateBasic() {
 	counterparty := types.NewCounterparty(cpportid, cpchanid)
 	tryOpenChannel := types.NewChannel(types.TRYOPEN, types.ORDERED, counterparty, connHops, version)
 
@@ -131,18 +131,18 @@ func (suite *TypesTestSuite) TestMsgChannelOpenInitValidateBasic() {
 	for _, tc := range testCases {
 		tc := tc
 
-		suite.Run(tc.name, func() {
+		s.Run(tc.name, func() {
 			err := tc.msg.ValidateBasic()
 			if tc.expPass {
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 			} else {
-				suite.Require().Error(err)
+				s.Require().Error(err)
 			}
 		})
 	}
 }
 
-func (suite *TypesTestSuite) TestMsgChannelOpenTryValidateBasic() {
+func (s *TypesTestSuite) TestMsgChannelOpenTryValidateBasic() {
 	counterparty := types.NewCounterparty(cpportid, cpchanid)
 	initChannel := types.NewChannel(types.INIT, types.ORDERED, counterparty, connHops, version)
 
@@ -151,104 +151,104 @@ func (suite *TypesTestSuite) TestMsgChannelOpenTryValidateBasic() {
 		msg     *types.MsgChannelOpenTry
 		expPass bool
 	}{
-		{"", types.NewMsgChannelOpenTry(portid, version, types.ORDERED, connHops, cpportid, cpchanid, version, suite.proof, height, addr), true},
-		{"too short port id", types.NewMsgChannelOpenTry(invalidShortPort, version, types.ORDERED, connHops, cpportid, cpchanid, version, suite.proof, height, addr), false},
-		{"too long port id", types.NewMsgChannelOpenTry(invalidLongPort, version, types.ORDERED, connHops, cpportid, cpchanid, version, suite.proof, height, addr), false},
-		{"port id contains non-alpha", types.NewMsgChannelOpenTry(invalidPort, version, types.ORDERED, connHops, cpportid, cpchanid, version, suite.proof, height, addr), false},
-		{"", types.NewMsgChannelOpenTry(portid, version, types.ORDERED, connHops, cpportid, cpchanid, "", suite.proof, height, addr), true},
-		{"invalid channel order", types.NewMsgChannelOpenTry(portid, version, types.Order(4), connHops, cpportid, cpchanid, version, suite.proof, height, addr), false},
-		{"connection hops more than 1 ", types.NewMsgChannelOpenTry(portid, version, types.UNORDERED, invalidConnHops, cpportid, cpchanid, version, suite.proof, height, addr), false},
-		{"too short connection id", types.NewMsgChannelOpenTry(portid, version, types.UNORDERED, invalidShortConnHops, cpportid, cpchanid, version, suite.proof, height, addr), false},
-		{"too long connection id", types.NewMsgChannelOpenTry(portid, version, types.UNORDERED, invalidLongConnHops, cpportid, cpchanid, version, suite.proof, height, addr), false},
-		{"connection id contains non-alpha", types.NewMsgChannelOpenTry(portid, version, types.UNORDERED, []string{invalidConnection}, cpportid, cpchanid, version, suite.proof, height, addr), false},
-		{"", types.NewMsgChannelOpenTry(portid, "", types.UNORDERED, connHops, cpportid, cpchanid, version, suite.proof, height, addr), true},
-		{"invalid counterparty port id", types.NewMsgChannelOpenTry(portid, version, types.UNORDERED, connHops, invalidPort, cpchanid, version, suite.proof, height, addr), false},
-		{"invalid counterparty channel id", types.NewMsgChannelOpenTry(portid, version, types.UNORDERED, connHops, cpportid, invalidChannel, version, suite.proof, height, addr), false},
+		{"", types.NewMsgChannelOpenTry(portid, version, types.ORDERED, connHops, cpportid, cpchanid, version, s.proof, height, addr), true},
+		{"too short port id", types.NewMsgChannelOpenTry(invalidShortPort, version, types.ORDERED, connHops, cpportid, cpchanid, version, s.proof, height, addr), false},
+		{"too long port id", types.NewMsgChannelOpenTry(invalidLongPort, version, types.ORDERED, connHops, cpportid, cpchanid, version, s.proof, height, addr), false},
+		{"port id contains non-alpha", types.NewMsgChannelOpenTry(invalidPort, version, types.ORDERED, connHops, cpportid, cpchanid, version, s.proof, height, addr), false},
+		{"", types.NewMsgChannelOpenTry(portid, version, types.ORDERED, connHops, cpportid, cpchanid, "", s.proof, height, addr), true},
+		{"invalid channel order", types.NewMsgChannelOpenTry(portid, version, types.Order(4), connHops, cpportid, cpchanid, version, s.proof, height, addr), false},
+		{"connection hops more than 1 ", types.NewMsgChannelOpenTry(portid, version, types.UNORDERED, invalidConnHops, cpportid, cpchanid, version, s.proof, height, addr), false},
+		{"too short connection id", types.NewMsgChannelOpenTry(portid, version, types.UNORDERED, invalidShortConnHops, cpportid, cpchanid, version, s.proof, height, addr), false},
+		{"too long connection id", types.NewMsgChannelOpenTry(portid, version, types.UNORDERED, invalidLongConnHops, cpportid, cpchanid, version, s.proof, height, addr), false},
+		{"connection id contains non-alpha", types.NewMsgChannelOpenTry(portid, version, types.UNORDERED, []string{invalidConnection}, cpportid, cpchanid, version, s.proof, height, addr), false},
+		{"", types.NewMsgChannelOpenTry(portid, "", types.UNORDERED, connHops, cpportid, cpchanid, version, s.proof, height, addr), true},
+		{"invalid counterparty port id", types.NewMsgChannelOpenTry(portid, version, types.UNORDERED, connHops, invalidPort, cpchanid, version, s.proof, height, addr), false},
+		{"invalid counterparty channel id", types.NewMsgChannelOpenTry(portid, version, types.UNORDERED, connHops, cpportid, invalidChannel, version, s.proof, height, addr), false},
 		{"empty proof", types.NewMsgChannelOpenTry(portid, version, types.UNORDERED, connHops, cpportid, cpchanid, version, emptyProof, height, addr), false},
-		{"channel not in TRYOPEN state", &types.MsgChannelOpenTry{portid, "", initChannel, version, suite.proof, height, addr}, false},
-		{"previous channel id is not empty", &types.MsgChannelOpenTry{portid, chanid, initChannel, version, suite.proof, height, addr}, false},
+		{"channel not in TRYOPEN state", &types.MsgChannelOpenTry{portid, "", initChannel, version, s.proof, height, addr}, false},
+		{"previous channel id is not empty", &types.MsgChannelOpenTry{portid, chanid, initChannel, version, s.proof, height, addr}, false},
 	}
 
 	for _, tc := range testCases {
 		tc := tc
 
-		suite.Run(tc.name, func() {
+		s.Run(tc.name, func() {
 			err := tc.msg.ValidateBasic()
 
 			if tc.expPass {
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 			} else {
-				suite.Require().Error(err)
+				s.Require().Error(err)
 			}
 		})
 	}
 }
 
-func (suite *TypesTestSuite) TestMsgChannelOpenAckValidateBasic() {
+func (s *TypesTestSuite) TestMsgChannelOpenAckValidateBasic() {
 	testCases := []struct {
 		name    string
 		msg     *types.MsgChannelOpenAck
 		expPass bool
 	}{
-		{"", types.NewMsgChannelOpenAck(portid, chanid, chanid, version, suite.proof, height, addr), true},
-		{"too short port id", types.NewMsgChannelOpenAck(invalidShortPort, chanid, chanid, version, suite.proof, height, addr), false},
-		{"too long port id", types.NewMsgChannelOpenAck(invalidLongPort, chanid, chanid, version, suite.proof, height, addr), false},
-		{"port id contains non-alpha", types.NewMsgChannelOpenAck(invalidPort, chanid, chanid, version, suite.proof, height, addr), false},
-		{"too short channel id", types.NewMsgChannelOpenAck(portid, invalidShortChannel, chanid, version, suite.proof, height, addr), false},
-		{"too long channel id", types.NewMsgChannelOpenAck(portid, invalidLongChannel, chanid, version, suite.proof, height, addr), false},
-		{"channel id contains non-alpha", types.NewMsgChannelOpenAck(portid, invalidChannel, chanid, version, suite.proof, height, addr), false},
-		{"", types.NewMsgChannelOpenAck(portid, chanid, chanid, "", suite.proof, height, addr), true},
+		{"", types.NewMsgChannelOpenAck(portid, chanid, chanid, version, s.proof, height, addr), true},
+		{"too short port id", types.NewMsgChannelOpenAck(invalidShortPort, chanid, chanid, version, s.proof, height, addr), false},
+		{"too long port id", types.NewMsgChannelOpenAck(invalidLongPort, chanid, chanid, version, s.proof, height, addr), false},
+		{"port id contains non-alpha", types.NewMsgChannelOpenAck(invalidPort, chanid, chanid, version, s.proof, height, addr), false},
+		{"too short channel id", types.NewMsgChannelOpenAck(portid, invalidShortChannel, chanid, version, s.proof, height, addr), false},
+		{"too long channel id", types.NewMsgChannelOpenAck(portid, invalidLongChannel, chanid, version, s.proof, height, addr), false},
+		{"channel id contains non-alpha", types.NewMsgChannelOpenAck(portid, invalidChannel, chanid, version, s.proof, height, addr), false},
+		{"", types.NewMsgChannelOpenAck(portid, chanid, chanid, "", s.proof, height, addr), true},
 		{"empty proof", types.NewMsgChannelOpenAck(portid, chanid, chanid, version, emptyProof, height, addr), false},
-		{"invalid counterparty channel id", types.NewMsgChannelOpenAck(portid, chanid, invalidShortChannel, version, suite.proof, height, addr), false},
+		{"invalid counterparty channel id", types.NewMsgChannelOpenAck(portid, chanid, invalidShortChannel, version, s.proof, height, addr), false},
 	}
 
 	for _, tc := range testCases {
 		tc := tc
 
-		suite.Run(tc.name, func() {
+		s.Run(tc.name, func() {
 			err := tc.msg.ValidateBasic()
 
 			if tc.expPass {
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 			} else {
-				suite.Require().Error(err)
+				s.Require().Error(err)
 			}
 		})
 	}
 }
 
-func (suite *TypesTestSuite) TestMsgChannelOpenConfirmValidateBasic() {
+func (s *TypesTestSuite) TestMsgChannelOpenConfirmValidateBasic() {
 	testCases := []struct {
 		name    string
 		msg     *types.MsgChannelOpenConfirm
 		expPass bool
 	}{
-		{"", types.NewMsgChannelOpenConfirm(portid, chanid, suite.proof, height, addr), true},
-		{"too short port id", types.NewMsgChannelOpenConfirm(invalidShortPort, chanid, suite.proof, height, addr), false},
-		{"too long port id", types.NewMsgChannelOpenConfirm(invalidLongPort, chanid, suite.proof, height, addr), false},
-		{"port id contains non-alpha", types.NewMsgChannelOpenConfirm(invalidPort, chanid, suite.proof, height, addr), false},
-		{"too short channel id", types.NewMsgChannelOpenConfirm(portid, invalidShortChannel, suite.proof, height, addr), false},
-		{"too long channel id", types.NewMsgChannelOpenConfirm(portid, invalidLongChannel, suite.proof, height, addr), false},
-		{"channel id contains non-alpha", types.NewMsgChannelOpenConfirm(portid, invalidChannel, suite.proof, height, addr), false},
+		{"", types.NewMsgChannelOpenConfirm(portid, chanid, s.proof, height, addr), true},
+		{"too short port id", types.NewMsgChannelOpenConfirm(invalidShortPort, chanid, s.proof, height, addr), false},
+		{"too long port id", types.NewMsgChannelOpenConfirm(invalidLongPort, chanid, s.proof, height, addr), false},
+		{"port id contains non-alpha", types.NewMsgChannelOpenConfirm(invalidPort, chanid, s.proof, height, addr), false},
+		{"too short channel id", types.NewMsgChannelOpenConfirm(portid, invalidShortChannel, s.proof, height, addr), false},
+		{"too long channel id", types.NewMsgChannelOpenConfirm(portid, invalidLongChannel, s.proof, height, addr), false},
+		{"channel id contains non-alpha", types.NewMsgChannelOpenConfirm(portid, invalidChannel, s.proof, height, addr), false},
 		{"empty proof", types.NewMsgChannelOpenConfirm(portid, chanid, emptyProof, height, addr), false},
 	}
 
 	for _, tc := range testCases {
 		tc := tc
 
-		suite.Run(tc.name, func() {
+		s.Run(tc.name, func() {
 			err := tc.msg.ValidateBasic()
 
 			if tc.expPass {
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 			} else {
-				suite.Require().Error(err)
+				s.Require().Error(err)
 			}
 		})
 	}
 }
 
-func (suite *TypesTestSuite) TestMsgChannelCloseInitValidateBasic() {
+func (s *TypesTestSuite) TestMsgChannelCloseInitValidateBasic() {
 	testCases := []struct {
 		name    string
 		msg     *types.MsgChannelCloseInit
@@ -266,164 +266,164 @@ func (suite *TypesTestSuite) TestMsgChannelCloseInitValidateBasic() {
 	for _, tc := range testCases {
 		tc := tc
 
-		suite.Run(tc.name, func() {
+		s.Run(tc.name, func() {
 			err := tc.msg.ValidateBasic()
 
 			if tc.expPass {
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 			} else {
-				suite.Require().Error(err)
+				s.Require().Error(err)
 			}
 		})
 	}
 }
 
-func (suite *TypesTestSuite) TestMsgChannelCloseConfirmValidateBasic() {
+func (s *TypesTestSuite) TestMsgChannelCloseConfirmValidateBasic() {
 	testCases := []struct {
 		name    string
 		msg     *types.MsgChannelCloseConfirm
 		expPass bool
 	}{
-		{"", types.NewMsgChannelCloseConfirm(portid, chanid, suite.proof, height, addr), true},
-		{"too short port id", types.NewMsgChannelCloseConfirm(invalidShortPort, chanid, suite.proof, height, addr), false},
-		{"too long port id", types.NewMsgChannelCloseConfirm(invalidLongPort, chanid, suite.proof, height, addr), false},
-		{"port id contains non-alpha", types.NewMsgChannelCloseConfirm(invalidPort, chanid, suite.proof, height, addr), false},
-		{"too short channel id", types.NewMsgChannelCloseConfirm(portid, invalidShortChannel, suite.proof, height, addr), false},
-		{"too long channel id", types.NewMsgChannelCloseConfirm(portid, invalidLongChannel, suite.proof, height, addr), false},
-		{"channel id contains non-alpha", types.NewMsgChannelCloseConfirm(portid, invalidChannel, suite.proof, height, addr), false},
+		{"", types.NewMsgChannelCloseConfirm(portid, chanid, s.proof, height, addr), true},
+		{"too short port id", types.NewMsgChannelCloseConfirm(invalidShortPort, chanid, s.proof, height, addr), false},
+		{"too long port id", types.NewMsgChannelCloseConfirm(invalidLongPort, chanid, s.proof, height, addr), false},
+		{"port id contains non-alpha", types.NewMsgChannelCloseConfirm(invalidPort, chanid, s.proof, height, addr), false},
+		{"too short channel id", types.NewMsgChannelCloseConfirm(portid, invalidShortChannel, s.proof, height, addr), false},
+		{"too long channel id", types.NewMsgChannelCloseConfirm(portid, invalidLongChannel, s.proof, height, addr), false},
+		{"channel id contains non-alpha", types.NewMsgChannelCloseConfirm(portid, invalidChannel, s.proof, height, addr), false},
 		{"empty proof", types.NewMsgChannelCloseConfirm(portid, chanid, emptyProof, height, addr), false},
 	}
 
 	for _, tc := range testCases {
 		tc := tc
 
-		suite.Run(tc.name, func() {
+		s.Run(tc.name, func() {
 			err := tc.msg.ValidateBasic()
 
 			if tc.expPass {
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 			} else {
-				suite.Require().Error(err)
+				s.Require().Error(err)
 			}
 		})
 	}
 }
 
-func (suite *TypesTestSuite) TestMsgRecvPacketValidateBasic() {
+func (s *TypesTestSuite) TestMsgRecvPacketValidateBasic() {
 	testCases := []struct {
 		name    string
 		msg     *types.MsgRecvPacket
 		expPass bool
 	}{
-		{"success", types.NewMsgRecvPacket(packet, suite.proof, height, addr), true},
-		{"missing signer address", types.NewMsgRecvPacket(packet, suite.proof, height, emptyAddr), false},
+		{"success", types.NewMsgRecvPacket(packet, s.proof, height, addr), true},
+		{"missing signer address", types.NewMsgRecvPacket(packet, s.proof, height, emptyAddr), false},
 		{"proof contain empty proof", types.NewMsgRecvPacket(packet, emptyProof, height, addr), false},
-		{"invalid packet", types.NewMsgRecvPacket(invalidPacket, suite.proof, height, addr), false},
+		{"invalid packet", types.NewMsgRecvPacket(invalidPacket, s.proof, height, addr), false},
 	}
 
 	for _, tc := range testCases {
 		tc := tc
 
-		suite.Run(tc.name, func() {
+		s.Run(tc.name, func() {
 			err := tc.msg.ValidateBasic()
 
 			if tc.expPass {
-				suite.NoError(err)
+				s.NoError(err)
 			} else {
-				suite.Error(err)
+				s.Error(err)
 			}
 		})
 	}
 }
 
-func (suite *TypesTestSuite) TestMsgRecvPacketGetSigners() {
-	msg := types.NewMsgRecvPacket(packet, suite.proof, height, addr)
+func (s *TypesTestSuite) TestMsgRecvPacketGetSigners() {
+	msg := types.NewMsgRecvPacket(packet, s.proof, height, addr)
 	res := msg.GetSigners()
 
 	expected := "[7465737461646472313131313131313131313131]"
-	suite.Equal(expected, fmt.Sprintf("%v", res))
+	s.Equal(expected, fmt.Sprintf("%v", res))
 }
 
-func (suite *TypesTestSuite) TestMsgTimeoutValidateBasic() {
+func (s *TypesTestSuite) TestMsgTimeoutValidateBasic() {
 	testCases := []struct {
 		name    string
 		msg     *types.MsgTimeout
 		expPass bool
 	}{
-		{"success", types.NewMsgTimeout(packet, 1, suite.proof, height, addr), true},
-		{"seq 0", types.NewMsgTimeout(packet, 0, suite.proof, height, addr), false},
-		{"missing signer address", types.NewMsgTimeout(packet, 1, suite.proof, height, emptyAddr), false},
+		{"success", types.NewMsgTimeout(packet, 1, s.proof, height, addr), true},
+		{"seq 0", types.NewMsgTimeout(packet, 0, s.proof, height, addr), false},
+		{"missing signer address", types.NewMsgTimeout(packet, 1, s.proof, height, emptyAddr), false},
 		{"cannot submit an empty proof", types.NewMsgTimeout(packet, 1, emptyProof, height, addr), false},
-		{"invalid packet", types.NewMsgTimeout(invalidPacket, 1, suite.proof, height, addr), false},
+		{"invalid packet", types.NewMsgTimeout(invalidPacket, 1, s.proof, height, addr), false},
 	}
 
 	for _, tc := range testCases {
 		tc := tc
 
-		suite.Run(tc.name, func() {
+		s.Run(tc.name, func() {
 			err := tc.msg.ValidateBasic()
 
 			if tc.expPass {
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 			} else {
-				suite.Require().Error(err)
+				s.Require().Error(err)
 			}
 		})
 	}
 }
 
-func (suite *TypesTestSuite) TestMsgTimeoutOnCloseValidateBasic() {
+func (s *TypesTestSuite) TestMsgTimeoutOnCloseValidateBasic() {
 	testCases := []struct {
 		name    string
 		msg     sdk.Msg
 		expPass bool
 	}{
-		{"success", types.NewMsgTimeoutOnClose(packet, 1, suite.proof, suite.proof, height, addr), true},
-		{"seq 0", types.NewMsgTimeoutOnClose(packet, 0, suite.proof, suite.proof, height, addr), false},
-		{"signer address is empty", types.NewMsgTimeoutOnClose(packet, 1, suite.proof, suite.proof, height, emptyAddr), false},
-		{"empty proof", types.NewMsgTimeoutOnClose(packet, 1, emptyProof, suite.proof, height, addr), false},
-		{"empty proof close", types.NewMsgTimeoutOnClose(packet, 1, suite.proof, emptyProof, height, addr), false},
-		{"invalid packet", types.NewMsgTimeoutOnClose(invalidPacket, 1, suite.proof, suite.proof, height, addr), false},
+		{"success", types.NewMsgTimeoutOnClose(packet, 1, s.proof, s.proof, height, addr), true},
+		{"seq 0", types.NewMsgTimeoutOnClose(packet, 0, s.proof, s.proof, height, addr), false},
+		{"signer address is empty", types.NewMsgTimeoutOnClose(packet, 1, s.proof, s.proof, height, emptyAddr), false},
+		{"empty proof", types.NewMsgTimeoutOnClose(packet, 1, emptyProof, s.proof, height, addr), false},
+		{"empty proof close", types.NewMsgTimeoutOnClose(packet, 1, s.proof, emptyProof, height, addr), false},
+		{"invalid packet", types.NewMsgTimeoutOnClose(invalidPacket, 1, s.proof, s.proof, height, addr), false},
 	}
 
 	for _, tc := range testCases {
 		tc := tc
 
-		suite.Run(tc.name, func() {
+		s.Run(tc.name, func() {
 			err := tc.msg.ValidateBasic()
 
 			if tc.expPass {
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 			} else {
-				suite.Require().Error(err)
+				s.Require().Error(err)
 			}
 		})
 	}
 }
 
-func (suite *TypesTestSuite) TestMsgAcknowledgementValidateBasic() {
+func (s *TypesTestSuite) TestMsgAcknowledgementValidateBasic() {
 	testCases := []struct {
 		name    string
 		msg     *types.MsgAcknowledgement
 		expPass bool
 	}{
-		{"success", types.NewMsgAcknowledgement(packet, packet.GetData(), suite.proof, height, addr), true},
-		{"empty ack", types.NewMsgAcknowledgement(packet, nil, suite.proof, height, addr), false},
-		{"missing signer address", types.NewMsgAcknowledgement(packet, packet.GetData(), suite.proof, height, emptyAddr), false},
+		{"success", types.NewMsgAcknowledgement(packet, packet.GetData(), s.proof, height, addr), true},
+		{"empty ack", types.NewMsgAcknowledgement(packet, nil, s.proof, height, addr), false},
+		{"missing signer address", types.NewMsgAcknowledgement(packet, packet.GetData(), s.proof, height, emptyAddr), false},
 		{"cannot submit an empty proof", types.NewMsgAcknowledgement(packet, packet.GetData(), emptyProof, height, addr), false},
-		{"invalid packet", types.NewMsgAcknowledgement(invalidPacket, packet.GetData(), suite.proof, height, addr), false},
+		{"invalid packet", types.NewMsgAcknowledgement(invalidPacket, packet.GetData(), s.proof, height, addr), false},
 	}
 
 	for _, tc := range testCases {
 		tc := tc
 
-		suite.Run(tc.name, func() {
+		s.Run(tc.name, func() {
 			err := tc.msg.ValidateBasic()
 
 			if tc.expPass {
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 			} else {
-				suite.Require().Error(err)
+				s.Require().Error(err)
 			}
 		})
 	}

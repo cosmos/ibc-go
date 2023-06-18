@@ -7,17 +7,17 @@ import (
 	solomachine "github.com/cosmos/ibc-go/v7/modules/light-clients/06-solomachine"
 )
 
-func (suite *SoloMachineTestSuite) TestVerifySignature() {
-	cdc := suite.chainA.App.AppCodec()
+func (s *SoloMachineTestSuite) TestVerifySignature() {
+	cdc := s.chainA.App.AppCodec()
 	signBytes := []byte("sign bytes")
 
-	singleSignature := suite.solomachine.GenerateSignature(signBytes)
+	singleSignature := s.solomachine.GenerateSignature(signBytes)
 	singleSigData, err := solomachine.UnmarshalSignatureData(cdc, singleSignature)
-	suite.Require().NoError(err)
+	s.Require().NoError(err)
 
-	multiSignature := suite.solomachineMulti.GenerateSignature(signBytes)
+	multiSignature := s.solomachineMulti.GenerateSignature(signBytes)
 	multiSigData, err := solomachine.UnmarshalSignatureData(cdc, multiSignature)
-	suite.Require().NoError(err)
+	s.Require().NoError(err)
 
 	testCases := []struct {
 		name      string
@@ -27,25 +27,25 @@ func (suite *SoloMachineTestSuite) TestVerifySignature() {
 	}{
 		{
 			"single signature with regular public key",
-			suite.solomachine.PublicKey,
+			s.solomachine.PublicKey,
 			singleSigData,
 			true,
 		},
 		{
 			"multi signature with multisig public key",
-			suite.solomachineMulti.PublicKey,
+			s.solomachineMulti.PublicKey,
 			multiSigData,
 			true,
 		},
 		{
 			"single signature with multisig public key",
-			suite.solomachineMulti.PublicKey,
+			s.solomachineMulti.PublicKey,
 			singleSigData,
 			false,
 		},
 		{
 			"multi signature with regular public key",
-			suite.solomachine.PublicKey,
+			s.solomachine.PublicKey,
 			multiSigData,
 			false,
 		},
@@ -54,13 +54,13 @@ func (suite *SoloMachineTestSuite) TestVerifySignature() {
 	for _, tc := range testCases {
 		tc := tc
 
-		suite.Run(tc.name, func() {
+		s.Run(tc.name, func() {
 			err := solomachine.VerifySignature(tc.publicKey, signBytes, tc.sigData)
 
 			if tc.expPass {
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 			} else {
-				suite.Require().Error(err)
+				s.Require().Error(err)
 			}
 		})
 	}

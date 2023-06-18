@@ -12,14 +12,14 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
-func (suite *SoloMachineTestSuite) TestVerifyClientMessageHeader() {
+func (s *SoloMachineTestSuite) TestVerifyClientMessageHeader() {
 	var (
 		clientMsg   exported.ClientMessage
 		clientState *solomachine.ClientState
 	)
 
 	// test singlesig and multisig public keys
-	for _, sm := range []*ibctesting.Solomachine{suite.solomachine, suite.solomachineMulti} {
+	for _, sm := range []*ibctesting.Solomachine{s.solomachine, s.solomachineMulti} {
 
 		testCases := []struct {
 			name    string
@@ -58,7 +58,7 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageHeader() {
 				"invalid header Signature",
 				func() {
 					h := sm.CreateHeader(sm.Diversifier)
-					h.Signature = suite.GetInvalidProof()
+					h.Signature = s.GetInvalidProof()
 					clientMsg = h
 				}, false,
 			},
@@ -86,15 +86,15 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageHeader() {
 					h := sm.CreateHeader(sm.Diversifier)
 
 					publicKey, err := codectypes.NewAnyWithValue(sm.PublicKey)
-					suite.NoError(err)
+					s.NoError(err)
 
 					data := &solomachine.HeaderData{
 						NewPubKey:      publicKey,
 						NewDiversifier: h.NewDiversifier,
 					}
 
-					dataBz, err := suite.chainA.Codec.Marshal(data)
-					suite.Require().NoError(err)
+					dataBz, err := s.chainA.Codec.Marshal(data)
+					s.Require().NoError(err)
 
 					// generate invalid signature
 					signBytes := &solomachine.SignBytes{
@@ -105,11 +105,11 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageHeader() {
 						Data:        dataBz,
 					}
 
-					signBz, err := suite.chainA.Codec.Marshal(signBytes)
-					suite.Require().NoError(err)
+					signBz, err := s.chainA.Codec.Marshal(signBytes)
+					s.Require().NoError(err)
 
 					sig := sm.GenerateSignature(signBz)
-					suite.Require().NoError(err)
+					s.Require().NoError(err)
 					h.Signature = sig
 
 					clientState = cs
@@ -148,32 +148,32 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageHeader() {
 		for _, tc := range testCases {
 			tc := tc
 
-			suite.Run(tc.name, func() {
+			s.Run(tc.name, func() {
 				clientState = sm.ClientState()
 
 				// setup test
 				tc.setup()
 
-				err := clientState.VerifyClientMessage(suite.chainA.GetContext(), suite.chainA.Codec, suite.store, clientMsg)
+				err := clientState.VerifyClientMessage(s.chainA.GetContext(), s.chainA.Codec, s.store, clientMsg)
 
 				if tc.expPass {
-					suite.Require().NoError(err)
+					s.Require().NoError(err)
 				} else {
-					suite.Require().Error(err)
+					s.Require().Error(err)
 				}
 			})
 		}
 	}
 }
 
-func (suite *SoloMachineTestSuite) TestVerifyClientMessageMisbehaviour() {
+func (s *SoloMachineTestSuite) TestVerifyClientMessageMisbehaviour() {
 	var (
 		clientMsg   exported.ClientMessage
 		clientState *solomachine.ClientState
 	)
 
 	// test singlesig and multisig public keys
-	for _, sm := range []*ibctesting.Solomachine{suite.solomachine, suite.solomachineMulti} {
+	for _, sm := range []*ibctesting.Solomachine{s.solomachine, s.solomachineMulti} {
 
 		testCases := []struct {
 			name    string
@@ -215,7 +215,7 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageMisbehaviour() {
 				func() {
 					m := sm.CreateMisbehaviour()
 
-					m.SignatureOne.Signature = suite.GetInvalidProof()
+					m.SignatureOne.Signature = s.GetInvalidProof()
 					clientMsg = m
 				}, false,
 			},
@@ -224,7 +224,7 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageMisbehaviour() {
 				func() {
 					m := sm.CreateMisbehaviour()
 
-					m.SignatureTwo.Signature = suite.GetInvalidProof()
+					m.SignatureTwo.Signature = s.GetInvalidProof()
 					clientMsg = m
 				}, false,
 			},
@@ -261,8 +261,8 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageMisbehaviour() {
 						Data:        msg,
 					}
 
-					data, err := suite.chainA.Codec.Marshal(signBytes)
-					suite.Require().NoError(err)
+					data, err := s.chainA.Codec.Marshal(signBytes)
+					s.Require().NoError(err)
 
 					sig := sm.GenerateSignature(data)
 
@@ -287,8 +287,8 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageMisbehaviour() {
 						Data:        msg,
 					}
 
-					data, err := suite.chainA.Codec.Marshal(signBytes)
-					suite.Require().NoError(err)
+					data, err := s.chainA.Codec.Marshal(signBytes)
+					s.Require().NoError(err)
 
 					sig := sm.GenerateSignature(data)
 
@@ -343,8 +343,8 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageMisbehaviour() {
 						Data:        msg,
 					}
 
-					data, err := suite.chainA.Codec.Marshal(signBytes)
-					suite.Require().NoError(err)
+					data, err := s.chainA.Codec.Marshal(signBytes)
+					s.Require().NoError(err)
 
 					sig := sm.GenerateSignature(data)
 
@@ -362,8 +362,8 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageMisbehaviour() {
 						Path:        []byte("invalid signature data"),
 						Data:        msg,
 					}
-					data, err = suite.chainA.Codec.Marshal(signBytes)
-					suite.Require().NoError(err)
+					data, err = s.chainA.Codec.Marshal(signBytes)
+					s.Require().NoError(err)
 
 					sig = sm.GenerateSignature(data)
 
@@ -379,32 +379,32 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageMisbehaviour() {
 		for _, tc := range testCases {
 			tc := tc
 
-			suite.Run(tc.name, func() {
+			s.Run(tc.name, func() {
 				clientState = sm.ClientState()
 
 				// setup test
 				tc.setup()
 
-				err := clientState.VerifyClientMessage(suite.chainA.GetContext(), suite.chainA.Codec, suite.store, clientMsg)
+				err := clientState.VerifyClientMessage(s.chainA.GetContext(), s.chainA.Codec, s.store, clientMsg)
 
 				if tc.expPass {
-					suite.Require().NoError(err)
+					s.Require().NoError(err)
 				} else {
-					suite.Require().Error(err)
+					s.Require().Error(err)
 				}
 			})
 		}
 	}
 }
 
-func (suite *SoloMachineTestSuite) TestUpdateState() {
+func (s *SoloMachineTestSuite) TestUpdateState() {
 	var (
 		clientState exported.ClientState
 		clientMsg   exported.ClientMessage
 	)
 
 	// test singlesig and multisig public keys
-	for _, sm := range []*ibctesting.Solomachine{suite.solomachine, suite.solomachineMulti} {
+	for _, sm := range []*ibctesting.Solomachine{s.solomachine, s.solomachineMulti} {
 
 		testCases := []struct {
 			name    string
@@ -432,28 +432,28 @@ func (suite *SoloMachineTestSuite) TestUpdateState() {
 		for _, tc := range testCases {
 			tc := tc
 
-			suite.Run(tc.name, func() {
+			s.Run(tc.name, func() {
 				tc.setup() // setup test
 
 				if tc.expPass {
-					consensusHeights := clientState.UpdateState(suite.chainA.GetContext(), suite.chainA.Codec, suite.store, clientMsg)
+					consensusHeights := clientState.UpdateState(s.chainA.GetContext(), s.chainA.Codec, s.store, clientMsg)
 
-					clientStateBz := suite.store.Get(host.ClientStateKey())
-					suite.Require().NotEmpty(clientStateBz)
+					clientStateBz := s.store.Get(host.ClientStateKey())
+					s.Require().NotEmpty(clientStateBz)
 
-					newClientState := clienttypes.MustUnmarshalClientState(suite.chainA.Codec, clientStateBz)
+					newClientState := clienttypes.MustUnmarshalClientState(s.chainA.Codec, clientStateBz)
 
-					suite.Require().Len(consensusHeights, 1)
-					suite.Require().Equal(uint64(0), consensusHeights[0].GetRevisionNumber())
-					suite.Require().Equal(newClientState.(*solomachine.ClientState).Sequence, consensusHeights[0].GetRevisionHeight())
+					s.Require().Len(consensusHeights, 1)
+					s.Require().Equal(uint64(0), consensusHeights[0].GetRevisionNumber())
+					s.Require().Equal(newClientState.(*solomachine.ClientState).Sequence, consensusHeights[0].GetRevisionHeight())
 
-					suite.Require().False(newClientState.(*solomachine.ClientState).IsFrozen)
-					suite.Require().Equal(clientMsg.(*solomachine.Header).NewPublicKey, newClientState.(*solomachine.ClientState).ConsensusState.PublicKey)
-					suite.Require().Equal(clientMsg.(*solomachine.Header).NewDiversifier, newClientState.(*solomachine.ClientState).ConsensusState.Diversifier)
-					suite.Require().Equal(clientMsg.(*solomachine.Header).Timestamp, newClientState.(*solomachine.ClientState).ConsensusState.Timestamp)
+					s.Require().False(newClientState.(*solomachine.ClientState).IsFrozen)
+					s.Require().Equal(clientMsg.(*solomachine.Header).NewPublicKey, newClientState.(*solomachine.ClientState).ConsensusState.PublicKey)
+					s.Require().Equal(clientMsg.(*solomachine.Header).NewDiversifier, newClientState.(*solomachine.ClientState).ConsensusState.Diversifier)
+					s.Require().Equal(clientMsg.(*solomachine.Header).Timestamp, newClientState.(*solomachine.ClientState).ConsensusState.Timestamp)
 				} else {
-					suite.Require().Panics(func() {
-						clientState.UpdateState(suite.chainA.GetContext(), suite.chainA.Codec, suite.store, clientMsg)
+					s.Require().Panics(func() {
+						clientState.UpdateState(s.chainA.GetContext(), s.chainA.Codec, s.store, clientMsg)
 					})
 				}
 			})
@@ -461,11 +461,11 @@ func (suite *SoloMachineTestSuite) TestUpdateState() {
 	}
 }
 
-func (suite *SoloMachineTestSuite) TestCheckForMisbehaviour() {
+func (s *SoloMachineTestSuite) TestCheckForMisbehaviour() {
 	var clientMsg exported.ClientMessage
 
 	// test singlesig and multisig public keys
-	for _, sm := range []*ibctesting.Solomachine{suite.solomachine, suite.solomachineMulti} {
+	for _, sm := range []*ibctesting.Solomachine{s.solomachine, s.solomachineMulti} {
 		testCases := []struct {
 			name     string
 			malleate func()
@@ -490,26 +490,26 @@ func (suite *SoloMachineTestSuite) TestCheckForMisbehaviour() {
 		for _, tc := range testCases {
 			tc := tc
 
-			suite.Run(tc.name, func() {
+			s.Run(tc.name, func() {
 				clientState := sm.ClientState()
 
 				tc.malleate()
 
-				foundMisbehaviour := clientState.CheckForMisbehaviour(suite.chainA.GetContext(), suite.chainA.Codec, suite.store, clientMsg)
+				foundMisbehaviour := clientState.CheckForMisbehaviour(s.chainA.GetContext(), s.chainA.Codec, s.store, clientMsg)
 
 				if tc.expPass {
-					suite.Require().True(foundMisbehaviour)
+					s.Require().True(foundMisbehaviour)
 				} else {
-					suite.Require().False(foundMisbehaviour)
+					s.Require().False(foundMisbehaviour)
 				}
 			})
 		}
 	}
 }
 
-func (suite *SoloMachineTestSuite) TestUpdateStateOnMisbehaviour() {
+func (s *SoloMachineTestSuite) TestUpdateStateOnMisbehaviour() {
 	// test singlesig and multisig public keys
-	for _, sm := range []*ibctesting.Solomachine{suite.solomachine, suite.solomachineMulti} {
+	for _, sm := range []*ibctesting.Solomachine{s.solomachine, s.solomachineMulti} {
 		testCases := []struct {
 			name     string
 			malleate func()
@@ -525,20 +525,20 @@ func (suite *SoloMachineTestSuite) TestUpdateStateOnMisbehaviour() {
 		for _, tc := range testCases {
 			tc := tc
 
-			suite.Run(tc.name, func() {
+			s.Run(tc.name, func() {
 				clientState := sm.ClientState()
 
 				tc.malleate()
 
-				clientState.UpdateStateOnMisbehaviour(suite.chainA.GetContext(), suite.chainA.Codec, suite.store, nil)
+				clientState.UpdateStateOnMisbehaviour(s.chainA.GetContext(), s.chainA.Codec, s.store, nil)
 
 				if tc.expPass {
-					clientStateBz := suite.store.Get(host.ClientStateKey())
-					suite.Require().NotEmpty(clientStateBz)
+					clientStateBz := s.store.Get(host.ClientStateKey())
+					s.Require().NotEmpty(clientStateBz)
 
-					newClientState := clienttypes.MustUnmarshalClientState(suite.chainA.Codec, clientStateBz)
+					newClientState := clienttypes.MustUnmarshalClientState(s.chainA.Codec, clientStateBz)
 
-					suite.Require().True(newClientState.(*solomachine.ClientState).IsFrozen)
+					s.Require().True(newClientState.(*solomachine.ClientState).IsFrozen)
 				}
 			})
 		}

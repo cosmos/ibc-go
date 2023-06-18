@@ -6,9 +6,9 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
-func (suite *SoloMachineTestSuite) TestHeaderValidateBasic() {
+func (s *SoloMachineTestSuite) TestHeaderValidateBasic() {
 	// test singlesig and multisig public keys
-	for _, sm := range []*ibctesting.Solomachine{suite.solomachine, suite.solomachineMulti} {
+	for _, sm := range []*ibctesting.Solomachine{s.solomachine, s.solomachineMulti} {
 
 		header := sm.CreateHeader(sm.Diversifier)
 
@@ -64,18 +64,18 @@ func (suite *SoloMachineTestSuite) TestHeaderValidateBasic() {
 			},
 		}
 
-		suite.Require().Equal(exported.Solomachine, header.ClientType())
+		s.Require().Equal(exported.Solomachine, header.ClientType())
 
 		for _, tc := range cases {
 			tc := tc
 
-			suite.Run(tc.name, func() {
+			s.Run(tc.name, func() {
 				err := tc.header.ValidateBasic()
 
 				if tc.expPass {
-					suite.Require().NoError(err)
+					s.Require().NoError(err)
 				} else {
-					suite.Require().Error(err)
+					s.Require().Error(err)
 				}
 			})
 		}

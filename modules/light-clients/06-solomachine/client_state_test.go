@@ -23,21 +23,21 @@ const (
 	testPortID                   = "testportid"
 )
 
-func (suite *SoloMachineTestSuite) TestStatus() {
-	clientState := suite.solomachine.ClientState()
+func (s *SoloMachineTestSuite) TestStatus() {
+	clientState := s.solomachine.ClientState()
 	// solo machine discards arguments
-	status := clientState.Status(suite.chainA.GetContext(), nil, nil)
-	suite.Require().Equal(exported.Active, status)
+	status := clientState.Status(s.chainA.GetContext(), nil, nil)
+	s.Require().Equal(exported.Active, status)
 
 	// freeze solo machine
 	clientState.IsFrozen = true
-	status = clientState.Status(suite.chainA.GetContext(), nil, nil)
-	suite.Require().Equal(exported.Frozen, status)
+	status = clientState.Status(s.chainA.GetContext(), nil, nil)
+	s.Require().Equal(exported.Frozen, status)
 }
 
-func (suite *SoloMachineTestSuite) TestClientStateValidateBasic() {
+func (s *SoloMachineTestSuite) TestClientStateValidateBasic() {
 	// test singlesig and multisig public keys
-	for _, sm := range []*ibctesting.Solomachine{suite.solomachine, suite.solomachineMulti} {
+	for _, sm := range []*ibctesting.Solomachine{s.solomachine, s.solomachineMulti} {
 
 		testCases := []struct {
 			name        string
@@ -79,22 +79,22 @@ func (suite *SoloMachineTestSuite) TestClientStateValidateBasic() {
 		for _, tc := range testCases {
 			tc := tc
 
-			suite.Run(tc.name, func() {
+			s.Run(tc.name, func() {
 				err := tc.clientState.Validate()
 
 				if tc.expPass {
-					suite.Require().NoError(err)
+					s.Require().NoError(err)
 				} else {
-					suite.Require().Error(err)
+					s.Require().Error(err)
 				}
 			})
 		}
 	}
 }
 
-func (suite *SoloMachineTestSuite) TestInitialize() {
+func (s *SoloMachineTestSuite) TestInitialize() {
 	// test singlesig and multisig public keys
-	for _, sm := range []*ibctesting.Solomachine{suite.solomachine, suite.solomachineMulti} {
+	for _, sm := range []*ibctesting.Solomachine{s.solomachine, s.solomachineMulti} {
 		malleatedConsensus := sm.ClientState().ConsensusState
 		malleatedConsensus.Timestamp += 10
 
@@ -126,28 +126,28 @@ func (suite *SoloMachineTestSuite) TestInitialize() {
 		}
 
 		for _, tc := range testCases {
-			suite.SetupTest()
+			s.SetupTest()
 
-			store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), "solomachine")
+			store := s.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(s.chainA.GetContext(), "solomachine")
 			err := sm.ClientState().Initialize(
-				suite.chainA.GetContext(), suite.chainA.Codec,
+				s.chainA.GetContext(), s.chainA.Codec,
 				store, tc.consState,
 			)
 
 			if tc.expPass {
-				suite.Require().NoError(err, "valid testcase: %s failed", tc.name)
-				suite.Require().True(store.Has(host.ClientStateKey()))
+				s.Require().NoError(err, "valid testcase: %s failed", tc.name)
+				s.Require().True(store.Has(host.ClientStateKey()))
 			} else {
-				suite.Require().Error(err, "invalid testcase: %s passed", tc.name)
-				suite.Require().False(store.Has(host.ClientStateKey()))
+				s.Require().Error(err, "invalid testcase: %s passed", tc.name)
+				s.Require().False(store.Has(host.ClientStateKey()))
 			}
 		}
 	}
 }
 
-func (suite *SoloMachineTestSuite) TestVerifyMembership() {
+func (s *SoloMachineTestSuite) TestVerifyMembership() {
 	// test singlesig and multisig public keys
-	for _, sm := range []*ibctesting.Solomachine{suite.solomachine, suite.solomachineMulti} {
+	for _, sm := range []*ibctesting.Solomachine{s.solomachine, s.solomachineMulti} {
 
 		var (
 			clientState *solomachine.ClientState
@@ -172,10 +172,10 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 				"success: client state verification",
 				func() {
 					clientState = sm.ClientState()
-					clientStateBz, err := suite.chainA.Codec.Marshal(clientState)
-					suite.Require().NoError(err)
+					clientStateBz, err := s.chainA.Codec.Marshal(clientState)
+					s.Require().NoError(err)
 
-					path = suite.solomachine.GetClientStatePath(counterpartyClientIdentifier)
+					path = s.solomachine.GetClientStatePath(counterpartyClientIdentifier)
 					signBytes = solomachine.SignBytes{
 						Sequence:    sm.GetHeight().GetRevisionHeight(),
 						Timestamp:   sm.Time,
@@ -184,8 +184,8 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 						Data:        clientStateBz,
 					}
 
-					signBz, err := suite.chainA.Codec.Marshal(&signBytes)
-					suite.Require().NoError(err)
+					signBz, err := s.chainA.Codec.Marshal(&signBytes)
+					s.Require().NoError(err)
 
 					sig := sm.GenerateSignature(signBz)
 
@@ -194,8 +194,8 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 						Timestamp:     sm.Time,
 					}
 
-					proof, err = suite.chainA.Codec.Marshal(signatureDoc)
-					suite.Require().NoError(err)
+					proof, err = s.chainA.Codec.Marshal(signatureDoc)
+					s.Require().NoError(err)
 				},
 				true,
 			},
@@ -204,8 +204,8 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 				func() {
 					clientState = sm.ClientState()
 					consensusState := clientState.ConsensusState
-					consensusStateBz, err := suite.chainA.Codec.Marshal(consensusState)
-					suite.Require().NoError(err)
+					consensusStateBz, err := s.chainA.Codec.Marshal(consensusState)
+					s.Require().NoError(err)
 
 					path = sm.GetConsensusStatePath(counterpartyClientIdentifier, clienttypes.NewHeight(0, 1))
 					signBytes = solomachine.SignBytes{
@@ -216,8 +216,8 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 						Data:        consensusStateBz,
 					}
 
-					signBz, err := suite.chainA.Codec.Marshal(&signBytes)
-					suite.Require().NoError(err)
+					signBz, err := s.chainA.Codec.Marshal(&signBytes)
+					s.Require().NoError(err)
 
 					sig := sm.GenerateSignature(signBz)
 
@@ -226,21 +226,21 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 						Timestamp:     sm.Time,
 					}
 
-					proof, err = suite.chainA.Codec.Marshal(signatureDoc)
-					suite.Require().NoError(err)
+					proof, err = s.chainA.Codec.Marshal(signatureDoc)
+					s.Require().NoError(err)
 				},
 				true,
 			},
 			{
 				"success: connection state verification",
 				func() {
-					suite.coordinator.SetupConnections(testingPath)
+					s.coordinator.SetupConnections(testingPath)
 
-					connectionEnd, found := suite.chainA.GetSimApp().IBCKeeper.ConnectionKeeper.GetConnection(suite.chainA.GetContext(), ibctesting.FirstConnectionID)
-					suite.Require().True(found)
+					connectionEnd, found := s.chainA.GetSimApp().IBCKeeper.ConnectionKeeper.GetConnection(s.chainA.GetContext(), ibctesting.FirstConnectionID)
+					s.Require().True(found)
 
-					connectionEndBz, err := suite.chainA.Codec.Marshal(&connectionEnd)
-					suite.Require().NoError(err)
+					connectionEndBz, err := s.chainA.Codec.Marshal(&connectionEnd)
+					s.Require().NoError(err)
 
 					path = sm.GetConnectionStatePath(ibctesting.FirstConnectionID)
 					signBytes = solomachine.SignBytes{
@@ -251,8 +251,8 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 						Data:        connectionEndBz,
 					}
 
-					signBz, err := suite.chainA.Codec.Marshal(&signBytes)
-					suite.Require().NoError(err)
+					signBz, err := s.chainA.Codec.Marshal(&signBytes)
+					s.Require().NoError(err)
 
 					sig := sm.GenerateSignature(signBz)
 
@@ -261,22 +261,22 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 						Timestamp:     sm.Time,
 					}
 
-					proof, err = suite.chainA.Codec.Marshal(signatureDoc)
-					suite.Require().NoError(err)
+					proof, err = s.chainA.Codec.Marshal(signatureDoc)
+					s.Require().NoError(err)
 				},
 				true,
 			},
 			{
 				"success: channel state verification",
 				func() {
-					suite.coordinator.SetupConnections(testingPath)
-					suite.coordinator.CreateMockChannels(testingPath)
+					s.coordinator.SetupConnections(testingPath)
+					s.coordinator.CreateMockChannels(testingPath)
 
-					channelEnd, found := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetChannel(suite.chainA.GetContext(), ibctesting.MockPort, ibctesting.FirstChannelID)
-					suite.Require().True(found)
+					channelEnd, found := s.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetChannel(s.chainA.GetContext(), ibctesting.MockPort, ibctesting.FirstChannelID)
+					s.Require().True(found)
 
-					channelEndBz, err := suite.chainA.Codec.Marshal(&channelEnd)
-					suite.Require().NoError(err)
+					channelEndBz, err := s.chainA.Codec.Marshal(&channelEnd)
+					s.Require().NoError(err)
 
 					path = sm.GetChannelStatePath(ibctesting.MockPort, ibctesting.FirstChannelID)
 					signBytes = solomachine.SignBytes{
@@ -287,8 +287,8 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 						Data:        channelEndBz,
 					}
 
-					signBz, err := suite.chainA.Codec.Marshal(&signBytes)
-					suite.Require().NoError(err)
+					signBz, err := s.chainA.Codec.Marshal(&signBytes)
+					s.Require().NoError(err)
 
 					sig := sm.GenerateSignature(signBz)
 
@@ -297,19 +297,19 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 						Timestamp:     sm.Time,
 					}
 
-					proof, err = suite.chainA.Codec.Marshal(signatureDoc)
-					suite.Require().NoError(err)
+					proof, err = s.chainA.Codec.Marshal(signatureDoc)
+					s.Require().NoError(err)
 				},
 				true,
 			},
 			{
 				"success: next sequence recv verification",
 				func() {
-					suite.coordinator.SetupConnections(testingPath)
-					suite.coordinator.CreateMockChannels(testingPath)
+					s.coordinator.SetupConnections(testingPath)
+					s.coordinator.CreateMockChannels(testingPath)
 
-					nextSeqRecv, found := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetNextSequenceRecv(suite.chainA.GetContext(), ibctesting.MockPort, ibctesting.FirstChannelID)
-					suite.Require().True(found)
+					nextSeqRecv, found := s.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetNextSequenceRecv(s.chainA.GetContext(), ibctesting.MockPort, ibctesting.FirstChannelID)
+					s.Require().True(found)
 
 					path = sm.GetNextSequenceRecvPath(ibctesting.MockPort, ibctesting.FirstChannelID)
 					signBytes = solomachine.SignBytes{
@@ -320,8 +320,8 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 						Data:        sdk.Uint64ToBigEndian(nextSeqRecv),
 					}
 
-					signBz, err := suite.chainA.Codec.Marshal(&signBytes)
-					suite.Require().NoError(err)
+					signBz, err := s.chainA.Codec.Marshal(&signBytes)
+					s.Require().NoError(err)
 
 					sig := sm.GenerateSignature(signBz)
 
@@ -330,8 +330,8 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 						Timestamp:     sm.Time,
 					}
 
-					proof, err = suite.chainA.Codec.Marshal(signatureDoc)
-					suite.Require().NoError(err)
+					proof, err = s.chainA.Codec.Marshal(signatureDoc)
+					s.Require().NoError(err)
 				},
 				true,
 			},
@@ -349,7 +349,7 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 						0,
 					)
 
-					commitmentBz := channeltypes.CommitPacket(suite.chainA.Codec, packet)
+					commitmentBz := channeltypes.CommitPacket(s.chainA.Codec, packet)
 					path = sm.GetPacketCommitmentPath(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 					signBytes = solomachine.SignBytes{
 						Sequence:    sm.Sequence,
@@ -359,8 +359,8 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 						Data:        commitmentBz,
 					}
 
-					signBz, err := suite.chainA.Codec.Marshal(&signBytes)
-					suite.Require().NoError(err)
+					signBz, err := s.chainA.Codec.Marshal(&signBytes)
+					s.Require().NoError(err)
 
 					sig := sm.GenerateSignature(signBz)
 
@@ -369,8 +369,8 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 						Timestamp:     sm.Time,
 					}
 
-					proof, err = suite.chainA.Codec.Marshal(signatureDoc)
-					suite.Require().NoError(err)
+					proof, err = s.chainA.Codec.Marshal(signatureDoc)
+					s.Require().NoError(err)
 				},
 				true,
 			},
@@ -386,8 +386,8 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 						Data:        ibctesting.MockAcknowledgement,
 					}
 
-					signBz, err := suite.chainA.Codec.Marshal(&signBytes)
-					suite.Require().NoError(err)
+					signBz, err := s.chainA.Codec.Marshal(&signBytes)
+					s.Require().NoError(err)
 
 					sig := sm.GenerateSignature(signBz)
 
@@ -396,8 +396,8 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 						Timestamp:     sm.Time,
 					}
 
-					proof, err = suite.chainA.Codec.Marshal(signatureDoc)
-					suite.Require().NoError(err)
+					proof, err = s.chainA.Codec.Marshal(signatureDoc)
+					s.Require().NoError(err)
 				},
 				true,
 			},
@@ -413,8 +413,8 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 						Data:        []byte{byte(1)}, // packet receipt is stored as a single byte
 					}
 
-					signBz, err := suite.chainA.Codec.Marshal(&signBytes)
-					suite.Require().NoError(err)
+					signBz, err := s.chainA.Codec.Marshal(&signBytes)
+					s.Require().NoError(err)
 
 					sig := sm.GenerateSignature(signBz)
 
@@ -423,8 +423,8 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 						Timestamp:     sm.Time,
 					}
 
-					proof, err = suite.chainA.Codec.Marshal(signatureDoc)
-					suite.Require().NoError(err)
+					proof, err = s.chainA.Codec.Marshal(signatureDoc)
+					s.Require().NoError(err)
 				},
 				true,
 			},
@@ -438,7 +438,7 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 			{
 				"malformed proof fails to unmarshal",
 				func() {
-					path = suite.solomachine.GetClientStatePath(counterpartyClientIdentifier)
+					path = s.solomachine.GetClientStatePath(counterpartyClientIdentifier)
 					proof = []byte("invalid proof")
 				},
 				false,
@@ -463,8 +463,8 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 						Timestamp:     sm.Time,
 					}
 
-					proof, err = suite.chainA.Codec.Marshal(signatureDoc)
-					suite.Require().NoError(err)
+					proof, err = s.chainA.Codec.Marshal(signatureDoc)
+					s.Require().NoError(err)
 				},
 				false,
 			},
@@ -483,8 +483,8 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 						Timestamp:     sm.Time,
 					}
 
-					proof, err = suite.chainA.Codec.Marshal(signatureDoc)
-					suite.Require().NoError(err)
+					proof, err = s.chainA.Codec.Marshal(signatureDoc)
+					s.Require().NoError(err)
 				},
 				false,
 			},
@@ -514,9 +514,9 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 		for _, tc := range testCases {
 			tc := tc
 
-			suite.Run(tc.name, func() {
-				suite.SetupTest()
-				testingPath = ibctesting.NewPath(suite.chainA, suite.chainB)
+			s.Run(tc.name, func() {
+				s.SetupTest()
+				testingPath = ibctesting.NewPath(s.chainA, s.chainB)
 
 				clientState = sm.ClientState()
 
@@ -529,8 +529,8 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 					Data:        []byte("solomachine"),
 				}
 
-				signBz, err := suite.chainA.Codec.Marshal(&signBytes)
-				suite.Require().NoError(err)
+				signBz, err := s.chainA.Codec.Marshal(&signBytes)
+				s.Require().NoError(err)
 
 				sig := sm.GenerateSignature(signBz)
 
@@ -539,8 +539,8 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 					Timestamp:     sm.Time,
 				}
 
-				proof, err = suite.chainA.Codec.Marshal(signatureDoc)
-				suite.Require().NoError(err)
+				proof, err = s.chainA.Codec.Marshal(signatureDoc)
+				s.Require().NoError(err)
 
 				tc.malleate()
 
@@ -550,25 +550,25 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 				}
 
 				err = clientState.VerifyMembership(
-					suite.chainA.GetContext(), suite.store, suite.chainA.Codec,
+					s.chainA.GetContext(), s.store, s.chainA.Codec,
 					clienttypes.ZeroHeight(), 0, 0, // solomachine does not check delay periods
 					proof, path, signBytes.Data,
 				)
 
 				if tc.expPass {
-					suite.Require().NoError(err)
-					suite.Require().Equal(expSeq, clientState.Sequence)
-					suite.Require().Equal(expSeq, suite.GetSequenceFromStore(), "sequence not updated in the store (%d) on valid test case %s", suite.GetSequenceFromStore(), tc.name)
+					s.Require().NoError(err)
+					s.Require().Equal(expSeq, clientState.Sequence)
+					s.Require().Equal(expSeq, s.GetSequenceFromStore(), "sequence not updated in the store (%d) on valid test case %s", s.GetSequenceFromStore(), tc.name)
 				} else {
-					suite.Require().Error(err)
+					s.Require().Error(err)
 				}
 			})
 		}
 	}
 }
 
-func (suite *SoloMachineTestSuite) TestSignBytesMarshalling() {
-	sm := suite.solomachine
+func (s *SoloMachineTestSuite) TestSignBytesMarshalling() {
+	sm := s.solomachine
 	merklePath := commitmenttypes.NewMerklePath("ibc", "solomachine")
 	signBytesNilData := solomachine.SignBytes{
 		Sequence:    sm.GetHeight().GetRevisionHeight(),
@@ -586,18 +586,18 @@ func (suite *SoloMachineTestSuite) TestSignBytesMarshalling() {
 		Data:        []byte{},
 	}
 
-	signBzNil, err := suite.chainA.Codec.Marshal(&signBytesNilData)
-	suite.Require().NoError(err)
+	signBzNil, err := s.chainA.Codec.Marshal(&signBytesNilData)
+	s.Require().NoError(err)
 
-	signBzEmptyArray, err := suite.chainA.Codec.Marshal(&signBytesEmptyArray)
-	suite.Require().NoError(err)
+	signBzEmptyArray, err := s.chainA.Codec.Marshal(&signBytesEmptyArray)
+	s.Require().NoError(err)
 
-	suite.Require().True(bytes.Equal(signBzNil, signBzEmptyArray))
+	s.Require().True(bytes.Equal(signBzNil, signBzEmptyArray))
 }
 
-func (suite *SoloMachineTestSuite) TestVerifyNonMembership() {
+func (s *SoloMachineTestSuite) TestVerifyNonMembership() {
 	// test singlesig and multisig public keys
-	for _, sm := range []*ibctesting.Solomachine{suite.solomachine, suite.solomachineMulti} {
+	for _, sm := range []*ibctesting.Solomachine{s.solomachine, s.solomachineMulti} {
 
 		var (
 			clientState *solomachine.ClientState
@@ -620,7 +620,7 @@ func (suite *SoloMachineTestSuite) TestVerifyNonMembership() {
 			{
 				"success: packet receipt absence verification",
 				func() {
-					path = suite.solomachine.GetPacketReceiptPath(ibctesting.MockPort, ibctesting.FirstChannelID, 1)
+					path = s.solomachine.GetPacketReceiptPath(ibctesting.MockPort, ibctesting.FirstChannelID, 1)
 					signBytes = solomachine.SignBytes{
 						Sequence:    sm.GetHeight().GetRevisionHeight(),
 						Timestamp:   sm.Time,
@@ -629,8 +629,8 @@ func (suite *SoloMachineTestSuite) TestVerifyNonMembership() {
 						Data:        nil,
 					}
 
-					signBz, err := suite.chainA.Codec.Marshal(&signBytes)
-					suite.Require().NoError(err)
+					signBz, err := s.chainA.Codec.Marshal(&signBytes)
+					s.Require().NoError(err)
 
 					sig := sm.GenerateSignature(signBz)
 
@@ -639,8 +639,8 @@ func (suite *SoloMachineTestSuite) TestVerifyNonMembership() {
 						Timestamp:     sm.Time,
 					}
 
-					proof, err = suite.chainA.Codec.Marshal(signatureDoc)
-					suite.Require().NoError(err)
+					proof, err = s.chainA.Codec.Marshal(signatureDoc)
+					s.Require().NoError(err)
 				},
 				true,
 			},
@@ -654,7 +654,7 @@ func (suite *SoloMachineTestSuite) TestVerifyNonMembership() {
 			{
 				"malformed proof fails to unmarshal",
 				func() {
-					path = suite.solomachine.GetClientStatePath(counterpartyClientIdentifier)
+					path = s.solomachine.GetClientStatePath(counterpartyClientIdentifier)
 					proof = []byte("invalid proof")
 				},
 				false,
@@ -679,8 +679,8 @@ func (suite *SoloMachineTestSuite) TestVerifyNonMembership() {
 						Timestamp:     sm.Time,
 					}
 
-					proof, err = suite.chainA.Codec.Marshal(signatureDoc)
-					suite.Require().NoError(err)
+					proof, err = s.chainA.Codec.Marshal(signatureDoc)
+					s.Require().NoError(err)
 				},
 				false,
 			},
@@ -699,8 +699,8 @@ func (suite *SoloMachineTestSuite) TestVerifyNonMembership() {
 						Timestamp:     sm.Time,
 					}
 
-					proof, err = suite.chainA.Codec.Marshal(signatureDoc)
-					suite.Require().NoError(err)
+					proof, err = s.chainA.Codec.Marshal(signatureDoc)
+					s.Require().NoError(err)
 				},
 				false,
 			},
@@ -716,8 +716,8 @@ func (suite *SoloMachineTestSuite) TestVerifyNonMembership() {
 				func() {
 					signBytes.Data = []byte("invalid non-membership data value")
 
-					signBz, err := suite.chainA.Codec.Marshal(&signBytes)
-					suite.Require().NoError(err)
+					signBz, err := s.chainA.Codec.Marshal(&signBytes)
+					s.Require().NoError(err)
 
 					sig := sm.GenerateSignature(signBz)
 
@@ -726,8 +726,8 @@ func (suite *SoloMachineTestSuite) TestVerifyNonMembership() {
 						Timestamp:     sm.Time,
 					}
 
-					proof, err = suite.chainA.Codec.Marshal(signatureDoc)
-					suite.Require().NoError(err)
+					proof, err = s.chainA.Codec.Marshal(signatureDoc)
+					s.Require().NoError(err)
 				},
 				false,
 			},
@@ -736,7 +736,7 @@ func (suite *SoloMachineTestSuite) TestVerifyNonMembership() {
 		for _, tc := range testCases {
 			tc := tc
 
-			suite.Run(tc.name, func() {
+			s.Run(tc.name, func() {
 				clientState = sm.ClientState()
 
 				path = commitmenttypes.NewMerklePath("ibc", "solomachine")
@@ -748,8 +748,8 @@ func (suite *SoloMachineTestSuite) TestVerifyNonMembership() {
 					Data:        nil,
 				}
 
-				signBz, err := suite.chainA.Codec.Marshal(&signBytes)
-				suite.Require().NoError(err)
+				signBz, err := s.chainA.Codec.Marshal(&signBytes)
+				s.Require().NoError(err)
 
 				sig := sm.GenerateSignature(signBz)
 
@@ -758,8 +758,8 @@ func (suite *SoloMachineTestSuite) TestVerifyNonMembership() {
 					Timestamp:     sm.Time,
 				}
 
-				proof, err = suite.chainA.Codec.Marshal(signatureDoc)
-				suite.Require().NoError(err)
+				proof, err = s.chainA.Codec.Marshal(signatureDoc)
+				s.Require().NoError(err)
 
 				tc.malleate()
 
@@ -769,28 +769,28 @@ func (suite *SoloMachineTestSuite) TestVerifyNonMembership() {
 				}
 
 				err = clientState.VerifyNonMembership(
-					suite.chainA.GetContext(), suite.store, suite.chainA.Codec,
+					s.chainA.GetContext(), s.store, s.chainA.Codec,
 					clienttypes.ZeroHeight(), 0, 0, // solomachine does not check delay periods
 					proof, path,
 				)
 
 				if tc.expPass {
-					suite.Require().NoError(err)
-					suite.Require().Equal(expSeq, clientState.Sequence)
-					suite.Require().Equal(expSeq, suite.GetSequenceFromStore(), "sequence not updated in the store (%d) on valid test case %s", suite.GetSequenceFromStore(), tc.name)
+					s.Require().NoError(err)
+					s.Require().Equal(expSeq, clientState.Sequence)
+					s.Require().Equal(expSeq, s.GetSequenceFromStore(), "sequence not updated in the store (%d) on valid test case %s", s.GetSequenceFromStore(), tc.name)
 				} else {
-					suite.Require().Error(err)
+					s.Require().Error(err)
 				}
 			})
 		}
 	}
 }
 
-func (suite *SoloMachineTestSuite) TestGetTimestampAtHeight() {
-	tmPath := ibctesting.NewPath(suite.chainA, suite.chainB)
-	suite.coordinator.SetupClients(tmPath)
+func (s *SoloMachineTestSuite) TestGetTimestampAtHeight() {
+	tmPath := ibctesting.NewPath(s.chainA, s.chainB)
+	s.coordinator.SetupClients(tmPath)
 	// Single setup for all test cases.
-	suite.SetupTest()
+	s.SetupTest()
 
 	testCases := []struct {
 		name        string
@@ -801,9 +801,9 @@ func (suite *SoloMachineTestSuite) TestGetTimestampAtHeight() {
 	}{
 		{
 			name:        "get timestamp at height exists",
-			clientState: suite.solomachine.ClientState(),
-			height:      suite.solomachine.ClientState().GetLatestHeight(),
-			expValue:    suite.solomachine.ClientState().ConsensusState.Timestamp,
+			clientState: s.solomachine.ClientState(),
+			height:      s.solomachine.ClientState().GetLatestHeight(),
+			expValue:    s.solomachine.ClientState().ConsensusState.Timestamp,
 			expPass:     true,
 		},
 	}
@@ -811,19 +811,19 @@ func (suite *SoloMachineTestSuite) TestGetTimestampAtHeight() {
 	for i, tc := range testCases {
 		tc := tc
 
-		suite.Run(tc.name, func() {
-			ctx := suite.chainA.GetContext()
+		s.Run(tc.name, func() {
+			ctx := s.chainA.GetContext()
 
 			ts, err := tc.clientState.GetTimestampAtHeight(
-				ctx, suite.store, suite.chainA.Codec, tc.height,
+				ctx, s.store, s.chainA.Codec, tc.height,
 			)
 
-			suite.Require().Equal(tc.expValue, ts)
+			s.Require().Equal(tc.expValue, ts)
 
 			if tc.expPass {
-				suite.Require().NoError(err, "valid test case %d failed: %s", i, tc.name)
+				s.Require().NoError(err, "valid test case %d failed: %s", i, tc.name)
 			} else {
-				suite.Require().Error(err, "invalid test case %d passed: %s", i, tc.name)
+				s.Require().Error(err, "invalid test case %d passed: %s", i, tc.name)
 			}
 		})
 	}

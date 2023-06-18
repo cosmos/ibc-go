@@ -9,7 +9,7 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
-func (suite *TypesTestSuite) TestMarshalConsensusStateWithHeight() {
+func (s *TypesTestSuite) TestMarshalConsensusStateWithHeight() {
 	var cswh types.ConsensusStateWithHeight
 
 	testCases := []struct {
@@ -18,17 +18,17 @@ func (suite *TypesTestSuite) TestMarshalConsensusStateWithHeight() {
 	}{
 		{
 			"solo machine client", func() {
-				soloMachine := ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "solomachine", "", 1)
+				soloMachine := ibctesting.NewSolomachine(s.T(), s.chainA.Codec, "solomachine", "", 1)
 				cswh = types.NewConsensusStateWithHeight(types.NewHeight(0, soloMachine.Sequence), soloMachine.ConsensusState())
 			},
 		},
 		{
 			"tendermint client", func() {
-				path := ibctesting.NewPath(suite.chainA, suite.chainB)
-				suite.coordinator.SetupClients(path)
-				clientState := suite.chainA.GetClientState(path.EndpointA.ClientID)
-				consensusState, ok := suite.chainA.GetConsensusState(path.EndpointA.ClientID, clientState.GetLatestHeight())
-				suite.Require().True(ok)
+				path := ibctesting.NewPath(s.chainA, s.chainB)
+				s.coordinator.SetupClients(path)
+				clientState := s.chainA.GetClientState(path.EndpointA.ClientID)
+				consensusState, ok := s.chainA.GetConsensusState(path.EndpointA.ClientID, clientState.GetLatestHeight())
+				s.Require().True(ok)
 
 				cswh = types.NewConsensusStateWithHeight(clientState.GetLatestHeight().(types.Height), consensusState)
 			},
@@ -38,21 +38,21 @@ func (suite *TypesTestSuite) TestMarshalConsensusStateWithHeight() {
 	for _, tc := range testCases {
 		tc := tc
 
-		suite.Run(tc.name, func() {
-			suite.SetupTest()
+		s.Run(tc.name, func() {
+			s.SetupTest()
 
 			tc.malleate()
 
-			cdc := suite.chainA.App.AppCodec()
+			cdc := s.chainA.App.AppCodec()
 
 			// marshal message
 			bz, err := cdc.MarshalJSON(&cswh)
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 
 			// unmarshal message
 			newCswh := &types.ConsensusStateWithHeight{}
 			err = cdc.UnmarshalJSON(bz, newCswh)
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 		})
 	}
 }

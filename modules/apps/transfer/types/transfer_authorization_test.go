@@ -9,7 +9,7 @@ import (
 	"github.com/cosmos/ibc-go/v7/testing/mock"
 )
 
-func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
+func (s *TypesTestSuite) TestTransferAuthorizationAccept() {
 	var (
 		msgTransfer   types.MsgTransfer
 		transferAuthz types.TransferAuthorization
@@ -24,11 +24,11 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 			"success",
 			func() {},
 			func(res authz.AcceptResponse, err error) {
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 
-				suite.Require().True(res.Accept)
-				suite.Require().True(res.Delete)
-				suite.Require().Nil(res.Updated)
+				s.Require().True(res.Accept)
+				s.Require().True(res.Delete)
+				s.Require().Nil(res.Updated)
 			},
 		},
 		{
@@ -37,16 +37,16 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 				msgTransfer.Token = sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(50))
 			},
 			func(res authz.AcceptResponse, err error) {
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 
-				suite.Require().True(res.Accept)
-				suite.Require().False(res.Delete)
+				s.Require().True(res.Accept)
+				s.Require().False(res.Delete)
 
 				updatedAuthz, ok := res.Updated.(*types.TransferAuthorization)
-				suite.Require().True(ok)
+				s.Require().True(ok)
 
 				isEqual := updatedAuthz.Allocations[0].SpendLimit.IsEqual(sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(50))))
-				suite.Require().True(isEqual)
+				s.Require().True(isEqual)
 			},
 		},
 		{
@@ -55,11 +55,11 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 				transferAuthz.Allocations[0].AllowList = []string{}
 			},
 			func(res authz.AcceptResponse, err error) {
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 
-				suite.Require().True(res.Accept)
-				suite.Require().True(res.Delete)
-				suite.Require().Nil(res.Updated)
+				s.Require().True(res.Accept)
+				s.Require().True(res.Delete)
+				s.Require().Nil(res.Updated)
 			},
 		},
 		{
@@ -74,16 +74,16 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 				transferAuthz.Allocations = append(transferAuthz.Allocations, alloc)
 			},
 			func(res authz.AcceptResponse, err error) {
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 
-				suite.Require().True(res.Accept)
-				suite.Require().False(res.Delete)
+				s.Require().True(res.Accept)
+				s.Require().False(res.Delete)
 
 				updatedAuthz, ok := res.Updated.(*types.TransferAuthorization)
-				suite.Require().True(ok)
+				s.Require().True(ok)
 
 				// assert spent spendlimit is removed from the list
-				suite.Require().Len(updatedAuthz.Allocations, 1)
+				s.Require().Len(updatedAuthz.Allocations, 1)
 			},
 		},
 		{
@@ -92,11 +92,11 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 				transferAuthz.Allocations[0].SpendLimit = sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, types.UnboundedSpendLimit()))
 			},
 			func(res authz.AcceptResponse, err error) {
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 
-				suite.Require().True(res.Accept)
-				suite.Require().False(res.Delete)
-				suite.Require().Nil(res.Updated)
+				s.Require().True(res.Accept)
+				s.Require().False(res.Delete)
+				s.Require().Nil(res.Updated)
 			},
 		},
 		{
@@ -111,19 +111,19 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 				msgTransfer.Token = sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(50))
 			},
 			func(res authz.AcceptResponse, err error) {
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 
 				updatedTransferAuthz, ok := res.Updated.(*types.TransferAuthorization)
-				suite.Require().True(ok)
+				s.Require().True(ok)
 
 				remainder := updatedTransferAuthz.Allocations[0].SpendLimit.AmountOf(sdk.DefaultBondDenom)
-				suite.Require().True(sdkmath.NewInt(50).Equal(remainder))
+				s.Require().True(sdkmath.NewInt(50).Equal(remainder))
 
 				remainder = updatedTransferAuthz.Allocations[0].SpendLimit.AmountOf("test-denom")
-				suite.Require().True(sdkmath.NewInt(100).Equal(remainder))
+				s.Require().True(sdkmath.NewInt(100).Equal(remainder))
 
 				remainder = updatedTransferAuthz.Allocations[0].SpendLimit.AmountOf("test-denom2")
-				suite.Require().True(sdkmath.NewInt(100).Equal(remainder))
+				s.Require().True(sdkmath.NewInt(100).Equal(remainder))
 			},
 		},
 		{
@@ -133,7 +133,7 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 				msgTransfer.SourceChannel = "channel-9"
 			},
 			func(res authz.AcceptResponse, err error) {
-				suite.Require().Error(err)
+				s.Require().Error(err)
 			},
 		},
 		{
@@ -142,26 +142,26 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 				msgTransfer.Token = sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(1000))
 			},
 			func(res authz.AcceptResponse, err error) {
-				suite.Require().Error(err)
+				s.Require().Error(err)
 			},
 		},
 		{
 			"receiver address not permitted via allow list",
 			func() {
-				msgTransfer.Receiver = suite.chainB.SenderAccount.GetAddress().String()
+				msgTransfer.Receiver = s.chainB.SenderAccount.GetAddress().String()
 			},
 			func(res authz.AcceptResponse, err error) {
-				suite.Require().Error(err)
+				s.Require().Error(err)
 			},
 		},
 	}
 
 	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
-			suite.SetupTest()
+		s.Run(tc.name, func() {
+			s.SetupTest()
 
-			path := NewTransferPath(suite.chainA, suite.chainB)
-			suite.coordinator.Setup(path)
+			path := NewTransferPath(s.chainA, s.chainB)
+			s.coordinator.Setup(path)
 
 			transferAuthz = types.TransferAuthorization{
 				Allocations: []types.Allocation{
@@ -178,25 +178,25 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 				SourcePort:    path.EndpointA.ChannelConfig.PortID,
 				SourceChannel: path.EndpointA.ChannelID,
 				Token:         ibctesting.TestCoin,
-				Sender:        suite.chainA.SenderAccount.GetAddress().String(),
+				Sender:        s.chainA.SenderAccount.GetAddress().String(),
 				Receiver:      ibctesting.TestAccAddress,
-				TimeoutHeight: suite.chainB.GetTimeoutHeight(),
+				TimeoutHeight: s.chainB.GetTimeoutHeight(),
 			}
 
 			tc.malleate()
 
-			res, err := transferAuthz.Accept(suite.chainA.GetContext(), &msgTransfer)
+			res, err := transferAuthz.Accept(s.chainA.GetContext(), &msgTransfer)
 			tc.assertResult(res, err)
 		})
 	}
 }
 
-func (suite *TypesTestSuite) TestTransferAuthorizationMsgTypeURL() {
+func (s *TypesTestSuite) TestTransferAuthorizationMsgTypeURL() {
 	var transferAuthz types.TransferAuthorization
-	suite.Require().Equal(sdk.MsgTypeURL(&types.MsgTransfer{}), transferAuthz.MsgTypeURL(), "invalid type url for transfer authorization")
+	s.Require().Equal(sdk.MsgTypeURL(&types.MsgTransfer{}), transferAuthz.MsgTypeURL(), "invalid type url for transfer authorization")
 }
 
-func (suite *TypesTestSuite) TestTransferAuthorizationValidateBasic() {
+func (s *TypesTestSuite) TestTransferAuthorizationValidateBasic() {
 	var transferAuthz types.TransferAuthorization
 
 	testCases := []struct {
@@ -303,7 +303,7 @@ func (suite *TypesTestSuite) TestTransferAuthorizationValidateBasic() {
 	}
 
 	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
+		s.Run(tc.name, func() {
 			transferAuthz = types.TransferAuthorization{
 				Allocations: []types.Allocation{
 					{
@@ -320,9 +320,9 @@ func (suite *TypesTestSuite) TestTransferAuthorizationValidateBasic() {
 			err := transferAuthz.ValidateBasic()
 
 			if tc.expPass {
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 			} else {
-				suite.Require().Error(err)
+				s.Require().Error(err)
 			}
 		})
 	}
