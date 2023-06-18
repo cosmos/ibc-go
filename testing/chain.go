@@ -26,6 +26,7 @@ import (
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	"github.com/stretchr/testify/require"
 
+	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
@@ -314,6 +315,8 @@ func (chain *TestChain) NextBlock() {
 		NextValidatorsHash: chain.NextVals.Hash(),
 		ProposerAddress:    chain.CurrentHeader.ProposerAddress,
 	}
+
+	chain.App.FinalizeBlock(&abci.RequestFinalizeBlock{Height: chain.CurrentHeader.Height})
 }
 
 // sendMsgs delivers a transaction through the application without returning the result.
@@ -459,6 +462,52 @@ func (chain *TestChain) ExpireClient(amount time.Duration) {
 	chain.Coordinator.IncrementTimeBy(amount)
 }
 
+// Replicate MakeCommit function from cometbft internal package
+func MakeCommit(blockID tmtypes.BlockID, height int64, round int32, valSet *tmtypes.ValidatorSet, privVals []tmtypes.PrivValidator, chainID string, now time.Time) (*tmtypes.Commit, error) {
+	sigs := make([]tmtypes.CommitSig, len(valSet.Validators))
+	for i := 0; i < len(valSet.Validators); i++ {
+		sigs[i] = tmtypes.NewCommitSigAbsent()
+	}
+
+	for _, privVal := range privVals {
+		pk, err := privVal.GetPubKey()
+		if err != nil {
+			return nil, err
+		}
+		addr := pk.Address()
+
+		idx, _ := valSet.GetByAddress(addr)
+		if idx < 0 {
+			return nil, fmt.Errorf("validator with address %s not in validator set", addr)
+		}
+
+		vote := &tmtypes.Vote{
+			ValidatorAddress: addr,
+			ValidatorIndex:   idx,
+			Height:           height,
+			Round:            round,
+			Type:             cmtproto.PrecommitType,
+			BlockID:          blockID,
+			Timestamp:        now,
+		}
+
+		v := vote.ToProto()
+
+		if err := privVal.SignVote(chainID, v); err != nil {
+			return nil, err
+		}
+
+		sigs[idx] = tmtypes.CommitSig{
+			BlockIDFlag:      tmtypes.BlockIDFlagCommit,
+			ValidatorAddress: addr,
+			Timestamp:        now,
+			Signature:        v.Signature,
+		}
+	}
+
+	return &tmtypes.Commit{Height: height, Round: round, BlockID: blockID, Signatures: sigs}, nil
+}
+
 // CurrentTMClientHeader creates a TM header using the current header parameters
 // on the chain. The trusted fields in the header are set to nil.
 func (chain *TestChain) CurrentTMClientHeader() *ibctm.Header {
@@ -496,7 +545,7 @@ func (chain *TestChain) CreateTMClientHeader(chainID string, blockHeight int64, 
 
 	hhash := tmHeader.Hash()
 	blockID := MakeBlockID(hhash, 3, tmhash.Sum([]byte("part_set")))
-	voteSet := tmtypes.NewVoteSet(chainID, blockHeight, 1, tmproto.PrecommitType, tmValSet)
+	// voteSet := tmtypes.NewExtendedVoteSet(chainID, blockHeight, 1, tmproto.PrecommitType, tmValSet)
 
 	// MakeCommit expects a signer array in the same order as the validator array.
 	// Thus we iterate over the ordered validator set and construct a signer array
@@ -506,12 +555,12 @@ func (chain *TestChain) CreateTMClientHeader(chainID string, blockHeight int64, 
 		signerArr = append(signerArr, signers[v.Address.String()])
 	}
 
-	extCommit, err := tmtypes.MakeExtCommit(blockID, blockHeight, 1, voteSet, signerArr, timestamp, false)
+	extCommit, err := MakeCommit(blockID, blockHeight, 1, nextVals, signerArr, chainID, timestamp)
 	require.NoError(chain.TB, err)
 
 	signedHeader := &tmproto.SignedHeader{
 		Header: tmHeader.ToProto(),
-		Commit: extCommit.ToCommit().ToProto(),
+		Commit: extCommit.ToProto(),
 	}
 
 	if tmValSet != nil { //nolint:staticcheck
