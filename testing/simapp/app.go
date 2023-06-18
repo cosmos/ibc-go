@@ -2,6 +2,7 @@ package simapp
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
@@ -379,6 +380,8 @@ func NewSimApp(
 	// seal capability keeper after scoping modules
 	app.CapabilityKeeper.Seal()
 
+	fmt.Println(app.CapabilityKeeper)
+	fmt.Println(app.GetScopedIBCKeeper())
 	// SDK module keepers
 	app.AccountKeeper = authkeeper.NewAccountKeeper(appCodec, keys[authtypes.StoreKey], authtypes.ProtoBaseAccount, maccPerms, sdk.GetConfig().GetBech32AccountAddrPrefix(), authtypes.NewModuleAddress(govtypes.ModuleName).String())
 
@@ -435,6 +438,7 @@ func NewSimApp(
 
 	// IBC Keepers
 
+	app.ScopedIBCKeeper = scopedIBCKeeper
 	app.IBCKeeper = ibckeeper.NewKeeper(
 		appCodec, keys[ibcexported.StoreKey], app.GetSubspace(ibcexported.ModuleName), app.StakingKeeper, app.UpgradeKeeper, scopedIBCKeeper, authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
