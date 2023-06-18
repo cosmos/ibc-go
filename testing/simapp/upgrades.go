@@ -1,4 +1,4 @@
-package upgrades
+package simapp
 
 import (
 	"github.com/cosmos/cosmos-sdk/baseapp"
