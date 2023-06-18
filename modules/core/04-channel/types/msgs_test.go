@@ -76,7 +76,6 @@ type TypesTestSuite struct {
 func (suite *TypesTestSuite) SetupTest() {
 	app := simapp.Setup(suite.T(), false)
 	db := dbm.NewMemDB()
-	dblog := log.NewTestLogger(suite.T())
 	store := rootmulti.NewStore(db, log.NewNopLogger(), metrics.NewNoOpMetrics())
 	storeKey := storetypes.NewKVStoreKey("iavlStoreKey")
 
