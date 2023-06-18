@@ -324,17 +324,18 @@ func NewSimApp(
 		// SDK Keys
 		authtypes.StoreKey, banktypes.StoreKey, stakingtypes.StoreKey, crisistypes.StoreKey,
 		minttypes.StoreKey, distrtypes.StoreKey, slashingtypes.StoreKey,
-		govtypes.StoreKey, group.StoreKey, nftkeeper.StoreKey, paramstypes.StoreKey, ibcexported.StoreKey, upgradetypes.StoreKey, feegrant.StoreKey,
-		evidencetypes.StoreKey, consensusparamtypes.StoreKey,
+		govtypes.StoreKey, group.StoreKey, nftkeeper.StoreKey, paramstypes.StoreKey,
+		upgradetypes.StoreKey, feegrant.StoreKey,
+		evidencetypes.StoreKey, consensusparamtypes.StoreKey, authzkeeper.StoreKey,
 		// IBC Keys
 		ibctransfertypes.StoreKey, icacontrollertypes.StoreKey, icahosttypes.StoreKey, capabilitytypes.StoreKey,
-		authzkeeper.StoreKey, ibcfeetypes.StoreKey,
+		ibcfeetypes.StoreKey, ibcexported.StoreKey,
 	)
 
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
 	// NOTE: The testingkey is just mounted for testing purposes. Actual applications should
 	// not include this key.
-	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey, "testingkey")
+	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey, ibcmock.MemStoreKey)
 
 	// load state streaming if enabled
 	if _, _, err := streaming.LoadStreamingServices(bApp, appOpts, appCodec, logger, keys); err != nil {
