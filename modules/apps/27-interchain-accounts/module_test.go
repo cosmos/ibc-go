@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"cosmossdk.io/log"
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
@@ -38,12 +37,6 @@ func (suite *InterchainAccountsTestSuite) TestInitModule() {
 	app := simapp.NewSimApp(log.NewNopLogger(), dbm.NewMemDB(), nil, true, simtestutil.EmptyAppOptions{}, baseapp.SetChainID(chainID))
 	appModule, ok := app.GetModuleManager().Modules[types.ModuleName].(ica.AppModule)
 	suite.Require().True(ok)
-
-	header := tmproto.Header{
-		ChainID: chainID,
-		Height:  1,
-		Time:    suite.coordinator.CurrentTime.UTC(),
-	}
 
 	ctx := app.GetBaseApp().NewContext(true)
 
