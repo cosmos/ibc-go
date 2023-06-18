@@ -146,7 +146,7 @@ func (msg MsgPayPacketFee) GetSigners() []sdk.AccAddress {
 }
 
 // Route implements sdk.Msg
-func (msg MsgPayPacketFee) Route() string {
+func (MsgPayPacketFee) Route() string {
 	return RouterKey
 }
 

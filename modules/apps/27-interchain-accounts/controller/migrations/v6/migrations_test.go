@@ -57,7 +57,7 @@ func (s *MigrationsTestSuite) SetupPath() error {
 	return s.path.EndpointB.ChanOpenConfirm()
 }
 
-func (s *MigrationsTestSuite) RegisterInterchainAccount(endpoint *ibctesting.Endpoint, owner string) error {
+func (*MigrationsTestSuite) RegisterInterchainAccount(endpoint *ibctesting.Endpoint, owner string) error {
 	portID, err := icatypes.NewControllerPortID(owner)
 	if err != nil {
 		return err
