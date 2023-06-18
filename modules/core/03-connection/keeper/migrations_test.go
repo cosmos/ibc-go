@@ -17,8 +17,8 @@ func (s *KeeperTestSuite) TestMigrateParams() {
 			"success: default params",
 			func() {
 				params := types.DefaultParams()
-				subspace := suite.chainA.GetSimApp().GetSubspace(ibcexported.ModuleName)
-				subspace.SetParamSet(suite.chainA.GetContext(), &params) // set params
+				subspace := s.chainA.GetSimApp().GetSubspace(ibcexported.ModuleName)
+				subspace.SetParamSet(s.chainA.GetContext(), &params) // set params
 			},
 			types.DefaultParams(),
 		},
@@ -26,18 +26,18 @@ func (s *KeeperTestSuite) TestMigrateParams() {
 
 	for _, tc := range testCases {
 		tc := tc
-		suite.Run(tc.name, func() {
-			suite.SetupTest() // reset
+		s.Run(tc.name, func() {
+			s.SetupTest() // reset
 
 			tc.malleate()
 
-			ctx := suite.chainA.GetContext()
-			migrator := keeper.NewMigrator(suite.chainA.GetSimApp().IBCKeeper.ConnectionKeeper)
+			ctx := s.chainA.GetContext()
+			migrator := keeper.NewMigrator(s.chainA.GetSimApp().IBCKeeper.ConnectionKeeper)
 			err := migrator.MigrateParams(ctx)
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 
-			params := suite.chainA.GetSimApp().IBCKeeper.ConnectionKeeper.GetParams(ctx)
-			suite.Require().Equal(tc.expectedParams, params)
+			params := s.chainA.GetSimApp().IBCKeeper.ConnectionKeeper.GetParams(ctx)
+			s.Require().Equal(tc.expectedParams, params)
 		})
 	}
 }

@@ -11,12 +11,12 @@ import (
 )
 
 func (s *MerkleTestSuite) TestConvertProofs() {
-	suite.iavlStore.Set([]byte("MYKEY"), []byte("MYVALUE"))
-	cid := suite.store.Commit()
+	s.iavlStore.Set([]byte("MYKEY"), []byte("MYVALUE"))
+	cid := s.store.Commit()
 
 	root := types.NewMerkleRoot(cid.Hash)
-	existsPath := types.NewMerklePath(suite.storeKey.Name(), "MYKEY")
-	nonexistPath := types.NewMerklePath(suite.storeKey.Name(), "NOTMYKEY")
+	existsPath := types.NewMerklePath(s.storeKey.Name(), "MYKEY")
+	nonexistPath := types.NewMerklePath(s.storeKey.Name(), "NOTMYKEY")
 	value := []byte("MYVALUE")
 
 	var proofOps *crypto.ProofOps
@@ -29,12 +29,12 @@ func (s *MerkleTestSuite) TestConvertProofs() {
 		{
 			"success for ExistenceProof",
 			func() {
-				res := suite.store.Query(abci.RequestQuery{
-					Path:  fmt.Sprintf("/%s/key", suite.storeKey.Name()), // required path to get key/value+proof
+				res := s.store.Query(abci.RequestQuery{
+					Path:  fmt.Sprintf("/%s/key", s.storeKey.Name()), // required path to get key/value+proof
 					Data:  []byte("MYKEY"),
 					Prove: true,
 				})
-				require.NotNil(suite.T(), res.ProofOps)
+				require.NotNil(s.T(), res.ProofOps)
 
 				proofOps = res.ProofOps
 			},
@@ -43,12 +43,12 @@ func (s *MerkleTestSuite) TestConvertProofs() {
 		{
 			"success for NonexistenceProof",
 			func() {
-				res := suite.store.Query(abci.RequestQuery{
-					Path:  fmt.Sprintf("/%s/key", suite.storeKey.Name()), // required path to get key/value+proof
+				res := s.store.Query(abci.RequestQuery{
+					Path:  fmt.Sprintf("/%s/key", s.storeKey.Name()), // required path to get key/value+proof
 					Data:  []byte("NOTMYKEY"),
 					Prove: true,
 				})
-				require.NotNil(suite.T(), res.ProofOps)
+				require.NotNil(s.T(), res.ProofOps)
 
 				proofOps = res.ProofOps
 			},
@@ -64,12 +64,12 @@ func (s *MerkleTestSuite) TestConvertProofs() {
 		{
 			"proof op data is nil",
 			func() {
-				res := suite.store.Query(abci.RequestQuery{
-					Path:  fmt.Sprintf("/%s/key", suite.storeKey.Name()), // required path to get key/value+proof
+				res := s.store.Query(abci.RequestQuery{
+					Path:  fmt.Sprintf("/%s/key", s.storeKey.Name()), // required path to get key/value+proof
 					Data:  []byte("MYKEY"),
 					Prove: true,
 				})
-				require.NotNil(suite.T(), res.ProofOps)
+				require.NotNil(s.T(), res.ProofOps)
 
 				proofOps = res.ProofOps
 				proofOps.Ops[0].Data = nil
@@ -83,16 +83,16 @@ func (s *MerkleTestSuite) TestConvertProofs() {
 
 		proof, err := types.ConvertProofs(proofOps)
 		if tc.expPass {
-			suite.Require().NoError(err, "ConvertProofs unexpectedly returned error for case: %s", tc.name)
+			s.Require().NoError(err, "ConvertProofs unexpectedly returned error for case: %s", tc.name)
 			if tc.keyExists {
 				err := proof.VerifyMembership(types.GetSDKSpecs(), &root, existsPath, value)
-				suite.Require().NoError(err, "converted proof failed to verify membership for case: %s", tc.name)
+				s.Require().NoError(err, "converted proof failed to verify membership for case: %s", tc.name)
 			} else {
 				err := proof.VerifyNonMembership(types.GetSDKSpecs(), &root, nonexistPath)
-				suite.Require().NoError(err, "converted proof failed to verify membership for case: %s", tc.name)
+				s.Require().NoError(err, "converted proof failed to verify membership for case: %s", tc.name)
 			}
 		} else {
-			suite.Require().Error(err, "ConvertProofs passed on invalid case for case: %s", tc.name)
+			s.Require().Error(err, "ConvertProofs passed on invalid case for case: %s", tc.name)
 		}
 	}
 }

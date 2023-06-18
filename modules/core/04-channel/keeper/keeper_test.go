@@ -4,12 +4,11 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/stretchr/testify/suite"
-
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	ibcmock "github.com/cosmos/ibc-go/v7/testing/mock"
+	"github.com/stretchr/testify/suite"
 )
 
 // KeeperTestSuite is a testing suite to test keeper functions.
@@ -30,57 +29,57 @@ func TestKeeperTestSuite(t *testing.T) {
 
 // SetupTest creates a coordinator with 2 test chains.
 func (s *KeeperTestSuite) SetupTest() {
-	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2)
-	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
-	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
+	s.coordinator = ibctesting.NewCoordinator(s.T(), 2)
+	s.chainA = s.coordinator.GetChain(ibctesting.GetChainID(1))
+	s.chainB = s.coordinator.GetChain(ibctesting.GetChainID(2))
 	// commit some blocks so that QueryProof returns valid proof (cannot return valid query if height <= 1)
-	suite.coordinator.CommitNBlocks(suite.chainA, 2)
-	suite.coordinator.CommitNBlocks(suite.chainB, 2)
+	s.coordinator.CommitNBlocks(s.chainA, 2)
+	s.coordinator.CommitNBlocks(s.chainB, 2)
 }
 
 // TestSetChannel create clients and connections on both chains. It tests for the non-existence
 // and existence of a channel in INIT on chainA.
 func (s *KeeperTestSuite) TestSetChannel() {
 	// create client and connections on both chains
-	path := ibctesting.NewPath(suite.chainA, suite.chainB)
-	suite.coordinator.SetupConnections(path)
+	path := ibctesting.NewPath(s.chainA, s.chainB)
+	s.coordinator.SetupConnections(path)
 
 	// check for channel to be created on chainA
-	found := suite.chainA.App.GetIBCKeeper().ChannelKeeper.HasChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-	suite.False(found)
+	found := s.chainA.App.GetIBCKeeper().ChannelKeeper.HasChannel(s.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+	s.False(found)
 
 	path.SetChannelOrdered()
 
 	// init channel
 	err := path.EndpointA.ChanOpenInit()
-	suite.NoError(err)
+	s.NoError(err)
 
-	storedChannel, found := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+	storedChannel, found := s.chainA.App.GetIBCKeeper().ChannelKeeper.GetChannel(s.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 	// counterparty channel id is empty after open init
 	expectedCounterparty := types.NewCounterparty(path.EndpointB.ChannelConfig.PortID, "")
 
-	suite.True(found)
-	suite.Equal(types.INIT, storedChannel.State)
-	suite.Equal(types.ORDERED, storedChannel.Ordering)
-	suite.Equal(expectedCounterparty, storedChannel.Counterparty)
+	s.True(found)
+	s.Equal(types.INIT, storedChannel.State)
+	s.Equal(types.ORDERED, storedChannel.Ordering)
+	s.Equal(expectedCounterparty, storedChannel.Counterparty)
 }
 
 func (s *KeeperTestSuite) TestGetAppVersion() {
 	// create client and connections on both chains
-	path := ibctesting.NewPath(suite.chainA, suite.chainB)
-	suite.coordinator.SetupConnections(path)
+	path := ibctesting.NewPath(s.chainA, s.chainB)
+	s.coordinator.SetupConnections(path)
 
-	version, found := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetAppVersion(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-	suite.Require().False(found)
-	suite.Require().Empty(version)
+	version, found := s.chainA.App.GetIBCKeeper().ChannelKeeper.GetAppVersion(s.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+	s.Require().False(found)
+	s.Require().Empty(version)
 
 	// init channel
 	err := path.EndpointA.ChanOpenInit()
-	suite.NoError(err)
+	s.NoError(err)
 
-	channelVersion, found := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetAppVersion(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-	suite.Require().True(found)
-	suite.Require().Equal(ibcmock.Version, channelVersion)
+	channelVersion, found := s.chainA.App.GetIBCKeeper().ChannelKeeper.GetAppVersion(s.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+	s.Require().True(found)
+	s.Require().Equal(ibcmock.Version, channelVersion)
 }
 
 // TestGetAllChannelsWithPortPrefix verifies ports are filtered correctly using a port prefix.
@@ -129,18 +128,18 @@ func (s *KeeperTestSuite) TestGetAllChannelsWithPortPrefix() {
 
 	for _, tc := range tests {
 		tc := tc
-		suite.Run(tc.name, func() {
-			suite.SetupTest()
+		s.Run(tc.name, func() {
+			s.SetupTest()
 
 			for _, ch := range tc.allChannels {
-				suite.chainA.GetSimApp().GetIBCKeeper().ChannelKeeper.SetChannel(suite.chainA.GetContext(), ch.PortId, ch.ChannelId, types.Channel{})
+				s.chainA.GetSimApp().GetIBCKeeper().ChannelKeeper.SetChannel(s.chainA.GetContext(), ch.PortId, ch.ChannelId, types.Channel{})
 			}
 
-			ctxA := suite.chainA.GetContext()
+			ctxA := s.chainA.GetContext()
 
-			actualChannels := suite.chainA.GetSimApp().GetIBCKeeper().ChannelKeeper.GetAllChannelsWithPortPrefix(ctxA, tc.prefix)
+			actualChannels := s.chainA.GetSimApp().GetIBCKeeper().ChannelKeeper.GetAllChannelsWithPortPrefix(ctxA, tc.prefix)
 
-			suite.Require().True(containsAll(tc.expectedChannels, actualChannels))
+			s.Require().True(containsAll(tc.expectedChannels, actualChannels))
 		})
 	}
 }
@@ -165,9 +164,9 @@ func containsAll(expected, actual []types.IdentifiedChannel) bool {
 
 // TestGetAllChannels creates multiple channels on chain A through various connections
 // and tests their retrieval. 2 channels are on connA0 and 1 channel is on connA1
-func (suite KeeperTestSuite) TestGetAllChannels() { //nolint:govet // this is a test, we are okay with copying locks
-	path := ibctesting.NewPath(suite.chainA, suite.chainB)
-	suite.coordinator.Setup(path)
+func (s KeeperTestSuite) TestGetAllChannels() { //nolint:govet // this is a test, we are okay with copying locks
+	path := ibctesting.NewPath(s.chainA, s.chainB)
+	s.coordinator.Setup(path)
 	// channel0 on first connection on chainA
 	counterparty0 := types.Counterparty{
 		PortId:    path.EndpointB.ChannelConfig.PortID,
@@ -175,25 +174,25 @@ func (suite KeeperTestSuite) TestGetAllChannels() { //nolint:govet // this is a 
 	}
 
 	// path1 creates a second channel on first connection on chainA
-	path1 := ibctesting.NewPath(suite.chainA, suite.chainB)
+	path1 := ibctesting.NewPath(s.chainA, s.chainB)
 	path1.SetChannelOrdered()
 	path1.EndpointA.ClientID = path.EndpointA.ClientID
 	path1.EndpointB.ClientID = path.EndpointB.ClientID
 	path1.EndpointA.ConnectionID = path.EndpointA.ConnectionID
 	path1.EndpointB.ConnectionID = path.EndpointB.ConnectionID
 
-	suite.coordinator.CreateMockChannels(path1)
+	s.coordinator.CreateMockChannels(path1)
 	counterparty1 := types.Counterparty{
 		PortId:    path1.EndpointB.ChannelConfig.PortID,
 		ChannelId: path1.EndpointB.ChannelID,
 	}
 
-	path2 := ibctesting.NewPath(suite.chainA, suite.chainB)
-	suite.coordinator.SetupConnections(path2)
+	path2 := ibctesting.NewPath(s.chainA, s.chainB)
+	s.coordinator.SetupConnections(path2)
 
 	// path2 creates a second channel on chainA
 	err := path2.EndpointA.ChanOpenInit()
-	suite.Require().NoError(err)
+	s.Require().NoError(err)
 
 	// counterparty channel id is empty after open init
 	counterparty2 := types.Counterparty{
@@ -220,27 +219,27 @@ func (suite KeeperTestSuite) TestGetAllChannels() { //nolint:govet // this is a 
 		types.NewIdentifiedChannel(path2.EndpointA.ChannelConfig.PortID, path2.EndpointA.ChannelID, channel2),
 	}
 
-	ctxA := suite.chainA.GetContext()
+	ctxA := s.chainA.GetContext()
 
-	channels := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetAllChannels(ctxA)
-	suite.Require().Len(channels, len(expChannels))
-	suite.Require().Equal(expChannels, channels)
+	channels := s.chainA.App.GetIBCKeeper().ChannelKeeper.GetAllChannels(ctxA)
+	s.Require().Len(channels, len(expChannels))
+	s.Require().Equal(expChannels, channels)
 }
 
 // TestGetAllSequences sets all packet sequences for two different channels on chain A and
 // tests their retrieval.
-func (suite KeeperTestSuite) TestGetAllSequences() { //nolint:govet // this is a test, we are okay with copying locks
-	path := ibctesting.NewPath(suite.chainA, suite.chainB)
-	suite.coordinator.Setup(path)
+func (s KeeperTestSuite) TestGetAllSequences() { //nolint:govet // this is a test, we are okay with copying locks
+	path := ibctesting.NewPath(s.chainA, s.chainB)
+	s.coordinator.Setup(path)
 
-	path1 := ibctesting.NewPath(suite.chainA, suite.chainB)
+	path1 := ibctesting.NewPath(s.chainA, s.chainB)
 	path1.SetChannelOrdered()
 	path1.EndpointA.ClientID = path.EndpointA.ClientID
 	path1.EndpointB.ClientID = path.EndpointB.ClientID
 	path1.EndpointA.ConnectionID = path.EndpointA.ConnectionID
 	path1.EndpointB.ConnectionID = path.EndpointB.ConnectionID
 
-	suite.coordinator.CreateMockChannels(path1)
+	s.coordinator.CreateMockChannels(path1)
 
 	seq1 := types.NewPacketSequence(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, 1)
 	seq2 := types.NewPacketSequence(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, 2)
@@ -249,39 +248,39 @@ func (suite KeeperTestSuite) TestGetAllSequences() { //nolint:govet // this is a
 	// seq1 should be overwritten by seq2
 	expSeqs := []types.PacketSequence{seq2, seq3}
 
-	ctxA := suite.chainA.GetContext()
+	ctxA := s.chainA.GetContext()
 
 	for _, seq := range []types.PacketSequence{seq1, seq2, seq3} {
-		suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetNextSequenceSend(ctxA, seq.PortId, seq.ChannelId, seq.Sequence)
-		suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetNextSequenceRecv(ctxA, seq.PortId, seq.ChannelId, seq.Sequence)
-		suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetNextSequenceAck(ctxA, seq.PortId, seq.ChannelId, seq.Sequence)
+		s.chainA.App.GetIBCKeeper().ChannelKeeper.SetNextSequenceSend(ctxA, seq.PortId, seq.ChannelId, seq.Sequence)
+		s.chainA.App.GetIBCKeeper().ChannelKeeper.SetNextSequenceRecv(ctxA, seq.PortId, seq.ChannelId, seq.Sequence)
+		s.chainA.App.GetIBCKeeper().ChannelKeeper.SetNextSequenceAck(ctxA, seq.PortId, seq.ChannelId, seq.Sequence)
 	}
 
-	sendSeqs := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetAllPacketSendSeqs(ctxA)
-	recvSeqs := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetAllPacketRecvSeqs(ctxA)
-	ackSeqs := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetAllPacketAckSeqs(ctxA)
-	suite.Len(sendSeqs, 2)
-	suite.Len(recvSeqs, 2)
-	suite.Len(ackSeqs, 2)
+	sendSeqs := s.chainA.App.GetIBCKeeper().ChannelKeeper.GetAllPacketSendSeqs(ctxA)
+	recvSeqs := s.chainA.App.GetIBCKeeper().ChannelKeeper.GetAllPacketRecvSeqs(ctxA)
+	ackSeqs := s.chainA.App.GetIBCKeeper().ChannelKeeper.GetAllPacketAckSeqs(ctxA)
+	s.Len(sendSeqs, 2)
+	s.Len(recvSeqs, 2)
+	s.Len(ackSeqs, 2)
 
-	suite.Equal(expSeqs, sendSeqs)
-	suite.Equal(expSeqs, recvSeqs)
-	suite.Equal(expSeqs, ackSeqs)
+	s.Equal(expSeqs, sendSeqs)
+	s.Equal(expSeqs, recvSeqs)
+	s.Equal(expSeqs, ackSeqs)
 }
 
 // TestGetAllPacketState creates a set of acks, packet commitments, and receipts on two different
 // channels on chain A and tests their retrieval.
-func (suite KeeperTestSuite) TestGetAllPacketState() { //nolint:govet // this is a test, we are okay with copying locks
-	path := ibctesting.NewPath(suite.chainA, suite.chainB)
-	suite.coordinator.Setup(path)
+func (s KeeperTestSuite) TestGetAllPacketState() { //nolint:govet // this is a test, we are okay with copying locks
+	path := ibctesting.NewPath(s.chainA, s.chainB)
+	s.coordinator.Setup(path)
 
-	path1 := ibctesting.NewPath(suite.chainA, suite.chainB)
+	path1 := ibctesting.NewPath(s.chainA, s.chainB)
 	path1.EndpointA.ClientID = path.EndpointA.ClientID
 	path1.EndpointB.ClientID = path.EndpointB.ClientID
 	path1.EndpointA.ConnectionID = path.EndpointA.ConnectionID
 	path1.EndpointB.ConnectionID = path.EndpointB.ConnectionID
 
-	suite.coordinator.CreateMockChannels(path1)
+	s.coordinator.CreateMockChannels(path1)
 
 	// channel 0 acks
 	ack1 := types.NewPacketState(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, 1, []byte("ack"))
@@ -314,75 +313,75 @@ func (suite KeeperTestSuite) TestGetAllPacketState() { //nolint:govet // this is
 	expReceipts := []types.PacketState{rec1, rec2, rec3, rec4}
 	expCommitments := []types.PacketState{comm1, comm2, comm3, comm4}
 
-	ctxA := suite.chainA.GetContext()
+	ctxA := s.chainA.GetContext()
 
 	// set acknowledgements
 	for _, ack := range []types.PacketState{ack1, ack2, ack2dup, ack3} {
-		suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetPacketAcknowledgement(ctxA, ack.PortId, ack.ChannelId, ack.Sequence, ack.Data)
+		s.chainA.App.GetIBCKeeper().ChannelKeeper.SetPacketAcknowledgement(ctxA, ack.PortId, ack.ChannelId, ack.Sequence, ack.Data)
 	}
 
 	// set packet receipts
 	for _, rec := range expReceipts {
-		suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetPacketReceipt(ctxA, rec.PortId, rec.ChannelId, rec.Sequence)
+		s.chainA.App.GetIBCKeeper().ChannelKeeper.SetPacketReceipt(ctxA, rec.PortId, rec.ChannelId, rec.Sequence)
 	}
 
 	// set packet commitments
 	for _, comm := range expCommitments {
-		suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetPacketCommitment(ctxA, comm.PortId, comm.ChannelId, comm.Sequence, comm.Data)
+		s.chainA.App.GetIBCKeeper().ChannelKeeper.SetPacketCommitment(ctxA, comm.PortId, comm.ChannelId, comm.Sequence, comm.Data)
 	}
 
-	acks := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetAllPacketAcks(ctxA)
-	receipts := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetAllPacketReceipts(ctxA)
-	commitments := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetAllPacketCommitments(ctxA)
+	acks := s.chainA.App.GetIBCKeeper().ChannelKeeper.GetAllPacketAcks(ctxA)
+	receipts := s.chainA.App.GetIBCKeeper().ChannelKeeper.GetAllPacketReceipts(ctxA)
+	commitments := s.chainA.App.GetIBCKeeper().ChannelKeeper.GetAllPacketCommitments(ctxA)
 
-	suite.Require().Len(acks, len(expAcks))
-	suite.Require().Len(commitments, len(expCommitments))
-	suite.Require().Len(receipts, len(expReceipts))
+	s.Require().Len(acks, len(expAcks))
+	s.Require().Len(commitments, len(expCommitments))
+	s.Require().Len(receipts, len(expReceipts))
 
-	suite.Require().Equal(expAcks, acks)
-	suite.Require().Equal(expReceipts, receipts)
-	suite.Require().Equal(expCommitments, commitments)
+	s.Require().Equal(expAcks, acks)
+	s.Require().Equal(expReceipts, receipts)
+	s.Require().Equal(expCommitments, commitments)
 }
 
 // TestSetSequence verifies that the keeper correctly sets the sequence counters.
 func (s *KeeperTestSuite) TestSetSequence() {
-	path := ibctesting.NewPath(suite.chainA, suite.chainB)
-	suite.coordinator.Setup(path)
+	path := ibctesting.NewPath(s.chainA, s.chainB)
+	s.coordinator.Setup(path)
 
-	ctxA := suite.chainA.GetContext()
+	ctxA := s.chainA.GetContext()
 	one := uint64(1)
 
 	// initialized channel has next send seq of 1
-	seq, found := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetNextSequenceSend(ctxA, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-	suite.True(found)
-	suite.Equal(one, seq)
+	seq, found := s.chainA.App.GetIBCKeeper().ChannelKeeper.GetNextSequenceSend(ctxA, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+	s.True(found)
+	s.Equal(one, seq)
 
 	// initialized channel has next seq recv of 1
-	seq, found = suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetNextSequenceRecv(ctxA, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-	suite.True(found)
-	suite.Equal(one, seq)
+	seq, found = s.chainA.App.GetIBCKeeper().ChannelKeeper.GetNextSequenceRecv(ctxA, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+	s.True(found)
+	s.Equal(one, seq)
 
 	// initialized channel has next seq ack of
-	seq, found = suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetNextSequenceAck(ctxA, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-	suite.True(found)
-	suite.Equal(one, seq)
+	seq, found = s.chainA.App.GetIBCKeeper().ChannelKeeper.GetNextSequenceAck(ctxA, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+	s.True(found)
+	s.Equal(one, seq)
 
 	nextSeqSend, nextSeqRecv, nextSeqAck := uint64(10), uint64(10), uint64(10)
-	suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetNextSequenceSend(ctxA, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, nextSeqSend)
-	suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetNextSequenceRecv(ctxA, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, nextSeqRecv)
-	suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetNextSequenceAck(ctxA, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, nextSeqAck)
+	s.chainA.App.GetIBCKeeper().ChannelKeeper.SetNextSequenceSend(ctxA, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, nextSeqSend)
+	s.chainA.App.GetIBCKeeper().ChannelKeeper.SetNextSequenceRecv(ctxA, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, nextSeqRecv)
+	s.chainA.App.GetIBCKeeper().ChannelKeeper.SetNextSequenceAck(ctxA, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, nextSeqAck)
 
-	storedNextSeqSend, found := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetNextSequenceSend(ctxA, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-	suite.True(found)
-	suite.Equal(nextSeqSend, storedNextSeqSend)
+	storedNextSeqSend, found := s.chainA.App.GetIBCKeeper().ChannelKeeper.GetNextSequenceSend(ctxA, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+	s.True(found)
+	s.Equal(nextSeqSend, storedNextSeqSend)
 
-	storedNextSeqRecv, found := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetNextSequenceSend(ctxA, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-	suite.True(found)
-	suite.Equal(nextSeqRecv, storedNextSeqRecv)
+	storedNextSeqRecv, found := s.chainA.App.GetIBCKeeper().ChannelKeeper.GetNextSequenceSend(ctxA, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+	s.True(found)
+	s.Equal(nextSeqRecv, storedNextSeqRecv)
 
-	storedNextSeqAck, found := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetNextSequenceAck(ctxA, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-	suite.True(found)
-	suite.Equal(nextSeqAck, storedNextSeqAck)
+	storedNextSeqAck, found := s.chainA.App.GetIBCKeeper().ChannelKeeper.GetNextSequenceAck(ctxA, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+	s.True(found)
+	s.Equal(nextSeqAck, storedNextSeqAck)
 }
 
 // TestGetAllPacketCommitmentsAtChannel verifies that the keeper returns all stored packet
@@ -390,54 +389,54 @@ func (s *KeeperTestSuite) TestSetSequence() {
 // value of "seq" and then add non-consecutive up to the value of "maxSeq". A final commitment
 // with the value maxSeq + 1 is set on a different channel.
 func (s *KeeperTestSuite) TestGetAllPacketCommitmentsAtChannel() {
-	path := ibctesting.NewPath(suite.chainA, suite.chainB)
-	suite.coordinator.Setup(path)
+	path := ibctesting.NewPath(s.chainA, s.chainB)
+	s.coordinator.Setup(path)
 
 	// create second channel
-	path1 := ibctesting.NewPath(suite.chainA, suite.chainB)
+	path1 := ibctesting.NewPath(s.chainA, s.chainB)
 	path1.SetChannelOrdered()
 	path1.EndpointA.ClientID = path.EndpointA.ClientID
 	path1.EndpointB.ClientID = path.EndpointB.ClientID
 	path1.EndpointA.ConnectionID = path.EndpointA.ConnectionID
 	path1.EndpointB.ConnectionID = path.EndpointB.ConnectionID
 
-	suite.coordinator.CreateMockChannels(path1)
+	s.coordinator.CreateMockChannels(path1)
 
-	ctxA := suite.chainA.GetContext()
+	ctxA := s.chainA.GetContext()
 	expectedSeqs := make(map[uint64]bool)
 	hash := []byte("commitment")
 
 	seq := uint64(15)
 	maxSeq := uint64(25)
-	suite.Require().Greater(maxSeq, seq)
+	s.Require().Greater(maxSeq, seq)
 
 	// create consecutive commitments
 	for i := uint64(1); i < seq; i++ {
-		suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetPacketCommitment(ctxA, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, i, hash)
+		s.chainA.App.GetIBCKeeper().ChannelKeeper.SetPacketCommitment(ctxA, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, i, hash)
 		expectedSeqs[i] = true
 	}
 
 	// add non-consecutive commitments
 	for i := seq; i < maxSeq; i += 2 {
-		suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetPacketCommitment(ctxA, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, i, hash)
+		s.chainA.App.GetIBCKeeper().ChannelKeeper.SetPacketCommitment(ctxA, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, i, hash)
 		expectedSeqs[i] = true
 	}
 
 	// add sequence on different channel/port
-	suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetPacketCommitment(ctxA, path1.EndpointA.ChannelConfig.PortID, path1.EndpointA.ChannelID, maxSeq+1, hash)
+	s.chainA.App.GetIBCKeeper().ChannelKeeper.SetPacketCommitment(ctxA, path1.EndpointA.ChannelConfig.PortID, path1.EndpointA.ChannelID, maxSeq+1, hash)
 
-	commitments := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetAllPacketCommitmentsAtChannel(ctxA, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+	commitments := s.chainA.App.GetIBCKeeper().ChannelKeeper.GetAllPacketCommitmentsAtChannel(ctxA, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 
-	suite.Equal(len(expectedSeqs), len(commitments))
+	s.Equal(len(expectedSeqs), len(commitments))
 	// ensure above for loops occurred
-	suite.NotEqual(0, len(commitments))
+	s.NotEqual(0, len(commitments))
 
 	// verify that all the packet commitments were stored
 	for _, packet := range commitments {
-		suite.True(expectedSeqs[packet.Sequence])
-		suite.Equal(path.EndpointA.ChannelConfig.PortID, packet.PortId)
-		suite.Equal(path.EndpointA.ChannelID, packet.ChannelId)
-		suite.Equal(hash, packet.Data)
+		s.True(expectedSeqs[packet.Sequence])
+		s.Equal(path.EndpointA.ChannelConfig.PortID, packet.PortId)
+		s.Equal(path.EndpointA.ChannelID, packet.ChannelId)
+		s.Equal(hash, packet.Data)
 
 		// prevent duplicates from passing checks
 		expectedSeqs[packet.Sequence] = false
@@ -447,21 +446,21 @@ func (s *KeeperTestSuite) TestGetAllPacketCommitmentsAtChannel() {
 // TestSetPacketAcknowledgement verifies that packet acknowledgements are correctly
 // set in the keeper.
 func (s *KeeperTestSuite) TestSetPacketAcknowledgement() {
-	path := ibctesting.NewPath(suite.chainA, suite.chainB)
-	suite.coordinator.Setup(path)
+	path := ibctesting.NewPath(s.chainA, s.chainB)
+	s.coordinator.Setup(path)
 
-	ctxA := suite.chainA.GetContext()
+	ctxA := s.chainA.GetContext()
 	seq := uint64(10)
 
-	storedAckHash, found := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetPacketAcknowledgement(ctxA, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, seq)
-	suite.Require().False(found)
-	suite.Require().Nil(storedAckHash)
+	storedAckHash, found := s.chainA.App.GetIBCKeeper().ChannelKeeper.GetPacketAcknowledgement(ctxA, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, seq)
+	s.Require().False(found)
+	s.Require().Nil(storedAckHash)
 
 	ackHash := []byte("ackhash")
-	suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetPacketAcknowledgement(ctxA, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, seq, ackHash)
+	s.chainA.App.GetIBCKeeper().ChannelKeeper.SetPacketAcknowledgement(ctxA, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, seq, ackHash)
 
-	storedAckHash, found = suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetPacketAcknowledgement(ctxA, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, seq)
-	suite.Require().True(found)
-	suite.Require().Equal(ackHash, storedAckHash)
-	suite.Require().True(suite.chainA.App.GetIBCKeeper().ChannelKeeper.HasPacketAcknowledgement(ctxA, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, seq))
+	storedAckHash, found = s.chainA.App.GetIBCKeeper().ChannelKeeper.GetPacketAcknowledgement(ctxA, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, seq)
+	s.Require().True(found)
+	s.Require().Equal(ackHash, storedAckHash)
+	s.Require().True(s.chainA.App.GetIBCKeeper().ChannelKeeper.HasPacketAcknowledgement(ctxA, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, seq))
 }

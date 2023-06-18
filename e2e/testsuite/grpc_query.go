@@ -32,7 +32,7 @@ import (
 
 // GRPCClients holds a reference to any GRPC clients that are needed by the tests.
 // These should typically be used for query clients only. If we need to make changes, we should
-// use E2ETestSuite.BroadcastMessages to broadcast transactions instead.
+// use E2ETests.BroadcastMessages to broadcast transactions instead.
 type GRPCClients struct {
 	ClientQueryClient        clienttypes.QueryClient
 	ConnectionQueryClient    connectiontypes.QueryClient

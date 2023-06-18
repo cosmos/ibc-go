@@ -27,15 +27,15 @@ type KeeperTestSuite struct {
 }
 
 func (s *KeeperTestSuite) SetupTest() {
-	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2)
+	s.coordinator = ibctesting.NewCoordinator(s.T(), 2)
 
-	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
-	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
+	s.chainA = s.coordinator.GetChain(ibctesting.GetChainID(1))
+	s.chainB = s.coordinator.GetChain(ibctesting.GetChainID(2))
 
 	// TODO: remove
 	// commit some blocks so that QueryProof returns valid proof (cannot return valid query if height <= 1)
-	suite.coordinator.CommitNBlocks(suite.chainA, 2)
-	suite.coordinator.CommitNBlocks(suite.chainB, 2)
+	s.coordinator.CommitNBlocks(s.chainA, 2)
+	s.coordinator.CommitNBlocks(s.chainB, 2)
 }
 
 func TestKeeperTestSuite(t *testing.T) {
@@ -64,13 +64,13 @@ func (s *KeeperTestSuite) TestNewKeeper() {
 		scopedKeeper   capabilitykeeper.ScopedKeeper
 		newIBCKeeperFn = func() {
 			ibckeeper.NewKeeper(
-				suite.chainA.GetSimApp().AppCodec(),
-				suite.chainA.GetSimApp().GetKey(ibcexported.StoreKey),
-				suite.chainA.GetSimApp().GetSubspace(ibcexported.ModuleName),
+				s.chainA.GetSimApp().AppCodec(),
+				s.chainA.GetSimApp().GetKey(ibcexported.StoreKey),
+				s.chainA.GetSimApp().GetSubspace(ibcexported.ModuleName),
 				stakingKeeper,
 				upgradeKeeper,
 				scopedKeeper,
-				suite.chainA.App.GetIBCKeeper().GetAuthority(),
+				s.chainA.App.GetIBCKeeper().GetAuthority(),
 			)
 		}
 	)
@@ -121,21 +121,21 @@ func (s *KeeperTestSuite) TestNewKeeper() {
 
 	for _, tc := range testCases {
 		tc := tc
-		suite.SetupTest()
+		s.SetupTest()
 
-		suite.Run(tc.name, func() {
-			stakingKeeper = suite.chainA.GetSimApp().StakingKeeper
-			upgradeKeeper = suite.chainA.GetSimApp().UpgradeKeeper
-			scopedKeeper = suite.chainA.GetSimApp().ScopedIBCKeeper
+		s.Run(tc.name, func() {
+			stakingKeeper = s.chainA.GetSimApp().StakingKeeper
+			upgradeKeeper = s.chainA.GetSimApp().UpgradeKeeper
+			scopedKeeper = s.chainA.GetSimApp().ScopedIBCKeeper
 
 			tc.malleate()
 
 			if tc.expPass {
-				suite.Require().NotPanics(
+				s.Require().NotPanics(
 					newIBCKeeperFn,
 				)
 			} else {
-				suite.Require().Panics(
+				s.Require().Panics(
 					newIBCKeeperFn,
 				)
 			}

@@ -9,9 +9,9 @@ import (
 )
 
 func (s *KeeperTestSuite) TestInitGenesis() {
-	suite.SetupTest()
+	s.SetupTest()
 
-	interchainAccAddr := icatypes.GenerateAddress(suite.chainB.GetContext(), ibctesting.FirstConnectionID, TestPortID)
+	interchainAccAddr := icatypes.GenerateAddress(s.chainB.GetContext(), ibctesting.FirstConnectionID, TestPortID)
 
 	genesisState := genesistypes.HostGenesisState{
 		ActiveChannels: []genesistypes.ActiveChannel{
@@ -31,19 +31,19 @@ func (s *KeeperTestSuite) TestInitGenesis() {
 		Port: icatypes.HostPortID,
 	}
 
-	keeper.InitGenesis(suite.chainA.GetContext(), suite.chainA.GetSimApp().ICAHostKeeper, genesisState)
+	keeper.InitGenesis(s.chainA.GetContext(), s.chainA.GetSimApp().ICAHostKeeper, genesisState)
 
-	channelID, found := suite.chainA.GetSimApp().ICAHostKeeper.GetActiveChannelID(suite.chainA.GetContext(), ibctesting.FirstConnectionID, TestPortID)
-	suite.Require().True(found)
-	suite.Require().Equal(ibctesting.FirstChannelID, channelID)
+	channelID, found := s.chainA.GetSimApp().ICAHostKeeper.GetActiveChannelID(s.chainA.GetContext(), ibctesting.FirstConnectionID, TestPortID)
+	s.Require().True(found)
+	s.Require().Equal(ibctesting.FirstChannelID, channelID)
 
-	accountAdrr, found := suite.chainA.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainA.GetContext(), ibctesting.FirstConnectionID, TestPortID)
-	suite.Require().True(found)
-	suite.Require().Equal(interchainAccAddr.String(), accountAdrr)
+	accountAdrr, found := s.chainA.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(s.chainA.GetContext(), ibctesting.FirstConnectionID, TestPortID)
+	s.Require().True(found)
+	s.Require().Equal(interchainAccAddr.String(), accountAdrr)
 
 	expParams := genesisState.GetParams()
-	params := suite.chainA.GetSimApp().ICAHostKeeper.GetParams(suite.chainA.GetContext())
-	suite.Require().Equal(expParams, params)
+	params := s.chainA.GetSimApp().ICAHostKeeper.GetParams(s.chainA.GetContext())
+	s.Require().Equal(expParams, params)
 }
 
 func (s *KeeperTestSuite) TestGenesisParams() {
@@ -62,9 +62,9 @@ func (s *KeeperTestSuite) TestGenesisParams() {
 	for _, tc := range testCases {
 		tc := tc
 
-		suite.Run(tc.name, func() {
-			suite.SetupTest() // reset
-			interchainAccAddr := icatypes.GenerateAddress(suite.chainB.GetContext(), ibctesting.FirstConnectionID, TestPortID)
+		s.Run(tc.name, func() {
+			s.SetupTest() // reset
+			interchainAccAddr := icatypes.GenerateAddress(s.chainB.GetContext(), ibctesting.FirstConnectionID, TestPortID)
 			genesisState := genesistypes.HostGenesisState{
 				ActiveChannels: []genesistypes.ActiveChannel{
 					{
@@ -84,22 +84,22 @@ func (s *KeeperTestSuite) TestGenesisParams() {
 				Params: tc.input,
 			}
 			if tc.expPass {
-				keeper.InitGenesis(suite.chainA.GetContext(), suite.chainA.GetSimApp().ICAHostKeeper, genesisState)
+				keeper.InitGenesis(s.chainA.GetContext(), s.chainA.GetSimApp().ICAHostKeeper, genesisState)
 
-				channelID, found := suite.chainA.GetSimApp().ICAHostKeeper.GetActiveChannelID(suite.chainA.GetContext(), ibctesting.FirstConnectionID, TestPortID)
-				suite.Require().True(found)
-				suite.Require().Equal(ibctesting.FirstChannelID, channelID)
+				channelID, found := s.chainA.GetSimApp().ICAHostKeeper.GetActiveChannelID(s.chainA.GetContext(), ibctesting.FirstConnectionID, TestPortID)
+				s.Require().True(found)
+				s.Require().Equal(ibctesting.FirstChannelID, channelID)
 
-				accountAdrr, found := suite.chainA.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainA.GetContext(), ibctesting.FirstConnectionID, TestPortID)
-				suite.Require().True(found)
-				suite.Require().Equal(interchainAccAddr.String(), accountAdrr)
+				accountAdrr, found := s.chainA.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(s.chainA.GetContext(), ibctesting.FirstConnectionID, TestPortID)
+				s.Require().True(found)
+				s.Require().Equal(interchainAccAddr.String(), accountAdrr)
 
 				expParams := tc.input
-				params := suite.chainA.GetSimApp().ICAHostKeeper.GetParams(suite.chainA.GetContext())
-				suite.Require().Equal(expParams, params)
+				params := s.chainA.GetSimApp().ICAHostKeeper.GetParams(s.chainA.GetContext())
+				s.Require().Equal(expParams, params)
 			} else {
-				suite.Require().Panics(func() {
-					keeper.InitGenesis(suite.chainA.GetContext(), suite.chainA.GetSimApp().ICAHostKeeper, genesisState)
+				s.Require().Panics(func() {
+					keeper.InitGenesis(s.chainA.GetContext(), s.chainA.GetSimApp().ICAHostKeeper, genesisState)
 				})
 			}
 		})
@@ -107,27 +107,27 @@ func (s *KeeperTestSuite) TestGenesisParams() {
 }
 
 func (s *KeeperTestSuite) TestExportGenesis() {
-	suite.SetupTest()
+	s.SetupTest()
 
-	path := NewICAPath(suite.chainA, suite.chainB)
-	suite.coordinator.SetupConnections(path)
+	path := NewICAPath(s.chainA, s.chainB)
+	s.coordinator.SetupConnections(path)
 
 	err := SetupICAPath(path, TestOwnerAddress)
-	suite.Require().NoError(err)
+	s.Require().NoError(err)
 
-	interchainAccAddr, exists := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), path.EndpointB.ConnectionID, path.EndpointA.ChannelConfig.PortID)
-	suite.Require().True(exists)
+	interchainAccAddr, exists := s.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(s.chainB.GetContext(), path.EndpointB.ConnectionID, path.EndpointA.ChannelConfig.PortID)
+	s.Require().True(exists)
 
-	genesisState := keeper.ExportGenesis(suite.chainB.GetContext(), suite.chainB.GetSimApp().ICAHostKeeper)
+	genesisState := keeper.ExportGenesis(s.chainB.GetContext(), s.chainB.GetSimApp().ICAHostKeeper)
 
-	suite.Require().Equal(path.EndpointB.ChannelID, genesisState.ActiveChannels[0].ChannelId)
-	suite.Require().Equal(path.EndpointA.ChannelConfig.PortID, genesisState.ActiveChannels[0].PortId)
+	s.Require().Equal(path.EndpointB.ChannelID, genesisState.ActiveChannels[0].ChannelId)
+	s.Require().Equal(path.EndpointA.ChannelConfig.PortID, genesisState.ActiveChannels[0].PortId)
 
-	suite.Require().Equal(interchainAccAddr, genesisState.InterchainAccounts[0].AccountAddress)
-	suite.Require().Equal(path.EndpointA.ChannelConfig.PortID, genesisState.InterchainAccounts[0].PortId)
+	s.Require().Equal(interchainAccAddr, genesisState.InterchainAccounts[0].AccountAddress)
+	s.Require().Equal(path.EndpointA.ChannelConfig.PortID, genesisState.InterchainAccounts[0].PortId)
 
-	suite.Require().Equal(icatypes.HostPortID, genesisState.GetPort())
+	s.Require().Equal(icatypes.HostPortID, genesisState.GetPort())
 
 	expParams := types.DefaultParams()
-	suite.Require().Equal(expParams, genesisState.GetParams())
+	s.Require().Equal(expParams, genesisState.GetParams())
 }

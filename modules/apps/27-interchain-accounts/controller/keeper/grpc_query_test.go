@@ -44,14 +44,14 @@ func (s *KeeperTestSuite) TestQueryInterchainAccount() {
 	}
 
 	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
-			suite.SetupTest()
+		s.Run(tc.name, func() {
+			s.SetupTest()
 
-			path := NewICAPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupConnections(path)
+			path := NewICAPath(s.chainA, s.chainB)
+			s.coordinator.SetupConnections(path)
 
 			err := SetupICAPath(path, ibctesting.TestAccAddress)
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 
 			req = &types.QueryInterchainAccountRequest{
 				ConnectionId: ibctesting.FirstConnectionID,
@@ -60,24 +60,24 @@ func (s *KeeperTestSuite) TestQueryInterchainAccount() {
 
 			tc.malleate()
 
-			res, err := suite.chainA.GetSimApp().ICAControllerKeeper.InterchainAccount(sdk.WrapSDKContext(suite.chainA.GetContext()), req)
+			res, err := s.chainA.GetSimApp().ICAControllerKeeper.InterchainAccount(sdk.WrapSDKContext(s.chainA.GetContext()), req)
 
 			if tc.expPass {
-				expAddress, exists := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), path.EndpointB.ConnectionID, path.EndpointA.ChannelConfig.PortID)
-				suite.Require().True(exists)
+				expAddress, exists := s.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(s.chainB.GetContext(), path.EndpointB.ConnectionID, path.EndpointA.ChannelConfig.PortID)
+				s.Require().True(exists)
 
-				suite.Require().NoError(err)
-				suite.Require().Equal(expAddress, res.Address)
+				s.Require().NoError(err)
+				s.Require().Equal(expAddress, res.Address)
 			} else {
-				suite.Require().Error(err)
+				s.Require().Error(err)
 			}
 		})
 	}
 }
 
 func (s *KeeperTestSuite) TestQueryParams() {
-	ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
+	ctx := sdk.WrapSDKContext(s.chainA.GetContext())
 	expParams := types.DefaultParams()
-	res, _ := suite.chainA.GetSimApp().ICAControllerKeeper.Params(ctx, &types.QueryParamsRequest{})
-	suite.Require().Equal(&expParams, res.Params)
+	res, _ := s.chainA.GetSimApp().ICAControllerKeeper.Params(ctx, &types.QueryParamsRequest{})
+	s.Require().Equal(&expParams, res.Params)
 }

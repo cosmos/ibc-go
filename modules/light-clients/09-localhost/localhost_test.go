@@ -3,9 +3,8 @@ package localhost_test
 import (
 	"testing"
 
-	"github.com/stretchr/testify/suite"
-
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	"github.com/stretchr/testify/suite"
 )
 
 type LocalhostTestSuite struct {
@@ -16,8 +15,8 @@ type LocalhostTestSuite struct {
 }
 
 func (s *LocalhostTestSuite) SetupTest() {
-	suite.coordinator = *ibctesting.NewCoordinator(suite.T(), 1)
-	suite.chain = suite.coordinator.GetChain(ibctesting.GetChainID(1))
+	s.coordinator = *ibctesting.NewCoordinator(s.T(), 1)
+	s.chain = s.coordinator.GetChain(ibctesting.GetChainID(1))
 }
 
 func TestLocalhostTestSuite(t *testing.T) {

@@ -1,13 +1,12 @@
 package types_test
 
 import (
-	"github.com/stretchr/testify/suite"
-
 	controllertypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
 	genesistypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/genesis/types"
 	hosttypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/types"
 	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	"github.com/stretchr/testify/suite"
 )
 
 var (
@@ -59,7 +58,7 @@ func (s *GenesisTypesTestSuite) TestValidateGenesisState() {
 	}
 
 	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
+		s.Run(tc.name, func() {
 			genesisState = *genesistypes.DefaultGenesis()
 
 			tc.malleate() // malleate mutates test data
@@ -67,9 +66,9 @@ func (s *GenesisTypesTestSuite) TestValidateGenesisState() {
 			err := genesisState.Validate()
 
 			if tc.expPass {
-				suite.Require().NoError(err, tc.name)
+				s.Require().NoError(err, tc.name)
 			} else {
-				suite.Require().Error(err, tc.name)
+				s.Require().Error(err, tc.name)
 			}
 		})
 	}
@@ -182,7 +181,7 @@ func (s *GenesisTypesTestSuite) TestValidateControllerGenesisState() {
 	}
 
 	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
+		s.Run(tc.name, func() {
 			genesisState = genesistypes.DefaultControllerGenesis()
 
 			tc.malleate() // malleate mutates test data
@@ -190,9 +189,9 @@ func (s *GenesisTypesTestSuite) TestValidateControllerGenesisState() {
 			err := genesisState.Validate()
 
 			if tc.expPass {
-				suite.Require().NoError(err, tc.name)
+				s.Require().NoError(err, tc.name)
 			} else {
-				suite.Require().Error(err, tc.name)
+				s.Require().Error(err, tc.name)
 			}
 		})
 	}
@@ -305,7 +304,7 @@ func (s *GenesisTypesTestSuite) TestValidateHostGenesisState() {
 	}
 
 	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
+		s.Run(tc.name, func() {
 			genesisState = genesistypes.DefaultHostGenesis()
 
 			tc.malleate() // malleate mutates test data
@@ -313,9 +312,9 @@ func (s *GenesisTypesTestSuite) TestValidateHostGenesisState() {
 			err := genesisState.Validate()
 
 			if tc.expPass {
-				suite.Require().NoError(err, tc.name)
+				s.Require().NoError(err, tc.name)
 			} else {
-				suite.Require().Error(err, tc.name)
+				s.Require().Error(err, tc.name)
 			}
 		})
 	}

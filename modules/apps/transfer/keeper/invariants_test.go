@@ -24,7 +24,7 @@ func (s *KeeperTestSuite) TestTotalEscrowPerDenomInvariant() {
 			func() {
 				// set amount for denom higher than actual value in escrow
 				amount := sdkmath.NewInt(200)
-				suite.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(suite.chainA.GetContext(), sdk.NewCoin(sdk.DefaultBondDenom, amount))
+				s.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(s.chainA.GetContext(), sdk.NewCoin(sdk.DefaultBondDenom, amount))
 			},
 			false,
 		},
@@ -33,10 +33,10 @@ func (s *KeeperTestSuite) TestTotalEscrowPerDenomInvariant() {
 	for _, tc := range testCases {
 		tc := tc
 
-		suite.Run(tc.name, func() {
-			suite.SetupTest() // reset
-			path := NewTransferPath(suite.chainA, suite.chainB)
-			suite.coordinator.Setup(path)
+		s.Run(tc.name, func() {
+			s.SetupTest() // reset
+			path := NewTransferPath(s.chainA, s.chainB)
+			s.coordinator.Setup(path)
 
 			amount := sdkmath.NewInt(100)
 
@@ -46,25 +46,25 @@ func (s *KeeperTestSuite) TestTotalEscrowPerDenomInvariant() {
 				path.EndpointA.ChannelConfig.PortID,
 				path.EndpointA.ChannelID,
 				coin,
-				suite.chainA.SenderAccount.GetAddress().String(),
-				suite.chainB.SenderAccount.GetAddress().String(),
-				suite.chainA.GetTimeoutHeight(), 0, "",
+				s.chainA.SenderAccount.GetAddress().String(),
+				s.chainB.SenderAccount.GetAddress().String(),
+				s.chainA.GetTimeoutHeight(), 0, "",
 			)
 
-			res, err := suite.chainA.SendMsgs(msg)
-			suite.Require().NoError(err)
-			suite.Require().NotNil(res)
+			res, err := s.chainA.SendMsgs(msg)
+			s.Require().NoError(err)
+			s.Require().NotNil(res)
 
 			tc.malleate()
 
-			out, broken := keeper.TotalEscrowPerDenomInvariants(&suite.chainA.GetSimApp().TransferKeeper)(suite.chainA.GetContext())
+			out, broken := keeper.TotalEscrowPerDenomInvariants(&s.chainA.GetSimApp().TransferKeeper)(s.chainA.GetContext())
 
 			if tc.expPass {
-				suite.Require().False(broken)
-				suite.Require().Empty(out)
+				s.Require().False(broken)
+				s.Require().Empty(out)
 			} else {
-				suite.Require().True(broken)
-				suite.Require().NotEmpty(out)
+				s.Require().True(broken)
+				s.Require().NotEmpty(out)
 			}
 		})
 	}

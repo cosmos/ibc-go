@@ -25,7 +25,7 @@ func (s *KeeperTestSuite) TestAssertChannelCapabilityMigrations() {
 			"channel with different port is filtered out",
 			func() {
 				portIDWithOutPrefix := ibctesting.MockPort
-				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.SetChannel(suite.chainA.GetContext(), portIDWithOutPrefix, ibctesting.FirstChannelID, channeltypes.Channel{
+				s.chainA.GetSimApp().IBCKeeper.ChannelKeeper.SetChannel(s.chainA.GetContext(), portIDWithOutPrefix, ibctesting.FirstChannelID, channeltypes.Channel{
 					ConnectionHops: []string{ibctesting.FirstConnectionID},
 				})
 			},
@@ -35,7 +35,7 @@ func (s *KeeperTestSuite) TestAssertChannelCapabilityMigrations() {
 			"capability not found",
 			func() {
 				portIDWithPrefix := fmt.Sprintf("%s%s", icatypes.ControllerPortPrefix, "port-without-capability")
-				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.SetChannel(suite.chainA.GetContext(), portIDWithPrefix, ibctesting.FirstChannelID, channeltypes.Channel{
+				s.chainA.GetSimApp().IBCKeeper.ChannelKeeper.SetChannel(s.chainA.GetContext(), portIDWithPrefix, ibctesting.FirstChannelID, channeltypes.Channel{
 					ConnectionHops: []string{ibctesting.FirstConnectionID},
 				})
 			},
@@ -44,32 +44,32 @@ func (s *KeeperTestSuite) TestAssertChannelCapabilityMigrations() {
 	}
 
 	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
-			suite.SetupTest()
+		s.Run(tc.name, func() {
+			s.SetupTest()
 
-			path := NewICAPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupConnections(path)
+			path := NewICAPath(s.chainA, s.chainB)
+			s.coordinator.SetupConnections(path)
 
 			err := SetupICAPath(path, ibctesting.TestAccAddress)
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 
 			tc.malleate()
 
-			migrator := icacontrollerkeeper.NewMigrator(&suite.chainA.GetSimApp().ICAControllerKeeper)
-			err = migrator.AssertChannelCapabilityMigrations(suite.chainA.GetContext())
+			migrator := icacontrollerkeeper.NewMigrator(&s.chainA.GetSimApp().ICAControllerKeeper)
+			err = migrator.AssertChannelCapabilityMigrations(s.chainA.GetContext())
 
 			if tc.expPass {
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 
-				isMiddlewareEnabled := suite.chainA.GetSimApp().ICAControllerKeeper.IsMiddlewareEnabled(
-					suite.chainA.GetContext(),
+				isMiddlewareEnabled := s.chainA.GetSimApp().ICAControllerKeeper.IsMiddlewareEnabled(
+					s.chainA.GetContext(),
 					path.EndpointA.ChannelConfig.PortID,
 					path.EndpointA.ConnectionID,
 				)
 
-				suite.Require().True(isMiddlewareEnabled)
+				s.Require().True(isMiddlewareEnabled)
 			} else {
-				suite.Require().Error(err)
+				s.Require().Error(err)
 			}
 		})
 	}
@@ -85,25 +85,25 @@ func (s *KeeperTestSuite) TestMigratorMigrateParams() {
 			"success: default params",
 			func() {
 				params := icacontrollertypes.DefaultParams()
-				subspace := suite.chainA.GetSimApp().GetSubspace(icacontrollertypes.SubModuleName) // get subspace
-				subspace.SetParamSet(suite.chainA.GetContext(), &params)                           // set params
+				subspace := s.chainA.GetSimApp().GetSubspace(icacontrollertypes.SubModuleName) // get subspace
+				subspace.SetParamSet(s.chainA.GetContext(), &params)                           // set params
 			},
 			icacontrollertypes.DefaultParams(),
 		},
 	}
 
 	for _, tc := range testCases {
-		suite.Run(fmt.Sprintf("case %s", tc.msg), func() {
-			suite.SetupTest() // reset
+		s.Run(fmt.Sprintf("case %s", tc.msg), func() {
+			s.SetupTest() // reset
 
 			tc.malleate() // explicitly set params
 
-			migrator := icacontrollerkeeper.NewMigrator(&suite.chainA.GetSimApp().ICAControllerKeeper)
-			err := migrator.MigrateParams(suite.chainA.GetContext())
-			suite.Require().NoError(err)
+			migrator := icacontrollerkeeper.NewMigrator(&s.chainA.GetSimApp().ICAControllerKeeper)
+			err := migrator.MigrateParams(s.chainA.GetContext())
+			s.Require().NoError(err)
 
-			params := suite.chainA.GetSimApp().ICAControllerKeeper.GetParams(suite.chainA.GetContext())
-			suite.Require().Equal(tc.expectedParams, params)
+			params := s.chainA.GetSimApp().ICAControllerKeeper.GetParams(s.chainA.GetContext())
+			s.Require().Equal(tc.expectedParams, params)
 		})
 	}
 }

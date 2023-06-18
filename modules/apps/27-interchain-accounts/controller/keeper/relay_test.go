@@ -28,17 +28,17 @@ func (s *KeeperTestSuite) TestSendTx() {
 		{
 			"success",
 			func() {
-				interchainAccountAddr, found := suite.chainA.GetSimApp().ICAControllerKeeper.GetInterchainAccountAddress(suite.chainA.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID)
-				suite.Require().True(found)
+				interchainAccountAddr, found := s.chainA.GetSimApp().ICAControllerKeeper.GetInterchainAccountAddress(s.chainA.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID)
+				s.Require().True(found)
 
 				msg := &banktypes.MsgSend{
 					FromAddress: interchainAccountAddr,
-					ToAddress:   suite.chainB.SenderAccount.GetAddress().String(),
+					ToAddress:   s.chainB.SenderAccount.GetAddress().String(),
 					Amount:      sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100))),
 				}
 
-				data, err := icatypes.SerializeCosmosTx(suite.chainB.GetSimApp().AppCodec(), []proto.Message{msg})
-				suite.Require().NoError(err)
+				data, err := icatypes.SerializeCosmosTx(s.chainB.GetSimApp().AppCodec(), []proto.Message{msg})
+				s.Require().NoError(err)
 
 				packetData = icatypes.InterchainAccountPacketData{
 					Type: icatypes.EXECUTE_TX,
@@ -50,24 +50,24 @@ func (s *KeeperTestSuite) TestSendTx() {
 		{
 			"success with multiple sdk.Msg",
 			func() {
-				interchainAccountAddr, found := suite.chainA.GetSimApp().ICAControllerKeeper.GetInterchainAccountAddress(suite.chainA.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID)
-				suite.Require().True(found)
+				interchainAccountAddr, found := s.chainA.GetSimApp().ICAControllerKeeper.GetInterchainAccountAddress(s.chainA.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID)
+				s.Require().True(found)
 
 				msgsBankSend := []proto.Message{
 					&banktypes.MsgSend{
 						FromAddress: interchainAccountAddr,
-						ToAddress:   suite.chainB.SenderAccount.GetAddress().String(),
+						ToAddress:   s.chainB.SenderAccount.GetAddress().String(),
 						Amount:      sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100))),
 					},
 					&banktypes.MsgSend{
 						FromAddress: interchainAccountAddr,
-						ToAddress:   suite.chainB.SenderAccount.GetAddress().String(),
+						ToAddress:   s.chainB.SenderAccount.GetAddress().String(),
 						Amount:      sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100))),
 					},
 				}
 
-				data, err := icatypes.SerializeCosmosTx(suite.chainB.GetSimApp().AppCodec(), msgsBankSend)
-				suite.Require().NoError(err)
+				data, err := icatypes.SerializeCosmosTx(s.chainB.GetSimApp().AppCodec(), msgsBankSend)
+				s.Require().NoError(err)
 
 				packetData = icatypes.InterchainAccountPacketData{
 					Type: icatypes.EXECUTE_TX,
@@ -96,11 +96,11 @@ func (s *KeeperTestSuite) TestSendTx() {
 		{
 			"channel in INIT state - optimistic packet sends fail",
 			func() {
-				channel, found := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-				suite.Require().True(found)
+				channel, found := s.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetChannel(s.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				s.Require().True(found)
 
 				channel.State = channeltypes.INIT
-				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.SetChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, channel)
+				s.chainA.GetSimApp().IBCKeeper.ChannelKeeper.SetChannel(s.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, channel)
 			},
 			false,
 		},
@@ -108,31 +108,31 @@ func (s *KeeperTestSuite) TestSendTx() {
 			"sendPacket fails - channel closed",
 			func() {
 				err := path.EndpointA.SetChannelState(channeltypes.CLOSED)
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 			},
 			false,
 		},
 		{
 			"timeout timestamp is not in the future",
 			func() {
-				interchainAccountAddr, found := suite.chainA.GetSimApp().ICAControllerKeeper.GetInterchainAccountAddress(suite.chainA.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID)
-				suite.Require().True(found)
+				interchainAccountAddr, found := s.chainA.GetSimApp().ICAControllerKeeper.GetInterchainAccountAddress(s.chainA.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID)
+				s.Require().True(found)
 
 				msg := &banktypes.MsgSend{
 					FromAddress: interchainAccountAddr,
-					ToAddress:   suite.chainB.SenderAccount.GetAddress().String(),
+					ToAddress:   s.chainB.SenderAccount.GetAddress().String(),
 					Amount:      sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100))),
 				}
 
-				data, err := icatypes.SerializeCosmosTx(suite.chainB.GetSimApp().AppCodec(), []proto.Message{msg})
-				suite.Require().NoError(err)
+				data, err := icatypes.SerializeCosmosTx(s.chainB.GetSimApp().AppCodec(), []proto.Message{msg})
+				s.Require().NoError(err)
 
 				packetData = icatypes.InterchainAccountPacketData{
 					Type: icatypes.EXECUTE_TX,
 					Data: data,
 				}
 
-				timeoutTimestamp = uint64(suite.chainA.GetContext().BlockTime().UnixNano())
+				timeoutTimestamp = uint64(s.chainA.GetContext().BlockTime().UnixNano())
 			},
 			false,
 		},
@@ -141,25 +141,25 @@ func (s *KeeperTestSuite) TestSendTx() {
 	for _, tc := range testCases {
 		tc := tc
 
-		suite.Run(tc.msg, func() {
-			suite.SetupTest()             // reset
+		s.Run(tc.msg, func() {
+			s.SetupTest()                 // reset
 			timeoutTimestamp = ^uint64(0) // default
 
-			path = NewICAPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupConnections(path)
+			path = NewICAPath(s.chainA, s.chainB)
+			s.coordinator.SetupConnections(path)
 
 			err := SetupICAPath(path, TestOwnerAddress)
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 
 			tc.malleate() // malleate mutates test data
 
 			//nolint: staticcheck // SA1019: ibctesting.FirstConnectionID is deprecated: use path.EndpointA.ConnectionID instead. (staticcheck)
-			_, err = suite.chainA.GetSimApp().ICAControllerKeeper.SendTx(suite.chainA.GetContext(), nil, ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID, packetData, timeoutTimestamp)
+			_, err = s.chainA.GetSimApp().ICAControllerKeeper.SendTx(s.chainA.GetContext(), nil, ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID, packetData, timeoutTimestamp)
 
 			if tc.expPass {
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 			} else {
-				suite.Require().Error(err)
+				s.Require().Error(err)
 			}
 		})
 	}
@@ -181,14 +181,14 @@ func (s *KeeperTestSuite) TestOnTimeoutPacket() {
 	}
 
 	for _, tc := range testCases {
-		suite.Run(tc.msg, func() {
-			suite.SetupTest() // reset
+		s.Run(tc.msg, func() {
+			s.SetupTest() // reset
 
-			path = NewICAPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupConnections(path)
+			path = NewICAPath(s.chainA, s.chainB)
+			s.coordinator.SetupConnections(path)
 
 			err := SetupICAPath(path, TestOwnerAddress)
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 
 			tc.malleate() // malleate mutates test data
 
@@ -203,12 +203,12 @@ func (s *KeeperTestSuite) TestOnTimeoutPacket() {
 				0,
 			)
 
-			err = suite.chainA.GetSimApp().ICAControllerKeeper.OnTimeoutPacket(suite.chainA.GetContext(), packet)
+			err = s.chainA.GetSimApp().ICAControllerKeeper.OnTimeoutPacket(s.chainA.GetContext(), packet)
 
 			if tc.expPass {
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 			} else {
-				suite.Require().Error(err)
+				s.Require().Error(err)
 			}
 		})
 	}

@@ -7,20 +7,20 @@ import (
 )
 
 func (s *MigrationsV7TestSuite) TestMigrateLocalhostClient() {
-	suite.SetupTest()
+	s.SetupTest()
 
 	// note: explicitly remove the localhost client before running migration handler
-	clientStore := suite.chainA.GetSimApp().GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), exported.LocalhostClientID)
+	clientStore := s.chainA.GetSimApp().GetIBCKeeper().ClientKeeper.ClientStore(s.chainA.GetContext(), exported.LocalhostClientID)
 	clientStore.Delete(host.ClientStateKey())
 
-	clientState, found := suite.chainA.GetSimApp().GetIBCKeeper().ClientKeeper.GetClientState(suite.chainA.GetContext(), exported.LocalhostClientID)
-	suite.Require().False(found)
-	suite.Require().Nil(clientState)
+	clientState, found := s.chainA.GetSimApp().GetIBCKeeper().ClientKeeper.GetClientState(s.chainA.GetContext(), exported.LocalhostClientID)
+	s.Require().False(found)
+	s.Require().Nil(clientState)
 
-	err := v7.MigrateLocalhostClient(suite.chainA.GetContext(), suite.chainA.GetSimApp().GetIBCKeeper().ClientKeeper)
-	suite.Require().NoError(err)
+	err := v7.MigrateLocalhostClient(s.chainA.GetContext(), s.chainA.GetSimApp().GetIBCKeeper().ClientKeeper)
+	s.Require().NoError(err)
 
-	clientState, found = suite.chainA.GetSimApp().GetIBCKeeper().ClientKeeper.GetClientState(suite.chainA.GetContext(), exported.LocalhostClientID)
-	suite.Require().True(found)
-	suite.Require().NotNil(clientState)
+	clientState, found = s.chainA.GetSimApp().GetIBCKeeper().ClientKeeper.GetClientState(s.chainA.GetContext(), exported.LocalhostClientID)
+	s.Require().True(found)
+	s.Require().NotNil(clientState)
 }

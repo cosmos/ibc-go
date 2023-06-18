@@ -29,7 +29,7 @@ func TestICATestSuite(t *testing.T) {
 }
 
 func (s *InterchainAccountsTestSuite) SetupTest() {
-	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2)
+	s.coordinator = ibctesting.NewCoordinator(s.T(), 2)
 }
 
 func (s *InterchainAccountsTestSuite) TestInitModule() {
@@ -37,21 +37,21 @@ func (s *InterchainAccountsTestSuite) TestInitModule() {
 	chainID := "testchain"
 	app := simapp.NewSimApp(log.NewNopLogger(), dbm.NewMemDB(), nil, true, map[int64]bool{}, simapp.DefaultNodeHome, 5, simapp.MakeTestEncodingConfig(), simtestutil.EmptyAppOptions{}, baseapp.SetChainID(chainID))
 	appModule, ok := app.GetModuleManager().Modules[types.ModuleName].(ica.AppModule)
-	suite.Require().True(ok)
+	s.Require().True(ok)
 
 	header := tmproto.Header{
 		ChainID: chainID,
 		Height:  1,
-		Time:    suite.coordinator.CurrentTime.UTC(),
+		Time:    s.coordinator.CurrentTime.UTC(),
 	}
 
 	ctx := app.GetBaseApp().NewContext(true, header)
 
 	// ensure params are not set
-	suite.Require().Panics(func() {
+	s.Require().Panics(func() {
 		app.ICAControllerKeeper.GetParams(ctx)
 	})
-	suite.Require().Panics(func() {
+	s.Require().Panics(func() {
 		app.ICAHostKeeper.GetParams(ctx)
 	})
 
@@ -62,7 +62,7 @@ func (s *InterchainAccountsTestSuite) TestInitModule() {
 	expAllowMessages := []string{"sdk.Msg"}
 	hostParams.HostEnabled = true
 	hostParams.AllowMessages = expAllowMessages
-	suite.Require().False(app.IBCKeeper.PortKeeper.IsBound(ctx, types.HostPortID))
+	s.Require().False(app.IBCKeeper.PortKeeper.IsBound(ctx, types.HostPortID))
 
 	testCases := []struct {
 		name              string
@@ -74,7 +74,7 @@ func (s *InterchainAccountsTestSuite) TestInitModule() {
 			"both controller and host set", func() {
 				var ok bool
 				appModule, ok = app.GetModuleManager().Modules[types.ModuleName].(ica.AppModule)
-				suite.Require().True(ok)
+				s.Require().True(ok)
 			}, true, true,
 		},
 		{
@@ -97,8 +97,8 @@ func (s *InterchainAccountsTestSuite) TestInitModule() {
 	for _, tc := range testCases {
 		tc := tc
 
-		suite.Run(tc.name, func() {
-			suite.SetupTest() // reset
+		s.Run(tc.name, func() {
+			s.SetupTest() // reset
 
 			// reset app state
 			chainID := "testchain"
@@ -106,28 +106,28 @@ func (s *InterchainAccountsTestSuite) TestInitModule() {
 			header := tmproto.Header{
 				ChainID: chainID,
 				Height:  1,
-				Time:    suite.coordinator.CurrentTime.UTC(),
+				Time:    s.coordinator.CurrentTime.UTC(),
 			}
 
 			ctx := app.GetBaseApp().NewContext(true, header)
 
 			tc.malleate()
 
-			suite.Require().NotPanics(func() {
+			s.Require().NotPanics(func() {
 				appModule.InitModule(ctx, controllerParams, hostParams)
 			})
 
 			if tc.expControllerPass {
 				controllerParams = app.ICAControllerKeeper.GetParams(ctx)
-				suite.Require().True(controllerParams.ControllerEnabled)
+				s.Require().True(controllerParams.ControllerEnabled)
 			}
 
 			if tc.expHostPass {
 				hostParams = app.ICAHostKeeper.GetParams(ctx)
-				suite.Require().True(hostParams.HostEnabled)
-				suite.Require().Equal(expAllowMessages, hostParams.AllowMessages)
+				s.Require().True(hostParams.HostEnabled)
+				s.Require().Equal(expAllowMessages, hostParams.AllowMessages)
 
-				suite.Require().True(app.IBCKeeper.PortKeeper.IsBound(ctx, types.HostPortID))
+				s.Require().True(app.IBCKeeper.PortKeeper.IsBound(ctx, types.HostPortID))
 			}
 		})
 	}

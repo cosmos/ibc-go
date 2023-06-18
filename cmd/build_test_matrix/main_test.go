@@ -120,11 +120,11 @@ func TestGetGithubActionMatrixForTests(t *testing.T) {
 
 		fileWithTwoSuites := `package foo
 func SuiteOne(t *testing.T) {
-	suite.Run(t, new(FeeMiddlewareTestSuite))
+	s.Run(t, new(FeeMiddlewareTestSuite))
 }
 
 func SuiteTwo(t *testing.T) {
-	suite.Run(t, new(FeeMiddlewareTestSuite))
+	s.Run(t, new(FeeMiddlewareTestSuite))
 }
 
 type FeeMiddlewareTestSuite struct {}
@@ -166,7 +166,7 @@ func goTestFileContents(suiteName, fnName1, fnName2 string) string {
 	replacedSuiteName := strings.ReplaceAll(`package foo
 
 func TestSuiteName(t *testing.T) {
-	suite.Run(t, new(SuiteName))
+	s.Run(t, new(SuiteName))
 }
 
 type SuiteName struct {}

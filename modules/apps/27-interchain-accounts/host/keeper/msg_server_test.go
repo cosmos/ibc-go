@@ -34,22 +34,22 @@ func (s *KeeperTestSuite) TestUpdateParams() {
 	for _, tc := range testCases {
 		tc := tc
 
-		suite.Run(tc.name, func() {
-			suite.SetupTest()
+		s.Run(tc.name, func() {
+			s.SetupTest()
 
-			ICAHostKeeper := &suite.chainA.GetSimApp().ICAHostKeeper
+			ICAHostKeeper := &s.chainA.GetSimApp().ICAHostKeeper
 			tc.malleate(ICAHostKeeper.GetAuthority()) // malleate mutates test data
 
-			ctx := suite.chainA.GetContext()
+			ctx := s.chainA.GetContext()
 			msgServer := keeper.NewMsgServerImpl(ICAHostKeeper)
 			res, err := msgServer.UpdateParams(ctx, &msg)
 
 			if tc.expPass {
-				suite.Require().NoError(err)
-				suite.Require().NotNil(res)
+				s.Require().NoError(err)
+				s.Require().NotNil(res)
 			} else {
-				suite.Require().Error(err)
-				suite.Require().Nil(res)
+				s.Require().Error(err)
+				s.Require().Nil(res)
 			}
 		})
 	}

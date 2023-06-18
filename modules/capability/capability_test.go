@@ -37,68 +37,68 @@ func (s *CapabilityTestSuite) SetupTest() {
 	// create new keeper so we can define custom scoping before init and seal
 	keeper := keeper.NewKeeper(cdc, app.GetKey(types.StoreKey), app.GetMemKey(types.MemStoreKey))
 
-	suite.app = app
-	suite.ctx = app.BaseApp.NewContext(checkTx, tmproto.Header{Height: 1})
-	suite.keeper = keeper
-	suite.cdc = cdc
-	suite.module = capability.NewAppModule(cdc, *keeper, false)
+	s.app = app
+	s.ctx = app.BaseApp.NewContext(checkTx, tmproto.Header{Height: 1})
+	s.keeper = keeper
+	s.cdc = cdc
+	s.module = capability.NewAppModule(cdc, *keeper, false)
 }
 
 // The following test case mocks a specific bug discovered in https://github.com/cosmos/cosmos-sdk/issues/9800
 // and ensures that the current code successfully fixes the issue.
 func (s *CapabilityTestSuite) TestInitializeMemStore() {
-	sk1 := suite.keeper.ScopeToModule(banktypes.ModuleName)
+	sk1 := s.keeper.ScopeToModule(banktypes.ModuleName)
 
-	cap1, err := sk1.NewCapability(suite.ctx, "transfer")
-	suite.Require().NoError(err)
-	suite.Require().NotNil(cap1)
+	cap1, err := sk1.NewCapability(s.ctx, "transfer")
+	s.Require().NoError(err)
+	s.Require().NotNil(cap1)
 
 	// mock statesync by creating new keeper that shares persistent state but loses in-memory map
-	newKeeper := keeper.NewKeeper(suite.cdc, suite.app.GetKey(types.StoreKey), suite.app.GetMemKey(memStoreKey))
+	newKeeper := keeper.NewKeeper(s.cdc, s.app.GetKey(types.StoreKey), s.app.GetMemKey(memStoreKey))
 	newSk1 := newKeeper.ScopeToModule(banktypes.ModuleName)
 
 	// Mock App startup
-	ctx := suite.app.BaseApp.NewUncachedContext(false, tmproto.Header{})
+	ctx := s.app.BaseApp.NewUncachedContext(false, tmproto.Header{})
 	newKeeper.Seal()
-	suite.Require().False(newKeeper.IsInitialized(ctx), "memstore initialized flag set before BeginBlock")
+	s.Require().False(newKeeper.IsInitialized(ctx), "memstore initialized flag set before BeginBlock")
 
 	// Mock app beginblock and ensure that no gas has been consumed and memstore is initialized
-	ctx = suite.app.BaseApp.NewContext(false, tmproto.Header{}).WithBlockGasMeter(sdk.NewGasMeter(50))
+	ctx = s.app.BaseApp.NewContext(false, tmproto.Header{}).WithBlockGasMeter(sdk.NewGasMeter(50))
 
 	prevBlockGas := ctx.BlockGasMeter().GasConsumed()
 	prevGas := ctx.BlockGasMeter().GasConsumed()
 
-	restartedModule := capability.NewAppModule(suite.cdc, *newKeeper, true)
+	restartedModule := capability.NewAppModule(s.cdc, *newKeeper, true)
 	restartedModule.BeginBlock(ctx, abci.RequestBeginBlock{})
 	gasUsed := ctx.GasMeter().GasConsumed()
 
-	suite.Require().True(newKeeper.IsInitialized(ctx), "memstore initialized flag not set")
+	s.Require().True(newKeeper.IsInitialized(ctx), "memstore initialized flag not set")
 	blockGasUsed := ctx.BlockGasMeter().GasConsumed()
 
-	suite.Require().Equal(prevBlockGas, blockGasUsed, "ensure beginblocker consumed no block gas during execution")
-	suite.Require().Equal(prevGas, gasUsed, "ensure beginblocker consumed no gas during execution")
+	s.Require().Equal(prevBlockGas, blockGasUsed, "ensure beginblocker consumed no block gas during execution")
+	s.Require().Equal(prevGas, gasUsed, "ensure beginblocker consumed no gas during execution")
 
 	// Mock the first transaction getting capability and subsequently failing
 	// by using a cached context and discarding all cached writes.
 	cacheCtx, _ := ctx.CacheContext()
 	capability, ok := newSk1.GetCapability(cacheCtx, "transfer")
-	suite.Require().NotNil(capability)
-	suite.Require().True(ok)
+	s.Require().NotNil(capability)
+	s.Require().True(ok)
 
 	// Ensure that the second transaction can still receive capability even if first tx fails.
-	ctx = suite.app.BaseApp.NewContext(false, tmproto.Header{})
+	ctx = s.app.BaseApp.NewContext(false, tmproto.Header{})
 
 	cap1, ok = newSk1.GetCapability(ctx, "transfer")
-	suite.Require().True(ok)
+	s.Require().True(ok)
 
 	// Ensure the capabilities don't get reinitialized on next BeginBlock
 	// by testing to see if capability returns same pointer
 	// also check that initialized flag is still set
 	restartedModule.BeginBlock(ctx, abci.RequestBeginBlock{})
 	recap, ok := newSk1.GetCapability(ctx, "transfer")
-	suite.Require().True(ok)
-	suite.Require().Equal(cap1, recap, "capabilities got reinitialized after second BeginBlock")
-	suite.Require().True(newKeeper.IsInitialized(ctx), "memstore initialized flag not set")
+	s.Require().True(ok)
+	s.Require().Equal(cap1, recap, "capabilities got reinitialized after second BeginBlock")
+	s.Require().True(newKeeper.IsInitialized(ctx), "memstore initialized flag not set")
 }
 
 func TestCapabilityTestSuite(t *testing.T) {

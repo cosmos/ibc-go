@@ -29,14 +29,14 @@ type AnteTestSuite struct {
 
 // SetupTest creates a coordinator with 2 test chains.
 func (s *AnteTestSuite) SetupTest() {
-	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2)
-	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
-	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
+	s.coordinator = ibctesting.NewCoordinator(s.T(), 2)
+	s.chainA = s.coordinator.GetChain(ibctesting.GetChainID(1))
+	s.chainB = s.coordinator.GetChain(ibctesting.GetChainID(2))
 	// commit some blocks so that QueryProof returns valid proof (cannot return valid query if height <= 1)
-	suite.coordinator.CommitNBlocks(suite.chainA, 2)
-	suite.coordinator.CommitNBlocks(suite.chainB, 2)
-	suite.path = ibctesting.NewPath(suite.chainA, suite.chainB)
-	suite.coordinator.Setup(suite.path)
+	s.coordinator.CommitNBlocks(s.chainA, 2)
+	s.coordinator.CommitNBlocks(s.chainB, 2)
+	s.path = ibctesting.NewPath(s.chainA, s.chainB)
+	s.coordinator.Setup(s.path)
 }
 
 // TestAnteTestSuite runs all the tests within this package.
@@ -46,111 +46,111 @@ func TestAnteTestSuite(t *testing.T) {
 
 // createRecvPacketMessage creates a RecvPacket message for a packet sent from chain A to chain B.
 func (s *AnteTestSuite) createRecvPacketMessage(isRedundant bool) sdk.Msg {
-	sequence, err := suite.path.EndpointA.SendPacket(clienttypes.NewHeight(2, 0), 0, ibctesting.MockPacketData)
-	suite.Require().NoError(err)
+	sequence, err := s.path.EndpointA.SendPacket(clienttypes.NewHeight(2, 0), 0, ibctesting.MockPacketData)
+	s.Require().NoError(err)
 
 	packet := channeltypes.NewPacket(ibctesting.MockPacketData, sequence,
-		suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID,
-		suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID,
+		s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID,
+		s.path.EndpointB.ChannelConfig.PortID, s.path.EndpointB.ChannelID,
 		clienttypes.NewHeight(2, 0), 0)
 
 	if isRedundant {
-		err = suite.path.EndpointB.RecvPacket(packet)
-		suite.Require().NoError(err)
+		err = s.path.EndpointB.RecvPacket(packet)
+		s.Require().NoError(err)
 	}
 
-	err = suite.path.EndpointB.UpdateClient()
-	suite.Require().NoError(err)
+	err = s.path.EndpointB.UpdateClient()
+	s.Require().NoError(err)
 
 	packetKey := host.PacketCommitmentKey(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
-	proof, proofHeight := suite.chainA.QueryProof(packetKey)
+	proof, proofHeight := s.chainA.QueryProof(packetKey)
 
-	return channeltypes.NewMsgRecvPacket(packet, proof, proofHeight, suite.path.EndpointA.Chain.SenderAccount.GetAddress().String())
+	return channeltypes.NewMsgRecvPacket(packet, proof, proofHeight, s.path.EndpointA.Chain.SenderAccount.GetAddress().String())
 }
 
 // createAcknowledgementMessage creates an Acknowledgement message for a packet sent from chain B to chain A.
 func (s *AnteTestSuite) createAcknowledgementMessage(isRedundant bool) sdk.Msg {
-	sequence, err := suite.path.EndpointB.SendPacket(clienttypes.NewHeight(2, 0), 0, ibctesting.MockPacketData)
-	suite.Require().NoError(err)
+	sequence, err := s.path.EndpointB.SendPacket(clienttypes.NewHeight(2, 0), 0, ibctesting.MockPacketData)
+	s.Require().NoError(err)
 
 	packet := channeltypes.NewPacket(ibctesting.MockPacketData, sequence,
-		suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID,
-		suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID,
+		s.path.EndpointB.ChannelConfig.PortID, s.path.EndpointB.ChannelID,
+		s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID,
 		clienttypes.NewHeight(2, 0), 0)
-	err = suite.path.EndpointA.RecvPacket(packet)
-	suite.Require().NoError(err)
+	err = s.path.EndpointA.RecvPacket(packet)
+	s.Require().NoError(err)
 
 	if isRedundant {
-		err = suite.path.EndpointB.AcknowledgePacket(packet, ibctesting.MockAcknowledgement)
-		suite.Require().NoError(err)
+		err = s.path.EndpointB.AcknowledgePacket(packet, ibctesting.MockAcknowledgement)
+		s.Require().NoError(err)
 	}
 
 	packetKey := host.PacketAcknowledgementKey(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
-	proof, proofHeight := suite.chainA.QueryProof(packetKey)
+	proof, proofHeight := s.chainA.QueryProof(packetKey)
 
-	return channeltypes.NewMsgAcknowledgement(packet, ibctesting.MockAcknowledgement, proof, proofHeight, suite.path.EndpointA.Chain.SenderAccount.GetAddress().String())
+	return channeltypes.NewMsgAcknowledgement(packet, ibctesting.MockAcknowledgement, proof, proofHeight, s.path.EndpointA.Chain.SenderAccount.GetAddress().String())
 }
 
 // createTimeoutMessage creates an Timeout message for a packet sent from chain B to chain A.
 func (s *AnteTestSuite) createTimeoutMessage(isRedundant bool) sdk.Msg {
-	height := suite.chainA.LastHeader.GetHeight()
+	height := s.chainA.LastHeader.GetHeight()
 	timeoutHeight := clienttypes.NewHeight(height.GetRevisionNumber(), height.GetRevisionHeight()+1)
 
-	sequence, err := suite.path.EndpointB.SendPacket(timeoutHeight, 0, ibctesting.MockPacketData)
-	suite.Require().NoError(err)
+	sequence, err := s.path.EndpointB.SendPacket(timeoutHeight, 0, ibctesting.MockPacketData)
+	s.Require().NoError(err)
 
-	suite.coordinator.CommitNBlocks(suite.chainA, 3)
+	s.coordinator.CommitNBlocks(s.chainA, 3)
 
-	err = suite.path.EndpointB.UpdateClient()
-	suite.Require().NoError(err)
+	err = s.path.EndpointB.UpdateClient()
+	s.Require().NoError(err)
 
 	packet := channeltypes.NewPacket(ibctesting.MockPacketData, sequence,
-		suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID,
-		suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID,
+		s.path.EndpointB.ChannelConfig.PortID, s.path.EndpointB.ChannelID,
+		s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID,
 		timeoutHeight, 0)
 
 	if isRedundant {
-		err = suite.path.EndpointB.TimeoutPacket(packet)
-		suite.Require().NoError(err)
+		err = s.path.EndpointB.TimeoutPacket(packet)
+		s.Require().NoError(err)
 	}
 
 	packetKey := host.PacketReceiptKey(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
-	proof, proofHeight := suite.chainA.QueryProof(packetKey)
+	proof, proofHeight := s.chainA.QueryProof(packetKey)
 
-	return channeltypes.NewMsgTimeout(packet, sequence, proof, proofHeight, suite.path.EndpointA.Chain.SenderAccount.GetAddress().String())
+	return channeltypes.NewMsgTimeout(packet, sequence, proof, proofHeight, s.path.EndpointA.Chain.SenderAccount.GetAddress().String())
 }
 
 // createTimeoutOnCloseMessage creates an TimeoutOnClose message for a packet sent from chain B to chain A.
 func (s *AnteTestSuite) createTimeoutOnCloseMessage(isRedundant bool) sdk.Msg {
-	height := suite.chainA.LastHeader.GetHeight()
+	height := s.chainA.LastHeader.GetHeight()
 	timeoutHeight := clienttypes.NewHeight(height.GetRevisionNumber(), height.GetRevisionHeight()+1)
 
-	sequence, err := suite.path.EndpointB.SendPacket(timeoutHeight, 0, ibctesting.MockPacketData)
-	suite.Require().NoError(err)
-	err = suite.path.EndpointA.SetChannelState(channeltypes.CLOSED)
-	suite.Require().NoError(err)
+	sequence, err := s.path.EndpointB.SendPacket(timeoutHeight, 0, ibctesting.MockPacketData)
+	s.Require().NoError(err)
+	err = s.path.EndpointA.SetChannelState(channeltypes.CLOSED)
+	s.Require().NoError(err)
 
 	packet := channeltypes.NewPacket(ibctesting.MockPacketData, sequence,
-		suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID,
-		suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID,
+		s.path.EndpointB.ChannelConfig.PortID, s.path.EndpointB.ChannelID,
+		s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID,
 		timeoutHeight, 0)
 
 	if isRedundant {
-		err = suite.path.EndpointB.TimeoutOnClose(packet)
-		suite.Require().NoError(err)
+		err = s.path.EndpointB.TimeoutOnClose(packet)
+		s.Require().NoError(err)
 	}
 
 	packetKey := host.PacketReceiptKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
-	proof, proofHeight := suite.chainA.QueryProof(packetKey)
+	proof, proofHeight := s.chainA.QueryProof(packetKey)
 
 	channelKey := host.ChannelKey(packet.GetDestPort(), packet.GetDestChannel())
-	proofClosed, _ := suite.chainA.QueryProof(channelKey)
+	proofClosed, _ := s.chainA.QueryProof(channelKey)
 
-	return channeltypes.NewMsgTimeoutOnClose(packet, 1, proof, proofClosed, proofHeight, suite.path.EndpointA.Chain.SenderAccount.GetAddress().String())
+	return channeltypes.NewMsgTimeoutOnClose(packet, 1, proof, proofClosed, proofHeight, s.path.EndpointA.Chain.SenderAccount.GetAddress().String())
 }
 
 func (s *AnteTestSuite) createUpdateClientMessage() sdk.Msg {
-	endpoint := suite.path.EndpointB
+	endpoint := s.path.EndpointB
 
 	// ensure counterparty has committed state
 	endpoint.Chain.Coordinator.CommitBlock(endpoint.Counterparty.Chain)
@@ -183,7 +183,7 @@ func (s *AnteTestSuite) TestAnteDecorator() {
 			"success on one new RecvPacket message",
 			func(suite *AnteTestSuite) []sdk.Msg {
 				// the RecvPacket message has not been submitted to the chain yet, so it will succeed
-				return []sdk.Msg{suite.createRecvPacketMessage(false)}
+				return []sdk.Msg{s.createRecvPacketMessage(false)}
 			},
 			true,
 		},
@@ -191,7 +191,7 @@ func (s *AnteTestSuite) TestAnteDecorator() {
 			"success on one new Acknowledgement message",
 			func(suite *AnteTestSuite) []sdk.Msg {
 				// the Acknowledgement message has not been submitted to the chain yet, so it will succeed
-				return []sdk.Msg{suite.createAcknowledgementMessage(false)}
+				return []sdk.Msg{s.createAcknowledgementMessage(false)}
 			},
 			true,
 		},
@@ -199,7 +199,7 @@ func (s *AnteTestSuite) TestAnteDecorator() {
 			"success on one new Timeout message",
 			func(suite *AnteTestSuite) []sdk.Msg {
 				// the Timeout message has not been submitted to the chain yet, so it will succeed
-				return []sdk.Msg{suite.createTimeoutMessage(false)}
+				return []sdk.Msg{s.createTimeoutMessage(false)}
 			},
 			true,
 		},
@@ -207,7 +207,7 @@ func (s *AnteTestSuite) TestAnteDecorator() {
 			"success on one new TimeoutOnClose message",
 			func(suite *AnteTestSuite) []sdk.Msg {
 				// the TimeoutOnClose message has not been submitted to the chain yet, so it will succeed
-				return []sdk.Msg{suite.createTimeoutOnCloseMessage(false)}
+				return []sdk.Msg{s.createTimeoutOnCloseMessage(false)}
 			},
 			true,
 		},
@@ -222,18 +222,18 @@ func (s *AnteTestSuite) TestAnteDecorator() {
 
 				// from A to B
 				for i := 1; i <= 3; i++ {
-					msgs = append(msgs, suite.createRecvPacketMessage(false))
+					msgs = append(msgs, s.createRecvPacketMessage(false))
 				}
 
 				// from B to A
 				for i := 1; i <= 9; i++ {
 					switch {
 					case i >= 1 && i <= 3:
-						msgs = append(msgs, suite.createAcknowledgementMessage(false))
+						msgs = append(msgs, s.createAcknowledgementMessage(false))
 					case i >= 4 && i <= 6:
-						msgs = append(msgs, suite.createTimeoutMessage(false))
+						msgs = append(msgs, s.createTimeoutMessage(false))
 					case i >= 7 && i <= 9:
-						msgs = append(msgs, suite.createTimeoutOnCloseMessage(false))
+						msgs = append(msgs, s.createTimeoutOnCloseMessage(false))
 					}
 				}
 				return msgs
@@ -252,18 +252,18 @@ func (s *AnteTestSuite) TestAnteDecorator() {
 
 				// from A to B
 				for i := 1; i <= 3; i++ {
-					msgs = append(msgs, suite.createRecvPacketMessage(true))
+					msgs = append(msgs, s.createRecvPacketMessage(true))
 				}
 
 				// from B to A
 				for i := 1; i <= 7; i++ {
 					switch {
 					case i >= 1 && i <= 3:
-						msgs = append(msgs, suite.createAcknowledgementMessage(true))
+						msgs = append(msgs, s.createAcknowledgementMessage(true))
 					case i == 4:
-						msgs = append(msgs, suite.createTimeoutMessage(false))
+						msgs = append(msgs, s.createTimeoutMessage(false))
 					case i >= 5 && i <= 7:
-						msgs = append(msgs, suite.createTimeoutOnCloseMessage(true))
+						msgs = append(msgs, s.createTimeoutOnCloseMessage(true))
 					}
 				}
 				return msgs
@@ -282,18 +282,18 @@ func (s *AnteTestSuite) TestAnteDecorator() {
 
 				// from A to B
 				for i := 1; i <= 3; i++ {
-					msgs = append(msgs, suite.createRecvPacketMessage(i != 2))
+					msgs = append(msgs, s.createRecvPacketMessage(i != 2))
 				}
 
 				// from B to A
 				for i := 1; i <= 9; i++ {
 					switch {
 					case i >= 1 && i <= 3:
-						msgs = append(msgs, suite.createAcknowledgementMessage(i != 2))
+						msgs = append(msgs, s.createAcknowledgementMessage(i != 2))
 					case i >= 4 && i <= 6:
-						msgs = append(msgs, suite.createTimeoutMessage(i != 5))
+						msgs = append(msgs, s.createTimeoutMessage(i != 5))
 					case i >= 7 && i <= 9:
-						msgs = append(msgs, suite.createTimeoutOnCloseMessage(i != 8))
+						msgs = append(msgs, s.createTimeoutOnCloseMessage(i != 8))
 					}
 				}
 				return msgs
@@ -303,14 +303,14 @@ func (s *AnteTestSuite) TestAnteDecorator() {
 		{
 			"success on one new UpdateClient message",
 			func(suite *AnteTestSuite) []sdk.Msg {
-				return []sdk.Msg{suite.createUpdateClientMessage()}
+				return []sdk.Msg{s.createUpdateClientMessage()}
 			},
 			true,
 		},
 		{
 			"success on three new UpdateClient messages",
 			func(suite *AnteTestSuite) []sdk.Msg {
-				return []sdk.Msg{suite.createUpdateClientMessage(), suite.createUpdateClientMessage(), suite.createUpdateClientMessage()}
+				return []sdk.Msg{s.createUpdateClientMessage(), s.createUpdateClientMessage(), s.createUpdateClientMessage()}
 			},
 			true,
 		},
@@ -318,10 +318,10 @@ func (s *AnteTestSuite) TestAnteDecorator() {
 			"success on three new Updateclient messages and one new RecvPacket message",
 			func(suite *AnteTestSuite) []sdk.Msg {
 				return []sdk.Msg{
-					suite.createUpdateClientMessage(),
-					suite.createUpdateClientMessage(),
-					suite.createUpdateClientMessage(),
-					suite.createRecvPacketMessage(false),
+					s.createUpdateClientMessage(),
+					s.createUpdateClientMessage(),
+					s.createUpdateClientMessage(),
+					s.createRecvPacketMessage(false),
 				}
 			},
 			true,
@@ -329,10 +329,10 @@ func (s *AnteTestSuite) TestAnteDecorator() {
 		{
 			"success on three redundant RecvPacket messages and one SubmitMisbehaviour message",
 			func(suite *AnteTestSuite) []sdk.Msg {
-				msgs := []sdk.Msg{suite.createUpdateClientMessage()}
+				msgs := []sdk.Msg{s.createUpdateClientMessage()}
 
 				for i := 1; i <= 3; i++ {
-					msgs = append(msgs, suite.createRecvPacketMessage(true))
+					msgs = append(msgs, s.createRecvPacketMessage(true))
 				}
 
 				// append non packet and update message to msgs to ensure multimsg tx should pass
@@ -344,7 +344,7 @@ func (s *AnteTestSuite) TestAnteDecorator() {
 		{
 			"no success on one redundant RecvPacket message",
 			func(suite *AnteTestSuite) []sdk.Msg {
-				return []sdk.Msg{suite.createRecvPacketMessage(true)}
+				return []sdk.Msg{s.createRecvPacketMessage(true)}
 			},
 			false,
 		},
@@ -355,18 +355,18 @@ func (s *AnteTestSuite) TestAnteDecorator() {
 
 				// from A to B
 				for i := 1; i <= 3; i++ {
-					msgs = append(msgs, suite.createRecvPacketMessage(true))
+					msgs = append(msgs, s.createRecvPacketMessage(true))
 				}
 
 				// from B to A
 				for i := 1; i <= 9; i++ {
 					switch {
 					case i >= 1 && i <= 3:
-						msgs = append(msgs, suite.createAcknowledgementMessage(true))
+						msgs = append(msgs, s.createAcknowledgementMessage(true))
 					case i >= 4 && i <= 6:
-						msgs = append(msgs, suite.createTimeoutMessage(true))
+						msgs = append(msgs, s.createTimeoutMessage(true))
 					case i >= 7 && i <= 9:
-						msgs = append(msgs, suite.createTimeoutOnCloseMessage(true))
+						msgs = append(msgs, s.createTimeoutOnCloseMessage(true))
 					}
 				}
 				return msgs
@@ -379,7 +379,7 @@ func (s *AnteTestSuite) TestAnteDecorator() {
 				msgs := []sdk.Msg{&clienttypes.MsgUpdateClient{}}
 
 				for i := 1; i <= 3; i++ {
-					msgs = append(msgs, suite.createRecvPacketMessage(true))
+					msgs = append(msgs, s.createRecvPacketMessage(true))
 				}
 
 				return msgs
@@ -389,22 +389,22 @@ func (s *AnteTestSuite) TestAnteDecorator() {
 		{
 			"no success on three new UpdateClient messages and three redundant messages of each type",
 			func(suite *AnteTestSuite) []sdk.Msg {
-				msgs := []sdk.Msg{suite.createUpdateClientMessage(), suite.createUpdateClientMessage(), suite.createUpdateClientMessage()}
+				msgs := []sdk.Msg{s.createUpdateClientMessage(), s.createUpdateClientMessage(), s.createUpdateClientMessage()}
 
 				// from A to B
 				for i := 1; i <= 3; i++ {
-					msgs = append(msgs, suite.createRecvPacketMessage(true))
+					msgs = append(msgs, s.createRecvPacketMessage(true))
 				}
 
 				// from B to A
 				for i := 1; i <= 9; i++ {
 					switch {
 					case i >= 1 && i <= 3:
-						msgs = append(msgs, suite.createAcknowledgementMessage(true))
+						msgs = append(msgs, s.createAcknowledgementMessage(true))
 					case i >= 4 && i <= 6:
-						msgs = append(msgs, suite.createTimeoutMessage(true))
+						msgs = append(msgs, s.createTimeoutMessage(true))
 					case i >= 7 && i <= 9:
-						msgs = append(msgs, suite.createTimeoutOnCloseMessage(true))
+						msgs = append(msgs, s.createTimeoutOnCloseMessage(true))
 					}
 				}
 				return msgs
@@ -415,12 +415,12 @@ func (s *AnteTestSuite) TestAnteDecorator() {
 			"no success on one new message and one invalid message",
 			func(suite *AnteTestSuite) []sdk.Msg {
 				packet := channeltypes.NewPacket(ibctesting.MockPacketData, 2,
-					suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID,
-					suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID,
+					s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID,
+					s.path.EndpointB.ChannelConfig.PortID, s.path.EndpointB.ChannelID,
 					clienttypes.NewHeight(2, 0), 0)
 
 				return []sdk.Msg{
-					suite.createRecvPacketMessage(false),
+					s.createRecvPacketMessage(false),
 					channeltypes.NewMsgRecvPacket(packet, []byte("proof"), clienttypes.NewHeight(1, 1), "signer"),
 				}
 			},
@@ -429,22 +429,22 @@ func (s *AnteTestSuite) TestAnteDecorator() {
 		{
 			"no success on one new message and one redundant message in the same block",
 			func(suite *AnteTestSuite) []sdk.Msg {
-				msg := suite.createRecvPacketMessage(false)
+				msg := s.createRecvPacketMessage(false)
 
 				// We want to be able to run check tx with the non-redundant message without
 				// committing it to a block, so that the when check tx runs with the redundant
 				// message they are both in the same block
-				k := suite.chainB.App.GetIBCKeeper()
+				k := s.chainB.App.GetIBCKeeper()
 				decorator := ante.NewRedundantRelayDecorator(k)
-				checkCtx := suite.chainB.GetContext().WithIsCheckTx(true)
+				checkCtx := s.chainB.GetContext().WithIsCheckTx(true)
 				next := func(ctx sdk.Context, tx sdk.Tx, simulate bool) (newCtx sdk.Context, err error) { return ctx, nil }
-				txBuilder := suite.chainB.TxConfig.NewTxBuilder()
+				txBuilder := s.chainB.TxConfig.NewTxBuilder()
 				err := txBuilder.SetMsgs([]sdk.Msg{msg}...)
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 				tx := txBuilder.GetTx()
 
 				_, err = decorator.AnteHandle(checkCtx, tx, false, next)
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 
 				return []sdk.Msg{msg}
 			},
@@ -455,34 +455,34 @@ func (s *AnteTestSuite) TestAnteDecorator() {
 	for _, tc := range testCases {
 		tc := tc
 
-		suite.Run(tc.name, func() {
+		s.Run(tc.name, func() {
 			// reset suite
-			suite.SetupTest()
+			s.SetupTest()
 
-			k := suite.chainB.App.GetIBCKeeper()
+			k := s.chainB.App.GetIBCKeeper()
 			decorator := ante.NewRedundantRelayDecorator(k)
 
-			msgs := tc.malleate(suite)
+			msgs := tc.malleate(s)
 
-			deliverCtx := suite.chainB.GetContext().WithIsCheckTx(false)
-			checkCtx := suite.chainB.GetContext().WithIsCheckTx(true)
+			deliverCtx := s.chainB.GetContext().WithIsCheckTx(false)
+			checkCtx := s.chainB.GetContext().WithIsCheckTx(true)
 
 			// create multimsg tx
-			txBuilder := suite.chainB.TxConfig.NewTxBuilder()
+			txBuilder := s.chainB.TxConfig.NewTxBuilder()
 			err := txBuilder.SetMsgs(msgs...)
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 			tx := txBuilder.GetTx()
 
 			next := func(ctx sdk.Context, tx sdk.Tx, simulate bool) (newCtx sdk.Context, err error) { return ctx, nil }
 
 			_, err = decorator.AnteHandle(deliverCtx, tx, false, next)
-			suite.Require().NoError(err, "antedecorator should not error on DeliverTx")
+			s.Require().NoError(err, "antedecorator should not error on DeliverTx")
 
 			_, err = decorator.AnteHandle(checkCtx, tx, false, next)
 			if tc.expPass {
-				suite.Require().NoError(err, "non-strict decorator did not pass as expected")
+				s.Require().NoError(err, "non-strict decorator did not pass as expected")
 			} else {
-				suite.Require().Error(err, "non-strict antehandler did not return error as expected")
+				s.Require().Error(err, "non-strict antehandler did not return error as expected")
 			}
 		})
 	}

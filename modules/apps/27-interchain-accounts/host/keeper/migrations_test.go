@@ -17,25 +17,25 @@ func (s *KeeperTestSuite) TestMigratorMigrateParams() {
 			"success: default params",
 			func() {
 				params := icahosttypes.DefaultParams()
-				subspace := suite.chainA.GetSimApp().GetSubspace(icahosttypes.SubModuleName) // get subspace
-				subspace.SetParamSet(suite.chainA.GetContext(), &params)                     // set params
+				subspace := s.chainA.GetSimApp().GetSubspace(icahosttypes.SubModuleName) // get subspace
+				subspace.SetParamSet(s.chainA.GetContext(), &params)                     // set params
 			},
 			icahosttypes.DefaultParams(),
 		},
 	}
 
 	for _, tc := range testCases {
-		suite.Run(fmt.Sprintf("case %s", tc.msg), func() {
-			suite.SetupTest() // reset
+		s.Run(fmt.Sprintf("case %s", tc.msg), func() {
+			s.SetupTest() // reset
 
 			tc.malleate() // explicitly set params
 
-			migrator := icahostkeeper.NewMigrator(&suite.chainA.GetSimApp().ICAHostKeeper)
-			err := migrator.MigrateParams(suite.chainA.GetContext())
-			suite.Require().NoError(err)
+			migrator := icahostkeeper.NewMigrator(&s.chainA.GetSimApp().ICAHostKeeper)
+			err := migrator.MigrateParams(s.chainA.GetContext())
+			s.Require().NoError(err)
 
-			params := suite.chainA.GetSimApp().ICAHostKeeper.GetParams(suite.chainA.GetContext())
-			suite.Require().Equal(tc.expectedParams, params)
+			params := s.chainA.GetSimApp().ICAHostKeeper.GetParams(s.chainA.GetContext())
+			s.Require().Equal(tc.expectedParams, params)
 		})
 	}
 }

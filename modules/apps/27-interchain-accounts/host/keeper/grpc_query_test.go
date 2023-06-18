@@ -7,8 +7,8 @@ import (
 )
 
 func (s *KeeperTestSuite) TestQueryParams() {
-	ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
+	ctx := sdk.WrapSDKContext(s.chainA.GetContext())
 	expParams := types.DefaultParams()
-	res, _ := suite.chainA.GetSimApp().ICAHostKeeper.Params(ctx, &types.QueryParamsRequest{})
-	suite.Require().Equal(&expParams, res.Params)
+	res, _ := s.chainA.GetSimApp().ICAHostKeeper.Params(ctx, &types.QueryParamsRequest{})
+	s.Require().Equal(&expParams, res.Params)
 }

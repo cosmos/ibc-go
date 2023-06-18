@@ -298,32 +298,32 @@ func (s *KeeperTestSuite) TestModelBasedRelay() {
 			panic(fmt.Errorf("Failed to parse JSON test fixture: %w", err))
 		}
 
-		suite.SetupTest()
-		pathAtoB := NewTransferPath(suite.chainA, suite.chainB)
-		pathBtoC := NewTransferPath(suite.chainB, suite.chainC)
-		suite.coordinator.Setup(pathAtoB)
-		suite.coordinator.Setup(pathBtoC)
+		s.SetupTest()
+		pathAtoB := NewTransferPath(s.chainA, s.chainB)
+		pathBtoC := NewTransferPath(s.chainB, s.chainC)
+		s.coordinator.Setup(pathAtoB)
+		s.coordinator.Setup(pathBtoC)
 
 		for i, tlaTc := range tlaTestCases {
 			tc := OnRecvPacketTestCaseFromTla(tlaTc)
 			registerDenomFn := func() {
 				denomTrace := types.ParseDenomTrace(tc.packet.Data.Denom)
 				traceHash := denomTrace.Hash()
-				if !suite.chainB.GetSimApp().TransferKeeper.HasDenomTrace(suite.chainB.GetContext(), traceHash) {
-					suite.chainB.GetSimApp().TransferKeeper.SetDenomTrace(suite.chainB.GetContext(), denomTrace)
+				if !s.chainB.GetSimApp().TransferKeeper.HasDenomTrace(s.chainB.GetContext(), traceHash) {
+					s.chainB.GetSimApp().TransferKeeper.SetDenomTrace(s.chainB.GetContext(), denomTrace)
 				}
 			}
 
 			description := fileInfo.Name() + " # " + strconv.Itoa(i+1)
-			suite.Run(fmt.Sprintf("Case %s", description), func() {
+			s.Run(fmt.Sprintf("Case %s", description), func() {
 				seq := uint64(1)
 				packet := channeltypes.NewPacket(tc.packet.Data.GetBytes(), seq, tc.packet.SourcePort, tc.packet.SourceChannel, tc.packet.DestPort, tc.packet.DestChannel, clienttypes.NewHeight(1, 100), 0)
 				bankBefore := BankFromBalances(tc.bankBefore)
-				realBankBefore := BankOfChain(suite.chainB)
+				realBankBefore := BankOfChain(s.chainB)
 				// First validate the packet itself (mimics what happens when the packet is being sent and/or received)
 				err := packet.ValidateBasic()
 				if err != nil {
-					suite.Require().False(tc.pass, err.Error())
+					s.Require().False(tc.pass, err.Error())
 					return
 				}
 				switch tc.handler {
@@ -348,41 +348,41 @@ func (s *KeeperTestSuite) TestModelBasedRelay() {
 							sdk.NewCoin(denom, amount),
 							sender.String(),
 							tc.packet.Data.Receiver,
-							suite.chainA.GetTimeoutHeight(), 0, // only use timeout height
+							s.chainA.GetTimeoutHeight(), 0, // only use timeout height
 							"",
 						)
 
-						_, err = suite.chainB.GetSimApp().TransferKeeper.Transfer(sdk.WrapSDKContext(suite.chainB.GetContext()), msg)
+						_, err = s.chainB.GetSimApp().TransferKeeper.Transfer(sdk.WrapSDKContext(s.chainB.GetContext()), msg)
 
 					}
 				case "OnRecvPacket":
-					err = suite.chainB.GetSimApp().TransferKeeper.OnRecvPacket(suite.chainB.GetContext(), packet, tc.packet.Data)
+					err = s.chainB.GetSimApp().TransferKeeper.OnRecvPacket(s.chainB.GetContext(), packet, tc.packet.Data)
 				case "OnTimeoutPacket":
 					registerDenomFn()
-					err = suite.chainB.GetSimApp().TransferKeeper.OnTimeoutPacket(suite.chainB.GetContext(), packet, tc.packet.Data)
+					err = s.chainB.GetSimApp().TransferKeeper.OnTimeoutPacket(s.chainB.GetContext(), packet, tc.packet.Data)
 				case "OnRecvAcknowledgementResult":
-					err = suite.chainB.GetSimApp().TransferKeeper.OnAcknowledgementPacket(
-						suite.chainB.GetContext(), packet, tc.packet.Data,
+					err = s.chainB.GetSimApp().TransferKeeper.OnAcknowledgementPacket(
+						s.chainB.GetContext(), packet, tc.packet.Data,
 						channeltypes.NewResultAcknowledgement(nil))
 				case "OnRecvAcknowledgementError":
 					registerDenomFn()
-					err = suite.chainB.GetSimApp().TransferKeeper.OnAcknowledgementPacket(
-						suite.chainB.GetContext(), packet, tc.packet.Data,
+					err = s.chainB.GetSimApp().TransferKeeper.OnAcknowledgementPacket(
+						s.chainB.GetContext(), packet, tc.packet.Data,
 						channeltypes.NewErrorAcknowledgement(fmt.Errorf("MBT Error Acknowledgement")))
 				default:
 					err = fmt.Errorf("Unknown handler:  %s", tc.handler)
 				}
 				if err != nil {
-					suite.Require().False(tc.pass, err.Error())
+					s.Require().False(tc.pass, err.Error())
 					return
 				}
 				bankAfter := BankFromBalances(tc.bankAfter)
 				expectedBankChange := bankAfter.Sub(&bankBefore)
-				if err := suite.CheckBankBalances(suite.chainB, &realBankBefore, &expectedBankChange); err != nil {
-					suite.Require().False(tc.pass, err.Error())
+				if err := s.CheckBankBalances(s.chainB, &realBankBefore, &expectedBankChange); err != nil {
+					s.Require().False(tc.pass, err.Error())
 					return
 				}
-				suite.Require().True(tc.pass)
+				s.Require().True(tc.pass)
 			})
 		}
 	}

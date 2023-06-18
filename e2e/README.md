@@ -254,7 +254,7 @@ Which looks under the `e2e` directory, and creates a task for each test suite fu
 package e2e
 
 func TestFeeMiddlewareTestSuite(t *testing.T) {
-  suite.Run(t, new(FeeMiddlewareTestSuite))
+  s.Run(t, new(FeeMiddlewareTestSuite))
 }
 
 type FeeMiddlewareTestSuite struct {
@@ -272,7 +272,7 @@ func (s *FeeMiddlewareTestSuite) TestC() {}
 package e2e
 
 func TestTransferTestSuite(t *testing.T) {
-  suite.Run(t, new(TransferTestSuite))
+  s.Run(t, new(TransferTestSuite))
 }
 
 type TransferTestSuite struct {
@@ -370,7 +370,7 @@ json matrix files under .github/compatibility-test-matrices and is equivalent to
 
 ### Accessing Logs
 
-- When a test fails in GitHub. The logs of the test will be uploaded (viewable in the summary page of the workflow). Note: There 
+- When a test fails in GitHub. The logs of the test will be uploaded (viewable in the summary page of the workflow). Note: There
   may be some discrepancy in the logs collected and the output of interchain test. The containers may run for a some
   time after the logs are collected, resulting in the displayed logs to differ slightly.
 

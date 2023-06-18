@@ -334,7 +334,7 @@ func IsCI() bool {
 
 // ChainOptions stores chain configurations for the chains that will be
 // created for the tests. They can be modified by passing ChainOptionConfiguration
-// to E2ETestSuite.GetChains.
+// to E2ETests.GetChains.
 type ChainOptions struct {
 	ChainAConfig *ibc.ChainConfig
 	ChainBConfig *ibc.ChainConfig
@@ -344,7 +344,7 @@ type ChainOptions struct {
 type ChainOptionConfiguration func(options *ChainOptions)
 
 // DefaultChainOptions returns the default configuration for the chains.
-// These options can be configured by passing configuration functions to E2ETestSuite.GetChains.
+// These options can be configured by passing configuration functions to E2ETests.GetChains.
 func DefaultChainOptions() ChainOptions {
 	tc := LoadConfig()
 

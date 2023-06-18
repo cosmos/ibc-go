@@ -26,10 +26,10 @@ type ClientTestSuite struct {
 }
 
 func (s *ClientTestSuite) SetupTest() {
-	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2)
+	s.coordinator = ibctesting.NewCoordinator(s.T(), 2)
 
-	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
-	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
+	s.chainA = s.coordinator.GetChain(ibctesting.GetChainID(1))
+	s.chainB = s.coordinator.GetChain(ibctesting.GetChainID(2))
 }
 
 func TestClientTestSuite(t *testing.T) {
@@ -39,10 +39,10 @@ func TestClientTestSuite(t *testing.T) {
 func (s *ClientTestSuite) TestBeginBlocker() {
 	for i := 0; i < 10; i++ {
 		// increment height
-		suite.coordinator.CommitBlock(suite.chainA, suite.chainB)
+		s.coordinator.CommitBlock(s.chainA, s.chainB)
 
-		suite.Require().NotPanics(func() {
-			client.BeginBlocker(suite.chainA.GetContext(), suite.chainA.App.GetIBCKeeper().ClientKeeper)
+		s.Require().NotPanics(func() {
+			client.BeginBlocker(s.chainA.GetContext(), s.chainA.App.GetIBCKeeper().ClientKeeper)
 		}, "BeginBlocker shouldn't panic")
 	}
 }
@@ -50,66 +50,66 @@ func (s *ClientTestSuite) TestBeginBlocker() {
 func (s *ClientTestSuite) TestBeginBlockerConsensusState() {
 	plan := &upgradetypes.Plan{
 		Name:   "test",
-		Height: suite.chainA.GetContext().BlockHeight() + 1,
+		Height: s.chainA.GetContext().BlockHeight() + 1,
 	}
 	// set upgrade plan in the upgrade store
-	store := suite.chainA.GetContext().KVStore(suite.chainA.GetSimApp().GetKey(upgradetypes.StoreKey))
-	bz := suite.chainA.App.AppCodec().MustMarshal(plan)
+	store := s.chainA.GetContext().KVStore(s.chainA.GetSimApp().GetKey(upgradetypes.StoreKey))
+	bz := s.chainA.App.AppCodec().MustMarshal(plan)
 	store.Set(upgradetypes.PlanKey(), bz)
 
 	nextValsHash := []byte("nextValsHash")
-	newCtx := suite.chainA.GetContext().WithBlockHeader(tmproto.Header{
-		ChainID:            suite.chainA.ChainID,
-		Height:             suite.chainA.GetContext().BlockHeight(),
+	newCtx := s.chainA.GetContext().WithBlockHeader(tmproto.Header{
+		ChainID:            s.chainA.ChainID,
+		Height:             s.chainA.GetContext().BlockHeight(),
 		NextValidatorsHash: nextValsHash,
 	})
 
-	err := suite.chainA.GetSimApp().UpgradeKeeper.SetUpgradedClient(newCtx, plan.Height, []byte("client state"))
-	suite.Require().NoError(err)
+	err := s.chainA.GetSimApp().UpgradeKeeper.SetUpgradedClient(newCtx, plan.Height, []byte("client state"))
+	s.Require().NoError(err)
 
 	req := abci.RequestBeginBlock{Header: newCtx.BlockHeader()}
-	suite.chainA.App.BeginBlock(req)
+	s.chainA.App.BeginBlock(req)
 
 	// plan Height is at ctx.BlockHeight+1
-	consState, found := suite.chainA.GetSimApp().UpgradeKeeper.GetUpgradedConsensusState(newCtx, plan.Height)
-	suite.Require().True(found)
-	bz, err = types.MarshalConsensusState(suite.chainA.App.AppCodec(), &ibctm.ConsensusState{Timestamp: newCtx.BlockTime(), NextValidatorsHash: nextValsHash})
-	suite.Require().NoError(err)
-	suite.Require().Equal(bz, consState)
+	consState, found := s.chainA.GetSimApp().UpgradeKeeper.GetUpgradedConsensusState(newCtx, plan.Height)
+	s.Require().True(found)
+	bz, err = types.MarshalConsensusState(s.chainA.App.AppCodec(), &ibctm.ConsensusState{Timestamp: newCtx.BlockTime(), NextValidatorsHash: nextValsHash})
+	s.Require().NoError(err)
+	s.Require().Equal(bz, consState)
 }
 
 func (s *ClientTestSuite) TestBeginBlockerUpgradeEvents() {
 	plan := &upgradetypes.Plan{
 		Name:   "test",
-		Height: suite.chainA.GetContext().BlockHeight() + 1,
+		Height: s.chainA.GetContext().BlockHeight() + 1,
 	}
 	// set upgrade plan in the upgrade store
-	store := suite.chainA.GetContext().KVStore(suite.chainA.GetSimApp().GetKey(upgradetypes.StoreKey))
-	bz := suite.chainA.App.AppCodec().MustMarshal(plan)
+	store := s.chainA.GetContext().KVStore(s.chainA.GetSimApp().GetKey(upgradetypes.StoreKey))
+	bz := s.chainA.App.AppCodec().MustMarshal(plan)
 	store.Set(upgradetypes.PlanKey(), bz)
 
 	nextValsHash := []byte("nextValsHash")
-	newCtx := suite.chainA.GetContext().WithBlockHeader(tmproto.Header{
-		Height:             suite.chainA.GetContext().BlockHeight(),
+	newCtx := s.chainA.GetContext().WithBlockHeader(tmproto.Header{
+		Height:             s.chainA.GetContext().BlockHeight(),
 		NextValidatorsHash: nextValsHash,
 	})
 
-	err := suite.chainA.GetSimApp().UpgradeKeeper.SetUpgradedClient(newCtx, plan.Height, []byte("client state"))
-	suite.Require().NoError(err)
+	err := s.chainA.GetSimApp().UpgradeKeeper.SetUpgradedClient(newCtx, plan.Height, []byte("client state"))
+	s.Require().NoError(err)
 
-	cacheCtx, writeCache := suite.chainA.GetContext().CacheContext()
+	cacheCtx, writeCache := s.chainA.GetContext().CacheContext()
 
-	client.BeginBlocker(cacheCtx, suite.chainA.App.GetIBCKeeper().ClientKeeper)
+	client.BeginBlocker(cacheCtx, s.chainA.App.GetIBCKeeper().ClientKeeper)
 	writeCache()
 
-	suite.requireContainsEvent(cacheCtx.EventManager().Events(), types.EventTypeUpgradeChain, true)
+	s.requireContainsEvent(cacheCtx.EventManager().Events(), types.EventTypeUpgradeChain, true)
 }
 
 func (s *ClientTestSuite) TestBeginBlockerUpgradeEventsAbsence() {
-	cacheCtx, writeCache := suite.chainA.GetContext().CacheContext()
-	client.BeginBlocker(suite.chainA.GetContext(), suite.chainA.App.GetIBCKeeper().ClientKeeper)
+	cacheCtx, writeCache := s.chainA.GetContext().CacheContext()
+	client.BeginBlocker(s.chainA.GetContext(), s.chainA.App.GetIBCKeeper().ClientKeeper)
 	writeCache()
-	suite.requireContainsEvent(cacheCtx.EventManager().Events(), types.EventTypeUpgradeChain, false)
+	s.requireContainsEvent(cacheCtx.EventManager().Events(), types.EventTypeUpgradeChain, false)
 }
 
 // requireContainsEvent verifies if an event of a specific type was emitted.
@@ -124,8 +124,8 @@ func (s *ClientTestSuite) requireContainsEvent(events sdk.Events, eventType stri
 		}
 	}
 	if shouldContain {
-		suite.Require().True(found, "event type %s was not found in %s", eventType, strings.Join(eventTypes, ","))
+		s.Require().True(found, "event type %s was not found in %s", eventType, strings.Join(eventTypes, ","))
 	} else {
-		suite.Require().False(found, "event type %s was found in %s", eventType, strings.Join(eventTypes, ","))
+		s.Require().False(found, "event type %s was found in %s", eventType, strings.Join(eventTypes, ","))
 	}
 }
