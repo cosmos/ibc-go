@@ -1,10 +1,13 @@
 package keeper
 
 import (
-	errorsmod "cosmossdk.io/errors"
 	metrics "github.com/armon/go-metrics"
+
+	errorsmod "cosmossdk.io/errors"
+
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )

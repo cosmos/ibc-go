@@ -3,11 +3,13 @@ package cli
 import (
 	"fmt"
 
+	"github.com/spf13/cobra"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/version"
+
 	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
-	"github.com/spf13/cobra"
 )
 
 // GetCmdQueryInterchainAccount returns the command handler for the controller submodule parameter querying.

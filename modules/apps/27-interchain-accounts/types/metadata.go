@@ -2,7 +2,9 @@ package types
 
 import (
 	errorsmod "cosmossdk.io/errors"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
 )
 

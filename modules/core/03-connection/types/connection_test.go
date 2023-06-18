@@ -3,11 +3,12 @@ package types_test
 import (
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
-	"github.com/stretchr/testify/require"
 )
 
 var (

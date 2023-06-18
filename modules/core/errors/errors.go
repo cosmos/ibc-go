@@ -2,6 +2,7 @@ package errors
 
 import (
 	errorsmod "cosmossdk.io/errors"
+
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 

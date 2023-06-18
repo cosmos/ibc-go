@@ -28,19 +28,6 @@ linters:
     - unused
     - misspell
 
-linter-settings:
-  gci:
-    custom-order: true
-    sections:
-      - standard # Standard section: captures all standard packages.
-      - default # Default section: contains all imports that could not be matched to another section type.
-      - blank # blank imports
-      - dot # dot imports
-      - prefix(cosmossdk.io)
-      - prefix(github.com/cosmos/cosmos-sdk)
-      - prefix(github.com/cometbft/cometbft)
-      - prefix(github.com/cosmos/ibc-go)
-
 issues:
   exclude-rules:
     - text: 'unused-parameter'
@@ -64,6 +51,17 @@ issues:
   max-same-issues: 10000
 
 linters-settings:
+  gci:
+    sections:
+      - standard # Standard section: captures all standard packages.
+      - default # Default section: contains all imports that could not be matched to another section type.
+      - blank # blank imports
+      - dot # dot imports
+      - prefix(cosmossdk.io)
+      - prefix(github.com/cosmos/cosmos-sdk)
+      - prefix(github.com/cometbft/cometbft)
+      - prefix(github.com/cosmos/ibc-go)
+    custom-order: true
   dogsled:
     max-blank-identifiers: 3
   maligned:

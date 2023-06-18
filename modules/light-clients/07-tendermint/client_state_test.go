@@ -3,7 +3,10 @@ package tendermint_test
 import (
 	"time"
 
+	ics23 "github.com/cosmos/ics23/go"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
@@ -13,7 +16,6 @@ import (
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	ibcmock "github.com/cosmos/ibc-go/v7/testing/mock"
-	ics23 "github.com/cosmos/ics23/go"
 )
 
 const (

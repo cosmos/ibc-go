@@ -3,13 +3,15 @@ package cli
 import (
 	"fmt"
 
+	"github.com/spf13/cobra"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/version"
+
 	"github.com/cosmos/ibc-go/v7/modules/core/03-connection/client/utils"
 	"github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
 	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
-	"github.com/spf13/cobra"
 )
 
 // GetCmdQueryConnections defines the command to query all the connection ends

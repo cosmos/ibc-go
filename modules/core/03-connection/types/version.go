@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
+
 	collections "github.com/cosmos/ibc-go/v7/internal/collections"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )

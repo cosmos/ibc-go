@@ -3,9 +3,12 @@ package v7_test
 import (
 	"testing"
 
+	"github.com/stretchr/testify/suite"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
+
 	ibcclient "github.com/cosmos/ibc-go/v7/modules/core/02-client"
 	clientv7 "github.com/cosmos/ibc-go/v7/modules/core/02-client/migrations/v7"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
@@ -14,7 +17,6 @@ import (
 	v7 "github.com/cosmos/ibc-go/v7/modules/core/migrations/v7"
 	"github.com/cosmos/ibc-go/v7/modules/core/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
-	"github.com/stretchr/testify/suite"
 )
 
 type MigrationsV7TestSuite struct {

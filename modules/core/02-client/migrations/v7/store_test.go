@@ -4,13 +4,15 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/stretchr/testify/suite"
+
 	"github.com/cosmos/cosmos-sdk/codec"
+
 	v7 "github.com/cosmos/ibc-go/v7/modules/core/02-client/migrations/v7"
 	"github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
-	"github.com/stretchr/testify/suite"
 )
 
 // numCreations is the number of clients/consensus states created for

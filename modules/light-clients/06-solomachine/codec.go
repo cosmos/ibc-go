@@ -2,9 +2,11 @@ package solomachine
 
 import (
 	errorsmod "cosmossdk.io/errors"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
+
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 

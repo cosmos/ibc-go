@@ -4,13 +4,15 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/cosmos/gogoproto/proto"
+	"github.com/spf13/cobra"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
-	"github.com/cosmos/gogoproto/proto"
+
 	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
-	"github.com/spf13/cobra"
 )
 
 const (

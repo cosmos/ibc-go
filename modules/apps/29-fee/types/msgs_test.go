@@ -3,12 +3,15 @@ package types_test
 import (
 	"testing"
 
-	"github.com/cometbft/cometbft/crypto/secp256k1"
+	"github.com/stretchr/testify/require"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/cometbft/cometbft/crypto/secp256k1"
+
 	"github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
-	"github.com/stretchr/testify/require"
 )
 
 func TestMsgRegisterPayeeValidation(t *testing.T) {

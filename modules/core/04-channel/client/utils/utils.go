@@ -5,8 +5,10 @@ import (
 	"encoding/binary"
 
 	errorsmod "cosmossdk.io/errors"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
+
 	clientutils "github.com/cosmos/ibc-go/v7/modules/core/02-client/client/utils"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"

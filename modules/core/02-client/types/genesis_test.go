@@ -4,6 +4,7 @@ import (
 	"time"
 
 	tmtypes "github.com/cometbft/cometbft/types"
+
 	client "github.com/cosmos/ibc-go/v7/modules/core/02-client"
 	"github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"

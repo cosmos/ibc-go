@@ -4,8 +4,9 @@ import (
 	"math"
 	"testing"
 
-	"github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	"github.com/stretchr/testify/require"
+
+	"github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 )
 
 // tests ParseClientIdentifier and IsValidClientID

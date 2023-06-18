@@ -4,12 +4,14 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/cosmos/cosmos-sdk/types/kv"
+
 	"github.com/cosmos/ibc-go/v7/modules/core/03-connection/simulation"
 	"github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v7/testing/simapp"
-	"github.com/stretchr/testify/require"
 )
 
 func TestDecodeStore(t *testing.T) {

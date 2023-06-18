@@ -5,6 +5,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+
 	ibcclient "github.com/cosmos/ibc-go/v7/modules/core/02-client"
 	v7 "github.com/cosmos/ibc-go/v7/modules/core/02-client/migrations/v7"
 	"github.com/cosmos/ibc-go/v7/modules/core/02-client/types"

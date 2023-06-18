@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/cosmos/cosmos-sdk/codec"
+
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 

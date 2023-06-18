@@ -1,9 +1,10 @@
 package port
 
 import (
+	"github.com/spf13/cobra"
+
 	"github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/client/cli"
-	"github.com/spf13/cobra"
 )
 
 // Name returns the IBC port ICS name.

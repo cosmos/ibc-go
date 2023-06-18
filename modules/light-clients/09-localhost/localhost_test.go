@@ -3,8 +3,9 @@ package localhost_test
 import (
 	"testing"
 
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	"github.com/stretchr/testify/suite"
+
+	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
 type LocalhostTestSuite struct {
