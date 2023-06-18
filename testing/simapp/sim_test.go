@@ -180,7 +180,7 @@ func TestAppImportExport(t *testing.T) {
 
 	ctxA := app.NewContextLegacy(true, cmtproto.Header{Height: app.LastBlockHeight()})
 	ctxB := newApp.NewContextLegacy(true, cmtproto.Header{Height: app.LastBlockHeight()})
-	newApp.ModuleManager.InitGenesis(ctxB, app.AppCodec(), genesisState)
+	newApp.mm.InitGenesis(ctxB, app.AppCodec(), genesisState)
 	newApp.StoreConsensusParams(ctxB, exported.ConsensusParams)
 
 	fmt.Printf("comparing stores...\n")

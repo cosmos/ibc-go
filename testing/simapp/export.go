@@ -28,7 +28,7 @@ func (app *SimApp) ExportAppStateAndValidators(
 		app.prepForZeroHeightGenesis(ctx, jailAllowedAddrs)
 	}
 
-	genState, err := app.ModuleManager.ExportGenesis(ctx, app.appCodec)
+	genState, err := app.mm.ExportGenesis(ctx, app.appCodec)
 	if err != nil {
 		return servertypes.ExportedApp{}, err
 	}

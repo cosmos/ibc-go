@@ -649,7 +649,7 @@ func NewSimApp(
 	// By default it is composed of all the module from the module manager.
 	// Additionally, app module basics can be overwritten by passing them as argument.
 	app.BasicModuleManager = module.NewBasicManagerFromManager(
-		app.ModuleManager,
+		app.mm,
 		map[string]module.AppModuleBasic{
 			genutiltypes.ModuleName: genutil.NewAppModuleBasic(genutiltypes.DefaultMessageValidator),
 			govtypes.ModuleName: gov.NewAppModuleBasic(
@@ -666,7 +666,7 @@ func NewSimApp(
 	// CanWithdrawInvariant invariant.
 	// NOTE: staking module is required if HistoricalEntries param > 0
 	// NOTE: capability module's beginblocker must come before any modules using capabilities (e.g. IBC)
-	app.ModuleManager.SetOrderBeginBlockers(
+	app.mm.SetOrderBeginBlockers(
 		upgradetypes.ModuleName,
 		capabilitytypes.ModuleName,
 		minttypes.ModuleName,
@@ -682,7 +682,7 @@ func NewSimApp(
 		ibcfeetypes.ModuleName,
 		ibcmock.ModuleName,
 	)
-	app.ModuleManager.SetOrderEndBlockers(
+	app.mm.SetOrderEndBlockers(
 		crisistypes.ModuleName,
 		govtypes.ModuleName,
 		stakingtypes.ModuleName,
@@ -709,24 +709,24 @@ func NewSimApp(
 		icatypes.ModuleName, ibcfeetypes.ModuleName, ibcmock.ModuleName, feegrant.ModuleName, paramstypes.ModuleName, upgradetypes.ModuleName,
 		vestingtypes.ModuleName, group.ModuleName, consensusparamtypes.ModuleName, circuittypes.ModuleName,
 	}
-	app.ModuleManager.SetOrderInitGenesis(genesisModuleOrder...)
-	app.ModuleManager.SetOrderExportGenesis(genesisModuleOrder...)
+	app.mm.SetOrderInitGenesis(genesisModuleOrder...)
+	app.mm.SetOrderExportGenesis(genesisModuleOrder...)
 
 	// Uncomment if you want to set a custom migration order here.
-	// app.ModuleManager.SetOrderMigrations(custom order)
+	// app.mm.SetOrderMigrations(custom order)
 
 	app.mm.RegisterInvariants(app.CrisisKeeper)
 	app.configurator = module.NewConfigurator(app.appCodec, app.MsgServiceRouter(), app.GRPCQueryRouter())
-	err := app.ModuleManager.RegisterServices(app.configurator)
+	err := app.mm.RegisterServices(app.configurator)
 	if err != nil {
 		panic(err)
 	}
 
 	// RegisterUpgradeHandlers is used for registering any on-chain upgrades.
-	// Make sure it's called after `app.ModuleManager` and `app.configurator` are set.
+	// Make sure it's called after `app.mm` and `app.configurator` are set.
 	//	app.RegisterUpgradeHandlers()
 
-	autocliv1.RegisterQueryServer(app.GRPCQueryRouter(), runtimeservices.NewAutoCLIQueryService(app.ModuleManager.Modules))
+	autocliv1.RegisterQueryServer(app.GRPCQueryRouter(), runtimeservices.NewAutoCLIQueryService(app.mm.Modules))
 
 	reflectionSvc, err := runtimeservices.NewReflectionService()
 	if err != nil {
@@ -744,7 +744,7 @@ func NewSimApp(
 	overrideModules := map[string]module.AppModuleSimulation{
 		authtypes.ModuleName: auth.NewAppModule(app.appCodec, app.AccountKeeper, authsims.RandomGenesisAccounts, app.GetSubspace(authtypes.ModuleName)),
 	}
-	app.sm = module.NewSimulationManagerFromAppModules(app.ModuleManager.Modules, overrideModules)
+	app.sm = module.NewSimulationManagerFromAppModules(app.mm.Modules, overrideModules)
 
 	app.sm.RegisterStoreDecoders()
 
@@ -868,8 +868,8 @@ func (app *SimApp) InitChainer(ctx sdk.Context, req *abci.RequestInitChain) (*ab
 	if err := json.Unmarshal(req.AppStateBytes, &genesisState); err != nil {
 		panic(err)
 	}
-	app.UpgradeKeeper.SetModuleVersionMap(ctx, app.ModuleManager.GetVersionMap())
-	return app.ModuleManager.InitGenesis(ctx, app.appCodec, genesisState)
+	app.UpgradeKeeper.SetModuleVersionMap(ctx, app.mm.GetVersionMap())
+	return app.mm.InitGenesis(ctx, app.appCodec, genesisState)
 }
 
 // LoadHeight loads a particular height
@@ -928,7 +928,7 @@ func (app *SimApp) TxConfig() client.TxConfig {
 // AutoCliOpts returns the autocli options for the app.
 func (app *SimApp) AutoCliOpts() autocli.AppOptions {
 	modules := make(map[string]appmodule.AppModule, 0)
-	for _, m := range app.ModuleManager.Modules {
+	for _, m := range app.mm.Modules {
 		if moduleWithName, ok := m.(module.HasName); ok {
 			moduleName := moduleWithName.Name()
 			if appModule, ok := moduleWithName.(appmodule.AppModule); ok {

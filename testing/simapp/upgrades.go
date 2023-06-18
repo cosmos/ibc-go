@@ -21,7 +21,7 @@ func (app SimApp) RegisterUpgradeHandlers() {
 	app.UpgradeKeeper.SetUpgradeHandler(
 		UpgradeName,
 		func(ctx context.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
-			return app.ModuleManager.RunMigrations(ctx, app.Configurator(), fromVM)
+			return app.mm.RunMigrations(ctx, app.Configurator(), fromVM)
 		},
 	)
 
