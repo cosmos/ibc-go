@@ -19,7 +19,7 @@ const (
 )
 
 // tests acknowledgement.ValidateBasic and acknowledgement.Acknowledgement
-func (suite TypesTestSuite) TestAcknowledgement() { //nolint:govet // this is a test, we are okay with copying locks
+func (suite TypesTestSuite) TestAcknowledgement() { //nolint:govet,copylocks // this is a test, we are okay with copying locks
 	testCases := []struct {
 		name         string
 		ack          types.Acknowledgement
@@ -106,30 +106,32 @@ func (suite *TypesTestSuite) TestABCICodeDeterminism() {
 	// different ABCI error code used
 	errDifferentABCICode := ibcerrors.ErrNotFound
 
-	deliverTx := sdkerrors.ResponseDeliverTxWithEvents(err, gasUsed, gasWanted, []abcitypes.Event{}, false)
-	responses := tmprotostate.ABCIResponses{
-		DeliverTxs: []*abcitypes.ResponseDeliverTx{
-			&deliverTx,
+	deliverTx := sdkerrors.ResponseExecTxResultWithEvents(err, gasUsed, gasWanted, []abcitypes.Event{}, false)
+	responses := tmprotostate.LegacyABCIResponses{
+		DeliverTxs: []*abcitypes.ExecTxResult{
+			deliverTx,
 		},
 	}
 
-	deliverTxSameABCICode := sdkerrors.ResponseDeliverTxWithEvents(errSameABCICode, gasUsed, gasWanted, []abcitypes.Event{}, false)
-	responsesSameABCICode := tmprotostate.ABCIResponses{
-		DeliverTxs: []*abcitypes.ResponseDeliverTx{
-			&deliverTxSameABCICode,
+	deliverTxSameABCICode := sdkerrors.ResponseExecTxResultWithEvents(errSameABCICode, gasUsed, gasWanted, []abcitypes.Event{}, false)
+	responsesSameABCICode := tmprotostate.LegacyABCIResponses{
+		DeliverTxs: []*abcitypes.ExecTxResult{
+			deliverTxSameABCICode,
 		},
 	}
 
-	deliverTxDifferentABCICode := sdkerrors.ResponseDeliverTxWithEvents(errDifferentABCICode, gasUsed, gasWanted, []abcitypes.Event{}, false)
-	responsesDifferentABCICode := tmprotostate.ABCIResponses{
-		DeliverTxs: []*abcitypes.ResponseDeliverTx{
-			&deliverTxDifferentABCICode,
+	deliverTxDifferentABCICode := sdkerrors.ResponseExecTxResultWithEvents(errDifferentABCICode, gasUsed, gasWanted, []abcitypes.Event{}, false)
+	responsesDifferentABCICode := tmprotostate.ABCIResponsesInfo{
+		LegacyAbciResponses: &tmprotostate.LegacyABCIResponses{
+			DeliverTxs: []*abcitypes.ExecTxResult{
+				deliverTxDifferentABCICode,
+			},
 		},
 	}
 
-	hash := tmstate.ABCIResponsesResultsHash(&responses)
-	hashSameABCICode := tmstate.ABCIResponsesResultsHash(&responsesSameABCICode)
-	hashDifferentABCICode := tmstate.ABCIResponsesResultsHash(&responsesDifferentABCICode)
+	hash := tmstate.TxResultsHash(responses.DeliverTxs)
+	hashSameABCICode := tmstate.TxResultsHash(responsesSameABCICode.DeliverTxs)
+	hashDifferentABCICode := tmstate.TxResultsHash(responsesDifferentABCICode.LegacyAbciResponses.DeliverTxs)
 
 	suite.Require().Equal(hash, hashSameABCICode)
 	suite.Require().NotEqual(hash, hashDifferentABCICode)

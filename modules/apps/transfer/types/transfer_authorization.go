@@ -1,10 +1,13 @@
 package types
 
 import (
+	"context"
 	"math/big"
 
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
+	"github.com/cosmos/gogoproto/proto"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/authz"
 
@@ -31,7 +34,9 @@ func (a TransferAuthorization) MsgTypeURL() string {
 }
 
 // Accept implements Authorization.Accept.
-func (a TransferAuthorization) Accept(ctx sdk.Context, msg sdk.Msg) (authz.AcceptResponse, error) {
+func (a TransferAuthorization) Accept(ctx context.Context, msg proto.Message) (authz.AcceptResponse, error) {
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+
 	msgTransfer, ok := msg.(*MsgTransfer)
 	if !ok {
 		return authz.AcceptResponse{}, errorsmod.Wrap(ibcerrors.ErrInvalidType, "type mismatch")
@@ -42,7 +47,7 @@ func (a TransferAuthorization) Accept(ctx sdk.Context, msg sdk.Msg) (authz.Accep
 			continue
 		}
 
-		if !isAllowedAddress(ctx, msgTransfer.Receiver, allocation.AllowList) {
+		if !isAllowedAddress(sdkCtx, msgTransfer.Receiver, allocation.AllowList) {
 			return authz.AcceptResponse{}, errorsmod.Wrap(ibcerrors.ErrInvalidAddress, "not allowed receiver address for transfer")
 		}
 

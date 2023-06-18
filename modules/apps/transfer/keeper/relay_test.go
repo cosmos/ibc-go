@@ -478,7 +478,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacketSetsTotalEscrowAmountForSourceIBCT
 	coin := sdk.NewCoin(denomTrace.IBCDenom(), amount)
 	suite.Require().NoError(
 		banktestutil.FundAccount(
-			suite.chainA.GetContext(),
+			suite.chainB.GetContext(),
 			suite.chainB.GetSimApp().BankKeeper,
 			escrowAddress,
 			sdk.NewCoins(coin),
@@ -654,7 +654,7 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacketSetsTotalEscrowAmountFo
 	coin := sdk.NewCoin(denomTrace.IBCDenom(), amount)
 	suite.Require().NoError(
 		banktestutil.FundAccount(
-			suite.chainA.GetContext(),
+			suite.chainB.GetContext(),
 			suite.chainB.GetSimApp().BankKeeper,
 			escrowAddress,
 			sdk.NewCoins(coin),

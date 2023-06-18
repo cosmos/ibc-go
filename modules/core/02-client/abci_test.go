@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	upgradetypes "cosmossdk.io/x/upgrade/types"
-	abci "github.com/cometbft/cometbft/abci/types"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
@@ -66,9 +65,6 @@ func (suite *ClientTestSuite) TestBeginBlockerConsensusState() {
 
 	err := suite.chainA.GetSimApp().UpgradeKeeper.SetUpgradedClient(newCtx, plan.Height, []byte("client state"))
 	suite.Require().NoError(err)
-
-	req := abci.RequestBeginBlock{Header: newCtx.BlockHeader()}
-	suite.chainA.App.BeginBlock(req)
 
 	// plan Height is at ctx.BlockHeight+1
 	consState, found := suite.chainA.GetSimApp().UpgradeKeeper.GetUpgradedConsensusState(newCtx, plan.Height)
