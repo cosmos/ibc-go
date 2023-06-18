@@ -56,7 +56,7 @@ app.UpgradeKeeper.SetUpgradeHandler("v3",
     
     ...
 
-    return app.mm.RunMigrations(ctx, app.configurator, fromVM)
+    return app.ModuleManager.RunMigrations(ctx, app.configurator, fromVM)
   })
 ```
 

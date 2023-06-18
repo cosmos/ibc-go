@@ -894,7 +894,7 @@ func (app *SimApp) ModuleAccountAddrs() map[string]bool {
 // GetModuleManager returns the app module manager
 // NOTE: used for testing purposes
 func (app *SimApp) GetModuleManager() *module.Manager {
-	return app.mm
+	return app.ModuleManager
 }
 
 // LegacyAmino returns SimApp's amino codec.
@@ -1097,7 +1097,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 func (app *SimApp) setupUpgradeHandlers() {
 	app.UpgradeKeeper.SetUpgradeHandler(
 		upgrades.V5,
-		upgrades.CreateDefaultUpgradeHandler(app.mm, app.configurator),
+		upgrades.CreateDefaultUpgradeHandler(app.ModuleManager, app.configurator),
 	)
 
 	// NOTE: The moduleName arg of v6.CreateUpgradeHandler refers to the auth module ScopedKeeper name to which the channel capability should be migrated from.
@@ -1106,7 +1106,7 @@ func (app *SimApp) setupUpgradeHandlers() {
 	app.UpgradeKeeper.SetUpgradeHandler(
 		upgrades.V6,
 		upgrades.CreateV6UpgradeHandler(
-			app.mm,
+			app.ModuleManager,
 			app.configurator,
 			app.appCodec,
 			app.keys[capabilitytypes.ModuleName],
@@ -1118,7 +1118,7 @@ func (app *SimApp) setupUpgradeHandlers() {
 	app.UpgradeKeeper.SetUpgradeHandler(
 		upgrades.V7,
 		upgrades.CreateV7UpgradeHandler(
-			app.mm,
+			app.ModuleManager,
 			app.configurator,
 			app.appCodec,
 			app.IBCKeeper.ClientKeeper,
@@ -1129,7 +1129,7 @@ func (app *SimApp) setupUpgradeHandlers() {
 
 	app.UpgradeKeeper.SetUpgradeHandler(
 		upgrades.V7_1,
-		upgrades.CreateV7LocalhostUpgradeHandler(app.mm, app.configurator, app.IBCKeeper.ClientKeeper),
+		upgrades.CreateV7LocalhostUpgradeHandler(app.ModuleManager, app.configurator, app.IBCKeeper.ClientKeeper),
 	)
 }
 

@@ -36,7 +36,7 @@ app.UpgradeKeeper.SetUpgradeHandler(
       return nil, err
     }
 
-    return app.mm.RunMigrations(ctx, app.configurator, fromVM)
+    return app.ModuleManager.RunMigrations(ctx, app.configurator, fromVM)
   },
 )
 ```

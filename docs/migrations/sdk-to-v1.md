@@ -60,7 +60,7 @@ app.UpgradeKeeper.SetUpgradeHandler("my-upgrade-proposal",
       "ibc":          1,
       ... 
     }   
-    return app.mm.RunMigrations(ctx, app.configurator, fromVM)
+    return app.ModuleManager.RunMigrations(ctx, app.configurator, fromVM)
   })      
 
 ```

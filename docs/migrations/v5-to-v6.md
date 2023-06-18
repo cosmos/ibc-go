@@ -72,7 +72,7 @@ func CreateUpgradeHandler(
 app.UpgradeKeeper.SetUpgradeHandler(
   v6.UpgradeName,
   v6.CreateUpgradeHandler(
-    app.mm, 
+    app.ModuleManager, 
     app.configurator, 
     app.appCodec, 
     app.keys[capabilitytypes.ModuleName], 
