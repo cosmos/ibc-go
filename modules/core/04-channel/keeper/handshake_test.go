@@ -23,7 +23,7 @@ type testCase = struct {
 // to enter into the appropriate state and then calls ChanOpenInit directly. The channel is
 // being created on chainA. The port capability must be created on chainA before ChanOpenInit
 // can succeed.
-func (suite *KeeperTestSuite) TestChanOpenInit() {
+func (s *KeeperTestSuite) TestChanOpenInit() {
 	var (
 		path                 *ibctesting.Path
 		features             []string
@@ -160,7 +160,7 @@ func (suite *KeeperTestSuite) TestChanOpenInit() {
 // to enter into the appropriate state and then calls ChanOpenTry directly. The channel
 // is being created on chainB. The port capability must be created on chainB before
 // ChanOpenTry can succeed.
-func (suite *KeeperTestSuite) TestChanOpenTry() {
+func (s *KeeperTestSuite) TestChanOpenTry() {
 	var (
 		path       *ibctesting.Path
 		portCap    *capabilitytypes.Capability
@@ -304,7 +304,7 @@ func (suite *KeeperTestSuite) TestChanOpenTry() {
 // TestChanOpenAck tests the OpenAck handshake call for channels. It uses message passing
 // to enter into the appropriate state and then calls ChanOpenAck directly. The handshake
 // call is occurring on chainA.
-func (suite *KeeperTestSuite) TestChanOpenAck() {
+func (s *KeeperTestSuite) TestChanOpenAck() {
 	var (
 		path                  *ibctesting.Path
 		counterpartyChannelID string
@@ -476,7 +476,7 @@ func (suite *KeeperTestSuite) TestChanOpenAck() {
 // TestChanOpenConfirm tests the OpenAck handshake call for channels. It uses message passing
 // to enter into the appropriate state and then calls ChanOpenConfirm directly. The handshake
 // call is occurring on chainB.
-func (suite *KeeperTestSuite) TestChanOpenConfirm() {
+func (s *KeeperTestSuite) TestChanOpenConfirm() {
 	var (
 		path       *ibctesting.Path
 		channelCap *capabilitytypes.Capability
@@ -615,7 +615,7 @@ func (suite *KeeperTestSuite) TestChanOpenConfirm() {
 
 // TestChanCloseInit tests the initial closing of a handshake on chainA by calling
 // ChanCloseInit. Both chains will use message passing to setup OPEN channels.
-func (suite *KeeperTestSuite) TestChanCloseInit() {
+func (s *KeeperTestSuite) TestChanCloseInit() {
 	var (
 		path                 *ibctesting.Path
 		channelCap           *capabilitytypes.Capability
@@ -717,7 +717,7 @@ func (suite *KeeperTestSuite) TestChanCloseInit() {
 // TestChanCloseConfirm tests the confirming closing channel ends by calling ChanCloseConfirm
 // on chainB. Both chains will use message passing to setup OPEN channels. ChanCloseInit is
 // bypassed on chainA by setting the channel state in the ChannelKeeper.
-func (suite *KeeperTestSuite) TestChanCloseConfirm() {
+func (s *KeeperTestSuite) TestChanCloseConfirm() {
 	var (
 		path       *ibctesting.Path
 		channelCap *capabilitytypes.Capability

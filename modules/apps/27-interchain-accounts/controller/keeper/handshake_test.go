@@ -9,7 +9,7 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
-func (suite *KeeperTestSuite) TestOnChanOpenInit() {
+func (s *KeeperTestSuite) TestOnChanOpenInit() {
 	var (
 		channel  *channeltypes.Channel
 		path     *ibctesting.Path
@@ -273,7 +273,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestOnChanOpenAck() {
+func (s *KeeperTestSuite) TestOnChanOpenAck() {
 	var (
 		path     *ibctesting.Path
 		metadata icatypes.Metadata
@@ -430,7 +430,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenAck() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestOnChanCloseConfirm() {
+func (s *KeeperTestSuite) TestOnChanCloseConfirm() {
 	var path *ibctesting.Path
 
 	testCases := []struct {

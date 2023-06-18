@@ -15,7 +15,7 @@ import (
 	"github.com/cosmos/ibc-go/modules/capability/types"
 )
 
-func (suite *CapabilityTestSuite) TestGenesis() {
+func (s *CapabilityTestSuite) TestGenesis() {
 	sk1 := suite.keeper.ScopeToModule(banktypes.ModuleName)
 	sk2 := suite.keeper.ScopeToModule(stakingtypes.ModuleName)
 

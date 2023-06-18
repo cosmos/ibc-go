@@ -9,7 +9,7 @@ import (
 	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 )
 
-func (suite *KeeperTestSuite) TestGenesis() {
+func (s *KeeperTestSuite) TestGenesis() {
 	getTrace := func(index uint) string {
 		return fmt.Sprintf("transfer/channelToChain%d", index)
 	}

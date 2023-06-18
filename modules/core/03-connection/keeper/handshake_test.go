@@ -13,7 +13,7 @@ import (
 
 // TestConnOpenInit - chainA initializes (INIT state) a connection with
 // chainB which is yet UNINITIALIZED
-func (suite *KeeperTestSuite) TestConnOpenInit() {
+func (s *KeeperTestSuite) TestConnOpenInit() {
 	var (
 		path                 *ibctesting.Path
 		version              *types.Version
@@ -92,7 +92,7 @@ func (suite *KeeperTestSuite) TestConnOpenInit() {
 
 // TestConnOpenTry - chainB calls ConnOpenTry to verify the state of
 // connection on chainA is INIT
-func (suite *KeeperTestSuite) TestConnOpenTry() {
+func (s *KeeperTestSuite) TestConnOpenTry() {
 	var (
 		path               *ibctesting.Path
 		delayPeriod        uint64
@@ -272,7 +272,7 @@ func (suite *KeeperTestSuite) TestConnOpenTry() {
 
 // TestConnOpenAck - Chain A (ID #1) calls TestConnOpenAck to acknowledge (ACK state)
 // the initialization (TRYINIT) of the connection on  Chain B (ID #2).
-func (suite *KeeperTestSuite) TestConnOpenAck() {
+func (s *KeeperTestSuite) TestConnOpenAck() {
 	var (
 		path               *ibctesting.Path
 		consensusHeight    exported.Height
@@ -521,7 +521,7 @@ func (suite *KeeperTestSuite) TestConnOpenAck() {
 
 // TestConnOpenConfirm - chainB calls ConnOpenConfirm to confirm that
 // chainA state is now OPEN.
-func (suite *KeeperTestSuite) TestConnOpenConfirm() {
+func (s *KeeperTestSuite) TestConnOpenConfirm() {
 	var path *ibctesting.Path
 	testCases := []struct {
 		msg      string

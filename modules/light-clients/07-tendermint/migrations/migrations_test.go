@@ -24,7 +24,7 @@ type MigrationsTestSuite struct {
 	chainB *ibctesting.TestChain
 }
 
-func (suite *MigrationsTestSuite) SetupTest() {
+func (s *MigrationsTestSuite) SetupTest() {
 	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2)
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
 	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
@@ -35,7 +35,7 @@ func TestTendermintTestSuite(t *testing.T) {
 }
 
 // test pruning of multiple expired tendermint consensus states
-func (suite *MigrationsTestSuite) TestPruneExpiredConsensusStates() {
+func (s *MigrationsTestSuite) TestPruneExpiredConsensusStates() {
 	// create multiple tendermint clients and a solo machine client
 	// the solo machine is used to verify this pruning function only modifies
 	// the tendermint store.

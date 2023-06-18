@@ -14,7 +14,7 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
-func (suite *MigrationsV7TestSuite) TestMigrateGenesisSolomachine() {
+func (s *MigrationsV7TestSuite) TestMigrateGenesisSolomachine() {
 	// create tendermint clients
 	for i := 0; i < 3; i++ {
 		path := ibctesting.NewPath(suite.chainA, suite.chainB)

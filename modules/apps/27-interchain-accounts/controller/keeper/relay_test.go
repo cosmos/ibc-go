@@ -13,7 +13,7 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
-func (suite *KeeperTestSuite) TestSendTx() {
+func (s *KeeperTestSuite) TestSendTx() {
 	var (
 		path             *ibctesting.Path
 		packetData       icatypes.InterchainAccountPacketData
@@ -165,7 +165,7 @@ func (suite *KeeperTestSuite) TestSendTx() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
+func (s *KeeperTestSuite) TestOnTimeoutPacket() {
 	var path *ibctesting.Path
 
 	testCases := []struct {

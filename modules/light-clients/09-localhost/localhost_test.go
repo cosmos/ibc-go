@@ -15,7 +15,7 @@ type LocalhostTestSuite struct {
 	chain       *ibctesting.TestChain
 }
 
-func (suite *LocalhostTestSuite) SetupTest() {
+func (s *LocalhostTestSuite) SetupTest() {
 	suite.coordinator = *ibctesting.NewCoordinator(suite.T(), 1)
 	suite.chain = suite.coordinator.GetChain(ibctesting.GetChainID(1))
 }

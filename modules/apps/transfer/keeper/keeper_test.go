@@ -26,7 +26,7 @@ type KeeperTestSuite struct {
 	chainC *ibctesting.TestChain
 }
 
-func (suite *KeeperTestSuite) SetupTest() {
+func (s *KeeperTestSuite) SetupTest() {
 	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 3)
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
 	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
@@ -50,7 +50,7 @@ func TestKeeperTestSuite(t *testing.T) {
 	suite.Run(t, new(KeeperTestSuite))
 }
 
-func (suite *KeeperTestSuite) TestSetGetTotalEscrowForDenom() {
+func (s *KeeperTestSuite) TestSetGetTotalEscrowForDenom() {
 	const denom = "atom"
 	var expAmount sdkmath.Int
 
@@ -121,7 +121,7 @@ func (suite *KeeperTestSuite) TestSetGetTotalEscrowForDenom() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestGetAllDenomEscrows() {
+func (s *KeeperTestSuite) TestGetAllDenomEscrows() {
 	var (
 		store           storetypes.KVStore
 		cdc             codec.Codec
@@ -227,7 +227,7 @@ func (suite *KeeperTestSuite) TestGetAllDenomEscrows() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestParams() {
+func (s *KeeperTestSuite) TestParams() {
 	testCases := []struct {
 		name    string
 		input   types.Params
@@ -260,7 +260,7 @@ func (suite *KeeperTestSuite) TestParams() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestUnsetParams() {
+func (s *KeeperTestSuite) TestUnsetParams() {
 	suite.SetupTest()
 
 	ctx := suite.chainA.GetContext()

@@ -34,14 +34,14 @@ func TestMigrationsV7TestSuite(t *testing.T) {
 }
 
 // SetupTest creates a coordinator with 2 test chains.
-func (suite *MigrationsV7TestSuite) SetupTest() {
+func (s *MigrationsV7TestSuite) SetupTest() {
 	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2)
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
 	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
 }
 
 // NOTE: this test is mainly copied from 02-client/migrations/v7/genesis_test.go
-func (suite *MigrationsV7TestSuite) TestMigrateGenesisSolomachine() {
+func (s *MigrationsV7TestSuite) TestMigrateGenesisSolomachine() {
 	// create tendermint clients
 	for i := 0; i < 3; i++ {
 		path := ibctesting.NewPath(suite.chainA, suite.chainB)

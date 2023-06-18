@@ -22,7 +22,7 @@ type KeeperTestSuite struct {
 	chainB *ibctesting.TestChain
 }
 
-func (suite *KeeperTestSuite) SetupTest() {
+func (s *KeeperTestSuite) SetupTest() {
 	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2)
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
 	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
@@ -32,7 +32,7 @@ func TestKeeperTestSuite(t *testing.T) {
 	suite.Run(t, new(KeeperTestSuite))
 }
 
-func (suite *KeeperTestSuite) TestSetAndGetConnection() {
+func (s *KeeperTestSuite) TestSetAndGetConnection() {
 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
 	suite.coordinator.SetupClients(path)
 	firstConnection := "connection-0"
@@ -46,7 +46,7 @@ func (suite *KeeperTestSuite) TestSetAndGetConnection() {
 	suite.Require().True(existed)
 }
 
-func (suite *KeeperTestSuite) TestSetAndGetClientConnectionPaths() {
+func (s *KeeperTestSuite) TestSetAndGetClientConnectionPaths() {
 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
 	suite.coordinator.SetupClients(path)
 
@@ -116,7 +116,7 @@ func (suite KeeperTestSuite) TestGetAllClientConnectionPaths() { //nolint:govet 
 
 // TestGetTimestampAtHeight verifies if the clients on each chain return the
 // correct timestamp for the other chain.
-func (suite *KeeperTestSuite) TestGetTimestampAtHeight() {
+func (s *KeeperTestSuite) TestGetTimestampAtHeight() {
 	var (
 		connection types.ConnectionEnd
 		height     exported.Height
@@ -162,7 +162,7 @@ func (suite *KeeperTestSuite) TestGetTimestampAtHeight() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestLocalhostConnectionEndCreation() {
+func (s *KeeperTestSuite) TestLocalhostConnectionEndCreation() {
 	ctx := suite.chainA.GetContext()
 	connectionKeeper := suite.chainA.App.GetIBCKeeper().ConnectionKeeper
 	connectionKeeper.CreateSentinelLocalhostConnection(ctx)
@@ -178,7 +178,7 @@ func (suite *KeeperTestSuite) TestLocalhostConnectionEndCreation() {
 }
 
 // TestDefaultSetParams tests the default params set are what is expected
-func (suite *KeeperTestSuite) TestDefaultSetParams() {
+func (s *KeeperTestSuite) TestDefaultSetParams() {
 	expParams := types.DefaultParams()
 
 	params := suite.chainA.App.GetIBCKeeper().ConnectionKeeper.GetParams(suite.chainA.GetContext())
@@ -186,7 +186,7 @@ func (suite *KeeperTestSuite) TestDefaultSetParams() {
 }
 
 // TestParams tests that param setting and retrieval works properly
-func (suite *KeeperTestSuite) TestSetAndGetParams() {
+func (s *KeeperTestSuite) TestSetAndGetParams() {
 	testCases := []struct {
 		name    string
 		input   types.Params
@@ -218,7 +218,7 @@ func (suite *KeeperTestSuite) TestSetAndGetParams() {
 }
 
 // TestUnsetParams tests that trying to get params that are not set panics.
-func (suite *KeeperTestSuite) TestUnsetParams() {
+func (s *KeeperTestSuite) TestUnsetParams() {
 	suite.SetupTest()
 	ctx := suite.chainA.GetContext()
 	store := ctx.KVStore(suite.chainA.GetSimApp().GetKey(exported.StoreKey))

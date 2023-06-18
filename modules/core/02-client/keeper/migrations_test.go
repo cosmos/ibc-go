@@ -7,7 +7,7 @@ import (
 )
 
 // TestMigrateParams tests the migration for the client params
-func (suite *KeeperTestSuite) TestMigrateParams() {
+func (s *KeeperTestSuite) TestMigrateParams() {
 	testCases := []struct {
 		name           string
 		malleate       func()

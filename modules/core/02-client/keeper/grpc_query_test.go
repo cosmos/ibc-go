@@ -13,7 +13,7 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
-func (suite *KeeperTestSuite) TestQueryClientState() {
+func (s *KeeperTestSuite) TestQueryClientState() {
 	var (
 		req            *types.QueryClientStateRequest
 		expClientState *codectypes.Any
@@ -88,7 +88,7 @@ func (suite *KeeperTestSuite) TestQueryClientState() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestQueryClientStates() {
+func (s *KeeperTestSuite) TestQueryClientStates() {
 	var (
 		req             *types.QueryClientStatesRequest
 		expClientStates = types.IdentifiedClientStates{}
@@ -178,7 +178,7 @@ func (suite *KeeperTestSuite) TestQueryClientStates() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestQueryConsensusState() {
+func (s *KeeperTestSuite) TestQueryConsensusState() {
 	var (
 		req               *types.QueryConsensusStateRequest
 		expConsensusState *codectypes.Any
@@ -292,7 +292,7 @@ func (suite *KeeperTestSuite) TestQueryConsensusState() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestQueryConsensusStates() {
+func (s *KeeperTestSuite) TestQueryConsensusStates() {
 	var (
 		req                *types.QueryConsensusStatesRequest
 		expConsensusStates []types.ConsensusStateWithHeight
@@ -395,7 +395,7 @@ func (suite *KeeperTestSuite) TestQueryConsensusStates() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestQueryConsensusStateHeights() {
+func (s *KeeperTestSuite) TestQueryConsensusStateHeights() {
 	var (
 		req                      *types.QueryConsensusStateHeightsRequest
 		expConsensusStateHeights []types.Height
@@ -483,7 +483,7 @@ func (suite *KeeperTestSuite) TestQueryConsensusStateHeights() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestQueryClientStatus() {
+func (s *KeeperTestSuite) TestQueryClientStatus() {
 	var req *types.QueryClientStatusRequest
 
 	testCases := []struct {
@@ -580,7 +580,7 @@ func (suite *KeeperTestSuite) TestQueryClientStatus() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestQueryUpgradedConsensusStates() {
+func (s *KeeperTestSuite) TestQueryUpgradedConsensusStates() {
 	var (
 		req               *types.QueryUpgradedConsensusStateRequest
 		expConsensusState *codectypes.Any
@@ -640,7 +640,7 @@ func (suite *KeeperTestSuite) TestQueryUpgradedConsensusStates() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestQueryClientParams() {
+func (s *KeeperTestSuite) TestQueryClientParams() {
 	ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
 	expParams := types.DefaultParams()
 	res, _ := suite.chainA.QueryServer.ClientParams(ctx, &types.QueryClientParamsRequest{})

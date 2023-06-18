@@ -10,7 +10,7 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
-func (suite *KeeperTestSuite) TestAssertChannelCapabilityMigrations() {
+func (s *KeeperTestSuite) TestAssertChannelCapabilityMigrations() {
 	testCases := []struct {
 		name     string
 		malleate func()
@@ -75,7 +75,7 @@ func (suite *KeeperTestSuite) TestAssertChannelCapabilityMigrations() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestMigratorMigrateParams() {
+func (s *KeeperTestSuite) TestMigratorMigrateParams() {
 	testCases := []struct {
 		msg            string
 		malleate       func()

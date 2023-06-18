@@ -10,7 +10,7 @@ import (
 	"github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
 )
 
-func (suite *MerkleTestSuite) TestConvertProofs() {
+func (s *MerkleTestSuite) TestConvertProofs() {
 	suite.iavlStore.Set([]byte("MYKEY"), []byte("MYVALUE"))
 	cid := suite.store.Commit()
 

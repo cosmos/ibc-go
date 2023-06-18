@@ -78,4 +78,5 @@ linters-settings:
         arguments:
           - 'fmt.Printf'
           - 'fmt.Print'
+          - 'fmt.Println'
           - 'myFunction'

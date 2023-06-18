@@ -12,7 +12,7 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
-func (suite *KeeperTestSuite) TestQueryConnection() {
+func (s *KeeperTestSuite) TestQueryConnection() {
 	var (
 		req           *types.QueryConnectionRequest
 		expConnection types.ConnectionEnd
@@ -86,7 +86,7 @@ func (suite *KeeperTestSuite) TestQueryConnection() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestQueryConnections() {
+func (s *KeeperTestSuite) TestQueryConnections() {
 	suite.chainA.App.GetIBCKeeper().ConnectionKeeper.CreateSentinelLocalhostConnection(suite.chainA.GetContext())
 	localhostConn, found := suite.chainA.App.GetIBCKeeper().ConnectionKeeper.GetConnection(suite.chainA.GetContext(), exported.LocalhostConnectionID)
 	suite.Require().True(found)
@@ -176,7 +176,7 @@ func (suite *KeeperTestSuite) TestQueryConnections() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestQueryClientConnections() {
+func (s *KeeperTestSuite) TestQueryClientConnections() {
 	var (
 		req      *types.QueryClientConnectionsRequest
 		expPaths []string
@@ -254,7 +254,7 @@ func (suite *KeeperTestSuite) TestQueryClientConnections() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestQueryConnectionClientState() {
+func (s *KeeperTestSuite) TestQueryConnectionClientState() {
 	var (
 		req                      *types.QueryConnectionClientStateRequest
 		expIdentifiedClientState clienttypes.IdentifiedClientState
@@ -345,7 +345,7 @@ func (suite *KeeperTestSuite) TestQueryConnectionClientState() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestQueryConnectionConsensusState() {
+func (s *KeeperTestSuite) TestQueryConnectionConsensusState() {
 	var (
 		req               *types.QueryConnectionConsensusStateRequest
 		expConsensusState exported.ConsensusState
@@ -447,7 +447,7 @@ func (suite *KeeperTestSuite) TestQueryConnectionConsensusState() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestQueryConnectionParams() {
+func (s *KeeperTestSuite) TestQueryConnectionParams() {
 	ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
 	expParams := types.DefaultParams()
 	res, _ := suite.chainA.QueryServer.ConnectionParams(ctx, &types.QueryConnectionParamsRequest{})

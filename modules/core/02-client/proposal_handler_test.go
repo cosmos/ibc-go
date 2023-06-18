@@ -12,7 +12,7 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
-func (suite *ClientTestSuite) TestNewClientUpdateProposalHandler() {
+func (s *ClientTestSuite) TestNewClientUpdateProposalHandler() {
 	var (
 		content govtypes.Content
 		err     error

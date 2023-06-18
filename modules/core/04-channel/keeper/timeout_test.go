@@ -18,7 +18,7 @@ import (
 // TestTimeoutPacket test the TimeoutPacket call on chainA by ensuring the timeout has passed
 // on chainB, but that no ack has been written yet. Test cases expected to reach proof
 // verification must specify which proof to use using the ordered bool.
-func (suite *KeeperTestSuite) TestTimeoutPacket() {
+func (s *KeeperTestSuite) TestTimeoutPacket() {
 	var (
 		path        *ibctesting.Path
 		packet      types.Packet
@@ -248,7 +248,7 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 
 // TestTimeoutExectued verifies that packet commitments are deleted on chainA after the
 // channel capabilities are verified.
-func (suite *KeeperTestSuite) TestTimeoutExecuted() {
+func (s *KeeperTestSuite) TestTimeoutExecuted() {
 	var (
 		path    *ibctesting.Path
 		packet  types.Packet
@@ -312,7 +312,7 @@ func (suite *KeeperTestSuite) TestTimeoutExecuted() {
 
 // TestTimeoutOnClose tests the call TimeoutOnClose on chainA by closing the corresponding
 // channel on chainB after the packet commitment has been created.
-func (suite *KeeperTestSuite) TestTimeoutOnClose() {
+func (s *KeeperTestSuite) TestTimeoutOnClose() {
 	var (
 		path        *ibctesting.Path
 		packet      types.Packet

@@ -27,7 +27,7 @@ type MigrationsV7TestSuite struct {
 	chainB *ibctesting.TestChain
 }
 
-func (suite *MigrationsV7TestSuite) SetupTest() {
+func (s *MigrationsV7TestSuite) SetupTest() {
 	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2)
 
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
@@ -41,7 +41,7 @@ func TestIBCTestSuite(t *testing.T) {
 // create multiple solo machine clients, tendermint and localhost clients
 // ensure that solo machine clients are migrated and their consensus states are removed
 // ensure the localhost is deleted entirely.
-func (suite *MigrationsV7TestSuite) TestMigrateStore() {
+func (s *MigrationsV7TestSuite) TestMigrateStore() {
 	paths := []*ibctesting.Path{
 		ibctesting.NewPath(suite.chainA, suite.chainB),
 		ibctesting.NewPath(suite.chainA, suite.chainB),
@@ -67,7 +67,7 @@ func (suite *MigrationsV7TestSuite) TestMigrateStore() {
 	suite.assertNoLocalhostClients()
 }
 
-func (suite *MigrationsV7TestSuite) TestMigrateStoreNoTendermintClients() {
+func (s *MigrationsV7TestSuite) TestMigrateStoreNoTendermintClients() {
 	solomachines := []*ibctesting.Solomachine{
 		ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, ibctesting.DefaultSolomachineClientID, "testing", 1),
 		ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "06-solomachine-1", "testing", 4),
@@ -83,7 +83,7 @@ func (suite *MigrationsV7TestSuite) TestMigrateStoreNoTendermintClients() {
 	suite.assertNoLocalhostClients()
 }
 
-func (suite *MigrationsV7TestSuite) createSolomachineClients(solomachines []*ibctesting.Solomachine) {
+func (s *MigrationsV7TestSuite) createSolomachineClients(solomachines []*ibctesting.Solomachine) {
 	// manually generate old protobuf definitions and set in store
 	// NOTE: we cannot use 'CreateClient' and 'UpdateClient' functions since we are
 	// using client states and consensus states which do not implement the exported.ClientState
@@ -122,7 +122,7 @@ func (suite *MigrationsV7TestSuite) createSolomachineClients(solomachines []*ibc
 	}
 }
 
-func (suite *MigrationsV7TestSuite) assertSolomachineClients(solomachines []*ibctesting.Solomachine) {
+func (s *MigrationsV7TestSuite) assertSolomachineClients(solomachines []*ibctesting.Solomachine) {
 	// verify client state has been migrated
 	for _, sm := range solomachines {
 		clientState, ok := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.chainA.GetContext(), sm.ClientID)
@@ -140,7 +140,7 @@ func (suite *MigrationsV7TestSuite) assertSolomachineClients(solomachines []*ibc
 }
 
 // createLocalhostClients clients creates multiple localhost clients and multiple consensus states for each
-func (suite *MigrationsV7TestSuite) createLocalhostClients() {
+func (s *MigrationsV7TestSuite) createLocalhostClients() {
 	for numClients := uint64(0); numClients < numCreations; numClients++ {
 		clientID := v7.Localhost + "-" + strconv.FormatUint(numClients, 10)
 		clientStore := suite.chainA.GetSimApp().IBCKeeper.ClientKeeper.ClientStore(suite.chainA.GetContext(), clientID)
@@ -154,7 +154,7 @@ func (suite *MigrationsV7TestSuite) createLocalhostClients() {
 }
 
 // assertLocalhostClients asserts that all localhost information has been deleted
-func (suite *MigrationsV7TestSuite) assertNoLocalhostClients() {
+func (s *MigrationsV7TestSuite) assertNoLocalhostClients() {
 	for numClients := uint64(0); numClients < numCreations; numClients++ {
 		clientID := v7.Localhost + "-" + strconv.FormatUint(numClients, 10)
 		clientStore := suite.chainA.GetSimApp().IBCKeeper.ClientKeeper.ClientStore(suite.chainA.GetContext(), clientID)

@@ -18,7 +18,7 @@ var defaultTimeoutHeight = clienttypes.NewHeight(1, 100000)
 
 // TestVerifyClientState verifies a client state of chainA
 // stored on path.EndpointB (which is on chainB)
-func (suite *KeeperTestSuite) TestVerifyClientState() {
+func (s *KeeperTestSuite) TestVerifyClientState() {
 	var (
 		path       *ibctesting.Path
 		heightDiff uint64
@@ -83,7 +83,7 @@ func (suite *KeeperTestSuite) TestVerifyClientState() {
 // TestVerifyClientConsensusState verifies that the consensus state of
 // chainA stored on path.EndpointB.ClientID (which is on chainB) matches the consensus
 // state for chainA at that height.
-func (suite *KeeperTestSuite) TestVerifyClientConsensusState() {
+func (s *KeeperTestSuite) TestVerifyClientConsensusState() {
 	var (
 		path       *ibctesting.Path
 		heightDiff uint64
@@ -158,7 +158,7 @@ func (suite *KeeperTestSuite) TestVerifyClientConsensusState() {
 
 // TestVerifyConnectionState verifies the connection state of the connection
 // on chainB. The connections on chainA and chainB are fully opened.
-func (suite *KeeperTestSuite) TestVerifyConnectionState() {
+func (s *KeeperTestSuite) TestVerifyConnectionState() {
 	var (
 		path       *ibctesting.Path
 		heightDiff uint64
@@ -223,7 +223,7 @@ func (suite *KeeperTestSuite) TestVerifyConnectionState() {
 
 // TestVerifyChannelState verifies the channel state of the channel on
 // chainB. The channels on chainA and chainB are fully opened.
-func (suite *KeeperTestSuite) TestVerifyChannelState() {
+func (s *KeeperTestSuite) TestVerifyChannelState() {
 	var (
 		path       *ibctesting.Path
 		heightDiff uint64
@@ -288,7 +288,7 @@ func (suite *KeeperTestSuite) TestVerifyChannelState() {
 // TestVerifyPacketCommitmentState has chainB verify the packet commitment
 // on channelA. The channels on chainA and chainB are fully opened and a
 // packet is sent from chainA to chainB, but has not been received.
-func (suite *KeeperTestSuite) TestVerifyPacketCommitment() {
+func (s *KeeperTestSuite) TestVerifyPacketCommitment() {
 	var (
 		path            *ibctesting.Path
 		packet          channeltypes.Packet
@@ -379,7 +379,7 @@ func (suite *KeeperTestSuite) TestVerifyPacketCommitment() {
 // TestVerifyPacketAcknowledgement has chainA verify the acknowledgement on
 // channelB. The channels on chainA and chainB are fully opened and a packet
 // is sent from chainA to chainB and received.
-func (suite *KeeperTestSuite) TestVerifyPacketAcknowledgement() {
+func (s *KeeperTestSuite) TestVerifyPacketAcknowledgement() {
 	var (
 		path            *ibctesting.Path
 		ack             exported.Acknowledgement
@@ -480,7 +480,7 @@ func (suite *KeeperTestSuite) TestVerifyPacketAcknowledgement() {
 // TestVerifyPacketReceiptAbsence has chainA verify the receipt
 // absence on channelB. The channels on chainA and chainB are fully opened and
 // a packet is sent from chainA to chainB and not received.
-func (suite *KeeperTestSuite) TestVerifyPacketReceiptAbsence() {
+func (s *KeeperTestSuite) TestVerifyPacketReceiptAbsence() {
 	var (
 		path            *ibctesting.Path
 		packet          channeltypes.Packet
@@ -586,7 +586,7 @@ func (suite *KeeperTestSuite) TestVerifyPacketReceiptAbsence() {
 // TestVerifyNextSequenceRecv has chainA verify the next sequence receive on
 // channelB. The channels on chainA and chainB are fully opened and a packet
 // is sent from chainA to chainB and received.
-func (suite *KeeperTestSuite) TestVerifyNextSequenceRecv() {
+func (s *KeeperTestSuite) TestVerifyNextSequenceRecv() {
 	var (
 		path            *ibctesting.Path
 		heightDiff      uint64

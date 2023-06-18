@@ -19,7 +19,7 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
-func (suite *KeeperTestSuite) TestOnRecvPacket() {
+func (s *KeeperTestSuite) TestOnRecvPacket() {
 	var (
 		path       *ibctesting.Path
 		packetData []byte
@@ -503,7 +503,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 	}
 }
 
-func (suite *KeeperTestSuite) fundICAWallet(ctx sdk.Context, portID string, amount sdk.Coins) {
+func (s *KeeperTestSuite) fundICAWallet(ctx sdk.Context, portID string, amount sdk.Coins) {
 	interchainAccountAddr, found := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(ctx, ibctesting.FirstConnectionID, portID)
 	suite.Require().True(found)
 

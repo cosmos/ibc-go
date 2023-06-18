@@ -267,7 +267,7 @@ func BankOfChain(chain *ibctesting.TestChain) Bank {
 }
 
 // Check that the state of the bank is the bankBefore + expectedBankChange
-func (suite *KeeperTestSuite) CheckBankBalances(chain *ibctesting.TestChain, bankBefore *Bank, expectedBankChange *Bank) error {
+func (s *KeeperTestSuite) CheckBankBalances(chain *ibctesting.TestChain, bankBefore *Bank, expectedBankChange *Bank) error {
 	bankAfter := BankOfChain(chain)
 	bankChange := bankAfter.Sub(bankBefore)
 	diff := bankChange.Sub(expectedBankChange)
@@ -278,7 +278,7 @@ func (suite *KeeperTestSuite) CheckBankBalances(chain *ibctesting.TestChain, ban
 	return nil
 }
 
-func (suite *KeeperTestSuite) TestModelBasedRelay() {
+func (s *KeeperTestSuite) TestModelBasedRelay() {
 	dirname := "model_based_tests/"
 	files, err := os.ReadDir(dirname)
 	if err != nil {

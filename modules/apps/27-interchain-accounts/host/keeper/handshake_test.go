@@ -14,7 +14,7 @@ import (
 )
 
 // open and close channel is a helper function for TestOnChanOpenTry for reopening accounts
-func (suite *KeeperTestSuite) openAndCloseChannel(path *ibctesting.Path) {
+func (s *KeeperTestSuite) openAndCloseChannel(path *ibctesting.Path) {
 	err := path.EndpointB.ChanOpenTry()
 	suite.Require().NoError(err)
 
@@ -39,7 +39,7 @@ func (suite *KeeperTestSuite) openAndCloseChannel(path *ibctesting.Path) {
 	path.EndpointB.ChannelID = channeltypes.FormatChannelIdentifier(channelSequence)
 }
 
-func (suite *KeeperTestSuite) TestOnChanOpenTry() {
+func (s *KeeperTestSuite) TestOnChanOpenTry() {
 	var (
 		channel  *channeltypes.Channel
 		path     *ibctesting.Path
@@ -328,7 +328,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestOnChanOpenConfirm() {
+func (s *KeeperTestSuite) TestOnChanOpenConfirm() {
 	var path *ibctesting.Path
 
 	testCases := []struct {
@@ -381,7 +381,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenConfirm() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestOnChanCloseConfirm() {
+func (s *KeeperTestSuite) TestOnChanCloseConfirm() {
 	var path *ibctesting.Path
 
 	testCases := []struct {

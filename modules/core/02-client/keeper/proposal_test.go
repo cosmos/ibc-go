@@ -10,7 +10,7 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
-func (suite *KeeperTestSuite) TestClientUpdateProposal() {
+func (s *KeeperTestSuite) TestClientUpdateProposal() {
 	var (
 		subject, substitute                       string
 		subjectClientState, substituteClientState exported.ClientState
@@ -147,7 +147,7 @@ func (suite *KeeperTestSuite) TestClientUpdateProposal() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestHandleUpgradeProposal() {
+func (s *KeeperTestSuite) TestHandleUpgradeProposal() {
 	var (
 		upgradedClientState *ibctm.ClientState
 		oldPlan, plan       upgradetypes.Plan

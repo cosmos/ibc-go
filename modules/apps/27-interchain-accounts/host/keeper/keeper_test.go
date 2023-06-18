@@ -40,7 +40,7 @@ type KeeperTestSuite struct {
 	chainC *ibctesting.TestChain
 }
 
-func (suite *KeeperTestSuite) SetupTest() {
+func (s *KeeperTestSuite) SetupTest() {
 	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 3)
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
 	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
@@ -103,7 +103,7 @@ func TestKeeperTestSuite(t *testing.T) {
 	suite.Run(t, new(KeeperTestSuite))
 }
 
-func (suite *KeeperTestSuite) TestGetInterchainAccountAddress() {
+func (s *KeeperTestSuite) TestGetInterchainAccountAddress() {
 	suite.SetupTest()
 
 	path := NewICAPath(suite.chainA, suite.chainB)
@@ -123,7 +123,7 @@ func (suite *KeeperTestSuite) TestGetInterchainAccountAddress() {
 	suite.Require().Empty(retrievedAddr)
 }
 
-func (suite *KeeperTestSuite) TestGetAllActiveChannels() {
+func (s *KeeperTestSuite) TestGetAllActiveChannels() {
 	var (
 		expectedChannelID = "test-channel"
 		expectedPortID    = "test-port"
@@ -157,7 +157,7 @@ func (suite *KeeperTestSuite) TestGetAllActiveChannels() {
 	suite.Require().Equal(expectedChannels, activeChannels)
 }
 
-func (suite *KeeperTestSuite) TestGetAllInterchainAccounts() {
+func (s *KeeperTestSuite) TestGetAllInterchainAccounts() {
 	var (
 		expectedAccAddr = "test-acc-addr"
 		expectedPortID  = "test-port"
@@ -194,7 +194,7 @@ func (suite *KeeperTestSuite) TestGetAllInterchainAccounts() {
 	suite.Require().Equal(expectedAccounts, interchainAccounts)
 }
 
-func (suite *KeeperTestSuite) TestIsActiveChannel() {
+func (s *KeeperTestSuite) TestIsActiveChannel() {
 	suite.SetupTest()
 
 	path := NewICAPath(suite.chainA, suite.chainB)
@@ -207,7 +207,7 @@ func (suite *KeeperTestSuite) TestIsActiveChannel() {
 	suite.Require().True(isActive)
 }
 
-func (suite *KeeperTestSuite) TestSetInterchainAccountAddress() {
+func (s *KeeperTestSuite) TestSetInterchainAccountAddress() {
 	var (
 		expectedAccAddr = "test-acc-addr"
 		expectedPortID  = "test-port"
@@ -220,7 +220,7 @@ func (suite *KeeperTestSuite) TestSetInterchainAccountAddress() {
 	suite.Require().Equal(expectedAccAddr, retrievedAddr)
 }
 
-func (suite *KeeperTestSuite) TestParams() {
+func (s *KeeperTestSuite) TestParams() {
 	expParams := types.DefaultParams()
 
 	params := suite.chainA.GetSimApp().ICAHostKeeper.GetParams(suite.chainA.GetContext())
@@ -258,7 +258,7 @@ func (suite *KeeperTestSuite) TestParams() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestUnsetParams() {
+func (s *KeeperTestSuite) TestUnsetParams() {
 	suite.SetupTest()
 	ctx := suite.chainA.GetContext()
 	store := suite.chainA.GetContext().KVStore(suite.chainA.GetSimApp().GetKey(types.SubModuleName))

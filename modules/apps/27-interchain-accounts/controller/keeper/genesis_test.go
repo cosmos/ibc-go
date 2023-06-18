@@ -8,7 +8,7 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
-func (suite *KeeperTestSuite) TestInitGenesis() {
+func (s *KeeperTestSuite) TestInitGenesis() {
 	suite.SetupTest()
 
 	interchainAccAddr := icatypes.GenerateAddress(suite.chainB.GetContext(), ibctesting.FirstConnectionID, TestPortID)
@@ -58,7 +58,7 @@ func (suite *KeeperTestSuite) TestInitGenesis() {
 	suite.Require().Equal(expParams, params)
 }
 
-func (suite *KeeperTestSuite) TestExportGenesis() {
+func (s *KeeperTestSuite) TestExportGenesis() {
 	suite.SetupTest()
 
 	path := NewICAPath(suite.chainA, suite.chainB)

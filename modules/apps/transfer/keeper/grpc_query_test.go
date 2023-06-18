@@ -11,7 +11,7 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
-func (suite *KeeperTestSuite) TestQueryDenomTrace() {
+func (s *KeeperTestSuite) TestQueryDenomTrace() {
 	var (
 		req      *types.QueryDenomTraceRequest
 		expTrace types.DenomTrace
@@ -90,7 +90,7 @@ func (suite *KeeperTestSuite) TestQueryDenomTrace() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestQueryDenomTraces() {
+func (s *KeeperTestSuite) TestQueryDenomTraces() {
 	var (
 		req       *types.QueryDenomTracesRequest
 		expTraces = types.Traces(nil)
@@ -150,14 +150,14 @@ func (suite *KeeperTestSuite) TestQueryDenomTraces() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestQueryParams() {
+func (s *KeeperTestSuite) TestQueryParams() {
 	ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
 	expParams := types.DefaultParams()
 	res, _ := suite.chainA.GetSimApp().TransferKeeper.Params(ctx, &types.QueryParamsRequest{})
 	suite.Require().Equal(&expParams, res.Params)
 }
 
-func (suite *KeeperTestSuite) TestQueryDenomHash() {
+func (s *KeeperTestSuite) TestQueryDenomHash() {
 	reqTrace := types.DenomTrace{
 		Path:      "transfer/channelToA/transfer/channelToB",
 		BaseDenom: "uatom",
@@ -223,7 +223,7 @@ func (suite *KeeperTestSuite) TestQueryDenomHash() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestEscrowAddress() {
+func (s *KeeperTestSuite) TestEscrowAddress() {
 	var req *types.QueryEscrowAddressRequest
 
 	testCases := []struct {
@@ -263,7 +263,7 @@ func (suite *KeeperTestSuite) TestEscrowAddress() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestTotalEscrowForDenom() {
+func (s *KeeperTestSuite) TestTotalEscrowForDenom() {
 	var (
 		req             *types.QueryTotalEscrowForDenomRequest
 		expEscrowAmount sdkmath.Int

@@ -16,7 +16,7 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
-func (suite *KeeperTestSuite) TestCreateClient() {
+func (s *KeeperTestSuite) TestCreateClient() {
 	var (
 		clientState    exported.ClientState
 		consensusState exported.ConsensusState
@@ -90,7 +90,7 @@ func (suite *KeeperTestSuite) TestCreateClient() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestUpdateClientTendermint() {
+func (s *KeeperTestSuite) TestUpdateClientTendermint() {
 	var (
 		path         *ibctesting.Path
 		updateHeader *ibctm.Header
@@ -303,7 +303,7 @@ func (suite *KeeperTestSuite) TestUpdateClientTendermint() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestUpgradeClient() {
+func (s *KeeperTestSuite) TestUpgradeClient() {
 	var (
 		path                                        *ibctesting.Path
 		upgradedClient                              exported.ClientState
@@ -470,7 +470,7 @@ func (suite *KeeperTestSuite) TestUpgradeClient() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestUpdateClientEventEmission() {
+func (s *KeeperTestSuite) TestUpdateClientEventEmission() {
 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
 	suite.coordinator.SetupClients(path)
 

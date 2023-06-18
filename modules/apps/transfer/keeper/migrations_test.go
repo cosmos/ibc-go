@@ -12,7 +12,7 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
-func (suite *KeeperTestSuite) TestMigratorMigrateParams() {
+func (s *KeeperTestSuite) TestMigratorMigrateParams() {
 	testCases := []struct {
 		msg            string
 		malleate       func()
@@ -45,7 +45,7 @@ func (suite *KeeperTestSuite) TestMigratorMigrateParams() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestMigratorMigrateTraces() {
+func (s *KeeperTestSuite) TestMigratorMigrateTraces() {
 	testCases := []struct {
 		msg            string
 		malleate       func()
@@ -144,7 +144,7 @@ func (suite *KeeperTestSuite) TestMigratorMigrateTraces() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestMigratorMigrateTracesCorruptionDetection() {
+func (s *KeeperTestSuite) TestMigratorMigrateTracesCorruptionDetection() {
 	// IBCDenom() previously would return "customport/channel-0/uatom", but now should return ibc/{hash}
 	corruptedDenomTrace := transfertypes.DenomTrace{
 		BaseDenom: "customport/channel-0/uatom",
@@ -158,7 +158,7 @@ func (suite *KeeperTestSuite) TestMigratorMigrateTracesCorruptionDetection() {
 	})
 }
 
-func (suite *KeeperTestSuite) TestMigrateTotalEscrowForDenom() {
+func (s *KeeperTestSuite) TestMigrateTotalEscrowForDenom() {
 	var (
 		path  *ibctesting.Path
 		denom string

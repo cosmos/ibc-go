@@ -35,7 +35,7 @@ type KeeperTestSuite struct {
 	pathAToC *ibctesting.Path
 }
 
-func (suite *KeeperTestSuite) SetupTest() {
+func (s *KeeperTestSuite) SetupTest() {
 	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 3)
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
 	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
@@ -69,7 +69,7 @@ func lockFeeModule(chain *ibctesting.TestChain) {
 	store.Set(types.KeyLocked(), []byte{1})
 }
 
-func (suite *KeeperTestSuite) TestEscrowAccountHasBalance() {
+func (s *KeeperTestSuite) TestEscrowAccountHasBalance() {
 	fee := types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
 
 	suite.Require().False(suite.chainA.GetSimApp().IBCFeeKeeper.EscrowAccountHasBalance(suite.chainA.GetContext(), fee.Total()))
@@ -85,7 +85,7 @@ func (suite *KeeperTestSuite) TestEscrowAccountHasBalance() {
 	suite.Require().False(suite.chainA.GetSimApp().IBCFeeKeeper.EscrowAccountHasBalance(suite.chainA.GetContext(), fee.Total()))
 }
 
-func (suite *KeeperTestSuite) TestGetSetPayeeAddress() {
+func (s *KeeperTestSuite) TestGetSetPayeeAddress() {
 	suite.coordinator.Setup(suite.path)
 
 	payeeAddr, found := suite.chainA.GetSimApp().IBCFeeKeeper.GetPayeeAddress(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress().String(), suite.path.EndpointA.ChannelID)
@@ -104,7 +104,7 @@ func (suite *KeeperTestSuite) TestGetSetPayeeAddress() {
 	suite.Require().Equal(suite.chainA.SenderAccounts[1].SenderAccount.GetAddress().String(), payeeAddr)
 }
 
-func (suite *KeeperTestSuite) TestFeesInEscrow() {
+func (s *KeeperTestSuite) TestFeesInEscrow() {
 	suite.coordinator.Setup(suite.path)
 
 	// escrow five fees for packet sequence 1
@@ -127,7 +127,7 @@ func (suite *KeeperTestSuite) TestFeesInEscrow() {
 	suite.Require().False(hasFeesInEscrow)
 }
 
-func (suite *KeeperTestSuite) TestIsLocked() {
+func (s *KeeperTestSuite) TestIsLocked() {
 	ctx := suite.chainA.GetContext()
 	suite.Require().False(suite.chainA.GetSimApp().IBCFeeKeeper.IsLocked(ctx))
 
@@ -136,7 +136,7 @@ func (suite *KeeperTestSuite) TestIsLocked() {
 	suite.Require().True(suite.chainA.GetSimApp().IBCFeeKeeper.IsLocked(ctx))
 }
 
-func (suite *KeeperTestSuite) TestGetIdentifiedPacketFeesForChannel() {
+func (s *KeeperTestSuite) TestGetIdentifiedPacketFeesForChannel() {
 	suite.coordinator.Setup(suite.path)
 
 	// escrow a fee
@@ -200,7 +200,7 @@ func (suite *KeeperTestSuite) TestGetIdentifiedPacketFeesForChannel() {
 	suite.Require().Equal(identifiedFees, expectedFees)
 }
 
-func (suite *KeeperTestSuite) TestGetAllIdentifiedPacketFees() {
+func (s *KeeperTestSuite) TestGetAllIdentifiedPacketFees() {
 	suite.coordinator.Setup(suite.path)
 
 	// escrow a fee
@@ -230,7 +230,7 @@ func (suite *KeeperTestSuite) TestGetAllIdentifiedPacketFees() {
 	suite.Require().Equal(identifiedFees, expectedFees)
 }
 
-func (suite *KeeperTestSuite) TestGetAllFeeEnabledChannels() {
+func (s *KeeperTestSuite) TestGetAllFeeEnabledChannels() {
 	validPortID := "ibcmoduleport"
 	// set two channels enabled
 	suite.chainA.GetSimApp().IBCFeeKeeper.SetFeeEnabled(suite.chainA.GetContext(), ibctesting.MockFeePort, ibctesting.FirstChannelID)
@@ -252,7 +252,7 @@ func (suite *KeeperTestSuite) TestGetAllFeeEnabledChannels() {
 	suite.Require().Equal(ch, expectedCh)
 }
 
-func (suite *KeeperTestSuite) TestGetAllPayees() {
+func (s *KeeperTestSuite) TestGetAllPayees() {
 	var expectedPayees []types.RegisteredPayee
 
 	for i := 0; i < 3; i++ {
@@ -277,7 +277,7 @@ func (suite *KeeperTestSuite) TestGetAllPayees() {
 	suite.Require().ElementsMatch(expectedPayees, registeredPayees)
 }
 
-func (suite *KeeperTestSuite) TestGetAllCounterpartyPayees() {
+func (s *KeeperTestSuite) TestGetAllCounterpartyPayees() {
 	relayerAddr := suite.chainA.SenderAccount.GetAddress().String()
 	counterpartyPayee := suite.chainB.SenderAccount.GetAddress().String()
 

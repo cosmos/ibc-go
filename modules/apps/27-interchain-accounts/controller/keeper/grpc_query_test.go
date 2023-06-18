@@ -7,7 +7,7 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
-func (suite *KeeperTestSuite) TestQueryInterchainAccount() {
+func (s *KeeperTestSuite) TestQueryInterchainAccount() {
 	var req *types.QueryInterchainAccountRequest
 
 	testCases := []struct {
@@ -75,7 +75,7 @@ func (suite *KeeperTestSuite) TestQueryInterchainAccount() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestQueryParams() {
+func (s *KeeperTestSuite) TestQueryParams() {
 	ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
 	expParams := types.DefaultParams()
 	res, _ := suite.chainA.GetSimApp().ICAControllerKeeper.Params(ctx, &types.QueryParamsRequest{})

@@ -19,7 +19,7 @@ type MerkleTestSuite struct {
 	iavlStore *iavl.Store
 }
 
-func (suite *MerkleTestSuite) SetupTest() {
+func (s *MerkleTestSuite) SetupTest() {
 	db := dbm.NewMemDB()
 	dblog := log.TestingLogger()
 	suite.store = rootmulti.NewStore(db, dblog)

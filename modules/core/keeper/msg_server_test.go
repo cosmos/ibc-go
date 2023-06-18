@@ -26,7 +26,7 @@ var (
 // tests high level properties like ordering and basic sanity checks. More
 // rigorous testing of 'RecvPacket' can be found in the
 // 04-channel/keeper/packet_test.go.
-func (suite *KeeperTestSuite) TestHandleRecvPacket() {
+func (s *KeeperTestSuite) TestHandleRecvPacket() {
 	var (
 		packet channeltypes.Packet
 		path   *ibctesting.Path
@@ -203,7 +203,7 @@ func (suite *KeeperTestSuite) TestHandleRecvPacket() {
 // occurs. It test high level properties like ordering and basic sanity
 // checks. More rigorous testing of 'AcknowledgePacket'
 // can be found in the 04-channel/keeper/packet_test.go.
-func (suite *KeeperTestSuite) TestHandleAcknowledgePacket() {
+func (s *KeeperTestSuite) TestHandleAcknowledgePacket() {
 	var (
 		packet channeltypes.Packet
 		path   *ibctesting.Path
@@ -347,7 +347,7 @@ func (suite *KeeperTestSuite) TestHandleAcknowledgePacket() {
 // high level properties like ordering and basic sanity checks. More
 // rigorous testing of 'TimeoutPacket' and 'TimeoutExecuted' can be found in
 // the 04-channel/keeper/timeout_test.go.
-func (suite *KeeperTestSuite) TestHandleTimeoutPacket() {
+func (s *KeeperTestSuite) TestHandleTimeoutPacket() {
 	var (
 		packet    channeltypes.Packet
 		packetKey []byte
@@ -493,7 +493,7 @@ func (suite *KeeperTestSuite) TestHandleTimeoutPacket() {
 // commitment occurs. It tests high level properties like ordering and basic
 // sanity checks. More rigorous testing of 'TimeoutOnClose' and
 // 'TimeoutExecuted' can be found in the 04-channel/keeper/timeout_test.go.
-func (suite *KeeperTestSuite) TestHandleTimeoutOnClosePacket() {
+func (s *KeeperTestSuite) TestHandleTimeoutOnClosePacket() {
 	var (
 		packet    channeltypes.Packet
 		packetKey []byte
@@ -656,7 +656,7 @@ func (suite *KeeperTestSuite) TestHandleTimeoutOnClosePacket() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestUpgradeClient() {
+func (s *KeeperTestSuite) TestUpgradeClient() {
 	var (
 		path              *ibctesting.Path
 		newChainID        string
@@ -777,7 +777,7 @@ func (suite *KeeperTestSuite) TestUpgradeClient() {
 }
 
 // TestUpdateClientParams tests the UpdateClientParams rpc handler
-func (suite *KeeperTestSuite) TestUpdateClientParams() {
+func (s *KeeperTestSuite) TestUpdateClientParams() {
 	validAuthority := suite.chainA.App.GetIBCKeeper().GetAuthority()
 	testCases := []struct {
 		name    string
@@ -828,7 +828,7 @@ func (suite *KeeperTestSuite) TestUpdateClientParams() {
 }
 
 // TestUpdateConnectionParams tests the UpdateConnectionParams rpc handler
-func (suite *KeeperTestSuite) TestUpdateConnectionParams() {
+func (s *KeeperTestSuite) TestUpdateConnectionParams() {
 	validAuthority := suite.chainA.App.GetIBCKeeper().GetAuthority()
 	testCases := []struct {
 		name    string

@@ -13,7 +13,7 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
-func (suite *KeeperTestSuite) TestQueryIncentivizedPackets() {
+func (s *KeeperTestSuite) TestQueryIncentivizedPackets() {
 	var (
 		req             *types.QueryIncentivizedPacketsRequest
 		expectedPackets []types.IdentifiedPacketFees
@@ -88,7 +88,7 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPackets() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestQueryIncentivizedPacket() {
+func (s *KeeperTestSuite) TestQueryIncentivizedPacket() {
 	var req *types.QueryIncentivizedPacketRequest
 
 	testCases := []struct {
@@ -154,7 +154,7 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPacket() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestQueryIncentivizedPacketsForChannel() {
+func (s *KeeperTestSuite) TestQueryIncentivizedPacketsForChannel() {
 	var (
 		req                     *types.QueryIncentivizedPacketsForChannelRequest
 		expIdentifiedPacketFees []*types.IdentifiedPacketFees
@@ -255,7 +255,7 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPacketsForChannel() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestQueryTotalRecvFees() {
+func (s *KeeperTestSuite) TestQueryTotalRecvFees() {
 	var req *types.QueryTotalRecvFeesRequest
 
 	testCases := []struct {
@@ -321,7 +321,7 @@ func (suite *KeeperTestSuite) TestQueryTotalRecvFees() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestQueryTotalAckFees() {
+func (s *KeeperTestSuite) TestQueryTotalAckFees() {
 	var req *types.QueryTotalAckFeesRequest
 
 	testCases := []struct {
@@ -387,7 +387,7 @@ func (suite *KeeperTestSuite) TestQueryTotalAckFees() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestQueryTotalTimeoutFees() {
+func (s *KeeperTestSuite) TestQueryTotalTimeoutFees() {
 	var req *types.QueryTotalTimeoutFeesRequest
 
 	testCases := []struct {
@@ -453,7 +453,7 @@ func (suite *KeeperTestSuite) TestQueryTotalTimeoutFees() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestQueryPayee() {
+func (s *KeeperTestSuite) TestQueryPayee() {
 	var req *types.QueryPayeeRequest
 
 	testCases := []struct {
@@ -523,7 +523,7 @@ func (suite *KeeperTestSuite) TestQueryPayee() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestQueryCounterpartyPayee() {
+func (s *KeeperTestSuite) TestQueryCounterpartyPayee() {
 	var req *types.QueryCounterpartyPayeeRequest
 
 	testCases := []struct {
@@ -593,7 +593,7 @@ func (suite *KeeperTestSuite) TestQueryCounterpartyPayee() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestQueryFeeEnabledChannels() {
+func (s *KeeperTestSuite) TestQueryFeeEnabledChannels() {
 	var (
 		req                   *types.QueryFeeEnabledChannelsRequest
 		expFeeEnabledChannels []types.FeeEnabledChannel
@@ -707,7 +707,7 @@ func (suite *KeeperTestSuite) TestQueryFeeEnabledChannels() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestQueryFeeEnabledChannel() {
+func (s *KeeperTestSuite) TestQueryFeeEnabledChannel() {
 	var (
 		req        *types.QueryFeeEnabledChannelRequest
 		expEnabled bool

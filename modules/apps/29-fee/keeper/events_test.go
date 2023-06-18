@@ -13,7 +13,7 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
-func (suite *KeeperTestSuite) TestIncentivizePacketEvent() {
+func (s *KeeperTestSuite) TestIncentivizePacketEvent() {
 	var (
 		expRecvFees    sdk.Coins
 		expAckFees     sdk.Coins
@@ -88,7 +88,7 @@ func (suite *KeeperTestSuite) TestIncentivizePacketEvent() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestDistributeFeeEvent() {
+func (s *KeeperTestSuite) TestDistributeFeeEvent() {
 	// create an incentivized transfer path
 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
 	feeTransferVersion := string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: transfertypes.Version}))

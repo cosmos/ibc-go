@@ -29,7 +29,7 @@ type CapabilityTestSuite struct {
 	module module.AppModule
 }
 
-func (suite *CapabilityTestSuite) SetupTest() {
+func (s *CapabilityTestSuite) SetupTest() {
 	checkTx := false
 	app := simapp.Setup(checkTx)
 	cdc := app.AppCodec()
@@ -46,7 +46,7 @@ func (suite *CapabilityTestSuite) SetupTest() {
 
 // The following test case mocks a specific bug discovered in https://github.com/cosmos/cosmos-sdk/issues/9800
 // and ensures that the current code successfully fixes the issue.
-func (suite *CapabilityTestSuite) TestInitializeMemStore() {
+func (s *CapabilityTestSuite) TestInitializeMemStore() {
 	sk1 := suite.keeper.ScopeToModule(banktypes.ModuleName)
 
 	cap1, err := sk1.NewCapability(suite.ctx, "transfer")

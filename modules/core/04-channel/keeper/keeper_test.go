@@ -29,7 +29,7 @@ func TestKeeperTestSuite(t *testing.T) {
 }
 
 // SetupTest creates a coordinator with 2 test chains.
-func (suite *KeeperTestSuite) SetupTest() {
+func (s *KeeperTestSuite) SetupTest() {
 	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2)
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
 	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
@@ -40,7 +40,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 
 // TestSetChannel create clients and connections on both chains. It tests for the non-existence
 // and existence of a channel in INIT on chainA.
-func (suite *KeeperTestSuite) TestSetChannel() {
+func (s *KeeperTestSuite) TestSetChannel() {
 	// create client and connections on both chains
 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
 	suite.coordinator.SetupConnections(path)
@@ -65,7 +65,7 @@ func (suite *KeeperTestSuite) TestSetChannel() {
 	suite.Equal(expectedCounterparty, storedChannel.Counterparty)
 }
 
-func (suite *KeeperTestSuite) TestGetAppVersion() {
+func (s *KeeperTestSuite) TestGetAppVersion() {
 	// create client and connections on both chains
 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
 	suite.coordinator.SetupConnections(path)
@@ -84,7 +84,7 @@ func (suite *KeeperTestSuite) TestGetAppVersion() {
 }
 
 // TestGetAllChannelsWithPortPrefix verifies ports are filtered correctly using a port prefix.
-func (suite *KeeperTestSuite) TestGetAllChannelsWithPortPrefix() {
+func (s *KeeperTestSuite) TestGetAllChannelsWithPortPrefix() {
 	const (
 		secondChannelID        = "channel-1"
 		differentChannelPortID = "different-portid"
@@ -345,7 +345,7 @@ func (suite KeeperTestSuite) TestGetAllPacketState() { //nolint:govet // this is
 }
 
 // TestSetSequence verifies that the keeper correctly sets the sequence counters.
-func (suite *KeeperTestSuite) TestSetSequence() {
+func (s *KeeperTestSuite) TestSetSequence() {
 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
 	suite.coordinator.Setup(path)
 
@@ -389,7 +389,7 @@ func (suite *KeeperTestSuite) TestSetSequence() {
 // commitments for a specific channel. The test will store consecutive commitments up to the
 // value of "seq" and then add non-consecutive up to the value of "maxSeq". A final commitment
 // with the value maxSeq + 1 is set on a different channel.
-func (suite *KeeperTestSuite) TestGetAllPacketCommitmentsAtChannel() {
+func (s *KeeperTestSuite) TestGetAllPacketCommitmentsAtChannel() {
 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
 	suite.coordinator.Setup(path)
 
@@ -446,7 +446,7 @@ func (suite *KeeperTestSuite) TestGetAllPacketCommitmentsAtChannel() {
 
 // TestSetPacketAcknowledgement verifies that packet acknowledgements are correctly
 // set in the keeper.
-func (suite *KeeperTestSuite) TestSetPacketAcknowledgement() {
+func (s *KeeperTestSuite) TestSetPacketAcknowledgement() {
 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
 	suite.coordinator.Setup(path)
 

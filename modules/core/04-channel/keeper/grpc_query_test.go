@@ -15,7 +15,7 @@ import (
 
 const doesnotexist = "doesnotexist"
 
-func (suite *KeeperTestSuite) TestQueryChannel() {
+func (s *KeeperTestSuite) TestQueryChannel() {
 	var (
 		req        *types.QueryChannelRequest
 		expChannel types.Channel
@@ -105,7 +105,7 @@ func (suite *KeeperTestSuite) TestQueryChannel() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestQueryChannels() {
+func (s *KeeperTestSuite) TestQueryChannels() {
 	var (
 		req         *types.QueryChannelsRequest
 		expChannels = []*types.IdentifiedChannel(nil)
@@ -202,7 +202,7 @@ func (suite *KeeperTestSuite) TestQueryChannels() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestQueryConnectionChannels() {
+func (s *KeeperTestSuite) TestQueryConnectionChannels() {
 	var (
 		req         *types.QueryConnectionChannelsRequest
 		expChannels = []*types.IdentifiedChannel{}
@@ -318,7 +318,7 @@ func (suite *KeeperTestSuite) TestQueryConnectionChannels() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestQueryChannelClientState() {
+func (s *KeeperTestSuite) TestQueryChannelClientState() {
 	var (
 		req                      *types.QueryChannelClientStateRequest
 		expIdentifiedClientState clienttypes.IdentifiedClientState
@@ -447,7 +447,7 @@ func (suite *KeeperTestSuite) TestQueryChannelClientState() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestQueryChannelConsensusState() {
+func (s *KeeperTestSuite) TestQueryChannelConsensusState() {
 	var (
 		req               *types.QueryChannelConsensusStateRequest
 		expConsensusState exported.ConsensusState
@@ -591,7 +591,7 @@ func (suite *KeeperTestSuite) TestQueryChannelConsensusState() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestQueryPacketCommitment() {
+func (s *KeeperTestSuite) TestQueryPacketCommitment() {
 	var (
 		req           *types.QueryPacketCommitmentRequest
 		expCommitment []byte
@@ -691,7 +691,7 @@ func (suite *KeeperTestSuite) TestQueryPacketCommitment() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestQueryPacketCommitments() {
+func (s *KeeperTestSuite) TestQueryPacketCommitments() {
 	var (
 		req            *types.QueryPacketCommitmentsRequest
 		expCommitments = []*types.PacketState{}
@@ -784,7 +784,7 @@ func (suite *KeeperTestSuite) TestQueryPacketCommitments() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestQueryPacketReceipt() {
+func (s *KeeperTestSuite) TestQueryPacketReceipt() {
 	var (
 		req         *types.QueryPacketReceiptRequest
 		expReceived bool
@@ -889,7 +889,7 @@ func (suite *KeeperTestSuite) TestQueryPacketReceipt() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestQueryPacketAcknowledgement() {
+func (s *KeeperTestSuite) TestQueryPacketAcknowledgement() {
 	var (
 		req    *types.QueryPacketAcknowledgementRequest
 		expAck []byte
@@ -989,7 +989,7 @@ func (suite *KeeperTestSuite) TestQueryPacketAcknowledgement() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestQueryPacketAcknowledgements() {
+func (s *KeeperTestSuite) TestQueryPacketAcknowledgements() {
 	var (
 		req                 *types.QueryPacketAcknowledgementsRequest
 		expAcknowledgements = []*types.PacketState{}
@@ -1109,7 +1109,7 @@ func (suite *KeeperTestSuite) TestQueryPacketAcknowledgements() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestQueryUnreceivedPackets() {
+func (s *KeeperTestSuite) TestQueryUnreceivedPackets() {
 	var (
 		req    *types.QueryUnreceivedPacketsRequest
 		expSeq = []uint64(nil)
@@ -1338,7 +1338,7 @@ func (suite *KeeperTestSuite) TestQueryUnreceivedPackets() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestQueryUnreceivedAcks() {
+func (s *KeeperTestSuite) TestQueryUnreceivedAcks() {
 	var (
 		req    *types.QueryUnreceivedAcksRequest
 		expSeq = []uint64{}
@@ -1470,7 +1470,7 @@ func (suite *KeeperTestSuite) TestQueryUnreceivedAcks() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestQueryNextSequenceReceive() {
+func (s *KeeperTestSuite) TestQueryNextSequenceReceive() {
 	var (
 		req    *types.QueryNextSequenceReceiveRequest
 		expSeq uint64
@@ -1572,7 +1572,7 @@ func (suite *KeeperTestSuite) TestQueryNextSequenceReceive() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestQueryNextSequenceSend() {
+func (s *KeeperTestSuite) TestQueryNextSequenceSend() {
 	var (
 		req    *types.QueryNextSequenceSendRequest
 		expSeq uint64

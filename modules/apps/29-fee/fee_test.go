@@ -25,7 +25,7 @@ type FeeTestSuite struct {
 	pathAToC *ibctesting.Path
 }
 
-func (suite *FeeTestSuite) SetupTest() {
+func (s *FeeTestSuite) SetupTest() {
 	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 3)
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
 	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
@@ -51,7 +51,7 @@ func TestIBCFeeTestSuite(t *testing.T) {
 	suite.Run(t, new(FeeTestSuite))
 }
 
-func (suite *FeeTestSuite) CreateMockPacket() channeltypes.Packet {
+func (s *FeeTestSuite) CreateMockPacket() channeltypes.Packet {
 	return channeltypes.NewPacket(
 		ibcmock.MockPacketData,
 		suite.chainA.SenderAccount.GetSequence(),

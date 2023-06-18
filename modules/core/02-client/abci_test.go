@@ -25,7 +25,7 @@ type ClientTestSuite struct {
 	chainB *ibctesting.TestChain
 }
 
-func (suite *ClientTestSuite) SetupTest() {
+func (s *ClientTestSuite) SetupTest() {
 	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2)
 
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
@@ -36,7 +36,7 @@ func TestClientTestSuite(t *testing.T) {
 	suite.Run(t, new(ClientTestSuite))
 }
 
-func (suite *ClientTestSuite) TestBeginBlocker() {
+func (s *ClientTestSuite) TestBeginBlocker() {
 	for i := 0; i < 10; i++ {
 		// increment height
 		suite.coordinator.CommitBlock(suite.chainA, suite.chainB)
@@ -47,7 +47,7 @@ func (suite *ClientTestSuite) TestBeginBlocker() {
 	}
 }
 
-func (suite *ClientTestSuite) TestBeginBlockerConsensusState() {
+func (s *ClientTestSuite) TestBeginBlockerConsensusState() {
 	plan := &upgradetypes.Plan{
 		Name:   "test",
 		Height: suite.chainA.GetContext().BlockHeight() + 1,
@@ -78,7 +78,7 @@ func (suite *ClientTestSuite) TestBeginBlockerConsensusState() {
 	suite.Require().Equal(bz, consState)
 }
 
-func (suite *ClientTestSuite) TestBeginBlockerUpgradeEvents() {
+func (s *ClientTestSuite) TestBeginBlockerUpgradeEvents() {
 	plan := &upgradetypes.Plan{
 		Name:   "test",
 		Height: suite.chainA.GetContext().BlockHeight() + 1,
@@ -105,7 +105,7 @@ func (suite *ClientTestSuite) TestBeginBlockerUpgradeEvents() {
 	suite.requireContainsEvent(cacheCtx.EventManager().Events(), types.EventTypeUpgradeChain, true)
 }
 
-func (suite *ClientTestSuite) TestBeginBlockerUpgradeEventsAbsence() {
+func (s *ClientTestSuite) TestBeginBlockerUpgradeEventsAbsence() {
 	cacheCtx, writeCache := suite.chainA.GetContext().CacheContext()
 	client.BeginBlocker(suite.chainA.GetContext(), suite.chainA.App.GetIBCKeeper().ClientKeeper)
 	writeCache()
@@ -113,7 +113,7 @@ func (suite *ClientTestSuite) TestBeginBlockerUpgradeEventsAbsence() {
 }
 
 // requireContainsEvent verifies if an event of a specific type was emitted.
-func (suite *ClientTestSuite) requireContainsEvent(events sdk.Events, eventType string, shouldContain bool) {
+func (s *ClientTestSuite) requireContainsEvent(events sdk.Events, eventType string, shouldContain bool) {
 	found := false
 	var eventTypes []string
 	for _, e := range events {

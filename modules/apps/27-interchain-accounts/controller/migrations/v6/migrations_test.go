@@ -26,7 +26,7 @@ type MigrationsTestSuite struct {
 	path        *ibctesting.Path
 }
 
-func (suite *MigrationsTestSuite) SetupTest() {
+func (s *MigrationsTestSuite) SetupTest() {
 	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2)
 
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
@@ -41,7 +41,7 @@ func (suite *MigrationsTestSuite) SetupTest() {
 	suite.path.EndpointB.ChannelConfig.Version = icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
 }
 
-func (suite *MigrationsTestSuite) SetupPath() error {
+func (s *MigrationsTestSuite) SetupPath() error {
 	if err := suite.RegisterInterchainAccount(suite.path.EndpointA, ibctesting.TestAccAddress); err != nil {
 		return err
 	}
@@ -57,7 +57,7 @@ func (suite *MigrationsTestSuite) SetupPath() error {
 	return suite.path.EndpointB.ChanOpenConfirm()
 }
 
-func (suite *MigrationsTestSuite) RegisterInterchainAccount(endpoint *ibctesting.Endpoint, owner string) error {
+func (s *MigrationsTestSuite) RegisterInterchainAccount(endpoint *ibctesting.Endpoint, owner string) error {
 	portID, err := icatypes.NewControllerPortID(owner)
 	if err != nil {
 		return err
@@ -83,7 +83,7 @@ func TestKeeperTestSuite(t *testing.T) {
 	suite.Run(t, new(MigrationsTestSuite))
 }
 
-func (suite *MigrationsTestSuite) TestMigrateICS27ChannelCapability() {
+func (s *MigrationsTestSuite) TestMigrateICS27ChannelCapability() {
 	suite.SetupTest()
 	suite.coordinator.SetupConnections(suite.path)
 
@@ -154,7 +154,7 @@ func (suite *MigrationsTestSuite) TestMigrateICS27ChannelCapability() {
 // CreateMockCapabilities creates an additional two capabilities used for testing purposes:
 // 1. A capability with a single owner
 // 2. A capability with two owners, neither of which is "ibc"
-func (suite *MigrationsTestSuite) CreateMockCapabilities() {
+func (s *MigrationsTestSuite) CreateMockCapabilities() {
 	capability, err := suite.chainA.GetSimApp().ScopedIBCMockKeeper.NewCapability(suite.chainA.GetContext(), "mock_one")
 	suite.Require().NoError(err)
 	suite.Require().NotNil(capability)
@@ -168,7 +168,7 @@ func (suite *MigrationsTestSuite) CreateMockCapabilities() {
 }
 
 // AssertMockCapabiltiesUnchanged authenticates the mock capabilities created at the start of the test to ensure they remain unchanged
-func (suite *MigrationsTestSuite) AssertMockCapabiltiesUnchanged() {
+func (s *MigrationsTestSuite) AssertMockCapabiltiesUnchanged() {
 	capability, found := suite.chainA.GetSimApp().ScopedIBCMockKeeper.GetCapability(suite.chainA.GetContext(), "mock_one")
 	suite.Require().True(found)
 	suite.Require().NotNil(capability)
@@ -183,7 +183,7 @@ func (suite *MigrationsTestSuite) AssertMockCapabiltiesUnchanged() {
 
 // ResetMemstore removes all existing fwd and rev capability kv pairs and deletes `KeyMemInitialised` from the x/capability memstore.
 // This effectively mocks a new chain binary being started. Migration code is run against persisted state only and allows the memstore to be reinitialised.
-func (suite *MigrationsTestSuite) ResetMemStore() {
+func (s *MigrationsTestSuite) ResetMemStore() {
 	memStore := suite.chainA.GetContext().KVStore(suite.chainA.GetSimApp().GetMemKey(capabilitytypes.MemStoreKey))
 	memStore.Delete(capabilitytypes.KeyMemInitialized)
 

@@ -10,7 +10,7 @@ import (
 	"github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
 )
 
-func (suite *MerkleTestSuite) TestVerifyMembership() {
+func (s *MerkleTestSuite) TestVerifyMembership() {
 	suite.iavlStore.Set([]byte("MYKEY"), []byte("MYVALUE"))
 	cid := suite.store.Commit()
 
@@ -74,7 +74,7 @@ func (suite *MerkleTestSuite) TestVerifyMembership() {
 	}
 }
 
-func (suite *MerkleTestSuite) TestVerifyNonMembership() {
+func (s *MerkleTestSuite) TestVerifyNonMembership() {
 	suite.iavlStore.Set([]byte("MYKEY"), []byte("MYVALUE"))
 	cid := suite.store.Commit()
 

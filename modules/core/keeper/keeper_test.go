@@ -26,7 +26,7 @@ type KeeperTestSuite struct {
 	chainB *ibctesting.TestChain
 }
 
-func (suite *KeeperTestSuite) SetupTest() {
+func (s *KeeperTestSuite) SetupTest() {
 	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2)
 
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
@@ -57,7 +57,7 @@ func (d MockStakingKeeper) UnbondingTime(ctx sdk.Context) time.Duration {
 
 // Test ibckeeper.NewKeeper used to initialize IBCKeeper when creating an app instance.
 // It verifies if ibckeeper.NewKeeper panic when any of the keepers passed in is empty.
-func (suite *KeeperTestSuite) TestNewKeeper() {
+func (s *KeeperTestSuite) TestNewKeeper() {
 	var (
 		stakingKeeper  clienttypes.StakingKeeper
 		upgradeKeeper  clienttypes.UpgradeKeeper

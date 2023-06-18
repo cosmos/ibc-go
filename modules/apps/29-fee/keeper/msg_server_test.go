@@ -14,7 +14,7 @@ import (
 	ibcmock "github.com/cosmos/ibc-go/v7/testing/mock"
 )
 
-func (suite *KeeperTestSuite) TestRegisterPayee() {
+func (s *KeeperTestSuite) TestRegisterPayee() {
 	var msg *types.MsgRegisterPayee
 
 	testCases := []struct {
@@ -90,7 +90,7 @@ func (suite *KeeperTestSuite) TestRegisterPayee() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestRegisterCounterpartyPayee() {
+func (s *KeeperTestSuite) TestRegisterCounterpartyPayee() {
 	var (
 		msg                  *types.MsgRegisterCounterpartyPayee
 		expCounterpartyPayee string
@@ -164,7 +164,7 @@ func (suite *KeeperTestSuite) TestRegisterCounterpartyPayee() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestPayPacketFee() {
+func (s *KeeperTestSuite) TestPayPacketFee() {
 	var (
 		expEscrowBalance sdk.Coins
 		expFeesInEscrow  []types.PacketFee
@@ -338,7 +338,7 @@ func (suite *KeeperTestSuite) TestPayPacketFee() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestPayPacketFeeAsync() {
+func (s *KeeperTestSuite) TestPayPacketFeeAsync() {
 	var (
 		packet           channeltypes.Packet
 		expEscrowBalance sdk.Coins

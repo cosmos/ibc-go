@@ -15,7 +15,7 @@ import (
 
 // test sending from chainA to chainB using both coin that orignate on
 // chainA and coin that orignate on chainB
-func (suite *KeeperTestSuite) TestSendTransfer() {
+func (s *KeeperTestSuite) TestSendTransfer() {
 	var (
 		coin            sdk.Coin
 		path            *ibctesting.Path
@@ -158,7 +158,7 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestSendTransferSetsTotalEscrowAmountForSourceIBCToken() {
+func (s *KeeperTestSuite) TestSendTransferSetsTotalEscrowAmountForSourceIBCToken() {
 	/*
 		Given the following flow of tokens:
 
@@ -240,7 +240,7 @@ func (suite *KeeperTestSuite) TestSendTransferSetsTotalEscrowAmountForSourceIBCT
 // coin that originated on chainB (source). The bulk of the testing occurs
 // in the test case for loop since setup is intensive for all cases. The
 // malleate function allows for testing invalid cases.
-func (suite *KeeperTestSuite) TestOnRecvPacket() {
+func (s *KeeperTestSuite) TestOnRecvPacket() {
 	var (
 		trace           types.DenomTrace
 		amount          sdkmath.Int
@@ -405,7 +405,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestOnRecvPacketSetsTotalEscrowAmountForSourceIBCToken() {
+func (s *KeeperTestSuite) TestOnRecvPacketSetsTotalEscrowAmountForSourceIBCToken() {
 	/*
 		Given the following flow of tokens:
 
@@ -502,7 +502,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacketSetsTotalEscrowAmountForSourceIBCT
 // and failure acknowledment leads to refund when attempting to send from chainA
 // to chainB. If sender is source then the denomination being refunded has no
 // trace
-func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
+func (s *KeeperTestSuite) TestOnAcknowledgementPacket() {
 	var (
 		successAck      = channeltypes.NewResultAcknowledgement([]byte{byte(1)})
 		failedAck       = channeltypes.NewErrorAcknowledgement(fmt.Errorf("failed packet transfer"))
@@ -603,7 +603,7 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestOnAcknowledgementPacketSetsTotalEscrowAmountForSourceIBCToken() {
+func (s *KeeperTestSuite) TestOnAcknowledgementPacketSetsTotalEscrowAmountForSourceIBCToken() {
 	/*
 		This test is testing the following scenario. Given tokens travelling like this:
 
@@ -693,7 +693,7 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacketSetsTotalEscrowAmountFo
 // wrapper over it. The actual timeout does not matter since IBC core logic
 // is not being tested. The test is timing out a send from chainA to chainB
 // so the refunds are occurring on chainA.
-func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
+func (s *KeeperTestSuite) TestOnTimeoutPacket() {
 	var (
 		trace           types.DenomTrace
 		path            *ibctesting.Path
@@ -800,7 +800,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestOnTimeoutPacketSetsTotalEscrowAmountForSourceIBCToken() {
+func (s *KeeperTestSuite) TestOnTimeoutPacketSetsTotalEscrowAmountForSourceIBCToken() {
 	/*
 		Given the following flow of tokens:
 

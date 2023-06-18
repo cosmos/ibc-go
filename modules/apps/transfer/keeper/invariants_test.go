@@ -8,7 +8,7 @@ import (
 	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 )
 
-func (suite *KeeperTestSuite) TestTotalEscrowPerDenomInvariant() {
+func (s *KeeperTestSuite) TestTotalEscrowPerDenomInvariant() {
 	testCases := []struct {
 		name     string
 		malleate func()

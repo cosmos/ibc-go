@@ -69,7 +69,7 @@ type KeeperTestSuite struct {
 	signers map[string]tmtypes.PrivValidator
 }
 
-func (suite *KeeperTestSuite) SetupTest() {
+func (s *KeeperTestSuite) SetupTest() {
 	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2)
 
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
@@ -125,7 +125,7 @@ func TestKeeperTestSuite(t *testing.T) {
 	suite.Run(t, new(KeeperTestSuite))
 }
 
-func (suite *KeeperTestSuite) TestSetClientState() {
+func (s *KeeperTestSuite) TestSetClientState() {
 	clientState := ibctm.NewClientState(testChainID, ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, types.ZeroHeight(), commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath)
 	suite.keeper.SetClientState(suite.ctx, testClientID, clientState)
 
@@ -134,7 +134,7 @@ func (suite *KeeperTestSuite) TestSetClientState() {
 	suite.Require().Equal(clientState, retrievedState, "Client states are not equal")
 }
 
-func (suite *KeeperTestSuite) TestSetClientConsensusState() {
+func (s *KeeperTestSuite) TestSetClientConsensusState() {
 	suite.keeper.SetClientConsensusState(suite.ctx, testClientID, testClientHeight, suite.consensusState)
 
 	retrievedConsState, found := suite.keeper.GetClientConsensusState(suite.ctx, testClientID, testClientHeight)
@@ -145,7 +145,7 @@ func (suite *KeeperTestSuite) TestSetClientConsensusState() {
 	suite.Require().Equal(suite.consensusState, tmConsState, "ConsensusState not stored correctly")
 }
 
-func (suite *KeeperTestSuite) TestValidateSelfClient() {
+func (s *KeeperTestSuite) TestValidateSelfClient() {
 	testClientHeight := types.GetSelfHeight(suite.chainA.GetContext())
 	testClientHeight.RevisionHeight--
 
@@ -453,7 +453,7 @@ func (suite KeeperTestSuite) TestIterateClientStates() { //nolint:govet // this 
 }
 
 // TestDefaultSetParams tests the default params set are what is expected
-func (suite *KeeperTestSuite) TestDefaultSetParams() {
+func (s *KeeperTestSuite) TestDefaultSetParams() {
 	expParams := types.DefaultParams()
 
 	clientKeeper := suite.chainA.App.GetIBCKeeper().ClientKeeper
@@ -464,7 +464,7 @@ func (suite *KeeperTestSuite) TestDefaultSetParams() {
 }
 
 // TestParams tests that Param setting and retrieval works properly
-func (suite *KeeperTestSuite) TestParams() {
+func (s *KeeperTestSuite) TestParams() {
 	testCases := []struct {
 		name    string
 		input   types.Params
@@ -497,7 +497,7 @@ func (suite *KeeperTestSuite) TestParams() {
 }
 
 // TestUnsetParams tests that trying to get params that are not set panics.
-func (suite *KeeperTestSuite) TestUnsetParams() {
+func (s *KeeperTestSuite) TestUnsetParams() {
 	suite.SetupTest()
 	ctx := suite.chainA.GetContext()
 	store := ctx.KVStore(suite.chainA.GetSimApp().GetKey(exported.StoreKey))

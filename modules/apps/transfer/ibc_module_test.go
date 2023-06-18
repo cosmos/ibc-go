@@ -12,7 +12,7 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
-func (suite *TransferTestSuite) TestOnChanOpenInit() {
+func (s *TransferTestSuite) TestOnChanOpenInit() {
 	var (
 		channel      *channeltypes.Channel
 		path         *ibctesting.Path
@@ -101,7 +101,7 @@ func (suite *TransferTestSuite) TestOnChanOpenInit() {
 	}
 }
 
-func (suite *TransferTestSuite) TestOnChanOpenTry() {
+func (s *TransferTestSuite) TestOnChanOpenTry() {
 	var (
 		channel             *channeltypes.Channel
 		chanCap             *capabilitytypes.Capability
@@ -192,7 +192,7 @@ func (suite *TransferTestSuite) TestOnChanOpenTry() {
 	}
 }
 
-func (suite *TransferTestSuite) TestOnChanOpenAck() {
+func (s *TransferTestSuite) TestOnChanOpenAck() {
 	var counterpartyVersion string
 
 	testCases := []struct {

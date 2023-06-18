@@ -8,7 +8,7 @@ import (
 	ibcmock "github.com/cosmos/ibc-go/v7/testing/mock"
 )
 
-func (suite *KeeperTestSuite) TestWriteAcknowledgementAsync() {
+func (s *KeeperTestSuite) TestWriteAcknowledgementAsync() {
 	testCases := []struct {
 		name     string
 		malleate func()
@@ -76,7 +76,7 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgementAsync() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestWriteAcknowledgementAsyncFeeDisabled() {
+func (s *KeeperTestSuite) TestWriteAcknowledgementAsyncFeeDisabled() {
 	// open incentivized channel
 	suite.coordinator.Setup(suite.path)
 	suite.chainB.GetSimApp().IBCFeeKeeper.DeleteFeeEnabled(suite.chainB.GetContext(), suite.path.EndpointB.ChannelConfig.PortID, "channel-0")
@@ -104,7 +104,7 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgementAsyncFeeDisabled() {
 	suite.Require().Equal(packetAck, channeltypes.CommitAcknowledgement(ack.Acknowledgement()))
 }
 
-func (suite *KeeperTestSuite) TestGetAppVersion() {
+func (s *KeeperTestSuite) TestGetAppVersion() {
 	var (
 		portID        string
 		channelID     string

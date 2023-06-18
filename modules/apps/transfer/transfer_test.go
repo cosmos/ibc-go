@@ -23,7 +23,7 @@ type TransferTestSuite struct {
 	chainC *ibctesting.TestChain
 }
 
-func (suite *TransferTestSuite) SetupTest() {
+func (s *TransferTestSuite) SetupTest() {
 	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 3)
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
 	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
@@ -44,7 +44,7 @@ func NewTransferPath(chainA, chainB *ibctesting.TestChain) *ibctesting.Path {
 // 1 - from chainA to chainB
 // 2 - from chainB to chainC
 // 3 - from chainC to chainB
-func (suite *TransferTestSuite) TestHandleMsgTransfer() {
+func (s *TransferTestSuite) TestHandleMsgTransfer() {
 	// setup between chainA and chainB
 	// NOTE:
 	// pathAtoB.EndpointA = endpoint on chainA

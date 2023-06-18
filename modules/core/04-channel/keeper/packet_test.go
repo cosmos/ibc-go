@@ -28,7 +28,7 @@ var (
 )
 
 // TestSendPacket tests SendPacket from chainA to chainB
-func (suite *KeeperTestSuite) TestSendPacket() {
+func (s *KeeperTestSuite) TestSendPacket() {
 	var (
 		path             *ibctesting.Path
 		sourcePort       string
@@ -256,7 +256,7 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 // TestRecvPacket test RecvPacket on chainB. Since packet commitment verification will always
 // occur last (resource instensive), only tests expected to succeed and packet commitment
 // verification tests need to simulate sending a packet from chainA to chainB.
-func (suite *KeeperTestSuite) TestRecvPacket() {
+func (s *KeeperTestSuite) TestRecvPacket() {
 	var (
 		path       *ibctesting.Path
 		packet     exported.PacketI
@@ -518,7 +518,7 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
+func (s *KeeperTestSuite) TestWriteAcknowledgement() {
 	var (
 		path       *ibctesting.Path
 		ack        exported.Acknowledgement
@@ -615,7 +615,7 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 }
 
 // TestAcknowledgePacket tests the call AcknowledgePacket on chainA.
-func (suite *KeeperTestSuite) TestAcknowledgePacket() {
+func (s *KeeperTestSuite) TestAcknowledgePacket() {
 	var (
 		path   *ibctesting.Path
 		packet types.Packet

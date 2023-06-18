@@ -45,7 +45,7 @@ type IBCTestSuite struct {
 }
 
 // SetupTest creates a coordinator with 2 test chains.
-func (suite *IBCTestSuite) SetupTest() {
+func (s *IBCTestSuite) SetupTest() {
 	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2)
 
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
@@ -56,7 +56,7 @@ func TestIBCTestSuite(t *testing.T) {
 	suite.Run(t, new(IBCTestSuite))
 }
 
-func (suite *IBCTestSuite) TestValidateGenesis() {
+func (s *IBCTestSuite) TestValidateGenesis() {
 	header := suite.chainA.CreateTMClientHeader(suite.chainA.ChainID, suite.chainA.CurrentHeader.Height, clienttypes.NewHeight(0, uint64(suite.chainA.CurrentHeader.Height-1)), suite.chainA.CurrentHeader.Time, suite.chainA.Vals, suite.chainA.Vals, suite.chainA.Vals, suite.chainA.Signers)
 
 	testCases := []struct {
@@ -216,7 +216,7 @@ func (suite *IBCTestSuite) TestValidateGenesis() {
 	}
 }
 
-func (suite *IBCTestSuite) TestInitGenesis() {
+func (s *IBCTestSuite) TestInitGenesis() {
 	header := suite.chainA.CreateTMClientHeader(suite.chainA.ChainID, suite.chainA.CurrentHeader.Height, clienttypes.NewHeight(0, uint64(suite.chainA.CurrentHeader.Height-1)), suite.chainA.CurrentHeader.Time, suite.chainA.Vals, suite.chainA.Vals, suite.chainA.Vals, suite.chainA.Signers)
 
 	testCases := []struct {
@@ -314,7 +314,7 @@ func (suite *IBCTestSuite) TestInitGenesis() {
 	}
 }
 
-func (suite *IBCTestSuite) TestExportGenesis() {
+func (s *IBCTestSuite) TestExportGenesis() {
 	testCases := []struct {
 		msg      string
 		malleate func()

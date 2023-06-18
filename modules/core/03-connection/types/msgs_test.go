@@ -42,7 +42,7 @@ type MsgTestSuite struct {
 	proof []byte
 }
 
-func (suite *MsgTestSuite) SetupTest() {
+func (s *MsgTestSuite) SetupTest() {
 	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2)
 
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
@@ -80,7 +80,7 @@ func TestMsgTestSuite(t *testing.T) {
 	suite.Run(t, new(MsgTestSuite))
 }
 
-func (suite *MsgTestSuite) TestNewMsgConnectionOpenInit() {
+func (s *MsgTestSuite) TestNewMsgConnectionOpenInit() {
 	prefix := commitmenttypes.NewMerklePrefix([]byte("storePrefixKey"))
 	// empty versions are considered valid, the default compatible versions
 	// will be used in protocol.
@@ -111,7 +111,7 @@ func (suite *MsgTestSuite) TestNewMsgConnectionOpenInit() {
 	}
 }
 
-func (suite *MsgTestSuite) TestNewMsgConnectionOpenTry() {
+func (s *MsgTestSuite) TestNewMsgConnectionOpenTry() {
 	prefix := commitmenttypes.NewMerklePrefix([]byte("storePrefixKey"))
 
 	clientState := ibctm.NewClientState(
@@ -166,7 +166,7 @@ func (suite *MsgTestSuite) TestNewMsgConnectionOpenTry() {
 	}
 }
 
-func (suite *MsgTestSuite) TestNewMsgConnectionOpenAck() {
+func (s *MsgTestSuite) TestNewMsgConnectionOpenAck() {
 	clientState := ibctm.NewClientState(
 		chainID, ibctm.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod, ibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath,
 	)
@@ -212,7 +212,7 @@ func (suite *MsgTestSuite) TestNewMsgConnectionOpenAck() {
 	}
 }
 
-func (suite *MsgTestSuite) TestNewMsgConnectionOpenConfirm() {
+func (s *MsgTestSuite) TestNewMsgConnectionOpenConfirm() {
 	testCases := []struct {
 		name    string
 		msg     *types.MsgConnectionOpenConfirm
@@ -235,7 +235,7 @@ func (suite *MsgTestSuite) TestNewMsgConnectionOpenConfirm() {
 }
 
 // TestMsgUpdateParamsValidateBasic tests ValidateBasic for MsgUpdateParams
-func (suite *MsgTestSuite) TestMsgUpdateParamsValidateBasic() {
+func (s *MsgTestSuite) TestMsgUpdateParamsValidateBasic() {
 	authority := suite.chainA.App.GetIBCKeeper().GetAuthority()
 	testCases := []struct {
 		name    string

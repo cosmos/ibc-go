@@ -26,7 +26,7 @@ type AuthzTransferTestSuite struct {
 	testsuite.E2ETestSuite
 }
 
-func (suite *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
+func (s *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 	t := suite.T()
 	ctx := context.TODO()
 
@@ -175,7 +175,7 @@ func (suite *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 	})
 }
 
-func (suite *AuthzTransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
+func (s *AuthzTransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 	t := suite.T()
 	ctx := context.TODO()
 
@@ -318,7 +318,7 @@ func (suite *AuthzTransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 
 // extractTransferAuthorizationFromGrantAuthorization extracts a TransferAuthorization from the given
 // GrantAuthorization.
-func (suite *AuthzTransferTestSuite) extractTransferAuthorizationFromGrantAuthorization(grantAuth *authz.GrantAuthorization) *transfertypes.TransferAuthorization {
+func (s *AuthzTransferTestSuite) extractTransferAuthorizationFromGrantAuthorization(grantAuth *authz.GrantAuthorization) *transfertypes.TransferAuthorization {
 	cfg := testsuite.EncodingConfig()
 	var authorization authz.Authorization
 	err := cfg.InterfaceRegistry.UnpackAny(grantAuth.Authorization, &authorization)

@@ -7,7 +7,7 @@ import (
 	icahosttypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/types"
 )
 
-func (suite *KeeperTestSuite) TestMigratorMigrateParams() {
+func (s *KeeperTestSuite) TestMigratorMigrateParams() {
 	testCases := []struct {
 		msg            string
 		malleate       func()

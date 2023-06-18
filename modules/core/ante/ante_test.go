@@ -28,7 +28,7 @@ type AnteTestSuite struct {
 }
 
 // SetupTest creates a coordinator with 2 test chains.
-func (suite *AnteTestSuite) SetupTest() {
+func (s *AnteTestSuite) SetupTest() {
 	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2)
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
 	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
@@ -45,7 +45,7 @@ func TestAnteTestSuite(t *testing.T) {
 }
 
 // createRecvPacketMessage creates a RecvPacket message for a packet sent from chain A to chain B.
-func (suite *AnteTestSuite) createRecvPacketMessage(isRedundant bool) sdk.Msg {
+func (s *AnteTestSuite) createRecvPacketMessage(isRedundant bool) sdk.Msg {
 	sequence, err := suite.path.EndpointA.SendPacket(clienttypes.NewHeight(2, 0), 0, ibctesting.MockPacketData)
 	suite.Require().NoError(err)
 
@@ -69,7 +69,7 @@ func (suite *AnteTestSuite) createRecvPacketMessage(isRedundant bool) sdk.Msg {
 }
 
 // createAcknowledgementMessage creates an Acknowledgement message for a packet sent from chain B to chain A.
-func (suite *AnteTestSuite) createAcknowledgementMessage(isRedundant bool) sdk.Msg {
+func (s *AnteTestSuite) createAcknowledgementMessage(isRedundant bool) sdk.Msg {
 	sequence, err := suite.path.EndpointB.SendPacket(clienttypes.NewHeight(2, 0), 0, ibctesting.MockPacketData)
 	suite.Require().NoError(err)
 
@@ -92,7 +92,7 @@ func (suite *AnteTestSuite) createAcknowledgementMessage(isRedundant bool) sdk.M
 }
 
 // createTimeoutMessage creates an Timeout message for a packet sent from chain B to chain A.
-func (suite *AnteTestSuite) createTimeoutMessage(isRedundant bool) sdk.Msg {
+func (s *AnteTestSuite) createTimeoutMessage(isRedundant bool) sdk.Msg {
 	height := suite.chainA.LastHeader.GetHeight()
 	timeoutHeight := clienttypes.NewHeight(height.GetRevisionNumber(), height.GetRevisionHeight()+1)
 
@@ -121,7 +121,7 @@ func (suite *AnteTestSuite) createTimeoutMessage(isRedundant bool) sdk.Msg {
 }
 
 // createTimeoutOnCloseMessage creates an TimeoutOnClose message for a packet sent from chain B to chain A.
-func (suite *AnteTestSuite) createTimeoutOnCloseMessage(isRedundant bool) sdk.Msg {
+func (s *AnteTestSuite) createTimeoutOnCloseMessage(isRedundant bool) sdk.Msg {
 	height := suite.chainA.LastHeader.GetHeight()
 	timeoutHeight := clienttypes.NewHeight(height.GetRevisionNumber(), height.GetRevisionHeight()+1)
 
@@ -149,7 +149,7 @@ func (suite *AnteTestSuite) createTimeoutOnCloseMessage(isRedundant bool) sdk.Ms
 	return channeltypes.NewMsgTimeoutOnClose(packet, 1, proof, proofClosed, proofHeight, suite.path.EndpointA.Chain.SenderAccount.GetAddress().String())
 }
 
-func (suite *AnteTestSuite) createUpdateClientMessage() sdk.Msg {
+func (s *AnteTestSuite) createUpdateClientMessage() sdk.Msg {
 	endpoint := suite.path.EndpointB
 
 	// ensure counterparty has committed state
@@ -173,7 +173,7 @@ func (suite *AnteTestSuite) createUpdateClientMessage() sdk.Msg {
 	return msg
 }
 
-func (suite *AnteTestSuite) TestAnteDecorator() {
+func (s *AnteTestSuite) TestAnteDecorator() {
 	testCases := []struct {
 		name     string
 		malleate func(suite *AnteTestSuite) []sdk.Msg

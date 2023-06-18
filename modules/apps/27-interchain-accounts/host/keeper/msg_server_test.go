@@ -5,7 +5,7 @@ import (
 	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/types"
 )
 
-func (suite *KeeperTestSuite) TestUpdateParams() {
+func (s *KeeperTestSuite) TestUpdateParams() {
 	msg := types.MsgUpdateParams{}
 
 	testCases := []struct {

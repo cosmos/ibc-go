@@ -10,7 +10,7 @@ import (
 )
 
 // TestMsgTransfer tests Transfer rpc handler
-func (suite *KeeperTestSuite) TestMsgTransfer() {
+func (s *KeeperTestSuite) TestMsgTransfer() {
 	var msg *types.MsgTransfer
 
 	testCases := []struct {
@@ -129,7 +129,7 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 }
 
 // TestUpdateParams tests UpdateParams rpc handler
-func (suite *KeeperTestSuite) TestUpdateParams() {
+func (s *KeeperTestSuite) TestUpdateParams() {
 	validAuthority := suite.chainA.GetSimApp().TransferKeeper.GetAuthority()
 	testCases := []struct {
 		name    string

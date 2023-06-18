@@ -24,7 +24,7 @@ type KeeperTestSuite struct {
 	keeper *keeper.Keeper
 }
 
-func (suite *KeeperTestSuite) SetupTest() {
+func (s *KeeperTestSuite) SetupTest() {
 	isCheckTx := false
 	app := simapp.Setup(isCheckTx)
 
@@ -36,7 +36,7 @@ func TestKeeperTestSuite(t *testing.T) {
 	suite.Run(t, new(KeeperTestSuite))
 }
 
-func (suite *KeeperTestSuite) TestBind() {
+func (s *KeeperTestSuite) TestBind() {
 	// Test that invalid portID causes panic
 	require.Panics(suite.T(), func() { suite.keeper.BindPort(suite.ctx, invalidPort) }, "Did not panic on invalid portID")
 
@@ -54,7 +54,7 @@ func (suite *KeeperTestSuite) TestBind() {
 	require.Panics(suite.T(), func() { suite.keeper.BindPort(suite.ctx, validPort) }, "did not panic on re-binding the same port")
 }
 
-func (suite *KeeperTestSuite) TestAuthenticate() {
+func (s *KeeperTestSuite) TestAuthenticate() {
 	capKey := suite.keeper.BindPort(suite.ctx, validPort)
 
 	// Require that passing in invalid portID causes panic

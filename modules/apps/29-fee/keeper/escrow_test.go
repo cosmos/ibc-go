@@ -11,7 +11,7 @@ import (
 	"github.com/cosmos/ibc-go/v7/testing/mock"
 )
 
-func (suite *KeeperTestSuite) TestDistributeFee() {
+func (s *KeeperTestSuite) TestDistributeFee() {
 	var (
 		forwardRelayer    string
 		forwardRelayerBal sdk.Coin
@@ -199,7 +199,7 @@ func (suite *KeeperTestSuite) TestDistributeFee() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestDistributePacketFeesOnTimeout() {
+func (s *KeeperTestSuite) TestDistributePacketFeesOnTimeout() {
 	var (
 		timeoutRelayer    sdk.AccAddress
 		timeoutRelayerBal sdk.Coin
@@ -312,7 +312,7 @@ func (suite *KeeperTestSuite) TestDistributePacketFeesOnTimeout() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestRefundFeesOnChannelClosure() {
+func (s *KeeperTestSuite) TestRefundFeesOnChannelClosure() {
 	var (
 		expIdentifiedPacketFees     []types.IdentifiedPacketFees
 		expEscrowBal                sdk.Coins

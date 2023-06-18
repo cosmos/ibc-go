@@ -28,11 +28,11 @@ func TestICATestSuite(t *testing.T) {
 	suite.Run(t, new(InterchainAccountsTestSuite))
 }
 
-func (suite *InterchainAccountsTestSuite) SetupTest() {
+func (s *InterchainAccountsTestSuite) SetupTest() {
 	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2)
 }
 
-func (suite *InterchainAccountsTestSuite) TestInitModule() {
+func (s *InterchainAccountsTestSuite) TestInitModule() {
 	// setup and basic testing
 	chainID := "testchain"
 	app := simapp.NewSimApp(log.NewNopLogger(), dbm.NewMemDB(), nil, true, map[int64]bool{}, simapp.DefaultNodeHome, 5, simapp.MakeTestEncodingConfig(), simtestutil.EmptyAppOptions{}, baseapp.SetChainID(chainID))

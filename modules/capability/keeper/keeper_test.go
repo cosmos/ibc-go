@@ -26,7 +26,7 @@ type KeeperTestSuite struct {
 	keeper *keeper.Keeper
 }
 
-func (suite *KeeperTestSuite) SetupTest() {
+func (s *KeeperTestSuite) SetupTest() {
 	key := sdk.NewKVStoreKey(types.StoreKey)
 	testCtx := testutil.DefaultContextWithDB(suite.T(), key, sdk.NewTransientStoreKey("transient_test"))
 	suite.ctx = testCtx.Ctx
@@ -34,7 +34,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 	suite.keeper = keeper.NewKeeper(encCfg.Codec, key, key)
 }
 
-func (suite *KeeperTestSuite) TestSeal() {
+func (s *KeeperTestSuite) TestSeal() {
 	sk := suite.keeper.ScopeToModule(bankModuleName)
 	suite.Require().Panics(func() {
 		suite.keeper.ScopeToModule("  ")
@@ -73,7 +73,7 @@ func (suite *KeeperTestSuite) TestSeal() {
 	})
 }
 
-func (suite *KeeperTestSuite) TestNewCapability() {
+func (s *KeeperTestSuite) TestNewCapability() {
 	sk := suite.keeper.ScopeToModule(bankModuleName)
 
 	got, ok := sk.GetCapability(suite.ctx, "transfer")
@@ -112,7 +112,7 @@ func (suite *KeeperTestSuite) TestNewCapability() {
 	suite.Require().Nil(cap)
 }
 
-func (suite *KeeperTestSuite) TestAuthenticateCapability() {
+func (s *KeeperTestSuite) TestAuthenticateCapability() {
 	sk1 := suite.keeper.ScopeToModule(bankModuleName)
 	sk2 := suite.keeper.ScopeToModule(stakingModuleName)
 
@@ -151,7 +151,7 @@ func (suite *KeeperTestSuite) TestAuthenticateCapability() {
 	suite.Require().False(sk1.AuthenticateCapability(suite.ctx, nil, "transfer"))
 }
 
-func (suite *KeeperTestSuite) TestClaimCapability() {
+func (s *KeeperTestSuite) TestClaimCapability() {
 	sk1 := suite.keeper.ScopeToModule(bankModuleName)
 	sk2 := suite.keeper.ScopeToModule(stakingModuleName)
 	sk3 := suite.keeper.ScopeToModule("foo")
@@ -175,7 +175,7 @@ func (suite *KeeperTestSuite) TestClaimCapability() {
 	suite.Require().Error(sk3.ClaimCapability(suite.ctx, nil, "transfer"))
 }
 
-func (suite *KeeperTestSuite) TestGetOwners() {
+func (s *KeeperTestSuite) TestGetOwners() {
 	sk1 := suite.keeper.ScopeToModule(bankModuleName)
 	sk2 := suite.keeper.ScopeToModule(stakingModuleName)
 	sk3 := suite.keeper.ScopeToModule("foo")
@@ -243,7 +243,7 @@ func (suite *KeeperTestSuite) TestGetOwners() {
 	suite.Require().False(ok, "got owners from empty capability name")
 }
 
-func (suite *KeeperTestSuite) TestReleaseCapability() {
+func (s *KeeperTestSuite) TestReleaseCapability() {
 	sk1 := suite.keeper.ScopeToModule(bankModuleName)
 	sk2 := suite.keeper.ScopeToModule(stakingModuleName)
 

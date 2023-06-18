@@ -25,7 +25,7 @@ var (
 )
 
 // Tests OnChanOpenInit on ChainA
-func (suite *FeeTestSuite) TestOnChanOpenInit() {
+func (s *FeeTestSuite) TestOnChanOpenInit() {
 	testCases := []struct {
 		name         string
 		version      string
@@ -138,7 +138,7 @@ func (suite *FeeTestSuite) TestOnChanOpenInit() {
 }
 
 // Tests OnChanOpenTry on ChainA
-func (suite *FeeTestSuite) TestOnChanOpenTry() {
+func (s *FeeTestSuite) TestOnChanOpenTry() {
 	testCases := []struct {
 		name      string
 		cpVersion string
@@ -225,7 +225,7 @@ func (suite *FeeTestSuite) TestOnChanOpenTry() {
 }
 
 // Tests OnChanOpenAck on ChainA
-func (suite *FeeTestSuite) TestOnChanOpenAck() {
+func (s *FeeTestSuite) TestOnChanOpenAck() {
 	testCases := []struct {
 		name      string
 		cpVersion string
@@ -308,7 +308,7 @@ func (suite *FeeTestSuite) TestOnChanOpenAck() {
 	}
 }
 
-func (suite *FeeTestSuite) TestOnChanCloseInit() {
+func (s *FeeTestSuite) TestOnChanCloseInit() {
 	var (
 		refundAcc sdk.AccAddress
 		fee       types.Fee
@@ -397,7 +397,7 @@ func (suite *FeeTestSuite) TestOnChanCloseInit() {
 }
 
 // Tests OnChanCloseConfirm on chainA
-func (suite *FeeTestSuite) TestOnChanCloseConfirm() {
+func (s *FeeTestSuite) TestOnChanCloseConfirm() {
 	var (
 		refundAcc sdk.AccAddress
 		fee       types.Fee
@@ -486,7 +486,7 @@ func (suite *FeeTestSuite) TestOnChanCloseConfirm() {
 	}
 }
 
-func (suite *FeeTestSuite) TestOnRecvPacket() {
+func (s *FeeTestSuite) TestOnRecvPacket() {
 	testCases := []struct {
 		name     string
 		malleate func()
@@ -594,7 +594,7 @@ func (suite *FeeTestSuite) TestOnRecvPacket() {
 	}
 }
 
-func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
+func (s *FeeTestSuite) TestOnAcknowledgementPacket() {
 	var (
 		ack                 []byte
 		packetID            channeltypes.PacketId
@@ -822,7 +822,7 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 	}
 }
 
-func (suite *FeeTestSuite) TestOnTimeoutPacket() {
+func (s *FeeTestSuite) TestOnTimeoutPacket() {
 	var (
 		packetID            channeltypes.PacketId
 		packetFee           types.PacketFee
@@ -1005,7 +1005,7 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 	}
 }
 
-func (suite *FeeTestSuite) TestGetAppVersion() {
+func (s *FeeTestSuite) TestGetAppVersion() {
 	var (
 		portID        string
 		channelID     string

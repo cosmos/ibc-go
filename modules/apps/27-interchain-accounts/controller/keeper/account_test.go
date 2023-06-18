@@ -7,7 +7,7 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
-func (suite *KeeperTestSuite) TestRegisterInterchainAccount() {
+func (s *KeeperTestSuite) TestRegisterInterchainAccount() {
 	var (
 		owner string
 		path  *ibctesting.Path
@@ -83,7 +83,7 @@ func (suite *KeeperTestSuite) TestRegisterInterchainAccount() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestRegisterSameOwnerMultipleConnections() {
+func (s *KeeperTestSuite) TestRegisterSameOwnerMultipleConnections() {
 	suite.SetupTest()
 
 	owner := TestOwnerAddress

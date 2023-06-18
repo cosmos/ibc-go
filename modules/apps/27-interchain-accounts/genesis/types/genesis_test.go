@@ -22,7 +22,7 @@ type GenesisTypesTestSuite struct {
 	suite.Suite
 }
 
-func (suite *GenesisTypesTestSuite) TestValidateGenesisState() {
+func (s *GenesisTypesTestSuite) TestValidateGenesisState() {
 	var genesisState genesistypes.GenesisState
 
 	testCases := []struct {
@@ -75,7 +75,7 @@ func (suite *GenesisTypesTestSuite) TestValidateGenesisState() {
 	}
 }
 
-func (suite *GenesisTypesTestSuite) TestValidateControllerGenesisState() {
+func (s *GenesisTypesTestSuite) TestValidateControllerGenesisState() {
 	var genesisState genesistypes.ControllerGenesisState
 
 	testCases := []struct {
@@ -198,7 +198,7 @@ func (suite *GenesisTypesTestSuite) TestValidateControllerGenesisState() {
 	}
 }
 
-func (suite *GenesisTypesTestSuite) TestValidateHostGenesisState() {
+func (s *GenesisTypesTestSuite) TestValidateHostGenesisState() {
 	var genesisState genesistypes.HostGenesisState
 
 	testCases := []struct {

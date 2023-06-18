@@ -53,7 +53,7 @@ func TestICATestSuite(t *testing.T) {
 	suite.Run(t, new(InterchainAccountsTestSuite))
 }
 
-func (suite *InterchainAccountsTestSuite) SetupTest() {
+func (s *InterchainAccountsTestSuite) SetupTest() {
 	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2)
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
 	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
@@ -112,7 +112,7 @@ func SetupICAPath(path *ibctesting.Path, owner string) error {
 
 // Test initiating a ChanOpenInit using the host chain instead of the controller chain
 // ChainA is the controller chain. ChainB is the host chain
-func (suite *InterchainAccountsTestSuite) TestChanOpenInit() {
+func (s *InterchainAccountsTestSuite) TestChanOpenInit() {
 	suite.SetupTest() // reset
 	path := NewICAPath(suite.chainA, suite.chainB)
 	suite.coordinator.SetupConnections(path)
@@ -125,7 +125,7 @@ func (suite *InterchainAccountsTestSuite) TestChanOpenInit() {
 	suite.Require().Error(err)
 }
 
-func (suite *InterchainAccountsTestSuite) TestOnChanOpenTry() {
+func (s *InterchainAccountsTestSuite) TestOnChanOpenTry() {
 	var (
 		path    *ibctesting.Path
 		channel *channeltypes.Channel
@@ -230,7 +230,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenTry() {
 
 // Test initiating a ChanOpenAck using the host chain instead of the controller chain
 // ChainA is the controller chain. ChainB is the host chain
-func (suite *InterchainAccountsTestSuite) TestChanOpenAck() {
+func (s *InterchainAccountsTestSuite) TestChanOpenAck() {
 	suite.SetupTest() // reset
 	path := NewICAPath(suite.chainA, suite.chainB)
 	suite.coordinator.SetupConnections(path)
@@ -263,7 +263,7 @@ func (suite *InterchainAccountsTestSuite) TestChanOpenAck() {
 	suite.Require().Error(err)
 }
 
-func (suite *InterchainAccountsTestSuite) TestOnChanOpenConfirm() {
+func (s *InterchainAccountsTestSuite) TestOnChanOpenConfirm() {
 	testCases := []struct {
 		name     string
 		malleate func()
@@ -326,7 +326,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenConfirm() {
 }
 
 // OnChanCloseInit on host (chainB)
-func (suite *InterchainAccountsTestSuite) TestOnChanCloseInit() {
+func (s *InterchainAccountsTestSuite) TestOnChanCloseInit() {
 	path := NewICAPath(suite.chainA, suite.chainB)
 	suite.coordinator.SetupConnections(path)
 
@@ -346,7 +346,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanCloseInit() {
 	suite.Require().Error(err)
 }
 
-func (suite *InterchainAccountsTestSuite) TestOnChanCloseConfirm() {
+func (s *InterchainAccountsTestSuite) TestOnChanCloseConfirm() {
 	var path *ibctesting.Path
 
 	testCases := []struct {
@@ -388,7 +388,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanCloseConfirm() {
 	}
 }
 
-func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
+func (s *InterchainAccountsTestSuite) TestOnRecvPacket() {
 	var packetData []byte
 	testCases := []struct {
 		name          string
@@ -492,7 +492,7 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 	}
 }
 
-func (suite *InterchainAccountsTestSuite) TestOnAcknowledgementPacket() {
+func (s *InterchainAccountsTestSuite) TestOnAcknowledgementPacket() {
 	testCases := []struct {
 		name     string
 		malleate func()
@@ -545,7 +545,7 @@ func (suite *InterchainAccountsTestSuite) TestOnAcknowledgementPacket() {
 	}
 }
 
-func (suite *InterchainAccountsTestSuite) TestOnTimeoutPacket() {
+func (s *InterchainAccountsTestSuite) TestOnTimeoutPacket() {
 	testCases := []struct {
 		name     string
 		malleate func()
@@ -598,7 +598,7 @@ func (suite *InterchainAccountsTestSuite) TestOnTimeoutPacket() {
 	}
 }
 
-func (suite *InterchainAccountsTestSuite) fundICAWallet(ctx sdk.Context, portID string, amount sdk.Coins) {
+func (s *InterchainAccountsTestSuite) fundICAWallet(ctx sdk.Context, portID string, amount sdk.Coins) {
 	interchainAccountAddr, found := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(ctx, ibctesting.FirstConnectionID, portID)
 	suite.Require().True(found)
 
@@ -615,7 +615,7 @@ func (suite *InterchainAccountsTestSuite) fundICAWallet(ctx sdk.Context, portID 
 
 // TestControlAccountAfterChannelClose tests that a controller chain can control a registered interchain account after the currently active channel for that interchain account has been closed.
 // A new channel will be opened for the controller portID. The interchain account address should remain unchanged.
-func (suite *InterchainAccountsTestSuite) TestControlAccountAfterChannelClose() {
+func (s *InterchainAccountsTestSuite) TestControlAccountAfterChannelClose() {
 	path := NewICAPath(suite.chainA, suite.chainB)
 
 	// use a fee enabled version to cover unwrapping channel version code paths
@@ -708,7 +708,7 @@ func (suite *InterchainAccountsTestSuite) TestControlAccountAfterChannelClose() 
 
 // assertBalance asserts that the provided address has exactly the expected balance.
 // CONTRACT: the expected balance must only contain one coin denom.
-func (suite *InterchainAccountsTestSuite) assertBalance(addr sdk.AccAddress, expBalance sdk.Coins) {
+func (s *InterchainAccountsTestSuite) assertBalance(addr sdk.AccAddress, expBalance sdk.Coins) {
 	balance := suite.chainB.GetSimApp().BankKeeper.GetBalance(suite.chainB.GetContext(), addr, sdk.DefaultBondDenom)
 	suite.Require().Equal(expBalance[0], balance)
 }

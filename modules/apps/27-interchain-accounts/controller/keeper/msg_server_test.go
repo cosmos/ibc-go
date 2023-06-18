@@ -16,7 +16,7 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
-func (suite *KeeperTestSuite) TestRegisterInterchainAccount_MsgServer() {
+func (s *KeeperTestSuite) TestRegisterInterchainAccount_MsgServer() {
 	var (
 		msg               *types.MsgRegisterInterchainAccount
 		expectedChannelID = "channel-0"
@@ -94,7 +94,7 @@ func (suite *KeeperTestSuite) TestRegisterInterchainAccount_MsgServer() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestSubmitTx() {
+func (s *KeeperTestSuite) TestSubmitTx() {
 	var (
 		path *ibctesting.Path
 		msg  *types.MsgSendTx
@@ -201,7 +201,7 @@ func (suite *KeeperTestSuite) TestSubmitTx() {
 }
 
 // TestUpdateParams tests UpdateParams rpc handler
-func (suite *KeeperTestSuite) TestUpdateParams() {
+func (s *KeeperTestSuite) TestUpdateParams() {
 	validAuthority := suite.chainA.GetSimApp().TransferKeeper.GetAuthority()
 	testCases := []struct {
 		name    string

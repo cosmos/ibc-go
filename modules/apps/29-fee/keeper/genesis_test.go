@@ -6,7 +6,7 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
-func (suite *KeeperTestSuite) TestInitGenesis() {
+func (s *KeeperTestSuite) TestInitGenesis() {
 	packetID := channeltypes.NewPacketID(ibctesting.MockFeePort, ibctesting.FirstChannelID, 1)
 
 	genesisState := types.GenesisState{
@@ -66,7 +66,7 @@ func (suite *KeeperTestSuite) TestInitGenesis() {
 	suite.Require().Equal(genesisState.RegisteredCounterpartyPayees[0].CounterpartyPayee, counterpartyPayeeAddr)
 }
 
-func (suite *KeeperTestSuite) TestExportGenesis() {
+func (s *KeeperTestSuite) TestExportGenesis() {
 	// set fee enabled
 	suite.chainA.GetSimApp().IBCFeeKeeper.SetFeeEnabled(suite.chainA.GetContext(), ibctesting.MockFeePort, ibctesting.FirstChannelID)
 

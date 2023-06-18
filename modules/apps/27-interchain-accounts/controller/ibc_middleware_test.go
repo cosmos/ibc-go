@@ -51,7 +51,7 @@ func TestICATestSuite(t *testing.T) {
 	suite.Run(t, new(InterchainAccountsTestSuite))
 }
 
-func (suite *InterchainAccountsTestSuite) SetupTest() {
+func (s *InterchainAccountsTestSuite) SetupTest() {
 	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 3)
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
 	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
@@ -110,7 +110,7 @@ func SetupICAPath(path *ibctesting.Path, owner string) error {
 	return path.EndpointB.ChanOpenConfirm()
 }
 
-func (suite *InterchainAccountsTestSuite) TestOnChanOpenInit() {
+func (s *InterchainAccountsTestSuite) TestOnChanOpenInit() {
 	var (
 		channel  *channeltypes.Channel
 		isNilApp bool
@@ -260,7 +260,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenInit() {
 // Sending a MsgChanOpenTry will never reach the application callback due to
 // core IBC checks not passing, so a call to the application callback is also
 // done directly.
-func (suite *InterchainAccountsTestSuite) TestChanOpenTry() {
+func (s *InterchainAccountsTestSuite) TestChanOpenTry() {
 	suite.SetupTest() // reset
 	path := NewICAPath(suite.chainA, suite.chainB)
 	suite.coordinator.SetupConnections(path)
@@ -305,7 +305,7 @@ func (suite *InterchainAccountsTestSuite) TestChanOpenTry() {
 	suite.Require().Equal("", version)
 }
 
-func (suite *InterchainAccountsTestSuite) TestOnChanOpenAck() {
+func (s *InterchainAccountsTestSuite) TestOnChanOpenAck() {
 	var (
 		path     *ibctesting.Path
 		isNilApp bool
@@ -400,7 +400,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenAck() {
 // Sending a MsgChanOpenConfirm will never reach the application callback due to
 // core IBC checks not passing, so a call to the application callback is also
 // done directly.
-func (suite *InterchainAccountsTestSuite) TestChanOpenConfirm() {
+func (s *InterchainAccountsTestSuite) TestChanOpenConfirm() {
 	suite.SetupTest() // reset
 	path := NewICAPath(suite.chainA, suite.chainB)
 	suite.coordinator.SetupConnections(path)
@@ -446,7 +446,7 @@ func (suite *InterchainAccountsTestSuite) TestChanOpenConfirm() {
 }
 
 // OnChanCloseInit on controller (chainA)
-func (suite *InterchainAccountsTestSuite) TestOnChanCloseInit() {
+func (s *InterchainAccountsTestSuite) TestOnChanCloseInit() {
 	path := NewICAPath(suite.chainA, suite.chainB)
 	suite.coordinator.SetupConnections(path)
 
@@ -466,7 +466,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanCloseInit() {
 	suite.Require().Error(err)
 }
 
-func (suite *InterchainAccountsTestSuite) TestOnChanCloseConfirm() {
+func (s *InterchainAccountsTestSuite) TestOnChanCloseConfirm() {
 	var (
 		path     *ibctesting.Path
 		isNilApp bool
@@ -521,7 +521,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanCloseConfirm() {
 	}
 }
 
-func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
+func (s *InterchainAccountsTestSuite) TestOnRecvPacket() {
 	testCases := []struct {
 		name     string
 		malleate func()
@@ -569,7 +569,7 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 	}
 }
 
-func (suite *InterchainAccountsTestSuite) TestOnAcknowledgementPacket() {
+func (s *InterchainAccountsTestSuite) TestOnAcknowledgementPacket() {
 	var (
 		path     *ibctesting.Path
 		isNilApp bool
@@ -662,7 +662,7 @@ func (suite *InterchainAccountsTestSuite) TestOnAcknowledgementPacket() {
 	}
 }
 
-func (suite *InterchainAccountsTestSuite) TestOnTimeoutPacket() {
+func (s *InterchainAccountsTestSuite) TestOnTimeoutPacket() {
 	var (
 		path     *ibctesting.Path
 		isNilApp bool
@@ -755,7 +755,7 @@ func (suite *InterchainAccountsTestSuite) TestOnTimeoutPacket() {
 	}
 }
 
-func (suite *InterchainAccountsTestSuite) TestSingleHostMultipleControllers() {
+func (s *InterchainAccountsTestSuite) TestSingleHostMultipleControllers() {
 	var (
 		pathAToB *ibctesting.Path
 		pathCToB *ibctesting.Path
@@ -822,7 +822,7 @@ func (suite *InterchainAccountsTestSuite) TestSingleHostMultipleControllers() {
 	}
 }
 
-func (suite *InterchainAccountsTestSuite) TestGetAppVersion() {
+func (s *InterchainAccountsTestSuite) TestGetAppVersion() {
 	path := NewICAPath(suite.chainA, suite.chainB)
 	suite.coordinator.SetupConnections(path)
 
@@ -841,7 +841,7 @@ func (suite *InterchainAccountsTestSuite) TestGetAppVersion() {
 	suite.Require().Equal(path.EndpointA.ChannelConfig.Version, appVersion)
 }
 
-func (suite *InterchainAccountsTestSuite) TestInFlightHandshakeRespectsGoAPICaller() {
+func (s *InterchainAccountsTestSuite) TestInFlightHandshakeRespectsGoAPICaller() {
 	path := NewICAPath(suite.chainA, suite.chainB)
 	suite.coordinator.SetupConnections(path)
 
@@ -858,7 +858,7 @@ func (suite *InterchainAccountsTestSuite) TestInFlightHandshakeRespectsGoAPICall
 	suite.Require().Nil(res)
 }
 
-func (suite *InterchainAccountsTestSuite) TestInFlightHandshakeRespectsMsgServerCaller() {
+func (s *InterchainAccountsTestSuite) TestInFlightHandshakeRespectsMsgServerCaller() {
 	path := NewICAPath(suite.chainA, suite.chainB)
 	suite.coordinator.SetupConnections(path)
 
@@ -875,7 +875,7 @@ func (suite *InterchainAccountsTestSuite) TestInFlightHandshakeRespectsMsgServer
 	suite.Require().Error(err)
 }
 
-func (suite *InterchainAccountsTestSuite) TestClosedChannelReopensWithMsgServer() {
+func (s *InterchainAccountsTestSuite) TestClosedChannelReopensWithMsgServer() {
 	path := NewICAPath(suite.chainA, suite.chainB)
 	suite.coordinator.SetupConnections(path)
 

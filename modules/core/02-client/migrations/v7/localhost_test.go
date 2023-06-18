@@ -6,7 +6,7 @@ import (
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
-func (suite *MigrationsV7TestSuite) TestMigrateLocalhostClient() {
+func (s *MigrationsV7TestSuite) TestMigrateLocalhostClient() {
 	suite.SetupTest()
 
 	// note: explicitly remove the localhost client before running migration handler
