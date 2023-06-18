@@ -88,12 +88,14 @@ func (suite *TypesTestSuite) SetupTest() {
 	iavlStore.Set([]byte("KEY"), []byte("VALUE"))
 	_ = store.Commit()
 
-	query := abci.RequestQuery{&storetypes.RequestQuery{
+	query := abci.RequestQuery{
 		Data:   []byte("KEY"),
 		Path:   fmt.Sprintf("/%s/key", storeKey.Name()), // required path to get key/value+proof
 		Height: 1,
 		Prove:  true,
-	})
+	}
+
+	res, err := store.Query((*storetypes.RequestQuery)(&query))
 	suite.Require().NoError(err)
 
 	merkleProof, err := commitmenttypes.ConvertProofs(res.ProofOps)
