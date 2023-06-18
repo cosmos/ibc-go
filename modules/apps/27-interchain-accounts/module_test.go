@@ -45,7 +45,7 @@ func (suite *InterchainAccountsTestSuite) TestInitModule() {
 		Time:    suite.coordinator.CurrentTime.UTC(),
 	}
 
-	ctx := app.GetBaseApp().NewContext(true, header)
+	ctx := app.GetBaseApp().NewContext(true)
 
 	// ensure params are not set
 	suite.Require().Panics(func() {
@@ -104,7 +104,7 @@ func (suite *InterchainAccountsTestSuite) TestInitModule() {
 			chainID := "testchain"
 			app = simapp.NewSimApp(log.NewNopLogger(), dbm.NewMemDB(), nil, true, simtestutil.EmptyAppOptions{}, baseapp.SetChainID(chainID))
 
-			ctx := app.GetBaseApp().NewContext(true, header)
+			ctx := app.GetBaseApp().NewContext(true)
 
 			tc.malleate()
 
