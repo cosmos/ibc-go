@@ -54,16 +54,15 @@ issues:
 
 linters-settings:
   gci:
-    # DEPRECATED: use `sections` and `prefix(github.com/org/project)` instead.
     sections:
       - standard # Standard section: captures all standard packages.
       - default # Default section: contains all imports that could not be matched to another section type.
       - blank # blank imports
       - dot # dot imports
-      - prefix(cosmossdk.io) # Custom section: groups all imports with the specified Prefix.
-      - prefix(github.com/cosmos/cosmos-sdk) # Custom section: groups all imports with the specified Prefix.
-      - prefix(github.com/cometbft/cometbft) # Custom section: groups all imports with the specified Prefix.
-      - prefix(github.com/cosmos/ibc-go) # Custom section: groups all imports with the specified Prefix.
+      - prefix(cosmossdk.io)
+      - prefix(github.com/cosmos/cosmos-sdk)
+      - prefix(github.com/cometbft/cometbft)
+      - prefix(github.com/cosmos/ibc-go)
   dogsled:
     max-blank-identifiers: 3
   maligned:
