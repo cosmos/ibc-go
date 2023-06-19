@@ -41,7 +41,6 @@ func (path *Path) SetChannelOrdered() {
 func (path *Path) RelayPacket(packet channeltypes.Packet) error {
 	pc := path.EndpointA.Chain.App.GetIBCKeeper().ChannelKeeper.GetPacketCommitment(path.EndpointA.Chain.GetContext(), packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 	if bytes.Equal(pc, channeltypes.CommitPacket(path.EndpointA.Chain.App.AppCodec(), packet)) {
-
 		// packet found, relay from A to B
 		if err := path.EndpointB.UpdateClient(); err != nil {
 			return err

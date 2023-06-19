@@ -15,7 +15,7 @@ import (
 )
 
 func TestDecodeStore(t *testing.T) {
-	app := simapp.Setup(false)
+	app := simapp.Setup()
 	cdc := app.AppCodec()
 
 	channelID := "channelidone"

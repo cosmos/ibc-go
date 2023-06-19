@@ -73,7 +73,7 @@ type TypesTestSuite struct {
 }
 
 func (s *TypesTestSuite) SetupTest() {
-	app := simapp.Setup(false)
+	app := simapp.Setup()
 	db := dbm.NewMemDB()
 	dblog := log.TestingLogger()
 	store := rootmulti.NewStore(db, dblog)

@@ -58,7 +58,7 @@ func setup(withGenesis bool, invCheckPeriod uint) (*SimApp, GenesisState) {
 }
 
 // Setup initializes a new SimApp. A Nop logger is set in SimApp.
-func Setup(isCheckTx bool) *SimApp {
+func Setup() *SimApp {
 	privVal := mock.NewPV()
 	pubKey, _ := privVal.GetPubKey()
 

@@ -10,7 +10,7 @@ import (
 // ParseIdentifier parses the sequence from the identifier using the provided prefix. This function
 // does not need to be used by counterparty chains. SDK generated connection and channel identifiers
 // are required to use this format.
-func ParseIdentifier(identifier, prefix string) (uint64, error) {
+func ParseIdentifier(identifier, prefix string) (sequence uint64, err error) {
 	if !strings.HasPrefix(identifier, prefix) {
 		return 0, errorsmod.Wrapf(ErrInvalidID, "identifier doesn't contain prefix `%s`", prefix)
 	}
@@ -25,7 +25,7 @@ func ParseIdentifier(identifier, prefix string) (uint64, error) {
 		return 0, errorsmod.Wrapf(ErrInvalidID, "identifier must begin with prefix %s", prefix)
 	}
 
-	sequence, err := strconv.ParseUint(splitStr[1], 10, 64)
+	sequence, err = strconv.ParseUint(splitStr[1], 10, 64)
 	if err != nil {
 		return 0, errorsmod.Wrap(err, "failed to parse identifier sequence")
 	}
@@ -34,7 +34,7 @@ func ParseIdentifier(identifier, prefix string) (uint64, error) {
 
 // MustParseClientStatePath returns the client ID from a client state path. It panics
 // if the provided path is invalid or if the clientID is empty.
-func MustParseClientStatePath(path string) string {
+func MustParseClientStatePath(path string) (clientID string) {
 	clientID, err := parseClientStatePath(path)
 	if err != nil {
 		panic(err.Error())
@@ -45,7 +45,7 @@ func MustParseClientStatePath(path string) string {
 
 // parseClientStatePath returns the client ID from a client state path. It returns
 // an error if the provided path is invalid.
-func parseClientStatePath(path string) (string, error) {
+func parseClientStatePath(path string) (clientID string, err error) {
 	split := strings.Split(path, "/")
 	if len(split) != 3 {
 		return "", errorsmod.Wrapf(ErrInvalidPath, "cannot parse client state path %s", path)
@@ -68,7 +68,7 @@ func parseClientStatePath(path string) (string, error) {
 
 // ParseConnectionPath returns the connection ID from a full path. It returns
 // an error if the provided path is invalid.
-func ParseConnectionPath(path string) (string, error) {
+func ParseConnectionPath(path string) (connectionID string, err error) {
 	split := strings.Split(path, "/")
 	if len(split) != 2 {
 		return "", errorsmod.Wrapf(ErrInvalidPath, "cannot parse connection path %s", path)
@@ -79,7 +79,7 @@ func ParseConnectionPath(path string) (string, error) {
 
 // ParseChannelPath returns the port and channel ID from a full path. It returns
 // an error if the provided path is invalid.
-func ParseChannelPath(path string) (string, string, error) {
+func ParseChannelPath(path string) (portID, channelID string, err error) {
 	split := strings.Split(path, "/")
 	if len(split) < 5 {
 		return "", "", errorsmod.Wrapf(ErrInvalidPath, "cannot parse channel path %s", path)
@@ -94,7 +94,7 @@ func ParseChannelPath(path string) (string, string, error) {
 
 // MustParseConnectionPath returns the connection ID from a full path. Panics
 // if the provided path is invalid.
-func MustParseConnectionPath(path string) string {
+func MustParseConnectionPath(path string) (connectionID string) {
 	connectionID, err := ParseConnectionPath(path)
 	if err != nil {
 		panic(err)
@@ -104,7 +104,7 @@ func MustParseConnectionPath(path string) string {
 
 // MustParseChannelPath returns the port and channel ID from a full path. Panics
 // if the provided path is invalid.
-func MustParseChannelPath(path string) (string, string) {
+func MustParseChannelPath(path string) (portID string, channelID string) {
 	portID, channelID, err := ParseChannelPath(path)
 	if err != nil {
 		panic(err)

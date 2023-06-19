@@ -48,7 +48,7 @@ func (s *MsgTestSuite) SetupTest() {
 	s.chainA = s.coordinator.GetChain(ibctesting.GetChainID(1))
 	s.chainB = s.coordinator.GetChain(ibctesting.GetChainID(2))
 
-	app := simapp.Setup(false)
+	app := simapp.Setup()
 	db := dbm.NewMemDB()
 	dblog := log.TestingLogger()
 	store := rootmulti.NewStore(db, dblog)

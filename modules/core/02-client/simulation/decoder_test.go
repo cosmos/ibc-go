@@ -16,7 +16,7 @@ import (
 )
 
 func TestDecodeStore(t *testing.T) {
-	app := simapp.Setup(false)
+	app := simapp.Setup()
 	clientID := "clientidone"
 
 	height := types.NewHeight(0, 10)
