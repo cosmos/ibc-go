@@ -22,6 +22,7 @@ var (
 )
 
 func TestConnectionValidateBasic(t *testing.T) {
+	t.Parallel()
 	testCases := []struct {
 		name       string
 		connection types.ConnectionEnd
@@ -67,6 +68,7 @@ func TestConnectionValidateBasic(t *testing.T) {
 }
 
 func TestCounterpartyValidateBasic(t *testing.T) {
+	t.Parallel()
 	testCases := []struct {
 		name         string
 		counterparty types.Counterparty
@@ -91,6 +93,7 @@ func TestCounterpartyValidateBasic(t *testing.T) {
 }
 
 func TestIdentifiedConnectionValidateBasic(t *testing.T) {
+	t.Parallel()
 	testCases := []struct {
 		name       string
 		connection types.IdentifiedConnection

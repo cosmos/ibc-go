@@ -11,6 +11,7 @@ import (
 // Test that there is domain separation between the port id and the channel id otherwise an
 // escrow address may overlap with another channel end
 func TestGetEscrowAddress(t *testing.T) {
+	t.Parallel()
 	var (
 		port1    = "transfer"
 		channel1 = "channel"

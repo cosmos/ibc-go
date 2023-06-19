@@ -13,6 +13,7 @@ import (
 )
 
 func TestDecodeStore(t *testing.T) {
+	t.Parallel()
 	var (
 		owner     = "owner"
 		channelID = ibctesting.FirstChannelID
@@ -54,6 +55,7 @@ func TestDecodeStore(t *testing.T) {
 	for i, tt := range tests {
 		i, tt := i, tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			if i == len(tests)-1 {
 				require.Panics(t, func() { dec(kvPairs.Pairs[i], kvPairs.Pairs[i]) }, tt.name)
 			} else {

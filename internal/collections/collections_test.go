@@ -8,6 +8,7 @@ import (
 )
 
 func TestContainsString(t *testing.T) {
+	t.Parallel()
 	testCases := []struct {
 		name     string
 		haystack []string
@@ -26,6 +27,7 @@ func TestContainsString(t *testing.T) {
 }
 
 func TestContainsInt(t *testing.T) {
+	t.Parallel()
 	testCases := []struct {
 		name     string
 		haystack []int

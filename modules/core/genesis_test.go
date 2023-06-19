@@ -53,6 +53,7 @@ func (suite *IBCTestSuite) SetupTest() {
 }
 
 func TestIBCTestSuite(t *testing.T) {
+	t.Parallel()
 	suite.Run(t, new(IBCTestSuite))
 }
 

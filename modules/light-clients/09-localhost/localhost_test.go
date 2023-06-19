@@ -21,5 +21,6 @@ func (suite *LocalhostTestSuite) SetupTest() {
 }
 
 func TestLocalhostTestSuite(t *testing.T) {
+	t.Parallel()
 	suite.Run(t, new(LocalhostTestSuite))
 }

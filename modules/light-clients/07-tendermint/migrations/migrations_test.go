@@ -31,6 +31,7 @@ func (suite *MigrationsTestSuite) SetupTest() {
 }
 
 func TestTendermintTestSuite(t *testing.T) {
+	t.Parallel()
 	suite.Run(t, new(MigrationsTestSuite))
 }
 

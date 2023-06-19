@@ -13,6 +13,7 @@ import (
 )
 
 func TestInitCmd(t *testing.T) {
+	t.Parallel()
 	rootCmd, _ := cmd.NewRootCmd()
 	rootCmd.SetArgs([]string{
 		"init",        // Test the init cmd

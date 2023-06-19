@@ -30,6 +30,7 @@ type MigrationsV7TestSuite struct {
 
 // TestMigrationsV7TestSuite runs all the tests within this package.
 func TestMigrationsV7TestSuite(t *testing.T) {
+	t.Parallel()
 	suite.Run(t, new(MigrationsV7TestSuite))
 }
 

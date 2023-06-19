@@ -13,6 +13,7 @@ import (
 )
 
 func TestParseIdentifier(t *testing.T) {
+	t.Parallel()
 	testCases := []struct {
 		name       string
 		identifier string
@@ -50,6 +51,7 @@ func TestParseIdentifier(t *testing.T) {
 }
 
 func TestMustParseClientStatePath(t *testing.T) {
+	t.Parallel()
 	testCases := []struct {
 		name    string
 		path    string

@@ -17,6 +17,7 @@ const (
 
 // TestFungibleTokenPacketDataValidateBasic tests ValidateBasic for FungibleTokenPacketData
 func TestFungibleTokenPacketDataValidateBasic(t *testing.T) {
+	t.Parallel()
 	testCases := []struct {
 		name       string
 		packetData types.FungibleTokenPacketData

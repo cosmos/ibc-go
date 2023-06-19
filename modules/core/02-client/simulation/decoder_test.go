@@ -16,6 +16,7 @@ import (
 )
 
 func TestDecodeStore(t *testing.T) {
+	t.Parallel()
 	app := simapp.Setup(false)
 	clientID := "clientidone"
 
@@ -57,6 +58,7 @@ func TestDecodeStore(t *testing.T) {
 	for i, tt := range tests {
 		i, tt := i, tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			res, found := simulation.NewDecodeStore(app.IBCKeeper.ClientKeeper, kvPairs.Pairs[i], kvPairs.Pairs[i])
 			if i == len(tests)-1 {
 				require.False(t, found, string(kvPairs.Pairs[i].Key))

@@ -11,6 +11,7 @@ import (
 )
 
 func TestMsgUpdateParamsValidateBasic(t *testing.T) {
+	t.Parallel()
 	var msg *types.MsgUpdateParams
 
 	testCases := []struct {
@@ -52,7 +53,9 @@ func TestMsgUpdateParamsValidateBasic(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 			tc.malleate()
 
 			err := msg.ValidateBasic()
@@ -66,6 +69,7 @@ func TestMsgUpdateParamsValidateBasic(t *testing.T) {
 }
 
 func TestMsgUpdateParamsGetSigners(t *testing.T) {
+	t.Parallel()
 	testCases := []struct {
 		name    string
 		address sdk.AccAddress

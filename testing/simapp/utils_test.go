@@ -24,6 +24,7 @@ func makeCodec(bm module.BasicManager) *codec.LegacyAmino {
 }
 
 func TestGetSimulationLog(t *testing.T) {
+	t.Parallel()
 	cdc := makeCodec(ModuleBasics)
 
 	decoders := make(sdk.StoreDecoderRegistry)
@@ -54,6 +55,7 @@ func TestGetSimulationLog(t *testing.T) {
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.store, func(t *testing.T) {
+			t.Parallel()
 			require.Equal(t, tt.expectedLog, sims.GetSimulationLog(tt.store, decoders, tt.kvPairs, tt.kvPairs), tt.store)
 		})
 	}

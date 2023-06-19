@@ -25,6 +25,7 @@ type InterchainAccountsTestSuite struct {
 }
 
 func TestICATestSuite(t *testing.T) {
+	t.Parallel()
 	suite.Run(t, new(InterchainAccountsTestSuite))
 }
 

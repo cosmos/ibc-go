@@ -12,6 +12,7 @@ import (
 )
 
 func TestCommitPacket(t *testing.T) {
+	t.Parallel()
 	packet := types.NewPacket(validPacketData, 1, portid, chanid, cpportid, cpchanid, timeoutHeight, timeoutTimestamp)
 
 	registry := codectypes.NewInterfaceRegistry()
@@ -25,6 +26,7 @@ func TestCommitPacket(t *testing.T) {
 }
 
 func TestPacketValidateBasic(t *testing.T) {
+	t.Parallel()
 	testCases := []struct {
 		packet  types.Packet
 		expPass bool

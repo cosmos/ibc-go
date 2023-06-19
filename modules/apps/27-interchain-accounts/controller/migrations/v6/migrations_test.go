@@ -80,6 +80,7 @@ func (suite *MigrationsTestSuite) RegisterInterchainAccount(endpoint *ibctesting
 }
 
 func TestKeeperTestSuite(t *testing.T) {
+	t.Parallel()
 	suite.Run(t, new(MigrationsTestSuite))
 }
 

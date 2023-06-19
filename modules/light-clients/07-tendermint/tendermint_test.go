@@ -110,5 +110,6 @@ func getBothSigners(suite *TendermintTestSuite, altVal *tmtypes.Validator, altPr
 }
 
 func TestTendermintTestSuite(t *testing.T) {
+	t.Parallel()
 	suite.Run(t, new(TendermintTestSuite))
 }

@@ -16,6 +16,7 @@ import (
 )
 
 func TestMsgRegisterInterchainAccountValidateBasic(t *testing.T) {
+	t.Parallel()
 	var msg *types.MsgRegisterInterchainAccount
 
 	testCases := []struct {
@@ -84,6 +85,7 @@ func TestMsgRegisterInterchainAccountValidateBasic(t *testing.T) {
 }
 
 func TestMsgRegisterInterchainAccountGetSigners(t *testing.T) {
+	t.Parallel()
 	expSigner, err := sdk.AccAddressFromBech32(ibctesting.TestAccAddress)
 	require.NoError(t, err)
 
@@ -92,6 +94,7 @@ func TestMsgRegisterInterchainAccountGetSigners(t *testing.T) {
 }
 
 func TestMsgSendTxValidateBasic(t *testing.T) {
+	t.Parallel()
 	var msg *types.MsgSendTx
 
 	testCases := []struct {
@@ -169,6 +172,7 @@ func TestMsgSendTxValidateBasic(t *testing.T) {
 }
 
 func TestMsgSendTxGetSigners(t *testing.T) {
+	t.Parallel()
 	expSigner, err := sdk.AccAddressFromBech32(ibctesting.TestAccAddress)
 	require.NoError(t, err)
 
@@ -197,6 +201,7 @@ func TestMsgSendTxGetSigners(t *testing.T) {
 
 // TestMsgUpdateParamsValidateBasic tests ValidateBasic for MsgUpdateParams
 func TestMsgUpdateParamsValidateBasic(t *testing.T) {
+	t.Parallel()
 	testCases := []struct {
 		name    string
 		msg     *types.MsgUpdateParams
@@ -219,6 +224,7 @@ func TestMsgUpdateParamsValidateBasic(t *testing.T) {
 
 // TestMsgUpdateParamsGetSigners tests GetSigners for MsgUpdateParams
 func TestMsgUpdateParamsGetSigners(t *testing.T) {
+	t.Parallel()
 	testCases := []struct {
 		name    string
 		address sdk.AccAddress

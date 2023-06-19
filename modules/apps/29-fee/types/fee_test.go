@@ -31,6 +31,7 @@ var (
 const invalidAddress = "invalid-address"
 
 func TestFeeTotal(t *testing.T) {
+	t.Parallel()
 	fee := types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
 
 	total := fee.Total()
@@ -38,6 +39,7 @@ func TestFeeTotal(t *testing.T) {
 }
 
 func TestPacketFeeValidation(t *testing.T) {
+	t.Parallel()
 	var packetFee types.PacketFee
 
 	testCases := []struct {

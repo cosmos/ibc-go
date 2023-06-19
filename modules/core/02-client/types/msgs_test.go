@@ -34,6 +34,7 @@ func (suite *TypesTestSuite) SetupTest() {
 }
 
 func TestTypesTestSuite(t *testing.T) {
+	t.Parallel()
 	suite.Run(t, new(TypesTestSuite))
 }
 
@@ -654,6 +655,7 @@ func (suite *TypesTestSuite) TestMsgUpdateParamsValidateBasic() {
 
 // TestMsgUpdateParamsGetSigners tests GetSigners for MsgUpdateParams
 func TestMsgUpdateParamsGetSigners(t *testing.T) {
+	t.Parallel()
 	testCases := []struct {
 		name    string
 		address sdk.AccAddress

@@ -77,6 +77,7 @@ func (suite *MsgTestSuite) SetupTest() {
 }
 
 func TestMsgTestSuite(t *testing.T) {
+	t.Parallel()
 	suite.Run(t, new(MsgTestSuite))
 }
 
@@ -271,6 +272,7 @@ func (suite *MsgTestSuite) TestMsgUpdateParamsValidateBasic() {
 
 // TestMsgUpdateParamsGetSigners tests GetSigners for MsgUpdateParams
 func TestMsgUpdateParamsGetSigners(t *testing.T) {
+	t.Parallel()
 	testCases := []struct {
 		name    string
 		address sdk.AccAddress
