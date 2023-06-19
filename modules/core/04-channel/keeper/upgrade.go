@@ -466,10 +466,10 @@ func (k Keeper) ChanUpgradeTimeout(
 	return nil
 }
 
-// writeUpgradeTimeoutChannel restores the channel state of an initialising chain in the event that the counterparty chain has passed the timeout set in ChanUpgradeInit to the state before the upgrade was proposed.
+// WriteUpgradeTimeoutChannel restores the channel state of an initialising chain in the event that the counterparty chain has passed the timeout set in ChanUpgradeInit to the state before the upgrade was proposed.
 // Auxiliary upgrade state is also deleted.
 // An event is emitted for the handshake step.
-func (k Keeper) writeUpgradeTimeoutChannel(
+func (k Keeper) WriteUpgradeTimeoutChannel(
 	ctx sdk.Context,
 	portID, channelID string,
 ) error {

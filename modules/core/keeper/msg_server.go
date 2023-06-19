@@ -828,7 +828,7 @@ func (k Keeper) ChannelUpgradeTimeout(goCtx context.Context, msg *channeltypes.M
 		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
 	}
 
-	err = k.ChannelKeeper.ChanUpgradeTimeout(ctx, msg.PortId, msg.ChannelId, msg.CounterpartyChannel, msg.PreviousErrorReceipt, msg.ProofChannel, msg.ProofErrorReceipt, msg.ProofHeight)
+	err = k.ChannelKeeper.ChanUpgradeTimeout(ctx, msg.PortId, msg.ChannelId, msg.CounterpartyChannel, &msg.PreviousErrorReceipt, msg.ProofChannel, msg.ProofErrorReceipt, msg.ProofHeight)
 	if err != nil {
 		return nil, err
 	}
@@ -841,12 +841,14 @@ func (k Keeper) ChannelUpgradeTimeout(goCtx context.Context, msg *channeltypes.M
 
 	writeFn()
 
-	// err = k.ChannelKeeper.WriteUpgradeTimeout
-	// if err != nil {
-	// 	return nil, err
-	// }
+	err = k.ChannelKeeper.WriteUpgradeTimeoutChannel(ctx, msg.PortId, msg.ChannelId)
+	if err != nil {
+		return nil, err
+	}
 
-	return &channeltypes.MsgChannelUpgradeTimeoutResponse{ChannelId: msg.ChannelId, Result: channeltypes.SUCCESS}, nil
+	return &channeltypes.MsgChannelUpgradeTimeoutResponse{
+		Result: channeltypes.SUCCESS,
+	}, nil
 }
 
 // ChannelUpgradeCancel defines a rpc handler method for MsgChannelUpgradeCancel.
