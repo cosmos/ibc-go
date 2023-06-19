@@ -8,7 +8,6 @@ import (
 	tmbytes "github.com/cometbft/cometbft/libs/bytes"
 	"github.com/cometbft/cometbft/libs/log"
 	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/store/prefix"
 	storeprefix "github.com/cosmos/cosmos-sdk/store/prefix"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -133,7 +132,7 @@ func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
 
 // GetDenomTrace retreives the full identifiers trace and base denomination from the store.
 func (k Keeper) GetDenomTrace(ctx sdk.Context, denomTraceHash tmbytes.HexBytes) (types.DenomTrace, bool) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.DenomTraceKey)
+	store := storeprefix.NewStore(ctx.KVStore(k.storeKey), types.DenomTraceKey)
 	bz := store.Get(denomTraceHash)
 	if len(bz) == 0 {
 		return types.DenomTrace{}, false
