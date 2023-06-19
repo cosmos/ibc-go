@@ -9,6 +9,7 @@ import (
 )
 
 func TestValidateParams(t *testing.T) {
+	t.Parallel()
 	require.NoError(t, types.DefaultParams().Validate())
 	require.NoError(t, types.NewParams(false).Validate())
 }
