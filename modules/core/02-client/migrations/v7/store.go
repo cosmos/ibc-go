@@ -81,7 +81,7 @@ func handleSolomachineMigration(ctx sdk.Context, store sdk.KVStore, cdc codec.Bi
 
 // handlerTendermintMigration asserts that the tendermint client in state can be decoded properly.
 // This ensures the upgrading chain properly registered the tendermint client types on the chain codec.
-func handleTendermintMigration(ctx sdk.Context, store sdk.KVStore, cdc codec.BinaryCodec, clientKeeper ClientKeeper) error {
+func handleTendermintMigration(ctx sdk.Context, store sdk.KVStore, _ codec.BinaryCodec, clientKeeper ClientKeeper) error {
 	clients, err := collectClients(ctx, store, exported.Tendermint)
 	if err != nil {
 		return err
@@ -113,7 +113,7 @@ func handleTendermintMigration(ctx sdk.Context, store sdk.KVStore, cdc codec.Bin
 }
 
 // handleLocalhostMigration removes all client and consensus states associated with the localhost client type.
-func handleLocalhostMigration(ctx sdk.Context, store sdk.KVStore, cdc codec.BinaryCodec, clientKeeper ClientKeeper) error {
+func handleLocalhostMigration(ctx sdk.Context, store sdk.KVStore, _ codec.BinaryCodec, clientKeeper ClientKeeper) error {
 	clients, err := collectClients(ctx, store, Localhost)
 	if err != nil {
 		return err

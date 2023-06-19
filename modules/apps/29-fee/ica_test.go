@@ -179,7 +179,7 @@ func (s *FeeTestSuite) TestFeeInterchainAccounts() {
 	s.Require().Equal(preEscrowBalance.SubAmount(defaultRecvFee.AmountOf(sdk.DefaultBondDenom)), postDistBalance)
 }
 
-func buildInterchainAccountsPacket(path *ibctesting.Path, data []byte, seq uint64) channeltypes.Packet {
+func buildInterchainAccountsPacket(path *ibctesting.Path, data []byte, _ uint64) channeltypes.Packet {
 	packet := channeltypes.NewPacket(
 		data,
 		1,
