@@ -118,7 +118,7 @@ func (ClientState) VerifyMembership(
 // The caller is expected to construct the full CommitmentPath from a CommitmentPrefix and a standardized path (as defined in ICS 24).
 // The caller must provide the full IBC store.
 func (ClientState) VerifyNonMembership(
-	ctx sdk.Context,
+	_ sdk.Context,
 	store sdk.KVStore,
 	_ codec.BinaryCodec,
 	_ exported.Height,

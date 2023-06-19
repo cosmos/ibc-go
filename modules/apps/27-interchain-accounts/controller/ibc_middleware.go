@@ -124,18 +124,18 @@ func (im IBCMiddleware) OnChanOpenAck(
 
 // OnChanOpenConfirm implements the IBCMiddleware interface
 func (IBCMiddleware) OnChanOpenConfirm(
-	ctx sdk.Context,
-	portID,
-	channelID string,
+	_ sdk.Context,
+	_,
+	_ string,
 ) error {
 	return errorsmod.Wrap(icatypes.ErrInvalidChannelFlow, "channel handshake must be initiated by controller chain")
 }
 
 // OnChanCloseInit implements the IBCMiddleware interface
 func (IBCMiddleware) OnChanCloseInit(
-	ctx sdk.Context,
-	portID,
-	channelID string,
+	_ sdk.Context,
+	_,
+	_ string,
 ) error {
 	// Disallow user-initiated channel closing for interchain account channels
 	return errorsmod.Wrap(ibcerrors.ErrInvalidRequest, "user cannot close channel")
@@ -227,23 +227,23 @@ func (im IBCMiddleware) OnTimeoutPacket(
 
 // SendPacket implements the ICS4 Wrapper interface
 func (IBCMiddleware) SendPacket(
-	ctx sdk.Context,
-	chanCap *capabilitytypes.Capability,
-	sourcePort string,
-	sourceChannel string,
-	timeoutHeight clienttypes.Height,
-	timeoutTimestamp uint64,
-	data []byte,
+	_ sdk.Context,
+	_ *capabilitytypes.Capability,
+	_ string,
+	_ string,
+	_ clienttypes.Height,
+	_ uint64,
+	_ []byte,
 ) (uint64, error) {
 	panic("SendPacket not supported for ICA controller module. Please use SendTx")
 }
 
 // WriteAcknowledgement implements the ICS4 Wrapper interface
 func (IBCMiddleware) WriteAcknowledgement(
-	ctx sdk.Context,
-	chanCap *capabilitytypes.Capability,
-	packet ibcexported.PacketI,
-	ack ibcexported.Acknowledgement,
+	_ sdk.Context,
+	_ *capabilitytypes.Capability,
+	_ ibcexported.PacketI,
+	_ ibcexported.Acknowledgement,
 ) error {
 	panic("WriteAcknowledgement not supported for ICA controller module")
 }

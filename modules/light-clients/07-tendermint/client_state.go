@@ -56,7 +56,7 @@ func (cs ClientState) GetLatestHeight() exported.Height {
 
 // GetTimestampAtHeight returns the timestamp in nanoseconds of the consensus state at the given height.
 func (ClientState) GetTimestampAtHeight(
-	ctx sdk.Context,
+	_ sdk.Context,
 	clientStore sdk.KVStore,
 	cdc codec.BinaryCodec,
 	height exported.Height,
