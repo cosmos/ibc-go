@@ -176,12 +176,12 @@ func (s *AnteTestSuite) createUpdateClientMessage() sdk.Msg {
 func (s *AnteTestSuite) TestAnteDecorator() {
 	testCases := []struct {
 		name     string
-		malleate func(suite *AnteTestSuite) []sdk.Msg
+		malleate func(antesuite *AnteTestSuite) []sdk.Msg
 		expPass  bool
 	}{
 		{
 			"success on one new RecvPacket message",
-			func(suite *AnteTestSuite) []sdk.Msg {
+			func(anteantesuite *AnteTestSuite) []sdk.Msg {
 				// the RecvPacket message has not been submitted to the chain yet, so it will succeed
 				return []sdk.Msg{s.createRecvPacketMessage(false)}
 			},
@@ -189,7 +189,7 @@ func (s *AnteTestSuite) TestAnteDecorator() {
 		},
 		{
 			"success on one new Acknowledgement message",
-			func(suite *AnteTestSuite) []sdk.Msg {
+			func(anteantesuite *AnteTestSuite) []sdk.Msg {
 				// the Acknowledgement message has not been submitted to the chain yet, so it will succeed
 				return []sdk.Msg{s.createAcknowledgementMessage(false)}
 			},
@@ -197,7 +197,7 @@ func (s *AnteTestSuite) TestAnteDecorator() {
 		},
 		{
 			"success on one new Timeout message",
-			func(suite *AnteTestSuite) []sdk.Msg {
+			func(anteantesuite *AnteTestSuite) []sdk.Msg {
 				// the Timeout message has not been submitted to the chain yet, so it will succeed
 				return []sdk.Msg{s.createTimeoutMessage(false)}
 			},
@@ -205,7 +205,7 @@ func (s *AnteTestSuite) TestAnteDecorator() {
 		},
 		{
 			"success on one new TimeoutOnClose message",
-			func(suite *AnteTestSuite) []sdk.Msg {
+			func(anteantesuite *AnteTestSuite) []sdk.Msg {
 				// the TimeoutOnClose message has not been submitted to the chain yet, so it will succeed
 				return []sdk.Msg{s.createTimeoutOnCloseMessage(false)}
 			},
@@ -213,7 +213,7 @@ func (s *AnteTestSuite) TestAnteDecorator() {
 		},
 		{
 			"success on three new messages of each type",
-			func(suite *AnteTestSuite) []sdk.Msg {
+			func(antesuite *AnteTestSuite) []sdk.Msg {
 				var msgs []sdk.Msg
 
 				// none of the messages of each type has been submitted to the chain yet,
@@ -242,7 +242,7 @@ func (s *AnteTestSuite) TestAnteDecorator() {
 		},
 		{
 			"success on three redundant messages of RecvPacket, Acknowledgement and TimeoutOnClose, and one new Timeout message",
-			func(suite *AnteTestSuite) []sdk.Msg {
+			func(antesuite *AnteTestSuite) []sdk.Msg {
 				var msgs []sdk.Msg
 
 				// we pass three messages of RecvPacket, Acknowledgement and TimeoutOnClose that
@@ -272,7 +272,7 @@ func (s *AnteTestSuite) TestAnteDecorator() {
 		},
 		{
 			"success on one new message and two redundant messages of each type",
-			func(suite *AnteTestSuite) []sdk.Msg {
+			func(antesuite *AnteTestSuite) []sdk.Msg {
 				var msgs []sdk.Msg
 
 				// For each type there is a new message and two messages that are redundant
@@ -302,21 +302,21 @@ func (s *AnteTestSuite) TestAnteDecorator() {
 		},
 		{
 			"success on one new UpdateClient message",
-			func(suite *AnteTestSuite) []sdk.Msg {
+			func(antesuite *AnteTestSuite) []sdk.Msg {
 				return []sdk.Msg{s.createUpdateClientMessage()}
 			},
 			true,
 		},
 		{
 			"success on three new UpdateClient messages",
-			func(suite *AnteTestSuite) []sdk.Msg {
+			func(antesuite *AnteTestSuite) []sdk.Msg {
 				return []sdk.Msg{s.createUpdateClientMessage(), s.createUpdateClientMessage(), s.createUpdateClientMessage()}
 			},
 			true,
 		},
 		{
 			"success on three new Updateclient messages and one new RecvPacket message",
-			func(suite *AnteTestSuite) []sdk.Msg {
+			func(antesuite *AnteTestSuite) []sdk.Msg {
 				return []sdk.Msg{
 					s.createUpdateClientMessage(),
 					s.createUpdateClientMessage(),
@@ -328,7 +328,7 @@ func (s *AnteTestSuite) TestAnteDecorator() {
 		},
 		{
 			"success on three redundant RecvPacket messages and one SubmitMisbehaviour message",
-			func(suite *AnteTestSuite) []sdk.Msg {
+			func(antesuite *AnteTestSuite) []sdk.Msg {
 				msgs := []sdk.Msg{s.createUpdateClientMessage()}
 
 				for i := 1; i <= 3; i++ {
@@ -343,14 +343,14 @@ func (s *AnteTestSuite) TestAnteDecorator() {
 		},
 		{
 			"no success on one redundant RecvPacket message",
-			func(suite *AnteTestSuite) []sdk.Msg {
+			func(antesuite *AnteTestSuite) []sdk.Msg {
 				return []sdk.Msg{s.createRecvPacketMessage(true)}
 			},
 			false,
 		},
 		{
 			"no success on three redundant messages of each type",
-			func(suite *AnteTestSuite) []sdk.Msg {
+			func(antesuite *AnteTestSuite) []sdk.Msg {
 				var msgs []sdk.Msg
 
 				// from A to B
@@ -375,7 +375,7 @@ func (s *AnteTestSuite) TestAnteDecorator() {
 		},
 		{
 			"no success on one new UpdateClient message and three redundant RecvPacket messages",
-			func(suite *AnteTestSuite) []sdk.Msg {
+			func(antesuite *AnteTestSuite) []sdk.Msg {
 				msgs := []sdk.Msg{&clienttypes.MsgUpdateClient{}}
 
 				for i := 1; i <= 3; i++ {
@@ -388,7 +388,7 @@ func (s *AnteTestSuite) TestAnteDecorator() {
 		},
 		{
 			"no success on three new UpdateClient messages and three redundant messages of each type",
-			func(suite *AnteTestSuite) []sdk.Msg {
+			func(antesuite *AnteTestSuite) []sdk.Msg {
 				msgs := []sdk.Msg{s.createUpdateClientMessage(), s.createUpdateClientMessage(), s.createUpdateClientMessage()}
 
 				// from A to B
@@ -413,7 +413,7 @@ func (s *AnteTestSuite) TestAnteDecorator() {
 		},
 		{
 			"no success on one new message and one invalid message",
-			func(suite *AnteTestSuite) []sdk.Msg {
+			func(antesuite *AnteTestSuite) []sdk.Msg {
 				packet := channeltypes.NewPacket(ibctesting.MockPacketData, 2,
 					s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID,
 					s.path.EndpointB.ChannelConfig.PortID, s.path.EndpointB.ChannelID,
@@ -428,7 +428,7 @@ func (s *AnteTestSuite) TestAnteDecorator() {
 		},
 		{
 			"no success on one new message and one redundant message in the same block",
-			func(suite *AnteTestSuite) []sdk.Msg {
+			func(antesuite *AnteTestSuite) []sdk.Msg {
 				msg := s.createRecvPacketMessage(false)
 
 				// We want to be able to run check tx with the non-redundant message without

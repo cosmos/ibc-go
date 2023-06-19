@@ -9,7 +9,7 @@ import (
 	"github.com/cometbft/cometbft/libs/log"
 	"github.com/cometbft/cometbft/light"
 	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/store/prefix"
+	storeprefix "github.com/cosmos/cosmos-sdk/store/prefix"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
@@ -402,7 +402,7 @@ func (k Keeper) GetAllClients(ctx sdk.Context) []exported.ClientState {
 // namespace without being able to read/write other client's data
 func (k Keeper) ClientStore(ctx sdk.Context, clientID string) sdk.KVStore {
 	clientPrefix := []byte(fmt.Sprintf("%s/%s/", host.KeyClientStorePrefix, clientID))
-	return prefix.NewStore(ctx.KVStore(k.storeKey), clientPrefix)
+	return storeprefix.NewStore(ctx.KVStore(k.storeKey), clientPrefix)
 }
 
 // GetClientStatus returns the status for a given clientState. If the client type is not in the allowed

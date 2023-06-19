@@ -9,6 +9,7 @@ import (
 	"github.com/cometbft/cometbft/libs/log"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
+	storeprefix "github.com/cosmos/cosmos-sdk/store/prefix"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
@@ -144,13 +145,13 @@ func (k Keeper) GetDenomTrace(ctx sdk.Context, denomTraceHash tmbytes.HexBytes) 
 
 // HasDenomTrace checks if a the key with the given denomination trace hash exists on the store.
 func (k Keeper) HasDenomTrace(ctx sdk.Context, denomTraceHash tmbytes.HexBytes) bool {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.DenomTraceKey)
+	store := storeprefix.NewStore(ctx.KVStore(k.storeKey), types.DenomTraceKey)
 	return store.Has(denomTraceHash)
 }
 
 // SetDenomTrace sets a new {trace hash -> denom trace} pair to the store.
 func (k Keeper) SetDenomTrace(ctx sdk.Context, denomTrace types.DenomTrace) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.DenomTraceKey)
+	store := storeprefix.NewStore(ctx.KVStore(k.storeKey), types.DenomTraceKey)
 	bz := k.MustMarshalDenomTrace(denomTrace)
 	store.Set(denomTrace.Hash(), bz)
 }

@@ -35,7 +35,7 @@ func NewIBCModule(k keeper.Keeper) IBCModule {
 // supported version. Only 2^32 channels are allowed to be created.
 func ValidateTransferChannelParams(
 	ctx sdk.Context,
-	keeper keeper.Keeper,
+	k keeper.Keeper,
 	order channeltypes.Order,
 	portID string,
 	channelID string,
@@ -54,7 +54,7 @@ func ValidateTransferChannelParams(
 	}
 
 	// Require portID is the portID transfer module is bound to
-	boundPort := keeper.GetPort(ctx)
+	boundPort := k.GetPort(ctx)
 	if boundPort != portID {
 		return errorsmod.Wrapf(porttypes.ErrInvalidPort, "invalid port: %s, expected %s", portID, boundPort)
 	}
@@ -66,11 +66,11 @@ func ValidateTransferChannelParams(
 func (im IBCModule) OnChanOpenInit(
 	ctx sdk.Context,
 	order channeltypes.Order,
-	connectionHops []string,
+	_ []string,
 	portID string,
 	channelID string,
 	chanCap *capabilitytypes.Capability,
-	counterparty channeltypes.Counterparty,
+	_ channeltypes.Counterparty,
 	version string,
 ) (string, error) {
 	if err := ValidateTransferChannelParams(ctx, im.keeper, order, portID, channelID); err != nil {
@@ -97,11 +97,11 @@ func (im IBCModule) OnChanOpenInit(
 func (im IBCModule) OnChanOpenTry(
 	ctx sdk.Context,
 	order channeltypes.Order,
-	connectionHops []string,
+	_ []string,
 	portID,
 	channelID string,
 	chanCap *capabilitytypes.Capability,
-	counterparty channeltypes.Counterparty,
+	_ channeltypes.Counterparty,
 	counterpartyVersion string,
 ) (string, error) {
 	if err := ValidateTransferChannelParams(ctx, im.keeper, order, portID, channelID); err != nil {
