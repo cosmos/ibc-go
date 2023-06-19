@@ -182,13 +182,12 @@ jobs:
           go-version: '1.20'
       - name: Run e2e Test
         id: e2e_test
-        if: ${{ !inputs.skip-tests }}
         run: |
           cd e2e
           make e2e-test test=${{ matrix.test }}
       - name: Upload Diagnostics
         uses: actions/upload-artifact@v3
-        if: ${{ failure() && inputs.upload-logs && !inputs.skip-tests }}
+        if: ${{ failure() && inputs.upload-logs }}
         continue-on-error: true
         with:
           name: '${{ matrix.entrypoint }}-${{ matrix.test }}'
@@ -199,7 +198,6 @@ jobs:
   # can be used in the branch protection rules, as a single target, to make sure all tests pass before merging.
   # If the tests are to be skipped, e2e-success will be skipped as well.
   e2e-success:
-    if: ${{ !inputs.skip-tests }}
     needs: e2e-tests
     runs-on: ubuntu-latest
     steps:
