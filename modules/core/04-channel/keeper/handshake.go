@@ -25,8 +25,8 @@ func (k Keeper) ChanOpenInit(
 	connectionHops []string,
 	portID string,
 	portCap *capabilitytypes.Capability,
-	counterparty types.Counterparty,
-	version string,
+	_ types.Counterparty,
+	_ string,
 ) (string, *capabilitytypes.Capability, error) {
 	// connection hop length checked on msg.ValidateBasic()
 	connectionEnd, found := k.connectionKeeper.GetConnection(ctx, connectionHops[0])

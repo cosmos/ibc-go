@@ -42,9 +42,9 @@ func (cs ClientState) GetLatestHeight() exported.Height {
 // GetTimestampAtHeight returns the timestamp in nanoseconds of the consensus state at the given height.
 func (cs ClientState) GetTimestampAtHeight(
 	_ sdk.Context,
-	clientStore sdk.KVStore,
-	cdc codec.BinaryCodec,
-	height exported.Height,
+	_ sdk.KVStore,
+	_ codec.BinaryCodec,
+	_ exported.Height,
 ) (uint64, error) {
 	return cs.ConsensusState.Timestamp, nil
 }
@@ -106,12 +106,12 @@ func (ClientState) VerifyUpgradeAndUpdateState(
 // VerifyMembership is a generic proof verification method which verifies a proof of the existence of a value at a given CommitmentPath at the latest sequence.
 // The caller is expected to construct the full CommitmentPath from a CommitmentPrefix and a standardized path (as defined in ICS 24).
 func (cs *ClientState) VerifyMembership(
-	ctx sdk.Context,
+	_ sdk.Context,
 	clientStore sdk.KVStore,
 	cdc codec.BinaryCodec,
 	_ exported.Height,
-	delayTimePeriod uint64,
-	delayBlockPeriod uint64,
+	_ uint64,
+	_ uint64,
 	proof []byte,
 	path exported.Path,
 	value []byte,
@@ -157,12 +157,12 @@ func (cs *ClientState) VerifyMembership(
 // VerifyNonMembership is a generic proof verification method which verifies the absence of a given CommitmentPath at the latest sequence.
 // The caller is expected to construct the full CommitmentPath from a CommitmentPrefix and a standardized path (as defined in ICS 24).
 func (cs *ClientState) VerifyNonMembership(
-	ctx sdk.Context,
+	_ sdk.Context,
 	clientStore sdk.KVStore,
 	cdc codec.BinaryCodec,
 	_ exported.Height,
-	delayTimePeriod uint64,
-	delayBlockPeriod uint64,
+	_ uint64,
+	_ uint64,
 	proof []byte,
 	path exported.Path,
 ) error {

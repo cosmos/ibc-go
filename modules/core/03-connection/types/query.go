@@ -56,7 +56,7 @@ func (qccsr QueryConnectionClientStateResponse) UnpackInterfaces(unpacker codect
 }
 
 // NewQueryConnectionConsensusStateResponse creates a newQueryConnectionConsensusStateResponse instance
-func NewQueryConnectionConsensusStateResponse(clientID string, anyConsensusState *codectypes.Any, consensusStateHeight exported.Height, proof []byte, height clienttypes.Height) *QueryConnectionConsensusStateResponse {
+func NewQueryConnectionConsensusStateResponse(clientID string, anyConsensusState *codectypes.Any, _ exported.Height, proof []byte, height clienttypes.Height) *QueryConnectionConsensusStateResponse {
 	return &QueryConnectionConsensusStateResponse{
 		ConsensusState: anyConsensusState,
 		ClientId:       clientID,

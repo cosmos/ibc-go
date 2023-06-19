@@ -25,7 +25,7 @@ func (cs ClientState) VerifyClientMessage(ctx sdk.Context, cdc codec.BinaryCodec
 	}
 }
 
-func (cs ClientState) verifyHeader(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, header *Header) error {
+func (cs ClientState) verifyHeader(_ sdk.Context, cdc codec.BinaryCodec, _ sdk.KVStore, header *Header) error {
 	// assert update timestamp is not less than current consensus state timestamp
 	if header.Timestamp < cs.ConsensusState.Timestamp {
 		return errorsmod.Wrapf(
