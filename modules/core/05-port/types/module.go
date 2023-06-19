@@ -149,17 +149,6 @@ type UpgradableModule interface {
 		portID,
 		channelID string,
 	) error
-
-	// OnChanUpgradeTimeout times out an outstanding upgrade when the counterparty chain has not responded.
-	OnChanUpgradeTimeout(
-		ctx sdk.Context,
-		portID, channelID string,
-		counterpartyChannel channeltypes.Channel,
-		prevErrorReceipt channeltypes.ErrorReceipt,
-		proofCounterpartyChannel,
-		proofErrorReceipt []byte,
-		proofHeight exported.Height,
-	) error
 }
 
 // ICS4Wrapper implements the ICS4 interfaces that IBC applications use to send packets and acknowledgements.

@@ -207,23 +207,6 @@ func (im IBCModule) OnChanUpgradeRestore(ctx sdk.Context, portID, channelID stri
 	return nil
 }
 
-// OnChanUpgradeTimeout implements the IBCModule interface
-func (im IBCModule) OnChanUpgradeTimeout(
-	ctx sdk.Context,
-	portID, channelID string,
-	counterpartyChannel channeltypes.Channel,
-	prevErrorReceipt channeltypes.ErrorReceipt,
-	proofCounterpartyChannel,
-	proofErrorReceipt []byte,
-	proofHeight exported.Height,
-) error {
-	if im.IBCApp.OnChanUpgradeTimeout != nil {
-		return im.IBCApp.OnChanUpgradeTimeout(ctx, portID, channelID, counterpartyChannel, prevErrorReceipt, proofCounterpartyChannel, proofErrorReceipt, proofHeight)
-	}
-
-	return nil
-}
-
 // GetMockRecvCanaryCapabilityName generates a capability name for testing OnRecvPacket functionality.
 func GetMockRecvCanaryCapabilityName(packet channeltypes.Packet) string {
 	return fmt.Sprintf("%s%s%s%s", MockRecvCanaryCapabilityName, packet.GetDestPort(), packet.GetDestChannel(), strconv.Itoa(int(packet.GetSequence())))
