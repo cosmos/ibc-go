@@ -265,7 +265,7 @@ func (k Keeper) ChanUpgradeCancel(ctx sdk.Context, portID, channelID string, err
 	currentSequence := channel.UpgradeSequence
 	counterpartySequence := errorReceipt.Sequence
 	if counterpartySequence < currentSequence {
-		return errorsmod.Wrap(types.ErrInvalidUpgradeSequence, "error sequence must be less than current sequence")
+		return errorsmod.Wrapf(types.ErrInvalidUpgradeSequence, "error receipt sequence (%d) must be greater than or equal to current sequence (%d)", counterpartySequence, currentSequence)
 	}
 
 	channel.UpgradeSequence = errorReceipt.Sequence + 1
