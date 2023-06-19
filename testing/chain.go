@@ -9,7 +9,6 @@ import (
 	"cosmossdk.io/math"
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cometbft/cometbft/crypto/tmhash"
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	tmprotoversion "github.com/cometbft/cometbft/proto/tendermint/version"
 	tmtypes "github.com/cometbft/cometbft/types"
 	tmversion "github.com/cometbft/cometbft/version"
@@ -55,8 +54,8 @@ type TestChain struct {
 	Coordinator   *Coordinator
 	App           TestingApp
 	ChainID       string
-	LastHeader    *ibctm.Header  // header for last block height committed
-	CurrentHeader tmproto.Header // header for current block height
+	LastHeader    *ibctm.Header   // header for last block height committed
+	CurrentHeader cmtproto.Header // header for current block height
 	QueryServer   types.QueryServer
 	TxConfig      client.TxConfig
 	Codec         codec.BinaryCodec
@@ -130,7 +129,7 @@ func NewTestChainWithValSet(tb testing.TB, coord *Coordinator, chainID string, v
 	app := SetupWithGenesisValSet(tb, valSet, genAccs, chainID, sdk.DefaultPowerReduction, genBals...)
 
 	// create current header and call begin block
-	header := tmproto.Header{
+	header := cmtproto.Header{
 		ChainID: chainID,
 		Height:  1,
 		Time:    coord.CurrentTime.UTC(),
@@ -304,7 +303,7 @@ func (chain *TestChain) NextBlock() {
 	chain.NextVals = ApplyValSetChanges(chain.TB, chain.Vals, res.ValidatorUpdates)
 
 	// increment the current header
-	chain.CurrentHeader = tmproto.Header{
+	chain.CurrentHeader = cmtproto.Header{
 		ChainID: chain.ChainID,
 		Height:  chain.App.LastBlockHeight() + 1,
 		AppHash: chain.App.LastCommitID().Hash,
@@ -518,8 +517,8 @@ func (chain *TestChain) CurrentTMClientHeader() *ibctm.Header {
 // caller flexibility to use params that differ from the chain.
 func (chain *TestChain) CreateTMClientHeader(chainID string, blockHeight int64, trustedHeight clienttypes.Height, timestamp time.Time, tmValSet, nextVals, tmTrustedVals *tmtypes.ValidatorSet, signers map[string]tmtypes.PrivValidator) *ibctm.Header {
 	var (
-		valSet      *tmproto.ValidatorSet
-		trustedVals *tmproto.ValidatorSet
+		valSet      *cmtproto.ValidatorSet
+		trustedVals *cmtproto.ValidatorSet
 	)
 	require.NotNil(chain.TB, tmValSet)
 
@@ -558,7 +557,7 @@ func (chain *TestChain) CreateTMClientHeader(chainID string, blockHeight int64, 
 	extCommit, err := MakeCommit(blockID, blockHeight, 1, nextVals, signerArr, chainID, timestamp)
 	require.NoError(chain.TB, err)
 
-	signedHeader := &tmproto.SignedHeader{
+	signedHeader := &cmtproto.SignedHeader{
 		Header: tmHeader.ToProto(),
 		Commit: extCommit.ToProto(),
 	}

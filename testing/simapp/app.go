@@ -18,7 +18,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec/address"
 
 	authcodec "github.com/cosmos/cosmos-sdk/x/auth/codec"
-	"github.com/cosmos/cosmos-sdk/x/auth/tx"
 
 	abci "github.com/cometbft/cometbft/abci/types"
 	dbm "github.com/cosmos/cosmos-db"
@@ -296,7 +295,7 @@ func NewSimApp(
 	})
 	appCodec := codec.NewProtoCodec(interfaceRegistry)
 	legacyAmino := codec.NewLegacyAmino()
-	txConfig := tx.NewTxConfig(appCodec, tx.DefaultSignModes)
+	txConfig := authtx.NewTxConfig(appCodec, authtx.DefaultSignModes)
 
 	std.RegisterLegacyAminoCodec(legacyAmino)
 	std.RegisterInterfaces(interfaceRegistry)
