@@ -114,7 +114,7 @@ type IBCApp struct {
 		ctx sdk.Context,
 		portID,
 		channelID string,
-	) error
+	)
 
 	OnChanUpgradeRestore func(
 		ctx sdk.Context,
