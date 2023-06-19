@@ -141,7 +141,7 @@ type UpgradableModule interface {
 		ctx sdk.Context,
 		portID,
 		channelID string,
-	) error
+	)
 
 	// OnChanUpgradeRestore TODO
 	OnChanUpgradeRestore(
