@@ -30,7 +30,7 @@ var (
 )
 
 // GetSimulatorFlags gets the values of all the available simulation flags
-func GetSimulatorFlags() {
+func SimulatorFlags() {
 	// config fields
 	flag.StringVar(&FlagGenesisFileValue, "Genesis", "", "custom simulation genesis file; cannot be used with params file")
 	flag.StringVar(&FlagParamsFileValue, "Params", "", "custom simulation params file which overrides any random params; cannot be used with genesis")

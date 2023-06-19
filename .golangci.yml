@@ -80,6 +80,8 @@ linters-settings:
         disabled: true
       - name: deep-exit
         disabled: true
+      - name: modifies-method-receiver
+        disabled: true
       - name: unhandled-error
         disabled: false
         arguments:

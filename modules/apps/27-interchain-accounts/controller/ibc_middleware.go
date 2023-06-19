@@ -76,14 +76,14 @@ func (im IBCMiddleware) OnChanOpenInit(
 
 // OnChanOpenTry implements the IBCMiddleware interface
 func (IBCMiddleware) OnChanOpenTry(
-	ctx sdk.Context,
-	order channeltypes.Order,
-	connectionHops []string,
-	portID,
-	channelID string,
-	chanCap *capabilitytypes.Capability,
-	counterparty channeltypes.Counterparty,
-	counterpartyVersion string,
+	_ sdk.Context,
+	_ channeltypes.Order,
+	_ []string,
+	_,
+	_ string,
+	_ *capabilitytypes.Capability,
+	_ channeltypes.Counterparty,
+	_ string,
 ) (string, error) {
 	return "", errorsmod.Wrap(icatypes.ErrInvalidChannelFlow, "channel handshake must be initiated by controller chain")
 }
