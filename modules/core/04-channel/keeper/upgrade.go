@@ -268,7 +268,7 @@ func (k Keeper) ChanUpgradeCancel(ctx sdk.Context, portID, channelID string, err
 		return 0, errorsmod.Wrap(types.ErrInvalidUpgradeSequence, "error sequence must be less than current sequence")
 	}
 
-	return errorReceipt.Sequence + 1, nil
+	return errorReceipt.Sequence, nil
 }
 
 // WriteUpgradeCancelChannel writes a channel which has canceled the upgrade process.Auxiliary upgrade state is

@@ -1173,7 +1173,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeCancel() {
 			expPass := tc.expError == nil
 			if expPass {
 				suite.Require().NoError(err)
-				suite.Require().Equal(errorReceipt.Sequence+1, newUpgradeSequence, "upgrade sequence should be incremented")
+				suite.Require().Equal(errorReceipt.Sequence, newUpgradeSequence, "upgrade sequence should be incremented")
 			} else {
 				suite.Require().ErrorIs(err, tc.expError)
 				suite.Require().Equal(uint64(0), newUpgradeSequence, "upgrade sequence should not be incremented in the case of an error")

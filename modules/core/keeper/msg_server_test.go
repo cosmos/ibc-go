@@ -1045,7 +1045,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeCancel() {
 				suite.Require().Equal(prevChannel.Version, channel.Version, "channel version should be reverted")
 				suite.Require().Equalf(channeltypes.OPEN, channel.State, "channel state should be %s", channeltypes.OPEN.String())
 				suite.Require().Equalf(channeltypes.NOTINFLUSH, channel.FlushStatus, "channel flush status should be %s", channeltypes.NOTINFLUSH.String())
-				suite.Require().Equal(errorReceipt.Sequence+1, channel.UpgradeSequence, "channel upgrade sequence should be incremented")
+				suite.Require().Equal(errorReceipt.Sequence, channel.UpgradeSequence, "channel upgrade sequence should be incremented")
 			} else {
 				suite.Require().Nil(res)
 				suite.Require().ErrorIs(err, tc.expErr)
