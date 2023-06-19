@@ -1112,7 +1112,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeCancel() {
 			expError: connectiontypes.ErrConnectionNotFound,
 		},
 		{
-			name: "counter partyupgrade sequence less than current sequence",
+			name: "counterparty upgrade sequence less than current sequence",
 			malleate: func() {
 				var ok bool
 				errorReceipt, ok = suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.GetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
@@ -1145,8 +1145,6 @@ func (suite *KeeperTestSuite) TestChanUpgradeCancel() {
 			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
 
 			suite.Require().NoError(path.EndpointA.ChanUpgradeInit())
-
-			suite.Require().NoError(path.EndpointB.UpdateClient())
 
 			// cause the upgrade to fail on chain b so an error receipt is written.
 			suite.chainB.GetSimApp().IBCMockModule.IBCApp.OnChanUpgradeTry = func(
