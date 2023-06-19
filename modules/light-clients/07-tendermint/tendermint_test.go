@@ -97,5 +97,6 @@ func getAltSigners(altVal *tmtypes.Validator, altPrivVal tmtypes.PrivValidator) 
 }
 
 func TestTendermintTestSuite(t *testing.T) {
+	t.Parallel()
 	suite.Run(t, new(TendermintTestSuite))
 }

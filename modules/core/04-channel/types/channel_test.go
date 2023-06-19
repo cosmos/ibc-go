@@ -9,6 +9,7 @@ import (
 )
 
 func TestChannelValidateBasic(t *testing.T) {
+	t.Parallel()
 	counterparty := types.Counterparty{"portidone", "channelidone"}
 	testCases := []struct {
 		name    string
@@ -36,6 +37,7 @@ func TestChannelValidateBasic(t *testing.T) {
 }
 
 func TestCounterpartyValidateBasic(t *testing.T) {
+	t.Parallel()
 	testCases := []struct {
 		name         string
 		counterparty types.Counterparty

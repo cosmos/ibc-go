@@ -9,6 +9,7 @@ import (
 )
 
 func TestValidateGenesis(t *testing.T) {
+	t.Parallel()
 	testCases := []struct {
 		name     string
 		genState *types.GenesisState

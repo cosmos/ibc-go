@@ -32,6 +32,7 @@ func (suite *ClientTestSuite) SetupTest() {
 }
 
 func TestClientTestSuite(t *testing.T) {
+	t.Parallel()
 	suite.Run(t, new(ClientTestSuite))
 }
 

@@ -15,6 +15,7 @@ import (
 
 func TestInitCmd(t *testing.T) {
 	rootCmd := cmd.NewRootCmd()
+	t.Parallel()
 	rootCmd.SetArgs([]string{
 		"init",        // Test the init cmd
 		"simapp-test", // Moniker
@@ -25,6 +26,7 @@ func TestInitCmd(t *testing.T) {
 }
 
 func TestHomeFlagRegistration(t *testing.T) {
+	t.Parallel()
 	homeDir := "/tmp/foo"
 
 	rootCmd := cmd.NewRootCmd()

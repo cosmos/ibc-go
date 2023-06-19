@@ -75,6 +75,7 @@ func (suite *MsgTestSuite) SetupTest() {
 }
 
 func TestMsgTestSuite(t *testing.T) {
+	t.Parallel()
 	suite.Run(t, new(MsgTestSuite))
 }
 

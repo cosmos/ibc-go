@@ -140,6 +140,7 @@ func (suite *MerkleTestSuite) TestVerifyNonMembership() {
 }
 
 func TestApplyPrefix(t *testing.T) {
+	t.Parallel()
 	prefix := types.NewMerklePrefix([]byte("storePrefixKey"))
 
 	pathStr := "pathone/pathtwo/paththree/key"
@@ -155,6 +156,7 @@ func TestApplyPrefix(t *testing.T) {
 }
 
 func TestString(t *testing.T) {
+	t.Parallel()
 	path := types.NewMerklePath("rootKey", "storeKey", "path/to/leaf")
 
 	require.Equal(t, "/rootKey/storeKey/path%2Fto%2Fleaf", path.String(), "path String returns unxpected value")

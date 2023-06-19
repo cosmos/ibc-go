@@ -45,12 +45,14 @@ var (
 
 // TestMsgTransferRoute tests Route for MsgTransfer
 func TestMsgTransferRoute(t *testing.T) {
+	t.Parallel()
 	msg := types.NewMsgTransfer(validPort, validChannel, coin, sender, receiver, timeoutHeight, 0, "")
 
 	require.Equal(t, types.RouterKey, msg.Route())
 }
 
 func TestMsgTransferGetSignBytes(t *testing.T) {
+	t.Parallel()
 	msg := types.NewMsgTransfer(validPort, validChannel, coin, sender, receiver, timeoutHeight, 0, "")
 	expected := fmt.Sprintf(`{"type":"cosmos-sdk/MsgTransfer","value":{"receiver":"%s","sender":"%s","source_channel":"testchannel","source_port":"testportid","timeout_height":{"revision_height":"10"},"token":{"amount":"100","denom":"atom"}}}`, receiver, sender)
 	require.NotPanics(t, func() {
@@ -61,6 +63,7 @@ func TestMsgTransferGetSignBytes(t *testing.T) {
 
 // TestMsgTransferValidation tests ValidateBasic for MsgTransfer
 func TestMsgTransferValidation(t *testing.T) {
+	t.Parallel()
 	testCases := []struct {
 		name    string
 		msg     *types.MsgTransfer
@@ -94,6 +97,7 @@ func TestMsgTransferValidation(t *testing.T) {
 
 // TestMsgTransferGetSigners tests GetSigners for MsgTransfer
 func TestMsgTransferGetSigners(t *testing.T) {
+	t.Parallel()
 	addr := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
 
 	msg := types.NewMsgTransfer(validPort, validChannel, coin, addr.String(), receiver, timeoutHeight, 0, "")
@@ -104,6 +108,7 @@ func TestMsgTransferGetSigners(t *testing.T) {
 
 // TestMsgUpdateParamsValidation tests ValidateBasic for MsgUpdateParams
 func TestMsgUpdateParamsValidation(t *testing.T) {
+	t.Parallel()
 	testCases := []struct {
 		name    string
 		msg     *types.MsgUpdateParams
@@ -126,6 +131,7 @@ func TestMsgUpdateParamsValidation(t *testing.T) {
 
 // TestMsgUpdateParamsGetSigners tests GetSigners for MsgUpdateParams
 func TestMsgUpdateParamsGetSigners(t *testing.T) {
+	t.Parallel()
 	authority := sdk.AccAddress("authority")
 	msg := types.MsgUpdateParams{
 		Authority: authority.String(),

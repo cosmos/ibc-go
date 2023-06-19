@@ -39,6 +39,7 @@ const bankSendMessage = `{
 var multiMsg = fmt.Sprintf("[ %s, %s ]", msgDelegateMessage, bankSendMessage)
 
 func TestGeneratePacketData(t *testing.T) {
+	t.Parallel()
 	t.Helper()
 	tests := []struct {
 		name                string
@@ -110,6 +111,7 @@ func TestGeneratePacketData(t *testing.T) {
 		cdc := codec.NewProtoCodec(ir)
 
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 			bz, err := generatePacketData(cdc, []byte(tc.message), tc.memo)
 
 			if tc.expectedPass {

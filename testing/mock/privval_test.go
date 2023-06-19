@@ -13,6 +13,7 @@ import (
 const chainID = "testChain"
 
 func TestGetPubKey(t *testing.T) {
+	t.Parallel()
 	pv := mock.NewPV()
 	pk, err := pv.GetPubKey()
 	require.NoError(t, err)
@@ -20,6 +21,7 @@ func TestGetPubKey(t *testing.T) {
 }
 
 func TestSignVote(t *testing.T) {
+	t.Parallel()
 	pv := mock.NewPV()
 	pk, _ := pv.GetPubKey()
 
@@ -33,6 +35,7 @@ func TestSignVote(t *testing.T) {
 }
 
 func TestSignProposal(t *testing.T) {
+	t.Parallel()
 	pv := mock.NewPV()
 	pk, _ := pv.GetPubKey()
 

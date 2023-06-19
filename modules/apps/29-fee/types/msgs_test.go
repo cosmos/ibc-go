@@ -13,6 +13,7 @@ import (
 )
 
 func TestMsgRegisterPayeeValidation(t *testing.T) {
+	t.Parallel()
 	var msg *types.MsgRegisterPayee
 
 	testCases := []struct {
@@ -82,12 +83,14 @@ func TestMsgRegisterPayeeValidation(t *testing.T) {
 }
 
 func TestRegisterPayeeGetSigners(t *testing.T) {
+	t.Parallel()
 	accAddress := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
 	msg := types.NewMsgRegisterPayee(ibctesting.MockPort, ibctesting.FirstChannelID, accAddress.String(), defaultAccAddress)
 	require.Equal(t, []sdk.AccAddress{accAddress}, msg.GetSigners())
 }
 
 func TestMsgRegisterCountepartyPayeeValidation(t *testing.T) {
+	t.Parallel()
 	var msg *types.MsgRegisterCounterpartyPayee
 
 	testCases := []struct {
@@ -153,12 +156,14 @@ func TestMsgRegisterCountepartyPayeeValidation(t *testing.T) {
 }
 
 func TestRegisterCountepartyAddressGetSigners(t *testing.T) {
+	t.Parallel()
 	accAddress := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
 	msg := types.NewMsgRegisterCounterpartyPayee(ibctesting.MockPort, ibctesting.FirstChannelID, accAddress.String(), defaultAccAddress)
 	require.Equal(t, []sdk.AccAddress{accAddress}, msg.GetSigners())
 }
 
 func TestMsgPayPacketFeeValidation(t *testing.T) {
+	t.Parallel()
 	var msg *types.MsgPayPacketFee
 
 	testCases := []struct {
@@ -225,6 +230,7 @@ func TestMsgPayPacketFeeValidation(t *testing.T) {
 }
 
 func TestPayPacketFeeGetSigners(t *testing.T) {
+	t.Parallel()
 	refundAddr := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
 	fee := types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
 	msg := types.NewMsgPayPacketFee(fee, ibctesting.MockFeePort, ibctesting.FirstChannelID, refundAddr.String(), nil)
@@ -233,11 +239,13 @@ func TestPayPacketFeeGetSigners(t *testing.T) {
 }
 
 func TestMsgPayPacketFeeRoute(t *testing.T) {
+	t.Parallel()
 	var msg types.MsgPayPacketFee
 	require.Equal(t, types.RouterKey, msg.Route())
 }
 
 func TestMsgPayPacketFeeGetSignBytes(t *testing.T) {
+	t.Parallel()
 	fee := types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
 	msg := types.NewMsgPayPacketFee(fee, ibctesting.MockFeePort, ibctesting.FirstChannelID, defaultAccAddress, nil)
 
@@ -247,6 +255,7 @@ func TestMsgPayPacketFeeGetSignBytes(t *testing.T) {
 }
 
 func TestMsgPayPacketFeeAsyncValidation(t *testing.T) {
+	t.Parallel()
 	var msg *types.MsgPayPacketFeeAsync
 
 	testCases := []struct {
@@ -371,6 +380,7 @@ func TestMsgPayPacketFeeAsyncValidation(t *testing.T) {
 }
 
 func TestPayPacketFeeAsyncGetSigners(t *testing.T) {
+	t.Parallel()
 	refundAddr := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
 	packetID := channeltypes.NewPacketID(ibctesting.MockFeePort, ibctesting.FirstChannelID, 1)
 	fee := types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
@@ -382,11 +392,13 @@ func TestPayPacketFeeAsyncGetSigners(t *testing.T) {
 }
 
 func TestMsgPayPacketFeeAsyncRoute(t *testing.T) {
+	t.Parallel()
 	var msg types.MsgPayPacketFeeAsync
 	require.Equal(t, types.RouterKey, msg.Route())
 }
 
 func TestMsgPayPacketFeeAsyncGetSignBytes(t *testing.T) {
+	t.Parallel()
 	packetID := channeltypes.NewPacketID(ibctesting.MockFeePort, ibctesting.FirstChannelID, 1)
 	fee := types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
 	packetFee := types.NewPacketFee(fee, defaultAccAddress, nil)

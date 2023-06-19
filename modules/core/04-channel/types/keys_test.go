@@ -10,6 +10,7 @@ import (
 
 // tests ParseChannelSequence and IsValidChannelID
 func TestParseChannelSequence(t *testing.T) {
+	t.Parallel()
 	testCases := []struct {
 		name      string
 		channelID string

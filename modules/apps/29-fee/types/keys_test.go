@@ -14,11 +14,13 @@ import (
 var validPacketID = channeltypes.NewPacketID(ibctesting.MockFeePort, ibctesting.FirstChannelID, 1)
 
 func TestKeyPayee(t *testing.T) {
+	t.Parallel()
 	key := types.KeyPayee("relayer-address", ibctesting.FirstChannelID)
 	require.Equal(t, string(key), fmt.Sprintf("%s/%s/%s", types.PayeeKeyPrefix, "relayer-address", ibctesting.FirstChannelID))
 }
 
 func TestParseKeyPayee(t *testing.T) {
+	t.Parallel()
 	testCases := []struct {
 		name    string
 		key     string
@@ -50,6 +52,7 @@ func TestParseKeyPayee(t *testing.T) {
 }
 
 func TestKeyCounterpartyPayee(t *testing.T) {
+	t.Parallel()
 	var (
 		relayerAddress = "relayer_address"
 		channelID      = "channel-0"
@@ -60,11 +63,13 @@ func TestKeyCounterpartyPayee(t *testing.T) {
 }
 
 func TestKeyFeesInEscrow(t *testing.T) {
+	t.Parallel()
 	key := types.KeyFeesInEscrow(validPacketID)
 	require.Equal(t, string(key), fmt.Sprintf("%s/%s/%s/%d", types.FeesInEscrowPrefix, ibctesting.MockFeePort, ibctesting.FirstChannelID, 1))
 }
 
 func TestParseKeyFeeEnabled(t *testing.T) {
+	t.Parallel()
 	testCases := []struct {
 		name    string
 		key     string
@@ -103,6 +108,7 @@ func TestParseKeyFeeEnabled(t *testing.T) {
 }
 
 func TestParseKeyFeesInEscrow(t *testing.T) {
+	t.Parallel()
 	testCases := []struct {
 		name    string
 		key     string
@@ -138,6 +144,7 @@ func TestParseKeyFeesInEscrow(t *testing.T) {
 }
 
 func TestParseKeyForwardRelayerAddress(t *testing.T) {
+	t.Parallel()
 	testCases := []struct {
 		name    string
 		key     string
@@ -173,6 +180,7 @@ func TestParseKeyForwardRelayerAddress(t *testing.T) {
 }
 
 func TestParseKeyCounterpartyPayee(t *testing.T) {
+	t.Parallel()
 	relayerAddress := "relayer_address"
 
 	testCases := []struct {

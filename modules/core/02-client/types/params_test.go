@@ -9,6 +9,7 @@ import (
 )
 
 func TestIsAllowedClient(t *testing.T) {
+	t.Parallel()
 	testCases := []struct {
 		name       string
 		clientType string
@@ -27,6 +28,7 @@ func TestIsAllowedClient(t *testing.T) {
 }
 
 func TestValidateParams(t *testing.T) {
+	t.Parallel()
 	testCases := []struct {
 		name    string
 		params  Params

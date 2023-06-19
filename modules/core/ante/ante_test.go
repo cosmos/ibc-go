@@ -41,6 +41,7 @@ func (suite *AnteTestSuite) SetupTest() {
 
 // TestAnteTestSuite runs all the tests within this package.
 func TestAnteTestSuite(t *testing.T) {
+	t.Parallel()
 	suite.Run(t, new(AnteTestSuite))
 }
 
