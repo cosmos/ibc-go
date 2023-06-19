@@ -121,6 +121,16 @@ type IBCApp struct {
 		portID,
 		channelID string,
 	) error
+
+	OnChanUpgradeTimeout func(
+		ctx sdk.Context,
+		portID, channelID string,
+		counterpartyChannel channeltypes.Channel,
+		prevErrorReceipt channeltypes.ErrorReceipt,
+		proofCounterpartyChannel,
+		proofErrorReceipt []byte,
+		proofHeight exported.Height,
+	) error
 }
 
 // NewIBCApp returns a IBCApp. An empty PortID indicates the mock app doesn't bind/claim ports.
