@@ -74,7 +74,7 @@ func (ClientState) ZeroCustomFields() exported.ClientState {
 }
 
 // Initialize panics!
-func (ClientState) Initialize(_ sdk.Context, _ codec.BinaryCodec, _ sdk.KVStore, consState exported.ConsensusState) error {
+func (ClientState) Initialize(_ sdk.Context, _ codec.BinaryCodec, _ sdk.KVStore, _ exported.ConsensusState) error {
 	panic("legacy solo machine is deprecated!")
 }
 

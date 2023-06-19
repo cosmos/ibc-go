@@ -80,6 +80,8 @@ linters-settings:
         disabled: true
       - name: deep-exit
         disabled: true
+      - name: unused-parameter
+        disabled: true
       - name: modifies-value-receiver
         disabled: true
       - name: unhandled-error

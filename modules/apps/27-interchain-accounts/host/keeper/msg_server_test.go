@@ -37,11 +37,11 @@ func (s *KeeperTestSuite) TestUpdateParams() {
 		s.Run(tc.name, func() {
 			s.SetupTest()
 
-			ICAHostKeeper := &s.chainA.GetSimApp().ICAHostKeeper
-			tc.malleate(ICAHostKeeper.GetAuthority()) // malleate mutates test data
+			iCAHostKeeper := &s.chainA.GetSimApp().ICAHostKeeper
+			tc.malleate(iCAHostKeeper.GetAuthority()) // malleate mutates test data
 
 			ctx := s.chainA.GetContext()
-			msgServer := keeper.NewMsgServerImpl(ICAHostKeeper)
+			msgServer := keeper.NewMsgServerImpl(iCAHostKeeper)
 			res, err := msgServer.UpdateParams(ctx, &msg)
 
 			if tc.expPass {

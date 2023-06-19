@@ -271,9 +271,9 @@ func (*KeeperTestSuite) CheckBankBalances(chain *ibctesting.TestChain, bankBefor
 	bankAfter := BankOfChain(chain)
 	bankChange := bankAfter.Sub(bankBefore)
 	diff := bankChange.Sub(expectedBankChange)
-	NonZeroString := diff.NonZeroString()
-	if len(NonZeroString) != 0 {
-		return errorsmod.Wrap(ibcerrors.ErrInvalidCoins, "Unexpected changes in the bank: \n"+NonZeroString)
+	nonZeroString := diff.NonZeroString()
+	if len(nonZeroString) != 0 {
+		return errorsmod.Wrap(ibcerrors.ErrInvalidCoins, "Unexpected changes in the bank: \n"+nonZeroString)
 	}
 	return nil
 }
