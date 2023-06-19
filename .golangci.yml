@@ -2,6 +2,7 @@ run:
   tests: true
   #   # timeout for analysis, e.g. 30s, 5m, default is 1m
   timeout: 5m
+  fix: true
 
 linters:
   disable-all: true
@@ -74,6 +75,10 @@ linters-settings:
       - name: add-constant
         disabled: true
       - name: empty-lines
+        disabled: true
+      - name: banned-characters
+        disabled: true
+      - name: deep-exit
         disabled: true
       - name: unhandled-error
         disabled: false

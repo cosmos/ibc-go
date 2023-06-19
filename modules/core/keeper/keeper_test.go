@@ -47,11 +47,11 @@ type MockStakingKeeper struct {
 	mockField string
 }
 
-func (d MockStakingKeeper) GetHistoricalInfo(ctx sdk.Context, height int64) (stakingtypes.HistoricalInfo, bool) {
+func (MockStakingKeeper) GetHistoricalInfo(ctx sdk.Context, height int64) (stakingtypes.HistoricalInfo, bool) {
 	return stakingtypes.HistoricalInfo{}, true
 }
 
-func (d MockStakingKeeper) UnbondingTime(ctx sdk.Context) time.Duration {
+func (MockStakingKeeper) UnbondingTime(ctx sdk.Context) time.Duration {
 	return 0
 }
 

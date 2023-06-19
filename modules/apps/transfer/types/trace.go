@@ -82,10 +82,10 @@ func (dt DenomTrace) IsNativeDenom() bool {
 
 // extractPathAndBaseFromFullDenom returns the trace path and the base denom from
 // the elements that constitute the complete denom.
-func extractPathAndBaseFromFullDenom(fullDenomItems []string) (string, string) {
+func extractPathAndBaseFromFullDenom(fullDenomItems []string) (path, basedenom string) {
 	var (
-		path      []string
-		baseDenom []string
+		pathSlice      []string
+		baseDenomSlice []string
 	)
 
 	length := len(fullDenomItems)
@@ -100,14 +100,14 @@ func extractPathAndBaseFromFullDenom(fullDenomItems []string) (string, string) {
 		// as an IBC denomination. The hash used to store the token internally on our chain
 		// will be the same value as the base denomination being correctly parsed.
 		if i < length-1 && length > 2 && channeltypes.IsValidChannelID(fullDenomItems[i+1]) {
-			path = append(path, fullDenomItems[i], fullDenomItems[i+1])
+			pathSlice = append(pathSlice, fullDenomItems[i], fullDenomItems[i+1])
 		} else {
-			baseDenom = fullDenomItems[i:]
+			baseDenomSlice = fullDenomItems[i:]
 			break
 		}
 	}
 
-	return strings.Join(path, "/"), strings.Join(baseDenom, "/")
+	return strings.Join(pathSlice, "/"), strings.Join(baseDenomSlice, "/")
 }
 
 func validateTraceIdentifiers(identifiers []string) error {

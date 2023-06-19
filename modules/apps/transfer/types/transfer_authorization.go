@@ -26,7 +26,7 @@ func NewTransferAuthorization(allocations ...Allocation) *TransferAuthorization 
 }
 
 // MsgTypeURL implements Authorization.MsgTypeURL.
-func (a TransferAuthorization) MsgTypeURL() string {
+func (TransferAuthorization) MsgTypeURL() string {
 	return sdk.MsgTypeURL(&MsgTransfer{})
 }
 

@@ -31,7 +31,7 @@ type CapabilityTestSuite struct {
 
 func (s *CapabilityTestSuite) SetupTest() {
 	checkTx := false
-	app := simapp.Setup(checkTx)
+	app := simapp.Setup()
 	cdc := app.AppCodec()
 
 	// create new keeper so we can define custom scoping before init and seal
