@@ -47,4 +47,7 @@ var (
 	ErrIncompatibleCounterpartyUpgrade = errorsmod.Register(SubModuleName, 31, "incompatible counterparty upgrade")
 	ErrInvalidUpgradeError             = errorsmod.Register(SubModuleName, 32, "invalid upgrade error")
 	ErrInvalidFlushStatus              = errorsmod.Register(SubModuleName, 33, "invalid flush status")
+	ErrUpgradeRestoreFailed            = errorsmod.Register(SubModuleName, 34, "restore failed")
+	ErrUpgradeTimeout                  = errorsmod.Register(SubModuleName, 35, "upgrade timed-out")
+	ErrInvalidUpgradeTimeout           = errorsmod.Register(SubModuleName, 36, "upgrade timeout is invalid")
 )
