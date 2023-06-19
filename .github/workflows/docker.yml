@@ -27,7 +27,7 @@ jobs:
       with:
         images: ${{ env.REGISTRY }}/cosmos/${{ env.IMAGE_NAME }}
 
-    - name: Build and push Docker image
+    - name: Build Docker image
       uses: docker/build-push-action@2eb1c1961a95fc15694676618e422e8ba1d63825
       with:
         context: .
@@ -45,7 +45,7 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Build and push Docker image
+    - name: Push Docker image
       uses: docker/build-push-action@2eb1c1961a95fc15694676618e422e8ba1d63825
       with:
         context: .
