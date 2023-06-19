@@ -77,7 +77,7 @@ func (cs ClientState) verifyHeader(ctx sdk.Context, cdc codec.BinaryCodec, clien
 
 // UpdateState updates the consensus state to the new public key and an incremented sequence.
 // A list containing the updated consensus height is returned.
-func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, clientMsg exported.ClientMessage) []exported.Height {
+func (cs ClientState) UpdateState(_ sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, clientMsg exported.ClientMessage) []exported.Height {
 	smHeader, ok := clientMsg.(*Header)
 	if !ok {
 		panic(fmt.Errorf("unsupported ClientMessage: %T", clientMsg))

@@ -142,9 +142,9 @@ func (IBCModule) OnAcknowledgementPacket(
 
 // OnTimeoutPacket implements the IBCModule interface
 func (IBCModule) OnTimeoutPacket(
-	ctx sdk.Context,
-	packet channeltypes.Packet,
-	relayer sdk.AccAddress,
+	_ sdk.Context,
+	_ channeltypes.Packet,
+	_ sdk.AccAddress,
 ) error {
 	return errorsmod.Wrap(icatypes.ErrInvalidChannelFlow, "cannot cause a packet timeout on a host channel end, a host chain does not send a packet over the channel")
 }

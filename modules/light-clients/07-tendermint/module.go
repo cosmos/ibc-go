@@ -43,7 +43,7 @@ func (AppModuleBasic) ValidateGenesis(_ codec.JSONCodec, _ client.TxEncodingConf
 }
 
 // RegisterGRPCGatewayRoutes performs a no-op.
-func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {}
+func (AppModuleBasic) RegisterGRPCGatewayRoutes(_ client.Context, _ *runtime.ServeMux) {}
 
 // GetTxCmd performs a no-op. Please see the 02-client cli commands.
 func (AppModuleBasic) GetTxCmd() *cobra.Command {
