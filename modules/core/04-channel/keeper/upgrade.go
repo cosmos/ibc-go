@@ -712,6 +712,8 @@ func (k Keeper) AbortUpgrade(ctx sdk.Context, portID, channelID string, err erro
 		return errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
 	}
 
+	// the channel upgrade sequence has already been updated in ChannelUpgradeTry, so we can pass
+	// its updated value.
 	k.restoreChannel(ctx, portID, channelID, channel.UpgradeSequence, channel)
 
 	// in the case of application callbacks, the error may not be an upgrade error.
@@ -724,9 +726,6 @@ func (k Keeper) AbortUpgrade(ctx sdk.Context, portID, channelID string, err erro
 	if err := k.writeErrorReceipt(ctx, portID, channelID, upgrade, upgradeError); err != nil {
 		return err
 	}
-
-	// TODO: callback execution
-	// cbs.OnChanUpgradeRestore()
 
 	return nil
 }

@@ -37,6 +37,9 @@ var (
 	MockAckCanaryCapabilityName     = "mock acknowledgement canary capability name"
 	MockTimeoutCanaryCapabilityName = "mock timeout canary capability name"
 	UpgradeVersion                  = fmt.Sprintf("%s-v2", Version)
+	// MockApplicationCallbackError should be returned when an application callback should fail. It is possible to
+	// test that this error was returned using ErrorIs.
+	MockApplicationCallbackError error = &applicationCallbackError{}
 )
 
 var _ porttypes.IBCModule = IBCModule{}

@@ -966,8 +966,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeCancel() {
 				suite.Require().NoError(path.EndpointA.UpdateClient())
 
 				// retrieve the error receipt proof and proof height.
-				upgradeErrorReceiptKey := host.ChannelUpgradeErrorKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
-				errorReceiptProof, proofHeight := suite.chainB.QueryProof(upgradeErrorReceiptKey)
+				errorReceiptProof, proofHeight := path.EndpointB.QueryProof(host.ChannelUpgradeErrorKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID))
 
 				// provide a valid proof of the error receipt with an invalid sequence.
 				msg.ErrorReceipt.Sequence = invalidSequence
@@ -981,11 +980,11 @@ func (suite *KeeperTestSuite) TestChannelUpgradeCancel() {
 			malleate: func() {
 				suite.chainA.GetSimApp().IBCMockModule.IBCApp.OnChanUpgradeRestore = func(ctx sdk.Context, portID, channelID string) error {
 					// return an error type that is not returned in the regular flow.
-					return upgradetypes.ErrIntOverflowUpgrade
+					return ibcmock.MockApplicationCallbackError
 				}
 			},
 			// error should be what the application callback returned.
-			expErr: upgradetypes.ErrIntOverflowUpgrade,
+			expErr: ibcmock.MockApplicationCallbackError,
 		},
 	}
 
@@ -1005,8 +1004,6 @@ func (suite *KeeperTestSuite) TestChannelUpgradeCancel() {
 
 			// fetch the previous channel when it is in the INITUPGRADE state.
 			prevChannel := path.EndpointA.GetChannel()
-
-			suite.Require().NoError(path.EndpointB.UpdateClient())
 
 			// cause the upgrade to fail on chain b so an error receipt is written.
 			suite.chainB.GetSimApp().IBCMockModule.IBCApp.OnChanUpgradeTry = func(
@@ -1045,7 +1042,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeCancel() {
 				suite.Require().Equal(prevChannel.Version, channel.Version, "channel version should be reverted")
 				suite.Require().Equalf(channeltypes.OPEN, channel.State, "channel state should be %s", channeltypes.OPEN.String())
 				suite.Require().Equalf(channeltypes.NOTINFLUSH, channel.FlushStatus, "channel flush status should be %s", channeltypes.NOTINFLUSH.String())
-				suite.Require().Equal(errorReceipt.Sequence, channel.UpgradeSequence, "channel upgrade sequence should be incremented")
+				suite.Require().Equal(errorReceipt.Sequence, channel.UpgradeSequence, "channel upgrade sequence should be set to error receipt sequence")
 			} else {
 				suite.Require().Nil(res)
 				suite.Require().ErrorIs(err, tc.expErr)
