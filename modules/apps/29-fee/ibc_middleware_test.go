@@ -7,7 +7,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 
-	fee "github.com/cosmos/ibc-go/v7/modules/apps/29-fee"
+	ibcfee "github.com/cosmos/ibc-go/v7/modules/apps/29-fee"
 	"github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
@@ -1065,7 +1065,7 @@ func (s *FeeTestSuite) TestGetAppVersion() {
 			cbs, ok := s.chainA.App.GetIBCKeeper().Router.GetRoute(module)
 			s.Require().True(ok)
 
-			feeModule := cbs.(fee.IBCMiddleware)
+			feeModule := cbs.(ibcfee.IBCMiddleware)
 
 			appVersion, found := feeModule.GetAppVersion(s.chainA.GetContext(), portID, channelID)
 
