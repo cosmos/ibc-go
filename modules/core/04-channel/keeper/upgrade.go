@@ -272,7 +272,7 @@ func (k Keeper) ChanUpgradeCancel(ctx sdk.Context, portID, channelID string, err
 
 // WriteUpgradeCancelChannel writes a channel which has canceled the upgrade process.Auxiliary upgrade state is
 // also deleted.
-func (k Keeper) WriteUpgradeCancelChannel(ctx sdk.Context, portID, channelID string, sequence uint64) {
+func (k Keeper) WriteUpgradeCancelChannel(ctx sdk.Context, portID, channelID string, newUpgradeSequence uint64) {
 	defer telemetry.IncrCounter(1, "ibc", "channel", "upgrade-cancel")
 
 	upgrade, found := k.GetUpgrade(ctx, portID, channelID)
@@ -287,7 +287,7 @@ func (k Keeper) WriteUpgradeCancelChannel(ctx sdk.Context, portID, channelID str
 
 	previousState := channel.State
 
-	k.restoreChannel(ctx, portID, channelID, sequence, channel)
+	k.restoreChannel(ctx, portID, channelID, newUpgradeSequence, channel)
 
 	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", previousState, "new-state", types.OPEN.String())
 	emitChannelUpgradeCancelEvent(ctx, portID, channelID, channel, upgrade)
