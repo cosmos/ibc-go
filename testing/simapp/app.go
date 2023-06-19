@@ -169,36 +169,6 @@ var (
 	_ servertypes.Application = (*SimApp)(nil)
 )
 
-// stdAccAddressCodec is a temporary address codec that we will use until we
-// can populate it with the correct bech32 prefixes without depending on the global.
-type stdAccAddressCodec struct{}
-
-func (g stdAccAddressCodec) StringToBytes(text string) ([]byte, error) {
-	if text == "" {
-		return nil, nil
-	}
-	return sdk.AccAddressFromBech32(text)
-}
-
-func (g stdAccAddressCodec) BytesToString(bz []byte) (string, error) {
-	if bz == nil {
-		return "", nil
-	}
-	return sdk.AccAddress(bz).String(), nil
-}
-
-// stdValAddressCodec is a temporary address codec that we will use until we
-// can populate it with the correct bech32 prefixes without depending on the global.
-type stdValAddressCodec struct{}
-
-func (g stdValAddressCodec) StringToBytes(text string) ([]byte, error) {
-	return sdk.ValAddressFromBech32(text)
-}
-
-func (g stdValAddressCodec) BytesToString(bz []byte) (string, error) {
-	return sdk.ValAddress(bz).String(), nil
-}
-
 // SimApp extends an ABCI application, but with most of its parameters exported.
 // They are exported for convenience in creating helper functions, as object
 // capabilities aren't needed for testing.
@@ -863,7 +833,11 @@ func (app *SimApp) InitChainer(ctx sdk.Context, req *abci.RequestInitChain) (*ab
 	if err := json.Unmarshal(req.AppStateBytes, &genesisState); err != nil {
 		panic(err)
 	}
-	app.UpgradeKeeper.SetModuleVersionMap(ctx, app.ModuleManager.GetVersionMap())
+
+	if err := app.UpgradeKeeper.SetModuleVersionMap(ctx, app.ModuleManager.GetVersionMap()); err != nil {
+		panic(err)
+	}
+
 	return app.ModuleManager.InitGenesis(ctx, app.appCodec, genesisState)
 }
 

@@ -315,7 +315,8 @@ func (chain *TestChain) NextBlock() {
 		ProposerAddress:    chain.CurrentHeader.ProposerAddress,
 	}
 
-	chain.App.FinalizeBlock(&abci.RequestFinalizeBlock{Height: chain.CurrentHeader.Height})
+	_, err = chain.App.FinalizeBlock(&abci.RequestFinalizeBlock{Height: chain.CurrentHeader.Height})
+	require.NoError(chain.TB, err)
 }
 
 // sendMsgs delivers a transaction through the application without returning the result.
