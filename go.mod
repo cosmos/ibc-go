@@ -20,7 +20,7 @@ require (
 	cosmossdk.io/x/tx v0.8.0
 	cosmossdk.io/x/upgrade v0.0.0-20230609160955-4ad71e570d16
 	github.com/armon/go-metrics v0.4.1
-	github.com/cometbft/cometbft v0.38.0-rc1
+	github.com/cometbft/cometbft v0.38.0-rc1.0.20230616160951-13dc04fb4de8
 	github.com/cosmos/cosmos-db v1.0.0
 	github.com/cosmos/cosmos-proto v1.0.0-beta.3
 	github.com/cosmos/cosmos-sdk v0.50.0-alpha.0.0.20230615105423-ae3e30a715bd

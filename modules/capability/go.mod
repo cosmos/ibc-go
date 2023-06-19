@@ -8,7 +8,7 @@ require (
 	cosmossdk.io/log v1.1.0
 	cosmossdk.io/math v1.0.1
 	cosmossdk.io/store v0.1.0-alpha.1.0.20230606190835-3e18f4088b2c
-	github.com/cometbft/cometbft v0.38.0-rc1
+	github.com/cometbft/cometbft v0.38.0-rc1.0.20230616160951-13dc04fb4de8
 	github.com/cosmos/cosmos-db v1.0.0
 	github.com/cosmos/cosmos-sdk v0.50.0-alpha.0.0.20230615105423-ae3e30a715bd
 	github.com/cosmos/gogoproto v1.4.10
