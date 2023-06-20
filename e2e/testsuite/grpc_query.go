@@ -315,7 +315,7 @@ func (s *E2ETestSuite) QueryModuleAccountAddress(ctx context.Context, moduleName
 
 	cfg := EncodingConfig()
 
-	var account authtypes.AccountI
+	var account sdk.AccountI
 	if err := cfg.InterfaceRegistry.UnpackAny(resp.Account, &account); err != nil {
 		return nil, err
 	}
