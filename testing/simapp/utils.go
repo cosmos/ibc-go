@@ -3,9 +3,10 @@ package simapp
 import (
 	"os"
 
+	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
+
 	dbm "github.com/cometbft/cometbft-db"
 	"github.com/cometbft/cometbft/libs/log"
-	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 )
 
 // SetupSimulation creates the config, db (levelDB), temporary directory and logger for
