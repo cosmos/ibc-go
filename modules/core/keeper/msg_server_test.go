@@ -1016,7 +1016,6 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTimeout() {
 			// fetch the previous channel when it is in the INITUPGRADE state.
 			prevChannel := path.EndpointA.GetChannel()
 
-			// suite.coordinator.CommitBlock(suite.chainA)
 			suite.Require().NoError(path.EndpointB.UpdateClient())
 
 			upgradeErrorReceiptKey := host.ChannelUpgradeErrorKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
@@ -1046,6 +1045,8 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTimeout() {
 				suite.Require().Equal(prevChannel.Version, channel.Version, "channel version should be reverted")
 				suite.Require().Equalf(channeltypes.OPEN, channel.State, "channel state should be %s", channeltypes.OPEN.String())
 				suite.Require().Equalf(channeltypes.NOTINFLUSH, channel.FlushStatus, "channel flush status should be %s", channeltypes.NOTINFLUSH.String())
+				suite.Require().NotNil(res)
+				suite.Require().Equal(channeltypes.SUCCESS, res.Result)
 			} else {
 				suite.Require().Nil(res)
 				suite.Require().ErrorIs(err, tc.expErr)

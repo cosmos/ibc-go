@@ -692,7 +692,7 @@ func (endpoint *Endpoint) ChanUpgradeTimeout() error {
 		endpoint.ChannelConfig.PortID,
 		endpoint.ChannelID,
 		endpoint.Counterparty.GetChannel(),
-		errorReceipt,
+		&errorReceipt,
 		proofChannel,
 		proofErrorReceipt,
 		height,
