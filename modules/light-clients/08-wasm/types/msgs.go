@@ -42,3 +42,8 @@ func (m MsgPushNewWasmCode) GetSigners() []sdk.AccAddress {
 	}
 	return []sdk.AccAddress{signer}
 }
+
+// GetSignBytes implements the LegacyMsg interface.
+func (msg MsgPushNewWasmCode) GetSignBytes() []byte {
+	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(&msg))
+}
