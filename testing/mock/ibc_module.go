@@ -204,12 +204,10 @@ func (im IBCModule) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID string)
 }
 
 // OnChanUpgradeRestore implements the IBCModule interface
-func (im IBCModule) OnChanUpgradeRestore(ctx sdk.Context, portID, channelID string) error {
+func (im IBCModule) OnChanUpgradeRestore(ctx sdk.Context, portID, channelID string) {
 	if im.IBCApp.OnChanUpgradeRestore != nil {
-		return im.IBCApp.OnChanUpgradeRestore(ctx, portID, channelID)
+		im.IBCApp.OnChanUpgradeRestore(ctx, portID, channelID)
 	}
-
-	return nil
 }
 
 // OnChanUpgradeTimeout implements the IBCModule interface

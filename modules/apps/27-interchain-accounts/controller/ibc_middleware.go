@@ -244,9 +244,7 @@ func (im IBCMiddleware) OnChanUpgradeAck(ctx sdk.Context, portID, channelID, cou
 func (im IBCMiddleware) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID string) {}
 
 // OnChanUpgradeRestore implements the IBCModule interface
-func (im IBCMiddleware) OnChanUpgradeRestore(ctx sdk.Context, portID, channelID string) error {
-	return nil
-}
+func (im IBCMiddleware) OnChanUpgradeRestore(ctx sdk.Context, portID, channelID string) {}
 
 // OnChanUpgradeTimeout implements the IBCModule interface
 func (im IBCMiddleware) OnChanUpgradeTimeout(
