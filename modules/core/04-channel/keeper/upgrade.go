@@ -356,6 +356,7 @@ func (k Keeper) ChanUpgradeCancel(ctx sdk.Context, portID, channelID string, err
 
 	return errorReceipt.Sequence, nil
 }
+
 // ChanUpgradeTimeout times out an outstanding upgrade.
 // This should be used by the initialising chain when the counterparty chain has not responded to an upgrade proposal within the specified timeout period.
 func (k Keeper) ChanUpgradeTimeout(
