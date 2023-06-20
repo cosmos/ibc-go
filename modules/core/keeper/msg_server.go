@@ -841,7 +841,7 @@ func (k Keeper) ChannelUpgradeAck(goCtx context.Context, msg *channeltypes.MsgCh
 	if err != nil {
 		ctx.Logger().Error("channel upgrade ack callback failed", "port-id", msg.PortId, "channel-id", msg.ChannelId, "error", err.Error())
 		if err := k.ChannelKeeper.AbortUpgrade(ctx, msg.PortId, msg.ChannelId, err); err != nil {
-			return nil, errorsmod.Wrap(err, "channel upgrade ack callback (abort upgrade) failed for port ID: %s, channel ID: %s", msg.PortId, channelID)
+			return nil, errorsmod.Wrapf(err, "channel upgrade ack callback (abort upgrade) failed for port ID: %s, channel ID: %s", msg.PortId, msg.ChannelId)
 		}
 
 		return &channeltypes.MsgChannelUpgradeAckResponse{Result: channeltypes.FAILURE}, nil
@@ -850,6 +850,8 @@ func (k Keeper) ChannelUpgradeAck(goCtx context.Context, msg *channeltypes.MsgCh
 	writeFn()
 
 	k.ChannelKeeper.WriteUpgradeAckChannel(ctx, msg.PortId, msg.ChannelId, msg.CounterpartyUpgrade.Fields.Version)
+
+	ctx.Logger().Info("channel upgrade ack succeeded", "port-id", msg.PortId, "channel-id", msg.ChannelId)
 
 	return &channeltypes.MsgChannelUpgradeAckResponse{Result: channeltypes.SUCCESS}, nil
 }
