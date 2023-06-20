@@ -322,6 +322,5 @@ func (im IBCModule) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID string)
 }
 
 // OnChanUpgradeRestore implements the IBCModule interface
-func (im IBCModule) OnChanUpgradeRestore(ctx sdk.Context, portID, channelID string) error {
-	return nil
+func (im IBCModule) OnChanUpgradeRestore(ctx sdk.Context, portID, channelID string) {
 }

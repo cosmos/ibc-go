@@ -330,7 +330,12 @@ message MsgChannelUpgradeAck {
 }
 
 // MsgChannelUpgradeAckResponse defines MsgChannelUpgradeAck response type
-message MsgChannelUpgradeAckResponse {}
+message MsgChannelUpgradeAckResponse {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  ResponseResultType result = 1;
+}
 
 // MsgChannelUpgradeOpen defines the request type for the ChannelUpgradeOpen rpc
 message MsgChannelUpgradeOpen {

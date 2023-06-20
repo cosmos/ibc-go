@@ -1120,6 +1120,7 @@ var xxx_messageInfo_MsgChannelUpgradeAck proto.InternalMessageInfo
 
 // MsgChannelUpgradeAckResponse defines MsgChannelUpgradeAck response type
 type MsgChannelUpgradeAckResponse struct {
+	Result ResponseResultType `protobuf:"varint,1,opt,name=result,proto3,enum=ibc.core.channel.v1.ResponseResultType" json:"result,omitempty"`
 }
 
 func (m *MsgChannelUpgradeAckResponse) Reset()         { *m = MsgChannelUpgradeAckResponse{} }
@@ -3468,6 +3469,11 @@ func (m *MsgChannelUpgradeAckResponse) MarshalToSizedBuffer(dAtA []byte) (int, e
 	_ = i
 	var l int
 	_ = l
+	if m.Result != 0 {
+		i = encodeVarintTx(dAtA, i, uint64(m.Result))
+		i--
+		dAtA[i] = 0x8
+	}
 	return len(dAtA) - i, nil
 }
 
@@ -4311,6 +4317,9 @@ func (m *MsgChannelUpgradeAckResponse) Size() (n int) {
 	}
 	var l int
 	_ = l
+	if m.Result != 0 {
+		n += 1 + sovTx(uint64(m.Result))
+	}
 	return n
 }
 
@@ -8449,6 +8458,25 @@ func (m *MsgChannelUpgradeAckResponse) Unmarshal(dAtA []byte) error {
 			return fmt.Errorf("proto: MsgChannelUpgradeAckResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Result", wireType)
+			}
+			m.Result = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Result |= ResponseResultType(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
 		default:
 			iNdEx = preIndex
 			skippy, err := skipTx(dAtA[iNdEx:])

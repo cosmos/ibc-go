@@ -141,14 +141,14 @@ type UpgradableModule interface {
 		ctx sdk.Context,
 		portID,
 		channelID string,
-	) error
+	)
 
 	// OnChanUpgradeRestore TODO
 	OnChanUpgradeRestore(
 		ctx sdk.Context,
 		portID,
 		channelID string,
-	) error
+	)
 }
 
 // ICS4Wrapper implements the ICS4 interfaces that IBC applications use to send packets and acknowledgements.
