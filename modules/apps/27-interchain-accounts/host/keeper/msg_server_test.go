@@ -6,27 +6,19 @@ import (
 )
 
 func (suite *KeeperTestSuite) TestUpdateParams() {
-	msg := types.MsgUpdateParams{}
-
 	testCases := []struct {
-		name     string
-		malleate func(authority string)
-		expPass  bool
+		name    string
+		msg     *types.MsgUpdateParams
+		expPass bool
 	}{
 		{
 			"success",
-			func(authority string) {
-				msg.Authority = authority
-				msg.Params = types.DefaultParams()
-			},
+			types.NewMsgUpdateParams(suite.chainA.GetSimApp().ICAHostKeeper.GetAuthority(), types.DefaultParams()),
 			true,
 		},
 		{
 			"invalid authority address",
-			func(authority string) {
-				msg.Authority = "authority"
-				msg.Params = types.DefaultParams()
-			},
+			types.NewMsgUpdateParams("authority", types.DefaultParams()),
 			false,
 		},
 	}
@@ -37,12 +29,9 @@ func (suite *KeeperTestSuite) TestUpdateParams() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 
-			ICAHostKeeper := &suite.chainA.GetSimApp().ICAHostKeeper
-			tc.malleate(ICAHostKeeper.GetAuthority()) // malleate mutates test data
-
 			ctx := suite.chainA.GetContext()
-			msgServer := keeper.NewMsgServerImpl(ICAHostKeeper)
-			res, err := msgServer.UpdateParams(ctx, &msg)
+			msgServer := keeper.NewMsgServerImpl(&suite.chainA.GetSimApp().ICAHostKeeper)
+			res, err := msgServer.UpdateParams(ctx, tc.msg)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
