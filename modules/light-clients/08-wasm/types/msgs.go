@@ -5,11 +5,19 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
+var TypeMsgPushNewWasmCode = "push_wasm_code"
 var _ sdk.Msg = &MsgPushNewWasmCode{}
 
 // NewMsgPushNewWasmCode creates a new MsgPushNewWasmCode instance
 //
 //nolint:interfacer
+
+// Route Implements Msg.
+func (msg MsgPushNewWasmCode) Route() string { return ModuleName }
+
+// Type Implements Msg.
+func (msg MsgPushNewWasmCode) Type() string { return TypeMsgPushNewWasmCode }
+
 func NewMsgPushNewWasmCode(signer string, code []byte) *MsgPushNewWasmCode {
 	return &MsgPushNewWasmCode{
 		Signer: signer,
