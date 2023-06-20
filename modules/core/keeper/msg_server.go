@@ -835,12 +835,9 @@ func (k Keeper) ChannelUpgradeTimeout(goCtx context.Context, msg *channeltypes.M
 
 	cbs.OnChanUpgradeRestore(ctx, msg.PortId, msg.ChannelId)
 
-	err = k.ChannelKeeper.WriteUpgradeTimeoutChannel(ctx, msg.PortId, msg.ChannelId)
-	if err != nil {
-		return nil, errorsmod.Wrapf(err, "could not write upgrade timeout channel for channel: %s, portID: %s", msg.ChannelId, msg.PortId)
-	}
+	k.ChannelKeeper.WriteUpgradeTimeoutChannel(ctx, msg.PortId, msg.ChannelId)
 
-	ctx.Logger().Info("channel upgrade timeout callback succeeded", "channel-id", msg.ChannelId)
+	ctx.Logger().Info("channel upgrade timeout callback succeeded: portID %s, channelID %s", msg.PortId, msg.ChannelId)
 
 	return &channeltypes.MsgChannelUpgradeTimeoutResponse{
 		Result: channeltypes.SUCCESS,

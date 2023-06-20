@@ -944,6 +944,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTimeout() {
 		{
 			name: "success with error receipt",
 			malleate: func() {
+				// this error receipt is for a past upgrade so is stale
 				errReceipt := channeltypes.ErrorReceipt{
 					Sequence: 0,
 					Message:  "error",
@@ -956,6 +957,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTimeout() {
 				upgradeErrorReceiptKey := host.ChannelUpgradeErrorKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 				errorReceiptProof, proofHeight := path.EndpointB.QueryProof(upgradeErrorReceiptKey)
 				counterpartyChannel := path.EndpointB.GetChannel()
+				// the channel proof is being regenerated as the proof height will change
 				channelProof, _, _ := path.EndpointA.QueryChannelUpgradeProof()
 
 				msg.PreviousErrorReceipt = &errReceipt
@@ -974,7 +976,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTimeout() {
 			expErr: commitmenttypes.ErrInvalidProof,
 		},
 		{
-			name: "invalid error receipt sequence",
+			name: "invalid error receipt sequence, this error receipt is for this same upgrade so UpgradeCancel should be used instead",
 			malleate: func() {
 				errReceipt := channeltypes.ErrorReceipt{
 					Sequence: 1,
@@ -1041,10 +1043,14 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTimeout() {
 			expPass := tc.expErr == nil
 			if expPass {
 				suite.Require().NoError(err)
+
 				channel := path.EndpointA.GetChannel()
-				suite.Require().Equal(prevChannel.Version, channel.Version, "channel version should be reverted")
 				suite.Require().Equalf(channeltypes.OPEN, channel.State, "channel state should be %s", channeltypes.OPEN.String())
 				suite.Require().Equalf(channeltypes.NOTINFLUSH, channel.FlushStatus, "channel flush status should be %s", channeltypes.NOTINFLUSH.String())
+
+				_, found := path.EndpointA.Chain.GetSimApp().IBCKeeper.ChannelKeeper.GetUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				suite.Require().False(found, "channel upgrade should be nil")
+
 				suite.Require().NotNil(res)
 				suite.Require().Equal(channeltypes.SUCCESS, res.Result)
 			} else {
@@ -1052,11 +1058,12 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTimeout() {
 				suite.Require().ErrorIs(err, tc.expErr)
 
 				channel := path.EndpointA.GetChannel()
-
-				suite.Require().Equal(prevChannel.Version, channel.Version, "channel version should not be changed")
 				suite.Require().Equalf(prevChannel.State, channel.State, "channel state should be %s", prevChannel.State.String())
 				suite.Require().Equalf(prevChannel.FlushStatus, channel.FlushStatus, "channel flush status should be %s", prevChannel.FlushStatus.String())
 				suite.Require().Equal(prevChannel.UpgradeSequence, channel.UpgradeSequence, "channel upgrade sequence should not incremented")
+
+				_, found := path.EndpointA.Chain.GetSimApp().IBCKeeper.ChannelKeeper.GetUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				suite.Require().True(found, "channel upgrade should not be nil")
 			}
 		})
 	}

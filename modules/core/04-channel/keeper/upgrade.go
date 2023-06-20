@@ -472,7 +472,7 @@ func (k Keeper) ChanUpgradeTimeout(
 func (k Keeper) WriteUpgradeTimeoutChannel(
 	ctx sdk.Context,
 	portID, channelID string,
-) error {
+) {
 	defer telemetry.IncrCounter(1, "ibc", "channel", "upgrade-timeout")
 
 	channel, found := k.GetChannel(ctx, portID, channelID)
@@ -489,8 +489,6 @@ func (k Keeper) WriteUpgradeTimeoutChannel(
 
 	k.Logger(ctx).Info("channel state restored", "port-id", portID, "channel-id", channelID)
 	emitChannelUpgradeTimeoutEvent(ctx, portID, channelID, channel, upgrade)
-
-	return nil
 }
 
 // startFlushUpgradeHandshake will verify the counterparty proposed upgrade and the current channel state.
