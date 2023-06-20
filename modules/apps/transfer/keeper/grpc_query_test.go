@@ -75,7 +75,7 @@ func (suite *KeeperTestSuite) TestQueryDenomTrace() {
 			suite.SetupTest() // reset
 
 			tc.malleate()
-			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
+			ctx := suite.chainA.GetContext()
 
 			res, err := suite.chainA.GetSimApp().TransferKeeper.DenomTrace(ctx, req)
 
@@ -135,7 +135,7 @@ func (suite *KeeperTestSuite) TestQueryDenomTraces() {
 			suite.SetupTest() // reset
 
 			tc.malleate()
-			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
+			ctx := suite.chainA.GetContext()
 
 			res, err := suite.chainA.GetSimApp().TransferKeeper.DenomTraces(ctx, req)
 
@@ -151,7 +151,7 @@ func (suite *KeeperTestSuite) TestQueryDenomTraces() {
 }
 
 func (suite *KeeperTestSuite) TestQueryParams() {
-	ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
+	ctx := suite.chainA.GetContext()
 	expParams := types.DefaultParams()
 	res, _ := suite.chainA.GetSimApp().TransferKeeper.Params(ctx, &types.QueryParamsRequest{})
 	suite.Require().Equal(&expParams, res.Params)
@@ -208,7 +208,7 @@ func (suite *KeeperTestSuite) TestQueryDenomHash() {
 			suite.chainA.GetSimApp().TransferKeeper.SetDenomTrace(suite.chainA.GetContext(), reqTrace)
 
 			tc.malleate()
-			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
+			ctx := suite.chainA.GetContext()
 
 			res, err := suite.chainA.GetSimApp().TransferKeeper.DenomHash(ctx, req)
 
@@ -248,7 +248,7 @@ func (suite *KeeperTestSuite) TestEscrowAddress() {
 			suite.SetupTest() // reset
 
 			tc.malleate()
-			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
+			ctx := suite.chainA.GetContext()
 
 			res, err := suite.chainA.GetSimApp().TransferKeeper.EscrowAddress(ctx, req)
 
@@ -345,7 +345,7 @@ func (suite *KeeperTestSuite) TestTotalEscrowForDenom() {
 
 			expEscrowAmount = sdk.ZeroInt()
 			tc.malleate()
-			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
+			ctx := suite.chainA.GetContext()
 
 			res, err := suite.chainA.GetSimApp().TransferKeeper.TotalEscrowForDenom(ctx, req)
 
