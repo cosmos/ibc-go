@@ -275,6 +275,9 @@ message MsgChannelUpgradeInit {
 
 // MsgChannelUpgradeInitResponse defines the MsgChannelUpgradeInit response type
 message MsgChannelUpgradeInitResponse {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
   string  channel_id       = 1;
   Upgrade upgrade          = 2 [(gogoproto.nullable) = false];
   uint64  upgrade_sequence = 3;
@@ -301,6 +304,9 @@ message MsgChannelUpgradeTry {
 
 // MsgChannelUpgradeTryResponse defines the MsgChannelUpgradeTry response type
 message MsgChannelUpgradeTryResponse {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
   string             channel_id       = 1;
   Upgrade            upgrade          = 2 [(gogoproto.nullable) = false];
   uint64             upgrade_sequence = 3;
@@ -325,6 +331,9 @@ message MsgChannelUpgradeAck {
 
 // MsgChannelUpgradeAckResponse defines MsgChannelUpgradeAck response type
 message MsgChannelUpgradeAckResponse {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
   ResponseResultType result = 1;
 }
 
@@ -363,7 +372,12 @@ message MsgChannelUpgradeTimeout {
 }
 
 // MsgChannelUpgradeTimeoutRepsonse defines the MsgChannelUpgradeTimeout response type
-message MsgChannelUpgradeTimeoutResponse {}
+message MsgChannelUpgradeTimeoutResponse {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  ResponseResultType result = 1;
+}
 
 // MsgChannelUpgradeCancel defines the request type for the ChannelUpgradeCancel rpc
 message MsgChannelUpgradeCancel {

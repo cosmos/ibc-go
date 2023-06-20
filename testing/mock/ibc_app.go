@@ -114,12 +114,22 @@ type IBCApp struct {
 		ctx sdk.Context,
 		portID,
 		channelID string,
-	) error
+	)
 
 	OnChanUpgradeRestore func(
 		ctx sdk.Context,
 		portID,
 		channelID string,
+	)
+
+	OnChanUpgradeTimeout func(
+		ctx sdk.Context,
+		portID, channelID string,
+		counterpartyChannel channeltypes.Channel,
+		prevErrorReceipt channeltypes.ErrorReceipt,
+		proofCounterpartyChannel,
+		proofErrorReceipt []byte,
+		proofHeight exported.Height,
 	) error
 }
 

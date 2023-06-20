@@ -317,11 +317,20 @@ func (im IBCModule) OnChanUpgradeAck(ctx sdk.Context, portID, channelID, counter
 }
 
 // OnChanUpgradeOpen implements the IBCModule interface
-func (im IBCModule) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID string) error {
-	return nil
-}
+func (im IBCModule) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID string) {}
 
 // OnChanUpgradeRestore implements the IBCModule interface
-func (im IBCModule) OnChanUpgradeRestore(ctx sdk.Context, portID, channelID string) error {
+func (im IBCModule) OnChanUpgradeRestore(ctx sdk.Context, portID, channelID string) {}
+
+// OnChanUpgradeTimeout implements the IBCModule interface
+func (im IBCModule) OnChanUpgradeTimeout(
+	ctx sdk.Context,
+	portID, channelID string,
+	counterpartyChannel channeltypes.Channel,
+	prevErrorReceipt channeltypes.ErrorReceipt,
+	proofCounterpartyChannel,
+	proofErrorReceipt []byte,
+	proofHeight ibcexported.Height,
+) error {
 	return nil
 }
