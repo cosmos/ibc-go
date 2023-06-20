@@ -77,7 +77,7 @@ func SetupWithGenesisValSet(tb testing.TB, valSet *tmtypes.ValidatorSet, genAccs
 	bondAmt := sdk.TokensFromConsensusPower(1, powerReduction)
 
 	for _, val := range valSet.Validators {
-		pk, err := cryptocodec.FromTmPubKeyInterface(val.PubKey)
+		pk, err := cryptocodec.FromCmtPubKeyInterface(val.PubKey)
 		require.NoError(tb, err)
 		pkAny, err := codectypes.NewAnyWithValue(pk)
 		require.NoError(tb, err)
