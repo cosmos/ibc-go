@@ -824,7 +824,7 @@ func (k Keeper) ChannelUpgradeAck(goCtx context.Context, msg *channeltypes.MsgCh
 		ctx.Logger().Error("channel upgrade ack failed", "error", errorsmod.Wrap(err, "channel handshake upgrade ack failed"))
 		if upgradeErr, ok := err.(*channeltypes.UpgradeError); ok {
 			if err := k.ChannelKeeper.AbortUpgrade(ctx, msg.PortId, msg.ChannelId, upgradeErr); err != nil {
-				return nil, err
+				return nil, errorsmod.Wrap(err, "channel upgrade ack (abort upgrade) failed")
 			}
 
 			// NOTE: a FAILURE result is returned to the client and an error receipt is written to state.
@@ -833,7 +833,7 @@ func (k Keeper) ChannelUpgradeAck(goCtx context.Context, msg *channeltypes.MsgCh
 		}
 
 		// NOTE: an error is returned to baseapp and transaction state is not committed.
-		return nil, err
+		return nil, errorsmod.Wrap(err, "channel upgrade ack failed")
 	}
 
 	cacheCtx, writeFn := ctx.CacheContext()
@@ -841,7 +841,7 @@ func (k Keeper) ChannelUpgradeAck(goCtx context.Context, msg *channeltypes.MsgCh
 	if err != nil {
 		ctx.Logger().Error("channel upgrade ack callback failed", "port-id", msg.PortId, "channel-id", msg.ChannelId, "error", err.Error())
 		if err := k.ChannelKeeper.AbortUpgrade(ctx, msg.PortId, msg.ChannelId, err); err != nil {
-			return nil, err
+			return nil, errorsmod.Wrap(err, "channel upgrade ack callback (abort upgrade) failed for port ID: %s, channel ID: %s", msg.PortId, channelID)
 		}
 
 		return &channeltypes.MsgChannelUpgradeAckResponse{Result: channeltypes.FAILURE}, nil
