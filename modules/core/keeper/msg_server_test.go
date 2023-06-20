@@ -964,7 +964,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeAck() {
 			},
 		},
 		{
-			"invalid counterparty flush status returns error, tx is rejected",
+			"core handler returns error and no upgrade error receipt is written",
 			func() {
 				msg.CounterpartyFlushStatus = types.NOTINFLUSH
 			},
@@ -979,7 +979,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeAck() {
 			},
 		},
 		{
-			"counterparty upgrade ordering is incompatible, writes upgrade error receipt",
+			"core handler returns error and writes upgrade error receipt",
 			func() {
 				upgrade := path.EndpointA.GetChannelUpgrade()
 				upgrade.Fields.Ordering = types.NONE
@@ -998,7 +998,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeAck() {
 			},
 		},
 		{
-			"application callback error writes upgrade error receipt",
+			"application callback returns error and error receipt is written",
 			func() {
 				suite.chainA.GetSimApp().IBCMockModule.IBCApp.OnChanUpgradeAck = func(
 					ctx sdk.Context, portID, channelID, counterpartyVersion string,
