@@ -241,13 +241,24 @@ func (im IBCMiddleware) OnChanUpgradeAck(ctx sdk.Context, portID, channelID, cou
 }
 
 // OnChanUpgradeOpen implements the IBCModule interface
-func (im IBCMiddleware) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID string) error {
-	return errorsmod.Wrap(icatypes.ErrInvalidChannelFlow, "channel handshake must be initiated by controller chain")
-}
+func (im IBCMiddleware) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID string) {}
 
 // OnChanUpgradeRestore implements the IBCModule interface
 func (im IBCMiddleware) OnChanUpgradeRestore(ctx sdk.Context, portID, channelID string) error {
 	return nil
+}
+
+// OnChanUpgradeTimeout implements the IBCModule interface
+func (im IBCMiddleware) OnChanUpgradeTimeout(
+	ctx sdk.Context,
+	portID, channelID string,
+	counterpartyChannel channeltypes.Channel,
+	prevErrorReceipt channeltypes.ErrorReceipt,
+	proofCounterpartyChannel,
+	proofErrorReceipt []byte,
+	proofHeight ibcexported.Height,
+) error {
+	return im.app.OnChanUpgradeTimeout(ctx, portID, channelID, counterpartyChannel, prevErrorReceipt, proofCounterpartyChannel, proofErrorReceipt, proofHeight)
 }
 
 // SendPacket implements the ICS4 Wrapper interface

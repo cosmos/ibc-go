@@ -190,18 +190,33 @@ func (im IBCModule) OnChanUpgradeAck(ctx sdk.Context, portID, channelID, counter
 }
 
 // OnChanUpgradeOpen implements the IBCModule interface
-func (im IBCModule) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID string) error {
+func (im IBCModule) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID string) {
 	if im.IBCApp.OnChanUpgradeOpen != nil {
-		return im.IBCApp.OnChanUpgradeOpen(ctx, portID, channelID)
+		im.IBCApp.OnChanUpgradeOpen(ctx, portID, channelID)
 	}
-
-	return nil
 }
 
 // OnChanUpgradeRestore implements the IBCModule interface
 func (im IBCModule) OnChanUpgradeRestore(ctx sdk.Context, portID, channelID string) error {
 	if im.IBCApp.OnChanUpgradeRestore != nil {
 		return im.IBCApp.OnChanUpgradeRestore(ctx, portID, channelID)
+	}
+
+	return nil
+}
+
+// OnChanUpgradeTimeout implements the IBCModule interface
+func (im IBCModule) OnChanUpgradeTimeout(
+	ctx sdk.Context,
+	portID, channelID string,
+	counterpartyChannel channeltypes.Channel,
+	prevErrorReceipt channeltypes.ErrorReceipt,
+	proofCounterpartyChannel,
+	proofErrorReceipt []byte,
+	proofHeight exported.Height,
+) error {
+	if im.IBCApp.OnChanUpgradeTimeout != nil {
+		return im.IBCApp.OnChanUpgradeTimeout(ctx, portID, channelID, counterpartyChannel, prevErrorReceipt, proofCounterpartyChannel, proofErrorReceipt, proofHeight)
 	}
 
 	return nil
