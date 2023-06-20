@@ -628,6 +628,16 @@ func (suite *KeeperTestSuite) TestChanUpgradeTimeout() {
 			},
 			types.ErrInvalidUpgradeSequence,
 		},
+		{
+			"non-nil error receipt: error receipt seq equal to current upgrade seq",
+			func() {
+				errReceipt = &types.ErrorReceipt{
+					Sequence: 1,
+					Message:  types.ErrInvalidUpgrade.Error(),
+				}
+			},
+			types.ErrInvalidUpgradeSequence,
+		},
 	}
 
 	for _, tc := range testCases {
