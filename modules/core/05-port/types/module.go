@@ -141,14 +141,14 @@ type UpgradableModule interface {
 		ctx sdk.Context,
 		portID,
 		channelID string,
-	) error
+	)
 
 	// OnChanUpgradeRestore TODO
 	OnChanUpgradeRestore(
 		ctx sdk.Context,
 		portID,
 		channelID string,
-	) error
+	)
 
 	// OnChanUpgradeTimeout times out an outstanding upgrade when the counterparty chain has not responded.
 	OnChanUpgradeTimeout(
