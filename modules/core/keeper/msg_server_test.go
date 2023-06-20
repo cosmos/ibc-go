@@ -8,7 +8,6 @@ import (
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
@@ -966,7 +965,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeAck() {
 		{
 			"core handler returns error and no upgrade error receipt is written",
 			func() {
-				msg.CounterpartyFlushStatus = types.NOTINFLUSH
+				msg.CounterpartyFlushStatus = channeltypes.NOTINFLUSH
 			},
 			func(res *channeltypes.MsgChannelUpgradeAckResponse, err error) {
 				suite.Require().Error(err)
@@ -982,7 +981,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeAck() {
 			"core handler returns error and writes upgrade error receipt",
 			func() {
 				upgrade := path.EndpointA.GetChannelUpgrade()
-				upgrade.Fields.Ordering = types.NONE
+				upgrade.Fields.Ordering = channeltypes.NONE
 
 				path.EndpointA.SetChannelUpgrade(upgrade)
 			},
