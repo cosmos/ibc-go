@@ -526,7 +526,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeTimeout() {
 			"success: non-nil error receipt",
 			func() {
 				errReceipt = &types.ErrorReceipt{
-					Sequence: 1,
+					Sequence: 0,
 					Message:  types.ErrInvalidUpgrade.Error(),
 				}
 
