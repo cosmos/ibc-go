@@ -448,7 +448,7 @@ func (k Keeper) ChanUpgradeTimeout(
 	// timeout for this sequence can only succeed if the error receipt written into the error path on the counterparty
 	// was for a previous sequence by the timeout deadline.
 	upgradeSequence := channel.UpgradeSequence
-	if upgradeSequence <= prevErrorReceipt.Sequence {
+	if upgradeSequence < prevErrorReceipt.Sequence {
 		return errorsmod.Wrapf(types.ErrInvalidUpgradeSequence, "previous counterparty error receipt sequence is greater than or equal to our current upgrade sequence: %d > %d", prevErrorReceipt.Sequence, upgradeSequence)
 	}
 
