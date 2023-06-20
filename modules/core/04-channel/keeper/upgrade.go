@@ -448,8 +448,8 @@ func (k Keeper) ChanUpgradeTimeout(
 	// timeout for this sequence can only succeed if the error receipt written into the error path on the counterparty
 	// was for a previous sequence by the timeout deadline.
 	upgradeSequence := channel.UpgradeSequence
-	if upgradeSequence < prevErrorReceipt.Sequence {
-		return errorsmod.Wrapf(types.ErrInvalidUpgradeSequence, "previous counterparty error receipt sequence is greater than our current upgrade sequence: %d > %d", prevErrorReceipt.Sequence, upgradeSequence)
+	if upgradeSequence <= prevErrorReceipt.Sequence {
+		return errorsmod.Wrapf(types.ErrInvalidUpgradeSequence, "previous counterparty error receipt sequence is greater than or equal to our current upgrade sequence: %d > %d", prevErrorReceipt.Sequence, upgradeSequence)
 	}
 
 	if err := k.connectionKeeper.VerifyChannelUpgradeError(
@@ -486,7 +486,7 @@ func (k Keeper) WriteUpgradeTimeoutChannel(
 	}
 
 	if err := k.AbortUpgrade(ctx, portID, channelID, types.NewUpgradeError(channel.UpgradeSequence, types.ErrUpgradeTimeout)); err != nil {
-		return errorsmod.Wrapf(types.ErrUpgradeRestoreFailed, "err: %v", err)
+		panic(errorsmod.Wrapf(types.ErrUpgradeRestoreFailed, "err: %v", err))
 	}
 
 	k.Logger(ctx).Info("channel state restored", "port-id", portID, "channel-id", channelID)

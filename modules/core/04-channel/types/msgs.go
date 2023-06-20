@@ -732,7 +732,7 @@ func NewMsgChannelUpgradeTimeout(
 		PortId:               portID,
 		ChannelId:            channelID,
 		CounterpartyChannel:  counterpartyChannel,
-		PreviousErrorReceipt: errorReceipt,
+		PreviousErrorReceipt: &errorReceipt,
 		ProofChannel:         proofChannel,
 		ProofErrorReceipt:    proofErrorReceipt,
 		ProofHeight:          proofHeight,
