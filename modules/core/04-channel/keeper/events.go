@@ -153,7 +153,6 @@ func emitRecvPacketEvent(ctx sdk.Context, packet exported.PacketI, channel types
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeRecvPacket,
-			sdk.NewAttribute(types.AttributeKeyDataHex, string(packet.GetData())), //nolint:staticcheck // DEPRECATED
 			sdk.NewAttribute(types.AttributeKeyDataHex, hex.EncodeToString(packet.GetData())),
 			sdk.NewAttribute(types.AttributeKeyTimeoutHeight, packet.GetTimeoutHeight().String()),
 			sdk.NewAttribute(types.AttributeKeyTimeoutTimestamp, fmt.Sprintf("%d", packet.GetTimeoutTimestamp())),

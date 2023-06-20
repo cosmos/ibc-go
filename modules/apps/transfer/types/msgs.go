@@ -100,7 +100,7 @@ func (msg MsgTransfer) ValidateBasic() error {
 
 // GetSignBytes implements sdk.Msg.
 func (msg MsgTransfer) GetSignBytes() []byte {
-	return mustSortJSON(AminoCdc.MustMarshalJSON(&msg))
+	return mustSortJSON(amino.MustMarshalJSON(&msg))
 }
 
 // Deprecated: please delete this code eventually.
