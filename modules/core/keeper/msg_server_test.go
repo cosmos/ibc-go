@@ -1017,7 +1017,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeCancel() {
 			suite.Require().NoError(path.EndpointA.UpdateClient())
 
 			upgradeErrorReceiptKey := host.ChannelUpgradeErrorKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
-			errorReceiptProof, proofHeight := suite.chainB.QueryProof(upgradeErrorReceiptKey)
+			errorReceiptProof, proofHeight := path.EndpointB.QueryProof(upgradeErrorReceiptKey)
 
 			errorReceipt, ok := suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.GetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 			suite.Require().True(ok)
