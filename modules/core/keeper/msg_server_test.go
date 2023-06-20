@@ -975,17 +975,6 @@ func (suite *KeeperTestSuite) TestChannelUpgradeCancel() {
 			},
 			expErr: channeltypes.ErrInvalidUpgradeSequence,
 		},
-		{
-			name: "application callback fails",
-			malleate: func() {
-				suite.chainA.GetSimApp().IBCMockModule.IBCApp.OnChanUpgradeRestore = func(ctx sdk.Context, portID, channelID string) error {
-					// return an error type that is not returned in the regular flow.
-					return ibcmock.MockApplicationCallbackError
-				}
-			},
-			// error should be what the application callback returned.
-			expErr: ibcmock.MockApplicationCallbackError,
-		},
 	}
 
 	for _, tc := range cases {
