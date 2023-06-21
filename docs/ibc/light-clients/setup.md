@@ -82,7 +82,6 @@ Stateless checks are performed within the [`ValidateBasic`](https://github.com/c
 ```protobuf
 // MsgCreateClient defines a message to create an IBC client
 message MsgCreateClient {
-  option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
   // light client state
