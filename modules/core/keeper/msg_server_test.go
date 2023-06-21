@@ -965,6 +965,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeAck() {
 		{
 			"core handler returns error and no upgrade error receipt is written",
 			func() {
+				// force an error by overriding the counterparty flush status to an invalid value
 				msg.CounterpartyFlushStatus = channeltypes.NOTINFLUSH
 			},
 			func(res *channeltypes.MsgChannelUpgradeAckResponse, err error) {
@@ -980,6 +981,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeAck() {
 		{
 			"core handler returns error and writes upgrade error receipt",
 			func() {
+				// force an upgrade error by modifying the channel upgrade ordering to an incompatible value
 				upgrade := path.EndpointA.GetChannelUpgrade()
 				upgrade.Fields.Ordering = channeltypes.NONE
 
