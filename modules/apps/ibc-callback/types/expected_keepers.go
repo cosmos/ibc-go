@@ -11,7 +11,7 @@ type ContractKeeper interface {
 	// IBCAcknowledgementPacketCallback is called in the source chain when a packet acknowledgement
 	// is received. The contract is expected to handle the callback within the user defined
 	// gas limit, and handle any errors, state reversals, out of gas, or panics gracefully.
-	// The user may also pass a custom message to the contract.
+	// The user may also pass a custom message to the contract. (May be nil)
 	IBCAcknowledgementPacketCallback(
 		ctx sdk.Context,
 		packet channeltypes.Packet,
@@ -28,7 +28,7 @@ type ContractKeeper interface {
 	// IBCReceivePacketCallback is called in the destination chain when a packet is received.
 	// The contract is expected to handle the callback within the user defined gas limit, and
 	// handle any errors, state reversals, out of gas, or panics gracefully.
-	// The user may also pass a custom message to the contract.
+	// The user may also pass a custom message to the contract. (May be nil)
 	IBCReceivePacketCallback(
 		ctx sdk.Context,
 		packet channeltypes.Packet,
