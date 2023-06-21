@@ -4,8 +4,9 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/stretchr/testify/suite"
+
+	"github.com/cosmos/cosmos-sdk/codec"
 
 	v7 "github.com/cosmos/ibc-go/v7/modules/core/02-client/migrations/v7"
 	"github.com/cosmos/ibc-go/v7/modules/core/02-client/types"

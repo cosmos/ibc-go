@@ -10,6 +10,7 @@ linters:
     - dogsled
     - exportloopref
     - errcheck
+    - gci
     - goconst
     - gocritic
     - gofumpt
@@ -35,10 +36,22 @@ issues:
     - text: 'Use of weak random number generator'
       linters:
         - gosec
+
   max-issues-per-linter: 10000
   max-same-issues: 10000
 
 linters-settings:
+  gci:
+    sections:
+      - standard # Standard section: captures all standard packages.
+      - default # Default section: contains all imports that could not be matched to another section type.
+      - blank # blank imports
+      - dot # dot imports
+      - prefix(cosmossdk.io)
+      - prefix(github.com/cosmos/cosmos-sdk)
+      - prefix(github.com/cometbft/cometbft)
+      - prefix(github.com/cosmos/ibc-go)
+    custom-order: true
   dogsled:
     max-blank-identifiers: 3
   maligned:

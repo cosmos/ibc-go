@@ -4,6 +4,7 @@ import (
 	"time"
 
 	errorsmod "cosmossdk.io/errors"
+
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	tmtypes "github.com/cometbft/cometbft/types"
 
