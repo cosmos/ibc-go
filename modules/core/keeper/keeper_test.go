@@ -47,7 +47,7 @@ type MockStakingKeeper struct {
 	mockField string
 }
 
-func (MockStakingKeeper) GetHistoricalInfo(_ sdk.Context, _ int64) (stakingtypes.HistoricalInfo, bool) {
+func (MockStakingKeeper) GetHistoricalInfo(_ sdk.Context, height int64) (stakingtypes.HistoricalInfo, bool) {
 	return stakingtypes.HistoricalInfo{}, true
 }
 

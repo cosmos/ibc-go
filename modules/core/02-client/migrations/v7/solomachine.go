@@ -231,7 +231,7 @@ func (*ClientState) VerifyMembership(
 // VerifyNonMembership panics!
 func (*ClientState) VerifyNonMembership(
 	_ sdk.Context,
-	_ sdk.KVStore,
+	_clientStore sdk.KVStore,
 	_ codec.BinaryCodec,
 	_ exported.Height,
 	_ uint64,
