@@ -714,7 +714,7 @@ func (k Keeper) ChannelUpgradeInit(goCtx context.Context, msg *channeltypes.MsgC
 	proposedUpgrade, err := k.ChannelKeeper.ChanUpgradeInit(ctx, msg.PortId, msg.ChannelId, msg.Fields, msg.Timeout)
 	if err != nil {
 		ctx.Logger().Error("channel upgrade init failed", "error", errorsmod.Wrap(err, "channel handshake upgrade init failed"))
-		return nil, errorsmod.Wrap(err, "channel handshake upgrade init failed")
+		return nil, errorsmod.Wrap(err, "channel upgrade init failed")
 	}
 
 	channel, found := k.ChannelKeeper.GetChannel(ctx, msg.PortId, msg.ChannelId)
@@ -740,7 +740,7 @@ func (k Keeper) ChannelUpgradeInit(goCtx context.Context, msg *channeltypes.MsgC
 	proposedUpgrade.Fields.Version = proposedVersion
 	k.ChannelKeeper.WriteUpgradeInitChannel(ctx, msg.PortId, msg.ChannelId, proposedUpgrade)
 
-	ctx.Logger().Info("channel upgrade init callback succeeded", "channel-id", msg.ChannelId, "version", proposedVersion)
+	ctx.Logger().Info("channel upgrade init succeeded", "channel-id", msg.ChannelId, "version", proposedVersion)
 
 	return &channeltypes.MsgChannelUpgradeInitResponse{
 		ChannelId:       msg.ChannelId,
@@ -767,9 +767,10 @@ func (k Keeper) ChannelUpgradeTry(goCtx context.Context, msg *channeltypes.MsgCh
 
 	upgrade, err := k.ChannelKeeper.ChanUpgradeTry(ctx, msg.PortId, msg.ChannelId, msg.ProposedUpgradeConnectionHops, msg.UpgradeTimeout, msg.CounterpartyProposedUpgrade, msg.CounterpartyUpgradeSequence, msg.ProofChannel, msg.ProofUpgrade, msg.ProofHeight)
 	if err != nil {
+		ctx.Logger().Error("channel upgrade try failed", "error", errorsmod.Wrap(err, "channel handshake upgrade try failed"))
 		if upgradeErr, ok := err.(*channeltypes.UpgradeError); ok {
 			if err := k.ChannelKeeper.AbortUpgrade(ctx, msg.PortId, msg.ChannelId, upgradeErr); err != nil {
-				return nil, err
+				return nil, errorsmod.Wrap(err, "channel upgrade try (abort upgrade) failed")
 			}
 
 			// NOTE: a FAILURE result is returned to the client and an error receipt is written to state.
@@ -778,12 +779,13 @@ func (k Keeper) ChannelUpgradeTry(goCtx context.Context, msg *channeltypes.MsgCh
 		}
 
 		// NOTE: an error is returned to baseapp and transaction state is not committed.
-		return nil, err
+		return nil, errorsmod.Wrap(err, "channel upgrade try failed")
 	}
 
 	cacheCtx, writeFn := ctx.CacheContext()
 	upgradeVersion, err := cbs.OnChanUpgradeTry(cacheCtx, msg.PortId, msg.ChannelId, upgrade.Fields.Ordering, upgrade.Fields.ConnectionHops, upgrade.Fields.Version)
 	if err != nil {
+		ctx.Logger().Error("channel upgrade try callback failed", "port-id", msg.PortId, "channel-id", msg.ChannelId, "error", err.Error())
 		if err := k.ChannelKeeper.AbortUpgrade(ctx, msg.PortId, msg.ChannelId, err); err != nil {
 			return nil, err
 		}
@@ -794,6 +796,8 @@ func (k Keeper) ChannelUpgradeTry(goCtx context.Context, msg *channeltypes.MsgCh
 	writeFn()
 
 	channel, upgrade := k.ChannelKeeper.WriteUpgradeTryChannel(ctx, msg.PortId, msg.ChannelId, upgrade, upgradeVersion)
+
+	ctx.Logger().Info("channel upgrade try succeeded", "port-id", msg.PortId, "channel-id", msg.ChannelId)
 
 	return &channeltypes.MsgChannelUpgradeTryResponse{
 		Result:          channeltypes.SUCCESS,
