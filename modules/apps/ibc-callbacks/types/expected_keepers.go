@@ -12,7 +12,15 @@ type ContractKeeper interface {
 	// is received. The contract is expected to handle the callback within the user defined
 	// gas limit, and handle any errors, state reversals, out of gas, or panics gracefully.
 	// The user may also pass a custom message to the contract.
-	IBCAcknowledgementPacketCallback(ctx sdk.Context, packet channeltypes.Packet, customMsg []byte, ackResult channeltypes.Acknowledgement, relayer, contractAddr string, gasLimit uint64)
+	IBCAcknowledgementPacketCallback(
+		ctx sdk.Context,
+		packet channeltypes.Packet,
+		customMsg []byte,
+		ackResult channeltypes.Acknowledgement,
+		relayer,
+		contractAddr string,
+		gasLimit uint64,
+	)
 	// IBCPacketTimeoutCallback is called in the source chain when a packet is not received before
 	// the timeout height. The contract is expected to handle the callback within the user defined
 	// gas limit, and handle any errors, state reversals, out of gas, or panics gracefully.
@@ -21,5 +29,13 @@ type ContractKeeper interface {
 	// The contract is expected to handle the callback within the user defined gas limit, and
 	// handle any errors, state reversals, out of gas, or panics gracefully.
 	// The user may also pass a custom message to the contract.
-	IBCReceivePacketCallback(ctx sdk.Context, packet channeltypes.Packet, customMsg []byte, ackResult channeltypes.Acknowledgement, relayer, contractAddr string, gasLimit uint64)
+	IBCReceivePacketCallback(
+		ctx sdk.Context,
+		packet channeltypes.Packet,
+		customMsg []byte,
+		ackResult channeltypes.Acknowledgement,
+		relayer,
+		contractAddr string,
+		gasLimit uint64,
+	)
 }
