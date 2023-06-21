@@ -143,7 +143,7 @@ func (k Keeper) RecvPacket(
 			)
 		}
 	} else {
-		if channel.State != types.OPEN && (channel.FlushStatus != types.FLUSHING  || counterpartyLastPacketSent > packet.GetSequence()) {
+		if channel.State != types.OPEN && (channel.FlushStatus != types.FLUSHING || counterpartyLastPacketSent > packet.GetSequence()) {
 			return errorsmod.Wrapf(
 				types.ErrInvalidChannelState,
 				"channel state is not OPEN (got %s)", channel.State.String(),
