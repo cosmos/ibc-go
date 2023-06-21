@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
@@ -14,8 +15,6 @@ import (
 var _ sdk.Msg = (*MsgUpdateParams)(nil)
 
 // NewMsgUpdateParams creates a new MsgUpdateParams instance
-//
-//nolint:interfacer
 func NewMsgUpdateParams(authority string, params Params) *MsgUpdateParams {
 	return &MsgUpdateParams{
 		Authority: authority,
@@ -44,8 +43,6 @@ func (msg MsgUpdateParams) GetSigners() []sdk.AccAddress {
 }
 
 // NewMsgTransfer creates a new MsgTransfer instance
-//
-//nolint:interfacer
 func NewMsgTransfer(
 	sourcePort, sourceChannel string,
 	token sdk.Coin, sender, receiver string,

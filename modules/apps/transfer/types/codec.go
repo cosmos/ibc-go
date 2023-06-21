@@ -3,13 +3,14 @@ package types
 import (
 	"bytes"
 
+	"github.com/cosmos/gogoproto/jsonpb"
+	"github.com/cosmos/gogoproto/proto"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/msgservice"
 	"github.com/cosmos/cosmos-sdk/x/authz"
-	"github.com/cosmos/gogoproto/jsonpb"
-	"github.com/cosmos/gogoproto/proto"
 )
 
 // RegisterLegacyAminoCodec registers the necessary x/ibc transfer interfaces and concrete types

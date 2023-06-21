@@ -5,13 +5,17 @@ import (
 	"testing"
 	"time"
 
-	dbm "github.com/cometbft/cometbft-db"
-	abci "github.com/cometbft/cometbft/abci/types"
-	log "github.com/cometbft/cometbft/libs/log"
+	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/suite"
+
 	"github.com/cosmos/cosmos-sdk/store/iavl"
 	"github.com/cosmos/cosmos-sdk/store/rootmulti"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
-	"github.com/stretchr/testify/suite"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	dbm "github.com/cometbft/cometbft-db"
+	abci "github.com/cometbft/cometbft/abci/types"
+	log "github.com/cometbft/cometbft/libs/log"
 
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
@@ -232,8 +236,8 @@ func (suite *MsgTestSuite) TestNewMsgConnectionOpenConfirm() {
 	}
 }
 
-// TestMsgUpdateParams_ValidateBasic tests ValidateBasic for MsgUpdateParams
-func (suite *MsgTestSuite) TestMsgUpdateParams_ValidateBasic() {
+// TestMsgUpdateParamsValidateBasic tests ValidateBasic for MsgUpdateParams
+func (suite *MsgTestSuite) TestMsgUpdateParamsValidateBasic() {
 	authority := suite.chainA.App.GetIBCKeeper().GetAuthority()
 	testCases := []struct {
 		name    string
@@ -263,6 +267,32 @@ func (suite *MsgTestSuite) TestMsgUpdateParams_ValidateBasic() {
 			suite.Require().NoError(err, "valid case %s failed", tc.name)
 		} else {
 			suite.Require().Error(err, "invalid case %s passed", tc.name)
+		}
+	}
+}
+
+// TestMsgUpdateParamsGetSigners tests GetSigners for MsgUpdateParams
+func TestMsgUpdateParamsGetSigners(t *testing.T) {
+	testCases := []struct {
+		name    string
+		address sdk.AccAddress
+		expPass bool
+	}{
+		{"success: valid address", sdk.AccAddress(ibctesting.TestAccAddress), true},
+		{"failure: nil address", nil, false},
+	}
+
+	for _, tc := range testCases {
+		msg := types.MsgUpdateParams{
+			Authority: tc.address.String(),
+			Params:    types.DefaultParams(),
+		}
+		if tc.expPass {
+			require.Equal(t, []sdk.AccAddress{tc.address}, msg.GetSigners())
+		} else {
+			require.Panics(t, func() {
+				msg.GetSigners()
+			})
 		}
 	}
 }

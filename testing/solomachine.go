@@ -4,6 +4,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/require"
+
+	sdkmath "cosmossdk.io/math"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	kmultisig "github.com/cosmos/cosmos-sdk/crypto/keys/multisig"
@@ -12,7 +16,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/types/multisig"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
-	"github.com/stretchr/testify/require"
 
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
@@ -53,6 +56,7 @@ type Solomachine struct {
 // generated private/public key pairs and a sequence starting at 1. If nKeys
 // is greater than 1 then a multisig public key is used.
 func NewSolomachine(t *testing.T, cdc codec.BinaryCodec, clientID, diversifier string, nKeys uint64) *Solomachine {
+	t.Helper()
 	privKeys, pubKeys, pk := GenerateKeys(t, nKeys)
 
 	return &Solomachine{
@@ -77,6 +81,7 @@ func NewSolomachine(t *testing.T, cdc codec.BinaryCodec, clientID, diversifier s
 // interface, if needed. The same is true for the amino based Multisignature
 // public key.
 func GenerateKeys(t *testing.T, n uint64) ([]cryptotypes.PrivKey, []cryptotypes.PubKey, cryptotypes.PubKey) {
+	t.Helper()
 	require.NotEqual(t, uint64(0), n, "generation of zero keys is not allowed")
 
 	privKeys := make([]cryptotypes.PrivKey, n)
@@ -367,7 +372,7 @@ func (solo *Solomachine) SendTransfer(chain *TestChain, portID, channelID string
 	msgTransfer := transfertypes.MsgTransfer{
 		SourcePort:       portID,
 		SourceChannel:    channelID,
-		Token:            sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100)),
+		Token:            sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100)),
 		Sender:           chain.SenderAccount.GetAddress().String(),
 		Receiver:         chain.SenderAccount.GetAddress().String(),
 		TimeoutHeight:    clienttypes.ZeroHeight(),
