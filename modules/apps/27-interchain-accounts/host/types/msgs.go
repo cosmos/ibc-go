@@ -10,6 +10,14 @@ import (
 
 var _ sdk.Msg = (*MsgUpdateParams)(nil)
 
+// NewMsgUpdateParams creates a new MsgUpdateParams instance
+func NewMsgUpdateParams(authority string, params Params) *MsgUpdateParams {
+	return &MsgUpdateParams{
+		Authority: authority,
+		Params:    params,
+	}
+}
+
 // ValidateBasic implements sdk.Msg
 func (msg MsgUpdateParams) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Authority)

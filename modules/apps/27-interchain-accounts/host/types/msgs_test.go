@@ -12,57 +12,37 @@ import (
 )
 
 func TestMsgUpdateParamsValidateBasic(t *testing.T) {
-	var msg *types.MsgUpdateParams
-
 	testCases := []struct {
-		name     string
-		malleate func()
-		expPass  bool
+		name    string
+		msg     *types.MsgUpdateParams
+		expPass bool
 	}{
 		{
 			"success: valid authority address",
-			func() {
-				msg = &types.MsgUpdateParams{
-					Authority: ibctesting.TestAccAddress,
-					Params:    types.DefaultParams(),
-				}
-			},
+			types.NewMsgUpdateParams(sdk.AccAddress(ibctesting.TestAccAddress).String(), types.DefaultParams()),
 			true,
 		},
 		{
 			"failure: invalid authority address",
-			func() {
-				msg = &types.MsgUpdateParams{
-					Authority: "authority",
-				}
-			},
+			types.NewMsgUpdateParams("authority", types.DefaultParams()),
 			false,
 		},
 		{
 			"failure: invalid allowed message",
-			func() {
-				msg = &types.MsgUpdateParams{
-					Authority: ibctesting.TestAccAddress,
-					Params: types.Params{
-						AllowMessages: []string{""},
-					},
-				}
-			},
+			types.NewMsgUpdateParams("authority", types.Params{
+				AllowMessages: []string{""},
+			}),
 			false,
 		},
 	}
 
 	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			tc.malleate()
-
-			err := msg.ValidateBasic()
-			if tc.expPass {
-				require.NoError(t, err)
-			} else {
-				require.Error(t, err)
-			}
-		})
+		err := tc.msg.ValidateBasic()
+		if tc.expPass {
+			require.NoError(t, err)
+		} else {
+			require.Error(t, err)
+		}
 	}
 }
 
@@ -77,10 +57,7 @@ func TestMsgUpdateParamsGetSigners(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		msg := types.MsgUpdateParams{
-			Authority: tc.address.String(),
-			Params:    types.DefaultParams(),
-		}
+		msg := types.NewMsgUpdateParams(tc.address.String(), types.DefaultParams())
 		if tc.expPass {
 			require.Equal(t, []sdk.AccAddress{tc.address}, msg.GetSigners())
 		} else {
