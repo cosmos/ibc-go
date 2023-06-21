@@ -1,0 +1,8 @@
+.github
+.contrib
+docs/
+proto/
+scripts/
+testing/
+Dockefile
+**/*.md
