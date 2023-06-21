@@ -33,7 +33,7 @@ func (k Keeper) SendPacket(
 		return 0, errorsmod.Wrap(types.ErrChannelNotFound, sourceChannel)
 	}
 
-	if channel.State != types.OPEN {
+	if channel.State != types.OPEN || channel.FlushStatus != types.NOTINFLUSH {
 		return 0, errorsmod.Wrapf(
 			types.ErrInvalidChannelState,
 			"channel is not OPEN (got %s)", channel.State.String(),
