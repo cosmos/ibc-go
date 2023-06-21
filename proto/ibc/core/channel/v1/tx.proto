@@ -79,7 +79,6 @@ enum ResponseResultType {
 // MsgChannelOpenInit defines an sdk.Msg to initialize a channel handshake. It
 // is called by a relayer on Chain A.
 message MsgChannelOpenInit {
-  option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
   string  port_id = 1;
@@ -97,7 +96,6 @@ message MsgChannelOpenInitResponse {
 // on Chain B. The version field within the Channel field has been deprecated. Its
 // value will be ignored by core IBC.
 message MsgChannelOpenTry {
-  option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
   string port_id = 1;
@@ -120,7 +118,6 @@ message MsgChannelOpenTryResponse {
 // MsgChannelOpenAck defines a msg sent by a Relayer to Chain A to acknowledge
 // the change of channel state to TRYOPEN on Chain B.
 message MsgChannelOpenAck {
-  option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
   string                    port_id                 = 1;
@@ -138,7 +135,6 @@ message MsgChannelOpenAckResponse {}
 // MsgChannelOpenConfirm defines a msg sent by a Relayer to Chain B to
 // acknowledge the change of channel state to OPEN on Chain A.
 message MsgChannelOpenConfirm {
-  option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
   string                    port_id      = 1;
@@ -155,7 +151,6 @@ message MsgChannelOpenConfirmResponse {}
 // MsgChannelCloseInit defines a msg sent by a Relayer to Chain A
 // to close a channel with Chain B.
 message MsgChannelCloseInit {
-  option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
   string port_id    = 1;
@@ -169,7 +164,6 @@ message MsgChannelCloseInitResponse {}
 // MsgChannelCloseConfirm defines a msg sent by a Relayer to Chain B
 // to acknowledge the change of channel state to CLOSED on Chain A.
 message MsgChannelCloseConfirm {
-  option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
   string                    port_id      = 1;
@@ -185,7 +179,6 @@ message MsgChannelCloseConfirmResponse {}
 
 // MsgRecvPacket receives incoming IBC packet
 message MsgRecvPacket {
-  option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
   Packet                    packet           = 1 [(gogoproto.nullable) = false];
@@ -203,7 +196,6 @@ message MsgRecvPacketResponse {
 
 // MsgTimeout receives timed-out packet
 message MsgTimeout {
-  option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
   Packet                    packet             = 1 [(gogoproto.nullable) = false];
@@ -222,7 +214,6 @@ message MsgTimeoutResponse {
 
 // MsgTimeoutOnClose timed-out packet upon counterparty channel closure.
 message MsgTimeoutOnClose {
-  option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
   Packet                    packet             = 1 [(gogoproto.nullable) = false];
@@ -242,7 +233,6 @@ message MsgTimeoutOnCloseResponse {
 
 // MsgAcknowledgement receives incoming IBC acknowledgement
 message MsgAcknowledgement {
-  option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
   Packet                    packet          = 1 [(gogoproto.nullable) = false];
@@ -263,7 +253,6 @@ message MsgAcknowledgementResponse {
 message MsgChannelUpgradeInit {
   option (cosmos.msg.v1.signer) = "signer";
 
-  option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
   string        port_id    = 1;
@@ -275,7 +264,6 @@ message MsgChannelUpgradeInit {
 
 // MsgChannelUpgradeInitResponse defines the MsgChannelUpgradeInit response type
 message MsgChannelUpgradeInitResponse {
-  option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
   string  channel_id       = 1;
@@ -287,7 +275,6 @@ message MsgChannelUpgradeInitResponse {
 message MsgChannelUpgradeTry {
   option (cosmos.msg.v1.signer) = "signer";
 
-  option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
   string                    port_id                          = 1;
@@ -304,7 +291,6 @@ message MsgChannelUpgradeTry {
 
 // MsgChannelUpgradeTryResponse defines the MsgChannelUpgradeTry response type
 message MsgChannelUpgradeTryResponse {
-  option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
   string             channel_id       = 1;
@@ -317,7 +303,6 @@ message MsgChannelUpgradeTryResponse {
 message MsgChannelUpgradeAck {
   option (cosmos.msg.v1.signer) = "signer";
 
-  option (gogoproto.equal)                            = false;
   option (gogoproto.goproto_getters)                  = false;
   string                    port_id                   = 1;
   string                    channel_id                = 2;
@@ -331,7 +316,6 @@ message MsgChannelUpgradeAck {
 
 // MsgChannelUpgradeAckResponse defines MsgChannelUpgradeAck response type
 message MsgChannelUpgradeAckResponse {
-  option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
   ResponseResultType result = 1;
@@ -341,7 +325,6 @@ message MsgChannelUpgradeAckResponse {
 message MsgChannelUpgradeOpen {
   option (cosmos.msg.v1.signer) = "signer";
 
-  option (gogoproto.equal)                             = false;
   option (gogoproto.goproto_getters)                   = false;
   string                    port_id                    = 1;
   string                    channel_id                 = 2;
@@ -381,7 +364,6 @@ message MsgChannelUpgradeTimeoutResponse {
 message MsgChannelUpgradeCancel {
   option (cosmos.msg.v1.signer) = "signer";
 
-  option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
   string                    port_id             = 1;

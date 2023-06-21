@@ -24,7 +24,6 @@ service Msg {
 
 // MsgCreateClient defines a message to create an IBC client
 message MsgCreateClient {
-  option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
   // light client state
@@ -42,7 +41,6 @@ message MsgCreateClientResponse {}
 // MsgUpdateClient defines an sdk.Msg to update a IBC client state using
 // the given client message.
 message MsgUpdateClient {
-  option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
   // client unique identifier
@@ -59,7 +57,6 @@ message MsgUpdateClientResponse {}
 // MsgUpgradeClient defines an sdk.Msg to upgrade an IBC client to a new client
 // state
 message MsgUpgradeClient {
-  option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
   // client unique identifier
@@ -84,7 +81,6 @@ message MsgUpgradeClientResponse {}
 // light client misbehaviour.
 // Warning: DEPRECATED
 message MsgSubmitMisbehaviour {
-  option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
   // client unique identifier
