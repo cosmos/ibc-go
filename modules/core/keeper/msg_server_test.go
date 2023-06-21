@@ -975,6 +975,13 @@ func (suite *KeeperTestSuite) TestChannelUpgradeCancel() {
 			},
 			expErr: channeltypes.ErrInvalidUpgradeSequence,
 		},
+		{
+			name: "capability not found",
+			malleate: func() {
+				msg.ChannelId = ibctesting.InvalidID
+			},
+			expErr: capabilitytypes.ErrCapabilityNotFound,
+		},
 	}
 
 	for _, tc := range cases {
