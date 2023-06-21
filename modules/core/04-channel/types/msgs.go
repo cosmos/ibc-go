@@ -723,7 +723,7 @@ var _ sdk.Msg = &MsgChannelUpgradeTimeout{}
 func NewMsgChannelUpgradeTimeout(
 	portID, channelID string,
 	counterpartyChannel Channel,
-	errorReceipt ErrorReceipt,
+	errorReceipt *ErrorReceipt,
 	proofChannel, proofErrorReceipt []byte,
 	proofHeight clienttypes.Height,
 	signer string,
