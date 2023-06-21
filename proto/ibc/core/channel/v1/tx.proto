@@ -62,7 +62,6 @@ enum ResponseResultType {
 message MsgChannelOpenInit {
   option (cosmos.msg.v1.signer) = "signer";
 
-  option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
   string  port_id = 1;
@@ -72,7 +71,6 @@ message MsgChannelOpenInit {
 
 // MsgChannelOpenInitResponse defines the Msg/ChannelOpenInit response type.
 message MsgChannelOpenInitResponse {
-  option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
   string channel_id = 1;
@@ -85,7 +83,6 @@ message MsgChannelOpenInitResponse {
 message MsgChannelOpenTry {
   option (cosmos.msg.v1.signer) = "signer";
 
-  option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
   string port_id = 1;
@@ -101,7 +98,6 @@ message MsgChannelOpenTry {
 
 // MsgChannelOpenTryResponse defines the Msg/ChannelOpenTry response type.
 message MsgChannelOpenTryResponse {
-  option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
   string version    = 1;
@@ -113,7 +109,6 @@ message MsgChannelOpenTryResponse {
 message MsgChannelOpenAck {
   option (cosmos.msg.v1.signer) = "signer";
 
-  option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
   string                    port_id                 = 1;
@@ -133,7 +128,6 @@ message MsgChannelOpenAckResponse {}
 message MsgChannelOpenConfirm {
   option (cosmos.msg.v1.signer) = "signer";
 
-  option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
   string                    port_id      = 1;
@@ -152,7 +146,6 @@ message MsgChannelOpenConfirmResponse {}
 message MsgChannelCloseInit {
   option (cosmos.msg.v1.signer) = "signer";
 
-  option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
   string port_id    = 1;
@@ -168,7 +161,6 @@ message MsgChannelCloseInitResponse {}
 message MsgChannelCloseConfirm {
   option (cosmos.msg.v1.signer) = "signer";
 
-  option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
   string                    port_id      = 1;
@@ -186,7 +178,6 @@ message MsgChannelCloseConfirmResponse {}
 message MsgRecvPacket {
   option (cosmos.msg.v1.signer) = "signer";
 
-  option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
   Packet                    packet           = 1 [(gogoproto.nullable) = false];
@@ -197,7 +188,6 @@ message MsgRecvPacket {
 
 // MsgRecvPacketResponse defines the Msg/RecvPacket response type.
 message MsgRecvPacketResponse {
-  option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
   ResponseResultType result = 1;
@@ -207,7 +197,6 @@ message MsgRecvPacketResponse {
 message MsgTimeout {
   option (cosmos.msg.v1.signer) = "signer";
 
-  option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
   Packet                    packet             = 1 [(gogoproto.nullable) = false];
@@ -219,7 +208,6 @@ message MsgTimeout {
 
 // MsgTimeoutResponse defines the Msg/Timeout response type.
 message MsgTimeoutResponse {
-  option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
   ResponseResultType result = 1;
@@ -229,7 +217,6 @@ message MsgTimeoutResponse {
 message MsgTimeoutOnClose {
   option (cosmos.msg.v1.signer) = "signer";
 
-  option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
   Packet                    packet             = 1 [(gogoproto.nullable) = false];
@@ -242,7 +229,6 @@ message MsgTimeoutOnClose {
 
 // MsgTimeoutOnCloseResponse defines the Msg/TimeoutOnClose response type.
 message MsgTimeoutOnCloseResponse {
-  option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
   ResponseResultType result = 1;
@@ -252,7 +238,6 @@ message MsgTimeoutOnCloseResponse {
 message MsgAcknowledgement {
   option (cosmos.msg.v1.signer) = "signer";
 
-  option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
   Packet                    packet          = 1 [(gogoproto.nullable) = false];
@@ -264,7 +249,6 @@ message MsgAcknowledgement {
 
 // MsgAcknowledgementResponse defines the Msg/Acknowledgement response type.
 message MsgAcknowledgementResponse {
-  option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
   ResponseResultType result = 1;
