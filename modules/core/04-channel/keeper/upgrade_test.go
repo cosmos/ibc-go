@@ -1178,15 +1178,13 @@ func (suite *KeeperTestSuite) TestChanUpgradeCancel() {
 
 			tc.malleate()
 
-			newUpgradeSequence, err := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.ChanUpgradeCancel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, errorReceipt, errorReceiptProof, proofHeight)
+			err := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.ChanUpgradeCancel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, errorReceipt, errorReceiptProof, proofHeight)
 
 			expPass := tc.expError == nil
 			if expPass {
 				suite.Require().NoError(err)
-				suite.Require().Equal(errorReceipt.Sequence, newUpgradeSequence, "upgrade sequence should be set to the error receipt sequence")
 			} else {
 				suite.Require().ErrorIs(err, tc.expError)
-				suite.Require().Equal(uint64(0), newUpgradeSequence)
 			}
 		})
 	}
