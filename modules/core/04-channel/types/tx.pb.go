@@ -1238,14 +1238,14 @@ var xxx_messageInfo_MsgChannelUpgradeOpenResponse proto.InternalMessageInfo
 
 // MsgChannelUpgradeTimeout defines the request type for the ChannelUpgradeTimeout rpc
 type MsgChannelUpgradeTimeout struct {
-	PortId               string       `protobuf:"bytes,1,opt,name=port_id,json=portId,proto3" json:"port_id,omitempty"`
-	ChannelId            string       `protobuf:"bytes,2,opt,name=channel_id,json=channelId,proto3" json:"channel_id,omitempty"`
-	CounterpartyChannel  Channel      `protobuf:"bytes,3,opt,name=counterparty_channel,json=counterpartyChannel,proto3" json:"counterparty_channel"`
-	PreviousErrorReceipt ErrorReceipt `protobuf:"bytes,4,opt,name=previous_error_receipt,json=previousErrorReceipt,proto3" json:"previous_error_receipt"`
-	ProofChannel         []byte       `protobuf:"bytes,5,opt,name=proof_channel,json=proofChannel,proto3" json:"proof_channel,omitempty"`
-	ProofErrorReceipt    []byte       `protobuf:"bytes,6,opt,name=proof_error_receipt,json=proofErrorReceipt,proto3" json:"proof_error_receipt,omitempty"`
-	ProofHeight          types.Height `protobuf:"bytes,7,opt,name=proof_height,json=proofHeight,proto3" json:"proof_height"`
-	Signer               string       `protobuf:"bytes,8,opt,name=signer,proto3" json:"signer,omitempty"`
+	PortId               string        `protobuf:"bytes,1,opt,name=port_id,json=portId,proto3" json:"port_id,omitempty"`
+	ChannelId            string        `protobuf:"bytes,2,opt,name=channel_id,json=channelId,proto3" json:"channel_id,omitempty"`
+	CounterpartyChannel  Channel       `protobuf:"bytes,3,opt,name=counterparty_channel,json=counterpartyChannel,proto3" json:"counterparty_channel"`
+	PreviousErrorReceipt *ErrorReceipt `protobuf:"bytes,4,opt,name=previous_error_receipt,json=previousErrorReceipt,proto3" json:"previous_error_receipt,omitempty"`
+	ProofChannel         []byte        `protobuf:"bytes,5,opt,name=proof_channel,json=proofChannel,proto3" json:"proof_channel,omitempty"`
+	ProofErrorReceipt    []byte        `protobuf:"bytes,6,opt,name=proof_error_receipt,json=proofErrorReceipt,proto3" json:"proof_error_receipt,omitempty"`
+	ProofHeight          types.Height  `protobuf:"bytes,7,opt,name=proof_height,json=proofHeight,proto3" json:"proof_height"`
+	Signer               string        `protobuf:"bytes,8,opt,name=signer,proto3" json:"signer,omitempty"`
 }
 
 func (m *MsgChannelUpgradeTimeout) Reset()         { *m = MsgChannelUpgradeTimeout{} }
@@ -3616,16 +3616,18 @@ func (m *MsgChannelUpgradeTimeout) MarshalToSizedBuffer(dAtA []byte) (int, error
 		i--
 		dAtA[i] = 0x2a
 	}
-	{
-		size, err := m.PreviousErrorReceipt.MarshalToSizedBuffer(dAtA[:i])
-		if err != nil {
-			return 0, err
+	if m.PreviousErrorReceipt != nil {
+		{
+			size, err := m.PreviousErrorReceipt.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintTx(dAtA, i, uint64(size))
 		}
-		i -= size
-		i = encodeVarintTx(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0x22
 	}
-	i--
-	dAtA[i] = 0x22
 	{
 		size, err := m.CounterpartyChannel.MarshalToSizedBuffer(dAtA[:i])
 		if err != nil {
@@ -4375,8 +4377,10 @@ func (m *MsgChannelUpgradeTimeout) Size() (n int) {
 	}
 	l = m.CounterpartyChannel.Size()
 	n += 1 + l + sovTx(uint64(l))
-	l = m.PreviousErrorReceipt.Size()
-	n += 1 + l + sovTx(uint64(l))
+	if m.PreviousErrorReceipt != nil {
+		l = m.PreviousErrorReceipt.Size()
+		n += 1 + l + sovTx(uint64(l))
+	}
 	l = len(m.ProofChannel)
 	if l > 0 {
 		n += 1 + l + sovTx(uint64(l))
@@ -8929,6 +8933,9 @@ func (m *MsgChannelUpgradeTimeout) Unmarshal(dAtA []byte) error {
 			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
+			}
+			if m.PreviousErrorReceipt == nil {
+				m.PreviousErrorReceipt = &ErrorReceipt{}
 			}
 			if err := m.PreviousErrorReceipt.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err

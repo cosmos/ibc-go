@@ -346,7 +346,7 @@ message MsgChannelUpgradeTimeout {
   string                    port_id                = 1;
   string                    channel_id             = 2;
   Channel                   counterparty_channel   = 3 [(gogoproto.nullable) = false];
-  ErrorReceipt              previous_error_receipt = 4 [(gogoproto.nullable) = false];
+  ErrorReceipt              previous_error_receipt = 4;
   bytes                     proof_channel          = 5;
   bytes                     proof_error_receipt    = 6;
   ibc.core.client.v1.Height proof_height           = 7 [(gogoproto.nullable) = false];
