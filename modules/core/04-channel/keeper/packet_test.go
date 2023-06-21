@@ -343,8 +343,6 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 				channel.State = types.CLOSED
 				channel.FlushStatus = types.FLUSHING
 				path.EndpointB.SetChannel(channel)
-
-				suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.SetCounterpartyLastPacketSequence(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, sequence)
 			},
 			expPass: true,
 		},

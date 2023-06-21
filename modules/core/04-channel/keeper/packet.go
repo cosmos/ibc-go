@@ -133,22 +133,12 @@ func (k Keeper) RecvPacket(
 		return errorsmod.Wrap(types.ErrChannelNotFound, packet.GetDestChannel())
 	}
 
-	// TODO: clean this up (alot!)
-	counterpartyLastPacketSent, ok := k.GetCounterpartyLastPacketSequence(ctx, packet.GetDestPort(), packet.GetDestChannel())
-	if !ok {
-		if channel.State != types.OPEN {
-			return errorsmod.Wrapf(
-				types.ErrInvalidChannelState,
-				"channel state is not OPEN (got %s)", channel.State.String(),
-			)
-		}
-	} else {
-		if channel.State != types.OPEN && (channel.FlushStatus != types.FLUSHING || counterpartyLastPacketSent > packet.GetSequence()) {
-			return errorsmod.Wrapf(
-				types.ErrInvalidChannelState,
-				"channel state is not OPEN (got %s)", channel.State.String(),
-			)
-		}
+	counterpartyLastPacketSent, _ := k.GetCounterpartyLastPacketSequence(ctx, packet.GetDestPort(), packet.GetDestChannel())
+	if channel.State != types.OPEN && (channel.FlushStatus != types.FLUSHING || counterpartyLastPacketSent > packet.GetSequence()) {
+		return errorsmod.Wrapf(
+			types.ErrInvalidChannelState,
+			"channel state is not OPEN (got %s)", channel.State.String(),
+		)
 	}
 
 	// Authenticate capability to ensure caller has authority to receive packet on this channel
