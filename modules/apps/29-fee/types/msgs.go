@@ -167,12 +167,12 @@ func (msg MsgPayPacketFee) Type() string {
 	return TypeMsgPayPacketFee
 }
 
-// Type implements legacytx.LegacyMsg
+// Route implements legacytx.LegacyMsg
 func (msg MsgPayPacketFee) Route() string {
 	return RouterKey
 }
 
-// Type implements legacytx.LegacyMsg
+// GetSignBytes implements legacytx.LegacyMsg
 func (msg MsgPayPacketFee) GetSignBytes() []byte {
 	return sdk.MustSortJSON(AminoCdc.MustMarshalJSON(&msg))
 }
@@ -209,12 +209,12 @@ func (msg MsgPayPacketFeeAsync) Type() string {
 	return TypeMsgPayPacketFeeAsync
 }
 
-// Type implements legacytx.LegacyMsg
+// Route implements legacytx.LegacyMsg
 func (msg MsgPayPacketFeeAsync) Route() string {
 	return RouterKey
 }
 
-// Type implements legacytx.LegacyMsg
+// GetSignBytes implements legacytx.LegacyMsg
 func (msg MsgPayPacketFeeAsync) GetSignBytes() []byte {
 	return sdk.MustSortJSON(AminoCdc.MustMarshalJSON(&msg))
 }
