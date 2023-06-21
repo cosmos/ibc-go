@@ -17,7 +17,6 @@ service Msg {
 
 // MsgRegisterInterchainAccount defines the payload for Msg/RegisterAccount
 message MsgRegisterInterchainAccount {
-  option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
   string owner         = 1;
@@ -33,7 +32,6 @@ message MsgRegisterInterchainAccountResponse {
 
 // MsgSendTx defines the payload for Msg/SendTx
 message MsgSendTx {
-  option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
   string                                                              owner         = 1;

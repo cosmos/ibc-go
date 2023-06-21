@@ -925,6 +925,154 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTry() {
 	}
 }
 
+func (suite *KeeperTestSuite) TestChannelUpgradeAck() {
+	var (
+		path *ibctesting.Path
+		msg  *channeltypes.MsgChannelUpgradeAck
+	)
+
+	cases := []struct {
+		name      string
+		malleate  func()
+		expResult func(res *channeltypes.MsgChannelUpgradeAckResponse, err error)
+	}{
+		{
+			"success",
+			func() {},
+			func(res *channeltypes.MsgChannelUpgradeAckResponse, err error) {
+				suite.Require().NoError(err)
+				suite.Require().NotNil(res)
+				suite.Require().Equal(channeltypes.SUCCESS, res.Result)
+
+				channel := path.EndpointA.GetChannel()
+				suite.Require().Equal(channeltypes.ACKUPGRADE, channel.State)
+				suite.Require().Equal(uint64(1), channel.UpgradeSequence)
+			},
+		},
+		{
+			"module capability not found",
+			func() {
+				msg.PortId = ibctesting.InvalidID
+				msg.ChannelId = ibctesting.InvalidID
+			},
+			func(res *channeltypes.MsgChannelUpgradeAckResponse, err error) {
+				suite.Require().Error(err)
+				suite.Require().Nil(res)
+
+				suite.Require().ErrorIs(err, capabilitytypes.ErrCapabilityNotFound)
+			},
+		},
+		{
+			"core handler returns error and no upgrade error receipt is written",
+			func() {
+				// force an error by overriding the counterparty flush status to an invalid value
+				msg.CounterpartyFlushStatus = channeltypes.NOTINFLUSH
+			},
+			func(res *channeltypes.MsgChannelUpgradeAckResponse, err error) {
+				suite.Require().Error(err)
+				suite.Require().Nil(res)
+				suite.Require().ErrorIs(err, channeltypes.ErrInvalidFlushStatus)
+
+				errorReceipt, found := suite.chainA.GetSimApp().GetIBCKeeper().ChannelKeeper.GetUpgradeErrorReceipt(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				suite.Require().Empty(errorReceipt)
+				suite.Require().False(found)
+			},
+		},
+		{
+			"core handler returns error and writes upgrade error receipt",
+			func() {
+				// force an upgrade error by modifying the channel upgrade ordering to an incompatible value
+				upgrade := path.EndpointA.GetChannelUpgrade()
+				upgrade.Fields.Ordering = channeltypes.NONE
+
+				path.EndpointA.SetChannelUpgrade(upgrade)
+			},
+			func(res *channeltypes.MsgChannelUpgradeAckResponse, err error) {
+				suite.Require().NoError(err)
+
+				suite.Require().NotNil(res)
+				suite.Require().Equal(channeltypes.FAILURE, res.Result)
+
+				errorReceipt, found := suite.chainA.GetSimApp().GetIBCKeeper().ChannelKeeper.GetUpgradeErrorReceipt(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				suite.Require().True(found)
+				suite.Require().Equal(uint64(1), errorReceipt.Sequence)
+			},
+		},
+		{
+			"application callback returns error and error receipt is written",
+			func() {
+				suite.chainA.GetSimApp().IBCMockModule.IBCApp.OnChanUpgradeAck = func(
+					ctx sdk.Context, portID, channelID, counterpartyVersion string,
+				) error {
+					// set arbitrary value in store to mock application state changes
+					store := ctx.KVStore(suite.chainA.GetSimApp().GetKey(exported.ModuleName))
+					store.Set([]byte("foo"), []byte("bar"))
+					return fmt.Errorf("mock app callback failed")
+				}
+			},
+			func(res *channeltypes.MsgChannelUpgradeAckResponse, err error) {
+				suite.Require().NoError(err)
+
+				suite.Require().NotNil(res)
+				suite.Require().Equal(channeltypes.FAILURE, res.Result)
+
+				errorReceipt, found := suite.chainA.GetSimApp().GetIBCKeeper().ChannelKeeper.GetUpgradeErrorReceipt(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				suite.Require().True(found)
+				suite.Require().Equal(uint64(1), errorReceipt.Sequence)
+
+				// assert application state changes are not committed
+				store := suite.chainA.GetContext().KVStore(suite.chainA.GetSimApp().GetKey(exported.ModuleName))
+				suite.Require().False(store.Has([]byte("foo")))
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.Setup(path)
+
+			// configure the channel upgrade version on testing endpoints
+			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = ibcmock.UpgradeVersion
+			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = ibcmock.UpgradeVersion
+
+			err := path.EndpointA.ChanUpgradeInit()
+			suite.Require().NoError(err)
+
+			err = path.EndpointB.ChanUpgradeTry()
+			suite.Require().NoError(err)
+
+			err = path.EndpointA.UpdateClient()
+			suite.Require().NoError(err)
+
+			counterpartyChannel := path.EndpointB.GetChannel()
+			counterpartyUpgrade := path.EndpointB.GetChannelUpgrade()
+
+			proofChannel, proofUpgrade, proofHeight := path.EndpointA.QueryChannelUpgradeProof()
+
+			msg = &channeltypes.MsgChannelUpgradeAck{
+				PortId:                  path.EndpointA.ChannelConfig.PortID,
+				ChannelId:               path.EndpointA.ChannelID,
+				CounterpartyFlushStatus: counterpartyChannel.FlushStatus,
+				CounterpartyUpgrade:     counterpartyUpgrade,
+				ProofChannel:            proofChannel,
+				ProofUpgrade:            proofUpgrade,
+				ProofHeight:             proofHeight,
+				Signer:                  suite.chainA.SenderAccount.GetAddress().String(),
+			}
+
+			tc.malleate()
+
+			res, err := suite.chainA.GetSimApp().GetIBCKeeper().ChannelUpgradeAck(suite.chainA.GetContext(), msg)
+
+			tc.expResult(res, err)
+		})
+	}
+}
+
 func (suite *KeeperTestSuite) TestChannelUpgradeCancel() {
 	var (
 		path *ibctesting.Path
