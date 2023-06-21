@@ -29,15 +29,15 @@ func NewIBCModule(k keeper.Keeper) IBCModule {
 }
 
 // OnChanOpenInit implements the IBCModule interface
-func (IBCModule) OnChanOpenInit(
-	_ sdk.Context,
-	_ channeltypes.Order,
-	_ []string,
-	_ string,
-	_ string,
-	_ *capabilitytypes.Capability,
-	_ channeltypes.Counterparty,
-	_ string,
+func (im IBCModule) OnChanOpenInit(
+	ctx sdk.Context,
+	order channeltypes.Order,
+	connectionHops []string,
+	portID string,
+	channelID string,
+	chanCap *capabilitytypes.Capability,
+	counterparty channeltypes.Counterparty,
+	version string,
 ) (string, error) {
 	return "", errorsmod.Wrap(icatypes.ErrInvalidChannelFlow, "channel handshake must be initiated by controller chain")
 }
@@ -61,12 +61,12 @@ func (im IBCModule) OnChanOpenTry(
 }
 
 // OnChanOpenAck implements the IBCModule interface
-func (IBCModule) OnChanOpenAck(
-	_ sdk.Context,
-	_,
-	_ string,
-	_ string,
-	_ string,
+func (im IBCModule) OnChanOpenAck(
+	ctx sdk.Context,
+	portID,
+	channelID string,
+	counterpartyChannelID string,
+	counterpartyVersion string,
 ) error {
 	return errorsmod.Wrap(icatypes.ErrInvalidChannelFlow, "channel handshake must be initiated by controller chain")
 }
@@ -85,10 +85,10 @@ func (im IBCModule) OnChanOpenConfirm(
 }
 
 // OnChanCloseInit implements the IBCModule interface
-func (IBCModule) OnChanCloseInit(
-	_ sdk.Context,
-	_,
-	_ string,
+func (im IBCModule) OnChanCloseInit(
+	ctx sdk.Context,
+	portID,
+	channelID string,
 ) error {
 	// Disallow user-initiated channel closing for interchain account channels
 	return errorsmod.Wrap(ibcerrors.ErrInvalidRequest, "user cannot close channel")
@@ -132,20 +132,20 @@ func (im IBCModule) OnRecvPacket(
 }
 
 // OnAcknowledgementPacket implements the IBCModule interface
-func (IBCModule) OnAcknowledgementPacket(
-	_ sdk.Context,
-	_ channeltypes.Packet,
-	_ []byte,
-	_ sdk.AccAddress,
+func (im IBCModule) OnAcknowledgementPacket(
+	ctx sdk.Context,
+	packet channeltypes.Packet,
+	acknowledgement []byte,
+	relayer sdk.AccAddress,
 ) error {
 	return errorsmod.Wrap(icatypes.ErrInvalidChannelFlow, "cannot receive acknowledgement on a host channel end, a host chain does not send a packet over the channel")
 }
 
 // OnTimeoutPacket implements the IBCModule interface
-func (IBCModule) OnTimeoutPacket(
-	_ sdk.Context,
-	_ channeltypes.Packet,
-	_ sdk.AccAddress,
+func (im IBCModule) OnTimeoutPacket(
+	ctx sdk.Context,
+	packet channeltypes.Packet,
+	relayer sdk.AccAddress,
 ) error {
 	return errorsmod.Wrap(icatypes.ErrInvalidChannelFlow, "cannot cause a packet timeout on a host channel end, a host chain does not send a packet over the channel")
 }
