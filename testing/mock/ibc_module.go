@@ -14,6 +14,13 @@ import (
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
+// applicationCallbackError is a custom error type that will be unique for testing purposes.
+type applicationCallbackError struct{}
+
+func (e applicationCallbackError) Error() string {
+	return "mock application callback failed"
+}
+
 // IBCModule implements the ICS26 callbacks for testing/mock.
 type IBCModule struct {
 	appModule *AppModule
