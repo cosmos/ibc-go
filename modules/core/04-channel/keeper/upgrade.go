@@ -339,15 +339,12 @@ func (k Keeper) ChanUpgradeCancel(ctx sdk.Context, portID, channelID string, err
 		return errorsmod.Wrapf(types.ErrInvalidUpgradeSequence, "error receipt sequence (%d) must be greater than or equal to current sequence (%d)", counterpartySequence, currentSequence)
 	}
 
-	channel.UpgradeSequence = errorReceipt.Sequence + 1
-	k.SetChannel(ctx, portID, channelID, channel)
-
 	return nil
 }
 
 // WriteUpgradeCancelChannel writes a channel which has canceled the upgrade process.Auxiliary upgrade state is
 // also deleted.
-func (k Keeper) WriteUpgradeCancelChannel(ctx sdk.Context, portID, channelID string) {
+func (k Keeper) WriteUpgradeCancelChannel(ctx sdk.Context, portID, channelID string, newUpgradeSequence uint64) {
 	defer telemetry.IncrCounter(1, "ibc", "channel", "upgrade-cancel")
 
 	upgrade, found := k.GetUpgrade(ctx, portID, channelID)
@@ -362,7 +359,7 @@ func (k Keeper) WriteUpgradeCancelChannel(ctx sdk.Context, portID, channelID str
 
 	previousState := channel.State
 
-	k.restoreChannel(ctx, portID, channelID, channel)
+	k.restoreChannel(ctx, portID, channelID, newUpgradeSequence, channel)
 
 	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", previousState, "new-state", types.OPEN.String())
 	emitChannelUpgradeCancelEvent(ctx, portID, channelID, channel, upgrade)
@@ -723,7 +720,9 @@ func (k Keeper) AbortUpgrade(ctx sdk.Context, portID, channelID string, err erro
 		return errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
 	}
 
-	k.restoreChannel(ctx, portID, channelID, channel)
+	// the channel upgrade sequence has already been updated in ChannelUpgradeTry, so we can pass
+	// its updated value.
+	k.restoreChannel(ctx, portID, channelID, channel.UpgradeSequence, channel)
 
 	// in the case of application callbacks, the error may not be an upgrade error.
 	// in this case we need to construct one in order to write the error receipt.
@@ -736,16 +735,14 @@ func (k Keeper) AbortUpgrade(ctx sdk.Context, portID, channelID string, err erro
 		return err
 	}
 
-	// TODO: callback execution
-	// cbs.OnChanUpgradeRestore()
-
 	return nil
 }
 
 // restoreChannel will restore the channel state and flush status to their pre-upgrade state so that upgrade is aborted.
-func (k Keeper) restoreChannel(ctx sdk.Context, portID, channelID string, currentChannel types.Channel) {
+func (k Keeper) restoreChannel(ctx sdk.Context, portID, channelID string, upgradeSequence uint64, currentChannel types.Channel) {
 	currentChannel.State = types.OPEN
 	currentChannel.FlushStatus = types.NOTINFLUSH
+	currentChannel.UpgradeSequence = upgradeSequence
 
 	k.SetChannel(ctx, portID, channelID, currentChannel)
 
