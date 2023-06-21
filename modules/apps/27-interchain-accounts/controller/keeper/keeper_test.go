@@ -3,9 +3,10 @@ package keeper_test
 import (
 	"testing"
 
+	"github.com/stretchr/testify/suite"
+
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	"github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
 	genesistypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/genesis/types"

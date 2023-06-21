@@ -25,8 +25,8 @@ func (k Keeper) OnChanOpenInit(
 	order channeltypes.Order,
 	connectionHops []string,
 	portID string,
-	_ string,
-	_ *capabilitytypes.Capability,
+	channelID string,
+	chanCap *capabilitytypes.Capability,
 	counterparty channeltypes.Counterparty,
 	version string,
 ) (string, error) {
@@ -129,10 +129,10 @@ func (k Keeper) OnChanOpenAck(
 }
 
 // OnChanCloseConfirm removes the active channel stored in state
-func (Keeper) OnChanCloseConfirm(
-	_ sdk.Context,
-	_,
-	_ string,
+func (k Keeper) OnChanCloseConfirm(
+	ctx sdk.Context,
+	portID,
+	channelID string,
 ) error {
 	return nil
 }
