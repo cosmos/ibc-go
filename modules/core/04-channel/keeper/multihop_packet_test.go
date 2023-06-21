@@ -27,11 +27,11 @@ type channelTestCase = struct {
 // verification tests need to simulate sending a packet from chainA to chainB.
 func (suite *MultihopTestSuite) TestRecvPacket() {
 	var (
-		packet         *types.Packet
-		packetHeight   exported.Height
-		channelCap     *capabilitytypes.Capability
-		expError       *sdkerrors.Error
-		err            error
+		packet       *types.Packet
+		packetHeight exported.Height
+		channelCap   *capabilitytypes.Capability
+		expError     *sdkerrors.Error
+		err          error
 	)
 
 	testCases := []channelTestCase{
@@ -286,8 +286,8 @@ func (suite *MultihopTestSuite) TestRecvPacket() {
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
-			suite.SetupTest() // reset
-			expError = nil    // must explicitly set for failed cases
+			suite.SetupTest(5) // reset
+			expError = nil     // must explicitly set for failed cases
 			if tc.orderedChannel {
 				suite.chanPath.SetChannelOrdered()
 			}
@@ -405,7 +405,7 @@ func (suite *MultihopTestSuite) TestAcknowledgePacket() {
 				suite.A().ChannelConfig.PortID, suite.A().ChannelID,
 			)
 
-			err = suite.A().AcknowledgePacket(*packet, packetHeight, ack.Acknowledgement())
+			err = suite.A().AcknowledgePacket(*packet, ackHeight, ack.Acknowledgement())
 			suite.Require().NoError(err)
 		}, false},
 		{"packet already acknowledged unordered channel (no-op)", false, func() {
@@ -428,7 +428,7 @@ func (suite *MultihopTestSuite) TestAcknowledgePacket() {
 				suite.A().ChannelConfig.PortID, suite.A().ChannelID,
 			)
 
-			err = suite.A().AcknowledgePacket(*packet, packetHeight, ack.Acknowledgement())
+			err = suite.A().AcknowledgePacket(*packet, ackHeight, ack.Acknowledgement())
 			suite.Require().NoError(err)
 		}, false},
 		{"channel not found", false, func() {
@@ -644,8 +644,8 @@ func (suite *MultihopTestSuite) TestAcknowledgePacket() {
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
-			suite.SetupTest() // reset
-			expError = nil    // must explcitly set error for failed cases
+			suite.SetupTest(5) // reset
+			expError = nil     // must explcitly set error for failed cases
 
 			tc.malleate()
 

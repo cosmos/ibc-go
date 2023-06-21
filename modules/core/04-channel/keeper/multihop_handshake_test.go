@@ -5,9 +5,12 @@ import (
 
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
+	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
@@ -101,7 +104,7 @@ func (suite *MultihopTestSuite) TestChanOpenInit() {
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			// run tests for all types of ordering
 			for _, order := range []types.Order{types.ORDERED, types.UNORDERED} {
-				suite.SetupTest() // reset
+				suite.SetupTest(5) // reset
 				suite.A().ChannelConfig.Order = order
 				suite.Z().ChannelConfig.Order = order
 				expErrorMsgSubstring = ""
@@ -251,7 +254,7 @@ func (suite *MultihopTestSuite) TestChanOpenTryMultihop() {
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
-			suite.SetupTest() // reset
+			suite.SetupTest(5) // reset
 			heightDiff = 0
 			tc.malleate() // call ChanOpenInit and setup port capabilities
 
@@ -436,7 +439,7 @@ func (suite *MultihopTestSuite) TestChanOpenAckMultihop() {
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
-			suite.SetupTest()          // reset
+			suite.SetupTest(5)         // reset
 			counterpartyChannelID = "" // must be explicitly changed in malleate
 			heightDiff = 0             // must be explicitly changed
 
@@ -589,9 +592,9 @@ func (suite *MultihopTestSuite) TestChanOpenConfirmMultihop() {
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
-			suite.SetupTest() // reset
-			heightDiff = 0    // must be explicitly changed
-			tc.malleate()     // call ChanOpenInit and setup port capabilities
+			suite.SetupTest(5) // reset
+			heightDiff = 0     // must be explicitly changed
+			tc.malleate()      // call ChanOpenInit and setup port capabilities
 
 			proof, proofHeight, err := suite.A().QueryChannelProof(suite.A().Chain.LastHeader.GetHeight())
 
@@ -637,7 +640,7 @@ func (suite *MultihopTestSuite) TestChanCloseInitMultihop() {
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
-			suite.SetupTest() // reset
+			suite.SetupTest(5) // reset
 
 			tc.malleate()
 
@@ -674,7 +677,7 @@ func (suite *MultihopTestSuite) TestChanCloseConfirmMultihop() {
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
-			suite.SetupTest() // reset
+			suite.SetupTest(5) // reset
 
 			tc.malleate()
 
@@ -698,6 +701,179 @@ func (suite *MultihopTestSuite) TestChanCloseConfirmMultihop() {
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().Error(err)
+			}
+		})
+	}
+}
+
+// TestChanCloseFrozenMultihop tests closing a channel with a frozen client in the channel path.
+func (suite *MultihopTestSuite) TestChanCloseFrozenMultihop() {
+	var (
+		channelCapA     *capabilitytypes.Capability
+		channelCapZ     *capabilitytypes.Capability
+		frozenEndpointA *ibctesting.EndpointM
+		frozenEndpointZ *ibctesting.EndpointM
+		clientIDA       string
+		clientIDZ       string
+		connectionIDA   string
+		connectionIDZ   string
+	)
+
+	testCases := []testCase{
+		{"success", func() {
+
+			var clientState exported.ClientState
+
+			suite.SetupChannels()
+
+			// freeze client on each side of the "misbehaving chain"
+			// it is expected that misbehavior be submitted to each chain
+			// connected to the "misbehaving chain"
+			paths := suite.A().Paths[0:1]
+			_, epA := ibctesting.NewEndpointMFromLinkedPaths(paths)
+			frozenEndpointA = &epA
+			ep := suite.A().Paths[1].EndpointA
+			clientState, connectionIDA, clientIDA = ep.GetClientState(), ep.ConnectionID, ep.GetConnection().ClientId
+			cs, ok := clientState.(*ibctm.ClientState)
+			suite.Require().True(ok)
+			cs.FrozenHeight = clienttypes.NewHeight(0, 1)
+			frozenEndpointA.Chain.App.GetIBCKeeper().ClientKeeper.SetClientState(frozenEndpointA.Chain.GetContext(), clientIDA, cs)
+
+			// freeze the other client[]
+			paths = suite.Z().Paths[0:1]
+			_, epZ := ibctesting.NewEndpointMFromLinkedPaths(paths)
+			frozenEndpointZ = &epZ
+			ep = suite.Z().Paths[1].EndpointA
+			clientState, connectionIDZ, clientIDZ = ep.GetClientState(), ep.ConnectionID, ep.GetConnection().ClientId
+			cs, ok = clientState.(*ibctm.ClientState)
+			suite.Require().True(ok)
+			cs.FrozenHeight = clienttypes.NewHeight(0, 1)
+			frozenEndpointZ.Chain.App.GetIBCKeeper().ClientKeeper.SetClientState(frozenEndpointZ.Chain.GetContext(), clientIDZ, cs)
+
+			// commit updates
+			suite.coord.CommitBlock(frozenEndpointA.Chain, frozenEndpointZ.Chain)
+
+			channelCapA = suite.A().Chain.GetChannelCapability(suite.A().ChannelConfig.PortID, suite.A().ChannelID)
+			channelCapZ = suite.Z().Chain.GetChannelCapability(suite.Z().ChannelConfig.PortID, suite.Z().ChannelID)
+		}, true},
+		{"success long path", func() {
+			suite.SetupTest(7) // rebuild path with 7 chains
+			var clientState exported.ClientState
+
+			suite.SetupChannels()
+
+			// freeze client on each side of the "misbehaving chain"
+			// it is expected that misbehavior be submitted to each chain
+			// connected to the "misbehaving chain"
+			paths := suite.A().Paths[0:2]
+			_, epA := ibctesting.NewEndpointMFromLinkedPaths(paths)
+			frozenEndpointA = &epA
+			ep := suite.A().Paths[2].EndpointA
+			clientState, connectionIDA, clientIDA = ep.GetClientState(), ep.ConnectionID, ep.GetConnection().ClientId
+			cs, ok := clientState.(*ibctm.ClientState)
+			suite.Require().True(ok)
+			cs.FrozenHeight = clienttypes.NewHeight(0, 1)
+			frozenEndpointA.Chain.App.GetIBCKeeper().ClientKeeper.SetClientState(frozenEndpointA.Chain.GetContext(), clientIDA, cs)
+
+			// freeze the other client[]
+			paths = suite.Z().Paths[0:2]
+			_, epZ := ibctesting.NewEndpointMFromLinkedPaths(paths)
+			frozenEndpointZ = &epZ
+			ep = suite.Z().Paths[2].EndpointA
+			clientState, connectionIDZ, clientIDZ = ep.GetClientState(), ep.ConnectionID, ep.GetConnection().ClientId
+			cs, ok = clientState.(*ibctm.ClientState)
+			suite.Require().True(ok)
+			cs.FrozenHeight = clienttypes.NewHeight(0, 1)
+			frozenEndpointZ.Chain.App.GetIBCKeeper().ClientKeeper.SetClientState(frozenEndpointZ.Chain.GetContext(), clientIDZ, cs)
+
+			// commit updates
+			suite.coord.CommitBlock(frozenEndpointA.Chain, frozenEndpointZ.Chain)
+
+			channelCapA = suite.A().Chain.GetChannelCapability(suite.A().ChannelConfig.PortID, suite.A().ChannelID)
+			channelCapZ = suite.Z().Chain.GetChannelCapability(suite.Z().ChannelConfig.PortID, suite.Z().ChannelID)
+		}, true},
+		{"channel end frozen", func() {
+			var clientState exported.ClientState
+			suite.SetupChannels()
+
+			// freeze client on each side of the "misbehaving chain"
+			// it is expected that misbehavior be submitted to each chain
+			// connected to the "misbehaving chain"
+			paths := suite.A().Paths[0:3]
+			_, epA := ibctesting.NewEndpointMFromLinkedPaths(paths)
+			frozenEndpointA = &epA
+			ep := suite.A().Paths[len(suite.A().Paths)-1].EndpointA
+			clientState, connectionIDA, clientIDA = ep.GetClientState(), ep.ConnectionID, ep.GetConnection().ClientId
+			cs, ok := clientState.(*ibctm.ClientState)
+			suite.Require().True(ok)
+			cs.FrozenHeight = clienttypes.NewHeight(0, 1)
+			frozenEndpointA.Chain.App.GetIBCKeeper().ClientKeeper.SetClientState(frozenEndpointA.Chain.GetContext(), clientIDA, cs)
+
+			// commit updates
+			suite.coord.CommitBlock(frozenEndpointA.Chain)
+
+			channelCapA = suite.A().Chain.GetChannelCapability(suite.A().ChannelConfig.PortID, suite.A().ChannelID)
+		}, true},
+		{"freeze not allowed", func() {
+			suite.SetupChannels()
+			_, ep := ibctesting.NewEndpointMFromLinkedPaths(suite.A().Paths[0:1])
+			frozenEndpointA = &ep
+			_, ep = ibctesting.NewEndpointMFromLinkedPaths(suite.Z().Paths[0:1])
+			frozenEndpointZ = &ep
+			channelCapA = suite.A().Chain.GetChannelCapability(suite.A().ChannelConfig.PortID, suite.A().ChannelID)
+			channelCapZ = suite.Z().Chain.GetChannelCapability(suite.Z().ChannelConfig.PortID, suite.Z().ChannelID)
+		}, false},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
+			suite.SetupTest(5) // reset
+
+			frozenEndpointA = nil
+			frozenEndpointZ = nil
+
+			tc.malleate()
+
+			// proof of frozen client for chain A
+			proofConnection, proofClientState, proofHeight, err := frozenEndpointA.QueryFrozenClientProof(connectionIDA, clientIDA, frozenEndpointA.Chain.LastHeader.GetHeight())
+			suite.Require().NoError(err)
+
+			// close the channel on chain A
+			err = suite.A().Chain.App.GetIBCKeeper().ChannelKeeper.ChanCloseFrozen(
+				suite.A().Chain.GetContext(),
+				suite.A().ChannelConfig.PortID,
+				suite.A().ChannelID,
+				channelCapA,
+				proofConnection,
+				proofClientState,
+				proofHeight)
+			if tc.expPass {
+				suite.Require().NoError(err)
+			} else {
+				suite.Require().Error(err)
+			}
+
+			if frozenEndpointZ != nil {
+				// proof of frozen client for chain Z
+				proofConnection, proofClientState, proofHeight, err = frozenEndpointZ.QueryFrozenClientProof(connectionIDZ, clientIDZ, frozenEndpointZ.Chain.LastHeader.GetHeight())
+				suite.Require().NoError(err)
+
+				// close the channel on chain Z
+				err = suite.Z().Chain.App.GetIBCKeeper().ChannelKeeper.ChanCloseFrozen(
+					suite.Z().Chain.GetContext(),
+					suite.Z().ChannelConfig.PortID,
+					suite.Z().ChannelID,
+					channelCapZ,
+					proofConnection,
+					proofClientState,
+					proofHeight,
+				)
+				if tc.expPass {
+					suite.Require().NoError(err)
+				} else {
+					suite.Require().Error(err)
+				}
 			}
 		})
 	}

@@ -634,7 +634,7 @@ func (k Keeper) ChanCloseConfirm(
 		return sdkerrors.Wrap(types.ErrInvalidChannelState, "channel is already CLOSED")
 	}
 
-	connectionEnd, found := k.connectionKeeper.GetConnection(ctx, channel.ConnectionHops[len(channel.ConnectionHops)-1])
+	connectionEnd, found := k.connectionKeeper.GetConnection(ctx, channel.ConnectionHops[0])
 	if !found {
 		return sdkerrors.Wrap(
 			connectiontypes.ErrConnectionNotFound,
@@ -709,13 +709,19 @@ func (k Keeper) ChanCloseConfirm(
 }
 
 // ChanCloseFrozen is called by the counterparty module to close their end of the
-// channel due to a frozen client in the channel path.
+// channel due to a frozen client in the channel path. The proof arguments are
+// expected to have been queried from the chain with the frozen client along the
+// channel path.
+//
+// proofConnection - proof of the connectionEnd for the frozen chain (contains the clientID)
+// proofClientState - proof of the frozen clientState (clientID determined from the connectionEnd)
 func (k Keeper) ChanCloseFrozen(
 	ctx sdk.Context,
 	portID,
 	channelID string,
 	chanCap *capabilitytypes.Capability,
-	proofFrozen []byte,
+	proofConnection []byte,
+	proofClientState []byte,
 	proofHeight exported.Height,
 ) error {
 	if !k.scopedKeeper.AuthenticateCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)) {
@@ -730,8 +736,8 @@ func (k Keeper) ChanCloseFrozen(
 		return sdkerrors.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
 	}
 
-	// ChanCloseFrozen is only required for multi-hop channels
-	if len(channel.ConnectionHops) == 1 {
+	// ChanCloseFrozen only applies to multi-hop channels
+	if len(channel.ConnectionHops) <= 1 {
 		return sdkerrors.ErrNotSupported
 	}
 
@@ -739,7 +745,7 @@ func (k Keeper) ChanCloseFrozen(
 		return sdkerrors.Wrap(types.ErrInvalidChannelState, "channel is already CLOSED")
 	}
 
-	connectionEnd, found := k.connectionKeeper.GetConnection(ctx, channel.ConnectionHops[len(channel.ConnectionHops)-1])
+	connectionEnd, found := k.connectionKeeper.GetConnection(ctx, channel.ConnectionHops[0])
 	if !found {
 		return sdkerrors.Wrap(
 			connectiontypes.ErrConnectionNotFound,
@@ -755,18 +761,46 @@ func (k Keeper) ChanCloseFrozen(
 	}
 
 	var mProof types.MsgMultihopProofs
-	if err := k.cdc.Unmarshal(proofFrozen, &mProof); err != nil {
+	if err := k.cdc.Unmarshal(proofConnection, &mProof); err != nil {
 		return fmt.Errorf("cannot unmarshal proof: %v", err)
 	}
 
-	kvGenerator := func(mProof *types.MsgMultihopProofs, multihopConnectionEnd *connectiontypes.ConnectionEnd) (string, []byte, error) {
-		key := host.FullClientStatePath(multihopConnectionEnd.ClientId)
-		value := mProof.KeyProof.Value // client state
+	var clientID string
+	connectionKVGenerator := func(mProof *types.MsgMultihopProofs, _ *connectiontypes.ConnectionEnd) (string, []byte, error) {
+		connectionIdx := len(mProof.ConsensusProofs) + 1
+		if connectionIdx > len(channel.ConnectionHops)-1 {
+			return "", nil, fmt.Errorf("connectionKVGenerator: connectionHops index out of range (%d > %d)", connectionIdx, len(channel.ConnectionHops)-1)
+		}
+		connectionID := channel.ConnectionHops[connectionIdx]
+		key := host.ConnectionPath(connectionID)
+		value := mProof.KeyProof.Value
+		var connectionEnd connectiontypes.ConnectionEnd
+		if err := k.cdc.Unmarshal(value, &connectionEnd); err != nil {
+			return "", nil, fmt.Errorf("connectionKVGenerator: %s", err)
+		}
+		clientID = connectionEnd.ClientId
 		return key, value, nil
 	}
 
-	// truncated connectionHops 0, 1, 2, 3 -> 1, 2, 3
-	connectionHops := channel.ConnectionHops[:len(mProof.ConnectionProofs)]
+	// truncated connectionHops (e.g. [0, 1, 2, 3] -> [0, 1])
+	connectionHops := channel.ConnectionHops[:len(mProof.ConnectionProofs)+1]
+
+	// prove connectionEnd
+	if err := k.connectionKeeper.VerifyMultihopMembership(
+		ctx, connectionEnd, proofHeight, proofConnection,
+		connectionHops, connectionKVGenerator); err != nil {
+		return err
+	}
+
+	if err := k.cdc.Unmarshal(proofClientState, &mProof); err != nil {
+		return fmt.Errorf("cannot unmarshal proof: %v", err)
+	}
+
+	clientStateKVGenerator := func(mProof *types.MsgMultihopProofs, _ *connectiontypes.ConnectionEnd) (string, []byte, error) {
+		key := host.FullClientStatePath(clientID)
+		value := mProof.KeyProof.Value // client state
+		return key, value, nil
+	}
 
 	// unmarshal to client state interface
 	var exportedClientState exported.ClientState
@@ -781,14 +815,14 @@ func (k Keeper) ChanCloseFrozen(
 	}
 
 	// check client is frozen
-	if cs.FrozenHeight.RevisionHeight != 0 && cs.FrozenHeight.RevisionNumber != 0 {
+	if cs.FrozenHeight.RevisionHeight == 0 {
 		return fmt.Errorf("cannot close channel, client is not frozen")
 	}
 
 	// prove frozen client
 	if err := k.connectionKeeper.VerifyMultihopMembership(
-		ctx, connectionEnd, proofHeight, proofFrozen,
-		connectionHops, kvGenerator); err != nil {
+		ctx, connectionEnd, proofHeight, proofClientState,
+		connectionHops, clientStateKVGenerator); err != nil {
 		return err
 	}
 
@@ -796,7 +830,7 @@ func (k Keeper) ChanCloseFrozen(
 		Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", channel.State.String(), "new-state", "CLOSED")
 
 	defer func() {
-		telemetry.IncrCounter(1, "ibc", "channel", "close-confirm")
+		telemetry.IncrCounter(1, "ibc", "channel", "close-frozen")
 	}()
 
 	channel.State = types.FROZEN

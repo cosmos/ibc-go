@@ -27,11 +27,10 @@ type timeoutTestCase = struct {
 // verification must specify which proof to use using the ordered bool.
 func (suite *MultihopTestSuite) TestTimeoutPacket() {
 	var (
-		packet       *types.Packet
-		packetHeight exported.Height
-		nextSeqRecv  uint64
-		err          error
-		expError     *sdkerrors.Error
+		packet      *types.Packet
+		nextSeqRecv uint64
+		err         error
+		expError    *sdkerrors.Error
 	)
 
 	testCases := []timeoutTestCase{
@@ -40,13 +39,13 @@ func (suite *MultihopTestSuite) TestTimeoutPacket() {
 			suite.SetupChannels() // setup multihop channels
 			timeoutHeight := clienttypes.GetSelfHeight(suite.Z().Chain.GetContext())
 			timeoutTimestamp := uint64(suite.Z().Chain.GetContext().BlockTime().UnixNano())
-			packet, packetHeight, err = suite.A().SendPacket(timeoutHeight, timeoutTimestamp, ibctesting.MockPacketData)
+			packet, _, err = suite.A().SendPacket(timeoutHeight, timeoutTimestamp, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
 		}, true},
 		{"success: UNORDERED", false, func() {
 			suite.SetupChannels() // setup multihop channels
 			timeoutHeight := clienttypes.GetSelfHeight(suite.Z().Chain.GetContext())
-			packet, packetHeight, err = suite.A().SendPacket(timeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
+			packet, _, err = suite.A().SendPacket(timeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
 		}, true},
 		{"packet already timed out: ORDERED", true, func() {
@@ -58,7 +57,7 @@ func (suite *MultihopTestSuite) TestTimeoutPacket() {
 			timeoutHeight := clienttypes.GetSelfHeight(suite.Z().Chain.GetContext())
 			timeoutTimestamp := uint64(suite.Z().Chain.GetContext().BlockTime().UnixNano())
 
-			packet, packetHeight, err = suite.A().
+			packet, _, err = suite.A().
 				SendPacket(timeoutHeight, timeoutTimestamp, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
 
@@ -66,7 +65,7 @@ func (suite *MultihopTestSuite) TestTimeoutPacket() {
 			err = suite.A().UpdateClient()
 			suite.Require().NoError(err)
 
-			err = suite.A().TimeoutPacket(*packet, packetHeight)
+			err = suite.A().TimeoutPacket(*packet, timeoutHeight)
 			suite.Require().NoError(err)
 		}, false},
 		{"packet already timed out: UNORDERED", false, func() {
@@ -76,7 +75,7 @@ func (suite *MultihopTestSuite) TestTimeoutPacket() {
 
 			timeoutHeight := clienttypes.GetSelfHeight(suite.Z().Chain.GetContext())
 
-			packet, packetHeight, err = suite.A().
+			packet, _, err = suite.A().
 				SendPacket(timeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
 
@@ -84,7 +83,7 @@ func (suite *MultihopTestSuite) TestTimeoutPacket() {
 			err = suite.A().UpdateClient()
 			suite.Require().NoError(err)
 
-			err = suite.A().TimeoutPacket(*packet, packetHeight)
+			err = suite.A().TimeoutPacket(*packet, timeoutHeight)
 			suite.Require().NoError(err)
 		}, false},
 		{"channel not found", false, func() {
@@ -99,7 +98,7 @@ func (suite *MultihopTestSuite) TestTimeoutPacket() {
 
 			timeoutHeight := suite.A().GetClientState().GetLatestHeight().Increment().(clienttypes.Height)
 
-			packet, packetHeight, err = suite.A().
+			packet, _, err = suite.A().
 				SendPacket(timeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
 
@@ -136,7 +135,7 @@ func (suite *MultihopTestSuite) TestTimeoutPacket() {
 			expError = types.ErrPacketTimeout
 			suite.SetupChannels()
 
-			packet, packetHeight, err = suite.A().
+			packet, _, err = suite.A().
 				SendPacket(defaultTimeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
 
@@ -151,7 +150,7 @@ func (suite *MultihopTestSuite) TestTimeoutPacket() {
 			nextSeqRecv = 2
 			timeoutTimestamp := uint64(suite.Z().Chain.GetContext().BlockTime().UnixNano())
 
-			packet, packetHeight, err = suite.A().
+			packet, _, err = suite.A().
 				SendPacket(defaultTimeoutHeight, timeoutTimestamp, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
 
@@ -176,7 +175,7 @@ func (suite *MultihopTestSuite) TestTimeoutPacket() {
 
 			timeoutHeight := clienttypes.GetSelfHeight(suite.Z().Chain.GetContext())
 
-			packet, packetHeight, err = suite.A().
+			packet, _, err = suite.A().
 				SendPacket(timeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
 
@@ -190,7 +189,7 @@ func (suite *MultihopTestSuite) TestTimeoutPacket() {
 
 			timeoutHeight := clienttypes.GetSelfHeight(suite.Z().Chain.GetContext())
 
-			packet, packetHeight, err = suite.A().
+			packet, _, err = suite.A().
 				SendPacket(timeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
 
@@ -209,11 +208,13 @@ func (suite *MultihopTestSuite) TestTimeoutPacket() {
 				proofHeight exported.Height
 			)
 
-			suite.SetupTest() // reset
-			expError = nil    // must be expliticly changed by failed cases
-			nextSeqRecv = 1   // must be explicitly changed
+			suite.SetupTest(5) // reset
+			expError = nil     // must be expliticly changed by failed cases
+			nextSeqRecv = 1    // must be explicitly changed
 
 			tc.malleate()
+
+			timeoutHeight := suite.Z().Chain.LastHeader.GetHeight()
 
 			if suite.Z().ConnectionID != "" {
 				var key []byte
@@ -224,8 +225,7 @@ func (suite *MultihopTestSuite) TestTimeoutPacket() {
 					// proof of absence of packet receipt
 					key = host.PacketReceiptKey(packet.SourcePort, packet.SourceChannel, packet.Sequence)
 				}
-				doUpdateClient := true
-				proof, proofHeight, err = suite.Z().QueryMultihopProof(key, packetHeight, doUpdateClient)
+				proof, proofHeight, err = suite.Z().QueryMultihopProof(key, timeoutHeight)
 				suite.Require().NoError(err)
 			}
 
@@ -249,12 +249,10 @@ func (suite *MultihopTestSuite) TestTimeoutPacket() {
 func (suite *MultihopTestSuite) TestTimeoutOnClose() {
 	var (
 		packet                           *types.Packet
-		packetHeight                     exported.Height
 		chanCap                          *capabilitytypes.Capability
 		nextSeqRecv                      uint64
 		err                              error
 		queryMultihopProofExpectedToFail bool
-		doUpdateClient                   bool
 	)
 
 	testCases := []timeoutTestCase{
@@ -265,7 +263,7 @@ func (suite *MultihopTestSuite) TestTimeoutOnClose() {
 			timeoutHeight := clienttypes.GetSelfHeight(suite.Z().Chain.GetContext())
 			timeoutTimestamp := uint64(suite.Z().Chain.GetContext().BlockTime().UnixNano())
 
-			packet, packetHeight, err = suite.A().SendPacket(timeoutHeight, timeoutTimestamp, ibctesting.MockPacketData)
+			packet, _, err = suite.A().SendPacket(timeoutHeight, timeoutTimestamp, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
 
 			suite.Z().SetChannelClosed()
@@ -277,7 +275,7 @@ func (suite *MultihopTestSuite) TestTimeoutOnClose() {
 			suite.SetupChannels() // setup multihop channels
 
 			timeoutHeight := clienttypes.GetSelfHeight(suite.Z().Chain.GetContext())
-			packet, packetHeight, err = suite.A().SendPacket(timeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
+			packet, _, err = suite.A().SendPacket(timeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
 
 			suite.Z().SetChannelClosed()
@@ -304,7 +302,7 @@ func (suite *MultihopTestSuite) TestTimeoutOnClose() {
 		}, false},
 		{"connection not found - scenario 1", false, func() {
 			connectionIdx := 0
-			suite.A().SetupAllButTheSpecifiedConnection(uint(connectionIdx))
+			suite.SetupAllButTheSpecifiedConnection(connectionIdx)
 			// pass channel check
 			suite.A().Chain.App.GetIBCKeeper().ChannelKeeper.SetChannel(
 				suite.A().Chain.GetContext(),
@@ -316,12 +314,11 @@ func (suite *MultihopTestSuite) TestTimeoutOnClose() {
 			// create chancap
 			suite.A().Chain.CreateChannelCapability(suite.A().Chain.GetSimApp().ScopedIBCMockKeeper, suite.A().ChannelConfig.PortID, suite.A().ChannelID)
 			chanCap = suite.A().Chain.GetChannelCapability(suite.A().ChannelConfig.PortID, suite.A().ChannelID)
-			packetHeight = suite.Z().Chain.LastHeader.GetHeight()
-			doUpdateClient = false
+			queryMultihopProofExpectedToFail = true
 		}, false},
 		{"connection not found - scenario 2", false, func() {
 			connectionIdx := 1
-			suite.A().SetupAllButTheSpecifiedConnection(uint(connectionIdx))
+			suite.SetupAllButTheSpecifiedConnection(connectionIdx)
 			// pass channel check
 			suite.A().Chain.App.GetIBCKeeper().ChannelKeeper.SetChannel(
 				suite.A().Chain.GetContext(),
@@ -333,7 +330,6 @@ func (suite *MultihopTestSuite) TestTimeoutOnClose() {
 			// create chancap
 			suite.A().Chain.CreateChannelCapability(suite.A().Chain.GetSimApp().ScopedIBCMockKeeper, suite.A().ChannelConfig.PortID, suite.A().ChannelID)
 			chanCap = suite.A().Chain.GetChannelCapability(suite.A().ChannelConfig.PortID, suite.A().ChannelID)
-			packetHeight = suite.Z().Chain.LastHeader.GetHeight()
 			queryMultihopProofExpectedToFail = true
 		}, false},
 		{"packet hasn't been sent ORDERED", true, func() {
@@ -354,7 +350,7 @@ func (suite *MultihopTestSuite) TestTimeoutOnClose() {
 			timeoutHeight := clienttypes.GetSelfHeight(suite.Z().Chain.GetContext())
 			timeoutTimestamp := uint64(suite.Z().Chain.GetContext().BlockTime().UnixNano())
 
-			packet, packetHeight, err = suite.A().
+			packet, _, err = suite.A().
 				SendPacket(timeoutHeight, timeoutTimestamp, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
 
@@ -373,7 +369,7 @@ func (suite *MultihopTestSuite) TestTimeoutOnClose() {
 			timeoutHeight := clienttypes.GetSelfHeight(suite.Z().Chain.GetContext())
 			timeoutTimestamp := uint64(suite.Z().Chain.GetContext().BlockTime().UnixNano())
 
-			packet, packetHeight, err = suite.A().
+			packet, _, err = suite.A().
 				SendPacket(timeoutHeight, timeoutTimestamp, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
 
@@ -387,7 +383,7 @@ func (suite *MultihopTestSuite) TestTimeoutOnClose() {
 			timeoutHeight := clienttypes.GetSelfHeight(suite.Z().Chain.GetContext())
 			timeoutTimestamp := uint64(suite.Z().Chain.GetContext().BlockTime().UnixNano())
 
-			packet, packetHeight, err = suite.A().
+			packet, _, err = suite.A().
 				SendPacket(timeoutHeight, timeoutTimestamp, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
 
@@ -405,7 +401,7 @@ func (suite *MultihopTestSuite) TestTimeoutOnClose() {
 
 			timeoutHeight := clienttypes.GetSelfHeight(suite.Z().Chain.GetContext())
 
-			packet, packetHeight, err = suite.A().
+			packet, _, err = suite.A().
 				SendPacket(timeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
 
@@ -424,7 +420,7 @@ func (suite *MultihopTestSuite) TestTimeoutOnClose() {
 			timeoutHeight := clienttypes.GetSelfHeight(suite.Z().Chain.GetContext())
 			timeoutTimestamp := uint64(suite.Z().Chain.GetContext().BlockTime().UnixNano())
 
-			packet, packetHeight, err = suite.A().
+			packet, _, err = suite.A().
 				SendPacket(timeoutHeight, timeoutTimestamp, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
 
@@ -446,20 +442,19 @@ func (suite *MultihopTestSuite) TestTimeoutOnClose() {
 		suite.Run(fmt.Sprintf("Case %s, %d/%d tests", tc.msg, i, len(testCases)), func() {
 			var key []byte
 
-			suite.SetupTest() // reset
-			nextSeqRecv = 1   // must be explicitly changed
+			suite.SetupTest(5) // reset
+			nextSeqRecv = 1    // must be explicitly changed
 			queryMultihopProofExpectedToFail = false
-			doUpdateClient = true
 
 			tc.malleate()
 
 			channelKey := host.ChannelKey(suite.Z().ChannelConfig.PortID, suite.Z().ChannelID)
 
+			closedHeight := suite.Z().Chain.LastHeader.GetHeight()
+			proofClosed, _, err := suite.Z().QueryMultihopProof(channelKey, closedHeight)
 			if queryMultihopProofExpectedToFail {
-				_, _, err := suite.Z().QueryMultihopProof(channelKey, packetHeight, doUpdateClient)
 				suite.Require().Error(err)
 			} else {
-				proofClosed, _, err := suite.Z().QueryMultihopProof(channelKey, packetHeight, doUpdateClient)
 				suite.Require().NoError(err)
 
 				if tc.orderedChannel {
@@ -469,7 +464,7 @@ func (suite *MultihopTestSuite) TestTimeoutOnClose() {
 					key = host.PacketReceiptKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 				}
 
-				proof, proofHeight, err := suite.Z().QueryMultihopProof(key, packetHeight, doUpdateClient)
+				proof, proofHeight, err := suite.Z().QueryMultihopProof(key, closedHeight)
 				suite.Require().NoError(err)
 
 				err = suite.A().Chain.App.GetIBCKeeper().ChannelKeeper.TimeoutOnClose(suite.A().Chain.GetContext(), chanCap, packet, proof, proofClosed, proofHeight, nextSeqRecv)

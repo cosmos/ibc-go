@@ -336,7 +336,7 @@ func (k Keeper) TimeoutOnClose(
 		// check that the recv sequence is as claimed
 		if len(channel.ConnectionHops) > 1 {
 			kvGenerator := func(_ *types.MsgMultihopProofs, _ *connectiontypes.ConnectionEnd) (string, []byte, error) {
-				key := host.NextSequenceRecvPath(packet.GetSourcePort(), packet.GetSourceChannel())
+				key := host.NextSequenceRecvPath(packet.GetDestPort(), packet.GetDestChannel())
 				value := sdk.Uint64ToBigEndian(nextSequenceRecv)
 				return key, value, nil
 			}

@@ -1,6 +1,9 @@
 package ibctesting
 
 import (
+	"fmt"
+	"math/rand"
+
 	"github.com/stretchr/testify/require"
 )
 
@@ -17,11 +20,61 @@ type CoordinatorM struct {
 // SetupClients is a helper function to create clients on both chains. It assumes the
 // caller does not anticipate any errors.
 func (coord *CoordinatorM) SetupClients(path *PathM) {
-	for _, path := range path.EndpointA.paths {
-		path := path
+	for _, path := range path.EndpointA.Paths {
 		require.Empty(coord.T, path.EndpointA.ClientID)
 		require.Empty(coord.T, path.EndpointB.ClientID)
-		coord.Coordinator.SetupClients(path)
+		require.Empty(coord.T, path.EndpointA.ConnectionID)
+		require.Empty(coord.T, path.EndpointB.ConnectionID)
+		// add variability to the clientIDs
+		N := rand.Int() % 5
+		for n := 0; n <= N; n++ {
+			coord.Coordinator.SetupClients(path)
+		}
+	}
+}
+
+// SetupClientConnections is a helper function to create clients and the appropriate
+// connections on both the source and counterparty chain. It assumes the caller does not
+// anticipate any errors.
+func (coord *CoordinatorM) SetupConnections(path *PathM) {
+	coord.SetupClients(path)
+	coord.CreateConnections(path)
+}
+
+func (coord *CoordinatorM) SetupAllButTheSpecifiedConnection(path *PathM, index int) error {
+	if index >= len(path.EndpointA.Paths) {
+		return fmt.Errorf("SetupAllButTheSpecifiedConnection(): invalid index parameter %d", index)
+	}
+
+	for _, path := range path.EndpointA.Paths[:index] {
+		// add variability to the clientIDs
+		N := rand.Int() % 5
+		for n := 0; n <= N; n++ {
+			coord.Coordinator.SetupClients(path)
+		}
+		coord.Coordinator.CreateConnections(path)
+	}
+
+	for _, path := range path.EndpointA.Paths[index+1:] {
+		// add variability to the clientIDs
+		N := rand.Int() % 5
+		for n := 0; n <= N; n++ {
+			coord.Coordinator.SetupClients(path)
+		}
+		coord.Coordinator.CreateConnections(path)
+	}
+
+	return nil
+}
+
+// CreateConnection constructs and executes connection handshake messages in order to create
+// OPEN channels on chainA and chainB. The connection information of for chainA and chainB
+// are returned within a TestConnection struct. The function expects the connections to be
+// successfully opened otherwise testing will fail.
+func (coord *CoordinatorM) CreateConnections(path *PathM) {
+	for _, path := range path.EndpointA.Paths {
+		path := path
+		coord.Coordinator.CreateConnections(path)
 	}
 }
 
@@ -32,22 +85,6 @@ func (coord *CoordinatorM) SetupChannels(path *PathM) {
 
 	// channels can also be referenced through the returned connections
 	coord.CreateChannels(path)
-}
-
-// SetupConnections creates clients and then connections for each pair of chains in a multihop path.
-// Fail test if any error occurs.
-// Prerequisite: none of clients or connections has been created.
-func (coord *CoordinatorM) SetupConnections(path *PathM) {
-	// EndpointA and EndpointZ keeps opposite views of the same connections. So it's sufficient to just create
-	// connections on EndpointA.paths.
-	for _, path := range path.EndpointA.paths {
-		path := path
-		require.Empty(coord.T, path.EndpointA.ClientID)
-		require.Empty(coord.T, path.EndpointB.ClientID)
-		require.Empty(coord.T, path.EndpointA.ConnectionID)
-		require.Empty(coord.T, path.EndpointB.ConnectionID)
-		coord.Coordinator.SetupConnections(path)
-	}
 }
 
 // CreateChannels constructs and executes channel handshake messages to create OPEN channels.

@@ -176,12 +176,13 @@ message MsgChannelCloseFrozen {
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
-  string                    port_id      = 1 [(gogoproto.moretags) = "yaml:\"port_id\""];
-  string                    channel_id   = 2 [(gogoproto.moretags) = "yaml:\"channel_id\""];
-  bytes                     proof_frozen = 3 [(gogoproto.moretags) = "yaml:\"proof_frozen\""];
-  ibc.core.client.v1.Height proof_height = 4
+  string                    port_id            = 1 [(gogoproto.moretags) = "yaml:\"port_id\""];
+  string                    channel_id         = 2 [(gogoproto.moretags) = "yaml:\"channel_id\""];
+  bytes                     proof_connection   = 3 [(gogoproto.moretags) = "yaml:\"proof_connection\""];
+  bytes                     proof_client_state = 4 [(gogoproto.moretags) = "yaml:\"proof_client_state\""];
+  ibc.core.client.v1.Height proof_height       = 5
       [(gogoproto.moretags) = "yaml:\"proof_height\"", (gogoproto.nullable) = false];
-  string signer = 5;
+  string signer = 6;
 }
 
 // MsgChannelCloseFrozenResponse defines the Msg/ChannelFrozenConfirm response
@@ -283,7 +284,6 @@ message MsgMultihopProofs {
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
-  uint32 key_proof_index                   = 1;
   MultihopProof key_proof                  = 2;
   repeated MultihopProof connection_proofs = 3;
   repeated MultihopProof consensus_proofs  = 4;

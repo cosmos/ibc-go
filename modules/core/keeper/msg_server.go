@@ -428,7 +428,7 @@ func (k Keeper) ChannelCloseFrozen(goCtx context.Context, msg *channeltypes.MsgC
 		return nil, sdkerrors.Wrapf(err, "channel close confirm callback failed for port ID: %s, channel ID: %s", msg.PortId, msg.ChannelId)
 	}
 
-	err = k.ChannelKeeper.ChanCloseFrozen(ctx, msg.PortId, msg.ChannelId, cap, msg.ProofFrozen, msg.ProofHeight)
+	err = k.ChannelKeeper.ChanCloseFrozen(ctx, msg.PortId, msg.ChannelId, cap, msg.ProofConnection, msg.ProofClientState, msg.ProofHeight)
 	if err != nil {
 		ctx.Logger().Error("channel handshake close frozen callback failed", "port-id", msg.PortId, "channel-id", msg.ChannelId, "error", err.Error())
 		return nil, sdkerrors.Wrap(err, "channel handshake close frozen failed")

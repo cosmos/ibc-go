@@ -307,15 +307,19 @@ var _ sdk.Msg = &MsgChannelCloseFrozen{}
 //
 //nolint:interfacer
 func NewMsgChannelCloseFrozen(
-	portID, channelID string, proofFrozen []byte, proofHeight clienttypes.Height,
+	portID, channelID string,
+	proofConnection []byte,
+	proofClientState []byte,
+	proofHeight clienttypes.Height,
 	signer string,
 ) *MsgChannelCloseFrozen {
 	return &MsgChannelCloseFrozen{
-		PortId:      portID,
-		ChannelId:   channelID,
-		ProofFrozen: proofFrozen,
-		ProofHeight: proofHeight,
-		Signer:      signer,
+		PortId:           portID,
+		ChannelId:        channelID,
+		ProofConnection:  proofConnection,
+		ProofClientState: proofClientState,
+		ProofHeight:      proofHeight,
+		Signer:           signer,
 	}
 }
 
@@ -327,9 +331,13 @@ func (msg MsgChannelCloseFrozen) ValidateBasic() error {
 	if !IsValidChannelID(msg.ChannelId) {
 		return ErrInvalidChannelIdentifier
 	}
-	if len(msg.ProofFrozen) == 0 {
-		return sdkerrors.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty proof init")
+	if len(msg.ProofConnection) == 0 {
+		return sdkerrors.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty connection proof")
 	}
+	if len(msg.ProofClientState) == 0 {
+		return sdkerrors.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty client state proof")
+	}
+
 	_, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)

@@ -15,6 +15,21 @@ import (
 	tmclient "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 )
 
+// helper function to parse the client id from a consensus state key path
+func parseClientIDFromKey(keyPath []string) (string, error) {
+	if len(keyPath) < 2 {
+		return "", fmt.Errorf(
+			"invalid consensus proof key path length: %d",
+			len(keyPath),
+		)
+	}
+	parts := strings.Split(keyPath[1], "/")
+	if len(parts) < 2 {
+		return "", fmt.Errorf("invalid consensus proof key path: %s", keyPath)
+	}
+	return parts[1], nil
+}
+
 // VerifyDelayPeriodPassed will ensure that at least delayTimePeriod amount of time and delayBlockPeriod number of blocks have passed
 // since consensus state was submitted before allowing verification to continue.
 func VerifyDelayPeriodPassed(
@@ -51,12 +66,6 @@ func VerifyMultihopMembership(
 	value []byte,
 ) error {
 
-	// verify proof lengths
-	if len(proofs.ConnectionProofs) < 1 || len(proofs.ConsensusProofs) < 1 {
-		return fmt.Errorf("the number of connection (%d) and consensus (%d) proofs must be > 0",
-			len(proofs.ConnectionProofs), len(proofs.ConsensusProofs))
-	}
-
 	if len(proofs.ConsensusProofs) != len(proofs.ConnectionProofs) {
 		return fmt.Errorf("the number of connection (%d) and consensus (%d) proofs must be equal",
 			len(proofs.ConnectionProofs), len(proofs.ConsensusProofs))
@@ -73,7 +82,7 @@ func VerifyMultihopMembership(
 	}
 
 	// verify the keyproof on source chain's consensus state.
-	return verifyKeyValueMembership(cdc, proofs, prefix, key, value)
+	return verifyKeyValueMembership(cdc, consensusState, proofs, prefix, key, value)
 }
 
 // VerifyMultihopNonMembership verifies a multihop proof. A nil value indicates a non-inclusion proof (proof of absence).
@@ -86,12 +95,6 @@ func VerifyMultihopNonMembership(
 	key string,
 ) error {
 
-	// verify proof lengths
-	if len(proofs.ConnectionProofs) < 1 || len(proofs.ConsensusProofs) < 1 {
-		return fmt.Errorf("the number of connection (%d) and consensus (%d) proofs must be > 0",
-			len(proofs.ConnectionProofs), len(proofs.ConsensusProofs))
-	}
-
 	if len(proofs.ConsensusProofs) != len(proofs.ConnectionProofs) {
 		return fmt.Errorf("the number of connection (%d) and consensus (%d) proofs must be equal",
 			len(proofs.ConnectionProofs), len(proofs.ConsensusProofs))
@@ -108,7 +111,7 @@ func VerifyMultihopNonMembership(
 	}
 
 	// verify the keyproof on source chain's consensus state.
-	return verifyKeyNonMembership(cdc, proofs, prefix, key)
+	return verifyKeyNonMembership(cdc, consensusState, proofs, prefix, key)
 }
 
 // verifyConnectionStates verifies that the provided connections match the connectionHops field of the channel and are in OPEN state
@@ -156,40 +159,25 @@ func verifyConnectionStates(
 // verifyIntermediateStateProofs verifies the intermediate consensus, connection, client states in the multi-hop proof.
 func verifyIntermediateStateProofs(
 	cdc codec.BinaryCodec,
-	consensusStateI exported.ConsensusState,
+	consensusState exported.ConsensusState,
 	consensusProofs []*channeltypes.MultihopProof,
 	connectionProofs []*channeltypes.MultihopProof,
 ) error {
-	// trusted consensusState on verifier
-	consensusState, ok := consensusStateI.(*tmclient.ConsensusState)
-	if !ok {
-		return fmt.Errorf("expected consensus state to be tendermint consensus state, got: %T", consensusStateI)
-	}
 
 	var connectionEnd connectiontypes.ConnectionEnd
-	var expectedClientID string
 	for i := 0; i < len(consensusProofs); i++ {
 		consensusProof := consensusProofs[i]
 		connectionProof := connectionProofs[i]
 
-		// verify consensus state client id matches previous connection counterparty client id
-		if len(expectedClientID) > 0 {
-			if len(consensusProof.PrefixedKey.KeyPath) < 2 {
-				return fmt.Errorf(
-					"invalid consensus proof key path length: %d",
-					len(consensusProof.PrefixedKey.KeyPath),
-				)
-			}
-			parts := strings.Split(consensusProof.PrefixedKey.KeyPath[1], "/")
-			if len(parts) < 2 {
-				return fmt.Errorf("invalid consensus proof key path: %s", consensusProof.PrefixedKey.KeyPath[1])
-			}
-			if parts[1] != expectedClientID {
-				return fmt.Errorf("consensus state client id (%s) does not match expected client id (%s)",
-					parts[1],
-					expectedClientID,
-				)
-			}
+		cs, ok := consensusState.(*tmclient.ConsensusState)
+		if !ok {
+			return fmt.Errorf("expected consensus state to be tendermint consensus state, got: %T", consensusState)
+		}
+
+		// the client id in the consensusState key path should match the clientID for the next connectionEnd
+		expectedClientID, err := parseClientIDFromKey(consensusProof.PrefixedKey.KeyPath)
+		if err != nil {
+			return err
 		}
 
 		// prove consensus state
@@ -199,7 +187,7 @@ func verifyIntermediateStateProofs(
 		}
 		if err := proof.VerifyMembership(
 			commitmenttypes.GetSDKSpecs(),
-			consensusState.GetRoot(),
+			cs.GetRoot(),
 			*consensusProof.PrefixedKey,
 			consensusProof.Value,
 		); err != nil {
@@ -213,7 +201,7 @@ func verifyIntermediateStateProofs(
 		}
 		if err := proof.VerifyMembership(
 			commitmenttypes.GetSDKSpecs(),
-			consensusState.GetRoot(),
+			cs.GetRoot(),
 			*connectionProof.PrefixedKey,
 			connectionProof.Value,
 		); err != nil {
@@ -224,15 +212,18 @@ func verifyIntermediateStateProofs(
 		if err := cdc.Unmarshal(connectionProof.Value, &connectionEnd); err != nil {
 			return fmt.Errorf("failed to unmarshal connection end: %w", err)
 		}
-		expectedClientID = connectionEnd.ClientId
+
+		// verify consensus state client id matches next connectionEnd  clientID
+		if connectionEnd.ClientId != expectedClientID {
+			return fmt.Errorf("consensus state client id (%s) does not match expected client id (%s)",
+				connectionEnd.ClientId,
+				expectedClientID,
+			)
+		}
 
 		// set the next consensus state
-		if err := cdc.UnmarshalInterface(consensusProof.Value, &consensusStateI); err != nil {
+		if err := cdc.UnmarshalInterface(consensusProof.Value, &consensusState); err != nil {
 			return fmt.Errorf("failed to unpack consesnsus state: %w", err)
-		}
-		consensusState, ok = consensusStateI.(*tmclient.ConsensusState)
-		if !ok {
-			return fmt.Errorf("expected consensus state to be tendermint consensus state, got: %T", consensusStateI)
 		}
 	}
 	return nil
@@ -241,6 +232,7 @@ func verifyIntermediateStateProofs(
 // verifyKeyValueMembership verifies a multihop membership proof including all intermediate state proofs.
 func verifyKeyValueMembership(
 	cdc codec.BinaryCodec,
+	consensusStateI exported.ConsensusState,
 	proofs *channeltypes.MsgMultihopProofs,
 	prefix exported.Prefix,
 	key string,
@@ -262,10 +254,11 @@ func verifyKeyValueMembership(
 		return fmt.Errorf("failed to unmarshal key proof: %w", err)
 	}
 
-	var consensusStateI exported.ConsensusState
-	index := uint32(len(proofs.ConsensusProofs)) - proofs.KeyProofIndex - 1
-	if err := cdc.UnmarshalInterface(proofs.ConsensusProofs[index].Value, &consensusStateI); err != nil {
-		return fmt.Errorf("failed to unpack consensus state: %w", err)
+	if len(proofs.ConsensusProofs) > 0 {
+		index := uint32(len(proofs.ConsensusProofs)) - 1
+		if err := cdc.UnmarshalInterface(proofs.ConsensusProofs[index].Value, &consensusStateI); err != nil {
+			return fmt.Errorf("failed to unpack consensus state: %w", err)
+		}
 	}
 	consensusState, ok := consensusStateI.(*tmclient.ConsensusState)
 	if !ok {
@@ -283,6 +276,7 @@ func verifyKeyValueMembership(
 // verifyKeyNonMembership verifies a multihop non-membership proof including all intermediate state proofs.
 func verifyKeyNonMembership(
 	cdc codec.BinaryCodec,
+	consensusStateI exported.ConsensusState,
 	proofs *channeltypes.MsgMultihopProofs,
 	prefix exported.Prefix,
 	key string,
@@ -302,10 +296,11 @@ func verifyKeyNonMembership(
 		return fmt.Errorf("failed to unmarshal key proof: %w", err)
 	}
 
-	var consensusStateI exported.ConsensusState
-	index := uint32(len(proofs.ConsensusProofs)) - proofs.KeyProofIndex - 1
-	if err := cdc.UnmarshalInterface(proofs.ConsensusProofs[index].Value, &consensusStateI); err != nil {
-		return fmt.Errorf("failed to unpack consensus state: %w", err)
+	if len(proofs.ConsensusProofs) > 0 {
+		index := uint32(len(proofs.ConsensusProofs)) - 1
+		if err := cdc.UnmarshalInterface(proofs.ConsensusProofs[index].Value, &consensusStateI); err != nil {
+			return fmt.Errorf("failed to unpack consensus state: %w", err)
+		}
 	}
 	consensusState, ok := consensusStateI.(*tmclient.ConsensusState)
 	if !ok {

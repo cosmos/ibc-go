@@ -411,7 +411,7 @@ func (k Keeper) VerifyMultihopMembership(
 		return err
 	}
 
-	multihopConnectionEnd, err := mProof.GetMultihopConnectionEnd(k.cdc)
+	multihopConnectionEnd, err := mProof.GetMultihopConnectionEnd(k.cdc, connection)
 	if err != nil {
 		return err
 	}
@@ -422,7 +422,6 @@ func (k Keeper) VerifyMultihopMembership(
 	}
 
 	prefix := multihopConnectionEnd.GetCounterparty().GetPrefix()
-
 	clientID := connection.GetClientID()
 	clientStore := k.clientKeeper.ClientStore(ctx, clientID)
 
@@ -480,7 +479,7 @@ func (k Keeper) VerifyMultihopNonMembership(
 		return err
 	}
 
-	multihopConnectionEnd, err := mProof.GetMultihopConnectionEnd(k.cdc)
+	multihopConnectionEnd, err := mProof.GetMultihopConnectionEnd(k.cdc, connection)
 	if err != nil {
 		return err
 	}
@@ -491,7 +490,6 @@ func (k Keeper) VerifyMultihopNonMembership(
 	}
 
 	prefix := multihopConnectionEnd.GetCounterparty().GetPrefix()
-
 	clientID := connection.GetClientID()
 	clientStore := k.clientKeeper.ClientStore(ctx, clientID)
 

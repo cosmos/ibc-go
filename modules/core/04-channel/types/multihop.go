@@ -1,6 +1,8 @@
 package types
 
 import (
+	"fmt"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
@@ -11,10 +13,18 @@ type ConnectionEnd = connectiontypes.ConnectionEnd
 // TODO: Create multihop proof struct to serialize multihop proofs into.
 
 // GetMultihopConnectionEnd returns the final connectionEnd from the counterparty perspective
-func (m *MsgMultihopProofs) GetMultihopConnectionEnd(cdc codec.BinaryCodec) (*ConnectionEnd, error) {
+func (m *MsgMultihopProofs) GetMultihopConnectionEnd(cdc codec.BinaryCodec, connection exported.ConnectionI) (*ConnectionEnd, error) {
 	var connectionEnd ConnectionEnd
-	if err := cdc.Unmarshal(m.ConnectionProofs[len(m.ConnectionProofs)-1].Value, &connectionEnd); err != nil {
-		return nil, err
+	if len(m.ConnectionProofs) > 0 {
+		if err := cdc.Unmarshal(m.ConnectionProofs[len(m.ConnectionProofs)-1].Value, &connectionEnd); err != nil {
+			return nil, err
+		}
+	} else {
+		var ok bool
+		connectionEnd, ok = connection.(connectiontypes.ConnectionEnd)
+		if !ok {
+			return nil, fmt.Errorf("failed to cast connection interface. expected type 'connectiontypes.ConnectionEnd'")
+		}
 	}
 	return &connectionEnd, nil
 }
