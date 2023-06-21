@@ -5,7 +5,6 @@ import (
 	"os"
 	"testing"
 
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/stretchr/testify/require"
 
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -14,6 +13,8 @@ import (
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 	simcli "github.com/cosmos/cosmos-sdk/x/simulation/client/cli"
+
+	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 )
 
 // Profile with:

@@ -4,6 +4,7 @@ import (
 	"time"
 
 	errorsmod "cosmossdk.io/errors"
+
 	tmbytes "github.com/cometbft/cometbft/libs/bytes"
 	tmtypes "github.com/cometbft/cometbft/types"
 

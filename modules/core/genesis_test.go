@@ -4,9 +4,11 @@ import (
 	"fmt"
 	"testing"
 
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
-	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/stretchr/testify/suite"
+
+	"github.com/cosmos/cosmos-sdk/codec"
+
+	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 
 	ibc "github.com/cosmos/ibc-go/v7/modules/core"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"

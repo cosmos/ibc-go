@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
+
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
