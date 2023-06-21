@@ -1054,14 +1054,14 @@ func (suite *KeeperTestSuite) TestChannelUpgradeAck() {
 			proofChannel, proofUpgrade, proofHeight := path.EndpointA.QueryChannelUpgradeProof()
 
 			msg = &channeltypes.MsgChannelUpgradeAck{
-				PortId:                  path.EndpointB.ChannelConfig.PortID,
-				ChannelId:               path.EndpointB.ChannelID,
+				PortId:                  path.EndpointA.ChannelConfig.PortID,
+				ChannelId:               path.EndpointA.ChannelID,
 				CounterpartyFlushStatus: counterpartyChannel.FlushStatus,
 				CounterpartyUpgrade:     counterpartyUpgrade,
 				ProofChannel:            proofChannel,
 				ProofUpgrade:            proofUpgrade,
 				ProofHeight:             proofHeight,
-				Signer:                  suite.chainB.SenderAccount.GetAddress().String(),
+				Signer:                  suite.chainA.SenderAccount.GetAddress().String(),
 			}
 
 			tc.malleate()
