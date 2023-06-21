@@ -28,7 +28,6 @@ service Msg {
 // MsgConnectionOpenInit defines the msg sent by an account on Chain A to
 // initialize a connection with Chain B.
 message MsgConnectionOpenInit {
-  option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
   string       client_id    = 1;
@@ -45,7 +44,6 @@ message MsgConnectionOpenInitResponse {}
 // MsgConnectionOpenTry defines a msg sent by a Relayer to try to open a
 // connection on Chain B.
 message MsgConnectionOpenTry {
-  option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
   string client_id = 1;
@@ -75,7 +73,6 @@ message MsgConnectionOpenTryResponse {}
 // MsgConnectionOpenAck defines a msg sent by a Relayer to Chain A to
 // acknowledge the change of connection state to TRYOPEN on Chain B.
 message MsgConnectionOpenAck {
-  option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
   string                    connection_id              = 1;
@@ -102,7 +99,6 @@ message MsgConnectionOpenAckResponse {}
 // MsgConnectionOpenConfirm defines a msg sent by a Relayer to Chain B to
 // acknowledge the change of connection state to OPEN on Chain A.
 message MsgConnectionOpenConfirm {
-  option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
   string connection_id = 1;
