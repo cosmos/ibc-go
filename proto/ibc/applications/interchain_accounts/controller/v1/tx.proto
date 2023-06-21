@@ -25,7 +25,6 @@ service Msg {
 message MsgRegisterInterchainAccount {
   option (cosmos.msg.v1.signer) = "owner";
 
-  option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
   string owner         = 1;
@@ -35,7 +34,6 @@ message MsgRegisterInterchainAccount {
 
 // MsgRegisterInterchainAccountResponse defines the response for Msg/RegisterAccount
 message MsgRegisterInterchainAccountResponse {
-  option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
   string channel_id = 1;
@@ -46,7 +44,6 @@ message MsgRegisterInterchainAccountResponse {
 message MsgSendTx {
   option (cosmos.msg.v1.signer) = "owner";
 
-  option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
   string                                                              owner         = 1;
@@ -59,7 +56,6 @@ message MsgSendTx {
 
 // MsgSendTxResponse defines the response for MsgSendTx
 message MsgSendTxResponse {
-  option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
   uint64 sequence = 1;
@@ -69,7 +65,6 @@ message MsgSendTxResponse {
 message MsgUpdateParams {
   option (cosmos.msg.v1.signer) = "authority";
 
-  option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
   // authority is the address that controls the module (defaults to x/gov unless overwritten).
