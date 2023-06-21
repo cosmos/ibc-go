@@ -1,7 +1,6 @@
 package ibctesting
 
 import (
-	"bytes"
 	"fmt"
 	"testing"
 	"time"
@@ -274,43 +273,6 @@ func (chain *TestChain) QueryMinimumConsensusHeight(clientID string, minConsensu
 	// fmt.Printf("Minimum proof height is %v on chain %s for consensus height: %v [minHeight=%v, maxHeight=%v]\n",
 	// 	proofHeight, chain.ChainID, consensusHeight, minConsensusHeight, maxConsensusHeight)
 	return proofHeight, consensusHeight, nil
-}
-
-func (chain *TestChain) QueryProcessedHeight(clientID string, consensusHeight exported.Height) (exported.Height, error) {
-	key := host.FullClientKey(clientID, ibctm.ProcessedHeightKey(consensusHeight))
-	bz, _, err := chain.QueryStateAtHeight(key, chain.LastHeader.Header.Height, false)
-	if err != nil {
-		return nil, err
-	}
-	if bz == nil {
-		return nil, nil
-	}
-	return clienttypes.ParseHeight(string(bz))
-}
-
-// QueryMaximumProofHeight returns the maxmimum height which can be used to prove a key/val pair by search consecutive heights
-// to find the first point at which the value changes for the given key.
-func (chain *TestChain) QueryMaximumProofHeight(
-	key []byte,
-	minKeyHeight exported.Height,
-	maxKeyHeightLimit exported.Height,
-) exported.Height {
-
-	if maxKeyHeightLimit == nil {
-		maxKeyHeightLimit = chain.LastHeader.GetHeight()
-	}
-
-	// TODO: implement a query method to optimize this logic?
-	initialValue, _, _ := chain.QueryStateForStore(exported.StoreKey, key, int64(minKeyHeight.GetRevisionHeight()), false)
-	height := minKeyHeight.Increment()
-	for {
-		value, _, _ := chain.QueryStateForStore(exported.StoreKey, key, int64(height.GetRevisionHeight()), false)
-		if !bytes.Equal(value, initialValue) || height.GTE(maxKeyHeightLimit) {
-			break
-		}
-		height = height.Increment()
-	}
-	return height
 }
 
 // QueryProofForStore performs an abci query with the given key and returns the proto encoded merkle proof

@@ -397,20 +397,10 @@ func (mep multihopEndpoint) QueryStateAtHeight(key []byte, height int64, doProof
 	return mep.testEndpoint.Chain.QueryStateAtHeight(key, height, doProof)
 }
 
-func (mep multihopEndpoint) QueryProcessedHeight(consensusHeight exported.Height) (exported.Height, error) {
-	return mep.testEndpoint.Chain.QueryProcessedHeight(mep.testEndpoint.ClientID, consensusHeight)
-}
-
 // QueryMinimumConsensusHeight returns the minimum height within the provided range at which the consensusState exists (processedHeight)
 // and the height of the corresponding consensus state (consensusHeight).
 func (mep multihopEndpoint) QueryMinimumConsensusHeight(minConsensusHeight exported.Height, maxConsensusHeight exported.Height) (exported.Height, exported.Height, error) {
 	return mep.testEndpoint.Chain.QueryMinimumConsensusHeight(mep.testEndpoint.ClientID, minConsensusHeight, maxConsensusHeight)
-}
-
-// QueryMaximumProofHeight returns the maxmimum height which can be used to prove a key/val pair by search consecutive heights
-// to find the first point at which the value changes for the given key.
-func (mep multihopEndpoint) QueryMaximumProofHeight(key []byte, minKeyHeight exported.Height, maxKeyHeightLimit exported.Height) exported.Height {
-	return mep.testEndpoint.Chain.QueryMaximumProofHeight(key, minKeyHeight, maxKeyHeightLimit)
 }
 
 // UpdateClient updates the IBC client associated with the endpoint.
