@@ -7,15 +7,15 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	paramsproposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 
-	controllertypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
-	hosttypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/types"
-	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	"github.com/strangelove-ventures/interchaintest/v7/ibc"
+	"github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
-	"github.com/strangelove-ventures/interchaintest/v7/ibc"
-	"github.com/stretchr/testify/suite"
+	controllertypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
+  hosttypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/types"
+	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
+	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
 func TestInterchainAccountsParamsTestSuite(t *testing.T) {
@@ -44,7 +44,8 @@ func (s *InterchainAccountsParamsTestSuite) QueryHostParams(ctx context.Context,
 	return *res.Params
 }
 
-func (s *InterchainAccountsParamsTestSuite) TestControllerParams() {
+// TestControllerEnabledParam tests that changing the ControllerEnabled param works as expected
+func (s *InterchainAccountsParamsTestSuite) TestControllerEnabledParam() {
 	t := s.T()
 	ctx := context.TODO()
 
@@ -54,18 +55,16 @@ func (s *InterchainAccountsParamsTestSuite) TestControllerParams() {
 	chainA, _ := s.GetChains()
 	chainAVersion := chainA.Config().Images[0].Version
 
-	// setup 2 accounts: controller account on chain A, a second chain B account.
-	// host account will be created when the ICA is registered
+	// setup controller account on chainA
 	controllerAccount := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 	controllerAddress := controllerAccount.FormattedAddress()
 
-	// Assert that default value for enabled is true.
-	t.Run("validate the controller is enabled by default", func(t *testing.T) {
+	t.Run("ensure the controller is enabled", func(t *testing.T) {
 		params := s.QueryControllerParams(ctx, chainA)
 		s.Require().True(params.ControllerEnabled)
 	})
 
-	t.Run("disable controller", func(t *testing.T) {
+	t.Run("disable the controller", func(t *testing.T) {
 		if testvalues.SelfParamsFeatureReleases.IsSupported(chainAVersion) {
 			authority, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
 			s.Require().NoError(err)
@@ -86,12 +85,12 @@ func (s *InterchainAccountsParamsTestSuite) TestControllerParams() {
 		}
 	})
 
-	t.Run("validate the param was successfully changed", func(t *testing.T) {
+	t.Run("ensure controller is disabled", func(t *testing.T) {
 		params := s.QueryControllerParams(ctx, chainA)
 		s.Require().False(params.ControllerEnabled)
 	})
 
-	t.Run("assert that broadcasting a MsgRegisterInterchainAccount now fails", func(t *testing.T) {
+	t.Run("ensure that broadcasting a MsgRegisterInterchainAccount fails", func(t *testing.T) {
 		// explicitly set the version string because we don't want to use incentivized channels.
 		version := icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
 		msgRegisterAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, controllerAddress, version)
