@@ -205,29 +205,6 @@ func (k Keeper) WriteUpgradeTryChannel(ctx sdk.Context, portID, channelID string
 	return channel, upgrade
 }
 
-// WriteUpgradeCancelChannel writes a channel which has canceled the upgrade process.Auxiliary upgrade state is
-// also deleted.
-func (k Keeper) WriteUpgradeCancelChannel(ctx sdk.Context, portID, channelID string, newUpgradeSequence uint64) {
-	defer telemetry.IncrCounter(1, "ibc", "channel", "upgrade-cancel")
-
-	upgrade, found := k.GetUpgrade(ctx, portID, channelID)
-	if !found {
-		panic(fmt.Sprintf("could not find upgrade when updating channel state, channelID: %s, portID: %s", channelID, portID))
-	}
-
-	channel, found := k.GetChannel(ctx, portID, channelID)
-	if !found {
-		panic(fmt.Sprintf("could not find existing channel when updating channel state, channelID: %s, portID: %s", channelID, portID))
-	}
-
-	previousState := channel.State
-
-	k.restoreChannel(ctx, portID, channelID, newUpgradeSequence, channel)
-
-	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", previousState, "new-state", types.OPEN.String())
-	emitChannelUpgradeCancelEvent(ctx, portID, channelID, channel, upgrade)
-}
-
 // ChanUpgradeAck is called by a module to accept the ACKUPGRADE handshake step of the channel upgrade protocol.
 // This method should only be called by the IBC core msg server.
 // This method will verify that the counterparty has entered TRYUPGRADE
@@ -297,7 +274,7 @@ func (k Keeper) ChanUpgradeAck(
 func (k Keeper) WriteUpgradeAckChannel(
 	ctx sdk.Context,
 	portID, channelID string,
-	proposedUpgrade types.Upgrade,
+	upgradeVersion string,
 ) {
 	defer telemetry.IncrCounter(1, "ibc", "channel", "upgrade-ack")
 
@@ -311,10 +288,18 @@ func (k Keeper) WriteUpgradeAckChannel(
 	channel.FlushStatus = types.FLUSHING
 
 	k.SetChannel(ctx, portID, channelID, channel)
-	k.SetUpgrade(ctx, portID, channelID, proposedUpgrade)
+
+	upgrade, found := k.GetUpgrade(ctx, portID, channelID)
+	if !found {
+		panic(fmt.Sprintf("cound not find existing upgrade when updating channel state in successful ChanUpgradeAck step, channelID: %s, portID: %s", channelID, portID))
+	}
+
+	upgrade.Fields.Version = upgradeVersion
+
+	k.SetUpgrade(ctx, portID, channelID, upgrade)
 
 	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", previousState, "new-state", types.ACKUPGRADE.String())
-	emitChannelUpgradeAckEvent(ctx, portID, channelID, channel, proposedUpgrade)
+	emitChannelUpgradeAckEvent(ctx, portID, channelID, channel, upgrade)
 }
 
 // ChanUpgradeCancel is called by a module to cancel a channel upgrade that is in progress.
@@ -355,6 +340,29 @@ func (k Keeper) ChanUpgradeCancel(ctx sdk.Context, portID, channelID string, err
 	}
 
 	return nil
+}
+
+// WriteUpgradeCancelChannel writes a channel which has canceled the upgrade process.Auxiliary upgrade state is
+// also deleted.
+func (k Keeper) WriteUpgradeCancelChannel(ctx sdk.Context, portID, channelID string, newUpgradeSequence uint64) {
+	defer telemetry.IncrCounter(1, "ibc", "channel", "upgrade-cancel")
+
+	upgrade, found := k.GetUpgrade(ctx, portID, channelID)
+	if !found {
+		panic(fmt.Sprintf("could not find upgrade when updating channel state, channelID: %s, portID: %s", channelID, portID))
+	}
+
+	channel, found := k.GetChannel(ctx, portID, channelID)
+	if !found {
+		panic(fmt.Sprintf("could not find existing channel when updating channel state, channelID: %s, portID: %s", channelID, portID))
+	}
+
+	previousState := channel.State
+
+	k.restoreChannel(ctx, portID, channelID, newUpgradeSequence, channel)
+
+	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", previousState, "new-state", types.OPEN.String())
+	emitChannelUpgradeCancelEvent(ctx, portID, channelID, channel, upgrade)
 }
 
 // ChanUpgradeTimeout times out an outstanding upgrade.
