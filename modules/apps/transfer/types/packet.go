@@ -86,7 +86,7 @@ The Memo format is defined like so:
 ```json
 {
 	// ... other memo fields we don't care about
-	"callbacks": {
+	"callback": {
 		"src_callback_address": {contractAddrOnSourceChain},
 		"dest_callback_address": {contractAddrOnDestChain},
 
@@ -104,12 +104,12 @@ However, we may remove this restriction at a later date if it proves useful.
 
 // GetSourceCallbackAddress returns the sender address if it is also specified in
 // the packet data memo. The desired callback address must be confirmed in the
-// memo under the "callbacks" key. This ensures that the callback is explicitly
+// memo under the "callback" key. This ensures that the callback is explicitly
 // desired by the user and not called automatically. If no callback address is
 // specified, an empty string is returned.
 //
 // The memo is expected to contain the source callback address in the following format:
-// { "callbacks": { "src_callback_address": {contractAddrOnSourceChain}}
+// { "callback": { "src_callback_address": {contractAddrOnSourceChain}}
 //
 // ADR-8 middleware should callback on the returned address if it is a PacketActor
 // (i.e. smart contract that accepts IBC callbacks).
@@ -128,12 +128,12 @@ func (ftpd FungibleTokenPacketData) GetSourceCallbackAddress() string {
 
 // GetDestCallbackAddress returns the receiving address if it is also specified in
 // the packet data memo. The desired callback address must be confirmed in the
-// memo under the "callbacks" key. This ensures that the callback is explicitly
+// memo under the "callback" key. This ensures that the callback is explicitly
 // desired by the user and not called automatically. If no callback address is
 // specified, an empty string is returned.
 //
 // The memo is expected to contain the destination callback address in the following format:
-// { "callbacks": { "dest_callback_address": {contractAddrOnDestChain}}
+// { "callback": { "dest_callback_address": {contractAddrOnDestChain}}
 //
 // ADR-8 middleware should callback on the returned address if it is a PacketActor
 // (i.e. smart contract that accepts IBC callbacks).

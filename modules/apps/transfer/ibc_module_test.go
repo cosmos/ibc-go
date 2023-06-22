@@ -257,7 +257,7 @@ func (suite *TransferTestSuite) TestUnmarshalPacketData() {
 		Amount:   amount,
 		Sender:   sender,
 		Receiver: receiver,
-		Memo:     fmt.Sprintf(`{"callbacks": {"src_callback_address": "%s", "dest_callback_address": "%s"}}`, sender, receiver),
+		Memo:     fmt.Sprintf(`{"callback": {"src_callback_address": "%s", "dest_callback_address": "%s"}}`, sender, receiver),
 	}
 
 	packetData, err := transfer.IBCModule{}.UnmarshalPacketData(expPacketData.GetBytes())

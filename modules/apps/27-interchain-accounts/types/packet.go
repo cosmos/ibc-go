@@ -69,7 +69,7 @@ The Memo format is defined like so:
 ```json
 {
 	// ... other memo fields we don't care about
-	"callbacks": {
+	"callback": {
 		"src_callback_address": {contractAddrOnSourceChain},
 
 		// optional fields
@@ -84,7 +84,7 @@ The Memo format is defined like so:
 // If no callback address is specified, an empty string is returned.
 //
 // The memo is expected to specify the callback address in the following format:
-// { "callbacks": { "src_callback_address": {contractAddrOnSourceChain}}
+// { "callback": { "src_callback_address": {contractAddrOnSourceChain}}
 //
 // ADR-8 middleware should callback on the returned address if it is a PacketActor
 // (i.e. smart contract that accepts IBC callbacks).

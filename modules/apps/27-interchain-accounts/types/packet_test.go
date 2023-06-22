@@ -125,7 +125,7 @@ func (suite *TypesTestSuite) TestGetSourceCallbackAddress() {
 			types.InterchainAccountPacketData{
 				Type: types.EXECUTE_TX,
 				Data: []byte("data"),
-				Memo: `{"callbacks": {"Key": 10}}`,
+				Memo: `{"callback": {"Key": 10}}`,
 			},
 			false,
 		},
@@ -134,7 +134,7 @@ func (suite *TypesTestSuite) TestGetSourceCallbackAddress() {
 			types.InterchainAccountPacketData{
 				Type: types.EXECUTE_TX,
 				Data: []byte("data"),
-				Memo: `{"callbacks": {"src_callback_address": 10}}`,
+				Memo: `{"callback": {"src_callback_address": 10}}`,
 			},
 			false,
 		},
@@ -143,7 +143,7 @@ func (suite *TypesTestSuite) TestGetSourceCallbackAddress() {
 			types.InterchainAccountPacketData{
 				Type: types.EXECUTE_TX,
 				Data: []byte("data"),
-				Memo: fmt.Sprintf(`{"callbacks": {"src_callback_address": "%s"}}`, expSrcCbAddr),
+				Memo: fmt.Sprintf(`{"callback": {"src_callback_address": "%s"}}`, expSrcCbAddr),
 			},
 			true,
 		},
@@ -181,7 +181,7 @@ func (suite *TypesTestSuite) TestGetDestCallbackAddress() {
 			types.InterchainAccountPacketData{
 				Type: types.EXECUTE_TX,
 				Data: []byte("data"),
-				Memo: `{"callbacks": {"dest_callback_address": "testAddress"}}`,
+				Memo: `{"callback": {"dest_callback_address": "testAddress"}}`,
 			},
 		},
 	}
@@ -199,7 +199,7 @@ func (suite *TypesTestSuite) TestUserDefinedGasLimit() {
 	packetData := types.InterchainAccountPacketData{
 		Type: types.EXECUTE_TX,
 		Data: []byte("data"),
-		Memo: `{"callbacks": {"user_defined_gas_limit": 100}}`,
+		Memo: `{"callback": {"user_defined_gas_limit": 100}}`,
 	}
 
 	suite.Require().Equal(uint64(0), packetData.UserDefinedGasLimit(), "user defined gas limit does not return 0")
