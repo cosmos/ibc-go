@@ -20,7 +20,7 @@ type ContractKeeper interface {
 		relayer sdk.AccAddress,
 		contractAddr string,
 		gasLimit uint64,
-	)
+	) error
 	// IBCPacketTimeoutCallback is called in the source chain when a packet is not received before
 	// the timeout height. The contract is expected to handle the callback within the user defined
 	// gas limit, and handle any errors, state reversals, out of gas, or panics gracefully.
@@ -30,7 +30,7 @@ type ContractKeeper interface {
 		relayer sdk.AccAddress,
 		contractAddr string,
 		gasLimit uint64,
-	)
+	) error
 	// IBCReceivePacketCallback is called in the destination chain when a packet is received.
 	// The contract is expected to handle the callback within the user defined gas limit, and
 	// handle any errors, state reversals, out of gas, or panics gracefully.
@@ -43,5 +43,5 @@ type ContractKeeper interface {
 		relayer sdk.AccAddress,
 		contractAddr string,
 		gasLimit uint64,
-	)
+	) error
 }

@@ -48,6 +48,31 @@ func EmitSourceCallbackEvent(
 	gasLimit uint64,
 	err error,
 ) {
+	emitCallbackEvent(ctx, packet, EventTypeSourceCallback, callbackTrigger, contractAddr, gasLimit, err)
+}
+
+// EmitSourceCallbackEvent emits an event for a source callback
+func EmitDestinationCallbackEvent(
+	ctx sdk.Context,
+	packet channeltypes.Packet,
+	callbackTrigger string,
+	contractAddr string,
+	gasLimit uint64,
+	err error,
+) {
+	emitCallbackEvent(ctx, packet, EventTypeDestinationCallback, callbackTrigger, contractAddr, gasLimit, err)
+}
+
+// emitCallbackEvent emits an event for a callback
+func emitCallbackEvent(
+	ctx sdk.Context,
+	packet channeltypes.Packet,
+	callbackType string,
+	callbackTrigger string,
+	contractAddr string,
+	gasLimit uint64,
+	err error,
+) {
 	success := err == nil
 	attributes := []sdk.Attribute{
 		sdk.NewAttribute(sdk.AttributeKeyModule, ModuleName),
@@ -67,7 +92,7 @@ func EmitSourceCallbackEvent(
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
-			EventTypeSourceCallback,
+			callbackType,
 			attributes...,
 		),
 	)
