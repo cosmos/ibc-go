@@ -55,6 +55,6 @@ func (k Keeper) sendTx(ctx sdk.Context, connectionID, portID string, icaPacketDa
 
 // OnTimeoutPacket removes the active channel associated with the provided packet, the underlying channel end is closed
 // due to the semantics of ORDERED channels
-func (Keeper) OnTimeoutPacket(_ sdk.Context, _ channeltypes.Packet) error {
+func (k Keeper) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet) error {
 	return nil
 }
