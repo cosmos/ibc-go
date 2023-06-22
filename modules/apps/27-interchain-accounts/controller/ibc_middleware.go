@@ -76,7 +76,7 @@ func (im IBCMiddleware) OnChanOpenInit(
 }
 
 // OnChanOpenTry implements the IBCMiddleware interface
-func (im IBCMiddleware) OnChanOpenTry(
+func (IBCMiddleware) OnChanOpenTry(
 	ctx sdk.Context,
 	order channeltypes.Order,
 	connectionHops []string,
@@ -124,7 +124,7 @@ func (im IBCMiddleware) OnChanOpenAck(
 }
 
 // OnChanOpenConfirm implements the IBCMiddleware interface
-func (im IBCMiddleware) OnChanOpenConfirm(
+func (IBCMiddleware) OnChanOpenConfirm(
 	ctx sdk.Context,
 	portID,
 	channelID string,
@@ -133,7 +133,7 @@ func (im IBCMiddleware) OnChanOpenConfirm(
 }
 
 // OnChanCloseInit implements the IBCMiddleware interface
-func (im IBCMiddleware) OnChanCloseInit(
+func (IBCMiddleware) OnChanCloseInit(
 	ctx sdk.Context,
 	portID,
 	channelID string,
@@ -165,10 +165,10 @@ func (im IBCMiddleware) OnChanCloseConfirm(
 }
 
 // OnRecvPacket implements the IBCMiddleware interface
-func (im IBCMiddleware) OnRecvPacket(
+func (IBCMiddleware) OnRecvPacket(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
-	_ sdk.AccAddress,
+	address sdk.AccAddress,
 ) ibcexported.Acknowledgement {
 	err := errorsmod.Wrapf(icatypes.ErrInvalidChannelFlow, "cannot receive packet on controller chain")
 	ack := channeltypes.NewErrorAcknowledgement(err)
@@ -227,7 +227,7 @@ func (im IBCMiddleware) OnTimeoutPacket(
 }
 
 // SendPacket implements the ICS4 Wrapper interface
-func (im IBCMiddleware) SendPacket(
+func (IBCMiddleware) SendPacket(
 	ctx sdk.Context,
 	chanCap *capabilitytypes.Capability,
 	sourcePort string,
@@ -240,7 +240,7 @@ func (im IBCMiddleware) SendPacket(
 }
 
 // WriteAcknowledgement implements the ICS4 Wrapper interface
-func (im IBCMiddleware) WriteAcknowledgement(
+func (IBCMiddleware) WriteAcknowledgement(
 	ctx sdk.Context,
 	chanCap *capabilitytypes.Capability,
 	packet ibcexported.PacketI,

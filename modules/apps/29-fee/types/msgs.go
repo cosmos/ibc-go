@@ -162,14 +162,13 @@ func (msg MsgPayPacketFee) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{signer}
 }
 
-
 // Type implements legacytx.LegacyMsg
-func (msg MsgPayPacketFee) Type() string {
+func (MsgPayPacketFee) Type() string {
 	return TypeMsgPayPacketFee
 }
 
 // Route implements legacytx.LegacyMsg
-func (msg MsgPayPacketFee) Route() string {
+func (MsgPayPacketFee) Route() string {
 	return RouterKey
 }
 
@@ -205,14 +204,13 @@ func (msg MsgPayPacketFeeAsync) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{signer}
 }
 
-
 // Type implements legacytx.LegacyMsg
-func (msg MsgPayPacketFeeAsync) Type() string {
+func (MsgPayPacketFeeAsync) Type() string {
 	return TypeMsgPayPacketFeeAsync
 }
 
 // Route implements legacytx.LegacyMsg
-func (msg MsgPayPacketFeeAsync) Route() string {
+func (MsgPayPacketFeeAsync) Route() string {
 	return RouterKey
 }
 
