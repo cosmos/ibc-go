@@ -70,9 +70,9 @@ Only the following major release series have a stable release status:
 |`v4.1.x`|August 12, 2023|
 |`v4.2.x`|August 12, 2023|
 |`v4.3.x`|August 12, 2023|
-|`v4.4.x`|August 12, 2023|
+|`v4.4.x`|October 31, 2023|
 |`v5.2.x`|September 28, 2023|
-|`v5.3.x`|September 28, 2023|
+|`v5.3.x`|October 31, 2023|
 |`v6.1.x`|December 09, 2023|
 |`v6.2.x`|December 09, 2023|
 |`v7.0.x`|March 17, 2024|
