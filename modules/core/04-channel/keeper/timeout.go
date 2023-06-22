@@ -158,6 +158,11 @@ func (k Keeper) TimeoutExecuted(
 		k.SetChannel(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), channel)
 	}
 
+	if channel.FlushStatus == types.FLUSHING && !k.hasInflightPackets(ctx, packet.GetSourcePort(), packet.GetSourceChannel()) {
+		channel.FlushStatus = types.FLUSHCOMPLETE
+		k.SetChannel(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), channel)
+	}
+
 	k.Logger(ctx).Info(
 		"packet timed-out",
 		"sequence", strconv.FormatUint(packet.GetSequence(), 10),
