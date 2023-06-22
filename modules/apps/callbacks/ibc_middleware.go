@@ -186,7 +186,7 @@ func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet
 		types.EmitDestinationCallbackEvent(ctx, packet, types.CallbackTypeTimeout, callbackData.ContractAddr, callbackData.GasLimit, err)
 		return appAck
 	}
-	
+
 	return appAck
 }
 

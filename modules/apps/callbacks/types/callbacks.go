@@ -31,7 +31,7 @@ func GetCallbackData(app PacketUnmarshalerIBCModule, packet channeltypes.Packet,
 
 	callbackData, ok := unmarshaledData.(ibcexported.CallbackPacketData)
 	if !ok {
-		return CallbackData{},  ErrNotCallbackPacketData
+		return CallbackData{}, ErrNotCallbackPacketData
 	}
 
 	callbackAddr := callbackData.GetSourceCallbackAddress()
