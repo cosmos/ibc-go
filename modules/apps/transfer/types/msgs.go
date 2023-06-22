@@ -5,9 +5,20 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	legacytx "github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
 
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
+)
+
+// msg types
+const (
+	TypeMsgTransfer = "transfer"
+)
+
+var (
+	_ sdk.Msg            = (*MsgTransfer)(nil)
+	_ legacytx.LegacyMsg = (*MsgTransfer)(nil)
 )
 
 // NewMsgTransfer creates a new MsgTransfer instance
@@ -31,7 +42,12 @@ func NewMsgTransfer(
 	}
 }
 
-// Route implements sdk.Msg
+// Type implements legacytx.LegacyMsg
+func (MsgTransfer) Type() string {
+	return TypeMsgTransfer
+}
+
+// Route implements legacytx.LegacyMsg
 func (MsgTransfer) Route() string {
 	return RouterKey
 }
@@ -64,7 +80,7 @@ func (msg MsgTransfer) ValidateBasic() error {
 	return ValidateIBCDenom(msg.Token.Denom)
 }
 
-// GetSignBytes implements sdk.Msg.
+// GetSignBytes implements legacytx.LegacyMsg
 func (msg MsgTransfer) GetSignBytes() []byte {
 	return sdk.MustSortJSON(AminoCdc.MustMarshalJSON(&msg))
 }

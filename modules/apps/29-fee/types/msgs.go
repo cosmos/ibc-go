@@ -5,9 +5,25 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	legacytx "github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
 
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
+)
+
+// msg types
+const (
+	TypeMsgPayPacketFee      = "payPacketFee"
+	TypeMsgPayPacketFeeAsync = "payPacketFeeAsync"
+)
+
+var (
+	_ sdk.Msg            = (*MsgRegisterPayee)(nil)
+	_ sdk.Msg            = (*MsgRegisterCounterpartyPayee)(nil)
+	_ sdk.Msg            = (*MsgPayPacketFee)(nil)
+	_ sdk.Msg            = (*MsgPayPacketFeeAsync)(nil)
+	_ legacytx.LegacyMsg = (*MsgPayPacketFee)(nil)
+	_ legacytx.LegacyMsg = (*MsgPayPacketFeeAsync)(nil)
 )
 
 // NewMsgRegisterPayee creates a new instance of MsgRegisterPayee
@@ -148,12 +164,17 @@ func (msg MsgPayPacketFee) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{signer}
 }
 
-// Route implements sdk.Msg
+// Type implements legacytx.LegacyMsg
+func (msg MsgPayPacketFee) Type() string {
+	return TypeMsgPayPacketFee
+}
+
+// Route implements legacytx.LegacyMsg
 func (msg MsgPayPacketFee) Route() string {
 	return RouterKey
 }
 
-// GetSignBytes implements sdk.Msg.
+// GetSignBytes implements legacytx.LegacyMsg
 func (msg MsgPayPacketFee) GetSignBytes() []byte {
 	return sdk.MustSortJSON(AminoCdc.MustMarshalJSON(&msg))
 }
@@ -189,12 +210,17 @@ func (msg MsgPayPacketFeeAsync) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{signer}
 }
 
-// Route implements sdk.Msg
+// Type implements legacytx.LegacyMsg
+func (msg MsgPayPacketFeeAsync) Type() string {
+	return TypeMsgPayPacketFeeAsync
+}
+
+// Route implements legacytx.LegacyMsg
 func (msg MsgPayPacketFeeAsync) Route() string {
 	return RouterKey
 }
 
-// GetSignBytes implements sdk.Msg.
+// GetSignBytes implements legacytx.LegacyMsg
 func (msg MsgPayPacketFeeAsync) GetSignBytes() []byte {
 	return sdk.MustSortJSON(AminoCdc.MustMarshalJSON(&msg))
 }
