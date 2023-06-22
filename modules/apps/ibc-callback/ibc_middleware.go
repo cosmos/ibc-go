@@ -114,13 +114,13 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 	ctx = ctx.WithGasMeter(cachedGasMeter)
 	// handle contract call error
 	if err != nil {
-		types.EmitSourceCallbackEvent(ctx, packet, "acknowledgement", callbackAddr, gasLimit, err)
+		types.EmitSourceCallbackEvent(ctx, packet, types.CallbackTypeAcknowledgement, callbackAddr, gasLimit, err)
 		// contract call failed, do not try again
 		return appResult
 	}
 
 	// emit event as a callback success
-	types.EmitSourceCallbackEvent(ctx, packet, "acknowledgement", callbackAddr, gasLimit, nil)
+	types.EmitSourceCallbackEvent(ctx, packet, types.CallbackTypeAcknowledgement, callbackAddr, gasLimit, nil)
 	return appResult
 }
 
@@ -168,13 +168,13 @@ func (im IBCMiddleware) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Pac
 	ctx = ctx.WithGasMeter(cachedGasMeter)
 	// handle contract call error
 	if err != nil {
-		types.EmitSourceCallbackEvent(ctx, packet, "timeout", callbackAddr, gasLimit, err)
+		types.EmitSourceCallbackEvent(ctx, packet, types.CallbackTypeTimeout, callbackAddr, gasLimit, err)
 		// contract call failed, do not try again
 		return appResult
 	}
 
 	// emit event as a callback success
-	types.EmitSourceCallbackEvent(ctx, packet, "timeout", callbackAddr, gasLimit, nil)
+	types.EmitSourceCallbackEvent(ctx, packet, types.CallbackTypeTimeout, callbackAddr, gasLimit, nil)
 	return appResult
 }
 
