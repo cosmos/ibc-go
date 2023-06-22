@@ -1,6 +1,7 @@
 package types
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"strings"
 	"time"
@@ -113,18 +114,8 @@ However, we may remove this restriction at a later date if it proves useful.
 // ADR-8 middleware should callback on the returned address if it is a PacketActor
 // (i.e. smart contract that accepts IBC callbacks).
 func (ftpd FungibleTokenPacketData) GetSourceCallbackAddress() string {
-	if len(ftpd.Memo) == 0 {
-		return ""
-	}
-
-	jsonObject := make(map[string]interface{})
-	err := json.Unmarshal([]byte(ftpd.Memo), &jsonObject)
-	if err != nil {
-		return ""
-	}
-
-	callbackData, ok := jsonObject["callbacks"].(map[string]interface{})
-	if !ok {
+	callbackData := ftpd.GetCallbackData()
+	if callbackData == nil {
 		return ""
 	}
 
@@ -147,18 +138,8 @@ func (ftpd FungibleTokenPacketData) GetSourceCallbackAddress() string {
 // ADR-8 middleware should callback on the returned address if it is a PacketActor
 // (i.e. smart contract that accepts IBC callbacks).
 func (ftpd FungibleTokenPacketData) GetDestCallbackAddress() string {
-	if len(ftpd.Memo) == 0 {
-		return ""
-	}
-
-	jsonObject := make(map[string]interface{})
-	err := json.Unmarshal([]byte(ftpd.Memo), &jsonObject)
-	if err != nil {
-		return ""
-	}
-
-	callbackData, ok := jsonObject["callbacks"].(map[string]interface{})
-	if !ok {
+	callbackData := ftpd.GetCallbackData()
+	if callbackData == nil {
 		return ""
 	}
 
@@ -169,8 +150,50 @@ func (ftpd FungibleTokenPacketData) GetDestCallbackAddress() string {
 	return ""
 }
 
+// GetUserDefinedCustomMessage returns the custom message provided in the packet data memo.
+// Custom message is expected to be base64 encoded.
+// If no custom message is specified, nil is returned.
+func (ftpd FungibleTokenPacketData) GetUserDefinedCustomMessage() []byte {
+	callbackData := ftpd.GetCallbackData()
+	if callbackData == nil {
+		return nil
+	}
+
+	callbackMsg, ok := callbackData["src_callback_msg"].(string)
+	if !ok {
+		return nil
+	}
+
+	// base64 decode the callback message
+	base64DecodedMsg, err := base64.StdEncoding.DecodeString(callbackMsg)
+	if err != nil {
+		return nil
+	}
+
+	return base64DecodedMsg
+}
+
 // UserDefinedGasLimit returns 0 (no-op). The gas limit of the executing
 // transaction will be used.
 func (ftpd FungibleTokenPacketData) UserDefinedGasLimit() uint64 {
 	return 0
+}
+
+func (ftpd FungibleTokenPacketData) GetCallbackData() map[string]interface{} {
+	if len(ftpd.Memo) == 0 {
+		return nil
+	}
+
+	jsonObject := make(map[string]interface{})
+	err := json.Unmarshal([]byte(ftpd.Memo), &jsonObject)
+	if err != nil {
+		return nil
+	}
+
+	callbackData, ok := jsonObject["callback"].(map[string]interface{})
+	if !ok {
+		return nil
+	}
+
+	return callbackData
 }

@@ -1,6 +1,7 @@
 package types
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"time"
 
@@ -87,18 +88,8 @@ The Memo format is defined like so:
 // ADR-8 middleware should callback on the returned address if it is a PacketActor
 // (i.e. smart contract that accepts IBC callbacks).
 func (iapd InterchainAccountPacketData) GetSourceCallbackAddress() string {
-	if len(iapd.Memo) == 0 {
-		return ""
-	}
-
-	jsonObject := make(map[string]interface{})
-	err := json.Unmarshal([]byte(iapd.Memo), &jsonObject)
-	if err != nil {
-		return ""
-	}
-
-	callbackData, ok := jsonObject["callbacks"].(map[string]interface{})
-	if !ok {
+	callbackData := iapd.GetCallbackData()
+	if callbackData == nil {
 		return ""
 	}
 
@@ -117,10 +108,52 @@ func (iapd InterchainAccountPacketData) GetDestCallbackAddress() string {
 	return ""
 }
 
+// GetUserDefinedCustomMessage returns the custom message provided in the packet data memo.
+// Custom message is expected to be base64 encoded.
+// If no custom message is specified, nil is returned.
+func (iapd InterchainAccountPacketData) GetUserDefinedCustomMessage() []byte {
+	callbackData := iapd.GetCallbackData()
+	if callbackData == nil {
+		return nil
+	}
+
+	callbackMsg, ok := callbackData["src_callback_msg"].(string)
+	if !ok {
+		return nil
+	}
+
+	// base64 decode the callback message
+	base64DecodedMsg, err := base64.StdEncoding.DecodeString(callbackMsg)
+	if err != nil {
+		return nil
+	}
+
+	return base64DecodedMsg
+}
+
 // UserDefinedGasLimit returns 0 (no-op). The gas limit of the executing
 // transaction will be used.
 func (iapd InterchainAccountPacketData) UserDefinedGasLimit() uint64 {
 	return 0
+}
+
+func (iapd InterchainAccountPacketData) GetCallbackData() map[string]interface{} {
+	if len(iapd.Memo) == 0 {
+		return nil
+	}
+
+	jsonObject := make(map[string]interface{})
+	err := json.Unmarshal([]byte(iapd.Memo), &jsonObject)
+	if err != nil {
+		return nil
+	}
+
+	callbackData, ok := jsonObject["callback"].(map[string]interface{})
+	if !ok {
+		return nil
+	}
+
+	return callbackData
 }
 
 // GetBytes returns the JSON marshalled interchain account CosmosTx.
