@@ -34,7 +34,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Changelog
 
-## [v7.2.0](https://github.com/cosmos/ibc-go/releases/tag/v7.1.0) - 2023-06-22
+## [v7.2.0](https://github.com/cosmos/ibc-go/releases/tag/v7.2.0) - 2023-06-22
 
 ### Dependencies
 
