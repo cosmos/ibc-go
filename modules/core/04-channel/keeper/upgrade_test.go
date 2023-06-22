@@ -496,31 +496,97 @@ func (suite *KeeperTestSuite) TestChanUpgradeOpen() {
 	}{
 		{
 			"success, counterparty in TRYUPGRADE",
-			func() {},
+			func() {
+				err := path.EndpointA.ChanUpgradeInit()
+				suite.Require().NoError(err)
+
+				err = path.EndpointB.ChanUpgradeTry()
+				suite.Require().NoError(err)
+
+				err = path.EndpointA.ChanUpgradeAck()
+				suite.Require().NoError(err)
+
+				channelB := path.EndpointB.GetChannel()
+				channelB.FlushStatus = types.FLUSHCOMPLETE
+				path.EndpointB.SetChannel(channelB)
+
+				channelA := path.EndpointA.GetChannel()
+				channelA.FlushStatus = types.FLUSHCOMPLETE
+				path.EndpointA.SetChannel(channelA)
+
+				suite.coordinator.CommitBlock(suite.chainA, suite.chainB)
+				suite.Require().NoError(path.EndpointA.UpdateClient())
+			},
 			nil,
 		},
-		// TODO: Rest of combinations for counterparty state.
+		{
+			"success, counterparty in ACKUPGRADE",
+			func() {
+				err := path.EndpointB.ChanUpgradeInit()
+				suite.Require().NoError(err)
+
+				err = path.EndpointA.ChanUpgradeTry()
+				suite.Require().NoError(err)
+
+				err = path.EndpointB.ChanUpgradeAck()
+				suite.Require().NoError(err)
+
+				channelB := path.EndpointB.GetChannel()
+				channelB.FlushStatus = types.FLUSHCOMPLETE
+				path.EndpointB.SetChannel(channelB)
+
+				channelA := path.EndpointA.GetChannel()
+				channelA.FlushStatus = types.FLUSHCOMPLETE
+				path.EndpointA.SetChannel(channelA)
+
+				suite.coordinator.CommitBlock(suite.chainA, suite.chainB)
+				suite.Require().NoError(path.EndpointA.UpdateClient())
+			},
+			nil,
+		},
+		/*
+			{
+				// TODO: Pending implementation of open handling on msg_server
+				"success, counterparty in OPEN",
+				func() {},
+				nil,
+			},
+		*/
 		{
 			"channel not found",
 			func() {
-				path.EndpointA.ChannelID = ibctesting.InvalidID
 				path.EndpointA.ChannelConfig.PortID = ibctesting.InvalidID
 			},
 			types.ErrChannelNotFound,
 		},
 		{
-			"in-flight packets still exist",
+			"channel state is not in TRYUPGRADE or ACKUPGRADE",
 			func() {
-				// TODO:
+				channel := path.EndpointA.GetChannel()
+				channel.State = types.OPEN
+				path.EndpointA.SetChannel(channel)
+			},
+			types.ErrInvalidChannelState,
+		},
+		{
+			"channel has in-flight packets",
+			func() {
+				portID := path.EndpointA.ChannelConfig.PortID
+				channelID := path.EndpointA.ChannelID
+				// Set a dummy packet commitment to simulate in-flight packets
+				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.SetPacketCommitment(suite.chainA.GetContext(), portID, channelID, 1, []byte("hash"))
 			},
 			types.ErrPendingInflightPackets,
 		},
 		{
 			"flush status is not FLUSHCOMPLETE",
 			func() {
-				channel := path.EndpointB.GetChannel()
+				channel := path.EndpointA.GetChannel()
+				// Set in acceptable state
+				channel.State = types.TRYUPGRADE
+
 				channel.FlushStatus = types.FLUSHING
-				path.EndpointB.SetChannel(channel)
+				path.EndpointA.SetChannel(channel)
 			},
 			types.ErrInvalidFlushStatus,
 		},
@@ -528,6 +594,10 @@ func (suite *KeeperTestSuite) TestChanUpgradeOpen() {
 			"connection not found",
 			func() {
 				channel := path.EndpointA.GetChannel()
+				// Set in acceptable state
+				channel.State = types.TRYUPGRADE
+				channel.FlushStatus = types.FLUSHCOMPLETE
+
 				channel.ConnectionHops = []string{"connection-100"}
 				path.EndpointA.SetChannel(channel)
 			},
@@ -536,6 +606,12 @@ func (suite *KeeperTestSuite) TestChanUpgradeOpen() {
 		{
 			"invalid connection state",
 			func() {
+				channel := path.EndpointA.GetChannel()
+				// Set in acceptable state
+				channel.State = types.TRYUPGRADE
+				channel.FlushStatus = types.FLUSHCOMPLETE
+				path.EndpointA.SetChannel(channel)
+
 				connectionEnd := path.EndpointA.GetConnection()
 				connectionEnd.State = connectiontypes.UNINITIALIZED
 				path.EndpointA.SetConnection(connectionEnd)
@@ -556,24 +632,10 @@ func (suite *KeeperTestSuite) TestChanUpgradeOpen() {
 			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
 			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
 
-			err := path.EndpointA.ChanUpgradeInit()
-			suite.Require().NoError(err)
-
-			err = path.EndpointB.ChanUpgradeTry()
-			suite.Require().NoError(err)
-
-			// Pending implementation of ack on msg_server to move channel state for A.
-			// Currently fails on validation.
-			err = path.EndpointA.ChanUpgradeAck()
-			suite.Require().NoError(err)
-
 			tc.malleate()
 
-			// ensure clients are up to date to receive valid proofs
-			suite.Require().NoError(path.EndpointA.UpdateClient())
-			proofCounterpartyChannel, _, proofHeight := path.EndpointB.QueryChannelUpgradeProof()
-
-			err = suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.ChanUpgradeOpen(
+			proofCounterpartyChannel, _, proofHeight := path.EndpointA.QueryChannelUpgradeProof()
+			err := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.ChanUpgradeOpen(
 				suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID,
 				path.EndpointB.GetChannel().State, proofCounterpartyChannel, proofHeight,
 			)

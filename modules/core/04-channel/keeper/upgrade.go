@@ -643,7 +643,7 @@ func (k Keeper) ChanUpgradeOpen(
 		}
 		counterpartyChannel = types.Channel{
 			State:           types.OPEN,
-			Ordering:        channel.Ordering,
+			Ordering:        upgrade.Fields.Ordering,
 			ConnectionHops:  upgrade.Fields.ConnectionHops,
 			Counterparty:    types.NewCounterparty(portID, channelID),
 			Version:         upgrade.Fields.GetVersion(),
