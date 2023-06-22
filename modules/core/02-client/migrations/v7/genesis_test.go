@@ -120,7 +120,7 @@ func (s *MigrationsV7TestSuite) TestMigrateGenesisSolomachine() {
 	s.Require().NoError(err)
 
 	// Indent the JSON bz correctly.
-	var jsonObj map[string]interface{}
+	var jsonObj map[string]any
 	err = json.Unmarshal(bz, &jsonObj)
 	s.Require().NoError(err)
 	expectedIndentedBz, err := json.MarshalIndent(jsonObj, "", "\t")

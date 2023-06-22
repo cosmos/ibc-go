@@ -33,6 +33,9 @@ linters:
 
 issues:
   exclude-rules:
+    - text: 'differs only by capitalization to method'
+      linters:
+        - revive
     - text: 'Use of weak random number generator'
       linters:
         - gosec
@@ -96,6 +99,12 @@ linters-settings:
       - name: unused-parameter
         disabled: true
       - name: modifies-value-receiver
+        disabled: true
+      - name: early-return
+        disabled: true
+      - name: confusing-naming
+        disabled: true
+      - name: defer
         disabled: true
       - name: unhandled-error
         disabled: false
