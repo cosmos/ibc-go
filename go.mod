@@ -1,6 +1,9 @@
 go 1.19
 
-retract v7.0.0 // contains huckleberry vulnerability
+retract (
+	[v7.0.1, v7.1.0] // contains ledger transaction signing bug
+	v7.0.0 // contains huckleberry vulnerability
+)
 
 module github.com/cosmos/ibc-go/v7
 
