@@ -124,9 +124,9 @@ func (k Keeper) OnChanOpenConfirm(
 
 // OnChanCloseConfirm removes the active channel stored in state
 func (Keeper) OnChanCloseConfirm(
-	_ sdk.Context,
-	_,
-	_ string,
+	ctx sdk.Context,
+	portID,
+	channelID string,
 ) error {
 	return nil
 }
