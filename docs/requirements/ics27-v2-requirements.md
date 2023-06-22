@@ -30,11 +30,11 @@ We believe that the lack of controller chains so far have been because:
 
 ### Custom authentication module needs to access IBC packet callbacks
 
-Application developers of custom authentication modules that wish to consume IBC packet callbacks and react upon packet acknowledgements or timeouts must continue using the controller submodule's legacy APIs. 
+Application developers of custom authentication modules that wish to consume IBC packet callbacks and react upon packet acknowledgements or timeouts must continue using the controller submodule's legacy APIs.
 
 ### Custom authentication module does not need access to IBC packet callbacks
 
-The authentication module should interact with the controller submodule via the message server for registering interchain accounts and sending messages to it. 
+The authentication module should interact with the controller submodule via the message server for registering interchain accounts and sending messages to it.
 
 ### No need for custom authentication module
 
@@ -68,13 +68,12 @@ See section [Definitions](https://github.com/cosmos/ibc/blob/main/spec/app/ics-0
 | --- | ----------- | ------------ | ------ | ------- |
 | 2.01 | An application shall have the ability to use an RPC endpoint to submit transactions to be executed on the host chain on the behalf of the interchain account. | [Acceptance test](https://github.com/cosmos/ibc-go/blob/v6.0.0/modules/apps/27-interchain-accounts/controller/keeper/msg_server_test.go#L31) | `Verified` | v6.0.0 |
 
-
 # Non-functional requirements
 
 ## 3 - Migration
 
 | ID | Description | Verification | Status | Release |
-| -- | ----------- | ------------ | ------ | ------- |     
+| -- | ----------- | ------------ | ------ | ------- |
 | 3.01 | Chains shall be able to run a migration to assign ownership of the channel capability of a custom authentication module to the ICS 27 controller submodule. | [Acceptance test](https://github.com/cosmos/ibc-go/blob/v6.0.0/modules/apps/27-interchain-accounts/controller/migrations/v6/migrations_test.go#L89) | `Verified` | v6.0.0 |
 
 # External interface requirements
