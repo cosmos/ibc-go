@@ -22,7 +22,7 @@ In the previous release of ibc-go, the localhost `v1` light client module was de
 An [automatic migration handler](https://github.com/cosmos/ibc-go/blob/release/v7.1.x/modules/core/module.go#L127-L145) is configured in the core IBC module to set the localhost `ClientState` and sentinel `ConnectionEnd` in state.
 
 In order to use the 09-localhost client chains must update the `AllowedClients` parameter in the 02-client submodule of core IBC. This can be configured directly in the application upgrade handler or alternatively updated via the legacy governance parameter change proposal.
-We __strongly__ recommend chains to perform this action so that intra-ledger communication can be carried out using the familiar IBC interfaces.
+We **strongly** recommend chains to perform this action so that intra-ledger communication can be carried out using the familiar IBC interfaces.
 
 See the upgrade handler code sample provided below or [follow this link](https://github.com/cosmos/ibc-go/blob/release/v7.1.x/testing/simapp/upgrades/upgrades.go#L85) for the upgrade handler used by the ibc-go simapp.
 
@@ -53,7 +53,7 @@ An automatic migration handler (TODO: add link after backport to v7.1.x is merge
 
 ## Relayers
 
-The event attribute `packet_connection` (`connectiontypes.AttributeKeyConnection`) has been deprecated. 
+The event attribute `packet_connection` (`connectiontypes.AttributeKeyConnection`) has been deprecated.
 Please use the `connection_id` attribute (`connectiontypes.AttributeKeyConnectionID`) which is emitted by all channel events.
 Only send packet, receive packet, write acknowledgement, and acknowledge packet events used `packet_connection` previously.
 

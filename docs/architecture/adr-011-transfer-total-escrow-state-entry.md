@@ -45,7 +45,7 @@ if coin.Amount.IsZero() {
 
 ### Bundle escrow/unescrow with setting state entry
 
-Two new functions are implemented that bundle together the operations of escrowing/unescrowing and setting the total escrow amount in state, since these operations need to be executed together. 
+Two new functions are implemented that bundle together the operations of escrowing/unescrowing and setting the total escrow amount in state, since these operations need to be executed together.
 
 For escrowing tokens:
 
