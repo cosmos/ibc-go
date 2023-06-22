@@ -1,7 +1,7 @@
 package types
 
 const (
-	ModuleName = "ibccallback"
+	ModuleName = "ibccallbacks"
 
 	CallbackTypeAcknowledgement = "acknowledgement"
 	CallbackTypeTimeout         = "timeout"
