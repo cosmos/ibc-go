@@ -10,7 +10,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
-	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/keeper"
+	transferkeeper "github.com/cosmos/ibc-go/v7/modules/apps/transfer/keeper"
 	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
@@ -21,11 +21,11 @@ import (
 
 // IBCModule implements the ICS26 interface for transfer given the transfer keeper.
 type IBCModule struct {
-	keeper keeper.Keeper
+	keeper transferkeeper.Keeper
 }
 
 // NewIBCModule creates a new IBCModule given the keeper
-func NewIBCModule(k keeper.Keeper) IBCModule {
+func NewIBCModule(k transferkeeper.Keeper) IBCModule {
 	return IBCModule{
 		keeper: k,
 	}
@@ -36,7 +36,7 @@ func NewIBCModule(k keeper.Keeper) IBCModule {
 // supported version. Only 2^32 channels are allowed to be created.
 func ValidateTransferChannelParams(
 	ctx sdk.Context,
-	k keeper.Keeper,
+	keeper transferkeeper.Keeper,
 	order channeltypes.Order,
 	portID string,
 	channelID string,
@@ -55,7 +55,7 @@ func ValidateTransferChannelParams(
 	}
 
 	// Require portID is the portID transfer module is bound to
-	boundPort := k.GetPort(ctx)
+	boundPort := keeper.GetPort(ctx)
 	if boundPort != portID {
 		return errorsmod.Wrapf(porttypes.ErrInvalidPort, "invalid port: %s, expected %s", portID, boundPort)
 	}
@@ -67,11 +67,11 @@ func ValidateTransferChannelParams(
 func (im IBCModule) OnChanOpenInit(
 	ctx sdk.Context,
 	order channeltypes.Order,
-	_ []string,
+	connectionHops []string,
 	portID string,
 	channelID string,
 	chanCap *capabilitytypes.Capability,
-	_ channeltypes.Counterparty,
+	counterparty channeltypes.Counterparty,
 	version string,
 ) (string, error) {
 	if err := ValidateTransferChannelParams(ctx, im.keeper, order, portID, channelID); err != nil {
@@ -98,11 +98,11 @@ func (im IBCModule) OnChanOpenInit(
 func (im IBCModule) OnChanOpenTry(
 	ctx sdk.Context,
 	order channeltypes.Order,
-	_ []string,
+	connectionHops []string,
 	portID,
 	channelID string,
 	chanCap *capabilitytypes.Capability,
-	_ channeltypes.Counterparty,
+	counterparty channeltypes.Counterparty,
 	counterpartyVersion string,
 ) (string, error) {
 	if err := ValidateTransferChannelParams(ctx, im.keeper, order, portID, channelID); err != nil {

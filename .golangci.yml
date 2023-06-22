@@ -2,7 +2,6 @@ run:
   tests: true
   #   # timeout for analysis, e.g. 30s, 5m, default is 1m
   timeout: 5m
-  fix: true
 
 linters:
   disable-all: true
