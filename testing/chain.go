@@ -288,7 +288,7 @@ func (chain *TestChain) QueryConsensusStateProof(clientID string) ([]byte, clien
 // returned on block `n` to the validators of block `n+2`.
 // It calls BeginBlock with the new block created before returning.
 func (chain *TestChain) NextBlock() {
-	res, err := chain.App.FinalizeBlock(&abci.RequestFinalizeBlock{Height: chain.App.LastBlockHeight() + 1})
+	res, err := chain.App.FinalizeBlock(&abci.RequestFinalizeBlock{Height: chain.App.LastBlockHeight() + 1, Time: chain.CurrentHeader.Time})
 	require.NoError(chain.TB, err)
 	_, err = chain.App.Commit()
 	require.NoError(chain.TB, err)
@@ -315,7 +315,7 @@ func (chain *TestChain) NextBlock() {
 		ProposerAddress:    chain.CurrentHeader.ProposerAddress,
 	}
 
-	_, err = chain.App.FinalizeBlock(&abci.RequestFinalizeBlock{Height: chain.CurrentHeader.Height})
+	_, err = chain.App.FinalizeBlock(&abci.RequestFinalizeBlock{Height: chain.CurrentHeader.Height, Time: chain.CurrentHeader.Time})
 	require.NoError(chain.TB, err)
 }
 
@@ -340,6 +340,7 @@ func (chain *TestChain) SendMsgs(msgs ...sdk.Msg) (*sdk.Result, error) {
 		chain.TB,
 		chain.TxConfig,
 		chain.App.GetBaseApp(),
+		chain.CurrentHeader,
 		msgs,
 		chain.ChainID,
 		[]uint64{chain.SenderAccount.GetAccountNumber()},

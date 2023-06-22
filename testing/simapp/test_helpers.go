@@ -8,10 +8,12 @@ import (
 	"testing"
 	"time"
 
+	"cosmossdk.io/errors"
 	"cosmossdk.io/log"
 	sdkmath "cosmossdk.io/math"
 	abci "github.com/cometbft/cometbft/abci/types"
 	cmtjson "github.com/cometbft/cometbft/libs/json"
+	"github.com/cometbft/cometbft/proto/tendermint/types"
 	cmttypes "github.com/cometbft/cometbft/types"
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/stretchr/testify/require"
@@ -253,7 +255,7 @@ func NewTestNetworkFixture() network.TestFixture {
 //
 // CONTRACT: BeginBlock must be called before this function.
 func SignAndDeliver(
-	tb testing.TB, txCfg client.TxConfig, app *bam.BaseApp, msgs []sdk.Msg,
+	tb testing.TB, txCfg client.TxConfig, app *bam.BaseApp, header types.Header, msgs []sdk.Msg,
 	chainID string, accNums, accSeqs []uint64, expPass bool, priv ...cryptotypes.PrivKey,
 ) (sdk.GasInfo, *sdk.Result, error) {
 	tb.Helper()
@@ -269,9 +271,22 @@ func SignAndDeliver(
 		priv...,
 	)
 	require.NoError(tb, err)
+	txBytes, err := txCfg.TxEncoder()(tx)
+	require.Nil(tb, err)
+	// // Simulate a sending a transaction
+	// gInfo, res, err := app.SimDeliver(txCfg.TxEncoder(), tx)
 
-	// Simulate a sending a transaction
-	gInfo, res, err := app.SimDeliver(txCfg.TxEncoder(), tx)
+	// if expPass {
+	// 	require.NoError(tb, err)
+	// 	require.NotNil(tb, res)
+	// } else {
+	// 	require.Error(tb, err)
+	// 	require.Nil(tb, res)
+	// }
+
+	// return gInfo, res, err
+	// Must simulate now as CheckTx doesn't run Msgs anymore
+	_, res, err := app.Simulate(txBytes)
 
 	if expPass {
 		require.NoError(tb, err)
@@ -281,5 +296,33 @@ func SignAndDeliver(
 		require.Nil(tb, res)
 	}
 
-	return gInfo, res, err
+	bz, err := txCfg.TxEncoder()(tx)
+	require.NoError(tb, err)
+
+	resBlock, err := app.FinalizeBlock(&abci.RequestFinalizeBlock{
+		Height: header.Height,
+		Txs:    [][]byte{bz},
+	})
+	require.NoError(tb, err)
+
+	require.Equal(tb, 1, len(resBlock.TxResults))
+	txResult := resBlock.TxResults[0]
+	finalizeSuccess := txResult.Code == 0
+	if expPass {
+		require.True(tb, finalizeSuccess)
+	} else {
+		require.False(tb, finalizeSuccess)
+	}
+
+	app.Commit()
+
+	gInfo := sdk.GasInfo{GasWanted: uint64(txResult.GasWanted), GasUsed: uint64(txResult.GasUsed)}
+	txRes := sdk.Result{Data: txResult.Data, Log: txResult.Log, Events: txResult.Events}
+	if finalizeSuccess {
+		err = nil
+	} else {
+		err = errors.ABCIError(txResult.Codespace, txResult.Code, txResult.Log)
+	}
+
+	return gInfo, &txRes, err
 }
