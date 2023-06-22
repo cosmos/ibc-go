@@ -21,17 +21,10 @@ var (
 	_ porttypes.PacketDataUnmarshaler = (*IBCMiddleware)(nil)
 )
 
-// PacketUnmarshalerIBCModule is an interface that combines the IBCModule and PacketDataUnmarshaler
-// interfaces to assert that the underlying application supports both.
-type PacketUnmarshalerIBCModule interface {
-	porttypes.IBCModule
-	porttypes.PacketDataUnmarshaler
-}
-
 // IBCMiddleware implements the ICS26 callbacks for the ibc-callbacks middleware given
 // the underlying application.
 type IBCMiddleware struct {
-	app     PacketUnmarshalerIBCModule
+	app     types.PacketUnmarshalerIBCModule
 	channel porttypes.ICS4Wrapper
 
 	contractKeeper types.ContractKeeper
@@ -43,7 +36,7 @@ func NewIBCMiddleware(
 	channel porttypes.ICS4Wrapper,
 	contractKeeper types.ContractKeeper,
 ) IBCMiddleware {
-	packetUnmarshalerApp, ok := app.(PacketUnmarshalerIBCModule)
+	packetUnmarshalerApp, ok := app.(types.PacketUnmarshalerIBCModule)
 	if !ok {
 		panic("underlying application does not implement PacketDataUnmarshaler")
 	}
@@ -72,109 +65,51 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 		return appResult
 	}
 
+	callbackData, err := types.GetCallbackData(im.app, packet, ctx.GasMeter().GasRemaining())
+	if err != nil {
+		types.EmitSourceCallbackEvent(ctx, packet, types.CallbackTypeAcknowledgement, callbackData.ContractAddr, callbackData.GasLimit, err)
+		return appResult
+	}
+
 	var ack channeltypes.Acknowledgement
 	if err := channeltypes.SubModuleCdc.UnmarshalJSON(acknowledgement, &ack); err != nil {
-		return errorsmod.Wrapf(ibcerrors.ErrUnknownRequest, "cannot unmarshal callback packet acknowledgement: %v", err)
+		err = errorsmod.Wrapf(ibcerrors.ErrUnknownRequest, "cannot unmarshal callback packet acknowledgement: %v", err)
+		types.EmitSourceCallbackEvent(ctx, packet, types.CallbackTypeAcknowledgement, callbackData.ContractAddr, callbackData.GasLimit, err)
+		return appResult
 	}
 
-	// unmarshal packet data
-	unmarshaledData, err := im.app.UnmarshalPacketData(packet.Data)
+	err = im.contractKeeper.IBCAcknowledgementPacketCallback(ctx, packet, callbackData.CustomMsg, ack, relayer, callbackData.ContractAddr, callbackData.GasLimit)
 	if err != nil {
-		// cannot unmarshal, so just call the underlying app
-		// TODO: add logs here
-		return appResult
-	}
-
-	callbackData, ok := unmarshaledData.(ibcexported.CallbackPacketData)
-	if !ok {
-		// not a callback packet, so just call the underlying app
-		return appResult
-	}
-
-	// retrieve source address from the memo
-	callbackAddr := callbackData.GetSourceCallbackAddress()
-	if callbackAddr == "" {
-		// no source callback, so just call the underlying app
-		return appResult
-	}
-
-	cachedGasMeter := ctx.GasMeter()
-	// retrieve gas limit from the memo (default is zero)
-	gasLimit := callbackData.UserDefinedGasLimit()
-	if gasLimit != 0 && gasLimit < cachedGasMeter.GasRemaining() {
-		ctx = ctx.WithGasMeter(sdk.NewGasMeter(gasLimit))
-		cachedGasMeter.ConsumeGas(gasLimit, "callback gas limit subtracted from gas meter")
-	} else {
-		gasLimit = 0
-	}
-
-	// call the contract
-	im.contractKeeper.IBCAcknowledgementPacketCallback(ctx, packet, nil, ack, relayer, callbackAddr, gasLimit)
-	// restore the gas meter
-	ctx = ctx.WithGasMeter(cachedGasMeter)
-	// handle contract call error
-	if err != nil {
-		types.EmitSourceCallbackEvent(ctx, packet, types.CallbackTypeAcknowledgement, callbackAddr, gasLimit, err)
-		// contract call failed, do not try again
+		types.EmitSourceCallbackEvent(ctx, packet, types.CallbackTypeAcknowledgement, callbackData.ContractAddr, callbackData.GasLimit, err)
 		return appResult
 	}
 
 	// emit event as a callback success
-	types.EmitSourceCallbackEvent(ctx, packet, types.CallbackTypeAcknowledgement, callbackAddr, gasLimit, nil)
+	types.EmitSourceCallbackEvent(ctx, packet, types.CallbackTypeAcknowledgement, callbackData.ContractAddr, callbackData.GasLimit, nil)
 	return appResult
 }
 
 // OnTimeoutPacket implements the wasm callbacks for the ibc-callbacks middleware.
 func (im IBCMiddleware) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress) error {
-	// we first call the underlying app to handle the timeout
 	appResult := im.app.OnTimeoutPacket(ctx, packet, relayer)
 	if appResult != nil {
 		return appResult
 	}
 
-	// unmarshal packet data
-	unmarshaledData, err := im.app.UnmarshalPacketData(packet.Data)
+	callbackData, err := types.GetCallbackData(im.app, packet, ctx.GasMeter().GasRemaining())
 	if err != nil {
-		// cannot unmarshal, so just call the underlying app
+		types.EmitSourceCallbackEvent(ctx, packet, types.CallbackTypeTimeout, callbackData.ContractAddr, callbackData.GasLimit, err)
 		return appResult
-	}
-
-	callbackData, ok := unmarshaledData.(ibcexported.CallbackPacketData)
-	if !ok {
-		// not a callback packet, so just call the underlying app
-		return appResult
-	}
-
-	// retrieve source address from the memo
-	callbackAddr := callbackData.GetSourceCallbackAddress()
-	if callbackAddr == "" {
-		// no source callback, so just call the underlying app
-		return appResult
-	}
-
-	cachedGasMeter := ctx.GasMeter()
-	// retrieve gas limit from the memo (default is zero)
-	gasLimit := callbackData.UserDefinedGasLimit()
-	if gasLimit != 0 && gasLimit < cachedGasMeter.GasRemaining() {
-		cachedGasMeter.ConsumeGas(gasLimit, "callback gas limit subtracted from gas meter")
-		ctx = ctx.WithGasMeter(sdk.NewGasMeter(gasLimit))
-	} else {
-		gasLimit = 0
 	}
 
 	// call the contract
-	im.contractKeeper.IBCPacketTimeoutCallback(ctx, packet, relayer, callbackAddr, gasLimit)
-	// restore the gas meter
-	ctx = ctx.WithGasMeter(cachedGasMeter)
-	// handle contract call error
+	err = im.contractKeeper.IBCPacketTimeoutCallback(ctx, packet, relayer, callbackData.ContractAddr, callbackData.GasLimit)
 	if err != nil {
-		types.EmitSourceCallbackEvent(ctx, packet, types.CallbackTypeTimeout, callbackAddr, gasLimit, err)
-		// contract call failed, do not try again
+		types.EmitSourceCallbackEvent(ctx, packet, types.CallbackTypeTimeout, callbackData.ContractAddr, callbackData.GasLimit, err)
 		return appResult
 	}
 
-	// emit event as a callback success
-	types.EmitSourceCallbackEvent(ctx, packet, types.CallbackTypeTimeout, callbackAddr, gasLimit, nil)
+	types.EmitSourceCallbackEvent(ctx, packet, types.CallbackTypeTimeout, callbackData.ContractAddr, callbackData.GasLimit, nil)
 	return appResult
 }
 
@@ -233,7 +168,26 @@ func (im IBCMiddleware) OnChanOpenTry(
 
 // OnRecvPacket defers to the underlying application
 func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress) ibcexported.Acknowledgement {
-	return im.app.OnRecvPacket(ctx, packet, relayer)
+	appAck := im.app.OnRecvPacket(ctx, packet, relayer)
+
+	appAckResult, ok := appAck.(channeltypes.Acknowledgement)
+	if !ok {
+		return appAck
+	}
+
+	callbackData, err := types.GetCallbackData(im.app, packet, ctx.GasMeter().GasRemaining())
+	if err != nil {
+		types.EmitDestinationCallbackEvent(ctx, packet, types.CallbackTypeTimeout, callbackData.ContractAddr, callbackData.GasLimit, err)
+		return appAck
+	}
+
+	err = im.contractKeeper.IBCReceivePacketCallback(ctx, packet, callbackData.CustomMsg, appAckResult, relayer, callbackData.ContractAddr, callbackData.GasLimit)
+	if err != nil {
+		types.EmitDestinationCallbackEvent(ctx, packet, types.CallbackTypeTimeout, callbackData.ContractAddr, callbackData.GasLimit, err)
+		return appAck
+	}
+	
+	return appAck
 }
 
 // SendPacket implements the ICS4 Wrapper interface
