@@ -77,12 +77,12 @@ func NewInterchainAccount(ba *authtypes.BaseAccount, accountOwner string) *Inter
 }
 
 // SetPubKey implements the authtypes.AccountI interface
-func (InterchainAccount) SetPubKey(_ crypto.PubKey) error {
+func (InterchainAccount) SetPubKey(pubkey crypto.PubKey) error {
 	return errorsmod.Wrap(ErrUnsupported, "cannot set public key for interchain account")
 }
 
 // SetSequence implements the authtypes.AccountI interface
-func (InterchainAccount) SetSequence(_ uint64) error {
+func (InterchainAccount) SetSequence(seq uint64) error {
 	return errorsmod.Wrap(ErrUnsupported, "cannot set sequence number for interchain account")
 }
 
