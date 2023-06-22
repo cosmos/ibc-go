@@ -38,6 +38,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Dependencies
 
+* [\#3810](https://github.com/cosmos/ibc-go/pull/3810) Update Cosmos SDK to v0.47.3.
 * [\#3862](https://github.com/cosmos/ibc-go/pull/3862) Update CometBFT to v0.37.2.
 
 ### API Breaking
