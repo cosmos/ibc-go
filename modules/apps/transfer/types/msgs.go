@@ -4,12 +4,58 @@ import (
 	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+<<<<<<< HEAD
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+=======
+	legacytx "github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
+>>>>>>> f2b22491 (fix(statemachine)!: re-implement legacy msg interface (#3907))
 
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 )
 
+<<<<<<< HEAD
+=======
+// msg types
+const (
+	TypeMsgTransfer = "transfer"
+)
+
+var (
+	_ sdk.Msg            = (*MsgUpdateParams)(nil)
+	_ sdk.Msg            = (*MsgTransfer)(nil)
+	_ legacytx.LegacyMsg = (*MsgTransfer)(nil)
+)
+
+// NewMsgUpdateParams creates a new MsgUpdateParams instance
+func NewMsgUpdateParams(authority string, params Params) *MsgUpdateParams {
+	return &MsgUpdateParams{
+		Authority: authority,
+		Params:    params,
+	}
+}
+
+// ValidateBasic implements sdk.Msg
+func (msg MsgUpdateParams) ValidateBasic() error {
+	_, err := sdk.AccAddressFromBech32(msg.Authority)
+	if err != nil {
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
+	}
+
+	return nil
+}
+
+// GetSigners implements sdk.Msg
+func (msg MsgUpdateParams) GetSigners() []sdk.AccAddress {
+	accAddr, err := sdk.AccAddressFromBech32(msg.Authority)
+	if err != nil {
+		panic(err)
+	}
+
+	return []sdk.AccAddress{accAddr}
+}
+
+>>>>>>> f2b22491 (fix(statemachine)!: re-implement legacy msg interface (#3907))
 // NewMsgTransfer creates a new MsgTransfer instance
 //
 //nolint:interfacer
@@ -31,7 +77,12 @@ func NewMsgTransfer(
 	}
 }
 
-// Route implements sdk.Msg
+// Type implements legacytx.LegacyMsg
+func (MsgTransfer) Type() string {
+	return TypeMsgTransfer
+}
+
+// Route implements legacytx.LegacyMsg
 func (MsgTransfer) Route() string {
 	return RouterKey
 }
@@ -64,7 +115,7 @@ func (msg MsgTransfer) ValidateBasic() error {
 	return ValidateIBCDenom(msg.Token.Denom)
 }
 
-// GetSignBytes implements sdk.Msg.
+// GetSignBytes implements legacytx.LegacyMsg
 func (msg MsgTransfer) GetSignBytes() []byte {
 	return sdk.MustSortJSON(AminoCdc.MustMarshalJSON(&msg))
 }
