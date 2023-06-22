@@ -51,7 +51,7 @@ func EmitSourceCallbackEvent(
 	emitCallbackEvent(ctx, packet, EventTypeSourceCallback, callbackTrigger, contractAddr, gasLimit, err)
 }
 
-// EmitSourceCallbackEvent emits an event for a source callback
+// EmitDestinationCallbackEvent emits an event for a destination callback
 func EmitDestinationCallbackEvent(
 	ctx sdk.Context,
 	packet channeltypes.Packet,

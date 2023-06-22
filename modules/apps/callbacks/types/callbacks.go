@@ -20,6 +20,8 @@ type CallbackData struct {
 	CustomMsg    []byte
 }
 
+// GetCallbackData parses the packet data and returns the callback data. It ensures that the remaining
+// gas is greater than the gas limit specified in the packet data.
 func GetCallbackData(app PacketUnmarshalerIBCModule, packet channeltypes.Packet, remainingGas uint64) (CallbackData, error) {
 	// unmarshal packet data
 	unmarshaledData, err := app.UnmarshalPacketData(packet.Data)
