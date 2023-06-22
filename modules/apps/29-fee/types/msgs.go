@@ -4,11 +4,8 @@ import (
 	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-<<<<<<< HEAD
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-=======
 	legacytx "github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
->>>>>>> f2b22491 (fix(statemachine)!: re-implement legacy msg interface (#3907))
 
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
