@@ -1,9 +1,9 @@
 package ibccallback
 
 import (
-
 	// external libraries
 	errorsmod "cosmossdk.io/errors"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	// ibc-go
