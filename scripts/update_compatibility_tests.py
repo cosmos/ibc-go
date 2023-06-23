@@ -115,7 +115,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--type",
         choices=[Operation.ADD.name, Operation.REPLACE.name, Operation.REMOVE.name],
-        default=Operation.ADD,
+        default="ADD",
         help="Type of version update: add a version, replace one or remove one.",
     )
     parser.add_argument(
@@ -142,6 +142,7 @@ def parse_args() -> argparse.Namespace:
     )
 
     args = parser.parse_args()
+    args.type = Operation[args.type.upper()]
     require_version(args)
     return args
 
@@ -167,7 +168,6 @@ def main(args: argparse.Namespace):
     """ Main driver function."""
     # Hold logs for 'updated' and 'skipped' files.
     logs = defaultdict(list)
-
     # Go through each file and operate on it, if applicable.
     for file_ in find_json_files(args.directory):
         with open(file_, "r+") as fp:
