@@ -36,7 +36,7 @@ import (
 	"github.com/cosmos/ibc-go/v7/testing/simapp"
 )
 
-// NOTE: though @faddat made this commit, @alpe was massively helpful in determining how to solve the time problems.
+// NOTE: @alpe was massively helpful in determining how to solve the time problems in the SDK 50 upgrade.
 // see discussion here: https://github.com/cosmos/ibc-go/pull/3883
 
 var MaxAccounts = 10
