@@ -331,8 +331,8 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 			channelCap = suite.chainB.GetChannelCapability(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 		}, true},
 		{
-			msg: "success with closed channel: FLUSHING status",
-			malleate: func() {
+			"success with channel in ACKUPGRADE: FLUSHING status",
+			func() {
 				suite.coordinator.Setup(path)
 				sequence, err := path.EndpointA.SendPacket(defaultTimeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
 				suite.Require().NoError(err)
@@ -340,15 +340,15 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 				channelCap = suite.chainB.GetChannelCapability(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 
 				channel := path.EndpointB.GetChannel()
-				channel.State = types.CLOSED
+				channel.State = types.ACKUPGRADE
 				channel.FlushStatus = types.FLUSHING
 				path.EndpointB.SetChannel(channel)
 			},
-			expPass: true,
+			true,
 		},
 		{
-			msg: "failure with closed channel counterparty sequence > packet sequence",
-			malleate: func() {
+			"failure with closed channel counterparty sequence > packet sequence",
+			func() {
 				suite.coordinator.Setup(path)
 				sequence, err := path.EndpointA.SendPacket(defaultTimeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
 				suite.Require().NoError(err)
@@ -362,11 +362,11 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 
 				suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.SetCounterpartyLastPacketSequence(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, sequence+1)
 			},
-			expPass: false,
+			false,
 		},
 		{
-			msg: "failure with closed channel not flushing",
-			malleate: func() {
+			"failure with closed channel not flushing",
+			func() {
 				suite.coordinator.Setup(path)
 				sequence, err := path.EndpointA.SendPacket(defaultTimeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
 				suite.Require().NoError(err)
@@ -380,7 +380,7 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 
 				suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.SetCounterpartyLastPacketSequence(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, sequence)
 			},
-			expPass: false,
+			false,
 		},
 		{"packet already relayed ORDERED channel (no-op)", func() {
 			expError = types.ErrNoOpMsg
