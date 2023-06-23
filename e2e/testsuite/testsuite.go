@@ -177,29 +177,29 @@ func (s *E2ETestSuite) GetPathName(idx int64) string {
 }
 
 // generatePath generates the path name using the test suites name
-func (s *E2ETestSuite) generatePath(ctx context.Context, relayer ibc.Relayer) string {
+func (s *E2ETestSuite) generatePath(ctx context.Context, ibcrelayer ibc.Relayer) string {
 	chainA, chainB := s.GetChains()
 	chainAID := chainA.Config().ChainID
 	chainBID := chainB.Config().ChainID
 
 	pathName := s.generatePathName()
 
-	err := relayer.GeneratePath(ctx, s.GetRelayerExecReporter(), chainAID, chainBID, pathName)
+	err := ibcrelayer.GeneratePath(ctx, s.GetRelayerExecReporter(), chainAID, chainBID, pathName)
 	s.Require().NoError(err)
 
 	return pathName
 }
 
 // SetupClients creates clients on chainA and chainB using the provided create client options
-func (s *E2ETestSuite) SetupClients(ctx context.Context, relayer ibc.Relayer, opts ibc.CreateClientOptions) {
-	pathName := s.generatePath(ctx, relayer)
-	err := relayer.CreateClients(ctx, s.GetRelayerExecReporter(), pathName, opts)
+func (s *E2ETestSuite) SetupClients(ctx context.Context, ibcrelayer ibc.Relayer, opts ibc.CreateClientOptions) {
+	pathName := s.generatePath(ctx, ibcrelayer)
+	err := ibcrelayer.CreateClients(ctx, s.GetRelayerExecReporter(), pathName, opts)
 	s.Require().NoError(err)
 }
 
 // UpdateClients updates clients on chainA and chainB
-func (s *E2ETestSuite) UpdateClients(ctx context.Context, relayer ibc.Relayer, pathName string) {
-	err := relayer.UpdateClients(ctx, s.GetRelayerExecReporter(), pathName)
+func (s *E2ETestSuite) UpdateClients(ctx context.Context, ibcrelayer ibc.Relayer, pathName string) {
+	err := ibcrelayer.UpdateClients(ctx, s.GetRelayerExecReporter(), pathName)
 	s.Require().NoError(err)
 }
 
@@ -262,12 +262,12 @@ func (s *E2ETestSuite) RecoverRelayerWallets(ctx context.Context, ibcrelayer ibc
 }
 
 // StartRelayer starts the given relayer.
-func (s *E2ETestSuite) StartRelayer(relayer ibc.Relayer) {
+func (s *E2ETestSuite) StartRelayer(ibcrelayer ibc.Relayer) {
 	if s.startRelayerFn == nil {
 		panic("cannot start relayer before it is created!")
 	}
 
-	s.startRelayerFn(relayer)
+	s.startRelayerFn(ibcrelayer)
 }
 
 // StopRelayer stops the given relayer.
@@ -383,7 +383,7 @@ func GetIBCToken(fullTokenDenom string, portID, channelID string) transfertypes.
 // the test. If the test is running in CI, more nodes are used, when running locally a single node is used by default to
 // use less resources and allow the tests to run faster.
 // both the number of validators and full nodes can be overwritten in a config file.
-func getValidatorsAndFullNodes(chainIdx int) (int, int) {
+func getValidatorsAndFullNodes(chainIdx int) (vailidators int, fullNodes int) {
 	if testconfig.IsCI() {
 		return 4, 1
 	}

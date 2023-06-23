@@ -338,7 +338,7 @@ func (s *ClientTestSuite) extractChainPrivateKeys(ctx context.Context, chain *co
 
 	for _, filePV := range filePvs {
 		pvs = append(pvs, &ibcmock.PV{
-			PrivKey: &ed25519.PrivKey{Key: filePV.PrivKey.Bytes()},
+			PrivKey: &ed25519.PrivKey{Key: filePV.PrivKey.Bytes()}, //nolint:staticcheck // we're using this for a test on a validator.
 		})
 	}
 
