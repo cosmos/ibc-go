@@ -51,7 +51,7 @@ If the chain will migrate to supporting base denoms with slashes, it must set th
 app.UpgradeKeeper.SetUpgradeHandler("MigrateTraces",
   func(ctx sdk.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
     // transfer module consensus version has been bumped to 2
-    return app.ModuleManager.RunMigrations(ctx, app.configurator, fromVM)
+    return app.mm.RunMigrations(ctx, app.configurator, fromVM)
   })
 ```
 
