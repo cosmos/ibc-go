@@ -692,7 +692,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 
 			channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 		}, true},
-		{"channel in ackupgrade flush status in flushing", func() {
+		{"success on channel in tryupgrade flush status in flushing", func() {
 			// setup uses an UNORDERED channel
 			suite.coordinator.Setup(path)
 
@@ -700,17 +700,22 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 			sequence, err := path.EndpointA.SendPacket(defaultTimeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
 
-			channel := path.EndpointA.GetChannel()
-			channel.State = types.ACKUPGRADE
-			channel.FlushStatus = types.FLUSHING
-			path.EndpointA.SetChannel(channel)
-
 			// create packet receipt and acknowledgement
 			packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
 			err = path.EndpointB.RecvPacket(packet)
 			suite.Require().NoError(err)
 
 			channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+
+			// Move channel to correct state.
+			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = ibcmock.UpgradeVersion
+			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = ibcmock.UpgradeVersion
+
+			err = path.EndpointB.ChanUpgradeInit()
+			suite.Require().NoError(err)
+
+			err = path.EndpointA.ChanUpgradeTry()
+			suite.Require().NoError(err)
 		}, true},
 		{"packet already acknowledged ordered channel (no-op)", func() {
 			expError = types.ErrNoOpMsg
@@ -769,17 +774,30 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 			suite.Require().NoError(err)
 			channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 		}, false},
-		{"channel in ackupgrade flush status not in flush", func() {
+		{"channel in tryupgrade flush status not in flush", func() {
 			expError = types.ErrInvalidChannelState
 
 			suite.coordinator.Setup(path)
 			packet = types.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
-
-			channel := path.EndpointA.GetChannel()
-			channel.State = types.ACKUPGRADE
-			channel.FlushStatus = types.NOTINFLUSH
-			path.EndpointA.SetChannel(channel)
 			channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+
+			// Move channel to correct state.
+			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = ibcmock.UpgradeVersion
+			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = ibcmock.UpgradeVersion
+
+			err := path.EndpointA.ChanUpgradeInit()
+			suite.Require().NoError(err)
+
+			err = path.EndpointB.ChanUpgradeTry()
+			suite.Require().NoError(err)
+
+			err = path.EndpointA.ChanUpgradeAck()
+			suite.Require().NoError(err)
+
+			// TODO: Manually set until #3928 is implemented.
+			channel := path.EndpointA.GetChannel()
+			channel.FlushStatus = types.FLUSHCOMPLETE
+			path.EndpointA.SetChannel(channel)
 		}, false},
 		{"capability authentication failed ORDERED", func() {
 			expError = types.ErrInvalidChannelCapability
