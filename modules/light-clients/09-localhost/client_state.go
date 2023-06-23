@@ -182,7 +182,7 @@ func (ClientState) ExportMetadata(_ sdk.KVStore) []exported.GenesisMetadata {
 
 // CheckSubstituteAndUpdateState returns an error. The localhost cannot be modified by
 // proposals.
-func (ClientState) CheckSubstituteAndUpdateState(_ sdk.Context, _ codec.BinaryCodec, _, _ sdk.KVStore, _ exported.ClientState) error {
+func (ClientState) CheckSubstituteAndUpdateState(ctx sdk.Context, cdc codec.BinaryCodec, _, _ sdk.KVStore, _ exported.ClientState) error {
 	return errorsmod.Wrap(clienttypes.ErrUpdateClientFailed, "cannot update localhost client with a proposal")
 }
 

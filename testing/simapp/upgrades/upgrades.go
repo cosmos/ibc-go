@@ -35,7 +35,7 @@ func CreateDefaultUpgradeHandler(
 	mm *module.Manager,
 	configurator module.Configurator,
 ) upgradetypes.UpgradeHandler {
-	return func(ctx sdk.Context, _ upgradetypes.Plan, vm module.VersionMap) (module.VersionMap, error) {
+	return func(ctx sdk.Context, plan upgradetypes.Plan, vm module.VersionMap) (module.VersionMap, error) {
 		return mm.RunMigrations(ctx, configurator, vm)
 	}
 }
@@ -50,7 +50,7 @@ func CreateV6UpgradeHandler(
 	capabilityKeeper *capabilitykeeper.Keeper,
 	moduleName string,
 ) upgradetypes.UpgradeHandler {
-	return func(ctx sdk.Context, _ upgradetypes.Plan, vm module.VersionMap) (module.VersionMap, error) {
+	return func(ctx sdk.Context, plan upgradetypes.Plan, vm module.VersionMap) (module.VersionMap, error) {
 		if err := v6.MigrateICS27ChannelCapability(ctx, cdc, capabilityStoreKey, capabilityKeeper, moduleName); err != nil {
 			return nil, err
 		}
@@ -68,7 +68,7 @@ func CreateV7UpgradeHandler(
 	consensusParamsKeeper consensusparamskeeper.Keeper,
 	paramsKeeper paramskeeper.Keeper,
 ) upgradetypes.UpgradeHandler {
-	return func(ctx sdk.Context, _ upgradetypes.Plan, vm module.VersionMap) (module.VersionMap, error) {
+	return func(ctx sdk.Context, plan upgradetypes.Plan, vm module.VersionMap) (module.VersionMap, error) {
 		// OPTIONAL: prune expired tendermint consensus states to save storage space
 		if _, err := ibctmmigrations.PruneExpiredConsensusStates(ctx, cdc, clientKeeper); err != nil {
 			return nil, err
@@ -87,7 +87,7 @@ func CreateV7LocalhostUpgradeHandler(
 	configurator module.Configurator,
 	clientKeeper clientkeeper.Keeper,
 ) upgradetypes.UpgradeHandler {
-	return func(ctx sdk.Context, _ upgradetypes.Plan, vm module.VersionMap) (module.VersionMap, error) {
+	return func(ctx sdk.Context, plan upgradetypes.Plan, vm module.VersionMap) (module.VersionMap, error) {
 		// explicitly update the IBC 02-client params, adding the localhost client type
 		params := clientKeeper.GetParams(ctx)
 		params.AllowedClients = append(params.AllowedClients, exported.Localhost)

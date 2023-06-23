@@ -34,7 +34,7 @@ func (AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry) 
 }
 
 // DefaultGenesis performs a no-op. Genesis is not supported for solo machine.
-func (AppModuleBasic) DefaultGenesis(_ codec.JSONCodec) json.RawMessage {
+func (AppModuleBasic) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
 	return nil
 }
 
