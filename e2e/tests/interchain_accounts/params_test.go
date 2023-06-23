@@ -12,7 +12,7 @@ import (
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	controllertypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
-  hosttypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/types"
+	hosttypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/types"
 	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
@@ -99,7 +99,7 @@ func (s *InterchainAccountsParamsTestSuite) TestControllerEnabledParam() {
 	})
 }
 
-func (s *InterchainAccountsParamsTestSuite) TestHostParams() {
+func (s *InterchainAccountsParamsTestSuite) TestHostEnabledParam() {
 	t := s.T()
 	ctx := context.TODO()
 
@@ -114,13 +114,13 @@ func (s *InterchainAccountsParamsTestSuite) TestHostParams() {
 	chainBUser := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 
 	// Assert that default value for enabled is true.
-	t.Run("validate default values for params", func(t *testing.T) {
+	t.Run("ensure the host is enabled", func(t *testing.T) {
 		params := s.QueryHostParams(ctx, chainB)
 		s.Require().True(params.HostEnabled)
 		s.Require().Equal([]string{hosttypes.AllowAllHostMsgs}, params.AllowMessages)
 	})
 
-	t.Run("disable host", func(t *testing.T) {
+	t.Run("disable the host", func(t *testing.T) {
 		if testvalues.SelfParamsFeatureReleases.IsSupported(chainBVersion) {
 			authority, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainB)
 			s.Require().NoError(err)
@@ -141,7 +141,7 @@ func (s *InterchainAccountsParamsTestSuite) TestHostParams() {
 		}
 	})
 
-	t.Run("validate the param was successfully changed", func(t *testing.T) {
+	t.Run("ensure the host is disabled", func(t *testing.T) {
 		params := s.QueryHostParams(ctx, chainB)
 		s.Require().False(params.HostEnabled)
 	})
