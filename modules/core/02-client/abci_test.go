@@ -4,10 +4,13 @@ import (
 	"strings"
 	"testing"
 
-	upgradetypes "cosmossdk.io/x/upgrade/types"
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
+
+	upgradetypes "cosmossdk.io/x/upgrade/types"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 
 	client "github.com/cosmos/ibc-go/v7/modules/core/02-client"
 	"github.com/cosmos/ibc-go/v7/modules/core/02-client/types"

@@ -5,11 +5,14 @@ import (
 	"io"
 	"os"
 
+	dbm "github.com/cosmos/cosmos-db"
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
+
 	"cosmossdk.io/log"
 	confixcmd "cosmossdk.io/tools/confix/cmd"
 	rosettaCmd "cosmossdk.io/tools/rosetta/cmd"
-	cmtcfg "github.com/cometbft/cometbft/config"
-	dbm "github.com/cosmos/cosmos-db"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/config"
 	"github.com/cosmos/cosmos-sdk/client/debug"
@@ -32,8 +35,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/crisis"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
+
+	cmtcfg "github.com/cometbft/cometbft/config"
 
 	"github.com/cosmos/ibc-go/v7/testing/simapp"
 	"github.com/cosmos/ibc-go/v7/testing/simapp/params"

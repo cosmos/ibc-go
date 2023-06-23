@@ -3,8 +3,10 @@ package simapp
 import (
 	"os"
 
-	"cosmossdk.io/log"
 	dbm "github.com/cosmos/cosmos-db"
+
+	"cosmossdk.io/log"
+
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 )
 

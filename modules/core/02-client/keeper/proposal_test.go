@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	upgradetypes "cosmossdk.io/x/upgrade/types"
+
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
 	"github.com/cosmos/ibc-go/v7/modules/core/02-client/types"

@@ -3,9 +3,11 @@ package ibctesting_test
 import (
 	"testing"
 
-	"cosmossdk.io/math"
-	"github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/stretchr/testify/require"
+
+	"cosmossdk.io/math"
+
+	"github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )

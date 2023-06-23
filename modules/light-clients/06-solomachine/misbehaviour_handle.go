@@ -1,10 +1,10 @@
 package solomachine
 
 import (
-	"github.com/cosmos/cosmos-sdk/codec"
-
 	errorsmod "cosmossdk.io/errors"
 	storetypes "cosmossdk.io/store/types"
+
+	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"

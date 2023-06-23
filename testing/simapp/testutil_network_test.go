@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/cosmos-sdk/testutil/network"
+
 	"github.com/cosmos/ibc-go/v7/testing/simapp"
 )
 

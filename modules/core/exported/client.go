@@ -1,10 +1,12 @@
 package exported
 
 import (
+	proto "github.com/cosmos/gogoproto/proto"
+
 	storetypes "cosmossdk.io/store/types"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	proto "github.com/cosmos/gogoproto/proto"
 )
 
 // Status represents the status of a client
