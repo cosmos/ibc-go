@@ -4,13 +4,13 @@ import (
 	"context"
 	"fmt"
 	"strings"
-	"time"
 
 	dockerclient "github.com/docker/docker/client"
 	interchaintest "github.com/strangelove-ventures/interchaintest/v7"
 	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
 	"github.com/strangelove-ventures/interchaintest/v7/ibc"
 	"github.com/strangelove-ventures/interchaintest/v7/testreporter"
+	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest"
@@ -128,7 +128,7 @@ func (s *E2ETestSuite) SetupChainsRelayerAndChannel(ctx context.Context, channel
 			}
 		})
 		// wait for relayer to start.
-		time.Sleep(time.Second * 10)
+		s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB), "failed to wait for blocks")
 	}
 
 	s.InitGRPCClients(chainA)
@@ -346,6 +346,15 @@ func (s *E2ETestSuite) createCosmosChains(chainOptions testconfig.ChainOptions) 
 func (s *E2ETestSuite) GetRelayerExecReporter() *testreporter.RelayerExecReporter {
 	rep := testreporter.NewNopReporter()
 	return rep.RelayerExecReporter(s.T())
+}
+
+// TransferChannelOptions configures both of the chains to have non-incentivized transfer channels.
+func (s *E2ETestSuite) TransferChannelOptions() func(options *ibc.CreateChannelOptions) {
+	return func(opts *ibc.CreateChannelOptions) {
+		opts.Version = transfertypes.Version
+		opts.SourcePortName = transfertypes.PortID
+		opts.DestPortName = transfertypes.PortID
+	}
 }
 
 // GetTimeoutHeight returns a timeout height of 1000 blocks above the current block height.

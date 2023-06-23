@@ -3,8 +3,10 @@ package keeper
 import (
 	"context"
 
-	errorsmod "cosmossdk.io/errors"
 	metrics "github.com/armon/go-metrics"
+
+	errorsmod "cosmossdk.io/errors"
+
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -12,6 +14,7 @@ import (
 	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
+	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
 	coretypes "github.com/cosmos/ibc-go/v7/modules/core/types"
 )
 
@@ -442,6 +445,7 @@ func (k Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPacke
 		writeFn()
 	case channeltypes.ErrNoOpMsg:
 		// no-ops do not need event emission as they will be ignored
+		ctx.Logger().Debug("no-op on redundant relay", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel)
 		return &channeltypes.MsgRecvPacketResponse{Result: channeltypes.NOOP}, nil
 	default:
 		ctx.Logger().Error("receive packet failed", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel, "error", errorsmod.Wrap(err, "receive packet verification failed"))
@@ -456,10 +460,6 @@ func (k Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPacke
 	if ack == nil || ack.Success() {
 		// write application state changes for asynchronous and successful acknowledgements
 		writeFn()
-	} else {
-		// NOTE: The context returned by CacheContext() refers to a new EventManager, so it needs to explicitly set events to the original context.
-		// Events should still be emitted from failed acks and asynchronous acks
-		ctx.EventManager().EmitEvents(cacheCtx.EventManager().Events())
 	}
 
 	// Set packet acknowledgement only if the acknowledgement is not nil.
@@ -695,4 +695,28 @@ func (k Keeper) Acknowledgement(goCtx context.Context, msg *channeltypes.MsgAckn
 	ctx.Logger().Info("acknowledgement succeeded", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel, "result", channeltypes.SUCCESS.String())
 
 	return &channeltypes.MsgAcknowledgementResponse{Result: channeltypes.SUCCESS}, nil
+}
+
+// UpdateClientParams defines a rpc handler method for MsgUpdateParams.
+func (k Keeper) UpdateClientParams(goCtx context.Context, msg *clienttypes.MsgUpdateParams) (*clienttypes.MsgUpdateParamsResponse, error) {
+	if k.GetAuthority() != msg.Authority {
+		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "expected %s, got %s", k.GetAuthority(), msg.Authority)
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	k.ClientKeeper.SetParams(ctx, msg.Params)
+
+	return &clienttypes.MsgUpdateParamsResponse{}, nil
+}
+
+// UpdateConnectionParams defines a rpc handler method for MsgUpdateParams for the 03-connection submodule.
+func (k Keeper) UpdateConnectionParams(goCtx context.Context, msg *connectiontypes.MsgUpdateParams) (*connectiontypes.MsgUpdateParamsResponse, error) {
+	if k.GetAuthority() != msg.Authority {
+		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "expected %s, got %s", k.GetAuthority(), msg.Authority)
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	k.ConnectionKeeper.SetParams(ctx, msg.Params)
+
+	return &connectiontypes.MsgUpdateParamsResponse{}, nil
 }

@@ -4,16 +4,19 @@ import (
 	"fmt"
 	"strings"
 
-	errorsmod "cosmossdk.io/errors"
 	metrics "github.com/armon/go-metrics"
+
+	errorsmod "cosmossdk.io/errors"
+	sdkmath "cosmossdk.io/math"
+
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	ibcerrors "github.com/cosmos/ibc-go/v7/internal/errors"
 	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
+	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
 	coretypes "github.com/cosmos/ibc-go/v7/modules/core/types"
 )
 
@@ -166,7 +169,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 		return errorsmod.Wrapf(err, "error validating ICS-20 transfer packet data")
 	}
 
-	if !k.GetReceiveEnabled(ctx) {
+	if !k.GetParams(ctx).ReceiveEnabled {
 		return types.ErrReceiveDisabled
 	}
 
@@ -177,7 +180,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 	}
 
 	// parse the transfer amount
-	transferAmount, ok := sdk.NewIntFromString(data.Amount)
+	transferAmount, ok := sdkmath.NewIntFromString(data.Amount)
 	if !ok {
 		return errorsmod.Wrapf(types.ErrInvalidAmount, "unable to parse transfer amount: %s", data.Amount)
 	}
@@ -334,7 +337,7 @@ func (k Keeper) refundPacketToken(ctx sdk.Context, packet channeltypes.Packet, d
 	trace := types.ParseDenomTrace(data.Denom)
 
 	// parse the transfer amount
-	transferAmount, ok := sdk.NewIntFromString(data.Amount)
+	transferAmount, ok := sdkmath.NewIntFromString(data.Amount)
 	if !ok {
 		return errorsmod.Wrapf(types.ErrInvalidAmount, "unable to parse transfer amount (%s) into math.Int", data.Amount)
 	}

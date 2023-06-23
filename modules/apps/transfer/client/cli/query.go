@@ -3,10 +3,11 @@ package cli
 import (
 	"fmt"
 
+	"github.com/spf13/cobra"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/version"
-	"github.com/spf13/cobra"
 
 	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 )
@@ -171,10 +172,10 @@ func GetCmdQueryDenomHash() *cobra.Command {
 // GetCmdQueryTotalEscrowForDenom defines the command to query the total amount of tokens in escrow for a denom
 func GetCmdQueryTotalEscrowForDenom() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "token-escrow [denom]",
+		Use:     "total-escrow [denom]",
 		Short:   "Query the total amount of tokens in escrow for a denom",
 		Long:    "Query the total amount of tokens in escrow for a denom",
-		Example: fmt.Sprintf("%s query ibc-transfer token-escrow uosmo", version.AppName),
+		Example: fmt.Sprintf("%s query ibc-transfer total-escrow uosmo", version.AppName),
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)

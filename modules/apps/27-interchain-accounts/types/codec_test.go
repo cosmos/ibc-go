@@ -1,11 +1,14 @@
 package types_test
 
 import (
+	"github.com/cosmos/gogoproto/proto"
+
+	sdkmath "cosmossdk.io/math"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
-	"github.com/cosmos/gogoproto/proto"
 
 	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
 	"github.com/cosmos/ibc-go/v7/testing/simapp"
@@ -49,7 +52,7 @@ func (suite *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
 				&banktypes.MsgSend{
 					FromAddress: TestOwnerAddress,
 					ToAddress:   TestOwnerAddress,
-					Amount:      sdk.NewCoins(sdk.NewCoin("bananas", sdk.NewInt(100))),
+					Amount:      sdk.NewCoins(sdk.NewCoin("bananas", sdkmath.NewInt(100))),
 				},
 			},
 			true,
@@ -60,12 +63,12 @@ func (suite *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
 				&banktypes.MsgSend{
 					FromAddress: TestOwnerAddress,
 					ToAddress:   TestOwnerAddress,
-					Amount:      sdk.NewCoins(sdk.NewCoin("bananas", sdk.NewInt(100))),
+					Amount:      sdk.NewCoins(sdk.NewCoin("bananas", sdkmath.NewInt(100))),
 				},
 				&banktypes.MsgSend{
 					FromAddress: TestOwnerAddress,
 					ToAddress:   TestOwnerAddress,
-					Amount:      sdk.NewCoins(sdk.NewCoin("bananas", sdk.NewInt(200))),
+					Amount:      sdk.NewCoins(sdk.NewCoin("bananas", sdkmath.NewInt(200))),
 				},
 			},
 			true,
@@ -76,10 +79,10 @@ func (suite *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
 				&banktypes.MsgSend{
 					FromAddress: TestOwnerAddress,
 					ToAddress:   TestOwnerAddress,
-					Amount:      sdk.NewCoins(sdk.NewCoin("bananas", sdk.NewInt(100))),
+					Amount:      sdk.NewCoins(sdk.NewCoin("bananas", sdkmath.NewInt(100))),
 				},
 				&govtypes.MsgSubmitProposal{
-					InitialDeposit: sdk.NewCoins(sdk.NewCoin("bananas", sdk.NewInt(100))),
+					InitialDeposit: sdk.NewCoins(sdk.NewCoin("bananas", sdkmath.NewInt(100))),
 					Proposer:       TestOwnerAddress,
 				},
 			},

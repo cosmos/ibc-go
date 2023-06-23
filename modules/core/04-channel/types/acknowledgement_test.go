@@ -4,13 +4,15 @@ import (
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
+
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
 	abcitypes "github.com/cometbft/cometbft/abci/types"
 	tmprotostate "github.com/cometbft/cometbft/proto/tendermint/state"
 	tmstate "github.com/cometbft/cometbft/state"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	ibcerrors "github.com/cosmos/ibc-go/v7/internal/errors"
 	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
 )
 
 const (

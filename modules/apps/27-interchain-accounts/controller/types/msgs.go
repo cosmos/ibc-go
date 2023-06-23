@@ -4,14 +4,19 @@ import (
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	ibcerrors "github.com/cosmos/ibc-go/v7/internal/errors"
 	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
+	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
 )
 
-var _ sdk.Msg = (*MsgRegisterInterchainAccount)(nil)
+var (
+	_ sdk.Msg = (*MsgRegisterInterchainAccount)(nil)
+	_ sdk.Msg = (*MsgSendTx)(nil)
+	_ sdk.Msg = (*MsgUpdateParams)(nil)
+)
 
 // NewMsgRegisterInterchainAccount creates a new instance of MsgRegisterInterchainAccount
 func NewMsgRegisterInterchainAccount(connectionID, owner, version string) *MsgRegisterInterchainAccount {
@@ -79,6 +84,34 @@ func (msg MsgSendTx) ValidateBasic() error {
 // GetSigners implements sdk.Msg
 func (msg MsgSendTx) GetSigners() []sdk.AccAddress {
 	accAddr, err := sdk.AccAddressFromBech32(msg.Owner)
+	if err != nil {
+		panic(err)
+	}
+
+	return []sdk.AccAddress{accAddr}
+}
+
+// NewMsgUpdateParams creates a new MsgUpdateParams instance
+func NewMsgUpdateParams(authority string, params Params) *MsgUpdateParams {
+	return &MsgUpdateParams{
+		Authority: authority,
+		Params:    params,
+	}
+}
+
+// ValidateBasic implements sdk.Msg
+func (msg MsgUpdateParams) ValidateBasic() error {
+	_, err := sdk.AccAddressFromBech32(msg.Authority)
+	if err != nil {
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
+	}
+
+	return nil
+}
+
+// GetSigners implements sdk.Msg
+func (msg MsgUpdateParams) GetSigners() []sdk.AccAddress {
+	accAddr, err := sdk.AccAddressFromBech32(msg.Authority)
 	if err != nil {
 		panic(err)
 	}
