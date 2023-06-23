@@ -4,13 +4,15 @@ import (
 	"context"
 	"testing"
 
+	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
+	"github.com/stretchr/testify/suite"
+
 	sdkmath "cosmossdk.io/math"
+
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/authz"
-	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
-	"github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
@@ -50,6 +52,7 @@ func (s *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 
 	// createMsgGrantFn initializes a TransferAuthorization and broadcasts a MsgGrant message.
 	createMsgGrantFn := func(t *testing.T) {
+		t.Helper()
 		transferAuth := transfertypes.TransferAuthorization{
 			Allocations: []transfertypes.Allocation{
 				{
@@ -82,6 +85,7 @@ func (s *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 	// with the given spend limit.
 	verifyGrantFn := func(expectedLimit int64) func(t *testing.T) {
 		return func(t *testing.T) {
+			t.Helper()
 			grantAuths, err := s.QueryGranterGrants(ctx, chainA, granterAddress)
 
 			s.Require().NoError(err)

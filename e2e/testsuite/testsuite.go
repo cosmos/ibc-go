@@ -37,7 +37,7 @@ type E2ETestSuite struct {
 
 	grpcClients    map[string]GRPCClients
 	paths          map[string]path
-	relayers       relayer.RelayerMap
+	relayers       relayer.Map
 	logger         *zap.Logger
 	DockerClient   *dockerclient.Client
 	network        string
@@ -74,7 +74,7 @@ func (s *E2ETestSuite) GetRelayerUsers(ctx context.Context, chainOpts ...testcon
 	chainBRelayerUser := cosmos.NewWallet(ChainBRelayerName, chainBAccountBytes, "", chainB.Config())
 
 	if s.relayers == nil {
-		s.relayers = make(relayer.RelayerMap)
+		s.relayers = make(relayer.Map)
 	}
 	s.relayers.AddRelayer(s.T().Name(), chainARelayerUser)
 	s.relayers.AddRelayer(s.T().Name(), chainBRelayerUser)
@@ -228,14 +228,14 @@ func (s *E2ETestSuite) GetChains(chainOpts ...testconfig.ChainOptionConfiguratio
 }
 
 // GetRelayerWallets returns the relayer wallets associated with the chains.
-func (s *E2ETestSuite) GetRelayerWallets(relayer ibc.Relayer) (ibc.Wallet, ibc.Wallet, error) {
+func (s *E2ETestSuite) GetRelayerWallets(ibcrelayer ibc.Relayer) (ibc.Wallet, ibc.Wallet, error) {
 	chainA, chainB := s.GetChains()
-	chainARelayerWallet, ok := relayer.GetWallet(chainA.Config().ChainID)
+	chainARelayerWallet, ok := ibcrelayer.GetWallet(chainA.Config().ChainID)
 	if !ok {
 		return nil, nil, fmt.Errorf("unable to find chain A relayer wallet")
 	}
 
-	chainBRelayerWallet, ok := relayer.GetWallet(chainB.Config().ChainID)
+	chainBRelayerWallet, ok := ibcrelayer.GetWallet(chainB.Config().ChainID)
 	if !ok {
 		return nil, nil, fmt.Errorf("unable to find chain B relayer wallet")
 	}
@@ -244,8 +244,8 @@ func (s *E2ETestSuite) GetRelayerWallets(relayer ibc.Relayer) (ibc.Wallet, ibc.W
 
 // RecoverRelayerWallets adds the corresponding relayer address to the keychain of the chain.
 // This is useful if commands executed on the chains expect the relayer information to present in the keychain.
-func (s *E2ETestSuite) RecoverRelayerWallets(ctx context.Context, relayer ibc.Relayer) error {
-	chainARelayerWallet, chainBRelayerWallet, err := s.GetRelayerWallets(relayer)
+func (s *E2ETestSuite) RecoverRelayerWallets(ctx context.Context, ibcrelayer ibc.Relayer) error {
+	chainARelayerWallet, chainBRelayerWallet, err := s.GetRelayerWallets(ibcrelayer)
 	if err != nil {
 		return err
 	}
@@ -271,8 +271,8 @@ func (s *E2ETestSuite) StartRelayer(relayer ibc.Relayer) {
 }
 
 // StopRelayer stops the given relayer.
-func (s *E2ETestSuite) StopRelayer(ctx context.Context, relayer ibc.Relayer) {
-	err := relayer.StopRelayer(ctx, s.GetRelayerExecReporter())
+func (s *E2ETestSuite) StopRelayer(ctx context.Context, ibcrelayer ibc.Relayer) {
+	err := ibcrelayer.StopRelayer(ctx, s.GetRelayerExecReporter())
 	s.Require().NoError(err)
 }
 
@@ -349,7 +349,7 @@ func (s *E2ETestSuite) GetRelayerExecReporter() *testreporter.RelayerExecReporte
 }
 
 // TransferChannelOptions configures both of the chains to have non-incentivized transfer channels.
-func (s *E2ETestSuite) TransferChannelOptions() func(options *ibc.CreateChannelOptions) {
+func (*E2ETestSuite) TransferChannelOptions() func(options *ibc.CreateChannelOptions) {
 	return func(opts *ibc.CreateChannelOptions) {
 		opts.Version = transfertypes.Version
 		opts.SourcePortName = transfertypes.PortID
@@ -362,7 +362,7 @@ func (s *E2ETestSuite) TransferChannelOptions() func(options *ibc.CreateChannelO
 func (s *E2ETestSuite) GetTimeoutHeight(ctx context.Context, chain *cosmos.CosmosChain) clienttypes.Height {
 	height, err := chain.Height(ctx)
 	s.Require().NoError(err)
-	return clienttypes.NewHeight(clienttypes.ParseChainID(chain.Config().ChainID), uint64(height)+1000)
+	return clienttypes.NewHeight(clienttypes.ParseChainID(chain.Config().ChainID), height+1000)
 }
 
 // GetNativeChainBalance returns the balance of a specific user on a chain using the native denom.
