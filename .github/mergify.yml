@@ -1,0 +1,100 @@
+queue_rules:
+  - name: default
+    conditions:
+      - "#approved-reviews-by>=1"
+      - base=main
+      - label=automerge
+
+pull_request_rules:
+  - name: automerge to main with label automerge and branch protection passing
+    conditions:
+      - "#approved-reviews-by>=1"
+      - base=main
+      - label=automerge
+    actions:
+      queue:
+        name: default
+        method: squash
+        commit_message_template: |
+           {{ title }} (#{{ number }})
+           {{ body }}
+  - name: backport patches to v4.1.x branch
+    conditions:
+      - base=main
+      - label=backport-to-v4.1.x
+    actions:
+      backport:
+        branches:
+          - release/v4.1.x
+  - name: backport patches to v4.2.x branch
+    conditions:
+      - base=main
+      - label=backport-to-v4.2.x
+    actions:
+      backport:
+        branches:
+          - release/v4.2.x
+  - name: backport patches to v4.3.x branch
+    conditions:
+      - base=main
+      - label=backport-to-v4.3.x
+    actions:
+      backport:
+        branches:
+          - release/v4.3.x
+  - name: backport patches to v4.4.x branch
+    conditions:
+      - base=main
+      - label=backport-to-v4.4.x
+    actions:
+      backport:
+        branches:
+          - release/v4.4.x
+  - name: backport patches to v5.2.x branch
+    conditions:
+      - base=main
+      - label=backport-to-v5.2.x
+    actions:
+      backport:
+        branches:
+          - release/v5.2.x
+  - name: backport patches to v5.3.x branch
+    conditions:
+      - base=main
+      - label=backport-to-v5.3.x
+    actions:
+      backport:
+        branches:
+          - release/v5.3.x
+  - name: backport patches to v6.1.x branch
+    conditions:
+      - base=main
+      - label=backport-to-v6.1.x
+    actions:
+      backport:
+        branches:
+          - release/v6.1.x
+  - name: backport patches to v6.2.x branch
+    conditions:
+      - base=main
+      - label=backport-to-v6.2.x
+    actions:
+      backport:
+        branches:
+          - release/v6.2.x
+  - name: backport patches to v7.0.x branch
+    conditions:
+      - base=main
+      - label=backport-to-v7.0.x
+    actions:
+      backport:
+        branches:
+          - release/v7.0.x
+  - name: backport patches to v7.1.x branch
+    conditions:
+      - base=main
+      - label=backport-to-v7.1.x
+    actions:
+      backport:
+        branches:
+          - release/v7.1.x
