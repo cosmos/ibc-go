@@ -6,7 +6,7 @@ import (
 	"sort"
 	"time"
 
-	"github.com/cosmos/cosmos-sdk/client/grpc/ccmtservice"
+	"github.com/cosmos/cosmos-sdk/client/grpc/cmtservice"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/authz"
@@ -21,6 +21,7 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 
 	controllertypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
+	hosttypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/types"
 	feetypes "github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
@@ -33,13 +34,14 @@ import (
 // These should typically be used for query clients only. If we need to make changes, we should
 // use E2ETestSuite.BroadcastMessages to broadcast transactions instead.
 type GRPCClients struct {
-	ClientQueryClient     clienttypes.QueryClient
-	ConnectionQueryClient connectiontypes.QueryClient
-	ChannelQueryClient    channeltypes.QueryClient
-	TransferQueryClient   transfertypes.QueryClient
-	FeeQueryClient        feetypes.QueryClient
-	ICAQueryClient        controllertypes.QueryClient
-	InterTxQueryClient    intertxtypes.QueryClient
+	ClientQueryClient        clienttypes.QueryClient
+	ConnectionQueryClient    connectiontypes.QueryClient
+	ChannelQueryClient       channeltypes.QueryClient
+	TransferQueryClient      transfertypes.QueryClient
+	FeeQueryClient           feetypes.QueryClient
+	ICAControllerQueryClient controllertypes.QueryClient
+	ICAHostQueryClient       hosttypes.QueryClient
+	InterTxQueryClient       intertxtypes.QueryClient
 
 	// SDK query clients
 	GovQueryClient    govtypesv1beta1.QueryClient
@@ -49,7 +51,7 @@ type GRPCClients struct {
 	AuthQueryClient   authtypes.QueryClient
 	AuthZQueryClient  authz.QueryClient
 
-	ConsensusServiceClient ccmtservice.ServiceClient
+	ConsensusServiceClient cmtservice.ServiceClient
 }
 
 // InitGRPCClients establishes GRPC clients with the given chain.
@@ -72,20 +74,21 @@ func (s *E2ETestSuite) InitGRPCClients(chain *cosmos.CosmosChain) {
 	}
 
 	s.grpcClients[chain.Config().ChainID] = GRPCClients{
-		ClientQueryClient:      clienttypes.NewQueryClient(grpcConn),
-		ConnectionQueryClient:  connectiontypes.NewQueryClient(grpcConn),
-		ChannelQueryClient:     channeltypes.NewQueryClient(grpcConn),
-		TransferQueryClient:    transfertypes.NewQueryClient(grpcConn),
-		FeeQueryClient:         feetypes.NewQueryClient(grpcConn),
-		ICAQueryClient:         controllertypes.NewQueryClient(grpcConn),
-		InterTxQueryClient:     intertxtypes.NewQueryClient(grpcConn),
-		GovQueryClient:         govtypesv1beta1.NewQueryClient(grpcConn),
-		GovQueryClientV1:       govtypesv1.NewQueryClient(grpcConn),
-		GroupsQueryClient:      grouptypes.NewQueryClient(grpcConn),
-		ParamsQueryClient:      paramsproposaltypes.NewQueryClient(grpcConn),
-		AuthQueryClient:        authtypes.NewQueryClient(grpcConn),
-		AuthZQueryClient:       authz.NewQueryClient(grpcConn),
-		ConsensusServiceClient: ccmtservice.NewServiceClient(grpcConn),
+		ClientQueryClient:        clienttypes.NewQueryClient(grpcConn),
+		ConnectionQueryClient:    connectiontypes.NewQueryClient(grpcConn),
+		ChannelQueryClient:       channeltypes.NewQueryClient(grpcConn),
+		TransferQueryClient:      transfertypes.NewQueryClient(grpcConn),
+		FeeQueryClient:           feetypes.NewQueryClient(grpcConn),
+		ICAControllerQueryClient: controllertypes.NewQueryClient(grpcConn),
+		ICAHostQueryClient:       hosttypes.NewQueryClient(grpcConn),
+		InterTxQueryClient:       intertxtypes.NewQueryClient(grpcConn),
+		GovQueryClient:           govtypesv1beta1.NewQueryClient(grpcConn),
+		GovQueryClientV1:         govtypesv1.NewQueryClient(grpcConn),
+		GroupsQueryClient:        grouptypes.NewQueryClient(grpcConn),
+		ParamsQueryClient:        paramsproposaltypes.NewQueryClient(grpcConn),
+		AuthQueryClient:          authtypes.NewQueryClient(grpcConn),
+		AuthZQueryClient:         authz.NewQueryClient(grpcConn),
+		ConsensusServiceClient:   cmtservice.NewServiceClient(grpcConn),
 	}
 }
 
@@ -184,7 +187,7 @@ func (s *E2ETestSuite) QueryTotalEscrowForDenom(ctx context.Context, chain ibc.C
 
 // QueryInterchainAccount queries the interchain account for the given owner and connectionID.
 func (s *E2ETestSuite) QueryInterchainAccount(ctx context.Context, chain ibc.Chain, owner, connectionID string) (string, error) {
-	queryClient := s.GetChainGRCPClients(chain).ICAQueryClient
+	queryClient := s.GetChainGRCPClients(chain).ICAControllerQueryClient
 	res, err := queryClient.InterchainAccount(ctx, &controllertypes.QueryInterchainAccountRequest{
 		Owner:        owner,
 		ConnectionId: connectionID,
@@ -268,7 +271,7 @@ func (s *E2ETestSuite) QueryProposalV1(ctx context.Context, chain ibc.Chain, pro
 // GetBlockHeaderByHeight fetches the block header at a given height.
 func (s *E2ETestSuite) GetBlockHeaderByHeight(ctx context.Context, chain ibc.Chain, height uint64) (Header, error) {
 	cmtservice := s.GetChainGRCPClients(chain).ConsensusServiceClient
-	res, err := cmtservice.GetBlockByHeight(ctx, &ccmtservice.GetBlockByHeightRequest{
+	res, err := cmtservice.GetBlockByHeight(ctx, &cmtservice.GetBlockByHeightRequest{
 		Height: int64(height),
 	})
 	if err != nil {
@@ -286,9 +289,9 @@ func (s *E2ETestSuite) GetBlockHeaderByHeight(ctx context.Context, chain ibc.Cha
 
 // GetValidatorSetByHeight returns the validators of the given chain at the specified height. The returned validators
 // are sorted by address.
-func (s *E2ETestSuite) GetValidatorSetByHeight(ctx context.Context, chain ibc.Chain, height uint64) ([]*ccmtservice.Validator, error) {
+func (s *E2ETestSuite) GetValidatorSetByHeight(ctx context.Context, chain ibc.Chain, height uint64) ([]*cmtservice.Validator, error) {
 	cmtservice := s.GetChainGRCPClients(chain).ConsensusServiceClient
-	res, err := cmtservice.GetValidatorSetByHeight(ctx, &ccmtservice.GetValidatorSetByHeightRequest{
+	res, err := cmtservice.GetValidatorSetByHeight(ctx, &cmtservice.GetValidatorSetByHeightRequest{
 		Height: int64(height),
 	})
 	if err != nil {

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/strangelove-ventures/interchaintest/v7/ibc"
 
@@ -27,14 +28,14 @@ func ImmediatelyTimeout() *ibc.IBCTimeout {
 
 func DefaultFee(denom string) feetypes.Fee {
 	return feetypes.Fee{
-		RecvFee:    sdk.NewCoins(sdk.NewCoin(denom, sdk.NewInt(50))),
-		AckFee:     sdk.NewCoins(sdk.NewCoin(denom, sdk.NewInt(25))),
-		TimeoutFee: sdk.NewCoins(sdk.NewCoin(denom, sdk.NewInt(10))),
+		RecvFee:    sdk.NewCoins(sdk.NewCoin(denom, sdkmath.NewInt(50))),
+		AckFee:     sdk.NewCoins(sdk.NewCoin(denom, sdkmath.NewInt(25))),
+		TimeoutFee: sdk.NewCoins(sdk.NewCoin(denom, sdkmath.NewInt(10))),
 	}
 }
 
 func DefaultTransferAmount(denom string) sdk.Coin {
-	return sdk.Coin{Denom: denom, Amount: sdk.NewInt(IBCTransferAmount)}
+	return sdk.Coin{Denom: denom, Amount: sdkmath.NewInt(IBCTransferAmount)}
 }
 
 func TendermintClientID(id int) string {

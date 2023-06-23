@@ -8,68 +8,62 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/types"
+	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
 func TestMsgUpdateParamsValidateBasic(t *testing.T) {
-	var msg *types.MsgUpdateParams
-
 	testCases := []struct {
-		name     string
-		malleate func()
-		expPass  bool
+		name    string
+		msg     *types.MsgUpdateParams
+		expPass bool
 	}{
 		{
 			"success: valid authority address",
-			func() {
-				msg = &types.MsgUpdateParams{
-					Authority: sdk.AccAddress("authority").String(),
-					Params:    types.DefaultParams(),
-				}
-			},
+			types.NewMsgUpdateParams(sdk.AccAddress(ibctesting.TestAccAddress).String(), types.DefaultParams()),
 			true,
 		},
 		{
 			"failure: invalid authority address",
-			func() {
-				msg = &types.MsgUpdateParams{
-					Authority: "authority",
-				}
-			},
+			types.NewMsgUpdateParams("authority", types.DefaultParams()),
 			false,
 		},
 		{
 			"failure: invalid allowed message",
-			func() {
-				msg = &types.MsgUpdateParams{
-					Authority: sdk.AccAddress("authority").String(),
-					Params: types.Params{
-						AllowMessages: []string{""},
-					},
-				}
-			},
+			types.NewMsgUpdateParams("authority", types.Params{
+				AllowMessages: []string{""},
+			}),
 			false,
 		},
 	}
 
 	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			tc.malleate()
-
-			err := msg.ValidateBasic()
-			if tc.expPass {
-				require.NoError(t, err)
-			} else {
-				require.Error(t, err)
-			}
-		})
+		err := tc.msg.ValidateBasic()
+		if tc.expPass {
+			require.NoError(t, err)
+		} else {
+			require.Error(t, err)
+		}
 	}
 }
 
 func TestMsgUpdateParamsGetSigners(t *testing.T) {
-	authority := sdk.AccAddress("authority")
-	msg := types.MsgUpdateParams{
-		Authority: authority.String(),
-		Params:    types.DefaultParams(),
+	testCases := []struct {
+		name    string
+		address sdk.AccAddress
+		expPass bool
+	}{
+		{"success: valid address", sdk.AccAddress(ibctesting.TestAccAddress), true},
+		{"failure: nil address", nil, false},
 	}
-	require.Equal(t, []sdk.AccAddress{authority}, msg.GetSigners())
+
+	for _, tc := range testCases {
+		msg := types.NewMsgUpdateParams(tc.address.String(), types.DefaultParams())
+		if tc.expPass {
+			require.Equal(t, []sdk.AccAddress{tc.address}, msg.GetSigners())
+		} else {
+			require.Panics(t, func() {
+				msg.GetSigners()
+			})
+		}
+	}
 }

@@ -344,7 +344,7 @@ func (suite *KeeperTestSuite) TestTotalEscrowForDenom() {
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest() // reset
 
-			expEscrowAmount = sdk.ZeroInt()
+			expEscrowAmount = sdkmath.ZeroInt()
 			tc.malleate()
 			ctx := suite.chainA.GetContext()
 

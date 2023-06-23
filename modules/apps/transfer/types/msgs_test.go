@@ -6,6 +6,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	sdkmath "cosmossdk.io/math"
+
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -35,11 +37,11 @@ var (
 	receiver  = sdk.AccAddress("testaddr2").String()
 	emptyAddr string
 
-	coin             = sdk.NewCoin("atom", sdk.NewInt(100))
-	ibcCoin          = sdk.NewCoin("ibc/7F1D3FCF4AE79E1554D670D1AD949A9BA4E4A3C76C63093E17E446A46061A7A2", sdk.NewInt(100))
-	invalidIBCCoin   = sdk.NewCoin("ibc/7F1D3FCF4AE79E1554", sdk.NewInt(100))
-	invalidDenomCoin = sdk.Coin{Denom: "0atom", Amount: sdk.NewInt(100)}
-	zeroCoin         = sdk.Coin{Denom: "atoms", Amount: sdk.NewInt(0)}
+	coin             = sdk.NewCoin("atom", sdkmath.NewInt(100))
+	ibcCoin          = sdk.NewCoin("ibc/7F1D3FCF4AE79E1554D670D1AD949A9BA4E4A3C76C63093E17E446A46061A7A2", sdkmath.NewInt(100))
+	invalidIBCCoin   = sdk.NewCoin("ibc/7F1D3FCF4AE79E1554", sdkmath.NewInt(100))
+	invalidDenomCoin = sdk.Coin{Denom: "0atom", Amount: sdkmath.NewInt(100)}
+	zeroCoin         = sdk.Coin{Denom: "atoms", Amount: sdkmath.NewInt(0)}
 
 	timeoutHeight = clienttypes.NewHeight(0, 10)
 )
@@ -103,8 +105,8 @@ func TestMsgTransferGetSigners(t *testing.T) {
 	require.Equal(t, []sdk.AccAddress{addr}, res)
 }
 
-// TestMsgUpdateParamsValidation tests ValidateBasic for MsgUpdateParams
-func TestMsgUpdateParamsValidation(t *testing.T) {
+// TestMsgUpdateParamsValidateBasic tests ValidateBasic for MsgUpdateParams
+func TestMsgUpdateParamsValidateBasic(t *testing.T) {
 	testCases := []struct {
 		name    string
 		msg     *types.MsgUpdateParams
@@ -127,10 +129,26 @@ func TestMsgUpdateParamsValidation(t *testing.T) {
 
 // TestMsgUpdateParamsGetSigners tests GetSigners for MsgUpdateParams
 func TestMsgUpdateParamsGetSigners(t *testing.T) {
-	authority := sdk.AccAddress("authority")
-	msg := types.MsgUpdateParams{
-		Authority: authority.String(),
-		Params:    types.DefaultParams(),
+	testCases := []struct {
+		name    string
+		address sdk.AccAddress
+		expPass bool
+	}{
+		{"success: valid address", sdk.AccAddress(ibctesting.TestAccAddress), true},
+		{"failure: nil address", nil, false},
 	}
-	require.Equal(t, []sdk.AccAddress{authority}, msg.GetSigners())
+
+	for _, tc := range testCases {
+		msg := types.MsgUpdateParams{
+			Authority: tc.address.String(),
+			Params:    types.DefaultParams(),
+		}
+		if tc.expPass {
+			require.Equal(t, []sdk.AccAddress{tc.address}, msg.GetSigners())
+		} else {
+			require.Panics(t, func() {
+				msg.GetSigners()
+			})
+		}
+	}
 }

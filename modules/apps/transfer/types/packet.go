@@ -5,7 +5,7 @@ import (
 	"time"
 
 	errorsmod "cosmossdk.io/errors"
-	"cosmossdk.io/math"
+	sdkmath "cosmossdk.io/math"
 
 	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
 )
@@ -42,7 +42,7 @@ func NewFungibleTokenPacketData(
 // NOTE: The addresses formats are not validated as the sender and recipient can have different
 // formats defined by their corresponding chains that are not known to IBC.
 func (ftpd FungibleTokenPacketData) ValidateBasic() error {
-	amount, ok := math.NewIntFromString(ftpd.Amount)
+	amount, ok := sdkmath.NewIntFromString(ftpd.Amount)
 	if !ok {
 		return errorsmod.Wrapf(ErrInvalidAmount, "unable to parse transfer amount (%s) into math.Int", ftpd.Amount)
 	}
