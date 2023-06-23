@@ -10,12 +10,10 @@ import (
 )
 
 func TestZeroHeight(t *testing.T) {
-	t.Parallel()
 	require.Equal(t, types.Height{}, types.ZeroHeight())
 }
 
 func TestCompareHeights(t *testing.T) {
-	t.Parallel()
 	testCases := []struct {
 		name        string
 		height1     types.Height
@@ -49,7 +47,6 @@ func TestCompareHeights(t *testing.T) {
 }
 
 func TestDecrement(t *testing.T) {
-	t.Parallel()
 	validDecrement := types.NewHeight(3, 3)
 	expected := types.NewHeight(3, 2)
 
@@ -66,7 +63,6 @@ func TestDecrement(t *testing.T) {
 }
 
 func TestString(t *testing.T) {
-	t.Parallel()
 	_, err := types.ParseHeight("height")
 	require.Error(t, err, "invalid height string passed")
 
@@ -102,7 +98,6 @@ func (suite *TypesTestSuite) TestMustParseHeight() {
 }
 
 func TestParseChainID(t *testing.T) {
-	t.Parallel()
 	cases := []struct {
 		chainID   string
 		revision  uint64
@@ -134,7 +129,6 @@ func TestParseChainID(t *testing.T) {
 }
 
 func TestSetRevisionNumber(t *testing.T) {
-	t.Parallel()
 	// Test SetRevisionNumber
 	chainID, err := types.SetRevisionNumber("gaiamainnet", 3)
 	require.Error(t, err, "invalid revision format passed SetRevisionNumber")

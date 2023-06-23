@@ -48,7 +48,6 @@ func (suite *FeeTestSuite) SetupTest() {
 }
 
 func TestIBCFeeTestSuite(t *testing.T) {
-	t.Parallel()
 	suite.Run(t, new(FeeTestSuite))
 }
 

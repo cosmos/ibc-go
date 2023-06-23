@@ -14,7 +14,6 @@ import (
 )
 
 func TestSimGenesisAccountValidate(t *testing.T) {
-	t.Parallel()
 	pubkey := secp256k1.GenPrivKey().PubKey()
 	addr := sdk.AccAddress(pubkey.Address())
 
@@ -83,7 +82,6 @@ func TestSimGenesisAccountValidate(t *testing.T) {
 	for _, tc := range testCases {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
 			require.Equal(t, tc.wantErr, tc.sga.Validate() != nil)
 		})
 	}

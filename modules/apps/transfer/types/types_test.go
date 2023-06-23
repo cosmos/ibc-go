@@ -36,6 +36,5 @@ func NewTransferPath(chainA, chainB *ibctesting.TestChain) *ibctesting.Path {
 }
 
 func TestTypesTestSuite(t *testing.T) {
-	t.Parallel()
 	suite.Run(t, new(TypesTestSuite))
 }

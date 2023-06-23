@@ -50,7 +50,6 @@ func (suite *SoloMachineTestSuite) SetupTest() {
 }
 
 func TestSoloMachineTestSuite(t *testing.T) {
-	t.Parallel()
 	suite.Run(t, new(SoloMachineTestSuite))
 }
 
@@ -154,7 +153,6 @@ func (suite *SoloMachineTestSuite) GetInvalidProof() []byte {
 }
 
 func TestUnpackInterfaces_Header(t *testing.T) {
-	t.Parallel()
 	registry := testdata.NewTestInterfaceRegistry()
 	cryptocodec.RegisterInterfaces(registry)
 
@@ -179,7 +177,6 @@ func TestUnpackInterfaces_Header(t *testing.T) {
 }
 
 func TestUnpackInterfaces_HeaderData(t *testing.T) {
-	t.Parallel()
 	registry := testdata.NewTestInterfaceRegistry()
 	cryptocodec.RegisterInterfaces(registry)
 

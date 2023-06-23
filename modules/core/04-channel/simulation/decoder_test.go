@@ -15,7 +15,6 @@ import (
 )
 
 func TestDecodeStore(t *testing.T) {
-	t.Parallel()
 	app := simapp.Setup(t, false)
 	cdc := app.AppCodec()
 
@@ -77,7 +76,6 @@ func TestDecodeStore(t *testing.T) {
 	for i, tt := range tests {
 		i, tt := i, tt
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
 			res, found := simulation.NewDecodeStore(cdc, kvPairs.Pairs[i], kvPairs.Pairs[i])
 			if i == len(tests)-1 {
 				require.False(t, found, string(kvPairs.Pairs[i].Key))

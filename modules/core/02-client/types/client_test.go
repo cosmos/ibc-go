@@ -58,7 +58,6 @@ func (suite *TypesTestSuite) TestMarshalConsensusStateWithHeight() {
 }
 
 func TestValidateClientType(t *testing.T) {
-	t.Parallel()
 	testCases := []struct {
 		name       string
 		clientType string

@@ -18,7 +18,6 @@ type testCase struct {
 }
 
 func TestDefaultIdentifierValidator(t *testing.T) {
-	t.Parallel()
 	testCases := []testCase{
 		{"valid lowercase", "lowercaseid", true},
 		{"valid id special chars", "._+-#[]<>._+-#[]<>", true},
@@ -55,7 +54,6 @@ func TestDefaultIdentifierValidator(t *testing.T) {
 }
 
 func TestPortIdentifierValidator(t *testing.T) {
-	t.Parallel()
 	testCases := []testCase{
 		{"valid lowercase", "transfer", true},
 		{"valid id special chars", "._+-#[]<>._+-#[]<>", true},
@@ -83,7 +81,6 @@ func TestPortIdentifierValidator(t *testing.T) {
 }
 
 func TestPathValidator(t *testing.T) {
-	t.Parallel()
 	testCases := []testCase{
 		{"valid lowercase", "p/lowercaseid", true},
 		{"numeric path", "p/239123", true},
@@ -123,7 +120,6 @@ func TestPathValidator(t *testing.T) {
 }
 
 func TestCustomPathValidator(t *testing.T) {
-	t.Parallel()
 	validateFn := NewPathValidator(func(path string) error {
 		if !strings.HasPrefix(path, "id_") {
 			return fmt.Errorf("identifier %s must start with 'id_", path)

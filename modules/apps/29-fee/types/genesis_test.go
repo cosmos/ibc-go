@@ -13,13 +13,11 @@ import (
 )
 
 func TestValidateDefaultGenesis(t *testing.T) {
-	t.Parallel()
 	err := types.DefaultGenesisState().Validate()
 	require.NoError(t, err)
 }
 
 func TestValidateGenesis(t *testing.T) {
-	t.Parallel()
 	var genState *types.GenesisState
 
 	testCases := []struct {

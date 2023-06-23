@@ -18,9 +18,7 @@ linters:
     - ineffassign
     - misspell
     - nakedret
-    - paralleltest
     - staticcheck
-    - tparallel
     - thelper
     - stylecheck
     - revive

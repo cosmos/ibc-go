@@ -11,7 +11,6 @@ import (
 
 // tests ParseClientIdentifier and IsValidClientID
 func TestParseClientIdentifier(t *testing.T) {
-	t.Parallel()
 	testCases := []struct {
 		name       string
 		clientID   string
@@ -48,7 +47,6 @@ func TestParseClientIdentifier(t *testing.T) {
 	for _, tc := range testCases {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
 			clientType, seq, err := types.ParseClientIdentifier(tc.clientID)
 			valid := types.IsValidClientID(tc.clientID)
 			require.Equal(t, tc.expSeq, seq, tc.clientID)

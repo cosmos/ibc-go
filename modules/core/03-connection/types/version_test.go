@@ -11,7 +11,6 @@ import (
 )
 
 func TestValidateVersion(t *testing.T) {
-	t.Parallel()
 	testCases := []struct {
 		name    string
 		version *types.Version
@@ -35,7 +34,6 @@ func TestValidateVersion(t *testing.T) {
 }
 
 func TestIsSupportedVersion(t *testing.T) {
-	t.Parallel()
 	testCases := []struct {
 		name    string
 		version *types.Version
@@ -64,7 +62,6 @@ func TestIsSupportedVersion(t *testing.T) {
 }
 
 func TestFindSupportedVersion(t *testing.T) {
-	t.Parallel()
 	testCases := []struct {
 		name              string
 		version           *types.Version
@@ -93,7 +90,6 @@ func TestFindSupportedVersion(t *testing.T) {
 }
 
 func TestPickVersion(t *testing.T) {
-	t.Parallel()
 	testCases := []struct {
 		name                 string
 		supportedVersions    []exported.Version
@@ -123,7 +119,6 @@ func TestPickVersion(t *testing.T) {
 }
 
 func TestVerifyProposedVersion(t *testing.T) {
-	t.Parallel()
 	testCases := []struct {
 		name             string
 		proposedVersion  *types.Version
@@ -149,7 +144,6 @@ func TestVerifyProposedVersion(t *testing.T) {
 }
 
 func TestVerifySupportedFeature(t *testing.T) {
-	t.Parallel()
 	nilFeatures := types.NewVersion(types.DefaultIBCVersionIdentifier, nil)
 
 	testCases := []struct {

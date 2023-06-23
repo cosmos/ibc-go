@@ -21,7 +21,6 @@ const (
 )
 
 func TestValidateGenesis(t *testing.T) {
-	t.Parallel()
 	counterparty1 := types.NewCounterparty(testPort1, testChannel1)
 	counterparty2 := types.NewCounterparty(testPort2, testChannel2)
 	testCases := []struct {

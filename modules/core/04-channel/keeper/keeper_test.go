@@ -25,7 +25,6 @@ type KeeperTestSuite struct {
 
 // TestKeeperTestSuite runs all the tests within this package.
 func TestKeeperTestSuite(t *testing.T) {
-	t.Parallel()
 	suite.Run(t, new(KeeperTestSuite))
 }
 

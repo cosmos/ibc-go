@@ -9,7 +9,6 @@ import (
 )
 
 func TestParseDenomTrace(t *testing.T) {
-	t.Parallel()
 	testCases := []struct {
 		name     string
 		denom    string
@@ -46,7 +45,6 @@ func TestParseDenomTrace(t *testing.T) {
 }
 
 func TestDenomTrace_IBCDenom(t *testing.T) {
-	t.Parallel()
 	testCases := []struct {
 		name     string
 		trace    types.DenomTrace
@@ -63,7 +61,6 @@ func TestDenomTrace_IBCDenom(t *testing.T) {
 }
 
 func TestDenomTrace_Validate(t *testing.T) {
-	t.Parallel()
 	testCases := []struct {
 		name     string
 		trace    types.DenomTrace
@@ -92,7 +89,6 @@ func TestDenomTrace_Validate(t *testing.T) {
 }
 
 func TestTraces_Validate(t *testing.T) {
-	t.Parallel()
 	testCases := []struct {
 		name     string
 		traces   types.Traces
@@ -122,7 +118,6 @@ func TestTraces_Validate(t *testing.T) {
 }
 
 func TestValidatePrefixedDenom(t *testing.T) {
-	t.Parallel()
 	testCases := []struct {
 		name     string
 		denom    string
@@ -151,7 +146,6 @@ func TestValidatePrefixedDenom(t *testing.T) {
 }
 
 func TestValidateIBCDenom(t *testing.T) {
-	t.Parallel()
 	testCases := []struct {
 		name     string
 		denom    string
