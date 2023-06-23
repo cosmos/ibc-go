@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 
 	errorsmod "cosmossdk.io/errors"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
@@ -22,6 +23,7 @@ var (
 	_ sdk.Msg = (*MsgRecvPacket)(nil)
 	_ sdk.Msg = (*MsgAcknowledgement)(nil)
 	_ sdk.Msg = (*MsgTimeout)(nil)
+	_ sdk.Msg = (*MsgTimeoutOnClose)(nil)
 )
 
 // NewMsgChannelOpenInit creates a new MsgChannelOpenInit. It sets the counterparty channel
