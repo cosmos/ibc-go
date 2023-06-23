@@ -737,6 +737,18 @@ func (endpoint *Endpoint) SetChannelState(state channeltypes.State) error {
 	return endpoint.Counterparty.UpdateClient()
 }
 
+// SetChannelFlushStatus sets the channel flush status
+func (endpoint *Endpoint) SetChannelFlushStatus(status channeltypes.FlushStatus) error {
+	channel := endpoint.GetChannel()
+
+	channel.FlushStatus = status
+	endpoint.SetChannel(channel)
+
+	endpoint.Chain.Coordinator.CommitBlock(endpoint.Chain)
+
+	return endpoint.Counterparty.UpdateClient()
+}
+
 // GetClientState retrieves the Client State for this endpoint. The
 // client state is expected to exist otherwise testing will fail.
 func (endpoint *Endpoint) GetClientState() exported.ClientState {
