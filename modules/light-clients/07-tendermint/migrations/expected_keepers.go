@@ -6,8 +6,6 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cometbft/cometbft/libs/log"
-
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
