@@ -235,7 +235,6 @@ replace (
 	github.com/vedhavyas/go-subkey => github.com/strangelove-ventures/go-subkey v1.0.7
 )
 
-
 // uncomment to use the local version of ibc-go, you will need to run `go mod tidy` in e2e directory.
 replace github.com/cosmos/ibc-go/v7 => ../
 
