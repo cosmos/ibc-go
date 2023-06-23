@@ -1,6 +1,5 @@
 {
   "chain-a": [
-    "release-v7.2.x",
     "release-v7.1.x",
     "release-v7.0.x",
     "release-v6.2.x",
@@ -13,7 +12,6 @@
     "release-v4.1.x"
   ],
   "chain-b": [
-    "release-v7.2.x",
     "release-v7.1.x",
     "release-v7.0.x",
     "release-v6.2.x",
