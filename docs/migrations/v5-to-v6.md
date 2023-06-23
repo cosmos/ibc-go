@@ -35,11 +35,11 @@ package v6
 
 import (
   "github.com/cosmos/cosmos-sdk/codec"
-  storetypes "cosmossdk.io/store/types"
+  storetypes "github.com/cosmos/cosmos-sdk/store/types"
   sdk "github.com/cosmos/cosmos-sdk/types"
   "github.com/cosmos/cosmos-sdk/types/module"
   capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
-  upgradetypes "cosmossdk.io/x/upgrade/types"
+  upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
   v6 "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/controller/migrations/v6"
 )
@@ -72,7 +72,7 @@ func CreateUpgradeHandler(
 app.UpgradeKeeper.SetUpgradeHandler(
   v6.UpgradeName,
   v6.CreateUpgradeHandler(
-    app.ModuleManager, 
+    app.mm, 
     app.configurator, 
     app.appCodec, 
     app.keys[capabilitytypes.ModuleName], 
