@@ -140,7 +140,7 @@ func (k Keeper) RecvPacket(
 	if channel.State != types.OPEN && (channel.FlushStatus != types.FLUSHING || counterpartyLastPacketSent > packet.GetSequence()) {
 		return errorsmod.Wrapf(
 			types.ErrInvalidChannelState,
-			"channel state is not OPEN (got %s)", channel.State.String(),
+			"packets cannot be received on channel with state (%s) and flush status (%s)", channel.State, channel.FlushStatus,
 		)
 	}
 
