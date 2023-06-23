@@ -110,8 +110,8 @@ not own.
 
 ### Stores
 
-- MemStore
-- KeyStore
+* MemStore
+* KeyStore
 
 ## State
 
@@ -122,8 +122,8 @@ not own.
 
 Indexes:
 
-- Unique index: `[]byte("index") -> []byte(currentGlobalIndex)`
-- Capability Index: `[]byte("capability_index") | []byte(index) -> ProtocolBuffer(CapabilityOwners)`
+* Unique index: `[]byte("index") -> []byte(currentGlobalIndex)`
+* Capability Index: `[]byte("capability_index") | []byte(index) -> ProtocolBuffer(CapabilityOwners)`
 
 ### In-memory KV store
 
@@ -133,6 +133,6 @@ Indexes:
 
 Indexes:
 
-- Initialized flag: `[]byte("mem_initialized")`
-- RevCapabilityKey: `[]byte(moduleName + "/rev/" + capabilityName) -> []byte(index)`
-- FwdCapabilityKey: `[]byte(moduleName + "/fwd/" + capabilityPointerAddress) -> []byte(capabilityName)`
+* Initialized flag: `[]byte("mem_initialized")`
+* RevCapabilityKey: `[]byte(moduleName + "/rev/" + capabilityName) -> []byte(index)`
+* FwdCapabilityKey: `[]byte(moduleName + "/fwd/" + capabilityPointerAddress) -> []byte(capabilityName)`

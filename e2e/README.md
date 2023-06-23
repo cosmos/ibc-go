@@ -370,7 +370,7 @@ json matrix files under .github/compatibility-test-matrices and is equivalent to
 
 ### Accessing Logs
 
-- When a test fails in GitHub. The logs of the test will be uploaded (viewable in the summary page of the workflow). Note: There
+- When a test fails in GitHub. The logs of the test will be uploaded (viewable in the summary page of the workflow). Note: There 
   may be some discrepancy in the logs collected and the output of interchain test. The containers may run for a some
   time after the logs are collected, resulting in the displayed logs to differ slightly.
 

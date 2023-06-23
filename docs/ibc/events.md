@@ -245,7 +245,7 @@ callbacks to IBC applications.
 | Type               | Attribute Key            | Attribute Value               | Status     |
 |--------------------|--------------------------|-------------------------------|------------|
 | acknowledge_packet | packet_timeout_height    | {timeoutHeight}               |            |
-| acknowledge_packet | packet_timeout_timestamp | {timeoutTimestamp}            |            |
+| acknowledge_packet | packet_timeout_timestamp | {timeoutTimestamp}            |            | 
 | acknowledge_packet | packet_sequence          | {sequence}                    |            |
 | acknowledge_packet | packet_src_port          | {sourcePort}                  |            |
 | acknowledge_packet | packet_src_channel       | {sourceChannel}               |            |

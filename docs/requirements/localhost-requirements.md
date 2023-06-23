@@ -10,7 +10,7 @@ Currently applications, or smart contracts, on a single chain cannot communicate
 
 ## Objectives
 
-To provide a single interface in line with IBC application layer semantics, that enables a user to interact with multiple different applications or smart contracts remotely on a given blockchain.
+To provide a single interface in line with IBC application layer semantics, that enables a user to interact with multiple different applications or smart contracts remotely on a given blockchain. 
 
 ## Scope
 
@@ -25,13 +25,13 @@ To provide a single interface in line with IBC application layer semantics, that
 
 ### Interacting with Smart Contracts
 
-Many IBC connected blockchains utilise smart contracts, these could be written in rust, solidity or javascript depending on the smart contract platform being used.  Through the localhost client, a user can interact with and call into smart contracts by sending ibc messages from the localhost client to the smart contract.
+Many IBC connected blockchains utilise smart contracts, these could be written in rust, solidity or javascript depending on the smart contract platform being used.  Through the localhost client, a user can interact with and call into smart contracts by sending ibc messages from the localhost client to the smart contract. 
 
 On Agoric, a planned use case is for managing delegations and staking with smart contracts on a given chain. MsgDelegate, MsgUndelegate, MsgBeginRedelegate messages would be sent using the localhost client to the staking module. The same interface could be used to manage staking cross chain, sending the same messages through IBC to an interchain account.
 
 ### Interoperability Infrastructure
 
-Polymer plans to leverage the localhost client with multiple connections as part of their architecture to connect chains not using Tendermint or the Cosmos SDK to IBC enabled chains. Polymer will act as a hub connecting multiple blockchains together.
+Polymer plans to leverage the localhost client with multiple connections as part of their architecture to connect chains not using Tendermint or the Cosmos SDK to IBC enabled chains. Polymer will act as a hub connecting multiple blockchains together. 
 
 # Functional requirements
 
@@ -47,7 +47,7 @@ Polymer plans to leverage the localhost client with multiple connections as part
 | ID | Description | Verification | Status | Release |
 | -- | ----------- | ------------ | ------ | ------- |
 | 1.01 | The localhost client shall have a client ID of the string `09-localhost`. | [Localhost client is created with client ID `09-localhost`](https://github.com/cosmos/ibc-go/blob/release/v7.1.x/modules/core/02-client/keeper/keeper.go#L60). | `Implemented` | |
-| 1.02 | The localhost client shall have a sentinel connection ID of the string `connection-localhost`. | [Creation of sentinel connection with ID `connection-localhost`](https://github.com/cosmos/ibc-go/blob/release/v7.1.x/modules/core/03-connection/keeper/keeper.go#L200). | `Implemented` | |
+| 1.02 | The localhost client shall have a sentinel connection ID of the string `connection-localhost`. | [Creation of sentinel connection with ID `connection-localhost`](https://github.com/cosmos/ibc-go/blob/release/v7.1.x/modules/core/03-connection/keeper/keeper.go#L200). | `Implemented` | | 
 | 1.03 | Only 1 localhost connection is required | Localhost connection handshakes are forbidden in [Init](https://github.com/cosmos/ibc-go/blob/release/v7.1.x/modules/core/03-connection/types/msgs.go#L47) and [Try](https://github.com/cosmos/ibc-go/blob/release/v7.1.x/modules/core/03-connection/types/msgs.go#L110). | `Implemented` | |
 | 1.04 | When the localhost client is initialised the consensus state must be `nil`. | [Error is returned if consensus state is not `nil`](https://github.com/cosmos/ibc-go/blob/release/v7.1.x/modules/light-clients/09-localhost/client_state.go#L57). | `Implemented` | |
 | 1.05 | The localhost client can be added to a chain through an upgrade. | [Automatic migration handler configured in core IBC module to set the localhost `ClientState` and sentinel `ConnectionEnd` in state.](https://github.com/cosmos/ibc-go/blob/release/v7.1.x/modules/core/module.go#L132-L145). | `Implemented` | |
@@ -58,11 +58,11 @@ Polymer plans to leverage the localhost client with multiple connections as part
 | ID | Description | Verification | Status | Release |
 | -- | ----------- | ------------ | ------ | ------- |
 | 2.01 | A user of the localhost client can send IBC messages to an application on the same chain. | [e2e test with transfer](https://github.com/cosmos/ibc-go/blob/main/e2e/tests/transfer/localhost_test.go#L32). | `Implemented`| |
-| 2.02 | A user can use the localhost client through the existing IBC application module interfaces. | [e2e test with transfer](https://github.com/cosmos/ibc-go/blob/main/e2e/tests/transfer/localhost_test.go#L32). | `Implemented` | |
+| 2.02 | A user can use the localhost client through the existing IBC application module interfaces. | [e2e test with transfer](https://github.com/cosmos/ibc-go/blob/main/e2e/tests/transfer/localhost_test.go#L32). | `Implemented` | | 
 
 # External interface requirements
 
-## 3 - CLI
+### 3 - CLI
 
 | ID | Description | Verification | Status | Release |
 | -- | ----------- | ------------ | ------ | ------- |

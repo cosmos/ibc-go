@@ -88,7 +88,7 @@ import (
 )
 ```
 
-Run `make lint-fix` to get the imports ordered and grouped automatically.
+Run `make lint-fix` to get the imports ordered and grouped automatically. 
 
 ## Dependencies
 
