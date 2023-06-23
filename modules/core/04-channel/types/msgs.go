@@ -23,6 +23,7 @@ var (
 	_ sdk.Msg = (*MsgRecvPacket)(nil)
 	_ sdk.Msg = (*MsgAcknowledgement)(nil)
 	_ sdk.Msg = (*MsgTimeout)(nil)
+	_ sdk.Msg = (*MsgTimeoutOnClose)(nil)
 )
 
 // NewMsgChannelOpenInit creates a new MsgChannelOpenInit. It sets the counterparty channel

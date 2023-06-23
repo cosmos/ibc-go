@@ -14,6 +14,7 @@ import (
 
 var (
 	_ sdk.Msg = (*MsgRegisterInterchainAccount)(nil)
+	_ sdk.Msg = (*MsgSendTx)(nil)
 	_ sdk.Msg = (*MsgUpdateParams)(nil)
 )
 

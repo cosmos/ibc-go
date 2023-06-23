@@ -42,6 +42,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### State Machine Breaking
 
+* [\#3907](https://github.com/cosmos/ibc-go/pull/3907) Re-implemented missing functions of `LegacyMsg` interface to fix transaction signing with ledger.
+
 ### Improvements
 
 * (simapp) [\#3874](https://github.com/cosmos/ibc-go/pull/3874) Refactor simapp to more closely resemble the style used in cosmos-sdk
