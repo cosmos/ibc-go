@@ -179,6 +179,7 @@ def main(args: argparse.Namespace):
                 continue
             update_version(json_file, KEYS, args)
             fp.seek(0)
+            fp.truncate()
             json.dump(json_file, fp, **DUMP_ARGS)
             logs["updated"].append(f"Updated '{file_}'")
 
