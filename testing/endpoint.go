@@ -730,7 +730,7 @@ func (endpoint *Endpoint) SetChannelState(state channeltypes.State) error {
 	channel := endpoint.GetChannel()
 
 	channel.State = state
-	endpoint.Chain.App.GetIBCKeeper().ChannelKeeper.SetChannel(endpoint.Chain.GetContext(), endpoint.ChannelConfig.PortID, endpoint.ChannelID, channel)
+	endpoint.SetChannel(channel)
 
 	endpoint.Chain.Coordinator.CommitBlock(endpoint.Chain)
 
