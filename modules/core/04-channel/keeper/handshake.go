@@ -76,7 +76,7 @@ func (k Keeper) ChanOpenInit(
 
 // WriteOpenInitChannel writes a channel which has successfully passed the OpenInit handshake step.
 // The channel is set in state and all the associated Send and Recv sequences are set to 1.
-// An event is emitted for the handshake step.
+// An event is emitted for the handshake step. 	
 func (k Keeper) WriteOpenInitChannel(
 	ctx sdk.Context,
 	portID,
