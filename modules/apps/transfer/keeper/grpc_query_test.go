@@ -3,7 +3,8 @@ package keeper_test
 import (
 	"fmt"
 
-	"cosmossdk.io/math"
+	sdkmath "cosmossdk.io/math"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 
@@ -266,7 +267,7 @@ func (suite *KeeperTestSuite) TestEscrowAddress() {
 func (suite *KeeperTestSuite) TestTotalEscrowForDenom() {
 	var (
 		req             *types.QueryTotalEscrowForDenomRequest
-		expEscrowAmount math.Int
+		expEscrowAmount sdkmath.Int
 	)
 
 	testCases := []struct {
@@ -281,7 +282,7 @@ func (suite *KeeperTestSuite) TestTotalEscrowForDenom() {
 					Denom: sdk.DefaultBondDenom,
 				}
 
-				expEscrowAmount = math.NewInt(100)
+				expEscrowAmount = sdkmath.NewInt(100)
 				suite.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(suite.chainA.GetContext(), sdk.NewCoin(sdk.DefaultBondDenom, expEscrowAmount))
 			},
 			true,
@@ -295,7 +296,7 @@ func (suite *KeeperTestSuite) TestTotalEscrowForDenom() {
 				}
 
 				suite.chainA.GetSimApp().TransferKeeper.SetDenomTrace(suite.chainA.GetContext(), denomTrace)
-				expEscrowAmount, ok := math.NewIntFromString("100000000000000000000")
+				expEscrowAmount, ok := sdkmath.NewIntFromString("100000000000000000000")
 				suite.Require().True(ok)
 				suite.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(suite.chainA.GetContext(), sdk.NewCoin(sdk.DefaultBondDenom, expEscrowAmount))
 
@@ -343,7 +344,7 @@ func (suite *KeeperTestSuite) TestTotalEscrowForDenom() {
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest() // reset
 
-			expEscrowAmount = sdk.ZeroInt()
+			expEscrowAmount = sdkmath.ZeroInt()
 			tc.malleate()
 			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
 

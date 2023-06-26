@@ -26,6 +26,10 @@ service Msg {
   // ConnectionOpenConfirm defines a rpc handler method for
   // MsgConnectionOpenConfirm.
   rpc ConnectionOpenConfirm(MsgConnectionOpenConfirm) returns (MsgConnectionOpenConfirmResponse);
+
+  // UpdateConnectionParams defines a rpc handler method for
+  // MsgUpdateParams.
+  rpc UpdateConnectionParams(MsgUpdateParams) returns (MsgUpdateParamsResponse);
 }
 
 // MsgConnectionOpenInit defines the msg sent by an account on Chain A to
@@ -33,7 +37,6 @@ service Msg {
 message MsgConnectionOpenInit {
   option (cosmos.msg.v1.signer) = "signer";
 
-  option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
   string       client_id    = 1;
@@ -52,7 +55,6 @@ message MsgConnectionOpenInitResponse {}
 message MsgConnectionOpenTry {
   option (cosmos.msg.v1.signer) = "signer";
 
-  option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
   string client_id = 1;
@@ -84,7 +86,6 @@ message MsgConnectionOpenTryResponse {}
 message MsgConnectionOpenAck {
   option (cosmos.msg.v1.signer) = "signer";
 
-  option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
   string                    connection_id              = 1;
@@ -113,7 +114,6 @@ message MsgConnectionOpenAckResponse {}
 message MsgConnectionOpenConfirm {
   option (cosmos.msg.v1.signer) = "signer";
 
-  option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
   string connection_id = 1;
@@ -126,3 +126,21 @@ message MsgConnectionOpenConfirm {
 // MsgConnectionOpenConfirmResponse defines the Msg/ConnectionOpenConfirm
 // response type.
 message MsgConnectionOpenConfirmResponse {}
+
+// MsgUpdateParams defines the sdk.Msg type to update the connection parameters.
+message MsgUpdateParams {
+  option (cosmos.msg.v1.signer) = "authority";
+
+  option (gogoproto.goproto_getters) = false;
+
+  // authority is the address that controls the module (defaults to x/gov unless overwritten).
+  string authority = 1;
+
+  // params defines the connection parameters to update.
+  //
+  // NOTE: All parameters must be supplied.
+  Params params = 2 [(gogoproto.nullable) = false];
+}
+
+// MsgUpdateParamsResponse defines the MsgUpdateParams response type.
+message MsgUpdateParamsResponse {}

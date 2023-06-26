@@ -2,9 +2,10 @@ package controller
 
 import (
 	errorsmod "cosmossdk.io/errors"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/keeper"
 	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
 	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
@@ -49,7 +50,7 @@ func (im IBCMiddleware) OnChanOpenInit(
 	counterparty channeltypes.Counterparty,
 	version string,
 ) (string, error) {
-	if !im.keeper.IsControllerEnabled(ctx) {
+	if !im.keeper.GetParams(ctx).ControllerEnabled {
 		return "", types.ErrControllerSubModuleDisabled
 	}
 
@@ -101,7 +102,7 @@ func (im IBCMiddleware) OnChanOpenAck(
 	counterpartyChannelID string,
 	counterpartyVersion string,
 ) error {
-	if !im.keeper.IsControllerEnabled(ctx) {
+	if !im.keeper.GetParams(ctx).ControllerEnabled {
 		return types.ErrControllerSubModuleDisabled
 	}
 
@@ -182,7 +183,7 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 	acknowledgement []byte,
 	relayer sdk.AccAddress,
 ) error {
-	if !im.keeper.IsControllerEnabled(ctx) {
+	if !im.keeper.GetParams(ctx).ControllerEnabled {
 		return types.ErrControllerSubModuleDisabled
 	}
 
@@ -205,7 +206,7 @@ func (im IBCMiddleware) OnTimeoutPacket(
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) error {
-	if !im.keeper.IsControllerEnabled(ctx) {
+	if !im.keeper.GetParams(ctx).ControllerEnabled {
 		return types.ErrControllerSubModuleDisabled
 	}
 

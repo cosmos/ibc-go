@@ -17,6 +17,7 @@ on:
           - release/v6.2.x
           - release/v7.0.x
           - release/v7.1.x
+          - release/v7.2.x
           - main
       ibc-go-version:
         description: 'The version of ibc-go that is going to be released'
@@ -59,6 +60,7 @@ jobs:
           - release/v6.2.x
           - release/v7.0.x
           - release/v7.1.x
+          - release/v7.2.x
           - main
     steps:
       - uses: actions/checkout@v3
@@ -68,7 +70,7 @@ jobs:
           fetch-depth: 0
       - name: Log in to the Container registry
         if: env.RELEASE_BRANCH == matrix.release-branch
-        uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a
+        uses: docker/login-action@465a07811f14bebb1938fbed4728c6a1ff8901fc
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
@@ -256,6 +258,15 @@ jobs:
       test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
       test-suite: "localhost-transfer-chain-a"
 
+  localhost-transfer-chain-b:
+    needs:
+      - build-release-images
+      - determine-test-directory
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
+      test-suite: "localhost-transfer-chain-b"
+
   localhost-ica-chain-a:
     needs:
       - build-release-images
@@ -264,3 +275,12 @@ jobs:
     with:
       test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
       test-suite: "localhost-ica-chain-a"
+
+  localhost-ica-chain-b:
+    needs:
+      - build-release-images
+      - determine-test-directory
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
+      test-suite: "localhost-ica-chain-b"

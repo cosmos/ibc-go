@@ -5,15 +5,17 @@ import (
 	"encoding/json"
 	"fmt"
 
-	abci "github.com/cometbft/cometbft/abci/types"
+	"github.com/grpc-ecosystem/grpc-gateway/runtime"
+	"github.com/spf13/cobra"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
-	"github.com/grpc-ecosystem/grpc-gateway/runtime"
-	"github.com/spf13/cobra"
+
+	abci "github.com/cometbft/cometbft/abci/types"
 
 	ibcclient "github.com/cosmos/ibc-go/v7/modules/core/02-client"
 	clientkeeper "github.com/cosmos/ibc-go/v7/modules/core/02-client/keeper"
@@ -138,7 +140,13 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 		panic(err)
 	}
 
-	if err := cfg.RegisterMigration(exported.ModuleName, 4, clientMigrator.MigrateParams); err != nil {
+	if err := cfg.RegisterMigration(exported.ModuleName, 4, func(ctx sdk.Context) error {
+		if err := clientMigrator.MigrateParams(ctx); err != nil {
+			return err
+		}
+
+		return connectionMigrator.MigrateParams(ctx)
+	}); err != nil {
 		panic(err)
 	}
 }

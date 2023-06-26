@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"cosmossdk.io/math"
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	paramsproposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
@@ -75,7 +75,7 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized() {
 			actualTotalEscrow, err := s.QueryTotalEscrowForDenom(ctx, chainA, chainADenom)
 			s.Require().NoError(err)
 
-			expectedTotalEscrow := sdk.NewCoin(chainADenom, math.NewInt(testvalues.IBCTransferAmount))
+			expectedTotalEscrow := sdk.NewCoin(chainADenom, sdkmath.NewInt(testvalues.IBCTransferAmount))
 			s.Require().Equal(expectedTotalEscrow, actualTotalEscrow)
 		}
 	})
@@ -110,7 +110,7 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized() {
 		if testvalues.TotalEscrowFeatureReleases.IsSupported(chainBVersion) {
 			actualTotalEscrow, err := s.QueryTotalEscrowForDenom(ctx, chainB, chainBIBCToken.IBCDenom())
 			s.Require().NoError(err)
-			s.Require().Equal(sdk.NewCoin(chainBIBCToken.IBCDenom(), sdk.NewInt(0)), actualTotalEscrow) // total escrow is zero because sending chain is not source for tokens
+			s.Require().Equal(sdk.NewCoin(chainBIBCToken.IBCDenom(), sdkmath.NewInt(0)), actualTotalEscrow) // total escrow is zero because sending chain is not source for tokens
 		}
 	})
 
@@ -130,7 +130,7 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized() {
 		t.Run("tokens are un-escrowed", func(t *testing.T) {
 			actualTotalEscrow, err := s.QueryTotalEscrowForDenom(ctx, chainA, chainADenom)
 			s.Require().NoError(err)
-			s.Require().Equal(sdk.NewCoin(chainADenom, sdk.NewInt(0)), actualTotalEscrow) // total escrow is zero because tokens have come back
+			s.Require().Equal(sdk.NewCoin(chainADenom, sdkmath.NewInt(0)), actualTotalEscrow) // total escrow is zero because tokens have come back
 		})
 	}
 }
@@ -245,7 +245,7 @@ func (s *TransferTestSuite) TestSendEnabledParam() {
 	chainBAddress := chainBWallet.FormattedAddress()
 
 	chainAVersion := chainA.Config().Images[0].Version
-	isSelfManagingParams := testvalues.TransferSelfParamsFeatureReleases.IsSupported(chainAVersion)
+	isSelfManagingParams := testvalues.SelfParamsFeatureReleases.IsSupported(chainAVersion)
 
 	govModuleAddress, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
 	s.Require().NoError(err)
@@ -308,7 +308,7 @@ func (s *TransferTestSuite) TestReceiveEnabledParam() {
 	)
 
 	chainAVersion := chainA.Config().Images[0].Version
-	isSelfManagingParams := testvalues.TransferSelfParamsFeatureReleases.IsSupported(chainAVersion)
+	isSelfManagingParams := testvalues.SelfParamsFeatureReleases.IsSupported(chainAVersion)
 
 	govModuleAddress, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
 	s.Require().NoError(err)

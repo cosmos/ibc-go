@@ -4,6 +4,7 @@ import (
 	"math"
 
 	errorsmod "cosmossdk.io/errors"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
@@ -369,7 +370,7 @@ func (k Keeper) VerifyNextSequenceRecv(
 func (k Keeper) getBlockDelay(ctx sdk.Context, connection exported.ConnectionI) uint64 {
 	// expectedTimePerBlock should never be zero, however if it is then return a 0 blcok delay for safety
 	// as the expectedTimePerBlock parameter was not set.
-	expectedTimePerBlock := k.GetMaxExpectedTimePerBlock(ctx)
+	expectedTimePerBlock := k.GetParams(ctx).MaxExpectedTimePerBlock
 	if expectedTimePerBlock == 0 {
 		return 0
 	}
