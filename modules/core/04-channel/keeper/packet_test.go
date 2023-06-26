@@ -241,6 +241,19 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 			},
 			false,
 		},
+		{
+			"channel is in INITUPGRADE stage",
+			func() {
+				suite.coordinator.Setup(path)
+
+				path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = ibcmock.UpgradeVersion
+				path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = ibcmock.UpgradeVersion
+
+				err := path.EndpointA.ChanUpgradeInit()
+				suite.Require().NoError(err)
+			},
+			false,
+		},
 	}
 
 	for i, tc := range testCases {
