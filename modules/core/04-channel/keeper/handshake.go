@@ -290,7 +290,7 @@ func (k Keeper) WriteOpenAckChannel(
 	emitChannelOpenAckEvent(ctx, portID, channelID, channel)
 }
 
-// The chanOpenConfirm function is called by the handshake-accepting module to acknowledge the acknowledgement
+// ChanOpenConfirm is called by the handshake-accepting module to acknowledge the acknowledgement
 // of the handshake-originating module on the other chain and finish the channel opening handshake.
 func (k Keeper) ChanOpenConfirm(
 	ctx sdk.Context,
