@@ -3,8 +3,8 @@
     "release-v7.2.x"
   ],
   "chain-b": [
-    "release-v7.2.x",
-    "v7.1.0"
+    "v7.2.0",
+    "release-v7.2.x"
   ],
   "entrypoint": [
     "LocalhostInterchainAccountsTestSuite"
