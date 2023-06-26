@@ -32,7 +32,6 @@ import (
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	"github.com/cosmos/ibc-go/v7/modules/core/types"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
-	"github.com/cosmos/ibc-go/v7/testing/mock"
 	"github.com/cosmos/ibc-go/v7/testing/simapp"
 )
 
@@ -175,7 +174,7 @@ func NewTestChain(t *testing.T, coord *Coordinator, chainID string) *TestChain {
 	)
 
 	for i := 0; i < validatorsPerChain; i++ {
-		privVal := mock.NewPV()
+		_, privVal := cmttypes.RandValidator(false, 100)
 		pubKey, err := privVal.GetPubKey()
 		require.NoError(t, err)
 		validators = append(validators, cmttypes.NewValidator(pubKey, 1))
@@ -192,7 +191,7 @@ func NewTestChain(t *testing.T, coord *Coordinator, chainID string) *TestChain {
 
 // GetContext returns the current context for the application.
 func (chain *TestChain) GetContext() sdk.Context {
-	return chain.App.GetBaseApp().NewContextLegacy(false, chain.CurrentHeader)
+	return chain.App.NewUncachedContext(false, chain.CurrentHeader)
 }
 
 // GetSimApp returns the SimApp to allow usage ofnon-interface fields.
@@ -291,19 +290,21 @@ func (chain *TestChain) QueryConsensusStateProof(clientID string) ([]byte, clien
 // returned on block `n` to the validators of block `n+2`.
 // It calls BeginBlock with the new block created before returning.
 func (chain *TestChain) NextBlock() {
-	res, _ := chain.App.FinalizeBlock(&abci.RequestFinalizeBlock{
+	res, err := chain.App.FinalizeBlock(&abci.RequestFinalizeBlock{
 		Height: chain.CurrentHeader.Height,
-		Time:   chain.CurrentHeader.GetTime(), // todo (Alex): is this the correct time
+		Time:   chain.CurrentHeader.GetTime(),
 	})
+	require.NoError(chain.TB, err)
 	chain.commitBlock(res)
 }
 
 func (chain *TestChain) commitBlock(res *abci.ResponseFinalizeBlock) {
-	_, _ = chain.App.Commit()
+	_, err := chain.App.Commit()
+	require.NoError(chain.TB, err)
 
 	// set the last header to the current header
 	// use nil trusted fields
-	chain.LastHeader = chain.CurrentCmtClientHeader()
+	chain.LastHeader = chain.CurrentTMClientHeader()
 
 	// val set changes returned from previous block get applied to the next validators
 	// of this block. See tendermint spec for details.
@@ -341,23 +342,24 @@ func (chain *TestChain) SendMsgs(msgs ...sdk.Msg) (*sdk.Result, error) {
 	// ensure the chain has the latest time
 	chain.Coordinator.UpdateTimeForChain(chain)
 
-	_, r, err := simapp.SignAndDeliver(
+	_, r, resp, err := simapp.SignAndDeliver(
 		chain.TB,
 		chain.TxConfig,
 		chain.App.GetBaseApp(),
-		chain.CurrentHeader,
 		msgs,
 		chain.ChainID,
 		[]uint64{chain.SenderAccount.GetAccountNumber()},
 		[]uint64{chain.SenderAccount.GetSequence()},
-		true, chain.SenderPrivKey,
+		true,
+		chain.CurrentHeader.GetTime(),
+		chain.SenderPrivKey,
 	)
 	if err != nil {
 		return nil, err
 	}
 
 	// NextBlock calls app.Commit()
-	chain.NextBlock()
+	chain.commitBlock(resp)
 
 	// increment sequence for successful transaction execution
 	err = chain.SenderAccount.SetSequence(chain.SenderAccount.GetSequence() + 1)
@@ -468,68 +470,31 @@ func (chain *TestChain) ExpireClient(amount time.Duration) {
 	chain.Coordinator.IncrementTimeBy(amount)
 }
 
-// Replicate MakeCommit function from cometbft internal package
-func MakeCommit(blockID cmttypes.BlockID, height int64, round int32, valSet *cmttypes.ValidatorSet, privVals []cmttypes.PrivValidator, chainID string, now time.Time) (*cmttypes.Commit, error) {
-	sigs := make([]cmttypes.CommitSig, len(valSet.Validators))
-	for i := 0; i < len(valSet.Validators); i++ {
-		sigs[i] = cmttypes.NewCommitSigAbsent()
-	}
-
-	for _, privVal := range privVals {
-		pk, err := privVal.GetPubKey()
-		if err != nil {
-			return nil, err
-		}
-		addr := pk.Address()
-
-		idx, _ := valSet.GetByAddress(addr)
-		if idx < 0 {
-			return nil, fmt.Errorf("validator with address %s not in validator set", addr)
-		}
-
-		vote := &cmttypes.Vote{
-			ValidatorAddress: addr,
-			ValidatorIndex:   idx,
-			Height:           height,
-			Round:            round,
-			Type:             cmtproto.PrecommitType,
-			BlockID:          blockID,
-			Timestamp:        now,
-		}
-
-		v := vote.ToProto()
-
-		if err := privVal.SignVote(chainID, v); err != nil {
-			return nil, err
-		}
-
-		sigs[idx] = cmttypes.CommitSig{
-			BlockIDFlag:      cmttypes.BlockIDFlagCommit,
-			ValidatorAddress: addr,
-			Timestamp:        now,
-			Signature:        v.Signature,
-		}
-	}
-
-	return &cmttypes.Commit{Height: height, Round: round, BlockID: blockID, Signatures: sigs}, nil
-}
-
 // CurrentTMClientHeader creates a TM header using the current header parameters
 // on the chain. The trusted fields in the header are set to nil.
 func (chain *TestChain) CurrentTMClientHeader() *ibctm.Header {
-	return chain.CreateTMClientHeader(chain.ChainID, chain.CurrentHeader.Height, clienttypes.Height{}, chain.CurrentHeader.Time, chain.Vals, chain.NextVals, nil, chain.Signers)
+	return chain.CreateTMClientHeader(
+		chain.ChainID,
+		chain.CurrentHeader.Height,
+		clienttypes.Height{},
+		chain.CurrentHeader.Time,
+		chain.Vals,
+		chain.NextVals,
+		nil,
+		chain.Signers,
+	)
 }
 
 // CreateTMClientHeader creates a TM header to update the TM client. Args are passed in to allow
 // caller flexibility to use params that differ from the chain.
-func (chain *TestChain) CreateTMClientHeader(chainID string, blockHeight int64, trustedHeight clienttypes.Height, timestamp time.Time, tmValSet, nextVals, tmTrustedVals *cmttypes.ValidatorSet, signers map[string]cmttypes.PrivValidator) *ibctm.Header {
+func (chain *TestChain) CreateTMClientHeader(chainID string, blockHeight int64, trustedHeight clienttypes.Height, timestamp time.Time, cmtValSet, nextVals, tmTrustedVals *cmttypes.ValidatorSet, signers map[string]cmttypes.PrivValidator) *ibctm.Header {
 	var (
 		valSet      *cmtproto.ValidatorSet
 		trustedVals *cmtproto.ValidatorSet
 	)
-	require.NotNil(chain.TB, tmValSet)
+	require.NotNil(chain.TB, cmtValSet)
 
-	vsetHash := tmValSet.Hash()
+	vsetHash := cmtValSet.Hash()
 	nextValHash := nextVals.Hash()
 
 	tmHeader := cmttypes.Header{
@@ -546,31 +511,31 @@ func (chain *TestChain) CreateTMClientHeader(chainID string, blockHeight int64, 
 		AppHash:            chain.CurrentHeader.AppHash,
 		LastResultsHash:    tmhash.Sum([]byte("last_results_hash")),
 		EvidenceHash:       tmhash.Sum([]byte("evidence_hash")),
-		ProposerAddress:    tmValSet.Proposer.Address, //nolint:staticcheck
+		ProposerAddress:    cmtValSet.Proposer.Address, //nolint:staticcheck
 	}
 
 	hhash := tmHeader.Hash()
 	blockID := MakeBlockID(hhash, 3, tmhash.Sum([]byte("part_set")))
-	// voteSet := cmttypes.NewExtendedVoteSet(chainID, blockHeight, 1, tmproto.PrecommitType, tmValSet)
+	voteSet := cmttypes.NewExtendedVoteSet(chainID, blockHeight, 1, cmtproto.PrecommitType, cmtValSet)
 
 	// MakeCommit expects a signer array in the same order as the validator array.
 	// Thus we iterate over the ordered validator set and construct a signer array
 	// from the signer map in the same order.
-	var signerArr []cmttypes.PrivValidator  //nolint:prealloc // using prealloc here would be needlessly complex
-	for _, v := range tmValSet.Validators { //nolint:staticcheck // need to check for nil validator set
+	var signerArr []cmttypes.PrivValidator   //nolint:prealloc // using prealloc here would be needlessly complex
+	for _, v := range cmtValSet.Validators { //nolint:staticcheck // need to check for nil validator set
 		signerArr = append(signerArr, signers[v.Address.String()])
 	}
 
-	extCommit, err := MakeCommit(blockID, blockHeight, 1, nextVals, signerArr, chainID, timestamp)
+	extCommit, err := cmttypes.MakeExtCommit(blockID, blockHeight, 1, voteSet, signerArr, timestamp, true)
 	require.NoError(chain.TB, err)
 
 	signedHeader := &cmtproto.SignedHeader{
 		Header: tmHeader.ToProto(),
-		Commit: extCommit.ToProto(),
+		Commit: extCommit.ToCommit().ToProto(),
 	}
 
-	if tmValSet != nil { //nolint:staticcheck
-		valSet, err = tmValSet.ToProto()
+	if cmtValSet != nil { //nolint:staticcheck
+		valSet, err = cmtValSet.ToProto()
 		require.NoError(chain.TB, err)
 	}
 
@@ -659,74 +624,4 @@ func (chain *TestChain) GetChannelCapability(portID, channelID string) *capabili
 // to be used for testing. It returns the current IBC height + 100 blocks
 func (chain *TestChain) GetTimeoutHeight() clienttypes.Height {
 	return clienttypes.NewHeight(clienttypes.ParseChainID(chain.ChainID), uint64(chain.GetContext().BlockHeight())+100)
-}
-
-// CurrentCmtClientHeader creates a TM header using the current header parameters
-// on the chain. The trusted fields in the header are set to nil.
-func (chain *TestChain) CurrentCmtClientHeader() *ibctm.Header {
-	return chain.CreateCmtClientHeader(
-		chain.ChainID,
-		chain.CurrentHeader.Height,
-		clienttypes.Height{},
-		chain.CurrentHeader.Time,
-		chain.Vals,
-		chain.NextVals,
-		nil,
-		chain.Signers,
-	)
-}
-
-// CreateCmtClientHeader creates a TM header to update the TM client. Args are passed in to allow
-// caller flexibility to use params that differ from the chain.
-func (chain *TestChain) CreateCmtClientHeader(chainID string, blockHeight int64, trustedHeight clienttypes.Height, timestamp time.Time, cmtValSet, nextVals, tmTrustedVals *cmttypes.ValidatorSet, signers map[string]cmttypes.PrivValidator) *ibctm.Header {
-	var (
-		valSet      *cmtproto.ValidatorSet
-		trustedVals *cmtproto.ValidatorSet
-	)
-
-	vsetHash := cmtValSet.Hash()
-	nextValHash := nextVals.Hash()
-
-	cmtHeader := cmttypes.Header{
-		Version:            cmtprotoversion.Consensus{Block: cmtversion.BlockProtocol, App: 2},
-		ChainID:            chainID,
-		Height:             blockHeight,
-		Time:               timestamp,
-		LastBlockID:        MakeBlockID(make([]byte, tmhash.Size), 10_000, make([]byte, tmhash.Size)),
-		LastCommitHash:     chain.App.LastCommitID().Hash,
-		DataHash:           tmhash.Sum([]byte("data_hash")),
-		ValidatorsHash:     vsetHash,
-		NextValidatorsHash: nextValHash,
-		ConsensusHash:      tmhash.Sum([]byte("consensus_hash")),
-		AppHash:            chain.CurrentHeader.AppHash,
-		LastResultsHash:    tmhash.Sum([]byte("last_results_hash")),
-		EvidenceHash:       tmhash.Sum([]byte("evidence_hash")),
-		ProposerAddress:    cmtValSet.Proposer.Address, //nolint:staticcheck // SA5011: possible nil pointer dereference
-	}
-
-	hhash := cmtHeader.Hash()
-	blockID := MakeBlockID(hhash, 3, tmhash.Sum([]byte("part_set")))
-	voteSet := cmttypes.NewExtendedVoteSet(chainID, blockHeight, 1, cmtproto.PrecommitType, cmtValSet)
-	// MakeCommit expects a signer array in the same order as the validator array.
-	// Thus we iterate over the ordered validator set and construct a signer array
-	// from the signer map in the same order.
-	signerArr := make([]cmttypes.PrivValidator, len(cmtValSet.Validators)) //nolint:staticcheck
-	for i, v := range cmtValSet.Validators {                               //nolint:staticcheck
-		signerArr[i] = signers[v.Address.String()]
-	}
-	extCommit, _ := cmttypes.MakeExtCommit(blockID, blockHeight, 1, voteSet, signerArr, timestamp, true)
-
-	signedHeader := &cmtproto.SignedHeader{
-		Header: cmtHeader.ToProto(),
-		Commit: extCommit.ToCommit().ToProto(),
-	}
-
-	// The trusted fields may be nil. They may be filled before relaying messages to a client.
-	// The relayer is responsible for querying client and injecting appropriate trusted fields.
-	return &ibctm.Header{
-		SignedHeader:      signedHeader,
-		ValidatorSet:      valSet,
-		TrustedHeight:     trustedHeight,
-		TrustedValidators: trustedVals,
-	}
 }

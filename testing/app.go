@@ -9,6 +9,7 @@ import (
 	sdkmath "cosmossdk.io/math"
 	storetypes "cosmossdk.io/store/types"
 	abci "github.com/cometbft/cometbft/abci/types"
+	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	tmtypes "github.com/cometbft/cometbft/types"
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/baseapp"
@@ -33,7 +34,10 @@ import (
 var DefaultTestingAppInit = SetupTestingApp
 
 type TestingApp interface {
-	servertypes.Application
+	servertypes.ABCI
+	GetContextForFinalizeBlock(txBytes []byte) sdk.Context
+	NewContextLegacy(isCheckTx bool, header cmtproto.Header) sdk.Context
+	NewUncachedContext(isCheckTx bool, header cmtproto.Header) sdk.Context
 
 	// ibc-go additions
 	GetBaseApp() *baseapp.BaseApp
