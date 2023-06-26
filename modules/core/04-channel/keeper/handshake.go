@@ -77,7 +77,7 @@ func (k Keeper) ChanOpenInit(
 
 // WriteOpenInitChannel writes a channel which has successfully passed the OpenInit handshake step.
 // The channel is set in state and all the associated Send and Recv sequences are set to 1.
-// An event is emitted for the handshake step. 	
+// An event is emitted for the handshake step.
 func (k Keeper) WriteOpenInitChannel(
 	ctx sdk.Context,
 	portID,
@@ -290,8 +290,8 @@ func (k Keeper) WriteOpenAckChannel(
 	emitChannelOpenAckEvent(ctx, portID, channelID, channel)
 }
 
-// ChanOpenConfirm is called by the counterparty module to close their end of the
-// channel, since the other end has been closed.
+// The chanOpenConfirm function is called by the handshake-accepting module to acknowledge the acknowledgement
+// of the handshake-originating module on the other chain and finish the channel opening handshake.
 func (k Keeper) ChanOpenConfirm(
 	ctx sdk.Context,
 	portID,
