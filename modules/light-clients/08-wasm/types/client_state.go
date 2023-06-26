@@ -81,7 +81,7 @@ func (cs ClientState) Status(ctx sdk.Context, clientStore sdk.KVStore, _ codec.B
 	if err != nil {
 		return exported.Unknown
 	}
-	var output queryResponse-
+	var output queryResponse
 	if err := json.Unmarshal(response, &output); err != nil {
 		return exported.Unknown
 	}
