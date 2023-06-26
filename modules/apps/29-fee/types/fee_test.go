@@ -3,10 +3,13 @@ package types_test
 import (
 	"testing"
 
-	sdkmath "cosmossdk.io/math"
-	"github.com/cometbft/cometbft/crypto/secp256k1"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
+
+	sdkmath "cosmossdk.io/math"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/cometbft/cometbft/crypto/secp256k1"
 
 	"github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
 )
