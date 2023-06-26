@@ -194,7 +194,6 @@ func (k Keeper) WriteUpgradeTryChannel(ctx sdk.Context, portID, channelID string
 	channel.FlushStatus = types.FLUSHING
 
 	if !k.hasInflightPackets(ctx, portID, channelID) {
-		fmt.Println("no inflight packets, setting flush status to complete")
 		channel.FlushStatus = types.FLUSHCOMPLETE
 	}
 
