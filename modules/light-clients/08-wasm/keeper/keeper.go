@@ -3,6 +3,7 @@ package keeper
 import (
 	"bytes"
 	"crypto/sha256"
+	"encoding/hex"
 	"math"
 	"strings"
 
@@ -97,7 +98,7 @@ func (k Keeper) storeWasmCode(ctx sdk.Context, code []byte) ([]byte, error) {
 
 	// safety check to assert that code ID returned by WasmVM equals to code hash
 	if !bytes.Equal(codeHash, expectedHash) {
-		return nil, types.ErrWasmInvalidCodeID
+		return nil, sdkerrors.Wrapf(types.ErrInvalidCodeID, "expected %s, got %s", hex.EncodeToString(expectedHash), hex.EncodeToString(codeHash))
 	}
 
 	store.Set(codeIDKey, code)
@@ -121,7 +122,7 @@ func (k Keeper) importWasmCode(ctx sdk.Context, codeIDKey, wasmCode []byte) erro
 	generatedCodeIDKey := types.CodeIDKey(generatedCodeID)
 
 	if !bytes.Equal(codeIDKey, generatedCodeIDKey) {
-		return sdkerrors.Wrapf(types.ErrInvalid, "invalid code ID: expected %s, got %s", string(generatedCodeIDKey), string(codeIDKey))
+		return sdkerrors.Wrapf(types.ErrInvalid, "expected %s, got %s", string(generatedCodeIDKey), string(codeIDKey))
 	}
 
 	store.Set(codeIDKey, wasmCode)

@@ -26,6 +26,8 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // Wasm light client's Client state
 type ClientState struct {
+	// bytes encoding the client state of the underlying light client
+	// implemented as a Wasm contract.
 	Data         []byte       `protobuf:"bytes,1,opt,name=data,proto3" json:"data,omitempty"`
 	CodeId       []byte       `protobuf:"bytes,2,opt,name=code_id,json=codeId,proto3" json:"code_id,omitempty"`
 	LatestHeight types.Height `protobuf:"bytes,3,opt,name=latest_height,json=latestHeight,proto3" json:"latest_height"`
@@ -66,6 +68,8 @@ var xxx_messageInfo_ClientState proto.InternalMessageInfo
 
 // Wasm light client's ConsensusState
 type ConsensusState struct {
+	// bytes encoding the consensus state of the underlying light client
+	// implemented as a Wasm contract.
 	Data []byte `protobuf:"bytes,1,opt,name=data,proto3" json:"data,omitempty"`
 	// timestamp that corresponds to the block height in which the ConsensusState
 	// was stored.

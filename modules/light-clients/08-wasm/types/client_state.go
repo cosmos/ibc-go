@@ -77,11 +77,11 @@ func (cs ClientState) Status(ctx sdk.Context, clientStore sdk.KVStore, _ codec.B
 		return exported.Unknown
 	}
 
-	response, err := queryContractWithStore(ctx, clientStore, cs.CodeId, encodedData)
+	response, err := queryContract(ctx, clientStore, cs.CodeId, encodedData)
 	if err != nil {
 		return exported.Unknown
 	}
-	var output queryResponse
+	var output queryResponse-
 	if err := json.Unmarshal(response, &output); err != nil {
 		return exported.Unknown
 	}
@@ -121,7 +121,7 @@ func (cs ClientState) Initialize(ctx sdk.Context, marshaler codec.BinaryCodec, c
 	setClientState(clientStore, marshaler, &cs)
 	setConsensusState(clientStore, marshaler, consensusState, cs.GetLatestHeight())
 
-	_, err := initContract(cs.CodeId, ctx, clientStore)
+	_, err := initContract(ctx, clientStore, cs.CodeId)
 	if err != nil {
 		return sdkerrors.Wrapf(err, "failed to initialize contract")
 	}
@@ -250,7 +250,7 @@ func call[T ContractResult](ctx sdk.Context, clientStore sdk.KVStore, cs *Client
 	if err != nil {
 		return output, sdkerrors.Wrapf(err, "failed to marshal wasm contract payload")
 	}
-	out, err := callContract(cs.CodeId, ctx, clientStore, encodedData)
+	out, err := callContract(ctx, clientStore, cs.CodeId, encodedData)
 	if err != nil {
 		return output, sdkerrors.Wrapf(err, "call to wasm contract failed")
 	}

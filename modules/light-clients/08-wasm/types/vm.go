@@ -39,7 +39,7 @@ func (r contractResult) Error() string {
 }
 
 // initContract calls vm.Init with appropriate arguments.
-func initContract(codeID []byte, ctx sdk.Context, clientStore sdk.KVStore) (*wasmvmtypes.Response, error) {
+func initContract(ctx sdk.Context, clientStore sdk.KVStore, codeID []byte) (*wasmvmtypes.Response, error) {
 	sdkGasMeter := ctx.GasMeter()
 	multipliedGasMeter := NewMultipliedGasMeter(sdkGasMeter, VMGasRegister)
 	gasLimit := VMGasRegister.runtimeGasForContract(ctx)
@@ -59,7 +59,7 @@ func initContract(codeID []byte, ctx sdk.Context, clientStore sdk.KVStore) (*was
 }
 
 // callContract calls vm.Execute with internally constructed gas meter and environment.
-func callContract(codeID []byte, ctx sdk.Context, clientStore sdk.KVStore, msg []byte) (*wasmvmtypes.Response, error) {
+func callContract(ctx sdk.Context, clientStore sdk.KVStore, codeID []byte, msg []byte) (*wasmvmtypes.Response, error) {
 	sdkGasMeter := ctx.GasMeter()
 	multipliedGasMeter := NewMultipliedGasMeter(sdkGasMeter, VMGasRegister)
 	gasLimit := VMGasRegister.runtimeGasForContract(ctx)
@@ -76,8 +76,8 @@ func callContract(codeID []byte, ctx sdk.Context, clientStore sdk.KVStore, msg [
 	return resp, err
 }
 
-// queryContractWithStore calls vm.Query.
-func queryContractWithStore(ctx sdk.Context, clientStore sdk.KVStore, codeID cosmwasm.Checksum, msg []byte) ([]byte, error) {
+// queryContract calls vm.Query.
+func queryContract(ctx sdk.Context, clientStore sdk.KVStore, codeID []byte, msg []byte) ([]byte, error) {
 	sdkGasMeter := ctx.GasMeter()
 	multipliedGasMeter := NewMultipliedGasMeter(sdkGasMeter, VMGasRegister)
 	gasLimit := VMGasRegister.runtimeGasForContract(ctx)
@@ -90,7 +90,7 @@ func queryContractWithStore(ctx sdk.Context, clientStore sdk.KVStore, codeID cos
 	return resp, err
 }
 
-// getEnv return the state of the blockchain environment the contract is running on
+// getEnv returns the state of the blockchain environment the contract is running on
 func getEnv(ctx sdk.Context) wasmvmtypes.Env {
 	chainID := ctx.BlockHeader().ChainID
 	height := ctx.BlockHeader().Height
