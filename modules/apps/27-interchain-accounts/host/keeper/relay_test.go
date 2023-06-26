@@ -545,7 +545,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 					"messages": [
 						{
 							"@type": "/cosmos.gov.v1beta1.MsgVote",
-							"voter": "`+ icaAddress +`",
+							"voter": "` + icaAddress + `",
 							"proposal_id": 1,
 							"option": 1
 						}
@@ -557,7 +557,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 
 				packetData = []byte(`{
 					"type": 1,
-					"data":` + byteArrayString +`
+					"data":` + byteArrayString + `
 				}`)
 
 				params := types.NewParams(true, []string{"*"})
@@ -572,7 +572,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 					"messages": [
 						{
 							"@type": "/cosmos.bank.v1beta1.MsgSend",
-							"from_address": "`+ icaAddress +`",
+							"from_address": "` + icaAddress + `",
 							"to_address": "cosmos17dtl0mjt3t77kpuhg2edqzjpszulwhgzuj9ljs",
 							"amount": [{ "denom": "stake", "amount": "100" }]
 						}
@@ -582,7 +582,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 
 				packetData = []byte(`{
 					"type": 1,
-					"data":` + byteArrayString +`
+					"data":` + byteArrayString + `
 				}`)
 
 				params := types.NewParams(true, []string{sdk.MsgTypeURL((*banktypes.MsgSend)(nil))})
@@ -603,7 +603,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 								"description": "tokens for all!"
 							},
 							"initial_deposit": [{ "denom": "stake", "amount": "5000" }],
-							"proposer": "`+ icaAddress +`"
+							"proposer": "` + icaAddress + `"
 						}
 					]
 				}`)
@@ -611,7 +611,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 
 				packetData = []byte(`{
 					"type": 1,
-					"data":` + byteArrayString +`
+					"data":` + byteArrayString + `
 				}`)
 
 				params := types.NewParams(true, []string{sdk.MsgTypeURL((*govtypes.MsgSubmitProposal)(nil))})
@@ -641,7 +641,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 					"messages": [
 						{
 							"@type": "/cosmos.gov.v1beta1.MsgVote",
-							"voter": "`+ icaAddress +`",
+							"voter": "` + icaAddress + `",
 							"proposal_id": 1,
 							"option": 1
 						}
@@ -651,7 +651,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 
 				packetData = []byte(`{
 					"type": 1,
-					"data":` + byteArrayString +`
+					"data":` + byteArrayString + `
 				}`)
 
 				params := types.NewParams(true, []string{sdk.MsgTypeURL((*govtypes.MsgVote)(nil))})
@@ -672,17 +672,17 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 								"description": "tokens for all!"
 							},
 							"initial_deposit": [{ "denom": "stake", "amount": "5000" }],
-							"proposer": "`+ icaAddress +`"
+							"proposer": "` + icaAddress + `"
 						},
 						{
 							"@type": "/cosmos.gov.v1beta1.MsgDeposit",
 							"proposal_id": 1,
-							"depositor": "`+ icaAddress +`",
+							"depositor": "` + icaAddress + `",
 							"amount": [{ "denom": "stake", "amount": "10000000" }]
 						},
 						{
 							"@type": "/cosmos.gov.v1beta1.MsgVote",
-							"voter": "`+ icaAddress +`",
+							"voter": "` + icaAddress + `",
 							"proposal_id": 1,
 							"option": 1
 						}
@@ -692,7 +692,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 
 				packetData = []byte(`{
 					"type": 1,
-					"data":` + byteArrayString +`
+					"data":` + byteArrayString + `
 				}`)
 
 				params := types.NewParams(true, []string{sdk.MsgTypeURL((*govtypes.MsgSubmitProposal)(nil)), sdk.MsgTypeURL((*govtypes.MsgDeposit)(nil)), sdk.MsgTypeURL((*govtypes.MsgVote)(nil))})
@@ -718,7 +718,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 							"source_port": "transfer",
 							"source_channel": "channel-1",
 							"token": { "denom": "stake", "amount": "100" },
-							"sender": "`+ icaAddress +`",
+							"sender": "` + icaAddress + `",
 							"receiver": "cosmos15ulrf36d4wdtrtqzkgaan9ylwuhs7k7qz753uk",
 							"timeout_height": { "revision_number": 1, "revision_height": 100 },
 							"timeout_timestamp": 0
@@ -729,7 +729,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 
 				packetData = []byte(`{
 					"type": 1,
-					"data":` + byteArrayString +`
+					"data":` + byteArrayString + `
 				}`)
 
 				params := types.NewParams(true, []string{sdk.MsgTypeURL((*transfertypes.MsgTransfer)(nil))})
@@ -745,7 +745,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 
 				packetData = []byte(`{
 					"type": 1,
-					"data":` + byteArrayString +`
+					"data":` + byteArrayString + `
 				}`)
 
 				params := types.NewParams(true, []string{"*"})
@@ -760,7 +760,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 					"messages": [
 						{
 							"@type": "/cosmos.bank.v1beta1.MsgSend",
-							"from_address": "`+ icaAddress +`",
+							"from_address": "` + icaAddress + `",
 							"to_address": "cosmos17dtl0mjt3t77kpuhg2edqzjpszulwhgzuj9ljs",
 							"amount": [{ "denom": "stake", "amount": "100" }]
 						}
@@ -770,7 +770,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 
 				packetData = []byte(`{
 					"type": 1,
-					"data":` + byteArrayString +`
+					"data":` + byteArrayString + `
 				}`)
 
 				params := types.NewParams(true, []string{sdk.MsgTypeURL((*transfertypes.MsgTransfer)(nil))})
@@ -785,7 +785,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 					"messages": [
 						{
 							"@type": "/cosmos.bank.v1beta1.MsgSend",
-							"from_address": "`+ ibctesting.InvalidID +`",
+							"from_address": "` + ibctesting.InvalidID + `",
 							"to_address": "cosmos17dtl0mjt3t77kpuhg2edqzjpszulwhgzuj9ljs",
 							"amount": [{ "denom": "stake", "amount": "100" }]
 						}
@@ -795,7 +795,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 
 				packetData = []byte(`{
 					"type": 1,
-					"data":` + byteArrayString +`
+					"data":` + byteArrayString + `
 				}`)
 
 				params := types.NewParams(true, []string{sdk.MsgTypeURL((*banktypes.MsgSend)(nil))})
