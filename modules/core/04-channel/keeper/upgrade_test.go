@@ -326,6 +326,61 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 	}
 }
 
+func (suite *KeeperTestSuite) TestWriteUpgradeTry() {
+	var (
+		path            *ibctesting.Path
+		proposedUpgrade types.Upgrade
+	)
+
+	testCases := []struct {
+		name              string
+		malleate          func()
+		packetCommitments bool
+	}{
+		{
+			"success with no packet commitments",
+			func() {},
+			false,
+		},
+		{
+			"success with packet commitments",
+			func() {
+				
+			},
+			true,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.Setup(path)
+
+			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
+			proposedUpgrade = path.EndpointB.GetProposedUpgrade()
+
+			tc.malleate()
+
+			_, upgradeWithAppCallbackVersion := suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.WriteUpgradeTryChannel(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, proposedUpgrade, proposedUpgrade.Fields.Version)
+
+			channel := path.EndpointB.GetChannel()
+			upgrade, found := suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.GetUpgrade(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+			suite.Require().True(found)
+			suite.Require().Equal(types.TRYUPGRADE, channel.State)
+			suite.Require().Equal(upgradeWithAppCallbackVersion, upgrade)
+
+			if tc.packetCommitments {
+				suite.Require().Equal(types.FLUSHING, channel.FlushStatus)
+			} else {
+				suite.Require().Equal(types.FLUSHCOMPLETE, channel.FlushStatus)
+			}
+		})
+	}
+}
+
 func (suite *KeeperTestSuite) TestChanUpgradeAck() {
 	var (
 		path                    *ibctesting.Path
