@@ -76,14 +76,18 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 		return appResult
 	}
 
-	err = im.contractKeeper.IBCAcknowledgementPacketCallback(ctx, packet, callbackData.CustomMsg, ack, relayer, callbackData.ContractAddr, callbackData.GasLimit)
-	if err != nil {
-		types.EmitSourceCallbackEvent(ctx, packet, types.CallbackTypeAcknowledgement, callbackData.ContractAddr, callbackData.GasLimit, err)
-		return appResult
+	cachedCtx, writeFn := ctx.CacheContext()
+	cachedCtx = cachedCtx.WithGasMeter(sdk.NewGasMeter(callbackData.GasLimit))
+
+	err = im.contractKeeper.IBCAcknowledgementPacketCallback(cachedCtx, packet, callbackData.CustomMsg, ack, relayer, callbackData.ContractAddr)
+	if err == nil {
+		writeFn()
 	}
+	// consume gas
+	ctx.GasMeter().ConsumeGas(cachedCtx.GasMeter().GasConsumed(), "ibc acknowledgement packet callback")
 
 	// emit event as a callback success
-	types.EmitSourceCallbackEvent(ctx, packet, types.CallbackTypeAcknowledgement, callbackData.ContractAddr, callbackData.GasLimit, nil)
+	types.EmitSourceCallbackEvent(ctx, packet, types.CallbackTypeAcknowledgement, callbackData.ContractAddr, callbackData.GasLimit, err)
 	return appResult
 }
 
@@ -100,14 +104,17 @@ func (im IBCMiddleware) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Pac
 		return appResult
 	}
 
-	// call the contract
-	err = im.contractKeeper.IBCPacketTimeoutCallback(ctx, packet, relayer, callbackData.ContractAddr, callbackData.GasLimit)
-	if err != nil {
-		types.EmitSourceCallbackEvent(ctx, packet, types.CallbackTypeTimeout, callbackData.ContractAddr, callbackData.GasLimit, err)
-		return appResult
-	}
+	cachedCtx, writeFn := ctx.CacheContext()
+	cachedCtx = cachedCtx.WithGasMeter(sdk.NewGasMeter(callbackData.GasLimit))
 
-	types.EmitSourceCallbackEvent(ctx, packet, types.CallbackTypeTimeout, callbackData.ContractAddr, callbackData.GasLimit, nil)
+	// call the contract
+	err = im.contractKeeper.IBCPacketTimeoutCallback(cachedCtx, packet, relayer, callbackData.ContractAddr)
+	if err == nil {
+		writeFn()
+	}
+	ctx.GasMeter().ConsumeGas(cachedCtx.GasMeter().GasConsumed(), "ibc packet timeout callback")
+
+	types.EmitSourceCallbackEvent(ctx, packet, types.CallbackTypeTimeout, callbackData.ContractAddr, callbackData.GasLimit, err)
 	return appResult
 }
 
@@ -179,12 +186,16 @@ func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet
 		return appAck
 	}
 
-	err = im.contractKeeper.IBCReceivePacketCallback(ctx, packet, callbackData.CustomMsg, appAckResult, relayer, callbackData.ContractAddr, callbackData.GasLimit)
-	if err != nil {
-		types.EmitDestinationCallbackEvent(ctx, packet, types.CallbackTypeTimeout, callbackData.ContractAddr, callbackData.GasLimit, err)
-		return appAck
-	}
+	cachedCtx, writeFn := ctx.CacheContext()
+	cachedCtx = cachedCtx.WithGasMeter(sdk.NewGasMeter(callbackData.GasLimit))
 
+	err = im.contractKeeper.IBCReceivePacketCallback(cachedCtx, packet, callbackData.CustomMsg, appAckResult, relayer, callbackData.ContractAddr)
+	if err == nil {
+		writeFn()
+	}
+	ctx.GasMeter().ConsumeGas(cachedCtx.GasMeter().GasConsumed(), "ibc receive packet callback")
+
+	types.EmitDestinationCallbackEvent(ctx, packet, types.CallbackTypeTimeout, callbackData.ContractAddr, callbackData.GasLimit, err)
 	return appAck
 }
 

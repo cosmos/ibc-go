@@ -41,8 +41,8 @@ func GetCallbackData(app PacketUnmarshalerIBCModule, packet channeltypes.Packet,
 	}
 
 	gasLimit := callbackData.UserDefinedGasLimit()
-	if gasLimit == 0 || gasLimit >= remainingGas {
-		gasLimit = 0
+	if gasLimit == 0 || gasLimit > remainingGas {
+		gasLimit = remainingGas
 	}
 
 	return CallbackData{
