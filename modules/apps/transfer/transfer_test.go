@@ -142,6 +142,5 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 }
 
 func TestTransferTestSuite(t *testing.T) {
-	t.Parallel()
 	suite.Run(t, new(TransferTestSuite))
 }

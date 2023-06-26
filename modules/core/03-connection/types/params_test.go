@@ -9,7 +9,6 @@ import (
 )
 
 func TestValidateParams(t *testing.T) {
-	t.Parallel()
 	testCases := []struct {
 		name    string
 		params  types.Params

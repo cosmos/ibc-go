@@ -164,7 +164,7 @@ In order to use IBC, we need to add the new modules to the module `Manager` and 
 func NewApp(...args) *App {
   // .. continuation from above
 
-  app.ModuleManager = module.NewManager(
+  app.mm = module.NewManager(
     // other modules
     // ...
     capability.NewAppModule(appCodec, *app.CapabilityKeeper),
@@ -199,7 +199,7 @@ func NewApp(...args) *App {
   // .. continuation from above
 
   // add staking and ibc modules to BeginBlockers
-  app.ModuleManager.SetOrderBeginBlockers(
+  app.mm.SetOrderBeginBlockers(
     // other modules ...
     stakingtypes.ModuleName, ibcexported.ModuleName,
   )
@@ -209,7 +209,7 @@ func NewApp(...args) *App {
   // NOTE: Capability module must occur first so that it can initialize any capabilities
   // so that other modules that want to create or claim capabilities afterwards in InitChain
   // can do so safely.
-  app.ModuleManager.SetOrderInitGenesis(
+  app.mm.SetOrderInitGenesis(
     capabilitytypes.ModuleName,
     // other modules ...
     ibcexported.ModuleName, ibctransfertypes.ModuleName,

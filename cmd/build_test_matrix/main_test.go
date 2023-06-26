@@ -17,16 +17,13 @@ const (
 )
 
 func TestGetGithubActionMatrixForTests(t *testing.T) {
-	t.Parallel()
 	t.Run("empty dir does not fail", func(t *testing.T) {
-		t.Parallel()
 		testingDir := t.TempDir()
 		_, err := getGithubActionMatrixForTests(testingDir, "", "", nil)
 		assert.NoError(t, err)
 	})
 
 	t.Run("only test functions are picked up", func(t *testing.T) {
-		t.Parallel()
 		testingDir := t.TempDir()
 		createFileWithTestSuiteAndTests(t, "FeeMiddlewareTestSuite", "TestA", "TestB", testingDir, goTestFileNameOne)
 
@@ -49,7 +46,6 @@ func TestGetGithubActionMatrixForTests(t *testing.T) {
 	})
 
 	t.Run("all files are picked up", func(t *testing.T) {
-		t.Parallel()
 		testingDir := t.TempDir()
 		createFileWithTestSuiteAndTests(t, "FeeMiddlewareTestSuite", "TestA", "TestB", testingDir, goTestFileNameOne)
 		createFileWithTestSuiteAndTests(t, "TransferTestSuite", "TestC", "TestD", testingDir, goTestFileNameTwo)
@@ -82,7 +78,6 @@ func TestGetGithubActionMatrixForTests(t *testing.T) {
 	})
 
 	t.Run("single test can be specified", func(t *testing.T) {
-		t.Parallel()
 		testingDir := t.TempDir()
 		createFileWithTestSuiteAndTests(t, "FeeMiddlewareTestSuite", "TestA", "TestB", testingDir, goTestFileNameOne)
 		createFileWithTestSuiteAndTests(t, "TransferTestSuite", "TestC", "TestD", testingDir, goTestFileNameTwo)
@@ -103,7 +98,6 @@ func TestGetGithubActionMatrixForTests(t *testing.T) {
 	})
 
 	t.Run("error if single test doesn't exist", func(t *testing.T) {
-		t.Parallel()
 		testingDir := t.TempDir()
 		createFileWithTestSuiteAndTests(t, "FeeMiddlewareTestSuite", "TestA", "TestB", testingDir, goTestFileNameOne)
 
@@ -112,7 +106,6 @@ func TestGetGithubActionMatrixForTests(t *testing.T) {
 	})
 
 	t.Run("non test files are not picked up", func(t *testing.T) {
-		t.Parallel()
 		testingDir := t.TempDir()
 		createFileWithTestSuiteAndTests(t, "FeeMiddlewareTestSuite", "TestA", "TestB", testingDir, nonTestFile)
 
@@ -122,7 +115,6 @@ func TestGetGithubActionMatrixForTests(t *testing.T) {
 	})
 
 	t.Run("fails when there are multiple suite runs", func(t *testing.T) {
-		t.Parallel()
 		testingDir := t.TempDir()
 		createFileWithTestSuiteAndTests(t, "FeeMiddlewareTestSuite", "TestA", "TestB", testingDir, nonTestFile)
 

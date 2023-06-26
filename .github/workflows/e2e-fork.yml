@@ -26,8 +26,7 @@ jobs:
         env:
           TEST_EXCLUSIONS: 'TestInterTxTestSuite,TestIncentivizedInterTxTestSuite,TestUpgradeTestSuite'
 
-  # e2e-fork runs the e2e tests directly by using a matrix strategy.
-  e2e-fork:
+  e2e:
     env:
       CHAIN_A_TAG: latest
       CHAIN_B_TAG: latest

@@ -11,7 +11,6 @@ import (
 )
 
 func TestCreateCapabilityName(t *testing.T) {
-	t.Parallel()
 	packet := channeltypes.NewPacket(
 		[]byte{},
 		1,

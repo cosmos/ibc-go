@@ -35,7 +35,6 @@ func (suite *MigrationsV7TestSuite) SetupTest() {
 }
 
 func TestIBCTestSuite(t *testing.T) {
-	t.Parallel()
 	suite.Run(t, new(MigrationsV7TestSuite))
 }
 

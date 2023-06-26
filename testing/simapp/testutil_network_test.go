@@ -38,6 +38,5 @@ func (s *IntegrationTestSuite) TestNetwork_Liveness() {
 }
 
 func TestIntegrationTestSuite(t *testing.T) {
-	t.Parallel()
 	suite.Run(t, new(IntegrationTestSuite))
 }

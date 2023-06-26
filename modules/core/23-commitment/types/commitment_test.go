@@ -34,6 +34,5 @@ func (suite *MerkleTestSuite) SetupTest() {
 }
 
 func TestMerkleTestSuite(t *testing.T) {
-	t.Parallel()
 	suite.Run(t, new(MerkleTestSuite))
 }

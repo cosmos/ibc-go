@@ -11,7 +11,6 @@ import (
 
 // tests ParseConnectionSequence and IsValidConnectionID
 func TestParseConnectionSequence(t *testing.T) {
-	t.Parallel()
 	testCases := []struct {
 		name         string
 		connectionID string

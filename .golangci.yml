@@ -6,6 +6,7 @@ run:
 linters:
   disable-all: true
   enable:
+    - depguard
     - dogsled
     - exportloopref
     - errcheck
@@ -18,10 +19,7 @@ linters:
     - ineffassign
     - misspell
     - nakedret
-    - paralleltest
     - staticcheck
-    - tparallel
-    - thelper
     - stylecheck
     - revive
     - typecheck
@@ -62,7 +60,3 @@ linters-settings:
     allow-leading-space: true
     require-explanation: false
     require-specific: false
-  revive:
-    rules:
-      - name: if-return
-        disabled: true

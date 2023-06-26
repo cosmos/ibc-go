@@ -42,7 +42,7 @@ The `AnteDecorator` was actually renamed twice, but in [this PR](https://github.
 
 ### Core
 
-The `key` parameter of the `NewKeeper` function in `modules/core/keeper` is now of type `storetypes.StoreKey` (where `storetypes` is an import alias for `"cosmossdk.io/store/types"`):
+The `key` parameter of the `NewKeeper` function in `modules/core/keeper` is now of type `storetypes.StoreKey` (where `storetypes` is an import alias for `"github.com/cosmos/cosmos-sdk/store/types"`):
 
 ```diff
 func NewKeeper(
@@ -60,7 +60,7 @@ The `RegisterRESTRoutes` function in `modules/core` has been removed.
 
 ### ICS03 - Connection
 
-The `key` parameter of the `NewKeeper` function in `modules/core/03-connection/keeper` is now of type `storetypes.StoreKey` (where `storetypes` is an import alias for `"cosmossdk.io/store/types"`):
+The `key` parameter of the `NewKeeper` function in `modules/core/03-connection/keeper` is now of type `storetypes.StoreKey` (where `storetypes` is an import alias for `"github.com/cosmos/cosmos-sdk/store/types"`):
 
 ```diff
 func NewKeeper(
@@ -85,7 +85,7 @@ The function `NewPacketId` in `modules/core/04-channel/types` has been renamed t
 ) PacketId 
 ```
 
-The `key` parameter of the `NewKeeper` function in `modules/core/04-channel/keeper` is now of type `storetypes.StoreKey` (where `storetypes` is an import alias for `"cosmossdk.io/store/types"`):
+The `key` parameter of the `NewKeeper` function in `modules/core/04-channel/keeper` is now of type `storetypes.StoreKey` (where `storetypes` is an import alias for `"github.com/cosmos/cosmos-sdk/store/types"`):
 
 ```diff
 func NewKeeper(
@@ -101,7 +101,7 @@ func NewKeeper(
 
 ### ICS20 - Transfer
 
-The `key` parameter of the `NewKeeper` function in `modules/apps/transfer/keeper` is now of type `storetypes.StoreKey` (where `storetypes` is an import alias for `"cosmossdk.io/store/types"`):
+The `key` parameter of the `NewKeeper` function in `modules/apps/transfer/keeper` is now of type `storetypes.StoreKey` (where `storetypes` is an import alias for `"github.com/cosmos/cosmos-sdk/store/types"`):
 
 ```diff
 func NewKeeper(
@@ -137,7 +137,7 @@ The `key` and `msgRouter` parameters of the `NewKeeper` functions in
 - `modules/apps/27-interchain-accounts/controller/keeper`
 - and `modules/apps/27-interchain-accounts/host/keeper`
 
-have changed type. The `key` parameter is now of type `storetypes.StoreKey` (where `storetypes` is an import alias for `"cosmossdk.io/store/types"`), and the `msgRouter` parameter is now of type `*icatypes.MessageRouter` (where `icatypes` is an import alias for `"github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/types"`):
+have changed type. The `key` parameter is now of type `storetypes.StoreKey` (where `storetypes` is an import alias for `"github.com/cosmos/cosmos-sdk/store/types"`), and the `msgRouter` parameter is now of type `*icatypes.MessageRouter` (where `icatypes` is an import alias for `"github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/types"`):
 
 ```diff
 // NewKeeper creates a new interchain accounts controller Keeper instance
@@ -283,7 +283,7 @@ See [ADR-03](../architecture/adr-003-ics27-acknowledgement.md/#next-major-versio
 
 ### ICS29 - Fee Middleware
 
-The `key` parameter of the `NewKeeper` function in `modules/apps/29-fee` is now of type `storetypes.StoreKey` (where `storetypes` is an import alias for `"cosmossdk.io/store/types"`):
+The `key` parameter of the `NewKeeper` function in `modules/apps/29-fee` is now of type `storetypes.StoreKey` (where `storetypes` is an import alias for `"github.com/cosmos/cosmos-sdk/store/types"`):
 
 ```diff
 func NewKeeper(
@@ -337,7 +337,7 @@ type StakingKeeper interface {
 }
 ```
 
-- The return type of the function `LastCommitID` has changed to `storetypes.CommitID` (where `storetypes` is an import alias for `"cosmossdk.io/store/types"`).
+- The return type of the function `LastCommitID` has changed to `storetypes.CommitID` (where `storetypes` is an import alias for `"github.com/cosmos/cosmos-sdk/store/types"`).
 
 See the following `git diff` for more details:
 
@@ -420,7 +420,7 @@ The `RegisterRESTRoutes` function in `testing/mock` has been removed.
 
 ### ICS02 - Client
 
-The `key` parameter of the `NewKeeper` function in `modules/core/02-client/keeper` is now of type `storetypes.StoreKey` (where `storetypes` is an import alias for `"cosmossdk.io/store/types"`):
+The `key` parameter of the `NewKeeper` function in `modules/core/02-client/keeper` is now of type `storetypes.StoreKey` (where `storetypes` is an import alias for `"github.com/cosmos/cosmos-sdk/store/types"`):
 
 ```diff
 func NewKeeper(
