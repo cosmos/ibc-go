@@ -65,14 +65,14 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 
 	callbackData, err := types.GetCallbackData(im.app, packet, ctx.GasMeter().GasRemaining())
 	if err != nil {
-		types.EmitSourceCallbackEvent(ctx, packet, types.CallbackTypeAcknowledgement, callbackData.ContractAddr, callbackData.GasLimit, err)
+		types.EmitSourceCallbackEvent(ctx, packet, types.CallbackTypeAcknowledgement, callbackData, err)
 		return appResult
 	}
 
 	var ack channeltypes.Acknowledgement
 	if err := channeltypes.SubModuleCdc.UnmarshalJSON(acknowledgement, &ack); err != nil {
 		err = errorsmod.Wrapf(ibcerrors.ErrUnknownRequest, "cannot unmarshal callback packet acknowledgement: %v", err)
-		types.EmitSourceCallbackEvent(ctx, packet, types.CallbackTypeAcknowledgement, callbackData.ContractAddr, callbackData.GasLimit, err)
+		types.EmitSourceCallbackEvent(ctx, packet, types.CallbackTypeAcknowledgement, callbackData, err)
 		return appResult
 	}
 
@@ -87,7 +87,7 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 	ctx.GasMeter().ConsumeGas(cachedCtx.GasMeter().GasConsumed(), "ibc acknowledgement packet callback")
 
 	// emit event as a callback success
-	types.EmitSourceCallbackEvent(ctx, packet, types.CallbackTypeAcknowledgement, callbackData.ContractAddr, callbackData.GasLimit, err)
+	types.EmitSourceCallbackEvent(ctx, packet, types.CallbackTypeAcknowledgement, callbackData, err)
 	return appResult
 }
 
@@ -100,7 +100,7 @@ func (im IBCMiddleware) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Pac
 
 	callbackData, err := types.GetCallbackData(im.app, packet, ctx.GasMeter().GasRemaining())
 	if err != nil {
-		types.EmitSourceCallbackEvent(ctx, packet, types.CallbackTypeTimeout, callbackData.ContractAddr, callbackData.GasLimit, err)
+		types.EmitSourceCallbackEvent(ctx, packet, types.CallbackTypeTimeout, callbackData, err)
 		return appResult
 	}
 
@@ -114,7 +114,7 @@ func (im IBCMiddleware) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Pac
 	}
 	ctx.GasMeter().ConsumeGas(cachedCtx.GasMeter().GasConsumed(), "ibc packet timeout callback")
 
-	types.EmitSourceCallbackEvent(ctx, packet, types.CallbackTypeTimeout, callbackData.ContractAddr, callbackData.GasLimit, err)
+	types.EmitSourceCallbackEvent(ctx, packet, types.CallbackTypeTimeout, callbackData, err)
 	return appResult
 }
 
@@ -182,7 +182,7 @@ func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet
 
 	callbackData, err := types.GetCallbackData(im.app, packet, ctx.GasMeter().GasRemaining())
 	if err != nil {
-		types.EmitDestinationCallbackEvent(ctx, packet, types.CallbackTypeTimeout, callbackData.ContractAddr, callbackData.GasLimit, err)
+		types.EmitDestinationCallbackEvent(ctx, packet, types.CallbackTypeTimeout, callbackData, err)
 		return appAck
 	}
 
@@ -195,7 +195,7 @@ func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet
 	}
 	ctx.GasMeter().ConsumeGas(cachedCtx.GasMeter().GasConsumed(), "ibc receive packet callback")
 
-	types.EmitDestinationCallbackEvent(ctx, packet, types.CallbackTypeTimeout, callbackData.ContractAddr, callbackData.GasLimit, err)
+	types.EmitDestinationCallbackEvent(ctx, packet, types.CallbackTypeTimeout, callbackData, err)
 	return appAck
 }
 

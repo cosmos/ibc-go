@@ -44,11 +44,10 @@ func EmitSourceCallbackEvent(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
 	callbackTrigger string,
-	contractAddr string,
-	gasLimit uint64,
+	callbackData CallbackData,
 	err error,
 ) {
-	emitCallbackEvent(ctx, packet, EventTypeSourceCallback, callbackTrigger, contractAddr, gasLimit, err)
+	emitCallbackEvent(ctx, packet, EventTypeSourceCallback, callbackTrigger, callbackData, err)
 }
 
 // EmitDestinationCallbackEvent emits an event for a destination callback
@@ -56,11 +55,10 @@ func EmitDestinationCallbackEvent(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
 	callbackTrigger string,
-	contractAddr string,
-	gasLimit uint64,
+	callbackData CallbackData,
 	err error,
 ) {
-	emitCallbackEvent(ctx, packet, EventTypeDestinationCallback, callbackTrigger, contractAddr, gasLimit, err)
+	emitCallbackEvent(ctx, packet, EventTypeDestinationCallback, callbackTrigger, callbackData, err)
 }
 
 // emitCallbackEvent emits an event for a callback
@@ -69,15 +67,15 @@ func emitCallbackEvent(
 	packet channeltypes.Packet,
 	callbackType string,
 	callbackTrigger string,
-	contractAddr string,
-	gasLimit uint64,
+	callbackData CallbackData,
 	err error,
 ) {
 	success := err == nil
 	attributes := []sdk.Attribute{
 		sdk.NewAttribute(sdk.AttributeKeyModule, ModuleName),
 		sdk.NewAttribute(AttributeKeyCallbackTrigger, callbackTrigger),
-		sdk.NewAttribute(AttributeKeyCallbackAddress, contractAddr),
+		sdk.NewAttribute(AttributeKeyCallbackAddress, callbackData.ContractAddr),
+		sdk.NewAttribute(AttributeKeyCallbackGasLimit, fmt.Sprintf("%d", callbackData.GasLimit)),
 		sdk.NewAttribute(AttributeKeyCallbackResult, fmt.Sprintf("%t", success)),
 		sdk.NewAttribute(AttributeKeyCallbackPortID, packet.SourcePort),
 		sdk.NewAttribute(AttributeKeyCallbackChannelID, packet.SourceChannel),
@@ -85,9 +83,6 @@ func emitCallbackEvent(
 	}
 	if !success {
 		attributes = append(attributes, sdk.NewAttribute(AttributeKeyCallbackError, err.Error()))
-	}
-	if gasLimit != 0 {
-		attributes = append(attributes, sdk.NewAttribute(AttributeKeyCallbackGasLimit, fmt.Sprintf("%d", gasLimit)))
 	}
 
 	ctx.EventManager().EmitEvent(
