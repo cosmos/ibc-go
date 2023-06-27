@@ -19,7 +19,6 @@ import (
 	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/types"
 	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
@@ -316,7 +315,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 					Token:            sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100)),
 					Sender:           interchainAccountAddr,
 					Receiver:         suite.chainA.SenderAccount.GetAddress().String(),
-					TimeoutHeight:    clienttypes.NewHeight(1, 100),
+					TimeoutHeight:    suite.chainB.GetTimeoutHeight(),
 					TimeoutTimestamp: uint64(0),
 				}
 
@@ -493,7 +492,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 					path.EndpointA.ChannelID,
 					path.EndpointB.ChannelConfig.PortID,
 					path.EndpointB.ChannelID,
-					clienttypes.NewHeight(1, 100),
+					suite.chainB.GetTimeoutHeight(),
 					0,
 				)
 
@@ -835,7 +834,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 				path.EndpointA.ChannelID,
 				path.EndpointB.ChannelConfig.PortID,
 				path.EndpointB.ChannelID,
-				clienttypes.NewHeight(1, 100),
+				suite.chainB.GetTimeoutHeight(),
 				0,
 			)
 
