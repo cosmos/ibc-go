@@ -91,7 +91,7 @@ The Memo format is defined like so:
 		"dest_callback_address": {contractAddrOnDestChain},
 
 		// optional fields
-		"src_callback_msg": {jsonObjectForSourceChainCallback},
+		"callback_msg": {jsonObjectForSourceChainCallback},
 		"dest_callback_msg": {jsonObjectForDestChainCallback},
 	}
 }
@@ -159,7 +159,7 @@ func (ftpd FungibleTokenPacketData) GetUserDefinedCustomMessage() []byte {
 		return nil
 	}
 
-	callbackMsg, ok := callbackData["src_callback_msg"].(string)
+	callbackMsg, ok := callbackData["callback_msg"].(string)
 	if !ok {
 		return nil
 	}

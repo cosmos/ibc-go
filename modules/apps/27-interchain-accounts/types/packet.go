@@ -73,7 +73,7 @@ The Memo format is defined like so:
 		"src_callback_address": {contractAddrOnSourceChain},
 
 		// optional fields
-		"src_callback_msg": {jsonObjectForSourceChainCallback},
+		"callback_msg": {base64StringForCallback},
 	}
 }
 ```
@@ -118,7 +118,7 @@ func (iapd InterchainAccountPacketData) GetUserDefinedCustomMessage() []byte {
 		return nil
 	}
 
-	callbackMsg, ok := callbackData["src_callback_msg"].(string)
+	callbackMsg, ok := callbackData["callback_msg"].(string)
 	if !ok {
 		return nil
 	}
