@@ -1,7 +1,0 @@
-go 1.19
-
-use (
-	./
-	./modules/capability
-//	./e2e // after upgrading ibc-go we can upgrade interchaintest
-)
