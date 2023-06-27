@@ -21,7 +21,6 @@ import (
 	"gopkg.in/yaml.v2"
 
 	"github.com/cosmos/ibc-go/e2e/relayer"
-	"github.com/cosmos/ibc-go/e2e/semverutil"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 )
 
@@ -52,6 +51,8 @@ const (
 	// defaultRlyTag is the tag that will be used if no relayer tag is specified.
 	// all images are here https://github.com/cosmos/relayer/pkgs/container/relayer/versions
 	defaultRlyTag = "latest" // "andrew-tendermint_v0.37" // "v2.2.0"
+	// defaultHermesTag is the tag that will be used if no relayer tag is specified for hermes.
+	defaultHermesTag = "v1.4.0"
 	// defaultChainTag is the tag that will be used for the chains if none is specified.
 	defaultChainTag = "main"
 	// defaultRelayerType is the default relayer that will be used if none is specified.
@@ -59,6 +60,9 @@ const (
 	// defaultConfigFileName is the default filename for the config file that can be used to configure
 	// e2e tests. See sample.config.yaml as an example for what this should look like.
 	defaultConfigFileName = ".ibc-go-e2e-config.yaml"
+
+	// icadBinary is the binary for interchain-accounts-demo repository.
+	icadBinary = "icad"
 )
 
 func getChainImage(binary string) string {
@@ -284,7 +288,7 @@ func getRelayerConfigFromEnv() relayer.Config {
 			rlyTag = defaultRlyTag
 		}
 		if relayerType == relayer.Hermes {
-			// TODO: set default hermes version
+			rlyTag = defaultHermesTag
 		}
 	}
 	return relayer.Config{
@@ -360,6 +364,15 @@ func newDefaultSimappConfig(cc ChainConfig, name, chainID, denom string, cometCf
 	tmTomlOverrides["log_level"] = cometCfg.LogLevel // change to debug in ~/.ibc-go-e2e-config.json to increase cometbft logging.
 	configFileOverrides["config/config.toml"] = tmTomlOverrides
 
+	var useNewGenesisCommand bool
+	if cc.Binary == defaultBinary && testvalues.SimdNewGenesisCommandsFeatureReleases.IsSupported(cc.Tag) {
+		useNewGenesisCommand = true
+	}
+
+	if cc.Binary == icadBinary && testvalues.IcadNewGenesisCommandsFeatureReleases.IsSupported(cc.Tag) {
+		useNewGenesisCommand = true
+	}
+
 	return ibc.ChainConfig{
 		Type:    "cosmos",
 		Name:    name,
@@ -370,35 +383,34 @@ func newDefaultSimappConfig(cc ChainConfig, name, chainID, denom string, cometCf
 				Version:    cc.Tag,
 			},
 		},
-		Bin:                 cc.Binary,
-		Bech32Prefix:        "cosmos",
-		CoinType:            fmt.Sprint(sdk.GetConfig().GetCoinType()),
-		Denom:               denom,
-		GasPrices:           fmt.Sprintf("0.00%s", denom),
-		GasAdjustment:       1.3,
-		TrustingPeriod:      "508h",
-		NoHostMount:         false,
-		ModifyGenesis:       getGenesisModificationFunction(cc),
-		ConfigFileOverrides: configFileOverrides,
+		Bin:                    cc.Binary,
+		Bech32Prefix:           "cosmos",
+		CoinType:               fmt.Sprint(sdk.GetConfig().GetCoinType()),
+		Denom:                  denom,
+		GasPrices:              fmt.Sprintf("0.00%s", denom),
+		GasAdjustment:          1.3,
+		TrustingPeriod:         "508h",
+		NoHostMount:            false,
+		ModifyGenesis:          getGenesisModificationFunction(cc),
+		ConfigFileOverrides:    configFileOverrides,
+		UsingNewGenesisCommand: useNewGenesisCommand,
 	}
 }
 
 // getGenesisModificationFunction returns a genesis modification function that handles the GenesisState type
 // correctly depending on if the govv1beta1 gov module is used or if govv1 is being used.
 func getGenesisModificationFunction(cc ChainConfig) func(ibc.ChainConfig, []byte) ([]byte, error) {
+	binary := cc.Binary
 	version := cc.Tag
 
-	if govGenesisFeatureReleases.IsSupported(version) {
+	simdSupportsGovV1Genesis := binary == defaultBinary && testvalues.GovGenesisFeatureReleases.IsSupported(version)
+	icadSupportsGovV1Genesis := testvalues.IcadGovGenesisFeatureReleases.IsSupported(version)
+
+	if simdSupportsGovV1Genesis || icadSupportsGovV1Genesis {
 		return defaultGovv1ModifyGenesis()
 	}
 
 	return defaultGovv1Beta1ModifyGenesis()
-}
-
-// govGenesisFeatureReleases represents the releases the governance module genesis
-// was upgraded from v1beta1 to v1.
-var govGenesisFeatureReleases = semverutil.FeatureReleases{
-	MajorVersion: "v7",
 }
 
 // defaultGovv1ModifyGenesis will only modify governance params to ensure the voting period and minimum deposit

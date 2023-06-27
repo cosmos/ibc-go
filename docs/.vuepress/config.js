@@ -145,6 +145,10 @@ module.exports = {
         key: "v4.3.0",
       },
       {
+        label: "v4.4.0",
+        key: "v4.4.0",
+      },
+      {
         label: "v5.0.0",
         key: "v5.0.0",
       },
@@ -157,12 +161,28 @@ module.exports = {
         key: "v5.2.0",
       },
       {
+        label: "v5.3.0",
+        key: "v5.3.0",
+      },
+      {
         label: "v6.1.0",
         key: "v6.1.0",
       },
       {
+        label: "v6.2.0",
+        key: "v6.2.0",
+      },
+      {
         label: "v7.0.0",
         key: "v7.0.0",
+      },
+      {
+        label: "v7.1.0",
+        key: "v7.1.0",
+      },
+      {
+        label: "v7.2.0",
+        key: "v7.2.0",
       },
     ],
     topbar: {
@@ -342,6 +362,11 @@ module.exports = {
                   title: "Authorizations",
                   directory: false,
                   path: "/apps/transfer/authorizations.html",
+                },
+                {
+                  title: "Client",
+                  directory: false,
+                  path: "/apps/transfer/client.html",
                 },
               ],
             },

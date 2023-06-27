@@ -1,12 +1,13 @@
 package keeper
 
 import (
-	"github.com/cometbft/cometbft/libs/log"
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
+	"github.com/cometbft/cometbft/libs/log"
+
+	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	"github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
@@ -16,8 +17,8 @@ import (
 // Middleware must implement types.ChannelKeeper and types.PortKeeper expected interfaces
 // so that it can wrap IBC channel and port logic for underlying application.
 var (
-	_ types.ChannelKeeper = Keeper{}
-	_ types.PortKeeper    = Keeper{}
+	_ types.ChannelKeeper = (*Keeper)(nil)
+	_ types.PortKeeper    = (*Keeper)(nil)
 )
 
 // Keeper defines the IBC fungible transfer keeper

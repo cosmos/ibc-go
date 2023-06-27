@@ -4,6 +4,7 @@ import (
 	"time"
 
 	errorsmod "cosmossdk.io/errors"
+
 	tmbytes "github.com/cometbft/cometbft/libs/bytes"
 	tmtypes "github.com/cometbft/cometbft/types"
 
@@ -11,6 +12,8 @@ import (
 	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
+
+var _ exported.ConsensusState = (*ConsensusState)(nil)
 
 // SentinelRoot is used as a stand-in root value for the consensus state set at the upgrade height
 const SentinelRoot = "sentinel_root"
