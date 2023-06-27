@@ -180,6 +180,10 @@ module.exports = {
         label: "v7.1.0",
         key: "v7.1.0",
       },
+      {
+        label: "v7.2.0",
+        key: "v7.2.0",
+      },
     ],
     topbar: {
       banner: true,

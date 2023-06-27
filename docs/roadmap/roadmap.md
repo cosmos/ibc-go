@@ -4,13 +4,13 @@ order: 1
 
 # Roadmap ibc-go
 
-_Lastest update: April 6th, 2023_
+_Lastest update: June 23th, 2023_
 
 This document endeavours to inform the wider IBC community about plans and priorities for work on ibc-go by the team at Interchain GmbH. It is intended to broadly inform all users of ibc-go, including developers and operators of IBC, relayer, chain and wallet applications.
 
 This roadmap should be read as a high-level guide, rather than a commitment to schedules and deliverables. The degree of specificity is inversely proportional to the timeline. We will update this document periodically to reflect the status and plans. For the latest expected release timelines, please check [here](https://github.com/cosmos/ibc-go/wiki/Release-timeline).
 
-## v7.2.0
+## v7.3.0
 
 Follow the progress with the [milestone](https://github.com/cosmos/ibc-go/milestone/37).
 
