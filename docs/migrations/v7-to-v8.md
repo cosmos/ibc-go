@@ -76,7 +76,9 @@ TODO: https://github.com/cosmos/ibc-go/pull/3505 (extra parameter added to trans
 
 ## IBC Apps
 
-TODO: https://github.com/cosmos/ibc-go/pull/3303
+TODO: 
+- https://github.com/cosmos/ibc-go/pull/3303
+- https://github.com/cosmos/ibc-go/pull/3967
 
 ## Relayers
 
