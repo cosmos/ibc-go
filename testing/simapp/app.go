@@ -2,6 +2,7 @@ package simapp
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
@@ -76,9 +77,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/mint"
 	mintkeeper "github.com/cosmos/cosmos-sdk/x/mint/keeper"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
-	"github.com/cosmos/cosmos-sdk/x/nft"
-	nftkeeper "github.com/cosmos/cosmos-sdk/x/nft/keeper"
-	nftmodule "github.com/cosmos/cosmos-sdk/x/nft/module"
 	"github.com/cosmos/cosmos-sdk/x/params"
 	paramsclient "github.com/cosmos/cosmos-sdk/x/params/client"
 	paramskeeper "github.com/cosmos/cosmos-sdk/x/params/keeper"
@@ -98,6 +96,7 @@ import (
 	dbm "github.com/cometbft/cometbft-db"
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cometbft/cometbft/libs/log"
+	tmos "github.com/cometbft/cometbft/libs/os"
 
 	"github.com/cosmos/ibc-go/modules/capability"
 	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
@@ -175,9 +174,7 @@ var (
 		ibcmock.AppModuleBasic{},
 		ica.AppModuleBasic{},
 		authzmodule.AppModuleBasic{},
-		groupmodule.AppModuleBasic{},
 		vesting.AppModuleBasic{},
-		nftmodule.AppModuleBasic{},
 		ibcfee.AppModuleBasic{},
 		consensus.AppModuleBasic{},
 	)
@@ -190,7 +187,6 @@ var (
 		stakingtypes.BondedPoolName:    {authtypes.Burner, authtypes.Staking},
 		stakingtypes.NotBondedPoolName: {authtypes.Burner, authtypes.Staking},
 		govtypes.ModuleName:            {authtypes.Burner},
-		nft.ModuleName:                 nil,
 		ibctransfertypes.ModuleName:    {authtypes.Minter, authtypes.Burner},
 		ibcfeetypes.ModuleName:         nil,
 		icatypes.ModuleName:            nil,
@@ -239,7 +235,6 @@ type SimApp struct {
 	TransferKeeper        ibctransferkeeper.Keeper
 	FeeGrantKeeper        feegrantkeeper.Keeper
 	GroupKeeper           groupkeeper.Keeper
-	NFTKeeper             nftkeeper.Keeper
 	ConsensusParamsKeeper consensusparamkeeper.Keeper
 
 	// make scoped keepers public for test purposes
@@ -324,13 +319,11 @@ func NewSimApp(
 	bApp.SetTxEncoder(txConfig.TxEncoder())
 
 	keys := sdk.NewKVStoreKeys(
-		// SDK Keys
 		authtypes.StoreKey, banktypes.StoreKey, stakingtypes.StoreKey, crisistypes.StoreKey,
 		minttypes.StoreKey, distrtypes.StoreKey, slashingtypes.StoreKey,
-		govtypes.StoreKey, group.StoreKey, nftkeeper.StoreKey, paramstypes.StoreKey,
+		govtypes.StoreKey, group.StoreKey, paramstypes.StoreKey,
 		upgradetypes.StoreKey, feegrant.StoreKey,
 		evidencetypes.StoreKey, consensusparamtypes.StoreKey, authzkeeper.StoreKey,
-		// IBC Keys
 		ibctransfertypes.StoreKey, icacontrollertypes.StoreKey, icahosttypes.StoreKey, capabilitytypes.StoreKey,
 		ibcfeetypes.StoreKey, ibcexported.StoreKey,
 	)
@@ -467,8 +460,6 @@ func NewSimApp(
 		// register the governance hooks
 		),
 	)
-
-	app.NFTKeeper = nftkeeper.NewKeeper(keys[nftkeeper.StoreKey], appCodec, app.AccountKeeper, app.BankKeeper)
 
 	// IBC Fee Module keeper
 	app.IBCFeeKeeper = ibcfeekeeper.NewKeeper(
@@ -624,7 +615,6 @@ func NewSimApp(
 		params.NewAppModule(app.ParamsKeeper),
 		authzmodule.NewAppModule(appCodec, app.AuthzKeeper, app.AccountKeeper, app.BankKeeper, app.interfaceRegistry),
 		groupmodule.NewAppModule(appCodec, app.GroupKeeper, app.AccountKeeper, app.BankKeeper, app.interfaceRegistry),
-		nftmodule.NewAppModule(appCodec, app.NFTKeeper, app.AccountKeeper, app.BankKeeper, app.interfaceRegistry),
 		consensus.NewAppModule(appCodec, app.ConsensusParamsKeeper),
 
 		// IBC modules
@@ -645,7 +635,6 @@ func NewSimApp(
 		evidencetypes.ModuleName, stakingtypes.ModuleName, ibcexported.ModuleName, ibctransfertypes.ModuleName, authtypes.ModuleName,
 		banktypes.ModuleName, govtypes.ModuleName, crisistypes.ModuleName, genutiltypes.ModuleName, authz.ModuleName, feegrant.ModuleName,
 		paramstypes.ModuleName, vestingtypes.ModuleName, icatypes.ModuleName, ibcfeetypes.ModuleName, ibcmock.ModuleName, group.ModuleName, consensusparamtypes.ModuleName,
-		nft.ModuleName,
 	)
 
 	app.ModuleManager.SetOrderEndBlockers(
@@ -653,7 +642,6 @@ func NewSimApp(
 		capabilitytypes.ModuleName, authtypes.ModuleName, banktypes.ModuleName, distrtypes.ModuleName, slashingtypes.ModuleName,
 		minttypes.ModuleName, genutiltypes.ModuleName, evidencetypes.ModuleName, authz.ModuleName, feegrant.ModuleName, paramstypes.ModuleName,
 		upgradetypes.ModuleName, vestingtypes.ModuleName, icatypes.ModuleName, ibcfeetypes.ModuleName, ibcmock.ModuleName, group.ModuleName, consensusparamtypes.ModuleName,
-		nft.ModuleName,
 	)
 
 	// NOTE: The genutils module must occur after staking so that pools are
@@ -668,7 +656,7 @@ func NewSimApp(
 		slashingtypes.ModuleName, govtypes.ModuleName, minttypes.ModuleName, crisistypes.ModuleName,
 		ibcexported.ModuleName, genutiltypes.ModuleName, evidencetypes.ModuleName, authz.ModuleName, ibctransfertypes.ModuleName,
 		icatypes.ModuleName, ibcfeetypes.ModuleName, ibcmock.ModuleName, feegrant.ModuleName, paramstypes.ModuleName, upgradetypes.ModuleName,
-		vestingtypes.ModuleName, group.ModuleName, consensusparamtypes.ModuleName, nft.ModuleName,
+		vestingtypes.ModuleName, group.ModuleName, consensusparamtypes.ModuleName,
 	}
 	app.ModuleManager.SetOrderInitGenesis(genesisModuleOrder...)
 	app.ModuleManager.SetOrderExportGenesis(genesisModuleOrder...)
@@ -736,6 +724,9 @@ func NewSimApp(
 	// likely to be a state-machine breaking change, which needs a coordinated
 	// upgrade.
 	app.setPostHandler()
+
+	app.setupUpgradeHandlers()
+	app.setupUpgradeStoreLoaders()
 
 	if loadLatest {
 		if err := app.LoadLatestVersion(); err != nil {
@@ -985,20 +976,19 @@ func makeEncodingConfig() simappparams.EncodingConfig {
 }
 
 // IBC Upgrade examples
-/*
 // setupUpgradeHandlers sets all necessary upgrade handlers for testing purposes
 func (app *SimApp) setupUpgradeHandlers() {
 	app.UpgradeKeeper.SetUpgradeHandler(
-		upgrades.V5,
-		upgrades.CreateDefaultUpgradeHandler(app.ModuleManager, app.configurator),
+		V5,
+		CreateDefaultUpgradeHandler(app.ModuleManager, app.configurator),
 	)
 
 	// NOTE: The moduleName arg of v6.CreateUpgradeHandler refers to the auth module ScopedKeeper name to which the channel capability should be migrated from.
 	// This should be the same string value provided upon instantiation of the ScopedKeeper with app.CapabilityKeeper.ScopeToModule()
 	// See: https://github.com/cosmos/ibc-go/blob/v6.1.0/testing/simapp/app.go#L310
 	app.UpgradeKeeper.SetUpgradeHandler(
-		upgrades.V6,
-		upgrades.CreateV6UpgradeHandler(
+		V6,
+		CreateV6UpgradeHandler(
 			app.ModuleManager,
 			app.configurator,
 			app.appCodec,
@@ -1009,8 +999,8 @@ func (app *SimApp) setupUpgradeHandlers() {
 	)
 
 	app.UpgradeKeeper.SetUpgradeHandler(
-		upgrades.V7,
-		upgrades.CreateV7UpgradeHandler(
+		V7,
+		CreateV7UpgradeHandler(
 			app.ModuleManager,
 			app.configurator,
 			app.appCodec,
@@ -1021,11 +1011,10 @@ func (app *SimApp) setupUpgradeHandlers() {
 	)
 
 	app.UpgradeKeeper.SetUpgradeHandler(
-		upgrades.V7_1,
-		upgrades.CreateV7LocalhostUpgradeHandler(app.ModuleManager, app.configurator, app.IBCKeeper.ClientKeeper),
+		V7_1,
+		CreateV7LocalhostUpgradeHandler(app.ModuleManager, app.configurator, app.IBCKeeper.ClientKeeper),
 	)
 }
-
 
 // setupUpgradeStoreLoaders sets all necessary store loaders required by upgrades.
 func (app *SimApp) setupUpgradeStoreLoaders() {
@@ -1034,7 +1023,7 @@ func (app *SimApp) setupUpgradeStoreLoaders() {
 		tmos.Exit(fmt.Sprintf("failed to read upgrade info from disk %s", err))
 	}
 
-	if upgradeInfo.Name == upgrades.V7 && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
+	if upgradeInfo.Name == V7 && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
 		storeUpgrades := storetypes.StoreUpgrades{
 			Added: []string{
 				consensusparamtypes.StoreKey,
@@ -1046,7 +1035,6 @@ func (app *SimApp) setupUpgradeStoreLoaders() {
 		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &storeUpgrades))
 	}
 }
-*/
 
 // IBC TestingApp functions
 
