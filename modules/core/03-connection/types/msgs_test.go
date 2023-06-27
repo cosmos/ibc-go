@@ -6,7 +6,6 @@ import (
 	"time"
 
 	dbm "github.com/cosmos/cosmos-db"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
@@ -15,6 +14,8 @@ import (
 	"cosmossdk.io/store/metrics"
 	"cosmossdk.io/store/rootmulti"
 	storetypes "cosmossdk.io/store/types"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"

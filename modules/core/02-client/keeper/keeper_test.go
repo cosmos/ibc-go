@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	sdkmath "cosmossdk.io/math"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
