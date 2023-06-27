@@ -281,11 +281,12 @@ func (suite *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
 		suite.Require().NotEmpty(bz)
 
 		// test deserializing unknown bytes
-		_, err = types.DeserializeCosmosTx(simapp.MakeTestEncodingConfig().Codec, bz, encoding)
+		msgs, err := types.DeserializeCosmosTx(simapp.MakeTestEncodingConfig().Codec, bz, encoding)
 		suite.Require().Error(err) // unregistered type
+		suite.Require().Empty(msgs)
 
 		// test deserializing unknown bytes
-		msgs, err := types.DeserializeCosmosTx(simapp.MakeTestEncodingConfig().Codec, []byte("invalid"), types.EncodingProtobuf)
+		msgs, err = types.DeserializeCosmosTx(simapp.MakeTestEncodingConfig().Codec, []byte("invalid"), encoding)
 		suite.Require().Error(err)
 		suite.Require().Empty(msgs)
 	}
@@ -468,15 +469,6 @@ func (suite *TypesTestSuite) TestUnsupportedEncodingType() {
 	bz, err := types.SerializeCosmosTx(simapp.MakeTestEncodingConfig().Codec, msgs, "unsupported")
 	suite.Require().Error(err)
 	suite.Require().Nil(bz)
-
-	// Test deserialize
-	msgs = []proto.Message{
-		&banktypes.MsgSend{
-			FromAddress: TestOwnerAddress,
-			ToAddress:   TestOwnerAddress,
-			Amount:      sdk.NewCoins(sdk.NewCoin("bananas", sdkmath.NewInt(100))),
-		},
-	}
 
 	data, err := types.SerializeCosmosTx(simapp.MakeTestEncodingConfig().Codec, msgs, types.EncodingProtobuf)
 	suite.Require().NoError(err)
