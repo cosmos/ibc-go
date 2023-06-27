@@ -472,9 +472,6 @@ func (chain *TestChain) CreateTMClientHeader(chainID string, blockHeight int64, 
 	)
 	require.NotNil(chain.TB, tmValSet)
 
-	vsetHash := tmValSet.Hash()
-	nextValHash := nextVals.Hash()
-
 	tmHeader := tmtypes.Header{
 		Version:            tmprotoversion.Consensus{Block: tmversion.BlockProtocol, App: 2},
 		ChainID:            chainID,
@@ -483,8 +480,8 @@ func (chain *TestChain) CreateTMClientHeader(chainID string, blockHeight int64, 
 		LastBlockID:        MakeBlockID(make([]byte, tmhash.Size), 10_000, make([]byte, tmhash.Size)),
 		LastCommitHash:     chain.App.LastCommitID().Hash,
 		DataHash:           tmhash.Sum([]byte("data_hash")),
-		ValidatorsHash:     vsetHash,
-		NextValidatorsHash: nextValHash,
+		ValidatorsHash:     tmValSet.Hash(),
+		NextValidatorsHash: nextVals.Hash(),
 		ConsensusHash:      tmhash.Sum([]byte("consensus_hash")),
 		AppHash:            chain.CurrentHeader.AppHash,
 		LastResultsHash:    tmhash.Sum([]byte("last_results_hash")),
