@@ -50,7 +50,7 @@ func (im IBCMiddleware) UnmarshalPacketData(bz []byte) (interface{}, error) {
 	return im.app.UnmarshalPacketData(bz)
 }
 
-// OnAcknowledgementPacket implements wasm callbacks for acknowledgement packets.
+// OnAcknowledgementPacket implements source callbacks for acknowledgement packets.
 func (im IBCMiddleware) OnAcknowledgementPacket(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
@@ -91,7 +91,7 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 	return appResult
 }
 
-// OnTimeoutPacket implements the wasm callbacks for the ibc-callbacks middleware.
+// OnTimeoutPacket implements source timeout callbacks for the ibc-callbacks middleware.
 func (im IBCMiddleware) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress) error {
 	appResult := im.app.OnTimeoutPacket(ctx, packet, relayer)
 	if appResult != nil {
@@ -171,7 +171,7 @@ func (im IBCMiddleware) OnChanOpenTry(
 	return im.app.OnChanOpenTry(ctx, channelOrdering, connectionHops, portID, channelID, channelCap, counterparty, counterpartyVersion)
 }
 
-// OnRecvPacket defers to the underlying application
+// OnRecvPacket implements destination callbacks for the ibc-callbacks middleware.
 func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress) ibcexported.Acknowledgement {
 	appAck := im.app.OnRecvPacket(ctx, packet, relayer)
 
