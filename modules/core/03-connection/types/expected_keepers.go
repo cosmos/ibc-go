@@ -1,9 +1,10 @@
 package types
 
 import (
+	storetypes "cosmossdk.io/store/types"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	storetypes "cosmossdk.io/store/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 

@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"testing"
 
-	storetypes "cosmossdk.io/store/types"
 	"github.com/stretchr/testify/require"
+
+	storetypes "cosmossdk.io/store/types"
 
 	"github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
 )
