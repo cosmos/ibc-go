@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -29,7 +30,7 @@ var (
 	}))
 
 	// TestJSONVersion defines a reusable interchainaccounts version string that uses JSON encoding for testing purposes
-	TestJSONVersion = string(icatypes.ModuleCdc.MustMarshalJSON(&icatypes.Metadata{
+	TestVersionWithJSONEncoding = string(icatypes.ModuleCdc.MustMarshalJSON(&icatypes.Metadata{
 		Version:                icatypes.Version,
 		ControllerConnectionId: ibctesting.FirstConnectionID,
 		HostConnectionId:       ibctesting.FirstConnectionID,
@@ -64,9 +65,9 @@ func NewICAPath(chainA, chainB *ibctesting.TestChain, encoding string) *ibctesti
 	case icatypes.EncodingProtobuf:
 		version = TestVersion
 	case icatypes.EncodingJSON:
-		version = TestJSONVersion
+		version = TestVersionWithJSONEncoding
 	default:
-		panic("unsupported encoding")
+		panic(fmt.Sprintf("unsupported encoding type: %s", encoding))
 	}
 
 	path.EndpointA.ChannelConfig.PortID = icatypes.HostPortID
