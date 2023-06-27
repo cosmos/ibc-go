@@ -32,7 +32,7 @@ func (suite *KeeperTestSuite) openAndCloseChannel(path *ibctesting.Path) {
 	suite.Require().NoError(err)
 
 	path.EndpointA.ChannelID = ""
-	err = RegisterInterchainAccount(path.EndpointA, TestOwnerAddress, icatypes.EncodingProtobuf)
+	err = RegisterInterchainAccount(path.EndpointA, TestOwnerAddress)
 	suite.Require().NoError(err)
 
 	// bump channel sequence as these test mock core IBC behaviour on ChanOpenTry
@@ -279,7 +279,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 			path = NewICAPath(suite.chainA, suite.chainB, icatypes.EncodingProtobuf)
 			suite.coordinator.SetupConnections(path)
 
-			err := RegisterInterchainAccount(path.EndpointA, TestOwnerAddress, icatypes.EncodingProtobuf)
+			err := RegisterInterchainAccount(path.EndpointA, TestOwnerAddress)
 			suite.Require().NoError(err)
 
 			// set the channel id on host
@@ -359,7 +359,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenConfirm() {
 			path = NewICAPath(suite.chainA, suite.chainB, icatypes.EncodingProtobuf)
 			suite.coordinator.SetupConnections(path)
 
-			err := RegisterInterchainAccount(path.EndpointA, TestOwnerAddress, icatypes.EncodingProtobuf)
+			err := RegisterInterchainAccount(path.EndpointA, TestOwnerAddress)
 			suite.Require().NoError(err)
 
 			err = path.EndpointB.ChanOpenTry()
@@ -402,7 +402,7 @@ func (suite *KeeperTestSuite) TestOnChanCloseConfirm() {
 			path = NewICAPath(suite.chainA, suite.chainB, icatypes.EncodingProtobuf)
 			suite.coordinator.SetupConnections(path)
 
-			err := SetupICAPath(path, TestOwnerAddress, icatypes.EncodingProtobuf)
+			err := SetupICAPath(path, TestOwnerAddress)
 			suite.Require().NoError(err)
 
 			tc.malleate() // malleate mutates test data

@@ -112,7 +112,7 @@ func (suite *KeeperTestSuite) TestExportGenesis() {
 	path := NewICAPath(suite.chainA, suite.chainB, icatypes.EncodingProtobuf)
 	suite.coordinator.SetupConnections(path)
 
-	err := SetupICAPath(path, TestOwnerAddress, icatypes.EncodingProtobuf)
+	err := SetupICAPath(path, TestOwnerAddress)
 	suite.Require().NoError(err)
 
 	interchainAccAddr, exists := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), path.EndpointB.ConnectionID, path.EndpointA.ChannelConfig.PortID)

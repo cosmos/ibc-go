@@ -465,7 +465,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				path = NewICAPath(suite.chainA, suite.chainB, encoding)
 				suite.coordinator.SetupConnections(path)
 
-				err := SetupICAPath(path, TestOwnerAddress, encoding)
+				err := SetupICAPath(path, TestOwnerAddress)
 				suite.Require().NoError(err)
 
 				portID, err := icatypes.NewControllerPortID(TestOwnerAddress)
@@ -814,7 +814,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 			path = NewICAPath(suite.chainA, suite.chainB, icatypes.EncodingJSON)
 			suite.coordinator.SetupConnections(path)
 
-			err := SetupICAPath(path, TestOwnerAddress, icatypes.EncodingJSON)
+			err := SetupICAPath(path, TestOwnerAddress)
 			suite.Require().NoError(err)
 
 			portID, err := icatypes.NewControllerPortID(TestOwnerAddress)
