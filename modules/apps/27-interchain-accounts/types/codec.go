@@ -54,7 +54,7 @@ func SerializeCosmosTx(cdc codec.BinaryCodec, msgs []proto.Message, encoding str
 	case EncodingProtobuf:
 		bz, err = cdc.Marshal(cosmosTx)
 		if err != nil {
-			return nil, err
+			return nil, errorsmod.Wrapf(err, "cannot marshal cosmosTx with protobuf")
 		}
 	case EncodingJSON:
 		bz, err = cdc.(*codec.ProtoCodec).MarshalJSON(cosmosTx)
@@ -80,7 +80,7 @@ func DeserializeCosmosTx(cdc codec.Codec, data []byte, encoding string) ([]sdk.M
 	switch encoding {
 	case EncodingProtobuf:
 		if err := cdc.Unmarshal(data, &cosmosTx); err != nil {
-			return nil, err
+			return nil, errorsmod.Wrapf(err, "cannot unmarshal cosmosTx with protobuf")
 		}
 	case EncodingJSON:
 		if err := cdc.UnmarshalJSON(data, &cosmosTx); err != nil {
