@@ -62,7 +62,6 @@ enum ResponseResultType {
 message MsgChannelOpenInit {
   option (cosmos.msg.v1.signer) = "signer";
 
-  option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
   string  port_id = 1;
@@ -72,6 +71,8 @@ message MsgChannelOpenInit {
 
 // MsgChannelOpenInitResponse defines the Msg/ChannelOpenInit response type.
 message MsgChannelOpenInitResponse {
+  option (gogoproto.goproto_getters) = false;
+
   string channel_id = 1;
   string version    = 2;
 }
@@ -82,7 +83,6 @@ message MsgChannelOpenInitResponse {
 message MsgChannelOpenTry {
   option (cosmos.msg.v1.signer) = "signer";
 
-  option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
   string port_id = 1;
@@ -98,6 +98,8 @@ message MsgChannelOpenTry {
 
 // MsgChannelOpenTryResponse defines the Msg/ChannelOpenTry response type.
 message MsgChannelOpenTryResponse {
+  option (gogoproto.goproto_getters) = false;
+
   string version    = 1;
   string channel_id = 2;
 }
@@ -107,7 +109,6 @@ message MsgChannelOpenTryResponse {
 message MsgChannelOpenAck {
   option (cosmos.msg.v1.signer) = "signer";
 
-  option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
   string                    port_id                 = 1;
@@ -127,7 +128,6 @@ message MsgChannelOpenAckResponse {}
 message MsgChannelOpenConfirm {
   option (cosmos.msg.v1.signer) = "signer";
 
-  option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
   string                    port_id      = 1;
@@ -146,7 +146,6 @@ message MsgChannelOpenConfirmResponse {}
 message MsgChannelCloseInit {
   option (cosmos.msg.v1.signer) = "signer";
 
-  option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
   string port_id    = 1;
@@ -162,7 +161,6 @@ message MsgChannelCloseInitResponse {}
 message MsgChannelCloseConfirm {
   option (cosmos.msg.v1.signer) = "signer";
 
-  option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
   string                    port_id      = 1;
@@ -180,7 +178,6 @@ message MsgChannelCloseConfirmResponse {}
 message MsgRecvPacket {
   option (cosmos.msg.v1.signer) = "signer";
 
-  option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
   Packet                    packet           = 1 [(gogoproto.nullable) = false];
@@ -200,7 +197,6 @@ message MsgRecvPacketResponse {
 message MsgTimeout {
   option (cosmos.msg.v1.signer) = "signer";
 
-  option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
   Packet                    packet             = 1 [(gogoproto.nullable) = false];
@@ -221,7 +217,6 @@ message MsgTimeoutResponse {
 message MsgTimeoutOnClose {
   option (cosmos.msg.v1.signer) = "signer";
 
-  option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
   Packet                    packet             = 1 [(gogoproto.nullable) = false];
@@ -243,7 +238,6 @@ message MsgTimeoutOnCloseResponse {
 message MsgAcknowledgement {
   option (cosmos.msg.v1.signer) = "signer";
 
-  option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
   Packet                    packet          = 1 [(gogoproto.nullable) = false];

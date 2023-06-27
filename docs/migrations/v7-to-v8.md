@@ -76,11 +76,13 @@ TODO: https://github.com/cosmos/ibc-go/pull/3505 (extra parameter added to trans
 
 ## IBC Apps
 
-TODO: https://github.com/cosmos/ibc-go/pull/3303
+TODO: 
+- https://github.com/cosmos/ibc-go/pull/3303
+- https://github.com/cosmos/ibc-go/pull/3967
 
 ## Relayers
 
-- No relevant changes were made in this release.
+- Getter functions in `MsgChannelOpenInitResponse`, `MsgChannelOpenTryResponse`, `MsgTransferResponse`, `MsgRegisterInterchainAccountResponse` and `MsgSendTxResponse` have been removed. The fields can be accessed directly.
 
 ## IBC Light Clients
 

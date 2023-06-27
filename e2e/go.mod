@@ -8,14 +8,14 @@ require (
 	github.com/cometbft/cometbft v0.37.2
 	github.com/cosmos/cosmos-sdk v0.47.3
 	github.com/cosmos/gogoproto v1.4.10
-	github.com/cosmos/ibc-go/v7 v7.1.0
+	github.com/cosmos/ibc-go/v7 v7.2.0
 	github.com/cosmos/interchain-accounts v0.5.1
 	github.com/docker/docker v20.10.19+incompatible
 	github.com/strangelove-ventures/interchaintest/v7 v7.0.0-20230503171723-5e55f37618b7
 	github.com/stretchr/testify v1.8.4
 	go.uber.org/zap v1.24.0
 	golang.org/x/mod v0.11.0
-	google.golang.org/grpc v1.56.0
+	google.golang.org/grpc v1.56.1
 	gopkg.in/yaml.v2 v2.4.0
 )
 
@@ -209,7 +209,7 @@ require (
 	google.golang.org/api v0.122.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto v0.0.0-20230410155749-daa745c078e1 // indirect
-	google.golang.org/protobuf v1.30.0 // indirect
+	google.golang.org/protobuf v1.31.0 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/natefinch/npipe.v2 v2.0.0-20160621034901-c1b8fa8bdcce // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
