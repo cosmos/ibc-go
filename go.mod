@@ -3,7 +3,7 @@ go 1.20
 module github.com/cosmos/ibc-go/v7
 
 require (
-	cosmossdk.io/api v0.4.2
+	cosmossdk.io/api v0.4.3-0.20230620040119-e078f1a49e8b
 	cosmossdk.io/client/v2 v2.0.0-20230615173548-5385116abac4
 	cosmossdk.io/core v0.8.0
 	cosmossdk.io/depinject v1.0.0-alpha.3
@@ -22,7 +22,7 @@ require (
 	github.com/cometbft/cometbft v0.38.0-rc2
 	github.com/cosmos/cosmos-db v1.0.0
 	github.com/cosmos/cosmos-proto v1.0.0-beta.3
-	github.com/cosmos/cosmos-sdk v0.50.0-alpha.0.0.20230615105423-ae3e30a715bd
+	github.com/cosmos/cosmos-sdk v0.50.0-alpha.0.0.20230627144151-efae407c06d9
 	github.com/cosmos/gogoproto v1.4.10
 	github.com/cosmos/ibc-go/modules/capability v1.0.0-rc1
 	github.com/cosmos/ics23/go v0.10.0
