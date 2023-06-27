@@ -111,6 +111,10 @@ func (iapd InterchainAccountPacketData) GetDestCallbackAddress() string {
 
 // GetUserDefinedCustomMessage returns the custom message provided in the packet data memo.
 // Custom message is expected to be base64 encoded.
+//
+// The memo is expected to specify the callback address in the following format:
+// { "callback": { ... , "callback_msg": {base64StringForCallback} }
+//
 // If no custom message is specified, nil is returned.
 func (iapd InterchainAccountPacketData) GetUserDefinedCustomMessage() []byte {
 	callbackData := iapd.GetCallbackData()
@@ -138,6 +142,8 @@ func (iapd InterchainAccountPacketData) UserDefinedGasLimit() uint64 {
 	return 0
 }
 
+// getCallbackData returns the memo as `map[string]interface{}` so that it can be
+// interpreted as a json object with keys.
 func (iapd InterchainAccountPacketData) GetCallbackData() map[string]interface{} {
 	if len(iapd.Memo) == 0 {
 		return nil

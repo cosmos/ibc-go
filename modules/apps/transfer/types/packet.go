@@ -92,7 +92,6 @@ The Memo format is defined like so:
 
 		// optional fields
 		"callback_msg": {jsonObjectForSourceChainCallback},
-		"dest_callback_msg": {jsonObjectForDestChainCallback},
 	}
 }
 ```
@@ -114,7 +113,7 @@ However, we may remove this restriction at a later date if it proves useful.
 // ADR-8 middleware should callback on the returned address if it is a PacketActor
 // (i.e. smart contract that accepts IBC callbacks).
 func (ftpd FungibleTokenPacketData) GetSourceCallbackAddress() string {
-	callbackData := ftpd.GetCallbackData()
+	callbackData := ftpd.getCallbackData()
 	if callbackData == nil {
 		return ""
 	}
@@ -138,7 +137,7 @@ func (ftpd FungibleTokenPacketData) GetSourceCallbackAddress() string {
 // ADR-8 middleware should callback on the returned address if it is a PacketActor
 // (i.e. smart contract that accepts IBC callbacks).
 func (ftpd FungibleTokenPacketData) GetDestCallbackAddress() string {
-	callbackData := ftpd.GetCallbackData()
+	callbackData := ftpd.getCallbackData()
 	if callbackData == nil {
 		return ""
 	}
@@ -152,9 +151,13 @@ func (ftpd FungibleTokenPacketData) GetDestCallbackAddress() string {
 
 // GetUserDefinedCustomMessage returns the custom message provided in the packet data memo.
 // Custom message is expected to be base64 encoded.
+//
+// The memo is expected to specify the callback address in the following format:
+// { "callback": { ... , "callback_msg": {base64StringForCallback} }
+//
 // If no custom message is specified, nil is returned.
 func (ftpd FungibleTokenPacketData) GetUserDefinedCustomMessage() []byte {
-	callbackData := ftpd.GetCallbackData()
+	callbackData := ftpd.getCallbackData()
 	if callbackData == nil {
 		return nil
 	}
@@ -179,7 +182,9 @@ func (ftpd FungibleTokenPacketData) UserDefinedGasLimit() uint64 {
 	return 0
 }
 
-func (ftpd FungibleTokenPacketData) GetCallbackData() map[string]interface{} {
+// getCallbackData returns the memo as `map[string]interface{}` so that it can be
+// interpreted as a json object with keys.
+func (ftpd FungibleTokenPacketData) getCallbackData() map[string]interface{} {
 	if len(ftpd.Memo) == 0 {
 		return nil
 	}
