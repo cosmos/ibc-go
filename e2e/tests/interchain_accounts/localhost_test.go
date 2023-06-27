@@ -140,7 +140,7 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_Localhost(
 		}
 
 		cdc := testsuite.Codec()
-		bz, err := icatypes.SerializeCosmosTx(cdc, []proto.Message{msgSend})
+		bz, err := icatypes.SerializeCosmosTx(cdc, []proto.Message{msgSend}, icatypes.EncodingProtobuf)
 		s.Require().NoError(err)
 
 		packetData := icatypes.InterchainAccountPacketData{
@@ -297,7 +297,7 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_ReopenChan
 		}
 
 		cdc := testsuite.Codec()
-		bz, err := icatypes.SerializeCosmosTx(cdc, []proto.Message{msgSend})
+		bz, err := icatypes.SerializeCosmosTx(cdc, []proto.Message{msgSend}, icatypes.EncodingProtobuf)
 		s.Require().NoError(err)
 
 		packetData := icatypes.InterchainAccountPacketData{
@@ -425,7 +425,7 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_ReopenChan
 		}
 
 		cdc := testsuite.Codec()
-		bz, err := icatypes.SerializeCosmosTx(cdc, []proto.Message{msgSend})
+		bz, err := icatypes.SerializeCosmosTx(cdc, []proto.Message{msgSend}, icatypes.EncodingProtobuf)
 		s.Require().NoError(err)
 
 		packetData := icatypes.InterchainAccountPacketData{
