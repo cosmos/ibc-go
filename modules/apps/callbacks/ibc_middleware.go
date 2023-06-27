@@ -51,6 +51,8 @@ func (im IBCMiddleware) UnmarshalPacketData(bz []byte) (interface{}, error) {
 }
 
 // OnAcknowledgementPacket implements source callbacks for acknowledgement packets.
+// It defers to the underlying application and then calls the contract callback.
+// If the contract callback fails (within the gas limit), state changes are reverted.
 func (im IBCMiddleware) OnAcknowledgementPacket(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
@@ -91,7 +93,9 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 	return appResult
 }
 
-// OnTimeoutPacket implements source timeout callbacks for the ibc-callbacks middleware.
+// OnTimeoutPacket implements timeout source callbacks for the ibc-callbacks middleware.
+// It defers to the underlying application and then calls the contract callback.
+// If the contract callback fails (within the gas limit), state changes are reverted.
 func (im IBCMiddleware) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress) error {
 	appResult := im.app.OnTimeoutPacket(ctx, packet, relayer)
 	if appResult != nil {
@@ -172,6 +176,8 @@ func (im IBCMiddleware) OnChanOpenTry(
 }
 
 // OnRecvPacket implements destination callbacks for the ibc-callbacks middleware.
+// It defers to the underlying application and then calls the contract callback.
+// If the contract callback fails (within the gas limit), state changes are reverted.
 func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress) ibcexported.Acknowledgement {
 	appAck := im.app.OnRecvPacket(ctx, packet, relayer)
 
