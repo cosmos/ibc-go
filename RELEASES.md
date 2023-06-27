@@ -75,8 +75,7 @@ Only the following major release series have a stable release status:
 |`v5.3.x`|October 31, 2023|
 |`v6.1.x`|December 09, 2023|
 |`v6.2.x`|December 09, 2023|
-|`v7.0.x`|March 17, 2024|
-|`v7.1.x`|March 17, 2024|
+|`v7.2.x`|March 17, 2024|
 
 All missing minor release versions have been discontinued.
 
@@ -116,8 +115,7 @@ Versions of Golang, Cosmos SDK and Tendermint used by ibc-go in the currently ac
 | 1.19 | v5.3.1 | v0.46.12 | v0.34.27 |
 | 1.18 | v6.1.1 | v0.46.7  | v0.34.24 |
 | 1.19 | v6.2.0 | v0.46.12 | v0.34.27 |
-| 1.19 | v7.0.1 | v0.47.0  | v0.37.0  |
-| 1.19 | v7.1.0 | v0.47.2  | v0.37.1  |
+| 1.19 | v7.2.0 | v0.47.3  | v0.37.2  |
 
 ## Graphics
 
