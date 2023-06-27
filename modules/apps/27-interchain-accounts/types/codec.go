@@ -62,7 +62,7 @@ func SerializeCosmosTx(cdc codec.BinaryCodec, msgs []proto.Message, encoding str
 			return nil, errorsmod.Wrapf(ErrUnknownDataType, "cannot marshal cosmosTx with json")
 		}
 	default:
-		return nil, errorsmod.Wrapf(ErrUnsupportedEncoding, "encoding type %s is not supported", encoding)
+		return nil, errorsmod.Wrapf(ErrInvalidCodec, "unsupported encoding format %s", encoding)
 	}
 
 	return bz, nil
@@ -87,7 +87,7 @@ func DeserializeCosmosTx(cdc codec.Codec, data []byte, encoding string) ([]sdk.M
 			return nil, errorsmod.Wrapf(ErrUnknownDataType, "cannot unmarshal cosmosTx with json")
 		}
 	default:
-		return nil, errorsmod.Wrapf(ErrUnsupportedEncoding, "encoding type %s is not supported", encoding)
+		return nil, errorsmod.Wrapf(ErrInvalidCodec, "unsupported encoding format %s", encoding)
 	}
 
 	msgs := make([]sdk.Msg, len(cosmosTx.Messages))
