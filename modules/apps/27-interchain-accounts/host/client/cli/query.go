@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"cosmossdk.io/api/tendermint/abci"
+	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/spf13/cobra"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -78,11 +78,13 @@ func GetCmdPacketEvents() *cobra.Command {
 				fmt.Sprintf("%s.%s='%d'", channeltypes.EventTypeRecvPacket, channeltypes.AttributeKeySequence, seq),
 			}
 
-			results, err := processEvents(searchEvents)
+			results, err := processEvents(searchEvents, clientCtx)
 
 			var resEvents []abci.Event
 			for _, r := range results {
-				resEvents = append(resEvents, r.Events...)
+				for _, tx := range r.Txs {
+					resEvents = append(resEvents, tx.Events...)
+				}
 			}
 
 			return clientCtx.PrintString(sdk.StringifyEvents(resEvents).String())
@@ -94,14 +96,14 @@ func GetCmdPacketEvents() *cobra.Command {
 	return cmd
 }
 
-func processEvents(events []string) ([]sdk.SearchTxsResult, error) {
+func processEvents(events []string, clientCtx client.Context) ([]sdk.SearchTxsResult, error) {
 	var results []sdk.SearchTxsResult
-	for _, event := range searchEvents {
+	for _, event := range events {
 		result, err := tx.QueryTxsByEvents(clientCtx, 1, 1, event, "")
 		if err != nil {
 			return nil, err
 		}
-		results = append(results, result)
+		results = append(results, *result)
 	}
 	return results, nil
 }
