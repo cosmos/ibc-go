@@ -10,7 +10,7 @@ require (
 	cosmossdk.io/store v0.1.0-alpha.1.0.20230606190835-3e18f4088b2c
 	github.com/cometbft/cometbft v0.38.0-rc2
 	github.com/cosmos/cosmos-db v1.0.0
-	github.com/cosmos/cosmos-sdk v0.50.0-alpha.0.0.20230615105423-ae3e30a715bd
+	github.com/cosmos/cosmos-sdk v0.50.0-alpha.0.0.20230627144151-efae407c06d9
 	github.com/cosmos/gogoproto v1.4.10
 	github.com/cosmos/ibc-go/v7 v7.1.0
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
@@ -25,9 +25,11 @@ require (
 	cloud.google.com/go/compute/metadata v0.2.3 // indirect
 	cloud.google.com/go/iam v0.13.0 // indirect
 	cloud.google.com/go/storage v1.30.0 // indirect
-	cosmossdk.io/api v0.4.2 // indirect
+	cosmossdk.io/api v0.4.3-0.20230620040119-e078f1a49e8b // indirect
+	cosmossdk.io/client/v2 v2.0.0-20230615173548-5385116abac4 // indirect
 	cosmossdk.io/collections v0.2.0 // indirect
 	cosmossdk.io/depinject v1.0.0-alpha.3 // indirect
+	cosmossdk.io/x/circuit v0.0.0-20230627025906-ab77fe20d3c0 // indirect
 	cosmossdk.io/x/evidence v0.0.0-20230627025906-ab77fe20d3c0 // indirect
 	cosmossdk.io/x/feegrant v0.0.0-20230627025906-ab77fe20d3c0 // indirect
 	cosmossdk.io/x/tx v0.8.0 // indirect
@@ -142,7 +144,6 @@ require (
 	github.com/prometheus/client_model v0.4.0 // indirect
 	github.com/prometheus/common v0.44.0 // indirect
 	github.com/prometheus/procfs v0.10.1 // indirect
-	github.com/rakyll/statik v0.1.7 // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 // indirect
 	github.com/rogpeppe/go-internal v1.10.0 // indirect
 	github.com/rs/cors v1.8.3 // indirect
@@ -188,4 +189,4 @@ require (
 
 replace github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
 
-replace github.com/cosmos/ibc-go/v7 => github.com/notional-labs/ibc-go/v7 v7.0.0-20230617183956-9018b6765db4
+replace github.com/cosmos/ibc-go/v7 => github.com/notional-labs/ibc-go/v7 v7.0.0-20230627155533-f5f1008e8e16
