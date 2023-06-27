@@ -110,10 +110,10 @@ func (suite *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
 		tc := tc
 
 		suite.Run(tc.name, func() {
-			bz, err := types.SerializeCosmosTx(simapp.MakeTestEncodingConfig().Marshaler, tc.msgs)
+			bz, err := types.SerializeCosmosTx(simapp.MakeTestEncodingConfig().Codec, tc.msgs)
 			suite.Require().NoError(err, tc.name)
 
-			msgs, err := types.DeserializeCosmosTx(simapp.MakeTestEncodingConfig().Marshaler, bz)
+			msgs, err := types.DeserializeCosmosTx(simapp.MakeTestEncodingConfig().Codec, bz)
 			if tc.expPass {
 				suite.Require().NoError(err, tc.name)
 			} else {
@@ -127,16 +127,16 @@ func (suite *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
 	}
 
 	// test serializing non sdk.Msg type
-	bz, err := types.SerializeCosmosTx(simapp.MakeTestEncodingConfig().Marshaler, []proto.Message{&banktypes.MsgSendResponse{}})
+	bz, err := types.SerializeCosmosTx(simapp.MakeTestEncodingConfig().Codec, []proto.Message{&banktypes.MsgSendResponse{}})
 	suite.Require().NoError(err)
 	suite.Require().NotEmpty(bz)
 
 	// test deserializing unknown bytes
-	_, err = types.DeserializeCosmosTx(simapp.MakeTestEncodingConfig().Marshaler, bz)
+	_, err = types.DeserializeCosmosTx(simapp.MakeTestEncodingConfig().Codec, bz)
 	suite.Require().Error(err) // unregistered type
 
 	// test deserializing unknown bytes
-	msgs, err := types.DeserializeCosmosTx(simapp.MakeTestEncodingConfig().Marshaler, []byte("invalid"))
+	msgs, err := types.DeserializeCosmosTx(simapp.MakeTestEncodingConfig().Codec, []byte("invalid"))
 	suite.Require().Error(err)
 	suite.Require().Empty(msgs)
 }
