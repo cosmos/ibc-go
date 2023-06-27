@@ -464,8 +464,10 @@ func (suite *TypesTestSuite) TestUnsupportedEncodingType() {
 			Amount:      sdk.NewCoins(sdk.NewCoin("bananas", sdkmath.NewInt(100))),
 		},
 	}
-	_, err := types.SerializeCosmosTx(simapp.MakeTestEncodingConfig().Codec, msgs, "unsupported")
+
+	bz, err := types.SerializeCosmosTx(simapp.MakeTestEncodingConfig().Codec, msgs, "unsupported")
 	suite.Require().Error(err)
+	suite.Require().Nil(bz)
 
 	// Test deserialize
 	msgs = []proto.Message{
@@ -475,8 +477,10 @@ func (suite *TypesTestSuite) TestUnsupportedEncodingType() {
 			Amount:      sdk.NewCoins(sdk.NewCoin("bananas", sdkmath.NewInt(100))),
 		},
 	}
+
 	data, err := types.SerializeCosmosTx(simapp.MakeTestEncodingConfig().Codec, msgs, types.EncodingProtobuf)
 	suite.Require().NoError(err)
+
 	_, err = types.DeserializeCosmosTx(simapp.MakeTestEncodingConfig().Codec, data, "unsupported")
 	suite.Require().Error(err)
 }
