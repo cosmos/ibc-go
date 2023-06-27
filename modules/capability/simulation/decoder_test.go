@@ -4,17 +4,18 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/kv"
-	"github.com/cosmos/ibc-go/v7/testing/simapp"
-	"github.com/stretchr/testify/require"
 
 	"github.com/cosmos/ibc-go/modules/capability/simulation"
 	"github.com/cosmos/ibc-go/modules/capability/types"
+	"github.com/cosmos/ibc-go/v7/testing/simapp"
 )
 
 func TestDecodeStore(t *testing.T) {
-	app := simapp.Setup(false)
+	app := simapp.Setup(t, false)
 	dec := simulation.NewDecodeStore(app.AppCodec())
 
 	capOwners := types.CapabilityOwners{
