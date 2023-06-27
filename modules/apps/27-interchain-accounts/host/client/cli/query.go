@@ -78,15 +78,11 @@ func GetCmdPacketEvents() *cobra.Command {
 				fmt.Sprintf("%s.%s='%d'", channeltypes.EventTypeRecvPacket, channeltypes.AttributeKeySequence, seq),
 			}
 
-			for _, event := range searchEvents {
-				result, err := tx.QueryTxsByEvents(clientCtx, 1, 1, event, "")
-				if err != nil {
-					return err
-				}
-				var resEvents []abci.Event
-				for _, r := range result.Txs {
-					resEvents = append(resEvents, r.Events...)
-				}
+			results, err := processEvents(searchEvents)
+
+			var resEvents []abci.Event
+			for _, r := range results {
+				resEvents = append(resEvents, r.Events...)
 			}
 
 			return clientCtx.PrintString(sdk.StringifyEvents(resEvents).String())
@@ -96,4 +92,16 @@ func GetCmdPacketEvents() *cobra.Command {
 	flags.AddQueryFlagsToCmd(cmd)
 
 	return cmd
+}
+
+func processEvents(events []string) ([]sdk.SearchTxsResult, error) {
+	var results []sdk.SearchTxsResult
+	for _, event := range searchEvents {
+		result, err := tx.QueryTxsByEvents(clientCtx, 1, 1, event, "")
+		if err != nil {
+			return nil, err
+		}
+		results = append(results, result)
+	}
+	return results, nil
 }

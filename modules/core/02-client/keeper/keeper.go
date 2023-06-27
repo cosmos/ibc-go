@@ -267,8 +267,8 @@ func (k Keeper) GetSelfConsensusState(ctx sdk.Context, height exported.Height) (
 	if revision != height.GetRevisionNumber() {
 		return nil, errorsmod.Wrapf(types.ErrInvalidHeight, "chainID revision number does not match height revision number: expected %d, got %d", revision, height.GetRevisionNumber())
 	}
-	histInfo, found := k.stakingKeeper.GetHistoricalInfo(ctx, int64(selfHeight.RevisionHeight))
-	if !found {
+	histInfo, err := k.stakingKeeper.GetHistoricalInfo(ctx, int64(selfHeight.RevisionHeight))
+	if err != nil {
 		return nil, errorsmod.Wrapf(ibcerrors.ErrNotFound, "no historical info found at height %d", selfHeight.RevisionHeight)
 	}
 
@@ -323,7 +323,10 @@ func (k Keeper) ValidateSelfClient(ctx sdk.Context, clientState exported.ClientS
 		return errorsmod.Wrapf(types.ErrInvalidClient, "trust-level invalid: %v", err)
 	}
 
-	expectedUbdPeriod := k.stakingKeeper.UnbondingTime(ctx)
+	expectedUbdPeriod, err := k.stakingKeeper.UnbondingTime(ctx)
+	if err != nil {
+		return err
+	}
 	if expectedUbdPeriod != tmClient.UnbondingPeriod {
 		return errorsmod.Wrapf(types.ErrInvalidClient, "invalid unbonding period. expected: %s, got: %s",
 			expectedUbdPeriod, tmClient.UnbondingPeriod)
