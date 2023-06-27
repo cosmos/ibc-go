@@ -41,13 +41,13 @@ func NewRootCmd() *cobra.Command {
 	tempApp := simapp.NewSimApp(log.NewNopLogger(), dbm.NewMemDB(), nil, true, simtestutil.NewAppOptionsWithFlagHome(simapp.DefaultNodeHome))
 	encodingConfig := params.EncodingConfig{
 		InterfaceRegistry: tempApp.InterfaceRegistry(),
-		Codec:             tempApp.AppCodec(),
+		Marshaler:         tempApp.AppCodec(),
 		TxConfig:          tempApp.TxConfig(),
 		Amino:             tempApp.LegacyAmino(),
 	}
 
 	initClientCtx := client.Context{}.
-		WithCodec(encodingConfig.Codec).
+		WithCodec(encodingConfig.Marshaler).
 		WithInterfaceRegistry(encodingConfig.InterfaceRegistry).
 		WithTxConfig(encodingConfig.TxConfig).
 		WithLegacyAmino(encodingConfig.Amino).

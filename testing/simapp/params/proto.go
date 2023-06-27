@@ -20,7 +20,7 @@ func MakeTestEncodingConfig() EncodingConfig {
 
 	return EncodingConfig{
 		InterfaceRegistry: interfaceRegistry,
-		Codec:             codec,
+		Marshaler:         codec,
 		TxConfig:          tx.NewTxConfig(codec, tx.DefaultSignModes),
 		Amino:             cdc,
 	}

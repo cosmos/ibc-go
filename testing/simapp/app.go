@@ -281,7 +281,7 @@ func NewSimApp(
 ) *SimApp {
 	encodingConfig := makeEncodingConfig()
 
-	appCodec := encodingConfig.Codec
+	appCodec := encodingConfig.Marshaler
 	legacyAmino := encodingConfig.Amino
 	interfaceRegistry := encodingConfig.InterfaceRegistry
 	txConfig := encodingConfig.TxConfig
