@@ -129,7 +129,7 @@ func BalanceFromTla(balance TlaBalance) Balance {
 		ID:      AddressFromTla(balance.Address),
 		Address: AddressFromString(AddressFromTla(balance.Address)),
 		Denom:   DenomFromTla(balance.Denom),
-		Amount:  sdk.NewInt(balance.Amount),
+		Amount:  sdkmath.NewInt(balance.Amount),
 	}
 }
 
