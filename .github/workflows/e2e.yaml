@@ -31,6 +31,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       simd-tag: ${{ steps.get-tag.outputs.simd-tag }}
+      relayer: ${{ steps.get-relayer.outputs.relayer }}
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v4
