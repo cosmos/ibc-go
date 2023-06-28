@@ -191,7 +191,7 @@ func (suite *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
 				msgs = []proto.Message{
 					&mockSdkMsg{},
 				}
-				
+
 				expSerializeErrorStrings = []string{"NO_ERROR_EXPECTED", "cannot marshal CosmosTx with proto3 json"}
 				expDeserializeErrorStrings = []string{"cannot unmarshal CosmosTx with protobuf", "cannot unmarshal CosmosTx with proto3 json"}
 			},
@@ -205,7 +205,7 @@ func (suite *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
 					&mockSdkMsg{},
 					&mockSdkMsg{},
 				}
-				
+
 				expSerializeErrorStrings = []string{"NO_ERROR_EXPECTED", "cannot marshal CosmosTx with proto3 json"}
 				expDeserializeErrorStrings = []string{"cannot unmarshal CosmosTx with protobuf", "cannot unmarshal CosmosTx with proto3 json"}
 			},
@@ -225,7 +225,7 @@ func (suite *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
 						Proposer:       TestOwnerAddress,
 					},
 				}
-				
+
 				expSerializeErrorStrings = []string{"NO_ERROR_EXPECTED", "cannot marshal CosmosTx with proto3 json"}
 				expDeserializeErrorStrings = []string{"cannot unmarshal CosmosTx with protobuf", "cannot unmarshal CosmosTx with proto3 json"}
 			},
