@@ -1,4 +1,4 @@
-package ibccallback
+package ibccallbacks
 
 import (
 	errorsmod "cosmossdk.io/errors"
