@@ -409,7 +409,7 @@ func (s *UpgradeTestSuite) TestV5ToV6ChainUpgrade() {
 			Amount:      sdk.NewCoins(testvalues.DefaultTransferAmount(chainB.Config().Denom)),
 		}
 
-		data, err := icatypes.SerializeCosmosTx(testsuite.Codec(), []proto.Message{msgSend})
+		data, err := icatypes.SerializeCosmosTx(testsuite.Codec(), []proto.Message{msgSend}, icatypes.EncodingProtobuf)
 		s.Require().NoError(err)
 
 		icaPacketData := icatypes.InterchainAccountPacketData{

@@ -146,7 +146,7 @@ func (s *FeeTestSuite) TestFeeInterchainAccounts() {
 		Amount:           sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(5000)),
 	}
 
-	data, err := icatypes.SerializeCosmosTx(s.chainA.GetSimApp().AppCodec(), []proto.Message{msgDelegate})
+	data, err := icatypes.SerializeCosmosTx(s.chainA.GetSimApp().AppCodec(), []proto.Message{msgDelegate}, icatypes.EncodingProtobuf)
 	s.Require().NoError(err)
 
 	icaPacketData := icatypes.InterchainAccountPacketData{
