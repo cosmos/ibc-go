@@ -51,6 +51,10 @@ func (mockSdkMsg) GetSigners() []sdk.AccAddress {
 // - the test case is expected to fail on serialization for proto3 json encoding.
 func (suite *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
 	testedEncodings := []string{types.EncodingProtobuf, types.EncodingProto3JSON}
+	// each test case will have a corresponding expected errors in case of failures:
+	expSerializeErrorStrings := make([]string, len(testedEncodings))
+	expDeserializeErrorStrings := make([]string, len(testedEncodings))
+
 	var msgs []proto.Message
 	testCases := []struct {
 		name     string
@@ -187,6 +191,9 @@ func (suite *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
 				msgs = []proto.Message{
 					&mockSdkMsg{},
 				}
+				
+				expSerializeErrorStrings = []string{"NO_ERROR_EXPECTED", "cannot marshal CosmosTx with proto3 json"}
+				expDeserializeErrorStrings = []string{"cannot unmarshal CosmosTx with protobuf", "cannot unmarshal CosmosTx with proto3 json"}
 			},
 			false,
 		},
@@ -198,6 +205,9 @@ func (suite *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
 					&mockSdkMsg{},
 					&mockSdkMsg{},
 				}
+				
+				expSerializeErrorStrings = []string{"NO_ERROR_EXPECTED", "cannot marshal CosmosTx with proto3 json"}
+				expDeserializeErrorStrings = []string{"cannot unmarshal CosmosTx with protobuf", "cannot unmarshal CosmosTx with proto3 json"}
 			},
 			false,
 		},
@@ -215,6 +225,9 @@ func (suite *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
 						Proposer:       TestOwnerAddress,
 					},
 				}
+				
+				expSerializeErrorStrings = []string{"NO_ERROR_EXPECTED", "cannot marshal CosmosTx with proto3 json"}
+				expDeserializeErrorStrings = []string{"cannot unmarshal CosmosTx with protobuf", "cannot unmarshal CosmosTx with proto3 json"}
 			},
 			false,
 		},
@@ -237,12 +250,15 @@ func (suite *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
 				}
 
 				msgs = []proto.Message{propMsg}
+
+				expSerializeErrorStrings = []string{"NO_ERROR_EXPECTED", "cannot marshal CosmosTx with proto3 json"}
+				expDeserializeErrorStrings = []string{"cannot unmarshal CosmosTx with protobuf", "cannot unmarshal CosmosTx with proto3 json"}
 			},
 			false,
 		},
 	}
 
-	for _, encoding := range testedEncodings {
+	for i, encoding := range testedEncodings {
 		for _, tc := range testCases {
 			tc := tc
 
@@ -252,6 +268,7 @@ func (suite *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
 				bz, err := types.SerializeCosmosTx(simapp.MakeTestEncodingConfig().Codec, msgs, encoding)
 				if encoding == types.EncodingProto3JSON && !tc.expPass {
 					suite.Require().Error(err, tc.name)
+					suite.Require().Contains(err.Error(), expSerializeErrorStrings[1], tc.name)
 				} else {
 					suite.Require().NoError(err, tc.name)
 				}
@@ -261,6 +278,7 @@ func (suite *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
 					suite.Require().NoError(err, tc.name)
 				} else {
 					suite.Require().Error(err, tc.name)
+					suite.Require().Contains(err.Error(), expDeserializeErrorStrings[i], tc.name)
 				}
 
 				if tc.expPass {
@@ -289,11 +307,13 @@ func (suite *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
 		// test deserializing unknown bytes
 		msgs, err := types.DeserializeCosmosTx(simapp.MakeTestEncodingConfig().Codec, bz, encoding)
 		suite.Require().Error(err) // unregistered type
+		suite.Require().Contains(err.Error(), expDeserializeErrorStrings[i])
 		suite.Require().Empty(msgs)
 
 		// test deserializing unknown bytes
 		msgs, err = types.DeserializeCosmosTx(simapp.MakeTestEncodingConfig().Codec, []byte("invalid"), encoding)
 		suite.Require().Error(err)
+		suite.Require().Contains(err.Error(), expDeserializeErrorStrings[i])
 		suite.Require().Empty(msgs)
 	}
 }
