@@ -510,7 +510,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeOpen() {
 		{
 			"channel state is not in TRYUPGRADE or ACKUPGRADE",
 			func() {
-				path.EndpointA.SetChannelState(types.OPEN)
+				suite.Require().NoError(path.EndpointA.SetChannelState(types.OPEN))
 			},
 			types.ErrInvalidChannelState,
 		},
