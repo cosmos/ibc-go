@@ -27,12 +27,12 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 
 // SerializeCosmosTx serializes a slice of sdk.Msg's using the CosmosTx type. The sdk.Msg's are
 // packed into Any's and inserted into the Messages field of a CosmosTx. The CosmosTx is marshaled
-// depending on the encoding type passed in. The marshaled bytes are returned. Only the ProtoCodec 
+// depending on the encoding type passed in. The marshaled bytes are returned. Only the ProtoCodec
 // is supported for serializing messages. Both protobuf and proto3 JSON are supported.
 func SerializeCosmosTx(cdc codec.Codec, msgs []proto.Message, encoding string) ([]byte, error) {
-	// ProtoCodec must be supported
+	// this is a defensive check to ensure only the ProtoCodec is used for message serialization
 	if _, ok := cdc.(*codec.ProtoCodec); !ok {
-		return nil, errorsmod.Wrap(ErrInvalidCodec, "ProtoCodec must be supported for receiving messages on the host chain")
+		return nil, errorsmod.Wrap(ErrInvalidCodec, "only the ProtoCodec may be used for receiving messages on the host chain")
 	}
 
 	var bz []byte
@@ -55,12 +55,12 @@ func SerializeCosmosTx(cdc codec.Codec, msgs []proto.Message, encoding string) (
 	case EncodingProtobuf:
 		bz, err = cdc.Marshal(cosmosTx)
 		if err != nil {
-			return nil, errorsmod.Wrapf(err, "cannot marshal cosmosTx with protobuf")
+			return nil, errorsmod.Wrapf(err, "cannot marshal CosmosTx with protobuf")
 		}
 	case EncodingProto3JSON:
 		bz, err = cdc.MarshalJSON(cosmosTx)
 		if err != nil {
-			return nil, errorsmod.Wrapf(ErrUnknownDataType, "cannot marshal cosmosTx with json")
+			return nil, errorsmod.Wrapf(ErrUnknownDataType, "cannot marshal CosmosTx with proto3 json")
 		}
 	default:
 		return nil, errorsmod.Wrapf(ErrInvalidCodec, "unsupported encoding format %s", encoding)
@@ -74,9 +74,9 @@ func SerializeCosmosTx(cdc codec.Codec, msgs []proto.Message, encoding string) (
 // unpacked from Any's and returned. Only the ProtoCodec is supported for serializing messages. Both
 // protobuf and proto3 JSON are supported.
 func DeserializeCosmosTx(cdc codec.Codec, data []byte, encoding string) ([]sdk.Msg, error) {
-	// ProtoCodec must be supported
+	// this is a defensive check to ensure only the ProtoCodec is used for message deserialization
 	if _, ok := cdc.(*codec.ProtoCodec); !ok {
-		return nil, errorsmod.Wrap(ErrInvalidCodec, "ProtoCodec must be supported for receiving messages on the host chain")
+		return nil, errorsmod.Wrap(ErrInvalidCodec, "only the ProtoCodec may be used for receiving messages on the host chain")
 	}
 
 	var cosmosTx CosmosTx
@@ -84,11 +84,11 @@ func DeserializeCosmosTx(cdc codec.Codec, data []byte, encoding string) ([]sdk.M
 	switch encoding {
 	case EncodingProtobuf:
 		if err := cdc.Unmarshal(data, &cosmosTx); err != nil {
-			return nil, errorsmod.Wrapf(err, "cannot unmarshal cosmosTx with protobuf")
+			return nil, errorsmod.Wrapf(err, "cannot unmarshal CosmosTx with protobuf")
 		}
 	case EncodingProto3JSON:
 		if err := cdc.UnmarshalJSON(data, &cosmosTx); err != nil {
-			return nil, errorsmod.Wrapf(ErrUnknownDataType, "cannot unmarshal cosmosTx with json")
+			return nil, errorsmod.Wrapf(ErrUnknownDataType, "cannot unmarshal CosmosTx with proto3 json")
 		}
 	default:
 		return nil, errorsmod.Wrapf(ErrInvalidCodec, "unsupported encoding format %s", encoding)
