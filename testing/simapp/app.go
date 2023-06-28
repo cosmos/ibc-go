@@ -788,6 +788,7 @@ func (app *SimApp) EndBlocker(ctx sdk.Context, req abci.RequestEndBlock) abci.Re
 	return app.ModuleManager.EndBlock(ctx, req)
 }
 
+// Configurator returns the configurator for the app
 func (a *SimApp) Configurator() module.Configurator {
 	return a.configurator
 }
