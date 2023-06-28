@@ -152,7 +152,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (06-solomachine) [\#1972](https://github.com/cosmos/ibc-go/pull/1972) Solo machine implementation of `ZeroCustomFields` fn now panics as the fn is only used for upgrades which solo machine does not support.
 * (light-clients/06-solomachine) Moving `verifyMisbehaviour` function from update.go to misbehaviour_handle.go.
 * [\#2434](https://github.com/cosmos/ibc-go/pull/2478) Removed all `TypeMsg` constants
-* (modules/core/exported) [\#2539] (<https://github.com/cosmos/ibc-go/pull/2539>) Removing `GetVersions` from `ConnectionI` interface.
+* (modules/core/exported) [\#2539](https://github.com/cosmos/ibc-go/pull/2539) Removing `GetVersions` from `ConnectionI` interface.
 * (core/02-connection) [\#2419](https://github.com/cosmos/ibc-go/pull/2419) Add optional proof data to proto definitions of `MsgConnectionOpenTry` and `MsgConnectionOpenAck` for host state machines that are unable to introspect their own consensus state.
 * (light-clients/07-tendermint) [\#3046](https://github.com/cosmos/ibc-go/pull/3046) Moved non-verification misbehaviour checks to `CheckForMisbehaviour`.
 * (apps/29-fee) [\#2975](https://github.com/cosmos/ibc-go/pull/2975) Adding distribute fee events to ics29.
