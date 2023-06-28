@@ -315,131 +315,119 @@ func (suite *TypesTestSuite) TestProtoDeserializeAndSerializeCosmosTxWithAmino()
 }
 
 func (suite *TypesTestSuite) TestJSONDeserializeCosmosTx() {
-	var cwBytes []byte
-	var protoMessages []proto.Message
 	testCases := []struct {
-		name     string
-		malleate func()
-		expPass  bool
+		name      string
+		jsonBytes []byte
+		expMsgs   []proto.Message
+		expPass   bool
 	}{
 		{
 			"success: single msg",
-			func() {
-				cwBytes = []byte(`{
-					"messages": [
-						{
-							"@type": "/cosmos.bank.v1beta1.MsgSend",
-							"from_address": "cosmos17dtl0mjt3t77kpuhg2edqzjpszulwhgzuj9ljs",
-							"to_address": "cosmos17dtl0mjt3t77kpuhg2edqzjpszulwhgzuj9ljs",
-							"amount": [{ "denom": "bananas", "amount": "100" }]
-						}
-					]
-				}`)
-				protoMessages = []proto.Message{
-					&banktypes.MsgSend{
-						FromAddress: TestOwnerAddress,
-						ToAddress:   TestOwnerAddress,
-						Amount:      sdk.NewCoins(sdk.NewCoin("bananas", sdkmath.NewInt(100))),
-					},
-				}
+			[]byte(`{
+				"messages": [
+					{
+						"@type": "/cosmos.bank.v1beta1.MsgSend",
+						"from_address": "` + TestOwnerAddress + `",
+						"to_address": "` + TestOwnerAddress + `",
+						"amount": [{ "denom": "bananas", "amount": "100" }]
+					}
+				]
+			}`),
+			[]proto.Message{
+				&banktypes.MsgSend{
+					FromAddress: TestOwnerAddress,
+					ToAddress:   TestOwnerAddress,
+					Amount:      sdk.NewCoins(sdk.NewCoin("bananas", sdkmath.NewInt(100))),
+				},
 			},
 			true,
 		},
 		{
 			"success: multiple msgs, same types",
-			func() {
-				cwBytes = []byte(`{
-					"messages": [
-						{
-							"@type": "/cosmos.bank.v1beta1.MsgSend",
-							"from_address": "cosmos17dtl0mjt3t77kpuhg2edqzjpszulwhgzuj9ljs",
-							"to_address": "cosmos17dtl0mjt3t77kpuhg2edqzjpszulwhgzuj9ljs",
-							"amount": [{ "denom": "bananas", "amount": "100" }]
-						},
-						{
-							"@type": "/cosmos.bank.v1beta1.MsgSend",
-							"from_address": "cosmos17dtl0mjt3t77kpuhg2edqzjpszulwhgzuj9ljs",
-							"to_address": "cosmos17dtl0mjt3t77kpuhg2edqzjpszulwhgzuj9ljs",
-							"amount": [{ "denom": "bananas", "amount": "100" }]
-						}
-					]
-				}`)
-				protoMessages = []proto.Message{
-					&banktypes.MsgSend{
-						FromAddress: TestOwnerAddress,
-						ToAddress:   TestOwnerAddress,
-						Amount:      sdk.NewCoins(sdk.NewCoin("bananas", sdkmath.NewInt(100))),
+			[]byte(`{
+				"messages": [
+					{
+						"@type": "/cosmos.bank.v1beta1.MsgSend",
+						"from_address": "` + TestOwnerAddress + `",
+						"to_address": "` + TestOwnerAddress + `",
+						"amount": [{ "denom": "bananas", "amount": "100" }]
 					},
-					&banktypes.MsgSend{
-						FromAddress: TestOwnerAddress,
-						ToAddress:   TestOwnerAddress,
-						Amount:      sdk.NewCoins(sdk.NewCoin("bananas", sdkmath.NewInt(100))),
-					},
-				}
+					{
+						"@type": "/cosmos.bank.v1beta1.MsgSend",
+						"from_address": "` + TestOwnerAddress + `",
+						"to_address": "` + TestOwnerAddress + `",
+						"amount": [{ "denom": "bananas", "amount": "100" }]
+					}
+				]
+			}`),
+			[]proto.Message{
+				&banktypes.MsgSend{
+					FromAddress: TestOwnerAddress,
+					ToAddress:   TestOwnerAddress,
+					Amount:      sdk.NewCoins(sdk.NewCoin("bananas", sdkmath.NewInt(100))),
+				},
+				&banktypes.MsgSend{
+					FromAddress: TestOwnerAddress,
+					ToAddress:   TestOwnerAddress,
+					Amount:      sdk.NewCoins(sdk.NewCoin("bananas", sdkmath.NewInt(100))),
+				},
 			},
 			true,
 		},
 		{
 			"success: multiple msgs, different types",
-			func() {
-				cwBytes = []byte(`{
-					"messages": [
-						{
-							"@type": "/cosmos.bank.v1beta1.MsgSend",
-							"from_address": "cosmos17dtl0mjt3t77kpuhg2edqzjpszulwhgzuj9ljs",
-							"to_address": "cosmos17dtl0mjt3t77kpuhg2edqzjpszulwhgzuj9ljs",
-							"amount": [{ "denom": "bananas", "amount": "100" }]
-						},
-						{
-							"@type": "/cosmos.staking.v1beta1.MsgDelegate",
-							"delegator_address": "cosmos17dtl0mjt3t77kpuhg2edqzjpszulwhgzuj9ljs",
-							"validator_address": "cosmos17dtl0mjt3t77kpuhg2edqzjpszulwhgzuj9ljs",
-							"amount": { "denom": "stake", "amount": "5000" }
-						}
-					]
-				}`)
-				protoMessages = []proto.Message{
-					&banktypes.MsgSend{
-						FromAddress: TestOwnerAddress,
-						ToAddress:   TestOwnerAddress,
-						Amount:      sdk.NewCoins(sdk.NewCoin("bananas", sdkmath.NewInt(100))),
+			[]byte(`{
+				"messages": [
+					{
+						"@type": "/cosmos.bank.v1beta1.MsgSend",
+						"from_address": "` + TestOwnerAddress + `",
+						"to_address": "` + TestOwnerAddress + `",
+						"amount": [{ "denom": "bananas", "amount": "100" }]
 					},
-					&stakingtypes.MsgDelegate{
-						DelegatorAddress: TestOwnerAddress,
-						ValidatorAddress: TestOwnerAddress,
-						Amount:           sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(5000)),
-					},
-				}
+					{
+						"@type": "/cosmos.staking.v1beta1.MsgDelegate",
+						"delegator_address": "` + TestOwnerAddress + `",
+						"validator_address": "` + TestOwnerAddress + `",
+						"amount": { "denom": "stake", "amount": "5000" }
+					}
+				]
+			}`),
+			[]proto.Message{
+				&banktypes.MsgSend{
+					FromAddress: TestOwnerAddress,
+					ToAddress:   TestOwnerAddress,
+					Amount:      sdk.NewCoins(sdk.NewCoin("bananas", sdkmath.NewInt(100))),
+				},
+				&stakingtypes.MsgDelegate{
+					DelegatorAddress: TestOwnerAddress,
+					ValidatorAddress: TestOwnerAddress,
+					Amount:           sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(5000)),
+				},
 			},
 			true,
 		},
 		{
 			"failure: unregistered msg type",
-			func() {
-				cwBytes = []byte(`{"messages":[{}]}`)
-				protoMessages = []proto.Message{
-					&mockSdkMsg{},
-				}
+			[]byte(`{"messages":[{}]}`),
+			[]proto.Message{
+				&mockSdkMsg{},
 			},
 			false,
 		},
 		{
 			"failure: multiple unregistered msg types",
-			func() {
-				cwBytes = []byte(`{"messages":[{},{},{}]}`)
-				protoMessages = []proto.Message{
-					&mockSdkMsg{},
-					&mockSdkMsg{},
-					&mockSdkMsg{},
-				}
+			[]byte(`{"messages":[{},{},{}]}`),
+			[]proto.Message{
+				&mockSdkMsg{},
+				&mockSdkMsg{},
+				&mockSdkMsg{},
 			},
 			false,
 		},
 		{
 			"failure: empty bytes",
-			func() {
-				cwBytes = []byte{}
-			},
+			[]byte{},
+			nil,
 			false,
 		},
 	}
@@ -448,12 +436,11 @@ func (suite *TypesTestSuite) TestJSONDeserializeCosmosTx() {
 		tc := tc
 
 		suite.Run(tc.name, func() {
-			tc.malleate()
-			msgs, errDeserialize := types.DeserializeCosmosTx(simapp.MakeTestEncodingConfig().Codec, cwBytes, types.EncodingProto3JSON)
+			msgs, errDeserialize := types.DeserializeCosmosTx(simapp.MakeTestEncodingConfig().Codec, tc.jsonBytes, types.EncodingProto3JSON)
 			if tc.expPass {
 				suite.Require().NoError(errDeserialize, tc.name)
 				for i, msg := range msgs {
-					suite.Require().Equal(protoMessages[i], msg)
+					suite.Require().Equal(tc.expMsgs[i], msg)
 				}
 			} else {
 				suite.Require().Error(errDeserialize, tc.name)
@@ -463,7 +450,6 @@ func (suite *TypesTestSuite) TestJSONDeserializeCosmosTx() {
 }
 
 func (suite *TypesTestSuite) TestUnsupportedEncodingType() {
-	// Test serialize
 	msgs := []proto.Message{
 		&banktypes.MsgSend{
 			FromAddress: TestOwnerAddress,
