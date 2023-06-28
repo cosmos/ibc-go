@@ -346,8 +346,9 @@ func (suite *KeeperTestSuite) TestWriteUpgradeTry() {
 			"success with packet commitments",
 			func() {
 				// manually set packet commitment
-				_, err := path.EndpointB.SendPacket(suite.chainB.GetTimeoutHeight(), 0, ibctesting.MockPacketData)
+				sequence, err := path.EndpointB.SendPacket(suite.chainB.GetTimeoutHeight(), 0, ibctesting.MockPacketData)
 				suite.Require().NoError(err)
+				suite.Require().Equal(uint64(1), sequence)
 			},
 			true,
 		},
@@ -519,8 +520,9 @@ func (suite *KeeperTestSuite) TestChanUpgradeAck() {
 			suite.Require().NoError(err)
 
 			// manually set packet commitment so that the chainB channel flush status is FLUSHING
-			_, err = path.EndpointB.SendPacket(suite.chainB.GetTimeoutHeight(), 0, ibctesting.MockPacketData)
+			sequence, err := path.EndpointB.SendPacket(suite.chainB.GetTimeoutHeight(), 0, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
+			suite.Require().Equal(uint64(1), sequence)
 
 			err = path.EndpointB.ChanUpgradeTry()
 			suite.Require().NoError(err)
