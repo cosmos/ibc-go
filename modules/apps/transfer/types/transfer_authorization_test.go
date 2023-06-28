@@ -4,7 +4,7 @@ import (
 	sdkmath "cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/authz"
+	authztypes "github.com/cosmos/cosmos-sdk/types/authz"
 
 	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
@@ -20,12 +20,12 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 	testCases := []struct {
 		name         string
 		malleate     func()
-		assertResult func(res authz.AcceptResponse, err error)
+		assertResult func(res authztypes.AcceptResponse, err error)
 	}{
 		{
 			"success",
 			func() {},
-			func(res authz.AcceptResponse, err error) {
+			func(res authztypes.AcceptResponse, err error) {
 				suite.Require().NoError(err)
 
 				suite.Require().True(res.Accept)
@@ -38,7 +38,7 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 			func() {
 				msgTransfer.Token = sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(50))
 			},
-			func(res authz.AcceptResponse, err error) {
+			func(res authztypes.AcceptResponse, err error) {
 				suite.Require().NoError(err)
 
 				suite.Require().True(res.Accept)
@@ -56,7 +56,7 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 			func() {
 				transferAuthz.Allocations[0].AllowList = []string{}
 			},
-			func(res authz.AcceptResponse, err error) {
+			func(res authztypes.AcceptResponse, err error) {
 				suite.Require().NoError(err)
 
 				suite.Require().True(res.Accept)
@@ -75,7 +75,7 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 
 				transferAuthz.Allocations = append(transferAuthz.Allocations, alloc)
 			},
-			func(res authz.AcceptResponse, err error) {
+			func(res authztypes.AcceptResponse, err error) {
 				suite.Require().NoError(err)
 
 				suite.Require().True(res.Accept)
@@ -93,7 +93,7 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 			func() {
 				transferAuthz.Allocations[0].SpendLimit = sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, types.UnboundedSpendLimit()))
 			},
-			func(res authz.AcceptResponse, err error) {
+			func(res authztypes.AcceptResponse, err error) {
 				suite.Require().NoError(err)
 
 				suite.Require().True(res.Accept)
@@ -112,7 +112,7 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 				)
 				msgTransfer.Token = sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(50))
 			},
-			func(res authz.AcceptResponse, err error) {
+			func(res authztypes.AcceptResponse, err error) {
 				suite.Require().NoError(err)
 
 				updatedTransferAuthz, ok := res.Updated.(*types.TransferAuthorization)
@@ -134,7 +134,7 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 				msgTransfer.SourcePort = ibctesting.MockPort
 				msgTransfer.SourceChannel = "channel-9"
 			},
-			func(res authz.AcceptResponse, err error) {
+			func(res authztypes.AcceptResponse, err error) {
 				suite.Require().Error(err)
 			},
 		},
@@ -143,7 +143,7 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 			func() {
 				msgTransfer.Token = sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(1000))
 			},
-			func(res authz.AcceptResponse, err error) {
+			func(res authztypes.AcceptResponse, err error) {
 				suite.Require().Error(err)
 			},
 		},
@@ -152,7 +152,7 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 			func() {
 				msgTransfer.Receiver = suite.chainB.SenderAccount.GetAddress().String()
 			},
-			func(res authz.AcceptResponse, err error) {
+			func(res authztypes.AcceptResponse, err error) {
 				suite.Require().Error(err)
 			},
 		},
