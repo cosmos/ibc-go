@@ -243,20 +243,12 @@ func (suite *KeeperTestSuite) TestSetInterchainAccountAddress() {
 }
 
 func (suite *KeeperTestSuite) TestMetadataNotFound() {
-	suite.SetupTest()
-
-	path := NewICAPath(suite.chainA, suite.chainB, icatypes.EncodingProtobuf)
-	suite.coordinator.SetupConnections(path)
-
-	err := SetupICAPath(path, TestOwnerAddress)
-	suite.Require().NoError(err)
-
 	var (
 		invalidPortID    = "invalid-port"
 		invalidChannelID = "invalid-channel"
 	)
 
-	_, err = suite.chainB.GetSimApp().ICAHostKeeper.GetAppMetadata(suite.chainB.GetContext(), invalidPortID, invalidChannelID)
+	_, err := suite.chainB.GetSimApp().ICAHostKeeper.GetAppMetadata(suite.chainB.GetContext(), invalidPortID, invalidChannelID)
 	suite.Require().ErrorIs(err, ibcerrors.ErrNotFound)
 	suite.Require().Contains(err.Error(), fmt.Sprintf("app version not found for port %s and channel %s", invalidPortID, invalidChannelID))
 }
