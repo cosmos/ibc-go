@@ -708,9 +708,6 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 			channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 
 			// Move channel to correct state.
-			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = ibcmock.UpgradeVersion
-			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = ibcmock.UpgradeVersion
-
 			err = path.EndpointB.ChanUpgradeInit()
 			suite.Require().NoError(err)
 
@@ -989,4 +986,49 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 			}
 		})
 	}
+}
+
+// TestAcknowledgeFlush tests that Acknowledging the last in-flight packet moves the channel
+// state to FLUSHINGCOMPLETE.
+func (suite *KeeperTestSuite) TestAcknowledgeFlushStatus() {
+	var channelCap *capabilitytypes.Capability
+
+	suite.SetupTest() // reset
+	path := ibctesting.NewPath(suite.chainA, suite.chainB)
+
+	// setup uses an UNORDERED channel
+	suite.coordinator.Setup(path)
+
+	// create packet commitment
+	sequence, err := path.EndpointA.SendPacket(defaultTimeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
+	suite.Require().NoError(err)
+
+	// create packet receipt and acknowledgement
+	packet := types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
+	err = path.EndpointB.RecvPacket(packet)
+	suite.Require().NoError(err)
+
+	// Move channel to UPGRADE_ACK, flush status set to flushing due to previous SendPacket
+	path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = ibcmock.UpgradeVersion
+	path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = ibcmock.UpgradeVersion
+
+	err = path.EndpointA.ChanUpgradeInit()
+	suite.Require().NoError(err)
+
+	err = path.EndpointB.ChanUpgradeTry()
+	suite.Require().NoError(err)
+
+	err = path.EndpointA.ChanUpgradeAck()
+	suite.Require().NoError(err)
+
+	packetKey := host.PacketAcknowledgementKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
+	proof, proofHeight := path.EndpointB.QueryProof(packetKey)
+
+	channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+	err = suite.chainA.App.GetIBCKeeper().ChannelKeeper.AcknowledgePacket(suite.chainA.GetContext(), channelCap, packet, ibcmock.MockAcknowledgement.Acknowledgement(), proof, proofHeight)
+	suite.Require().NoError(err)
+
+	// Check that we've moved to FLUSHCOMPLETE
+	channelA := path.EndpointA.GetChannel()
+	suite.Require().Equal(types.FLUSHCOMPLETE, channelA.FlushStatus)
 }
