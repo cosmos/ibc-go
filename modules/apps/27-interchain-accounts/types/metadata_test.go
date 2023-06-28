@@ -58,7 +58,7 @@ func (suite *TypesTestSuite) TestIsPreviousMetadataEqual() {
 		{
 			"unequal encoding format",
 			func() {
-				metadata.Encoding = types.EncodingJSON
+				metadata.Encoding = types.EncodingProto3JSON
 
 				versionBytes, err := types.ModuleCdc.MarshalJSON(&metadata)
 				suite.Require().NoError(err)
@@ -164,14 +164,14 @@ func (suite *TypesTestSuite) TestValidateControllerMetadata() {
 			true,
 		},
 		{
-			"success with EncodingJSON",
+			"success with EncodingProto3JSON",
 			func() {
 				metadata = types.Metadata{
 					Version:                types.Version,
 					ControllerConnectionId: ibctesting.FirstConnectionID,
 					HostConnectionId:       ibctesting.FirstConnectionID,
 					Address:                TestOwnerAddress,
-					Encoding:               types.EncodingJSON,
+					Encoding:               types.EncodingProto3JSON,
 					TxType:                 types.TxTypeSDKMultiMsg,
 				}
 			},
@@ -319,14 +319,14 @@ func (suite *TypesTestSuite) TestValidateHostMetadata() {
 			true,
 		},
 		{
-			"success with EncodingJSON",
+			"success with EncodingProto3JSON",
 			func() {
 				metadata = types.Metadata{
 					Version:                types.Version,
 					ControllerConnectionId: ibctesting.FirstConnectionID,
 					HostConnectionId:       ibctesting.FirstConnectionID,
 					Address:                TestOwnerAddress,
-					Encoding:               types.EncodingJSON,
+					Encoding:               types.EncodingProto3JSON,
 					TxType:                 types.TxTypeSDKMultiMsg,
 				}
 			},

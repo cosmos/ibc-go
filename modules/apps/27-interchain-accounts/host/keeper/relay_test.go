@@ -24,7 +24,7 @@ import (
 )
 
 func (suite *KeeperTestSuite) TestOnRecvPacket() {
-	testedEncodings := []string{icatypes.EncodingProtobuf, icatypes.EncodingJSON}
+	testedEncodings := []string{icatypes.EncodingProtobuf, icatypes.EncodingProto3JSON}
 	var (
 		path       *ibctesting.Path
 		packetData []byte
@@ -810,7 +810,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 		suite.Run(tc.msg, func() {
 			suite.SetupTest() // reset
 
-			path = NewICAPath(suite.chainA, suite.chainB, icatypes.EncodingJSON)
+			path = NewICAPath(suite.chainA, suite.chainB, icatypes.EncodingProto3JSON)
 			suite.coordinator.SetupConnections(path)
 
 			err := SetupICAPath(path, TestOwnerAddress)

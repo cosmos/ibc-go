@@ -44,7 +44,7 @@ func (mockSdkMsg) GetSigners() []sdk.AccAddress {
 }
 
 func (suite *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
-	testedEncodings := []string{types.EncodingProtobuf, types.EncodingJSON}
+	testedEncodings := []string{types.EncodingProtobuf, types.EncodingProto3JSON}
 	var msgs []proto.Message
 	testCases := []struct {
 		name     string
@@ -244,7 +244,7 @@ func (suite *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
 				tc.malleate()
 
 				bz, err := types.SerializeCosmosTx(simapp.MakeTestEncodingConfig().Codec, msgs, encoding)
-				if encoding == types.EncodingJSON && !tc.expPass {
+				if encoding == types.EncodingProto3JSON && !tc.expPass {
 					suite.Require().Error(err, tc.name)
 				} else {
 					suite.Require().NoError(err, tc.name)
@@ -443,7 +443,7 @@ func (suite *TypesTestSuite) TestJSONDeserializeCosmosTx() {
 
 		suite.Run(tc.name, func() {
 			tc.malleate()
-			msgs, errDeserialize := types.DeserializeCosmosTx(simapp.MakeTestEncodingConfig().Codec, cwBytes, types.EncodingJSON)
+			msgs, errDeserialize := types.DeserializeCosmosTx(simapp.MakeTestEncodingConfig().Codec, cwBytes, types.EncodingProto3JSON)
 			if tc.expPass {
 				suite.Require().NoError(errDeserialize, tc.name)
 				for i, msg := range msgs {

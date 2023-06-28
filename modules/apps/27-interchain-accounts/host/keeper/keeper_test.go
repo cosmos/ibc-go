@@ -34,7 +34,7 @@ var (
 		Version:                icatypes.Version,
 		ControllerConnectionId: ibctesting.FirstConnectionID,
 		HostConnectionId:       ibctesting.FirstConnectionID,
-		Encoding:               icatypes.EncodingJSON,
+		Encoding:               icatypes.EncodingProto3JSON,
 		TxType:                 icatypes.TxTypeSDKMultiMsg,
 	}))
 )
@@ -64,7 +64,7 @@ func NewICAPath(chainA, chainB *ibctesting.TestChain, encoding string) *ibctesti
 	switch encoding {
 	case icatypes.EncodingProtobuf:
 		version = TestVersion
-	case icatypes.EncodingJSON:
+	case icatypes.EncodingProto3JSON:
 		version = TestVersionWithJSONEncoding
 	default:
 		panic(fmt.Sprintf("unsupported encoding type: %s", encoding))
