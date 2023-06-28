@@ -571,7 +571,6 @@ func (suite *KeeperTestSuite) TestChanUpgradeOpen() {
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.Setup(path)
 
-			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
 			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
 
 			err := path.EndpointB.ChanUpgradeInit()
