@@ -101,4 +101,4 @@ jobs:
       chain-binary: 'simd'
       # on regular PRs we won't run interchain account or upgrade tests.
       test-exclusions: 'TestInterTxTestSuite,TestIncentivizedInterTxTestSuite,TestUpgradeTestSuite'
-      relayer-tag: "${{ needs.determine-image-tag.outputs.relayer }}"
+      relayer-type: "${{ needs.determine-image-tag.outputs.relayer }}"
