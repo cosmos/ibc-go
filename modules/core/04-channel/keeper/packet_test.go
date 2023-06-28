@@ -708,6 +708,8 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 			channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 
 			// Move channel to correct state.
+			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = ibcmock.UpgradeVersion
+
 			err = path.EndpointB.ChanUpgradeInit()
 			suite.Require().NoError(err)
 
@@ -780,7 +782,6 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 
 			// Move channel to correct state.
 			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = ibcmock.UpgradeVersion
-			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = ibcmock.UpgradeVersion
 
 			err := path.EndpointA.ChanUpgradeInit()
 			suite.Require().NoError(err)
@@ -1010,7 +1011,6 @@ func (suite *KeeperTestSuite) TestAcknowledgeFlushStatus() {
 
 	// Move channel to UPGRADE_ACK, flush status set to flushing due to previous SendPacket
 	path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = ibcmock.UpgradeVersion
-	path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = ibcmock.UpgradeVersion
 
 	err = path.EndpointA.ChanUpgradeInit()
 	suite.Require().NoError(err)
