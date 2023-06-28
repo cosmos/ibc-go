@@ -481,4 +481,8 @@ func (suite *TypesTestSuite) TestUnsupportedEncodingType() {
 
 	_, err = types.DeserializeCosmosTx(simapp.MakeTestEncodingConfig().Codec, data, "unsupported")
 	suite.Require().Error(err)
+
+	// verify that protobuf encoding still works otherwise:
+	_, err = types.DeserializeCosmosTx(simapp.MakeTestEncodingConfig().Codec, data, types.EncodingProtobuf)
+	suite.Require().NoError(err)
 }
