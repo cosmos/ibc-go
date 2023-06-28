@@ -10,6 +10,7 @@ import (
 	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/types"
 	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
@@ -239,6 +240,25 @@ func (suite *KeeperTestSuite) TestSetInterchainAccountAddress() {
 	retrievedAddr, found := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), ibctesting.FirstConnectionID, expectedPortID)
 	suite.Require().True(found)
 	suite.Require().Equal(expectedAccAddr, retrievedAddr)
+}
+
+func (suite *KeeperTestSuite) TestMetadataNotFound() {
+	suite.SetupTest()
+
+	path := NewICAPath(suite.chainA, suite.chainB, icatypes.EncodingProtobuf)
+	suite.coordinator.SetupConnections(path)
+
+	err := SetupICAPath(path, TestOwnerAddress)
+	suite.Require().NoError(err)
+
+	var (
+		invalidPortID    = "invalid-port"
+		invalidChannelID = "invalid-channel"
+	)
+
+	_, err = suite.chainB.GetSimApp().ICAHostKeeper.GetAppMetadata(suite.chainB.GetContext(), invalidPortID, invalidChannelID)
+	suite.Require().ErrorIs(err, ibcerrors.ErrNotFound)
+	suite.Require().Contains(err.Error(), fmt.Sprintf("app version not found for port %s and channel %s", invalidPortID, invalidChannelID))
 }
 
 func (suite *KeeperTestSuite) TestParams() {
