@@ -191,8 +191,11 @@ func (k Keeper) WriteUpgradeTryChannel(ctx sdk.Context, portID, channelID string
 
 	previousState := channel.State
 	channel.State = types.TRYUPGRADE
-	// TODO: determine flush status
 	channel.FlushStatus = types.FLUSHING
+
+	if !k.hasInflightPackets(ctx, portID, channelID) {
+		channel.FlushStatus = types.FLUSHCOMPLETE
+	}
 
 	upgrade.Fields.Version = upgradeVersion
 
