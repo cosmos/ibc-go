@@ -340,7 +340,6 @@ func (k Keeper) ChanUpgradeOpen(
 	}
 
 	var counterpartyChannel types.Channel
-	counterpartyHops := []string{connection.GetCounterparty().GetConnectionID()}
 	switch counterpartyChannelState {
 	case types.OPEN:
 		upgrade, found := k.GetUpgrade(ctx, portID, channelID)
@@ -367,7 +366,7 @@ func (k Keeper) ChanUpgradeOpen(
 		counterpartyChannel = types.Channel{
 			State:           types.TRYUPGRADE,
 			Ordering:        channel.Ordering,
-			ConnectionHops:  counterpartyHops,
+			ConnectionHops:  []string{connection.GetCounterparty().GetConnectionID()},
 			Counterparty:    types.NewCounterparty(portID, channelID),
 			Version:         channel.Version,
 			UpgradeSequence: channel.UpgradeSequence,
@@ -378,7 +377,7 @@ func (k Keeper) ChanUpgradeOpen(
 		counterpartyChannel = types.Channel{
 			State:           types.ACKUPGRADE,
 			Ordering:        channel.Ordering,
-			ConnectionHops:  counterpartyHops,
+			ConnectionHops:  []string{connection.GetCounterparty().GetConnectionID()},
 			Counterparty:    types.NewCounterparty(portID, channelID),
 			Version:         channel.Version,
 			UpgradeSequence: channel.UpgradeSequence,
