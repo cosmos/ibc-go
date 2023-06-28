@@ -242,7 +242,7 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 			false,
 		},
 		{
-			"channel is in INITUPGRADE stage",
+			"channel is in INITUPGRADE state",
 			func() {
 				suite.coordinator.Setup(path)
 
