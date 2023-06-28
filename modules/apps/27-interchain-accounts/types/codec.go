@@ -26,8 +26,9 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 }
 
 // SerializeCosmosTx serializes a slice of sdk.Msg's using the CosmosTx type. The sdk.Msg's are
-// packed into Any's and inserted into the Messages field of a CosmosTx. The proto marshaled CosmosTx
-// bytes are returned. Only the ProtoCodec is supported for serializing messages.
+// packed into Any's and inserted into the Messages field of a CosmosTx. The CosmosTx is marshaled
+// depending on the encoding type passed in. The marshaled bytes are returned. Only the ProtoCodec 
+// is supported for serializing messages. Both protobuf and proto3 JSON are supported.
 func SerializeCosmosTx(cdc codec.BinaryCodec, msgs []proto.Message, encoding string) ([]byte, error) {
 	// ProtoCodec must be supported
 	if _, ok := cdc.(*codec.ProtoCodec); !ok {
@@ -69,6 +70,9 @@ func SerializeCosmosTx(cdc codec.BinaryCodec, msgs []proto.Message, encoding str
 }
 
 // DeserializeCosmosTx unmarshals and unpacks a slice of transaction bytes into a slice of sdk.Msg's.
+// The transaction bytes are unmarshaled depending on the encoding type passed in. The sdk.Msg's are
+// unpacked from Any's and returned. Only the ProtoCodec is supported for serializing messages. Both
+// protobuf and proto3 JSON are supported.
 func DeserializeCosmosTx(cdc codec.Codec, data []byte, encoding string) ([]sdk.Msg, error) {
 	// ProtoCodec must be supported
 	if _, ok := cdc.(*codec.ProtoCodec); !ok {
