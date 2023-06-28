@@ -133,7 +133,7 @@ func (solo *Solomachine) CreateClient(chain *TestChain) string {
 	require.NoError(solo.t, err)
 	require.NotNil(solo.t, res)
 
-	clientID, err := ParseClientIDFromEvents(res.GetEvents())
+	clientID, err := ParseClientIDFromEvents(res.Events)
 	require.NoError(solo.t, err)
 
 	return clientID
@@ -277,7 +277,7 @@ func (solo *Solomachine) ConnOpenInit(chain *TestChain, clientID string) string 
 	require.NoError(solo.t, err)
 	require.NotNil(solo.t, res)
 
-	connectionID, err := ParseConnectionIDFromEvents(res.GetEvents())
+	connectionID, err := ParseConnectionIDFromEvents(res.Events)
 	require.NoError(solo.t, err)
 
 	return connectionID
@@ -387,7 +387,7 @@ func (solo *Solomachine) SendTransfer(chain *TestChain, portID, channelID string
 	res, err := chain.SendMsgs(&msgTransfer)
 	require.NoError(solo.t, err)
 
-	packet, err := ParsePacketFromEvents(res.GetEvents())
+	packet, err := ParsePacketFromEvents(res.Events)
 	require.NoError(solo.t, err)
 
 	return packet
