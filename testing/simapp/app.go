@@ -92,7 +92,6 @@ import (
 	upgradeclient "github.com/cosmos/cosmos-sdk/x/upgrade/client"
 	upgradekeeper "github.com/cosmos/cosmos-sdk/x/upgrade/keeper"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
-	upgrades "github.com/cosmos/ibc-go/v7/testing/simapp/upgrades"
 
 	dbm "github.com/cometbft/cometbft-db"
 	abci "github.com/cometbft/cometbft/abci/types"
@@ -127,6 +126,7 @@ import (
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 	ibcmock "github.com/cosmos/ibc-go/v7/testing/mock"
 	simappparams "github.com/cosmos/ibc-go/v7/testing/simapp/params"
+	upgrades "github.com/cosmos/ibc-go/v7/testing/simapp/upgrades"
 	ibctestingtypes "github.com/cosmos/ibc-go/v7/testing/types"
 )
 
