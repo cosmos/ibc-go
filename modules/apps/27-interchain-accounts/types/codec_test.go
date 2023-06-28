@@ -306,11 +306,11 @@ func (suite *TypesTestSuite) TestProtoDeserializeAndSerializeCosmosTxWithAmino()
 	marshaler := codec.NewAminoCodec(cdc)
 
 	msgs, err := types.SerializeCosmosTx(marshaler, []proto.Message{&banktypes.MsgSend{}}, types.EncodingProtobuf)
-	suite.Require().Error(err)
+	suite.Require().ErrorIs(err, types.ErrInvalidCodec)
 	suite.Require().Empty(msgs)
 
 	bz, err := types.DeserializeCosmosTx(marshaler, []byte{0x10, 0}, types.EncodingProtobuf)
-	suite.Require().Error(err)
+	suite.Require().ErrorIs(err, types.ErrInvalidCodec)
 	suite.Require().Empty(bz)
 }
 
@@ -319,7 +319,7 @@ func (suite *TypesTestSuite) TestJSONDeserializeCosmosTx() {
 		name      string
 		jsonBytes []byte
 		expMsgs   []proto.Message
-		expPass   bool
+		expError  error
 	}{
 		{
 			"success: single msg",
@@ -340,7 +340,7 @@ func (suite *TypesTestSuite) TestJSONDeserializeCosmosTx() {
 					Amount:      sdk.NewCoins(sdk.NewCoin("bananas", sdkmath.NewInt(100))),
 				},
 			},
-			true,
+			nil,
 		},
 		{
 			"success: multiple msgs, same types",
@@ -372,7 +372,7 @@ func (suite *TypesTestSuite) TestJSONDeserializeCosmosTx() {
 					Amount:      sdk.NewCoins(sdk.NewCoin("bananas", sdkmath.NewInt(100))),
 				},
 			},
-			true,
+			nil,
 		},
 		{
 			"success: multiple msgs, different types",
@@ -404,7 +404,7 @@ func (suite *TypesTestSuite) TestJSONDeserializeCosmosTx() {
 					Amount:           sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(5000)),
 				},
 			},
-			true,
+			nil,
 		},
 		{
 			"failure: unregistered msg type",
@@ -412,7 +412,7 @@ func (suite *TypesTestSuite) TestJSONDeserializeCosmosTx() {
 			[]proto.Message{
 				&mockSdkMsg{},
 			},
-			false,
+			types.ErrUnknownDataType,
 		},
 		{
 			"failure: multiple unregistered msg types",
@@ -422,13 +422,13 @@ func (suite *TypesTestSuite) TestJSONDeserializeCosmosTx() {
 				&mockSdkMsg{},
 				&mockSdkMsg{},
 			},
-			false,
+			types.ErrUnknownDataType,
 		},
 		{
 			"failure: empty bytes",
 			[]byte{},
 			nil,
-			false,
+			types.ErrUnknownDataType,
 		},
 	}
 
@@ -437,13 +437,13 @@ func (suite *TypesTestSuite) TestJSONDeserializeCosmosTx() {
 
 		suite.Run(tc.name, func() {
 			msgs, errDeserialize := types.DeserializeCosmosTx(simapp.MakeTestEncodingConfig().Codec, tc.jsonBytes, types.EncodingProto3JSON)
-			if tc.expPass {
+			if tc.expError == nil {
 				suite.Require().NoError(errDeserialize, tc.name)
 				for i, msg := range msgs {
 					suite.Require().Equal(tc.expMsgs[i], msg)
 				}
 			} else {
-				suite.Require().Error(errDeserialize, tc.name)
+				suite.Require().ErrorIs(errDeserialize, tc.expError, tc.name)
 			}
 		})
 	}
@@ -459,14 +459,14 @@ func (suite *TypesTestSuite) TestUnsupportedEncodingType() {
 	}
 
 	bz, err := types.SerializeCosmosTx(simapp.MakeTestEncodingConfig().Codec, msgs, "unsupported")
-	suite.Require().Error(err)
+	suite.Require().ErrorIs(err, types.ErrInvalidCodec)
 	suite.Require().Nil(bz)
 
 	data, err := types.SerializeCosmosTx(simapp.MakeTestEncodingConfig().Codec, msgs, types.EncodingProtobuf)
 	suite.Require().NoError(err)
 
 	_, err = types.DeserializeCosmosTx(simapp.MakeTestEncodingConfig().Codec, data, "unsupported")
-	suite.Require().Error(err)
+	suite.Require().ErrorIs(err, types.ErrInvalidCodec)
 
 	// verify that protobuf encoding still works otherwise:
 	_, err = types.DeserializeCosmosTx(simapp.MakeTestEncodingConfig().Codec, data, types.EncodingProtobuf)
