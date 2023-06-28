@@ -54,6 +54,7 @@ func setup(withGenesis bool, invCheckPeriod uint) (*SimApp, GenesisState) {
 	app := NewSimApp(log.NewNopLogger(), db, nil, true, appOptions)
 	if withGenesis {
 		return app, app.DefaultGenesis()
+	}
 	return app, GenesisState{}
 }
 
