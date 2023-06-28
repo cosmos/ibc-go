@@ -256,7 +256,7 @@ type SimApp struct {
 	ModuleManager *module.Manager
 
 	// simulation manager
-	sm *module.SimulationManager
+	simulationManager *module.SimulationManager
 
 	// module configurator
 	configurator module.Configurator
@@ -689,9 +689,9 @@ func NewSimApp(
 	overrideModules := map[string]module.AppModuleSimulation{
 		authtypes.ModuleName: auth.NewAppModule(app.appCodec, app.AccountKeeper, authsims.RandomGenesisAccounts, app.GetSubspace(authtypes.ModuleName)),
 	}
-	app.sm = module.NewSimulationManagerFromAppModules(app.ModuleManager.Modules, overrideModules)
+	app.simulationManager = module.NewSimulationManagerFromAppModules(app.ModuleManager.Modules, overrideModules)
 
-	app.sm.RegisterStoreDecoders()
+	app.simulationManager.RegisterStoreDecoders()
 
 	// initialize stores
 	app.MountKVStores(keys)
@@ -873,7 +873,7 @@ func (app *SimApp) GetSubspace(moduleName string) paramstypes.Subspace {
 
 // SimulationManager implements the SimulationApp interface
 func (app *SimApp) SimulationManager() *module.SimulationManager {
-	return app.sm
+	return app.simulationManager
 }
 
 // RegisterAPIRoutes registers all application module routes with the provided
