@@ -526,10 +526,19 @@ func (suite *KeeperTestSuite) TestChanUpgradeOpen() {
 			types.ErrPendingInflightPackets,
 		},
 		{
-			"flush status is not FLUSHCOMPLETE",
+			"flush status is FLUSHING",
 			func() {
 				channel := path.EndpointA.GetChannel()
 				channel.FlushStatus = types.FLUSHING
+				path.EndpointA.SetChannel(channel)
+			},
+			types.ErrInvalidFlushStatus,
+		},
+		{
+			"flush status is NOTINFLUSH",
+			func() {
+				channel := path.EndpointA.GetChannel()
+				channel.FlushStatus = types.NOTINFLUSH
 				path.EndpointA.SetChannel(channel)
 			},
 			types.ErrInvalidFlushStatus,
@@ -557,7 +566,6 @@ func (suite *KeeperTestSuite) TestChanUpgradeOpen() {
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(tc.name, func() {
-			expPass := tc.expError == nil
 			suite.SetupTest()
 
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
@@ -594,7 +602,8 @@ func (suite *KeeperTestSuite) TestChanUpgradeOpen() {
 				suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID,
 				path.EndpointB.GetChannel().State, proofCounterpartyChannel, proofHeight,
 			)
-			if expPass {
+
+			if tc.expError == nil {
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().ErrorIs(err, tc.expError)
