@@ -40,7 +40,7 @@ func (mockSdkMsg) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{}
 }
 
-func (suite *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
+func (s *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
 	testCases := []struct {
 		name    string
 		msgs    []proto.Message
@@ -109,50 +109,50 @@ func (suite *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
 	for _, tc := range testCases {
 		tc := tc
 
-		suite.Run(tc.name, func() {
+		s.Run(tc.name, func() {
 			bz, err := types.SerializeCosmosTx(simapp.MakeTestEncodingConfig().Codec, tc.msgs, types.EncodingProtobuf)
-			suite.Require().NoError(err, tc.name)
+			s.Require().NoError(err, tc.name)
 
 			msgs, err := types.DeserializeCosmosTx(simapp.MakeTestEncodingConfig().Codec, bz, types.EncodingProtobuf)
 			if tc.expPass {
-				suite.Require().NoError(err, tc.name)
+				s.Require().NoError(err, tc.name)
 			} else {
-				suite.Require().Error(err, tc.name)
+				s.Require().Error(err, tc.name)
 			}
 
 			for i, msg := range msgs {
-				suite.Require().Equal(tc.msgs[i], msg)
+				s.Require().Equal(tc.msgs[i], msg)
 			}
 		})
 	}
 
 	// test serializing non sdk.Msg type
 	bz, err := types.SerializeCosmosTx(simapp.MakeTestEncodingConfig().Codec, []proto.Message{&banktypes.MsgSendResponse{}}, types.EncodingProtobuf)
-	suite.Require().NoError(err)
-	suite.Require().NotEmpty(bz)
+	s.Require().NoError(err)
+	s.Require().NotEmpty(bz)
 
 	// test deserializing unknown bytes
 	_, err = types.DeserializeCosmosTx(simapp.MakeTestEncodingConfig().Codec, bz, types.EncodingProtobuf)
-	suite.Require().Error(err) // unregistered type
+	s.Require().Error(err) // unregistered type
 
 	// test deserializing unknown bytes
 	msgs, err := types.DeserializeCosmosTx(simapp.MakeTestEncodingConfig().Codec, []byte("invalid"), types.EncodingProtobuf)
-	suite.Require().Error(err)
-	suite.Require().Empty(msgs)
+	s.Require().Error(err)
+	s.Require().Empty(msgs)
 }
 
 // unregistered bytes causes amino to panic.
 // test that DeserializeCosmosTx gracefully returns an error on
 // unsupported amino codec.
-func (suite *TypesTestSuite) TestDeserializeAndSerializeCosmosTxWithAmino() {
+func (s *TypesTestSuite) TestDeserializeAndSerializeCosmosTxWithAmino() {
 	cdc := codec.NewLegacyAmino()
 	marshaler := codec.NewAminoCodec(cdc)
 
 	msgs, err := types.SerializeCosmosTx(marshaler, []proto.Message{&banktypes.MsgSend{}}, types.EncodingProtobuf)
-	suite.Require().Error(err)
-	suite.Require().Empty(msgs)
+	s.Require().Error(err)
+	s.Require().Empty(msgs)
 
 	bz, err := types.DeserializeCosmosTx(marshaler, []byte{0x10, 0}, types.EncodingProtobuf)
-	suite.Require().Error(err)
-	suite.Require().Empty(bz)
+	s.Require().Error(err)
+	s.Require().Empty(bz)
 }
