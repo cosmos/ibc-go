@@ -240,6 +240,10 @@ func (k Keeper) ChanUpgradeAck(
 		return errorsmod.Wrap(err, "failed to retrieve connection using the channel connection hops")
 	}
 
+	if connection.GetState() != int32(connectiontypes.OPEN) {
+		return errorsmod.Wrapf(connectiontypes.ErrInvalidConnectionState, "connection state is not OPEN (got %s)", connectiontypes.State(connection.GetState()).String())
+	}
+
 	counterpartyHops := []string{connection.GetCounterparty().GetConnectionID()}
 	counterpartyChannel := types.Channel{
 		State:           types.TRYUPGRADE,
