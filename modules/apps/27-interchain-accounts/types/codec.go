@@ -29,7 +29,7 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 // packed into Any's and inserted into the Messages field of a CosmosTx. The CosmosTx is marshaled
 // depending on the encoding type passed in. The marshaled bytes are returned. Only the ProtoCodec 
 // is supported for serializing messages. Both protobuf and proto3 JSON are supported.
-func SerializeCosmosTx(cdc codec.BinaryCodec, msgs []proto.Message, encoding string) ([]byte, error) {
+func SerializeCosmosTx(cdc codec.Codec, msgs []proto.Message, encoding string) ([]byte, error) {
 	// ProtoCodec must be supported
 	if _, ok := cdc.(*codec.ProtoCodec); !ok {
 		return nil, errorsmod.Wrap(ErrInvalidCodec, "ProtoCodec must be supported for receiving messages on the host chain")
@@ -58,7 +58,7 @@ func SerializeCosmosTx(cdc codec.BinaryCodec, msgs []proto.Message, encoding str
 			return nil, errorsmod.Wrapf(err, "cannot marshal cosmosTx with protobuf")
 		}
 	case EncodingProto3JSON:
-		bz, err = cdc.(*codec.ProtoCodec).MarshalJSON(cosmosTx)
+		bz, err = cdc.MarshalJSON(cosmosTx)
 		if err != nil {
 			return nil, errorsmod.Wrapf(ErrUnknownDataType, "cannot marshal cosmosTx with json")
 		}
