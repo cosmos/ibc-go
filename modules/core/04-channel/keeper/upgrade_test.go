@@ -1191,7 +1191,6 @@ func (suite *KeeperTestSuite) TestChanUpgradeCancel() {
 }
 
 func (suite *KeeperTestSuite) TestWriteUpgradeAckChannel() {
-
 	var (
 		path            *ibctesting.Path
 		proposedUpgrade types.Upgrade
