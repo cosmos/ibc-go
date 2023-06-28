@@ -44,7 +44,6 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Improvements
 
-* (simapp) [\#3874](https://github.com/cosmos/ibc-go/pull/3874) imp: refactor simapp to more closely resemble the style used in cosmos-sdk
 * (tests) [\#3138](https://github.com/cosmos/ibc-go/pull/3138) Support benchmarks and fuzz tests through `testing.TB`.
 
 ### Features
