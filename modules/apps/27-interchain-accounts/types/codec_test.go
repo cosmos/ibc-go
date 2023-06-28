@@ -43,6 +43,12 @@ func (mockSdkMsg) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{}
 }
 
+// TestSerializeAndDeserializeCosmosTx tests the SerializeCosmosTx and DeserializeCosmosTx functions
+// for all supported encoding types.
+//
+// expPass set to false means that:
+// - the test case is expected to fail on deserialization for protobuf encoding.
+// - the test case is expected to fail on serialization for proto3 json encoding.
 func (suite *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
 	testedEncodings := []string{types.EncodingProtobuf, types.EncodingProto3JSON}
 	var msgs []proto.Message
