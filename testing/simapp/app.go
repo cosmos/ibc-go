@@ -92,6 +92,7 @@ import (
 	upgradeclient "github.com/cosmos/cosmos-sdk/x/upgrade/client"
 	upgradekeeper "github.com/cosmos/cosmos-sdk/x/upgrade/keeper"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+	"github.com/cosmos/ibc-go/v7/testing/simapp/upgrades"
 
 	dbm "github.com/cometbft/cometbft-db"
 	abci "github.com/cometbft/cometbft/abci/types"
@@ -970,16 +971,16 @@ func makeEncodingConfig() simappparams.EncodingConfig {
 // setupUpgradeHandlers sets all necessary upgrade handlers for testing purposes
 func (app *SimApp) setupUpgradeHandlers() {
 	app.UpgradeKeeper.SetUpgradeHandler(
-		V5,
-		CreateDefaultUpgradeHandler(app.ModuleManager, app.configurator),
+		upgrades.V5,
+		upgrades.CreateDefaultUpgradeHandler(app.ModuleManager, app.configurator),
 	)
 
 	// NOTE: The moduleName arg of v6.CreateUpgradeHandler refers to the auth module ScopedKeeper name to which the channel capability should be migrated from.
 	// This should be the same string value provided upon instantiation of the ScopedKeeper with app.CapabilityKeeper.ScopeToModule()
 	// See: https://github.com/cosmos/ibc-go/blob/v6.1.0/testing/simapp/app.go#L310
 	app.UpgradeKeeper.SetUpgradeHandler(
-		V6,
-		CreateV6UpgradeHandler(
+		upgrades.V6,
+		upgrades.CreateV6UpgradeHandler(
 			app.ModuleManager,
 			app.configurator,
 			app.appCodec,
@@ -990,8 +991,8 @@ func (app *SimApp) setupUpgradeHandlers() {
 	)
 
 	app.UpgradeKeeper.SetUpgradeHandler(
-		V7,
-		CreateV7UpgradeHandler(
+		upgrades.V7,
+		upgrades.CreateV7UpgradeHandler(
 			app.ModuleManager,
 			app.configurator,
 			app.appCodec,
