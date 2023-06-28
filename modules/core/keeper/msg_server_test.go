@@ -953,7 +953,8 @@ func (suite *KeeperTestSuite) TestChannelUpgradeAck() {
 		{
 			"in flight packets",
 			func() {
-				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.SetPacketCommitment(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, 1, []byte("commitment"))
+				_, err := path.EndpointA.SendPacket(suite.chainB.GetTimeoutHeight(), 0, ibctesting.MockPacketData)
+				suite.Require().NoError(err)
 			},
 			func(res *channeltypes.MsgChannelUpgradeAckResponse, err error) {
 				suite.Require().NoError(err)
