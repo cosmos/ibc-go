@@ -247,7 +247,6 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 				suite.coordinator.Setup(path)
 
 				path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = ibcmock.UpgradeVersion
-				path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = ibcmock.UpgradeVersion
 
 				err := path.EndpointA.ChanUpgradeInit()
 				suite.Require().NoError(err)
