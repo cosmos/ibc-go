@@ -27,7 +27,7 @@ require (
 	cloud.google.com/go/storage v1.30.0 // indirect
 	cosmossdk.io/api v0.4.3-0.20230620040119-e078f1a49e8b // indirect
 	cosmossdk.io/client/v2 v2.0.0-20230615173548-5385116abac4 // indirect
-	cosmossdk.io/collections v0.2.0 // indirect
+	cosmossdk.io/collections v0.2.1-0.20230620134406-d4f1e88b6531 // indirect
 	cosmossdk.io/depinject v1.0.0-alpha.3 // indirect
 	cosmossdk.io/x/circuit v0.0.0-20230627025906-ab77fe20d3c0 // indirect
 	cosmossdk.io/x/evidence v0.0.0-20230627025906-ab77fe20d3c0 // indirect
@@ -189,4 +189,7 @@ require (
 
 replace github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
 
-replace github.com/cosmos/ibc-go/v7 => github.com/notional-labs/ibc-go/v7 v7.0.0-20230627155533-f5f1008e8e16
+replace github.com/cosmos/ibc-go/v7 => ../..
+
+// replace with the main branch, contianing the apphash fix
+replace github.com/cosmos/cosmos-sdk => github.com/cosmos/cosmos-sdk v0.46.0-beta2.0.20230628150442-76ade5fa31a5
