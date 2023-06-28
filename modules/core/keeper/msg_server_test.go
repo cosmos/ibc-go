@@ -953,7 +953,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeAck() {
 		{
 			"in flight packets",
 			func() {
-				_, err := path.EndpointA.SendPacket(suite.chainB.GetTimeoutHeight(), 0, ibctesting.MockPacketData)
+				_, err := path.EndpointA.SendPacket(suite.chainA.GetTimeoutHeight(), 0, ibctesting.MockPacketData)
 				suite.Require().NoError(err)
 			},
 			func(res *channeltypes.MsgChannelUpgradeAckResponse, err error) {

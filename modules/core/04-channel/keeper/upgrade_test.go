@@ -1190,7 +1190,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeCancel() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestWriteUpgradeAckChannel() {
+func (suite *KeeperTestSuite) TestWriteChannelUpgradeAck() {
 	var (
 		path            *ibctesting.Path
 		proposedUpgrade types.Upgrade
@@ -1232,9 +1232,10 @@ func (suite *KeeperTestSuite) TestWriteUpgradeAckChannel() {
 
 			tc.malleate()
 
+			// perform the upgrade handshake.
 			suite.Require().NoError(path.EndpointA.ChanUpgradeInit())
-
 			suite.Require().NoError(path.EndpointB.ChanUpgradeTry())
+			suite.Require().NoError(path.EndpointA.UpdateClient())
 
 			suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.WriteUpgradeAckChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, proposedUpgrade.Fields.Version)
 
