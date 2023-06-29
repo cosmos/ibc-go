@@ -552,52 +552,6 @@ func (suite *KeeperTestSuite) TestChanUpgradeAck() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestWriteUpgradeAck() {
-	var (
-		path            *ibctesting.Path
-		proposedUpgrade types.Upgrade
-	)
-
-	testCases := []struct {
-		name                 string
-		malleate             func()
-		hasPacketCommitments bool
-	}{}
-
-	for _, tc := range testCases {
-		tc := tc
-		suite.Run(tc.name, func() {
-			suite.SetupTest()
-
-			path = ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.Setup(path)
-
-			// create upgrade proposal with different version in init upgrade to see if the WriteUpgradeAck overwrites the version
-			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = "original-version"
-			proposedUpgrade = path.EndpointA.GetProposedUpgrade()
-			path.EndpointA.SetChannelUpgrade(proposedUpgrade)
-
-			tc.malleate()
-
-			// use mock upgrade version in this function
-			suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.WriteUpgradeAckChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, mock.UpgradeVersion)
-
-			channel := path.EndpointA.GetChannel()
-
-			upgrade, found := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-			suite.Require().True(found)
-			suite.Require().Equal(types.ACKUPGRADE, channel.State)
-			suite.Require().Equal(upgrade.Fields.Version, mock.UpgradeVersion)
-
-			if tc.hasPacketCommitments {
-				suite.Require().Equal(types.FLUSHING, channel.FlushStatus)
-			} else {
-				suite.Require().Equal(types.FLUSHCOMPLETE, channel.FlushStatus)
-			}
-		})
-	}
-}
-
 func (suite *KeeperTestSuite) TestChanUpgradeTimeout() {
 	var (
 		path                     *ibctesting.Path
