@@ -3,7 +3,7 @@ module github.com/cosmos/ibc-go/modules/capability
 go 1.20
 
 require (
-	cosmossdk.io/core v0.8.0
+	cosmossdk.io/core v0.9.0
 	cosmossdk.io/errors v1.0.0-beta.7.0.20230524212735-6cabb6aa5741
 	cosmossdk.io/log v1.1.0
 	cosmossdk.io/math v1.0.1
