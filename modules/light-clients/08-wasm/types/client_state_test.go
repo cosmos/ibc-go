@@ -195,6 +195,20 @@ func (suite *TypesTestSuite) TestValidate() {
 			clientState: types.NewClientState([]byte{0}, []byte{}, clienttypes.ZeroHeight()),
 			expPass:     false,
 		},
+		{
+			name: "longer than 32 bytes code id",
+			clientState: types.NewClientState(
+				[]byte{0},
+				[]byte{
+					0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
+					10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
+					20, 21, 22, 23, 24, 25, 26, 27, 28, 29,
+					30, 31, 32, 33,
+				},
+				clienttypes.ZeroHeight(),
+			),
+			expPass: false,
+		},
 	}
 
 	for _, tc := range testCases {

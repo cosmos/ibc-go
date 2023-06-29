@@ -20,13 +20,6 @@ type (
 
 // CheckSubstituteAndUpdateState will try to update the client with the state of the
 // substitute.
-//
-// The following must always be true:
-//   - The substitute client is the same type as the subject client
-//   - The subject and substitute client states match in all parameters (expect frozen height, latest height, and chain-id)
-//
-// In case 1) before updating the client, the client will be unfrozen by resetting
-// the FrozenHeight to the zero Height.
 func (cs ClientState) CheckSubstituteAndUpdateState(
 	ctx sdk.Context,
 	_ codec.BinaryCodec,

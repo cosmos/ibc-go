@@ -3,6 +3,7 @@ package keeper
 import (
 	"bytes"
 	"crypto/sha256"
+	"encoding/hex"
 	"math"
 	"strings"
 
@@ -54,7 +55,7 @@ func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey) Keeper {
 	}
 }
 
-// GetAuthority returns the ibc module's authority.
+// GetAuthority returns the 08-wasm module's authority.
 func (k Keeper) GetAuthority() string {
 	return k.authority
 }
@@ -72,36 +73,36 @@ func (k Keeper) storeWasmCode(ctx sdk.Context, code []byte) ([]byte, error) {
 		ctx.GasMeter().ConsumeGas(types.VMGasRegister.UncompressCosts(len(code)), "Uncompress gzip bytecode")
 		code, err = types.Uncompress(code, types.MaxWasmByteSize())
 		if err != nil {
-			return nil, sdkerrors.Wrap(types.ErrCreateContractFailed, err.Error())
+			return nil, sdkerrors.Wrap(err, "failed to store contract")
 		}
 	}
 
 	// Check to see if the store has a code with the same code it
-	codeHash := generateWasmCodeHash(code)
-	codeIDKey := types.CodeIDKey(codeHash)
+	expectedHash := generateWasmCodeHash(code)
+	codeIDKey := types.CodeIDKey(expectedHash)
 	if store.Has(codeIDKey) {
 		return nil, types.ErrWasmCodeExists
 	}
 
 	// run the code through the wasm light client validation process
 	if err := types.ValidateWasmCode(code); err != nil {
-		return nil, sdkerrors.Wrapf(types.ErrWasmCodeValidation, err.Error())
+		return nil, sdkerrors.Wrapf(err, "wasm bytecode validation failed")
 	}
 
 	// create the code in the vm
 	ctx.GasMeter().ConsumeGas(types.VMGasRegister.CompileCosts(len(code)), "Compiling wasm bytecode")
-	codeID, err := k.wasmVM.StoreCode(code)
+	codeHash, err := k.wasmVM.StoreCode(code)
 	if err != nil {
-		return nil, sdkerrors.Wrap(types.ErrCreateContractFailed, err.Error())
+		return nil, sdkerrors.Wrap(err, "failed to store contract")
 	}
 
 	// safety check to assert that code ID returned by WasmVM equals to code hash
-	if !bytes.Equal(codeID, codeHash) {
-		return nil, types.ErrWasmInvalidCodeID
+	if !bytes.Equal(codeHash, expectedHash) {
+		return nil, sdkerrors.Wrapf(types.ErrInvalidCodeID, "expected %s, got %s", hex.EncodeToString(expectedHash), hex.EncodeToString(codeHash))
 	}
 
 	store.Set(codeIDKey, code)
-	return codeID, nil
+	return codeHash, nil
 }
 
 func (k Keeper) importWasmCode(ctx sdk.Context, codeIDKey, wasmCode []byte) error {
@@ -110,18 +111,18 @@ func (k Keeper) importWasmCode(ctx sdk.Context, codeIDKey, wasmCode []byte) erro
 		var err error
 		wasmCode, err = types.Uncompress(wasmCode, types.MaxWasmByteSize())
 		if err != nil {
-			return sdkerrors.Wrap(types.ErrCreateContractFailed, err.Error())
+			return sdkerrors.Wrap(err, "failed to store contract")
 		}
 	}
 
 	generatedCodeID, err := k.wasmVM.Create(wasmCode)
 	if err != nil {
-		return sdkerrors.Wrap(types.ErrCreateContractFailed, err.Error())
+		return sdkerrors.Wrap(err, "failed to store contract")
 	}
 	generatedCodeIDKey := types.CodeIDKey(generatedCodeID)
 
 	if !bytes.Equal(codeIDKey, generatedCodeIDKey) {
-		return sdkerrors.Wrapf(types.ErrInvalid, "invalid code ID: expected %s, got %s", string(generatedCodeIDKey), string(codeIDKey))
+		return sdkerrors.Wrapf(types.ErrInvalid, "expected %s, got %s", string(generatedCodeIDKey), string(codeIDKey))
 	}
 
 	store.Set(codeIDKey, wasmCode)

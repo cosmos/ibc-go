@@ -15,6 +15,8 @@ type (
 	}
 )
 
+// CheckForMisbehaviour detects misbehaviour in a submitted Header message and verifies
+// the correctness of a submitted Misbehaviour ClientMessage
 func (cs ClientState) CheckForMisbehaviour(ctx sdk.Context, _ codec.BinaryCodec, clientStore sdk.KVStore, msg exported.ClientMessage) bool {
 	clientMsgConcrete := clientMessage{
 		Header:       nil,
