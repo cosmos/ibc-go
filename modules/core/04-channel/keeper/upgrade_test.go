@@ -590,19 +590,23 @@ func (suite *KeeperTestSuite) TestWriteChannelUpgradeAck() {
 
 			// create upgrade proposal with different version in init upgrade to see if the WriteUpgradeAck overwrites the version
 			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = "original-version"
-			proposedUpgrade = path.EndpointA.GetProposedUpgrade()
-			path.EndpointA.SetChannelUpgrade(proposedUpgrade)
 
 			tc.malleate()
 
 			// perform the upgrade handshake.
 			suite.Require().NoError(path.EndpointA.ChanUpgradeInit())
+
+			proposedUpgrade = path.EndpointA.GetChannelUpgrade()
+			suite.Require().Equal("original-version", proposedUpgrade.Fields.Version)
+
 			suite.Require().NoError(path.EndpointB.ChanUpgradeTry())
 			suite.Require().NoError(path.EndpointA.UpdateClient())
 
-			suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.WriteUpgradeAckChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, proposedUpgrade.Fields.Version)
+			suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.WriteUpgradeAckChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, mock.UpgradeVersion)
 
 			channel := path.EndpointA.GetChannel()
+			upgrade := path.EndpointA.GetChannelUpgrade()
+			suite.Require().Equal(mock.UpgradeVersion, upgrade.Fields.Version)
 
 			if tc.hasPacketCommitments {
 				suite.Require().Equal(types.FLUSHING, channel.FlushStatus)
