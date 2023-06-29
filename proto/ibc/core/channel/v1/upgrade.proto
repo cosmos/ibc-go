@@ -12,6 +12,8 @@ import "ibc/core/channel/v1/channel.proto";
 // end, the timeout for this upgrade attempt and the latest packet sequence sent
 // to allow the counterparty to block sends after the upgrade has started.
 message Upgrade {
+  option (gogoproto.goproto_getters) = false;
+
   UpgradeFields fields               = 1 [(gogoproto.nullable) = false];
   Timeout       timeout              = 2 [(gogoproto.nullable) = false];
   uint64        latest_sequence_send = 3;
@@ -20,6 +22,8 @@ message Upgrade {
 // UpgradeFields are the fields in a channel end which may be changed
 // during a channel upgrade.
 message UpgradeFields {
+  option (gogoproto.goproto_getters) = false;
+
   Order           ordering        = 1;
   repeated string connection_hops = 2;
   string          version         = 3;
@@ -29,6 +33,8 @@ message UpgradeFields {
 // upgrade handshake failure. When a channel upgrade handshake is aborted both chains are expected to increment to the
 // next sequence.
 message ErrorReceipt {
+  option (gogoproto.goproto_getters) = false;
+
   // the channel upgrade sequence
   uint64 sequence = 1;
   // the error message detailing the cause of failure

@@ -40,6 +40,10 @@ func (k Keeper) SendPacket(
 		)
 	}
 
+	if channel.FlushStatus != types.NOTINFLUSH {
+		return 0, errorsmod.Wrapf(types.ErrInvalidFlushStatus, "expected flush status to be %s during packet send, got %s", types.NOTINFLUSH, channel.FlushStatus)
+	}
+
 	if !k.scopedKeeper.AuthenticateCapability(ctx, channelCap, host.ChannelCapabilityPath(sourcePort, sourceChannel)) {
 		return 0, errorsmod.Wrapf(types.ErrChannelCapabilityNotFound, "caller does not own capability for channel, port ID (%s) channel ID (%s)", sourcePort, sourceChannel)
 	}
