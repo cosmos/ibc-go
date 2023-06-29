@@ -552,6 +552,130 @@ func (suite *KeeperTestSuite) TestChanUpgradeAck() {
 	}
 }
 
+func (suite *KeeperTestSuite) TestChanUpgradeOpen() {
+	var path *ibctesting.Path
+	testCases := []struct {
+		name     string
+		malleate func()
+		expError error
+	}{
+		{
+			"success",
+			func() {},
+			nil,
+		},
+		{
+			"channel not found",
+			func() {
+				path.EndpointA.ChannelConfig.PortID = ibctesting.InvalidID
+			},
+			types.ErrChannelNotFound,
+		},
+
+		{
+			"channel state is not in TRYUPGRADE or ACKUPGRADE",
+			func() {
+				suite.Require().NoError(path.EndpointA.SetChannelState(types.OPEN))
+			},
+			types.ErrInvalidChannelState,
+		},
+
+		{
+			"channel has in-flight packets",
+			func() {
+				portID := path.EndpointA.ChannelConfig.PortID
+				channelID := path.EndpointA.ChannelID
+				// Set a dummy packet commitment to simulate in-flight packets
+				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.SetPacketCommitment(suite.chainA.GetContext(), portID, channelID, 1, []byte("hash"))
+			},
+			types.ErrPendingInflightPackets,
+		},
+		{
+			"flush status is FLUSHING",
+			func() {
+				channel := path.EndpointA.GetChannel()
+				channel.FlushStatus = types.FLUSHING
+				path.EndpointA.SetChannel(channel)
+			},
+			types.ErrInvalidFlushStatus,
+		},
+		{
+			"flush status is NOTINFLUSH",
+			func() {
+				channel := path.EndpointA.GetChannel()
+				channel.FlushStatus = types.NOTINFLUSH
+				path.EndpointA.SetChannel(channel)
+			},
+			types.ErrInvalidFlushStatus,
+		},
+		{
+			"connection not found",
+			func() {
+				channel := path.EndpointA.GetChannel()
+				channel.ConnectionHops = []string{"connection-100"}
+				path.EndpointA.SetChannel(channel)
+			},
+			connectiontypes.ErrConnectionNotFound,
+		},
+		{
+			"invalid connection state",
+			func() {
+				connectionEnd := path.EndpointA.GetConnection()
+				connectionEnd.State = connectiontypes.UNINITIALIZED
+				path.EndpointA.SetConnection(connectionEnd)
+			},
+			connectiontypes.ErrInvalidConnectionState,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.Setup(path)
+
+			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
+
+			err := path.EndpointB.ChanUpgradeInit()
+			suite.Require().NoError(err)
+
+			err = path.EndpointA.ChanUpgradeTry()
+			suite.Require().NoError(err)
+
+			err = path.EndpointB.ChanUpgradeAck()
+			suite.Require().NoError(err)
+
+			// TODO: Remove setting of FLUSHCOMPLETE once #3928 is completed
+			channelB := path.EndpointB.GetChannel()
+			channelB.FlushStatus = types.FLUSHCOMPLETE
+			path.EndpointB.SetChannel(channelB)
+
+			channelA := path.EndpointA.GetChannel()
+			channelA.FlushStatus = types.FLUSHCOMPLETE
+			path.EndpointA.SetChannel(channelA)
+
+			suite.coordinator.CommitBlock(suite.chainA, suite.chainB)
+			suite.Require().NoError(path.EndpointA.UpdateClient())
+
+			tc.malleate()
+
+			proofCounterpartyChannel, _, proofHeight := path.EndpointA.QueryChannelUpgradeProof()
+			err = suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.ChanUpgradeOpen(
+				suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID,
+				path.EndpointB.GetChannel().State, proofCounterpartyChannel, proofHeight,
+			)
+
+			if tc.expError == nil {
+				suite.Require().NoError(err)
+			} else {
+				suite.Require().ErrorIs(err, tc.expError)
+			}
+		})
+	}
+}
+
 func (suite *KeeperTestSuite) TestChanUpgradeTimeout() {
 	var (
 		path                     *ibctesting.Path
