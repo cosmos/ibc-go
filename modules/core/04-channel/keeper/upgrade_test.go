@@ -552,6 +552,67 @@ func (suite *KeeperTestSuite) TestChanUpgradeAck() {
 	}
 }
 
+func (suite *KeeperTestSuite) TestWriteChannelUpgradeAck() {
+	var (
+		path            *ibctesting.Path
+		proposedUpgrade types.Upgrade
+	)
+
+	testCases := []struct {
+		name                 string
+		malleate             func()
+		hasPacketCommitments bool
+	}{
+		{
+			"success with no packet commitments",
+			func() {},
+			false,
+		},
+		{
+			"success with packet commitments",
+			func() {
+				// manually set packet commitment
+				sequence, err := path.EndpointA.SendPacket(suite.chainB.GetTimeoutHeight(), 0, ibctesting.MockPacketData)
+				suite.Require().NoError(err)
+				suite.Require().Equal(uint64(1), sequence)
+			},
+			true,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.Setup(path)
+
+			// create upgrade proposal with different version in init upgrade to see if the WriteUpgradeAck overwrites the version
+			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = "original-version"
+			proposedUpgrade = path.EndpointA.GetProposedUpgrade()
+			path.EndpointA.SetChannelUpgrade(proposedUpgrade)
+
+			tc.malleate()
+
+			// perform the upgrade handshake.
+			suite.Require().NoError(path.EndpointA.ChanUpgradeInit())
+			suite.Require().NoError(path.EndpointB.ChanUpgradeTry())
+			suite.Require().NoError(path.EndpointA.UpdateClient())
+
+			suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.WriteUpgradeAckChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, proposedUpgrade.Fields.Version)
+
+			channel := path.EndpointA.GetChannel()
+
+			if tc.hasPacketCommitments {
+				suite.Require().Equal(types.FLUSHING, channel.FlushStatus)
+			} else {
+				suite.Require().Equal(types.FLUSHCOMPLETE, channel.FlushStatus)
+			}
+		})
+	}
+}
+
 func (suite *KeeperTestSuite) TestChanUpgradeTimeout() {
 	var (
 		path                     *ibctesting.Path
@@ -1250,67 +1311,6 @@ func (suite *KeeperTestSuite) TestChanUpgradeCancel() {
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().ErrorIs(err, tc.expError)
-			}
-		})
-	}
-}
-
-func (suite *KeeperTestSuite) TestWriteChannelUpgradeAck() {
-	var (
-		path            *ibctesting.Path
-		proposedUpgrade types.Upgrade
-	)
-
-	testCases := []struct {
-		name                 string
-		malleate             func()
-		hasPacketCommitments bool
-	}{
-		{
-			"success with no packet commitments",
-			func() {},
-			false,
-		},
-		{
-			"success with packet commitments",
-			func() {
-				// manually set packet commitment
-				sequence, err := path.EndpointA.SendPacket(suite.chainB.GetTimeoutHeight(), 0, ibctesting.MockPacketData)
-				suite.Require().NoError(err)
-				suite.Require().Equal(uint64(1), sequence)
-			},
-			true,
-		},
-	}
-
-	for _, tc := range testCases {
-		tc := tc
-		suite.Run(tc.name, func() {
-			suite.SetupTest()
-
-			path = ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.Setup(path)
-
-			// create upgrade proposal with different version in init upgrade to see if the WriteUpgradeAck overwrites the version
-			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = "original-version"
-			proposedUpgrade = path.EndpointA.GetProposedUpgrade()
-			path.EndpointA.SetChannelUpgrade(proposedUpgrade)
-
-			tc.malleate()
-
-			// perform the upgrade handshake.
-			suite.Require().NoError(path.EndpointA.ChanUpgradeInit())
-			suite.Require().NoError(path.EndpointB.ChanUpgradeTry())
-			suite.Require().NoError(path.EndpointA.UpdateClient())
-
-			suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.WriteUpgradeAckChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, proposedUpgrade.Fields.Version)
-
-			channel := path.EndpointA.GetChannel()
-
-			if tc.hasPacketCommitments {
-				suite.Require().Equal(types.FLUSHING, channel.FlushStatus)
-			} else {
-				suite.Require().Equal(types.FLUSHCOMPLETE, channel.FlushStatus)
 			}
 		})
 	}
