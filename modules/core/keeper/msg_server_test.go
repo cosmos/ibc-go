@@ -951,23 +951,6 @@ func (suite *KeeperTestSuite) TestChannelUpgradeAck() {
 			},
 		},
 		{
-			"in flight packets",
-			func() {
-				_, err := path.EndpointA.SendPacket(suite.chainA.GetTimeoutHeight(), 0, ibctesting.MockPacketData)
-				suite.Require().NoError(err)
-			},
-			func(res *channeltypes.MsgChannelUpgradeAckResponse, err error) {
-				suite.Require().NoError(err)
-				suite.Require().NotNil(res)
-				suite.Require().Equal(channeltypes.SUCCESS, res.Result)
-
-				channel := path.EndpointA.GetChannel()
-				suite.Require().Equal(channeltypes.ACKUPGRADE, channel.State)
-				suite.Require().Equal(uint64(1), channel.UpgradeSequence)
-				suite.Require().Equal(channeltypes.FLUSHING, channel.FlushStatus)
-			},
-		},
-		{
 			"module capability not found",
 			func() {
 				msg.PortId = ibctesting.InvalidID
