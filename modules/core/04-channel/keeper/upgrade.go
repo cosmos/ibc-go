@@ -294,6 +294,10 @@ func (k Keeper) WriteUpgradeAckChannel(
 	channel.State = types.ACKUPGRADE
 	channel.FlushStatus = types.FLUSHING
 
+	if !k.hasInflightPackets(ctx, portID, channelID) {
+		channel.FlushStatus = types.FLUSHCOMPLETE
+	}
+
 	k.SetChannel(ctx, portID, channelID, channel)
 
 	upgrade, found := k.GetUpgrade(ctx, portID, channelID)

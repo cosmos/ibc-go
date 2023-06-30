@@ -947,6 +947,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeAck() {
 				channel := path.EndpointA.GetChannel()
 				suite.Require().Equal(channeltypes.ACKUPGRADE, channel.State)
 				suite.Require().Equal(uint64(1), channel.UpgradeSequence)
+				suite.Require().Equal(channeltypes.FLUSHCOMPLETE, channel.FlushStatus)
 			},
 		},
 		{
