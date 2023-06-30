@@ -4,12 +4,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	"github.com/stretchr/testify/require"
 
 	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
 )
@@ -124,7 +125,7 @@ func TestGeneratePacketData(t *testing.T) {
 				require.Equal(t, tc.memo, packetData.Memo)
 
 				data := packetData.Data
-				messages, err := icatypes.DeserializeCosmosTx(cdc, data)
+				messages, err := icatypes.DeserializeCosmosTx(cdc, data, icatypes.EncodingProtobuf)
 
 				require.NoError(t, err)
 				require.NotNil(t, messages)

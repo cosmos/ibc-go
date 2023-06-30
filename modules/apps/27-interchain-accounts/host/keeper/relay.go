@@ -1,10 +1,12 @@
 package keeper
 
 import (
+	"github.com/cosmos/gogoproto/proto"
+
 	errorsmod "cosmossdk.io/errors"
+
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/gogoproto/proto"
 
 	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/types"
 	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
@@ -24,7 +26,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet) ([]byt
 
 	switch data.Type {
 	case icatypes.EXECUTE_TX:
-		msgs, err := icatypes.DeserializeCosmosTx(k.cdc, data.Data)
+		msgs, err := icatypes.DeserializeCosmosTx(k.cdc, data.Data, icatypes.EncodingProtobuf)
 		if err != nil {
 			return nil, errorsmod.Wrapf(err, "failed to deserialize interchain account transaction")
 		}

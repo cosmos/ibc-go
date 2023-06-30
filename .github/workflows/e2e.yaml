@@ -31,6 +31,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       simd-tag: ${{ steps.get-tag.outputs.simd-tag }}
+      relayer: ${{ steps.get-relayer.outputs.relayer }}
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v4
@@ -71,7 +72,7 @@ jobs:
           find ./tests -type d | while IFS= read -r dir
           do
               if ls "${dir}"/*.go >/dev/null 2>&1; then
-                  GOARCH=arm64 go test -c "$dir" 2>/dev/null
+                  GOARCH=arm64 go test -c "$dir"
               fi
           done
 
@@ -100,4 +101,4 @@ jobs:
       chain-binary: 'simd'
       # on regular PRs we won't run interchain account or upgrade tests.
       test-exclusions: 'TestInterTxTestSuite,TestIncentivizedInterTxTestSuite,TestUpgradeTestSuite'
-      relayer-tag: "${{ needs.determine-image-tag.outputs.relayer }}"
+      relayer-type: "${{ needs.determine-image-tag.outputs.relayer }}"

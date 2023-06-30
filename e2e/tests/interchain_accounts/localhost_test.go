@@ -71,7 +71,7 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_Localhost(
 		msgChanOpenTry := channeltypes.NewMsgChannelOpenTry(
 			icatypes.HostPortID, icatypes.Version,
 			channeltypes.ORDERED, []string{exported.LocalhostConnectionID},
-			controllerPortID, msgChanOpenInitRes.GetChannelId(),
+			controllerPortID, msgChanOpenInitRes.ChannelId,
 			version, localhost.SentinelProof, clienttypes.ZeroHeight(), rlyWallet.FormattedAddress(),
 		)
 
@@ -83,8 +83,8 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_Localhost(
 
 	t.Run("channel open ack localhost", func(t *testing.T) {
 		msgChanOpenAck := channeltypes.NewMsgChannelOpenAck(
-			controllerPortID, msgChanOpenInitRes.GetChannelId(),
-			msgChanOpenTryRes.GetChannelId(), msgChanOpenTryRes.GetVersion(),
+			controllerPortID, msgChanOpenInitRes.ChannelId,
+			msgChanOpenTryRes.ChannelId, msgChanOpenTryRes.Version,
 			localhost.SentinelProof, clienttypes.ZeroHeight(), rlyWallet.FormattedAddress(),
 		)
 
@@ -94,7 +94,7 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_Localhost(
 
 	t.Run("channel open confirm localhost", func(t *testing.T) {
 		msgChanOpenConfirm := channeltypes.NewMsgChannelOpenConfirm(
-			icatypes.HostPortID, msgChanOpenTryRes.GetChannelId(),
+			icatypes.HostPortID, msgChanOpenTryRes.ChannelId,
 			localhost.SentinelProof, clienttypes.ZeroHeight(), rlyWallet.FormattedAddress(),
 		)
 
@@ -103,11 +103,11 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_Localhost(
 	})
 
 	t.Run("query localhost interchain accounts channel ends", func(t *testing.T) {
-		channelEndA, err := s.QueryChannel(ctx, chainA, controllerPortID, msgChanOpenInitRes.GetChannelId())
+		channelEndA, err := s.QueryChannel(ctx, chainA, controllerPortID, msgChanOpenInitRes.ChannelId)
 		s.Require().NoError(err)
 		s.Require().NotNil(channelEndA)
 
-		channelEndB, err := s.QueryChannel(ctx, chainA, icatypes.HostPortID, msgChanOpenTryRes.GetChannelId())
+		channelEndB, err := s.QueryChannel(ctx, chainA, icatypes.HostPortID, msgChanOpenTryRes.ChannelId)
 		s.Require().NoError(err)
 		s.Require().NotNil(channelEndB)
 
@@ -140,7 +140,7 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_Localhost(
 		}
 
 		cdc := testsuite.Codec()
-		bz, err := icatypes.SerializeCosmosTx(cdc, []proto.Message{msgSend})
+		bz, err := icatypes.SerializeCosmosTx(cdc, []proto.Message{msgSend}, icatypes.EncodingProtobuf)
 		s.Require().NoError(err)
 
 		packetData := icatypes.InterchainAccountPacketData{
@@ -228,7 +228,7 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_ReopenChan
 		msgChanOpenTry := channeltypes.NewMsgChannelOpenTry(
 			icatypes.HostPortID, icatypes.Version,
 			channeltypes.ORDERED, []string{exported.LocalhostConnectionID},
-			controllerPortID, msgChanOpenInitRes.GetChannelId(),
+			controllerPortID, msgChanOpenInitRes.ChannelId,
 			version, localhost.SentinelProof, clienttypes.ZeroHeight(), rlyWallet.FormattedAddress(),
 		)
 
@@ -240,8 +240,8 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_ReopenChan
 
 	t.Run("channel open ack localhost", func(t *testing.T) {
 		msgChanOpenAck := channeltypes.NewMsgChannelOpenAck(
-			controllerPortID, msgChanOpenInitRes.GetChannelId(),
-			msgChanOpenTryRes.GetChannelId(), msgChanOpenTryRes.GetVersion(),
+			controllerPortID, msgChanOpenInitRes.ChannelId,
+			msgChanOpenTryRes.ChannelId, msgChanOpenTryRes.Version,
 			localhost.SentinelProof, clienttypes.ZeroHeight(), rlyWallet.FormattedAddress(),
 		)
 
@@ -251,7 +251,7 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_ReopenChan
 
 	t.Run("channel open confirm localhost", func(t *testing.T) {
 		msgChanOpenConfirm := channeltypes.NewMsgChannelOpenConfirm(
-			icatypes.HostPortID, msgChanOpenTryRes.GetChannelId(),
+			icatypes.HostPortID, msgChanOpenTryRes.ChannelId,
 			localhost.SentinelProof, clienttypes.ZeroHeight(), rlyWallet.FormattedAddress(),
 		)
 
@@ -260,11 +260,11 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_ReopenChan
 	})
 
 	t.Run("query localhost interchain accounts channel ends", func(t *testing.T) {
-		channelEndA, err := s.QueryChannel(ctx, chainA, controllerPortID, msgChanOpenInitRes.GetChannelId())
+		channelEndA, err := s.QueryChannel(ctx, chainA, controllerPortID, msgChanOpenInitRes.ChannelId)
 		s.Require().NoError(err)
 		s.Require().NotNil(channelEndA)
 
-		channelEndB, err := s.QueryChannel(ctx, chainA, icatypes.HostPortID, msgChanOpenTryRes.GetChannelId())
+		channelEndB, err := s.QueryChannel(ctx, chainA, icatypes.HostPortID, msgChanOpenTryRes.ChannelId)
 		s.Require().NoError(err)
 		s.Require().NotNil(channelEndB)
 
@@ -297,7 +297,7 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_ReopenChan
 		}
 
 		cdc := testsuite.Codec()
-		bz, err := icatypes.SerializeCosmosTx(cdc, []proto.Message{msgSend})
+		bz, err := icatypes.SerializeCosmosTx(cdc, []proto.Message{msgSend}, icatypes.EncodingProtobuf)
 		s.Require().NoError(err)
 
 		packetData := icatypes.InterchainAccountPacketData{
@@ -357,7 +357,7 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_ReopenChan
 		msgChanOpenTry := channeltypes.NewMsgChannelOpenTry(
 			icatypes.HostPortID, icatypes.Version,
 			channeltypes.ORDERED, []string{exported.LocalhostConnectionID},
-			controllerPortID, msgChanOpenInitRes.GetChannelId(),
+			controllerPortID, msgChanOpenInitRes.ChannelId,
 			version, localhost.SentinelProof, clienttypes.ZeroHeight(), rlyWallet.FormattedAddress(),
 		)
 
@@ -370,8 +370,8 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_ReopenChan
 
 	t.Run("channel open ack localhost", func(t *testing.T) {
 		msgChanOpenAck := channeltypes.NewMsgChannelOpenAck(
-			controllerPortID, msgChanOpenInitRes.GetChannelId(),
-			msgChanOpenTryRes.GetChannelId(), msgChanOpenTryRes.GetVersion(),
+			controllerPortID, msgChanOpenInitRes.ChannelId,
+			msgChanOpenTryRes.ChannelId, msgChanOpenTryRes.Version,
 			localhost.SentinelProof, clienttypes.ZeroHeight(), rlyWallet.FormattedAddress(),
 		)
 
@@ -381,7 +381,7 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_ReopenChan
 
 	t.Run("channel open confirm localhost", func(t *testing.T) {
 		msgChanOpenConfirm := channeltypes.NewMsgChannelOpenConfirm(
-			icatypes.HostPortID, msgChanOpenTryRes.GetChannelId(),
+			icatypes.HostPortID, msgChanOpenTryRes.ChannelId,
 			localhost.SentinelProof, clienttypes.ZeroHeight(), rlyWallet.FormattedAddress(),
 		)
 
@@ -390,11 +390,11 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_ReopenChan
 	})
 
 	t.Run("query localhost interchain accounts channel ends", func(t *testing.T) {
-		channelEndA, err := s.QueryChannel(ctx, chainA, controllerPortID, msgChanOpenInitRes.GetChannelId())
+		channelEndA, err := s.QueryChannel(ctx, chainA, controllerPortID, msgChanOpenInitRes.ChannelId)
 		s.Require().NoError(err)
 		s.Require().NotNil(channelEndA)
 
-		channelEndB, err := s.QueryChannel(ctx, chainA, icatypes.HostPortID, msgChanOpenTryRes.GetChannelId())
+		channelEndB, err := s.QueryChannel(ctx, chainA, icatypes.HostPortID, msgChanOpenTryRes.ChannelId)
 		s.Require().NoError(err)
 		s.Require().NotNil(channelEndB)
 
@@ -425,7 +425,7 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_ReopenChan
 		}
 
 		cdc := testsuite.Codec()
-		bz, err := icatypes.SerializeCosmosTx(cdc, []proto.Message{msgSend})
+		bz, err := icatypes.SerializeCosmosTx(cdc, []proto.Message{msgSend}, icatypes.EncodingProtobuf)
 		s.Require().NoError(err)
 
 		packetData := icatypes.InterchainAccountPacketData{
@@ -465,7 +465,7 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_ReopenChan
 	})
 
 	t.Run("verify tokens transferred", func(t *testing.T) {
-		s.AssertPacketRelayed(ctx, chainA, controllerPortID, msgChanOpenInitRes.GetChannelId(), 1)
+		s.AssertPacketRelayed(ctx, chainA, controllerPortID, msgChanOpenInitRes.ChannelId, 1)
 
 		balance, err := chainA.GetBalance(ctx, userBWallet.FormattedAddress(), chainADenom)
 		s.Require().NoError(err)

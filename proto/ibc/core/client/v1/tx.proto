@@ -33,7 +33,6 @@ service Msg {
 message MsgCreateClient {
   option (cosmos.msg.v1.signer) = "signer";
 
-  option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
   // light client state
@@ -53,7 +52,6 @@ message MsgCreateClientResponse {}
 message MsgUpdateClient {
   option (cosmos.msg.v1.signer) = "signer";
 
-  option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
   // client unique identifier
@@ -72,7 +70,6 @@ message MsgUpdateClientResponse {}
 message MsgUpgradeClient {
   option (cosmos.msg.v1.signer) = "signer";
 
-  option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
   // client unique identifier
@@ -95,19 +92,19 @@ message MsgUpgradeClientResponse {}
 
 // MsgSubmitMisbehaviour defines an sdk.Msg type that submits Evidence for
 // light client misbehaviour.
-// Warning: DEPRECATED
+// This message has been deprecated. Use MsgUpdateClient instead.
 message MsgSubmitMisbehaviour {
+  option deprecated             = true;
   option (cosmos.msg.v1.signer) = "signer";
 
-  option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
   // client unique identifier
-  string client_id = 1 [deprecated = true];
+  string client_id = 1;
   // misbehaviour used for freezing the light client
-  google.protobuf.Any misbehaviour = 2 [deprecated = true];
+  google.protobuf.Any misbehaviour = 2;
   // signer address
-  string signer = 3 [deprecated = true];
+  string signer = 3;
 }
 
 // MsgSubmitMisbehaviourResponse defines the Msg/SubmitMisbehaviour response
@@ -117,6 +114,8 @@ message MsgSubmitMisbehaviourResponse {}
 // MsgUpdateParams defines the sdk.Msg type to update the client parameters.
 message MsgUpdateParams {
   option (cosmos.msg.v1.signer) = "authority";
+
+  option (gogoproto.goproto_getters) = false;
 
   // authority is the address of the governance account.
   string authority = 1;

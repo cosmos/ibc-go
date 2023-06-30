@@ -76,11 +76,14 @@ TODO: https://github.com/cosmos/ibc-go/pull/3505 (extra parameter added to trans
 
 ## IBC Apps
 
-TODO: https://github.com/cosmos/ibc-go/pull/3303
+TODO: 
+- https://github.com/cosmos/ibc-go/pull/3303
+- https://github.com/cosmos/ibc-go/pull/3967
 
 ## Relayers
 
-`channeltypes.EventTypeTimeoutPacketOnClose` (where `channeltypes` is an import alias for `"github.com/cosmos/ibc-go/v8/modules/core/04-channel"`) has been removed, since core IBC does not emit any event with this key.
+- Getter functions in `MsgChannelOpenInitResponse`, `MsgChannelOpenTryResponse`, `MsgTransferResponse`, `MsgRegisterInterchainAccountResponse` and `MsgSendTxResponse` have been removed. The fields can be accessed directly.
+- `channeltypes.EventTypeTimeoutPacketOnClose` (where `channeltypes` is an import alias for `"github.com/cosmos/ibc-go/v8/modules/core/04-channel"`) has been removed, since core IBC does not emit any event with this key.
 
 ## IBC Light Clients
 

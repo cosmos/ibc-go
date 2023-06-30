@@ -4,14 +4,16 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/cosmos/gogoproto/proto"
+	"github.com/stretchr/testify/suite"
+
 	sdkmath "cosmossdk.io/math"
+
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	"github.com/cosmos/gogoproto/proto"
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
-	"github.com/stretchr/testify/suite"
 
+	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/types"
 	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
 	feetypes "github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
@@ -444,7 +446,7 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 				ToAddress:   suite.chainB.SenderAccount.GetAddress().String(),
 				Amount:      amount,
 			}
-			data, err := icatypes.SerializeCosmosTx(suite.chainA.Codec, []proto.Message{msg})
+			data, err := icatypes.SerializeCosmosTx(suite.chainA.Codec, []proto.Message{msg}, icatypes.EncodingProtobuf)
 			suite.Require().NoError(err)
 
 			icaPacketData := icatypes.InterchainAccountPacketData{
@@ -653,7 +655,7 @@ func (suite *InterchainAccountsTestSuite) TestControlAccountAfterChannelClose() 
 		Amount:      tokenAmt,
 	}
 
-	data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []proto.Message{msg})
+	data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []proto.Message{msg}, icatypes.EncodingProtobuf)
 	suite.Require().NoError(err)
 
 	icaPacketData := icatypes.InterchainAccountPacketData{

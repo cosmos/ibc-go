@@ -4,10 +4,11 @@ import (
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
+
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 
+	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
@@ -289,8 +290,8 @@ func (k Keeper) WriteOpenAckChannel(
 	emitChannelOpenAckEvent(ctx, portID, channelID, channel)
 }
 
-// ChanOpenConfirm is called by the counterparty module to close their end of the
-// channel, since the other end has been closed.
+// ChanOpenConfirm is called by the handshake-accepting module to confirm the acknowledgement
+// of the handshake-originating module on the other chain and finish the channel opening handshake.
 func (k Keeper) ChanOpenConfirm(
 	ctx sdk.Context,
 	portID,
