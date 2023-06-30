@@ -50,4 +50,5 @@ var (
 	ErrUpgradeRestoreFailed            = errorsmod.Register(SubModuleName, 34, "restore failed")
 	ErrUpgradeTimeout                  = errorsmod.Register(SubModuleName, 35, "upgrade timed-out")
 	ErrInvalidUpgradeTimeout           = errorsmod.Register(SubModuleName, 36, "upgrade timeout is invalid")
+	ErrPendingInflightPackets          = errorsmod.Register(SubModuleName, 37, "pending inflight packets exist")
 )
