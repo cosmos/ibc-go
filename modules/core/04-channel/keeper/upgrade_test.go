@@ -600,7 +600,6 @@ func (suite *KeeperTestSuite) TestWriteChannelUpgradeAck() {
 			suite.Require().Equal("original-version", proposedUpgrade.Fields.Version)
 
 			suite.Require().NoError(path.EndpointB.ChanUpgradeTry())
-			suite.Require().NoError(path.EndpointA.UpdateClient())
 
 			suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.WriteUpgradeAckChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, mock.UpgradeVersion)
 
