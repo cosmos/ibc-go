@@ -350,11 +350,17 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 
 				err = path.EndpointB.ChanUpgradeAck()
 				suite.Require().NoError(err)
+
+				channel := path.EndpointB.GetChannel()
+				channel.FlushStatus = types.FLUSHING
+				path.EndpointB.SetChannel(channel)
+
+				suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.SetCounterpartyLastPacketSequence(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, sequence+1)
 			},
 			true,
 		},
 		{
-			"failure with closed channel counterparty sequence > packet sequence",
+			"failure while upgrading channel, packet sequence > counterparty last send sequence",
 			func() {
 				suite.coordinator.Setup(path)
 				sequence, err := path.EndpointA.SendPacket(defaultTimeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
@@ -362,9 +368,28 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 				packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
 				channelCap = suite.chainB.GetChannelCapability(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 
-				err = path.EndpointB.SetChannelState(types.CLOSED)
+				channel := path.EndpointB.GetChannel()
+				channel.State = types.INITUPGRADE
+				channel.FlushStatus = types.FLUSHING
+				path.EndpointB.SetChannel(channel)
+
+				suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.SetCounterpartyLastPacketSequence(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, sequence-1)
+			},
+			false,
+		},
+		{
+			"failure while upgrading channel, channel not flushing",
+			func() {
+				suite.coordinator.Setup(path)
+				sequence, err := path.EndpointA.SendPacket(defaultTimeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
 				suite.Require().NoError(err)
-				suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.SetCounterpartyLastPacketSequence(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, sequence+1)
+				packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
+				channelCap = suite.chainB.GetChannelCapability(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+
+				channel := path.EndpointB.GetChannel()
+				channel.State = types.INITUPGRADE
+				channel.FlushStatus = types.FLUSHCOMPLETE
+				path.EndpointB.SetChannel(channel)
 			},
 			false,
 		},

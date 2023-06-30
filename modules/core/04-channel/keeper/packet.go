@@ -141,10 +141,15 @@ func (k Keeper) RecvPacket(
 	}
 
 	counterpartyLastPacketSent, _ := k.GetCounterpartyLastPacketSequence(ctx, packet.GetDestPort(), packet.GetDestChannel())
-	if channel.State != types.OPEN && (channel.FlushStatus != types.FLUSHING || counterpartyLastPacketSent > packet.GetSequence()) {
+
+	if channel.State != types.OPEN && !(channel.FlushStatus == types.FLUSHING && packet.GetSequence() <= counterpartyLastPacketSent) {
 		return errorsmod.Wrapf(
 			types.ErrInvalidChannelState,
-			"packets cannot be received on channel with state (%s) and flush status (%s)", channel.State, channel.FlushStatus,
+			"packets cannot be received: either channel with non OPEN state (%s) & not in upgrade, or channel is in upgrade but flush status (%s) is not FLUSHING & packet sequence %d must be less than or equal to counterparty last packet sent sequence %d",
+			channel.State,
+			channel.FlushStatus,
+			packet.GetSequence(),
+			counterpartyLastPacketSent,
 		)
 	}
 
