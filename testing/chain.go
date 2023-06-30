@@ -83,7 +83,7 @@ type TestChain struct {
 
 	// Short-term solution to override the logic of the standard SendMsgs function.
 	// See issue https://github.com/cosmos/ibc-go/issues/3123 for more information.
-	SendMsgsOverride func(msgs ...sdk.Msg) (*sdk.Result, error)
+	SendMsgsOverride func(msgs ...sdk.Msg) (*abci.ExecTxResult, error)
 }
 
 // NewTestChainWithValSet initializes a new TestChain instance with the given validator set
@@ -294,8 +294,9 @@ func (chain *TestChain) QueryConsensusStateProof(clientID string) ([]byte, clien
 // It calls BeginBlock with the new block created before returning.
 func (chain *TestChain) NextBlock() {
 	res, err := chain.App.FinalizeBlock(&abci.RequestFinalizeBlock{
-		Height: chain.CurrentHeader.Height,
-		Time:   chain.CurrentHeader.GetTime(),
+		Height:             chain.CurrentHeader.Height,
+		Time:               chain.CurrentHeader.GetTime(),
+		NextValidatorsHash: chain.NextVals.Hash(),
 	})
 	require.NoError(chain.TB, err)
 	chain.commitBlock(res)
@@ -337,7 +338,7 @@ func (chain *TestChain) sendMsgs(msgs ...sdk.Msg) error {
 // SendMsgs delivers a transaction through the application. It updates the senders sequence
 // number and updates the TestChain's headers. It returns the result and error if one
 // occurred.
-func (chain *TestChain) SendMsgs(msgs ...sdk.Msg) (*sdk.Result, error) {
+func (chain *TestChain) SendMsgs(msgs ...sdk.Msg) (*abci.ExecTxResult, error) {
 	if chain.SendMsgsOverride != nil {
 		return chain.SendMsgsOverride(msgs...)
 	}
@@ -345,7 +346,7 @@ func (chain *TestChain) SendMsgs(msgs ...sdk.Msg) (*sdk.Result, error) {
 	// ensure the chain has the latest time
 	chain.Coordinator.UpdateTimeForChain(chain)
 
-	_, r, resp, err := simapp.SignAndDeliver(
+	resp, err := simapp.SignAndDeliver(
 		chain.TB,
 		chain.TxConfig,
 		chain.App.GetBaseApp(),
@@ -355,6 +356,7 @@ func (chain *TestChain) SendMsgs(msgs ...sdk.Msg) (*sdk.Result, error) {
 		[]uint64{chain.SenderAccount.GetSequence()},
 		true,
 		chain.CurrentHeader.GetTime(),
+		chain.NextVals.Hash(),
 		chain.SenderPrivKey,
 	)
 	if err != nil {
@@ -364,6 +366,13 @@ func (chain *TestChain) SendMsgs(msgs ...sdk.Msg) (*sdk.Result, error) {
 	// NextBlock calls app.Commit()
 	chain.commitBlock(resp)
 
+	require.Len(chain.TB, resp.TxResults, 1)
+	txResult := resp.TxResults[0]
+
+	if txResult.Code != 0 {
+		return txResult, fmt.Errorf("%s/%d: %q", txResult.Codespace, txResult.Code, txResult.Log)
+	}
+
 	// increment sequence for successful transaction execution
 	err = chain.SenderAccount.SetSequence(chain.SenderAccount.GetSequence() + 1)
 	if err != nil {
@@ -372,7 +381,7 @@ func (chain *TestChain) SendMsgs(msgs ...sdk.Msg) (*sdk.Result, error) {
 
 	chain.Coordinator.IncrementTime()
 
-	return r, nil
+	return txResult, nil
 }
 
 // GetClientState retrieves the client state for the provided clientID. The client is

@@ -10,7 +10,6 @@ import (
 	sdkmath "cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authztypes "github.com/cosmos/cosmos-sdk/types/authz"
 	"github.com/cosmos/cosmos-sdk/x/authz"
 
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
@@ -36,12 +35,12 @@ func (a TransferAuthorization) MsgTypeURL() string {
 }
 
 // Accept implements Authorization.Accept.
-func (a TransferAuthorization) Accept(ctx context.Context, msg proto.Message) (authztypes.AcceptResponse, error) {
+func (a TransferAuthorization) Accept(ctx context.Context, msg proto.Message) (authz.AcceptResponse, error) {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 
 	msgTransfer, ok := msg.(*MsgTransfer)
 	if !ok {
-		return authztypes.AcceptResponse{}, errorsmod.Wrap(ibcerrors.ErrInvalidType, "type mismatch")
+		return authz.AcceptResponse{}, errorsmod.Wrap(ibcerrors.ErrInvalidType, "type mismatch")
 	}
 
 	for index, allocation := range a.Allocations {
@@ -50,25 +49,25 @@ func (a TransferAuthorization) Accept(ctx context.Context, msg proto.Message) (a
 		}
 
 		if !isAllowedAddress(sdkCtx, msgTransfer.Receiver, allocation.AllowList) {
-			return authztypes.AcceptResponse{}, errorsmod.Wrap(ibcerrors.ErrInvalidAddress, "not allowed receiver address for transfer")
+			return authz.AcceptResponse{}, errorsmod.Wrap(ibcerrors.ErrInvalidAddress, "not allowed receiver address for transfer")
 		}
 
 		// If the spend limit is set to the MaxUint256 sentinel value, do not subtract the amount from the spend limit.
 		if allocation.SpendLimit.AmountOf(msgTransfer.Token.Denom).Equal(UnboundedSpendLimit()) {
-			return authztypes.AcceptResponse{Accept: true, Delete: false, Updated: nil}, nil
+			return authz.AcceptResponse{Accept: true, Delete: false, Updated: nil}, nil
 		}
 
 		limitLeft, isNegative := allocation.SpendLimit.SafeSub(msgTransfer.Token)
 		if isNegative {
-			return authztypes.AcceptResponse{}, errorsmod.Wrapf(ibcerrors.ErrInsufficientFunds, "requested amount is more than spend limit")
+			return authz.AcceptResponse{}, errorsmod.Wrapf(ibcerrors.ErrInsufficientFunds, "requested amount is more than spend limit")
 		}
 
 		if limitLeft.IsZero() {
 			a.Allocations = append(a.Allocations[:index], a.Allocations[index+1:]...)
 			if len(a.Allocations) == 0 {
-				return authztypes.AcceptResponse{Accept: true, Delete: true}, nil
+				return authz.AcceptResponse{Accept: true, Delete: true}, nil
 			}
-			return authztypes.AcceptResponse{Accept: true, Delete: false, Updated: &TransferAuthorization{
+			return authz.AcceptResponse{Accept: true, Delete: false, Updated: &TransferAuthorization{
 				Allocations: a.Allocations,
 			}}, nil
 		}
@@ -79,12 +78,12 @@ func (a TransferAuthorization) Accept(ctx context.Context, msg proto.Message) (a
 			AllowList:     allocation.AllowList,
 		}
 
-		return authztypes.AcceptResponse{Accept: true, Delete: false, Updated: &TransferAuthorization{
+		return authz.AcceptResponse{Accept: true, Delete: false, Updated: &TransferAuthorization{
 			Allocations: a.Allocations,
 		}}, nil
 	}
 
-	return authztypes.AcceptResponse{}, errorsmod.Wrapf(ibcerrors.ErrNotFound, "requested port and channel allocation does not exist")
+	return authz.AcceptResponse{}, errorsmod.Wrapf(ibcerrors.ErrNotFound, "requested port and channel allocation does not exist")
 }
 
 // ValidateBasic implements Authorization.ValidateBasic.
