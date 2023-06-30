@@ -80,6 +80,9 @@ func GetCmdPacketEvents() *cobra.Command {
 			}
 
 			results, err := processEvents(searchEvents, clientCtx)
+			if err != nil {
+				return err
+			}
 
 			var resEvents []abci.Event
 			for _, r := range results {
