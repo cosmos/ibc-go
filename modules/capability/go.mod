@@ -3,7 +3,7 @@ module github.com/cosmos/ibc-go/modules/capability
 go 1.20
 
 require (
-	cosmossdk.io/core v0.8.0
+	cosmossdk.io/core v0.9.0
 	cosmossdk.io/errors v1.0.0-beta.7.0.20230524212735-6cabb6aa5741
 	cosmossdk.io/log v1.1.0
 	cosmossdk.io/math v1.0.1
@@ -192,4 +192,4 @@ replace github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.2021
 replace github.com/cosmos/ibc-go/v7 => ../..
 
 // replace with the main branch, contianing the apphash fix
-replace github.com/cosmos/cosmos-sdk => github.com/cosmos/cosmos-sdk v0.46.0-beta2.0.20230628150442-76ade5fa31a5
+replace github.com/cosmos/cosmos-sdk => github.com/cosmos/cosmos-sdk v0.50.0-alpha.0.0.20230629143215-6172a1a0bf9b

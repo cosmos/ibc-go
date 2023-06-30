@@ -5,7 +5,7 @@ module github.com/cosmos/ibc-go/v7
 require (
 	cosmossdk.io/api v0.4.3-0.20230620040119-e078f1a49e8b
 	cosmossdk.io/client/v2 v2.0.0-20230615173548-5385116abac4
-	cosmossdk.io/core v0.8.0
+	cosmossdk.io/core v0.9.0
 	cosmossdk.io/depinject v1.0.0-alpha.3
 	cosmossdk.io/errors v1.0.0-beta.7.0.20230524212735-6cabb6aa5741
 	cosmossdk.io/log v1.1.0
@@ -197,6 +197,6 @@ require (
 replace github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
 
 // replace with the main branch, contianing the apphash fix
-replace github.com/cosmos/cosmos-sdk => github.com/cosmos/cosmos-sdk v0.46.0-beta2.0.20230628150442-76ade5fa31a5
+replace github.com/cosmos/cosmos-sdk => github.com/cosmos/cosmos-sdk v0.50.0-alpha.0.0.20230629143215-6172a1a0bf9b
 
 replace github.com/cosmos/ibc-go/modules/capability => ./modules/capability
