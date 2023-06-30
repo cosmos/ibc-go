@@ -881,11 +881,11 @@ func (k Keeper) ChannelUpgradeOpen(goCtx context.Context, msg *channeltypes.MsgC
 		return nil, errorsmod.Wrap(err, "channel handshake upgrade open failed")
 	}
 
-	k.ChannelKeeper.WriteUpgradeOpenChannel(ctx, msg.PortId, msg.ChannelId)
-
 	cbs.OnChanUpgradeOpen(ctx, msg.PortId, msg.ChannelId)
 
-	ctx.Logger().Info("channel upgrade open callback succeeded", "channel-id", msg.ChannelId, "port-id", msg.PortId)
+	k.ChannelKeeper.WriteUpgradeOpenChannel(ctx, msg.PortId, msg.ChannelId)
+
+	ctx.Logger().Info("channel upgrade open succeeded", "channel-id", msg.ChannelId, "port-id", msg.PortId)
 
 	return &channeltypes.MsgChannelUpgradeOpenResponse{}, nil
 }
