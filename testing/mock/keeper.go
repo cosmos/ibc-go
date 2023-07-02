@@ -9,8 +9,8 @@ import (
 	"github.com/cosmos/ibc-go/v7/testing/mock/types"
 )
 
-// Keeper implements callbacktypes.ContractKeeper
-var _ callbacktypes.ContractKeeper = (*MockContractKeeper)(nil)
+// MockKeeper implements callbacktypes.ContractKeeper
+var _ callbacktypes.ContractKeeper = (*MockKeeper)(nil)
 
 type MockKeeper struct {
 	MockContractKeeper
