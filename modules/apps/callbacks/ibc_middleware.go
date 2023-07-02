@@ -70,6 +70,9 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 		types.EmitSourceCallbackEvent(ctx, packet, types.CallbackTypeAcknowledgement, callbackData, err)
 		return appResult
 	}
+	if callbackData.ContractAddr == "" {
+		return appResult
+	}
 
 	var ack channeltypes.Acknowledgement
 	if err := channeltypes.SubModuleCdc.UnmarshalJSON(acknowledgement, &ack); err != nil {
@@ -105,6 +108,9 @@ func (im IBCMiddleware) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Pac
 	callbackData, err := types.GetCallbackData(im.app, packet, ctx.GasMeter().GasRemaining())
 	if err != nil {
 		types.EmitSourceCallbackEvent(ctx, packet, types.CallbackTypeTimeout, callbackData, err)
+		return appResult
+	}
+	if callbackData.ContractAddr == "" {
 		return appResult
 	}
 
@@ -189,6 +195,9 @@ func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet
 	callbackData, err := types.GetCallbackData(im.app, packet, ctx.GasMeter().GasRemaining())
 	if err != nil {
 		types.EmitDestinationCallbackEvent(ctx, packet, types.CallbackTypeTimeout, callbackData, err)
+		return appAck
+	}
+	if callbackData.ContractAddr == "" {
 		return appAck
 	}
 
