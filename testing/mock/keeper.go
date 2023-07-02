@@ -24,9 +24,9 @@ type MockKeeper struct {
 // It implements the interface functions expected by the ibccallbacks middleware
 // so that it can be tested with simapp.
 type MockContractKeeper struct {
-	AckCallbackCounter        types.CallbackCounter
-	TimeoutCallbackCounter    types.CallbackCounter
-	RecvPacketCallbackCounter types.CallbackCounter
+	AckCallbackCounter        *types.CallbackCounter
+	TimeoutCallbackCounter    *types.CallbackCounter
+	RecvPacketCallbackCounter *types.CallbackCounter
 }
 
 // NewKeeper creates a new mock Keeper.

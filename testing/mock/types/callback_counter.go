@@ -8,8 +8,8 @@ type CallbackCounter struct {
 }
 
 // NewCallbackCounter returns a new CallbackCounter.
-func NewCallbackCounter() CallbackCounter {
-	return CallbackCounter{
+func NewCallbackCounter() *CallbackCounter {
+	return &CallbackCounter{
 		Success: 0,
 		Failure: 0,
 	}
