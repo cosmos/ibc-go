@@ -249,7 +249,7 @@ type SimApp struct {
 	ScopedICAMockKeeper       capabilitykeeper.ScopedKeeper
 
 	// mock keepers used for testing
-	MockContractKeeper ibcmock.MockKeeper
+	MockKeeper ibcmock.MockKeeper
 
 	// make IBC modules public for test purposes
 	// these modules are never directly routed to by the IBC Router
@@ -384,7 +384,7 @@ func NewSimApp(
 	)
 
 	// Mock Keepers
-	app.MockContractKeeper = ibcmock.NewMockKeeper()
+	app.MockKeeper = ibcmock.NewMockKeeper()
 
 	// register the proposal types
 	govRouter := govv1beta1.NewRouter()
@@ -486,7 +486,7 @@ func NewSimApp(
 	// create IBC module from bottom to top of stack
 	var transferStack porttypes.IBCModule
 	transferStack = transfer.NewIBCModule(app.TransferKeeper)
-	transferStack = ibccallbacks.NewIBCMiddleware(transferStack, app.IBCKeeper.ChannelKeeper, app.MockContractKeeper)
+	transferStack = ibccallbacks.NewIBCMiddleware(transferStack, app.IBCKeeper.ChannelKeeper, app.MockKeeper)
 	transferStack = ibcfee.NewIBCMiddleware(transferStack, app.IBCFeeKeeper)
 
 	// Add transfer stack to IBC Router
@@ -501,7 +501,7 @@ func NewSimApp(
 	icaControllerStack = ibcmock.NewIBCModule(&mockModule, ibcmock.NewIBCApp("", scopedICAMockKeeper))
 	app.ICAAuthModule = icaControllerStack.(ibcmock.IBCModule)
 	icaControllerStack = icacontroller.NewIBCMiddleware(icaControllerStack, app.ICAControllerKeeper)
-	icaControllerStack = ibccallbacks.NewIBCMiddleware(icaControllerStack, app.IBCKeeper.ChannelKeeper, app.MockContractKeeper)
+	icaControllerStack = ibccallbacks.NewIBCMiddleware(icaControllerStack, app.IBCKeeper.ChannelKeeper, app.MockKeeper)
 	icaControllerStack = ibcfee.NewIBCMiddleware(icaControllerStack, app.IBCFeeKeeper)
 
 	// RecvPacket, message that originates from core IBC and goes down to app, the flow is:
@@ -509,7 +509,7 @@ func NewSimApp(
 
 	var icaHostStack porttypes.IBCModule
 	icaHostStack = icahost.NewIBCModule(app.ICAHostKeeper)
-	icaHostStack = ibccallbacks.NewIBCMiddleware(icaHostStack, app.IBCKeeper.ChannelKeeper, app.MockContractKeeper)
+	icaHostStack = ibccallbacks.NewIBCMiddleware(icaHostStack, app.IBCKeeper.ChannelKeeper, app.MockKeeper)
 	icaHostStack = ibcfee.NewIBCMiddleware(icaHostStack, app.IBCFeeKeeper)
 
 	// Add host, controller & ica auth modules to IBC router
