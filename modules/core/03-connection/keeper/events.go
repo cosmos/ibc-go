@@ -14,7 +14,6 @@ func emitConnectionOpenInitEvent(ctx sdk.Context, connectionID string, clientID 
 			sdk.NewAttribute(types.AttributeKeyConnectionID, connectionID),
 			sdk.NewAttribute(types.AttributeKeyClientID, clientID),
 			sdk.NewAttribute(types.AttributeKeyCounterpartyClientID, counterparty.ClientId),
-			sdk.NewAttribute(types.AttributeKeyCounterpartyConnectionID, counterparty.ConnectionId),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
