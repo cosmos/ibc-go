@@ -1,11 +1,17 @@
 package ibccallbacks_test
 
 import (
+	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+)
+
+const (
+	destCallbackAddr = "cosmos1q4hx350dh0843y34n0vm4lfj6eh5qz4sqfrnq0"
 )
 
 func (suite *CallbacksTestSuite) TestFeeTransfer() {
@@ -20,6 +26,17 @@ func (suite *CallbacksTestSuite) TestFeeTransfer() {
 	suite.Require().True(suite.chainB.GetSimApp().MockKeeper.TimeoutCallbackCounter.IsZero())
 	suite.Require().True(suite.chainA.GetSimApp().MockKeeper.RecvPacketCallbackCounter.IsZero())
 	suite.Require().True(suite.chainB.GetSimApp().MockKeeper.RecvPacketCallbackCounter.IsZero())
+
+	// send a transfer with a dest callback
+	suite.ExecuteTransfer(fmt.Sprintf(`{"callback": {"dest_callback_address": "%s"}}`, destCallbackAddr))
+	// check that the dest callback was executed:
+	suite.Require().Equal(1, int(suite.chainB.GetSimApp().MockKeeper.RecvPacketCallbackCounter.Success))
+	suite.Require().Equal(0, int(suite.chainB.GetSimApp().MockKeeper.RecvPacketCallbackCounter.Failure))
+	suite.Require().True(suite.chainA.GetSimApp().MockKeeper.RecvPacketCallbackCounter.IsZero())
+	suite.Require().True(suite.chainA.GetSimApp().MockKeeper.AckCallbackCounter.IsZero())
+	suite.Require().True(suite.chainB.GetSimApp().MockKeeper.AckCallbackCounter.IsZero())
+	suite.Require().True(suite.chainA.GetSimApp().MockKeeper.TimeoutCallbackCounter.IsZero())
+	suite.Require().True(suite.chainB.GetSimApp().MockKeeper.TimeoutCallbackCounter.IsZero())
 }
 
 // ExecuteTransfer executes a transfer message on chainA for 100 denom.
