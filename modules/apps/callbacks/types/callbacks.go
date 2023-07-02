@@ -15,9 +15,10 @@ type PacketUnmarshalerIBCModule interface {
 
 // CallbackData is the callback data parsed from the packet.
 type CallbackData struct {
-	ContractAddr string
-	GasLimit     uint64
-	CustomMsg    []byte
+	SrcContractAddr  string
+	DestContractAddr string
+	GasLimit         uint64
+	CustomMsg        []byte
 }
 
 // GetCallbackData parses the packet data and returns the callback data. It ensures that the remaining
@@ -34,20 +35,15 @@ func GetCallbackData(app PacketUnmarshalerIBCModule, packet channeltypes.Packet,
 		return CallbackData{}, ErrNotCallbackPacketData
 	}
 
-	callbackAddr := callbackData.GetSourceCallbackAddress()
-	if callbackAddr == "" {
-		// no callback address specified, no callback to execute
-		return CallbackData{}, nil
-	}
-
 	gasLimit := callbackData.UserDefinedGasLimit()
 	if gasLimit == 0 || gasLimit > remainingGas {
 		gasLimit = remainingGas
 	}
 
 	return CallbackData{
-		ContractAddr: callbackAddr,
-		GasLimit:     gasLimit,
-		CustomMsg:    callbackData.GetUserDefinedCustomMessage(),
+		SrcContractAddr:  callbackData.GetSourceCallbackAddress(),
+		DestContractAddr: callbackData.GetDestCallbackAddress(),
+		GasLimit:         gasLimit,
+		CustomMsg:        callbackData.GetUserDefinedCustomMessage(),
 	}, nil
 }

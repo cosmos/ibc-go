@@ -19,8 +19,10 @@ const (
 	//   "timeout": the callback is executed on the timeout of the packet
 	//   "recv_packet": the callback is executed on the reception of the packet
 	AttributeKeyCallbackTrigger = "callback_trigger"
-	// AttributeKeyCallbackAddress denotes the callback contract address
-	AttributeKeyCallbackAddress = "callback_address"
+	// AttributeKeySourceCallbackAddress denotes the source callback contract address
+	AttributeKeySourceCallbackAddress = "src_callback_address"
+	// AttributeKeyDestCallbackAddress denotes the destination callback contract address
+	AttributeKeyDestCallbackAddress = "dest_callback_address"
 	// AttributeKeyCallbackResult denotes the callback result:
 	//   "success": the callback is successfully executed
 	//   "failure": the callback is failed to execute
@@ -74,7 +76,8 @@ func emitCallbackEvent(
 	attributes := []sdk.Attribute{
 		sdk.NewAttribute(sdk.AttributeKeyModule, ModuleName),
 		sdk.NewAttribute(AttributeKeyCallbackTrigger, callbackTrigger),
-		sdk.NewAttribute(AttributeKeyCallbackAddress, callbackData.ContractAddr),
+		sdk.NewAttribute(AttributeKeySourceCallbackAddress, callbackData.SrcContractAddr),
+		sdk.NewAttribute(AttributeKeyDestCallbackAddress, callbackData.DestContractAddr),
 		sdk.NewAttribute(AttributeKeyCallbackGasLimit, fmt.Sprintf("%d", callbackData.GasLimit)),
 		sdk.NewAttribute(AttributeKeyCallbackResult, fmt.Sprintf("%t", success)),
 		sdk.NewAttribute(AttributeKeyCallbackPortID, packet.SourcePort),

@@ -70,7 +70,7 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 		types.EmitSourceCallbackEvent(ctx, packet, types.CallbackTypeAcknowledgement, callbackData, err)
 		return appResult
 	}
-	if callbackData.ContractAddr == "" {
+	if callbackData.SrcContractAddr == "" {
 		return appResult
 	}
 
@@ -84,7 +84,7 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 	cachedCtx, writeFn := ctx.CacheContext()
 	cachedCtx = cachedCtx.WithGasMeter(sdk.NewGasMeter(callbackData.GasLimit))
 
-	err = im.contractKeeper.IBCAcknowledgementPacketCallback(cachedCtx, packet, callbackData.CustomMsg, ack, relayer, callbackData.ContractAddr)
+	err = im.contractKeeper.IBCAcknowledgementPacketCallback(cachedCtx, packet, callbackData.CustomMsg, ack, relayer, callbackData.SrcContractAddr)
 	if err == nil {
 		writeFn()
 	}
@@ -110,7 +110,7 @@ func (im IBCMiddleware) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Pac
 		types.EmitSourceCallbackEvent(ctx, packet, types.CallbackTypeTimeout, callbackData, err)
 		return appResult
 	}
-	if callbackData.ContractAddr == "" {
+	if callbackData.SrcContractAddr == "" {
 		return appResult
 	}
 
@@ -118,7 +118,7 @@ func (im IBCMiddleware) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Pac
 	cachedCtx = cachedCtx.WithGasMeter(sdk.NewGasMeter(callbackData.GasLimit))
 
 	// call the contract
-	err = im.contractKeeper.IBCPacketTimeoutCallback(cachedCtx, packet, relayer, callbackData.ContractAddr)
+	err = im.contractKeeper.IBCPacketTimeoutCallback(cachedCtx, packet, relayer, callbackData.SrcContractAddr)
 	if err == nil {
 		writeFn()
 	}
@@ -197,14 +197,14 @@ func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet
 		types.EmitDestinationCallbackEvent(ctx, packet, types.CallbackTypeTimeout, callbackData, err)
 		return appAck
 	}
-	if callbackData.ContractAddr == "" {
+	if callbackData.DestContractAddr == "" {
 		return appAck
 	}
 
 	cachedCtx, writeFn := ctx.CacheContext()
 	cachedCtx = cachedCtx.WithGasMeter(sdk.NewGasMeter(callbackData.GasLimit))
 
-	err = im.contractKeeper.IBCReceivePacketCallback(cachedCtx, packet, callbackData.CustomMsg, appAckResult, relayer, callbackData.ContractAddr)
+	err = im.contractKeeper.IBCReceivePacketCallback(cachedCtx, packet, callbackData.CustomMsg, appAckResult, relayer, callbackData.DestContractAddr)
 	if err == nil {
 		writeFn()
 	}
