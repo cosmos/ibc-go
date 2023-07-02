@@ -290,8 +290,8 @@ func (k Keeper) WriteOpenAckChannel(
 	emitChannelOpenAckEvent(ctx, portID, channelID, channel)
 }
 
-// ChanOpenConfirm is called by the counterparty module to close their end of the
-// channel, since the other end has been closed.
+// ChanOpenConfirm is called by the handshake-accepting module to confirm the acknowledgement
+// of the handshake-originating module on the other chain and finish the channel opening handshake.
 func (k Keeper) ChanOpenConfirm(
 	ctx sdk.Context,
 	portID,

@@ -38,7 +38,7 @@ func (suite *KeeperTestSuite) TestSendTx() {
 					Amount:      sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100))),
 				}
 
-				data, err := icatypes.SerializeCosmosTx(suite.chainB.GetSimApp().AppCodec(), []proto.Message{msg})
+				data, err := icatypes.SerializeCosmosTx(suite.chainB.GetSimApp().AppCodec(), []proto.Message{msg}, icatypes.EncodingProtobuf)
 				suite.Require().NoError(err)
 
 				packetData = icatypes.InterchainAccountPacketData{
@@ -67,7 +67,7 @@ func (suite *KeeperTestSuite) TestSendTx() {
 					},
 				}
 
-				data, err := icatypes.SerializeCosmosTx(suite.chainB.GetSimApp().AppCodec(), msgsBankSend)
+				data, err := icatypes.SerializeCosmosTx(suite.chainB.GetSimApp().AppCodec(), msgsBankSend, icatypes.EncodingProtobuf)
 				suite.Require().NoError(err)
 
 				packetData = icatypes.InterchainAccountPacketData{
@@ -125,7 +125,7 @@ func (suite *KeeperTestSuite) TestSendTx() {
 					Amount:      sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100))),
 				}
 
-				data, err := icatypes.SerializeCosmosTx(suite.chainB.GetSimApp().AppCodec(), []proto.Message{msg})
+				data, err := icatypes.SerializeCosmosTx(suite.chainB.GetSimApp().AppCodec(), []proto.Message{msg}, icatypes.EncodingProtobuf)
 				suite.Require().NoError(err)
 
 				packetData = icatypes.InterchainAccountPacketData{
