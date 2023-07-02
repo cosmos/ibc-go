@@ -96,16 +96,12 @@ The Memo format is defined like so:
 }
 ```
 
-For transfer, we will enforce that the src_callback_address is the same as sender and dest_callback_address is the same as receiver.
-However, we may remove this restriction at a later date if it proves useful.
+For transfer, we will NOT enforce that the src_callback_address is the same as sender and dest_callback_address is the same as receiver.
 
 */
 
-// GetSourceCallbackAddress returns the sender address if it is also specified in
-// the packet data memo. The desired callback address must be confirmed in the
-// memo under the "callback" key. This ensures that the callback is explicitly
-// desired by the user and not called automatically. If no callback address is
-// specified, an empty string is returned.
+// GetSourceCallbackAddress returns the callback address if it is specified in
+// the packet data memo. If no callback address is specified, an empty string is returned.
 //
 // The memo is expected to contain the source callback address in the following format:
 // { "callback": { "src_callback_address": {contractAddrOnSourceChain}}
@@ -118,18 +114,16 @@ func (ftpd FungibleTokenPacketData) GetSourceCallbackAddress() string {
 		return ""
 	}
 
-	if callbackData["src_callback_address"] == ftpd.Sender {
-		return ftpd.Sender
+	srcCallbackAddress, ok := callbackData["src_callback_address"].(string)
+	if !ok {
+		return ""
 	}
 
-	return ""
+	return srcCallbackAddress
 }
 
-// GetDestCallbackAddress returns the receiving address if it is also specified in
-// the packet data memo. The desired callback address must be confirmed in the
-// memo under the "callback" key. This ensures that the callback is explicitly
-// desired by the user and not called automatically. If no callback address is
-// specified, an empty string is returned.
+// GetDestCallbackAddress returns the callback address if it is specified in
+// the packet data memo. If no callback address is specified, an empty string is returned.
 //
 // The memo is expected to contain the destination callback address in the following format:
 // { "callback": { "dest_callback_address": {contractAddrOnDestChain}}
