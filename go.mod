@@ -10,7 +10,7 @@ require (
 	cosmossdk.io/errors v1.0.0-beta.7.0.20230524212735-6cabb6aa5741
 	cosmossdk.io/log v1.1.0
 	cosmossdk.io/math v1.0.1
-	cosmossdk.io/store v0.1.0-alpha.1.0.20230606190835-3e18f4088b2c
+	cosmossdk.io/store v0.1.0-alpha.1.0.20230630152705-9f4a4e416f85
 	cosmossdk.io/tools/confix v0.0.0-20230613133644-0a778132a60f
 	cosmossdk.io/tools/rosetta v0.2.1-0.20230613133644-0a778132a60f
 	cosmossdk.io/x/circuit v0.0.0-20230627025906-ab77fe20d3c0
@@ -22,7 +22,7 @@ require (
 	github.com/cometbft/cometbft v0.38.0-rc2
 	github.com/cosmos/cosmos-db v1.0.0
 	github.com/cosmos/cosmos-proto v1.0.0-beta.3
-	github.com/cosmos/cosmos-sdk v0.50.0-alpha.0.0.20230629151233-7a1e2cad324b
+	github.com/cosmos/cosmos-sdk v0.50.0-alpha.1.0.20230630175638-d9c53bfefc1e
 	github.com/cosmos/gogoproto v1.4.10
 	github.com/cosmos/ibc-go/modules/capability v0.0.0-00010101000000-000000000000
 	github.com/cosmos/ics23/go v0.10.0
@@ -116,6 +116,7 @@ require (
 	github.com/hashicorp/go-getter v1.7.1 // indirect
 	github.com/hashicorp/go-hclog v1.5.0 // indirect
 	github.com/hashicorp/go-immutable-radix v1.3.1 // indirect
+	github.com/hashicorp/go-metrics v0.5.1 // indirect
 	github.com/hashicorp/go-plugin v1.4.10 // indirect
 	github.com/hashicorp/go-safetemp v1.0.0 // indirect
 	github.com/hashicorp/go-uuid v1.0.2 // indirect

@@ -221,7 +221,7 @@ func (suite *TypesTestSuite) TestUpgradeString() {
 	proposal, err := types.NewUpgradeProposal(ibctesting.Title, ibctesting.Description, plan, &ibctm.ClientState{})
 	suite.Require().NoError(err)
 
-	expect := fmt.Sprintf("IBC Upgrade Proposal\n  Title: title\n  Description: description\n  Upgrade Plan\n  Name: ibc upgrade\n  height: 1000\n  Info: https://foo.bar/baz.\n  Upgraded IBC Client: %s", &ibctm.ClientState{})
+	expect := fmt.Sprintf("IBC Upgrade Proposal\n  Title: title\n  Description: description\n  name:\"ibc upgrade\" time:<seconds:-62135596800 > height:1000 info:\"https://foo.bar/baz\" \n  Upgraded IBC Client: %s", &ibctm.ClientState{})
 
 	suite.Require().Equal(expect, proposal.String())
 }
