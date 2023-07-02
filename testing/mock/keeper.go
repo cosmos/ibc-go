@@ -52,10 +52,12 @@ func (k MockContractKeeper) IBCAcknowledgementPacketCallback(
 ) error {
 	if ctx.GasMeter().GasRemaining() < 100000 {
 		k.AckCallbackCounter.IncrementFailure()
+		ctx.GasMeter().ConsumeGas(ctx.GasMeter().GasRemaining(), "mock ack callback failure")
 		return ibcerrors.ErrOutOfGas
 	}
 
 	k.AckCallbackCounter.IncrementSuccess()
+	ctx.GasMeter().ConsumeGas(100000, "mock ack callback success")
 	return nil
 }
 
@@ -69,10 +71,12 @@ func (k MockContractKeeper) IBCPacketTimeoutCallback(
 ) error {
 	if ctx.GasMeter().GasRemaining() < 100000 {
 		k.TimeoutCallbackCounter.IncrementFailure()
+		ctx.GasMeter().ConsumeGas(ctx.GasMeter().GasRemaining(), "mock timeout callback failure")
 		return ibcerrors.ErrOutOfGas
 	}
 
 	k.TimeoutCallbackCounter.IncrementSuccess()
+	ctx.GasMeter().ConsumeGas(100000, "mock timeout callback success")
 	return nil
 }
 
@@ -88,9 +92,11 @@ func (k MockContractKeeper) IBCReceivePacketCallback(
 ) error {
 	if ctx.GasMeter().GasRemaining() < 100000 {
 		k.RecvPacketCallbackCounter.IncrementFailure()
+		ctx.GasMeter().ConsumeGas(ctx.GasMeter().GasRemaining(), "mock recv packet callback failure")
 		return ibcerrors.ErrOutOfGas
 	}
 
 	k.RecvPacketCallbackCounter.IncrementSuccess()
+	ctx.GasMeter().ConsumeGas(100000, "mock recv packet callback success")
 	return nil
 }
