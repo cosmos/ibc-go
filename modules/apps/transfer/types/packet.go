@@ -136,11 +136,12 @@ func (ftpd FungibleTokenPacketData) GetDestCallbackAddress() string {
 		return ""
 	}
 
-	if callbackData["dest_callback_address"] == ftpd.Receiver {
-		return ftpd.Receiver
+	srcCallbackAddress, ok := callbackData["dest_callback_address"].(string)
+	if !ok {
+		return ""
 	}
 
-	return ""
+	return srcCallbackAddress
 }
 
 // GetUserDefinedCustomMessage returns the custom message provided in the packet data memo.
