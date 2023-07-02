@@ -49,76 +49,21 @@ func (suite *TypesTestSuite) TestGetSourceCallbackAddress() {
 	testCases := []struct {
 		name       string
 		packetData types.FungibleTokenPacketData
-		expPass    bool
+		expAddress string
 	}{
 		{
-			"memo is empty",
+			"success: memo has callbacks in json struct and properly formatted src_callback_address which does not match packet sender",
 			types.FungibleTokenPacketData{
 				Denom:    denom,
 				Amount:   amount,
 				Sender:   sender,
 				Receiver: receiver,
-				Memo:     "",
+				Memo:     fmt.Sprintf(`{"callback": {"src_callback_address": "%s"}}`, receiver),
 			},
-			false,
+			receiver,
 		},
 		{
-			"memo is not json string",
-			types.FungibleTokenPacketData{
-				Denom:    denom,
-				Amount:   amount,
-				Sender:   sender,
-				Receiver: receiver,
-				Memo:     "memo",
-			},
-			false,
-		},
-		{
-			"memo does not have callbacks in json struct",
-			types.FungibleTokenPacketData{
-				Denom:    denom,
-				Amount:   amount,
-				Sender:   sender,
-				Receiver: receiver,
-				Memo:     `{"Key": 10}`,
-			},
-			false,
-		},
-		{
-			"memo has callbacks in json struct but does not have src_callback_address key",
-			types.FungibleTokenPacketData{
-				Denom:    denom,
-				Amount:   amount,
-				Sender:   sender,
-				Receiver: receiver,
-				Memo:     `{"callback": {"Key": 10}}`,
-			},
-			false,
-		},
-		{
-			"memo has callbacks in json struct but does not have string value for src_callback_address key",
-			types.FungibleTokenPacketData{
-				Denom:    denom,
-				Amount:   amount,
-				Sender:   sender,
-				Receiver: receiver,
-				Memo:     `{"callback": {"src_callback_address": 10}}`,
-			},
-			false,
-		},
-		{
-			"memo has callbacks in json struct and properly formatted src_callback_address which does not match packet sender",
-			types.FungibleTokenPacketData{
-				Denom:    denom,
-				Amount:   amount,
-				Sender:   sender,
-				Receiver: receiver,
-				Memo:     `{"callback": {"src_callback_address": "testAddress"}}`,
-			},
-			false,
-		},
-		{
-			"valid src_callback_address specified in memo that matches sender",
+			"success: valid src_callback_address specified in memo that matches sender",
 			types.FungibleTokenPacketData{
 				Denom:    denom,
 				Amount:   amount,
@@ -126,7 +71,62 @@ func (suite *TypesTestSuite) TestGetSourceCallbackAddress() {
 				Receiver: receiver,
 				Memo:     fmt.Sprintf(`{"callback": {"src_callback_address": "%s"}}`, sender),
 			},
-			true,
+			sender,
+		},
+		{
+			"failure: memo is empty",
+			types.FungibleTokenPacketData{
+				Denom:    denom,
+				Amount:   amount,
+				Sender:   sender,
+				Receiver: receiver,
+				Memo:     "",
+			},
+			"",
+		},
+		{
+			"failure: memo is not json string",
+			types.FungibleTokenPacketData{
+				Denom:    denom,
+				Amount:   amount,
+				Sender:   sender,
+				Receiver: receiver,
+				Memo:     "memo",
+			},
+			"",
+		},
+		{
+			"failure: memo does not have callbacks in json struct",
+			types.FungibleTokenPacketData{
+				Denom:    denom,
+				Amount:   amount,
+				Sender:   sender,
+				Receiver: receiver,
+				Memo:     `{"Key": 10}`,
+			},
+			"",
+		},
+		{
+			"failure:  memo has callbacks in json struct but does not have src_callback_address key",
+			types.FungibleTokenPacketData{
+				Denom:    denom,
+				Amount:   amount,
+				Sender:   sender,
+				Receiver: receiver,
+				Memo:     `{"callback": {"Key": 10}}`,
+			},
+			"",
+		},
+		{
+			"failure: memo has callbacks in json struct but does not have string value for src_callback_address key",
+			types.FungibleTokenPacketData{
+				Denom:    denom,
+				Amount:   amount,
+				Sender:   sender,
+				Receiver: receiver,
+				Memo:     `{"callback": {"src_callback_address": 10}}`,
+			},
+			"",
 		},
 	}
 
@@ -134,12 +134,7 @@ func (suite *TypesTestSuite) TestGetSourceCallbackAddress() {
 		tc := tc
 		suite.Run(tc.name, func() {
 			srcCbAddr := tc.packetData.GetSourceCallbackAddress()
-
-			if tc.expPass {
-				suite.Require().Equal(sender, srcCbAddr)
-			} else {
-				suite.Require().Equal("", srcCbAddr)
-			}
+			suite.Require().Equal(tc.expAddress, srcCbAddr)
 		})
 	}
 }
@@ -148,76 +143,21 @@ func (suite *TypesTestSuite) TestGetDestCallbackAddress() {
 	testCases := []struct {
 		name       string
 		packetData types.FungibleTokenPacketData
-		expPass    bool
+		expAddress string
 	}{
 		{
-			"memo is empty",
+			"success: memo has callbacks in json struct and properly formatted dest_callback_address which does not match packet sender",
 			types.FungibleTokenPacketData{
 				Denom:    denom,
 				Amount:   amount,
 				Sender:   sender,
 				Receiver: receiver,
-				Memo:     "",
+				Memo:     fmt.Sprintf(`{"callback": {"dest_callback_address": "%s"}}`, sender),
 			},
-			false,
+			sender,
 		},
 		{
-			"memo is not json string",
-			types.FungibleTokenPacketData{
-				Denom:    denom,
-				Amount:   amount,
-				Sender:   sender,
-				Receiver: receiver,
-				Memo:     "memo",
-			},
-			false,
-		},
-		{
-			"memo does not have callbacks in json struct",
-			types.FungibleTokenPacketData{
-				Denom:    denom,
-				Amount:   amount,
-				Sender:   sender,
-				Receiver: receiver,
-				Memo:     `{"Key": 10}`,
-			},
-			false,
-		},
-		{
-			"memo has callbacks in json struct but does not have dest_callback_address key",
-			types.FungibleTokenPacketData{
-				Denom:    denom,
-				Amount:   amount,
-				Sender:   sender,
-				Receiver: receiver,
-				Memo:     `{"callback": {"Key": 10}}`,
-			},
-			false,
-		},
-		{
-			"memo has callbacks in json struct but does not have string value for dest_callback_address key",
-			types.FungibleTokenPacketData{
-				Denom:    denom,
-				Amount:   amount,
-				Sender:   sender,
-				Receiver: receiver,
-				Memo:     `{"callback": {"dest_callback_address": 10}}`,
-			},
-			false,
-		},
-		{
-			"memo has callbacks in json struct and properly formatted dest_callback_address which does not match packet sender",
-			types.FungibleTokenPacketData{
-				Denom:    denom,
-				Amount:   amount,
-				Sender:   sender,
-				Receiver: receiver,
-				Memo:     `{"callback": {"dest_callback_address": "testAddress"}}`,
-			},
-			false,
-		},
-		{
-			"valid dest_callback_address specified in memo that matches sender",
+			"success: valid dest_callback_address specified in memo that matches sender",
 			types.FungibleTokenPacketData{
 				Denom:    denom,
 				Amount:   amount,
@@ -225,7 +165,62 @@ func (suite *TypesTestSuite) TestGetDestCallbackAddress() {
 				Receiver: receiver,
 				Memo:     fmt.Sprintf(`{"callback": {"dest_callback_address": "%s"}}`, receiver),
 			},
-			true,
+			receiver,
+		},
+		{
+			"failure: memo is empty",
+			types.FungibleTokenPacketData{
+				Denom:    denom,
+				Amount:   amount,
+				Sender:   sender,
+				Receiver: receiver,
+				Memo:     "",
+			},
+			"",
+		},
+		{
+			"failure: memo is not json string",
+			types.FungibleTokenPacketData{
+				Denom:    denom,
+				Amount:   amount,
+				Sender:   sender,
+				Receiver: receiver,
+				Memo:     "memo",
+			},
+			"",
+		},
+		{
+			"failure: memo does not have callbacks in json struct",
+			types.FungibleTokenPacketData{
+				Denom:    denom,
+				Amount:   amount,
+				Sender:   sender,
+				Receiver: receiver,
+				Memo:     `{"Key": 10}`,
+			},
+			"",
+		},
+		{
+			"failure: memo has callbacks in json struct but does not have dest_callback_address key",
+			types.FungibleTokenPacketData{
+				Denom:    denom,
+				Amount:   amount,
+				Sender:   sender,
+				Receiver: receiver,
+				Memo:     `{"callback": {"Key": 10}}`,
+			},
+			"",
+		},
+		{
+			"failure: memo has callbacks in json struct but does not have string value for dest_callback_address key",
+			types.FungibleTokenPacketData{
+				Denom:    denom,
+				Amount:   amount,
+				Sender:   sender,
+				Receiver: receiver,
+				Memo:     `{"callback": {"dest_callback_address": 10}}`,
+			},
+			"",
 		},
 	}
 
@@ -233,12 +228,7 @@ func (suite *TypesTestSuite) TestGetDestCallbackAddress() {
 		tc := tc
 		suite.Run(tc.name, func() {
 			destCbAddr := tc.packetData.GetDestCallbackAddress()
-
-			if tc.expPass {
-				suite.Require().Equal(receiver, destCbAddr)
-			} else {
-				suite.Require().Equal("", destCbAddr)
-			}
+			suite.Require().Equal(tc.expAddress, destCbAddr)
 		})
 	}
 }
