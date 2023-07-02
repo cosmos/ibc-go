@@ -30,7 +30,7 @@ var (
 		TxType:                 icatypes.TxTypeSDKMultiMsg,
 	}))
 
-	// TestJSONVersion defines a reusable interchainaccounts version string that uses JSON encoding for testing purposes
+	// TestVersionWithJSONEncoding defines a reusable interchainaccounts version string that uses JSON encoding for testing purposes
 	TestVersionWithJSONEncoding = string(icatypes.ModuleCdc.MustMarshalJSON(&icatypes.Metadata{
 		Version:                icatypes.Version,
 		ControllerConnectionId: ibctesting.FirstConnectionID,
