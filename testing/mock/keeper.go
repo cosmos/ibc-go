@@ -12,6 +12,10 @@ import (
 // MockKeeper implements callbacktypes.ContractKeeper
 var _ callbacktypes.ContractKeeper = (*MockKeeper)(nil)
 
+// MockKeeper can be used to mock the expected keepers needed for testing.
+//
+// MockKeeper currently mocks the following interfaces:
+//  - callbacktypes.ContractKeeper
 type MockKeeper struct {
 	MockContractKeeper
 }
