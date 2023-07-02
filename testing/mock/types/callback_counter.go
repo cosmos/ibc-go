@@ -24,3 +24,8 @@ func (c *CallbackCounter) IncrementSuccess() {
 func (c *CallbackCounter) IncrementFailure() {
 	c.Failure++
 }
+
+// IsZero returns true if both the success and failure counters are zero.
+func (c *CallbackCounter) IsZero() bool {
+	return c.Success == 0 && c.Failure == 0
+}

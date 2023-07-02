@@ -14,6 +14,12 @@ func (suite *CallbacksTestSuite) TestFeeTransfer() {
 	// send a transfer with no callback
 	suite.ExecuteTransfer("")
 	// check that no callbacks were executed:
+	suite.Require().True(suite.chainA.GetSimApp().MockKeeper.AckCallbackCounter.IsZero())
+	suite.Require().True(suite.chainB.GetSimApp().MockKeeper.AckCallbackCounter.IsZero())
+	suite.Require().True(suite.chainA.GetSimApp().MockKeeper.TimeoutCallbackCounter.IsZero())
+	suite.Require().True(suite.chainB.GetSimApp().MockKeeper.TimeoutCallbackCounter.IsZero())
+	suite.Require().True(suite.chainA.GetSimApp().MockKeeper.RecvPacketCallbackCounter.IsZero())
+	suite.Require().True(suite.chainB.GetSimApp().MockKeeper.RecvPacketCallbackCounter.IsZero())
 }
 
 // ExecuteTransfer executes a transfer message on chainA for 100 denom.
