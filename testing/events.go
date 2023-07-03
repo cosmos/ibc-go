@@ -69,7 +69,7 @@ func ParsePacketFromEvents(events []abci.Event) (channeltypes.Packet, error) {
 			packet := channeltypes.Packet{}
 			for _, attr := range ev.Attributes {
 				switch attr.Key {
-				case channeltypes.AttributeKeyDataHex: //nolint:staticcheck // DEPRECATED
+				case channeltypes.AttributeKeyData: //nolint:staticcheck // DEPRECATED
 					packet.Data = []byte(attr.Value)
 
 				case channeltypes.AttributeKeySequence:
