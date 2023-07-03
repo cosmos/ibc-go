@@ -142,7 +142,7 @@ func (AppModule) ConsensusVersion() uint64 { return 1 }
 // BeginBlock executes all ABCI BeginBlock logic respective to the capability module.
 // BeginBlocker calls InitMemStore to assert that the memory store is initialized.
 // It's safe to run multiple times.
-func (am AppModule) BeginBlock(ctx sdk.Context) {
+func (am AppModule) BeginBlock(ctx sdk.Context) error {
 	defer telemetry.ModuleMeasureSince(types.ModuleName, time.Now(), telemetry.MetricKeyBeginBlocker)
 
 	am.keeper.InitMemStore(ctx)
