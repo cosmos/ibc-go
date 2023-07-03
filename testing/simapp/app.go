@@ -164,6 +164,36 @@ var (
 	_ servertypes.Application = (*SimApp)(nil)
 )
 
+// stdAccAddressCodec is a temporary address codec that we will use until we
+// can populate it with the correct bech32 prefixes without depending on the global.
+type stdAccAddressCodec struct{}
+
+func (g stdAccAddressCodec) StringToBytes(text string) ([]byte, error) {
+	if text == "" {
+		return nil, nil
+	}
+	return sdk.AccAddressFromBech32(text)
+}
+
+func (g stdAccAddressCodec) BytesToString(bz []byte) (string, error) {
+	if bz == nil {
+		return "", nil
+	}
+	return sdk.AccAddress(bz).String(), nil
+}
+
+// stdValAddressCodec is a temporary address codec that we will use until we
+// can populate it with the correct bech32 prefixes without depending on the global.
+type stdValAddressCodec struct{}
+
+func (g stdValAddressCodec) StringToBytes(text string) ([]byte, error) {
+	return sdk.ValAddressFromBech32(text)
+}
+
+func (g stdValAddressCodec) BytesToString(bz []byte) (string, error) {
+	return sdk.ValAddress(bz).String(), nil
+}
+
 // SimApp extends an ABCI application, but with most of its parameters exported.
 // They are exported for convenience in creating helper functions, as object
 // capabilities aren't needed for testing.
@@ -290,6 +320,13 @@ func NewSimApp(
 	// }
 	// baseAppOptions = append(baseAppOptions, prepareOpt)
 
+	// create and set dummy vote extension handler
+	voteExtOp := func(bApp *baseapp.BaseApp) {
+		voteExtHandler := NewVoteExtensionHandler()
+		voteExtHandler.SetHandlers(bApp)
+	}
+	baseAppOptions = append(baseAppOptions, voteExtOp)
+
 	bApp := baseapp.NewBaseApp(appName, logger, db, txConfig.TxDecoder(), baseAppOptions...)
 	bApp.SetCommitMultiStoreTracer(traceStore)
 	bApp.SetVersion(version.Version)
@@ -348,7 +385,7 @@ func NewSimApp(
 	// SDK module keepers
 
 	// add keepers
-	app.AccountKeeper = authkeeper.NewAccountKeeper(appCodec, runtime.NewKVStoreService(keys[authtypes.StoreKey]), authtypes.ProtoBaseAccount, maccPerms, authcodec.NewBech32Codec(sdk.Bech32MainPrefix), sdk.Bech32MainPrefix, authtypes.NewModuleAddress(govtypes.ModuleName).String())
+	app.AccountKeeper = authkeeper.NewAccountKeeper(appCodec, runtime.NewKVStoreService(keys[authtypes.StoreKey]), authtypes.ProtoBaseAccount, maccPerms, authcodec.NewBech32Codec(sdk.Bech32MainPrefix), authcodec.NewBech32Codec(sdk.Bech32PrefixValAddr), sdk.Bech32MainPrefix, authtypes.NewModuleAddress(govtypes.ModuleName).String())
 
 	app.BankKeeper = bankkeeper.NewBaseKeeper(
 		appCodec,
@@ -358,9 +395,6 @@ func NewSimApp(
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 		logger,
 	)
-
-	// register the staking hooks
-	// NOTE: stakingKeeper above is passed by reference, so that it will contain these hooks
 	app.StakingKeeper = stakingkeeper.NewKeeper(
 		appCodec, runtime.NewKVStoreService(keys[stakingtypes.StoreKey]), app.AccountKeeper, app.BankKeeper, authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
@@ -904,8 +938,9 @@ func (app *SimApp) AutoCliOpts() autocli.AppOptions {
 	}
 
 	return autocli.AppOptions{
-		Modules:      modules,
-		AddressCodec: authcodec.NewBech32Codec(sdk.GetConfig().GetBech32AccountAddrPrefix()),
+		Modules:               modules,
+		AddressCodec:          authcodec.NewBech32Codec(sdk.GetConfig().GetBech32AccountAddrPrefix()),
+		ValidatorAddressCodec: authcodec.NewBech32Codec(sdk.GetConfig().GetBech32ValidatorAddrPrefix()),
 	}
 }
 
