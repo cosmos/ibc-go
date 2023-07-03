@@ -166,8 +166,9 @@ var (
 
 // stdAccAddressCodec is a temporary address codec that we will use until we
 // can populate it with the correct bech32 prefixes without depending on the global.
-type stdAccAddressCodec struct{}
+type stdAccAddressCodec struct{} //nolint:unused
 
+//nolint:unused
 func (g stdAccAddressCodec) StringToBytes(text string) ([]byte, error) {
 	if text == "" {
 		return nil, nil
@@ -175,6 +176,7 @@ func (g stdAccAddressCodec) StringToBytes(text string) ([]byte, error) {
 	return sdk.AccAddressFromBech32(text)
 }
 
+//nolint:unused
 func (g stdAccAddressCodec) BytesToString(bz []byte) (string, error) {
 	if bz == nil {
 		return "", nil
@@ -184,12 +186,16 @@ func (g stdAccAddressCodec) BytesToString(bz []byte) (string, error) {
 
 // stdValAddressCodec is a temporary address codec that we will use until we
 // can populate it with the correct bech32 prefixes without depending on the global.
+//
+//nolint:unused
 type stdValAddressCodec struct{}
 
+//nolint:unused
 func (g stdValAddressCodec) StringToBytes(text string) ([]byte, error) {
 	return sdk.ValAddressFromBech32(text)
 }
 
+//nolint:unused
 func (g stdValAddressCodec) BytesToString(bz []byte) (string, error) {
 	return sdk.ValAddress(bz).String(), nil
 }
