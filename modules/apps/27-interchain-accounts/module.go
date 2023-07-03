@@ -205,9 +205,6 @@ func (AppModule) ConsensusVersion() uint64 { return 3 }
 // BeginBlock implements the AppModule interface
 
 // EndBlock implements the AppModule interface
-func (am AppModule) EndBlock(ctx sdk.Context) []abci.ValidatorUpdate {
-	return []abci.ValidatorUpdate{}
-}
 
 // AppModuleSimulation functions
 
