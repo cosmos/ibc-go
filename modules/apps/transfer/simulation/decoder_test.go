@@ -14,7 +14,7 @@ import (
 )
 
 func TestDecodeStore(t *testing.T) {
-	app := simapp.Setup(false)
+	app := simapp.Setup(t, false)
 	dec := simulation.NewDecodeStore(app.TransferKeeper)
 
 	trace := types.DenomTrace{
