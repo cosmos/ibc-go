@@ -126,7 +126,7 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 			result, err := suite.chainB.SendMsgs(transferMsg)
 			suite.Require().NoError(err) // message committed
 
-			packet, err := ibctesting.ParsePacketFromEvents(result.GetEvents())
+			packet, err := ibctesting.ParsePacketFromEvents(result.Events)
 			suite.Require().NoError(err)
 
 			err = path.RelayPacket(packet)
@@ -210,7 +210,7 @@ func (suite *KeeperTestSuite) TestSendTransferSetsTotalEscrowAmountForSourceIBCT
 	result, err := suite.chainA.SendMsgs(transferMsg)
 	suite.Require().NoError(err) // message committed
 
-	packet, err := ibctesting.ParsePacketFromEvents(result.GetEvents())
+	packet, err := ibctesting.ParsePacketFromEvents(result.Events)
 	suite.Require().NoError(err)
 
 	err = path1.RelayPacket(packet)
@@ -357,7 +357,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				res, err := suite.chainB.SendMsgs(transferMsg)
 				suite.Require().NoError(err) // message committed
 
-				packet, err := ibctesting.ParsePacketFromEvents(res.GetEvents())
+				packet, err := ibctesting.ParsePacketFromEvents(res.Events)
 				suite.Require().NoError(err)
 
 				err = path.RelayPacket(packet)

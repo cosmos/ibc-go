@@ -52,7 +52,7 @@ func (path *Path) RelayPacket(packet channeltypes.Packet) error {
 			return err
 		}
 
-		ack, err := ParseAckFromEvents(res.GetEvents())
+		ack, err := ParseAckFromEvents(res.Events)
 		if err != nil {
 			return err
 		}
@@ -73,7 +73,7 @@ func (path *Path) RelayPacket(packet channeltypes.Packet) error {
 			return err
 		}
 
-		ack, err := ParseAckFromEvents(res.GetEvents())
+		ack, err := ParseAckFromEvents(res.Events)
 		if err != nil {
 			return err
 		}
