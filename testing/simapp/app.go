@@ -281,6 +281,7 @@ func NewSimApp(
 	baseAppOptions ...func(*baseapp.BaseApp),
 ) *SimApp {
 	encodingConfig := makeEncodingConfig()
+
 	appCodec := encodingConfig.Codec
 	legacyAmino := encodingConfig.Amino
 	interfaceRegistry := encodingConfig.InterfaceRegistry
@@ -834,7 +835,7 @@ func (app *SimApp) TxConfig() client.TxConfig {
 	return app.txConfig
 }
 
-// DefaultGenesis returns a raw json message containing the AppModuleBasic's default genesis state.
+// DefaultGenesis returns a default genesis from the registered AppModuleBasic's.
 func (a *SimApp) DefaultGenesis() map[string]json.RawMessage {
 	return ModuleBasics.DefaultGenesis(a.appCodec)
 }
