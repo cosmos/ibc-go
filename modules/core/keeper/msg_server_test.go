@@ -1132,18 +1132,13 @@ func (suite *KeeperTestSuite) TestChannelUpgradeOpen() {
 			err = path.EndpointB.ChanUpgradeAck()
 			suite.Require().NoError(err)
 
-			// Pending update of FlushStatus in WriteUpgradeAck. See issue #3929
-			counterpartyChannel := path.EndpointB.GetChannel()
-			counterpartyChannel.FlushStatus = channeltypes.FLUSHCOMPLETE
-			path.EndpointB.SetChannel(counterpartyChannel)
-
 			err = path.EndpointA.UpdateClient()
 			suite.Require().NoError(err)
 
 			suite.coordinator.CommitBlock(suite.chainA, suite.chainB)
 			suite.Require().NoError(path.EndpointA.UpdateClient())
 
-			counterpartyChannel = path.EndpointB.GetChannel()
+			counterpartyChannel := path.EndpointB.GetChannel()
 			proofChannel, _, proofHeight := path.EndpointA.QueryChannelUpgradeProof()
 
 			msg = &channeltypes.MsgChannelUpgradeOpen{
