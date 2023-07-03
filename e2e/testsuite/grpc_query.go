@@ -21,6 +21,7 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 
 	controllertypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
+	hosttypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/types"
 	feetypes "github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
@@ -33,13 +34,14 @@ import (
 // These should typically be used for query clients only. If we need to make changes, we should
 // use E2ETestSuite.BroadcastMessages to broadcast transactions instead.
 type GRPCClients struct {
-	ClientQueryClient     clienttypes.QueryClient
-	ConnectionQueryClient connectiontypes.QueryClient
-	ChannelQueryClient    channeltypes.QueryClient
-	TransferQueryClient   transfertypes.QueryClient
-	FeeQueryClient        feetypes.QueryClient
-	ICAQueryClient        controllertypes.QueryClient
-	InterTxQueryClient    intertxtypes.QueryClient
+	ClientQueryClient        clienttypes.QueryClient
+	ConnectionQueryClient    connectiontypes.QueryClient
+	ChannelQueryClient       channeltypes.QueryClient
+	TransferQueryClient      transfertypes.QueryClient
+	FeeQueryClient           feetypes.QueryClient
+	ICAControllerQueryClient controllertypes.QueryClient
+	ICAHostQueryClient       hosttypes.QueryClient
+	InterTxQueryClient       intertxtypes.QueryClient
 
 	// SDK query clients
 	GovQueryClient    govtypesv1beta1.QueryClient
@@ -72,19 +74,21 @@ func (s *E2ETestSuite) InitGRPCClients(chain *cosmos.CosmosChain) {
 	}
 
 	s.grpcClients[chain.Config().ChainID] = GRPCClients{
-		ClientQueryClient:      clienttypes.NewQueryClient(grpcConn),
-		ChannelQueryClient:     channeltypes.NewQueryClient(grpcConn),
-		TransferQueryClient:    transfertypes.NewQueryClient(grpcConn),
-		FeeQueryClient:         feetypes.NewQueryClient(grpcConn),
-		ICAQueryClient:         controllertypes.NewQueryClient(grpcConn),
-		InterTxQueryClient:     intertxtypes.NewQueryClient(grpcConn),
-		GovQueryClient:         govtypesv1beta1.NewQueryClient(grpcConn),
-		GovQueryClientV1:       govtypesv1.NewQueryClient(grpcConn),
-		GroupsQueryClient:      grouptypes.NewQueryClient(grpcConn),
-		ParamsQueryClient:      paramsproposaltypes.NewQueryClient(grpcConn),
-		AuthQueryClient:        authtypes.NewQueryClient(grpcConn),
-		AuthZQueryClient:       authz.NewQueryClient(grpcConn),
-		ConsensusServiceClient: tmservice.NewServiceClient(grpcConn),
+		ClientQueryClient:        clienttypes.NewQueryClient(grpcConn),
+		ConnectionQueryClient:    connectiontypes.NewQueryClient(grpcConn),
+		ChannelQueryClient:       channeltypes.NewQueryClient(grpcConn),
+		TransferQueryClient:      transfertypes.NewQueryClient(grpcConn),
+		FeeQueryClient:           feetypes.NewQueryClient(grpcConn),
+		ICAControllerQueryClient: controllertypes.NewQueryClient(grpcConn),
+		ICAHostQueryClient:       hosttypes.NewQueryClient(grpcConn),
+		InterTxQueryClient:       intertxtypes.NewQueryClient(grpcConn),
+		GovQueryClient:           govtypesv1beta1.NewQueryClient(grpcConn),
+		GovQueryClientV1:         govtypesv1.NewQueryClient(grpcConn),
+		GroupsQueryClient:        grouptypes.NewQueryClient(grpcConn),
+		ParamsQueryClient:        paramsproposaltypes.NewQueryClient(grpcConn),
+		AuthQueryClient:          authtypes.NewQueryClient(grpcConn),
+		AuthZQueryClient:         authz.NewQueryClient(grpcConn),
+		ConsensusServiceClient:   tmservice.NewServiceClient(grpcConn),
 	}
 }
 
@@ -174,7 +178,6 @@ func (s *E2ETestSuite) QueryTotalEscrowForDenom(ctx context.Context, chain ibc.C
 	res, err := queryClient.TotalEscrowForDenom(ctx, &transfertypes.QueryTotalEscrowForDenomRequest{
 		Denom: denom,
 	})
-
 	if err != nil {
 		return sdk.Coin{}, err
 	}
@@ -184,7 +187,7 @@ func (s *E2ETestSuite) QueryTotalEscrowForDenom(ctx context.Context, chain ibc.C
 
 // QueryInterchainAccount queries the interchain account for the given owner and connectionID.
 func (s *E2ETestSuite) QueryInterchainAccount(ctx context.Context, chain ibc.Chain, owner, connectionID string) (string, error) {
-	queryClient := s.GetChainGRCPClients(chain).ICAQueryClient
+	queryClient := s.GetChainGRCPClients(chain).ICAControllerQueryClient
 	res, err := queryClient.InterchainAccount(ctx, &controllertypes.QueryInterchainAccountRequest{
 		Owner:        owner,
 		ConnectionId: connectionID,

@@ -103,9 +103,8 @@ func (s *InterchainAccountsGroupsTestSuite) TestInterchainAccountsGroupsIntegrat
 		msgCreateGroupWithPolicy, err := grouptypes.NewMsgCreateGroupWithPolicy(chainAAddress, members, DefaultMetadata, DefaultMetadata, true, decisionPolicy)
 		s.Require().NoError(err)
 
-		txResp, err := s.BroadcastMessages(ctx, chainA, chainAWallet, msgCreateGroupWithPolicy)
-		s.Require().NoError(err)
-		s.AssertValidTxResponse(txResp)
+		txResp := s.BroadcastMessages(ctx, chainA, chainAWallet, msgCreateGroupWithPolicy)
+		s.AssertTxSuccess(txResp)
 	})
 
 	t.Run("submit proposal for MsgRegisterInterchainAccount", func(t *testing.T) {
@@ -115,9 +114,8 @@ func (s *InterchainAccountsGroupsTestSuite) TestInterchainAccountsGroupsIntegrat
 		msgSubmitProposal, err := grouptypes.NewMsgSubmitProposal(groupPolicyAddr, []string{chainAAddress}, []sdk.Msg{msgRegisterAccount}, DefaultMetadata, grouptypes.Exec_EXEC_UNSPECIFIED, "e2e groups proposal: for MsgRegisterInterchainAccount", "e2e groups proposal: for MsgRegisterInterchainAccount")
 		s.Require().NoError(err)
 
-		txResp, err := s.BroadcastMessages(ctx, chainA, chainAWallet, msgSubmitProposal)
-		s.Require().NoError(err)
-		s.AssertValidTxResponse(txResp)
+		txResp := s.BroadcastMessages(ctx, chainA, chainAWallet, msgSubmitProposal)
+		s.AssertTxSuccess(txResp)
 	})
 
 	t.Run("vote and exec proposal", func(t *testing.T) {
@@ -128,9 +126,8 @@ func (s *InterchainAccountsGroupsTestSuite) TestInterchainAccountsGroupsIntegrat
 			Exec:       grouptypes.Exec_EXEC_TRY,
 		}
 
-		txResp, err := s.BroadcastMessages(ctx, chainA, chainAWallet, msgVote)
-		s.Require().NoError(err)
-		s.AssertValidTxResponse(txResp)
+		txResp := s.BroadcastMessages(ctx, chainA, chainAWallet, msgVote)
+		s.AssertTxSuccess(txResp)
 	})
 
 	t.Run("start relayer", func(t *testing.T) {
@@ -165,7 +162,7 @@ func (s *InterchainAccountsGroupsTestSuite) TestInterchainAccountsGroupsIntegrat
 
 		cdc := testsuite.Codec()
 
-		bz, err := icatypes.SerializeCosmosTx(cdc, []proto.Message{msgBankSend})
+		bz, err := icatypes.SerializeCosmosTx(cdc, []proto.Message{msgBankSend}, icatypes.EncodingProtobuf)
 		s.Require().NoError(err)
 
 		packetData := icatypes.InterchainAccountPacketData{
@@ -178,9 +175,8 @@ func (s *InterchainAccountsGroupsTestSuite) TestInterchainAccountsGroupsIntegrat
 		msgSubmitProposal, err := grouptypes.NewMsgSubmitProposal(groupPolicyAddr, []string{chainAAddress}, []sdk.Msg{msgSubmitTx}, DefaultMetadata, grouptypes.Exec_EXEC_UNSPECIFIED, "e2e groups proposal: for MsgRegisterInterchainAccount", "e2e groups proposal: for MsgRegisterInterchainAccount")
 		s.Require().NoError(err)
 
-		txResp, err := s.BroadcastMessages(ctx, chainA, chainAWallet, msgSubmitProposal)
-		s.Require().NoError(err)
-		s.AssertValidTxResponse(txResp)
+		txResp := s.BroadcastMessages(ctx, chainA, chainAWallet, msgSubmitProposal)
+		s.AssertTxSuccess(txResp)
 	})
 
 	t.Run("vote and exec proposal", func(t *testing.T) {
@@ -191,9 +187,8 @@ func (s *InterchainAccountsGroupsTestSuite) TestInterchainAccountsGroupsIntegrat
 			Exec:       grouptypes.Exec_EXEC_TRY,
 		}
 
-		txResp, err := s.BroadcastMessages(ctx, chainA, chainAWallet, msgVote)
-		s.Require().NoError(err)
-		s.AssertValidTxResponse(txResp)
+		txResp := s.BroadcastMessages(ctx, chainA, chainAWallet, msgVote)
+		s.AssertTxSuccess(txResp)
 	})
 
 	t.Run("verify tokens transferred", func(t *testing.T) {

@@ -7,9 +7,12 @@ option go_package = "github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types";
 import "gogoproto/gogo.proto";
 import "ibc/applications/fee/v1/fee.proto";
 import "ibc/core/channel/v1/channel.proto";
+import "cosmos/msg/v1/msg.proto";
 
 // Msg defines the ICS29 Msg service.
 service Msg {
+  option (cosmos.msg.v1.service) = true;
+
   // RegisterPayee defines a rpc handler method for MsgRegisterPayee
   // RegisterPayee is called by the relayer on each channelEnd and allows them to set an optional
   // payee to which reverse and timeout relayer packet fees will be paid out. The payee should be registered on
@@ -39,7 +42,8 @@ service Msg {
 
 // MsgRegisterPayee defines the request type for the RegisterPayee rpc
 message MsgRegisterPayee {
-  option (gogoproto.equal)           = false;
+  option (cosmos.msg.v1.signer) = "relayer";
+
   option (gogoproto.goproto_getters) = false;
 
   // unique port identifier
@@ -57,7 +61,8 @@ message MsgRegisterPayeeResponse {}
 
 // MsgRegisterCounterpartyPayee defines the request type for the RegisterCounterpartyPayee rpc
 message MsgRegisterCounterpartyPayee {
-  option (gogoproto.equal)           = false;
+  option (cosmos.msg.v1.signer) = "relayer";
+
   option (gogoproto.goproto_getters) = false;
 
   // unique port identifier
@@ -77,7 +82,8 @@ message MsgRegisterCounterpartyPayeeResponse {}
 // This Msg can be used to pay for a packet at the next sequence send & should be combined with the Msg that will be
 // paid for
 message MsgPayPacketFee {
-  option (gogoproto.equal)           = false;
+  option (cosmos.msg.v1.signer) = "signer";
+
   option (gogoproto.goproto_getters) = false;
 
   // fee encapsulates the recv, ack and timeout fees associated with an IBC packet
@@ -98,7 +104,7 @@ message MsgPayPacketFeeResponse {}
 // MsgPayPacketFeeAsync defines the request type for the PayPacketFeeAsync rpc
 // This Msg can be used to pay for a packet at a specified sequence (instead of the next sequence send)
 message MsgPayPacketFeeAsync {
-  option (gogoproto.equal)           = false;
+  option (cosmos.msg.v1.signer)      = "packet_fee.refundaddress";
   option (gogoproto.goproto_getters) = false;
 
   // unique packet identifier comprised of the channel ID, port ID and sequence

@@ -5,9 +5,9 @@ on:
     branches:
       - main
     paths-ignore:
-      - "docs/**"
-      - "**.md"
-      - "LICENSE"
+      - 'docs/**'
+      - '**.md'
+      - 'LICENSE'
 
 jobs:
   # dynamically build a matrix of test/test suite pairs to run
@@ -20,13 +20,14 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v4
         with:
-          go-version: 1.19
+          go-version: '1.20'
       - id: set-matrix
         run: echo "matrix=$(go run cmd/build_test_matrix/main.go)" >> $GITHUB_OUTPUT
         env:
-          TEST_EXCLUSIONS: "TestInterTxTestSuite,TestIncentivizedInterTxTestSuite,TestUpgradeTestSuite"
+          TEST_EXCLUSIONS: 'TestInterTxTestSuite,TestIncentivizedInterTxTestSuite,TestUpgradeTestSuite'
 
-  e2e:
+  # e2e-fork runs the e2e tests directly by using a matrix strategy.
+  e2e-fork:
     env:
       CHAIN_A_TAG: latest
       CHAIN_B_TAG: latest
@@ -45,7 +46,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v4
         with:
-          go-version: 1.19
+          go-version: '1.20'
       - name: Run e2e Test
         run: |
           cd e2e

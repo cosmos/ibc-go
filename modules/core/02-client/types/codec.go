@@ -1,14 +1,16 @@
 package types
 
 import (
+	proto "github.com/cosmos/gogoproto/proto"
+
 	errorsmod "cosmossdk.io/errors"
+
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/msgservice"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
-	proto "github.com/cosmos/gogoproto/proto"
 
-	ibcerrors "github.com/cosmos/ibc-go/v7/internal/errors"
+	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
@@ -46,6 +48,7 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 		&MsgUpdateClient{},
 		&MsgUpgradeClient{},
 		&MsgSubmitMisbehaviour{},
+		&MsgUpdateParams{},
 	)
 
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)

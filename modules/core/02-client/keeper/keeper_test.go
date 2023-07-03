@@ -5,13 +5,19 @@ import (
 	"testing"
 	"time"
 
-	tmbytes "github.com/cometbft/cometbft/libs/bytes"
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
-	tmtypes "github.com/cometbft/cometbft/types"
+	"github.com/stretchr/testify/suite"
+
+	sdkmath "cosmossdk.io/math"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+
+	tmbytes "github.com/cometbft/cometbft/libs/bytes"
+	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	tmtypes "github.com/cometbft/cometbft/types"
+
 	"github.com/cosmos/ibc-go/v7/modules/core/02-client/keeper"
 	"github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
@@ -22,7 +28,6 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	ibctestingmock "github.com/cosmos/ibc-go/v7/testing/mock"
 	"github.com/cosmos/ibc-go/v7/testing/simapp"
-	"github.com/stretchr/testify/suite"
 )
 
 const (
@@ -110,7 +115,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 		suite.Require().NoError(err)
 
 		val.Status = stakingtypes.Bonded
-		val.Tokens = sdk.NewInt(rand.Int63())
+		val.Tokens = sdkmath.NewInt(rand.Int63())
 		validators = append(validators, val)
 
 		hi := stakingtypes.NewHistoricalInfo(suite.ctx.BlockHeader(), validators, sdk.DefaultPowerReduction)
@@ -449,4 +454,60 @@ func (suite KeeperTestSuite) TestIterateClientStates() { //nolint:govet // this 
 			suite.Require().ElementsMatch(tc.expClientIDs(), clientIDs)
 		})
 	}
+}
+
+// TestDefaultSetParams tests the default params set are what is expected
+func (suite *KeeperTestSuite) TestDefaultSetParams() {
+	expParams := types.DefaultParams()
+
+	clientKeeper := suite.chainA.App.GetIBCKeeper().ClientKeeper
+	params := clientKeeper.GetParams(suite.chainA.GetContext())
+
+	suite.Require().Equal(expParams, params)
+	suite.Require().Equal(expParams.AllowedClients, clientKeeper.GetParams(suite.chainA.GetContext()).AllowedClients)
+}
+
+// TestParams tests that Param setting and retrieval works properly
+func (suite *KeeperTestSuite) TestParams() {
+	testCases := []struct {
+		name    string
+		input   types.Params
+		expPass bool
+	}{
+		{"success: set default params", types.DefaultParams(), true},
+		{"success: empty allowedClients", types.NewParams(), true},
+		{"success: subset of allowedClients", types.NewParams(exported.Tendermint, exported.Localhost), true},
+		{"failure: contains a single empty string value as allowedClient", types.NewParams(exported.Localhost, ""), false},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+
+		suite.Run(tc.name, func() {
+			suite.SetupTest() // reset
+			ctx := suite.chainA.GetContext()
+			err := tc.input.Validate()
+			suite.chainA.GetSimApp().IBCKeeper.ClientKeeper.SetParams(ctx, tc.input)
+			if tc.expPass {
+				suite.Require().NoError(err)
+				expected := tc.input
+				p := suite.chainA.GetSimApp().IBCKeeper.ClientKeeper.GetParams(ctx)
+				suite.Require().Equal(expected, p)
+			} else {
+				suite.Require().Error(err)
+			}
+		})
+	}
+}
+
+// TestUnsetParams tests that trying to get params that are not set panics.
+func (suite *KeeperTestSuite) TestUnsetParams() {
+	suite.SetupTest()
+	ctx := suite.chainA.GetContext()
+	store := ctx.KVStore(suite.chainA.GetSimApp().GetKey(exported.StoreKey))
+	store.Delete([]byte(types.ParamsKey))
+
+	suite.Require().Panics(func() {
+		suite.chainA.GetSimApp().IBCKeeper.ClientKeeper.GetParams(ctx)
+	})
 }
