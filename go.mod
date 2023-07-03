@@ -17,7 +17,7 @@ require (
 	cosmossdk.io/x/evidence v0.0.0-20230627025906-ab77fe20d3c0
 	cosmossdk.io/x/feegrant v0.0.0-20230627025906-ab77fe20d3c0
 	cosmossdk.io/x/tx v0.8.0
-	cosmossdk.io/x/upgrade v0.0.0-20230609160955-4ad71e570d16
+	cosmossdk.io/x/upgrade v0.0.0-20230703101127-6b1acf71aec9
 	github.com/cometbft/cometbft v0.38.0-rc2
 	github.com/cosmos/cosmos-db v1.0.0
 	github.com/cosmos/cosmos-proto v1.0.0-beta.3
@@ -50,7 +50,6 @@ require (
 	github.com/99designs/go-keychain v0.0.0-20191008050251-8e49817e8af4 // indirect
 	github.com/99designs/keyring v1.2.1 // indirect
 	github.com/DataDog/zstd v1.5.5 // indirect
-	github.com/armon/go-metrics v0.4.1 // indirect
 	github.com/aws/aws-sdk-go v1.44.224 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bgentry/go-netrc v0.0.0-20140422174119-9fd32a8b3d3d // indirect
