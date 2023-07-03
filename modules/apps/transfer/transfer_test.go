@@ -66,7 +66,7 @@ func (s *TransferTestSuite) TestHandleMsgTransfer() {
 	res, err := s.chainA.SendMsgs(msg)
 	s.Require().NoError(err) // message committed
 
-	packet, err := ibctesting.ParsePacketFromEvents(res.GetEvents())
+	packet, err := ibctesting.ParsePacketFromEvents(res.Events)
 	s.Require().NoError(err)
 
 	// relay send
@@ -96,7 +96,7 @@ func (s *TransferTestSuite) TestHandleMsgTransfer() {
 	res, err = s.chainB.SendMsgs(msg)
 	s.Require().NoError(err) // message committed
 
-	packet, err = ibctesting.ParsePacketFromEvents(res.GetEvents())
+	packet, err = ibctesting.ParsePacketFromEvents(res.Events)
 	s.Require().NoError(err)
 
 	err = pathBtoC.RelayPacket(packet)
@@ -119,7 +119,7 @@ func (s *TransferTestSuite) TestHandleMsgTransfer() {
 	res, err = s.chainC.SendMsgs(msg)
 	s.Require().NoError(err) // message committed
 
-	packet, err = ibctesting.ParsePacketFromEvents(res.GetEvents())
+	packet, err = ibctesting.ParsePacketFromEvents(res.Events)
 	s.Require().NoError(err)
 
 	err = pathBtoC.RelayPacket(packet)

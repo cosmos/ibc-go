@@ -122,7 +122,7 @@ func (s *KeeperTestSuite) TestDistributeFeeEvent() {
 	s.Require().NotNil(res)
 
 	// parse the packet from result events and recv packet on chainB
-	packet, err := ibctesting.ParsePacketFromEvents(res.GetEvents())
+	packet, err := ibctesting.ParsePacketFromEvents(res.Events)
 	s.Require().NoError(err)
 	s.Require().NotNil(packet)
 
@@ -134,7 +134,7 @@ func (s *KeeperTestSuite) TestDistributeFeeEvent() {
 	s.Require().NotNil(res)
 
 	// parse the acknowledgement from result events and acknowledge packet on chainA
-	ack, err := ibctesting.ParseAckFromEvents(res.GetEvents())
+	ack, err := ibctesting.ParseAckFromEvents(res.Events)
 	s.Require().NoError(err)
 	s.Require().NotNil(ack)
 
@@ -146,7 +146,7 @@ func (s *KeeperTestSuite) TestDistributeFeeEvent() {
 	s.Require().NoError(err)
 	s.Require().NotNil(res)
 
-	events := res.GetEvents()
+	events := res.Events
 	expectedEvents := sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeDistributeFee,
@@ -163,7 +163,7 @@ func (s *KeeperTestSuite) TestDistributeFeeEvent() {
 			sdk.NewAttribute(types.AttributeKeyReceiver, s.chainA.SenderAccount.GetAddress().String()),
 			sdk.NewAttribute(types.AttributeKeyFee, defaultTimeoutFee.String()),
 		),
-	}
+	}.ToABCIEvents()
 
 	for _, evt := range expectedEvents {
 		s.Require().Contains(events, evt)

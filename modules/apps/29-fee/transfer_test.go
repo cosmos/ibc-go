@@ -38,7 +38,7 @@ func (s *FeeTestSuite) TestFeeTransfer() {
 	// after incentivizing the packets
 	originalChainASenderAccountBalance := sdk.NewCoins(s.chainA.GetSimApp().BankKeeper.GetBalance(s.chainA.GetContext(), s.chainA.SenderAccount.GetAddress(), ibctesting.TestCoin.Denom))
 
-	packet, err := ibctesting.ParsePacketFromEvents(res.GetEvents())
+	packet, err := ibctesting.ParsePacketFromEvents(res.Events)
 	s.Require().NoError(err)
 
 	// register counterparty address on chainB

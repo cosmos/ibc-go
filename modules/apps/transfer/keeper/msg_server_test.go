@@ -104,7 +104,7 @@ func (s *KeeperTestSuite) TestMsgTransfer() {
 			res, err := s.chainA.GetSimApp().TransferKeeper.Transfer(sdk.WrapSDKContext(ctx), msg)
 
 			// Verify events
-			events := ctx.EventManager().Events()
+			events := ctx.EventManager().Events().ToABCIEvents()
 			expEvents := ibctesting.EventsMap{
 				"ibc_transfer": {
 					"sender":   s.chainA.SenderAccount.GetAddress().String(),
