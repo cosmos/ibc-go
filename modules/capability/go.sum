@@ -188,10 +188,10 @@ cloud.google.com/go/webrisk v1.4.0/go.mod h1:Hn8X6Zr+ziE2aNd8SliSDWpEnSS1u4R9+xX
 cloud.google.com/go/webrisk v1.5.0/go.mod h1:iPG6fr52Tv7sGk0H6qUFzmL3HHZev1htXuWDEEsqMTg=
 cloud.google.com/go/workflows v1.6.0/go.mod h1:6t9F5h/unJz41YqfBmqSASJSXccBLtD1Vwf+KmJENM0=
 cloud.google.com/go/workflows v1.7.0/go.mod h1:JhSrZuVZWuiDfKEFxU0/F1PQjmpnpcoISEXH2bcHC3M=
-cosmossdk.io/api v0.4.3-0.20230620040119-e078f1a49e8b h1:/NpCKB5Fcyk3WpoCvcKkhHe+ZPJ3APNUK1x/qWOti9Y=
-cosmossdk.io/api v0.4.3-0.20230620040119-e078f1a49e8b/go.mod h1:CjFB/a1EBCOgM0GTi60LWgDKcs/VHJAIVGzq57PzrQk=
-cosmossdk.io/client/v2 v2.0.0-20230615173548-5385116abac4 h1:hRgwSTe49l1S+nA4l4AHZX7l8ZMKsKOi1YIyOdVPAmg=
-cosmossdk.io/client/v2 v2.0.0-20230615173548-5385116abac4/go.mod h1:0LYJm2+vdRIRDSP4yZZMGn68z6ZAFyLC0kuK31zXsOk=
+cosmossdk.io/api v0.5.0 h1:C0gzb5N3qYE0VEUlXleuilv7Z/7/MHhdOKkgn2Ugfnc=
+cosmossdk.io/api v0.5.0/go.mod h1:5Jc00Q4tSTcrZXvvE3J/ybvZK6DopLcp3ThK3X703QE=
+cosmossdk.io/client/v2 v2.0.0-20230703101127-6b1acf71aec9 h1:CBvnSInD7Bp2W7SZchBomt4mL6T1RigDiyO+9TJy4bk=
+cosmossdk.io/client/v2 v2.0.0-20230703101127-6b1acf71aec9/go.mod h1:ykLVehqOMazu5xNByX9zEIUm7dI/UKB6BRmrsARCic0=
 cosmossdk.io/collections v0.2.1-0.20230620134406-d4f1e88b6531 h1:6CxleI/IgdENrujwTY2yY9Wg52DVZr4eq4L71ANoLuQ=
 cosmossdk.io/collections v0.2.1-0.20230620134406-d4f1e88b6531/go.mod h1:k8IKBKC/lO+BKoIGae3RC8NCBV8+7JaAw+es51YylFs=
 cosmossdk.io/core v0.9.0 h1:30ScAOHDIUOCg1DKAwqkho9wuQJnu7GUrMcg0XLioic=
@@ -214,8 +214,8 @@ cosmossdk.io/x/feegrant v0.0.0-20230627025906-ab77fe20d3c0 h1:XNhJKJrZF9fLRqKq79
 cosmossdk.io/x/feegrant v0.0.0-20230627025906-ab77fe20d3c0/go.mod h1:dSBEhtP9d+fdyoHW+s7W+TISslKmyLtj2+oHR5hI9qk=
 cosmossdk.io/x/tx v0.8.0 h1:gLiGRL/Fy7fs6dd0IX8jOf0PrVr56/SG6XVMGQjyvJU=
 cosmossdk.io/x/tx v0.8.0/go.mod h1:T9uEumGNgKU61gJYRv1t3uzQwLnASpJGmSE229HM3xA=
-cosmossdk.io/x/upgrade v0.0.0-20230609160955-4ad71e570d16 h1:Dg3J4larEtnUFYvSkpk619MmVj/PbPleGDwRdd0qB3k=
-cosmossdk.io/x/upgrade v0.0.0-20230609160955-4ad71e570d16/go.mod h1:CTz9FMom9siXKVeb9PKhexmqlixRH2xtXfxIuCWqMIM=
+cosmossdk.io/x/upgrade v0.0.0-20230703101127-6b1acf71aec9 h1:2NEsCN6s1vXizhBEYMyhOZzIH6xOO0xI/MDSNzk5B7c=
+cosmossdk.io/x/upgrade v0.0.0-20230703101127-6b1acf71aec9/go.mod h1:LQneelzzjR/1BNSuIQ5Hw5xq2JHaKmBlgTNhH3keuo4=
 dmitri.shuralyov.com/gpu/mtl v0.0.0-20190408044501-666a987793e9/go.mod h1:H6x//7gZCb22OMCxBHrMx7a5I7Hp++hsVxbQ4BYO7hU=
 filippo.io/edwards25519 v1.0.0 h1:0wAIcmJUqRdI8IJ/3eGi5/HwXZWPujYXXlkrQogz0Ek=
 filippo.io/edwards25519 v1.0.0/go.mod h1:N1IkdkCkiLB6tki+MYJoSx2JTY9NUlxZE7eHn5EwJns=
@@ -1642,8 +1642,8 @@ gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c/go.mod h1:K4uyk7z7BCEPqu6E+C
 gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b/go.mod h1:K4uyk7z7BCEPqu6E+C64Yfv1cQ7kz7rIZviUmN+EgEM=
 gopkg.in/yaml.v3 v3.0.1 h1:fxVm/GzAzEWqLHuvctI91KS9hhNmmWOoWu0XTYJS7CA=
 gopkg.in/yaml.v3 v3.0.1/go.mod h1:K4uyk7z7BCEPqu6E+C64Yfv1cQ7kz7rIZviUmN+EgEM=
-gotest.tools/v3 v3.4.0 h1:ZazjZUfuVeZGLAmlKKuyv3IKP5orXcwtOwDQH6YVr6o=
-gotest.tools/v3 v3.4.0/go.mod h1:CtbdzLSsqVhDgMtKsx03ird5YTGB3ar27v0u/yKBW5g=
+gotest.tools/v3 v3.5.0 h1:Ljk6PdHdOhAb5aDMWXjDLMMhph+BpztA4v1QdqEW2eY=
+gotest.tools/v3 v3.5.0/go.mod h1:isy3WKz7GK6uNw/sbHzfKBLvlvXwUyV06n6brMxxopU=
 honnef.co/go/tools v0.0.0-20180728063816-88497007e858/go.mod h1:rf3lG4BRIbNafJWhAfAdb/ePZxsR/4RtNHQocxwk9r4=
 honnef.co/go/tools v0.0.0-20190102054323-c2f93a96b099/go.mod h1:rf3lG4BRIbNafJWhAfAdb/ePZxsR/4RtNHQocxwk9r4=
 honnef.co/go/tools v0.0.0-20190106161140-3f1c8253044a/go.mod h1:rf3lG4BRIbNafJWhAfAdb/ePZxsR/4RtNHQocxwk9r4=

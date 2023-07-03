@@ -10,7 +10,7 @@ require (
 	cosmossdk.io/store v0.1.0-alpha.1.0.20230630152705-9f4a4e416f85
 	github.com/cometbft/cometbft v0.38.0-rc2
 	github.com/cosmos/cosmos-db v1.0.0
-	github.com/cosmos/cosmos-sdk v0.50.0-alpha.1.0.20230630175638-d9c53bfefc1e
+	github.com/cosmos/cosmos-sdk v0.50.0-alpha.1.0.20230703080412-af357c8d301e
 	github.com/cosmos/gogoproto v1.4.10
 	github.com/cosmos/ibc-go/v7 v7.1.0
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
@@ -25,15 +25,15 @@ require (
 	cloud.google.com/go/compute/metadata v0.2.3 // indirect
 	cloud.google.com/go/iam v0.13.0 // indirect
 	cloud.google.com/go/storage v1.30.0 // indirect
-	cosmossdk.io/api v0.4.3-0.20230620040119-e078f1a49e8b // indirect
-	cosmossdk.io/client/v2 v2.0.0-20230615173548-5385116abac4 // indirect
+	cosmossdk.io/api v0.5.0 // indirect
+	cosmossdk.io/client/v2 v2.0.0-20230703101127-6b1acf71aec9 // indirect
 	cosmossdk.io/collections v0.2.1-0.20230620134406-d4f1e88b6531 // indirect
 	cosmossdk.io/depinject v1.0.0-alpha.3 // indirect
 	cosmossdk.io/x/circuit v0.0.0-20230627025906-ab77fe20d3c0 // indirect
 	cosmossdk.io/x/evidence v0.0.0-20230627025906-ab77fe20d3c0 // indirect
 	cosmossdk.io/x/feegrant v0.0.0-20230627025906-ab77fe20d3c0 // indirect
 	cosmossdk.io/x/tx v0.8.0 // indirect
-	cosmossdk.io/x/upgrade v0.0.0-20230609160955-4ad71e570d16 // indirect
+	cosmossdk.io/x/upgrade v0.0.0-20230703101127-6b1acf71aec9 // indirect
 	filippo.io/edwards25519 v1.0.0 // indirect
 	github.com/99designs/go-keychain v0.0.0-20191008050251-8e49817e8af4 // indirect
 	github.com/99designs/keyring v1.2.1 // indirect
@@ -183,7 +183,7 @@ require (
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	gotest.tools/v3 v3.4.0 // indirect
+	gotest.tools/v3 v3.5.0 // indirect
 	nhooyr.io/websocket v1.8.6 // indirect
 	pgregory.net/rapid v1.0.0 // indirect
 )
