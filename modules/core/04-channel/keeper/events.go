@@ -126,6 +126,7 @@ func emitSendPacketEvent(ctx sdk.Context, packet exported.PacketI, channel types
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeSendPacket,
+			//			sdk.NewAttribute(types.AttributeKeyAck, fmt.Sprintf("%v", packet.GetAck())),
 			sdk.NewAttribute(types.AttributeKeyData, string(packet.GetData())),
 			sdk.NewAttribute(types.AttributeKeyDataHex, hex.EncodeToString(packet.GetData())),
 			sdk.NewAttribute(types.AttributeKeyTimeoutHeight, timeoutHeight.String()),
