@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
 
@@ -18,6 +19,7 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
+	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
@@ -104,6 +106,22 @@ func (k Keeper) ClaimCapability(ctx sdk.Context, cap *capabilitytypes.Capability
 // GetAppVersion calls the ICS4Wrapper GetAppVersion function.
 func (k Keeper) GetAppVersion(ctx sdk.Context, portID, channelID string) (string, bool) {
 	return k.ics4Wrapper.GetAppVersion(ctx, portID, channelID)
+}
+
+// GetAppMetadata retrieves the interchain accounts channel metadata from the store associated with the provided portID and channelID
+func (k Keeper) getAppMetadata(ctx sdk.Context, portID, channelID string) (icatypes.Metadata, error) {
+	appVersion, found := k.GetAppVersion(ctx, portID, channelID)
+	if !found {
+		return icatypes.Metadata{}, errorsmod.Wrapf(ibcerrors.ErrNotFound, "app version not found for port %s and channel %s", portID, channelID)
+	}
+
+	var metadata icatypes.Metadata
+	if err := icatypes.ModuleCdc.UnmarshalJSON([]byte(appVersion), &metadata); err != nil {
+		// UnmarshalJSON errors are indeterminate and therefore are not wrapped and included in failed acks
+		return icatypes.Metadata{}, errorsmod.Wrapf(icatypes.ErrUnknownDataType, "cannot unmarshal ICS-27 interchain accounts metadata")
+	}
+
+	return metadata, nil
 }
 
 // GetActiveChannelID retrieves the active channelID from the store keyed by the provided connectionID and portID
