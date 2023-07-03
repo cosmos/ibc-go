@@ -57,3 +57,13 @@ func TestCounterpartyValidateBasic(t *testing.T) {
 		}
 	}
 }
+
+func TestCloseChannel(t *testing.T) {
+	ch := types.NewChannel(types.OPEN, types.ORDERED, types.Counterparty{"portidone", "channelidone"}, connHops, version)
+	ch.FlushStatus = types.FLUSHING
+
+	types.CloseChannel(&ch)
+
+	require.Equal(t, types.CLOSED, ch.State)
+	require.Equal(t, types.NOTINFLUSH, ch.FlushStatus)
+}
