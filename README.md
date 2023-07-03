@@ -25,7 +25,7 @@
   <a href="https://github.com/cosmos/ibc-go">
     <img alt="Lines Of Code" src="https://tokei.rs/b1/github/cosmos/ibc-go" />
   </a>
-  <a href="https://discord.gg/AzefAFd">
+  <a href="https://discord.gg/cosmosnetwork">
     <img alt="Discord" src="https://img.shields.io/discord/669268347736686612.svg" />
   </a>
   <a href="https://sourcegraph.com/github.com/cosmos/ibc-go?badge">

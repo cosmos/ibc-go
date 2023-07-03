@@ -42,8 +42,6 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### State Machine Breaking
 
-* [\#3907](https://github.com/cosmos/ibc-go/pull/3907) Re-implemented missing functions of `LegacyMsg` interface to fix transaction signing with ledger.
-
 ### Improvements
 
 * (tests) [\#3138](https://github.com/cosmos/ibc-go/pull/3138) Support benchmarks and fuzz tests through `testing.TB`.
@@ -51,6 +49,17 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Features
 
 ### Bug Fixes
+
+## [v7.2.0](https://github.com/cosmos/ibc-go/releases/tag/v7.2.0) - 2023-06-22
+
+### Dependencies
+
+* [\#3810](https://github.com/cosmos/ibc-go/pull/3810) Update Cosmos SDK to v0.47.3.
+* [\#3862](https://github.com/cosmos/ibc-go/pull/3862) Update CometBFT to v0.37.2.
+
+### State Machine Breaking
+
+* [\#3907](https://github.com/cosmos/ibc-go/pull/3907) Re-implemented missing functions of `LegacyMsg` interface to fix transaction signing with ledger.
 
 ## [v7.1.0](https://github.com/cosmos/ibc-go/releases/tag/v7.1.0) - 2023-06-09 
 
