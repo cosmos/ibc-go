@@ -150,6 +150,7 @@ func (am AppModule) BeginBlock(ctx sdk.Context) error {
 	if am.sealKeeper && !am.keeper.IsSealed() {
 		am.keeper.Seal()
 	}
+	return nil
 }
 
 // GenerateGenesisState creates a randomized GenState of the capability module.
