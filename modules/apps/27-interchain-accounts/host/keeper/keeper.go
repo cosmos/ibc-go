@@ -110,7 +110,7 @@ func (k Keeper) GetAppVersion(ctx sdk.Context, portID, channelID string) (string
 }
 
 // GetAppMetadata retrieves the interchain accounts channel metadata from the store associated with the provided portID and channelID
-func (k Keeper) GetAppMetadata(ctx sdk.Context, portID, channelID string) (icatypes.Metadata, error) {
+func (k Keeper) getAppMetadata(ctx sdk.Context, portID, channelID string) (icatypes.Metadata, error) {
 	appVersion, found := k.GetAppVersion(ctx, portID, channelID)
 	if !found {
 		return icatypes.Metadata{}, errorsmod.Wrapf(ibcerrors.ErrNotFound, "app version not found for port %s and channel %s", portID, channelID)

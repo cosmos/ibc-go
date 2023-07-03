@@ -24,7 +24,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet) ([]byt
 		return nil, errorsmod.Wrapf(icatypes.ErrUnknownDataType, "cannot unmarshal ICS-27 interchain account packet data")
 	}
 
-	metadata, err := k.GetAppMetadata(ctx, packet.DestinationPort, packet.DestinationChannel)
+	metadata, err := k.getAppMetadata(ctx, packet.DestinationPort, packet.DestinationChannel)
 	if err != nil {
 		return nil, err
 	}
