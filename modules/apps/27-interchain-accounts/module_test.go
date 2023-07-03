@@ -68,7 +68,7 @@ func (suite *InterchainAccountsTestSuite) TestInitModule() {
 		{
 			"both controller and host set", func() {
 				var ok bool
-				appModule, ok = app.GetModuleManager().Modules[types.ModuleName].(ica.AppModule)
+				appModule, ok = app.ModuleManager.Modules[types.ModuleName].(ica.AppModule)
 				suite.Require().True(ok)
 			}, true, true,
 		},
