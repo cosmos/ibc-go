@@ -24,6 +24,7 @@ import (
 
 // Keeper defines the IBC interchain accounts controller keeper
 type Keeper struct {
+<<<<<<< HEAD
 	storeKey   storetypes.StoreKey
 	cdc        codec.BinaryCodec
 	paramSpace paramtypes.Subspace
@@ -31,6 +32,14 @@ type Keeper struct {
 	ics4Wrapper   porttypes.ICS4Wrapper
 	channelKeeper icatypes.ChannelKeeper
 	portKeeper    icatypes.PortKeeper
+=======
+	storeKey       storetypes.StoreKey
+	cdc            codec.Codec
+	legacySubspace paramtypes.Subspace
+	ics4Wrapper    porttypes.ICS4Wrapper
+	channelKeeper  icatypes.ChannelKeeper
+	portKeeper     icatypes.PortKeeper
+>>>>>>> e5b057da (feat(ica)!: support json tx encoding for interchain accounts (#3796))
 
 	scopedKeeper exported.ScopedKeeper
 
@@ -39,7 +48,11 @@ type Keeper struct {
 
 // NewKeeper creates a new interchain accounts controller Keeper instance
 func NewKeeper(
+<<<<<<< HEAD
 	cdc codec.BinaryCodec, key storetypes.StoreKey, paramSpace paramtypes.Subspace,
+=======
+	cdc codec.Codec, key storetypes.StoreKey, legacySubspace paramtypes.Subspace,
+>>>>>>> e5b057da (feat(ica)!: support json tx encoding for interchain accounts (#3796))
 	ics4Wrapper porttypes.ICS4Wrapper, channelKeeper icatypes.ChannelKeeper, portKeeper icatypes.PortKeeper,
 	scopedKeeper exported.ScopedKeeper, msgRouter icatypes.MessageRouter,
 ) Keeper {

@@ -21,9 +21,18 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet) ([]byt
 		return nil, sdkerrors.Wrapf(icatypes.ErrUnknownDataType, "cannot unmarshal ICS-27 interchain account packet data")
 	}
 
+	metadata, err := k.getAppMetadata(ctx, packet.DestinationPort, packet.DestinationChannel)
+	if err != nil {
+		return nil, err
+	}
+
 	switch data.Type {
 	case icatypes.EXECUTE_TX:
+<<<<<<< HEAD
 		msgs, err := icatypes.DeserializeCosmosTx(k.cdc, data.Data)
+=======
+		msgs, err := icatypes.DeserializeCosmosTx(k.cdc, data.Data, metadata.Encoding)
+>>>>>>> e5b057da (feat(ica)!: support json tx encoding for interchain accounts (#3796))
 		if err != nil {
 			return nil, err
 		}

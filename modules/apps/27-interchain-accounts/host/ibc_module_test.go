@@ -447,7 +447,11 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 				ToAddress:   suite.chainB.SenderAccount.GetAddress().String(),
 				Amount:      amount,
 			}
+<<<<<<< HEAD
 			data, err := icatypes.SerializeCosmosTx(suite.chainA.Codec, []proto.Message{msg})
+=======
+			data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []proto.Message{msg}, icatypes.EncodingProtobuf)
+>>>>>>> e5b057da (feat(ica)!: support json tx encoding for interchain accounts (#3796))
 			suite.Require().NoError(err)
 
 			icaPacketData := icatypes.InterchainAccountPacketData{
