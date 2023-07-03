@@ -50,7 +50,7 @@ func (path *Path) RelayPacket(packet channeltypes.Packet) error {
 // - The result of the packet receive transaction.
 // - The acknowledgement written on the receiving chain.
 // - An error if a relay step fails or the packet commitment does not exist on either endpoint.
-func (path *Path) RelayPacketWithResults(packet channeltypes.Packet) (res *sdk.Result, ack []byte, err error) {
+func (path *Path) RelayPacketWithResults(packet channeltypes.Packet) (*sdk.Result, []byte, error) {
 	pc := path.EndpointA.Chain.App.GetIBCKeeper().ChannelKeeper.GetPacketCommitment(path.EndpointA.Chain.GetContext(), packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 	if bytes.Equal(pc, channeltypes.CommitPacket(path.EndpointA.Chain.App.AppCodec(), packet)) {
 
