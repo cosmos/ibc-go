@@ -791,11 +791,6 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 
 			err = path.EndpointA.ChanUpgradeAck()
 			suite.Require().NoError(err)
-
-			// TODO: Manually set until #3929 is implemented.
-			channel := path.EndpointA.GetChannel()
-			channel.FlushStatus = types.FLUSHCOMPLETE
-			path.EndpointA.SetChannel(channel)
 		}, false},
 		{"capability authentication failed ORDERED", func() {
 			expError = types.ErrInvalidChannelCapability
