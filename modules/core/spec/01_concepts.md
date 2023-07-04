@@ -1,7 +1,3 @@
-<!--
-order: 1
--->
-
 # Concepts
 
 ## Client Misbehaviour
@@ -42,7 +38,7 @@ the chain level parameters the counterparty has stored such as its chainID. The 
 will also verify that if a previous connection exists for the specified connection identifier
 that all the parameters match and its previous state was in INIT. This may occur when both
 chains execute `ConnOpenInit` simultaneously. If the connection does not exist then a connection
-identifier is generated in the same format done in `ConnOpenInit`.  The executing chain will verify
+identifier is generated in the same format done in `ConnOpenInit`. The executing chain will verify
 that the counterparty created a connection in INIT state. The executing chain will also verify
 The `ClientState` and `ConsensusState` the counterparty stores for the executing chain. The
 executing chain will select a version from the intersection of its supported versions and the
@@ -88,16 +84,16 @@ A `Version` is defined as follows:
 ```go
 type Version struct {
   // unique version identifier
-  Identifier string 
+  Identifier string
   // list of features compatible with the specified identifier
-  Features []string 
+  Features []string
 }
 ```
 
 A version must contain a non empty identifier. Empty feature sets are allowed, but each
 feature must be a non empty string.
 
-::: warning
+:::warning
 A set of versions should not contain two versions with the same
 identifier, but differing feature sets. This will result in undefined behavior
 with regards to version selection in `ConnOpenTry`. Each version in a set of
@@ -152,15 +148,15 @@ A packet may be associated with one of the following states:
 
 - the packet does not exist (ie it has not been sent)
 - the packet has been sent but not received (the packet commitment exists on the
-sending chain, but no receipt exists on the receiving chain)
+  sending chain, but no receipt exists on the receiving chain)
 - the packet has been received but not acknowledged (packet commitment exists
-on the sending chain, a receipt exists on the receiving chain, but no acknowledgement
-exists on the receiving chain)
+  on the sending chain, a receipt exists on the receiving chain, but no acknowledgement
+  exists on the receiving chain)
 - the packet has been acknowledgement but the acknowledgement has not been relayed
-(the packet commitment exists on the sending chain, the receipt and acknowledgement
-exist on the receiving chain)
+  (the packet commitment exists on the sending chain, the receipt and acknowledgement
+  exist on the receiving chain)
 - the packet has completed its life cycle (the packet commitment does not exist on
-the sending chain, but a receipt and acknowledgement exist on the receiving chain)
+  the sending chain, but a receipt and acknowledgement exist on the receiving chain)
 
 Sending of a packet is initiated by a call to the `ChannelKeeper.SendPacket`
 function by an application module. Packets being sent will be verified for

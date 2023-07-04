@@ -5,7 +5,6 @@ sidebar_position: 1
 slug: /middleware/ics29-fee/overview
 ---
 
-
 # Overview
 
 :::note Synopsis
@@ -26,7 +25,7 @@ After much discussion, the proposal was expanded to a [general incentivisation d
 
 ICS29 fee payments in this middleware design are built on the assumption that sender chains are the source of incentives — the chain on which packets are incentivized is the chain that distributes fees to relayer operators. However, as part of the IBC packet flow, messages have to be submitted on both sender and destination chains. This introduces the requirement of a mapping of relayer operator's addresses on both chains.
 
-> To achieve the stated requirements, the **fee middleware module has two main groups of functionality**:
+To achieve the stated requirements, the **fee middleware module has two main groups of functionality**:
 
 - Registering of relayer addresses associated with each party involved in relaying the packet on the source chain. This registration process can be automated on start up of relayer infrastructure and happens only once, not every packet flow.
 

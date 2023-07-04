@@ -13,7 +13,7 @@ Learn how to build IBC light client modules and fulfill the interfaces required 
 
 :::note
 
-## Pre-requisites Readings
+## Pre-requisite readings
 
 - [IBC Overview](../../01-ibc/01-overview.md)
 - [IBC Transport, Authentication, and Ordering Layer - Clients](https://tutorials.cosmos.network/academy/3-ibc/4-clients.html)
@@ -46,7 +46,7 @@ For example:
 - Constraints used for state verification.
 - Constraints used for client upgrades.
 
-The `ClientState` type maintained within the light client module _must_ implement the [`ClientState`](https://github.com/cosmos/ibc-go/tree/02-client-refactor-beta1/modules/core/exported/client.go#L36) interface defined in `core/modules/exported/client.go`.
+The `ClientState` type maintained within the light client module *must* implement the [`ClientState`](https://github.com/cosmos/ibc-go/tree/02-client-refactor-beta1/modules/core/exported/client.go#L36) interface defined in `core/modules/exported/client.go`.
 The methods which make up this interface are detailed at a more granular level in the [ClientState section of this guide](02-client-state.md).
 
 Please refer to the `07-tendermint` light client module's [`ClientState` definition](https://github.com/cosmos/ibc-go/tree/02-client-refactor-beta1/proto/ibc/lightclients/tendermint/v1/tendermint.proto#L18) containing information such as chain ID, status, latest height, unbonding period and proof specifications.
@@ -57,7 +57,7 @@ Please refer to the `07-tendermint` light client module's [`ClientState` definit
 
 For example, the `ConsensusState` of the `07-tendermint` light client module defines a trusted root which is used by the `ClientState` to perform verification of membership and non-membership commitment proofs, as well as the next validator set hash used for verifying headers can be trusted in client updates.
 
-The `ConsensusState` type maintained within the light client module _must_ implement the [`ConsensusState`](https://github.com/cosmos/ibc-go/tree/02-client-refactor-beta1/modules/core/exported/client.go#L134) interface defined in `modules/core/exported/client.go`.
+The `ConsensusState` type maintained within the light client module *must* implement the [`ConsensusState`](https://github.com/cosmos/ibc-go/tree/02-client-refactor-beta1/modules/core/exported/client.go#L134) interface defined in `modules/core/exported/client.go`.
 The methods which make up this interface are detailed at a more granular level in the [`ConsensusState` section of this guide](03-consensus-state.md).
 
 ### `Height`

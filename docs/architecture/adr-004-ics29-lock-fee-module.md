@@ -2,7 +2,7 @@
 
 ## Changelog
 
-* 03/03/2022: initial draft
+- 03/03/2022: initial draft
 
 ## Status
 
@@ -48,11 +48,11 @@ Extra logic is added to account for edge cases which are only possible in the pr
 
 Issues:
 
-* [#821](https://github.com/cosmos/ibc-go/issues/821)
-* [#860](https://github.com/cosmos/ibc-go/issues/860)
+- [#821](https://github.com/cosmos/ibc-go/issues/821)
+- [#860](https://github.com/cosmos/ibc-go/issues/860)
 
 PR's:
 
-* [#1031](https://github.com/cosmos/ibc-go/pull/1031)
-* [#1029](https://github.com/cosmos/ibc-go/pull/1029)
-* [#1056](https://github.com/cosmos/ibc-go/pull/1056)
+- [#1031](https://github.com/cosmos/ibc-go/pull/1031)
+- [#1029](https://github.com/cosmos/ibc-go/pull/1029)
+- [#1056](https://github.com/cosmos/ibc-go/pull/1056)

@@ -152,24 +152,11 @@ godocs:
 	@echo "--> Wait a few seconds and visit http://localhost:6060/pkg/github.com/cosmos/cosmos-sdk/types"
 	godoc -http=:6060
 
-# This builds a docs site for each branch/tag in `./docs/versions`
-# and copies each site to a version prefixed path. The last entry inside
-# the `versions` file will be the default root index.html.
 build-docs:
-	@cd docs && \
-	while read -r branch path_prefix; do \
-		echo "building branch $${branch}" ; \
-		(git clean -fdx && git reset --hard && git checkout $${branch} && npm install && VUEPRESS_BASE="/$${path_prefix}/" npm run build) ; \
-		mkdir -p ~/output/$${path_prefix} ; \
-		cp -r .vuepress/dist/* ~/output/$${path_prefix}/ ; \
-		cp ~/output/$${path_prefix}/index.html ~/output ; \
-		cp ~/output/$${path_prefix}/404.html ~/output ; \
-	done < versions ;
+	@cd docs && npm install && npm run build
 
 view-docs: 
-		@cd docs && \
-    npm install && npm run serve
-
+	@cd docs && npm install && npm start
 
 changelog:
 	docker run --rm -v "$$(pwd)"/.git:/app/ -v "$$(pwd)/cliff.toml":/app/cliff.toml orhunp/git-cliff:latest --unreleased --tag $(tag)

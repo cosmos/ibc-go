@@ -258,16 +258,16 @@ application-specific logic to timeout the packet, perhaps by rolling back the pa
 
 - In ORDERED channels, a timeout of a single packet in the channel causes the channel to close.
 
-  - If packet sequence `n` times out, then a packet at sequence `k > n` cannot be received without violating the contract of ORDERED channels that packets are processed in the order that they are sent.
-  - Since ORDERED channels enforce this invariant, a proof that sequence `n` has not been received on the destination chain by the specified timeout of packet `n` is sufficient to timeout packet `n` and close the channel.
+    - If packet sequence `n` times out, then a packet at sequence `k > n` cannot be received without violating the contract of ORDERED channels that packets are processed in the order that they are sent.
+    - Since ORDERED channels enforce this invariant, a proof that sequence `n` has not been received on the destination chain by the specified timeout of packet `n` is sufficient to timeout packet `n` and close the channel.
 
 - In UNORDERED channels, the application-specific timeout logic for that packet is applied and the channel is not closed.
 
-  - Packets can be received in any order.
+    - Packets can be received in any order.
 
-  - IBC writes a packet receipt for each sequence receives in the UNORDERED channel. This receipt does not contain information; it is simply a marker intended to signify that the UNORDERED channel has received a packet at the specified sequence.
+    - IBC writes a packet receipt for each sequence receives in the UNORDERED channel. This receipt does not contain information; it is simply a marker intended to signify that the UNORDERED channel has received a packet at the specified sequence.
 
-  - To timeout a packet on an UNORDERED channel, a proof is required that a packet receipt **does not exist** for the packet's sequence by the specified timeout.  
+    - To timeout a packet on an UNORDERED channel, a proof is required that a packet receipt **does not exist** for the packet's sequence by the specified timeout.  
 
 For this reason, most modules should use UNORDERED channels as they require fewer liveness guarantees to function effectively for users of that channel.
 

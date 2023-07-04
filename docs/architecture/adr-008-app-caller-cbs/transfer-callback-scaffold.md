@@ -6,20 +6,20 @@ The exact nature of the callbacks to the smart contract will depend on the envir
 
 Implementers may wish to support callbacks to more IBC applications by adding a switch statement to unmarshal the specific packet data types they wish to support and passing them into the smart contract callback functions.
 
-### Scaffold Middleware
+## Scaffold Middleware
 
 ```go
 package callbacks
 
 import (
- sdk "github.com/cosmos/cosmos-sdk/types"
- capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
+  sdk "github.com/cosmos/cosmos-sdk/types"
+  capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
- transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
- clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
- channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
- porttypes "github.com/cosmos/ibc-go/v6/modules/core/05-port/types"
- "github.com/cosmos/ibc-go/v6/modules/core/exported"
+  transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
+  clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
+  channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
+  porttypes "github.com/cosmos/ibc-go/v6/modules/core/05-port/types"
+  "github.com/cosmos/ibc-go/v6/modules/core/exported"
 )
 
 var _ porttypes.Middleware = &IBCMiddleware{}

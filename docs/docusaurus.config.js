@@ -11,6 +11,7 @@ const config = {
   favicon: "img/white-cosmos-icon.svg",
 
   // Set the production url of your site here
+  // for local production tests, set to http://localhost:3000/
   url: "https://ibc.cosmos.network/",
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
@@ -21,8 +22,8 @@ const config = {
   organizationName: "cosmos", // Usually your GitHub org/user name.
   projectName: "ibc-go", // Usually your repo name.
 
-  onBrokenLinks: "throw",
-  onBrokenMarkdownLinks: "warn",
+  onBrokenLinks: "log",
+  onBrokenMarkdownLinks: "log",
 
   // Even if you don't use internalization, you can use this field to set useful
   // metadata like html lang. For example, if your site is Chinese, you may want
@@ -43,6 +44,31 @@ const config = {
           routeBasePath: "/",
           // Exclude template markdown files from the docs
           exclude: ["**/*.template.md"],
+          // Select the latest version
+          lastVersion: "v7.0.0",
+          // Assign banners to specific versions
+          versions: {
+            current: {
+              path: "main",
+              banner: "unreleased",
+            },
+            "v7.0.0": {
+              path: "v7.0.0",
+              banner: "none",
+            },
+            "v6.1.0": {
+              path: "v6.1.0",
+              banner: "none",
+            },
+            "v5.3.0": {
+              path: "v5.3.0",
+              banner: "none",
+            },
+            "v4.4.0": {
+              path: "v4.4.0",
+              banner: "none",
+            },
+          },
         },
         theme: {
           customCss: require.resolve("./src/css/custom.css"),
@@ -79,14 +105,6 @@ const config = {
             type: "docsVersionDropdown",
             position: "right",
             dropdownActiveClassDisabled: true,
-            // TODO: versions not yet migrated to docusaurus
-            dropdownItemsAfter: [
-              {
-                href: "https://ibc.cosmos.network/v7.0.0/",
-                label: "pre v7.1",
-                target: "_self",
-              },
-            ],
           },
           {
             href: "https://github.com/cosmos/ibc-go",
@@ -190,8 +208,21 @@ const config = {
     [
       "@docusaurus/plugin-client-redirects",
       {
-        // this is to fix ADR links in production
-        fromExtensions: ["md"], // /myPage.md -> /myPage
+        // makes the default page next in production
+        redirects: [
+          {
+            from: ["/", "/master", "/next", "/docs"],
+            to: "/main/",
+          },
+        ],
+      },
+    ],
+    [
+      require.resolve("@easyops-cn/docusaurus-search-local"),
+      {
+        indexBlog: false,
+        docsRouteBasePath: ["/", "architecture"],
+        highlightSearchTermsOnTargetPage: true,
       },
     ],
     async function myPlugin(context, options) {

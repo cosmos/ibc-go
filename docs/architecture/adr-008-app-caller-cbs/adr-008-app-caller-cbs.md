@@ -2,8 +2,8 @@
 
 ## Changelog
 
-* 2022-08-10: Initial Draft
-* 2023-03-22: Merged
+- 2022-08-10: Initial Draft
+- 2023-03-22: Merged
 
 ## Status
 
@@ -19,14 +19,14 @@ We are now seeing the desire for secondary applications (e.g. smart contracts, m
 
 Example Usecases:
 
-* Send an ICS-20 packet, and if it is successful, then send an ICA-packet to swap tokens on LP and return funds to sender
-* Execute some logic upon receipt of token transfer to a smart contract address
+- Send an ICS-20 packet, and if it is successful, then send an ICA-packet to swap tokens on LP and return funds to sender
+- Execute some logic upon receipt of token transfer to a smart contract address
 
 This requires a second layer of callbacks. The IBC application already gets the result of the packet from core IBC, but currently there is no standardized way to pass this information on to an actor module/smart contract.
 
 ## Definitions
 
-* Actor: an actor is an on-chain module (this may be a hardcoded module in the chain binary or a smart contract) that wishes to execute custom logic whenever IBC receives a packet flow that it has either sent or received. It **must** be addressable by a string value.
+- Actor: an actor is an on-chain module (this may be a hardcoded module in the chain binary or a smart contract) that wishes to execute custom logic whenever IBC receives a packet flow that it has either sent or received. It **must** be addressable by a string value.
 
 ## Decision
 
@@ -403,20 +403,20 @@ Chains are expected to specify a `chainDefinedActorCallbackLimit` to ensure that
 
 ### Positive
 
-* IBC Actors can now programatically execute logic that involves sending a packet and then performing some additional logic once the packet lifecycle is complete
-* Middleware implementing ADR-8 can be generally used for any application
-* Leverages the same callback architecture used between core IBC and IBC applications
+- IBC Actors can now programatically execute logic that involves sending a packet and then performing some additional logic once the packet lifecycle is complete
+- Middleware implementing ADR-8 can be generally used for any application
+- Leverages the same callback architecture used between core IBC and IBC applications
 
 ### Negative
 
-* Callbacks may now have unbounded gas consumption since the actor may execute arbitrary logic. Chains implementing this feature should take care to place limitations on how much gas an actor callback can consume.
+- Callbacks may now have unbounded gas consumption since the actor may execute arbitrary logic. Chains implementing this feature should take care to place limitations on how much gas an actor callback can consume.
 
 ### Neutral
 
-* Application packets that want to support ADR-8 must additionally have their packet data implement the `CallbackPacketData` interface and register their implementation on the chain codec
+- Application packets that want to support ADR-8 must additionally have their packet data implement the `CallbackPacketData` interface and register their implementation on the chain codec
 
 ## References
 
-* [Original issue](https://github.com/cosmos/ibc-go/issues/1660)
-* [CallbackPacketData interface implementation](https://github.com/cosmos/ibc-go/pull/3287)
-* [ICS 20, ICS 27 implementations of the CallbackPacketData interface](https://github.com/cosmos/ibc-go/pull/3287)
+- [Original issue](https://github.com/cosmos/ibc-go/issues/1660)
+- [CallbackPacketData interface implementation](https://github.com/cosmos/ibc-go/pull/3287)
+- [ICS 20, ICS 27 implementations of the CallbackPacketData interface](https://github.com/cosmos/ibc-go/pull/3287)

@@ -57,9 +57,14 @@ versions of ibc-go to guarantee that no regression is introduced -->
   - Add the new release.
   - Remove any tags that might not be recommended anymore.
 - [ ] Update the list of [supported release lines in README.md](https://github.com/cosmos/ibc-go#releases), if necessary.
-- [ ] (TODO: [#3522](https://github.com/cosmos/ibc-go/issues/3522)) Update docs site:
-  - [ ] Add new release branch to [`docs/versions`](https://github.com/cosmos/ibc-go/blob/main/docs/versions) file.
-  - [ ] Add `label` and `key` to `versions` array in [`config.js`](https://github.com/cosmos/ibc-go/blob/main/docs/.vuepress/config.js#L62).
+- [ ] Update docs site:
+  - [ ] If the release is occurring on the main branch, on the latest version, then run `npm run docusaurus docs:version vX.Y.Z` in the `docs/` directory. (where `X.Y.Z` is the new version number)
+  - [ ] If the release is occurring on an older release branch, then make a PR to the main branch called `docs: new release vX.Y.Z` doing the following:
+    - [ ] Update the content of the docs found in `docs/versioned_docs/version-vx.y.z` if needed. (where `x.y.z` is the previous version number)
+    - [ ] Update the version number of the older release branch by changing the version number of the older release branch in:
+      - [ ] In `docs/versions.json`.
+      - [ ] Rename `docs/versioned_sidebars/version-vx.y.z-sidebars.json`
+      - [ ] Rename `docs/versioned_docs/version-vx.y.z`
 - [ ] Bump ibc-go version in [cosmos/interchain-accounts-demo repository](https://github.com/cosmos/interchain-accounts-demo) and create a tag.
 - [ ] Update the [compatibility test matrices](https://github.com/cosmos/ibc-go/tree/main/.github/compatibility-test-matrices):
   - Add the new release.

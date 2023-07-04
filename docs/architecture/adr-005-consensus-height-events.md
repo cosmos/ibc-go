@@ -2,7 +2,7 @@
 
 ## Changelog
 
-* 25/04/2022: initial draft
+- 25/04/2022: initial draft
 
 ## Status
 
@@ -13,10 +13,10 @@ Accepted
 The `ibc-go` implementation leverages the [Cosmos-SDK's EventManager](https://github.com/cosmos/cosmos-sdk/blob/v0.45.4/docs/core/events.md#EventManager) to provide subscribers a method of reacting to application specific events.
 Some IBC relayers depend on the [`consensus_height`](https://github.com/cosmos/ibc-go/blob/v3.0.0/modules/core/02-client/keeper/events.go#L33) attribute emitted as part of `UpdateClient` events in order to run `07-tendermint` misbehaviour detection by cross-checking the details of the *Header* emitted at a given consensus height against those of the *Header* from the originating chain. This includes such details as:
 
-* The `SignedHeader` containing the commitment root.
-* The `ValidatorSet` that signed the *Header*.
-* The `TrustedHeight` seen by the client at less than or equal to the height of *Header*.
-* The last `TrustedValidatorSet` at the trusted height.
+- The `SignedHeader` containing the commitment root.
+- The `ValidatorSet` that signed the *Header*.
+- The `TrustedHeight` seen by the client at less than or equal to the height of *Header*.
+- The last `TrustedValidatorSet` at the trusted height.
 
 Following the refactor of the `02-client` submodule and associated `ClientState` interfaces, it will now be possible for
 light client implementations to perform such actions as batch updates, inserting `N` number of `ConsensusState`s into the application state tree with a single `UpdateClient` message. This flexibility is provided in `ibc-go` by the usage of the [Protobuf `Any`](https://developers.google.com/protocol-buffers/docs/proto3#any) field contained within the [`UpdateClient`](https://github.com/cosmos/ibc-go/blob/v3.0.0/proto/ibc/core/client/v1/tx.proto#L44) message.
@@ -68,12 +68,12 @@ UpdateState(sdk.Context, codec.BinaryCodec, sdk.KVStore, ClientMessage) []Height
 
 ### Positive
 
-* Subscribers of IBC core events can act upon `UpdateClient` events containing one or more consensus heights.
-* Deprecation of the existing `consensus_height` attribute allows consumers to continue to process `UpdateClient` events as normal, with a path to upgrade to using the `consensus_heights` attribute moving forward.
+- Subscribers of IBC core events can act upon `UpdateClient` events containing one or more consensus heights.
+- Deprecation of the existing `consensus_height` attribute allows consumers to continue to process `UpdateClient` events as normal, with a path to upgrade to using the `consensus_heights` attribute moving forward.
 
 ### Negative
 
-* Consumers of IBC core `UpdateClient` events are forced to make future code changes.
+- Consumers of IBC core `UpdateClient` events are forced to make future code changes.
 
 ### Neutral
 
@@ -81,12 +81,12 @@ UpdateState(sdk.Context, codec.BinaryCodec, sdk.KVStore, ClientMessage) []Height
 
 Discussions:
 
-* [#1208](https://github.com/cosmos/ibc-go/pull/1208#discussion_r839691927)
+- [#1208](https://github.com/cosmos/ibc-go/pull/1208#discussion_r839691927)
 
 Issues:
 
-* [#594](https://github.com/cosmos/ibc-go/issues/594)
+- [#594](https://github.com/cosmos/ibc-go/issues/594)
 
 PRs:
 
-* [#1285](https://github.com/cosmos/ibc-go/pull/1285)
+- [#1285](https://github.com/cosmos/ibc-go/pull/1285)

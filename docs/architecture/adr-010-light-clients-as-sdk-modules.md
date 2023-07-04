@@ -2,7 +2,7 @@
 
 ## Changelog
 
-* 12/12/2022: initial draft
+- 12/12/2022: initial draft
 
 ## Status
 
@@ -12,9 +12,9 @@ Proposed
 
 ibc-go has 3 main consumers:
 
-* IBC light clients
-* IBC applications
-* relayers
+- IBC light clients
+- IBC applications
+- relayers
 
 Relayers listen and respond to events emitted by ibc-go while IBC light clients and applications are invoked by core IBC.
 Currently there exists two different approaches to callbacks being invoked by core IBC.
@@ -48,17 +48,17 @@ The [tendermint](https://github.com/cosmos/ibc-go/pull/2825) and [solo machine](
 Longer term solutions include using internal module communication as described in [ADR 033](https://github.com/cosmos/cosmos-sdk/blob/main/docs/architecture/adr-033-protobuf-inter-module-comm.md) on the SDK.
 The following functions should become callbacks invoked via intermodule communication:
 
-* `Status`
-* `GetTimestampAtHeight`
-* `VerifyMembership`
-* `VerifyNonMembership`
-* `Initialize`
-* `VerifyClientMessage`
-* `CheckForMisbehaviour`
-* `UpdateStateOnMisbehaviour`
-* `UpdateState`
-* `CheckSubstituteAndUpdateState`
-* `VerifyUpgradeAndUpdateState`
+- `Status`
+- `GetTimestampAtHeight`
+- `VerifyMembership`
+- `VerifyNonMembership`
+- `Initialize`
+- `VerifyClientMessage`
+- `CheckForMisbehaviour`
+- `UpdateStateOnMisbehaviour`
+- `UpdateState`
+- `CheckSubstituteAndUpdateState`
+- `VerifyUpgradeAndUpdateState`
 
 The ClientState interface should eventually be trimmed down to something along the lines of:
 
@@ -92,14 +92,14 @@ Once it is possible to route to SDK modules, a `ClientState` type could expose t
 
 ### Positive
 
-* use a single approach for interacting with callbacks
-* greater flexibilty and control for IBC light clients
-* does not require developing another routing system
+- use a single approach for interacting with callbacks
+- greater flexibilty and control for IBC light clients
+- does not require developing another routing system
 
 ### Negative
 
-* requires breaking changes
-* requires waiting for intermodule communication
+- requires breaking changes
+- requires waiting for intermodule communication
 
 ### Neutral
 
