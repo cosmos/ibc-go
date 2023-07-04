@@ -3,9 +3,12 @@ package keeper_test
 import (
 	"fmt"
 
-	"github.com/cometbft/cometbft/crypto/secp256k1"
+	sdkmath "cosmossdk.io/math"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
+
+	"github.com/cometbft/cometbft/crypto/secp256k1"
 
 	"github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
@@ -160,9 +163,9 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPacketsForChannel() {
 	)
 
 	fee := types.Fee{
-		AckFee:     sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(100)}},
-		RecvFee:    sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(100)}},
-		TimeoutFee: sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(100)}},
+		AckFee:     sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdkmath.NewInt(100)}},
+		RecvFee:    sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdkmath.NewInt(100)}},
+		TimeoutFee: sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdkmath.NewInt(100)}},
 	}
 
 	testCases := []struct {

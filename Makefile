@@ -296,7 +296,7 @@ docs-link-check:
 ###                                Protobuf                                 ###
 ###############################################################################
 
-protoVer=0.11.6
+protoVer=0.13.2
 protoImageName=ghcr.io/cosmos/proto-builder:$(protoVer)
 protoImage=$(DOCKER) run --rm -v $(CURDIR):/workspace --workdir /workspace $(protoImageName)
 

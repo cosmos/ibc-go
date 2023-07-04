@@ -5,12 +5,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/require"
+
 	sdkmath "cosmossdk.io/math"
-	dbm "github.com/cometbft/cometbft-db"
-	abci "github.com/cometbft/cometbft/abci/types"
-	"github.com/cometbft/cometbft/libs/log"
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
-	tmtypes "github.com/cometbft/cometbft/types"
+
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -22,9 +20,14 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
-	"github.com/stretchr/testify/require"
 
+	dbm "github.com/cometbft/cometbft-db"
+	abci "github.com/cometbft/cometbft/abci/types"
+	"github.com/cometbft/cometbft/libs/log"
+	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	tmtypes "github.com/cometbft/cometbft/types"
+
+	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
 	"github.com/cosmos/ibc-go/v7/modules/core/keeper"
 	"github.com/cosmos/ibc-go/v7/testing/simapp"
 	ibctestingtypes "github.com/cosmos/ibc-go/v7/testing/types"
@@ -53,15 +56,16 @@ type TestingApp interface {
 func SetupTestingApp() (TestingApp, map[string]json.RawMessage) {
 	db := dbm.NewMemDB()
 	encCdc := simapp.MakeTestEncodingConfig()
-	app := simapp.NewSimApp(log.NewNopLogger(), db, nil, true, map[int64]bool{}, simapp.DefaultNodeHome, 5, encCdc, simtestutil.EmptyAppOptions{})
-	return app, simapp.NewDefaultGenesisState(encCdc.Marshaler)
+	app := simapp.NewSimApp(log.NewNopLogger(), db, nil, true, simtestutil.EmptyAppOptions{})
+	return app, simapp.NewDefaultGenesisState(encCdc.Codec)
 }
 
 // SetupWithGenesisValSet initializes a new SimApp with a validator set and genesis accounts
 // that also act as delegators. For simplicity, each validator is bonded with a delegation
 // of one consensus engine unit (10^6) in the default token of the simapp from first genesis
 // account. A Nop logger is set in SimApp.
-func SetupWithGenesisValSet(t testing.TB, valSet *tmtypes.ValidatorSet, genAccs []authtypes.GenesisAccount, chainID string, powerReduction sdkmath.Int, balances ...banktypes.Balance) TestingApp {
+func SetupWithGenesisValSet(tb testing.TB, valSet *tmtypes.ValidatorSet, genAccs []authtypes.GenesisAccount, chainID string, powerReduction sdkmath.Int, balances ...banktypes.Balance) TestingApp {
+	tb.Helper()
 	app, genesisState := DefaultTestingAppInit()
 
 	// ensure baseapp has a chain-id set before running InitChain
@@ -78,25 +82,25 @@ func SetupWithGenesisValSet(t testing.TB, valSet *tmtypes.ValidatorSet, genAccs 
 
 	for _, val := range valSet.Validators {
 		pk, err := cryptocodec.FromTmPubKeyInterface(val.PubKey)
-		require.NoError(t, err)
+		require.NoError(tb, err)
 		pkAny, err := codectypes.NewAnyWithValue(pk)
-		require.NoError(t, err)
+		require.NoError(tb, err)
 		validator := stakingtypes.Validator{
 			OperatorAddress:   sdk.ValAddress(val.Address).String(),
 			ConsensusPubkey:   pkAny,
 			Jailed:            false,
 			Status:            stakingtypes.Bonded,
 			Tokens:            bondAmt,
-			DelegatorShares:   sdk.OneDec(),
+			DelegatorShares:   sdkmath.LegacyOneDec(),
 			Description:       stakingtypes.Description{},
 			UnbondingHeight:   int64(0),
 			UnbondingTime:     time.Unix(0, 0).UTC(),
-			Commission:        stakingtypes.NewCommission(sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec()),
-			MinSelfDelegation: sdk.ZeroInt(),
+			Commission:        stakingtypes.NewCommission(sdkmath.LegacyZeroDec(), sdkmath.LegacyZeroDec(), sdkmath.LegacyZeroDec()),
+			MinSelfDelegation: sdkmath.ZeroInt(),
 		}
 
 		validators = append(validators, validator)
-		delegations = append(delegations, stakingtypes.NewDelegation(genAccs[0].GetAddress(), val.Address.Bytes(), sdk.OneDec()))
+		delegations = append(delegations, stakingtypes.NewDelegation(genAccs[0].GetAddress(), val.Address.Bytes(), sdkmath.LegacyOneDec()))
 	}
 
 	// set validators and delegations
@@ -108,7 +112,7 @@ func SetupWithGenesisValSet(t testing.TB, valSet *tmtypes.ValidatorSet, genAccs 
 	// add bonded amount to bonded pool module account
 	balances = append(balances, banktypes.Balance{
 		Address: authtypes.NewModuleAddress(stakingtypes.BondedPoolName).String(),
-		Coins:   sdk.Coins{sdk.NewCoin(bondDenom, bondAmt.Mul(sdk.NewInt(int64(len(valSet.Validators)))))},
+		Coins:   sdk.Coins{sdk.NewCoin(bondDenom, bondAmt.Mul(sdkmath.NewInt(int64(len(valSet.Validators)))))},
 	})
 
 	// set validators and delegations
@@ -120,7 +124,7 @@ func SetupWithGenesisValSet(t testing.TB, valSet *tmtypes.ValidatorSet, genAccs 
 	genesisState[banktypes.ModuleName] = app.AppCodec().MustMarshalJSON(bankGenesis)
 
 	stateBytes, err := json.MarshalIndent(genesisState, "", " ")
-	require.NoError(t, err)
+	require.NoError(tb, err)
 
 	// init chain will set the validator set and initialize the genesis accounts
 	app.InitChain(

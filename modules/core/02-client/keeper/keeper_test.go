@@ -5,13 +5,19 @@ import (
 	"testing"
 	"time"
 
-	tmbytes "github.com/cometbft/cometbft/libs/bytes"
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
-	tmtypes "github.com/cometbft/cometbft/types"
+	"github.com/stretchr/testify/suite"
+
+	sdkmath "cosmossdk.io/math"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+
+	tmbytes "github.com/cometbft/cometbft/libs/bytes"
+	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	tmtypes "github.com/cometbft/cometbft/types"
+
 	"github.com/cosmos/ibc-go/v7/modules/core/02-client/keeper"
 	"github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
@@ -22,7 +28,6 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	ibctestingmock "github.com/cosmos/ibc-go/v7/testing/mock"
 	"github.com/cosmos/ibc-go/v7/testing/simapp"
-	"github.com/stretchr/testify/suite"
 )
 
 const (
@@ -78,7 +83,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 	suite.now = time.Date(2020, 1, 2, 0, 0, 0, 0, time.UTC)
 	suite.past = time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)
 	now2 := suite.now.Add(time.Hour)
-	app := simapp.Setup(isCheckTx)
+	app := simapp.Setup(suite.T(), isCheckTx)
 
 	suite.cdc = app.AppCodec()
 	suite.ctx = app.BaseApp.NewContext(isCheckTx, tmproto.Header{Height: height, ChainID: testClientID, Time: now2})
@@ -110,7 +115,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 		suite.Require().NoError(err)
 
 		val.Status = stakingtypes.Bonded
-		val.Tokens = sdk.NewInt(rand.Int63())
+		val.Tokens = sdkmath.NewInt(rand.Int63())
 		validators = append(validators, val)
 
 		hi := stakingtypes.NewHistoricalInfo(suite.ctx.BlockHeader(), validators, sdk.DefaultPowerReduction)

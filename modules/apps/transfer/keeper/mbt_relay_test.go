@@ -13,8 +13,10 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
-	"github.com/cometbft/cometbft/crypto"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/cometbft/cometbft/crypto"
 
 	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
@@ -127,7 +129,7 @@ func BalanceFromTla(balance TlaBalance) Balance {
 		ID:      AddressFromTla(balance.Address),
 		Address: AddressFromString(AddressFromTla(balance.Address)),
 		Denom:   DenomFromTla(balance.Denom),
-		Amount:  sdk.NewInt(balance.Amount),
+		Amount:  sdkmath.NewInt(balance.Amount),
 	}
 }
 
@@ -338,7 +340,7 @@ func (suite *KeeperTestSuite) TestModelBasedRelay() {
 					denom := denomTrace.IBCDenom()
 					err = sdk.ValidateDenom(denom)
 					if err == nil {
-						amount, ok := sdk.NewIntFromString(tc.packet.Data.Amount)
+						amount, ok := sdkmath.NewIntFromString(tc.packet.Data.Amount)
 						if !ok {
 							panic("MBT failed to parse amount from string")
 						}

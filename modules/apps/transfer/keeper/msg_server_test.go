@@ -1,11 +1,13 @@
 package keeper_test
 
 import (
+	sdkmath "cosmossdk.io/math"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 
 	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
 // TestMsgTransfer tests Transfer rpc handler
@@ -87,7 +89,7 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 			path := NewTransferPath(suite.chainA, suite.chainB)
 			suite.coordinator.Setup(path)
 
-			coin := sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100))
+			coin := sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100))
 			msg = types.NewMsgTransfer(
 				path.EndpointA.ChannelConfig.PortID,
 				path.EndpointA.ChannelID,
@@ -102,7 +104,7 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 			res, err := suite.chainA.GetSimApp().TransferKeeper.Transfer(sdk.WrapSDKContext(ctx), msg)
 
 			// Verify events
-			events := ctx.EventManager().Events()
+			events := ctx.EventManager().Events().ToABCIEvents()
 			expEvents := ibctesting.EventsMap{
 				"ibc_transfer": {
 					"sender":   suite.chainA.SenderAccount.GetAddress().String(),

@@ -4,26 +4,30 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/cometbft/cometbft/libs/log"
+	errorsmod "cosmossdk.io/errors"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 
+	"github.com/cometbft/cometbft/libs/log"
+
+	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	genesistypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/genesis/types"
 	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/types"
 	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
+	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
 // Keeper defines the IBC interchain accounts host keeper
 type Keeper struct {
 	storeKey       storetypes.StoreKey
-	cdc            codec.BinaryCodec
+	cdc            codec.Codec
 	legacySubspace paramtypes.Subspace
 
 	ics4Wrapper   porttypes.ICS4Wrapper
@@ -42,7 +46,7 @@ type Keeper struct {
 
 // NewKeeper creates a new interchain accounts host Keeper instance
 func NewKeeper(
-	cdc codec.BinaryCodec, key storetypes.StoreKey, legacySubspace paramtypes.Subspace,
+	cdc codec.Codec, key storetypes.StoreKey, legacySubspace paramtypes.Subspace,
 	ics4Wrapper porttypes.ICS4Wrapper, channelKeeper icatypes.ChannelKeeper, portKeeper icatypes.PortKeeper,
 	accountKeeper icatypes.AccountKeeper, scopedKeeper exported.ScopedKeeper, msgRouter icatypes.MessageRouter,
 	authority string,
@@ -103,6 +107,22 @@ func (k Keeper) ClaimCapability(ctx sdk.Context, cap *capabilitytypes.Capability
 // GetAppVersion calls the ICS4Wrapper GetAppVersion function.
 func (k Keeper) GetAppVersion(ctx sdk.Context, portID, channelID string) (string, bool) {
 	return k.ics4Wrapper.GetAppVersion(ctx, portID, channelID)
+}
+
+// GetAppMetadata retrieves the interchain accounts channel metadata from the store associated with the provided portID and channelID
+func (k Keeper) getAppMetadata(ctx sdk.Context, portID, channelID string) (icatypes.Metadata, error) {
+	appVersion, found := k.GetAppVersion(ctx, portID, channelID)
+	if !found {
+		return icatypes.Metadata{}, errorsmod.Wrapf(ibcerrors.ErrNotFound, "app version not found for port %s and channel %s", portID, channelID)
+	}
+
+	var metadata icatypes.Metadata
+	if err := icatypes.ModuleCdc.UnmarshalJSON([]byte(appVersion), &metadata); err != nil {
+		// UnmarshalJSON errors are indeterminate and therefore are not wrapped and included in failed acks
+		return icatypes.Metadata{}, errorsmod.Wrapf(icatypes.ErrUnknownDataType, "cannot unmarshal ICS-27 interchain accounts metadata")
+	}
+
+	return metadata, nil
 }
 
 // GetActiveChannelID retrieves the active channelID from the store keyed by the provided connectionID and portID

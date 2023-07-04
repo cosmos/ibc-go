@@ -110,7 +110,7 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized() {
 		if testvalues.TotalEscrowFeatureReleases.IsSupported(chainBVersion) {
 			actualTotalEscrow, err := s.QueryTotalEscrowForDenom(ctx, chainB, chainBIBCToken.IBCDenom())
 			s.Require().NoError(err)
-			s.Require().Equal(sdk.NewCoin(chainBIBCToken.IBCDenom(), sdk.NewInt(0)), actualTotalEscrow) // total escrow is zero because sending chain is not source for tokens
+			s.Require().Equal(sdk.NewCoin(chainBIBCToken.IBCDenom(), sdkmath.NewInt(0)), actualTotalEscrow) // total escrow is zero because sending chain is not source for tokens
 		}
 	})
 
@@ -130,7 +130,7 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized() {
 		t.Run("tokens are un-escrowed", func(t *testing.T) {
 			actualTotalEscrow, err := s.QueryTotalEscrowForDenom(ctx, chainA, chainADenom)
 			s.Require().NoError(err)
-			s.Require().Equal(sdk.NewCoin(chainADenom, sdk.NewInt(0)), actualTotalEscrow) // total escrow is zero because tokens have come back
+			s.Require().Equal(sdk.NewCoin(chainADenom, sdkmath.NewInt(0)), actualTotalEscrow) // total escrow is zero because tokens have come back
 		})
 	}
 }
