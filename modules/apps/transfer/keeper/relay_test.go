@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	sdkmath "cosmossdk.io/math"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktestutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
 
@@ -74,7 +75,7 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 		{
 			"send coin failed",
 			func() {
-				coin = sdk.NewCoin("randomdenom", sdk.NewInt(100))
+				coin = sdk.NewCoin("randomdenom", sdkmath.NewInt(100))
 			}, false,
 		},
 		{
@@ -86,7 +87,7 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 		{
 			"send from module account failed, insufficient balance",
 			func() {
-				coin = types.GetTransferCoin(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, coin.Denom, coin.Amount.Add(sdk.NewInt(1)))
+				coin = types.GetTransferCoin(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, coin.Denom, coin.Amount.Add(sdkmath.NewInt(1)))
 			}, false,
 		},
 		{
@@ -114,7 +115,7 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 			path = NewTransferPath(suite.chainA, suite.chainB)
 			suite.coordinator.Setup(path)
 
-			coin = sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100))
+			coin = sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100))
 			sender = suite.chainA.SenderAccount.GetAddress()
 			memo = ""
 			timeoutHeight = suite.chainB.GetTimeoutHeight()
@@ -125,7 +126,7 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 			result, err := suite.chainB.SendMsgs(transferMsg)
 			suite.Require().NoError(err) // message committed
 
-			packet, err := ibctesting.ParsePacketFromEvents(result.GetEvents())
+			packet, err := ibctesting.ParsePacketFromEvents(result.Events)
 			suite.Require().NoError(err)
 
 			err = path.RelayPacket(packet)
@@ -197,7 +198,7 @@ func (suite *KeeperTestSuite) TestSendTransferSetsTotalEscrowAmountForSourceIBCT
 	suite.coordinator.Setup(path2)
 
 	// create IBC token on chain B with denom trace "transfer/channel-0/stake"
-	coin := sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100))
+	coin := sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100))
 	transferMsg := types.NewMsgTransfer(
 		path1.EndpointA.ChannelConfig.PortID,
 		path1.EndpointA.ChannelID,
@@ -209,7 +210,7 @@ func (suite *KeeperTestSuite) TestSendTransferSetsTotalEscrowAmountForSourceIBCT
 	result, err := suite.chainA.SendMsgs(transferMsg)
 	suite.Require().NoError(err) // message committed
 
-	packet, err := ibctesting.ParsePacketFromEvents(result.GetEvents())
+	packet, err := ibctesting.ParsePacketFromEvents(result.Events)
 	suite.Require().NoError(err)
 
 	err = path1.RelayPacket(packet)
@@ -217,7 +218,7 @@ func (suite *KeeperTestSuite) TestSendTransferSetsTotalEscrowAmountForSourceIBCT
 
 	// execute
 	trace := types.ParseDenomTrace(types.GetPrefixedDenom(path1.EndpointB.ChannelConfig.PortID, path1.EndpointB.ChannelID, sdk.DefaultBondDenom))
-	coin = sdk.NewCoin(trace.IBCDenom(), sdk.NewInt(100))
+	coin = sdk.NewCoin(trace.IBCDenom(), sdkmath.NewInt(100))
 	msg := types.NewMsgTransfer(
 		path2.EndpointB.ChannelConfig.PortID,
 		path2.EndpointB.ChannelID,
@@ -286,7 +287,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			"empty coin",
 			func() {
 				trace = types.DenomTrace{}
-				amount = sdk.ZeroInt()
+				amount = sdkmath.ZeroInt()
 				expEscrowAmount = sdkmath.NewInt(100)
 			}, true, false,
 		},
@@ -303,7 +304,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 		{
 			"failure: mint zero coin",
 			func() {
-				amount = sdk.ZeroInt()
+				amount = sdkmath.ZeroInt()
 			}, false, false,
 		},
 
@@ -311,7 +312,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 		{
 			"tries to unescrow more tokens than allowed",
 			func() {
-				amount = sdk.NewInt(1000000)
+				amount = sdkmath.NewInt(1000000)
 				expEscrowAmount = sdkmath.NewInt(100)
 			}, true, false,
 		},
@@ -345,18 +346,18 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			receiver = suite.chainB.SenderAccount.GetAddress().String() // must be explicitly changed in malleate
 
 			memo = ""                           // can be explicitly changed in malleate
-			amount = sdk.NewInt(100)            // must be explicitly changed in malleate
+			amount = sdkmath.NewInt(100)        // must be explicitly changed in malleate
 			expEscrowAmount = sdkmath.ZeroInt() // total amount in escrow of voucher denom on receiving chain
 			seq := uint64(1)
 
 			if tc.recvIsSource {
 				// send coin from chainB to chainA, receive them, acknowledge them, and send back to chainB
-				coinFromBToA := sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100))
+				coinFromBToA := sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100))
 				transferMsg := types.NewMsgTransfer(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, coinFromBToA, suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String(), clienttypes.NewHeight(1, 110), 0, memo)
 				res, err := suite.chainB.SendMsgs(transferMsg)
 				suite.Require().NoError(err) // message committed
 
-				packet, err := ibctesting.ParsePacketFromEvents(res.GetEvents())
+				packet, err := ibctesting.ParsePacketFromEvents(res.Events)
 				suite.Require().NoError(err)
 
 				err = path.RelayPacket(packet)
@@ -571,7 +572,7 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 			suite.SetupTest() // reset
 			path = NewTransferPath(suite.chainA, suite.chainB)
 			suite.coordinator.Setup(path)
-			amount = sdk.NewInt(100) // must be explicitly changed
+			amount = sdkmath.NewInt(100) // must be explicitly changed
 			expEscrowAmount = sdkmath.ZeroInt()
 
 			tc.malleate()
@@ -757,7 +758,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 			"mint failed",
 			func() {
 				trace = types.ParseDenomTrace(types.GetPrefixedDenom(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, sdk.DefaultBondDenom))
-				amount = sdk.OneInt()
+				amount = sdkmath.OneInt()
 				sender = "invalid address"
 			}, false,
 		},
@@ -771,7 +772,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 
 			path = NewTransferPath(suite.chainA, suite.chainB)
 			suite.coordinator.Setup(path)
-			amount = sdk.NewInt(100) // must be explicitly changed
+			amount = sdkmath.NewInt(100) // must be explicitly changed
 			sender = suite.chainA.SenderAccount.GetAddress().String()
 			expEscrowAmount = sdkmath.ZeroInt()
 

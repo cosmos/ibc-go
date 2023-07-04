@@ -45,16 +45,47 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Improvements
 
 * (tests) [\#3138](https://github.com/cosmos/ibc-go/pull/3138) Support benchmarks and fuzz tests through `testing.TB`.
-* (apps/transfer) [\#3454](https://github.com/cosmos/ibc-go/pull/3454) Support transfer authorization unlimited spending when the max `uint256` value is provided as limit.
 
 ### Features
 
 ### Bug Fixes
 
-## [v7.0.1](https://github.com/cosmos/ibc-go/releases/tag/v7.0.1) - 2023-05-25 
+## [v7.2.0](https://github.com/cosmos/ibc-go/releases/tag/v7.2.0) - 2023-06-22
+
+### Dependencies
+
+* [\#3810](https://github.com/cosmos/ibc-go/pull/3810) Update Cosmos SDK to v0.47.3.
+* [\#3862](https://github.com/cosmos/ibc-go/pull/3862) Update CometBFT to v0.37.2.
+
+### State Machine Breaking
+
+* [\#3907](https://github.com/cosmos/ibc-go/pull/3907) Re-implemented missing functions of `LegacyMsg` interface to fix transaction signing with ledger.
+
+## [v7.1.0](https://github.com/cosmos/ibc-go/releases/tag/v7.1.0) - 2023-06-09
+
+### Dependencies
+
+* [\#3542](https://github.com/cosmos/ibc-go/pull/3542) Update Cosmos SDK to v0.47.2 and CometBFT to v0.37.1.
+* [\#3457](https://github.com/cosmos/ibc-go/pull/3457) Update to ics23 v0.10.0.
+
+### Improvements
+
+* (apps/transfer) [\#3454](https://github.com/cosmos/ibc-go/pull/3454) Support transfer authorization unlimited spending when the max `uint256` value is provided as limit.
+
+### Features
+
+* (light-clients/09-localhost) [\#3229](https://github.com/cosmos/ibc-go/pull/3229) Implementation of v2 of localhost loopback client.
+* (apps/transfer) [\#3019](https://github.com/cosmos/ibc-go/pull/3019) Add state entry to keep track of total amount of tokens in escrow.
 
 ### Bug Fixes
- 
+
+* (core/04-channel) [\#3346](https://github.com/cosmos/ibc-go/pull/3346) Properly handle ordered channels in `UnreceivedPackets` query.
+* (core/04-channel) [\#3593](https://github.com/cosmos/ibc-go/pull/3593) `SendPacket` now correctly returns `ErrClientNotFound` in favour of `ErrConsensusStateNotFound`.
+
+## [v7.0.1](https://github.com/cosmos/ibc-go/releases/tag/v7.0.1) - 2023-05-25
+
+### Bug Fixes
+
 * [\#3346](https://github.com/cosmos/ibc-go/pull/3346) Properly handle ordered channels in `UnreceivedPackets` query.
 
 ## [v7.0.0](https://github.com/cosmos/ibc-go/releases/tag/v7.0.0) - 2023-03-17
@@ -120,7 +151,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (06-solomachine) [\#1972](https://github.com/cosmos/ibc-go/pull/1972) Solo machine implementation of `ZeroCustomFields` fn now panics as the fn is only used for upgrades which solo machine does not support.
 * (light-clients/06-solomachine) Moving `verifyMisbehaviour` function from update.go to misbehaviour_handle.go.
 * [\#2434](https://github.com/cosmos/ibc-go/pull/2478) Removed all `TypeMsg` constants
-* (modules/core/exported) [\#2539] (<https://github.com/cosmos/ibc-go/pull/2539>) Removing `GetVersions` from `ConnectionI` interface.
+* (modules/core/exported) [\#2539](https://github.com/cosmos/ibc-go/pull/2539) Removing `GetVersions` from `ConnectionI` interface.
 * (core/02-connection) [\#2419](https://github.com/cosmos/ibc-go/pull/2419) Add optional proof data to proto definitions of `MsgConnectionOpenTry` and `MsgConnectionOpenAck` for host state machines that are unable to introspect their own consensus state.
 * (light-clients/07-tendermint) [\#3046](https://github.com/cosmos/ibc-go/pull/3046) Moved non-verification misbehaviour checks to `CheckForMisbehaviour`.
 * (apps/29-fee) [\#2975](https://github.com/cosmos/ibc-go/pull/2975) Adding distribute fee events to ics29.
@@ -350,7 +381,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Bug Fixes
 
-* [\#3662](https://github.com/cosmos/ibc-go/pull/3662) Retract v4.1.2 and v4.2.1. 
+* [\#3662](https://github.com/cosmos/ibc-go/pull/3662) Retract v4.1.2 and v4.2.1.
 
 ## [v4.4.1](https://github.com/cosmos/ibc-go/releases/tag/v4.4.1) - 2023-05-25
 
@@ -407,7 +438,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Dependencies
 
-* [\#2868](https://github.com/cosmos/ibc-go/pull/2868) Bump ICS 23 to v0.9.0. 
+* [\#2868](https://github.com/cosmos/ibc-go/pull/2868) Bump ICS 23 to v0.9.0.
 
 ### Improvements
 
@@ -447,7 +478,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Dependencies
 
-* [\#2868](https://github.com/cosmos/ibc-go/pull/2868) Bump ICS 23 to v0.9.0. 
+* [\#2868](https://github.com/cosmos/ibc-go/pull/2868) Bump ICS 23 to v0.9.0.
 
 ### Improvements
 

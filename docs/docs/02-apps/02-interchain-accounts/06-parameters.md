@@ -12,7 +12,7 @@ The Interchain Accounts module contains the following on-chain parameters, logic
 
 ## Controller Submodule Parameters
 
-| Key                    | Type | Default Value |
+| Name                   | Type | Default Value |
 |------------------------|------|---------------|
 | `ControllerEnabled`    | bool | `true`        |
 
@@ -28,7 +28,7 @@ The `ControllerEnabled` parameter controls a chains ability to service ICS-27 co
 
 ## Host Submodule Parameters
 
-| Key                    | Type     | Default Value |
+| Name                   | Type     | Default Value |
 |------------------------|----------|---------------|
 | `HostEnabled`          | bool     | `true`        |
 | `AllowMessages`        | []string | `["*"]`       |

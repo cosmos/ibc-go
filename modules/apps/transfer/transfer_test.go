@@ -3,8 +3,11 @@ package transfer_test
 import (
 	"testing"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
+
+	sdkmath "cosmossdk.io/math"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
@@ -54,7 +57,7 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 	originalBalance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), sdk.DefaultBondDenom)
 	timeoutHeight := clienttypes.NewHeight(1, 110)
 
-	amount, ok := sdk.NewIntFromString("9223372036854775808") // 2^63 (one above int64)
+	amount, ok := sdkmath.NewIntFromString("9223372036854775808") // 2^63 (one above int64)
 	suite.Require().True(ok)
 	coinToSendToB := sdk.NewCoin(sdk.DefaultBondDenom, amount)
 
@@ -63,7 +66,7 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 	res, err := suite.chainA.SendMsgs(msg)
 	suite.Require().NoError(err) // message committed
 
-	packet, err := ibctesting.ParsePacketFromEvents(res.GetEvents())
+	packet, err := ibctesting.ParsePacketFromEvents(res.Events)
 	suite.Require().NoError(err)
 
 	// relay send
@@ -93,7 +96,7 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 	res, err = suite.chainB.SendMsgs(msg)
 	suite.Require().NoError(err) // message committed
 
-	packet, err = ibctesting.ParsePacketFromEvents(res.GetEvents())
+	packet, err = ibctesting.ParsePacketFromEvents(res.Events)
 	suite.Require().NoError(err)
 
 	err = pathBtoC.RelayPacket(packet)
@@ -116,7 +119,7 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 	res, err = suite.chainC.SendMsgs(msg)
 	suite.Require().NoError(err) // message committed
 
-	packet, err = ibctesting.ParsePacketFromEvents(res.GetEvents())
+	packet, err = ibctesting.ParsePacketFromEvents(res.Events)
 	suite.Require().NoError(err)
 
 	err = pathBtoC.RelayPacket(packet)
