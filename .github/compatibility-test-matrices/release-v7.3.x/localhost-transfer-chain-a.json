@@ -1,0 +1,24 @@
+{
+  "chain-a": [
+    "v7.2.0",
+    "release-v7.3.x"
+  ],
+  "chain-b": [
+    "release-v7.3.x"
+  ],
+  "entrypoint": [
+    "LocalhostTransferTestSuite"
+  ],
+  "test": [
+    "TestMsgTransfer_Localhost"
+  ],
+  "relayer-type": [
+    "rly"
+  ],
+  "chain-binary": [
+    "simd"
+  ],
+  "chain-image": [
+    "ghcr.io/cosmos/ibc-go-simd"
+  ]
+}

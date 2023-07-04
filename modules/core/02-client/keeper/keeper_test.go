@@ -83,7 +83,7 @@ func (s *KeeperTestSuite) SetupTest() {
 	s.now = time.Date(2020, 1, 2, 0, 0, 0, 0, time.UTC)
 	s.past = time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)
 	now2 := s.now.Add(time.Hour)
-	app := simapp.Setup()
+	app := simapp.Setup(s.T(), isCheckTx)
 
 	s.cdc = app.AppCodec()
 	s.ctx = app.BaseApp.NewContext(isCheckTx, tmproto.Header{Height: height, ChainID: testClientID, Time: now2})

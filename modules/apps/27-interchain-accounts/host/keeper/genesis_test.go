@@ -109,7 +109,7 @@ func (s *KeeperTestSuite) TestGenesisParams() {
 func (s *KeeperTestSuite) TestExportGenesis() {
 	s.SetupTest()
 
-	path := NewICAPath(s.chainA, s.chainB)
+	path := NewICAPath(s.chainA, s.chainB, icatypes.EncodingProtobuf)
 	s.coordinator.SetupConnections(path)
 
 	err := SetupICAPath(path, TestOwnerAddress)

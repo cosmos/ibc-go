@@ -125,6 +125,7 @@ func TestGeneratePacketData(t *testing.T) {
 				require.Equal(t, tc.memo, packetData.Memo)
 
 				data := packetData.Data
+				// cli tx commands always use protobuf encoding
 				messages, err := icatypes.DeserializeCosmosTx(cdc, data, icatypes.EncodingProtobuf)
 
 				require.NoError(t, err)

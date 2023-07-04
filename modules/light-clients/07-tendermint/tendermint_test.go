@@ -68,7 +68,7 @@ func (s *TendermintTestSuite) SetupTest() {
 
 	// TODO: deprecate usage in favor of testing package
 	checkTx := false
-	app := simapp.Setup()
+	app := simapp.Setup(s.T(), checkTx)
 
 	s.cdc = app.AppCodec()
 

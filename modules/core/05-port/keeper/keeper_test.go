@@ -28,7 +28,7 @@ type KeeperTestSuite struct {
 
 func (s *KeeperTestSuite) SetupTest() {
 	isCheckTx := false
-	app := simapp.Setup()
+	app := simapp.Setup(s.T(), isCheckTx)
 
 	s.ctx = app.BaseApp.NewContext(isCheckTx, tmproto.Header{})
 	s.keeper = &app.IBCKeeper.PortKeeper

@@ -276,7 +276,7 @@ func (s *KeeperTestSuite) TestOnChanOpenTry() {
 		s.Run(tc.name, func() {
 			s.SetupTest() // reset
 
-			path = NewICAPath(s.chainA, s.chainB)
+			path = NewICAPath(s.chainA, s.chainB, icatypes.EncodingProtobuf)
 			s.coordinator.SetupConnections(path)
 
 			err := RegisterInterchainAccount(path.EndpointA, TestOwnerAddress)
@@ -356,7 +356,7 @@ func (s *KeeperTestSuite) TestOnChanOpenConfirm() {
 		s.Run(tc.name, func() {
 			s.SetupTest() // reset
 
-			path = NewICAPath(s.chainA, s.chainB)
+			path = NewICAPath(s.chainA, s.chainB, icatypes.EncodingProtobuf)
 			s.coordinator.SetupConnections(path)
 
 			err := RegisterInterchainAccount(path.EndpointA, TestOwnerAddress)
@@ -399,7 +399,7 @@ func (s *KeeperTestSuite) TestOnChanCloseConfirm() {
 		s.Run(tc.name, func() {
 			s.SetupTest() // reset
 
-			path = NewICAPath(s.chainA, s.chainB)
+			path = NewICAPath(s.chainA, s.chainB, icatypes.EncodingProtobuf)
 			s.coordinator.SetupConnections(path)
 
 			err := SetupICAPath(path, TestOwnerAddress)
