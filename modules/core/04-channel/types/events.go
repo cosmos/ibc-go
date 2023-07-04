@@ -15,12 +15,11 @@ const (
 	AttributeCounterpartyPortID    = "counterparty_port_id"
 	AttributeCounterpartyChannelID = "counterparty_channel_id"
 
-	EventTypeSendPacket           = "send_packet"
-	EventTypeRecvPacket           = "recv_packet"
-	EventTypeWriteAck             = "write_acknowledgement"
-	EventTypeAcknowledgePacket    = "acknowledge_packet"
-	EventTypeTimeoutPacket        = "timeout_packet"
-	EventTypeTimeoutPacketOnClose = "timeout_on_close_packet"
+	EventTypeSendPacket        = "send_packet"
+	EventTypeRecvPacket        = "recv_packet"
+	EventTypeWriteAck          = "write_acknowledgement"
+	EventTypeAcknowledgePacket = "acknowledge_packet"
+	EventTypeTimeoutPacket     = "timeout_packet"
 
 	// Deprecated: in favor of AttributeKeyDataHex
 	AttributeKeyData = "packet_data"
