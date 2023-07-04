@@ -1,17 +1,18 @@
 {
   "chain-a": [
-    "release-v7.3.x",
-    "release-v7.2.x"
+    "release-v7.3.x"
   ],
   "chain-b": [
-    "release-v7.3.x",
-    "release-v7.2.x"
+    "v7.2.0",
+    "v6.2.0",
+    "release-v7.3.x"
   ],
   "entrypoint": [
-    "LocalhostTransferTestSuite"
+    "TestAuthzTransferTestSuite"
   ],
   "test": [
-    "TestMsgTransfer_Localhost"
+    "TestAuthz_MsgTransfer_Succeeds",
+    "TestAuthz_InvalidTransferAuthorizations"
   ],
   "relayer-type": [
     "rly"
