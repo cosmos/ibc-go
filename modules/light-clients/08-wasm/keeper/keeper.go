@@ -6,6 +6,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"math"
+	"path/filepath"
 	"strings"
 
 	"google.golang.org/grpc/codes"
@@ -29,9 +30,9 @@ type Keeper struct {
 	authority string
 }
 
-func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey, authority string) Keeper {
+func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey, authority string, homeDir string) Keeper {
 	// Wasm VM
-	wasmDataDir := "wasm_client_data"
+	wasmDataDir := filepath.Join(homeDir, "wasm_client_data")
 	wasmSupportedFeatures := strings.Join([]string{"storage", "iterator"}, ",")
 	wasmMemoryLimitMb := uint32(math.Pow(2, 12))
 	wasmPrintDebug := true
