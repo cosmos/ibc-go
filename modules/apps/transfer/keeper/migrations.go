@@ -76,6 +76,7 @@ func (m Migrator) MigrateDenomMetadata(ctx sdk.Context) error {
 			return false
 		})
 
+	m.keeper.Logger(ctx).Info("successfully added metadata to IBC voucher denominations")
 	return nil
 }
 
