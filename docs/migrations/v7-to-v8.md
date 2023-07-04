@@ -83,6 +83,8 @@ TODO:
 ## Relayers
 
 - Getter functions in `MsgChannelOpenInitResponse`, `MsgChannelOpenTryResponse`, `MsgTransferResponse`, `MsgRegisterInterchainAccountResponse` and `MsgSendTxResponse` have been removed. The fields can be accessed directly.
+- `channeltypes.EventTypeTimeoutPacketOnClose` (where `channeltypes` is an import alias for `"github.com/cosmos/ibc-go/v8/modules/core/04-channel"`) has been removed, since core IBC does not emit any event with this key.
+- Attribute with key `counterparty_connection_id` has been removed from event with key `connectiontypes.EventTypeConnectionOpenInit` (where `connectiontypes` is an import alias for `"github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"`) and attribute with key `counterparty_channel_id` has been removed from event with key `channeltypes.EventTypeChannelOpenInit` (where `channeltypes` is an import alias for `"github.com/cosmos/ibc-go/v8/modules/core/04-channel"`) since both (counterparty connection ID and counterparty channel ID) are empty on `ConnectionOpenInit` and `ChannelOpenInit` respectively. 
 
 ## IBC Light Clients
 
