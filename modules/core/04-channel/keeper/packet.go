@@ -9,6 +9,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
+	"github.com/cosmos/ibc-go/v7/internal/collections"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
@@ -33,14 +34,7 @@ func (k Keeper) SendPacket(
 		return 0, errorsmod.Wrap(types.ErrChannelNotFound, sourceChannel)
 	}
 
-	if channel.FlushStatus != types.NOTINFLUSH {
-		return 0, errorsmod.Wrapf(
-			types.ErrInvalidChannelState,
-			"channel should not be in %s state", types.NOTINFLUSH.String(),
-		)
-	}
-
-	if channel.State != types.OPEN || channel.FlushStatus != types.NOTINFLUSH {
+	if channel.State != types.OPEN {
 		return 0, errorsmod.Wrapf(
 			types.ErrInvalidChannelState,
 			"channel is not OPEN (got %s)", channel.State.String(),
@@ -140,17 +134,14 @@ func (k Keeper) RecvPacket(
 		return errorsmod.Wrap(types.ErrChannelNotFound, packet.GetDestChannel())
 	}
 
-	counterpartyLastPacketSent, _ := k.GetCounterpartyLastPacketSequence(ctx, packet.GetDestPort(), packet.GetDestChannel())
+	if !collections.Contains(channel.State, []types.State{types.OPEN, types.TRYUPGRADE, types.ACKUPGRADE}) {
+		return errorsmod.Wrapf(types.ErrInvalidChannelState, "channel state was not one of [%s, %s, %s] (got %s)", types.OPEN.String(), types.TRYUPGRADE.String(), types.ACKUPGRADE.String(), channel.State.String())
+	}
 
-	if channel.State != types.OPEN && !(channel.FlushStatus == types.FLUSHING && packet.GetSequence() <= counterpartyLastPacketSent) {
-		return errorsmod.Wrapf(
-			types.ErrInvalidChannelState,
-			"packets cannot be received: either channel with non OPEN state (%s) & not in upgrade, or channel is in upgrade but flush status (%s) is not FLUSHING & packet sequence %d must be less than or equal to counterparty last packet sent sequence %d",
-			channel.State,
-			channel.FlushStatus,
-			packet.GetSequence(),
-			counterpartyLastPacketSent,
-		)
+	if counterpartyLastSequenceSend, found := k.GetCounterpartyLastPacketSequence(ctx, packet.GetDestPort(), packet.GetDestChannel()); found {
+		if channel.FlushStatus != types.FLUSHING && packet.GetSequence() > counterpartyLastSequenceSend {
+			return errorsmod.Wrapf(types.ErrInvalidChannelState, "expected channel flush status to not be (%s) and for the counterparty last sequence send (%d) to be less than the packet sequence (%d)", types.FLUSHING.String(), counterpartyLastSequenceSend, packet.GetSequence())
+		}
 	}
 
 	// Authenticate capability to ensure caller has authority to receive packet on this channel
