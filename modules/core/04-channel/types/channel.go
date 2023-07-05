@@ -75,6 +75,12 @@ func (ch Channel) ValidateBasic() error {
 	return ch.Counterparty.ValidateBasic()
 }
 
+// Close modifies the Channel with the new State set to CLOSED and FlushStatus set to NOTINFLUSH.
+func (ch *Channel) Close() {
+	ch.State = CLOSED
+	ch.FlushStatus = NOTINFLUSH
+}
+
 // NewCounterparty returns a new Counterparty instance
 func NewCounterparty(portID, channelID string) Counterparty {
 	return Counterparty{
