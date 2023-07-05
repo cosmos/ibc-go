@@ -92,6 +92,7 @@ The Memo format is defined like so:
 
 		// optional fields
 		"callback_msg": {base64StringForCallback},
+		"gas_limit": {intForCallback}
 	}
 }
 ```

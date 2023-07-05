@@ -23,7 +23,7 @@ type Acknowledgement interface {
 // CallbackPacketData defines the interface used by ADR 008 implementations
 // to obtain callback addresses associated with a specific packet data type.
 // This is an optional interface which indicates support for ADR 8 implementations.
-// See https://github.com/cosmos/ibc-go/tree/main/docs/architecture/adr-008-app-caller-cbs
+// See https://github.com/cosmos/ibc-go/tree/main/docs/architecture/adr-008-app-caller-cbs
 // for more information.
 type CallbackPacketData interface {
 	// GetSourceCallbackAddress should return the callback address of a packet data on the source chain.
