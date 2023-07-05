@@ -321,7 +321,6 @@ func (suite *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
 // test that DeserializeCosmosTx gracefully returns an error on
 // unsupported amino codec.
 func (suite *TypesTestSuite) TestProtoDeserializeAndSerializeCosmosTxWithAmino() {
-
 	msgs, err := types.SerializeCosmosTx(simappparams.MakeTestEncodingConfig().Codec, []proto.Message{&banktypes.MsgSend{}}, types.EncodingProtobuf)
 	suite.Require().ErrorIs(err, types.ErrInvalidCodec)
 	suite.Require().Empty(msgs)
