@@ -154,8 +154,7 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_Localhost(
 		txResp := s.BroadcastMessages(ctx, chainA, userAWallet, msgSendTx)
 		s.AssertTxSuccess(txResp)
 
-		events := testsuite.ABCIToSDKEvents(txResp.Events)
-		packet, err = ibctesting.ParsePacketFromEvents(events)
+		packet, err = ibctesting.ParsePacketFromEvents(txResp.Events)
 		s.Require().NoError(err)
 		s.Require().NotNil(packet)
 	})
@@ -166,8 +165,7 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_Localhost(
 		txResp := s.BroadcastMessages(ctx, chainA, rlyWallet, msgRecvPacket)
 		s.AssertTxSuccess(txResp)
 
-		events := testsuite.ABCIToSDKEvents(txResp.Events)
-		ack, err = ibctesting.ParseAckFromEvents(events)
+		ack, err = ibctesting.ParseAckFromEvents(txResp.Events)
 		s.Require().NoError(err)
 		s.Require().NotNil(ack)
 	})
@@ -311,8 +309,7 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_ReopenChan
 		txResp := s.BroadcastMessages(ctx, chainA, userAWallet, msgSendTx)
 		s.AssertTxSuccess(txResp)
 
-		events := testsuite.ABCIToSDKEvents(txResp.Events)
-		packet, err = ibctesting.ParsePacketFromEvents(events)
+		packet, err = ibctesting.ParsePacketFromEvents(txResp.Events)
 		s.Require().NoError(err)
 		s.Require().NotNil(packet)
 	})
@@ -439,8 +436,7 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_ReopenChan
 		txResp := s.BroadcastMessages(ctx, chainA, userAWallet, msgSendTx)
 		s.AssertTxSuccess(txResp)
 
-		events := testsuite.ABCIToSDKEvents(txResp.Events)
-		packet, err = ibctesting.ParsePacketFromEvents(events)
+		packet, err = ibctesting.ParsePacketFromEvents(txResp.Events)
 		s.Require().NoError(err)
 		s.Require().NotNil(packet)
 	})
@@ -451,8 +447,7 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_ReopenChan
 		txResp := s.BroadcastMessages(ctx, chainA, rlyWallet, msgRecvPacket)
 		s.AssertTxSuccess(txResp)
 
-		events := testsuite.ABCIToSDKEvents(txResp.Events)
-		ack, err = ibctesting.ParseAckFromEvents(events)
+		ack, err = ibctesting.ParseAckFromEvents(txResp.Events)
 		s.Require().NoError(err)
 		s.Require().NotNil(ack)
 	})
