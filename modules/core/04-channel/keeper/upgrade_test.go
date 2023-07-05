@@ -367,7 +367,14 @@ func (suite *KeeperTestSuite) TestWriteUpgradeTry() {
 
 			tc.malleate()
 
-			upgradedChannelEnd, upgradeWithAppCallbackVersion := suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.WriteUpgradeTryChannel(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, proposedUpgrade, proposedUpgrade.Fields.Version)
+			upgradedChannelEnd, upgradeWithAppCallbackVersion := suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.WriteUpgradeTryChannel(
+				suite.chainB.GetContext(),
+				path.EndpointB.ChannelConfig.PortID,
+				path.EndpointB.ChannelID,
+				proposedUpgrade,
+				proposedUpgrade.Fields.Version,
+				proposedUpgrade.LatestSequenceSend,
+			)
 
 			channel := path.EndpointB.GetChannel()
 			suite.Require().Equal(upgradedChannelEnd, channel)
