@@ -790,8 +790,8 @@ func (app *SimApp) EndBlocker(ctx sdk.Context, req abci.RequestEndBlock) abci.Re
 }
 
 // Configurator returns the configurator for the app
-func (a *SimApp) Configurator() module.Configurator {
-	return a.configurator
+func (app *SimApp) Configurator() module.Configurator {
+	return app.configurator
 }
 
 // InitChainer application update at chain initialization

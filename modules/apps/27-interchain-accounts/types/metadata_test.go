@@ -61,7 +61,7 @@ func (s *TypesTestSuite) TestIsPreviousMetadataEqual() {
 				metadata.Encoding = types.EncodingProto3JSON
 
 				versionBytes, err := types.ModuleCdc.MarshalJSON(&metadata)
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 				previousVersion = string(versionBytes)
 			},
 			false,
