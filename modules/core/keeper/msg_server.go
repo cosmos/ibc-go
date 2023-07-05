@@ -877,15 +877,15 @@ func (k Keeper) ChannelUpgradeOpen(goCtx context.Context, msg *channeltypes.MsgC
 	}
 
 	if err = k.ChannelKeeper.ChanUpgradeOpen(ctx, msg.PortId, msg.ChannelId, msg.CounterpartyChannelState, msg.ProofChannel, msg.ProofHeight); err != nil {
-		ctx.Logger().Error("channel upgrade open failed", "error", errorsmod.Wrap(err, "channel handshake upgrade open failed"))
-		return nil, errorsmod.Wrap(err, "channel handshake upgrade open failed")
+		ctx.Logger().Error("channel upgrade open failed", "error", errorsmod.Wrap(err, "channel upgrade open failed"))
+		return nil, errorsmod.Wrap(err, "channel upgrade open failed")
 	}
 
 	cbs.OnChanUpgradeOpen(ctx, msg.PortId, msg.ChannelId)
 
 	k.ChannelKeeper.WriteUpgradeOpenChannel(ctx, msg.PortId, msg.ChannelId)
 
-	ctx.Logger().Info("channel upgrade open succeeded", "channel-id", msg.ChannelId, "port-id", msg.PortId)
+	ctx.Logger().Info("channel upgrade open succeeded", "port-id", msg.PortId, "channel-id", msg.ChannelId)
 
 	return &channeltypes.MsgChannelUpgradeOpenResponse{}, nil
 }

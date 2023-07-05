@@ -1135,9 +1135,6 @@ func (suite *KeeperTestSuite) TestChannelUpgradeOpen() {
 			err = path.EndpointA.UpdateClient()
 			suite.Require().NoError(err)
 
-			suite.coordinator.CommitBlock(suite.chainA, suite.chainB)
-			suite.Require().NoError(path.EndpointA.UpdateClient())
-
 			counterpartyChannel := path.EndpointB.GetChannel()
 			proofChannel, _, proofHeight := path.EndpointA.QueryChannelUpgradeProof()
 
