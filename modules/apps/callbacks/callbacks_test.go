@@ -6,6 +6,7 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
+	"github.com/cosmos/ibc-go/v7/modules/apps/callbacks/types"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
@@ -58,6 +59,47 @@ func (suite *CallbacksTestSuite) SetupICATest() {
 	suite.path.EndpointB.ChannelConfig.Order = channeltypes.ORDERED
 	suite.path.EndpointA.ChannelConfig.Version = ICAVersion
 	suite.path.EndpointB.ChannelConfig.Version = ICAVersion
+}
+
+// HasExecutedExpectedCallback checks if the only the expected type od callback has been executed.
+// It assumes that the source chain is chainA and the destination chain is chainB.
+//
+// The callbackType can be one of the following:
+//   - types.CallbackTypeAcknowledgement
+//   - types.CallbackTypeReceivePacket
+//   - types.CallbackTypeTimeout
+//   - "none" (no callback should be executed)
+func (suite *CallbacksTestSuite) AssertHasExecutedExpectedCallback(callbackType string, isSuccessful bool) {
+	successCount := uint64(0)
+	if isSuccessful {
+		successCount = 1
+	}
+	switch callbackType {
+	case types.CallbackTypeAcknowledgement:
+		suite.Require().Equal(successCount, suite.chainA.GetSimApp().MockKeeper.AckCallbackCounter.Success)
+		suite.Require().Equal(1-successCount, suite.chainA.GetSimApp().MockKeeper.AckCallbackCounter.Failure)
+		suite.Require().True(suite.chainA.GetSimApp().MockKeeper.TimeoutCallbackCounter.IsZero())
+		suite.Require().True(suite.chainB.GetSimApp().MockKeeper.RecvPacketCallbackCounter.IsZero())
+	case types.CallbackTypeReceivePacket:
+		suite.Require().Equal(successCount, suite.chainB.GetSimApp().MockKeeper.RecvPacketCallbackCounter.Success)
+		suite.Require().Equal(1-successCount, suite.chainB.GetSimApp().MockKeeper.RecvPacketCallbackCounter.Failure)
+		suite.Require().True(suite.chainA.GetSimApp().MockKeeper.TimeoutCallbackCounter.IsZero())
+		suite.Require().True(suite.chainB.GetSimApp().MockKeeper.AckCallbackCounter.IsZero())
+	case types.CallbackTypeTimeout:
+		suite.Require().Equal(successCount, suite.chainA.GetSimApp().MockKeeper.TimeoutCallbackCounter.Success)
+		suite.Require().Equal(1-successCount, suite.chainA.GetSimApp().MockKeeper.TimeoutCallbackCounter.Failure)
+		suite.Require().True(suite.chainA.GetSimApp().MockKeeper.AckCallbackCounter.IsZero())
+		suite.Require().True(suite.chainB.GetSimApp().MockKeeper.RecvPacketCallbackCounter.IsZero())
+	case "none":
+		suite.Require().True(suite.chainA.GetSimApp().MockKeeper.AckCallbackCounter.IsZero())
+		suite.Require().True(suite.chainA.GetSimApp().MockKeeper.TimeoutCallbackCounter.IsZero())
+		suite.Require().True(suite.chainB.GetSimApp().MockKeeper.RecvPacketCallbackCounter.IsZero())
+	default:
+		suite.FailNow("invalid callback type")
+	}
+	suite.Require().True(suite.chainB.GetSimApp().MockKeeper.AckCallbackCounter.IsZero())
+	suite.Require().True(suite.chainB.GetSimApp().MockKeeper.TimeoutCallbackCounter.IsZero())
+	suite.Require().True(suite.chainA.GetSimApp().MockKeeper.RecvPacketCallbackCounter.IsZero())
 }
 
 func TestIBCCallbacksTestSuite(t *testing.T) {

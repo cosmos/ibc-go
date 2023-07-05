@@ -5,6 +5,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/cosmos/ibc-go/v7/modules/apps/callbacks/types"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
@@ -15,40 +16,38 @@ const (
 )
 
 func (suite *CallbacksTestSuite) TestFeeTransfer() {
-	suite.SetupTransferTest()
+	testCases := []struct {
+		name            string
+		transferMemo    string
+		expCallbackType string
+		expSuccess      bool
+	}{
+		{
+			"success: transfer with no memo",
+			"",
+			"none",
+			true,
+		},
+		{
+			"success: transfer with dest callback",
+			fmt.Sprintf(`{"callback": {"dest_callback_address": "%s"}}`, callbackAddr),
+			types.CallbackTypeReceivePacket,
+			true,
+		},
+		{
+			"success: transfer with source callback",
+			fmt.Sprintf(`{"callback": {"src_callback_address": "%s"}}`, callbackAddr),
+			types.CallbackTypeAcknowledgement,
+			true,
+		},
+	}
 
-	// send a transfer with no callback
-	suite.ExecuteTransfer("")
-	// check that no callbacks were executed:
-	suite.Require().True(suite.chainA.GetSimApp().MockKeeper.AckCallbackCounter.IsZero())
-	suite.Require().True(suite.chainB.GetSimApp().MockKeeper.AckCallbackCounter.IsZero())
-	suite.Require().True(suite.chainA.GetSimApp().MockKeeper.TimeoutCallbackCounter.IsZero())
-	suite.Require().True(suite.chainB.GetSimApp().MockKeeper.TimeoutCallbackCounter.IsZero())
-	suite.Require().True(suite.chainA.GetSimApp().MockKeeper.RecvPacketCallbackCounter.IsZero())
-	suite.Require().True(suite.chainB.GetSimApp().MockKeeper.RecvPacketCallbackCounter.IsZero())
+	for _, tc := range testCases {
+		suite.SetupTransferTest()
 
-	// send a transfer with a dest callback
-	suite.ExecuteTransfer(fmt.Sprintf(`{"callback": {"dest_callback_address": "%s"}}`, callbackAddr))
-	// check that the dest callback was executed:
-	suite.Require().Equal(1, int(suite.chainB.GetSimApp().MockKeeper.RecvPacketCallbackCounter.Success))
-	suite.Require().Equal(0, int(suite.chainB.GetSimApp().MockKeeper.RecvPacketCallbackCounter.Failure))
-	suite.Require().True(suite.chainA.GetSimApp().MockKeeper.RecvPacketCallbackCounter.IsZero())
-	suite.Require().True(suite.chainA.GetSimApp().MockKeeper.AckCallbackCounter.IsZero())
-	suite.Require().True(suite.chainB.GetSimApp().MockKeeper.AckCallbackCounter.IsZero())
-	suite.Require().True(suite.chainA.GetSimApp().MockKeeper.TimeoutCallbackCounter.IsZero())
-	suite.Require().True(suite.chainB.GetSimApp().MockKeeper.TimeoutCallbackCounter.IsZero())
-
-	// send a transfer with a source callback
-	suite.ExecuteTransfer(fmt.Sprintf(`{"callback": {"src_callback_address": "%s"}}`, callbackAddr))
-	// check that the source callback was executed:
-	suite.Require().Equal(1, int(suite.chainA.GetSimApp().MockKeeper.AckCallbackCounter.Success))
-	suite.Require().Equal(0, int(suite.chainA.GetSimApp().MockKeeper.AckCallbackCounter.Failure))
-	suite.Require().True(suite.chainA.GetSimApp().MockKeeper.RecvPacketCallbackCounter.IsZero())
-	suite.Require().Equal(1, int(suite.chainB.GetSimApp().MockKeeper.RecvPacketCallbackCounter.Success))
-	suite.Require().Equal(0, int(suite.chainB.GetSimApp().MockKeeper.RecvPacketCallbackCounter.Failure))
-	suite.Require().True(suite.chainB.GetSimApp().MockKeeper.AckCallbackCounter.IsZero())
-	suite.Require().True(suite.chainA.GetSimApp().MockKeeper.TimeoutCallbackCounter.IsZero())
-	suite.Require().True(suite.chainB.GetSimApp().MockKeeper.TimeoutCallbackCounter.IsZero())
+		suite.ExecuteTransfer(tc.transferMemo)
+		suite.AssertHasExecutedExpectedCallback(tc.expCallbackType, tc.expSuccess)
+	}
 }
 
 // ExecuteTransfer executes a transfer message on chainA for 100 denom.
