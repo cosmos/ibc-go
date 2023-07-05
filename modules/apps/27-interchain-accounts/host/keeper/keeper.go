@@ -13,13 +13,13 @@ import (
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
+	ibcerrors "github.com/cosmos/ibc-go/v7/internal/errors"
 	genesistypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/genesis/types"
 	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/types"
 	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
-	ibcerrors "github.com/cosmos/ibc-go/v7/internal/errors"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
