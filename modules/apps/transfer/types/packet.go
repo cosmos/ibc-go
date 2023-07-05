@@ -7,6 +7,7 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
 )
 
@@ -60,5 +61,5 @@ func (ftpd FungibleTokenPacketData) ValidateBasic() error {
 
 // GetBytes is a helper for serialising
 func (ftpd FungibleTokenPacketData) GetBytes() []byte {
-	return mustSortJSON(mustProtoMarshalJSON(&ftpd))
+	return sdk.MustSortJSON(mustProtoMarshalJSON(&ftpd))
 }
