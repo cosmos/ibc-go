@@ -30,8 +30,3 @@ func (k Keeper) StartFlushUpgradeHandshake(
 func (k Keeper) ValidateUpgradeFields(ctx sdk.Context, proposedUpgrade types.UpgradeFields, currentChannel types.Channel) error {
 	return k.validateUpgradeFields(ctx, proposedUpgrade, currentChannel)
 }
-
-// WriteUpgradeOpenChannel is a wrapper around writeUpgradeOpenChannel to allow the function to be directly called in tests.
-func (k Keeper) WriteUpgradeOpenChannel(ctx sdk.Context, portID, channelID string) {
-	k.writeUpgradeOpenChannel(ctx, portID, channelID)
-}
