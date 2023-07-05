@@ -9,6 +9,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
+	"github.com/cosmos/ibc-go/v7/internal/collections"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
@@ -133,11 +134,16 @@ func (k Keeper) RecvPacket(
 		return errorsmod.Wrap(types.ErrChannelNotFound, packet.GetDestChannel())
 	}
 
-	if channel.State != types.OPEN {
-		return errorsmod.Wrapf(
-			types.ErrInvalidChannelState,
-			"channel state is not OPEN (got %s)", channel.State.String(),
-		)
+	if !collections.Contains(channel.State, []types.State{types.OPEN, types.TRYUPGRADE, types.ACKUPGRADE}) {
+		return errorsmod.Wrapf(types.ErrInvalidChannelState, "expected channel state to be one of [%s, %s, %s], but got %s", types.OPEN.String(), types.TRYUPGRADE.String(), types.ACKUPGRADE.String(), channel.State.String())
+	}
+
+	// in the case of the channel being in TRYUPGRADE or ACKUPGRADE we need to ensure that the channel is not in flushing,
+	// and that the counterparty last sequence send is less than or equal to the packet sequence.
+	if counterpartyLastSequenceSend, found := k.GetCounterpartyLastPacketSequence(ctx, packet.GetDestPort(), packet.GetDestChannel()); found {
+		if channel.FlushStatus != types.FLUSHING || packet.GetSequence() > counterpartyLastSequenceSend {
+			return errorsmod.Wrapf(types.ErrInvalidFlushStatus, "expected channel flush status to be (%s) when counterparty last sequence send (%d) is set, failed to recv packet (%d)", types.FLUSHING, counterpartyLastSequenceSend, packet.GetSequence())
+		}
 	}
 
 	// Authenticate capability to ensure caller has authority to receive packet on this channel

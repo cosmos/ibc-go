@@ -413,7 +413,7 @@ func (k Keeper) ChanCloseInit(
 
 	defer telemetry.IncrCounter(1, "ibc", "channel", "close-init")
 
-	channel.State = types.CLOSED
+	channel.Close()
 	k.SetChannel(ctx, portID, channelID, channel)
 
 	emitChannelCloseInitEvent(ctx, portID, channelID, channel)
@@ -476,7 +476,7 @@ func (k Keeper) ChanCloseConfirm(
 
 	defer telemetry.IncrCounter(1, "ibc", "channel", "close-confirm")
 
-	channel.State = types.CLOSED
+	channel.Close()
 	k.SetChannel(ctx, portID, channelID, channel)
 
 	emitChannelCloseConfirmEvent(ctx, portID, channelID, channel)

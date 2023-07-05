@@ -181,7 +181,7 @@ func (k Keeper) ChanUpgradeTry(
 
 // WriteUpgradeTryChannel writes the channel end and upgrade to state after successfully passing the UpgradeTry handshake step.
 // An event is emitted for the handshake step.
-func (k Keeper) WriteUpgradeTryChannel(ctx sdk.Context, portID, channelID string, upgrade types.Upgrade, upgradeVersion string) (types.Channel, types.Upgrade) {
+func (k Keeper) WriteUpgradeTryChannel(ctx sdk.Context, portID, channelID string, upgrade types.Upgrade, upgradeVersion string, counterpartyLastSequenceSend uint64) (types.Channel, types.Upgrade) {
 	defer telemetry.IncrCounter(1, "ibc", "channel", "upgrade-try")
 
 	channel, found := k.GetChannel(ctx, portID, channelID)
@@ -199,6 +199,7 @@ func (k Keeper) WriteUpgradeTryChannel(ctx sdk.Context, portID, channelID string
 
 	upgrade.Fields.Version = upgradeVersion
 
+	k.SetCounterpartyLastPacketSequence(ctx, portID, channelID, counterpartyLastSequenceSend)
 	k.SetChannel(ctx, portID, channelID, channel)
 	k.SetUpgrade(ctx, portID, channelID, upgrade)
 
@@ -278,11 +279,7 @@ func (k Keeper) ChanUpgradeAck(
 // WriteUpgradeAckChannel writes a channel which has successfully passed the UpgradeAck handshake step as well as
 // setting the upgrade for that channel.
 // An event is emitted for the handshake step.
-func (k Keeper) WriteUpgradeAckChannel(
-	ctx sdk.Context,
-	portID, channelID string,
-	upgradeVersion string,
-) {
+func (k Keeper) WriteUpgradeAckChannel(ctx sdk.Context, portID, channelID, upgradeVersion string, counterpartyLastSequenceSend uint64) {
 	defer telemetry.IncrCounter(1, "ibc", "channel", "upgrade-ack")
 
 	channel, found := k.GetChannel(ctx, portID, channelID)
@@ -298,6 +295,7 @@ func (k Keeper) WriteUpgradeAckChannel(
 		channel.FlushStatus = types.FLUSHCOMPLETE
 	}
 
+	k.SetCounterpartyLastPacketSequence(ctx, portID, channelID, counterpartyLastSequenceSend)
 	k.SetChannel(ctx, portID, channelID, channel)
 
 	upgrade, found := k.GetUpgrade(ctx, portID, channelID)
@@ -410,7 +408,7 @@ func (k Keeper) ChanUpgradeOpen(
 // WriteUpgradeOpenChannel writes the agreed upon upgrade fields to the channel, sets the channel flush status to NOTINFLUSH and sets the channel state back to OPEN. This can be called in one of two cases:
 // - In the UpgradeAck step of the handshake if both sides have already flushed all in-flight packets.
 // - In the UpgradeOpen step of the handshake.
-func (k Keeper) writeUpgradeOpenChannel(ctx sdk.Context, portID, channelID string) {
+func (k Keeper) WriteUpgradeOpenChannel(ctx sdk.Context, portID, channelID string) {
 	channel, found := k.GetChannel(ctx, portID, channelID)
 	if !found {
 		panic(fmt.Sprintf("could not find existing channel when updating channel state, channelID: %s, portID: %s", channelID, portID))
