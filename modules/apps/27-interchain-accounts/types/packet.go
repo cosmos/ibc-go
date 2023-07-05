@@ -74,6 +74,7 @@ The Memo format is defined like so:
 
 		// optional fields
 		"callback_msg": {base64StringForCallback},
+		"gas_limit": {intForCallback}
 	}
 }
 ```
@@ -89,7 +90,7 @@ The Memo format is defined like so:
 // ADR-8 middleware should callback on the returned address if it is a PacketActor
 // (i.e. smart contract that accepts IBC callbacks).
 func (iapd InterchainAccountPacketData) GetSourceCallbackAddress() string {
-	callbackData := iapd.GetCallbackData()
+	callbackData := iapd.getCallbackData()
 	if callbackData == nil {
 		return ""
 	}
@@ -117,7 +118,7 @@ func (iapd InterchainAccountPacketData) GetDestCallbackAddress() string {
 //
 // If no custom message is specified, nil is returned.
 func (iapd InterchainAccountPacketData) GetUserDefinedCustomMessage() []byte {
-	callbackData := iapd.GetCallbackData()
+	callbackData := iapd.getCallbackData()
 	if callbackData == nil {
 		return nil
 	}
@@ -136,15 +137,29 @@ func (iapd InterchainAccountPacketData) GetUserDefinedCustomMessage() []byte {
 	return base64DecodedMsg
 }
 
-// UserDefinedGasLimit returns 0 (no-op). The gas limit of the executing
-// transaction will be used.
+// UserDefinedGasLimit returns the custom gas limit provided in the packet data memo.
+//
+// The memo is expected to specify the callback address in the following format:
+// { "callback": { ... , "gas_limit": {intForCallback} }
+//
+// If no gas limit is specified, 0 is returned.
 func (iapd InterchainAccountPacketData) UserDefinedGasLimit() uint64 {
-	return 0
+	callbackData := iapd.getCallbackData()
+	if callbackData == nil {
+		return 0
+	}
+
+	gasLimit, ok := callbackData["gas_limit"].(uint64)
+	if !ok {
+		return 0
+	}
+
+	return gasLimit
 }
 
 // getCallbackData returns the memo as `map[string]interface{}` so that it can be
 // interpreted as a json object with keys.
-func (iapd InterchainAccountPacketData) GetCallbackData() map[string]interface{} {
+func (iapd InterchainAccountPacketData) getCallbackData() map[string]interface{} {
 	if len(iapd.Memo) == 0 {
 		return nil
 	}
