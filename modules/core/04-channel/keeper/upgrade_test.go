@@ -991,7 +991,7 @@ func (suite *KeeperTestSuite) TestStartFlushUpgradeHandshake() {
 		{
 			"failed verification for counterparty channel state due to incorrectly constructed counterparty channel",
 			func() {
-				types.CloseChannel(&counterpartyChannel)
+				counterpartyChannel.Close()
 			},
 			commitmenttypes.ErrInvalidProof,
 		},

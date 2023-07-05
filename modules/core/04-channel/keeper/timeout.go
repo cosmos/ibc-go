@@ -154,7 +154,7 @@ func (k Keeper) TimeoutExecuted(
 	k.deletePacketCommitment(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 
 	if channel.Ordering == types.ORDERED {
-		types.CloseChannel(&channel)
+		channel.Close()
 		k.SetChannel(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), channel)
 	}
 
