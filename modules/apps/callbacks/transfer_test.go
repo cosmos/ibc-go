@@ -15,7 +15,7 @@ const (
 	callbackAddr = "cosmos1q4hx350dh0843y34n0vm4lfj6eh5qz4sqfrnq0"
 )
 
-func (suite *CallbacksTestSuite) TestFeeTransfer() {
+func (suite *CallbacksTestSuite) TestTransferCallbacks() {
 	testCases := []struct {
 		name            string
 		transferMemo    string
