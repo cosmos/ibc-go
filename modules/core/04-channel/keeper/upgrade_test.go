@@ -1232,7 +1232,7 @@ func (suite *KeeperTestSuite) TestValidateUpgradeFields() {
 
 			tc.malleate()
 
-			err := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.ValidateUpgradeFields(suite.chainA.GetContext(), *proposedUpgrade, existingChannel)
+			err := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.ValidateSelfUpgradeFields(suite.chainA.GetContext(), *proposedUpgrade, existingChannel)
 			if tc.expPass {
 				suite.Require().NoError(err)
 			} else {
