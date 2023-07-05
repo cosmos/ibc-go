@@ -73,7 +73,7 @@ func (suite *CallbacksTestSuite) ExecuteTransfer(memo string) {
 	res, err := suite.chainA.SendMsgs(msg)
 	suite.Require().NoError(err) // message committed
 
-	packet, err := ibctesting.ParsePacketFromEvents(res.GetEvents())
+	packet, err := ibctesting.ParsePacketFromEvents(res.GetEvents().ToABCIEvents())
 	suite.Require().NoError(err)
 
 	// relay send
