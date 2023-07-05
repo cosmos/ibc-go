@@ -1110,6 +1110,21 @@ func (suite *KeeperTestSuite) TestChannelUpgradeOpen() {
 				suite.Require().ErrorIs(err, capabilitytypes.ErrCapabilityNotFound)
 			},
 		},
+		{
+			"core handler fails",
+			func() {
+				portID := path.EndpointA.ChannelConfig.PortID
+				channelID := path.EndpointA.ChannelID
+				// Set a dummy packet commitment to simulate in-flight packets
+				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.SetPacketCommitment(suite.chainA.GetContext(), portID, channelID, 1, []byte("hash"))
+			},
+			func(res *channeltypes.MsgChannelUpgradeOpenResponse, err error) {
+				suite.Require().Error(err)
+				suite.Require().Nil(res)
+
+				suite.Require().ErrorIs(err, channeltypes.ErrPendingInflightPackets)
+			},
+		},
 	}
 
 	for _, tc := range cases {
@@ -1121,6 +1136,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeOpen() {
 			suite.coordinator.Setup(path)
 
 			// configure the channel upgrade version on testing endpoints
+			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = ibcmock.UpgradeVersion
 			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = ibcmock.UpgradeVersion
 
 			err := path.EndpointB.ChanUpgradeInit()
