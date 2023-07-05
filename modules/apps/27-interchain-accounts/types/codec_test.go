@@ -1,17 +1,17 @@
 package types_test
 
 import (
+	"github.com/cosmos/gogoproto/proto"
+
+	sdkmath "cosmossdk.io/math"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
-<<<<<<< HEAD
-	"github.com/cosmos/gogoproto/proto"
-=======
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
->>>>>>> e5b057da (feat(ica)!: support json tx encoding for interchain accounts (#3796))
 
 	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
 	"github.com/cosmos/ibc-go/v7/testing/simapp"
@@ -63,14 +63,6 @@ func (suite *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
 	}{
 		{
 			"single msg",
-<<<<<<< HEAD
-			[]proto.Message{
-				&banktypes.MsgSend{
-					FromAddress: TestOwnerAddress,
-					ToAddress:   TestOwnerAddress,
-					Amount:      sdk.NewCoins(sdk.NewCoin("bananas", sdk.NewInt(100))),
-				},
-=======
 			func() {
 				msgs = []proto.Message{
 					&banktypes.MsgSend{
@@ -79,25 +71,11 @@ func (suite *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
 						Amount:      sdk.NewCoins(sdk.NewCoin("bananas", sdkmath.NewInt(100))),
 					},
 				}
->>>>>>> e5b057da (feat(ica)!: support json tx encoding for interchain accounts (#3796))
 			},
 			true,
 		},
 		{
 			"multiple msgs, same types",
-<<<<<<< HEAD
-			[]proto.Message{
-				&banktypes.MsgSend{
-					FromAddress: TestOwnerAddress,
-					ToAddress:   TestOwnerAddress,
-					Amount:      sdk.NewCoins(sdk.NewCoin("bananas", sdk.NewInt(100))),
-				},
-				&banktypes.MsgSend{
-					FromAddress: TestOwnerAddress,
-					ToAddress:   TestOwnerAddress,
-					Amount:      sdk.NewCoins(sdk.NewCoin("bananas", sdk.NewInt(200))),
-				},
-=======
 			func() {
 				msgs = []proto.Message{
 					&banktypes.MsgSend{
@@ -111,7 +89,6 @@ func (suite *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
 						Amount:      sdk.NewCoins(sdk.NewCoin("bananas", sdkmath.NewInt(200))),
 					},
 				}
->>>>>>> e5b057da (feat(ica)!: support json tx encoding for interchain accounts (#3796))
 			},
 			true,
 		},
@@ -159,12 +136,6 @@ func (suite *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
 				sendMsg := &banktypes.MsgSend{
 					FromAddress: TestOwnerAddress,
 					ToAddress:   TestOwnerAddress,
-<<<<<<< HEAD
-					Amount:      sdk.NewCoins(sdk.NewCoin("bananas", sdk.NewInt(100))),
-				},
-				&govtypes.MsgSubmitProposal{
-					InitialDeposit: sdk.NewCoins(sdk.NewCoin("bananas", sdk.NewInt(100))),
-=======
 					Amount:      sdk.NewCoins(sdk.NewCoin("bananas", sdkmath.NewInt(100))),
 				}
 				sendAny, err := codectypes.NewAnyWithValue(sendMsg)
@@ -179,7 +150,6 @@ func (suite *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
 				legacyPropMsg := &govtypes.MsgSubmitProposal{
 					Content:        content,
 					InitialDeposit: sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(5000))),
->>>>>>> e5b057da (feat(ica)!: support json tx encoding for interchain accounts (#3796))
 					Proposer:       TestOwnerAddress,
 				}
 				legacyPropAny, err := codectypes.NewAnyWithValue(legacyPropMsg)
@@ -295,7 +265,7 @@ func (suite *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
 			suite.Run(tc.name, func() {
 				tc.malleate()
 
-				bz, err := types.SerializeCosmosTx(simapp.MakeTestEncodingConfig().Codec, msgs, encoding)
+				bz, err := types.SerializeCosmosTxWithEncoding(simapp.MakeTestEncodingConfig().Marshaler, msgs, encoding)
 				if encoding == types.EncodingProto3JSON && !tc.expPass {
 					suite.Require().Error(err, tc.name)
 					suite.Require().Contains(err.Error(), expSerializeErrorStrings[1], tc.name)
@@ -303,7 +273,7 @@ func (suite *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
 					suite.Require().NoError(err, tc.name)
 				}
 
-				deserializedMsgs, err := types.DeserializeCosmosTx(simapp.MakeTestEncodingConfig().Codec, bz, encoding)
+				deserializedMsgs, err := types.DeserializeCosmosTxWithEncoding(simapp.MakeTestEncodingConfig().Marshaler, bz, encoding)
 				if tc.expPass {
 					suite.Require().NoError(err, tc.name)
 				} else {
@@ -330,18 +300,18 @@ func (suite *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
 		}
 
 		// test serializing non sdk.Msg type
-		bz, err := types.SerializeCosmosTx(simapp.MakeTestEncodingConfig().Codec, []proto.Message{&banktypes.MsgSendResponse{}}, encoding)
+		bz, err := types.SerializeCosmosTxWithEncoding(simapp.MakeTestEncodingConfig().Marshaler, []proto.Message{&banktypes.MsgSendResponse{}}, encoding)
 		suite.Require().NoError(err)
 		suite.Require().NotEmpty(bz)
 
 		// test deserializing unknown bytes
-		msgs, err := types.DeserializeCosmosTx(simapp.MakeTestEncodingConfig().Codec, bz, encoding)
+		msgs, err := types.DeserializeCosmosTxWithEncoding(simapp.MakeTestEncodingConfig().Marshaler, bz, encoding)
 		suite.Require().Error(err) // unregistered type
 		suite.Require().Contains(err.Error(), expDeserializeErrorStrings[i])
 		suite.Require().Empty(msgs)
 
 		// test deserializing unknown bytes
-		msgs, err = types.DeserializeCosmosTx(simapp.MakeTestEncodingConfig().Codec, []byte("invalid"), encoding)
+		msgs, err = types.DeserializeCosmosTxWithEncoding(simapp.MakeTestEncodingConfig().Marshaler, []byte("invalid"), encoding)
 		suite.Require().Error(err)
 		suite.Require().Contains(err.Error(), expDeserializeErrorStrings[i])
 		suite.Require().Empty(msgs)
@@ -355,11 +325,11 @@ func (suite *TypesTestSuite) TestProtoDeserializeAndSerializeCosmosTxWithAmino()
 	cdc := codec.NewLegacyAmino()
 	marshaler := codec.NewAminoCodec(cdc)
 
-	msgs, err := types.SerializeCosmosTx(marshaler, []proto.Message{&banktypes.MsgSend{}}, types.EncodingProtobuf)
+	msgs, err := types.SerializeCosmosTx(marshaler, []proto.Message{&banktypes.MsgSend{}})
 	suite.Require().ErrorIs(err, types.ErrInvalidCodec)
 	suite.Require().Empty(msgs)
 
-	bz, err := types.DeserializeCosmosTx(marshaler, []byte{0x10, 0}, types.EncodingProtobuf)
+	bz, err := types.DeserializeCosmosTx(marshaler, []byte{0x10, 0})
 	suite.Require().ErrorIs(err, types.ErrInvalidCodec)
 	suite.Require().Empty(bz)
 }
@@ -486,21 +456,12 @@ func (suite *TypesTestSuite) TestJSONDeserializeCosmosTx() {
 		tc := tc
 
 		suite.Run(tc.name, func() {
-<<<<<<< HEAD
-			bz, err := types.SerializeCosmosTx(simapp.MakeTestEncodingConfig().Marshaler, tc.msgs)
-			suite.Require().NoError(err, tc.name)
-
-			msgs, err := types.DeserializeCosmosTx(simapp.MakeTestEncodingConfig().Marshaler, bz)
-			if tc.expPass {
-				suite.Require().NoError(err, tc.name)
-=======
-			msgs, errDeserialize := types.DeserializeCosmosTx(simapp.MakeTestEncodingConfig().Codec, tc.jsonBytes, types.EncodingProto3JSON)
+			msgs, errDeserialize := types.DeserializeCosmosTxWithEncoding(simapp.MakeTestEncodingConfig().Marshaler, tc.jsonBytes, types.EncodingProto3JSON)
 			if tc.expError == nil {
 				suite.Require().NoError(errDeserialize, tc.name)
 				for i, msg := range msgs {
 					suite.Require().Equal(tc.expMsgs[i], msg)
 				}
->>>>>>> e5b057da (feat(ica)!: support json tx encoding for interchain accounts (#3796))
 			} else {
 				suite.Require().ErrorIs(errDeserialize, tc.expError, tc.name)
 			}
@@ -508,10 +469,6 @@ func (suite *TypesTestSuite) TestJSONDeserializeCosmosTx() {
 	}
 }
 
-<<<<<<< HEAD
-	// test serializing non sdk.Msg type
-	bz, err := types.SerializeCosmosTx(simapp.MakeTestEncodingConfig().Marshaler, []proto.Message{&banktypes.MsgSendResponse{}})
-=======
 func (suite *TypesTestSuite) TestUnsupportedEncodingType() {
 	msgs := []proto.Message{
 		&banktypes.MsgSend{
@@ -521,45 +478,17 @@ func (suite *TypesTestSuite) TestUnsupportedEncodingType() {
 		},
 	}
 
-	bz, err := types.SerializeCosmosTx(simapp.MakeTestEncodingConfig().Codec, msgs, "unsupported")
+	bz, err := types.SerializeCosmosTxWithEncoding(simapp.MakeTestEncodingConfig().Marshaler, msgs, "unsupported")
 	suite.Require().ErrorIs(err, types.ErrInvalidCodec)
 	suite.Require().Nil(bz)
 
-	data, err := types.SerializeCosmosTx(simapp.MakeTestEncodingConfig().Codec, msgs, types.EncodingProtobuf)
->>>>>>> e5b057da (feat(ica)!: support json tx encoding for interchain accounts (#3796))
+	data, err := types.SerializeCosmosTx(simapp.MakeTestEncodingConfig().Marshaler, msgs)
 	suite.Require().NoError(err)
 
-<<<<<<< HEAD
-	// test deserializing unknown bytes
-	_, err = types.DeserializeCosmosTx(simapp.MakeTestEncodingConfig().Marshaler, bz)
-	suite.Require().Error(err) // unregistered type
-
-	// test deserializing unknown bytes
-	msgs, err := types.DeserializeCosmosTx(simapp.MakeTestEncodingConfig().Marshaler, []byte("invalid"))
-	suite.Require().Error(err)
-	suite.Require().Empty(msgs)
-}
-
-// unregistered bytes causes amino to panic.
-// test that DeserializeCosmosTx gracefully returns an error on
-// unsupported amino codec.
-func (suite *TypesTestSuite) TestDeserializeAndSerializeCosmosTxWithAmino() {
-	cdc := codec.NewLegacyAmino()
-	marshaler := codec.NewAminoCodec(cdc)
-
-	msgs, err := types.SerializeCosmosTx(marshaler, []proto.Message{&banktypes.MsgSend{}})
-	suite.Require().Error(err)
-	suite.Require().Empty(msgs)
-
-	bz, err := types.DeserializeCosmosTx(marshaler, []byte{0x10, 0})
-	suite.Require().Error(err)
-	suite.Require().Empty(bz)
-=======
-	_, err = types.DeserializeCosmosTx(simapp.MakeTestEncodingConfig().Codec, data, "unsupported")
+	_, err = types.DeserializeCosmosTxWithEncoding(simapp.MakeTestEncodingConfig().Marshaler, data, "unsupported")
 	suite.Require().ErrorIs(err, types.ErrInvalidCodec)
 
 	// verify that protobuf encoding still works otherwise:
-	_, err = types.DeserializeCosmosTx(simapp.MakeTestEncodingConfig().Codec, data, types.EncodingProtobuf)
+	_, err = types.DeserializeCosmosTx(simapp.MakeTestEncodingConfig().Marshaler, data)
 	suite.Require().NoError(err)
->>>>>>> e5b057da (feat(ica)!: support json tx encoding for interchain accounts (#3796))
 }

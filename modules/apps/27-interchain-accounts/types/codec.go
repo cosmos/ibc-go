@@ -1,10 +1,12 @@
 package types
 
 import (
+	errorsmod "cosmossdk.io/errors"
+
 	"github.com/cosmos/cosmos-sdk/codec"
+
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/gogoproto/proto"
 )
@@ -24,22 +26,27 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 }
 
 // SerializeCosmosTx serializes a slice of sdk.Msg's using the CosmosTx type. The sdk.Msg's are
-<<<<<<< HEAD
 // packed into Any's and inserted into the Messages field of a CosmosTx. The proto marshaled CosmosTx
 // bytes are returned. Only the ProtoCodec is supported for serializing messages.
-func SerializeCosmosTx(cdc codec.BinaryCodec, msgs []proto.Message) (bz []byte, err error) {
-	// only ProtoCodec is supported
-	if _, ok := cdc.(*codec.ProtoCodec); !ok {
-		return nil, sdkerrors.Wrap(ErrInvalidCodec, "only ProtoCodec is supported for receiving messages on the host chain")
-=======
+func SerializeCosmosTx(cdc codec.BinaryCodec, msgs []proto.Message) ([]byte, error) {
+	return SerializeCosmosTxWithEncoding(cdc, msgs, EncodingProtobuf)
+}
+
+// DeserializeCosmosTx unmarshals and unpacks a slice of transaction bytes
+// into a slice of sdk.Msg's. Only the ProtoCodec is supported for message
+// deserialization.
+func DeserializeCosmosTx(cdc codec.BinaryCodec, data []byte) ([]sdk.Msg, error) {
+	return DeserializeCosmosTxWithEncoding(cdc, data, EncodingProtobuf)
+}
+
+// SerializeCosmosTxWithEncoding serializes a slice of sdk.Msg's using the CosmosTx type. The sdk.Msg's are
 // packed into Any's and inserted into the Messages field of a CosmosTx. The CosmosTx is marshaled
 // depending on the encoding type passed in. The marshaled bytes are returned. Only the ProtoCodec
 // is supported for serializing messages. Both protobuf and proto3 JSON are supported.
-func SerializeCosmosTx(cdc codec.Codec, msgs []proto.Message, encoding string) ([]byte, error) {
+func SerializeCosmosTxWithEncoding(cdc codec.BinaryCodec, msgs []proto.Message, encoding string) ([]byte, error) {
 	// this is a defensive check to ensure only the ProtoCodec is used for message serialization
 	if _, ok := cdc.(*codec.ProtoCodec); !ok {
 		return nil, errorsmod.Wrap(ErrInvalidCodec, "only the ProtoCodec may be used for receiving messages on the host chain")
->>>>>>> e5b057da (feat(ica)!: support json tx encoding for interchain accounts (#3796))
 	}
 
 	var bz []byte
@@ -65,7 +72,7 @@ func SerializeCosmosTx(cdc codec.Codec, msgs []proto.Message, encoding string) (
 			return nil, errorsmod.Wrapf(err, "cannot marshal CosmosTx with protobuf")
 		}
 	case EncodingProto3JSON:
-		bz, err = cdc.MarshalJSON(cosmosTx)
+		bz, err = cdc.(*codec.ProtoCodec).MarshalJSON(cosmosTx)
 		if err != nil {
 			return nil, errorsmod.Wrapf(ErrUnknownDataType, "cannot marshal CosmosTx with proto3 json")
 		}
@@ -76,24 +83,14 @@ func SerializeCosmosTx(cdc codec.Codec, msgs []proto.Message, encoding string) (
 	return bz, nil
 }
 
-<<<<<<< HEAD
-// DeserializeCosmosTx unmarshals and unpacks a slice of transaction bytes
-// into a slice of sdk.Msg's. Only the ProtoCodec is supported for message
-// deserialization.
-func DeserializeCosmosTx(cdc codec.BinaryCodec, data []byte) ([]sdk.Msg, error) {
-	// only ProtoCodec is supported
-	if _, ok := cdc.(*codec.ProtoCodec); !ok {
-		return nil, sdkerrors.Wrap(ErrInvalidCodec, "only ProtoCodec is supported for receiving messages on the host chain")
-=======
-// DeserializeCosmosTx unmarshals and unpacks a slice of transaction bytes into a slice of sdk.Msg's.
+// DeserializeCosmosTxWithEncoding unmarshals and unpacks a slice of transaction bytes into a slice of sdk.Msg's.
 // The transaction bytes are unmarshaled depending on the encoding type passed in. The sdk.Msg's are
 // unpacked from Any's and returned. Only the ProtoCodec is supported for serializing messages. Both
 // protobuf and proto3 JSON are supported.
-func DeserializeCosmosTx(cdc codec.Codec, data []byte, encoding string) ([]sdk.Msg, error) {
+func DeserializeCosmosTxWithEncoding(cdc codec.BinaryCodec, data []byte, encoding string) ([]sdk.Msg, error) {
 	// this is a defensive check to ensure only the ProtoCodec is used for message deserialization
 	if _, ok := cdc.(*codec.ProtoCodec); !ok {
 		return nil, errorsmod.Wrap(ErrInvalidCodec, "only the ProtoCodec may be used for receiving messages on the host chain")
->>>>>>> e5b057da (feat(ica)!: support json tx encoding for interchain accounts (#3796))
 	}
 
 	var cosmosTx CosmosTx
@@ -104,7 +101,7 @@ func DeserializeCosmosTx(cdc codec.Codec, data []byte, encoding string) ([]sdk.M
 			return nil, errorsmod.Wrapf(err, "cannot unmarshal CosmosTx with protobuf")
 		}
 	case EncodingProto3JSON:
-		if err := cdc.UnmarshalJSON(data, &cosmosTx); err != nil {
+		if err := cdc.(*codec.ProtoCodec).UnmarshalJSON(data, &cosmosTx); err != nil {
 			return nil, errorsmod.Wrapf(ErrUnknownDataType, "cannot unmarshal CosmosTx with proto3 json")
 		}
 	default:
@@ -113,14 +110,9 @@ func DeserializeCosmosTx(cdc codec.Codec, data []byte, encoding string) ([]sdk.M
 
 	msgs := make([]sdk.Msg, len(cosmosTx.Messages))
 
-	for i, any := range cosmosTx.Messages {
+	for i, protoAny := range cosmosTx.Messages {
 		var msg sdk.Msg
-<<<<<<< HEAD
-
-		err := cdc.UnpackAny(any, &msg)
-=======
 		err := cdc.UnpackAny(protoAny, &msg)
->>>>>>> e5b057da (feat(ica)!: support json tx encoding for interchain accounts (#3796))
 		if err != nil {
 			return nil, err
 		}

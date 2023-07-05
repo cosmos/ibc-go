@@ -168,11 +168,7 @@ func (suite *KeeperTestSuite) TestSubmitTx() {
 				Amount:      sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100))),
 			}
 
-<<<<<<< HEAD
 			data, err := icatypes.SerializeCosmosTx(suite.chainA.Codec, []proto.Message{icaMsg})
-=======
-			data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []proto.Message{icaMsg}, icatypes.EncodingProtobuf)
->>>>>>> e5b057da (feat(ica)!: support json tx encoding for interchain accounts (#3796))
 			suite.Require().NoError(err)
 
 			packetData := icatypes.InterchainAccountPacketData{
