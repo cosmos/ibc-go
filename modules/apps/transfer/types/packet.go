@@ -184,12 +184,13 @@ func (ftpd FungibleTokenPacketData) UserDefinedGasLimit() uint64 {
 		return 0
 	}
 
-	gasLimit, ok := callbackData["gas_limit"].(uint64)
+	// json number won't be unmarshaled as a uint64, so we need to cast it to float64 first
+	gasLimit, ok := callbackData["gas_limit"].(float64)
 	if !ok {
 		return 0
 	}
 
-	return gasLimit
+	return uint64(gasLimit)
 }
 
 // getCallbackData returns the memo as `map[string]interface{}` so that it can be
