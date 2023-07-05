@@ -159,8 +159,7 @@ func (k Keeper) TimeoutExecuted(
 	}
 
 	if channel.Ordering == types.ORDERED {
-		channel.State = types.CLOSED
-		channel.FlushStatus = types.NOTINFLUSH
+		channel.Close()
 		k.SetChannel(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), channel)
 	}
 

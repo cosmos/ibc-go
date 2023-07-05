@@ -26,12 +26,7 @@ func (k Keeper) StartFlushUpgradeHandshake(
 	return k.startFlushUpgradeHandshake(ctx, portID, channelID, proposedUpgradeFields, counterpartyChannel, counterpartyUpgrade, proofCounterpartyChannel, proofCounterpartyUpgrade, proofHeight)
 }
 
-// ValidateUpgradeFields is a wrapper around validateUpgradeFields to allow the function to be directly called in tests.
-func (k Keeper) ValidateUpgradeFields(ctx sdk.Context, proposedUpgrade types.UpgradeFields, currentChannel types.Channel) error {
-	return k.validateUpgradeFields(ctx, proposedUpgrade, currentChannel)
-}
-
-// WriteUpgradeOpenChannel is a wrapper around writeUpgradeOpenChannel to allow the function to be directly called in tests.
-func (k Keeper) WriteUpgradeOpenChannel(ctx sdk.Context, portID, channelID string) {
-	k.writeUpgradeOpenChannel(ctx, portID, channelID)
+// ValidateSelfUpgradeFields is a wrapper around validateSelfUpgradeFields to allow the function to be directly called in tests.
+func (k Keeper) ValidateSelfUpgradeFields(ctx sdk.Context, proposedUpgrade types.UpgradeFields, currentChannel types.Channel) error {
+	return k.validateSelfUpgradeFields(ctx, proposedUpgrade, currentChannel)
 }

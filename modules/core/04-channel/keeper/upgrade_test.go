@@ -367,7 +367,14 @@ func (suite *KeeperTestSuite) TestWriteUpgradeTry() {
 
 			tc.malleate()
 
-			upgradedChannelEnd, upgradeWithAppCallbackVersion := suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.WriteUpgradeTryChannel(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, proposedUpgrade, proposedUpgrade.Fields.Version)
+			upgradedChannelEnd, upgradeWithAppCallbackVersion := suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.WriteUpgradeTryChannel(
+				suite.chainB.GetContext(),
+				path.EndpointB.ChannelConfig.PortID,
+				path.EndpointB.ChannelID,
+				proposedUpgrade,
+				proposedUpgrade.Fields.Version,
+				proposedUpgrade.LatestSequenceSend,
+			)
 
 			channel := path.EndpointB.GetChannel()
 			suite.Require().Equal(upgradedChannelEnd, channel)
@@ -376,6 +383,10 @@ func (suite *KeeperTestSuite) TestWriteUpgradeTry() {
 			suite.Require().True(found)
 			suite.Require().Equal(types.TRYUPGRADE, channel.State)
 			suite.Require().Equal(upgradeWithAppCallbackVersion, upgrade)
+
+			actualCounterpartyLastSequenceSend, ok := suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.GetCounterpartyLastPacketSequence(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+			suite.Require().True(ok)
+			suite.Require().Equal(proposedUpgrade.LatestSequenceSend, actualCounterpartyLastSequenceSend)
 
 			if tc.hasPacketCommitments {
 				suite.Require().Equal(types.FLUSHING, channel.FlushStatus)
@@ -547,6 +558,74 @@ func (suite *KeeperTestSuite) TestChanUpgradeAck() {
 				suite.Require().NoError(err)
 			} else {
 				suite.assertUpgradeError(err, tc.expError)
+			}
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestWriteChannelUpgradeAck() {
+	var (
+		path            *ibctesting.Path
+		proposedUpgrade types.Upgrade
+	)
+
+	testCases := []struct {
+		name                 string
+		malleate             func()
+		hasPacketCommitments bool
+	}{
+		{
+			"success with no packet commitments",
+			func() {},
+			false,
+		},
+		{
+			"success with packet commitments",
+			func() {
+				// manually set packet commitment
+				sequence, err := path.EndpointA.SendPacket(suite.chainB.GetTimeoutHeight(), 0, ibctesting.MockPacketData)
+				suite.Require().NoError(err)
+				suite.Require().Equal(uint64(1), sequence)
+			},
+			true,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.Setup(path)
+
+			// create upgrade proposal with different version in init upgrade to see if the WriteUpgradeAck overwrites the version
+			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = "original-version"
+
+			tc.malleate()
+
+			// perform the upgrade handshake.
+			suite.Require().NoError(path.EndpointA.ChanUpgradeInit())
+
+			proposedUpgrade = path.EndpointA.GetChannelUpgrade()
+			suite.Require().Equal("original-version", proposedUpgrade.Fields.Version)
+
+			suite.Require().NoError(path.EndpointB.ChanUpgradeTry())
+
+			suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.WriteUpgradeAckChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, mock.UpgradeVersion, proposedUpgrade.LatestSequenceSend)
+
+			channel := path.EndpointA.GetChannel()
+			upgrade := path.EndpointA.GetChannelUpgrade()
+			suite.Require().Equal(mock.UpgradeVersion, upgrade.Fields.Version)
+
+			actualCounterpartyLastSequenceSend, ok := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetCounterpartyLastPacketSequence(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+			suite.Require().True(ok)
+			suite.Require().Equal(proposedUpgrade.LatestSequenceSend, actualCounterpartyLastSequenceSend)
+
+			if tc.hasPacketCommitments {
+				suite.Require().Equal(types.FLUSHING, channel.FlushStatus)
+			} else {
+				suite.Require().Equal(types.FLUSHCOMPLETE, channel.FlushStatus)
 			}
 		})
 	}
@@ -927,7 +1006,7 @@ func (suite *KeeperTestSuite) TestStartFlushUpgradeHandshake() {
 		{
 			"failed verification for counterparty channel state due to incorrectly constructed counterparty channel",
 			func() {
-				counterpartyChannel.State = types.CLOSED
+				counterpartyChannel.Close()
 			},
 			commitmenttypes.ErrInvalidProof,
 		},
@@ -1133,7 +1212,7 @@ func (suite *KeeperTestSuite) TestValidateUpgradeFields() {
 
 			tc.malleate()
 
-			err := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.ValidateUpgradeFields(suite.chainA.GetContext(), *proposedUpgrade, existingChannel)
+			err := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.ValidateSelfUpgradeFields(suite.chainA.GetContext(), *proposedUpgrade, existingChannel)
 			if tc.expPass {
 				suite.Require().NoError(err)
 			} else {

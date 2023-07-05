@@ -947,6 +947,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeAck() {
 				channel := path.EndpointA.GetChannel()
 				suite.Require().Equal(channeltypes.ACKUPGRADE, channel.State)
 				suite.Require().Equal(uint64(1), channel.UpgradeSequence)
+				suite.Require().Equal(channeltypes.FLUSHCOMPLETE, channel.FlushStatus)
 			},
 		},
 		{
@@ -1067,6 +1068,103 @@ func (suite *KeeperTestSuite) TestChannelUpgradeAck() {
 			tc.malleate()
 
 			res, err := suite.chainA.GetSimApp().GetIBCKeeper().ChannelUpgradeAck(suite.chainA.GetContext(), msg)
+
+			tc.expResult(res, err)
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestChannelUpgradeOpen() {
+	var (
+		path *ibctesting.Path
+		msg  *channeltypes.MsgChannelUpgradeOpen
+	)
+
+	cases := []struct {
+		name      string
+		malleate  func()
+		expResult func(res *channeltypes.MsgChannelUpgradeOpenResponse, err error)
+	}{
+		{
+			"success",
+			func() {},
+			func(res *channeltypes.MsgChannelUpgradeOpenResponse, err error) {
+				suite.Require().NoError(err)
+				suite.Require().NotNil(res)
+
+				channel := path.EndpointA.GetChannel()
+				suite.Require().Equal(channeltypes.OPEN, channel.State)
+				suite.Require().Equal(channeltypes.NOTINFLUSH, channel.FlushStatus)
+			},
+		},
+		{
+			"module capability not found",
+			func() {
+				msg.PortId = ibctesting.InvalidID
+				msg.ChannelId = ibctesting.InvalidID
+			},
+			func(res *channeltypes.MsgChannelUpgradeOpenResponse, err error) {
+				suite.Require().Error(err)
+				suite.Require().Nil(res)
+
+				suite.Require().ErrorIs(err, capabilitytypes.ErrCapabilityNotFound)
+			},
+		},
+		{
+			"core handler fails",
+			func() {
+				portID := path.EndpointA.ChannelConfig.PortID
+				channelID := path.EndpointA.ChannelID
+				// Set a dummy packet commitment to simulate in-flight packets
+				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.SetPacketCommitment(suite.chainA.GetContext(), portID, channelID, 1, []byte("hash"))
+			},
+			func(res *channeltypes.MsgChannelUpgradeOpenResponse, err error) {
+				suite.Require().Error(err)
+				suite.Require().Nil(res)
+
+				suite.Require().ErrorIs(err, channeltypes.ErrPendingInflightPackets)
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.Setup(path)
+
+			// configure the channel upgrade version on testing endpoints
+			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = ibcmock.UpgradeVersion
+			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = ibcmock.UpgradeVersion
+
+			err := path.EndpointB.ChanUpgradeInit()
+			suite.Require().NoError(err)
+
+			err = path.EndpointA.ChanUpgradeTry()
+			suite.Require().NoError(err)
+
+			err = path.EndpointB.ChanUpgradeAck()
+			suite.Require().NoError(err)
+
+			err = path.EndpointA.UpdateClient()
+			suite.Require().NoError(err)
+
+			counterpartyChannel := path.EndpointB.GetChannel()
+			proofChannel, _, proofHeight := path.EndpointA.QueryChannelUpgradeProof()
+
+			msg = &channeltypes.MsgChannelUpgradeOpen{
+				PortId:                   path.EndpointA.ChannelConfig.PortID,
+				ChannelId:                path.EndpointA.ChannelID,
+				CounterpartyChannelState: counterpartyChannel.State,
+				ProofChannel:             proofChannel,
+				ProofHeight:              proofHeight,
+				Signer:                   suite.chainA.SenderAccount.GetAddress().String(),
+			}
+
+			tc.malleate()
+			res, err := suite.chainA.GetSimApp().GetIBCKeeper().ChannelUpgradeOpen(suite.chainA.GetContext(), msg)
 
 			tc.expResult(res, err)
 		})
