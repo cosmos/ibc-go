@@ -15,9 +15,8 @@ on:
           - release/v5.3.x
           - release/v6.1.x
           - release/v6.2.x
-          - release/v7.0.x
-          - release/v7.1.x
           - release/v7.2.x
+          - release/v7.3.x
           - main
       ibc-go-version:
         description: 'The version of ibc-go that is going to be released'
@@ -58,9 +57,8 @@ jobs:
           - release/v5.3.x
           - release/v6.1.x
           - release/v6.2.x
-          - release/v7.0.x
-          - release/v7.1.x
           - release/v7.2.x
+          - release/v7.3.x
           - main
     steps:
       - uses: actions/checkout@v3
@@ -258,15 +256,6 @@ jobs:
       test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
       test-suite: "localhost-transfer-chain-a"
 
-  localhost-transfer-chain-b:
-    needs:
-      - build-release-images
-      - determine-test-directory
-    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
-    with:
-      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
-      test-suite: "localhost-transfer-chain-b"
-
   localhost-ica-chain-a:
     needs:
       - build-release-images
@@ -275,12 +264,3 @@ jobs:
     with:
       test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
       test-suite: "localhost-ica-chain-a"
-
-  localhost-ica-chain-b:
-    needs:
-      - build-release-images
-      - determine-test-directory
-    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
-    with:
-      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
-      test-suite: "localhost-ica-chain-b"
