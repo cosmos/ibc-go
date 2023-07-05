@@ -156,7 +156,7 @@ func TestMsgSendTxValidateBasic(t *testing.T) {
 			Amino:             tempApp.LegacyAmino(),
 		}
 
-		data, err := icatypes.SerializeCosmosTx(encodingConfig.Codec, []proto.Message{msgBankSend})
+		data, err := icatypes.SerializeCosmosTx(encodingConfig.Codec, []proto.Message{msgBankSend}, icatypes.EncodingProtobuf)
 		require.NoError(t, err)
 
 		packetData := icatypes.InterchainAccountPacketData{
@@ -200,7 +200,7 @@ func TestMsgSendTxGetSigners(t *testing.T) {
 		Amino:             tempApp.LegacyAmino(),
 	}
 
-	data, err := icatypes.SerializeCosmosTx(encodingConfig.Codec, []proto.Message{msgBankSend})
+	data, err := icatypes.SerializeCosmosTx(encodingConfig.Codec, []proto.Message{msgBankSend}, icatypes.EncodingProtobuf)
 	require.NoError(t, err)
 
 	packetData := icatypes.InterchainAccountPacketData{
