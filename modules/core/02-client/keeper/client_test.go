@@ -9,7 +9,6 @@ import (
 
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
-	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	solomachine "github.com/cosmos/ibc-go/v7/modules/light-clients/06-solomachine"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
@@ -18,43 +17,76 @@ import (
 )
 
 func (suite *KeeperTestSuite) TestCreateClient() {
-	cases := []struct {
-		msg            string
+	var (
 		clientState    exported.ClientState
 		consensusState exported.ConsensusState
-		expPass        bool
+	)
+
+	testCases := []struct {
+		msg      string
+		malleate func()
+		expPass  bool
 	}{
 		{
 			"success: 07-tendermint client type supported",
-			ibctm.NewClientState(testChainID, ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, testClientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath),
-			suite.consensusState,
+			func() {
+				clientState = ibctm.NewClientState(testChainID, ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, testClientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath)
+				consensusState = suite.consensusState
+			},
 			true,
 		},
 		{
+			"failure: 07-tendermint client status is not active",
+			func() {
+				clientState = ibctm.NewClientState(testChainID, ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, testClientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath)
+				tmcs, ok := clientState.(*ibctm.ClientState)
+				suite.Require().True(ok)
+				tmcs.FrozenHeight = ibctm.FrozenHeight
+				consensusState = suite.consensusState
+			},
+			false,
+		},
+		{
 			"success: 06-solomachine client type supported",
-			solomachine.NewClientState(0, &solomachine.ConsensusState{PublicKey: suite.solomachine.ConsensusState().PublicKey, Diversifier: suite.solomachine.Diversifier, Timestamp: suite.solomachine.Time}),
-			&solomachine.ConsensusState{PublicKey: suite.solomachine.ConsensusState().PublicKey, Diversifier: suite.solomachine.Diversifier, Timestamp: suite.solomachine.Time},
+			func() {
+				clientState = solomachine.NewClientState(0, &solomachine.ConsensusState{PublicKey: suite.solomachine.ConsensusState().PublicKey, Diversifier: suite.solomachine.Diversifier, Timestamp: suite.solomachine.Time})
+				consensusState = &solomachine.ConsensusState{PublicKey: suite.solomachine.ConsensusState().PublicKey, Diversifier: suite.solomachine.Diversifier, Timestamp: suite.solomachine.Time}
+			},
 			true,
 		},
 		{
 			"failure: 09-localhost client type not supported",
-			localhost.NewClientState(clienttypes.GetSelfHeight(suite.ctx)),
-			nil,
+			func() {
+				clientState = localhost.NewClientState(clienttypes.GetSelfHeight(suite.chainA.GetContext()))
+				consensusState = nil
+			},
 			false,
 		},
 	}
 
-	for i, tc := range cases {
-		clientID, err := suite.keeper.CreateClient(suite.ctx, tc.clientState, tc.consensusState)
-		if tc.expPass {
-			suite.Require().NoError(err, "valid test case %d failed: %s", i, tc.msg)
-			suite.Require().NotNil(clientID, "valid test case %d failed: %s", i, tc.msg)
-			suite.Require().True(suite.keeper.ClientStore(suite.ctx, clientID).Has(host.ClientStateKey()))
-		} else {
-			suite.Require().Error(err, "invalid test case %d passed: %s", i, tc.msg)
-			suite.Require().Equal("", clientID, "invalid test case %d passed: %s", i, tc.msg)
-			suite.Require().False(suite.keeper.ClientStore(suite.ctx, clientID).Has(host.ClientStateKey()))
-		}
+	for _, tc := range testCases {
+		tc := tc
+
+		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
+			suite.SetupTest() // reset
+			tc.malleate()
+
+			clientID, err := suite.chainA.GetSimApp().IBCKeeper.ClientKeeper.CreateClient(suite.chainA.GetContext(), clientState, consensusState)
+
+			// assert correct behaviour based on expected error
+			clientState, found := suite.chainA.GetSimApp().IBCKeeper.ClientKeeper.GetClientState(suite.chainA.GetContext(), clientID)
+			if tc.expPass {
+				suite.Require().NoError(err)
+				suite.Require().NotEmpty(clientID)
+				suite.Require().True(found)
+				suite.Require().NotEmpty(clientState)
+			} else {
+				suite.Require().Error(err)
+				suite.Require().Empty(clientID)
+				suite.Require().False(found)
+				suite.Require().Empty(clientState)
+			}
+		})
 	}
 }
 
@@ -185,7 +217,7 @@ func (suite *KeeperTestSuite) TestUpdateClientTendermint() {
 			}
 			suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientConsensusState(suite.chainA.GetContext(), clientID, incrementedClientHeight, intermediateConsState)
 			// set iteration key
-			clientStore := suite.keeper.ClientStore(suite.ctx, clientID)
+			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), clientID)
 			ibctm.SetIterationKey(clientStore, incrementedClientHeight)
 
 			clientState.LatestHeight = incrementedClientHeight

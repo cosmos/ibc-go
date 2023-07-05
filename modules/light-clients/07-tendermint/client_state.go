@@ -4,16 +4,19 @@ import (
 	"strings"
 	"time"
 
-	errorsmod "cosmossdk.io/errors"
-	"github.com/cometbft/cometbft/light"
-	tmtypes "github.com/cometbft/cometbft/types"
-	"github.com/cosmos/cosmos-sdk/codec"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	ics23 "github.com/cosmos/ics23/go"
 
-	ibcerrors "github.com/cosmos/ibc-go/v7/internal/errors"
+	errorsmod "cosmossdk.io/errors"
+
+	"github.com/cosmos/cosmos-sdk/codec"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/cometbft/cometbft/light"
+	tmtypes "github.com/cometbft/cometbft/types"
+
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
+	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
@@ -167,12 +170,6 @@ func (cs ClientState) Validate() error {
 	}
 
 	return nil
-}
-
-// GetProofSpecs returns the format the client expects for proof verification
-// as a string array specifying the proof type for each position in chained proof
-func (cs ClientState) GetProofSpecs() []*ics23.ProofSpec {
-	return cs.ProofSpecs
 }
 
 // ZeroCustomFields returns a ClientState that is a copy of the current ClientState

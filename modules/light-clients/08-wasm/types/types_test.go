@@ -10,6 +10,7 @@ import (
 	tmjson "github.com/cometbft/cometbft/libs/json"
 	"github.com/cometbft/cometbft/libs/log"
 	tmtypes "github.com/cometbft/cometbft/types"
+	"github.com/cosmos/cosmos-sdk/baseapp"
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -114,9 +115,9 @@ func (suite *TypesTestSuite) SetupWasmGrandpa() {
 
 func SetupTestingWithChannel() (ibctesting.TestingApp, map[string]json.RawMessage) {
 	db := dbm.NewMemDB()
-	encCdc := simapp.MakeTestEncodingConfig()
-	app := simapp.NewSimApp(log.NewNopLogger(), db, nil, true, map[int64]bool{}, simapp.DefaultNodeHome, 5, encCdc, simtestutil.EmptyAppOptions{})
-	genesisState := simapp.NewDefaultGenesisState(encCdc.Marshaler)
+	chainID := "simd"
+	app := simapp.NewSimApp(log.NewNopLogger(), db, nil, true, simtestutil.EmptyAppOptions{}, baseapp.SetChainID(chainID))
+	genesisState := app.DefaultGenesis()
 
 	bytes, err := os.ReadFile("../test_data/genesis.json")
 	if err != nil {
