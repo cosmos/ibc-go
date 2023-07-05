@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	destCallbackAddr = "cosmos1q4hx350dh0843y34n0vm4lfj6eh5qz4sqfrnq0"
+	callbackAddr = "cosmos1q4hx350dh0843y34n0vm4lfj6eh5qz4sqfrnq0"
 )
 
 func (suite *CallbacksTestSuite) TestFeeTransfer() {
@@ -28,12 +28,24 @@ func (suite *CallbacksTestSuite) TestFeeTransfer() {
 	suite.Require().True(suite.chainB.GetSimApp().MockKeeper.RecvPacketCallbackCounter.IsZero())
 
 	// send a transfer with a dest callback
-	suite.ExecuteTransfer(fmt.Sprintf(`{"callback": {"dest_callback_address": "%s"}}`, destCallbackAddr))
+	suite.ExecuteTransfer(fmt.Sprintf(`{"callback": {"dest_callback_address": "%s"}}`, callbackAddr))
 	// check that the dest callback was executed:
 	suite.Require().Equal(1, int(suite.chainB.GetSimApp().MockKeeper.RecvPacketCallbackCounter.Success))
 	suite.Require().Equal(0, int(suite.chainB.GetSimApp().MockKeeper.RecvPacketCallbackCounter.Failure))
 	suite.Require().True(suite.chainA.GetSimApp().MockKeeper.RecvPacketCallbackCounter.IsZero())
 	suite.Require().True(suite.chainA.GetSimApp().MockKeeper.AckCallbackCounter.IsZero())
+	suite.Require().True(suite.chainB.GetSimApp().MockKeeper.AckCallbackCounter.IsZero())
+	suite.Require().True(suite.chainA.GetSimApp().MockKeeper.TimeoutCallbackCounter.IsZero())
+	suite.Require().True(suite.chainB.GetSimApp().MockKeeper.TimeoutCallbackCounter.IsZero())
+
+	// send a transfer with a source callback
+	suite.ExecuteTransfer(fmt.Sprintf(`{"callback": {"src_callback_address": "%s"}}`, callbackAddr))
+	// check that the source callback was executed:
+	suite.Require().Equal(1, int(suite.chainA.GetSimApp().MockKeeper.AckCallbackCounter.Success))
+	suite.Require().Equal(0, int(suite.chainA.GetSimApp().MockKeeper.AckCallbackCounter.Failure))
+	suite.Require().True(suite.chainA.GetSimApp().MockKeeper.RecvPacketCallbackCounter.IsZero())
+	suite.Require().Equal(1, int(suite.chainB.GetSimApp().MockKeeper.RecvPacketCallbackCounter.Success))
+	suite.Require().Equal(0, int(suite.chainB.GetSimApp().MockKeeper.RecvPacketCallbackCounter.Failure))
 	suite.Require().True(suite.chainB.GetSimApp().MockKeeper.AckCallbackCounter.IsZero())
 	suite.Require().True(suite.chainA.GetSimApp().MockKeeper.TimeoutCallbackCounter.IsZero())
 	suite.Require().True(suite.chainB.GetSimApp().MockKeeper.TimeoutCallbackCounter.IsZero())
