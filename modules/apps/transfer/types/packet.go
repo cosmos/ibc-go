@@ -91,7 +91,7 @@ The Memo format is defined like so:
 		"dest_callback_address": {contractAddrOnDestChain},
 
 		// optional fields
-		"callback_msg": {jsonObjectForSourceChainCallback},
+		"callback_msg": {base64StringForCallback},
 	}
 }
 ```
@@ -171,10 +171,24 @@ func (ftpd FungibleTokenPacketData) GetUserDefinedCustomMessage() []byte {
 	return base64DecodedMsg
 }
 
-// UserDefinedGasLimit returns 0 (no-op). The gas limit of the executing
-// transaction will be used.
+// UserDefinedGasLimit returns the custom gas limit provided in the packet data memo.
+//
+// The memo is expected to specify the callback address in the following format:
+// { "callback": { ... , "gas_limit": {intForCallback} }
+//
+// If no gas limit is specified, 0 is returned.
 func (ftpd FungibleTokenPacketData) UserDefinedGasLimit() uint64 {
-	return 0
+	callbackData := ftpd.getCallbackData()
+	if callbackData == nil {
+		return 0
+	}
+
+	gasLimit, ok := callbackData["gas_limit"].(uint64)
+	if !ok {
+		return 0
+	}
+
+	return gasLimit
 }
 
 // getCallbackData returns the memo as `map[string]interface{}` so that it can be
