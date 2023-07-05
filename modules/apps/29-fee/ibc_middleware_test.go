@@ -1010,24 +1010,42 @@ func (suite *FeeTestSuite) TestOnChanUpgradeInit() {
 	testCases := []struct {
 		name     string
 		malleate func()
-		expPass  bool
+		expError error
 	}{
 		{
 			"success",
 			func() {},
-			true,
+			nil,
 		},
 		{
-			"upgrade version is not a fee version",
+			"invalid upgrade version",
 			func() {
 				path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = "invalid-version"
 				path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = "invalid-version"
 
 				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnChanUpgradeInit = func(_ sdk.Context, _, _ string, _ channeltypes.Order, _ []string, _ uint64, _, _ string) (string, error) {
-					return "", fmt.Errorf("mock fee app callback fails")
+					return "", ibcmock.MockApplicationCallbackError
 				}
 			},
-			false,
+			ibcmock.MockApplicationCallbackError,
+		},
+		{
+			"invalid fee version",
+			func() {
+				upgradeVersion := string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: "invalid-version", AppVersion: ibcmock.Version}))
+				path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = upgradeVersion
+				path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = upgradeVersion
+			},
+			types.ErrInvalidVersion,
+		},
+		{
+			"underlying app callback returns error",
+			func() {
+				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnChanUpgradeInit = func(_ sdk.Context, _, _ string, _ channeltypes.Order, _ []string, _ uint64, _, _ string) (string, error) {
+					return "", ibcmock.MockApplicationCallbackError
+				}
+			},
+			ibcmock.MockApplicationCallbackError,
 		},
 	}
 
@@ -1057,12 +1075,14 @@ func (suite *FeeTestSuite) TestOnChanUpgradeInit() {
 
 			isFeeEnabled := suite.chainA.GetSimApp().IBCFeeKeeper.IsFeeEnabled(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 
-			if tc.expPass {
-				suite.Require().NoError(err)
+			expPass := tc.expError == nil
+			if expPass {
 				suite.Require().True(isFeeEnabled)
+				suite.Require().NoError(err)
 			} else {
-				suite.Require().Error(err)
 				suite.Require().False(isFeeEnabled)
+				suite.Require().Error(err)
+				suite.Require().ErrorIs(err, tc.expError)
 			}
 		})
 	}
