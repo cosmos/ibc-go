@@ -34,7 +34,7 @@ func (k Keeper) ChanUpgradeInit(
 		return types.Upgrade{}, errorsmod.Wrapf(types.ErrInvalidChannelState, "expected %s, got %s", types.OPEN, channel.State)
 	}
 
-	if err := k.validateUpgradeFields(ctx, upgradeFields, channel); err != nil {
+	if err := k.validateSelfUpgradeFields(ctx, upgradeFields, channel); err != nil {
 		return types.Upgrade{}, err
 	}
 
@@ -699,47 +699,50 @@ func (k Keeper) startFlushUpgradeHandshake(
 		)
 	}
 
+	if err := k.checkForUpgradeCompatibility(ctx, proposedUpgradeFields, counterpartyUpgrade); err != nil {
+		return types.NewUpgradeError(channel.UpgradeSequence, err)
+	}
+
+	return nil
+}
+
+// checkForUpgradeCompatibility checks performs stateful validation of self upgrade fields relative to counterparty upgrade.
+func (k Keeper) checkForUpgradeCompatibility(ctx sdk.Context, proposedUpgradeFields types.UpgradeFields, counterpartyUpgrade types.Upgrade) error {
 	// assert that both sides propose the same channel ordering
 	if proposedUpgradeFields.Ordering != counterpartyUpgrade.Fields.Ordering {
-		return types.NewUpgradeError(channel.UpgradeSequence, errorsmod.Wrapf(
-			types.ErrIncompatibleCounterpartyUpgrade, "expected upgrade ordering (%s) to match counterparty upgrade ordering (%s)", proposedUpgradeFields.Ordering, counterpartyUpgrade.Fields.Ordering),
-		)
+		return errorsmod.Wrapf(types.ErrIncompatibleCounterpartyUpgrade, "expected upgrade ordering (%s) to match counterparty upgrade ordering (%s)", proposedUpgradeFields.Ordering, counterpartyUpgrade.Fields.Ordering)
 	}
 
 	proposedConnection, err := k.GetConnection(ctx, proposedUpgradeFields.ConnectionHops[0])
 	if err != nil {
 		// NOTE: this error is expected to be unreachable as the proposed upgrade connectionID should have been
 		// validated in the upgrade INIT and TRY handlers
-		return types.NewUpgradeError(channel.UpgradeSequence, errorsmod.Wrap(
-			err, "expected proposed connection to be found"),
-		)
+		return errorsmod.Wrap(err, "expected proposed connection to be found")
 	}
 
 	if proposedConnection.GetState() != int32(connectiontypes.OPEN) {
 		// NOTE: this error is expected to be unreachable as the proposed upgrade connectionID should have been
 		// validated in the upgrade INIT and TRY handlers
-		return types.NewUpgradeError(channel.UpgradeSequence, errorsmod.Wrapf(
-			connectiontypes.ErrInvalidConnectionState, "expected proposed connection to be OPEN (got %s)", connectiontypes.State(proposedConnection.GetState()).String()),
-		)
+		return errorsmod.Wrapf(connectiontypes.ErrInvalidConnectionState, "expected proposed connection to be OPEN (got %s)", connectiontypes.State(proposedConnection.GetState()).String())
 	}
 
 	// connectionHops can change in a channelUpgrade, however both sides must still be each other's counterparty.
 	if counterpartyUpgrade.Fields.ConnectionHops[0] != proposedConnection.GetCounterparty().GetConnectionID() {
-		return types.NewUpgradeError(channel.UpgradeSequence, errorsmod.Wrapf(
-			types.ErrIncompatibleCounterpartyUpgrade, "counterparty upgrade connection end is not a counterparty of self proposed connection end (%s != %s)", counterpartyUpgrade.Fields.ConnectionHops[0], proposedConnection.GetCounterparty().GetConnectionID()),
-		)
+		return errorsmod.Wrapf(
+			types.ErrIncompatibleCounterpartyUpgrade, "counterparty upgrade connection end is not a counterparty of self proposed connection end (%s != %s)", counterpartyUpgrade.Fields.ConnectionHops[0], proposedConnection.GetCounterparty().GetConnectionID())
 	}
+
 	return nil
 }
 
-// validateUpgradeFields validates the proposed upgrade fields against the existing channel.
+// validateSelfUpgradeFields validates the proposed upgrade fields against the existing channel.
 // It returns an error if the following constraints are not met:
 // - there exists at least one valid proposed change to the existing channel fields
 // - the proposed order is a subset of the existing order
 // - the proposed connection hops do not exist
 // - the proposed version is non-empty (checked in UpgradeFields.ValidateBasic())
 // - the proposed connection hops are not open
-func (k Keeper) validateUpgradeFields(ctx sdk.Context, proposedUpgrade types.UpgradeFields, currentChannel types.Channel) error {
+func (k Keeper) validateSelfUpgradeFields(ctx sdk.Context, proposedUpgrade types.UpgradeFields, currentChannel types.Channel) error {
 	currentFields := extractUpgradeFields(currentChannel)
 
 	if reflect.DeepEqual(proposedUpgrade, currentFields) {
