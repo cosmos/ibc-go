@@ -238,7 +238,7 @@ func (suite *KeeperTestSuite) TestHandleUpgradeProposal() {
 
 				// check that old upgraded client state is cleared
 				_, err = suite.chainA.GetSimApp().UpgradeKeeper.GetUpgradedClient(suite.chainA.GetContext(), oldPlan.Height)
-				suite.Require().NoError(err)
+				suite.Require().ErrorIs(err, upgradetypes.ErrNoUpgradedClientFound)
 
 				// check that client state was set
 				storedClientState, err := suite.chainA.GetSimApp().UpgradeKeeper.GetUpgradedClient(suite.chainA.GetContext(), plan.Height)
@@ -257,14 +257,13 @@ func (suite *KeeperTestSuite) TestHandleUpgradeProposal() {
 					suite.Require().NoError(err)
 					suite.Require().Equal(oldPlan, storedPlan)
 				} else {
-					suite.Require().NoError(err)
+					suite.Require().ErrorIs(err, upgradetypes.ErrNoUpgradePlanFound)
 					suite.Require().Empty(storedPlan)
 				}
 
 				// check that client state was not set
 				_, err = suite.chainA.GetSimApp().UpgradeKeeper.GetUpgradedClient(suite.chainA.GetContext(), plan.Height)
-				suite.Require().NoError(err)
-
+				suite.Require().ErrorIs(err, upgradetypes.ErrNoUpgradedClientFound)
 			}
 		})
 	}
