@@ -3,7 +3,6 @@ package simapp
 import (
 	"encoding/json"
 	"math/rand"
-	"testing"
 	"time"
 
 	dbm "github.com/cometbft/cometbft-db"
@@ -22,7 +21,6 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	"github.com/stretchr/testify/require"
 
 	"github.com/cosmos/ibc-go/v7/testing/mock"
 )
