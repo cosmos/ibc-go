@@ -135,14 +135,14 @@ func (k Keeper) RecvPacket(
 	}
 
 	if !collections.Contains(channel.State, []types.State{types.OPEN, types.TRYUPGRADE, types.ACKUPGRADE}) {
-		return errorsmod.Wrapf(types.ErrInvalidChannelState, "channel state was not one of [%s, %s, %s] (got %s)", types.OPEN.String(), types.TRYUPGRADE.String(), types.ACKUPGRADE.String(), channel.State.String())
+		return errorsmod.Wrapf(types.ErrInvalidChannelState, "expected channel state to be one of [%s, %s, %s], but got %s", types.OPEN.String(), types.TRYUPGRADE.String(), types.ACKUPGRADE.String(), channel.State.String())
 	}
 
 	// in the case of the channel being in TRYUPGRADE or ACKUPGRADE we need to ensure that the channel is not in flushing,
 	// and that the counterparty last sequence send is less than or equal to the packet sequence.
 	if counterpartyLastSequenceSend, found := k.GetCounterpartyLastPacketSequence(ctx, packet.GetDestPort(), packet.GetDestChannel()); found {
 		if channel.FlushStatus != types.FLUSHING || packet.GetSequence() > counterpartyLastSequenceSend {
-			return errorsmod.Wrapf(types.ErrInvalidChannelState, "expected channel flush status to not be (%s) and for the packet sequence (%d) to be less than or equal to the counterparty last sequence send (%d)", types.FLUSHING.String(), packet.GetSequence(), counterpartyLastSequenceSend)
+			return errorsmod.Wrapf(types.ErrInvalidFlushStatus, "expected channel flush status to be (%s) when counterparty last sequence send (%d) is set, failed to recv packet (%d)", types.FLUSHING, counterpartyLastSequenceSend, packet.GetSequence())
 		}
 	}
 
