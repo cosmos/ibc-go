@@ -1181,7 +1181,6 @@ func (suite *FeeTestSuite) TestOnChanUpgradeTry() {
 				if expUpgradeError, ok := tc.expError.(*channeltypes.UpgradeError); ok {
 					errorReceipt, found := suite.chainB.GetSimApp().GetIBCKeeper().ChannelKeeper.GetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 					suite.Require().True(found)
-
 					suite.Require().Equal(expUpgradeError.GetErrorReceipt(), errorReceipt)
 				}
 			}
