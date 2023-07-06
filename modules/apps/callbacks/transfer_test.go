@@ -29,16 +29,28 @@ func (suite *CallbacksTestSuite) TestTransferCallbacks() {
 			true,
 		},
 		{
-			"success: transfer with dest callback",
+			"success: dest callback",
 			fmt.Sprintf(`{"callback": {"dest_callback_address": "%s"}}`, callbackAddr),
 			types.CallbackTypeReceivePacket,
 			true,
 		},
 		{
-			"success: transfer with source callback",
+			"success: source callback",
 			fmt.Sprintf(`{"callback": {"src_callback_address": "%s"}}`, callbackAddr),
 			types.CallbackTypeAcknowledgement,
 			true,
+		},
+		{
+			"failure: dest callback with low gas",
+			fmt.Sprintf(`{"callback": {"dest_callback_address": "%s", "gas_limit": 100}}`, callbackAddr),
+			types.CallbackTypeReceivePacket,
+			false,
+		},
+		{
+			"failure: source callback with low gas",
+			fmt.Sprintf(`{"callback": {"src_callback_address": "%s", "gas_limit": 100}}`, callbackAddr),
+			types.CallbackTypeAcknowledgement,
+			false,
 		},
 	}
 
