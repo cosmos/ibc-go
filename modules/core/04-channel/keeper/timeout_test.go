@@ -247,8 +247,8 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 	}
 }
 
-// TestTimeoutExectued verifies that packet commitments are deleted on chainA after the
-// channel capabilities are verified. In addition, the test verified that the channel state
+// TestTimeoutExecuted verifies that packet commitments are deleted on chainA after the
+// channel capabilities are verified. In addition, the test verifies that the channel state
 // after a timeout is updated accordingly.
 func (suite *KeeperTestSuite) TestTimeoutExecuted() {
 	var (
