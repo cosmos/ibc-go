@@ -14,9 +14,9 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 
-	"github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm/client/cli"
-	"github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm/keeper"
-	"github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm/types"
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/client/cli"
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 )
 
 var (

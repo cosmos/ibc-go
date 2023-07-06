@@ -12,7 +12,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	sdkquery "github.com/cosmos/cosmos-sdk/types/query"
-	"github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm/types"
+
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 )
 
 var _ types.QueryServer = (*Keeper)(nil)

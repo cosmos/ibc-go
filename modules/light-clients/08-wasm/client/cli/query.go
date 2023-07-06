@@ -4,12 +4,13 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/spf13/cobra"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/version"
-	"github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm/types"
-	"github.com/spf13/cobra"
 
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
