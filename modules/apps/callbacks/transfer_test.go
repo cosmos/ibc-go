@@ -35,9 +35,34 @@ func (suite *CallbacksTestSuite) TestTransferCallbacks() {
 			true,
 		},
 		{
+			"success: dest callback with other json fields",
+			fmt.Sprintf(`{"callback": {"dest_callback_address": "%s"}, "something_else": {}}`, callbackAddr),
+			types.CallbackTypeReceivePacket,
+			true,
+		},
+		// Todo: add test case for two callbacks in the same memo
+		{
+			"success: dest callback with malformed json",
+			fmt.Sprintf(`{"callback": {"dest_callback_address": "%s"}, malformed}`, callbackAddr),
+			"none",
+			true,
+		},
+		{
 			"success: source callback",
 			fmt.Sprintf(`{"callback": {"src_callback_address": "%s"}}`, callbackAddr),
 			types.CallbackTypeAcknowledgement,
+			true,
+		},
+		{
+			"success: source callback with other json fields",
+			fmt.Sprintf(`{"callback": {"src_callback_address": "%s"}, "something_else": {}}`, callbackAddr),
+			types.CallbackTypeAcknowledgement,
+			true,
+		},
+		{
+			"success: source callback with malformed json",
+			fmt.Sprintf(`{"callback": {"src_callback_address": "%s"}, malformed}`, callbackAddr),
+			"none",
 			true,
 		},
 		{
@@ -58,6 +83,53 @@ func (suite *CallbacksTestSuite) TestTransferCallbacks() {
 		suite.SetupTransferTest()
 
 		suite.ExecuteTransfer(tc.transferMemo)
+		suite.AssertHasExecutedExpectedCallback(tc.expCallbackType, tc.expSuccess)
+	}
+}
+
+func (suite *CallbacksTestSuite) TestTransferTimeoutCallbacks() {
+	testCases := []struct {
+		name            string
+		transferMemo    string
+		expCallbackType string
+		expSuccess      bool
+	}{
+		{
+			"success: transfer with no memo",
+			"",
+			"none",
+			true,
+		},
+		{
+			"success: dest callback",
+			fmt.Sprintf(`{"callback": {"dest_callback_address": "%s"}}`, callbackAddr),
+			"none",
+			true,
+		},
+		{
+			"success: source callback",
+			fmt.Sprintf(`{"callback": {"src_callback_address": "%s"}}`, callbackAddr),
+			types.CallbackTypeTimeoutPacket,
+			true,
+		},
+		{
+			"success: dest callback with low gas",
+			fmt.Sprintf(`{"callback": {"dest_callback_address": "%s", "gas_limit": 100}}`, callbackAddr),
+			"none",
+			true,
+		},
+		{
+			"failure: source callback with low gas",
+			fmt.Sprintf(`{"callback": {"src_callback_address": "%s", "gas_limit": 100}}`, callbackAddr),
+			types.CallbackTypeTimeoutPacket,
+			false,
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.SetupTransferTest()
+
+		suite.ExecuteTransferTimeout(tc.transferMemo, 1)
 		suite.AssertHasExecutedExpectedCallback(tc.expCallbackType, tc.expSuccess)
 	}
 }
@@ -96,4 +168,35 @@ func (suite *CallbacksTestSuite) ExecuteTransfer(memo string) {
 	suite.Require().Equal(escrowBalance.Add(amount), suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), escrowAddress, sdk.DefaultBondDenom))
 	// check that the receiving address balance increased by 100
 	suite.Require().Equal(receiverBalance.AddAmount(sdk.NewInt(100)), suite.chainB.GetSimApp().BankKeeper.GetBalance(suite.chainB.GetContext(), suite.chainB.SenderAccount.GetAddress(), voucherDenomTrace.IBCDenom()))
+}
+
+// ExecuteTransferTimeout executes a transfer message on chainA for 100 denom.
+// This message is not relayed to chainB, and it times out on chainA.
+func (suite *CallbacksTestSuite) ExecuteTransferTimeout(memo string, nextSeqRecv uint64) {
+	timeoutHeight := clienttypes.GetSelfHeight(suite.chainB.GetContext())
+	timeoutTimestamp := uint64(suite.chainB.GetContext().BlockTime().UnixNano())
+
+	amount := sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100))
+	msg := transfertypes.NewMsgTransfer(
+		suite.path.EndpointA.ChannelConfig.PortID,
+		suite.path.EndpointA.ChannelID,
+		amount,
+		suite.chainA.SenderAccount.GetAddress().String(),
+		suite.chainB.SenderAccount.GetAddress().String(),
+		timeoutHeight, timeoutTimestamp, memo,
+	)
+
+	res, err := suite.chainA.SendMsgs(msg)
+	suite.Require().NoError(err) // message committed
+
+	packet, err := ibctesting.ParsePacketFromEvents(res.GetEvents().ToABCIEvents())
+	suite.Require().NoError(err) // packet committed
+	suite.Require().NotNil(packet)
+
+	// need to update chainA's client representing chainB to prove missing ack
+	err = suite.path.EndpointA.UpdateClient()
+	suite.Require().NoError(err)
+
+	err = suite.path.EndpointA.TimeoutPacket(packet)
+	suite.Require().NoError(err) // timeout committed
 }
