@@ -1,10 +1,12 @@
 package keeper_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
 
+	ibcerrors "github.com/cosmos/ibc-go/v7/internal/errors"
 	genesistypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/genesis/types"
 	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
@@ -24,6 +26,15 @@ var (
 		ControllerConnectionId: ibctesting.FirstConnectionID,
 		HostConnectionId:       ibctesting.FirstConnectionID,
 		Encoding:               icatypes.EncodingProtobuf,
+		TxType:                 icatypes.TxTypeSDKMultiMsg,
+	}))
+
+	// TestVersionWithJSONEncoding defines a reusable interchainaccounts version string that uses JSON encoding for testing purposes
+	TestVersionWithJSONEncoding = string(icatypes.ModuleCdc.MustMarshalJSON(&icatypes.Metadata{
+		Version:                icatypes.Version,
+		ControllerConnectionId: ibctesting.FirstConnectionID,
+		HostConnectionId:       ibctesting.FirstConnectionID,
+		Encoding:               icatypes.EncodingProto3JSON,
 		TxType:                 icatypes.TxTypeSDKMultiMsg,
 	}))
 )
@@ -46,14 +57,25 @@ func (suite *KeeperTestSuite) SetupTest() {
 	suite.chainC = suite.coordinator.GetChain(ibctesting.GetChainID(3))
 }
 
-func NewICAPath(chainA, chainB *ibctesting.TestChain) *ibctesting.Path {
+func NewICAPath(chainA, chainB *ibctesting.TestChain, encoding string) *ibctesting.Path {
 	path := ibctesting.NewPath(chainA, chainB)
+
+	var version string
+	switch encoding {
+	case icatypes.EncodingProtobuf:
+		version = TestVersion
+	case icatypes.EncodingProto3JSON:
+		version = TestVersionWithJSONEncoding
+	default:
+		panic(fmt.Sprintf("unsupported encoding type: %s", encoding))
+	}
+
 	path.EndpointA.ChannelConfig.PortID = icatypes.HostPortID
 	path.EndpointB.ChannelConfig.PortID = icatypes.HostPortID
 	path.EndpointA.ChannelConfig.Order = channeltypes.ORDERED
 	path.EndpointB.ChannelConfig.Order = channeltypes.ORDERED
-	path.EndpointA.ChannelConfig.Version = TestVersion
-	path.EndpointB.ChannelConfig.Version = TestVersion
+	path.EndpointA.ChannelConfig.Version = version
+	path.EndpointB.ChannelConfig.Version = version
 
 	return path
 }
@@ -88,7 +110,7 @@ func RegisterInterchainAccount(endpoint *ibctesting.Endpoint, owner string) erro
 
 	channelSequence := endpoint.Chain.App.GetIBCKeeper().ChannelKeeper.GetNextChannelSequence(endpoint.Chain.GetContext())
 
-	if err := endpoint.Chain.GetSimApp().ICAControllerKeeper.RegisterInterchainAccount(endpoint.Chain.GetContext(), endpoint.ConnectionID, owner, TestVersion); err != nil {
+	if err := endpoint.Chain.GetSimApp().ICAControllerKeeper.RegisterInterchainAccount(endpoint.Chain.GetContext(), endpoint.ConnectionID, owner, endpoint.ChannelConfig.Version); err != nil {
 		return err
 	}
 
@@ -109,7 +131,7 @@ func TestKeeperTestSuite(t *testing.T) {
 func (suite *KeeperTestSuite) TestIsBound() {
 	suite.SetupTest()
 
-	path := NewICAPath(suite.chainA, suite.chainB)
+	path := NewICAPath(suite.chainA, suite.chainB, icatypes.EncodingProtobuf)
 	suite.coordinator.SetupConnections(path)
 
 	err := SetupICAPath(path, TestOwnerAddress)
@@ -122,7 +144,7 @@ func (suite *KeeperTestSuite) TestIsBound() {
 func (suite *KeeperTestSuite) TestGetInterchainAccountAddress() {
 	suite.SetupTest()
 
-	path := NewICAPath(suite.chainA, suite.chainB)
+	path := NewICAPath(suite.chainA, suite.chainB, icatypes.EncodingProtobuf)
 	suite.coordinator.SetupConnections(path)
 
 	err := SetupICAPath(path, TestOwnerAddress)
@@ -147,7 +169,7 @@ func (suite *KeeperTestSuite) TestGetAllActiveChannels() {
 
 	suite.SetupTest()
 
-	path := NewICAPath(suite.chainA, suite.chainB)
+	path := NewICAPath(suite.chainA, suite.chainB, icatypes.EncodingProtobuf)
 	suite.coordinator.SetupConnections(path)
 
 	err := SetupICAPath(path, TestOwnerAddress)
@@ -181,7 +203,7 @@ func (suite *KeeperTestSuite) TestGetAllInterchainAccounts() {
 
 	suite.SetupTest()
 
-	path := NewICAPath(suite.chainA, suite.chainB)
+	path := NewICAPath(suite.chainA, suite.chainB, icatypes.EncodingProtobuf)
 	suite.coordinator.SetupConnections(path)
 
 	err := SetupICAPath(path, TestOwnerAddress)
@@ -213,7 +235,7 @@ func (suite *KeeperTestSuite) TestGetAllInterchainAccounts() {
 func (suite *KeeperTestSuite) TestIsActiveChannel() {
 	suite.SetupTest()
 
-	path := NewICAPath(suite.chainA, suite.chainB)
+	path := NewICAPath(suite.chainA, suite.chainB, icatypes.EncodingProtobuf)
 	suite.coordinator.SetupConnections(path)
 
 	err := SetupICAPath(path, TestOwnerAddress)
@@ -234,4 +256,15 @@ func (suite *KeeperTestSuite) TestSetInterchainAccountAddress() {
 	retrievedAddr, found := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), ibctesting.FirstConnectionID, expectedPortID)
 	suite.Require().True(found)
 	suite.Require().Equal(expectedAccAddr, retrievedAddr)
+}
+
+func (suite *KeeperTestSuite) TestMetadataNotFound() {
+	var (
+		invalidPortID    = "invalid-port"
+		invalidChannelID = "invalid-channel"
+	)
+
+	_, err := suite.chainB.GetSimApp().ICAHostKeeper.GetAppMetadata(suite.chainB.GetContext(), invalidPortID, invalidChannelID)
+	suite.Require().ErrorIs(err, ibcerrors.ErrNotFound)
+	suite.Require().Contains(err.Error(), fmt.Sprintf("app version not found for port %s and channel %s", invalidPortID, invalidChannelID))
 }
