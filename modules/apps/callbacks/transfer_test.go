@@ -40,7 +40,6 @@ func (suite *CallbacksTestSuite) TestTransferCallbacks() {
 			types.CallbackTypeReceivePacket,
 			true,
 		},
-		// Todo: add test case for two callbacks in the same memo
 		{
 			"success: dest callback with malformed json",
 			fmt.Sprintf(`{"callback": {"dest_callback_address": "%s"}, malformed}`, callbackAddr),
