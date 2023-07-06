@@ -4,6 +4,6 @@ const (
 	ModuleName = "ibccallbacks"
 
 	CallbackTypeAcknowledgement = "acknowledgement"
-	CallbackTypeTimeout         = "timeout"
+	CallbackTypeTimeoutPacket   = "timeout"
 	CallbackTypeReceivePacket   = "receive_packet"
 )

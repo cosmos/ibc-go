@@ -61,7 +61,7 @@ func (suite *CallbacksTestSuite) SetupICATest() {
 	suite.path.EndpointB.ChannelConfig.Version = ICAVersion
 }
 
-// HasExecutedExpectedCallback checks if the only the expected type od callback has been executed.
+// AssertHasExecutedExpectedCallback checks if the only the expected type of callback has been executed.
 // It assumes that the source chain is chainA and the destination chain is chainB.
 //
 // The callbackType can be one of the following:
@@ -85,7 +85,7 @@ func (suite *CallbacksTestSuite) AssertHasExecutedExpectedCallback(callbackType 
 		suite.Require().Equal(1-successCount, suite.chainB.GetSimApp().MockKeeper.RecvPacketCallbackCounter.Failure)
 		suite.Require().True(suite.chainA.GetSimApp().MockKeeper.TimeoutCallbackCounter.IsZero())
 		suite.Require().True(suite.chainB.GetSimApp().MockKeeper.AckCallbackCounter.IsZero())
-	case types.CallbackTypeTimeout:
+	case types.CallbackTypeTimeoutPacket:
 		suite.Require().Equal(successCount, suite.chainA.GetSimApp().MockKeeper.TimeoutCallbackCounter.Success)
 		suite.Require().Equal(1-successCount, suite.chainA.GetSimApp().MockKeeper.TimeoutCallbackCounter.Failure)
 		suite.Require().True(suite.chainA.GetSimApp().MockKeeper.AckCallbackCounter.IsZero())
