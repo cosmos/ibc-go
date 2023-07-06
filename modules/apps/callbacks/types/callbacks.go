@@ -18,7 +18,6 @@ type CallbackData struct {
 	SrcContractAddr  string
 	DestContractAddr string
 	GasLimit         uint64
-	CustomMsg        []byte
 }
 
 // GetCallbackData parses the packet data and returns the callback data. It ensures that the remaining
@@ -44,6 +43,5 @@ func GetCallbackData(app PacketUnmarshalerIBCModule, packet channeltypes.Packet,
 		SrcContractAddr:  callbackData.GetSourceCallbackAddress(),
 		DestContractAddr: callbackData.GetDestCallbackAddress(),
 		GasLimit:         gasLimit,
-		CustomMsg:        callbackData.GetUserDefinedCustomMessage(),
 	}, nil
 }

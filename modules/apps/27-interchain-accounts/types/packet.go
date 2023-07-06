@@ -1,7 +1,6 @@
 package types
 
 import (
-	"encoding/base64"
 	"encoding/json"
 	"time"
 
@@ -73,7 +72,6 @@ The Memo format is defined like so:
 		"src_callback_address": {contractAddrOnSourceChain},
 
 		// optional fields
-		"callback_msg": {base64StringForCallback},
 		"gas_limit": {intForCallback}
 	}
 }
@@ -108,33 +106,6 @@ func (iapd InterchainAccountPacketData) GetSourceCallbackAddress() string {
 // interchain accounts host submodule transaction execution.
 func (iapd InterchainAccountPacketData) GetDestCallbackAddress() string {
 	return ""
-}
-
-// GetUserDefinedCustomMessage returns the custom message provided in the packet data memo.
-// Custom message is expected to be base64 encoded.
-//
-// The memo is expected to specify the callback address in the following format:
-// { "callback": { ... , "callback_msg": {base64StringForCallback} }
-//
-// If no custom message is specified, nil is returned.
-func (iapd InterchainAccountPacketData) GetUserDefinedCustomMessage() []byte {
-	callbackData := iapd.getCallbackData()
-	if callbackData == nil {
-		return nil
-	}
-
-	callbackMsg, ok := callbackData["callback_msg"].(string)
-	if !ok {
-		return nil
-	}
-
-	// base64 decode the callback message
-	base64DecodedMsg, err := base64.StdEncoding.DecodeString(callbackMsg)
-	if err != nil {
-		return nil
-	}
-
-	return base64DecodedMsg
 }
 
 // UserDefinedGasLimit returns the custom gas limit provided in the packet data memo.

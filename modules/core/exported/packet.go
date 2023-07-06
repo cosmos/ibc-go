@@ -36,10 +36,6 @@ type CallbackPacketData interface {
 	// an empty string may be returned.
 	GetDestCallbackAddress() string
 
-	// GetUserDefinedCustomMessage should return a custom message defined by the sender of the packet.
-	// This message may be nil if no custom message was defined.
-	GetUserDefinedCustomMessage() []byte
-
 	// UserDefinedGasLimit allows the sender of the packet to define inside the packet data
 	// a gas limit for how much the ADR-8 callbacks can consume. If defined, this will be passed
 	// in as the gas limit so that the callback is guaranteed to complete within a specific limit.

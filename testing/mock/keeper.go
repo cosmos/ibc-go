@@ -46,7 +46,6 @@ func NewMockKeeper() MockKeeper {
 func (k MockContractKeeper) IBCAcknowledgementPacketCallback(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
-	customMsg []byte,
 	ackResult channeltypes.Acknowledgement,
 	relayer sdk.AccAddress,
 	contractAddr string,
@@ -88,7 +87,6 @@ func (k MockContractKeeper) IBCPacketTimeoutCallback(
 func (k MockContractKeeper) IBCReceivePacketCallback(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
-	customMsg []byte,
 	ackResult channeltypes.Acknowledgement,
 	relayer sdk.AccAddress,
 	contractAddr string,
