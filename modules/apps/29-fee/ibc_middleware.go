@@ -324,9 +324,8 @@ func (im IBCMiddleware) OnTimeoutPacket(
 func (im IBCMiddleware) OnChanUpgradeInit(ctx sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, sequence uint64, version, previousVersion string) (string, error) {
 	var versionMetadata types.Metadata
 	if err := types.ModuleCdc.UnmarshalJSON([]byte(version), &versionMetadata); err != nil {
-		// Since it is valid for fee version to not be specified, the above middleware version may be for a middleware
-		// lower down in the stack. Thus, if it is not a fee version we pass the entire version string onto the underlying
-		// application.
+		// Since it is valid for fee version to not be specified, the above upgrade version may be for a middleware
+		// or application further down in the stack. Thus, if it is not a fee version we pass the entire version string onto the underlying application.
 		return im.app.OnChanUpgradeInit(ctx, portID, channelID, order, connectionHops, sequence, version, previousVersion)
 	}
 
