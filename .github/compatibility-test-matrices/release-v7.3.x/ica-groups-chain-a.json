@@ -1,16 +1,18 @@
 {
   "chain-a": [
-    "release-v7.2.x"
+    "release-v7.3.x"
   ],
   "chain-b": [
     "v7.2.0",
-    "release-v7.2.x"
+    "v6.2.0",
+    "v6.1.1",
+    "release-v7.3.x"
   ],
   "entrypoint": [
-    "LocalhostTransferTestSuite"
+    "TestInterchainAccountsGroupsTestSuite"
   ],
   "test": [
-    "TestMsgTransfer_Localhost"
+    "TestInterchainAccountsGroupsIntegration"
   ],
   "relayer-type": [
     "rly"
