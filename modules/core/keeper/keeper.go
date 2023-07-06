@@ -67,7 +67,6 @@ func NewKeeper(
 	connectionKeeper := connectionkeeper.NewKeeper(cdc, key, paramSpace, clientKeeper)
 	portKeeper := portkeeper.NewKeeper(scopedKeeper)
 	channelKeeper := channelkeeper.NewKeeper(cdc, key, clientKeeper, connectionKeeper, portKeeper, scopedKeeper)
-
 	return &Keeper{
 		cdc:              cdc,
 		ClientKeeper:     clientKeeper,

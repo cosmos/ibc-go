@@ -79,6 +79,8 @@ type TestChain struct {
 
 	SenderAccounts []SenderAccount
 
+	// Use wasm client if true
+	UseWasmClient bool
 	// Short-term solution to override the logic of the standard SendMsgs function.
 	// See issue https://github.com/cosmos/ibc-go/issues/3123 for more information.
 	SendMsgsOverride func(msgs ...sdk.Msg) (*sdk.Result, error)
@@ -156,6 +158,7 @@ func NewTestChainWithValSet(tb testing.TB, coord *Coordinator, chainID string, v
 		SenderPrivKey:  senderAccs[0].SenderPrivKey,
 		SenderAccount:  senderAccs[0].SenderAccount,
 		SenderAccounts: senderAccs,
+		UseWasmClient:  false,
 	}
 
 	coord.CommitBlock(chain)
@@ -188,6 +191,12 @@ func NewTestChain(t *testing.T, coord *Coordinator, chainID string) *TestChain {
 	valSet := tmtypes.NewValidatorSet(validators)
 
 	return NewTestChainWithValSet(t, coord, chainID, valSet, signersByAddress)
+}
+
+// SetWasm
+func (chain *TestChain) SetWasm(wasm bool) *TestChain {
+	chain.UseWasmClient = wasm
+	return chain
 }
 
 // GetContext returns the current context for the application.
@@ -388,6 +397,7 @@ func (chain *TestChain) GetValsAtHeight(height int64) (*tmtypes.ValidatorSet, bo
 	if err != nil {
 		panic(err)
 	}
+
 	return tmtypes.NewValidatorSet(tmValidators), true
 }
 
@@ -446,6 +456,7 @@ func (chain *TestChain) ConstructUpdateTMClientHeaderWithTrustedHeight(counterpa
 	if err != nil {
 		return nil, err
 	}
+	trustedVals.TotalVotingPower = tmTrustedVals.TotalVotingPower()
 	header.TrustedValidators = trustedVals
 
 	return header, nil
@@ -512,11 +523,13 @@ func (chain *TestChain) CreateTMClientHeader(chainID string, blockHeight int64, 
 	if tmValSet != nil { //nolint:staticcheck
 		valSet, err = tmValSet.ToProto()
 		require.NoError(chain.TB, err)
+		valSet.TotalVotingPower = tmValSet.TotalVotingPower()
 	}
 
 	if tmTrustedVals != nil {
 		trustedVals, err = tmTrustedVals.ToProto()
 		require.NoError(chain.TB, err)
+		trustedVals.TotalVotingPower = tmTrustedVals.TotalVotingPower()
 	}
 
 	// The trusted fields may be nil. They may be filled before relaying messages to a client.

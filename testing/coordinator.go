@@ -26,6 +26,7 @@ type Coordinator struct {
 
 	CurrentTime time.Time
 	Chains      map[string]*TestChain
+	CodeID      []byte
 }
 
 // NewCoordinator initializes Coordinator with N TestChain's
@@ -44,6 +45,11 @@ func NewCoordinator(t *testing.T, n int) *Coordinator {
 	coord.Chains = chains
 
 	return coord
+}
+
+// SetCodeID sets the code ID of a wasm ligh client contract
+func (coord *Coordinator) SetCodeID(codeID []byte) {
+	coord.CodeID = codeID
 }
 
 // IncrementTime iterates through all the TestChain's and increments their current header time
