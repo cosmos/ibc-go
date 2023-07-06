@@ -341,14 +341,13 @@ func (chain *TestChain) SendMsgs(msgs ...sdk.Msg) (*sdk.Result, error) {
 	chain.Coordinator.UpdateTimeForChain(chain)
 
 	_, r, err := simapp.SignAndDeliver(
-		chain.TB,
 		chain.TxConfig,
 		chain.App.GetBaseApp(),
 		msgs,
 		chain.ChainID,
 		[]uint64{chain.SenderAccount.GetAccountNumber()},
 		[]uint64{chain.SenderAccount.GetSequence()},
-		true, chain.SenderPrivKey,
+		chain.SenderPrivKey,
 	)
 	if err != nil {
 		return nil, err
