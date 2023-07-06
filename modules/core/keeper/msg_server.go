@@ -746,6 +746,7 @@ func (k Keeper) ChannelUpgradeInit(goCtx context.Context, msg *channeltypes.MsgC
 		ChannelId:       msg.ChannelId,
 		Upgrade:         proposedUpgrade,
 		UpgradeSequence: channel.UpgradeSequence,
+		Result:          channeltypes.SUCCESS,
 	}, nil
 }
 
@@ -878,7 +879,9 @@ func (k Keeper) ChannelUpgradeOpen(goCtx context.Context, msg *channeltypes.MsgC
 
 	ctx.Logger().Info("channel upgrade open succeeded", "port-id", msg.PortId, "channel-id", msg.ChannelId)
 
-	return &channeltypes.MsgChannelUpgradeOpenResponse{}, nil
+	return &channeltypes.MsgChannelUpgradeOpenResponse{
+		Result: channeltypes.SUCCESS,
+	}, nil
 }
 
 // ChannelUpgradeTimeout defines a rpc handler method for MsgChannelUpgradeTimeout.
@@ -939,5 +942,7 @@ func (k Keeper) ChannelUpgradeCancel(goCtx context.Context, msg *channeltypes.Ms
 
 	ctx.Logger().Info("channel upgrade cancel succeeded", "port-id", msg.PortId, "channel-id", msg.ChannelId)
 
-	return &channeltypes.MsgChannelUpgradeCancelResponse{}, nil
+	return &channeltypes.MsgChannelUpgradeCancelResponse{
+		Result: channeltypes.SUCCESS,
+	}, nil
 }

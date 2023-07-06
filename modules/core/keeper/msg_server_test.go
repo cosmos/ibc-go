@@ -1091,6 +1091,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeOpen() {
 			func(res *channeltypes.MsgChannelUpgradeOpenResponse, err error) {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
+				suite.Require().Equal(channeltypes.SUCCESS, res.Result)
 
 				channel := path.EndpointA.GetChannel()
 				suite.Require().Equal(channeltypes.OPEN, channel.State)
@@ -1280,6 +1281,9 @@ func (suite *KeeperTestSuite) TestChannelUpgradeCancel() {
 			expPass := tc.expErr == nil
 			if expPass {
 				suite.Require().NoError(err)
+				suite.Require().NotNil(res)
+				suite.Require().Equal(channeltypes.SUCCESS, res.Result)
+
 				channel := path.EndpointA.GetChannel()
 				suite.Require().Equal(prevChannel.Version, channel.Version, "channel version should be reverted")
 				suite.Require().Equalf(channeltypes.OPEN, channel.State, "channel state should be %s", channeltypes.OPEN.String())
