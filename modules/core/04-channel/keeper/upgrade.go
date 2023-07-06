@@ -803,7 +803,7 @@ func (k Keeper) constructProposedUpgrade(ctx sdk.Context, portID, channelID stri
 }
 
 // MustAbortUpgrade will restore the channel state and flush status to their pre-upgrade state so that upgrade is aborted.
-// any unnecessary state is deleted. An error receipt is written, and the OnChanUpgradeRestore callback is called.
+// Any unnecessary state is deleted and an error receipt is written.
 // This function is expected to always succeed, a panic will occur if an error occurs.
 func (k Keeper) MustAbortUpgrade(ctx sdk.Context, portID, channelID string, err error) {
 	if err := k.abortUpgrade(ctx, portID, channelID, err); err != nil {
@@ -812,7 +812,7 @@ func (k Keeper) MustAbortUpgrade(ctx sdk.Context, portID, channelID string, err 
 }
 
 // abortUpgrade will restore the channel state and flush status to their pre-upgrade state so that upgrade is aborted.
-// any unnecessary state is deleted. An error receipt is written, and the OnChanUpgradeRestore callback is called.
+// Any unnecessary state is delete and an error receipt is written.
 func (k Keeper) abortUpgrade(ctx sdk.Context, portID, channelID string, err error) error {
 	if err == nil {
 		return errorsmod.Wrap(types.ErrInvalidUpgradeError, "cannot abort upgrade handshake with nil error")
