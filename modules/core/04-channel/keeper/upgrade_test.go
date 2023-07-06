@@ -1212,7 +1212,7 @@ func (suite *KeeperTestSuite) TestValidateUpgradeFields() {
 
 			tc.malleate()
 
-			err := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.ValidateUpgradeFields(suite.chainA.GetContext(), *proposedUpgrade, existingChannel)
+			err := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.ValidateSelfUpgradeFields(suite.chainA.GetContext(), *proposedUpgrade, existingChannel)
 			if tc.expPass {
 				suite.Require().NoError(err)
 			} else {
@@ -1305,10 +1305,10 @@ func (suite *KeeperTestSuite) TestAbortHandshake() {
 
 			tc.malleate()
 
-			err := channelKeeper.AbortUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, upgradeError)
-
 			if tc.expPass {
-				suite.Require().NoError(err)
+				suite.Require().NotPanics(func() {
+					channelKeeper.MustAbortUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, upgradeError)
+				})
 
 				channel, found := channelKeeper.GetChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 				suite.Require().True(found, "channel should be found")
@@ -1329,7 +1329,11 @@ func (suite *KeeperTestSuite) TestAbortHandshake() {
 				suite.Require().False(found, "counterparty last packet sequence should not be found")
 
 			} else {
-				suite.Require().Error(err)
+
+				suite.Require().Panics(func() {
+					channelKeeper.MustAbortUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, upgradeError)
+				})
+
 				channel, found := channelKeeper.GetChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 				if found { // test cases uses a channel that exists
 					suite.Require().Equal(types.INITUPGRADE, channel.State, "channel state should not be restored to %s", types.INITUPGRADE.String())
