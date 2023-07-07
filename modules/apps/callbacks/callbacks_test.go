@@ -12,6 +12,14 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
+var (
+	// defaultOwnerAddress defines a reusable bech32 address for testing purposes
+	defaultOwnerAddress = "cosmos17dtl0mjt3t77kpuhg2edqzjpszulwhgzuj9ljs"
+
+	// ICAControllerPortID defines a reusable port identifier for testing purposes
+	ICAControllerPortID, _ = icatypes.NewControllerPortID(defaultOwnerAddress)
+)
+
 // CallbacksTestSuite defines the needed instances and methods to test callbacks
 type CallbacksTestSuite struct {
 	suite.Suite
@@ -53,12 +61,14 @@ func (suite *CallbacksTestSuite) SetupICATest() {
 	// ICAVersion defines a reusable interchainaccounts version string for testing purposes
 	ICAVersion := icatypes.NewDefaultMetadataString(suite.path.EndpointA.ConnectionID, suite.path.EndpointB.ConnectionID)
 
-	suite.path.EndpointA.ChannelConfig.PortID = icatypes.HostPortID
+	suite.path.EndpointA.ChannelConfig.PortID = ICAControllerPortID
 	suite.path.EndpointB.ChannelConfig.PortID = icatypes.HostPortID
 	suite.path.EndpointA.ChannelConfig.Order = channeltypes.ORDERED
 	suite.path.EndpointB.ChannelConfig.Order = channeltypes.ORDERED
 	suite.path.EndpointA.ChannelConfig.Version = ICAVersion
 	suite.path.EndpointB.ChannelConfig.Version = ICAVersion
+
+	suite.coordinator.Setup(suite.path)
 }
 
 // AssertHasExecutedExpectedCallback checks if the only the expected type of callback has been executed.
