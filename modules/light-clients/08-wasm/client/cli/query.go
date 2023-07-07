@@ -12,7 +12,6 @@ import (
 
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
-	"github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm/types"
 )
 
 // getCmdCode defines the command to query wasm code for given code ID.
