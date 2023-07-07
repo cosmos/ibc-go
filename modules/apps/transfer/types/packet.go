@@ -135,12 +135,12 @@ func (ftpd FungibleTokenPacketData) GetDestCallbackAddress() string {
 		return ""
 	}
 
-	srcCallbackAddress, ok := callbackData["dest_callback_address"].(string)
+	destCallbackAddress, ok := callbackData["dest_callback_address"].(string)
 	if !ok {
 		return ""
 	}
 
-	return srcCallbackAddress
+	return destCallbackAddress
 }
 
 // UserDefinedGasLimit returns the custom gas limit provided in the packet data memo.
