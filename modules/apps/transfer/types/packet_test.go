@@ -146,18 +146,18 @@ func (suite *TypesTestSuite) TestGetDestCallbackAddress() {
 		expAddress string
 	}{
 		{
-			"success: memo has callbacks in json struct and properly formatted dest_callback_address which does not match packet sender",
+			"success: memo has callbacks in json struct and properly formatted dest_callback_address which does not match packet receiver",
 			types.FungibleTokenPacketData{
 				Denom:    denom,
 				Amount:   amount,
 				Sender:   sender,
 				Receiver: receiver,
-				Memo:     fmt.Sprintf(`{"callback": {"dest_callback_address": "%s"}}`, sender),
+				Memo:     fmt.Sprintf(`{"callback": {"dest_callback_address": "%s"}}`, receiver),
 			},
-			sender,
+			receiver,
 		},
 		{
-			"success: valid dest_callback_address specified in memo that matches sender",
+			"success: valid dest_callback_address specified in memo that matches receiver",
 			types.FungibleTokenPacketData{
 				Denom:    denom,
 				Amount:   amount,
