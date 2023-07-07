@@ -50,25 +50,30 @@ func (suite *CallbacksTestSuite) SetupTransferTest() {
 }
 
 // SetupICATest sets up an interchain accounts channel between chainA (controller) and chainB (host).
-// It funds and returns the interchain account address.
+// It funds and returns the interchain account address owned by chainA's SenderAccount.
 func (suite *CallbacksTestSuite) SetupICATest() string {
 	suite.setupChains()
 
 	suite.path = ibctesting.NewPath(suite.chainA, suite.chainB)
+	suite.coordinator.SetupConnections(suite.path)
 
+	icaOwner := suite.chainA.SenderAccount.GetAddress().String()
 	// ICAVersion defines a interchain accounts version string
 	ICAVersion := icatypes.NewDefaultMetadataString(suite.path.EndpointA.ConnectionID, suite.path.EndpointB.ConnectionID)
-	ICAControllerPortID, err := icatypes.NewControllerPortID(suite.chainA.SenderAccount.GetAddress().String())
+	ICAControllerPortID, err := icatypes.NewControllerPortID(icaOwner)
 	suite.Require().NoError(err)
 
+	suite.path.SetChannelOrdered()
 	suite.path.EndpointA.ChannelConfig.PortID = ICAControllerPortID
 	suite.path.EndpointB.ChannelConfig.PortID = icatypes.HostPortID
-	suite.path.EndpointA.ChannelConfig.Order = channeltypes.ORDERED
-	suite.path.EndpointB.ChannelConfig.Order = channeltypes.ORDERED
 	suite.path.EndpointA.ChannelConfig.Version = ICAVersion
 	suite.path.EndpointB.ChannelConfig.Version = ICAVersion
 
-	suite.coordinator.Setup(suite.path)
+	suite.RegisterInterchainAccount(icaOwner)
+	// open chan init must be skipped. So we cannot use .CreateChannels()
+	suite.path.EndpointB.ChanOpenTry()
+	suite.path.EndpointA.ChanOpenAck()
+	suite.path.EndpointB.ChanOpenConfirm()
 
 	interchainAccountAddr, found := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), suite.path.EndpointA.ConnectionID, suite.path.EndpointA.ChannelConfig.PortID)
 	suite.Require().True(found)
@@ -84,6 +89,25 @@ func (suite *CallbacksTestSuite) SetupICATest() string {
 	suite.Require().NoError(err)
 
 	return interchainAccountAddr
+}
+
+// RegisterInterchainAccount invokes the the InterchainAccounts entrypoint, routes a new MsgChannelOpenInit to the appropriate handler,
+// commits state changes and updates the testing endpoint accordingly on chainA.
+func (suite *CallbacksTestSuite) RegisterInterchainAccount(owner string) {
+	portID, err := icatypes.NewControllerPortID(owner)
+	suite.Require().NoError(err)
+
+	channelSequence := suite.chainA.GetSimApp().GetIBCKeeper().ChannelKeeper.GetNextChannelSequence(suite.chainA.GetContext())
+
+	err = suite.chainA.GetSimApp().ICAControllerKeeper.RegisterInterchainAccount(suite.chainA.GetContext(), suite.path.EndpointA.ConnectionID, owner, suite.path.EndpointA.ChannelConfig.Version)
+	suite.Require().NoError(err)
+
+	// commit state changes for proof verification
+	suite.chainA.NextBlock()
+
+	// update port/channel ids
+	suite.path.EndpointA.ChannelID = channeltypes.FormatChannelIdentifier(channelSequence)
+	suite.path.EndpointA.ChannelConfig.PortID = portID
 }
 
 // AssertHasExecutedExpectedCallback checks if the only the expected type of callback has been executed.

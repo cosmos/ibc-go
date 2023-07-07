@@ -40,14 +40,26 @@ func (suite *CallbacksTestSuite) TestICACallbacks() {
 
 	for _, tc := range testCases {
 		icaAddr := suite.SetupICATest()
+
+		suite.ExecuteICATx(icaAddr, tc.transferMemo, 1)
 	}
 }
 
-func (suite *CallbacksTestSuite) ExecuteICATx(icaAddress, memo string) {
+// ExecuteICATx executes a stakingtypes.MsgDelegate on chainB by sending a packet containing the msg to chainB
+func (suite *CallbacksTestSuite) ExecuteICATx(icaAddress, memo string, seq uint64) {
 	// build the interchain accounts packet
-	packet := suite.buildICAMsgDelegatePacket(icaAddress, 1)
+	packet := suite.buildICAMsgDelegatePacket(icaAddress, seq)
+
+	// write packet commitment to state on chainA and commit state
+	commitment := channeltypes.CommitPacket(suite.chainA.GetSimApp().AppCodec(), packet)
+	suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.SetPacketCommitment(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, seq, commitment)
+	suite.chainA.NextBlock()
+
+	err := suite.path.RelayPacket(packet)
+	suite.Require().NoError(err)
 }
 
+// buildICAMsgDelegatePacket builds a packet containing a stakingtypes.MsgDelegate to be executed on chainB
 func (suite *CallbacksTestSuite) buildICAMsgDelegatePacket(icaAddress string, seq uint64) channeltypes.Packet {
 	// prepare a simple stakingtypes.MsgDelegate to be used as the interchain account msg executed on chainB
 	validatorAddr := (sdk.ValAddress)(suite.chainB.Vals.Validators[0].Address)
@@ -68,7 +80,7 @@ func (suite *CallbacksTestSuite) buildICAMsgDelegatePacket(icaAddress string, se
 		Type: icatypes.EXECUTE_TX,
 		Data: data,
 	}
-	
+
 	packet := channeltypes.NewPacket(
 		icaPacketData.GetBytes(),
 		seq,
