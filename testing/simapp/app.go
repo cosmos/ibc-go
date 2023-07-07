@@ -331,7 +331,7 @@ func NewSimApp(
 		upgradetypes.StoreKey, feegrant.StoreKey,
 		evidencetypes.StoreKey, consensusparamtypes.StoreKey, authzkeeper.StoreKey,
 		ibctransfertypes.StoreKey, icacontrollertypes.StoreKey, icahosttypes.StoreKey, capabilitytypes.StoreKey,
-		ibcfeetypes.StoreKey, ibcexported.StoreKey, ibcwasmtypes.StoreKey, 
+		ibcfeetypes.StoreKey, ibcexported.StoreKey, ibcwasmtypes.StoreKey,
 	)
 
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
@@ -665,7 +665,7 @@ func NewSimApp(
 		slashingtypes.ModuleName, govtypes.ModuleName, minttypes.ModuleName, crisistypes.ModuleName,
 		ibcexported.ModuleName, genutiltypes.ModuleName, evidencetypes.ModuleName, authz.ModuleName, ibctransfertypes.ModuleName,
 		icatypes.ModuleName, ibcfeetypes.ModuleName, ibcmock.ModuleName, feegrant.ModuleName, paramstypes.ModuleName, upgradetypes.ModuleName,
-		vestingtypes.ModuleName, group.ModuleName, consensusparamtypes.ModuleName, ibcwasmtypes.ModuleName, 
+		vestingtypes.ModuleName, group.ModuleName, consensusparamtypes.ModuleName, ibcwasmtypes.ModuleName,
 	}
 	app.ModuleManager.SetOrderInitGenesis(genesisModuleOrder...)
 	app.ModuleManager.SetOrderExportGenesis(genesisModuleOrder...)
