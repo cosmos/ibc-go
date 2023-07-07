@@ -5,10 +5,14 @@ import (
 	"os"
 	"testing"
 
-	"github.com/cosmos/cosmos-sdk/baseapp"
+	"github.com/stretchr/testify/require"
+
+	"github.com/cosmos/cosmos-sdk/client/flags"
+	"github.com/cosmos/cosmos-sdk/server"
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
+	simcli "github.com/cosmos/cosmos-sdk/x/simulation/client/cli"
 
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 )
@@ -17,30 +21,38 @@ import (
 // /usr/local/go/bin/go test -benchmem -run=^$ github.com/cosmos/ibc-go/v7/testing/simapp -bench ^BenchmarkFullAppSimulation$ -Commit=true -cpuprofile cpu.out
 func BenchmarkFullAppSimulation(b *testing.B) {
 	b.ReportAllocs()
-	config, db, dir, logger, _, err := SetupSimulation("goleveldb-app-sim", "Simulation")
+
+	config := simcli.NewConfigFromFlags()
+
+	db, dir, logger, skip, err := simtestutil.SetupSimulation(config, "goleveldb-app-sim", "Simulation", simcli.FlagVerboseValue, simcli.FlagEnabledValue)
 	if err != nil {
 		b.Fatalf("simulation setup failed: %s", err.Error())
 	}
 
+	if skip {
+		b.Skip("skipping benchmark application simulation")
+	}
+
 	defer func() {
-		db.Close()
-		err = os.RemoveAll(dir)
-		if err != nil {
-			b.Fatal(err)
-		}
+		require.NoError(b, db.Close())
+		require.NoError(b, os.RemoveAll(dir))
 	}()
 
-	app := NewSimApp(logger, db, nil, true, map[int64]bool{}, DefaultNodeHome, FlagPeriodValue, MakeTestEncodingConfig(), simtestutil.EmptyAppOptions{}, interBlockCacheOpt(), baseapp.SetChainID(SimAppChainID))
+	appOptions := make(simtestutil.AppOptionsMap, 0)
+	appOptions[flags.FlagHome] = DefaultNodeHome
+	appOptions[server.FlagInvCheckPeriod] = simcli.FlagPeriodValue
+
+	app := NewSimApp(logger, db, nil, true, appOptions, interBlockCacheOpt())
 
 	// run randomized simulation
 	_, simParams, simErr := simulation.SimulateFromSeed(
 		b,
 		os.Stdout,
 		app.BaseApp,
-		AppStateFn(app.AppCodec(), app.SimulationManager()),
+		simtestutil.AppStateFn(app.AppCodec(), app.SimulationManager(), app.DefaultGenesis()),
 		simtypes.RandomAccounts, // Replace with own random account function if using keys other than secp256k1
 		simtestutil.SimulationOperations(app, app.AppCodec(), config),
-		app.ModuleAccountAddrs(),
+		BlockedAddresses(),
 		config,
 		app.AppCodec(),
 	)
@@ -61,32 +73,41 @@ func BenchmarkFullAppSimulation(b *testing.B) {
 
 func BenchmarkInvariants(b *testing.B) {
 	b.ReportAllocs()
-	config, db, dir, logger, _, err := SetupSimulation("leveldb-app-invariant-bench", "Simulation")
+
+	config := simcli.NewConfigFromFlags()
+	config.ChainID = SimAppChainID
+
+	db, dir, logger, skip, err := simtestutil.SetupSimulation(config, "leveldb-app-invariant-bench", "Simulation", simcli.FlagVerboseValue, simcli.FlagEnabledValue)
 	if err != nil {
 		b.Fatalf("simulation setup failed: %s", err.Error())
+	}
+
+	if skip {
+		b.Skip("skipping benchmark application simulation")
 	}
 
 	config.AllInvariants = false
 
 	defer func() {
-		db.Close()
-		err = os.RemoveAll(dir)
-		if err != nil {
-			b.Fatal(err)
-		}
+		require.NoError(b, db.Close())
+		require.NoError(b, os.RemoveAll(dir))
 	}()
 
-	app := NewSimApp(logger, db, nil, true, map[int64]bool{}, DefaultNodeHome, FlagPeriodValue, MakeTestEncodingConfig(), simtestutil.EmptyAppOptions{}, interBlockCacheOpt(), baseapp.SetChainID(SimAppChainID))
+	appOptions := make(simtestutil.AppOptionsMap, 0)
+	appOptions[flags.FlagHome] = DefaultNodeHome
+	appOptions[server.FlagInvCheckPeriod] = simcli.FlagPeriodValue
+
+	app := NewSimApp(logger, db, nil, true, appOptions, interBlockCacheOpt())
 
 	// run randomized simulation
 	_, simParams, simErr := simulation.SimulateFromSeed(
 		b,
 		os.Stdout,
 		app.BaseApp,
-		AppStateFn(app.AppCodec(), app.SimulationManager()),
+		simtestutil.AppStateFn(app.AppCodec(), app.SimulationManager(), app.DefaultGenesis()),
 		simtypes.RandomAccounts, // Replace with own random account function if using keys other than secp256k1
 		simtestutil.SimulationOperations(app, app.AppCodec(), config),
-		app.ModuleAccountAddrs(),
+		BlockedAddresses(),
 		config,
 		app.AppCodec(),
 	)

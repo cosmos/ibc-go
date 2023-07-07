@@ -2,8 +2,6 @@ syntax = "proto3";
 
 package ibc.core.module.v1;
 
-option go_package = "github.com/cosmos/ibc-go/v7/modules/core/module/v1";
-
 import "cosmos/app/v1alpha1/module.proto";
 
 // Module is the config object of the core module.

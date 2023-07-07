@@ -20,9 +20,8 @@ jobs:
           - release/v5.3.x
           - release/v6.1.x
           - release/v6.2.x
-          - release/v7.0.x
-          - release/v7.1.x
           - release/v7.2.x
+          - release/v7.3.x
     steps:
       - uses: actions/checkout@v3
         with:
