@@ -9,9 +9,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
+
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
+	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
@@ -109,19 +110,32 @@ func (cs ClientState) GetTimestampAtHeight(
 	return consState.GetTimestamp(), nil
 }
 
+type instantiateMessage struct {
+	ClientState    *ClientState    `json:"client_state"`
+	ConsensusState *ConsensusState `json:"consensus_state"`
+}
+
 // Initialize checks that the initial consensus state is an 08-wasm consensus state and
 // sets the client state, consensus state in the provided client store.
 // It also initializes the wasm contract for the client.
-func (cs ClientState) Initialize(ctx sdk.Context, marshaler codec.BinaryCodec, clientStore sdk.KVStore, state exported.ConsensusState) error {
+func (cs ClientState) Initialize(ctx sdk.Context, _ codec.BinaryCodec, clientStore sdk.KVStore, state exported.ConsensusState) error {
 	consensusState, ok := state.(*ConsensusState)
 	if !ok {
 		return sdkerrors.Wrapf(clienttypes.ErrInvalidConsensus, "invalid initial consensus state. expected type: %T, got: %T",
 			&ConsensusState{}, state)
 	}
-	setClientState(clientStore, marshaler, &cs)
-	setConsensusState(clientStore, marshaler, consensusState, cs.GetLatestHeight())
 
-	_, err := initContract(ctx, clientStore, cs.CodeId)
+	payload := instantiateMessage{
+		ClientState:    &cs,
+		ConsensusState: consensusState,
+	}
+
+	encodedData, err := json.Marshal(payload)
+	if err != nil {
+		return sdkerrors.Wrapf(err, "failed to marshal payload for wasm contract instantiation")
+	}
+
+	_, err = initContract(ctx, clientStore, cs.CodeId, encodedData)
 	if err != nil {
 		return sdkerrors.Wrapf(err, "failed to initialize contract")
 	}
