@@ -3,6 +3,11 @@ package ibccallbacks_test
 import (
 	"testing"
 
+	sdkmath "cosmossdk.io/math"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+
 	"github.com/stretchr/testify/suite"
 
 	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
@@ -10,14 +15,6 @@ import (
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
-)
-
-var (
-	// defaultOwnerAddress defines a reusable bech32 address for testing purposes
-	defaultOwnerAddress = "cosmos17dtl0mjt3t77kpuhg2edqzjpszulwhgzuj9ljs"
-
-	// ICAControllerPortID defines a reusable port identifier for testing purposes
-	ICAControllerPortID, _ = icatypes.NewControllerPortID(defaultOwnerAddress)
 )
 
 // CallbacksTestSuite defines the needed instances and methods to test callbacks
@@ -52,14 +49,17 @@ func (suite *CallbacksTestSuite) SetupTransferTest() {
 	suite.coordinator.Setup(suite.path)
 }
 
-// SetupICATest sets up an interchain accounts channel between chainA and chainB
-func (suite *CallbacksTestSuite) SetupICATest() {
+// SetupICATest sets up an interchain accounts channel between chainA (controller) and chainB (host).
+// It funds and returns the interchain account address.
+func (suite *CallbacksTestSuite) SetupICATest() string {
 	suite.setupChains()
 
 	suite.path = ibctesting.NewPath(suite.chainA, suite.chainB)
 
-	// ICAVersion defines a reusable interchainaccounts version string for testing purposes
+	// ICAVersion defines a interchain accounts version string
 	ICAVersion := icatypes.NewDefaultMetadataString(suite.path.EndpointA.ConnectionID, suite.path.EndpointB.ConnectionID)
+	ICAControllerPortID, err := icatypes.NewControllerPortID(suite.chainA.SenderAccount.GetAddress().String())
+	suite.Require().NoError(err)
 
 	suite.path.EndpointA.ChannelConfig.PortID = ICAControllerPortID
 	suite.path.EndpointB.ChannelConfig.PortID = icatypes.HostPortID
@@ -69,6 +69,21 @@ func (suite *CallbacksTestSuite) SetupICATest() {
 	suite.path.EndpointB.ChannelConfig.Version = ICAVersion
 
 	suite.coordinator.Setup(suite.path)
+
+	interchainAccountAddr, found := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), suite.path.EndpointA.ConnectionID, suite.path.EndpointA.ChannelConfig.PortID)
+	suite.Require().True(found)
+
+	// fund the interchain account on chainB
+	msgBankSend := &banktypes.MsgSend{
+		FromAddress: suite.chainB.SenderAccount.GetAddress().String(),
+		ToAddress:   interchainAccountAddr,
+		Amount:      sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100000))),
+	}
+	res, err := suite.chainB.SendMsgs(msgBankSend)
+	suite.Require().NotEmpty(res)
+	suite.Require().NoError(err)
+
+	return interchainAccountAddr
 }
 
 // AssertHasExecutedExpectedCallback checks if the only the expected type of callback has been executed.
