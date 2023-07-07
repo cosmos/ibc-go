@@ -184,7 +184,7 @@ func (suite *FeeTestSuite) TestFeeInterchainAccounts() {
 func buildInterchainAccountsPacket(path *ibctesting.Path, data []byte, seq uint64) channeltypes.Packet {
 	packet := channeltypes.NewPacket(
 		data,
-		1,
+		seq,
 		path.EndpointA.ChannelConfig.PortID,
 		path.EndpointA.ChannelID,
 		path.EndpointB.ChannelConfig.PortID,
