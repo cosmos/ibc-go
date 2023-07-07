@@ -33,7 +33,6 @@ import (
 	"github.com/cosmos/ibc-go/v7/modules/core/client/cli"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	"github.com/cosmos/ibc-go/v7/modules/core/keeper"
-	modulev1 "github.com/cosmos/ibc-go/v7/modules/core/module/v1"
 	"github.com/cosmos/ibc-go/v7/modules/core/simulation"
 	"github.com/cosmos/ibc-go/v7/modules/core/types"
 )
