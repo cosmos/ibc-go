@@ -3,12 +3,12 @@ package ibccallbacks_test
 import (
 	"testing"
 
+	"github.com/stretchr/testify/suite"
+
 	sdkmath "cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-
-	"github.com/stretchr/testify/suite"
 
 	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
 	"github.com/cosmos/ibc-go/v7/modules/apps/callbacks/types"
@@ -71,9 +71,12 @@ func (suite *CallbacksTestSuite) SetupICATest() string {
 
 	suite.RegisterInterchainAccount(icaOwner)
 	// open chan init must be skipped. So we cannot use .CreateChannels()
-	suite.path.EndpointB.ChanOpenTry()
-	suite.path.EndpointA.ChanOpenAck()
-	suite.path.EndpointB.ChanOpenConfirm()
+	err = suite.path.EndpointB.ChanOpenTry()
+	suite.Require().NoError(err)
+	err = suite.path.EndpointA.ChanOpenAck()
+	suite.Require().NoError(err)
+	err = suite.path.EndpointB.ChanOpenConfirm()
+	suite.Require().NoError(err)
 
 	interchainAccountAddr, found := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), suite.path.EndpointA.ConnectionID, suite.path.EndpointA.ChannelConfig.PortID)
 	suite.Require().True(found)
