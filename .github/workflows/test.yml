@@ -36,7 +36,12 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        go-arch: ['amd64', 'arm']
+      ## NOTE: removed arm64 and arm from this file because github runners currently do not support
+      ## see issues:
+      ## https://github.com/github/roadmap/issues/528
+      ## https://github.com/actions/runner-images/issues/5631
+      ## possibility of self-hosted runners in the future?
+        go-arch: ['amd64']
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v4

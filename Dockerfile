@@ -12,12 +12,11 @@ COPY go.mod .
 COPY go.sum .
 
 ADD modules modules
-RUN go mod download
-
 ADD internal internal
 ADD testing testing
-# ADD modules modules
 ADD LICENSE LICENSE
+
+RUN go mod download
 
 COPY contrib/devtools/Makefile contrib/devtools/Makefile
 COPY Makefile .
