@@ -250,27 +250,55 @@ func (suite *TransferTestSuite) TestUnmarshalPacketData() {
 		receiver = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
 		denom    = "transfer/channel-0/atom"
 		amount   = "100"
+
+		data          []byte
+		expPacketData types.FungibleTokenPacketData
 	)
 
-	expPacketData := types.FungibleTokenPacketData{
-		Denom:    denom,
-		Amount:   amount,
-		Sender:   sender,
-		Receiver: receiver,
-		Memo:     fmt.Sprintf(`{"callback": {"src_callback_address": "%s", "dest_callback_address": "%s"}}`, sender, receiver),
+	testCases := []struct {
+		name     string
+		malleate func()
+		expPass  bool
+	}{
+		{
+			"success",
+			func() {
+				expPacketData = types.FungibleTokenPacketData{
+					Denom:    denom,
+					Amount:   amount,
+					Sender:   sender,
+					Receiver: receiver,
+					Memo:     fmt.Sprintf(`{"callback": {"src_callback_address": "%s", "dest_callback_address": "%s"}}`, sender, receiver),
+				}
+				data = expPacketData.GetBytes()
+			},
+			true,
+		},
+		{
+			"failure: invalid packet data",
+			func() {
+				data = []byte("invalid packet data")
+			},
+			false,
+		},
 	}
 
-	packetData, err := transfer.IBCModule{}.UnmarshalPacketData(expPacketData.GetBytes())
-	suite.Require().NoError(err)
-	suite.Require().Equal(expPacketData, packetData)
+	for _, tc := range testCases {
+		tc.malleate()
 
-	callbackPacketData, ok := packetData.(ibcexported.CallbackPacketData)
-	suite.Require().True(ok)
-	suite.Require().Equal(sender, callbackPacketData.GetSourceCallbackAddress(), "incorrect source callback address")
-	suite.Require().Equal(receiver, callbackPacketData.GetDestCallbackAddress(), "incorrect destination callback address")
+		packetData, err := transfer.IBCModule{}.UnmarshalPacketData(data)
 
-	invalidPacketData := []byte("invalid packet data")
-	packetData, err = transfer.IBCModule{}.UnmarshalPacketData(invalidPacketData)
-	suite.Require().Error(err)
-	suite.Require().Nil(packetData)
+		if tc.expPass {
+			suite.Require().NoError(err)
+			suite.Require().Equal(expPacketData, packetData)
+
+			callbackPacketData, ok := packetData.(ibcexported.CallbackPacketData)
+			suite.Require().True(ok)
+			suite.Require().Equal(sender, callbackPacketData.GetSourceCallbackAddress(), "incorrect source callback address")
+			suite.Require().Equal(receiver, callbackPacketData.GetDestCallbackAddress(), "incorrect destination callback address")
+		} else {
+			suite.Require().Error(err)
+			suite.Require().Nil(packetData)
+		}
+	}
 }
