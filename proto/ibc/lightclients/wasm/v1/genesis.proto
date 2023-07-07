@@ -15,8 +15,6 @@ message GenesisState {
 // A contract's store key and code
 message GenesisContract {
   option (gogoproto.goproto_getters) = false;
-  // store key of metadata without clientID-prefix
-  bytes code_id_key = 1;
   // metadata value
-  bytes contract_code = 2;
+  bytes contract_code = 1;
 }

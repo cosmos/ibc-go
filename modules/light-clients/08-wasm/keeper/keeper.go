@@ -105,7 +105,7 @@ func (k Keeper) storeWasmCode(ctx sdk.Context, code []byte) ([]byte, error) {
 	return codeHash, nil
 }
 
-func (k Keeper) importWasmCode(ctx sdk.Context, codeIDKey, wasmCode []byte) error {
+func (k Keeper) importWasmCode(ctx sdk.Context, wasmCode []byte) error {
 	store := ctx.KVStore(k.storeKey)
 	if types.IsGzip(wasmCode) {
 		var err error
@@ -115,15 +115,11 @@ func (k Keeper) importWasmCode(ctx sdk.Context, codeIDKey, wasmCode []byte) erro
 		}
 	}
 
-	generatedCodeID, err := k.wasmVM.Create(wasmCode)
+	codeID, err := k.wasmVM.Create(wasmCode)
 	if err != nil {
 		return sdkerrors.Wrap(err, "failed to store contract")
 	}
-	generatedCodeIDKey := types.CodeIDKey(generatedCodeID)
-
-	if !bytes.Equal(codeIDKey, generatedCodeIDKey) {
-		return sdkerrors.Wrapf(types.ErrInvalid, "expected %s, got %s", string(generatedCodeIDKey), string(codeIDKey))
-	}
+	codeIDKey := types.CodeIDKey(codeID)
 
 	store.Set(codeIDKey, wasmCode)
 	return nil
