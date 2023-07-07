@@ -5,10 +5,11 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"cosmossdk.io/core/appmodule"
-	"cosmossdk.io/depinject"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
+
+	"cosmossdk.io/core/appmodule"
+	"cosmossdk.io/depinject"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -23,6 +24,7 @@ import (
 
 	abci "github.com/cometbft/cometbft/abci/types"
 
+	modulev1 "github.com/cosmos/ibc-go/api/ibc/core/module/v1"
 	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
 	ibcclient "github.com/cosmos/ibc-go/v7/modules/core/02-client"
 	clientkeeper "github.com/cosmos/ibc-go/v7/modules/core/02-client/keeper"
@@ -33,7 +35,6 @@ import (
 	"github.com/cosmos/ibc-go/v7/modules/core/client/cli"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	"github.com/cosmos/ibc-go/v7/modules/core/keeper"
-	modulev1 "github.com/cosmos/ibc-go/v7/modules/core/module/v1"
 	"github.com/cosmos/ibc-go/v7/modules/core/simulation"
 	"github.com/cosmos/ibc-go/v7/modules/core/types"
 )
