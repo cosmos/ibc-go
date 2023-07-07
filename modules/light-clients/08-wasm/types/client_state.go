@@ -6,12 +6,14 @@ import (
 	"errors"
 
 	errorsmod "cosmossdk.io/errors"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
+
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
+	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
@@ -72,21 +74,12 @@ type (
 func (cs ClientState) Status(ctx sdk.Context, clientStore sdk.KVStore, _ codec.BinaryCodec) exported.Status {
 	payload := statusPayload{Status: statusInnerPayload{}}
 
-	encodedData, err := json.Marshal(payload)
+	result, err := wasmQuery[StatusQueryResponse](ctx, clientStore, &cs, payload)
 	if err != nil {
 		return exported.Unknown
 	}
 
-	response, err := queryContract(ctx, clientStore, cs.CodeId, encodedData)
-	if err != nil {
-		return exported.Unknown
-	}
-	var output queryResponse
-	if err := json.Unmarshal(response, &output); err != nil {
-		return exported.Unknown
-	}
-
-	return output.Status
+	return result.Status
 }
 
 // ZeroCustomFields returns a ClientState that is a copy of the current ClientState
@@ -95,18 +88,34 @@ func (cs ClientState) ZeroCustomFields() exported.ClientState {
 	return &cs
 }
 
+type (
+	timestampAtHeightInnerPayload struct {
+		Height exported.Height `json:"height"`
+	}
+	timestampAtHeightPayload struct {
+		TimestampAtHeight timestampAtHeightInnerPayload `json:"timestamp_at_height"`
+	}
+)
+
+// GetTimestampAtHeight returns the timestamp in nanoseconds of the consensus state at the given height.
 func (cs ClientState) GetTimestampAtHeight(
-	_ sdk.Context,
+	ctx sdk.Context,
 	clientStore sdk.KVStore,
 	cdc codec.BinaryCodec,
 	height exported.Height,
 ) (uint64, error) {
-	// get consensus state at height from clientStore to check for expiry
-	consState, err := GetConsensusState(clientStore, cdc, height)
-	if err != nil {
-		return 0, sdkerrors.Wrapf(err, "height (%s)", height)
+	payload := timestampAtHeightPayload{
+		TimestampAtHeight: timestampAtHeightInnerPayload{
+			Height: height,
+		},
 	}
-	return consState.GetTimestamp(), nil
+
+	result, err := wasmQuery[TimestampAtHeightQueryResponse](ctx, clientStore, &cs, payload)
+	if err != nil {
+		return 0, nil
+	}
+
+	return result.Timestamp, nil
 }
 
 // Initialize checks that the initial consensus state is an 08-wasm consensus state and
@@ -248,17 +257,37 @@ func call[T ContractResult](ctx sdk.Context, clientStore sdk.KVStore, cs *Client
 	var output T
 	encodedData, err := json.Marshal(payload)
 	if err != nil {
-		return output, sdkerrors.Wrapf(err, "failed to marshal wasm contract payload")
+		return output, sdkerrors.Wrapf(err, "failed to marshal payload for wasm execution")
 	}
 	out, err := callContract(ctx, clientStore, cs.CodeId, encodedData)
 	if err != nil {
 		return output, sdkerrors.Wrapf(err, "call to wasm contract failed")
 	}
 	if err := json.Unmarshal(out.Data, &output); err != nil {
-		return output, sdkerrors.Wrapf(err, "failed unmarshal wasm contract payload")
+		return output, sdkerrors.Wrapf(err, "failed to unmarshal result of wasm execution")
 	}
 	if !output.Validate() {
-		return output, sdkerrors.Wrapf(errors.New(output.Error()), "error occurred while calling contract with code ID %s", hex.EncodeToString(cs.CodeId))
+		return output, sdkerrors.Wrapf(errors.New(output.Error()), "error occurred while executing contract with code ID %s", hex.EncodeToString(cs.CodeId))
+	}
+	return output, nil
+}
+
+// wasmQuery queries the contract with the given payload and writes the result to output.
+func wasmQuery[T ContractResult](ctx sdk.Context, clientStore sdk.KVStore, cs *ClientState, payload any) (T, error) {
+	var output T
+	encodedData, err := json.Marshal(payload)
+	if err != nil {
+		return output, sdkerrors.Wrapf(err, "failed to marshal payload for wasm query")
+	}
+	out, err := queryContract(ctx, clientStore, cs.CodeId, encodedData)
+	if err != nil {
+		return output, sdkerrors.Wrapf(err, "call to wasm contract failed")
+	}
+	if err := json.Unmarshal(out, &output); err != nil {
+		return output, sdkerrors.Wrapf(err, "failed to unmarshal result of wasm query")
+	}
+	if !output.Validate() {
+		return output, sdkerrors.Wrapf(errors.New(output.Error()), "error occurred while querying contract with code ID %s", hex.EncodeToString(cs.CodeId))
 	}
 	return output, nil
 }

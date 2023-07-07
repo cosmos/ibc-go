@@ -3,6 +3,7 @@ package types
 import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
@@ -40,7 +41,7 @@ func (cs ClientState) CheckForMisbehaviour(ctx sdk.Context, _ codec.BinaryCodec,
 		CheckForMisbehaviour: inner,
 	}
 
-	result, err := call[contractResult](ctx, clientStore, &cs, payload)
+	result, err := call[CheckForMisbehaviourExecuteResult](ctx, clientStore, &cs, payload)
 	if err != nil {
 		panic(err)
 	}

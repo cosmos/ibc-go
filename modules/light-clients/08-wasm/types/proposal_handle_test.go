@@ -52,8 +52,7 @@ func (suite *TypesTestSuite) TestCheckSubstituteAndUpdateStateGrandpa() {
 			consensusStateData, err := base64.StdEncoding.DecodeString(suite.testData["consensus_state_data"])
 			suite.Require().NoError(err)
 			substituteConsensusState := types.ConsensusState{
-				Data:      consensusStateData,
-				Timestamp: uint64(1678732170022000000),
+				Data: consensusStateData,
 			}
 
 			substituteClientStore = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, "08-wasm-1")

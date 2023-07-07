@@ -4,11 +4,12 @@ import (
 	"fmt"
 	"io/ioutil"
 
+	"github.com/spf13/cobra"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	"github.com/cosmos/cosmos-sdk/version"
-	"github.com/spf13/cobra"
 
 	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
 	types "github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm/types"

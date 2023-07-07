@@ -634,8 +634,7 @@ func (suite *TypesTestSuite) TestCheckForMisbehaviourTendermint() {
 				tmConsensusStateData, err := suite.chainA.Codec.MarshalInterface(tmConsensusState)
 				suite.Require().NoError(err)
 				wasmConsensusState := &types.ConsensusState{
-					Data:      tmConsensusStateData,
-					Timestamp: tmConsensusState.GetTimestamp(),
+					Data: tmConsensusStateData,
 				}
 
 				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientConsensusState(
@@ -710,8 +709,7 @@ func (suite *TypesTestSuite) TestCheckForMisbehaviourTendermint() {
 				tmConsensusStateData, err := suite.chainA.Codec.MarshalInterface(tmConsensusState)
 				suite.Require().NoError(err)
 				wasmConsensusState := &types.ConsensusState{
-					Data:      tmConsensusStateData,
-					Timestamp: tmConsensusState.GetTimestamp(),
+					Data: tmConsensusStateData,
 				}
 
 				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientConsensusState(

@@ -3,7 +3,9 @@ package types
 import (
 	cosmwasm "github.com/CosmWasm/wasmvm"
 	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
@@ -13,21 +15,15 @@ var (
 	VMGasRegister = NewDefaultWasmGasRegister()
 )
 
-type queryResponse struct {
-	Status          exported.Status               `json:"status,omitempty"`
-	GenesisMetadata []clienttypes.GenesisMetadata `json:"genesis_metadata,omitempty"`
-}
-
 type ContractResult interface {
 	Validate() bool
 	Error() string
 }
 
 type contractResult struct {
-	IsValid           bool   `json:"is_valid,omitempty"`
-	ErrorMsg          string `json:"error_msg,omitempty"`
-	Data              []byte `json:"data,omitempty"`
-	FoundMisbehaviour bool   `json:"found_misbehaviour"`
+	IsValid  bool   `json:"is_valid,omitempty"`
+	ErrorMsg string `json:"error_msg,omitempty"`
+	Data     []byte `json:"data,omitempty"`
 }
 
 func (r contractResult) Validate() bool {
@@ -36,6 +32,26 @@ func (r contractResult) Validate() bool {
 
 func (r contractResult) Error() string {
 	return r.ErrorMsg
+}
+
+type StatusQueryResponse struct {
+	contractResult
+	Status exported.Status `json:"status"`
+}
+
+type MetadataQueryResponse struct {
+	contractResult
+	GenesisMetadata []clienttypes.GenesisMetadata `json:"genesis_metadata"`
+}
+
+type TimestampAtHeightQueryResponse struct {
+	contractResult
+	Timestamp uint64 `json:"timestamp"`
+}
+
+type CheckForMisbehaviourExecuteResult struct {
+	contractResult
+	FoundMisbehaviour bool `json:"found_misbehaviour"`
 }
 
 // initContract calls vm.Init with appropriate arguments.
