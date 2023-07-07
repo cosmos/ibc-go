@@ -244,3 +244,5 @@ replace github.com/cosmos/ibc-go/api => ../api
 replace github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
 
 replace github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
+
+replace cosmossdk.io/api/cosmos/capability => github.com/cosmos/ibc-go/modules/capability v1.0.0-rc1
