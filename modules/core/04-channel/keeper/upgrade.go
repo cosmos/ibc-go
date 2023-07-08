@@ -429,7 +429,7 @@ func (k Keeper) WriteUpgradeOpenChannel(ctx sdk.Context, portID, channelID strin
 
 	k.SetChannel(ctx, portID, channelID, channel)
 
-	// Delete auxiliary state.
+	// delete state associated with upgrade which is no longer required.
 	k.deleteUpgrade(ctx, portID, channelID)
 	k.deleteCounterpartyLastPacketSequence(ctx, portID, channelID)
 
