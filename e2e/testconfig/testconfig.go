@@ -51,6 +51,8 @@ const (
 	// defaultRlyTag is the tag that will be used if no relayer tag is specified.
 	// all images are here https://github.com/cosmos/relayer/pkgs/container/relayer/versions
 	defaultRlyTag = "latest" // "andrew-tendermint_v0.37" // "v2.2.0"
+	// defaultHermesTag is the tag that will be used if no relayer tag is specified for hermes.
+	defaultHermesTag = "v1.4.0"
 	// defaultChainTag is the tag that will be used for the chains if none is specified.
 	defaultChainTag = "main"
 	// defaultRelayerType is the default relayer that will be used if none is specified.
@@ -286,7 +288,7 @@ func getRelayerConfigFromEnv() relayer.Config {
 			rlyTag = defaultRlyTag
 		}
 		if relayerType == relayer.Hermes {
-			// TODO: set default hermes version
+			rlyTag = defaultHermesTag
 		}
 	}
 	return relayer.Config{
@@ -362,7 +364,14 @@ func newDefaultSimappConfig(cc ChainConfig, name, chainID, denom string, cometCf
 	tmTomlOverrides["log_level"] = cometCfg.LogLevel // change to debug in ~/.ibc-go-e2e-config.json to increase cometbft logging.
 	configFileOverrides["config/config.toml"] = tmTomlOverrides
 
-	useNewGenesisCommand := cc.Binary == icadBinary && testvalues.IcadNewGenesisCommandsFeatureReleases.IsSupported(cc.Tag)
+	var useNewGenesisCommand bool
+	if cc.Binary == defaultBinary && testvalues.SimdNewGenesisCommandsFeatureReleases.IsSupported(cc.Tag) {
+		useNewGenesisCommand = true
+	}
+
+	if cc.Binary == icadBinary && testvalues.IcadNewGenesisCommandsFeatureReleases.IsSupported(cc.Tag) {
+		useNewGenesisCommand = true
+	}
 
 	return ibc.ChainConfig{
 		Type:    "cosmos",

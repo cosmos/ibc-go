@@ -6,14 +6,16 @@ import (
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
-	"github.com/cometbft/cometbft/libs/log"
-	"github.com/cometbft/cometbft/light"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+
+	"github.com/cometbft/cometbft/libs/log"
+	"github.com/cometbft/cometbft/light"
 
 	"github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
@@ -136,7 +138,7 @@ func (k Keeper) SetNextClientSequence(ctx sdk.Context, sequence uint64) {
 // the iterator will close and stop.
 func (k Keeper) IterateConsensusStates(ctx sdk.Context, cb func(clientID string, cs types.ConsensusStateWithHeight) bool) {
 	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, host.KeyClientStorePrefix)
+	iterator := storetypes.KVStorePrefixIterator(store, host.KeyClientStorePrefix)
 
 	defer sdk.LogDeferred(ctx.Logger(), func() error { return iterator.Close() })
 	for ; iterator.Valid(); iterator.Next() {
@@ -368,7 +370,7 @@ func (k Keeper) SetUpgradedConsensusState(ctx sdk.Context, planHeight int64, bz 
 // the iterator will close and stop.
 func (k Keeper) IterateClientStates(ctx sdk.Context, prefix []byte, cb func(clientID string, cs exported.ClientState) bool) {
 	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, host.PrefixedClientStoreKey(prefix))
+	iterator := storetypes.KVStorePrefixIterator(store, host.PrefixedClientStoreKey(prefix))
 
 	defer sdk.LogDeferred(ctx.Logger(), func() error { return iterator.Close() })
 	for ; iterator.Valid(); iterator.Next() {
@@ -400,7 +402,7 @@ func (k Keeper) GetAllClients(ctx sdk.Context) []exported.ClientState {
 
 // ClientStore returns isolated prefix store for each client so they can read/write in separate
 // namespace without being able to read/write other client's data
-func (k Keeper) ClientStore(ctx sdk.Context, clientID string) sdk.KVStore {
+func (k Keeper) ClientStore(ctx sdk.Context, clientID string) storetypes.KVStore {
 	clientPrefix := []byte(fmt.Sprintf("%s/%s/", host.KeyClientStorePrefix, clientID))
 	return prefix.NewStore(ctx.KVStore(k.storeKey), clientPrefix)
 }

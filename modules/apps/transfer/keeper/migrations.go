@@ -26,6 +26,7 @@ func (m Migrator) MigrateParams(ctx sdk.Context) error {
 	m.keeper.legacySubspace.GetParamSet(ctx, &params)
 
 	m.keeper.SetParams(ctx, params)
+	m.keeper.Logger(ctx).Info("successfully migrated transfer app self-manage params")
 	return nil
 }
 
@@ -97,6 +98,7 @@ func (m Migrator) MigrateTotalEscrowForDenom(ctx sdk.Context) error {
 		m.keeper.SetTotalEscrowForDenom(ctx, totalEscrow)
 	}
 
+	m.keeper.Logger(ctx).Info("successfully set total escrow for %d denominations", totalEscrowed.Len())
 	return nil
 }
 

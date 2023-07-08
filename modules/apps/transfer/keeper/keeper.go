@@ -4,15 +4,18 @@ import (
 	"fmt"
 	"strings"
 
-	tmbytes "github.com/cometbft/cometbft/libs/bytes"
-	"github.com/cometbft/cometbft/libs/log"
+	sdkmath "cosmossdk.io/math"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 
+	tmbytes "github.com/cometbft/cometbft/libs/bytes"
+	"github.com/cometbft/cometbft/libs/log"
+
+	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
@@ -113,8 +116,8 @@ func (k Keeper) SetPort(ctx sdk.Context, portID string) {
 func (k Keeper) GetParams(ctx sdk.Context) types.Params {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get([]byte(types.ParamsKey))
-	if bz == nil { // only panics on unset params and not on empty params
-		panic("ibc transfer params are not set in store")
+	if bz == nil { // only panic on unset params and not on empty params
+		panic("transfer params are not set in store")
 	}
 
 	var params types.Params
@@ -169,7 +172,7 @@ func (k Keeper) GetAllDenomTraces(ctx sdk.Context) types.Traces {
 // and performs a callback function.
 func (k Keeper) IterateDenomTraces(ctx sdk.Context, cb func(denomTrace types.DenomTrace) bool) {
 	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, types.DenomTraceKey)
+	iterator := storetypes.KVStorePrefixIterator(store, types.DenomTraceKey)
 
 	defer sdk.LogDeferred(ctx.Logger(), func() error { return iterator.Close() })
 	for ; iterator.Valid(); iterator.Next() {
@@ -189,7 +192,7 @@ func (k Keeper) GetTotalEscrowForDenom(ctx sdk.Context, denom string) sdk.Coin {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.TotalEscrowForDenomKey(denom))
 	if len(bz) == 0 {
-		return sdk.NewCoin(denom, sdk.ZeroInt())
+		return sdk.NewCoin(denom, sdkmath.ZeroInt())
 	}
 
 	amount := sdk.IntProto{}
@@ -234,7 +237,7 @@ func (k Keeper) GetAllTotalEscrowed(ctx sdk.Context) sdk.Coins {
 // (i.e. not integer) is stored, will be skipped.
 func (k Keeper) IterateTokensInEscrow(ctx sdk.Context, prefix []byte, cb func(denomEscrow sdk.Coin) bool) {
 	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, prefix)
+	iterator := storetypes.KVStorePrefixIterator(store, prefix)
 
 	defer sdk.LogDeferred(ctx.Logger(), func() error { return iterator.Close() })
 	for ; iterator.Valid(); iterator.Next() {

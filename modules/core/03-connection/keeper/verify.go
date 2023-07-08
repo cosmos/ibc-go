@@ -4,6 +4,8 @@ import (
 	"math"
 
 	errorsmod "cosmossdk.io/errors"
+
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
@@ -381,7 +383,7 @@ func (k Keeper) getBlockDelay(ctx sdk.Context, connection exported.ConnectionI) 
 
 // getClientStateAndVerificationStore returns the client state and associated KVStore for the provided client identifier.
 // If the client type is localhost then the core IBC KVStore is returned, otherwise the client prefixed store is returned.
-func (k Keeper) getClientStateAndVerificationStore(ctx sdk.Context, clientID string) (exported.ClientState, sdk.KVStore, error) {
+func (k Keeper) getClientStateAndVerificationStore(ctx sdk.Context, clientID string) (exported.ClientState, storetypes.KVStore, error) {
 	clientState, found := k.clientKeeper.GetClientState(ctx, clientID)
 	if !found {
 		return nil, nil, errorsmod.Wrap(clienttypes.ErrClientNotFound, clientID)

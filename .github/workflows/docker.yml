@@ -21,21 +21,32 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v3
 
+    - name: Extract metadata (tags, labels) for Docker
+      id: meta
+      uses: docker/metadata-action@818d4b7b91585d195f67373fd9cb0332e31a7175
+      with:
+        images: ${{ env.REGISTRY }}/cosmos/${{ env.IMAGE_NAME }}
+
+    - name: Build Docker image
+      uses: docker/build-push-action@2eb1c1961a95fc15694676618e422e8ba1d63825
+      with:
+        context: .
+        tags: ${{ steps.meta.outputs.tags }}
+        build-args: |
+          IBC_GO_VERSION=main
+
+    - name: Test simd is runnable
+      run: |
+        docker run --rm ${{ steps.meta.outputs.tags }}
     - name: Log in to the Container registry
-      uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a
+      uses: docker/login-action@465a07811f14bebb1938fbed4728c6a1ff8901fc
       with:
         registry: ${{ env.REGISTRY }}
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Extract metadata (tags, labels) for Docker
-      id: meta
-      uses: docker/metadata-action@c4ee3adeed93b1fa6a762f209fb01608c1a22f1e
-      with:
-        images: ${{ env.REGISTRY }}/cosmos/${{ env.IMAGE_NAME }}
-
-    - name: Build and push Docker image
-      uses: docker/build-push-action@3b5e8027fcad23fda98b2e3ac259d8d67585f671
+    - name: Push Docker image
+      uses: docker/build-push-action@2eb1c1961a95fc15694676618e422e8ba1d63825
       with:
         context: .
         push: true

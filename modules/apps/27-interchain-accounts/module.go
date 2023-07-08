@@ -5,15 +5,17 @@ import (
 	"encoding/json"
 	"fmt"
 
-	abci "github.com/cometbft/cometbft/abci/types"
+	"github.com/grpc-ecosystem/grpc-gateway/runtime"
+	"github.com/spf13/cobra"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
-	"github.com/grpc-ecosystem/grpc-gateway/runtime"
-	"github.com/spf13/cobra"
+
+	abci "github.com/cometbft/cometbft/abci/types"
 
 	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/client/cli"
 	controllerkeeper "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/keeper"
@@ -144,14 +146,19 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 		hosttypes.RegisterQueryServer(cfg.QueryServer(), am.hostKeeper)
 	}
 
-	m := controllerkeeper.NewMigrator(am.controllerKeeper)
-	if err := cfg.RegisterMigration(types.ModuleName, 1, m.AssertChannelCapabilityMigrations); err != nil {
-		panic(fmt.Sprintf("failed to migrate interchainaccounts app from version 1 to 2: %v", err))
+	controllerMigrator := controllerkeeper.NewMigrator(am.controllerKeeper)
+	if err := cfg.RegisterMigration(types.ModuleName, 1, controllerMigrator.AssertChannelCapabilityMigrations); err != nil {
+		panic(fmt.Sprintf("failed to migrate interchainaccounts app from version 1 to 2 (channel capabilities owned by controller submodule check): %v", err))
 	}
 
-	hostm := hostkeeper.NewMigrator(am.hostKeeper)
-	if err := cfg.RegisterMigration(types.ModuleName, 2, hostm.MigrateParams); err != nil {
-		panic(fmt.Sprintf("failed to migrate interchainaccounts app from version 2 to 3: %v", err))
+	hostMigrator := hostkeeper.NewMigrator(am.hostKeeper)
+	if err := cfg.RegisterMigration(types.ModuleName, 2, func(ctx sdk.Context) error {
+		if err := hostMigrator.MigrateParams(ctx); err != nil {
+			return err
+		}
+		return controllerMigrator.MigrateParams(ctx)
+	}); err != nil {
+		panic(fmt.Sprintf("failed to migrate interchainaccounts app from version 2 to 3 (self-managed params migration): %v", err))
 	}
 }
 

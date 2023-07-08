@@ -1,4 +1,4 @@
-FROM golang:1.19 as builder
+FROM golang:1.20 as builder
 
 ARG IBC_GO_VERSION
 
@@ -24,7 +24,7 @@ COPY Makefile .
 
 RUN make build
 
-FROM ubuntu:20.04
+FROM ubuntu:22.04
 
 ARG IBC_GO_VERSION
 

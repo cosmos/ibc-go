@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"cosmossdk.io/math"
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
@@ -408,7 +408,7 @@ func (s *UpgradeTestSuite) TestV5ToV6ChainUpgrade() {
 			Amount:      sdk.NewCoins(testvalues.DefaultTransferAmount(chainB.Config().Denom)),
 		}
 
-		data, err := icatypes.SerializeCosmosTx(testsuite.Codec(), []proto.Message{msgSend})
+		data, err := icatypes.SerializeCosmosTx(testsuite.Codec(), []proto.Message{msgSend}, icatypes.EncodingProtobuf)
 		s.Require().NoError(err)
 
 		icaPacketData := icatypes.InterchainAccountPacketData{
@@ -668,7 +668,7 @@ func (s *UpgradeTestSuite) TestV7ToV7_1ChainUpgrade() {
 		actualTotalEscrow, err := s.QueryTotalEscrowForDenom(ctx, chainA, chainADenom)
 		s.Require().NoError(err)
 
-		expectedTotalEscrow := sdk.NewCoin(chainADenom, math.NewInt(testvalues.IBCTransferAmount))
+		expectedTotalEscrow := sdk.NewCoin(chainADenom, sdkmath.NewInt(testvalues.IBCTransferAmount))
 		s.Require().Equal(expectedTotalEscrow, actualTotalEscrow) // migration has run and total escrow amount has been set
 	})
 }

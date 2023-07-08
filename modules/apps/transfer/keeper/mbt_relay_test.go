@@ -12,9 +12,11 @@ import (
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
-	"cosmossdk.io/math"
-	"github.com/cometbft/cometbft/crypto"
+	sdkmath "cosmossdk.io/math"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/cometbft/cometbft/crypto"
 
 	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
@@ -88,7 +90,7 @@ type Balance struct {
 	ID      string
 	Address string
 	Denom   string
-	Amount  math.Int
+	Amount  sdkmath.Int
 }
 
 func AddressFromString(address string) string {
@@ -127,7 +129,7 @@ func BalanceFromTla(balance TlaBalance) Balance {
 		ID:      AddressFromTla(balance.Address),
 		Address: AddressFromString(AddressFromTla(balance.Address)),
 		Denom:   DenomFromTla(balance.Denom),
-		Amount:  sdk.NewInt(balance.Amount),
+		Amount:  sdkmath.NewInt(balance.Amount),
 	}
 }
 
@@ -168,12 +170,12 @@ func OnRecvPacketTestCaseFromTla(tc TlaOnRecvPacketTestCase) OnRecvPacketTestCas
 var addressMap = make(map[string]string)
 
 type Bank struct {
-	balances map[OwnedCoin]math.Int
+	balances map[OwnedCoin]sdkmath.Int
 }
 
 // Make an empty bank
 func MakeBank() Bank {
-	return Bank{balances: make(map[OwnedCoin]math.Int)}
+	return Bank{balances: make(map[OwnedCoin]sdkmath.Int)}
 }
 
 // Subtract other bank from this bank
@@ -196,7 +198,7 @@ func (bank *Bank) Sub(other *Bank) Bank {
 }
 
 // Set specific bank balance
-func (bank *Bank) SetBalance(address string, denom string, amount math.Int) {
+func (bank *Bank) SetBalance(address string, denom string, amount sdkmath.Int) {
 	bank.balances[OwnedCoin{address, denom}] = amount
 }
 
@@ -338,7 +340,7 @@ func (suite *KeeperTestSuite) TestModelBasedRelay() {
 					denom := denomTrace.IBCDenom()
 					err = sdk.ValidateDenom(denom)
 					if err == nil {
-						amount, ok := sdk.NewIntFromString(tc.packet.Data.Amount)
+						amount, ok := sdkmath.NewIntFromString(tc.packet.Data.Amount)
 						if !ok {
 							panic("MBT failed to parse amount from string")
 						}
