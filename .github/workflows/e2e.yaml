@@ -76,7 +76,7 @@ jobs:
           find ./tests -type d | while IFS= read -r dir
           do
               if ls "${dir}"/*.go >/dev/null 2>&1; then
-                  GOARCH=arm64 go test -c "$dir"
+                  go test -c "$dir"
               fi
           done
 
