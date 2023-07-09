@@ -138,16 +138,6 @@ go.sum: go.mod
 ###                              Documentation                              ###
 ###############################################################################
 
-update-swagger-docs: statik
-	$(BINDIR)/statik -src=docs/client/swagger-ui -dest=docs/client -f -m
-	@if [ -n "$(git status --porcelain)" ]; then \
-        echo "\033[91mSwagger docs are out of sync!!!\033[0m";\
-        exit 1;\
-    else \
-        echo "\033[92mSwagger docs are in sync\033[0m";\
-    fi
-.PHONY: update-swagger-docs
-
 godocs:
 	@echo "--> Wait a few seconds and visit http://localhost:6060/pkg/github.com/cosmos/cosmos-sdk/types"
 	godoc -http=:6060
@@ -292,10 +282,13 @@ format:
 .PHONY: format
 
 docs-lint:
-	markdownlint . --fix
+	markdownlint-cli2 "**.md"
 
-docs-lint-changed:
-	./scripts/linting/lint-changed-md-files.sh
+docs-lint-fix:
+	markdownlint-cli2-fix "**.md"
+
+docs-link-check:
+	find . -name \*.md -print0 | xargs -0 -n1 markdown-link-check --config ./.github/workflows/link-check-config.json
 
 .PHONY: lint lint-fix lint-fix-changed docs-lint docs-lint-changed
 
