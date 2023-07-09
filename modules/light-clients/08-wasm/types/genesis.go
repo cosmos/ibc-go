@@ -28,7 +28,7 @@ func (cs ClientState) ExportMetadata(store sdk.KVStore) []exported.GenesisMetada
 	var payload exportMetadataPayload
 
 	ctx := sdk.NewContext(nil, tmproto.Header{Height: 1, Time: time.Now()}, true, nil) // context with infinite gas meter
-	result, err := wasmQuery[MetadataQueryResponse](ctx, store, &cs, payload)
+	result, err := wasmQuery[metadataQueryResponse](ctx, store, &cs, payload)
 	if err != nil {
 		panic(err)
 	}

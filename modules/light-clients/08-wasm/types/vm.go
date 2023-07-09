@@ -34,17 +34,17 @@ func (r contractResult) Error() string {
 	return r.ErrorMsg
 }
 
-type StatusQueryResponse struct {
+type statusQueryResponse struct {
 	contractResult
 	Status exported.Status `json:"status"`
 }
 
-type MetadataQueryResponse struct {
+type metadataQueryResponse struct {
 	contractResult
 	GenesisMetadata []clienttypes.GenesisMetadata `json:"genesis_metadata"`
 }
 
-type TimestampAtHeightQueryResponse struct {
+type timestampAtHeightQueryResponse struct {
 	contractResult
 	Timestamp uint64 `json:"timestamp"`
 }
