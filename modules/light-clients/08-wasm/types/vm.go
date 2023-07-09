@@ -40,6 +40,16 @@ func (r contractResult) Error() string {
 	return r.ErrorMsg
 }
 
+type checkForMisbehaviourExecuteResult struct {
+	contractResult
+	FoundMisbehaviour bool `json:"found_misbehaviour"`
+}
+
+type updateStateExecuteResult struct {
+	contractResult
+	Heights []exported.Height `json:"heights"`
+}
+
 // initContract calls vm.Init with appropriate arguments.
 func initContract(ctx sdk.Context, clientStore sdk.KVStore, codeID []byte) (*wasmvmtypes.Response, error) {
 	sdkGasMeter := ctx.GasMeter()
