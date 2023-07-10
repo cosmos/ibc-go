@@ -6,6 +6,7 @@ import (
 	callbacktypes "github.com/cosmos/ibc-go/v7/modules/apps/callbacks/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
+	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
 	"github.com/cosmos/ibc-go/v7/testing/mock/types"
 )
 
@@ -87,7 +88,7 @@ func (k MockContractKeeper) IBCPacketTimeoutCallback(
 func (k MockContractKeeper) IBCReceivePacketCallback(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
-	acknowledgement []byte,
+	acknowledgement ibcexported.Acknowledgement,
 	relayer sdk.AccAddress,
 	contractAddr string,
 ) error {

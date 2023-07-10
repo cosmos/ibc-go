@@ -4,6 +4,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
 // ContractKeeper defines the entry points to a smart contract that must be exposed by the VM module
@@ -36,7 +37,7 @@ type ContractKeeper interface {
 	IBCReceivePacketCallback(
 		ctx sdk.Context,
 		packet channeltypes.Packet,
-		acknowledgement []byte,
+		acknowledgement ibcexported.Acknowledgement,
 		relayer sdk.AccAddress,
 		contractAddr string,
 	) error

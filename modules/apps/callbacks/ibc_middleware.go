@@ -191,7 +191,7 @@ func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet
 	cachedCtx, writeFn := ctx.CacheContext()
 	cachedCtx = cachedCtx.WithGasMeter(sdk.NewGasMeter(callbackData.GasLimit))
 
-	err = im.contractKeeper.IBCReceivePacketCallback(cachedCtx, packet, appAck.Acknowledgement(), relayer, callbackData.ContractAddr)
+	err = im.contractKeeper.IBCReceivePacketCallback(cachedCtx, packet, appAck, relayer, callbackData.ContractAddr)
 	if err == nil {
 		writeFn()
 	}
