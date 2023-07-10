@@ -261,14 +261,14 @@ func (suite *TransferTestSuite) TestUnmarshalPacketData() {
 		expPass  bool
 	}{
 		{
-			"success",
+			"success: both callbacks",
 			func() {
 				expPacketData = types.FungibleTokenPacketData{
 					Denom:    denom,
 					Amount:   amount,
 					Sender:   sender,
 					Receiver: receiver,
-					Memo:     fmt.Sprintf(`{"callback": {"src_callback_address": "%s", "dest_callback_address": "%s"}}`, sender, receiver),
+					Memo:     fmt.Sprintf(`{"src_callback": {"address": "%s"}, "dest_callback": {"address":"%s"}}`, sender, receiver),
 				}
 				data = expPacketData.GetBytes()
 			},
