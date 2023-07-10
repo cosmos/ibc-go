@@ -244,7 +244,7 @@ func NewSimApp(
 	}
 
 	tkeys := storetypes.NewTransientStoreKeys(paramstypes.TStoreKey)
-	memKeys := storetypes.NewMemoryStoreKeys(capabilitytypes.MemStoreKey, "memory:mock")
+	memKeys := storetypes.NewMemoryStoreKeys(capabilitytypes.MemStoreKey, MockMemStoreKey)
 
 	// register streaming services
 	if err := bApp.RegisterStreamingServices(appOpts, keys); err != nil {
@@ -262,7 +262,7 @@ func NewSimApp(
 		memKeys:           memKeys,
 	}
 
-	app.ParamsKeeper = initParamsKeeper(appCodec, legacyAmino, keys[paramstypes.StoreKey], tkeys[paramstypes.TStoreKey])
+	paramskeeper.NewKeeper(appCodec, legacyAmino, keys[paramstypes.StoreKey], tkeys[paramstypes.TStoreKey])
 
 	// set the BaseApp's parameter store
 	app.ConsensusParamsKeeper = consensusparamkeeper.NewKeeper(appCodec, runtime.NewKVStoreService(keys[consensusparamtypes.StoreKey]), authtypes.NewModuleAddress(govtypes.ModuleName).String(), runtime.EventService{})
@@ -271,25 +271,11 @@ func NewSimApp(
 	// add capability keeper and ScopeToModule for ibc module
 	app.CapabilityKeeper = capabilitykeeper.NewKeeper(appCodec, keys[capabilitytypes.StoreKey], memKeys[capabilitytypes.MemStoreKey])
 
-	// scopedIBCKeeper := app.CapabilityKeeper.ScopeToModule(ibcexported.ModuleName)
-	// scopedTransferKeeper := app.CapabilityKeeper.ScopeToModule(ibctransfertypes.ModuleName)
-	// scopedICAControllerKeeper := app.CapabilityKeeper.ScopeToModule(icacontrollertypes.SubModuleName)
-	// scopedICAHostKeeper := app.CapabilityKeeper.ScopeToModule(icahosttypes.SubModuleName)
-
-	// NOTE: the IBC mock keeper and application module is used only for testing core IBC. Do
-	// not replicate if you do not need to test core IBC or light clients.
-	// scopedIBCMockKeeper := app.CapabilityKeeper.ScopeToModule(ibcmock.ModuleName)
-	// scopedFeeMockKeeper := app.CapabilityKeeper.ScopeToModule(MockFeePort)
-	// scopedICAMockKeeper := app.CapabilityKeeper.ScopeToModule(ibcmock.ModuleName + icacontrollertypes.SubModuleName)
-
-	// seal capability keeper after scoping modules
 	// Applications that wish to enforce statically created ScopedKeepers should call `Seal` after creating
 	// their scoped modules in `NewApp` with `ScopeToModule`
 	app.CapabilityKeeper.Seal()
 
 	// SDK module keepers
-
-	// add keepers
 	app.AccountKeeper = authkeeper.NewAccountKeeper(appCodec, runtime.NewKVStoreService(keys[authtypes.StoreKey]), authtypes.ProtoBaseAccount, maccPerms, authcodec.NewBech32Codec(sdk.Bech32MainPrefix), authcodec.NewBech32Codec(sdk.Bech32PrefixValAddr), sdk.Bech32MainPrefix, authtypes.NewModuleAddress(govtypes.ModuleName).String())
 
 	app.BankKeeper = bankkeeper.NewBaseKeeper(
@@ -300,9 +286,11 @@ func NewSimApp(
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 		logger,
 	)
+
 	app.StakingKeeper = stakingkeeper.NewKeeper(
 		appCodec, runtime.NewKVStoreService(keys[stakingtypes.StoreKey]), app.AccountKeeper, app.BankKeeper, authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
+
 	app.MintKeeper = mintkeeper.NewKeeper(appCodec, runtime.NewKVStoreService(keys[minttypes.StoreKey]), app.StakingKeeper, app.AccountKeeper, app.BankKeeper, authtypes.FeeCollectorName, authtypes.NewModuleAddress(govtypes.ModuleName).String())
 
 	app.DistrKeeper = distrkeeper.NewKeeper(appCodec, runtime.NewKVStoreService(keys[distrtypes.StoreKey]), app.AccountKeeper, app.BankKeeper, app.StakingKeeper, authtypes.FeeCollectorName, authtypes.NewModuleAddress(govtypes.ModuleName).String())
@@ -326,6 +314,7 @@ func NewSimApp(
 	for _, h := range cast.ToIntSlice(appOpts.Get(server.FlagUnsafeSkipUpgrades)) {
 		skipUpgradeHeights[int64(h)] = true
 	}
+
 	homePath := cast.ToString(appOpts.Get(flags.FlagHome))
 	// set the governance module account as the authority for conducting upgrades
 	app.UpgradeKeeper = upgradekeeper.NewKeeper(skipUpgradeHeights, runtime.NewKVStoreService(keys[upgradetypes.StoreKey]), appCodec, homePath, app.BaseApp, authtypes.NewModuleAddress(govtypes.ModuleName).String())
@@ -665,6 +654,13 @@ func (app *SimApp) GetKey(storeKey string) *storetypes.KVStoreKey {
 	return app.keys[storeKey]
 }
 
+// GetMemKey returns the MemStoreKey for the provided mem key.
+//
+// NOTE: This is solely used for testing purposes.
+func (app *SimApp) GetMemKey(storeKey string) *storetypes.MemoryStoreKey {
+	return app.memKeys[storeKey]
+}
+
 // GetStoreKeys returns all the stored store keys.
 func (app *SimApp) GetStoreKeys() []storetypes.StoreKey {
 	keys := make([]storetypes.StoreKey, len(app.keys))
@@ -753,37 +749,4 @@ func BlockedAddresses() map[string]bool {
 	delete(modAccAddrs, authtypes.NewModuleAddress(govtypes.ModuleName).String())
 
 	return modAccAddrs
-}
-
-// initParamsKeeper init params keeper and its subspaces
-func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino, key, tkey storetypes.StoreKey) paramskeeper.Keeper {
-	paramsKeeper := paramskeeper.NewKeeper(appCodec, legacyAmino, key, tkey)
-
-	// TODO: ibc module subspaces can be removed after migration of params
-	// https://github.com/cosmos/ibc-go/issues/2010
-	// paramsKeeper.Subspace(ibctransfertypes.ModuleName)
-	// paramsKeeper.Subspace(ibcexported.ModuleName)
-	// paramsKeeper.Subspace(icacontrollertypes.SubModuleName)
-	// paramsKeeper.Subspace(icahosttypes.SubModuleName)
-
-	return paramsKeeper
-}
-
-// IBC TestingApp functions
-
-// GetBaseApp implements the TestingApp interface.
-func (app *SimApp) GetBaseApp() *baseapp.BaseApp {
-	return app.BaseApp
-}
-
-// GetTxConfig implements the TestingApp interface.
-func (app *SimApp) GetTxConfig() client.TxConfig {
-	return app.txConfig
-}
-
-// GetMemKey returns the MemStoreKey for the provided mem key.
-//
-// NOTE: This is solely used for testing purposes.
-func (app *SimApp) GetMemKey(storeKey string) *storetypes.MemoryStoreKey {
-	return app.memKeys[storeKey]
 }

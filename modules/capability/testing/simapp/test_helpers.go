@@ -36,6 +36,10 @@ import (
 	cmttypes "github.com/cometbft/cometbft/types"
 )
 
+const (
+	MockMemStoreKey = "memory:mock"
+)
+
 // SetupOptions defines arguments that are passed into `Simapp` constructor.
 type SetupOptions struct {
 	Logger  log.Logger
