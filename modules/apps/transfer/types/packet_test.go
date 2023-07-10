@@ -234,13 +234,91 @@ func (suite *TypesTestSuite) TestGetDestCallbackAddress() {
 }
 
 func (suite *TypesTestSuite) TestUserDefinedGasLimit() {
-	packetData := types.FungibleTokenPacketData{
-		Denom:    denom,
-		Amount:   amount,
-		Sender:   sender,
-		Receiver: receiver,
-		Memo:     `{"callback": {"gas_limit": "100"}}`,
+	testCases := []struct {
+		name       string
+		packetData types.FungibleTokenPacketData
+		expUserGas uint64
+	}{
+		{
+			"success: memo is empty",
+			types.FungibleTokenPacketData{
+				Denom:    denom,
+				Amount:   amount,
+				Sender:   sender,
+				Receiver: receiver,
+				Memo:     "",
+			},
+			0,
+		},
+		{
+			"success: memo has user defined gas limit",
+			types.FungibleTokenPacketData{
+				Denom:    denom,
+				Amount:   amount,
+				Sender:   sender,
+				Receiver: receiver,
+				Memo:     `{"callback": {"gas_limit": "100"}}`,
+			},
+			100,
+		},
+		{
+			"failure: memo has user defined gas limit as number",
+			types.FungibleTokenPacketData{
+				Denom:    denom,
+				Amount:   amount,
+				Sender:   sender,
+				Receiver: receiver,
+				Memo:     `{"callback": {"gas_limit": 100}}`,
+			},
+			0,
+		},
+		{
+			"failure: memo has user defined gas limit as negative",
+			types.FungibleTokenPacketData{
+				Denom:    denom,
+				Amount:   amount,
+				Sender:   sender,
+				Receiver: receiver,
+				Memo:     `{"callback": {"gas_limit": "-100"}}`,
+			},
+			0,
+		},
+		{
+			"failure: memo has user defined gas limit as string",
+			types.FungibleTokenPacketData{
+				Denom:    denom,
+				Amount:   amount,
+				Sender:   sender,
+				Receiver: receiver,
+				Memo:     `{"callback": {"gas_limit": "invalid"}}`,
+			},
+			0,
+		},
+		{
+			"failure: memo has user defined gas limit as empty string",
+			types.FungibleTokenPacketData{
+				Denom:    denom,
+				Amount:   amount,
+				Sender:   sender,
+				Receiver: receiver,
+				Memo:     `{"callback": {"gas_limit": ""}}`,
+			},
+			0,
+		},
+		{
+			"failure: malformed memo",
+			types.FungibleTokenPacketData{
+				Denom:    denom,
+				Amount:   amount,
+				Sender:   sender,
+				Receiver: receiver,
+				Memo:     `invalid`,
+			},
+			0,
+		},
 	}
 
-	suite.Require().Equal(uint64(100), packetData.UserDefinedGasLimit())
+	for _, tc := range testCases {
+		suite.Require().Equal(tc.expUserGas, tc.packetData.UserDefinedGasLimit())
+	}
 }

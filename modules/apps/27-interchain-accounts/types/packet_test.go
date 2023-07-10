@@ -196,11 +196,77 @@ func (suite *TypesTestSuite) TestGetDestCallbackAddress() {
 }
 
 func (suite *TypesTestSuite) TestUserDefinedGasLimit() {
-	packetData := types.InterchainAccountPacketData{
-		Type: types.EXECUTE_TX,
-		Data: []byte("data"),
-		Memo: `{"callback": {"gas_limit": "100"}}`,
+	testCases := []struct {
+		name       string
+		packetData types.InterchainAccountPacketData
+		expUserGas uint64
+	}{
+		{
+			"success: memo is empty",
+			types.InterchainAccountPacketData{
+				Type: types.EXECUTE_TX,
+				Data: []byte("data"),
+				Memo: "",
+			},
+			0,
+		},
+		{
+			"success: memo has user defined gas limit",
+			types.InterchainAccountPacketData{
+				Type: types.EXECUTE_TX,
+				Data: []byte("data"),
+				Memo: `{"callback": {"gas_limit": "100"}}`,
+			},
+			100,
+		},
+		{
+			"failure: memo has user defined gas limit as number",
+			types.InterchainAccountPacketData{
+				Type: types.EXECUTE_TX,
+				Data: []byte("data"),
+				Memo: `{"callback": {"gas_limit": 100}}`,
+			},
+			0,
+		},
+		{
+			"failure: memo has user defined gas limit as negative",
+			types.InterchainAccountPacketData{
+				Type: types.EXECUTE_TX,
+				Data: []byte("data"),
+				Memo: `{"callback": {"gas_limit": "-100"}}`,
+			},
+			0,
+		},
+		{
+			"failure: memo has user defined gas limit as string",
+			types.InterchainAccountPacketData{
+				Type: types.EXECUTE_TX,
+				Data: []byte("data"),
+				Memo: `{"callback": {"gas_limit": "invalid"}}`,
+			},
+			0,
+		},
+		{
+			"failure: memo has user defined gas limit as empty string",
+			types.InterchainAccountPacketData{
+				Type: types.EXECUTE_TX,
+				Data: []byte("data"),
+				Memo: `{"callback": {"gas_limit": ""}}`,
+			},
+			0,
+		},
+		{
+			"failure: malformed memo",
+			types.InterchainAccountPacketData{
+				Type: types.EXECUTE_TX,
+				Data: []byte("data"),
+				Memo: `invalid`,
+			},
+			0,
+		},
 	}
 
-	suite.Require().Equal(uint64(100), packetData.UserDefinedGasLimit())
+	for _, tc := range testCases {
+		suite.Require().Equal(tc.expUserGas, tc.packetData.UserDefinedGasLimit())
+	}
 }
