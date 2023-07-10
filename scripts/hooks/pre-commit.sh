@@ -7,12 +7,12 @@ function check_golangci_lint_version(){
   local git_root="$(git rev-parse --show-toplevel)"
 
   # extract the version of golangci-lint from the CI workflow file.
-  local workflow_golang_lint_version="$(grep ' version' ${git_root}/.github/workflows/golangci.yml | awk '{ print $NF }')"
+  local workflow_golangci_lint_version="$(grep ' version' ${git_root}/.github/workflows/golangci.yml | awk '{ print $NF }')"
 
   local local_golangci_lint_version="$(golangci-lint version --format short)"
 
-  if [[ "${workflow_golang_lint_version}" != "${local_golangci_lint_version}" ]]; then
-    echo "local golangci-lint (${local_golangci_lint_version}) must be upgraded to ${workflow_golang_lint_version}"
+  if [[ "${workflow_golangci_lint_version}" != "${local_golangci_lint_version}" ]]; then
+    echo "local golangci-lint (${local_golangci_lint_version}) must be upgraded to ${workflow_golangci_lint_version}"
     echo "aborting pre-commit hook"
     exit 1
   fi
