@@ -15,14 +15,13 @@ type PacketUnmarshalerIBCModule interface {
 
 // CallbackData is the callback data parsed from the packet.
 type CallbackData struct {
-	SrcContractAddr  string
-	DestContractAddr string
-	GasLimit         uint64
+	ContractAddr string
+	GasLimit     uint64
 }
 
-// GetCallbackData parses the packet data and returns the callback data. It ensures that the remaining
-// gas is greater than the gas limit specified in the packet data.
-func GetCallbackData(app PacketUnmarshalerIBCModule, packet channeltypes.Packet, remainingGas uint64) (CallbackData, error) {
+// GetSourceCallbackData parses the packet data and returns the source callback data. It ensures
+// that the remaining gas is greater than the gas limit specified in the packet data.
+func GetSourceCallbackData(app PacketUnmarshalerIBCModule, packet channeltypes.Packet, remainingGas uint64) (CallbackData, error) {
 	// unmarshal packet data
 	unmarshaledData, err := app.UnmarshalPacketData(packet.Data)
 	if err != nil {
@@ -34,14 +33,38 @@ func GetCallbackData(app PacketUnmarshalerIBCModule, packet channeltypes.Packet,
 		return CallbackData{}, ErrNotCallbackPacketData
 	}
 
-	gasLimit := callbackData.UserDefinedGasLimit()
+	gasLimit := callbackData.GetSourceUserDefinedGasLimit()
 	if gasLimit == 0 || gasLimit > remainingGas {
 		gasLimit = remainingGas
 	}
 
 	return CallbackData{
-		SrcContractAddr:  callbackData.GetSourceCallbackAddress(),
-		DestContractAddr: callbackData.GetDestCallbackAddress(),
-		GasLimit:         gasLimit,
+		ContractAddr: callbackData.GetSourceCallbackAddress(),
+		GasLimit:     gasLimit,
+	}, nil
+}
+
+// GetDestCallbackData parses the packet data and returns the source callback data. It ensures
+// that the remaining gas is greater than the gas limit specified in the packet data.
+func GetDestCallbackData(app PacketUnmarshalerIBCModule, packet channeltypes.Packet, remainingGas uint64) (CallbackData, error) {
+	// unmarshal packet data
+	unmarshaledData, err := app.UnmarshalPacketData(packet.Data)
+	if err != nil {
+		return CallbackData{}, err
+	}
+
+	callbackData, ok := unmarshaledData.(ibcexported.CallbackPacketData)
+	if !ok {
+		return CallbackData{}, ErrNotCallbackPacketData
+	}
+
+	gasLimit := callbackData.GetDestUserDefinedGasLimit()
+	if gasLimit == 0 || gasLimit > remainingGas {
+		gasLimit = remainingGas
+	}
+
+	return CallbackData{
+		ContractAddr: callbackData.GetDestCallbackAddress(),
+		GasLimit:     gasLimit,
 	}, nil
 }
