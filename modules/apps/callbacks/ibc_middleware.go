@@ -3,8 +3,6 @@ package ibccallbacks
 import (
 	"fmt"
 
-	errorsmod "cosmossdk.io/errors"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
@@ -12,7 +10,6 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
-	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
 	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
@@ -76,17 +73,10 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 		return appResult
 	}
 
-	var ack channeltypes.Acknowledgement
-	if err := channeltypes.SubModuleCdc.UnmarshalJSON(acknowledgement, &ack); err != nil {
-		err = errorsmod.Wrapf(ibcerrors.ErrUnknownRequest, "cannot unmarshal callback packet acknowledgement: %v", err)
-		types.EmitSourceCallbackEvent(ctx, packet, types.CallbackTypeAcknowledgement, callbackData, err)
-		return appResult
-	}
-
 	cachedCtx, writeFn := ctx.CacheContext()
 	cachedCtx = cachedCtx.WithGasMeter(sdk.NewGasMeter(callbackData.GasLimit))
 
-	err = im.contractKeeper.IBCAcknowledgementPacketCallback(cachedCtx, packet, ack, relayer, callbackData.ContractAddr)
+	err = im.contractKeeper.IBCAcknowledgementPacketCallback(cachedCtx, packet, acknowledgement, relayer, callbackData.ContractAddr)
 	if err == nil {
 		writeFn()
 	}
