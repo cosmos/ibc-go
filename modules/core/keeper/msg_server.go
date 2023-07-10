@@ -852,6 +852,21 @@ func (k Keeper) ChannelUpgradeAck(goCtx context.Context, msg *channeltypes.MsgCh
 
 	ctx.Logger().Info("channel upgrade ack succeeded", "port-id", msg.PortId, "channel-id", msg.ChannelId)
 
+	// Move channel to OPEN state if both chains have finished flushing any in-flight packets.
+	if msg.CounterpartyFlushStatus == channeltypes.FLUSHCOMPLETE {
+		channel, found := k.ChannelKeeper.GetChannel(ctx, msg.PortId, msg.ChannelId)
+		if !found {
+			return nil, errorsmod.Wrapf(channeltypes.ErrChannelNotFound, "port ID (%s) channel ID (%s)", msg.PortId, msg.ChannelId)
+		}
+		if channel.FlushStatus == channeltypes.FLUSHCOMPLETE {
+			cbs.OnChanUpgradeOpen(ctx, msg.PortId, msg.ChannelId)
+
+			k.ChannelKeeper.WriteUpgradeOpenChannel(ctx, msg.PortId, msg.ChannelId)
+
+			ctx.Logger().Info("channel upgrade open succeeded", "port-id", msg.PortId, "channel-id", msg.ChannelId)
+		}
+	}
+
 	return &channeltypes.MsgChannelUpgradeAckResponse{Result: channeltypes.SUCCESS}, nil
 }
 
