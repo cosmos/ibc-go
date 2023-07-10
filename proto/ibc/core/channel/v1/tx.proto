@@ -266,10 +266,10 @@ message MsgChannelUpgradeInit {
 message MsgChannelUpgradeInitResponse {
   option (gogoproto.goproto_getters) = false;
 
-  string             channel_id       = 1;
-  Upgrade            upgrade          = 2 [(gogoproto.nullable) = false];
-  uint64             upgrade_sequence = 3;
-  ResponseResultType result           = 4;
+  ResponseResultType result = 1;
+  string             channel_id       = 2;
+  Upgrade            upgrade          = 3 [(gogoproto.nullable) = false];
+  uint64             upgrade_sequence = 4;
 }
 
 // MsgChannelUpgradeTry defines the request type for the ChannelUpgradeTry rpc
@@ -294,10 +294,10 @@ message MsgChannelUpgradeTry {
 message MsgChannelUpgradeTryResponse {
   option (gogoproto.goproto_getters) = false;
 
-  string             channel_id       = 1;
-  Upgrade            upgrade          = 2 [(gogoproto.nullable) = false];
-  uint64             upgrade_sequence = 3;
-  ResponseResultType result           = 4;
+  ResponseResultType result = 1;
+  string             channel_id       = 2;
+  Upgrade            upgrade          = 3 [(gogoproto.nullable) = false];
+  uint64             upgrade_sequence = 4;
 }
 
 // MsgChannelUpgradeAck defines the request type for the ChannelUpgradeAck rpc

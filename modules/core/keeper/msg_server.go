@@ -743,10 +743,10 @@ func (k Keeper) ChannelUpgradeInit(goCtx context.Context, msg *channeltypes.MsgC
 	ctx.Logger().Info("channel upgrade init succeeded", "channel-id", msg.ChannelId, "version", proposedVersion)
 
 	return &channeltypes.MsgChannelUpgradeInitResponse{
+		Result:          channeltypes.SUCCESS,
 		ChannelId:       msg.ChannelId,
 		Upgrade:         proposedUpgrade,
 		UpgradeSequence: channel.UpgradeSequence,
-		Result:          channeltypes.SUCCESS,
 	}, nil
 }
 
