@@ -11,7 +11,7 @@ function check_golangci_lint_version(){
 
   # sample output of "golangci-lint --version"
   # golangci-lint has version 1.53.2 built with go1.20.4 from 59a7aaf on 2023-06-03T10:44:21Z
-  local local_golang_lint_version="v$(golangci-lint --version | awk '{ print $4 }')"
+  local local_golang_lint_version="$(golangci-lint --version | awk '{ print $4 }')"
 
   if [[ "${golang_lint_ci_version}" != "${local_golang_lint_version}" ]]; then
     echo "local golangci-lint (${local_golang_lint_version}) must be upgraded to ${golang_lint_ci_version}"
