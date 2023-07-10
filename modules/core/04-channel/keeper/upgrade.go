@@ -397,15 +397,14 @@ func (k Keeper) ChanUpgradeOpen(
 		panic(fmt.Sprintf("counterparty channel state should be in one of [%s, %s, %s]; got %s", types.TRYUPGRADE, types.ACKUPGRADE, types.OPEN, counterpartyChannelState))
 	}
 
-	err = k.connectionKeeper.VerifyChannelState(
+	if err = k.connectionKeeper.VerifyChannelState(
 		ctx,
 		connection,
 		proofHeight, proofCounterpartyChannel,
 		channel.Counterparty.PortId,
 		channel.Counterparty.ChannelId,
 		counterpartyChannel,
-	)
-	if err != nil {
+	); err != nil {
 		return errorsmod.Wrapf(err, "failed to verify counterparty channel, expected counterparty channel state: %s", counterpartyChannel.String())
 	}
 
