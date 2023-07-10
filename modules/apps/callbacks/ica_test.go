@@ -32,7 +32,7 @@ func (suite *CallbacksTestSuite) TestICACallbacks() {
 		},
 		{
 			"success: dest callback",
-			fmt.Sprintf(`{"callback": {"dest_callback_address": "%s"}}`, callbackAddr),
+			fmt.Sprintf(`{"dest_callback": {"address": "%s"}}`, callbackAddr),
 			types.CallbackTypeReceivePacket,
 			true,
 		},
