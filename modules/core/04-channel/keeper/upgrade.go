@@ -319,7 +319,7 @@ func (k Keeper) ChanUpgradeOpen(
 	portID,
 	channelID string,
 	counterpartyChannelState types.State,
-	proofChannel []byte,
+	proofCounterpartyChannel []byte,
 	proofHeight clienttypes.Height,
 ) error {
 	if k.hasInflightPackets(ctx, portID, channelID) {
@@ -397,7 +397,14 @@ func (k Keeper) ChanUpgradeOpen(
 		panic(fmt.Sprintf("counterparty channel state should be in one of [%s, %s, %s]; got %s", types.TRYUPGRADE, types.ACKUPGRADE, types.OPEN, counterpartyChannelState))
 	}
 
-	err = k.connectionKeeper.VerifyChannelState(ctx, connection, proofHeight, proofChannel, portID, channelID, counterpartyChannel)
+	err = k.connectionKeeper.VerifyChannelState(
+		ctx,
+		connection,
+		proofHeight, proofCounterpartyChannel,
+		channel.Counterparty.PortId,
+		channel.Counterparty.ChannelId,
+		counterpartyChannel,
+	)
 	if err != nil {
 		return errorsmod.Wrapf(err, "failed to verify counterparty channel, expected counterparty channel state: %s", counterpartyChannel.String())
 	}
