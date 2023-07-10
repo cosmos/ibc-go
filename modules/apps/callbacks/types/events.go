@@ -32,9 +32,9 @@ const (
 	// if custom gas limit is not in effect, then this key will not be included in the event
 	AttributeKeyCallbackGasLimit = "callback_gas_limit"
 	// AttributeKeyCallbackPortID denotes the port ID of the packet
-	AttributeKeyCallbackPortID = "callback_port"
+	AttributeKeyCallbackSourcePortID = "callback_src_port"
 	// AttributeKeyCallbackChannelID denotes the channel ID of the packet
-	AttributeKeyCallbackChannelID = "callback_channel"
+	AttributeKeyCallbackSourceChannelID = "callback_src_channel"
 	// AttributeKeyCallbackSequence denotes the sequence of the packet
 	AttributeKeyCallbackSequence = "callback_sequence"
 )
@@ -70,19 +70,23 @@ func emitCallbackEvent(
 	callbackData CallbackData,
 	err error,
 ) {
-	success := err == nil
 	attributes := []sdk.Attribute{
 		sdk.NewAttribute(sdk.AttributeKeyModule, ModuleName),
 		sdk.NewAttribute(AttributeKeyCallbackTrigger, callbackTrigger),
 		sdk.NewAttribute(AttributeKeyCallbackAddress, callbackData.ContractAddr),
 		sdk.NewAttribute(AttributeKeyCallbackGasLimit, fmt.Sprintf("%d", callbackData.GasLimit)),
-		sdk.NewAttribute(AttributeKeyCallbackResult, fmt.Sprintf("%t", success)),
-		sdk.NewAttribute(AttributeKeyCallbackPortID, packet.SourcePort),
-		sdk.NewAttribute(AttributeKeyCallbackChannelID, packet.SourceChannel),
+		sdk.NewAttribute(AttributeKeyCallbackSourcePortID, packet.SourcePort),
+		sdk.NewAttribute(AttributeKeyCallbackSourceChannelID, packet.SourceChannel),
 		sdk.NewAttribute(AttributeKeyCallbackSequence, fmt.Sprintf("%d", packet.Sequence)),
 	}
-	if !success {
-		attributes = append(attributes, sdk.NewAttribute(AttributeKeyCallbackError, err.Error()))
+	if err == nil {
+		attributes = append(attributes, sdk.NewAttribute(AttributeKeyCallbackResult, "success"))
+	} else {
+		attributes = append(
+			attributes,
+			sdk.NewAttribute(AttributeKeyCallbackError, err.Error()),
+			sdk.NewAttribute(AttributeKeyCallbackResult, "failure"),
+		)
 	}
 
 	ctx.EventManager().EmitEvent(
