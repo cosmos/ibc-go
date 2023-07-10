@@ -239,8 +239,8 @@ func (suite *TypesTestSuite) TestUserDefinedGasLimit() {
 		Amount:   amount,
 		Sender:   sender,
 		Receiver: receiver,
-		Memo:     `{"callback": {"user_defined_gas_limit": 100}}`,
+		Memo:     `{"callback": {"gas_limit": "100"}}`,
 	}
 
-	suite.Require().Equal(uint64(0), packetData.UserDefinedGasLimit(), "user defined gas limit does not return 0")
+	suite.Require().Equal(uint64(100), packetData.UserDefinedGasLimit())
 }

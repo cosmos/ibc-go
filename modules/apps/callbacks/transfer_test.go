@@ -66,13 +66,13 @@ func (suite *CallbacksTestSuite) TestTransferCallbacks() {
 		},
 		{
 			"failure: dest callback with low gas",
-			fmt.Sprintf(`{"callback": {"dest_callback_address": "%s", "gas_limit": 100}}`, callbackAddr),
+			fmt.Sprintf(`{"callback": {"dest_callback_address": "%s", "gas_limit": "100"}}`, callbackAddr),
 			types.CallbackTypeReceivePacket,
 			false,
 		},
 		{
 			"failure: source callback with low gas",
-			fmt.Sprintf(`{"callback": {"src_callback_address": "%s", "gas_limit": 100}}`, callbackAddr),
+			fmt.Sprintf(`{"callback": {"src_callback_address": "%s", "gas_limit": "100"}}`, callbackAddr),
 			types.CallbackTypeAcknowledgement,
 			false,
 		},

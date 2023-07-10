@@ -2,6 +2,7 @@ package types
 
 import (
 	"encoding/json"
+	"strconv"
 	"time"
 
 	errorsmod "cosmossdk.io/errors"
@@ -72,7 +73,7 @@ The Memo format is defined like so:
 		"src_callback_address": {contractAddrOnSourceChain},
 
 		// optional fields
-		"gas_limit": {intForCallback}
+		"gas_limit": {stringForCallback}
 	}
 }
 ```
@@ -111,7 +112,7 @@ func (iapd InterchainAccountPacketData) GetDestCallbackAddress() string {
 // UserDefinedGasLimit returns the custom gas limit provided in the packet data memo.
 //
 // The memo is expected to specify the callback address in the following format:
-// { "callback": { ... , "gas_limit": {intForCallback} }
+// { "callback": { ... , "gas_limit": {stringForCallback} }
 //
 // If no gas limit is specified, 0 is returned.
 func (iapd InterchainAccountPacketData) UserDefinedGasLimit() uint64 {
@@ -120,13 +121,18 @@ func (iapd InterchainAccountPacketData) UserDefinedGasLimit() uint64 {
 		return 0
 	}
 
-	// json number won't be unmarshaled as a uint64, so we need to cast it to float64 first
-	gasLimit, ok := callbackData["gas_limit"].(float64)
+	// json number won't be unmarshaled as a uint64, so we a use string instead
+	gasLimit, ok := callbackData["gas_limit"].(string)
 	if !ok {
 		return 0
 	}
 
-	return uint64(gasLimit)
+	userGas, err := strconv.ParseUint(gasLimit, 10, 64)
+	if err != nil {
+		return 0
+	}
+
+	return userGas
 }
 
 // getCallbackData returns the memo as `map[string]interface{}` so that it can be
