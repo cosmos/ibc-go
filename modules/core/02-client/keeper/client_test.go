@@ -149,8 +149,6 @@ func (s *KeeperTestSuite) TestUpdateClientTendermint() {
 			updateHeader = createPastUpdateFn(fillHeight, trustedHeight)
 		}, true, false},
 		{"valid duplicate update", func() {
-			clientID := path.EndpointA.ClientID
-
 			height1 := clienttypes.NewHeight(1, 1)
 
 			// store previous consensus state
@@ -158,22 +156,27 @@ func (s *KeeperTestSuite) TestUpdateClientTendermint() {
 				Timestamp:          s.past,
 				NextValidatorsHash: s.chainB.Vals.Hash(),
 			}
-			s.chainA.App.GetIBCKeeper().ClientKeeper.SetClientConsensusState(s.chainA.GetContext(), clientID, height1, prevConsState)
+			path.EndpointA.SetConsensusState(prevConsState, height1)
 
 			height5 := clienttypes.NewHeight(1, 5)
-			// store next consensus state to check that trustedHeight does not need to be hightest consensus state before header height
+			// store next consensus state to check that trustedHeight does not need to be highest consensus state before header height
 			nextConsState := &ibctm.ConsensusState{
 				Timestamp:          s.past.Add(time.Minute),
 				NextValidatorsHash: s.chainB.Vals.Hash(),
 			}
-			s.chainA.App.GetIBCKeeper().ClientKeeper.SetClientConsensusState(s.chainA.GetContext(), clientID, height5, nextConsState)
+			path.EndpointA.SetConsensusState(nextConsState, height5)
+
+			// update client state latest height
+			clientState := path.EndpointA.GetClientState()
+			clientState.(*ibctm.ClientState).LatestHeight = height5
+			path.EndpointA.SetClientState(clientState)
 
 			height3 := clienttypes.NewHeight(1, 3)
 			// updateHeader will fill in consensus state between prevConsState and s.consState
 			// clientState should not be updated
 			updateHeader = createPastUpdateFn(height3, height1)
 			// set updateHeader's consensus state in store to create duplicate UpdateClient scenario
-			s.chainA.App.GetIBCKeeper().ClientKeeper.SetClientConsensusState(s.chainA.GetContext(), clientID, updateHeader.GetHeight(), updateHeader.ConsensusState())
+			path.EndpointA.SetConsensusState(updateHeader.ConsensusState(), updateHeader.GetHeight())
 		}, true, false},
 		{"misbehaviour detection: conflicting header", func() {
 			clientID := path.EndpointA.ClientID

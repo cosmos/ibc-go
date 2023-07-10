@@ -3,7 +3,7 @@ package tendermint_test
 import (
 	"time"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 
 	tmtypes "github.com/cometbft/cometbft/types"
 
@@ -308,7 +308,7 @@ func (s *TendermintTestSuite) TestUpdateState() {
 	var (
 		path               *ibctesting.Path
 		clientMessage      exported.ClientMessage
-		clientStore        sdk.KVStore
+		clientStore        storetypes.KVStore
 		consensusHeights   []exported.Height
 		pruneHeight        clienttypes.Height
 		prevClientState    exported.ClientState
