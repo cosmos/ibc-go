@@ -59,18 +59,18 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 	relayer sdk.AccAddress,
 ) error {
 	// we first call the underlying app to handle the acknowledgement
-	appResult := im.app.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
-	if appResult != nil {
-		return appResult
+	err := im.app.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
+	if err != nil {
+		return err
 	}
 
 	callbackData, err := types.GetSourceCallbackData(im.app, packet, ctx.GasMeter().GasRemaining())
 	if err != nil {
 		types.EmitSourceCallbackEvent(ctx, packet, types.CallbackTypeAcknowledgement, callbackData, err)
-		return appResult
+		return nil
 	}
 	if callbackData.ContractAddr == "" {
-		return appResult
+		return nil
 	}
 
 	cachedCtx, writeFn := ctx.CacheContext()
@@ -85,25 +85,25 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 
 	// emit event as a callback success
 	types.EmitSourceCallbackEvent(ctx, packet, types.CallbackTypeAcknowledgement, callbackData, err)
-	return appResult
+	return nil
 }
 
 // OnTimeoutPacket implements timeout source callbacks for the ibc-callbacks middleware.
 // It defers to the underlying application and then calls the contract callback.
 // If the contract callback fails (within the gas limit), state changes are reverted.
 func (im IBCMiddleware) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress) error {
-	appResult := im.app.OnTimeoutPacket(ctx, packet, relayer)
-	if appResult != nil {
-		return appResult
+	err := im.app.OnTimeoutPacket(ctx, packet, relayer)
+	if err != nil {
+		return err
 	}
 
 	callbackData, err := types.GetSourceCallbackData(im.app, packet, ctx.GasMeter().GasRemaining())
 	if err != nil {
 		types.EmitSourceCallbackEvent(ctx, packet, types.CallbackTypeTimeoutPacket, callbackData, err)
-		return appResult
+		return nil
 	}
 	if callbackData.ContractAddr == "" {
-		return appResult
+		return nil
 	}
 
 	cachedCtx, writeFn := ctx.CacheContext()
@@ -117,7 +117,7 @@ func (im IBCMiddleware) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Pac
 	ctx.GasMeter().ConsumeGas(cachedCtx.GasMeter().GasConsumed(), "ibc packet timeout callback")
 
 	types.EmitSourceCallbackEvent(ctx, packet, types.CallbackTypeTimeoutPacket, callbackData, err)
-	return appResult
+	return nil
 }
 
 // OnChanCloseConfirm defers to the underlying application
