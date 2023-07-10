@@ -185,7 +185,7 @@ func (suite *MigrationsTestSuite) AssertMockCapabiltiesUnchanged() {
 // ResetMemstore removes all existing fwd and rev capability kv pairs and deletes `KeyMemInitialised` from the x/capability memstore.
 // This effectively mocks a new chain binary being started. Migration code is run against persisted state only and allows the memstore to be reinitialised.
 func (suite *MigrationsTestSuite) ResetMemStore() {
-	memStore := suite.chainA.GetContext().KVStore(suite.chainA.GetSimApp().GetKey(capabilitytypes.MemStoreKey))
+	memStore := suite.chainA.GetContext().KVStore(suite.chainA.GetSimApp().GetMemKey(capabilitytypes.MemStoreKey))
 	memStore.Delete(capabilitytypes.KeyMemInitialized)
 
 	iterator := memStore.Iterator(nil, nil)
