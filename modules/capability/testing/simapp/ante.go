@@ -8,11 +8,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 )
 
-// HandlerOptions extend the SDK's AnteHandler options by requiring the IBC keeper.
-type HandlerOptions struct {
-	ante.HandlerOptions
-}
-
 // NewAnteHandler creates a new ante handler
 func NewAnteHandler(options ante.HandlerOptions) (sdk.AnteHandler, error) {
 	if options.AccountKeeper == nil {
