@@ -143,8 +143,7 @@ func (suite *KeeperTestSuite) TestAuthenticateCapability() {
 	suite.Require().False(sk2.AuthenticateCapability(suite.ctx, cap2, "invalid"))
 	suite.Require().False(sk2.AuthenticateCapability(suite.ctx, cap1, "bond"))
 
-	err = sk2.ReleaseCapability(suite.ctx, cap2)
-	suite.Require().NoError(err)
+	sk2.ReleaseCapability(suite.ctx, cap2)
 	suite.Require().False(sk2.AuthenticateCapability(suite.ctx, cap2, "bond"))
 
 	badCap := types.NewCapability(100)
