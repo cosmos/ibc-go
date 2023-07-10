@@ -1,6 +1,8 @@
 package ibccallbacks
 
 import (
+	"fmt"
+
 	errorsmod "cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -36,7 +38,7 @@ func NewIBCMiddleware(
 ) IBCMiddleware {
 	packetUnmarshalerApp, ok := app.(types.PacketUnmarshalerIBCModule)
 	if !ok {
-		panic("underlying application does not implement PacketDataUnmarshaler")
+		panic(fmt.Sprintf("underlying application does not implement %T", (*types.PacketUnmarshalerIBCModule)(nil)))
 	}
 	return IBCMiddleware{
 		app:            packetUnmarshalerApp,
