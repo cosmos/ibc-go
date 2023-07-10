@@ -179,11 +179,6 @@ func (im IBCMiddleware) OnChanOpenTry(
 func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress) ibcexported.Acknowledgement {
 	appAck := im.app.OnRecvPacket(ctx, packet, relayer)
 
-	appAckResult, ok := appAck.(channeltypes.Acknowledgement)
-	if !ok {
-		return appAck
-	}
-
 	callbackData, err := types.GetDestCallbackData(im.app, packet, ctx.GasMeter().GasRemaining())
 	if err != nil {
 		types.EmitDestinationCallbackEvent(ctx, packet, types.CallbackTypeTimeoutPacket, callbackData, err)
@@ -196,7 +191,7 @@ func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet
 	cachedCtx, writeFn := ctx.CacheContext()
 	cachedCtx = cachedCtx.WithGasMeter(sdk.NewGasMeter(callbackData.GasLimit))
 
-	err = im.contractKeeper.IBCReceivePacketCallback(cachedCtx, packet, appAckResult, relayer, callbackData.ContractAddr)
+	err = im.contractKeeper.IBCReceivePacketCallback(cachedCtx, packet, appAck.Acknowledgement(), relayer, callbackData.ContractAddr)
 	if err == nil {
 		writeFn()
 	}

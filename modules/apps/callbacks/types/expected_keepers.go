@@ -36,7 +36,7 @@ type ContractKeeper interface {
 	IBCReceivePacketCallback(
 		ctx sdk.Context,
 		packet channeltypes.Packet,
-		ackResult channeltypes.Acknowledgement,
+		acknowledgement []byte,
 		relayer sdk.AccAddress,
 		contractAddr string,
 	) error
