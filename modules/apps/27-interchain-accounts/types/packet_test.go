@@ -91,61 +91,61 @@ func (suite *TypesTestSuite) TestGetSourceCallbackAddress() {
 	testCases := []struct {
 		name       string
 		packetData types.InterchainAccountPacketData
-		expPass    bool
+		expAddress string
 	}{
 		{
-			"memo is empty",
+			"success: memo has src_callback in json struct and properly formatted address",
+			types.InterchainAccountPacketData{
+				Type: types.EXECUTE_TX,
+				Data: []byte("data"),
+				Memo: fmt.Sprintf(`{"src_callback": {"address": "%s"}}`, expSrcCbAddr),
+			},
+			expSrcCbAddr,
+		},
+		{
+			"failure: memo is empty",
 			types.InterchainAccountPacketData{
 				Type: types.EXECUTE_TX,
 				Data: []byte("data"),
 				Memo: "",
 			},
-			false,
+			"",
 		},
 		{
-			"memo is not json string",
+			"failure: memo is not json string",
 			types.InterchainAccountPacketData{
 				Type: types.EXECUTE_TX,
 				Data: []byte("data"),
 				Memo: "memo",
 			},
-			false,
+			"",
 		},
 		{
-			"memo does not have callbacks in json struct",
+			"failure: memo does not have callbacks in json struct",
 			types.InterchainAccountPacketData{
 				Type: types.EXECUTE_TX,
 				Data: []byte("data"),
 				Memo: `{"Key": 10}`,
 			},
-			false,
+			"",
 		},
 		{
-			"memo has callbacks in json struct but does not have src_callback_address key",
+			"failure: memo has dest_callback in json struct but does not have address key",
 			types.InterchainAccountPacketData{
 				Type: types.EXECUTE_TX,
 				Data: []byte("data"),
-				Memo: `{"callback": {"Key": 10}}`,
+				Memo: `{"src_callback": {"Key": 10}}`,
 			},
-			false,
+			"",
 		},
 		{
-			"memo has callbacks in json struct but does not have string value for src_callback_address key",
+			"failure: memo has src_callback in json struct but does not have string value for address key",
 			types.InterchainAccountPacketData{
 				Type: types.EXECUTE_TX,
 				Data: []byte("data"),
-				Memo: `{"callback": {"src_callback_address": 10}}`,
+				Memo: `{"src_callback": {"address": 10}}`,
 			},
-			false,
-		},
-		{
-			"memo has callbacks in json struct and properly formatted src_callback_address",
-			types.InterchainAccountPacketData{
-				Type: types.EXECUTE_TX,
-				Data: []byte("data"),
-				Memo: fmt.Sprintf(`{"callback": {"src_callback_address": "%s"}}`, expSrcCbAddr),
-			},
-			true,
+			"",
 		},
 	}
 
@@ -153,56 +153,102 @@ func (suite *TypesTestSuite) TestGetSourceCallbackAddress() {
 		tc := tc
 		suite.Run(tc.name, func() {
 			srcCbAddr := tc.packetData.GetSourceCallbackAddress()
-
-			if tc.expPass {
-				suite.Require().Equal(expSrcCbAddr, srcCbAddr)
-			} else {
-				suite.Require().Equal("", srcCbAddr)
-			}
+			suite.Require().Equal(tc.expAddress, srcCbAddr)
 		})
 	}
 }
 
 func (suite *TypesTestSuite) TestGetDestCallbackAddress() {
+	// dest callback addresses are not supported for ICS 27
+	const testDestCbAddr = "destCbAddr"
+
 	testCases := []struct {
 		name       string
 		packetData types.InterchainAccountPacketData
+		expAddress string
 	}{
 		{
-			"memo is empty",
+			"failure: memo has dest_callback in json struct and properly formatted address",
+			types.InterchainAccountPacketData{
+				Type: types.EXECUTE_TX,
+				Data: []byte("data"),
+				Memo: fmt.Sprintf(`{"dest_callback": {"address": "%s"}}`, testDestCbAddr),
+			},
+			"",
+		},
+		{
+			"failure: memo is empty",
 			types.InterchainAccountPacketData{
 				Type: types.EXECUTE_TX,
 				Data: []byte("data"),
 				Memo: "",
 			},
+			"",
 		},
 		{
-			"memo has dest callback address specified in json struct",
+			"failure: memo is not json string",
 			types.InterchainAccountPacketData{
 				Type: types.EXECUTE_TX,
 				Data: []byte("data"),
-				Memo: `{"callback": {"dest_callback_address": "testAddress"}}`,
+				Memo: "memo",
 			},
+			"",
+		},
+		{
+			"failure: memo does not have callbacks in json struct",
+			types.InterchainAccountPacketData{
+				Type: types.EXECUTE_TX,
+				Data: []byte("data"),
+				Memo: `{"Key": 10}`,
+			},
+			"",
+		},
+		{
+			"failure: memo has callbacks in json struct but does not have dest_callback address key",
+			types.InterchainAccountPacketData{
+				Type: types.EXECUTE_TX,
+				Data: []byte("data"),
+				Memo: `{"dest_callback": {"Key": 10}}`,
+			},
+			"",
+		},
+		{
+			"failure: memo has dest_callback in json struct but does not have string value for address key",
+			types.InterchainAccountPacketData{
+				Type: types.EXECUTE_TX,
+				Data: []byte("data"),
+				Memo: `{"dest_callback": {"address": 10}}`,
+			},
+			"",
 		},
 	}
 
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(tc.name, func() {
-			destCbAddr := tc.packetData.GetDestCallbackAddress()
-			suite.Require().Equal("", destCbAddr)
+			srcCbAddr := tc.packetData.GetDestCallbackAddress()
+			suite.Require().Equal(tc.expAddress, srcCbAddr)
 		})
 	}
 }
 
-func (suite *TypesTestSuite) TestUserDefinedGasLimit() {
+func (suite *TypesTestSuite) TestSourceUserDefinedGasLimit() {
 	testCases := []struct {
 		name       string
 		packetData types.InterchainAccountPacketData
 		expUserGas uint64
 	}{
 		{
-			"success: memo is empty",
+			"success: memo has user defined gas limit",
+			types.InterchainAccountPacketData{
+				Type: types.EXECUTE_TX,
+				Data: []byte("data"),
+				Memo: `{"src_callback": {"gas_limit": "100"}}`,
+			},
+			100,
+		},
+		{
+			"failure: memo is empty",
 			types.InterchainAccountPacketData{
 				Type: types.EXECUTE_TX,
 				Data: []byte("data"),
@@ -211,20 +257,11 @@ func (suite *TypesTestSuite) TestUserDefinedGasLimit() {
 			0,
 		},
 		{
-			"success: memo has user defined gas limit",
-			types.InterchainAccountPacketData{
-				Type: types.EXECUTE_TX,
-				Data: []byte("data"),
-				Memo: `{"callback": {"gas_limit": "100"}}`,
-			},
-			100,
-		},
-		{
 			"failure: memo has user defined gas limit as number",
 			types.InterchainAccountPacketData{
 				Type: types.EXECUTE_TX,
 				Data: []byte("data"),
-				Memo: `{"callback": {"gas_limit": 100}}`,
+				Memo: `{"src_callback": {"gas_limit": 100}}`,
 			},
 			0,
 		},
@@ -233,7 +270,7 @@ func (suite *TypesTestSuite) TestUserDefinedGasLimit() {
 			types.InterchainAccountPacketData{
 				Type: types.EXECUTE_TX,
 				Data: []byte("data"),
-				Memo: `{"callback": {"gas_limit": "-100"}}`,
+				Memo: `{"src_callback": {"gas_limit": "-100"}}`,
 			},
 			0,
 		},
@@ -242,7 +279,7 @@ func (suite *TypesTestSuite) TestUserDefinedGasLimit() {
 			types.InterchainAccountPacketData{
 				Type: types.EXECUTE_TX,
 				Data: []byte("data"),
-				Memo: `{"callback": {"gas_limit": "invalid"}}`,
+				Memo: `{"src_callback": {"gas_limit": "invalid"}}`,
 			},
 			0,
 		},
@@ -251,7 +288,7 @@ func (suite *TypesTestSuite) TestUserDefinedGasLimit() {
 			types.InterchainAccountPacketData{
 				Type: types.EXECUTE_TX,
 				Data: []byte("data"),
-				Memo: `{"callback": {"gas_limit": ""}}`,
+				Memo: `{"src_callback": {"gas_limit": ""}}`,
 			},
 			0,
 		},
@@ -267,6 +304,83 @@ func (suite *TypesTestSuite) TestUserDefinedGasLimit() {
 	}
 
 	for _, tc := range testCases {
-		suite.Require().Equal(tc.expUserGas, tc.packetData.UserDefinedGasLimit())
+		suite.Require().Equal(tc.expUserGas, tc.packetData.GetSourceUserDefinedGasLimit())
+	}
+}
+
+func (suite *TypesTestSuite) TestDestUserDefinedGasLimit() {
+	// dest user defined gas limits are not supported for ICS 27
+	testCases := []struct {
+		name       string
+		packetData types.InterchainAccountPacketData
+		expUserGas uint64
+	}{
+		{
+			"failure: memo has user defined gas limit",
+			types.InterchainAccountPacketData{
+				Type: types.EXECUTE_TX,
+				Data: []byte("data"),
+				Memo: `{"dest_callback": {"gas_limit": "100"}}`,
+			},
+			0,
+		},
+		{
+			"failure: memo is empty",
+			types.InterchainAccountPacketData{
+				Type: types.EXECUTE_TX,
+				Data: []byte("data"),
+				Memo: "",
+			},
+			0,
+		},
+		{
+			"failure: memo has user defined gas limit as number",
+			types.InterchainAccountPacketData{
+				Type: types.EXECUTE_TX,
+				Data: []byte("data"),
+				Memo: `{"dest_callback": {"gas_limit": 100}}`,
+			},
+			0,
+		},
+		{
+			"failure: memo has user defined gas limit as negative",
+			types.InterchainAccountPacketData{
+				Type: types.EXECUTE_TX,
+				Data: []byte("data"),
+				Memo: `{"dest_callback": {"gas_limit": "-100"}}`,
+			},
+			0,
+		},
+		{
+			"failure: memo has user defined gas limit as string",
+			types.InterchainAccountPacketData{
+				Type: types.EXECUTE_TX,
+				Data: []byte("data"),
+				Memo: `{"dest_callback": {"gas_limit": "invalid"}}`,
+			},
+			0,
+		},
+		{
+			"failure: memo has user defined gas limit as empty string",
+			types.InterchainAccountPacketData{
+				Type: types.EXECUTE_TX,
+				Data: []byte("data"),
+				Memo: `{"dest_callback": {"gas_limit": ""}}`,
+			},
+			0,
+		},
+		{
+			"failure: malformed memo",
+			types.InterchainAccountPacketData{
+				Type: types.EXECUTE_TX,
+				Data: []byte("data"),
+				Memo: `invalid`,
+			},
+			0,
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.Require().Equal(tc.expUserGas, tc.packetData.GetDestUserDefinedGasLimit())
 	}
 }

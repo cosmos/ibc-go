@@ -69,8 +69,8 @@ The Memo format is defined like so:
 ```json
 {
 	// ... other memo fields we don't care about
-	"callback": {
-		"src_callback_address": {contractAddrOnSourceChain},
+	"src_callback": {
+		"address": {stringForContractAddress},
 
 		// optional fields
 		"gas_limit": {stringForCallback}
@@ -80,26 +80,26 @@ The Memo format is defined like so:
 
 */
 
-// GetSourceCallbackAddress returns the source callback address provided in the packet data memo.
+// getCallbackAddress returns the callback address if it is specified in the packet data memo.
 // If no callback address is specified, an empty string is returned.
 //
-// The memo is expected to specify the callback address in the following format:
-// { "callback": { "src_callback_address": {contractAddrOnSourceChain}}
+// The memo is expected to contain the destination callback address in the following format:
+// { "src_callback": { "address": {stringCallbackAddress}}
 //
 // ADR-8 middleware should callback on the returned address if it is a PacketActor
 // (i.e. smart contract that accepts IBC callbacks).
 func (iapd InterchainAccountPacketData) GetSourceCallbackAddress() string {
-	callbackData := iapd.getCallbackData()
+	callbackData := iapd.getSrcCallbackData()
 	if callbackData == nil {
 		return ""
 	}
 
-	callbackAddr, ok := callbackData["src_callback_address"].(string)
+	callbackAddress, ok := callbackData["address"].(string)
 	if !ok {
 		return ""
 	}
 
-	return callbackAddr
+	return callbackAddress
 }
 
 // GetDestCallbackAddress returns an empty string. Destination callback addresses
@@ -109,14 +109,14 @@ func (iapd InterchainAccountPacketData) GetDestCallbackAddress() string {
 	return ""
 }
 
-// UserDefinedGasLimit returns the custom gas limit provided in the packet data memo.
+// GetSourceUserDefinedGasLimit returns the custom gas limit provided for source callbacks
+// if it is specified in the packet data memo.
+// If no gas limit is specified, 0 is returned.
 //
 // The memo is expected to specify the user defined gas limit in the following format:
-// { "callback": { ... , "gas_limit": {stringForCallback} }
-//
-// If no gas limit is specified, 0 is returned.
-func (iapd InterchainAccountPacketData) UserDefinedGasLimit() uint64 {
-	callbackData := iapd.getCallbackData()
+// { "src_callback": { ... , "gas_limit": {stringForCallback} }
+func (iapd InterchainAccountPacketData) GetSourceUserDefinedGasLimit() uint64 {
+	callbackData := iapd.getSrcCallbackData()
 	if callbackData == nil {
 		return 0
 	}
@@ -135,9 +135,16 @@ func (iapd InterchainAccountPacketData) UserDefinedGasLimit() uint64 {
 	return userGas
 }
 
+// GetDestUserDefinedGasLimit returns 0. Destination user defined gas limits
+// are not supported for ICS 27. This feature is natively supported by
+// interchain accounts host submodule transaction execution.
+func (iapd InterchainAccountPacketData) GetDestUserDefinedGasLimit() uint64 {
+	return 0
+}
+
 // getCallbackData returns the memo as `map[string]interface{}` so that it can be
 // interpreted as a json object with keys.
-func (iapd InterchainAccountPacketData) getCallbackData() map[string]interface{} {
+func (iapd InterchainAccountPacketData) getSrcCallbackData() map[string]interface{} {
 	if len(iapd.Memo) == 0 {
 		return nil
 	}
@@ -148,7 +155,7 @@ func (iapd InterchainAccountPacketData) getCallbackData() map[string]interface{}
 		return nil
 	}
 
-	callbackData, ok := jsonObject["callback"].(map[string]interface{})
+	callbackData, ok := jsonObject["src_callback"].(map[string]interface{})
 	if !ok {
 		return nil
 	}
