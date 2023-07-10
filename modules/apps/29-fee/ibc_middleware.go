@@ -358,7 +358,7 @@ func (im IBCMiddleware) GetAppVersion(ctx sdk.Context, portID, channelID string)
 func (im IBCMiddleware) UnmarshalPacketData(bz []byte) (interface{}, error) {
 	unmarshaler, ok := im.app.(porttypes.PacketDataUnmarshaler)
 	if !ok {
-		return nil, errorsmod.Wrapf(types.ErrUnsupportedAction, "underlying app does not implement PacketDataUnmarshaler")
+		return nil, errorsmod.Wrapf(types.ErrUnsupportedAction, "underlying app does not implement %T", (*porttypes.PacketDataUnmarshaler)(nil))
 	}
 
 	return unmarshaler.UnmarshalPacketData(bz)
