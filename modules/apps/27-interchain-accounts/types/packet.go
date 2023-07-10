@@ -111,7 +111,7 @@ func (iapd InterchainAccountPacketData) GetDestCallbackAddress() string {
 
 // UserDefinedGasLimit returns the custom gas limit provided in the packet data memo.
 //
-// The memo is expected to specify the callback address in the following format:
+// The memo is expected to specify the user defined gas limit in the following format:
 // { "callback": { ... , "gas_limit": {stringForCallback} }
 //
 // If no gas limit is specified, 0 is returned.
