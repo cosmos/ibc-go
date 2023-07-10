@@ -23,7 +23,7 @@ func RandomizedGenState(simState *module.SimulationState) {
 	var idx uint64
 
 	simState.AppParams.GetOrGenerate(
-		simState.Cdc, index, &idx, simState.Rand,
+		index, &idx, simState.Rand,
 		func(r *rand.Rand) { idx = GenIndex(r) },
 	)
 
