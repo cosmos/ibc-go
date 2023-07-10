@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/kv"
-	"github.com/stretchr/testify/require"
 
 	"github.com/cosmos/ibc-go/modules/capability/simulation"
 	"github.com/cosmos/ibc-go/modules/capability/testing/simapp"
