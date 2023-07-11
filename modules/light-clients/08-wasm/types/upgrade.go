@@ -3,7 +3,8 @@ package types
 import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
+	errorsmod "cosmossdk.io/errors"
 
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 
@@ -37,13 +38,13 @@ func (cs ClientState) VerifyUpgradeAndUpdateState(
 ) error {
 	wasmUpgradeClientState, ok := upgradedClient.(*ClientState)
 	if !ok {
-		return sdkerrors.Wrapf(clienttypes.ErrInvalidClient, "upgraded client state must be wasm light client state. expected %T, got: %T",
+		return errorsmod.Wrapf(clienttypes.ErrInvalidClient, "upgraded client state must be wasm light client state. expected %T, got: %T",
 			&ClientState{}, wasmUpgradeClientState)
 	}
 
 	wasmUpgradeConsState, ok := upgradedConsState.(*ConsensusState)
 	if !ok {
-		return sdkerrors.Wrapf(clienttypes.ErrInvalidConsensus, "upgraded consensus state must be wasm light consensus state. expected %T, got: %T",
+		return errorsmod.Wrapf(clienttypes.ErrInvalidConsensus, "upgraded consensus state must be wasm light consensus state. expected %T, got: %T",
 			&ConsensusState{}, wasmUpgradeConsState)
 	}
 
@@ -51,7 +52,7 @@ func (cs ClientState) VerifyUpgradeAndUpdateState(
 	lastHeight := cs.GetLatestHeight()
 
 	if !upgradedClient.GetLatestHeight().GT(lastHeight) {
-		return sdkerrors.Wrapf(ibcerrors.ErrInvalidHeight, "upgraded client height %s must be greater than current client height %s",
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidHeight, "upgraded client height %s must be greater than current client height %s",
 			upgradedClient.GetLatestHeight(), lastHeight)
 	}
 
@@ -60,7 +61,7 @@ func (cs ClientState) VerifyUpgradeAndUpdateState(
 	// at this consensus state
 	_, err := GetConsensusState(clientStore, cdc, lastHeight)
 	if err != nil {
-		return sdkerrors.Wrapf(err, "could not retrieve consensus state for height %s", lastHeight)
+		return errorsmod.Wrapf(err, "could not retrieve consensus state for height %s", lastHeight)
 	}
 
 	payload := verifyUpgradeAndUpdateStatePayload{
