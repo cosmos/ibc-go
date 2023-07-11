@@ -522,14 +522,14 @@ func NewSimApp(
 
 	// Create Transfer Stack
 	// SendPacket, since it is originating from the application to core IBC:
-	// transferKeeper.SendPacket -> callbacks.SendPacket (no-op) -> fee.SendPacket -> channel.SendPacket
+	// transferKeeper.SendPacket -> fee.SendPacket -> callbacks.SendPacket -> channel.SendPacket
 
 	// RecvPacket, message that originates from core IBC and goes down to app, the flow is the other way
-	// channel.RecvPacket -> fee.OnRecvPacket -> callbacks.OnRecvPacket -> transfer.OnRecvPacket
+	// channel.RecvPacket -> callbacks.OnRecvPacket -> fee.OnRecvPacket -> transfer.OnRecvPacket
 
 	// transfer stack contains (from top to bottom):
-	// - IBC Fee Middleware
 	// - IBC Callbacks Middleware
+	// - IBC Fee Middleware
 	// - Transfer
 
 	// create IBC module from bottom to top of stack
@@ -543,7 +543,7 @@ func NewSimApp(
 
 	// Create Interchain Accounts Stack
 	// SendPacket, since it is originating from the application to core IBC:
-	// icaAuthModuleKeeper.SendTx -> icaController.SendPacket -> callbacks.SendPacket (no-op) -> fee.SendPacket -> channel.SendPacket
+	// icaAuthModuleKeeper.SendTx -> icaController.SendPacket -> fee.SendPacket -> callbacks.SendPacket -> channel.SendPacket
 
 	// initialize ICA module with mock module as the authentication module on the controller side
 	var icaControllerStack porttypes.IBCModule
@@ -554,7 +554,7 @@ func NewSimApp(
 	icaControllerStack = ibccallbacks.NewIBCMiddleware(icaControllerStack, app.IBCKeeper.ChannelKeeper, app.MockKeeper)
 
 	// RecvPacket, message that originates from core IBC and goes down to app, the flow is:
-	// channel.RecvPacket -> fee.OnRecvPacket -> callbacks.OnRecvPacket -> icaHost.OnRecvPacket
+	// channel.RecvPacket -> callbacks.OnRecvPacket -> fee.OnRecvPacket -> icaHost.OnRecvPacket
 
 	var icaHostStack porttypes.IBCModule
 	icaHostStack = icahost.NewIBCModule(app.ICAHostKeeper)
