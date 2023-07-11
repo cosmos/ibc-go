@@ -19,7 +19,7 @@ func (suite *CallbacksTestSuite) TestTransferCallbacks() {
 	testCases := []struct {
 		name            string
 		transferMemo    string
-		expCallbackType string
+		expCallbackType types.CallbackType
 		expSuccess      bool
 	}{
 		{
@@ -90,7 +90,7 @@ func (suite *CallbacksTestSuite) TestTransferTimeoutCallbacks() {
 	testCases := []struct {
 		name            string
 		transferMemo    string
-		expCallbackType string
+		expCallbackType types.CallbackType
 		expSuccess      bool
 	}{
 		{

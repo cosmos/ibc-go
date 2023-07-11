@@ -43,36 +43,36 @@ const (
 func EmitSourceCallbackEvent(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
-	callbackTrigger string,
+	callbackType CallbackType,
 	callbackData CallbackData,
 	err error,
 ) {
-	emitCallbackEvent(ctx, packet, EventTypeSourceCallback, callbackTrigger, callbackData, err)
+	emitCallbackEvent(ctx, packet, EventTypeSourceCallback, callbackType, callbackData, err)
 }
 
 // EmitDestinationCallbackEvent emits an event for a destination callback
 func EmitDestinationCallbackEvent(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
-	callbackTrigger string,
+	callbackType CallbackType,
 	callbackData CallbackData,
 	err error,
 ) {
-	emitCallbackEvent(ctx, packet, EventTypeDestinationCallback, callbackTrigger, callbackData, err)
+	emitCallbackEvent(ctx, packet, EventTypeDestinationCallback, callbackType, callbackData, err)
 }
 
 // emitCallbackEvent emits an event for a callback
 func emitCallbackEvent(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
-	callbackType string,
-	callbackTrigger string,
+	eventType string,
+	callbackTrigger CallbackType,
 	callbackData CallbackData,
 	err error,
 ) {
 	attributes := []sdk.Attribute{
 		sdk.NewAttribute(sdk.AttributeKeyModule, ModuleName),
-		sdk.NewAttribute(AttributeKeyCallbackTrigger, callbackTrigger),
+		sdk.NewAttribute(AttributeKeyCallbackTrigger, string(callbackTrigger)),
 		sdk.NewAttribute(AttributeKeyCallbackAddress, callbackData.ContractAddr),
 		sdk.NewAttribute(AttributeKeyCallbackGasLimit, fmt.Sprintf("%d", callbackData.GasLimit)),
 		sdk.NewAttribute(AttributeKeyCallbackSourcePortID, packet.SourcePort),
@@ -91,7 +91,7 @@ func emitCallbackEvent(
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
-			callbackType,
+			eventType,
 			attributes...,
 		),
 	)

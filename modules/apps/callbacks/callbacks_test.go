@@ -121,7 +121,7 @@ func (suite *CallbacksTestSuite) RegisterInterchainAccount(owner string) {
 //   - types.CallbackTypeReceivePacket
 //   - types.CallbackTypeTimeout
 //   - "none" (no callback should be executed)
-func (suite *CallbacksTestSuite) AssertHasExecutedExpectedCallback(callbackType string, isSuccessful bool) {
+func (suite *CallbacksTestSuite) AssertHasExecutedExpectedCallback(callbackType types.CallbackType, isSuccessful bool) {
 	successCount := uint64(0)
 	if isSuccessful {
 		successCount = 1

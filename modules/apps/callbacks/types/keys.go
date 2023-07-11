@@ -1,9 +1,11 @@
 package types
 
+type CallbackType string
+
 const (
 	ModuleName = "ibccallbacks"
 
-	CallbackTypeAcknowledgement = "acknowledgement"
-	CallbackTypeTimeoutPacket   = "timeout"
-	CallbackTypeReceivePacket   = "receive_packet"
+	CallbackTypeAcknowledgement CallbackType = "acknowledgement"
+	CallbackTypeTimeoutPacket   CallbackType = "timeout"
+	CallbackTypeReceivePacket   CallbackType = "receive_packet"
 )

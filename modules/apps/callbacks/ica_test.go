@@ -21,7 +21,7 @@ func (suite *CallbacksTestSuite) TestICACallbacks() {
 	testCases := []struct {
 		name            string
 		transferMemo    string
-		expCallbackType string
+		expCallbackType types.CallbackType
 		expSuccess      bool
 	}{
 		{
