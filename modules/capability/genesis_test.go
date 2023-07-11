@@ -11,8 +11,8 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	"github.com/cosmos/ibc-go/modules/capability"
+	"github.com/cosmos/ibc-go/modules/capability/internal/simapp"
 	"github.com/cosmos/ibc-go/modules/capability/keeper"
-	"github.com/cosmos/ibc-go/modules/capability/testing/simapp"
 	"github.com/cosmos/ibc-go/modules/capability/types"
 )
 
