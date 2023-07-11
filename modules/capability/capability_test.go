@@ -35,7 +35,7 @@ func (suite *CapabilityTestSuite) SetupTest() {
 	cdc := app.AppCodec()
 
 	// create new keeper so we can define custom scoping before init and seal
-	keeper := keeper.NewKeeper(cdc, app.GetKey(types.StoreKey), app.GetKey(types.MemStoreKey))
+	keeper := keeper.NewKeeper(cdc, app.GetKey(types.StoreKey), app.GetMemKey(types.MemStoreKey))
 
 	suite.app = app
 	suite.ctx = app.BaseApp.NewContext(checkTx)
@@ -62,7 +62,7 @@ func (suite *CapabilityTestSuite) TestInitializeMemStore() {
 	newKeeper.Seal()
 	suite.Require().False(newKeeper.IsInitialized(ctx), "memstore initialized flag set before BeginBlock")
 
-	// Mock app beginblock and ensure that no gas has been consumed and memstore is initialized
+	// Mock app BeginBlock and ensure that no gas has been consumed and memstore is initialized
 	ctx = suite.app.BaseApp.NewContext(false)
 
 	prevBlockGas := ctx.BlockGasMeter().GasConsumed()
@@ -81,8 +81,8 @@ func (suite *CapabilityTestSuite) TestInitializeMemStore() {
 	// Mock the first transaction getting capability and subsequently failing
 	// by using a cached context and discarding all cached writes.
 	cacheCtx, _ := ctx.CacheContext()
-	capability, ok := newSk1.GetCapability(cacheCtx, "transfer")
-	suite.Require().NotNil(capability)
+	transferCapability, ok := newSk1.GetCapability(cacheCtx, "transfer")
+	suite.Require().NotNil(transferCapability)
 	suite.Require().True(ok)
 
 	// Ensure that the second transaction can still receive capability even if first tx fails.
@@ -94,7 +94,8 @@ func (suite *CapabilityTestSuite) TestInitializeMemStore() {
 	// Ensure the capabilities don't get reinitialized on next BeginBlock
 	// by testing to see if capability returns same pointer
 	// also check that initialized flag is still set
-	restartedModule.BeginBlock(ctx)
+	err = restartedModule.BeginBlock(ctx)
+	suite.Require().NoError(err)
 	recap, ok := newSk1.GetCapability(ctx, "transfer")
 	suite.Require().True(ok)
 	suite.Require().Equal(cap1, recap, "capabilities got reinitialized after second BeginBlock")
