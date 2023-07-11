@@ -18,6 +18,7 @@ import (
 )
 
 func (suite *CallbacksTestSuite) TestICACallbacks() {
+	// Destination callbacks are not supported for ICA packets
 	testCases := []struct {
 		name            string
 		transferMemo    string
@@ -33,10 +34,63 @@ func (suite *CallbacksTestSuite) TestICACallbacks() {
 		{
 			"success: dest callback",
 			fmt.Sprintf(`{"dest_callback": {"address": "%s"}}`, callbackAddr),
-			types.CallbackTypeReceivePacket,
+			"none",
 			true,
 		},
-		// TODO: continue adding test cases
+		{
+			"success: dest callback with other json fields",
+			fmt.Sprintf(`{"dest_callback": {"address": "%s"}, "something_else": {}}`, callbackAddr),
+			"none",
+			true,
+		},
+		{
+			"success: dest callback with malformed json",
+			fmt.Sprintf(`{"dest_callback": {"address": "%s"}, malformed}`, callbackAddr),
+			"none",
+			true,
+		},
+		{
+			"success: source callback",
+			fmt.Sprintf(`{"src_callback": {"address": "%s"}}`, callbackAddr),
+			types.CallbackTypeAcknowledgement,
+			true,
+		},
+		{
+			"success: source callback with other json fields",
+			fmt.Sprintf(`{"src_callback": {"address": "%s"}, "something_else": {}}`, callbackAddr),
+			types.CallbackTypeAcknowledgement,
+			true,
+		},
+		{
+			"success: source callback with malformed json",
+			fmt.Sprintf(`{"src_callback": {"address": "%s"}, malformed}`, callbackAddr),
+			"none",
+			true,
+		},
+		{
+			"failure: dest callback with low gas (error)",
+			fmt.Sprintf(`{"dest_callback": {"address": "%s", "gas_limit": "50000"}}`, callbackAddr),
+			"none",
+			false,
+		},
+		{
+			"failure: source callback with low gas (error)",
+			fmt.Sprintf(`{"src_callback": {"address": "%s", "gas_limit": "50000"}}`, callbackAddr),
+			types.CallbackTypeAcknowledgement,
+			false,
+		},
+		{
+			"failure: dest callback with low gas (panic)",
+			fmt.Sprintf(`{"dest_callback": {"address": "%s", "gas_limit": "100"}}`, callbackAddr),
+			"none",
+			false,
+		},
+		{
+			"failure: source callback with low gas (panic)",
+			fmt.Sprintf(`{"src_callback": {"address": "%s", "gas_limit": "100"}}`, callbackAddr),
+			types.CallbackTypeAcknowledgement,
+			false,
+		},
 	}
 
 	for _, tc := range testCases {
