@@ -143,7 +143,8 @@ func (suite *KeeperTestSuite) TestAuthenticateCapability() {
 	suite.Require().False(sk2.AuthenticateCapability(suite.ctx, cap2, "invalid"))
 	suite.Require().False(sk2.AuthenticateCapability(suite.ctx, cap1, "bond"))
 
-	sk2.ReleaseCapability(suite.ctx, cap2)
+	err = sk2.ReleaseCapability(suite.ctx, cap2)
+	suite.Require().NoError(err)
 	suite.Require().False(sk2.AuthenticateCapability(suite.ctx, cap2, "bond"))
 
 	badCap := types.NewCapability(100)
@@ -275,7 +276,7 @@ func (suite *KeeperTestSuite) TestReleaseCapability() {
 	suite.Require().Error(sk1.ReleaseCapability(suite.ctx, nil))
 }
 
-func (suite KeeperTestSuite) TestRevertCapability() {
+func (suite *KeeperTestSuite) TestRevertCapability() {
 	sk := suite.keeper.ScopeToModule(bankModuleName)
 
 	ms := suite.ctx.MultiStore()

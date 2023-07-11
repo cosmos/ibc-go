@@ -5,6 +5,8 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
+	storetypes "cosmossdk.io/store/types"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
@@ -14,8 +16,8 @@ import (
 
 	"github.com/cosmos/ibc-go/modules/capability"
 	"github.com/cosmos/ibc-go/modules/capability/keeper"
+	"github.com/cosmos/ibc-go/modules/capability/testing/simapp"
 	"github.com/cosmos/ibc-go/modules/capability/types"
-	"github.com/cosmos/ibc-go/v7/testing/simapp"
 )
 
 const memStoreKey = "memory:mock"
@@ -62,8 +64,8 @@ func (suite *CapabilityTestSuite) TestInitializeMemStore() {
 	newKeeper.Seal()
 	suite.Require().False(newKeeper.IsInitialized(ctx), "memstore initialized flag set before BeginBlock")
 
-	// Mock app BeginBlock and ensure that no gas has been consumed and memstore is initialized
-	ctx = suite.app.BaseApp.NewContext(false)
+	// Mock app beginblock and ensure that no gas has been consumed and memstore is initialized
+	ctx = suite.app.BaseApp.NewContext(false).WithBlockGasMeter(storetypes.NewGasMeter(50))
 
 	prevBlockGas := ctx.BlockGasMeter().GasConsumed()
 	prevGas := ctx.BlockGasMeter().GasConsumed()
@@ -81,8 +83,8 @@ func (suite *CapabilityTestSuite) TestInitializeMemStore() {
 	// Mock the first transaction getting capability and subsequently failing
 	// by using a cached context and discarding all cached writes.
 	cacheCtx, _ := ctx.CacheContext()
-	transferCapability, ok := newSk1.GetCapability(cacheCtx, "transfer")
-	suite.Require().NotNil(transferCapability)
+	capability, ok := newSk1.GetCapability(cacheCtx, "transfer")
+	suite.Require().NotNil(capability)
 	suite.Require().True(ok)
 
 	// Ensure that the second transaction can still receive capability even if first tx fails.
@@ -94,8 +96,7 @@ func (suite *CapabilityTestSuite) TestInitializeMemStore() {
 	// Ensure the capabilities don't get reinitialized on next BeginBlock
 	// by testing to see if capability returns same pointer
 	// also check that initialized flag is still set
-	err = restartedModule.BeginBlock(ctx)
-	suite.Require().NoError(err)
+	restartedModule.BeginBlock(ctx)
 	recap, ok := newSk1.GetCapability(ctx, "transfer")
 	suite.Require().True(ok)
 	suite.Require().Equal(cap1, recap, "capabilities got reinitialized after second BeginBlock")

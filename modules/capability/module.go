@@ -10,6 +10,8 @@ import (
 
 	"cosmossdk.io/core/appmodule"
 
+	abci "github.com/cometbft/cometbft/abci/types"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -17,8 +19,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
-
-	abci "github.com/cometbft/cometbft/abci/types"
 
 	"github.com/cosmos/ibc-go/modules/capability/keeper"
 	"github.com/cosmos/ibc-go/modules/capability/simulation"
@@ -142,7 +142,7 @@ func (AppModule) ConsensusVersion() uint64 { return 1 }
 // BeginBlock executes all ABCI BeginBlock logic respective to the capability module.
 // BeginBlocker calls InitMemStore to assert that the memory store is initialized.
 // It's safe to run multiple times.
-func (am AppModule) BeginBlock(ctx sdk.Context) error {
+func (am AppModule) BeginBlock(ctx sdk.Context) {
 	defer telemetry.ModuleMeasureSince(types.ModuleName, time.Now(), telemetry.MetricKeyBeginBlocker)
 
 	am.keeper.InitMemStore(ctx)
@@ -150,7 +150,6 @@ func (am AppModule) BeginBlock(ctx sdk.Context) error {
 	if am.sealKeeper && !am.keeper.IsSealed() {
 		am.keeper.Seal()
 	}
-	return nil
 }
 
 // GenerateGenesisState creates a randomized GenState of the capability module.
