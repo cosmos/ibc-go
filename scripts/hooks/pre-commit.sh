@@ -21,10 +21,10 @@ function check_golangci_lint_version(){
   fi
 }
 
-# run_hook formats all modified go files and adds them to the commit.
+# run_hook formats all modified go files that have been staged and adds them to the commit.
 function run_hook() {
   make lint-fix-changed
-  echo "formatting any changed go files"
+  echo "formatting any staged go files"
   go_files="$(git diff --staged --name-only | grep \.go$)"
   for f in $go_files; do
     git add $f
