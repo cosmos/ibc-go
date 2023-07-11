@@ -140,5 +140,20 @@ func (suite *CallbacksTestSuite) TestOnAcknowledgementPacketError() {
 
 	err := transferStack.OnAcknowledgementPacket(suite.chainA.GetContext(), channeltypes.Packet{}, []byte("invalid"), suite.chainA.SenderAccount.GetAddress())
 	suite.Require().ErrorIs(ibcerrors.ErrUnknownRequest, err)
-	suite.Require().ErrorContains(err, "cannot unmarshal ICS-20 transfer packet acknowledgement")
+	suite.Require().ErrorContains(err, "cannot unmarshal ICS-20 transfer packet acknowledgement:")
+}
+
+func (suite *CallbacksTestSuite) TestOnTimeoutPacketError() {
+	// The successful cases are tested in transfer_test.go and ica_test.go.
+	// This test case tests the error case by passing an invalid packet data.
+	suite.SetupTransferTest()
+
+	// We will pass the function call down the transfer stack to the transfer module
+	// transfer stack OnTimeoutPacket call order: callbacks -> fee -> transfer
+	transferStack, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(ibctransfertypes.ModuleName)
+	suite.Require().True(ok)
+
+	err := transferStack.OnTimeoutPacket(suite.chainA.GetContext(), channeltypes.Packet{}, suite.chainA.SenderAccount.GetAddress())
+	suite.Require().ErrorIs(ibcerrors.ErrUnknownRequest, err)
+	suite.Require().ErrorContains(err, "cannot unmarshal ICS-20 transfer packet data:")
 }
