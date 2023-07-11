@@ -25,7 +25,7 @@ function check_golangci_lint_version(){
 function run_hook() {
   make lint-fix-changed
   echo "formatting any changed go files"
-  go_files="$(git diff --name-only | grep \.go$)"
+  go_files="$(git diff --staged --name-only | grep \.go$)"
   for f in $go_files; do
     git add $f
   done
