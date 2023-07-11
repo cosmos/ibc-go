@@ -39,37 +39,26 @@ const (
 	AttributeKeyCallbackSequence = "callback_sequence"
 )
 
-// EmitSourceCallbackEvent emits an event for a source callback
-func EmitSourceCallbackEvent(
-	ctx sdk.Context,
-	packet channeltypes.Packet,
-	callbackType CallbackType,
-	callbackData CallbackData,
-	err error,
-) {
-	emitCallbackEvent(ctx, packet, EventTypeSourceCallback, callbackType, callbackData, err)
-}
-
-// EmitDestinationCallbackEvent emits an event for a destination callback
-func EmitDestinationCallbackEvent(
-	ctx sdk.Context,
-	packet channeltypes.Packet,
-	callbackType CallbackType,
-	callbackData CallbackData,
-	err error,
-) {
-	emitCallbackEvent(ctx, packet, EventTypeDestinationCallback, callbackType, callbackData, err)
-}
-
 // emitCallbackEvent emits an event for a callback
-func emitCallbackEvent(
+func EmitCallbackEvent(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
-	eventType string,
 	callbackTrigger CallbackType,
 	callbackData CallbackData,
 	err error,
 ) {
+	var eventType string
+	switch callbackTrigger {
+	case CallbackTypeAcknowledgement:
+		eventType = EventTypeSourceCallback
+	case CallbackTypeTimeoutPacket:
+		eventType = EventTypeSourceCallback
+	case CallbackTypeReceivePacket:
+		eventType = EventTypeDestinationCallback
+	default:
+		eventType = "unknown"
+	}
+
 	attributes := []sdk.Attribute{
 		sdk.NewAttribute(sdk.AttributeKeyModule, ModuleName),
 		sdk.NewAttribute(AttributeKeyCallbackTrigger, string(callbackTrigger)),
