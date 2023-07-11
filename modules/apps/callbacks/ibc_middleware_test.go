@@ -33,7 +33,7 @@ func (suite *CallbacksTestSuite) TestUnmarshalPacketData() {
 	suite.setupChains()
 
 	// We will pass the function call down the transfer stack to the transfer module
-	// transfer stack call order: callbacks -> fee -> transfer
+	// transfer stack UnmarshalPacketData call order: callbacks -> fee -> transfer
 	transferStack, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(ibctransfertypes.ModuleName)
 	suite.Require().True(ok)
 
@@ -57,7 +57,7 @@ func (suite *CallbacksTestSuite) TestUnmarshalPacketData() {
 func (suite *CallbacksTestSuite) TestGetAppVersion() {
 	suite.SetupICATest()
 	// We will pass the function call down the icacontroller stack to the icacontroller module
-	// icacontroller stack call order: callbacks -> fee -> icacontroller
+	// icacontroller stack GetAppVersion call order: callbacks -> fee -> icacontroller
 	icaControllerStack, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(icacontrollertypes.SubModuleName)
 	suite.Require().True(ok)
 
@@ -70,13 +70,27 @@ func (suite *CallbacksTestSuite) TestGetAppVersion() {
 func (suite *CallbacksTestSuite) TestOnChanCloseInit() {
 	suite.SetupICATest()
 	// We will pass the function call down the icacontroller stack to the icacontroller module
-	// icacontroller stack call order: callbacks -> fee -> icacontroller
+	// icacontroller stack OnChanCloseInit call order: callbacks -> fee -> icacontroller
 	icaControllerStack, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(icacontrollertypes.SubModuleName)
 	suite.Require().True(ok)
 
 	controllerStack := icaControllerStack.(porttypes.Middleware)
 	err := controllerStack.OnChanCloseInit(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
+	// we just check that this call is passed down to the icacontroller to return an error
 	suite.Require().ErrorIs(errorsmod.Wrap(ibcerrors.ErrInvalidRequest, "user cannot close channel"), err)
+}
+
+func (suite *CallbacksTestSuite) TestOnChanCloseConfirm() {
+	suite.SetupICATest()
+	// We will pass the function call down the icacontroller stack to the icacontroller module
+	// icacontroller stack OnChanCloseConfirm call order: callbacks -> fee -> icacontroller
+	icaControllerStack, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(icacontrollertypes.SubModuleName)
+	suite.Require().True(ok)
+
+	controllerStack := icaControllerStack.(porttypes.Middleware)
+	err := controllerStack.OnChanCloseConfirm(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
+	// we just check that this call is passed down to the icacontroller
+	suite.Require().NoError(err)
 }
 
 func (suite *CallbacksTestSuite) TestSendPacket() {
@@ -88,6 +102,7 @@ func (suite *CallbacksTestSuite) TestSendPacket() {
 
 	controllerStack := icaControllerStack.(porttypes.Middleware)
 	seq, err := controllerStack.SendPacket(suite.chainA.GetContext(), nil, "invalid_port", "invalid_channel", clienttypes.NewHeight(1, 100), 0, nil)
+	// we just check that this call is passed down to the channel keeper to return an error
 	suite.Require().Equal(uint64(0), seq)
 	suite.Require().ErrorIs(errorsmod.Wrap(channeltypes.ErrChannelNotFound, "invalid_channel"), err)
 }
