@@ -23,7 +23,7 @@ const (
 
 // Collect can be used in `t.Cleanup` and will copy all the of the container logs and relevant files
 // into e2e/<test-suite>/<test-name>.log. These log files will be uploaded to GH upon test failure.
-func Collect(t *testing.T, dc *dockerclient.Client, chainNameA, chainNameB string, debugModeEnabled bool) {
+func Collect(t *testing.T, dc *dockerclient.Client, debugModeEnabled bool, chainNames ...string) {
 	t.Helper()
 
 	if !debugModeEnabled {
@@ -77,8 +77,11 @@ func Collect(t *testing.T, dc *dockerclient.Client, chainNameA, chainNameB strin
 		}
 
 		t.Logf("successfully wrote log file %s", logFile)
-		diagnosticFiles := chainDiagnosticAbsoluteFilePaths(chainNameA)
-		diagnosticFiles = append(diagnosticFiles, chainDiagnosticAbsoluteFilePaths(chainNameB)...)
+
+		var diagnosticFiles []string
+		for _, chainName := range chainNames {
+			diagnosticFiles = append(diagnosticFiles, chainDiagnosticAbsoluteFilePaths(chainName)...)
+		}
 
 		for _, absoluteFilePathInContainer := range diagnosticFiles {
 			localFilePath := ospath.Join(containerDir, ospath.Base(absoluteFilePathInContainer))

@@ -335,7 +335,8 @@ func (s *E2ETestSuite) createCosmosChains(chainOptions ChainOptions) (*cosmos.Co
 	// this allows us to process the logs before the containers are removed.
 	t.Cleanup(func() {
 		debugModeEnabled := LoadConfig().DebugConfig.DumpLogs
-		diagnostics.Collect(t, s.DockerClient, chainOptions.ChainAConfig.Name, chainOptions.ChainBConfig.Name, debugModeEnabled)
+		chains := []string{chainOptions.ChainAConfig.Name, chainOptions.ChainBConfig.Name}
+		diagnostics.Collect(t, s.DockerClient, debugModeEnabled, chains)
 	})
 
 	return chainA, chainB
