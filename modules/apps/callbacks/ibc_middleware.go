@@ -132,7 +132,10 @@ func (im IBCMiddleware) processCallback(
 		return
 	}
 	if callbackData.ContractAddr == "" {
-		types.Logger(ctx).Info("No callback found for packet.", "packet", packet)
+		types.Logger(ctx).Info(
+			fmt.Sprintf("No %s callback found for packet.", callbackType),
+			"packet", packet,
+		)
 		return
 	}
 
