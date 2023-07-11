@@ -122,7 +122,7 @@ func (im IBCMiddleware) processCallback(
 		if r := recover(); r != nil {
 			// We handle panic here. This is to ensure that the state changes are reverted
 			// and out of gas errors panics are handled.
-			types.Logger(ctx).Info("Recovered from panic:", r)
+			types.Logger(ctx).Info("Recovered from panic.", "panic", r)
 		}
 	}()
 
@@ -132,6 +132,7 @@ func (im IBCMiddleware) processCallback(
 		return
 	}
 	if callbackData.ContractAddr == "" {
+		types.Logger(ctx).Info("No callback found for packet.", "packet", packet)
 		return
 	}
 
