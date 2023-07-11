@@ -726,15 +726,6 @@ func (suite *KeeperTestSuite) TestChanUpgradeOpen() {
 			err = path.EndpointB.ChanUpgradeAck()
 			suite.Require().NoError(err)
 
-			// TODO: Remove setting of FLUSHCOMPLETE once #3928 is completed
-			channelB := path.EndpointB.GetChannel()
-			channelB.FlushStatus = types.FLUSHCOMPLETE
-			path.EndpointB.SetChannel(channelB)
-
-			channelA := path.EndpointA.GetChannel()
-			channelA.FlushStatus = types.FLUSHCOMPLETE
-			path.EndpointA.SetChannel(channelA)
-
 			suite.coordinator.CommitBlock(suite.chainA, suite.chainB)
 			suite.Require().NoError(path.EndpointA.UpdateClient())
 
