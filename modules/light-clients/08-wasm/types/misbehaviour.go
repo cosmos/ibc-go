@@ -2,7 +2,6 @@ package types
 
 import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-
 	exported "github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
