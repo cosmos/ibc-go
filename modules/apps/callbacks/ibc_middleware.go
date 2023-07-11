@@ -120,30 +120,32 @@ func (im IBCMiddleware) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Pac
 	return nil
 }
 
-// OnChanCloseConfirm defers to the underlying application
-func (im IBCMiddleware) OnChanCloseConfirm(ctx sdk.Context, portID, channelID string) error {
-	return im.app.OnChanCloseConfirm(ctx, portID, channelID)
-}
+// OnRecvPacket implements destination callbacks for the ibc-callbacks middleware.
+// It defers to the underlying application and then calls the contract callback.
+// If the contract callback fails (within the gas limit), state changes are reverted.
+func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress) ibcexported.Acknowledgement {
+	appAck := im.app.OnRecvPacket(ctx, packet, relayer)
 
-// OnChanCloseInit defers to the underlying application
-func (im IBCMiddleware) OnChanCloseInit(ctx sdk.Context, portID, channelID string) error {
-	return im.app.OnChanCloseInit(ctx, portID, channelID)
-}
+	callbackData, err := types.GetDestCallbackData(im.app, packet, ctx.GasMeter().GasRemaining())
+	if err != nil {
+		types.EmitDestinationCallbackEvent(ctx, packet, types.CallbackTypeTimeoutPacket, callbackData, err)
+		return appAck
+	}
+	if callbackData.ContractAddr == "" {
+		return appAck
+	}
 
-// OnChanOpenAck defers to the underlying application
-func (im IBCMiddleware) OnChanOpenAck(
-	ctx sdk.Context,
-	portID,
-	channelID,
-	counterpartyChannelID,
-	counterpartyVersion string,
-) error {
-	return im.app.OnChanOpenAck(ctx, portID, channelID, counterpartyChannelID, counterpartyVersion)
-}
+	cachedCtx, writeFn := ctx.CacheContext()
+	cachedCtx = cachedCtx.WithGasMeter(sdk.NewGasMeter(callbackData.GasLimit))
 
-// OnChanOpenConfirm defers to the underlying application
-func (im IBCMiddleware) OnChanOpenConfirm(ctx sdk.Context, portID, channelID string) error {
-	return im.app.OnChanOpenConfirm(ctx, portID, channelID)
+	err = im.contractKeeper.IBCReceivePacketCallback(cachedCtx, packet, appAck, relayer, callbackData.ContractAddr)
+	if err == nil {
+		writeFn()
+	}
+	ctx.GasMeter().ConsumeGas(cachedCtx.GasMeter().GasConsumed(), "ibc receive packet callback")
+
+	types.EmitDestinationCallbackEvent(ctx, packet, types.CallbackTypeTimeoutPacket, callbackData, err)
+	return appAck
 }
 
 // OnChanOpenInit defers to the underlying application
@@ -173,32 +175,30 @@ func (im IBCMiddleware) OnChanOpenTry(
 	return im.app.OnChanOpenTry(ctx, channelOrdering, connectionHops, portID, channelID, channelCap, counterparty, counterpartyVersion)
 }
 
-// OnRecvPacket implements destination callbacks for the ibc-callbacks middleware.
-// It defers to the underlying application and then calls the contract callback.
-// If the contract callback fails (within the gas limit), state changes are reverted.
-func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress) ibcexported.Acknowledgement {
-	appAck := im.app.OnRecvPacket(ctx, packet, relayer)
+// OnChanOpenAck defers to the underlying application
+func (im IBCMiddleware) OnChanOpenAck(
+	ctx sdk.Context,
+	portID,
+	channelID,
+	counterpartyChannelID,
+	counterpartyVersion string,
+) error {
+	return im.app.OnChanOpenAck(ctx, portID, channelID, counterpartyChannelID, counterpartyVersion)
+}
 
-	callbackData, err := types.GetDestCallbackData(im.app, packet, ctx.GasMeter().GasRemaining())
-	if err != nil {
-		types.EmitDestinationCallbackEvent(ctx, packet, types.CallbackTypeTimeoutPacket, callbackData, err)
-		return appAck
-	}
-	if callbackData.ContractAddr == "" {
-		return appAck
-	}
+// OnChanOpenConfirm defers to the underlying application
+func (im IBCMiddleware) OnChanOpenConfirm(ctx sdk.Context, portID, channelID string) error {
+	return im.app.OnChanOpenConfirm(ctx, portID, channelID)
+}
 
-	cachedCtx, writeFn := ctx.CacheContext()
-	cachedCtx = cachedCtx.WithGasMeter(sdk.NewGasMeter(callbackData.GasLimit))
+// OnChanCloseInit defers to the underlying application
+func (im IBCMiddleware) OnChanCloseInit(ctx sdk.Context, portID, channelID string) error {
+	return im.app.OnChanCloseInit(ctx, portID, channelID)
+}
 
-	err = im.contractKeeper.IBCReceivePacketCallback(cachedCtx, packet, appAck, relayer, callbackData.ContractAddr)
-	if err == nil {
-		writeFn()
-	}
-	ctx.GasMeter().ConsumeGas(cachedCtx.GasMeter().GasConsumed(), "ibc receive packet callback")
-
-	types.EmitDestinationCallbackEvent(ctx, packet, types.CallbackTypeTimeoutPacket, callbackData, err)
-	return appAck
+// OnChanCloseConfirm defers to the underlying application
+func (im IBCMiddleware) OnChanCloseConfirm(ctx sdk.Context, portID, channelID string) error {
+	return im.app.OnChanCloseConfirm(ctx, portID, channelID)
 }
 
 // SendPacket implements the ICS4 Wrapper interface
