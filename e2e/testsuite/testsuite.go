@@ -336,7 +336,7 @@ func (s *E2ETestSuite) createCosmosChains(chainOptions ChainOptions) (*cosmos.Co
 	t.Cleanup(func() {
 		debugModeEnabled := LoadConfig().DebugConfig.DumpLogs
 		chains := []string{chainOptions.ChainAConfig.Name, chainOptions.ChainBConfig.Name}
-		diagnostics.Collect(t, s.DockerClient, debugModeEnabled, chains)
+		diagnostics.Collect(t, s.DockerClient, debugModeEnabled, chains...)
 	})
 
 	return chainA, chainB
