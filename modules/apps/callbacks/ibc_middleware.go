@@ -121,7 +121,7 @@ func (im IBCMiddleware) processCallback(
 	defer func() {
 		if r := recover(); r != nil {
 			// We handle panic here. This is to ensure that the state changes are reverted
-			// and out of gas errors panics are handled.
+			// and out of gas panics are handled.
 			types.Logger(ctx).Info("Recovered from panic.", "panic", r)
 		}
 	}()
