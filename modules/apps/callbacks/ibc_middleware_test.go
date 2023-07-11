@@ -3,9 +3,11 @@ package ibccallbacks_test
 import (
 	"fmt"
 
+	icacontrollertypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
 	ibccallbacks "github.com/cosmos/ibc-go/v7/modules/apps/callbacks"
 	"github.com/cosmos/ibc-go/v7/modules/apps/callbacks/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
@@ -44,4 +46,18 @@ func (suite *CallbacksTestSuite) TestUnmarshalPacketData() {
 	packetData, err := unmarshalerStack.UnmarshalPacketData(data)
 	suite.Require().NoError(err)
 	suite.Require().Equal(expPacketData, packetData)
+}
+
+func (suite *CallbacksTestSuite) TestGetAppVersion() {
+	suite.SetupICATest()
+
+	// We will pass the function call down the icacontroller stack to the icacontroller module
+	// icacontroller stack call order: fee -> callbacks -> icacontroller
+	icaControllerStack, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(icacontrollertypes.SubModuleName)
+	suite.Require().True(ok)
+
+	controllerStack := icaControllerStack.(porttypes.Middleware)
+	appVersion, found := controllerStack.GetAppVersion(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
+	suite.Require().True(found)
+	suite.Require().Equal(suite.path.EndpointA.ChannelConfig.Version, appVersion)
 }
