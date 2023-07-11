@@ -21,7 +21,7 @@ func (suite *CallbacksTestSuite) TestICACallbacks() {
 	// Destination callbacks are not supported for ICA packets
 	testCases := []struct {
 		name            string
-		transferMemo    string
+		icaMemo         string
 		expCallbackType types.CallbackType
 		expSuccess      bool
 	}{
@@ -96,14 +96,75 @@ func (suite *CallbacksTestSuite) TestICACallbacks() {
 	for _, tc := range testCases {
 		icaAddr := suite.SetupICATest()
 
-		suite.ExecuteICATx(icaAddr, tc.transferMemo, 1)
+		suite.ExecuteICATx(icaAddr, tc.icaMemo, 1)
+		suite.AssertHasExecutedExpectedCallback(tc.expCallbackType, tc.expSuccess)
+	}
+}
+
+func (suite *CallbacksTestSuite) TestICATimeoutCallbacks() {
+	// ICA channels are closed after a timeout packet is executed
+	testCases := []struct {
+		name            string
+		icaMemo         string
+		expCallbackType types.CallbackType
+		expSuccess      bool
+	}{
+		{
+			"success: transfer with no memo",
+			"",
+			"none",
+			true,
+		},
+		{
+			"success: dest callback",
+			fmt.Sprintf(`{"dest_callback": {"address": "%s"}}`, callbackAddr),
+			"none",
+			true,
+		},
+		{
+			"success: source callback",
+			fmt.Sprintf(`{"src_callback": {"address": "%s"}}`, callbackAddr),
+			types.CallbackTypeTimeoutPacket,
+			true,
+		},
+		{
+			"success: dest callback with low gas (error)",
+			fmt.Sprintf(`{"dest_callback": {"address": "%s", "gas_limit": "50000"}}`, callbackAddr),
+			"none",
+			true,
+		},
+		{
+			"failure: source callback with low gas (error)",
+			fmt.Sprintf(`{"src_callback": {"address": "%s", "gas_limit": "50000"}}`, callbackAddr),
+			types.CallbackTypeTimeoutPacket,
+			false,
+		},
+		{
+			"success: dest callback with low gas (panic)",
+			fmt.Sprintf(`{"dest_callback": {"address": "%s", "gas_limit": "100"}}`, callbackAddr),
+			"none",
+			true,
+		},
+		{
+			"failure: source callback with low gas (panic)",
+			fmt.Sprintf(`{"src_callback": {"address": "%s", "gas_limit": "100"}}`, callbackAddr),
+			types.CallbackTypeTimeoutPacket,
+			false,
+		},
+	}
+
+	for _, tc := range testCases {
+		icaAddr := suite.SetupICATest()
+
+		suite.ExecuteICATimeout(icaAddr, tc.icaMemo, 1)
+		suite.AssertHasExecutedExpectedCallback(tc.expCallbackType, tc.expSuccess)
 	}
 }
 
 // ExecuteICATx executes a stakingtypes.MsgDelegate on chainB by sending a packet containing the msg to chainB
 func (suite *CallbacksTestSuite) ExecuteICATx(icaAddress, memo string, seq uint64) {
 	// build the interchain accounts packet
-	packet := suite.buildICAMsgDelegatePacket(icaAddress, seq)
+	packet := suite.buildICAMsgDelegatePacket(icaAddress, clienttypes.NewHeight(1, 100), 0, seq, memo)
 
 	// write packet commitment to state on chainA and commit state
 	commitment := channeltypes.CommitPacket(suite.chainA.GetSimApp().AppCodec(), packet)
@@ -114,8 +175,28 @@ func (suite *CallbacksTestSuite) ExecuteICATx(icaAddress, memo string, seq uint6
 	suite.Require().NoError(err)
 }
 
+// ExecuteICATx executes a stakingtypes.MsgDelegate on chainB by sending a packet containing the msg to chainB
+func (suite *CallbacksTestSuite) ExecuteICATimeout(icaAddress, memo string, seq uint64) {
+	timeoutHeight := clienttypes.GetSelfHeight(suite.chainB.GetContext())
+	timeoutTimestamp := uint64(suite.chainB.GetContext().BlockTime().UnixNano())
+	// build the interchain accounts packet
+	packet := suite.buildICAMsgDelegatePacket(icaAddress, timeoutHeight, timeoutTimestamp, seq, memo)
+
+	module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID)
+	suite.Require().NoError(err)
+
+	cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
+	suite.Require().True(ok)
+
+	err = cbs.OnTimeoutPacket(suite.chainA.GetContext(), packet, nil)
+	suite.Require().NoError(err)
+}
+
 // buildICAMsgDelegatePacket builds a packet containing a stakingtypes.MsgDelegate to be executed on chainB
-func (suite *CallbacksTestSuite) buildICAMsgDelegatePacket(icaAddress string, seq uint64) channeltypes.Packet {
+func (suite *CallbacksTestSuite) buildICAMsgDelegatePacket(
+	icaAddress string, timeoutHeight clienttypes.Height,
+	timeoutTimestamp, seq uint64, memo string,
+) channeltypes.Packet {
 	// prepare a simple stakingtypes.MsgDelegate to be used as the interchain account msg executed on chainB
 	validatorAddr := (sdk.ValAddress)(suite.chainB.Vals.Validators[0].Address)
 	msgDelegate := &stakingtypes.MsgDelegate{
@@ -134,6 +215,7 @@ func (suite *CallbacksTestSuite) buildICAMsgDelegatePacket(icaAddress string, se
 	icaPacketData := icatypes.InterchainAccountPacketData{
 		Type: icatypes.EXECUTE_TX,
 		Data: data,
+		Memo: memo,
 	}
 
 	packet := channeltypes.NewPacket(
@@ -143,8 +225,8 @@ func (suite *CallbacksTestSuite) buildICAMsgDelegatePacket(icaAddress string, se
 		suite.path.EndpointA.ChannelID,
 		suite.path.EndpointB.ChannelConfig.PortID,
 		suite.path.EndpointB.ChannelID,
-		clienttypes.NewHeight(1, 100),
-		0,
+		timeoutHeight,
+		timeoutTimestamp,
 	)
 
 	return packet
