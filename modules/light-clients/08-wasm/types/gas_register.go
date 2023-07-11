@@ -6,9 +6,9 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	wasmvm "github.com/CosmWasm/wasmvm"
 	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
-
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
 )
 
 // Copied subset of gas features from wasmd
@@ -122,7 +122,7 @@ func NewDefaultWasmGasRegister() WasmGasRegister {
 // NewWasmGasRegister constructor
 func NewWasmGasRegister(c WasmGasRegisterConfig) WasmGasRegister {
 	if c.GasMultiplier == 0 {
-		panic(errorsmod.Wrap(errorsmod.ErrLogic, "GasMultiplier can not be 0"))
+		panic(ibcerrors.Wrap(ibcerrors.ErrLogic, "GasMultiplier can not be 0"))
 	}
 	return WasmGasRegister{
 		c: c,
