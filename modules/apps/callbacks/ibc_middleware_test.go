@@ -6,6 +6,7 @@ import (
 	errorsmod "cosmossdk.io/errors"
 
 	icacontrollertypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
+	icahosttypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/types"
 	ibccallbacks "github.com/cosmos/ibc-go/v7/modules/apps/callbacks"
 	"github.com/cosmos/ibc-go/v7/modules/apps/callbacks/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
@@ -81,7 +82,7 @@ func (suite *CallbacksTestSuite) TestOnChanCloseInit() {
 func (suite *CallbacksTestSuite) TestSendPacket() {
 	suite.SetupICATest()
 	// We will pass the function call down the icacontroller stack to the channel keeper
-	// icacontroller stack call order: callbacks -> fee -> channel
+	// icacontroller stack SendPacket call order: callbacks -> fee -> channel
 	icaControllerStack, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(icacontrollertypes.SubModuleName)
 	suite.Require().True(ok)
 
@@ -89,4 +90,25 @@ func (suite *CallbacksTestSuite) TestSendPacket() {
 	seq, err := controllerStack.SendPacket(suite.chainA.GetContext(), nil, "invalid_port", "invalid_channel", clienttypes.NewHeight(1, 100), 0, nil)
 	suite.Require().Equal(uint64(0), seq)
 	suite.Require().ErrorIs(errorsmod.Wrap(channeltypes.ErrChannelNotFound, "invalid_channel"), err)
+}
+
+func (suite *CallbacksTestSuite) TestWriteAcknowledgement() {
+	icaAddress := suite.SetupICATest()
+
+	// build packet
+	packet := suite.buildICAMsgDelegatePacket(icaAddress, clienttypes.NewHeight(1, 100), 0, 1, "")
+
+	icaHostStack, ok := suite.chainB.App.GetIBCKeeper().Router.GetRoute(icahosttypes.SubModuleName)
+	suite.Require().True(ok)
+
+	hostStack := icaHostStack.(porttypes.Middleware)
+
+	ack := channeltypes.NewResultAcknowledgement([]byte("success"))
+	chanCap := suite.chainB.GetChannelCapability(suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID)
+
+	err := hostStack.WriteAcknowledgement(suite.chainB.GetContext(), chanCap, packet, ack)
+	suite.Require().NoError(err)
+
+	packetAck, _ := suite.chainB.GetSimApp().GetIBCKeeper().ChannelKeeper.GetPacketAcknowledgement(suite.chainB.GetContext(), packet.DestinationPort, packet.DestinationChannel, 1)
+	suite.Require().Equal(packetAck, channeltypes.CommitAcknowledgement(ack.Acknowledgement()))
 }
