@@ -1,6 +1,8 @@
 package mock
 
 import (
+	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	callbacktypes "github.com/cosmos/ibc-go/v7/modules/apps/callbacks/types"
@@ -51,15 +53,7 @@ func (k MockContractKeeper) IBCAcknowledgementPacketCallback(
 	relayer sdk.AccAddress,
 	contractAddr string,
 ) error {
-	if ctx.GasMeter().GasRemaining() < 100000 {
-		k.AckCallbackCounter.IncrementFailure()
-		ctx.GasMeter().ConsumeGas(ctx.GasMeter().GasRemaining(), "mock ack callback failure")
-		return ibcerrors.ErrOutOfGas
-	}
-
-	k.AckCallbackCounter.IncrementSuccess()
-	ctx.GasMeter().ConsumeGas(100000, "mock ack callback success")
-	return nil
+	return k.processMockCallbacks(ctx, callbacktypes.CallbackTypeAcknowledgement, k.AckCallbackCounter)
 }
 
 // IBCPacketTimeoutCallback returns nil if the gas meter has greater than
@@ -71,15 +65,7 @@ func (k MockContractKeeper) IBCPacketTimeoutCallback(
 	relayer sdk.AccAddress,
 	contractAddr string,
 ) error {
-	if ctx.GasMeter().GasRemaining() < 100000 {
-		k.TimeoutCallbackCounter.IncrementFailure()
-		ctx.GasMeter().ConsumeGas(ctx.GasMeter().GasRemaining(), "mock timeout callback failure")
-		return ibcerrors.ErrOutOfGas
-	}
-
-	k.TimeoutCallbackCounter.IncrementSuccess()
-	ctx.GasMeter().ConsumeGas(100000, "mock timeout callback success")
-	return nil
+	return k.processMockCallbacks(ctx, callbacktypes.CallbackTypeTimeoutPacket, k.TimeoutCallbackCounter)
 }
 
 // IBCReceivePacketCallback returns nil if the gas meter has greater than
@@ -92,13 +78,28 @@ func (k MockContractKeeper) IBCReceivePacketCallback(
 	relayer sdk.AccAddress,
 	contractAddr string,
 ) error {
-	if ctx.GasMeter().GasRemaining() < 100000 {
-		k.RecvPacketCallbackCounter.IncrementFailure()
-		ctx.GasMeter().ConsumeGas(ctx.GasMeter().GasRemaining(), "mock recv packet callback failure")
+	return k.processMockCallbacks(ctx, callbacktypes.CallbackTypeReceivePacket, k.RecvPacketCallbackCounter)
+}
+
+func (k MockContractKeeper) processMockCallbacks(
+	ctx sdk.Context,
+	callbackType callbacktypes.CallbackType,
+	callbackCounter *types.CallbackCounter,
+) error {
+	gasRemaining := ctx.GasMeter().GasRemaining()
+	if gasRemaining < 10000 {
+		// panic if gas remaining is less than 10000, for tests
+		ctx.GasMeter().ConsumeGas(ctx.GasMeter().GasRemaining(), fmt.Sprintf("mock %s callback panic", callbackType))
+		callbackCounter.IncrementFailure()
+		panic("mock recv packet callback failure")
+	} else if gasRemaining < 100000 {
+		// error if gas remaining is less than 100000, for tests
+		callbackCounter.IncrementFailure()
+		ctx.GasMeter().ConsumeGas(ctx.GasMeter().GasRemaining(), fmt.Sprintf("mock %s callback failure", callbackType))
 		return ibcerrors.ErrOutOfGas
 	}
 
-	k.RecvPacketCallbackCounter.IncrementSuccess()
-	ctx.GasMeter().ConsumeGas(100000, "mock recv packet callback success")
+	callbackCounter.IncrementSuccess()
+	ctx.GasMeter().ConsumeGas(100000, fmt.Sprintf("mock %s callback success", callbackType))
 	return nil
 }
