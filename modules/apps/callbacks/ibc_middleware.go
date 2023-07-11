@@ -118,6 +118,14 @@ func (im IBCMiddleware) processCallback(
 	callbackDataGetter func() (types.CallbackData, error),
 	callbackExecutor func(sdk.Context, string) error,
 ) {
+	defer func() {
+		if r := recover(); r != nil {
+			// We handle panic here. This is to ensure that the state changes are reverted
+			// and out of gas errors panics are handled.
+			types.Logger(ctx).Info("Recovered from panic:", r)
+		}
+	}()
+
 	callbackData, err := callbackDataGetter()
 	if err != nil {
 		types.EmitCallbackEvent(ctx, packet, callbackType, callbackData, err)

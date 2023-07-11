@@ -5,6 +5,8 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/cometbft/cometbft/libs/log"
+
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 )
 
@@ -38,6 +40,11 @@ const (
 	// AttributeKeyCallbackSequence denotes the sequence of the packet
 	AttributeKeyCallbackSequence = "callback_sequence"
 )
+
+// Logger returns a module-specific logger.
+func Logger(ctx sdk.Context) log.Logger {
+	return ctx.Logger().With("module", "x/"+ModuleName)
+}
 
 // emitCallbackEvent emits an event for a callback
 func EmitCallbackEvent(
