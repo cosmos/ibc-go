@@ -13,10 +13,10 @@ require (
 	cosmossdk.io/math v1.0.1
 	cosmossdk.io/store v0.1.0-alpha.1.0.20230606190835-3e18f4088b2c
 	cosmossdk.io/x/tx v0.8.0
-	cosmossdk.io/x/upgrade v0.0.0-20230630152705-9f4a4e416f85
+	cosmossdk.io/x/upgrade v0.0.0-20230703101127-6b1acf71aec9
 	github.com/cometbft/cometbft v0.38.0-rc2
 	github.com/cosmos/cosmos-db v1.0.0
-	github.com/cosmos/cosmos-sdk v0.50.0-alpha.1
+	github.com/cosmos/cosmos-sdk v0.50.0-alpha.1.0.20230710100738-3fee9db3596b
 	github.com/cosmos/gogoproto v1.4.10
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
 	github.com/spf13/cast v1.5.1
@@ -78,6 +78,9 @@ require (
 	github.com/go-kit/kit v0.12.0 // indirect
 	github.com/go-kit/log v0.2.1 // indirect
 	github.com/go-logfmt/logfmt v0.6.0 // indirect
+	github.com/go-playground/validator/v10 v10.14.0 // indirect
+	github.com/gobwas/ws v1.1.0 // indirect
+	github.com/goccy/go-json v0.10.2 // indirect
 	github.com/godbus/dbus v0.0.0-20190726142602-4481cbc300e2 // indirect
 	github.com/gogo/googleapis v1.4.1 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
@@ -105,6 +108,7 @@ require (
 	github.com/hashicorp/go-metrics v0.5.1 // indirect
 	github.com/hashicorp/go-plugin v1.4.10 // indirect
 	github.com/hashicorp/go-safetemp v1.0.0 // indirect
+	github.com/hashicorp/go-uuid v1.0.2 // indirect
 	github.com/hashicorp/go-version v1.6.0 // indirect
 	github.com/hashicorp/golang-lru v0.5.5-0.20210104140557-80c98217689d // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
@@ -134,6 +138,7 @@ require (
 	github.com/mtibben/percent v0.2.1 // indirect
 	github.com/oasisprotocol/curve25519-voi v0.0.0-20230110094441-db37f07504ce // indirect
 	github.com/oklog/run v1.1.0 // indirect
+	github.com/onsi/ginkgo v1.16.4 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.8 // indirect
 	github.com/petermattis/goid v0.0.0-20230518223814-80aa455d8761 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
@@ -155,6 +160,7 @@ require (
 	github.com/syndtr/goleveldb v1.0.1-0.20220721030215-126854af5e6d // indirect
 	github.com/tendermint/go-amino v0.16.0 // indirect
 	github.com/tidwall/btree v1.6.0 // indirect
+	github.com/ugorji/go/codec v1.2.11 // indirect
 	github.com/ulikunitz/xz v0.5.11 // indirect
 	github.com/zondax/hid v0.9.1 // indirect
 	github.com/zondax/ledger-go v0.14.1 // indirect
