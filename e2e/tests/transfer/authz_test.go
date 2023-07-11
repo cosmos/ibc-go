@@ -255,7 +255,7 @@ func (suite *AuthzTransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 			if testvalues.IbcErrorsFeatureReleases.IsSupported(chainAVersion) {
 				suite.AssertTxFailure(resp, ibcerrors.ErrInsufficientFunds)
 			} else {
-				suite.AssertTxFailure(resp, sdkerrors.ErrInsufficientFunds)
+				suite.AssertTxFailure(resp, errorsmod.ErrInsufficientFunds)
 			}
 		})
 
@@ -311,7 +311,7 @@ func (suite *AuthzTransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 			if testvalues.IbcErrorsFeatureReleases.IsSupported(chainAVersion) {
 				suite.AssertTxFailure(resp, ibcerrors.ErrInvalidAddress)
 			} else {
-				suite.AssertTxFailure(resp, sdkerrors.ErrInvalidAddress)
+				suite.AssertTxFailure(resp, errorsmod.ErrInvalidAddress)
 			}
 		})
 	})

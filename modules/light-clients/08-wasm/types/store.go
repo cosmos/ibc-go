@@ -6,14 +6,13 @@ import (
 
 	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
 
+	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/cachekv"
 	"github.com/cosmos/cosmos-sdk/store/listenkv"
 	"github.com/cosmos/cosmos-sdk/store/tracekv"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
@@ -114,17 +113,17 @@ func setConsensusState(clientStore sdk.KVStore, cdc codec.BinaryCodec, consensus
 func GetConsensusState(clientStore sdk.KVStore, cdc codec.BinaryCodec, height exported.Height) (*ConsensusState, error) {
 	bz := clientStore.Get(host.ConsensusStateKey(height))
 	if len(bz) == 0 {
-		return nil, sdkerrors.Wrapf(clienttypes.ErrConsensusStateNotFound, "consensus state does not exist for height %s", height)
+		return nil, errorsmod.Wrapf(clienttypes.ErrConsensusStateNotFound, "consensus state does not exist for height %s", height)
 	}
 
 	consensusStateI, err := clienttypes.UnmarshalConsensusState(cdc, bz)
 	if err != nil {
-		return nil, sdkerrors.Wrapf(clienttypes.ErrInvalidConsensus, "unmarshal error: %v", err)
+		return nil, errorsmod.Wrapf(clienttypes.ErrInvalidConsensus, "unmarshal error: %v", err)
 	}
 
 	consensusState, ok := consensusStateI.(*ConsensusState)
 	if !ok {
-		return nil, sdkerrors.Wrapf(clienttypes.ErrInvalidConsensus, "invalid consensus type. expected %T, got %T", &ConsensusState{}, consensusState)
+		return nil, errorsmod.Wrapf(clienttypes.ErrInvalidConsensus, "invalid consensus type. expected %T, got %T", &ConsensusState{}, consensusState)
 	}
 
 	return consensusState, nil
