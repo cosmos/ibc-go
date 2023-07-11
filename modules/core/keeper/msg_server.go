@@ -770,6 +770,7 @@ func (k Keeper) ChannelUpgradeTry(goCtx context.Context, msg *channeltypes.MsgCh
 		ctx.Logger().Error("channel upgrade try failed", "error", errorsmod.Wrap(err, "channel upgrade try failed"))
 		if upgradeErr, ok := err.(*channeltypes.UpgradeError); ok {
 			k.ChannelKeeper.MustAbortUpgrade(ctx, msg.PortId, msg.ChannelId, upgradeErr)
+			cbs.OnChanUpgradeRestore(ctx, msg.PortId, msg.ChannelId)
 
 			// NOTE: a FAILURE result is returned to the client and an error receipt is written to state.
 			// This signals to the relayer to begin the cancel upgrade handshake subprotocol.
@@ -785,6 +786,7 @@ func (k Keeper) ChannelUpgradeTry(goCtx context.Context, msg *channeltypes.MsgCh
 	if err != nil {
 		ctx.Logger().Error("channel upgrade try callback failed", "port-id", msg.PortId, "channel-id", msg.ChannelId, "error", err.Error())
 		k.ChannelKeeper.MustAbortUpgrade(ctx, msg.PortId, msg.ChannelId, err)
+		cbs.OnChanUpgradeRestore(ctx, msg.PortId, msg.ChannelId)
 
 		return &channeltypes.MsgChannelUpgradeTryResponse{Result: channeltypes.FAILURE}, nil
 	}
@@ -823,6 +825,7 @@ func (k Keeper) ChannelUpgradeAck(goCtx context.Context, msg *channeltypes.MsgCh
 		ctx.Logger().Error("channel upgrade ack failed", "error", errorsmod.Wrap(err, "channel upgrade ack failed"))
 		if upgradeErr, ok := err.(*channeltypes.UpgradeError); ok {
 			k.ChannelKeeper.MustAbortUpgrade(ctx, msg.PortId, msg.ChannelId, upgradeErr)
+			cbs.OnChanUpgradeRestore(ctx, msg.PortId, msg.ChannelId)
 
 			// NOTE: a FAILURE result is returned to the client and an error receipt is written to state.
 			// This signals to the relayer to begin the cancel upgrade handshake subprotocol.
@@ -838,6 +841,7 @@ func (k Keeper) ChannelUpgradeAck(goCtx context.Context, msg *channeltypes.MsgCh
 	if err != nil {
 		ctx.Logger().Error("channel upgrade ack callback failed", "port-id", msg.PortId, "channel-id", msg.ChannelId, "error", err.Error())
 		k.ChannelKeeper.MustAbortUpgrade(ctx, msg.PortId, msg.ChannelId, err)
+		cbs.OnChanUpgradeRestore(ctx, msg.PortId, msg.ChannelId)
 
 		return &channeltypes.MsgChannelUpgradeAckResponse{Result: channeltypes.FAILURE}, nil
 	}
