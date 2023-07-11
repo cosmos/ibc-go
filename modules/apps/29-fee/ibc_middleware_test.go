@@ -8,10 +8,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
-	fee "github.com/cosmos/ibc-go/v7/modules/apps/29-fee"
 	"github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
@@ -1066,7 +1066,7 @@ func (suite *FeeTestSuite) TestGetAppVersion() {
 			cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
 			suite.Require().True(ok)
 
-			feeModule := cbs.(fee.IBCMiddleware)
+			feeModule := cbs.(porttypes.Middleware)
 
 			appVersion, found := feeModule.GetAppVersion(suite.chainA.GetContext(), portID, channelID)
 
@@ -1088,7 +1088,7 @@ func (suite *FeeTestSuite) TestUnmarshalPacketData() {
 	cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
 	suite.Require().True(ok)
 
-	feeModule := cbs.(fee.IBCMiddleware)
+	feeModule := cbs.(porttypes.PacketDataUnmarshaler)
 
 	packetData, err := feeModule.UnmarshalPacketData(ibcmock.MockPacketData)
 	suite.Require().NoError(err)
