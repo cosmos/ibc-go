@@ -153,6 +153,11 @@ func (k Keeper) TimeoutExecuted(
 
 	k.deletePacketCommitment(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 
+	if channel.FlushStatus == types.FLUSHING && !k.hasInflightPackets(ctx, packet.GetSourcePort(), packet.GetSourceChannel()) {
+		channel.FlushStatus = types.FLUSHCOMPLETE
+		k.SetChannel(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), channel)
+	}
+
 	if channel.Ordering == types.ORDERED {
 		channel.Close()
 		k.SetChannel(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), channel)
