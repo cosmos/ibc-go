@@ -1,6 +1,6 @@
 package types
 
-var MaxWasmSize = 3 * 1024 * 1024
+const MaxWasmSize = 3 * 1024 * 1024
 
 func ValidateWasmCode(code []byte) (bool, error) {
 	if len(code) == 0 {

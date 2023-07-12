@@ -199,4 +199,10 @@ func (k Keeper) ExportGenesis(ctx sdk.Context) types.GenesisState {
 		})
 	}
 	return genesisState
+func (k Keeper) IterateCodeInfos(ctx sdk.Context, fn func(id uint64, codeID string) (stop bool)) {
+
+}
+
+func (k Keeper) GetWasmByte(ctx sdk.Context, codeID string) ([]byte, error) {
+	return nil, nil
 }
