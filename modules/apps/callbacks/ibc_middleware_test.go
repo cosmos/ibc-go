@@ -5,6 +5,8 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	icacontrollertypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
 	icahosttypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/types"
 	ibccallbacks "github.com/cosmos/ibc-go/v7/modules/apps/callbacks"
@@ -156,4 +158,33 @@ func (suite *CallbacksTestSuite) TestOnTimeoutPacketError() {
 	err := transferStack.OnTimeoutPacket(suite.chainA.GetContext(), channeltypes.Packet{}, suite.chainA.SenderAccount.GetAddress())
 	suite.Require().ErrorIs(ibcerrors.ErrUnknownRequest, err)
 	suite.Require().ErrorContains(err, "cannot unmarshal ICS-20 transfer packet data:")
+}
+
+func (suite *CallbacksTestSuite) TestProcessCallbackDataGetterError() {
+	// The successful cases, other errors, and panics are tested in transfer_test.go and ica_test.go.
+	suite.SetupTransferTest()
+
+	transferStack, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(ibctransfertypes.ModuleName)
+	suite.Require().True(ok)
+	callbackStack, ok := transferStack.(ibccallbacks.IBCMiddleware)
+	suite.Require().True(ok)
+
+	invalidDataGetter := func() (types.CallbackData, error) {
+		return types.CallbackData{}, fmt.Errorf("invalid data getter")
+	}
+
+	ctx := suite.chainA.GetContext()
+	mockPacket := channeltypes.Packet{Sequence: 0}
+	callbackStack.ProcessCallback(ctx, mockPacket, types.CallbackTypeReceivePacket, invalidDataGetter, nil)
+
+	// Verify events
+	events := ctx.EventManager().Events().ToABCIEvents()
+	suite.T().Log("test: ", events)
+
+	newCtx := sdk.Context{}.WithEventManager(sdk.NewEventManager())
+	expCallbackData, expError := invalidDataGetter()
+	types.EmitCallbackEvent(newCtx, mockPacket, types.CallbackTypeReceivePacket, expCallbackData, expError)
+	expEvents := newCtx.EventManager().Events().ToABCIEvents()
+
+	suite.Require().Equal(expEvents, events)
 }
