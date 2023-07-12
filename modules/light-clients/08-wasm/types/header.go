@@ -2,7 +2,8 @@ package types
 
 import (
 	errorsmod "cosmossdk.io/errors"
-		"github.com/cosmos/ibc-go/v7/modules/core/exported"
+
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
 var _ exported.ClientMessage = &Header{}

@@ -5,6 +5,8 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
 	abcitypes "github.com/cometbft/cometbft/abci/types"
 	tmprotostate "github.com/cometbft/cometbft/proto/tendermint/state"
 	tmstate "github.com/cometbft/cometbft/state"
@@ -106,21 +108,21 @@ func (suite *TypesTestSuite) TestABCICodeDeterminism() {
 	// different ABCI error code used
 	errDifferentABCICode := ibcerrors.ErrNotFound
 
-	deliverTx := errorsmod.ResponseDeliverTxWithEvents(err, gasUsed, gasWanted, []abcitypes.Event{}, false)
+	deliverTx := sdkerrors.ResponseDeliverTxWithEvents(err, gasUsed, gasWanted, []abcitypes.Event{}, false)
 	responses := tmprotostate.ABCIResponses{
 		DeliverTxs: []*abcitypes.ResponseDeliverTx{
 			&deliverTx,
 		},
 	}
 
-	deliverTxSameABCICode := errorsmod.ResponseDeliverTxWithEvents(errSameABCICode, gasUsed, gasWanted, []abcitypes.Event{}, false)
+	deliverTxSameABCICode := sdkerrors.ResponseDeliverTxWithEvents(errSameABCICode, gasUsed, gasWanted, []abcitypes.Event{}, false)
 	responsesSameABCICode := tmprotostate.ABCIResponses{
 		DeliverTxs: []*abcitypes.ResponseDeliverTx{
 			&deliverTxSameABCICode,
 		},
 	}
 
-	deliverTxDifferentABCICode := errorsmod.ResponseDeliverTxWithEvents(errDifferentABCICode, gasUsed, gasWanted, []abcitypes.Event{}, false)
+	deliverTxDifferentABCICode := sdkerrors.ResponseDeliverTxWithEvents(errDifferentABCICode, gasUsed, gasWanted, []abcitypes.Event{}, false)
 	responsesDifferentABCICode := tmprotostate.ABCIResponses{
 		DeliverTxs: []*abcitypes.ResponseDeliverTx{
 			&deliverTxDifferentABCICode,

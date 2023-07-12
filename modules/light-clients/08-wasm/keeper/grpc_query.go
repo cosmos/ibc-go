@@ -8,10 +8,10 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
+	errorsmod "cosmossdk.io/errors"
+
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
-	errorsmod "cosmossdk.io/errors"
 	sdkquery "github.com/cosmos/cosmos-sdk/types/query"
 
 	"github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm/types"
