@@ -290,6 +290,11 @@ benchmark:
 ###                                Linting                                  ###
 ###############################################################################
 
+setup-pre-commit:
+	@cp .git/hooks/pre-commit .git/hooks/pre-commit.bak 2>/dev/null || true
+	@echo "Installing pre-commit hook..."
+	@ln -sf ../../scripts/hooks/pre-commit.sh .git/hooks/pre-commit
+
 lint:
 	golangci-lint run --out-format=tab
 
