@@ -11,6 +11,7 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
 	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
+	feetypes "github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
 	"github.com/cosmos/ibc-go/v7/modules/apps/callbacks/types"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
@@ -47,6 +48,23 @@ func (suite *CallbacksTestSuite) SetupTransferTest() {
 	suite.path.EndpointB.ChannelConfig.Version = transfertypes.Version
 
 	suite.coordinator.Setup(suite.path)
+}
+
+// SetupFeeTransferTest sets up a fee middleware enabled transfer channel between chainA and chainB
+func (suite *CallbacksTestSuite) SetupFeeTransferTest() {
+	suite.setupChains()
+
+	suite.path = ibctesting.NewPath(suite.chainA, suite.chainB)
+	feeTransferVersion := string(feetypes.ModuleCdc.MustMarshalJSON(&feetypes.Metadata{FeeVersion: feetypes.Version, AppVersion: transfertypes.Version}))
+	suite.path.EndpointA.ChannelConfig.Version = feeTransferVersion
+	suite.path.EndpointB.ChannelConfig.Version = feeTransferVersion
+	suite.path.EndpointA.ChannelConfig.PortID = transfertypes.PortID
+	suite.path.EndpointB.ChannelConfig.PortID = transfertypes.PortID
+
+	suite.coordinator.Setup(suite.path)
+
+	suite.chainB.GetSimApp().IBCFeeKeeper.SetFeeEnabled(suite.chainB.GetContext(), suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID)
+	suite.chainA.GetSimApp().IBCFeeKeeper.SetFeeEnabled(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
 }
 
 // SetupICATest sets up an interchain accounts channel between chainA (controller) and chainB (host).
@@ -111,6 +129,38 @@ func (suite *CallbacksTestSuite) RegisterInterchainAccount(owner string) {
 	// update port/channel ids
 	suite.path.EndpointA.ChannelID = channeltypes.FormatChannelIdentifier(channelSequence)
 	suite.path.EndpointA.ChannelConfig.PortID = portID
+}
+
+// AssertHasExecutedExpectedCallbackWithFee checks if the only the expected type of callback has been executed
+// and that the expected fee has been paid.
+func (suite *CallbacksTestSuite) AssertHasExecutedExpectedCallbackWithFee(
+	callbackType types.CallbackType, isSuccessful bool,
+	originalSenderBalance sdk.Coins, fee feetypes.Fee,
+) {
+	// Recall that:
+	// - the source chain is chainA
+	// - forward relayer is chainB.SenderAccount
+	// - reverse relayer is chainA.SenderAccount
+	// - The counterparty payee of the forward relayer in chainA is chainB.SenderAccount (as a chainA account)
+
+	if callbackType != types.CallbackTypeTimeoutPacket {
+		// check forward relay balance
+		suite.Require().Equal(
+			fee.RecvFee,
+			sdk.NewCoins(suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainB.SenderAccount.GetAddress(), ibctesting.TestCoin.Denom)),
+		)
+
+		suite.Require().Equal(
+			fee.AckFee.Add(fee.TimeoutFee...), // ack fee paid, timeout fee refunded
+			sdk.NewCoins(
+				suite.chainA.GetSimApp().BankKeeper.GetBalance(
+					suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(),
+					ibctesting.TestCoin.Denom),
+			).Sub(originalSenderBalance[0]),
+		)
+	}
+	// TODO: write test for timeout packet callback
+	suite.AssertHasExecutedExpectedCallback(callbackType, isSuccessful)
 }
 
 // AssertHasExecutedExpectedCallback checks if the only the expected type of callback has been executed.

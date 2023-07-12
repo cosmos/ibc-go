@@ -167,7 +167,7 @@ func (suite *CallbacksTestSuite) ExecuteTransfer(memo string) {
 	voucherDenomTrace := transfertypes.ParseDenomTrace(transfertypes.GetPrefixedDenom(suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID, sdk.DefaultBondDenom))
 	receiverBalance := suite.chainB.GetSimApp().BankKeeper.GetBalance(suite.chainB.GetContext(), suite.chainB.SenderAccount.GetAddress(), voucherDenomTrace.IBCDenom())
 
-	amount := sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100))
+	amount := ibctesting.TestCoin
 	msg := transfertypes.NewMsgTransfer(
 		suite.path.EndpointA.ChannelConfig.PortID,
 		suite.path.EndpointA.ChannelID,
