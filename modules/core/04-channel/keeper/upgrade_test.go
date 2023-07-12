@@ -707,6 +707,14 @@ func (suite *KeeperTestSuite) TestChanUpgradeOpen() {
 		},
 	}
 
+	// Create an initial path used only to invoke a ChanOpenInit handshake.
+	// This bumps the channel identifier generated for chain A on the
+	// next path used to run the upgrade handshake.
+	// See issue 4062.
+	path = ibctesting.NewPath(suite.chainA, suite.chainB)
+	suite.coordinator.SetupConnections(path)
+	suite.Require().NoError(path.EndpointA.ChanOpenInit())
+
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(tc.name, func() {
