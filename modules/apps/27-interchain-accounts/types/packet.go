@@ -80,7 +80,7 @@ The Memo format is defined like so:
 
 */
 
-// getCallbackAddress returns the callback address if it is specified in the packet data memo.
+// GetSourceCallbackAddress returns the source callback address if it is specified in the packet data memo.
 // If no callback address is specified, an empty string is returned.
 //
 // The memo is expected to contain the destination callback address in the following format:
@@ -135,9 +135,8 @@ func (iapd InterchainAccountPacketData) GetSourceUserDefinedGasLimit() uint64 {
 	return userGas
 }
 
-// GetDestUserDefinedGasLimit returns 0. Destination user defined gas limits
-// are not supported for ICS 27. This feature is natively supported by
-// interchain accounts host submodule transaction execution.
+// GetDestUserDefinedGasLimit returns 0. Destination callbacks are not supported for ICS 27.
+// This feature is natively supported by interchain accounts host submodule transaction execution.
 func (iapd InterchainAccountPacketData) GetDestUserDefinedGasLimit() uint64 {
 	return 0
 }
