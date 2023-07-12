@@ -51,7 +51,7 @@ func (ws *WasmSnapshotter) SnapshotExtension(height uint64, payloadWriter snapsh
 	seenBefore := make(map[string]bool)
 	var rerr error
 
-	ws.wasm.IterateCodeInfos(ctx, func(id uint64, codeID string) bool {
+	ws.wasm.IterateCodeInfos(ctx, func(codeID string) bool {
 		if seenBefore[codeID] {
 			return false
 		}
