@@ -380,10 +380,10 @@ func (k Keeper) AcknowledgePacket(
 		)
 	}
 
-	if channel.State != types.OPEN {
+	if channel.State != types.OPEN && channel.FlushStatus != types.FLUSHING {
 		return errorsmod.Wrapf(
 			types.ErrInvalidChannelState,
-			"channel state is not OPEN (got %s)", channel.State.String(),
+			"packets cannot be acknowledged on channel with state (%s) and flush status (%s)", channel.State, channel.FlushStatus,
 		)
 	}
 
@@ -476,6 +476,11 @@ func (k Keeper) AcknowledgePacket(
 
 	// Delete packet commitment, since the packet has been acknowledged, the commitement is no longer necessary
 	k.deletePacketCommitment(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
+
+	if channel.FlushStatus == types.FLUSHING && !k.hasInflightPackets(ctx, packet.GetSourcePort(), packet.GetSourceChannel()) {
+		channel.FlushStatus = types.FLUSHCOMPLETE
+		k.SetChannel(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), channel)
+	}
 
 	// log that a packet has been acknowledged
 	k.Logger(ctx).Info(
