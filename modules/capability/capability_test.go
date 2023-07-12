@@ -65,18 +65,19 @@ func (suite *CapabilityTestSuite) NewTestContext() sdk.Context {
 
 // The following test case mocks a specific bug discovered in https://github.com/cosmos/cosmos-sdk/issues/9800
 // and ensures that the current code successfully fixes the issue.
-// This test populates persisted state by firstly creating a new scoped keeper and capability.
-// In-memory storage is then discarded by creating a new keeper and app module using a mock memstore key.
+// This test emulates statesync by firstly populating persisted state by creating a new scoped keeper and capability.
+// In-memory storage is then discarded by creating a new capability keeper and app module using a mock memstore key.
 // BeginBlock is then called to populate the new in-memory store using the persisted state.
 func (suite *CapabilityTestSuite) TestInitializeMemStore() {
-	// create a "pre-statesync" scoped keeper and instantiate a new capability
+	// create a scoped keeper and instantiate a new capability to populate state
 	scopedKeeper := suite.keeper.ScopeToModule(banktypes.ModuleName)
 
 	cap1, err := scopedKeeper.NewCapability(suite.ctx, "transfer")
 	suite.Require().NoError(err)
 	suite.Require().NotNil(cap1)
 
-	// mock statesync by creating a new keeper and module that shares persistent state but discards in-memory map by using a mock memstore key
+	// mock statesync by creating a new keeper and module that shares persisted state
+	// but discards in-memory map by using a mock memstore key
 	newKeeper := keeper.NewKeeper(suite.cdc, suite.storeKey, suite.mockMemStoreKey)
 	newModule := capability.NewAppModule(suite.cdc, *newKeeper, true)
 
