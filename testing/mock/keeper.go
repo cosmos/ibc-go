@@ -43,10 +43,10 @@ func NewMockKeeper() MockKeeper {
 	}
 }
 
-// IBCAcknowledgementPacketCallback returns nil if the gas meter has greater than
+// IBCOnAcknowledgementPacketCallback returns nil if the gas meter has greater than
 // or equal to 100000 gas remaining. Otherwise, it returns an out of gas error.
 // This function also consumes 100000 gas, or the remaining gas if less than 100000.
-func (k MockContractKeeper) IBCAcknowledgementPacketCallback(
+func (k MockContractKeeper) IBCOnAcknowledgementPacketCallback(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
 	acknowledgement []byte,
@@ -56,10 +56,10 @@ func (k MockContractKeeper) IBCAcknowledgementPacketCallback(
 	return k.processMockCallbacks(ctx, callbacktypes.CallbackTypeAcknowledgement, k.AckCallbackCounter)
 }
 
-// IBCPacketTimeoutCallback returns nil if the gas meter has greater than
+// IBCOnTimeoutPacketCallback returns nil if the gas meter has greater than
 // or equal to 100000 gas remaining. Otherwise, it returns an out of gas error.
 // This function also consumes 100000 gas, or the remaining gas if less than 100000.
-func (k MockContractKeeper) IBCPacketTimeoutCallback(
+func (k MockContractKeeper) IBCOnTimeoutPacketCallback(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
@@ -68,10 +68,10 @@ func (k MockContractKeeper) IBCPacketTimeoutCallback(
 	return k.processMockCallbacks(ctx, callbacktypes.CallbackTypeTimeoutPacket, k.TimeoutCallbackCounter)
 }
 
-// IBCReceivePacketCallback returns nil if the gas meter has greater than
+// IBCOnRecvPacketCallback returns nil if the gas meter has greater than
 // or equal to 100000 gas remaining. Otherwise, it returns an out of gas error.
 // This function also consumes 100000 gas, or the remaining gas if less than 100000.
-func (k MockContractKeeper) IBCReceivePacketCallback(
+func (k MockContractKeeper) IBCOnRecvPacketCallback(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
 	acknowledgement ibcexported.Acknowledgement,

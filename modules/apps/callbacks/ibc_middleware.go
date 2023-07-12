@@ -68,7 +68,7 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 		return types.GetSourceCallbackData(im.app, packet.Data, ctx.GasMeter().GasRemaining())
 	}
 	callbackExecutor := func(cachedCtx sdk.Context, callbackAddress string) error {
-		return im.contractKeeper.IBCAcknowledgementPacketCallback(cachedCtx, packet, acknowledgement, relayer, callbackAddress)
+		return im.contractKeeper.IBCOnAcknowledgementPacketCallback(cachedCtx, packet, acknowledgement, relayer, callbackAddress)
 	}
 
 	im.processCallback(ctx, packet, types.CallbackTypeAcknowledgement, callbackDataGetter, callbackExecutor)
@@ -88,7 +88,7 @@ func (im IBCMiddleware) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Pac
 		return types.GetSourceCallbackData(im.app, packet.Data, ctx.GasMeter().GasRemaining())
 	}
 	callbackExecutor := func(cachedCtx sdk.Context, callbackAddress string) error {
-		return im.contractKeeper.IBCPacketTimeoutCallback(cachedCtx, packet, relayer, callbackAddress)
+		return im.contractKeeper.IBCOnTimeoutPacketCallback(cachedCtx, packet, relayer, callbackAddress)
 	}
 
 	im.processCallback(ctx, packet, types.CallbackTypeTimeoutPacket, callbackDataGetter, callbackExecutor)
@@ -105,7 +105,7 @@ func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet
 		return types.GetDestCallbackData(im.app, packet.Data, ctx.GasMeter().GasRemaining())
 	}
 	callbackExecutor := func(cachedCtx sdk.Context, callbackAddress string) error {
-		return im.contractKeeper.IBCReceivePacketCallback(cachedCtx, packet, appAck, relayer, callbackAddress)
+		return im.contractKeeper.IBCOnRecvPacketCallback(cachedCtx, packet, appAck, relayer, callbackAddress)
 	}
 
 	im.processCallback(ctx, packet, types.CallbackTypeReceivePacket, callbackDataGetter, callbackExecutor)
