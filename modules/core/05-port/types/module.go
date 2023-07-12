@@ -142,5 +142,6 @@ type Middleware interface {
 // PacketDataUnmarshaler defines an optional interface which allows a middleware to
 // request the packet data to be unmarshaled by the base application.
 type PacketDataUnmarshaler interface {
+	// UnmarshalPacketData unmarshals the packet data into a concrete type
 	UnmarshalPacketData([]byte) (interface{}, error)
 }
