@@ -3,11 +3,14 @@ package fee_test
 import (
 	"fmt"
 
+	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
+	fee "github.com/cosmos/ibc-go/v7/modules/apps/29-fee"
+	feekeeper "github.com/cosmos/ibc-go/v7/modules/apps/29-fee/keeper"
 	"github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
@@ -1088,9 +1091,18 @@ func (suite *FeeTestSuite) TestUnmarshalPacketData() {
 	cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
 	suite.Require().True(ok)
 
-	feeModule := cbs.(porttypes.PacketDataUnmarshaler)
+	feeModule, ok := cbs.(porttypes.PacketDataUnmarshaler)
+	suite.Require().True(ok)
 
 	packetData, err := feeModule.UnmarshalPacketData(ibcmock.MockPacketData)
 	suite.Require().NoError(err)
 	suite.Require().Equal(ibcmock.MockPacketData, packetData)
+}
+
+func (suite *FeeTestSuite) TestUnmarshalPacketDataError() {
+	// test the case when the underlying application cannot be casted to a PacketDataUnmarshaler
+	mockFeeMiddleware := fee.NewIBCMiddleware(nil, feekeeper.Keeper{})
+
+	_, err := mockFeeMiddleware.UnmarshalPacketData(ibcmock.MockPacketData)
+	suite.Require().ErrorIs(err, errorsmod.Wrapf(types.ErrUnsupportedAction, "underlying app does not implement %T", (*porttypes.PacketDataUnmarshaler)(nil)))
 }
