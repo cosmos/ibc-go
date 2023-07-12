@@ -98,14 +98,80 @@ func (suite *CallbacksTestSuite) TestIncentivizedTransferCallbacks() {
 
 		fee := feetypes.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
 
-		senderBalance := sdk.NewCoins(suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), ibctesting.TestCoin.Denom))
 		suite.ExecutePayPacketFeeMsg(fee)
-		senderBalance = senderBalance.Sub(fee.Total()[0])
+		preRelaySenderBalance := sdk.NewCoins(suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), ibctesting.TestCoin.Denom))
 		suite.ExecuteTransfer(tc.transferMemo)
-		senderBalance = senderBalance.Sub(ibctesting.TestCoin)
+		// we manually subtract the transfer amount from the preRelaySenderBalance because ExecuteTransfer
+		// also relays the packet, which will trigger the fee payments.
+		preRelaySenderBalance = preRelaySenderBalance.Sub(ibctesting.TestCoin)
 
 		// after incentivizing the packets
-		suite.AssertHasExecutedExpectedCallbackWithFee(tc.expCallbackType, tc.expSuccess, senderBalance, fee)
+		suite.AssertHasExecutedExpectedCallbackWithFee(tc.expCallbackType, tc.expSuccess, false, preRelaySenderBalance, fee)
+	}
+}
+
+func (suite *CallbacksTestSuite) TestIncentivizedTransferTimeoutCallbacks() {
+	testCases := []struct {
+		name            string
+		transferMemo    string
+		expCallbackType types.CallbackType
+		expSuccess      bool
+	}{
+		{
+			"success: transfer with no memo",
+			"",
+			"none",
+			true,
+		},
+		{
+			"success: dest callback",
+			fmt.Sprintf(`{"dest_callback": {"address": "%s"}}`, callbackAddr),
+			"none",
+			true,
+		},
+		{
+			"success: source callback",
+			fmt.Sprintf(`{"src_callback": {"address": "%s"}}`, callbackAddr),
+			types.CallbackTypeTimeoutPacket,
+			true,
+		},
+		{
+			"success: dest callback with low gas (error)",
+			fmt.Sprintf(`{"dest_callback": {"address": "%s", "gas_limit": "50000"}}`, callbackAddr),
+			"none",
+			true,
+		},
+		{
+			"failure: source callback with low gas (error)",
+			fmt.Sprintf(`{"src_callback": {"address": "%s", "gas_limit": "50000"}}`, callbackAddr),
+			types.CallbackTypeTimeoutPacket,
+			false,
+		},
+		{
+			"success: dest callback with low gas (panic)",
+			fmt.Sprintf(`{"dest_callback": {"address": "%s", "gas_limit": "100"}}`, callbackAddr),
+			"none",
+			true,
+		},
+		{
+			"failure: source callback with low gas (panic)",
+			fmt.Sprintf(`{"src_callback": {"address": "%s", "gas_limit": "100"}}`, callbackAddr),
+			types.CallbackTypeTimeoutPacket,
+			false,
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.SetupFeeTransferTest()
+
+		fee := feetypes.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
+
+		suite.ExecutePayPacketFeeMsg(fee)
+		preRelaySenderBalance := sdk.NewCoins(suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), ibctesting.TestCoin.Denom))
+		suite.ExecuteTransferTimeout(tc.transferMemo, 1)
+
+		// after incentivizing the packets
+		suite.AssertHasExecutedExpectedCallbackWithFee(tc.expCallbackType, tc.expSuccess, true, preRelaySenderBalance, fee)
 	}
 }
 

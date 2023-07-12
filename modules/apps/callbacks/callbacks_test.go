@@ -131,38 +131,6 @@ func (suite *CallbacksTestSuite) RegisterInterchainAccount(owner string) {
 	suite.path.EndpointA.ChannelConfig.PortID = portID
 }
 
-// AssertHasExecutedExpectedCallbackWithFee checks if the only the expected type of callback has been executed
-// and that the expected fee has been paid.
-func (suite *CallbacksTestSuite) AssertHasExecutedExpectedCallbackWithFee(
-	callbackType types.CallbackType, isSuccessful bool,
-	originalSenderBalance sdk.Coins, fee feetypes.Fee,
-) {
-	// Recall that:
-	// - the source chain is chainA
-	// - forward relayer is chainB.SenderAccount
-	// - reverse relayer is chainA.SenderAccount
-	// - The counterparty payee of the forward relayer in chainA is chainB.SenderAccount (as a chainA account)
-
-	if callbackType != types.CallbackTypeTimeoutPacket {
-		// check forward relay balance
-		suite.Require().Equal(
-			fee.RecvFee,
-			sdk.NewCoins(suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainB.SenderAccount.GetAddress(), ibctesting.TestCoin.Denom)),
-		)
-
-		suite.Require().Equal(
-			fee.AckFee.Add(fee.TimeoutFee...), // ack fee paid, timeout fee refunded
-			sdk.NewCoins(
-				suite.chainA.GetSimApp().BankKeeper.GetBalance(
-					suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(),
-					ibctesting.TestCoin.Denom),
-			).Sub(originalSenderBalance[0]),
-		)
-	}
-	// TODO: write test for timeout packet callback
-	suite.AssertHasExecutedExpectedCallback(callbackType, isSuccessful)
-}
-
 // AssertHasExecutedExpectedCallback checks if the only the expected type of callback has been executed.
 // It assumes that the source chain is chainA and the destination chain is chainB.
 //
@@ -206,4 +174,51 @@ func (suite *CallbacksTestSuite) AssertHasExecutedExpectedCallback(callbackType 
 
 func TestIBCCallbacksTestSuite(t *testing.T) {
 	suite.Run(t, new(CallbacksTestSuite))
+}
+
+// AssertHasExecutedExpectedCallbackWithFee checks if the only the expected type of callback has been executed
+// and that the expected fee has been paid.
+func (suite *CallbacksTestSuite) AssertHasExecutedExpectedCallbackWithFee(
+	callbackType types.CallbackType, isSuccessful bool, isTimeout bool,
+	originalSenderBalance sdk.Coins, fee feetypes.Fee,
+) {
+	// Recall that:
+	// - the source chain is chainA
+	// - forward relayer is chainB.SenderAccount
+	// - reverse relayer is chainA.SenderAccount
+	// - The counterparty payee of the forward relayer in chainA is chainB.SenderAccount (as a chainA account)
+
+	if !isTimeout {
+		// check forward relay balance
+		suite.Require().Equal(
+			fee.RecvFee,
+			sdk.NewCoins(suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainB.SenderAccount.GetAddress(), ibctesting.TestCoin.Denom)),
+		)
+
+		suite.Require().Equal(
+			fee.AckFee.Add(fee.TimeoutFee...), // ack fee paid, timeout fee refunded
+			sdk.NewCoins(
+				suite.chainA.GetSimApp().BankKeeper.GetBalance(
+					suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(),
+					ibctesting.TestCoin.Denom),
+			).Sub(originalSenderBalance[0]),
+		)
+	} else {
+		// forwad relay balance should be 0
+		suite.Require().Equal(
+			sdk.NewCoin(ibctesting.TestCoin.Denom, sdkmath.ZeroInt()),
+			suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainB.SenderAccount.GetAddress(), ibctesting.TestCoin.Denom),
+		)
+
+		// all fees should be returned as sender is the reverse relayer
+		suite.Require().Equal(
+			fee.Total(),
+			sdk.NewCoins(
+				suite.chainA.GetSimApp().BankKeeper.GetBalance(
+					suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(),
+					ibctesting.TestCoin.Denom),
+			).Sub(originalSenderBalance[0]),
+		)
+	}
+	suite.AssertHasExecutedExpectedCallback(callbackType, isSuccessful)
 }

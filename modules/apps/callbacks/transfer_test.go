@@ -157,7 +157,7 @@ func (suite *CallbacksTestSuite) TestTransferTimeoutCallbacks() {
 	}
 }
 
-// ExecuteTransfer executes a transfer message on chainA for 100 denom.
+// ExecuteTransfer executes a transfer message on chainA for ibctesting.TestCoin (100 "stake").
 // It checks that the transfer is successful and that the packet is relayed to chainB.
 func (suite *CallbacksTestSuite) ExecuteTransfer(memo string) {
 	escrowAddress := transfertypes.GetEscrowAddress(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
