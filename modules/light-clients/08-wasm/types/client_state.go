@@ -9,7 +9,6 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
@@ -41,15 +40,15 @@ func (cs ClientState) GetLatestHeight() exported.Height {
 // Validate performs a basic validation of the client state fields.
 func (cs ClientState) Validate() error {
 	if len(cs.Data) == 0 {
-		return sdkerrors.Wrap(ErrInvalidData, "data cannot be empty")
+		return errorsmod.Wrap(ErrInvalidData, "data cannot be empty")
 	}
 
 	lenCodeID := len(cs.CodeId)
 	if lenCodeID == 0 {
-		return sdkerrors.Wrap(ErrInvalidCodeID, "code ID cannot be empty")
+		return errorsmod.Wrap(ErrInvalidCodeID, "code ID cannot be empty")
 	}
 	if lenCodeID > 32 { // sha256 output is 256 bits long
-		return sdkerrors.Wrapf(ErrInvalidCodeID, "expected 32, got %d", lenCodeID)
+		return errorsmod.Wrapf(ErrInvalidCodeID, "expected 32, got %d", lenCodeID)
 	}
 
 	return nil
@@ -106,7 +105,7 @@ func (cs ClientState) GetTimestampAtHeight(
 	// get consensus state at height from clientStore to check for expiry
 	consState, err := GetConsensusState(clientStore, cdc, height)
 	if err != nil {
-		return 0, sdkerrors.Wrapf(err, "height (%s)", height)
+		return 0, errorsmod.Wrapf(err, "height (%s)", height)
 	}
 	return consState.GetTimestamp(), nil
 }
@@ -117,7 +116,7 @@ func (cs ClientState) GetTimestampAtHeight(
 func (cs ClientState) Initialize(ctx sdk.Context, marshaler codec.BinaryCodec, clientStore sdk.KVStore, state exported.ConsensusState) error {
 	consensusState, ok := state.(*ConsensusState)
 	if !ok {
-		return sdkerrors.Wrapf(clienttypes.ErrInvalidConsensus, "invalid initial consensus state. expected type: %T, got: %T",
+		return errorsmod.Wrapf(clienttypes.ErrInvalidConsensus, "invalid initial consensus state. expected type: %T, got: %T",
 			&ConsensusState{}, state)
 	}
 	setClientState(clientStore, marshaler, &cs)
@@ -125,7 +124,7 @@ func (cs ClientState) Initialize(ctx sdk.Context, marshaler codec.BinaryCodec, c
 
 	_, err := initContract(ctx, clientStore, cs.CodeId)
 	if err != nil {
-		return sdkerrors.Wrapf(err, "failed to initialize contract")
+		return errorsmod.Wrapf(err, "failed to initialize contract")
 	}
 	return nil
 }
@@ -250,17 +249,17 @@ func call[T ContractResult](ctx sdk.Context, clientStore sdk.KVStore, cs *Client
 	var output T
 	encodedData, err := json.Marshal(payload)
 	if err != nil {
-		return output, sdkerrors.Wrapf(err, "failed to marshal wasm contract payload")
+		return output, errorsmod.Wrapf(err, "failed to marshal wasm contract payload")
 	}
 	out, err := callContract(ctx, clientStore, cs.CodeId, encodedData)
 	if err != nil {
-		return output, sdkerrors.Wrapf(err, "call to wasm contract failed")
+		return output, errorsmod.Wrapf(err, "call to wasm contract failed")
 	}
 	if err := json.Unmarshal(out.Data, &output); err != nil {
-		return output, sdkerrors.Wrapf(err, "failed unmarshal wasm contract payload")
+		return output, errorsmod.Wrapf(err, "failed unmarshal wasm contract payload")
 	}
 	if !output.Validate() {
-		return output, sdkerrors.Wrapf(errors.New(output.Error()), "error occurred while calling contract with code ID %s", hex.EncodeToString(cs.CodeId))
+		return output, errorsmod.Wrapf(errors.New(output.Error()), "error occurred while calling contract with code ID %s", hex.EncodeToString(cs.CodeId))
 	}
 	return output, nil
 }

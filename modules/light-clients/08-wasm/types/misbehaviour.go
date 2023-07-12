@@ -1,7 +1,7 @@
 package types
 
 import (
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	errorsmod "cosmossdk.io/errors"
 
 	exported "github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
@@ -16,7 +16,7 @@ func (m Misbehaviour) ClientType() string {
 // ValidateBasic implements Misbehaviour interface
 func (m Misbehaviour) ValidateBasic() error {
 	if len(m.Data) == 0 {
-		return sdkerrors.Wrap(ErrInvalidData, "data cannot be empty")
+		return errorsmod.Wrap(ErrInvalidData, "data cannot be empty")
 	}
 	return nil
 }
