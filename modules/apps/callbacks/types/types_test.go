@@ -1,6 +1,8 @@
 package types_test
 
 import (
+	"fmt"
+	"reflect"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -25,4 +27,13 @@ func (suite *CallbacksTypesTestSuite) SetupSuite() {
 
 func TestCallbacksTypesTestSuite(t *testing.T) {
 	suite.Run(t, new(CallbacksTypesTestSuite))
+}
+
+type MockPacketDataUnmarshaler struct{}
+
+func (m MockPacketDataUnmarshaler) UnmarshalPacketData(data []byte) (interface{}, error) {
+	if reflect.DeepEqual(data, []byte("no unmarshaler error")) {
+		return nil, nil
+	}
+	return nil, fmt.Errorf("mock error")
 }

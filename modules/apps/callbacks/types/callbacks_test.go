@@ -94,7 +94,6 @@ func (suite *CallbacksTypesTestSuite) TestGetSourceCallbackDataTransfer() {
 	}
 
 	for _, tc := range testCases {
-		suite.SetupSuite()
 		tc.malleate()
 
 		packetUnmarshaler := transfer.IBCModule{}
@@ -191,7 +190,6 @@ func (suite *CallbacksTypesTestSuite) TestGetDestCallbackDataTransfer() {
 	}
 
 	for _, tc := range testCases {
-		suite.SetupSuite()
 		tc.malleate()
 
 		packetUnmarshaler := transfer.IBCModule{}
@@ -205,4 +203,17 @@ func (suite *CallbacksTypesTestSuite) TestGetDestCallbackDataTransfer() {
 			suite.Require().Error(err)
 		}
 	}
+}
+
+func (suite *CallbacksTypesTestSuite) TestGetCallbackDataErrors() {
+	// Success cases are tested above. This test case tests extra error case where
+	// the packet data can be unmarshaled but the resulting packet data cannot be
+	// casted to a CallbackPacketData.
+
+	packetUnmarshaler := MockPacketDataUnmarshaler{}
+
+	// "no unmarshaler error" instructs the MockPacketDataUnmarshaler to return nil nil
+	callbackData, err := types.GetCallbackData(packetUnmarshaler, []byte("no unmarshaler error"), 100000, nil, nil)
+	suite.Require().Equal(types.CallbackData{}, callbackData)
+	suite.Require().ErrorIs(err, types.ErrNotCallbackPacketData)
 }
