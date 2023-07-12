@@ -1,7 +1,6 @@
 package types
 
 import (
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
 	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
@@ -23,7 +22,7 @@ type CallbackData struct {
 // that the remaining gas is greater than the gas limit specified in the packet data.
 func GetSourceCallbackData(
 	packetDataUnmarshaler porttypes.PacketDataUnmarshaler,
-	packet channeltypes.Packet, remainingGas uint64,
+	packetData []byte, remainingGas uint64,
 ) (CallbackData, error) {
 	addressGetter := func(callbackData ibcexported.CallbackPacketData) string {
 		return callbackData.GetSourceCallbackAddress()
@@ -31,14 +30,14 @@ func GetSourceCallbackData(
 	gasLimitGetter := func(callbackData ibcexported.CallbackPacketData) uint64 {
 		return callbackData.GetSourceUserDefinedGasLimit()
 	}
-	return getCallbackData(packetDataUnmarshaler, packet, remainingGas, addressGetter, gasLimitGetter)
+	return getCallbackData(packetDataUnmarshaler, packetData, remainingGas, addressGetter, gasLimitGetter)
 }
 
 // GetDestCallbackData parses the packet data and returns the source callback data. It ensures
 // that the remaining gas is greater than the gas limit specified in the packet data.
 func GetDestCallbackData(
 	packetDataUnmarshaler porttypes.PacketDataUnmarshaler,
-	packet channeltypes.Packet, remainingGas uint64,
+	packetData []byte, remainingGas uint64,
 ) (CallbackData, error) {
 	addressGetter := func(callbackData ibcexported.CallbackPacketData) string {
 		return callbackData.GetDestCallbackAddress()
@@ -46,7 +45,7 @@ func GetDestCallbackData(
 	gasLimitGetter := func(callbackData ibcexported.CallbackPacketData) uint64 {
 		return callbackData.GetDestUserDefinedGasLimit()
 	}
-	return getCallbackData(packetDataUnmarshaler, packet, remainingGas, addressGetter, gasLimitGetter)
+	return getCallbackData(packetDataUnmarshaler, packetData, remainingGas, addressGetter, gasLimitGetter)
 }
 
 // getCallbackData parses the packet data and returns the callback data. It ensures
@@ -55,12 +54,12 @@ func GetDestCallbackData(
 // address and gas limit from the callback data.
 func getCallbackData(
 	packetDataUnmarshaler porttypes.PacketDataUnmarshaler,
-	packet channeltypes.Packet, remainingGas uint64,
+	packetData []byte, remainingGas uint64,
 	addressGetter func(ibcexported.CallbackPacketData) string,
 	gasLimitGetter func(ibcexported.CallbackPacketData) uint64,
 ) (CallbackData, error) {
 	// unmarshal packet data
-	unmarshaledData, err := packetDataUnmarshaler.UnmarshalPacketData(packet.Data)
+	unmarshaledData, err := packetDataUnmarshaler.UnmarshalPacketData(packetData)
 	if err != nil {
 		return CallbackData{}, err
 	}
