@@ -16,9 +16,9 @@ import (
 
 	abci "github.com/cometbft/cometbft/abci/types"
 
-	"github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm/client/cli"
-	"github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm/keeper"
-	"github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm/types"
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/client/cli"
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 )
 
 var (
