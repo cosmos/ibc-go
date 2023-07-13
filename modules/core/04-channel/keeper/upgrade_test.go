@@ -754,6 +754,8 @@ func (suite *KeeperTestSuite) TestChanUpgradeOpen() {
 	}
 }
 
+// TestChanUpgradeOpenCounterPartyStates tests the handshake in the cases where
+// the counterparty is in a state other than OPEN.
 func (suite *KeeperTestSuite) TestChanUpgradeOpenCounterPartyStates() {
 	var path *ibctesting.Path
 	testCases := []struct {
@@ -764,9 +766,6 @@ func (suite *KeeperTestSuite) TestChanUpgradeOpenCounterPartyStates() {
 		{
 			"success, counterparty in OPEN",
 			func() {
-				path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
-				path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
-
 				err := path.EndpointB.ChanUpgradeInit()
 				suite.Require().NoError(err)
 
@@ -776,6 +775,8 @@ func (suite *KeeperTestSuite) TestChanUpgradeOpenCounterPartyStates() {
 				err = path.EndpointB.ChanUpgradeAck()
 				suite.Require().NoError(err)
 
+				// TODO: Remove when #4030 is closed. Channel will automatically
+				// move to OPEN in that case.
 				err = path.EndpointB.ChanUpgradeOpen()
 				suite.Require().NoError(err)
 
@@ -787,9 +788,6 @@ func (suite *KeeperTestSuite) TestChanUpgradeOpenCounterPartyStates() {
 		{
 			"success, counterparty in TRYUPGRADE",
 			func() {
-				path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
-				path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
-
 				err := path.EndpointA.ChanUpgradeInit()
 				suite.Require().NoError(err)
 
@@ -820,6 +818,9 @@ func (suite *KeeperTestSuite) TestChanUpgradeOpenCounterPartyStates() {
 
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.Setup(path)
+
+			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
+			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
 
 			tc.malleate()
 
