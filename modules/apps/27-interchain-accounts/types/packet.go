@@ -73,7 +73,7 @@ The Memo format is defined like so:
 		"address": {stringForContractAddress},
 
 		// optional fields
-		"gas_limit": {stringForCallback}
+		"gas_limit": {stringForGasLimit},
 	}
 }
 ```
@@ -83,7 +83,7 @@ The Memo format is defined like so:
 // GetSourceCallbackAddress returns the source callback address if it is specified in the packet data memo.
 // If no callback address is specified, an empty string is returned.
 //
-// The memo is expected to contain the destination callback address in the following format:
+// The memo is expected to contain the source callback address in the following format:
 // { "src_callback": { "address": {stringCallbackAddress}}
 //
 // ADR-8 middleware should callback on the returned address if it is a PacketActor
@@ -111,10 +111,10 @@ func (iapd InterchainAccountPacketData) GetDestCallbackAddress() string {
 
 // GetSourceUserDefinedGasLimit returns the custom gas limit provided for source callbacks
 // if it is specified in the packet data memo.
-// If no gas limit is specified, 0 is returned.
+// If no gas limit is specified or the gas limit is improperly formatted, 0 is returned.
 //
 // The memo is expected to specify the user defined gas limit in the following format:
-// { "src_callback": { ... , "gas_limit": {stringForCallback} }
+// { "src_callback": { ... , "gas_limit": {stringForGasLimit} }
 func (iapd InterchainAccountPacketData) GetSourceUserDefinedGasLimit() uint64 {
 	callbackData := iapd.getSrcCallbackData()
 	if callbackData == nil {
