@@ -77,6 +77,11 @@ func NewKeeper(
 	}
 }
 
+// WithICS4Wrapper sets the ICS4 wrapper
+func (k *Keeper) WithICS4Wrapper(wrapper porttypes.ICS4Wrapper) {
+	k.ics4Wrapper = wrapper
+}
+
 // GetAuthority returns the transfer module's authority.
 func (k Keeper) GetAuthority() string {
 	return k.authority
