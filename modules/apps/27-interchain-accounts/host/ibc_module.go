@@ -167,3 +167,15 @@ func (im IBCModule) UnmarshalPacketData(bz []byte) (interface{}, error) {
 
 	return packetData, nil
 }
+
+// GetPacketSender returns the empty string because the sender is unknown.
+// There is no way to determine the sender of a packet using the counterparty portID
+// because the host submodule does not impose any restrictions on the counterparty portID.
+func (im IBCModule) GetPacketSender(packet ibcexported.PacketI) string {
+	return ""
+}
+
+// GetPacketReceiver returns the empty string because the receiver is undefined for ica packets.
+func (im IBCModule) GetPacketReceiver(packet ibcexported.PacketI) string {
+	return ""
+}

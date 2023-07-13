@@ -144,4 +144,12 @@ type Middleware interface {
 type PacketDataUnmarshaler interface {
 	// UnmarshalPacketData unmarshals the packet data into a concrete type
 	UnmarshalPacketData([]byte) (interface{}, error)
+
+	// GetPacketSender returns the sender address of the packet.
+	// If the packet sender is unknown, or undefined, an empty string should be returned.
+	GetPacketSender(packet exported.PacketI) string
+
+	// GetPacketReceiver returns the receiver address of the packet.
+	// If the packet receiver is unknown, or undefined, an empty string should be returned.
+	GetPacketReceiver(packet exported.PacketI) string
 }

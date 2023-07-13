@@ -7,6 +7,7 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
@@ -36,4 +37,12 @@ func (m MockPacketDataUnmarshaler) UnmarshalPacketData(data []byte) (interface{}
 		return nil, nil
 	}
 	return nil, fmt.Errorf("mock error")
+}
+
+func (m MockPacketDataUnmarshaler) GetPacketSender(packet exported.PacketI) string {
+	return ""
+}
+
+func (m MockPacketDataUnmarshaler) GetPacketReceiver(packet exported.PacketI) string {
+	return ""
 }

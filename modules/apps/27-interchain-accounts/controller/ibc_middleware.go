@@ -1,6 +1,8 @@
 package controller
 
 import (
+	"strings"
+
 	errorsmod "cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -267,4 +269,15 @@ func (im IBCMiddleware) UnmarshalPacketData(bz []byte) (interface{}, error) {
 	}
 
 	return packetData, nil
+}
+
+// GetPacketSender returns the packet sender address using the port id.
+func (im IBCMiddleware) GetPacketSender(packet ibcexported.PacketI) string {
+	icaOwner, _ := strings.CutPrefix(packet.GetSourcePort(), icatypes.ControllerPortPrefix)
+	return icaOwner
+}
+
+// GetPacketReceiver returns the empty string because the receiver is undefined for ica packets.
+func (im IBCMiddleware) GetPacketReceiver(packet ibcexported.PacketI) string {
+	return ""
 }

@@ -44,11 +44,6 @@ func NewIBCMiddleware(
 	}
 }
 
-// UnmarshalPacketData defers to the underlying app to unmarshal the packet data.
-func (im IBCMiddleware) UnmarshalPacketData(bz []byte) (interface{}, error) {
-	return im.app.UnmarshalPacketData(bz)
-}
-
 // OnAcknowledgementPacket implements source callbacks for acknowledgement packets.
 // It defers to the underlying application and then calls the contract callback.
 // If the contract callback fails (within the gas limit), state changes are reverted.
@@ -230,4 +225,19 @@ func (im IBCMiddleware) WriteAcknowledgement(
 // GetAppVersion returns the application version of the underlying application
 func (im IBCMiddleware) GetAppVersion(ctx sdk.Context, portID, channelID string) (string, bool) {
 	return im.channel.GetAppVersion(ctx, portID, channelID)
+}
+
+// UnmarshalPacketData defers to the underlying app to unmarshal the packet data.
+func (im IBCMiddleware) UnmarshalPacketData(bz []byte) (interface{}, error) {
+	return im.app.UnmarshalPacketData(bz)
+}
+
+// GetPacketSender defers to the underlying app.
+func (im IBCMiddleware) GetPacketSender(packet ibcexported.PacketI) string {
+	return im.app.GetPacketSender(packet)
+}
+
+// GetPacketReceiver defers to the underlying app.
+func (im IBCMiddleware) GetPacketReceiver(packet ibcexported.PacketI) string {
+	return im.app.GetPacketReceiver(packet)
 }
