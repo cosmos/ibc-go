@@ -139,9 +139,9 @@ type Middleware interface {
 	ICS4Wrapper
 }
 
-// PacketDataUnmarshaler defines an optional interface which allows a middleware to
+// PacketInfoProvider defines an optional interface which allows a middleware to
 // request the packet data to be unmarshaled by the base application.
-type PacketDataUnmarshaler interface {
+type PacketInfoProvider interface {
 	// UnmarshalPacketData unmarshals the packet data into a concrete type
 	UnmarshalPacketData([]byte) (interface{}, error)
 

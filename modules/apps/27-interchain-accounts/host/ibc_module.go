@@ -18,8 +18,8 @@ import (
 )
 
 var (
-	_ porttypes.IBCModule             = &IBCModule{}
-	_ porttypes.PacketDataUnmarshaler = &IBCModule{}
+	_ porttypes.IBCModule          = &IBCModule{}
+	_ porttypes.PacketInfoProvider = &IBCModule{}
 )
 
 // IBCModule implements the ICS26 interface for interchain accounts host chains
@@ -158,7 +158,7 @@ func (im IBCModule) OnTimeoutPacket(
 
 // UnmarshalPacketData attempts to unmarshal the provided packet data bytes
 // into an InterchainAccountPacketData. This function implements the optional
-// PacketDataUnmarshaler interface required for ADR 008 support.
+// PacketInfoProvider interface required for ADR 008 support.
 func (im IBCModule) UnmarshalPacketData(bz []byte) (interface{}, error) {
 	var packetData icatypes.InterchainAccountPacketData
 	if err := icatypes.ModuleCdc.UnmarshalJSON(bz, &packetData); err != nil {

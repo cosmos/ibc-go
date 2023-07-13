@@ -1091,7 +1091,7 @@ func (suite *FeeTestSuite) TestUnmarshalPacketData() {
 	cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
 	suite.Require().True(ok)
 
-	feeModule, ok := cbs.(porttypes.PacketDataUnmarshaler)
+	feeModule, ok := cbs.(porttypes.PacketInfoProvider)
 	suite.Require().True(ok)
 
 	packetData, err := feeModule.UnmarshalPacketData(ibcmock.MockPacketData)
@@ -1100,9 +1100,9 @@ func (suite *FeeTestSuite) TestUnmarshalPacketData() {
 }
 
 func (suite *FeeTestSuite) TestUnmarshalPacketDataError() {
-	// test the case when the underlying application cannot be casted to a PacketDataUnmarshaler
+	// test the case when the underlying application cannot be casted to a PacketInfoProvider
 	mockFeeMiddleware := fee.NewIBCMiddleware(nil, feekeeper.Keeper{})
 
 	_, err := mockFeeMiddleware.UnmarshalPacketData(ibcmock.MockPacketData)
-	suite.Require().ErrorIs(err, errorsmod.Wrapf(types.ErrUnsupportedAction, "underlying app does not implement %T", (*porttypes.PacketDataUnmarshaler)(nil)))
+	suite.Require().ErrorIs(err, errorsmod.Wrapf(types.ErrUnsupportedAction, "underlying app does not implement %T", (*porttypes.PacketInfoProvider)(nil)))
 }

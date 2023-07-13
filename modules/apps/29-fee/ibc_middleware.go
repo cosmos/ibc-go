@@ -17,8 +17,8 @@ import (
 )
 
 var (
-	_ porttypes.Middleware            = (*IBCMiddleware)(nil)
-	_ porttypes.PacketDataUnmarshaler = (*IBCMiddleware)(nil)
+	_ porttypes.Middleware         = (*IBCMiddleware)(nil)
+	_ porttypes.PacketInfoProvider = (*IBCMiddleware)(nil)
 )
 
 // IBCMiddleware implements the ICS26 callbacks for the fee middleware given the
@@ -353,22 +353,22 @@ func (im IBCMiddleware) GetAppVersion(ctx sdk.Context, portID, channelID string)
 }
 
 // UnmarshalPacketData attempts to use the underlying app to unmarshal the packet data.
-// If the underlying app does not support the PacketDataUnmarshaler interface, an error is returned.
-// This function implements the optional PacketDataUnmarshaler interface required for ADR 008 support.
+// If the underlying app does not support the PacketInfoProvider interface, an error is returned.
+// This function implements the optional PacketInfoProvider interface required for ADR 008 support.
 func (im IBCMiddleware) UnmarshalPacketData(bz []byte) (interface{}, error) {
-	unmarshaler, ok := im.app.(porttypes.PacketDataUnmarshaler)
+	unmarshaler, ok := im.app.(porttypes.PacketInfoProvider)
 	if !ok {
-		return nil, errorsmod.Wrapf(types.ErrUnsupportedAction, "underlying app does not implement %T", (*porttypes.PacketDataUnmarshaler)(nil))
+		return nil, errorsmod.Wrapf(types.ErrUnsupportedAction, "underlying app does not implement %T", (*porttypes.PacketInfoProvider)(nil))
 	}
 
 	return unmarshaler.UnmarshalPacketData(bz)
 }
 
 // GetPacketSender attempts to use the underlying app to get the packet sender.
-// If the underlying app does not support the PacketDataUnmarshaler interface, an empty string is returned.
-// This function implements the optional PacketDataUnmarshaler interface required for ADR 008 support.
+// If the underlying app does not support the PacketInfoProvider interface, an empty string is returned.
+// This function implements the optional PacketInfoProvider interface required for ADR 008 support.
 func (im IBCMiddleware) GetPacketSender(packet exported.PacketI) string {
-	unmarshaler, ok := im.app.(porttypes.PacketDataUnmarshaler)
+	unmarshaler, ok := im.app.(porttypes.PacketInfoProvider)
 	if !ok {
 		return ""
 	}
@@ -377,10 +377,10 @@ func (im IBCMiddleware) GetPacketSender(packet exported.PacketI) string {
 }
 
 // GetPacketReceiver attempts to use the underlying app to get the packet receiver.
-// If the underlying app does not support the PacketDataUnmarshaler interface, an empty string is returned.
-// This function implements the optional PacketDataUnmarshaler interface required for ADR 008 support.
+// If the underlying app does not support the PacketInfoProvider interface, an empty string is returned.
+// This function implements the optional PacketInfoProvider interface required for ADR 008 support.
 func (im IBCMiddleware) GetPacketReceiver(packet exported.PacketI) string {
-	unmarshaler, ok := im.app.(porttypes.PacketDataUnmarshaler)
+	unmarshaler, ok := im.app.(porttypes.PacketInfoProvider)
 	if !ok {
 		return ""
 	}

@@ -10,8 +10,14 @@ import (
 
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+)
+
+var (
+	_ porttypes.IBCModule          = IBCModule{}
+	_ porttypes.PacketInfoProvider = IBCModule{}
 )
 
 // IBCModule implements the ICS26 callbacks for testing/mock.
@@ -163,9 +169,19 @@ func (im IBCModule) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet,
 }
 
 // UnmarshalPacketData returns the MockPacketData. This function implements the optional
-// PacketDataUnmarshaler interface required for ADR 008 support.
+// PacketInfoProvider interface required for ADR 008 support.
 func (im IBCModule) UnmarshalPacketData(bz []byte) (interface{}, error) {
 	return MockPacketData, nil
+}
+
+// GetPacketSender returns an empty string.
+func (im IBCModule) GetPacketSender(packet exported.PacketI) string {
+	return ""
+}
+
+// GetPacketSender returns an empty string.
+func (im IBCModule) GetPacketReceiver(packet exported.PacketI) string {
+	return ""
 }
 
 // GetMockRecvCanaryCapabilityName generates a capability name for testing OnRecvPacket functionality.
