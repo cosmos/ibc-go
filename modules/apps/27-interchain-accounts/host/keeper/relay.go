@@ -68,6 +68,11 @@ func (k Keeper) executeTx(ctx sdk.Context, sourcePort, destPort, destChannel str
 	// writeCache is called only if all msgs succeed, performing state transitions atomically
 	cacheCtx, writeCache := ctx.CacheContext()
 	for i, msg := range msgs {
+		if m, ok := msg.(sdk.HasValidateBasic); ok {
+			if err := m.ValidateBasic(); err != nil {
+				return nil, err
+			}
+		}
 
 		protoAny, err := k.executeMsg(cacheCtx, msg)
 		if err != nil {
@@ -90,7 +95,7 @@ func (k Keeper) executeTx(ctx sdk.Context, sourcePort, destPort, destChannel str
 // authenticateTx ensures the provided msgs contain the correct interchain account signer address retrieved
 // from state using the provided controller port identifier
 func (k Keeper) authenticateTx(ctx sdk.Context, msgs []sdk.Msg, connectionID, portID string) error {
-	_, found := k.GetInterchainAccountAddress(ctx, connectionID, portID)
+	interchainAccountAddr, found := k.GetInterchainAccountAddress(ctx, connectionID, portID)
 	if !found {
 		return errorsmod.Wrapf(icatypes.ErrInterchainAccountNotFound, "failed to retrieve interchain account on port %s", portID)
 	}
@@ -100,6 +105,18 @@ func (k Keeper) authenticateTx(ctx sdk.Context, msgs []sdk.Msg, connectionID, po
 		if !types.ContainsMsgType(allowMsgs, msg) {
 			return errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "message type not allowed: %s", sdk.MsgTypeURL(msg))
 		}
+
+		signers, _, err := k.cdc.GetMsgV1Signers(msg)
+		if err != nil {
+			return err
+		}
+
+		for _, signer := range signers {
+			if interchainAccountAddr != sdk.AccAddress(signer).String() {
+				return errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "unexpected signer address: expected %s, got %s", interchainAccountAddr, sdk.AccAddress(signer).String())
+			}
+		}
+
 	}
 
 	return nil
