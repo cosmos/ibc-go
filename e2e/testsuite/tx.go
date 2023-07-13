@@ -36,11 +36,13 @@ func (s *E2ETestSuite) BroadcastMessages(ctx context.Context, chain *cosmos.Cosm
 	// strip out any fields that may not be supported for the given chain version.
 	msgs = sanitize.Messages(chain.Nodes()[0].Image.Version, msgs...)
 
+	var clientCtx client.Context
 	broadcaster.ConfigureClientContextOptions(func(clientContext client.Context) client.Context {
 		// use a codec with all the types our tests care about registered.
 		// BroadcastTx will deserialize the response and will not be able to otherwise.
 		cdc := Codec()
-		return clientContext.WithCodec(cdc).WithTxConfig(authtx.NewTxConfig(cdc, []signingtypes.SignMode{signingtypes.SignMode_SIGN_MODE_DIRECT}))
+		clientCtx = clientContext.WithCodec(cdc).WithTxConfig(authtx.NewTxConfig(cdc, []signingtypes.SignMode{signingtypes.SignMode_SIGN_MODE_DIRECT}))
+		return clientCtx
 	})
 
 	broadcaster.ConfigureFactoryOptions(func(factory tx.Factory) tx.Factory {
@@ -63,6 +65,13 @@ func (s *E2ETestSuite) BroadcastMessages(ctx context.Context, chain *cosmos.Cosm
 
 	chainA, chainB := s.GetChains()
 	s.Require().NoError(test.WaitForBlocks(ctx, 2, chainA, chainB))
+
+	result, err := authtx.QueryTx(clientCtx, resp.TxHash)
+	if err != nil {
+		s.T().Logf("transaction err: %+v", err)
+	}
+	s.T().Logf("transaction result: %+v", result)
+
 	return resp
 }
 
