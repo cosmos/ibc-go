@@ -21,8 +21,8 @@ var (
 // IBCMiddleware implements the ICS26 callbacks for the ibc-callbacks middleware given
 // the underlying application.
 type IBCMiddleware struct {
-	app     types.PacketUnmarshalerIBCModule
-	channel porttypes.ICS4Wrapper
+	app         types.PacketUnmarshalerIBCModule
+	ics4Wrapper porttypes.ICS4Wrapper
 
 	contractKeeper types.ContractKeeper
 }
@@ -30,7 +30,7 @@ type IBCMiddleware struct {
 // NewIBCMiddleware creates a new IBCMiddlware given the keeper and underlying application
 func NewIBCMiddleware(
 	app porttypes.IBCModule,
-	channel porttypes.ICS4Wrapper,
+	ics4Wrapper porttypes.ICS4Wrapper,
 	contractKeeper types.ContractKeeper,
 ) IBCMiddleware {
 	packetUnmarshalerApp, ok := app.(types.PacketUnmarshalerIBCModule)
@@ -39,7 +39,7 @@ func NewIBCMiddleware(
 	}
 	return IBCMiddleware{
 		app:            packetUnmarshalerApp,
-		channel:        channel,
+		ics4Wrapper:    ics4Wrapper,
 		contractKeeper: contractKeeper,
 	}
 }
@@ -212,7 +212,7 @@ func (im IBCMiddleware) SendPacket(
 	timeoutTimestamp uint64,
 	data []byte,
 ) (uint64, error) {
-	return im.channel.SendPacket(ctx, chanCap, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, data)
+	return im.ics4Wrapper.SendPacket(ctx, chanCap, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, data)
 }
 
 // WriteAcknowledgement implements the ICS4 Wrapper interface
@@ -222,12 +222,12 @@ func (im IBCMiddleware) WriteAcknowledgement(
 	packet ibcexported.PacketI,
 	ack ibcexported.Acknowledgement,
 ) error {
-	return im.channel.WriteAcknowledgement(ctx, chanCap, packet, ack)
+	return im.ics4Wrapper.WriteAcknowledgement(ctx, chanCap, packet, ack)
 }
 
 // GetAppVersion returns the application version of the underlying application
 func (im IBCMiddleware) GetAppVersion(ctx sdk.Context, portID, channelID string) (string, bool) {
-	return im.channel.GetAppVersion(ctx, portID, channelID)
+	return im.ics4Wrapper.GetAppVersion(ctx, portID, channelID)
 }
 
 // UnmarshalPacketData defers to the underlying app to unmarshal the packet data.
