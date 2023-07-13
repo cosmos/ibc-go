@@ -59,11 +59,12 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 		return err
 	}
 
+	packetSenderAddress := im.GetPacketSender(packet)
 	callbackDataGetter := func() (types.CallbackData, error) {
 		return types.GetSourceCallbackData(im.app, packet.Data, ctx.GasMeter().GasRemaining())
 	}
 	callbackExecutor := func(cachedCtx sdk.Context, callbackAddress string) error {
-		return im.contractKeeper.IBCOnAcknowledgementPacketCallback(cachedCtx, packet, acknowledgement, relayer, callbackAddress)
+		return im.contractKeeper.IBCOnAcknowledgementPacketCallback(cachedCtx, packet, acknowledgement, relayer, callbackAddress, packetSenderAddress)
 	}
 
 	im.processCallback(ctx, packet, types.CallbackTypeAcknowledgement, callbackDataGetter, callbackExecutor)
@@ -79,11 +80,12 @@ func (im IBCMiddleware) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Pac
 		return err
 	}
 
+	packetSenderAddress := im.GetPacketSender(packet)
 	callbackDataGetter := func() (types.CallbackData, error) {
 		return types.GetSourceCallbackData(im.app, packet.Data, ctx.GasMeter().GasRemaining())
 	}
 	callbackExecutor := func(cachedCtx sdk.Context, callbackAddress string) error {
-		return im.contractKeeper.IBCOnTimeoutPacketCallback(cachedCtx, packet, relayer, callbackAddress)
+		return im.contractKeeper.IBCOnTimeoutPacketCallback(cachedCtx, packet, relayer, callbackAddress, packetSenderAddress)
 	}
 
 	im.processCallback(ctx, packet, types.CallbackTypeTimeoutPacket, callbackDataGetter, callbackExecutor)
@@ -96,11 +98,12 @@ func (im IBCMiddleware) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Pac
 func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress) ibcexported.Acknowledgement {
 	appAck := im.app.OnRecvPacket(ctx, packet, relayer)
 
+	packetReceiverAddress := im.GetPacketReceiver(packet)
 	callbackDataGetter := func() (types.CallbackData, error) {
 		return types.GetDestCallbackData(im.app, packet.Data, ctx.GasMeter().GasRemaining())
 	}
 	callbackExecutor := func(cachedCtx sdk.Context, callbackAddress string) error {
-		return im.contractKeeper.IBCOnRecvPacketCallback(cachedCtx, packet, appAck, relayer, callbackAddress)
+		return im.contractKeeper.IBCOnRecvPacketCallback(cachedCtx, packet, appAck, relayer, callbackAddress, packetReceiverAddress)
 	}
 
 	im.processCallback(ctx, packet, types.CallbackTypeReceivePacket, callbackDataGetter, callbackExecutor)

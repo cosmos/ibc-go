@@ -51,7 +51,8 @@ func (k MockContractKeeper) IBCOnAcknowledgementPacketCallback(
 	packet channeltypes.Packet,
 	acknowledgement []byte,
 	relayer sdk.AccAddress,
-	contractAddr string,
+	contractAddress,
+	packetSenderAddress string,
 ) error {
 	return k.processMockCallbacks(ctx, callbacktypes.CallbackTypeAcknowledgement, k.AckCallbackCounter)
 }
@@ -63,7 +64,8 @@ func (k MockContractKeeper) IBCOnTimeoutPacketCallback(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
-	contractAddr string,
+	contractAddress,
+	packetSenderAddress string,
 ) error {
 	return k.processMockCallbacks(ctx, callbacktypes.CallbackTypeTimeoutPacket, k.TimeoutCallbackCounter)
 }
@@ -76,7 +78,8 @@ func (k MockContractKeeper) IBCOnRecvPacketCallback(
 	packet channeltypes.Packet,
 	acknowledgement ibcexported.Acknowledgement,
 	relayer sdk.AccAddress,
-	contractAddr string,
+	contractAddress,
+	packetSenderAddress string,
 ) error {
 	return k.processMockCallbacks(ctx, callbacktypes.CallbackTypeReceivePacket, k.RecvPacketCallbackCounter)
 }
