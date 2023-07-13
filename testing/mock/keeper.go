@@ -5,7 +5,9 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	callbacktypes "github.com/cosmos/ibc-go/v7/modules/apps/callbacks/types"
+	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
 	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
@@ -27,6 +29,7 @@ type MockKeeper struct {
 // It implements the interface functions expected by the ibccallbacks middleware
 // so that it can be tested with simapp.
 type MockContractKeeper struct {
+	SendPacketCallbackCounter *types.CallbackCounter
 	AckCallbackCounter        *types.CallbackCounter
 	TimeoutCallbackCounter    *types.CallbackCounter
 	RecvPacketCallbackCounter *types.CallbackCounter
@@ -36,6 +39,7 @@ type MockContractKeeper struct {
 func NewMockKeeper() MockKeeper {
 	return MockKeeper{
 		MockContractKeeper: MockContractKeeper{
+			SendPacketCallbackCounter: types.NewCallbackCounter(),
 			AckCallbackCounter:        types.NewCallbackCounter(),
 			TimeoutCallbackCounter:    types.NewCallbackCounter(),
 			RecvPacketCallbackCounter: types.NewCallbackCounter(),
@@ -43,9 +47,28 @@ func NewMockKeeper() MockKeeper {
 	}
 }
 
+// IBCPacketSendCallback returns nil if the gas meter has greater than
+// or equal to 100000 gas remaining. Otherwise, it returns an out of gas error.
+// This function also consumes 100000 gas, or the remaining gas if less than 100000.
+// This function panics if the gas remaining is less than 10000.
+func (k MockContractKeeper) IBCSendPacketCallback(
+	ctx sdk.Context,
+	chanCap *capabilitytypes.Capability,
+	sourcePort string,
+	sourceChannel string,
+	timeoutHeight clienttypes.Height,
+	timeoutTimestamp uint64,
+	packetData []byte,
+	contractAddress,
+	packetSenderAddress string,
+) error {
+	return k.processMockCallbacks(ctx, callbacktypes.CallbackTypeSendPacket, k.SendPacketCallbackCounter)
+}
+
 // IBCOnAcknowledgementPacketCallback returns nil if the gas meter has greater than
 // or equal to 100000 gas remaining. Otherwise, it returns an out of gas error.
 // This function also consumes 100000 gas, or the remaining gas if less than 100000.
+// This function panics if the gas remaining is less than 10000.
 func (k MockContractKeeper) IBCOnAcknowledgementPacketCallback(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
@@ -60,6 +83,7 @@ func (k MockContractKeeper) IBCOnAcknowledgementPacketCallback(
 // IBCOnTimeoutPacketCallback returns nil if the gas meter has greater than
 // or equal to 100000 gas remaining. Otherwise, it returns an out of gas error.
 // This function also consumes 100000 gas, or the remaining gas if less than 100000.
+// This function panics if the gas remaining is less than 10000.
 func (k MockContractKeeper) IBCOnTimeoutPacketCallback(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
@@ -73,6 +97,7 @@ func (k MockContractKeeper) IBCOnTimeoutPacketCallback(
 // IBCOnRecvPacketCallback returns nil if the gas meter has greater than
 // or equal to 100000 gas remaining. Otherwise, it returns an out of gas error.
 // This function also consumes 100000 gas, or the remaining gas if less than 100000.
+// This function panics if the gas remaining is less than 10000.
 func (k MockContractKeeper) IBCOnRecvPacketCallback(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
