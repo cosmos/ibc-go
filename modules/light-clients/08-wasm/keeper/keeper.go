@@ -5,6 +5,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
+	"fmt"
 	"math"
 	"path/filepath"
 	"strings"
@@ -199,4 +200,33 @@ func (k Keeper) ExportGenesis(ctx sdk.Context) types.GenesisState {
 		})
 	}
 	return genesisState
+}
+
+// TODO: testing
+func (k Keeper) IterateCodeInfos(ctx sdk.Context, fn func(codeID string) (stop bool)) {
+	store := ctx.KVStore(k.storeKey)
+	prefixStore := prefix.NewStore(store, []byte(fmt.Sprintf("%s/", types.PrefixCodeIDKey)))
+
+	iter := prefixStore.Iterator(nil, nil)
+	defer iter.Close()
+
+	for ; iter.Valid(); iter.Next() {
+		if fn(string(iter.Value())) {
+			break
+		}
+	}
+}
+
+// TODO: testing
+func (k Keeper) GetWasmByte(ctx sdk.Context, codeID string) ([]byte, error) {
+	store := ctx.KVStore(k.storeKey)
+
+	byteCodeID, err := hex.DecodeString(codeID)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid code ID")
+	}
+
+	codeKey := types.CodeID(byteCodeID)
+	wasmBytes := store.Get(codeKey)
+	return wasmBytes, nil
 }
