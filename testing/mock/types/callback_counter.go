@@ -29,3 +29,15 @@ func (c *CallbackCounter) IncrementFailure() {
 func (c *CallbackCounter) IsZero() bool {
 	return c.Success == 0 && c.Failure == 0
 }
+
+// HasSucceeded returns true if the success counter is greater than zero and
+// the failure counter is zero.
+func (c *CallbackCounter) HasSucceeded() bool {
+	return c.Success > 0 && c.Failure == 0
+}
+
+// HasFailed returns true if the success counter is zero and the failure counter
+// is greater than zero.
+func (c *CallbackCounter) HasFailed() bool {
+	return c.Success == 0 && c.Failure > 0
+}
