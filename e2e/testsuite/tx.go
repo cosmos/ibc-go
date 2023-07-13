@@ -19,7 +19,6 @@ import (
 	"github.com/strangelove-ventures/interchaintest/v7/ibc"
 	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
 
-	"github.com/cosmos/ibc-go/e2e/testconfig"
 	"github.com/cosmos/ibc-go/e2e/testsuite/sanitize"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	feetypes "github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
@@ -102,7 +101,7 @@ func (s *E2ETestSuite) AssertTxFailure(resp sdk.TxResponse, expectedError *error
 	errorMsg := fmt.Sprintf("%+v", resp)
 	// In older versions, the codespace and abci codes were different. So in compatibility tests
 	// we can not make assertions on them.
-	if testconfig.GetChainATag() == testconfig.GetChainBTag() {
+	if GetChainATag() == GetChainBTag() {
 		s.Require().Equal(expectedError.ABCICode(), resp.Code, errorMsg)
 		s.Require().Equal(expectedError.Codespace(), resp.Codespace, errorMsg)
 	}
