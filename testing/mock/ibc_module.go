@@ -174,14 +174,14 @@ func (im IBCModule) UnmarshalPacketData(bz []byte) (interface{}, error) {
 	return MockPacketData, nil
 }
 
-// GetPacketSender returns an empty string.
+// GetPacketSender returns MockPacketSender.
 func (im IBCModule) GetPacketSender(packet exported.PacketI) string {
-	return ""
+	return MockPacketSender
 }
 
-// GetPacketSender returns an empty string.
+// GetPacketSender returns an MockPacketReceiver.
 func (im IBCModule) GetPacketReceiver(packet exported.PacketI) string {
-	return ""
+	return MockPacketReceiver
 }
 
 // GetMockRecvCanaryCapabilityName generates a capability name for testing OnRecvPacket functionality.

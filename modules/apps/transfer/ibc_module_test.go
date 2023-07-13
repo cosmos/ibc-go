@@ -244,12 +244,14 @@ func (suite *TransferTestSuite) TestOnChanOpenAck() {
 	}
 }
 
-func (suite *TransferTestSuite) TestUnmarshalPacketData() {
+func (suite *TransferTestSuite) TestPacketInfoProviderInterface() {
 	var (
-		sender   = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
-		receiver = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
-		denom    = "transfer/channel-0/atom"
-		amount   = "100"
+		sender           = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
+		receiver         = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
+		srcCallbackAddr  = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
+		destCallbackAddr = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
+		denom            = "transfer/channel-0/atom"
+		amount           = "100"
 
 		data          []byte
 		expPacketData types.FungibleTokenPacketData
@@ -268,7 +270,7 @@ func (suite *TransferTestSuite) TestUnmarshalPacketData() {
 					Amount:   amount,
 					Sender:   sender,
 					Receiver: receiver,
-					Memo:     fmt.Sprintf(`{"src_callback": {"address": "%s"}, "dest_callback": {"address":"%s"}}`, sender, receiver),
+					Memo:     fmt.Sprintf(`{"src_callback": {"address": "%s"}, "dest_callback": {"address":"%s"}}`, srcCallbackAddr, destCallbackAddr),
 				}
 				data = expPacketData.GetBytes()
 			},
@@ -288,17 +290,25 @@ func (suite *TransferTestSuite) TestUnmarshalPacketData() {
 
 		packetData, err := transfer.IBCModule{}.UnmarshalPacketData(data)
 
+		packet := channeltypes.Packet{Data: data}
+		senderAddress := transfer.IBCModule{}.GetPacketSender(packet)
+		receiverAddress := transfer.IBCModule{}.GetPacketReceiver(packet)
+
 		if tc.expPass {
 			suite.Require().NoError(err)
 			suite.Require().Equal(expPacketData, packetData)
 
 			callbackPacketData, ok := packetData.(ibcexported.CallbackPacketData)
 			suite.Require().True(ok)
-			suite.Require().Equal(sender, callbackPacketData.GetSourceCallbackAddress(), "incorrect source callback address")
-			suite.Require().Equal(receiver, callbackPacketData.GetDestCallbackAddress(), "incorrect destination callback address")
+			suite.Require().Equal(srcCallbackAddr, callbackPacketData.GetSourceCallbackAddress(), "incorrect source callback address")
+			suite.Require().Equal(destCallbackAddr, callbackPacketData.GetDestCallbackAddress(), "incorrect destination callback address")
+			suite.Require().Equal(sender, senderAddress, "incorrect sender address")
+			suite.Require().Equal(receiver, receiverAddress, "incorrect receiver address")
 		} else {
 			suite.Require().Error(err)
 			suite.Require().Nil(packetData)
+			suite.Require().Equal("", senderAddress)
+			suite.Require().Equal("", receiverAddress)
 		}
 	}
 }

@@ -709,7 +709,7 @@ func (suite *InterchainAccountsTestSuite) TestControlAccountAfterChannelClose() 
 	suite.assertBalance(icaAddr, expBalAfterSecondSend)
 }
 
-func (suite *InterchainAccountsTestSuite) TestUnmarshalPacketData() {
+func (suite *InterchainAccountsTestSuite) TestPacketInfoProviderInterface() {
 	expPacketData := icatypes.InterchainAccountPacketData{
 		Type: icatypes.EXECUTE_TX,
 		Data: []byte("data"),
@@ -724,6 +724,10 @@ func (suite *InterchainAccountsTestSuite) TestUnmarshalPacketData() {
 	packetData, err = icahost.IBCModule{}.UnmarshalPacketData(invalidPacketData)
 	suite.Require().Error(err)
 	suite.Require().Nil(packetData)
+
+	// Always return empty string for packet sender and receiver in host:
+	suite.Require().Equal("", icahost.IBCModule{}.GetPacketSender(channeltypes.Packet{}))
+	suite.Require().Equal("", icahost.IBCModule{}.GetPacketReceiver(channeltypes.Packet{}))
 }
 
 // assertBalance asserts that the provided address has exactly the expected balance.
