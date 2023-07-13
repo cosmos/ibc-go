@@ -88,6 +88,10 @@ func (suite *CapabilityTestSuite) TestInitializeMemStore() {
 	newKeeper.Seal()
 	suite.Require().False(newKeeper.IsInitialized(suite.ctx), "memstore initialized flag set before BeginBlock")
 
+	cap1, ok := scopedKeeper.GetCapability(suite.ctx, "transfer")
+	suite.Require().False(ok)
+	suite.Require().Nil(cap1)
+
 	// add a new block gas meter to the context
 	ctx := suite.ctx.WithBlockGasMeter(storetypes.NewGasMeter(50))
 
@@ -107,8 +111,9 @@ func (suite *CapabilityTestSuite) TestInitializeMemStore() {
 	suite.Require().True(newKeeper.IsInitialized(ctx), "memstore initialized flag not set")
 
 	// ensure that BeginBlock has populated the new in-memory store (using the mock memstore key) and initialized capabilities
-	cap1, ok := scopedKeeper.GetCapability(ctx, "transfer")
+	cap1, ok = scopedKeeper.GetCapability(ctx, "transfer")
 	suite.Require().True(ok)
+	suite.Require().NotNil(cap1)
 
 	// ensure capabilities do not get reinitialized on next BeginBlock by comparing capability pointers
 	// and assert that the in-memory store is still initialized
