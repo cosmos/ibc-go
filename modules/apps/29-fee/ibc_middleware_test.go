@@ -1102,10 +1102,13 @@ func (suite *FeeTestSuite) TestPacketInfoProviderInterface() {
 	suite.Require().Equal(ibcmock.MockPacketReceiver, feeModule.GetPacketReceiver(channeltypes.Packet{}))
 }
 
-func (suite *FeeTestSuite) TestUnmarshalPacketDataError() {
+func (suite *FeeTestSuite) TestPacketInfoProviderInterfaceError() {
 	// test the case when the underlying application cannot be casted to a PacketInfoProvider
 	mockFeeMiddleware := fee.NewIBCMiddleware(nil, feekeeper.Keeper{})
 
 	_, err := mockFeeMiddleware.UnmarshalPacketData(ibcmock.MockPacketData)
 	suite.Require().ErrorIs(err, errorsmod.Wrapf(types.ErrUnsupportedAction, "underlying app does not implement %T", (*porttypes.PacketInfoProvider)(nil)))
+
+	suite.Require().Equal("", mockFeeMiddleware.GetPacketSender(channeltypes.Packet{}))
+	suite.Require().Equal("", mockFeeMiddleware.GetPacketReceiver(channeltypes.Packet{}))
 }
