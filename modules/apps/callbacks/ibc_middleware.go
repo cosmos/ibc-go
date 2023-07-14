@@ -93,6 +93,16 @@ func (im IBCMiddleware) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Pac
 	return im.processCallback(ctx, packet, types.CallbackTypeTimeoutPacket, callbackDataGetter, callbackExecutor)
 }
 
+// WriteAcknowledgement implements the ICS4 Wrapper interface
+func (im IBCMiddleware) WriteAcknowledgement(
+	ctx sdk.Context,
+	chanCap *capabilitytypes.Capability,
+	packet ibcexported.PacketI,
+	ack ibcexported.Acknowledgement,
+) error {
+	return im.ics4Wrapper.WriteAcknowledgement(ctx, chanCap, packet, ack)
+}
+
 // OnRecvPacket implements destination callbacks for the ibc-callbacks middleware.
 // It defers to the underlying application and then calls the contract callback.
 // If the contract callback fails (within the gas limit), state changes are reverted.
@@ -142,9 +152,7 @@ func (im IBCMiddleware) SendPacket(
 		)
 	}
 
-	im.processCallback(ctx, reconstructedPacket, types.CallbackTypeSendPacket, callbackDataGetter, callbackExecutor)
-
-	return seq, nil
+	return seq, im.processCallback(ctx, reconstructedPacket, types.CallbackTypeSendPacket, callbackDataGetter, callbackExecutor)
 }
 
 // processCallback executes the callbackExecutor and reverts contract changes if the callbackExecutor fails.
@@ -243,16 +251,6 @@ func (im IBCMiddleware) OnChanCloseInit(ctx sdk.Context, portID, channelID strin
 // OnChanCloseConfirm defers to the underlying application
 func (im IBCMiddleware) OnChanCloseConfirm(ctx sdk.Context, portID, channelID string) error {
 	return im.app.OnChanCloseConfirm(ctx, portID, channelID)
-}
-
-// WriteAcknowledgement implements the ICS4 Wrapper interface
-func (im IBCMiddleware) WriteAcknowledgement(
-	ctx sdk.Context,
-	chanCap *capabilitytypes.Capability,
-	packet ibcexported.PacketI,
-	ack ibcexported.Acknowledgement,
-) error {
-	return im.ics4Wrapper.WriteAcknowledgement(ctx, chanCap, packet, ack)
 }
 
 // GetAppVersion returns the application version of the underlying application
