@@ -498,9 +498,11 @@ func NewSimApp(
 	ibcRouter := porttypes.NewRouter()
 
 	// Middleware Stacks
+	maxCallbackGas := uint64(1_000_000)
 
 	// Create Transfer Keeper and pass IBCFeeKeeper as expected Channel and PortKeeper
 	// since fee middleware will wrap the IBCKeeper for underlying application.
+	// NOTE: the Transfer Keeper's ICS4Wrapper can later be replaced.
 	app.TransferKeeper = ibctransferkeeper.NewKeeper(
 		appCodec, keys[ibctransfertypes.StoreKey], app.GetSubspace(ibctransfertypes.ModuleName),
 		app.IBCFeeKeeper, // ISC4 Wrapper: fee IBC middleware
@@ -536,7 +538,7 @@ func NewSimApp(
 	var transferStack porttypes.IBCModule
 	transferStack = transfer.NewIBCModule(app.TransferKeeper)
 	transferStack = ibcfee.NewIBCMiddleware(transferStack, app.IBCFeeKeeper)
-	transferStack = ibccallbacks.NewIBCMiddleware(transferStack, app.IBCFeeKeeper, app.MockKeeper)
+	transferStack = ibccallbacks.NewIBCMiddleware(transferStack, app.IBCFeeKeeper, app.MockKeeper, maxCallbackGas)
 	// Since the callbacks middleware itself is an ics4wrapper, it needs to be passed to the transfer keeper
 	app.TransferKeeper.WithICS4Wrapper(transferStack.(porttypes.Middleware))
 
@@ -553,7 +555,7 @@ func NewSimApp(
 	app.ICAAuthModule = icaControllerStack.(ibcmock.IBCModule)
 	icaControllerStack = icacontroller.NewIBCMiddleware(icaControllerStack, app.ICAControllerKeeper)
 	icaControllerStack = ibcfee.NewIBCMiddleware(icaControllerStack, app.IBCFeeKeeper)
-	icaControllerStack = ibccallbacks.NewIBCMiddleware(icaControllerStack, app.IBCFeeKeeper, app.MockKeeper)
+	icaControllerStack = ibccallbacks.NewIBCMiddleware(icaControllerStack, app.IBCFeeKeeper, app.MockKeeper, maxCallbackGas)
 	// Since the callbacks middleware itself is an ics4wrapper, it needs to be passed to the ica controller keeper
 	app.ICAControllerKeeper.WithICS4Wrapper(icaControllerStack.(porttypes.Middleware))
 
@@ -563,7 +565,7 @@ func NewSimApp(
 	var icaHostStack porttypes.IBCModule
 	icaHostStack = icahost.NewIBCModule(app.ICAHostKeeper)
 	icaHostStack = ibcfee.NewIBCMiddleware(icaHostStack, app.IBCFeeKeeper)
-	icaHostStack = ibccallbacks.NewIBCMiddleware(icaHostStack, app.IBCFeeKeeper, app.MockKeeper)
+	icaHostStack = ibccallbacks.NewIBCMiddleware(icaHostStack, app.IBCFeeKeeper, app.MockKeeper, maxCallbackGas)
 	// Since the callbacks middleware itself is an ics4wrapper, it needs to be passed to the icahost keeper
 	app.ICAHostKeeper.WithICS4Wrapper(icaHostStack.(porttypes.Middleware))
 

@@ -25,14 +25,15 @@ type IBCMiddleware struct {
 	ics4Wrapper porttypes.ICS4Wrapper
 
 	contractKeeper types.ContractKeeper
+
+	maxCallbackGas uint64
 }
 
 // NewIBCMiddleware creates a new IBCMiddlware given the keeper and underlying application.
 // The underlying application must implement the required callback interfaces.
 func NewIBCMiddleware(
-	app porttypes.IBCModule,
-	ics4Wrapper porttypes.ICS4Wrapper,
-	contractKeeper types.ContractKeeper,
+	app porttypes.IBCModule, ics4Wrapper porttypes.ICS4Wrapper,
+	contractKeeper types.ContractKeeper, maxCallbackGas uint64,
 ) IBCMiddleware {
 	packetUnmarshalerApp, ok := app.(types.PacketInfoProviderIBCModule)
 	if !ok {
@@ -42,6 +43,7 @@ func NewIBCMiddleware(
 		app:            packetUnmarshalerApp,
 		ics4Wrapper:    ics4Wrapper,
 		contractKeeper: contractKeeper,
+		maxCallbackGas: maxCallbackGas,
 	}
 }
 
@@ -61,15 +63,14 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 	}
 
 	packetSenderAddress := im.GetPacketSender(packet)
-	callbackDataGetter := func() (types.CallbackData, error) {
-		return types.GetSourceCallbackData(im.app, packet.Data, ctx.GasMeter().GasRemaining())
+	callbackDataGetter := func() (types.CallbackData, bool, error) {
+		return types.GetSourceCallbackData(im.app, packet.Data, ctx.GasMeter().GasRemaining(), im.maxCallbackGas)
 	}
 	callbackExecutor := func(cachedCtx sdk.Context, callbackAddress string) error {
 		return im.contractKeeper.IBCOnAcknowledgementPacketCallback(cachedCtx, packet, acknowledgement, relayer, callbackAddress, packetSenderAddress)
 	}
 
-	im.processCallback(ctx, packet, types.CallbackTypeAcknowledgement, callbackDataGetter, callbackExecutor)
-	return nil
+	return im.processCallback(ctx, packet, types.CallbackTypeAcknowledgement, callbackDataGetter, callbackExecutor)
 }
 
 // OnTimeoutPacket implements timeout source callbacks for the ibc-callbacks middleware.
@@ -82,15 +83,14 @@ func (im IBCMiddleware) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Pac
 	}
 
 	packetSenderAddress := im.GetPacketSender(packet)
-	callbackDataGetter := func() (types.CallbackData, error) {
-		return types.GetSourceCallbackData(im.app, packet.Data, ctx.GasMeter().GasRemaining())
+	callbackDataGetter := func() (types.CallbackData, bool, error) {
+		return types.GetSourceCallbackData(im.app, packet.Data, ctx.GasMeter().GasRemaining(), im.maxCallbackGas)
 	}
 	callbackExecutor := func(cachedCtx sdk.Context, callbackAddress string) error {
 		return im.contractKeeper.IBCOnTimeoutPacketCallback(cachedCtx, packet, relayer, callbackAddress, packetSenderAddress)
 	}
 
-	im.processCallback(ctx, packet, types.CallbackTypeTimeoutPacket, callbackDataGetter, callbackExecutor)
-	return nil
+	return im.processCallback(ctx, packet, types.CallbackTypeTimeoutPacket, callbackDataGetter, callbackExecutor)
 }
 
 // OnRecvPacket implements destination callbacks for the ibc-callbacks middleware.
@@ -100,14 +100,15 @@ func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet
 	appAck := im.app.OnRecvPacket(ctx, packet, relayer)
 
 	packetReceiverAddress := im.GetPacketReceiver(packet)
-	callbackDataGetter := func() (types.CallbackData, error) {
-		return types.GetDestCallbackData(im.app, packet.Data, ctx.GasMeter().GasRemaining())
+	callbackDataGetter := func() (types.CallbackData, bool, error) {
+		return types.GetDestCallbackData(im.app, packet.Data, ctx.GasMeter().GasRemaining(), im.maxCallbackGas)
 	}
 	callbackExecutor := func(cachedCtx sdk.Context, callbackAddress string) error {
 		return im.contractKeeper.IBCOnRecvPacketCallback(cachedCtx, packet, appAck, relayer, callbackAddress, packetReceiverAddress)
 	}
 
-	im.processCallback(ctx, packet, types.CallbackTypeReceivePacket, callbackDataGetter, callbackExecutor)
+	// TODO: This logic should be moved to WriteAcknowledgement
+	_ = im.processCallback(ctx, packet, types.CallbackTypeReceivePacket, callbackDataGetter, callbackExecutor)
 	return appAck
 }
 
@@ -132,8 +133,8 @@ func (im IBCMiddleware) SendPacket(
 	reconstructedPacket := channeltypes.NewPacket(data, seq, sourcePort, sourceChannel, "", "", timeoutHeight, timeoutTimestamp)
 	packetSenderAddress := im.GetPacketSender(reconstructedPacket)
 
-	callbackDataGetter := func() (types.CallbackData, error) {
-		return types.GetSourceCallbackData(im.app, data, ctx.GasMeter().GasRemaining())
+	callbackDataGetter := func() (types.CallbackData, bool, error) {
+		return types.GetSourceCallbackData(im.app, data, ctx.GasMeter().GasRemaining(), im.maxCallbackGas)
 	}
 	callbackExecutor := func(cachedCtx sdk.Context, callbackAddress string) error {
 		return im.contractKeeper.IBCSendPacketCallback(
@@ -146,32 +147,36 @@ func (im IBCMiddleware) SendPacket(
 	return seq, nil
 }
 
-// processCallback executes the callbackExecutor and reverts state changes if the callbackExecutor fails.
+// processCallback executes the callbackExecutor and reverts contract changes if the callbackExecutor fails.
+// If the callbackExecutor panics, and the relayer has not provided enough gas, an error is returned.
 func (im IBCMiddleware) processCallback(
 	ctx sdk.Context, packet channeltypes.Packet, callbackType types.CallbackType,
-	callbackDataGetter func() (types.CallbackData, error),
+	callbackDataGetter func() (types.CallbackData, bool, error),
 	callbackExecutor func(sdk.Context, string) error,
-) {
-	defer func() {
-		if r := recover(); r != nil {
-			// We handle panic here. This is to ensure that the state changes are reverted
-			// and out of gas panics are handled.
-			types.Logger(ctx).Info("Recovered from panic.", "panic", r)
-		}
-	}()
-
-	callbackData, err := callbackDataGetter()
+) (err error) {
+	callbackData, hasEnoughGas, err := callbackDataGetter()
 	if err != nil {
 		types.EmitCallbackEvent(ctx, packet, callbackType, callbackData, err)
-		return
+		return nil
 	}
 	if callbackData.ContractAddr == "" {
 		types.Logger(ctx).Info(
 			fmt.Sprintf("No %s callback found for packet.", callbackType),
 			"packet", packet,
 		)
-		return
+		return nil
 	}
+
+	defer func() {
+		if r := recover(); r != nil {
+			// We handle panic here. This is to ensure that the state changes are reverted
+			// and out of gas panics are handled.
+			types.Logger(ctx).Info("Recovered from panic.", "panic", r)
+			if !hasEnoughGas {
+				err = types.ErrCallbackPanic
+			}
+		}
+	}()
 
 	cachedCtx, writeFn := ctx.CacheContext()
 	cachedCtx = cachedCtx.WithGasMeter(sdk.NewGasMeter(callbackData.GasLimit))
@@ -183,6 +188,8 @@ func (im IBCMiddleware) processCallback(
 	ctx.GasMeter().ConsumeGas(cachedCtx.GasMeter().GasConsumed(), fmt.Sprintf("ibc %s callback", callbackType))
 
 	types.EmitCallbackEvent(ctx, packet, callbackType, callbackData, err)
+
+	return err
 }
 
 // OnChanOpenInit defers to the underlying application

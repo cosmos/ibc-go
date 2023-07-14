@@ -27,7 +27,7 @@ func (suite *CallbacksTestSuite) TestInvalidNewIBCMiddleware() {
 
 	// require panic
 	suite.Panics(func() {
-		_ = ibccallbacks.NewIBCMiddleware(nil, channelKeeper, mockContractKeeper)
+		_ = ibccallbacks.NewIBCMiddleware(nil, channelKeeper, mockContractKeeper, uint64(1000000))
 	})
 }
 
@@ -180,8 +180,8 @@ func (suite *CallbacksTestSuite) TestProcessCallbackDataGetterError() {
 	callbackStack, ok := transferStack.(ibccallbacks.IBCMiddleware)
 	suite.Require().True(ok)
 
-	invalidDataGetter := func() (types.CallbackData, error) {
-		return types.CallbackData{}, fmt.Errorf("invalid data getter")
+	invalidDataGetter := func() (types.CallbackData, bool, error) {
+		return types.CallbackData{}, false, fmt.Errorf("invalid data getter")
 	}
 
 	ctx := suite.chainA.GetContext()
@@ -193,7 +193,7 @@ func (suite *CallbacksTestSuite) TestProcessCallbackDataGetterError() {
 	suite.T().Log("test: ", events)
 
 	newCtx := sdk.Context{}.WithEventManager(sdk.NewEventManager())
-	expCallbackData, expError := invalidDataGetter()
+	expCallbackData, _, expError := invalidDataGetter()
 	types.EmitCallbackEvent(newCtx, mockPacket, types.CallbackTypeReceivePacket, expCallbackData, expError)
 	expEvents := newCtx.EventManager().Events().ToABCIEvents()
 

@@ -18,11 +18,13 @@ func (suite *CallbacksTypesTestSuite) TestGetSourceCallbackDataTransfer() {
 	receiver := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
 
 	var packetData []byte
+	// max gas is 1_000_000
 	testCases := []struct {
 		name            string
 		malleate        func()
 		remainingGas    uint64
 		expCallbackData types.CallbackData
+		expHasEnoughGas bool
 		expPass         bool
 	}{
 		{
@@ -37,15 +39,16 @@ func (suite *CallbacksTypesTestSuite) TestGetSourceCallbackDataTransfer() {
 				}
 				packetData = expPacketData.GetBytes()
 			},
-			100000,
+			2_000_000,
 			types.CallbackData{
 				ContractAddr: sender,
-				GasLimit:     100000,
+				GasLimit:     1_000_000,
 			},
+			true,
 			true,
 		},
 		{
-			"success: source callback with gas limit",
+			"success: source callback with gas limit < remaining gas < max gas",
 			func() {
 				expPacketData := transfertypes.FungibleTokenPacketData{
 					Denom:    ibctesting.TestCoin.Denom,
@@ -62,9 +65,10 @@ func (suite *CallbacksTypesTestSuite) TestGetSourceCallbackDataTransfer() {
 				GasLimit:     50000,
 			},
 			true,
+			true,
 		},
 		{
-			"success: source callback with too much gas limit",
+			"success: source callback with remaining gas < gas limit < max gas",
 			func() {
 				expPacketData := transfertypes.FungibleTokenPacketData{
 					Denom:    ibctesting.TestCoin.Denom,
@@ -80,6 +84,47 @@ func (suite *CallbacksTypesTestSuite) TestGetSourceCallbackDataTransfer() {
 				ContractAddr: sender,
 				GasLimit:     100000,
 			},
+			false,
+			true,
+		},
+		{
+			"success: source callback with  remaining gas < max gas < gas limit",
+			func() {
+				expPacketData := transfertypes.FungibleTokenPacketData{
+					Denom:    ibctesting.TestCoin.Denom,
+					Amount:   ibctesting.TestCoin.Amount.String(),
+					Sender:   sender,
+					Receiver: receiver,
+					Memo:     fmt.Sprintf(`{"src_callback": {"address": "%s", "gas_limit": "2000000"}}`, sender),
+				}
+				packetData = expPacketData.GetBytes()
+			},
+			100000,
+			types.CallbackData{
+				ContractAddr: sender,
+				GasLimit:     100000,
+			},
+			false,
+			true,
+		},
+		{
+			"success: source callback with max gas < remaining gas < gas limit",
+			func() {
+				expPacketData := transfertypes.FungibleTokenPacketData{
+					Denom:    ibctesting.TestCoin.Denom,
+					Amount:   ibctesting.TestCoin.Amount.String(),
+					Sender:   sender,
+					Receiver: receiver,
+					Memo:     fmt.Sprintf(`{"src_callback": {"address": "%s", "gas_limit": "3000000"}}`, sender),
+				}
+				packetData = expPacketData.GetBytes()
+			},
+			2_000_000,
+			types.CallbackData{
+				ContractAddr: sender,
+				GasLimit:     1_000_000,
+			},
+			true,
 			true,
 		},
 		{
@@ -90,6 +135,7 @@ func (suite *CallbacksTypesTestSuite) TestGetSourceCallbackDataTransfer() {
 			100000,
 			types.CallbackData{},
 			false,
+			false,
 		},
 	}
 
@@ -98,13 +144,14 @@ func (suite *CallbacksTypesTestSuite) TestGetSourceCallbackDataTransfer() {
 
 		packetUnmarshaler := transfer.IBCModule{}
 
-		callbackData, err := types.GetSourceCallbackData(packetUnmarshaler, packetData, tc.remainingGas)
+		callbackData, hasEnoughGas, err := types.GetSourceCallbackData(packetUnmarshaler, packetData, tc.remainingGas, uint64(1_000_000))
 
+		suite.Require().Equal(tc.expHasEnoughGas, hasEnoughGas, tc.name)
 		if tc.expPass {
-			suite.Require().NoError(err)
-			suite.Require().Equal(tc.expCallbackData, callbackData)
+			suite.Require().NoError(err, tc.name)
+			suite.Require().Equal(tc.expCallbackData, callbackData, tc.name)
 		} else {
-			suite.Require().Error(err)
+			suite.Require().Error(err, tc.name)
 		}
 	}
 }
@@ -114,15 +161,17 @@ func (suite *CallbacksTypesTestSuite) TestGetDestCallbackDataTransfer() {
 	receiver := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
 
 	var packetData []byte
+	// max gas is 1_000_000
 	testCases := []struct {
 		name            string
 		malleate        func()
 		remainingGas    uint64
 		expCallbackData types.CallbackData
+		expHasEnoughGas bool
 		expPass         bool
 	}{
 		{
-			"success: destination callback",
+			"success: dest callback",
 			func() {
 				expPacketData := transfertypes.FungibleTokenPacketData{
 					Denom:    ibctesting.TestCoin.Denom,
@@ -133,15 +182,16 @@ func (suite *CallbacksTypesTestSuite) TestGetDestCallbackDataTransfer() {
 				}
 				packetData = expPacketData.GetBytes()
 			},
-			100000,
+			2_000_000,
 			types.CallbackData{
 				ContractAddr: sender,
-				GasLimit:     100000,
+				GasLimit:     1_000_000,
 			},
+			true,
 			true,
 		},
 		{
-			"success: destination callback with gas limit",
+			"success: dest callback with gas limit < remaining gas < max gas",
 			func() {
 				expPacketData := transfertypes.FungibleTokenPacketData{
 					Denom:    ibctesting.TestCoin.Denom,
@@ -158,9 +208,10 @@ func (suite *CallbacksTypesTestSuite) TestGetDestCallbackDataTransfer() {
 				GasLimit:     50000,
 			},
 			true,
+			true,
 		},
 		{
-			"success: destination callback with too much gas limit",
+			"success: dest callback with remaining gas < gas limit < max gas",
 			func() {
 				expPacketData := transfertypes.FungibleTokenPacketData{
 					Denom:    ibctesting.TestCoin.Denom,
@@ -176,6 +227,47 @@ func (suite *CallbacksTypesTestSuite) TestGetDestCallbackDataTransfer() {
 				ContractAddr: sender,
 				GasLimit:     100000,
 			},
+			false,
+			true,
+		},
+		{
+			"success: dest callback with  remaining gas < max gas < gas limit",
+			func() {
+				expPacketData := transfertypes.FungibleTokenPacketData{
+					Denom:    ibctesting.TestCoin.Denom,
+					Amount:   ibctesting.TestCoin.Amount.String(),
+					Sender:   sender,
+					Receiver: receiver,
+					Memo:     fmt.Sprintf(`{"dest_callback": {"address": "%s", "gas_limit": "2000000"}}`, sender),
+				}
+				packetData = expPacketData.GetBytes()
+			},
+			100000,
+			types.CallbackData{
+				ContractAddr: sender,
+				GasLimit:     100000,
+			},
+			false,
+			true,
+		},
+		{
+			"success: dest callback with max gas < remaining gas < gas limit",
+			func() {
+				expPacketData := transfertypes.FungibleTokenPacketData{
+					Denom:    ibctesting.TestCoin.Denom,
+					Amount:   ibctesting.TestCoin.Amount.String(),
+					Sender:   sender,
+					Receiver: receiver,
+					Memo:     fmt.Sprintf(`{"dest_callback": {"address": "%s", "gas_limit": "3000000"}}`, sender),
+				}
+				packetData = expPacketData.GetBytes()
+			},
+			2_000_000,
+			types.CallbackData{
+				ContractAddr: sender,
+				GasLimit:     1_000_000,
+			},
+			true,
 			true,
 		},
 		{
@@ -186,6 +278,7 @@ func (suite *CallbacksTypesTestSuite) TestGetDestCallbackDataTransfer() {
 			100000,
 			types.CallbackData{},
 			false,
+			false,
 		},
 	}
 
@@ -194,13 +287,14 @@ func (suite *CallbacksTypesTestSuite) TestGetDestCallbackDataTransfer() {
 
 		packetUnmarshaler := transfer.IBCModule{}
 
-		callbackData, err := types.GetDestCallbackData(packetUnmarshaler, packetData, tc.remainingGas)
+		callbackData, hasEnoughGas, err := types.GetDestCallbackData(packetUnmarshaler, packetData, tc.remainingGas, uint64(1_000_000))
 
+		suite.Require().Equal(tc.expHasEnoughGas, hasEnoughGas, tc.name)
 		if tc.expPass {
-			suite.Require().NoError(err)
-			suite.Require().Equal(tc.expCallbackData, callbackData)
+			suite.Require().NoError(err, tc.name)
+			suite.Require().Equal(tc.expCallbackData, callbackData, tc.name)
 		} else {
-			suite.Require().Error(err)
+			suite.Require().Error(err, tc.name)
 		}
 	}
 }
@@ -213,7 +307,8 @@ func (suite *CallbacksTypesTestSuite) TestGetCallbackDataErrors() {
 	packetUnmarshaler := MockPacketDataUnmarshaler{}
 
 	// "no unmarshaler error" instructs the MockPacketDataUnmarshaler to return nil nil
-	callbackData, err := types.GetCallbackData(packetUnmarshaler, []byte("no unmarshaler error"), 100000, nil, nil)
+	callbackData, hasEnoughGas, err := types.GetCallbackData(packetUnmarshaler, []byte("no unmarshaler error"), 100000, uint64(1_000_000), nil, nil)
+	suite.Require().False(hasEnoughGas)
 	suite.Require().Equal(types.CallbackData{}, callbackData)
 	suite.Require().ErrorIs(err, types.ErrNotCallbackPacketData)
 }
