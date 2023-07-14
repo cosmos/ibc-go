@@ -10,7 +10,7 @@ import (
 // state.
 func (k Keeper) InitGenesis(ctx sdk.Context, gs types.GenesisState) error {
 	for _, contract := range gs.Contracts {
-		err := k.importWasmCode(ctx, contract.ContractCode)
+		err := k.importWasmCode(ctx, contract.CodeBytes)
 		if err != nil {
 			return err
 		}
@@ -21,13 +21,13 @@ func (k Keeper) InitGenesis(ctx sdk.Context, gs types.GenesisState) error {
 // ExportGenesis returns the 08-wasm module's exported genesis.
 func (k Keeper) ExportGenesis(ctx sdk.Context) types.GenesisState {
 	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, []byte(types.KeyCodeIDPrefix))
+	iterator := sdk.KVStorePrefixIterator(store, []byte(types.KeyCodeHashPrefix))
 	defer iterator.Close()
 
 	var genesisState types.GenesisState
 	for ; iterator.Valid(); iterator.Next() {
-		genesisState.Contracts = append(genesisState.Contracts, types.GenesisContract{
-			ContractCode: iterator.Value(),
+		genesisState.Contracts = append(genesisState.Contracts, types.Contract{
+			CodeBytes: iterator.Value(),
 		})
 	}
 	return genesisState

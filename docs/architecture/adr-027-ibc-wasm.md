@@ -76,7 +76,7 @@ func (k Keeper) StoreCode(goCtx context.Context, msg *types.MsgStoreCode) (*type
     return nil, sdkerrors.Wrapf(govtypes.ErrInvalidSigner, "invalid authority: expected %s, got %s", k.authority, msg.Signer)
   }
 
-  codeID, err := k.storeWasmCode(ctx, msg.Code)
+  codeHash, err := k.storeWasmCode(ctx, msg.Code)
   if err != nil {
     return nil, sdkerrors.Wrap(err, "storing wasm code failed")
   }
@@ -84,7 +84,7 @@ func (k Keeper) StoreCode(goCtx context.Context, msg *types.MsgStoreCode) (*type
   ctx.EventManager().EmitEvents(sdk.Events{
     sdk.NewEvent(
       clienttypes.EventTypeStoreWasmCode,
-      sdk.NewAttribute(clienttypes.AttributeKeyWasmCodeID, hex.EncodeToString(codeID)),
+      sdk.NewAttribute(clienttypes.AttributeKeyWasmCodeHas, hex.EncodeToString(codeHas)),
     ),
     sdk.NewEvent(
       sdk.EventTypeMessage,
@@ -93,12 +93,12 @@ func (k Keeper) StoreCode(goCtx context.Context, msg *types.MsgStoreCode) (*type
   })
 
   return &types.MsgStoreCodeResponse{
-    CodeId: codeID,
+    CodeHash: codeHash,
   }, nil
 }
 ```
 
-The contract's bytecode is stored in state in an entry indexed by the code ID: `codeId/{code ID}`. The code ID is simply 
+The contract's bytecode is stored in state in an entry indexed by the code hash: `codeHash/{code hash}`. The code hash is simply 
 the hash of the bytecode of the contract.
 
 ### How light client proxy works?

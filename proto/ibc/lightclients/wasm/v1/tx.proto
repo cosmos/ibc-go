@@ -4,6 +4,7 @@ package ibc.lightclients.wasm.v1;
 option go_package = "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types";
 
 import "cosmos/msg/v1/msg.proto";
+import "gogoproto/gogo.proto";
 
 // Msg defines the ibc/08-wasm Msg service.
 service Msg {
@@ -18,10 +19,12 @@ message MsgStoreCode {
   option (cosmos.msg.v1.signer) = "signer";
 
   string signer = 1;
-  bytes  code   = 2;
+  // WASMByteCode can be raw or gzip compressed
+  bytes wasm_byte_code = 2 [(gogoproto.customname) = "WASMByteCode"];
 }
 
 // MsgStoreCodeResponse defines the response type for the StoreCode rpc
 message MsgStoreCodeResponse {
-  bytes code_id = 1;
+  // Checksum is the sha256 hash of the stored code
+  bytes checksum = 1;
 }

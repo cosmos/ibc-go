@@ -11,14 +11,14 @@ var _ sdk.Msg = (*MsgStoreCode)(nil)
 //nolint:interfacer
 func NewMsgStoreCode(signer string, code []byte) *MsgStoreCode {
 	return &MsgStoreCode{
-		Signer: signer,
-		Code:   code,
+		Signer:       signer,
+		WASMByteCode: code,
 	}
 }
 
 // ValidateBasic implements sdk.Msg
 func (m MsgStoreCode) ValidateBasic() error {
-	if len(m.Code) == 0 {
+	if len(m.WASMByteCode) == 0 {
 		return ErrWasmEmptyCode
 	}
 

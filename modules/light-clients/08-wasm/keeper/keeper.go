@@ -81,8 +81,8 @@ func (k Keeper) storeWasmCode(ctx sdk.Context, code []byte) ([]byte, error) {
 
 	// Check to see if the store has a code with the same code it
 	expectedHash := generateWasmCodeHash(code)
-	codeIDKey := types.CodeIDKey(expectedHash)
-	if store.Has(codeIDKey) {
+	codeHashKey := types.CodeHashKey(expectedHash)
+	if store.Has(codeHashKey) {
 		return nil, types.ErrWasmCodeExists
 	}
 
@@ -98,12 +98,12 @@ func (k Keeper) storeWasmCode(ctx sdk.Context, code []byte) ([]byte, error) {
 		return nil, errorsmod.Wrap(err, "failed to store contract")
 	}
 
-	// safety check to assert that code ID returned by WasmVM equals to code hash
+	// safety check to assert that code hash returned by WasmVM equals to code hash
 	if !bytes.Equal(codeHash, expectedHash) {
-		return nil, errorsmod.Wrapf(types.ErrInvalidCodeID, "expected %s, got %s", hex.EncodeToString(expectedHash), hex.EncodeToString(codeHash))
+		return nil, errorsmod.Wrapf(types.ErrInvalidCodeHash, "expected %s, got %s", hex.EncodeToString(expectedHash), hex.EncodeToString(codeHash))
 	}
 
-	store.Set(codeIDKey, code)
+	store.Set(codeHashKey, code)
 	return codeHash, nil
 }
 
@@ -117,12 +117,12 @@ func (k Keeper) importWasmCode(ctx sdk.Context, wasmCode []byte) error {
 		}
 	}
 
-	codeID, err := k.wasmVM.Create(wasmCode)
+	codeHash, err := k.wasmVM.Create(wasmCode)
 	if err != nil {
 		return errorsmod.Wrap(err, "failed to store contract")
 	}
-	codeIDKey := types.CodeIDKey(codeID)
+	codeHashKey := types.CodeHashKey(codeHash)
 
-	store.Set(codeIDKey, wasmCode)
+	store.Set(codeHashKey, wasmCode)
 	return nil
 }

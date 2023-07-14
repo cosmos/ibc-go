@@ -49,7 +49,7 @@ type TypesTestSuite struct {
 
 	ctx      sdk.Context
 	store    sdk.KVStore
-	codeID   []byte
+	codeHash []byte
 	testData map[string]string
 }
 
@@ -78,15 +78,15 @@ func (suite *TypesTestSuite) SetupWasmTendermint() {
 	msg := types.NewMsgStoreCode(authtypes.NewModuleAddress(govtypes.ModuleName).String(), wasmContract)
 	response, err := suite.chainA.App.GetWasmKeeper().StoreCode(suite.chainA.GetContext(), msg)
 	suite.Require().NoError(err)
-	suite.Require().NotNil(response.CodeId)
-	suite.codeID = response.CodeId
+	suite.Require().NotNil(response.Checksum)
+	suite.codeHash = response.Checksum
 
 	response, err = suite.chainB.App.GetWasmKeeper().StoreCode(suite.chainB.GetContext(), msg)
 	suite.Require().NoError(err)
-	suite.Require().NotNil(response.CodeId)
-	suite.codeID = response.CodeId
+	suite.Require().NotNil(response.Checksum)
+	suite.codeHash = response.Checksum
 
-	suite.coordinator.SetCodeID(suite.codeID)
+	suite.coordinator.SetCodeHash(suite.codeHash)
 	suite.coordinator.CommitNBlocks(suite.chainA, 2)
 	suite.coordinator.CommitNBlocks(suite.chainB, 2)
 }
@@ -113,8 +113,8 @@ func (suite *TypesTestSuite) SetupWasmGrandpa() {
 	msg := types.NewMsgStoreCode(authtypes.NewModuleAddress(govtypes.ModuleName).String(), wasmContract)
 	response, err := suite.chainA.App.GetWasmKeeper().StoreCode(suite.ctx, msg)
 	suite.Require().NoError(err)
-	suite.Require().NotNil(response.CodeId)
-	suite.codeID = response.CodeId
+	suite.Require().NotNil(response.Checksum)
+	suite.codeHash = response.Checksum
 }
 
 func SetupTestingWithChannel() (ibctesting.TestingApp, map[string]json.RawMessage) {
