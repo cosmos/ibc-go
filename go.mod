@@ -197,6 +197,7 @@ require (
 )
 
 replace (
+	// force using this version, since some transient dependency is still using v0.2.1 and complains about using sdk.NewIntFromUint64
 	cosmossdk.io/tools/rosetta => cosmossdk.io/tools/rosetta v0.2.1-0.20230614114324-f368ed5c62bc
 	// use cosmos fork of keyring
 	github.com/99designs/keyring => github.com/cosmos/keyring v1.2.0
