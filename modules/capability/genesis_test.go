@@ -29,17 +29,7 @@ func (suite *CapabilityTestSuite) TestGenesis() {
 
 	genState := capability.ExportGenesis(suite.ctx, *suite.keeper)
 
-<<<<<<< HEAD
-	// create new app that does not share persistent or in-memory state
-	// and initialize app from exported genesis state above.
-	db := dbm.NewMemDB()
-	encCdc := simapp.MakeTestEncodingConfig()
-	newApp := simapp.NewSimApp(log.NewNopLogger(), db, nil, true, map[int64]bool{}, simapp.DefaultNodeHome, 5, encCdc, simtestutil.EmptyAppOptions{})
-
-	newKeeper := keeper.NewKeeper(suite.cdc, newApp.GetKey(types.StoreKey), newApp.GetMemKey(types.MemStoreKey))
-=======
 	newKeeper := keeper.NewKeeper(suite.cdc, suite.storeKey, suite.memStoreKey)
->>>>>>> 49cdfc5f (deps: upgrade capability to sdk v0.50 and remove ibc-go dependency (#4068))
 	newSk1 := newKeeper.ScopeToModule(banktypes.ModuleName)
 	newSk2 := newKeeper.ScopeToModule(stakingtypes.ModuleName)
 	deliverCtx := suite.NewTestContext()

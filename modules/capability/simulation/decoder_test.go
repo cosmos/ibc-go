@@ -16,13 +16,8 @@ import (
 )
 
 func TestDecodeStore(t *testing.T) {
-<<<<<<< HEAD
-	app := simapp.Setup(false)
-	dec := simulation.NewDecodeStore(app.AppCodec())
-=======
 	encodingCfg := moduletestutil.MakeTestEncodingConfig(capability.AppModuleBasic{})
 	dec := simulation.NewDecodeStore(encodingCfg.Codec)
->>>>>>> 49cdfc5f (deps: upgrade capability to sdk v0.50 and remove ibc-go dependency (#4068))
 
 	capOwners := types.CapabilityOwners{
 		Owners: []types.Owner{{Module: "transfer", Name: "ports/transfer"}},

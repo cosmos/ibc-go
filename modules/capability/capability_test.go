@@ -39,14 +39,8 @@ type CapabilityTestSuite struct {
 }
 
 func (suite *CapabilityTestSuite) SetupTest() {
-<<<<<<< HEAD
-	checkTx := false
-	app := simapp.Setup(checkTx)
-	cdc := app.AppCodec()
-=======
 	encodingCfg := moduletestutil.MakeTestEncodingConfig(capability.AppModuleBasic{})
 	suite.cdc = encodingCfg.Codec
->>>>>>> 49cdfc5f (deps: upgrade capability to sdk v0.50 and remove ibc-go dependency (#4068))
 
 	suite.storeKey = storetypes.NewKVStoreKey(types.StoreKey)
 	suite.memStoreKey = storetypes.NewMemoryStoreKey(types.MemStoreKey)

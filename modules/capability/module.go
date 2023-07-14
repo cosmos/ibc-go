@@ -26,15 +26,9 @@ import (
 )
 
 var (
-<<<<<<< HEAD
-	_ module.BeginBlockAppModule = AppModule{}
-	_ module.AppModuleBasic      = AppModuleBasic{}
-	_ module.AppModuleSimulation = AppModule{}
-=======
 	_ module.AppModuleBasic      = (*AppModuleBasic)(nil)
 	_ module.AppModuleSimulation = (*AppModule)(nil)
 	_ appmodule.AppModule        = (*AppModule)(nil)
->>>>>>> 49cdfc5f (deps: upgrade capability to sdk v0.50 and remove ibc-go dependency (#4068))
 )
 
 // ----------------------------------------------------------------------------
