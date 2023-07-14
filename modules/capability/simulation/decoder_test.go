@@ -12,7 +12,6 @@ import (
 
 	"github.com/cosmos/ibc-go/modules/capability"
 	"github.com/cosmos/ibc-go/modules/capability/simulation"
-	"github.com/cosmos/ibc-go/modules/capability/testing/simapp"
 	"github.com/cosmos/ibc-go/modules/capability/types"
 )
 
