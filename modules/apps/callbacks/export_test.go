@@ -16,6 +16,6 @@ func (im IBCMiddleware) ProcessCallback(
 	ctx sdk.Context, packet channeltypes.Packet, callbackType types.CallbackType,
 	callbackDataGetter func() (types.CallbackData, bool, error),
 	callbackExecutor func(sdk.Context, string) error,
-) {
-	im.processCallback(ctx, packet, callbackType, callbackDataGetter, callbackExecutor)
+) error {
+	return im.processCallback(ctx, packet, callbackType, callbackDataGetter, callbackExecutor)
 }

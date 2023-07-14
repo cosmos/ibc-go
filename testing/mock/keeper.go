@@ -5,7 +5,6 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	callbacktypes "github.com/cosmos/ibc-go/v7/modules/apps/callbacks/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
@@ -53,7 +52,6 @@ func NewMockKeeper() MockKeeper {
 // This function panics if the gas remaining is less than 10000.
 func (k MockContractKeeper) IBCSendPacketCallback(
 	ctx sdk.Context,
-	chanCap *capabilitytypes.Capability,
 	sourcePort string,
 	sourceChannel string,
 	timeoutHeight clienttypes.Height,
@@ -94,19 +92,18 @@ func (k MockContractKeeper) IBCOnTimeoutPacketCallback(
 	return k.processMockCallbacks(ctx, callbacktypes.CallbackTypeTimeoutPacket, k.TimeoutCallbackCounter)
 }
 
-// IBCOnRecvPacketCallback returns nil if the gas meter has greater than
+// IBCWriteAcknowledgementCallback returns nil if the gas meter has greater than
 // or equal to 100000 gas remaining. Otherwise, it returns an out of gas error.
 // This function also consumes 100000 gas, or the remaining gas if less than 100000.
 // This function panics if the gas remaining is less than 10000.
-func (k MockContractKeeper) IBCOnRecvPacketCallback(
+func (k MockContractKeeper) IBCWriteAcknowledgementCallback(
 	ctx sdk.Context,
-	packet channeltypes.Packet,
-	acknowledgement ibcexported.Acknowledgement,
-	relayer sdk.AccAddress,
+	packet ibcexported.PacketI,
+	ack ibcexported.Acknowledgement,
 	contractAddress,
 	packetSenderAddress string,
 ) error {
-	return k.processMockCallbacks(ctx, callbacktypes.CallbackTypeReceivePacket, k.RecvPacketCallbackCounter)
+	return k.processMockCallbacks(ctx, callbacktypes.CallbackTypeWriteAcknowledgement, k.RecvPacketCallbackCounter)
 }
 
 func (k MockContractKeeper) processMockCallbacks(

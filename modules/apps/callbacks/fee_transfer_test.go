@@ -34,13 +34,13 @@ func (suite *CallbacksTestSuite) TestIncentivizedTransferCallbacks() {
 		{
 			"success: dest callback",
 			fmt.Sprintf(`{"dest_callback": {"address": "%s"}}`, callbackAddr),
-			types.CallbackTypeReceivePacket,
+			types.CallbackTypeWriteAcknowledgement,
 			true,
 		},
 		{
 			"success: dest callback with other json fields",
 			fmt.Sprintf(`{"dest_callback": {"address": "%s"}, "something_else": {}}`, callbackAddr),
-			types.CallbackTypeReceivePacket,
+			types.CallbackTypeWriteAcknowledgement,
 			true,
 		},
 		{
@@ -70,7 +70,7 @@ func (suite *CallbacksTestSuite) TestIncentivizedTransferCallbacks() {
 		{
 			"failure: dest callback with low gas (error)",
 			fmt.Sprintf(`{"dest_callback": {"address": "%s", "gas_limit": "50000"}}`, callbackAddr),
-			types.CallbackTypeReceivePacket,
+			types.CallbackTypeWriteAcknowledgement,
 			false,
 		},
 		{
@@ -82,7 +82,7 @@ func (suite *CallbacksTestSuite) TestIncentivizedTransferCallbacks() {
 		{
 			"failure: dest callback with low gas (panic)",
 			fmt.Sprintf(`{"dest_callback": {"address": "%s", "gas_limit": "100"}}`, callbackAddr),
-			types.CallbackTypeReceivePacket,
+			types.CallbackTypeWriteAcknowledgement,
 			false,
 		},
 		{

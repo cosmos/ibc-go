@@ -136,7 +136,7 @@ func (suite *CallbacksTestSuite) RegisterInterchainAccount(owner string) {
 //
 // The callbackType can be one of the following:
 //   - types.CallbackTypeAcknowledgement
-//   - types.CallbackTypeReceivePacket
+//   - types.CallbackTypeWriteAcknowledgement
 //   - types.CallbackTypeTimeout
 //   - "none" (no callback should be executed)
 func (suite *CallbacksTestSuite) AssertHasExecutedExpectedCallback(callbackType types.CallbackType, isSuccessful bool) {
@@ -152,7 +152,7 @@ func (suite *CallbacksTestSuite) AssertHasExecutedExpectedCallback(callbackType 
 		suite.Require().Equal(1-successCount, suite.chainA.GetSimApp().MockKeeper.SendPacketCallbackCounter.Failure)
 		suite.Require().True(suite.chainA.GetSimApp().MockKeeper.TimeoutCallbackCounter.IsZero())
 		suite.Require().True(suite.chainB.GetSimApp().MockKeeper.RecvPacketCallbackCounter.IsZero())
-	case types.CallbackTypeReceivePacket:
+	case types.CallbackTypeWriteAcknowledgement:
 		suite.Require().Equal(successCount, suite.chainB.GetSimApp().MockKeeper.RecvPacketCallbackCounter.Success)
 		suite.Require().Equal(1-successCount, suite.chainB.GetSimApp().MockKeeper.RecvPacketCallbackCounter.Failure)
 		suite.Require().True(suite.chainA.GetSimApp().MockKeeper.SendPacketCallbackCounter.IsZero())

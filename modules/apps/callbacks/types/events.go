@@ -7,7 +7,7 @@ import (
 
 	"github.com/cometbft/cometbft/libs/log"
 
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
 const (
@@ -49,7 +49,7 @@ func Logger(ctx sdk.Context) log.Logger {
 // emitCallbackEvent emits an event for a callback
 func EmitCallbackEvent(
 	ctx sdk.Context,
-	packet channeltypes.Packet,
+	packet ibcexported.PacketI,
 	callbackTrigger CallbackType,
 	callbackData CallbackData,
 	err error,
@@ -60,7 +60,7 @@ func EmitCallbackEvent(
 		eventType = EventTypeSourceCallback
 	case CallbackTypeTimeoutPacket:
 		eventType = EventTypeSourceCallback
-	case CallbackTypeReceivePacket:
+	case CallbackTypeWriteAcknowledgement:
 		eventType = EventTypeDestinationCallback
 	default:
 		eventType = "unknown"
@@ -71,9 +71,9 @@ func EmitCallbackEvent(
 		sdk.NewAttribute(AttributeKeyCallbackTrigger, string(callbackTrigger)),
 		sdk.NewAttribute(AttributeKeyCallbackAddress, callbackData.ContractAddr),
 		sdk.NewAttribute(AttributeKeyCallbackGasLimit, fmt.Sprintf("%d", callbackData.GasLimit)),
-		sdk.NewAttribute(AttributeKeyCallbackSourcePortID, packet.SourcePort),
-		sdk.NewAttribute(AttributeKeyCallbackSourceChannelID, packet.SourceChannel),
-		sdk.NewAttribute(AttributeKeyCallbackSequence, fmt.Sprintf("%d", packet.Sequence)),
+		sdk.NewAttribute(AttributeKeyCallbackSourcePortID, packet.GetSourceChannel()),
+		sdk.NewAttribute(AttributeKeyCallbackSourceChannelID, packet.GetSourceChannel()),
+		sdk.NewAttribute(AttributeKeyCallbackSequence, fmt.Sprintf("%d", packet.GetSequence())),
 	}
 	if err == nil {
 		attributes = append(attributes, sdk.NewAttribute(AttributeKeyCallbackResult, "success"))

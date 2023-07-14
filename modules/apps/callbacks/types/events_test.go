@@ -84,7 +84,7 @@ func (suite *CallbacksTypesTestSuite) TestEvents() {
 				ibctesting.MockPacketData, 1, ibctesting.MockPort, ibctesting.FirstChannelID,
 				ibctesting.MockFeePort, ibctesting.InvalidID, clienttypes.NewHeight(1, 100), 0,
 			),
-			types.CallbackTypeReceivePacket,
+			types.CallbackTypeWriteAcknowledgement,
 			types.CallbackData{
 				ContractAddr: ibctesting.TestAccAddress,
 				GasLimit:     100000,
@@ -93,7 +93,7 @@ func (suite *CallbacksTypesTestSuite) TestEvents() {
 			ibctesting.EventsMap{
 				types.EventTypeDestinationCallback: {
 					sdk.AttributeKeyModule:                    types.ModuleName,
-					types.AttributeKeyCallbackTrigger:         string(types.CallbackTypeReceivePacket),
+					types.AttributeKeyCallbackTrigger:         string(types.CallbackTypeWriteAcknowledgement),
 					types.AttributeKeyCallbackAddress:         ibctesting.TestAccAddress,
 					types.AttributeKeyCallbackGasLimit:        "100000",
 					types.AttributeKeyCallbackSourcePortID:    ibctesting.MockPort,

@@ -186,7 +186,8 @@ func (suite *CallbacksTestSuite) TestProcessCallbackDataGetterError() {
 
 	ctx := suite.chainA.GetContext()
 	mockPacket := channeltypes.Packet{Sequence: 0}
-	callbackStack.ProcessCallback(ctx, mockPacket, types.CallbackTypeReceivePacket, invalidDataGetter, nil)
+	err := callbackStack.ProcessCallback(ctx, mockPacket, types.CallbackTypeWriteAcknowledgement, invalidDataGetter, nil)
+	suite.Require().NoError(err)
 
 	// Verify events
 	events := ctx.EventManager().Events().ToABCIEvents()
@@ -194,7 +195,7 @@ func (suite *CallbacksTestSuite) TestProcessCallbackDataGetterError() {
 
 	newCtx := sdk.Context{}.WithEventManager(sdk.NewEventManager())
 	expCallbackData, _, expError := invalidDataGetter()
-	types.EmitCallbackEvent(newCtx, mockPacket, types.CallbackTypeReceivePacket, expCallbackData, expError)
+	types.EmitCallbackEvent(newCtx, mockPacket, types.CallbackTypeWriteAcknowledgement, expCallbackData, expError)
 	expEvents := newCtx.EventManager().Events().ToABCIEvents()
 
 	suite.Require().Equal(expEvents, events)
