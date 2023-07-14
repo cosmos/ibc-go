@@ -12,6 +12,8 @@ import (
 	solomachine "github.com/cosmos/ibc-go/v7/modules/light-clients/06-solomachine"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 )
 
 // TestVerifyUpgrade currently only tests the interface into the contract.
