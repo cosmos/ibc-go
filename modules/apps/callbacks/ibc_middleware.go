@@ -21,7 +21,7 @@ var (
 // IBCMiddleware implements the ICS26 callbacks for the ibc-callbacks middleware given
 // the underlying application.
 type IBCMiddleware struct {
-	app         types.PacketUnmarshalerIBCModule
+	app         types.PacketInfoProviderIBCModule
 	ics4Wrapper porttypes.ICS4Wrapper
 
 	contractKeeper types.ContractKeeper
@@ -34,9 +34,9 @@ func NewIBCMiddleware(
 	ics4Wrapper porttypes.ICS4Wrapper,
 	contractKeeper types.ContractKeeper,
 ) IBCMiddleware {
-	packetUnmarshalerApp, ok := app.(types.PacketUnmarshalerIBCModule)
+	packetUnmarshalerApp, ok := app.(types.PacketInfoProviderIBCModule)
 	if !ok {
-		panic(fmt.Sprintf("underlying application does not implement %T", (*types.PacketUnmarshalerIBCModule)(nil)))
+		panic(fmt.Sprintf("underlying application does not implement %T", (*types.PacketInfoProviderIBCModule)(nil)))
 	}
 	return IBCMiddleware{
 		app:            packetUnmarshalerApp,

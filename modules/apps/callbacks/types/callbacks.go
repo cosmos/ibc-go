@@ -7,7 +7,7 @@ import (
 
 // PacketUnmarshalerIBCModule is an interface that combines the IBCModule and PacketInfoProvider
 // interfaces to assert that the underlying application supports both.
-type PacketUnmarshalerIBCModule interface {
+type PacketInfoProviderIBCModule interface {
 	porttypes.IBCModule
 	porttypes.PacketInfoProvider
 }
