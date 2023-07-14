@@ -26,9 +26,9 @@ import (
 )
 
 var (
-	_ module.BeginBlockAppModule = AppModule{}
-	_ module.AppModuleBasic      = AppModuleBasic{}
-	_ module.AppModuleSimulation = AppModule{}
+	_ module.AppModuleBasic      = (*AppModuleBasic)(nil)
+	_ module.AppModuleSimulation = (*AppModule)(nil)
+	_ appmodule.AppModule        = (*AppModule)(nil)
 )
 
 // ----------------------------------------------------------------------------
@@ -144,7 +144,7 @@ func (AppModule) ConsensusVersion() uint64 { return 1 }
 // BeginBlock executes all ABCI BeginBlock logic respective to the capability module.
 // BeginBlocker calls InitMemStore to assert that the memory store is initialized.
 // It's safe to run multiple times.
-func (am AppModule) BeginBlock(ctx sdk.Context, _ abci.RequestBeginBlock) {
+func (am AppModule) BeginBlock(ctx sdk.Context) {
 	defer telemetry.ModuleMeasureSince(types.ModuleName, time.Now(), telemetry.MetricKeyBeginBlocker)
 
 	am.keeper.InitMemStore(ctx)
@@ -160,7 +160,7 @@ func (AppModule) GenerateGenesisState(simState *module.SimulationState) {
 }
 
 // RegisterStoreDecoder registers a decoder for capability module's types
-func (am AppModule) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
+func (am AppModule) RegisterStoreDecoder(sdr simtypes.StoreDecoderRegistry) {
 	sdr[types.StoreKey] = simulation.NewDecodeStore(am.cdc)
 }
 
