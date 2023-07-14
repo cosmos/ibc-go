@@ -62,6 +62,7 @@ func (s *E2ETestSuite) BroadcastMessages(ctx context.Context, chain *cosmos.Cosm
 
 	chainA, chainB := s.GetChains()
 	s.Require().NoError(test.WaitForBlocks(ctx, 2, chainA, chainB))
+
 	return resp
 }
 
