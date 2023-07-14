@@ -10,7 +10,7 @@ import (
 // state.
 func (k Keeper) InitGenesis(ctx sdk.Context, gs types.GenesisState) error {
 	for _, contract := range gs.Contracts {
-		err := k.importWasmCode(ctx, contract.CodeIdKey, contract.ContractCode)
+		err := k.importWasmCode(ctx, contract.ContractCode)
 		if err != nil {
 			return err
 		}
@@ -27,7 +27,6 @@ func (k Keeper) ExportGenesis(ctx sdk.Context) types.GenesisState {
 	var genesisState types.GenesisState
 	for ; iterator.Valid(); iterator.Next() {
 		genesisState.Contracts = append(genesisState.Contracts, types.GenesisContract{
-			CodeIdKey:    iterator.Key(),
 			ContractCode: iterator.Value(),
 		})
 	}
