@@ -1,6 +1,8 @@
 package keeper_test
 
 import (
+	"strconv"
+
 	sdkmath "cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -152,18 +154,23 @@ func (suite *KeeperTestSuite) TestDistributeFeeEvent() {
 			types.EventTypeDistributeFee,
 			sdk.NewAttribute(types.AttributeKeyReceiver, suite.chainA.SenderAccount.GetAddress().String()),
 			sdk.NewAttribute(types.AttributeKeyFee, defaultRecvFee.String()),
+			sdk.NewAttribute("msg_index", strconv.Itoa(0)),
 		),
 		sdk.NewEvent(
 			types.EventTypeDistributeFee,
 			sdk.NewAttribute(types.AttributeKeyReceiver, suite.chainA.SenderAccount.GetAddress().String()),
 			sdk.NewAttribute(types.AttributeKeyFee, defaultAckFee.String()),
+			sdk.NewAttribute("msg_index", strconv.Itoa(0)),
 		),
 		sdk.NewEvent(
 			types.EventTypeDistributeFee,
 			sdk.NewAttribute(types.AttributeKeyReceiver, suite.chainA.SenderAccount.GetAddress().String()),
 			sdk.NewAttribute(types.AttributeKeyFee, defaultTimeoutFee.String()),
+			sdk.NewAttribute("msg_index", strconv.Itoa(0)),
 		),
 	}.ToABCIEvents()
+	var indexSet map[string]struct{}
+	expectedEvents = sdk.MarkEventsToIndex(expectedEvents, indexSet)
 
 	for _, evt := range expectedEvents {
 		suite.Require().Contains(events, evt)
