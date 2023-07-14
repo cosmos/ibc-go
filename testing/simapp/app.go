@@ -537,6 +537,8 @@ func NewSimApp(
 	transferStack = transfer.NewIBCModule(app.TransferKeeper)
 	transferStack = ibcfee.NewIBCMiddleware(transferStack, app.IBCFeeKeeper)
 	transferStack = ibccallbacks.NewIBCMiddleware(transferStack, app.IBCFeeKeeper, app.MockKeeper)
+	// Since the callbacks middleware itself is an ics4wrapper, it needs to be passed to the transfer keeper
+	app.TransferKeeper.WithICS4Wrapper(transferStack.(porttypes.Middleware))
 
 	// Add transfer stack to IBC Router
 	ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferStack)
@@ -552,6 +554,8 @@ func NewSimApp(
 	icaControllerStack = icacontroller.NewIBCMiddleware(icaControllerStack, app.ICAControllerKeeper)
 	icaControllerStack = ibcfee.NewIBCMiddleware(icaControllerStack, app.IBCFeeKeeper)
 	icaControllerStack = ibccallbacks.NewIBCMiddleware(icaControllerStack, app.IBCFeeKeeper, app.MockKeeper)
+	// Since the callbacks middleware itself is an ics4wrapper, it needs to be passed to the ica controller keeper
+	app.ICAControllerKeeper.WithICS4Wrapper(icaControllerStack.(porttypes.Middleware))
 
 	// RecvPacket, message that originates from core IBC and goes down to app, the flow is:
 	// channel.RecvPacket -> callbacks.OnRecvPacket -> fee.OnRecvPacket -> icaHost.OnRecvPacket
@@ -560,6 +564,8 @@ func NewSimApp(
 	icaHostStack = icahost.NewIBCModule(app.ICAHostKeeper)
 	icaHostStack = ibcfee.NewIBCMiddleware(icaHostStack, app.IBCFeeKeeper)
 	icaHostStack = ibccallbacks.NewIBCMiddleware(icaHostStack, app.IBCFeeKeeper, app.MockKeeper)
+	// Since the callbacks middleware itself is an ics4wrapper, it needs to be passed to the icahost keeper
+	app.ICAHostKeeper.WithICS4Wrapper(icaHostStack.(porttypes.Middleware))
 
 	// Add host, controller & ica auth modules to IBC router
 	ibcRouter.

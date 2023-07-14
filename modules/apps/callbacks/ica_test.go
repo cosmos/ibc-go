@@ -2,6 +2,7 @@ package ibccallbacks_test
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/cosmos/gogoproto/proto"
 
@@ -10,11 +11,11 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
+	icacontrollertypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
 	icahosttypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/types"
 	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
 	"github.com/cosmos/ibc-go/v7/modules/apps/callbacks/types"
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
 func (suite *CallbacksTestSuite) TestICACallbacks() {
@@ -163,24 +164,35 @@ func (suite *CallbacksTestSuite) TestICATimeoutCallbacks() {
 
 // ExecuteICATx executes a stakingtypes.MsgDelegate on chainB by sending a packet containing the msg to chainB
 func (suite *CallbacksTestSuite) ExecuteICATx(icaAddress, memo string, seq uint64) {
-	// build the interchain accounts packet
-	packet := suite.buildICAMsgDelegatePacket(icaAddress, clienttypes.NewHeight(1, 100), 0, seq, memo)
+	timeoutTimestamp := uint64(suite.chainA.GetContext().BlockTime().Add(time.Minute).UnixNano())
+	icaOwner := suite.chainA.SenderAccount.GetAddress().String()
+	connectionID := suite.path.EndpointA.ConnectionID
+	// build the interchain accounts packet data
+	packetData := suite.buildICAMsgDelegatePacketData(icaAddress, memo)
+	msg := icacontrollertypes.NewMsgSendTx(icaOwner, connectionID, timeoutTimestamp, packetData)
 
-	// write packet commitment to state on chainA and commit state
-	commitment := channeltypes.CommitPacket(suite.chainA.GetSimApp().AppCodec(), packet)
-	suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.SetPacketCommitment(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, seq, commitment)
-	suite.chainA.NextBlock()
+	res, err := suite.chainA.SendMsgs(msg)
+	suite.Require().NoError(err) // message committed
+	packet, err := ibctesting.ParsePacketFromEvents(res.GetEvents().ToABCIEvents())
+	suite.Require().NoError(err)
 
-	err := suite.path.RelayPacket(packet)
+	err = suite.path.RelayPacket(packet)
 	suite.Require().NoError(err)
 }
 
 // ExecuteICATx executes a stakingtypes.MsgDelegate on chainB by sending a packet containing the msg to chainB
 func (suite *CallbacksTestSuite) ExecuteICATimeout(icaAddress, memo string, seq uint64) {
-	timeoutHeight := clienttypes.GetSelfHeight(suite.chainB.GetContext())
 	timeoutTimestamp := uint64(suite.chainB.GetContext().BlockTime().UnixNano())
-	// build the interchain accounts packet
-	packet := suite.buildICAMsgDelegatePacket(icaAddress, timeoutHeight, timeoutTimestamp, seq, memo)
+	icaOwner := suite.chainA.SenderAccount.GetAddress().String()
+	connectionID := suite.path.EndpointA.ConnectionID
+	// build the interchain accounts packet data
+	packetData := suite.buildICAMsgDelegatePacketData(icaAddress, memo)
+	msg := icacontrollertypes.NewMsgSendTx(icaOwner, connectionID, timeoutTimestamp, packetData)
+
+	res, err := suite.chainA.SendMsgs(msg)
+	suite.Require().NoError(err) // message committed
+	packet, err := ibctesting.ParsePacketFromEvents(res.GetEvents().ToABCIEvents())
+	suite.Require().NoError(err)
 
 	module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID)
 	suite.Require().NoError(err)
@@ -192,11 +204,8 @@ func (suite *CallbacksTestSuite) ExecuteICATimeout(icaAddress, memo string, seq 
 	suite.Require().NoError(err)
 }
 
-// buildICAMsgDelegatePacket builds a packet containing a stakingtypes.MsgDelegate to be executed on chainB
-func (suite *CallbacksTestSuite) buildICAMsgDelegatePacket(
-	icaAddress string, timeoutHeight clienttypes.Height,
-	timeoutTimestamp, seq uint64, memo string,
-) channeltypes.Packet {
+// buildICAMsgDelegatePacketData builds a packetData containing a stakingtypes.MsgDelegate to be executed on chainB
+func (suite *CallbacksTestSuite) buildICAMsgDelegatePacketData(icaAddress string, memo string) icatypes.InterchainAccountPacketData {
 	// prepare a simple stakingtypes.MsgDelegate to be used as the interchain account msg executed on chainB
 	validatorAddr := (sdk.ValAddress)(suite.chainB.Vals.Validators[0].Address)
 	msgDelegate := &stakingtypes.MsgDelegate{
@@ -218,16 +227,5 @@ func (suite *CallbacksTestSuite) buildICAMsgDelegatePacket(
 		Memo: memo,
 	}
 
-	packet := channeltypes.NewPacket(
-		icaPacketData.GetBytes(),
-		seq,
-		suite.path.EndpointA.ChannelConfig.PortID,
-		suite.path.EndpointA.ChannelID,
-		suite.path.EndpointB.ChannelConfig.PortID,
-		suite.path.EndpointB.ChannelID,
-		timeoutHeight,
-		timeoutTimestamp,
-	)
-
-	return packet
+	return icaPacketData
 }

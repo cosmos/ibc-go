@@ -113,7 +113,18 @@ func (suite *CallbacksTestSuite) TestWriteAcknowledgement() {
 	icaAddress := suite.SetupICATest()
 
 	// build packet
-	packet := suite.buildICAMsgDelegatePacket(icaAddress, clienttypes.NewHeight(1, 100), 0, 1, "")
+	icaPacketData := suite.buildICAMsgDelegatePacketData(icaAddress, "")
+
+	packet := channeltypes.NewPacket(
+		icaPacketData.GetBytes(),
+		1,
+		suite.path.EndpointA.ChannelConfig.PortID,
+		suite.path.EndpointA.ChannelID,
+		suite.path.EndpointB.ChannelConfig.PortID,
+		suite.path.EndpointB.ChannelID,
+		clienttypes.NewHeight(1, 100),
+		0,
+	)
 
 	icaHostStack, ok := suite.chainB.App.GetIBCKeeper().Router.GetRoute(icahosttypes.SubModuleName)
 	suite.Require().True(ok)

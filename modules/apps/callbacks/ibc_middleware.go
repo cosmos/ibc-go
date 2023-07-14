@@ -111,6 +111,41 @@ func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet
 	return appAck
 }
 
+// SendPacket implements the ICS4 Wrapper interface
+func (im IBCMiddleware) SendPacket(
+	ctx sdk.Context,
+	chanCap *capabilitytypes.Capability,
+	sourcePort string,
+	sourceChannel string,
+	timeoutHeight clienttypes.Height,
+	timeoutTimestamp uint64,
+	data []byte,
+) (uint64, error) {
+	seq, err := im.ics4Wrapper.SendPacket(ctx, chanCap, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, data)
+	if err != nil {
+		return seq, err
+	}
+
+	// we use the reconstructed packet to get the packet sender, this should be fine since the only missing fields are
+	// the destination port and channel. And GetPacketSender is a static method that does not depend on the context, so
+	// it should be fine to use the reconstructed packet.
+	reconstructedPacket := channeltypes.NewPacket(data, seq, sourcePort, sourceChannel, "", "", timeoutHeight, timeoutTimestamp)
+	packetSenderAddress := im.GetPacketSender(reconstructedPacket)
+
+	callbackDataGetter := func() (types.CallbackData, error) {
+		return types.GetSourceCallbackData(im.app, data, ctx.GasMeter().GasRemaining())
+	}
+	callbackExecutor := func(cachedCtx sdk.Context, callbackAddress string) error {
+		return im.contractKeeper.IBCSendPacketCallback(
+			cachedCtx, chanCap, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, data, callbackAddress, packetSenderAddress,
+		)
+	}
+
+	im.processCallback(ctx, reconstructedPacket, types.CallbackTypeSendPacket, callbackDataGetter, callbackExecutor)
+
+	return seq, nil
+}
+
 // processCallback executes the callbackExecutor and reverts state changes if the callbackExecutor fails.
 func (im IBCMiddleware) processCallback(
 	ctx sdk.Context, packet channeltypes.Packet, callbackType types.CallbackType,
@@ -201,19 +236,6 @@ func (im IBCMiddleware) OnChanCloseInit(ctx sdk.Context, portID, channelID strin
 // OnChanCloseConfirm defers to the underlying application
 func (im IBCMiddleware) OnChanCloseConfirm(ctx sdk.Context, portID, channelID string) error {
 	return im.app.OnChanCloseConfirm(ctx, portID, channelID)
-}
-
-// SendPacket implements the ICS4 Wrapper interface
-func (im IBCMiddleware) SendPacket(
-	ctx sdk.Context,
-	chanCap *capabilitytypes.Capability,
-	sourcePort string,
-	sourceChannel string,
-	timeoutHeight clienttypes.Height,
-	timeoutTimestamp uint64,
-	data []byte,
-) (uint64, error) {
-	return im.ics4Wrapper.SendPacket(ctx, chanCap, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, data)
 }
 
 // WriteAcknowledgement implements the ICS4 Wrapper interface
