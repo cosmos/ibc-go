@@ -84,7 +84,7 @@ func (k Keeper) StoreCode(goCtx context.Context, msg *types.MsgStoreCode) (*type
   ctx.EventManager().EmitEvents(sdk.Events{
     sdk.NewEvent(
       clienttypes.EventTypeStoreWasmCode,
-      sdk.NewAttribute(clienttypes.AttributeKeyWasmCodeHas, hex.EncodeToString(codeHas)),
+      sdk.NewAttribute(clienttypes.AttributeKeyWasmCodeHas, hex.EncodeToString(codeHash)),
     ),
     sdk.NewEvent(
       sdk.EventTypeMessage,
