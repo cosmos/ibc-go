@@ -408,7 +408,6 @@ func (chain *TestChain) GetValsAtHeight(height int64) (*cmttypes.ValidatorSet, b
 
 	histInfo, err := chain.App.GetStakingKeeper().GetHistoricalInfo(chain.GetContext(), height)
 	if err != nil {
-		fmt.Println(err)
 		return nil, false
 	}
 
