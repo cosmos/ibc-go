@@ -28,20 +28,20 @@ type MockKeeper struct {
 // It implements the interface functions expected by the ibccallbacks middleware
 // so that it can be tested with simapp.
 type MockContractKeeper struct {
-	SendPacketCallbackCounter *types.CallbackCounter
-	AckCallbackCounter        *types.CallbackCounter
-	TimeoutCallbackCounter    *types.CallbackCounter
-	RecvPacketCallbackCounter *types.CallbackCounter
+	SendPacketCallbackCounter           *types.CallbackCounter
+	AckCallbackCounter                  *types.CallbackCounter
+	TimeoutCallbackCounter              *types.CallbackCounter
+	WriteAcknowledgementCallbackCounter *types.CallbackCounter
 }
 
 // NewKeeper creates a new mock Keeper.
 func NewMockKeeper() MockKeeper {
 	return MockKeeper{
 		MockContractKeeper: MockContractKeeper{
-			SendPacketCallbackCounter: types.NewCallbackCounter(),
-			AckCallbackCounter:        types.NewCallbackCounter(),
-			TimeoutCallbackCounter:    types.NewCallbackCounter(),
-			RecvPacketCallbackCounter: types.NewCallbackCounter(),
+			SendPacketCallbackCounter:           types.NewCallbackCounter(),
+			AckCallbackCounter:                  types.NewCallbackCounter(),
+			TimeoutCallbackCounter:              types.NewCallbackCounter(),
+			WriteAcknowledgementCallbackCounter: types.NewCallbackCounter(),
 		},
 	}
 }
@@ -103,7 +103,7 @@ func (k MockContractKeeper) IBCWriteAcknowledgementCallback(
 	contractAddress,
 	packetSenderAddress string,
 ) error {
-	return k.processMockCallbacks(ctx, callbacktypes.CallbackTypeWriteAcknowledgement, k.RecvPacketCallbackCounter)
+	return k.processMockCallbacks(ctx, callbacktypes.CallbackTypeWriteAcknowledgement, k.WriteAcknowledgementCallbackCounter)
 }
 
 func (k MockContractKeeper) processMockCallbacks(

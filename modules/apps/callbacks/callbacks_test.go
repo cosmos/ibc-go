@@ -151,10 +151,10 @@ func (suite *CallbacksTestSuite) AssertHasExecutedExpectedCallback(callbackType 
 		suite.Require().Equal(successCount, suite.chainA.GetSimApp().MockKeeper.SendPacketCallbackCounter.Success)
 		suite.Require().Equal(1-successCount, suite.chainA.GetSimApp().MockKeeper.SendPacketCallbackCounter.Failure)
 		suite.Require().True(suite.chainA.GetSimApp().MockKeeper.TimeoutCallbackCounter.IsZero())
-		suite.Require().True(suite.chainB.GetSimApp().MockKeeper.RecvPacketCallbackCounter.IsZero())
+		suite.Require().True(suite.chainB.GetSimApp().MockKeeper.WriteAcknowledgementCallbackCounter.IsZero())
 	case types.CallbackTypeWriteAcknowledgement:
-		suite.Require().Equal(successCount, suite.chainB.GetSimApp().MockKeeper.RecvPacketCallbackCounter.Success)
-		suite.Require().Equal(1-successCount, suite.chainB.GetSimApp().MockKeeper.RecvPacketCallbackCounter.Failure)
+		suite.Require().Equal(successCount, suite.chainB.GetSimApp().MockKeeper.WriteAcknowledgementCallbackCounter.Success)
+		suite.Require().Equal(1-successCount, suite.chainB.GetSimApp().MockKeeper.WriteAcknowledgementCallbackCounter.Failure)
 		suite.Require().True(suite.chainA.GetSimApp().MockKeeper.SendPacketCallbackCounter.IsZero())
 		suite.Require().True(suite.chainA.GetSimApp().MockKeeper.TimeoutCallbackCounter.IsZero())
 		suite.Require().True(suite.chainB.GetSimApp().MockKeeper.AckCallbackCounter.IsZero())
@@ -164,18 +164,18 @@ func (suite *CallbacksTestSuite) AssertHasExecutedExpectedCallback(callbackType 
 		suite.Require().Equal(successCount, suite.chainA.GetSimApp().MockKeeper.SendPacketCallbackCounter.Success)
 		suite.Require().Equal(1-successCount, suite.chainA.GetSimApp().MockKeeper.SendPacketCallbackCounter.Failure)
 		suite.Require().True(suite.chainA.GetSimApp().MockKeeper.AckCallbackCounter.IsZero())
-		suite.Require().True(suite.chainB.GetSimApp().MockKeeper.RecvPacketCallbackCounter.IsZero())
+		suite.Require().True(suite.chainB.GetSimApp().MockKeeper.WriteAcknowledgementCallbackCounter.IsZero())
 	case "none":
 		suite.Require().True(suite.chainA.GetSimApp().MockKeeper.AckCallbackCounter.IsZero())
 		suite.Require().True(suite.chainA.GetSimApp().MockKeeper.TimeoutCallbackCounter.IsZero())
-		suite.Require().True(suite.chainB.GetSimApp().MockKeeper.RecvPacketCallbackCounter.IsZero())
+		suite.Require().True(suite.chainB.GetSimApp().MockKeeper.WriteAcknowledgementCallbackCounter.IsZero())
 		suite.Require().True(suite.chainA.GetSimApp().MockKeeper.SendPacketCallbackCounter.IsZero())
 	default:
 		suite.FailNow("invalid callback type")
 	}
 	suite.Require().True(suite.chainB.GetSimApp().MockKeeper.AckCallbackCounter.IsZero())
 	suite.Require().True(suite.chainB.GetSimApp().MockKeeper.TimeoutCallbackCounter.IsZero())
-	suite.Require().True(suite.chainA.GetSimApp().MockKeeper.RecvPacketCallbackCounter.IsZero())
+	suite.Require().True(suite.chainA.GetSimApp().MockKeeper.WriteAcknowledgementCallbackCounter.IsZero())
 }
 
 func TestIBCCallbacksTestSuite(t *testing.T) {
